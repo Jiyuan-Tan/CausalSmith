@@ -4,16 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.Convex.Cone.InnerDual
-import Mathlib.Analysis.InnerProductSpace.Adjoint
+module
+public import Mathlib.Analysis.Convex.Cone.InnerDual
+public import Mathlib.Analysis.InnerProductSpace.Adjoint
 
 /-! # Conic Duality
 
-This file develops the conic linear-programming duality backbone for partial
-identification bounds. It treats sharp bounds as optimal values of linear
-programs over a cone in real Hilbert spaces and proves weak duality, a Farkas
-feasibility alternative, primal attainment under a closedness qualification,
-and zero duality gap under the same qualification.
+This file develops general conic linear-programming duality over real Hilbert
+spaces. It proves weak duality, a Farkas feasibility alternative, primal
+attainment under a closedness qualification, and zero duality gap under the
+same qualification.
 
 The main structure `ConicProgram` packages the cone `K`, constraint operator
 `A`, right-hand side `b`, and objective direction `c`. The predicates
@@ -27,10 +27,12 @@ The set `augmentedImage` is the closedness constraint qualification used by
 `strong_duality_primal_attained` and `strong_duality_zero_gap`, which provide
 primal attainment and no duality gap for feasible bounded-below programs.
 
-The Hilbert-space formulation covers infinite-dimensional function spaces used
-by proxy and bridge problems. Measure-cone weak-star duality is intentionally
-left outside this module; the module note at the end explains the missing
+The declarations have no causal or partial-identification hypotheses and no
+consumer in this subtree. Measure-cone weak-star duality is intentionally left
+outside this module; the module note at the end explains the missing
 signed-measure and cone infrastructure. -/
+
+@[expose] public section
 
 open scoped RealInnerProductSpace
 
@@ -41,8 +43,10 @@ variable {E F : Type*}
   [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
   [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F]
 
-/-- Primal data of a conic linear program over real Hilbert spaces:
-minimize `⟪c, x⟫` subject to `A x = b` and `x ∈ K`. -/
+/-- A conic linear program on [real Hilbert decision and constraint
+spaces](hyp:E,F) stores [a proper constraint cone](hyp:K), [a continuous linear
+constraint operator](hyp:A), [its right-hand side](hyp:b), and [an objective
+direction](hyp:c). -/
 structure ConicProgram (E F : Type*)
     [NormedAddCommGroup E] [InnerProductSpace ℝ E] [CompleteSpace E]
     [NormedAddCommGroup F] [InnerProductSpace ℝ F] [CompleteSpace F] where
@@ -50,7 +54,7 @@ structure ConicProgram (E F : Type*)
   K : ProperCone ℝ E
   /-- The linear constraint operator. -/
   A : E →L[ℝ] F
-  /-- The right-hand side (observed-data target). -/
+  /-- The right-hand side of the equality constraint. -/
   b : F
   /-- The objective direction. -/
   c : E
@@ -59,40 +63,44 @@ namespace ConicProgram
 
 variable (P : ConicProgram E F)
 
-/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P) and [a candidate decision vector](hyp:x), the
-[primal-feasibility predicate](goal) holds precisely when [the vector satisfies the program's
-linear equality constraint](step:1) and [belongs to its constraint cone](step:2).
+/-- [Primal feasibility](goal) for [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F) means that [a candidate decision
+vector](hyp:x) [satisfies the linear equality constraint](step:1) and [belongs
+to the constraint cone](step:2).
 
 A point is **primal feasible** when it satisfies the equality constraint and
 lies in the cone. -/
 def PrimalFeasible (x : E) : Prop := P.A x = P.b ∧ x ∈ P.K
 
-/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P) and [a candidate dual multiplier](hyp:y), the
-[dual-feasibility predicate](goal) holds precisely when [the program's objective direction
-minus the adjoint constraint operator applied to that multiplier belongs to the dual of the
-constraint cone](step:1).
+/-- [Dual feasibility](goal) for [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F) means that [a candidate dual
+multiplier](hyp:y) [leaves a reduced cost in the dual constraint cone](step:1).
 
 A dual multiplier is **dual feasible** when the reduced cost `c - Aᵀ y` lies in
 the dual cone `K⋆ = innerDual K`. -/
 def DualFeasible (y : F) : Prop :=
   P.c - (ContinuousLinearMap.adjoint P.A) y ∈ ProperCone.innerDual (P.K : Set E)
 
-/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P), its [primal optimal value](goal) is the infimum of the
-objective inner products over all primal-feasible decision vectors.
+/-- The [primal optimal value](goal) of [a conic program](hyp:P) on [real
+Hilbert decision and constraint spaces](hyp:E,F) is the infimum of its objective
+over all primal-feasible decision vectors.
 
 The **primal optimal value** `inf { ⟪c, x⟫ : x primal feasible }`. -/
 noncomputable def primalValue : ℝ :=
   sInf ((fun x => ⟪P.c, x⟫) '' {x | P.PrimalFeasible x})
 
-/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P), its [dual optimal value](goal) is the supremum of the
-inner products between its right-hand side and all dual-feasible multipliers.
+/-- The [dual optimal value](goal) of [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F) is the supremum of the pairing between
+its right-hand side and all dual-feasible multipliers.
 
 The **dual optimal value** `sup { ⟪b, y⟫ : y dual feasible }`. -/
 noncomputable def dualValue : ℝ :=
   sSup ((fun y => ⟪P.b, y⟫) '' {y | P.DualFeasible y})
 
-/-- **Weak duality (pointwise).**  Any dual-feasible objective value lower-bounds
-any primal-feasible objective value. -/
+/-- **Weak duality (pointwise).** For [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F), [a primal-feasible decision
+vector](hyp:x,hx) and [a dual-feasible multiplier](hyp:y,hy) satisfy [the dual
+objective value being no larger than the primal objective value](goal). -/
 theorem weak_duality {x : E} {y : F}
     (hx : P.PrimalFeasible x) (hy : P.DualFeasible y) :
     ⟪P.b, y⟫ ≤ ⟪P.c, x⟫ := by
@@ -106,9 +114,11 @@ theorem weak_duality {x : E} {y : F}
   have ec := real_inner_comm x P.c
   linarith
 
-/-- **Weak duality (value form).**  When both programs are feasible,
-`dualValue ≤ primalValue`.  (Boundedness is not needed: the pointwise bound
-exhibits `primalValue` as an explicit upper bound for the dual values.) -/
+/-- **Weak duality (value form).** For [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F), [nonempty primal feasibility](hyp:hP)
+and [nonempty dual feasibility](hyp:hD) imply [that the dual optimal value is no
+larger than the primal optimal value](goal). Boundedness is unnecessary because
+pointwise weak duality gives an explicit bound. -/
 theorem dualValue_le_primalValue
     (hP : {x | P.PrimalFeasible x}.Nonempty) (hD : {y | P.DualFeasible y}.Nonempty) :
     P.dualValue ≤ P.primalValue := by
@@ -119,10 +129,10 @@ theorem dualValue_le_primalValue
   rintro _ ⟨x, hx, rfl⟩
   exact P.weak_duality hx hy
 
-/-- **Farkas alternative / feasibility engine.** For [a target point `b`](hyp:b),
-[`b` lies in the closed image cone `A(K)` if and only if every dual direction `y`
-whose pullback `Aᵀ y` lies in the dual cone of `K` pairs nonnegatively with
-`b`](goal).
+/-- **Farkas alternative.** For [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F), [a target point](hyp:b) [lies in the
+closed image cone exactly when it pairs nonnegatively with every dual direction
+whose pullback lies in the dual constraint cone](goal).
 
 This is the strong-duality engine: a restatement of
 `ProperCone.relative_hyperplane_separation` in conic-program notation.
@@ -134,9 +144,9 @@ theorem farkas {b : F} :
         → 0 ≤ ⟪b, y⟫ :=
   ProperCone.relative_hyperplane_separation
 
-/-- In [complete real inner-product decision and constraint spaces](hyp:E,F), for [a conic program](hyp:P), the [augmented image](goal) is the set of pairs
-consisting of the constraint-operator image and objective inner product of each decision
-vector in its constraint cone.
+/-- The [augmented image](goal) of [a conic program](hyp:P) on [real Hilbert
+decision and constraint spaces](hyp:E,F) pairs each feasible cone vector's
+constraint image with its objective value.
 
 The **augmented image cone** `{ (A x, ⟪c, x⟫) : x ∈ K }` in `F × ℝ`.  Its
 closedness is the constraint qualification for primal attainment, and the
@@ -144,13 +154,11 @@ geometry (a boundary point `(b, primalValue)`) is where the dual certificate is
 read off. -/
 def augmentedImage : Set (F × ℝ) := (fun x => (P.A x, ⟪P.c, x⟫)) '' (P.K : Set E)
 
-/-- **Strong duality I — primal attainment (closedness CQ).** For [a conic program that is
-primal feasible](hyp:hP) and whose [feasible objective values are bounded below](hyp:hbdd),
-if [the augmented image cone `{(Ax, ⟪c,x⟫) : x ∈ K}` is closed](hyp:hCQ) — the constraint
-qualification separating attained optima from mere infima — then [the primal optimum is
-attained: some primal-feasible point `x` achieves the objective value `⟪c,x⟫ = primalValue`
-exactly](goal). This is the "there is an extremal data-generating distribution" half of
-sharpness.
+/-- **Strong duality I — primal attainment.** For [a conic program](hyp:P) on
+[real Hilbert decision and constraint spaces](hyp:E,F), [nonempty primal
+feasibility](hyp:hP), [a lower bound on feasible objective values](hyp:hbdd),
+and [closedness of the augmented image](hyp:hCQ) ensure [that a
+primal-feasible point attains the primal optimal value](goal).
 
 Proof: the value set `{⟪c,x⟫ : x feasible}` is the slice `r ↦ (b, r)` of the
 closed `augmentedImage`, hence closed; a nonempty closed set in `ℝ` bounded below
@@ -174,11 +182,11 @@ theorem strong_duality_primal_attained
   obtain ⟨x, hx, hxval⟩ := hmem
   exact ⟨x, hx, hxval⟩
 
-/-- **Strong duality II — zero gap (closedness CQ).** For [a conic program that is primal
-feasible](hyp:hP) and whose [feasible objective values are bounded below](hyp:hbdd), if
-[the augmented image cone is closed](hyp:hCQ) — the same constraint qualification as primal
-attainment — then [there is no duality gap: the primal optimal value equals the dual optimal
-value, `primalValue = dualValue`](goal).
+/-- **Strong duality II — zero gap.** For [a conic program](hyp:P) on [real
+Hilbert decision and constraint spaces](hyp:E,F), [nonempty primal
+feasibility](hyp:hP), [a lower bound on feasible objective values](hyp:hbdd),
+and [closedness of the augmented image](hyp:hCQ) imply [equality of the primal
+and dual optimal values](goal).
 
 Closedness alone suffices — **no Slater / interior condition is needed** (and the
 classical interior Slater is anyway vacuous for the positive cone of an

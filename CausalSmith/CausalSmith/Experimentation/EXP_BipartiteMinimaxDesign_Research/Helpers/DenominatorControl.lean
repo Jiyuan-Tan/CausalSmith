@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Control-arm denominator variance bound
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.unusedSimpArgs false
@@ -28,11 +31,11 @@ lemma ctrlDenominator_var_le (E : BipartiteExperiment I O)
     (hdeg : BoundedOutcomeDegree E dbar) (hdep : BoundedOverlapDependency E Dbar)
     (q : I → ℝ) (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1)
     (hq : FeasibleDesign ε B q) :
-    (bernoulliDesign q hq0 hq1).Var
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var
         (fun z => ∑ i, E.expC z i / E.piC q i)
       ≤ (Fintype.card O : ℝ) * (Dbar * denominatorKernelBound ε dbar) := by
   classical
-  let D := bernoulliDesign q hq0 hq1
+  let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
   let X : O → (I → Bool) → ℝ := fun i z => E.expC z i / E.piC q i
   have hlt : ∀ k, q k < 1 := fun k => by linarith [(hq.floor k).2, hε0]
   have hmeanX : ∀ i, D.E (X i) = 1 := by
@@ -89,7 +92,7 @@ lemma ctrlDenominator_var_le (E : BipartiteExperiment I O)
       _ ≤ Dbar * denominatorKernelBound ε dbar :=
             mul_le_mul_of_nonneg_right (hdep.2 i) hK_nonneg
   calc
-    (bernoulliDesign q hq0 hq1).Var (fun z => ∑ i, E.expC z i / E.piC q i)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var (fun z => ∑ i, E.expC z i / E.piC q i)
         = D.Var (fun z => ∑ i, X i z) := rfl
     _ = ∑ i : O, ∑ j : O, E.r0 q i j := hvar_eq
     _ ≤ ∑ _i : O, Dbar * denominatorKernelBound ε dbar :=

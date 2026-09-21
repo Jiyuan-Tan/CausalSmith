@@ -1,0 +1,365 @@
+\begin{proof}[Proof of \cref{obj:lem:poisson-inverse-count-risk}]
+Fix \(0<\epsilon<1/2\).  Put
+\[
+c_{\mathrm{out}}:=1+10\epsilon^{-1}+8\epsilon^{-2},\qquad
+c_{\mathrm{mar}}:=8\epsilon^{-2}+96(\epsilon^{-2}+\epsilon^{-3}),
+\]
+\[
+c_{\mathrm{bias}}:=2\max\{1,(\epsilon e)^{-1}\},
+\qquad
+C_\epsilon:=c_{\mathrm{bias}}+c_{\mathrm{out}}+4c_{\mathrm{mar}}+1 .
+\]
+These constants are positive.  We prove the two asserted inequalities with
+\(C=C_\epsilon\).  Fix \(d\), \(u,t>0\), and \(P\in\mathcal M_{d,\epsilon}\).
+For each cell write
+\[
+p_x:=\sum_{a\in\{0,1\}}\sum_{y\in\{0,1\}}P(x,a,y),
+\qquad
+s_{ax}:=\sum_{y\in\{0,1\}}P(x,a,y),
+\qquad
+q_{ax}:=P(x,a,1).
+\]
+Thus \(\sum_xp_x=1\), \(q_{ax}\le s_{ax}\le p_x\), and \(\sum_{x,a}q_{ax}\le1\).  By \cref{obj:def:model-class}, the overlap condition gives
+\[
+\epsilon p_x\le s_{ax}\le p_x,\qquad a\in\{0,1\}.
+\]
+% lean: poisson_inverse_count_risk
+
+\begin{enumerate}
+\item
+For \(a\in\{0,1\}\), let \(\bar a\) denote the opposite arm and define the scalar arm mean
+\[
+m_{ax}:=
+E\left[
+{S_{ax}\over u}\,
+{K_{0x}+K_{1x}+1\over K_{ax}+1}
+\right].
+\]
+Independence of the Poisson coordinates and linearity of expectation give
+\[
+E_P Z^H=\sum_x(m_{1x}-m_{0x}).
+\]
+Indeed, after expanding the summand defining \(Z^H\), each term is integrable by the polynomial growth bound
+\[
+\left|
+{S_{ax}\over u}\,
+{K_{0x}+K_{1x}+1\over K_{ax}+1}
+\right|
+\le
+|u^{-1}|(1+T)^2 ,
+\]
+where \(T\) is the total count over all displayed Poisson coordinates, and all polynomial moments of the finite product Poisson law are finite.  The product structure then reduces the expectation to the one-cell arm mean above. % lean: poisson_inverse_count_expectation_eq_arm_means
+
+\item
+For a Poisson variable \(J\) with mean \(\lambda\ge0\),
+\[
+E{1\over J+1}=
+\begin{cases}
+(1-e^{-\lambda})/\lambda,&\lambda>0,\\
+1,&\lambda=0.
+\end{cases}
+\]
+Define the arm outcome regression by
+\[
+\mu_{ax}:=
+\begin{cases}
+q_{ax}/s_{ax},& s_{ax}>0,\\
+0,& s_{ax}=0.
+\end{cases}
+\]
+Then \(q_{ax}=s_{ax}\mu_{ax}\) for all cells and arms, including zero-mass arms, and \(0\le \mu_{ax}\le1\).  Using \(E(S_{ax}/u)=q_{ax}\) and the preceding identity with
+\(\lambda=ts_{ax}\), one obtains the continuous formula
+\[
+m_{ax}
+=
+p_x\mu_{ax}-(p_x-s_{ax})\mu_{ax}e^{-ts_{ax}}.
+\]
+Since \(0\le \mu_{ax}\le1\), \(p_x-s_{ax}\le p_x\), and \(s_{ax}\ge\epsilon p_x\),
+\[
+|m_{ax}-p_x\mu_{ax}|
+\le p_x e^{-\epsilon t p_x}.
+\]
+Consequently, using \cref{obj:def:ate-functional},
+\[
+\left|E_P Z^H-\tau(P)\right|
+\le
+2\sum_x p_x e^{-\epsilon t p_x}.
+\]
+For every \(z\ge0\), \(z e^{-\epsilon tz}\le(\epsilon e t)^{-1}\), while
+\(\sum_xp_x=1\).  Hence
+\[
+\left|E_P Z^H-\tau(P)\right|
+\le
+2\min\left\{1,{d\over \epsilon e t}\right\}.
+\]
+Writing \(\xi=d/t\), the elementary inequality
+\[
+2\min\{1,\xi/(\epsilon e)\}
+\le
+2\max\{1,(\epsilon e)^{-1}\}\min\{1,\xi\}
+=
+c_{\mathrm{bias}}\min\{1,d/t\}
+\]
+gives
+\[
+\left|E_P Z^H-\tau(P)\right|
+\le C_\epsilon\min\{1,d/t\}.
+\]
+% lean: poisson_inverse_count_bias_of_expectation_eq
+
+\item
+We next bound the variance.  For a full count array \(\omega\), let
+\(\Delta^S_{ax}F(\omega)\) be the change in \(F\) after adding one to \(S_{ax}\), and let
+\(\Delta^K_{ax}F(\omega)\) be the change after adding one to \(K_{ax}\).  The finite-product Poisson add-one Poincare inequality gives, for \(F=Z^H\),
+\[
+\operatorname{Var}_P(Z^H)
+\le
+\sum_{x,a}
+u q_{ax}E\{(\Delta^S_{ax}Z^H)^2\}
++
+\sum_{x,a}
+t s_{ax}E\{(\Delta^K_{ax}Z^H)^2\}.
+\]
+The square-integrability hypotheses required for this inequality follow from the same polynomial growth estimate used above, applied also to the add-one increments. % lean: nestedPairedPoisson_addOne_poincare
+
+\item
+For the outcome-count increments,
+\[
+\Delta^S_{ax}Z^H
+=
+\pm u^{-1}\left(1+{K_{\bar a x}\over K_{ax}+1}\right),
+\]
+where the sign is irrelevant after squaring.  If
+\(\lambda=ts_{ax}\) and \(\nu=ts_{\bar a x}\), then \(\epsilon\nu\le\lambda\).  For independent
+\(J\sim\operatorname{Poi}(\lambda)\) and \(V\sim\operatorname{Poi}(\nu)\), set
+\[
+r_1:=E{1\over J+1},
+\qquad
+r_2:=E{1\over (J+1)^2}.
+\]
+The Poisson reciprocal bounds give
+\[
+\lambda r_1\le1,
+\qquad
+(1+\lambda)^2r_2\le8,
+\qquad
+r_1\ge0,
+\qquad
+r_2\ge0.
+\]
+Moreover \(E V=\nu\) and \(E V^2\le \nu+\nu^2\).  Thus product-measure factorization gives
+\[
+E\left(1+{V\over J+1}\right)^2
+\le
+1+2\nu r_1+(\nu+\nu^2)r_2.
+\]
+The overlap comparison \(\epsilon\nu\le\lambda\), together with \(\epsilon>0\), implies \(\nu\le\epsilon^{-1}\lambda\).  Hence
+\[
+2\nu r_1\le 2\epsilon^{-1}\lambda r_1\le2\epsilon^{-1},
+\]
+and, using \(r_2\le 8(1+\lambda)^{-2}\),
+\[
+\nu r_2
+\le
+8\epsilon^{-1}{\lambda\over(1+\lambda)^2}
+\le 8\epsilon^{-1},
+\qquad
+\nu^2r_2
+\le
+8\epsilon^{-2}{\lambda^2\over(1+\lambda)^2}
+\le8\epsilon^{-2}.
+\]
+Consequently
+\[
+E\left(1+{V\over J+1}\right)^2
+\le
+1+10\epsilon^{-1}+8\epsilon^{-2}
+=
+c_{\mathrm{out}}.
+\]
+Multiplying by the rate \(uq_{ax}\) and summing yields
+\[
+\sum_{x,a}u q_{ax}E\{(\Delta^S_{ax}Z^H)^2\}
+\le
+c_{\mathrm{out}}u^{-1}\sum_{x,a}q_{ax}
+\le
+c_{\mathrm{out}}u^{-1}.
+\]
+% lean: poisson_inverse_outcome_coordinate_energy_bound
+
+\item
+It remains to control the marginal-count increments.  In one fixed cell, write
+\[
+\theta_{ax}:=ts_{ax},\qquad
+\Theta_x:=tp_x,
+\]
+and, for \(\widetilde K_{ax}\sim\operatorname{Poi}(\theta_{ax})\), write
+\[
+\eta_{2,a}:=E{1\over (\widetilde K_{ax}+1)^2},\qquad
+\eta_{4,a}:=E{1\over ((\widetilde K_{ax}+1)(\widetilde K_{ax}+2))^2}.
+\]
+The reciprocal estimates are
+\[
+\eta_{2,a}\ge0,
+\qquad
+(1+\theta_{ax})^2\eta_{2,a}\le8,
+\qquad
+\eta_{4,a}\ge0,
+\qquad
+(1+\theta_{ax})^4\eta_{4,a}\le96.
+\]
+For a full count array \(\omega\), define
+\[
+\operatorname{cr}_{ax}(\omega):=
+{S_{ax}(\omega)\over u}{K_{\bar a x}(\omega)\over
+(K_{ax}(\omega)+1)(K_{ax}(\omega)+2)},
+\qquad
+\operatorname{rc}_{ax}(\omega):=
+{S_{ax}(\omega)\over u}{1\over K_{ax}(\omega)+1}.
+\]
+The add-one formulas for \(K_{ax}\) are
+\[
+\Delta^K_{1x}Z^H
+=
+-\{\operatorname{cr}_{1x}+\operatorname{rc}_{0x}\},
+\qquad
+\Delta^K_{0x}Z^H
+=
+\operatorname{cr}_{0x}+\operatorname{rc}_{1x}.
+\]
+The two displayed components are nonnegative.  Hence
+\[
+\operatorname{cr}_{ax}\le |\Delta^K_{ax}Z^H|,
+\qquad
+\operatorname{rc}_{\bar a x}\le |\Delta^K_{ax}Z^H|,
+\]
+so the component squares are integrable because the add-one increment is square-integrable.  Applying \((r+s)^2\le2(r^2+s^2)\) to the preceding decomposition gives, for each \(a\),
+\[
+E\{(\Delta^K_{ax}Z^H)^2\}
+\le
+2\left(E\operatorname{cr}_{ax}^2+E\operatorname{rc}_{\bar a x}^2\right).
+\]
+Product-measure factorization gives
+\[
+E\operatorname{cr}_{ax}^2
+=
+E\left({S_{ax}\over u}\right)^2
+\eta_{4,a}
+E K_{\bar a x}^2,
+\qquad
+E\operatorname{rc}_{ax}^2
+=
+E\left({S_{ax}\over u}\right)^2\eta_{2,a}.
+\]
+The Poisson second-moment bounds are
+\[
+E\left({S_{ax}\over u}\right)^2
+\le q_{ax}u^{-1}+q_{ax}^2,
+\qquad
+E K_{ax}^2\le \theta_{ax}+\theta_{ax}^2.
+\]
+Combining the last three displays yields
+\[
+E\{(\Delta^K_{ax}Z^H)^2\}
+\le
+2\left[
+(q_{ax}u^{-1}+q_{ax}^2)(\theta_{\bar a x}+\theta_{\bar a x}^2)\eta_{4,a}
++
+(q_{\bar a x}u^{-1}+q_{\bar a x}^2)\eta_{2,\bar a}
+\right].
+\]
+Since \(q_{ax}\le p_x\) and \(u>0\),
+\[
+q_{ax}u^{-1}+q_{ax}^2\le p_xu^{-1}+p_x^2.
+\]
+The hypotheses of \cref{obj:lem:poisson-inverse-marginal-energy-scalar} hold after identifying
+its generic cell mass and total intensity with
+\[
+p=p_x,
+\qquad
+w=\Theta_x,
+\]
+with its arm rates equal to \(\theta_{0x},\theta_{1x}\), its marked masses equal to
+\(q_{0x},q_{1x}\), and its four reciprocal moments equal to
+\((\eta_{2,0},\eta_{2,1},\eta_{4,0},\eta_{4,1})\).  These arm rates are simply
+\(t s_{ax}\), which are nonnegative because \(t>0\) and \(s_{ax}\ge0\).  Also
+\(p_x\ge0\), \(u>0\), \(0<\epsilon\le1\), and \(\Theta_x\ge0\); the outcome masses
+satisfy \(0\le q_{ax}\le p_x\); overlap gives
+\(\epsilon\Theta_x\le\theta_{ax}\), while \(s_{ax}\le p_x\) gives
+\(\theta_{ax}\le\Theta_x\); and the displayed reciprocal estimates give the required
+second- and fourth-moment rate conditions.  Therefore
+\cref{obj:lem:poisson-inverse-marginal-energy-scalar} yields
+\[
+\begin{aligned}
+&\theta_{1x}\bigl\{(q_{1x}u^{-1}+q_{1x}^2)(\theta_{0x}+\theta_{0x}^2)\eta_{4,1}
+ +(q_{0x}u^{-1}+q_{0x}^2)\eta_{2,0}\bigr\} \\
+&\quad+
+\theta_{0x}\bigl\{(q_{0x}u^{-1}+q_{0x}^2)(\theta_{1x}+\theta_{1x}^2)\eta_{4,0}
+ +(q_{1x}u^{-1}+q_{1x}^2)\eta_{2,1}\bigr\} \\
+&\hspace{3cm}\le
+(p_xu^{-1}+p_x^2){2c_{\mathrm{mar}}\over1+\Theta_x}.
+\end{aligned}
+\]
+Multiplying the add-one-square bounds by their Poisson rates \(\theta_{ax}=ts_{ax}\), summing over \(a\), and using the preceding display gives the cell estimate
+\[
+\sum_a ts_{ax}E\{(\Delta^K_{ax}Z^H)^2\}
+\le
+4c_{\mathrm{mar}}\,
+{p_xu^{-1}+p_x^2\over 1+tp_x}.
+\]
+% lean: poisson_inverse_marginal_cell_energy_bound
+
+\item
+Summing the preceding display over \(x\),
+\[
+\sum_{x,a}ts_{ax}E\{(\Delta^K_{ax}Z^H)^2\}
+\le
+4c_{\mathrm{mar}}
+\sum_x{p_xu^{-1}+p_x^2\over 1+tp_x}.
+\]
+Since \(1+tp_x\ge1\) and \(p_xu^{-1}\ge0\),
+\[
+{p_xu^{-1}+p_x^2\over 1+tp_x}
+\le
+p_xu^{-1}+{p_x^2\over 1+tp_x}.
+\]
+Thus
+\[
+\sum_{x,a}ts_{ax}E\{(\Delta^K_{ax}Z^H)^2\}
+\le
+4c_{\mathrm{mar}}
+\sum_x\left(p_xu^{-1}+{p_x^2\over 1+tp_x}\right).
+\]
+The first sum is \(u^{-1}\).  For the second, since \(t>0\) and \(p_x\ge0\),
+\[
+{p_x^2\over 1+tp_x}\le {p_x\over t},
+\]
+and hence
+\[
+\sum_x{p_x^2\over 1+tp_x}\le t^{-1}\sum_xp_x=t^{-1}.
+\]
+Thus
+\[
+\sum_{x,a}ts_{ax}E\{(\Delta^K_{ax}Z^H)^2\}
+\le
+4c_{\mathrm{mar}}(u^{-1}+t^{-1}).
+\]
+% lean: poisson_cell_variance_sum_bound
+
+\item
+Combining the Poisson Poincare bound with the outcome and marginal energy estimates,
+\[
+\operatorname{Var}_P(Z^H)
+\le
+c_{\mathrm{out}}u^{-1}+4c_{\mathrm{mar}}(u^{-1}+t^{-1}).
+\]
+Since \(u^{-1}\le u^{-1}+t^{-1}\) and
+\(C_\epsilon=c_{\mathrm{bias}}+c_{\mathrm{out}}+4c_{\mathrm{mar}}+1\),
+\[
+\operatorname{Var}_P(Z^H)
+\le
+C_\epsilon(u^{-1}+t^{-1}).
+\]
+Together with the bias bound from Step 2, this proves the claim. % lean: poisson_inverse_count_risk
+\end{enumerate}
+\end{proof}

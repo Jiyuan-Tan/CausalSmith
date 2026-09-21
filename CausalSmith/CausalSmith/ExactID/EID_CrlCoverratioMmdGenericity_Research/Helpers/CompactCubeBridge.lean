@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
 
 /-!
 # Compact cube carrier bridge
@@ -7,6 +8,11 @@ import Mathlib.MeasureTheory.Constructions.Pi
 This file identifies the ambient closed cube used by the paper with the product of compact
 interval coordinate types used by finite positive-density factorizations.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -122,7 +128,7 @@ lemma compactCubeInclude_retract_of_mem {n : ℕ} {v : LatentState n}
 /-- Under a positive smooth mechanism's cube-supported observational law, inclusion after the
 compact-cube retraction is almost everywhere the ambient identity.  [the stated conclusion](goal) follows. -/
 lemma compactCubeInclude_retract_ae_observationalLaw
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G) :
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G) :
     (compactCubeInclude n ∘ compactCubeRetract n) =ᵐ[observationalLaw θ] id := by
   have hcube : MeasurableSet (latentCube n) := by
     rw [latentCube]
@@ -137,7 +143,7 @@ lemma compactCubeInclude_retract_ae_observationalLaw
 /-- Pushing a cube-supported observational law to compact coordinates and including it back
 recovers the original ambient law.  [the stated conclusion](goal) follows. -/
 lemma map_compactCubeInclude_map_compactCubeRetract_observationalLaw
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G) :
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G) :
     Measure.map (compactCubeInclude n)
         (Measure.map (compactCubeRetract n) (observationalLaw θ)) =
       observationalLaw θ := by

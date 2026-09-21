@@ -4,18 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.Calculus.Taylor
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Kernel.Basic
-import Mathlib.Probability.Moments.SubGaussian
-import Causalean.Stat.Sample
+module
+public import Mathlib.Analysis.Calculus.Taylor
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Kernel.Basic
+public import Mathlib.Probability.Moments.SubGaussian
+public import Causalean.Stat.Sample
 
 /-!
 # Threshold-clamp minimax frontier: shared formal world
@@ -30,6 +31,8 @@ but no continuous-treatment clamp world. `Causalean.PO` is intentionally
 bypassed because its finite-regime potential-outcome carrier is at a different
 abstraction from the continuum-indexed standard-Borel response process here.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

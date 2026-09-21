@@ -1,0 +1,1680 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}nco\_\allowbreak{}weakproxy\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The proposal directly tests the observed-law null \(d(P)=0\), where \(\mathcal H_\beta(R,\eta)\) is a user-chosen smooth bounded diagnostic class. The ordered support and label-DCT coordinates are known, while the design metric and conditional-expectation operator are estimated. A split convex program and finite-sample projection inequality supply honest size and a lower confidence bound. The fixed-support root-\(n\) upper bound is now matched unconditionally at \(K=2\) under the base link constants, and for every fixed \(K\) under the explicit DCT compatibility condition, because those constructions furnish one common positive cell, marginal, and link slack over \(a\). Under the same DCT compatibility condition, a legal positive-multinomial dense block gives the \(K^{1/4}/\sqrt n\) obstruction when \(K=o(n^{2/3})\) and \(K^{-(a_L+\beta)}\le c_0K^{1/4}/\sqrt n\). The complete growing-\(K\) phase diagram and valid adaptation to unknown \(a\) remain open questions.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing single-NCO diagnostics, inverse-testing results, and convex-projection methods do not give finite-sample uniform testing or a sharp minimax radius for the observed-law null \(d(P)=0\) when a user-chosen bounded source image and its operator are estimated from one growing multinomial table.
+
+\paragraph{Niche.} The observed-image norm makes weak proxies shrink the diagnostic null geometry rather than mechanically amplify noise by inversion. This creates a distinct phase diagram governed by moving convex-set geometry, operator estimation, and legal table perturbations.
+
+\paragraph{Fill.} The project supplies a deterministic-coordinate split projection upper bound and a matched fixed-support \(n^{-1/2}\) converse. The common-design premise is discharged under the explicit DCT compatibility condition for every fixed \(K\), and at \(K=2\) under only the base constants \(c_{\rm link}<1<C_{\rm link}\). It also supplies a legal positive-multinomial dense-block lower bound of order \(K^{1/4}/\sqrt n\) on the stated compatibility and worst-case-tail subregime. The operator-nuisance match, active-face calibration, complete growing-support phase diagram, adaptation factor, and maximal polynomial \(K\) range remain frontier problems.
+
+\section{Related work}
+
+Wu, Fu, Wang, Wang, and Sun's Theorem 1 proves existence of a square-integrable single-NCO bridge under their causal-null, NCO, completeness, and Picard hypotheses. Those hypotheses do not imply membership in the user-chosen class \(\mathcal H_\beta(R,\eta)\), and no such implication is used here. Their residual tests motivate the observed-law diagnostic but do not provide the moving-image minimax frontier. Only in an application that separately stipulates that the relevant Wu bridge lies in \(\mathcal H_\beta(R,\eta)\) does rejection conditionally falsify that restricted causal submodel; nonrejection identifies nothing. Breunig and Chen provide the closest adaptive minimax conditional-moment method, but their separation is imposed on an NPIV structural function. Marteau and Sapatinas and Schluttenhofer and Johannes isolate signal and operator noise in diagonal Gaussian sequence experiments and therefore inform, but do not settle, the coupled multinomial problem. Chernozhukov, Newey, and Santos regularize local parameter spaces for constrained conditional moments, and Fang and Seo use projection monotonicity for fixed convex cones; the bounded image here is random and nonhomogeneous. Paninski and Chhor and Carpentier provide the legal simplex and local-probability lower-bound technology. The present dense-block result implements a common-null positive-multinomial mixture on an explicit DCT-compatible subregime, while a converse matching all operator-fitting and active-face costs remains unresolved.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(d(P)=\operatorname{dist}_{L^2(P_X)}\{b,A\mathcal H_\beta(R,\eta)\}\).
+Primary functional / estimator / diagnostic: \(\widehat d_{\rm sp}=\min_{\theta:\sum_{j=1}^K j^{2\beta}\theta_j^2\le R^2,\ \eta\le\sum_{j=1}^K\theta_jv_j(w)\le1-\eta}\|\widehat b^{\rm te}-\widehat A^{\rm tr}\theta\|_2\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive even integer}; \(2\mathbb N\); \texttt{sample size}
+  \item \texttt{K} --- \texttt{integer-\allowbreak{}valued resolution}; \(\{2,3,\ldots\}\); \texttt{common support size}
+  \par\smallskip\noindent\emph{Definition.} \(K=K_n\)
+  \item \texttt{n\_\allowbreak{}tr} --- \texttt{positive integer}; \texttt{training size}
+  \par\smallskip\noindent\emph{Definition.} \(n_{\rm tr}=n/2\)
+  \item \texttt{n\_\allowbreak{}te} --- \texttt{positive integer}; \texttt{testing size}
+  \par\smallskip\noindent\emph{Definition.} \(n_{\rm te}=n/2\)
+  \item \texttt{X\_\allowbreak{}space} --- \texttt{finite ordered set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X_K=\{1,\ldots,K\}\)
+  \item \texttt{W\_\allowbreak{}space} --- \texttt{finite ordered set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_K=\{1,\ldots,K\}\)
+  \item \texttt{Y\_\allowbreak{}space} --- \texttt{finite set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{0,1\}\)
+  \item \texttt{O} --- \texttt{random vector}; \(\mathcal X_K\times\mathcal W_K\times\mathcal Y\)
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,W,Y)\)
+  \item \texttt{P} --- \texttt{probability law}; \(\mathcal P(\mathcal X_K\times\mathcal W_K\times\mathcal Y)\); \texttt{observed-\allowbreak{}data law}
+  \item \texttt{p\_\allowbreak{}X} --- \texttt{probability mass function}
+  \par\smallskip\noindent\emph{Definition.} \(p_X(x)=P(X=x)\)
+  \item \texttt{p\_\allowbreak{}W} --- \texttt{probability mass function}
+  \par\smallskip\noindent\emph{Definition.} \(p_W(w)=P(W=w)\)
+  \item \texttt{L2\_\allowbreak{}X} --- \texttt{Hilbert space}
+  \par\smallskip\noindent\emph{Definition.} \(L^2_X=L^2(P_X)\)
+  \item \texttt{L2\_\allowbreak{}W} --- \texttt{Hilbert space}
+  \par\smallskip\noindent\emph{Definition.} \(L^2_W=L^2(P_W)\)
+  \item \texttt{ell2\_\allowbreak{}X} --- \texttt{deterministic Hilbert space}; \texttt{reference geometry on the ordered labels}
+  \par\smallskip\noindent\emph{Definition.} \(\ell^2_{K,X}=(\mathbb R^K,\langle f,g\rangle_{K}=K^{-1}\sum_{x=1}^K f(x)g(x))\)
+  \item \texttt{ell2\_\allowbreak{}W} --- \texttt{deterministic Hilbert space}; \texttt{reference geometry on the ordered labels}
+  \par\smallskip\noindent\emph{Definition.} \(\ell^2_{K,W}=(\mathbb R^K,\langle f,g\rangle_{K}=K^{-1}\sum_{w=1}^K f(w)g(w))\)
+  \item \texttt{u} --- \texttt{deterministic ordered orthonormal basis}; \((\ell^2_{K,X})^K\)
+  \par\smallskip\noindent\emph{Definition.} \(u_1(x)=1\) and \(u_j(x)=\sqrt2\cos\{\pi(j-1)(x-1/2)/K\}\) for \(2\le j\le K\)
+  \item \texttt{v} --- \texttt{deterministic ordered orthonormal basis}; \((\ell^2_{K,W})^K\)
+  \par\smallskip\noindent\emph{Definition.} \(v_1(w)=1\) and \(v_j(w)=\sqrt2\cos\{\pi(j-1)(w-1/2)/K\}\) for \(2\le j\le K\)
+  \item \texttt{L} --- \texttt{positive self-\allowbreak{}adjoint operator}; \(L:\ell^2_{K,W}\to \ell^2_{K,W}\)
+  \par\smallskip\noindent\emph{Definition.} \(Lv_j=jv_j\) for \(1\le j\le K\)
+  \item \texttt{beta} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{source smoothness}
+  \item \texttt{R} --- \texttt{positive real constant}; \((1/2,\infty)\); \texttt{source radius}
+  \item \texttt{eta} --- \texttt{real constant}; \((0,1/2)\); \texttt{marginal balance and box slack}
+  \item \texttt{a\_\allowbreak{}L} --- \texttt{positive real constant}; \((1,\infty)\); \texttt{lower link exponent}
+  \item \texttt{a\_\allowbreak{}U} --- \texttt{positive real constant}; \((a_L,\infty)\); \texttt{upper link exponent}
+  \item \texttt{a} --- \texttt{real parameter}; \([a_L,a_U]\); \texttt{unknown polynomial link exponent}
+  \item \texttt{c\_\allowbreak{}link} --- \texttt{positive real constant}; \((0,1)\); \texttt{lower link constant}
+  \item \texttt{C\_\allowbreak{}link} --- \texttt{positive real constant}; \((1,\infty)\); \texttt{upper link constant}
+  \item \texttt{alpha} --- \texttt{real constant}; \((0,1)\); \texttt{test level}
+  \item \texttt{epsilon\_\allowbreak{}tot} --- \texttt{real constant}; \((0,1)\); \texttt{total-\allowbreak{}error target}
+  \item \texttt{q} --- \texttt{real constant}; \((0,1)\); \texttt{deviation probability}
+  \item \texttt{h} --- \texttt{generic bridge function}; \(\ell^2_{K,W}\)
+  \item \texttt{g} --- \texttt{generic contrast function}; \(\ell^2_{K,W}\)
+  \item \texttt{theta} --- \texttt{DCT coefficient vector}; \(\mathbb R^K\); \texttt{optimization coordinates for the bridge}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_j=K^{-1}\sum_{w=1}^K h(w)v_j(w)\), so \(h_\theta(w)=\sum_{j=1}^K\theta_jv_j(w)\)
+  \item \texttt{H\_\allowbreak{}beta} --- \texttt{closed convex subset}; \(\ell^2_{K,W}\); \texttt{user-\allowbreak{}chosen statistical diagnostic class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal H_\beta(R,\eta)=\{h_\theta:\sum_{j=1}^K j^{2\beta}\theta_j^2\le R^2,\ \eta\le\sum_{j=1}^K\theta_jv_j(w)\le1-\eta\ \text{for every }w\in\mathcal W_K\}\)
+  \item \texttt{A} --- \texttt{conditional-\allowbreak{}expectation operator}; \(A:L^2_W\to L^2_X\)
+  \par\smallskip\noindent\emph{Definition.} \((Ah)(x)=E_P\{h(W)\mid X=x\}\)
+  \item \texttt{b} --- \texttt{conditional-\allowbreak{}mean function}; \(L^2_X\)
+  \par\smallskip\noindent\emph{Definition.} \(b(x)=P(Y=1\mid X=x)\)
+  \item \texttt{C\_\allowbreak{}A} --- \texttt{closed convex image}; \(L^2_X\)
+  \par\smallskip\noindent\emph{Definition.} \(C_A=A\mathcal H_\beta(R,\eta)=\{Ah:h\in\mathcal H_\beta(R,\eta)\}\)
+  \item \texttt{d} --- \texttt{nonnegative observed-\allowbreak{}law functional}; \texttt{observable bridge defect}
+  \par\smallskip\noindent\emph{Definition.} \(d(P)=\inf_{z\in C_A}\|b-z\|_{L^2_X}\)
+  \item \texttt{P\_\allowbreak{}Ka} --- \texttt{class of observed-\allowbreak{}data laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P_K(a)\) is the balanced polynomial-link class
+  \item \texttt{P\_\allowbreak{}union} --- \texttt{class of observed-\allowbreak{}data laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P_K^{\cup}=\bigcup_{a\in[a_L,a_U]}\mathcal P_K(a)\)
+  \item \texttt{rho\_\allowbreak{}star} --- \texttt{nonnegative minimax radius}; \texttt{oracle total-\allowbreak{}error separation radius}
+  \par\smallskip\noindent\emph{Definition.} \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\) is defined in \(\mathrm{def:minimax-radius}\)
+  \item \texttt{r\_\allowbreak{}frontier} --- \texttt{positive rate function}; \texttt{piecewise moving-\allowbreak{}image frontier}
+  \par\smallskip\noindent\emph{Definition.} \(r_{n,K}(a,\beta)\) is derived by \(\mathrm{oeq:sharp-frontier}\)
+  \item \texttt{kappa\_\allowbreak{}max} --- \texttt{nonnegative real}; \texttt{dimension frontier}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_{\max}\) is the maximal polynomial growth exponent characterized by \(\mathrm{oeq:sharp-frontier}\)
+  \item \texttt{lambda\_\allowbreak{}adap} --- \texttt{positive rate multiplier}; \texttt{minimal adaptation factor}
+  \par\smallskip\noindent\emph{Definition.} \(\Lambda_{\rm adap}(n,K)\) is derived by \(\mathrm{oeq:adaptive-calibration}\)
+  \item \texttt{S\_\allowbreak{}beta} --- \texttt{positive real}
+  \par\smallskip\noindent\emph{Definition.} \(S_\beta(K)=\sum_{j=1}^K j^{-2\beta}\)
+  \item \texttt{r\_\allowbreak{}dense} --- \texttt{positive phase scale}; \texttt{dense multinomial fluctuation scale}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\rm dense}=K^{1/4}/\sqrt n\)
+  \item \texttt{r\_\allowbreak{}tail} --- \texttt{positive phase scale}; \texttt{source-\allowbreak{}image tail scale}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\rm tail}=K^{-(a+\beta)}\)
+  \item \texttt{r\_\allowbreak{}train} --- \texttt{positive phase scale}; \texttt{operator-\allowbreak{}and-\allowbreak{}metric training scale}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\rm train}=R\sqrt{KS_\beta(K)/n_{\rm tr}}+\sqrt{K\log(2K)/n_{\rm tr}}\)
+  \item \texttt{r\_\allowbreak{}face} --- \texttt{nonnegative phase scale}; \texttt{active-\allowbreak{}constraint geometry scale}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\rm face}(n,K,a,\beta)\) is derived by \(\mathrm{oeq:sharp-frontier}\) from the least favorable source-and-box tangent face
+  \item \texttt{G\_\allowbreak{}X} --- \texttt{positive definite matrix}; \texttt{population Gram matrix of the deterministic output basis}
+  \par\smallskip\noindent\emph{Definition.} \(G_X=E_P\{u(X)u(X)^\top\}\)
+  \item \texttt{B} --- \texttt{real matrix}; \texttt{population cross-\allowbreak{}moment representation of the conditional operator}
+  \par\smallskip\noindent\emph{Definition.} \(B=E_P\{u(X)v(W)^\top\}\)
+  \item \texttt{m} --- \texttt{real vector}; \texttt{population output moment}
+  \par\smallskip\noindent\emph{Definition.} \(m=E_P\{u(X)Y\}\)
+  \item \texttt{G\_\allowbreak{}hat\_\allowbreak{}tr} --- \texttt{random positive semidefinite matrix}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat G_X^{\rm tr}=n_{\rm tr}^{-1}\sum_{i=1}^{n_{\rm tr}}u(X_i)u(X_i)^\top\)
+  \item \texttt{B\_\allowbreak{}hat\_\allowbreak{}tr} --- \texttt{random matrix}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat B^{\rm tr}=n_{\rm tr}^{-1}\sum_{i=1}^{n_{\rm tr}}u(X_i)v(W_i)^\top\)
+  \item \texttt{m\_\allowbreak{}hat\_\allowbreak{}te} --- \texttt{random vector}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat m^{\rm te}=n_{\rm te}^{-1}\sum_{i=n_{\rm tr}+1}^{n}u(X_i)Y_i\)
+  \item \texttt{W\_\allowbreak{}hat\_\allowbreak{}tr} --- \texttt{random positive definite matrix}; \texttt{training-\allowbreak{}fold metric whitener}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat W_X^{\rm tr}=\Pi_{[\eta/2,2/\eta]}(\widehat G_X^{\rm tr})^{-1/2}\), where \(\Pi_{[c,C]}\) clips every eigenvalue to \([c,C]\)
+  \item \texttt{A\_\allowbreak{}hat\_\allowbreak{}tr} --- \texttt{random matrix}; \texttt{training estimator of the whitened conditional-\allowbreak{}image map in fixed DCT coordinates}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat A^{\rm tr}=\widehat W_X^{\rm tr}\widehat B^{\rm tr}\), so \(\widehat A^{\rm tr}\theta=\widehat W_X^{\rm tr}\widehat B^{\rm tr}\theta\)
+  \item \texttt{b\_\allowbreak{}hat\_\allowbreak{}te} --- \texttt{random vector}; \texttt{held-\allowbreak{}out output moment in the training-\allowbreak{}whitened metric}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat b^{\rm te}=\widehat W_X^{\rm tr}\widehat m^{\rm te}\)
+  \item \texttt{d\_\allowbreak{}hat\_\allowbreak{}split} --- \texttt{nonnegative statistic}; \texttt{split-\allowbreak{}sample convex projection distance}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat d_{\rm sp}=\min_{\theta\in\mathbb R^K}\|\widehat b^{\rm te}-\widehat A^{\rm tr}\theta\|_2\) subject to \(\sum_{j=1}^Kj^{2\beta}\theta_j^2\le R^2\) and \(\eta\le\sum_{j=1}^K\theta_jv_j(w)\le1-\eta\) for every \(w\)
+  \item \texttt{t\_\allowbreak{}q} --- \texttt{positive threshold}
+  \par\smallskip\noindent\emph{Definition.} \(t_q=c_\eta[\sqrt{K/(q n_{\rm te})}+R\sqrt{KS_\beta(K)/(q n_{\rm tr})}+\sqrt{K\log(2K/q)/n_{\rm tr}}]\), where \(c_\eta=32\eta^{-3/2}\)
+  \item \texttt{t\_\allowbreak{}alpha} --- \texttt{positive threshold}; level-\(\alpha\) projection threshold
+  \par\smallskip\noindent\emph{Definition.} \(t_\alpha=t_q\vert_{q=\alpha}\)
+  \item \texttt{phi\_\allowbreak{}split} --- \texttt{test}
+  \par\smallskip\noindent\emph{Definition.} \(\phi_{\rm sp}=\mathbf 1\{\widehat d_{\rm sp}>t_\alpha\}\)
+  \item \texttt{L\_\allowbreak{}n} --- \texttt{nonnegative statistic}; \texttt{lower confidence bound}
+  \par\smallskip\noindent\emph{Definition.} \(L_n=(\widehat d_{\rm sp}-t_\alpha)_+\)
+  \item \texttt{s\_\allowbreak{}2} --- \texttt{two-\allowbreak{}point contrast}
+  \par\smallskip\noindent\emph{Definition.} \(s_2(1)=1\) and \(s_2(2)=-1\)
+  \item \texttt{gamma\_\allowbreak{}2} --- \texttt{real perturbation amplitude}; \([-1/8,1/8]\)
+  \item \texttt{delta\_\allowbreak{}2} --- \texttt{real perturbation amplitude}; \([-1/8,1/8]\)
+  \item \texttt{P\_\allowbreak{}work} --- \texttt{two-\allowbreak{}point observed-\allowbreak{}data law}; \texttt{explicit positive-\allowbreak{}table worked instance}
+  \par\smallskip\noindent\emph{Definition.} \(P^{(2)}_{a,\gamma_2,\delta_2}(x,w,y)=4^{-1}\{1+2^{-a}s_2(x)s_2(w)\}\,[1/2+(2y-1)\{\gamma_2s_2(x)+\delta_2s_2(w)\}]\) for \(x,w\in\{1,2\}\) and \(y\in\{0,1\}\)
+  \item \texttt{frontier\_\allowbreak{}handle} --- \texttt{proof-\allowbreak{}construction handle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_{\rm prof}\) jointly centers the cross-fitted quadratic score for \(b-Ah\), profiles it over the transported tangent cones of the source sphere and box, and matches each surviving score direction by a positive multinomial mixture
+  \item \texttt{lower\_\allowbreak{}handle} --- \texttt{proof-\allowbreak{}construction handle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_{\rm law}\) perturbs paired DCT cells in the joint table of \((X,W,Y)\), with shared signs chosen to move both \(A\) and \(b\), then verifies normalization, positivity, link bounds, active-face feasibility, image separation, and mixture affinity
+  \item \texttt{fixed\_\allowbreak{}k\_\allowbreak{}handle} --- \texttt{lower-\allowbreak{}bound construction handle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_{\rm tr}\) searches, for each fixed \(K\) and \(a\in[a_L,a_U]\), for a uniformly positive regular boundary law \(P_{0,a}\) with \(d(P_{0,a})=0\) and a legal transverse parametric path \(P_{t,a}\in\mathcal P_K(a)\) satisfying \(d(P_{t,a})\asymp |t|\) and \(D_{\rm KL}(P_{t,a}\|P_{0,a})\le C t^2\) with constants uniform in \(a\)
+  \item \texttt{adaptive\_\allowbreak{}handle} --- \texttt{test-\allowbreak{}construction handle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf H_{\rm adap}\) scans input DCT resolutions using centered cross-fit profiled quadratic scores and calibrates their joint maximum by multipliers applied to both training and testing scores with tangent-face slackening
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent and identically distributed with law \(P\).
+\par\smallskip\noindent\emph{Standard} (i.i.d. triangular-array sampling, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\begin{assumption}[ass:px-lower]\label{ass:px-lower}
+\(p_X(x)\ge \eta/K\) for every \(x\in\mathcal X_K\).
+\par\smallskip\noindent\emph{Standard} (balanced-cell multinomial condition, \cite{Carter2002}).
+\end{assumption}
+
+\begin{assumption}[ass:px-upper]\label{ass:px-upper}
+\(p_X(x)\le 1/(\eta K)\) for every \(x\in\mathcal X_K\).
+\par\smallskip\noindent\emph{Standard} (balanced-cell multinomial condition, \cite{Carter2002}).
+\end{assumption}
+
+\begin{assumption}[ass:pw-lower]\label{ass:pw-lower}
+\(p_W(w)\ge \eta/K\) for every \(w\in\mathcal W_K\).
+\par\smallskip\noindent\emph{Standard} (balanced-cell multinomial condition, \cite{Carter2002}).
+\end{assumption}
+
+\begin{assumption}[ass:pw-upper]\label{ass:pw-upper}
+\(p_W(w)\le 1/(\eta K)\) for every \(w\in\mathcal W_K\).
+\par\smallskip\noindent\emph{Standard} (balanced-cell multinomial condition, \cite{Carter2002}).
+\end{assumption}
+
+\begin{assumption}[ass:source-ball-member]\label{ass:source-ball-member}
+\(\|L^\beta h\|_{\ell^2_{K,W}}\le R\).
+\par\smallskip\noindent\emph{Standard} (ellipsoidal source condition, \cite{MarteauSapatinas2017}).
+\end{assumption}
+
+\begin{assumption}[ass:box-lower-member]\label{ass:box-lower-member}
+\(h(w)\ge\eta\) for every \(w\in\mathcal W_K\).
+\par\smallskip\noindent\emph{Novel.} This user-chosen diagnostic restriction is interpretable for probability-valued candidate bridges and is satisfied by conditional binary-event functions uniformly separated from zero.
+\end{assumption}
+
+\begin{assumption}[ass:box-upper-member]\label{ass:box-upper-member}
+\(h(w)\le1-\eta\) for every \(w\in\mathcal W_K\).
+\par\smallskip\noindent\emph{Novel.} This user-chosen diagnostic restriction is interpretable for probability-valued candidate bridges and is satisfied by conditional binary-event functions uniformly separated from one.
+\end{assumption}
+
+\begin{assumption}[ass:link-lower]\label{ass:link-lower}
+\(\|Ag\|_{L^2_X}\ge c_{\rm link}\|L^{-a}g\|_{\ell^2_{K,W}}\) for every \(g\in\ell^2_{K,W}\) satisfying \(E_P\{g(W)\}=0\).
+\par\smallskip\noindent\emph{Standard} (two-sided polynomial sieve-link lower inequality, \cite{BreunigChen2024}).
+\end{assumption}
+
+\begin{assumption}[ass:link-upper]\label{ass:link-upper}
+\(\|Ag\|_{L^2_X}\le C_{\rm link}\|L^{-a}g\|_{\ell^2_{K,W}}\) for every \(g\in\ell^2_{K,W}\) satisfying \(E_P\{g(W)\}=0\).
+\par\smallskip\noindent\emph{Standard} (two-sided polynomial sieve-link upper inequality, \cite{BreunigChen2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:bridge-class]\label{def:bridge-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{user-\allowbreak{}chosen diagnostic bridge class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_\beta(R,\eta)=\{h_\theta\in\ell^2_{K,W}:h_\theta(w)=\sum_{j=1}^K\theta_jv_j(w),\ \sum_{j=1}^Kj^{2\beta}\theta_j^2\le R^2,\ \eta\le h_\theta(w)\le1-\eta\ \text{for every }w\in\mathcal W_K\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}source-\allowbreak{}ball-\allowbreak{}member}; \texttt{ass:\allowbreak{}box-\allowbreak{}lower-\allowbreak{}member}; \texttt{ass:\allowbreak{}box-\allowbreak{}upper-\allowbreak{}member}.
+\end{definition}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{balanced polynomial-\allowbreak{}link observed-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_K(a)=\{P:\eta/K\le p_X(x),p_W(w)\le1/(\eta K)\ \text{for all }(x,w)\in\mathcal X_K\times\mathcal W_K,\ c_{\rm link}\|L^{-a}g\|_{\ell^2_{K,W}}\le\|Ag\|_{L^2_X}\le C_{\rm link}\|L^{-a}g\|_{\ell^2_{K,W}}\ \text{for every mean-zero }g\in\ell^2_{K,W}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}px-\allowbreak{}lower}; \texttt{ass:\allowbreak{}px-\allowbreak{}upper}; \texttt{ass:\allowbreak{}pw-\allowbreak{}lower}; \texttt{ass:\allowbreak{}pw-\allowbreak{}upper}; \texttt{ass:\allowbreak{}link-\allowbreak{}lower}; \texttt{ass:\allowbreak{}link-\allowbreak{}upper}.
+\end{definition}
+
+\begin{definition}[def:bridge-image]\label{def:bridge-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{constrained bridge image}
+\par\smallskip\noindent\emph{Construction.} \(C_A=A\mathcal H_\beta(R,\eta)=\{Ah:h\in\mathcal H_\beta(R,\eta)\}\).
+\end{definition}
+
+\begin{definition}[def:observable-defect]\label{def:observable-defect}
+\par\smallskip\noindent\emph{Defined object.} \texttt{observable bridge defect}
+\par\smallskip\noindent\emph{Construction.} \(d(P)=\operatorname{dist}_{L^2_X}(b,C_A)=\min_{\theta:h_\theta\in\mathcal H_\beta(R,\eta)}\|G_X^{-1/2}(m-B\theta)\|_2\).
+\end{definition}
+
+\begin{definition}[def:minimax-radius]\label{def:minimax-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{total-\allowbreak{}error minimax separation radius}
+\par\smallskip\noindent\emph{Construction.} \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})=\inf\{r>0:\exists\phi,\ \sup_{P\in\mathcal P_K(a):d(P)=0}E_P\phi+\sup_{P\in\mathcal P_K(a):d(P)\ge r}E_P(1-\phi)\le\epsilon_{\rm tot}\}\).
+\end{definition}
+
+\begin{definition}[def:split-estimators]\label{def:split-estimators}
+\par\smallskip\noindent\emph{Defined object.} \texttt{two-\allowbreak{}split moment estimators}
+\par\smallskip\noindent\emph{Construction.} On observations \(1,\ldots,n_{\rm tr}\), compute \(\widehat G_X^{\rm tr}=n_{\rm tr}^{-1}\sum_i u(X_i)u(X_i)^\top\), \(\widehat B^{\rm tr}=n_{\rm tr}^{-1}\sum_i u(X_i)v(W_i)^\top\), and \(\widehat W_X^{\rm tr}=\Pi_{[\eta/2,2/\eta]}(\widehat G_X^{\rm tr})^{-1/2}\). On observations \(n_{\rm tr}+1,\ldots,n\), compute \(\widehat m^{\rm te}=n_{\rm te}^{-1}\sum_i u(X_i)Y_i\). Set \(\widehat A^{\rm tr}=\widehat W_X^{\rm tr}\widehat B^{\rm tr}\) and \(\widehat b^{\rm te}=\widehat W_X^{\rm tr}\widehat m^{\rm te}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{n}; \texttt{K}; \texttt{u}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:projection-test]\label{def:projection-test}
+\par\smallskip\noindent\emph{Defined object.} \texttt{conservative split convex-\allowbreak{}projection test}
+\par\smallskip\noindent\emph{Construction.} Compute \(\widehat d_{\rm sp}=\min_\theta\|\widehat b^{\rm te}-\widehat A^{\rm tr}\theta\|_2\) subject to \(\sum_{j=1}^Kj^{2\beta}\theta_j^2\le R^2\) and \(\eta\le\sum_{j=1}^K\theta_jv_j(w)\le1-\eta\) for every \(w\). Set \(t_q=32\eta^{-3/2}[\sqrt{K/(q n_{\rm te})}+R\sqrt{KS_\beta(K)/(q n_{\rm tr})}+\sqrt{K\log(2K/q)/n_{\rm tr}}]\), define \(t_\alpha=t_q\vert_{q=\alpha}\), and reject with \(\phi_{\rm sp}=\mathbf 1\{\widehat d_{\rm sp}>t_\alpha\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{A\_\allowbreak{}hat\_\allowbreak{}tr}; \texttt{b\_\allowbreak{}hat\_\allowbreak{}te}; \texttt{H\_\allowbreak{}beta}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:lower-confidence-bound]\label{def:lower-confidence-bound}
+\par\smallskip\noindent\emph{Defined object.} \texttt{lower confidence bound for the defect}
+\par\smallskip\noindent\emph{Construction.} \(L_n=(\widehat d_{\rm sp}-t_\alpha)_+\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d\_\allowbreak{}hat\_\allowbreak{}split}; \texttt{t\_\allowbreak{}alpha}.
+\end{definition}
+
+\begin{definition}[def:positive-table-instance]\label{def:positive-table-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{positive two-\allowbreak{}label operator instance}
+\par\smallskip\noindent\emph{Construction.} For \(K=2\), \(a\in[a_L,a_U]\), \(\gamma_2,\delta_2\in[-1/8,1/8]\), \(0<c_{\rm link}<1<C_{\rm link}<\infty\), and \(0<\eta<1/2\), define
+\[
+P^{(2)}_{a,\gamma_2,\delta_2}(x,w,y)
+=\frac14\{1+2^{-a}s_2(x)s_2(w)\}
+\left[\frac12+(2y-1)\{\gamma_2s_2(x)+\delta_2s_2(w)\}\right].
+\]
+Write \(P^{(2)}_{a,0,0}\) for the zero-outcome-contrast specialization obtained by setting \(\gamma_2=\delta_2=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{gamma\_\allowbreak{}2}; \texttt{delta\_\allowbreak{}2}.
+\end{definition}
+
+\begin{definition}[def:frontier-handle]\label{def:frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{profiled moving-\allowbreak{}image handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathsf H_{\rm prof}\): form the joint score of \((\widehat b,\widehat A)\), center a cross-fit quadratic residual before minimization, profile its energy over transported tangent cones of every source and box face, and retain the full output score under arbitrary legal rotations.
+\end{definition}
+
+\begin{definition}[def:lower-bound-handle]\label{def:lower-bound-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{legal joint-\allowbreak{}law perturbation handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathsf H_{\rm law}\): use paired DCT Rademacher perturbations of positive \((X,W,Y)\) cells with shared signs in the operator and regression components, then profile their distance from the complete constrained image and bound the exact mixture second moment.
+\end{definition}
+
+\begin{definition}[def:fixed-k-lower-handle]\label{def:fixed-k-lower-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{fixed-\allowbreak{}support transverse-\allowbreak{}path handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathsf H_{\rm tr}\): locate a uniformly positive regular boundary null and perturb a legal probability-table score transverse to the tangent image, while preserving membership in \(\mathcal P_K(a)\) with uniform link slack and bounding the pathwise Kullback--Leibler divergence quadratically.
+\end{definition}
+
+\begin{definition}[def:adaptive-handle]\label{def:adaptive-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{adaptive calibration handle}
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathsf H_{\rm adap}\): scan input DCT resolutions with centered cross-fit profiled quadratic scores and use one joint multiplier critical value that resamples both split scores while slackening estimated tangent faces.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:finite-sample-projection]\label{thm:finite-sample-projection}
+For every \(q\in(0,1)\), uniformly over \(P\in\mathcal P_K^{\cup}\), \(P\{|\widehat d_{\rm sp}-d(P)|\le t_q\}\ge1-q\). With \(t_\alpha=t_q\vert_{q=\alpha}\), consequently \(\sup_{P\in\mathcal P_K^{\cup}:d(P)=0}E_P\phi_{\rm sp}\le\alpha\) and \(\inf_{P\in\mathcal P_K^{\cup}}P\{L_n\le d(P)\}\ge1-\alpha\).
+\end{theorem}
+\begin{proof}
+Put \(U=(u_j(x))_{x,j=1}^K\) and \(Q=K^{-1/2}U\).  Orthonormality of the stated DCT in \(\ell^2_{K,X}\) gives \(Q^\top Q=Q Q^\top=I_K\) and, for every \(x\),
+\[
+ \sum_{j=1}^K u_j(x)^2=K. \tag{1}
+\]
+Write \(N_x=\sum_{i=1}^{n_{\rm tr}}\mathbf 1\{X_i=x\}\), \(g_x=Kp_X(x)\), and \(\widehat g_x=KN_x/n_{\rm tr}\).  The definitions of \(G_X\) and \(\widehat G_X^{\rm tr}\), followed by \(U=\sqrt KQ\), imply
+\[
+ G_X=Q^\top\operatorname{diag}(g_x)Q,
+ \qquad
+ \widehat G_X^{\rm tr}=Q^\top\operatorname{diag}(\widehat g_x)Q. \tag{2}
+\]
+By the two marginal bounds in \(\mathrm{def:model\mbox{-}class}\),
+\[
+ \eta\le g_x\le \eta^{-1}. \tag{3}
+\]
+Let \(\widetilde g_x\) be \(\widehat g_x\) clipped to \([\eta/2,2/\eta]\).  Thus, with \(W=G_X^{-1/2}\),
+\[
+ W=Q^\top\operatorname{diag}(g_x^{-1/2})Q,
+ \qquad
+ \widehat W_X^{\rm tr}=Q^\top\operatorname{diag}(\widetilde g_x^{-1/2})Q,
+ \qquad
+ \|\widehat W_X^{\rm tr}\|_{\rm op}\le \sqrt{2/\eta}. \tag{4}
+\]
+
+We first control the metric error without suppressing its dependence on the training sample.  For \(h_\theta\in\mathcal H_\beta(R,\eta)\), set \(e_\theta(x)=b(x)-(Ah_\theta)(x)\) and \(r_\theta=m-B\theta\).  Since \(b(x)\in[0,1]\) and the box restriction implies \((Ah_\theta)(x)\in[\eta,1-\eta]\),
+\[
+ |e_\theta(x)|\le1. \tag{5}
+\]
+Directly from the definitions of \(m\), \(B\), and \(A\),
+\[
+ Qr_\theta=K^{-1/2}\operatorname{diag}(g_x)(e_\theta(x))_{x=1}^K. \tag{6}
+\]
+Because the clipping interval contains every \(g_x\), scalar projection is nonexpansive relative to \(g_x\), so \(|\widetilde g_x-g_x|\le|\widehat g_x-g_x|\).  For positive \(s,t\),
+\[
+ t\,|s^{-1/2}-t^{-1/2}|
+ =\frac{\sqrt t\,|s-t|}{\sqrt s(\sqrt s+\sqrt t)}.
+\]
+Using \(s=\widetilde g_x\), \(t=g_x\), (3), and (6), we obtain, with \(D_G=\max_x|\widehat g_x-g_x|\),
+\[
+ \sup_{h_\theta\in\mathcal H_\beta(R,\eta)}
+ \|(\widehat W_X^{\rm tr}-W)r_\theta\|_2
+ \le \min\{\sqrt{2/\eta}\,D_G,\,3\eta^{-3/2}\}. \tag{7}
+\]
+The second term follows separately from \(g_x/\sqrt{\widetilde g_x}\le\sqrt2\eta^{-3/2}\), \(\sqrt{g_x}\le\eta^{-1/2}\), and (5).
+
+For completeness, an elementary exponential calculation gives the needed cell-count bound.  If \(I\) is Bernoulli with mean \(p\), expansion of its moment generating function and \(k!\ge2\,3^{k-2}\) for \(k\ge2\) give, for \(0<\lambda<3\),
+\[
+ \log E\exp\{\lambda(I-p)\}
+ \le \frac{p\lambda^2}{2(1-\lambda/3)}.
+\]
+Exponential Markov inequality, applied also to \(-\lambda(I-p)\) and optimized in \(\lambda\), therefore yields
+\[
+ P\!\left\{|N_x/n_{\rm tr}-p_X(x)|>
+ \sqrt{\frac{2p_X(x)\ell}{n_{\rm tr}}}+\frac{\ell}{3n_{\rm tr}}\right\}
+ \le2e^{-\ell}. \tag{8}
+\]
+Take \(\ell=\log(4K/q)\) and use a union bound.  With probability at least \(1-q/2\), (3) and (8) imply
+\[
+ D_G\le \sqrt{\frac{2K\ell}{\eta n_{\rm tr}}}+\frac{K\ell}{3n_{\rm tr}}. \tag{9}
+\]
+Since \(K\ge2\) and \(q<1\), \(\ell\le(3/2)\log(2K/q)\).  Put
+\[
+ z=\sqrt{\frac{K\log(2K/q)}{n_{\rm tr}}}.
+\]
+If \(z\le\eta^{-1}\), combine the first bounds in (7) and (9), and use \(z^2\le\eta^{-1}z\).  If \(z>\eta^{-1}\), use the second bound in (7).  In both cases,
+\[
+ \sup_{h_\theta\in\mathcal H_\beta(R,\eta)}
+ \|(\widehat W_X^{\rm tr}-W)(m-B\theta)\|_2
+ \le4\eta^{-3/2}z. \tag{10}
+\]
+
+We next control the two moment errors.  Independence and identical distribution within the testing fold, \(Y^2\le1\), and (1) give
+\[
+ E_P\|\widehat m^{\rm te}-m\|_2^2
+ =\frac1{n_{\rm te}}\operatorname{tr}\operatorname{Var}_P\{u(X)Y\}
+ \le\frac K{n_{\rm te}}. \tag{11}
+\]
+Let \(D_\beta=\operatorname{diag}(j^\beta:1\le j\le K)\).  Since \(|v_1|=1\), \(|v_j|\le\sqrt2\) for \(j\ge2\), and \(\sum_i u_i(X)^2=K\),
+\[
+ \begin{split}
+ E_P\| (\widehat B^{\rm tr}-B)D_\beta^{-1}\|_{\rm HS}^2
+ &\le \frac1{n_{\rm tr}}E_P\|u(X)(D_\beta^{-1}v(W))^\top\|_{\rm HS}^2\\
+ &\le \frac{2KS_\beta(K)}{n_{\rm tr}}.
+ \end{split}\tag{12}
+\]
+Markov's inequality applied to (11) and (12) shows that, outside a set of probability at most \(q/2\),
+\[
+ \|\widehat m^{\rm te}-m\|_2\le2\sqrt{\frac K{q n_{\rm te}}},
+ \qquad
+ \sup_{h_\theta\in\mathcal H_\beta(R,\eta)}
+ \|(\widehat B^{\rm tr}-B)\theta\|_2
+ \le R\sqrt{\frac{8KS_\beta(K)}{q n_{\rm tr}}}. \tag{13}
+\]
+Here the last inequality uses \(\|D_\beta\theta\|_2\le R\), which is precisely the source constraint.  The training and testing folds are independent by \(\mathrm{ass:iid\mbox{-}sampling}\), although only the union bound, not independence of the displayed events, is needed.
+
+For every feasible \(\theta\), the triangle inequality, (4), (10), and (13) give
+\[
+ \begin{split}
+ &\left|\|\widehat W_X^{\rm tr}(\widehat m^{\rm te}-\widehat B^{\rm tr}\theta)\|_2
+ -\|W(m-B\theta)\|_2\right|\\
+ &\quad\le
+ 2\sqrt{2/\eta}\sqrt{\frac K{q n_{\rm te}}}
+ +4\eta^{-1/2}R\sqrt{\frac{KS_\beta(K)}{q n_{\rm tr}}}
+ +4\eta^{-3/2}\sqrt{\frac{K\log(2K/q)}{n_{\rm tr}}}\\
+ &\quad\le t_q,
+ \end{split}\tag{14}
+\]
+where the last step uses \(0<\eta<1/2\) and the declared constant \(32\eta^{-3/2}\).  Taking the supremum over feasible \(\theta\), and using
+\[
+ \left|\inf_\theta F_\theta-\inf_\theta G_\theta\right|
+ \le\sup_\theta|F_\theta-G_\theta|, \tag{15}
+\]
+proves \(|\widehat d_{\rm sp}-d(P)|\le t_q\).  Equations (9) and (13) fail with total probability at most \(q\), uniformly in \(P\in\mathcal P_K^\cup\); no step depends on \(a\).  This proves the first assertion.
+
+At \(q=\alpha\), if \(d(P)=0\), the same event implies \(\widehat d_{\rm sp}\le t_\alpha\), hence \(\phi_{\rm sp}=0\).  Thus \(E_P\phi_{\rm sp}\le\alpha\).  On that event, \(\widehat d_{\rm sp}-t_\alpha\le d(P)\); since \(d(P)\ge0\), it follows that \(L_n=(\widehat d_{\rm sp}-t_\alpha)_+\le d(P)\).  Taking the required supremum and infimum proves the level and coverage claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It supplies a fully valid baseline that includes training uncertainty and every active constraint. \textit{Gap.} Wu et al.'s bootstrap result does not state a finite-sample uniform bound over a moving source-and-box image. \textit{Consumer.} Implementers obtain a conservative test and an honest defect lower bound even before the sharp frontier is resolved.
+
+\begin{theorem}[thm:fixed-k-upper-bound]\label{thm:fixed-k-upper-bound}
+For every fixed \(K\) for which \(\mathcal P_K(a)\) is nonempty, the rule that rejects when \(\widehat d_{\rm sp}>t_q\vert_{q=\epsilon_{\rm tot}/2}\) has total error at most \(\epsilon_{\rm tot}\) against \(d(P)\ge3t_q\vert_{q=\epsilon_{\rm tot}/2}\). Uniformly over \(a\in[a_L,a_U]\), therefore \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\le3t_q\vert_{q=\epsilon_{\rm tot}/2}=O(n^{-1/2})\), with the implied constant depending only on \(K\), the declared class constants, and \(\epsilon_{\rm tot}\).
+\end{theorem}
+\begin{proof}
+Set \(q=\epsilon_{\rm tot}/2\) and \(t=t_q\).  By \(\mathrm{thm:finite\mbox{-}sample\mbox{-}projection}\), every null law satisfies
+\[
+ P(\widehat d_{\rm sp}>t)\le q. \tag{16}
+\]
+If \(d(P)\ge3t\), then on the event \(|\widehat d_{\rm sp}-d(P)|\le t\) one has \(\widehat d_{\rm sp}\ge2t>t\).  Hence every such alternative satisfies
+\[
+ P(\widehat d_{\rm sp}\le t)\le q. \tag{17}
+\]
+Adding (16) and (17) gives total error at most \(2q=\epsilon_{\rm tot}\).  The definition of \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\) therefore gives
+\[
+ \rho^\star_{n,K}(a,\epsilon_{\rm tot})\le3t_{\epsilon_{\rm tot}/2}. \tag{18}
+\]
+For fixed \(K\), \(S_\beta(K)\), \(\log(4K/\epsilon_{\rm tot})\), and both fold-size ratios are constants, so every summand in \(t_{\epsilon_{\rm tot}/2}\) is a constant times \(n^{-1/2}\).  The bound contains no \(a\), and is consequently uniform over \(a\in[a_L,a_U]\).  This proves the asserted order and its stated dependence on constants.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fixed-support upper bound is the mandatory attainable-rate sanity check for every growing-resolution formula. \textit{Gap.} Existing one-NCO work gives asymptotic power without a finite-sample total-error upper bound for this constrained observed-law null. \textit{Consumer.} Small-table applications obtain a certified root-\(n\) detectability upper bound without an unsupported matching converse.
+
+\begin{openendedquestion}[oeq:operator-nuisance-match]\label{oeq:operator-nuisance-match}
+Using \(\mathsf H_{\rm law}\), construct positive-multinomial null and alternative families on interior, source-boundary, box-boundary, and intersecting faces that preserve the two-sided exponent-\(a\) link and whose exact affinity matches every operator-fitting term generated by \(\mathsf H_{\rm prof}\). Which component of \(r_{\rm train}\) survives after the shared score of \(b\) and \(A\) is profiled out?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the load-bearing converse that distinguishes the project from Gaussian analogy. \textit{Gap.} No inspected inverse-testing or multinomial paper couples operator and regression perturbations while maintaining distance from a moving ellipsoid--box image. \textit{Consumer.} A matched nuisance cost tells practitioners how much of the detection threshold is caused by learning the proxy operator.
+
+\begin{openendedquestion}[oeq:sharp-frontier]\label{oeq:sharp-frontier}
+Using \(\mathsf H_{\rm prof}\), determine the explicit piecewise function \(r_{n,K}(a,\beta)\) and the maximal \(\kappa_{\max}\) such that \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\asymp r_{n,K}(a,\beta)\) uniformly whenever \(K\le n^{\kappa_{\max}}\). Derive the exact transition surfaces obtained by balancing \(r_{\rm dense}\), \(r_{\rm tail}\), \(r_{\rm train}\), and the least-favorable active-face scale \(r_{\rm face}\). The formula must agree with the fixed-\(K\) upper bound and, if the legal dense construction is established, must not fall below \(r_{\rm dense}\) in that construction's regime.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The piecewise radius is the paper's named theorem-level focal object. \textit{Gap.} Breunig and Chen characterize structural-space NPIV testing, and Marteau and Sapatinas characterize a diagonal Gaussian sequence experiment; neither result determines this observed-image radius. \textit{Consumer.} The frontier converts support size and proxy strength into a checkable detectability limit for discrete one-NCO diagnostics.
+
+\begin{openendedquestion}[oeq:adaptive-calibration]\label{oeq:adaptive-calibration}
+Using \(\mathsf H_{\rm adap}\), construct one \(a\)-independent sample-split convex-projection test with rejection probability at most \(\alpha+o(1)\) uniformly over \(\{P\in\mathcal P_K^{\cup}:d(P)=0\}\), and with power at \(\Lambda_{\rm adap}(n,K)r_{n,K}(a,\beta)\), where \(\Lambda_{\rm adap}(n,K)\) is the smallest attainable adaptation factor. The calibration must resample training and testing uncertainty and remain valid on all source and box faces. Invert the resulting family of sublevel-set tests to obtain a lower confidence bound for \(d(P)\) with frontier-order stochastic width.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Sharp rates are operational only with a calibration that survives nonregular active faces and unknown proxy strength. \textit{Gap.} Fang and Seo require a fixed cone, while Chernozhukov, Newey, and Santos do not analyze a growing image transported by a separately estimated operator. \textit{Consumer.} Wu et al.'s binary-event discrete workflow receives a level-certified rejection rule and a quantitative lower bound on observable misspecification.
+
+\begin{theorem}[thm:fixed-k-transverse-lower]\label{thm:fixed-k-transverse-lower}
+For a fixed \(K\), suppose there is a single number \(\kappa_K>0\), chosen before \(a\), such that for every \(a\in[a_L,a_U]\) the ambient class \(\mathcal P_K(a)\) contains a law whose \((X,W)\)-marginal has mass function \(q_a\), marginals \(q_{a,X},q_{a,W}\), and conditional-expectation operator \(A_a\) satisfying
+\[
+\begin{gathered}
+q_a(x,w)\ge \kappa_K\quad\text{for every }(x,w)\in\mathcal X_K\times\mathcal W_K,\\
+q_{a,X}(x)-\frac{\eta}{K}\ge\kappa_K,
+\qquad \frac{1}{\eta K}-q_{a,X}(x)\ge\kappa_K
+\quad\text{for every }x\in\mathcal X_K,\\
+q_{a,W}(w)-\frac{\eta}{K}\ge\kappa_K,
+\qquad \frac{1}{\eta K}-q_{a,W}(w)\ge\kappa_K
+\quad\text{for every }w\in\mathcal W_K,
+\end{gathered}
+\]
+and, for every \(g\in\ell^2_{K,W}\) with \(E_{q_a}\{g(W)\}=0\),
+\[
+(c_{\rm link}+\kappa_K)\|L^{-a}g\|_{\ell^2_{K,W}}
+\le \|A_ag\|_{L^2(q_{a,X})}
+\le (C_{\rm link}-\kappa_K)\|L^{-a}g\|_{\ell^2_{K,W}}.
+\]
+Then there are laws \(P_{0,a},P_{t,a}\in\mathcal P_K(a)\), having this same \((X,W)\) design and hence preserving every displayed slack, such that \(P_{0,a}\) is strictly positive, \(d(P_{0,a})=0\), and \(d(P_{t,a})=t\) for \(0<t\le\eta/2\), while
+\[
+D_{\rm KL}(P_{t,a}\|P_{0,a})\le\frac{t^2}{\eta(1-\eta)}
+\]
+and
+\[
+\chi^2(P_{t,a}^{\otimes n},P_{0,a}^{\otimes n})
+\le \exp\!\left\{\frac{nt^2}{\eta(1-\eta)}\right\}-1.
+\]
+Consequently, for every \(\epsilon_{\rm tot}\in(0,1)\), there is a constant \(c>0\), independent of \(a\) and \(n\), such that
+\[
+\rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge c n^{-1/2}.
+\]
+Together with \(\mathrm{thm:fixed\mbox{-}k\mbox{-}upper\mbox{-}bound}\), this gives \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\asymp n^{-1/2}\) uniformly in \(a\) for every fixed \(K\) satisfying the displayed common-design premise.
+\end{theorem}
+\begin{proof}
+Fix \(K\) and let \(\kappa_K>0\) be the single constant in the premise, quantified before \(a\). Fix arbitrary \(a\in[a_L,a_U]\), and select the asserted law only to obtain its \((X,W)\)-mass function \(q_a\), marginals \(q_{a,X},q_{a,W}\), and conditional-expectation operator \(A_a\). Throughout the construction, expectations involving only \((X,W)\) are taken under this design.
+
+First, the bridge class is nonempty. The constant function \(h_{1/2}(w)=1/2\) has DCT coefficients \(\theta_1=1/2\) and \(\theta_j=0\) for \(j\ge2\), because \(v_1=\mathbf 1\). Hence
+\[
+\sum_{j=1}^K j^{2\beta}\theta_j^2=\frac14<R^2,
+\]
+where the strict inequality follows from \(R>1/2\). Also, \(\eta<h_{1/2}(w)<1-\eta\) for every \(w\), since \(0<\eta<1/2\). Thus \(h_{1/2}\in\mathcal H_\beta(R,\eta)\) by \(\mathrm{def:bridge\mbox{-}class}\). In DCT coordinates the set defining \(\mathcal H_\beta(R,\eta)\) is the intersection of a closed bounded ellipsoid and finitely many closed half-spaces in \(\mathbb R^K\); it is therefore compact. The map
+\[
+h\longmapsto E_{q_a}\{h(W)\}
+\]
+is linear and continuous, so it has a maximizer \(h_a^*\in\mathcal H_\beta(R,\eta)\). Define
+\[
+M_a=E_{q_a}\{h_a^*(W)\},
+\qquad
+p_{0,a}(x)=(A_a h_a^*)(x).
+\]
+The pointwise box constraints in \(\mathrm{def:bridge\mbox{-}class}\) and conditional averaging give
+\[
+\eta\le p_{0,a}(x)\le1-\eta
+\qquad\text{for every }x\in\mathcal X_K. \tag{1}
+\]
+
+Retain the design \(q_a\), and for \(0<t\le\eta/2\) define two observed-data laws by
+\[
+\begin{aligned}
+P_{0,a}(X=x,W=w,Y=y)
+&=q_a(x,w)p_{0,a}(x)^y\{1-p_{0,a}(x)\}^{1-y},\\
+P_{t,a}(X=x,W=w,Y=y)
+&=q_a(x,w)\{p_{0,a}(x)+t\}^y
+  \{1-p_{0,a}(x)-t\}^{1-y}.
+\end{aligned} \tag{2}
+\]
+By (1) and \(0<t\le\eta/2\),
+\[
+\eta\le p_{0,a}(x)+t\le1-\frac\eta2. \tag{3}
+\]
+The premise \(q_a(x,w)\ge\kappa_K\), together with (1) and (3), implies
+\[
+P_{0,a}(x,w,y)\ge\kappa_K\eta,
+\qquad
+P_{t,a}(x,w,y)\ge\frac{\kappa_K\eta}{2} \tag{4}
+\]
+for every \((x,w,y)\). Thus both tables are strictly positive. Construction (2) changes only the conditional Bernoulli outcome kernel. Consequently, both laws retain the same \((X,W)\)-law, the same marginals, and the same operator \(A_a\). The four marginal inequalities and the two link inequalities required by \(\mathrm{def:model\mbox{-}class}\) therefore follow directly from the displayed premise, with the stated positive slacks. Hence
+\[
+P_{0,a},P_{t,a}\in\mathcal P_K(a). \tag{5}
+\]
+This membership conclusion concerns the ambient class \(\mathcal P_K(a)\) itself and uses no preservation property of an auxiliary subclass.
+
+Under (2), the conditional-mean functions are
+\[
+b_{0,a}=A_a h_a^*,
+\qquad
+b_{t,a}=A_a h_a^*+t\mathbf 1. \tag{6}
+\]
+The first identity and \(h_a^*\in\mathcal H_\beta(R,\eta)\) imply \(d(P_{0,a})=0\) by \(\mathrm{def:observable\mbox{-}defect}\). For any \(h\in\mathcal H_\beta(R,\eta)\), Cauchy--Schwarz in \(L^2(q_{a,X})\), the identity \(\|\mathbf1\|_{L^2(q_{a,X})}=1\), and iterated expectation yield
+\[
+\begin{aligned}
+\|b_{t,a}-A_a h\|_{L^2(q_{a,X})}
+&\ge \left|E_{q_a}\{b_{t,a}(X)-(A_a h)(X)\}\right|\\
+&=M_a+t-E_{q_a}\{h(W)\}\\
+&\ge t,
+\end{aligned} \tag{7}
+\]
+where the last inequality is the maximizing property of \(h_a^*\). Taking \(h=h_a^*\) in (6) makes the residual equal to \(t\mathbf1\), whose \(L^2(q_{a,X})\)-norm is \(t\). Therefore
+\[
+d(P_{t,a})=t. \tag{8}
+\]
+The same argument supplies the advertised transverse geometry: the continuous linear functional \(z\mapsto\langle z,\mathbf1\rangle_{L^2(q_{a,X})}\) exposes the maximizing face
+\[
+\left\{A_a h:h\in\mathcal H_\beta(R,\eta),\ E_{q_a}\{h(W)\}=M_a\right\}
+\]
+of the image, (6) places \(b_{0,a}\) on that face, and \(b_{t,a}=b_{0,a}+t\mathbf1\) moves in its outward supporting-normal direction. Moreover, \(h_a^*\) cannot be an interior point of \(\mathcal H_\beta(R,\eta)\). Indeed, the strict source and box inequalities verified above show that \(h_{1/2}\) is an interior point, and if the maximizer were interior, then a sufficiently small positive perturbation by \(\mathbf1\) would remain feasible while strictly increasing \(E_{q_a}\{h(W)\}\), a contradiction.
+
+By (4), \(P_{t,a}\ll P_{0,a}\). Direct summation over \(Y\in\{0,1\}\), conditional on \(X\), gives
+\[
+\begin{aligned}
+\chi^2(P_{t,a},P_{0,a})
+&=E_{q_{a,X}}\!\left[
+  \frac{t^2}{p_{0,a}(X)}+
+  \frac{t^2}{1-p_{0,a}(X)}\right]\\
+&=E_{q_{a,X}}\!\left[
+  \frac{t^2}{p_{0,a}(X)\{1-p_{0,a}(X)\}}\right]\\
+&\le\frac{t^2}{\eta(1-\eta)},
+\end{aligned} \tag{9}
+\]
+where the final inequality uses (1) and the fact that \(p(1-p)\ge\eta(1-\eta)\) for \(p\in[\eta,1-\eta]\). Let \(Z=dP_{t,a}/dP_{0,a}\). Since \(\log Z\le Z-1\), change of measure and \(E_{P_{0,a}}Z=1\) imply
+\[
+\begin{aligned}
+D_{\rm KL}(P_{t,a}\|P_{0,a})
+&=E_{P_{t,a}}\log Z\\
+&\le E_{P_{t,a}}(Z-1)\\
+&=E_{P_{0,a}}\{Z(Z-1)\}\\
+&=E_{P_{0,a}}(Z-1)^2\\
+&=\chi^2(P_{t,a},P_{0,a})\\
+&\le\frac{t^2}{\eta(1-\eta)}. 
+\end{aligned} \tag{10}
+\]
+
+Under \(\mathrm{ass:iid\mbox{-}sampling}\), product likelihood ratios factor. Thus (9) and \(1+x\le e^x\) give
+\[
+\begin{aligned}
+1+\chi^2(P_{t,a}^{\otimes n},P_{0,a}^{\otimes n})
+&=\{1+\chi^2(P_{t,a},P_{0,a})\}^n\\
+&\le\exp\!\left\{n\chi^2(P_{t,a},P_{0,a})\right\}\\
+&\le\exp\!\left\{\frac{nt^2}{\eta(1-\eta)}\right\}.
+\end{aligned} \tag{11}
+\]
+Subtracting one proves the asserted product \(\chi^2\)-bound.
+
+It remains to derive the testing converse. For probability laws \(Q\ll P\), Cauchy--Schwarz yields
+\[
+\|Q-P\|_{\rm TV}
+=\frac12E_P\left|\frac{dQ}{dP}-1\right|
+\le\frac12\sqrt{\chi^2(Q,P)}. \tag{12}
+\]
+For every possibly randomized test \(0\le\phi\le1\), the variational definition of total variation gives
+\[
+E_P\phi+E_Q(1-\phi)
+=1-\{E_Q\phi-E_P\phi\}
+\ge1-\|Q-P\|_{\rm TV}. \tag{13}
+\]
+Set
+\[
+c=\min\!\left\{\frac\eta2,
+\sqrt{\eta(1-\eta)\log\!\left(1+(1-\epsilon_{\rm tot})^2\right)}\right\}>0,
+\qquad
+t=\frac{c}{\sqrt n}. \tag{14}
+\]
+Since \(n\ge1\), equation (14) ensures \(0<t\le\eta/2\). Equations (11)--(14), applied with \(P=P_{0,a}^{\otimes n}\) and \(Q=P_{t,a}^{\otimes n}\), give
+\[
+\begin{aligned}
+E_{P_{0,a}^{\otimes n}}\phi+E_{P_{t,a}^{\otimes n}}(1-\phi)
+&\ge1-\frac{1-\epsilon_{\rm tot}}2\\
+&=\frac{1+\epsilon_{\rm tot}}2
+>\epsilon_{\rm tot}. 
+\end{aligned} \tag{15}
+\]
+By (5) and (8), the first law in (15) belongs to the composite null and the second belongs to the alternative at defect \(t\). Thus every test has total error strictly exceeding \(\epsilon_{\rm tot}\) at separation \(t\). Since the alternative sets \(\{P:d(P)\ge r\}\) decrease as \(r\) increases, \(\mathrm{def:minimax\mbox{-}radius}\) implies
+\[
+\rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge\frac{c}{\sqrt n}. \tag{16}
+\]
+The constant in (14) is independent of \(a\) and \(n\). Because \(a\) was arbitrary and the same \(\kappa_K\) was fixed before choosing \(a\), (16) holds uniformly over \(a\in[a_L,a_U]\). Finally, the premise makes \(\mathcal P_K(a)\) nonempty, so combining (16) with the already established \(\mathrm{thm:fixed\mbox{-}k\mbox{-}upper\mbox{-}bound}\) proves \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\asymp n^{-1/2}\) uniformly over \(a\in[a_L,a_U]\) for every fixed \(K\) satisfying the common-design premise.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The transverse construction gives an exact-defect two-point experiment and matches the attainable root-\(n\) scale for every fixed support satisfying the explicit common-design premise. \textit{Gap.} The converse is conditional on the ambient classes admitting \( (X,W) \) designs whose cell, marginal, and two link slacks share one positive lower bound over \(a\); it makes no claim about preserving an auxiliary regular subclass. \textit{Consumer.} Fixed-table implementations obtain a sharp total-error benchmark, while growing-table arguments can reuse the exposed-face construction only after verifying a suitably uniform design premise.
+
+\begin{theorem}[thm:legal-dense-block-partial]\label{thm:legal-dense-block-partial}
+Assume the explicit slack-compatibility condition that there is a constant \(\varepsilon\) satisfying
+\[
+ c_{\rm link}<\varepsilon<C_{\rm link},
+ \qquad
+ 2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}<1.
+\]
+There is a constant \(c>0\), independent of \(a\), \(K\), and \(n\), with the following property.  For every \(a\in[a_L,a_U]\), put
+\[
+ J=\lfloor K/2\rfloor+1,
+ \qquad
+ B_K=\{J,\ldots,K\},
+ \qquad
+ m=|B_K|=K-\lfloor K/2\rfloor.
+\]
+Thus \(K/2\le J\le K\) and \(K/2\le m\le K\).  For every amplitude \(\delta>0\) satisfying \(\delta\sqrt{2m}\le\eta/2\), there are a common null law \(P_0\) and a Rademacher family \(\{P_s:s\in\{-1,1\}^m\}\) in \(\mathcal P_K(a)\) such that \(h_0\equiv\eta\) lies on the lower-box face of \(\mathcal H_\beta(R,\eta)\), \(d(P_0)=0\), every \((X,W,Y)\) cell under every displayed law has mass at least \(cK^{-2}\), and the link inequalities have slack bounded away from zero uniformly in \(a\) and \(K\).  Moreover,
+\[
+ d(P_s)\ge \delta-\varepsilon R J^{-(a+\beta)}
+\]
+for every \(s\), and
+\[
+ \chi^2\!\left(2^{-m}\sum_sP_s^{\otimes n},P_0^{\otimes n}\right)
+ \le \exp\!\left\{\frac{n^2\delta^4}{2m\eta^2(1-\eta)^2}\right\}-1.
+\]
+Consequently, there are constants \(c_0,c_1>0\), independent of \(a\), \(K\), and \(n\), such that, whenever \(K=K_n=o(n^{2/3})\) and the worst-case tail condition
+\[
+ K^{-(a_L+\beta)}\le c_0\frac{K^{1/4}}{\sqrt n}
+\]
+holds, then, for all sufficiently large \(n\), uniformly over \(a\in[a_L,a_U]\),
+\[
+ \rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge c_1\frac{K^{1/4}}{\sqrt n}.
+\]
+The lower-endpoint tail condition suffices uniformly because \(a\ge a_L\).  This is a legal positive-multinomial dense-block converse on the displayed, explicitly nonempty compatibility subregime.
+\end{theorem}
+\begin{proof}
+Fix the constant \(\varepsilon\) in the statement.  By the definitions of the DCT bases, \(u_1=v_1=1\), every other basis vector is orthogonal to the constant vector in the corresponding reference geometry, and
+\[
+ |u_j(x)|\leq \sqrt{2},
+ \qquad
+ |v_j(w)|\leq \sqrt{2}
+ \tag{1}
+\]
+for every \(j\geq 2\), \(x\in\mathcal X_K\), and \(w\in\mathcal W_K\).  For fixed \(a\in[a_L,a_U]\), define the joint mass function
+\[
+ q_a(x,w)=\frac{1}{K^2}\left\{1+\varepsilon
+       \sum_{j=2}^K j^{-a}u_j(x)v_j(w)\right\}.
+ \tag{2}
+\]
+Orthogonality to the constant vector shows that summing (2) over either coordinate gives the uniform marginal \(1/K\), and hence summing over both coordinates gives one.  Moreover, (1), \(a\geq a_L\), and the assumed compatibility inequality give
+\[
+ q_a(x,w)
+ \geq \frac{1}{K^2}\left\{1-2\varepsilon\sum_{j=2}^Kj^{-a}\right\}
+ \geq \frac{c_q}{K^2},
+ \qquad
+ c_q:=1-2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}>0.
+ \tag{3}
+\]
+Thus (2) is a strictly positive probability table with \(p_X(x)=p_W(w)=1/K\).  Because \(0<\eta<1/2\), one has \(\eta\leq1\leq1/\eta\); hence these marginals satisfy all four balance conditions in \(\mathrm{def:model-class}\).
+
+Under (2), the conditional mass of \(W\) given \(X=x\) is \(Kq_a(x,w)\).  DCT orthonormality therefore yields
+\[
+ Av_1=u_1,
+ \qquad
+ Av_j=\varepsilon j^{-a}u_j,
+ \quad 2\leq j\leq K.
+ \tag{4}
+\]
+If \(g=\sum_{j=1}^K g_jv_j\) satisfies \(E_P\{g(W)\}=0\), uniformity of \(P_W\) implies \(g_1=0\).  Uniformity of \(P_X\), Parseval's identity, and (4) then imply
+\[
+ \|Ag\|_{L^2_X}^2
+ =\varepsilon^2\sum_{j=2}^Kj^{-2a}g_j^2
+ =\varepsilon^2\|L^{-a}g\|_{\ell^2_{K,W}}^2.
+ \tag{5}
+\]
+Consequently the two link conditions in \(\mathrm{def:model-class}\) hold with slack at least
+\[
+ c_{\mathrm{slack}}
+ :=\min\{\varepsilon-c_{\rm link},C_{\rm link}-\varepsilon\}>0,
+ \tag{6}
+\]
+which is independent of \(a\) and \(K\).
+
+Let
+\[
+ J=\lfloor K/2\rfloor+1,
+ \qquad
+ B_K=\{J,\ldots,K\},
+ \qquad
+ m=|B_K|=K-\lfloor K/2\rfloor.
+\]
+Directly from these definitions,
+\[
+ K/2\leq J\leq K,
+ \qquad
+ K/2\leq m\leq K,
+ \tag{7}
+\]
+so both block parameters are comparable to \(K\), including when \(K=2\).  For \(s=(s_j)_{j\in B_K}\in\{-1,1\}^m\), set
+\[
+ f_s(x)=\frac{\delta}{\sqrt m}\sum_{j\in B_K}s_ju_j(x).
+ \tag{8}
+\]
+Equation (1) and the triangle inequality give
+\[
+ \|f_s\|_\infty\leq\delta\sqrt{2m}.
+ \tag{9}
+\]
+
+Define \(P_0\) by the \((X,W)\) table (2) and the conditional law
+\[
+ P_0(Y=1\mid X=x,W=w)=\eta.
+ \tag{10}
+\]
+The only nonzero DCT coefficient of \(h_0\equiv\eta\) is its first coefficient, equal to \(\eta\).  The declared ranges \(0<\eta<1/2\) and \(R>1/2\) imply
+\[
+ \eta\leq\frac12<R,
+ \qquad
+ \eta\leq1-\eta.
+ \tag{11}
+\]
+It follows from (11) and \(\mathrm{def:bridge-class}\) that
+\(\|L^\beta h_0\|_{\ell^2_{K,W}}=\eta\leq R\) and
+\(\eta\leq h_0(w)\leq1-\eta\) for every \(w\), so
+\(h_0\in\mathcal H_\beta(R,\eta)\), with the lower box constraint active.  Constants are preserved by conditional expectation, and thus \(Ah_0=\eta=b_0\).  The definition of the observable defect therefore gives \(d(P_0)=0\).
+
+For each \(s\), retain the table (2) and define \(P_s\) by
+\[
+ P_s(Y=1\mid X=x,W=w)=\eta+f_s(x).
+ \tag{12}
+\]
+If \(\delta\sqrt{2m}\leq\eta/2\), equations (9) and (12) show that the success probability belongs to \([\eta/2,3\eta/2]\).  Since \(\eta<1/2\), the failure probability is at least
+\[
+ 1-\frac{3\eta}{2}>\frac14\geq\frac\eta2.
+ \tag{13}
+\]
+Thus both binary outcome probabilities under every \(P_s\), and also under \(P_0\), are at least \(\eta/2\).  Combining this fact with (3), every three-way cell has mass at least
+\[
+ cK^{-2},
+ \qquad
+ c:=c_q\eta/2>0.
+ \tag{14}
+\]
+The constant \(c\) is independent of \(a\), \(K\), and \(n\).  The outcome-kernel change in (12) leaves the two marginals and the operator \(A\) unchanged.  Equations (3)--(6) therefore verify directly, using \(\mathrm{def:model-class}\), that \(P_0,P_s\in\mathcal P_K(a)\), without invoking preservation of any unspecified subclass.
+
+Let \(\Pi_{B_K}\) be the \(L^2(P_X)\)-orthogonal projection onto the span of \(\{u_j:j\in B_K\}\).  For any \(h_\theta\in\mathcal H_\beta(R,\eta)\), equations (4) and (7), together with the source constraint in \(\mathrm{def:bridge-class}\), give
+\[
+ \begin{aligned}
+ \|\Pi_{B_K}Ah_\theta\|_{L^2_X}^2
+ &=\varepsilon^2\sum_{j\in B_K}j^{-2a}\theta_j^2 \\
+ &=\varepsilon^2\sum_{j\in B_K}j^{-2(a+\beta)}j^{2\beta}\theta_j^2 \\
+ &\leq\varepsilon^2J^{-2(a+\beta)}
+       \sum_{j\in B_K}j^{2\beta}\theta_j^2
+ \leq\varepsilon^2R^2J^{-2(a+\beta)}.
+ \end{aligned}
+ \tag{15}
+\]
+Under \(P_s\), equation (12) gives \(b_s=\eta+f_s\), so \(\Pi_{B_K}b_s=f_s\).  Parseval's identity applied to (8) gives \(\|f_s\|_{L^2_X}=\delta\).  Projection contraction, the reverse triangle inequality, (15), and the definition of \(d\) now imply, uniformly over the complete source-and-box constrained image,
+\[
+ \begin{aligned}
+ d(P_s)
+ &=\inf_{h_\theta\in\mathcal H_\beta(R,\eta)}
+     \|b_s-Ah_\theta\|_{L^2_X} \\
+ &\geq\inf_{h_\theta\in\mathcal H_\beta(R,\eta)}
+     \|f_s-\Pi_{B_K}Ah_\theta\|_{L^2_X} \\
+ &\geq\delta-\varepsilon RJ^{-(a+\beta)}.
+ \end{aligned}
+ \tag{16}
+\]
+
+For one observation, the likelihood ratio of \(P_s\) relative to \(P_0\) is
+\[
+ \ell_s(O)=1+\frac{f_s(X)(Y-\eta)}{\eta(1-\eta)}.
+ \tag{17}
+\]
+Conditioning first on \(X\), summing over the Bernoulli law (10), and using uniformity of \(P_X\) and DCT orthonormality give
+\[
+ \begin{aligned}
+ E_0(\ell_s\ell_t)
+ &=1+\frac{\langle f_s,f_t\rangle_{L^2_X}}{\eta(1-\eta)} \\
+ &=1+\frac{\delta^2}{m\eta(1-\eta)}
+       \sum_{j\in B_K}s_jt_j.
+ \end{aligned}
+ \tag{18}
+\]
+The amplitude restriction and \(m\geq1\) imply
+\(\delta^2\leq\eta^2/(8m)<\eta(1-\eta)\), so every right-hand side in (18) is strictly positive.  Let
+\(\overline P=2^{-m}\sum_sP_s^{\otimes n}\).  By the i.i.d. sampling assumption, the likelihood-ratio second-moment identity, and \((1+x)^n\leq e^{nx}\) for \(x>-1\),
+\[
+ \begin{aligned}
+ 1+\chi^2(\overline P,P_0^{\otimes n})
+ &=2^{-2m}\sum_{s,t}\{E_0(\ell_s\ell_t)\}^n \\
+ &\leq 2^{-2m}\sum_{s,t}
+   \exp\!\left\{
+    \frac{n\delta^2}{m\eta(1-\eta)}
+    \sum_{j\in B_K}s_jt_j
+   \right\} \\
+ &=\cosh\!\left(\frac{n\delta^2}{m\eta(1-\eta)}\right)^m.
+ \end{aligned}
+ \tag{19}
+\]
+For \(x\geq0\), \((\log\cosh x)'=\tanh x\leq x\), with equality of \(\log\cosh x\) and \(x^2/2\) at zero; evenness therefore gives \(\log\cosh x\leq x^2/2\) for every real \(x\).  Applying this inequality to (19) proves
+\[
+ \chi^2(\overline P,P_0^{\otimes n})
+ \leq
+ \exp\!\left\{\frac{n^2\delta^4}
+ {2m\eta^2(1-\eta)^2}\right\}-1.
+ \tag{20}
+\]
+
+It remains to derive the minimax consequence with constants uniform in \(a\).  Choose \(c_*>0\), depending only on \(\eta\) and \(\epsilon_{\rm tot}\), sufficiently small that
+\[
+ \frac12\left[
+  \exp\!\left\{\frac{c_*^4}{2\eta^2(1-\eta)^2}\right\}-1
+ \right]^{1/2}<1-\epsilon_{\rm tot},
+ \tag{21}
+\]
+which is possible because \(0<\epsilon_{\rm tot}<1\).  Set
+\[
+ \delta=c_*\frac{m^{1/4}}{\sqrt n}.
+ \tag{22}
+\]
+If \(K=o(n^{2/3})\), then (7) and (22) imply
+\[
+ \delta\sqrt{2m}
+ \leq \sqrt2c_*\frac{K^{3/4}}{\sqrt n}=o(1),
+ \tag{23}
+\]
+so the amplitude restriction holds for all sufficiently large \(n\).
+
+For \(a\in[a_L,a_U]\), \(J\geq K/2\), and \(K\geq2\),
+\[
+ J^{-(a+\beta)}
+ \leq 2^{a_U+\beta}K^{-(a_L+\beta)}.
+ \tag{24}
+\]
+Choose \(c_0>0\), independently of \(a\), \(K\), and \(n\), so small that
+\[
+ \varepsilon R2^{a_U+\beta}c_0
+ \leq c_*2^{-5/4}.
+ \tag{25}
+\]
+Under the asserted lower-endpoint tail condition, equations (22)--(25) and \(m\geq K/2\) show that
+\[
+ \varepsilon RJ^{-(a+\beta)}
+ \leq\frac\delta2,
+ \qquad
+ d(P_s)\geq\frac\delta2
+ \geq c_1\frac{K^{1/4}}{\sqrt n},
+ \qquad
+ c_1:=c_*2^{-5/4}.
+ \tag{26}
+\]
+This also proves explicitly that imposing the tail condition at \(a_L\) suffices for every \(a\geq a_L\).
+
+Substitution of (22) into (20) makes its exponent equal to \(c_*^4/[2\eta^2(1-\eta)^2]\).  For any probability measures \(Q\ll P\), Cauchy--Schwarz applied to the likelihood ratio gives
+\[
+ \|Q-P\|_{\rm TV}
+ =\frac12E_P\left|\frac{dQ}{dP}-1\right|
+ \leq\frac12\sqrt{\chi^2(Q,P)}.
+ \tag{27}
+\]
+Thus (20), (21), and (27) imply
+\(\|\overline P-P_0^{\otimes n}\|_{\rm TV}<1-\epsilon_{\rm tot}\).  For every measurable test \(\phi\) taking values in \([0,1]\), the variational definition of total variation gives
+\[
+ \begin{aligned}
+ E_{P_0^{\otimes n}}\phi
+ +2^{-m}\sum_sE_{P_s^{\otimes n}}(1-\phi)
+ &=E_{P_0^{\otimes n}}\phi+E_{\overline P}(1-\phi) \\
+ &\geq1-\|\overline P-P_0^{\otimes n}\|_{\rm TV}
+ >\epsilon_{\rm tot}.
+ \end{aligned}
+ \tag{28}
+\]
+Here \(P_0\) is a valid null by (10)--(11), and every \(P_s\) is an alternative with defect at least the last quantity in (26).  Therefore no test can have total error at most \(\epsilon_{\rm tot}\) at separation \(c_1K^{1/4}/\sqrt n\), or at any smaller separation.  The definition \(\mathrm{def:minimax-radius}\) now gives
+\[
+ \rho^\star_{n,K}(a,\epsilon_{\rm tot})
+ \geq c_1\frac{K^{1/4}}{\sqrt n},
+\]
+for all sufficiently large \(n\), uniformly over \(a\in[a_L,a_U]\), as claimed.
+\end{proof}
+
+\begin{theorem}[thm:fixed-k-root-n-resolution]\label{thm:fixed-k-root-n-resolution}
+Fix \(K\).  Suppose that there is one number \(\kappa_K>0\), quantified before \(a\), such that for every \(a\in[a_L,a_U]\) the ambient class \(\mathcal P_K(a)\) contains an \((X,W)\) design with mass function \(q_a\), marginals \(q_{a,X},q_{a,W}\), and conditional-expectation operator \(A_a\) satisfying
+\[
+\begin{gathered}
+q_a(x,w)\ge \kappa_K\quad\text{for every }(x,w)\in\mathcal X_K\times\mathcal W_K,\\
+q_{a,X}(x)-\frac{\eta}{K}\ge\kappa_K,
+\qquad \frac{1}{\eta K}-q_{a,X}(x)\ge\kappa_K
+\quad\text{for every }x\in\mathcal X_K,\\
+q_{a,W}(w)-\frac{\eta}{K}\ge\kappa_K,
+\qquad \frac{1}{\eta K}-q_{a,W}(w)\ge\kappa_K
+\quad\text{for every }w\in\mathcal W_K,
+\end{gathered}
+\]
+and, for every \(g\in\ell^2_{K,W}\) with \(E_{q_a}\{g(W)\}=0\),
+\[
+(c_{\rm link}+\kappa_K)\|L^{-a}g\|_{\ell^2_{K,W}}
+\le \|A_ag\|_{L^2(q_{a,X})}
+\le (C_{\rm link}-\kappa_K)\|L^{-a}g\|_{\ell^2_{K,W}}.
+\]
+Then the transverse handle \(\mathsf H_{\rm tr}\) produces laws \(P_{0,a},P_{t,a}\in\mathcal P_K(a)\) with the same \((X,W)\) design and hence the same displayed slacks, such that \(P_{0,a}\) and \(P_{t,a}\) are strictly positive, \(d(P_{0,a})=0\), and \(d(P_{t,a})=t\) for every \(0<t\le\eta/2\).  Moreover,
+\[
+D_{\rm KL}(P_{t,a}\|P_{0,a})\le\frac{t^2}{\eta(1-\eta)}
+\quad\text{and}\quad
+\chi^2(P_{t,a}^{\otimes n},P_{0,a}^{\otimes n})
+\le \exp\!\left\{\frac{nt^2}{\eta(1-\eta)}\right\}-1.
+\]
+Consequently, for every \(\epsilon_{\rm tot}\in(0,1)\), there is a constant \(c>0\), independent of \(a\) and \(n\), for which
+\[
+\rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge c n^{-1/2}
+\quad\text{uniformly over }a\in[a_L,a_U].
+\]
+Together with \(\mathrm{thm:fixed\mbox{-}k\mbox{-}upper\mbox{-}bound}\), this yields \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\asymp n^{-1/2}\) uniformly in \(a\) for every fixed \(K\) satisfying the common-design premise.
+\end{theorem}
+\begin{proof}
+Fix \(K\), the single constant \(\kappa_K>0\) in the premise, and an arbitrary \(a\in[a_L,a_U]\). Select the asserted design \(q_a\); all expectations below that involve only \((X,W)\) are taken under this design.
+
+The bridge class is nonempty. Indeed, the constant function \(h_{1/2}(w)=1/2\) has DCT coefficients \(\theta_1=1/2\) and \(\theta_j=0\) for \(j\ge2\), because \(v_1=\mathbf 1\). Hence
+\[
+\sum_{j=1}^K j^{2\beta}\theta_j^2=\frac14<R^2,
+\qquad
+\eta<h_{1/2}(w)<1-\eta
+\quad(w\in\mathcal W_K),
+\tag{1}
+\]
+where the first strict inequality uses \(R>1/2\) and the second uses \(0<\eta<1/2\). Thus \(h_{1/2}\in\mathcal H_\beta(R,\eta)\) by \(\mathrm{def:bridge\mbox{-}class}\). In coefficient coordinates, \(\mathcal H_\beta(R,\eta)\) is the intersection of a closed bounded ellipsoid and finitely many closed half-spaces in \(\mathbb R^K\), and is therefore compact. The continuous linear map \(h\mapsto E_{q_a}\{h(W)\}\) consequently has a maximizer \(h_a^*\in\mathcal H_\beta(R,\eta)\). Define
+\[
+M_a=E_{q_a}\{h_a^*(W)\},
+\qquad
+p_{0,a}(x)=(A_ah_a^*)(x).
+\tag{2}
+\]
+The pointwise box constraints and conditional averaging give
+\[
+\eta\le p_{0,a}(x)\le1-\eta
+\quad(x\in\mathcal X_K).
+\tag{3}
+\]
+
+For \(0<t\le\eta/2\), keep \(q_a\) fixed and define
+\[
+\begin{aligned}
+P_{0,a}(X=x,W=w,Y=y)
+&=q_a(x,w)p_{0,a}(x)^y\{1-p_{0,a}(x)\}^{1-y},\\
+P_{t,a}(X=x,W=w,Y=y)
+&=q_a(x,w)\{p_{0,a}(x)+t\}^y
+  \{1-p_{0,a}(x)-t\}^{1-y}.
+\end{aligned}
+\tag{4}
+\]
+Equation (3) and \(t\le\eta/2\) imply
+\[
+\eta\le p_{0,a}(x)+t\le1-\frac\eta2.
+\tag{5}
+\]
+Since \(q_a(x,w)\ge\kappa_K\), equations (3)--(5) yield, for every \((x,w,y)\),
+\[
+P_{0,a}(x,w,y)\ge\kappa_K\eta,
+\qquad
+P_{t,a}(x,w,y)\ge\frac{\kappa_K\eta}{2}.
+\tag{6}
+\]
+Thus both probability tables are strictly positive. Construction (4) changes only the conditional Bernoulli law of \(Y\) given \(X\), so it leaves \(q_a\), its two marginals, and \(A_a\) unchanged. The four marginal inequalities and two link inequalities in \(\mathrm{def:model\mbox{-}class}\) therefore follow from the displayed premise with the asserted slacks. Hence
+\[
+P_{0,a},P_{t,a}\in\mathcal P_K(a).
+\tag{7}
+\]
+This verifies membership in the ambient class itself and invokes no unspecified regular subclass.
+
+The conditional means under (4) are
+\[
+b_{0,a}=A_ah_a^*,
+\qquad
+b_{t,a}=A_ah_a^*+t\mathbf 1.
+\tag{8}
+\]
+The first identity, feasibility of \(h_a^*\), and \(\mathrm{def:observable\mbox{-}defect}\) give \(d(P_{0,a})=0\). For every \(h\in\mathcal H_\beta(R,\eta)\), Cauchy--Schwarz in \(L^2(q_{a,X})\), the identity \(\|\mathbf1\|_{L^2(q_{a,X})}=1\), iterated expectation, and maximality of \(h_a^*\) give
+\[
+\begin{aligned}
+\|b_{t,a}-A_ah\|_{L^2(q_{a,X})}
+&\ge \left|E_{q_a}\{b_{t,a}(X)-(A_ah)(X)\}\right|\\
+&=M_a+t-E_{q_a}\{h(W)\}\\
+&\ge t.
+\end{aligned}
+\tag{9}
+\]
+For \(h=h_a^*\), equation (8) makes the residual \(t\mathbf1\), whose norm equals \(t\). Thus
+\[
+d(P_{t,a})=t.
+\tag{10}
+\]
+The same calculation exhibits the transverse geometry: \(z\mapsto\langle z,\mathbf1\rangle_{L^2(q_{a,X})}\) exposes the face
+\[
+\left\{A_ah:h\in\mathcal H_\beta(R,\eta),\ E_{q_a}\{h(W)\}=M_a\right\},
+\tag{11}
+\]
+equation (8) places \(b_{0,a}\) on that face, and \(b_{t,a}=b_{0,a}+t\mathbf1\) moves in its outward supporting-normal direction. This face is proper: if a maximizer were interior, a sufficiently small positive constant perturbation would remain feasible and would strictly increase its expectation, a contradiction.
+
+By (6), \(P_{t,a}\ll P_{0,a}\). Direct summation over \(Y\in\{0,1\}\), conditional on \(X\), gives
+\[
+\begin{aligned}
+\chi^2(P_{t,a},P_{0,a})
+&=E_{q_{a,X}}\!\left[
+  \frac{t^2}{p_{0,a}(X)}+
+  \frac{t^2}{1-p_{0,a}(X)}\right]\\
+&=E_{q_{a,X}}\!\left[
+  \frac{t^2}{p_{0,a}(X)\{1-p_{0,a}(X)\}}\right]\\
+&\le\frac{t^2}{\eta(1-\eta)},
+\end{aligned}
+\tag{12}
+\]
+where (3) proves the last inequality. If \(Z=dP_{t,a}/dP_{0,a}\), then \(\log Z\le Z-1\), change of measure, and \(E_{P_{0,a}}Z=1\) imply
+\[
+\begin{aligned}
+D_{\rm KL}(P_{t,a}\|P_{0,a})
+&=E_{P_{t,a}}\log Z\\
+&\le E_{P_{t,a}}(Z-1)
+=E_{P_{0,a}}\{Z(Z-1)\}\\
+&=E_{P_{0,a}}(Z-1)^2
+=\chi^2(P_{t,a},P_{0,a})\\
+&\le\frac{t^2}{\eta(1-\eta)}.
+\end{aligned}
+\tag{13}
+\]
+
+Under \(\mathrm{ass:iid\mbox{-}sampling}\), product likelihood ratios factor. Hence (12) and \(1+x\le e^x\) give
+\[
+\begin{aligned}
+1+\chi^2(P_{t,a}^{\otimes n},P_{0,a}^{\otimes n})
+&=\{1+\chi^2(P_{t,a},P_{0,a})\}^n\\
+&\le\exp\!\left\{n\chi^2(P_{t,a},P_{0,a})\right\}\\
+&\le\exp\!\left\{\frac{nt^2}{\eta(1-\eta)}\right\}.
+\end{aligned}
+\tag{14}
+\]
+Subtracting one proves the asserted product bound.
+
+For probability laws \(Q\ll P\), Cauchy--Schwarz gives
+\[
+\|Q-P\|_{\rm TV}
+=\frac12E_P\left|\frac{dQ}{dP}-1\right|
+\le\frac12\sqrt{\chi^2(Q,P)}.
+\tag{15}
+\]
+For every possibly randomized test \(0\le\phi\le1\), the variational definition of total variation gives
+\[
+E_P\phi+E_Q(1-\phi)
+=1-\{E_Q\phi-E_P\phi\}
+\ge1-\|Q-P\|_{\rm TV}.
+\tag{16}
+\]
+Set
+\[
+c=\min\!\left\{\frac\eta2,
+\sqrt{\eta(1-\eta)\log\!\left(1+(1-\epsilon_{\rm tot})^2\right)}\right\}>0,
+\qquad
+t=\frac{c}{\sqrt n}.
+\tag{17}
+\]
+Since \(n\ge1\), one has \(0<t\le\eta/2\). Equations (14)--(17), with \(P=P_{0,a}^{\otimes n}\) and \(Q=P_{t,a}^{\otimes n}\), imply
+\[
+E_{P_{0,a}^{\otimes n}}\phi+E_{P_{t,a}^{\otimes n}}(1-\phi)
+\ge1-\frac{1-\epsilon_{\rm tot}}2
+=\frac{1+\epsilon_{\rm tot}}2
+>\epsilon_{\rm tot}.
+\tag{18}
+\]
+By (7) and (10), the first law is a member of the composite null and the second is an alternative at defect \(t\). Consequently no test meets the total-error requirement in \(\mathrm{def:minimax\mbox{-}radius}\) at separation \(t\), or at any smaller separation, and
+\[
+\rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge\frac{c}{\sqrt n}.
+\tag{19}
+\]
+The constant in (17) is independent of \(a\) and \(n\). Since \(a\) was arbitrary and \(\kappa_K\) was quantified before \(a\), (19) is uniform over \([a_L,a_U]\). The common-design premise also makes every relevant \(\mathcal P_K(a)\) nonempty. Combining (19) with \(\mathrm{thm:fixed\mbox{-}k\mbox{-}upper\mbox{-}bound}\) proves the asserted fixed-support equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Gap.} The theorem remains conditional for an arbitrary fixed support, but its premise is now verified by the explicit DCT construction under the displayed compatibility condition and by the zero-contrast positive table at \(K=2\) under only the base link constants.
+
+\begin{theorem}[thm:legal-dense-lower-bound]\label{thm:legal-dense-lower-bound}
+Suppose that there is a constant \(\varepsilon\) such that
+\[
+c_{\rm link}<\varepsilon<C_{\rm link},
+\qquad
+2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}<1.
+\tag{1}
+\]
+Then the handle \(\mathsf H_{\rm law}\) has the following explicit legal realization.  For \(a\in[a_L,a_U]\), let
+\[
+q_a(x,w)=K^{-2}\left\{1+\varepsilon\sum_{j=2}^Kj^{-a}u_j(x)v_j(w)\right\},
+\quad
+J_K=\lfloor K/2\rfloor+1,
+\quad
+B_K=\{J_K,\ldots,K\},
+\quad
+M_K=|B_K|.
+\tag{2}
+\]
+For \(s=(s_j)_{j\in B_K}\in\{-1,1\}^{M_K}\) and \(\delta>0\), put
+\[
+f_s(x)=\frac{\delta}{\sqrt{M_K}}\sum_{j\in B_K}s_ju_j(x),
+\tag{3}
+\]
+and define \(P_0\) and \(P_s\) by the common \((X,W)\) mass function \(q_a\) and the conditional success probabilities
+\[
+P_0(Y=1\mid X=x,W=w)=\eta,
+\qquad
+P_s(Y=1\mid X=x,W=w)=\eta+f_s(x).
+\tag{4}
+\]
+If \(\delta\sqrt{2M_K}\le \eta/2\), there is a constant \(c>0\), independent of \(a,K,n\), such that \(P_0,P_s\in\mathcal P_K(a)\), every one of their \((X,W,Y)\) cells has mass at least \(cK^{-2}\), and their link inequalities retain slack bounded away from zero uniformly in \(a\) and \(K\).  The null bridge \(h_0\equiv\eta\) is a regular lower-box vertex of \(\mathcal H_\beta(R,\eta)\), \(d(P_0)=0\), and every \(s\) satisfies
+\[
+d(P_s)\ge \delta-\varepsilon R J_K^{-(a+\beta)}.
+\tag{5}
+\]
+Moreover, for \(\overline P_n=2^{-M_K}\sum_sP_s^{\otimes n}\),
+\[
+\chi^2\!\left(\overline P_n,P_0^{\otimes n}\right)
+\le
+\exp\!\left\{\frac{n^2\delta^4}{2M_K\eta^2(1-\eta)^2}\right\}-1.
+\tag{6}
+\]
+Consequently, there are constants \(c_0,c_1>0\), independent of \(a,K,n\), such that, whenever \(K=K_n=o(n^{2/3})\) and
+\[
+K^{-(a_L+\beta)}\le c_0\frac{K^{1/4}}{\sqrt n},
+\tag{7}
+\]
+then, for all sufficiently large \(n\), uniformly over \(a\in[a_L,a_U]\),
+\[
+\rho^\star_{n,K}(a,\epsilon_{\rm tot})
+\ge c_1\frac{K^{1/4}}{\sqrt n}.
+\tag{8}
+\]
+Thus the open question has a partial affirmative answer on the explicit compatibility subregime (1).  In particular, the tail restriction is imposed at the worst-case endpoint \(a_L\), and the all-sign positive construction covers every polynomial growth law \(K_n\asymp n^\kappa\) with \(\kappa<2/3\).  No claim is made here outside (1), or that \(2/3\) is an impossibility threshold for other constructions.
+\end{theorem}
+\begin{proof}
+Because \(a_L>1\), the series in (1) is finite.  Fix an \(\varepsilon\) satisfying (1), and define
+\[
+c_q:=1-2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}>0.
+\tag{9}
+\]
+Fix \(K\ge2\).  Before choosing \(a\), set
+\[
+\kappa_K:=\min\!\left\{
+\frac{c_q}{K^2},\frac{1-\eta}{K},
+\frac{1-\eta}{\eta K},
+\varepsilon-c_{\rm link},C_{\rm link}-\varepsilon
+\right\}>0.
+\tag{10}
+\]
+This number depends on the fixed \(K\) and the declared constants but not on \(a\).  Now fix an arbitrary \(a\in[a_L,a_U]\) and use the mass function \(q_a\) in (2).
+
+The declared orthonormality of the DCT bases gives
+\[
+K^{-1}\sum_{x=1}^Ku_j(x)u_\ell(x)=\mathbf 1\{j=\ell\},
+\qquad
+K^{-1}\sum_{w=1}^Kv_j(w)v_\ell(w)=\mathbf 1\{j=\ell\},
+\tag{11}
+\]
+with \(u_1=v_1=1\).  The displayed cosine formulas also give
+\[
+|u_j(x)|\le\sqrt2,
+\qquad
+|v_j(w)|\le\sqrt2
+\quad (j\ge2).
+\tag{12}
+\]
+Consequently every nonconstant basis vector has uniform-coordinate mean zero.  Summing (2) in either coordinate and applying (11) gives
+\[
+\sum_wq_a(x,w)=K^{-1},
+\qquad
+\sum_xq_a(x,w)=K^{-1},
+\qquad
+\sum_{x,w}q_a(x,w)=1.
+\tag{13}
+\]
+By (12), \(a\ge a_L\), and (9),
+\[
+q_a(x,w)
+\ge K^{-2}\left\{1-2\varepsilon\sum_{j=2}^Kj^{-a}\right\}
+\ge c_qK^{-2}>0.
+\tag{14}
+\]
+Thus \(q_a\) is a probability mass function with uniform marginals.  Since \(0<\eta<1/2\),
+\[
+\frac1K-\frac{\eta}{K}=\frac{1-\eta}{K}>0,
+\qquad
+\frac{1}{\eta K}-\frac1K=\frac{1-\eta}{\eta K}>0.
+\tag{15}
+\]
+Equations (10), (13)--(15) therefore imply both the four marginal-balance requirements in \(\mathrm{def:model\mbox{-}class}\) and the sharper common-design inequalities
+\[
+q_a(x,w)\ge\kappa_K,
+\quad
+q_{a,X}(x)-\frac\eta K\ge\kappa_K,
+\quad
+\frac1{\eta K}-q_{a,X}(x)\ge\kappa_K,
+\tag{16}
+\]
+with the analogous two marginal inequalities for \(q_{a,W}(w)\).  The same \(\kappa_K\), chosen before \(a\), works for every \(a\in[a_L,a_U]\).
+
+Dividing (2) by \(q_{a,X}(x)=K^{-1}\), using (11), and applying the definition of the conditional-expectation operator yields
+\[
+Av_1=u_1,
+\qquad
+Av_j=\varepsilon j^{-a}u_j
+\quad (2\le j\le K).
+\tag{17}
+\]
+Write \(g=\sum_{j=1}^Kg_jv_j\).  Under the uniform \(W\)-marginal, the restriction \(E_P\{g(W)\}=0\) is equivalent to \(g_1=0\).  Hence (11), (17), and \(Lv_j=jv_j\) give
+\[
+\|Ag\|_{L^2_X}^2
+=\varepsilon^2\sum_{j=2}^Kj^{-2a}g_j^2
+=\varepsilon^2\|L^{-a}g\|_{\ell^2_{K,W}}^2.
+\tag{18}
+\]
+Thus the link inequalities in \(\mathrm{def:model\mbox{-}class}\) hold.  More precisely, (10) and (18) give the common-design slack inequalities
+\[
+(c_{\rm link}+\kappa_K)\|L^{-a}g\|_{\ell^2_{K,W}}
+\le \|Ag\|_{L^2_X}
+\le (C_{\rm link}-\kappa_K)\|L^{-a}g\|_{\ell^2_{K,W}}.
+\tag{19}
+\]
+Independently of fixed \(K\), the retained link slack is bounded below by
+\[
+s_{\rm link}:=\min\{\varepsilon-c_{\rm link},C_{\rm link}-\varepsilon\}>0.
+\tag{20}
+\]
+Equations (16) and (19) explicitly discharge the conditional common-design premise used by the fixed-support argument on the compatibility subregime (1); no choice in them depends on \(a\).
+
+The only nonzero DCT coefficient of \(h_0\equiv\eta\) is \(\theta_1=\eta\).  The declared ranges \(0<\eta<1/2\) and \(R>1/2\) imply
+\[
+\sum_{j=1}^Kj^{2\beta}\theta_j^2=\eta^2<R^2,
+\qquad
+\eta=h_0(w)<1-\eta
+\quad\text{for every }w.
+\tag{21}
+\]
+Thus \(h_0\in\mathcal H_\beta(R,\eta)\), its source and upper-box constraints are slack, and all lower-box constraints are active.  Let \(V\) be the \(K\times K\) matrix with entries \(V_{wj}=v_j(w)\).  Equation (11) says \(K^{-1}V^\top V=I_K\), so the rows of \(V\) are linearly independent.  Up to sign, these rows are exactly the gradients in \(\theta\) of the active inequalities \(\eta-\sum_j\theta_jv_j(w)\le0\).  The active gradients therefore satisfy the linear-independence constraint qualification, proving that \(h_0\) is a regular lower-box vertex.  Conditional expectation preserves constants, so (17) gives
+\[
+Ah_0=\eta=b_0,
+\qquad
+d(P_0)=0
+\tag{22}
+\]
+by \(\mathrm{def:bridge\mbox{-}class}\) and the definition of the observable defect.
+
+For a sign vector \(s\), equations (3) and (12) imply
+\[
+\|f_s\|_\infty
+\le \frac{\delta}{\sqrt{M_K}}\sum_{j\in B_K}|u_j(x)|
+\le\delta\sqrt{2M_K}.
+\tag{23}
+\]
+Under the stated amplitude restriction, (4) and (23) imply
+\[
+\frac\eta2\le P_s(Y=1\mid X=x,W=w)\le\frac{3\eta}{2},
+\qquad
+P_s(Y=0\mid X=x,W=w)\ge1-\frac{3\eta}{2}>\frac14.
+\tag{24}
+\]
+Because \(\eta/2<1/4\), both conditional outcome probabilities under \(P_s\), and also those under \(P_0\), are at least \(\eta/2\).  Combining (14) and (24), every three-way cell under every displayed law is bounded below by
+\[
+cK^{-2},
+\qquad
+c:=c_q\eta/2>0.
+\tag{25}
+\]
+Changing the conditional outcome kernel in (4) does not alter \(q_a\), its marginals, or \(A\).  Equations (13)--(20) consequently verify directly every member property of \(\mathrm{def:model\mbox{-}class}\), including link slack uniform in \(a,K,n\), and hence
+\[
+P_0,P_s\in\mathcal P_K(a).
+\tag{26}
+\]
+
+Let \(\Pi_{B_K}\) be the \(L^2(P_X)\)-orthogonal projection onto \(\operatorname{span}\{u_j:j\in B_K\}\).  From the definitions of \(J_K\), \(B_K\), and \(M_K\),
+\[
+K/2\le J_K\le K,
+\qquad
+K/2\le M_K\le K,
+\tag{27}
+\]
+so both \(J_K\) and \(M_K\) are comparable to \(K\).  For any \(h_\theta\in\mathcal H_\beta(R,\eta)\), (17), the source constraint in \(\mathrm{def:bridge\mbox{-}class}\), and \(j\ge J_K\) on the block give
+\[
+\begin{aligned}
+\|\Pi_{B_K}Ah_\theta\|_{L^2_X}^2
+&=\varepsilon^2\sum_{j\in B_K}j^{-2a}\theta_j^2 \\
+&=\varepsilon^2\sum_{j\in B_K}j^{-2(a+\beta)}j^{2\beta}\theta_j^2 \\
+&\le\varepsilon^2J_K^{-2(a+\beta)}
+       \sum_{j\in B_K}j^{2\beta}\theta_j^2 \\
+&\le\varepsilon^2R^2J_K^{-2(a+\beta)}.
+\end{aligned}
+\tag{28}
+\]
+Under \(P_s\), equation (4) gives \(b_s=\eta+f_s\), so \(\Pi_{B_K}b_s=f_s\).  DCT orthonormality in (11) gives \(\|f_s\|_{L^2_X}=\delta\).  Orthogonal projection is a contraction; hence the reverse triangle inequality and (28) imply
+\[
+\begin{aligned}
+d(P_s)
+&=\inf_{h_\theta\in\mathcal H_\beta(R,\eta)}
+  \|b_s-Ah_\theta\|_{L^2_X} \\
+&\ge\inf_{h_\theta\in\mathcal H_\beta(R,\eta)}
+  \|f_s-\Pi_{B_K}Ah_\theta\|_{L^2_X} \\
+&\ge\delta-\varepsilon R J_K^{-(a+\beta)}.
+\end{aligned}
+\tag{29}
+\]
+This proves (5) while profiling over the complete source-and-box image; no inactive box constraint has been removed from the infimum.
+
+Write \(E_0\) for expectation under \(P_0\), and define \(\chi^2(Q,P)=E_P\{(dQ/dP-1)^2\}\) whenever \(Q\ll P\).  For one observation, the likelihood ratio of \(P_s\) with respect to \(P_0\) is
+\[
+\ell_s(O)
+=1+\frac{f_s(X)(Y-\eta)}{\eta(1-\eta)}.
+\tag{30}
+\]
+Conditioning on \(X\), using the Bernoulli variance \(\eta(1-\eta)\) under \(P_0\), and then using uniformity of \(P_X\) and (11), we obtain for any sign vectors \(s,t\)
+\[
+\begin{aligned}
+E_0(\ell_s\ell_t)
+&=1+\frac{\langle f_s,f_t\rangle_{L^2_X}}{\eta(1-\eta)} \\
+&=1+\frac{\delta^2}{M_K\eta(1-\eta)}
+      \sum_{j\in B_K}s_jt_j.
+\end{aligned}
+\tag{31}
+\]
+The amplitude restriction entails \(\delta^2\le\eta^2/(8M_K)<\eta(1-\eta)\), so the last expression in (31) is positive.  By \(\mathrm{ass:iid\mbox{-}sampling}\) and the exact second-moment identity for this finite likelihood-ratio mixture,
+\[
+\begin{aligned}
+1+\chi^2(\overline P_n,P_0^{\otimes n})
+&=2^{-2M_K}\sum_{s,t}\{E_0(\ell_s\ell_t)\}^n \\
+&\le2^{-2M_K}\sum_{s,t}
+\exp\!\left\{
+ \frac{n\delta^2}{M_K\eta(1-\eta)}
+ \sum_{j\in B_K}s_jt_j
+\right\} \\
+&=\cosh\!\left(
+ \frac{n\delta^2}{M_K\eta(1-\eta)}
+\right)^{M_K}.
+\end{aligned}
+\tag{32}
+\]
+The inequality is \((1+x)^n\le e^{nx}\) for \(x>-1\); the final equality follows by averaging the independent Rademacher products \(s_jt_j\).  Since \((\log\cosh x)'=\tanh x\le x\) for \(x\ge0\), integration from zero and evenness give \(\log\cosh x\le x^2/2\) for every real \(x\).  Applying this inequality to (32) proves (6).
+
+It remains to select the amplitude uniformly.  Choose \(c_*>0\), depending only on \(\eta\) and \(\epsilon_{\rm tot}\), so small that
+\[
+\frac12\left[
+\exp\!\left\{\frac{c_*^4}{2\eta^2(1-\eta)^2}\right\}-1
+\right]^{1/2}<1-\epsilon_{\rm tot},
+\tag{33}
+\]
+and set
+\[
+\delta=c_*\frac{M_K^{1/4}}{\sqrt n}.
+\tag{34}
+\]
+By (27), if \(K=o(n^{2/3})\), then
+\[
+\delta\sqrt{2M_K}
+\le\sqrt2c_*\frac{K^{3/4}}{\sqrt n}=o(1),
+\tag{35}
+\]
+so the amplitude condition holds for all sufficiently large \(n\).  In particular, this positivity argument covers every polynomial law \(K_n\asymp n^\kappa\) with \(\kappa<2/3\).
+
+For \(a\in[a_L,a_U]\), (27) and \(K\ge2\) imply
+\[
+J_K^{-(a+\beta)}
+\le2^{a_U+\beta}K^{-(a_L+\beta)}.
+\tag{36}
+\]
+Choose \(c_0>0\), independently of \(a,K,n\), sufficiently small that
+\[
+\varepsilon R2^{a_U+\beta}c_0
+\le c_*2^{-5/4}.
+\tag{37}
+\]
+Under (7), equations (27), (34), (36), and (37) yield
+\[
+\varepsilon RJ_K^{-(a+\beta)}\le\frac\delta2,
+\qquad
+d(P_s)\ge\frac\delta2
+\ge c_1\frac{K^{1/4}}{\sqrt n},
+\qquad
+c_1:=c_*2^{-5/4}.
+\tag{38}
+\]
+Thus the tail restriction at the worst endpoint \(a_L\) controls the image tail simultaneously for every \(a\ge a_L\).
+
+Substitution of (34) into (6) makes its exponent equal to \(c_*^4/\{2\eta^2(1-\eta)^2\}\).  For any \(Q\ll P\), Cauchy--Schwarz gives
+\[
+\|Q-P\|_{\rm TV}
+=\frac12E_P\left|\frac{dQ}{dP}-1\right|
+\le\frac12\sqrt{\chi^2(Q,P)}.
+\tag{39}
+\]
+Thus (6), (33), and (39) show
+\[
+\|\overline P_n-P_0^{\otimes n}\|_{\rm TV}<1-\epsilon_{\rm tot}.
+\tag{40}
+\]
+For every measurable test \(\phi=\phi(O_1,\ldots,O_n)\in[0,1]\), the variational definition of total variation, followed by the fact that a supremum dominates a finite average, gives
+\[
+\begin{aligned}
+&\sup_{P\in\mathcal P_K(a):d(P)=0}E_{P^{\otimes n}}\phi
++\sup_{P\in\mathcal P_K(a):d(P)\ge c_1K^{1/4}/\sqrt n}
+ E_{P^{\otimes n}}(1-\phi) \\
+&\quad\ge
+E_{P_0^{\otimes n}}\phi
++2^{-M_K}\sum_sE_{P_s^{\otimes n}}(1-\phi) \\
+&\quad\ge1-\|\overline P_n-P_0^{\otimes n}\|_{\rm TV}
+>\epsilon_{\rm tot}.
+\end{aligned}
+\tag{41}
+\]
+The null and alternatives in (41) are legal by (22), (26), and (38).  Hence no test satisfies the total-error requirement at this separation.  By \(\mathrm{def:minimax\mbox{-}radius}\), together with monotonicity of its alternative set in the separation, (8) follows.  The constants \(c,c_0,c_1\) depend only on the fixed quantities in (1), \(a_L,a_U,\beta,R,\eta\), and \(\epsilon_{\rm tot}\), and not on \(a,K,n\).  This completes every asserted legality, separation, affinity, and uniformity claim.
+\end{proof}
+
+\begin{theorem}[thm:dct-compatible-fixed-k-resolution]\label{thm:dct-compatible-fixed-k-resolution}
+Suppose there is a number \(\varepsilon\) satisfying
+\[
+c_{\rm link}<\varepsilon<C_{\rm link},
+\qquad
+2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}<1.
+\tag{1}
+\]
+Fix \(K\ge2\), define
+\[
+c_q=1-2\varepsilon\sum_{j=2}^{\infty}j^{-a_L},
+\qquad
+\kappa_K^{\rm DCT}
+=\min\!\left\{
+\frac{c_q}{K^2},
+\frac{1-\eta}{K},
+\frac{1-\eta}{\eta K},
+\varepsilon-c_{\rm link},
+C_{\rm link}-\varepsilon
+\right\},
+\tag{2}
+\]
+and, for every \(a\in[a_L,a_U]\), let
+\[
+q_a(x,w)=K^{-2}\left\{1+\varepsilon\sum_{j=2}^Kj^{-a}u_j(x)v_j(w)\right\}.
+\tag{3}
+\]
+Then \(\kappa_K^{\rm DCT}>0\), is quantified before \(a\), and the design \(q_a\) satisfies every cell, marginal, and link-slack premise of \(\mathrm{thm:fixed\mbox{-}k\mbox{-}root\mbox{-}n\mbox{-}resolution}\) with \(\kappa_K=\kappa_K^{\rm DCT}\), uniformly over \(a\in[a_L,a_U]\). Consequently there are constants \(0<c_K\le C_K<\infty\), independent of \(a\) and \(n\), such that
+\[
+c_Kn^{-1/2}
+\le \rho^\star_{n,K}(a,\epsilon_{\rm tot})
+\le C_Kn^{-1/2}
+\quad\text{for every }a\in[a_L,a_U].
+\tag{4}
+\]
+\end{theorem}
+\begin{proof}
+Condition (1) gives \(c_q>0\), \(\varepsilon-c_{\rm link}>0\), and \(C_{\rm link}-\varepsilon>0\). Since \(0<\eta<1/2\) and \(K\ge2\), every entry in the minimum (2) is positive; hence \(\kappa_K^{\rm DCT}>0\). It depends on the fixed \(K\) and declared constants but not on \(a\).
+
+The DCT identities give \(u_1=v_1=\mathbf1\), uniform-coordinate mean zero for every \(u_j,v_j\) with \(j\ge2\), orthonormality in the reference geometries, and
+\[
+|u_j(x)|\le\sqrt2,
+\qquad
+|v_j(w)|\le\sqrt2.
+\tag{5}
+\]
+Summing (3) over either coordinate therefore yields
+\[
+q_{a,X}(x)=q_{a,W}(w)=\frac1K.
+\tag{6}
+\]
+Moreover, because \(a\ge a_L\), equations (1), (3), and (5) imply
+\[
+q_a(x,w)
+\ge K^{-2}\left\{1-2\varepsilon\sum_{j=2}^Kj^{-a}\right\}
+\ge\frac{c_q}{K^2}
+\ge\kappa_K^{\rm DCT}.
+\tag{7}
+\]
+The exact marginal slacks from (6) are
+\[
+q_{a,X}(x)-\frac\eta K
+=q_{a,W}(w)-\frac\eta K
+=\frac{1-\eta}{K},
+\tag{8}
+\]
+and
+\[
+\frac1{\eta K}-q_{a,X}(x)
+=\frac1{\eta K}-q_{a,W}(w)
+=\frac{1-\eta}{\eta K}.
+\tag{9}
+\]
+Equations (2), (8), and (9) give all four marginal inequalities required by the fixed-support premise.
+
+Dividing (3) by \(q_{a,X}(x)=1/K\) and using DCT orthonormality gives, for the conditional-expectation operator of this design,
+\[
+A_av_1=u_1,
+\qquad
+A_av_j=\varepsilon j^{-a}u_j
+\quad(2\le j\le K).
+\tag{10}
+\]
+If \(g=\sum_{j=1}^Kg_jv_j\) and \(E_{q_a}\{g(W)\}=0\), then (6) implies \(g_1=0\). Parseval's identity and (10) yield
+\[
+\|A_ag\|_{L^2(q_{a,X})}^2
+=\varepsilon^2\sum_{j=2}^Kj^{-2a}g_j^2
+=\varepsilon^2\|L^{-a}g\|_{\ell^2_{K,W}}^2.
+\tag{11}
+\]
+Thus
+\[
+(c_{\rm link}+\kappa_K^{\rm DCT})\|L^{-a}g\|_{\ell^2_{K,W}}
+\le\|A_ag\|_{L^2(q_{a,X})}
+\le(C_{\rm link}-\kappa_K^{\rm DCT})\|L^{-a}g\|_{\ell^2_{K,W}},
+\tag{12}
+\]
+because (2) gives \(\kappa_K^{\rm DCT}\le\varepsilon-c_{\rm link}\) and \(\kappa_K^{\rm DCT}\le C_{\rm link}-\varepsilon\).
+
+Let \(M_K=K-\lfloor K/2\rfloor\) and choose \(\delta_K=\eta/(4\sqrt{2M_K})>0\). Then \(\delta_K\sqrt{2M_K}=\eta/4\le\eta/2\), so the amplitude premise of the established \(\mathrm{thm:legal\mbox{-}dense\mbox{-}lower\mbox{-}bound}\) is satisfied. That theorem therefore constructs a legal positive observed-data law in \(\mathcal P_K(a)\) having precisely the design (3) for every \(a\in[a_L,a_U]\). Equations (7)--(12) verify the exact normalization of its uniform common slack required by \(\mathrm{thm:fixed\mbox{-}k\mbox{-}root\mbox{-}n\mbox{-}resolution}\). Applying that theorem with \(\kappa_K=\kappa_K^{\rm DCT}\) proves (4). The lower constant may be chosen uniformly in \(a\) by that theorem, and the upper constant is uniform in \(a\) by \(\mathrm{thm:fixed\mbox{-}k\mbox{-}upper\mbox{-}bound}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit DCT design supplies one positive cell, marginal, and link slack quantified before the unknown link exponent, removing the conditional design premise on this compatibility subregime. \textit{Gap.} The conclusion is restricted to the displayed DCT compatibility condition; it does not assert that every nonempty ambient class admits this design. \textit{Consumer.} Every fixed-table implementation satisfying the compatibility inequality obtains a fully explicit uniform root-\(n\) minimax benchmark.
+
+\begin{theorem}[thm:positive-table-k2-resolution]\label{thm:positive-table-k2-resolution}
+For \(K=2\), assume only the declared base ranges \(a_L>1\), \(a\in[a_L,a_U]\), \(0<\eta<1/2\), and \(0<c_{\rm link}<1<C_{\rm link}\). The zero-contrast specialization \(P^{(2)}_{a,0,0}\) of \(\mathrm{def:positive\mbox{-}table\mbox{-}instance}\) supplies the common-design premise of \(\mathrm{thm:fixed\mbox{-}k\mbox{-}root\mbox{-}n\mbox{-}resolution}\) with
+\[
+\kappa_2
+=\min\!\left\{
+\frac{1-2^{-a_L}}4,
+\frac{1-\eta}{2},
+\frac{1-\eta}{2\eta},
+1-c_{\rm link},
+C_{\rm link}-1
+\right\}>0.
+\tag{1}
+\]
+Consequently there are constants \(0<c_2\le C_2<\infty\), independent of \(a\) and \(n\), such that
+\[
+c_2n^{-1/2}
+\le \rho^\star_{n,2}(a,\epsilon_{\rm tot})
+\le C_2n^{-1/2}
+\quad\text{uniformly for }a\in[a_L,a_U].
+\tag{2}
+\]
+\end{theorem}
+\begin{proof}
+Set \(\gamma_2=\delta_2=0\) in \(\mathrm{def:positive\mbox{-}table\mbox{-}instance}\). Summing its two equal \(Y\)-cells gives the \((X,W)\) mass function
+\[
+q_a^{(2)}(x,w)=\frac14\{1+2^{-a}s_2(x)s_2(w)\}.
+\tag{3}
+\]
+Since \(s_2(1)+s_2(2)=0\), both marginals equal \(1/2\). Since \(a\ge a_L>1\),
+\[
+q_a^{(2)}(x,w)
+\ge\frac{1-2^{-a}}4
+\ge\frac{1-2^{-a_L}}4>0.
+\tag{4}
+\]
+The exact marginal slacks are
+\[
+\frac12-\frac\eta2=\frac{1-\eta}{2},
+\qquad
+\frac1{2\eta}-\frac12=\frac{1-\eta}{2\eta}.
+\tag{5}
+\]
+
+At \(K=2\), the DCT definitions give \(u_2=s_2\) on \(\mathcal X_2\) and \(v_2=s_2\) on \(\mathcal W_2\). Dividing (3) by its \(X\)-marginal gives
+\[
+P(W=w\mid X=x)=\frac12\{1+2^{-a}s_2(x)s_2(w)\},
+\tag{6}
+\]
+so direct summation yields
+\[
+A_a v_1=u_1,
+\qquad
+A_av_2=2^{-a}u_2.
+\tag{7}
+\]
+Every mean-zero \(g\in\ell^2_{2,W}\) has the form \(g=g_2v_2\). Since \(Lv_2=2v_2\), equation (7), DCT normalization, and the uniform marginals give
+\[
+\|A_ag\|_{L^2(q_{a,X}^{(2)})}
+=2^{-a}|g_2|
+=\|L^{-a}g\|_{\ell^2_{2,W}}.
+\tag{8}
+\]
+Thus the exact link ratio is one. The definition (1) implies
+\[
+(c_{\rm link}+\kappa_2)\|L^{-a}g\|_{\ell^2_{2,W}}
+\le\|A_ag\|_{L^2(q_{a,X}^{(2)})}
+\le(C_{\rm link}-\kappa_2)\|L^{-a}g\|_{\ell^2_{2,W}}.
+\tag{9}
+\]
+Equations (4), (5), and (9) verify, with the one constant \(\kappa_2\) chosen before \(a\), every cell, marginal, and link-slack inequality in the fixed-support theorem.
+
+For completeness, the full law \(P^{(2)}_{a,0,0}\) has atom probabilities
+\[
+P^{(2)}_{a,0,0}(x,w,y)
+=\frac18\{1+2^{-a}s_2(x)s_2(w)\}
+\ge\frac{1-2^{-a_L}}8>0.
+\tag{10}
+\]
+Its uniform marginals satisfy the balance requirements and (8) satisfies both link requirements, so it is a member of the ambient \(\mathcal P_2(a)\). Therefore the design in (3) genuinely occurs in that class. Applying \(\mathrm{thm:fixed\mbox{-}k\mbox{-}root\mbox{-}n\mbox{-}resolution}\) with \(K=2\) and (1) proves (2). No DCT-series compatibility condition beyond the declared base constants is needed for this two-label conclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At two labels the zero-contrast positive table has uniform marginals and exact link ratio one, so the common-design premise follows from the base constants alone. \textit{Gap.} This unconditional composition is specific to \(K=2\); higher fixed supports use the separate DCT compatibility corollary or the theorem's explicit common-design premise. \textit{Consumer.} The smallest declared discrete-covariate implementation has a sharp root-\(n\) total-error frontier without an extra design-existence assumption.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+A naive held-out residual bootstrap that freezes a training estimate omits training variance: even the scalar equal-split Gaussian analogue has nominal \(5\%\) rejection probability \(2\{1-\Phi(z_{0.975}/\sqrt2)\}=16.58\%\). Moreover, the two-sided input link permits arbitrary legal rotations of output directions, so output-DCT tail smoothness cannot be assumed. These diagnostics constrain the proof architecture and are not theorem claims about any published estimator.
+
+\section{Honest scope}
+
+The formal null is the observed-law condition \(d(P)=0\); \(\mathcal H_\beta(R,\eta)\) is a user-chosen statistical diagnostic class. Wu et al.'s assumptions alone do not place their bridge in this class. Rejection has a causal falsification reading only within applications that separately stipulate this restricted submodel, and nonrejection identifies nothing. The finite-sample split-projection guarantee and lower confidence bound hold over the declared union class. Fixed-support root-\(n\) sharpness is unconditional at \(K=2\) under the base link constants because the explicit zero-contrast positive table has exact link ratio one. For every other fixed \(K\), the displayed DCT compatibility condition explicitly supplies the theorem's common cell, marginal, and link slack; outside these constructions the general fixed-support statement retains its common-design premise. The legal dense lower bound additionally requires \(K=o(n^{2/3})\) and the uniform worst-case tail condition \(K^{-(a_L+\beta)}\le c_0K^{1/4}/\sqrt n\). The operator-nuisance converse, complete frontier, sharp active-face calibration, adaptation factor, and maximal polynomial \(K\) range remain open-ended questions.
+
+\begin{thebibliography}{99}
+
+  \bibitem{WuFuWangWangSun2025} Wu, Y., Fu, Y., Wang, S., Wang, Y., and Sun, X. (2025). Discovering Causal Relationships using Proxy Variables under Unmeasured Confounding. arXiv:2510.17167.
+
+  \bibitem{BreunigChen2024} Breunig, C., and Chen, X. (2024). Adaptive, Rate-Optimal Hypothesis Testing in Nonparametric IV Models. Econometrica 92.
+
+  \bibitem{MarteauSapatinas2017} Marteau, C., and Sapatinas, T. (2017). Minimax Goodness-of-Fit Testing in Ill-Posed Inverse Problems with Partially Unknown Operators. Annales de l'Institut Henri Poincare, Probabilites et Statistiques 53.
+
+  \bibitem{SchluttenhoferJohannes2020} Schluttenhofer, S., and Johannes, J. (2020). Adaptive Minimax Testing in Inverse Gaussian Sequence Space Models. arXiv:2002.07623.
+
+  \bibitem{ChernozhukovNeweySantos2023} Chernozhukov, V., Newey, W. K., and Santos, A. (2023). Constrained Conditional Moment Restriction Models. Econometrica 91, 709--736.
+
+  \bibitem{FangSeo2021} Fang, Z., and Seo, J. (2021). A Projection Framework for Testing Shape Restrictions That Form Convex Cones. Econometrica 89, 2439--2458.
+
+  \bibitem{FangSantos2019} Fang, Z., and Santos, A. (2019). Inference on Directionally Differentiable Functions. Review of Economic Studies 86, 377--412.
+
+  \bibitem{Paninski2008} Paninski, L. (2008). A Coincidence-Based Test for Uniformity Given Very Sparsely Sampled Discrete Data. IEEE Transactions on Information Theory 54, 4750--4755.
+
+  \bibitem{ChhorCarpentier2022} Chhor, J., and Carpentier, A. (2022). Sharp Local Minimax Rates for Goodness-of-Fit Testing in Multivariate Binomial and Poisson Families and in Multinomials. Mathematical Statistics and Learning 5.
+
+  \bibitem{MiaoShiLiTchetgen2024} Miao, W., Shi, X., Li, Y., and Tchetgen Tchetgen, E. J. (2024). A Confounding Bridge Approach for Double Negative Control Inference on Causal Effects. Statistical Theory and Related Fields.
+
+  \bibitem{ZhangLiMiaoTchetgen2023} Zhang, J., Li, W., Miao, W., and Tchetgen Tchetgen, E. J. (2023). Proximal Causal Inference without Uniqueness Assumptions. Statistics and Probability Letters 198.
+
+  \bibitem{vanDerVaart1998} van der Vaart, A. W. (1998). Asymptotic Statistics. Cambridge University Press.
+
+  \bibitem{Carter2002} Carter, A. V. (2002). Deficiency Distance Between Multinomial and Multivariate Normal Experiments. Annals of Statistics 30, 708--730.
+
+\end{thebibliography}
+
+\end{document}

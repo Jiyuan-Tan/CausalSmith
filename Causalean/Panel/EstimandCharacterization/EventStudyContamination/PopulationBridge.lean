@@ -3,17 +3,19 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Sun-Abraham (2021): population bridge to the finite event-study system
+# Potential-outcome population bridge to the finite event-study system
 
 Anchors the abstract `EventStudySystem` (whose mean fields are free reals) to a
 genuine probability space carrying adoption-path–indexed potential outcomes.
 An `EventStudyPopulation` bundles `(Ω, μ)`, a realized adoption cohort
 `G : Ω → WithTop (Fin T)`, a calendar-time map, and the potential-outcome family
 `Ypath t h ω = Y_{ωt}(h)`. Its `toSystem` fills every mean field of
-`EventStudySystem` with an event-level conditional mean of a potential-outcome
-slice (via `eventCondExp`); in particular the estimand
-`CATT g e` becomes the genuine population contrast
-`E[Y_{·t}(g) − Y_{·t}(∞) ∣ G = g]`.
+`EventStudySystem` with a totalized cohort-cell mean of a potential-outcome
+slice (via the totalized `normalizedRestrictedIntegral`); in particular the
+estimand `CATT g e` becomes a population-anchored difference of cohort-cell
+means. Under `OutcomesIntegrable`, this difference can be combined into the
+totalized cohort-cell mean of `Y_{·t}(g) − Y_{·t}(∞)`. It remains zero on a
+zero-mass cohort, and `CATT` remains zero when its target-period set is empty.
 
 The three Sun-Abraham causal restrictions
 (`Consistency`, `NoAnticipation`, `PathConsistency`) are then **derived** from
@@ -28,23 +30,29 @@ Source spec:
 Definition `def:po-estimand-sa-system` and Assumption `ass:po-estimand-sa-causal`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Contamination
-import Causalean.Panel.EstimandCharacterization.EventStudyContamination.InteractionWeighted
-import Causalean.Panel.PO.PopulationCells
+module
 
-/-! # Sun-Abraham event-study population bridge
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Contamination
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.InteractionWeighted
+public import Causalean.Panel.PO.PopulationCells
+
+/-! # Event-study population bridge
 
 This file constructs a finite `EventStudySystem` from a probability space with
-adoption-path potential outcomes, defining its mean fields as cohort-cell
-conditional means and deriving the Sun-Abraham causal restrictions from the
+adoption-path potential outcomes, defining its mean fields as totalized
+cohort-cell means and deriving the event-study causal restrictions from the
 underlying potential-outcome structure. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace EventStudyContamination
 
 open MeasureTheory
-open Causalean.PO
 open Causalean.Panel.PO
 
 /-- A staggered-adoption event-study **population**: [a probability space](hyp:Ω,measΩ,μ,probμ)
@@ -99,20 +107,28 @@ variable {T : ℕ}
 
 attribute [instance] EventStudyPopulation.measΩ EventStudyPopulation.probμ
 
-/-- [For an event-study population $E$](hyp:E) and [an adoption path $h$](hyp:h), [the adoption-path cell](goal) is the event consisting exactly of units whose realized adoption path is $h$. -/
+/-- [For an event-study population $E$](hyp:E) and [an adoption path $h$](hyp:h),
+[the adoption-path cell](goal) is the event consisting exactly of units whose realized
+adoption path is $h$. -/
 def cell (E : EventStudyPopulation T) (h : WithTop (Fin T)) : Set E.Ω :=
   E.G ⁻¹' {h}
 
-/-- [For an event-study population $E$](hyp:E) and [an adoption path $h$](hyp:h), [the adoption-path cell mass](goal) is the real-valued probability mass of the units whose realized adoption path is $h$. -/
+/-- [For an event-study population $E$](hyp:E) and [an adoption path $h$](hyp:h),
+[the adoption-path cell mass](goal) is the real-valued probability mass of the units whose
+realized adoption path is $h$. -/
 def cellMass (E : EventStudyPopulation T) (h : WithTop (Fin T)) : ℝ :=
   (E.μ (E.cell h)).toReal
 
-/-- [For an event-study population $E$](hyp:E), [a real-valued unit-level function $f$](hyp:f), and [an adoption path $h$](hyp:h), [the adoption-path cell mean](goal) is the conditional mean of $f$ on the event that the realized adoption path equals $h$, with value zero when that event has zero probability.
+/-- For [an event-study population](hyp:E), [a real-valued unit-level function](hyp:f), and
+[an adoption path](hyp:h), [the adoption-path cell mean](goal) is the normalized restricted
+integral of the function over the event that the realized adoption path equals the given path,
+with value zero when that event has zero probability.
 
-The conditional-mean operation is totalized, so zero-mass paths are allowed at the population-bridge layer. -/
+The cell-mean operation is totalized, so zero-mass paths are allowed at the
+population-bridge layer. -/
 noncomputable def cellMean (E : EventStudyPopulation T) (f : E.Ω → ℝ)
     (h : WithTop (Fin T)) : ℝ :=
-  eventCondExp E.μ (E.cell h) f
+  normalizedRestrictedIntegral E.μ (E.cell h) f
 
 /-- Event-level means agree when the integrands agree pointwise on the
 adoption-path cell. -/
@@ -128,13 +144,18 @@ theorem cellMean_sub (E : EventStudyPopulation T) {f g : E.Ω → ℝ}
     E.cellMean (f - g) h = E.cellMean f h - E.cellMean g h :=
   eventCondExp_sub E.μ (E.cell h) hf hg
 
-/-- [For an event-study population $E$](hyp:E), [a finite period $t$](hyp:t), and [a unit $ω$](hyp:ω), [the observed outcome](goal) is that unit's potential outcome at $t$ under its realized adoption path.
+/-- [For an event-study population $E$](hyp:E), [a finite period $t$](hyp:t), and [a unit
+$ω$](hyp:ω), [the observed outcome](goal) is that unit's potential outcome at $t$ under its
+realized adoption path.
 
 Consistency is therefore definitional. -/
 def observed (E : EventStudyPopulation T) (t : Fin T) (ω : E.Ω) : ℝ :=
   E.Ypath t (E.G ω) ω
 
-/-- [For an event-study population $E$](hyp:E), [the induced event-study system](goal) has the population's calendar-time map and supported cohorts, and defines every cohort share, cell mass, and outcome-mean field as the corresponding adoption-path cell probability or conditional mean.
+/-- [For an event-study population $E$](hyp:E), [the induced event-study system](goal) has the
+population's calendar-time map and supported cohorts, and defines every cohort share, cell
+mass, and outcome-mean field as the corresponding adoption-path cell probability or
+totalized cell mean.
 
 `cellMass g t` is period-independent, equal to the cross-sectional cohort mass
 `ℙ(G = g)`: in the balanced unit-period population the abstract system targets,
@@ -210,14 +231,15 @@ theorem toSystem_pathConsistency (E : EventStudyPopulation T) :
         rw [h1]
         exact E.hNoAnt h t ω huntreated)
 
-/-- [For an event-study population $E$](hyp:E), [the outcome-integrability condition](goal) states that the potential outcome under every finite period and every adoption path is integrable with respect to the population measure.
+/-- [For an event-study population $E$](hyp:E), [the outcome-integrability condition](goal)
+states that the potential outcome under every finite period and every adoption path is
+integrable with respect to the population measure.
 
-This is the population
-content of the source theorem's integrability hypothesis: it is exactly the
-condition under which each cohort-cell mean
-`E.cellMean (Ypath t h) · = E[Y_{·t}(h) ∣ G = ·]` is a genuine finite expectation
-rather than only a totalized value. Not every population satisfies it; for
-example, heavy-tailed potential outcomes can fail this condition. -/
+This condition permits linearity identities such as combining the difference
+of two totalized cell means into the totalized cell mean of their difference.
+It does not make a zero-mass cell into a conditional population. Not every
+population satisfies it; for example, heavy-tailed potential outcomes can fail
+this condition. -/
 def OutcomesIntegrable (E : EventStudyPopulation T) : Prop :=
   ∀ (t : Fin T) (h : WithTop (Fin T)), Integrable (E.Ypath t h) E.μ
 
@@ -231,12 +253,16 @@ theorem toSystem_causalRestrictions (E : EventStudyPopulation T)
   hNoAnticipation := E.toSystem_noAnticipation
   hMeanParallelUntreated := hPar
 
-/-- **Causal-meaning certificate.** [For a population satisfying the event-study
-setup](hyp:E), [in the system it induces, the treatment-effect estimand at cohort `g` and
-relative time `e`](hyp:g,e) [equals the cohort-cell average of the population
-potential-outcome contrast `E[Y_{·t}(g) ∣ G = g] − E[Y_{·t}(∞) ∣ G = g]` over the relevant
-periods](goal), so the estimand carries genuine causal content rather than a free-standing
-definition on reals. -/
+/-- **Potential-outcome anchoring certificate.** For
+[a population satisfying the event-study setup](hyp:E),
+[the induced cohort contrast at a cohort and relative time](hyp:g,e)
+[equals the relevant-period average of a difference of totalized means](goal), so the
+estimand is tied to population
+potential-outcome data rather than free-standing reals.
+
+This theorem does not identify the difference as an ordinary conditional expectation on a
+positive-probability cohort. Under `OutcomesIntegrable`, `toSystem_CATT_eq_meanDiff` only
+combines it into a totalized cell mean of the pointwise difference. -/
 theorem toSystem_CATT_eq_po_contrast (E : EventStudyPopulation T)
     (g : Fin T) (e : ℤ) :
     (E.toSystem).CATT g e =
@@ -247,13 +273,15 @@ theorem toSystem_CATT_eq_po_contrast (E : EventStudyPopulation T)
             - E.cellMean (E.Ypath t ⊤) (EventStudySystem.finitePath g)) := by
   rfl
 
-/-- **Integrability makes `CATT` a genuine expected contrast.** Under outcome
-integrability (assumption H5), the two cohort-cell means combine into a single
-cell mean of the potential-outcome difference: each summand is
-`E[Y_{·t}(g) − Y_{·t}(∞) ∣ G = g]`, a genuine expectation of the individual
-treatment-effect random variable. This is where the integrability hypothesis
-does real work — `cellMean_sub` requires each slice to be integrable
-on the cell, so without H5 the two means could not be merged. -/
+/-- **Integrability combines the two totalized cell means.** For
+[an event-study population](hyp:E),
+[integrability of every potential-outcome slice](hyp:hInt), and
+[a cohort and relative time](hyp:g,e),
+[`CATT` is the target-period average of a totalized cell mean difference](goal).
+
+Integrability is used by `cellMean_sub` to merge the two means. The result is still totalized:
+it is zero for a zero-mass cohort, and the outer average is zero when there is no target
+period. -/
 theorem toSystem_CATT_eq_meanDiff (E : EventStudyPopulation T)
     (hInt : E.OutcomesIntegrable) (g : Fin T) (e : ℤ) :
     (E.toSystem).CATT g e =
@@ -268,21 +296,21 @@ theorem toSystem_CATT_eq_meanDiff (E : EventStudyPopulation T)
   rw [E.cellMean_sub (EventStudySystem.finitePath g)
       (hInt t (EventStudySystem.finitePath g)).integrableOn (hInt t ⊤).integrableOn]
 
-/-- **Population contamination representation (headline).** For a staggered-adoption
-event-study population `E` and a conventional design `D` on the system it induces, if [the
-never-treated potential outcome follows the additive parallel-trends restriction](hyp:hPar),
-[the included, displayed, and admissible event times all lie within the declared finite
-support](hyp:hSupport), and [the cell-grid weighted-projection residualization input is
-supplied](hyp:hCell), then [the conventional TWFE event-study coefficient `D.mu` equals the
-contamination-weighted sum of genuine population cohort-relative-time effects
-`CATT g e = E[Y_{·t}(g) − Y_{·t}(∞) ∣ G = g]`](goal). Consistency and no-anticipation are
-derived from the potential-outcome structure rather than assumed; this is the Sun-Abraham
-contamination theorem stated over a genuinely potential-outcome-anchored system.
+/-- **Population-anchored cell-grid contamination representation (headline).**
+[The projection coefficient on listed finite cohorts and declared event-support cells](hyp:E,D)
+is
+[the generally signed contamination-weighted sum of the induced totalized cohort contrasts](goal)
+when [the never-treated potential outcome obeys additive parallel trends](hyp:hPar),
+[the relevant event times have finite support](hyp:hSupport), and
+[the coefficient comes from the stated weighted cell-grid projection](hyp:hCell).
+Consistency and no-anticipation follow from the potential-outcome structure rather than being
+imposed separately.
 
-Integrability certifies that each `CATT g e` is the genuine expected
-treatment-effect contrast `E[Y_{·t}(g) − Y_{·t}(∞) ∣ G = g]` (see
-`toSystem_CATT_eq_meanDiff`); the contamination identity itself is an algebraic
-FWL rearrangement that holds for the total cell means regardless. -/
+The projection grid contains only `E.cohorts × D.eventSupport`; in particular, it does not
+contain the never-treated path. Thus this theorem does not characterize the full-population
+TWFE regression when never-treated observations or other omitted cells have positive mass.
+Outcome integrability is unnecessary for the identity; when supplied, it only permits the
+totalized-mean rewrite in `toSystem_CATT_eq_meanDiff`. -/
 theorem contamination_representation_population (E : EventStudyPopulation T)
     (D : (E.toSystem).ConventionalDesign)
     (hPar : (E.toSystem).MeanParallelUntreated)
@@ -294,19 +322,20 @@ theorem contamination_representation_population (E : EventStudyPopulation T)
   exact (E.toSystem).contamination_representation_of_cellGrid
     E.toSystem_consistency hPar hSupport hCell
 
-/-- **Population interaction-weighted characterization (headline).** For a staggered-adoption
-event-study population `E` and an interaction-weighted design `I` on the system it induces, if
-[the induced system satisfies comparison-group parallel trends](hyp:hIWParallelTrends),
-[the eligibility, baseline, target, and comparison-group support conditions of `IWSupport`
-hold](hyp:hSupport), [the aggregation weights `rho` are nonnegative](hyp:hRhoNonneg) and [sum to
-one over the eligible cohorts](hyp:hRhoSumOne), and [every eligible cohort's population CATT at
-the fixed event time lies between bounds `lo` and `hi`](hyp:hLo,hHi), then [the
-interaction-weighted estimand `nuIW` is the `rho`-weighted convex average of the genuine
-population effects `CATT g ℓ`, and in particular lies between `lo` and `hi` — with no
-contamination from other event times](goal).
+/-- **Population interaction-weighted characterization (headline).**
+[The interaction-weighted estimand for a staggered-adoption population and design](hyp:E,I)
+is
+[a bounded convex average without cross-event-time contamination](goal) under
+[comparison-group parallel trends](hyp:hIWParallelTrends),
+[valid cohort, period, and comparison-group support](hyp:hSupport),
+[nonnegative aggregation weights](hyp:hRhoNonneg),
+[weights summing to one](hyp:hRhoSumOne), and
+[the stated cohortwise bounds](hyp:lo,hi,hLo,hHi).
 
 Consistency, no-anticipation, and path-consistency are derived from the potential-outcome
-structure rather than assumed. -/
+structure rather than assumed. Under `E.OutcomesIntegrable`,
+`toSystem_CATT_eq_meanDiff` rewrites each CATT using a totalized cell mean of the pointwise
+difference; this theorem itself only uses the induced totalized cell means. -/
 theorem IW_convex_characterization_population (E : EventStudyPopulation T)
     (I : (E.toSystem).IWDesign)
     (hIWParallelTrends : (E.toSystem).IWComparisonParallelTrends I)

@@ -1,8 +1,8 @@
 import { maskLeanCommentsAndStrings } from "../shared/lean_mask.js";
+import { LEAN_DECL_HEADER_RE_GM } from "../shared/lean_syntax.js";
 
 /** Declaration command header, including repeated attributes and modifiers. */
-const DECL_HEAD =
-  /^[ \t]*(?:(?:@\[[^\]]*\])\s*)*(?:(?:private|protected|noncomputable|nonrec|unsafe|partial|scoped|local)\s+)*(theorem|lemma|def|abbrev|structure|inductive|class|instance|opaque|axiom|constant)\b/gmu;
+const DECL_HEAD = LEAN_DECL_HEADER_RE_GM;
 
 /** Leaf of a qualified Lean name, splitting only on dots outside `«quoted components»`. */
 export function leanNameLeaf(name: string): string {

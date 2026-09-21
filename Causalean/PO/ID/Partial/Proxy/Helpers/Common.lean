@@ -11,18 +11,18 @@ not depend on a specific bridge:
 1. **Marginalisation identity** (`meanYofA_eq_strata`): rewrites the marginal
    target `E[Y(a)]` as a convex combination of the conditional target
    `E[Y(a) | A = ¬a]` and the consistency-identified factual mean
-   `E[Y | A = a]` on the same arm. This converts each Theorem 1/2/3 (which
-   bound the conditional target) into its corresponding Corollary 1/2 (which
-   bound the marginal target).
+   `E[Y | A = a]` on the same arm. This converts each conditional envelope
+   bound into its corresponding marginal-target bound.
 
 2. **Y(a) clamp lemmas** (`YofA_essbound_above`, `YofA_essbound_below`):
    transfer pointwise a.e. bounds on `Y` to `Y(a)` under latent
    exchangeability + consistency.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Assumptions
-import Causalean.PO.ID.Exact.Proximal.Helpers
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Partial.Proxy.Assumptions
+public import Causalean.PO.ID.Exact.Proximal.Helpers
+public import Causalean.Tactic.CondexpLinearity
 
 /-! # Common proximal-proxy partial-identification helpers
 
@@ -32,10 +32,140 @@ connects bridge functions to observed conditional means and supplies a generic
 set-integral pull-out lemma for sigma-measurable factors.
 -/
 
+public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
+
 namespace Causalean
 namespace PO
 
 open MeasureTheory ProbabilityTheory
+
+/-- **A potential outcome inherits the factual outcome's a.e. upper bound.**
+For [a sub-σ-algebra `σ_UX` coarser than the ambient σ-algebra](hyp:hσUX),
+[a measurable treatment map `A`](hyp:hA), [a measurable potential outcome
+`Ya`](hyp:hYa), and [a treatment value `a`](hyp:a), suppose that [`Ya` is
+conditionally independent of `A` given `σ_UX`](hyp:latent_exch), [the factual
+outcome `Y` agrees with `Ya` almost everywhere on `{A = a}`](hyp:consistency),
+[every `σ_UX`-measurable set null on `{A = a}` is globally null](hyp:h_overlap),
+and [`Y` is at most `M` almost everywhere](hyp:hY_le). Then [`Ya` is at most
+`M` almost everywhere](goal).
+
+The conditional-independence factorization makes the event `{M < Ya}` null on
+the treatment arm, and the overlap hypothesis transfers that nullity globally. -/
+theorem ae_le_YofA_of_ae_le_Y
+    {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    [@StandardBorelSpace Ω mΩ]
+    {μ : @MeasureTheory.Measure Ω mΩ} [@MeasureTheory.IsFiniteMeasure Ω mΩ μ]
+    {σ_UX : MeasurableSpace Ω} (hσUX : σ_UX ≤ mΩ)
+    {α : Type*} [MeasurableSpace α] [MeasurableSingletonClass α]
+    {A : Ω → α} {Y Ya : Ω → ℝ}
+    (hA : @Measurable Ω α mΩ _ A)
+    (hYa : @Measurable Ω ℝ mΩ _ Ya)
+    (a : α)
+    (latent_exch : ProbabilityTheory.CondIndepFun σ_UX hσUX Ya A μ)
+    (consistency : Y =ᵐ[μ.restrict {ω | A ω = a}] Ya)
+    (h_overlap : ∀ s : Set Ω, MeasurableSet[σ_UX] s →
+        μ (s ∩ {ω | A ω = a}) = 0 → μ s = 0)
+    {M : ℝ} (hY_le : ∀ᵐ ω ∂μ, Y ω ≤ M) :
+    ∀ᵐ ω ∂μ, Ya ω ≤ M := by
+  let E : Set Ω := {ω | A ω = a}
+  let B : Set Ω := {ω | M < Ya ω}
+  have hE : @MeasurableSet Ω mΩ E := by
+    dsimp [E]
+    exact hA (measurableSet_singleton a)
+  have hB : @MeasurableSet Ω mΩ B := by
+    dsimp [B]
+    exact hYa measurableSet_Ioi
+  have hYa_le_on_E : ∀ᵐ ω ∂μ.restrict E, Ya ω ≤ M := by
+    filter_upwards [consistency, MeasureTheory.ae_restrict_of_ae hY_le] with ω hcons hYle
+    rw [← hcons]
+    exact hYle
+  have hBE_zero : μ (B ∩ E) = 0 := by
+    have hbad : (μ.restrict E) B = 0 := by
+      have := MeasureTheory.ae_iff.mp hYa_le_on_E
+      simpa [B, not_le] using this
+    rwa [MeasureTheory.Measure.restrict_apply hB] at hbad
+  have hCI :
+      μ⟦B ∩ E | σ_UX⟧ =ᵐ[μ]
+        fun ω => (μ⟦B | σ_UX⟧) ω * (μ⟦E | σ_UX⟧) ω := by
+    have hraw :=
+      (ProbabilityTheory.condIndepFun_iff_condExp_inter_preimage_eq_mul hYa hA).mp
+        latent_exch (Set.Ioi M) ({a} : Set α) measurableSet_Ioi
+        (measurableSet_singleton a)
+    simpa [B, E, Set.preimage, Set.mem_Ioi, Set.mem_singleton_iff] using hraw
+  have hBE_indicator_zero :
+      Set.indicator (B ∩ E) (fun _ : Ω => (1 : ℝ)) =ᵐ[μ] 0 := by
+    have hnot : ∀ᵐ ω ∂μ, ω ∉ B ∩ E := by
+      rw [MeasureTheory.ae_iff]
+      simpa using hBE_zero
+    filter_upwards [hnot] with ω hω
+    simp [Set.indicator_of_notMem, hω]
+  have hCE_BE_zero : μ⟦B ∩ E | σ_UX⟧ =ᵐ[μ] 0 := by
+    simpa using
+      (MeasureTheory.condExp_congr_ae (m := σ_UX) (μ := μ) hBE_indicator_zero)
+  have hE_pos : ∀ᵐ ω ∂μ, 0 < (μ⟦E | σ_UX⟧) ω := by
+    simpa [E] using
+      (ae_pos_condExp_indicator_of_le (mΩ := mΩ) (μ := μ)
+        (m₁ := σ_UX) hσUX hE h_overlap)
+  have hCE_B_zero : μ⟦B | σ_UX⟧ =ᵐ[μ] 0 := by
+    have hprod_zero :
+        (fun ω => (μ⟦B | σ_UX⟧) ω * (μ⟦E | σ_UX⟧) ω) =ᵐ[μ] 0 :=
+      hCI.symm.trans hCE_BE_zero
+    filter_upwards [hprod_zero, hE_pos] with ω hprod hpos
+    exact (mul_eq_zero.mp hprod).resolve_right (ne_of_gt hpos)
+  haveI : MeasureTheory.IsFiniteMeasure (μ.trim hσUX) :=
+    MeasureTheory.isFiniteMeasure_trim hσUX
+  haveI : MeasureTheory.SigmaFinite (μ.trim hσUX) := inferInstance
+  have hB_zero : μ B = 0 := by
+    have hInt_cond_zero : ∫ ω, (μ⟦B | σ_UX⟧) ω ∂μ = 0 := by
+      simpa using MeasureTheory.integral_congr_ae hCE_B_zero
+    have hInt_cond_eq :
+        ∫ ω, (μ⟦B | σ_UX⟧) ω ∂μ
+          = ∫ ω, Set.indicator B (fun _ : Ω => (1 : ℝ)) ω ∂μ := by
+      exact MeasureTheory.integral_condExp hσUX
+    have hInt_B_zero :
+        ∫ ω, Set.indicator B (fun _ : Ω => (1 : ℝ)) ω ∂μ = 0 :=
+      hInt_cond_eq.symm.trans hInt_cond_zero
+    have hB_real_zero : μ.real B = 0 := by
+      rw [← MeasureTheory.integral_indicator_one (μ := μ) hB]
+      exact hInt_B_zero
+    exact (MeasureTheory.measureReal_eq_zero_iff (μ := μ) (s := B)).mp hB_real_zero
+  rw [MeasureTheory.ae_iff]
+  simpa [B, not_le] using hB_zero
+
+/-- **A potential outcome inherits the factual outcome's a.e. lower bound.**
+Under [the same sub-σ-algebra relation](hyp:hσUX), [measurable treatment
+map](hyp:hA), [measurable potential outcome](hyp:hYa), [treatment value](hyp:a),
+[conditional independence](hyp:latent_exch), [consistency](hyp:consistency),
+and [overlap](hyp:h_overlap), if [the factual outcome `Y` is at least
+`M` almost everywhere](hyp:hY_ge), then [the potential outcome `Ya` is at least
+`M` almost everywhere](goal). -/
+theorem ae_le_YofA_of_ae_le_Y_below
+    {Ω : Type*} {mΩ : MeasurableSpace Ω}
+    [@StandardBorelSpace Ω mΩ]
+    {μ : @MeasureTheory.Measure Ω mΩ} [@MeasureTheory.IsFiniteMeasure Ω mΩ μ]
+    {σ_UX : MeasurableSpace Ω} (hσUX : σ_UX ≤ mΩ)
+    {α : Type*} [MeasurableSpace α] [MeasurableSingletonClass α]
+    {A : Ω → α} {Y Ya : Ω → ℝ}
+    (hA : @Measurable Ω α mΩ _ A)
+    (hYa : @Measurable Ω ℝ mΩ _ Ya)
+    (a : α)
+    (latent_exch : ProbabilityTheory.CondIndepFun σ_UX hσUX Ya A μ)
+    (consistency : Y =ᵐ[μ.restrict {ω | A ω = a}] Ya)
+    (h_overlap : ∀ s : Set Ω, MeasurableSet[σ_UX] s →
+        μ (s ∩ {ω | A ω = a}) = 0 → μ s = 0)
+    {M : ℝ} (hY_ge : ∀ᵐ ω ∂μ, M ≤ Y ω) :
+    ∀ᵐ ω ∂μ, M ≤ Ya ω := by
+  have hneg : ∀ᵐ ω ∂μ, -Ya ω ≤ -M :=
+    ae_le_YofA_of_ae_le_Y (mΩ := mΩ) (μ := μ) (σ_UX := σ_UX) hσUX
+      (A := A) (Y := fun ω => -Y ω) (Ya := fun ω => -Ya ω)
+      hA hYa.neg a
+      latent_exch.neg_left
+      (consistency.mono fun ω hω => by simp [hω])
+      h_overlap
+      (hY_ge.mono fun ω hω => neg_le_neg hω)
+  exact hneg.mono fun ω hω => neg_le_neg_iff.mp hω
 
 namespace POProximalSystem
 
@@ -99,7 +229,7 @@ lemma YofA_essbound_above {a : Bool} (HC : POSystem.Consistency P)
     apply ae_restrict_of_forall_mem hs
     intro ω hω
     exact (POVar.cf_eq_factual_on_event HC S.Yvar S.Avar a hAY.symm hω).symm
-  exact Causalean.ae_le_YofA_of_ae_le_Y (mΩ := P.measΩ) (σ_UX := S.σ_UX) S.σ_UX_le
+  exact ae_le_YofA_of_ae_le_Y (mΩ := P.measΩ) (σ_UX := S.σ_UX) S.σ_UX_le
     S.measurable_A (S.measurable_YofA a) a latent_exch hYeq overlap hY
 
 /-- `Y(a)` inherits Y's a.e. lower bound. Mirror of `YofA_essbound_above`. -/
@@ -115,7 +245,7 @@ lemma YofA_essbound_below {a : Bool} (HC : POSystem.Consistency P)
     apply ae_restrict_of_forall_mem hs
     intro ω hω
     exact (POVar.cf_eq_factual_on_event HC S.Yvar S.Avar a hAY.symm hω).symm
-  exact Causalean.ae_le_YofA_of_ae_le_Y_below (mΩ := P.measΩ) (σ_UX := S.σ_UX) S.σ_UX_le
+  exact ae_le_YofA_of_ae_le_Y_below (mΩ := P.measΩ) (σ_UX := S.σ_UX) S.σ_UX_le
     S.measurable_A (S.measurable_YofA a) a latent_exch hYeq overlap hY
 
 /-! ### Observed-data collapse: replacing `h(a,W,X)` with `μ[Y | σ_AX]` on `{A=a}` -/
@@ -172,15 +302,15 @@ lemma condExp_Y_eq_condExp_h_arm_AX_core
       · exact measurable_fst (measurableSet_singleton a)
       · ext ω; rfl
     have hind_zero : ({ω | S.A ω = a}).indicator d =ᵐ[μ] 0 := by
-      simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hd_zero_on_arm
+      simpa using indicator_aeEq_of_aeEq_restrict hs_meas hd_zero_on_arm
     have hd_zero_cond : μ[d | S.σ_AUX] =ᵐ[μ.restrict {ω | S.A ω = a}] 0 := by
       have hindCE_zero : ({ω | S.A ω = a}).indicator (μ[d | S.σ_AUX])
-          =ᵐ[μ] 0 := Causalean.condExp_indicator_aeEq_zero hs_in_m hdint hind_zero
+          =ᵐ[μ] 0 := condExp_indicator_aeEq_zero hs_in_m hdint hind_zero
       have hindCE_zero' :
           ({ω | S.A ω = a}).indicator (μ[d | S.σ_AUX])
             =ᵐ[μ] ({ω | S.A ω = a}).indicator (0 : P.Ω → ℝ) := by
         simpa using hindCE_zero
-      simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
+      simpa using aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
     have hCE_dsub : μ[d | S.σ_AUX]
         =ᵐ[μ] μ[fun ω => h (S.A ω, S.W ω, S.X ω) | S.σ_AUX]
             - μ[fun ω => h (a, S.W ω, S.X ω) | S.σ_AUX] :=
@@ -250,15 +380,15 @@ lemma condExp_Y_eq_condExp_h_arm_AX_core
     · exact measurable_fst (measurableSet_singleton a)
     · ext ω; rfl
   have hind_D_zero : ({ω | S.A ω = a}).indicator D =ᵐ[μ] 0 := by
-    simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hD_zero_on_arm
+    simpa using indicator_aeEq_of_aeEq_restrict hs_meas hD_zero_on_arm
   have hD_zero_AX : μ[D | S.σ_AX] =ᵐ[μ.restrict {ω | S.A ω = a}] 0 := by
     have hindCE_zero : ({ω | S.A ω = a}).indicator (μ[D | S.σ_AX]) =ᵐ[μ] 0 :=
-      Causalean.condExp_indicator_aeEq_zero hs_in_AX hD_int hind_D_zero
+      condExp_indicator_aeEq_zero hs_in_AX hD_int hind_D_zero
     have hindCE_zero' :
         ({ω | S.A ω = a}).indicator (μ[D | S.σ_AX])
           =ᵐ[μ] ({ω | S.A ω = a}).indicator (0 : P.Ω → ℝ) := by
       simpa using hindCE_zero
-    simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
+    simpa using aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
   -- Decompose μ[D | σ_AX] = μ[f1 | σ_AX] - μ[f2 | σ_AX] and apply tower.
   have hCE_Dsub : μ[D | S.σ_AX] =ᵐ[μ] μ[f1 | S.σ_AX] - μ[f2 | S.σ_AX] :=
     by condexp_linearity
@@ -292,16 +422,15 @@ This specializes the raw observed-data collapse identity using the W-only bridge
 and integrability assumptions. It is the bundled-input wrapper around
 `condExp_Y_eq_condExp_h_arm_AX_core` for the W-only assumption bundle. -/
 lemma condExp_Y_eq_condExp_h_arm_AX
-    (HA : POProximalSystem.WBasedAssumptions S μ) (a : Bool)
-    (_hAY : S.Avar.v ≠ S.Yvar.v) :
+    (HA : POProximalSystem.WBasedAssumptions S μ) (a : Bool) :
     μ[S.Y | S.σ_AX]
       =ᵐ[μ.restrict {ω | S.A ω = a}]
       μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AX] :=
   condExp_Y_eq_condExp_h_arm_AX_core (h := HA.h) a
     HA.integrable_Y HA.integrable_h (HA.integrable_h_arm a) HA.bridge
 
-/-- Fix a treatment arm `a` and assume [the two-proxy bridge assumption bundle](hyp:HA), with
-[the treatment and outcome variables distinct](hyp:_hAY). Then, restricted to the stratum
+/-- Fix [a treatment arm](hyp:a) and assume [the two-proxy bridge assumption bundle](hyp:HA).
+Then, restricted to the stratum
 `{A = a}`, [the conditional expectation of the observed outcome `Y` given the σ-algebra
 generated by treatment and covariates equals the conditional expectation of the outcome
 bridge function evaluated at `(a, W, X)` given that same σ-algebra](goal).
@@ -310,8 +439,7 @@ This uses the two-proxy bridge field, since the two-proxy assumptions do not
 project to the W-only assumption bundle. It is the bundled-input wrapper around
 `condExp_Y_eq_condExp_h_arm_AX_core` for the two-proxy assumption bundle. -/
 lemma condExp_Y_eq_condExp_h_arm_AX_twoProxy
-    (HA : POProximalSystem.TwoProxyAssumptions S μ) (a : Bool)
-    (_hAY : S.Avar.v ≠ S.Yvar.v) :
+    (HA : POProximalSystem.TwoProxyAssumptions S μ) (a : Bool) :
     μ[S.Y | S.σ_AX]
       =ᵐ[μ.restrict {ω | S.A ω = a}]
       μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AX] :=

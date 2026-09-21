@@ -13,8 +13,9 @@ The FoML headline (`expectation_le_rademacher`) lives in the root
 namespace; downstream code accesses it unqualified.
 -/
 
-import FoML.Symmetrization
-import FoML.Rademacher
+module
+public import FoML.Symmetrization
+public import FoML.Rademacher
 
 /-!
 This file exposes the symmetrization inequality used to replace empirical
@@ -24,6 +25,8 @@ uniform deviation bounds for estimators. The imported headline theorem is
 FoML; this module keeps the Causalean concentration import tree self-contained
 without introducing a duplicate alias.
 -/
+
+public section
 
 namespace Causalean
 namespace Stat

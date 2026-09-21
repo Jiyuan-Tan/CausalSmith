@@ -1,0 +1,2491 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}factorial\_\allowbreak{}rerand\_\allowbreak{}pilot\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v3\par
+
+\paragraph{TL;DR.} A balanced pilot and a positive-support exact-\(\alpha\) main-wave mixture retain exact Horvitz--Thompson centering for the realized finite-population factorial vector. The proved contribution includes the exact two-component risk identity, the first-order exact-mixture oracle-gain limit, and first-order Gaussian lower-tail optimality against every admissible finite-score rule. The two proved branches rule out a fixed nondegenerate wave split and a sublinear main wave. The deterministic balanced-grid result remains conditional: compact-window second-order convergence, the pilot-information bridge, and three boundary regimes remain open, so no square-root pilot recommendation is yet certified.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing factorial rerandomization theory supplies first-order Gaussian precision and existing two-wave work supplies accounting architecture, but neither proves the moving-boundary exact Horvitz--Thompson comparison at the square-root pilot scale. The present information audit also shows that the stated moment conditions do not identify the pilot Fisher-information limit.
+
+\paragraph{Niche.} On a fixed complete baseline array with a full-dimensional product parameter domain, the design problem separates exactly into a deletion contrast and a potentially signed action-loss contrast. A compactness, leave-one-unit, and Gaussian lower-tail argument controls the latter at first order for every admissible finite-score rule, while the uniform deletion identity handles nonconvergent pilot fractions whenever the main wave diverges.
+
+\paragraph{Fill.} The note proves exact pooled Horvitz--Thompson accounting, the explicit first-order exact-mixture oracle-gain coefficient, first-order Gaussian lower-tail optimality against every admissible finite-score rule, both macroscopic exclusion branches, the exact pilot likelihood and realized-information audit, and a conditional deterministic grid-transfer certificate. It leaves both frontier coefficients, compact-window convergence, the information-to-action bridge, and the three remaining boundary comparisons as explicit open questions.
+
+\section{Related work}
+
+Han and Deng provide the closest factorial sample-splitting architecture and first-order oracle equivalence; their results inform the present first-order comparison but do not supply the deletion cancellation or exact moving-boundary action loss.  Li and Ding provide the random-partition central limit theorem used for bounded conditional-mean tables.  Li, Ding, and Rubin provide the symmetric truncated-Gaussian predecessor, while the present first-order arbitrary-action comparison additionally carries randomized ties, exact unequal inclusions, and arbitrary centered quadratic actions through a subsequence limit.  Yamin provides the deterministic compact-localization and argmin-transfer architecture, not the statistical square-root rate or its coefficients.  Armstrong's LAN efficiency bounds become relevant only after an actual pilot-information limit is available.  Horvitz and Thompson support exact inverse-inclusion centering.  Menon, Chakrabarti, and Nerella motivate sequential factorial replications, but no pilot-size recommendation is certified until the compact-window and three remaining endpoint premises are proved.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\boldsymbol\tau_n=2^{1-K_f}\mathbf C^{\mathsf T}\bar{\mathbf Y}_n\).
+Primary functional / estimator / diagnostic: \(\widehat{\boldsymbol\tau}_{n,m}^{\mathrm{HT}},\quad R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)=D_{n,m}(\beta)+L_{n,m}(\delta_m,\beta)\); the candidate second-order coefficients remain open..
+\begin{itemize}
+  \item \texttt{n} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Total number of experimental units.}
+  \item \texttt{Kf} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} Number \(K_f\) of binary treatment factors.
+  \item \texttt{Q} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(Q=2^{K_f}\), the number of treatment combinations.
+  \item \texttt{F} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(F=Q-1\), the number of nonconstant factorial contrasts.
+  \item \texttt{p} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dimension of the baseline vector.}
+  \item \texttt{W} --- \texttt{matrix}; \(\mathbb S_{++}^{F}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed loss-\allowbreak{}weight matrix for the factorial vector.}
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} Exact target acceptance probability \(\alpha\).
+  \item \texttt{eta} --- \texttt{scalar}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} Positive-support mixture weight \(\eta\).
+  \item \texttt{Qset} --- \texttt{finite set}; \(\{-1,+1\}^{K_f}\)
+  \par\smallskip\noindent\emph{Definition.} Treatment-combination set \(\mathcal Q\).
+  \item \texttt{C} --- \texttt{matrix}; \(\{-1,+1\}^{Q\times F}\)
+  \par\smallskip\noindent\emph{Definition.} Factorial contrast matrix \(\mathbf C\) with the nonconstant Walsh characters as columns and row vectors \(c_q^{\mathsf T}\), \(q\in\mathcal Q\).
+  \item \texttt{Xn} --- \texttt{deterministic array}; \((\mathbb R^{p})^{n}\)
+  \par\smallskip\noindent\emph{Definition.} Complete baseline array \(\mathbf X_n=(x_{1n},\ldots,x_{nn})\), observed before assignment.
+  \item \texttt{nu} --- \texttt{probability measure}; \(\mathcal P(\mathbb R^{p})\)
+  \par\smallskip\noindent\emph{Definition.} Limit \(\nu\) of the empirical baseline measures.
+  \item \texttt{Yn} --- \texttt{potential-\allowbreak{}outcome table}; \(\mathbb R^{n\times Q}\)
+  \par\smallskip\noindent\emph{Definition.} Fixed realized table \(\mathbf Y_n=\{Y_{in}(q):i\le n,q\in\mathcal Q\}\) for design-based analysis.
+  \item \texttt{taun} --- \texttt{vector}; \(\mathbb R^{F}\)
+  \par\smallskip\noindent\emph{Definition.} \(\boldsymbol\tau_n=2^{1-K_f}\mathbf C^{\mathsf T}(n^{-1}\sum_{i=1}^{n}\mathbf Y_{in})\), the realized finite-population factorial vector.
+  \item \texttt{r} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dimension of the oracle quotient coordinate.}
+  \item \texttt{s} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dimension of the nuisance coordinate.}
+  \item \texttt{rho} --- \texttt{vector}; \(\mathbb R^{r}\)
+  \par\smallskip\noindent\emph{Definition.} Oracle-relevant quotient coordinate \(\rho\).
+  \item \texttt{lambda} --- \texttt{vector}; \(\mathbb R^{s}\)
+  \par\smallskip\noindent\emph{Definition.} Outcome nuisance coordinate \(\lambda\).
+  \item \texttt{beta} --- \texttt{vector}; \(\mathbb R^{r+s}\)
+  \par\smallskip\noindent\emph{Definition.} Full conditional-outcome parameter \(\beta=(\rho,\lambda)\).
+  \item \texttt{Urho} --- \texttt{open set}; \(\mathbb R^{r}\)
+  \par\smallskip\noindent\emph{Definition.} Oracle-coordinate chart domain \(\mathcal U_{\rho}\).
+  \item \texttt{Ulambda} --- \texttt{open set}; \(\mathbb R^{s}\)
+  \par\smallskip\noindent\emph{Definition.} Nuisance-coordinate chart domain \(\mathcal U_{\lambda}\).
+  \item \texttt{U} --- \texttt{open set}; \(\mathbb R^{r+s}\)
+  \par\smallskip\noindent\emph{Definition.} Regular identifiable chart \(\mathcal U=\mathcal U_{\rho}\times\mathcal U_{\lambda}\).
+  \item \texttt{Kclass} --- \texttt{compact set}; \(\mathcal U\)
+  \par\smallskip\noindent\emph{Definition.} Global parameter set \(\mathcal K\).
+  \item \texttt{mu} --- \texttt{measure}
+  \par\smallskip\noindent\emph{Definition.} Common dominating measure \(\mu\) for the conditional outcome family.
+  \item \texttt{Pbeta} --- \texttt{conditional law}; \(\mathcal P(\mathbb R^{Q}\mid\mathbb R^{p})\)
+  \par\smallskip\noindent\emph{Definition.} Stable conditional potential-outcome family dominated by \(\mu\); its draw is used only to average exact design risks.
+  \item \texttt{score} --- \texttt{vector function}; \(L_2(P_{\beta})^{r+s}\)
+  \par\smallskip\noindent\emph{Definition.} Conditional score \(s_{q,\beta}(Y(q)\mid X)\) of the outcome family.
+  \item \texttt{Info} --- \texttt{matrix function}; \(\mathbb S_{++}^{r+s}\)
+  \par\smallskip\noindent\emph{Definition.} \(I(\beta)=Q^{-1}\sum_{q\in\mathcal Q}\int E_{\beta}[s_{q,\beta}s_{q,\beta}^{\mathsf T}\mid x]\,\nu(dx)\).
+  \item \texttt{Ieff} --- \texttt{matrix function}; \(\mathbb S_{++}^{r}\)
+  \par\smallskip\noindent\emph{Definition.} \(I_{\mathrm{eff}}(\beta)=I_{\rho\rho}-I_{\rho\lambda}I_{\lambda\lambda}^{-1}I_{\lambda\rho}\).
+  \item \texttt{T} --- \texttt{index set}; \(2^{\{1,\ldots,n\}}\)
+  \par\smallskip\noindent\emph{Definition.} A wave-specific subset \(T\) of units, with size \(k=|T|\).
+  \item \texttt{Tfull} --- \texttt{deterministic index sequence}; \(2^{\{1,\ldots,n\}}\)
+  \par\smallskip\noindent\emph{Definition.} \(T_n^{\mathrm{full}}=\{1,\ldots,n\}\), the experiment-induced full-array sequence.
+  \item \texttt{tauT} --- \texttt{vector}; \(\mathbb R^{F}\)
+  \par\smallskip\noindent\emph{Definition.} \(\boldsymbol\tau_T=2^{1-K_f}\mathbf C^{\mathsf T}(|T|^{-1}\sum_{i\in T}\mathbf Y_{in})\), the realized factorial vector on \(T\).
+  \item \texttt{OmegaT} --- \texttt{finite set}
+  \par\smallskip\noindent\emph{Definition.} Balanced assignment support \(\Omega_T=\{z\in\mathcal Q^{T}:\sum_{i\in T}\mathbf 1\{z_i=q\}=|T|/Q,\ q\in\mathcal Q\}\).
+  \item \texttt{ZT} --- \texttt{random assignment}; \(\Omega_T\)
+  \par\smallskip\noindent\emph{Definition.} Wave assignment \(Z_T\).
+  \item \texttt{DeltaT} --- \texttt{vector function}; \(\mathbb R^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_T(z)=\sum_{q\in\mathcal Q}(2^{1-K_f}c_q)\otimes\{|T|/Q\}^{-1}\sum_{i\in T:z_i=q}(x_{in}-\bar x_T)\), the factorial covariate-imbalance vector.
+  \item \texttt{Action} --- \texttt{matrix}; \(\mathbb S_{+}^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} Centered trace-normalized ellipsoidal score matrix \(H\).
+  \item \texttt{aTG} --- \texttt{function}; \([0,1]^{\Omega_T}\)
+  \par\smallskip\noindent\emph{Definition.} Exact lower-tail acceptance function \(a_{T,H}\) of the scores \(\Delta_T(z)^{\mathsf T}H\Delta_T(z)\), with a common randomized probability on the boundary score and \(|\Omega_T|^{-1}\sum_z a_{T,H}(z)=\alpha\).
+  \item \texttt{pTG} --- \texttt{probability mass function}; \(\mathcal P(\Omega_T)\)
+  \par\smallskip\noindent\emph{Definition.} \(p_{T,H}(z)=|\Omega_T|^{-1}[\eta+(1-\eta)a_{T,H}(z)/\alpha]\).
+  \item \texttt{piTG} --- \texttt{inclusion map}; \((0,1]^{T\times\mathcal Q}\)
+  \par\smallskip\noindent\emph{Definition.} \(\pi_{iq}(T,H)=\sum_{z\in\Omega_T}p_{T,H}(z)\mathbf 1\{z_i=q\}\).
+  \item \texttt{HTTG} --- \texttt{estimator}; \(\mathbb R^{F}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)=|T|^{-1}\sum_{i\in T}\sum_{q\in\mathcal Q}2^{1-K_f}c_q\mathbf 1\{Z_i=q\}Y_{in}(q)/\pi_{iq}(T,H)\).
+  \item \texttt{VTG} --- \texttt{risk function}; \(\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(V_T(H,\beta)=E_{\beta}E_{p_{T,H}}[(\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)-\boldsymbol\tau_T)^{\mathsf T}W(\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)-\boldsymbol\tau_T)\mid\mathbf X_n]\).
+  \item \texttt{BmapT} --- \texttt{matrix function}; \(\mathbb R^{F\times Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_T(\beta)=\operatorname{Cov}_{\beta}\{\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(0),\Delta_T\}\operatorname{Var}(\Delta_T)^{+}\), the empirical Gaussian projection of the factorial estimator on imbalance.
+  \item \texttt{Norm} --- \texttt{matrix map}; \(\mathcal N(M)=M/\operatorname{tr}(M)\) for \(M\in\mathbb S_{+}^{Fp}\setminus\{0\}\), and \(\mathcal N(0)=0\).
+  \par\smallskip\noindent\emph{Definition.} \texttt{Trace normalization with a zero convention.}
+  \item \texttt{GT} --- \texttt{matrix function}; \(\mathbb S_{+}^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \(G_T(\beta)=\mathcal N\{\mathcal B_T(\beta)^{\mathsf T}W\mathcal B_T(\beta)\}\), the empirical Gaussian raw-MSE oracle score.
+  \item \texttt{Ginf} --- \texttt{matrix function}; \(C^3(\mathcal K;\mathbb S_{+}^{Fp})\)
+  \par\smallskip\noindent\emph{Definition.} \(G_{\infty}(\beta)\), the common oracle-map limit along the full-array and random-complement sequences, derived by \(\mathrm{lem{:}experiment\text{-}indexed\text{-}oracle\text{-}convergence}\).
+  \item \texttt{Zgauss} --- \texttt{random vector}; \(\mathbb R^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \(Z\sim N(0,I_{Fp})\), the standardized Gaussian imbalance.
+  \item \texttt{phiGauss} --- \texttt{density function}; \(C^{\infty}(\mathbb R^{Fp};(0,\infty))\)
+  \par\smallskip\noindent\emph{Definition.} \(\varphi_{Fp}(z)=(2\pi)^{-Fp/2}\exp(-z^{\mathsf T}z/2)\), the standard Gaussian density.
+  \item \texttt{qGauss} --- \texttt{scalar function}; \(\mathbb R^{\mathcal K}\)
+  \par\smallskip\noindent\emph{Definition.} \(q_{\alpha,\beta}=\inf\{u>0:\Pr(Z^{\mathsf T}G_{\infty}(\beta)Z\le u)\ge\alpha\}\), the Gaussian quantile induced by the common experiment-indexed oracle limit.
+  \item \texttt{fGauss} --- \texttt{density function}; \((0,\infty)^{\mathcal K\times(0,\infty)}\)
+  \par\smallskip\noindent\emph{Definition.} \(f_{\beta}(u)=\frac{d}{du}\Pr\{Z^{\mathsf T}G_{\infty}(\beta)Z\le u\}\) for \(u>0\).
+  \item \texttt{boundaryCov} --- \texttt{matrix function}; \(C(\mathcal K\times(0,\infty);\mathbb S_{+}^{r})\)
+  \par\smallskip\noindent\emph{Definition.} For \(g_{\beta}(z)=z^{\mathsf T}G_{\infty}(\beta)z\) and \(\psi_{a,\beta}(z)=z^{\mathsf T}D_{\rho_a}G_{\infty}(\beta)z\), \(\mathcal C_{ab}(\beta,u)\) is the continuous coarea version of \(\operatorname{Cov}\{\psi_{a,\beta}(Z),\psi_{b,\beta}(Z)\mid g_{\beta}(Z)=u\}\): each conditional raw moment is the ratio \[\frac{\int_{g_{\beta}^{-1}(u)}h(z)\varphi_{Fp}(z)\lVert\nabla_z g_{\beta}(z)\rVert^{-1}d\mathcal H^{Fp-1}(z)}{\int_{g_{\beta}^{-1}(u)}\varphi_{Fp}(z)\lVert\nabla_z g_{\beta}(z)\rVert^{-1}d\mathcal H^{Fp-1}(z)},\] with \(h=\psi_{a,\beta}\psi_{b,\beta},\psi_{a,\beta},\psi_{b,\beta}\), and covariance is the first ratio minus the product of the latter two ratios; values at removable chart points use the unique continuous extension.
+  \item \texttt{rankG} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} Common positive rank \(r_G\) of the oracle score on the regular chart.
+  \item \texttt{dT} --- \texttt{scalar function}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(d_T(\beta)=V_T(0,\beta)-V_T(G_T(\beta),\beta)\), the empirical-oracle gain over balanced complete randomization.
+  \item \texttt{Mbal} --- \texttt{finite set}; \(2^{\mathbb N}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_n=\{m\in\{Q,2Q,\ldots,n-Q\}:Q\mid(n-m)\}\), the admissible balanced pilot sizes for which both waves are balanced.
+  \item \texttt{m} --- \texttt{integer}; \(\mathcal M_n\)
+  \par\smallskip\noindent\emph{Definition.} Balanced pilot size \(m\).
+  \item \texttt{N} --- \texttt{integer}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} Main-wave size \(N=n-m\).
+  \item \texttt{Sm} --- \texttt{random subset}; \(\{S\subset\{1,\ldots,n\}:|S|=m\}\)
+  \par\smallskip\noindent\emph{Definition.} Uniform random pilot subset \(S_m\), drawn before its balanced complete randomization.
+  \item \texttt{Tmain} --- \texttt{random index sequence}; \(2^{\{1,\ldots,n\}}\)
+  \par\smallskip\noindent\emph{Definition.} \(T_{n,m}^{\mathrm{main}}=S_m^c\), the experiment-induced random-complement sequence, with convergence in probability taken over the uniform pilot split.
+  \item \texttt{Opilot} --- \texttt{sigma-\allowbreak{}field}
+  \par\smallskip\noindent\emph{Definition.} Pilot information \(\mathcal O_m=\sigma(S_m,Z_{S_m},Y_{in}(Z_i):i\in S_m)\).
+  \item \texttt{delta} --- \texttt{decision rule}; \(\delta_m:\mathcal O_m\to\mathbb S_{+}^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Arbitrary pilot-\allowbreak{}measurable normalized centered score rule.}
+  \item \texttt{Ghat} --- \texttt{decision rule}; \(\widehat G_m:\mathcal O_m\to\mathbb S_+^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Candidate pilot plug-\allowbreak{}in score rule described by the conditional efficient-\allowbreak{}action handle;\allowbreak{} no efficiency or exact-\allowbreak{}risk guarantee is included in the symbol definition.}
+  \item \texttt{tauhat} --- \texttt{estimator}; \(\mathbb R^{F}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\boldsymbol\tau}_{n,m}(\delta_m)=(m/n)\widehat{\boldsymbol\tau}^{\mathrm{HT}}_{S_m}(0)+(N/n)\widehat{\boldsymbol\tau}^{\mathrm{HT}}_{T_{n,m}^{\mathrm{main}}}(\delta_m)\).
+  \item \texttt{Rn} --- \texttt{risk function}; \(\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(R_{n,m}(\delta_m,\beta)=E_{\beta}E[(\widehat{\boldsymbol\tau}_{n,m}(\delta_m)-\boldsymbol\tau_n)^{\mathsf T}W(\widehat{\boldsymbol\tau}_{n,m}(\delta_m)-\boldsymbol\tau_n)\mid\mathbf X_n]\).
+  \item \texttt{Ror} --- \texttt{risk function}; \(\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(R_n^{\mathrm{or}}(\beta)=V_{T_n^{\mathrm{full}}}(G_{T_n^{\mathrm{full}}}(\beta),\beta)\), the matching experiment-indexed full-array empirical raw-MSE oracle risk.
+  \item \texttt{Gamma} --- \texttt{matrix function}; \(\mathbb S_{+}^{r}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_{ab}(\beta)=\frac{1-\eta}{2\alpha}f_{\beta}(q_{\alpha,\beta})\mathcal C_{ab}(\beta,q_{\alpha,\beta})\) for \(a,b\le r\), the Gaussian acceptance-boundary Hessian induced by the common experiment-indexed oracle limit and the continuous coarea conditional-covariance version.
+  \item \texttt{B} --- \texttt{scalar function}; \((0,\infty)^{\mathcal K}\)
+  \par\smallskip\noindent\emph{Definition.} \(B(\beta)=\operatorname{tr}\{\Gamma(\beta)I_{\mathrm{eff}}(\beta)^{-1}\}\), the candidate Gaussian action coefficient; its transfer to exact finite risk is open.
+  \item \texttt{En} --- \texttt{minimax excess risk}; \(\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} For \(m\in\mathcal M_n\), \(\mathcal E_n(m)=\inf_{\delta_m}\sup_{\beta\in\mathcal K}[R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)]_{+}\).
+  \item \texttt{Binf} --- \texttt{matrix function}; \(\mathbb R^{F\times Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_\infty(\beta)=\lim_n\mathcal B_{T_n^{\mathrm{full}}}(\beta)\), the limiting Gaussian projection coefficient.
+  \item \texttt{Mbeta} --- \texttt{matrix function}; \(\mathbb S_+^{Fp}\)
+  \par\smallskip\noindent\emph{Definition.} \(M_\beta=\mathcal B_\infty(\beta)^{\mathsf T}W\mathcal B_\infty(\beta)\), the limiting unnormalized explained-loss matrix.
+  \item \texttt{Model} --- \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} Class \(\mathfrak M\) of deterministic-baseline triangular arrays and conditional outcome families used below.
+  \item \texttt{gbeta} --- \texttt{scalar function}; \(\mathbb R_+^{\mathbb R^{Fp}}\)
+  \par\smallskip\noindent\emph{Definition.} \(g_\beta(z)=z^{\mathsf T}G_\infty(\beta)z\), the limiting normalized Gaussian oracle score.
+  \item \texttt{HDModel} --- \texttt{published population class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\mathrm{HD}}\), the deterministic finite-population array class in Han and Deng's Assumptions 3 and 4, excluding their allocation-share restriction.
+  \item \texttt{a} --- \texttt{scalar function}; \((0,\infty)^{\mathcal K}\)
+  \par\smallskip\noindent\emph{Definition.} \(a(\beta)\), the proved first-order exact-mixture oracle-gain coefficient.
+  \item \texttt{RealizedModel} --- \texttt{population class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak R_{\beta}(\mathfrak M)\), the probability-one realization class of deterministic baseline and potential-outcome arrays generated by \(P_{\beta}\).
+  \item \texttt{A} --- \texttt{scalar function}; \((0,\infty)^{\mathcal K}\)
+  \par\smallskip\noindent\emph{Definition.} \(A(\beta)\), the unresolved candidate coefficient for a frontier-scale deletion expansion; it is not identified with the proved first-order coefficient \(a(\beta)\).
+  \item \texttt{Phi} --- \texttt{envelope function}; \(\Phi:(0,\infty)\to(0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\Phi(t)=\max_{\beta\in\mathcal K}\{A(\beta)t+B(\beta)/t\}\).
+  \item \texttt{tstar} --- \texttt{scalar}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(t^{\star}=\operatorname*{argmin}_{t>0}\Phi(t)\).
+  \item \texttt{Cstar} --- \texttt{scalar}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(C^{\star}=\Phi(t^{\star})\).
+  \item \texttt{Ipilot} --- \texttt{matrix function}; \(\mathbb S_+^{r+s}\)
+  \par\smallskip\noindent\emph{Definition.} \(I_m^{\mathrm{pil}}(\beta;S_m,Z)\), the realized conditional covariance of the pilot central sequence.
+  \item \texttt{Dnm} --- \texttt{risk contrast}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(D_{n,m}(\beta)\), the exact full-array versus random-complement oracle deletion contrast.
+  \item \texttt{Lnm} --- \texttt{risk contrast}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(L_{n,m}(\delta_m,\beta)\), the exact main-wave action-loss contrast, which need not be nonnegative.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:factor-count]\label{ass:factor-count}
+\(K_f\ge 2\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate factorial design, \cite{BransonDasguptaRubin2016FactorialRerandomization}).
+\end{assumption}
+
+\begin{assumption}[ass:balanced-total]\label{ass:balanced-total}
+\(Q\mid n\).
+\par\smallskip\noindent\emph{Standard} (Balanced completely randomized factorial allocation, \cite{LiDingRubin2020FactorialRerandomization}).
+\end{assumption}
+
+\begin{assumption}[ass:baseline-bound]\label{ass:baseline-bound}
+\(\sup_n\max_{i\le n}\lVert x_{in}\rVert<\infty\).
+\par\smallskip\noindent\emph{Standard} (Uniform finite-population moment bound, \cite{LiDing2017FinitePopulationCLT}).
+\end{assumption}
+
+\begin{assumption}[ass:baseline-limit]\label{ass:baseline-limit}
+\(n^{-1}\sum_{i=1}^{n}\delta_{x_{in}}\Rightarrow\nu\).
+\par\smallskip\noindent\emph{Standard} (Finite-population empirical-moment convergence, \cite{LiDing2017FinitePopulationCLT}).
+\end{assumption}
+
+\begin{assumption}[ass:baseline-gram]\label{ass:baseline-gram}
+\(0<\inf_n\lambda_{\min}\{n^{-1}\sum_{i=1}^{n}(x_{in}-\bar x_n)(x_{in}-\bar x_n)^{\mathsf T}\}\le\sup_n\lambda_{\max}\{n^{-1}\sum_{i=1}^{n}(x_{in}-\bar x_n)(x_{in}-\bar x_n)^{\mathsf T}\}<\infty\).
+\par\smallskip\noindent\emph{Standard} (Nonsingular limiting covariate covariance, \cite{HanDeng2026DataAdaptiveFactorial}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-baseline]\label{ass:fixed-baseline}
+\(P_{\beta,n}(d\mathbf X_n)=\delta_{\mathbf X_n}(d\mathbf X_n)\).
+\par\smallskip\noindent\emph{Novel.} Manufacturing and laboratory replications can preregister the complete future batch covariates before treatment, so all parameter information arrives through randomized outcomes.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcomes]\label{ass:bounded-outcomes}
+\(P_{\beta,n}(\sup_n\max_{i\le n,q\in\mathcal Q}|Y_{in}(q)|<\infty\mid\mathbf X_n)=1\).
+\par\smallskip\noindent\emph{Standard} (Bounded sufficient form of the finite-population Lindeberg condition, \cite{LiDing2017FinitePopulationCLT}).
+\end{assumption}
+
+\begin{assumption}[ass:stable-product-law]\label{ass:stable-product-law}
+\(P_{\beta,n}(d\mathbf Y_n\mid\mathbf X_n)=\prod_{i=1}^{n}P_{\beta}(d\mathbf Y_{in}\mid x_{in})\).
+\par\smallskip\noindent\emph{Novel.} Independent bounded conditional responses with common coefficients across consecutive production batches form a concrete stable family for replicated factorial process experiments.
+\end{assumption}
+
+\begin{assumption}[ass:conditional-moment-smoothness]\label{ass:conditional-moment-smoothness}
+\((x,\beta)\mapsto\int y^a p_{q,\beta}(dy\mid x)\in C^3(\operatorname{supp}\nu\times\mathcal U)\quad(a=1,2,\ q\in\mathcal Q)\).
+\par\smallskip\noindent\emph{Novel.} Bounded logistic, beta-regression, and smooth location families on compact preregistered baseline domains have continuously varying first two outcome moments.
+\end{assumption}
+
+\begin{assumption}[ass:product-ball-domain]\label{ass:product-ball-domain}
+\(\mathcal K=\overline{\mathcal K^{\circ}}=\overline B_r(\rho_c,R_{\rho})\times\overline B_s(\lambda_c,R_{\lambda})\subset\mathcal U\).
+\par\smallskip\noindent\emph{Novel.} Bounded generalized-linear conditional outcome families with freely varying regression coefficients and dispersion coordinates contain such connected product neighborhoods inside a regular chart.
+\end{assumption}
+
+\begin{assumption}[ass:qmd]\label{ass:qmd}
+\(\sup_{q\in\mathcal Q,\beta\in\mathcal U}\int\left(\sqrt{p_{q,\beta+h}}-\sqrt{p_{q,\beta}}-\tfrac12h^{\mathsf T}s_{q,\beta}\sqrt{p_{q,\beta}}\right)^2d\mu=o(\lVert h\rVert^2)\).
+\par\smallskip\noindent\emph{Standard} (Uniform quadratic-mean differentiability, \cite{VanDerVaart1998AsymptoticStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:score-third-moment]\label{ass:score-third-moment}
+\(\sup_{\beta\in\mathcal U,q\in\mathcal Q}E_{\beta}\lVert s_{q,\beta}\rVert^{3}<\infty\).
+\par\smallskip\noindent\emph{Standard} (Uniform local asymptotic normality moment condition, \cite{VanDerVaart1998AsymptoticStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:information-regular]\label{ass:information-regular}
+\(0<\inf_{\beta\in\mathcal K}\lambda_{\min}\{I(\beta)\}\le\sup_{\beta\in\mathcal K}\lambda_{\max}\{I(\beta)\}<\infty\).
+\par\smallskip\noindent\emph{Standard} (Regular identifiable parametric chart, \cite{VanDerVaart1998AsymptoticStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:nuisance-orthogonality]\label{ass:nuisance-orthogonality}
+\(D_{\lambda}G_T(\beta)=0\) for every \(n\), every balanced \(T\subseteq\{1,\ldots,n\}\), and every \(\beta\in\mathcal K\).
+\par\smallskip\noindent\emph{Novel.} Conditional outcome models can separate covariate-slope directions determining balance geometry from intercept and dispersion directions that affect likelihood but not the oracle score.
+\end{assumption}
+
+\begin{assumption}[ass:oracle-smoothness]\label{ass:oracle-smoothness}
+\(\sup_{n}\sup_{\substack{T\subseteq\{1,\ldots,n\}:\ Q\mid|T|,\ |T|\ge Q}}\sup_{\beta\in\mathcal K}\lVert D^{j}_{\rho}G_T(\beta)\rVert<\infty\quad(j=1,2,3)\).
+\par\smallskip\noindent\emph{Novel.} Smooth bounded regression families away from score-rank changes induce three-times differentiable effect-specific covariance and oracle-score maps.
+\end{assumption}
+
+\begin{assumption}[ass:oracle-rank]\label{ass:oracle-rank}
+\(\operatorname{rank}\{G_T(\beta)\}=\operatorname{rank}\{G_{\infty}(\beta)\}=r_G\) for every \(n\), every balanced \(T\subseteq\{1,\ldots,n\}\), and every \(\beta\in\mathcal K\).
+\par\smallskip\noindent\emph{Novel.} Experiments with stable nonzero outcome--covariate associations and no eigenvalue crossings lie in a constant-rank stratum of quadratic balance geometries.
+\end{assumption}
+
+\begin{assumption}[ass:full-oracle-signal-floor]\label{ass:full-oracle-signal-floor}
+\(\liminf_{n\to\infty}\inf_{\beta\in\mathcal K}\operatorname{tr}\{\mathcal B_{T_n^{\mathrm{full}}}(\beta)^{\mathsf T}W\mathcal B_{T_n^{\mathrm{full}}}(\beta)\}>0\).
+\par\smallskip\noindent\emph{Novel.} A positive unnormalized complete-array outcome--covariate signal prevents trace normalization from degenerating while leaving the normalized oracle geometry and second-order risk comparison to be derived.
+\end{assumption}
+
+\begin{assumption}[ass:complement-oracle-signal-floor]\label{ass:complement-oracle-signal-floor}
+For every balanced \(m=m(n)\) with \(m\to\infty\), \(N\to\infty\), and \(m/n\to0\), there is a constant \(c>0\) such that \(P_{S_m}[\inf_{\beta\in\mathcal K}\operatorname{tr}\{\mathcal B_{T_{n,m}^{\mathrm{main}}}(\beta)^{\mathsf T}W\mathcal B_{T_{n,m}^{\mathrm{main}}}(\beta)\}\ge c]\to1\).
+\par\smallskip\noindent\emph{Novel.} A positive unnormalized random-complement outcome--covariate signal prevents trace normalization from degenerating while leaving the normalized oracle geometry and second-order risk comparison to be derived.
+\end{assumption}
+
+\begin{assumption}[ass:admissible-action]\label{ass:admissible-action}
+\(H\in\{0\}\cup\{M\in\mathbb S_{+}^{Fp}:\operatorname{tr}(M)=1\}\).
+\par\smallskip\noindent\emph{Standard} (Scale-normalized positive-semidefinite quadratic-form rerandomization, \cite{SchindlBranson2024QuadraticForms}).
+\end{assumption}
+
+\begin{assumption}[ass:curvature-positive]\label{ass:curvature-positive}
+\(0<\inf_{\beta\in\mathcal K}\lambda_{\min}\{\Gamma(\beta)\}\le\sup_{\beta\in\mathcal K}\lambda_{\max}\{\Gamma(\beta)\}<\infty\).
+\par\smallskip\noindent\emph{Novel.} Distinct, nondegenerate effect-specific balance priorities give positive curvature after quotienting scale and score stabilizers; smooth disk regression families provide an explicit example.
+\end{assumption}
+
+\begin{assumption}[ass:arraywise-moment-regularity]\label{ass:arraywise-moment-regularity}
+There exists a compact set \(\mathcal X\subset\mathbb R^p\) containing \(\operatorname{supp}\nu\) and every \(x_{in}\) such that, for each \(q\in\mathcal Q\), the conditional first and second moments and all of their \(\rho\)-derivatives through order three are continuous and uniformly bounded on \(\mathcal X\times\mathcal K\).
+\par\smallskip\noindent\emph{Novel.} standard
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Locally rich fixed-\allowbreak{}baseline factorial class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M=\{(\mathbf X_n,P_{\beta,n})_{n\ge1}:\text{each member satisfies }\mathrm{ass{:}factor\text{-}count},\mathrm{ass{:}balanced\text{-}total},\mathrm{ass{:}baseline\text{-}bound},\mathrm{ass{:}baseline\text{-}limit},\mathrm{ass{:}baseline\text{-}gram},\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity},\mathrm{ass{:}fixed\text{-}baseline},\mathrm{ass{:}bounded\text{-}outcomes},\mathrm{ass{:}stable\text{-}product\text{-}law},\mathrm{ass{:}conditional\text{-}moment\text{-}smoothness},\mathrm{ass{:}product\text{-}ball\text{-}domain},\mathrm{ass{:}qmd},\mathrm{ass{:}score\text{-}third\text{-}moment},\mathrm{ass{:}information\text{-}regular},\mathrm{ass{:}nuisance\text{-}orthogonality},\mathrm{ass{:}oracle\text{-}smoothness},\mathrm{ass{:}oracle\text{-}rank},\mathrm{ass{:}full\text{-}oracle\text{-}signal\text{-}floor},\mathrm{ass{:}complement\text{-}oracle\text{-}signal\text{-}floor},\mathrm{ass{:}curvature\text{-}positive}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}factor-\allowbreak{}count}; \texttt{ass:\allowbreak{}balanced-\allowbreak{}total}; \texttt{ass:\allowbreak{}baseline-\allowbreak{}bound}; \texttt{ass:\allowbreak{}baseline-\allowbreak{}limit}; \texttt{ass:\allowbreak{}baseline-\allowbreak{}gram}; \texttt{ass:\allowbreak{}arraywise-\allowbreak{}moment-\allowbreak{}regularity}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}baseline}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}stable-\allowbreak{}product-\allowbreak{}law}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}moment-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}product-\allowbreak{}ball-\allowbreak{}domain}; \texttt{ass:\allowbreak{}qmd}; \texttt{ass:\allowbreak{}score-\allowbreak{}third-\allowbreak{}moment}; \texttt{ass:\allowbreak{}information-\allowbreak{}regular}; \texttt{ass:\allowbreak{}nuisance-\allowbreak{}orthogonality}; \texttt{ass:\allowbreak{}oracle-\allowbreak{}smoothness}; \texttt{ass:\allowbreak{}oracle-\allowbreak{}rank}; \texttt{ass:\allowbreak{}full-\allowbreak{}oracle-\allowbreak{}signal-\allowbreak{}floor}; \texttt{ass:\allowbreak{}complement-\allowbreak{}oracle-\allowbreak{}signal-\allowbreak{}floor}; \texttt{ass:\allowbreak{}curvature-\allowbreak{}positive}.
+\end{definition}
+
+\begin{definition}[def:action-space]\label{def:action-space}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Normalized centered ellipsoidal actions}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_T=\{H:\ H=0\ \text{or}\ H\in\mathbb S_{+}^{Fp},\ \operatorname{tr}(H)=1;\ a_{T,H}\text{ is the centered lower-tail rule on }\Omega_T\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}admissible-\allowbreak{}action}.
+\end{definition}
+
+\begin{definition}[def:exact-mixture]\label{def:exact-mixture}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Positive-\allowbreak{}support exact-\allowbreak{}alpha mixture}
+\par\smallskip\noindent\emph{Construction.} \(p_{T,H}(z)=|\Omega_T|^{-1}\{\eta+(1-\eta)a_{T,H}(z)/\alpha\},\quad |\Omega_T|^{-1}\sum_{z\in\Omega_T}a_{T,H}(z)=\alpha\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{Action}; \texttt{aTG}.
+\end{definition}
+
+\begin{definition}[def:pooled-ht]\label{def:pooled-ht}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}inclusion pooled Horvitz-\allowbreak{}-\allowbreak{}Thompson estimator}
+\par\smallskip\noindent\emph{Construction.} \(\widehat{\boldsymbol\tau}_{n,m}(\delta_m)=(m/n)\widehat{\boldsymbol\tau}^{\mathrm{HT}}_{S_m}(0)+(N/n)\widehat{\boldsymbol\tau}^{\mathrm{HT}}_{T_{n,m}^{\mathrm{main}}}(\delta_m)\), where every summand uses \(\pi_{iq}(T,H)=P_{p_{T,H}}(Z_i=q)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sm}; \texttt{delta}; \texttt{piTG}.
+\end{definition}
+
+\begin{definition}[def:empirical-oracle-comparator]\label{def:empirical-oracle-comparator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Matching full-\allowbreak{}sample empirical oracle}
+\par\smallskip\noindent\emph{Construction.} \(R_n^{\mathrm{or}}(\beta)=V_{T_n^{\mathrm{full}}}(G_{T_n^{\mathrm{full}}}(\beta),\beta)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Xn}; \texttt{beta}.
+\end{definition}
+
+\begin{definition}[def:finite-comparison-handle]\label{def:finite-comparison-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Empirical-\allowbreak{}oracle boundary handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf H_{\mathrm{fin}}\): couple the exact score ordering on \(\Omega_T\) to the Gaussian quadratic ordering at the realized \(G_T(\beta)\); control thin-boundary probabilities and score-weighted truncated moments jointly; then insert exact first- and second-order inclusion probabilities into the Horvitz--Thompson covariance identity.
+\par\smallskip\noindent\emph{Inputs.} \texttt{GT}; \texttt{aTG}; \texttt{piTG}.
+\end{definition}
+
+\begin{definition}[def:efficient-action-handle]\label{def:efficient-action-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional pilot-\allowbreak{}information-\allowbreak{}to-\allowbreak{}action handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf H_{\mathrm{eff}}\) is the following conditional proof route: start from the exact pilot likelihood and the realized information matrix \(I_m^{\mathrm{pil}}\); if that matrix has a nonsingular limit along a stated sequence, derive the corresponding nuisance-projected LAN experiment, construct its regular plug-in action on \(T_{n,m}^{\mathrm{main}}\), and separately compare its Gaussian quadratic loss with the exact finite Horvitz--Thompson action-loss contrast.  The handle does not assert information convergence, estimator efficiency, or the finite-boundary transfer.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Opilot}; \texttt{Ipilot}; \texttt{GT}.
+\end{definition}
+
+\begin{definition}[def:global-envelope]\label{def:global-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional deterministic pilot envelope}
+\par\smallskip\noindent\emph{Construction.} For any continuous functions \(A,B:\mathcal K\to(0,\infty)\), define
+\[
+\Phi(t)=\max_{\beta\in\mathcal K}
+\left\{A(\beta)t+\frac{B(\beta)}{t}\right\},
+\qquad
+t^\star=\operatorname*{argmin}_{t>0}\Phi(t),
+\qquad
+C^\star=\Phi(t^\star).
+\]
+These are deterministic envelope objects; their connection to \(\mathcal E_n\) requires the explicit premises of \(\mathrm{prop{:}balanced\text{-}grid\text{-}argmin\text{-}transfer}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:first-order-gain-coefficient]\label{def:first-order-gain-coefficient}
+\par\smallskip\noindent\emph{Defined object.} \texttt{First-\allowbreak{}order exact-\allowbreak{}mixture oracle gain}
+\par\smallskip\noindent\emph{Construction.} \[
+\mathcal B_\infty(\beta)
+=\lim_{n\to\infty}\mathcal B_{T_n^{\mathrm{full}}}(\beta),
+\qquad
+M_\beta
+=\mathcal B_\infty(\beta)^{\mathsf T}W\mathcal B_\infty(\beta),
+\qquad
+g_\beta(z)=z^{\mathsf T}G_\infty(\beta)z,
+\]
+and
+\[
+a(\beta)
+=(1-\eta)\operatorname{tr}(M_\beta)
+\left[
+E\{g_\beta(Z)\}
+-\alpha^{-1}E\!\left\{
+g_\beta(Z)\mathbf 1(g_\beta(Z)\leq q_{\alpha,\beta})
+\right\}
+\right].
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{BmapT}; \texttt{W}; \texttt{Ginf}; \texttt{alpha}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:pilot-information]\label{def:pilot-information}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Realized pilot information}
+\par\smallskip\noindent\emph{Construction.} \[
+I_m^{\mathrm{pil}}(\beta;S_m,Z)
+=\frac1m\sum_{i\in S_m}\sum_{q\in\mathcal Q}
+\mathbf 1\{Z_i=q\}
+E_\beta\!\left[
+s_{q,\beta}(Y_{in}(q)\mid x_{in})
+s_{q,\beta}(Y_{in}(q)\mid x_{in})^{\mathsf T}
+\mid x_{in}
+\right].
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sm}; \texttt{score}.
+\end{definition}
+
+\begin{definition}[def:exact-risk-components]\label{def:exact-risk-components}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact deletion and action-\allowbreak{}loss components}
+\par\smallskip\noindent\emph{Construction.} \[
+D_{n,m}(\beta)
+=d_{T_n^{\mathrm{full}}}(\beta)
+-\left(\frac Nn\right)^2
+E_{S_m}d_{T_{n,m}^{\mathrm{main}}}(\beta),
+\]
+\[
+L_{n,m}(\delta_m,\beta)
+=\left(\frac Nn\right)^2
+E\!\left[
+V_{T_{n,m}^{\mathrm{main}}}(\delta_m,\beta)
+-V_{T_{n,m}^{\mathrm{main}}}
+\{G_{T_{n,m}^{\mathrm{main}}}(\beta),\beta\}
+\right].
+\]
+The second quantity is an action-loss contrast; no finite-sample nonnegativity is included in its definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{dT}; \texttt{VTG}; \texttt{GT}; \texttt{delta}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:published-class-relation]\label{prop:published-class-relation}
+For every \(\beta\in\mathcal K\), the unconditional class relation implied by the frozen assumptions is
+\[
+\mathfrak R_{\beta}(\mathfrak M)\cap\mathfrak M_{\mathrm{HD}}
+\subsetneq \mathfrak M_{\mathrm{HD}}.
+\]
+\end{proposition}
+\begin{proof}
+Fix \(\beta\in\mathcal K\), and put
+\[
+\mathcal A_\beta
+ :=\mathfrak R_\beta(\mathfrak M)\cap\mathfrak M_{\mathrm{HD}}.
+\]
+The set-theoretic definition of intersection immediately gives
+\(\mathcal A_\beta\subseteq\mathfrak M_{\mathrm{HD}}\).  To prove that the
+inclusion is strict, we construct one deterministic triangular array in
+\(\mathfrak M_{\mathrm{HD}}\) whose baseline violates a necessary member
+condition of \(\mathfrak M\).
+
+Choose a unit vector \(a\in\mathbb R^p\).  Along the admissible sequence
+\(Q\mid n\), let \(\{\widetilde x_{in}:i\le n\}\) be a bounded deterministic
+array satisfying
+\[
+\widetilde x_{1n}=0,
+\qquad
+\sum_{i=1}^n\widetilde x_{in}=0,
+\qquad
+\widetilde S_{xx,n}
+ :=\frac1{n-1}\sum_{i=1}^n
+       \widetilde x_{in}\widetilde x_{in}^{\mathsf T}
+ \longrightarrow \Sigma:=p^{-1}I_p.
+\]
+Such an array is explicit: in positions \(2,\ldots,n-1\), repeat the
+periodic list \(e_1,-e_1,\ldots,e_p,-e_p\), and choose the last entry to be
+the negative of the preceding partial sum.  The partial sums of this list
+are uniformly bounded, so the last entry is bounded; one complete period
+has sum zero and average outer product \(p^{-1}I_p\).  Altering finitely many
+initial arrays if necessary therefore gives all three displayed properties.
+
+Now define
+\[
+x_{1n}^{\star}=n^{1/4}a,
+\qquad
+x_{in}^{\star}=\widetilde x_{in}\quad(2\le i\le n),
+\qquad
+Y_{in}^{\star}(q)=a^{\mathsf T}x_{in}^{\star}
+\quad(q\in\mathcal Q).
+\]
+Because the tilde array is centered,
+\(\bar x_n^{\star}=n^{-3/4}a\).  The identity
+\(\sum_i(v_i-\bar v)(v_i-\bar v)^{\mathsf T}
+=\sum_i v_iv_i^{\mathsf T}-n\bar v\bar v^{\mathsf T}\) gives
+\[
+\begin{aligned}
+S_{xx,n}^{\star}
+&:=\frac1{n-1}\sum_{i=1}^n
+ (x_{in}^{\star}-\bar x_n^{\star})
+ (x_{in}^{\star}-\bar x_n^{\star})^{\mathsf T}\\
+&=\widetilde S_{xx,n}
+  +\frac{n^{1/2}-n^{-1/2}}{n-1}aa^{\mathsf T}
+ =\widetilde S_{xx,n}+n^{-1/2}aa^{\mathsf T}
+ \longrightarrow \Sigma\in\mathbb S_{++}^p.
+\end{aligned}
+\]
+Thus the baseline first two finite-population moments converge and their
+limiting covariance is nonsingular.  For every \(q,q'\in\mathcal Q\), the
+outcome and cross-covariance identities are
+\[
+\bar Y_n^{\star}(q)=a^{\mathsf T}\bar x_n^{\star}\longrightarrow0,
+\qquad
+S_{qq',n}^{\star}=a^{\mathsf T}S_{xx,n}^{\star}a
+ \longrightarrow a^{\mathsf T}\Sigma a,
+\qquad
+S_{q,x,n}^{\star}=a^{\mathsf T}S_{xx,n}^{\star}.
+\]
+They verify the corresponding moment-limit clauses in the definition of
+\(\mathfrak M_{\mathrm{HD}}\).
+
+The factorial-effect covariance clause also holds.  The columns of
+\(\mathbf C\) are the nonconstant Walsh characters, so their orthogonality
+to the constant character yields \(\sum_{q\in\mathcal Q}c_q=0\).  Hence the
+unit-level vector of nonconstant factorial effects is, for every \(i\),
+\[
+2^{1-K_f}\sum_{q\in\mathcal Q}c_qY_{in}^{\star}(q)
+=2^{1-K_f}\left(\sum_{q\in\mathcal Q}c_q\right)
+  a^{\mathsf T}x_{in}^{\star}=0.
+\]
+Its finite-population covariance is therefore identically zero and in
+particular converges.
+
+Next, boundedness of the tilde array and
+\(\bar x_n^{\star}=n^{-3/4}a\) imply
+\[
+\max_{i\le n}\lVert x_{in}^{\star}-\bar x_n^{\star}\rVert^2
+=O(n^{1/2})
+\quad\text{and}\quad
+\max_{i\le n,\,q\in\mathcal Q}
+ |Y_{in}^{\star}(q)-\bar Y_n^{\star}(q)|^2=O(n^{1/2}).
+\]
+After division by \(n\), both quantities are \(O(n^{-1/2})=o(1)\).
+These are precisely the baseline and outcome maximum-negligibility clauses
+of Han--Deng Assumptions \(3\) and \(4\) retained in
+\(\mathfrak M_{\mathrm{HD}}\).  If those clauses are written with a wave
+size in the denominator, take any balanced wave sequence whose size is a
+fixed positive fraction of \(n\); the same ratios remain
+\(O(n^{-1/2})\).  This does not impose an allocation-share condition on the
+array class, because that condition is expressly excluded in the frozen
+definition of \(\mathfrak M_{\mathrm{HD}}\).
+
+It remains to verify the nonsingularity of the covariance projected onto
+the factorial baseline contrasts.  Let
+\(\widehat{\boldsymbol\tau}_{x,n}\in\mathbb R^{Fp}\) stack those contrasts
+under balanced complete randomization and let \(n_q=n/Q\).  The elementary
+without-replacement covariance identity gives
+\[
+\operatorname{Cov}(\bar x_q,\bar x_{q'}\mid\mathbf X_n^{\star})
+=\begin{cases}
+(n_q^{-1}-n^{-1})S_{xx,n}^{\star},&q=q',\\
+-n^{-1}S_{xx,n}^{\star},&q\ne q'.
+\end{cases}
+\]
+Indeed, this follows by expanding the covariance and using the balanced
+assignment probabilities
+\(\Pr(Z_i=q)=n_q/n\) and
+\(\Pr(Z_i=q,Z_j=q')=n_q(n_{q'}-\mathbf 1\{q=q'\})/[n(n-1)]\) for
+\(i\ne j\).  Since \(2^{1-K_f}=2/Q\),
+\(\mathbf C^{\mathsf T}\mathbf C=QI_F\), and
+\(\mathbf C^{\mathsf T}\mathbf 1_Q=0\), multiplication of this covariance
+matrix by the factorial contrast map on both sides yields
+\[
+n\operatorname{Var}
+ (\widehat{\boldsymbol\tau}_{x,n}\mid\mathbf X_n^{\star})
+=4(I_F\otimes S_{xx,n}^{\star}).
+\]
+Because \(Y_{in}^{\star}(q)=a^{\mathsf T}x_{in}^{\star}\) for every
+\(q\), linearity gives the exact relation
+\[
+\widehat{\boldsymbol\tau}_n^{\star}
+=(I_F\otimes a^{\mathsf T})
+  \widehat{\boldsymbol\tau}_{x,n}.
+\]
+Thus the outcome factorial contrast lies entirely in the linear span of the
+baseline factorial contrasts.  Its projected covariance is consequently
+\[
+\begin{aligned}
+V_{\tau\tau,n}^{\parallel,\star}
+&=(I_F\otimes a^{\mathsf T})
+  \{4(I_F\otimes S_{xx,n}^{\star})\}
+  (I_F\otimes a)\\
+&=4(a^{\mathsf T}S_{xx,n}^{\star}a)I_F
+ \longrightarrow4(a^{\mathsf T}\Sigma a)I_F\in\mathbb S_{++}^F.
+\end{aligned}
+\]
+It is therefore nonsingular for all sufficiently large admissible \(n\).
+The moment convergence, maximum negligibility, factorial-effect covariance,
+and projected-covariance calculations verify all array conditions in the
+frozen definition of \(\mathfrak M_{\mathrm{HD}}\).  Hence the constructed
+array belongs to \(\mathfrak M_{\mathrm{HD}}\).
+
+It cannot belong to \(\mathfrak R_\beta(\mathfrak M)\).  In fact,
+\[
+\sup_n\max_{i\le n}\lVert x_{in}^{\star}\rVert
+\ge\sup_n\lVert x_{1n}^{\star}\rVert
+=\sup_n n^{1/4}=\infty.
+\]
+This violates \(\mathrm{ass{:}baseline\text{-}bound}\), which is a member
+condition of \(\mathfrak M\) by \(\mathrm{def{:}model\text{-}class}\).
+The definition of \(\mathfrak R_\beta(\mathfrak M)\) fixes the deterministic
+baseline of each generating member and randomizes only its potential-outcome
+realization under \(P_\beta\).  Therefore no outcome realization can repair
+this baseline violation.  The witness lies in
+\(\mathfrak M_{\mathrm{HD}}\setminus\mathfrak R_\beta(\mathfrak M)\), and so
+\[
+\mathfrak R_\beta(\mathfrak M)\cap\mathfrak M_{\mathrm{HD}}
+\subsetneq\mathfrak M_{\mathrm{HD}}.
+\]
+The witness does not depend on \(\beta\); since \(\beta\in\mathcal K\) was
+arbitrary, the asserted relation holds for every \(\beta\in\mathcal K\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The inclusion records exactly how the new likelihood-rich planning domain relates to the closest published finite-population class. \textit{Gap.} Han and Deng's population framework supports first-order randomization limits but has no outcome-likelihood chart on which nuisance-efficient local pilot regret is defined. \textit{Consumer.} It prevents the square-root achievability result from being misreported as uniform over every array allowed by Han and Deng.
+
+\begin{theorem}[thm:exact-ht-accounting]\label{thm:exact-ht-accounting}
+For every \((\mathbf X_n,P_{\beta,n})\in\mathfrak M\), every realized bounded potential-outcome table and every pilot-measurable \(\delta_m\), \(E[\widehat{\boldsymbol\tau}_{n,m}(\delta_m)\mid\mathbf Y_n,\mathbf X_n]=\boldsymbol\tau_n\) and \[R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)=d_{T_n^{\mathrm{full}}}(\beta)-(N/n)^2E_{S_m}d_{T_{n,m}^{\mathrm{main}}}(\beta)+(N/n)^2E\{V_{T_{n,m}^{\mathrm{main}}}(\delta_m,\beta)-V_{T_{n,m}^{\mathrm{main}}}(G_{T_{n,m}^{\mathrm{main}}}(\beta),\beta)\}.\] This identity remains exact under randomized ties and unequal \(\pi_{iq}\), a case not represented by the ordinary symmetric factorial estimator of Branson, Dasgupta, and Rubin.
+\end{theorem}
+\begin{proof}
+Put \(w_q=2^{1-K_f}c_q\).  Fix a nonempty balanced set \(T\), a legal action \(H\), and a realized bounded potential-outcome table.  By \(\mathrm{def{:}exact\text{-}mixture}\),
+\[
+p_{T,H}(z)
+=|\Omega_T|^{-1}\left\{\eta+\frac{1-\eta}{\alpha}a_{T,H}(z)\right\}
+\geq \frac{\eta}{|\Omega_T|}.
+\]
+Exactly \(|\Omega_T|/Q\) members of \(\Omega_T\) assign a fixed unit \(i\) to a fixed \(q\), so the definition of \(\pi_{iq}(T,H)\) gives
+\[
+\pi_{iq}(T,H)
+=\sum_{z\in\Omega_T}p_{T,H}(z)\mathbf 1\{z_i=q\}
+\geq \frac{\eta}{Q}>0.
+\tag{1}
+\]
+Thus every inverse inclusion probability in \(\mathrm{def{:}pooled\text{-}ht}\) is well defined.  Moreover, directly from that same inclusion-probability definition,
+\[
+\begin{aligned}
+E_{p_{T,H}}\!\left\{
+\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)
+\mid\mathbf Y_n,\mathbf X_n\right\}
+&=\frac1{|T|}\sum_{i\in T}\sum_{q\in\mathcal Q}
+w_qY_{in}(q)
+\frac{P_{p_{T,H}}(Z_i=q)}{\pi_{iq}(T,H)}\\
+&=\frac1{|T|}\sum_{i\in T}\sum_{q\in\mathcal Q}w_qY_{in}(q)
+=\boldsymbol\tau_T.
+\end{aligned}
+\tag{2}
+\]
+No label symmetry and no equality among the \(\pi_{iq}(T,H)\) was used.
+
+For a realized split \(S=S_m\), let \(T=S^c\) and define
+\[
+e_S=\widehat{\boldsymbol\tau}^{\mathrm{HT}}_S(0)-\boldsymbol\tau_S,
+\qquad
+e_T=\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(\delta_m)-\boldsymbol\tau_T.
+\]
+Partitioning the finite-population sum in the definition of the causal estimand gives the pointwise identity
+\[
+\boldsymbol\tau_n=\frac mn\boldsymbol\tau_S+\frac Nn\boldsymbol\tau_T.
+\tag{3}
+\]
+Conditional on \(S,\mathbf Y_n,\mathbf X_n,\mathcal O_m\), the pilot-measurable action \(\delta_m\) is fixed.  Applying (2) to the subsequent main-wave randomization yields
+\[
+E(e_T\mid S,\mathbf Y_n,\mathbf X_n,\mathcal O_m)=0.
+\]
+Since \(e_S\) is measurable under this conditioning,
+\[
+E(e_S^{\mathsf T}We_T\mid S,\mathbf Y_n,\mathbf X_n,\mathcal O_m)=0.
+\tag{4}
+\]
+Equation (2), first for the pilot and then conditionally for the main wave, together with (3), also proves
+\[
+E\{\widehat{\boldsymbol\tau}_{n,m}(\delta_m)
+\mid\mathbf Y_n,\mathbf X_n\}=\boldsymbol\tau_n.
+\tag{5}
+\]
+
+Under \(\mathrm{ass{:}stable\text{-}product\text{-}law}\), conditional on the split, the unobserved main-wave outcome vectors have their product conditional law independently of the pilot outcomes on which \(\delta_m\) depends.  Therefore averaging (4) first over the two randomizations and then over the conditional outcome law gives
+\[
+R_{n,m}(\delta_m,\beta)
+=\left(\frac mn\right)^2E_{S_m}V_{S_m}(0,\beta)
++\left(\frac Nn\right)^2
+E V_{T_{n,m}^{\mathrm{main}}}(\delta_m,\beta).
+\tag{6}
+\]
+
+It remains to rewrite the complete-randomization component.  If \(H=0\), every score is zero.  The common boundary randomization and exact mass condition force
+\[
+a_{T,0}(z)=\alpha\quad(z\in\Omega_T),
+\]
+and hence \(p_{T,0}(z)=|\Omega_T|^{-1}\) and \(\pi_{iq}(T,0)=1/Q\).  Generate a uniform \(m\)-subset, assign it uniformly on its balanced support, and independently assign its complement uniformly on its balanced support.  For any \(z\in\Omega_{T_n^{\mathrm{full}}}\), the number of compatible pilot subsets is
+\[
+\prod_{q\in\mathcal Q}{n/Q\choose m/Q},
+\]
+which is independent of \(z\).  All split and conditional assignment probabilities also depend only on \(n,m,Q\).  Thus the combined assignment is uniform on \(\Omega_{T_n^{\mathrm{full}}}\).  Pointwise in the split and combined assignment,
+\[
+\begin{aligned}
+&\frac mn\frac1m\sum_{i\in S}\sum_q
+\frac{w_q\mathbf 1\{Z_i=q\}Y_{in}(q)}{1/Q}
++\frac Nn\frac1N\sum_{i\in T}\sum_q
+\frac{w_q\mathbf 1\{Z_i=q\}Y_{in}(q)}{1/Q}\\
+&\hspace{3em}
+=\frac1n\sum_{i=1}^n\sum_q
+\frac{w_q\mathbf 1\{Z_i=q\}Y_{in}(q)}{1/Q}.
+\end{aligned}
+\tag{7}
+\]
+Applying the cross-term cancellation (4) with both actions equal to zero, and using the just-proved equality of assignment laws, gives
+\[
+V_{T_n^{\mathrm{full}}}(0,\beta)
+=\left(\frac mn\right)^2E_{S_m}V_{S_m}(0,\beta)
++\left(\frac Nn\right)^2E_{S_m}
+V_{T_{n,m}^{\mathrm{main}}}(0,\beta).
+\tag{8}
+\]
+
+Subtract \(\mathrm{def{:}empirical\text{-}oracle\text{-}comparator}\),
+\[
+R_n^{\mathrm{or}}(\beta)
+=V_{T_n^{\mathrm{full}}}
+\!\left(G_{T_n^{\mathrm{full}}}(\beta),\beta\right),
+\]
+from (6), substitute (8), and add and subtract
+\[
+\left(\frac Nn\right)^2E
+V_{T_{n,m}^{\mathrm{main}}}
+\!\left(G_{T_{n,m}^{\mathrm{main}}}(\beta),\beta\right).
+\]
+The definition of \(d_T\) then yields, without approximation,
+\[
+\begin{aligned}
+R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)
+&=d_{T_n^{\mathrm{full}}}(\beta)
+-\left(\frac Nn\right)^2E_{S_m}
+d_{T_{n,m}^{\mathrm{main}}}(\beta)\\
+&\quad+\left(\frac Nn\right)^2E\!\left[
+V_{T_{n,m}^{\mathrm{main}}}(\delta_m,\beta)
+-V_{T_{n,m}^{\mathrm{main}}}
+\!\left(G_{T_{n,m}^{\mathrm{main}}}(\beta),\beta\right)
+\right].
+\end{aligned}
+\]
+Randomized ties only change the numerical values in \(p_{T,H}\), and unequal inclusions remain explicitly in (1)--(2); neither affects an equality above.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact centering isolates pilot opportunity cost from learned-action regret without symmetry assumptions. \textit{Gap.} Horvitz and Thompson give fixed-design unbiasedness, while Branson, Dasgupta, and Rubin use symmetric factorial rerandomization; neither supplies this pilot-conditional pooled identity under a learned unequal-inclusion law. \textit{Consumer.} It permits unbiased reuse of both waves in sequential factorial cycles whose learned acceptance rule is not label symmetric.
+
+\begin{lemma}[lem:oracle-action-admissible]\label{lem:oracle-action-admissible}
+For every \(T\) and \(\beta\in\mathcal K\), the construction \(G_T(\beta)\) belongs to \(\mathcal H_T\), and \(p_{T,G_T(\beta)}\) has exact acceptance mass \(\alpha\) and support bounded below by \(\eta/|\Omega_T|\).
+\end{lemma}
+\begin{proof}
+Let \(M_T(\beta)=\mathcal B_T(\beta)^{\mathsf T}W\mathcal B_T(\beta)\).  Since \(W\) is positive definite, \(M_T(\beta)\) is positive semidefinite.  If \(M_T(\beta)=0\), then the zero convention in \(\mathcal N\) gives \(G_T(\beta)=0\).  Otherwise a nonzero positive-semidefinite matrix has strictly positive trace, and
+\[
+ G_T(\beta)=\frac{M_T(\beta)}{\operatorname{tr}M_T(\beta)}
+ \in\mathbb S_+^{Fp},
+ \qquad \operatorname{tr}G_T(\beta)=1.
+\]
+Thus \(G_T(\beta)\in\mathcal H_T\) by \(\mathrm{ass{:}admissible\text{-}action}\) and \(\mathrm{def{:}action\text{-}space}\).  By \(\mathrm{def{:}exact\text{-}mixture}\),
+\[
+ |\Omega_T|^{-1}\sum_{z\in\Omega_T}a_{T,G_T(\beta)}(z)=\alpha
+\]
+and
+\[
+ \sum_{z\in\Omega_T}p_{T,G_T(\beta)}(z)
+ =\eta+\frac{1-\eta}{\alpha}|\Omega_T|^{-1}\sum_z a_{T,G_T(\beta)}(z)=1.
+\]
+Finally,
+\[
+ p_{T,G_T(\beta)}(z)
+ =|\Omega_T|^{-1}\left\{\eta+\frac{1-\eta}{\alpha}a_{T,G_T(\beta)}(z)\right\}
+ \geq \frac{\eta}{|\Omega_T|}>0.
+\]
+These are respectively exact acceptance mass, normalization, and the asserted support floor.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The oracle comparator must itself be a legal positive-support exact-alpha design on every finite assignment support. \textit{Gap.} The published raw oracle is an asymptotic quadratic criterion; legality under the present exact boundary randomization is an auxiliary finite-design obligation. \textit{Consumer.} It ensures that every reported oracle contrast compares two implementable assignment distributions.
+
+\begin{lemma}[lem:uniform-single-wave-risk]\label{lem:uniform-single-wave-risk}
+Let \(k=|T|\), \(w_q=2^{1-K_f}c_q\), and \(L=\eta+(1-\eta)/\alpha\).  For every \((\mathbf X_n,P_{\beta,n})\in\mathfrak M\), every \(\beta\in\mathcal K\), every balanced \(T\) with \(k\geq Q\), and every \(H\in\mathcal H_T\),
+\[
+ V_T(H,\beta)
+ \leq \frac{4LQ}{3\eta^2k^2}
+ \left\{\max_{q\in\mathcal Q}w_q^{\mathsf T}Ww_q\right\}
+ \sum_{i\in T}\sum_{q\in\mathcal Q}E_\beta\{Y_{in}(q)^2\mid x_{in}\}.
+\]
+Consequently, the asserted uniform \(O(k^{-1})\) conclusion holds on every subclass for which the displayed average second-moment envelope is bounded uniformly over its members, parameters, and balanced subsets.  No supremum over all of \(\mathfrak M\) is asserted without such a common numerical envelope.
+\end{lemma}
+\begin{proof}
+Fix a member of \(\mathfrak M\), a parameter \(\beta\in\mathcal K\), a balanced set \(T\) of size \(k\geq Q\), an action \(H\in\mathcal H_T\), and a realized bounded potential-outcome table.  Let \(U_T\) denote the uniform probability mass function on \(\Omega_T\), put \(w_q=2^{1-K_f}c_q\), and set
+\[
+L=\eta+\frac{1-\eta}{\alpha}.
+\]
+By \(\mathrm{def{:}exact\text{-}mixture}\), \(0\leq a_{T,H}(z)\leq1\), and hence
+\[
+\frac{p_{T,H}(z)}{U_T(z)}
+=\eta+\frac{1-\eta}{\alpha}a_{T,H}(z)
+\leq L.
+\tag{1}
+\]
+The positive-support component of the same mixture and the balanced uniform marginal \(U_T(Z_i=q)=1/Q\) give, for every \(i\in T\) and \(q\in\mathcal Q\),
+\[
+\pi_{iq}(T,H)
+=\sum_{z\in\Omega_T}p_{T,H}(z)\mathbf 1\{z_i=q\}
+\geq \eta\sum_{z\in\Omega_T}U_T(z)\mathbf 1\{z_i=q\}
+=\frac{\eta}{Q}>0.
+\tag{2}
+\]
+Thus every division by an inclusion probability below is valid.
+
+The exact-inclusion calculation underlying \(\mathrm{thm{:}exact\text{-}ht\text{-}accounting}\) also applies to this one wave.  Conditional on the realized table,
+\[
+\begin{aligned}
+E_{p_{T,H}}\!\left\{\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)\mid\mathbf Y_n,\mathbf X_n\right\}
+&=\frac1k\sum_{i\in T}\sum_{q\in\mathcal Q}
+w_qY_{in}(q)\frac{P_{p_{T,H}}(Z_i=q)}{\pi_{iq}(T,H)}\\
+&=\frac1k\sum_{i\in T}\sum_{q\in\mathcal Q}w_qY_{in}(q)
+=\boldsymbol\tau_T.
+\end{aligned}
+\tag{3}
+\]
+Here the last equality is the definition of \(\boldsymbol\tau_T\).  Notice that (3) uses the actual inclusion probabilities, so neither unequal inclusions nor boundary randomization changes the centering.
+
+Let \(e\) be a vector in an orthonormal basis of \(\mathbb R^F\), and define
+\[
+f_i(q)=\frac{e^{\mathsf T}W^{1/2}w_qY_{in}(q)}{\pi_{iq}(T,H)},
+\qquad
+X_e=\frac1k\sum_{i\in T}f_i(Z_i),
+\qquad
+c_e=E_{U_T}X_e.
+\tag{4}
+\]
+Under balanced complete randomization, direct counting gives, for distinct \(i,j\in T\),
+\[
+P_{U_T}(Z_i=q,Z_j=r)
+=\frac{(k/Q)(k/Q-\mathbf 1\{q=r\})}{k(k-1)}.
+\tag{5}
+\]
+Substitution of (5) into the covariance definition yields
+\[
+\operatorname{Cov}_{U_T}\{f_i(Z_i),f_j(Z_j)\}
+=-\frac1{k-1}\operatorname{Cov}_{q\sim\operatorname{Unif}(\mathcal Q)}
+\{f_i(q),f_j(q)\}.
+\tag{6}
+\]
+Consequently, expanding the variance of the sum and then collecting the covariances over the common uniform treatment label gives
+\[
+\begin{aligned}
+\operatorname{Var}_{U_T}\!\left\{\sum_{i\in T}f_i(Z_i)\right\}
+&=\frac{k}{k-1}\sum_{i\in T}\operatorname{Var}_{q}\{f_i(q)\}
+-\frac1{k-1}\operatorname{Var}_{q}\!\left\{\sum_{i\in T}f_i(q)\right\}\\
+&\leq \frac{k}{k-1}\sum_{i\in T}E_q\{f_i(q)^2\}.
+\end{aligned}
+\tag{7}
+\]
+The final term on the first line is nonpositive because it is minus a variance.
+
+By (3), \(E_{p_{T,H}}X_e=e^{\mathsf T}W^{1/2}\boldsymbol\tau_T\).  Variance minimizes mean squared distance from a constant, and (1) compares the two assignment laws.  Therefore
+\[
+\begin{aligned}
+E_{p_{T,H}}\!\left[
+\left\{X_e-e^{\mathsf T}W^{1/2}\boldsymbol\tau_T\right\}^2
+\mid\mathbf Y_n,\mathbf X_n\right]
+&=\operatorname{Var}_{p_{T,H}}(X_e)\\
+&\leq E_{p_{T,H}}\{(X_e-c_e)^2\}\\
+&\leq L E_{U_T}\{(X_e-c_e)^2\}\\
+&=L\operatorname{Var}_{U_T}(X_e).
+\end{aligned}
+\tag{8}
+\]
+The model-class condition \(\mathrm{ass{:}factor\text{-}count}\) gives \(Q=2^{K_f}\geq4\); because \(k\geq Q\), this implies \(k/(k-1)\leq4/3\).  Combining (2), (4), (7), and (8) thus gives
+\[
+\begin{aligned}
+\operatorname{Var}_{p_{T,H}}(X_e)
+&\leq \frac{L}{k^2}\frac{k}{k-1}
+\sum_{i\in T}\frac1Q\sum_{q\in\mathcal Q}
+\frac{\{e^{\mathsf T}W^{1/2}w_qY_{in}(q)\}^2}{\pi_{iq}(T,H)^2}\\
+&\leq \frac{4LQ}{3\eta^2k^2}
+\sum_{i\in T}\sum_{q\in\mathcal Q}
+\{e^{\mathsf T}W^{1/2}w_qY_{in}(q)\}^2.
+\end{aligned}
+\tag{9}
+\]
+Summing (9) over an orthonormal basis and using
+\[
+\sum_e\{e^{\mathsf T}W^{1/2}w_qY_{in}(q)\}^2
+=Y_{in}(q)^2w_q^{\mathsf T}Ww_q
+\tag{10}
+\]
+proves the conditional bound
+\[
+\begin{aligned}
+&E_{p_{T,H}}\!\left[
+(\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)-\boldsymbol\tau_T)^{\mathsf T}
+W(\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)-\boldsymbol\tau_T)
+\mid\mathbf Y_n,\mathbf X_n\right]\\
+&\qquad\leq
+\frac{4LQ}{3\eta^2k^2}
+\left\{\max_{q\in\mathcal Q}w_q^{\mathsf T}Ww_q\right\}
+\sum_{i\in T}\sum_{q\in\mathcal Q}Y_{in}(q)^2.
+\end{aligned}
+\tag{11}
+\]
+The bounded-outcome condition ensures that the terms are integrable for each member of \(\mathfrak M\).  Averaging (11) under \(P_{\beta,n}(d\mathbf Y_n\mid\mathbf X_n)\), as prescribed by the definition of \(V_T\), proves the displayed inequality in the lemma.
+
+For the consequence, suppose a subclass has a constant \(C<\infty\) such that
+\[
+\sup\frac1k\sum_{i\in T}\sum_{q\in\mathcal Q}
+E_\beta\{Y_{in}(q)^2\mid x_{in}\}\leq C,
+\tag{12}
+\]
+where the supremum is over its members, parameters, and balanced subsets.  Substitution of (12) into the proved bound yields \(V_T(H,\beta)\leq C'/k\), with \(C'\) independent of the member, \(\beta\), \(T\), and \(H\).  This is the asserted uniform \(O(k^{-1})\) conclusion.
+
+Finally, the qualification concerning the whole class is substantive.  Given any admissible bounded regular member with nonzero design risk, transform every potential outcome by \(Y(q)\mapsto M Y(q)\) for a finite constant \(M>0\).  This preserves memberwise boundedness, smoothness, the score information under the one-to-one sample-coordinate transformation, and the normalized oracle action, while multiplying every quadratic design risk by \(M^2\).  Since \(M\) is not bounded across members by any primitive condition defining \(\mathfrak M\), those primitives cannot supply a single numerical risk constant uniform over all of \(\mathfrak M\).  Hence the lemma correctly asserts uniform first-order risk only on subclasses satisfying (12).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Positive assignment support makes every permitted one-wave Horvitz--Thompson risk uniformly first order even on irregular subsets. \textit{Gap.} General Horvitz--Thompson consistency does not provide a constant uniform over the present pilot-indexed rerandomization actions. \textit{Consumer.} It rules out apparent gains from assigning only a vanishing main wave and controls rare singular pilot complements.
+
+\begin{lemma}[lem:experiment-indexed-oracle-convergence]\label{lem:experiment-indexed-oracle-convergence}
+For every member of \(\mathfrak M\) there is a common \(G_{\infty}\in C^3(\mathcal K;\mathbb S_{+}^{Fp})\) such that, for every balanced \(m=m(n)\) with \(m\to\infty\), \(N\to\infty\), and \(m/n\to0\), \[\max_{0\le j\le3}\sup_{\beta\in\mathcal K}\lVert D_{\rho}^{j}G_{T_n^{\mathrm{full}}}(\beta)-D_{\rho}^{j}G_{\infty}(\beta)\rVert\to0,\] and \[\max_{0\le j\le3}\sup_{\beta\in\mathcal K}\lVert D_{\rho}^{j}G_{T_{n,m}^{\mathrm{main}}}(\beta)-D_{\rho}^{j}G_{\infty}(\beta)\rVert\xrightarrow{P_{S_m}}0.\] Here \(D_{\rho}^{0}G=G\), the first display is deterministic conditional on the complete baseline array, and the second probability is over the uniform pilot split conditional on that array.
+\end{lemma}
+\begin{proof}
+Fix one member of \(\mathfrak M\), write \(k=|T|\), and define
+\[
+\bar x_T=\frac1k\sum_{i\in T}x_{in},
+\qquad
+S_T=\frac1k\sum_{i\in T}
+(x_{in}-\bar x_T)(x_{in}-\bar x_T)^{\mathsf T}.
+\]
+Let
+\[
+\mu_q(x,\beta)=E_\beta\{Y(q)\mid X=x\},
+\qquad w_q=2^{1-K_f}c_q,
+\]
+and
+\[
+D_T(\beta)
+=\frac1k\sum_{i\in T}\frac1Q\sum_{q\in\mathcal Q}
+\mu_q(x_{in},\beta)w_q
+\{w_q\otimes(x_{in}-\bar x_T)\}^{\mathsf T}.
+\tag{14}
+\]
+We first express the unnormalized oracle entirely through these empirical moments.
+
+For vector arrays \(a_i(q)\) and \(b_i(q)\), direct use of the balanced two-unit probabilities displayed in (10) gives
+\[
+\begin{aligned}
+\operatorname{Cov}_{U_T}\!\left\{\sum_i a_i(Z_i),\sum_i b_i(Z_i)\right\}
+&=\frac{k}{k-1}\sum_i\operatorname{Cov}_q\{a_i(q),b_i(q)\}\\
+&\quad-\frac1{k-1}
+\operatorname{Cov}_q\!\left\{\sum_i a_i(q),\sum_i b_i(q)\right\}.
+\end{aligned}
+\tag{15}
+\]
+The nonconstant Walsh characters satisfy
+\[
+\frac1Q\sum_qw_q=0,
+\qquad
+\frac1Q\sum_qw_qw_q^{\mathsf T}=\frac4{Q^2}I_F.
+\tag{16}
+\]
+For \(b_i(q)=w_q\otimes(x_{in}-\bar x_T)\), one has \(\sum_i b_i(q)=0\).  Since
+\[
+\Delta_T=\frac Qk\sum_{i\in T}b_i(Z_i),
+\]
+equations (15)--(16) imply the exact identity
+\[
+\operatorname{Var}(\Delta_T)
+=\frac4{k-1}(I_F\otimes S_T).
+\tag{17}
+\]
+Likewise, conditional outcome averaging and \(\mathrm{ass{:}stable\text{-}product\text{-}law}\) show that only \(\mu_q\) enters the covariance with \(\Delta_T\).  Taking \(a_i(q)=w_q\mu_q(x_{in},\beta)\) in (15) gives
+\[
+\operatorname{Cov}_\beta\{
+\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(0),\Delta_T\}
+=\frac{Q^2}{k-1}D_T(\beta).
+\tag{18}
+\]
+Whenever \(S_T\) is nonsingular, (17)--(18) yield
+\[
+\mathcal B_T(\beta)
+=\frac{Q^2}{4}D_T(\beta)(I_F\otimes S_T^{-1}).
+\tag{19}
+\]
+
+We now pass to the limit.  The compact set \(\mathcal X\) in
+\(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\) contains every baseline point and \(\operatorname{supp}\nu\).  For \(0\leq j\leq3\), every coordinate of
+\(D_\rho^j\mu_q(x,\beta)\), and every product of it with a coordinate polynomial of degree at most two in \(x\), is continuous on the compact set
+\(\mathcal X\times\mathcal K\), uniformly bounded, and uniformly continuous.  A finite-net argument in \(\beta\), followed by
+\(\mathrm{ass{:}baseline\text{-}limit}\) at the net points, therefore gives uniform convergence of all empirical moments in (14) and their first three \(\rho\)-derivatives.  In particular, with
+\[
+\bar x_\nu=\int x\,\nu(dx),
+\qquad
+S_\nu=\int(x-\bar x_\nu)(x-\bar x_\nu)^{\mathsf T}\nu(dx),
+\]
+there is a \(C^3\) matrix function \(D_\infty\) such that
+\[
+S_{T_n^{\mathrm{full}}}\to S_\nu,
+\qquad
+\max_{0\leq j\leq3}\sup_{\beta\in\mathcal K}
+\|D_\rho^jD_{T_n^{\mathrm{full}}}(\beta)
+-D_\rho^jD_\infty(\beta)\|\to0.
+\tag{20}
+\]
+
+The Gram lower bound in \(\mathrm{ass{:}baseline\text{-}gram}\) and (20) give
+\(\lambda_{\min}(S_\nu)>0\).  Hence matrix inversion is smooth on a fixed neighborhood of \(S_\nu\), and (19)--(20), with the ordinary product and inverse differentiation rules, produce a \(C^3\) limit
+\[
+\mathcal B_\infty(\beta)
+=\frac{Q^2}{4}D_\infty(\beta)(I_F\otimes S_\nu^{-1})
+\tag{21}
+\]
+such that
+\[
+\max_{0\leq j\leq3}\sup_{\beta\in\mathcal K}
+\|D_\rho^j\mathcal B_{T_n^{\mathrm{full}}}(\beta)
+-D_\rho^j\mathcal B_\infty(\beta)\|\to0.
+\tag{22}
+\]
+
+The same limit holds along the complements.  Indeed, for every uniformly bounded scalar function \(f\) appearing in the preceding finite list of moment coordinates,
+\[
+\frac1N\sum_{i\notin S_m}f(x_{in},\beta)
+-\frac1n\sum_{i=1}^nf(x_{in},\beta)
+=\frac mN\left\{
+\frac1n\sum_{i=1}^nf(x_{in},\beta)
+-\frac1m\sum_{i\in S_m}f(x_{in},\beta)
+\right\}.
+\tag{23}
+\]
+Thus the supremum of the absolute value in (23), also for each required \(\rho\)-derivative, is \(O(m/N)=o(1)\), uniformly over the split.  The same calculation for first and second baseline moments shows
+\[
+\sup_{S_m}\|S_{S_m^c}-S_{T_n^{\mathrm{full}}}\|=O(m/N)=o(1).
+\tag{24}
+\]
+Consequently (19)--(22) also imply
+\[
+\max_{0\leq j\leq3}\sup_{\beta\in\mathcal K}
+\|D_\rho^j\mathcal B_{T_{n,m}^{\mathrm{main}}}(\beta)
+-D_\rho^j\mathcal B_\infty(\beta)\|
+\xrightarrow{P_{S_m}}0.
+\tag{25}
+\]
+
+Define the raw matrices
+\[
+M_T(\beta)=\mathcal B_T(\beta)^{\mathsf T}W\mathcal B_T(\beta),
+\qquad
+M_\infty(\beta)=\mathcal B_\infty(\beta)^{\mathsf T}
+W\mathcal B_\infty(\beta).
+\]
+The product rule applied to (22) and (25) gives uniform convergence of \(M_T\) and all its \(\rho\)-derivatives through order three to the corresponding derivatives of \(M_\infty\).  Crucially, positivity of the normalization denominator now comes from the independent raw-signal assumptions, not from the rank of a normalized limit.  Specifically,
+\(\mathrm{ass{:}full\text{-}oracle\text{-}signal\text{-}floor}\) and the uniform raw convergence imply
+\[
+\inf_{\beta\in\mathcal K}\operatorname{tr}M_\infty(\beta)>0,
+\tag{26}
+\]
+while \(\mathrm{ass{:}complement\text{-}oracle\text{-}signal\text{-}floor}\) bounds the complement denominators away from zero on events whose split probability tends to one.
+
+The map \(M\mapsto M/\operatorname{tr}(M)\) is \(C^\infty\) wherever
+\(\operatorname{tr}(M)>0\).  Define
+\[
+G_\infty(\beta)=
+\frac{M_\infty(\beta)}{\operatorname{tr}M_\infty(\beta)}.
+\]
+Equation (26) makes \(G_\infty\) a \(C^3\) map on \(\mathcal K\).  Repeated quotient differentiation, using the uniform raw derivative convergence and the denominator bounds just established, proves
+\[
+\max_{0\leq j\leq3}\sup_{\beta\in\mathcal K}
+\|D_\rho^jG_{T_n^{\mathrm{full}}}(\beta)
+-D_\rho^jG_\infty(\beta)\|\to0
+\]
+and
+\[
+\max_{0\leq j\leq3}\sup_{\beta\in\mathcal K}
+\|D_\rho^jG_{T_{n,m}^{\mathrm{main}}}(\beta)
+-D_\rho^jG_\infty(\beta)\|
+\xrightarrow{P_{S_m}}0.
+\]
+This constructs the same limit for the complete array and every stated vanishing-complement sequence without any circular appeal to \(\operatorname{rank}(G_\infty)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The common experiment-indexed limit removes ambiguity about which empirical oracle and which convergence mode define the boundary constants. \textit{Gap.} First-order learned-rerandomization arguments require consistency of one selected score, whereas the second-order boundary expansion needs uniform convergence of the oracle map and its first three quotient derivatives along both realized experiment sequences. \textit{Consumer.} It gives replication planners one stable limiting geometry whether the oracle is evaluated on all registered units or on the random main-wave complement.
+
+\begin{theorem}[thm:oracle-deletion-loss]\label{thm:oracle-deletion-loss}
+For every member of \(\mathfrak M\), there is a continuous function \(a:\mathcal K\to(0,\infty)\) such that
+\[
+\sup_{\beta\in\mathcal K}
+\left|n\,d_{T_n^{\mathrm{full}}}(\beta)-a(\beta)\right|\longrightarrow0.
+\]
+For every sequence of uniformly sampled balanced complements \(T_{n,m}^{\mathrm{main}}\) with \(N=n-m\to\infty\),
+\[
+E_{S_m}\sup_{\beta\in\mathcal K}
+\left|N\,d_{T_{n,m}^{\mathrm{main}}}(\beta)-a(\beta)\right|\longrightarrow0.
+\]
+With \(\mathcal B_\infty(\beta)=\lim_n\mathcal B_{T_n^{\mathrm{full}}}(\beta)\), \(M_\beta=\mathcal B_\infty(\beta)^{\mathsf T}W\mathcal B_\infty(\beta)\), \(g_\beta(z)=z^{\mathsf T}G_\infty(\beta)z\), and \(Z\sim N(0,I_{Fp})\), the coefficient is
+\[
+a(\beta)
+=(1-\eta)\operatorname{tr}(M_\beta)
+\left[
+E\{g_\beta(Z)\}
+-\alpha^{-1}E\!\left\{g_\beta(Z)
+\mathbf 1\!\left(g_\beta(Z)\leq q_{\alpha,\beta}\right)\right\}
+\right].
+\]
+Moreover,
+\[
+0<\inf_{\beta\in\mathcal K}a(\beta)
+\leq\sup_{\beta\in\mathcal K}a(\beta)<\infty.
+\]
+For every balanced pilot-size sequence \(m=m(n)\in\mathcal M_n\) with \(N\to\infty\), the exact deletion contrast satisfies
+\[
+\sup_{\beta\in\mathcal K}
+\left|nD_{n,m}(\beta)-\frac mn a(\beta)\right|
+\longrightarrow0.
+\]
+Consequently, if \(m/n\to c\in[0,1]\), then, uniformly in \(\beta\),
+\[
+n\left[
+d_{T_n^{\mathrm{full}}}(\beta)
+-\left(\frac{N}{n}\right)^2
+E_{S_m}d_{T_{n,m}^{\mathrm{main}}}(\beta)
+\right]\longrightarrow c\,a(\beta).
+\]
+These first-order relations do not assert the sharper deletion expansion on the scale \(m/n^2+(nm)^{-1}\) when \(m/n\to0\).
+\end{theorem}
+\begin{proof}
+Fix a member of \(\mathfrak M\) and condition throughout on its deterministic complete baseline array.  Put
+\[
+w_q=2^{1-K_f}c_q,
+\qquad
+\mu_{iq}(\beta)=E_\beta\{Y_{in}(q)\mid x_{in}\},
+\qquad
+\varepsilon_{iq}=Y_{in}(q)-\mu_{iq}(\beta).
+\tag{1}
+\]
+By \(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\), the functions in (1), their products needed below, and their \(\rho\)-derivatives through order three are continuous and uniformly bounded on \(\mathcal X\times\mathcal K\).  By \(\mathrm{ass{:}baseline\text{-}limit}\), empirical averages of these continuous functions converge to their \(\nu\)-integrals.  The lower eigenvalue bound in \(\mathrm{ass{:}baseline\text{-}gram}\) keeps the covariance of the nondegenerate imbalance coordinates invertible, and \(\mathrm{ass{:}oracle\text{-}rank}\) keeps all Moore--Penrose inverses on a single rank stratum.  Consequently, continuity of inversion on that stratum, applied to the finite-population covariance formula defining \(\mathcal B_T\), gives
+\[
+\sup_{\beta\in\mathcal K}
+\left\|\mathcal B_{T_n^{\mathrm{full}}}(\beta)
+-\mathcal B_\infty(\beta)\right\|\longrightarrow0.
+\tag{2}
+\]
+For clarity, the continuity assertion used here follows by writing a singular-value decomposition: the positive singular values are bounded away from zero by \(\mathrm{ass{:}baseline\text{-}gram}\), their reciprocals therefore vary continuously, and the remaining singular values stay zero by \(\mathrm{ass{:}oracle\text{-}rank}\).  The normalization in the definition of \(G_T\), \(\mathrm{lem{:}experiment\text{-}indexed\text{-}oracle\text{-}convergence}\), and \(\mathrm{ass{:}full\text{-}oracle\text{-}signal\text{-}floor}\) then imply, uniformly in \(\beta\),
+\[
+G_\infty(\beta)=\frac{M_\beta}{\operatorname{tr}(M_\beta)},
+\qquad
+M_\beta=\mathcal B_\infty(\beta)^{\mathsf T}
+W\mathcal B_\infty(\beta),
+\qquad
+0<c\leq\operatorname{tr}(M_\beta)\leq C<\infty.
+\tag{3}
+\]
+
+Let \(T\) be balanced, write \(k=|T|\), and first replace every potential outcome by its conditional mean.  Under balanced complete randomization define
+\[
+\widetilde{\boldsymbol\tau}^{\,\mu}_T
+=\frac1k\sum_{i\in T}\sum_{q\in\mathcal Q}
+Qw_q\mathbf 1\{Z_i=q\}\mu_{iq}(\beta).
+\tag{4}
+\]
+Since \(P_{\mathrm{CR}}(Z_i=q)=1/Q\), (4) is the ordinary Horvitz--Thompson estimator for the conditional-mean table.  Apply \(\mathrm{lem{:}balanced\text{-}random\text{-}partition\text{-}clt}\) jointly to the bounded array consisting of the baseline coordinates and the conditional means in (1).  Its negligible-maximum-influence condition holds because \(\mathrm{ass{:}baseline\text{-}bound}\) and \(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\) make the largest squared centered summand \(O(1)=o(k)\).  In the standardized imbalance coordinates represented by \(Z\sim N(0,I_{Fp})\), the resulting joint limit, together with convergence of its second moments, is
+\[
+\left(
+\sqrt{k}\{\widetilde{\boldsymbol\tau}^{\,\mu}_T
+-\boldsymbol\tau_T^\mu\},
+\sqrt{k}\Delta_T
+\right)
+\Rightarrow
+\left(\mathcal B_\infty(\beta)Z+R,Z\right),
+\tag{5}
+\]
+where \(R\) is centered Gaussian and \(\operatorname{Cov}(R,Z)=0\).  Joint Gaussianity makes \(R\) independent of \(Z\).  A nonsingular covariance standardization in (5) causes no change in score order: positive congruence maps positive-semidefinite score matrices bijectively to positive-semidefinite score matrices, and positive scalar multiplication leaves every lower-tail rule unchanged.  Thus the limiting oracle score is the frozen quantity
+\[
+g_\beta(Z)=Z^{\mathsf T}G_\infty(\beta)Z.
+\tag{6}
+\]
+
+Relative to balanced complete randomization, the exact-mixture design has likelihood ratio
+\[
+\ell_{T,H}
+=\eta+\frac{1-\eta}{\alpha}a_{T,H},
+\qquad
+\eta\leq\ell_{T,H}\leq
+\eta+\frac{1-\eta}{\alpha},
+\tag{7}
+\]
+by \(\mathrm{def{:}exact\text{-}mixture}\).  Take \(H=G_T(\beta)\), which belongs to \(\mathcal H_T\) by \(\mathrm{lem{:}oracle\text{-}action\text{-}admissible}\).  The convergence of \(G_T\) in \(\mathrm{lem{:}experiment\text{-}indexed\text{-}oracle\text{-}convergence}\), (5), and the zero boundary mass supplied by \(\mathrm{lem{:}gaussian\text{-}boundary\text{-}regularity}\) imply
+\[
+a_{T,G_T(\beta)}
+\Rightarrow
+\mathbf 1\{g_\beta(Z)\leq q_{\alpha,\beta}\}.
+\tag{8}
+\]
+The randomization on an exact finite tie is harmless in (8), because its entire possible discrepancy is supported on a boundary whose limiting Gaussian probability is zero.  The second-moment conclusion of \(\mathrm{lem{:}balanced\text{-}random\text{-}partition\text{-}clt}\), combined with the uniform upper bound in (7), gives uniform integrability of all quadratic terms after tilting.
+
+Because the tilt in (8) is measurable with respect to \(Z\), independence makes the \(R^{\mathsf T}WR\) contribution identical under complete randomization and rerandomization, and all \(R\)-by-\(Z\) cross terms have expectation zero.  By (3), the remaining explained quadratic loss is
+\[
+Z^{\mathsf T}M_\beta Z
+=\operatorname{tr}(M_\beta)g_\beta(Z).
+\tag{9}
+\]
+It follows from (5)--(9) that, if \(V_T^\mu\) denotes the design risk after replacing the potential-outcome table by its conditional-mean table, then
+\[
+\begin{aligned}
+&k\{V_T^\mu(0,\beta)-V_T^\mu(G_T(\beta),\beta)\}\\
+&\quad\longrightarrow
+(1-\eta)\operatorname{tr}(M_\beta)
+\left[
+E\{g_\beta(Z)\}
+-\alpha^{-1}E\!\left\{
+g_\beta(Z)\mathbf 1(g_\beta(Z)\leq q_{\alpha,\beta})
+\right\}
+\right]
+=a(\beta).
+\end{aligned}
+\tag{10}
+\]
+
+We next show that exact unequal inclusion probabilities do not alter (10).  From \(\mathrm{def{:}exact\text{-}mixture}\),
+\[
+\pi_{iq}(T,G_T)
+=\frac1Q\left[
+\eta+\frac{1-\eta}{\alpha}
+E_{\mathrm{CR}}\{a_{T,G_T}\mid Z_i=q\}
+\right].
+\tag{11}
+\]
+Couple an unconditional complete randomization to one conditional on \(Z_i=q\) as follows: if unit \(i\) does not have label \(q\), interchange its label with that of a uniformly selected unit carrying label \(q\); otherwise change nothing.  Counting preimages verifies that the new assignment is uniform under the stated conditioning.  The interchange changes every standardized sum in (5) by \(O(k^{-1/2})\), uniformly in \(i\) and \(q\), because the baseline and conditional-mean arrays are bounded.  Equations (5), (8), and zero Gaussian boundary mass therefore give
+\[
+\sup_{\beta\in\mathcal K}\max_{i\in T,q\in\mathcal Q}
+\left|E_{\mathrm{CR}}(a_{T,G_T}\mid Z_i=q)-\alpha\right|
+\longrightarrow0.
+\tag{12}
+\]
+The uniformity in (12) follows by contradiction: compactness of \(\mathcal K\) supplies a convergent parameter subsequence, uniform moment equicontinuity supplies the same limit (5), and the swap coupling then contradicts the pointwise zero-boundary conclusion.  Combining (11)--(12) yields
+\[
+\sup_{\beta\in\mathcal K}\max_{i,q}
+\left|\pi_{iq}(T,G_T)-\frac1Q\right|
+\longrightarrow0,
+\qquad
+\pi_{iq}(T,G_T)\geq\frac\eta Q.
+\tag{13}
+\]
+The same joint limit is centrally symmetric, while every limiting quadratic lower-tail rule is even.  Hence the ordinary statistic (4) has rerandomization bias \(o(k^{-1/2})\).  The balanced identities \(\sum_{i\in T}\pi_{iq}=k/Q\), (13), the complete-randomization covariance formula, and the bounded likelihood ratio (7) then give
+\[
+\sqrt{k}\left{
+\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(G_T)
+-\widetilde{\boldsymbol\tau}_T
+\right}\longrightarrow0
+\quad\text{in }L_2.
+\tag{14}
+\]
+Indeed, after centering, its variance is \(k^{-1}o(1)\) because every inverse-inclusion coefficient differs from \(Q\) by \(o(1)\); its squared mean is also \(k^{-1}o(1)\) by the preceding odd--even argument and exact Horvitz--Thompson centering.  Thus (14) transfers (10) to the exact-inclusion estimator for the conditional-mean table.
+
+It remains to average over the outcome residuals.  Put
+\[
+\sigma_{i,qr}(\beta)
+=E_\beta(\varepsilon_{iq}\varepsilon_{ir}\mid x_{in}).
+\tag{15}
+\]
+Under \(\mathrm{ass{:}stable\text{-}product\text{-}law}\), terms involving distinct units vanish.  For one unit and \(q\neq r\), mutual exclusivity of its labels and positivity in (13) give the exact identity
+\[
+E\!\left[
+\left\{\frac{\mathbf 1(Z_i=q)}{\pi_{iq}}-1\right\}
+\left\{\frac{\mathbf 1(Z_i=r)}{\pi_{ir}}-1\right\}
+\right]=-1,
+\tag{16}
+\]
+which is the same for complete randomization and the mixture.  Hence all cross-treatment, same-unit residual terms cancel from the risk difference.  The remaining diagonal residual contribution to \(V_T(0,\beta)-V_T(G_T(\beta),\beta)\) is exactly
+\[
+\frac1{k^2}\sum_{i\in T}\sum_{q\in\mathcal Q}
+w_q^{\mathsf T}Ww_q\,\sigma_{i,qq}(\beta)
+\left\{Q-\frac1{\pi_{iq}(T,G_T)}\right\}.
+\tag{17}
+\]
+The variances in (15) are uniformly bounded by \(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\).  Multiplication of (17) by \(k\), followed by (13), makes it converge uniformly to zero.  The conditional-mean--residual cross term is zero by the defining conditional centering in (1).  Equations (10), (14), and (17) therefore prove on the full-array sequence
+\[
+\sup_{\beta\in\mathcal K}
+\left|n\,d_{T_n^{\mathrm{full}}}(\beta)-a(\beta)\right|
+\longrightarrow0.
+\tag{18}
+\]
+
+Now let \(T=T_{n,m}^{\mathrm{main}}\) be a uniform complement of size \(N\to\infty\).  For every bounded moment function used above, the sampling-without-replacement variance identity gives
+\[
+E_{S_m}\left|
+\frac1N\sum_{i\in T}h_{in}(\beta)
+-\frac1n\sum_{i=1}^nh_{in}(\beta)
+\right|^2\leq\frac{C_h}{N}.
+\tag{19}
+\]
+A finite net of compact \(\mathcal K\), together with the derivative bounds in \(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\), makes (19) uniform in \(\beta\).  Repeating (2)--(18) on the resulting probability-one regular subsequences gives convergence in \(P_{S_m}\)-probability of the supremum.  For this fixed member, \(\mathrm{lem{:}uniform\text{-}single\text{-}wave\text{-}risk}\) and its common bounded second-moment envelope supply a constant \(C_0<\infty\) such that
+\[
+N|d_T(\beta)|
+\leq N\{V_T(0,\beta)+V_T(G_T(\beta),\beta)\}
+\leq C_0
+\tag{20}
+\]
+uniformly over \(\beta\) and balanced complements.  Dominated convergence applied to (20) consequently yields
+\[
+E_{S_m}\sup_{\beta\in\mathcal K}
+\left|N\,d_{T_{n,m}^{\mathrm{main}}}(\beta)-a(\beta)\right|
+\longrightarrow0.
+\tag{21}
+\]
+
+Continuity of \(a\) follows from (2)--(3), \(\mathrm{lem{:}gaussian\text{-}boundary\text{-}regularity}\), and dominated convergence.  By \(\mathrm{ass{:}oracle\text{-}rank}\), \(G_\infty(\beta)\) has positive rank, and it has trace one by (3).  Therefore \(g_\beta(Z)\) is nonnegative and nonconstant.  Since \(0<\alpha<1\) and the boundary law is atomless,
+\[
+\alpha^{-1}E\!\left[
+g_\beta(Z)\mathbf 1\{g_\beta(Z)\leq q_{\alpha,\beta}\}
+\right]
+<E\{g_\beta(Z)\}.
+\tag{22}
+\]
+Equations (3), (22), \(0<\eta<1\), compactness of \(\mathcal K\), and continuity prove
+\[
+0<\inf_{\beta\in\mathcal K}a(\beta)
+\leq\sup_{\beta\in\mathcal K}a(\beta)<\infty.
+\tag{23}
+\]
+
+Finally define
+\[
+u_n=\sup_{\beta\in\mathcal K}
+\left|n d_{T_n^{\mathrm{full}}}(\beta)-a(\beta)\right|,
+\qquad
+v_n=E_{S_m}\sup_{\beta\in\mathcal K}
+\left|N d_{T_{n,m}^{\mathrm{main}}}(\beta)-a(\beta)\right|.
+\tag{24}
+\]
+Equations (18) and (21) give \(u_n\to0\) and \(v_n\to0\) whenever \(N\to\infty\).  The definition of \(D_{n,m}\) and \(N=n-m\) give the exact algebra
+\[
+\begin{aligned}
+nD_{n,m}(\beta)-\frac mn a(\beta)
+&=n d_{T_n^{\mathrm{full}}}(\beta)-a(\beta)\\
+&\quad-\frac Nn E_{S_m}
+\left\{N d_{T_{n,m}^{\mathrm{main}}}(\beta)-a(\beta)\right\}.
+\end{aligned}
+\tag{25}
+\]
+Thus
+\[
+\sup_{\beta\in\mathcal K}
+\left|nD_{n,m}(\beta)-\frac mn a(\beta)\right|
+\leq u_n+\frac Nn v_n\longrightarrow0.
+\tag{26}
+\]
+If \(m/n\to c<1\), then \(N\to\infty\), and (26) gives the stated corollary.  If \(c=1\) and \(N\) is bounded on a subsequence, (20) implies
+\[
+\frac Nn E_{S_m}\left|N d_{T_{n,m}^{\mathrm{main}}}(\beta)\right|
+\leq C_0\frac Nn\longrightarrow0,
+\tag{27}
+\]
+whereas every subsequence on which \(N\to\infty\) is covered by (26).  The subsequence principle proves the \(c=1\) conclusion.  Equations (25)--(26) are only first-order statements: when \(m/n\to0\), they do not control the remainder relative to \(m/n^2+(nm)^{-1}\), so no value of the candidate coefficient \(A\) has been used or asserted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives the first-order exact-mixture gain and the uniform exact deletion relation for every diverging main wave. \textit{Gap.} It does not identify the candidate coefficient \(A\) on the square-root pilot scale. \textit{Consumer.} It quantifies macroscopic deletion and supplies the deletion lower bound used in both branches of the endpoint lemma.
+
+\begin{lemma}[lem:gaussian-boundary-regularity]\label{lem:gaussian-boundary-regularity}
+For the common limit \(G_{\infty}\), the map \(\beta\mapsto q_{\alpha,\beta}\) is continuous, \(0<q_{\alpha,\beta}<\infty\), and
+\[
+0<\inf_{\beta\in\mathcal K}f_{\beta}(q_{\alpha,\beta})
+\leq\sup_{\beta\in\mathcal K}f_{\beta}(q_{\alpha,\beta})<\infty.
+\]
+The coarea version \(\mathcal C(\beta,u)\) is continuous on a neighborhood of \(\{(\beta,q_{\alpha,\beta}):\beta\in\mathcal K\}\), and consequently \(\Gamma(\beta)\) is continuous on \(\mathcal K\).  If, in addition, \(I_{\mathrm{eff}}:\mathcal K\to\mathbb S_{++}^r\) is continuous, then \(B(\beta)=\operatorname{tr}\{\Gamma(\beta)I_{\mathrm{eff}}(\beta)^{-1}\}\) is continuous on \(\mathcal K\).
+\end{lemma}
+\begin{proof}
+Put \(d=Fp\) and \(k=r_G\).  The rank is the same positive integer \(k\) at every \(\beta\in\mathcal K\) by \(\mathrm{ass{:}oracle\text{-}rank}\).  For every balanced \(T\), that assumption also makes \(G_T(\beta)\) nonzero.  Hence the definition of \(G_T\) and the normalization \(\mathcal N\) give
+\[
+G_T(\beta)\succeq0,
+\qquad \operatorname{tr}G_T(\beta)=1.
+\tag{1}
+\]
+Taking \(T=T_n^{\mathrm{full}}\) and using the \(j=0\) conclusion of \(\mathrm{lem{:}experiment\text{-}indexed\text{-}oracle\text{-}convergence}\), the closedness of the positive-semidefinite cone and continuity of trace imply
+\[
+G_\infty(\beta)\succeq0,
+\qquad \operatorname{tr}G_\infty(\beta)=1
+\quad(\beta\in\mathcal K).
+\tag{2}
+\]
+The same lemma gives continuity of \(G_\infty\) and of each \(D_{\rho_a}G_\infty\) on \(\mathcal K\).
+
+Write the eigenvalues of \(G_\infty(\beta)\) in decreasing order as
+\(\lambda_1(\beta)\ge\cdots\ge\lambda_d(\beta)\).  The variational characterization of an ordered eigenvalue, together with
+\[
+\left|v^{\mathsf T}(A-B)v\right|\leq\lVert A-B\rVert_{\mathrm{op}}
+\quad\text{for }\lVert v\rVert=1,
+\tag{3}
+\]
+shows directly that
+\(\left|\lambda_j(A)-\lambda_j(B)\right|\leq\lVert A-B\rVert_{\mathrm{op}}\).  Thus every \(\lambda_j(\beta)\) is continuous.  By \(\mathrm{ass{:}oracle\text{-}rank}\),
+\(\lambda_k(\beta)>0=\lambda_{k+1}(\beta)\), where the second equality is omitted if \(k=d\).  Compactness of \(\mathcal K\), supplied by \(\mathrm{ass{:}product\text{-}ball\text{-}domain}\), and (2) therefore yield a constant \(\lambda_->0\) such that
+\[
+\lambda_-\leq\lambda_j(\beta)\leq1
+\quad(1\leq j\leq k,\ \beta\in\mathcal K).
+\tag{4}
+\]
+
+Rotational invariance of the standard Gaussian vector in the definition of \(Z\) gives, with independent \(\xi_j\sim N(0,1)\),
+\[
+g_\beta(Z)=Z^{\mathsf T}G_\infty(\beta)Z
+\ \stackrel{d}{=}\ 
+U_\beta:=\sum_{j=1}^{k}\lambda_j(\beta)\xi_j^2.
+\tag{5}
+\]
+For completeness, the density of the right side can be calculated without a regularity hypothesis.  Set
+\(A_\beta=\operatorname{diag}(\lambda_1(\beta),\ldots,\lambda_k(\beta))\).  Under the change of variables \(y=A_\beta^{1/2}x\) followed by polar coordinates \(y=\sqrt u\,\omega\), one obtains, for \(u>0\),
+\[
+f_\beta(u)
+=\frac{(2\pi)^{-k/2}}{2\sqrt{\det A_\beta}}
+u^{k/2-1}
+\int_{\mathbb S^{k-1}}
+\exp\!\left\{-\frac u2\omega^{\mathsf T}A_\beta^{-1}\omega\right\}
+\,d\mathcal H^{k-1}(\omega).
+\tag{6}
+\]
+This formula is also valid for \(k=1\), with \(\mathbb S^0=\{-1,1\}\) and counting measure.  The bounds (4) make the integrand and all determinant factors in (6) continuous and locally uniformly bounded on \(\mathcal K\times(0,\infty)\).  Integration over the compact sphere therefore proves that \((\beta,u)\mapsto f_\beta(u)\) is continuous there.  Every factor in (6) is strictly positive, so
+\[
+f_\beta(u)>0
+\quad(\beta\in\mathcal K,\ u>0).
+\tag{7}
+\]
+Moreover, on every bounded interval \(0<u\leq b\), (4) and (6) give a bound \(f_\beta(u)\leq C_bu^{k/2-1}\), uniform in \(\beta\).  Since \(k\geq1\), this bound is integrable at zero.  Dominated convergence applied to
+\(F_\beta(u)=\int_0^u f_\beta(v)\,dv\) now proves joint continuity of \((\beta,u)\mapsto F_\beta(u)\) on \(\mathcal K\times(0,\infty)\).  Equation (7) makes each \(F_\beta\) strictly increasing on \((0,\infty)\).
+
+Let \(S_k=\sum_{j=1}^k\xi_j^2\), and let \(q_\alpha(S_k)\) denote its \(\alpha\)-quantile.  The declared condition \(0<\alpha<1\) gives \(0<q_\alpha(S_k)<\infty\).  On the coupling in (5), (4) gives the pointwise inequalities
+\[
+\lambda_-S_k\leq U_\beta\leq S_k.
+\tag{8}
+\]
+Monotonicity of quantiles under pointwise order therefore yields
+\[
+q_-:=\lambda_-q_\alpha(S_k)
+\leq q_{\alpha,\beta}
+\leq q_+:=q_\alpha(S_k),
+\qquad 0<q_-\leq q_+<\infty.
+\tag{9}
+\]
+Because \(F_\beta\) is continuous and strictly increasing from zero to one, its defining \(\alpha\)-quantile is the unique solution of
+\(F_\beta(q)=\alpha\).  If \(\beta_\ell\to\beta\), every subsequence of \(q_{\alpha,\beta_\ell}\) has, by (9), a further subsequence converging to some \(q\in[q_-,q_+]\).  Joint continuity gives
+\[
+F_\beta(q)
+=\lim_jF_{\beta_{\ell_j}}(q_{\alpha,\beta_{\ell_j}})
+=\alpha,
+\tag{10}
+\]
+so uniqueness forces \(q=q_{\alpha,\beta}\).  This subsequence argument proves continuity of \(\beta\mapsto q_{\alpha,\beta}\).  The quantile graph is compact by compactness of \(\mathcal K\), (9), and that continuity.  Applying (6)--(7) to this compact graph proves
+\[
+0<\inf_{\beta\in\mathcal K}f_\beta(q_{\alpha,\beta})
+\leq\sup_{\beta\in\mathcal K}f_\beta(q_{\alpha,\beta})<\infty.
+\tag{11}
+\]
+
+It remains to establish the asserted coarea continuity.  For any one of
+\[
+h\in\{1,\ \psi_{a,\beta},\ \psi_{b,\beta},\
+\psi_{a,\beta}\psi_{b,\beta}\},
+\tag{12}
+\]
+write
+\[
+J_h(\beta,u)
+:=\int_{g_\beta^{-1}(u)}
+h(z)\varphi_d(z)\lVert\nabla_zg_\beta(z)\rVert^{-1}
+\,d\mathcal H^{d-1}(z).
+\tag{13}
+\]
+There is no critical point on a positive level: if \(g_\beta(z)=u>0\), then
+\[
+\nabla_zg_\beta(z)=2G_\infty(\beta)z\neq0,
+\tag{14}
+\]
+because \(G_\infty(\beta)z=0\) would imply \(g_\beta(z)=0\).  Thus (13) is well defined.
+
+Fix \(\beta_0\in\mathcal K\).  The spectral gap (4) makes the range projection of \(G_\infty(\beta)\) continuous near \(\beta_0\): indeed it is the continuous functional-calculus projection separating the spectra in \([\lambda_-,1]\) and \(\{0\}\).  More elementarily, project a basis of \(\operatorname{range}G_\infty(\beta_0)\) and its orthogonal complement by the corresponding range and null projections; the projected vectors remain independent nearby, and Gram--Schmidt gives continuous orthonormal frames \(U_\beta\in\mathbb R^{d\times k}\) and \(V_\beta\in\mathbb R^{d\times(d-k)}\).  In these coordinates,
+\[
+G_\infty(\beta)
+=U_\beta A_\beta U_\beta^{\mathsf T},
+\qquad A_\beta:=U_\beta^{\mathsf T}G_\infty(\beta)U_\beta,
+\qquad \lambda_-I_k\preceq A_\beta\preceq I_k.
+\tag{15}
+\]
+Here \(A_\beta\), its inverse square root, and its determinant vary continuously.
+
+A direct surface-Jacobian calculation, first putting
+\(z=U_\beta r+V_\beta v\) and then
+\(r=\sqrt u\,A_\beta^{-1/2}\omega\), gives
+\[
+\begin{split}
+J_h(\beta,u)
+={}&\frac{u^{k/2-1}}{2\sqrt{\det A_\beta}}
+\int_{\mathbb S^{k-1}}\int_{\mathbb R^{d-k}}
+h\!\left(U_\beta\sqrt u\,A_\beta^{-1/2}\omega+V_\beta v\right)\\
+&\qquad\qquad\times
+\varphi_d\!\left(U_\beta\sqrt u\,A_\beta^{-1/2}\omega+V_\beta v\right)
+\,dv\,d\mathcal H^{k-1}(\omega).
+\end{split}
+\tag{16}
+\]
+The factor in front of the integral follows because polar volume is
+\(t^{k-1}dt\,d\mathcal H^{k-1}(\omega)\), \(u=t^2\), and the linear map \(A_\beta^{-1/2}\) contributes \((\det A_\beta)^{-1/2}\).  Thus (16) also explicitly verifies the coarea weight in (13), rather than assuming continuity of the conditional law.
+
+Take
+\(J=[q_-/2,2q_+]\), which is a compact subset of \((0,\infty)\) containing the entire quantile graph in its relative interior.  By (15), the range coordinate in (16) is uniformly bounded for \((\beta,u,\omega)\in\mathcal K\times J\times\mathbb S^{k-1}\).  By \(\mathrm{lem{:}experiment\text{-}indexed\text{-}oracle\text{-}convergence}\), every matrix \(D_{\rho_a}G_\infty(\beta)\) is continuous and hence bounded on \(\mathcal K\).  Consequently the four choices in (12), after substitution in (16), are polynomials of degree at most four in \(v\), with uniformly bounded continuous coefficients.  Their absolute integrands are bounded by
+\[
+C(1+\lVert v\rVert^4)e^{-\lVert v\rVert^2/2},
+\tag{17}
+\]
+up to a fixed Gaussian normalizing constant.  This bound is integrable on \(\mathbb R^{d-k}\); when \(d=k\), the inner integral is simply absent.  Dominated convergence in (16) proves local continuity of every \(J_h\) on \(\mathcal K\times J\), and the local-frame construction around each \(\beta_0\) proves continuity on all of that set.
+
+For \(h=1\), every factor in the integrand in (16) is strictly positive, whence
+\[
+J_1(\beta,u)>0
+\quad((\beta,u)\in\mathcal K\times J).
+\tag{18}
+\]
+The conditional first and second moments in the definition of \(\mathcal C\) are exactly
+\[
+\frac{J_{\psi_{a,\beta}}}{J_1},\qquad
+\frac{J_{\psi_{b,\beta}}}{J_1},\qquad
+\frac{J_{\psi_{a,\beta}\psi_{b,\beta}}}{J_1}.
+\tag{19}
+\]
+Equations (16)--(18) show that all three ratios are continuous on the neighborhood \(\mathcal K\times J\) of the quantile graph.  Subtracting the product of the first two ratios from the third proves continuity of every entry \(\mathcal C_{ab}(\beta,u)\), including at chart points covered by the stipulated unique continuous extension.
+
+Finally, the definition of \(\Gamma\), the declared conditions \(0<\eta<1\) and \(0<\alpha<1\), and the continuity just proved give
+\[
+\Gamma_{ab}(\beta)
+=\frac{1-\eta}{2\alpha}
+f_\beta(q_{\alpha,\beta})
+\mathcal C_{ab}(\beta,q_{\alpha,\beta}),
+\tag{20}
+\]
+which is continuous in \(\beta\).  If, in addition, \(I_{\mathrm{eff}}:\mathcal K\to\mathbb S_{++}^{r}\) is continuous, continuity of its least eigenvalue and compactness of \(\mathcal K\) give
+\[
+\inf_{\beta\in\mathcal K}\lambda_{\min}\{I_{\mathrm{eff}}(\beta)\}>0.
+\tag{21}
+\]
+The identity \(A^{-1}-B^{-1}=A^{-1}(B-A)B^{-1}\), together with (21), proves continuity of \(I_{\mathrm{eff}}^{-1}\).  Matrix multiplication and trace are continuous, so the defining map
+\[
+B(\beta)=\operatorname{tr}\{\Gamma(\beta)I_{\mathrm{eff}}(\beta)^{-1}\}
+\tag{22}
+\]
+is continuous on \(\mathcal K\), completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Uniform coarea control makes the moving Gaussian acceptance boundary differentiable without adding a separate density assumption. \textit{Gap.} Existing rerandomization limits use fixed quadratic forms; the uniform statement over an empirical-oracle chart is an auxiliary bridge to second order. \textit{Consumer.} It supplies the stable quantile derivative needed to translate efficient pilot uncertainty into action regret.
+
+\begin{openendedquestion}[oeq:finite-boundary-comparison]\label{oeq:finite-boundary-comparison}
+Can the handle \(\mathsf H_{\mathrm{fin}}\) establish, uniformly over \(\mathfrak M\), exact ties, arbitrary balanced deterministic baseline lattices, local action displacements of order \(m^{-1/2}\), and unequal inclusion probabilities, that the finite Horvitz--Thompson action regret on \(T_{n,m}^{\mathrm{main}}\) differs from the continuous-coarea Gaussian boundary quadratic form of \(G_{\infty}\) by \(o(m^{-1})\) in probability over the split, and that the contrast between \(T_n^{\mathrm{full}}\) and \(T_{n,m}^{\mathrm{main}}\) has no additional lattice or inclusion correction at order \(m/n^2+1/(nm)\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the proof boundary on which the advertised second-order constant is valid or must acquire a finite-randomization correction. \textit{Gap.} Li and Ding provide a first-order random-partition central limit theorem, and Wang and Li provide quantitative Gaussian control for best-choice rerandomization; neither controls score-weighted moving-boundary moments at this scale. \textit{Consumer.} A positive answer validates smooth pilot rules on integer-valued manufacturing baselines; a negative answer identifies the correction planners must include.
+
+\begin{lemma}[lem:pilot-endpoint-exclusion]\label{lem:pilot-endpoint-exclusion}
+For every fixed member of \(\mathfrak M\) and every admissible balanced pilot-size sequence \(m=m(n)\in\mathcal M_n\),
+\[
+\liminf_{n\to\infty}n^{3/2}\mathcal E_n(m)=\infty
+\]
+whenever either \(N=n-m=o(n)\), or
+\[
+\liminf_{n\to\infty}\frac mn>0
+\qquad\text{and}\qquad
+\liminf_{n\to\infty}\frac Nn>0.
+\]
+Only bounded pilots, diverging pilots with \(m=o(\sqrt n)\), and \(\sqrt n=o(m)=o(n)\) remain open.
+\end{lemma}
+\begin{proof}
+Fix a member of \(\mathfrak M\), condition on its deterministic complete baseline array, and write
+\[
+T=T_{n,m}^{\mathrm{main}},
+\qquad
+a_-:=\inf_{\beta\in\mathcal K}a(\beta)>0.
+\tag{1}
+\]
+The strict inequality in (1) is the uniform positivity conclusion of \(\mathrm{thm{:}oracle\text{-}deletion\text{-}loss}\).  Whenever \(N\to\infty\), the deletion relation in that theorem gives
+\[
+r_n:=\sup_{\beta\in\mathcal K}
+\left|nD_{n,m}(\beta)-\frac mn a(\beta)\right|
+\longrightarrow0.
+\tag{2}
+\]
+Define
+\[
+q_n(\beta)=E_{S_m}\inf_{H\in\mathcal H_T}
+N\{V_T(H,\beta)-V_T(G_T(\beta),\beta)\}.
+\tag{3}
+\]
+By \(\mathrm{prop{:}first\text{-}order\text{-}arbitrary\text{-}action\text{-}optimality}\),
+\[
+\epsilon_n:=\sup_{\beta\in\mathcal K}|q_n(\beta)|
+\longrightarrow0
+\qquad\text{when }N\to\infty.
+\tag{4}
+\]
+Conditional on \((S_m,\mathcal O_m)\), the realized rule \(\delta_m\) is an element of \(\mathcal H_T\).  Under \(\mathrm{ass{:}stable\text{-}product\text{-}law}\), the main-wave outcome vector is conditionally independent of the pilot outcomes given \(S_m\) and the fixed baseline array.  Conditioning first on \((S_m,\mathcal O_m)\), then bounding the realized action by the pointwise infimum in (3), gives
+\[
+\begin{aligned}
+nL_{n,m}(\delta_m,\beta)
+&=\frac Nn E\!\left[
+N\{V_T(\delta_m,\beta)-V_T(G_T(\beta),\beta)\}
+\right]\\
+&\geq\frac Nn q_n(\beta)
+\geq-\frac Nn\epsilon_n.
+\end{aligned}
+\tag{5}
+\]
+The exact two-component identity in \(\mathrm{prop{:}second\text{-}order\text{-}risk\text{-}reduction}\), followed by (1)--(5), therefore yields, for every pilot rule and every \(\beta\),
+\[
+n\{R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)\}
+\geq\frac mn a(\beta)-r_n-\frac Nn\epsilon_n,
+\qquad N\to\infty.
+\tag{6}
+\]
+
+Suppose first that
+\[
+c_m:=\liminf_{n\to\infty}\frac mn>0,
+\qquad
+c_N:=\liminf_{n\to\infty}\frac Nn>0.
+\tag{7}
+\]
+The second condition implies \(N\to\infty\).  Since \(N/n\leq1\), equations (1), (2), (4), and (6) imply that, for all sufficiently large \(n\), all \(\beta\), and every \(\delta_m\),
+\[
+R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)
+\geq\frac{c_m a_-}{2n}>0.
+\tag{8}
+\]
+Using the definition
+\[
+\mathcal E_n(m)=\inf_{\delta_m}\sup_{\beta\in\mathcal K}
+[R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)]_+,
+\tag{9}
+\]
+equation (8) gives
+\[
+\mathcal E_n(m)\geq\frac{c_m a_-}{2n},
+\qquad
+n^{3/2}\mathcal E_n(m)\longrightarrow\infty.
+\tag{10}
+\]
+No convergence of either fraction in (7) is required.
+
+Now suppose \(N=o(n)\).  Along every subsequence for which \(N\to\infty\), one has \(m/n\to1\), and (6) implies, eventually and uniformly over \(\beta\) and \(\delta_m\),
+\[
+R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)
+\geq\frac{a_-}{2n}.
+\tag{11}
+\]
+It remains to treat subsequences on which the positive integer \(N\) is bounded.  Fix any \(\beta_0\in\mathcal K\).  Combining the two main-wave oracle terms in \(\mathrm{thm{:}exact\text{-}ht\text{-}accounting}\), equivalently substituting the definitions of \(D_{n,m}\) and \(L_{n,m}\), gives the exact equality
+\[
+\begin{aligned}
+R_{n,m}(\delta_m,\beta_0)-R_n^{\mathrm{or}}(\beta_0)
+&=d_{T_n^{\mathrm{full}}}(\beta_0)\\
+&\quad+\left(\frac Nn\right)^2
+E\{V_T(\delta_m,\beta_0)-V_T(0,\beta_0)\}.
+\end{aligned}
+\tag{12}
+\]
+Every design risk is nonnegative.  The fixed model member has a common finite conditional second-moment envelope by \(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\).  Applying \(\mathrm{lem{:}uniform\text{-}single\text{-}wave\text{-}risk}\) with \(H=0\) gives a constant \(C_0<\infty\), independent of balanced \(T\), such that
+\[
+V_T(0,\beta_0)\leq\frac{C_0}{N}.
+\tag{13}
+\]
+Division by \(N\) is valid because admissibility gives \(N\geq Q\).  From (12)--(13),
+\[
+n\{R_{n,m}(\delta_m,\beta_0)-R_n^{\mathrm{or}}(\beta_0)\}
+\geq n d_{T_n^{\mathrm{full}}}(\beta_0)-C_0\frac Nn.
+\tag{14}
+\]
+Along a bounded-\(N\) subsequence, the right side converges to \(a(\beta_0)>0\) by \(\mathrm{thm{:}oracle\text{-}deletion\text{-}loss}\).  Hence, eventually on that subsequence and for every \(\delta_m\),
+\[
+\sup_{\beta\in\mathcal K}
+[R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)]_+
+\geq\frac{a(\beta_0)}{2n}.
+\tag{15}
+\]
+
+If a sequence with \(N=o(n)\) had \(\liminf_n n\mathcal E_n(m)=0\), it would have a subsequence along which \(n\mathcal E_n(m)\to0\).  That subsequence has a further subsequence on which either \(N\) is bounded or \(N\to\infty\).  After taking the infimum over \(\delta_m\), the first alternative contradicts (15), while the second contradicts (11).  Therefore
+\[
+\liminf_{n\to\infty}n\mathcal E_n(m)>0
+\qquad\text{whenever }N=o(n).
+\tag{16}
+\]
+Multiplying the positive lower bounds in (10) or (16) by \(\sqrt n\) proves
+\[
+\liminf_{n\to\infty}n^{3/2}\mathcal E_n(m)=\infty
+\tag{17}
+\]
+in each of the two asserted regimes.  All equalities used above are exact under randomized ties and unequal inclusion probabilities; positive support in \(\mathrm{def{:}exact\text{-}mixture}\) makes every Horvitz--Thompson denominator positive.  The argument supplies no coercive conclusion for bounded pilots, diverging pilots with \(m=o(\sqrt n)\), or \(\sqrt n=o(m)=o(n)\), exactly as stated.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The first branch excludes a sublinear main wave, and the second excludes pilot and main waves that both retain positive fractions. \textit{Gap.} Only bounded pilots, diverging pilots with \(m=o(\sqrt n)\), and \(\sqrt n=o(m)=o(n)\) remain open. \textit{Consumer.} The two macroscopic endpoint exclusions needed by the conditional grid transfer are handled by the two branches of this lemma.
+
+\begin{theorem}[thm:symmetry-reduction]\label{thm:symmetry-reduction}
+If \(p_{T,H}\) is invariant under the treatment-label flip group, then \(\pi_{iq}(T,H)=1/Q\) for all \(i\in T\) and \(q\in\mathcal Q\), so \(\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)\) equals the ordinary balanced factorial difference-in-means estimator.  With \(H=0\) in both waves, the pooled assignment is exactly uniform on the full-sample balanced support and the pooled estimator is pointwise the full-sample balanced complete-randomization estimator.  No asymptotic limit law is asserted without separate finite-population central-limit and covariance-limit hypotheses.
+\end{theorem}
+\begin{proof}
+Put (k=|T|).  The balanced support (Omega\_T) is nonempty only for (Qmid k), and every (zinOmega\_T) assigns exactly (k/Q) units to each treatment combination.  Let (mathcal G={-1,+1}\textasciicircum{}{K\_f}) act on (mathcal Q) by componentwise multiplication and on (Omega\_T) by
+\[
+(g\cdot z)_j=g z_j,qquad j\in T.
+\]
+This action preserves (Omega\_T), because it merely permutes its (Q) treatment-cell labels.  It is transitive on (mathcal Q): for (q,rinmathcal Q), the componentwise product (g=rq) satisfies (gq=r).
+
+Fix (iin T) and (q,rinmathcal Q), and choose (ginmathcal G) with (gq=r).  The map (zmapsto g\cdot z) is a bijection from ({zinOmega\_T:z\_i=q}) to ({zinOmega\_T:z\_i=r}).  By the asserted invariance of (p\_{T,H}),
+\[
+\begin{aligned}
+\pi_{iq}(T,H)
+&=\sum_{z\in\Omega_T}p_{T,H}(z)\mathbf 1\{z_i=q\}\\
+&=\sum_{z\in\Omega_T}p_{T,H}(g\cdot z)\mathbf 1\{(g\cdot z)_i=r\}\\
+&=\pi_{ir}(T,H),
+\end{aligned}
+\]
+where the first and last equalities are the definition of (pi\_{iq}(T,H)), the second uses the probability-preserving bijection, and invariance gives (p\_{T,H}(g\cdot z)=p\_{T,H}(z)).  The events ({Z\_i=q}), (qinmathcal Q), partition (Omega\_T); hence (sum\_{qinmathcal Q}pi\_{iq}(T,H)=1).  Since the (Q) summands are equal, (pi\_{iq}(T,H)=1/Q>0) for every (i,q).
+
+Define the observed treatment-cell mean
+\[
+\overline Y_T^{\mathrm{obs}}(q)=\frac{Q}{k}\sum_{i\in T:Z_i=q}Y_{in}(q).
+\]
+Substitution of (pi\_{iq}(T,H)=1/Q) into the definition of (widehat{\boldsymbol\tau}\textasciicircum{}{\mathrm{HT}}\_T(H)) yields, pointwise in (Z\_T),
+\[
+\begin{aligned}
+\widehat{\boldsymbol\tau}^{\mathrm{HT}}_T(H)
+&=\frac1k\sum_{q\in\mathcal Q}2^{1-K_f}c_q
+       \sum_{i\in T:Z_i=q}\frac{Y_{in}(q)}{1/Q}\\
+&=2^{1-K_f}\sum_{q\in\mathcal Q}c_q\,
+       \overline Y_T^{\mathrm{obs}}(q),
+\end{aligned}
+\]
+which is the ordinary balanced factorial difference-in-means vector.
+
+It remains to establish the two-wave assertion.  If (H=0), then (Delta\_T(z)\textasciicircum{}{\mathsf T}HDelta\_T(z)=0) for every (zinOmega\_T).  Thus all assignments are on the single boundary score.  The definition of the exact lower-tail rule prescribes one common randomized acceptance probability on that boundary; because its uniform average is (alpha), this common value is (a\_{T,0}(z)=alpha).  The exact-mixture definition therefore gives
+\[
+p_{T,0}(z)=\frac1{|\Omega_T|}
+\left\{\eta+\frac{1-\eta}{\alpha}\alpha\right\}
+=\frac1{|\Omega_T|}.
+\]
+In particular, both wave assignments are conditionally uniform on their respective balanced supports.
+
+By (minmathcal M\_n) and (Qmid n), both (m/Q) and (N/Q=(n-m)/Q) are integers.  Fix a full-sample balanced assignment (zinOmega\_{T\_n\textasciicircum{}{\mathrm{full}}}).  A pilot set (S) is compatible with (z) precisely when it contains (m/Q) of the (n/Q) units in each treatment cell.  Consequently the number of compatible pilot sets is
+\[
+L=\prod_{qinmathcal Q}{n/Q\choose m/Q},
+\]
+which does not depend on (z).  For each fixed (S), the cardinalities (|\Omega\_S|=m!/(m/Q)!\textasciicircum{}Q) and (|\Omega\_{S\textasciicircum{}c}|=N!/(N/Q)!\textasciicircum{}Q) also do not depend on (S).  Since (S\_m) is uniform and, when both actions are zero, the conditional wave laws just proved are uniform, the chain rule gives
+\[
+\Pr(Z_{T_n^{\mathrm{full}}}=z)
+=\frac{L}{{n\choose m}|\Omega_S||\Omega_{S^c}|},
+\]
+the same value for every (zinOmega\_{T\_n\textasciicircum{}{\mathrm{full}}}).  Assignments outside that support have probability zero, and the displayed probabilities sum to one.  Hence the induced full assignment is exactly uniform on (Omega\_{T\_n\textasciicircum{}{\mathrm{full}}}).
+
+Finally, the already proved exact Horvitz--Thompson accounting theorem permits the two wave contributions to be combined without an omitted cross-wave bias term.  More directly, applying the first part with (H=0) in each wave and using the pooled-HT definition gives the pointwise identity
+\[
+\begin{aligned}
+\widehat{\boldsymbol\tau}_{n,m}(0)
+&=\frac mn\frac1m\sum_{i\in S_m}2^{1-K_f}c_{Z_i}\,QY_{in}(Z_i)
+ +\frac Nn\frac1N\sum_{i\in S_m^c}2^{1-K_f}c_{Z_i}\,QY_{in}(Z_i)\\
+&=\frac1n\sum_{i=1}^n2^{1-K_f}c_{Z_i}\,QY_{in}(Z_i)
+=\widehat{\boldsymbol\tau}^{\mathrm{HT}}_{T_n^{\mathrm{full}}}(0).
+\end{aligned}
+\]
+The last expression is exactly the full-sample balanced complete-randomization difference-in-means estimator.  Every argument above is a finite counting or algebraic identity.  Therefore it neither assumes nor implies an asymptotic limit law, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction checks that exact-inclusion analysis preserves the established symmetric factorial design as a special case. \textit{Gap.} The proposition is a required compatibility result rather than a novelty claim; the new content begins when pilot adaptation breaks label symmetry. \textit{Consumer.} Practitioners can use the standard estimator whenever their preregistered score retains the flip symmetry.
+
+\begin{lemma}[lem:finite-lower-tail-identity]\label{lem:finite-lower-tail-identity}
+Let \((\mathsf X,\mathscr A,\mathsf P)\) be a probability space, let \(L\) be integrable, and let \(0<\alpha<1\).  Suppose \(a_0,a:\mathsf X\to[0,1]\) satisfy \(E_{\mathsf P}a_0=E_{\mathsf P}a=\alpha\), and for some \(q\in\mathbb R\), \(a_0=1\) on \(\{L<q\}\) and \(a_0=0\) on \(\{L>q\}\).  Then
+\[
+ E_{\mathsf P}\{(L-q)(a-a_0)\}\geq0.
+\]
+Moreover,
+\[
+ \inf_{\substack{0\leq b\leq1\\E_{\mathsf P}b=\alpha}}E_{\mathsf P}(Lb)
+ =\sup_{v\in\mathbb R}\left[\alpha v-E_{\mathsf P}\{(v-L)_+\}\right],
+\]
+and every lower-tail rule with common randomization on its boundary attains the infimum.  These statements remain exact when \(\mathsf P\) has atoms.
+\end{lemma}
+\begin{proof}
+On \(\{L<q\}\), one has \(L-q<0\) and \(a-a_0=a-1\leq0\); on \(\{L>q\}\), one has \(L-q>0\) and \(a-a_0=a\geq0\); and on \(\{L=q\}\) the product is zero.  Thus \((L-q)(a-a_0)\geq0\) pointwise, proving the first assertion after integration.
+
+For any feasible \(b\) and any \(v\in\mathbb R\),
+\[
+ E(Lb)=\alpha v+E\{(L-v)b\}
+ \geq \alpha v-E\{(v-L)_+\},
+\]
+because \((L-v)b\geq L-v\) on \(\{L<v\}\) and \((L-v)b\geq0\) on \(\{L\geq v\}\).  Taking the supremum over \(v\) gives the lower bound.  Choose a quantile \(q\) and randomize with one common probability on \(\{L=q\}\) so that the mass is exactly \(\alpha\).  For the resulting lower-tail rule \(a_0\), both pointwise inequalities at \(v=q\) are equalities.  Hence the primal and dual values coincide and \(a_0\) attains them.  No continuity of the law was used.
+\end{proof}
+
+\begin{lemma}[lem:deterministic-envelope-certificate]\label{lem:deterministic-envelope-certificate}
+Suppose \(\mathcal K\) is compact and \(A,B:\mathcal K\to(0,\infty)\) are continuous.  For \(\Phi(t)=\max_{\beta\in\mathcal K}\{A(\beta)t+B(\beta)/t\}\), there is a unique minimizer \(t^{\star}>0\), and
+\[
+ \Phi(t^{\star})
+ =\max_{(a,b)\in\operatorname{conv}\{(A(\beta),B(\beta)):\beta\in\mathcal K\}}2\sqrt{ab}.
+\]
+There are at most two parameter values active at \(t^{\star}\) and weights on them whose coefficient average \((a^{\star},b^{\star})\) attains the last maximum, with \(t^{\star}=\sqrt{b^{\star}/a^{\star}}\).
+\end{lemma}
+\begin{proof}
+Because \(\mathcal K\) is compact, because \(A\) and \(B\) are continuous, and because their values are strictly positive, the extreme-value theorem gives finite constants
+\[
+ a_-:=\min_{\beta\in\mathcal K}A(\beta)>0,
+ \qquad
+ b_-:=\min_{\beta\in\mathcal K}B(\beta)>0.
+\]
+Put \(t=e^s\) and, for \(\beta\in\mathcal K\), define
+\[
+ f_\beta(s):=A(\beta)e^s+B(\beta)e^{-s},
+ \qquad
+ h(s):=\Phi(e^s)=\max_{\beta\in\mathcal K}f_\beta(s).
+\]
+The map \((\beta,s)\mapsto f_\beta(s)\) is continuous.  Compactness of \(\mathcal K\) therefore implies that the displayed maximum is attained and that \(h\) is continuous.  Moreover,
+\[
+ f_\beta''(s)=f_\beta(s)
+ \ge 2\sqrt{A(\beta)B(\beta)}
+ \ge 2\sqrt{a_-b_-}=:\mu>0,
+\]
+where the first inequality is the arithmetic--geometric mean inequality.  Consequently
+\[
+ s\longmapsto f_\beta(s)-\frac{\mu}{2}s^2
+\]
+is convex for every \(\beta\).  Taking pointwise maxima preserves convexity, so
+\[
+ h(s)-\frac{\mu}{2}s^2
+ =\max_{\beta\in\mathcal K}
+ \left\{f_\beta(s)-\frac{\mu}{2}s^2\right\}
+\]
+is convex.  Thus \(h\) is strongly convex and in particular has at most one minimizer.  Also, for every \(s\in\mathbb R\),
+\[
+ h(s)\ge a_-e^s+b_-e^{-s},
+\]
+whose right-hand side tends to infinity as \(s\to\infty\) or \(s\to-\infty\).  Hence continuity and coercivity give a minimizer \(s^\star\), and strong convexity makes it unique.  Since \(s\mapsto e^s\) is a bijection from \(\mathbb R\) to \((0,\infty)\), \(t^\star=e^{s^\star}\) is the unique minimizer of \(\Phi\).
+
+Define the nonempty compact active set
+\[
+ \mathcal A^\star
+ :=\left\{\beta\in\mathcal K:
+ A(\beta)t^\star+\frac{B(\beta)}{t^\star}
+ =\Phi(t^\star)\right\}
+\]
+and the derivative
+\[
+ d_\beta:=A(\beta)-\frac{B(\beta)}{(t^\star)^2}.
+\]
+We next establish the needed first-order condition directly.  For \(u>0\), comparison with each active \(\beta\), followed by Taylor expansion uniform over the compact parameter set, gives
+\[
+ \liminf_{u\downarrow0}
+ \frac{\Phi(t^\star+u)-\Phi(t^\star)}{u}
+ \ge \max_{\beta\in\mathcal A^\star}d_\beta.
+\]
+Conversely, choose a maximizer \(\beta_u\) at \(t^\star+u\).  Along every sequence \(u\downarrow0\), compactness supplies a convergent subsequence.  Continuity of the objective and of \(\Phi\) makes every such subsequential limit an element of \(\mathcal A^\star\).  Since
+\[
+ \frac{\Phi(t^\star+u)-\Phi(t^\star)}{u}
+ \le
+ \frac{A(\beta_u)(t^\star+u)+B(\beta_u)/(t^\star+u)
+       -A(\beta_u)t^\star-B(\beta_u)/t^\star}{u},
+\]
+uniform Taylor expansion yields the reverse upper bound.  Therefore
+\[
+ \Phi'_+(t^\star)=\max_{\beta\in\mathcal A^\star}d_\beta.
+\]
+The same argument with \(u<0\), noting the reversal produced by division by a negative number, gives
+\[
+ \Phi'_-(t^\star)=\min_{\beta\in\mathcal A^\star}d_\beta.
+\]
+Minimality of \(t^\star\) implies \(\Phi'_-(t^\star)\le0\le\Phi'_+(t^\star)\), and hence
+\[
+ 0\in\operatorname{conv}
+ \{d_\beta:\beta\in\mathcal A^\star\}.
+\]
+Because this convex hull lies in one dimension, either some active derivative is zero or two active derivatives bracket zero.  Thus there are \(J\le2\), active points \(\beta_1,\ldots,\beta_J\), and weights \(\lambda_j\ge0\) with \(\sum_{j=1}^J\lambda_j=1\), such that
+\[
+ \sum_{j=1}^J\lambda_jd_{\beta_j}=0.
+\]
+Set
+\[
+ a^\star:=\sum_{j=1}^J\lambda_jA(\beta_j),
+ \qquad
+ b^\star:=\sum_{j=1}^J\lambda_jB(\beta_j).
+\]
+Both numbers are positive, and the preceding derivative identity is exactly
+\[
+ a^\star=\frac{b^\star}{(t^\star)^2},
+ \qquad\text{so}\qquad
+ t^\star=\sqrt{\frac{b^\star}{a^\star}}.
+\]
+Since every selected point is active, averaging its active equality gives
+\[
+ \Phi(t^\star)
+ =a^\star t^\star+\frac{b^\star}{t^\star}
+ =2\sqrt{a^\star b^\star}.
+\tag{1}
+\]
+
+It remains to certify the global convex-hull formula.  Let
+\[
+ \mathcal C:=\operatorname{conv}
+ \{(A(\beta),B(\beta)):\beta\in\mathcal K\}.
+\]
+This set is compact: any finite convex combination in \(\mathbb R^2\) involving more than three points has an affine dependence, and its weights can be varied along that dependence until one weight vanishes; iteration reduces the representation to at most three points.  Hence \(\mathcal C\) is the continuous image of the compact set \(\mathcal K^3\times\{(\lambda_1,\lambda_2,\lambda_3):\lambda_j\ge0,\ \sum_j\lambda_j=1\}\).  For every \((a,b)\in\mathcal C\), linearity in \((a,b)\) and the definition of \(\Phi\) imply
+\[
+ at^\star+\frac{b}{t^\star}\le\Phi(t^\star).
+\]
+The arithmetic--geometric mean inequality then gives
+\[
+ 2\sqrt{ab}
+ \le at^\star+\frac{b}{t^\star}
+ \le\Phi(t^\star).
+\tag{2}
+\]
+The point \((a^\star,b^\star)\) belongs to \(\mathcal C\), and equation \((1)\) shows that both inequalities in \((2)\) are equalities there.  Therefore
+\[
+ \Phi(t^\star)
+ =\max_{(a,b)\in\mathcal C}2\sqrt{ab}.
+\]
+The construction of \((a^\star,b^\star)\) simultaneously supplies the asserted certificate using at most two active parameter values and completes the proof.
+\end{proof}
+
+\begin{lemma}[lem:balanced-random-partition-clt]\label{lem:balanced-random-partition-clt}
+Let \(Q\) be fixed.  For each \(k\), let \(u_{1k},\ldots,u_{kk}\in\mathbb R^d\) be a deterministic finite population, let \(Q\mid k\), and assign exactly \(k/Q\) units to each of \(Q\) labels uniformly at random.  Write \(\bar u_k=k^{-1}\sum_i u_{ik}\), \(\bar u_{qk}=Qk^{-1}\sum_{i:Z_i=q}u_{ik}\), and \(S_k=(k-1)^{-1}\sum_i(u_{ik}-\bar u_k)(u_{ik}-\bar u_k)^{\mathsf T}\).  If \(S_k\to S\) and
+\[
+\frac{1}{k}\max_{i\leq k}\lVert u_{ik}-\bar u_k\rVert^2\longrightarrow0,
+\]
+then
+\[
+\sqrt{k}\bigl(\bar u_{1k}-\bar u_k,\ldots,\bar u_{Qk}-\bar u_k\bigr)
+\ \Rightarrow\
+N\!\left(0,\{QI_Q-\mathbf 1_Q\mathbf 1_Q^{\mathsf T}\}\otimes S\right).
+\]
+The conclusion holds jointly for any fixed finite collection of coordinates, and the corresponding randomization second moments converge to the displayed Gaussian second moments.
+\end{lemma}
+
+\begin{proposition}[prop:pilot-likelihood-information-audit]\label{prop:pilot-likelihood-information-audit}
+Conditional on \((\mathbf X_n,S_m,Z_{S_m})\), the pilot likelihood ratio between \(\beta_1\) and \(\beta_0\) is exactly
+\[
+\frac{dP_{\beta_1}^{\mathcal O_m}}
+     {dP_{\beta_0}^{\mathcal O_m}}
+=\prod_{i\in S_m}
+\frac{p_{Z_i,\beta_1}\{Y_{in}(Z_i)\mid x_{in}\}}
+     {p_{Z_i,\beta_0}\{Y_{in}(Z_i)\mid x_{in}\}}.
+\]
+Its conditional score covariance at \(\beta\) is
+\[
+I_m^{\mathrm{pil}}(\beta;S_m,Z)
+=\frac1m\sum_{i\in S_m}\sum_{q\in\mathcal Q}
+\mathbf 1\{Z_i=q\}
+E_\beta\!\left[
+s_{q,\beta}s_{q,\beta}^{\mathsf T}\mid x_{in}
+\right].
+\]
+The frozen assumptions do not imply
+\(I_m^{\mathrm{pil}}(\beta;S_m,Z)\to I(\beta)\): there are bounded regular product families and deterministic baseline arrays satisfying the stated baseline and conditional-moment conditions for which one nuisance--nuisance entry converges to \(320\), whereas the corresponding entry of \(I(\beta)\) equals \(80\).  Consequently the exact likelihood factorization is proved, but LAN with information \(I(\beta)\), the efficient action upper bound, and the arbitrary-action lower bound do not follow from the frozen core.
+\end{proposition}
+\begin{proof}
+The split \(S_m\), the balanced treatment labels \(Z_{S_m}\), and all auxiliary randomizers have laws fixed by the design and hence do not depend on \(\beta\).  The baseline array is a point mass under \(\mathrm{ass{:}fixed\text{-}baseline}\).  Conditional independence across units under \(\mathrm{ass{:}stable\text{-}product\text{-}law}\) therefore gives
+\[
+dP_\beta^{\mathcal O_m}
+=dP(S_m,Z_{S_m})
+\prod_{i\in S_m}
+p_{Z_i,\beta}\{dY_{in}(Z_i)\mid x_{in}\}.
+\tag{22}
+\]
+Taking the ratio of (22) at \(\beta_1\) and \(\beta_0\) cancels the parameter-free design factor and proves the displayed likelihood identity.  Differentiating its logarithm at \(\beta\), justified by \(\mathrm{ass{:}qmd}\), gives
+\[
+\Delta_m(\beta)
+=\frac1{\sqrt m}\sum_{i\in S_m}
+s_{Z_i,\beta}\{Y_{in}(Z_i)\mid x_{in}\}.
+\tag{23}
+\]
+Each summand has conditional mean zero.  Independence of the observed outcomes conditional on \((\mathbf X_n,S_m,Z_{S_m})\) makes the conditional covariance of (23) exactly \(I_m^{\mathrm{pil}}(\beta;S_m,Z)\).  This proves the positive part of the audit.
+
+We now give a certificate that the asserted convergence to \(I(\beta)\) is not a consequence of the frozen conditions.  Take \(p=1\), let the deterministic baselines alternate between
+\[
+-1+\frac1n
+\quad\hbox{and}\quad
+1+\frac1n,
+\tag{24}
+\]
+and let \(\nu=\tfrac12\delta_{-1}+\tfrac12\delta_1\).  The array (24) is uniformly bounded, its empirical law converges weakly to \(\nu\), and its centered empirical variance converges to one, so the three baseline assumptions hold.  Define the bounded measurable function
+\[
+h(-1)=h(1)=1,
+\qquad
+h(x)=2\quad\hbox{for }x\notin\{-1,1\}.
+\tag{25}
+\]
+For a nuisance coordinate \(\lambda\in[-1/48,1/48]\), put a residual variable on
+\(\{-3,-1,1,3\}\) with probabilities
+\[
+P_\lambda(E=y_j\mid x)
+=\frac14+\lambda h(x)v_j,
+\qquad
+v=(-1,3,-3,1).
+\tag{26}
+\]
+All probabilities in (26) lie between \(1/8\) and \(3/8\), so domination, positivity, uniform quadratic-mean differentiability, and the uniform third score moment hold.  Direct calculation gives
+\[
+\sum_jv_j=0,\qquad
+\sum_jy_jv_j=0,\qquad
+\sum_jy_j^2v_j=0.
+\tag{27}
+\]
+Thus the conditional first and second moments in this nuisance direction are constant in \((x,\lambda)\), notwithstanding the discontinuity of \(h\).  They satisfy both conditional-moment smoothness assumptions.  This nuisance factor may be combined with any bounded finite-support regular oracle component by using a sufficiently small independent residual scale; equations (27) leave its first two moment derivatives and hence its oracle map unchanged.  Enlarging the finite support if necessary gives a one-to-one bounded encoding of the two finite components.  The information matrix remains positive definite on a small product ball, while \(D_\lambda G_T=0\).  The oracle rank, signal, and curvature conditions of the original component persist under a sufficiently small bounded perturbation.  Hence this is a generic-class certificate within the stated model architecture, rather than a violation of an oracle assumption.
+
+At \(\lambda=0\), the nuisance score in category \(j\) is
+\[
+s_{\lambda,j}(x)=4h(x)v_j,
+\]
+and its conditional Fisher information is
+\[
+\sum_{j=1}^4\frac14\{4h(x)v_j\}^2
+=4h(x)^2\sum_{j=1}^4v_j^2
+=80h(x)^2.
+\tag{28}
+\]
+Every finite-\(n\) baseline in (24) lies outside \(\{-1,1\}\).  Therefore the nuisance--nuisance entry of \(I_m^{\mathrm{pil}}(0;S_m,Z)\) is exactly \(80\cdot2^2=320\), for every split and balanced assignment.  In contrast, (25) and the definition of \(I(\beta)\) give
+\[
+\frac1Q\sum_{q\in\mathcal Q}
+\int80h(x)^2\,\nu(dx)=80.
+\tag{29}
+\]
+Equations (28)--(29) prove the failure of information convergence.  The obstruction is precisely that weak convergence of the baseline empirical measure controls bounded continuous functions, whereas no frozen assumption makes
+\(x\mapsto E_\beta(s_{q,\beta}s_{q,\beta}^{\mathsf T}\mid x)\)
+continuous.  Thus replacing the random matrix \(I_m^{\mathrm{pil}}\) by \(I\), and any LAN-to-action conclusion using that replacement, would add an unstated hypothesis.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition identifies exactly what the pilot data contribute to likelihood and information. \textit{Gap.} The realized information need not converge to the advertised population integral. \textit{Consumer.} It tells a planner which additional information regularity must be checked before using an efficient-action calculation.
+
+\begin{proposition}[prop:second-order-risk-reduction]\label{prop:second-order-risk-reduction}
+Define the deletion contrast and the action-loss contrast by
+\[
+D_{n,m}(\beta)
+=d_{T_n^{\mathrm{full}}}(\beta)
+-\left(\frac Nn\right)^2
+E_{S_m}d_{T_{n,m}^{\mathrm{main}}}(\beta)
+\]
+and
+\[
+L_{n,m}(\delta_m,\beta)
+=\left(\frac Nn\right)^2
+E\!\left[
+V_{T_{n,m}^{\mathrm{main}}}(\delta_m,\beta)
+-V_{T_{n,m}^{\mathrm{main}}}
+\{G_{T_{n,m}^{\mathrm{main}}}(\beta),\beta\}
+\right].
+\]
+Then, for every pilot-measurable action,
+\[
+R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)
+=D_{n,m}(\beta)+L_{n,m}(\delta_m,\beta).
+\]
+The quantity \(L_{n,m}\) is a contrast and need not be nonnegative because the empirical Gaussian oracle is not assumed to minimize exact finite Horvitz--Thompson risk.  If \(s_{n,m}=m/n^2+1/(nm)\), the proposed second-order expansion for \(\widehat G_m\) is equivalent to
+\[
+\sup_{\beta\in\mathcal K}
+\frac{\left|
+\{D_{n,m}(\beta)-A(\beta)m/n^2\}
++\{L_{n,m}(\widehat G_m,\beta)-B(\beta)/(nm)\}
+\right|}{s_{n,m}}\longrightarrow0.
+\]
+Separate little-oh bounds for the two braced terms are sufficient but, without a no-cancellation premise, are not necessary.  Every proposed arbitrary-action lower bound is likewise exactly equivalent to the result obtained by substituting \(D_{n,m}+L_{n,m}\); there is no third cross-wave term.
+\end{proposition}
+\begin{proof}
+The already established exact accounting theorem states
+\[
+\begin{aligned}
+R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)
+&=d_{T_n^{\mathrm{full}}}(\beta)
+-\left(\frac Nn\right)^2
+E_{S_m}d_{T_{n,m}^{\mathrm{main}}}(\beta)\\
+&\quad+
+\left(\frac Nn\right)^2E\!\left[
+V_{T_{n,m}^{\mathrm{main}}}(\delta_m,\beta)
+-V_{T_{n,m}^{\mathrm{main}}}
+\{G_{T_{n,m}^{\mathrm{main}}}(\beta),\beta\}
+\right].
+\end{aligned}
+\tag{30}
+\]
+The first line on the right of (30) is \(D_{n,m}(\beta)\), and the second line is \(L_{n,m}(\delta_m,\beta)\), by
+\(\mathrm{def{:}exact\text{-}risk\text{-}components}\).  This proves the exact identity.
+
+For \(\delta_m=\widehat G_m\), subtract
+\(A(\beta)m/n^2+B(\beta)/(nm)\) from both sides of (30).  The resulting equality is
+\[
+\begin{aligned}
+&R_{n,m}(\widehat G_m,\beta)-R_n^{\mathrm{or}}(\beta)
+-A(\beta)\frac m{n^2}-\frac{B(\beta)}{nm}\\
+&\quad=
+\left\{D_{n,m}(\beta)-A(\beta)\frac m{n^2}\right\}
++\left\{L_{n,m}(\widehat G_m,\beta)-\frac{B(\beta)}{nm}\right\}.
+\end{aligned}
+\tag{31}
+\]
+Division by the positive number
+\(s_{n,m}=m/n^2+1/(nm)\), followed by the supremum over the compact parameter set, proves the stated equivalence.  Equation (31) also shows why separate component estimates imply the expansion by the triangle inequality, and why the converse would be false without excluding cancellation.  Finally, for any class \(\mathcal D_m\) of pilot-measurable actions and any parameter set \(\mathcal H\subseteq\mathcal K\), (30) gives the identity
+\[
+\inf_{\delta_m\in\mathcal D_m}\sup_{\beta\in\mathcal H}
+\{R_{n,m}(\delta_m,\beta)-R_n^{\mathrm{or}}(\beta)\}
+=
+\inf_{\delta_m\in\mathcal D_m}\sup_{\beta\in\mathcal H}
+\{D_{n,m}(\beta)+L_{n,m}(\delta_m,\beta)\}.
+\tag{32}
+\]
+Thus lower-bound statements are transferred by equality, not by an unproved sign claim about \(L_{n,m}\).  Equations (30)--(32) prove the reduction and the absence of a third term.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact decomposition is the valid replacement for the unsupported uniform second-order theorem. \textit{Gap.} Both coefficient-level component comparisons remain open. \textit{Consumer.} It gives a precise checklist for validating a proposed pilot rule without introducing a hidden cross-wave term.
+
+\begin{proposition}[prop:balanced-grid-argmin-transfer]\label{prop:balanced-grid-argmin-transfer}
+Let \(\mathcal K\) be compact, let \(A,B:\mathcal K\to(0,\infty)\) be continuous, and define \(\Phi,t^\star,C^\star\) by \(\mathrm{def{:}global\text{-}envelope}\).  Suppose the following two deterministic premises hold:
+\[
+\sup_{\substack{m\in\mathcal M_n\\ a\leq m/\sqrt n\leq b}}
+\left|n^{3/2}\mathcal E_n(m)-\Phi(m/\sqrt n)\right|
+\longrightarrow0
+\quad\text{for every }0<a<b<\infty,
+\tag{40}
+\]
+and, for every sequence \(m_n\in\mathcal M_n\) with
+\(m_n/\sqrt n\to0\) or \(m_n/\sqrt n\to\infty\),
+\[
+n^{3/2}\mathcal E_n(m_n)\longrightarrow\infty.
+\tag{41}
+\]
+Then
+\[
+n^{3/2}\inf_{\ell\in\mathcal M_n}\mathcal E_n(\ell)\longrightarrow C^\star>0.
+\]
+In particular, the denominator is positive for all sufficiently large \(n\).  Every sequence \(m_n\in\mathcal M_n\) satisfying
+\[
+\frac{\mathcal E_n(m_n)}
+{\inf_{\ell\in\mathcal M_n}\mathcal E_n(\ell)}
+\longrightarrow1
+\]
+obeys
+\[
+\frac{m_n}{\sqrt n}\longrightarrow t^\star,
+\qquad
+n^{3/2}\mathcal E_n(m_n)\longrightarrow C^\star.
+\]
+The minimizer \(t^\star\) is unique, and
+\[
+C^\star
+=\max_{(a,b)\in\operatorname{conv}
+\{(A(\beta),B(\beta)):\beta\in\mathcal K\}}
+2\sqrt{ab},
+\]
+with a certificate supported on at most two parameter values active at \(t^\star\).  This proposition is a conditional deterministic transfer and does not assert (40) or (41) for the statistical model.
+\end{proposition}
+\begin{proof}
+Because \(Q\) is fixed and \(Q\mid n\), for every fixed \(t>0\) there is, for all sufficiently large \(n\), a point \(m_n(t)\in\mathcal M_n\) satisfying
+\[
+\left|\frac{m_n(t)}{\sqrt n}-t\right|
+\leq\frac Q{\sqrt n}.
+\tag{42}
+\]
+Indeed, round \(t\sqrt n\) to the nearest multiple of \(Q\); for large \(n\) it lies between \(Q\) and \(n-Q\).  Choose a compact interval \([a,b]\) containing \(t\) in its interior.  Premise (40), continuity of \(\Phi\), and (42) give
+\[
+n^{3/2}\mathcal E_n\{m_n(t)\}
+\longrightarrow\Phi(t).
+\tag{43}
+\]
+Taking \(t=t^\star\) proves
+\[
+\limsup_{n\to\infty}
+n^{3/2}\inf_{\ell\in\mathcal M_n}\mathcal E_n(\ell)
+\leq C^\star.
+\tag{44}
+\]
+
+Let \(\ell_n\) be an exact minimizer over the finite nonempty set
+\(\mathcal M_n\).  If \(\ell_n/\sqrt n\) were not eventually contained in some compact subinterval of \((0,\infty)\), a subsequence would have a further subsequence tending to zero or infinity.  Premise (41) would make the scaled risk diverge along that subsequence, contradicting the finite upper bound (44).  Hence there are \(0<a<b<\infty\) such that eventually
+\[
+a\leq\ell_n/\sqrt n\leq b.
+\tag{45}
+\]
+Every subsequence has a further subsequence on which
+\(\ell_n/\sqrt n\to\bar t\in[a,b]\).  Applying (40) on this compact window yields
+\[
+n^{3/2}\mathcal E_n(\ell_n)
+=\Phi(\ell_n/\sqrt n)+o(1)
+\longrightarrow\Phi(\bar t)\geq C^\star.
+\tag{46}
+\]
+Together, (44) and (46) prove
+\[
+n^{3/2}\inf_{\ell\in\mathcal M_n}\mathcal E_n(\ell)
+\longrightarrow C^\star.
+\tag{47}
+\]
+
+Continuity and strict positivity of \(A\) and \(B\) on compact
+\(\mathcal K\) give constants \(A_->0\) and \(B_->0\).  Thus
+\[
+\Phi(t)\geq A_-t+\frac{B_-}{t}
+\geq2\sqrt{A_-B_-}>0,
+\tag{48}
+\]
+so \(C^\star>0\).  Equation (47) consequently implies positivity of the unscaled denominator for all sufficiently large \(n\).
+
+Now let \(m_n\) satisfy the displayed asymptotic-minimax ratio.  Equations (43), (47), and the ratio condition show that
+\[
+n^{3/2}\mathcal E_n(m_n)\longrightarrow C^\star.
+\tag{49}
+\]
+Premise (41) and (49) localize \(m_n/\sqrt n\) to a compact subinterval of \((0,\infty)\), by the same subsequence argument used for (45).  If a subsequence converges to \(\widetilde t\), premise (40) and (49) imply
+\[
+\Phi(\widetilde t)=C^\star.
+\tag{50}
+\]
+The uniqueness conclusion of
+\(\mathrm{lem{:}deterministic\text{-}envelope\text{-}certificate}\)
+makes \(\widetilde t=t^\star\).  Every convergent subsequence has this same limit, so \(m_n/\sqrt n\to t^\star\).  The convex-hull formula and the at-most-two-active-parameter certificate are exactly the remaining conclusions of that established lemma.  This proves every assertion as an implication from (40)--(41).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition certifies the deterministic passage from two explicit statistical premises to a unique balanced pilot ratio. \textit{Gap.} It does not assert either statistical premise. \textit{Consumer.} Once the finite-boundary and endpoint work is complete, it converts those results into the unique pilot constant and two-state certificate.
+
+\begin{openendedquestion}[oeq:pilot-information-action-bridge]\label{oeq:pilot-information-action-bridge}
+Given the exact pilot likelihood and its random information matrix \(I_m^{\mathrm{pil}}\), can one formulate and prove a valid subsequential LAN experiment indexed by an actual limit of \(I_m^{\mathrm{pil}}\), and then transfer its Gaussian decision bound to the exact finite Horvitz--Thompson action-loss contrast uniformly over arbitrary pilot-measurable actions?  Any positive answer must also prove localization, quadratic-loss uniform integrability, and the finite moving-boundary comparison; it may not replace \(I_m^{\mathrm{pil}}\) by \(I\) under the present assumptions.
+\end{openendedquestion}
+
+\begin{openendedquestion}[oeq:global-sharp-pilot]\label{oeq:global-sharp-pilot}
+Does the statistical model \(\mathfrak M\) establish both premises of \(\mathrm{prop{:}balanced\text{-}grid\text{-}argmin\text{-}transfer}\) with the candidate functions \(A\) and \(B\)?  Concretely, can one prove the compact-window limit
+\[
+\sup_{\substack{m\in\mathcal M_n\\ a\leq m/\sqrt n\leq b}}
+\left|n^{3/2}\mathcal E_n(m)
+-\max_{\beta\in\mathcal K}
+\left\{A(\beta)m/\sqrt n+B(\beta)\sqrt n/m\right\}\right|
+\longrightarrow0
+\]
+for every \(0<a<b<\infty\), together with sequential coercivity for bounded pilots, diverging pilots with \(m=o(\sqrt n)\), and \(\sqrt n=o(m)=o(n)\)?  Positive pilot fractions for which both waves retain nonvanishing fractions, and the case \(N=o(n)\), are proved by the two branches of \(\mathrm{lem{:}pilot\text{-}endpoint\text{-}exclusion}\).  The three remaining endpoint comparisons and the compact-window limit require the finite-boundary comparison and the pilot-information-to-action bridge.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This question is the honest headline status of sharp pilot sizing. \textit{Gap.} Compact-window second-order convergence and three endpoint lower comparisons remain unresolved. \textit{Consumer.} No preregistered square-root pilot recommendation is certified until this question is answered.
+
+\begin{proposition}[prop:first-order-arbitrary-action-optimality]\label{prop:first-order-arbitrary-action-optimality}
+For every fixed member of \(\mathfrak M\) and every admissible balanced sequence \(m=m(n)\in\mathcal M_n\) for which \(N=n-m\to\infty\), put \(T=T_{n,m}^{\mathrm{main}}\).  Then
+\[
+\lim_{n\to\infty}\sup_{\beta\in\mathcal K}
+\left|
+E_{S_m}\inf_{H\in\mathcal H_T}
+N\left\{V_T(H,\beta)-V_T(G_T(\beta),\beta)\right\}
+\right|=0.
+\]
+In particular,
+\[
+\liminf_{n\to\infty}\inf_{\beta\in\mathcal K}
+E_{S_m}\inf_{H\in\mathcal H_T}
+N\left\{V_T(H,\beta)-V_T(G_T(\beta),\beta)\right\}
+\geq0.
+\]
+The inner infimum is taken after the complement \(T\) is known.  The assertion is uniform over \(\beta\) for each fixed model member; it is not uniform over \(\mathfrak M\).
+\end{proposition}
+\begin{proof}
+Fix one member of \(\mathfrak M\), condition on its deterministic complete baseline array, and put
+\[
+w_q=2^{1-K_f}c_q,
+\qquad
+\mu_{iq}(\beta)=E_\beta\{Y_{in}(q)\mid x_{in}\},
+\qquad
+\varepsilon_{iq}=Y_{in}(q)-\mu_{iq}(\beta).
+\tag{1}
+\]
+The first and second conditional moments in (1) are continuous and uniformly bounded on \(\mathcal X\times\mathcal K\) by \(\mathrm{ass{:}arraywise\text{-}moment\text{-}regularity}\), and the outcome vectors of different units are independent by \(\mathrm{ass{:}stable\text{-}product\text{-}law}\).
+
+Let \(T=T_{n,m}^{\mathrm{main}}\).  If \(h_{in}(\beta)\) is any coordinate or coordinate product among the baselines and the conditional means in (1), the variance identity for a simple random sample without replacement of size \(N\) gives
+\[
+E_{S_m}\left|
+\frac1N\sum_{i\in T}h_{in}(\beta)
+-\frac1n\sum_{i=1}^nh_{in}(\beta)
+\right|^2\leq\frac{C_h}{N}.
+\tag{2}
+\]
+Uniform continuity on compact \(\mathcal X\times\mathcal K\), a finite net of \(\mathcal K\), and (2) make this convergence uniform in \(\beta\), in \(P_{S_m}\)-probability.  Apply it to the finite list of moments defining the imbalance covariance and \(\mathcal B_T\).  The baseline Gram lower bound, the full-array signal floor, constant rank, and continuity of the Moore--Penrose inverse then give events \(\mathcal R_n\), with \(P_{S_m}(\mathcal R_n)\to1\), on which
+\[
+\sup_{\beta\in\mathcal K}
+\left\|\mathcal B_T(\beta)-\mathcal B_\infty(\beta)\right\|
++
+\sup_{\beta\in\mathcal K}
+\left\|G_T(\beta)-G_\infty(\beta)\right\|
+\longrightarrow0.
+\tag{3}
+\]
+This step requires only \(N\to\infty\), irrespective of the sampling fraction.
+
+Consider deterministic sequences \(T_j\in\mathcal R_{n_j}\), \(\beta_j\in\mathcal K\), and \(H_j\in\mathcal H_{T_j}\).  Compactness of \(\mathcal K\) and of
+\[
+\{0\}\cup\{H\in\mathbb S_+^{Fp}:\operatorname{tr}(H)=1\}
+\tag{4}
+\]
+provides a subsequence on which \(\beta_j\to\beta_\star\) and \(H_j\to H_\star\).  In the standardized imbalance coordinates, positive congruence preserves positive semidefiniteness and positive scalar renormalization preserves score order, so the same compactness argument applies to the transformed actions.
+
+Define
+\[
+U_j=\sqrt N\left(
+\widetilde{\boldsymbol\tau}^{\,\mu}_{T_j}
+-\boldsymbol\tau_{T_j}^{\mu}\right),
+\qquad
+\widetilde{\boldsymbol\tau}^{\,\mu}_{T_j}
+=\frac1N\sum_{i\in T_j}\sum_{q\in\mathcal Q}
+Qw_q\mathbf 1\{Z_i=q\}\mu_{iq}(\beta_j),
+\tag{5}
+\]
+and let \(Z_j\) be the standardized vector \(\sqrt N\Delta_{T_j}\).  Boundedness makes the maximum influence in \(\mathrm{lem{:}balanced\text{-}random\text{-}partition\text{-}clt}\) negligible.  Equations (2)--(3) and that lemma yield joint convergence, including convergence of second moments,
+\[
+(U_j,Z_j)\Rightarrow
+(\mathcal B_\infty(\beta_\star)Z+R,Z),
+\qquad Z\sim N(0,I_{Fp}),
+\tag{6}
+\]
+where \(R\) is centered Gaussian and independent of \(Z\).
+
+Write \(b_j=a_{T_j,H_j}\).  If \(H_\star\neq0\), orthogonal diagonalization gives
+\[
+Z^{\mathsf T}H_\star Z
+=\sum_{\ell=1}^{d_\star}\lambda_\ell Z_\ell^2,
+\qquad d_\star\geq1,
+\qquad \lambda_\ell>0.
+\tag{7}
+\]
+The first summand in (7) has a density on \((0,\infty)\), convolution preserves absence of atoms, and a standard Gaussian lies in the null space with probability zero.  Thus (7) has a continuous distribution.  The joint convergence in (6), convergence of score matrices, and the exact lower-tail definition imply
+\[
+b_j\Rightarrow b_{H_\star}(Z)
+=\mathbf 1\{Z^{\mathsf T}H_\star Z\leq q_{H_\star}\},
+\qquad E b_{H_\star}(Z)=\alpha.
+\tag{8}
+\]
+If \(H_\star=0\), compactness of (4) means \(H_j=0\) eventually; exact common boundary randomization then gives \(b_j\equiv\alpha\), and we set \(b_{H_\star}\equiv\alpha\).  In both cases \(0\leq b_{H_\star}\leq1\), its mean is \(\alpha\), and it is even in \(Z\).
+
+For any action, the exact inclusion probability is
+\[
+\pi_{iq}(T,H)
+=\frac1Q\left[
+\eta+\frac{1-\eta}{\alpha}
+E_{\mathrm{CR}}\{a_{T,H}\mid Z_i=q\}
+\right].
+\tag{9}
+\]
+Couple conditional and unconditional complete randomization by swapping unit \(i\), when necessary, with a uniformly chosen unit carrying label \(q\).  This changes each standardized sum in (6) by at most \(C/\sqrt N\), uniformly in \(i,q\), because the arrays are bounded.  The zero boundary probability following from (7)--(8) gives
+\[
+\max_{i\in T_j,q\in\mathcal Q}
+\left|E_{\mathrm{CR}}(b_j\mid Z_i=q)-\alpha\right|
+\longrightarrow0.
+\tag{10}
+\]
+For the zero action this equality is exact.  The same coupling applies to \(G_{T_j}(\beta_j)\), because (3), positive rank, and \(\mathrm{lem{:}gaussian\text{-}boundary\text{-}regularity}\) give a nonconstant limiting quadratic form with zero boundary mass.  Therefore (9)--(10) imply
+\[
+\max_{i,q}\left|
+\pi_{iq}(T_j,H_j)-\frac1Q\right|
++\max_{i,q}\left|
+\pi_{iq}\{T_j,G_{T_j}(\beta_j)\}-\frac1Q\right|
+\longrightarrow0,
+\qquad
+\pi_{iq}\geq\frac\eta Q.
+\tag{11}
+\]
+The argument is sequentially uniform: failure would produce sequences \((T_j,\beta_j,H_j,i_j,q_j)\) to which the same compactness and swap proof applies.
+
+The exact-mixture likelihood ratio relative to complete randomization is
+\[
+\ell_{T,H}=\eta+\frac{1-\eta}{\alpha}a_{T,H},
+\qquad
+\eta\leq\ell_{T,H}\leq\eta+\frac{1-\eta}{\alpha}.
+\tag{12}
+\]
+Hence (6)--(8), convergence of randomization second moments, and the bounded density (12) yield, for the conditional-mean table,
+\[
+\begin{aligned}
+&N\left\{
+V_{T_j}^{\mu}(H_j,\beta_j)
+-V_{T_j}^{\mu}(G_{T_j}(\beta_j),\beta_j)
+\right\}\\
+&\quad\longrightarrow
+\frac{1-\eta}{\alpha}\operatorname{tr}(M_{\beta_\star})
+E\!\left[
+g_{\beta_\star}(Z)
+\{b_{H_\star}(Z)-b_{G_\star}(Z)\}
+\right],
+\end{aligned}
+\tag{13}
+\]
+where
+\[
+b_{G_\star}(Z)
+=\mathbf 1\{g_{\beta_\star}(Z)
+\leq q_{\alpha,\beta_\star}\}.
+\tag{14}
+\]
+To verify (13), exact mass \(E b_{H_\star}=E b_{G_\star}=\alpha\) makes the \(R^{\mathsf T}WR\) contributions equal, independence and centering annihilate the cross terms, and
+\[
+Z^{\mathsf T}M_{\beta_\star}Z
+=\operatorname{tr}(M_{\beta_\star})g_{\beta_\star}(Z)
+\tag{15}
+\]
+is the remaining explained loss.
+
+The ordinary statistic in (5) may be replaced in (13) by the exact-inclusion Horvitz--Thompson statistic.  Indeed, (11) makes every inverse-inclusion coefficient differ from \(Q\) by \(o(1)\); the complete-randomization covariance identity and (12) then make the centered squared difference \(o(N^{-1})\).  Its mean is \(o(N^{-1/2})\), because the limiting linear statistic in (6) is odd in \((R,Z)\), whereas each limiting quadratic lower-tail density is even, while the exact-inclusion statistic is exactly centered.  Thus the total squared replacement error is \(o(N^{-1})\).
+
+The outcome residuals introduce no action-dependent first-order term.  With
+\(\sigma_{i,qr}(\beta)=E_\beta(\varepsilon_{iq}\varepsilon_{ir}\mid x_{in})\), independence across units removes all terms with unequal unit indices.  For \(q\neq r\), mutual exclusivity and the positivity in (11) imply exactly
+\[
+E\!\left[
+\left\{\frac{\mathbf 1(Z_i=q)}{\pi_{iq}}-1\right\}
+\left\{\frac{\mathbf 1(Z_i=r)}{\pi_{ir}}-1\right\}
+\right]=-1,
+\tag{16}
+\]
+independently of the action.  The diagonal difference between \(H_j\) and \(G_{T_j}(\beta_j)\), after multiplication by \(N\), is
+\[
+\frac1N\sum_{i\in T_j}\sum_{q\in\mathcal Q}
+w_q^{\mathsf T}Ww_q\,\sigma_{i,qq}(\beta_j)
+\left[
+\frac1{\pi_{iq}(T_j,H_j)}
+-\frac1{\pi_{iq}\{T_j,G_{T_j}(\beta_j)\}}
+\right].
+\tag{17}
+\]
+Uniform boundedness of the second moments, (11), and \(\pi_{iq}\geq\eta/Q\) make (17) tend to zero.
+
+Apply \(\mathrm{lem{:}finite\text{-}lower\text{-}tail\text{-}identity}\) on Gaussian space with
+\(L=g_{\beta_\star}(Z)\), \(a=b_{H_\star}\), and \(a_0=b_{G_\star}\).  Since both rules have mass \(\alpha\),
+\[
+\begin{aligned}
+E\!\left[g_{\beta_\star}(Z)
+\{b_{H_\star}(Z)-b_{G_\star}(Z)\}\right]
+&=E\!\left[(g_{\beta_\star}(Z)-q_{\alpha,\beta_\star})
+\{b_{H_\star}(Z)-b_{G_\star}(Z)\}\right]\\
+&\geq0.
+\end{aligned}
+\tag{18}
+\]
+Equations (13)--(18) prove that every deterministic regular sequence \((T_j,\beta_j,H_j)\) has nonnegative limiting action regret.
+
+It remains to pass to the expected infimum.  For fixed finite \(T\), only finitely many weak orderings of the finite score set \(\{\Delta_T(z)^{\mathsf T}H\Delta_T(z):z\in\Omega_T\}\) can occur; therefore the inner infimum is measurable and has arbitrarily accurate measurable minimizing actions.  For the fixed model member, \(\mathrm{lem{:}uniform\text{-}single\text{-}wave\text{-}risk}\) gives a constant \(C_0<\infty\) such that
+\[
+\left|N\{V_T(H,\beta)-V_T(G_T(\beta),\beta)\}\right|
+\leq C_0
+\tag{19}
+\]
+for all \(\beta\), all admissible \(H\), and all balanced \(T\).  If the desired uniform lower limit failed, there would be \(\epsilon>0\) and a sequence \(\beta_j\) for which the expected infimum were below \(-\epsilon\).  Bound (19) discards \(\mathcal R_{n_j}^c\); on \(\mathcal R_{n_j}\), selecting a complement and an approximately minimizing action would produce a deterministic regular sequence with limiting regret at most \(-\epsilon/2\), contradicting (18).  Hence
+\[
+\liminf_{n\to\infty}\inf_{\beta\in\mathcal K}
+E_{S_m}\inf_{H\in\mathcal H_T}
+N\{V_T(H,\beta)-V_T(G_T(\beta),\beta)\}
+\geq0.
+\tag{20}
+\]
+By \(\mathrm{lem{:}oracle\text{-}action\text{-}admissible}\), the choice \(H=G_T(\beta)\) is feasible and gives zero exactly, so each inner infimum is at most zero.  Therefore (20) is equivalent to
+\[
+\sup_{\beta\in\mathcal K}
+\left|
+E_{S_m}\inf_{H\in\mathcal H_T}
+N\{V_T(H,\beta)-V_T(G_T(\beta),\beta)\}
+\right|\longrightarrow0,
+\tag{21}
+\]
+which proves the proposition.  Exact finite-lattice negative regrets are allowed by the proof; (21) says precisely that they vanish after first-order scaling.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition transfers every arbitrary exact finite quadratic action to a Gaussian mass-\(\alpha\) rule and certifies nonnegative limiting regret. \textit{Gap.} No rate sharper than \(o(N^{-1})\) is obtained. \textit{Consumer.} It converts the first-order deletion gain into a uniform lower bound for macroscopic pilot fractions.
+
+\section{Interpretation}
+
+For planning, the proved coefficient \(a(\beta)\) quantifies the first-order loss from deleting a macroscopic fraction of units for learning.  No exact finite quadratic action can asymptotically beat the empirical Gaussian oracle at order \(N^{-1}\), even though finite-lattice action-loss contrasts may be negative.  Consequently, the second branch of the endpoint lemma rules out pilot and main waves that both retain positive fractions, while its first branch rules out a sublinear main wave.  The familiar balance \(A t+B/t\) remains a conditional design calculation, not a validated sample-size rule for this experiment.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Discrete score supports can create exact ties, and induced designs can have unequal inclusion probabilities. Compact rule and parameter subsequences, zero Gaussian boundary mass, an explicit leave-one-unit coupling, and exact residual cancellation absorb those effects only at first order. They do not provide an \(n^{-3/2}\) remainder, so they do not establish the compact-window second-order premise or the three remaining boundary comparisons. Separately, smooth first and second outcome moments do not control score information as a function of the baseline, so the pilot LAN information cannot be fixed at \(I(\beta)\) without additional derivation.
+
+\section{Honest scope}
+
+Established results are exact Horvitz--Thompson centering and accounting, the one-wave risk bound, common oracle-map convergence, Gaussian boundary regularity, the first-order exact-mixture oracle gain, first-order Gaussian lower-tail optimality against every admissible finite-score rule, the exact pilot likelihood and information audit, the two proved macroscopic exclusions covering fixed nondegenerate wave splits and sublinear main waves, and the conditional deterministic grid transfer. The coefficient \(A\) remains an unresolved deletion candidate and \(B\) remains a Gaussian action candidate. Uniform frontier-scale deletion, exact finite action curvature, information convergence, bounded pilots, diverging pilots with \(m=o(\sqrt n)\), the regime \(\sqrt n=o(m)=o(n)\), and the unconditional global pilot rule are open. The causal estimand remains the fixed realized factorial vector throughout.
+
+\begin{thebibliography}{99}
+
+  \bibitem{HanDeng2026DataAdaptiveFactorial} Han, Tingxuan, and Ke Deng. 2026. ``Data-Adaptive Rerandomization for \(2^{K}\) Factorial Designs.'' arXiv:2609.02078v1.
+
+  \bibitem{Yamin2026WhenHowPilot} Yamin, Juan C. 2026. ``When and How to Pilot: Design Rules for Two-Wave Experiments.'' arXiv:2607.16982v2.
+
+  \bibitem{LiuHanRubinDeng2025BayesianRerandomization} Liu, Zhaoyang, Tingxuan Han, Donald B. Rubin, and Ke Deng. 2025. ``Bayesian Criterion for Re-randomization.'' Journal of the American Statistical Association. doi:10.1080/01621459.2025.2507432.
+
+  \bibitem{HorvitzThompson1952UnequalProbability} Horvitz, D. G., and D. J. Thompson. 1952. ``A Generalization of Sampling Without Replacement from a Finite Universe.'' Journal of the American Statistical Association 47:663--685.
+
+  \bibitem{DelevoyeSavje2020HTConsistency} Delevoye, Angèle, and Fredrik Sävje. 2020. ``Consistency of the Horvitz--Thompson Estimator under General Sampling and Experimental Designs.'' Journal of Statistical Planning and Inference 207:190--197.
+
+  \bibitem{LiDing2017FinitePopulationCLT} Li, Xinran, and Peng Ding. 2017. ``General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference.'' Journal of the American Statistical Association 112:1759--1769.
+
+  \bibitem{LiDingRubin2020FactorialRerandomization} Li, Xinran, Peng Ding, and Donald B. Rubin. 2020. ``Rerandomization in \(2^{K}\) Factorial Experiments.'' The Annals of Statistics 48:43--63.
+
+  \bibitem{WangLi2025BestChoiceRerandomization} Wang, Yuhao, and Xinran Li. 2025. ``Asymptotic Theory of the Best-Choice Rerandomization Using the Mahalanobis Distance.'' Journal of Econometrics 250:106049.
+
+  \bibitem{BransonDasguptaRubin2016FactorialRerandomization} Branson, Zach, Tirthankar Dasgupta, and Donald B. Rubin. 2016. ``Improving Covariate Balance in \(2^{K}\) Factorial Designs via Rerandomization.'' The Annals of Applied Statistics 10:1958--1976.
+
+  \bibitem{SchindlBranson2024QuadraticForms} Schindl, Kyle, and Zach Branson. 2024. ``A Unified Framework for Rerandomization Using Quadratic Forms.'' arXiv:2403.12815.
+
+  \bibitem{Armstrong2022EfficiencyBoundsExperiments} Armstrong, Timothy B. 2022. ``Asymptotic Efficiency Bounds for a Class of Experimental Designs.'' arXiv:2205.02726.
+
+  \bibitem{JuniorBranson2025Review} Ribeiro Junior, Antônio Carlos Herling, and Zach Branson. 2025. ``Does Rerandomization Help Beyond Covariate Adjustment? A Review and Guide for Theory and Practice.'' arXiv:2512.05290.
+
+  \bibitem{MenonChakrabartiNerella2002Sequential} Menon, Anil, Sibu Chakrabarti, and Nadhamuni Nerella. 2002. ``Sequential Experimentation in Product Development. I.'' Pharmaceutical Development and Technology 7:33--41.
+
+  \bibitem{VanDerVaart1998AsymptoticStatistics} van der Vaart, A. W. 1998. Asymptotic Statistics. Cambridge University Press.
+
+\end{thebibliography}
+
+\end{document}

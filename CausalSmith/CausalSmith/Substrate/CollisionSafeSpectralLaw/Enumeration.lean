@@ -1,6 +1,7 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
-import Mathlib.Order.Interval.Set.Infinite
-import Mathlib.SetTheory.Cardinal.Embedding
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
+public import Mathlib.Order.Interval.Set.Infinite
+public import Mathlib.SetTheory.Cardinal.Embedding
 
 /-!
 # Collision-safe finite spectral enumeration
@@ -10,6 +11,8 @@ padding unused slots by distinct points in a prescribed interval.  It also ident
 associated Lagrange matrix polynomials with aggregate spectral projectors, so repeated diagonal
 coordinates contribute once rather than being overcounted.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

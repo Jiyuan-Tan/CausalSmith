@@ -14,8 +14,9 @@ is duplicated here: nonnegativity, the upper bound, monotonicity, symmetry, and 
 delegate to the canonical lemmas.
 -/
 
-import Causalean.Mathlib.Probability.StdNormalCDF
-import Causalean.Experimentation.DesignBased.InProb
+module
+public import Causalean.Mathlib.Probability.StdNormalCDF
+public import Causalean.Experimentation.DesignBased.InProb
 
 /-! # Standard normal CDF adapter
 
@@ -28,6 +29,8 @@ design-based interval and CLT statements, while `stdNormalCdf_eq` identifies it 
 downstream: nonnegativity, the upper bound by one, monotonicity, symmetry
 `stdNormalCdf_neg`, and continuity `continuous_stdNormalCdf`.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set Filter Topology
 

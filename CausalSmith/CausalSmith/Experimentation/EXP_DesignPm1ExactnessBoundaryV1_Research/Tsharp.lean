@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers
-import Mathlib.Data.Fin.VecNotation
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers
+public import Mathlib.Data.Fin.VecNotation
 
 /-! # Headline rounding-loss certificate (`thm:sharp-rho-star`)
 
@@ -13,6 +15,8 @@ The tight certificate `ρ_⋆ = Δ_m^±`, computed by the active-set SOCP over t
 reduced triangle, with the exact zero-loss criterion `ρ_⋆ = 0` iff the relaxed
 argmin meets the implementable slice `{y+z ≥ d_m}`. No exact `r_star` frontier is
 asserted (honest open scope). -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

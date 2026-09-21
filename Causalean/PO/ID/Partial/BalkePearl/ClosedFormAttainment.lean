@@ -23,11 +23,14 @@ duality theory enters the proofs, each witness is an explicit table and is check
 directly against the feasibility constraints.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Attainment.Lower
-import Causalean.PO.ID.Partial.BalkePearl.Attainment.Upper
-import Causalean.PO.ID.Partial.BalkePearl.IntervalForm
+module
+public import Causalean.PO.ID.Partial.BalkePearl.Attainment.Lower
+public import Causalean.PO.ID.Partial.BalkePearl.Attainment.Upper
+public import Causalean.PO.ID.Partial.BalkePearl.IntervalForm
 
 /-! # Attainment of the Balke-Pearl closed-form endpoints -/
+
+public section
 
 namespace Causalean
 namespace PO

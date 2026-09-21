@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedFiniteGrid
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmGridPriorLift
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedFiniteGrid
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmGridPriorLift
 
 /-!
 # Inverse tilt on the overlap-shifted selected grid
@@ -7,6 +8,8 @@ import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmGri
 The pole `bκ` is no larger than the smallest grid node, so the Jordan priors
 can be inverse-tilted and their approximation gap becomes a functional gap.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

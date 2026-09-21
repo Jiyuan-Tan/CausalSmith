@@ -1,4 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.T_SharpMinimaxFixedInterior
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.T_SharpMinimaxFixedInterior
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

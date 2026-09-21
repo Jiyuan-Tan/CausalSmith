@@ -1,5 +1,6 @@
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Factorization
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Splice
+module
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Factorization
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Splice
 
 /-!
 # Graphoid intersection under a positive density
@@ -8,6 +9,8 @@ This module proves the measure-level intersection axiom for the four canonical c
 It also exports the decomposition corollary which drops the `V` component from the combined
 right-hand block.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

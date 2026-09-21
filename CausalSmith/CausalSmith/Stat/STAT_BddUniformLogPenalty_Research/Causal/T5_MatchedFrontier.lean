@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.T3_A1A2PointIndexedConverse
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.T4_WinsorizedUpper
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.T3_A1A2PointIndexedConverse
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.T4_WinsorizedUpper
 
 /-!
 # Matched causal frontier
@@ -8,6 +9,8 @@ This theorem combines the point-indexed converse with the explicit estimator.
 It is about the exact `P₁₂(p,ν,L)` class, not the distinct full
 `P_NP(L,q)` support-boundary problem.
 -/
+
+public section
 
 open Filter
 open scoped ENNReal Topology

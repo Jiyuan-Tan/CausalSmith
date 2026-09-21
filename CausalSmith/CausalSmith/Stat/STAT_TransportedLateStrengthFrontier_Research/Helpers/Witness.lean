@@ -7,20 +7,14 @@ The witness predicate records the continuum law's compliance-type and Bernoulli
 moment identities without introducing a new causal typeclass.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Frontier
-import Causalean.Estimation.MinimaxATE.Model
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.TwoPointConstruction
-
-namespace CausalSmith.Stat.TransportedLateStrengthFrontier
-
-open Filter MeasureTheory
-open scoped ENNReal Topology
-
-variable {𝒳 : Type*} [MeasurableSpace 𝒳]
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Frontier
+public import Causalean.Estimation.MinimaxATE.Model
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.TwoPointConstruction
 
 /-! ### Measure-theoretic leaves for the witness
 
@@ -29,7 +23,16 @@ paper.  The first chooses compliance, the second chooses the common receipt
 type when the unit is not a complier, and the third chooses the binary treated
 outcome. -/
 
-private noncomputable abbrev witnessCoin (p : ℝ) : Measure Bool :=
+@[expose] public section
+
+namespace CausalSmith.Stat.TransportedLateStrengthFrontier
+
+open Filter MeasureTheory
+open scoped ENNReal Topology
+
+variable {𝒳 : Type*} [MeasurableSpace 𝒳]
+
+noncomputable abbrev witnessCoin (p : ℝ) : Measure Bool :=
   Causalean.Mathlib.Probability.bernoulliBool p
 
 private lemma measurable_witnessCoin : Measurable witnessCoin := by
@@ -66,7 +69,7 @@ private lemma witnessCoin_map {β : Type*} [MeasurableSpace β] (p : ℝ)
   simp only [Measure.smul_apply, smul_eq_mul]
   exact hc.mul ((Measure.measurable_coe hA).comp hμ)
 
-private def witnessFullPack (s : Bool) (x : 𝒳) (complier common y1 : Bool) :
+def witnessFullPack (s : Bool) (x : 𝒳) (complier common y1 : Bool) :
     FullData 𝒳 :=
   (s, x, if complier then false else common,
     if complier then true else common, 0, boolReal y1)
@@ -227,7 +230,7 @@ treated-outcome coin has success probability `1 / 2 + h` for compliers and
 `1 / 2` for both non-complier types.
 -/
 
-private noncomputable def witnessPotentialKernelH (h : ℝ) (s : Bool)
+noncomputable def witnessPotentialKernelH (h : ℝ) (s : Bool)
     (p : 𝒳 → ℝ) (x : 𝒳) : Measure (FullData 𝒳) :=
   (witnessCoin (p x)).bind fun complier =>
     (witnessCoin (1 / 2)).bind fun common =>
@@ -286,16 +289,16 @@ private lemma witnessPotentialKernelH_probability (h : ℝ) (s : Bool)
     (μ := witnessCoin (if complier then 1 / 2 + h else 1 / 2))
     (measurable_of_finite _).aemeasurable
 
-private noncomputable def witnessPopulationMeasureH (h : ℝ) (s : Bool)
+noncomputable def witnessPopulationMeasureH (h : ℝ) (s : Bool)
     (μ : Measure 𝒳) (p : 𝒳 → ℝ) : Measure (FullData 𝒳) :=
   μ.bind (witnessPotentialKernelH h s p)
 
-private noncomputable def witnessFullMeasureH (h : ℝ)
+noncomputable def witnessFullMeasureH (h : ℝ)
     (μS μT : Measure 𝒳) (p : 𝒳 → ℝ) : Measure (FullData 𝒳) :=
   ENNReal.ofReal (1 / 2 : ℝ) • witnessPopulationMeasureH h true μS p +
     ENNReal.ofReal (1 / 2 : ℝ) • witnessPopulationMeasureH h false μT p
 
-private noncomputable def witnessAssignedMeasureH (h : ℝ)
+noncomputable def witnessAssignedMeasureH (h : ℝ)
     (μS : Measure 𝒳) (p e : 𝒳 → ℝ) : Measure (AssignedFullData 𝒳) :=
   (witnessPopulationMeasureH h true μS p).bind fun o =>
     (witnessCoin (e (fullX o))).map (fun z => (o, z))
@@ -3229,7 +3232,7 @@ private noncomputable def witnessArray (μS μT : ℕ → Measure 𝒳)
   receiptContrast n _ x := p n x
   receiptContrast_measurable := fun n s => hp n
 
-private noncomputable def witnessArrayH (h : ℝ)
+noncomputable def witnessArrayH (h : ℝ)
     (μS μT : ℕ → Measure 𝒳) (p e : ℕ → 𝒳 → ℝ)
     (hp : ∀ n, Measurable (p n))
     (he : ∀ n, Measurable (e n)) : TransportedArray 𝒳 where
@@ -3909,7 +3912,6 @@ private lemma witnessArrayH_sourceObservation
   · filter_upwards with x
     exact hp n x
 
-
 private lemma witnessArrayH_fullDataSupport
     (h : ℝ) (μS μT : ℕ → Measure 𝒳) (p e : ℕ → 𝒳 → ℝ)
     (hpmeas : ∀ n, Measurable (p n)) (hemeas : ∀ n, Measurable (e n))
@@ -4303,7 +4305,6 @@ private lemma witnessArray_sourceObservation
   · filter_upwards with x
     change 0 ≤ p n x ∧ p n x ≤ 1
     exact hp n x
-
 
 private lemma witnessArray_populationXLaw
     (μS μT : ℕ → Measure 𝒳) (p e : ℕ → 𝒳 → ℝ)
@@ -4879,7 +4880,7 @@ private lemma one_le_geometryKish
   rw [hrewrite] at hvar
   linarith
 
-private lemma geometryCompliance_measurable
+lemma geometryCompliance_measurable
     (g : Geometry 𝒳) (t0 : ℝ) (n : ℕ) :
     Measurable (geometryCompliance g t0 n) := by
   exact ((g.weight_measurable n).const_mul _).div_const _
@@ -5400,7 +5401,7 @@ private lemma geometryWitnessFamily_twoSample_chiSq_bound
           hpmeas g.propensity_measurable) n ∧ _
     exact witnessArrayH_source_ac_integrable h g.sourceX g.targetX p
       g.propensity hpmeas g.propensity_measurable hg.1 hh hp he01 n
-  have hacPi := Causalean.Stat.pi_iid_absolutelyContinuous μh μ0 hac n
+  have hacPi := Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μh μ0 hac n
   have hintPi := Causalean.Stat.pi_iid_integrable_sq_dev μh μ0 hac hint n
   have hancillary :
       Causalean.Stat.chiSqDiv
@@ -5522,7 +5523,7 @@ private lemma geometryWitnessFamily_twoSample_ac_integrable
     exact witnessArrayH_source_ac_integrable h g.sourceX g.targetX p
       g.propensity hpmeas g.propensity_measurable hg.1 hh hp he01 n
   have hacPi : μπ ≪ μ0π := by
-    exact Causalean.Stat.pi_iid_absolutelyContinuous μh μ0 hac n
+    exact Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μh μ0 hac n
   have hintPi :
       Integrable (fun o => ((μπ.rnDeriv μ0π o).toReal - 1) ^ 2) μ0π := by
     exact Causalean.Stat.pi_iid_integrable_sq_dev μh μ0 hac hint n
@@ -5531,7 +5532,7 @@ private lemma geometryWitnessFamily_twoSample_ac_integrable
   have hrnProd :
       (μπ.prod ρ).rnDeriv (μ0π.prod ρ) =ᵐ[μ0π.prod ρ]
         fun z => μπ.rnDeriv μ0π z.1 * ρ.rnDeriv ρ z.2 :=
-    Causalean.Stat.rnDeriv_prod_eq μπ μ0π ρ ρ hacPi
+    Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.rnDeriv_prod_eq μπ μ0π ρ ρ hacPi
       (Measure.AbsolutelyContinuous.refl ρ)
   have hrhoProd :
       (fun z : (Fin n → SourceObs 𝒳) × (Fin (N n) → 𝒳) =>

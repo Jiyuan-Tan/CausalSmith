@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ConcreteRadialHandle
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ConcreteRadialHandle
 
 /-!
 # Full-data coupling under the radial Bernoulli channel
@@ -7,13 +8,12 @@ This module proves the finite PMF identity behind the full-data radial-channel
 certificate, including the zero-mass-cell boundary case.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal ProbabilityTheory
-
-private abbrev BinLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
 
 -- @node: contractedFullPMF
 /-- This is the full-data probability mass function obtained after radial Bernoulli contraction. -/

@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
-import Mathlib.Topology.Compactness.Compact
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
+public import Mathlib.Topology.Compactness.Compact
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

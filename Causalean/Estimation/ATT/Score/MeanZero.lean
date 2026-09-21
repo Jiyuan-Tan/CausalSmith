@@ -27,8 +27,9 @@ The `hIPW` hypothesis below is the same one carried in the PO-level
 the same hypothesis must be threaded through here.
 -/
 
-import Causalean.Estimation.ATT.Score.ScorePullout
-import Causalean.Tactic.IntegralLinearity
+module
+public import Causalean.Estimation.ATT.Score.ScorePullout
+public import Causalean.Tactic.IntegralLinearity
 
 /-!
 Proves the population centering facts for the ATT AIPW score. The measurable
@@ -41,6 +42,8 @@ The proof combines the PO-level adjusted-ATT identity, the control-arm weighted
 residual pull-out lemma, and the constant term `π_T * θ₀`, giving the centering
 input for ATT influence-function and DML results.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -102,10 +105,10 @@ private lemma integrable_adjustedCE
     (S : TreatedEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.ATTAssumptions) :
     Integrable (S.toPOBackdoorSystem.adjustedCE false) P.μ := by
-  have hcate_int : Integrable (S.toPOBackdoorSystem.CATE false) P.μ := by
-    unfold POBackdoorSystem.CATE
+  have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome false) P.μ := by
+    unfold POBackdoorSystem.conditionalMeanOutcome
     exact MeasureTheory.integrable_condExp
-  exact hcate_int.congr (S.control_cate_backdoor hA)
+  exact hcate_int.congr (S.conditionalMeanOutcome_backdoor_control hA)
 
 /-! ## Mean-zero theorem -/
 
@@ -205,12 +208,12 @@ theorem aipw_mean_zero_ATT
         =ᵐ[P.μ] (fun ω => A ω * R ω - (1 - A ω) * W ω * R ω
           - A ω * S.θ₀) := by
     filter_upwards [S.μ₀_compat hA, S.e_compat,
-      S.control_cate_backdoor hA] with ω hμ he hcat
+      S.conditionalMeanOutcome_backdoor_control hA] with ω hμ he hcat
     have hμ_eq : S.μ₀_val (S.toPOBackdoorSystem.factualX ω)
         = S.toPOBackdoorSystem.adjustedCE false ω := by
-      have hcate_eq : S.toPOBackdoorSystem.CATE false ω
+      have hcate_eq : S.toPOBackdoorSystem.conditionalMeanOutcome false ω
           = S.μ₀_val (S.toPOBackdoorSystem.factualX ω) := by
-        simpa [POBackdoorSystem.CATE] using hμ
+        simpa [POBackdoorSystem.conditionalMeanOutcome] using hμ
       rw [← hcate_eq, hcat]
     have he_eq : S.e_val (S.toPOBackdoorSystem.factualX ω)
         = S.toPOBackdoorSystem.propScore true ω := he.symm

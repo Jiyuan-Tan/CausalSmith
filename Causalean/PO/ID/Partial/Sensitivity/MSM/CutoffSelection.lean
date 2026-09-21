@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Marginal Sensitivity Model — reducing the cutoff calibration to a conditional-quantile equation
 
-The sharp quantile-balancing bound (`QuantileBalance.msmUpperCalib_eq_cutoff`) needs the cutoff
+The calibrated quantile-balancing bound (`msmUpperCalib_eq_cutoff`) needs the cutoff
 propensity `cutoffProp Λ c` to be *calibrated* and feasible (`hcut_mem : cutoffProp Λ c ∈ MSMSetCalib Λ`).
 This file reduces that hypothesis to a single explicit **conditional-survival** equation on the cutoff.
 
@@ -26,11 +26,12 @@ cutoff propensity; the conditional-quantile construction of such cutoffs is hand
 MSM cutoff-construction development.
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffExists
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Sharp
-import Causalean.PO.ID.Partial.Sensitivity.MSM.QuantileBalance
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Calibrated
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffExists
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.QuantileBalance
 
-/-! # Sharp treated-arm upper bound from calibrated cutoffs
+/-! # Calibrated treated-arm upper bound from calibrated cutoffs
 
 This file reduces calibrated feasibility of the upper MSM cutoff to one
 conditional-survival equation. It defines `treatedSurv` and `survTarget`, proves
@@ -39,6 +40,8 @@ the calibration decomposition `cutoff_calibValue_eq`, derives
 odds-ratio box via `cutoffProp_mem_MSMSet`, and packages both facts as
 `cutoffProp_mem_MSMSetCalib_of_survival`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -58,9 +61,8 @@ noncomputable def treatedSurv (c : P.Ω → ℝ) : P.Ω → ℝ :=
 noncomputable def survTarget (Λ : ℝ) (ω : P.Ω) : ℝ :=
   (1 - S.wMin Λ ω * S.propScore true ω) / (S.wMax Λ ω - S.wMin Λ ω)
 
-/-- **Decomposition of the cutoff calibration value.** For [a σ(X)-measurable cutoff function
-`c`](hyp:_hc_meas), assume [the treatment indicator divided by the cutoff propensity is
-integrable](hyp:_hint), [the treated-survival indicator, weighted by the treatment indicator, is
+/-- **Decomposition of the cutoff calibration value.** For [a sensitivity level and cutoff
+function](hyp:Λ,c), assume [the treated-survival indicator, weighted by the treatment indicator, is
 integrable](hyp:hint1), [the product of the treatment indicator and the lower
 marginal-sensitivity-model weight `wMin` is integrable](hyp:hmin_int), and [the gap between the
 upper and lower weights, weighted by the treatment-weighted treated-survival indicator, is
@@ -68,8 +70,7 @@ integrable](hyp:hdiff_int). Then [pulling the `σ(X)`-measurable weights `wMin`,
 conditional expectation decomposes the cutoff calibration value: `E[Z/cutoffProp Λ c | σ(X)] =
 wMin·e + (wMax − wMin)·G(c)`, where `G(c)` is the conditional treated-survival at cutoff
 `c`](goal). -/
-theorem cutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (_hc_meas : Measurable[S.sigmaX] c)
-    (_hint : Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ c ω) P.μ)
+theorem cutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmin_int : Integrable (fun ω => S.dVar.indicator true ω * S.wMin Λ ω) P.μ)
@@ -154,18 +155,17 @@ theorem cutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (_hc_meas : Measurabl
 equals the target, the cutoff is calibrated. -/
 theorem cutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
-    (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ c ω) P.μ)
+    (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmin_int : Integrable (fun ω => S.dVar.indicator true ω * S.wMin Λ ω) P.μ)
     (hdiff_int : Integrable (fun ω => (S.wMax Λ ω - S.wMin Λ ω) *
       (S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ)
     (hsurv : S.treatedSurv c =ᵐ[P.μ] S.survTarget Λ) :
-    S.Calibrated (S.cutoffProp Λ c) := by
+    S.Calibrated true (S.cutoffProp Λ c) := by
   unfold POBackdoorSystem.Calibrated
   have hΛ0 : 0 < Λ := lt_trans zero_lt_one hΛ
-  refine (S.cutoff_calibValue_eq Λ c hc_meas hint hint1 hmin_int hdiff_int).trans ?_
+  refine (S.cutoff_calibValue_eq Λ c hint1 hmin_int hdiff_int).trans ?_
   filter_upwards [hoverlap, hsurv] with ω hω hsurvω
   rw [hsurvω]
   set e : ℝ := S.propScore true ω with he_def
@@ -191,7 +191,7 @@ marginal-sensitivity-model weight](goal). -/
 theorem cutoffProp_mem_MSMSet (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (c : P.Ω → ℝ) :
-    S.cutoffProp Λ c ∈ S.MSMSet Λ := by
+    S.cutoffProp Λ c ∈ S.MSMSet true Λ := by
   classical
   have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le zero_lt_one hΛ
   have hOR_box : ∀ {e et : ℝ}, 0 < e → e < 1 → 0 < et → et < 1 →
@@ -279,17 +279,16 @@ conditional treated-survival equation `G(c) = survTarget`, then
 `msmUpperCalib_eq_cutoff`. -/
 theorem cutoffProp_mem_MSMSetCalib_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
-    (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ c ω) P.μ)
+    (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmin_int : Integrable (fun ω => S.dVar.indicator true ω * S.wMin Λ ω) P.μ)
     (hdiff_int : Integrable (fun ω => (S.wMax Λ ω - S.wMin Λ ω) *
       (S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ)
     (hsurv : S.treatedSurv c =ᵐ[P.μ] S.survTarget Λ) :
-    S.cutoffProp Λ c ∈ S.MSMSetCalib Λ :=
+    S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ :=
     ⟨S.cutoffProp_mem_MSMSet Λ (le_of_lt hΛ) hoverlap c,
-   S.cutoffProp_calibrated_of_survival Λ hΛ hoverlap c hc_meas hint hint1
+   S.cutoffProp_calibrated_of_survival Λ hΛ hoverlap c hint1
      hmin_int hdiff_int hsurv⟩
 
 end POBackdoorSystem

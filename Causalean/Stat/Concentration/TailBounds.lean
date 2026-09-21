@@ -1,19 +1,15 @@
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
-import Causalean.Stat.Concentration.TailBounds.Bernstein
-import Causalean.Stat.Concentration.TailBounds.EmpiricalBernstein
-import Causalean.Stat.Concentration.TailBounds.McDiarmid
-import Causalean.Stat.Concentration.TailBounds.SubExponential
-import Causalean.Stat.Concentration.TailBounds.Massart
-import Causalean.Stat.Concentration.TailBounds.MaximalInequality
-import Causalean.Stat.Concentration.TailBounds.BinomialCount
+module
+public import Causalean.Stat.Concentration.TailBounds.Bernstein
+public import Causalean.Stat.Concentration.TailBounds.BinomialCount
+public import Causalean.Stat.Concentration.TailBounds.ConfidenceInterval
+public import Causalean.Stat.Concentration.TailBounds.EmpiricalBernstein
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
+public import Causalean.Stat.Concentration.TailBounds.Massart
+public import Causalean.Stat.Concentration.TailBounds.MaximalInequality
+public import Causalean.Stat.Concentration.TailBounds.McDiarmid
+public import Causalean.Stat.Concentration.TailBounds.SharpBernstein
+public import Causalean.Stat.Concentration.TailBounds.SubExponential
 
 /-!
-# Concentration · Tail bounds (barrel)
-
-Scalar/bounded-difference tail inequalities: Hoeffding, Bernstein and its
-empirical (variance-adaptive) form, McDiarmid's bounded-difference inequality,
-the sub-exponential moment-generating-function machinery, finite maximal
-inequalities for sub-exponential families, Massart's finite-class maximal
-inequality, and multiplicative Bernoulli-count tails. Re-exports
-`Causalean.Stat.Concentration.TailBounds.*`.
+Tail-probability bounds for random quantities. They provide reusable high-probability controls for deviations from a mean or target.
 -/

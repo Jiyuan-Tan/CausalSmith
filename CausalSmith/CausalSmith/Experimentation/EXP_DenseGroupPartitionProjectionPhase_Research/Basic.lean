@@ -1,8 +1,9 @@
-import Causalean.Experimentation.DesignBased.DesignCore
-import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
-import Causalean.Experimentation.FinitePopulationMoments
-import Mathlib.Data.Fintype.Powerset
-import Mathlib.Analysis.Real.Sqrt
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
+public import Causalean.Experimentation.FinitePopulationMoments
+public import Mathlib.Data.Fintype.Powerset
+public import Mathlib.Analysis.Real.Sqrt
 
 /-!
 # Dense random-group experiments: finite-population slice
@@ -10,6 +11,8 @@ import Mathlib.Analysis.Real.Sqrt
 This file defines the deterministic composition-indexed potential-outcome schedule,
 the uniform fixed-cardinality slice, and its group-level moments.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

@@ -1,10 +1,13 @@
-import Mathlib.Analysis.Calculus.ContDiff.Basic
+module
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
 
 /-!
 # Local boundedness of a continuously differentiable derivative
 
 This module packages the elementary finite-dimensional consequence that a continuously differentiable function has a bounded Fréchet derivative on some neighborhood of each point.  It is independent of the matrix-specific development.
 -/
+
+@[expose] public section
 
 open Filter
 open scoped Topology

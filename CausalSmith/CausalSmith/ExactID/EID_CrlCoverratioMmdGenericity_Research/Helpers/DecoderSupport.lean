@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderTriangularInverse
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderTriangularInverse
 
 /-!
 # Realized predecessor-score support
@@ -9,6 +10,11 @@ point lies in the support of its observed interventional predecessor law.  It
 is the support bridge needed to turn continuous-version uniqueness into the
 pointwise equation-(11) identity.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set Filter
 open scoped Topology
@@ -21,7 +27,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- Every supplied observed single-target intervention law has the full observed model
 support, because its latent density is strictly positive on the full cube.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedInterventionalLaw_support_eq_observedSupport
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -70,7 +76,7 @@ lemma observedInterventionalLaw_support_eq_observedSupport
 -- @node: continuousOn_observedLawLogRatio_observedSupport
 /-- The law-selected log ratio is continuous on the common observed support.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma continuousOn_observedLawLogRatio_observedSupport
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -93,7 +99,7 @@ lemma continuousOn_observedLawLogRatio_observedSupport
 -- @node: continuousOn_predecessorLogRatioProjection_observedSupport
 /-- The vector of predecessor log ratios is continuous on the common observed support.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma continuousOn_predecessorLogRatioProjection_observedSupport
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -132,7 +138,7 @@ lemma continuousOn_map_mem_support
 /-- Every predecessor-score vector realized by a latent cube point belongs to the support of
 the observed predecessor law under the current intervention.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hv), [the stated conclusion](goal) follows. -/
 lemma observedPredecessorLogRatio_mem_support
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

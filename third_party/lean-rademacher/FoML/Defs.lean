@@ -1,5 +1,8 @@
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Probability.Notation
+module
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Probability.Notation
+
+@[expose] public section
 
 noncomputable
 section

@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-! Exact finite rational witnesses for the three-arm scalar-compression diagnostic. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 

@@ -1,0 +1,1261 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}ranksim\_\allowbreak{}pathset\_\allowbreak{}discontinuity}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A binary instrument identifies complier outcome distributions but policies below \(p_0\) and above \(p_1\) require extrapolation. Under exactly Marx's existential rank similarity and a fixed finite ordered outcome alphabet, the sharp simultaneous policy-mean set is a finite nonconvex union of common-rank path images, each attained by one law. This finite-alphabet missing-support class and Marx's full-support class are nonnested; the reduction to Marx applies only on their finite-alphabet full-support overlap, and the observable monotonicity inequalities are derived from the latent model. Path survival gives the exact Hausdorff continuity frontier and a centered local Lipschitz bound. A legal three-outcome contiguous submodel proves that globally honest metric procedures cannot shrink uniformly. A terminating finite algorithm computes the multinomial outer set, the set-of-sets image, and their exact Hausdorff radii; finite-sample coverage is the direct inversion corollary. On every certified continuity law, the full projected Hausdorff-loss germ is recovered pointwise on the exact multinomial sampling face, including continuous multi-path switches, propensity--grid ties, and exact lower-dimensional structural-zero faces; this requires positive instrument shares and does not imply globally shrinking honest metric inference.
+
+\section{Project justification}
+
+\paragraph{Gap.} Marx's full-support condition makes rank-similar groupwise extrema jointly attainable. Within the fixed finite-alphabet setting, allowing missing complier support leaves no published sharp joint policy-grid set, no stability criterion for disappearing common-rank couplings, and no finite procedure computing Hausdorff radii for the resulting set-of-sets inversion.
+
+\paragraph{Niche.} Finite outcomes convert existential common ranks into finitely many ordered chains, but the resulting set is a law-dependent nonconvex union rather than one convex program or one smooth projection.
+
+\paragraph{Fill.} The project derives the observable compatibility inequalities from the maintained latent model and supplies a sharp path-union representation, finite exclusion certificates, an if-and-only-if continuity frontier, a contiguous impossibility theorem, a terminating exact inversion-and-radius algorithm, the accompanying finite-sample coverage corollary, and pointwise projected full-loss Gaussian calibration at every certified continuity law on its exact multinomial sampling face. The calibration covers continuous multi-path switches, propensity--grid ties, and exact lower-dimensional structural-zero faces, requires positive instrument shares, and makes no uniform calibration or globally shrinking honest metric-inference claim. The finite-alphabet missing-support class and Marx's full-support class are nonnested, with the Marx reduction confined to their finite-alphabet full-support overlap.
+
+\section{Related work}
+
+Marx (2024) is the direct substantive anchor: Proposition 5 obtains uniformly sharp rank-similar policy bounds under full complier support, and footnote 29 identifies the construction that fails without it. The present finite-alphabet missing-support class and Marx's full-support class are nonnested; the reduction to Proposition 5 applies only on their finite-alphabet full-support overlap. Imbens and Rubin (1997) give the principal-stratum interpretation underlying the observable monotonicity inequalities; here those inequalities are derived as compatibility checks. Chesher (2010), Torgovitsky (2019), and Han and Yang (2024) show how discrete structural restrictions can be encoded by finite feasibility or linear programs; they inform the allocation representation but do not impose one common ordered rank across every latent-index bin. Beresteanu and Molinari (2008) and Chernozhukov, Hong, and Tamer (2007) provide regular Hausdorff theory for different set-valued substrates; the survival theorem addresses law-dependent component death in a nonconvex union. Romano and Shaikh (2010) motivate the coverage corollary through general identified-set inversion. Song et al. (2026) informs the finite categorical feasibility layer, while the algorithm theorem adds common-parameter nonconvex unions and exact outer-set and hyperspace Hausdorff radii. Fang and Santos (2019), Kaido, Molinari, and Stoye (2019), and Fan and Park (2010) motivate nonsmooth set-valued calibration; here the complete projected Hausdorff-loss germ is recovered pointwise at every certified continuity law on its exact multinomial sampling face, including continuous multi-path switches, propensity--grid ties, and exact lower-dimensional structural-zero faces, under positive instrument shares but without a uniform-calibration claim.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=(\mathbb E[\mathbf 1\{U\le p^\ell\}Y_1+\mathbf 1\{U>p^\ell\}Y_0])_{\ell=1}^L\).
+Primary functional / estimator / diagnostic: \(S(q)=\bigcup_{\gamma\in\Gamma_K:\,q\in D_\gamma}\{C_\gamma x:A_\gamma x=b_\gamma+B_\gamma q,\ x\ge0\}\).
+\begin{itemize}
+  \item \texttt{K} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{number of ordered outcome values}
+  \item \texttt{L} --- \texttt{integer}; \(\{3,4,\ldots\}\); \texttt{number of policy thresholds}
+  \item \texttt{y} --- \texttt{ordered vector}; \(\{(y_1,\ldots,y_K)\in\mathbb R^K:y_1<\cdots<y_K\}\); \texttt{outcome alphabet}
+  \item \texttt{Z} --- \texttt{random variable}; \(\{0,1\}\); \texttt{binary instrument}
+  \item \texttt{pi} --- \texttt{vector}; \(\Delta_1\); \texttt{instrument-\allowbreak{}arm probabilities}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_z=\Pr(Z=z)\)
+  \item \texttt{U} --- \texttt{random variable}; \([0,1]\); \texttt{latent resistance}
+  \item \texttt{Y0} --- \texttt{random variable}; \(\{y_1,\ldots,y_K\}\); \texttt{untreated potential outcome}
+  \item \texttt{Y1} --- \texttt{random variable}; \(\{y_1,\ldots,y_K\}\); \texttt{treated potential outcome}
+  \item \texttt{V0} --- \texttt{random variable}; \([0,1]\); \texttt{untreated existential rank}
+  \item \texttt{V1} --- \texttt{random variable}; \([0,1]\); \texttt{treated existential rank}
+  \item \texttt{V} --- \texttt{random variable}; \([0,1]\); \texttt{common rank in the rank-\allowbreak{}invariant replacement}
+  \item \texttt{Q0} --- \texttt{function}; \([0,1]\to\{y_1,\ldots,y_K\}\); left-continuous marginal quantile of \(Y_0\)
+  \item \texttt{Q1} --- \texttt{function}; \([0,1]\to\{y_1,\ldots,y_K\}\); left-continuous marginal quantile of \(Y_1\)
+  \item \texttt{D} --- \texttt{random variable}; \(\{0,1\}\); \texttt{treatment}
+  \item \texttt{Y} --- \texttt{random variable}; \(\{y_1,\ldots,y_K\}\); \texttt{observed outcome}
+  \item \texttt{q} --- \texttt{vector}; \(\Delta_{2K-1}\times\Delta_{2K-1}\); \texttt{observed conditional multinomial law}
+  \par\smallskip\noindent\emph{Definition.} \(q_z(d,k)=\Pr(D=d,Y=y_k\mid Z=z)\)
+  \item \texttt{p0} --- \texttt{scalar}; \((0,1)\); \texttt{low instrument propensity}
+  \par\smallskip\noindent\emph{Definition.} \(p_0=\sum_{k=1}^Kq_0(1,k)\)
+  \item \texttt{p1} --- \texttt{scalar}; \((0,1)\); \texttt{high instrument propensity}
+  \par\smallskip\noindent\emph{Definition.} \(p_1=\sum_{k=1}^Kq_1(1,k)\)
+  \item \texttt{pgrid} --- \texttt{vector}; \(\{(p^1,\ldots,p^L)\in[0,1]^L:\min_\ell p^\ell<p_0<p_1<\max_\ell p^\ell\}\); \texttt{fixed policy grid}
+  \item \texttt{P} --- \texttt{law family}; \(q\mapsto P_q\); \texttt{observed experiment indexed by its conditional cell law}
+  \par\smallskip\noindent\emph{Definition.} \(P_q(Z=z,D=d,Y=y_k)=\pi_zq_z(d,k)\)
+  \item \texttt{a1} --- \texttt{vector}; \(\mathbb R^K\); \texttt{always-\allowbreak{}treated treated-\allowbreak{}outcome masses}
+  \item \texttt{n0} --- \texttt{vector}; \(\mathbb R^K\); \texttt{never-\allowbreak{}treated untreated-\allowbreak{}outcome masses}
+  \item \texttt{c0} --- \texttt{vector}; \(\mathbb R^K\); \texttt{complier untreated-\allowbreak{}outcome masses}
+  \item \texttt{c1} --- \texttt{vector}; \(\mathbb R^K\); \texttt{complier treated-\allowbreak{}outcome masses}
+  \item \texttt{Orders} --- \texttt{finite set}; \texttt{weak-\allowbreak{}order cells of the two propensities relative to the fixed policy grid}
+  \item \texttt{Bins} --- \texttt{finite partition family}; \texttt{consecutive latent-\allowbreak{}index bins indexed by weak-\allowbreak{}order cells}
+  \item \texttt{Paths} --- \texttt{finite set}; \(\Sigma_K\); maximal coordinatewise monotone paths from \((1,1)\) to \((K,K)\)
+  \item \texttt{Components} --- \texttt{finite set}; \texttt{weak-\allowbreak{}order and common-\allowbreak{}rank path labels}
+  \item \texttt{x} --- \texttt{nonnegative array}; \(\mathbb R_+^{|\mathcal B|(2K-1)}\); \texttt{bin-\allowbreak{}by-\allowbreak{}path-\allowbreak{}node allocation}
+  \item \texttt{Amat} --- \texttt{matrix family}; \texttt{fixed allocation-\allowbreak{}balance matrices indexed by components}
+  \item \texttt{Bmat} --- \texttt{matrix family}; \texttt{fixed maps from observed cells to balance right-\allowbreak{}hand sides}
+  \item \texttt{bvec} --- \texttt{vector family}; \texttt{bin-\allowbreak{}length offsets indexed by components}
+  \item \texttt{Cmat} --- \texttt{matrix family}; \texttt{policy-\allowbreak{}mean maps indexed by components}
+  \item \texttt{Xpath} --- \texttt{set-\allowbreak{}valued map}; \(\Gamma_K\times\mathcal Q\rightrightarrows\mathbb R_+^{|\mathcal B|(2K-1)}\); \texttt{component allocation fiber}
+  \item \texttt{Spath} --- \texttt{set-\allowbreak{}valued map}; \(\Gamma_K\times\mathcal Q\rightrightarrows\mathbb R^L\); \texttt{policy image of one order-\allowbreak{}path component}
+  \item \texttt{S} --- \texttt{set-\allowbreak{}valued map}; \(\mathcal Q\rightrightarrows\mathbb R^L\); \texttt{sharp joint policy-\allowbreak{}mean correspondence}
+  \item \texttt{Qbar} --- \texttt{polytope}; \(\Delta_{2K-1}^2\); \texttt{closed compatible observed-\allowbreak{}law class}
+  \item \texttt{Domain} --- \texttt{set family}; \(\Gamma_K\rightrightarrows\overline{\mathcal Q}\); \texttt{order-\allowbreak{}path feasibility domains}
+  \item \texttt{qstar} --- \texttt{vector}; \(\overline{\mathcal Q}\); \texttt{base observed law}
+  \item \texttt{Fan} --- \texttt{finite fan}; relative sign fan of active path-domain inequalities at \(q_\star\)
+  \item \texttt{J} --- \texttt{finite set}; \(2^{\Gamma_K}\); \texttt{components feasible at the base law}
+  \item \texttt{JF} --- \texttt{finite set family}; \(2^{\Gamma_K}\); \texttt{base-\allowbreak{}feasible components surviving on a fan face}
+  \item \texttt{dH} --- \texttt{metric}; \(\mathcal K(\mathbb R^L)^2\to\mathbb R_+\); \texttt{loss for sharp policy sets}
+  \par\smallskip\noindent\emph{Definition.} Hausdorff distance induced by \(\|\cdot\|_\infty\)
+  \item \texttt{t} --- \texttt{scalar}; \([0,1/4)\); \texttt{path-\allowbreak{}drop perturbation index}
+  \item \texttt{qt} --- \texttt{vector family}; \(\overline{\mathcal Q}\); \texttt{three-\allowbreak{}outcome observed-\allowbreak{}law submodel}
+  \item \texttt{Szero} --- \texttt{compact set}; \(\mathcal K(\mathbb R^3)\); sharp set at \(t=0\)
+  \item \texttt{St} --- \texttt{compact-\allowbreak{}set family}; \(\mathcal K(\mathbb R^3)\); sharp set for \(t>0\)
+  \item \texttt{n} --- \texttt{integer}; \(\mathbb N\); \texttt{sample size}
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1/2)\); \texttt{error probability}
+  \item \texttt{O} --- \texttt{random vector}; \(\{0,1\}\times\{0,1\}\times\{y_1,\ldots,y_K\}\); \texttt{one observed draw}
+  \par\smallskip\noindent\emph{Definition.} \(O=(Z,D,Y)\)
+  \item \texttt{N} --- \texttt{count array}; \(\mathbb N^{4K}\); \texttt{instrument-\allowbreak{}arm multinomial cell counts}
+  \item \texttt{Qhat} --- \texttt{random vector}; \(\Delta_{2K-1}^2\); \texttt{conditional empirical multinomial proportions}
+  \item \texttt{that} --- \texttt{random scalar}; \([0,1/4]\); \texttt{estimated perturbation index in the three-\allowbreak{}outcome submodel}
+  \item \texttt{Icp} --- \texttt{interval family}; \texttt{two-\allowbreak{}sided exact binomial intervals with Bonferroni tail allocation}
+  \item \texttt{Rn} --- \texttt{random set}; \(2^{\Delta_{2K-1}^2}\); \texttt{simultaneous observed-\allowbreak{}law confidence region}
+  \item \texttt{Pcomp} --- \texttt{polytope family}; \texttt{joint observed-\allowbreak{}law and path-\allowbreak{}allocation systems for inversion}
+  \item \texttt{Cn} --- \texttt{random compact set}; \(\mathcal K(\mathbb R^L)\); \texttt{outer confidence set for the sharp policy set}
+  \item \texttt{Hn} --- \texttt{random collection}; \(2^{\mathcal K(\mathbb R^L)}\); \texttt{confidence collection for the sharp set itself}
+  \item \texttt{rout} --- \texttt{random scalar}; \(\mathbb R_+\); \texttt{outer-\allowbreak{}set Hausdorff radius over the admissible sharp sets}
+  \item \texttt{rset} --- \texttt{random scalar}; \(\mathbb R_+\); \texttt{Chebyshev radius of the set-\allowbreak{}of-\allowbreak{}sets confidence collection}
+  \item \texttt{valg} --- \texttt{integer}; \(\mathbb N\); \texttt{maximum number of real variables in one generated radius formula}
+  \item \texttt{malg} --- \texttt{integer}; \(\mathbb N\); \texttt{maximum number of scalar affine atoms in one generated radius formula}
+  \item \texttt{InvAlg} --- \texttt{finite algorithm}; \texttt{exact common-\allowbreak{}rank inversion and Hausdorff-\allowbreak{}radius algorithm}
+  \item \texttt{E} --- \texttt{multinomial face}; \(\Delta_{2K-1}^2\); \texttt{specified sampling face including structural zeros}
+  \item \texttt{Tspace} --- \texttt{linear space}; relative tangent space of \(E\) at \(q_\star\)
+  \item \texttt{Proj} --- \texttt{function}; \(\operatorname{aff}(E)\to\overline{\mathcal Q}\cap E\); \texttt{Euclidean projection onto the compatible sampling face}
+  \item \texttt{Qtilde} --- \texttt{random vector}; \(\overline{\mathcal Q}\cap E\); \texttt{projected empirical law}
+  \item \texttt{Sigma} --- \texttt{matrix}; \(\mathbb S_+^{\dim(T)}\); \texttt{multinomial covariance on the relative tangent space}
+  \item \texttt{G} --- \texttt{random vector}; \(T\); \texttt{centered Gaussian first-\allowbreak{}stage limit}
+  \item \texttt{loss} --- \texttt{function}; \(\operatorname{aff}(E)\times(\overline{\mathcal Q}\cap E)\to\mathbb R_+\); \texttt{projected Hausdorff-\allowbreak{}loss map}
+  \item \texttt{kappa} --- \texttt{positive sequence}; \(\{\kappa_n>0:\kappa_n\downarrow0,\sqrt n\kappa_n\to\infty\}\); \texttt{diagonal snapping tolerance}
+  \item \texttt{GermHandle} --- \texttt{algorithmic handle}; \texttt{full-\allowbreak{}loss compilation,\allowbreak{} diagonal-\allowbreak{}form snapping,\allowbreak{} and relative-\allowbreak{}face Gaussian simulation}
+  \item \texttt{psi} --- \texttt{function}; \(T\to\mathbb R_+\); \texttt{homogeneous local Hausdorff-\allowbreak{}loss germ recovered by thm:\allowbreak{}active-\allowbreak{}germ-\allowbreak{}recovery}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-alphabet]\label{ass:finite-alphabet}
+\(\Pr\{Y_d\in\{y_1,\ldots,y_K\}\}=1\quad(d\in\{0,1\})\)
+\par\smallskip\noindent\emph{Standard} (finite ordered outcome support, \cite{Chesher2010DiscreteIV}).
+\end{assumption}
+
+\begin{assumption}[ass:propensity-order]\label{ass:propensity-order}
+\(0<p_0<p_1<1\)
+\par\smallskip\noindent\emph{Standard} (strict binary-instrument first stage, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:latent-selection]\label{ass:latent-selection}
+\(D=\mathbf 1\{U\le p_Z\}\)
+\par\smallskip\noindent\emph{Standard} (latent-index monotone selection, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-resistance]\label{ass:uniform-resistance}
+\(U\sim\operatorname{Unif}[0,1]\)
+\par\smallskip\noindent\emph{Standard} (uniform latent-index normalization, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:exclusion]\label{ass:exclusion}
+\(Y=DY_1+(1-D)Y_0\)
+\par\smallskip\noindent\emph{Standard} (instrumental-variable exclusion, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:instrument-independence]\label{ass:instrument-independence}
+\((U,Y_0,Y_1)\perp Z\)
+\par\smallskip\noindent\emph{Standard} (instrument independence, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-similarity]\label{ass:rank-similarity}
+\(\exists(V_0,V_1):\ V_d\sim\operatorname{Unif}[0,1],\ Y_d=Q_d(V_d)\ (d\in\{0,1\}),\ \mathcal L(V_0\mid U=u)=\mathcal L(V_1\mid U=u)\ \text{for a.e. }u\)
+\par\smallskip\noindent\emph{Standard} (existential conditional rank similarity, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-instrument-shares]\label{ass:positive-instrument-shares}
+\(\pi_z>0\quad(z\in\{0,1\})\)
+\par\smallskip\noindent\emph{Standard} (positive instrument-arm probability, \cite{Marx2024SharpBounds}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\overset{\mathrm{iid}}{\sim}P_q\)
+\par\smallskip\noindent\emph{Standard} (independent multinomial sampling, \cite{SongGuoChanRichardson2024CategoricalIV}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:observed-balances]\label{def:observed-balances}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Principal-\allowbreak{}stratum outcome masses}
+\par\smallskip\noindent\emph{Construction.} \(a_{1k}=q_0(1,k),\ n_{0k}=q_1(0,k),\ c_{1k}=q_1(1,k)-q_0(1,k),\ c_{0k}=q_0(0,k)-q_1(0,k)\quad(k=1,\ldots,K)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:compatible-laws]\label{def:compatible-laws}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Closed observed-\allowbreak{}law compatibility polytope}
+\par\smallskip\noindent\emph{Construction.} \(\overline{\mathcal Q}=\{q\in\Delta_{2K-1}^2:(c_0(q),c_1(q))\in\mathbb R_+^{2K}\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{c0}; \texttt{c1}.
+\end{definition}
+
+\begin{definition}[def:weak-order-cells]\label{def:weak-order-cells}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Propensity-\allowbreak{}-\allowbreak{}grid weak-\allowbreak{}order cells}
+\par\smallskip\noindent\emph{Construction.} \(\Omega(p^{1:L})=\{\omega:\omega\text{ is a weak ordering of }\{0,1,p_0,p_1,p^1,\ldots,p^L\}\text{ consistent with }0<p_0<p_1<1\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{pgrid}.
+\end{definition}
+
+\begin{definition}[def:policy-bins]\label{def:policy-bins}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Latent-\allowbreak{}index policy partition}
+\par\smallskip\noindent\emph{Construction.} For \(\omega\in\Omega(p^{1:L})\), \(\mathcal B_\omega=\{[r_{j-1},r_j):j=1,\ldots,m_\omega\}\), where \(0=r_0\le\cdots\le r_{m_\omega}=1\) is the ordering specified by \(\omega\), retaining zero-width tied bins
+\par\smallskip\noindent\emph{Inputs.} \texttt{Orders}; \texttt{pgrid}.
+\end{definition}
+
+\begin{definition}[def:common-rank-paths]\label{def:common-rank-paths}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Maximal common-\allowbreak{}rank lattice paths}
+\par\smallskip\noindent\emph{Construction.} \(\Sigma_K=\{\sigma=((i_s,j_s))_{s=1}^{2K-1}:(i_1,j_1)=(1,1),\ (i_{2K-1},j_{2K-1})=(K,K),\ (i_{s+1}-i_s,j_{s+1}-j_s)\in\{(1,0),(0,1)\}\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:component-index]\label{def:component-index}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Order-\allowbreak{}-\allowbreak{}path component index}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma_K=\Omega(p^{1:L})\times\Sigma_K\), with \(\gamma=(\omega,\sigma)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Orders}; \texttt{Paths}.
+\end{definition}
+
+\begin{definition}[def:allocation-fiber]\label{def:allocation-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}rank allocation fiber}
+\par\smallskip\noindent\emph{Construction.} \(X_\gamma(q)=\{x\ge0:A_\gamma x=b_\gamma+B_\gamma q\}\) with rows \(\sum_sx_{bs}=|I_b|\), \(\sum_{b\in a,s:j_s=k}x_{bs}=a_{1k}\), \(\sum_{b\in c,s:i_s=k}x_{bs}=c_{0k}\), \(\sum_{b\in c,s:j_s=k}x_{bs}=c_{1k}\), and \(\sum_{b\in n,s:i_s=k}x_{bs}=n_{0k}\), for \(\gamma=(\omega,\sigma)\in\Gamma_K\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{Components}; \texttt{Bins}.
+\end{definition}
+
+\begin{definition}[def:path-policy-image]\label{def:path-policy-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Path policy image}
+\par\smallskip\noindent\emph{Construction.} \(S_\gamma(q)=\{C_\gamma x:x\in X_\gamma(q)\}\), where \((C_\gamma x)_\ell=\sum_{b\subseteq[0,p^\ell],s}y_{j_s}x_{bs}+\sum_{b\subseteq(p^\ell,1],s}y_{i_s}x_{bs}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Xpath}; \texttt{Cmat}.
+\end{definition}
+
+\begin{definition}[def:sharp-policy-set]\label{def:sharp-policy-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp joint policy-\allowbreak{}mean set}
+\par\smallskip\noindent\emph{Construction.} \(S(q)=\{(\mathbb E[\mathbf 1\{U\le p^\ell\}Y_1+\mathbf 1\{U>p^\ell\}Y_0])_{\ell=1}^L:U\sim\operatorname{Unif}[0,1],\ D=\mathbf 1\{U\le p_Z\},\ Y=DY_1+(1-D)Y_0,\ (U,Y_0,Y_1)\perp Z,\ \exists(V_0,V_1)\text{ satisfying existential rank similarity},\ \mathcal L(D,Y\mid Z)=q\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:path-domains]\label{def:path-domains}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Path-\allowbreak{}feasibility domains}
+\par\smallskip\noindent\emph{Construction.} \(D_\gamma=\{q\in\overline{\mathcal Q}:q\text{ lies in the closure of order cell }\omega,\ S_\gamma(q)\ne\varnothing\}\quad(\gamma=(\omega,\sigma)\in\Gamma_K)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Qbar}; \texttt{Spath}.
+\end{definition}
+
+\begin{definition}[def:survival-fan]\label{def:survival-fan}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite path-\allowbreak{}survival fan}
+\par\smallskip\noindent\emph{Construction.} \(J=\{\gamma:q_\star\in D_\gamma\}\), \(\mathfrak F(q_\star)\) is the relative sign fan of all inequalities defining \(D_\gamma\) that bind at \(q_\star\), and \(J_F=\{\gamma\in J:F\subseteq T_{D_\gamma}(q_\star)\}\) for every nonempty relative-open face \(F\in\mathfrak F(q_\star)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Domain}; \texttt{qstar}.
+\end{definition}
+
+\begin{definition}[def:discontinuity-witness]\label{def:discontinuity-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}outcome path-\allowbreak{}drop family}
+\par\smallskip\noindent\emph{Construction.} For \(K=3\), \(y=(0,1,2)\), \(p_0=1/4\), \(p_1=3/4\), and \(p^{1:3}=(1/8,1/2,7/8)\), set \(a_1=n_0=(0,1/4,0)\), \(c_0=(1/4,0,1/4)\), and \(c_1(t)=(1/4-t,0,1/4+t)\). Define \(q_t\) through the balance identities, \(S_0=S(q_0)\), and \(S_t=S(q_t)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{t}.
+\end{definition}
+
+\begin{definition}[def:observed-confidence-region]\label{def:observed-confidence-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Simultaneous multinomial confidence region}
+\par\smallskip\noindent\emph{Construction.} \(R_n=\{q'\in\Delta_{2K-1}^2:q'_z(d,k)\in I^{\mathrm{CP}}_{zdk}(\alpha/(4K))\ \text{for every }(z,d,k)\}\), with the full arm simplex used when its sample count is zero
+\par\smallskip\noindent\emph{Inputs.} \texttt{N}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:joint-inversion-polytopes]\label{def:joint-inversion-polytopes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint law-\allowbreak{}-\allowbreak{}allocation inversion systems}
+\par\smallskip\noindent\emph{Construction.} For every \(\gamma=(\omega,\sigma)\in\Gamma_K\), \(\mathcal P_\gamma=\{(q',x):q'\in R_n\cap\overline{\mathcal Q}\cap\overline\omega,\ A_\gamma x=b_\gamma+B_\gamma q',\ x\ge0\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Rn}; \texttt{Qbar}; \texttt{Amat}; \texttt{Bmat}; \texttt{bvec}.
+\end{definition}
+
+\begin{definition}[def:outer-inversion]\label{def:outer-inversion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Outer-\allowbreak{}set and set-\allowbreak{}of-\allowbreak{}sets inversion}
+\par\smallskip\noindent\emph{Construction.} \(C_n=\bigcup_{q'\in R_n\cap\overline{\mathcal Q}}S(q')\), \(\mathcal H_n=\{S(q'):q'\in R_n\cap\overline{\mathcal Q}\}\); if \(R_n\cap\overline{\mathcal Q}=\varnothing\), set \(C_n=[y_1,y_K]^L\) and let \(\mathcal H_n\) contain every nonempty compact subset of \([y_1,y_K]^L\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Rn}; \texttt{Qbar}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:inversion-radii]\label{def:inversion-radii}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Outer-\allowbreak{}set and set-\allowbreak{}of-\allowbreak{}sets Hausdorff radii}
+\par\smallskip\noindent\emph{Construction.} When \(\mathcal H_n\ne\varnothing\), define \(r_n^{\mathrm{out}}=\sup_{A\in\mathcal H_n}d_H(C_n,A)\) and \(r_n^{\mathrm{set}}=\inf_{A\in\mathcal H_n}\sup_{B\in\mathcal H_n}d_H(A,B)\). Under the empty-intersection fallback, set \(r_n^{\mathrm{out}}=y_K-y_1\) and \(r_n^{\mathrm{set}}=(y_K-y_1)/2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Cn}; \texttt{Hn}; \texttt{dH}.
+\end{definition}
+
+\begin{definition}[def:finite-inversion-algorithm]\label{def:finite-inversion-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite common-\allowbreak{}rank inversion algorithm}
+\par\smallskip\noindent\emph{Construction.} Given \(K,L,y,p^{1:L},N,\alpha\), all endpoints of \(I^{\mathrm{CP}}_{zdk}\), and the arrays \(A_\gamma,B_\gamma,b_\gamma,C_\gamma\), enumerate \(\Gamma_K=\Omega(p^{1:L})\times\Sigma_K\); construct every \(\mathcal P_\gamma\); output \(C_n=\bigcup_\gamma\{C_\gamma x:(q',x)\in\mathcal P_\gamma\}\) and the common-parameter representation of \(\mathcal H_n\); encode \(d_H\le r\), \(r_n^{\mathrm{out}}\), and \(r_n^{\mathrm{set}}\) as quantified linear-real formulas over these systems; eliminate quantifiers and isolate the relevant infimum or supremum boundary in \(r\). Let \(v_{\mathrm{alg}}\) and \(m_{\mathrm{alg}}\) be, respectively, the largest numbers of real variables and scalar affine atoms in any generated formula.
+\par\smallskip\noindent\emph{Inputs.} \texttt{K}; \texttt{L}; \texttt{y}; \texttt{pgrid}; \texttt{N}; \texttt{alpha}; \texttt{Icp}; \texttt{Pcomp}; \texttt{Amat}; \texttt{Bmat}; \texttt{bvec}; \texttt{Cmat}.
+\end{definition}
+
+\begin{definition}[def:sampling-projection]\label{def:sampling-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}face model projection}
+\par\smallskip\noindent\emph{Construction.} \(T=T_E(q_\star)\), \(P_E(u)=\operatorname*{argmin}_{v\in\overline{\mathcal Q}\cap E}\|u-v\|_2\), and \(\widetilde q=P_E(\widehat q)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{E}; \texttt{Qbar}; \texttt{Qhat}.
+\end{definition}
+
+\begin{definition}[def:multinomial-limit]\label{def:multinomial-limit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Relative-\allowbreak{}face Gaussian first-\allowbreak{}stage object}
+\par\smallskip\noindent\emph{Construction.} \(\Sigma_z=\{\operatorname{diag}(q_{\star z})-q_{\star z}q_{\star z}^{\mathsf T}\}/\pi_z\) after deletion of structural-zero and normalization directions, and \(G\sim N_T(0,\Sigma)\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{qstar}; \texttt{pi}; \texttt{E}.
+\end{definition}
+
+\begin{definition}[def:active-germ-handle]\label{def:active-germ-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Projected full-\allowbreak{}loss germ handle}
+\par\smallskip\noindent\emph{Construction.} Compile the finite semilinear graph of \(f(u,q)=d_H(S(P_Eu),S(q))\) by pathwise primal--dual elimination; substitute \(u=q\) into every cell boundary and affine value intercept; normalize these diagonal forms; snap forms within \(\kappa_n\) of zero with \(\kappa_n\downarrow0\) and \(\sqrt n\kappa_n\to\infty\); restrict all incident pieces and Gaussian draws to \(T\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{loss}; \texttt{Qtilde}; \texttt{Tspace}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:observed-law-compatibility]\label{lem:observed-law-compatibility}
+Every observed law generated by latent-index monotone selection, uniform \(U\), exclusion, and instrument independence satisfies, for each \(k=1,\ldots,K\), \[c_{0k}=\Pr(p_0<U\le p_1,Y_0=y_k)\ge0,\qquad c_{1k}=\Pr(p_0<U\le p_1,Y_1=y_k)\ge0.\] Hence \(q\in\overline{\mathcal Q}\), and these inequalities are observable compatibility checks rather than maintained assumptions.
+\end{lemma}
+\begin{proof}
+Fix \(k\in\{1,\ldots,K\}\).  The positive-share assumption \(\pi_z>0\) ensures that each conditional probability defining \(q_z\) is well defined.  For \(z\in\{0,1\}\), latent selection and exclusion imply the event identities
+\[
+\{D=1,Y=y_k\}=\{U\le p_z,Y_1=y_k\},\qquad
+\{D=0,Y=y_k\}=\{U>p_z,Y_0=y_k\}
+\]
+within the event \(\{Z=z\}\).  Hence, by the definition of \(q\),
+\[
+q_z(1,k)=\Pr(U\le p_z,Y_1=y_k\mid Z=z),\qquad
+q_z(0,k)=\Pr(U>p_z,Y_0=y_k\mid Z=z).
+\]
+Both events on the right are measurable with respect to \((U,Y_0,Y_1)\).  Instrument independence therefore gives, for each \(z\),
+\[
+q_z(1,k)=\Pr(U\le p_z,Y_1=y_k),\qquad
+q_z(0,k)=\Pr(U>p_z,Y_0=y_k).
+\]
+The strict propensity order \(p_0<p_1\) yields the exact set differences
+\[
+\{U\le p_1\}\setminus\{U\le p_0\}=\{p_0<U\le p_1\},
+\qquad
+\{U>p_0\}\setminus\{U>p_1\}=\{p_0<U\le p_1\}.
+\]
+These identities already account for both endpoints, so no unmentioned boundary condition is required.  Because the smaller event is contained in the larger event in each difference, finite additivity on the corresponding disjoint unions gives
+\[
+\begin{aligned}
+c_{1k}
+&=q_1(1,k)-q_0(1,k)\\
+&=\Pr(U\le p_1,Y_1=y_k)-\Pr(U\le p_0,Y_1=y_k)\\
+&=\Pr(p_0<U\le p_1,Y_1=y_k)\ge0,
+\end{aligned}
+\]
+and
+\[
+\begin{aligned}
+c_{0k}
+&=q_0(0,k)-q_1(0,k)\\
+&=\Pr(U>p_0,Y_0=y_k)-\Pr(U>p_1,Y_0=y_k)\\
+&=\Pr(p_0<U\le p_1,Y_0=y_k)\ge0.
+\end{aligned}
+\]
+Here the first equality in each display is the definition of the observed balances.  Since \(k\) was arbitrary, \((c_0(q),c_1(q))\in\mathbb R_+^{2K}\).  Moreover, \(q\in\Delta_{2K-1}^2\) because its two arms are conditional multinomial probability vectors.  The definition of \(\overline{\mathcal Q}\) now implies \(q\in\overline{\mathcal Q}\).  Thus the nonnegativity inequalities are consequences of the maintained latent model and observable through \(q\); they have not been imposed as additional assumptions.  The uniform-resistance normalization supplies the declared support \(U\in[0,1]\), but the difference argument itself uses neither a density calculation nor division by a latent probability.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma separates testable observed-law implications of monotone selection from the maintained latent model. \textit{Gap.} The principal-stratum inequalities are standard, but recording them as derived compatibility restrictions prevents the observed law from being assumed compatible by fiat. \textit{Consumer.} Every path-feasibility and confidence-region computation can reject incompatible observed laws before solving allocation systems.
+
+\begin{lemma}[lem:rank-replacement]\label{lem:rank-replacement}
+Every law satisfying existential rank similarity has a rank-invariant replacement with one \(V\sim\operatorname{Unif}[0,1]\) and potential outcomes \((Q_0(V),Q_1(V))\) that preserves \(\mathcal L(Y_d\mid U)\) for \(d\in\{0,1\}\), the observed law \(q\), and every policy mean on \(p^{1:L}\).
+\end{lemma}
+\begin{proof}
+Let \(K_V(u,\cdot)\) be the common regular conditional distribution of \(V_0\) and \(V_1\) given \(U=u\), whose equality for almost every \(u\) is exactly existential rank similarity.  Define a new joint law of \((U,V)\) on \([0,1]^2\) by
+\[
+\Pr'(U\in A,V\in B)=\int_A K_V(u,B)\,du
+\]
+for Borel sets \(A,B\subseteq[0,1]\), and then attach \(Z\) independently with its original marginal law.  Uniform resistance makes the first marginal uniform.  Moreover,
+\[
+\Pr'(V\in B)=\int_0^1K_V(u,B)\,du=\Pr(V_d\in B)=|B|,
+\]
+so \(V\sim\operatorname{Unif}[0,1]\).  Put \(Y'_d=Q_d(V)\).  For every Borel set \(A\) in the finite outcome alphabet and almost every \(u\),
+\[
+\begin{aligned}
+\Pr'(Y'_0\in A\mid U=u)
+ &=K_V(u,Q_0^{-1}(A))
+ =\Pr(Q_0(V_0)\in A\mid U=u),\\
+\Pr'(Y'_1\in A\mid U=u)
+ &=K_V(u,Q_1^{-1}(A))
+ =\Pr(Q_1(V_1)\in A\mid U=u).
+\end{aligned}
+\]
+The right sides equal the original conditional laws of \(Y_0\) and \(Y_1\), respectively.  Hence the replacement preserves \(\mathcal L(Y_d\mid U)\) for both \(d\).  Selection and exclusion reveal only \(Y_1\) on sets of the form \(\{U\le p_z\}\) and \(Y_0\) on their complements, so integration of these conditional laws preserves every observed cell \(q_z(d,k)\).  Likewise, for each policy threshold \(p^\ell\),
+\[
+\mathbb E'[\mathbf 1\{U\le p^\ell\}Y'_1+\mathbf 1\{U>p^\ell\}Y'_0]
+=\mathbb E[\mathbf 1\{U\le p^\ell\}Y_1+\mathbf 1\{U>p^\ell\}Y_0].
+\]
+Finally \(Y'_d=Q_d(V)\) with the same rank \(V\) for both states, so this is rank invariant.  The construction deliberately samples from the common conditional kernel and then attaches an independent instrument; it does not assume that either originally supplied rank was independent of \(Z\) inside outcome atoms.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction turns existential conditional rank equality into a single ordered support without imposing an independent probability-integral-transform jitter. \textit{Gap.} Marx uses rank similarity for sharp policy bounds, but the finite-alphabet joint construction with missing complier support is not stated as this replacement lemma. \textit{Consumer.} The common rank makes joint policy compatibility enumerable by finitely many chains.
+
+\begin{theorem}[thm:path-representation]\label{thm:path-representation}
+On every weak-order cell \(\omega\in\Omega(p^{1:L})\), \[S(q)=\bigcup_{\sigma\in\Sigma_K}S_{(\omega,\sigma)}(q)=\bigcup_{\sigma\in\Sigma_K}\{C_{(\omega,\sigma)}x:A_{(\omega,\sigma)}x=b_{(\omega,\sigma)}+B_{(\omega,\sigma)}q,\ x\ge0\},\qquad |\Sigma_K|=\binom{2K-2}{K-1}.\] At a propensity--grid tie, adjacent order labels give duplicate boundary images, so the same bound holds for distinct images. Every feasible allocation is attained by one law satisfying the maintained model, and membership failure has one Farkas certificate for every path. Within the fixed finite outcome alphabet, the characterization remains valid when complier support is not full and supplies the joint policy set in that missing-support direction.
+\end{theorem}
+\begin{proof}
+Let \(P_q\) denote the observable law of \((Z,D,Y)\), and let \(\Theta_I(P_q)\) be the set of policy vectors generated by latent laws satisfying the five maintained restrictions in the definition of \(S\).  Thus \(\Theta_I(P_q)=S(q)\) by the causal definition of \(S\); the equality with the allocation functional below is what must be proved.
+
+Fix a weak-order cell \(\omega\).  Its consecutive bins form three principal-stratum blocks: \(a=\{b:I_b\subseteq[0,p_0]\}\), \(c=\{b:I_b\subseteq(p_0,p_1]\}\), and \(n=\{b:I_b\subseteq(p_1,1]\}\), with endpoint conventions immaterial under uniform \(U\).  Zero-width bins are retained and necessarily receive zero mass.
+
+For necessity, apply the rank-replacement lemma.  As \(v\) increases, both \(Q_0(v)\) and \(Q_1(v)\) are nondecreasing and take values in the ordered \(K\)-point alphabet.  Hence the positive-mass support of
+\[
+v\longmapsto (Q_0(v),Q_1(v))
+\]
+is a coordinatewise chain in \(\{1,\ldots,K\}^2\).  Insert omitted coordinate levels one at a time; every finite chain is thereby contained in a maximal unit-step path \(\sigma=((i_s,j_s))_{s=1}^{2K-1}\).  Define
+\[
+x_{bs}=\Pr\{U\in I_b,(Y_0,Y_1)=(y_{i_s},y_{j_s})\}.
+\]
+Uniformity gives \(\sum_sx_{bs}=|I_b|\).  The observed-balance lemma and selection give
+\[
+\begin{aligned}
+\sum_{b\in a}\sum_{s:j_s=k}x_{bs}&=a_{1k},&
+\sum_{b\in c}\sum_{s:i_s=k}x_{bs}&=c_{0k},\\
+\sum_{b\in c}\sum_{s:j_s=k}x_{bs}&=c_{1k},&
+\sum_{b\in n}\sum_{s:i_s=k}x_{bs}&=n_{0k}.
+\end{aligned}
+\]
+These are exactly \(A_{(\omega,\sigma)}x=b_{(\omega,\sigma)}+B_{(\omega,\sigma)}q\), with \(x\ge0\).  Splitting the policy expectation bin by bin gives
+\[
+\theta_\ell
+=\sum_{b\subseteq[0,p^\ell]}\sum_s y_{j_s}x_{bs}
+ +\sum_{b\subseteq(p^\ell,1]}\sum_s y_{i_s}x_{bs}
+=(C_{(\omega,\sigma)}x)_\ell.
+\]
+Thus \(S(q)\) is contained in the displayed union of path images.
+
+For sufficiency and sharpness, fix a feasible \(x\) for one path.  Let \(\lambda_s=\sum_bx_{bs}\), \(r_0=0\), and \(r_s=\sum_{h\le s}\lambda_h\).  The bin rows imply \(\sum_s\lambda_s=1\).  Draw \((b,s)\) with probability \(x_{bs}\).  Conditional on a positive-mass draw, take independent \(A,W\sim\operatorname{Unif}[0,1]\) and set
+\[
+U=\inf I_b+|I_b|A,\qquad V=r_{s-1}+\lambda_sW,\qquad
+(Y_0,Y_1)=(y_{i_s},y_{j_s}).
+\]
+Terms with \(|I_b|=0\) or \(\lambda_s=0\) are never drawn, so no division by zero is hidden.  For a Borel set \(H\subseteq I_b\),
+\[
+\Pr(U\in H)=\sum_sx_{bs}\frac{|H|}{|I_b|}=|H|,
+\]
+and for \(H\subseteq[r_{s-1},r_s]\),
+\[
+\Pr(V\in H)=\sum_bx_{bs}\frac{|H|}{\lambda_s}=|H|.
+\]
+Consequently both \(U\) and \(V\) are uniform.  Along the path, \(i_s\) and \(j_s\) are nondecreasing, so, outside the finitely many rank boundaries, \(Y_d=Q_d(V)\).  Taking \(V_0=V_1=V\) establishes rank similarity.  Attach \(Z\) independently and impose the latent selection rule.  The four balance equations reproduce \(q\), exclusion holds by construction, and the policy identity reproduces \(C_\gamma x\).  Hence every allocation is attained by one maintained latent law, proving the reverse inclusion and sharpness even when some entries of \(c_0\) or \(c_1\) vanish.
+
+A path has \(2K-2\) steps, exactly \(K-1\) of each orientation, whence
+\[
+|\Sigma_K|=\binom{2K-2}{K-1}.
+\]
+At a propensity--grid tie, swapping adjacent tied labels changes only zero-width bins.  Deleting those zero rows gives identical feasible allocations and identical policy images, so adjacent order labels introduce duplicates rather than additional distinct images.
+
+For the finite failure certificate, append \(C_\gamma x=\theta\) to the balance system and call the resulting matrix and right side \(M_\gamma\) and \(d_\gamma(q,\theta)\).  The cone generated by the finitely many columns of \(M_\gamma\) is closed.  If \(d_\gamma(q,\theta)\) is outside it, let \(c^\star\) be its closest point in that cone and put \(z=c^\star-d_\gamma(q,\theta)\).  The projection inequality, applied also to positive multiples of \(c^\star\), yields
+\[
+M_\gamma^{\mathsf T}z\ge0,\qquad
+z^{\mathsf T}d_\gamma(q,\theta)=-\|c^\star-d_\gamma(q,\theta)\|_2^2<0.
+\]
+Conversely these two inequalities exclude every \(x\ge0\) with \(M_\gamma x=d_\gamma(q,\theta)\).  One such finite vector for each of the finitely many paths is therefore a complete membership-failure certificate.
+
+Finally, the observable coordinate box is computable without confusing it with the joint causal set: for every \(\ell\), define
+\[
+\theta_{L,\ell}(q)=\min_{\gamma,x}\{(C_\gamma x)_\ell:x\in X_\gamma(q)\},\qquad
+\theta_{U,\ell}(q)=\max_{\gamma,x}\{(C_\gamma x)_\ell:x\in X_\gamma(q)\},
+\]
+where the extrema range over feasible order--path components.  Bounded bin rows make every nonempty fiber compact.  The proved equality gives the sharp joint identifying map and the outer relation
+\[
+\Theta_I(P_q)=S(q)\subseteq\prod_{\ell=1}^L[\theta_{L,\ell}(q),\theta_{U,\ell}(q)].
+\]
+The later witness shows why this coordinate box is generally not the sharp joint set.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies the entire simultaneous policy curve rather than separately sharp coordinates. \textit{Gap.} Within the fixed finite outcome alphabet, Marx's Proposition 5 relies on full complier support; generic discrete instrumental-variable programs do not encode the common ordered rank across all latent-index bins. \textit{Consumer.} Oregon Medicaid analysts can reject simultaneous discounted-take-up and never-treated extrapolations that pass every coordinatewise bound.
+
+\begin{proposition}[prop:marx-reduction]\label{prop:marx-reduction}
+When the complier outcome support is full and closed in the population support, every coordinate projection of \(S(q)\) equals the corresponding uniformly sharp rank-similar counterfactual-average interval in Marx's Proposition 5; for \(K=2\), the path representation reduces to the two monotone common-rank paths.
+\end{proposition}
+\begin{proof}
+Under the stated full-support condition, the cited Marx proposition applies to precisely the latent-index, exclusion, independence, and existential rank-similarity model used here.  For a fixed policy threshold \(p^\ell\), its counterfactual average is
+\[
+\bar y(p^\ell)=\mathbb E[\mathbf 1\{U\le p^\ell\}Y_1+\mathbf 1\{U>p^\ell\}Y_0],
+\]
+which is the \(\ell\)-th coordinate of the causal vector defining \(S(q)\).  The path-representation theorem proves that \(S(q)\), rather than a relaxation, is the set generated by all laws in that same model.  Therefore validity of Marx's two bounds contains the coordinate projection of \(S(q)\), and uniform sharpness supplies attainable laws at its two endpoints and all values in the stated sharp interval.  The projection consequently equals Marx's interval.  For \(K=2\), any maximal path from \((1,1)\) to \((2,2)\) has two steps and must be either
+\[
+(1,1),(2,1),(2,2)
+\quad\text{or}\quad
+(1,1),(1,2),(2,2),
+\]
+so the allocation representation has exactly the two claimed common-rank paths.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction anchors the new representation to the published full-support benchmark. \textit{Gap.} The published benchmark does not supply the finite-alphabet joint set or its path decomposition when complier support is incomplete. \textit{Consumer.} Applied users recover the familiar Marx intervals whenever the empirical support condition is credible.
+
+\begin{proposition}[prop:nonconvex-witness]\label{prop:nonconvex-witness}
+For the \(K=3\) law in the witness construction, \[S_0=\{(1+x,1,1+z):|x|\le1/8,\ |z|\le1/8,\ xz\le0\}.\] Each of the six path images is attained by one legal law, while \((9/8,1,9/8)\notin S_0\) has six full-system Farkas certificates. Hence separate coordinatewise upper endpoints and convexified support functions are not jointly sharp.
+\end{proposition}
+\begin{proof}
+Write \(h=1/8\), and index the three outcome values by \(0,1,2\) only within this proof.  The six bins cut by \(1/8,1/4,1/2,3/4,7/8\) have masses \((h,h,2h,2h,h,h)\).  At \(t=0\), the complier margins both put mass \(2h\) at outcomes \(0\) and \(2\), and zero at outcome \(1\).  Coordinatewise monotonicity of the common-rank support forces the complier coupling to put mass \(2h\) on each of \((0,0)\) and \((2,2)\).  Thus the middle policy mean is one.
+
+Writing the other two means as \((1+x,1,1+z)\), direct substitution in the allocation equations gives the following exact six images:
+\[
+\begin{array}{c|c}
+\text{path}&\text{admissible }(x,z)\\ \hline
+RRUU&\{(h,-h)\}\\
+RURU&[0,h]\times[-h,0]\\
+RUUR&\{0\}\times[-h,h]\\
+URRU&[-h,h]\times\{0\}\\
+URUR&[-h,0]\times[0,h]\\
+UURR&\{(-h,h)\}.
+\end{array}
+\]
+Here \(R\) increments the untreated coordinate and \(U\) increments the treated coordinate.  To verify attainment rather than only necessity, for each of the four nondegenerate paths allocate
+\[
+\begin{array}{c|l}
+b_1&(1,1):h\\
+b_2&(0,1):(-x)_+,\ (2,1):x_+,\ (1,1):h-|x|\\
+b_3&(0,0):2h\\
+b_4&(2,2):2h\\
+b_5&(1,0):(-z)_+,\ (1,2):z_+,\ (1,1):h-|z|\\
+b_6&(1,1):h,
+\end{array}
+\]
+discarding zero entries and restricting \((x,z)\) to the applicable row of the table.  Every displayed node then lies on that path, and the row and observed-margin sums are exactly the required bin and principal-stratum masses.  For \(RRUU\), put mass \(h\) at \((2,1)\) in each of \(b_1,b_2\), and at \((1,0)\) in each of \(b_5,b_6\).  For \(UURR\), use \((0,1)\) in \(b_1,b_2\) and \((1,2)\) in \(b_5,b_6\).  The one-law construction in the path theorem attains every such table.
+
+The union of the six rows is exactly
+\[
+\{(x,z):|x|\le h,\ |z|\le h,\ xz\le0\},
+\]
+which proves the formula for \(S_0\).  For an independently checkable exclusion of the upper--upper corner, order equality rows as the six bin rows, the three always-treated rows, the three complier untreated rows, the three complier treated rows, the three never-treated rows, and the three policy rows.  For the queried vector \((9/8,1,9/8)\), the following nonzero dual coefficients give, path by path, \(M_\sigma^{\mathsf T}z_\sigma\ge0\) and \(z_\sigma^{\mathsf T}d_\sigma=-1\):
+\[
+\begin{array}{c|l}
+RRUU&b_6:4,\ n_{0,1}:-4,\ \theta_2:4,\ \theta_3:-4\\
+RURU&\theta_2:8,\ \theta_3:-8\\
+RUUR&a_{1,0}:8,\ c_{0,1}:8,\ \theta_1:-8,\ \theta_2:8\\
+URRU&c_{1,1}:8,\ n_{0,0}:8,\ \theta_2:8,\ \theta_3:-8\\
+URUR&\theta_1:-8,\ \theta_2:8\\
+UURR&b_1:4,\ a_{1,1}:-4,\ \theta_1:-4,\ \theta_2:4.
+\end{array}
+\]
+The column inequality is checked by inserting the corresponding five path nodes into the listed row coefficients; the right-side product uses bin masses \((h,h,2h,2h,h,h)\), the four displayed principal-stratum margins, and the queried \(\theta\).  Since every primal equality would imply \(z_\sigma^{\mathsf T}M_\sigma x=z_\sigma^{\mathsf T}d_\sigma=-1\), while \(x\ge0\) and \(M_\sigma^{\mathsf T}z_\sigma\ge0\) imply the left side is nonnegative, all six systems are infeasible.  Thus the corner is not in \(S_0\), although its first and third coordinates are separately attainable.  The set is nonconvex because the midpoint \((17/16,1,17/16)\) of \((9/8,1,1)\) and \((1,1,9/8)\) violates \(xz\le0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A concrete nonconvex set makes the common-law restriction empirically distinguishable from marginal envelopes. \textit{Gap.} Existing finite programs characterize convex latent-distribution images; this witness isolates the additional common-rank chain obstruction. \textit{Consumer.} The witness is a reproducible diagnostic for implementations that accidentally convexify joint policy conclusions.
+
+\begin{theorem}[thm:continuity-frontier]\label{thm:continuity-frontier}
+For every legal \(q_\star\in\overline{\mathcal Q}\), the following are equivalent: \(S\) is Hausdorff continuous at \(q_\star\) relative to \(\overline{\mathcal Q}\); for every feasible nonzero face \(F\in\mathfrak F(q_\star)\), \[S(q_\star)=\bigcup_{\gamma\in J_F}S_\gamma(q_\star);\] and there exist \(\varepsilon,H>0\) such that \[d_H(S(q),S(q_\star))\le H\|q-q_\star\|\] for every \(q\in\overline{\mathcal Q}\) with \(\|q-q_\star\|<\varepsilon\).
+\end{theorem}
+\begin{proof}
+For each component \(\gamma\), the graph of \(X_\gamma\) is described by a fixed matrix, affine right side, nonnegativity, and the closed order-cell restrictions.  The bin rows imply \(0\le x_{bs}\le1\); hence projection in \(x\) shows that \(D_\gamma\) is a closed polyhedron and every nonempty fiber is compact.
+
+We first establish the fixed-matrix perturbation bound used below.  Let \(X(r)=\{x\ge0:Ax=r\}\), and suppose \(X(r)\) and \(X(r')\) are nonempty.  For \(x\in X(r)\), let \(I(x)=\{j:x_j=0\}\).  A displacement \(h\) preserves nonnegativity whenever \(h_j\ge0\) for \(j\in I(x)\).  Feasibility of \(X(r')\) shows that \(\delta=r'-r\) belongs to
+\[
+A K_I,\qquad K_I=\{h:h_j\ge0\text{ for }j\in I\}.
+\]
+For each of the finitely many sets \(I\), decompose the polyhedral cone \(K_I\) into finitely many simplicial cones after separating its lineality.  On each image cone, choose a linearly independent generating subfamily and its linear right inverse.  Taking the largest operator norm over these finitely many choices produces \(H_A<\infty\) such that some \(h\in K_I\) satisfies
+\[
+Ah=\delta,\qquad \|h\|\le H_A\|\delta\|.
+\]
+Then \(x+h\in X(r')\).  Reversing \(r,r'\) yields
+\[
+d_H(X(r),X(r'))\le H_A\|r-r'\|.
+\]
+Applying this with \(r=b_\gamma+B_\gamma q\), and then the linear map \(C_\gamma\), gives, whenever both component fibers are nonempty,
+\[
+d_H(S_\gamma(q),S_\gamma(q'))
+\le H_\gamma\|q-q'\|,\qquad
+H_\gamma=\|C_\gamma\|H_{A_\gamma}\|B_\gamma\|.
+\tag{1}
+\]
+
+Fix \(q_\star\).  Since the component family is finite and every \(D_\gamma\) is closed, every component not in \(J\) remains infeasible in one common relative neighborhood of \(q_\star\).  The active domain inequalities and the relative tangent cone of \(\overline{\mathcal Q}\) form the finite sign fan.  On a relative-open face \(F\), their signs are constant.  Polyhedrality therefore implies that, for sufficiently small \(h\in F\),
+\[
+q_\star+h\in D_\gamma\quad\Longleftrightarrow\quad \gamma\in J_F.
+\tag{2}
+\]
+
+Assume the survival inclusions.  Take any compatible \(q\) sufficiently close to \(q_\star\), and let \(F\) be the face containing \(q-q_\star\).  For a point of \(S(q)\), (2) assigns it to a component \(\gamma\in J_F\subseteq J\); (1) moves it to \(S_\gamma(q_\star)\subseteq S(q_\star)\) at cost at most \(H_\gamma\|q-q_\star\|\).  Conversely, the assumed equality
+\[
+S(q_\star)=\bigcup_{\gamma\in J_F}S_\gamma(q_\star)
+\]
+assigns every base point to a component that survives at \(q\), and (1) moves it in the other direction at the same rate.  With \(H=\max_{\gamma\in J}H_\gamma\), both directed excesses are bounded by \(H\|q-q_\star\|\), proving the centered local Lipschitz inequality and hence Hausdorff continuity.
+
+For necessity, suppose the inclusion fails on a feasible nonzero face \(F\).  The finite union
+\[
+A_F=\bigcup_{\gamma\in J_F}S_\gamma(q_\star)
+\]
+is compact and is a proper subset of \(S(q_\star)\); choose \(s_0\in S(q_\star)\setminus A_F\).  Compactness gives \(\eta=d(s_0,A_F)>0\).  Choose \(h\) in the relative interior of \(F\) and a sequence \(r_m\downarrow0\) with \(q_m=q_\star+r_mh\in\overline{\mathcal Q}\).  Equations (1)--(2) imply
+\[
+d_H\!\left(S(q_m),A_F\right)\longrightarrow0.
+\]
+Therefore \(d(s_0,S(q_m))\to\eta>0\), contradicting continuity at \(q_\star\).  Thus continuity implies every survival inclusion.  Finally, the centered Lipschitz condition plainly implies continuity.  This proves all three equivalences, including lower-dimensional fan faces and propensity--grid ties; no pairwise Lipschitz claim at neighboring base laws is used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives a finite observable-law frontier separating regular and discontinuous sharp policy sets. \textit{Gap.} Beresteanu--Molinari and Chernozhukov--Hong--Tamer do not treat components whose feasibility domains disappear inside a nonconvex union. \textit{Consumer.} The criterion determines when a regular plug-in policy-set analysis is locally defensible and when global inversion is required.
+
+\begin{theorem}[thm:metric-impossibility]\label{thm:metric-impossibility}
+For the witness family, \[S_t=\{(7/8,s,9/8+2t):1\le s\le1+2t\}\quad(0<t<1/4),\qquad d_H(S_t,S_0)=1/4+2t,\] and with \(\pi_0=\pi_1=1/2\), \[\operatorname{KL}(P_{q_0},P_{q_t})=-\tfrac18\log(1-16t^2).\] For \(t_n=1/n\), the \(n\)-sample total variation distance vanishes while the sharp sets remain at Hausdorff distance tending to \(1/4\). Therefore no estimator is uniformly Hausdorff consistent on the model, and every uniformly \((1-\alpha)\)-honest random collection containing \(S(q)\) has Hausdorff diameter at least \(1/4-o(1)\) with probability at least \(1-2\alpha-o(1)\) along one of these laws.
+\end{theorem}
+\begin{proof}
+Let \(h=1/8\).  For \(t>0\), the complier untreated margin is \((1/4,0,1/4)\), whereas the treated margin is \((1/4-t,0,1/4+t)\).  Their unique coordinatewise ordered coupling places masses \(1/4-t,t,1/4\) on \((0,0),(0,2),(2,2)\).  The positive mass at \((0,2)\) forces the maximal path \(UURR\).  More algebraically, for each of the other five paths the dual row vector
+\[
+z_{c_{0,2}}=1,\quad z_{c_{1,2}}=-1,\quad
+z_{c_{0,1}}=1,\quad z_{c_{1,1}}=1
+\]
+has nonnegative product with every path column and right-side product \(-t\), so all five fibers are empty.
+
+For \(0\le v\le t\), allocate mass \(h\) at \((0,1)\) in each of the first two bins, mass \(h\) at \((1,2)\) in each of the last two bins, and
+\[
+\begin{array}{c|lll}
+b_3&(0,0):1/4-t&(0,2):v&(2,2):t-v\\
+b_4&&(0,2):t-v&(2,2):1/4-t+v.
+\end{array}
+\]
+All entries are nonnegative exactly for \(0\le v\le t\), and their row and margin sums are the required ones.  Evaluating the three policy rows yields first coordinate \(7/8\), third coordinate \(9/8+2t\), and middle coordinate \(1+2v\).  Thus
+\[
+S_t=\{(7/8,s,9/8+2t):1\le s\le1+2t\}.
+\]
+The point \((7/8,1,9/8)\in S_0\) shows that the directed excess of \(S_t\) over \(S_0\) is at most and, from the third coordinate, at least \(2t\).  Conversely, for \((1+x,1,1+z)\in S_0\), comparison with \((7/8,1,9/8+2t)\in S_t\) gives sup-norm distance at most \(1/4+2t\); equality is attained at \((9/8,1,7/8)\in S_0\).  Hence
+\[
+d_H(S_t,S_0)=1/4+2t.
+\]
+
+With equal instrument shares, the only changing joint observed probabilities are, in arm \(Z=1\), the two treated extreme-outcome cells.  Their joint probabilities are \(1/8\) under \(t=0\) and \(1/8-t/2,1/8+t/2\) under \(t>0\).  Therefore
+\[
+\begin{aligned}
+\operatorname{KL}(P_{q_0},P_{q_t})
+&=\frac18\log\frac{1/8}{1/8-t/2}
+ +\frac18\log\frac{1/8}{1/8+t/2}\\
+&=-\frac18\log(1-16t^2).
+\end{aligned}
+\]
+The Hellinger affinity of the one-observation laws equals one minus \(O(t^2)\), by the expansion \(\sqrt{1+x}=1+x/2+O(x^2)\) on the two changing positive cells.  Product affinities multiply, so for \(t_n=1/n\),
+\[
+H^2(P_{q_0}^{\otimes n},P_{q_{t_n}}^{\otimes n})
+=2\{1-\rho(P_{q_0},P_{q_{t_n}})^n\}=O(nt_n^2)\to0.
+\]
+Cauchy--Schwarz applied to \(|p-q|=|\sqrt p-\sqrt q|(\sqrt p+\sqrt q)\) gives total variation at most the Hellinger distance, so the product total variation vanishes.
+
+If an estimator were uniformly Hausdorff consistent, choose \(0<\varepsilon<1/8\).  Under \(P_{q_0}^{\otimes n}\) it would lie in the \(\varepsilon\)-ball about \(S_0\) with probability tending to one, while under \(P_{q_{t_n}}^{\otimes n}\) the same event would have probability tending to zero because the two balls are disjoint eventually.  Vanishing total variation forbids this probability difference.
+
+Finally let \(\mathcal A_n\) be any random collection with uniform coverage at least \(1-\alpha\).  Coverage under \(q_{t_n}\) and vanishing total variation imply
+\[
+P_{q_0}^{\otimes n}\{S_{t_n}\in\mathcal A_n\}\ge1-\alpha-o(1),
+\]
+while honesty at \(q_0\) gives \(P_{q_0}^{\otimes n}\{S_0\in\mathcal A_n\}\ge1-\alpha\).  The union bound yields simultaneous inclusion with probability at least \(1-2\alpha-o(1)\), and on that event
+\[
+\operatorname{diam}_{d_H}(\mathcal A_n)\ge d_H(S_0,S_{t_n})=1/4+2/n.
+\]
+This proves the stated impossibility and diameter lower bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The causal discontinuity is converted into a statistical impossibility under fixed positive principal shares and fixed observed support. \textit{Gap.} General uniform-inference papers motivate nearby-law analysis but do not provide this rank-similar set-separation experiment. \textit{Consumer.} The lower bound prevents misleading globally shrinking policy-set error bars in Medicaid extrapolation.
+
+\begin{theorem}[thm:finite-inversion-algorithm]\label{thm:finite-inversion-algorithm}
+For the finite inputs \(K,L,y,p^{1:L},N,\alpha\), the \(4K\) Clopper--Pearson intervals, and the generated component arrays \(A_\gamma,B_\gamma,b_\gamma,C_\gamma\), the finite common-rank inversion algorithm terminates.  If \(R_n\cap\overline{\mathcal Q}\ne\varnothing\), it returns an exact finite-union extended formulation of \(C_n\), an exact common-parameter finite-union representation of every member of \(\mathcal H_n\), and the exact radii \(r_n^{\mathrm{out}}\) and \(r_n^{\mathrm{set}}\).  If \(R_n\cap\overline{\mathcal Q}=\varnothing\), it returns the exact symbolic fallback \(C_n=[y_1,y_K]^L\), \(\mathcal H_n=\{A:\varnothing\ne A\subseteq[y_1,y_K]^L,\ A\text{ compact}\}\), \(r_n^{\mathrm{out}}=y_K-y_1\), and \(r_n^{\mathrm{set}}=(y_K-y_1)/2\); no finite-union polytope representation of each arbitrary fallback member is asserted.  In the unit-cost ordered-field model the nonempty branch uses at most
+\[
+(2m_{\mathrm{alg}}|\Gamma_K|)^{2^{O(v_{\mathrm{alg}})}}
+\]
+arithmetic and order operations, where \(|\Gamma_K|\le(2L+1)^2\binom{2K-2}{K-1}\); hence the procedure is finite for every fixed input.
+\end{theorem}
+\begin{proof}
+Let \(r\) be the number of distinct values in the fixed policy grid.  A propensity has one of the \(r+1\) positions in the open intervals cut out by those values or is tied with one of the \(r\) values.  Thus it has at most \(2r+1\leq 2L+1\) weak positions.  Retaining only pairs consistent with the propensity order can only reduce their number, so the definitions \(\texttt{def:weak-order-cells}\), \(\texttt{def:common-rank-paths}\), and \(\texttt{def:component-index}\) give
+\[
+ |\Omega(p^{1:L})|\leq (2L+1)^2,
+ \qquad
+ |\Gamma_K|=|\Omega(p^{1:L})|\,|\Sigma_K|
+ \leq (2L+1)^2\binom{2K-2}{K-1}.
+ \tag{1}
+\]
+Here the path count is the count proved in \(\texttt{thm:path-representation}\).  Consequently all order--path labels can be enumerated in finitely many steps.
+
+Write
+\[
+ \mathcal Q_n=R_n\cap\overline{\mathcal Q}.
+\]
+Suppose first that \(\mathcal Q_n\neq\varnothing\).  For a fixed \(\gamma=(\omega,\sigma)\), every restriction in
+\[
+ \mathcal P_\gamma
+ =\{(q',x):q'\in R_n\cap\overline{\mathcal Q}\cap\overline\omega,
+       \ A_\gamma x=b_\gamma+B_\gamma q',\ x\geq0\}
+ \tag{2}
+\]
+is affine.  Indeed, \(R_n\) is the intersection of the two arm simplices and the finitely many closed interval restrictions in \(\texttt{def:observed-confidence-region}\); \(\overline{\mathcal Q}\) is the simplex intersection with the linear nonnegativity restrictions in \(\texttt{def:compatible-laws}\) and \(\texttt{def:observed-balances}\); and \(\overline\omega\) consists of weak affine comparisons between propensities and fixed grid values.  The remaining restrictions in (2) are precisely those of \(\texttt{def:joint-inversion-polytopes}\) and \(\texttt{def:allocation-fiber}\).  Thus \(\mathcal P_\gamma\) is a polyhedron.  It is bounded: the bin-balance rows in \(A_\gamma x=b_\gamma+B_\gamma q'\) imply
+\[
+ \sum_s x_{bs}=|I_b|\quad\hbox{for every bin }b,
+ \qquad
+ \sum_{b,s}x_{bs}=\sum_b|I_b|=1,
+ \tag{3}
+\]
+while \(x\geq0\), and \(q'\) lies in a product of simplices.  Hence \(\mathcal P_\gamma\) is a compact polytope, including when some retained tied bin has width zero.  Its image under \((q',x)\mapsto C_\gamma x\) is therefore a compact polytope.
+
+For completeness, every \(q'\in\overline{\mathcal Q}\) has at least one feasible path allocation.  To see this without adding a support assumption, put \(m=p_1-p_0\).  The observable balances give
+\[
+ \sum_i c_{0i}=m=\sum_j c_{1j},\qquad c_{0i}\geq0,\quad c_{1j}\geq0.
+ \tag{4}
+\]
+Partition \([0,m]\) consecutively into intervals of lengths \((c_{01},\ldots,c_{0K})\) and, separately, into intervals of lengths \((c_{11},\ldots,c_{1K})\).  Let \(g_{ij}\) be the length of the intersection of the \(i\)-th interval of the first partition and the \(j\)-th interval of the second.  Then
+\[
+ g_{ij}\geq0,qquad \sum_jg_{ij}=c_{0i},qquad \sum_ig_{ij}=c_{1j}.
+ \tag{5}
+\]
+The positive cells of \(g\) are coordinatewise ordered: if \(i<i'\) and both \(g_{ij}\) and \(g_{i'j'}\) are positive, then \(j\leq j'\).  Their support is therefore contained in a maximal monotone lattice path \(\sigma\).  Such a path visits every row and every column.  For each column \(j\), choose a visited node \((i(j),j)\) and put the always-treated mass \(a_{1j}\) there; for each row \(i\), choose a visited node \((i,j(i))\) and put the never-treated mass \(n_{0i}\) there; put the complier mass \(g_{ij}\) at its path node.  Split each of these three path-node mass vectors over the policy bins inside its principal-stratum interval in proportion to bin width.  For example, when \(m>0\), the complier-bin allocation is
+\[
+ x_{bs}=\frac{|I_b|}{m}h^{c}_s,
+ \qquad b\subseteq(p_0,p_1],
+ \tag{6}
+\]
+where \(h^c_s\) is the mass from (5) at node \(s\); the analogous formulas use denominators \(p_0\) and \(1-p_1\) in the always-treated and never-treated intervals.  If one of these denominators is zero, (4) and the simplex identities make the associated masses and bin widths zero, and the corresponding allocation is set to zero.  Equations (3)--(6) verify every row and outcome-balance equation in \(\texttt{def:allocation-fiber}\).  Thus some \(X_{(\omega,\sigma)}(q')\) is nonempty for every order closure containing \(q'\).  By the one-law attainability part of \(\texttt{thm:path-representation}\), the resulting image is generated by a maintained law.  In particular, all sharp sets parameterized below are nonempty compact sets; no complier full-support condition was used in (4)--(6).
+
+Now apply \(\texttt{thm:path-representation}\) separately at each \(q'\in\mathcal Q_n\) and take the union.  The definition \(\texttt{def:outer-inversion}\) yields exactly
+\[
+ C_n
+ =\bigcup_{\gamma\in\Gamma_K}
+   \{C_\gamma x:(q',x)\in\mathcal P_\gamma\}.
+ \tag{7}
+\]
+This is a finite-union extended formulation, and (2) shows that it contains no relaxation.  At a tie, repeated order labels merely duplicate an image and hence do not change (7).  The same theorem, with the law variable held fixed across all components, gives
+\[
+ \mathcal H_n
+ =\left\{
+   \bigcup_{\substack{\gamma=(\omega,\sigma)\in\Gamma_K\\q'\in\overline\omega}}
+   \{C_\gamma x:A_\gamma x=b_\gamma+B_\gamma q',\ x\geq0\}
+   :q'\in\mathcal Q_n
+ \right\}.
+ \tag{8}
+\]
+Thus (8) is an exact common-parameter finite-union representation of every member of \(\mathcal H_n\).  The common \(q'\) in (8) is indispensable: independently varying it across components would describe unions assembled from different observed laws, which are not members of \(\mathcal H_n\).
+
+It remains to prove that the two metric radii are exactly computable.  Consider two nonempty compact sets represented as finite unions of the images of affine systems in (2).  Their Hausdorff distance is at most \(r\) if and only if both directed conditions hold:
+\[
+ \forall a\in A\ \exists b\in B:\ -r\leq a_\ell-b_\ell\leq r
+       \quad(\ell=1,\ldots,L),
+ \tag{9}
+\]
+\[
+ \forall b\in B\ \exists a\in A:\ -r\leq a_\ell-b_\ell\leq r
+       \quad(\ell=1,\ldots,L).
+ \tag{10}
+\]
+This equivalence follows directly from the definition of Hausdorff distance induced by \(\|\cdot\|_\infty\): (9) and (10) say that each of the two directed distances is at most \(r\).  Replace membership in \(A\) and \(B\) by the finite disjunction over their component labels and introduce the associated variables \((q',x)\) from (2).  Replace \(a\) and \(b\) by \(C_\gamma x\).  Then (9)--(10) become a first-order formula whose atomic predicates are affine equalities or inequalities.  Universal membership assertions are written as implications, so empty individual components cause no difficulty, while the nonemptiness established above ensures that Hausdorff distance itself is well defined.
+
+More explicitly, let \(\Phi(q^a,q^b,r)\) denote the resulting linear-real formula for
+\(d_H(S(q^a),S(q^b))\leq r\), and let \(\Phi_{\mathrm{out}}(q,r)\) be the analogous formula for \(d_H(C_n,S(q))\leq r\), using (7) for membership in \(C_n\).  From \(\texttt{def:inversion-radii}\),
+\[
+ r_n^{\mathrm{out}}
+ =\inf\{r\geq0:\ \forall q\in\mathcal Q_n,\ \Phi_{\mathrm{out}}(q,r)\},
+ \tag{11}
+\]
+because the set on the right consists exactly of the upper bounds on
+\(\{d_H(C_n,S(q)):q\in\mathcal Q_n\}\).  Likewise,
+\[
+ r_n^{\mathrm{set}}
+ =\inf\{r\geq0:\ \exists q^a\in\mathcal Q_n\ \forall q^b\in\mathcal Q_n,
+                      \ \Phi(q^a,q^b,r)\}.
+ \tag{12}
+\]
+Equation (12) is exactly the infimum, over the center \(S(q^a)\in\mathcal H_n\), of the supremum of its distances to all \(S(q^b)\in\mathcal H_n\).  These equalities concern infima of definable upper-bound sets and therefore remain valid even if a displayed infimum or supremum is not attained.
+
+We next give a terminating elimination argument and its operation bound.  By the definitions of \(v_{\mathrm{alg}}\) and \(m_{\mathrm{alg}}\) in \(\texttt{def:finite-inversion-algorithm}\), after expanding the two directions (9)--(10), either radius formula has at most
+\[
+ v\leq v_{\mathrm{alg}}
+ \quad\text{quantified real variables and}\quad
+ M_0\leq 2m_{\mathrm{alg}}|\Gamma_K|
+ \quad\text{scalar affine atoms}.
+ \tag{13}
+\]
+The Clopper--Pearson endpoints and all entries of the component arrays are inputs and hence are constants in these formulas.
+
+To eliminate one existentially quantified variable \(w\), write each atom involving it as
+\[
+ a_iw+\ell_i(\eta)\ \mathrel{\bowtie_i}\ 0,
+ \tag{14}
+\]
+where \(\eta\) contains the remaining variables, \(a_i\) is an input constant, and \(\bowtie_i\) is one of the order or equality relations.  A comparison in the ordered field decides whether \(a_i=0\).  For \(a_i\neq0\), the only value of \(w\) where the truth of this atom can change is
+\[
+ \rho_i(\eta)=-\ell_i(\eta)/a_i.
+ \tag{15}
+\]
+For fixed \(\eta\), the Boolean formula is constant on every open interval between consecutive distinct values in (15), and boundary truth is tested at the values themselves.  Hence \(\exists w\) is eliminated by the finite disjunction obtained by testing: every \(\rho_i\); the midpoint of every pair that is consecutive under the corresponding affine ordering conditions; one point below a candidate minimum; and one point above a candidate maximum.  The assertions that a candidate pair is consecutive or that a candidate is extreme are themselves affine comparisons among the \(\rho_i\)'s.  This construction handles strict and weak atoms separately at the boundary and uses at most a fixed constant times \(M^3\) atoms and ordered-field operations when the incoming formula has \(M\) atoms.  If (14) has no nonzero coefficient, the formula is independent of \(w\).  A universal quantifier is eliminated by applying the same construction to the negated formula.
+
+Iterating this explicit construction for the \(v\) variables in (13) gives, for a numerical constant \(c\), a recurrence of the form
+\[
+ M_{j+1}\leq cM_j^3,
+ \qquad
+ M_v\leq M_0^{,3^{v}O(1)}=M_0^{,2^{O(v)}}.
+ \tag{16}
+\]
+The number of arithmetic and order operations obeys the same bound.  Combining (13), (16), and (1) proves the claimed unit-cost bound
+\[
+ \bigl(2m_{\mathrm{alg}}|\Gamma_K|\bigr)^{2^{O(v_{\mathrm{alg}})}}
+ \quad\text{with}\quad
+ |\Gamma_K|\leq(2L+1)^2\binom{2K-2}{K-1}.
+ \tag{17}
+\]
+After elimination, each predicate in (11) or (12) is a Boolean combination of affine comparisons in the single variable \(r\).  Its truth set is therefore a finite union of intervals and points.  Comparing its finitely many affine boundary values and testing the intervening cells isolates the exact boundary giving the infimum in (11) or (12), whether the boundary is included or excluded.  This proves both termination and exactness of the two radii on the nonempty branch.
+
+Finally suppose \(\mathcal Q_n=\varnothing\).  Emptiness is itself decided by the same finite affine elimination.  The algorithm then invokes exactly the symbolic fallback in \(\texttt{def:outer-inversion}\) and \(\texttt{def:inversion-radii}\).  Put \(\Delta=y_K-y_1>0\), let
+\[
+ X=[y_1,y_K]^L,qquad
+ x^-=(y_1,\ldots,y_1),\qquad x^+=(y_K,\ldots,y_K).
+\]
+For every nonempty compact \(A\subseteq X\), \(d_H(X,A)\leq\Delta\), while
+\(d_H(X,\{x^-\})=\|x^+-x^-\|_\infty=\Delta\).  Therefore the fallback outer radius is exactly
+\[
+ \sup_{\varnothing\neq A\subseteq X\ \mathrm{compact}}d_H(X,A)=\Delta.
+ \tag{18}
+\]
+Let \(x^0=((y_1+y_K)/2,\ldots,(y_1+y_K)/2)\).  Every point of \(X\) is within \(\Delta/2\) of \(x^0\), so
+\[
+ \sup_{\varnothing\neq B\subseteq X\ \mathrm{compact}}d_H(\{x^0\},B)\leq\Delta/2.
+ \tag{19}
+\]
+Conversely, for any nonempty compact \(A\subseteq X\), the triangle inequality gives
+\[
+ \Delta=d_H(\{x^-\},\{x^+\})
+ \leq d_H(\{x^-\},A)+d_H(A,\{x^+\}),
+ \tag{20}
+\]
+so at least one of the two distances on the right is at least \(\Delta/2\).  Taking the supremum over fallback members and then the infimum over \(A\) proves from (19)--(20) that the fallback set-of-sets radius is exactly \(\Delta/2\).  This branch returns the prescribed collection symbolically and makes no finite-polytope claim for its arbitrary compact members.  Equations (1)--(20) establish every assertion of the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem turns the nonconvex path representation into a terminating exact procedure for both reported confidence objects and their metric informativeness. \textit{Gap.} Finite categorical instrumental-variable programs handle one convex compatibility region; they do not compute Hausdorff radii for a common-parameter collection of law-dependent nonconvex path unions. \textit{Consumer.} Oregon Medicaid analysts can compute exact outer regions and diagnose their Hausdorff width before reporting extrapolations at support boundaries.
+
+\begin{proposition}[prop:global-inversion-coverage]\label{prop:global-inversion-coverage}
+As a corollary of observed-law coverage and the inversion definitions, \(q\in R_n\) implies \(S(q)\subseteq C_n\) and \(S(q)\in\mathcal H_n\). Therefore, for every \(n\) and every compatible law, \[\Pr_q\{S(q)\subseteq C_n\}\ge1-\alpha,\qquad \Pr_q\{S(q)\in\mathcal H_n\}\ge1-\alpha.\] These inclusions remain valid on structural-zero faces, when an instrument arm has zero sample count, and when empirical cell differences are incompatible with monotonicity.
+\end{proposition}
+\begin{proof}
+Fix \(n\in\mathbb N\) and a compatible observed law \(q\in\overline{\mathcal Q}\).  Put
+\[
+M_z:=\sum_{d=0}^1\sum_{k=1}^K N_{zdk},
+\qquad
+\delta:=\frac{\alpha}{4K},
+\qquad
+E_{zdk}:=\{q_z(d,k)\in I^{\mathrm{CP}}_{zdk}(\delta)\}.
+\]
+These quantities are well defined because \(K\ge2\), \(0<\alpha<1/2\), and \(n<\infty\).  By independent sampling in Assumption \(\mathrm{ass:iid\text{-}sampling}\), conditional on \(M_z=m\), the count \(N_{zdk}\) has the binomial law
+\[
+N_{zdk}\mid M_z=m\ \sim\ \operatorname{Bin}\bigl(m,q_z(d,k)\bigr).
+\]
+Assumption \(\mathrm{ass:positive\text{-}instrument\text{-}shares}\) ensures that each conditional arm law \(q_z\) is well defined.  The defining exact-coverage property of the two-sided Clopper--Pearson interval in Definition \(\mathrm{def:observed\text{-}confidence\text{-}region}\) is, for every \(m\ge1\) and every \(r\in[0,1]\),
+\[
+\Pr_{B\sim\operatorname{Bin}(m,r)}
+ \{r\notin I^{\mathrm{CP}}(B,m;\delta)\}\le\delta.
+\]
+This property includes the boundary values \(r=0\) and \(r=1\), so no positivity of an individual multinomial cell is required.  If \(M_z=0\), Definition \(\mathrm{def:observed\text{-}confidence\text{-}region}\) uses the full arm simplex, and hence \(E_{zdk}\) holds surely.  Therefore the law of total probability gives, for every \((z,d,k)\),
+\[
+\begin{aligned}
+\Pr_q(E_{zdk}^{c})
+&=\sum_{m=1}^{n}\Pr_q(M_z=m)
+  \Pr_q(E_{zdk}^{c}\mid M_z=m)\\
+&\le \delta\sum_{m=1}^{n}\Pr_q(M_z=m)
+\le\delta.
+\end{aligned}
+\]
+There are \(2\cdot2\cdot K=4K\) such cell events.  The union bound, followed by the definition of \(R_n\), yields
+\[
+\Pr_q\{q\notin R_n\}
+ =\Pr_q\!\left(\bigcup_{z=0}^1\bigcup_{d=0}^1
+                    \bigcup_{k=1}^K E_{zdk}^{c}\right)
+ \le\sum_{z,d,k}\Pr_q(E_{zdk}^{c})
+ \le4K\delta=\alpha,
+\]
+and consequently
+\[
+\Pr_q\{q\in R_n\}\ge1-\alpha. \tag{1}
+\]
+This is the simultaneous observed-law coverage step; it uses only marginal exact binomial coverage and therefore does not require independence among the \(4K\) cell events.
+
+On the event \(\{q\in R_n\}\), compatibility gives
+\[
+q\in R_n\cap\overline{\mathcal Q}.
+\]
+Thus this intersection is nonempty, and the non-fallback branch of Definition \(\mathrm{def:outer\text{-}inversion}\) gives the two deterministic inclusions
+\[
+S(q)\subseteq
+ \bigcup_{q'\in R_n\cap\overline{\mathcal Q}}S(q')=C_n,
+\qquad
+S(q)\in
+ \{S(q'):q'\in R_n\cap\overline{\mathcal Q}\}=\mathcal H_n. \tag{2}
+\]
+Combining (1) and (2), by monotonicity of probability,
+\[
+\Pr_q\{S(q)\subseteq C_n\}
+ \ge\Pr_q\{q\in R_n\}\ge1-\alpha,
+\qquad
+\Pr_q\{S(q)\in\mathcal H_n\}
+ \ge\Pr_q\{q\in R_n\}\ge1-\alpha.
+\]
+
+Finally, the argument is unchanged on every structural-zero sampling face: the exact binomial coverage property used above is valid at \(q_z(d,k)=0\) and \(q_z(d,k)=1\).  It is also unchanged when \(M_z=0\), because the full-simplex convention makes all events for that arm automatic.  No step assumes that the empirical proportions satisfy the monotonicity compatibility inequalities.  Indeed, even when the empirical cell differences are incompatible, \(q\in R_n\) still implies \(q\in R_n\cap\overline{\mathcal Q}\); if the latter intersection is empty, then \(\{q\in R_n\}\) cannot occur for a compatible \(q\), while the fallback clause in Definition \(\mathrm{def:outer\text{-}inversion}\) keeps both reported objects well defined.  Hence all asserted finite-sample guarantees persist in the stated boundary and incompatibility cases.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corollary records the finite-sample honesty inherited directly from simultaneous multinomial coverage. \textit{Gap.} Romano--Shaikh supplies the general inversion logic; the corollary specializes it to the common-rank path correspondence and its set-of-sets image. \textit{Consumer.} Policy analysts retain finite-sample-valid outer conclusions wherever local Gaussian calibration is uncertified.
+
+\begin{proposition}[prop:one-path-limit]\label{prop:one-path-limit}
+For every fixed \(t_0\in(0,1/4)\) in the witness submodel with \(\pi_0=\pi_1=1/2\), the unique surviving path satisfies \(d_H(S_s,S_t)=2|s-t|\) locally.  With the clipped estimator \(\widehat t=\min\{1/4,\max\{0,\{\widehat q_1(1,3)-\widehat q_1(1,1)\}/2\}\}\),
+\[
+\sqrt n\,d_H(S_{\widehat t},S_{t_0})\Rightarrow2\sqrt{1/4-2t_0^2}\,|N(0,1)|.
+\]
+Plug-in folded-normal quantiles give pointwise first-order Hausdorff coverage.
+\end{proposition}
+\begin{proof}
+Put \(h=1/8\).  For the policy grid in \(\textnormal{def:discontinuity-witness}\), the six latent-index bins, in increasing order, have lengths
+\[
+(h,h,1/4,1/4,h,h).
+\]
+The first two bins are always-treated, the middle two are complier bins, and the last two are never-treated.  Fix \(t\in(0,1/4)\).  We first derive the unique feasible path and its complete policy image from the allocation representation used in \(\textnormal{thm:continuity-frontier}\).
+
+Index a path node by the realized pair \((Y_0,Y_1)\).  Let \(m_{ij}\) be the allocation at \((y_i,y_j)\), aggregated over the two complier bins.  The zero second coordinates of both complier margins imply, by nonnegativity, that every \(m_{2j}\) and every \(m_{i2}\) is zero.  The remaining row and column balance equations include
+\[
+m_{11}+m_{13}=\frac14,
+\qquad
+m_{11}+m_{31}=\frac14-t.
+\]
+Consequently
+\[
+m_{13}-m_{31}=t>0,
+\]
+so \(m_{13}>0\).  A coordinatewise monotone path containing \((1,3)\) cannot also contain a node \((i,j)\) with \(i>1\) and \(j<3\); hence \(m_{31}=0\).  The balance equations then force
+\[
+m_{11}=\frac14-t,
+\qquad
+m_{13}=t,
+\qquad
+m_{33}=\frac14.
+\]
+Because all three displayed masses are strictly positive, a feasible maximal path must pass successively through \((1,1)\), \((1,3)\), and \((3,3)\).  There is exactly one such path: it makes both increments in the second coordinate before both increments in the first coordinate.  Thus the other five paths have empty allocation fibers and this path is the unique survivor.
+
+On the surviving path, the always-treated margin \(a_1=(0,1/4,0)\) forces mass \(h\) at \((0,1)\) in each of the first two bins.  Similarly, the never-treated margin \(n_0=(0,1/4,0)\) forces mass \(h\) at \((1,2)\) in each of the last two bins.  Let \(v\) be the mass assigned to \((0,2)\) in the first complier bin.  Nonnegativity and the total mass \(t\) at that node give \(0\le v\le t\).  Conversely, every \(v\in[0,t]\) is feasible: in the two complier bins use respectively
+\[
+\begin{array}{c|ccc}
+ & (0,0)&(0,2)&(2,2)\\ \hline
+ b_3&1/4-t&v&t-v\\
+ b_4&0&t-v&1/4-t+v.
+\end{array}
+\]
+All entries are nonnegative, each row sums to \(1/4\), and the three column sums are \(1/4-t\), \(t\), and \(1/4\), respectively.  An arbitrary feasible allocation may split the first and third column masses differently between the two complier bins, but its policy means depend on that split only through \(v\).  Indeed, writing the three policy means as \(\mu_1,\mu_2,\mu_3\), the balance equations give
+\[
+\begin{aligned}
+\mu_1
+ &=h+2\left(\frac14\right)+\frac14
+ =\frac78,\\
+\mu_2
+ &=\frac14+2\left(v+\frac14\right)+\frac14
+ =1+2v,\\
+\mu_3
+ &=\frac14+2\left(\frac14+t\right)+2h+h
+ =\frac98+2t.
+\end{aligned}
+\]
+Here the first equality uses treatment only in the first bin; the second uses treatment in the first complier bin and the identity that total mass at \((2,2)\) is \(1/4\); and the third uses treatment through the first never-treated bin.  The allocation representation is sharp, so the feasible construction and the preceding necessity argument establish
+\[
+S_t=\left\{\left(\frac78,r,\frac98+2t\right):1\le r\le1+2t\right\}
+\qquad (0<t<1/4).
+\tag{1}
+\]
+In particular, the same component survives throughout a neighborhood of every fixed \(t_0\in(0,1/4)\); the survival condition of \(\textnormal{thm:continuity-frontier}\) therefore also verifies Hausdorff continuity there.
+
+We next compute the local distance exactly.  Suppose \(s\ge t>0\).  The middle-coordinate interval for \(S_t\) is contained in that for \(S_s\), while their constant third coordinates differ by \(2(s-t)\).  Hence every point of \(S_t\) has distance exactly \(2(s-t)\) from the point of \(S_s\) with the same middle coordinate.  In the reverse direction, match \(r\in[1,1+2s]\) to \(\min\{r,1+2t\}\).  Both the middle-coordinate discrepancy and the third-coordinate discrepancy are at most \(2(s-t)\), and the latter is always equal to \(2(s-t)\).  Thus both directed excesses equal \(2(s-t)\).  Interchanging \(s\) and \(t\) yields
+\[
+d_H(S_s,S_t)=2|s-t|
+\tag{2}
+\]
+whenever \(s,t>0\), and hence locally around \(t_0\).
+
+It remains to derive the sampling limit.  Let \(N_1=\sum_{i=1}^n\mathbf 1\{Z_i=1\}\).  For an observation in arm \(Z=1\), define \(X_i=1/2\) on the treated cell with outcome \(2\), \(X_i=-1/2\) on the treated cell with outcome \(0\), and \(X_i=0\) on the other cells.  On \(\{N_1>0\}\), the unclipped contrast is
+\[
+\widetilde t
+=\frac{\widehat q_1(1,3)-\widehat q_1(1,1)}2
+=\frac1{N_1}\sum_{i=1}^n\mathbf 1\{Z_i=1\}X_i.
+\]
+Under \(q_{t_0}\), the two changing conditional arm probabilities are \(q_{t_0,1}(1,3)=1/4+t_0\) and \(q_{t_0,1}(1,1)=1/4-t_0\).  Therefore
+\[
+\mathbb E[X_i\mid Z_i=1]=t_0,
+\qquad
+\mathbb E[X_i^2\mid Z_i=1]
+=\frac14\left\{\left(\frac14+t_0\right)+\left(\frac14-t_0\right)\right\}
+=\frac18,
+\]
+and
+\[
+\operatorname{Var}(X_i\mid Z_i=1)=\frac18-t_0^2>0.
+\tag{3}
+\]
+Set \(A_i=\mathbf 1\{Z_i=1\}(X_i-t_0)\).  The variables \(A_i\) are bounded and independent, with mean zero and variance
+\[
+\mathbb E[A_i^2]=\pi_1\left(\frac18-t_0^2\right).
+\]
+For every fixed real \(u\), boundedness and the Taylor expansion of the exponential give
+\[
+\mathbb E\exp\left(\frac{iuA_i}{\sqrt n}\right)
+=1-\frac{u^2}{2n}\pi_1\left(\frac18-t_0^2\right)+o(n^{-1}).
+\]
+Raising this expression to the \(n\)-th power proves directly that
+\[
+\frac1{\sqrt n}\sum_{i=1}^n A_i
+\ \Rightarrow\ 
+N\!\left(0,\pi_1\left(\frac18-t_0^2\right)\right).
+\tag{4}
+\]
+Also, independence and a variance calculation give \(N_1/n\to\pi_1\) in probability.  Since \(\pi_1>0\), \(\Pr(N_1=0)=(1-\pi_1)^n\to0\), and on \(\{N_1>0\}\),
+\[
+\sqrt n(\widetilde t-t_0)
+=\frac{n}{N_1}\frac1{\sqrt n}\sum_{i=1}^n A_i.
+\]
+The centered sum in (4) is tight, so replacing \(n/N_1\) by \(1/\pi_1\) changes the last display by a term converging to zero in probability.  Equations (3)--(4), together with \(\pi_1=1/2\), therefore imply
+\[
+\sqrt n(\widetilde t-t_0)
+\ \Rightarrow\ 
+N\!\left(0,\frac{1/8-t_0^2}{\pi_1}\right)
+=N\!\left(0,\frac14-2t_0^2\right).
+\tag{5}
+\]
+The same calculation gives \(\widetilde t\to t_0\) in probability.  Because \(t_0\) is strictly between \(0\) and \(1/4\), the clipping map equals the identity on a fixed neighborhood of \(t_0\).  Hence \(\Pr(\widehat t=\widetilde t)\to1\), and (5) holds with \(\widehat t\) in place of \(\widetilde t\).  With probability tending to one, \(\widehat t\) and \(t_0\) are in the neighborhood where (2) applies.  Taking absolute values in (5) and using (2) gives
+\[
+\sqrt n\,d_H(S_{\widehat t},S_{t_0})
+\ \Rightarrow\ 
+2\sqrt{\frac14-2t_0^2}\,|N(0,1)|.
+\]
+
+Finally, let \(c_{1-\alpha}\) denote the \((1-\alpha)\)-quantile of \(|N(0,1)|\), and put \(\widehat\sigma=\sqrt{1/4-2\widehat t^{,2}}\).  Continuity and consistency imply \(\widehat\sigma\to\sqrt{1/4-2t_0^2}>0\) in probability.  Consequently the Hausdorff ball centered at \(S_{\widehat t}\) with radius \(2\widehat\sigma c_{1-\alpha}/\sqrt n\) satisfies
+\[
+\Pr_{q_{t_0}}\!\left\{d_H(S_{\widehat t},S_{t_0})
+\le \frac{2\widehat\sigma c_{1-\alpha}}{\sqrt n}\right\}
+\longrightarrow 1-\alpha.
+\]
+This is the asserted pointwise first-order plug-in folded-normal coverage.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The solved one-path stratum verifies that the regular branch is nonvacuous and provides a calibration check and special case of the general active-germ recovery theorem. \textit{Gap.} Generic nonsmooth-bound asymptotics do not state this explicit rank-policy folded-normal loss law. \textit{Consumer.} The proposition supplies a calibration benchmark and a mandatory regression test for the full loss compiler.
+
+\begin{theorem}[thm:active-germ-recovery]\label{thm:active-germ-recovery}
+Let \(E\) be the exact multinomial sampling face, meaning that \(q_\star\in\operatorname{relint}(E)\), and suppose \(\pi_z>0\) for both instrument arms.  At every \(q_\star\in\overline{\mathcal Q}\cap E\) satisfying the equivalent conditions of the continuity frontier, the projected full-loss germ handle recovers, with probability tending to one, all and only the incident zero-intercept homogeneous pieces on the relative tangent space \(T\), including pieces at continuous multi-path switches and propensity--grid ties.  It thereby defines a finite positively homogeneous piecewise-linear map \(\psi_{q_\star}:T\to\mathbb R_+\) such that
+\[
+\sqrt n\,d_H(S(\widetilde q),S(q_\star))\ \Rightarrow\ \psi_{q_\star}(G).
+\]
+If the relative multinomial covariance is estimated by its plug-in value on the same exact face, conditional Gaussian simulation of the recovered germ and a closed upper \((1-\alpha)\)-quantile, with a vanishing nonnegative numerical guard, gives a pointwise asymptotically valid Hausdorff ball.  The exact-face condition includes lower-dimensional structural-zero faces; if a larger face than the true sampling face is used, this conclusion need not hold.
+\end{theorem}
+\begin{proof}
+Put \(Q_E=\overline{\mathcal Q}\cap E\) and, as in \texttt{def:active-germ-handle}, define
+\[
+ f(u,q)=d_H\{S(P_Eu),S(q)\},
+ \qquad (u,q)\in\operatorname{aff}(E)\times Q_E.
+\tag{1}
+\]
+The proof has five steps.
+
+\emph{Step 1: finite polyhedral elimination.}
+By \texttt{thm:path-representation}, for each \(r\in\overline{\mathcal Q}\),
+\[
+ S(r)=\bigcup_{\gamma\in\Gamma_K}
+ \{C_\gamma x:A_\gamma x=b_\gamma+B_\gamma r,\ x\geq0\},
+\tag{2}
+\]
+with infeasible components interpreted as empty.  The set \(\Gamma_K\) is finite.  Moreover, the bin-sum rows in \texttt{def:allocation-fiber} give \(0\leq x_{bs}\leq |I_b|\).  Thus each nonempty fiber in (2), each of its linear images, and their finite union are compact.  At the legal base laws considered in the theorem these unions are nonempty, as required for the Hausdorff metric \(d_H\).
+
+The set \(Q_E\) is a closed polytope.  Write it as \(Q_E=\{v:Hv\leq h\}\) inside \(\operatorname{aff}(E)\).  For any proposed active set \(I\), the projection identity \(v=P_Eu\) is characterized by
+\[
+ Hv\leq h,\qquad H_Iv=h_I,\qquad
+ u-v=H_I^{\mathsf T}\lambda_I,\qquad \lambda_I\geq0.
+\tag{3}
+\]
+Indeed, the last equality and feasibility imply, for every \(w\in Q_E\),
+\((u-v)^{\mathsf T}(w-v)=\lambda_I^{\mathsf T}H_I(w-v)\leq0\); expanding squared Euclidean distances then gives \(\|u-w\|_2^2\geq\|u-v\|_2^2+\|w-v\|_2^2\), so \(v\) is the unique projection.  Conversely, the same variational inequality places \(u-v\) in the finitely generated normal cone of the active inequalities, yielding (3).  Enumerating the finitely many sets \(I\) therefore expresses the graph of \(P_E\) as a finite union of polyhedra.
+
+For compact nonempty sets and the \(\ell_\infty\) Hausdorff metric, \(f(u,q)\leq r\) is equivalent to
+\[
+\begin{split}
+ &\forall a\,\bigl[a\in S(P_Eu)\Longrightarrow
+       \exists b\in S(q):-r\mathbf 1\leq a-b\leq r\mathbf 1\bigr],\\
+ &\forall b\,\bigl[b\in S(q)\Longrightarrow
+       \exists a\in S(P_Eu):-r\mathbf 1\leq a-b\leq r\mathbf 1\bigr].
+\end{split}
+\tag{4}
+\]
+After substituting (2) and (3), (4) is a finite Boolean combination of linearly quantified affine equalities and inequalities.  Eliminate a scalar existential quantifier by comparing every induced lower bound with every induced upper bound and imposing the induced equalities; eliminate a universal quantifier by complementing the corresponding existential formula.  Repeating this finite Fourier--Motzkin argument shows that the relation \(f(u,q)\leq r\) is semilinear.  The graph relation is also semilinear because
+\[
+ f(u,q)=r
+ \quad\Longleftrightarrow\quad
+ f(u,q)\leq r\ \text{ and }\
+ \neg\exists s\,[s<r\text{ and }f(u,q)\leq s].
+\tag{5}
+\]
+Decompose this graph into finitely many relatively polyhedral cells.  A convex polyhedron contained in the graph of a single-valued function must have an affine last coordinate over its projection: convex combinations of two graph points remain graph points, and uniqueness of the last coordinate gives the affine identity.  After subdividing overlapping projections, there is consequently a finite partition \(\{R_j\}_{j=1}^M\) such that
+\[
+ f(u,q)=a_j^{\mathsf T}u+b_j^{\mathsf T}q+c_j
+ \quad\text{on }R_j.
+\tag{6}
+\]
+This is precisely the finite full-loss object compiled by \texttt{def:active-germ-handle}; it includes the projection faces and both directed excesses in (4), rather than only the path-domain faces.
+
+\emph{Step 2: diagonal stratification and the homogeneous germ.}
+Write the affine boundary forms of \(R_j\) as \(\ell_{jr}(u,q)\), and define the normalized diagonal boundary and value forms
+\[
+ \delta_{jr}(q)=\ell_{jr}(q,q),
+ \qquad
+ \eta_j(q)=(a_j+b_j)^{\mathsf T}q+c_j.
+\tag{7}
+\]
+There are finitely many such forms.  Since \(q_\star\in Q_E\), the projection fixes \(q_\star\), and hence
+\[
+ f(q_\star,q_\star)=d_H\{S(q_\star),S(q_\star)\}=0.
+\tag{8}
+\]
+By \texttt{thm:continuity-frontier}, there are \(H,\varepsilon>0\) such that
+\[
+ d_H\{S(r),S(q_\star)\}\leq H\|r-q_\star\|_\infty
+\tag{9}
+\]
+for every \(r\in\overline{\mathcal Q}\) with \(\|r-q_\star\|_\infty<\varepsilon\).  Euclidean projection is nonexpansive in \(\|\cdot\|_2\), and norm equivalence in the finite-dimensional affine space supplies a constant \(C_E<\infty\) such that
+\[
+ \|P_Eu-q_\star\|_\infty
+ \leq C_E\|u-q_\star\|_\infty.
+\tag{10}
+\]
+The triangle inequality for \(d_H\), (9), and (10) therefore yield, when both arguments are sufficiently close to \(q_\star\),
+\[
+ 0\leq f(u,q)
+ \leq H C_E\|u-q_\star\|_\infty
+      +H\|q-q_\star\|_\infty.
+\tag{11}
+\]
+Thus every cell in (6) incident to \((q_\star,q_\star)\) has affine value zero there, and hence \(\eta_j(q_\star)=0\).
+
+Restrict to \((u,q)=(q_\star+v,q_\star)\) with \(v\in T=T_E(q_\star)\).  On an incident cell, (6)--(7) become
+\[
+ f(q_\star+v,q_\star)=a_j^{\mathsf T}v,
+ \qquad
+ \ell_{jr}(q_\star+v,q_\star)
+ =\delta_{jr}(q_\star)+g_{jr}^{\mathsf T}v
+\tag{12}
+\]
+for fixed vectors \(g_{jr}\).  Every nonzero member of the finite collection of diagonal forms in (7) is separated from zero at \(q_\star\), so its sign is fixed in one neighborhood.  Each form that is zero at \(q_\star\) reduces in (12) to a homogeneous linear form in \(v\).  The reachable incident cells therefore cut \(T\) into finitely many polyhedral cones, and their linear values define a finite nonnegative positively homogeneous piecewise-linear map
+\[
+ \psi_{q_\star}:T\longrightarrow\mathbb R_+,
+ \qquad
+ f(q_\star+v,q_\star)=\psi_{q_\star}(v)
+\tag{13}
+\]
+for all sufficiently small \(v\in T\).  The map is continuous because (11) makes the slice continuous at the origin and the affine formulas agree on every shared boundary, being restrictions of the same single-valued function.  Conversely, every cone retained in (13) is the restriction of an incident cell of the exact graph (5).  Hence (13) contains all and only the reachable zero-intercept pieces.
+
+Define the diagonal stratum of \(q_\star\) by the signs, with zero as a separate sign, of every normalized form in (7).  On its relative interior, nonzero forms retain their signs and zero forms remain zero.  Translation in the first argument then produces exactly the homogeneous boundary forms in (12), so the incident cones and their slopes are constant on the stratum.  This argument also covers simultaneous path-image switches and propensity--grid ties: the finite graph compilation already includes every weak-order cell, and duplicated boundary images can repeat but cannot remove any incident graph cell.
+
+\emph{Step 3: exact recovery by snapping.}
+Represent one observation by its \(4K\)-cell indicator vector \(W_i\), with mean \(r_\star=(\pi_zq_{\star z})_{z=0,1}\).  Because \(q_\star\in\operatorname{relint}(E)\), a structural-zero coordinate of \(E\) is zero almost surely, whereas each coordinate retained by that face has positive probability.  For every fixed vector \(t\), boundedness of \(W_i\) gives the Taylor expansion
+\[
+ \mathbb E\exp\!\left\{\frac{i t^{\mathsf T}(W_i-r_\star)}{\sqrt n}\right\}
+ =1-\frac{t^{\mathsf T}\operatorname{Var}(W_i)t}{2n}+o(n^{-1}).
+\tag{14}
+\]
+Under \texttt{ass:iid-sampling}, taking the \(n\)-th power proves the centered multivariate Gaussian limit for the joint cell shares.  By \texttt{ass:positive-instrument-shares},
+\[
+ \Pr(N_z=0)=(1-\pi_z)^n\longrightarrow0,
+\tag{15}
+\]
+so conditional shares are defined with probability tending to one.  Expanding the ratio of joint cell shares to the corresponding arm share gives
+\[
+ \sqrt n(\widehat q_z-q_{\star z})
+ =\frac{1}{\pi_z}
+  (I-q_{\star z}\mathbf 1^{\mathsf T})
+  \sqrt n(\widehat r_z-r_{\star z})+o_p(1).
+\tag{16}
+\]
+Multiplying out the covariance in (16) yields zero cross-arm covariance and, after deletion of structural-zero and normalization directions,
+\[
+ \sqrt n(\widehat q-q_\star)\Rightarrow G,
+ \qquad
+ \Sigma_z=\frac{\operatorname{diag}(q_{\star z})
+                  -q_{\star z}q_{\star z}^{\mathsf T}}{\pi_z}.
+\tag{17}
+\]
+This is the object in \texttt{def:multinomial-limit}.  Its covariance is positive definite on \(T\): retained cell probabilities are positive by relative interiority, and the only null direction of an arm multinomial covariance before restricting to the simplex tangent space is the normalization direction.  In particular, \(\widehat q-q_\star=O_p(n^{-1/2})\).  Projection nonexpansiveness and norm equivalence give
+\[
+ \|\widetilde q-q_\star\|_\infty
+ =O_p(n^{-1/2}).
+\tag{18}
+\]
+
+Let \(h\) be any normalized diagonal boundary or value-intercept form used by the handle.  Affineness and (18) imply
+\[
+ h(q_\star)=0
+ \quad\Longrightarrow\quad
+ |h(\widetilde q)|=O_p(n^{-1/2})=o_p(\kappa_n),
+\tag{19}
+\]
+because \(\sqrt n\kappa_n\to\infty\).  If \(h(q_\star)\neq0\), consistency in (18) and \(\kappa_n\downarrow0\) imply
+\[
+ \Pr\{|h(\widetilde q)|>\kappa_n,\ 
+ \operatorname{sgn}h(\widetilde q)=\operatorname{sgn}h(q_\star)\}
+ \longrightarrow1.
+\tag{20}
+\]
+There are only finitely many forms, so (19)--(20) hold simultaneously with probability tending to one.  On that event, snapping recovers exactly the diagonal stratum of \(q_\star\).  Step 2 then shows that the exact compilation recovers all and only the cones and slopes defining \(\psi_{q_\star}\).  Restriction to \(T\) deletes every structural-zero sampling direction.  This proves the claimed recovery at ordinary cells, continuous multi-path switches, propensity--grid ties, and relative lower-dimensional exact faces.
+
+\emph{Step 4: the limit law.}
+On the event \(N_0N_1>0\), exact-face sampling gives \(\widehat q\in\operatorname{aff}(E)\).  By (15) and (17), with probability tending to one it also lies in the neighborhood on which (13) holds.  On that event, \texttt{def:sampling-projection}, (1), and positive homogeneity give the exact identity
+\[
+\begin{split}
+ \sqrt n\,d_H\{S(\widetilde q),S(q_\star)\}
+ &=\sqrt n\,f(\widehat q,q_\star)\\
+ &=\psi_{q_\star}\!\left(\sqrt n(\widehat q-q_\star)\right).
+\end{split}
+\tag{21}
+\]
+The continuous piecewise-linear map \(\psi_{q_\star}\), (17), and (21) imply
+\[
+ \sqrt n\,d_H\{S(\widetilde q),S(q_\star)\}
+ \Rightarrow \psi_{q_\star}(G).
+\tag{22}
+\]
+Here \(G\) is the unprojected conditional-multinomial first-stage limit on \(T\); the directional effect of a binding compatibility projection is already incorporated in \(f\) and therefore in the recovered germ \(\psi_{q_\star}\).
+
+\emph{Step 5: conditional Gaussian calibration.}
+On the same exact face, cell-share consistency and \(\pi_z>0\) make the plug-in covariance \(\widehat\Sigma\) consistent for \(\Sigma\).  With \(\xi\) standard normal on \(T\), independent of the observations, put \(\widehat G=\widehat\Sigma^{1/2}\xi\).  Continuity of the matrix square root, covariance consistency, and the probability-tending-to-one exact germ recovery in Step 3 imply conditional convergence in probability of
+\[
+ \widehat\psi_n(\widehat G)
+ \quad\text{to the law of}\quad
+ \psi_{q_\star}(G).
+\tag{23}
+\]
+Let \(c_\star=\inf\{c:\Pr(\psi_{q_\star}(G)\leq c)\geq1-\alpha\}\) be the closed upper \((1-\alpha)\)-quantile, and define \(\widehat c_n\) analogously from the conditional simulated law in (23).  The limit has no atom at any \(c>0\).  Indeed, on each of finitely many cones, \(\psi_{q_\star}(g)=a^{\mathsf T}g\); the event \(a^{\mathsf T}G=c>0\) lies in a proper affine hyperplane and has probability zero because \(\Sigma\) is positive definite on \(T\).  Positive homogeneity and full Gaussian support also imply that, whenever the map is not identically zero, its distribution function increases immediately to the right of every positive point in its support.  Thus, if \(c_\star>0\), (23) yields \(\widehat c_n\to_p c_\star\), and (22) gives asymptotic coverage at least \(1-\alpha\).
+
+If \(c_\star=0\), the zero set of the continuous piecewise-linear homogeneous map is a finite union of polyhedral cones.  Its boundary is contained in finitely many proper linear subspaces and therefore has zero probability under the nondegenerate Gaussian law on \(T\).  Equations (17) and (21) consequently give
+\[
+ \Pr\!\left\{\sqrt n\,d_H\{S(\widetilde q),S(q_\star)\}=0\right\}
+ \longrightarrow \Pr\{\psi_{q_\star}(G)=0\}\geq1-\alpha.
+\tag{24}
+\]
+For any nonnegative numerical guard \(\rho_n\downarrow0\), a closed ball of radius \((\widehat c_n+\rho_n)/\sqrt n\) contains the zero-loss event.  Combining the positive- and zero-quantile cases proves
+\[
+ \liminf_{n\to\infty}\Pr_{q_\star}\!\left\{
+ d_H\{S(\widetilde q),S(q_\star)\}
+ \leq\frac{\widehat c_n+\rho_n}{\sqrt n}
+ \right\}\geq1-\alpha.
+\tag{25}
+\]
+The guard may also dominate a vanishing numerical quantile-computation error.
+
+Finally, exact-face specification is load-bearing.  If a strict superface \(E'\supsetneq E\) is declared, then its tangent space contains an extra direction \(e\) along which the true empirical law has identically zero fluctuation.  The full finite compilation supplies a direct failure certificate whenever an incident coefficient \(a_j\) satisfies \(a_j^{\mathsf T}e\neq0\): the superface germ retains the values \(a_j^{\mathsf T}(v+se)\), although every perturbation generated by the true sampling experiment has \(s=0\).  Such a certificate is permitted by (2), because relaxing a structural-zero outcome coordinate can change the right-hand side \(B_\gamma q\), the projected allocation fiber, and hence a policy image.  Moreover, projection onto \(\overline{\mathcal Q}\cap E'\) can move a sample perturbation into this extra direction when compatibility inequalities bind, whereas projection onto \(\overline{\mathcal Q}\cap E\) cannot.  The snapping and conditional-quantile arguments above therefore no longer guarantee the true incident loss partition when a larger face is used.  This establishes the stated ``need not hold'' qualification and completes the proof.
+\end{proof}
+
+\begin{lemma}[lem:marx-proposition-five]\label{lem:marx-proposition-five}
+\texttt{Under the latent-\allowbreak{}index model,\allowbreak{} existential rank similarity,\allowbreak{} and the full-\allowbreak{}support condition equating the complier and population potential-\allowbreak{}outcome supports,\allowbreak{} Marx's Proposition 5 gives the sharp attainable interval for the counterfactual average at every fixed policy propensity,\allowbreak{} with endpoints equal to its displayed uniformly sharp lower and upper bounds.}
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The projected full Hausdorff-loss germ is solved pointwise, including at continuous multi-path switches, propensity--grid ties, and exact lower-dimensional structural-zero sampling faces. The result remains conditional on a certified continuity law, positive instrument shares, and correct specification of the exact multinomial sampling face. It is not uniform over laws or faces, and a path-domain-only bootstrap still does not suffice because the full loss may change affine pieces while every path domain remains unchanged. None of these local calibration conclusions defeats the contiguous discontinuity obstruction to globally shrinking honest Hausdorff inference.
+
+\section{Honest scope}
+
+The path representation is scoped to a fixed finite outcome alphabet. That missing-support class and Marx's full-support class are nonnested, and the reduction to Marx's Proposition 5 holds only on their finite-alphabet full-support overlap. The inequalities \(c_0\ge0\) and \(c_1\ge0\) are derived observed-law compatibility checks, not maintained assumptions. The finite survival criterion, centered Lipschitz implication, three-outcome discontinuity, impossibility argument, and exact finite inversion-and-radius algorithm are theorem-level results. Simultaneous finite-sample coverage is a direct corollary of observed-law coverage and inversion, with no finite-sample optimality claim. Projected full-loss Gaussian calibration is solved pointwise at every certified continuity law on the exact multinomial sampling face, including continuous multi-path switches, propensity--grid ties, and exact lower-dimensional structural-zero faces; it requires positive instrument shares and the exact face. Pairwise-neighborhood Lipschitz continuity, a globally continuous derivative, uniform calibration, and globally shrinking honest Hausdorff inference are not claimed. The one-path folded-normal law is a check and special case of the general active-germ theorem. For \(K=2\), only the two monotone paths remain.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Marx2024SharpBounds} Marx, Philip (2024). Sharp Bounds in the Latent Index Selection Model. Journal of Econometrics 238(2), 105561. arXiv:2012.02390.
+
+  \bibitem{Chesher2010DiscreteIV} Chesher, Andrew (2010). Instrumental Variable Models for Discrete Outcomes. Econometrica 78, 575--601.
+
+  \bibitem{ImbensRubin1997Compliers} Imbens, Guido W., and Donald B. Rubin (1997). Estimating Outcome Distributions for Compliers in Instrumental Variables Models. Review of Economic Studies 64, 555--574.
+
+  \bibitem{BeresteanuMolinari2008SVRV} Beresteanu, Arie, and Francesca Molinari (2008). Asymptotic Properties for a Class of Partially Identified Models. Econometrica 76, 763--814.
+
+  \bibitem{ChernozhukovHongTamer2007ParameterSets} Chernozhukov, Victor, Han Hong, and Elie Tamer (2007). Estimation and Confidence Regions for Parameter Sets in Econometric Models. Econometrica 75, 1243--1284.
+
+  \bibitem{RomanoShaikh2010IdentifiedSet} Romano, Joseph P., and Azeem M. Shaikh (2010). Inference for the Identified Set in Partially Identified Econometric Models. Econometrica 78, 169--211.
+
+  \bibitem{FangSantos2019Directional} Fang, Zheng, and Andres Santos (2019). Inference on Directionally Differentiable Functions. Review of Economic Studies 86, 377--412. arXiv:1404.3763.
+
+  \bibitem{KaidoMolinariStoye2019ProjectionCI} Kaido, Hiroaki, Francesca Molinari, and Jorg Stoye (2019). Confidence Intervals for Projections of Partially Identified Parameters. Econometrica 87, 1397--1432. arXiv:1601.00934.
+
+  \bibitem{FanPark2010DTEBounds} Fan, Yanqin, and Sang Soo Park (2010). Sharp Bounds on the Distribution of Treatment Effects and Their Statistical Inference. Econometric Theory 26, 931--951.
+
+  \bibitem{SongGuoChanRichardson2024CategoricalIV} Song, Yilin, F. Richard Guo, K. C. Gary Chan, and Thomas S. Richardson (2026). The Categorical Instrumental Variable Model: Characterization, Partial Identification, and Statistical Inference. arXiv:2405.09510, version 6.
+
+  \bibitem{AndrewsGuggenberger2009MomentInequalities} Andrews, Donald W. K., and Patrik Guggenberger (2009). Validity of Subsampling and Plug-In Asymptotic Inference for Parameters Defined by Moment Inequalities. Econometric Theory 25, 669--709.
+
+  \bibitem{Torgovitsky2019PIES} Torgovitsky, Alexander (2019). Partial Identification by Extending Subdistributions. Quantitative Economics 10, 105--144.
+
+  \bibitem{HanYang2024PolicyLP} Han, Sukjin, and Shuyang Yang (2024). A Computational Approach to Policy Evaluation with Instrumental Variables. Journal of Econometrics 240, 105692.
+
+\end{thebibliography}
+
+\end{document}

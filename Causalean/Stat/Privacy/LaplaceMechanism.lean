@@ -3,13 +3,15 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
-import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Integral.Pi
-import Mathlib.MeasureTheory.Measure.FiniteMeasurePi
-import Mathlib.MeasureTheory.Measure.WithDensity
+
+module
+public import Mathlib.Analysis.SpecialFunctions.ImproperIntegrals
+public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Integral.Pi
+public import Mathlib.MeasureTheory.Measure.FiniteMeasurePi
+public import Mathlib.MeasureTheory.Measure.WithDensity
 
 /-!
 # The Laplace mechanism and pure differential privacy
@@ -18,6 +20,8 @@ This file supplies the classical centred Laplace distribution, its density-ratio
 bound, scalar and finite-dimensional Laplace mechanisms, and post-processing
 lemmas.  Dataset types and adjacency relations remain completely abstract.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Privacy
 
@@ -439,12 +443,10 @@ theorem laplaceMechPi_pure_dp {D ι : Type*} [Fintype ι]
     (ENNReal.mul_ne_top ENNReal.ofReal_ne_top
       (measure_ne_top (laplaceMechPi (Δ / ε) q d') s)) hle
 
-/-- **Pure DP implies approximate DP.** Given [a mechanism `M` satisfying pure
-$\varepsilon$-differential privacy between releases `M d` and `M d'`, i.e. the probability of
-every measurable event under one release is at most $e^\varepsilon$ times its probability under
-the other](hyp:hpure), adding [any nonnegative failure allowance $\delta$](hyp:hδ) to the bound
-[still yields a valid $(\varepsilon,\delta)$-approximate differential-privacy guarantee between
-`M d` and `M d'`](goal). -/
+/-- **A pure measure bound implies the corresponding approximate measure bound.** Given [an
+event-measure bound between `M d` and `M d'`](hyp:hpure), adding [any nonnegative allowance
+$\delta$](hyp:hδ) [preserves the inequality with that allowance](goal). This raw fixed-pair lemma
+does not assert that `M` consists of probability measures. -/
 theorem pure_dp_implies_approx_dp {α : Type*} [MeasurableSpace α]
     (M : D → Measure α) (d d' : D) (ε δ : ℝ)
     (hpure : ∀ s, MeasurableSet s →
@@ -454,11 +456,11 @@ theorem pure_dp_implies_approx_dp {α : Type*} [MeasurableSpace α]
   intro s hs
   exact (hpure s hs).trans (le_add_of_nonneg_right hδ)
 
-/-- **Post-processing preserves pure differential privacy.** Given [a vector-valued mechanism `M`
-satisfying pure $\varepsilon$-differential privacy between the releases `M d` and
-`M d'`](hyp:hM), post-processing the release by [any measurable scalar summary `f`](hyp:hf)
-[again satisfies pure $\varepsilon$-differential privacy, now between the `f`-summaries of
-`M d` and `M d'`](goal). -/
+/-- **A fixed-pair pure measure bound survives deterministic vector-to-scalar
+post-processing.** Given [an event-measure bound between the vector-valued measures `M d` and
+`M d'`](hyp:hM), pushing both measures forward by [a measurable scalar map `f`](hyp:hf)
+[preserves the same bound](goal). This raw lemma does not assert probability normalization or
+quantify over an adjacency relation. -/
 theorem pure_dp_postprocess {D ι : Type*}
     (M : D → Measure (ι → ℝ)) (d d' : D) (ε : ℝ)
     (hM : ∀ s, MeasurableSet s →
@@ -471,17 +473,16 @@ theorem pure_dp_postprocess {D ι : Type*}
   rw [Measure.map_apply hf hs, Measure.map_apply hf hs]
   exact hM (f ⁻¹' s) (hs.preimage hf)
 
-/-- **Post-processing preserves approximate differential privacy.** Given [a vector-valued
-mechanism `M` obeying an $(\varepsilon,\delta)$-approximate DP bound between the releases `M d`
-and `M d'` for every measurable event](hyp:hM), with [a nonnegative failure allowance
-$\delta$](hyp:_hδ), post-processing the release by [any measurable scalar summary `f`](hyp:hf)
-[again satisfies the same $(\varepsilon,\delta)$-approximate DP bound, now between the
-`f`-summaries of `M d` and `M d'`](goal). -/
+/-- **A fixed-pair approximate measure bound survives deterministic vector-to-scalar
+post-processing.** Given [an event-measure bound with allowance `δ` between the vector-valued
+measures `M d` and `M d'`](hyp:hM), pushing both measures forward by [a measurable scalar map
+`f`](hyp:hf) [preserves the same bound and allowance](goal). This raw lemma does not assert
+probability normalization or quantify over an adjacency relation. -/
 theorem approx_dp_postprocess {D ι : Type*}
     (M : D → Measure (ι → ℝ)) (d d' : D) (ε δ : ℝ)
     (hM : ∀ s, MeasurableSet s →
       (M d).real s ≤ Real.exp ε * (M d').real s + δ)
-    (_hδ : 0 ≤ δ) (f : (ι → ℝ) → ℝ) (hf : Measurable f) :
+    (f : (ι → ℝ) → ℝ) (hf : Measurable f) :
     ∀ s, MeasurableSet s →
       ((M d).map f).real s ≤
         Real.exp ε * ((M d').map f).real s + δ := by

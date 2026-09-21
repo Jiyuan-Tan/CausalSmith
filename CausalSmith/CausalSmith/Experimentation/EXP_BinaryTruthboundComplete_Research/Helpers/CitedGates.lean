@@ -1,7 +1,8 @@
-import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Moments.Variance
+module
+public import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Moments.Variance
 
 /-!
 # Cited logical interface
@@ -9,6 +10,8 @@ import Mathlib.Probability.Moments.Variance
 A. W. van der Vaart, *Asymptotic Statistics* (1998), Proposition 2.27, pp. 20–21:
 the Lindeberg–Feller theorem for independent triangular arrays.
 -/
+
+@[expose] public section
 
 open scoped BigOperators ProbabilityTheory ENNReal
 open Filter Topology

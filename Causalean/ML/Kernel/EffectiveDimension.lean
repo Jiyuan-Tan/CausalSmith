@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.PSeries
-import Mathlib.Topology.Algebra.InfiniteSum.Order
-import Mathlib.Topology.Algebra.InfiniteSum.Ring
-import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
+
+module
+public import Mathlib.Analysis.PSeries
+public import Mathlib.Topology.Algebra.InfiniteSum.Order
+public import Mathlib.Topology.Algebra.InfiniteSum.Ring
+public import Mathlib.Topology.Algebra.InfiniteSum.ENNReal
 
 /-! # Effective dimension of a trace-class operator
 
@@ -35,17 +37,20 @@ Bernstein inequality for `(T+λ)^{-1/2}(T − T̂ₙ)(T+λ)^{-1/2}`) that is a s
 file is the definitional foundation it would build on.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open scoped Topology
 
 variable {ι : Type*}
 
-/-- Given [an arbitrary set of eigenvalue indices](hyp:ι), [a family of real eigenvalues indexed
-by that set](hyp:μ), and [a real regularization level](hyp:lam), the [effective dimension](goal)
-is the infinite sum $\sum_i \mu_i/(\mu_i+\lambda)$. This definition imposes no positivity,
-summability, or nonzero-denominator condition; a summand with zero denominator, and the total
-when the summand family is not summable, are assigned the value zero.
+/-- [Effective dimension](goal) measures the spectral degrees of freedom retained by
+regularization through [the regularized eigenvalue-ratio sum](step:1). It uses
+[a real eigenvalue family](hyp:μ) over [an arbitrary index set](hyp:ι) at
+[a real regularization level](hyp:lam). Without positivity, summability, and
+nonzero denominators, zero-denominator terms and nonsummable totals follow the ambient
+real-series convention and evaluate to zero.
 
 The effective dimension is the trace-style quantity used in kernel-ridge variance bounds. -/
 noncomputable def effectiveDimension (μ : ι → ℝ) (lam : ℝ) : ℝ :=
@@ -67,8 +72,10 @@ lemma effectiveDimension_term_le_one {μ : ι → ℝ} {lam : ℝ}
   rw [div_le_one (add_pos_of_nonneg_of_pos (hμ i) hlam)]
   linarith [hμ i]
 
-/-- For a trace-class operator (summable eigenvalues) the effective-dimension summands are
-summable, so `effectiveDimension` is a genuine real number. -/
+/-- [The effective-dimension summands form a summable family](goal) when
+[the eigenvalues are nonnegative](hyp:hμ), [the regularization level is positive](hyp:hlam),
+and [the eigenvalue family is summable](hyp:hsum). Thus
+[the indexed spectral sum](hyp:ι,μ,lam) is genuine rather than a nonsummable-series default. -/
 lemma summable_effectiveDimension_term {μ : ι → ℝ} {lam : ℝ}
     (hμ : ∀ i, 0 ≤ μ i) (hlam : 0 < lam) (hsum : Summable μ) :
     Summable (fun i => μ i / (μ i + lam)) :=
@@ -80,12 +87,11 @@ lemma effectiveDimension_nonneg {μ : ι → ℝ} {lam : ℝ}
     (hμ : ∀ i, 0 ≤ μ i) (hlam : 0 < lam) : 0 ≤ effectiveDimension μ lam :=
   tsum_nonneg (fun i => effectiveDimension_term_nonneg hμ hlam i)
 
-/-- **Dimension-free bound.** For an eigenvalue family `μ` and regularization level `lam`,
-if [every eigenvalue is nonnegative](hyp:hμ), [the regularization level is strictly
-positive](hyp:hlam), and [the eigenvalues are summable, i.e. the operator is
-trace-class](hyp:hsum), then [the effective dimension `N(lam) = ∑ᵢ μᵢ/(μᵢ+lam)` is at
-most the trace `∑ᵢ μᵢ` divided by `lam`](goal). This is the bound that, with eigenvalue
-decay `μᵢ ≍ i^{-b}`, yields `N(λ) = O(λ^{-1/b})`. -/
+/-- **Trace bound.** [Effective dimension is at most total spectral mass divided by the
+regularization level](goal) for [a nonnegative, summable eigenvalue family](hyp:μ,hμ,hsum)
+over [the index set](hyp:ι) at [a positive regularization level](hyp:lam,hlam). This gives
+only inverse-linear dependence on regularization; sharper decay-dependent rates require a
+separate argument. -/
 lemma effectiveDimension_le_trace_div {μ : ι → ℝ} {lam : ℝ}
     (hμ : ∀ i, 0 ≤ μ i) (hlam : 0 < lam) (hsum : Summable μ) :
     effectiveDimension μ lam ≤ (∑' i, μ i) / lam := by
@@ -104,8 +110,10 @@ lemma effectiveDimension_le_card [Fintype ι] {μ : ι → ℝ} {lam : ℝ}
       ≤ ∑ _i : ι, (1 : ℝ) := Finset.sum_le_sum fun i _ => effectiveDimension_term_le_one hμ hlam i
     _ = (Fintype.card ι : ℝ) := by simp [Finset.card_univ]
 
-/-- **Monotonicity in the regularization level.**  More regularization shrinks the effective
-dimension: `λ₁ ≤ λ₂ ⇒ N(λ₂) ≤ N(λ₁)`. -/
+/-- If [all eigenvalues are nonnegative](hyp:hμ), [the first regularization level is
+positive](hyp:hlam₁), [the first level is no larger than the second](hyp:hle), and [the
+eigenvalues are summable](hyp:hsum), then [effective dimension is antitone in the regularization
+level](goal). -/
 lemma effectiveDimension_antitone {μ : ι → ℝ} {lam₁ lam₂ : ℝ}
     (hμ : ∀ i, 0 ≤ μ i) (hlam₁ : 0 < lam₁) (hle : lam₁ ≤ lam₂) (hsum : Summable μ) :
     effectiveDimension μ lam₂ ≤ effectiveDimension μ lam₁ := by

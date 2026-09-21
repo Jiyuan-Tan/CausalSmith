@@ -12,7 +12,8 @@ For the sample quantile `q̂ₙ(τ)` (generalized inverse of the empirical cdf,
 
 equivalently the asymptotic linearity with influence function
 `ψ_τ(z) = (τ − 1{z ≤ q₀})/f₀`, is **derived here from elementary tools** — no
-Donsker / empirical-process layer is assumed.  Only `Stat/SampleQuantile.lean`'s
+Donsker / empirical-process layer is assumed. Only
+`Stat/Quantile/SampleQuantile.lean`'s
 generic bundle exposed `bahadur` as a hypothesis; for the *sample* quantile it
 becomes a theorem.
 
@@ -37,18 +38,20 @@ Let `Gₙ(y) = √n (F̂ₙ(y) − F(y))` (`empProcess`).
 References: Bahadur (1966); van der Vaart (1998) §21; Serfling (1980) §2.3.
 -/
 
-import Causalean.Stat.Quantile.EmpiricalQuantile
-import Causalean.Stat.Quantile.SampleQuantile
-import Causalean.Stat.Limit.ContinuousMapping
-import Causalean.Mathlib.IIDCenteredSum
+module
+public import Causalean.Stat.Quantile.EmpiricalQuantile
+public import Causalean.Stat.Quantile.SampleQuantile
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Causalean.Mathlib.Probability.IdentDistrib.CenteredSum
 
 /-! # Empirical-Process Oscillation for Sample Quantiles
 
 This file supplies the regularity bundle and empirical-process estimates used
 to derive the sample-quantile Bahadur representation without assuming a Donsker
 theorem. `SampleQuantileReg` records the interior probability level, positive
-density, cdf identification, differentiability, and atomless-population
-conditions; `IIDSample.empProcess` is the centered scaled cdf process
+density, cdf identification, differentiability, and cdf continuity on a
+positive-radius neighborhood of the target quantile; `IIDSample.empProcess` is
+the centered scaled cdf process
 `G_n(y) = sqrt n (Fhat_n(y) - F(y))`.
 
 The key public lemmas prove that fixed local-shift increments vanish in
@@ -59,6 +62,8 @@ facts are the empirical-process input for the root-`n` rate and final
 linearization modules.
 -/
 
+@[expose] public section
+
 namespace Causalean.Stat
 
 open MeasureTheory ProbabilityTheory Filter Topology
@@ -68,14 +73,16 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {P : Measure ℝ}
 /-! ## Regularity bundle for the sample quantile -/
 
 /-- **Regularity for sample-quantile asymptotics.** Bundles the hypotheses on the population
-cdf $F$ of $P$ under which the empirical sample quantile admits a Bahadur representation at
+cdf $F$ of $P$ under which the empirical sample quantile has a Bahadur representation at
 level $\tau$: [the level lies in the open unit interval $\tau \in (0,1)$](hyp:tau_pos,tau_lt_one),
 [the density $f_0$ at the quantile is positive](hyp:density_pos), [$q_0$ is the population
 $\tau$-quantile, i.e. $F(q_0) = \tau$](hyp:cdf_eq), [$F$ is differentiable at $q_0$ with
-derivative $f_0$](hyp:hasDeriv), and [$F$ is continuous, so the population has no atoms](hyp:cont).
+derivative $f_0$](hyp:hasDeriv), and [$F$ is continuous on some closed neighborhood of
+$q_0$ having positive radius](hyp:cont).
 
 Same content as the `hasDeriv`/identification fields of `QuantileRegularity`, **plus** the
-atomless hypothesis `cont`, which lets the Bahadur remainder be *derived* rather than assumed. -/
+local continuity hypothesis `cont`, which excludes ties at sample quantiles near `q₀` without
+assuming global atomlessness. -/
 structure SampleQuantileReg (P : Measure ℝ) (τ q₀ f₀ : ℝ) : Prop where
   /-- Interior level. -/
   tau_pos : 0 < τ
@@ -87,8 +94,9 @@ structure SampleQuantileReg (P : Measure ℝ) (τ q₀ f₀ : ℝ) : Prop where
   cdf_eq : cdf P q₀ = τ
   /-- `f₀` is the density at `q₀`. -/
   hasDeriv : HasDerivAt (fun y => cdf P y) f₀ q₀
-  /-- Atomless population: the cdf is continuous (no ties a.s.). -/
-  cont : Continuous (fun y => cdf P y)
+  /-- The population cdf is continuous on some positive-radius closed neighborhood of `q₀`. -/
+  cont : ∃ ρ : ℝ, 0 < ρ ∧
+    ContinuousOn (fun y => cdf P y) (Set.Icc (q₀ - ρ) (q₀ + ρ))
 
 /-! ## The centered, scaled empirical process -/
 
@@ -182,7 +190,7 @@ lemma IIDSample.empProcess_increment_tendsto_zero (S : IIDSample Ω ℝ μ P)
       have := (tendsto_const_nhds (x := q₀)).add h0
       simpa [hyn] using this
     have hcont : Tendsto (fun n => cdf P (yn n)) atTop (𝓝 (cdf P q₀)) :=
-      (hreg.cont.tendsto q₀).comp hyn_tendsto
+      Filter.Tendsto.comp hreg.hasDeriv.continuousAt hyn_tendsto
     have hdiff : Tendsto (fun n => cdf P (yn n) - cdf P q₀) atTop (𝓝 0) := by
       have := hcont.sub (tendsto_const_nhds (x := cdf P q₀))
       simpa using this
@@ -270,7 +278,7 @@ lemma IIDSample.empProcess_increment_tendsto_zero (S : IIDSample Ω ℝ μ P)
       rw [lintegral_const]
       simp [measure_univ]
   -- Now fix `ε` and run Markov / squeeze.
-  unfold Tendsto_inProb
+  rw [Tendsto_inProb_iff]
   rw [MeasureTheory.tendstoInMeasure_iff_norm]
   intro ε hε
   -- Markov on `{ε ≤ ‖incr‖}`.
@@ -431,7 +439,7 @@ lemma IIDSample.empProcess_node_max_tendsto_zero (S : IIDSample Ω ℝ μ P)
   -- Each node increment vanishes in probability (L2).
   have heach : ∀ i ∈ s, Tendsto_inProb (Δ i) (fun _ => 0) μ := fun i _ =>
     S.empProcess_increment_tendsto_zero hreg (v i)
-  unfold Tendsto_inProb
+  rw [Tendsto_inProb_iff]
   rw [MeasureTheory.tendstoInMeasure_iff_norm]
   intro ε hε
   -- Each summand tends to 0.
@@ -559,7 +567,7 @@ lemma IIDSample.empProcess_oscillation (S : IIDSample Ω ℝ μ P)
   -- The random increment.
   set incr : ℕ → Ω → ℝ := fun n ω =>
     S.empProcess n ω (q₀ + Un n ω / Real.sqrt (n : ℝ)) - S.empProcess n ω q₀ with hincr
-  unfold Tendsto_inProb
+  rw [Tendsto_inProb_iff]
   rw [MeasureTheory.tendstoInMeasure_iff_norm]
   intro ε hε
   -- Reduce `Tendsto … 0` to `∀ δ>0, limsup ≤ ofReal δ` (ENNReal limsup squeeze).
@@ -580,15 +588,17 @@ lemma IIDSample.empProcess_oscillation (S : IIDSample Ω ℝ μ P)
   apply hredu
   intro δ hδ
   -- Step 1: from O_p(1), choose the window `M`.
-  obtain ⟨M₀, hM₀⟩ := hUn δ hδ
+  obtain ⟨M₀, hM₀pos, hM₀⟩ :=
+    hUn (ENNReal.ofReal δ) (ENNReal.ofReal_pos.mpr hδ)
   set M : ℝ := max M₀ 1 with hMdef
   have hMpos : 0 < M := lt_of_lt_of_le one_pos (le_max_right _ _)
   have hM₀le : M₀ ≤ M := le_max_left _ _
   -- `limsup μ{M<|Un|} ≤ ofReal δ` (sub-event of the `M₀`-tail).
   have hUntail : Filter.limsup (fun n => μ {ω | M < |Un n ω|}) atTop ≤ ENNReal.ofReal δ := by
-    refine le_trans (Filter.limsup_le_limsup (Eventually.of_forall fun n => ?_)) hM₀
+    refine le_trans (Filter.limsup_le_limsup (Eventually.of_forall fun n => ?_))
+      (Filter.limsup_le_of_le ⟨0, by intro _ _; exact bot_le⟩ hM₀)
     refine measure_mono fun ω hω => ?_
-    simp only [Set.mem_setOf_eq, mul_one] at hω ⊢
+    simp only [Set.mem_setOf_eq, mul_one, Real.norm_eq_abs] at hω ⊢
     linarith
   -- Step 2: choose the grid resolution `K` so the deterministic mesh `< ε/2`.
   obtain ⟨K, hKpos, hKmesh⟩ : ∃ K : ℕ, 1 ≤ K ∧ f₀ * (2 * M / K) < ε / 2 := by
@@ -612,7 +622,8 @@ lemma IIDSample.empProcess_oscillation (S : IIDSample Ω ℝ μ P)
     S.empProcess_node_max_tendsto_zero hreg (Finset.range (K + 1)) hne node
   -- `μ{ε/2 ≤ NodeMax} → 0`.
   have hNodeTail : Tendsto (fun n => μ {ω | ε / 2 ≤ |NodeMax n ω|}) atTop (𝓝 0) := by
-    have h := (MeasureTheory.tendstoInMeasure_iff_norm.mp hNodeMax_p) (ε / 2) (by linarith)
+    have h := (MeasureTheory.tendstoInMeasure_iff_norm.mp
+      ((Tendsto_inProb_iff _ _ _).mp hNodeMax_p)) (ε / 2) (by linarith)
     simpa [Real.norm_eq_abs] using h
   -- Step 4+6: the deterministic mesh-max is eventually `< ε/2`.
   -- For each cell `j`, `√n(F(node(j+1)/√n)−F(node j/√n)) → f₀·(2M/K) < ε/2`.

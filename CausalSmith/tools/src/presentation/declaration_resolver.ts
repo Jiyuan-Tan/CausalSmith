@@ -3,6 +3,12 @@ import { existsSync } from "node:fs";
 import { readFile, realpath } from "node:fs/promises";
 import { promisify } from "node:util";
 import { dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import {
+  LEAN_IMPORT_RE_GM,
+  LEAN_SECTION_RE,
+  leanDeclarationGrepPattern,
+  parseLeanImport,
+} from "../shared/lean_syntax.js";
 import { leanNameLeaf, maskLeanCommandQuotations } from "./lean_decl_name.js";
 import { extractDeclSnippet, parseSourceDecls } from "./lean_extract.js";
 
@@ -63,8 +69,10 @@ const SCOPE_WORDS = new Set(["namespace", "section", "mutual", "end"]);
 function namespaceAtOffset(maskedSource: string, offset: number, declaredNamespaces?: Set<string>): string {
   const frames: string[] = [];
   for (const line of maskedSource.slice(0, offset).split(/\r?\n/)) {
-    let rest = line.trim().replace(/^noncomputable\s+(?=section\b)/, "");
+    let rest = line.trim();
     for (;;) {
+      const section = LEAN_SECTION_RE.exec(rest);
+      if (section) rest = `section${rest.slice(section[0].length)}`;
       const command = /^(namespace|section|mutual|end)\b/.exec(rest);
       if (!command) break;
       rest = rest.slice(command[0].length).trimStart();
@@ -121,8 +129,7 @@ const execFileAsync = promisify(execFile);
  *  lake checkout supports; an absent package or a grep failure yields no candidates). */
 async function mathlibDeclarationFiles(mathlibDir: string, leaf: string): Promise<string[]> {
   if (!existsSync(join(mathlibDir, "Mathlib"))) return [];
-  const escaped = leaf.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  const pattern = `^(@\\[[^\\]]*\\] *)?(private |protected |noncomputable |nonrec |unsafe )*(theorem|lemma|def|abbrev|structure|class|instance|inductive|irreducible_def|opaque) ${escaped}\\b`;
+  const pattern = leanDeclarationGrepPattern(leaf);
   try {
     const { stdout } = await execFileAsync("git", ["-C", mathlibDir, "grep", "-lE", pattern, "--", "Mathlib/*.lean"], { maxBuffer: 1 << 20 });
     return stdout.split("\n").filter((f) => f.length > 0).map((f) => join(mathlibDir, f));
@@ -284,7 +291,9 @@ export async function resolveLeanDeclaration(
     }
   }
   targetNames.push((exported?.targetFq ?? requested.decl).replace(/^_root_\./, ""));
-  const imports = [...maskLeanCommandQuotations(recordedSource).matchAll(/^\s*import\s+([A-Za-z0-9_.']+)/gm)].map((m) => m[1]);
+  const imports = [...maskLeanCommandQuotations(recordedSource).matchAll(LEAN_IMPORT_RE_GM)]
+    .map((m) => parseLeanImport(m[0])?.module)
+    .filter((name): name is string => name != null);
   const importFiles = imports.flatMap((name) => [packageRoot, workspaceRoot].map((root) => join(root, ...name.split(".")) + ".lean"));
   // Read fallback metadata once per resolution, not once for every enclosing namespace.
   let indexRows: { name?: string; file?: string; line?: number }[] = [];

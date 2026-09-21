@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.FinitePanel
-import Causalean.Panel.UniformTwoWayPanel
+
+module
+public import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.FinitePanel
+public import Causalean.Panel.UniformTwoWayPanel
 
 /-!
 # DCDH residualized treatment as a derived FWL residual
@@ -28,6 +30,8 @@ the binary-treatment / consistency primitives remain as hypotheses, exactly as
 in the source.  No measure theory is used: the construction is pure uniform
 finite-panel algebra.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -111,13 +115,13 @@ noncomputable def ofTwoWayPanel
     linarith [this]
   Dtilde_orthogonal := by
     intro h hh
-    have horth : inner (ddot D) h = 0 :=
+    have horth : UniformTwoWayPanel.inner (ddot D) h = 0 :=
       UniformTwoWayPanel.ddot_orthogonal_unit_time
         (lt_of_lt_of_le (by decide) balanced.unit_card_ge_two)
         (lt_of_lt_of_le (by decide) balanced.time_card_ge_two) D h hh
     have : ∑ g, ∑ t, uniformWeight G T * ddot D g t * h g t
         = uniformWeight G T * inner (ddot D) h := by
-      unfold inner
+      unfold UniformTwoWayPanel.inner
       rw [Finset.mul_sum]
       refine Finset.sum_congr rfl (fun g _ => ?_)
       rw [Finset.mul_sum]
@@ -168,7 +172,7 @@ theorem ofTwoWayPanel_betaTWFE
       = uniformWeight G T * inner (ddot D) Y := by
     change (∑ g, ∑ t, uniformWeight G T * ddot D g t * Y g t)
       = uniformWeight G T * inner (ddot D) Y
-    unfold inner
+    unfold UniformTwoWayPanel.inner
     rw [Finset.mul_sum]
     refine Finset.sum_congr rfl (fun g _ => ?_)
     rw [Finset.mul_sum]
@@ -177,7 +181,7 @@ theorem ofTwoWayPanel_betaTWFE
   have hden : P.SD = uniformWeight G T * inner (ddot D) (ddot D) := by
     change (∑ g, ∑ t, uniformWeight G T * (ddot D g t) ^ 2)
       = uniformWeight G T * inner (ddot D) (ddot D)
-    unfold inner
+    unfold UniformTwoWayPanel.inner
     rw [Finset.mul_sum]
     refine Finset.sum_congr rfl (fun g _ => ?_)
     rw [Finset.mul_sum]

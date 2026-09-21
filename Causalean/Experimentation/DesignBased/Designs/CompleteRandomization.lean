@@ -14,9 +14,10 @@ probability `n₁(n₁−1) / (N(N−1))`.  These are the design facts the Horvi
 difference-in-means estimators' bias and variance are built from.
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
-import Mathlib.Data.Nat.Choose.Basic
-import Mathlib.Data.Finset.Powerset
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Mathlib.Data.Nat.Choose.Basic
+public import Mathlib.Data.Finset.Powerset
 
 /-!
 # Complete randomization designs
@@ -30,8 +31,11 @@ by Horvitz-Thompson and difference-in-means bias and variance calculations under
 randomization.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
+
 
 namespace Causalean
 namespace Experimentation

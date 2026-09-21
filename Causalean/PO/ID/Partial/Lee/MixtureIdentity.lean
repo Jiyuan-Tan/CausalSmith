@@ -5,8 +5,8 @@ Authors: Jiyuan Tan
 
 # Lee bounds — selected-treated mixture identity
 
-The doc's "mixture law" — three forms of the latent decomposition of the
-observable selected-treated cell:
+Three forms of the latent mixture decomposition of the observable
+selected-treated cell:
 
 * `selectedTreated_integral_split` (Step B):
     `∫ in selectedTreated, factualY
@@ -26,16 +26,16 @@ conditioning; the pure set equality
 result into the two latent strata.
 -/
 
-import Causalean.PO.ID.Partial.Lee.Assumptions
-import Causalean.PO.ID.Partial.Lee.PrincipalStrata
-import Causalean.PO.ID.Partial.Lee.Trim
+module
+public import Causalean.PO.ID.Partial.Lee.Assumptions
+public import Causalean.PO.ID.Partial.Lee.PrincipalStrata
+public import Causalean.PO.ID.Partial.Lee.Trim
 
 /-! # Lee bounds selected-treated mixture identities
 
 This file decomposes the observable selected-treated cell into always-selected
 and helped-selected latent strata. The integral, mass, and indicator versions
-combine consistency, random assignment, and monotone selection to prepare the
-trim-weight construction.
+combine consistency and random assignment to prepare the trim-weight construction.
 
 The lemma `selectedTreated_integral_split` expresses the selected-treated
 factual-outcome integral as the treatment-arm probability times the sum of
@@ -45,6 +45,8 @@ Lee trimming ratio. The lemma `selectedTreated_integral_split_indicator` repeats
 the same decomposition for outcome indicators, which is needed to build and
 normalize the always-selected trim-weight witness.
 -/
+
+public section
 
 namespace Causalean
 namespace PO

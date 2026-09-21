@@ -28,15 +28,16 @@ Main results:
 
 This is deliberately an affinity-number interface, not a general Hellinger-divergence theory:
 both laws are densities against one common measure, so no mutual absolute-continuity premise
-appears.  The complementary route via Radon–Nikodym derivatives (and the Bretagnolle–Huber
-lower bound on the affinity) lives in `Causalean/Stat/Minimax/BretagnolleHuber.lean`.
+appears. The complementary route via Radon–Nikodym derivatives and an exponential KL lower
+bound on testing affinity lives in `Causalean/Stat/Minimax/BretagnolleHuber.lean`.
 -/
 
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Stat.Minimax.Scheffe
-import Causalean.Tactic.IntegralLinearity
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Integral.Pi
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Stat.Minimax.Scheffe
+public import Causalean.Tactic.IntegralLinearity
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Integral.Pi
 
 /-! # Hellinger Affinity for Common-Measure Densities
 
@@ -45,6 +46,8 @@ against a single dominating measure, its identity with the squared Hellinger dis
 Cauchy–Schwarz bound of total variation by the affinity defect, and the tensorization of
 affinity over finite products. These are the ingredients of a product-construction Le Cam
 two-point (or multi-point) lower bound. -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open MeasureTheory

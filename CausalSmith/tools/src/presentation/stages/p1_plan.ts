@@ -42,7 +42,7 @@ import { loadJsonCache } from "../cache.js";
 import { loadBankNarrative } from "../bank.js";
 import { discoverRealizedSymbols, buildSymbolClusters } from "../../formalization/crosswalk.js";
 import { buildModuleDeclIndex } from "../components.js";
-import { resolveSymbolHomes, type SymbolLeanHome } from "../synth_lean_match.js";
+import { resolveSymbolHomes, synthInputsFingerprint, type SymbolLeanHome } from "../synth_lean_match.js";
 
 /** P1 statement-render standard — opaque version token for the render cache key.
  *  Initial value is the fingerprint the key carried on 2026-09-12 so existing caches stay warm;
@@ -286,25 +286,27 @@ export interface SynthGroup { symbols: string[]; title?: string; body: string }
 /** A synthesized definition env, durable in `p1_cache.json` (the authored content the layer is
  *  derived from; a defect-driven re-render updates `body`). `lean` marks a definition rendered
  *  from — and judged against — the Lean declaration that realizes its symbols; absent, the
- *  definition is presentation-only prose the writer authored. */
-export interface SynthEnvRecord { symbols: string[]; title?: string; body: string; lean?: { decl: string; file: string } }
+ *  definition is presentation-only prose the writer authored. `inputs` is the
+ *  `synthInputsFingerprint` of what it was derived from; P1 releases the record when the current
+ *  fingerprint differs (a record written before the field carries none and is stamped once). */
+export interface SynthEnvRecord { symbols: string[]; title?: string; body: string; lean?: { decl: string; file: string }; inputs?: string }
 
-/** Release cached presentation-only definitions whose symbols the Lean now resolves: the
- *  reviewer re-reports those symbols as undefined and the synthesize hook re-defines them from
- *  the Lean. The synthesis-call entries that produced the released ids go too, so a repeated
- *  request cannot replay them. Returns the released ids. */
-export function releaseLeanResolvableSynths(
-  cache: Pick<P1Cache, "synth" | "synthEnvs">,
-  resolves: (symbols: readonly string[]) => boolean,
-): string[] {
-  const released = Object.entries(cache.synthEnvs)
-    .filter(([, rec]) => !rec.lean && resolves(rec.symbols))
-    .map(([id]) => id);
-  for (const id of released) delete cache.synthEnvs[id];
+/** Drop the given synthesized definitions and every synthesis-call entry that produced one of
+ *  them, so a repeated request cannot replay a released definition. */
+export function releaseSynths(cache: Pick<P1Cache, "synth" | "synthEnvs">, ids: readonly string[]): void {
+  for (const id of ids) delete cache.synthEnvs[id];
   for (const [key, call] of Object.entries(cache.synth)) {
-    if (call.ids.some((id) => id !== null && released.includes(id))) delete cache.synth[key];
+    if (call.ids.some((id) => id !== null && ids.includes(id))) delete cache.synth[key];
   }
-  return released;
+}
+
+/** The fingerprint a record written before `inputs` existed implies: its symbols all placed in
+ *  its Lean declaration (none, for a prose definition) and, for a Lean-rendered one, the
+ *  declaration's current text — so the first comparison catches a moved tag, a vanished
+ *  declaration or a newly Lean-definable prose symbol, and the record is then stamped. */
+export function legacySynthInputs(rec: Pick<SynthEnvRecord, "symbols" | "lean">, leanSource: string | null): string {
+  const homes = rec.lean ? [{ decl: rec.lean.decl, file: rec.lean.file, line: 0, decl_kind: "def", symbols: rec.symbols }] : [];
+  return synthInputsFingerprint(rec.symbols, { homes, presentedBy: new Map() }, rec.lean ? leanSource ?? "" : undefined);
 }
 
 /** The P1 cache: content-keyed model outputs plus the synthesized definitions they produced. */
@@ -604,29 +606,38 @@ export async function stageP1(io: StageIO): Promise<void> {
     cache.synthCounter = ++synthCount;
     return `synth_${synthCount}`;
   };
-  const released = releaseLeanResolvableSynths(cache, (symbols) => resolveHomes(symbols).homes.length > 0);
-  if (released.length > 0) {
-    log(`synthesis: released ${released.length} cached presentation-only definition(s) whose symbols the Lean defines — ${released.join(", ")}`);
-    io.state.notes.push(`P1: released presentation-only definition(s) ${released.join(", ")} — their symbols are defined in Lean and re-render from it`);
-    await saveCache();
-  }
+  // Every cached definition carries the fingerprint of its inputs; one comparison against the
+  // current fingerprint releases whatever went stale (tag moved, declaration renamed/deleted/
+  // edited, prose definition whose symbols the Lean now defines), and the symbols re-resolve.
+  const leanText = (ctx: LeanContext | null): string | null => ctx && `${ctx.statement}\n${ctx.referencedDefs}`;
   const symbolsBySynthId = new Map<string, string[]>();
+  const stale: string[] = [];
   for (const [id, rec] of Object.entries(cache.synthEnvs)) {
-    if (rec.lean) {
-      const ctx = await leanIndex.contextFor({ decl_name: rec.lean.decl, file: rec.lean.file });
-      if (!ctx) {
-        // The declaration was renamed or deleted: release the definition; its symbols re-resolve.
-        delete cache.synthEnvs[id];
-        io.state.notes.push(`P1: released definition ${id} — its Lean declaration ${rec.lean.decl} (${rec.lean.file}) no longer exists; ${rec.symbols.join(", ")} re-resolve`);
-        await saveCache();
-        continue;
-      }
+    const resolution = resolveHomes(rec.symbols);
+    // Look the declaration up at its resolved line, as birth did: a leaf name duplicated in the
+    // file resolves only with the line, and a lookup that fails here would re-render every run.
+    const line = resolution.homes.find((h) => h.decl === rec.lean?.decl)?.line;
+    const ctx = rec.lean ? await leanIndex.contextFor({ decl_name: rec.lean.decl, file: rec.lean.file, line }) : null;
+    const current = synthInputsFingerprint(rec.symbols, resolution, rec.lean ? leanText(ctx) : undefined);
+    const recorded = rec.inputs ?? legacySynthInputs(rec, leanText(ctx));
+    if (current !== recorded) {
+      stale.push(id);
+      io.state.notes.push(`P1: released definition ${id} — its inputs changed (${rec.lean ? `Lean ${rec.lean.decl} in ${rec.lean.file}` : "presentation-only"}); ${rec.symbols.join(", ")} re-resolve`);
+      continue;
+    }
+    rec.inputs = current;
+    if (rec.lean && ctx) {
       kindById.set(id, "definition");
       leanCtxById.set(id, ctx);
     }
     symbolsBySynthId.set(id, rec.symbols);
     if (rec.title) titleById.set(id, rec.title);
   }
+  if (stale.length > 0) {
+    releaseSynths(cache, stale);
+    log(`synthesis: released ${stale.length} cached definition(s) whose inputs changed — ${stale.join(", ")}`);
+  }
+  await saveCache();
   const synthEnv = (id: string): P1Env => {
     const body = normalizeSynthNotation(cache.synthEnvs[id].body);
     return { id, env: "definitionv", statement: body, body, refSet: [] };
@@ -948,7 +959,10 @@ export async function stageP1(io: StageIO): Promise<void> {
     const hit = cache.render[key] ?? (await renderFromLean(req, ctx)) ?? (await renderFromLean(req, ctx));
     if (!hit) throw new Error(`P1: rendering the definition of ${symbols.join(", ")} from Lean ${home.decl} failed twice — see logs/p1_render_from_lean_raw.txt and re-run P1`);
     cache.render[key] = hit;
-    cache.synthEnvs[id] = { symbols, title: hit.title, body: normalizeSynthNotation(hit.body), lean: { decl: home.decl, file: home.file } };
+    cache.synthEnvs[id] = {
+      symbols, title: hit.title, body: normalizeSynthNotation(hit.body), lean: { decl: home.decl, file: home.file },
+      inputs: synthInputsFingerprint(symbols, resolveHomes(symbols), `${ctx.statement}\n${ctx.referencedDefs}`),
+    };
     symbolsBySynthId.set(id, symbols);
     if (hit.title) titleById.set(id, hit.title);
     io.state.notes.push(`P1: definition ${id} for ${home.symbols.join(", ")} rendered from Lean ${home.decl} (${home.file})`);
@@ -1027,7 +1041,7 @@ export async function stageP1(io: StageIO): Promise<void> {
           return null;
         }
         const id = nextSynthId();
-        cache.synthEnvs[id] = { symbols: covered, title: g.title, body: normalizeSynthNotation(g.body.trim()) };
+        cache.synthEnvs[id] = { symbols: covered, title: g.title, body: normalizeSynthNotation(g.body.trim()), inputs: synthInputsFingerprint(covered, resolveHomes(covered)) };
         io.state.notes.push(`P1: synthesized definition ${id} for orphan symbol(s) ${covered.join(", ")}`);
         return id;
       });

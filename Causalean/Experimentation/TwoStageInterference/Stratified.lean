@@ -20,8 +20,9 @@ population `Y` satisfying stratified interference factors through the exposure, 
 Aronow–Samii's "properly specified exposure mapping" appropriate to grouped interference.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Basic
-import Causalean.Experimentation.DesignBased.PotentialOutcome
+module
+public import Causalean.Experimentation.TwoStageInterference.Basic
+public import Causalean.Experimentation.DesignBased.PotentialOutcome
 
 /-! # Stratified interference
 
@@ -33,6 +34,8 @@ under equality of that exposure summary, `StratifiedInterference.elim` exposes t
 conditions, and `exists_strat_factor` proves that any stratified-interference outcome function
 factors through the exposure map.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

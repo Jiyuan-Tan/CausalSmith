@@ -11,8 +11,8 @@ quantitative L²-product bound plus its `o_p(n^{-1/2})` corollary sit in
 `Remainder/Bound.lean`.  Mirrors `Estimation/ATE/Remainder.lean`.
 -/
 
-import Causalean.Estimation.ATT.Remainder.Identity
-import Causalean.Estimation.ATT.Remainder.Bound
+module
+public import Causalean.Estimation.ATT.Remainder.Bound
 
 /-!
 Roll-up for the ATT second-order AIPW remainder development. It re-exports
@@ -24,6 +24,8 @@ single cross-product of control-regression and propensity errors, and
 The stochastic corollary `aipw_remainder_op_ATT` packages the same product-rate
 condition as an `o_p(n^{-1/2})` remainder for ATT double machine learning.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation

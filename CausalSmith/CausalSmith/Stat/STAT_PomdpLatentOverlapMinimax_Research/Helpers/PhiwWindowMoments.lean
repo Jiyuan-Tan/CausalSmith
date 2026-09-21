@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwHistory
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwHistory
 
 set_option linter.style.longLine false
 
 /-! # Observable PHIW window moments -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

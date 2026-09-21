@@ -1,7 +1,10 @@
 /- Executable-program certificates for the polynomial estimator's fallback branch. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.ClippingAssembly
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.Heavy
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.ClippingAssembly
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.Heavy
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

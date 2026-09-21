@@ -20,8 +20,9 @@ asymmetric contributions sum to `4β(α+β)/(1 − 4β²)` regardless of `s`.  T
 estimate `ĝ ≡ 1/2` has zero ATE, so the gap equals the same quantity.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
-import Mathlib.Tactic.LinearCombination
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+public import Mathlib.Tactic.LinearCombination
 
 /-! # Base ATE Gap
 
@@ -34,6 +35,8 @@ same ATE `2β(α+β)/(1−4β²)`.
 The public theorem `ate_gap` packages the separation between the perturbed construction and the
 null estimate; this is the ATE separation used in the finite two-point lower bound.
 -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

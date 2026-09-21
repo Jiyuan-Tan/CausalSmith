@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
 
 /-!
 # Deterministic one-arm configurations
@@ -9,6 +10,8 @@ identically zero, and reads off its cell masses, propensities, outcome means and
 treated functional.  These laws are the members of the control-zero class that the
 hard priors are supported on.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

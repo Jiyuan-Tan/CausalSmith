@@ -1,0 +1,2492 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}cot\_\allowbreak{}collision\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For binary outcomes on a growing uniform covariate partition, the sharp absolute-cost COT lower endpoint is \(L_K=a-b\rho_K\), where \(\rho_K\) is the realized correlation of two deterministic sign arrays. When \(\lambda_K=n_0n_1/K\) remains finite and triple collisions vanish, a Poisson number of cross-arm collisions carries the minimax information: parameter-free supported-mixture kernels and a uniform deterministic-array approximation yield exact minimax absolute-risk and honest-length transfer, with shrinking rational interval-action certificates and explicit tail, off-grid coverage, and rounding errors. When \(\lambda_K\) diverges sparsely, the unprojected estimator is uniformly studentized Gaussian and the deterministic-shell local minimax theorem gives the matching interior variance frontier. Embedding cell \(j\) as \(j/K\) transfers the finite frontiers and, through pointwise shell inclusion followed by the ordered lower limits, the local variance as converse lower bounds to every anchor-admissible containing class. No broader-class upper bound is claimed; continuous achievability remains confined to the declared growing-roughness interpolation image.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest cited identification anchor, Lin, Gao, Blanchet, and Glynn (2026, Theorem~1), supplies general sharp conditional-transport identification under compact-domain and continuous-cost conditions, but not the collision experiment or a local minimax calculation. Hirano and Porter (2003, Theorem~3) supplies a standard LAN and local-efficiency template. Neither result establishes the matching ordered local-minimax lower and upper bounds for the deterministic-shell binary uniform-cell submodel, the finite marked-Poisson honest-length frontier, or converse transfer to arbitrary containing anchor classes.
+
+\paragraph{Niche.} The missing object is a collision-indexed information frontier: exact finite-information decisions when \(\lambda_K\) is bounded, Gaussian local efficiency when it diverges sparsely, and a precise separation between a matching theorem on the deterministic-shell submodel and converse-only implications for broader COT classes.
+
+\paragraph{Fill.} The project proves a marked-Poisson reduction with parameter-free forward and reverse randomization under shell-conditioned legal mixtures, uniform collision approximation for every deterministic array, and exact rational interval certificates on the admissible domain \(m+1>\lambda_s^+\). It also derives the marked likelihood and newly closes the ordered bounded-truncated-quadratic local-minimax lower and upper bounds on the deterministic-shell binary uniform-cell submodel. Embedding transfers these results upward only as converse lower bounds to containing anchor classes; no collision-based upper bound or equality is claimed there.
+
+\section{Related work}
+
+Lin, Gao, Blanchet, and Glynn (2026, AISTATS, Theorems~1--6) establish general sharp COT bounds, continuity, and statistical guarantees. Their Theorem~1 is the closest identification anchor: it supplies sharp identification under a compact covariate domain, compact convex ambient outcome domain, overlap, and a continuous objective. The affine binary endpoint and every collision claim here are separately proved, and alternating embedded signs need not satisfy their later uniform smoothness or rate hypotheses. Hirano and Porter (2003, Theorem~3) provide the closest standard LAN and local asymptotic efficiency ingredient; what is inherited is the limit-experiment template, not the present likelihood calculation or transfer. The deterministic-shell theorem newly proves the matching ordered bounded-truncated-quadratic local-minimax lower and upper bounds only for the binary uniform-cell shells. Its extension to a full anchor-containing class is converse-only by submodel monotonicity. Ji, Lei, and Spector (2023, Theorems~3.1--3.5) provide model-agnostic dual inference and emphasize binning loss, but do not optimize honest expected length or identify this collision frontier. Ober-Reynolds (2023) derives sharp OT intervals and root-\(n\) inference in an instrumental-variables noncompliance model, not sparse covariate collisions. Paninski (2008) and Kipnis (2026) show that collisions govern sparse large-alphabet testing; Kipnis's supported-mixture architecture is especially close, but concerns one-sample uniformity testing. Arratia, Goldstein, and Gordon (1989, Theorem~1) supply dependency-neighborhood Poisson approximation. Evans, Hansen, and Stark (2005, Theorem~1 and Corollary~1) and Stoye (2009, Propositions~1--2) inform confidence-set duality and boundary repair, but do not supply the admissible tail truncation, likelihood modulus, endpoint expansion, or exact rational verification here. Low and Zhou (2007) and Armstrong and Koles\'ar (2021) motivate the restricted pushforward and bias-aware scope, without supporting an upper claim over a full smoothness ball.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(L_K=\inf_{\pi:\,\pi_{Y(0)\mid Z},\pi_{Y(1)\mid Z}\ \mathrm{fixed}}\mathbb E_\pi|Y(1)-Y(0)|=a-b\rho_K\).
+Primary functional / estimator / diagnostic: \(L_K=K^{-1}\sum_{j=1}^{K}|p_{1j}-p_{0j}|=a-bK^{-1}\sum_{j=1}^{K}\theta_{0j}\theta_{1j}\), estimated for \(M_K>0\) by \(\widehat L_K=a-(4aM_K)^{-1}\sum_{\ell=1}^{M_K}S_\ell\).
+\begin{itemize}
+  \item \texttt{K} --- \texttt{cell count}; \(\mathbb N\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of uniform covariate cells and asymptotic index.}
+  \item \texttt{d} --- \texttt{arm index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Arm \(0\) is control and arm \(1\) is treatment.
+  \item \texttt{j} --- \texttt{cell index}; \(\{1,\ldots,K\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic covariate-\allowbreak{}cell index.}
+  \item \texttt{n\_\allowbreak{}d} --- \texttt{arm sample size}; \(\mathbb N\); \texttt{regime size}
+  \par\smallskip\noindent\emph{Definition.} Fixed sample size in arm \(d\).
+  \item \texttt{i} --- \texttt{within-\allowbreak{}arm observation index}; \(\{1,\ldots,n_d\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} Generic observation index in arm \(d\).
+  \item \texttt{a} --- \texttt{control amplitude}; \((0,1/2)\); \texttt{model constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known control-\allowbreak{}arm Bernoulli amplitude.}
+  \item \texttt{b} --- \texttt{treatment amplitude}; \((0,1/2)\); \texttt{model constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known treatment-\allowbreak{}arm Bernoulli amplitude.}
+  \item \texttt{r} --- \texttt{correlation radius}; \((0,1)\); \texttt{parameter-\allowbreak{}space constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed radius of the legal empirical-\allowbreak{}correlation interval.}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{miscoverage probability}; \((0,1/2)\); \texttt{inference constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal interval miscoverage probability.}
+  \item \texttt{c} --- \texttt{mark-\allowbreak{}signal coefficient}; \((0,1)\); \texttt{derived model constant}
+  \par\smallskip\noindent\emph{Definition.} Known coefficient \(c=4ab\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{marked-\allowbreak{}Poisson intensity}; \([0,\infty)\); \texttt{limit parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic collision intensity in the limit experiment.}
+  \item \texttt{\textbackslash{}\allowbreak{}rho} --- \texttt{generic cross-\allowbreak{}arm correlation}; \([-r,r]\); \texttt{experiment parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Correlation parameter indexing the marked-\allowbreak{}Poisson experiment and its finite-\allowbreak{}lattice projection.}
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\{dj\}\allowbreak{}} --- \texttt{deterministic sign array}; \(\{-1,1\}\); \texttt{nuisance parameter}
+  \par\smallskip\noindent\emph{Definition.} Latent sign in arm \(d\) and cell \(j\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}K} --- \texttt{empirical cross-\allowbreak{}arm sign correlation}; \([-r,r]\); \texttt{finite-\allowbreak{}array parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\rho_K=K^{-1}\sum_{j=1}^{K}\theta_{0j}\theta_{1j}\).
+  \item \texttt{p\_\allowbreak{}\{dj\}\allowbreak{}} --- \texttt{cellwise outcome probability}; \((0,1)\); \texttt{observable-\allowbreak{}law primitive}
+  \par\smallskip\noindent\emph{Definition.} \(p_{0j}=1/2+a\theta_{0j}\) and \(p_{1j}=1/2+b\theta_{1j}\).
+  \item \texttt{L\_\allowbreak{}K} --- \texttt{sharp binary-\allowbreak{}cost COT lower endpoint}; \([a-br,a+br]\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} \(L_K=K^{-1}\sum_{j=1}^{K}|p_{1j}-p_{0j}|\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A} --- \texttt{confidence-\allowbreak{}interval endpoint range}; \(2^{\mathbb R}\); \texttt{interval action range}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=[a-br,a+br]\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D} --- \texttt{endpoint-\allowbreak{}estimation action range}; \(2^{\mathbb R}\); \texttt{compact estimation action range}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D=[a-b,a+b]\).
+  \item \texttt{Z\_\allowbreak{}\{di\}\allowbreak{}} --- \texttt{observed covariate cell}; \(\{1,\ldots,K\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Cell label of observation \(i\) in arm \(d\).
+  \item \texttt{Y\_\allowbreak{}\{di\}\allowbreak{}} --- \texttt{observed binary outcome}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} Outcome of observation \(i\) in arm \(d\).
+  \item \texttt{X\_\allowbreak{}\{di\}\allowbreak{}} --- \texttt{signed observed outcome}; \(\{-1,1\}\); \texttt{mark primitive}
+  \par\smallskip\noindent\emph{Definition.} \(X_{di}=2Y_{di}-1\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O\_\allowbreak{}K} --- \texttt{full two-\allowbreak{}arm observation}; \(\prod_{d=0}^{1}(\{1,\ldots,K\}\times\{0,1\})^{n_d}\); \texttt{experiment data}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_K=((Z_{di},Y_{di}):d\in\{0,1\},\,1\le i\le n_d)\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}K} --- \texttt{cross-\allowbreak{}arm collision intensity}; \((0,\infty)\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_K=n_0n_1/K\).
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon\_\allowbreak{}K} --- \texttt{triple-\allowbreak{}collision envelope}; \([0,\infty)\); \texttt{approximation scale}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_K=\lambda_K(n_0+n_1)/K\).
+  \item \texttt{s\_\allowbreak{}K} --- \texttt{supported-\allowbreak{}mixture shell radius}; \((0,r/8]\); \texttt{conditioning scale}
+  \par\smallskip\noindent\emph{Definition.} \(s_K=\min\{r/8,[K(1\vee\lambda_K)]^{-1/4}\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}circ\}\allowbreak{}(r)} --- \texttt{admissible interior correlation lattice}; \(2^{[-r,r]}\); \texttt{supported-\allowbreak{}mixture parameter set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_K^{\circ}(r)=\{-1+2m/K:m=0,\ldots,K\}\cap[-r+2s_K,r-2s_K]\).
+  \item \texttt{q\_\allowbreak{}K(\textbackslash{}\allowbreak{}rho)} --- \texttt{exact interior projection}; \(\mathcal R_K^{\circ}(r)\); \texttt{boundary-\allowbreak{}safe parameter projection}
+  \par\smallskip\noindent\emph{Definition.} For \(\mathcal R_K^{\circ}(r)\neq\varnothing\), \(q_K(\rho)\) is the closest point of \(\mathcal R_K^{\circ}(r)\) to \(\rho\in[-r,r]\), with the smaller point selected on a tie.
+  \item \texttt{\textbackslash{}\allowbreak{}eta\_\allowbreak{}K} --- \texttt{shell-\allowbreak{}conditioning error}; \([0,2]\); \texttt{supported-\allowbreak{}mixture approximation scale}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_K=2\exp(-K s_K^2/2)\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}\{K,\allowbreak{}q\}\allowbreak{}} --- \texttt{unconditioned product mixing law}; \texttt{supported-\allowbreak{}mixture primitive}
+  \par\smallskip\noindent\emph{Definition.} Product law on sign-pair arrays with cell mass \((1+quv)/4\).
+  \item \texttt{A\_\allowbreak{}\{K,\allowbreak{}q\}\allowbreak{}} --- \texttt{empirical-\allowbreak{}correlation shell event}; \texttt{legal-\allowbreak{}support event}
+  \par\smallskip\noindent\emph{Definition.} \(A_{K,q}=\{|\rho_K-q|\le s_K\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}\{K,\allowbreak{}q\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{shell\}\allowbreak{}\}\allowbreak{}} --- \texttt{supported mixing law}; \texttt{lower-\allowbreak{}experiment mixing law}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_{K,q}^{\mathrm{shell}}=\Gamma_{K,q}(\,\cdot\mid A_{K,q})\).
+  \item \texttt{P\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{mix\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{K,\allowbreak{}q\}\allowbreak{}} --- \texttt{supported-\allowbreak{}mixture observation law}; \texttt{lower-\allowbreak{}experiment law}
+  \par\smallskip\noindent\emph{Definition.} Mixture of finite-array observation laws under \(\Pi_{K,q}^{\mathrm{shell}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}K} --- \texttt{supported-\allowbreak{}mixture experiment}; \texttt{finite lower experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_K=\{P^{\mathrm{mix}}_{K,q}:q\in\mathcal R_K^{\circ}(r)\}\).
+  \item \texttt{M\_\allowbreak{}K} --- \texttt{one-\allowbreak{}per-\allowbreak{}arm collision count}; \(\mathbb N_0\); \texttt{collision statistic}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of cells containing exactly one sampled observation from each arm and no other sampled observation.}
+  \item \texttt{S\_\allowbreak{}\textbackslash{}\allowbreak{}ell} --- \texttt{collision mark}; \(\{-1,1\}\); \texttt{collision statistic}
+  \par\smallskip\noindent\emph{Definition.} For the \(\ell\)-th one-per-arm collision, \(S_\ell=X_{0i}X_{1k}\) is the product of its signed outcomes.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda,\allowbreak{}\textbackslash{}\allowbreak{}rho\}\allowbreak{}} --- \texttt{marked-\allowbreak{}Poisson experiment}; \texttt{limit experiment}
+  \par\smallskip\noindent\emph{Definition.} Experiment observing a Poisson collision count and independent binary marks indexed by \((\lambda,\rho)\).
+  \item \texttt{f\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda,\allowbreak{}\textbackslash{}\allowbreak{}rho\}\allowbreak{}(k,\allowbreak{}l)} --- \texttt{marked-\allowbreak{}Poisson probability mass function}; \([0,1]\); \texttt{limit likelihood}
+  \par\smallskip\noindent\emph{Definition.} \(f_{\lambda,\rho}(k,l)=e^{-\lambda}(\lambda/2)^{k+l}(1+c\rho)^k(1-c\rho)^l/(k!l!)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}} --- \texttt{marked-\allowbreak{}Poisson observation}; \(\mathbb N_0^2\); \texttt{limit-\allowbreak{}experiment data}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_{\lambda}=(N_+,N_-)\), the positive- and negative-mark counts observed in \(\mathcal E_{\lambda,\rho}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr D\_\allowbreak{}K} --- \texttt{finite-\allowbreak{}array randomized endpoint decision class}; \texttt{finite-\allowbreak{}array estimation rules}
+  \par\smallskip\noindent\emph{Definition.} All randomized measurable Markov kernels from \(\mathcal O_K\) to \(\mathcal D\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr D\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}} --- \texttt{marked-\allowbreak{}Poisson randomized endpoint decision class}; \texttt{limit-\allowbreak{}experiment estimation rules}
+  \par\smallskip\noindent\emph{Definition.} All randomized measurable Markov kernels from \(\mathcal O_{\lambda}\) to \(\mathcal D\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr C\_\allowbreak{}K} --- \texttt{finite-\allowbreak{}array randomized interval decision class}; \texttt{finite-\allowbreak{}array confidence rules}
+  \par\smallskip\noindent\emph{Definition.} All randomized measurable Markov kernels from \(\mathcal O_K\) to the closed subintervals of \(\mathcal A\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr C\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}} --- \texttt{marked-\allowbreak{}Poisson randomized interval decision class}; \texttt{limit-\allowbreak{}experiment confidence rules}
+  \par\smallskip\noindent\emph{Definition.} All randomized measurable Markov kernels from \(\mathcal O_{\lambda}\) to the closed subintervals of \(\mathcal A\).
+  \item \texttt{R\_\allowbreak{}K} --- \texttt{finite-\allowbreak{}array minimax absolute risk}; \([0,2br]\); \texttt{decision frontier}
+  \par\smallskip\noindent\emph{Definition.} \(R_K=\inf_{D_K\in\mathscr D_K}\sup_{\theta\in\mathcal T_K(r)}\mathbb E_\theta|D_K-L_K|\).
+  \item \texttt{R(\textbackslash{}\allowbreak{}lambda)} --- \texttt{marked-\allowbreak{}Poisson minimax absolute risk}; \([0,2br]\); \texttt{limit decision frontier}
+  \par\smallskip\noindent\emph{Definition.} \(R(\lambda)=\inf_{D_{\lambda}\in\mathscr D_{\lambda}}\sup_{\rho\in[-r,r]}\mathbb E_{\lambda,\rho}|D_{\lambda}-(a-b\rho)|\).
+  \item \texttt{C\_\allowbreak{}\{K,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{finite-\allowbreak{}array minimax expected interval length}; \([0,2br]\); \texttt{honest-\allowbreak{}inference frontier}
+  \par\smallskip\noindent\emph{Definition.} \(C_{K,\alpha}=\inf_{\mathcal C_K\in\mathscr C_K}\sup_{\theta\in\mathcal T_K(r)}\mathbb E_\theta\operatorname{len}(\mathcal C_K)\), subject to \(\inf_{\theta\in\mathcal T_K(r)}\Pr_\theta\{L_K\in\mathcal C_K\}\ge1-\alpha\).
+  \item \texttt{C\_\allowbreak{}\textbackslash{}\allowbreak{}alpha(\textbackslash{}\allowbreak{}lambda)} --- \texttt{marked-\allowbreak{}Poisson minimax expected interval length}; \([0,2br]\); \texttt{limit honest-\allowbreak{}inference frontier}
+  \par\smallskip\noindent\emph{Definition.} \(C_\alpha(\lambda)=\inf_{\mathcal C_\lambda\in\mathscr C_{\lambda}}\sup_{\rho\in[-r,r]}\mathbb E_{\lambda,\rho}\operatorname{len}(\mathcal C_\lambda)\), subject to \(\inf_{\rho\in[-r,r]}\Pr_{\lambda,\rho}\{a-b\rho\in\mathcal C_\lambda\}\ge1-\alpha\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat L\_\allowbreak{}K} --- \texttt{unprojected collision estimator}; \(\mathbb R\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} For \(M_K>0\), \(\widehat L_K=a-(4aM_K)^{-1}\sum_{\ell=1}^{M_K}S_\ell\), with a fixed bounded default when \(M_K=0\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}K} --- \texttt{collision variance estimator}; \((0,\infty)\); \texttt{studentizer}
+  \par\smallskip\noindent\emph{Definition.} For \(M_K>0\), \(\widehat V_K=(1-\overline S_K^2+M_K^{-1})/(16a^2)\), where \(\overline S_K=M_K^{-1}\sum_{\ell=1}^{M_K}S_\ell\); use a fixed positive default when \(M_K=0\).
+  \item \texttt{V(\textbackslash{}\allowbreak{}rho)} --- \texttt{interior local variance}; \((0,\infty)\); \texttt{efficiency frontier}
+  \par\smallskip\noindent\emph{Definition.} \(V(\rho)=(1-c^2\rho^2)/(16a^2)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}K(\textbackslash{}\allowbreak{}rho\_\allowbreak{}0,\allowbreak{}H)} --- \texttt{deterministic Hamming shell}; \texttt{local parameter set}
+  \par\smallskip\noindent\emph{Definition.} Legal arrays satisfying \(|\sqrt{\lambda_K}(\rho_K-\rho_0)|\le H\).
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}T(u)} --- \texttt{bounded truncated quadratic loss}; \([0,T]\); \texttt{local minimax loss}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_T(u)=\min\{u^2,T\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak I\_\allowbreak{}K} --- \texttt{continuous interpolation map}; \texttt{continuous-\allowbreak{}image construction}
+  \par\smallskip\noindent\emph{Definition.} Map sending each cellwise sign array to measurable conditional Bernoulli probability functions on \([0,1]\), equal to \(p_{dj}\) off boundary strips and linearly connected on strips of width \(K^{-3}\).
+  \item \texttt{U\_\allowbreak{}\{di\}\allowbreak{}} --- \texttt{continuous covariate}; \([0,1]\); \texttt{continuous data}
+  \par\smallskip\noindent\emph{Definition.} Continuous covariate of observation \(i\) in arm \(d\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}K} --- \texttt{measurable cell-\allowbreak{}index map}; \([0,1]\to\{1,\ldots,K\}\); \texttt{coarsening map}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_K(0)=1\) and \(\kappa_K(u)=\min\{K,\lceil Ku\rceil\}\) for \(u>0\).
+  \item \texttt{g\_\allowbreak{}\{d,\allowbreak{}K,\allowbreak{}\textbackslash{}\allowbreak{}theta\}\allowbreak{}} --- \texttt{interpolated conditional outcome probability}; \([0,1]\to(0,1)\); \texttt{continuous-\allowbreak{}law primitive}
+  \par\smallskip\noindent\emph{Definition.} Measurable piecewise-affine interpolation of the cell probabilities \(p_{dj}\), specified by \(\mathfrak I_K\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm c\}\allowbreak{}} --- \texttt{continuous two-\allowbreak{}arm observation}; \(\prod_{d=0}^{1}([0,1]\times\{0,1\})^{n_d}\); \texttt{continuous experiment data}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_K^{\mathrm c}=((U_{di},Y_{di}):d\in\{0,1\},\,1\le i\le n_d)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf Q\_\allowbreak{}K} --- \texttt{measurable coarsening pushforward kernel}; \texttt{continuous-\allowbreak{}to-\allowbreak{}discrete comparison kernel}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf Q_K\) maps every \((U_{di},Y_{di})\) to \((\kappa_K(U_{di}),Y_{di})\) coordinatewise.
+  \item \texttt{L\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm c\}\allowbreak{}} --- \texttt{continuous interpolation COT endpoint}; \([0,1]\); \texttt{continuous-\allowbreak{}image target}
+  \par\smallskip\noindent\emph{Definition.} The sharp absolute-cost conditional optimal-transport lower endpoint under the continuous interpolation \(\mathfrak I_K\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}K(r)} --- \texttt{continuous interpolation experiment class}; \texttt{continuous comparison class}
+  \par\smallskip\noindent\emph{Definition.} Image of legal deterministic arrays under \(\mathfrak I_K\), with uniform continuous covariates.
+  \item \texttt{P} --- \texttt{anchor observable law}; \texttt{Probability laws on the declared compact covariate,\allowbreak{} treatment,\allowbreak{} and outcome space.}; \texttt{observable-\allowbreak{}law parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic observable law in an anchor-\allowbreak{}containing model class.}
+  \item \texttt{P\_\allowbreak{}\{K,\allowbreak{}\textbackslash{}\allowbreak{}theta\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{emb\}\allowbreak{}\}\allowbreak{}} --- \texttt{embedded finite-\allowbreak{}array observable law}; \texttt{anchor submodel law}
+  \par\smallskip\noindent\emph{Definition.} The law of the finite-array experiment after the injective cell relabeling \(j\mapsto j/K\) and the inclusion \(\{0,1\}\subset[0,1]\).
+  \item \texttt{L(P)} --- \texttt{anchor COT lower-\allowbreak{}endpoint functional}; \([0,1]\); \texttt{anchor target estimand}
+  \par\smallskip\noindent\emph{Definition.} The integrated conditional optimal-transport value for cost \(h(y_0,y_1)=|y_1-y_0|\) under observable law \(P\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}} --- \texttt{fixed-\allowbreak{}count anchor observation}; \(\prod_{d=0}^1([0,1]\times[0,1])^{n_d}\); \texttt{anchor experiment data}
+  \par\smallskip\noindent\emph{Definition.} The pair of independent within-arm samples obtained by conditioning the anchor Bernoulli-treatment design on arm sizes \(n_0,n_1\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}K} --- \texttt{anchor-\allowbreak{}containing model class}; \texttt{A set of anchor observable laws.}; \texttt{broader global parameter class}
+  \par\smallskip\noindent\emph{Definition.} Any anchor-admissible class containing \(P_{K,\theta}^{\mathrm{emb}}\) for every \(\theta\in\mathcal T_K(r)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak B\_\allowbreak{}K(\textbackslash{}\allowbreak{}rho\_\allowbreak{}0,\allowbreak{}H)} --- \texttt{anchor-\allowbreak{}containing local model class}; \texttt{A set of anchor observable laws.}; \texttt{broader local parameter class}
+  \par\smallskip\noindent\emph{Definition.} Any local class containing the embedded deterministic shell \(\{P_{K,\theta}^{\mathrm{emb}}:\theta\in\mathcal H_K(\rho_0,H)\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr D\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}} --- \texttt{anchor endpoint decision class}; \texttt{anchor estimation rules}
+  \par\smallskip\noindent\emph{Definition.} All randomized measurable Markov kernels from \(\mathcal O_K^{\mathrm{anc}}\) to \([0,1]\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr C\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}} --- \texttt{anchor interval decision class}; \texttt{anchor confidence rules}
+  \par\smallskip\noindent\emph{Definition.} All randomized measurable Markov kernels from \(\mathcal O_K^{\mathrm{anc}}\) to the closed subintervals of \([0,1]\).
+  \item \texttt{R\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}K)} --- \texttt{anchor-\allowbreak{}class minimax absolute risk}; \([0,1]\); \texttt{broader decision frontier}
+  \par\smallskip\noindent\emph{Definition.} The minimax absolute-error risk for estimating \(L(P)\) over \(P\in\mathfrak P_K\).
+  \item \texttt{C\_\allowbreak{}\{K,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}K)} --- \texttt{anchor-\allowbreak{}class minimax honest expected length}; \([0,1]\); \texttt{broader honest-\allowbreak{}inference frontier}
+  \par\smallskip\noindent\emph{Definition.} The least worst-case expected interval length over \(\mathfrak P_K\), subject to uniform coverage of \(L(P)\) at least \(1-\alpha\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:amplitude-order]\label{ass:amplitude-order}
+The known amplitudes satisfy \(b<a\).
+\par\smallskip\noindent\emph{Novel.} Unequal known signal amplitudes define a transparent binary COT stress test in which the absolute-cost endpoint is affine in cross-arm sign agreement; calibrated binary outcome risks can satisfy this ordering after relabeling the arms.
+\end{assumption}
+
+\begin{assumption}[ass:sign-array]\label{ass:sign-array}
+For every arm \(d\) and cell \(j\), \(\theta_{dj}\in\{-1,1\}\).
+\par\smallskip\noindent\emph{Novel.} The sign array is a finite-dimensional least-favorable submodel for binary conditional risks, allowing arbitrary cell-to-cell heterogeneity while keeping every conditional probability away from zero and one.
+\end{assumption}
+
+\begin{assumption}[ass:correlation-range]\label{ass:correlation-range}
+The empirical sign correlation satisfies \(\rho_K\in[-r,r]\).
+\par\smallskip\noindent\emph{Novel.} A fixed interior correlation band excludes only nearly deterministic cross-arm alignment and contains balanced and heterogeneous arrays used by finite-stratum causal analyses.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-cells]\label{ass:uniform-cells}
+For each arm \(d\), the labels \(Z_{d1},\ldots,Z_{dn_d}\) are independent and uniformly distributed on \(\{1,\ldots,K\}\).
+\par\smallskip\noindent\emph{Novel.} Equal-probability strata arise from quantile binning of a continuous covariate and isolate the statistical effect of partition resolution from unequal-cell weighting.
+\end{assumption}
+
+\begin{assumption}[ass:arm-independence]\label{ass:arm-independence}
+\texttt{The control-\allowbreak{}arm sample is independent of the treatment-\allowbreak{}arm sample.}
+\par\smallskip\noindent\emph{Standard} (Independent arm samples under a Bernoulli design, \cite{linGaoBlanchetGlynn2026Causal}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-bernoulli]\label{ass:conditional-bernoulli}
+Conditional on all cell labels, the outcomes are independent with \(Y_{di}\mid Z_{di}=j\sim\operatorname{Bernoulli}(p_{dj})\).
+\par\smallskip\noindent\emph{Novel.} Binary outcomes with cell-specific risks are common in stratified trials and audit studies; the two known risk levels per arm provide an interpretable calibration submodel rather than an oracle nuisance estimator.
+\end{assumption}
+
+\begin{assumption}[ass:vanishing-triples]\label{ass:vanishing-triples}
+Along the triangular array, \(\varepsilon_K\to0\).
+\par\smallskip\noindent\emph{Standard} (Vanishing dependency-neighborhood mass for Poisson approximation, \cite{arratiaGoldsteinGordon1989}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:legal-array-class]\label{def:legal-array-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal T\_\allowbreak{}K(r)}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal T_K(r)=\{(\theta_{dj})_{d\in\{0,1\},\,1\le j\le K}: \theta_{dj}\in\{-1,1\}\text{ for all }d,j\text{ and }K^{-1}\sum_{j=1}^{K}\theta_{0j}\theta_{1j}\in[-r,r]\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}sign-\allowbreak{}array}; \texttt{ass:\allowbreak{}correlation-\allowbreak{}range}.
+\end{definition}
+
+\begin{definition}[def:finite-array-experiment]\label{def:finite-array-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal F\_\allowbreak{}K}
+\par\smallskip\noindent\emph{Construction.} For each \((\theta_{dj})\in\mathcal T_K(r)\), \(\mathcal F_K\) observes \(\mathcal O_K\) under independent arms, uniform cell labels, and independent conditional Bernoulli outcomes with probabilities \(p_{dj}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}legal-\allowbreak{}array-\allowbreak{}class}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}cells}; \texttt{ass:\allowbreak{}arm-\allowbreak{}independence}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}bernoulli}.
+\end{definition}
+
+\begin{definition}[def:marked-poisson-experiment]\label{def:marked-poisson-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal E\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda,\allowbreak{}\textbackslash{}\allowbreak{}rho\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Observe \(N\sim\operatorname{Poisson}(\lambda)\) and, conditional on \(N\), independent marks \(S_1,\ldots,S_N\) satisfying \(\Pr_\rho(S_\ell=1)=(1+c\rho)/2\) for \(\rho\in[-r,r]\); equivalently observe independent counts \((N_+,N_-)\) with mass \(f_{\lambda,\rho}(N_+,N_-)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{c}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:decision-rule-classes]\label{def:decision-rule-classes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathscr D\_\allowbreak{}K,\allowbreak{}\textbackslash{}\allowbreak{}mathscr D\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{},\allowbreak{}\textbackslash{}\allowbreak{}mathscr C\_\allowbreak{}K,\allowbreak{}\textbackslash{}\allowbreak{}mathscr C\_\allowbreak{}\{\textbackslash{}\allowbreak{}lambda\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal D=[a-b,a+b]\). For the finite-array experiment, \(\mathscr D_K\) is the collection of all randomized measurable Markov kernels \(D_K:\mathcal O_K\rightsquigarrow\mathcal D\). For the marked-Poisson experiment, \(\mathscr D_{\lambda}\) is the collection of all randomized measurable Markov kernels \(D_{\lambda}:\mathcal O_{\lambda}\rightsquigarrow\mathcal D\). Since \(L_K\in\mathcal A\subset\mathcal D\) and \(a-b\rho\in\mathcal A\subset\mathcal D\), replacing any real-valued estimator by \(\operatorname{clip}_{\mathcal D}(t)=\min\{a+b,\max\{a-b,t\}\}\) cannot increase absolute or squared loss pointwise; hence allowing arbitrary real-valued endpoint actions yields the same minimax infima. Separately, \(\mathscr C_K\) and \(\mathscr C_{\lambda}\) are the collections of all randomized measurable Markov kernels from \(\mathcal O_K\) and \(\mathcal O_{\lambda}\), respectively, to the measurable action space of closed subintervals of \(\mathcal A\), including degenerate intervals.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}finite-\allowbreak{}array-\allowbreak{}experiment}; \texttt{def:\allowbreak{}marked-\allowbreak{}poisson-\allowbreak{}experiment}.
+\end{definition}
+
+\begin{definition}[def:supported-mixture-handle]\label{def:supported-mixture-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}K=\allowbreak{}\textbackslash{}\allowbreak{}\{P\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{mix\}\allowbreak{}\}\allowbreak{}\_\allowbreak{}\{K,\allowbreak{}q\}\allowbreak{}:\allowbreak{}q\textbackslash{}\allowbreak{}in\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}circ\}\allowbreak{}(r)\textbackslash{}\allowbreak{}\}\allowbreak{}}
+\par\smallskip\noindent\emph{Construction.} For each \(q\in\mathcal R_K^{\circ}(r)\), let \(\Gamma_{K,q}\) make the \(K\) cell pairs independent with \(\Gamma_{K,q}(\theta_{0j}=u,\theta_{1j}=v)=(1+quv)/4\) for \(u,v\in\{-1,1\}\). Put \(A_{K,q}=\{|\rho_K-q|\le s_K\}\), \(\Pi_{K,q}^{\mathrm{shell}}=\Gamma_{K,q}(\,\cdot\mid A_{K,q})\), and \(P^{\mathrm{mix}}_{K,q}=\int P^{\mathcal F_K}_{K,\theta}\,d\Pi_{K,q}^{\mathrm{shell}}(\theta)\). Thus the parameter is the lattice point \(q\), the mixing law is a product law before conditioning, and its conditional support lies in \(\mathcal T_K(r)\). For any \(\rho\in[-r,r]\), boundary comparison uses the exact projection \(q_K(\rho)\), for which \(|q_K(\rho)-\rho|\le 2s_K+2/K\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}legal-\allowbreak{}array-\allowbreak{}class}; \texttt{def:\allowbreak{}finite-\allowbreak{}array-\allowbreak{}experiment}.
+\end{definition}
+
+\begin{definition}[def:poisson-decision-frontiers]\label{def:poisson-decision-frontiers}
+\par\smallskip\noindent\emph{Defined object.} \texttt{R(\textbackslash{}\allowbreak{}lambda),\allowbreak{}C\_\allowbreak{}\textbackslash{}\allowbreak{}alpha(\textbackslash{}\allowbreak{}lambda)}
+\par\smallskip\noindent\emph{Construction.} Define \(R(\lambda)=\inf_{D_{\lambda}\in\mathscr D_{\lambda}}\sup_{\rho\in[-r,r]}\mathbb E_{\lambda,\rho}|D_{\lambda}-(a-b\rho)|\). Define \(C_\alpha(\lambda)=\inf_{\mathcal C_\lambda\in\mathscr C_{\lambda}}\sup_{\rho\in[-r,r]}\mathbb E_{\lambda,\rho}\operatorname{len}(\mathcal C_\lambda)\), subject to \(\inf_{\rho\in[-r,r]}\Pr_{\lambda,\rho}\{a-b\rho\in\mathcal C_\lambda\}\ge1-\alpha\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}marked-\allowbreak{}poisson-\allowbreak{}experiment}; \texttt{def:\allowbreak{}decision-\allowbreak{}rule-\allowbreak{}classes}.
+\end{definition}
+
+\begin{definition}[def:certified-interval-lp]\label{def:certified-interval-lp}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}operatorname\{LP\}\allowbreak{}\_\allowbreak{}\{m,\allowbreak{}h,\allowbreak{}s\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{int\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}lambda)}
+\par\smallskip\noindent\emph{Construction.} Fix a computable \(\lambda\ge0\), integers \(m,s\ge1\), and a grid
+\(G_h=\{-r=\rho_0<\cdots<\rho_J=r\}\) of rational or computable-real
+nodes with maximum adjacent gap at most \(h\).  The certification tuple
+is admissible only after directed evaluation has produced a rational
+upper enclosure \(\lambda_s^+\) satisfying
+\[
+ \lambda\le\lambda_s^+<m+1.
+ \tag{A0}
+\]
+Equivalently, for every fixed \(m\) with \(m+1>\lambda\), all
+sufficiently fine directed enclosures are admissible.  Let
+\(\mathsf X_m=\{(k,l)\in\mathbb N_0^2:k+l\le m\}\), append an overflow
+state \(\star\), and put
+\(\tau_m(\lambda)=\Pr\{\operatorname{Poisson}(\lambda)>m\}\).  On the
+admissible domain, the Chernoff calculation gives
+\[
+ \tau_m(\lambda)\le\overline\tau_m(\lambda)
+ \le\overline\tau_m(\lambda_s^+),\qquad
+ \overline\tau_m(x):=
+ e^{-x}\left(\frac{ex}{m+1}\right)^{m+1}.
+ \tag{A1}
+\]
+Its worst effects are at most
+\(\overline\tau_m(\lambda_s^+)\) on coverage and
+\(2br\overline\tau_m(\lambda_s^+)\) on expected length.  No use of
+this Chernoff enclosure is made when (A0) fails.
+
+The finite action grid is
+\[
+ \mathsf A_h=\{[a-b\rho_v,a-b\rho_u]:0\le u\le v\le J\}.
+\]
+The lower relaxation additionally admits a null grid-coverage pattern
+of length zero.  For any \(\rho,\rho'\in[-r,r]\), common Poisson counts
+and common-uniform-coupled Bernoulli marks give
+\[
+ \lVert f_{\lambda,\rho}-f_{\lambda,\rho'}\rVert_{\mathrm{TV}}
+ \le\omega_\lambda(|\rho-\rho'|)
+ :=\min\{1,\lambda c|\rho-\rho'|/2\}.
+\]
+Thus a fixed event has this probability modulus and a
+\([0,2br]\)-valued length has expectation modulus
+\(2br\omega_\lambda\).
+
+For the lower program let
+\(\mathsf A_h^-=\mathsf A_h\cup\{\varnothing_G\}\), where
+\(\varnothing_G\) has zero length and covers no grid target.  With
+\(t_j=a-b\rho_j\), its exact-coefficient form is
+\[
+ \begin{aligned}
+ \operatorname*{minimize}_{t,(w_{x,A})}\quad &t,\\
+ \text{subject to}\quad&
+ w_{x,A}\ge0,\qquad \sum_{A\in\mathsf A_h^-}w_{x,A}=1
+ &&(x\in\mathsf X_m),\\
+ &\sum_{x\in\mathsf X_m} f_{\lambda,\rho_j}(x)
+   \sum_{\substack{A\in\mathsf A_h^-\\t_j\in A}}w_{x,A}
+   \ge1-\alpha-\tau_m(\lambda)
+ &&(0\le j\le J),\\
+ &\sum_{x\in\mathsf X_m} f_{\lambda,\rho_j}(x)
+   \sum_{A\in\mathsf A_h^-}\operatorname{len}(A)w_{x,A}
+   \le t
+ &&(0\le j\le J),\\
+ &t\ge0.
+ \end{aligned}
+ \tag{L}
+\]
+It is a relaxation: an arbitrary interval is replaced by the shortest
+action spanning exactly the grid targets it contains, or by the null
+pattern if it contains none.  For the upper program set
+\(f_{\lambda,\rho_j}(\star)=\tau_m(\lambda)\), fix
+\(A_\star=\mathcal A\), and solve
+\[
+ \begin{aligned}
+ \operatorname*{minimize}_{t,(w_{x,A})}\quad &t,\\
+ \text{subject to}\quad&
+ w_{x,A}\ge0,\qquad \sum_{A\in\mathsf A_h}w_{x,A}=1
+ &&(x\in\mathsf X_m),\\
+ &\tau_m(\lambda)+\sum_{x\in\mathsf X_m} f_{\lambda,\rho_j}(x)
+   \sum_{\substack{A\in\mathsf A_h\\t_j\in A}}w_{x,A}
+   \ge1-\alpha
+ &&(0\le j\le J),\\
+ &2br\tau_m(\lambda)+\sum_{x\in\mathsf X_m} f_{\lambda,\rho_j}(x)
+   \sum_{A\in\mathsf A_h}\operatorname{len}(A)w_{x,A}
+   \le t
+ &&(0\le j\le J),\\
+ &t\ge0.
+ \end{aligned}
+ \tag{U}
+\]
+
+The certification index \(s\) specifies an aggregate outward-rounding
+budget, not merely a pointwise precision.  The procedure requests
+successively finer rational oracle brackets
+\(\lambda_s^-\le\lambda\le\lambda_s^+\), with
+\(\lambda_s^+-\lambda_s^-\le2^{-s}\), and corresponding brackets for
+every nonrational grid node and every other fixed real input, until
+(A0) holds and directed interval evaluation returns rational bounds
+\[
+ f_{s,j,x}^-\le f_{\lambda,\rho_j}(x)\le f_{s,j,x}^+,
+ \qquad
+ \tau_{m,s}^-\le\tau_m(\lambda)\le\tau_{m,s}^+
+ \le\overline\tau_m(\lambda_s^+),
+\]
+with
+\[
+ \max_j\left\{
+ \sum_{x\in\mathsf X_m}(f_{s,j,x}^+-f_{s,j,x}^-)
+ +(\tau_{m,s}^+-\tau_{m,s}^-)
+ \right\}\le2^{-s}.
+ \tag{A2}
+\]
+The same aggregate budget is imposed on directed enclosures of the
+finitely many action lengths and correction terms.  If
+\(m+1>\lambda\), termination of the admissibility check follows from
+computability and convergence of the brackets; termination of all
+remaining enclosures follows from computability and finiteness of the
+LP.  All right sides involving \(\alpha\) are rounded outward: the
+lower program uses the smaller right side and the upper program the
+larger right side.
+
+In the rational lower relaxation, replace each coverage coefficient by
+\(f^+\), replace \(1-\alpha-\tau_m(\lambda)\) by a rational lower
+enclosure, and replace each length coefficient by a rational lower
+enclosure formed from \(f^-\) and a downward-rounded action length.
+These directions enlarge the feasible set and decrease its recorded
+objective.  Let \(D_{m,h,s}^-\) be its exact rational optimum, certified
+by an exact rational dual optimum.  In the rational upper restriction,
+replace retained coverage coefficients by \(f^-\), overflow coverage
+by \(\tau^-\), and \(1-\alpha\) by a rational upper enclosure; replace
+all retained and overflow length contributions by rational upper
+enclosures formed from \(f^+\), \(\tau^+\), and upward-rounded
+lengths.  For every fixed \(m\) with \(m+1>\lambda\), this restriction
+is feasible for all sufficiently fine admissible \(s\); let
+\(P_{m,h,s}^+\) be its exact rational optimum, certified by an exact
+rational primal optimum.  Exact rational LP algorithms exist by finite
+pivoting or finite basis enumeration, so floating-point output is used
+only to propose a basis and never as a certificate.
+
+Expand each retained upper action \(A=[L,U]\) to
+\[
+ E_h(A)=[\max\{a-br,L-bh/2\},\min\{a+br,U+bh/2\}].
+\]
+Put \(\omega_h=\min\{1,\lambda ch/4\}\) and
+\(\gamma_h=\omega_h/(\alpha+\omega_h)\).  Nearest-grid coverage
+implies coverage after expansion up to an off-grid deficit
+\(\omega_h\); mixing with \(\mathcal A\) with probability
+\(\gamma_h\) repairs this deficit.  With every term replaced by its
+directed rational upper enclosure, report
+\[
+ U_{m,h,s}^+=P_{m,h,s}^++bh+2br\omega_h+2br\gamma_h,
+ \qquad
+ \operatorname{LP}_{m,h,s}^{\mathrm{int}}(\lambda)
+ =[D_{m,h,s}^-,U_{m,h,s}^+].
+\]
+For every fixed \(m\) with \(m+1>\lambda\), every \(h\), and all
+sufficiently fine admissible \(s\), one has
+\[
+ D_{m,h,s}^-\le C_\alpha(\lambda)\le U_{m,h,s}^+.
+\]
+Along every refinement with \(m\to\infty\), \(h\downarrow0\),
+\(s\to\infty\), and \(m+1>\lambda_s^+\), the tail, mesh,
+coverage-repair, and aggregate enclosure errors vanish.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}marked-\allowbreak{}poisson-\allowbreak{}experiment}; \texttt{def:\allowbreak{}poisson-\allowbreak{}decision-\allowbreak{}frontiers}.
+\end{definition}
+
+\begin{definition}[def:collision-estimator]\label{def:collision-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}widehat L\_\allowbreak{}K,\allowbreak{}\textbackslash{}\allowbreak{}widehat V\_\allowbreak{}K}
+\par\smallskip\noindent\emph{Construction.} For \(M_K>0\), set
+\[
+ \overline S_K=M_K^{-1}\sum_{\ell=1}^{M_K}S_\ell,\qquad
+ \widehat L_K=a-\frac{\overline S_K}{4a},\qquad
+ \widehat V_K=\frac{1-\overline S_K^2+M_K^{-1}}{16a^2}.
+\]
+Use a fixed bounded default for \(\widehat L_K\) and a fixed positive default for \(\widehat V_K\) when \(M_K=0\).  Do not project \(\widehat L_K\) onto \(\mathcal A\).  The \(M_K^{-1}\) ridge makes \(\widehat V_K>0\) whenever \(M_K>0\) and vanishes in every regime in which \(M_K\to\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{M\_\allowbreak{}K}; \texttt{S\_\allowbreak{}\textbackslash{}\allowbreak{}ell}.
+\end{definition}
+
+\begin{definition}[def:deterministic-shell-handle]\label{def:deterministic-shell-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak G\_\allowbreak{}\{K,\allowbreak{}T,\allowbreak{}H\}\allowbreak{}(\textbackslash{}\allowbreak{}rho\_\allowbreak{}0)}
+\par\smallskip\noindent\emph{Construction.} For fixed \(\rho_0\in(-r,r)\) and \(|h|\le H\), start from \(\Pi_{K,q_K(\rho_0+h/\sqrt{\lambda_K})}^{\mathrm{shell}}\), restrict its support further to \(\mathcal H_K(\rho_0,H+1)\), and expand jointly the score, collision count, and \(\widehat V_K\). Transfer the bounded loss \(\ell_T\) at fixed \(H,T\), then take \(K\to\infty\), followed by \(H\to\infty\), followed by \(T\to\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}supported-\allowbreak{}mixture-\allowbreak{}handle}; \texttt{def:\allowbreak{}collision-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:interpolation-image]\label{def:interpolation-image}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}K(r)}
+\par\smallskip\noindent\emph{Construction.} For \(K\ge2\), put \(I_{Kj}=((j-1)/K,j/K]\), with \(0\in I_{K1}\), and \(B_{Kj}=[j/K-K^{-3},j/K+K^{-3}]\) for \(1\le j<K\). For \(\theta\in\mathcal T_K(r)\), define \(g_{d,K,\theta}(u)=p_{d,\kappa_K(u)}\) off \(\bigcup_{j<K}B_{Kj}\); on \(B_{Kj}\), let \(g_{d,K,\theta}\) be the affine function joining \(p_{dj}\) at \(j/K-K^{-3}\) to \(p_{d,j+1}\) at \(j/K+K^{-3}\). The experiment \(\mathfrak I_K(\theta)\) observes independent arms with \(U_{di}\stackrel{\mathrm{iid}}{\sim}\operatorname{Unif}[0,1]\) and conditionally independent \(Y_{di}\mid U_{di}=u\sim\operatorname{Bernoulli}(g_{d,K,\theta}(u))\). Set \(\mathcal I_K(r)=\{\mathfrak I_K(\theta):\theta\in\mathcal T_K(r)\}\). The measurable pushforward \(\mathsf Q_K\) replaces every \(U_{di}\) by \(\kappa_K(U_{di})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}legal-\allowbreak{}array-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:anchor-containing-class]\label{def:anchor-containing-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}K,\allowbreak{}\textbackslash{}\allowbreak{}mathfrak B\_\allowbreak{}K(\textbackslash{}\allowbreak{}rho\_\allowbreak{}0,\allowbreak{}H),\allowbreak{}L(P),\allowbreak{}R\_\allowbreak{}K\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}K),\allowbreak{}C\_\allowbreak{}\{K,\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{anc\}\allowbreak{}\}\allowbreak{}(\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}K)}
+\par\smallskip\noindent\emph{Construction.} An anchor observable law \(P\) is generated by independent and
+identically distributed units carrying a covariate \(Z\in[0,1]\) and
+potential outcomes \((Y(0),Y(1))\in[0,1]^2\).  A Bernoulli treatment
+indicator, with success probability strictly between zero and one, is
+independent of \((Z,Y(0),Y(1))\), and the observed outcome obeys
+consistency, \(Y=Y(d)\) in arm \(d\).  Conditional on the realized arm
+sizes \(n_0,n_1\), its observation \(\mathcal O_K^{\mathrm{anc}}\) is
+the corresponding pair of independent within-arm samples.  Write
+\(\mu_{d,z}^P\) for the conditional observed-outcome law in arm \(d\)
+at covariate value \(z\), and define the observed-law
+conditional-transport functional
+\[
+ L(P)=\int_{[0,1]}
+ \inf_{\gamma\in\Pi(\mu_{0,z}^P,\mu_{1,z}^P)}
+ \int_{[0,1]^2}|y_1-y_0|\,d\gamma(y_0,y_1)\,dP_Z(z).
+ \tag{41}
+\]
+The covariate domain \([0,1]\) is compact, the ambient outcome domain
+\([0,1]\) is compact and convex, and the cost
+\(h(y_0,y_1)=|y_1-y_0|\) is continuous.
+
+For \(\theta\in\mathcal T_K(r)\), let
+\(P_{K,\theta}^{\mathrm{emb}}\) be the law obtained from
+\(\mathcal F_K\) by the injective relabeling \(j\mapsto z_j=j/K\),
+regarding \(Y\in\{0,1\}\) as taking values in \([0,1]\).  An
+anchor-containing class \(\mathfrak P_K\) is any class of anchor
+observable laws containing \(P_{K,\theta}^{\mathrm{emb}}\) for every
+\(\theta\in\mathcal T_K(r)\).  Let
+\(\mathscr D_K^{\mathrm{anc}}\) be all randomized measurable kernels
+from \(\mathcal O_K^{\mathrm{anc}}\) to \([0,1]\), and let
+\(\mathscr C_K^{\mathrm{anc}}\) be all randomized measurable kernels
+from \(\mathcal O_K^{\mathrm{anc}}\) to the closed subintervals of
+\([0,1]\).  Define
+\[
+ R_K^{\mathrm{anc}}(\mathfrak P_K)
+ =
+ \inf_{D\in\mathscr D_K^{\mathrm{anc}}}
+ \sup_{P\in\mathfrak P_K}\mathbb E_P|D-L(P)|,
+ \tag{42}
+\]
+and
+\[
+ C_{K,\alpha}^{\mathrm{anc}}(\mathfrak P_K)
+ =
+ \inf_{\mathcal C\in\mathscr C_K^{\mathrm{anc}}}
+ \sup_{P\in\mathfrak P_K}
+ \mathbb E_P\operatorname{len}(\mathcal C),
+ \tag{43}
+\]
+where the infimum in (43) is subject to
+\[
+ \inf_{P\in\mathfrak P_K}
+ P\{L(P)\in\mathcal C\}\ge1-\alpha.
+ \tag{44}
+\]
+For \(\rho_0\in(-r,r)\) and \(H>0\), a broader local class
+\(\mathfrak B_K(\rho_0,H)\) is any class of anchor observable laws
+satisfying
+\[
+ \{P_{K,\theta}^{\mathrm{emb}}:
+   \theta\in\mathcal H_K(\rho_0,H)\}
+ \subseteq\mathfrak B_K(\rho_0,H).
+ \tag{45}
+\]
+The families \(\mathfrak B_K(\rho_0,H)\) need not be nested in \(H\).
+No smoothness or rate condition beyond the displayed anchor conditions
+is included in this definition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}legal-\allowbreak{}array-\allowbreak{}class}; \texttt{def:\allowbreak{}finite-\allowbreak{}array-\allowbreak{}experiment}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:sharp-cot-endpoint]\label{prop:sharp-cot-endpoint}
+For every \((\theta_{dj})\in\mathcal T_K(r)\), the sharp lower bound on \(\mathbb E|Y(1)-Y(0)|\) over couplings preserving the two conditional Bernoulli laws cell by cell is \(L_K\), and \(L_K=a-b\rho_K\).
+\end{proposition}
+\begin{proof}
+Fix \(\theta=(\theta_{dj})\in\mathcal T_K(r)\).  By \(\mathrm{def{:}finite\mbox{-}array\mbox{-}experiment}\), the observable law \(P_\theta\) is the law of
+\[
+ \mathcal O_K=((Z_{di},Y_{di}):d\in\{0,1\},\ 1\le i\le n_d),
+\]
+where the two arms are independent, the observations are independent within arms, and, for every \(d,i,j\),
+\[
+ P_\theta(Z_{di}=j)=K^{-1},\qquad
+ P_\theta(Y_{di}=1\mid Z_{di}=j)=p_{dj}.
+ \tag{1}
+\]
+Thus \(P_\theta\) identifies every \(p_{dj}\), since every cell in (1) has positive probability.  The causal quantity is not defined to equal an observed functional.  Rather, for a compatible collection \(\pi=(\pi_1,\ldots,\pi_K)\), where \(\pi_j\) is a coupling on \(\{0,1\}^2\) with marginals \(\operatorname{Bernoulli}(p_{0j})\) and \(\operatorname{Bernoulli}(p_{1j})\), define
+\[
+ \tau(\pi)=\frac1K\sum_{j=1}^K
+ \int_{\{0,1\}^2}|y_1-y_0|\,d\pi_j(y_0,y_1).
+ \tag{2}
+\]
+The identified set under the maintained cellwise-marginal restrictions is
+\[
+ \Theta_I(P_\theta)=\{\tau(\pi):\pi_j\in
+ \Pi(\operatorname{Bernoulli}(p_{0j}),
+      \operatorname{Bernoulli}(p_{1j})),\ 1\le j\le K\}.
+ \tag{3}
+\]
+
+We compute (3) by the binary extremal-coupling technique.  Put
+\(Q_j=\pi_j\{(1,1)\}\).  The four atoms of \(\pi_j\) are
+\[
+ Q_j,\qquad p_{0j}-Q_j,\qquad p_{1j}-Q_j,
+ \qquad 1-p_{0j}-p_{1j}+Q_j.
+\]
+Their nonnegativity is equivalent to
+\[
+ \max\{0,p_{0j}+p_{1j}-1\}
+ \le Q_j\le \min\{p_{0j},p_{1j}\}.                 \tag{4}
+\]
+Conversely, every \(Q_j\) in (4) makes the four displayed atoms nonnegative and summing to one, so (4) is also sufficient for a coupling with the prescribed marginals.  Its mismatch probability is
+\[
+ t_j:=\int |y_1-y_0|\,d\pi_j
+ =p_{0j}+p_{1j}-2Q_j.                              \tag{5}
+\]
+As \(Q_j\) traverses (4), (5) traverses the full interval
+\[
+ |p_{1j}-p_{0j}|\le t_j\le
+ \min\{p_{0j}+p_{1j},\,2-p_{0j}-p_{1j}\}.         \tag{6}
+\]
+The Cartesian product of the cellwise intervals in (6), followed by the linear average in (2), has image equal to the interval
+\[
+ \Theta_I(P_\theta)=
+ \left[
+  \frac1K\sum_{j=1}^K|p_{1j}-p_{0j}|,
+  \frac1K\sum_{j=1}^K
+  \min\{p_{0j}+p_{1j},2-p_{0j}-p_{1j}\}
+ \right].                                         \tag{7}
+\]
+Indeed, the image is convex because the domain is a product of intervals, and its two endpoints are attained by taking every \(Q_j\) at the corresponding endpoint of (4).  Hence (7) is sharp, not merely an outer bound.  Its lower endpoint is the observable-law functional
+\[
+ L_K=\frac1K\sum_{j=1}^K|p_{1j}-p_{0j}|.          \tag{8}
+\]
+
+It remains to derive the advertised affine formula.  The support restrictions give \(0<b<a<1/2\) and \(\theta_{dj}\in\{-1,1\}\).  Therefore
+\[
+ \begin{aligned}
+ |p_{1j}-p_{0j}|
+ &=|b\theta_{1j}-a\theta_{0j}|\\
+ &=\begin{cases}
+    a-b,&\theta_{0j}\theta_{1j}=1,\\
+    a+b,&\theta_{0j}\theta_{1j}=-1,
+   \end{cases}\\
+ &=a-b\theta_{0j}\theta_{1j}.                    \tag{9}
+ \end{aligned}
+\]
+Averaging (9), using the declared definition
+\(\rho_K=K^{-1}\sum_j\theta_{0j}\theta_{1j}\), and comparing with (8) yields
+\[
+ L_K=a-b\rho_K.                                   \tag{10}
+\]
+Thus the equality of the causal sharp endpoint and the observed-law functional follows from the coupling constraints (4)--(7), rather than being imposed by definition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This setup proposition fixes the actual causal partial-identification endpoint before any statistical approximation and provides a sanity check for the collision parameterization. \textit{Gap.} This identity is a direct binary specialization of Lin, Gao, Blanchet, and Glynn's general sharp COT bound in Theorem~1; no novelty is claimed for the affine calculation. \textit{Consumer.} The identity lets \(\texttt{causalPIviaCOT}\) interpret partition-resolution diagnostics directly as uncertainty about a sharp endpoint rather than about an auxiliary regression coefficient.
+
+\begin{proposition}[prop:supported-mixture-legality]\label{prop:supported-mixture-legality}
+For all sufficiently large \(K\), \(\mathcal R_K^{\circ}(r)\neq\varnothing\). For every \(q\in\mathcal R_K^{\circ}(r)\), \(\Pi_{K,q}^{\mathrm{shell}}(\mathcal T_K(r))=1\), every array in its support obeys \(|L_K-(a-bq)|\le b s_K\), and \(\Gamma_{K,q}(A_{K,q}^{\mathrm c})\le\eta_K\) uniformly in \(q\). The projection \(q_K(\rho)\) is measurable and satisfies \(|q_K(\rho)-\rho|\le 2s_K+2/K\) for every \(\rho\in[-r,r]\).
+\end{proposition}
+\begin{proof}
+Under \(\Gamma_{K,q}\), the products \(W_j=\theta_{0j}\theta_{1j}\) are independent, take values in \(\{-1,1\}\), and satisfy
+\[
+ \Pr(W_j=w)=\frac{1+qw}{2},\qquad \mathbb EW_j=q,qquad
+ \rho_K=K^{-1}\sum_{j=1}^K W_j.
+\]
+The interval \([-r+2s_K,r-2s_K]\) has length \(2r-4s_K\ge3r/2\), because \(s_K\le r/8\).  Since the correlation lattice has spacing \(2/K\), that interval contains a lattice point once \(2/K<3r/2\).  Hence \(\mathcal R_K^\circ(r)\ne\varnothing\) for all sufficiently large \(K\).
+
+For completeness, the required concentration bound follows by a direct exponential-moment argument.  If
+\(\psi_q(t)=\log\mathbb E\exp\{t(W_j-q)\}\), then \(\psi_q(0)=\psi_q'(0)=0\), while \(\psi_q''(t)\) is the variance of a random variable supported on \([-1,1]\) under an exponential tilt and is therefore at most one.  Taylor's formula gives \(\psi_q(t)\le t^2/2\).  Independence, Markov's inequality, and minimization at \(t=s_K\) give
+\[
+ \Gamma_{K,q}(\rho_K-q>s_K)
+ \le \inf_{t>0}\exp\{-Kt s_K+Kt^2/2\}
+ =\exp(-Ks_K^2/2).
+\]
+Applying the same calculation to \(-W_j\) proves
+\[
+ \Gamma_{K,q}(A_{K,q}^{\mathrm c})
+ \le2\exp(-Ks_K^2/2)=\eta_K,
+\]
+uniformly in \(q\).  The conditioning event has positive probability even when this numerical upper bound exceeds one: because \(q\) itself is a correlation-lattice point and \(|q|<1\), every sign-product configuration with empirical mean \(q\) has positive \(\Gamma_{K,q}\)-mass and belongs to \(A_{K,q}\).
+
+If \(q\in\mathcal R_K^\circ(r)\) and \(A_{K,q}\) occurs, then
+\[
+ |\rho_K|\le |q|+s_K\le r-s_K<r.
+\]
+The sign restriction holds by construction, so the conditional law is supported on \(\mathcal T_K(r)\).  The already proved endpoint identity gives, pointwise on that support,
+\[
+ |L_K-(a-bq)|=b|\rho_K-q|\le bs_K.
+\]
+
+It remains to check the boundary-safe projection.  On the interior interval, a nearest point of a lattice of spacing \(2/K\) is at distance at most \(1/K\).  Outside that interval, the first or last admissible lattice point is less than \(2/K\) from the corresponding interval endpoint.  Consequently, for all \(\rho\in[-r,r]\),
+\[
+ |q_K(\rho)-\rho|\le2s_K+2/K.
+\]
+The smaller-point tie rule makes \(q_K\) a piecewise-constant Borel function on the finite Voronoi partition of \([-r,r]\), hence measurable.  These arguments use, respectively, lattice geometry, an exponential-moment concentration calculation, and support conditioning.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The support, lattice, and target-radius assertions prevent a mixed lower experiment from silently leaving the deterministic parameter class or changing the finite-array endpoint. \textit{Gap.} Kipnis's supported-mixture conditioning in Theorems~2.1 and~2.3 concerns a one-sample multinomial testing parameter; it does not supply a two-array correlation lattice or control the realized COT endpoint on every supported array. \textit{Consumer.} This proposition licenses the finite-information and deterministic-shell minimax lower bounds over legal deterministic arrays.
+
+\begin{lemma}[lem:vanishing-triples-implies-growing-cells]\label{lem:vanishing-triples-implies-growing-cells}
+Along the declared triangular array, \(\varepsilon_K=n_0n_1(n_0+n_1)/K^2\ge 2/K^2\) and \(K\to\infty\).
+\end{lemma}
+\begin{proof}
+Because each arm size is a positive integer,
+\[
+ n_0n_1(n_0+n_1)\ge1\cdot1\cdot2=2.
+\]
+The definitions of \(\lambda_K\) and \(\varepsilon_K\) therefore give
+\[
+ \varepsilon_K=\frac{n_0n_1(n_0+n_1)}{K^2}\ge\frac2{K^2}.
+\]
+If \(K\) failed to diverge, an infinite subsequence would satisfy \(K\le K_\star\) for some finite \(K_\star\), and the last display would give \(\varepsilon_K\ge2/K_\star^2\) on that subsequence, contradicting the assumed convergence \(\varepsilon_K\to0\).  Hence \(K\to\infty\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Positive integer arm sizes make growing alphabet size a consequence of the collision regularity condition rather than a redundant maintained assumption. \textit{Gap.} This arithmetic reduction is a setup lemma and carries no novelty claim. \textit{Consumer.} Every asymptotic collision and deterministic-shell statement that needs \(K\to\infty\) can invoke the implication without enlarging the model class.
+
+\begin{theorem}[thm:collision-comparison]\label{thm:collision-comparison}
+There exist Markov kernels \(\mathsf K_K^{\to}:\mathcal O_K\rightsquigarrow\mathbb N_0^2\) and \(\mathsf K_K^{\leftarrow}:\mathbb N_0^2\rightsquigarrow\mathcal O_K\), depending only on \(K,n_0,n_1,a,b,r\) and not on \(q\), such that, with the same parameter \(q\in\mathcal R_K^{\circ}(r)\) indexing both experiments, \[\sup_q\lVert P^{\mathrm{mix}}_{K,q}\mathsf K_K^{\to}-P^{\mathcal E}_{\lambda_K,q}\rVert_{\mathrm{TV}}\le e_K,\qquad \sup_q\lVert P^{\mathcal E}_{\lambda_K,q}\mathsf K_K^{\leftarrow}-P^{\mathrm{mix}}_{K,q}\rVert_{\mathrm{TV}}\le e_K,\] where \(e_K=\min\{1,5\varepsilon_K+\eta_K\}\). Both sides attach the decision target \(a-bq\) to the index \(q\). Moreover, for every deterministic array in \(\mathcal T_K(r)\), the law of \((M_K,S_1,\ldots,S_{M_K})\) is within \(e_K^{\mathrm{det}}=\min\{1,5\varepsilon_K+\lambda_K^2/(2K)\}\) in total variation of \(\mathcal E_{\lambda_K,\rho_K}\), uniformly over arrays.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ I_{ik}=\mathbf 1\{Z_{0i}=Z_{1k}\},
+ \qquad
+ W=\sum_{i=1}^{n_0}\sum_{k=1}^{n_1}I_{ik}.
+\]
+By Assumptions \(\texttt{ass:uniform-cells}\) and
+\(\texttt{ass:arm-independence}\),
+\[
+ \mathbb E I_{ik}=K^{-1}.
+ \tag{1}
+\]
+Give \((i,k)\) the dependency neighborhood consisting of the pairs
+\((i',k')\) for which \(i'=i\) or \(k'=k\).  Outside that neighborhood
+the indicators are functions of disjoint independent labels.  For a
+distinct neighbor, exactly three independent uniform labels must agree,
+so
+\[
+ \mathbb E(I_{ik}I_{i'k'})=K^{-2}.
+\]
+Consequently the quantities in
+Lemma \(\texttt{lem:agg-poisson-approximation}\) are
+\[
+ b_1=\frac{n_0n_1(n_0+n_1-1)}{K^2},
+ \qquad
+ b_2=\frac{n_0n_1(n_0+n_1-2)}{K^2}.
+\]
+Since \(\mathbb EW=n_0n_1/K=\lambda_K\), that lemma and the definition of
+\(\varepsilon_K\) give
+\[
+ d_{\mathrm{TV}}\!\left(\mathcal L(W),
+       \operatorname{Poisson}(\lambda_K)\right)
+ \le 2(b_1+b_2)
+ \le 4\varepsilon_K.
+ \tag{2}
+\]
+Here and below total variation is the supremum over measurable events.
+
+Let \(B\) be the label-measurable event that some cell hit by both arms
+contains at least three observations in total.  If \(B\) occurs, either
+two specified arm-zero observations and one specified arm-one
+observation have a common label, or the analogous event with the arms
+interchanged occurs.  Each specified triple agrees with probability
+\(K^{-2}\).  Hence the union bound yields
+\[
+ \Pr(B)
+ \le
+ \frac{\binom{n_0}{2}n_1+n_0\binom{n_1}{2}}{K^2}
+ =
+ \frac{n_0n_1(n_0+n_1-2)}{2K^2}
+ \le \frac{\varepsilon_K}{2}.
+ \tag{3}
+\]
+On \(B^{\mathrm c}\), every cross-arm matching pair is the unique pair in
+a cell containing exactly one observation from each arm, and conversely.
+Thus \(M_K=W\) on \(B^{\mathrm c}\), and the coupling inequality together
+with (2)--(3) gives
+\[
+ d_{\mathrm{TV}}\!\left(\mathcal L(M_K),
+       \operatorname{Poisson}(\lambda_K)\right)
+ \le 4\varepsilon_K+\Pr(B).
+ \tag{4}
+\]
+The distribution of \((M_K,B)\) depends only on the known label design,
+not on the signs or on \(q\).
+
+We next identify the parameter-bearing part of the unconditioned product
+mixture.  Let \(Q_{K,q}\) be the observation law obtained by mixing
+\(\mathcal F_K\) with \(\Gamma_{K,q}\), before conditioning on
+\(A_{K,q}\).  In a cell containing exactly one observation from each
+arm, Assumption \(\texttt{ass:conditional-bernoulli}\) and the
+construction in \(\texttt{def:supported-mixture-handle}\) give, for
+\(x,y\in\{-1,1\}\),
+\[
+\begin{aligned}
+ \Pr_q(X_0=x,X_1=y)
+ &=\frac14\,
+   \mathbb E_{\Gamma_{K,q}}
+   \left[(1+2ax\theta_0)(1+2by\theta_1)\right]\\
+ &=\frac{1+4abqxy}{4}
+ =\frac{1+cqxy}{4}.
+\end{aligned}
+\tag{5}
+\]
+Indeed, the product mixing law has
+\(\mathbb E\theta_0=\mathbb E\theta_1=0\) and
+\(\mathbb E(\theta_0\theta_1)=q\), and \(c=4ab\).  Hence the collision
+mark \(S=X_0X_1\) satisfies
+\[
+ \Pr_q(S=s)=\frac{1+cqs}{2},
+ \qquad s\in\{-1,1\},
+ \tag{6}
+\]
+while, conditional on \(S\), the orientation \(X_0\) is fair and
+independent of \(q\).  Product mixing across cells makes the marks in
+distinct one-one cells independent.  Conditional on the occupancy
+pattern, every cell occupied by only one arm also has a \(q\)-free
+outcome-block law: the relevant latent sign has the fair marginal law
+under \(\Gamma_{K,q}\).  The occupancy pattern itself is parameter free.
+
+Define \(\mathsf K_K^{\to}\) to retain from the full observation only the
+numbers of positive and negative marks among the \(M_K\) one-one cells.
+This deterministic kernel is independent of \(q\).  Equations (5)--(6)
+show that, under \(Q_{K,q}\), conditional on the parameter-free count
+\(M_K\), the retained marks are independent with positive-mark
+probability \((1+cq)/2\).  Applying the same marking kernel to a
+\(\operatorname{Poisson}(\lambda_K)\) count gives exactly
+\(P^{\mathcal E}_{\lambda_K,q}\).  Total variation contracts under a
+Markov kernel, because the preimage probability of every output event is
+a measurable function taking values in \([0,1]\).  Therefore (4) gives
+\[
+ d_{\mathrm{TV}}\!\left(
+ Q_{K,q}\mathsf K_K^{\to},P^{\mathcal E}_{\lambda_K,q}\right)
+ \le 4\varepsilon_K+\Pr(B).
+ \tag{7}
+\]
+By Proposition \(\texttt{prop:supported-mixture-legality}\),
+\(\Gamma_{K,q}(A_{K,q}^{\mathrm c})\le\eta_K\).  Conditioning a
+probability law on an event \(A\) changes it in total variation by
+\(\Pr(A^{\mathrm c})\): this follows by integrating the density
+\(\mathbf 1_A/\Pr(A)\) relative to the original law.  Data processing
+and (3), uniformly over \(q\in\mathcal R_K^\circ(r)\), now yield
+\[
+ d_{\mathrm{TV}}\!\left(
+ P^{\mathrm{mix}}_{K,q}\mathsf K_K^{\to},
+ P^{\mathcal E}_{\lambda_K,q}\right)
+ \le 4\varepsilon_K+\Pr(B)+\eta_K
+ \le 5\varepsilon_K+\eta_K.
+ \tag{8}
+\]
+
+We construct the reverse kernel explicitly.  The law of \(M_K\) is
+known and parameter free.  Couple an input
+\(N\sim\operatorname{Poisson}(\lambda_K)\) maximally to a variable having
+the law of \(M_K\); the maximal coupling is fixed by the two known count
+laws.  Conditional on the resulting \(M_K=m\), sample a label-occupancy
+configuration from its known conditional law.  On
+\(\{N=M_K\}\cap B^{\mathrm c}\), randomly order the input's \(N_+\)
+positive and \(N_-\) negative marks among the one-one cells, draw their
+fair orientations, and draw every one-arm outcome block from its
+fair-sign mixture.  Equations (5)--(6) show that this is exactly the
+conditional law under \(Q_{K,q}\), and every operation is independent
+of \(q\).  On \(\{N\ne M_K\}\cup B\), use any fixed, parameter-free
+completion.  This defines a Markov kernel
+\(\mathsf K_K^{\leftarrow}\) depending only on
+\(K,n_0,n_1,a,b,r\).  Under the displayed coupling its output can
+disagree with a \(Q_{K,q}\)-observation only if the counts disagree or
+\(B\) occurs.  Hence (3)--(4) imply
+\[
+\begin{aligned}
+ d_{\mathrm{TV}}\!\left(
+ P^{\mathcal E}_{\lambda_K,q}\mathsf K_K^{\leftarrow},Q_{K,q}\right)
+ &\le
+ d_{\mathrm{TV}}\!\left(
+ \operatorname{Poisson}(\lambda_K),\mathcal L(M_K)\right)+\Pr(B)\\
+ &\le4\varepsilon_K+2\Pr(B)
+ \le5\varepsilon_K.
+\end{aligned}
+\tag{9}
+\]
+Shell conditioning adds at most \(\eta_K\), uniformly in \(q\).  Since
+total variation is at most one, (8)--(9) prove both comparison
+inequalities with
+\[
+ e_K=\min\{1,5\varepsilon_K+\eta_K\}.
+ \tag{10}
+\]
+The index on both sides is the same lattice point \(q\), and the
+decision target attached to that index is \(a-bq\).
+
+It remains to establish the deterministic-array assertion.  Fix
+\(\theta\in\mathcal T_K(r)\) and put
+\(t_j=\theta_{0j}\theta_{1j}\).  Enumerate the one-one cells using an
+independent uniform ordering.  Permutation symmetry of the uniform
+labels implies that, conditional on \(M_K=m\), their ordered labels form
+a uniform ordered sample without replacement from
+\(\{1,\ldots,K\}\).  Given label \(j\), conditional outcome independence
+gives
+\[
+ \mathbb E_\theta(S\mid j)
+ =
+ \mathbb E_\theta(X_0\mid j)\mathbb E_\theta(X_1\mid j)
+ =(2a\theta_{0j})(2b\theta_{1j})
+ =ct_j.
+ \tag{11}
+\]
+As \(S\in\{-1,1\}\), its conditional distribution is therefore
+\(\Pr_\theta(S=s\mid j)=(1+ct_js)/2\).
+
+Couple the ordered sample without replacement to \(m\) independent
+uniform cell labels.  The samples agree whenever the independent labels
+are distinct, because their conditional law on that event is the
+uniform law without replacement.  A union bound gives mismatch
+probability at most
+\[
+ \frac{m(m-1)}{2K}.
+ \tag{12}
+\]
+Under independent uniform labels, (11) and
+\(K^{-1}\sum_jt_j=\rho_K\), followed by independent outcome draws,
+produce independent marks with mean \(c\rho_K\), which is exactly the
+conditional mark law in \(\mathcal E_{\lambda_K,\rho_K}\).
+
+Pointwise \(M_K\le W\).  Every two distinct matching indicators have
+joint expectation \(K^{-2}\), whether or not they share one observation.
+Thus
+\[
+\begin{aligned}
+ \mathbb E\{M_K(M_K-1)\}
+ &\le\mathbb E\{W(W-1)\}\\
+ &=\frac{n_0n_1(n_0n_1-1)}{K^2}
+ \le\lambda_K^2.
+\end{aligned}
+\tag{13}
+\]
+Average (12) over \(M_K\), and compare its count law with
+\(\operatorname{Poisson}(\lambda_K)\) using (4).  Equations
+(3)--(4) and (13) then give
+\[
+\begin{aligned}
+ &d_{\mathrm{TV}}\!\left(
+ \mathcal L_\theta(M_K,S_1,\ldots,S_{M_K}),
+ \mathcal E_{\lambda_K,\rho_K}\right)\\
+ &\quad\le
+ 4\varepsilon_K+\Pr(B)
+ +\frac{\mathbb E\{M_K(M_K-1)\}}{2K}\\
+ &\quad\le
+ 5\varepsilon_K+\frac{\lambda_K^2}{2K}.
+\end{aligned}
+\tag{14}
+\]
+All bounds in (14) are independent of the deterministic signs.  Capping
+at one proves the asserted uniform error
+\(e_K^{\mathrm{det}}=\min\{1,5\varepsilon_K+\lambda_K^2/(2K)\}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Two-sided comparison and uniform deterministic approximation are the information-theoretic bridge from the causal endpoint to a tractable non-Gaussian experiment. \textit{Gap.} Arratia, Goldstein, and Gordon provide forward Poisson approximation, while Kipnis's Theorems~2.1 and~2.3 provide one-sample supported-mixture conditioning and fixed-count transfer; neither supplies two parameter-free marked two-arm kernels on the finite correlation lattice or uniform approximation centered at every realized array target. \textit{Consumer.} Any bounded-loss estimator or interval designed in the marked-Poisson experiment can be transported back to the finite covariate partition with an explicit error budget.
+
+\begin{theorem}[thm:finite-information-transfer]\label{thm:finite-information-transfer}
+If \(\lambda_K\to\lambda\in[0,\infty)\), then \(R_K\to R(\lambda)\). The lower bound ranges over supported mixtures on legal deterministic arrays, and the upper bound uses only the deterministic collision statistic; both sides target the realized \(L_K\).
+\end{theorem}
+\begin{proof}
+For a legal deterministic array \(\theta\), write
+\[
+ t_K(\theta)=L_K(\theta)=a-b\rho_K(\theta),
+ \qquad
+ t(\rho)=a-b\rho.
+ \tag{30}
+\]
+The first equality is the causal endpoint identity in Proposition
+\(\texttt{prop:sharp-cot-endpoint}\); the second object is the target in
+the marked decision experiment.  We relate them rather than identify
+them by definition.
+
+We use the following elementary bounded-loss consequence of total
+variation.  If \(0\le g\le B\), the layer-cake formula gives
+\[
+ \left|\int g\,dP-\int g\,dQ\right|
+ \le\int_0^B|P\{g>u\}-Q\{g>u\}|\,du
+ \le B\|P-Q\|_{\mathrm{TV}}.
+ \tag{31}
+\]
+The same argument applied to transition probabilities proves contraction
+under Markov kernels.  Since every target lies in
+\(\mathcal A=[a-br,a+br]\), projection of an endpoint action onto
+\(\mathcal A\) cannot increase absolute loss.  We may thus use actions
+in \(\mathcal A\), for which the loss is bounded by \(2br\).
+
+Define
+\[
+ d_K=\min\left\{1,5\varepsilon_K+\frac{\lambda_K^2}{2K}\right\},
+ \qquad
+ e_K=\min\{1,5\varepsilon_K+\eta_K\},
+ \tag{32}
+\]
+and
+\[
+ \delta_K=2s_K+\frac2K,
+ \qquad
+ \omega_K=\min\left\{1,\frac{\lambda_Kc\delta_K}{2}\right\}.
+ \tag{33}
+\]
+For the upper comparison, let
+\(D_\lambda\in\mathscr D_{\lambda_K}\) be any marked-Poisson rule,
+projected onto \(\mathcal A\), and apply it to the positive- and
+negative-mark counts extracted from the deterministic collision
+statistic.  This is one measurable finite-array rule, independent of
+\(\theta\).  The deterministic part of Theorem
+\(\texttt{thm:collision-comparison}\), (30)--(32), and (31) yield
+\[
+ \mathbb E_\theta|D_\lambda-L_K(\theta)|
+ \le
+ \mathbb E_{\lambda_K,\rho_K(\theta)}
+ |D_\lambda-t(\rho_K(\theta))|+2brd_K.
+ \tag{34}
+\]
+Taking the supremum over arrays and the infimum over marked rules gives
+\[
+ R_K\le R(\lambda_K)+2brd_K.
+ \tag{35}
+\]
+
+For the reverse comparison, fix a finite-array rule
+\(D_K\in\mathscr D_K\), projected onto \(\mathcal A\), and set
+\[
+ \mathcal R_K(D_K)=
+ \sup_{\theta\in\mathcal T_K(r)}
+ \mathbb E_\theta|D_K-L_K(\theta)|.
+\]
+For sufficiently large \(K\), Proposition
+\(\texttt{prop:supported-mixture-legality}\) makes
+\(\mathcal R_K^\circ(r)\) nonempty.  For
+\(q\in\mathcal R_K^\circ(r)\), its mixture is supported on legal arrays
+and satisfies \(|L_K(\theta)-t(q)|\le bs_K\).  Thus
+\[
+\begin{aligned}
+ \mathbb E_{P^{\mathrm{mix}}_{K,q}}|D_K-t(q)|
+ &=\int\mathbb E_\theta|D_K-t(q)|
+      \,d\Pi_{K,q}^{\mathrm{shell}}(\theta)\\
+ &\le\mathcal R_K(D_K)+bs_K.
+\end{aligned}
+\tag{36}
+\]
+Compose \(D_K\) with the parameter-free reverse kernel from Theorem
+\(\texttt{thm:collision-comparison}\), and call the resulting single
+marked rule \(\widetilde D_K\).  Equations (31)--(32) and (36) give
+\[
+ \mathbb E_{\lambda_K,q}|\widetilde D_K-t(q)|
+ \le\mathcal R_K(D_K)+bs_K+2bre_K.
+ \tag{37}
+\]
+
+For an arbitrary \(\rho\in[-r,r]\), set \(q=q_K(\rho)\).
+Proposition \(\texttt{prop:supported-mixture-legality}\) gives
+\(|q-\rho|\le\delta_K\).  Couple the two marked experiments using the
+same Poisson count and common uniforms for the marks.  A single mark
+differs with probability \(c|\rho-q|/2\), so a conditional union bound
+and expectation over the count show
+\[
+ \|P^{\mathcal E}_{\lambda_K,\rho}
+   -P^{\mathcal E}_{\lambda_K,q}\|_{\mathrm{TV}}
+ \le\omega_K.
+ \tag{38}
+\]
+Since \(|t(\rho)-t(q)|\le b\delta_K\), equations (31), (37), and (38)
+imply
+\[
+ \mathbb E_{\lambda_K,\rho}|\widetilde D_K-t(\rho)|
+ \le
+ \mathcal R_K(D_K)+b(s_K+\delta_K)
+ +2br(e_K+\omega_K).
+ \tag{39}
+\]
+Taking the parameter supremum and then the infimum over \(D_K\) proves
+\[
+ R(\lambda_K)
+ \le R_K+b(s_K+\delta_K)+2br(e_K+\omega_K).
+ \tag{40}
+\]
+Thus the mixture target discrepancy is explicitly paid; no random
+mixture endpoint is substituted for the realized \(L_K\).
+
+For continuity in intensity, couple marked Poisson processes at
+\(\lambda,\lambda'\ge0\) by retaining a common process of intensity
+\(\min\{\lambda,\lambda'\}\) and adding an independent process of
+intensity \(|\lambda-\lambda'|\) to the larger experiment.  Uniformly in
+\(\rho\), the observations agree unless the added process is nonempty.
+Therefore
+\[
+ \|P^{\mathcal E}_{\lambda,\rho}
+   -P^{\mathcal E}_{\lambda',\rho}\|_{\mathrm{TV}}
+ \le1-e^{-|\lambda-\lambda'|}.
+\]
+The two experiments have the same target \(t(\rho)\).  Applying (31) in
+both directions and then taking minimax infima gives
+\[
+ |R(\lambda)-R(\lambda')|
+ \le2br\{1-e^{-|\lambda-\lambda'|}\}.
+ \tag{41}
+\]
+
+Suppose now that \(\lambda_K\to\lambda<\infty\).
+Lemma \(\texttt{lem:vanishing-triples-implies-growing-cells}\) gives
+\(K\to\infty\).  Boundedness of \(\lambda_K\) and the definition of
+\(s_K\) imply, eventually,
+\[
+ s_K=\{K(1\vee\lambda_K)\}^{-1/4}\to0,
+ \qquad
+ Ks_K^2=\sqrt{\frac{K}{1\vee\lambda_K}}\to\infty.
+ \tag{42}
+\]
+Hence \(\eta_K=2e^{-Ks_K^2/2}\to0\).  Assumption
+\(\texttt{ass:vanishing-triples}\), boundedness of \(\lambda_K\), and
+(32)--(33) yield
+\[
+ e_K,d_K,\delta_K,\omega_K\longrightarrow0.
+ \tag{43}
+\]
+Equation (41) gives \(R(\lambda_K)\to R(\lambda)\), and (35), (40), and
+(43) squeeze \(R_K\) to \(R(\lambda)\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem converts a nonregular finite-array estimation problem into an exact one-parameter decision frontier. \textit{Gap.} Kipnis obtains sharp minimax risk for large-alphabet testing, not absolute-error estimation of an affine COT endpoint over deterministic two-arm arrays. \textit{Consumer.} A partition designer can report the irreducible estimation error implied by the expected number of cross-arm replications.
+
+\begin{theorem}[thm:honest-interval-transfer]\label{thm:honest-interval-transfer}
+If \(\lambda_K\to\lambda\in[0,\infty)\), then
+\(C_{K,\alpha}\to C_\alpha(\lambda)\).  For every computable
+\(\lambda\), every grid mesh \(h\), every integer \(m\) satisfying
+\(m+1>\lambda\), and all sufficiently large certification precisions
+\(s\) for which the directed enclosure satisfies
+\(m+1>\lambda_s^+\), the procedure
+\(\operatorname{LP}_{m,h,s}^{\mathrm{int}}(\lambda)\) returns exactly
+verified rational values satisfying
+\[
+ D_{m,h,s}^-\le C_\alpha(\lambda)\le U_{m,h,s}^+.
+\]
+The upper rule uses the overflow action \(\mathcal A\), endpoint
+expansion \(E_h\), and full-interval repair probability \(\gamma_h\),
+and therefore has coverage at least \(1-\alpha\) for every
+\(\rho\in[-r,r]\), not only at grid points.  Along any refinement with
+\(m\to\infty\), \(h\downarrow0\), \(s\to\infty\), and
+\(m+1>\lambda_s^+\), one has
+\(U_{m,h,s}^+-D_{m,h,s}^-\to0\), and both endpoints converge to
+\(C_\alpha(\lambda)\).  Write
+\(d_K=\min\{1,5\varepsilon_K+\lambda_K^2/(2K)\}\).  Applying the
+corrected upper rule through the deterministic collision statistic
+loses at most \(d_K\) in coverage; mixing once more with
+\(\mathcal A\) with probability \(d_K/(\alpha+d_K)\) restores coverage
+at least \(1-\alpha\) uniformly over \(\mathcal T_K(r)\) and adds at
+most \(2brd_K/(\alpha+d_K)\) in expected length.  The matching lower
+certificate transfers through the supported-mixture reverse kernel,
+so the finite-array worst-case expected length converges to
+\(C_\alpha(\lambda)\).
+\end{theorem}
+\begin{proof}
+We use the convention
+\[
+ \lVert P-Q\rVert_{\mathrm{TV}}=\sup_B|P(B)-Q(B)|.
+\]
+Two elementary consequences will be used repeatedly.  If \(\mathsf K\) is a
+Markov kernel, then
+\[
+ \lVert P\mathsf K-Q\mathsf K\rVert_{\mathrm{TV}}
+ \leq \lVert P-Q\rVert_{\mathrm{TV}},
+ \tag{1}
+\]
+because \(x\mapsto\mathsf K(x,B)\) takes values in \([0,1]\).  If
+\(0\leq g\leq B_0\), then the layer-cake identity gives
+\[
+ |\mathbb E_Pg-\mathbb E_Qg|
+ \leq B_0\lVert P-Q\rVert_{\mathrm{TV}}.
+ \tag{2}
+\]
+Indeed, integrate the total-variation bound for the events \(\{g>t\}\)
+over \(0\leq t\leq B_0\).  These are the total-variation contraction and
+bounded-loss transfer steps.  Every reported interval is contained in
+\(\mathcal A=[a-br,a+br]\), so its length belongs to \([0,2br]\); here
+\(b>0\) and \(r>0\) follow from the declared symbol ranges.
+
+Define
+\[
+ e_K=\min\{1,5\varepsilon_K+\eta_K\},\qquad
+ \delta_K=2s_K+2/K,
+\]
+\[
+ u_K=e_K+\min\{1,\lambda_Kc\delta_K/2\},
+ \qquad
+ d_K=\min\{1,5\varepsilon_K+\lambda_K^2/(2K)\}.
+ \tag{3}
+\]
+For \(t\geq0\), let the expansion of \([A_-,A_+]\subseteq\mathcal A\)
+by \(t\) mean
+\[
+ \operatorname{Exp}_t([A_-,A_+])
+ =\bigl[\max\{a-br,A_--t\},\min\{a+br,A_++t\}\bigr].
+ \tag{4}
+\]
+It increases length by at most \(2t\).
+
+We first use the parameter-free reverse comparison kernel to transfer a
+finite-array rule to the marked-Poisson experiment.  Fix \(\zeta>0\) and
+choose \(\mathcal C_K\in\mathscr C_K\) that is honest over
+\(\mathcal T_K(r)\) and has worst expected length at most
+\(C_{K,\alpha}+\zeta\).  For all sufficiently large \(K\), Proposition
+\(\texttt{prop:supported-mixture-legality}\) makes \(q_K(\rho)\) available.
+For \(\rho\in[-r,r]\), put \(q=q_K(\rho)\).  That proposition and
+Proposition \(\texttt{prop:sharp-cot-endpoint}\) give
+\[
+ |q-\rho|\leq\delta_K,
+ \qquad
+ |L_K-(a-bq)|\leq bs_K
+ \quad\Pi_{K,q}^{\mathrm{shell}}\text{-almost surely}.
+ \tag{5}
+\]
+Honesty holds for every deterministic array in the support of this mixing
+law.  Integrating the coverage inequality and then using (5) pointwise
+therefore shows that
+\(\operatorname{Exp}_{bs_K}(\mathcal C_K)\) covers \(a-bq\) with
+probability at least \(1-\alpha\) under \(P^{\mathrm{mix}}_{K,q}\).
+
+Apply this expanded rule after
+\(\mathsf K_K^{\leftarrow}:\mathbb N_0^2\rightsquigarrow\mathcal O_K\)
+from Theorem \(\texttt{thm:collision-comparison}\).  Equations (1)--(2)
+and that theorem show that, at marked-Poisson parameter \(q\), coverage
+can fall by at most \(e_K\), while expected length can rise by at most
+\(2br e_K\).  To compare \(q\) with \(\rho\), couple their
+marked-Poisson observations by using the same Poisson count and the same
+independent uniform random variable for each mark.  A single mark differs
+with probability \(c|q-\rho|/2\).  A union bound conditional on the count,
+followed by \(\mathbb EN=\lambda_K\), yields
+\[
+ \left\lVert P^{\mathcal E}_{\lambda_K,q}
+ -P^{\mathcal E}_{\lambda_K,\rho}\right\rVert_{\mathrm{TV}}
+ \leq\min\{1,\lambda_Kc|q-\rho|/2\}
+ \leq\min\{1,\lambda_Kc\delta_K/2\}.
+ \tag{6}
+\]
+Expanding once more by \(b\delta_K\) converts coverage of \(a-bq\)
+to coverage of \(a-b\rho\).  Thus the resulting marked-Poisson rule has
+coverage at least \(1-\alpha-u_K\), and its worst expected length is at
+most
+\[
+ C_{K,\alpha}+\zeta+2b(s_K+\delta_K)+2br u_K.
+ \tag{7}
+\]
+
+We next derive the coverage repair used throughout the proof.  If a rule
+has coverage at least \(1-\alpha-u\), where \(u\geq0\), independently
+replace its output by \(\mathcal A\) with probability
+\[
+ \gamma(u)=\frac{u}{\alpha+u}.
+ \tag{8}
+\]
+The declared range \(\alpha\in(0,1/2)\) makes the division valid and gives
+\(0\leq\gamma(u)\leq1\).  The repaired coverage is at least
+\[
+ \gamma(u)+(1-\gamma(u))(1-\alpha-u)=1-\alpha,
+ \tag{9}
+\]
+and expected length increases by at most \(2br\gamma(u)\).  Apply
+(8)--(9) to (7), then let \(\zeta\downarrow0\), to obtain
+\[
+ C_\alpha(\lambda_K)
+ \leq C_{K,\alpha}+2b(s_K+\delta_K)+2br u_K
+ +\frac{2br u_K}{\alpha+u_K}.
+ \tag{10}
+\]
+
+For the other direction, choose an honest marked-Poisson rule at intensity
+\(\lambda_K\) with worst expected length at most
+\(C_\alpha(\lambda_K)+\zeta\), and apply it to the positive- and
+negative-mark counts computed from the deterministic collision statistic.
+The deterministic part of Theorem \(\texttt{thm:collision-comparison}\)
+places the law of that statistic within \(d_K\) of
+\(P^{\mathcal E}_{\lambda_K,\rho_K}\), uniformly over
+\(\mathcal T_K(r)\).  Proposition
+\(\texttt{prop:sharp-cot-endpoint}\) gives the exact target identity
+\(L_K=a-b\rho_K\).  Hence (1)--(2) imply that coverage falls by at most
+\(d_K\) and expected length rises by at most \(2brd_K\).  Repairing once
+by (8) with \(u=d_K\), and then letting \(\zeta\downarrow0\), gives
+\[
+ C_{K,\alpha}
+ \leq C_\alpha(\lambda_K)+2brd_K
+ +\frac{2brd_K}{\alpha+d_K}.
+ \tag{11}
+\]
+This is the deterministic-statistic upper transfer; (10) is the
+supported-mixture reverse-kernel lower transfer.
+
+It remains to replace \(\lambda_K\) by its limit.  Couple Poisson point
+processes of intensities \(\lambda\) and \(\lambda'\) by retaining their
+common process and adding an independent process of intensity
+\(|\lambda-\lambda'|\) to the larger experiment, with identically
+distributed marks.  Uniformly in \(\rho\), the observations agree unless
+the added process is nonempty, and therefore
+\[
+ v(\lambda,\lambda')
+ :=\sup_{\rho\in[-r,r]}
+ \left\lVert P^{\mathcal E}_{\lambda,\rho}
+ -P^{\mathcal E}_{\lambda',\rho}\right\rVert_{\mathrm{TV}}
+ \leq1-e^{-|\lambda-\lambda'|}.
+ \tag{12}
+\]
+Transporting an honest rule in either direction, using (2), and repairing
+by (8) proves the explicit continuity modulus
+\[
+ |C_\alpha(\lambda)-C_\alpha(\lambda')|
+ \leq2brv(\lambda,\lambda')
+ +\frac{2brv(\lambda,\lambda')}{\alpha+v(\lambda,\lambda')}.
+ \tag{13}
+\]
+
+Suppose \(\lambda_K\to\lambda<\infty\).  Lemma
+\(\texttt{lem:vanishing-triples-implies-growing-cells}\) gives
+\(K\to\infty\).  Since \(\lambda_K\) is bounded, the definition
+\[
+ s_K=\min\{r/8,[K(1\vee\lambda_K)]^{-1/4}\}
+\]
+implies \(s_K\to0\) and \(Ks_K^2\to\infty\), whence
+\(\eta_K=2e^{-Ks_K^2/2}\to0\).  Assumption
+\(\texttt{ass:vanishing-triples}\) gives \(\varepsilon_K\to0\), and
+boundedness of \(\lambda_K\) together with \(K\to\infty\) gives
+\(\lambda_K^2/K\to0\).  Thus \(u_K\to0\) and \(d_K\to0\).  Equations
+(10)--(13) prove
+\[
+ C_{K,\alpha}\longrightarrow C_\alpha(\lambda).
+ \tag{14}
+\]
+
+We now verify the interval-action programs in
+\(\texttt{def:certified-interval-lp}\), including their corrected
+admissibility domain.  Fix a computable \(\lambda\geq0\), a grid with
+maximum parameter gap at most \(h\), and an integer \(m\) satisfying
+\(m+1>\lambda\).  Because the directed enclosures decrease to
+\(\lambda\), every sufficiently fine one satisfies
+\[
+ \lambda\leq\lambda_s^+<m+1.
+ \tag{15}
+\]
+Conversely, the certificate is invoked only when (15) has actually been
+verified.  No tail assertion below is used outside this domain.
+
+The mark coupling used for (6), now at fixed \(\lambda\), gives for all
+\(\rho,\rho'\in[-r,r]\)
+\[
+ \lVert f_{\lambda,\rho}-f_{\lambda,\rho'}\rVert_{\mathrm{TV}}
+ \leq\omega_\lambda(|\rho-\rho'|)
+ :=\min\{1,\lambda c|\rho-\rho'|/2\}.
+ \tag{16}
+\]
+By (2), a fixed event has probability modulus \(\omega_\lambda\), and a
+length functional taking values in \([0,2br]\) has expectation modulus
+\(2br\omega_\lambda\).
+
+For the tail calculation, \(\tau_m(0)=0\).  If
+\(0<\lambda<m+1\), exponential Markov inequality, derived by applying
+ordinary Markov inequality to \(e^{tN}\), gives for \(t>0\)
+\[
+ \Pr_\lambda(N\geq m+1)
+ \leq\exp\{\lambda(e^t-1)-t(m+1)\}.
+ \tag{17}
+\]
+The exponent is minimized at
+\(t=\log((m+1)/\lambda)>0\).  Substitution yields
+\[
+ \tau_m(\lambda)
+ \leq\overline\tau_m(\lambda)
+ :=e^{-\lambda}\left(\frac{e\lambda}{m+1}\right)^{m+1}.
+ \tag{18}
+\]
+Moreover,
+\[
+ \frac{d}{dx}\log\overline\tau_m(x)=\frac{m+1}{x}-1>0
+ \quad(0<x<m+1).
+ \tag{19}
+\]
+Consequently the verified inequalities in (15), and only those
+inequalities, justify
+\[
+ \tau_m(\lambda)
+ \leq\overline\tau_m(\lambda)
+ \leq\overline\tau_m(\lambda_s^+).
+ \tag{20}
+\]
+
+We next use finite-action relaxation for the lower certificate.  Start
+with an arbitrary continuum-honest randomized interval rule.  On every
+retained state, replace each realized interval by the shortest action in
+\(\mathsf A_h\) spanning exactly the grid targets it contains, or by
+\(\varnothing_G\) if it contains no grid target.  This preserves every
+grid-target coverage indicator and cannot increase length.  Removing the
+overflow states loses at most \(\tau_m(\lambda)\) in coverage.  Thus the
+induced weights satisfy the exact program (L), and their objective is no
+larger than the original worst expected length.  In the directed rational
+lower program, replacing coverage coefficients upward and its coverage
+right side downward enlarges the feasible set.  Replacing each
+nonnegative length contribution downward also weakens its length
+constraint.  It follows that its exact rational optimum obeys
+\[
+ D_{m,h,s}^-\leq C_\alpha(\lambda).
+ \tag{21}
+\]
+
+For the upper certificate, take an exactly feasible solution of the
+directed rational upper program.  Such a solution exists for all
+sufficiently fine \(s\) satisfying (15): the rule that always reports
+\(\mathcal A\) has exact coverage one, leaving the positive slack
+\(\alpha\), and the aggregate outward-rounding error eventually becomes
+smaller than this slack.  The specified rounding directions imply that
+the resulting actual rule has coverage at least \(1-\alpha\) and expected
+length at most \(P_{m,h,s}^+\) at every grid node; on overflow it reports
+\(\mathcal A\).
+
+For an arbitrary \(\rho\), choose a nearest grid point \(\rho_j\), so
+\(|\rho-\rho_j|\leq h/2\).  If an action contains
+\(a-b\rho_j\), its expansion \(E_h\) contains \(a-b\rho\).  Equation
+(16) therefore gives coverage at least \(1-\alpha-\omega_h\), where
+\[
+ \omega_h=\min\{1,\lambda ch/4\}.
+ \tag{22}
+\]
+The same modulus bounds the distributional change in expected length by
+\(2br\omega_h\), while endpoint expansion adds at most \(bh\).  A repair
+with
+\[
+ \gamma_h=\frac{\omega_h}{\alpha+\omega_h}
+ \tag{23}
+\]
+restores coverage at least \(1-\alpha\) on the entire segment
+\([-r,r]\).  Directed upper evaluation of every displayed term proves
+\[
+ C_\alpha(\lambda)
+ \leq P_{m,h,s}^++bh+2br\omega_h+2br\gamma_h
+ =U_{m,h,s}^+.
+ \tag{24}
+\]
+Equations (21) and (24) are the claimed certified enclosure, and (22)--(23)
+show explicitly that coverage holds between grid nodes rather than only
+at them.
+
+For completeness, the claimed certificates can be obtained using exact
+rational arithmetic.  After adjoining slack variables and deleting
+rationally dependent equality rows, either rounded program is a finite
+rational linear program in standard form.  Phase-I basis enumeration
+produces a rational feasible basis; feasibility was established above.
+To remove degeneracy, perturb the rational right side lexicographically by
+formal ordered infinitesimals and apply the ratio test by exact comparison
+of their coefficient vectors.  A pivot with a negative reduced cost then
+strictly decreases the lexicographically perturbed objective.  It cannot
+revisit a basis, and there are only finitely many bases, so it terminates.
+The terminal reduced costs do not depend on the right-side perturbation.
+Letting the infinitesimals decrease successively to zero leaves a feasible
+unperturbed basic solution and preserves nonnegativity of all terminal
+reduced costs.  If \(B\) is its basis matrix, then
+\(y=B^{-\mathsf T}c_B\) is rational.  The nonnegative reduced costs say
+that \(y\) satisfies every dual inequality, and
+\[
+ c^{\mathsf T}x=c_B^{\mathsf T}B^{-1}b=b^{\mathsf T}y.
+ \tag{25}
+\]
+Weak duality follows directly by multiplying the primal and dual
+inequalities by their nonnegative variables and summing.  Hence (25)
+certifies simultaneous primal and dual optimality.  Equivalently, finite
+basis enumeration followed by the same rational feasibility and equality
+checks produces the certificate.  Floating-point arithmetic may suggest a
+basis but is not used in any inequality or certificate.
+
+We finally prove contraction of the certified bracket.  Let \(\xi_s\)
+dominate, for each constraint row, the aggregate directed widths of all
+likelihood, tail, right-side, action-length, and correction quantities in
+that row.  The aggregate budget in
+\(\texttt{def:certified-interval-lp}\), rather than a merely pointwise
+precision requirement, gives a finite constant \(C_0\), independent of
+the row, such that
+\[
+ 0\leq\xi_s\leq C_0 2^{-s}\longrightarrow0.
+ \tag{26}
+\]
+Fix \(\zeta>0\) and take a continuum-honest rule with worst expected
+length at most \(C_\alpha(\lambda)+\zeta\).  Replace its overflow output
+by \(\mathcal A\), at an expected-length cost at most
+\(2br\tau_m(\lambda)\).  On retained states, round both endpoints outward
+to adjacent target-grid endpoints.  Coverage is preserved, the result
+belongs to \(\mathsf A_h\), and length rises by at most \(2bh\).  For all
+large \(s\), mix this rule with \(\mathcal A\) with probability
+\[
+ \beta_s=\frac{2\xi_s}{\alpha}\leq1.
+ \tag{27}
+\]
+Before coefficient rounding, this creates coverage slack
+\(\alpha\beta_s=2\xi_s\), which absorbs the aggregate directed error.
+The resulting weights are feasible for the rational upper program and
+have directed objective at most
+\[
+ C_\alpha(\lambda)+\zeta+2br\tau_m(\lambda)+2bh
+ +2br\beta_s+\xi_s.
+ \tag{28}
+\]
+After adding the expansion, modulus, repair, and enclosure corrections in
+(24), every refinement satisfying
+\(m\to\infty\), \(h\downarrow0\), \(s\to\infty\), and the verified
+admissibility condition \(m+1>\lambda_s^+\) obeys, by (18), (22), and
+(26)--(28),
+\[
+ \limsup U_{m,h,s}^+\leq C_\alpha(\lambda)+\zeta.
+\]
+Letting \(\zeta\downarrow0\) gives
+\[
+ \limsup U_{m,h,s}^+\leq C_\alpha(\lambda).
+ \tag{29}
+\]
+
+For the reverse contraction, take an optimal rational lower-program rule.
+Interpret \(\varnothing_G\) as a degenerate interval at a point of
+\(\mathcal A\) distinct from all finitely many grid targets.  Such a point
+exists because \(br>0\); this realization has length zero and preserves
+all grid-coverage patterns.  Directed rounding and (26) imply actual
+retained gridwise coverage at least
+\(1-\alpha-\tau_m(\lambda)-\xi_s\) and actual retained expected length at
+most \(D_{m,h,s}^-+\xi_s\).  Report \(\mathcal A\) on overflow, expand
+retained endpoints by \(bh/2\), and transfer from a nearest grid point by
+(16).  The resulting rule has continuum coverage at least
+\[
+ 1-\alpha-(\xi_s+\omega_h)
+ \tag{30}
+\]
+and worst expected length at most
+\[
+ D_{m,h,s}^-+\xi_s+2br\tau_m(\lambda)+bh+2br\omega_h.
+ \tag{31}
+\]
+One application of (8) with \(u=\xi_s+\omega_h\) makes (30) honest, so
+\[
+\begin{aligned}
+ C_\alpha(\lambda)
+ \leq{}&D_{m,h,s}^-+\xi_s+2br\tau_m(\lambda)+bh+2br\omega_h\\
+ &+\frac{2br(\xi_s+\omega_h)}
+ {\alpha+\xi_s+\omega_h}.
+\end{aligned}
+ \tag{32}
+\]
+Every term following \(D_{m,h,s}^-\) vanishes along an admissible
+refinement.  Combining (21), (24), (29), and (32) proves
+\[
+ D_{m,h,s}^-\longrightarrow C_\alpha(\lambda),\qquad
+ U_{m,h,s}^+\longrightarrow C_\alpha(\lambda),\qquad
+ U_{m,h,s}^+-D_{m,h,s}^-\longrightarrow0.
+ \tag{33}
+\]
+In particular, at \(\lambda=1\) and \(\alpha=0.05\), every sufficiently
+fine admissible upper certificate has coverage at least \(0.95\) on every
+parameter segment, and any admissible refinement that doubles the
+interval-action resolution while sending \(m,s\) to infinity has bracket
+width tending to zero.
+
+Lastly, the finite deterministic-array implementation is precisely the
+construction leading to (11): after transport through the collision
+statistic, pay at most \(d_K\) in coverage and \(2brd_K\) in expected
+length, then mix once with \(\mathcal A\) with probability
+\(d_K/(\alpha+d_K)\).  Its reverse lower comparison is (10), obtained from
+the parameter-free supported-mixture kernel.  Thus both the exact
+interval-action certificates and the two-sided honest-minimax transfer
+concern the realized sharp endpoint \(L_K\), uniformly over every legal
+deterministic array.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact honest interval length is the relevant uncertainty frontier when expected collisions remain finite, and rational primal--dual witnesses make that frontier independently auditable. \textit{Gap.} Evans, Hansen, and Stark establish general Bayes--minimax duality and Stoye diagnoses boundary failures; neither provides a computable interval-action Poisson enclosure with an explicit tail bound, continuum-parameter coverage repair, directed coefficient rounding, and two-sided deterministic-array transfer. \textit{Consumer.} The result supplies machine-checkable finite-information confidence intervals for sparse covariate partitions and a certified stopping rule for further cell refinement.
+
+\begin{proposition}[prop:exact-controls]\label{prop:exact-controls}
+The limit frontiers satisfy \(R(0)=br\) and \(C_\alpha(0)=2br(1-\alpha)\). Conditional on exactly one observed mark, the minimax absolute risk is \(br/(1+cr)\); if \(cr\le1-2\alpha\), the minimax expected interval length is \(b\{2r+(2\alpha/c)\log(1-cr)\}\).
+\end{proposition}
+\begin{proof}
+Write \(h(\rho)=a-b\rho\).  This is the target in the marked-Poisson experiment, whereas \(R(\lambda)\) and \(C_\alpha(\lambda)\) are the decision functionals of the observable law defined in \(\mathrm{def{:}poisson\mbox{-}decision\mbox{-}frontiers}\).  The declared ranges give \(b>0\), \(c>0\), \(0<r<1\), and \(cr<1\).  Consequently all mark probabilities are strictly positive, and every division below by \(b\), \(c\), or \(1-cx\), \(0\leq x\leq r\), is valid.
+
+First take \(\lambda=0\).  By \(\mathrm{def{:}marked\mbox{-}poisson\mbox{-}experiment}\), \(N=0\) almost surely, so every randomized action has a distribution independent of \(\rho\).  Put \(t_-=a-br=h(r)\) and \(t_+=a+br=h(-r)\).  For any randomized endpoint action \(D\), the triangle inequality gives pointwise
+\[
+ |D-t_-|+|D-t_+|\geq |t_+-t_-|=2br.
+\]
+Taking expectations and then the larger of the two endpoint risks yields
+\[
+ \sup_{\rho\in[-r,r]}\mathbb E_{0,\rho}|D-h(\rho)|
+ \geq \frac12\left\{\mathbb E|D-t_-|+\mathbb E|D-t_+|\right\}
+ \geq br.
+\]
+The deterministic action \(D=a\) has loss \(b|\rho|\leq br\), with equality at \(\rho=\pm r\).  Thus \(R(0)=br\).
+
+For a randomized closed interval \(I\subseteq\mathcal A=[t_-,t_+]\), the same absence of data makes its law independent of \(\rho\).  The elementary indicator representation of interval length and nonnegative integration give
+\[
+ \mathbb E\operatorname{len}(I)
+ =\int_{t_-}^{t_+}\Pr\{t\in I\}\,dt.
+\]
+Honesty requires the integrand to be at least \(1-\alpha\) for every \(t=h(\rho)\in[t_-,t_+]\), because \(h\) maps \([-r,r]\) bijectively onto that interval.  Hence
+\[
+ \mathbb E\operatorname{len}(I)\geq (t_+-t_-)(1-\alpha)=2br(1-\alpha).
+\]
+This lower bound is attained by reporting \(\mathcal A\) with probability \(1-\alpha\) and the degenerate interval \(\{a\}\) with probability \(\alpha\), using parameter-free randomization.  Every target value other than \(a\) is then covered with probability \(1-\alpha\), while \(a\) is covered with probability one, and the expected length is \(2br(1-\alpha)\).  Therefore \(C_\alpha(0)=2br(1-\alpha)\).
+
+Now fix any \(\lambda>0\), condition the experiment of \(\mathrm{def{:}marked\mbox{-}poisson\mbox{-}experiment}\) on exactly one mark, and denote that mark by \(S\).  (The resulting conditional experiment does not depend on \(\lambda\).)  Then
+\[
+ \Pr_\rho(S=s)=\frac{1+sc\rho}{2},\qquad s\in\{-1,1\}.
+\]
+For endpoint estimation, transform an action \(D\in[a-b,a+b]\) to \(q=(a-D)/b\in[-1,1]\).  The loss obeys
+\[
+ |D-h(\rho)|=b|q-\rho|.
+\]
+Projection of \(q\) onto \([-r,r]\) cannot increase \(|q-\rho|\) for any \(\rho\in[-r,r]\).  Next apply reflection symmetrization: mix a rule with the rule obtained by replacing \(S\) by \(-S\) and its action \(q\) by \(-q\).  At \(\rho\), the symmetrized risk is the average of the original risks at \(\rho\) and \(-\rho\), so its worst risk is no larger.  It is therefore enough for a lower bound to consider equivariant rules.  Such a rule is described by a random variable \(Q\in[-r,r]\): conditionally on \(S=1\) output \(Q\), and conditionally on \(S=-1\) output a variable distributed as \(-Q\).  Let \(m=\mathbb E Q\).  Its correlation-scale risks at \(0\) and \(r\) are
+\[
+ \mathcal R(0)=\mathbb E|Q|\geq m
+\]
+and, using \(Q\in[-r,r]\),
+\[
+ \begin{aligned}
+ \mathcal R(r)
+ &=\mathbb E\left[\frac{1+cr}{2}|Q-r|+\frac{1-cr}{2}|-Q-r|\right]\\
+ &=\mathbb E\left[\frac{1+cr}{2}(r-Q)+\frac{1-cr}{2}(r+Q)\right]
+ =r-crm.
+ \end{aligned}
+\]
+Set \(t=r/(1+cr)\), so that \(r-crt=t\).  If \(m\geq t\), then \(\mathcal R(0)\geq t\); if \(m<t\), then \(\mathcal R(r)=r-crm>r-crt=t\).  Thus every rule has worst correlation-scale absolute risk at least \(t\).
+
+For attainment, use \(q=tS\).  By reflection symmetry it suffices to take \(x=|\rho|\in[0,r]\).  Direct substitution gives
+\[
+ \mathcal R(x)=
+ \begin{cases}
+ t-cx^2,&0\leq x\leq t,\\
+ x(1-ct),&t\leq x\leq r.
+ \end{cases}
+\]
+The first expression is at most \(t\).  Since \(ct<1\), the second is increasing in \(x\) and is at most
+\[
+ r(1-ct)=r-crt=t.
+\]
+Hence the one-mark minimax endpoint risk is \(bt=br/(1+cr)\).
+
+It remains to solve the one-mark honest-interval problem.  Map every endpoint interval \(I\subseteq\mathcal A\) to
+\[
+ J=\{(a-y)/b:y\in I\}\subseteq[-r,r].
+\]
+Then \(h(\rho)\in I\) if and only if \(\rho\in J\), and \(\operatorname{len}(I)=b\operatorname{len}(J)\).  Reflection symmetrization of an arbitrary honest rule preserves honesty and replaces its expected-length function at \(\rho\) by the average of the original functions at \(\rho\) and \(-\rho\); hence it cannot increase worst expected length.  Under a symmetric rule, the conditional law of \(J\) given \(S=-1\) is the reflection of its conditional law given \(S=1\), so the two conditional expected lengths agree and the unconditional expected length is constant in \(\rho\).
+
+Let \(J_+\) have the conditional law given \(S=1\), and for \(0<x\leq r\) define
+\[
+ u(x)=\Pr\{x\in J_+\},\qquad v(x)=\Pr\{-x\in J_+\}.
+\]
+Honesty at \(\rho=x\) is exactly
+\[
+ (1+cx)u(x)+(1-cx)v(x)\geq 2(1-\alpha).
+\]
+Assume \(cr\leq1-2\alpha\).  Then \(1-cx>0\) and \(1+cx\leq2(1-\alpha)\) for \(0<x\leq r\).  Since \(0\leq u(x)\leq1\),
+\[
+ \begin{aligned}
+ 2(1-\alpha)
+ &\leq (1-cx)\{u(x)+v(x)\}+2cx\,u(x)\\
+ &\leq (1-cx)\{u(x)+v(x)\}+2cx,
+ \end{aligned}
+\]
+and therefore
+\[
+ u(x)+v(x)\geq 2-\frac{2\alpha}{1-cx}.
+\]
+Integrating inclusion indicators over \([-r,r]\) gives the common conditional expected length
+\[
+ \begin{aligned}
+ \mathbb E\operatorname{len}(J_+)
+ &=\int_0^r\{u(x)+v(x)\}\,dx\\
+ &\geq\int_0^r\left(2-\frac{2\alpha}{1-cx}\right)dx
+ =2r+\frac{2\alpha}{c}\log(1-cr).
+ \end{aligned}
+\]
+Because symmetrization cannot increase the original worst expected length, this is a lower bound for every honest one-mark rule.
+
+For attainability, the condition \(cr\leq1-2\alpha\) ensures \(2\alpha/(1-cr)\leq1\).  Define a random variable \(T\in[0,r]\) by the distribution function
+\[
+ \Pr(T\leq t)=\frac{2\alpha}{1-ct},\qquad 0\leq t<r,
+\]
+and set \(\Pr(T\leq r)=1\).  This is a valid distribution: it has mass \(2\alpha\) at zero, is increasing on \((0,r)\), and has the nonnegative remaining mass \(1-2\alpha/(1-cr)\) at \(r\).  In particular,
+\[
+ \Pr(T\geq x)=1-\frac{2\alpha}{1-cx},\qquad 0<x\leq r.
+\]
+Given \(S=1\), report \(J=[-T,r]\); given \(S=-1\), report \(J=[-r,T]\), with fresh randomization having the displayed law.  For \(0<x\leq r\), its coverage at \(\rho=x\) is
+\[
+ \frac{1+cx}{2}+\frac{1-cx}{2}\Pr(T\geq x)
+ =\frac{1+cx}{2}+\frac{1-cx}{2}-\alpha
+ =1-\alpha.
+\]
+Coverage at \(-x\) is the same by reflection, and coverage at zero is one because both reported intervals contain zero.  Thus the rule is uniformly honest, including at the boundary points.  Its conditional expected correlation-scale length is
+\[
+ r+\mathbb ET
+ =r+\int_0^r\Pr(T\geq x)\,dx
+ =2r+\frac{2\alpha}{c}\log(1-cr).
+\]
+Mapping back through \(I=a-bJ\) multiplies length by \(b\).  The lower bound and this attaining interval rule prove that the one-mark minimax expected endpoint-interval length is
+\[
+ b\left\{2r+\frac{2\alpha}{c}\log(1-cr)\right\}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Closed-form zero- and one-mark cases independently check the scale, interval realizability, and numerical certification pipeline. \textit{Gap.} Generic bounded-parameter decision theory does not provide these affine weak-mark controls for the COT experiment. \textit{Consumer.} The one-mark length furnishes an independent control for the required \(\lambda=1\) certified linear-program refinement.
+
+\begin{theorem}[thm:sparse-gaussian]\label{thm:sparse-gaussian}
+If \(\lambda_K\to\infty\), then uniformly over \((\theta_{dj})\in\mathcal T_K(r)\), \(\sqrt{\lambda_K}(\widehat L_K-L_K)/\sqrt{\widehat V_K}\rightsquigarrow\mathcal N(0,1)\) and \(\widehat V_K-V(\rho_K)\to0\) in probability. The unprojected Wald interval \([\widehat L_K\pm z_{1-\alpha/2}\sqrt{\widehat V_K/\lambda_K}]\) has uniform coverage \(1-\alpha+o(1)\) for \(L_K\).
+\end{theorem}
+\begin{proof}
+First record the consequences of the sparse assumptions used in the
+limits.  Since \(n_0,n_1\) are positive integers, for \(d=0,1\),
+\[
+ \varepsilon_K
+ =\frac{n_0n_1(n_0+n_1)}{K^2}
+ \ge \frac{n_d^2}{K^2}.
+ \tag{15}
+\]
+Assumption \(\texttt{ass:vanishing-triples}\) therefore implies
+\(n_d/K\to0\).  Moreover,
+\[
+ \frac{\lambda_K^2/K}{\varepsilon_K}
+ =
+ \frac{n_0n_1}{K(n_0+n_1)}
+ \le\frac{\min(n_0,n_1)}K
+ \longrightarrow0,
+ \tag{16}
+\]
+so \(\lambda_K^2/K\to0\).  Hence the deterministic comparison error in
+Theorem \(\texttt{thm:collision-comparison}\),
+\[
+ d_K=\min\left\{1,5\varepsilon_K+\frac{\lambda_K^2}{2K}\right\},
+ \tag{17}
+\]
+tends to zero.
+
+Consider first \(\mathcal E_{\lambda_K,\rho}\).  Conditional on \(N=m\),
+the marks are independent with
+\[
+ \mu_\rho=\mathbb E_\rho S_\ell=c\rho,
+ \qquad
+ \sigma_\rho^2=1-c^2\rho^2
+ \ge1-c^2r^2>0.
+ \tag{18}
+\]
+The final strict inequality follows from \(a,b<1/2\), whence
+\(0<c=4ab<1\), and \(0<r<1\).  In particular all divisions by
+\(\sigma_\rho\) below are uniform over \([-r,r]\).  Since centered marks
+are uniformly bounded, Taylor's formula for their characteristic
+functions gives, for fixed \(t\),
+\[
+ \mathbb E_\rho\exp\left\{
+ it\frac{S-\mu_\rho}{\sigma_\rho\sqrt m}
+ \right\}
+ =1-\frac{t^2}{2m}+O(m^{-3/2}),
+ \tag{19}
+\]
+where the remainder is uniform in \(\rho\).  Raising (19) to the
+\(m\)-th power proves the conditional central limit theorem uniformly
+over \(\rho\).  Also,
+\[
+ \Pr\{|N/\lambda_K-1|>\epsilon\}
+ \le\frac{1}{\epsilon^2\lambda_K},
+ \qquad
+ \Pr(N=0)=e^{-\lambda_K},
+ \tag{20}
+\]
+so \(N/\lambda_K\to1\) uniformly in probability and the zero-count
+event vanishes.
+
+On \(N>0\), factor the marked-experiment studentized statistic as
+\[
+ \frac{\sqrt N(\overline S-c\rho)}{\sigma_\rho}
+ \sqrt{\frac{\lambda_K}{N}}\,
+ \frac{\sigma_\rho}
+ {\sqrt{1-\overline S^2+N^{-1}}}.
+ \tag{21}
+\]
+The first factor has the uniform conditional Gaussian limit by (19);
+the second converges uniformly in probability to one by (20); and the
+third does so because the conditional variance bound and Chebyshev's
+inequality give
+\(\overline S-c\rho\to0\) uniformly in probability, while (18) is
+bounded away from zero.  Thus
+\[
+ \frac{\sqrt{\lambda_K}(\overline S-c\rho)}
+ {\sqrt{1-\overline S^2+N^{-1}}}
+ \rightsquigarrow\mathcal N(0,1)
+ \tag{22}
+\]
+uniformly for \(\rho\in[-r,r]\).  One precise meaning of uniformity in
+(22) is obtained by contradiction: along every sequence
+\(\rho_K\in[-r,r]\), equations (18)--(21) give the same standard-normal
+limit; compactness of \([-r,r]\) then rules out a sequence on which the
+distributional error stays bounded away from zero.  The declared
+defaults on \(N=0\) are harmless by (20).
+
+Because \(c=4ab\), the estimator and variance identities in the marked
+experiment are
+\[
+ \widehat L_K-(a-b\rho)
+ =-\frac{\overline S-c\rho}{4a},
+ \qquad
+ \widehat V_K-V(\rho)
+ =\frac{-\overline S^2+c^2\rho^2+N^{-1}}{16a^2}.
+ \tag{23}
+\]
+The positivity \(a>0\) validates the divisions.  Equations (20)--(23)
+prove both the asserted studentized limit and uniform variance
+consistency in the marked experiment.
+
+For each deterministic array, Theorem
+\(\texttt{thm:collision-comparison}\) bounds the total-variation
+distance between its collision statistic and the marked experiment at
+\(\rho=\rho_K\) by \(d_K\to0\), uniformly over
+\(\mathcal T_K(r)\).  Total variation controls every event and contracts
+under the statistic mapping, so (22)--(23) transfer uniformly to the
+finite-array collision estimator.  Proposition
+\(\texttt{prop:sharp-cot-endpoint}\) supplies the distinct causal-target
+identity \(L_K=a-b\rho_K\).  Since the standard normal distribution has
+no atom at \(z_{1-\alpha/2}\), the transferred convergence gives
+\[
+ \inf_{\theta\in\mathcal T_K(r)}
+ \Pr_\theta\!\left\{
+ L_K\in
+ \left[\widehat L_K\pm z_{1-\alpha/2}
+ \sqrt{\widehat V_K/\lambda_K}\right]\right\}
+ =1-\alpha+o(1).
+ \tag{24}
+\]
+No projection is used, so boundary clipping creates no atom.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem identifies the transition from finite non-Gaussian information to ordinary studentized inference without changing the finite-array target. \textit{Gap.} Lin, Gao, Blanchet, and Glynn's Proposition~3.2 gives the key smooth-density estimation bound, Proposition~3.3 gives the quadratic-objective stability inequality, and Theorem~3.2 gives the resulting central limit theorem; none covers binary marks or deterministic collision sampling. \textit{Consumer.} Once the estimated collision intensity is large, practitioners can replace certified Poisson decisions by a simple variance-matched Wald procedure.
+
+\begin{theorem}[thm:interpolation-transfer]\label{thm:interpolation-transfer}
+For every \(\theta\in\mathcal T_K(r)\), let \(P^{\mathrm c}_{K,\theta}\) denote the law of \(\mathcal O_K^{\mathrm c}\) in \(\mathfrak I_K(\theta)\) and let \(P^{\mathcal F}_{K,\theta}\) denote its discrete finite-array law. After applying the measurable coarsening pushforward \(\mathsf Q_K\), \[\sup_{\theta\in\mathcal T_K(r)}\lVert P^{\mathrm c}_{K,\theta}\mathsf Q_K-P^{\mathcal F}_{K,\theta}\rVert_{\mathrm{TV}}\le 2(n_0+n_1)/K^2,\qquad \sup_{\theta\in\mathcal T_K(r)}|L_K^{\mathrm c}-L_K|\le2(a+b)/K^2.\] Consequently the finite-collision decision transfers and the sparse Gaussian conclusion transfer at the actual endpoint \(L_K^{\mathrm c}\) whenever their displayed comparison errors vanish at the relevant unscaled or \(\sqrt{\lambda_K}\)-scaled level. This is a comparison of the coarsened pushforward with the discrete experiment; no total-variation comparison is asserted between raw continuous observations and discrete-label observations, and no conclusion is asserted beyond \(\mathcal I_K(r)\).
+\end{theorem}
+\begin{proof}
+For arm \(d\), put \(a_0=a\), \(a_1=b\), and define the step function
+\[
+ g^{\mathrm{step}}_{d,K,\theta}(u)
+ =p_{d,\kappa_K(u)}.
+\]
+Fix a boundary \(j/K\), and write \(\delta=K^{-3}\) and
+\(\Delta p=p_{d,j+1}-p_{dj}\).  On the left half
+\([j/K-\delta,j/K]\), the affine connector differs from the left step
+value \(p_{dj}\) by a triangle of base \(\delta\) and height
+\(|\Delta p|/2\), so its integral is
+\[
+ \frac12\delta\frac{|\Delta p|}{2}
+ =\frac{\delta|\Delta p|}{4}.
+ \tag{27}
+\]
+On the right half \([j/K,j/K+\delta]\), its difference from the right
+step value \(p_{d,j+1}\) is a second triangle with the same base and
+height, and hence contributes another
+\(\delta|\Delta p|/4\).  Thus the full strip contributes exactly
+\[
+ \frac{\delta}{2}|p_{d,j+1}-p_{dj}|.
+ \tag{28}
+\]
+The strips are disjoint for \(K\ge2\).  By
+\(\texttt{ass:sign-array}\) and the definitions of the cell
+probabilities,
+\(|p_{d,j+1}-p_{dj}|\le2a_d\).  Summing (28) over the
+\(K-1\) boundaries gives
+\[
+ \int_0^1
+ |g_{d,K,\theta}(u)-g^{\mathrm{step}}_{d,K,\theta}(u)|\,du
+ \le (K-1)K^{-3}a_d
+ \le\frac{a_d}{K^2}.
+ \tag{29}
+\]
+This calculation validates the factor \(1/2\) because the construction
+in \(\texttt{def:interpolation-image}\) joins the two cell values
+across a strip having two halves of width \(K^{-3}\).
+
+Couple a continuous observation and its step counterpart by using the
+same uniform \(U_{di}\), the same label \(\kappa_K(U_{di})\), and the
+same independent uniform variable to generate the Bernoulli outcome.
+For one observation the mismatch probability is the integral in (29).
+A union bound over all observations, followed by data processing
+through the measurable pushforward \(\mathsf Q_K\), yields
+\[
+\begin{aligned}
+ \sup_{\theta\in\mathcal T_K(r)}
+ \left\lVert P^{\mathrm c}_{K,\theta}\mathsf Q_K
+       -P^{\mathcal F}_{K,\theta}\right\rVert_{\mathrm{TV}}
+ &\le\frac{n_0a+n_1b}{K^2}\\
+ &\le\frac{2(n_0+n_1)}{K^2},
+\end{aligned}
+ \tag{30}
+\]
+where the last inequality uses \(0<a,b<1/2\).  Conversely, the
+parameter-free kernel that adds an independent uniform position within
+each observed cell converts the discrete observation into the step
+experiment.  The same coupling proves a reverse deficiency bound with
+the sharper first right side of (30).  This is a comparison through
+explicit kernels, not a total-variation comparison of raw observations
+on different sample spaces.
+
+For Bernoulli laws with success probabilities \(p_0,p_1\), the sharp
+absolute-cost coupling value is \(|p_1-p_0|\), by the pointwise
+coupling argument in Proposition
+\(\texttt{prop:sharp-cot-endpoint}\).  Therefore
+\[
+ L_K^{\mathrm c}
+ =\int_0^1|g_{1,K,\theta}(u)-g_{0,K,\theta}(u)|\,du.
+\]
+The reverse triangle inequality and (29) give
+\[
+\begin{aligned}
+ |L_K^{\mathrm c}-L_K|
+ &\le
+ \sum_{d=0}^1\int_0^1
+ |g_{d,K,\theta}-g^{\mathrm{step}}_{d,K,\theta}|\,du\\
+ &\le\frac{a+b}{K^2}
+ \le\frac{2(a+b)}{K^2}.
+\end{aligned}
+ \tag{31}
+\]
+Both (30) and (31) hold uniformly over the deterministic signs.
+
+Composing a discrete rule with \(\mathsf Q_K\), or a continuous rule
+with the uniform-within-cell reverse kernel, changes every bounded risk
+or coverage probability by no more than (30).  Expanding an interval
+by the target discrepancy in (31), followed when necessary by the
+full-interval repair proved in Theorem
+\(\texttt{thm:honest-interval-transfer}\), preserves honesty.  Because
+\(n_0n_1\ge1\),
+\[
+ \frac{n_0+n_1}{K^2}
+ \le\frac{n_0n_1(n_0+n_1)}{K^2}
+ =\varepsilon_K\longrightarrow0.
+ \tag{32}
+\]
+Thus the experiment-comparison error vanishes under
+\(\texttt{ass:vanishing-triples}\), and the target error in (31)
+vanishes because Lemma
+\(\texttt{lem:vanishing-triples-implies-growing-cells}\) gives
+\(K\to\infty\).  This transfers the finite-collision decision and
+honest-interval conclusions at the actual endpoint
+\(L_K^{\mathrm c}\).
+
+In the sparse regime \(\lambda_K\to\infty\), the identity
+\[
+ \varepsilon_K
+ =\lambda_K\frac{n_0+n_1}{K}
+\]
+and \(\varepsilon_K\to0\) imply
+\((n_0+n_1)/K\to0\).  Hence
+\[
+ \frac{\lambda_K}{K}
+ =\frac{n_0n_1}{K^2}
+ \le\frac14\left(\frac{n_0+n_1}{K}\right)^2
+ \longrightarrow0.
+ \tag{33}
+\]
+Using (31) and \(K\to\infty\),
+\[
+ \sqrt{\lambda_K}|L_K^{\mathrm c}-L_K|
+ \le\frac{2(a+b)\sqrt{\lambda_K}}{K^2}
+ =\frac{2(a+b)}{K^{3/2}}
+   \sqrt{\frac{\lambda_K}{K}}
+ \longrightarrow0.
+ \tag{34}
+\]
+Also, \(0<c<1\) and \(|\rho_K|\le r<1\) imply the uniform positivity
+bound
+\[
+ V(\rho_K)\ge\frac{1-c^2r^2}{16a^2}>0.
+\]
+Let \(T_K\) be the studentized statistic centered at \(L_K\), and let
+\(T_K^{\mathrm c}\) be the same collision statistic centered at
+\(L_K^{\mathrm c}\).  Uniform consistency of \(\widehat V_K\), supplied
+by Theorem \(\texttt{thm:sparse-gaussian}\), and the displayed positive
+lower bound imply
+\[
+ T_K^{\mathrm c}-T_K
+ =\frac{\sqrt{\lambda_K}(L_K-L_K^{\mathrm c})}
+ {\sqrt{\widehat V_K}}
+ \longrightarrow0
+\]
+in probability uniformly over the array class.  The law of the
+collision statistic after coarsening differs from its discrete law by
+at most (30).  For every real \(x\) and every \(\epsilon>0\), the event
+inclusions on \(\{|T_K^{\mathrm c}-T_K|\le\epsilon\}\) sandwich its
+distribution function between those of \(T_K\) at
+\(x-\epsilon\) and \(x+\epsilon\), up to the probability of the
+complement and the total-variation error.  First letting \(K\to\infty\)
+and then \(\epsilon\downarrow0\), continuity of the standard normal
+distribution proves the uniform Gaussian limit and the corresponding
+two-sided quantile coverage directly.  Thus Theorem
+\(\texttt{thm:sparse-gaussian}\), including its unprojected Wald
+coverage, transfers from \(L_K\) to \(L_K^{\mathrm c}\).  The
+construction, coarsening kernel, and reverse kernel are defined only on
+\(\mathcal I_K(r)\); therefore none of these conclusions extends to a
+larger continuous smoothness class without a separate approximation
+and endpoint-bias theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The restricted transfer gives a continuous-covariate interpretation without claiming an unproved coarsening-bias theorem for a broad smoothness ball. \textit{Gap.} Low and Zhou show that Poissonization transfer can fail below regularity thresholds; existing COT work does not justify this growing-roughness binary interpolation image. \textit{Consumer.} The image supplies a controlled continuous stress test for \(\texttt{causalPIviaCOT}\) partition-resolution diagnostics.
+
+\begin{theorem}[thm:deterministic-shell-local-minimax]\label{thm:deterministic-shell-local-minimax}
+Along every triangular array satisfying the maintained assumptions and \(\lambda_K\to\infty\), for every \(\rho_0\in(-r,r)\),
+\[
+ \lim_{T\to\infty}\lim_{H\to\infty}\liminf_{K\to\infty}
+ \inf_{D_K\in\mathscr D_K}
+ \sup_{\theta\in\mathcal H_K(\rho_0,H)}
+ \mathbb E_\theta\ell_T\!\left(\sqrt{\lambda_K}(D_K-L_K)\right)
+ =V(\rho_0).
+\]
+For every fixed \(T\) and \(H\), \(\operatorname{clip}_{\mathcal D}(\widehat L_K)\) has asymptotic worst-case risk at most \(\mathbb E\ell_T(\sqrt{V(\rho_0)}Z)\), where \(Z\sim\mathcal N(0,1)\); consequently it attains the displayed ordered-limit upper bound.  Because \(\rho_0\) is interior, clipping is asymptotically inactive, so the unprojected \(\widehat L_K\) attains the same bound in the real-valued formulation.
+\end{theorem}
+\begin{proof}
+For closest-result positioning, Lemma
+\(\texttt{lem:anchor-sharp-cot-identification}\), which transcribes
+Theorem~1 of \cite{linGaoBlanchetGlynn2026Causal}, supplies sharp
+conditional optimal-transport identification under its compactness,
+overlap, and continuity hypotheses.  It supplies neither the collision
+experiment nor a local minimax conclusion, and it is not used as a
+premise in the argument below.  The standard LAN/local asymptotic
+minimax ingredient relevant here is the finite-prior Bayes lower bound
+obtained after likelihood-ratio convergence to a Gaussian shift.  We
+verify that ingredient directly, including the bounded-loss and ordered
+limit steps, rather than importing a local-minimax theorem.
+
+Fix \(\rho_0\in(-r,r)\), and put
+\[
+ u_+=1+c\rho_0,\qquad
+ u_-=1-c\rho_0,\qquad
+ I_0=\frac{c^2}{1-c^2\rho_0^2}.
+ \tag{70}
+\]
+The declared ranges \(0<c<1\) and \(|\rho_0|<r<1\) imply
+\(u_+>0\), \(u_->0\), and \(I_0>0\); these inequalities justify all
+divisions and Taylor expansions below.  Under
+\(\mathcal E_{\lambda_K,\rho_0}\), the definition of the marked-Poisson
+experiment makes \(N_+\) and \(N_-\) independent Poisson variables
+with respective means \(\lambda_Ku_+/2\) and
+\(\lambda_Ku_-/2\).  For
+\(\rho=\rho_0+h/\sqrt{\lambda_K}\), the exact likelihood ratio from
+\(f_{\lambda_K,\rho}\) has logarithm
+\[
+ N_+\log\!\left(1+\frac{ch}{\sqrt{\lambda_K}u_+}\right)
+ +N_-\log\!\left(1-\frac{ch}{\sqrt{\lambda_K}u_-}\right).
+\]
+Taylor expansion, uniformly for \(h\) in a fixed compact set, therefore
+gives
+\[
+ \log\frac{f_{\lambda_K,\rho}}
+ {f_{\lambda_K,\rho_0}}
+ =h\Delta_K-\frac12h^2I_0+o_{P_{\rho_0}}(1),
+ \qquad
+ \Delta_K=\frac c{\sqrt{\lambda_K}}
+ \left(\frac{N_+}{u_+}-\frac{N_-}{u_-}\right).
+ \tag{71}
+\]
+Indeed, centering the two Poisson variables yields
+\[
+ \mathbb E_{\rho_0}\Delta_K=0,
+ \qquad
+ \operatorname{Var}_{\rho_0}(\Delta_K)
+ =\frac{c^2}{2}\left(\frac1{u_+}+\frac1{u_-}\right)
+ =I_0.
+ \tag{72}
+\]
+The characteristic function formula for a centered Poisson variable
+then gives \(\Delta_K\rightsquigarrow\mathcal N(0,I_0)\).  The random
+quadratic term in the Taylor expansion converges to
+\(-h^2I_0/2\), while the third-order remainder is
+\(O_{P_{\rho_0}}(\lambda_K^{-1/2})\) uniformly on compact
+\(h\)-sets, because \(u_+\wedge u_->0\) and
+\(N_++N_-=O_{P_{\rho_0}}(\lambda_K)\).  If
+\(\Lambda_{K,h}\) denotes this likelihood ratio, the Poisson
+exponential-moment formula also gives the exact identity
+\[
+ \mathbb E_{\rho_0}\Lambda_{K,h}^2
+ =\exp\!\left\{
+ \frac{c^2h^2}{2}
+ \left(\frac1{u_+}+\frac1{u_-}\right)\right\}
+ =e^{h^2I_0}.
+ \tag{73}
+\]
+Consequently the likelihood ratios are uniformly integrable on each
+finite collection of local parameters.
+
+For such a finite collection, equations (71)--(73) imply convergence
+of every bounded finite-prior Bayes risk to the corresponding risk in
+the Gaussian location experiment
+\[
+ X=-bh+\sqrt{V(\rho_0)}Z,
+ \qquad Z\sim\mathcal N(0,1),
+ \tag{74}
+\]
+whose target is \(-bh\).  Here is a direct verification of that
+implication.  Dominate the finite-prior experiment by the law at
+\(h=0\).  Conditional on the observation, its Bayes objective is a
+finite weighted sum of losses multiplied by the likelihood-ratio
+vector.  Since \(0\le\ell_T\le T\), its pointwise infimum over the
+action is Lipschitz in that vector with a finite constant bounded in
+terms of \(T\) and the prior weights.  Joint convergence from (71) and
+uniform integrability from (73) therefore give convergence of its
+expectation.  The Gaussian variance in (74) is
+\[
+ \frac{b^2}{I_0}
+ =\frac{b^2(1-c^2\rho_0^2)}{c^2}
+ =\frac{1-c^2\rho_0^2}{16a^2}
+ =V(\rho_0),
+ \tag{75}
+\]
+where the penultimate equality uses the declared identity \(c=4ab\).
+Allowing all real scaled actions can only decrease a Bayes risk relative
+to the scaled image of \(\mathcal D\), so this Gaussian Bayes risk is a
+valid lower bound for the finite-sample decision class.
+
+We next calculate the Gaussian minimax value under \(\ell_T\) without
+invoking an external minimax theorem.  Let
+\(Z_V\sim\mathcal N(0,V(\rho_0))\), with density \(\varphi_V\), and set
+\[
+ m_T=\mathbb E\min\{Z_V^2,T\}.
+\]
+The translation-equivariant rule \(D(X)=X\) has constant risk \(m_T\).
+Conversely, average the risk of any rule against the uniform prior on
+the target interval \([-A,A]\).  For \(0<B<A\), restrict the observation
+integral to \([-A+B,A-B]\) and change variables from the target to the
+noise.  Pointwise minimization over the action then bounds the Bayes risk
+below by
+\[
+ \left(1-\frac BA\right)
+ \inf_{v\in\mathbb R}
+ \int_{-B}^{B}\ell_T(v+z)\varphi_V(z)\,dz.
+ \tag{76}
+\]
+The layer-cake identity
+\[
+ \ell_T(x)=\int_0^T\mathbf 1\{|x|>\sqrt t\}\,dt
+\]
+shows that the infimum in (76) is attained at \(v=0\): for each
+\(t\), among intervals of the same length, the interval centered at zero
+has greatest mass under the symmetric density
+\(\varphi_V(z)\mathbf 1\{|z|\le B\}\), which is nonincreasing in
+\(|z|\).  Letting first \(A\to\infty\) and then \(B\to\infty\), monotone
+convergence makes the right side of (76) tend to \(m_T\).  Thus the
+Gaussian minimax value is exactly \(m_T\).  Gaussian shifts are
+continuous in total variation, and \(\ell_T\) is bounded and continuous.
+Rounding a compact uniform prior to a sufficiently fine finite grid
+therefore changes every rule's average risk by a uniformly vanishing
+amount.  Hence, for each \(\delta>0\), there are \(G<\infty\) and a
+finite prior supported on target values in \([-bG,bG]\) whose Gaussian
+Bayes risk is at least \(m_T-\delta\); its corresponding \(h\)-support
+lies in \([-G,G]\).
+
+We now transfer this finite prior to mixtures supported on legal
+deterministic arrays.  Since \(n_0,n_1\ge1\),
+\[
+ \varepsilon_K
+ =\frac{n_0n_1(n_0+n_1)}{K^2}
+ \ge \frac{n_d^2}{K^2},\qquad d\in\{0,1\}.
+\]
+Assumption \(\texttt{ass:vanishing-triples}\) therefore implies
+\(n_d/K\to0\) for each arm.  It follows that
+\[
+ \frac{\lambda_K}{K}
+ =\frac{n_0}{K}\frac{n_1}{K}\longrightarrow0.
+\]
+Because \(\lambda_K\to\infty\), the definition of \(s_K\) gives,
+eventually,
+\[
+ s_K=(K\lambda_K)^{-1/4},\qquad
+ \sqrt{\lambda_K}s_K
+ =\left(\frac{\lambda_K}{K}\right)^{1/4}\to0,
+ \qquad
+ Ks_K^2=\sqrt{\frac K{\lambda_K}}\to\infty.
+ \tag{77}
+\]
+Thus \(\eta_K=2e^{-Ks_K^2/2}\to0\), and the supported-mixture
+comparison error \(e_K=\min\{1,5\varepsilon_K+\eta_K\}\) in Theorem
+\(\texttt{thm:collision-comparison}\) tends to zero.  Proposition
+\(\texttt{prop:supported-mixture-legality}\) also gives, uniformly for
+\(|h|\le G\),
+\[
+ \sqrt{\lambda_K}\left|
+ q_K\!\left(\rho_0+\frac h{\sqrt{\lambda_K}}\right)
+ -\rho_0-\frac h{\sqrt{\lambda_K}}
+ \right|
+ \le2\sqrt{\lambda_K}s_K+\frac{2\sqrt{\lambda_K}}K
+ \longrightarrow0.
+ \tag{78}
+\]
+The second term vanishes because
+\(\sqrt{\lambda_K}/K=\sqrt{\lambda_K/K}/\sqrt K\to0\), and the arguments
+of \(q_K\) lie in \([-r,r]\) eventually because \(\rho_0\) is interior
+and \(G\) is fixed.
+
+For each support point \(h\), use the mixing law
+\[
+ \Pi_{K,q_K(\rho_0+h/\sqrt{\lambda_K})}^{\mathrm{shell}}.
+\]
+By its shell support and (77)--(78), for every fixed \(H>G+1\) these
+mixtures are supported on \(\mathcal H_K(\rho_0,H)\) for all sufficiently
+large \(K\).  Propositions
+\(\texttt{prop:supported-mixture-legality}\) and
+\(\texttt{prop:sharp-cot-endpoint}\) give the realized-target bound
+\[
+ \sqrt{\lambda_K}\left|
+ L_K-\left\{a-bq_K\!\left(\rho_0+
+ \frac h{\sqrt{\lambda_K}}\right)\right\}
+ \right|
+ \le b\sqrt{\lambda_K}s_K\longrightarrow0.
+ \tag{79}
+\]
+Because \(\ell_T\) is \(2\sqrt T\)-Lipschitz, replacing the realized
+target in (79) by the mixture-index target changes risk by \(o(1)\),
+uniformly over the finite prior.
+
+Let \(D_K\in\mathscr D_K\) be arbitrary and compose it with the
+parameter-free reverse kernel of Theorem
+\(\texttt{thm:collision-comparison}\).  Total-variation contraction and
+\(0\le\ell_T\le T\) imply that the resulting marked rule's finite-prior
+Bayes risk is no greater than the full-data mixture Bayes risk plus
+\(Te_K+o(1)\), where the \(o(1)\) is the target replacement in (79).
+The full-data mixture risk is no greater than the supremum of the
+deterministic-array risks over \(\mathcal H_K(\rho_0,H)\), because each
+mixing law is supported on that shell.  Equations (71), (78), and (79),
+the finite-prior Bayes-risk convergence proved above, and the prior
+choice consequently imply
+\[
+ \liminf_{K\to\infty}
+ \inf_{D_K\in\mathscr D_K}
+ \sup_{\theta\in\mathcal H_K(\rho_0,H)}
+ \mathbb E_\theta\ell_T\!\left(
+ \sqrt{\lambda_K}(D_K-L_K)\right)
+ \ge m_T-\delta
+ \tag{80}
+\]
+for every fixed \(T\) and every sufficiently large fixed \(H>G+1\).
+Letting \(H\to\infty\) and then \(\delta\downarrow0\) proves the ordered
+lower bound \(m_T\).
+
+For the upper bound, Theorem \(\texttt{thm:sparse-gaussian}\) and
+\[
+ \sup_{\theta\in\mathcal H_K(\rho_0,H)}
+ |\rho_K-\rho_0|\le\frac H{\sqrt{\lambda_K}}
+\]
+give, for every fixed \(H,T\),
+\[
+ \limsup_{K\to\infty}
+ \sup_{\theta\in\mathcal H_K(\rho_0,H)}
+ \mathbb E_\theta\ell_T\!\left(
+ \sqrt{\lambda_K}(\widehat L_K-L_K)\right)
+ \le
+ \mathbb E\ell_T(\sqrt{V(\rho_0)}Z)
+ =m_T.
+ \tag{81}
+\]
+Indeed, uniform studentized convergence and uniform consistency of
+\(\widehat V_K\), together with continuity of \(V(\rho)\) on
+\([-r,r]\), give uniform weak convergence of the unstudentized statistic
+on the fixed shell to \(\mathcal N(0,V(\rho_0))\).  Bounded continuity
+of \(\ell_T\) then gives (81).
+
+The distance from \(a-b\rho_0\) to the boundary of
+\(\mathcal D=[a-b,a+b]\) is \(b(1-|\rho_0|)>0\).  On a fixed shell,
+uniform tightness of \(\sqrt{\lambda_K}(\widehat L_K-L_K)\) and the
+identity \(L_K=a-b\rho_K\) imply
+\(\widehat L_K\to a-b\rho_0\) uniformly in probability.  Clipping is
+therefore active with probability tending uniformly to zero.  Since the
+loss is bounded by \(T\), (81) also holds for
+\(\operatorname{clip}_{\mathcal D}(\widehat L_K)\), and the clipped and
+unprojected rules have the same asymptotic risk on every fixed shell.
+
+For fixed \(K,T\), the minimax value is nondecreasing in \(H\), because
+the deterministic Hamming shells are nested.  The lower bound (80) and
+the estimator upper bound (81) therefore give, for each fixed \(T\),
+the ordered \(K\)-then-\(H\) value \(m_T\).  Only after those two limits
+do we remove the truncation.  Monotone convergence yields
+\[
+ \lim_{T\to\infty}m_T
+ =\mathbb EZ_V^2
+ =V(\rho_0).
+ \tag{82}
+\]
+This proves the displayed ordered identity and both estimator
+assertions.  In particular, no unbounded scaled loss was transported
+through a total-variation comparison.
+
+The new conclusion of this node is exactly the matching ordered local
+minimax lower and upper bound for the deterministic-shell, binary,
+uniform-cell submodel.  The cited anchor theorem supplies only sharp COT
+identification, while the LAN finite-prior argument supplies the
+standard local decision-theoretic architecture.  Nothing proved here
+asserts achievability, equality, or a matching local-minimax theorem for
+the full anchor class; broader anchor classes inherit only the separate
+converse obtained by submodel inclusion.
+\end{proof}
+
+\begin{lemma}[lem:agg-poisson-approximation]\label{lem:agg-poisson-approximation}
+Let \(\{I_\gamma:\gamma\in\mathcal G\}\) be a finite family of Bernoulli random variables, let \(B_\gamma\subseteq\mathcal G\) be dependency neighborhoods such that \(I_\gamma\) is independent of \(\{I_\zeta:\zeta\notin B_\gamma\}\), and put
+\[
+ W=\sum_{\gamma\in\mathcal G}I_\gamma,\qquad
+ \mu=\mathbb EW,qquad
+ b_1=\sum_{\gamma\in\mathcal G}\sum_{\zeta\in B_\gamma}
+       \mathbb EI_\gamma\,\mathbb EI_\zeta,qquad
+ b_2=\sum_{\gamma\in\mathcal G}\sum_{\substack{\zeta\in B_\gamma\\\zeta\ne\gamma}}
+       \mathbb E(I_\gamma I_\zeta).
+\]
+Then, for total variation defined as the supremum over measurable events,
+\[
+ d_{\mathrm{TV}}\!\left(\mathcal L(W),\operatorname{Poisson}(\mu)\right)
+ \le 2(b_1+b_2).
+\]
+\end{lemma}
+
+\begin{lemma}[lem:anchor-sharp-cot-identification]\label{lem:anchor-sharp-cot-identification}
+In the independent and identically distributed Bernoulli-treatment design with overlap, compact covariate domain and compact convex outcome domain, and continuous cost \(h\), the sharp lower endpoint over causal couplings preserving the two conditional outcome laws is the conditional optimal-transport functional \(L(P)\) in (41).
+\end{lemma}
+
+\begin{theorem}[thm:anchor-class-collision-converse]\label{thm:anchor-class-collision-converse}
+Suppose that the covariate domain is compact, the ambient outcome
+domain is compact and convex, and the absolute cost
+\((y_0,y_1)\mapsto|y_1-y_0|\) is continuous, as in
+\(\texttt{def:anchor-containing-class}\).  For every anchor-admissible
+class \(\mathfrak P_K\) containing all embedded legal arrays, if
+\(\lambda_K\to\lambda\in[0,\infty)\), then
+\[
+ \liminf_{K\to\infty}
+ R_K^{\mathrm{anc}}(\mathfrak P_K)\ge R(\lambda),
+ \qquad
+ \liminf_{K\to\infty}
+ C_{K,\alpha}^{\mathrm{anc}}(\mathfrak P_K)
+ \ge C_\alpha(\lambda).
+\]
+If instead \(\lambda_K\to\infty\), then for every
+\(\rho_0\in(-r,r)\) and every collection of classes
+\(\mathfrak B_K(\rho_0,H)\) satisfying
+\[
+ \{P_{K,\theta}^{\mathrm{emb}}:
+ \theta\in\mathcal H_K(\rho_0,H)\}
+ \subseteq\mathfrak B_K(\rho_0,H)
+\]
+for each \(K\) and \(H>0\), without any nesting requirement in \(H\),
+\[
+ \lim_{T\to\infty}\liminf_{H\to\infty}\liminf_{K\to\infty}
+ \inf_{D\in\mathscr D_K^{\mathrm{anc}}}
+ \sup_{P\in\mathfrak B_K(\rho_0,H)}
+ \mathbb E_P\ell_T\!\left(
+ \sqrt{\lambda_K}\{D-L(P)\}\right)
+ \ge V(\rho_0).
+\]
+These are converse lower bounds only; no broader-class upper bound or
+equality is asserted.
+\end{theorem}
+\begin{proof}
+The proof uses submodel monotonicity, after first verifying that the causal
+target and the observed-law transport functional agree on the embedded
+submodel.  Fix a legal array \(\theta\in\mathcal T_K(r)\).  The injective
+map \(j\mapsto j/K\) is a measurable bijection between the finite set of
+cell labels and its image in \([0,1]\), with measurable inverse on that
+image.  Conditional on the fixed arm counts, applying this relabeling to
+every observed cell therefore gives a measurable isomorphism between the
+observation under \(P_{K,\theta}^{\mathrm{emb}}\) and \(\mathcal O_K\).
+It does not alter either conditional outcome law.
+
+The hypotheses of Lemma
+\(\texttt{lem:anchor-sharp-cot-identification}\) hold on the embedded
+law: the covariate domain \([0,1]\) is compact, the ambient outcome domain
+\([0,1]\) is compact and convex, treatment has the overlap and
+independence specified in \(\texttt{def:anchor-containing-class}\), and
+\(h(y_0,y_1)=|y_1-y_0|\) is continuous.  That lemma identifies the sharp
+causal lower endpoint with the observed-law conditional-transport
+functional \(L(P)\).  Proposition
+\(\texttt{prop:sharp-cot-endpoint}\), which separately evaluates the
+binary conditional transport problem cell by cell under the amplitude,
+support, and conditional-Bernoulli restrictions, then gives
+\[
+ L(P_{K,\theta}^{\mathrm{emb}})
+ =L_K(\theta)=a-b\rho_K(\theta).
+ \tag{34}
+\]
+Thus (34) is an identification conclusion from the declared restrictions,
+not part of the definition of the broader anchor functional.
+
+We first prove the global absolute-risk comparison.  Fix an arbitrary
+anchor rule \(D\in\mathscr D_K^{\mathrm{anc}}\).  Restrict it through the
+measurable relabeling to the embedded finite-array experiment.  Because
+\(0<b<a<1/2\), the finite decision range
+\(\mathcal D=[a-b,a+b]\) is contained in \([0,1]\); moreover every target
+\(L_K\) belongs to \(\mathcal A\subseteq\mathcal D\).  Projection onto
+the closed interval \(\mathcal D\) therefore decreases
+\(|D-L_K|\) pointwise.  Using the inclusion of every embedded legal array
+in \(\mathfrak P_K\), followed by (34), gives
+\[
+\begin{aligned}
+ \sup_{P\in\mathfrak P_K}\mathbb E_P|D-L(P)|
+ &\geq
+ \sup_{\theta\in\mathcal T_K(r)}
+ \mathbb E_\theta|D-L_K(\theta)|\\
+ &\geq
+ \sup_{\theta\in\mathcal T_K(r)}
+ \mathbb E_\theta
+ \bigl|\operatorname{clip}_{\mathcal D}(D)-L_K(\theta)\bigr|\\
+ &\geq R_K.
+\end{aligned}
+ \tag{35}
+\]
+The last inequality holds because the clipped restriction is one member of
+\(\mathscr D_K\), whereas \(R_K\) is the infimum over all such rules.
+Taking the infimum in (35) over anchor rules yields the finite-sample
+submodel inequality
+\[
+ R_K^{\mathrm{anc}}(\mathfrak P_K)\geq R_K.
+ \tag{36}
+\]
+If \(\lambda_K\to\lambda\in[0,\infty)\), Theorem
+\(\texttt{thm:finite-information-transfer}\) gives
+\(R_K\to R(\lambda)\).  Taking lower limits in (36) proves
+\[
+ \liminf_{K\to\infty}R_K^{\mathrm{anc}}(\mathfrak P_K)
+ \geq R(\lambda).
+ \tag{37}
+\]
+
+For the honest-length comparison, take any anchor interval rule
+\(\mathcal C\in\mathscr C_K^{\mathrm{anc}}\) satisfying the uniform
+coverage restriction (44).  On every embedded law it covers \(L_K\) by
+(34).  Intersect its reported interval with \(\mathcal A\).  When that
+intersection is empty, replace it by an arbitrary fixed degenerate interval
+in \(\mathcal A\).  The result is a measurable closed-subinterval-valued
+rule in \(\mathscr C_K\).  It never has greater length.  It also cannot
+remove coverage of a target in \(\mathcal A\): if the original interval
+contains that target, its intersection with \(\mathcal A\) is nonempty and
+contains it.  Hence the restricted rule is feasible for the finite-array
+honesty problem, and
+\[
+ \sup_{P\in\mathfrak P_K}
+ \mathbb E_P\operatorname{len}(\mathcal C)
+ \geq C_{K,\alpha}.
+ \tag{38}
+\]
+Taking the infimum over anchor rules in (38) gives
+\[
+ C_{K,\alpha}^{\mathrm{anc}}(\mathfrak P_K)
+ \geq C_{K,\alpha}.
+ \tag{39}
+\]
+Theorem \(\texttt{thm:honest-interval-transfer}\) gives
+\(C_{K,\alpha}\to C_\alpha(\lambda)\) whenever
+\(\lambda_K\to\lambda<\infty\).  Therefore
+\[
+ \liminf_{K\to\infty}
+ C_{K,\alpha}^{\mathrm{anc}}(\mathfrak P_K)
+ \geq C_\alpha(\lambda).
+ \tag{40}
+\]
+
+It remains to establish the sparse local converse with exactly the stated
+order of limits.  Assume \(\lambda_K\to\infty\), and fix
+\(\rho_0\in(-r,r)\), \(T>0\), and \(H>0\).  An anchor estimator restricts
+through the same relabeling to an estimator on the embedded deterministic
+shell.  Since
+\(\ell_T(u)=\min\{u^2,T\}\) is nondecreasing in \(|u|\), and every shell
+target lies in \(\mathcal A\subseteq\mathcal D\), clipping to
+\(\mathcal D\) cannot increase the displayed truncated quadratic loss.
+The assumed inclusion of the embedded shell in
+\(\mathfrak B_K(\rho_0,H)\), together with (34), therefore gives the
+pointwise-in-\(H\) inequality
+\[
+\begin{aligned}
+ &\inf_{D\in\mathscr D_K^{\mathrm{anc}}}
+ \sup_{P\in\mathfrak B_K(\rho_0,H)}
+ \mathbb E_P\ell_T\!\left(
+ \sqrt{\lambda_K}\{D-L(P)\}\right)\\
+ &\quad\geq
+ \inf_{D_K\in\mathscr D_K}
+ \sup_{\theta\in\mathcal H_K(\rho_0,H)}
+ \mathbb E_\theta\ell_T\!\left(
+ \sqrt{\lambda_K}(D_K-L_K)\right).
+\end{aligned}
+ \tag{41}
+\]
+No nesting of the broader classes was used in (41).  For the right-hand
+side, however, the deterministic shells are nested as \(H\) increases.
+Consequently their minimax values, and then their \(K\)-lower limits, are
+nondecreasing in \(H\); their \(H\)-limit therefore equals their
+\(H\)-lower limit.  Apply successively
+\(\liminf_{K\to\infty}\), \(\liminf_{H\to\infty}\), and finally
+\(\lim_{T\to\infty}\) to (41).  Theorem
+\(\texttt{thm:deterministic-shell-local-minimax}\), with precisely this
+ordering of the bounded-loss, local-radius, and sample-size limits, turns
+the resulting right-hand side into \(V(\rho_0)\).  Hence
+\[
+\begin{aligned}
+ &\lim_{T\to\infty}\liminf_{H\to\infty}\liminf_{K\to\infty}
+ \inf_{D\in\mathscr D_K^{\mathrm{anc}}}
+ \sup_{P\in\mathfrak B_K(\rho_0,H)}
+ \mathbb E_P\ell_T\!\left(
+ \sqrt{\lambda_K}\{D-L(P)\}\right)\\
+ &\qquad\geq V(\rho_0).
+\end{aligned}
+ \tag{42}
+\]
+Only restriction to an included submodel was used in (35), (38), and
+(41).  The proof therefore establishes converse lower bounds and does not
+assert an upper bound or equality over either broader anchor class; in
+particular, no later anchor smoothness or rate hypothesis has been used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem places the collision frontiers inside the broader COT anchor without extending the collision procedures beyond the embedded arrays. \textit{Gap.} The anchor identification theorem supplies the sharp conditional-transport target, but not finite-collision or local-minimax lower bounds for every class containing the deterministic-array submodel. \textit{Consumer.} Researchers can use the collision frontier as a certified impossibility benchmark for any anchor-admissible method, while keeping broader-class achievability separate.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The former two-fixed-array lower witness is invalid because armwise marginal imbalance reveals the endpoint without cross-arm collisions. Every lower bound therefore uses mixtures supported on legal arrays and pays the discrepancy between the mixture index and the realized \(L_K\). The displayed Poisson-tail Chernoff certificate is valid only on the declared domain \(m+1>\lambda_s^+\); no arbitrary-truncation certificate is claimed. Floating-point linear-program output may only propose a basis: a certificate exists only after every likelihood, tail, action-length, primal, and dual quantity is outward-rounded and the rational inequalities are checked exactly. Endpoint decisions may be clipped to \(\mathcal D\) without increasing absolute or squared loss, but projection of \(\widehat L_K\) onto the narrower \(\mathcal A\) is excluded from the local Gaussian theorem because it changes boundary risk. The broader local classes need not be nested in \(H\), so their transfer uses \(\liminf_{H\to\infty}\), not an asserted limit.
+
+\section{Honest scope}
+
+The finite-\(\lambda\) comparison and decision theorems concern the realized endpoint \(L_K\) over the full legal deterministic-array class. Rational interval certificates require computable inputs, the admissibility condition \(m+1>\lambda_s^+\), and exact outward-rounded likelihood, tail, action-length, primal, and dual checks; floating-point output alone is not a certificate. The sparse theorem gives unprojected studentized Gaussian inference, while the matching ordered local-minimax variance theorem is confined to interior deterministic shells in the binary uniform-cell submodel. Lin, Gao, Blanchet, and Glynn's Theorem~1 supplies the closest general identification anchor, and Hirano and Porter's Theorem~3 supplies a standard LAN template; neither supplies the shell theorem proved here. Embedded finite-array laws meet the anchor's compact-covariate, compact-convex-outcome, continuous-cost conditions, so global and local results transfer to every containing class only as converse lower bounds. There is no broader-class collision upper bound or equality. Continuous achievability transfers only through the declared interpolation-image kernels; no raw total-variation comparison is asserted between continuous covariates and discrete labels. No claim covers unknown amplitudes, nonuniform cells, nonnegligible triple collisions, or a full continuous smoothness class. Coarsening changes the endpoint unless a separate bias theorem is supplied.
+
+\begin{thebibliography}{99}
+
+  \bibitem{linGaoBlanchetGlynn2026Causal} Lin, Sirui, Zijun Gao, José Blanchet, and Peter Glynn (2026). \emph{Causal Partial Identification via Conditional Optimal Transport}. Proceedings of AISTATS, PMLR 300. arXiv:2506.00257. Theorems 1--6, especially Theorem 1 on general sharp COT bounds.
+
+  \bibitem{linGaoBlanchetGlynn2026Smooth} Lin, Sirui, Zijun Gao, José Blanchet, and Peter Glynn (2026). \emph{Statistical Inference in Causal Partial Identification with Smooth Densities}. arXiv:2602.20681. Assumptions 2.1--2.2; Proposition 3.2 on the key estimation bound; Proposition 3.3 on the quadratic-objective stability inequality; and Theorem 3.2 on asymptotic normality.
+
+  \bibitem{jiLeiSpector2023ModelAgnostic} Ji, Wenlong, Lihua Lei, and Asher Spector (2023). \emph{Model-Agnostic Covariate-Assisted Inference on Partially Identified Causal Effects}. arXiv:2310.08115. Theorems 3.1--3.5.
+
+  \bibitem{oberReynolds2023Estimating} Ober-Reynolds, Daniel (2023). \emph{Estimating Functionals of the Joint Distribution of Potential Outcomes with Optimal Transport}. arXiv:2311.09435, unpublished manuscript. Sharp optimal-transport identified intervals and root-\(n\) sample-analogue inference in an instrumental-variables noncompliance setting.
+
+  \bibitem{kipnis2026MinimaxRisk} Kipnis, Alon (2026). \emph{The Minimax Risk in Testing Uniformity of Poisson Data under Missing Ball Alternatives}. IEEE Transactions on Information Theory. DOI: 10.1109/TIT.2025.3646804.
+
+  \bibitem{kipnis2026SharpLowerBound} Kipnis, Alon (2026). \emph{Sharp Lower Bound on the Minimax Risk for Multinomial Uniformity Testing via a Conditional Central Limit Theorem}. arXiv:2607.05223. Theorems 2.1 and 2.3.
+
+  \bibitem{arratiaGoldsteinGordon1989} Arratia, Richard, Larry Goldstein, and Louis Gordon (1989). \emph{Two Moments Suffice for Poisson Approximations: The Chen--Stein Method}. Annals of Probability 17(1), 9--25. Theorem 1.
+
+  \bibitem{paninski2008Coincidence} Paninski, Liam (2008). \emph{A Coincidence-Based Test for Uniformity Given Very Sparsely Sampled Discrete Data}. IEEE Transactions on Information Theory 54(10), 4750--4755. DOI: 10.1109/TIT.2008.928987.
+
+  \bibitem{evansHansenStark2005} Evans, Steven N., Bendek B. Hansen, and Philip B. Stark (2005). \emph{Minimax Expected Measure Confidence Sets for Restricted Location Parameters}. Bernoulli 11(4), 571--590. Theorem 1 and Corollary 1.
+
+  \bibitem{stoye2009More} Stoye, Jörg (2009). \emph{More on Confidence Intervals for Partially Identified Parameters}. Econometrica 77(4), 1299--1315. Propositions 1--2.
+
+  \bibitem{hiranoPorter2003Support} Hirano, Keisuke, and Jack R. Porter (2003). \emph{Asymptotic Efficiency in Parametric Structural Models with Parameter-Dependent Support}. Econometrica 71(5), 1307--1338. Theorems 1--3.
+
+  \bibitem{lowZhou2007Poissonization} Low, Mark G., and Harrison H. Zhou (2007). \emph{A Complement to Le Cam's Theorem}. Annals of Statistics 35(3), 1146--1165. arXiv:0708.2233.
+
+  \bibitem{armstrongKolesar2021FiniteSampleATE} Armstrong, Timothy B., and Michal Kolesár (2021). \emph{Finite-Sample Optimal Estimation and Inference on Average Treatment Effects Under Unconfoundedness}. Econometrica 89(3), 1141--1177. arXiv:1712.04594.
+
+\end{thebibliography}
+
+\end{document}

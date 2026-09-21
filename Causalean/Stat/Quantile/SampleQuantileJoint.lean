@@ -3,17 +3,17 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Joint asymptotic normality of a finite vector of sample quantiles
+# Abstract characteristic-function limit for a finite sample-quantile vector
 
 For finitely many interior levels `τ : Fin k → ℝ` with population quantiles
 `q : Fin k → ℝ` (`F(qⱼ) = τⱼ`) and densities `f : Fin k → ℝ` (`fⱼ > 0`), the
-vector of sample quantiles is jointly asymptotically normal:
+module proves convergence of the rescaled sample-quantile vector to any supplied
+probability measure whose characteristic function has the required quadratic
+exponential form.
 
-    √n ( q̂ₙ(τⱼ) − qⱼ )_{j}  ⇒  N(0, Σ),
-    Σ_{jl}  =  (min(τⱼ, τₗ) − τⱼ τₗ) / (fⱼ fₗ).
-
-This is the multivariate counterpart of `Stat/SampleQuantileBahadur.lean`'s
-scalar CLT, assembled from:
+This is the multivariate counterpart of
+`Stat/Quantile/SampleQuantileBahadur.lean`'s scalar asymptotic-linearity result,
+assembled from:
 
 * the per-coordinate **derived** Bahadur representation
   (`IIDSample.sampleQuantile_isAsymLinear`), packaged into the vector
@@ -22,28 +22,31 @@ scalar CLT, assembled from:
   Cramér–Wold) consuming the joint influence function
   `ψ(z)_j = (τⱼ − 1{z ≤ qⱼ}) / fⱼ`;
 * the indicator cross-moment `∫ ψⱼ ψₗ dP = (min(τⱼ,τₗ) − τⱼτₗ)/(fⱼfₗ)`
-  identifying the limiting covariance `Σ`.
+  computed by `quantileIF_cross`.
 
-As elsewhere in the multivariate-CLT stack (`Stat/MultivariateCLT.lean`,
-`Stat/GaussianCharFunBridge.lean`), the target law `Q` is kept abstract via its
-characteristic function `charFun Q t = exp(−½ ∫⟪t,ψ⟫² dP)`; the covariance
-lemma `quantileIFVec_cross` identifies `∫⟪t,ψ⟫² dP = tᵀ Σ t` with the `Σ` above.
+As elsewhere in the multivariate-CLT stack (`Stat/CLT/MultivariateCLT.lean`,
+`Stat/CLT/GaussianCharFunBridge.lean`), the target law `Q` is an input specified
+by `charFun Q t = exp(−½ ∫⟪t,ψ⟫² dP)`. This module does not construct a Gaussian
+measure or package the pairwise cross-moments into a covariance matrix.
 
-References: van der Vaart (1998) §21 (joint quantile CLT).
+Motivation: van der Vaart (1998) §21. The formal endpoint here is the abstract
+characteristic-function transfer described above, not a constructed Gaussian law.
 -/
 
-import Causalean.Stat.Quantile.SampleQuantileBahadur
-import Causalean.Stat.CLT.MultivariateCLT
-import Causalean.Stat.CLT.GaussianCharFunBridge
-import Causalean.Stat.Limit.Convergence
+module
+public import Causalean.Stat.Quantile.SampleQuantileBahadur
+public import Causalean.Stat.CLT.MultivariateCLT
+public import Causalean.Stat.CLT.GaussianCharFunBridge
+public import Causalean.Stat.Limit.Convergence
 
-/-! # Joint Normality of a Quantile Vector
+/-! # Characteristic-Function Limit of a Quantile Vector
 
-This file proves joint asymptotic normality for a finite vector of sample
-quantiles. It packages the coordinatewise Bahadur representations into vector
-asymptotic linearity and uses the multivariate CLT to obtain an abstract
-Gaussian limit with covariance entries determined by quantile influence-function
-cross-moments. -/
+This file packages coordinatewise Bahadur representations into vector
+asymptotic linearity and proves weak convergence to a supplied probability law
+whose characteristic function has the required quadratic exponential form. It
+also computes the pairwise quantile influence-function cross-moments. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -169,14 +172,15 @@ omit [IsProbabilityMeasure μ] in
 lemma isLittleOp_zero_one' :
     IsLittleOp (fun _ (_ : Ω) => (0 : ℝ)) (fun _ => (1 : ℝ)) μ := by
   intro ε hε
-  have hempty : {ω : Ω | ε * (1 : ℝ) < |(0 : ℝ)|} = (∅ : Set Ω) := by
-    ext ω; simp only [abs_zero, mul_one, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
-    exact hε.not_gt
-  have heq : (fun _ : ℕ => μ {ω : Ω | ε * (1 : ℝ) < |(0 : ℝ)|})
+  have hempty : {ω : Ω | ε * (1 : ℝ) ≤ ‖(0 : ℝ)‖} = (∅ : Set Ω) := by
+    ext ω; simp only [norm_zero, mul_one, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+    exact not_le_of_gt hε
+  have heq : (fun _ : ℕ => μ {ω : Ω | ε * (1 : ℝ) ≤ ‖(0 : ℝ)‖})
       = fun _ : ℕ => (0 : ENNReal) := by
     funext n; rw [hempty, measure_empty]
-  rw [show (fun n : ℕ => μ {ω : Ω | ε * (fun _ => (1 : ℝ)) n < |(fun _ _ => (0 : ℝ)) n ω|})
-        = (fun _ : ℕ => μ {ω : Ω | ε * (1 : ℝ) < |(0 : ℝ)|}) from rfl, heq]
+  rw [show (fun n : ℕ => μ {ω : Ω | ε * (fun _ => (1 : ℝ)) n ≤
+        ‖(fun _ _ => (0 : ℝ)) n ω‖}) =
+        (fun _ : ℕ => μ {ω : Ω | ε * (1 : ℝ) ≤ ‖(0 : ℝ)‖}) from rfl, heq]
   exact tendsto_const_nhds
 
 omit [IsProbabilityMeasure μ] in
@@ -214,7 +218,8 @@ lemma isLittleOp_abs {R : ℕ → Ω → ℝ} (hR : IsLittleOp R (fun _ => (1 : 
 /-- The sample-quantile vector is asymptotically linear with the joint influence function `ψ`.
 Given [a `SampleQuantileReg` regularity bundle at every coordinate `j`: interior level
 $\tau_j$, positive density $f_j$ at the population quantile $q_j$, cdf identification,
-differentiability of the population cdf, and an atomless population](hyp:hreg), [the vector of
+differentiability of the population cdf, and cdf continuity on a positive-radius neighborhood
+of each target quantile](hyp:hreg), [the vector of
 sample $\tau$-quantiles is jointly asymptotically linear at the vector of population quantiles,
 with influence function the joint quantile influence function $\psi$](goal).
 
@@ -308,20 +313,21 @@ theorem IIDSample.sampleQuantileVec_isAsymLinearVec (S : IIDSample Ω ℝ μ P)
       abs_of_nonneg (Finset.sum_nonneg fun j _ => abs_nonneg _)]
     exact norm_eucl_le_sum_abs (fun j => R j n ω)
 
-/-! ## Headline: joint asymptotic normality -/
+/-! ## Headline: convergence from a target characteristic function -/
 
-/-- **Joint asymptotic normality of the sample-quantile vector.** Given [a `SampleQuantileReg`
-bundle at every coordinate `j`](hyp:hreg), a candidate limit measure `Q` on the joint quantile
-space whose [characteristic function at every direction `t` matches
-$\exp(-\tfrac12\int\langle t,\psi\rangle^2\,dP)$, the Gaussian shape determined by the joint
-influence function $\psi$](hyp:hQ), and [almost-everywhere measurability of the rescaled estimator
-sequence at every sample size](hyp:hθn_meas), then [the law of the rescaled sample-quantile vector
-$\sqrt n(\hat q_n(\tau_\bullet)-q_\bullet)$ converges weakly to `Q` as $n\to\infty$](goal).
+/-- **Sample-quantile vector convergence from a target characteristic function.** Given
+[an i.i.d. real sample](hyp:S), [a `SampleQuantileReg` bundle at every
+coordinate](hyp:hreg), [a candidate target probability law](hyp:Q), [the identity
+equating its characteristic function to the quadratic exponential determined by the joint
+influence function](hyp:hQ), and [almost-everywhere measurability of each rescaled
+estimator](hyp:hθn_meas), [the laws of the rescaled sample-quantile vectors converge weakly
+to that target](goal).
 
 Bahadur remainders are **derived** per coordinate (no empirical-process
-hypothesis); by `quantileIF_cross`, `Q` is `N(0, Σ)` with
-`Σ_{jl} = (min(τⱼ,τₗ) − τⱼτₗ)/(fⱼfₗ)`, matching the rest of the multivariate-CLT stack. -/
-theorem IIDSample.sampleQuantileVec_tendsto_normal (S : IIDSample Ω ℝ μ P)
+hypothesis). The theorem does not construct or identify a concrete Gaussian
+measure; `quantileIF_cross` separately computes each pairwise influence-function
+cross-moment. -/
+theorem IIDSample.sampleQuantileVec_tendsto_of_charFun (S : IIDSample Ω ℝ μ P)
     {τ q f : Fin k → ℝ} (hreg : ∀ j, SampleQuantileReg P (τ j) (q j) (f j))
     (Q : Measure (EuclideanSpace ℝ (Fin k))) [IsProbabilityMeasure Q]
     (hQ : ∀ t : EuclideanSpace ℝ (Fin k), charFun Q t

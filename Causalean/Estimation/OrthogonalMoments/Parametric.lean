@@ -11,11 +11,12 @@ moment directly and there is no "nuisance" to estimate flexibly.  This is
 the abstract bridge from the semi-parametric layer to the classical
 parametric Z-estimator.
 
-OLS, IV-2SLS, and maximum-likelihood examples all instantiate this pattern by
-supplying the appropriate score and scalar Jacobian.
+The construction below is only algebraic: callers supply a nonzero scale. A
+separate derivative argument is needed before interpreting it as a Jacobian.
 -/
 
-import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
+module
+public import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
 
 /-! # Parametric Orthogonal Moments
 
@@ -24,9 +25,11 @@ parametric one-step estimators with no separate nuisance function, covering the
 classical score-based template behind regression, instrumental variables, and
 maximum likelihood examples. The definition `parametricMoment` encodes the
 no-nuisance `GeneralMoment` with `H = Unit`, and
-`parametric_asymptoticLinear` proves that the resulting Chernozhukov estimator
+`oneStepOracle_asymptoticLinear` proves that the resulting Chernozhukov estimator
 has an identically zero remainder after subtracting its influence-function
 partial sum. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -37,15 +40,19 @@ open MeasureTheory Filter Topology Causalean.Stat
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
 
-/-- For [a measurable population space with a population measure and a measurable observed-data
-space with its observed-data law](hyp:Ω,μ,Z,P_Z), [a real-valued parametric moment function](hyp:m_par),
-[a target parameter](hyp:θ₀), [a nonzero scalar Jacobian](hyp:J₀,hJ), and [the condition that the
-moment is measurable at every parameter value](hyp:m_meas), the [no-nuisance parametric moment system](goal)
-is the general moment system whose score is the supplied parametric moment and whose nuisance space contains only a single element.
+/-- For [a measurable population space with a population measure and a
+measurable observed-data space with its observed-data law](hyp:Ω,μ,Z,P_Z),
+[a real-valued parametric
+moment function](hyp:m_par), [a target parameter](hyp:θ₀), [a nonzero
+linearization scale](hyp:J₀,hJ), and [the condition that the
+moment is measurable at every parameter value](hyp:m_meas), the [no-nuisance
+parametric moment system](goal) is the general moment system whose score is
+the supplied parametric moment and whose nuisance space contains only a single
+element.
 
 Parametric moment: the moment depends only on `θ` (no nuisance).
-`m_par θ z` is the user-supplied moment; `J₀ : ℝ` is its scalar Jacobian
-at `θ₀`. -/
+`m_par θ z` is the user-supplied moment; `J₀ : ℝ` is an arbitrary nonzero
+scale used in the one-step formula. -/
 noncomputable def parametricMoment
     (m_par : ℝ → Z → ℝ) (θ₀ : ℝ) (J₀ : ℝ) (hJ : J₀ ≠ 0)
     (m_meas : ∀ θ, Measurable (m_par θ)) :
@@ -58,17 +65,18 @@ noncomputable def parametricMoment
   ρ₂           := fun _ _ => 0
   m_meas       := fun _ θ => m_meas θ
   η₀_mem       := Set.mem_univ _
-  J₀           := J₀
-  J₀_ne_zero   := hJ
+  linScale         := J₀
+  linScale_ne_zero := hJ
 
-/-- **Asymptotic linearity of the parametric one-step estimator.** Fix [a score `m_par` with a
-nonzero scalar Jacobian J₀ at the true parameter θ₀](hyp:J₀,hJ), where [`m_par θ` is measurable
+/-- **Algebraic identity for the scaled parametric one-step estimator.** Fix [a
+score `m_par` with a nonzero scale J₀](hyp:J₀,hJ), where [`m_par θ` is measurable
 for every θ](hyp:m_par,m_meas). If [the score `m_par θ₀` has population mean zero](hyp:h_mean_zero)
 and [it has finite second moment](hyp:h_finite_var), then for [an i.i.d. sample](hyp:sample) and
-[a one-shot fold split of it](hyp:split), [the parametric one-step estimator built from `m_par`
-and J₀ is asymptotically linear at θ₀ with influence function ψ(z) := −J₀⁻¹·m_par(θ₀, z)](goal).
+[a one-shot fold split of it](hyp:split), [the scaled one-step estimator built
+from `m_par` and J₀ is asymptotically linear at θ₀ with influence function
+ψ(z) := −J₀⁻¹·m_par(θ₀, z)](goal).
 
-With `H = Unit`, the abstract `dmlChernozhukovEstimator` collapses to the
+With `H = Unit`, the abstract `oneStepOracleDML` collapses to the
 classical parametric one-step:
 
     θ̂_n := θ₀ − J₀⁻¹ · (1/|B(n)|) Σ_{i ∈ B(n)} m_par(θ₀, Z_i),
@@ -79,10 +87,10 @@ and the rescaled remainder
 limit theorems needed).  The only non-trivial inputs are the population
 mean-zero condition and the L² bound for `m_par(θ₀, ·)`.
 
-For OLS, IV-2SLS, MLE: instantiate `m_par` with the score, identify `J₀`
-with the Hessian/expected Jacobian, and the conclusion gives asymptotic
-linearity at the rate dictated by `|B(n)|`. -/
-theorem parametric_asymptoticLinear
+Because the estimator inserts the true `θ₀` and an arbitrary supplied scale,
+this theorem neither identifies that scale with a population derivative nor
+establishes a feasible OLS, IV, or MLE result. -/
+theorem oneStepOracle_asymptoticLinear
     (m_par : ℝ → Z → ℝ) (θ₀ : ℝ) (J₀ : ℝ) (hJ : J₀ ≠ 0)
     (m_meas : ∀ θ, Measurable (m_par θ))
     (h_mean_zero : ∫ z, m_par θ₀ z ∂P_Z = 0)
@@ -90,7 +98,7 @@ theorem parametric_asymptoticLinear
     (sample : IIDSample Ω Z μ P_Z)
     (split : OneShotSplit sample) :
     IsAsymLinear
-      (dmlChernozhukovEstimator
+      (oneStepOracleDML
         (parametricMoment (Ω := Ω) (μ := μ) (P_Z := P_Z) m_par θ₀ J₀ hJ m_meas)
         sample split (fun _ _ => ()))
       θ₀
@@ -110,7 +118,7 @@ theorem parametric_asymptoticLinear
     -- equals the influence-function partial sum.
     have h_pointwise : ∀ n ω,
         Real.sqrt ((split.foldB n).card : ℝ) *
-            (dmlChernozhukovEstimator M sample split (fun _ _ => ()) n ω - θ₀)
+            (oneStepOracleDML M sample split (fun _ _ => ()) n ω - θ₀)
           - (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ *
               ∑ i ∈ split.foldB n, -(J₀⁻¹) * m_par θ₀ (sample.Z i ω) = 0 := by
       intro n ω
@@ -120,10 +128,10 @@ theorem parametric_asymptoticLinear
           = -(J₀⁻¹) * S := by
         rw [hS, ← Finset.mul_sum]
       have h_est :
-          dmlChernozhukovEstimator M sample split (fun _ _ => ()) n ω
+          oneStepOracleDML M sample split (fun _ _ => ()) n ω
             = θ₀ - J₀⁻¹ * (c⁻¹ * S) := by
-        simp [dmlChernozhukovEstimator, M, parametricMoment,
-          GeneralMoment.J₀_inv, hS, hc]
+        simp [oneStepOracleDML, M, parametricMoment,
+          GeneralMoment.linScaleInv, hS, hc]
       rw [h_est, h_sum_eq]
       by_cases hc0 : c = 0
       · -- |B(n)| = 0: all sums vanish.
@@ -158,9 +166,9 @@ theorem parametric_asymptoticLinear
     intro ε hε
     have h_zero_set : ∀ n,
         {ω : Ω |
-            ε * (fun _ => (1 : ℝ)) n <
+            ε * (fun _ => (1 : ℝ)) n ≤
               |Real.sqrt ((split.foldB n).card : ℝ) *
-                  (dmlChernozhukovEstimator M sample split (fun _ _ => ()) n ω - θ₀)
+                  (oneStepOracleDML M sample split (fun _ _ => ()) n ω - θ₀)
                 - (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ *
                     ∑ i ∈ split.foldB n, -(J₀⁻¹) * m_par θ₀ (sample.Z i ω)|}
           = ∅ := by
@@ -168,18 +176,18 @@ theorem parametric_asymptoticLinear
       ext ω
       simp only [Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_lt]
       rw [h_pointwise n ω]
-      simpa using le_of_lt hε
+      simpa using (not_le.mpr hε)
     have h_meas_zero : ∀ n,
         μ {ω : Ω |
-            ε * (fun _ => (1 : ℝ)) n <
+            ε * (fun _ => (1 : ℝ)) n ≤
               |Real.sqrt ((split.foldB n).card : ℝ) *
-                  (dmlChernozhukovEstimator M sample split (fun _ _ => ()) n ω - θ₀)
+                  (oneStepOracleDML M sample split (fun _ _ => ()) n ω - θ₀)
                 - (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ *
                     ∑ i ∈ split.foldB n, -(J₀⁻¹) * m_par θ₀ (sample.Z i ω)|} = 0 := by
       intro n
       rw [h_zero_set n]
       exact MeasureTheory.measure_empty
-    simp_rw [h_meas_zero]
+    simp_rw [Real.norm_eq_abs, h_meas_zero]
     exact tendsto_const_nhds
 
 end OrthogonalMoments

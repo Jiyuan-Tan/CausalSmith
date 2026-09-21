@@ -5,7 +5,8 @@ Authors: Jiyuan Tan
 
 # Structure-agnostic ATE lower bound: χ²-overlap (second construction)
 
-The Case-2 analogue of `VaryingCenterCase1/ChiSqOverlap.lean`.  Although the construction is non-linear
+The Case-2-shaped analogue of `VaryingCenterCase1/ChiSqOverlap.lean`. Although the
+construction is non-linear
 in `λ`, the *observed* masses are polynomial in `Δ` (the denominator `D` cancels in
 `mλ·gλ(1)` and the propensity collapses to the affine `m₀(1 + κΔ)`).  Hence the
 single-observation χ²-overlap of two perturbed laws keeps the clean form
@@ -24,16 +25,19 @@ which is precisely the non-uniform structure the generalized `ingster_bound_gene
 consumes (with `d j = Γⱼ/K`).
 -/
 
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Gap
+module
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Gap
 
-/-! # Propensity-Dominant Chi-Squared Second-Moment Overlap
+/-! # Second Cell-Varying Chi-Squared Second-Moment Overlap
 
 This file computes the single-observation chi-squared overlap for the second
 cell-varying perturbation family.  The closed form produces the per-pair coefficients
-used by the non-uniform Ingster bound in the propensity-dominant lower-bound
+used by the non-uniform Ingster bound in the second cell-varying lower-bound
 assembly.  This overlap is a χ² second-moment quantity for the lower-bound
 construction, not the causal positivity/overlap assumption.
 -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -44,10 +48,12 @@ namespace VarConstr2
 
 variable {K : ℕ} (P : VarConstr2 K)
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [one pair of cells](hyp:j), [the pair's chi-squared-overlap
-coefficient](goal) is
-$m_{0j}\alpha^2g_{1j}^3 + m_{0j}(\beta/g_{1j}+\alpha g_{1j}(1-g_{1j})-\alpha^2\beta g_{1j})^2/(1-g_{1j}) + m_{0j}^2\kappa_j^2/(1-m_{0j})$. -/
+coefficient](goal) is the sum of
+`m₀ⱼα²g₁ⱼ³`,
+`m₀ⱼ(β/g₁ⱼ + αg₁ⱼ(1 - g₁ⱼ) - α²βg₁ⱼ)²/(1 - g₁ⱼ)`, and
+`m₀ⱼ²κⱼ²/(1 - m₀ⱼ)`. -/
 noncomputable def ΓV2 (j : Fin K) : ℝ :=
   P.m₀ j * P.α ^ 2 * P.g₁ j ^ 3
     + P.m₀ j * (P.β / P.g₁ j + P.α * P.g₁ j * (1 - P.g₁ j) - P.α ^ 2 * P.β * P.g₁ j) ^ 2
@@ -66,7 +72,7 @@ theorem ΓV2_nonneg (j : Fin K) : 0 ≤ P.ΓV2 j := by
     apply div_nonneg (by positivity); linarith
   linarith
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [two binary sign vectors indexing perturbations](hyp:lam,lam'), [the
 single-observation chi-squared second-moment overlap](goal) is the sum, over every possible
 observed record $z$, of $q_{\lambda}(z)q_{\lambda'}(z)/p_0(z)$, where $q_{\lambda}$ and
@@ -109,7 +115,7 @@ theorem obsReal_pert2_eq (lam : Fin K → Bool) (x : Fin K × Bool) (d y : Bool)
 
 /-- [For any two Rademacher sign vectors `lam` and `lam'` indexing perturbed
 data-generating processes](hyp:lam,lam'), [the single-observation χ² overlap between them
-equals one plus the sum over pairs `j` of the propensity-dominant coefficient `ΓV2 j / K`
+equals one plus the sum over pairs `j` of the second-family coefficient `ΓV2 j / K`
 times the sign agreement between `lam` and `lam'` at pair `j`](goal). -/
 theorem chiSqOverlap_eq2 [NeZero K] (lam lam' : Fin K → Bool) :
     P.chiSqOverlapV2 lam lam'

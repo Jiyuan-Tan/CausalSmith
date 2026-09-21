@@ -1,7 +1,8 @@
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.Probability.SignedTwoPoint
-import Mathlib.InformationTheory.KullbackLeibler.ChainRule
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
+module
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+public import Mathlib.InformationTheory.KullbackLeibler.ChainRule
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!
 # Kullback--Leibler chain rule for finite words
@@ -11,6 +12,8 @@ strict-prefix marginal and a totalized conditional law for the last symbol. It t
 Kullback--Leibler divergence recursively through the resulting chronological factorization,
 without requiring full support except for the explicit pointwise conditional-divergence formula.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.InformationTheory.FiniteWordChainRule
 

@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedKL
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwUpper
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.TwoPoint
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedKL
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwUpper
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.TwoPoint
 
 set_option linter.style.longLine false
 
 /-! # Fixed-radius minimax theorem -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

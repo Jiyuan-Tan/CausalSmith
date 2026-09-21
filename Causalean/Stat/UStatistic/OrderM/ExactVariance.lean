@@ -1,39 +1,5 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Exact variance of a completely-degenerate fixed-order U-statistic
-
-For a symmetric, square-integrable, **completely degenerate** order-`m` kernel `g`
-(`OrderDegenKernel`: integrating out any single coordinate gives `0`), the
-fixed-order U-statistic has an *exact* second moment — not just the `O(1/n)` rate
-bound of `OrderM.RemainderSecondMoment`.
-
-## The Hoeffding second-moment computation
-
-Write `Sₙ = Σ_{t ∈ injectiveTuples m n} g(Z_t)`.  For two ordered injective
-`m`-tuples `t, q`:
-
-* If `image t ≠ image q`, some index `a ∈ image t ∖ image q` occurs only in
-  `g(Z_t)`; integrating that coordinate out (complete degeneracy) kills the cross
-  expectation: `E[g(Z_t) g(Z_q)] = 0`.
-* If `image t = image q`, then `q = t ∘ σ` for a permutation `σ`, so
-  `g(Z_q) = g(Z_t)` by symmetry and `E[g(Z_t) g(Z_q)] = ζ_m = zetaOrder P g`.
-  There are exactly `m!` such `q` for each `t` (the reorderings).
-
-Hence `E[Sₙ²] = m! · n^{(m)} · ζ_m` with `n^{(m)} = injectiveTupleCount m n`, so
-
-  `Var[Uₙ] = m! · ζ_m / n^{(m)}`,   `E[(√n Uₙ)²] = n · m! · ζ_m / n^{(m)}`.
-
-At `m = 2`, the variance formula specializes to `2ζ / (n(n−1))` and the
-rescaled second moment specializes to `2ζ / (n−1)`, matching the order-2
-`integral_offDiag_sum_sq` / `integral_rescaled_sq` interface.  This is the
-order-`m` generalization of the exact degenerate variance consumed by the
-higher-order influence-function estimators.
--/
-
-import Causalean.Stat.UStatistic.OrderM.Variance
+module
+public import Causalean.Stat.UStatistic.OrderM.Variance
 
 /-!
 # Exact variance for completely degenerate fixed-order U-statistics
@@ -50,7 +16,20 @@ The headline variance identities are
 sum and `IIDSample.integral_rescaled_order_sq_degen` for the `√n`-rescaled
 degenerate U-statistic.  These sharpen the general rate bound to an exact
 formula in the completely degenerate case.
+
+The proof classifies pairs of injective tuples by whether their images agree.
+Different images give a zero cross moment by complete degeneracy; equal images
+differ by one of `m!` coordinate permutations and contribute the common kernel
+second moment.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

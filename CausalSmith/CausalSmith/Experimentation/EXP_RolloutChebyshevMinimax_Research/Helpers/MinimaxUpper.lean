@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Chebyshev minimax upper-bound assembly
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.MinimaxAssembly
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.MinimaxAssembly
+
+public section
 
 open scoped BigOperators
 

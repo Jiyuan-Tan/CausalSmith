@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Sample
-import Causalean.Tactic.IntegralLinearity
-import Mathlib.Analysis.Complex.ExponentialBounds
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
-import Mathlib.Probability.Moments.Basic
+module
+public import Causalean.Stat.Sample
+public import Causalean.Tactic.IntegralLinearity
+public import Mathlib.Analysis.Complex.ExponentialBounds
+public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+public import Mathlib.Probability.Moments.Basic
 
 /-! # Multiplicative tails for bounded i.i.d. counts
 
@@ -32,6 +33,8 @@ records that for a `{0,1}`-valued statistic the one-observation bound is an
 equality.  `bernoulliCount_measurable`, `bernoulliCount_nonneg` and
 `bernoulliCount_le` record the basic properties of the count itself.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Concentration
 

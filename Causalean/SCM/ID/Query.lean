@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Backdoor
+module
+public import Causalean.SCM.ID.Backdoor
 
 /-!
 # Total interventional query API
@@ -14,6 +15,13 @@ theorems.  It deliberately avoids importing the Tian/c-factor ID skeleton, so
 modules can state and prove base cases for `interventionalQuery` without
 depending on the full density recovery stack.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.ID
 

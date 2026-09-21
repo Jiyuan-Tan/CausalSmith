@@ -11,9 +11,13 @@ recover the degree-`m+2` support annihilator generically, so the fixed vertical
 and horizontal axes exclude every full opposite-arrow fiber.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LowerOrderEmptyFiber
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.MomentGate
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
+public import
+  CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LowerOrderEmptyFiber
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.MomentGate
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -231,8 +235,8 @@ lemma reverseCumulantMap_complexify {m L : ℕ} (η : ParamSpace ℝ m) :
 generically separates the two real arrows. -/
 theorem lowerOrderApolarSeparation (m : ℕ) (hm : 3 ≤ m) :
     separatesAtOrder m (2 * m + 1) := by
-  have hgate : TruncatedMomentInterior (2 * m + 1) :=
-    truncatedMomentInterior (2 * m + 1)
+  have hgate : TruncatedCumulantInterior (2 * m + 1) :=
+    truncatedCumulantInterior (2 * m + 1)
   obtain ⟨hPf_ne, ⟨θf0, hθf0_pin, hθf0_ne⟩, hPf_inj⟩ :=
     lowerForwardExplicitRankData m hm
   obtain ⟨hPr_ne, ⟨θr0, hθr0_pin, hθr0_ne⟩, hPr_inj⟩ :=

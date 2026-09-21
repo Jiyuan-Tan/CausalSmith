@@ -20,7 +20,8 @@ concentration half-width.  The resulting random interval
 
     [ X̄ₙ(f_L) − w_L ,  X̄ₙ(f_U) + w_U ]
 
-covers the whole identified set `[L, U]` — and hence the true `θ₀` — with
+covers the whole identified set `[L, U]` when its endpoints are ordered — and
+hence the true `θ₀` — with
 probability at least `1 − δ_L − δ_U`, at *every* sample size `n` (no asymptotics).
 This is the finite-sample, plug-in form of the Horowitz–Manski (2000) honest
 confidence region.
@@ -35,14 +36,15 @@ confidence region.
 
 All half-widths are explicit; the conservativeness `δ_L + δ_U` is the Bonferroni
 price of protecting both endpoints.  The sharper Imbens–Manski refinement (which,
-when `U − L > 0`, replaces the two-sided half-widths by *one-sided* critical
-values to recover `1 − α` rather than `1 − 2·(α/2)` parameter coverage) is the
+when `U − L > 0`, replaces the two-sided half-widths by smaller *one-sided*
+critical values at the same nominal `1 − α` parameter coverage) is the
 asymptotic statement in `Inference/ImbensManski.lean`.
 -/
 
-import Causalean.PO.ID.Partial.Inference.Basic
-import Causalean.Stat.Concentration.UniformDeviation.ConfidenceInterval
-import Causalean.Stat.Limit.WLLN
+module
+public import Causalean.PO.ID.Partial.Inference.Basic
+public import Causalean.Stat.Concentration.TailBounds.ConfidenceInterval
+public import Causalean.Stat.Limit.WLLN
 
 /-! # Finite-Sample Confidence Intervals for Interval Bounds
 
@@ -61,6 +63,8 @@ Bernstein version. All results are conservative two-endpoint guarantees based on
 the abstract union-bound lemma in `Inference.Basic`; the one-sided asymptotic
 Imbens-Manski refinement is developed separately in `Inference.ImbensManski`. -/
 
+public section
+
 namespace Causalean.PartialID.Inference
 
 open MeasureTheory ProbabilityTheory Real Causalean.Stat Causalean.Stat.Concentration
@@ -71,8 +75,9 @@ variable {Ω X' : Type*} [MeasurableSpace Ω] [MeasurableSpace X']
 /-- **Finite-sample honest CI for the identified set (Hoeffding).** Given lower and upper
 bounding statistics `f_L`, `f_U` that are [measurable](hyp:hfL,hfU), each [confined a.s. to a
 known bounded range — `f_L ∈ [aL, bL]` with `aL < bL`, `f_U ∈ [aU, bU]` with
-`aU < bU`](hyp:habL,habU,hbL,hbU) — at [any positive sample size `n`](hyp:hn) and [any pair of
-failure probabilities `δ_L`, `δ_U` in `(0, 1]`](hyp:hδL0,hδL1,hδU0,hδU1), [widening the sample
+`aU < bU`](hyp:habL,habU,hbL,hbU) — at
+[any positive sample size `n`](hyp:hn) and [any pair of failure probabilities `δ_L`,
+`δ_U` in `(0, 1]`](hyp:hδL0,hδL1,hδU0,hδU1), [widening the sample
 means `X̄ₙ(f_L)` and `X̄ₙ(f_U)` outward by the matching Hoeffding half-widths produces a random
 interval that covers the whole identified interval `[∫ f_L dP, ∫ f_U dP]` with probability at
 least `1 − δ_L − δ_U`](goal). -/
@@ -98,8 +103,8 @@ theorem hoeffding_honest_ci_set_cover (S : IIDSample Ω X' μ P)
         ≤ δU :=
     le_trans (measureReal_mono upperUndershoot_subset_absMiss)
       (hoeffding_ci_miss S hfU habU hbU n hn hδU0 hδU1)
-  exact honest_ci_set_cover (S.measurable_sampleMean hfL n) (S.measurable_sampleMean hfU n)
-    hL_one hU_one
+  exact honest_ci_set_cover (S.measurable_sampleMean hfL n)
+    (S.measurable_sampleMean hfU n) hL_one hU_one
 
 /-- **Finite-sample honest CI for the parameter (Hoeffding).** The parameter-coverage corollary
 of `hoeffding_honest_ci_set_cover`: under the same setup — [measurable](hyp:hfL,hfU) bounding

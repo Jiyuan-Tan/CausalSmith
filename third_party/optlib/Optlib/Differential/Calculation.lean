@@ -3,10 +3,13 @@ Copyright (c) 2023 Chenyi Li. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chenyi Li, Ziyu Wang, Zaiwen Wen
 -/
-import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Calculus.FDeriv.Add
-import Mathlib.Analysis.Calculus.Deriv.Comp
-import Mathlib.Analysis.Calculus.Gradient.Basic
+
+module
+public import Mathlib.Analysis.Calculus.FDeriv.Mul
+public import Mathlib.Analysis.Calculus.FDeriv.Add
+public import Mathlib.Analysis.Calculus.Deriv.Comp
+public import Mathlib.Analysis.Calculus.Gradient.Basic
+
 /-!
 # Gradient
 
@@ -22,6 +25,8 @@ This file contains the following parts of gradient.
 * the gradient for the product of two functions.
 * the gradient for the product of a constant and a function.
 -/
+
+@[expose] public section
 
 noncomputable section
 set_option checkBinderAnnotations false

@@ -13,7 +13,8 @@ for the folder layer-map.
 
 Layer B — measure-theoretic bridge from a probability space carrying the
 balanced cohort-period law to the Layer A finite-cell `betaTWFE`. Mirrors
-the Słoczyński Layer B file `Panel/EstimandCharacterization/OLSWeightDecomposition/OverlapWeightedATE.lean`
+the Słoczyński Layer B file
+`Panel/EstimandCharacterization/OLSWeightDecomposition/OverlapWeightedATE.lean`
 in its split structure:
 
 * `Support.Basic` — saturated cohort + period class, cell statistics,
@@ -38,15 +39,19 @@ Source LaTeX:
 `doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.tex`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.PerCell
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.PerCell
 
 /-! # Goodman-Bacon Measure-Theoretic Bridge
 
-This file states the public bridge from a probability-space panel model to the
-finite Goodman-Bacon cohort-period algebra. It relates residualized-treatment
-integrals to the finite-panel denominator and numerator, allowing the abstract
-residualized coefficient to be read as the finite-cell TWFE coefficient under
-the balanced cohort-period law. -/
+This file states a conditional transport bridge from a probability-space panel
+model to the finite Goodman-Bacon cohort-period algebra. It assumes explicit
+compatibility between the population and finite residualized treatments; it
+does not derive that compatibility from an observed staggered-adoption path.
+Under that premise and the balanced cohort-period law, it identifies the
+population residualized coefficient with the finite-cell TWFE coefficient. -/
+
+public section
 
 namespace Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition
 
@@ -56,17 +61,18 @@ open scoped BigOperators
 variable {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢] [DecidableEq 𝒢]
   [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢] {T : ℕ}
 
-/-- On a probability space carrying cohort label `G`, period label `T_rv`, treatment `D`, and
-outcome `Y`, assume [`D` is binary almost everywhere](hyp:D_binary), [there is at least one time
-period](hyp:hT_pos), [every cohort has strictly positive population mass](hyp:hp_pos), [the
-cohort masses sum to one](hyp:hp_sum), [each cohort's mass is split evenly across periods (a
-balanced panel law)](hyp:hLaw), [on each cohort-period cell `D` is almost-everywhere equal to its
-own cell mean (cell-measurability of `D`)](hyp:hD_cell), and [the population per-cell
-residualized treatment `panelDtilde` agrees with the finite-panel residualized treatment
-`Dtilde`](hyp:hDtilde_eq). Then [the population second moment of the residualized-treatment
-witness — the FWL denominator `∫ Vtilde² dμ` — equals the finite-cell Goodman-Bacon denominator
-`VD` of the induced finite panel](goal). -/
-theorem bridge_Dtilde_sq_eq_VD
+/-- The population second moment of residualized treatment
+[equals the corresponding finite cohort-period denominator](goal) for
+[a probability law](hyp:μ) with [treatment and outcome variables](hyp:D,Y),
+[cohort and period labels](hyp:G,T_rv), and [an adoption schedule](hyp:A), provided
+[the labels and treatment are measurable](hyp:G_meas,T_meas,D_meas),
+[treatment is binary almost everywhere](hyp:D_binary),
+[the cohort-period law is balanced](hyp:B_balanced),
+[there is at least one period](hyp:hT_pos), [cohort masses are positive](hyp:hp_pos) and
+[sum to one](hyp:hp_sum), [each cohort's mass is uniform across periods](hyp:hLaw),
+[treatment is constant at its mean within every cell](hyp:hD_cell), and
+[population and finite residualized treatments agree in every cell](hyp:hDtilde_eq). -/
+theorem bridge_Dtilde_sq_eq_VD_of_residual_compatibility
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (D Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
     (A : 𝒢 → WithTop (Fin T))
@@ -123,27 +129,29 @@ theorem bridge_Dtilde_sq_eq_VD
     _ = VD P := by
       simp [P, panelOf, VD, hLaw, hDtilde_eq]
 
-/-- On a probability space carrying cohort label `G`, period label `T_rv`, treatment `D`, and
-outcome `Y`, assume [`D` is binary almost everywhere](hyp:D_binary), [there is at least one time
-period](hyp:hT_pos), [every cohort has strictly positive population mass](hyp:hp_pos), [the
-cohort masses sum to one](hyp:hp_sum), [each cohort's mass is split evenly across periods (a
-balanced panel law)](hyp:hLaw), [on each cohort-period cell `D` is almost-everywhere equal to its
-own cell mean (cell-measurability of `D`)](hyp:hD_cell), and [the population per-cell
-residualized treatment `panelDtilde` agrees with the finite-panel residualized treatment
-`Dtilde`](hyp:hDtilde_eq). Then [the finite-cell Goodman-Bacon denominator `VD` is strictly
-positive if and only if the population FWL denominator `∫ Vtilde² dμ` is strictly
-positive](goal).
+/-- Positivity of the finite-panel treatment denominator
+[is equivalent to positivity of the population residualized-treatment second moment](goal) for
+[a probability law](hyp:μ) with [treatment and outcome variables](hyp:D,Y),
+[cohort and period labels](hyp:G,T_rv), and [an adoption schedule](hyp:A), provided
+[the labels and treatment are measurable](hyp:G_meas,T_meas,D_meas),
+[treatment is binary almost everywhere](hyp:D_binary),
+[the cohort-period law is balanced](hyp:B_balanced),
+[there is at least one period](hyp:hT_pos), [cohort masses are positive](hyp:hp_pos) and
+[sum to one](hyp:hp_sum), [each cohort's mass is uniform across periods](hyp:hLaw),
+[treatment is constant at its mean within every cell](hyp:hD_cell), and
+[population and finite residualized treatments agree in every cell](hyp:hDtilde_eq).
 
 Callers who already hold `hVD_pos : 0 < VD P` (from the Layer A side) can
 derive `hDtilde_pos` automatically:
 ```
-  (bridge_VD_pos_iff_Dtilde_sq_pos …).mpr hVD_pos
+  (bridge_VD_pos_iff_Dtilde_sq_pos_of_residual_compatibility …).mpr hVD_pos
 ```
 eliminating the need to supply `hDtilde_pos` as an independent hypothesis to
-`bridge_finite_residualized_eq_twfe`. Previously callers had to supply both
+`bridge_finite_residualized_eq_twfe_of_residual_compatibility`. Previously callers had to
+supply both
 `hVD_pos` and `hDtilde_pos` with no bridge between them. The equivalence is an
-immediate rewrite via `bridge_Dtilde_sq_eq_VD`. -/
-theorem bridge_VD_pos_iff_Dtilde_sq_pos
+immediate rewrite via `bridge_Dtilde_sq_eq_VD_of_residual_compatibility`. -/
+theorem bridge_VD_pos_iff_Dtilde_sq_pos_of_residual_compatibility
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (D Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
     (A : 𝒢 → WithTop (Fin T))
@@ -167,19 +175,22 @@ theorem bridge_VD_pos_iff_Dtilde_sq_pos
                     B_balanced).Vtilde ω
               * (residWitnessD_panel μ D G T_rv G_meas T_meas D_meas D_binary
                     B_balanced).Vtilde ω ∂μ := by
-  rw [bridge_Dtilde_sq_eq_VD μ D Y G T_rv A G_meas T_meas D_meas D_binary
+  rw [bridge_Dtilde_sq_eq_VD_of_residual_compatibility μ D Y G T_rv A G_meas T_meas
+        D_meas D_binary
         B_balanced hT_pos hp_pos hp_sum hLaw hD_cell hDtilde_eq]
 
-/-- On a probability space carrying cohort label `G`, period label `T_rv`, treatment `D`, and
-outcome `Y`, assume [`D` is binary almost everywhere](hyp:D_binary), [there is at least one time
-period](hyp:hT_pos), [every cohort has strictly positive population mass](hyp:hp_pos), [the
-cohort masses sum to one](hyp:hp_sum), [each cohort's mass is split evenly across periods (a
-balanced panel law)](hyp:hLaw), [on each cohort-period cell `D` is almost-everywhere equal to its
-own cell mean (cell-measurability of `D`)](hyp:hD_cell), and [the population per-cell
-residualized treatment `panelDtilde` agrees with the finite-panel residualized treatment
-`Dtilde`](hyp:hDtilde_eq). Then [the population residualized regression coefficient of `D` on
-`Y`, controlling for the cohort/period additive class `panelClass`, equals the finite-cell
-Goodman-Bacon two-way-fixed-effects coefficient `betaTWFE` of the induced finite panel](goal).
+/-- The population coefficient from residualizing treatment and outcome on cohort and period
+effects [equals the induced finite-panel TWFE coefficient](goal) for
+[a probability law](hyp:μ) with [treatment and outcome variables](hyp:D,Y),
+[cohort and period labels](hyp:G,T_rv), and [an adoption schedule](hyp:A), provided
+[the labels and treatment are measurable](hyp:G_meas,T_meas,D_meas),
+[treatment is binary almost everywhere](hyp:D_binary),
+[the outcome is square-integrable](hyp:Y_memLp),
+[the cohort-period law is balanced](hyp:B_balanced),
+[there is at least one period](hyp:hT_pos), [cohort masses are positive](hyp:hp_pos) and
+[sum to one](hyp:hp_sum), [each cohort's mass is uniform across periods](hyp:hLaw),
+[treatment is constant at its mean within every cell](hyp:hD_cell), and
+[population and finite residualized treatments agree in every cell](hyp:hDtilde_eq).
 
 **Note on `hDtilde_eq`.**
 The hypothesis
@@ -187,21 +198,15 @@ The hypothesis
 hDtilde_eq : ∀ g t, panelDtilde μ D G T_rv g t =
                       Dtilde (panelOf …) g t
 ```
-encodes the assumption that `D` is *cell-measurable*, i.e. constant on each
-cohort×period cell `{ω | G ω = g ∧ T_rv ω = t}`.  In the paper this is
-definitional (D_{gt} = 1_{A_g ≤ t} depends only on (g, t)), and ideally one
-would derive `hDtilde_eq` as a lemma from a cleaner premise
+is an explicit residual-compatibility assumption. It is stronger than cell
+measurability and is not derived here from the supplied adoption schedule `A`.
+For a genuine staggered-adoption bridge one would instead start from a premise
 ```
-hD_cell_fun : ∀ᵐ ω ∂μ, D ω = if AdoptionDate.le (A (G ω)) (T_rv ω) then 1 else 0
+hD_path : ∀ᵐ ω ∂μ, D ω = if AdoptionPath.le (A (G ω)) (T_rv ω) then 1 else 0
 ```
-via cell-mean computation under `hLaw`.  Deriving this step requires
-measure-theoretic a.e.-equality machinery for cell restrictions that is not
-yet present in Causalean (the gap requires showing that a cell conditional mean
-of a cell-constant function returns that constant).  Until that machinery is
-in place `hDtilde_eq` is carried as an explicit hypothesis; it is *not* an
-opaque assumption about the conclusion but a precise statement of
-cell-measurability of `D`, deferred to a future measure layer. -/
-theorem bridge_finite_residualized_eq_twfe
+and derive residual compatibility by computing the cell means. Until that
+derivation is formalized, this theorem is only a conditional transport result. -/
+theorem bridge_finite_residualized_eq_twfe_of_residual_compatibility
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (D Y : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
     (A : 𝒢 → WithTop (Fin T))

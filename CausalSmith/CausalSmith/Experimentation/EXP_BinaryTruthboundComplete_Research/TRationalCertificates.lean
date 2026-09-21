@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
-import Causalean.Mathlib.Optimization.RationalLP
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
+public import Causalean.Mathlib.Optimization.RationalLP
 
 /-! Rational primal-dual and assignment-table certificates. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

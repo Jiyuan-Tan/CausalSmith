@@ -45,11 +45,12 @@ remains as reusable `Prop` packaging for downstream theorems, while
 KL divergence.
 -/
 
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.Scheffe
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.MeasureTheory.Function.L2Space
+module
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.Scheffe
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 Proves Pinsker's inequality and its KL-form Le Cam minimax lower-bound corollaries.
@@ -62,6 +63,8 @@ total-variation control as `PinskerBound`.  The main bridge
 `klForm_two_point_lower_bound` theorems turn the bridge into Le Cam lower bounds
 whose right-hand divergence term is Kullback-Leibler rather than total variation.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

@@ -1,11 +1,11 @@
-import { readFile, writeFile, appendFile, mkdir } from "node:fs/promises";
+import { readFile, appendFile, mkdir } from "node:fs/promises";
 
 import { join } from "node:path";
 import { stripTexComments } from "../shared/tex_text.js";
 import type { StageIO } from "./pipeline.js";
 import { PRESENTATION_PROSE_POLICY_VERSION, presentationPrompt } from "./prompt_io.js";
 import { notationForArtifact, parseOutline } from "./stage_util.js";
-import { canonicalizeProofTitle, hashEnvBody, parseAnchoredEnvs, repairObjRefs, type AnchoredEnv, type LintProblem } from "./tex_anchors.js";
+import { canonicalizeProofTitle, hashEnvBody, repairObjRefs, type AnchoredEnv, type LintProblem } from "./tex_anchors.js";
 import { FormalLayerSource, type FormalBlock } from "./formal_layer.js";
 import { bankAcceptedDir } from "./paths.js";
 import { saveGraph, graphPath } from "../graph/store.js";

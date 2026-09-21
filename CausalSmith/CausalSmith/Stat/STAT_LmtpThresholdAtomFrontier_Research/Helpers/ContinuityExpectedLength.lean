@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityProcedureBounds
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityProcedureBounds
 
 /-! # Expected length of the continuity-only interval
 
 This file bounds the expected length of the two-block Hoeffding interval by
 its deterministic root-block radii and the polynomial threshold-mass envelope.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

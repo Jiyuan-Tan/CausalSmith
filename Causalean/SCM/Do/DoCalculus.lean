@@ -3,43 +3,55 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# do-Calculus (SCM skeleton, single-intervention form)
+# Restricted do-calculus interfaces (SCM skeleton, single-intervention form)
 
-This file states the three rules of Pearl's do-calculus against the SCM
-observational kernel, in the **single-intervention** form that operates
-directly on an SCM `M'`.  The two-layer Pearl presentation
-`(M, X, hX_*, Z, …)` is obtained by instantiating these rules at
-`M' := M.fixSet X …`: "do(x) on both sides" is merely an accounting
-identity, since applying a rule to the SCM `M.fixSet X` gives the same
-conclusion with no outer-X layer.
+This file gives Rule 1 together with restricted sufficient forms of Rule 2
+and Rule 3*.  The results operate directly on an SCM `M'`; an existing outer
+intervention may be represented by taking `M' := M.fixSet X …`.  The Rule 2
+interface additionally requires non-descendancy in both relevant graphs and
+product absolute continuity, while the Rule 3* interface assumes that every
+target fixed copy is non-ancestral to the entire outcome/conditioning block.
+They therefore do not state Pearl's Rules 2 and 3 at their full graphical
+generality.
 
 ## Main declarations
 
 * `do_rule1` — Insertion/deletion of observations (CI under the mutilated model)
-* `do_rule2_kernel` — Action/observation exchange (kernel-native; a.e. equality of `obsCondKernel` values)
-* `do_rule3` — Insertion/deletion of actions (non-descendant blocker)
+* `do_rule2_kernel_of_nondescendant_product_ae` — restricted action/observation exchange
+  under non-descendancy and product absolute continuity
+* `do_rule3_star` — Rule 3* insertion/deletion of actions under a non-ancestor premise
 
 ## References
 
-* Basic Concepts.tex, Proposition (do-Calculus).
-* Pearl (2009), Causality, Chapter 3.
-* Malinsky, Shpitser & Tchetgen Tchetgen (2019) — potential-outcome calculus.
+* Basic Concepts.tex, Proposition (do-Calculus), for the split-language outline.
+* Pearl (2009), Causality, Chapter 3, for the full rules used as comparison points.
+* Malinsky, Shpitser & Richardson (2019), for Rule 3*.
 -/
 
-import Causalean.SCM.Do.ObsMarkov
-import Causalean.SCM.Do.Rule2
-import Causalean.SCM.Do.Rule2AE
-import Causalean.SCM.Do.Rule3
-import Causalean.SCM.Model.InterventionSet
-import Causalean.SCM.Model.Induced
-import Causalean.SCM.ID.Overlap
+module
+public import Causalean.SCM.Do.ObsMarkov
+public import Causalean.SCM.Do.Rule2
+public import Causalean.SCM.Do.Rule2AE
+public import Causalean.SCM.Do.Rule3
+public import Causalean.SCM.Model.InterventionSet
+public import Causalean.SCM.Model.Induced
+public import Causalean.SCM.Do.Overlap
 
 /-! # Do-Calculus for Structural Causal Models
 
-This file states the three rules of Pearl's do-calculus for structural causal
-models in a single-intervention form. The results connect graphical separation
-conditions in intervention graphs to observational conditional independences and
-conditional-kernel equalities used by the identification layer. -/
+This file states Rule 1 and restricted sufficient forms of Rule 2 and Rule 3*
+for structural causal models in a single-intervention form. The Rule 2 result
+also assumes non-descendancy and product absolute continuity; the Rule 3* result
+uses the stronger non-ancestor premise on the whole outcome/conditioning block.
+These are sound interfaces used by the identification layer, not the full Pearl
+rules at their stated graphical generality. -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -51,7 +63,7 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 open scoped MeasureTheory ProbabilityTheory
 
 -- ============================================================
--- § 1. do-Calculus (Pearl, 1995) — single-intervention SCM form
+-- § 1. Restricted do-calculus interfaces — single-intervention SCM form
 -- ============================================================
 
 /-- **Rule 1: Insertion/deletion of observations (single-SCM form).** On any structural causal
@@ -92,7 +104,8 @@ theorem do_rule1 (M' : Causalean.SCM N Ω)
   exact M'.globalMarkov_with_fixed Y Z W M'.fixed hY hZ hW (Finset.Subset.refl _)
     hdSep s
 
-/-- **Rule 2: Action/observation exchange (single-SCM form, kernel-native).** Fix a structural
+/-- **Restricted Rule 2: action/observation exchange under non-descendancy and product
+    absolute continuity (single-SCM, kernel-native).** Fix a structural
     causal model `M'` and a treatment set `Z` for which [each member's random copy is already
     observed in `M'`](hyp:hZ_obs) and [each member's fixed copy is not yet among `M'`'s fixed
     nodes](hyp:hZ_fixed), with outcome and conditioning sets [`Y`](hyp:hY) and [`W`](hyp:hW),
@@ -102,7 +115,7 @@ theorem do_rule1 (M' : Causalean.SCM N Ω)
     that [no fixed copy of a `Z`-variable is a post-intervention ancestor of any node in
     `W`](hyp:hWNonDesc), and that [no random copy of a `Z`-variable is an `M'`-ancestor of any
     node in `W`](hyp:hWNonDescM1), so `W` is not downstream of the intervention in either graph.
-    At a fixed-value point `s0`, assume [the law obtained by independently pairing a treatment
+    [At a fixed-value point `s0`](hyp:s0), assume [the law obtained by independently pairing a treatment
     value drawn from the observational marginal of `Z`'s random copies with a conditioning
     value drawn from the observational marginal of `W` is absolutely continuous with respect to
     the actual observational joint law of `Z`'s random copies and `W`](hyp:hPositivity_ae). Then
@@ -120,20 +133,22 @@ theorem do_rule1 (M' : Causalean.SCM N Ω)
     atomic `νZ` makes the "a.e." pointwise on the support, recovering the
     discrete reading.
 
-    The overlap hypothesis is the joint-AC predicate `Rule2JointOverlap`
-    together with the product-level positivity `hPositivity_ae`; neither
-    requires pointwise singleton positivity, so the rule is valid in
-    continuous-`Z` regimes.  The non-descendant hypotheses `hWNonDesc` /
+    The product-level positivity hypothesis `hPositivity_ae` does not require
+    pointwise singleton positivity, so the statement accommodates continuous
+    `Z` regimes.  The non-descendant hypotheses `hWNonDesc` /
     `hWNonDescM1` record that the conditioning set `W` is not downstream of
     the intervention — part of Rule 2's sound applicability and what the
     cross-SCM witness transfer consumes.
 
-    **Pearl correspondence.**  Taking `M' := M.fixSet X …` recovers
-    Pearl's two-layer Rule 2 `(Y ⊥ Z | W, X)_{G_{\overline X, \underline Z}}`.
+    **Scope relative to Pearl's Rule 2.** Taking `M' := M.fixSet X …` supplies
+    the outer-intervention bookkeeping, but this theorem remains a sufficient
+    specialization: its two non-descendancy assumptions and product absolute
+    continuity are additional to Pearl's graphical Rule 2 premise.
 
     The proof delegates to `SCM.obsCondKernel_fixSet_eq_ae_witness`, the
     witness-kernel route for the product-a.e. Rule 2 statement. -/
-theorem do_rule2_kernel (M' : Causalean.SCM N Ω) (Z : Finset N)
+theorem do_rule2_kernel_of_nondescendant_product_ae
+    (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
     (Y W : Finset (SWIGNode N))
@@ -178,18 +193,18 @@ theorem do_rule2_kernel (M' : Causalean.SCM N Ω) (Z : Finset N)
   SCM.obsCondKernel_fixSet_eq_ae_witness M' Z hZ_obs hZ_fixed Y W hY hW hZr hZrW
     hdSep hWNonDesc hWNonDescM1 s0 hPositivity_ae
 
-/-- **Rule 3: insertion/deletion of actions (simplified joint-marginal form).** Fix a structural
+/-- **Rule 3*: insertion/deletion of actions (simplified joint-marginal form).** Fix a structural
     causal model `M'` and a treatment set `Z` for which [each member's random copy is already
     observed in `M'`](hyp:hZ_obs) and [each member's fixed copy is not yet among `M'`'s fixed
     nodes](hyp:hZ_fixed), together with outcome and conditioning sets [`Y`](hyp:hY) and
     [`W`](hyp:hW), both observed in `M'`. Suppose [no node of `Y ∪ W` is, in the model
-    intervened on `Z`, a descendant of the fixed copy of any variable in `Z`](hyp:hNoDesc). Then
-    [the joint law of `(Y, W)` under the intervened model, at any post-intervention fixed value,
+    intervened on `Z`, a descendant of the fixed copy of any variable in `Z`](hyp:hNoDesc).
+    For [any post-intervention fixed value](hyp:s'), [the joint law of `(Y, W)` under the intervened model
     equals the joint law of `(Y, W)` under the base model `M'` at the corresponding
     pre-intervention fixed value](goal).
 
     This is the node-splitting version of Pearl's Rule 3\* from
-    Malinsky–Shpitser–Tchetgen Tchetgen (2019), in single-SCM form:
+    Malinsky–Shpitser–Richardson (2019), in single-SCM form:
 
         (Y(z) ⊥⊥ z)_{M'.fixSet Z}   ⟹   p( Y(z) ) = p( Y )   on `M'`.
 
@@ -200,8 +215,8 @@ theorem do_rule2_kernel (M' : Causalean.SCM N Ω) (Z : Finset N)
         p( Y(z), W(z) )_{M'.fixSet Z} = p( Y, W )_{M'}    if
         ( Y ∪ W  ⊥⊥  z )_{M'.fixSet Z}.
 
-    Dividing by the (equal) `W`-marginals recovers the conditional
-    Rule 3.  A single hypothesis/conclusion pair here covers both the
+    Dividing by the (equal) `W`-marginals recovers conditional Rule 3*.
+    A single hypothesis/conclusion pair here covers both the
     marginal and conditional forms.
 
     Hypothesis `hNoDesc`. It states `z_d ∉ An_{M'.fixSet Z}(v)` for
@@ -211,23 +226,24 @@ theorem do_rule2_kernel (M' : Causalean.SCM N Ω) (Z : Finset N)
     `z_d ∈ An_{M'.fixSet Z}(v)`.  Hence `hNoDesc` is equivalent to
     `(Y ∪ W ⊥⊥ z)_{M'.fixSet Z}`.
 
-    Pearl correspondence. Taking `M' := M.fixSet X …` recovers
-    Pearl's two-layer Rule 3 on the double-intervention graph `G(x,z)`.
+    Taking `M' := M.fixSet X …` gives this Rule 3* statement after an outer
+    intervention. It does not by itself recover Pearl's full Rule 3.
 
-    Relation to the full Rule 3. The unsimplified Rule 3 partitions
+    Relation to the full Rule 3. The unsimplified rule partitions
     `Z = Z₁ ⊔ Z₂` with `Z₁ = Z \ An_{M'}(W)` and a weaker two-part
-    d-sep premise.  For identification purposes the two forms have
-    equal power; Rule 3\* on the joint `Y ∪ W` is chosen here because
-    its kernel-level statement is a single clean marginal equality. The
+    d-sep premise. Deriving that rule requires combining the partition with
+    other do-calculus steps; it is not the statement proved here. Rule 3\* on
+    the joint `Y ∪ W` is used because its kernel-level statement is a single
+    clean marginal equality. The
     conditional form `p(Y | do(z), W) = p(Y | W)` is derived from this joint
-    equality in `Rule3Conditional.lean` (`do_rule3_conditional`), in the honest
+    equality in `Rule3Conditional.lean` (`do_rule3_star_conditional`), in the honest
     a.e. `obsCondKernel` form — no positivity/ratio hypotheses are needed, since
     `condDistrib` depends only on the (Rule-3*-equal) joint law.
 
     Proof idea. Delegates to `SCM.condDistrib_intervention_ancestral_eq`
     with `T := Y ∪ W`, repackaging `hNoDesc` into the per-node form
     expected by that lemma. -/
-theorem do_rule3 (M' : Causalean.SCM N Ω) (Z : Finset N)
+theorem do_rule3_star (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
     (Y W : Finset (SWIGNode N))

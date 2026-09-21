@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Concentration.ProjectionMatrixTail
-import Causalean.Stat.Concentration.ConditionalKernel
-import Mathlib.Probability.Independence.Conditional
+module
+public import Causalean.Stat.Concentration.ProjectionMatrixTail
+public import Causalean.Stat.Concentration.ConditionalKernel
+public import Mathlib.Probability.Independence.Conditional
 
 /-!
 # Conditional concentration of projected bounded noise
@@ -16,6 +17,8 @@ conditional distributions.  A projector measurable with respect to the
 conditioning sigma-algebra is frozen on almost every conditional fiber before
 the unconditional result is applied.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

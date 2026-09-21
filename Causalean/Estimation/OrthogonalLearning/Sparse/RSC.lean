@@ -17,7 +17,8 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-rsc`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Sparse.Setup
+module
+public import Causalean.Estimation.OrthogonalLearning.Sparse.Setup
 
 /-! # Restricted Strong Convexity
 
@@ -30,6 +31,8 @@ The exported predicate `RestrictedStrongConvexity` states that the empirical
 risk lies above its first-order approximation at `θ₀` by a quadratic margin on
 `RestrictedCone S₀`; positivity of the curvature parameter is supplied by
 callers. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

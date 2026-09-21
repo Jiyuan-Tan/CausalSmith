@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialChannelKernel
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialChannelKernel
 
 /-!
 # Contracted binary source law for the radial converse
@@ -7,13 +8,12 @@ This file constructs the binary observation law obtained by passing the source
 response through the paper's hypothesis-independent Bernoulli contraction.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal
-
-private abbrev BinLaw := CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-private abbrev BinObs := CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @node: radialContractionPMF
 /-- Conditional law of the contracted response bit given the source bit. -/

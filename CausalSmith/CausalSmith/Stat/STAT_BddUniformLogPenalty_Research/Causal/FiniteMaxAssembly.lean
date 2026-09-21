@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Divergence
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxExperiment
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Divergence
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxExperiment
 
 /-!
 # Causal finite-maximum assembly
@@ -8,6 +9,8 @@ This module builds the finite measurable partition used to split the causal
 hard-family marked-Poisson experiment into its local cells and common
 complement.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

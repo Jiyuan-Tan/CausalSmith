@@ -2,12 +2,15 @@
 # Fixed-geometry expected-length frontier
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Stat.Minimax.Scheffe
-import Causalean.Stat.Sample.EffectiveSampleSize
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Stat.Minimax.Scheffe
+public import Causalean.Stat.Sample.EffectiveSampleSize
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -548,6 +551,7 @@ theorem fixed_geometry_frontier
           have hK : Measurable (fun s : SourceSample 𝒳 n =>
               empiricalKish (wG n) n s) := by
             unfold empiricalKish Causalean.Stat.empiricalKishDispersion
+              Causalean.Stat.empiricalWeightSecondMoment
             fun_prop
           simp only [hn, ↓reduceIte]
           unfold inversionHandle
@@ -1501,6 +1505,7 @@ theorem fixed_geometry_frontier
         simpa [hSratio] using hSbadRaw
       have hKMeas : Measurable K := by
         unfold K empiricalKish Causalean.Stat.empiricalKishDispersion
+          Causalean.Stat.empiricalWeightSecondMoment
         fun_prop
       have hSMeas : Measurable S := by
         rw [hSeq]

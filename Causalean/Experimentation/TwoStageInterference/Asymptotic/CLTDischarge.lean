@@ -3,30 +3,32 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Liu–Hudgens (2014), Proposition 5.1: discharging the conditional-CLT regularity
+# Conditional-CLT discharge under strong homogeneity
 
-This file makes Proposition 5.1 **primitive**: under homogeneity (all group-level
-treatment-minus-control direct-effect contrasts equal a common `δ`, all within-group contrast
+This file derives a special-case direct-effect CLT under homogeneity (all group-level
+control-minus-treatment direct-effect contrasts equal a common `δ`, all within-group contrast
 estimator variances equal a common `v n`), bounded per-group contrast estimators, and the
 many-groups rate, the studentized contrast statistic is asymptotically standard normal, with the
 *conditional* central limit theorem supplied directly by the independent-summands CLT
 `prodDesign_clt` of the design-based substrate and the selection-mixture lifted by homogeneity.
-No CLT is taken as a black box.
+No CLT is taken as a black box. The contrast is the negative of Liu–Hudgens' treatment-minus-control
+estimand, and the constant-effect assumptions remove the heterogeneous between-group component of
+their Proposition 5.1; the result here is therefore a strict special case, not that proposition.
 
 The mathematical content is that, under homogeneity, the conditional studentized statistic given a
 stage-1 selection `s` is a normalized sum of independent, uniformly bounded, mean-zero
 per-coordinate summands over the conditional product design `cond s = prodDesign (if sᵢ then ψᵢ
 else φᵢ)`:
 
-    stud(s,w) = ∑ᵢ (1(sᵢ=ψ)·(dᵢ(wᵢ) − δ)) / √(C·v),    dᵢ(w) = Ŷ_i(1)(w) − Ŷ_i(0)(w),
+    stud(s,w) = ∑ᵢ (1(sᵢ=ψ)·(dᵢ(wᵢ) − δ)) / √(C·v),    dᵢ(w) = Ŷ_i(0)(w) − Ŷ_i(1)(w),
 
 because homogeneity collapses the population average contrast to `DEbar = δ`, kills the
 between-group term of `directVar` (the population variance of a constant is zero) leaving
 `directVar = v/C`, and the selection has exactly `C` ψ-flagged groups.  Each summand is mean-zero
 on the selected coordinates and the total design variance is one, so `prodDesign_clt` delivers the
-conditional CDF → `Φ` for a fixed reference selection; the hypothesis `hhom` (the conditional CDF is
-selection-independent — the faithful encoding of the paper's homogeneity) lifts this uniform bound
-over the stage-1 support, and the (support-restricted) mixture-lifting lemma
+conditional CDF → `Φ` for a fixed reference selection; the hypothesis `hhom` assumes that the
+conditional CDF is selection-independent and lifts this uniform bound over the stage-one support.
+The support-restricted mixture-lifting lemma
 `tendsto_E_of_uniformBound_ae` averages it to the unconditional `Φ`.
 
 We add a support-restricted ("a.e.") variant `tendsto_E_of_uniformBound_ae` of the mixture-lifting
@@ -42,13 +44,21 @@ identity `stud_eq_sum_of_homogeneous`, and the reference-selection machinery (`r
 `directEffect_clt_homogeneous` are assembled in `CLTDischargeMain`.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLT
-import Causalean.Experimentation.DesignBased.IndepSummandsCLT
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLT
+public import Causalean.Experimentation.DesignBased.IndepSummandsCLT
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-! # Ingredients for the homogeneous two-stage central limit theorem
 
-This file develops the conditional-design ingredients for a central limit theorem for the studentized direct-effect estimator in homogeneous two-stage interference experiments.  It defines group-level contrasts, conditional assignment designs, normalized summands, and a reference selection, and derives the estimand and variance reductions needed for the final asymptotic result. -/
+This file develops the conditional-design ingredients for a central limit theorem for the
+studentized direct-effect estimator in strongly homogeneous two-stage interference experiments. It
+defines group-level contrasts, conditional assignment designs, normalized summands, and a reference
+selection, and derives the estimand and variance reductions needed for the final special-case
+result. The control-minus-treatment contrast is the negative of Liu–Hudgens' convention.
+-/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Finset Filter
@@ -102,21 +112,25 @@ namespace TwoStageInterference
 
 open DesignBased
 
-/-- For [a Liu--Hudgens experiment](hyp:E), [one of its groups](hyp:i), and [a within-group treatment assignment](hyp:w), the [per-group treatment-minus-control direct-effect estimator](goal) is the treated-strategy group estimator minus the control-strategy group estimator.
+/-- For [a two-stage experiment](hyp:E), [one of its groups](hyp:i), and [a within-group treatment
+assignment](hyp:w), the [per-group control-minus-treatment direct-effect estimator](goal) is the
+control-strategy group estimator minus the treated-strategy group estimator.
 
-It subtracts the control-strategy group estimator from the treated-strategy group estimator for the
+It subtracts the treated-strategy group estimator from the control-strategy group estimator for the
 same within-group assignment. -/
 noncomputable def groupDiff (E : LHExperiment) (i : E.ι)
     (w : Fin (E.gsize i) → Bool) : ℝ :=
-  groupEst E.Y i true (E.m1 i) w - groupEst E.Y i false (E.m0 i) w
+  groupEst E.Y i false (E.m0 i) w - groupEst E.Y i true (E.m1 i) w
 
-/-- For [a Liu--Hudgens experiment](hyp:E) and [a stage-one strategy assignment](hyp:s), the [conditional stage-two design](goal) independently assigns each group according to its treatment design when that group is assigned treatment and according to its control design otherwise. -/
+/-- For [a two-stage experiment](hyp:E) and [a stage-one strategy assignment](hyp:s), the
+[conditional stage-two design](goal) independently assigns each group according to its treatment
+design when that group is assigned treatment and according to its control design otherwise. -/
 noncomputable def condDesign (E : LHExperiment) (s : StratAssign E.ι) :
     FiniteDesign (∀ i, Fin (E.gsize i) → Bool) :=
   prodDesign (fun i => if s i then E.ψ i else E.φ i)
 
 /-- The experiment-level contrast estimator is the mean of the selected groups' per-group
-treatment-minus-control contrast estimators.
+control-minus-treatment contrast estimators.
 
 This is a pure unfolding of the Horvitz-Thompson estimator under the two-stage design. -/
 lemma estD_eq_agg (E : LHExperiment)
@@ -131,27 +145,28 @@ lemma estD_eq_agg (E : LHExperiment)
   · simp only [h, if_pos, one_mul]
   · simp [h]
 
-/-- **Homogeneity and regularity bundle for a sequence of Liu–Hudgens experiments.** Faithfully
-encodes the hypotheses of Proposition 5.1 for the Hudgens-Halloran orientation: [the studentized
-statistic is the standardized contrast estimator](hyp:hstud); [every group-level direct-effect
-contrast equals a common value δ](hyp:hδ) (homogeneity); [every within-group contrast-estimator
-variance equals a common value v(n)](hyp:hv) that [is positive](hyp:hvpos); [the centered per-group
-contrast estimator is uniformly bounded](hyp:hMbound); [every stage-1 selection supported by the
-design flags exactly C groups](hyp:hcount); [the resulting rate sequence tends to
-zero](hyp:hB0) together with [its cubed Lyapunov rate](hyp:hNB3) (the many-groups asymptotic
-regime); and [the conditional distribution of the studentized statistic does not depend on which
-stage-1 selection occurred](hyp:hhom), the analytic form of homogeneity that lifts the conditional
-CLT to the average. -/
+/-- For [a sequence of two-stage experiments](hyp:Exp), [an evaluation threshold](hyp:t), [a
+studentized-statistic family](hyp:stud), [a common group contrast](hyp:δ), [a uniform
+bound](hyp:M), and [a within-group variance sequence](hyp:v), the strong homogeneity and
+regularity bundle records that [the statistic has the standardized direct-contrast
+form](hyp:hstud); [every group contrast equals the common value](hyp:hδ); [every within-group
+contrast-estimator variance equals the specified value](hyp:hv), which [is positive](hyp:hvpos);
+[the centered per-group estimator is uniformly bounded](hyp:hMbound); [every supported stage-one
+selection flags exactly `C` groups](hyp:hcount); [the size-normalized bound tends to
+zero](hyp:hB0), together with [its cubed Lyapunov rate](hyp:hNB3); and [the conditional CDF is
+selection-independent on the stage-one support](hyp:hhom). These assumptions force the
+between-group effect variance to zero, so they are stronger than the heterogeneous regime of
+Liu–Hudgens Proposition 5.1. -/
 structure Homogeneous (Exp : ℕ → LHExperiment) (t : ℝ)
     (stud : ∀ n, (StratAssign (Exp n).ι × ∀ i, Fin ((Exp n).gsize i) → Bool) → ℝ)
     (δ M : ℝ) (v : ℕ → ℝ) where
   /-- The studentized statistic is `(estD − DEbar)/√directVar`. -/
   hstud : ∀ n sw,
     stud n sw = ((Exp n).estD sw - (Exp n).DEbar) / Real.sqrt ((Exp n).directVar)
-  /-- All group-level treatment-minus-control direct-effect contrasts equal the common value `δ`
+  /-- All group-level control-minus-treatment direct-effect contrasts equal the common value `δ`
   (homogeneity). -/
-  hδ : ∀ n i, groupMean (Exp n).ψ (Exp n).Y i true
-              - groupMean (Exp n).ψ (Exp n).Y i false = δ
+  hδ : ∀ n i, groupMean (Exp n).ψ (Exp n).Y i false
+              - groupMean (Exp n).ψ (Exp n).Y i true = δ
   /-- All within-group contrast-estimator variances equal the common value `v n`. -/
   hv : ∀ n i, ((Exp n).ψ i).Var (groupDiff (Exp n) i) = v n
   /-- The common within-group variance is positive. -/
@@ -175,7 +190,7 @@ variable {Exp : ℕ → LHExperiment} {t δ M : ℝ} {v : ℕ → ℝ}
   {stud : ∀ n, (StratAssign (Exp n).ι × ∀ i, Fin ((Exp n).gsize i) → Bool) → ℝ}
 
 /-- **Estimand reduction.** Under [the homogeneity and regularity bundle](hyp:h), [the population
-average treatment-minus-control direct-effect contrast collapses to the common group-level
+average control-minus-treatment direct-effect contrast collapses to the common group-level
 contrast `δ`](goal). -/
 lemma DEbar_eq_of_homogeneous (h : Homogeneous Exp t stud δ M v) (n : ℕ) :
     (Exp n).DEbar = δ := by
@@ -190,23 +205,23 @@ term vanishes since the population variance of a constant is zero, and the withi
 averages to `v n / C`. -/
 lemma directVar_eq_of_homogeneous (h : Homogeneous Exp t stud δ M v) (n : ℕ) :
     (Exp n).directVar = v n / (Exp n).C := by
-  have hSmu : SmuVar (fun i => groupMean (Exp n).ψ (Exp n).Y i true
-      - groupMean (Exp n).ψ (Exp n).Y i false) = 0 := by
+  have hSmu : SmuVar (fun i => groupMean (Exp n).ψ (Exp n).Y i false
+      - groupMean (Exp n).ψ (Exp n).Y i true) = 0 := by
     simp only [SmuVar]
-    have hmubar : (∑ i, (groupMean (Exp n).ψ (Exp n).Y i true
-          - groupMean (Exp n).ψ (Exp n).Y i false)) / (Fintype.card (Exp n).ι : ℝ) = δ := by
+    have hmubar : (∑ i, (groupMean (Exp n).ψ (Exp n).Y i false
+          - groupMean (Exp n).ψ (Exp n).Y i true)) / (Fintype.card (Exp n).ι : ℝ) = δ := by
       rw [Finset.sum_congr rfl (fun i _ => h.hδ n i), Finset.sum_const, Finset.card_univ,
         nsmul_eq_mul, mul_comm, mul_div_assoc, div_self (Exp n).hN, mul_one]
     rw [hmubar]
     rw [Finset.sum_congr rfl (fun i _ => by rw [h.hδ n i, sub_self]; ring : ∀ i ∈ Finset.univ,
-      (groupMean (Exp n).ψ (Exp n).Y i true - groupMean (Exp n).ψ (Exp n).Y i false - δ) ^ 2
+      (groupMean (Exp n).ψ (Exp n).Y i false - groupMean (Exp n).ψ (Exp n).Y i true - δ) ^ 2
         = 0)]
     simp
-  have hwithin : ∑ i, ((Exp n).ψ i).Var (fun w => groupEst (Exp n).Y i true ((Exp n).m1 i) w
-        - groupEst (Exp n).Y i false ((Exp n).m0 i) w)
+  have hwithin : ∑ i, ((Exp n).ψ i).Var (fun w => groupEst (Exp n).Y i false ((Exp n).m0 i) w
+        - groupEst (Exp n).Y i true ((Exp n).m1 i) w)
       = (Fintype.card (Exp n).ι : ℝ) * v n := by
-    rw [show (∑ i, ((Exp n).ψ i).Var (fun w => groupEst (Exp n).Y i true ((Exp n).m1 i) w
-            - groupEst (Exp n).Y i false ((Exp n).m0 i) w))
+    rw [show (∑ i, ((Exp n).ψ i).Var (fun w => groupEst (Exp n).Y i false ((Exp n).m0 i) w
+            - groupEst (Exp n).Y i true ((Exp n).m1 i) w))
           = ∑ i, ((Exp n).ψ i).Var (groupDiff (Exp n) i) from rfl,
       Finset.sum_congr rfl (fun i _ => h.hv n i), Finset.sum_const, Finset.card_univ,
       nsmul_eq_mul]
@@ -217,7 +232,12 @@ lemma directVar_eq_of_homogeneous (h : Homogeneous Exp t stud δ M v) (n : ℕ) 
   field_simp
   ring
 
-/-- For [a sequence of Liu--Hudgens experiments](hyp:Exp), [an experiment index $n$](hyp:n), [a common group-level contrast $\delta$](hyp:δ), [a sequence of within-group variances](hyp:v), [a stage-one strategy assignment](hyp:s), [a group](hyp:i), and [that group's within-group treatment assignment](hyp:a), the [scaled per-coordinate summand of the conditional studentized statistic](goal) is the selected-group indicator times the centered group contrast estimator, divided by $\sqrt{C_n v_n}$. -/
+/-- For [a sequence of two-stage experiments](hyp:Exp), [an experiment index `n`](hyp:n), [a common
+group-level contrast `δ`](hyp:δ), [a sequence of within-group variances](hyp:v), [a stage-one
+strategy assignment](hyp:s), [a group](hyp:i), and [that group's within-group treatment
+assignment](hyp:a), the [scaled per-coordinate summand of the conditional studentized
+statistic](goal) is the selected-group indicator times the centered group contrast estimator,
+divided by `√(C_n v_n)`. -/
 noncomputable def cltSummand (n : ℕ) (δ : ℝ) (v : ℕ → ℝ) (s : StratAssign (Exp n).ι)
     (i : (Exp n).ι) (a : Fin ((Exp n).gsize i) → Bool) : ℝ :=
   (if s i then (1 : ℝ) else 0) * (groupDiff (Exp n) i a - δ)
@@ -271,10 +291,10 @@ lemma E_groupDiff_eq_of_homogeneous (h : Homogeneous Exp t stud δ M v) (n : ℕ
     ((Exp n).ψ i).E (groupDiff (Exp n) i) = δ := by
   unfold groupDiff
   rw [FiniteDesign.E_sub,
-    E_groupEst (Exp n).ψ (Exp n).Y i true ((Exp n).m1 i) ((Exp n).hm1 i) ((Exp n).hn i)
-      ((Exp n).hprop1 i),
     E_groupEst (Exp n).ψ (Exp n).Y i false ((Exp n).m0 i) ((Exp n).hm0 i) ((Exp n).hn i)
       ((Exp n).hprop0 i),
+    E_groupEst (Exp n).ψ (Exp n).Y i true ((Exp n).m1 i) ((Exp n).hm1 i) ((Exp n).hn i)
+      ((Exp n).hprop1 i),
     h.hδ n i]
 
 /-- Nonnegativity of the bound constant `M`, available whenever the experiment has at least one
@@ -293,7 +313,9 @@ lemma exists_support_selection (E : LHExperiment) : ∃ s, E.D₁.p s ≠ 0 := b
   exact one_ne_zero this
 
 open Classical in
-/-- For [a sequence of Liu--Hudgens experiments](hyp:Exp) and [an experiment index $n$](hyp:n), the [reference stage-one selection](goal) is a fixed strategy assignment having positive probability under that experiment's stage-one design. -/
+/-- For [a sequence of two-stage experiments](hyp:Exp) and [an experiment index `n`](hyp:n), the
+[reference stage-one selection](goal) is a fixed strategy assignment having positive probability
+under that experiment's stage-one design. -/
 noncomputable def refSel (Exp : ℕ → LHExperiment) (n : ℕ) : StratAssign (Exp n).ι :=
   (exists_support_selection (Exp n)).choose
 

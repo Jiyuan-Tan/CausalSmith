@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Topology.MetricSpace.UniformConvergence
+module
+public import Mathlib.Topology.MetricSpace.UniformConvergence
 
 /-!
 # Affine paths in the topology of uniform convergence
@@ -12,6 +13,8 @@ import Mathlib.Topology.MetricSpace.UniformConvergence
 This file proves continuity of affine interpolation paths in the topology of uniform convergence
 on a nonempty compact set.
 -/
+
+public section
 
 open Set
 open scoped Topology UniformConvergence

@@ -1,11 +1,14 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GenericAffineOccupancy
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TSharpReplacementRadius
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GenericAffineOccupancy
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TSharpReplacementRadius
 
 /-!
 # Uniform support-deletion radius
 
 The ex-ante corruption budget certified by a full-environment binary support design.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

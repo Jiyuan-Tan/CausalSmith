@@ -20,7 +20,7 @@ Two flavours appear:
 * **Composition rewrites** between `encZ2Regime (z 1)` and
   `encouragementRegime z` on the event `{Z₁ = z 0}`: these mirror the
   existing `YofDofZ_eq_YofD_on_DofZEq` pattern (in `WhenToTreat.lean`),
-  combining `P.Consistency.composition` with the
+  combining `P.CompositionConsistency.composition` with the
   `encouragementRegime_disjoint_*` lemmas.
 
 The proofs follow the existing single-period consistency proofs in
@@ -28,13 +28,16 @@ The proofs follow the existing single-period consistency proofs in
 `YofDofZ_eq_YofD_on_DofZEq`.
 -/
 
-import Causalean.PO.ID.Exact.DynamicLATE.Setup
+module
+public import Causalean.PO.ID.Exact.DynamicLATE.Setup
 
 /-! # Two-Period Dynamic LATE Consistency
 
 This file proves pointwise consistency rewrites for the two-period dynamic LATE
 system. The lemmas identify counterfactual outcomes and treatments with factual
 or smaller-regime variables on the corresponding observed encouragement events. -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -55,7 +58,9 @@ These mirror `POVar.cf_eq_factual_on_event` for the regime
 the factual outcome / treatment with the `encZ2Regime`-counterfactual on
 the corresponding event. -/
 
-/-- On `{Z₂ = z₂}`, `Y(D₁, D₂(Z₁, z₂)) = factualY` pointwise. -/
+/-- [Consistency identifies the potential outcome under a fixed late encouragement with the
+observed outcome](goal) under [the dynamic LATE assumptions](hyp:As), for [a second-period
+encouragement](hyp:z₂) and [a unit observed in that encouragement cell](hyp:ω,hω). -/
 theorem YofZ2_eq_factualY_on_z2Event (As : S.Assumptions)
     (z₂ : Bool) {ω : P.Ω} (hω : S.factualZ2 ω = z₂) :
     S.YofZ2 z₂ ω = S.factualY ω := by
@@ -64,7 +69,9 @@ theorem YofZ2_eq_factualY_on_z2Event (As : S.Assumptions)
   exact POVar.cf_eq_factual_on_event As.consistency S.yVar S.z2Var z₂
     S.Z2_ne_Y.symm hω
 
-/-- On `{Z₂ = z₂}`, `D₂(Z₁, z₂) = factualD2` pointwise. -/
+/-- [Consistency identifies potential second-period treatment under a fixed late encouragement
+with observed second-period treatment](goal) under [the dynamic LATE assumptions](hyp:As), for [a
+late encouragement](hyp:z₂) and [a unit observed in that cell](hyp:ω,hω). -/
 theorem D2ofZ2_eq_factualD2_on_z2Event (As : S.Assumptions)
     (z₂ : Bool) {ω : P.Ω} (hω : S.factualZ2 ω = z₂) :
     S.D2ofZ2 z₂ ω = S.factualD2 ω := by
@@ -77,7 +84,7 @@ theorem D2ofZ2_eq_factualD2_on_z2Event (As : S.Assumptions)
 `encouragementRegime z` fixes `(Z₁, Z₂)` jointly; `encZ2Regime (z 1)` fixes
 only `Z₂`.  On the event `{Z₁ = z 0}`, the two regimes agree on the
 intermediate-agreement structure, so PO composition consistency
-(`P.Consistency.composition`) identifies the corresponding outcomes /
+(`P.CompositionConsistency.composition`) identifies the corresponding outcomes /
 treatments pointwise.  The proofs follow the pattern of
 `YofDofZ_eq_YofD_on_DofZEq` (in `WhenToTreat.lean`). -/
 
@@ -90,7 +97,7 @@ private lemma eval_encouragement_eq_eval_encZ2_on_z1Event
     (As : S.Assumptions) (z : Fin 2 → Bool) {ω : P.Ω}
     (hω : S.factualZ1 ω = z 0) (v : P.V) (hvZ1 : v ≠ S.Z1) (hvZ2 : v ≠ S.Z2) :
     P.eval (S.encouragementRegime z) ω v = P.eval (S.encZ2Regime (z 1)) ω v := by
-  -- Step 1: apply `Consistency.composition` with
+  -- Step 1: apply `CompositionConsistency.composition` with
   --   r₁ := S.encZ2Regime (z 1)  (target {S.Z2}),
   --   r₂ := Regime.single S.Z1 (S.hZ1bool.symm (z 0))  (target {S.Z1}),
   --   Y := {v}  (disjoint from r₁.target ∪ r₂.target by hvZ1, hvZ2).
@@ -125,7 +132,7 @@ private lemma eval_encouragement_eq_eval_encZ2_on_z1Event
     simp [r₁, r₂, encZ2Regime, Regime.single, Finset.disjoint_singleton_left,
       Finset.mem_singleton, hvZ1, hvZ2]
   -- Apply composition: P.poVariable (r₁ ⊔ r₂) {v} ω = P.poVariable r₁ {v} ω.
-  have hpv := As.consistency.composition r₁ r₂ hr_disj {v} hYdisj ω hIA
+  have hpv := As.compositionConsistency.composition r₁ r₂ hr_disj {v} hYdisj ω hIA
   -- Extract pointwise: P.eval (r₁ ⊔ r₂) ω v = P.eval r₁ ω v.
   have hev_sqcup_eq_r1 : P.eval (r₁.sqcup r₂ hr_disj) ω v = P.eval r₁ ω v := by
     have := congrFun hpv ⟨v, Finset.mem_singleton_self _⟩
@@ -176,8 +183,10 @@ private lemma eval_encouragement_eq_eval_encZ2_on_z1Event
         simp [r₁, encZ2Regime, Regime.single]
   rw [hReg_eq, hev_sqcup_eq_r1]
 
-/-- On `{Z₁ = z 0}`, `Y` under `encouragementRegime z` agrees with `Y`
-under `encZ2Regime (z 1)`. -/
+/-- [A full encouragement-path outcome agrees with the outcome from fixing only the later
+encouragement](goal) under [the dynamic LATE assumptions](hyp:As), for [an encouragement
+path](hyp:z) and [a unit whose observed initial encouragement matches that path](hyp:ω,hω).
+This removes irrelevant first-stage regime detail. -/
 theorem YofDofZ_eq_YofZ2_on_z1Event (As : S.Assumptions)
     (z : Fin 2 → Bool) {ω : P.Ω} (hω : S.factualZ1 ω = z 0) :
     S.YofDofZ z ω = S.YofZ2 (z 1) ω := by
@@ -185,13 +194,10 @@ theorem YofDofZ_eq_YofZ2_on_z1Event (As : S.Assumptions)
   exact congrArg _
     (eval_encouragement_eq_eval_encZ2_on_z1Event As z hω S.Y S.Z1_ne_Y.symm S.Z2_ne_Y.symm)
 
-/-- **Second-stage treatment does not depend on first-stage regime detail once
-the actual first-period instrument matches the counterfactual one.** At
-[any outcome at which the factual first-period instrument equals the first
-coordinate of the instrument path `z`](hyp:hω), [the potential second-period
-treatment under the encouragement regime `z` coincides pointwise with the
-potential second-period treatment under the regime that fixes only the
-second-period instrument to `z 1`](goal). -/
+/-- [Potential second-period treatment under a full encouragement path equals treatment from
+fixing only the later encouragement](goal) under [the dynamic LATE assumptions](hyp:As), for [an
+encouragement path](hyp:z) and [a unit whose observed initial encouragement matches it](hyp:ω,hω).
+The matching condition makes first-stage regime detail irrelevant. -/
 theorem D2ofZ_eq_D2ofZ2_on_z1Event (As : S.Assumptions)
     (z : Fin 2 → Bool) {ω : P.Ω} (hω : S.factualZ1 ω = z 0) :
     S.D2ofZ z ω = S.D2ofZ2 (z 1) ω := by
@@ -199,8 +205,10 @@ theorem D2ofZ_eq_D2ofZ2_on_z1Event (As : S.Assumptions)
   exact congrArg _
     (eval_encouragement_eq_eval_encZ2_on_z1Event As z hω S.D2 S.Z1_ne_D2.symm S.Z2_ne_D2.symm)
 
-/-- On `{Z₁ = z 0}`, `D₁` under `encouragementRegime z` agrees with the
-factual `D₁`.
+/-- [Potential first-period treatment under an encouragement path equals observed first-period
+treatment](goal) under [the dynamic LATE assumptions](hyp:As), for [an encouragement path](hyp:z)
+and [a unit whose observed initial encouragement matches it](hyp:ω,hω). This is the stage-one
+consistency bridge.
 
 Combines the primitive-process clause `As.exclusion_D1` (which reduces
 `D₁` under `encouragementRegime z` to `D₁` under `Regime.single Z₁ (z 0)`)

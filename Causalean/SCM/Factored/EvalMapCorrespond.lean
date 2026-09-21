@@ -31,8 +31,11 @@ the matching evaluator output.
   `partialEvalMap` agrees with `evalObservedAux`.
 -/
 
-import Causalean.SCM.Factored.PrefixKernel
-import Causalean.SCM.Model.Evaluation
+module
+
+public import Causalean.Mathlib.Probability.Kernel.CompProdAssembly
+public import Causalean.SCM.Factored.PrefixKernel
+public import Causalean.SCM.Model.Evaluation
 
 /-! # Correspondence Between Prefix Kernels and Evaluation
 
@@ -42,6 +45,13 @@ state produced by fixed and latent assignments, proves its measurability and
 latent projection facts, proves coordinate agreement with `evalObservedAux`, and
 identifies each prefix kernel as the pushforward of the latent product through
 that deterministic prefix map. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+open Causalean.Mathlib.Probability.Kernel
+
 
 namespace Causalean
 
@@ -147,32 +157,6 @@ theorem measurable_partialEvalMap (M : Causalean.SCM N Ω) :
 -- § 3b. Helper: `compProd` with a deterministic second kernel
 -- ============================================================
 
-/-- Composing a kernel with a deterministic second kernel gives the distribution
-    obtained by drawing from the first kernel and appending the deterministic
-    output to that draw.  This map-valued identity is useful when constructing
-    factored kernels recursively. -/
-lemma compProd_deterministic_apply
-    {α β γ : Type*} [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
-    (κ : ProbabilityTheory.Kernel α β) [ProbabilityTheory.IsSFiniteKernel κ]
-    {f : α × β → γ} (hf : Measurable f) (a : α) :
-    (κ ⊗ₖ ProbabilityTheory.Kernel.deterministic f hf) a =
-      (κ a).map (fun b => (b, f (a, b))) := by
-  have hpair : Measurable (fun b : β => (b, f (a, b))) :=
-    Measurable.prodMk measurable_id
-      (hf.comp (Measurable.prodMk measurable_const measurable_id))
-  refine MeasureTheory.Measure.ext fun A hA => ?_
-  rw [ProbabilityTheory.Kernel.compProd_apply hA,
-      MeasureTheory.Measure.map_apply hpair hA]
-  simp only [ProbabilityTheory.Kernel.deterministic_apply]
-  trans (∫⁻ b, Set.indicator
-            ((fun b => (b, f (a, b))) ⁻¹' A) (fun _ => (1 : ENNReal)) b ∂(κ a))
-  · apply MeasureTheory.lintegral_congr
-    intro b
-    have hSlice : MeasurableSet (Prod.mk b ⁻¹' A) := measurable_prodMk_left hA
-    rw [MeasureTheory.Measure.dirac_apply' _ hSlice]
-    simp only [Set.indicator, Set.mem_preimage, Pi.one_apply]
-    rfl
-  · exact MeasureTheory.lintegral_indicator_one (hpair hA)
 
 -- ============================================================
 -- § 3c. Unfolding helpers for `observedPrefixValue` and `partialEvalMap`

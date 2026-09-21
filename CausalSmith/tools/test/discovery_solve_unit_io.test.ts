@@ -7,6 +7,11 @@ import {
   readSolveUnitOutput,
   SolveUnitCarrierError,
 } from "../src/discovery/solve/unit_io.js";
+import {
+  companionPathFor,
+  companionPathsFor,
+  legacyCompanionPathFor,
+} from "../src/discovery/solve/tex_companion.js";
 import { formalizationDir } from "../src/paths.js";
 import type { PipelineContext } from "../src/types.js";
 
@@ -43,13 +48,42 @@ describe("clearOrphanSolvePathLeases", () => {
 });
 
 describe("solve companion recovery diagnostics", () => {
+  it("uses a sibling companion canonically and falls back to the legacy nested layout", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "solve-companion-layout-"));
+    roots.push(root);
+    const outPath = path.join(root, "solve_target.json");
+    const sibling = companionPathFor(outPath);
+    const legacy = legacyCompanionPathFor(outPath);
+    expect(sibling).toBe(path.join(root, "solve_target.tex"));
+
+    await mkdir(path.dirname(legacy), { recursive: true });
+    await writeFile(legacy, "%%% FIELD proof\nlegacy proof\n");
+    expect(companionPathsFor(outPath)).toEqual([sibling, legacy]);
+
+    await writeFile(sibling, "%%% FIELD proof\nsibling proof\n");
+    await writeFile(outPath, `${JSON.stringify({ proofs: [{ id: "thm:target", proof_tex: { tex_ref: "proof" } }] })}\n`);
+    const parsed = await readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: sibling,
+    });
+    expect(parsed.proofs[0]?.proof_tex).toBe("sibling proof");
+    const legacyParsed = await readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: legacy,
+    });
+    expect(legacyParsed.proofs[0]?.proof_tex).toBe("legacy proof");
+  });
+
   it("rejects inline long TeX fields and points to the required companion", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "solve-companion-required-"));
     roots.push(root);
     const outPath = path.join(root, "solve_target.json");
     await writeFile(outPath, `${JSON.stringify({ proofs: [{ id: "thm:target", proof_tex: "Proof." }] })}\n`);
 
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true })).rejects.toThrow(
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: companionPathFor(outPath),
+    })).rejects.toThrow(
       /proofs\[0\]\.proof_tex[\s\S]*SOLVE_COMPANION_PATH|SOLVE_COMPANION_PATH[\s\S]*proofs\[0\]\.proof_tex/,
     );
   });
@@ -63,7 +97,10 @@ describe("solve companion recovery diagnostics", () => {
     await writeFile(outPath, `${JSON.stringify({ prose_updates: { tldr: { tex_ref: "tldr" } } })}\n`);
     await writeFile(path.join(companionDir, "solve_target.tex"), "%%% FIELD tldr\nprose\n");
 
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true })).rejects.toThrow(
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: legacyCompanionPathFor(outPath),
+    })).rejects.toThrow(
       /prose_updates\.tldr \(tex_ref is malformed or not allowed here\)/,
     );
   });
@@ -76,7 +113,10 @@ describe("solve companion recovery diagnostics", () => {
       prose_updates: { tldr: { tex_ref: "tldr", extra: "inline" } },
     })}\n`);
 
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true }))
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: companionPathFor(outPath),
+    }))
       .rejects.toBeInstanceOf(SolveUnitCarrierError);
   });
 
@@ -89,7 +129,10 @@ describe("solve companion recovery diagnostics", () => {
       proposed_assumptions: [{ free_symbols: [{ tex_ref: "symbol", extra: "bad" }] }],
     })}\n`);
 
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true }))
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: companionPathFor(outPath),
+    }))
       .rejects.toBeInstanceOf(SolveUnitCarrierError);
   });
 
@@ -111,7 +154,10 @@ describe("solve companion recovery diagnostics", () => {
       "%%% FIELD rogue-prose\nprose\n%%% FIELD rogue-nested\nnested\n",
     );
 
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true }))
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: legacyCompanionPathFor(outPath),
+    }))
       .rejects.toBeInstanceOf(SolveUnitCarrierError);
   });
 
@@ -142,11 +188,17 @@ describe("solve companion recovery diagnostics", () => {
       path.join(companionDir, "solve_target.tex"),
       "%%% FIELD statement\nTarget statement.\n%%% FIELD partial\nCompanion partial.\n",
     );
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true }))
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: legacyCompanionPathFor(outPath),
+    }))
       .rejects.toBeInstanceOf(SolveUnitCarrierError);
 
     await writeFile(outPath, `${JSON.stringify(replacement({ tex_ref: "partial" }))}\n`);
-    const parsed = await readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true });
+    const parsed = await readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: legacyCompanionPathFor(outPath),
+    });
     expect(parsed.proposed_core_edits[0]).toMatchObject({
       proposed: { statement: "Target statement.", obligation: { partial_result: "Companion partial." } },
     });
@@ -161,7 +213,10 @@ describe("solve companion recovery diagnostics", () => {
       proposed_definition_changes: [{ proposed: "construction" }],
     })}\n`);
 
-    await expect(readSolveUnitOutput(outPath, "target", { requireCompanionLongFields: true })).rejects.toThrow(
+    await expect(readSolveUnitOutput(outPath, "target", {
+      requireCompanionLongFields: true,
+      companionPath: companionPathFor(outPath),
+    })).rejects.toThrow(
       /proposed_statement_changes\[0\]\.proposed \(expected tex_ref\)[\s\S]*proposed_definition_changes\[0\]\.proposed \(expected tex_ref\)/,
     );
   });
@@ -178,7 +233,9 @@ describe("solve companion recovery diagnostics", () => {
       "%%% FIELD proof-1\nfirst line\n\\widehat\\tau + \f" + "rac12\n",
     );
 
-    await expect(readSolveUnitOutput(outPath, "target")).rejects.toThrow(
+    await expect(readSolveUnitOutput(outPath, "target", {
+      companionPath: legacyCompanionPathFor(outPath),
+    })).rejects.toThrow(
       /raw companion blocks[\s\S]*not \\\\frac[\s\S]*preserving TeX syntax[\s\S]*\\\\ row terminators[\s\S]*tex_ref 'proof-1', block line 2: U\+000C/,
     );
   });

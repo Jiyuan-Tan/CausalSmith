@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OrderedMassStability
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TCollisionUniformRootN
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OrderedMassStability
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TCollisionUniformRootN
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

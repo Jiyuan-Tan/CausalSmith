@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding
 
 /-! Equal-propensity L1 identities and minimax transfer. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

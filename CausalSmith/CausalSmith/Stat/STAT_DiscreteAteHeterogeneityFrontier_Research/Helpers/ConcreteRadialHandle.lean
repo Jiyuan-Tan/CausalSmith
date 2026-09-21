@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialMembership
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ConcreteExactHandle
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialMembership
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ConcreteExactHandle
 
 /-!
 # Concrete radial-family handle facts
@@ -9,15 +10,12 @@ Bernoulli contraction and records the mass identities needed by the concrete
 least-favorable handle.
 -/
 
+public section
+
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ProbabilityTheory ENNReal NNReal
-
-private abbrev BinLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-private abbrev BinObs :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @node: radialPaddedAffine_observedLaw
 /-- If [the source alphabet embeds in the target alphabet](hyp:hmd) and [the heterogeneity radius

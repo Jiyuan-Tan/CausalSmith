@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConditioning
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConfiguration
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedPrior
-import Causalean.Stat.Concentration.Matrix.IidSums
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConditioning
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConfiguration
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedPrior
+public import Causalean.Stat.Concentration.Matrix.IidSums
 
 /-!
 # Finite product-prior conditioning for the one-arm converse
@@ -10,6 +11,8 @@ This module packages an iid finite prior as both a product measure and a PMF,
 gives the two Chebyshev bounds used to condition on mass and functional
 concentration, and normalizes every good realization into a control-zero law.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

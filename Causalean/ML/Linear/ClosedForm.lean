@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Linear.Finite
+
+module
+public import Causalean.ML.Linear.Finite
 
 /-! # Linear least squares — closed form
 
@@ -13,18 +15,20 @@ The structural closed-form content of OLS. This file defines `olsCoef`, proves
 `β̂ = (XᵀX)⁻¹ Xᵀy`.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param]
 
-/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set whose equality
-can be decided](hyp:Param),
-[a design matrix](hyp:X), and [an outcome vector](hyp:y), the [closed-form ordinary
-least-squares coefficient vector](goal) is the product of the totalized inverse of the design
-matrix's cross-product matrix—equal to its ordinary inverse when that matrix is invertible—and
-the design matrix transposed times the outcome vector. -/
+/-- [The closed-form ordinary least-squares coefficient](goal) is
+[the inverse Gram applied to the design--outcome cross-product](step:1). It uses
+[a design matrix and outcome vector](hyp:X,y) over
+[finite observation and decidable coefficient indices](hyp:Obs,Param); the totalized inverse
+agrees with the ordinary inverse when the
+cross-product matrix is invertible. -/
 noncomputable def olsCoef [DecidableEq Param]
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) : Param → ℝ :=
   (Xᵀ * X)⁻¹ *ᵥ (Xᵀ *ᵥ y)
@@ -112,9 +116,10 @@ theorem ols_normalEq_of_minimizer
     simpa [Matrix.mulVec_mulVec] using hg'
   exact (sub_eq_zero.mp hz).symm
 
-/-- For a design matrix `X` and response vector `y`, if [`XᵀX` is invertible, i.e. its
-determinant is a unit](hyp:hX), then [the closed-form OLS coefficient `(XᵀX)⁻¹Xᵀy`
-solves the normal equations `(XᵀX)β = Xᵀy`](goal). -/
+/-- [The closed-form OLS coefficient solves the normal equations](goal) for
+[the design and response vectors](hyp:X,y) over
+[finite observation and coefficient indices](hyp:Obs,Param)
+when [the design cross-product matrix is invertible](hyp:hX). -/
 theorem olsCoef_normalEq [DecidableEq Param]
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (hX : IsUnit (Xᵀ * X).det) :
     (Xᵀ * X) *ᵥ olsCoef X y = Xᵀ *ᵥ y := by

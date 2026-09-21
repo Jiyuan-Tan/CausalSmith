@@ -2,39 +2,11 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Hausdorff distance and the support-function bridge (Beresteanu–Molinari keystone)
-
-The inference theory of Beresteanu & Molinari (2008) rests on one geometric
-identity (their equation (A.1), Hörmander's embedding): for compact convex sets
-`A, B` in `ℝᵈ`,
-
-    H(A, B) = sup_{‖p‖=1} | s(p, A) − s(p, B) |,
-
-turning set distance into the sup-norm distance of support functions.  This file
-builds the `d = 1` instance of that bridge — the only case the scalar
-interval-data CLT (`IntervalCLT.lean`, Beresteanu–Molinari Theorems 3.1/3.2)
-consumes — together with the underlying geometric fact
-
-    H([a,b], [c,d]) = max(|a−c|, |b−d|),     dᴴ([a,b], [c,d]) = max((a−c)₊, (b−d)₊)?
-
-(the directed version is recorded for the one-sided confidence regions).
-
-## Main definitions
-
-* `directedHausdorff A B` — the one-sided (directed) Hausdorff distance
-  `sup_{a∈A} infDist a B`.
-* `hausdorffDist A B` — the symmetric Hausdorff distance `max (dᴴ A B) (dᴴ B A)`.
-
-## Main results
-
-* `infDist_Icc` — distance from a point to an interval, `max 0 (max (c−x) (x−d))`.
-* `directedHausdorff_Icc` — `dᴴ([a,b],[c,d]) = max 0 (max (c−a) (b−d))`.
-* `hausdorffDist_Icc` — **the geometric keystone** `H([a,b],[c,d]) = max |a−c| |b−d|`.
 -/
 
-import Mathlib.Topology.MetricSpace.HausdorffDistance
-import Mathlib.Analysis.InnerProductSpace.Basic
+module
+public import Mathlib.Topology.MetricSpace.HausdorffDistance
+public import Mathlib.Analysis.InnerProductSpace.Basic
 
 /-! # Hausdorff Distance for Intervals
 
@@ -51,6 +23,8 @@ Main declarations:
 * `hausdorffDist_Icc` gives the symmetric endpoint-gap formula
   `H([a,b],[c,d]) = max |a-c| |b-d|`.
 -/
+
+@[expose] public section
 
 open Metric
 
@@ -69,7 +43,12 @@ noncomputable def directedHausdorff {α : Type*} [PseudoMetricSpace α]
 [symmetric Hausdorff distance](goal) is the larger of the directed distance from $A$ to $B$ and
 the directed distance from $B$ to $A$.
 
-It is `H(A,B) = max(dᴴ(A,B), dᴴ(B,A))`. -/
+It is `H(A,B) = max(dᴴ(A,B), dᴴ(B,A))`. This is deliberately not Mathlib's
+real-valued Hausdorff distance, which is `(hausdorffEDist A B).toReal` and
+therefore collapses to `0` when the sets are unbounded. The
+max-of-directed-distances form is the quantity the partial-identification
+literature uses (Beresteanu-Molinari), and it is the one the results below are
+about. -/
 noncomputable def hausdorffDist {α : Type*} [PseudoMetricSpace α]
     (A B : Set α) : ℝ :=
   max (directedHausdorff A B) (directedHausdorff B A)
@@ -192,26 +171,32 @@ theorem hausdorffDist_Icc {a b c d : ℝ} (hab : a ≤ b) (hcd : c ≤ d) :
   · -- LHS ≤ RHS
     refine max_le
       (max_le (le_trans h0ac (le_max_left _ _))
-        (max_le (le_trans hac1 (le_max_left _ _)) (le_trans hbd1 (le_max_right _ _))))
+        (max_le (le_trans hac1 (le_max_left _ _))
+          (le_trans hbd1 (le_max_right _ _))))
       (max_le (le_trans h0ac (le_max_left _ _))
-        (max_le (le_trans hac2 (le_max_left _ _)) (le_trans hbd2 (le_max_right _ _))))
+        (max_le (le_trans hac2 (le_max_left _ _))
+          (le_trans hbd2 (le_max_right _ _))))
   · -- RHS ≤ LHS
     refine max_le ?_ ?_
     · -- |a − c| ≤ LHS
       rw [abs_le']
       refine ⟨?_, ?_⟩
-      · exact le_trans (le_trans (le_max_left (a - c) (d - b)) (le_max_right 0 _))
+      · exact le_trans
+          (le_trans (le_max_left (a - c) (d - b)) (le_max_right 0 _))
           (le_max_right _ _)
       · rw [neg_sub]
-        exact le_trans (le_trans (le_max_left (c - a) (b - d)) (le_max_right 0 _))
+        exact le_trans
+          (le_trans (le_max_left (c - a) (b - d)) (le_max_right 0 _))
           (le_max_left _ _)
     · -- |b − d| ≤ LHS
       rw [abs_le']
       refine ⟨?_, ?_⟩
-      · exact le_trans (le_trans (le_max_right (c - a) (b - d)) (le_max_right 0 _))
+      · exact le_trans
+          (le_trans (le_max_right (c - a) (b - d)) (le_max_right 0 _))
           (le_max_left _ _)
       · rw [neg_sub]
-        exact le_trans (le_trans (le_max_right (a - c) (d - b)) (le_max_right 0 _))
+        exact le_trans
+          (le_trans (le_max_right (a - c) (d - b)) (le_max_right 0 _))
           (le_max_right _ _)
 
 end Causalean.PartialID.RandomSet

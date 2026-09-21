@@ -22,9 +22,11 @@ const RESEARCH_ROOT = fileURLToPath(new URL("../../../doc/research", import.meta
 function walkJson(dir: string, out: string[]): void {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
-    // .premigration holds pre-normalization snapshots kept verbatim on purpose.
+    // .premigration holds pre-normalization snapshots kept verbatim on purpose. `vcs` is the
+    // D0 graph store: content-addressed history that can never be re-emitted (an edit would
+    // break its hash); the defense guards the live working copy beside it, which IS walked.
     if (e.isDirectory()) {
-      if (e.name !== ".premigration") walkJson(p, out);
+      if (e.name !== ".premigration" && e.name !== "vcs") walkJson(p, out);
     } else if (e.name.endsWith(".json")) {
       out.push(p);
     }

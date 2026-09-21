@@ -1,5 +1,6 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Capacities
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Capacities
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Finite-cell plug-in endpoints and guarded confidence set
@@ -7,6 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 All empirical probabilities are finite averages of event indicators. Conditional
 ratios use zero when their empirical denominator is zero.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open MeasureTheory Set
@@ -29,11 +32,11 @@ noncomputable def empiricalProbabilityVector
     ObservedDatum 𝒳 K → ℝ :=
   fun o => empiricalFreq O (fun u => decide (u = o)) n ω
 
-private noncomputable def empiricalArm (O : ℕ → Ω → ObservedDatum 𝒳 K)
+noncomputable def empiricalArm (O : ℕ → Ω → ObservedDatum 𝒳 K)
     (n : ℕ) (ω : Ω) (x : 𝒳) (z : Bool) : ℝ :=
   empiricalFreq O (fun o => decide (o.cell = x ∧ o.instrument = z)) n ω
 
-private noncomputable def empiricalSelectedOutcome (O : ℕ → Ω → ObservedDatum 𝒳 K)
+noncomputable def empiricalSelectedOutcome (O : ℕ → Ω → ObservedDatum 𝒳 K)
     (n : ℕ) (ω : Ω) (x : 𝒳) (d z : Bool) (i : Fin K) : ℝ :=
   empiricalFreq O (fun o => decide (o.cell = x ∧ o.instrument = z ∧
     o.treatment = d ∧ o.selected = true ∧ o.outcome = some i)) n ω

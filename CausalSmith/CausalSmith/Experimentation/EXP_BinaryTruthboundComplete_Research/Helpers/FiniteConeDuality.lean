@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
-import Causalean.PO.ID.Partial.LP.ConicDuality
-import Causalean.Mathlib.Optimization.KKT
-import Mathlib.Analysis.InnerProductSpace.Projection.Minimal
-import Mathlib.Topology.Algebra.Module.FiniteDimension
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
+public import Causalean.PO.ID.Partial.LP.ConicDuality
+public import Causalean.Mathlib.Optimization.KKT
+public import Mathlib.Analysis.InnerProductSpace.Projection.Minimal
+public import Mathlib.Topology.Algebra.Module.FiniteDimension
 
 /-! Finite observable-margin linear-program duality interfaces used by both full and truncated programs. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
-import Causalean.Panel.PO.Mobius
-import Mathlib.Algebra.BigOperators.Ring.Finset
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
+public import Causalean.Mathlib.Combinatorics.BooleanCubeMobius
+public import Mathlib.Algebra.BigOperators.Ring.Finset
 
 /-! Boolean-cube Mobius inversion and centered-coordinate helpers. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set
@@ -86,11 +89,11 @@ lemma boolean_mobius_expansion (E : Setup) (u : Theta E → ℝ) :
   intro θ
   let τ : Theta E → ℝ := fun h => u h - u (fun _ => 0)
   have hτ0 : τ (fun _ => 0) = 0 := by simp [τ]
-  have hexp := Causalean.Panel.PO.Mobius.mobius_expansion τ hτ0 θ
+  have hexp := Causalean.Mathlib.Combinatorics.BooleanCubeMobius.mobius_expansion τ hτ0 θ
   have hcoef : ∀ S, S.Nonempty →
-      Causalean.Panel.PO.Mobius.delta τ S = beta E u S := by
+      Causalean.Mathlib.Combinatorics.BooleanCubeMobius.delta τ S = beta E u S := by
     intro S hS
-    simp only [Causalean.Panel.PO.Mobius.delta, τ]
+    simp only [Causalean.Mathlib.Combinatorics.BooleanCubeMobius.delta, τ]
     simp_rw [mul_sub]
     rw [Finset.sum_sub_distrib]
     change (∑ T ∈ S.powerset,
@@ -133,7 +136,7 @@ lemma boolean_mobius_expansion (E : Setup) (u : Theta E → ℝ) :
 -- @node: monomial_vertex
 lemma monomial_vertex (E : Setup) (S T : Finset (Fin E.K)) :
     monomial E T (vertex E S) = if T ⊆ S then 1 else 0 := by
-  apply Causalean.Panel.PO.Mobius.prod_indicator_eq (vertex E S) S
+  apply Causalean.Mathlib.Combinatorics.BooleanCubeMobius.prod_indicator_eq (vertex E S) S
   intro i
   simp [vertex]
 

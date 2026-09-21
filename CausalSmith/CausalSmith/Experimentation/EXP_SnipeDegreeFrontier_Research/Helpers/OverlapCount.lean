@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
-import Mathlib.Data.Nat.Choose.Sum
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
+public import Mathlib.Data.Nat.Choose.Sum
 
 /-!
 # Single-out-degree overlap count
@@ -7,6 +8,8 @@ import Mathlib.Data.Nat.Choose.Sum
 The identity double-counts pairs consisting of an overlapping neighborhood
 and an `r`-subset.  Its upper bound charges the graph's out-degree once.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

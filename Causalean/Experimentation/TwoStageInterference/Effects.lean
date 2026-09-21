@@ -6,8 +6,8 @@ Authors: Jiyuan Tan
 # Hudgens–Halloran (2008): unbiasedness of the effect estimators
 
 This file proves exact unbiasedness for the two-stage contrast estimators formalized in this
-folder.  The direct contrast uses Hudgens-Halloran's treatment-minus-control sign convention, while
-the indirect and total contrasts retain their control-strategy-minus-ψ orientation.  The key step is a
+folder.  The direct contrast uses Hudgens-Halloran's control-minus-treatment sign convention, while
+the indirect and total contrasts retain their control-strategy-minus-ψ orientation. The key step is
 strategy-agnostic version of population unbiasedness: whichever allocation strategy a group of
 groups is selected by (the ones flagged ψ, or the ones flagged
 φ), the population estimator built on that selection is unbiased for the population average
@@ -20,7 +20,8 @@ fixed ψ-selection to an arbitrary selection flag, and applies it twice — once
 estimator in the contrast — discharging the design propensities required for each selection.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Unbiased
+module
+public import Causalean.Experimentation.TwoStageInterference.Unbiased
 
 /-!
 # Two-stage effect estimators and unbiasedness
@@ -35,6 +36,8 @@ The theorem `E_popEst_pick` generalizes `E_popEst` to either stage-one flag.  Th
 population estimators, and `E_estDirect`, `E_estIndirect`, and `E_estTotal` prove their exact
 finite-sample unbiasedness for `CE_direct`, `CE_indirect`, and `CE_total`.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -61,7 +64,7 @@ private lemma popEst_summand_pick (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
   unfold FiniteDesign.ind
   by_cases h : sw.1 i = pick <;> simp [h]
 
-/-- **Population unbiasedness, either selection (generalizing Theorem 1).** For the two-stage
+/-- **Population unbiasedness, either selection (generalizing Theorem 2).** For the two-stage
 design that allocates groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the
 potential-outcome function Y](hyp:Y), fix an arbitrary selection flag `pick` together with
 [a within-group design ρ](hyp:ρ) meant to govern every group whose stage-1 flag equals `pick`,
@@ -129,7 +132,7 @@ noncomputable def estIndirect (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
   popEst Y false false m0φ dφ sw - popEst Y false true m0ψ dψ sw
 
 /-- For [a finite collection of groups](hyp:ι) with [their respective unit counts](hyp:n), [a
-potential-outcome schedule](hyp:Y), [the $\phi$-control and $\psi$-treatment arm counts](hyp:m0φ,m1ψ),
+potential-outcome schedule](hyp:Y), [the φ-control and ψ-treatment arm counts](hyp:m0φ,m1ψ),
 [the corresponding stage-one normalizing counts](hyp:dφ,dψ), and [a realized two-stage
 assignment](hyp:sw), the [Horvitz--Thompson estimator of the total effect](goal) is the
 control-outcome population estimator among $\phi$-assigned groups minus the treatment-outcome
@@ -140,7 +143,7 @@ noncomputable def estTotal (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
 
 /-! ### Unbiasedness of the effect estimators -/
 
-/-- **Direct-contrast unbiasedness (Theorem 1 contrast).** For the two-stage design that allocates
+/-- **Direct-effect unbiasedness (Theorem 2 corollary).** For the two-stage design that allocates
 groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the potential-outcome
 function Y](hyp:Y), assume [the target sample size C of ψ-selected groups is nonzero](hyp:hC),
 [every group's control-arm unit count m0 is nonzero](hyp:hm0), [every group's treatment-arm unit
@@ -149,7 +152,7 @@ each group randomized by ψ [each unit's control propensity is m0/n](hyp:hprop0)
 treatment propensity is m1/n](hyp:hprop1), and that [the stage-1 design selects each group into
 the ψ arm with probability C/N](hyp:hstage1ψ). Then [the Horvitz–Thompson estimator built from the
 ψ-selected groups is unbiased for the direct-effect contrast — the population average outcome
-under treatment minus under control, both evaluated under strategy ψ](goal). -/
+under control minus under treatment, both evaluated under strategy ψ](goal). -/
 theorem E_estDirect (D₁ : FiniteDesign (StratAssign ι))
     (ψ φ : ∀ i, FiniteDesign (WAssign n i))
     (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (m0 m1 : ι → ℝ) (C : ℝ)
@@ -165,7 +168,7 @@ theorem E_estDirect (D₁ : FiniteDesign (StratAssign ι))
   rw [E_popEst_pick D₁ ψ φ Y false m0 true C ψ hC hm0 hn
       (fun s i hs => by simp [hs]) hprop0 hstage1ψ]
 
-/-- **Indirect-effect unbiasedness (Theorem 2 contrast).** For the two-stage design that allocates
+/-- **Indirect-effect unbiasedness (Theorem 2 corollary).** For the two-stage design that allocates
 groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the potential-outcome
 function Y](hyp:Y), assume [the target sample size dφ of φ-selected groups is nonzero](hyp:hdφ),
 [the target sample size dψ of ψ-selected groups is nonzero](hyp:hdψ), [every group's φ-arm control
@@ -194,7 +197,7 @@ theorem E_estIndirect (D₁ : FiniteDesign (StratAssign ι))
   rw [E_popEst_pick D₁ ψ φ Y false m0ψ true dψ ψ hdψ hm0ψ hn
       (fun s i hs => by simp [hs]) hpropψ hstage1ψ]
 
-/-- **Total-effect unbiasedness (Theorem 3 contrast).** For the two-stage design that allocates
+/-- **Total-effect unbiasedness (Theorem 2 corollary).** For the two-stage design that allocates
 groups to [strategy ψ or strategy φ](hyp:ψ,φ) and records outcomes via [the potential-outcome
 function Y](hyp:Y), assume [the target sample size dφ of φ-selected groups is nonzero](hyp:hdφ),
 [the target sample size dψ of ψ-selected groups is nonzero](hyp:hdψ), [every group's φ-arm control

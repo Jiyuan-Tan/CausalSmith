@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.FiniteConeDuality
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
-import Mathlib.Analysis.LocallyConvex.Separation
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.FiniteConeDuality
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
+public import Mathlib.Analysis.LocallyConvex.Separation
 
 /-! Strong duality, complementary slackness, and the Pareto complete class. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

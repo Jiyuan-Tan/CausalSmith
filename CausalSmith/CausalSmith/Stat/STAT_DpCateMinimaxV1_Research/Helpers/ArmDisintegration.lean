@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationDesign
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationDesign
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Map
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -54,7 +57,8 @@ lemma supBall_rStar_subset_supBall {d : ℕ} (r0 : ℝ) (x0 : Fin d → ℝ) (hr
     supBall x0 (rStar r0 x0) ⊆ supBall x0 r0 := by
   by_cases hd : d = 0
   · subst d
-    simp [supBall, Causalean.Stat.Nonparametric.supBall]
+    simp [supBall, Causalean.Stat.Nonparametric.supBall,
+      Causalean.Mathlib.Analysis.supBall]
   haveI : Nonempty (Fin d) := Fin.pos_iff_nonempty.mp (Nat.pos_of_ne_zero hd)
   intro x hx i
   have hrs0 : 0 ≤ rStar r0 x0 := (abs_nonneg (x i - x0 i)).trans (hx i)

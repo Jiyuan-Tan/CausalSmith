@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperTotal
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxFunctional
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxDivergence
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperTotal
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxFunctional
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxDivergence
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-!
 # Matched minimax absolute-risk frontier
@@ -16,6 +17,8 @@ import Causalean.Stat.Minimax.MinimaxRisk
 The upper bound is attached to the concrete total-Gram estimator. The lower
 bound contains both same-class experiments and their product-divergence bounds.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
@@ -332,7 +335,7 @@ lemma globalBernoulli_witness_eventually
       (fun _ => by norm_num)
   have hac : iidProduct P1 n ≪ iidProduct P0 n := by
     simpa [P0, P1, iidProduct, minimaxClampLaw] using
-      Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n
+      Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n
   have hint : Integrable (fun z => (((iidProduct P1 n).rnDeriv
       (iidProduct P0 n) z).toReal - 1) ^ 2) (iidProduct P0 n) := by
     simpa [P0, P1, iidProduct, minimaxClampLaw] using
@@ -571,7 +574,7 @@ lemma localizedBernoulli_witness_eventually
       (fun _ => by norm_num)
   have hac : iidProduct Q1 n ≪ iidProduct Q0 n := by
     simpa [Q0, Q1, iidProduct, minimaxClampLaw] using
-      Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n
+      Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n
   have hint : Integrable (fun z => (((iidProduct Q1 n).rnDeriv
       (iidProduct Q0 n) z).toReal - 1) ^ 2) (iidProduct Q0 n) := by
     simpa [Q0, Q1, iidProduct, minimaxClampLaw] using
@@ -826,7 +829,7 @@ lemma observedMinimaxRisk_eventually_ge_root
       (fun _ : Fin J × ℝ => 0)) :=
     minimaxDataMeasure_isProbabilityMeasure J kappa hJ hkappa _ measurable_const
       (fun _ => by norm_num)
-  have hac := Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n
+  have hac := Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n
   have hint := Causalean.Stat.pi_iid_integrable_sq_dev _ _ hac1 hint1 n
   have hlower := observedMinimaxRisk_lower_of_two_point P0 P1 n beta kappa L
     cminus cplus pmin (deltaSeq n) eps chi hP0 hP1 hdelta1.1 hdelta1.2
@@ -1000,7 +1003,7 @@ lemma observedMinimaxRisk_eventually_ge_local
     (mul_nonneg (mul_nonneg hamp.le (Real.rpow_nonneg hd.1 _))
       (Real.rpow_nonneg hhs.le _)) hsep
     (by simpa [P0,P1,iidProduct,minimaxClampLaw] using
-      Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n)
+      Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n)
     (by simpa [P0,P1,iidProduct,minimaxClampLaw] using
       Causalean.Stat.pi_iid_integrable_sq_dev _ _ hac1 hint1 n)
     hchi0 hchi4 hchi

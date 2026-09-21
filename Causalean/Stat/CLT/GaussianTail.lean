@@ -16,7 +16,8 @@ ingredient) so it can be reused by the Imbens–Manski coverage argument in
 quantile-Bahadur tower.
 -/
 
-import Causalean.Stat.CLT.AsymptoticLinearity
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
 
 /-! # Gaussian Tail Control
 
@@ -30,6 +31,8 @@ the real line. Its Gaussian corollary `gaussian_tail_small_gaussian` applies to
 the project's `gaussianMeasure m v`, including the clipped degenerate case for
 nonpositive variance parameters. Both return one positive cutoff controlling the
 lower and upper half-line tails. -/
+
+public section
 
 namespace Causalean.Stat
 

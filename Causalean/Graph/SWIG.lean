@@ -18,8 +18,8 @@ following Richardson and Robins.
 * `SWIGGraph` — graph-level causal packaging:
   `(S, V, U, E, ι)` with root constraints
 
-The multi-target split operation (`SWIGGraph.splitMono`, Definition 8) is in
-the sibling file `Graph/SWIGSplitMono.lean`.
+The library's multi-target split operation (`SWIGGraph.splitMono`) is in the
+sibling file `Graph/SWIGSplitMono.lean`.
 
 ## Design note
 
@@ -33,14 +33,15 @@ already lives in the SWIG node space. A standard model (no interventions) has
 
 ## References
 
-* Basic Concepts.tex, Definitions 4 and 7 (SWIG Graph, Split)
+* Basic Concepts.tex, “SWIG Graph” (`def:swig-graph`)
 -/
 
-import Causalean.Graph.DAG
-import Mathlib.Algebra.Ring.Nat
-import Mathlib.Data.Fintype.Sum
-import Mathlib.MeasureTheory.MeasurableSpace.Defs
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
+module
+public import Causalean.Graph.DAG
+public import Mathlib.Algebra.Ring.Nat
+public import Mathlib.Data.Fintype.Sum
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 /-! # Single World Intervention Graphs
 
@@ -64,7 +65,9 @@ causal models. The namespace also provides graph equivalence up to edge and
 partition equality, plus parent/child classification lemmas. The monolithic
 multi-target split operation is defined in `Causalean.Graph.SWIGSplitMono`. -/
 
-namespace Causalean
+@[expose] public section
+
+namespace Causalean.Graph
 
 -- ============================================================
 -- SWIG Node Type
@@ -83,7 +86,7 @@ namespace Causalean
 inductive SWIGNode (N : Type*)
   | random : N → SWIGNode N
   | fixed : N → SWIGNode N
-  deriving DecidableEq, Repr
+  deriving DecidableEq
 
 namespace SWIGNode
 
@@ -138,26 +141,6 @@ instance instMeasurableSpaceSwigΩ {N : Type*} (Ω : N → Type*)
   | .random _ => inferInstance
   | .fixed _ => inferInstance
 
-namespace SCM
-
-/-- Transporting a value along an equality of indices is measurable. -/
-@[fun_prop]
-theorem measurable_cast_family {I : Type*} {X : I → Type*}
-    [∀ i, MeasurableSpace (X i)] {a b : I} (hab : a = b) :
-    Measurable (cast (congrArg X hab) : X a → X b) := by
-  subst hab
-  exact measurable_id
-
-/-- A measurable function remains measurable after transporting its codomain index. -/
-@[fun_prop]
-theorem measurable_family_cast {I γ : Type*} {X : I → Type*}
-    [∀ i, MeasurableSpace (X i)] [MeasurableSpace γ]
-    {v w : I} (h : v = w) {f : γ → X v} (hf : Measurable f) :
-    Measurable (fun x => (h ▸ f x : X w)) := by
-  subst h
-  exact hf
-
-end SCM
 
 /-- For [a collection of base variables](hyp:N), [a family of value spaces each equipped with a σ-algebra and forming a standard Borel space](hyp:Ω), and [any split node](hyp:sn), the [standard Borel-space structure on that node's SWIG value space](goal) is inherited from the corresponding base-variable value space. -/
 instance instStandardBorelSpaceSwigΩ {N : Type*} (Ω : N → Type*)
@@ -340,7 +323,9 @@ theorem swig_random_root_of_root (G : DAG N) (targets : Finset N) (n : N)
 -- Lifting a DAG to its initial SWIG (no interventions)
 -- ============================================================
 
-/-- For [a finite directed acyclic graph](hyp:G), the [initial single-world intervention graph](goal) is its split-node graph with no intervention targets, so every original edge joins random copies and every fixed copy is isolated.
+/-- [The initial single-world intervention graph](goal) of [a finite directed acyclic
+    graph](hyp:G) represents the no-intervention regime: every original edge joins random copies,
+    while every fixed copy has no incident edge.
 
     The initial SWIG DAG with no intervention targets.
     All edges stay between random nodes; all fixed nodes are isolated.
@@ -356,7 +341,7 @@ theorem initialSWIG_random_edge (G : DAG N) (u v : N) :
 
 /-- For [any base DAG `G`](hyp:G) and [any node `n`](hyp:n), [the fixed copy of `n` has no
 parents in the initial SWIG of `G` (the SWIG with no intervention targets)](goal). -/
-theorem initialSWIG_fixed_isolated (G : DAG N) (n : N) :
+theorem initialSWIG_fixed_are_roots (G : DAG N) (n : N) :
     (initialSWIG G).parents (.fixed n) = ∅ :=
   swig_fixed_are_roots G ∅ n
 
@@ -364,9 +349,9 @@ theorem initialSWIG_fixed_isolated (G : DAG N) (n : N) :
 -- SWIGGraph structure
 -- ============================================================
 
-/-- A Single-World Intervention Graph (SWIG), `G = (S, V, U, E, ι)` (Definition 4 from Basic
-    Concepts.tex): [a directed acyclic graph on the SWIG nodes](hyp:dag) whose vertices are
-    partitioned into [fixed intervention nodes](hyp:fixed), [observed random nodes](hyp:observed),
+/-- A Single-World Intervention Graph (SWIG), `G = (S, V, U, E, ι)` (the definition labelled
+    `def:swig-graph` in Basic Concepts.tex): [a directed acyclic graph on the SWIG nodes](hyp:dag)
+    equipped with [fixed intervention nodes](hyp:fixed), [observed random nodes](hyp:observed),
     and [unobserved random nodes](hyp:unobserved), where [every fixed node is genuinely of fixed
     form](hyp:fixed_is_fixed), [every observed node is of random form](hyp:observed_is_random),
     [every unobserved node is of random form](hyp:unobserved_is_random), and [the observed and
@@ -378,11 +363,13 @@ theorem initialSWIG_fixed_isolated (G : DAG N) (n : N) :
     isolated, with neither parents nor children](hyp:fixed_outside_fixed_isolated); and [every
     child of a classified node is observed](hyp:all_children_in_observed).
 
-    Consists of a DAG on `SWIGNode N` together with a three-way partition
-    `(fixed S, observed V, unobserved U)`, an injective mapping `ι : S → V`,
-    and root constraints on S and U.
+    The three pairwise-disjoint classification sets cover every endpoint of an
+    edge, but need not cover all carrier points: isolated random-form points may
+    remain unclassified. The structure also carries the canonical injective
+    mapping `ι : S → V` and root constraints on S and U.
 
-    When `S = ∅`, the SWIG reduces to the standard DAG `(V ∪ U, E)`. -/
+    When `S = ∅`, every edge endpoint lies in `V ∪ U`, as in the standard DAG
+    presentation. -/
 structure SWIGGraph (N : Type*) [DecidableEq N] [Fintype N] where
   /-- The underlying DAG on SWIG nodes. -/
   dag : DAG (SWIGNode N)
@@ -545,4 +532,4 @@ theorem child_classified (G : SWIGGraph N) {u w : SWIGNode N}
 
 end SWIGGraph
 
-end Causalean
+end Causalean.Graph

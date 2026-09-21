@@ -3,18 +3,24 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymmetryReduction
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SpectralCoordinates
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySlice
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ReducedSimplexBridge
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncation
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymmetryReduction
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SpectralCoordinates
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySlice
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ReducedSimplexBridge
+public import
+  CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexActiveSet
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncation
 
 /-! # Rounding-gap reduction
 
 Assembles `prop:symmetry-reduction`, `lem:block-spectral-coordinates`, and
 `lem:pm-reduced-slice-characterization` into the reduced-coordinate identity for
 the implementability gap: `Δ_m^± = min_{T_m ∩ {y+z ≥ d_m}} φ − min_{T_m} φ`. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

@@ -1,21 +1,26 @@
-import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.FiniteKernel
+module
+public import Causalean.Mathlib.Probability.Certified.FiniteKernel
 
 /-!
 # Finite Markov operators and oscillation contraction
 
 This module provides the backward action of a finite stochastic matrix on functions and the
 duality between total-variation contraction of distributions and oscillation contraction of
-functions. It reuses the finite probability vectors and forward Markov steps from
-`CertifiedFiniteMarkovExpectation.FiniteKernel`.
+functions. It reuses the finite probability vectors and forward Markov steps from the module
+`Causalean.Mathlib.Probability.Certified.FiniteKernel`, whose declarations live in the namespace
+`Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Probability.FiniteMarkovOscillation
 
 open scoped BigOperators
 open CertifiedFiniteMarkovExpectation
 
-/-- Given [a finite transition matrix](hyp:P), [a real-valued function](hyp:f), and [a starting
-state](hyp:s), [the backward Markov operator is the transition-weighted sum of the function](goal). -/
+/-- Given [a finite transition matrix](hyp:P), [a real-valued function](hyp:f), and
+[a starting state](hyp:s), [the backward Markov operator is the transition-weighted sum of the
+function](goal). -/
 noncomputable def markovOperator {S : Type*} [Fintype S]
     (P : S → S → ℝ) (f : S → ℝ) (s : S) : ℝ :=
   ∑ s', P s s' * f s'
@@ -173,7 +178,8 @@ lemma oscillationBound_markovOperator {S : Type*} [Fintype S] [Nonempty S]
 
 /-- Given [a finite stochastic matrix](hyp:hP), [a nonnegative contraction coefficient](hyp:halpha),
 [half-ℓ¹ contraction of its forward action](hyp:hcontract), [an initial oscillation bound](hyp:hf),
-and [a number of steps](hyp:n), [the iterated backward operator's oscillation is bounded by the coefficient raised to the
+and [a number of steps](hyp:n), [the iterated backward operator's oscillation is bounded by the
+coefficient raised to the
 number of steps times the initial bound](goal), which decays geometrically when the coefficient is
 below one. -/
 lemma oscillationBound_markovOperatorIter {S : Type*} [Fintype S] [Nonempty S]

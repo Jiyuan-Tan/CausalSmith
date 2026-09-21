@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.ClusterRandomization
-import Mathlib.Tactic.NormNum
+module
+public import Causalean.Experimentation.DesignBased.Designs.ClusterRandomization
+public import Mathlib.Tactic.NormNum
 
 /-!
 # Middleton & Aronow (2015): cluster-randomized Horvitz-Thompson ATE
@@ -20,6 +21,8 @@ The file records the cluster Horvitz-Thompson treated/control totals, the unit-c
 the normalized effect estimator, the normalized finite-population ATE estimand, and the
 unbiasedness theorem (a direct consequence of the first-order cluster inclusion probability).
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

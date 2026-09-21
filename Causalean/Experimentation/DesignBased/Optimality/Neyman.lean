@@ -6,27 +6,32 @@ Authors: Jiyuan Tan
 # Neyman optimal allocation
 
 For a two-arm experiment the randomization variance of the difference-in-means estimator, as a
-function of the treatment fraction `x ∈ (0,1)`, has the form `A/x + B/(1−x)` with `A, B > 0` the
-treated- and control-arm outcome variances.  **Neyman allocation** is the choice of `x` minimizing
-this variance.  This file proves the analytic heart of the result: `A/x + B/(1−x)` is bounded below
-by `(√A + √B)²` on `(0,1)`, and attains that minimum at the **Neyman fraction**
-`x* = √A / (√A + √B)`, which therefore splits the sample in proportion to the arms' standard
-deviations.
+function of the treatment fraction `x ∈ (0,1)`, has the form `A/x + B/(1−x)`. For positive
+treated- and control-arm outcome variances, **Neyman allocation** chooses
+`x* = √A / (√A + √B) ∈ (0,1)` and minimizes this variance. This file proves the analytic lower
+bound and equality identity under nonnegative variances. In the zero-variance boundary cases the
+totalized fraction is `0` or `1`, so the proved value comparison does not assert an interior
+minimizer.
 -/
 
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-! # Neyman allocation
 
-Neyman allocation minimizes the two-arm variance proxy by assigning in proportion to
-standard deviations.
+For positive arm variances, Neyman allocation minimizes the two-arm variance proxy by assigning
+in proportion to standard deviations. Under merely nonnegative variances, this module's totalized
+formula may lie at a boundary point.
 
-The definitions `neymanFraction` and `neymanOptimalValue` package the optimizer
-`sqrt A / (sqrt A + sqrt B)` and the value `(sqrt A + sqrt B)^2`.  Theorems
+The definitions `neymanFraction` and `neymanOptimalValue` package the fraction
+`sqrt A / (sqrt A + sqrt B)` and the lower-bound value `(sqrt A + sqrt B)^2`. Theorems
 `neyman_allocation_lower_bound`, `neyman_allocation_eq_at_fraction`, and
-`neyman_allocation_isMinimizer` prove the lower bound, show equality at the Neyman
-fraction, and state the resulting minimization property on the interval `(0, 1)`.
+`neyman_fraction_value_le_on_Ioo` prove the lower bound, show equality at the totalized Neyman
+fraction, and compare its value with every point of `(0, 1)`. The separate membership theorem
+`neymanFraction_mem_Ioo` requires both variances to be positive.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 
@@ -78,8 +83,8 @@ theorem neymanFraction_mem_Ioo {A B : ℝ} (hA : 0 < A) (hB : 0 < B) :
 
 /-- **Neyman allocation optimum.** For [nonnegative treated-arm and control-arm outcome variances
 `A` and `B`](hyp:hA,hB), [evaluating the two-arm variance `A/x + B/(1−x)` at the Neyman fraction
-`x* = √A/(√A+√B)` yields exactly its lower bound `(√A + √B)²`](goal); hence the Neyman fraction
-minimizes the variance over `(0,1)`. -/
+`x* = √A/(√A+√B)` yields exactly its lower bound `(√A + √B)²`](goal). When one variance
+is zero, this totalized fraction is a boundary point rather than an element of `(0,1)`. -/
 theorem neyman_allocation_eq_at_fraction {A B : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) :
     A / neymanFraction A B + B / (1 - neymanFraction A B) = neymanOptimalValue A B := by
   rcases eq_or_lt_of_le hA with rfl | hA
@@ -103,9 +108,11 @@ theorem neyman_allocation_eq_at_fraction {A B : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ 
   rw [Real.sq_sqrt (le_of_lt hA), Real.sq_sqrt (le_of_lt hB)]
   ring
 
-/-- The Neyman fraction is a minimizer: its two-arm variance is no larger than the variance at
-any treatment fraction in `(0,1)`. -/
-theorem neyman_allocation_isMinimizer {A B : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) :
+/-- Given [nonnegative arm variances](hyp:hA,hB),
+[its value at the totalized fraction is no larger than at every interior fraction](goal).
+This comparison does not assert that the Neyman fraction
+belongs to `(0,1)` in the zero-variance boundary cases. -/
+theorem neyman_fraction_value_le_on_Ioo {A B : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) :
     ∀ x, 0 < x → x < 1 →
       A / neymanFraction A B + B / (1 - neymanFraction A B) ≤ A / x + B / (1 - x) := by
   intro x hx0 hx1

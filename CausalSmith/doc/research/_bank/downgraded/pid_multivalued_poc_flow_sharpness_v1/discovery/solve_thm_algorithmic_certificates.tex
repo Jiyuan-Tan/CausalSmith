@@ -1,0 +1,204 @@
+%%% FIELD proof-algorithmic-certificates
+Assume the rational input format in the statement and \(2\leq k\leq m\).  We first establish the operation count for evaluating compatibility and the two endpoints.  Scan the \(mr\) entries of each table, checking nonnegativity, the observational simplex equality, the \(m\) intervention-row simplex equalities, and the \(mr\) inequalities
+\[
+e_{is}\geq o_{is}
+\qquad(i\in\mathcal X,\ s\in\mathcal Y).
+\]
+By the compatibility theorem, after the two simplex checks these cell inequalities are necessary and sufficient for \(\mathcal Q(o,e)\neq\varnothing\).  The same scan computes every \(p_i\).  The definitions of the reduced coordinates then compute \(a_j,b_j,c_j,d_j,h_j,p_0,g,H\) in \(O(mr+k)\) arithmetic operations.  Since
+\[
+b_i-\sum_{j\in\mathcal J\setminus\{i\}}h_j=b_i-H+h_i,
+\]
+the definition of \(L\) evaluates the lower endpoint from \(H\), \(\sum_j a_j\), and the \(k\) displayed singleton values in a further \(O(k)\) operations.
+
+For the upper endpoint, let
+\[
+c_{(1)}\leq\cdots\leq c_{(k)}
+\]
+be the nondecreasing rearrangement.  For each \(\ell\in\{2,\ldots,k\}\),
+\[
+\min_{\substack{S\subseteq\mathcal J\\ |S|=\ell}}
+\sum_{j\in S}c_j
+=\sum_{u=1}^{\ell}c_{(u)}.
+\]
+Indeed, if a cardinality-\(\ell\) set omits an entry no larger than one of its selected entries, exchanging those entries does not increase the sum.  Repeating this finite exchange gives the \(\ell\) smallest entries and proves the equality.  Therefore the definition of \(U\) is equivalently
+\[
+U(o,e)=\min\left\{g,\ \min_{j\in\mathcal J}a_j,\
+\ \min_{2\leq\ell\leq k}
+\frac{\sum_{u=1}^{\ell}c_{(u)}}{\ell-1}\right\}.
+\]
+Sorting once and scanning the prefix sums costs \(O(k\log k)\) arithmetic and comparison operations.  Along with the table scan, this proves the claimed \(O(mr+k\log k)\) evaluation bound and returns an active upper affine piece.
+
+We next count the support of the uncompressed constructions.  Start the indicator construction with the factual-treatment partition; after omitting zero-mass strata, it has at most \(m\) positive cells.  Splitting each queried own stratum into factual success and factual failure introduces at most \(k\) further positive cells by the finite-cell TAKE lemma.
+
+For the upper construction, the common intersection is selected once in each of the \(k\) queried factual-success blocks and once in the unqueried block.  Each TAKE operation introduces at most one positive cell, so these selections add at most \(k+1\) cells.  Each of the \(k\) residual coordinate-success fillings introduces at most one more cell.  Thus the upper indicator law has at most
+\[
+m+k+(k+1)+k=m+3k+1
+\]
+positive cells.  The upper-packing attainment lemma proves that this construction attains \(U(o,e)\).
+
+For the lower construction, a left vertex \(j\) can send flow to right block \(0\) and to each queried right block other than \(j\).  Hence there are
+\[
+k\bigl(1+(k-1)\bigr)=k^2
+\]
+possible middle edges.  Realizing every positive edge-flow as a disjoint failure piece uses at most one TAKE split per middle edge, and filling the residual demand of each of the \(k\) left rows uses at most one further split.  Including the queried own-stratum cuts, the lower indicator law therefore has at most
+\[
+m+k+k^2+k=m+k^2+2k
+\]
+positive cells.  The lower-flow attainment lemma supplies the required residual invariant: if a left row retains positive unused capacity, every adjacent right block is saturated, so the remaining row demand can be placed inside the existing failure union and cannot change the conjunction event.  That lemma proves that the construction attains \(L(o,e)\).
+
+It remains to refine either indicator law to all \(r\) categorical labels.  Fix a coordinate \(i\).  Inside its own factual stratum, the required label masses are \(o_{is}\), \(s\in\mathcal Y\); outside that stratum they are
+\[
+e_{is}-o_{is}\geq0,
+\]
+where nonnegativity is cell compatibility.  The simplex restrictions give
+\[
+\sum_{s\in\mathcal Y}o_{is}=p_i,
+\qquad
+\sum_{s\in\mathcal Y}(e_{is}-o_{is})=1-p_i.
+\]
+Thus, in each of the two domains, successively assigning at most the first \(r-1\) labels by TAKE leaves exactly the last label mass as the remainder.  For a queried coordinate the pre-existing success indicator already fixes the queried label, and the same argument is applied on indicator-compatible eligible unions; it can only reduce the number of required splits.  Consequently coordinate \(i\) introduces at most \(2(r-1)\) cells.  Over all \(m\) coordinates, categorical lifting adds at most \(2m(r-1)\) cells and preserves all earlier indicator labels.  The categorical-lifting lemma then places the refined law in \(\mathcal Q(o,e)\) without changing the conjunction probability.  The TAKE lemma makes no split when the requested mass or the eligible domain has mass zero.  Hence either endpoint construction has support no larger than
+\[
+\max\{m+3k+1,\ m+k^2+2k\}+2m(r-1)
+\leq m+2m(r-1)+k^2+3k+1=N_\star.
+\]
+
+We now prove the grid claims and audit bit complexity.  Let \(D\) be the least common multiple of the positive denominators of the rational input entries.  Every input mass and every reduced coordinate is in \(D^{-1}\mathbb Z\), and
+\[
+\log_2D
+\leq\sum_{v}\log_2 d_v
+\leq B,
+\]
+where \(d_v\) ranges over the input denominators.  Repeated Euclidean greatest-common-divisor computations together with
+\[
+\operatorname{lcm}(u,v)=\frac{uv}{\gcd(u,v)}
+\]
+compute \(D\) in polynomial bit time.  To see the iteration bound directly, let \(a\geq b>0\) be consecutive positive Euclidean arguments and let \(q\) be the remainder of dividing \(a\) by \(b\).  If \(q\leq b/2\), the smaller argument has halved after that step.  If \(q>b/2\), the next remainder is \(b-q<b/2\), so it has halved after two steps.  Hence the number of divisions is linear in the bit length, and schoolbook integer division has polynomial bit cost.  The displayed least-common-multiple division is exact and its divisor is positive.
+
+For the lower network, multiply all capacities by \(D\).  The source, right-block, and middle-edge capacities are then integers.  Starting from zero, augment a residual path by its least residual capacity.  Inductively every scaled flow remains integral, so after scaling back every edge-flow piece and every residual failure demand belongs to \(D^{-1}\mathbb Z\).  The categorical demands \(o_{is}\) and \(e_{is}-o_{is}\) lie on the same grid.  Applying the grid-preservation clause of the TAKE lemma at every refinement therefore shows that every atom of the uncompressed lower witness has weight in \(D^{-1}\mathbb Z\).
+
+For the upper endpoint, suppose first that the selected active certificate is \(g\) or a margin \(a_j\).  Then
+\[
+U(o,e)\in D^{-1}\mathbb Z.
+\]
+If instead the selected certificate is a subset \(S\subseteq\mathcal J\) of size \(\ell\geq2\), then
+\[
+U(o,e)=\frac{\sum_{j\in S}c_j}{\ell-1}
+\in [D(\ell-1)]^{-1}\mathbb Z.
+\]
+Use the applicable grid \(\delta\mathbb Z\), with \(\delta=D^{-1}\) in the first case and \(\delta=[D(\ell-1)]^{-1}\) in the second.  Every input mass is a multiple of \(\delta\).  The initial common-piece masses \((U-c_i)_+\), each sequential enlargement by the lesser of the remaining demand and remaining capacity, and every residual coordinate-success demand are therefore multiples of \(\delta\).  The categorical demands are also multiples of \(\delta\).  The TAKE lemma consequently keeps every atom of the uncompressed upper witness on the applicable grid.  These are exactly the denominator assertions for the witnesses supported on at most \(N_\star\).  All construction steps use addition, subtraction, comparison, and selection of a requested mass; no conditional probability is formed and no cell mass is used as a divisor.  If an eligible domain has zero mass, its compatible demand is zero and TAKE makes no split.
+
+The lower flow can be found in polynomially many exact operations independently of the numerical value of \(D\).  Its network has \(V=2k+3\) vertices and \(E=k^2+2k+1\) forward arcs.  At every iteration, choose a residual source-to-sink path having the fewest arcs and augment it by its least residual capacity.  Residual shortest-path distances from the source never decrease: a newly created residual arc is the reverse of an arc on the preceding shortest path, and using that new arc cannot create a shorter route than the distances that defined that path.  Charge an augmentation to one directed residual arc \((u,v)\) that it saturates.  At that saturation, the shortest-path labels obey \(d(v)=d(u)+1\).  Before the same directed arc can be saturated again, its reverse \((v,u)\) must occur on a later shortest path, where \(d'(u)=d'(v)+1\).  Distance monotonicity then gives
+\[
+d'(u)=d'(v)+1\geq d(v)+1=d(u)+2.
+\]
+Because a finite distance is at most \(V-1\), each directed arc can receive only \(O(V)\) charges.  There are at most \(2E\) directed residual arcs, so there are \(O(VE)=O(k^3)\) augmentations.  A breadth-first scan costs \(O(E)=O(k^2)\), giving the conservative bound \(O(k^5)\) exact arithmetic operations.  All scaled capacities are at most \(2D\), so its additions, subtractions, and comparisons use integers of \(O(B+1)\) bits.  The upper construction uses only the sorted scan and the finite TAKE refinements already described.
+
+There are \(O(mr+k^2+k)\) TAKE calls.  A direct implementation scans at most \(N_\star\) current cells per call, and splitting one cell copies a response record containing one treatment label and \(m\) outcome labels.  Since \(N_\star\) is polynomial in \(m,r,k\), this gives polynomial running time.  Every uncompressed atom has an \(O(B+\log k)\)-bit rational weight, one treatment label, and \(m\) outcome labels, so each sparse endpoint law has encoding length polynomial in \(m,r,k,B\).  Zero-mass cells are omitted.
+
+Apply the certificate-preserving support-compression lemma separately to these rational lower- and upper-endpoint laws.  It returns, in polynomial time using exact rational arithmetic, one law for each endpoint with the same margins, the same conjunction value, the same active-affine or minimum-cut certificate, support at most
+\[
+mr+m(r-1)=2mr-m,
+\]
+and polynomial encoding length.  This is a second witness guarantee, distinct from the grid-preserving \(N_\star\) guarantee.  Exact kernel cancellation can introduce additional rational denominators; accordingly, no \(D^{-1}\mathbb Z\) or \([D(\ell-1)]^{-1}\mathbb Z\) divisibility assertion is made for the compressed weights.
+
+Each sparse response law is also an exact finite SCM law.  Namely, let one finite exogenous variable take values \(\omega=(x,y_1,\ldots,y_m)\) with the displayed atom weights, define \(X(\omega)=x\) and \(Y_i(\omega)=y_i\), and set the observed outcome to \(Y=Y_X\).  This realization reproduces the response law exactly and does not enlarge its support.
+
+Finally, both types of sparse witness are polynomial-time verifiable.  A verifier sums the atom weights over the \(mr\) observational cells, the \(mr\) intervention cells, and the conjunction event.  For an upper witness, the certificate names \(g\), a margin \(a_j\), or an active subset \(S\).  On the conjunction event, factual consistency implies that a queried factual stratum \(X=j\) lies in its factual-success cell of mass \(b_j\); the remaining possible factual strata have total mass \(p_0\).  Thus \(\theta\leq p_0+\sum_jb_j=g\), while event inclusion gives \(\theta\leq\Pr(A_j)=a_j\).  Together with the packing inequality, the certificate inequalities are
+\[
+\theta\leq g,
+\qquad
+\theta\leq a_j,
+\qquad
+(|S|-1)\theta\leq\sum_{j\in S}c_j
+\]
+are respectively the factual-consistency, marginal, and upper-packing inequalities; the last equivalence and its active-subset certificate are proved by the upper-packing attainment lemma.  For a lower witness, a minimum cut attains one of the pieces in
+\[
+W(o,e)=\min\{H,g,\min_i(H-h_i+g-b_i)\},
+\]
+and the lower-flow attainment lemma proves both the cut value and \(L(o,e)=g-W(o,e)\).  Equality between the verified primal objective and the named affine or cut value certifies endpoint optimality.  In a tie, any one active certificate suffices.  This establishes every evaluation, construction, support, grid, certification, zero-boundary, running-time, and bit-complexity assertion in the theorem.
+%%% FIELD statement-support-frontier-order-answer
+For every \(2\leq k\leq m\) and \(r\geq1\),
+\[
+mr\leq s_\star(m,r,k)\leq2mr-m.
+\]
+Consequently \(s_\star(m,r,k)=\Theta(mr)\) with constants uniform in \(k\).  The upper bound controls both separately minimized endpoint supports \(s_L(o,e)\) and \(s_U(o,e)\) for every \((o,e)\in\mathcal C_{m,r,k}\).  The lower bound is witnessed by the compatible family \(o_{is}=1/(mr)\), \(e_{js}=1/r\) for every \(i,j\in\mathcal X\) and \(s\in\mathcal Y\), for which both endpoint support minima are at least \(mr\).  Hence the quadratic \(k^2\) term in \(N_\star\) is removable uniformly for exact endpoint support, although these bounds do not determine the optimal finite constant between the displayed lower and upper values.
+%%% FIELD proof-support-frontier-order-answer
+Fix \(2\leq k\leq m\) and \(r\geq1\).  Let \((o,e)\in\mathcal C_{m,r,k}\).  By the sharp-interval theorem, there are laws \(Q_L,Q_U\in\mathcal Q(o,e)\) satisfying
+\[
+Q_L\!\left(\bigcap_{j\in\mathcal J}A_j\right)=L(o,e),
+\qquad
+Q_U\!\left(\bigcap_{j\in\mathcal J}A_j\right)=U(o,e).
+\]
+Apply the certificate-preserving support-compression lemma separately to \(Q_L\) and \(Q_U\).  The resulting endpoint laws have support at most
+\[
+mr+m(r-1)=2mr-m.
+\]
+By the definitions of the two separate endpoint support minima,
+\[
+s_L(o,e)\leq2mr-m,
+\qquad
+s_U(o,e)\leq2mr-m.
+\]
+Taking their maximum and then the supremum over \(\mathcal C_{m,r,k}\) gives
+\[
+s_\star(m,r,k)\leq2mr-m.
+\]
+
+For the reverse inequality, define margins by
+\[
+o_{is}=\frac1{mr}
+\quad(i\in\mathcal X,\ s\in\mathcal Y),
+\qquad
+e_{js}=\frac1r
+\quad(j\in\mathcal X,\ s\in\mathcal Y).
+\]
+The observational entries are nonnegative and sum to
+\[
+\sum_{i\in\mathcal X}\sum_{s\in\mathcal Y}o_{is}
+=mr\frac1{mr}=1.
+\]
+Every intervention row is nonnegative and satisfies
+\[
+\sum_{s\in\mathcal Y}e_{js}=r\frac1r=1.
+\]
+Moreover, \(k\leq m\) and \(k\geq2\) imply \(m\geq1\), whence
+\[
+e_{is}=\frac1r\geq\frac1{mr}=o_{is}
+\]
+for every \(i\in\mathcal X\) and \(s\in\mathcal Y\).  The compatibility theorem therefore implies \((o,e)\in\mathcal C_{m,r,k}\).
+
+Let \(Q\in\mathcal Q(o,e)\) be arbitrary.  For \(i\in\mathcal X\) and \(s\in\mathcal Y\), define the observational response cell
+\[
+C_{is}=\{(x,y_1,\ldots,y_m)\in\mathcal X\times\mathcal Y^m:x=i,\ y_i=s\}.
+\]
+The \(mr\) cells \(C_{is}\) are pairwise disjoint: two atoms in cells with different \(i\) have different factual-treatment labels, while for fixed \(i\) the coordinate \(y_i\) cannot equal two different labels.  They exhaust \(\mathcal X\times\mathcal Y^m\).  By the observational-margin restriction in the definition of \(\mathcal Q(o,e)\),
+\[
+Q(C_{is})=o_{is}=\frac1{mr}>0.
+\]
+The response space is finite.  Therefore every positive-mass cell contains at least one positive-mass atom of \(Q\).  Because the cells are disjoint, these atoms are distinct, and hence
+\[
+\sigma(Q)\geq mr.
+\]
+The sharp-interval theorem ensures that both endpoint faces are nonempty.  The preceding inequality applies to every law on either face, so minimization over those faces gives
+\[
+s_L(o,e)\geq mr,
+\qquad
+s_U(o,e)\geq mr.
+\]
+This single compatible margin pair therefore yields
+\[
+s_\star(m,r,k)
+=\sup_{(o',e')\in\mathcal C_{m,r,k}}
+\max\{s_L(o',e'),s_U(o',e')\}
+\geq mr.
+\]
+Combining the two directions,
+\[
+mr\leq s_\star(m,r,k)\leq2mr-m\leq2mr.
+\]
+The comparison constants \(1\) and \(2\) do not depend on \(k\), proving \(s_\star(m,r,k)=\Theta(mr)\) uniformly in \(k\).  Finally,
+\[
+N_\star=m+2m(r-1)+k^2+3k+1
+=(2mr-m)+k^2+3k+1,
+\]
+whereas both exact endpoint witnesses always admit support at most \(2mr-m\).  Thus the quadratic \(k^2\) term is an overhead of the explicit grid-preserving construction, not an intrinsic requirement for exact endpoint support.  The argument supplies matching asymptotic order but does not assert that either finite constant \(1\) or \(2-1/r\) is optimal.

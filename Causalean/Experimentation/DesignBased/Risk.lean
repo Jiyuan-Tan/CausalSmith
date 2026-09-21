@@ -15,7 +15,8 @@ This `mse`-as-functional-of-the-design is the object that the design-comparison 
 optimality layers minimize.
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 /-! # Design-based risk summaries
 
@@ -28,7 +29,10 @@ lemmas for unbiased estimators, nonnegativity, the lower bound `FiniteDesign.var
 congruence under pointwise-equal estimators.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
+
 
 namespace Causalean
 namespace Experimentation

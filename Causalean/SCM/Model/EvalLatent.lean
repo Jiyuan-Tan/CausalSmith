@@ -18,7 +18,8 @@ the `T`-projection of `evalMap s`.
 * Basic Concepts.tex, Proposition `prop:scm-evalmap`.
 -/
 
-import Causalean.SCM.Model.Evaluation
+module
+public import Causalean.SCM.Model.Evaluation
 
 /-! # Latent-Restricted Evaluation Factorization
 
@@ -32,6 +33,13 @@ The main theorem, `SCM.evalMap_factors_excluding_latent`, states that if
 projection of `M.evalMap s` to `T` factors through all latent coordinates except
 the coordinate at `a`.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

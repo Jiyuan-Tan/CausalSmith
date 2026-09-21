@@ -3,13 +3,17 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Ridge.Rate
-import Mathlib.Analysis.SpecialFunctions.Sigmoid
+
+module
+public import Causalean.ML.Ridge.Rate
+public import Mathlib.Analysis.SpecialFunctions.Sigmoid
 
 /-! # L²-regularized logistic regression — estimation rate (root-n)
 
 The L²-penalized logistic quasi-score M-estimator and its root-n L²-estimation
-rate toward the penalized population target. The response coordinate is
+rate toward the fixed-penalty population pseudo-true target. This target is not in general
+the conditional response probability; such an identification needs additional model-
+specification or vanishing-penalty assumptions. The response coordinate is
 real-valued in this file, so the result is a logistic quasi-score rate rather
 than a zero-one-only binary model. This is the binary-response analogue of the
 ridge rate (`ML/Ridge/Rate.lean`): the `λ‖β‖²` penalty makes the penalized objective globally
@@ -25,6 +29,8 @@ i.i.d. mean ⇒ `O_p(n^{-1/2})`.  The predictor rate then follows from the `1/4`
 `σ` and the shared linear-predictor L² bound `eLpNorm_predictor_sub_le`.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open MeasureTheory BigOperators Causalean.Stat
@@ -32,31 +38,31 @@ open MeasureTheory BigOperators Causalean.Stat
 variable {Ω γ K : Type*} [MeasurableSpace Ω] [MeasurableSpace γ]
   [Fintype K] [DecidableEq K] {μ : Measure Ω}
 
-/-- For [an underlying sample-state space](hyp:Ω), [a covariate space](hyp:γ), [a finite feature
-index set](hyp:K), [a feature map](hyp:φ), [a sequence of observed covariate–response pairs
-indexed by sample state](hyp:Z), [a penalty level](hyp:lam), [a sample size](hyp:n), [a sample
-state](hyp:ω), and [a coefficient vector](hyp:β), the [empirical penalized-logistic gradient](goal)
-is the vector whose each coordinate equals the sample-average logistic score times that feature,
-plus twice the penalty level times the corresponding coefficient. -/
+/-- [The empirical penalized-logistic gradient](goal) has
+[average score--feature product plus penalty in each coordinate](step:1). It is computed from
+[sample-indexed covariate--response observations](hyp:Z) at
+[sample size, state, and penalty level](hyp:n,ω,lam) for
+[a coefficient vector and feature map](hyp:β,φ) on
+[the sample-state, covariate, and finite feature-coordinate spaces](hyp:Ω,γ,K). -/
 noncomputable def regLogisticGrad (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (lam : ℝ) (n : ℕ) (ω : Ω) (β : K → ℝ) : K → ℝ :=
   fun k => (n : ℝ)⁻¹ * (∑ i ∈ Finset.range n,
       (Real.sigmoid (∑ j, β j * φ.φ (Z i ω).1 j) - (Z i ω).2) * φ.φ (Z i ω).1 k)
     + 2 * lam * β k
 
-/-- For [a measurable covariate space](hyp:γ), [a finite feature index set](hyp:K),
-[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), [a penalty level](hyp:lam), and
-[a coefficient vector](hyp:βstar), the [penalized population logistic first-order condition](goal)
-holds exactly when, for every feature coordinate, the integral of the logistic score times that coordinate
-plus twice the penalty level times its coefficient is zero. -/
+/-- [The penalized population logistic first-order condition](goal) requires
+[expected score--feature product plus penalty to vanish coordinatewise](step:1). It evaluates
+[a coefficient vector](hyp:βstar) and [a finite feature map](hyp:K,φ) at
+[penalty level](hyp:lam) under [a joint covariate--response law](hyp:P,γ). -/
 def IsPopulationRegLogistic (P : Measure (γ × ℝ)) (φ : FeatureMap γ K)
     (lam : ℝ) (βstar : K → ℝ) : Prop :=
   ∀ k, (∫ z, (Real.sigmoid (∑ j, βstar j * φ.φ z.1 j) - z.2) * φ.φ z.1 k ∂P)
     + 2 * lam * βstar k = 0
 
-/-- For [a covariate space](hyp:γ), [a finite feature index set](hyp:K), [a feature map](hyp:φ),
-and [a coefficient vector](hyp:β), the [logistic predictor](goal) maps each covariate value to the
-logistic transform of its linear feature score. -/
+/-- [The logistic predictor](goal) maps each covariate value to
+[the logistic transform of its linear feature score](step:1). The score combines
+[a coefficient vector](hyp:β) with [a finite feature map](hyp:K,φ) on
+[the covariate space](hyp:γ). -/
 noncomputable def logisticPredictor (φ : FeatureMap γ K) (β : K → ℝ) : γ → ℝ :=
   fun x => Real.sigmoid (∑ k, β k * φ.φ x k)
 
@@ -340,36 +346,67 @@ theorem regLogisticGrad_coord_isBigOp (φ : FeatureMap γ K) (P : Measure (γ ×
       simpa [g] using hpop k
     dsimp [regLogisticGrad, IIDSample.sampleMean, g]
     linarith
-  have hk0 := S.sampleMean_sub_isBigOp hg_meas (by simpa [g] using hscore k)
   let A : ℝ := ∫ z, (g z) ^ 2 ∂P
   have hA_nonneg : 0 ≤ A := by
     dsimp [A]
     exact integral_nonneg fun z => sq_nonneg _
-  have hrate_le : ∀ n : ℕ,
-      Real.sqrt (A / (n : ℝ)) ≤
-        (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
-    intro n
-    calc
-      Real.sqrt (A / (n : ℝ))
-          = Real.sqrt A * (Real.sqrt (n : ℝ))⁻¹ := by
-            rw [Real.sqrt_div hA_nonneg, div_eq_mul_inv]
-      _ ≤ (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
-            exact mul_le_mul_of_nonneg_right
-              (by linarith [Real.sqrt_nonneg A])
-              (inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ)))
-  have hk1 : Causalean.Stat.IsBigOp
-      (fun n ω => S.sampleMean g n ω - ∫ z, g z ∂P)
-      (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
-    exact Causalean.Stat.IsBigOp.mono_rate
-      (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
-  have hk2 : Causalean.Stat.IsBigOp
-      (fun n ω => S.sampleMean g n ω - ∫ z, g z ∂P)
-      (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
+  rw [hcoord]
+  by_cases hA_pos : 0 < A
+  · have hk0 := S.sampleMean_sub_isBigOp hg_meas
+        (by simpa [g] using hscore k) (by simpa [A] using hA_pos)
+    have hrate_le : ∀ n : ℕ,
+        Real.sqrt (A / (n : ℝ)) ≤
+          (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
+      intro n
+      calc
+        Real.sqrt (A / (n : ℝ))
+            = Real.sqrt A * (Real.sqrt (n : ℝ))⁻¹ := by
+              rw [Real.sqrt_div hA_nonneg, div_eq_mul_inv]
+        _ ≤ (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
+              exact mul_le_mul_of_nonneg_right
+                (by linarith [Real.sqrt_nonneg A])
+                (inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ)))
+    have hk1 : Causalean.Stat.IsBigOp
+        (fun n ω => S.sampleMean g n ω - ∫ z, g z ∂P)
+        (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
+      exact Causalean.Stat.IsBigOp.mono_rate
+        (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
     exact Causalean.Stat.IsBigOp.scale_rate
       (rn := fun n => (Real.sqrt (n : ℝ))⁻¹)
       (by linarith [Real.sqrt_nonneg A]) hk1
-  rw [hcoord]
-  exact hk2
+  · have hA_zero : A = 0 := le_antisymm (le_of_not_gt hA_pos) hA_nonneg
+    intro δ hδ
+    refine ⟨1, one_pos, ?_⟩
+    filter_upwards [Filter.eventually_gt_atTop (0 : ℕ)] with n hn
+    have hsq := S.sampleMean_sub_sq_lintegral_le hg_meas
+      (by simpa [g] using hscore k) hn
+    have hlintegral_zero :
+        ∫⁻ ω, ENNReal.ofReal ((S.sampleMean g n ω - ∫ z, g z ∂P) ^ 2) ∂μ = 0 := by
+      apply le_antisymm
+      · simpa [A, hA_zero] using hsq
+      · exact bot_le
+    have hae_sq :
+        (fun ω => ENNReal.ofReal
+          ((S.sampleMean g n ω - ∫ z, g z ∂P) ^ 2)) =ᵐ[μ] 0 :=
+      (lintegral_eq_zero_iff' (by fun_prop)).mp hlintegral_zero
+    have hae_zero : (fun ω => S.sampleMean g n ω - ∫ z, g z ∂P) =ᵐ[μ] 0 := by
+      filter_upwards [hae_sq] with ω hω
+      simp only [Pi.zero_apply] at hω
+      have hsquare_zero : (S.sampleMean g n ω - ∫ z, g z ∂P) ^ 2 = 0 :=
+        le_antisymm (ENNReal.ofReal_eq_zero.mp hω) (sq_nonneg _)
+      exact sq_eq_zero_iff.mp hsquare_zero
+    have hrate_pos : 0 < (Real.sqrt (n : ℝ))⁻¹ :=
+      inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
+    have hevent_zero :
+        μ {ω | (1 : ℝ) * (Real.sqrt (n : ℝ))⁻¹ ≤
+          ‖S.sampleMean g n ω - ∫ z, g z ∂P‖} = 0 := by
+      rw [measure_eq_zero_iff_ae_notMem]
+      filter_upwards [hae_zero] with ω hω
+      simp [hω, not_le.mpr hrate_pos]
+    calc
+      μ {ω | (1 : ℝ) * (Real.sqrt (n : ℝ))⁻¹ ≤
+          ‖S.sampleMean g n ω - ∫ z, g z ∂P‖} = 0 := hevent_zero
+      _ ≤ δ := bot_le
 
 omit [DecidableEq K] in
 /-- The regularized-logistic coefficient error is `O_p(n^{-1/2})`: the
@@ -391,14 +428,18 @@ theorem regLogisticCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
       Causalean.Stat.IsBigOp
         (fun n ω => |regLogisticGrad φ S.Z lam n ω βstar k|) rn μ := by
     intro k
-    simpa [Causalean.Stat.IsBigOp, abs_abs, rn] using
+    simpa only [Causalean.Stat.IsBigOp, Causalean.Stat.Modes.BoundedInProbability,
+      Real.norm_eq_abs, abs_abs, rn] using
       (regLogisticGrad_coord_isBigOp φ P S βstar hpop hφ hscore k)
+  have hrn_pos : ∀ᶠ n : ℕ in Filter.atTop, 0 < rn n :=
+    (Filter.eventually_gt_atTop (0 : ℕ)).mono fun n hn =>
+      inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
   have hsum_abs : Causalean.Stat.IsBigOp
       (fun n ω => ∑ k, |regLogisticGrad φ S.Z lam n ω βstar k|) rn μ := by
     simpa using
       (IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
         (X := fun k n ω => |regLogisticGrad φ S.Z lam n ω βstar k|)
-        (fun k _ => hgrad_abs k))
+        hrn_pos (fun k _ => hgrad_abs k))
   have hscaled : Causalean.Stat.IsBigOp
       (fun n ω => (1 / (2 * lam)) *
         ∑ k, |regLogisticGrad φ S.Z lam n ω βstar k|) rn μ := by
@@ -432,12 +473,13 @@ weight `lam`](hyp:hlam), suppose [`βstar` solves the penalized population first
 for the logistic quasi-score under the feature map `φ` and law `P`](hyp:hpop), and that for every
 sample size `n` and outcome `ω`, [the fitted coefficients `βhat n ω` solve the corresponding
 empirical penalized first-order condition on the i.i.d. sample `S`](hyp:hFOC). Suppose further
-that [every feature coordinate is measurable](hyp:hφ), that [the fourth moment of the squared
+that [every feature coordinate is measurable](hyp:hφ), that [the fourth moment of the
 feature norm is integrable under `P`](hyp:h4), and that [each coordinate of the population
 logistic score at `βstar` is square-integrable under `P`](hyp:hscore). Then [the fitted logistic
 predictor `σ(⟨βhat n ω, φ⟩)` achieves the L²-rate `n^{-1/2}` toward the population target
-predictor `σ(⟨βstar, φ⟩)`, under `P` and the sampling law `μ`](goal). Assembled from the
-coefficient rate, the `1/4`-Lipschitz `σ`, and the shared linear-predictor L² bound. -/
+predictor `σ(⟨βstar, φ⟩)`, under `P` and the sampling law `μ`](goal). This fixed-penalty
+pseudo-true predictor is not asserted to equal the conditional response probability. Assembled
+from the coefficient rate, the `1/4`-Lipschitz `σ`, and the shared linear-predictor L² bound. -/
 theorem regLogistic_achievesL2Rate (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
     [IsProbabilityMeasure P] (S : IIDSample Ω (γ × ℝ) μ P) [IsProbabilityMeasure μ]
     {lam : ℝ} (hlam : 0 < lam) (βstar : K → ℝ) (βhat : ℕ → Ω → K → ℝ)
@@ -528,100 +570,12 @@ theorem regLogistic_achievesL2Rate (φ : FeatureMap γ K) (P : Measure (γ × �
   unfold AchievesL2Rate
   constructor
   · exact hpred_finite
-  intro ε hε
-  rcases hcoef ε hε with ⟨M0, hM0⟩
-  let M : ℝ := max M0 0
-  have hM0_le_M : M0 ≤ M := le_max_left M0 0
-  have hM_nonneg : 0 ≤ M := le_max_right M0 0
-  refine ⟨D * M, ?_⟩
-  have hlim_M :
-      Filter.limsup
-          (fun n : ℕ =>
-            μ {ω | M * (Real.sqrt (n : ℝ))⁻¹ <
-              |‖βhat n ω - βstar‖|}) Filter.atTop
-        ≤ ENNReal.ofReal ε := by
-    refine le_trans (Filter.limsup_le_limsup (Filter.Eventually.of_forall ?_)) hM0
-    intro n
-    apply measure_mono
-    intro ω hω
-    have hr_nonneg : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ :=
-      inv_nonneg.mpr (Real.sqrt_nonneg _)
-    exact lt_of_le_of_lt (mul_le_mul_of_nonneg_right hM0_le_M hr_nonneg) hω
-  refine le_trans (Filter.limsup_le_limsup (Filter.Eventually.of_forall ?_)) hlim_M
-  intro n
-  apply measure_mono
-  intro ω hω
-  by_cases hD_zero : D = 0
-  · have hpred_le_zero :
-        (eLpNorm
-          (fun x =>
-            logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-          (P.map Prod.fst)).toReal ≤ 0 := by
-      simpa [hD_zero] using hpred_bound n ω
-    have hpred_nonneg :
-        0 ≤ (eLpNorm
-          (fun x =>
-            logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-          (P.map Prod.fst)).toReal :=
-      ENNReal.toReal_nonneg
-    have hpred_abs :
-        |(eLpNorm
-          (fun x =>
-            logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-          (P.map Prod.fst)).toReal| = 0 := by
-      rw [abs_of_nonneg hpred_nonneg]
-      exact le_antisymm hpred_le_zero hpred_nonneg
-    rw [hD_zero, zero_mul, zero_mul] at hω
-    have hpred_abs' :
-        |(fun n ω =>
-            (eLpNorm
-              (fun x =>
-                logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-              (P.map Prod.fst)).toReal) n ω| = 0 := by
-      simpa using hpred_abs
-    exfalso
-    have hωlt :
-        0 <
-          |(fun n ω =>
-              (eLpNorm
-                (fun x =>
-                  logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-                (P.map Prod.fst)).toReal) n ω| := by
-      simpa using hω
-    rw [hpred_abs'] at hωlt
-    exact (lt_irrefl (0 : ℝ)) hωlt
-  · have hD_pos : 0 < D := lt_of_le_of_ne hD_nonneg (Ne.symm hD_zero)
-    have hpred_bound' :
-        (eLpNorm
-          (fun x =>
-            logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-          (P.map Prod.fst)).toReal
-          ≤ D * ‖βhat n ω - βstar‖ := hpred_bound n ω
-    have hpred_nonneg :
-        0 ≤ (eLpNorm
-          (fun x =>
-            logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-          (P.map Prod.fst)).toReal :=
-      ENNReal.toReal_nonneg
-    have hnorm_nonneg : 0 ≤ ‖βhat n ω - βstar‖ := norm_nonneg _
-    have hlt :
-        D * (M * (Real.sqrt (n : ℝ))⁻¹) <
-          D * ‖βhat n ω - βstar‖ := by
-      calc
-        D * (M * (Real.sqrt (n : ℝ))⁻¹)
-            = (D * M) * (Real.sqrt (n : ℝ))⁻¹ := by ring
-        _ < |(eLpNorm
-              (fun x =>
-                logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-              (P.map Prod.fst)).toReal| := hω
-        _ = (eLpNorm
-              (fun x =>
-                logisticPredictor φ (βhat n ω) x - logisticPredictor φ βstar x) 2
-              (P.map Prod.fst)).toReal := by
-              rw [abs_of_nonneg hpred_nonneg]
-        _ ≤ D * ‖βhat n ω - βstar‖ := hpred_bound'
-    have hlt' : M * (Real.sqrt (n : ℝ))⁻¹ < ‖βhat n ω - βstar‖ := by
-      nlinarith [hD_pos, hlt]
-    simpa [abs_of_nonneg hnorm_nonneg] using hlt'
+  refine IsBigOp.of_abs_le
+    (Yn := fun n ω => D * ‖βhat n ω - βstar‖) ?_
+    (IsBigOp.const_mul D hcoef)
+  intro n ω
+  rw [abs_of_nonneg ENNReal.toReal_nonneg,
+    abs_of_nonneg (mul_nonneg hD_nonneg (norm_nonneg _))]
+  exact hpred_bound n ω
 
 end Causalean.ML

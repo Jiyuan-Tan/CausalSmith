@@ -29,7 +29,9 @@ the stored prefix coordinate at `observedIndex p` and transport it across
 `observedAt_observedIndex`.
 -/
 
-import Causalean.SCM.Factored.PrefixState
+module
+public import Causalean.Mathlib.MeasureTheory.CastMeasurable
+public import Causalean.SCM.Factored.PrefixState
 
 /-! # Parent Lookup from Prefix States
 
@@ -38,6 +40,11 @@ from a fixed assignment, a latent assignment, and an observed prefix. The lookup
 classifies each parent as fixed, observed, or unobserved, then proves the joint
 measurability needed by the deterministic step kernels in the factored
 construction of the joint kernel. -/
+
+@[expose] public section
+
+open Causalean.Graph
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

@@ -1,4 +1,5 @@
-import Causalean.Stat.Minimax.CoordinatewiseOverlap
+module
+public import Causalean.Stat.Minimax.CoordinatewiseOverlap
 
 /-!
 # Re-exported coordinatewise-overlap substrate
@@ -6,6 +7,8 @@ import Causalean.Stat.Minimax.CoordinatewiseOverlap
 The reusable result now lives in Causalean; this module keeps the accepted run’s
 original unqualified names as aliases.
 -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 

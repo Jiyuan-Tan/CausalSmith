@@ -1,5 +1,8 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernelCore
-import Causalean.Mathlib.Analysis.ClipInterval
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernelCore
+public import Causalean.Mathlib.Analysis.ClipInterval
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

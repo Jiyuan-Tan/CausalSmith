@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

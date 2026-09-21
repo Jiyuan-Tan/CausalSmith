@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedPSD
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedDesign
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedPSD
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedDesign
 
 /-! # Symmetry reduction (orbit averaging over the two-block automorphism group)
 
@@ -13,6 +15,8 @@ permutations and the community swap: convexity of the PSD cone, `H`-invariance o
 `L_m`, `L_m^†`, `J_n`, and orthogonal-invariance/convexity of the Frobenius norm
 give a no-worse `H`-symmetrized point/law. Hence the relaxed and implementable
 infima are attained on the block-symmetric slices. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

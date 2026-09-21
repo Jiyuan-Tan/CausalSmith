@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Generator-envelope upper bounds for the exceptional image dimensions
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalImageDimension
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalImageDimension
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -20,21 +23,21 @@ all cumulant coordinates through order `m`, and all source weights from order
 abbrev ForwardImageGenerator (m : ℕ) :=
   (Unit ⊕ Fin m) ⊕ RetainedCumCoord m ⊕ (Fin (m + 2) × Fin (m + 2))
 
-private def lowCumCoordLift (m : ℕ) :
+def lowCumCoordLift (m : ℕ) :
     RetainedCumCoord m → RetainedCumCoord (2 * m + 2) :=
   fun q =>
     ⟨(⟨q.1.1, by omega⟩, ⟨q.1.2.1, by omega⟩), q.2.1, q.2.2⟩
 
-private def highWeightBandIndex (m : ℕ) (hm : 1 ≤ m) (k : Fin (m + 2)) :
+def highWeightBandIndex (m : ℕ) (hm : 1 ≤ m) (k : Fin (m + 2)) :
     Fin (2 * m + 1) :=
   ⟨m - 1 + k.1, by omega⟩
 
-private def slopeBandCoord (m : ℕ) :
+def slopeBandCoord (m : ℕ) :
     Unit ⊕ Fin m → BandParamCoord m (2 * m + 2)
   | Sum.inl u => Sum.inl u
   | Sum.inr i => Sum.inr (Sum.inl i)
 
-private def forwardImageGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
+def forwardImageGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
     ForwardImageGenerator m →
       MvPolynomial (BandParamCoord m (2 * m + 2)) ℂ
   | Sum.inl s => MvPolynomial.X (slopeBandCoord m s)
@@ -44,7 +47,7 @@ private def forwardImageGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
   | Sum.inr (Sum.inr (j, k)) =>
       MvPolynomial.X (Sum.inr (Sum.inr (j, highWeightBandIndex m hm k)))
 
-private def bandParamToForwardGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
+def bandParamToForwardGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
     BandParamCoord m (2 * m + 2) → MvPolynomial (ForwardImageGenerator m) ℂ
   | Sum.inl u => MvPolynomial.X (Sum.inl (Sum.inl u))
   | Sum.inr (Sum.inl i) => MvPolynomial.X (Sum.inl (Sum.inr i))
@@ -54,13 +57,13 @@ private def bandParamToForwardGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
           (Sum.inr (Sum.inr (j, ⟨k.1 + 2 - (m + 1), by omega⟩)))
       else 0
 
-private def retainedCumCoordLow? (m : ℕ)
+def retainedCumCoordLow? (m : ℕ)
     (q : RetainedCumCoord (2 * m + 2)) : Option (RetainedCumCoord m) :=
   if h : q.1.1 ≤ m then
     some ⟨(⟨q.1.1, by omega⟩, ⟨q.1.2.1, by omega⟩), q.2.1, q.2.2⟩
   else none
 
-private def forwardImageFactorPolynomial (m : ℕ) (hm : 1 ≤ m)
+def forwardImageFactorPolynomial (m : ℕ) (hm : 1 ≤ m)
     (q : RetainedCumCoord (2 * m + 2)) :
     MvPolynomial (ForwardImageGenerator m) ℂ :=
   match retainedCumCoordLow? m q with
@@ -224,7 +227,7 @@ theorem forwardBandCoordinateSubalgebra_trdeg_le_generatorCard
       (forwardImageFactorPolynomial m hm)
       (forwardBandCoordinatePolynomial_factorization m hm))
 
-private def fixedAxisForwardGenerator (m : ℕ) (hm : 1 ≤ m) :
+def fixedAxisForwardGenerator (m : ℕ) (hm : 1 ≤ m) :
     ForwardImageGenerator m :=
   Sum.inl (Sum.inr (⟨0, hm⟩ : Fin m))
 
@@ -233,7 +236,7 @@ private def fixedAxisForwardGenerator (m : ℕ) (hm : 1 ≤ m) :
 abbrev CommonAxisImageGenerator (m : ℕ) (hm : 1 ≤ m) :=
   {g : ForwardImageGenerator m // g ≠ fixedAxisForwardGenerator m hm}
 
-private def commonAxisGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
     CommonAxisImageGenerator m hm →
       MvPolynomial (CommonAxisBandCoord m (2 * m + 2) hm) ℂ
   | ⟨Sum.inl s, hs⟩ => MvPolynomial.X ⟨slopeBandCoord m s, by
@@ -256,18 +259,18 @@ private def commonAxisGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
               Sum.inl (⟨0, hm⟩ : Fin m) := Sum.inr.inj h
         cases h'⟩
 
-private def fullToCommonAxisGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
+def fullToCommonAxisGeneratorPolynomial (m : ℕ) (hm : 1 ≤ m) :
     ForwardImageGenerator m → MvPolynomial (CommonAxisImageGenerator m hm) ℂ :=
   fun g => if h : g = fixedAxisForwardGenerator m hm then 0
     else MvPolynomial.X ⟨g, h⟩
 
-private def commonAxisImageFactorPolynomial (m : ℕ) (hm : 1 ≤ m)
+def commonAxisImageFactorPolynomial (m : ℕ) (hm : 1 ≤ m)
     (q : RetainedCumCoord (2 * m + 2)) :
     MvPolynomial (CommonAxisImageGenerator m hm) ℂ :=
   MvPolynomial.bind₁ (fullToCommonAxisGeneratorPolynomial m hm)
     (forwardImageFactorPolynomial m hm q)
 
-private def commonAxisVariablePolynomial (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisVariablePolynomial (m : ℕ) (hm : 1 ≤ m) :
     BandParamCoord m (2 * m + 2) →
       MvPolynomial (CommonAxisBandCoord m (2 * m + 2) hm) ℂ :=
   fun c => if h : c = Sum.inr (Sum.inl (⟨0, hm⟩ : Fin m)) then 0

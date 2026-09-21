@@ -5,7 +5,8 @@ Authors: Jiyuan Tan
 
 # Design-based central limit theorem from a bounded-degree dependency graph
 
-The Stein dependency-graph CLT engine (`Causalean.SteinMethod.bounded_degree_dependency_clt`) is
+The Stein dependency-graph CLT engine
+(`Causalean.Mathlib.Probability.SteinMethod.bounded_degree_dependency_clt`) is
 stated over abstract probability measures.  Feeding it the design measure `D.toMeasure` through the
 measure bridge specialises it to the finite-design layer, yielding the studentized
 CDF-convergence statement `Pr[ depSum(X)/√v ≤ s ] → Φ(s)` in the native `FiniteDesign.Pr` form.
@@ -14,13 +15,14 @@ This is the general design-based CLT behind every interference paper: express th
 standardized estimator as `depSum` of bounded, mean-zero, bounded-degree-dependent unit
 contributions with a variance floor, and its studentized statistic is asymptotically standard
 normal.  Its conclusion is exactly the `hclt` hypothesis of
-`conservative_wald_liminf_of_studentized_cdf`, so the two compose into a complete design-based
-Wald-interval pipeline.
+`conservative_wald_liminf_of_feasible_studentized_cdf`, so the two compose into a complete
+design-based Wald-interval pipeline.
 -/
 
-import Causalean.Experimentation.DesignBased.MeasureBridge
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Causalean.Mathlib.Probability.SteinMethod.StandardizedDepGraphCLT
+module
+public import Causalean.Stat.FiniteDesign.MeasureBridge
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Causalean.Mathlib.Probability.SteinMethod.StandardizedDepGraphCLT
 
 /-! # Design-based dependency-graph CLT
 
@@ -29,11 +31,14 @@ layer: for a sequence of designs whose unit contributions `X n` are uniformly bo
 and dependent only across a bounded-degree graph, with the standardizing variance `v n` bounded
 below by a constant multiple of the number of units, the studentized statistic
 `depSum(X n)/√(v n)` has standard-normal limiting CDF under `D n`.  It is stated in the
-`FiniteDesign.Pr` form so it plugs directly into `conservative_wald_liminf_of_studentized_cdf`.
+`FiniteDesign.Pr` form so it plugs directly into
+`conservative_wald_liminf_of_feasible_studentized_cdf`.
 -/
 
+public section
+
 open MeasureTheory ProbabilityTheory Filter
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 open scoped Topology BigOperators
 
 namespace Causalean
@@ -53,7 +58,7 @@ has, under the design `D n`, a limiting CDF equal to the standard normal CDF at 
 
 Obtained by feeding the design measure `D n .toMeasure` to the abstract Stein dependency-graph CLT
 through the measure bridge; the conclusion is in the native `FiniteDesign.Pr` presentation so it can
-be handed straight to `conservative_wald_liminf_of_studentized_cdf`. -/
+be handed straight to `conservative_wald_liminf_of_feasible_studentized_cdf`. -/
 theorem dependency_studentized_cdf
     {Ω : ℕ → Type*} [∀ n, Fintype (Ω n)] [∀ n, MeasurableSpace (Ω n)]
     [∀ n, MeasurableSingletonClass (Ω n)]

@@ -3,10 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Marginal Sensitivity Model — the sharp LOWER bound closed form (Dorn–Guo)
+# Marginal Sensitivity Model — calibrated lower cutoff form under universal integrability
 
 The `sInf` mirror of the upper-bound development (`QuantileBalance.lean`, `CutoffSelection.lean`,
-`CutoffConstruct.lean`). The sharp lower bound `msmLowerCalib Λ = sInf (candMean '' MSMSetCalib Λ)` is
+`CutoffConstruct.lean`). The calibrated lower bound `msmLowerCalib Λ = sInf (candMean '' MSMSetCalib Λ)` is
 attained by the **opposite** quantile-cutoff weight — `wMin` above the cutoff, `wMax` below
 (`lowerCutoffProp`) — which *minimizes* the candidate mean. Everything mirrors the upper case with the
 inequalities reversed and the survival target complemented:
@@ -17,21 +17,25 @@ Results: `cutoff_optimal_lower` (the lower cutoff minimizes `candMean` over the 
 `msmLowerCalib_eq_cutoff` (the closed form given a calibrating cutoff), the calibration→survival reduction
 (`lowerCutoff_calibValue_eq`, `lowerCutoffProp_calibrated_of_survival`, `lowerCutoffProp_mem_MSMSet`,
 `lowerCutoffProp_mem_MSMSetCalib_of_survival`), the cutoff construction `exists_calibrating_cutoff_lower`,
-and the unconditional sharp lower bound `msmLowerCalib_eq_cutoff_unconditional`. -/
+and the universal-cutoff-integrability result
+`msmLowerCalib_eq_cutoff_of_universal_cutoff_integrability`. -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct
+public import Causalean.Tactic.CondexpLinearity
 
-/-! # Sharp treated-arm lower bound for the marginal sensitivity model
+/-! # Calibrated treated-arm lower bound for the marginal sensitivity model
 
 This file proves the lower-endpoint mirror of the treated-arm quantile-cutoff
 construction. It defines `lowerCutoffProp`, `survTargetLower`, and
 `calibLevelLower`; proves lower-cutoff optimality and the endpoint identity
 `msmLowerCalib_eq_cutoff`; reduces calibrated feasibility to the lower survival
 equation; constructs a calibrating lower cutoff under continuous conditional
-treated laws; and packages the unconditional sharp lower-bound theorem
-`msmLowerCalib_eq_cutoff_unconditional`.
+treated laws; and packages the calibrated lower-bound theorem under universal cutoff integrability
+`msmLowerCalib_eq_cutoff_of_universal_cutoff_integrability`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -98,20 +102,18 @@ function `c`](hyp:hc_meas,hc_int) whose induced lower-cutoff candidate is [feasi
 calibrated](hyp:hcut_mem), and under [envelope-integrability conditions bounding the treated
 outcome, the treatment-weighted mass, and the cutoff-weighted mass by the upper
 marginal-sensitivity-model weight](hyp:henv,hweight_env,hc_env), then for [any other calibrated,
-box-feasible candidate complete propensity `ẽ` that is almost-everywhere
-measurable](hyp:hmem,hmeas), [the lower-cutoff candidate mean is at most `ẽ`'s candidate mean —
+box-feasible candidate complete propensity `ẽ`](hyp:hmem), [the lower-cutoff candidate mean is at most `ẽ`'s candidate mean —
 the lower cutoff minimizes the candidate mean among calibrated candidates](goal). The
 `≥`-mirror of `cutoff_optimal`. -/
 theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.lowerCutoffProp Λ c ∈ S.MSMSetCalib Λ)
+    (hcut_mem : S.lowerCutoffProp Λ c ∈ S.MSMSetCalib true Λ)
     (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
     (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
-    {etilde : P.Ω → ℝ} (hmem : etilde ∈ S.MSMSetCalib Λ)
-    (hmeas : AEMeasurable etilde P.μ) :
-    S.candMean (S.lowerCutoffProp Λ c) ≤ S.candMean etilde := by
+    {etilde : P.Ω → ℝ} (hmem : etilde ∈ S.MSMSetCalib true Λ) :
+    S.candMean true (S.lowerCutoffProp Λ c) ≤ S.candMean true etilde := by
   classical
   have _ : Integrable c P.μ := by fun_prop
   have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le one_pos hΛ
@@ -196,10 +198,19 @@ theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
       exact ⟨le_rfl, hminmax, by linarith⟩
     · simp only [if_neg hcy]
       exact ⟨hminmax, le_rfl, lt_of_lt_of_le (by linarith) hminmax⟩
+  have hXE_int : Integrable (fun ω => A ω / etilde ω) P.μ := by
+    simpa [hA_def] using S.calibrated_weight_integrable true etilde hmem.2
+  have hAwE_int : Integrable (fun ω => A ω * wE ω) P.μ := by
+    refine hXE_int.congr (Filter.Eventually.of_forall ?_)
+    intro ω
+    simp [hwE_def, div_eq_mul_inv]
   have hYE_int : Integrable (fun ω => A ω * Y ω * wE ω) P.μ := by
-    have hwE_aem : AEMeasurable wE P.μ := by fun_prop
-    refine Integrable.mono' henv
-      (((hAm.mul hYm).aemeasurable.mul hwE_aem).aestronglyMeasurable) ?_
+    have hmeas : AEStronglyMeasurable (fun ω => A ω * Y ω * wE ω) P.μ := by
+      refine (hYm.aestronglyMeasurable.mul hAwE_int.aestronglyMeasurable).congr ?_
+      filter_upwards [] with ω
+      simp only [Pi.mul_apply]
+      ring
+    refine Integrable.mono' henv hmeas ?_
     filter_upwards [hboxE, hmem.1.1] with ω hbox hint
     obtain ⟨_, hmax⟩ := hbox
     obtain ⟨het0, _⟩ := hint
@@ -216,15 +227,6 @@ theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
       abs_of_nonneg (le_of_lt hpos), mul_assoc, mul_assoc]
     apply mul_le_mul_of_nonneg_left _ (hA0 ω)
     exact mul_le_mul_of_nonneg_left hmax (abs_nonneg _)
-  have hXE_int : Integrable (fun ω => A ω / etilde ω) P.μ := by
-    refine Integrable.mono' hweight_env
-      ((hAm.aemeasurable.div hmeas).aestronglyMeasurable) ?_
-    filter_upwards [hboxE, hmem.1.1] with ω hbox hint
-    obtain ⟨_, hmax⟩ := hbox
-    obtain ⟨het0, _⟩ := hint
-    rw [Real.norm_eq_abs, abs_div, abs_of_nonneg (hA0 ω), abs_of_pos het0,
-      div_eq_mul_inv, ← one_div, hA_def]
-    simpa [hA_def, hwE_def] using mul_le_mul_of_nonneg_left hmax (hA0 ω)
   have hXC_int : Integrable (fun ω => A ω / S.lowerCutoffProp Λ c ω) P.μ := by
     have hAwC_int : Integrable (fun ω => A ω * wC ω) P.μ := by
       refine Integrable.mono' hweight_env ((hAm.mul hwCm).aestronglyMeasurable) ?_
@@ -238,9 +240,13 @@ theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
       A ω / (1 / (if c ω < S.factualY ω then S.wMin Λ ω else S.wMax Λ ω))
     rw [hwC_def, hY_def, div_div_eq_mul_div, div_one]
   have hcE_int : Integrable (fun ω => c ω * A ω * wE ω) P.μ := by
-    have hwE_aem : AEMeasurable wE P.μ := by fun_prop
-    refine Integrable.mono' hc_env
-      (((hc_meas.mono S.sigmaX_le le_rfl).mul hAm).aemeasurable.mul hwE_aem).aestronglyMeasurable ?_
+    have hmeas : AEStronglyMeasurable (fun ω => c ω * A ω * wE ω) P.μ := by
+      refine ((hc_meas.mono S.sigmaX_le le_rfl).aestronglyMeasurable.mul
+        hAwE_int.aestronglyMeasurable).congr ?_
+      filter_upwards [] with ω
+      simp only [Pi.mul_apply]
+      ring
+    refine Integrable.mono' hc_env hmeas ?_
     filter_upwards [hboxE, hmem.1.1] with ω hbox hint
     obtain ⟨_, hmax⟩ := hbox
     obtain ⟨het0, _⟩ := hint
@@ -361,7 +367,7 @@ theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
         exact mul_nonpos_of_nonneg_of_nonpos (hA0 ω) (sub_nonpos.mpr (le_of_not_gt hcy))
       exact mul_le_mul_of_nonpos_left hmaxE hcoef_nonpos
   have hcandE :
-      S.candMean etilde =
+      S.candMean true etilde =
         ∫ ω, A ω * (Y ω - c ω) * wE ω ∂P.μ
           + ∫ ω, c ω * A ω * wE ω ∂P.μ := by
     unfold POBackdoorSystem.candMean
@@ -374,7 +380,7 @@ theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
     rw [div_eq_mul_inv, one_div]
     ring
   have hcandC :
-      S.candMean (S.lowerCutoffProp Λ c) =
+      S.candMean true (S.lowerCutoffProp Λ c) =
         ∫ ω, A ω * (Y ω - c ω) * wC ω ∂P.μ
           + ∫ ω, c ω * A ω * wC ω ∂P.μ := by
     unfold POBackdoorSystem.candMean
@@ -390,38 +396,41 @@ theorem cutoff_optimal_lower (Λ : ℝ) (hΛ : 1 ≤ Λ)
   simpa [add_comm, add_left_comm, add_assoc] using
     add_le_add_right hfirst_le (∫ ω, c ω ∂P.μ)
 
-/-- **The sharp lower bound has the quantile-balancing closed form.** Given a calibrating lower
+/-- **The calibrated lower bound has the quantile-balancing closed form.** Given a calibrating lower
 cutoff, `msmLowerCalib Λ = candMean (lowerCutoffProp Λ c)`. -/
 theorem msmLowerCalib_eq_cutoff (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.lowerCutoffProp Λ c ∈ S.MSMSetCalib Λ)
+    (hcut_mem : S.lowerCutoffProp Λ c ∈ S.MSMSetCalib true Λ)
     (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
-    (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
-    (hmeas : ∀ etilde ∈ S.MSMSetCalib Λ, AEMeasurable etilde P.μ) :
-    S.msmLowerCalib Λ = S.candMean (S.lowerCutoffProp Λ c) := by
+    (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ) :
+    S.msmLowerCalib true Λ = S.candMean true (S.lowerCutoffProp Λ c) := by
   classical
-  have hne : (S.candMean '' S.MSMSetCalib Λ).Nonempty :=
-    ⟨S.candMean (S.lowerCutoffProp Λ c), Set.mem_image_of_mem _ hcut_mem⟩
+  have hne : (S.candMean true '' S.MSMSetCalib true Λ).Nonempty :=
+    ⟨S.candMean true (S.lowerCutoffProp Λ c), Set.mem_image_of_mem _ hcut_mem⟩
   have hle_all :
-      ∀ x ∈ S.candMean '' S.MSMSetCalib Λ,
-        S.candMean (S.lowerCutoffProp Λ c) ≤ x := by
+      ∀ x ∈ S.candMean true '' S.MSMSetCalib true Λ,
+        S.candMean true (S.lowerCutoffProp Λ c) ≤ x := by
     rintro x ⟨etilde, hmem, rfl⟩
     exact S.cutoff_optimal_lower Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv hweight_env
-      hc_env hmem (hmeas etilde hmem)
-  have hbdd : BddBelow (S.candMean '' S.MSMSetCalib Λ) :=
-    ⟨S.candMean (S.lowerCutoffProp Λ c), hle_all⟩
+      hc_env hmem
+  have hbdd : BddBelow (S.candMean true '' S.MSMSetCalib true Λ) :=
+    ⟨S.candMean true (S.lowerCutoffProp Λ c), hle_all⟩
   refine le_antisymm ?_ ?_
   · unfold POBackdoorSystem.msmLowerCalib
     exact csInf_le hbdd (Set.mem_image_of_mem _ hcut_mem)
   · unfold POBackdoorSystem.msmLowerCalib
     exact le_csInf hne hle_all
 
-/-- **Decomposition of the lower-cutoff calibration value.**
-`E[Z/lowerCutoffProp Λ c | σ(X)] = wMax·e − (wMax − wMin)·G(c)` (with `G(c) = treatedSurv c`). -/
-theorem lowerCutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator true ω / S.lowerCutoffProp Λ c ω) P.μ)
+/-- **Decomposition of the lower-cutoff calibration value.** For [a sensitivity level and cutoff
+function](hyp:Λ,c), assuming [integrability of the treatment-weighted survival
+indicator](hyp:hint1), [integrability of
+the treatment-weighted upper MSM weight](hyp:hmax_int), and [integrability of the weighted survival
+spread](hyp:hdiff_int), [the identity
+`E[Z/lowerCutoffProp Λ c | σ(X)] = wMax·e − (wMax − wMin)·G(c)` holds, with
+`G(c) = treatedSurv c`](goal). -/
+theorem lowerCutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmax_int : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
@@ -431,8 +440,6 @@ theorem lowerCutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (hc_meas : Measu
       =ᵐ[P.μ] (fun ω => S.wMax Λ ω * S.propScore true ω
         - (S.wMax Λ ω - S.wMin Λ ω) * S.treatedSurv c ω) := by
   classical
-  have _hc_meas_used := hc_meas
-  have _hint_used := hint
   set A : P.Ω → ℝ := S.dVar.indicator true with hA_def
   set I : P.Ω → ℝ := fun ω => if c ω < S.factualY ω then (1 : ℝ) else 0 with hI_def
   have _hprop_meas : Measurable[S.sigmaX] (S.propScore true) := by
@@ -493,21 +500,21 @@ theorem lowerCutoff_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (hc_meas : Measu
     = S.wMax Λ ω * S.propScore true ω - (S.wMax Λ ω - S.wMin Λ ω) * S.treatedSurv c ω
   rw [hmaxω, hdiffω]
 
-/-- **Lower-cutoff calibration from the survival equation.** -/
+/-- A lower cutoff whose treated-survival function equals the target induces a calibrated
+propensity. -/
 theorem lowerCutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
-    (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator true ω / S.lowerCutoffProp Λ c ω) P.μ)
+    (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmax_int : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
     (hdiff_int : Integrable (fun ω => (S.wMax Λ ω - S.wMin Λ ω) *
       (S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ)
     (hsurv : S.treatedSurv c =ᵐ[P.μ] S.survTargetLower Λ) :
-    S.Calibrated (S.lowerCutoffProp Λ c) := by
+    S.Calibrated true (S.lowerCutoffProp Λ c) := by
   unfold POBackdoorSystem.Calibrated
   have hΛ0 : 0 < Λ := lt_trans zero_lt_one hΛ
-  refine (S.lowerCutoff_calibValue_eq Λ c hc_meas hint hint1 hmax_int hdiff_int).trans ?_
+  refine (S.lowerCutoff_calibValue_eq Λ c hint1 hmax_int hdiff_int).trans ?_
   filter_upwards [hoverlap, hsurv] with ω hω hsurvω
   rw [hsurvω]
   set e : ℝ := S.propScore true ω with he_def
@@ -524,11 +531,15 @@ theorem lowerCutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
   field_simp [hdiff_ne]
   ring
 
-/-- **The lower cutoff propensity is always in the odds-ratio box.** -/
+/-- Given [a backdoor system and sensitivity parameter](hyp:P,γ,S,Λ), if [the parameter is at
+least one](hyp:hΛ) and [the observed propensity lies strictly between zero and one almost
+everywhere](hyp:hoverlap), then for [any cutoff function](hyp:c), [the lower cutoff propensity
+belongs
+to the treated marginal-sensitivity-model set](goal). -/
 theorem lowerCutoffProp_mem_MSMSet (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (c : P.Ω → ℝ) :
-    S.lowerCutoffProp Λ c ∈ S.MSMSet Λ := by
+    S.lowerCutoffProp Λ c ∈ S.MSMSet true Λ := by
   classical
   have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le zero_lt_one hΛ
   have hOR_box : ∀ {e et : ℝ}, 0 < e → e < 1 → 0 < et → et < 1 →
@@ -613,35 +624,34 @@ theorem lowerCutoffProp_mem_MSMSet (Λ : ℝ) (hΛ : 1 ≤ Λ)
 /-- **The lower cutoff is calibrated-feasible given the survival equation.** -/
 theorem lowerCutoffProp_mem_MSMSetCalib_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
-    (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator true ω / S.lowerCutoffProp Λ c ω) P.μ)
+    (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmax_int : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
     (hdiff_int : Integrable (fun ω => (S.wMax Λ ω - S.wMin Λ ω) *
       (S.dVar.indicator true ω * (if c ω < S.factualY ω then (1 : ℝ) else 0))) P.μ)
     (hsurv : S.treatedSurv c =ᵐ[P.μ] S.survTargetLower Λ) :
-    S.lowerCutoffProp Λ c ∈ S.MSMSetCalib Λ := by
+    S.lowerCutoffProp Λ c ∈ S.MSMSetCalib true Λ := by
   exact
     ⟨S.lowerCutoffProp_mem_MSMSet Λ (le_of_lt hΛ) hoverlap c,
-     S.lowerCutoffProp_calibrated_of_survival Λ hΛ hoverlap c hc_meas hint hint1
+     S.lowerCutoffProp_calibrated_of_survival Λ hΛ hoverlap c hint1
        hmax_int hdiff_int hsurv⟩
 
-/-- **Existence of a calibrating lower cutoff.** Fix [a sensitivity parameter Λ strictly greater
-than 1](hyp:hΛ) and assume [the propensity score for treatment given the covariates lies strictly
-between 0 and 1 almost surely (overlap)](hyp:hoverlap). If [the treated outcome's conditional
+/-- **Existence of a calibrating lower cutoff.** Fix [a sensitivity parameter Λ](hyp:Λ), and assume
+[the propensity score for treatment given the
+covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap). If [the treated
+outcome's conditional
 distribution given each covariate value has a continuous cumulative distribution
 function](hyp:hatomless) and [the lower calibration quantile level lies strictly between 0 and 1
 almost surely](hyp:hlevel), then [there exists a σ(X)-measurable cutoff function whose conditional
 treated-survival equals the lower target survival almost everywhere](goal). The `survTargetLower`
 analogue of `exists_calibrating_cutoff`. -/
-theorem exists_calibrating_cutoff_lower (Λ : ℝ) (hΛ : 1 < Λ)
+theorem exists_calibrating_cutoff_lower (Λ : ℝ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (hatomless : ∀ a : γ, Continuous (condCDF S.treatedXYLaw a))
     (hlevel : ∀ᵐ ω ∂P.μ, 0 < S.calibLevelLower Λ ω ∧ S.calibLevelLower Λ ω < 1) :
     ∃ c : P.Ω → ℝ, Measurable[S.sigmaX] c ∧ S.treatedSurv c =ᵐ[P.μ] S.survTargetLower Λ := by
   classical
-  have _hΛ_used := hΛ
   have _hprop_meas : Measurable[S.sigmaX] (S.propScore true) := by
     unfold POBackdoorSystem.propScore
     exact stronglyMeasurable_condExp.measurable
@@ -700,22 +710,22 @@ theorem exists_calibrating_cutoff_lower (Λ : ℝ) (hΛ : 1 < Λ)
   field_simp [hpos]
   ring
 
-/-- **The sharp lower bound, unconditionally.** Fix [a sensitivity parameter Λ strictly greater
-than 1](hyp:hΛ) and assume [the propensity score for treatment given the covariates lies strictly
+/-- **The calibrated lower bound under universal cutoff integrability.** Fix [a sensitivity
+parameter Λ strictly greater than 1](hyp:hΛ) and assume [the propensity score for treatment given
+the covariates lies strictly
 between 0 and 1 almost surely (overlap)](hyp:hoverlap). If [the treated outcome's conditional
 distribution given each covariate value has a continuous cumulative distribution
 function](hyp:hatomless), [the lower calibration quantile level lies strictly between 0 and 1
-almost surely](hyp:hlevel), [every candidate complete propensity in the calibrated ambiguity set is
-almost-everywhere measurable](hyp:hmeas), and [the regularity conditions needed for the
+almost surely](hyp:hlevel), and [the regularity conditions needed for the
 lower-cutoff candidate mean and calibration to be well defined hold for every σ(X)-measurable
 cutoff](hyp:hreg), then [there exists a σ(X)-measurable, calibrated, box-feasible cutoff function
-at which the sharp lower bound on `E[Y(1)]` equals the candidate mean of the induced lower-cutoff
-propensity](goal). The `sInf`-mirror of `msmUpperCalib_eq_cutoff_unconditional`. -/
-theorem msmLowerCalib_eq_cutoff_unconditional (Λ : ℝ) (hΛ : 1 < Λ)
+at which the calibrated lower bound on `E[Y(1)]` equals the candidate mean of the induced lower-cutoff
+propensity](goal). The `sInf`-mirror of
+`msmUpperCalib_eq_cutoff_of_universal_cutoff_integrability`. -/
+theorem msmLowerCalib_eq_cutoff_of_universal_cutoff_integrability (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (hatomless : ∀ a : γ, Continuous (condCDF S.treatedXYLaw a))
     (hlevel : ∀ᵐ ω ∂P.μ, 0 < S.calibLevelLower Λ ω ∧ S.calibLevelLower Λ ω < 1)
-    (hmeas : ∀ etilde ∈ S.MSMSetCalib Λ, AEMeasurable etilde P.μ)
     (hreg : ∀ c : P.Ω → ℝ, Measurable[S.sigmaX] c →
       Integrable c P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω / S.lowerCutoffProp Λ c ω) P.μ ∧
@@ -727,18 +737,18 @@ theorem msmLowerCalib_eq_cutoff_unconditional (Λ : ℝ) (hΛ : 1 < Λ)
       Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ ∧
       Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ) :
     ∃ c : P.Ω → ℝ, Measurable[S.sigmaX] c ∧
-      S.lowerCutoffProp Λ c ∈ S.MSMSetCalib Λ ∧
-      S.msmLowerCalib Λ = S.candMean (S.lowerCutoffProp Λ c) := by
+      S.lowerCutoffProp Λ c ∈ S.MSMSetCalib true Λ ∧
+      S.msmLowerCalib true Λ = S.candMean true (S.lowerCutoffProp Λ c) := by
   obtain ⟨c, hc_meas, hsurv⟩ :=
-    S.exists_calibrating_cutoff_lower Λ hΛ hoverlap hatomless hlevel
-  obtain ⟨hc_int, hint, hint1, hmax_int, hdiff_int,
+    S.exists_calibrating_cutoff_lower Λ hoverlap hatomless hlevel
+  obtain ⟨hc_int, _hint, hint1, hmax_int, hdiff_int,
     henv, hc_env⟩ := hreg c hc_meas
-  have hcut_mem : S.lowerCutoffProp Λ c ∈ S.MSMSetCalib Λ :=
-    S.lowerCutoffProp_mem_MSMSetCalib_of_survival Λ hΛ hoverlap c hc_meas
-      hint hint1 hmax_int hdiff_int hsurv
-  have heq : S.msmLowerCalib Λ = S.candMean (S.lowerCutoffProp Λ c) :=
+  have hcut_mem : S.lowerCutoffProp Λ c ∈ S.MSMSetCalib true Λ :=
+    S.lowerCutoffProp_mem_MSMSetCalib_of_survival Λ hΛ hoverlap c
+      hint1 hmax_int hdiff_int hsurv
+  have heq : S.msmLowerCalib true Λ = S.candMean true (S.lowerCutoffProp Λ c) :=
     S.msmLowerCalib_eq_cutoff Λ (le_of_lt hΛ) hoverlap c hc_meas
-      hc_int hcut_mem henv hmax_int hc_env hmeas
+      hc_int hcut_mem henv hmax_int hc_env
   exact ⟨c, hc_meas, hcut_mem, heq⟩
 
 end POBackdoorSystem

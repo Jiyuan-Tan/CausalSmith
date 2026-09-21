@@ -1,6 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseObservationStatisticLaw
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseObservationStatisticLaw
+public import Mathlib.Probability.Independence.Integration
 
 /-! Measure-theoretic tools for regrouping the dense Poisson observation experiment. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

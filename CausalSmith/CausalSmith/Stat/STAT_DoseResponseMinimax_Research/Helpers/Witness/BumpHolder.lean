@@ -17,8 +17,11 @@ lemma; it is the single substrate gate left here. Membership, separation, KL, an
 Cam assembly are all proved downstream from this gate.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
-import Mathlib.Analysis.Calculus.MeanValue
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
+public import Mathlib.Analysis.Calculus.MeanValue
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

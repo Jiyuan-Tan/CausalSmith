@@ -1,8 +1,9 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Asymptotics
-import Causalean.Experimentation.DesignBased.Designs.Coin
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Experimentation.DesignBased.ProductVariance
-import Causalean.Experimentation.DesignBased.FiniteDesignMeasure
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Asymptotics
+public import Causalean.Experimentation.DesignBased.Designs.Coin
+public import Causalean.Stat.FiniteDesign.Product
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
 
 open scoped BigOperators
 open Finset
@@ -14,6 +15,8 @@ This file realizes the common-sign and independent-arm product priors as finite
 product designs, embeds their signs into additive schedules, and records the
 one-realization observation channel.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase
 

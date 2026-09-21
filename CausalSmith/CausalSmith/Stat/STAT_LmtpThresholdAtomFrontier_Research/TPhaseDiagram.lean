@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.FixedPositive
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.FixedPositive
 
 /-!
 # Four-regime threshold phase diagram
 
 This module assembles the rate comparisons and the zero-threshold reduction.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

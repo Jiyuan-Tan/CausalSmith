@@ -20,6 +20,15 @@
  *    those theorems are skipped with `reason: "sorry-stub"`.
  */
 
+import {
+  isLeanModuleFile,
+  isPublicDecl,
+  LEAN_ATTRS_PREFIX_SRC,
+  LEAN_DECL_MODIFIERS,
+  LEAN_MODIFIERS_PREFIX_SRC,
+  publicSectionAt,
+} from "../shared/lean_syntax.js";
+
 export type LintSeverity = "definite" | "advisory" | "skip";
 
 export interface UnusedHypothesisFinding {
@@ -55,6 +64,8 @@ export interface LintResult {
 interface Declaration {
   kind: string;
   name: string;
+  modifiers: string;
+  isPublic: boolean;
   /** Character offset of declaration header start. */
   start: number;
   /** Character offset of next top-level declaration (or end of source). */
@@ -63,7 +74,7 @@ interface Declaration {
 
 interface InspectedDeclaration {
   name: string;
-  isPrivate: boolean;
+  isPublic: boolean;
   declLine: number;
   names: string[];
   resultType: string;
@@ -100,7 +111,7 @@ const WILDCARD_TACTIC_RES: Array<{ re: RegExp; label: string }> = [
 const SORRY_RE = /\b(sorry|admit)\b/;
 
 const TOP_LEVEL_DECL_RE =
-  /^(?:(?:private|protected|noncomputable|@\[[^\]]*\])\s+)*(theorem|lemma|example|def)\b/gm;
+  new RegExp(String.raw`^${LEAN_ATTRS_PREFIX_SRC}((?:(?:${LEAN_DECL_MODIFIERS})\s+)*)(theorem|lemma|example|def)\b`, "gm");
 
 /**
  * Replace Lean comments with spaces (preserving newlines) so character offsets
@@ -145,6 +156,7 @@ export function stripLeanComments(src: string): string {
 
 function findDeclarations(src: string): Declaration[] {
   const decls: Declaration[] = [];
+  const moduleFile = isLeanModuleFile(src);
   TOP_LEVEL_DECL_RE.lastIndex = 0;
   let m: RegExpExecArray | null;
   while ((m = TOP_LEVEL_DECL_RE.exec(src)) !== null) {
@@ -153,7 +165,15 @@ function findDeclarations(src: string): Declaration[] {
     const tail = src.slice(headerEnd);
     const nameMatch = /^\s+([A-Za-z_][A-Za-z0-9_'\.]*)/.exec(tail);
     const name = nameMatch?.[1] ?? "<anonymous>";
-    decls.push({ kind: m[1], name, start: m.index, end: src.length });
+    const modifiers = m[1];
+    decls.push({
+      kind: m[2],
+      name,
+      modifiers,
+      isPublic: isPublicDecl(modifiers, { moduleFile, inPublicSection: publicSectionAt(src, m.index) }),
+      start: m.index,
+      end: src.length,
+    });
   }
   for (let k = 0; k < decls.length - 1; k++) decls[k].end = decls[k + 1].start;
   return decls;
@@ -213,7 +233,7 @@ interface Binder {
 /** Collect balanced binder groups between the theorem name and the result-type `:`. */
 function parseBinders(signature: string): Binder[] {
   const nameRe =
-    /^\s*(?:(?:private|protected|noncomputable|@\[[^\]]*\])\s+)*(?:theorem|lemma|example|def)\s+[A-Za-z_][A-Za-z0-9_'\.]*\b/;
+    new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma|example|def)\s+[A-Za-z_][A-Za-z0-9_'.]*\b`);
   const nm = nameRe.exec(signature);
   if (!nm) return [];
   let i = nm[0].length;
@@ -291,10 +311,6 @@ function escapeForRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function isPrivateDeclaration(slice: string): boolean {
-  return /^\s*private\b/.test(slice);
-}
-
 function isBridgeOnlyProof(body: string, bridgeName: string): boolean {
   const normalized = body.replace(/\s+/g, " ").trim();
   const re = new RegExp(`^by\\s+(?:exact|apply)\\s+${escapeForRegex(bridgeName)}\\b`);
@@ -345,7 +361,7 @@ export function lintUnusedHypotheses(source: string): LintResult {
     }
     inspected.push({
       name: decl.name,
-      isPrivate: isPrivateDeclaration(slice),
+      isPublic: decl.isPublic,
       declLine,
       names,
       resultType: split.resultType,
@@ -384,7 +400,7 @@ export function lintUnusedHypotheses(source: string): LintResult {
     alreadyFlagged.add(`${f.theoremName}:${f.hypothesisName}`);
   }
   for (const caller of inspected) {
-    if (caller.isPrivate) continue;
+    if (!caller.isPublic) continue;
     for (const [bridgeName, bridgeFindings] of directUnused) {
       if (caller.name === bridgeName) continue;
       if (!isBridgeOnlyProof(caller.body, bridgeName)) continue;

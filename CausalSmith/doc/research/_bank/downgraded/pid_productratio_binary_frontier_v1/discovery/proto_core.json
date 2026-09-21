@@ -1,0 +1,1681 @@
+{
+  "qid": "pid_productratio_binary_frontier",
+  "specialization": "v1",
+  "cluster": "partialid",
+  "symbols": [
+    {
+      "name": "eta",
+      "type": "scalar",
+      "space": "\\((0,1/2)\\)",
+      "role": "fixed interior margin"
+    },
+    {
+      "name": "alpha",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "role": "miscoverage level"
+    },
+    {
+      "name": "G",
+      "type": "scalar",
+      "space": "\\([1,\\infty)\\)",
+      "role": "period-one outcome-ratio bound"
+    },
+    {
+      "name": "B",
+      "type": "scalar",
+      "space": "\\([1,\\infty)\\)",
+      "role": "baseline outcome-ratio bound"
+    },
+    {
+      "name": "C",
+      "type": "scalar",
+      "space": "\\([1,\\infty)\\)",
+      "role": "baseline covariate-ratio bound"
+    },
+    {
+      "name": "n",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "sample size"
+    },
+    {
+      "name": "A0",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "role": "baseline treatment"
+    },
+    {
+      "name": "A1",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "role": "second treatment"
+    },
+    {
+      "name": "L1",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "role": "intermediate covariate"
+    },
+    {
+      "name": "L11",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "role": "potential intermediate covariate under sustained treatment \\((1,1)\\)"
+    },
+    {
+      "name": "Y",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "role": "terminal outcome"
+    },
+    {
+      "name": "O",
+      "type": "random vector",
+      "space": "\\(\\{0,1\\}^4\\)",
+      "def": "\\(O=(A_0,A_1,L_1,Y)\\)",
+      "role": "observed data",
+      "refs": [
+        "A0",
+        "A1",
+        "L1",
+        "Y"
+      ]
+    },
+    {
+      "name": "Y11",
+      "type": "random variable",
+      "space": "\\(\\{0,1\\}\\)",
+      "role": "potential outcome under sustained treatment \\((1,1)\\)"
+    },
+    {
+      "name": "mu11",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(\\mu_{11}=\\mathbb E[Y^{1,1}]\\)",
+      "role": "causal target",
+      "refs": [
+        "Y11"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "probability law",
+      "space": "strict interior of the probability simplex on \\(\\{0,1\\}^4\\)",
+      "role": "positive observed-data law",
+      "refs": [
+        "O"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "\\(a=P(A_0=1)\\)",
+      "refs": [
+        "P",
+        "A0"
+      ]
+    },
+    {
+      "name": "qvec",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "def": "\\(q_0=P(L_1=0\\mid A_0=1)=q\\) and \\(q_1=1-q\\)",
+      "refs": [
+        "P",
+        "L1",
+        "A0"
+      ]
+    },
+    {
+      "name": "evec",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "def": "\\(e_\\ell=P(A_1=1\\mid A_0=1,L_1=\\ell)\\), \\(\\ell\\in\\{0,1\\}\\)",
+      "refs": [
+        "P",
+        "A1",
+        "A0",
+        "L1"
+      ]
+    },
+    {
+      "name": "pvec",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "def": "\\(p_\\ell=P(Y=1\\mid A_0=A_1=1,L_1=\\ell)\\), \\(\\ell\\in\\{0,1\\}\\)",
+      "refs": [
+        "P",
+        "Y",
+        "A0",
+        "A1",
+        "L1"
+      ]
+    },
+    {
+      "name": "lambda1",
+      "type": "function",
+      "space": "\\(\\{0,1\\}^2\\to(0,\\infty)\\)",
+      "sig": "\\((\\ell,y)\\mapsto\\lambda_1(\\ell,y)\\)",
+      "role": "Tan period-one sensitivity ratio"
+    },
+    {
+      "name": "lambda0Y",
+      "type": "function",
+      "space": "\\(\\{0,1\\}^2\\to(0,\\infty)\\)",
+      "sig": "\\((\\ell,y)\\mapsto\\lambda_{0Y}(\\ell,y)\\)",
+      "role": "Tan baseline outcome sensitivity ratio"
+    },
+    {
+      "name": "lambda0L",
+      "type": "function",
+      "space": "\\(\\{0,1\\}\\to(0,\\infty)\\)",
+      "sig": "\\(\\ell\\mapsto\\lambda_{0L}(\\ell)\\)",
+      "role": "Tan baseline covariate sensitivity ratio"
+    },
+    {
+      "name": "rho",
+      "type": "function",
+      "space": "\\(\\{0,1\\}^2\\to(0,\\infty)\\)",
+      "def": "\\(\\rho_\\ell(y)=e_\\ell+(1-e_\\ell)\\lambda_1(\\ell,y)\\)",
+      "refs": [
+        "evec",
+        "lambda1"
+      ]
+    },
+    {
+      "name": "DK",
+      "type": "function family",
+      "sig": "\\(D_K:[0,1]\\to[0,1]\\)",
+      "role": "lower binary likelihood-ratio envelope"
+    },
+    {
+      "name": "UK",
+      "type": "function family",
+      "sig": "\\(U_K:[0,1]\\to[0,1]\\)",
+      "role": "upper binary likelihood-ratio envelope"
+    },
+    {
+      "name": "TK",
+      "type": "function family",
+      "sig": "\\(T_K:[0,1]^2\\to\\mathbb R\\)",
+      "role": "binary check-loss transform"
+    },
+    {
+      "name": "rminus",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "role": "lower period-one reweighted success probabilities",
+      "refs": [
+        "evec",
+        "pvec",
+        "G",
+        "DK"
+      ]
+    },
+    {
+      "name": "rplus",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "role": "upper period-one reweighted success probabilities",
+      "refs": [
+        "evec",
+        "pvec",
+        "G",
+        "UK"
+      ]
+    },
+    {
+      "name": "tminus",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "role": "lower baseline-outcome reweighted success probabilities",
+      "refs": [
+        "rminus",
+        "B",
+        "DK"
+      ]
+    },
+    {
+      "name": "tplus",
+      "type": "two-vector",
+      "space": "\\((0,1)^2\\)",
+      "role": "upper baseline-outcome reweighted success probabilities",
+      "refs": [
+        "rplus",
+        "B",
+        "UK"
+      ]
+    },
+    {
+      "name": "hminus",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "role": "lower covariate reweighting probability",
+      "refs": [
+        "qvec",
+        "C",
+        "DK"
+      ]
+    },
+    {
+      "name": "hplus",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "role": "upper covariate reweighting probability",
+      "refs": [
+        "qvec",
+        "C",
+        "UK"
+      ]
+    },
+    {
+      "name": "Bminus",
+      "type": "set-valued map",
+      "space": "subsets of \\(\\{0,1\\}^6\\)",
+      "role": "admissible lower branch indices",
+      "refs": [
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "G",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "name": "Bplus",
+      "type": "set-valued map",
+      "space": "subsets of \\(\\{0,1\\}^6\\)",
+      "role": "admissible upper branch indices",
+      "refs": [
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "G",
+        "B",
+        "C"
+      ]
+    },
+    {
+      "name": "fminus",
+      "type": "finite function family",
+      "sig": "\\(\\{f^-_\\beta:\\mathcal M_\\eta\\to\\mathbb R:\\beta\\in\\{0,1\\}^6\\}\\)",
+      "role": "lower rational branch extensions",
+      "refs": [
+        "P",
+        "eta",
+        "Bminus"
+      ]
+    },
+    {
+      "name": "fplus",
+      "type": "finite function family",
+      "sig": "\\(\\{f^+_\\beta:\\mathcal M_\\eta\\to\\mathbb R:\\beta\\in\\{0,1\\}^6\\}\\)",
+      "role": "upper rational branch extensions",
+      "refs": [
+        "P",
+        "eta",
+        "Bplus"
+      ]
+    },
+    {
+      "name": "Fminus",
+      "type": "functional",
+      "sig": "\\(F_-:P\\mapsto[0,1]\\)",
+      "role": "sharp lower endpoint",
+      "refs": [
+        "P",
+        "fminus",
+        "Bminus"
+      ]
+    },
+    {
+      "name": "Fplus",
+      "type": "functional",
+      "sig": "\\(F_+:P\\mapsto[0,1]\\)",
+      "role": "sharp upper endpoint",
+      "refs": [
+        "P",
+        "fplus",
+        "Bplus"
+      ]
+    },
+    {
+      "name": "V1plus",
+      "type": "functional",
+      "space": "\\([0,1]\\)",
+      "role": "binary evaluation of Tan's first conservative upper component",
+      "refs": [
+        "P",
+        "TK",
+        "rplus",
+        "hminus",
+        "hplus"
+      ]
+    },
+    {
+      "name": "V2plus",
+      "type": "functional",
+      "space": "\\([0,1]\\)",
+      "role": "binary evaluation of Tan's second conservative upper component",
+      "refs": [
+        "P",
+        "TK",
+        "rplus",
+        "tplus",
+        "hminus",
+        "hplus"
+      ]
+    },
+    {
+      "name": "Vplus",
+      "type": "functional",
+      "space": "\\([0,1]\\)",
+      "role": "combined conservative upper endpoint",
+      "refs": [
+        "V1plus",
+        "V2plus"
+      ]
+    },
+    {
+      "name": "V1minus",
+      "type": "functional",
+      "space": "\\([0,1]\\)",
+      "role": "binary evaluation of Tan's first conservative lower component",
+      "refs": [
+        "V1plus",
+        "pvec"
+      ]
+    },
+    {
+      "name": "V2minus",
+      "type": "functional",
+      "space": "\\([0,1]\\)",
+      "role": "binary evaluation of Tan's second conservative lower component",
+      "refs": [
+        "V2plus",
+        "pvec"
+      ]
+    },
+    {
+      "name": "Vminus",
+      "type": "functional",
+      "space": "\\([0,1]\\)",
+      "role": "combined conservative lower endpoint",
+      "refs": [
+        "V1minus",
+        "V2minus"
+      ]
+    },
+    {
+      "name": "z",
+      "type": "probability vector",
+      "space": "interior of the seven-category simplex \\(\\Delta_6\\)",
+      "def": "\\(z=(z_\\varnothing,z_{0\\mathrm N},z_{1\\mathrm N},z_{00},z_{01},z_{10},z_{11})\\), where \\(z_\\varnothing=P(A_0=0)\\), \\(z_{\\ell\\mathrm N}=P(A_0=1,L_1=\\ell,A_1=0)\\), and \\(z_{\\ell y}=P(A_0=A_1=1,L_1=\\ell,Y=y)\\) for \\(\\ell,y\\in\\{0,1\\}\\)",
+      "refs": [
+        "P",
+        "A0",
+        "A1",
+        "L1",
+        "Y"
+      ]
+    },
+    {
+      "name": "psi",
+      "type": "coordinate map",
+      "sig": "\\(\\psi:\\operatorname{int}(\\Delta_6)\\to(0,1)^7\\)",
+      "role": "map from seven coarsened cell probabilities to \\((a,q_0,q_1,e_0,e_1,p_0,p_1)\\)",
+      "refs": [
+        "z"
+      ]
+    },
+    {
+      "name": "ftildeminus",
+      "type": "finite function family",
+      "sig": "\\(\\{\\widetilde f^-_\\beta:\\operatorname{int}(\\Delta_6)\\to\\mathbb R:\\beta\\in\\{0,1\\}^6\\}\\)",
+      "role": "lower rational branches extended on the seven-cell simplex",
+      "refs": [
+        "z",
+        "psi",
+        "fminus"
+      ]
+    },
+    {
+      "name": "ftildeplus",
+      "type": "finite function family",
+      "sig": "\\(\\{\\widetilde f^+_\\beta:\\operatorname{int}(\\Delta_6)\\to\\mathbb R:\\beta\\in\\{0,1\\}^6\\}\\)",
+      "role": "upper rational branches extended on the seven-cell simplex",
+      "refs": [
+        "z",
+        "psi",
+        "fplus"
+      ]
+    },
+    {
+      "name": "Ftildeminus",
+      "type": "simplex functional",
+      "sig": "\\(\\widetilde F_-:\\operatorname{int}(\\Delta_6)\\to[0,1]\\)",
+      "role": "sharp lower-endpoint extension on the seven-cell simplex",
+      "refs": [
+        "z",
+        "psi",
+        "ftildeminus"
+      ]
+    },
+    {
+      "name": "Ftildeplus",
+      "type": "simplex functional",
+      "sig": "\\(\\widetilde F_+:\\operatorname{int}(\\Delta_6)\\to[0,1]\\)",
+      "role": "sharp upper-endpoint extension on the seven-cell simplex",
+      "refs": [
+        "z",
+        "psi",
+        "ftildeplus"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "random vector",
+      "space": "the seven standard basis vectors",
+      "def": "\\(X_i\\) is the indicator vector of the seven-category coarsening of \\(O_i\\)",
+      "refs": [
+        "O",
+        "z"
+      ]
+    },
+    {
+      "name": "zhat",
+      "type": "random probability vector",
+      "space": "seven-category simplex",
+      "def": "\\(\\widehat z=n^{-1}\\sum_{i=1}^n X_i\\)",
+      "refs": [
+        "n",
+        "X"
+      ]
+    },
+    {
+      "name": "xi",
+      "type": "multiplier sequence",
+      "space": "iid \\(N(0,1)\\)",
+      "def": "\\(\\xi_1,\\ldots,\\xi_n\\) are independent of \\(O_1,\\ldots,O_n\\)",
+      "role": "independent Gaussian multipliers",
+      "refs": [
+        "n",
+        "O"
+      ]
+    },
+    {
+      "name": "Gnstar",
+      "type": "conditional random vector",
+      "space": "\\(\\mathbb R^7\\)",
+      "role": "Gaussian multiplier empirical process",
+      "refs": [
+        "n",
+        "xi",
+        "X",
+        "zhat"
+      ]
+    },
+    {
+      "name": "cn",
+      "type": "random scalar",
+      "space": "\\([0,\\infty)\\)",
+      "role": "all-branch conditional critical value",
+      "refs": [
+        "alpha",
+        "Gnstar",
+        "zhat",
+        "ftildeminus",
+        "ftildeplus"
+      ]
+    },
+    {
+      "name": "wn",
+      "type": "random scalar",
+      "space": "\\([0,\\infty)\\)",
+      "role": "endpoint enlargement radius",
+      "refs": [
+        "cn",
+        "n"
+      ]
+    },
+    {
+      "name": "Cn",
+      "type": "random interval",
+      "space": "closed subintervals of \\([0,1]\\)",
+      "role": "confidence set for the complete identified interval",
+      "refs": [
+        "Ftildeminus",
+        "Ftildeplus",
+        "zhat",
+        "wn",
+        "eta"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:outcome-consistency",
+      "kind": "causal consistency",
+      "condition": "\\(Y=Y^{1,1}\\) whenever \\(A_0=A_1=1\\).",
+      "free_symbols": [
+        "Y",
+        "Y11",
+        "A0",
+        "A1"
+      ],
+      "standard": {
+        "name": "Outcome consistency for the target strategy",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:covariate-consistency",
+      "kind": "causal consistency",
+      "condition": "\\(L_1=L_1^{1,1}\\) whenever \\(A_0=1\\).",
+      "free_symbols": [
+        "L1",
+        "L11",
+        "A0"
+      ],
+      "standard": {
+        "name": "Intermediate-covariate consistency for the target strategy",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:eta-interior",
+      "kind": "positivity",
+      "condition": "\\(\\min\\{a,1-a,q_0,q_1,e_0,1-e_0,e_1,1-e_1,p_0,1-p_0,p_1,1-p_1\\}\\geq\\eta\\).",
+      "free_symbols": [
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "eta"
+      ],
+      "constants": [
+        "eta"
+      ],
+      "standard": {
+        "name": "Fixed-margin longitudinal positivity",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier",
+        "lem:seven-cell-simplex-agreement",
+        "lem:uniform-branch-remainder",
+        "thm:uniform-interval-coverage"
+      ]
+    },
+    {
+      "id": "ass:iid-sampling",
+      "kind": "sampling",
+      "condition": "\\(O_1,\\ldots,O_n\\) are iid draws from \\(P\\).",
+      "free_symbols": [
+        "O",
+        "n",
+        "P"
+      ],
+      "standard": {
+        "name": "Iid multinomial sampling",
+        "cite": "zhangzhao2026average"
+      },
+      "used_by": [
+        "thm:uniform-interval-coverage"
+      ]
+    },
+    {
+      "id": "ass:normalization-one",
+      "kind": "compatibility normalization",
+      "condition": "For each \\(\\ell\\in\\{0,1\\}\\), \\(\\sum_{y=0}^1 p_\\ell^y(1-p_\\ell)^{1-y}\\lambda_1(\\ell,y)=1\\).",
+      "free_symbols": [
+        "pvec",
+        "lambda1"
+      ],
+      "standard": {
+        "name": "Tan product-model normalization (32)",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:normalization-outcome",
+      "kind": "compatibility normalization",
+      "condition": "For each \\(\\ell\\in\\{0,1\\}\\), \\(\\sum_{y=0}^1 p_\\ell^y(1-p_\\ell)^{1-y}\\rho_\\ell(y)\\lambda_{0Y}(\\ell,y)=1\\).",
+      "free_symbols": [
+        "pvec",
+        "rho",
+        "lambda0Y"
+      ],
+      "standard": {
+        "name": "Tan product-model normalization (33)",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:normalization-covariate",
+      "kind": "compatibility normalization",
+      "condition": "\\(q_0\\lambda_{0L}(0)+q_1\\lambda_{0L}(1)=1\\).",
+      "free_symbols": [
+        "qvec",
+        "lambda0L"
+      ],
+      "standard": {
+        "name": "Tan product-model normalization (34)",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:ratio-box-one",
+      "kind": "sensitivity restriction",
+      "condition": "For every \\((\\ell,y)\\in\\{0,1\\}^2\\), \\(G^{-1}\\leq\\lambda_1(\\ell,y)\\leq G\\).",
+      "free_symbols": [
+        "G",
+        "lambda1"
+      ],
+      "standard": {
+        "name": "Tan product sensitivity bound for \\(\\lambda_1\\)",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:ratio-box-outcome",
+      "kind": "sensitivity restriction",
+      "condition": "For every \\((\\ell,y)\\in\\{0,1\\}^2\\), \\(B^{-1}\\leq\\lambda_{0Y}(\\ell,y)\\leq B\\).",
+      "free_symbols": [
+        "B",
+        "lambda0Y"
+      ],
+      "standard": {
+        "name": "Tan product sensitivity bound for \\(\\lambda_{0Y}\\)",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier"
+      ]
+    },
+    {
+      "id": "ass:ratio-box-covariate",
+      "kind": "sensitivity restriction",
+      "condition": "For every \\(\\ell\\in\\{0,1\\}\\), \\(C^{-1}\\leq\\lambda_{0L}(\\ell)\\leq C\\).",
+      "free_symbols": [
+        "C",
+        "lambda0L"
+      ],
+      "standard": {
+        "name": "Tan product sensitivity bound for \\(\\lambda_{0L}\\)",
+        "cite": "tan2025sequential"
+      },
+      "used_by": [
+        "lem:binary-probability-reduction",
+        "thm:sharp-binary-frontier"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:eta-interior-product-class",
+      "name": "\\(\\eta\\)-interior binary product class",
+      "construction": "\\(\\mathcal M_\\eta=\\{P: P\\text{ is a positive binary observed-data law indexed by }(a,q_0,q_1,e_0,e_1,p_0,p_1)\\text{ and }\\mathrm{ass{:}eta\\text{-}interior}\\text{ holds}\\}\\).",
+      "free_symbols": [
+        "P",
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "eta"
+      ],
+      "by_member_properties": [
+        "ass:eta-interior"
+      ]
+    },
+    {
+      "id": "def:binary-product-fiber",
+      "name": "Tan-compatible binary product-ratio fiber",
+      "construction": "\\(\\mathcal R(P;G,B,C)=\\{(\\lambda_1,\\lambda_{0Y},\\lambda_{0L}):\\mathrm{ass{:}normalization\\text{-}one},\\mathrm{ass{:}normalization\\text{-}outcome},\\mathrm{ass{:}normalization\\text{-}covariate},\\mathrm{ass{:}ratio\\text{-}box\\text{-}one},\\mathrm{ass{:}ratio\\text{-}box\\text{-}outcome},\\mathrm{ass{:}ratio\\text{-}box\\text{-}covariate}\\text{ hold for }P\\}\\).",
+      "free_symbols": [
+        "P",
+        "G",
+        "B",
+        "C",
+        "lambda1",
+        "lambda0Y",
+        "lambda0L",
+        "pvec",
+        "qvec",
+        "rho"
+      ],
+      "by_member_properties": [
+        "ass:normalization-one",
+        "ass:normalization-outcome",
+        "ass:normalization-covariate",
+        "ass:ratio-box-one",
+        "ass:ratio-box-outcome",
+        "ass:ratio-box-covariate"
+      ]
+    },
+    {
+      "id": "def:binary-envelope-maps",
+      "name": "Binary likelihood-ratio envelope maps",
+      "construction": "For \\(K\\geq1\\) and \\(x\\in[0,1]\\), \\(D_K(x)=\\max\\{x/K,\\ 1-K(1-x)\\}\\) and \\(U_K(x)=\\min\\{Kx,\\ 1-(1-x)/K\\}\\).",
+      "free_symbols": [
+        "DK",
+        "UK"
+      ]
+    },
+    {
+      "id": "def:check-transform",
+      "name": "Binary check-loss transform",
+      "construction": "For \\(K\\geq1\\) and \\((x,k)\\in[0,1]^2\\), \\(T_K(x,k)=\\max\\{Kx-(K-1)k,\\ x/K+(1-K^{-1})k\\}\\).",
+      "free_symbols": [
+        "TK"
+      ]
+    },
+    {
+      "id": "def:reweighted-probabilities",
+      "name": "Three-stage binary reweighting",
+      "construction": "For \\(\\ell\\in\\{0,1\\}\\), \\(r_\\ell^-=e_\\ell p_\\ell+(1-e_\\ell)D_G(p_\\ell)\\), \\(r_\\ell^+=e_\\ell p_\\ell+(1-e_\\ell)U_G(p_\\ell)\\), \\(t_\\ell^-=D_B(r_\\ell^-)\\), \\(t_\\ell^+=U_B(r_\\ell^+)\\), \\(h^-=D_C(q_0)\\), and \\(h^+=U_C(q_0)\\).",
+      "free_symbols": [
+        "evec",
+        "pvec",
+        "G",
+        "B",
+        "C",
+        "DK",
+        "UK",
+        "rminus",
+        "rplus",
+        "tminus",
+        "tplus",
+        "hminus",
+        "hplus",
+        "qvec"
+      ]
+    },
+    {
+      "id": "def:compact-sharp-endpoints",
+      "name": "Compact sharp endpoint formulas",
+      "construction": "\\(F_+(P)=a\\sum_{\\ell=0}^1q_\\ell r_\\ell^+ +(1-a)\\max\\{h^-t_0^++(1-h^-)t_1^+,\\ h^+t_0^++(1-h^+)t_1^+\\}\\), and \\(F_-(P)=a\\sum_{\\ell=0}^1q_\\ell r_\\ell^- +(1-a)\\min\\{h^-t_0^-+(1-h^-)t_1^-,\\ h^+t_0^-+(1-h^+)t_1^-\\}\\).",
+      "free_symbols": [
+        "Fplus",
+        "Fminus",
+        "P",
+        "a",
+        "qvec",
+        "rplus",
+        "rminus",
+        "tplus",
+        "tminus",
+        "hplus",
+        "hminus"
+      ]
+    },
+    {
+      "id": "def:rational-branch-family",
+      "name": "Sixty-four-branch families",
+      "construction": "Let \\(u_{K0}(x)=Kx\\), \\(u_{K1}(x)=1-(1-x)/K\\), \\(d_{K0}(x)=x/K\\), and \\(d_{K1}(x)=1-K(1-x)\\). For \\(\\beta\\in\\{0,1\\}^6\\) and \\(\\ell\\in\\{0,1\\}\\), define \\(r_{\\ell\\beta}^+=e_\\ell p_\\ell+(1-e_\\ell)u_{G,\\beta_\\ell}(p_\\ell)\\), \\(t_{\\ell\\beta}^+=u_{B,\\beta_{2+\\ell}}(r_{\\ell\\beta}^+)\\), \\(r_{\\ell\\beta}^-=e_\\ell p_\\ell+(1-e_\\ell)d_{G,\\beta_\\ell}(p_\\ell)\\), and \\(t_{\\ell\\beta}^-=d_{B,\\beta_{2+\\ell}}(r_{\\ell\\beta}^-)\\). Put \\(h_\\beta=d_{C,\\beta_5}(q_0)\\) if \\(\\beta_4=0\\), and \\(h_\\beta=u_{C,\\beta_5}(q_0)\\) if \\(\\beta_4=1\\). For \\(s\\in\\{-,+\\}\\), set \\(f_\\beta^s(P)=a\\sum_{\\ell=0}^1q_\\ell r_{\\ell\\beta}^s+(1-a)\\{h_\\beta t_{0\\beta}^s+(1-h_\\beta)t_{1\\beta}^s\\}\\). The set \\(\\mathcal B_+(P)\\) imposes \\(u_{G,\\beta_\\ell}(p_\\ell)\\leq u_{G,1-\\beta_\\ell}(p_\\ell)\\) and \\(u_{B,\\beta_{2+\\ell}}(r_{\\ell\\beta}^+)\\leq u_{B,1-\\beta_{2+\\ell}}(r_{\\ell\\beta}^+)\\) for both strata; it also imposes \\(d_{C,\\beta_5}(q_0)\\geq d_{C,1-\\beta_5}(q_0)\\) when \\(\\beta_4=0\\), \\(u_{C,\\beta_5}(q_0)\\leq u_{C,1-\\beta_5}(q_0)\\) when \\(\\beta_4=1\\), and \\(t_{0\\beta}^+\\leq t_{1\\beta}^+\\) when \\(\\beta_4=0\\) or \\(t_{0\\beta}^+\\geq t_{1\\beta}^+\\) when \\(\\beta_4=1\\). The set \\(\\mathcal B_-(P)\\) replaces the first four inequalities by the corresponding \\(d_G\\)- and \\(d_B\\)-piece inequalities with \\(\\geq\\), keeps the stated \\(d_C\\)- and \\(u_C\\)-piece inequalities, and imposes \\(t_{0\\beta}^-\\geq t_{1\\beta}^-\\) when \\(\\beta_4=0\\) or \\(t_{0\\beta}^-\\leq t_{1\\beta}^-\\) when \\(\\beta_4=1\\). All inequalities are weak, and \\(F_s(P)=f_\\beta^s(P)\\) for every \\(\\beta\\in\\mathcal B_s(P)\\).",
+      "free_symbols": [
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "G",
+        "B",
+        "C",
+        "Bplus",
+        "Bminus",
+        "fplus",
+        "fminus",
+        "Fplus",
+        "Fminus"
+      ]
+    },
+    {
+      "id": "def:seven-cell-coordinate-map",
+      "name": "Seven-cell primitive-coordinate map",
+      "construction": "For \\(z=(z_\\varnothing,z_{0\\mathrm N},z_{1\\mathrm N},z_{00},z_{01},z_{10},z_{11})\\in\\operatorname{int}(\\Delta_6)\\), put \\(d_\\ell(z)=z_{\\ell\\mathrm N}+z_{\\ell0}+z_{\\ell1}\\), \\(m_\\ell(z)=z_{\\ell0}+z_{\\ell1}\\), \\(a(z)=1-z_\\varnothing=d_0(z)+d_1(z)\\), \\(q_\\ell(z)=d_\\ell(z)/a(z)\\), \\(e_\\ell(z)=m_\\ell(z)/d_\\ell(z)\\), and \\(p_\\ell(z)=z_{\\ell1}/m_\\ell(z)\\) for \\(\\ell\\in\\{0,1\\}\\). Define \\(\\psi(z)=(a(z),q_0(z),q_1(z),e_0(z),e_1(z),p_0(z),p_1(z))\\).",
+      "free_symbols": [
+        "z",
+        "psi"
+      ]
+    },
+    {
+      "id": "def:seven-cell-simplex-extensions",
+      "name": "Explicit seven-cell endpoint and branch maps",
+      "construction": "For \\(z\\in\\operatorname{int}(\\Delta_6)\\), use the coordinates in \\(\\psi(z)\\) and the affine pieces \\(u_{K0},u_{K1},d_{K0},d_{K1}\\) from \\(\\mathrm{def{:}rational\\text{-}branch\\text{-}family}\\). For every \\(\\beta\\in\\{0,1\\}^6\\) and \\(\\ell\\in\\{0,1\\}\\), set \\(\\widetilde r_{\\ell\\beta}^+(z)=e_\\ell(z)p_\\ell(z)+\\{1-e_\\ell(z)\\}u_{G,\\beta_\\ell}(p_\\ell(z))\\), \\(\\widetilde t_{\\ell\\beta}^+(z)=u_{B,\\beta_{2+\\ell}}(\\widetilde r_{\\ell\\beta}^+(z))\\), \\(\\widetilde r_{\\ell\\beta}^-(z)=e_\\ell(z)p_\\ell(z)+\\{1-e_\\ell(z)\\}d_{G,\\beta_\\ell}(p_\\ell(z))\\), and \\(\\widetilde t_{\\ell\\beta}^-(z)=d_{B,\\beta_{2+\\ell}}(\\widetilde r_{\\ell\\beta}^-(z))\\). Put \\(\\widetilde h_\\beta(z)=d_{C,\\beta_5}(q_0(z))\\) if \\(\\beta_4=0\\), and \\(\\widetilde h_\\beta(z)=u_{C,\\beta_5}(q_0(z))\\) if \\(\\beta_4=1\\). For \\(s\\in\\{-,+\\}\\), define the rational map \\(\\widetilde f_\\beta^s(z)=a(z)\\sum_{\\ell=0}^1q_\\ell(z)\\widetilde r_{\\ell\\beta}^s(z)+(1-a(z))\\{\\widetilde h_\\beta(z)\\widetilde t_{0\\beta}^s(z)+(1-\\widetilde h_\\beta(z))\\widetilde t_{1\\beta}^s(z)\\}\\). Also define \\(\\widetilde r_\\ell^+(z)=e_\\ell(z)p_\\ell(z)+\\{1-e_\\ell(z)\\}U_G(p_\\ell(z))\\), \\(\\widetilde r_\\ell^-(z)=e_\\ell(z)p_\\ell(z)+\\{1-e_\\ell(z)\\}D_G(p_\\ell(z))\\), \\(\\widetilde t_\\ell^+(z)=U_B(\\widetilde r_\\ell^+(z))\\), \\(\\widetilde t_\\ell^-(z)=D_B(\\widetilde r_\\ell^-(z))\\), \\(\\widetilde h^-(z)=D_C(q_0(z))\\), and \\(\\widetilde h^+(z)=U_C(q_0(z))\\). The endpoint maps are \\(\\widetilde F_+(z)=a(z)\\sum_{\\ell=0}^1q_\\ell(z)\\widetilde r_\\ell^+(z)+\\{1-a(z)\\}\\max_{h\\in\\{\\widetilde h^-(z),\\widetilde h^+(z)\\}}\\{h\\widetilde t_0^+(z)+(1-h)\\widetilde t_1^+(z)\\}\\) and \\(\\widetilde F_-(z)=a(z)\\sum_{\\ell=0}^1q_\\ell(z)\\widetilde r_\\ell^-(z)+\\{1-a(z)\\}\\min_{h\\in\\{\\widetilde h^-(z),\\widetilde h^+(z)\\}}\\{h\\widetilde t_0^-(z)+(1-h)\\widetilde t_1^-(z)\\}\\).",
+      "free_symbols": [
+        "z",
+        "psi",
+        "G",
+        "B",
+        "C",
+        "DK",
+        "UK",
+        "ftildeminus",
+        "ftildeplus",
+        "Ftildeminus",
+        "Ftildeplus"
+      ]
+    },
+    {
+      "id": "def:compatible-ratio-lift",
+      "name": "Compatible ratio lift",
+      "construction": "Given \\(s_\\ell\\in[D_G(p_\\ell),U_G(p_\\ell)]\\), \\(r_\\ell=e_\\ell p_\\ell+(1-e_\\ell)s_\\ell\\), \\(t_\\ell\\in[D_B(r_\\ell),U_B(r_\\ell)]\\), and \\(h\\in[D_C(q_0),U_C(q_0)]\\), set \\(\\lambda_1(\\ell,1)=s_\\ell/p_\\ell\\), \\(\\lambda_1(\\ell,0)=(1-s_\\ell)/(1-p_\\ell)\\), \\(\\lambda_{0Y}(\\ell,1)=t_\\ell/r_\\ell\\), \\(\\lambda_{0Y}(\\ell,0)=(1-t_\\ell)/(1-r_\\ell)\\), \\(\\lambda_{0L}(0)=h/q_0\\), and \\(\\lambda_{0L}(1)=(1-h)/q_1\\).",
+      "free_symbols": [
+        "DK",
+        "UK",
+        "G",
+        "B",
+        "C",
+        "pvec",
+        "evec",
+        "qvec",
+        "lambda1",
+        "lambda0Y",
+        "lambda0L"
+      ]
+    },
+    {
+      "id": "def:tan-binary-conservative-values",
+      "name": "Binary Proposition 3 values",
+      "construction": "Put \\(z_0(k)=(1-B^{-1})k\\), \\(z_1(k)=B-(B-1)k\\), \\(H_\\ell(x,c)=x+(1-e_\\ell)\\{T_G(x,c)-x\\}\\), \\(A_\\ell(c)=\\mathbb E_{W\\sim\\mathrm{Bern}(p_\\ell)}[H_\\ell(W,c)]\\), \\(D_\\ell(k,c)=\\mathbb E_{W\\sim\\mathrm{Bern}(p_\\ell)}[H_\\ell(T_B(W,k),c)]\\), and \\(R_C(v)=\\max_{h\\in[h^-,h^+]}\\{hv_0+(1-h)v_1\\}\\). Then \\(V_1^+=a\\sum_\\ell q_\\ell r_\\ell^+ +(1-a)\\min_{c,k_0,k_1\\in[0,1]}\\sum_\\ell q_\\ell\\{(1-r_\\ell^+)T_C(z_0(k_\\ell),c)+r_\\ell^+T_C(z_1(k_\\ell),c)\\}\\), \\(V_2^+=\\min_{k_0,k_1,c_0,c_1\\in[0,1]}[a\\sum_\\ell q_\\ell A_\\ell(c_\\ell)+(1-a)R_C((D_\\ell(k_\\ell,c_\\ell))_{\\ell=0}^1)]\\), and \\(V^+=\\min\\{V_1^+,V_2^+\\}\\). For \\(j\\in\\{1,2\\}\\), \\(V_j^-(p_0,p_1)=1-V_j^+(1-p_0,1-p_1)\\), and \\(V^-=\\max\\{V_1^-,V_2^-\\}\\).",
+      "free_symbols": [
+        "TK",
+        "B",
+        "G",
+        "C",
+        "evec",
+        "pvec",
+        "rplus",
+        "a",
+        "qvec",
+        "hminus",
+        "hplus",
+        "V1plus",
+        "V2plus",
+        "Vplus",
+        "V1minus",
+        "V2minus",
+        "Vminus"
+      ]
+    },
+    {
+      "id": "def:multiplier-confidence-set",
+      "name": "All-branch Gaussian-multiplier confidence set",
+      "construction": "Let \\(\\mathbb G_n^*=n^{-1/2}\\sum_{i=1}^n\\xi_i(X_i-\\widehat z)\\) and \\(E_n=\\{\\min_j\\widehat z_j\\geq\\eta^4/2\\}\\). On \\(E_n\\), let \\(c_n\\) be the conditional \\((1-\\alpha)\\)-quantile of \\(\\max_{s\\in\\{-,+\\},\\,\\beta\\in\\{0,1\\}^6}|\\nabla\\widetilde f_\\beta^s(\\widehat z)^\\top\\mathbb G_n^*|\\), put \\(w_n=c_n/\\sqrt n+n^{-3/4}\\), and set \\(\\mathcal C_n=[\\max\\{0,\\widetilde F_-(\\widehat z)-w_n\\},\\min\\{1,\\widetilde F_+(\\widehat z)+w_n\\}]\\). On \\(E_n^c\\), set \\(c_n=w_n=0\\) and \\(\\mathcal C_n=[0,1]\\).",
+      "free_symbols": [
+        "Gnstar",
+        "n",
+        "xi",
+        "X",
+        "zhat",
+        "cn",
+        "alpha",
+        "ftildeminus",
+        "ftildeplus",
+        "wn",
+        "eta",
+        "Cn",
+        "Ftildeminus",
+        "Ftildeplus"
+      ]
+    },
+    {
+      "id": "def:contact-set-handle",
+      "name": "Contact-set multiplier handle",
+      "construction": "Use the finite simplex branch values \\(\\widetilde f_\\beta^-\\) and \\(\\widetilde f_\\beta^+\\) to screen shrinking neighborhoods of the empirical optima \\(\\widetilde F_-(\\widehat z)\\) and \\(\\widetilde F_+(\\widehat z)\\), then apply Fang--Santos estimated directional derivatives and a multiplier maximum over the screened contact sets; derive the screening rate and any inflation from uniform coverage rather than fixing a candidate interval in advance.",
+      "free_symbols": [
+        "ftildeminus",
+        "ftildeplus",
+        "Ftildeminus",
+        "Ftildeplus",
+        "zhat",
+        "Gnstar"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:binary-probability-reduction",
+      "kind": "lemma",
+      "statement": "On \\(\\mathcal M_\\eta\\), the map from the ten ratio cells to \\((s_0,s_1,t_0,t_1,h)\\) is a bijection between Tan's normalization-and-box feasible set and \\(\\prod_{\\ell=0}^1[D_G(p_\\ell),U_G(p_\\ell)]\\times\\prod_{\\ell=0}^1[D_B(r_\\ell),U_B(r_\\ell)]\\times[D_C(q_0),U_C(q_0)]\\), with \\(r_\\ell=e_\\ell p_\\ell+(1-e_\\ell)s_\\ell\\); its inverse is the compatible ratio lift.",
+      "free_symbols": [
+        "eta",
+        "DK",
+        "UK",
+        "G",
+        "B",
+        "C",
+        "pvec",
+        "evec",
+        "qvec",
+        "lambda1",
+        "lambda0Y",
+        "lambda0L"
+      ],
+      "depends_on": [
+        "ass:eta-interior",
+        "ass:normalization-one",
+        "ass:normalization-outcome",
+        "ass:normalization-covariate",
+        "ass:ratio-box-one",
+        "ass:ratio-box-outcome",
+        "ass:ratio-box-covariate",
+        "def:eta-interior-product-class",
+        "def:binary-product-fiber",
+        "def:binary-envelope-maps",
+        "def:compatible-ratio-lift"
+      ],
+      "status": "to-prove",
+      "justification": "This bijection is the non-circular reduction that turns exact compatibility into scalar probability intervals.",
+      "gap": "Tan (2025), Lemmas 7--8, characterizes the functional ratio fiber but does not perform this binary reduction.",
+      "consumer": "It gives a direct audit of every sensitivity-ratio table used to bound an absolute sustained-treatment risk."
+    },
+    {
+      "id": "thm:sharp-binary-frontier",
+      "kind": "theorem",
+      "statement": "For every observed law in \\(\\mathcal M_\\eta\\), the sharp identified set for \\(\\mu_{11}\\) under Tan's product sensitivity model is exactly \\([F_-(P),F_+(P)]\\). Both endpoints have the compact formulas in \\(\\mathrm{def{:}compact\\text{-}sharp\\text{-}endpoints}\\), each is evaluable by at most \\(64\\) rational branches with the weak branch inequalities in \\(\\mathcal B_-(P)\\) and \\(\\mathcal B_+(P)\\), every active tie gives the same endpoint value, and each endpoint is attained by a full-data law compatible with the complete observed law \\(P\\).",
+      "free_symbols": [
+        "P",
+        "eta",
+        "mu11",
+        "Fminus",
+        "Fplus",
+        "Bminus",
+        "Bplus",
+        "fminus",
+        "fplus"
+      ],
+      "depends_on": [
+        "ass:outcome-consistency",
+        "ass:covariate-consistency",
+        "ass:eta-interior",
+        "lem:binary-probability-reduction",
+        "def:compact-sharp-endpoints",
+        "def:rational-branch-family",
+        "def:compatible-ratio-lift"
+      ],
+      "status": "to-prove",
+      "justification": "It replaces an implicit coupled sharp program by a closed-form, fully attainable binary frontier.",
+      "gap": "Tan (2025), Lemma 8, gives the exact compatible-law optimization but states that ratio coupling obstructs a general exact unconstrained representation; no finite binary formula is given.",
+      "consumer": "Dickerman et al.'s six-year cancer analysis can report a sharp interval for the absolute risk under a sustained metformin strategy after binary coarsening."
+    },
+    {
+      "id": "lem:seven-cell-simplex-agreement",
+      "kind": "lemma",
+      "statement": "If \\(z\\) is induced by an observed law \\(P\\in\\mathcal M_\\eta\\), then \\(\\psi(z)=(a,q_0,q_1,e_0,e_1,p_0,p_1)\\), \\(\\widetilde f_\\beta^s(z)=f_\\beta^s(P)\\) for every \\(s\\in\\{-,+\\}\\) and \\(\\beta\\in\\{0,1\\}^6\\), and \\(\\widetilde F_s(z)=F_s(P)\\) for both signs. In particular, \\(\\widetilde F_+(z)=\\widetilde f_\\beta^+(z)\\) for every \\(\\beta\\in\\mathcal B_+(P)\\), and \\(\\widetilde F_-(z)=\\widetilde f_\\beta^-(z)\\) for every \\(\\beta\\in\\mathcal B_-(P)\\), including all active ties.",
+      "free_symbols": [
+        "z",
+        "P",
+        "eta",
+        "psi",
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "ftildeminus",
+        "ftildeplus",
+        "fminus",
+        "fplus",
+        "Ftildeminus",
+        "Ftildeplus",
+        "Fminus",
+        "Fplus",
+        "Bminus",
+        "Bplus"
+      ],
+      "depends_on": [
+        "def:eta-interior-product-class",
+        "def:seven-cell-coordinate-map",
+        "def:rational-branch-family",
+        "def:seven-cell-simplex-extensions",
+        "thm:sharp-binary-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The cell factorizations \\(z_{\\ell\\mathrm N}=a q_\\ell(1-e_\\ell)\\) and \\(z_{\\ell y}=a q_\\ell e_\\ell p_\\ell^y(1-p_\\ell)^{1-y}\\) recover every primitive coordinate, so direct substitution identifies the simplex and law-indexed formulas.",
+      "gap": "Tan (2025) indexes the endpoint by the observed law but does not give a seven-cell simplex extension for every binary rational branch.",
+      "consumer": "It makes the empirical plug-in map and every gradient in the multiplier envelope functions of the same multinomial probability vector."
+    },
+    {
+      "id": "thm:conservative-equality-frontier",
+      "kind": "theorem",
+      "statement": "For the upper endpoint, \\(V_1^+=F_+(P)\\) if and only if \\(C=1\\). Moreover, \\(V_2^+=F_+(P)\\) if and only if \\(G=1\\), or \\(B=1\\), or, when \\(G>1\\) and \\(B>1\\), \\((p_\\ell-(G+1)^{-1})(r_\\ell^+-(B+1)^{-1})\\geq0\\) for both \\(\\ell=0,1\\). Hence \\(V^+=F_+(P)\\) if and only if at least one of those conditions or \\(C=1\\) holds, and otherwise \\(V^+>F_+(P)\\). For the lower endpoint, \\(V_1^-=F_-(P)\\) if and only if \\(C=1\\), while for \\(G,B>1\\), \\(V_2^-=F_-(P)\\) if and only if \\((p_\\ell-G/(G+1))(r_\\ell^--B/(B+1))\\geq0\\) for both strata, with \\(G=1\\) or \\(B=1\\) again sufficient and necessary as sensitivity-free exceptions. Thus the analogous union is necessary and sufficient for \\(V^-=F_-(P)\\), and its complement implies \\(V^-<F_-(P)\\). All weak inequalities include active ties.",
+      "free_symbols": [
+        "P",
+        "G",
+        "B",
+        "C",
+        "pvec",
+        "rplus",
+        "rminus",
+        "V1plus",
+        "V2plus",
+        "Vplus",
+        "V1minus",
+        "V2minus",
+        "Vminus",
+        "Fplus",
+        "Fminus"
+      ],
+      "depends_on": [
+        "thm:sharp-binary-frontier",
+        "def:tan-binary-conservative-values",
+        "def:check-transform"
+      ],
+      "status": "to-prove",
+      "justification": "The iff frontier states exactly when tractability costs identification information and exactly when it does not.",
+      "gap": "Tan (2025), Proposition 3 and Corollary 1, prove conservativeness and selected sensitivity-free exact faces but not the binary active-sensitivity iff regions or strict complements.",
+      "consumer": "An analyst can decide from observed cell risks whether the published conservative calculation already equals the sharp sustained-strategy risk bound."
+    },
+    {
+      "id": "prop:rational-strictness-witness",
+      "kind": "proposition",
+      "statement": "At \\(a=q_0=e_0=e_1=1/2\\), \\((p_0,p_1)=(3/10,4/5)\\), and \\(G=B=C=2\\), the sharp upper endpoint is \\(F_+(P)=61/80\\), the first Proposition 3 component is \\(V_1^+=25/32\\), the second is \\(V_2^+=49/64\\), and therefore \\(V^+-F_+(P)=1/320>0\\). The same strict ordering persists on a relative neighborhood inside \\(\\mathcal M_\\eta\\) for every \\(\\eta<1/5\\).",
+      "free_symbols": [
+        "P",
+        "a",
+        "qvec",
+        "evec",
+        "pvec",
+        "G",
+        "B",
+        "C",
+        "Fplus",
+        "V1plus",
+        "V2plus",
+        "Vplus",
+        "eta"
+      ],
+      "depends_on": [
+        "thm:sharp-binary-frontier",
+        "thm:conservative-equality-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "An exact rational witness certifies that compatibility has non-negligible empirical content beyond the published relaxations.",
+      "gap": "The numerical examples in Tan (2025) do not supply this exact active-product strictness certificate.",
+      "consumer": "It is a regression test for software implementing both the sharp and conservative binary endpoints."
+    },
+    {
+      "id": "lem:uniform-branch-remainder",
+      "kind": "lemma",
+      "statement": "There is a finite constant \\(M=M(\\eta,G,B,C)\\) such that, for either \\(s\\in\\{-,+\\}\\) and any \\(z,z'\\in\\Delta_6\\) whose coordinates are at least \\(\\eta^4/2\\), \\(|\\widetilde F_s(z')-\\widetilde F_s(z)|\\leq\\max_{\\beta\\in\\{0,1\\}^6}|\\nabla\\widetilde f_\\beta^s(z)^\\top(z'-z)|+M\\|z'-z\\|_2^2\\). The inequality holds uniformly when the segment from \\(z\\) to \\(z'\\) crosses branch faces and when several simplex branch formulas or gradients coincide.",
+      "free_symbols": [
+        "eta",
+        "G",
+        "B",
+        "C",
+        "z",
+        "Ftildeminus",
+        "Ftildeplus",
+        "ftildeminus",
+        "ftildeplus"
+      ],
+      "depends_on": [
+        "ass:eta-interior",
+        "def:seven-cell-coordinate-map",
+        "def:seven-cell-simplex-extensions",
+        "lem:seven-cell-simplex-agreement"
+      ],
+      "status": "to-prove",
+      "justification": "This simplex expansion is the load-bearing uniform bound that turns the finite frontier into an honest confidence set without selecting a branch or differentiating a law-indexed functional.",
+      "gap": "Generic directional delta methods give pointwise first-order limits but do not directly provide this uniform quadratic inequality across the product frontier's moving faces.",
+      "consumer": "It validates simultaneous uncertainty propagation for every sharp binary sensitivity endpoint computed from multinomial cells."
+    },
+    {
+      "id": "thm:uniform-interval-coverage",
+      "kind": "theorem",
+      "statement": "For fixed \\((\\eta,G,B,C,\\alpha)\\), iid draws \\(O_1,\\ldots,O_n\\sim P\\), and \\(\\mathcal C_n\\) from \\(\\mathrm{def{:}multiplier\\text{-}confidence\\text{-}set}\\), \\(\\liminf_{n\\to\\infty}\\inf_{P\\in\\mathcal M_\\eta}P\\{[F_-(P),F_+(P)]\\subseteq\\mathcal C_n\\}\\geq1-\\alpha\\). On the nonfallback event, \\(w_n=O_P(n^{-1/2})\\) uniformly over \\(\\mathcal M_\\eta\\). The result permits active branch ties, redundant branches, singular covariance matrices, and branch-gradient coordinates with zero variance.",
+      "free_symbols": [
+        "eta",
+        "G",
+        "B",
+        "C",
+        "alpha",
+        "n",
+        "O",
+        "P",
+        "Cn",
+        "Fminus",
+        "Fplus",
+        "wn"
+      ],
+      "depends_on": [
+        "ass:eta-interior",
+        "ass:iid-sampling",
+        "thm:sharp-binary-frontier",
+        "lem:seven-cell-simplex-agreement",
+        "lem:uniform-branch-remainder",
+        "def:multiplier-confidence-set"
+      ],
+      "status": "to-prove",
+      "justification": "Applications require sampling uncertainty for the entire identified interval, not pointwise standard errors for a selected smooth branch.",
+      "gap": "Tan (2025) leaves sample inference open; Bonvini et al. (2022) and Zhang and Zhao (2026) use different sensitivity models, while Fang and Santos (2019) does not itself yield this all-branch uniform causal-interval guarantee.",
+      "consumer": "It gives a uniformly honest confidence set for the absolute sustained-metformin cancer-risk interval in a discretized target-trial analysis."
+    },
+    {
+      "id": "prop:no-sensitivity-reduction",
+      "kind": "proposition",
+      "statement": "If \\(G=B=C=1\\), then \\(r_\\ell^-=r_\\ell^+=p_\\ell\\), \\(t_\\ell^-=t_\\ell^+=p_\\ell\\), \\(h^-=h^+=q_0\\), and \\(F_-(P)=F_+(P)=a\\sum_{\\ell=0}^1q_\\ell p_\\ell+(1-a)\\sum_{\\ell=0}^1q_\\ell p_\\ell=\\sum_{\\ell=0}^1q_\\ell p_\\ell\\), the usual two-period g-formula with degenerate baseline for \\(\\mu_{11}\\).",
+      "free_symbols": [
+        "G",
+        "B",
+        "C",
+        "rminus",
+        "rplus",
+        "tminus",
+        "tplus",
+        "hminus",
+        "hplus",
+        "qvec",
+        "pvec",
+        "a",
+        "Fminus",
+        "Fplus",
+        "P",
+        "mu11"
+      ],
+      "depends_on": [
+        "def:binary-envelope-maps",
+        "def:reweighted-probabilities",
+        "def:compact-sharp-endpoints",
+        "thm:sharp-binary-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The reduction verifies that the frontier nests the standard identified analysis when every sensitivity ratio is one.",
+      "gap": "This is a required sanity reduction, not a novelty claim beyond Tan's sensitivity-free model.",
+      "consumer": "It lets an implementation recover the ordinary sustained-treatment risk as a unit test."
+    },
+    {
+      "id": "oeq:adaptive-contact-envelope",
+      "kind": "openendedquestion",
+      "statement": "Can the contact-set multiplier handle be developed into a confidence set that retains uniform \\((1-\\alpha)\\) coverage over \\(\\mathcal M_\\eta\\), has asymptotically exact rather than conservative coverage whenever the limiting contact-set Gaussian maximum has a continuous quantile, is first-order no wider than \\(\\mathcal C_n\\) at every law with unique separated lower and upper simplex branches, and is strictly narrower on a nonempty observable region where inactive scores from \\(\\widetilde f_\\beta^-\\) and \\(\\widetilde f_\\beta^+\\) enlarge the all-branch Gaussian quantile?",
+      "free_symbols": [
+        "alpha",
+        "eta",
+        "Cn",
+        "Ftildeminus",
+        "Ftildeplus",
+        "ftildeminus",
+        "ftildeplus"
+      ],
+      "depends_on": [
+        "thm:uniform-interval-coverage",
+        "def:contact-set-handle"
+      ],
+      "status": "to-prove",
+      "justification": "The all-branch envelope buys robustness by paying a potentially avoidable width cost away from ties.",
+      "gap": "Fang and Santos (2019) motivates estimated contact derivatives, but uniform adaptation across this two-endpoint rational frontier with singular scores is not settled by the cited results.",
+      "consumer": "A successful construction would deliver shorter sensitivity intervals on a certified regular region without sacrificing protection near branch switches."
+    }
+  ],
+  "sampling_model": {
+    "design": "Independent sampling from a fixed observed-data law \\(P\\) in the \\(\\eta\\)-interior binary product class.",
+    "units": "\\(O_i=(A_{0i},A_{1i},L_{1i},Y_i)\\), \\(i=1,\\ldots,n\\), are iid.",
+    "treatment": "Both treatment decisions are binary; the target strategy fixes \\((A_0,A_1)=(1,1)\\).",
+    "overlap": "The six primitive coordinates \\((a,q_0,e_0,e_1,p_0,p_1)\\) and their complements are bounded below by \\(\\eta\\).",
+    "nuisance_estimation": "No nonparametric nuisance is fitted; the seven relevant coarsened cell probabilities are estimated by multinomial frequencies, and all empirical endpoints and branch gradients use the explicit seven-cell simplex extensions, with a deterministic fallback when an empirical cell is too small."
+  },
+  "estimand_functional": "\\(\\mu_{11}\\in[F_-(P),F_+(P)]\\)",
+  "target_estimand": "\\(\\mu_{11}=\\mathbb E[Y^{1,1}]\\)",
+  "bibliography": [
+    {
+      "key": "tan2025sequential",
+      "citation": "Tan, Z. (2025). Sensitivity models and bounds under sequential unmeasured confounding in longitudinal studies. \\emph{Biometrika}, 112(1), asae044. doi:10.1093/biomet/asae044."
+    },
+    {
+      "key": "dorn2023sharp",
+      "citation": "Dorn, J. and Guo, K. (2023). Sharp sensitivity analysis for inverse propensity weighting via quantile balancing. \\emph{Journal of the American Statistical Association}, 118, 2645--2657."
+    },
+    {
+      "key": "dorn2024doublyvalid",
+      "citation": "Dorn, J., Guo, K., and Kallus, N. (2024). Doubly-valid/doubly-sharp sensitivity analysis for causal inference with unmeasured confounding. \\emph{Journal of the American Statistical Association}."
+    },
+    {
+      "key": "tan2006distributional",
+      "citation": "Tan, Z. (2006). A distributional approach for causal inference using propensity scores. \\emph{Journal of the American Statistical Association}, 101, 1619--1637."
+    },
+    {
+      "key": "zhao2019sensitivity",
+      "citation": "Zhao, Q., Small, D. S., and Bhattacharya, B. B. (2019). Sensitivity analysis for inverse probability weighting estimators via the percentile bootstrap. \\emph{Journal of the Royal Statistical Society: Series B}, 81, 735--761."
+    },
+    {
+      "key": "bonvini2022msm",
+      "citation": "Bonvini, M., Kennedy, E. H., Ventura, V., and Wasserman, L. (2022). Sensitivity analysis for marginal structural models. arXiv:2210.04681."
+    },
+    {
+      "key": "fangsantos2019directional",
+      "citation": "Fang, Z. and Santos, A. (2019). Inference on directionally differentiable functions. \\emph{Review of Economic Studies}, 86, 377--412."
+    },
+    {
+      "key": "cck2013gaussian",
+      "citation": "Chernozhukov, V., Chetverikov, D., and Kato, K. (2013). Gaussian approximations and multiplier bootstrap for maxima of sums of high-dimensional random vectors. \\emph{Annals of Statistics}, 41, 2786--2819."
+    },
+    {
+      "key": "firpogalvaoparker2023uniform",
+      "citation": "Firpo, S., Galvao, A. F., and Parker, T. (2023). Uniform inference for value functions. \\emph{Journal of Econometrics}, 235, 228--244."
+    },
+    {
+      "key": "zhangzhao2026average",
+      "citation": "Zhang, Y. and Zhao, Q. (2026). Average-case sensitivity analysis for unmeasured confounding. \\emph{Biometrika}, 113(2), asag030."
+    },
+    {
+      "key": "rop2025scoping",
+      "citation": "Rop, M., Maposa, I., Young, T., and Machekano, R. (2025). Causal estimation of time-varying treatments in observational studies: a scoping review of methods, applications, and missing data practices. \\emph{BMC Medical Research Methodology}. doi:10.1186/s12874-025-02633-y."
+    },
+    {
+      "key": "dickerman2023metformin",
+      "citation": "Dickerman, B. A., Garcia-Albeniz, X., Logan, R. W., Denaxas, S., and Hernan, M. A. (2023). Evaluating metformin strategies for cancer prevention: a target trial emulation using electronic health records. \\emph{Epidemiology}, 34, 690--699."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "tan2025sequential",
+      "comparator_claim": "Lemma 8 states that the sharp product-model upper bound is equivalently obtained by the normalization-constrained ratio program.",
+      "matched_by": "Theorem 1",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "tan2025sequential",
+      "comparator_claim": "Proposition 3 bounds the sharp product-model upper endpoint by the minimum of two unconstrained optimized values.",
+      "matched_by": "Theorem 2",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "tan2025sequential",
+      "comparator_claim": "Corollary 1 proves exactness of the two Proposition 3 components on two sensitivity-free product-model faces.",
+      "matched_by": "Theorem 2",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "dorn2023sharp",
+      "comparator_claim": "Theorem 1 gives sharp cross-sectional marginal-sensitivity bounds through one conditional quantile-balancing constraint.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "dorn2024doublyvalid",
+      "comparator_claim": "The paper gives doubly sharp and doubly valid estimation for cross-sectional marginal-sensitivity endpoints.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "bonvini2022msm",
+      "comparator_claim": "The paper develops efficient estimators and confidence intervals for bounds under longitudinal MSM sensitivity models.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "fangsantos2019directional",
+      "comparator_claim": "The ordinary bootstrap generally fails for nonlinear directionally differentiable maps, while derivative-aware resampling can be valid.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "cck2013gaussian",
+      "comparator_claim": "Gaussian-multiplier approximation is available for maxima without restrictions on cross-coordinate correlations.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "zhangzhao2026average",
+      "comparator_claim": "The paper constructs efficient endpoint estimators and simultaneous multiplier bands under an average-case sensitivity model.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "In the positive binary two-decision product sensitivity model of Tan (2025), exact compatibility collapses to five success probabilities and yields sharp lower and upper bounds for \\(\\mu_{11}\\) as at most \\(64\\) rational branches per endpoint. Reversing the two proof chains behind Proposition 3 gives complete observable iff conditions for equality and strictness, including active ties and every sensitivity-free face. Explicit endpoint and branch maps on the seven-cell simplex then support an all-branch Gaussian-multiplier envelope with uniform asymptotic coverage for the complete sharp interval, without selecting an active branch and while allowing redundant branches and singular score covariance.",
+  "project_justification": {
+    "gap": "Tan's product model has exact compatibility and a generic sharp program, but its coupled ratios leave the binary endpoint implicit; Proposition 3 is only known to be conservative with selected exact faces, and sample inference is left open.",
+    "niche": "Binary intermediate covariates and outcomes retain the longitudinal compatibility problem while making every conditional ratio table exactly reducible to a success probability, which exposes both a finite frontier and the equality geometry of the relaxations.",
+    "fill": "The project proves full-data attainment for a closed-form branch atlas, completes the Proposition 3 equality-versus-strictness classification, defines matching law-indexed and seven-cell-simplex versions of every endpoint and branch, and attaches a uniformly honest multinomial confidence set for the entire identified interval."
+  },
+  "related_work": "Tan (2025) defines the longitudinal product ratios, proves their normalization conditions are necessary and sufficient for compatible full-data laws in Lemma 7, represents the sharp bound by a constrained program in Lemma 8, and derives two conservative Proposition 3 values with selected exact faces in Corollary 1. The present claims are an equivalence reduction of that exact program and a strict completion of that relaxation comparison, not a new sensitivity model. Dorn and Guo (2023) show that cross-sectional marginal-sensitivity extrema use normalized threshold weights; their complementary-slackness construction informs the binary threshold reduction, while Tan's sequential product normalizations create the new coupling. Dorn, Guo, and Kallus (2024) develop sharp and valid cross-sectional estimation, but do not address this longitudinal finite frontier. Bonvini et al. (2022) provide efficient estimators and confidence intervals for bounds under different longitudinal MSM sensitivity restrictions. Fang and Santos (2019) explains why an ordinary bootstrap is unreliable for a tied finite min or max and motivates derivative-aware contact sets. Chernozhukov, Chetverikov, and Kato (2013) supplies Gaussian-multiplier approximation for correlated maxima; the proposed proof adds the uniform rational remainder and identified-interval coverage step. Zhang and Zhao (2026) pairs closed-form bounds with multiplier bands under an average-case cross-sectional model, providing the writing and inference exemplar rather than a theorem-level target. Rop et al. (2025) documents the limited use of sensitivity analysis in current time-varying treatment applications. Dickerman et al. (2023) supplies the applied consumer: the absolute six-year cancer risk under a repeated metformin strategy.",
+  "technical_internal_limitation": "The endpoint reduction and strictness witness have strong algebraic and numerical presolve evidence, but the equality proof must be checked line by line against the final Proposition 3 formulas. The coverage theorem still requires a written uniform Gaussian-quantile argument using the explicit seven-cell simplex branches and at least one uniformly nondegenerate branch score while allowing other branch coordinates to have zero variance. No claim concerns contrasts between treatment strategies, sign breakdown, continuous outcomes, more than two decisions, efficiency, or shortest confidence sets.",
+  "honest_scope": "The finite endpoint representation, full-data attainment, equality frontier, strict witness, exact agreement of the law-indexed and seven-cell-simplex maps, remainder lemma, and uniform coverage theorem are all posed as results to prove. The contact-set-adaptive improvement is deliberately isolated as the open-ended question. At \\(G=B=C=1\\), the proposal must reduce to the standard g-formula. The empirical consumer is the absolute sustained-strategy risk only.",
+  "seeds": [
+    "seed:finite-frontier",
+    "seed:conservatism-iff",
+    "seed:all-branch-inference",
+    "seed:integrated-binary-atlas",
+    "seed:strict-gap-region",
+    "seed:directional-limit",
+    "seed:finite-sample-inversion",
+    "seed:adaptive-contact-set",
+    "seed:multi-period-recursion"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:finite-frontier",
+      "anchor": "tan2025sequential",
+      "anchor_location": "Published Lemmas 7--8, equations (32)--(38), and the proof of Lemma 7; Introduction and final discussion were also read.",
+      "opportunity": "Reduce the positive binary specialization of Tan's exact compatible-law program to the binary probability maps \\(D_K\\) and \\(U_K\\), and prove that each endpoint is an evaluation of no more than \\(64\\) rational branches with an attaining full-data law.",
+      "first_changed_proof_step": "Replace Tan's optimization over three ratio functions by the success probabilities \\(s_\\ell=p_\\ell\\lambda_1(\\ell,1)\\), \\(t_\\ell=r_\\ell\\lambda_{0Y}(\\ell,1)\\), and \\(h=q\\lambda_{0L}(0)\\); the normalization constraints then become intervals rather than functional constraints.",
+      "destination_search": "Searches for the pair \\(\\{\\text{binary product sensitivity},\\text{closed-form sharp frontier}\\}\\) returned Tan's generic program but no finite branch reduction.",
+      "motif": "M10+M7",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4
+      },
+      "red_team": "Immediate from Tan because binary likelihood-ratio boxes always optimize at their corners.",
+      "rebuttal": "The corners remain coupled by two conditional normalizations and the covariate reweighting; completeness requires a bijective reduction, exhaustive branch domains, interval filling, and a full-data lift.",
+      "disposition": "survives-step-1",
+      "rank": 3
+    },
+    {
+      "id": "seed:conservatism-iff",
+      "anchor": "tan2025sequential",
+      "anchor_location": "Published Proposition 3 and Corollary 1, together with the two Jensen and minimax relaxation chains in the supplementary proof; Introduction and final discussion were also read.",
+      "opportunity": "Give observable necessary-and-sufficient conditions, including ties and every sensitivity-free face, under which each of Tan's two conservative binary endpoints equals the sharp endpoint.",
+      "first_changed_proof_step": "Reverse every inequality in the proof of Proposition 3: equality in the first component becomes equality in a binary Jensen step, while equality in the second becomes intersection of two binary check-loss threshold sets.",
+      "destination_search": "Searches for the pair \\(\\{\\text{Tan Proposition 3},\\text{equality or strictness}\\}\\) found only the published sufficient exact faces, not an observable iff frontier.",
+      "motif": "M6+M7",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "Immediate from Corollary 1 because the only exact cases are the three sensitivity-free faces.",
+      "rebuttal": "The binary shared-threshold condition yields additional active-sensitivity equality regions, and its complement yields a relatively open strictness region; neither direction appears in Corollary 1.",
+      "disposition": "survives-step-1",
+      "rank": 2
+    },
+    {
+      "id": "seed:all-branch-inference",
+      "anchor": "tan2025sequential",
+      "anchor_location": "The final discussion explicitly leaves estimation from sample data open; Lemma 8 supplies the population functional whose nonregular sample analogue is required.",
+      "opportunity": "Construct a multinomial plug-in confidence set that covers the complete sharp interval uniformly over an \\(\\eta\\)-interior class, including active ties, redundant branches, singular covariance, and zero-variance branch coordinates.",
+      "first_changed_proof_step": "Extend every rational branch explicitly to the seven-cell simplex, prove agreement with its law-indexed value, linearize those simplex maps before applying the endpoint minimum or maximum, and calibrate the maximum of all simplex branch scores instead of estimating an active set.",
+      "destination_search": "The destination pair \\(\\{\\text{finite min/max sharp bound},\\text{all-branch Gaussian multiplier}\\}\\) is not covered by Zhang and Zhao's smooth sensitivity-curve bands or Fang and Santos's pointwise directional bootstrap.",
+      "motif": "M10+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "Routine from a finite-dimensional delta method because there are only \\(128\\) branches.",
+      "rebuttal": "Uniform coverage at branch ties is not supplied by an ordinary delta method; the proof must use the explicit simplex extensions to control branch-switch remainders and multiplier quantiles uniformly under singular and partly degenerate score vectors.",
+      "disposition": "survives-step-1",
+      "rank": 4
+    },
+    {
+      "id": "seed:integrated-binary-atlas",
+      "anchor": "tan2025sequential",
+      "anchor_location": "Published Lemmas 7--8 and Proposition 3, with Dorn and Guo's Theorem 1 and threshold-weight construction used as the adjacent method exemplar.",
+      "opportunity": "Unify the finite sharp frontier, the complete conservative-equality atlas, and uniform inference into one binary product-sensitivity result for the absolute sustained-strategy risk.",
+      "first_changed_proof_step": "Begin with the exact compatibility fiber rather than either conservative relaxation, and preserve every branch through the inference step.",
+      "destination_search": "No located article jointly supplies closed-form product-model endpoints, an iff relaxation frontier, and confidence sets for the whole nonregular interval.",
+      "motif": "M6+M10+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5
+      },
+      "red_team": "This is three small binary exercises bundled into a paper.",
+      "rebuttal": "The common compatibility geometry is load-bearing in all three results: it yields the finite frontier, identifies exactly which Proposition 3 inequalities lose information, and supplies the fixed branch family needed for honest inference.",
+      "disposition": "selected",
+      "rank": 1
+    },
+    {
+      "id": "seed:strict-gap-region",
+      "anchor": "dorn2023sharp",
+      "anchor_location": "Introduction, Theorem 1, Proposition 1, and the discussion of strict conservatism of relaxed balancing bounds were read.",
+      "opportunity": "Derive a quantitative lower bound for Tan's conservative gap on observable regions separated from all binary threshold surfaces.",
+      "first_changed_proof_step": "Turn strict Jensen and threshold incompatibility into a modulus using the distance of \\(p_\\ell\\) and \\(r_\\ell^\\pm\\) from their critical probabilities.",
+      "destination_search": "The destination pair \\(\\{\\text{longitudinal product ratios},\\text{uniform strict-gap modulus}\\}\\) was unoccupied in the targeted scan.",
+      "motif": "M7",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 3
+      },
+      "red_team": "A compactness corollary of the iff theorem gives the gap immediately.",
+      "rebuttal": "A named closed-form modulus would require more than compactness, but its marginal value is below the iff characterization.",
+      "disposition": "not-selected",
+      "rank": 6
+    },
+    {
+      "id": "seed:directional-limit",
+      "anchor": "fangsantos2019directional",
+      "anchor_location": "Introduction, the finite maximum example, Theorem 3.2, and the local-analysis discussion were read.",
+      "opportunity": "Characterize the exact directional limit law of each sharp endpoint at every active branch face and give a derivative-aware pointwise bootstrap.",
+      "first_changed_proof_step": "Compute the directional derivative as the extremum of gradients over the population contact set instead of differentiating the empirically selected branch.",
+      "destination_search": "The pair \\(\\{\\text{Tan product endpoint},\\text{directional derivative}\\}\\) was not located.",
+      "motif": "M11(c)",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 3
+      },
+      "red_team": "A direct corollary of Fang and Santos for a finite min/max map.",
+      "rebuttal": "The derivative formula is routine once the branch representation is known, so this seed is retained only as an inference lemma and not as the kernel.",
+      "disposition": "downgraded-to-supporting-result",
+      "rank": 7
+    },
+    {
+      "id": "seed:finite-sample-inversion",
+      "anchor": "cck2013gaussian",
+      "anchor_location": "Introduction and Main Result 2 on multiplier approximation for maxima were read, together with the application discussion.",
+      "opportunity": "Push an exact multinomial confidence region through all rational branches to obtain finite-sample coverage of the sharp interval.",
+      "first_changed_proof_step": "Invert a simultaneous multinomial cell-probability test before evaluating the endpoint map.",
+      "destination_search": "Exact multinomial inversion is available generically, but no source was found that gives a tractable product-sensitivity image with competitive width.",
+      "motif": "none",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 2,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 3
+      },
+      "red_team": "Immediate and extremely conservative from any simultaneous confidence region for seven multinomial cells.",
+      "rebuttal": "The objection holds because no new sharp inversion or width guarantee is evident.",
+      "disposition": "dropped",
+      "rank": 9
+    },
+    {
+      "id": "seed:adaptive-contact-set",
+      "anchor": "fangsantos2019directional",
+      "anchor_location": "The finite maximum example and the estimated directional derivative construction with a shrinking contact threshold were read.",
+      "opportunity": "Construct a contact-set-adaptive multiplier interval that is uniformly honest at ties and strictly shorter than the all-branch envelope away from ties.",
+      "first_changed_proof_step": "Screen branch values within a shrinking deterministic tolerance before taking the multiplier maximum, following the estimated directional derivative rather than the full branch set.",
+      "destination_search": "Firpo, Galvao, and Parker treat optimized values uniformly, but the targeted scan found no adaptation theorem for this singular finite rational frontier.",
+      "motif": "M10+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4
+      },
+      "red_team": "Standard generalized moment selection already gives the result.",
+      "rebuttal": "Uniform two-endpoint coverage with moving rational branch faces and singular score covariance requires a frontier-specific contact-set and anti-concentration argument; it remains an open-ended extension.",
+      "disposition": "retained-as-open-question",
+      "rank": 5
+    },
+    {
+      "id": "seed:multi-period-recursion",
+      "anchor": "tan2025sequential",
+      "anchor_location": "Published Proposition 6 and Corollary 2 on the general \\(K\\)-period product model were read after the two-period construction.",
+      "opportunity": "Represent a binary \\(K\\)-period sharp product frontier by a finite-state recursion rather than a generic coupled optimization.",
+      "first_changed_proof_step": "Propagate binary success-probability intervals backward through every counterfactual covariate rather than applying the two-period scalar reweighting once.",
+      "destination_search": "The targeted search found Tan's recursive conservative bounds but no sharp finite-state product recursion.",
+      "motif": "M10",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "red_team": "A routine two-period-to-general-period extension.",
+      "rebuttal": "The objection does not establish routine feasibility because compatibility introduces shared counterfactual histories, but the absence of a verified reverse lift makes this seed too risky for the present version.",
+      "disposition": "not-selected",
+      "rank": 8
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed:finite-frontier",
+      "threads": [
+        "tan2025sequential",
+        "dorn2023sharp",
+        "dorn2024doublyvalid",
+        "tan2006distributional"
+      ],
+      "survey": "Rop et al. (2025) review recent causal analyses of time-varying treatments and document limited use of sensitivity analysis in applied longitudinal work.",
+      "settled": "Tan proves exact compatibility and an implicit sharp program. Dorn and Guo prove a cross-sectional threshold-weight reduction and compatible extremal laws.",
+      "unoccupied_target": "No located result specializes Tan's product program to positive binary \\((L_1,Y)\\), enumerates a finite rational frontier, or lifts every selected branch to a compatible full-data law.",
+      "subsumption_check": "Dorn and Guo use one cross-sectional normalization and therefore do not subsume the sequential product coupling."
+    },
+    {
+      "candidate": "seed:conservatism-iff",
+      "threads": [
+        "tan2025sequential",
+        "dorn2023sharp",
+        "dorn2024doublyvalid",
+        "zhao2019sensitivity"
+      ],
+      "survey": "Rop et al. (2025) establishes the applied demand for transparent sensitivity analysis in time-varying treatment studies but does not study sharp product-ratio bounds.",
+      "settled": "Tan proves both Proposition 3 values are conservative and proves exactness on selected sensitivity-free faces. Dorn and Guo show how omitted balance can make a cross-sectional relaxation strictly loose.",
+      "unoccupied_target": "No located paper reverses both Proposition 3 proof chains to obtain endpoint-specific observable iff conditions with active ties.",
+      "subsumption_check": "The published Corollary 1 gives sufficient faces only and does not contain the active-sensitivity threshold-alignment region."
+    },
+    {
+      "candidate": "seed:all-branch-inference",
+      "threads": [
+        "fangsantos2019directional",
+        "cck2013gaussian",
+        "firpogalvaoparker2023uniform",
+        "zhangzhao2026average"
+      ],
+      "survey": "Rop et al. (2025) is the most recent located scoping review of causal estimation for time-varying treatments; it does not supply inference for sensitivity-bound frontiers.",
+      "settled": "Fang and Santos characterize bootstrap failure and derivative-aware resampling for directionally differentiable maps. CCK approximate maxima without correlation restrictions. Firpo, Galvao, and Parker treat optimized values, and Zhang and Zhao construct multiplier bands for smooth endpoint curves under another model.",
+      "unoccupied_target": "No closer result supplies explicit seven-cell branch extensions, their exact agreement with Tan's law-indexed binary endpoint, the uniform quadratic branch-switch bound, and causal-interval coverage under redundant branches and singular covariance.",
+      "subsumption_check": "The proposed all-branch envelope deliberately avoids active-set estimation and studentization, so zero-variance branch coordinates do not violate its definition; the uniform proof remains model-specific."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Zhiqiang Tan",
+      "year": 2025,
+      "venue": "Biometrika",
+      "bibkey": "tan2025sequential",
+      "one_line": "Exact product compatibility, the sharp constrained program, two conservative bounds, and selected exact faces.",
+      "relevant_to": "thm:sharp-binary-frontier"
+    },
+    {
+      "author": "Jacob Dorn and Kevin Guo",
+      "year": 2023,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "dorn2023sharp",
+      "one_line": "Quantile balancing reduces a cross-sectional compatible-weight problem to threshold weights and attains sharp bounds.",
+      "relevant_to": "lem:binary-probability-reduction"
+    },
+    {
+      "author": "Jacob Dorn, Kevin Guo, and Nathan Kallus",
+      "year": 2024,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "dorn2024doublyvalid",
+      "one_line": "Sharp endpoint estimation, efficiency, and valid inference for the cross-sectional marginal sensitivity model.",
+      "relevant_to": "thm:uniform-interval-coverage"
+    },
+    {
+      "author": "Matteo Bonvini, Edward H. Kennedy, Valerie Ventura, and Larry Wasserman",
+      "year": 2022,
+      "venue": "arXiv",
+      "bibkey": "bonvini2022msm",
+      "one_line": "Efficient estimators and confidence intervals for bounds under different longitudinal MSM sensitivity restrictions.",
+      "relevant_to": "thm:uniform-interval-coverage"
+    },
+    {
+      "author": "Zheng Fang and Andres Santos",
+      "year": 2019,
+      "venue": "Review of Economic Studies",
+      "bibkey": "fangsantos2019directional",
+      "one_line": "Ordinary bootstrap failure and derivative-aware inference for directionally differentiable maps.",
+      "relevant_to": "oeq:adaptive-contact-envelope"
+    },
+    {
+      "author": "Victor Chernozhukov, Denis Chetverikov, and Kengo Kato",
+      "year": 2013,
+      "venue": "Annals of Statistics",
+      "bibkey": "cck2013gaussian",
+      "one_line": "Gaussian and multiplier approximation for maxima with unrestricted cross-coordinate correlation.",
+      "relevant_to": "thm:uniform-interval-coverage"
+    },
+    {
+      "author": "Yao Zhang and Qingyuan Zhao",
+      "year": 2026,
+      "venue": "Biometrika",
+      "bibkey": "zhangzhao2026average",
+      "one_line": "Closed-form sharp average-case sensitivity bounds, efficient estimators, and simultaneous multiplier bands under another model.",
+      "relevant_to": "thm:uniform-interval-coverage"
+    },
+    {
+      "author": "Mercy Rop, Innocent Maposa, Taryn Young, and Rhoderick Machekano",
+      "year": 2025,
+      "venue": "BMC Medical Research Methodology",
+      "bibkey": "rop2025scoping",
+      "one_line": "A recent scoping review documents sparse sensitivity analysis in applied studies of time-varying treatments.",
+      "relevant_to": "thm:uniform-interval-coverage"
+    },
+    {
+      "author": "Barbra A. Dickerman, Xabier Garcia-Albeniz, Roger W. Logan, Spiros Denaxas, and Miguel A. Hernan",
+      "year": 2023,
+      "venue": "Epidemiology",
+      "bibkey": "dickerman2023metformin",
+      "one_line": "Six-year cancer risks under repeated metformin strategies provide the absolute-risk consumer.",
+      "relevant_to": "thm:sharp-binary-frontier"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":\"Tan (2025), Lemmas 7--8 and Proposition 3, is the direct comparator; Dorn and Guo (2023), Theorem 1 and Proposition 1, is the closest threshold-reduction analogue.\",\"method_exemplars_used\":[\"tan2025sequential\",\"dorn2023sharp\",\"fangsantos2019directional\",\"cck2013gaussian\",\"zhangzhao2026average\"],\"strict_delta\":\"The new kernel converts Tan's exact but implicit binary compatible-law optimization into an exhaustive rational branch frontier, strengthens Proposition 3's selected exact faces to complete endpoint-specific iff conditions, exhibits a relatively open strictness region, and derives uniform whole-interval inference from explicit seven-cell simplex extensions that agree exactly with the law-indexed branches.\",\"why_not_relabeling\":\"The model, target, normalization constraints, and conservative comparators are exactly Tan's. The added content characterizes the optimizer and every equality case of the published relaxation rather than replacing the class or estimand.\",\"writing_exemplar_used\":\"tan2025sequential\"}"
+}

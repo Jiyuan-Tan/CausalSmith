@@ -3,12 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Probability.Moments.Variance
-import Mathlib.LinearAlgebra.Matrix.DotProduct
-import Mathlib.Data.Real.Basic
-import Mathlib.Algebra.Order.Chebyshev
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.FieldSimp
+
+module
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.LinearAlgebra.Matrix.DotProduct
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Algebra.Order.Chebyshev
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.FieldSimp
 
 /-!
 # Localized empirical-Gram deterministic and moment tools
@@ -18,6 +20,8 @@ order-`p` moment estimates for bounded localized Gram coordinates.  Together
 they are the non-probabilistic and one-observation ingredients of the localized
 Bernstein coercivity result.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Concentration
 

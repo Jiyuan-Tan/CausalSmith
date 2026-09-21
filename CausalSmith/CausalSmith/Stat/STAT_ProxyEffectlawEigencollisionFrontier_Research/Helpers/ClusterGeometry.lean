@@ -1,4 +1,7 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Inference
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Inference
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

@@ -5,9 +5,12 @@ Transported-LATE specializations of Causalean's model-free affine-inversion
 geometry and expected-volume frontier bounds.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.ScoreInversion
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.CellEstimators
-import Causalean.Stat.Inference.AffineInversion
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.ScoreInversion
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.CellEstimators
+public import Causalean.Stat.Inference.AffineInversion
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

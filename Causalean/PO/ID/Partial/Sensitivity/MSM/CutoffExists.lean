@@ -21,19 +21,22 @@ Since `E[Z·wMin | σ(X)] = wMin·e ≤ 1 ≤ wMax·e = E[Z·wMax | σ(X)]`, the
 provide the bracket used by the cutoff-selection and quantile-balancing modules.
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Bounds
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Bounds
 
 /-! # Existence interface for calibrated MSM cutoffs
 
 This file isolates the existence and regularity assumptions for treated-arm
 calibrating cutoffs. It packages the facts needed to turn a conditional-quantile
-cutoff into a calibrated candidate weight for the sharp MSM upper bound.
+cutoff into a calibrated candidate weight for the calibrated MSM upper bound.
 
 The public results are the endpoint bracket inequalities
 `wMin_mul_propScore_le_one` and `one_le_wMax_mul_propScore`, together with the
 conditional-expectation pullout identities `condExp_treat_wMin_eq` and
 `condExp_treat_wMax_eq`.
 -/
+
+public section
 
 namespace Causalean
 namespace PO

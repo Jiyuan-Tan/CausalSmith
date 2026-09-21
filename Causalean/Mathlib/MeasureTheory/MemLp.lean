@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 # MemLp from square-integrability
@@ -14,6 +15,8 @@ This file proves `MemLp.of_measurable_of_integral_sq_le`, which turns an explici
 integrability witness for the squared norm of an almost-everywhere strongly measurable
 function into membership of that function in L².
 -/
+
+public section
 
 open MeasureTheory
 

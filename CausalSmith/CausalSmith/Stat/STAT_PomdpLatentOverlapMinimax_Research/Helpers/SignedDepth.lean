@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteEncoding
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FinitePathMarginal
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteEncoding
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FinitePathMarginal
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
 
 set_option linter.style.longLine false
 
 /-! # Signed-depth lower-bound family -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

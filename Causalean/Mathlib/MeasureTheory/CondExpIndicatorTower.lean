@@ -4,31 +4,27 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Indicator
+module
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Indicator
 
 /-!
-# Conditioning ↔ inner-regression weighting across a σ-algebra tower
+# Conditioning an indicator across a σ-algebra tower
 
-The theorem `condExp_setIndicator_condExp_of_le` is a generic
-conditional-expectation identity (no probability/causal content): for a tower of
-σ-algebras `m ≤ m'`, an `m'`-measurable set `s`, and integrable `f`, conditioning the
-masked outcome `1_s · f` on the coarse `m` is the same as first replacing `f` by its
-inner regression `μ[f | m']` and then conditioning on `m`:
+This file proves that conditioning a function masked by an intermediate-measurable event on a
+coarser σ-algebra is unchanged when the function is first replaced by its conditional expectation
+at the intermediate level.
+
+For a tower of σ-algebras `m ≤ m'`, an `m'`-measurable set `s`, and integrable `f`, the identity
+is:
 
     μ[1_s · f | m]  =ᵐ  μ[1_s · μ[f | m'] | m].
-
-This is the measure-theoretic kernel behind "regression adjustment = inverse-
-propensity weighting": with `m = σ(X)`, `m' = σ(D, X)`, `s = {D = d}`, dividing both
-sides by `μ[1_s | m] = P[D=d | σX]` turns the left side into the IPW/adjustment
-functional and the right side into the outcome regression. It recurs across ATE /
-ATT / DTR back-door arguments, so it is factored out here as a reusable lemma and a
-candidate Mathlib contribution.
 
 Proof is the inner `condExp_indicator` (`s` is `m'`-measurable) followed by the
 tower `condExp_condExp_of_le`.
 -/
 
+public section
 
 open MeasureTheory
 
@@ -36,19 +32,16 @@ namespace MeasureTheory
 
 variable {Ω : Type*} {m m' m0 : MeasurableSpace Ω} {μ : Measure Ω}
 
-/-- **Conditioning a masked outcome equals conditioning its inner regression.** Given
-[a tower of σ-algebras `m ≤ m' ≤ m0` on the sample space, with the trim of the measure `μ` to
-`m'` σ-finite](hyp:hm,hm'), [a set `s` measurable with respect to the finer
-σ-algebra `m'`](hyp:hs), and [an integrable function `f`](hyp:hf), [the conditional
-expectation given `m` of the masked outcome `1_s · f` agrees `μ`-almost everywhere with the
-conditional expectation given `m` of `f` — first replaced by its conditional expectation given
-`m'`, then masked by `s`](goal).
+/-- [Conditioning an indicator-masked function on a coarser σ-algebra is unchanged when the
+function is first replaced by its conditional expectation for an intermediate
+σ-algebra](goal), provided [the σ-algebras form a nested tower with a σ-finite trimmed
+measure](hyp:hm,hm'), [the masking set is measurable at the intermediate level](hyp:hs), and
+[the function is integrable](hyp:hf).
 
     μ[s.indicator f | m]  =ᵐ[μ]  μ[s.indicator (μ[f | m']) | m].
 
-(Here `s.indicator g = 1_s · g`.) The right-hand `μ[f | m']` is the inner
-regression on the finer σ-algebra; masking and projecting to the coarser `m`
-commute with passing to it. -/
+(Here `s.indicator g = 1_s · g`.) Masking and projecting to the coarser `m` commute with
+first taking the conditional expectation for the finer σ-algebra. -/
 theorem condExp_setIndicator_condExp_of_le
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E] [CompleteSpace E]
     (hm : m ≤ m') (hm' : m' ≤ m0) [SigmaFinite (μ.trim hm')]

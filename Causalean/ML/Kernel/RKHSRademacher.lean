@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Concentration.Rademacher.Rademacher
-import Causalean.ML.Kernel.RKHS
-import FoML.RademacherVariableProperty
-import Mathlib.Analysis.InnerProductSpace.Basic
+
+module
+public import Causalean.Stat.Concentration.Rademacher.Rademacher
+public import Causalean.Mathlib.Analysis.InnerProductSpace.RKHS
+public import FoML.RademacherVariableProperty
+public import Mathlib.Analysis.InnerProductSpace.Basic
 
 /-! # RKHS-ball Rademacher complexity
 
@@ -18,6 +20,8 @@ identity to turn function evaluation into an inner product.  This is the
 standard worst-case `O(1 / sqrt n)` kernel learning rate associated with
 Bartlett--Mendelson style Rademacher complexity bounds.
 -/
+
+public section
 
 namespace Causalean.ML
 
@@ -439,9 +443,10 @@ private theorem empiricalRademacherComplexity_innerBall_le_nonempty
         simp
     _ = κ * r / Real.sqrt (n : ℝ) := by ring
 
-/-- For a sample of vectors bounded by κ and linear weights bounded by r, the empirical
-Rademacher complexity of the resulting linear class is at most κ times r divided by the
-square root of the sample size.
+/-- [Hilbert-space linear complexity is radius product over square-root sample size](goal).
+The bound uses [nonnegative sample and weight radii](hyp:κ,r,hκ,hr),
+[a vector sample bounded by its radius](hyp:Y,hY), and
+[linear weights bounded by their radius](hyp:w,hw).
 
 This is the intrinsic Hilbert-space version of the usual Euclidean norm-ball linear
 Rademacher bound. -/
@@ -454,25 +459,26 @@ theorem empiricalRademacherComplexity_innerBall_le
       ≤ κ * r / Real.sqrt n := by
   classical
   by_cases hι : Nonempty ι
-  · letI : Nonempty ι := hι
+  · let : Nonempty ι := hι
     exact empiricalRademacherComplexity_innerBall_le_nonempty κ r hκ hr Y hY w hw
-  · haveI : IsEmpty ι := not_nonempty_iff.mp hι
+  · have : IsEmpty ι := not_nonempty_iff.mp hι
     unfold empiricalRademacherComplexity
     simp only [Signs.card, Nat.cast_pow, Nat.cast_ofNat, Int.reduceNeg, abs_mul, abs_inv,
       Nat.abs_cast, iSup_of_isEmpty, Finset.sum_const_zero, mul_zero, ge_iff_le]
     exact div_nonneg (mul_nonneg hκ hr) (Real.sqrt_nonneg _)
 
-/-- In a reproducing-kernel Hilbert space `H`, if [`(feval, representer)` realizes `H` as
-an RKHS on `X`](hyp:hK), [`κ` is a nonnegative bound](hyp:hκ), [`r` is a nonnegative
-radius](hyp:hr), and [every sampled kernel representer `representer (xs k)` has norm at
-most `κ`](hyp:hbound), then [the empirical Rademacher complexity, on the sample `xs`, of
-the closed ball of radius `r` in `H` is at most `κ·r/√n`](goal).
+/-- If [evaluation on `H` has supplied reproducing representers](hyp:hK),
+[`κ` is a nonnegative bound](hyp:hκ), [`r` is a nonnegative radius](hyp:hr), and
+[every sampled representer `representer (xs k)` has norm at most `κ`](hyp:hbound), then
+[the empirical Rademacher complexity](goal), on [the sample `xs`](hyp:xs), of the closed ball
+of radius `r` in `H` is at most `κ·r/√n`.
 
-This is the canonical bounded-kernel RKHS-ball rate, using the reproducing identity to
-reduce function evaluation to the abstract Hilbert-space linear bound. -/
+Only the reproducing identity is used to reduce evaluation to the abstract
+Hilbert-space linear bound; no function-space embedding is assumed. -/
 theorem rkhs_ball_empiricalRademacher_le
     {X H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
-    {feval : H → X → ℝ} {representer : X → H} (hK : IsRKHS X H feval representer)
+    {feval : H → X → ℝ} {representer : X → H}
+    (hK : HasReproducingRepresenters X H feval representer)
     {n : ℕ} {κ r : ℝ} (hκ : 0 ≤ κ) (hr : 0 ≤ r)
     (xs : Fin n → X) (hbound : ∀ k, ‖representer (xs k)‖ ≤ κ) :
     empiricalRademacherComplexity n

@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Minimax.TotalVariation
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.ArmDisintegration
-import Mathlib.MeasureTheory.Order.Group.Lattice
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.ArmDisintegration
+public import Mathlib.MeasureTheory.Order.Group.Lattice
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

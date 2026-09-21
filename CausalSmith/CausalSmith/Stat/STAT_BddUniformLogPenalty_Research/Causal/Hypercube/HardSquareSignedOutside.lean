@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedSuccess
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedSuccess
 
 /-!
 # Exact localization for signed hard-cell observations
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Hard
 This module complements the signed hard-cell KL estimate with exact equality
 of the two raw observation measures away from the positive short-radius window.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

@@ -1,7 +1,7 @@
-import Mathlib.Analysis.InnerProductSpace.l2Space
-import Mathlib.Analysis.SpecialFunctions.Exponential
-import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
-import Mathlib.Tactic
+module
+public import Mathlib.Analysis.InnerProductSpace.l2Space
+public import Mathlib.Analysis.SpecialFunctions.Exponential
+public import Mathlib.MeasureTheory.Integral.Bochner.ContinuousLinearMap
 
 /-!
 # An explicit Gaussian feature map
@@ -11,6 +11,8 @@ coordinates in real `ℓ²`.  It also supplies the analytic facts needed to form
 Bochner mean embeddings and to read their coordinates through continuous
 linear evaluation maps.
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped BigOperators ENNReal InnerProductSpace lp

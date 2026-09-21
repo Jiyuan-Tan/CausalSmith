@@ -10,9 +10,9 @@ real sample, defined as the (lower) generalized inverse of the empirical cdf
 
     q̂ₙ(τ) := quantile (νₙ) τ,     νₙ := (1/n) Σ_{i<n} δ_{Zᵢ},
 
-where `νₙ` is the **empirical measure** and `quantile` is the cdf-inverse of
-`Stat/Quantile.lean`.  Because `cdf νₙ = F̂ₙ` (the `empiricalCDF` of
-`Stat/EmpiricalCDF.lean`), the sample quantile inherits the Galois connection
+where `νₙ` is the **empirical measure** and `quantile` is the CDF inverse from
+`Stat/Quantile/Quantile.lean`. Because `cdf νₙ = F̂ₙ` (the `empiricalCDF` from
+`Stat/Quantile/EmpiricalCDF.lean`), the sample quantile inherits the Galois connection
 
     q̂ₙ(τ) ≤ x  ↔  τ ≤ F̂ₙ(x)        (switching relation, `0 < τ < 1`).
 
@@ -27,8 +27,9 @@ derivation in `Stat/Quantile/SampleQuantileBahadur.lean`.
 Project-agnostic; upstream-candidate.
 -/
 
-import Causalean.Stat.Quantile.EmpiricalCDF
-import Causalean.Stat.Quantile.Quantile
+module
+public import Causalean.Stat.Quantile.EmpiricalCDF
+public import Causalean.Stat.Quantile.Quantile
 
 /-! # Empirical Measures and Sample Quantiles
 
@@ -44,6 +45,8 @@ its real argument, and the atom bound `IIDSample.sampleQuantile_atom_bound`.
 Together these deterministic facts feed the derived Bahadur representation for
 the ordinary empirical sample quantile.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -75,7 +78,13 @@ lemma IIDSample.empiricalMeasure_isProbabilityMeasure (S : IIDSample Ω ℝ μ P
   · exact_mod_cast hn.ne'
   · exact ENNReal.natCast_ne_top n
 
-/-- The empirical measure of the lower ray `Iic y` is `F̂ₙ(y)` (as `ℝ`). -/
+/-- The empirical measure and empirical CDF agree on lower rays: for [an i.i.d.
+real sample](hyp:S), [a positive sample size](hyp:_hn), [an outcome](hyp:ω),
+and [a real threshold](hyp:y), [the empirical mass of observations at or below
+the threshold equals the empirical CDF there](goal).
+
+The identity is total at sample size zero as well; the positivity premise is
+retained by this interface. -/
 lemma IIDSample.empiricalMeasure_real_Iic (S : IIDSample Ω ℝ μ P)
     {n : ℕ} (_hn : 0 < n) (ω : Ω) (y : ℝ) :
     (S.empiricalMeasure n ω).real (Set.Iic y) = S.empiricalCDF y n ω := by
@@ -126,6 +135,20 @@ lemma IIDSample.sampleQuantile_le_iff (S : IIDSample Ω ℝ μ P)
   haveI := S.empiricalMeasure_isProbabilityMeasure hn ω
   rw [IIDSample.sampleQuantile, quantile_le_iff hτ0 hτ1, S.empiricalMeasure_cdf hn ω]
 
+/-- **Measurability of the sample quantile.** For [a positive sample size](hyp:hn) and
+[an interior quantile level](hyp:hτ0,hτ1), [the sample quantile is measurable](goal). -/
+@[fun_prop]
+lemma IIDSample.measurable_sampleQuantile (S : IIDSample Ω ℝ μ P)
+    {n : ℕ} (hn : 0 < n) {τ : ℝ} (hτ0 : 0 < τ) (hτ1 : τ < 1) :
+    Measurable (S.sampleQuantile τ n) := by
+  apply measurable_of_Iic
+  intro x
+  have hpre : S.sampleQuantile τ n ⁻¹' Set.Iic x = {ω | τ ≤ S.empiricalCDF x n ω} := by
+    ext ω
+    exact S.sampleQuantile_le_iff hn ω hτ0 hτ1 x
+  rw [hpre]
+  exact measurableSet_le measurable_const (S.measurable_sampleMean (measurable_cdfStat x) n)
+
 /-! ## Monotonicity of the empirical cdf in the argument -/
 
 /-- The empirical cdf is monotone in its real argument `y` (a sum of monotone
@@ -144,49 +167,72 @@ lemma IIDSample.empiricalCDF_monotone (S : IIDSample Ω ℝ μ P) (n : ℕ) (ω 
   · rw [Set.indicator_of_notMem (by simp only [Set.mem_Iic]; exact h)]
     exact cdfStat_nonneg y' _
 
-/-! ## Atom bound (tie-free under an atomless population) -/
+/-! ## Atom bound (locally tie-free near the population quantile) -/
 
-/-- **Atom bound.** If [the population cdf $F$ is continuous, i.e. the population is
-atomless](hyp:hcont), [the sample size $n$ is positive](hyp:hn), and [the quantile level $\tau$ is
-interior, $0<\tau<1$](hyp:hτ0,hτ1), then [almost surely the empirical cdf evaluated at the sample
-$\tau$-quantile $\hat q_n(\tau)$ deviates from $\tau$ by at most $1/n$](goal).
+/-- **Local atom bound.** If [the radius around the target quantile is positive](hyp:hρ),
+[the population cdf is continuous on the corresponding closed neighborhood](hyp:hcont),
+[the sample size is positive](hyp:hn), and [the quantile level is interior](hyp:hτ0,hτ1), then
+[almost surely, whenever the sample quantile lies in the open neighborhood, its empirical-cdf
+overshoot is at most one observation](goal).
 
-Under an atomless population, the sample is a.s. tie-free, so the empirical cdf jumps by exactly
-`1/n` at the sample quantile and `τ ≤ F̂ₙ(q̂ₙ) ≤ τ + 1/n`. This is the only place an
-atomless-population hypothesis enters the sample-quantile asymptotics. -/
+Local continuity makes population singletons null inside the neighborhood, which is enough to
+exclude ties whenever the sample quantile lies there. -/
 lemma IIDSample.sampleQuantile_atom_bound [IsProbabilityMeasure μ] (S : IIDSample Ω ℝ μ P)
-    (hcont : Continuous (fun y => cdf P y))
+    {q₀ ρ : ℝ} (hρ : 0 < ρ)
+    (hcont : ContinuousOn (fun y => cdf P y) (Set.Icc (q₀ - ρ) (q₀ + ρ)))
     {n : ℕ} (hn : 0 < n) {τ : ℝ} (hτ0 : 0 < τ) (hτ1 : τ < 1) :
-    ∀ᵐ ω ∂μ, |S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ| ≤ (n : ℝ)⁻¹ := by
-  -- `P` is atomless: `Continuous (cdf P)` ⇒ no jumps ⇒ every singleton is null.
+    ∀ᵐ ω ∂μ, S.sampleQuantile τ n ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ) →
+      |S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ| ≤ (n : ℝ)⁻¹ := by
+  -- Local continuity of the cdf makes each singleton in the open neighborhood null.
   haveI hP : IsProbabilityMeasure P := by
     rw [← S.law]
     exact MeasureTheory.Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
-  haveI hPna : NullSingletonClass P := by
-    refine ⟨fun x => ?_⟩
+  have hsingleton : ∀ x ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ), P {x} = 0 := by
+    intro x hx
+    have hxnhds : Set.Icc (q₀ - ρ) (q₀ + ρ) ∈ nhds x := by simpa using hx
+    have hcx : ContinuousAt (fun y => cdf P y) x := hcont.continuousAt hxnhds
     have heq : P = (cdf P).measure := (measure_cdf P).symm
     rw [heq, StieltjesFunction.measure_singleton,
-      ContinuousWithinAt.leftLim_eq (hcont.continuousWithinAt), sub_self, ENNReal.ofReal_zero]
+      ContinuousWithinAt.leftLim_eq hcx.continuousWithinAt, sub_self, ENNReal.ofReal_zero]
   -- Each coordinate has law `P`.
   have hlaw : ∀ i : ℕ, μ.map (S.Z i) = P := fun i => (S.identDist i).map_eq.symm.trans S.law
-  -- Pairwise a.s. distinctness: `μ{Zᵢ = Zⱼ} = 0` for `i ≠ j` (independence + atomless law).
-  have hpair : ∀ i j : ℕ, i ≠ j → μ {ω | S.Z i ω = S.Z j ω} = 0 := by
+  -- Pairwise local distinctness follows from independence and the local singleton nullity.
+  have hpair : ∀ i j : ℕ, i ≠ j →
+      μ {ω | S.Z i ω = S.Z j ω ∧
+        S.Z i ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)} = 0 := by
     intro i j hij
     have hind : IndepFun (S.Z i) (S.Z j) μ := S.indep.indepFun hij
-    have hmeas : MeasurableSet {p : ℝ × ℝ | p.1 = p.2} :=
-      measurableSet_eq_fun measurable_fst measurable_snd
-    have hpre : {ω | S.Z i ω = S.Z j ω}
-        = (fun ω => (S.Z i ω, S.Z j ω)) ⁻¹' {p : ℝ × ℝ | p.1 = p.2} := rfl
+    let A : Set (ℝ × ℝ) :=
+      {p | p.1 = p.2 ∧ p.1 ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)}
+    have hmeas : MeasurableSet A :=
+      (measurableSet_eq_fun measurable_fst measurable_snd).inter
+        (measurableSet_Ioo.preimage measurable_fst)
+    have hpre : {ω | S.Z i ω = S.Z j ω ∧
+        S.Z i ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)} =
+        (fun ω => (S.Z i ω, S.Z j ω)) ⁻¹' A := rfl
     rw [hpre, ← Measure.map_apply ((S.meas i).prodMk (S.meas j)) hmeas,
       (indepFun_iff_map_prod_eq_prod_map_map
         (S.meas i).aemeasurable (S.meas j).aemeasurable).mp hind,
       hlaw i, hlaw j, Measure.measure_prod_null hmeas]
     refine Filter.Eventually.of_forall (fun x => ?_)
-    have hsing : (Prod.mk x ⁻¹' {p : ℝ × ℝ | p.1 = p.2}) = {x} := by ext y; simp [eq_comm]
-    simp [hsing, measure_singleton]
-  -- Assemble into one a.s. tie-free event on `range n`.
+    by_cases hx : x ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)
+    · have hsing : Prod.mk x ⁻¹' A = {x} := by
+        ext y
+        simp only [A, Set.mem_preimage, Set.mem_setOf_eq, Set.mem_singleton_iff]
+        exact ⟨fun h => h.1.symm, fun h => ⟨h.symm, hx⟩⟩
+      change P (Prod.mk x ⁻¹' A) = 0
+      rw [hsing, hsingleton x hx]
+    · have hempty : Prod.mk x ⁻¹' A = ∅ := by
+        ext y
+        simp only [A, Set.mem_preimage, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false]
+        exact fun h => hx h.2
+      change P (Prod.mk x ⁻¹' A) = 0
+      rw [hempty, measure_empty]
+  -- Assemble into one a.s. event with no ties whose common value is local.
   have hae : ∀ᵐ ω ∂μ, ∀ i ∈ (Finset.range n : Set ℕ),
-      ∀ j ∈ (Finset.range n : Set ℕ), i ≠ j → S.Z i ω ≠ S.Z j ω := by
+      ∀ j ∈ (Finset.range n : Set ℕ), i ≠ j →
+        ¬ (S.Z i ω = S.Z j ω ∧
+          S.Z i ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)) := by
     rw [ae_ball_iff (Set.to_countable _)]
     intro i _
     rw [ae_ball_iff (Set.to_countable _)]
@@ -194,7 +240,11 @@ lemma IIDSample.sampleQuantile_atom_bound [IsProbabilityMeasure μ] (S : IIDSamp
     by_cases hij : i = j
     · exact ae_of_all _ (fun ω hne => absurd hij hne)
     · rw [ae_iff]
-      have heqset : {ω | ¬ (i ≠ j → S.Z i ω ≠ S.Z j ω)} = {ω | S.Z i ω = S.Z j ω} := by
+      have heqset : {ω | ¬ (i ≠ j →
+          ¬ (S.Z i ω = S.Z j ω ∧
+            S.Z i ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)))} =
+          {ω | S.Z i ω = S.Z j ω ∧
+            S.Z i ω ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ)} := by
         ext ω; simp [hij]
       rw [heqset, hpair i j hij]
   -- The empirical-cdf sum counts the sample points below the threshold.
@@ -210,6 +260,7 @@ lemma IIDSample.sampleQuantile_atom_bound [IsProbabilityMeasure μ] (S : IIDSamp
     · rw [Set.indicator_of_notMem (by simpa using h)]; simp [h]
   have hnR : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn
   filter_upwards [hae] with ω haeω
+  intro hq_local
   set q := S.sampleQuantile τ n ω with hq
   -- LOWER bound `τ ≤ F̂ₙ(q)` is deterministic (switching at `x = q`, reflexivity).
   have hlower : τ ≤ S.empiricalCDF q n ω :=
@@ -245,7 +296,9 @@ lemma IIDSample.sampleQuantile_atom_bound [IsProbabilityMeasure μ] (S : IIDSamp
     intro a ha b hb
     rw [hCeq, Finset.mem_filter] at ha hb
     by_contra hab
-    exact haeω a (by simpa using ha.1) b (by simpa using hb.1) hab (ha.2.trans hb.2.symm)
+    have hqlocalq : q ∈ Set.Ioo (q₀ - ρ) (q₀ + ρ) := by simpa [hq] using hq_local
+    exact haeω a (by simpa using ha.1) b (by simpa using hb.1) hab
+      ⟨ha.2.trans hb.2.symm, by rw [ha.2]; exact hqlocalq⟩
   -- Strict part: `(Clt.card : ℝ) ≤ n·τ`, via a threshold `x < q` with `Cle x = Clt`.
   have hClt_le : (Clt.card : ℝ) ≤ (n : ℝ) * τ := by
     rcases Finset.eq_empty_or_nonempty Clt with hempty | hne

@@ -20,8 +20,9 @@ re-exports; deliberately no `abbrev` aliases (which would make the root-namespac
 symbols ambiguous).
 -/
 
-import Optlib.Optimality.Constrained_Problem
-import Optlib.Convex.Farkas
+module
+public import Optlib.Optimality.Constrained_Problem
+public import Optlib.Convex.Farkas
 
 /-! # First-order KKT optimality conditions
 
@@ -38,6 +39,8 @@ together with the underlying `Farkas` lemma over `EuclideanSpace ℝ (Fin n)`.
 These are the necessary-conditions direction only; convex sufficiency and
 Slater-type qualifications are not part of the vendored development.
 -/
+
+public section
 
 namespace Causalean.Mathlib.Optimization
 

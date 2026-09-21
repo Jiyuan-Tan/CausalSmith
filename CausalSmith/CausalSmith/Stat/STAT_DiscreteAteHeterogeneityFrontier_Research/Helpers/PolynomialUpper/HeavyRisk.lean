@@ -1,7 +1,10 @@
 /- Fixed-heavy risk bridge for the polynomial upper construction. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.OccupancyUpperAssembly
-import Causalean.Stat.Sample.FiniteStratumMarkedRatioMse
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.OccupancyUpperAssembly
+public import Causalean.Stat.Sample.Stratified
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

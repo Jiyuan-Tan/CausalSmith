@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Mathlib.MeasureTheory.Integral.Layercake
-import Mathlib.MeasureTheory.Measure.GiryMonad
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Mathlib.MeasureTheory.Integral.Layercake
+public import Mathlib.MeasureTheory.Measure.GiryMonad
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

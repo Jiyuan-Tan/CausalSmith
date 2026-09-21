@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
-import Mathlib.Tactic.FinCases
-import Mathlib.Tactic.NormNum.Basic
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
+public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.NormNum.Basic
 
 /-! Exact rational data for the six-coordinate, three-assignment witness. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

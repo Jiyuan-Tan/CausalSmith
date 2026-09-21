@@ -11,7 +11,10 @@ named `Prop` recording the delivered all-β lower floor with the regime-by-regim
 manual salvage and is not recreated here.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.FrontierBracket
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.FrontierBracket
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

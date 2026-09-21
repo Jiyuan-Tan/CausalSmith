@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEvents
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEvents
 
 /-! # Regularizer Event for the Primal NPIV Rate
 
@@ -15,6 +16,8 @@ events to the regularization terms in the primal NPIV rate proof, producing an
 all-sample-size centred empirical regularizer bound from the localized event for
 the squared candidate-difference class. -/
 
+public section
+
 namespace Causalean
 namespace Estimation
 namespace NPIV
@@ -23,34 +26,6 @@ namespace Primal
 open MeasureTheory Causalean.Stat Causalean.Stat.Concentration
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
-
-/-- If each event in a countable family has probability at least one minus its
-assigned error, then their intersection has probability at least one minus the
-sum of those errors. -/
-lemma measure_iInter_nat_ge_one_sub_tsum_of_ge
-    [IsProbabilityMeasure μ]
-    {E : ℕ → Set Ω} {a : ℕ → ENNReal}
-    (hE_meas : ∀ n, MeasurableSet (E n))
-    (hE : ∀ n, μ (E n) ≥ 1 - a n) :
-    μ (⋂ n, E n) ≥ 1 - ∑' n, a n := by
-  have hE_compl : ∀ n, μ (E n)ᶜ ≤ a n := by
-    intro n
-    have hone_le : (1 : ENNReal) ≤ a n + μ (E n) :=
-      tsub_le_iff_left.mp (hE n)
-    rw [measure_compl (hE_meas n) (measure_ne_top _ _), measure_univ]
-    exact tsub_le_iff_right.mpr (by simpa [add_comm] using hone_le)
-  have hbad_subset : (⋂ n, E n)ᶜ ⊆ ⋃ n, (E n)ᶜ := by
-    simp
-  have hbad_le : μ (⋂ n, E n)ᶜ ≤ ∑' n, a n := by
-    calc
-      μ (⋂ n, E n)ᶜ ≤ μ (⋃ n, (E n)ᶜ) := measure_mono hbad_subset
-      _ ≤ ∑' n, μ (E n)ᶜ := measure_iUnion_le fun n => (E n)ᶜ
-      _ ≤ ∑' n, a n := ENNReal.tsum_le_tsum hE_compl
-  have hA_meas : MeasurableSet (⋂ n, E n) := MeasurableSet.iInter hE_meas
-  rw [measure_compl hA_meas (measure_ne_top _ _), measure_univ] at hbad_le
-  have hone_le : (1 : ENNReal) ≤ (∑' n, a n) + μ (⋂ n, E n) :=
-    tsub_le_iff_right.mp hbad_le
-  exact tsub_le_iff_left.mpr hone_le
 
 /-- **The centred empirical regularizer gap is bounded uniformly over all sample sizes by the
 localized rate from the squared candidate-difference event.** For every sample size n,
@@ -69,6 +44,11 @@ population Tikhonov candidate is controlled for every eligible split size:
 
     |λ ((‖h*‖²_{A(n)} − ‖ĥ‖²_{A(n)}) − (‖h*‖² − ‖ĥ‖²))|
       ≤ K_reg · λ · (δ_n · ‖ĥ − h*‖ + δ_n²).
+
+This result belongs to the earlier simultaneous-in-`n` route.  The current
+fixed-sample route obtains the centered-regularizer control from
+`localized_omega_event_for_H_pair_peeled` inside
+`per_sample_empirical_process_event`.
 -/
 theorem centred_regulariser_bound_from_localized
     {S : OperatorSystem Ω μ} {TC : TRAEClasses S}
@@ -79,7 +59,7 @@ theorem centred_regulariser_bound_from_localized
     {h_hat : ℕ → Ω → S.𝒳 → ℝ}
     {is_estimator : IsTRAEPrimalEstimator S TC sample split lambda h_hat}
     (sc : SourceCondition S β)
-    (tb : TikhonovBiasBound S β lambda sc)
+    (tb : TikhonovBiasBoundAt S β lambda sc)
     [IsProbabilityMeasure μ]
     (regimes : ∀ n, LocalizedRegimes S TC sample sc tb (split.n₁ n) (delta n))
     (lambda_nonneg : 0 ≤ lambda)
@@ -98,10 +78,15 @@ theorem centred_regulariser_bound_from_localized
         ≤ lambda *
             (4 * ((regimes n).H_diameter + delta n) *
                 criticalRadius ((regimes n).bundle_H.regime.ψ (split.n₁ n))
-              + (regimes n).bundle_H.regime.b *
-                  Real.sqrt
-                    (2 * Real.log ((2 : ℝ) ^ (n + 1) / ζ)
-                      / (split.n₁ n))) := by
+              + 2 * Real.sqrt
+                  ((((regimes n).H_diameter + delta n) ^ 2 +
+                      8 * (regimes n).bundle_H.regime.b *
+                        ((regimes n).H_diameter + delta n) *
+                        criticalRadius
+                          ((regimes n).bundle_H.regime.ψ (split.n₁ n))) *
+                    Real.log ((2 : ℝ) ^ (n + 1) / ζ) / (split.n₁ n))
+              + 8 * (regimes n).bundle_H.regime.b *
+                  Real.log ((2 : ℝ) ^ (n + 1) / ζ) / (split.n₁ n)) := by
   classical
   let ε : ℕ → ℝ := fun n => ζ * ((1 / 2 : ℝ) ^ (n + 1))
   have hε_pos : ∀ n, 0 < ε n := by

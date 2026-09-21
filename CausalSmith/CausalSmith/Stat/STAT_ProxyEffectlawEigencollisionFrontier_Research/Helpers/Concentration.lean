@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConcentrationCore
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConcentrationCore
 
 /-! Uniform concentration of the finite-product observable summary. -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmQuantitativePredictive
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmQuantitativePredictive
 
 /-!
 # Logarithmic degree calibration for the one-arm converse
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmQua
 This file records the elementary ceiling and Taylor-budget estimates used by
 the shifted finite-grid construction.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

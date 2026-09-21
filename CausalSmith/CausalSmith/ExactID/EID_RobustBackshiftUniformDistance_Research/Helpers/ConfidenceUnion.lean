@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.MatrixMargins
-import Mathlib.Data.Rat.Defs
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.MatrixMargins
+public import Mathlib.Data.Rat.Defs
 
 /-!
 # Set-valued confidence unions
@@ -7,6 +8,8 @@ import Mathlib.Data.Rat.Defs
 Finite subset consensus, arbitrary covariance-region selections, honest-region radius, and the
 resulting population compatibility union.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

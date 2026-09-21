@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.PolynomialRetractDimension
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AffineSpaceDimension
+module
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.PolynomialRetractDimension
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AffineSpaceDimension
 
 /-!
 # Compatibility reexports for polynomial retract dimension
@@ -13,6 +14,8 @@ import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Affine
 The polynomial-map and retract proofs are implemented in neutral substrate;
 this file retains the paper namespace and method-style API.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

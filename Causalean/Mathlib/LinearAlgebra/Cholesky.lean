@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.Matrix.LDL
-import Mathlib.LinearAlgebra.Matrix.Block
-import Mathlib.Data.Real.Sqrt
+
+module
+public import Mathlib.Analysis.Matrix.LDL
+public import Mathlib.LinearAlgebra.Matrix.Block
+public import Mathlib.Data.Real.Sqrt
 
 /-! # Real Cholesky factorization: existence and uniqueness
 
@@ -22,6 +24,8 @@ obtained from the LDL decomposition by absorbing the square roots of the diagona
 uniqueness reduces to `orthogonal_upperTri_pos_diag_eq_one`, the fact that an orthogonal
 upper-triangular matrix with positive diagonal is the identity. -/
 
+@[expose] public section
+
 open Matrix OrderDual
 
 namespace Causalean.Mathlib.LinearAlgebra
@@ -36,8 +40,8 @@ Equivalently, all entries strictly below the diagonal vanish. -/
 def IsUpperTri {ι K : Type*} [LT ι] [Zero K] (U : Matrix ι ι K) : Prop :=
   ∀ i j, j < i → U i j = 0
 
-/-- The entrywise upper-triangular predicate is exactly Mathlib's block-triangular predicate
-for the identity order. -/
+/-- [The entrywise upper-triangular predicate is exactly Mathlib's block-triangular predicate
+for the identity order](goal). -/
 theorem isUpperTri_iff_blockTriangular {ι K : Type*} [LT ι] [Zero K]
     {U : Matrix ι ι K} :
     IsUpperTri U ↔ U.BlockTriangular id := by
@@ -49,7 +53,8 @@ section Existence
 
 variable {M : Matrix (Fin d) (Fin d) ℝ}
 
-/-- The Gram-Schmidt lower-inverse matrix is unitriangular: its diagonal entries are `1`. -/
+/-- [The Gram-Schmidt lower-inverse of a positive-definite matrix](hyp:hM)
+[has unit diagonal](goal), including at [the selected diagonal position](hyp:i). -/
 theorem ldl_lowerInv_diag_one (hM : M.PosDef) (i : Fin d) : LDL.lowerInv hM i i = 1 := by
   letI := (Mᵀ.toNormedAddCommGroup hM.transpose)
   letI := (Mᵀ.toInnerProductSpace hM.transpose.posSemidef)
@@ -65,8 +70,8 @@ theorem ldl_lowerInv_diag_one (hM : M.PosDef) (i : Fin d) : LDL.lowerInv hM i i 
   change _ * InnerProductSpace.gramSchmidt ℝ (⇑(Pi.basisFun ℝ (Fin d))) c i = 0
   rw [key c (Finset.mem_Iio.mp hc), mul_zero]
 
-/-- The diagonal entries of the LDL decomposition of a real positive-definite matrix are
-strictly positive. -/
+/-- [Every LDL diagonal entry of a real positive-definite matrix](hyp:hM)
+[is strictly positive](goal), including at [the selected position](hyp:i). -/
 theorem ldl_diagEntries_pos (hM : M.PosDef) (i : Fin d) : 0 < LDL.diagEntries hM i := by
   have hne : LDL.lowerInv hM i ≠ 0 := by
     intro h
@@ -78,19 +83,22 @@ theorem ldl_diagEntries_pos (hM : M.PosDef) (i : Fin d) : 0 < LDL.diagEntries hM
   rw [dotProduct_comm]
   exact hM.dotProduct_mulVec_pos hne
 
-/-- `LDL.lowerInv` is lower-triangular in the `BlockTriangular toDual` sense. -/
+/-- [The Gram-Schmidt lower-inverse of a positive-definite matrix](hyp:hM)
+[is lower-triangular](goal). -/
 theorem ldl_lowerInv_blockTriangular (hM : M.PosDef) :
     (LDL.lowerInv hM).BlockTriangular toDual := by
   intro i j hij
   exact LDL.lowerInv_triangular hM (by simpa using hij)
 
-/-- `LDL.lower` (the inverse of `LDL.lowerInv`) is lower-triangular. -/
+/-- [The inverse lower factor of a positive-definite matrix](hyp:hM)
+[is lower-triangular](goal). -/
 theorem ldl_lower_blockTriangular (hM : M.PosDef) :
     (LDL.lower hM).BlockTriangular toDual := by
   rw [LDL.lower]
   exact blockTriangular_inv_of_blockTriangular (ldl_lowerInv_blockTriangular hM)
 
-/-- `LDL.lower` is unitriangular: its diagonal entries are `1`. -/
+/-- [The inverse lower factor of a positive-definite matrix](hyp:hM)
+[has unit diagonal](goal), including at [the selected diagonal position](hyp:i). -/
 theorem ldl_lower_diag_one (hM : M.PosDef) (i : Fin d) : LDL.lower hM i i = 1 := by
   have hlow := ldl_lower_blockTriangular hM
   have hupp := ldl_lowerInv_blockTriangular hM
@@ -152,8 +160,8 @@ end Existence
 
 section Uniqueness
 
-/-- An orthogonal (`Wᵀ * W = 1`) upper-triangular matrix with strictly positive diagonal is the
-identity matrix. -/
+/-- If [a matrix is orthogonal](hyp:hortho), [upper-triangular](hyp:hupp), and has
+[strictly positive diagonal](hyp:hpos), [it is the identity matrix](goal). -/
 theorem orthogonal_upperTri_pos_diag_eq_one {ι K : Type*} [Fintype ι] [LinearOrder ι]
     [Field K] [LinearOrder K] [IsStrictOrderedRing K] {W : Matrix ι ι K}
     (hortho : Wᵀ * W = 1) (hupp : ∀ i j, j < i → W i j = 0) (hpos : ∀ i, 0 < W i i) :

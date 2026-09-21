@@ -1,13 +1,16 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionUniformExclusion
-import Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine.Definitions
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionUniformExclusion
+public import Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence.DefinitionsPairwiseAffine
 
 /-! # Closed matrix constraints used by contraction compactness -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open Set
 open scoped Matrix Matrix.Norms.L2Operator
-open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 /-- Positive semidefiniteness is closed in finite-dimensional real matrix space. [This is the asserted conclusion](goal). -/
 lemma isClosed_posSemidef_realMatrix (p : ℕ) :

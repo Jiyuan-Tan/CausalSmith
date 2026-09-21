@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+module
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 
 /-! # Equality of measures from equality of Radon–Nikodym derivatives
 
@@ -18,6 +19,8 @@ carry heavy dependent-type indexing.
 It is a project-independent statement about measures over a generic measurable
 space and a candidate Mathlib contribution.
 -/
+
+public section
 
 namespace MeasureTheory.Measure
 

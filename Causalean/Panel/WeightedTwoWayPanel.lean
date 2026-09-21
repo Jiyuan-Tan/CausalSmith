@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Tactic.SumAlgebraSimps
-import Causalean.Panel.Weighted.AdditiveSpan
-import Causalean.Panel.Weighted.Subspace
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+module
+public import Causalean.Tactic.SumAlgebraSimps
+public import Causalean.Stat.Weighted.AdditiveSpan
+public import Causalean.Stat.Weighted.Subspace
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Fintype.Prod
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
 
 /-! # Weighted Finite Two-Way Panel Helpers
 
@@ -33,7 +34,7 @@ reconstruction identity, and the share-weighted orthogonality theorems
 ## Bridge to the generic `WeightedSupport` FWL tower
 
 The closed forms above are connected to the abstract Frisch–Waugh–Lovell
-substrate in `Causalean/Panel/Weighted/` by the `Bridge` section: the panel is the
+substrate in `Causalean/Stat/Weighted/` by the `Bridge` section: the panel is the
 cell support `R = Unit × Time` with weight `ω_{(i,t)} = p_i / |Time|`
 (`cellSupport`), the `p`-weighted inner product is `|Time|` times
 `WeightedSupport.ip` (`inner_eq_card_smul_ip`), and `ddot` is the generic residual
@@ -41,6 +42,8 @@ maker against the two-axis additive span (`ddot_eq_residualize`).  The abstract
 FWL coefficient lemma `Weighted.WeightedSupport.scalar_fwl_of_normalEqs` is thus
 reusable through the bridge.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel
@@ -94,7 +97,7 @@ noncomputable def inner (w : UnitWeights Unit) (V W : Unit → Time → ℝ) : �
 
 Unit-time additive nuisance class `h_it = a_i + b_t` (shared predicate). -/
 abbrev IsUnitTimeAdditive (h : Unit → Time → ℝ) : Prop :=
-  Causalean.Panel.Weighted.IsUnitTimeAdditive h
+  Causalean.Stat.Weighted.IsUnitTimeAdditive h
 
 /-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [unit weights that are strictly positive and sum to one](hyp:w), [a panel array indexed by units and periods](hyp:V), [a unit](hyp:i), and [a period](hyp:t), the [unit-time component removed by double demeaning](goal) is the unit mean plus the weighted time mean minus the weighted grand mean.
 
@@ -263,7 +266,7 @@ theorem ddot_orthogonal_unit_time (w : UnitWeights Unit)
 
 The bespoke `p`-weighted inner product and double demeaning above are the
 *concrete closed forms*; the generic Frisch–Waugh–Lovell substrate in
-`Causalean/Panel/Weighted/` (`WeightedSupport.ip`, `residualize`,
+`Causalean/Stat/Weighted/` (`WeightedSupport.ip`, `residualize`,
 `scalar_fwl_of_normalEqs`) is the *abstract orthogonal-projection* layer.  This
 section connects the two: the panel is the cell support `R = Unit × Time` with
 weight `ω_{(i,t)} = p_i / |Time|`, the `p`-weighted inner product is `|Time|`
@@ -274,7 +277,7 @@ on the panel. -/
 
 section Bridge
 
-open Causalean.Panel.Weighted
+open Causalean.Stat.Weighted
 
 variable [DecidableEq Unit] [DecidableEq Time] [Nonempty Unit] [Nonempty Time]
 

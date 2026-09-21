@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkCertificates.False10Part3
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkProofBase
 
 set_option linter.style.longLine false
 
 /-! Kernel-checked false-target insulin trace certificates, coordinates 110–119. -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

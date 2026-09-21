@@ -4,12 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityUpper
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperTotal
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityUpper
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperTotal
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
 
 /-! # Finite-sample bounds for the continuity-only procedure -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

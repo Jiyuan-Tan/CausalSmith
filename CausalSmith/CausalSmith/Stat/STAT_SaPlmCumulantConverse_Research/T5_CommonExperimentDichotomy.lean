@@ -1,15 +1,18 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T3_AdaptiveRootNMinimax
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T8_BoundedOutcomeGaussianDegeneracy
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T3_AdaptiveRootNMinimax
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T8_BoundedOutcomeGaussianDegeneracy
 
 /-!
 # Separate common-experiment conclusions
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open Set
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 

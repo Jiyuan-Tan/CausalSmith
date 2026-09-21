@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
-import Mathlib.LinearAlgebra.Matrix.PosDef
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
+public import Mathlib.LinearAlgebra.Matrix.PosDef
 
 /-! Inclusion, and strict inclusion, of design-compatible homogeneous quadratic bounds. -/
+
+@[expose] public section
 
 open Finset Set
 

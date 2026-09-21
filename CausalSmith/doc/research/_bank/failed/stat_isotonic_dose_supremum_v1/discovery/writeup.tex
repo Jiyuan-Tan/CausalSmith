@@ -1,0 +1,1291 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}isotonic\_\allowbreak{}dose\_\allowbreak{}supremum}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Proposition \(\texttt{prop:exact-dose-nonidentification}\) proves, by two explicit random-diagonal full-data extensions of one observed law, that the frozen assumptions do not identify \(\mathbb E[Y(a)]\) at any deterministic dose. The paper therefore targets only the observed-law curve \(\theta(a)=\int m(a,w)p(w)\,dw\). On the likelihood-ratio side, the proved content is fixed-location finite-dimensional stationarity; exact Brownian scaling, which by itself gives no large-deviation principle or tail law; the proved deterministic action bracket \(1/2\le I_\star\le9/8\) with its single-plateau witness; the exact spatial-volume clock; centering algebra conditional on a future excursion expansion; and deterministic profile inversion. The contact-set analysis is an aspirational open-problem program, not a calibrated simultaneous causal band or a validated Gumbel procedure.
+
+\section{Project justification}
+
+\paragraph{Gap.} Proposition \(\texttt{prop:exact-dose-nonidentification}\) gives a constructive obstruction to causal interpretation: sectionwise exchangeability and a continuous conditional potential-outcome mean version permit random-diagonal changes that preserve the observed law and consistency while changing every deterministic-dose mean. Independently, Banerjee and Wellner (2001) provide only the fixed-location Brownian--GCM likelihood-ratio functional. Hooghiemstra and Lopuhaä (1998) rely on an explicit Markov argmax jump process, and Durot, Kulikov, and Lopuhaä (2012) transfer slope-error extremes through that process; neither result supplies an extreme-value theorem for the nonlocal likelihood-ratio energy.
+
+\paragraph{Niche.} The current contribution is a negative exact-dose identification certificate together with deterministic and fixed-location likelihood-ratio structure. A future research program could add a valid causal bridge and develop an infinite-domain GCM contact-set large-deviation principle, minimizer classification, sharp Palm expansion, anticlustering, marked-Poisson approximation, and a continuum-grid theorem. That program is aspirational and none of its probability conclusions is claimed here.
+
+\paragraph{Fill.} The completed results are Proposition \(\texttt{prop:exact-dose-nonidentification}\), fixed-location finite-dimensional stationarity, exact Brownian/GCM dilation, the proved deterministic bracket \(1/2\le I_\star\le9/8\), optimality of \(9/8\) within the full single-plateau family through minimization of \((1+r)^3/(6r)\) at \(r=1/2\), the explicit plateau witness, the exact observed-law spatial-volume clock, centering substitution conditional on a future affine-log excursion expansion, deterministic profile interval and image-set properties, and homogeneous reduction. No nuisance-rate theorem, optimized primitive-to-likelihood-ratio transfer theorem, tail rate, critical value, Poisson law, Gumbel law, simulation guarantee, or coverage theorem is retained.
+
+\section{Related work}
+
+Banerjee and Wellner (2001) are used only for the finite fixed-location Brownian--GCM likelihood-ratio functional. Hooghiemstra and Lopuhaä (1998) derive extremes for a distinct Markov argmax process using its jump-transition machinery; Durot, Kulikov, and Lopuhaä (2012) transfer slope-error extremes through that argmax process, not likelihood-ratio-energy excursions. Doss (2026) supplies neighboring fixed-dose causal-isotonic likelihood-ratio work, while Takatsu and Westling (2025), Ai, Huang, and Zhang (2026), and Doss--VandenBerg supply neighboring simultaneous-band methods. None of those results is imported as a tail theorem for the nonlocal likelihood-ratio energy, and the present paper claims neither sharper bands, optimal width, tuning freedom, nor dominance over the Doss--VandenBerg multiscale Gaussian bands.
+
+\section{Setup}
+
+Target (estimand / structural parameter): The statistical target is the observed-law curve \(\theta(a)=\int m(a,w)p(w)\,dw\) for \(a\in J\). Proposition \(\texttt{prop:exact-dose-nonidentification}\) proves that the frozen model admits two admissible full-data extensions of the same observed law with different values of \(\mathbb E[Y(a)]\) at every deterministic dose. Thus \(\theta(a)\) is not identified with an exact-dose causal mean without an additional causal bridge..
+Primary functional / estimator / diagnostic: \(\theta(a)=\int m(a,w)p(w)\,dw\).
+\begin{itemize}
+  \item \texttt{d} --- \texttt{fixed positive integer}
+  \par\smallskip\noindent\emph{Definition.} Dimension of \(W\).
+  \item \texttt{s} --- \texttt{fixed smoothness index}; \((3(d+1),\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common Hölder smoothness order.}
+  \item \texttt{L} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} Common radius of the primitive \(C^{s}\) balls.
+  \item \texttt{B} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform outcome bound.}
+  \item \texttt{delta} --- \texttt{fixed real}; \((0,1/2)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Interior trimming constant.}
+  \item \texttt{J} --- \texttt{compact interval}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(J=[\delta,1-\delta]\).
+  \item \texttt{c\_\allowbreak{}theta} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower derivative bound on the dose-\allowbreak{}response curve.}
+  \item \texttt{C\_\allowbreak{}theta} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper derivative bound on the dose-\allowbreak{}response curve.}
+  \item \texttt{c\_\allowbreak{}p} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower marginal covariate-\allowbreak{}density bound.}
+  \item \texttt{C\_\allowbreak{}p} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper marginal covariate-\allowbreak{}density bound.}
+  \item \texttt{c\_\allowbreak{}g} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Strict-\allowbreak{}overlap lower bound for the conditional treatment density.}
+  \item \texttt{C\_\allowbreak{}g} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper bound for the conditional treatment density.}
+  \item \texttt{v\_\allowbreak{}kappa} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower effective-\allowbreak{}score variance bound.}
+  \item \texttt{V\_\allowbreak{}kappa} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper effective-\allowbreak{}score variance bound.}
+  \item \texttt{P} --- \texttt{probability law}; \(\mathcal P([0,1]^{d}\times[0,1]\times[-B,B])\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed-\allowbreak{}data law.}
+  \item \texttt{O} --- \texttt{random vector}; \([0,1]^{d}\times[0,1]\times[-B,B]\)
+  \par\smallskip\noindent\emph{Definition.} \(O=(W,A,Y)\sim P\).
+  \item \texttt{W} --- \texttt{random vector}; \([0,1]^{d}\)
+  \par\smallskip\noindent\emph{Definition.} Observed confounder vector, the first coordinate block of \(O\).
+  \item \texttt{A} --- \texttt{random variable}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} Observed continuous dose, the second coordinate of \(O\).
+  \item \texttt{Y} --- \texttt{random variable}; \([-B,B]\)
+  \par\smallskip\noindent\emph{Definition.} Observed outcome, the third coordinate of \(O\).
+  \item \texttt{Ypot} --- \texttt{jointly measurable potential-\allowbreak{}outcome process}; \(a\mapsto Y(a)\)
+  \par\smallskip\noindent\emph{Definition.} Potential-outcome coordinate process \(a\mapsto Y(a)\) taking values in \([-B,B]\).
+  \item \texttt{Yspace} --- \texttt{measurable function space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y_B\) is the space of Borel-measurable functions from \([0,1]\) to \([-B,B]\), equipped with the evaluation sigma-field.
+  \item \texttt{Pfull} --- \texttt{probability law}; Full-data laws on \([0,1]^d\times[0,1]\times[-B,B]\times\mathcal Y_B\)
+  \par\smallskip\noindent\emph{Definition.} \(P^{\mathrm F}\) is a generic law of \((W,A,Y,\{Y(a):a\in[0,1]\})\) whose observed-coordinate marginal may equal \(P\).
+  \item \texttt{muF} --- \texttt{function}; \([0,1]\times[0,1]^{d}\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu^{\mathrm F}(a,w)\) denotes the jointly measurable conditional potential-outcome mean version specified by \(\texttt{ass:potential-mean-continuity}\).
+  \item \texttt{p} --- \texttt{nonnegative function}; \([0,1]^{d}\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} A version of the marginal Radon--Nikodym derivative of \(W\) under the observed law \(P\).
+  \item \texttt{g} --- \texttt{nonnegative function}; \([0,1]\times[0,1]^{d}\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} A version of the conditional Radon--Nikodym derivative \(g(a\mid w)\) of \(A\) given \(W=w\) under \(P\).
+  \item \texttt{m} --- \texttt{function}; \([0,1]\times[0,1]^{d}\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(m(a,w)=\mathbb E_{P}[Y\mid A=a,W=w]\).
+  \item \texttt{r} --- \texttt{function}; \([0,1]\times[0,1]^{d}\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(r(a,w)=\mathbb E_{P}[Y^{2}\mid A=a,W=w]\).
+  \item \texttt{f} --- \texttt{function}; \([0,1]\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(f(a)=\int g(a\mid w)p(w)\,dw\), the marginal density of \(A\).
+  \item \texttt{theta} --- \texttt{function}; \([0,1]\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta(a)=\int m(a,w)p(w)\,dw\), the observed-data G-computation curve.
+  \item \texttt{sigma2} --- \texttt{function}; \([0,1]\times[0,1]^{d}\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(\sigma^{2}(a,w)=r(a,w)-m(a,w)^{2}\).
+  \item \texttt{e} --- \texttt{function}; \([0,1]\times[0,1]^{d}\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(e(a,w)=g(a\mid w)/f(a)\).
+  \item \texttt{xi} --- \texttt{random variable}
+  \par\smallskip\noindent\emph{Definition.} \(\xi(O)=\theta(A)+\{Y-m(A,W)\}/e(A,W)\).
+  \item \texttt{epsilon} --- \texttt{random variable}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon(O)=\xi(O)-\theta(A)\).
+  \item \texttt{kappa} --- \texttt{function}; \([0,1]\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(\kappa(a)=\mathbb E_{P}[\varepsilon(O)^{2}\mid A=a]=f(a)\int\sigma^{2}(a,w)p(w)/g(a\mid w)\,dw\).
+  \item \texttt{Rwit} --- \texttt{Rademacher random variable}
+  \par\smallskip\noindent\emph{Definition.} \(R_0\) takes values \(-1\) and \(1\) with equal probability.
+  \item \texttt{mwit} --- \texttt{function}; \([0,1]\times[0,1]^d\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(m_0(a,w)=c_{\theta}(a-1/2)\).
+  \item \texttt{rwit} --- \texttt{function}; \([0,1]\times[0,1]^d\to\mathbb R_+\)
+  \par\smallskip\noindent\emph{Definition.} \(r_0(a,w)=m_0(a,w)^2+v_{\kappa}\).
+  \item \texttt{Lwit} --- \texttt{fixed positive real}
+  \par\smallskip\noindent\emph{Definition.} \(L_0=\max\{\|1\|_{C^s([0,1]^d)},\|1\|_{C^s([0,1]^{d+1})},\|m_0\|_{C^s([0,1]^{d+1})},\|r_0\|_{C^s([0,1]^{d+1})}\}\), using the same Hölder norm as the model balls.
+  \item \texttt{P0full} --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} \(P_0^{\mathrm F}\) is the explicit full-data law constructed in \(\texttt{def:nonempty-witness}\).
+  \item \texttt{P0} --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} \(P_0\) is the \((W,A,Y)\)-marginal of \(P_0^{\mathrm F}\).
+  \item \texttt{Mpublished} --- \texttt{class of laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{WGC}}=\{P:\theta\text{ is nondecreasing and the marginal distribution of }A\text{ is continuous with positive density}\}\), the causal-isotonic model of Westling, Gilbert, and Carone (2020).
+  \item \texttt{M} --- \texttt{class of laws}
+  \par\smallskip\noindent\emph{Definition.} The fixed-radius causal-isotonic model defined in \(\texttt{def:model-class}\).
+  \item \texttt{n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Sample size.}
+  \item \texttt{On} --- \texttt{random sample}
+  \par\smallskip\noindent\emph{Definition.} \(O_{1:n}=(O_{1},\ldots,O_{n})\).
+  \item \texttt{K} --- \texttt{fixed integer}; \(\{2,3,\ldots\}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of balanced cross-\allowbreak{}fitting folds.}
+  \item \texttt{folds} --- \texttt{partition}
+  \par\smallskip\noindent\emph{Definition.} \((\mathcal I_{1},\ldots,\mathcal I_{K})\) is a balanced partition of \(\{1,\ldots,n\}\).
+  \item \texttt{rhon} --- \texttt{positive deterministic sequence}
+  \par\smallskip\noindent\emph{Definition.} \(\varrho_n=1/\log(n+2)\).
+  \item \texttt{nuisance\_\allowbreak{}hat} --- \texttt{fold-\allowbreak{}indexed function tuple}
+  \par\smallskip\noindent\emph{Definition.} \((\widehat p_{k},\widehat g_{k},\widehat m_{k},\widehat r_{k})\) are boundary-corrected local-polynomial estimators of degree at least \(\lceil s\rceil\), trained outside \(\mathcal I_{k}\) with bandwidth \(h_{n}=n^{-1/(2s)}\); the two density estimators are normalized and stabilized on \([\varrho_n,\varrho_n^{-1}]\).
+  \item \texttt{zi} --- \texttt{cross-\allowbreak{}fitted pseudo-\allowbreak{}outcome sequence}
+  \par\smallskip\noindent\emph{Definition.} For \(i\in\mathcal I_{k}\), \(Z_i=\{Y_i-\widehat m_k(A_i,W_i)\}\widehat f_k(A_i)/\widehat g_k(A_i\mid W_i)+|\mathcal I_k|^{-1}\sum_{j\in\mathcal I_k}\widehat m_k(A_i,W_j)\), where \(\widehat f_k(a)=\int\widehat g_k(a\mid w)\widehat p_k(w)\,dw\).
+  \item \texttt{Gammahat} --- \texttt{random function}; \([0,1]\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Gamma_n(a)=n^{-1}\sum_{i=1}^{n}\mathbf 1\{A_i\le a\}Z_i\).
+  \item \texttt{Fn} --- \texttt{empirical distribution function}; \([0,1]\to[0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(F_n(a)=n^{-1}\sum_{i=1}^{n}\mathbf 1\{A_i\le a\}\).
+  \item \texttt{Aorder} --- \texttt{ordered sample}
+  \par\smallskip\noindent\emph{Definition.} \(A_{(1)}<\cdots<A_{(n)}\) are the ordered doses, with \(Z_{(i)}\) carried along.
+  \item \texttt{Cn} --- \texttt{closed convex cone}; \(\mathbb R^{n}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_n=\{u\in\mathbb R^n:u_1\le\cdots\le u_n\}\).
+  \item \texttt{ka} --- \texttt{index map}; \(J\to\{1,\ldots,n\}\)
+  \par\smallskip\noindent\emph{Definition.} \(k(a)=\max\{i:A_{(i)}\le a\}\), clamped to \(\{1,\ldots,n\}\).
+  \item \texttt{uhat} --- \texttt{random vector}; \(\mathcal C_n\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat u=\arg\min_{u\in\mathcal C_n}\sum_{i=1}^{n}(Z_{(i)}-u_i)^2\).
+  \item \texttt{u0hat} --- \texttt{random vector-\allowbreak{}valued map}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat u^{a,t}=\arg\min_{u\in\mathcal C_n,\,u_{k(a)}=t}\sum_{i=1}^{n}(Z_{(i)}-u_i)^2\).
+  \item \texttt{Qn} --- \texttt{nonnegative random function}; \(J\times\mathbb R\to\mathbb R_{+}\)
+  \par\smallskip\noindent\emph{Definition.} \(Q_n(a,t)=\sum_{i=1}^{n}\{(Z_{(i)}-\widehat u^{a,t}_i)^2-(Z_{(i)}-\widehat u_i)^2\}\).
+  \item \texttt{kappahat} --- \texttt{random function}; \(J\to(0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\kappa(a)=\widehat f(a)\int\{\widehat r(a,w)-\widehat m(a,w)^2\}\widehat p(w)/\widehat g(a\mid w)\,dw\), averaged over training fits and stabilized on \([\varrho_n,\varrho_n^{-1}]\).
+  \item \texttt{Sn} --- \texttt{real-\allowbreak{}valued statistic}
+  \par\smallskip\noindent\emph{Definition.} \(S_n(\theta)=\sup_{a\in J}Q_n(a,\theta(a))/\widehat\kappa(a)\).
+  \item \texttt{Wtwo} --- \texttt{two-\allowbreak{}sided standard Brownian motion}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb W(0)=0\) with independent stationary Gaussian increments.
+  \item \texttt{Xpar} --- \texttt{random function}; \(\mathbb R\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(X(t)=\mathbb W(t)+t^2\).
+  \item \texttt{gcm\_\allowbreak{}slope} --- \texttt{random function}; \(\mathbb R\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak g\) is the left slope of the greatest convex minorant of \(X\).
+  \item \texttt{gcm0\_\allowbreak{}slope} --- \texttt{random field}; \(\mathbb R\times\mathbb R\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak g_x^{0}\) is assembled from the left and right one-sided GCM slopes under the constraint that the slope at \(x\) equals \(2x\), capping the left slope above by \(2x\) and the right slope below by \(2x\).
+  \item \texttt{Dfield} --- \texttt{random field}; \(\mathbb R\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(D(x)=\int_{\mathbb R}\{[\mathfrak g(t)-2x]^2-[\mathfrak g_x^{0}(t)-2x]^2\}\,dt\).
+  \item \texttt{u} --- \texttt{positive real}
+  \par\smallskip\noindent\emph{Definition.} High excursion level for \(D\).
+  \item \texttt{x} --- \texttt{real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Additive excess level and normalized cluster mark.}
+  \item \texttt{Rc} --- \texttt{nonnegative random function}; \(\mathbb R\to[0,\infty]\)
+  \par\smallskip\noindent\emph{Definition.} \(R_{\mathrm c}(x)=\inf\{R\ge0:\mathfrak g(t)=\mathfrak g_x^0(t)\text{ for every }t\notin[x-R,x+R]\}\), with \(\inf\varnothing=\infty\).
+  \item \texttt{decluster\_\allowbreak{}handle} --- \texttt{open research construction handle}
+  \par\smallskip\noindent\emph{Definition.} The unresolved contact-set large-deviation, Palm, anticlustering, marked-Poisson, and path-modulus program described in \(\texttt{def:declustering-handle}\).
+  \item \texttt{T} --- \texttt{positive real}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Canonical spatial horizon.}
+  \item \texttt{Phi} --- \texttt{nonnegative deterministic functional}; \texttt{Continuous perturbations to extended nonnegative reals}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi(h)\) is the origin-constrained Brownian--GCM likelihood-ratio energy generated by the path \(t\mapsto t^2+h(t)\), whenever the energy is well defined.
+  \item \texttt{Istar} --- \texttt{extended nonnegative deterministic constant}
+  \par\smallskip\noindent\emph{Definition.} \(I_\star\) is the infimum Cameron--Martin action among origin-constrained perturbations with \(\Phi(h)\ge1\), as specified in \(\texttt{def:excursion-regime}\).
+  \item \texttt{Vclock} --- \texttt{positive functional}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V(P)=\int_J\{f(a)\theta'(a)^2/[4\kappa(a)]\}^{1/3}\,da\).
+  \item \texttt{Tn} --- \texttt{positive deterministic sequence}
+  \par\smallskip\noindent\emph{Definition.} \(T_n(P)=n^{1/3}\mathcal V(P)\).
+  \item \texttt{Vhat} --- \texttt{positive random variable}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat{\mathcal V}_n=\int_J\{\widehat f(a)\widehat\theta'(a)^2/[4\widehat\kappa(a)]\}^{1/3}\,da\), where \(\widehat\theta'(a)=\int\partial_a\widehat m(a,w)\widehat p(w)\,dw\) is stabilized on \([\varrho_n,\varrho_n^{-1}]\).
+  \item \texttt{Tnhat} --- \texttt{positive random variable}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat T_n=n^{1/3}\widehat{\mathcal V}_n\).
+  \item \texttt{alpha} --- \texttt{fixed real}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal error probability.}
+  \item \texttt{qhat} --- \texttt{extended-\allowbreak{}nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_{n,\alpha}\) is an arbitrary measurable \([0,\infty]\)-valued profile threshold; no analytic or simulated calibration is asserted.
+  \item \texttt{CB} --- \texttt{random set-\allowbreak{}valued function}; \(J\to2^{\mathbb R}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_n(a)=\{t\in\mathbb R:Q_n(a,t)\le\widehat\kappa(a)\widehat q_{n,\alpha}\}\).
+  \item \texttt{zeta} --- \texttt{real threshold}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Outcome threshold for inverse-\allowbreak{}dose inference.}
+  \item \texttt{tauz} --- \texttt{extended-\allowbreak{}real functional}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_{\zeta}=\inf\{a\in J:\theta(a)\ge\zeta\}\), with explicit empty-set and left-endpoint conventions.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:observed-marginal]\label{ass:observed-marginal}
+The \((W,A,Y)\)-marginal of \(P^{\mathrm F}\) equals \(P\).
+\par\smallskip\noindent\emph{Novel.} This is an explicit bookkeeping convention for treating an observed law as the marginal of an admissible full-data extension. It is satisfied by structural potential-outcome data-generating processes after marginalizing the potential-outcome path, and it does not encode either identification or the excursion conclusion.
+\end{assumption}
+
+\begin{assumption}[ass:theta-constant-compatibility]\label{ass:theta-constant-compatibility}
+\(c_{\theta}\le C_{\theta}\).
+\par\smallskip\noindent\emph{Novel.} This is the necessary ordering of the fixed lower and upper slope bounds and is transparent in any strictly increasing dose-response model.
+\end{assumption}
+
+\begin{assumption}[ass:p-lower-compatibility]\label{ass:p-lower-compatibility}
+\(c_p\le1\).
+\par\smallskip\noindent\emph{Novel.} On the unit covariate cube, every normalized density with a fixed lower bound requires this inequality; the uniform covariate law attains it.
+\end{assumption}
+
+\begin{assumption}[ass:p-upper-compatibility]\label{ass:p-upper-compatibility}
+\(1\le C_p\).
+\par\smallskip\noindent\emph{Novel.} On the unit covariate cube, every normalized density with a fixed upper bound requires this inequality; the uniform covariate law attains it.
+\end{assumption}
+
+\begin{assumption}[ass:g-lower-compatibility]\label{ass:g-lower-compatibility}
+\(c_g\le1\).
+\par\smallskip\noindent\emph{Novel.} On the unit dose interval, every normalized conditional density with a fixed lower bound requires this inequality; randomized uniform dosing attains it.
+\end{assumption}
+
+\begin{assumption}[ass:g-upper-compatibility]\label{ass:g-upper-compatibility}
+\(1\le C_g\).
+\par\smallskip\noindent\emph{Novel.} On the unit dose interval, every normalized conditional density with a fixed upper bound requires this inequality; randomized uniform dosing attains it.
+\end{assumption}
+
+\begin{assumption}[ass:variance-constant-compatibility]\label{ass:variance-constant-compatibility}
+\(v_{\kappa}\le V_{\kappa}\).
+\par\smallskip\noindent\emph{Novel.} This is the necessary ordering of the fixed effective-variance bounds and permits constant conditional variance as in the explicit witness.
+\end{assumption}
+
+\begin{assumption}[ass:bounded-witness-compatibility]\label{ass:bounded-witness-compatibility}
+\(c_{\theta}/2+\sqrt{v_{\kappa}}\le B\).
+\par\smallskip\noindent\emph{Novel.} The inequality leaves room inside the observed outcome bound for a linear increasing mean and nondegenerate bounded noise, a directly interpretable regular submodel.
+\end{assumption}
+
+\begin{assumption}[ass:radius-compatibility]\label{ass:radius-compatibility}
+\(L\ge L_0\).
+\par\smallskip\noindent\emph{Novel.} The fixed Hölder radius contains the explicit uniform-design linear-response law whenever it contains the displayed polynomial primitives.
+\end{assumption}
+
+\begin{assumption}[ass:p-normalization]\label{ass:p-normalization}
+\(\int_{[0,1]^d}p(w)\,dw=1\).
+\par\smallskip\noindent\emph{Novel.} This is a source-independent compatibility condition for the Lebesgue-density parameterization of the covariate law. It is satisfied by every normalized smooth density in the instrumental subclass, including the explicit uniform-design witness, and is not attributed to the broader causal-isotonic model of Westling, Gilbert, and Carone (2020).
+\end{assumption}
+
+\begin{assumption}[ass:g-normalization]\label{ass:g-normalization}
+\(\int_0^1g(a\mid w)\,da=1\) for every \(w\in[0,1]^d\).
+\par\smallskip\noindent\emph{Standard} (Conditional treatment-density normalization, \cite{WestlingGilbertCarone2020}).
+\end{assumption}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+\(O_1,\ldots,O_n\) are independent and identically distributed from \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent sampling, \cite{WestlingGilbertCarone2020}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+Under \(P^{\mathrm F}\), \(Y=Y(A)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{WestlingGilbertCarone2020}).
+\end{assumption}
+
+\begin{assumption}[ass:exchangeability]\label{ass:exchangeability}
+Under \(P^{\mathrm F}\), \(Y(a)\perp A\mid W\) for every \(a\in[0,1]\).
+\par\smallskip\noindent\emph{Standard} (Conditional exchangeability, \cite{WestlingGilbertCarone2020}).
+\end{assumption}
+
+\begin{assumption}[ass:potential-mean-continuity]\label{ass:potential-mean-continuity}
+Under \(P^{\mathrm F}\), there exists a jointly measurable choice \(\mu^{\mathrm F}\) such that, for almost every \(w\) under the \(W\)-marginal of \(P^{\mathrm F}\), the map \(a\mapsto\mu^{\mathrm F}(a,w)\) is continuous on \([0,1]\) and, for every \(a\in[0,1]\), \(\mu^{\mathrm F}(a,W)\) is a version of \(\mathbb E_{P^{\mathrm F}}[Y(a)\mid W]\).
+\par\smallskip\noindent\emph{Novel.} This jointly measurable continuous-version convention is maintained specifically to turn almost-every-dose regression equality into an exact-dose statement. It is credible when \(Y(a)=h(a,W,U)\) for a bounded jointly measurable structural response \(h\) that is continuous in \(a\), because dominated convergence gives a continuous conditional mean version; it is separate from consistency, exchangeability, and overlap.
+\end{assumption}
+
+\begin{assumption}[ass:outcome-bound]\label{ass:outcome-bound}
+\(|Y|\le B\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Uniformly bounded outcome, \cite{TakatsuWestling2025}).
+\end{assumption}
+
+\begin{assumption}[ass:p-smooth]\label{ass:p-smooth}
+\(p\) belongs to the radius-\(L\) Hölder ball \(C^{s}([0,1]^d)\).
+\par\smallskip\noindent\emph{Novel.} This fixed-radius global \(C^s\) restriction is an instrumental strengthened regular subclass, not a condition attributed to Takatsu and Westling (2025). It is satisfied by covariate laws with smooth spline or smooth parametric densities whose coefficients range over a compact set inside the displayed Hölder ball.
+\end{assumption}
+
+\begin{assumption}[ass:g-smooth]\label{ass:g-smooth}
+\(g\) belongs to the radius-\(L\) Hölder ball \(C^{s}([0,1]^{d+1})\).
+\par\smallskip\noindent\emph{Novel.} This fixed-radius global \(C^s\) restriction is an instrumental strengthened regular subclass, not a condition attributed to Takatsu and Westling (2025). It is satisfied by randomized or observational dose mechanisms with smoothly varying conditional densities, such as compact-parameter logistic tilts of the uniform dose law.
+\end{assumption}
+
+\begin{assumption}[ass:m-smooth]\label{ass:m-smooth}
+\(m\) belongs to the radius-\(L\) Hölder ball \(C^{s}([0,1]^{d+1})\).
+\par\smallskip\noindent\emph{Novel.} This fixed-radius global \(C^s\) restriction is an instrumental strengthened regular subclass, not a condition attributed to Takatsu and Westling (2025). It is credible for bounded clinical response surfaces represented by fixed-knot tensor splines with coefficients in a compact set.
+\end{assumption}
+
+\begin{assumption}[ass:r-smooth]\label{ass:r-smooth}
+\(r\) belongs to the radius-\(L\) Hölder ball \(C^{s}([0,1]^{d+1})\).
+\par\smallskip\noindent\emph{Novel.} This fixed-radius global \(C^s\) restriction is an instrumental strengthened regular subclass, not a condition attributed to Takatsu and Westling (2025). It is satisfied by bounded smooth location-scale outcome models whose conditional mean and variance are smooth on the compact dose-covariate domain.
+\end{assumption}
+
+\begin{assumption}[ass:p-bounds]\label{ass:p-bounds}
+\(c_p\le p(w)\le C_p\) for every \(w\in[0,1]^d\).
+\par\smallskip\noindent\emph{Novel.} The global two-sided covariate-density bound is an instrumental compact-design restriction used for uniform local-polynomial control. It is satisfied after a smooth probability-integral reparameterization in regular designs with a positive continuous density, including the explicit uniform-design witness.
+\end{assumption}
+
+\begin{assumption}[ass:overlap]\label{ass:overlap}
+\(c_g\le g(a\mid w)\le C_g\) for every \((a,w)\in[0,1]^{d+1}\).
+\par\smallskip\noindent\emph{Novel.} The fixed global lower and upper bounds on the conditional dose density form an instrumental uniform-overlap strengthening of pointwise positivity. They hold under randomized uniform dosing and under compact-parameter smooth tilts of that design, and they are not attributed verbatim to Westling, Gilbert, and Carone (2020).
+\end{assumption}
+
+\begin{assumption}[ass:monotone]\label{ass:monotone}
+\(\theta\) is nondecreasing on \([0,1]\).
+\par\smallskip\noindent\emph{Standard} (Monotone causal dose-response, \cite{Doss2026PointwiseLR}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-slope]\label{ass:strict-slope}
+\(c_{\theta}\le\theta'(a)\le C_{\theta}\) for every \(a\in J\).
+\par\smallskip\noindent\emph{Standard} (Derivative bounded away from zero on an interior interval, \cite{DurotKulikovLopuhaa2012}).
+\end{assumption}
+
+\begin{assumption}[ass:variance]\label{ass:variance}
+\(v_{\kappa}\le\kappa(a)\le V_{\kappa}\) for every \(a\in J\).
+\par\smallskip\noindent\emph{Standard} (Nondegenerate local score variance, \cite{Doss2026PointwiseLR}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}radius causal-\allowbreak{}isotonic model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M(d,s,L,B,\delta,c_{\theta},C_{\theta},c_p,C_p,c_g,C_g,v_{\kappa},V_{\kappa})=\{P:c_{\theta}\le C_{\theta},\ c_p\le1\le C_p,\ c_g\le1\le C_g,\ v_{\kappa}\le V_{\kappa},\ c_{\theta}/2+\sqrt{v_{\kappa}}\le B,\ L\ge L_0;\ \exists P^{\mathrm F}\text{ such that }\texttt{ass:observed-marginal},\texttt{ass:consistency},\texttt{ass:exchangeability},\texttt{ass:potential-mean-continuity}\text{ hold under }P^{\mathrm F},\text{ and }\texttt{ass:outcome-bound},\texttt{ass:p-smooth},\texttt{ass:g-smooth},\texttt{ass:m-smooth},\texttt{ass:r-smooth},\texttt{ass:p-bounds},\texttt{ass:p-normalization},\texttt{ass:overlap},\texttt{ass:g-normalization},\texttt{ass:monotone},\texttt{ass:strict-slope},\texttt{ass:variance}\text{ hold for the observed marginal }P\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}theta-\allowbreak{}constant-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}p-\allowbreak{}lower-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}p-\allowbreak{}upper-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}g-\allowbreak{}lower-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}g-\allowbreak{}upper-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}variance-\allowbreak{}constant-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}witness-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}radius-\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}observed-\allowbreak{}marginal}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}exchangeability}; \texttt{ass:\allowbreak{}potential-\allowbreak{}mean-\allowbreak{}continuity}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}bound}; \texttt{ass:\allowbreak{}p-\allowbreak{}smooth}; \texttt{ass:\allowbreak{}g-\allowbreak{}smooth}; \texttt{ass:\allowbreak{}m-\allowbreak{}smooth}; \texttt{ass:\allowbreak{}r-\allowbreak{}smooth}; \texttt{ass:\allowbreak{}p-\allowbreak{}bounds}; \texttt{ass:\allowbreak{}p-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}overlap}; \texttt{ass:\allowbreak{}g-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}monotone}; \texttt{ass:\allowbreak{}strict-\allowbreak{}slope}; \texttt{ass:\allowbreak{}variance}.
+\end{definition}
+
+\begin{definition}[def:nonempty-witness]\label{def:nonempty-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniform-\allowbreak{}design linear-\allowbreak{}response full-\allowbreak{}data witness}
+\par\smallskip\noindent\emph{Construction.} Under \(P_0^{\mathrm F}\), let \(W\) be uniform on \([0,1]^d\), let \(A\) be uniform on \([0,1]\) and independent of \((W,R_0)\), and set \(Y(a)=c_{\theta}(a-1/2)+\sqrt{v_{\kappa}}R_0\) and \(Y=Y(A)\). Take \(\mu^{\mathrm F}(a,w)=m_0(a,w)\). Let \(P_0\) be its observed \((W,A,Y)\)-marginal; under \(P_0\), the primitive functions are \(p=1\), \(g=1\), \(m=m_0\), and \(r=r_0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{c\_\allowbreak{}theta}; \texttt{v\_\allowbreak{}kappa}.
+\end{definition}
+
+\begin{definition}[def:cross-fitted-primitive]\label{def:cross-fitted-primitive}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pooled cross-\allowbreak{}fitted AIPW Grenander primitive}
+\par\smallskip\noindent\emph{Construction.} Estimate \((p,g,m,r)\) foldwise by the boundary-corrected local-polynomial construction \(\widehat\eta\), form \(Z_i\), and set \((\widehat\Gamma_n,F_n)\) to the two cumulative processes defined in the symbol table.
+\par\smallskip\noindent\emph{Inputs.} \texttt{On}; \texttt{folds}; \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:lr-profile]\label{def:lr-profile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Continuum isotonic LR profile}
+\par\smallskip\noindent\emph{Construction.} Compute the unrestricted projection \(\widehat u\) and each equality-constrained projection \(\widehat u^{a,t}\) on \(\mathcal C_n\), then form \(Q_n(a,t)\) and \(S_n(\theta)=\sup_{a\in J}Q_n(a,\theta(a))/\widehat\kappa(a)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{zi}; \texttt{Aorder}; \texttt{kappahat}.
+\end{definition}
+
+\begin{definition}[def:canonical-field]\label{def:canonical-field}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Stationary Brownian-\allowbreak{}-\allowbreak{}GCM LR field}
+\par\smallskip\noindent\emph{Construction.} From \(X(t)=\mathbb W(t)+t^2\), take its unrestricted GCM slope \(\mathfrak g\), impose the split slope constraint \(2x\) to obtain \(\mathfrak g_x^0\), and set \(D(x)=\int_{\mathbb R}\{[\mathfrak g(t)-2x]^2-[\mathfrak g_x^0(t)-2x]^2\}\,dt\).
+\end{definition}
+
+\begin{definition}[def:canonical-localization]\label{def:canonical-localization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}location contact-\allowbreak{}radius diagnostic}
+\par\smallskip\noindent\emph{Construction.} For each fixed \(x\in\mathbb R\), \(R_{\mathrm c}(x)\in[0,\infty]\) is the least symmetric radius outside which the constrained and unconstrained GCM slopes agree, with \(\inf\varnothing=\infty\). This is a diagnostic definition only: no almost-sure finiteness uniform in \(x\), tail bound, separability, padding theorem, or grid approximation is included.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dfield}.
+\end{definition}
+
+\begin{definition}[def:excursion-regime]\label{def:excursion-regime}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministic GCM scaling and action problem}
+\par\smallskip\noindent\emph{Construction.} For a continuous perturbation \(h\) for which the origin-constrained and unrestricted GCM energies are well defined, let \(\Phi(h)\) be the origin-constrained likelihood-ratio energy generated by \(t^2+h(t)\). For absolutely continuous \(h\) with \(h(0)=0\) and \(h'\in L^2(\mathbb R)\), define
+\[
+ I_\star=\inf\left\{\frac12\int_{\mathbb R}\{h'(t)\}^2dt:\Phi(h)\ge1\right\}.
+\]
+These are deterministic scaling and action objects; they do not define a probability-tail rate, a Palm intensity, or an extreme-value centering.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dfield}.
+\end{definition}
+
+\begin{definition}[def:declustering-handle]\label{def:declustering-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Open contact-\allowbreak{}set excursion program}
+\par\smallskip\noindent\emph{Construction.} The declustering handle is the unresolved program that starts from the fixed-location field \(D\) and contact diagnostic \(R_{\mathrm c}\) and seeks: an infinite-domain contact-set large-deviation principle; action-minimizer classification modulo translation; a sharp Palm Laplace expansion with multiplicity and conditional cluster-shape control; short-range anticlustering; marked-Poisson approximation; and a sample-path modulus and grid theorem. The handle names proof obligations and does not assert that a cluster intensity or limit law exists.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Dfield}; \texttt{Rc}.
+\end{definition}
+
+\begin{definition}[def:spatial-clock]\label{def:spatial-clock}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Effective LR spatial-\allowbreak{}volume clock}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal V(P)=\int_J\{f(a)\theta'(a)^2/[4\kappa(a)]\}^{1/3}\,da\), \(T_n(P)=n^{1/3}\mathcal V(P)\), and \(\widehat T_n=n^{1/3}\widehat{\mathcal V}_n\).
+\end{definition}
+
+\begin{definition}[def:profile-band]\label{def:profile-band}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uncalibrated LR profile sublevel sets}
+\par\smallskip\noindent\emph{Construction.} Let \(\widehat q_{n,\alpha}\) be any measurable \([0,\infty]\)-valued threshold. Define
+\[
+ \mathcal C_n(a)=\{t\in\mathbb R:Q_n(a,t)\le\widehat\kappa(a)\widehat q_{n,\alpha}\},\qquad a\in J.
+\]
+This definition supplies profile sublevel sets only; it assigns no nominal probability to the threshold.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Qn}; \texttt{kappahat}; \texttt{qhat}.
+\end{definition}
+
+\begin{definition}[def:crossing-set]\label{def:crossing-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Threshold-\allowbreak{}crossing confidence set}
+\par\smallskip\noindent\emph{Construction.} Map every monotone curve \(\vartheta\) satisfying \(\vartheta(a)\in\mathcal C_n(a)\) for all \(a\in J\) to \(\inf\{a\in J:\vartheta(a)\ge\zeta\}\), retaining the empty-set and left-endpoint conventions.
+\par\smallskip\noindent\emph{Inputs.} \texttt{CB}; \texttt{zeta}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:model-nonempty]\label{lem:model-nonempty}
+Under the fixed-constant compatibility conditions, the observed witness law satisfies \(P_0\in\mathcal M\); under \(P_0\), \(p=g=1\), \(\theta'(a)=c_{\theta}\), and \(\kappa(a)=v_{\kappa}\).
+\end{lemma}
+\begin{proof}
+By \(\texttt{def:nonempty-witness}\), under \(P_0^{\mathrm F}\), \(W\) is uniform on \([0,1]^d\), \(A\) is uniform on \([0,1]\), and \(A\) is independent of \((W,R_0)\), where \(\mathbb P(R_0=1)=\mathbb P(R_0=-1)=1/2\). Moreover,
+\[
+Y(a)=c_{\theta}(a-1/2)+\sqrt{v_{\kappa}}R_0,
+\qquad
+Y=Y(A).
+\]
+Consequently the observed marginal \(P_0\) has the everywhere-defined density versions
+\[
+p(w)=1,
+\qquad
+g(a\mid w)=1.
+\]
+Since \(\mathbb E[R_0]=0\) and \(R_0^2=1\), independence gives, for every \((a,w)\in[0,1]^{d+1}\), the conditional-moment versions
+\[
+\begin{aligned}
+m(a,w)
+&=\mathbb E_{P_0}[Y\mid A=a,W=w]
+=c_{\theta}(a-1/2)=m_0(a,w),\\
+r(a,w)
+&=\mathbb E_{P_0}[Y^2\mid A=a,W=w]
+=m_0(a,w)^2+v_{\kappa}=r_0(a,w).
+\end{aligned}
+\]
+The unit cube \([0,1]^d\) has Lebesgue volume one. Therefore the definitions of \(\theta\), \(\sigma^2\), \(f\), and \(\kappa\) yield
+\[
+\begin{aligned}
+\theta(a)
+&=\int_{[0,1]^d}m(a,w)p(w)\,dw
+=c_{\theta}(a-1/2),\\
+\theta'(a)&=c_{\theta},\\
+\sigma^2(a,w)&=r(a,w)-m(a,w)^2=v_{\kappa},\\
+f(a)&=\int_{[0,1]^d}g(a\mid w)p(w)\,dw=1,\\
+\kappa(a)
+&=f(a)\int_{[0,1]^d}\frac{\sigma^2(a,w)p(w)}{g(a\mid w)}\,dw
+=v_{\kappa}.
+\end{aligned}
+\]
+The division in the last line is valid because \(g(a\mid w)=1>0\).
+
+We now verify every member condition of \(\texttt{def:model-class}\). The eight restrictions on the fixed constants follow, in their displayed order, from \(\texttt{ass:theta-constant-compatibility}\), \(\texttt{ass:p-lower-compatibility}\), \(\texttt{ass:p-upper-compatibility}\), \(\texttt{ass:g-lower-compatibility}\), \(\texttt{ass:g-upper-compatibility}\), \(\texttt{ass:variance-constant-compatibility}\), \(\texttt{ass:bounded-witness-compatibility}\), and \(\texttt{ass:radius-compatibility}\). The observed-coordinate marginal of \(P_0^{\mathrm F}\) is \(P_0\) by the construction, which verifies \(\texttt{ass:observed-marginal}\), and \(Y=Y(A)\) verifies \(\texttt{ass:consistency}\). For each deterministic \(a\), \(Y(a)\) is a measurable function of \(R_0\), whereas \(A\) is independent of \((W,R_0)\); hence \(Y(a)\perp A\mid W\), proving \(\texttt{ass:exchangeability}\). Also,
+\[
+\mathbb E_{P_0^{\mathrm F}}[Y(a)\mid W=w]
+=c_{\theta}(a-1/2)=\mu^{\mathrm F}(a,w).
+\]
+This version is jointly measurable in \((a,w)\) and continuous in \(a\), so \(\texttt{ass:potential-mean-continuity}\) holds.
+
+The triangle inequality, \(A\in[0,1]\), and \(\texttt{ass:bounded-witness-compatibility}\) give
+\[
+|Y|
+\le c_{\theta}|A-1/2|+\sqrt{v_{\kappa}}
+\le c_{\theta}/2+\sqrt{v_{\kappa}}
+\le B,
+\]
+which proves \(\texttt{ass:outcome-bound}\). By the definition of \(L_0\), the functions \(p=1\), \(g=1\), \(m=m_0\), and \(r=r_0\) have the required \(C^s\) norms at most \(L_0\). Since \(L_0\le L\) by \(\texttt{ass:radius-compatibility}\), the four smoothness conditions \(\texttt{ass:p-smooth}\), \(\texttt{ass:g-smooth}\), \(\texttt{ass:m-smooth}\), and \(\texttt{ass:r-smooth}\) follow.
+
+Because the dose interval and covariate cube both have Lebesgue volume one,
+\[
+\int_{[0,1]^d}p(w)\,dw=1,
+\qquad
+\int_0^1g(a\mid w)\,da=1
+\quad\text{for every }w\in[0,1]^d.
+\]
+These equalities prove \(\texttt{ass:p-normalization}\) and \(\texttt{ass:g-normalization}\). Together with \(c_p\le1\le C_p\) and \(c_g\le1\le C_g\), they also verify \(\texttt{ass:p-bounds}\) and \(\texttt{ass:overlap}\). Finally, \(c_{\theta}>0\) and \(\theta'(a)=c_{\theta}\) make \(\theta\) nondecreasing on \([0,1]\). The compatibility inequalities \(c_{\theta}\le C_{\theta}\) and \(v_{\kappa}\le V_{\kappa}\) imply, for every \(a\in J\),
+\[
+c_{\theta}\le\theta'(a)=c_{\theta}\le C_{\theta},
+\qquad
+v_{\kappa}\le\kappa(a)=v_{\kappa}\le V_{\kappa}.
+\]
+Thus \(\texttt{ass:monotone}\), \(\texttt{ass:strict-slope}\), and \(\texttt{ass:variance}\) hold. Every defining condition of \(\mathcal M\) has been verified, so \(P_0\in\mathcal M\), with \(p=g=1\), \(\theta'=c_{\theta}\), and \(\kappa=v_{\kappa}\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An explicit member prevents the fixed-radius and bounded-outcome restrictions from defining an empty statistical experiment. \textit{Gap.} The cited causal-isotonic framework supplies nonparametric examples but does not verify compatibility for this proposal's simultaneous collection of fixed constants. \textit{Consumer.} The witness gives a concrete oracle law for the prescribed PAVA excursion simulation and the homogeneous-reduction falsification check.
+
+\begin{proposition}[prop:model-inclusion]\label{prop:model-inclusion}
+The observed-marginal fixed-radius model is a nonempty proper instrumental subclass of the published causal-isotonic observed-law model: \(\varnothing\ne\mathcal M\subsetneq\mathcal M_{\mathrm{WGC}}\). Membership in \(\mathcal M\) means that the observed law admits at least one causal full-data extension satisfying the maintained continuous conditional-potential-mean version convention and also satisfies the global fixed-radius \(C^s\), interior strict-slope, bounded-density, and effective-variance restrictions.
+\end{proposition}
+\begin{proof}
+Nonemptiness follows from \(\texttt{lem:model-nonempty}\), which supplies \(P_0\in\mathcal M\). Now fix \(P\in\mathcal M\). By \(\texttt{def:model-class}\) and \(\texttt{ass:monotone}\), its observed-law curve \(\theta\) is nondecreasing on \([0,1]\). The marginal density of \(A\) is
+\[
+f(a)=\int_{[0,1]^d}g(a\mid w)p(w)\,dw.
+\]
+The normalization \(\int_{[0,1]^d}p(w)\,dw=1\), the overlap bound \(g(a\mid w)\ge c_g\), and \(c_g>0\) imply, for every \(a\in[0,1]\),
+\[
+f(a)
+\ge \int_{[0,1]^d}c_g p(w)\,dw
+=c_g>0.
+\]
+In particular, the distribution function of \(A\) is
+\[
+P(A\le t)=\int_0^t f(a)\,da,
+\qquad 0\le t\le1,
+\]
+and hence is absolutely continuous, and therefore continuous, with an everywhere positive density version. Thus both defining requirements of \(\mathcal M_{\mathrm{WGC}}\) hold, proving
+\[
+\mathcal M\subseteq\mathcal M_{\mathrm{WGC}}.
+\]
+
+For strictness, construct an observed law \(Q\) as follows: \(W\) is uniform on \([0,1]^d\), \(A\) is uniform on \([0,1]\) and independent of \(W\), and \(Y=0\) almost surely. Under \(Q\), the versions
+\[
+p(w)=1,
+\qquad
+g(a\mid w)=1,
+\qquad
+m(a,w)=0
+\]
+give
+\[
+\theta(a)=\int_{[0,1]^d}m(a,w)p(w)\,dw=0.
+\]
+Therefore \(\theta\) is nondecreasing, while the marginal law of \(A\) is continuous with the everywhere positive density \(f=1\). It follows that \(Q\in\mathcal M_{\mathrm{WGC}}\). On the other hand, \(\delta\in(0,1/2)\) implies \(1/2\in J=[\delta,1-\delta]\), whereas \(\theta'(1/2)=0<c_{\theta}\) because \(c_{\theta}>0\). Hence \(Q\) violates \(\texttt{ass:strict-slope}\), a member property in \(\texttt{def:model-class}\). This obstruction concerns the observed-law functional \(\theta\), so no choice of full-data extension can repair it. Thus \(Q\notin\mathcal M\), and consequently
+\[
+\varnothing\ne\mathcal M\subsetneq\mathcal M_{\mathrm{WGC}}.
+\]
+
+Finally, the descriptive membership assertion is a direct unpacking of \(\texttt{def:model-class}\): a member observed law admits at least one full-data extension satisfying the stated causal conditions and the jointly measurable continuous conditional-potential-mean version condition, while its observed marginal obeys the global radius-\(L\) \(C^s\) restrictions, the two-sided density restrictions, the strict-slope restriction on \(J\), and the two-sided effective-variance restriction on \(J\). This proves the entire proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The inclusion makes explicit that the excursion transfer theorem is asserted on an instrumental strengthened regular subclass, not on the full published causal-isotonic model. \textit{Gap.} Westling, Gilbert, and Carone (2020) provide the broader monotone causal-isotonic framework; the global fixed-radius \(C^s\) restrictions used here are additional and are not attributed to that paper or to Takatsu and Westling (2025). \textit{Consumer.} Readers can distinguish which published causal-isotonic applications fall within the simultaneous calibration theorem and which require a separate extension.
+
+\begin{lemma}[lem:canonical-wellposedness]\label{lem:canonical-wellposedness}
+For every finite deterministic collection \(x_1,\ldots,x_m\in\mathbb R\), the variables \(D(x_1),\ldots,D(x_m)\) are finite and nonnegative almost surely. Moreover, for every \(r\in\mathbb R\),
+\[
+ (D(x_1+r),\ldots,D(x_m+r))\stackrel{d}{=}(D(x_1),\ldots,D(x_m)).
+\]
+No separable locally bounded version, continuum contact-radius bound, or block-independence conclusion is asserted.
+\end{lemma}
+\begin{proof}
+Fix a finite deterministic collection \(x_1,\ldots,x_m\in\mathbb R\).  For each \(x\in\mathbb R\), define the recentered increment path
+\[
+ \mathbb W_x(t)=\mathbb W(x+t)-\mathbb W(x),\qquad t\in\mathbb R.
+\]
+The definition of \(X\) in \(\texttt{def:canonical-field}\) gives the pathwise identity
+\[
+ X(x+t)-X(x)-2xt=\mathbb W_x(t)+t^2. \tag{1}
+\]
+We first verify the GCM equivariance used with (1).  If \(G\) is the greatest convex minorant of a function \(F\), then
+\[
+ \widetilde G(t)=G(x+t)-G(x)-2xt
+\]
+is the greatest convex minorant of
+\(
+ \widetilde F(t)=F(x+t)-F(x)-2xt
+\).
+Indeed, \(\widetilde G\) is convex and lies below \(\widetilde F\).  Conversely, translating any convex minorant of \(\widetilde F\) by \(-x\) and adding back the same affine function produces a convex minorant of \(F\), and hence one lying below \(G\).  These two order comparisons prove the assertion.  The identical argument on each of the two half-lines proves equivariance of the constrained one-sided minorants.  Under this transformation, the slope constraint \(2x\) becomes the origin constraint \(0\), and every unrestricted or constrained slope is reduced by \(2x\).  Translation in the energy integral in \(\texttt{def:canonical-field}\) consequently gives, on every path for which the fixed-location energies are defined,
+\[
+ D(x)=\Phi(\mathbb W_x). \tag{2}
+\]
+
+By the independent stationary Gaussian increment property of \(\mathbb W\) in \(\texttt{def:canonical-field}\), \(\mathbb W_x\) has the law of a two-sided standard Brownian motion.  Since \(D(0)=\Phi(\mathbb W)\), equation (2) implies
+\[
+ D(x)\stackrel{d}{=}D(0). \tag{3}
+\]
+The fixed-location result \(\texttt{lem:banerjee-wellner-fixed-location-lr}\) states that \(D(0)\) is finite and nonnegative almost surely.  Equation (3) gives the same conclusion for each deterministic \(x_j\).  The intersection of the resulting \(m\) probability-one events still has probability one, proving simultaneous finiteness and nonnegativity of \(D(x_1),\ldots,D(x_m)\).
+
+It remains to prove joint stationarity.  Fix \(r\in\mathbb R\).  For any \(i,j\) and \(s,t\in\mathbb R\), the covariance
+\[
+ \operatorname{Cov}\!\left\{\mathbb W_{x_i+r}(s),\mathbb W_{x_j+r}(t)\right\}
+\]
+is the signed length of overlap of the oriented Brownian increment intervals with endpoints \((x_i+r,x_i+r+s)\) and \((x_j+r,x_j+r+t)\).  Translating all four endpoints by \(-r\) leaves that signed overlap unchanged.  The processes are centered Gaussian; therefore
+\[
+ \bigl(\mathbb W_{x_1+r},\ldots,\mathbb W_{x_m+r}\bigr)
+ \stackrel{\mathrm{fdd}}{=}
+ \bigl(\mathbb W_{x_1},\ldots,\mathbb W_{x_m}\bigr). \tag{4}
+\]
+All coordinates have continuous paths, and the Borel sigma-field for the topology of uniform convergence on compact sets is generated by finite collections of evaluation maps.  Thus (4) determines equality of the joint path laws.  Applying the measurable fixed-location functional \(\Phi\) coordinatewise in (2) yields
+\[
+ \bigl(D(x_1+r),\ldots,D(x_m+r)\bigr)
+ \stackrel{d}{=}
+ \bigl(D(x_1),\ldots,D(x_m)\bigr). \tag{5}
+\]
+Only finitely many fixed-location functionals enter this argument.  Thus (1)--(5) do not establish a separable or locally bounded version, a continuum contact-radius estimate, or block independence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Places the canonical field on the firm fixed-location footing actually supported by the source and Brownian equivariance. \textit{Gap.} No separable locally bounded version or continuum contact-radius tail has been constructed. \textit{Consumer.} Finite-dimensional stationarity is valid; continuum maxima and block separation remain open.
+
+\begin{theorem}[thm:canonical-excursion]\label{thm:canonical-excursion}
+Let \(\Phi(h)\) be the origin-constrained deterministic Brownian--GCM likelihood-ratio energy generated by \(t^2+h(t)\), and, for \(b>0\), let \(h_b(t)=b^2h(t/b)\). Whenever these energies are defined,
+\[
+ \Phi(h_b)=b^3\Phi(h).
+\]
+If \(h\) is absolutely continuous, \(h(0)=0\), and \(h'\in L^2(\mathbb R)\), then
+\[
+ \frac12\lVert h_b'\rVert_2^2=b^3\frac12\lVert h'\rVert_2^2.
+\]
+Consequently, for every \(u>0\),
+\[
+ \Pr\{D(0)>u\}=\Pr\{\Phi(u^{-1/2}\mathbb W)>1\}.
+\]
+For
+\[
+ I_\star=\inf\left\{\frac12\lVert h'\rVert_2^2:h(0)=0,\ h'\in L^2(\mathbb R),\ \Phi(h)\ge1\right\},
+\]
+one has the deterministic bracket
+\[
+ \frac12\le I_\star\le\frac98.
+\]
+The upper bound is attained as a witness value by \(k=4^{1/3}\), \(a=k/4\), and \(h'(t)=(k-2t)\mathbf 1\{-a\le t\le k/2\}\), for which \(\Phi(h)=1\) and \(\frac12\lVert h'\rVert_2^2=9/8\). No large-deviation limit or probability-tail rate is inferred from \(I_\star\).
+\end{theorem}
+\begin{proof}
+For a deterministic perturbation \(h\), put \(F_h(t)=t^2+h(t)\).  For \(b>0\), the prescribed dilation \(h_b(t)=b^2h(t/b)\) satisfies
+\[
+ F_{h_b}(t)=b^2F_h(t/b). \tag{1}
+\]
+Let \(G_h\) be the unrestricted greatest convex minorant of \(F_h\).  The function \(t\mapsto b^2G_h(t/b)\) is convex and lies below the right-hand side of (1).  Conversely, applying the inverse dilation to any convex minorant of \(F_{h_b}\) produces a convex minorant of \(F_h\).  Maximality in both directions therefore gives
+\[
+ G_{h_b}(t)=b^2G_h(t/b). \tag{2}
+\]
+The same order-preserving argument on the left and right half-lines gives (2) for the origin-constrained minorants.  Consequently, every corresponding slope is multiplied by \(b\).  Substitution of \(t=bs\) in the defining difference of squared-slope energies in \(\texttt{def:excursion-regime}\) gives
+\[
+ \Phi(h_b)=b^3\Phi(h), \tag{3}
+\]
+whenever the energies are defined.
+
+If \(h\) is absolutely continuous, the chain rule gives \(h_b'(t)=b h'(t/b)\) for almost every \(t\).  Since \(h'\in L^2(\mathbb R)\), a change of variables is legitimate and yields
+\[
+ \frac12\lVert h_b'\rVert_2^2
+ =\frac12\int_{\mathbb R}b^2\{h'(t/b)\}^2\,dt
+ =b^3\frac12\lVert h'\rVert_2^2. \tag{4}
+\]
+
+Fix \(u>0\), and set \(b=u^{1/3}\) and \(\epsilon=u^{-1/2}=b^{-3/2}\).  Brownian self-similarity follows directly by comparing means and covariances of the centered Gaussian processes and gives
+\[
+ b^{1/2}\mathbb W(\,\cdot\,/b)\stackrel{d}{=}\mathbb W.
+\]
+Moreover,
+\[
+ (\epsilon\mathbb W)_b(t)
+ =b^2\epsilon\mathbb W(t/b)
+ =b^{1/2}\mathbb W(t/b).
+\]
+Using fixed-location well-posedness from \(\texttt{lem:canonical-wellposedness}\), the equality \(D(0)=\Phi(\mathbb W)\) from \(\texttt{def:canonical-field}\), and (3), we obtain
+\[
+ D(0)\stackrel{d}{=}\Phi((\epsilon\mathbb W)_b)
+ =b^3\Phi(\epsilon\mathbb W)
+ =u\Phi(u^{-1/2}\mathbb W).
+\]
+Division by \(u>0\) therefore proves
+\[
+ \Pr\{D(0)>u\}=\Pr\{\Phi(u^{-1/2}\mathbb W)>1\}. \tag{5}
+\]
+
+We next prove the lower action bound.  Let \(h(0)=0\), let \(h'\in L^2(\mathbb R)\), and write
+\[
+ y(t)=F_h'(t)=2t+h'(t)
+\]
+at points of differentiability.  We record the finite-contact calculation underlying the bound.  On a finite interval whose endpoints are contact points, let \(g\) be the unrestricted GCM slope and let \(g^0\) be its origin-constrained counterpart.  If \(G\) is the relevant minorant and \(H=F_h-G\), then \(H\ge0\), the positive Stieltjes measure \(dg\) is carried by the contact set \(\{H=0\}\), and \(H\) vanishes at the contact endpoints.  For every nondecreasing slope competitor \(v\), Stieltjes integration by parts gives
+\[
+ \int (y-g)(v-g)
+ =-\int H\,dv+\int H\,dg
+ \le0. \tag{6}
+\]
+The last integral vanishes by contact support, while the first is nonpositive because \(H\ge0\) and \(dv\) is positive.  Applying the same argument separately on the two half-intervals proves (6) for the constrained slope class; the split-point boundary term is nonpositive because the left slope is capped above by \(0\) and the right slope is floored below by \(0\).  Thus \(g\) and \(g^0\) minimize squared error over, respectively, the unrestricted and origin-constrained convex cones of nondecreasing slopes.
+
+Both cones contain \(0\) and are closed under multiplication by \(2\).  In (6), taking successively \(v=0\) and \(v=2g\), and then making the same two choices for \(g^0\), gives
+\[
+ \int (y-g)g=0,
+ \qquad
+ \int (y-g^0)g^0=0. \tag{7}
+\]
+Expanding squared residuals and using (7) yields the exact finite-contact identity
+\[
+ \int\{(y-g^0)^2-(y-g)^2\}
+ =\int\{g^2-(g^0)^2\}. \tag{8}
+\]
+The linear slope \(\ell(t)=2t\) is nondecreasing and satisfies the origin split constraint.  Squared-error minimality of \(g^0\), nonnegativity of the unrestricted residual loss, and (8) imply
+\[
+ 0\le \int\{g^2-(g^0)^2\}
+ \le \int\{y(t)-\ell(t)\}^2\,dt
+ =\int\{h'(t)\}^2\,dt. \tag{9}
+\]
+
+For completeness, the passage to the real line does not require a boundary hypothesis.  The Cauchy--Schwarz inequality and \(h(0)=0\) give
+\[
+ |h(t)|\le |t|^{1/2}\lVert h'\rVert_2,
+\]
+so \(F_h(t)=t^2+o(t^2)\) as \(|t|\to\infty\).  Hence the global minorants are exhausted by finite intervals with contact endpoints on both sides of the origin.  For every perturbation for which the infinite-domain energy in \(\texttt{def:excursion-regime}\) is well defined, its defining improper energy is the limit of these finite-contact energies.  Applying (9) on the exhausting intervals and using monotone convergence on its nonnegative right-hand side gives
+\[
+ 0\le\Phi(h)\le\lVert h'\rVert_2^2. \tag{10}
+\]
+In particular, \(\Phi(h)\ge1\) implies
+\[
+ \frac12\lVert h'\rVert_2^2\ge\frac12.
+\]
+Taking the infimum in \(\texttt{def:excursion-regime}\) proves
+\[
+ I_\star\ge\frac12. \tag{11}
+\]
+
+For the upper bound, let \(k=4^{1/3}\), let \(a=k/4\), and define the absolutely continuous perturbation by \(h(0)=0\) and
+\[
+ h'(t)=(k-2t)\mathbf 1\{-a\le t\le k/2\}. \tag{12}
+\]
+This derivative has compact support and belongs to \(L^2(\mathbb R)\).  The derivative of \(F_h\) is
+\[
+ y(t)=2t+h'(t)=
+ \begin{cases}
+ 2t,&t<-a,\\
+ k,&-a\le t\le k/2,\\
+ 2t,&t>k/2.
+ \end{cases} \tag{13}
+\]
+Because \(-2a=-k/2<k\) and \(2(k/2)=k\), the function in (13) is nondecreasing.  Thus \(F_h\) is convex and its unrestricted GCM slope is \(y\).  The cap-and-floor construction in \(\texttt{def:canonical-field}\) gives the origin-constrained slope
+\[
+ g^0(t)=
+ \begin{cases}
+ 0,&-a\le t\le0,\\
+ y(t),&t\notin[-a,0].
+ \end{cases} \tag{14}
+\]
+Indeed, on the left of the origin the only portion of the unrestricted slope exceeding \(0\) is the plateau in (13), while on the right the unrestricted slope is already bounded below by \(0\).  Equations (13)--(14) now give
+\[
+ \Phi(h)=\int_{-a}^{0}k^2\,dt=ak^2=\frac{k^3}{4}=1. \tag{15}
+\]
+The action of this perturbation is
+\[
+ \frac12\lVert h'\rVert_2^2
+ =\frac12\int_{-a}^{k/2}(k-2t)^2\,dt
+ =\frac{(k+2a)^3}{12}
+ =\frac{(3k/2)^3}{12}
+ =\frac98. \tag{16}
+\]
+It is therefore admissible in the defining infimum and proves \(I_\star\le9/8\).
+
+The displayed witness is also optimal within the full single-plateau family.  Indeed, for arbitrary \(k,a>0\), the same construction gives \(\Phi(h)=ak^2\).  Under the unit-energy restriction \(ak^2=1\), put \(r=2a/k>0\).  Then \(k^3=2/r\), and the action equals
+\[
+ \frac{(k+2a)^3}{12}=\frac{(1+r)^3}{6r}. \tag{17}
+\]
+The derivative of the right-hand side has the sign of \(2r-1\), so it is minimized at \(r=1/2\), where its value is \(9/8\).  Combining (11) and (16) proves
+\[
+ \frac12\le I_\star\le\frac98.
+\]
+Neither this deterministic bracket, the within-family optimization, nor the exact scaling identity (5) is a large-deviation principle; none identifies a probability-tail rate, a Palm intensity, or an extreme-value law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Provides exact scaling, a computable action bracket, and an explicit unit-energy witness. \textit{Gap.} The infinite-domain LDP and every sharp cluster or extreme-value conclusion remain unproved. \textit{Consumer.} The result guides future excursion analysis but supplies no critical value.
+
+\begin{theorem}[thm:causal-transfer]\label{thm:causal-transfer}
+For every \(P\in\mathcal M\) and \(a\in J\), define
+\[
+ h_n(a)=\left\{\frac{4\kappa(a)}{n f(a)\theta'(a)^2}\right\}^{1/3}.
+\]
+Then \(h_n(a)>0\) and, uniformly in \(P\in\mathcal M\) and \(a\in J\),
+\[
+ \left(\frac{4v_\kappa}{C_gC_\theta^2}\right)^{1/3}
+ \le n^{1/3}h_n(a)
+ \le
+ \left(\frac{4V_\kappa}{c_gc_\theta^2}\right)^{1/3}.
+\]
+The coordinate
+\[
+ \Psi_{n,P}(a)=\int_{\inf J}^{a}h_n(v)^{-1}\,dv
+\]
+is bi-Lipschitz and maps \(J\) onto an interval of exact length
+\[
+ \Psi_{n,P}(\sup J)=n^{1/3}\int_J
+ \left\{\frac{f(a)\theta'(a)^2}{4\kappa(a)}\right\}^{1/3}da
+ =T_n(P).
+\]
+This is an exact spatial-clock identity; it does not assert a coupling of \(S_n\) or \(S_n^\circ\) to a canonical growing-domain maximum.
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal M\) and \(a\in J\).  By \(\texttt{ass:p-normalization}\), \(\int p(w)\,dw=1\), and by \(\texttt{ass:overlap}\),
+\[
+ c_g\le g(a\mid w)\le C_g
+\]
+for every \(w\in[0,1]^d\).  Since \(p\ge0\), the definition of \(f\) therefore gives
+\[
+ c_g=c_g\int p(w)\,dw
+ \le f(a)=\int g(a\mid w)p(w)\,dw
+ \le C_g\int p(w)\,dw=C_g. \tag{1}
+\]
+The assumptions \(\texttt{ass:strict-slope}\) and \(\texttt{ass:variance}\) give
+\[
+ 0<c_\theta\le\theta'(a)\le C_\theta,
+ \qquad
+ 0<v_\kappa\le\kappa(a)\le V_\kappa. \tag{2}
+\]
+Thus every quantity divided by in the definition of \(h_n(a)\) is strictly positive, so \(h_n(a)>0\).  Combining (1)--(2), and taking cube roots only after division by positive quantities, yields
+\[
+ \left(\frac{4v_\kappa}{nC_gC_\theta^2}\right)^{1/3}
+ \le h_n(a)\le
+ \left(\frac{4V_\kappa}{nc_gc_\theta^2}\right)^{1/3}. \tag{3}
+\]
+Multiplication by \(n^{1/3}>0\) proves the asserted uniform bounds on \(n^{1/3}h_n(a)\).
+
+Inverting the positive defining expression gives
+\[
+ h_n(a)^{-1}=n^{1/3}
+ \left\{\frac{f(a)\theta'(a)^2}{4\kappa(a)}\right\}^{1/3}. \tag{4}
+\]
+Taking reciprocals in (3) bounds the right-hand side of (4) between
+\[
+ n^{1/3}\left(\frac{c_gc_\theta^2}{4V_\kappa}\right)^{1/3}
+ \quad\text{and}\quad
+ n^{1/3}\left(\frac{C_gC_\theta^2}{4v_\kappa}\right)^{1/3}. \tag{5}
+\]
+For \(a_1<a_2\) in \(J\), integration of (5) gives
+\[
+ n^{1/3}\left(\frac{c_gc_\theta^2}{4V_\kappa}\right)^{1/3}(a_2-a_1)
+ \le \Psi_{n,P}(a_2)-\Psi_{n,P}(a_1)
+ \le n^{1/3}\left(\frac{C_gC_\theta^2}{4v_\kappa}\right)^{1/3}(a_2-a_1). \tag{6}
+\]
+Both bounding constants are finite and strictly positive.  Hence \(\Psi_{n,P}\) is strictly increasing and Lipschitz on \(J\), and (6) also makes its inverse Lipschitz on its image.  Thus it is bi-Lipschitz.  Since \(\Psi_{n,P}(\inf J)=0\), the image is an interval of length \(\Psi_{n,P}(\sup J)\).  Integrating (4) and invoking \(\texttt{def:spatial-clock}\) proves
+\[
+ \Psi_{n,P}(\sup J)
+ =n^{1/3}\int_J
+ \left\{\frac{f(a)\theta'(a)^2}{4\kappa(a)}\right\}^{1/3}\,da
+ =n^{1/3}\mathcal V(P)=T_n(P). \tag{7}
+\]
+All constants in (3), (5), and (6) depend only on the fixed model constants, so the bounds are uniform over \(P\in\mathcal M\) and \(a\in J\).  The derivation is an exact observed-law coordinate identity and makes no coupling claim for an observed likelihood-ratio statistic.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Derives the exact local cube-root scale and spatial-volume clock under explicit positivity conditions. \textit{Gap.} No growing-domain coupling or cross-fitted optimized-value stability is proved. \textit{Consumer.} The clock is an algebraic coordinate, not an observed-statistic limit theorem.
+
+\begin{theorem}[thm:feasible-calibration]\label{thm:feasible-calibration}
+Uniformly over \(P\in\mathcal M\),
+\[
+ |J|\left(\frac{c_gc_\theta^2}{4V_\kappa}\right)^{1/3}
+ \le\mathcal V(P)\le
+ |J|\left(\frac{C_gC_\theta^2}{4v_\kappa}\right)^{1/3},
+\]
+so \(\inf_{P\in\mathcal M}T_n(P)\to\infty\). Separately, let \(\mathcal E(u)=\beta u+\gamma\log u+c\) with \(\beta>0\), and restrict to an eventual domain on which \(\mathcal E'>0\). Define \(b_{\mathcal E}(T)=\mathcal E^{-1}(\log T)\) and \(a_{\mathcal E}(T)=1/\mathcal E'(b_{\mathcal E}(T))\). If a future excursion theorem justifies this centering and scale and if \(\widehat{\mathcal V}_n/\mathcal V(P)=1+o_P(1)\) uniformly, then
+\[
+ \frac{b_{\mathcal E}(\widehat T_n)-b_{\mathcal E}(T_n(P))}{a_{\mathcal E}(T_n(P))}=o_P(1),
+ \qquad
+ \frac{a_{\mathcal E}(\widehat T_n)}{a_{\mathcal E}(T_n(P))}\to1
+\]
+uniformly. This conditional centering calculus does not establish an excursion law, a simulated-quantile approximation, or nominal coverage.
+\end{theorem}
+\begin{proof}
+The pointwise bounds proved in \(\texttt{thm:causal-transfer}\) give, for every \(P\in\mathcal M\) and \(a\in J\),
+\[
+ \left(\frac{c_gc_\theta^2}{4V_\kappa}\right)^{1/3}
+ \le
+ \left\{\frac{f(a)\theta'(a)^2}{4\kappa(a)}\right\}^{1/3}
+ \le
+ \left(\frac{C_gC_\theta^2}{4v_\kappa}\right)^{1/3}. \tag{1}
+\]
+Integration over \(J\), followed by \(\texttt{def:spatial-clock}\), yields
+\[
+ |J|\left(\frac{c_gc_\theta^2}{4V_\kappa}\right)^{1/3}
+ \le\mathcal V(P)\le
+ |J|\left(\frac{C_gC_\theta^2}{4v_\kappa}\right)^{1/3}. \tag{2}
+\]
+Because \(J=[\delta,1-\delta]\) and \(0<\delta<1/2\), one has \(|J|=1-2\delta>0\).  All remaining factors in the lower bound are positive.  Consequently,
+\[
+ \inf_{P\in\mathcal M}T_n(P)
+ \ge n^{1/3}|J|\left(\frac{c_gc_\theta^2}{4V_\kappa}\right)^{1/3}
+ \longrightarrow\infty. \tag{3}
+\]
+
+We now work under the two conditional premises stated in the theorem.  Let
+\[
+ b_n=b_{\mathcal E}(T_n(P)),
+ \qquad
+ \widehat b_n=b_{\mathcal E}(\widehat T_n).
+\]
+The clock definitions give the exact identity
+\[
+ \frac{\widehat T_n}{T_n(P)}
+ =\frac{\widehat{\mathcal V}_n}{\mathcal V(P)}. \tag{4}
+\]
+The assumed uniform relative consistency, together with positivity and continuity of the logarithm at \(1\), implies
+\[
+ \log\frac{\widehat T_n}{T_n(P)}=o_P(1) \tag{5}
+\]
+uniformly over \(P\in\mathcal M\).  Equations (3)--(4) also show that \(T_n(P)\) diverges uniformly and that \(\widehat T_n\) diverges uniformly in probability.
+
+For \(v>0\),
+\[
+ \mathcal E'(v)=\beta+\frac{\gamma}{v}\longrightarrow\beta>0. \tag{6}
+\]
+Thus, with probability tending uniformly to one, both inverse centerings lie in the stipulated eventual interval on which \(\mathcal E\) is strictly increasing.  Since their images \(\log T_n(P)\) and \(\log\widehat T_n\) diverge and \(\mathcal E(v)=\beta v+o(v)\), it follows that \(b_n\to\infty\) uniformly and \(\widehat b_n\to\infty\) uniformly in probability.
+
+On this event, the mean-value theorem supplies a point \(\widetilde b_n\) between \(b_n\) and \(\widehat b_n\) such that
+\[
+ \mathcal E'(\widetilde b_n)(\widehat b_n-b_n)
+ =\mathcal E(\widehat b_n)-\mathcal E(b_n)
+ =\log\frac{\widehat T_n}{T_n(P)}. \tag{7}
+\]
+Both endpoints diverge, so \(\widetilde b_n\to\infty\) uniformly in probability.  By the definition
+\(
+ a_{\mathcal E}(T)=1/\mathcal E'(b_{\mathcal E}(T))
+\), equations (5)--(7) give
+\[
+ \frac{b_{\mathcal E}(\widehat T_n)-b_{\mathcal E}(T_n(P))}
+ {a_{\mathcal E}(T_n(P))}
+ =\frac{\mathcal E'(b_n)}{\mathcal E'(\widetilde b_n)}
+ \log\frac{\widehat T_n}{T_n(P)}
+ =o_P(1), \tag{8}
+\]
+because the derivative ratio converges uniformly in probability to \(\beta/\beta=1\).  Similarly,
+\[
+ \frac{a_{\mathcal E}(\widehat T_n)}{a_{\mathcal E}(T_n(P))}
+ =\frac{\mathcal E'(b_n)}{\mathcal E'(\widehat b_n)}
+ \longrightarrow1 \tag{9}
+\]
+uniformly.  The future-excursion premise supplies only the contemplated interpretation of these expressions as a center and scale.  Equations (4)--(9) prove conditional plug-in equivalence; they do not establish clock consistency, an excursion law, a critical value, or coverage.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Shows uniform positivity of the clock and the exact plug-in centering calculus conditional on a future affine-log excursion expansion. \textit{Gap.} Clock consistency, the excursion law, transfer, random-horizon grid approximation, and anti-concentration remain missing. \textit{Consumer.} No analytic or simulated nominal calibration follows.
+
+\begin{proposition}[prop:profile-inversion]\label{prop:profile-inversion}
+For every realized sample, every \(a\in J\), and every measurable extended-nonnegative threshold \(\widehat q_{n,\alpha}\), the set
+\[
+ \mathcal C_n(a)=\{t\in\mathbb R:Q_n(a,t)\le\widehat\kappa(a)\widehat q_{n,\alpha}\}
+\]
+is an interval, with \(\mathbb R\) allowed when the threshold is infinite. Moreover,
+\[
+ \{\theta(a)\in\mathcal C_n(a)\text{ for all }a\in J\}
+ =\{S_n(\theta)\le\widehat q_{n,\alpha}\}.
+\]
+On this common event, the image set in \(\texttt{def:crossing-set}\) contains \(\tau_\zeta\), including the stated empty-set and left-endpoint conventions. Thus inversion preserves whatever probability the common LR event has; no nominal coverage probability is asserted.
+\end{proposition}
+\begin{proof}
+Fix a realized sample and fix \(a\in J\).  Write \(k=k(a)\), \(z_i=Z_{(i)}\), and, using the cone in \(\texttt{def:lr-profile}\), define
+\[
+ F(v)=\sum_{i=1}^{n}(z_i-v_i)^2=\lVert z-v\rVert_2^2,
+ \qquad
+ H_k(t)=\{v\in\mathcal C_n:v_k=t\},
+ \qquad
+ L_k(t)=\inf_{v\in H_k(t)}F(v).
+\]
+For every \(t\in\mathbb R\), the constant vector \(t\mathbf 1\) belongs to \(H_k(t)\), so \(H_k(t)\) is nonempty.  The defining inequalities \(v_i\le v_{i+1}\) show directly that \(\mathcal C_n\) is closed and convex.  Hence \(H_k(t)\), its intersection with the closed affine hyperplane \(\{v:v_k=t\}\), is also closed and convex.
+
+We record attainment rather than assume it.  The function \(F\) is continuous, and
+\[
+ \lVert z-v\rVert_2\ge \lVert v\rVert_2-\lVert z\rVert_2
+\]
+implies that \(F(v)\to\infty\) as \(\lVert v\rVert_2\to\infty\).  Given any nonempty closed set \(H\subseteq\mathbb R^n\), choose \(v^0\in H\) and a sequence \((v^j)\subseteq H\) whose objective values decrease to \(\inf_{v\in H}F(v)\).  After discarding finitely many terms, \(F(v^j)\le F(v^0)+1\), so coercivity makes \((v^j)\) bounded.  A convergent subsequence has a limit \(v^\star\in H\) by closedness, and continuity gives \(F(v^\star)=\inf_{v\in H}F(v)\).  Applying this argument to \(H_k(t)\) and to the nonempty closed cone \(\mathcal C_n\) proves that both minima are finite and attained.  In particular, with
+\[
+ c_0=\min_{v\in\mathcal C_n}F(v)=F(\widehat u),
+\]
+the definitions of \(\widehat u^{a,t}\) and \(Q_n\) in \(\texttt{def:lr-profile}\) give
+\[
+ Q_n(a,t)=L_k(t)-c_0\ge0,                                      \tag{1}
+\]
+because \(H_k(t)\subseteq\mathcal C_n\).
+
+We next prove convexity of the profile rather than merely invoke it.  For \(t_1,t_2\in\mathbb R\), let \(v^{(j)}\in H_k(t_j)\) attain \(L_k(t_j)\), and let \(\lambda\in[0,1]\).  Convexity of \(\mathcal C_n\) and linearity of the coordinate map imply
+\[
+ \lambda v^{(1)}+(1-\lambda)v^{(2)}
+ \in H_k\bigl(\lambda t_1+(1-\lambda)t_2\bigr).
+\]
+The identity
+\[
+ \begin{aligned}
+ F\bigl(\lambda v^{(1)}+(1-\lambda)v^{(2)}\bigr)
+ &=\lambda F(v^{(1)})+(1-\lambda)F(v^{(2)})
+   -\lambda(1-\lambda)\lVert v^{(1)}-v^{(2)}\rVert_2^2\\
+ &\le \lambda F(v^{(1)})+(1-\lambda)F(v^{(2)})
+\end{aligned}
+\]
+therefore yields
+\[
+ L_k\bigl(\lambda t_1+(1-\lambda)t_2\bigr)
+ \le \lambda L_k(t_1)+(1-\lambda)L_k(t_2).                    \tag{2}
+\]
+Subtracting \(c_0\) in (2) proves that \(t\mapsto Q_n(a,t)\) is convex.
+
+Now realize the extended-nonnegative random threshold \(\widehat q_{n,\alpha}\).  First suppose \(\widehat q_{n,\alpha}<\infty\).  The declared range \(\widehat\kappa(a)\in(0,\infty)\) gives
+\[
+ c(a)=\widehat\kappa(a)\widehat q_{n,\alpha}\in[0,\infty).
+\]
+By (2), if \(t_1,t_2\) lie in the sublevel set \(\{t:Q_n(a,t)\le c(a)\}\), then every convex combination of them also lies in that set.  Thus the sublevel set is convex and hence is an interval in \(\mathbb R\).  It is nonempty: taking \(t=\widehat u_k\), one has \(\widehat u\in H_k(t)\), and consequently
+\[
+ c_0\le L_k(\widehat u_k)\le F(\widehat u)=c_0,
+ \qquad
+ Q_n(a,\widehat u_k)=0\le c(a).                              \tag{3}
+\]
+If instead \(\widehat q_{n,\alpha}=+\infty\), the already proved finiteness of \(L_k(t)\) and \(c_0\) gives \(Q_n(a,t)<\infty\) for every \(t\), so the corresponding extended-real sublevel set is all of \(\mathbb R\).  By \(\texttt{def:profile-band}\), these sublevel sets are exactly \(\mathcal C_n(a)\).  This proves the asserted interval structure, including the permitted case \(\mathcal C_n(a)=\mathbb R\).
+
+Define the realized common profile event
+\[
+ E=\{\theta(a)\in\mathcal C_n(a)\text{ for every }a\in J\}.
+\]
+When \(\widehat q_{n,\alpha}<\infty\), positivity and finiteness of \(\widehat\kappa(a)\), together with \(\texttt{def:profile-band}\), imply for every \(a\in J\) that
+\[
+ \theta(a)\in\mathcal C_n(a)
+ \quad\Longleftrightarrow\quad
+ \frac{Q_n(a,\theta(a))}{\widehat\kappa(a)}
+ \le \widehat q_{n,\alpha}.                                 \tag{4}
+\]
+The interval \(J=[\delta,1-\delta]\) is nonempty because \(0<\delta<1/2\).  For a nonempty index set, all values of a real-valued function are at most \(q\) if and only if its supremum is at most \(q\).  Taking the conjunction of (4) over \(J\) and then using the definition of \(S_n(\theta)\) in \(\texttt{def:lr-profile}\) therefore gives
+\[
+ \begin{aligned}
+ E
+ &=\left\{\frac{Q_n(a,\theta(a))}{\widehat\kappa(a)}
+       \le\widehat q_{n,\alpha}\text{ for every }a\in J\right\}\\
+ &=\left\{\sup_{a\in J}
+       \frac{Q_n(a,\theta(a))}{\widehat\kappa(a)}
+       \le\widehat q_{n,\alpha}\right\}\\
+ &=\{S_n(\theta)\le\widehat q_{n,\alpha}\}.                 \tag{5}
+ \end{aligned}
+\]
+When \(\widehat q_{n,\alpha}=+\infty\), every pointwise profile set is \(\mathbb R\), while the extended-real inequality \(S_n(\theta)\le+\infty\) always holds; hence (5) remains valid in that case as well.
+
+Finally, on \(E\), the restriction \(\vartheta=\theta|_J\) satisfies \(\vartheta(a)\in\mathcal C_n(a)\) for every \(a\in J\).  Assumption \(\texttt{ass:monotone}\) makes this restriction nondecreasing.  It is therefore one of the curves mapped by \(\texttt{def:crossing-set}\), and its image is
+\[
+ \inf\{a\in J:\vartheta(a)\ge\zeta\}
+ =\inf\{a\in J:\theta(a)\ge\zeta\}
+ =\tau_\zeta.                                                 \tag{6}
+\]
+Because (6) uses exactly the defining infimum, its value obeys the same empty-set and left-endpoint conventions as \(\tau_\zeta\).  Thus the profile image set contains \(\tau_\zeta\) on the common event \(E\).  All preceding arguments are deterministic after conditioning on the realized sample.  Equation (5) consequently preserves whatever probability a separately selected threshold gives to that event, but neither the three cited definitions nor this proposition assigns it a nominal coverage probability.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Proves convex interval structure, exact common-event equivalence, and threshold-crossing containment. \textit{Gap.} Deterministic inversion cannot determine the common event's probability. \textit{Consumer.} The map loses no coverage relative to a chosen threshold but makes no nominal claim.
+
+\begin{proposition}[prop:homogeneous-reduction]\label{prop:homogeneous-reduction}
+If \(f(a)=f_0\), \(\theta'(a)=r_0\), and \(\kappa(a)=\kappa_0\) are positive constants on \(J\), then
+\[
+ \mathcal V(P)=|J|\left(\frac{f_0r_0^2}{4\kappa_0}\right)^{1/3},
+ \qquad
+ T_n(P)=n^{1/3}|J|\left(\frac{f_0r_0^2}{4\kappa_0}\right)^{1/3}.
+\]
+The spatial coordinate in \(\texttt{thm:causal-transfer}\) is affine with this image length. At any one fixed dose, translation and affine GCM equivariance reduce the canonical marginal to \(D(0)\). These identities do not imply a growing-domain excursion, observed-statistic transfer, or calibration theorem.
+\end{proposition}
+\begin{proof}
+Assume that \(f(a)=f_0\), \(\theta'(a)=r_0\), and \(\kappa(a)=\kappa_0\) on \(J\), where all three constants are positive.  Direct substitution into \(\texttt{def:spatial-clock}\) gives
+\[
+ \begin{aligned}
+ \mathcal V(P)
+ &=\int_J\left(\frac{f_0r_0^2}{4\kappa_0}\right)^{1/3}\,da
+ =|J|\left(\frac{f_0r_0^2}{4\kappa_0}\right)^{1/3},\\
+ T_n(P)
+ &=n^{1/3}\mathcal V(P)
+ =n^{1/3}|J|\left(\frac{f_0r_0^2}{4\kappa_0}\right)^{1/3}.
+ \end{aligned} \tag{1}
+\]
+The inverse local scale from \(\texttt{thm:causal-transfer}\) is constant in \(a\):
+\[
+ h_n(a)^{-1}=n^{1/3}
+ \left(\frac{f_0r_0^2}{4\kappa_0}\right)^{1/3}. \tag{2}
+\]
+Integrating (2) from \(\inf J\) to \(a\) shows that \(\Psi_{n,P}\) is affine.  Evaluation at \(\sup J\) gives exactly the image length in (1).
+
+For the fixed-location assertion, apply \(\texttt{lem:canonical-wellposedness}\) with \(m=1\), \(x_1=0\), and common shift equal to an arbitrary \(x\in\mathbb R\).  Its finite-dimensional stationarity conclusion gives
+\[
+ D(x)\stackrel{d}{=}D(0). \tag{3}
+\]
+The proof of that lemma obtains (3) by translating the constraint and subtracting the affine tangent, which is precisely translation and affine GCM equivariance.  Equations (1)--(3) are constant-coefficient clock and fixed-location identities only; they imply neither a growing-domain excursion theorem nor statistical calibration.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Checks the constant-coefficient clock and fixed-location normalization exactly. \textit{Gap.} The reduction supplies no growing-domain or calibration law. \textit{Consumer.} It is a diagnostic identity only.
+
+\begin{openendedquestion}[oeq:cluster-mechanism]\label{oeq:cluster-mechanism}
+The current proved input is limited to the following facts.  For \(b>0\), if \(h_b(t)=b^2h(t/b)\), then \(\Phi(h_b)=b^3\Phi(h)\), and Brownian scaling gives
+\[
+ \Pr\{D(0)>u\}=\Pr\{\Phi(u^{-1/2}\mathbb W)>1\}.
+\]
+Moreover, \(1/2\le I_\star\le9/8\), and the upper endpoint has the explicit plateau witness obtained by taking \(k=4^{1/3}\) and
+\[
+ h'(t)=(k-2t)\mathbf 1\{-k/4\le t\le k/2\}.
+\]
+Can the open contact-set excursion program in \(\texttt{def:declustering-handle}\) establish an infinite-domain GCM contact-set large-deviation principle, classify the action minimizers uniquely modulo translation, derive a sharp Palm Laplace expansion with multiplicity and conditional cluster-shape control, prove short-range anticlustering and marked-Poisson approximation, and establish a sample-path modulus and grid theorem for continuum maxima?  None of these requested conclusions follows from the exact scaling, action bracket, or plateau witness alone.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Exact small-noise scaling and a deterministic action bracket do not provide the infinite-domain large-deviation, Palm, anticlustering, Poisson, or continuum-grid arguments needed for an extreme-value theorem. \textit{Gap.} The available argmax and slope-error extreme-value results concern different functionals and do not supply a contact-set Palm law for Brownian--GCM likelihood-ratio energy. \textit{Consumer.} A future solution would be required before any likelihood-ratio-energy extreme-value calibration could be claimed; this question is not consumed by any current proved theorem.
+
+\begin{lemma}[lem:banerjee-wellner-fixed-location-lr]\label{lem:banerjee-wellner-fixed-location-lr}
+For the fixed origin constraint, the Brownian--GCM likelihood-ratio functional \(D(0)\) in \(\texttt{def:canonical-field}\) is a finite nonnegative random variable almost surely.
+\end{lemma}
+
+\begin{proposition}[prop:exact-dose-nonidentification]\label{prop:exact-dose-nonidentification}
+The frozen model assumptions do not identify the exact-dose causal curve.  More precisely, there exist compatible fixed constants, an observed law \(P\in\mathcal M\), and two admissible full-data extensions \(P^{\mathrm F}_1\) and \(P^{\mathrm F}_2\) satisfying every membership condition in \(\texttt{def:model-class}\), with the same \((W,A,Y)\)-marginal \(P\), such that, for every deterministic \(a\in[0,1]\),
+\[
+ \mathbb E_{P^{\mathrm F}_1}[Y(a)]=\theta(a)=a+\frac{1}{10},
+ \qquad
+ \mathbb E_{P^{\mathrm F}_2}[Y(a)]=a\ne\theta(a).
+\]
+Consequently the exact-dose causal mean is not identified, including on \(J\): consistency at the realized dose, sectionwise conditional exchangeability, strict overlap, smoothness of the observed regression, and continuity of a chosen conditional potential-outcome mean version do not force all admissible full-data extensions of an observed law to agree on \(\mathbb E[Y(a)]\).
+\end{proposition}
+\begin{proof}
+We construct the two full-data extensions and verify every condition equation by equation.  Choose
+\[
+ d=1,\qquad s=7,\qquad \delta=\frac14,\qquad
+ c_{\theta}=C_{\theta}=c_p=C_p=c_g=C_g=1,
+ \qquad v_{\kappa}=V_{\kappa}=\frac1{100},\qquad B=2.
+\]
+The declared symbol ranges give \(d\in\mathbb N\), \(d>0\), \(s=7>3(d+1)=6\), and \(0<\delta<1/2\), hence \(J=[1/4,3/4]\).  The six one-condition compatibility requirements hold because
+\[
+ c_{\theta}=C_{\theta},\qquad c_p=1=C_p,\qquad
+ c_g=1=C_g,\qquad v_{\kappa}=V_{\kappa}.
+\]
+These equalities verify \(\texttt{ass:theta-constant-compatibility}\), \(\texttt{ass:p-lower-compatibility}\), \(\texttt{ass:p-upper-compatibility}\), \(\texttt{ass:g-lower-compatibility}\), \(\texttt{ass:g-upper-compatibility}\), and \(\texttt{ass:variance-constant-compatibility}\).  Also,
+\[
+ \frac{c_{\theta}}2+\sqrt{v_{\kappa}}
+ =\frac12+\frac1{10}=\frac35<2=B,
+\]
+which verifies \(\texttt{ass:bounded-witness-compatibility}\).
+
+Consider the candidate observed-law primitives
+\[
+ p_\star(w)=1,\qquad g_\star(a\mid w)=1,\qquad
+ m_\star(a,w)=a+\frac1{10},\qquad
+ r_\star(a,w)=\left(a+\frac1{10}\right)^2+\frac1{100}.
+\]
+They are polynomials on compact cubes and therefore have finite \(C^7\) norms.  The quantity \(L_0\) in the frozen core is also finite because all functions entering its definition are polynomials.  Choose the fixed radius
+\[
+ L\ge \max\left\{L_0,\lVert p_\star\rVert_{C^7},
+ \lVert g_\star\rVert_{C^7},\lVert m_\star\rVert_{C^7},
+ \lVert r_\star\rVert_{C^7}\right\}.
+\]
+This choice verifies \(\texttt{ass:radius-compatibility}\), and it will verify each of the four radius-\(L\) smoothness conditions once the displayed functions are shown to be versions of the observed primitives.
+
+On a probability space let \(W\), \(A\), and \(R\) be mutually independent, let \(W\) and \(A\) each be uniform on \([0,1]\), and impose
+\[
+ \Pr(R=1)=\Pr(R=-1)=\frac12.
+\]
+Define
+\[
+ Y=A+\frac1{10}R+\frac1{10},
+\]
+and let \(P\) be the law of \((W,A,Y)\).  Since \(0\le Y\le6/5<B\), \(\texttt{ass:outcome-bound}\) holds.  Mutual independence and uniformity provide the everywhere-defined density versions
+\[
+ p(w)=1,qquad g(a\mid w)=1,qquad
+ f(a)=\int_0^1g(a\mid w)p(w)\,dw=1.
+\]
+Thus
+\[
+ \int_0^1p(w)\,dw=1,
+ \qquad
+ \int_0^1g(a\mid w)\,da=1\quad\text{for every }w\in[0,1],
+\]
+which verifies \(\texttt{ass:p-normalization}\) and \(\texttt{ass:g-normalization}\).  Because all four density-bound constants equal one, the same versions satisfy
+\[
+ c_p\le p(w)\le C_p,
+ \qquad
+ c_g\le g(a\mid w)\le C_g
+\]
+throughout their domains; this proves \(\texttt{ass:p-bounds}\) and \(\texttt{ass:overlap}\).  In particular, \(f(a)=1>0\), so every later division by \(f(a)\) is legitimate.
+
+Direct conditioning, using \(\mathbb E[R]=0\) and \(R^2=1\), gives the everywhere-defined versions
+\[
+ m(a,w)=\mathbb E_P[Y\mid A=a,W=w]=a+\frac1{10}=m_\star(a,w)
+\]
+and
+\[
+ r(a,w)=\mathbb E_P[Y^2\mid A=a,W=w]
+ =\left(a+\frac1{10}\right)^2+\frac1{100}=r_\star(a,w).
+\]
+Together with \(p=p_\star\), \(g=g_\star\), and the choice of \(L\), these identities verify \(\texttt{ass:p-smooth}\), \(\texttt{ass:g-smooth}\), \(\texttt{ass:m-smooth}\), and \(\texttt{ass:r-smooth}\).  By the definition of the observed-law functional \(\theta\) and the normalization of \(p\),
+\[
+ \theta(a)=\int_0^1m(a,w)p(w)\,dw=a+\frac1{10}
+ \quad\text{for every }a\in[0,1].
+\]
+Hence \(\theta\) is nondecreasing, as required by \(\texttt{ass:monotone}\), and
+\[
+ \theta'(a)=1,
+ \qquad c_{\theta}\le\theta'(a)\le C_{\theta}
+ \quad\text{for every }a\in J,
+\]
+which verifies \(\texttt{ass:strict-slope}\).
+
+The definitions of \(\sigma^2\) and \(e\) now yield
+\[
+ \sigma^2(a,w)=r(a,w)-m(a,w)^2=\frac1{100},
+ \qquad e(a,w)=\frac{g(a\mid w)}{f(a)}=1.
+\]
+Using the definitions of \(\xi\) and \(\varepsilon\),
+\[
+ \varepsilon(O)=\frac{Y-m(A,W)}{e(A,W)}=\frac1{10}R.
+\]
+It follows that the constant conditional-moment version is
+\[
+ \kappa(a)=\mathbb E_P[\varepsilon(O)^2\mid A=a]
+ =\frac1{100}=v_{\kappa}=V_{\kappa}
+ \quad\text{for every }a\in J,
+\]
+which verifies \(\texttt{ass:variance}\) and its required positivity.
+
+We next construct two full-data extensions of this same \(P\).  For every \(a\in[0,1]\), set
+\[
+ Y_1(a)=a+\frac1{10}R+\frac1{10},
+ \qquad
+ Y_2(a)=a+\frac1{10}R+\frac1{10}\mathbf 1\{a=A\}.
+\]
+The first map is Borel measurable in \((a,A,R)\).  The second is also Borel measurable because the diagonal \(\{(a,A):a=A\}\) is closed.  Consequently each sample path is Borel measurable and each coordinate evaluation is a random variable, so both processes are random elements of the evaluation-sigma-field space \(\mathcal Y_B\).  Moreover,
+\[
+ -\frac1{10}\le Y_j(a)\le\frac65<B
+ \quad\text{for all }a\in[0,1]\text{ and }j\in\{1,2\},
+\]
+so the processes take values in the stipulated range \([-B,B]\).
+
+For \(j\in\{1,2\}\), let \(P_j^{\mathrm F}\) be the law of
+\[
+ \bigl(W,A,Y,\{Y_j(a):a\in[0,1]\}\bigr).
+\]
+Its \((W,A,Y)\)-marginal is \(P\) by construction, proving \(\texttt{ass:observed-marginal}\).  Evaluation at the realized dose gives
+\[
+ Y_1(A)=A+\frac1{10}R+\frac1{10}=Y
+\]
+and
+\[
+ Y_2(A)=A+\frac1{10}R+\frac1{10}\mathbf 1\{A=A\}=Y.
+\]
+Thus each extension satisfies \(\texttt{ass:consistency}\).
+
+Fix a deterministic \(a\in[0,1]\).  The continuous uniform law of \(A\) gives \(\Pr(A=a)=0\); hence
+\[
+ Y_1(a)=a+\frac1{10}R+\frac1{10}\quad\text{almost surely},
+ \qquad
+ Y_2(a)=a+\frac1{10}R\quad\text{almost surely}.
+\]
+Each right-hand side is a measurable function of \(R\), and \(R\) is independent of \((A,W)\).  Therefore, for bounded Borel functions \(h\) and \(q\),
+\[
+ \mathbb E\!\left[h\{Y_j(a)\}q(A)\mid W\right]
+ =\mathbb E\!\left[h\{Y_j(a)\}\mid W\right]
+  \mathbb E\!\left[q(A)\mid W\right]
+ \quad\text{almost surely}.
+\]
+This conditional factorization proves \(Y_j(a)\perp A\mid W\) for each deterministic \(a\), and hence verifies \(\texttt{ass:exchangeability}\) for both extensions.
+
+Since \(\mathbb E[R]=0\), define
+\[
+ \mu^{\mathrm F}_1(a,w)=a+\frac1{10},
+ \qquad
+ \mu^{\mathrm F}_2(a,w)=a.
+\]
+Both functions are jointly Borel measurable and continuous in \(a\) for every \(w\).  The preceding fixed-\(a\) almost-sure identities and the independence of \(R\) and \(W\) imply
+\[
+ \mu^{\mathrm F}_j(a,W)
+ =\mathbb E_{P_j^{\mathrm F}}[Y_j(a)\mid W]
+ \quad\text{almost surely for every fixed }a.
+\]
+Thus each is a version meeting every clause of \(\texttt{ass:potential-mean-continuity}\).
+
+All observed-law membership conditions of \(\texttt{def:model-class}\) and all full-data extension conditions have now been verified.  Therefore \(P\in\mathcal M\), and \(P_1^{\mathrm F}\) and \(P_2^{\mathrm F}\) are two admissible witnesses for the same observed law.  Finally, for every deterministic \(a\in[0,1]\),
+\[
+ \mathbb E_{P_1^{\mathrm F}}[Y_1(a)]
+ =a+\frac1{10}=\theta(a),
+ \qquad
+ \mathbb E_{P_2^{\mathrm F}}[Y_2(a)]
+ =a\ne a+\frac1{10}=\theta(a).
+\]
+The modification in \(Y_2\) is supported on the random diagonal \(a=A\).  It is null in every deterministic-dose section, which preserves sectionwise exchangeability and the continuous conditional-mean versions, but consistency evaluates the process exactly on that diagonal.  The two admissible extensions therefore disagree at every deterministic dose, proving exact-dose nonidentification.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This root proposition is the paper's constructive negative certificate: two fully verified full-data extensions of one smooth, strictly increasing observed law disagree on every deterministic-dose causal mean. \textit{Gap.} Sectionwise exchangeability and continuity of conditional potential-outcome mean versions do not constrain modifications supported on the random diagonal \(a=A\), although realized-dose consistency evaluates that diagonal. \textit{Consumer.} The AHA/CMS nurse-hours--readmission analysis must describe \(\theta\) and its likelihood-ratio profile as observed-law objects until a separate causal bridge rules out the certified random-diagonal ambiguity.
+
+\section{Interpretation}
+
+The estimand \(\theta(a)=\int m(a,w)p(w)\,dw\) is an observed-law G-computation curve on \(J\), not an identified exact-dose causal curve: Proposition \(\texttt{prop:exact-dose-nonidentification}\) supplies two admissible extensions with different deterministic-dose means. For the AHA/CMS nurse-hours--readmission application, the current mathematics supports only an observed-law isotonic likelihood-ratio profile and the deterministic profile image set induced by an arbitrary common threshold. It does not support calibrated simultaneous causal reporting, a nominal confidence set for a threshold-crossing dose, or a Gumbel critical value.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Exact Brownian scaling gives \(\Pr\{D(0)>u\}=\Pr\{\Phi(u^{-1/2}\mathbb W)>1\}\), but no infinite-domain large-deviation principle or probability-tail conclusion follows from that identity. The proved deterministic action satisfies \(1/2\le I_\star\le9/8\), and the plateau value \(9/8\) is optimal only within the complete single-plateau family because \((1+r)^3/(6r)\) is minimized at \(r=1/2\). Missing probability ingredients are contact-set exponential tightness and continuity, global action-minimizer classification and uniqueness modulo translation, sharp Palm fluctuation and multiplicity analysis, conditional cluster-shape control, short-range anticlustering, marked-Poisson approximation, and a sample-path modulus/grid theorem. Separately, optimized observed-statistic transfer lacks the fitted-kernel maximal inequality, common localization, and slope-envelope arguments; no orphan nuisance-rate or transfer claim substitutes for those proofs.
+
+\section{Honest scope}
+
+Proposition \(\texttt{prop:exact-dose-nonidentification}\) proves that exact-dose causal identification fails under the frozen assumptions. The surviving positive results do not include a likelihood-ratio-energy tail rate, growing-domain coupling, critical value, feasible calibration, simulated-grid approximation, Poisson or Gumbel limit, or nominal simultaneous coverage theorem. The exact scaling identity carries no large-deviation or tail implication; the action bracket is deterministic; and the contact-set program is an aspirational open question not consumed by a proved theorem. The AHA/CMS output is therefore an observed-law profile and profile image set only. No claim is made about optimal width, tuning freedom, or dominance over the Doss--VandenBerg multiscale Gaussian bands.
+
+\begin{thebibliography}{99}
+
+  \bibitem{BanerjeeWellner2001} M. Banerjee and J. A. Wellner (2001), Likelihood ratio tests for monotone functions, Annals of Statistics 29, 1699--1731, doi:10.1214/aos/1015345959.
+
+  \bibitem{HooghiemstraLopuhaa1998} G. Hooghiemstra and H. P. Lopuhaä (1998), An extremal limit theorem for the argmax process of Brownian motion minus a parabolic drift, Extremes 1, 215--240, doi:10.1023/A:1009962823531.
+
+  \bibitem{HsingHuslerLeadbetter1988} T. Hsing, J. Hüsler, and M. R. Leadbetter (1988), On the exceedance point process for a stationary sequence, Probability Theory and Related Fields 78, 97--112, doi:10.1007/BF00718038.
+
+  \bibitem{Albin1990} J. M. P. Albin (1990), On extremal theory for stationary processes, Annals of Probability 18, 92--128, doi:10.1214/aop/1176990940.
+
+  \bibitem{DurotKulikovLopuhaa2012} C. Durot, V. N. Kulikov, and H. P. Lopuhaä (2012), The limit distribution of the \(L_{\infty}\)-error of Grenander-type estimators, Annals of Statistics 40, 1578--1608, doi:10.1214/12-AOS1015.
+
+  \bibitem{WestlingCarone2020} T. Westling and M. Carone (2020), A unified study of nonparametric inference for monotone functions, Annals of Statistics 48, 1001--1024, doi:10.1214/19-AOS1835.
+
+  \bibitem{WestlingGilbertCarone2020} T. Westling, P. Gilbert, and M. Carone (2020), Causal isotonic regression, Journal of the Royal Statistical Society, Series B 82, 719--747, doi:10.1111/rssb.12372.
+
+  \bibitem{Doss2026PointwiseLR} C. R. Doss (2026), Doubly robust pointwise confidence intervals for a monotonic continuous treatment effect curve, Journal of the American Statistical Association, doi:10.1080/01621459.2026.2639735.
+
+  \bibitem{TakatsuWestling2025} K. Takatsu and T. Westling (2025), Debiased inference for a covariate-adjusted regression function, Journal of the Royal Statistical Society, Series B 87, 33--55, doi:10.1093/jrsssb/qkae041.
+
+  \bibitem{KennedyMaMcHughSmall2017} E. H. Kennedy, Z. Ma, M. D. McHugh, and D. S. Small (2017), Non-parametric methods for doubly robust estimation of continuous treatment effects, Journal of the Royal Statistical Society, Series B 79, 1229--1245, doi:10.1111/rssb.12212.
+
+  \bibitem{GroeneboomJongbloed2015} P. Groeneboom and G. Jongbloed (2015), Nonparametric confidence intervals for monotone functions, Annals of Statistics 43, 2019--2054, doi:10.1214/15-AOS1345.
+
+  \bibitem{AiHuangZhang2026} C. Ai, W. Huang, and Z. Zhang (2026), Data-driven uniform inference for general continuous treatment models via minimum-variance weighting, arXiv:2602.01595.
+
+\end{thebibliography}
+
+\end{document}

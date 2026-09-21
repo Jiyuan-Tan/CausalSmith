@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularHolder
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularHolder
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
 
 /-!
 # Smoothness-normalized angular amplitude
@@ -8,6 +9,8 @@ This module fixes the derivative scale used by the angular hard family and
 records both its exact fourth-power budget and the eventual comparison with
 the logarithm of the boundary-grid size.
 -/
+
+@[expose] public section
 
 open Filter
 

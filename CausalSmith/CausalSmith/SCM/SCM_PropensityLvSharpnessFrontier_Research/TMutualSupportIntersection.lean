@@ -1,9 +1,12 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryWitness
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TBowMixtureCompleteness
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedBowMixtureCompleteness
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryWitness
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TBowMixtureCompleteness
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedBowMixtureCompleteness
 
 /-! # Fixed-stratum reverse-support intersections -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

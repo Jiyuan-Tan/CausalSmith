@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseMomentMatchingLower
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseMomentMatchingLower
 
 /-! Pairwise assembly of the dense priors' variance and concentration bounds. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

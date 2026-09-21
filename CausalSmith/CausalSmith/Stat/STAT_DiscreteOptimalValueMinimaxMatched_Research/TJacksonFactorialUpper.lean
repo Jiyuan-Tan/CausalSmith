@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.UpperRiskAggregation
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.EmpiricalRatioRisk
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.UpperRiskAggregation
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.EmpiricalRatioRisk
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction
 
 set_option linter.style.longLine false
 
 /-! Uniform upper risk bound for the explicit Jackson--factorial estimator. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

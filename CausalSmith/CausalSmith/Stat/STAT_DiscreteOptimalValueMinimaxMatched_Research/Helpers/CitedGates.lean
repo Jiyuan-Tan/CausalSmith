@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseConstruction
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseConstruction
 
 set_option linter.style.longLine false
 
 /-! Explicit cited logical gates. These are propositions, not proved declarations. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

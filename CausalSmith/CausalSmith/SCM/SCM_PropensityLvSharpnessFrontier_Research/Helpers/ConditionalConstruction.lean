@@ -1,11 +1,14 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
-import Mathlib.Probability.Kernel.Composition.Prod
-import Mathlib.Probability.Kernel.Composition.MeasureCompProd
-import Mathlib.Probability.Kernel.CompProdEqIff
-import Mathlib.Probability.Kernel.Composition.AbsolutelyContinuous
-import Mathlib.MeasureTheory.Measure.Sub
-import Mathlib.MeasureTheory.Measure.SeparableMeasure
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
+public import Mathlib.Probability.Kernel.Composition.Prod
+public import Mathlib.Probability.Kernel.Composition.MeasureCompProd
+public import Mathlib.Probability.Kernel.CompProdEqIff
+public import Mathlib.Probability.Kernel.Composition.AbsolutelyContinuous
+public import Mathlib.MeasureTheory.Measure.Sub
+public import Mathlib.MeasureTheory.Measure.SeparableMeasure
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -1,7 +1,10 @@
-import FoML.ExpectationInequalities
-import FoML.Hoeffding
-import FoML.MeasurePiLemmas
-import Mathlib.Tactic.Cases
+module
+public import FoML.ExpectationInequalities
+public import FoML.Hoeffding
+public import FoML.MeasurePiLemmas
+public import Mathlib.Tactic.Cases
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 

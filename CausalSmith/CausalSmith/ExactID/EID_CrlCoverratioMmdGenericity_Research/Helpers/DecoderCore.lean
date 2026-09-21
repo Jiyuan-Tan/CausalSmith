@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.FiniteDensityBridge
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.FiniteDensityBridge
 
 /-!
 # Structural pieces of the exact population decoder
@@ -8,9 +9,12 @@ This file collects paper-local consequences of the primitive observed-world assu
 feed directly into the exact population decoder.
 -/
 
-open MeasureTheory Set
-open Causalean.Mathlib.MeasureTheory
+@[expose] public section
 
+open Causalean.Graph
+
+
+open MeasureTheory Set
 noncomputable section
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
@@ -38,7 +42,7 @@ private lemma unitCubeReference_support_eq_latentCube (n : ℕ) :
       trivial⟩
 
 private lemma observationalLaw_support_eq_latentCube
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) :
     Measure.support (observationalLaw θ) = latentCube n := by
   letI : SigmaFinite Causalean.Graph.FiniteDensity.unitIntervalReference := by
@@ -72,7 +76,7 @@ private lemma observationalLaw_support_eq_latentCube
 /-- Strict positivity of every retained factor and the replacement density gives each latent
 single-target intervention law the full closed cube as its support.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma interventionalLaw_support_eq_latentCube
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
     Measure.support (interventionalLaw θ (W.targetPerm e)) = latentCube n := by
   letI : SigmaFinite Causalean.Graph.FiniteDensity.unitIntervalReference := by
@@ -113,7 +117,7 @@ lemma interventionalLaw_support_eq_latentCube
 -- @node: observedLaw_support_eq_observedSupport
 /-- The observational observed law has exactly the image of the latent cube as its support.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedLaw_support_eq_observedSupport
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -132,7 +136,7 @@ lemma observedLaw_support_eq_observedSupport
     rw [latentCube]
     exact MeasurableSet.pi Set.countable_univ (fun _ _ ↦ measurableSet_Icc)
   have hmixAE : AEMeasurable W.mix (observationalLaw θ) :=
-    aemeasurable_of_supportMeasurableOn hcube_meas
+    Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube_meas
       (ae_iff.mp hobs_cube) hmix.1.continuousOn.domRestrict.measurable
   have hfull : W.law 0 (observedSupport G W)ᶜ = 0 := by
     rw [hone.1, Measure.map_apply_of_aemeasurable hmixAE hsupport_closed.isOpen_compl.measurableSet]
@@ -159,7 +163,7 @@ lemma observedLaw_support_eq_observedSupport
     exact hVpos.trans_le (measure_mono (by simpa [inter_comm] using hVsub))
 
 private lemma factorization_observationalMeasure_univ
-    {n : ℕ} {G : Causalean.DAG (Fin n)}
+    {n : ℕ} {G : DAG (Fin n)}
     (B : Causalean.Graph.FiniteDensity.UnitCubeFactorization (Fin n) G) :
     B.observationalMeasure Set.univ = 1 := by
   classical
@@ -179,7 +183,7 @@ private lemma factorization_observationalMeasure_univ
   simpa using hlin
 
 private lemma factorization_interventionMeasure_univ
-    {n : ℕ} {G : Causalean.DAG (Fin n)}
+    {n : ℕ} {G : DAG (Fin n)}
     (B : Causalean.Graph.FiniteDensity.UnitCubeFactorization (Fin n) G) (j : Fin n)
     (q : Causalean.Graph.FiniteDensity.InterventionDensity j
       (fun _ : Fin n ↦ ℝ)
@@ -203,7 +207,7 @@ private lemma factorization_interventionMeasure_univ
 
 /-- Normalized local factors make the observational latent law a probability measure.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma observationalLaw_isProbabilityMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) :
     IsProbabilityMeasure (observationalLaw θ) := by
   constructor
@@ -213,7 +217,7 @@ lemma observationalLaw_isProbabilityMeasure
 /-- Normalized local and replacement factors make every interventional latent law a
 probability measure.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma interventionalLaw_isProbabilityMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
     IsProbabilityMeasure (interventionalLaw θ (W.targetPerm e)) := by
   constructor
@@ -225,7 +229,7 @@ lemma interventionalLaw_isProbabilityMeasure
 /-- The pushforward assumptions and normalized latent factors make every observed environment
 law a probability measure.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedWorld_laws_isProbabilityMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -246,7 +250,7 @@ lemma observedWorld_laws_isProbabilityMeasure
       rw [← mechanismUnitCubeFactorization_observationalMeasure hpos]
       exact withDensity_absolutelyContinuous _ _
     have hmixAE : AEMeasurable W.mix (observationalLaw θ) :=
-      aemeasurable_of_supportMeasurableOn hcube (hobs_μ hμ_cube)
+      Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube (hobs_μ hμ_cube)
         hmix.1.continuousOn.domRestrict.measurable
     rw [hone.1]
     exact Measure.isProbabilityMeasure_map hmixAE
@@ -261,7 +265,7 @@ lemma observedWorld_laws_isProbabilityMeasure
       rw [← mechanismUnitCubeFactorization_interventionMeasure W hpos i]
       exact hint_μ hμ_cube
     have hmixAE : AEMeasurable W.mix (interventionalLaw θ (W.targetPerm i)) :=
-      aemeasurable_of_supportMeasurableOn hcube hint_cube
+      Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube hint_cube
         hmix.1.continuousOn.domRestrict.measurable
     rw [hone.2.1 i]
     exact Measure.isProbabilityMeasure_map hmixAE
@@ -269,7 +273,7 @@ lemma observedWorld_laws_isProbabilityMeasure
 /-- Transporting the latent canonical Radon--Nikodym ratio through the support diffeomorphism
 does not change its law under any latent base measure dominated by the observational law.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hρ), [the stated conclusion](goal) follows. -/
 lemma canonicalRatio_map_eq_observedLawRatio_map_mix
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -304,7 +308,8 @@ lemma canonicalRatio_map_eq_observedLawRatio_map_mix
     rw [← observationalLaw_support_eq_latentCube hpos]
     exact Measure.measure_compl_support
   have hmn : m ≪ ν := interventionalLaw_absolutelyContinuous_observational W hpos i
-  have hrn := rnDeriv_map_of_support_equiv m ν hmn S T hS hT hmS hνS
+  have hrn := Causalean.Mathlib.MeasureTheory.rnDeriv_map_of_support_equiv
+    m ν hmn S T hS hT hmS hνS
     W.mix W.unmix hmix.1.continuousOn.domRestrict.measurable
       hmix.2.1.continuousOn.domRestrict.measurable
     (fun x hx ↦ ⟨x, hx, rfl⟩)
@@ -323,7 +328,7 @@ lemma canonicalRatio_map_eq_observedLawRatio_map_mix
   have hrnρ := hρ.ae_eq hrnW
   have hρS : ρ Sᶜ = 0 := hρ hνS
   have hmixρ : AEMeasurable W.mix ρ :=
-    aemeasurable_of_supportMeasurableOn hS hρS
+    Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hS hρS
       hmix.1.continuousOn.domRestrict.measurable
   calc
     Measure.map (fun v ↦ (m.rnDeriv ν v).toReal) ρ =
@@ -337,7 +342,7 @@ lemma canonicalRatio_map_eq_observedLawRatio_map_mix
 /-- The observational latent law is concentrated on the closed latent cube.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 -- @node: observationalLaw_ae_mem_latentCube
 lemma observationalLaw_ae_mem_latentCube
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) :
     ∀ᵐ v ∂observationalLaw θ, v ∈ latentCube n := by
   let μ := Causalean.Graph.FiniteDensity.unitCubeReference (Fin n)
@@ -353,7 +358,7 @@ lemma observationalLaw_ae_mem_latentCube
 /-- Strict positivity of all latent factors makes the observational and target-intervention
 observed laws equivalent; this is the reverse direction not needed by the ratio-law bridge.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedObservational_absolutelyContinuous_interventional
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -411,10 +416,10 @@ lemma observedObservational_absolutelyContinuous_interventional
       simpa only [μ, latentCube, Causalean.Graph.FiniteDensity.unitCube] using
         Causalean.Graph.FiniteDensity.unitCubeReference_compl (Fin n))
   have hmixObs : AEMeasurable W.mix (observationalLaw θ) :=
-    aemeasurable_of_supportMeasurableOn hcube hobs_cube
+    Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube hobs_cube
       hmix.1.continuousOn.domRestrict.measurable
   have hmixInt : AEMeasurable W.mix ν :=
-    aemeasurable_of_supportMeasurableOn hcube hint_cube
+    Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube hint_cube
       hmix.1.continuousOn.domRestrict.measurable
   let mix' := hmixInt.mk W.mix
   have heqInt : W.mix =ᵐ[ν] mix' := hmixInt.ae_eq_mk
@@ -430,7 +435,7 @@ lemma observedObservational_absolutelyContinuous_interventional
 /-- The supplied observed-world ratio agrees almost everywhere with the canonical law ratio,
 and the law-selected rank construction is unchanged by a compatible representation.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedWorldLawCoherent_of_assumptions
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -451,7 +456,7 @@ lemma observedWorldLawCoherent_of_assumptions
       exact withDensity_absolutelyContinuous _ _
     have hobs_cube : observationalLaw θ (latentCube n)ᶜ = 0 := hobs_μ hμ_cube
     have hmixAE : AEMeasurable W.mix (observationalLaw θ) :=
-      aemeasurable_of_supportMeasurableOn hcube hobs_cube
+      Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube hobs_cube
         hmix.1.continuousOn.domRestrict.measurable
     have hint_cube : interventionalLaw θ (W.targetPerm i) (latentCube n)ᶜ = 0 := by
       let B := mechanismUnitCubeFactorization hpos
@@ -463,7 +468,7 @@ lemma observedWorldLawCoherent_of_assumptions
       exact hint_μ hμ_cube
     have hmixAEInt : AEMeasurable W.mix
         (interventionalLaw θ (W.targetPerm i)) :=
-      aemeasurable_of_supportMeasurableOn hcube hint_cube
+      Causalean.Mathlib.MeasureTheory.aemeasurable_of_supportMeasurableOn hcube hint_cube
         hmix.1.continuousOn.domRestrict.measurable
     have hrn_pos : ∀ᵐ x ∂W.law 0,
         0 < (W.law i.succ).rnDeriv (W.law 0) x :=
@@ -499,7 +504,7 @@ lemma observedWorldLawCoherent_of_assumptions
 -- @node: smoothObservedRatio
 /-- The smooth mechanism formula for an observed ratio, extended through the unmixing map. -/
 def smoothObservedRatio
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (i : Fin n) (x : LatentState n) : ℝ :=
   θ.q (W.targetPerm i) (W.unmix x (W.targetPerm i)) /
     θ.p (W.targetPerm i) (W.unmix x)
@@ -510,7 +515,7 @@ assumptions](hyp:hmix), and [perfect-intervention assumptions](hyp:hone), the sm
 ratio is a [continuous observed-ratio version](goal) for [world `W`](hyp:W) and
 [environment `i`](hyp:i). -/
 lemma smoothObservedRatio_isVersion
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -547,7 +552,7 @@ lemma smoothObservedRatio_isVersion
 /-- Under [positive smooth mechanisms](hyp:hpos), [shared diffeomorphic mixing](hyp:hmix), and
 [one perfect intervention per node](hyp:hone), [each observed ratio law has a continuous version](goal). -/
 lemma exists_continuousObservedRatioVersion
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -562,7 +567,7 @@ assumptions](hyp:hpos), [shared mixing assumptions](hyp:hmix), and [perfect-inte
 assumptions](hyp:hone), for [world `W`](hyp:W) and [environment `i`](hyp:i). -/
 -- @node: observedLawLogRatio_comp_mix_eq
 lemma observedLawLogRatio_comp_mix_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -586,7 +591,7 @@ lemma observedLawLogRatio_comp_mix_eq
 everywhere with the mechanism's scalar log ratio.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 -- @node: observedLawLogRatio_comp_mix_ae_eq
 lemma observedLawLogRatio_comp_mix_ae_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

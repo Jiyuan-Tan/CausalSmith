@@ -17,13 +17,16 @@ if a square-integrable residual is orthogonal to every cohort indicator
 obligation.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Basic
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Basic
 
 /-!
 Proves integral identities for the staggered-TWFE bridge. The module supplies
 MemLp, indicator, and orthogonality facts used to transport finite weighted
 decompositions into the population setting.
 -/
+
+@[expose] public section
 
 namespace Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition
 
@@ -125,7 +128,8 @@ theorem cohort_integral_div_mul_cohortMass
   simpa [cohortMass] using
     (CellBridge.cell_integral_div_mul_cellMass μ F G g)
 
-/-- Period analogue. -/
+/-- Dividing a period-indicator-weighted integral by its period mass and multiplying
+back by that mass recovers the original integral, including at zero-mass periods. -/
 theorem period_integral_div_mul_periodMass
     (μ : Measure Ω) [IsFiniteMeasure μ]
     (F : Ω → ℝ) (T_rv : Ω → Fin T) (t : Fin T) :
@@ -136,7 +140,8 @@ theorem period_integral_div_mul_periodMass
     (CellBridge.cell_integral_div_mul_cellMass μ F T_rv t)
 
 omit [Fintype 𝒢] [DecidableEq 𝒢] in
-/-- Cell analogue (joint cohort × period cell). -/
+/-- Dividing a cohort-period-indicator-weighted integral by its joint cell mass and
+multiplying back by that mass recovers the original integral, including at zero-mass cells. -/
 theorem panel_cell_integral_div_mul_cellMass
     (μ : Measure Ω) [IsFiniteMeasure μ]
     (F : Ω → ℝ) (G : Ω → 𝒢) (T_rv : Ω → Fin T)
@@ -276,7 +281,7 @@ omit [DecidableEq 𝒢] in
 /-- If [a square-integrable random variable `V` has zero mean product against every cohort
 indicator `𝟙{G = g}`](hyp:hCohort) and [zero mean product against every period indicator
 `𝟙{T_rv = t}`](hyp:hPeriod), then [`V` is orthogonal, in the `L²(μ)` sense, to every
-unit/period-additive combination `∑_g cG(g)·𝟙{G = g} + ∑_t cT(t)·𝟙{T_rv = t}`, i.e. to every
+cohort/period-additive combination `∑_g cG(g)·𝟙{G = g} + ∑_t cT(t)·𝟙{T_rv = t}`, i.e. to every
 member of the additive nuisance class `panelClass`](goal). -/
 theorem integral_mul_panelClass_eq_zero_of_axes
     (μ : Measure Ω) [IsFiniteMeasure μ]

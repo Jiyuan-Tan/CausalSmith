@@ -12,10 +12,11 @@ This is the sole consumer of the ordered-intensity algebra, so it is colocated
 here rather than under `Panel`.
 -/
 
-import Mathlib.Algebra.BigOperators.Intervals
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Real.Basic
-import Causalean.Panel.Weighted.NormalizedWeights
+module
+public import Mathlib.Algebra.BigOperators.Intervals
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Real.Basic
+public import Causalean.Stat.Weighted.NormalizedWeights
 
 /-! # Variable-Intensity IV Ordered Treatment
 
@@ -25,6 +26,8 @@ express a change across ordered levels as the sum of crossed marginal increments
 and re-exports the generic normalized finite weights. These are used in
 variable-intensity instrumental-variable characterizations. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace PO.ID.Exact
 namespace VariableIntensityIV
@@ -32,27 +35,35 @@ namespace OrderedTreatment
 
 open Finset
 
-/-- For [a sequence of $J$ adjacent margins](hyp:J) and [a margin](hyp:j), the [lower treatment level](goal) is the lower endpoint of that margin in the ordered list of $J+1$ levels. -/
+/-- [The lower endpoint of a treatment margin](goal) is the level immediately below [that
+margin](hyp:j) on [a scale with the stated number of adjacent margins](hyp:J). -/
 def lowerLevel {J : ℕ} (j : Fin J) : Fin (J + 1) :=
   j.castSucc
 
-/-- For [a sequence of $J$ adjacent margins](hyp:J) and [a margin](hyp:j), the [upper treatment level](goal) is the upper endpoint of that margin in the ordered list of $J+1$ levels. -/
+/-- [The upper endpoint of a treatment margin](goal) is the level immediately above [that
+margin](hyp:j) on [a scale with the stated number of adjacent margins](hyp:J). -/
 def upperLevel {J : ℕ} (j : Fin J) : Fin (J + 1) :=
   j.succ
 
-/-- For [a sequence of $J$ adjacent margins](hyp:J) and [an ordered treatment level](hyp:d), the [numeric intensity value](goal) is that level's position in the ordered list, expressed as a real number. -/
+/-- [Numeric treatment intensity](goal) is the real-valued rank of [an ordered treatment
+level](hyp:d) on [a scale with the stated number of margins](hyp:J). -/
 def intensityValue {J : ℕ} (d : Fin (J + 1)) : ℝ :=
   d.val
 
-/-- For [a sequence of $J$ adjacent margins](hyp:J), [a real-valued function on the $J+1$ ordered treatment levels](hyp:f), and [a margin](hyp:j), the [margin increment](goal) is the function value at that margin's upper endpoint minus its value at the lower endpoint. -/
+/-- [A margin increment](goal) measures how [a real response schedule](hyp:f) changes across [one
+adjacent treatment margin](hyp:j) on [the ordered scale](hyp:J). -/
 def marginIncrement {J : ℕ} (f : Fin (J + 1) → ℝ) (j : Fin J) : ℝ :=
   f (upperLevel j) - f (lowerLevel j)
 
-/-- For [a sequence of $J$ adjacent margins](hyp:J), [an initial treatment level](hyp:a), [a final treatment level](hyp:b), and [a margin](hyp:j), the [crossing condition](goal) holds exactly when the movement starts below that margin's upper endpoint and ends at or above it. -/
+/-- [A treatment move crosses a margin](goal) exactly when [its initial level](hyp:a) is below
+[that margin](hyp:j) and [its final level](hyp:b) is at or above it on [the ordered
+scale](hyp:J). -/
 def Crossing {J : ℕ} (a b : Fin (J + 1)) (j : Fin J) : Prop :=
   upperLevel j ≤ b ∧ a < upperLevel j
 
-/-- For [a sequence of $J$ adjacent margins](hyp:J), [an initial treatment level](hyp:a), [a final treatment level](hyp:b), and [a margin](hyp:j), the [crossing indicator](goal) equals one when the movement crosses that margin and zero otherwise. -/
+/-- [The margin-crossing indicator](goal) assigns one when movement from [an initial
+level](hyp:a) to [a final level](hyp:b) crosses [the chosen margin](hyp:j), and zero otherwise, on
+[the ordered scale](hyp:J). -/
 noncomputable def crossingIndicator {J : ℕ} (a b : Fin (J + 1)) (j : Fin J) : ℝ := by
   classical
   exact if Crossing a b j then 1 else 0
@@ -75,8 +86,10 @@ private lemma crossingIndicator_eq_ite_val {J : ℕ} (a b : Fin (J + 1)) (j : Fi
     · exact (Fin.val_fin_le).1 (Nat.succ_le_of_lt hv.2)
     · exact (Fin.val_fin_lt).1 (Nat.lt_succ_of_le hv.1)
 
-/-- Ordered telescoping across crossed margins for an arbitrary real-valued
-function on finite ordered levels. -/
+/-- [The change in a response schedule between two ordered treatment levels equals the sum of its
+increments over exactly the crossed margins](goal) for [a finite ordered scale](hyp:J), [the
+response schedule](hyp:f), [the initial and final levels](hyp:a,b), and [their ordering](hyp:hab).
+This converts level contrasts into margin-specific causal responses. -/
 lemma ordered_telescope_indicator {J : ℕ} (f : Fin (J + 1) → ℝ)
     {a b : Fin (J + 1)} (hab : a ≤ b) :
     f b - f a = ∑ j : Fin J, marginIncrement f j * crossingIndicator a b j := by
@@ -105,31 +118,34 @@ lemma ordered_telescope_indicator {J : ℕ} (f : Fin (J + 1) → ℝ)
       simp [F, marginIncrement, lowerLevel, upperLevel, crossingIndicator_eq_ite_val,
         hxJ, hxleJ]
 
-/-- **Ordered telescoping for the identity intensity map.** For [an ordered treatment
-level `a` no larger than `b`](hyp:hab) among `J + 1` ordered intensity levels, [the numeric
-gap `b − a` equals the number of unit margins `j → j+1` that the movement from `a` to `b`
-crosses](goal). -/
+/-- **Ordered telescoping for treatment intensity.** [The numeric increase between two ordered
+treatment levels equals the number of margins crossed](goal) on [a finite ordered scale](hyp:J),
+for [the initial and final levels](hyp:a,b) under [the condition that treatment weakly
+increases](hyp:hab). -/
 lemma ordered_telescope_identity {J : ℕ} {a b : Fin (J + 1)} (hab : a ≤ b) :
     intensityValue b - intensityValue a = ∑ j : Fin J, crossingIndicator a b j := by
   simpa [intensityValue, marginIncrement, lowerLevel, upperLevel] using
     (ordered_telescope_indicator (J := J) (fun d : Fin (J + 1) => intensityValue d) hab)
 
-/-- Given [a finite collection of indices](hyp:ι), [a real weight assigned to each index](hyp:a), and [one index](hyp:i), the [normalized finite weight](goal) is that index's weight divided by the sum of all weights. -/
+/-- [A normalized finite weight](goal) is [one raw weight](hyp:i) from [a finite index
+set](hyp:ι), drawn from [the supplied weight schedule](hyp:a), divided by total raw weight. -/
 noncomputable abbrev normalizedWeight {ι : Type*} [Fintype ι] (a : ι → ℝ) (i : ι) : ℝ :=
-  Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight a i
+  Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight a i
 
-/-- Nonnegativity of normalized weights from nonnegative raw weights and a
-positive normalizing sum. -/
+/-- [Every normalized weight is nonnegative](goal) when [the finite index set](hyp:ι) carries
+[raw weights](hyp:a) that are [all nonnegative](hyp:ha) with [positive total](hyp:hsum), for [the
+selected index](hyp:i). -/
 lemma normalizedWeight_nonneg {ι : Type*} [Fintype ι] (a : ι → ℝ)
     (ha : ∀ i, 0 ≤ a i) (hsum : 0 < ∑ i, a i) (i : ι) :
     0 ≤ normalizedWeight a i := by
-  exact Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight_nonneg a ha hsum i
+  exact Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight_nonneg a ha hsum i
 
-/-- Normalized finite weights sum to one when the normalizing sum is positive. -/
+/-- [Normalized weights sum to one](goal) when [the finite index set](hyp:ι) carries [raw
+weights](hyp:a) with [positive total](hyp:hsum), so they form averaging weights. -/
 lemma sum_normalizedWeight_eq_one {ι : Type*} [Fintype ι] (a : ι → ℝ)
     (hsum : 0 < ∑ i, a i) :
     ∑ i, normalizedWeight a i = 1 := by
-  exact Causalean.Panel.Weighted.NormalizedWeights.sum_normalizedWeight_eq_one a hsum.ne'
+  exact Causalean.Stat.Weighted.NormalizedWeights.sum_normalizedWeight_eq_one a hsum.ne'
 
 end OrderedTreatment
 end VariableIntensityIV

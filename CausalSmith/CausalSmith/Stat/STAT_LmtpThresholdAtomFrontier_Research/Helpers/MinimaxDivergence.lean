@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxFunctional
-import Causalean.Stat.Minimax.ChiSquaredKernel
-import Causalean.Stat.Minimax.ChiSquaredTwoPoint
-import CausalSmith.Mathlib.InformationTheory.ProductChiSquared
-import Causalean.Mathlib.InformationTheory.KLBind
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxFunctional
+public import Causalean.Stat.Minimax.ChiSquaredKernel
+public import Causalean.Stat.Minimax.ChiSquaredTwoPoint
+public import CausalSmith.Mathlib.InformationTheory.ProductChiSquared
+public import Causalean.Mathlib.InformationTheory.KLBind
 
 /-! # Chi-squared control for the canonical minimax witnesses -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

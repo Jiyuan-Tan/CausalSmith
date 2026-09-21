@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
+module
+public import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
 
 /-!
 # Super-population locally-dependent network field
@@ -21,7 +22,7 @@ independence (`iIndepFun`) it carries a **bounded-range / m-dependent** network 
 random summands `X i : Ω → ℝ` on a common ambient space `(Ω, μ)`, together with a reflexive,
 symmetric adjacency relation such that index sets with no edge between them carry independent
 summand tuples.  This is exactly the data of a dependency graph
-(`Causalean.SteinMethod.DepGraph`), so `toDepGraph` exposes the field to the proved Stein
+(`DepGraph`), so `toDepGraph` exposes the field to the proved Stein
 dependency-graph CLT (`stein_cdf_clt_of_depGraph`), which the `CLT` file specializes.
 
 This is the m-dependent (exact-independence-beyond-the-network) layer.  Decaying-dependence
@@ -29,7 +30,11 @@ This is the m-dependent (exact-independence-beyond-the-network) layer.  Decaying
 different super-population abstraction and are not part of this module.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory
+
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace Causalean.Experimentation.SuperPopulation
 
@@ -75,7 +80,7 @@ representation](goal) is the graph with the same random summands, unit relation,
 symmetry, measurability, and finite-set independence condition.
 
 This is a pure field rename, so the proved dependency-graph CLT applies verbatim. -/
-def toDepGraph : Causalean.SteinMethod.DepGraph F.X μ where
+def toDepGraph : DepGraph F.X μ where
   G := F.adj
   decG := F.decAdj
   refl := F.refl

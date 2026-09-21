@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Basic
-import Causalean.Mathlib.IndepIntegral
-import Causalean.Stat.SampleSplit.OneShot
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Basic
+public import Causalean.Mathlib.Probability.Independence.Integral
+public import Causalean.Stat.SampleSplit.OneShot
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

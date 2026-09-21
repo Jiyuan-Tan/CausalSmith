@@ -13,8 +13,8 @@ from `OrthogonalLearning/DRLearner.lean`. Chained with
     ‖τ̂_n − τ₀‖² = O_p(δ_n² + nuisance_remainder²)
 
 where `δ_n := criticalRadius ψ` is the population critical radius of the
-centred DR-loss class and the nuisance remainder is the cross-fitting
-remainder controlled by the upstream identification proof.
+centred DR-loss class and the nuisance remainder is the second-order term
+controlled by the upstream identification proof.
 
 Sibling: `Estimation/CATE/OrthogonalLearning/LocalEmpProcess/DRLearner.lean`
 realises the non-localized Rademacher rate on nonempty
@@ -23,23 +23,28 @@ share the boundedness predicates (`DREvalBounded`, `DROutcomeBounded`,
 `DRNuisanceOverlap`) and the `dr_loss_uniformly_bounded` bridge.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Localized
-import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.DRLearner
-import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
+module
+public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Localized
+public import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.DRLearner
+public import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
 
 /-! # Localized Modulus for the DR-Learner
 
 This file applies the localized empirical-process modulus theorem to the
 DR-Learner for conditional average treatment effects. It formulates the
 critical-radius hypothesis for the centered quadratic DR-loss class and derives
-both the sharp localized modulus and a bounded-loss fallback modulus. -/
+both the localized critical-radius modulus and a bounded-loss fallback modulus. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology
   Causalean.PO Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
   Causalean.Stat Causalean.Stat.Concentration
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
@@ -72,7 +77,7 @@ def DRCriticalRadius
     (h : NuisanceVec γ)
     (norm : ((γ × Bool × ℝ) → ℝ) → ℝ)
     (ψ : ℕ → ℝ → ℝ) : Prop :=
-  (∀ n, SubRoot (ψ n)) ∧
+  (∀ n, IsStarShapedEnvelope (ψ n)) ∧
     ∀ n : ℕ,
       RademacherUpperBound
         (fun (k : ℕ) (z : γ × Bool × ℝ) =>
@@ -81,32 +86,31 @@ def DRCriticalRadius
         norm S.toBackdoorEstimationSystem.P_Z (id : (γ × Bool × ℝ) → γ × Bool × ℝ)
         n (ψ n)
 
-/-- **DR-Learner localized modulus, sharp Foster–Syrgkanis form.** For the DR-Learner CATE
+/-- **DR-Learner localized modulus, Foster–Syrgkanis-style form.** For the DR-Learner CATE
 estimation system, suppose [the evaluation functional is measurable in its parameter and recovers
 the true CATE at a parameter θ₀ in the constraint set](hyp:θ₀_mem,eval_meas,eval_θ₀), and that
 [the evaluation functional, outcome, and fixed nuisance conditional-mean are uniformly bounded
 while the nuisance's propensity score satisfies ε-overlap](hyp:hM_Θ,hM_Y,hM_μ,hOverlap). Assume
 [the centred DR-loss is continuous in θ, a clamped version of θ₀ minimizes it, its population
 Rademacher complexity along a dense index sequence is controlled by a sub-root envelope ψ with
-respect to a seminorm that is invariant under almost-everywhere modification, and the same
-Rademacher upper bound extends to loss differences across the whole constraint
-set](hyp:_hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
+respect to a seminorm that is invariant under almost-everywhere modification, with an explicit
+Rademacher upper bound on that dense indexed class](hyp:hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
 control of the centred loss increments — nonnegative Lipschitz constant L, a diameter bound Rmax
-dominating every critical radius `criticalRadius (ψ m)`, and the sub-root fixed-point
-property](hyp:hL_nonneg,hF_lip,hF_diam,hRmax_lb,hcrit_pos,hcrit_fp), plus [boundedness and
+and positive critical radii](hyp:hL_nonneg,hF_lip,hF_diam,hcrit_pos), [a nonnegative
+localization norm and its variance proxy](hyp:hnorm_nonneg,hvariance), plus [boundedness and
 integrability of the empirical star-hull Rademacher process needed by the localization
 bridge](hyp:hrad_bdd,hrad_int) and [a confidence level in $(0,1]$ together with the
-Foster–Syrgkanis critical-radius domination inequality across dyadic shell
-counts](hyp:hδ,hδ',hδ_dom). Then [there is a nonnegative envelope b such that the DR-Learner
+Foster–Syrgkanis critical-radius domination inequality at one covering dyadic
+depth](hyp:hδ,hδ',hδ_dom). Then [there is a nonnegative envelope b such that the DR-Learner
 system satisfies the localized empirical-process modulus predicate at rate
-`ρ n = (8L+3)·criticalRadius (ψ |B(n)|)` on nonempty validation folds, falling back to `√(2b)`
+`ρ n = (10L+3)·criticalRadius (ψ |B(n)|)` on nonempty validation folds, falling back to `√(2b)`
 when the fold is empty](goal).
 
 The DR-Learner orthogonal-learning system, under bounded eval / outcomes / overlap and a
 sub-root critical-radius hypothesis on the centred loss class, satisfies
-the `LocalEmpProcessModulus` predicate with the FS Lemma 29 rate
+the `LocalEmpProcessModulus` predicate with the derived localized rate
 
-    ρ n = (8 · L + 3) · criticalRadius (ψ |B(n)|)
+    ρ n = (10 · L + 3) · criticalRadius (ψ |B(n)|)
 
 (falling back to `√(2 · b)` on empty fold-B). The conclusion's existential
 `b` is the centred DR-loss envelope `2 * b_loss`, where `b_loss` is the
@@ -117,7 +121,7 @@ Chained with the orthogonal-learning oracle inequality, this delivers the
 localized critical-radius rate
 `‖τ̂_n − τ₀‖² = O_p(δ_n² + nuisance²)`.
 
-The sharp hypotheses are explicit inputs: the caller supplies the
+The localized-modulus hypotheses are explicit inputs: the caller supplies the
 Lipschitz constant `L` (and proof) for the centred DR-loss class, the
 diameter control, the critical-radius facts for `ψ`, the local Rademacher
 bridge, and the FS critical-radius lower-bound `hδ_dom` consumed by
@@ -128,7 +132,7 @@ theorem localEmpProcessModulus_localized_drLearner
     (S : CATEEstimationSystem P γ)
     (Θ : Type*) [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
     (Θ_set : Set Θ) (Θ_convex : Convex ℝ Θ_set)
-    [Nonempty Θ_set] [Countable Θ_set]
+    [Nonempty Θ_set]
     (θ₀ : Θ) (θ₀_mem : θ₀ ∈ Θ_set)
     (eval : Θ → γ → ℝ) (eval_meas : ∀ θ, Measurable (eval θ))
     (eval_θ₀ : ∀ x, eval θ₀ x = S.τ_val x)
@@ -142,13 +146,13 @@ theorem localEmpProcessModulus_localized_drLearner
     (h : NuisanceVec γ)
     (hM_μ : DRNuisanceMuBounded h M_μ)
     (hOverlap : DRNuisanceOverlap S Θ_set h ε)
-    (_hLoss_cont : ∀ z,
+    (hLoss_cont : ∀ z,
       Continuous fun (θ :
         (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set) =>
       (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h)
     (idx : ℕ →
       (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
-    (_idx_dense : DenseRange idx)
+    (idx_dense : DenseRange idx)
     {norm : ((γ × Bool × ℝ) → ℝ) → ℝ}
     {ψ : ℕ → ℝ → ℝ}
     (hψ : DRCriticalRadius S Θ_set eval
@@ -166,6 +170,23 @@ theorem localEmpProcessModulus_localized_drLearner
               (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         ≤ L * ‖θ -
             (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀‖)
+    (hnorm_nonneg : ∀ θ ∈
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set,
+      0 ≤ norm (fun z =>
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ h
+          - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
+              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h))
+    (hvariance : ∀ θ ∈
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set,
+      variance (fun z =>
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ h
+          - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
+              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
+        S.toBackdoorEstimationSystem.P_Z ≤
+          norm (fun z =>
+            (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ h
+              - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
+                  (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h) ^ 2)
     (hF_diam : ∀ θ ∈
         (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set,
       norm (fun z =>
@@ -173,29 +194,24 @@ theorem localEmpProcessModulus_localized_drLearner
           - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
               (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         ≤ Rmax)
-    (hRmax_lb : ∀ m : ℕ, criticalRadius (ψ m) ≤ Rmax)
     (hcrit_pos : ∀ m : ℕ, 0 < criticalRadius (ψ m))
-    (hcrit_fp : ∀ m : ℕ, ψ m (criticalRadius (ψ m)) ≤ (criticalRadius (ψ m)) ^ 2)
     (hψ_ub : ∀ m : ℕ,
       RademacherUpperBound
-        (fun (θ :
-            (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
+        (fun k
           (z : γ × Bool × ℝ) =>
-          (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h
+          (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx k).val h
             - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
                 (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         norm S.toBackdoorEstimationSystem.P_Z
         (id : (γ × Bool × ℝ) → γ × Bool × ℝ) m (ψ m))
     -- BddAbove hypothesis needed by the bridge lemma inside `localized_uniform_deviation`.
     (hrad_bdd : ∀ m r, ∀ S_fin : Fin m → γ × Bool × ℝ, ∀ σ : Signs m,
-      BddAbove (Set.range fun p : starHullParam
-            (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set =>
+      BddAbove (Set.range fun p : starHullParam ℕ =>
         |(m : ℝ)⁻¹ * ∑ k : Fin m, (σ k : ℝ) *
           starHullZeroOut
-            (fun (θ :
-                (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
+            (fun i
               (z : γ × Bool × ℝ) =>
-              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h
+              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx i).val h
                 - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
                     (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
             norm r p (S_fin k)|))
@@ -205,10 +221,9 @@ theorem localEmpProcessModulus_localized_drLearner
         (fun ω : Fin m → γ × Bool × ℝ =>
           empiricalRademacherComplexity m
             (starHullZeroOut
-              (fun (θ :
-                  (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
+              (fun i
                 (z : γ × Bool × ℝ) =>
-                (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h
+                (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx i).val h
                   - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
                       (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
               norm r) ((id : (γ × Bool × ℝ) → (γ × Bool × ℝ)) ∘ ω))
@@ -218,28 +233,31 @@ theorem localEmpProcessModulus_localized_drLearner
       (2 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2))
     {δ : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ 1)
     -- Foster–Syrgkanis Lemma 29 critical-radius lower bound (peeling-aware):
-    -- for any dyadic shell count `K` covering `Rmax`, the McDiarmid slack at
-    -- the union-bound-adjusted confidence `δ / (2 (K + 1))` (against the
+    -- for a dyadic shell count `K` covering `Rmax`, the normalized Bousquet
+    -- slack at confidence `δ / (2 (K + 1))` (against the
     -- centred-loss bound `2 * (M_Θ + 2*M_μ + 2*(M_Y + M_μ)/ε)^2`) is
-    -- dominated by the squared critical radius. Forwarded directly to
+    -- at most the critical radius. Forwarded directly to
     -- `localEmpProcessModulus_of_localized_sharp`.
-    (hδ_dom : ∀ n K : ℕ, 0 < (split.foldB n).card →
-      Rmax ≤ (criticalRadius (ψ (split.foldB n).card)) * (2 : ℝ) ^ K →
-      2 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2 *
-          Real.sqrt
-            (2 * Real.log (2 * ((K : ℝ) + 1) / δ) / (split.foldB n).card)
-        ≤ (criticalRadius (ψ (split.foldB n).card)) ^ 2) :
+    (hδ_dom : ∀ n : ℕ, 0 < (split.foldB n).card →
+      ∃ K : ℕ,
+      Rmax ≤ (criticalRadius (ψ (split.foldB n).card)) * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 16 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2) *
+            Real.log (2 * ((K : ℝ) + 1) / δ) / (split.foldB n).card)
+        + 16 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2 *
+            Real.log (2 * ((K : ℝ) + 1) / δ) /
+              ((split.foldB n).card * criticalRadius (ψ (split.foldB n).card))
+        ≤ criticalRadius (ψ (split.foldB n).card)) :
     ∃ b : ℝ, 0 ≤ b ∧
       LocalEmpProcessModulus
         (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes)
         S_iid split
         (fun n =>
           if (split.foldB n).card = 0 then Real.sqrt (2 * b)
-          else (8 * L + 3) * criticalRadius (ψ (split.foldB n).card)) δ h := by
+          else (10 * L + 3) * criticalRadius (ψ (split.foldB n).card)) δ h := by
   classical
   let Ssys := drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes
   haveI : Nonempty Ssys.Θ_set := inferInstanceAs (Nonempty Θ_set)
-  haveI : Countable Ssys.Θ_set := inferInstanceAs (Countable Θ_set)
   haveI hPZ : IsProbabilityMeasure S.toBackdoorEstimationSystem.P_Z := by
     rw [← S_iid.law]
     exact Measure.isProbabilityMeasure_map (S_iid.meas 0).aemeasurable
@@ -292,18 +310,23 @@ theorem localEmpProcessModulus_localized_drLearner
   -- The caller's `hδ_dom` is stated against `2 * (M_Θ + Mφ)^2 = 2 * b_loss` (by `hb_loss_def`).
   exact localEmpProcessModulus_of_localized_sharp_ae
     (S := Ssys) (S_iid := S_iid) (split := split)
-    (g := h) (_hg_cont := _hLoss_cont) (idx := idx) (_idx_dense := _idx_dense)
+    (g := h) (hg_cont := hLoss_cont) (idx := idx) (idx_dense := idx_dense)
     (norm := norm) (hnorm_ae := hnorm_ae) (ψ := ψ) (L := L)
     (b := 2 * b_loss) (Rmax := Rmax)
     (hreg := hreg) (hL_nonneg := hL_nonneg) (hF_lip := hF_lip)
+    (hnorm_nonneg := hnorm_nonneg) (hvariance := hvariance)
     (hℓ_meas := hℓ_meas_sys) (hℓ_int := hℓ_int_sys)
-    (hF_diam := hF_diam) (hRmax_lb := hRmax_lb)
-    (hcrit_pos := hcrit_pos) (hcrit_fp := hcrit_fp)
+    (hF_diam := hF_diam) (hcrit_pos := hcrit_pos)
     (hψ_ub := hψ_ub) (hrad_bdd := fun m r S_fin σ => hrad_bdd m r S_fin σ)
     (hrad_int := fun m r => hrad_int m r)
     (hclamp_minimizes := by
       simpa [Ssys, hb_loss_def] using hclamp_minimizes)
-    (hδ := hδ) (hδ' := hδ') (hδ_dom := hδ_dom)
+    (hδ := hδ) (hδ' := hδ')
+    (hδ_dom := by
+      intro n hn
+      rcases hδ_dom n hn with ⟨K, hcover, hslack⟩
+      refine ⟨K, hcover, ?_⟩
+      convert hslack using 1 <;> ring)
 
 /-- **DR-Learner bounded-loss localized modulus.**
 
@@ -313,7 +336,7 @@ extract a uniform DR-loss bound `b`, then chains
 `LocalEmpProcessModulus` with the conservative rate `ρ n := √(2 · 2b)`.
 
 This rate does not use the sub-root envelope `ψ` — it is a deterministic
-bound that holds regardless of the critical radius. Use the sharp version
+bound that holds regardless of the critical radius. Use the critical-radius version
 (`localEmpProcessModulus_localized_drLearner` above) when critical-radius
 control is available. -/
 theorem localEmpProcessModulus_localized_drLearner_bounded
@@ -445,5 +468,6 @@ theorem localEmpProcessModulus_localized_drLearner_bounded
     (_hδ := hδ) (_hδ' := hδ')
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

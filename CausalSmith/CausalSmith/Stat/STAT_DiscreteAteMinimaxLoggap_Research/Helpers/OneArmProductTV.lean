@@ -1,13 +1,16 @@
-import Causalean.Stat.Minimax.MaximalCoupling
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import Causalean.Stat.Minimax.OverlapCoupling
+public import Mathlib.MeasureTheory.Constructions.Pi
 
 /-!
 # Total-variation tensorization for finite iid products
 
-This file derives the linear product bound from coordinatewise maximal
+This file derives the linear product bound from coordinatewise overlap
 couplings.  It is used to pass a one-cell predictive comparison to the full
 collection of active cells.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 
@@ -47,18 +50,18 @@ lemma tvDist_le_coupling_ne
   · exact hfA (hfg.symm ▸ hgA)
   exact measure_ne_top gamma _
 
-/-- The mismatch probability of the maximal coupling is at most total
+/-- The mismatch probability of the overlap coupling is at most total
 variation. -/
-lemma maximalCoupling_ne_mass_le
+lemma overlapCoupling_ne_mass_le
     {X : Type*} [MeasurableSpace X] [MeasurableEq X]
     (mu nu : Measure X) [IsProbabilityMeasure mu] [IsProbabilityMeasure nu] :
-    (Causalean.Stat.maximalCoupling mu nu).real {z | z.1 ≠ z.2} ≤
+    (Causalean.Stat.overlapCoupling mu nu).real {z | z.1 ≠ z.2} ≤
       tvDist mu nu := by
-  let gamma := Causalean.Stat.maximalCoupling mu nu
+  let gamma := Causalean.Stat.overlapCoupling mu nu
   let D : Set (X × X) := {z | z.1 = z.2}
   have hD : MeasurableSet D := measurableSet_eq_fun measurable_fst measurable_snd
   have htv0 : 0 ≤ tvDist mu nu := tvDist_nonneg
-  have hdiagENN := Causalean.Stat.maximalCoupling_eq_mass_ge mu nu
+  have hdiagENN := Causalean.Stat.overlapCoupling_eq_mass_ge mu nu
   have hdiag : 1 - tvDist mu nu ≤ gamma.real D := by
     have hfinite : gamma D ≠ ∞ := measure_ne_top gamma D
     have hreal := ENNReal.toReal_mono (by simp) hdiagENN
@@ -82,7 +85,7 @@ theorem tvDist_pi_le_sum
     tvDist (Measure.pi mu) (Measure.pi nu) ≤
       ∑ i, tvDist (mu i) (nu i) := by
   let gamma : Fin m → Measure (X × X) :=
-    fun i => Causalean.Stat.maximalCoupling (mu i) (nu i)
+    fun i => Causalean.Stat.overlapCoupling (mu i) (nu i)
   let Gamma : Measure (Fin m → X × X) := Measure.pi gamma
   let left : (Fin m → X × X) → (Fin m → X) := fun z i => (z i).1
   let right : (Fin m → X × X) → (Fin m → X) := fun z i => (z i).2
@@ -92,14 +95,14 @@ theorem tvDist_pi_le_sum
     rw [show left = fun z i => Prod.fst (z i) by rfl, Measure.pi_map_pi]
     congr 1
     funext i
-    exact Causalean.Stat.maximalCoupling_map_fst (mu i) (nu i)
+    exact Causalean.Stat.overlapCoupling_map_fst (mu i) (nu i)
     intro i
     exact measurable_fst.aemeasurable
   have hright : Gamma.map right = Measure.pi nu := by
     rw [show right = fun z i => Prod.snd (z i) by rfl, Measure.pi_map_pi]
     congr 1
     funext i
-    exact Causalean.Stat.maximalCoupling_map_snd (mu i) (nu i)
+    exact Causalean.Stat.overlapCoupling_map_snd (mu i) (nu i)
     intro i
     exact measurable_snd.aemeasurable
   have htv : tvDist (Measure.pi mu) (Measure.pi nu) ≤ Gamma.real bad := by
@@ -128,7 +131,7 @@ theorem tvDist_pi_le_sum
       · rfl
       · exact (measurableSet_eq_fun measurable_fst measurable_snd).compl
     rw [hmap]
-    exact maximalCoupling_ne_mass_le (mu i) (nu i)
+    exact overlapCoupling_ne_mass_le (mu i) (nu i)
   calc
     tvDist (Measure.pi mu) (Measure.pi nu) ≤ Gamma.real bad := htv
     _ = Gamma.real (⋃ i, E i) := by rw [hbad]
@@ -144,7 +147,7 @@ theorem tvDist_pi_le_card_mul
     (m : ℕ) :
     tvDist (Measure.pi fun _ : Fin m => mu) (Measure.pi fun _ : Fin m => nu) ≤
       (m : ℝ) * tvDist mu nu := by
-  let gamma := Causalean.Stat.maximalCoupling mu nu
+  let gamma := Causalean.Stat.overlapCoupling mu nu
   let Gamma : Measure (Fin m → X × X) := Measure.pi fun _ : Fin m => gamma
   let left : (Fin m → X × X) → (Fin m → X) := fun z i => (z i).1
   let right : (Fin m → X × X) → (Fin m → X) := fun z i => (z i).2
@@ -154,14 +157,14 @@ theorem tvDist_pi_le_card_mul
     rw [show left = fun z i => Prod.fst (z i) by rfl, Measure.pi_map_pi]
     congr 1
     funext i
-    exact Causalean.Stat.maximalCoupling_map_fst mu nu
+    exact Causalean.Stat.overlapCoupling_map_fst mu nu
     intro i
     exact measurable_fst.aemeasurable
   have hright : Gamma.map right = Measure.pi fun _ : Fin m => nu := by
     rw [show right = fun z i => Prod.snd (z i) by rfl, Measure.pi_map_pi]
     congr 1
     funext i
-    exact Causalean.Stat.maximalCoupling_map_snd mu nu
+    exact Causalean.Stat.overlapCoupling_map_snd mu nu
     intro i
     exact measurable_snd.aemeasurable
   have htv : tvDist (Measure.pi fun _ : Fin m => mu)
@@ -189,7 +192,7 @@ theorem tvDist_pi_le_card_mul
       · rfl
       · exact (measurableSet_eq_fun measurable_fst measurable_snd).compl
     rw [hmap]
-    exact maximalCoupling_ne_mass_le mu nu
+    exact overlapCoupling_ne_mass_le mu nu
   calc
     tvDist (Measure.pi fun _ : Fin m => mu) (Measure.pi fun _ : Fin m => nu)
         ≤ Gamma.real bad := htv

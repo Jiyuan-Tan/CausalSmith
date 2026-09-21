@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.WeightedMomentDetermination
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.WeightedMomentDetermination
 
 /-!
 # Recovery from bounded-support Gaussian mean embeddings
@@ -8,6 +9,8 @@ embeddings to equality of all weighted moments, equality of compactly
 supported finite laws, and hence equality of raw second moments.  It also
 packages the contrapositive as a strict norm-separation theorem.
 -/
+
+public section
 
 open MeasureTheory Set
 

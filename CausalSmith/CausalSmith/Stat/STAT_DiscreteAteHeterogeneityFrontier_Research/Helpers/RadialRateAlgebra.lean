@@ -1,6 +1,9 @@
 /- Rate algebra for the capped radial hard family. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

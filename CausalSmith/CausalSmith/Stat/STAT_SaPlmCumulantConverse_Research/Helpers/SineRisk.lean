@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.UniformDiskSeries
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.UniformDiskSeries
 
 /-! # Generic clipped sine-ratio risk reductions -/
+
+@[expose] public section
 
 noncomputable section
 

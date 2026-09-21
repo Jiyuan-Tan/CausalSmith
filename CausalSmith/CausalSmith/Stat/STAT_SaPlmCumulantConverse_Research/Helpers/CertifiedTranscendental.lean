@@ -1,9 +1,10 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedComplex
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Quadrature
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedComplex
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Quadrature
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+public import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # Conditional certified transcendental substrate
@@ -18,12 +19,13 @@ there is no claim that the image of one fixed nondegenerate interval under
 `exp`, `sin`, `cos`, or complex `exp` can have arbitrarily small width.
 -/
 
+@[expose] public section
+
 open scoped BigOperators Interval
 
 open MeasureTheory Set intervalIntegral
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 /-- Rational alternating arctangent polynomial through index `N`. -/
@@ -534,9 +536,9 @@ def circleTangentFromPositiveName (rName : ExecutablePositiveRealName)
           (machinPiInterval schedule.piFuel)⟩
       schedule.taylorFuel)
 
-private def unitTolerance : PosRat := ⟨1, by norm_num⟩
+def unitTolerance : PosRat := ⟨1, by norm_num⟩
 
-private def circleScheduleAtFuel (fuel : ℕ) : CircleSchedule where
+def circleScheduleAtFuel (fuel : ℕ) : CircleSchedule where
   radiusTolerance := unitTolerance
   radiusFuel := fuel
   piFuel := fuel
@@ -704,16 +706,16 @@ def LegacyFiniteExtremaContract : Prop :=
     (∀ s ∈ Icc (0 : ℝ) 1, ∀ t ∈ Icc (0 : ℝ) 1,
       |f s - f t| ≤ (L : ℝ) * |s - t|) →
     (∀ k ≤ n, (nodes k).Contains
-      (f (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.meshPoint
+      (f (CircleMesh.meshPoint
         n k))) →
-    (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.infEnclosure
+    (CircleMesh.infEnclosure
       nodes L hL n hn).Contains (sInf (f '' Icc (0 : ℝ) 1)) ∧
-    (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.supEnclosure
+    (CircleMesh.supEnclosure
       nodes L hL n hn).Contains (sSup (f '' Icc (0 : ℝ) 1)) ∧
     ∀ (w : ℚ), 0 ≤ w → (∀ k ≤ n, (nodes k).width ≤ w) →
-      (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.infEnclosure
+      (CircleMesh.infEnclosure
         nodes L hL n hn).width ≤ w + L / n ∧
-      (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.supEnclosure
+      (CircleMesh.supEnclosure
         nodes L hL n hn).width ≤ w + L / n
 
 /-- The promoted primitive-recursive trapezoidal enclosure, with its exact
@@ -724,15 +726,15 @@ def TrapezoidalEnclosureContract : Prop :=
     (∀ s ∈ Icc (0 : ℝ) 1, ∀ t ∈ Icc (0 : ℝ) 1,
       ‖g s - g t‖ ≤ (L : ℝ) * |s - t|) →
     (∀ k ≤ n, (nodes k).Contains
-      (g (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.meshPoint
+      (g (CircleMesh.meshPoint
         n k))) →
-    (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.integralEnclosure
+    (CircleMesh.integralEnclosure
       nodes L hL n hn).Contains (∫ u in (0 : ℝ)..1, g u) ∧
     ∀ (w : ℚ), 0 ≤ w →
       (∀ k ≤ n, (nodes k).re.width ≤ w ∧ (nodes k).im.width ≤ w) →
-      (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.integralEnclosure
+      (CircleMesh.integralEnclosure
         nodes L hL n hn).re.width ≤ w + L / n ∧
-      (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.integralEnclosure
+      (CircleMesh.integralEnclosure
         nodes L hL n hn).im.width ≤ w + L / n
 
 /-- Uniform finite-fuel names for the complex values at every node of every
@@ -758,7 +760,7 @@ def RationalComplexNodeApproximants.RepresentsNodeFunction
     (name : RationalComplexNodeApproximants) (g : ℝ → ℂ) : Prop :=
   ∀ mesh k, k ≤ mesh → ∀ fuel,
     (name.approx mesh k fuel).Contains
-      (g (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.meshPoint
+      (g (CircleMesh.meshPoint
         mesh k))
 
 /-- The displayed finite resources for node evaluation and mesh aggregation. -/
@@ -830,7 +832,7 @@ def NodeEvaluationContract
         let s := schedule name input L ε operations
         ∀ k ≤ s.meshFuel,
           (evaluateComplexNode name s k).Contains
-              (g (Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.CircleMesh.meshPoint
+              (g (CircleMesh.meshPoint
                 s.meshFuel k)) ∧
             (evaluateComplexNode name s k).re.width ≤ s.nodeTolerance.1 ∧
             (evaluateComplexNode name s k).im.width ≤ s.nodeTolerance.1 ∧

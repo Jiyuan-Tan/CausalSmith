@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Hudgens–Halloran (2008): unbiasedness of the two-stage estimators
 
-The expectation half of Hudgens & Halloran (2008), Theorems 1–3.  Under the two-stage
+The expectation results of Hudgens & Halloran (2008), Theorems 1–2.  Under the two-stage
 mixed-strategy design (Assumption 1) — expressed here through the *known design propensities*
 (constant within-group treatment propensity `m i / n i` and constant stage-1 ψ-propensity
 `C/N`) — the within-group, population, and effect estimators are exactly unbiased for the
@@ -16,7 +16,8 @@ These are linearity-of-expectation arguments riding on the substrate engines: `E
 the population average over the randomly selected groups.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Basic
+module
+public import Causalean.Experimentation.TwoStageInterference.Basic
 
 /-! # Two-stage estimator unbiasedness
 
@@ -28,6 +29,8 @@ and `E_popEst` lifts it through the compound design to population means on the �
 The file also records `CE_total_decomp`, the sign-convention identity relating the direct,
 indirect, and total contrasts used in this subtree.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset
@@ -80,7 +83,8 @@ private lemma popEst_summand (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
   unfold FiniteDesign.ind
   by_cases h : sw.1 i = true <;> simp [h]
 
-/-- **Population unbiasedness (Theorem 1).** Consider [the two per-group designs ψ and φ
+/-- **Population unbiasedness (Hudgens–Halloran 2008, Theorem 2).** Consider
+[the two per-group designs ψ and φ
 governing the within-group randomization when a group is respectively assigned the ψ-strategy or
 the φ-strategy at stage 1](hyp:ψ,φ) and [an outcome recorded for every group, unit, and realized
 within-group assignment](hyp:Y). Fix a treatment state `z`, [a nonzero real number `C`](hyp:hC)
@@ -133,16 +137,16 @@ theorem E_popEst (D₁ : FiniteDesign (StratAssign ι))
   rw [hEsum, ← Finset.sum_mul, mul_div_assoc, hcN, mul_one_div]
 
 omit [DecidableEq ι] in
-/-- **Mixed-orientation decomposition identity.** For [per-group two-stage designs ψ (treatment
+/-- **Hudgens--Halloran decomposition identity.** For [per-group two-stage designs ψ (treatment
 strategy) and φ (control strategy) governing each group's within-group assignment](hyp:ψ,φ) and
 [an outcome recorded for every group, unit, and realized within-group assignment](hyp:Y), [the
 total contrast — the population control-state mean under φ minus the population treated-state
 mean under ψ — equals the indirect contrast — the population control-state mean under φ minus the
-population control-state mean under ψ — minus the direct contrast — the population treated-state
-mean under ψ minus the population control-state mean under ψ](goal). -/
+population control-state mean under ψ — plus the direct contrast — the population control-state
+mean under ψ minus the population treated-state mean under ψ](goal). -/
 theorem CE_total_decomp (ψ φ : ∀ i, FiniteDesign (WAssign n i))
     (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) :
-    CE_total ψ φ Y = CE_indirect ψ φ Y - CE_direct ψ Y := by
+    CE_total ψ φ Y = CE_direct ψ Y + CE_indirect ψ φ Y := by
   unfold CE_total CE_direct CE_indirect
   ring
 

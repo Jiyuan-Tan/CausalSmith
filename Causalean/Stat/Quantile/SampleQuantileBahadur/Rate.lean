@@ -10,8 +10,9 @@ from the fixed-`q₀` empirical-cdf CLT, the Taylor increment of `F`, and a Slut
 tail bound. Builds on the empirical-process oscillation layer in `.Oscillation`.
 -/
 
-import Causalean.Stat.Quantile.SampleQuantileBahadur.Oscillation
-import Causalean.Stat.CLT.GaussianTail
+module
+public import Causalean.Stat.Quantile.SampleQuantileBahadur.Oscillation
+public import Causalean.Stat.CLT.GaussianTail
 
 /-! # Root-n Rate for the Sample Quantile
 
@@ -26,6 +27,8 @@ the fixed-`q₀` CLT `IIDSample.empProcess_q0_tendsto_normal`, tightness
 `IIDSample.empProcess_q0_bigO`, and the closed-set portmanteau helper
 `Tendsto_dist.limsup_measure_closed_le`.
 -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -84,7 +87,7 @@ lemma IIDSample.empProcess_q0_tendsto_normal (S : IIDSample Ω ℝ μ P)
   -- mention `cdf`, so this is motive-safe), matching `h`'s limit measure.
   rw [← hreg.cdf_eq]
   -- `h : Tendsto_dist (rescaledEstimator …) (gaussianMeasure 0 (F q₀*(1-F q₀))) μ hθn_meas`.
-  unfold Tendsto_dist at h ⊢
+  rw [Tendsto_dist_iff] at h ⊢
   -- The two probability-measure sequences agree pointwise (same function).
   refine h.congr' ?_
   filter_upwards with n
@@ -110,7 +113,7 @@ theorem Tendsto_dist.limsup_measure_closed_le
     (hX : Tendsto_dist Xn Q μ hXn)
     {F : Set ℝ} (hF : IsClosed F) :
     Filter.limsup (fun n => μ {ω | Xn n ω ∈ F}) atTop ≤ Q F := by
-  unfold Tendsto_dist at hX
+  rw [Tendsto_dist_iff] at hX
   let μs : ℕ → ProbabilityMeasure ℝ := fun n =>
     ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩
   let ν : ProbabilityMeasure ℝ := ⟨Q, inferInstance⟩
@@ -142,15 +145,22 @@ lemma IIDSample.sampleQuantile_rate (S : IIDSample Ω ℝ μ P)
   have hσ2pos : 0 < σ2 := by
     rw [hσ2]; exact mul_pos hreg.tau_pos (by linarith [hreg.tau_lt_one])
   have hf0 : 0 < f₀ := hreg.density_pos
-  intro ε hε
+  intro δ hδ
+  by_cases hδtop : δ = ⊤
+  · exact ⟨1, one_pos, by simp [hδtop]⟩
+  have hδreal : 0 < δ.toReal := ENNReal.toReal_pos hδ.ne' hδtop
+  let ε : ℝ := δ.toReal / 2
+  have hε : 0 < ε := by
+    dsimp [ε]
+    linarith
   -- Choose the Gaussian half-line cutoff `R` at level `ε/2` (both tails).
   obtain ⟨R, hRpos, hRiic, hRici⟩ :=
     gaussian_tail_small_gaussian (v := σ2) (ε := ε / 2) (by linarith)
-  -- The window constant `M := 4R/f₀`, so that `f₀·M/4 = R`.
-  refine ⟨4 * R / f₀, ?_⟩
+  -- The inner window constant `M := 4R/f₀`, so that `f₀·M/4 = R`.
   set M : ℝ := 4 * R / f₀ with hM
   have hMpos : 0 < M := by rw [hM]; positivity
   have hfM4 : f₀ * M / 4 = R := by rw [hM]; field_simp
+  refine ⟨2 * M, mul_pos (by norm_num) hMpos, ?_⟩
   -- Abbreviations: the empirical process at `q₀`, and the two L2 increments.
   set Gq : ℕ → Ω → ℝ := fun n ω => S.empProcess n ω q₀ with hGq
   -- The two endpoints `y± = q₀ ± M/√n`.
@@ -305,16 +315,35 @@ lemma IIDSample.sampleQuantile_rate (S : IIDSample Ω ℝ μ P)
         rw [← hfM4]; rw [← hfM4] at hbound
         linarith [this, hbound]
   -- ASSEMBLE: `limsup` of the eventual bound `μ{Gq∈F} + (vanishing increment tails)`.
-  calc Filter.limsup (fun n : ℕ => μ {ω | M * (fun _ => (1 : ℝ)) n <
+  have hlim : Filter.limsup (fun n : ℕ => μ {ω | M * (fun _ => (1 : ℝ)) n <
             |Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)|}) atTop
-      ≤ Filter.limsup (fun n => μ {ω | Gq n ω ∈ F}
-            + (μ {ω | R < |Δp n ω|} + μ {ω | R < |Δm n ω|})) atTop :=
+      ≤ ENNReal.ofReal ε := by
+    calc
+      Filter.limsup (fun n : ℕ => μ {ω | M * (fun _ => (1 : ℝ)) n <
+            |Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)|}) atTop
+          ≤ Filter.limsup (fun n => μ {ω | Gq n ω ∈ F}
+              + (μ {ω | R < |Δp n ω|} + μ {ω | R < |Δm n ω|})) atTop :=
         Filter.limsup_le_limsup hcore
-    _ = Filter.limsup (fun n => μ {ω | Gq n ω ∈ F}) atTop := by
+      _ = Filter.limsup (fun n => μ {ω | Gq n ω ∈ F}) atTop := by
         -- the increment tails vanish, so they drop out of the `limsup`.
         exact ENNReal.limsup_add_of_right_tendsto_zero hΔboth_tail
           (fun n => μ {ω | Gq n ω ∈ F})
-    _ ≤ gaussianMeasure 0 σ2 F := hcl
-    _ ≤ ENNReal.ofReal ε := hQF
+      _ ≤ gaussianMeasure 0 σ2 F := hcl
+      _ ≤ ENNReal.ofReal ε := hQF
+  have hεlt : ENNReal.ofReal ε < δ := by
+    rw [ENNReal.ofReal_lt_iff_lt_toReal]
+    · dsimp [ε]
+      linarith
+    · exact hε.le
+    · exact hδtop
+  have htail : ∀ᶠ n : ℕ in atTop,
+      μ {ω | M * (fun _ => (1 : ℝ)) n <
+        |Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀)|} ≤ δ :=
+    (Filter.eventually_lt_of_limsup_lt (hlim.trans_lt hεlt)).mono fun _ h => h.le
+  filter_upwards [htail] with n hn
+  refine (measure_mono ?_).trans hn
+  intro ω hω
+  simp only [Set.mem_setOf_eq, mul_one, Real.norm_eq_abs] at hω ⊢
+  linarith
 
 end Causalean.Stat

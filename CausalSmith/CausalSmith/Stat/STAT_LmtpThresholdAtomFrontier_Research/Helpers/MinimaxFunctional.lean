@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxHolder
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxHolder
 
 /-! # Clamp functional on the canonical witness family -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

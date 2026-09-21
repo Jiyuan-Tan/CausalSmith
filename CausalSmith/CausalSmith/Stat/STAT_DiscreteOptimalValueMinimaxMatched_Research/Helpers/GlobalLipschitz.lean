@@ -1,4 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.ConeExtension
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.ConeExtension
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

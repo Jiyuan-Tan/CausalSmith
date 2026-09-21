@@ -1,5 +1,6 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.WeightedMoments
-import Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.WeightedMoments
+public import Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real
 
 /-!
 # Continuous-test determination on a compact interval
@@ -7,6 +8,8 @@ import Mathlib.MeasureTheory.Integral.RieszMarkovKakutani.Real
 This module isolates the Weierstrass approximation step and the standard
 measure-extensionality step used in compact Gaussian moment determination.
 -/
+
+public section
 
 open MeasureTheory Set
 

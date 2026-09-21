@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.PilotLocalizedScale
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.PilotLocalizedScale
 
 /-! Final pilot-failure estimate and assembly of the cellwise factorial risk theorem. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

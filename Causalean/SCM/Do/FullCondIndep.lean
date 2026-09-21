@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.SemiGraphoid
-import Causalean.Tactic.Attr
+module
+public import Causalean.SCM.Do.SemiGraphoid
+public import Causalean.Tactic.Attr
 
 /-! # Full Conditional Independence
 
@@ -14,6 +15,13 @@ causal model, including both observed variables and latent variables. It also
 develops the semi-graphoid rules needed before projecting full-distribution Markov
 statements down to observational distributions.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

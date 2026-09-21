@@ -6,11 +6,14 @@ Hoeffding projection plus the degenerate remainder; only the remainder enters
 Causalean's `DegenKernel` variance API.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.ScoreInversion
-import Causalean.Stat.UStatistic.Basic
-import Causalean.Stat.UStatistic.Variance
-import Causalean.Stat.Sample.CollisionEstimator
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.MultinomialMoments
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.ScoreInversion
+public import Causalean.Stat.UStatistic.Basic
+public import Causalean.Stat.UStatistic.Variance
+public import Causalean.Stat.Sample.CollisionEstimator
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.MultinomialMoments
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

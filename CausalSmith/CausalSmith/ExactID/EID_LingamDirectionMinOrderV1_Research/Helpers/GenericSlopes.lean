@@ -12,7 +12,10 @@ slope, the latent slopes are pairwise distinct, and the forward/reverse loading
 injective and — on the nonzero-slope locus — nowhere zero.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

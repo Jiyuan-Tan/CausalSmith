@@ -1,4 +1,7 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkData.True10Part9
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkData.True10Part9
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

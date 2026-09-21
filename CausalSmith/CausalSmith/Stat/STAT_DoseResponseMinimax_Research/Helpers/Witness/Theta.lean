@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Dose-response minimax lower bound: witness target values
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Measure
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Measure
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

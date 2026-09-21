@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Dimension of the retained-band weight kernel
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.BandParameterCoordinates
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.WeightSynthesisDimension
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.BandParameterCoordinates
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.WeightSynthesisDimension
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

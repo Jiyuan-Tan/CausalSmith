@@ -10,7 +10,10 @@ open-ended residual. The theorem records only the certified lower floor and the
 two regime comparisons; it asserts no same-class upper endpoint.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Frontier
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Frontier
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

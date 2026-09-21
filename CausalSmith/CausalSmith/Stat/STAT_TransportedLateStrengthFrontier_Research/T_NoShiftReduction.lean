@@ -2,9 +2,12 @@
 # No-shift reduction
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_FixedGeometryFrontier
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_OracleScoreInversionAttainment
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_FixedGeometryFrontier
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_OracleScoreInversionAttainment
+
+public section
 
 set_option linter.style.longLine false
 

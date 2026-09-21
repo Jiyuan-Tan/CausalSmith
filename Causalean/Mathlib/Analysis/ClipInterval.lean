@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Topology.MetricSpace.Lipschitz
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+
+module
+public import Mathlib.Topology.MetricSpace.Lipschitz
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
 /-!
 # Clipping a real number into a closed interval
@@ -23,6 +25,8 @@ with plain reals. This file provides the real-valued companion `clipIcc a b x = 
 symmetric band `[-B, B]`, an asymmetric propensity band `[q, 1 - q]`, and either the `max`-outside
 or the `min`-outside spelling are all instances of one API.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Analysis
 

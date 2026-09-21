@@ -8,12 +8,15 @@ Authors: Jiyuan Tan
 `lem:amplification-dual-norm` and `lem:unbiased-weight-set-nonempty`.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality.Basic
-import Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality.Duality
-import Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality.NonemptyDuality
-import Mathlib.LinearAlgebra.Lagrange
-import Mathlib.LinearAlgebra.Vandermonde
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import Causalean.Mathlib.Analysis.NormedSpace.Duality.L1Linf.Basic
+public import Causalean.Mathlib.Analysis.NormedSpace.Duality.L1Linf.Duality
+public import Causalean.Mathlib.Analysis.NormedSpace.Duality.L1Linf.NonemptyDuality
+public import Mathlib.LinearAlgebra.Lagrange
+public import Mathlib.LinearAlgebra.Vandermonde
+
+public section
 
 open scoped BigOperators
 

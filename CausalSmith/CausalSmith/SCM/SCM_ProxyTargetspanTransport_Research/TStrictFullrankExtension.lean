@@ -1,10 +1,13 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TTargetSpanIff
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Witness
-import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TTargetSpanIff
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Witness
+public import Mathlib.LinearAlgebra.Matrix.Determinant.Basic
 
 set_option linter.unusedDecidableInType false
 
 /-! Strict extension beyond the published full-source-rank regime. -/
+
+public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

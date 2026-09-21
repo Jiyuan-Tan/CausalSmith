@@ -9,7 +9,10 @@ Stage-2 scaffold.  The exact Neyman-gap ratio identity, the quadratic
 loss/oracle-sensitivity expansion along a local path.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

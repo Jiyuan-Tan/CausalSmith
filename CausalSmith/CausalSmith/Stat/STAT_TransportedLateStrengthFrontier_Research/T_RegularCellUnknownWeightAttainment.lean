@@ -2,14 +2,17 @@
 # Regular-cell unknown-weight attainment
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.CellEstimators
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_FixedGeometryFrontier
-import Causalean.Stat.UStatistic.Basic
-import Causalean.Stat.UStatistic.Variance
-import Causalean.Stat.Sample.CollisionEstimator
-import Causalean.Stat.Minimax.HonestConfidenceSet
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.MultinomialMoments
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.CellEstimators
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_FixedGeometryFrontier
+public import Causalean.Stat.UStatistic.Basic
+public import Causalean.Stat.UStatistic.Variance
+public import Causalean.Stat.Sample.CollisionEstimator
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.MultinomialMoments
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

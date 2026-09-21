@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_k3_lp_certificate
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_rational_contrast_grid_certificate_sandwich
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_k3_lp_certificate
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_rational_contrast_grid_certificate_sandwich
 
 /-! Three-arm specialization of the exact rational certificate sandwich. -/
+
+public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 

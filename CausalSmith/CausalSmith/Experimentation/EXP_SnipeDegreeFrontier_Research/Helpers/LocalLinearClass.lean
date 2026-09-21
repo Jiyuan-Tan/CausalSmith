@@ -1,9 +1,10 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockScore
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
-import Causalean.Experimentation.DesignBased.Risk
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockScore
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Causalean.Experimentation.DesignBased.Risk
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 /-!
 # Fixed-graph block-local linear class
@@ -13,6 +14,8 @@ a unit's weight is unchanged whenever two assignments agree on its
 in-neighborhood.  The moment restrictions then encode design unbiasedness for
 all eligible raw monomials.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

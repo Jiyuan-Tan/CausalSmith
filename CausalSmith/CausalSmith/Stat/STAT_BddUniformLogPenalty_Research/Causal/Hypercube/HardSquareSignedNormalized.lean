@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedOutside
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedOutside
 
 /-!
 # Normalized signed hard-cell certificate
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Hard
 This module chooses canonical bit representatives and transfers the raw
 signed-observation localization results to normalized conditional cell laws.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

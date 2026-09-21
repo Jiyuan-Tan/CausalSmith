@@ -1,17 +1,5 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Variance infrastructure for fixed-order U-statistics
-
-This file develops the reusable finite-product and `L²` transport lemmas needed
-for variance calculations of fixed-order U-statistics.  The results here are
-honest order-`m` analogues of the per-term law, integrability, and diagonal
-second-moment facts used in the order-2 variance proof.
--/
-
-import Causalean.Stat.UStatistic.OrderM.Hajek
+module
+public import Causalean.Stat.UStatistic.OrderM.Hajek
 
 /-!
 Provides the product-law and `L²` infrastructure for fixed-order U-statistics.
@@ -20,9 +8,17 @@ For injectively indexed sample tuples, `map_fintype_tuple_eq` and
 `map_tuple_eq` identify the joint law with the product measure.  The remaining
 public lemmas transfer integrability, unbiasedness, mean-zero, and diagonal
 second-moment facts from an order-`m` kernel under `P^m` to the corresponding
-sample terms and U-statistics.  The declaration `zetaOrder` names the kernel
+sample terms and U-statistics. The declaration `zetaOrder` names the kernel
 second moment used by the exact and upper-bound variance arguments.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -358,7 +354,12 @@ theorem integral_rescaled_uStatisticOrder_eq_zero_of_degenKernel [NeZero m]
   exact S.integral_rescaled_uStatisticOrder_eq_zero_of_degenKernel_uMean_zero hg hmn
     hg.integral_eq_zero
 
-/-- For [a measurable observation space](hyp:X), [a measure on that space](hyp:P), [a nonnegative integer kernel order $m$](hyp:m), and [a real-valued kernel of $m$ observations](hyp:g), the [order-$m$ kernel second moment](goal) is $\int g(z)^2\,dP^m(z)$, where $P^m$ is the product measure of $m$ independent draws from the given measure.
+/-- For [a measurable observation space](hyp:X),
+[a measure on that space](hyp:P),
+[a nonnegative integer kernel order $m$](hyp:m), and
+[a real-valued kernel of $m$ observations](hyp:g), the
+[order-$m$ kernel second moment](goal) is $\int g(z)^2\,dP^m(z)$, where $P^m$ is the
+product measure of $m$ independent draws from the given measure.
 
 This scalar is the diagonal second moment of an injectively indexed kernel term
 and is the variance scale used in the exact variance and second-moment-bound

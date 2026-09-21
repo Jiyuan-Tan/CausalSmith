@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Basic
-import Mathlib.Combinatorics.SetFamily.Shatter
-import Mathlib.LinearAlgebra.LinearIndependent.Basic
-import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Basic
+public import Mathlib.Combinatorics.SetFamily.Shatter
+public import Mathlib.LinearAlgebra.LinearIndependent.Basic
+public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
 
 /-!
 # VC index of planar Euclidean balls
@@ -9,6 +10,8 @@ import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
 The statement is phrased directly as non-shattering of finite point sets of
 cardinality at least four, which is the paper's “VC index at most four”.
 -/
+
+@[expose] public section
 
 open Set
 

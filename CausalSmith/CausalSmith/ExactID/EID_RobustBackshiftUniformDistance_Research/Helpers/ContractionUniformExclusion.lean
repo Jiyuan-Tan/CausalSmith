@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
-import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
+public import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
 
 /-!
 # Ambient compact box for uniform contraction
@@ -9,6 +10,8 @@ This module packages the finite-dimensional true-system and candidate-witness va
 nested product.  Fixing the retained environment set separately keeps every component normed and
 lets compactness follow directly from compactness of closed balls and finite products.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

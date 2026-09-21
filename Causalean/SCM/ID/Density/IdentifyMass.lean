@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Density.PiUnion
-import Causalean.SCM.ID.GraphicalThms.DoGFormulaRec
+module
+public import Causalean.SCM.ID.Density.PiUnion
+public import Causalean.SCM.ID.GraphicalThms.DoGFormulaRec
 
 /-! # Mass-level IDENTIFY functionals
 
@@ -20,7 +21,14 @@ detection, and district extraction, with simp equations for its base, hedge, and
 recursive branches.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 set_option linter.unusedFintypeInType false
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -29,7 +37,7 @@ open scoped BigOperators ENNReal
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-namespace SWIGGraph
+namespace Graph.SWIGGraph
 
 /-- For [a finite collection of distinguishable base-variable labels](hyp:N) and [a SWIG graph](hyp:G), the [topological linear order](goal) orders its nodes by their positions in the graph's topological ordering. -/
 noncomputable def topoLinearOrder (G : SWIGGraph N) : LinearOrder (SWIGNode N) :=
@@ -60,7 +68,7 @@ lemma prefixIn_subset (G : SWIGGraph N) (D : Finset (SWIGNode N)) (n : ℕ) :
   intro v hv
   exact (Finset.mem_filter.mp hv).1
 
-end SWIGGraph
+end Graph.SWIGGraph
 
 namespace SCM.ID
 

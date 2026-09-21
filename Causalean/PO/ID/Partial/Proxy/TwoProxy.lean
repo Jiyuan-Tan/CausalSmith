@@ -3,11 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Proximal partial identification — two-proxy bounds (Theorem 3)
+# Proximal partial identification — abstract two-proxy envelope bound
 
-Bounds on `E[Y(a) | A = ¬a]` under the two-proxy bundle of
-Ghassami-Shpitser-Tchetgen Tchetgen (2024, Theorem 3): two conditionally
-independent invalid proxies `W` and `Z`, with bridges `h` and `q`.
+Bounds on `E[Y(a) | A = ¬a]` under a two-proxy bundle inspired by Ghassami,
+Zhang, Shpitser, and Tchetgen Tchetgen (arXiv:2304.04374v4, 2026): two
+conditionally independent invalid proxies `W` and `Z`, with bridges `h` and `q`.
 
 The proof template (mirrors `WBased.lean`):
 
@@ -32,12 +32,13 @@ The proof template (mirrors `WBased.lean`):
 ## Main result
 
 * `condMeanYofA_WZ_bounds` — sandwich bound on `E[Y(a) | A = ¬a]`,
-  clamped by `[essinf Y, essup Y]` and the joint-WZ envelope bounds in
+  clamped by chosen essential-bound witnesses and joint-WZ envelope bounds in
   the W-shaped observable form
   `stratumOddsRatio · Uenv(a, X) · μ[Y | σ_AX]` integrated over `{A = a}`.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers
 
 /-! # Two-proxy proximal partial-identification bounds
 
@@ -48,12 +49,14 @@ arm; the joint W-Z envelope predicates `IsLowerEnvWZ` and `IsUpperEnvWZ` then
 bound the bridge product by observable conditional means and stratum odds
 ratios.
 
-The main declaration is `condMeanYofA_WZ_bounds`, the Theorem 3 bound for
+The main declaration is `condMeanYofA_WZ_bounds`, an abstract envelope bound for
 `condMeanYofA`. Its public statement contains only observable objects:
 `stratumOddsRatio`, the envelope functions, and `μ[Y | σ_AX]`; the latent
 bridges `h` and `q` are eliminated by the conditional-expectation collapse
 lemmas.
 -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -69,36 +72,33 @@ variable {P : POSystem}
   {S : POProximalSystem P γ_X γ_Z γ_W γ_U}
   {μ : Measure P.Ω} [IsFiniteMeasure μ] [StandardBorelSpace P.Ω]
 
-/-! ### Two-proxy partial-identification bound (Theorem 3) -/
+/-! ### Abstract two-proxy envelope bound -/
 
-/-- **Theorem 3** (Ghassami-Shpitser-Tchetgen Tchetgen 2024, two-proxy partial
-identification). Fix a treatment arm `a` and assume [the two-proxy assumption
-bundle](hyp:HA) — consistency, latent exchangeability, conditional independence of the
-proxies `W` and `Z` given treatment and covariates, the outcome and treatment-proxy
-bridges, and essential bounds on `Y` — together with [the treatment and outcome
-variables being distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope
-functions bounding the same-arm joint-versus-product density ratio of the two
-proxies](hyp:hL,hU), with [the off-arm stratum of positive mass](hyp:hμpos) and [the
-envelope-weighted product of the outcome- and treatment-proxy conditional bridge means
-integrable](hyp:hU_envInt,hL_envInt). Then [the conditional target `E[Y(a) ∣ A ≠ a]` is
-sandwiched between the essential `Y`-bounds and the integrated envelope bound, expressed
-entirely through observable quantities — the stratum odds ratio, the envelope functions,
-and the observed conditional mean of `Y`](goal).
+/-- **Abstract two-proxy envelope consequence.** [The conditional
+counterfactual mean among units in the opposite treatment arm lies between
+chosen outcome-bound witnesses and operational joint-proxy envelope bounds
+expressed through observable quantities](goal). The result uses [the two-proxy
+bridge assumptions](hyp:HA), [distinct treatment and outcome
+variables](hyp:hAY), [a treatment arm and lower and upper envelope
+functions](hyp:a,Lenv,Uenv), [the lower and upper operational joint-proxy
+comparisons](hyp:hL,hU), [positive mass for the opposite arm](hyp:hμpos), and
+[integrability of the two envelope-weighted products of conditional bridge
+means](hyp:hU_envInt,hL_envInt).
 
 Given:
 * `HA`     : the two-proxy assumption bundle (consistency, latent
              exchangeability, `W ⟂ Z | (A, U, X)` per Assumption 6, bridges
              `h` and `q`, product integrability of `h · q`, essential
              `Y`-bounds);
-* `Lenv`, `Uenv` : lower / upper envelope functions for the same-arm
-             joint-vs-product W-Z density ratio
+* `Lenv`, `Uenv` : functions satisfying lower / upper operational comparisons
+             motivated by the same-arm joint-vs-product W-Z density ratio
                  ρ(w, z, x) = p(w, z | A=a, x) / (p(w | A=a, x) · p(z | A=a, x))
              (operationalised by `IsLowerEnvWZ` / `IsUpperEnvWZ`);
 * `hμpos` : the off-arm stratum has positive mass.
 
 Conclusion: `E[Y(a) | A = ¬a]` lies between the trivial essential bound
 and the integrated envelope bound in the same observable form as the
-W-only theorem (Theorem 1):
+W-only abstract envelope bound:
 
     p⁻¹ · ∫_{A=a} stratumOddsRatio · Lenv(a, X) · μ[Y | σ_AX] dμ
       ≤ E[Y(a) | A = ¬a]
@@ -255,11 +255,11 @@ theorem condMeanYofA_WZ_bounds
   have hCollapse_h :
       μ[S.Y | S.σ_AX] =ᵐ[μ.restrict s]
       μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AX] :=
-    POProximalSystem.condExp_Y_eq_condExp_h_arm_AX_twoProxy HA a hAY
+    POProximalSystem.condExp_Y_eq_condExp_h_arm_AX_twoProxy HA a
   have hCollapse_q :
       (μ[fun ω => HA.q (S.Z ω, a, S.X ω) | S.σ_AX])
         =ᵐ[μ.restrict s] S.stratumOddsRatio μ a :=
-    POProximalSystem.condExp_q_eq_stratumOddsRatio_arm_AX HA a hAY
+    POProximalSystem.condExp_q_eq_stratumOddsRatio_arm_AX HA a
   -- Step (ii): σ_AX pull-out.
   have hPull : ∫ ω in s,
         HA.h (a, S.W ω, S.X ω) * HA.q (S.Z ω, a, S.X ω) ∂μ

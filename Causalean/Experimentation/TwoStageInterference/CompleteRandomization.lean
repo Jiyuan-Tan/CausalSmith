@@ -18,14 +18,16 @@ not assumed: the first-order inclusion probability `E[Tᵢ] = K/N`, the pairwise
 inclusion probability `E[Tᵢ Tⱼ] = K(K−1)/(N(N−1))` for `i ≠ j`, the complementary first moment
 `E[1−Tᵢ] = (N−K)/N`, and the deterministic treated count `∑ᵢ Tᵢ = K` on the design's support.  The
 general `crdOn` engine works for any finite population `U`; `crd` is the within-group specialization
-to `U = Fin n` (used by the within-group Theorem 5 / Eq. 9 corollaries), and the stage-1 group
-selection uses the same engine with `U = ι` (used by the between-group Theorem 4 / Theorem 6
-corollaries).  Downstream headline theorems specialize their generic, moment-conditioned forms to
+to `U = Fin n` (used by the within-group variance identity and the Equation (8) variance
+estimator), and the stage-1 group selection uses the same engine with `U = ι` (used by the
+between-group variance decompositions). Downstream headline theorems specialize their generic,
+moment-conditioned forms to
 these designs so that "under the completely randomized design" is a proven statement, not a
 hypothesis.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
+module
+public import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
 
 /-!
 # Completely randomized assignment on Boolean vectors
@@ -40,6 +42,8 @@ specialization to `Fin n`.  The exported facts `crdOn_mean`, `crdOn_pair`, `crdO
 `crd_mean`, `crd_pair`, `crd_supp`, `crd_prop_true`, and `crd_prop_false` are the moment and
 propensity lemmas consumed by the unbiasedness and variance files.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -138,11 +142,6 @@ end CRDon
 section CRD
 
 variable {n : ℕ} (K : ℕ) (hK : K ≤ n)
-
-/-- For [a group containing $n$ units](hyp:n) and [a target treated count $K$](hyp:K), the
-[within-group treated-set indicator assignment](goal) maps [a subset of exactly $K$ group
-members](hyp:S) to the assignment that marks precisely those members as treated. -/
-def crdToBool (S : {S : Finset (Fin n) // S.card = K}) : Fin n → Bool := crdToBoolOn K S
 
 /-- For [a group containing $n$ units](hyp:n), [a target treated count $K$](hyp:K) no greater than
 [the group size](hyp:hK), the [within-group completely randomized assignment design](goal) assigns

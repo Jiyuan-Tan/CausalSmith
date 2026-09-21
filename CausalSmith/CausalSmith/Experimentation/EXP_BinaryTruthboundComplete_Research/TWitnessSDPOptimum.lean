@@ -1,8 +1,14 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessData
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Tactic.FinCases
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessData
+public meta import Mathlib.Algebra.BigOperators.Group.Finset.Defs
+public meta import Mathlib.Data.Fintype.Defs
+public meta import Mathlib.Data.Fintype.Pi
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.LinearAlgebra.Matrix.Trace
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Tactic.FinCases
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

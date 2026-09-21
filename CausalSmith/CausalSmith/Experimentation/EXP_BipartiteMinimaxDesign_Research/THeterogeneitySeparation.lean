@@ -11,9 +11,12 @@ every envelope-optimal design is non-homogeneous and strictly better; in the
 singleton-exposure case the trigger reduces to an observable degree summary.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TConvexDesign
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.EnvelopeCalculus
-import Causalean.Mathlib.Analysis.SecondOrderDescent
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TConvexDesign
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.EnvelopeCalculus
+public import Causalean.Mathlib.Analysis.SecondOrderDescent
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

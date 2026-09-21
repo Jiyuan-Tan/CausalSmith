@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitRiskBridge
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitRiskBridge
 
 /-! Simultaneous unit permutation and exact orbit-procedure correspondence. -/
+
+@[expose] public section
 
 open scoped BigOperators
 
@@ -98,7 +101,7 @@ lemma observationRepresentative_counts (r : AllocVec K n) (x : ObsVec r) :
   apply Fin.ext
   exact (Classical.choose_spec (Classical.choose_spec (observedCounts_realizable r x))).2 a
 
-private lemma orbitEstimator_eq_of_counts (q : OrbitEstimator K n c)
+lemma orbitEstimator_eq_of_counts (q : OrbitEstimator K n c)
     {r s : AllocVec K n} (h : r = s) (x : ObsVec r) (y : ObsVec s)
     (hxy : x.1 = y.1) : q r x = q s y := by
   subst s
@@ -248,7 +251,7 @@ lemma invariantToOrbitProcedure_realizes (p : InvariantProcedure K n c) :
     · exact (observationRepresentative_counts
         (assignmentCounts A) (observedCounts A y)).symm
 
-private lemma orbitInvariant_left_inv (p : InvariantProcedure K n c) :
+lemma orbitInvariant_left_inv (p : InvariantProcedure K n c) :
     orbitToInvariantProcedure c (invariantToOrbitProcedure c p) = p := by
   apply Subtype.ext
   apply Prod.ext
@@ -263,7 +266,7 @@ private lemma orbitInvariant_left_inv (p : InvariantProcedure K n c) :
       (invariantToOrbitProcedure c p)).2 A y |>.trans
         ((invariantToOrbitProcedure_realizes c p).2 A y).symm
 
-private lemma orbitInvariant_right_inv (q : OrbitProcedure K n c) :
+lemma orbitInvariant_right_inv (q : OrbitProcedure K n c) :
     invariantToOrbitProcedure c (orbitToInvariantProcedure c q) = q := by
   classical
   apply Prod.ext

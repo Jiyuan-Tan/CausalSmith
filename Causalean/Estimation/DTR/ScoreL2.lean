@@ -32,7 +32,8 @@ The file packages the stagewise pointwise bounds, their L² consequences, and
 the headline stochastic-order continuity statement used by the DTR DML layer.
 -/
 
-import Causalean.Estimation.DTR.ScoreL2.Helpers
+module
+public import Causalean.Estimation.DTR.ScoreL2.Helpers
 
 /-!
 # Sequential DR score L² continuity for two-stage regimes
@@ -54,6 +55,8 @@ propensity-estimation errors. This is the score-difference input used by the
 DTR double-machine-learning layer.
 -/
 
+public section
+
 namespace Causalean
 namespace Estimation
 namespace DTR
@@ -70,7 +73,7 @@ variable {P : POSystem} {δ : Type} {γ : Fin 2 → Type}
 /-! ## Headline L²(P_Z) `o_p(1)` -/
 
 /-- **Sequential DR score L²(P_Z) continuity.** Consider a two-stage dynamic-treatment-regime
-estimation system in which [the estimated propensity scores stay strictly between `ε` and
+estimation system in which [the true propensity scores stay strictly between `ε` and
 `1-ε`](hyp:h_overlap), [the system's identification assumptions (consistency, sequential
 exchangeability, positivity) hold](hyp:hA), [the observed outcome has finite second
 moment](hyp:h_y2), and [every potential outcome under a fixed two-stage treatment regime has
@@ -100,10 +103,10 @@ The proof:
 theorem seqDR_score_diff_isLittleOp_one
     (S : DTREstimationSystem P δ γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (h_yd2 : ∀ dbar : Fin 2 → δ,
-      Integrable (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ)
+      Integrable (fun ω => (S.toPOLongitudinalPathSystem.Y_of dbar ω) ^ 2) P.μ)
     (η_hat : ℕ → P.Ω → DTRNuisanceVec₂ δ γ)
     (h_in_H : ∀ n ω, η_hat n ω ∈ DTREstimationSystem.H_ε ε)
     (h_mu0_memLp : ∀ n ω,
@@ -179,9 +182,9 @@ theorem seqDR_score_diff_isLittleOp_one
     exact (memLp_map_measure_iff hmap.aestronglyMeasurable
       measurable_histH₁.aemeasurable).1 hmap
   have hY_Z_memLp : MemLp (fun z : γ 0 × δ × γ 1 × δ × ℝ => projY z) 2 S.P_Z := by
-    have hY_L2 : MemLp S.toPODTRSystem.factualY 2 P.μ :=
+    have hY_L2 : MemLp S.toPOLongitudinalPathSystem.factualY 2 P.μ :=
       (memLp_two_iff_integrable_sq
-        S.toPODTRSystem.measurable_factualY.aestronglyMeasurable).2 h_y2
+        S.toPOLongitudinalPathSystem.measurable_factualY.aestronglyMeasurable).2 h_y2
     rw [DTREstimationSystem.P_Z]
     exact (memLp_map_measure_iff hprojY_meas.aestronglyMeasurable
       S.measurable_factualZ.aemeasurable).2 (by

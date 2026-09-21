@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroAssembly
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroAssembly
 
 /-!
 # Known transform-zero instrument
 -/
+
+public section
 
 noncomputable section
 

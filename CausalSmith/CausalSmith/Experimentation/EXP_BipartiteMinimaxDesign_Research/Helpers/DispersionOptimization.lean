@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Optimization facts for the unbounded dispersion certificate
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionConstruction
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionConstruction
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

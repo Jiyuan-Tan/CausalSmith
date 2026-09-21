@@ -26,15 +26,26 @@
 
 import path from "node:path";
 
-/** Directory holding every solve companion, one level under the discovery dir —
- *  keeps raw TeX out of the qid folder's top level. */
+/** Legacy directory used by solve companions written before sibling pairing. */
 export const COMPANION_DIR = "solve_tex";
 
-/** `solve_<unit>.json` → its companion `solve_tex/solve_<unit>.tex`. */
+/** `solve_<unit>.json` → its canonical sibling `solve_<unit>.tex`. */
 export function companionPathFor(outPath: string): string {
   const dir = path.dirname(outPath);
   const base = path.basename(outPath).replace(/\.json$/, "");
-  return path.join(dir, COMPANION_DIR, `${base}.tex`);
+  return path.join(dir, `${base}.tex`);
+}
+
+/** Former nested location, retained only for validated artifact compatibility. */
+export function legacyCompanionPathFor(outPath: string): string {
+  const sibling = companionPathFor(outPath);
+  return path.join(path.dirname(outPath), COMPANION_DIR, path.basename(sibling));
+}
+
+/** Both recognized layouts, canonical first.  Callers must bind one exact path
+ * before validation; ingest never guesses between two artifact generations. */
+export function companionPathsFor(outPath: string): readonly [string, string] {
+  return [companionPathFor(outPath), legacyCompanionPathFor(outPath)];
 }
 
 const HEADER = /^%%% FIELD[ \t]+(\S+)[ \t]*$/;

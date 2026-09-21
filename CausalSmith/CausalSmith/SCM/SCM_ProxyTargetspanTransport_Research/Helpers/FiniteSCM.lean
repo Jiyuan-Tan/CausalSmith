@@ -1,9 +1,13 @@
-import Mathlib.Data.Matrix.Basic
-import Mathlib.Data.Matrix.Mul
-import Mathlib.Data.Real.Basic
-import Mathlib.LinearAlgebra.Matrix.Rank
+module
+public import Mathlib.Data.Matrix.Basic
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.Data.Real.Basic
+public import Mathlib.LinearAlgebra.Matrix.Rank
 
 set_option linter.unusedDecidableInType false
+
+open scoped BigOperators
+open Finset Matrix
 
 /-!
 A finite, matrix-parametrized latent-shift SCM and its observable and target summaries.
@@ -11,8 +15,7 @@ This deliberately stays at the finite-algebraic level; the sampling file supplie
 conversion to probability measures.
 -/
 
-open scoped BigOperators
-open Finset Matrix
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

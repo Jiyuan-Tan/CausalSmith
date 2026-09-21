@@ -3,16 +3,22 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Ridge.Finite
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.LinearAlgebra.Matrix.PosDef
+
+module
+public import Causalean.ML.Ridge.Finite
+public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.LinearAlgebra.Matrix.PosDef
 
 /-! # Ridge regression — closed form
 
 For `λ > 0` the ridge Gram matrix `XᵀX + λI` is positive definite, hence
 invertible, so the ridge coefficient `β̂ = (XᵀX + λI)⁻¹ Xᵀy` is the unique
 solution of the ridge normal equations — no full-rank assumption on `X` needed.
+Here `λ` is the penalty on the unnormalized sum-of-squares objective: for the
+average-loss convention with penalty `λavg`, pass `λ = |Obs| · λavg`.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 
@@ -20,20 +26,21 @@ open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param] [DecidableEq Param]
 
-/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set whose equality
-can be decided](hyp:Param),
-[a design matrix](hyp:X), [an outcome vector](hyp:y), and [a ridge penalty weight](hyp:lam),
-the [closed-form ridge coefficient vector](goal) is the totalized inverse of the design
-matrix's cross-product matrix plus the penalty weight times the identity—equal to its ordinary
-inverse when that matrix is invertible—multiplied by the design matrix transposed times the
-outcome vector. -/
+/-- [The closed-form ridge coefficient](goal) applies
+[the inverse regularized Gram to the design--outcome cross-product](step:1). It uses
+[a design matrix and outcome vector](hyp:X,y) over
+[finite observation and decidable coefficient indices](hyp:Obs,Param) with
+[ridge penalty weight](hyp:lam). The inverse is ordinary when the
+regularized matrix is invertible; the unnormalized convention makes an averaged-loss penalty
+equal to this weight divided by the observation count. -/
 noncomputable def ridgeCoef
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (lam : ℝ) : Param → ℝ :=
   ((Xᵀ * X) + lam • (1 : Matrix Param Param ℝ))⁻¹ *ᵥ (Xᵀ *ᵥ y)
 
 set_option linter.unusedFintypeInType false in
-/-- For [a strictly positive ridge penalty `λ`](hyp:hlam), [the ridge Gram matrix `XᵀX + λI`
-built from a finite design matrix `X` is positive definite](goal). -/
+/-- [A positive ridge penalty makes the design Gram positive definite](goal) for
+[the finite design matrix](hyp:X) over [the observation and coefficient indices](hyp:Obs,Param),
+because [the penalty is positive](hyp:hlam). -/
 theorem ridgeGram_posDef
     (X : Matrix Obs Param ℝ) {lam : ℝ} (hlam : 0 < lam) :
     ((Xᵀ * X) + lam • (1 : Matrix Param Param ℝ)).PosDef := by
@@ -44,9 +51,10 @@ theorem ridgeGram_posDef
     exact Matrix.PosDef.smul Matrix.PosDef.one hlam
   exact Matrix.PosDef.posSemidef_add hpsd hI
 
-/-- For [a strictly positive ridge penalty `λ`](hyp:hlam), [the closed-form ridge coefficient
-`(XᵀX + λI)⁻¹Xᵀy`, built from a finite design matrix `X` and outcome vector `y`, satisfies the
-ridge normal equations `(XᵀX + λI)β̂ = Xᵀy`](goal). -/
+/-- [The closed-form ridge coefficient satisfies the ridge normal equations](goal) for
+[the finite design and outcome vectors](hyp:X,y) over
+[the observation and coefficient indices](hyp:Obs,Param) when
+[the ridge penalty is strictly positive](hyp:hlam). -/
 theorem ridgeCoef_normalEq
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) {lam : ℝ} (hlam : 0 < lam) :
     ((Xᵀ * X) + lam • (1 : Matrix Param Param ℝ)) *ᵥ ridgeCoef X y lam = Xᵀ *ᵥ y := by
@@ -58,8 +66,11 @@ theorem ridgeCoef_normalEq
   dsimp [ridgeCoef, G]
   rw [Matrix.mulVec_mulVec, Matrix.mul_nonsing_inv _ hGdet, Matrix.one_mulVec]
 
-/-- For `λ > 0`, every solution of the ridge normal equations is the closed-form
-ridge coefficient. -/
+/-- [The closed-form ridge coefficient uniquely solves the normal equations](goal):
+[any candidate coefficient vector](hyp:β) for [the finite design and response vectors](hyp:X,y)
+over [the observation and coefficient indices](hyp:Obs,Param) must
+equal it when [the ridge penalty is strictly positive](hyp:hlam) and
+[the candidate satisfies the equations](hyp:hNE). -/
 theorem ridgeCoef_unique
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) {lam : ℝ} (hlam : 0 < lam)
     {β : Param → ℝ}

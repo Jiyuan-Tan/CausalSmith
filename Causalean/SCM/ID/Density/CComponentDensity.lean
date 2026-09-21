@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Density.ChainRuleDensity
+module
+public import Causalean.SCM.ID.Density.ChainRuleDensity
 
 /-! # c-component regrouping of the chain-rule density
 
@@ -20,6 +21,13 @@ This file performs the regrouping (`qFactorDensityProduct_eq_prod_cComponentFact
 and isolates the per-component scalar factor `cComponentDensityFactor`, which the
 next layer identifies with Tian's `Q[C]` density.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 

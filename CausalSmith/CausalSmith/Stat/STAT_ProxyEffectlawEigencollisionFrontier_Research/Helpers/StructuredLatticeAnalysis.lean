@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.LatticeEstimator
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.LatticeEstimator
 
 /-!
 # Quantitative facts for the paper's structured lattice
@@ -7,6 +8,8 @@ This module collects the paper-local numerical and model consequences used by th
 structured-lattice estimator.  It is intentionally separate from the reusable collision-safe
 spectral substrate: the lattice height and its constants belong to this paper's construction.
 -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

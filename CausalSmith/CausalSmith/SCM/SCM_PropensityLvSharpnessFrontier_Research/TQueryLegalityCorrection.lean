@@ -1,8 +1,11 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.QueryEndpoints
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryGap
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TBowMixtureCompleteness
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.QueryEndpoints
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryGap
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TBowMixtureCompleteness
 
 /-! # Mutual-support legality correction and query endpoints -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

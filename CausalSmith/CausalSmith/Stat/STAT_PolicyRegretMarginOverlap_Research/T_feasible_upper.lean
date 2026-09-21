@@ -11,8 +11,11 @@ bound as explicit `Prop` hypotheses. The theorem body assembles the master
 bound and deterministic exponent balance.
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers
+
+public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

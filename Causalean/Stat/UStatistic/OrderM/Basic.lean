@@ -1,22 +1,8 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Fixed-order U-statistics
-
-This file defines fixed-order U-statistics for kernels on `m` sample points.  The
-sample statistic averages the kernel over ordered injective tuples from the first
-`n` observations, so for symmetric kernels it is the standard U-statistic
-normalization.  It also defines the population mean, the first Hoeffding
-projection, and the higher-order residual left after subtracting the mean and
-all first projections.
--/
-
-import Causalean.Stat.UStatistic.Basic
-import Causalean.Tactic.IntegralLinearity
-import Mathlib.Data.Fintype.CardEmbedding
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import Causalean.Stat.UStatistic.Basic
+public import Causalean.Tactic.IntegralLinearity
+public import Mathlib.Data.Fintype.CardEmbedding
+public import Mathlib.MeasureTheory.Constructions.Pi
 
 /-!
 # Fixed-order U-statistics
@@ -26,16 +12,26 @@ core objects are `injectiveTuples`, `injectiveTupleCount`, `uStatisticOrder`,
 `uMeanOrder`, the coordinatewise first projections `uProjOrderAt` and
 `uProjOrder`, and the residual kernel `uDegenOrder`.
 
-The main structural results are the falling-factorial tuple counts
+For symmetric kernels, averaging over ordered injective tuples agrees with the
+usual U-statistic normalization. The main structural results are the
+falling-factorial tuple counts
 `injectiveTuples_card_eq_descFactorial` and
-`injectiveTupleCount_eq_descFactorial`, the pointwise Hoeffding decomposition
-`hoeffding_decomp_order`, centering and integrability lemmas for the first-order
+`injectiveTupleCount_eq_descFactorial`, the pointwise Hájek decomposition
+`hajek_decomp_order`, centering and integrability lemmas for the first-order
 influence function, and `uDegenOrder_integral_tail_eq_zero`, which proves
 coordinatewise first-order degeneracy of the residual under the stated
 finite-product/Fubini hypotheses.  The order-2 compatibility layer is supplied
 by `pairKernel`, `sum_injectiveTuples_two_eq_offDiag`, and
 `uStatisticOrder_two_eq_uStatistic`.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -46,16 +42,26 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 /-! ## Ordered injective tuples -/
 
-/-- For [a tuple length](hyp:m) and [a number of available sample positions](hyp:n), [the collection of ordered injective tuples](goal) consists of all ordered selections of the specified length whose entries are distinct positions among the first specified number of observations. -/
+/-- For [a tuple length](hyp:m) and
+[a number of available sample positions](hyp:n),
+[the collection of ordered injective tuples](goal) consists of all ordered selections of
+the specified length whose entries are distinct positions among the first specified number
+of observations. -/
 noncomputable def injectiveTuples (m n : ℕ) : Finset (Fin m → Fin n) := by
   classical
   exact Finset.univ.filter Function.Injective
 
-/-- For [a tuple length](hyp:m) and [a number of available sample positions](hyp:n), [the ordered injective-tuple count](goal) is the real-valued number of ordered selections of that length with distinct entries among the first specified number of observations. -/
+/-- For [a tuple length](hyp:m) and
+[a number of available sample positions](hyp:n), [the ordered injective-tuple count](goal)
+is the real-valued number of ordered selections of that length with distinct entries among
+the first specified number of observations. -/
 noncomputable def injectiveTupleCount (m n : ℕ) : ℝ :=
   ((injectiveTuples m n).card : ℝ)
 
-/-- For [a domain size](hyp:m) and [a codomain size](hyp:n), [the equivalence between injective maps and embeddings](goal) identifies every injective map from an $m$-element index set to an $n$-element index set with the corresponding embedding, and conversely. -/
+/-- For [a domain size](hyp:m) and [a codomain size](hyp:n),
+[the equivalence between injective maps and embeddings](goal) identifies every injective
+map from an $m$-element index set to an $n$-element index set with the corresponding
+embedding, and conversely. -/
 noncomputable def injectiveSubtypeEquivEmbedding (m n : ℕ) :
     {t : Fin m → Fin n // Function.Injective t} ≃ (Fin m ↪ Fin n) where
   toFun t := ⟨t.1, t.2⟩
@@ -82,22 +88,37 @@ theorem injectiveTupleCount_eq_descFactorial (m n : ℕ) :
 
 /-! ## Basic order-`m` objects -/
 
-/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [an order-$m$ real-valued kernel](hyp:m,h), and [a sample size](hyp:n), [the fixed-order U-statistic](goal) maps each sample outcome to the average of the kernel over all ordered $m$-tuples of distinct observations among its first $n$ observations. -/
+/-- Given [an independent and identically distributed sample on a measurable sample space,
+with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S),
+[an order-$m$ real-valued kernel](hyp:m,h), and [a sample size](hyp:n),
+[the fixed-order U-statistic](goal) maps each sample outcome to the average of the kernel
+over all ordered $m$-tuples of distinct observations among its first $n$ observations. -/
 noncomputable def uStatisticOrder (S : IIDSample Ω X μ P) {m : ℕ}
     (h : (Fin m → X) → ℝ) (n : ℕ) : Ω → ℝ :=
   fun ω => (injectiveTupleCount m n)⁻¹ *
     ∑ t ∈ injectiveTuples m n, h (fun j => S.Z (t j : ℕ) ω)
 
-/-- Given [a measurable observation space and an order-$m$ real-valued kernel on it](hyp:X,m,h) and [a measure on that space](hyp:P), [the population mean of the kernel](goal) is its integral under the $m$-fold product of that measure. -/
+/-- Given [a measurable observation space and an order-$m$ real-valued kernel on
+it](hyp:X,m,h) and [a measure on that space](hyp:P),
+[the population mean of the kernel](goal) is its integral under the $m$-fold product of
+that measure. -/
 noncomputable def uMeanOrder {m : ℕ} (h : (Fin m → X) → ℝ) (P : Measure X) : ℝ :=
   ∫ z, h z ∂(Measure.pi fun _ : Fin m => P)
 
-/-- Given [an order $m$](hyp:m), [a distinguished coordinate](hyp:j), [a value in the observation space](hyp:X,x), and [values for every remaining coordinate](hyp:tail), [the completed coordinate tuple](goal) assigns the given value to the distinguished coordinate and the supplied remaining values to all other coordinates. -/
+/-- Given [an order $m$](hyp:m), [a distinguished coordinate](hyp:j),
+[a value in the observation space](hyp:X,x), and
+[values for every remaining coordinate](hyp:tail), [the completed coordinate tuple](goal)
+assigns the given value to the distinguished coordinate and the supplied remaining values
+to all other coordinates. -/
 def insertCoord {m : ℕ} (j : Fin m) (x : X) (tail : ({k : Fin m // k ≠ j}) → X) :
     Fin m → X :=
   fun k => if hkj : k = j then x else tail ⟨k, hkj⟩
 
-/-- Given [an order-$m$ real-valued kernel](hyp:X,m,h), [a distinguished coordinate](hyp:j), and [a measure on the observation space](hyp:P), [the coordinate-specific first Hoeffding projection](goal) maps a proposed value at that coordinate to the kernel integrated over the product measure for all other coordinates, minus the kernel's population mean.
+/-- Given [an order-$m$ real-valued kernel](hyp:X,m,h),
+[a distinguished coordinate](hyp:j), and [a measure on the observation space](hyp:P),
+[the coordinate-specific first Hoeffding projection](goal) maps a proposed value at that
+coordinate to the kernel integrated over the product measure for all other coordinates,
+minus the kernel's population mean.
 
 The distinguished coordinate is supplied explicitly; for symmetric kernels all choices agree. -/
 noncomputable def uProjOrderAt {m : ℕ} (j : Fin m) (h : (Fin m → X) → ℝ)
@@ -107,12 +128,20 @@ noncomputable def uProjOrderAt {m : ℕ} (j : Fin m) (h : (Fin m → X) → ℝ)
         h (insertCoord j x tail) ∂(Measure.pi fun _ : {k : Fin m // k ≠ j} => P))
       - uMeanOrder h P
 
-/-- Given [a positive order $m$](hyp:m), [an order-$m$ real-valued kernel](hyp:X,h), and [a measure on the observation space](hyp:P), [the first Hoeffding projection](goal) is the coordinate-specific first projection obtained by treating the first coordinate as distinguished. -/
+/-- Given [a positive order $m$](hyp:m),
+[an order-$m$ real-valued kernel](hyp:X,h), and
+[a measure on the observation space](hyp:P), [the first Hoeffding projection](goal) is the
+coordinate-specific first projection obtained by treating the first coordinate as
+distinguished. -/
 noncomputable def uProjOrder {m : ℕ} [NeZero m] (h : (Fin m → X) → ℝ)
     (P : Measure X) : X → ℝ :=
   uProjOrderAt (⟨0, Nat.pos_of_ne_zero (NeZero.ne m)⟩ : Fin m) h P
 
-/-- Given [a positive order $m$](hyp:m), [an order-$m$ real-valued kernel](hyp:X,h), and [a measure on the observation space](hyp:P), [the higher-order residual kernel](goal) maps each $m$-tuple to the original kernel value minus its population mean and minus the sum of all coordinate-specific first Hoeffding projections at that tuple. -/
+/-- Given [a positive order $m$](hyp:m),
+[an order-$m$ real-valued kernel](hyp:X,h), and
+[a measure on the observation space](hyp:P), [the higher-order residual kernel](goal) maps
+each $m$-tuple to the original kernel value minus its population mean and minus the sum of
+all coordinate-specific first Hoeffding projections at that tuple. -/
 noncomputable def uDegenOrder {m : ℕ} [NeZero m] (h : (Fin m → X) → ℝ)
     (P : Measure X) : (Fin m → X) → ℝ :=
   fun z => h z - uMeanOrder h P - ∑ j : Fin m, uProjOrderAt j h P (z j)
@@ -121,7 +150,7 @@ noncomputable def uDegenOrder {m : ℕ} [NeZero m] (h : (Fin m → X) → ℝ)
 points `z`](hyp:z), [the kernel value decomposes as the population mean plus the sum of the `m`
 coordinatewise first Hoeffding projections plus the degenerate higher-order residual kernel
 evaluated at `z`](goal). -/
-theorem hoeffding_decomp_order {m : ℕ} [NeZero m] (h : (Fin m → X) → ℝ)
+theorem hajek_decomp_order {m : ℕ} [NeZero m] (h : (Fin m → X) → ℝ)
     (P : Measure X) (z : Fin m → X) :
     h z = uMeanOrder h P + (∑ j : Fin m, uProjOrderAt j h P (z j)) +
       uDegenOrder h P z := by
@@ -317,7 +346,9 @@ theorem uDegenOrder_integral_tail_eq_zero [IsProbabilityMeasure P] {m : ℕ}
 
 /-! ## Order-2 compatibility -/
 
-/-- Given [an observation space](hyp:X) and [a real-valued binary kernel](hyp:h), [the corresponding two-coordinate kernel](goal) maps an ordered pair to the binary kernel evaluated at its first and second entries. -/
+/-- Given [an observation space](hyp:X) and
+[a real-valued binary kernel](hyp:h), [the corresponding two-coordinate kernel](goal)
+maps an ordered pair to the binary kernel evaluated at its first and second entries. -/
 def pairKernel (h : X → X → ℝ) : (Fin 2 → X) → ℝ :=
   fun z => h (z 0) (z 1)
 
@@ -422,7 +453,9 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 /-! ## Normalized finite-coordinate statistics -/
 
-/-- For [a finite coordinate family](hyp:ι) and [a sample size](hyp:n), [the collection of injective sample assignments](goal) consists of all assignments sending distinct coordinates to distinct positions among the first $n$ observations. -/
+/-- For [a finite coordinate family](hyp:ι) and [a sample size](hyp:n),
+[the collection of injective sample assignments](goal) consists of all assignments sending
+distinct coordinates to distinct positions among the first $n$ observations. -/
 noncomputable def finiteInjectiveTuples (ι : Type*) [Fintype ι] (n : ℕ) :
     Finset (ι → Fin n) := by
   classical
@@ -446,17 +479,35 @@ theorem finiteInjectiveTuples_card (ι : Type*) [Fintype ι] (n : ℕ) :
   rw [← hsub, Fintype.card_congr e]
   simp [Fintype.card_embedding_eq]
 
-/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [a finite coordinate family](hyp:ι), [a real-valued kernel indexed by that family](hyp:k), and [a sample size](hyp:n), [the normalized finite-kernel statistic](goal) maps each sample outcome to the average kernel value over every injective assignment of the coordinate family to the first $n$ sample positions. This is an average when the family has at most $n$ members; otherwise there are no such assignments, the normalizing count is zero, and the value is zero by the inverse-of-zero convention. -/
+/-- Given [an independent and identically distributed sample on a measurable sample space,
+with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S),
+[a finite coordinate family](hyp:ι),
+[a real-valued kernel indexed by that family](hyp:k), and [a sample size](hyp:n),
+[the normalized finite-kernel statistic](goal) maps each sample outcome to the average
+kernel value over every injective assignment of the coordinate family to the first $n$
+sample positions. This is an average when the family has at most $n$ members; otherwise
+there are no such assignments, the normalizing count is zero, and the value is zero by the
+inverse-of-zero convention. -/
 noncomputable def normalizedFiniteKernelStatistic (S : Causalean.Stat.IIDSample Ω X μ P)
     {ι : Type*} [Fintype ι] (k : (ι → X) → ℝ) (n : ℕ) : Ω → ℝ :=
   fun ω => ((n.descFactorial (Fintype.card ι) : ℝ)⁻¹) *
     ∑ t ∈ finiteInjectiveTuples ι n, k (fun i => S.Z (t i : ℕ) ω)
 
-/-- Given [an observation space](hyp:X), [an order](hyp:r), and [one real-valued function of an observation for each coordinate](hyp:f), [the ordered-product kernel](goal) maps an ordered $r$-tuple to the product of its coordinate-specific function values. -/
+/-- Given [an observation space](hyp:X), [an order](hyp:r), and
+[one real-valued function of an observation for each coordinate](hyp:f),
+[the ordered-product kernel](goal) maps an ordered $r$-tuple to the product of its
+coordinate-specific function values. -/
 def orderedProductKernel {r : ℕ} (f : Fin r → X → ℝ) : (Fin r → X) → ℝ :=
   fun z => ∏ i, f i (z i)
 
-/-- Given [an independent and identically distributed sample on a measurable sample space, with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S), [an order](hyp:r), [one real-valued function of an observation for each coordinate](hyp:f), and [a sample size](hyp:n), [the normalized ordered-product statistic](goal) maps each sample outcome to the average, over all injective ordered $r$-tuples from its first $n$ observations, of the product of the corresponding coordinate-specific function values. For $r > n$ there are no such tuples and the value is zero by convention. -/
+/-- Given [an independent and identically distributed sample on a measurable sample space,
+with a specified sample-space measure and observation-space measure](hyp:Ω,X,μ,P,S),
+[an order](hyp:r),
+[one real-valued function of an observation for each coordinate](hyp:f), and
+[a sample size](hyp:n), [the normalized ordered-product statistic](goal) maps each sample
+outcome to the average, over all injective ordered $r$-tuples from its first $n$
+observations, of the product of the corresponding coordinate-specific function values.
+For $r > n$ there are no such tuples and the value is zero by convention. -/
 noncomputable def normalizedOrderedProductStatistic
     (S : Causalean.Stat.IIDSample Ω X μ P) {r : ℕ}
     (f : Fin r → X → ℝ) (n : ℕ) : Ω → ℝ :=

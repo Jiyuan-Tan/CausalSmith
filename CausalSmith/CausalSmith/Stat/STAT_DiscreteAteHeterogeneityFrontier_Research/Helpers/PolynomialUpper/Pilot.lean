@@ -1,7 +1,10 @@
 /- Pilot-sandwich interface for the heavy/light polynomial program. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.Calibration
-import Causalean.Stat.SampleSplit.FiniteCategoryPilot
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.Calibration
+public import Causalean.Stat.SampleSplit.FiniteCategoryPilot
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

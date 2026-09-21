@@ -3,19 +3,15 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Structure-agnostic ATE lower bound: the *second* (propensity-dominant) construction
+# Structure-agnostic ATE lower bound: the second cell-varying construction
 
-`VaryingCenterCase1/Construction.lean` builds the Case-1 construction of Jin–Syrgkanis 2024
-(eq. (17), `e_n' ≥ f_n`), which establishes the product rate `s ≍ √(εg·εm)` only
-when the **outcome** budget dominates (`εg ≳ εm`): there the treated-arm bump
-`α + β/g₁` carries the `√εg` weight and the propensity bump `β` carries `√εm`, so
-one needs `√εg ≳ √εm`.
+`VaryingCenterCase1/Construction.lean` builds the Case-1-shaped family from
+Jin–Syrgkanis 2024
+(eq. (17), `e_n' ≥ f_n`).
 
 This file builds the **symmetric second construction** (Jin–Syrgkanis 2024,
-eq. (18), Case 2 `f_n > e_n'`), which covers the opposite regime `εm > εg`.  The
-roles of the two nuisances are swapped: now the *propensity* deviation is the large
-one (`O(α+β)`, carrying `√εm`) and the *outcome* deviation is the small one
-(`O(β)`, carrying `√εg`).  In the finite-cell model of `Model.lean` (with the
+eq. (20), Case 2 `f_n > e_n'`). Its formulas swap the roles played by the
+two nuisance perturbations in Case 1. In the finite-cell model of `Model.lean` (with the
 within-cell weight `ŵ ≡ 1`) the construction is, per pair `j` with sign
 `Δ = Δ(λ,x) ∈ {−1,+1}`:
 
@@ -23,7 +19,7 @@ within-cell weight `ŵ ≡ 1`) the construction is, per pair `j` with sign
   `gλ(1,x) = g₁ j / D`,        with `D := 1 + (β/g₁ j)·Δ − α·β`,
   `mλ(x)   = m₀ j · (1 + α·g₁ j·Δ) · D`.
 
-As in Case 1 the family is **non-linear in λ** (the outcome arm divides by `D`),
+As in the first family, this family is **non-linear in λ** (the outcome arm divides by `D`),
 but the *observed* masses are again polynomial in `Δ`: the division cancels in
 `mλ·gλ(1) = m₀ g₁ (1 + α g₁ Δ)`, and the propensity collapses (using `Δ² = 1`) to
 the affine form
@@ -38,15 +34,18 @@ class membership, and the χ² indistinguishability live in the sibling `Varying
 files.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
 
-/-! # Propensity-Dominant Construction
+/-! # Second Cell-Varying Construction
 
 This file defines the second cell-varying perturbation family for the
-structure-agnostic average treatment effect lower bound, in the regime where the
-propensity-error budget is larger than the outcome-regression budget.  It proves
-that the constructed finite observed-data laws are valid probability models.
+structure-agnostic average treatment effect lower bound. It proves that the
+constructed finite observed-data laws are valid probability models. The interface
+does not impose an ordering on the two nuisance budgets.
 -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -54,10 +53,10 @@ open scoped BigOperators
 
 variable {K : ℕ}
 
-/-- **Second (propensity-dominant) cell-varying construction data** for the same style of
-Rademacher perturbation as `VarConstr` but with the roles of the two nuisances swapped, so
-the propensity carries the larger deviation. It packages [two bump-magnitude scalars, the
-larger on the propensity and the smaller on the treated outcome arm](hyp:α,β), together with
+/-- **Second cell-varying construction data** for the same style of Rademacher perturbation
+as `VarConstr`, but with the nuisance roles swapped in the formulas. It packages
+[two bump-magnitude scalars appearing in the propensity and treated-outcome
+perturbations](hyp:α,β), together with
 [a nuisance center given by the pair-indexed functions m₀, g₀ and g₁ for the propensity and
 the two potential-outcome regressions](hyp:m₀,g₀,g₁), plus the inequalities certifying that
 [both bump magnitudes are nonnegative](hyp:hα,hβ), [the center is pointwise strictly inside
@@ -67,9 +66,9 @@ perturbation denominator positive](hyp:hgU), [the propensity bump coefficient no
 one, keeping the perturbed propensity nonnegative](hyp:hκ), and [the perturbed propensity to
 stay at most one](hyp:hmU). -/
 structure VarConstr2 (K : ℕ) where
-  /-- Bump magnitude on the propensity (the *large* deviation here). -/
+  /-- Bump magnitude appearing in the propensity perturbation. -/
   α : ℝ
-  /-- Bump magnitude on the treated outcome arm (the *small* deviation here). -/
+  /-- Bump magnitude appearing in the treated-outcome perturbation. -/
   β : ℝ
   /-- Cell-varying propensity center `m̂`. -/
   m₀ : Fin K → ℝ
@@ -98,17 +97,18 @@ namespace VarConstr2
 
 variable (P : VarConstr2 K)
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [a pair of cells](hyp:j), [the propensity bump coefficient](goal) is
-$\beta/g_{1j}+\alpha g_{1j}-\alpha^2\beta g_{1j}$, where the construction supplies the bump magnitudes and the
-treated-arm outcome-regression center. -/
+`β/g₁ⱼ + αg₁ⱼ - α²βg₁ⱼ`, where the construction supplies the bump
+magnitudes and the treated-arm outcome-regression center. -/
 noncomputable def κ (j : Fin K) : ℝ :=
   P.β / P.g₁ j + P.α * P.g₁ j - P.α ^ 2 * P.β * P.g₁ j
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P), [a binary sign vector indexing a perturbation](hyp:lam), and [a covariate
 cell](hyp:x), [the treated-arm denominator](goal) is
-$1+(\beta/g_{1j})\Delta-\alpha\beta$, with $j$ the pair containing that cell and $\Delta$ its signed perturbation. -/
+`1 + (β/g₁ⱼ)Δ - αβ`, where `j` is the pair containing that cell and `Δ`
+is its signed perturbation. -/
 noncomputable def D2 (lam : Fin K → Bool) (x : Fin K × Bool) : ℝ :=
   1 + (P.β / P.g₁ x.1) * Δ lam x - P.α * P.β
 
@@ -141,27 +141,27 @@ theorem D2_pos (lam : Fin K → Bool) (x : Fin K × Bool) : 0 < P.D2 lam x := by
   · rw [h]; nlinarith
   · rw [h]; nlinarith
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P), [the cell-varying propensity center](goal) assigns to each covariate cell
 the construction's baseline propensity for that cell's pair. -/
 noncomputable def mhat2 : (Fin K × Bool) → ℝ := fun x => P.m₀ x.1
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P), [the cell-varying outcome-regression center](goal) assigns the treated-arm
 baseline outcome regression to treated observations and the control-arm baseline outcome
 regression to control observations, using the baseline associated with the cell's pair. -/
 noncomputable def ghat2 : Bool → (Fin K × Bool) → ℝ :=
   fun d x => if d then P.g₁ x.1 else P.g₀ x.1
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [a binary sign vector indexing a perturbation](hyp:lam), [the perturbed
 propensity function](goal) assigns each covariate cell the baseline propensity times
-$(1+\alpha g_{1j}\Delta)$ times the treated-arm denominator, where $j$ is the cell's pair and $\Delta$ is its
-signed perturbation. -/
+`(1 + αg₁ⱼΔ)` times the treated-arm denominator, where `j` is the cell's pair
+and `Δ` is its signed perturbation. -/
 noncomputable def mPert2 (lam : Fin K → Bool) : (Fin K × Bool) → ℝ :=
   fun x => P.m₀ x.1 * ((1 + P.α * P.g₁ x.1 * Δ lam x) * P.D2 lam x)
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [a binary sign vector indexing a perturbation](hyp:lam), [the perturbed
 outcome-regression function](goal) equals the baseline control-arm regression for control
 observations and the baseline treated-arm regression divided by the treated-arm denominator

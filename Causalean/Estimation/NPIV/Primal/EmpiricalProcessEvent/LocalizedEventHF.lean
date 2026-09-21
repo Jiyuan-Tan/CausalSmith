@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventsBase
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventsBase
 
 /-! # Localized Deviation for Products from `H` and `F`
 
@@ -13,6 +14,8 @@ fluctuations of products of candidate primal functions and critic functions in
 the primal NPIV analysis.  Here `HF` denotes the product class formed from
 `h ∈ TC.H` and `f ∈ TC.F`; the result supplies the product-class component of
 the localized empirical-process event used in the rate proof. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -34,7 +37,7 @@ lemma localized_omega_event_for_HF
     [IsProbabilityMeasure μ]
     {β lambda : ℝ}
     {sc : SourceCondition S β}
-    {tb : TikhonovBiasBound S β lambda sc}
+    {tb : TikhonovBiasBoundAt S β lambda sc}
     {n : ℕ} {δ_n : ℝ}
     (regime : LocalizedRegimes S TC sample sc tb n δ_n)
     (hn : 0 < n)
@@ -46,16 +49,19 @@ lemma localized_omega_event_for_HF
             h (S.xOf (sample.Z k ω)) * f (S.zOf (sample.Z k ω))
           - ∫ ω', h (S.xOf (S.W ω')) * f (S.zOf (S.W ω')) ∂μ|
           ≤ 4 * δ_n * criticalRadius (regime.bundle_HF.regime.ψ n)
-            + regime.bundle_HF.regime.b *
-                Real.sqrt (2 * Real.log (1 / δ) / n) := by
+            + 2 * Real.sqrt
+                ((δ_n ^ 2 + 8 * regime.bundle_HF.regime.b * δ_n *
+                    criticalRadius (regime.bundle_HF.regime.ψ n)) *
+                  Real.log (1 / δ) / n)
+            + 8 * regime.bundle_HF.regime.b * Real.log (1 / δ) / n := by
   classical
   let B := regime.bundle_HF
   haveI : IsProbabilityMeasure P_W := by
     rw [← regime.law_W]
     exact Measure.isProbabilityMeasure_map S.meas_W.aemeasurable
   obtain ⟨E₀, hE₀_meas, hE₀_prob, hE₀_bound⟩ :=
-    localized_uniform_deviation B.F B.norm P_W B.X B.X_meas B.F_meas B.regime
-      hδ_pos hδ_le n hn B.crit_le B.crit_pos B.crit_fp
+    localized_uniform_deviation B.F B.norm P_W B.X B.X_meas B.F_meas B.norm_nonneg B.regime
+      hδ_pos hδ_le n hn B.crit_le B.crit_pos
       (B.rad_bdd δ_n le_rfl) (B.rad_int δ_n le_rfl)
   let Ψ : Ω → (Fin n → S.𝒲) := fun ω k => sample.Z k ω
   let E : Set Ω := Ψ ⁻¹' E₀
@@ -113,7 +119,7 @@ lemma localized_omega_event_for_HF_pair
     [IsProbabilityMeasure μ]
     {β lambda : ℝ}
     {sc : SourceCondition S β}
-    {tb : TikhonovBiasBound S β lambda sc}
+    {tb : TikhonovBiasBoundAt S β lambda sc}
     {n : ℕ} {δ_n : ℝ}
     (regime : LocalizedRegimes S TC sample sc tb n δ_n)
     (hn : 0 < n)
@@ -131,8 +137,13 @@ lemma localized_omega_event_for_HF_pair
           ≤ 4 *
               (regime.HF_pair_const * regime.H_diameter * δ_n + δ_n) *
                 criticalRadius (regime.bundle_HF.regime.ψ n)
-            + regime.bundle_HF.regime.b *
-                Real.sqrt (2 * Real.log (1 / δ) / n) := by
+            + 2 * Real.sqrt
+                (((regime.HF_pair_const * regime.H_diameter * δ_n + δ_n) ^ 2 +
+                    8 * regime.bundle_HF.regime.b *
+                      (regime.HF_pair_const * regime.H_diameter * δ_n + δ_n) *
+                      criticalRadius (regime.bundle_HF.regime.ψ n)) *
+                  Real.log (1 / δ) / n)
+            + 8 * regime.bundle_HF.regime.b * Real.log (1 / δ) / n := by
   classical
   let B := regime.bundle_HF
   let r : ℝ := regime.HF_pair_const * regime.H_diameter * δ_n + δ_n
@@ -155,8 +166,8 @@ lemma localized_omega_event_for_HF_pair
     dsimp [r]
     nlinarith [B.crit_le, hr_delta]
   obtain ⟨E₀, hE₀_meas, hE₀_prob, hE₀_bound⟩ :=
-    localized_uniform_deviation B.F B.norm P_W B.X B.X_meas B.F_meas B.regime
-      hδ_pos hδ_le n hn hr_lb B.crit_pos B.crit_fp
+    localized_uniform_deviation B.F B.norm P_W B.X B.X_meas B.F_meas B.norm_nonneg B.regime
+      hδ_pos hδ_le n hn hr_lb B.crit_pos
       (B.rad_bdd r hr_delta) (B.rad_int r hr_delta)
   let Ψ : Ω → (Fin n → S.𝒲) := fun ω k => sample.Z k ω
   let E : Set Ω := Ψ ⁻¹' E₀
@@ -217,6 +228,7 @@ lemma localized_omega_event_for_HF_pair
 
 /-- **Peeled pair-form localized deviation event for the cross class `star(H · F)`.** Given [a
 positive sample size `n`](hyp:hn) and [a confidence level `δ` in `(0, 1]`](hyp:hδ_pos,hδ_le),
+[a fixed-level peeling floor](hyp:floor),
 [there is a single event of probability at least `1 − δ`, valid simultaneously for every pair
 `h₁, h₂` in the primal class `TC.H` and every critic `f` in `TC.F`, on which the gap between the
 empirical and population means of `(h₁ − h₂) · f` is bounded by `8 · HF_pair_const · δ_n² ·
@@ -225,8 +237,8 @@ and `HF_pair_const` comes from the supplied localized-regime witness.
 
 This is the Foster-style dyadic peeling upgrade of
 `localized_omega_event_for_HF_pair`: the leading term scales with the
-actual strong gap `‖h₁ - h₂‖`, while the per-shell McDiarmid slack is
-absorbed into `δ_n²` using `regime.peeling_slack_HF`. -/
+actual strong gap `‖h₁ - h₂‖`, while the per-shell Bousquet slack is
+absorbed into `δ_n²` using the supplied floor. -/
 lemma localized_omega_event_for_HF_pair_peeled
     {S : OperatorSystem Ω μ} {TC : TRAEClasses S}
     {P_W : Measure S.𝒲}
@@ -234,11 +246,12 @@ lemma localized_omega_event_for_HF_pair_peeled
     [IsProbabilityMeasure μ]
     {β lambda : ℝ}
     {sc : SourceCondition S β}
-    {tb : TikhonovBiasBound S β lambda sc}
+    {tb : TikhonovBiasBoundAt S β lambda sc}
     {n : ℕ} {δ_n : ℝ}
     (regime : LocalizedRegimes S TC sample sc tb n δ_n)
     (hn : 0 < n)
-    {δ : ℝ} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 1) :
+    {δ : ℝ} (hδ_pos : 0 < δ) (hδ_le : δ ≤ 1)
+    (floor : PeelingFloor regime δ) :
     ∃ E : Set Ω,
       MeasurableSet E ∧ μ E ≥ 1 - ENNReal.ofReal δ ∧
       ∀ ω ∈ E, ∀ h₁, ∀ hh₁ : h₁ ∈ TC.H, ∀ h₂, ∀ hh₂ : h₂ ∈ TC.H,
@@ -249,7 +262,7 @@ lemma localized_omega_event_for_HF_pair_peeled
             - ∫ ω',
                 (h₁ (S.xOf (S.W ω')) - h₂ (S.xOf (S.W ω')))
                   * f (S.zOf (S.W ω')) ∂μ|
-          ≤ 8 * regime.HF_pair_const * δ_n ^ 2 *
+          ≤ 10 * regime.HF_pair_const * δ_n ^ 2 *
               S.strongNorm (S.hL2 (TC.H_subset hh₁) - S.hL2 (TC.H_subset hh₂))
             + 5 * δ_n ^ 2 := by
   classical
@@ -257,22 +270,17 @@ lemma localized_omega_event_for_HF_pair_peeled
   let Rmax : ℝ := max δ_n (regime.HF_pair_const * regime.H_diameter * δ_n)
   have hδn_pos : 0 < δ_n := lt_of_lt_of_le B.crit_pos B.crit_le
   have hδn_nonneg : 0 ≤ δ_n := le_of_lt hδn_pos
-  have hRmax_lb : δ_n ≤ Rmax := by
-    exact le_max_left _ _
-  have hslack : ∀ K : ℕ,
-      Rmax ≤ δ_n * (2 : ℝ) ^ K →
-      B.regime.b * Real.sqrt
-          (2 * Real.log (2 * ((K : ℝ) + 1) / δ) / n)
-        ≤ δ_n ^ 2 := by
-    intro K hK
-    have htop : regime.HF_pair_const * regime.H_diameter * δ_n
-        ≤ δ_n * (2 : ℝ) ^ K := by
-      exact (le_max_right _ _).trans hK
-    simpa [B] using regime.peeling_slack_HF K δ hδ_pos hδ_le hn htop
+  have hslack : ∃ K : ℕ,
+      Rmax ≤ δ_n * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 8 * B.regime.b) * Real.log (2 * ((K : ℝ) + 1) / δ) / n)
+        + 8 * B.regime.b * Real.log (2 * ((K : ℝ) + 1) / δ) / (n * δ_n)
+        ≤ δ_n := by
+    simpa [B, Rmax] using floor.HF
   obtain ⟨E, hE_meas, hE_prob, hE_bound⟩ :=
     localized_omega_event_sharp_for_bundle
       (S := S) (P_W := P_W) (sample := sample) (B := B)
-      regime.law_W hn hδ_pos hδ_le hδn_pos hRmax_lb hslack
+      regime.law_W hn hδ_pos hδ_le hδn_pos hslack
   refine ⟨E, hE_meas, hE_prob, ?_⟩
   intro ω hω h₁ hh₁ h₂ hh₂ f hf
   let i : B.ι := regime.interp_HF_idx_pair h₁ h₂ hh₁ hh₂ f hf
@@ -315,13 +323,13 @@ lemma localized_omega_event_for_HF_pair_peeled
           - ∫ ω',
               (h₁ (S.xOf (S.W ω')) - h₂ (S.xOf (S.W ω')))
                 * f (S.zOf (S.W ω')) ∂μ|
-        ≤ 8 * δ_n * B.norm (B.F i) + 5 * δ_n ^ 2 := by
+        ≤ 10 * δ_n * B.norm (B.F i) + 5 * δ_n ^ 2 := by
     simpa [B, i, heval_sample, heval_pop] using hdev
   have hrate :
-      8 * δ_n * B.norm (B.F i) + 5 * δ_n ^ 2
-        ≤ 8 * regime.HF_pair_const * δ_n ^ 2 * gap + 5 * δ_n ^ 2 := by
+      10 * δ_n * B.norm (B.F i) + 5 * δ_n ^ 2
+        ≤ 10 * regime.HF_pair_const * δ_n ^ 2 * gap + 5 * δ_n ^ 2 := by
     have hlead := mul_le_mul_of_nonneg_left hi_gap
-      (by nlinarith [hδn_nonneg] : 0 ≤ 8 * δ_n)
+      (by nlinarith [hδn_nonneg] : 0 ≤ 10 * δ_n)
     nlinarith
   simpa [gap] using hdev_concrete.trans hrate
 

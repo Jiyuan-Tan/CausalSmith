@@ -14,7 +14,8 @@ over a finite design family is immediate from the generic optimal-design existen
 to the worst-case-risk criterion.
 -/
 
-import Causalean.Experimentation.DesignBased.Optimality
+module
+public import Causalean.Experimentation.DesignBased.Optimality
 
 /-! # Minimax design criteria
 
@@ -26,6 +27,8 @@ The definition `worstRisk` takes the maximum of `R y D` over a nonempty finite s
 `bestRisk`, `regret`, and `regret_nonneg` formalize statewise regret relative to the best design
 available in the same finite family.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

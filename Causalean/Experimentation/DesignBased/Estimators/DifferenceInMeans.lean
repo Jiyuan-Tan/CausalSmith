@@ -9,14 +9,15 @@ The canonical two-arm experiment: each unit `i` has potential outcomes `Y1 i` (t
 (control), exactly `n₁` of the `N` units are treated by complete randomization, and the estimand is
 the **sample average treatment effect** `τ = (1/N) ∑ (Y1 i − Y0 i)`.  The **difference-in-means**
 estimator `τ̂ = (treated mean) − (control mean)` averages the observed outcomes within each arm.
-This file records the estimator, the estimand, and the theorem that the difference in means is
-**unbiased** for the SATE under complete randomization — a direct consequence of the first-order
-inclusion probability `n₁ / N`.  The randomization variance (the Neyman variance) is left as a
-target for the variance development.
+This file records the estimator, its unbiasedness, and the usual separate-arm sample-variance
+estimator. The interference-specific transport of Neyman's variance results lives in
+`TwoStageInterference.DesignBasedDifferenceInMeans`.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
-import Causalean.Experimentation.DesignBased.Risk
+module
+public import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
+public import Causalean.Experimentation.DesignBased.Estimators.NeymanVariance
+public import Causalean.Experimentation.DesignBased.Risk
 
 /-! # Difference-in-means under complete randomization
 
@@ -28,8 +29,11 @@ This file defines the finite-population target `sateEstimand`, the realized arm 
 `E_treatedMean` and `E_controlMean` prove that each arm mean estimates its finite-population arm
 mean, and `E_diffInMeans_eq_sate` packages the consequence: when `0 < n₁ < N`, the expected
 difference in means equals `sateEstimand`. The companion theorem `unbiased_diffInMeans` states the
-same fact using the generic `FiniteDesign.Unbiased` predicate.
+same fact using the generic `FiniteDesign.Unbiased` predicate. The generic finite-population
+variance quantities used by downstream variance results are defined in `NeymanVariance`.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -205,6 +209,18 @@ theorem unbiased_diffInMeans (n₁ : ℕ) (hn1 : 0 < n₁)
     (completeRandomization n₁ (Nat.le_of_lt hn0)).Unbiased (diffInMeans n₁ Y1 Y0)
       (sateEstimand Y1 Y0) :=
   E_diffInMeans_eq_sate n₁ hn1 hn0 Y1 Y0
+
+namespace DifferenceInMeans
+
+/-- For [a population of `n` units](hyp:n), [a treated count](hyp:K), [treated and control
+potential outcomes](hyp:Y1,Y0), and [a treated set](hyp:S), the [usual conservative variance
+estimator for difference in means](goal) is the transported sum of the two observed arm sample
+variances divided by their arm sizes. -/
+noncomputable def varianceEstimator {n : ℕ} (K : ℕ) (Y1 Y0 : Fin n → ℝ)
+    (S : {S : Finset (Fin n) // S.card = K}) : ℝ :=
+  varHat K Y1 Y0 (fun i => decide (i ∈ S.val))
+
+end DifferenceInMeans
 
 end DesignBased
 end Experimentation

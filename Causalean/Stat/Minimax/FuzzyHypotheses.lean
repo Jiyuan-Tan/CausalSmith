@@ -1,5 +1,6 @@
-import Causalean.Stat.Minimax.Mixture
-import Causalean.Stat.Minimax.TotalVariation
+module
+public import Causalean.Stat.Minimax.Mixture
+public import Causalean.Stat.Minimax.TotalVariation
 
 /-!
 # Squared-loss lower bounds from two fuzzy hypotheses
@@ -9,6 +10,8 @@ their predictive mixtures into estimator-wise, worst-case, and minimax squared-r
 Risks use `ℝ≥0∞` lower integrals, so arbitrary measurable estimators require no artificial
 integrability or boundedness assumptions.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

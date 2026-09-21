@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
-import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
+public import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
 
 /-!
 # The observed Bernoulli contraction kernel
@@ -8,6 +9,8 @@ This file constructs the hypothesis-independent one-record channel used by the
 radial converse and proves that it is a Markov kernel throughout the declared
 radius range.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

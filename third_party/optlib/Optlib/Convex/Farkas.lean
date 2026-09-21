@@ -3,14 +3,16 @@ Copyright (c) 2024 Shengyang Xu, Chenyi Li. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shengyang Xu, Chenyi Li
 -/
-import Mathlib.Analysis.Convex.Cone.Basic
-import Mathlib.Analysis.Calculus.LocalExtr.Basic
-import Mathlib.Analysis.LocallyConvex.Separation
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.Rank
-import Mathlib.LinearAlgebra.FiniteDimensional.Basic
-import Optlib.Differential.Calculation
-import Optlib.Convex.ClosedCone
+
+module
+public import Mathlib.Analysis.Convex.Cone.Basic
+public import Mathlib.Analysis.Calculus.LocalExtr.Basic
+public import Mathlib.Analysis.LocallyConvex.Separation
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.LinearAlgebra.Matrix.Rank
+public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+public import Optlib.Differential.Calculation
+public import Optlib.Convex.ClosedCone
 
 /-!
 # Farkas
@@ -34,6 +36,8 @@ and a vector $ c \in \mathbb{R}^n $, the following conditions are equivalent:
    - $ c = \sum_{i=1}^p \lambda_i a_i + \sum_{i=1}^q \mu_i b_i $
 
 -/
+
+@[expose] public section
 
 variable {τ σ : Finset ℕ} {n : ℕ} {a : ℕ → EuclideanSpace ℝ (Fin n)}
 variable {b : ℕ → EuclideanSpace ℝ (Fin n)} {c : EuclideanSpace ℝ (Fin n)}

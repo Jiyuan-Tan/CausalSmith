@@ -7,11 +7,13 @@ Authors: Jiyuan Tan
 
 `condIntYofA_eq_h_arm`: on the off-arm stratum `{A = ¬a}`,
 `∫_{A=¬a} Y(a) dμ = ∫_{A=¬a} h(a, W, X) dμ`, using the W-only bridge bundle
-`POProximalSystem.WBasedAssumptions`. Used by Theorem 1 / Corollary 1.
+`POProximalSystem.WBasedAssumptions`. Used by the conditional and marginal
+W-envelope bounds.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers.Common
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers.Common
+public import Causalean.Tactic.CondexpLinearity
 
 /-! # W-proxy bridge identity for partial identification
 
@@ -20,6 +22,10 @@ partial-identification bounds. It reduces the off-arm counterfactual integral
 to an observable bridge-function integral under consistency, latent
 exchangeability, the W-proxy independence condition, and the outcome bridge.
 -/
+
+public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
@@ -37,14 +43,11 @@ variable {P : POSystem}
 
 /-! ### Bridge-substitution identity -/
 
-/-- **Off-arm bridge-substitution identity (W-proxy).** Fix a treatment arm `a` and assume
-[the W-only proximal bridge assumption bundle](hyp:HA) — latent exchangeability of the
-potential outcome `Y(a)` given treatment conditional on the latent confounder and
-covariates, independence of the proxy `W` from treatment given that same conditioning,
-the outcome-bridge equation, and consistency — together with [the treatment and outcome
-variables being distinct](hyp:hAY). Then, restricted to the off-arm stratum `{A ≠ a}`,
-[the average potential outcome `Y(a)` equals the average of the bridge function `h`
-evaluated at `(a, W, X)`](goal): `∫_{A≠a} Y(a) dμ = ∫_{A≠a} h(a, W, X) dμ`.
+/-- **Off-arm bridge-substitution identity (W-proxy).** [The set integral of the
+potential outcome equals the set integral of the outcome bridge on the opposite
+treatment arm](goal), for [the specified treatment arm](hyp:a), under [the W-only
+proximal bridge assumptions](hyp:HA) and [distinct treatment and outcome
+variables](hyp:hAY).
 
 Provided we have:
 
@@ -161,7 +164,7 @@ lemma condIntYofA_eq_h_arm (HA : POProximalSystem.WBasedAssumptions S μ) (a : B
       =ᵐ[μ] μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_UX] := by
     -- Both sides are σ_UX-measurable. We assemble a.e.-equality on
     -- `{A = a}` (the factual arm) and lift via the abstract single-arm
-    -- a.e.-equality lemma `Causalean.ae_eq_of_ae_eq_restrict_arm`.
+    -- a.e.-equality lemma `ae_eq_of_ae_eq_restrict_arm`.
     --
     -- Step 1: on {A=a}, by consistency, Y =ᵐ Y(a), hence
     --         E[Y | σ_AUX] =ᵐ[restrict {A=a}] E[Y(a) | σ_AUX].
@@ -208,15 +211,15 @@ lemma condIntYofA_eq_h_arm (HA : POProximalSystem.WBasedAssumptions S μ) (a : B
         · exact measurable_fst (measurableSet_singleton a)
         · ext ω; rfl
       have hind_zero : ({ω | S.A ω = a}).indicator d =ᵐ[μ] 0 := by
-        simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hd_zero_on_arm
+        simpa using indicator_aeEq_of_aeEq_restrict hs_meas hd_zero_on_arm
       have hd_zero_cond : μ[d | S.σ_AUX] =ᵐ[μ.restrict {ω | S.A ω = a}] 0 := by
         have hindCE_zero : ({ω | S.A ω = a}).indicator (μ[d | S.σ_AUX])
-            =ᵐ[μ] 0 := Causalean.condExp_indicator_aeEq_zero hs_in_m hdint hind_zero
+            =ᵐ[μ] 0 := condExp_indicator_aeEq_zero hs_in_m hdint hind_zero
         have hindCE_zero' :
             ({ω | S.A ω = a}).indicator (μ[d | S.σ_AUX])
               =ᵐ[μ] ({ω | S.A ω = a}).indicator (0 : P.Ω → ℝ) := by
           simpa using hindCE_zero
-        simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
+        simpa using aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
       have hCE_dsub : μ[d | S.σ_AUX]
           =ᵐ[μ] μ[fun ω => HA.h (S.A ω, S.W ω, S.X ω) | S.σ_AUX]
               - μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AUX] :=
@@ -260,7 +263,7 @@ lemma condIntYofA_eq_h_arm (HA : POProximalSystem.WBasedAssumptions S μ) (a : B
       MeasureTheory.stronglyMeasurable_condExp.measurable
     have hg_m : Measurable[S.σ_UX] (μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_UX]) :=
       MeasureTheory.stronglyMeasurable_condExp.measurable
-    exact Causalean.ae_eq_of_ae_eq_restrict_arm (mΩ := P.measΩ)
+    exact ae_eq_of_ae_eq_restrict_arm (mΩ := P.measΩ)
       S.σ_UX S.σ_UX_le
       (measurableSet_eq_fun hf_m hg_m) hCE_UX_eq_on_arm (HA.overlap_strong a)
   -- (B) integrated form.

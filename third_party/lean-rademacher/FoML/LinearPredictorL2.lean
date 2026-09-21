@@ -1,6 +1,9 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import FoML.Symmetrization
-import FoML.RademacherVariableProperty
+module
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import FoML.Symmetrization
+public import FoML.RademacherVariableProperty
+
+@[expose] public section
 
 universe v
 

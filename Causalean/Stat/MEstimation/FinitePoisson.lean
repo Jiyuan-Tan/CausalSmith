@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
-import Mathlib.Analysis.Calculus.LocalExtr.Basic
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.Normed.Module.FiniteDimension
-import Mathlib.Topology.MetricSpace.ProperSpace
+module
+public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+public import Mathlib.Analysis.Calculus.LocalExtr.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Mul
+public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+public import Mathlib.Analysis.Normed.Module.FiniteDimension
+public import Mathlib.Topology.MetricSpace.ProperSpace
 
 /-!
 # Finite positive-mean Poisson projections
@@ -18,6 +19,8 @@ This module defines a finite Poisson criterion composed with a linear design and
 proves its continuity, existence and uniqueness of the pseudo-true maximizer,
 and the equivalence between global optimality and vanishing directional scores.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 

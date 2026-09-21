@@ -20,11 +20,14 @@ route ONLY; it is NOT an impossibility claim (for fuzzy mixtures, hypercubes, or
 other private comparison inequalities) and NOT a minimax converse.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.ArmDisintegrationTV
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContraction
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.HolderInterpolation
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.ArmDisintegrationTV
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContraction
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.HolderInterpolation
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

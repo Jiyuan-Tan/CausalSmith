@@ -13,13 +13,13 @@ solution is
 
 This file defines `steinSol`, proves it solves the Stein equation (`steinSol_hasDerivAt`), and
 records the subtractive form `steinSol_stein_eq`. Uniform bounds for the solution and its
-derivatives are proved in `Causalean.Mathlib.Probability.SteinMethod.Bounds`. See
-`doc/stein_clt_plan.md`.
+derivatives are proved in `Causalean.Mathlib.Probability.SteinMethod.Bounds`.
 -/
 
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.MeasureTheory.Integral.IntegralEqImproper
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+module
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.MeasureTheory.Integral.IntegralEqImproper
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
 
 /-!
 # Stein equation for the standard normal distribution
@@ -31,11 +31,12 @@ the Gaussian expectation and integrability facts needed by the Stein-method
 bounds.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Set
 open scoped Real
 
-namespace Causalean
-namespace SteinMethod
+namespace Causalean.Mathlib.Probability.SteinMethod
 
 /-- For every [real-valued function](hyp:h), the [standard-normal expectation of that
 function](goal) is its integral with respect to the normal distribution having mean zero and
@@ -150,5 +151,4 @@ theorem steinSol_stein_eq (h : ℝ → ℝ) (hh : Continuous h) {C : ℝ} (hb : 
   have := (steinSol_hasDerivAt h hh hb w).deriv
   rw [this]; ring
 
-end SteinMethod
-end Causalean
+end Causalean.Mathlib.Probability.SteinMethod

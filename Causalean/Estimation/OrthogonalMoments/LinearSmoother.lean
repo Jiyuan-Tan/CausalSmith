@@ -3,16 +3,16 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Linear-smoother specialisation of the abstract second-stage regression operator
+# Weighted second-stage regression operators
 
-This file specialises `SecondStageOperator` to *linear smoothers*, i.e.
-operators with the concrete form
+This file records weighted second-stage operators and a separate predicate for
+the concrete weighted-sum form
 
   `̂E_{n,B}{f(Z) | X = x} = Σ_{i ∈ B(n)} w_{n,i}(x; X_{B(n)}) · f(Z_i)`
 
-(see `def:est-cate-second-stage`). The bundle adds an abstract weight
-function; the linear-combination identity is encoded as a separate `Prop`
-predicate `IsLinearSmoother` parameterised by the index type, the index set
+(see `def:est-cate-second-stage`). The bundle adds an abstract weight function
+without relating it to evaluation. The weighted-sum identity is encoded as a
+separate `Prop` predicate `HasWeightedSumRepresentation`, parameterised by the index type and set
 `B`, the weights `w`, and the data tuples `xs`.
 
 The two main statements proved here are:
@@ -25,14 +25,17 @@ The two main statements proved here are:
   Matches Prop `prop:est-cate-linear-smoother-bound`.
 -/
 
-import Causalean.Estimation.OrthogonalMoments.SecondStageOperator
-import Mathlib.Analysis.MeanInequalities
+module
+public import Causalean.Estimation.OrthogonalMoments.SecondStageOperator
+public import Mathlib.Analysis.MeanInequalities
 
-/-! # Linear Smoother Second-Stage Operators
+/-! # Weighted Second-Stage Operators
 
-This file specializes the abstract second-stage regression operator to weighted
-linear smoothers. It records the weighted-sum representation and proves
-Hölder-type bias bounds for smoothed single functions and products of functions. -/
+This file augments the abstract second-stage operator with auxiliary weights.
+A separate predicate records the weighted-sum representation using explicitly
+supplied weights; no relation to the stored auxiliary weights is imposed. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -40,11 +43,11 @@ namespace OrthogonalMoments
 
 open MeasureTheory Filter Topology Causalean.Stat
 
-/-- **Linear-smoother operator (Def `def:est-cate-second-stage`, smoother form).** A second-stage
-regression operator extended with an abstract array of [smoothing weights](hyp:weights) indexed by
-sample size, randomness scope, query point, and data tuple, from which the weighted-sum
-representation of the operator's output can be built; the linear-combination identity itself is
-not required here but recorded separately as a predicate below.
+/-- For [a randomness space with measure and a query space](hyp:Ω,μ,γ), a
+second-stage operator with weights extends the abstract second-stage operator with an
+unconstrained array of [auxiliary weights](hyp:weights) indexed by sample size, randomness
+scope, query point, and data tuple. The structure does not connect these weights to the
+operator's evaluations.
 
 Extends `SecondStageOperator` with an abstract weight function
 
@@ -55,37 +58,37 @@ the data fold), `x : γ` is the query point, and `(z.1, z.2.1, z.2.2)` is the
 data tuple `(X_i, A_i, Y_i)`. The third argument is the evaluation point
 and the fourth is the data point.
 
-The linear-combination identity `evalAt n ω f x = Σ weights · f(Z_i)` is
-NOT enforced as a structure field; see `IsLinearSmoother` below for the
-predicate form. -/
-structure LinearSmootherOp
+Weighted-sum behavior is expressed separately by
+`HasWeightedSumRepresentation` below, using caller-supplied weights. -/
+structure SecondStageOperatorWithWeights
     (Ω : Type*) [MeasurableSpace Ω] (μ : Measure Ω)
     (γ : Type*) [MeasurableSpace γ]
     extends SecondStageOperator Ω μ γ where
   weights : ℕ → Ω → γ → (γ × Bool × ℝ) → ℝ
 
-namespace LinearSmootherOp
+namespace SecondStageOperatorWithWeights
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- Given [a linear-smoother operator](hyp:op), [a sample size](hyp:n), [a
-randomness realization](hyp:ω), [a query point](hyp:x), [a finite index set for
-the data fold](hyp:B), [real weights on that index set](hyp:w), and [the
-corresponding covariate-treatment-outcome data tuples](hyp:xs), the [linear-smoother
-condition](goal) states that, for every real-valued pseudo-outcome function, the
-operator's estimate equals the weighted sum of that function over the fold.
+/-- Given [a weighted second-stage operator](hyp:op), [a sample size](hyp:n), [a
+randomness realization](hyp:ω), [a query point](hyp:x), [an index type and
+finite data fold](hyp:ι,B), [real weights on that index set](hyp:w), and [the
+corresponding data tuples](hyp:xs), the [weighted-sum representation](goal)
+states that, for every real-valued pseudo-outcome function, the operator's
+estimate equals the weighted sum of that function over the fold.
 
 The exact relationship between `w` and `op.weights` is left to the caller.
 
 This is the explicit weighted-sum identity from Def `def:est-cate-second-stage`. -/
-def IsLinearSmoother {ι : Type*} (op : LinearSmootherOp Ω μ γ)
+def HasWeightedSumRepresentation {ι : Type*}
+    (op : SecondStageOperatorWithWeights Ω μ γ)
     (n : ℕ) (ω : Ω) (x : γ)
     (B : Finset ι) (w : ι → ℝ) (xs : ι → γ × Bool × ℝ) : Prop :=
   ∀ f : γ × Bool × ℝ → ℝ,
     op.evalAt n ω f x = ∑ i ∈ B, w i * f (xs i)
 
-end LinearSmootherOp
+end SecondStageOperatorWithWeights
 
 /-! ## Weighted empirical norms
 
@@ -148,10 +151,11 @@ look at its `γ`-component, hence `(fun z => g z.1)`. -/
 theorem smoother_bias_holder
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     {γ : Type*} [MeasurableSpace γ] {ι : Type*}
-    (op : LinearSmootherOp Ω μ γ)
+    (op : SecondStageOperatorWithWeights Ω μ γ)
     (n : ℕ) (ω : Ω) (x : γ) (g : γ → ℝ)
     (B : Finset ι) (w : ι → ℝ) (xs : ι → γ × Bool × ℝ) (c_n : ℝ)
-    (hLin : LinearSmootherOp.IsLinearSmoother op n ω x B w xs)
+    (hLin : SecondStageOperatorWithWeights.HasWeightedSumRepresentation
+      op n ω x B w xs)
     (hWeights : ∑ i ∈ B, |w i| ≤ c_n) :
     |op.evalAt n ω (fun z => g z.1) x|
       ≤ c_n * WeightedNorm B w (fun i => g (xs i).1) 1 := by
@@ -224,10 +228,11 @@ In the DR-Learner application, `g₁` is the propensity error
 theorem smoother_bias_product_holder
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     {γ : Type*} [MeasurableSpace γ] {ι : Type*}
-    (op : LinearSmootherOp Ω μ γ)
+    (op : SecondStageOperatorWithWeights Ω μ γ)
     (n : ℕ) (ω : Ω) (x : γ) (g₁ g₂ : γ → ℝ)
     (B : Finset ι) (w : ι → ℝ) (xs : ι → γ × Bool × ℝ) (c_n p q : ℝ)
-    (hLin : LinearSmootherOp.IsLinearSmoother op n ω x B w xs)
+    (hLin : SecondStageOperatorWithWeights.HasWeightedSumRepresentation
+      op n ω x B w xs)
     (hWeights : ∑ i ∈ B, |w i| ≤ c_n)
     (hConj : Real.HolderConjugate p q) :
     |op.evalAt n ω (fun z => g₁ z.1 * g₂ z.1) x|

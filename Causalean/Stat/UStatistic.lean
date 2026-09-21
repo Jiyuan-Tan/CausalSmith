@@ -1,33 +1,31 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
--/
-
-import Causalean.Stat.UStatistic.Basic
-import Causalean.Stat.UStatistic.Hajek
-import Causalean.Stat.UStatistic.Variance
-import Causalean.Stat.UStatistic.OrderM.Basic
-import Causalean.Stat.UStatistic.OrderM.Hajek
-import Causalean.Stat.UStatistic.OrderM.Variance
-import Causalean.Stat.UStatistic.OrderM.ExactVariance
-import Causalean.Stat.UStatistic.OrderM.FirstDegenKernel
-import Causalean.Stat.UStatistic.OrderM.RemainderSecondMoment
-import Causalean.Stat.UStatistic.OrderM.RemainderNegligible
-import Causalean.Stat.UStatistic.OrderM.CLT
-import Causalean.Stat.UStatistic.OrderM.OrderTwo
+module
+public import Causalean.Stat.UStatistic.Basic
+public import Causalean.Stat.UStatistic.Hajek
+public import Causalean.Stat.UStatistic.OrderM.Basic
+public import Causalean.Stat.UStatistic.OrderM.CLT
+public import Causalean.Stat.UStatistic.OrderM.ExactVariance
+public import Causalean.Stat.UStatistic.OrderM.FirstDegenKernel
+public import Causalean.Stat.UStatistic.OrderM.Hajek
+public import Causalean.Stat.UStatistic.OrderM.MixedOrderBounds
+public import Causalean.Stat.UStatistic.OrderM.MixedOrderCovariance
+public import Causalean.Stat.UStatistic.OrderM.OrderTwo
+public import Causalean.Stat.UStatistic.OrderM.PartialMatching
+public import Causalean.Stat.UStatistic.OrderM.RemainderNegligible
+public import Causalean.Stat.UStatistic.OrderM.RemainderSecondMoment
+public import Causalean.Stat.UStatistic.OrderM.Variance
+public import Causalean.Stat.UStatistic.Variance
 
 /-!
 # U-statistics
 
-Collects the U-statistic library: order-2 Hoeffding and variance tools, fixed-order `m`
-infrastructure, Hájek expansions, remainder negligibility, and the fixed-order CLT.
+This barrel collects order-two decomposition and variance tools, fixed-order
+U-statistics over injective tuples, Hájek expansions, remainder bounds, and
+central limit theorems under explicit residual and fixed-section regularity
+conditions.
+-/
 
-This barrel collects the U-statistic substrate: the original order-2
-Hoeffding-decomposition and variance theory, plus the fixed-order `m` interface
-for ordered injective tuples and its Hájek expansion.  The headline is the
-fixed-order U-statistic central limit theorem `OrderM.CLT`
-(`uStatisticOrder_clt_of_regular`); its higher-order remainder negligibility is
-discharged through `OrderM.FirstDegenKernel`, `OrderM.RemainderSecondMoment`, and
-`OrderM.RemainderNegligible`.
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
 -/

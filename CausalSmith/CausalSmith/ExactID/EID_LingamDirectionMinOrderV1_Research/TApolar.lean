@@ -14,18 +14,21 @@ fixed axis, reproving the apolar/catalecticant facts it uses from Vandermonde
 minors (no general symmetric-tensor apolarity theory).
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarDefs
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarQD
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.EmptyFiber
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.GenericSlopes
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.MomentGate
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.SlopeUniqueness
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
-import Mathlib.Topology.Constructions
-import Mathlib.Algebra.Polynomial.Roots
-import Mathlib.Algebra.Squarefree.Basic
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarDefs
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarQD
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.EmptyFiber
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.GenericSlopes
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.MomentGate
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.SlopeUniqueness
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
+public import Mathlib.Topology.Constructions
+public import Mathlib.Algebra.Polynomial.Roots
+public import Mathlib.Algebra.Squarefree.Basic
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -43,12 +46,10 @@ sources), so the hypothesis `ValidComplexity m` (`1 ≤ m`) is load-bearing: at
 `m = 0` (`n = 2`) the lone `k = 0` contraction has a two-dimensional kernel, not
 the claimed line `⟨Q_D⟩`.
 
-This theorem is UNCONDITIONAL.  Its only external input used to be the truncated-moment
-interior premise `TruncatedMomentInterior (2 * m + 2)` (the classical truncated Hamburger
-moment problem with its nonempty-interior corollary — Akhiezer 1965, Curto–Fialkow 1991,
-Schmüdgen 2017 Thm 10.7), which was carried as an explicit gate hypothesis.  That premise
-is now PROVED, and promoted to Causalean as
-`Causalean.Stat.MomentProblems.truncatedMomentInterior`, so the
+This theorem is UNCONDITIONAL. Its only external input used to be the truncated-cumulant
+interior premise `TruncatedCumulantInterior (2 * m + 2)`, which was carried as an explicit gate
+hypothesis. That constructive interior result is now proved and promoted to Causalean as
+`Causalean.Stat.MomentProblems.truncatedCumulantInterior`, so the
 hypothesis is discharged internally rather than assumed: the Euclidean-open real-feasibility
 witness is *derived* (`exists_feasible_nonvanishing`), never assumed as a conclusion, and the
 theorem depends on no substrate gate. -/
@@ -111,7 +112,8 @@ theorem generic_apolar_arrow_recovery (m : ℕ) (hm : ValidComplexity m) :
          (∀ q : MvPolynomial (Fin 2) ℂ, q.IsHomogeneous (m + 2) →
             ((∀ k, k ≤ m → diffApply q (f (m + 2 + k)) = 0) ↔ ∃ c : ℂ, q = c • QD2)))) := by
   -- the former substrate gate, now discharged in-run:
-  have hgate : TruncatedMomentInterior (2 * m + 2) := truncatedMomentInterior (2 * m + 2)
+  have hgate : TruncatedCumulantInterior (2 * m + 2) :=
+    truncatedCumulantInterior (2 * m + 2)
   obtain ⟨Pf, hPf_ne, ⟨θf0, hθf0_pin, hθf0_ne⟩, hPf_inj⟩ :=
     forward_contraction_injective_of_generic_and_minor m hm
   obtain ⟨Pr, hPr_ne, ⟨θr0, hθr0_pin, hθr0_ne⟩, hPr_inj⟩ :=

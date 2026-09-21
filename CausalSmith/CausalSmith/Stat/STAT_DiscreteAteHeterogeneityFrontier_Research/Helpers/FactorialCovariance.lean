@@ -1,11 +1,14 @@
 /- Covariance bound for signed one-mark falling-factorial statistics. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.Estimators
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.FactorialCovarianceCoefficients
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FactorialMoments
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.ShiftedChebyshev
-import Causalean.Stat.UStatistic.OrderM.MixedOrderBounds
-import Mathlib.Data.Nat.Choose.Bounds
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.Estimators
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.FactorialCovarianceCoefficients
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FactorialMoments
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.ShiftedChebyshev
+public import Causalean.Stat.UStatistic.OrderM.MixedOrderBounds
+public import Mathlib.Data.Nat.Choose.Bounds
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

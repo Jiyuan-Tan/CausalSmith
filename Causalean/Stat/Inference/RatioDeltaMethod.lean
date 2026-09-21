@@ -26,9 +26,10 @@ multivariate-Gaussian characteristic-function formula `IsGaussian.charFun_eq'`.
 Reference: van der Vaart (1998), Theorem 3.1 (and the `g(x,y) = x/y` example).
 -/
 
-import Causalean.Stat.Inference.DeltaMethod
-import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Calculus.Deriv.Inv
+module
+public import Causalean.Stat.Inference.DeltaMethod
+public import Mathlib.Analysis.Calculus.FDeriv.Mul
+public import Mathlib.Analysis.Calculus.Deriv.Inv
 
 /-!
 This file specializes the multivariate delta method to ratio statistics such as
@@ -38,6 +39,8 @@ Wald-ratio and LATE estimands.  It defines the closed-form derivative
 `v ↦ v 0 / v 1` when the denominator coordinate is nonzero, and instantiates
 `deltaMethod` in `deltaMethod_ratio`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -99,6 +102,36 @@ theorem hasFDerivAt_ratio {t₀ : EuclideanSpace ℝ (Fin 2)} (hb : t₀ 1 ≠ 0
   ring
 
 /-! ## Ratio delta method -/
+
+/-- **General-rate ratio delta method.** Let [`t₀` have nonzero denominator](hyp:hb), let
+[the nonnegative rate `r` diverge](hyp:hrnonneg,hr), suppose [the scaled bivariate estimator
+is measurable](hyp:hTn) and [the scaled ratio is measurable](hyp:hgTn), and assume [the
+scaled estimator has weak limit `Q`](hyp:_hCLT). Then [the scaled ratio converges to the
+pushforward of `Q` by `ratioDeriv t₀`](goal).
+
+This is van der Vaart, Theorem 3.1, for the quotient map. -/
+theorem deltaMethod_ratio_rate
+    (Tn : ℕ → Ω → EuclideanSpace ℝ (Fin 2)) (t₀ : EuclideanSpace ℝ (Fin 2))
+    (hb : t₀ 1 ≠ 0) (Q : ProbabilityMeasure (EuclideanSpace ℝ (Fin 2)))
+    (r : ℕ → ℝ) (hrnonneg : ∀ n, 0 ≤ r n) (hr : Tendsto r atTop atTop)
+    (hTn : ∀ n, AEMeasurable (fun ω => r n • (Tn n ω - t₀)) μ)
+    (hgTn : ∀ n, AEMeasurable
+      (fun ω => r n • ((Tn n ω 0 / Tn n ω 1) - t₀ 0 / t₀ 1)) μ)
+    (_hCLT :
+      Tendsto (β := ProbabilityMeasure (EuclideanSpace ℝ (Fin 2)))
+        (fun n => ⟨μ.map (fun ω => r n • (Tn n ω - t₀)),
+          Measure.isProbabilityMeasure_map (hTn n)⟩)
+        atTop (𝓝 Q)) :
+    Tendsto (β := ProbabilityMeasure ℝ)
+      (fun n =>
+        ⟨μ.map (fun ω => r n • ((Tn n ω 0 / Tn n ω 1) - t₀ 0 / t₀ 1)),
+          Measure.isProbabilityMeasure_map (hgTn n)⟩)
+      atTop
+      (𝓝 ⟨Q.toMeasure.map (ratioDeriv t₀),
+        Measure.isProbabilityMeasure_map
+          (ratioDeriv t₀).continuous.measurable.aemeasurable⟩) :=
+  deltaMethod_rate Tn t₀ (fun v => v 0 / v 1) (ratioDeriv t₀) Q r hrnonneg hr
+    hTn hgTn (hasFDerivAt_ratio hb) _hCLT
 
 /-- **Ratio / quotient delta method.**  Let `t₀ = (a, b)` with [`b` nonzero](hyp:hb) and let
 `Tn n ω = (N̂ₙ, D̂ₙ)` be a bivariate estimator sequence of `t₀`. Given [that the rescaled

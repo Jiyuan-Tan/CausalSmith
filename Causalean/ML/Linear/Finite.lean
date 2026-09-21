@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core
-import Mathlib.Data.Matrix.Mul
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+
+module
+public import Causalean.ML.Core
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 
 /-! # Linear least squares — finite design-matrix layer
 
@@ -17,27 +19,29 @@ Param ℝ` and its optimization property: any solution of the normal equations
 objective, so finite OLS is a genuine ERM.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param]
 
-/-- For [a set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
-[a design matrix](hyp:X), and [a coefficient vector](hyp:β), the [linear prediction](goal)
-assigns to each observation its design-row weighted sum of coefficients. -/
+/-- [Linear prediction](goal) assigns every observation [its design-row score](step:1). It
+combines [a design matrix](hyp:X) on [observation and coefficient indices](hyp:Obs,Param) with
+[the chosen coefficients](hyp:β). -/
 def linearPredict (X : Matrix Obs Param ℝ) (β : Param → ℝ) : Obs → ℝ := X *ᵥ β
 
-/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
-[a design matrix](hyp:X), [an outcome vector](hyp:y), and [a coefficient vector](hyp:β), the
-[ordinary least-squares objective](goal) is the sum over observations of squared differences
-between the observed outcome and its linear prediction. -/
+/-- [The ordinary least-squares objective](goal) is [the residual sum of squares](step:1). It
+evaluates [a coefficient vector](hyp:β) against [a design and outcome vector](hyp:X,y) indexed
+by [finite observation and coefficient sets](hyp:Obs,Param). -/
 noncomputable def olsObjective (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (β : Param → ℝ) : ℝ :=
   ∑ i, (y i - (X *ᵥ β) i) ^ 2
 
-/-- For [any coefficient vector `β̂` satisfying the normal equations `XᵀX β̂ = Xᵀy`](hyp:hNE)
-built from a finite design matrix `X` and outcome vector `y`, [that vector minimizes the sum
-of squared residuals over every coefficient vector `β`](goal). -/
+/-- [Every normal-equation solution globally minimizes residual sum of squares](goal). The
+result applies to [the candidate coefficient vector](hyp:βhat) under
+[the normal equations](hyp:hNE) built from [the design and outcome vectors](hyp:X,y) over
+[finite observation and coefficient indices](hyp:Obs,Param). -/
 theorem ols_is_squaredLoss_ERM_of_normalEq
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (βhat : Param → ℝ)
     (hNE : (Xᵀ * X) *ᵥ βhat = Xᵀ *ᵥ y) :

@@ -3,7 +3,7 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Słoczyński (2022): the finite-cell overlap-weighted ATE headline
+# Finite-cell overlap-weighted ATE
 
 This file states the finite-cell headline theorem: the saturated-OLS
 residualized coefficient equals the overlap-weighted ATE built from real
@@ -17,8 +17,10 @@ potential outcomes. The supporting measure-theoretic machinery lives in the
 * `Support.PerCell` — denominator and numerator per-cell bridge identities.
 -/
 
-import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.PerCell
-/-! # Słoczyński finite-cell overlap-weighted ATE (headline)
+module
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.PerCell
+
+/-! # Finite-Cell Overlap-Weighted ATE
 
 This file holds the finite-cell **headline theorem** of the module: starting
 from a probability space with a binary treatment, potential outcomes, and a
@@ -27,7 +29,10 @@ with the overlap-weighted average treatment effect
 `Σ ω_g · E[Y(1)−Y(0) ∣ G=g]`. This is where the abstract `FinitePartition`
 algebra acquires its causal content; the `Support/` files provide the
 per-cell measure-theoretic machinery. The continuous-covariate counterpart is
-`GeneralCondExp.lean`. -/
+`GeneralCondExp.lean`. This theorem is an overlap-weighted conditional-effect
+identity; it does not derive an ATT/ATU representation. -/
+
+public section
 
 namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 
@@ -94,7 +99,7 @@ theorem bridge_finite_residualized_eq_overlap
         = (∫ ω, (if d = 1 then Y1 ω else Y0 ω)
                   * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ)
             * (if d = 1 then cellShare μ D G g else 1 - cellShare μ D G g))
-    (B_overlap : 0 < ∑ g, cellMass μ G g
+    (B_overlap : 0 < ∑ g, CellBridge.cellMass μ G g
                         * (cellShare μ D G g * (1 - cellShare μ D G g))) :
     residualizedCoefficient μ (saturatedClass μ G B_meas_G)
         (residWitnessY μ Y G B_meas_G
@@ -136,7 +141,7 @@ theorem bridge_finite_residualized_eq_overlap
         ring
   have hDen_sum :
       ∫ ω, wD.Vtilde ω * wD.Vtilde ω ∂μ =
-        ∑ g, cellMass μ G g
+        ∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g)) := by
     have hF_int : Integrable (fun ω => wD.Vtilde ω * wD.Vtilde ω) μ :=
       wD.Vtilde_memLp.integrable_mul wD.Vtilde_memLp
@@ -144,16 +149,16 @@ theorem bridge_finite_residualized_eq_overlap
       ∫ ω, wD.Vtilde ω * wD.Vtilde ω ∂μ =
           ∑ g, ∫ ω, (wD.Vtilde ω * wD.Vtilde ω)
             * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ :=
-        integral_eq_sum_cell μ (fun ω => wD.Vtilde ω * wD.Vtilde ω)
+        CellBridge.integral_eq_sum_cell μ (fun ω => wD.Vtilde ω * wD.Vtilde ω)
           G B_meas_G hF_int
-      _ = ∑ g, cellMass μ G g
+      _ = ∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g)) := by
         refine Finset.sum_congr rfl (fun g _ => ?_)
         simpa [wD, residWitnessD, mul_assoc] using
           denom_per_cell μ D G B_meas_G B_meas_D B_binary g
   have hNum_sum :
       ∫ ω, wD.Vtilde ω * Y ω ∂μ =
-        ∑ g, cellMass μ G g
+        ∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g))
           * cellTau μ Y0 Y1 G g := by
     have hF_int : Integrable (fun ω => wD.Vtilde ω * Y ω) μ :=
@@ -162,9 +167,9 @@ theorem bridge_finite_residualized_eq_overlap
       ∫ ω, wD.Vtilde ω * Y ω ∂μ =
           ∑ g, ∫ ω, (wD.Vtilde ω * Y ω)
             * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ :=
-        integral_eq_sum_cell μ (fun ω => wD.Vtilde ω * Y ω)
+        CellBridge.integral_eq_sum_cell μ (fun ω => wD.Vtilde ω * Y ω)
           G B_meas_G hF_int
-      _ = ∑ g, cellMass μ G g
+      _ = ∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g))
           * cellTau μ Y0 Y1 G g := by
         refine Finset.sum_congr rfl (fun g _ => ?_)
@@ -175,15 +180,15 @@ theorem bridge_finite_residualized_eq_overlap
   -- `hDen_sum` rewrites `∫ wD.Vtilde^2 dμ` to the cell-sum form, which
   -- equals B_overlap. No separate B_Dtilde_pos hypothesis needed.
   have hOverlapDen_ne :
-      (∑ g, cellMass μ G g
+      (∑ g, CellBridge.cellMass μ G g
         * (cellShare μ D G g * (1 - cellShare μ D G g))) ≠ 0 :=
     B_overlap.ne'
   have hP :
       FinitePartition.overlapWeightedATE P =
-        (∑ g, cellMass μ G g
+        (∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g))
           * cellTau μ Y0 Y1 G g)
-        / (∑ g, cellMass μ G g
+        / (∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g))) := by
     simp [P, partitionOf, FinitePartition.overlapWeightedATE,
       FinitePartition.overlapNumerator, FinitePartition.overlapDenominator,
@@ -199,10 +204,10 @@ theorem bridge_finite_residualized_eq_overlap
     _ = (∫ ω, wD.Vtilde ω * Y ω ∂μ)
           / (∫ ω, wD.Vtilde ω * wD.Vtilde ω ∂μ) := by
       rw [hNum_tilde]
-    _ = (∑ g, cellMass μ G g
+    _ = (∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g))
           * cellTau μ Y0 Y1 G g)
-        / (∑ g, cellMass μ G g
+        / (∑ g, CellBridge.cellMass μ G g
           * (cellShare μ D G g * (1 - cellShare μ D G g))) := by
       rw [hNum_sum, hDen_sum]
     _ = FinitePartition.overlapWeightedATE

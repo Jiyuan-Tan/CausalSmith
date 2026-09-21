@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Inference
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Inference
 
 /-! The unresolved exact/sharp computation question, recorded as descriptive non-Prop data. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

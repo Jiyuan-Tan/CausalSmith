@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.RationalLPBridge
-import Mathlib.Algebra.Order.Round
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.RationalLPBridge
+public import Mathlib.Algebra.Order.Round
 
 /-! Posterior-mean lower certificates and barycenter upper certificates. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

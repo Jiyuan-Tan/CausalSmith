@@ -1172,30 +1172,3 @@ export function structureDeclSource(rawSource: string, kind: string): Structured
   return null;
 }
 
-// ---------------------------------------------------------------------------
-// linkification (identifier → decl-page links), applied once over the whole
-// statement so bound-variable detection sees full context, then redistributed
-// to each display line.
-// ---------------------------------------------------------------------------
-
-function collectLines(s: StructuredStatement): StmtLine[] {
-  const out: StmtLine[] = [];
-  const visit = (b: StmtBody) => {
-    if (Array.isArray(b)) {
-      out.push(...b);
-      return;
-    }
-    if (b.header) out.push(...b.header);
-    for (const p of b.premises) out.push(...p);
-    out.push(...b.conclusion);
-  };
-  for (const r of s.rows) if (isBinderRow(r)) visit(r.body);
-  for (const r of s.fields ?? []) if (isBinderRow(r)) visit(r.body);
-  visit(s.conclusion);
-  return out;
-}
-
-// A NUL never occurs in real Lean source and falls outside linkifyStatement's
-// identifier regex, so it survives escaping/linking untouched and can't
-// collide with any cell's own content the way a space or newline would.
-const CELL_DELIM = "\u0000";

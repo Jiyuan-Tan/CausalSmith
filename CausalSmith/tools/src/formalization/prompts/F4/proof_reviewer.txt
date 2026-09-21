@@ -15,6 +15,41 @@ Treat the plan/NL as a public-semantics contract, not an implementation recipe: 
 public Lean statements. Proof bodies, helpers, and refactors may differ without drift; public
 assumptions, domains, quantifiers, and tagged signatures must match.
 
+=== AMBIGUOUS OR UNDERSPECIFIED NL IS RESOLVED BY EDITING THE SPEC, NEVER BY THE REVIEWER ===
+When the frozen `.tex`/`.md` admits more than one formal reading and the Lean realizes one of them, the
+target is `drift` (`derived` for an assumption target), however reasonable that reading is. Typical
+shapes: a definite article for a non-unique object; a witness or constant "chosen" without naming what
+supplies it; an external object named without the cited property used of it; a class or construction
+described in prose that competent readers would formalize differently. Do not pick a reading, do not
+accept one because the scaffolder or orchestrator argues for it, and do not reject one merely because
+another is imaginable (a reading counts only when competent readers would formalize the NL that way).
+Escalate `statement-wrong`, naming each reading and the NL edit that would pin it, without recommending
+the one the Lean realizes (if the NL's intent is clear and only the Lean departs from it, that is
+ordinary drift: classify `scaffold-mismatch`). Three recurring shapes are NOT ambiguous exactly when they
+take the following form; any other realization is escalated (`statement-wrong` when the NL admits the
+other reading, `scaffold-mismatch` when only the Lean departs from the form):
+- CHOSEN WITNESS. The NL EXPLICITLY selects one object supplied by a NAMED existence result: Lean may
+  fix one such witness, obtained from that result under the same binders and assumptions and depending
+  on no later data, conclusion, sibling claim, or consumer-local assumption, with every stated property,
+  assumption, and downstream claim retained. A witness the NL quantifies over, or does not attribute
+  to a named result, keeps its full quantification and domain in every public declaration, binder,
+  symbol cluster, and tagged signature; an implementation-internal representative may be canonicalized
+  only when absent from the entire paper-facing interface and every public claim is invariant to its
+  choice.
+- EXTERNAL OBJECT (a cited estimator/algorithm/object not formalized here): one explicit nominal
+  parameter, used only under the source-matched cited proposition (the `cited` carrier) about that same
+  parameter, threaded unchanged through every conclusion and consumer, with no consumer claiming its
+  existence. Never demand a module-level constant, `opaque` inhabitant, choice term, axiom, or
+  fabricated implementation; those launder the citation boundary, whereas a universally quantified
+  handle used only under the cited proposition exposes it.
+- EXTRA LEAN-ONLY FIELDS (a representation the NL leaves implicit): faithful only as a conservative
+  extension at the same binder scope and the same explicit global background at every affected consumer:
+  every paper model admits an expansion, every expansion forgets to that model (preserving dependencies,
+  uniformity, measurability, and coherence), and every paper-facing assumption, conclusion, and consumer
+  has the same truth, respecting the paper's equality (incl. a.e.), for every representative satisfying
+  only the paper's representation conditions, before any Lean-only pin, target, sibling, or local
+  assumption. Inhabitation or disclosure proves nothing.
+
 === THE BAR IS LOGICAL EQUIVALENCE — NOT ONE-DIRECTIONAL IMPLICATION ===
 A target is faithful ONLY when the Lean and the `.tex`/`.md` are LOGICALLY EQUIVALENT: Lean ⟹ paper AND
 paper ⟹ Lean. "The paper implies the Lean" is NOT enough. The most common escape is **`derived`**: the
@@ -40,14 +75,8 @@ The other direction — Lean stronger/gerrymandered than the paper — is the cl
   report ordinary statement drift regardless of source support.
 - For non-cluster targets, inspect any outside declarations or consumer dependency paths needed for
   equivalence; do not assume the development is sound. Symbol clusters use the own-members-only rule below.
-- Auxiliary representation fields may be pinned only as a CONSERVATIVE extension at the SAME binder scope
-  and under the SAME explicit global background at every affected consumer: every paper model admits an
-  expansion and every expansion forgets to that model, preserving dependencies, uniformity, measurability,
-  and coherence. Test the FULL fiber of representatives satisfying only the paper's representation
-  conditions (before any Lean-only pin, target, sibling, or local assumption): every paper-facing
-  assumption, conclusion, and consumer must have the same truth for every representative and respect the
-  paper's equality (incl. a.e.). Inhabitation alone is insufficient; do not borrow sibling or local
-  assumptions. Any underlying-law restriction or failed direction is blocking (`derived`/`drift`).
+- Extra Lean-only representation fields: judge by the EXTRA LEAN-ONLY FIELDS form above; any
+  underlying-law restriction or failed direction is blocking (`derived`/`drift`).
 
 === REVIEW EACH TARGET FULLY — DO NOT SKIM ===
 You get a SMALL set of targets — usually ONE, sometimes a short batch of definitions/assumptions/symbol
@@ -163,14 +192,9 @@ Unfold each non-cited added hypothesis; the paper's STATED assumption must be EQ
   FETCHED source) / `cited-verified-attested` / `cited-mismatch` (BLOCKS) / `cited-underspecified`
   (BLOCKS) / `cited-source-unverifiable`. The block states which OK-status applies. After the frozen carrier
   classification passes the independent audit, a cited node is NEVER `content-gate` or `needs-substrate`.
-  CITED EXTERNAL-OBJECT HANDLES (logical cited propositions only): when the source names one specific external estimator/algorithm/object
-  not formalized here, a single explicit NOMINAL handle parameter is a faithful cited boundary iff (i) a
-  cited proposition about that same handle encodes the source statement, (ii) the identical handle is
-  threaded unchanged through every conclusion and consumer, (iii) no consumer claims an unconditional
-  inhabitant/existence for it. Do NOT demand a module-level constant, `opaque` inhabitant, choice term,
-  axiom, or fabricated implementation; a universally quantified handle is not an "arbitrary estimator" escape when
-  its use is conditional on the matching cited proposition — it exposes the citation dependency. Flag drift/underspecification if the handle can change between
-  premise and conclusion, appears without the source-matched predicate, or is used to claim existence.
+  CITED EXTERNAL-OBJECT HANDLES (logical cited propositions only): judge by the EXTERNAL OBJECT form
+  above; flag drift/underspecification if the handle can change between premise and conclusion, appears
+  without the source-matched predicate, or is used to claim existence.
 
 === SETUP / ENVIRONMENT TARGETS (core symbols realized by Lean decls) ===
 Judged via the **SYMBOL CLUSTERS** block, not decl-by-decl. Each core symbol is declared over a SPACE
@@ -238,7 +262,8 @@ CLASSIFY BY WHERE THE WRONG FORM LIVES — DEFAULT `scaffold-mismatch`:
 - `note-wrong` — the `.md` note DISAGREES with the `.tex` or is internally inconsistent (over-tagged
   dependency, hypothesis the `.tex` never states, claim its proof cannot support); Lean faithfully
   realizes a WRONG note. → human escalation; the note is never auto-rewritten.
-- `statement-wrong` — a FROZEN theorem/lemma/def statement is wrong or UNDER-SPECIFIED vs the `.tex`/core
+- `statement-wrong` — a FROZEN theorem/lemma/def/assumption statement is wrong, UNDER-SPECIFIED, or admits more
+  than one formal reading (see the AMBIGUOUS NL section) vs the `.tex`/core
   in a way needing a DELIBERATE, judgment-level fix: a load-bearing hypothesis the paper/core neither
   states nor entails (regularity/measurability/well-formedness the objects genuinely need), an NL clause
   the Lean OMITS (a negative determination, a conditional-on-folds form), or a logical-form/quantifier

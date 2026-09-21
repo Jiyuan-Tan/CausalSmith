@@ -15,9 +15,10 @@ whenever `0 ≤ γ`, `2γ ≤ 1` and `2 n² γ² ≤ K log 2`.  The proof linear
 applies `cosh x ≤ exp (x²/2)`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Series
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Series
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-! # Ingster Average Bound
 
@@ -29,6 +30,8 @@ common coordinate weight. The theorem `ingster_bound` controls the double averag
 This analytic inequality is the step that turns the explicit one-observation overlap formula
 into total-variation indistinguishability for the minimax lower bound.
 -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

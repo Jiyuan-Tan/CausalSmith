@@ -9,14 +9,16 @@ Authors: Jiyuan Tan
 * `DiffQuotientEnvelope M` — existence of an L¹(P_Z) envelope dominating the
   difference quotient `(m_t - m_0)/t` near `t = 0`.
 * `integratedMoment_diffQuotient_tendsto_zero` — DCT bridge: combining the
-  pointwise convergence in `HasDirDeriv` with the integrability envelope and
+  almost-everywhere convergence in `HasDirDeriv` with the integrability envelope and
   Neyman orthogonality yields that the integrated difference quotient tends
   to zero at the truth.
 
-See `docs/superpowers/specs/2026-05-06-general-dml-framework-design.md` §4.3.
 -/
 
-import Causalean.Estimation.OrthogonalMoments.DirectionalDeriv
+module
+public import Causalean.Estimation.OrthogonalMoments.DirectionalDeriv
+public import Mathlib.Analysis.Calculus.Deriv.Slope
+public import Mathlib.MeasureTheory.Integral.DominatedConvergence
 
 /-! # Neyman Orthogonality for Abstract Moments
 
@@ -24,6 +26,8 @@ This file defines Neyman orthogonality for a moment functional through the
 vanishing population integral of its nuisance directional derivative. It also
 records the dominated-convergence envelope needed to pass pointwise directional
 derivatives through integration. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -42,6 +46,16 @@ derivative is zero. -/
 def NeymanOrthogonal
     (M : GeneralMoment Ω μ Z P_Z H) (D : HasDirDeriv M) : Prop :=
   ∀ η ∈ M.H_ε, ∫ z, D.dM η z ∂P_Z = 0
+
+/-- For [a general moment system](hyp:M), [Gateaux Neyman orthogonality](goal)
+means that the population moment along every admissible nuisance direction has
+derivative zero at the true nuisance. -/
+def NeymanOrthogonalGateaux (M : GeneralMoment Ω μ Z P_Z H) : Prop :=
+  ∀ η ∈ M.H_ε,
+    HasDerivAt
+      (fun t : ℝ =>
+        ∫ z, M.m (M.η₀ + t • (η - M.η₀)) z M.θ₀ ∂P_Z)
+      0 0
 
 /-- For [a general moment system](hyp:M), the [difference-quotient envelope
 condition](goal) requires that, for every admissible nuisance value, there is
@@ -95,8 +109,8 @@ theorem integratedMoment_diffQuotient_tendsto_zero
       exact hg_bound.mono (fun z hz => by
         simpa [F] using hz t htIoo ht_ne)
     · exact hg_int
-    · exact Filter.Eventually.of_forall (fun z => by
-        simpa [F] using D.pointwise_tendsto η hη z)
+    · filter_upwards [D.pointwise_tendsto η hη] with z hz
+      simpa [F] using hz
   have h_eq :
       (fun t : ℝ => ∫ z, F t z ∂P_Z) =ᶠ[𝓝[≠] (0 : ℝ)]
         (fun t : ℝ =>
@@ -118,6 +132,26 @@ theorem integratedMoment_diffQuotient_tendsto_zero
         (𝓝[≠] 0) (𝓝 (∫ z, D.dM η z ∂P_Z)) :=
     hlim_integral.congr' h_eq
   simpa [NeymanOrthogonal, hNO η hη] using hlim_to_deriv
+
+/-- **DCT bridge to the standard Gateaux form.** Given [a general moment
+system](hyp:M), [almost-everywhere directional derivatives](hyp:D), [vanishing integrated
+directional derivatives](hyp:hNO), and [a dominating difference-quotient
+envelope](hyp:hEnv), if [every nonzero point on each admissible nuisance path has an
+integrable moment](hyp:hMt_int) and [the true moment is integrable](hyp:hM0_int), then
+[the population moment is Gateaux Neyman-orthogonal](goal). -/
+theorem hasDirDeriv_to_neymanOrthogonalGateaux
+    (M : GeneralMoment Ω μ Z P_Z H) (D : HasDirDeriv M)
+    (hNO : NeymanOrthogonal M D)
+    (hEnv : DiffQuotientEnvelope M)
+    (hMt_int : ∀ η ∈ M.H_ε, ∀ t ≠ (0 : ℝ), Integrable
+      (fun z => M.m (M.η₀ + t • (η - M.η₀)) z M.θ₀) P_Z)
+    (hM0_int : Integrable (fun z => M.m M.η₀ z M.θ₀) P_Z) :
+    NeymanOrthogonalGateaux M := by
+  intro η hη
+  rw [hasDerivAt_iff_tendsto_slope_zero]
+  simpa [div_eq_mul_inv, mul_comm] using
+    integratedMoment_diffQuotient_tendsto_zero M D hNO hEnv hη
+      (hMt_int η hη) hM0_int
 
 end OrthogonalMoments
 end Estimation

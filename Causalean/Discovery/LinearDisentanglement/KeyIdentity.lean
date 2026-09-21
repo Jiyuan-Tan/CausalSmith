@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Model
+module
+public import Causalean.Discovery.LinearDisentanglement.Model
 
 /-!
 # Linear causal disentanglement: the key rank-one identity
@@ -16,6 +17,8 @@ precision matrices between an interventional and the observational context as a
 difference of two rank-one (outer-product) matrices, using that a single-node
 intervention changes only one row of `B`.
 -/
+
+public section
 
 namespace Causalean.Discovery.LinearDisentanglement
 

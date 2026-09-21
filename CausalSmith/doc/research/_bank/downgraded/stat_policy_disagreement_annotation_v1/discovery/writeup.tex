@@ -1,0 +1,1540 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}policy\_\allowbreak{}disagreement\_\allowbreak{}annotation}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A frozen menu of overlapping policies turns prospective randomized outcome annotation into a joint decision problem because one acquired treatment--stratum outcome informs several correlated policy contrasts. The kernel derives the conditional finite-coordinate LAN experiment uniformly over a saturated finite-support outcome model, including binary outcomes, and every contrast-preserving shape nuisance, characterizes the deterministic-design minimax regret value \(V^*\), gives certified computation on effectively represented inputs, and constructs a measurable nested-cell selector, joint AIPW estimator, and refined Gaussian rule attaining that value at tied, flat, disconnected, or dyadic-boundary design optima. The fully labelled pilot may diverge arbitrarily slowly provided its share vanishes: \(m_n\to\infty\) gives finite-cell moment consistency and \(m_n/n\to0\) makes its local information negligible. The selector's spatial convergence rate remains schedule- and law-specific through the positive prefix gaps. A generic continuous-objective witness shows only that continuity plus uniform objective approximation cannot yield an objective-uniform spatial recovery modulus; it is not a model-specific impossibility theorem for the Gaussian-risk family. An explicit \(L=3\) rational three-policy witness establishes that minimizing a scalar maximum pairwise-variance summary does not determine the Gaussian minimax-regret-optimal design: the unique optimizer of the pairwise-variance probe has regret above \(0.1965\), while a projected feasible competitor is below \(0.18453\), with separation on an explicit open neighborhood.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing causal annotation methods optimize scalar estimation variance, multidimensional two-phase methods optimize componentwise efficiency, and smooth policy-design theory assumes a unique curved optimum. Missing-outcome minimax-regret results instead treat exogenous incompleteness and treatment choice under partial identification; they do not choose randomized prospective annotation rates for point-identified overlapping policy loadings. None of these results combines a pilot-conditioned full-nuisance LAN transfer, correlated finite-menu regret design, nonunique deterministic selection, certified computation, and attainment with an arbitrarily slowly diverging pilot whose sample share vanishes.
+
+\paragraph{Niche.} The niche is prospective validation of a fixed overlapping causal-policy menu when investigators control scarce randomized follow-up, the operational objective is welfare loss from the final policy choice, and only a slowly diverging fully labelled pilot can be reserved before the main wave.
+
+\paragraph{Fill.} The project fills the niche with a nuisance-uniform Gaussian experiment for fixed finite outcome support including binary outcomes, an exact deterministic-design minimax characterization, an effective certified solver, and a measurable tie-stable implementation requiring only \(m_n\to\infty\) and \(m_n/n\to0\). Its joint AIPW and Gaussian-rule construction attains the minimax value, while its spatial selector rate is stated honestly as schedule- and law-specific through the certified prefix-separation profile.
+
+\section{Related work}
+
+Hirano and Porter (2009) inform the scalar fixed-experiment Gaussian decision bridge, while Masten (2023) and Kato (2026) inform finite-action Gaussian games; none observes overlapping policy loadings through selectively annotated treatment--stratum cells. Higbee (2026) proves two-wave Bayes design under a unique, strongly concave smooth policy optimum. Theorem 4 gives the theorem-level contrast required here: the explicit \(L=3\) rational finite menu has a three-way tie in every local decision neighborhood and fourteen contrast-preserving selective-annotation nuisance coordinates, so Higbee's uniqueness and curvature conditions do not cover the experiment. Nwankwo, Goldkind, and Zhou (2026) supply the closest scalar annotation workflow, and the Wang, Wang, and Miao preprint, listed as a FUTURE Statistica Sinica article, supplies the nearest componentwise semiparametric two-phase criterion. Levis et al. (2024) inform observed-data influence projection, Cook, Mishler, and Ramdas (2024) inform stabilized AIPW limits, and Luedtke and van der Laan (2016) identify the nonregularity of nonunique optimal decisions. Those works do not establish the present coupling of a tie-stable multivariate regret design and a discontinuous finite-policy rule under only an arbitrarily slowly diverging pilot and a vanishing pilot share; the resulting spatial rate is deliberately schedule- and law-specific. Manski (2007) studies minimax-regret treatment choice when outcomes are missing for uncontrolled reasons and the response law is partially identified. Stoye (2007) extends incomplete-data choice to many treatments, and his finite-sample missing-outcome analysis studies a fixed exogenous missing fraction. Those decision problems are important antecedents but differ from prospective randomized annotation, known propensities, point-identified policy contrasts, and optimization of the acquisition design itself. Hu et al. (2024) inform regret-sensitive allocation in separable subgroup decisions. The auxiliary functional \(G_\omega\) is introduced internally only as the geometric probe in the constructive witness. Codi et al. (2025) provide the stacked rule-comparison consumer, and Kim et al. (2025) motivate independent validation of the azithromycin rules. The present general theory covers every fixed finite support with \(L\ge2\), including binary outcomes; continuous outcomes require a different support formulation.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_p(q)=A_{\mathrm{map}}\beta(q)=F\tau(q)\).
+Primary functional / estimator / diagnostic: \(V^*=\min_{r\in\mathcal R_B}\inf_\delta\sup_{h\in\mathcal H}E_{Z\sim N(h,\Sigma(r))}[\sum_{j=1}^{M}\delta_j(Z)\{\max_{k\in[M]}h_k-h_j\}]\).
+\begin{itemize}
+  \item \(n\) --- \texttt{main-\allowbreak{}wave sample size}; \(\mathbb N\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent main-\allowbreak{}wave records.}
+  \item \(k\) --- \texttt{dyadic-\allowbreak{}tree depth}; \(\mathbb N_0\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Depth index for the canonical nested-\allowbreak{}cell selector.}
+  \item \(m_n\) --- \texttt{pilot sample size}; \(\mathbb N\); \texttt{asymptotic regime}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent fully annotated pilot records available before the main wave.}
+  \item \(K\) --- \texttt{number of strata}; \(\{1,2,\ldots\}\); \texttt{dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known fixed number of baseline strata.}
+  \item \(M\) --- \texttt{number of policies}; \(\{2,3,\ldots\}\); \texttt{dimension}
+  \par\smallskip\noindent\emph{Definition.} Known fixed size of the frozen policy menu; the headline multivariate design problem has \(M\ge3\), while \(M=2\) is retained only for the reduction check.
+  \item \(d\) --- \texttt{contrast dimension}; \(\mathbb N\); \texttt{dimension}
+  \par\smallskip\noindent\emph{Definition.} \(d=M-1\).
+  \item \(L\) --- \texttt{outcome-\allowbreak{}support size}; \(\{2,3,\ldots\}\); \texttt{dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known fixed number of outcome-\allowbreak{}support points.}
+  \item \(x\) --- \texttt{stratum index}; \([K]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic baseline stratum.}
+  \item \(a\) --- \texttt{treatment index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic binary treatment level.}
+  \item \(j\) --- \texttt{policy index}; \([M]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic policy label.}
+  \item \(\ell\) --- \texttt{support index}; \([L]\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic outcome-\allowbreak{}support label.}
+  \item \(p\) --- \texttt{stratum-\allowbreak{}mass vector}; \(\{u\in(0,1)^K:\sum_x u_x=1\}\); \texttt{design primitive}
+  \par\smallskip\noindent\emph{Definition.} Known vector with component \(p_x=P(X=x)\).
+  \item \(e\) --- \texttt{treatment-\allowbreak{}propensity array}; \(\{u\in(0,1)^{2K}:u_{0x}+u_{1x}=1\}\); \texttt{design primitive}
+  \par\smallskip\noindent\emph{Definition.} Known randomized-treatment probabilities with component \(e_{ax}=P(A=a\mid X=x)\).
+  \item \(X\) --- \texttt{baseline stratum}; \([K]\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} Observed pretreatment stratum with law \(p\).
+  \item \(A\) --- \texttt{treatment}; \(\{0,1\}\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} Observed randomized treatment with conditional law \(e\).
+  \item \(C_Y\) --- \texttt{outcome bound}; \((0,\infty)\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known absolute bound on the outcome support.}
+  \item \(\mathcal Y\) --- \texttt{outcome support}; finite subsets of \(\mathbb R\); \texttt{model primitive}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{y_1,\ldots,y_L\}\subset[-C_Y,C_Y]\) contains \(L\) distinct known values.
+  \item \(Y(a)\) --- \texttt{potential outcome}; \(\mathcal Y\); \texttt{causal object}
+  \par\smallskip\noindent\emph{Definition.} Potential outcome under treatment \(a\).
+  \item \(Y\) --- \texttt{realized outcome}; \(\mathcal Y\); \texttt{partially observed variable}
+  \par\smallskip\noindent\emph{Definition.} Outcome satisfying \(Y=Y(A)\).
+  \item \(\star\) --- \texttt{missing-\allowbreak{}outcome token}; a singleton disjoint from \(\mathcal Y\); \texttt{missingness marker}
+  \par\smallskip\noindent\emph{Definition.} A fixed symbol \(\star\notin\mathcal Y\) recording that an outcome was not acquired.
+  \item \(q\) --- \texttt{conditional outcome-\allowbreak{}probability array}; \((\Delta_{L-1})^{2K}\); \texttt{primitive nuisance}
+  \par\smallskip\noindent\emph{Definition.} Component \(q_{ax\ell}=P(Y=y_\ell\mid A=a,X=x)\).
+  \item \(P_{p,q}\) --- \texttt{p-\allowbreak{}indexed causal complete-\allowbreak{}data law}; probability laws on \([K]\times\mathcal Y^2\times\{0,1\}\times\mathcal Y\); \texttt{statistical model}
+  \par\smallskip\noindent\emph{Definition.} For each admissible \(p\) and \(q\), \(P_{p,q}\) is any causal law for \(X,Y(0),Y(1),A,Y\) with stratum mass \(p\), treatment propensity \(e\), and conditional marginal outcome probabilities \(q\); the dependence between \(Y(0)\) and \(Y(1)\) is unrestricted.
+  \item \(\eta\) --- \texttt{cell-\allowbreak{}probability floor}; \((0,1/L)\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known lower bound for every conditional outcome-\allowbreak{}support probability.}
+  \item \(\mathcal M_\eta(p)\) --- \texttt{p-\allowbreak{}indexed saturated causal-\allowbreak{}law class}; sets of laws \(P_{p,q}\); \texttt{model class}
+  \par\smallskip\noindent\emph{Definition.} For each admissible \(p\), the class is constructed in \(\mathrm{def:saturated-model}\).
+  \item \(q^0\) --- \texttt{baseline probability array}; \((\Delta_{L-1})^{2K}\); \texttt{localization center}
+  \par\smallskip\noindent\emph{Definition.} Fixed interior baseline array satisfying \(P_{p,q^0}\in\mathcal M_\eta(p)\).
+  \item \(\delta_q\) --- \texttt{baseline interior slack}; \(\mathbb R\); \texttt{localization constant}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_q=\min_{a\in\{0,1\},x\in[K],\ell\in[L]}(q^0_{ax\ell}-\eta)\).
+  \item \(\beta(q)\) --- \texttt{cell-\allowbreak{}mean vector}; \(\mathbb R^{2K}\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} Its \((a,x)\)-entry is \(\mu_{ax}(q)=\sum_{\ell=1}^{L}y_\ell q_{ax\ell}\).
+  \item \(\sigma^2(q)\) --- \texttt{cell-\allowbreak{}variance vector}; \([0,\infty)^{2K}\); \texttt{primitive functional}
+  \par\smallskip\noindent\emph{Definition.} Its \((a,x)\)-entry is \(\sigma^2_{ax}(q)=\sum_{\ell=1}^{L}(y_\ell-\mu_{ax}(q))^2q_{ax\ell}\).
+  \item \(\pi\) --- \texttt{frozen policy menu}; \(\{0,1\}^{M\times K}\); \texttt{decision primitive}
+  \par\smallskip\noindent\emph{Definition.} Component \(\pi_j(x)\) is the treatment assigned by policy \(j\) in stratum \(x\).
+  \item \(d_x\) --- \texttt{policy-\allowbreak{}loading vector}; \(\mathbb R^d\); \texttt{derived design object}
+  \par\smallskip\noindent\emph{Definition.} \(d_x=(\pi_1(x)-\pi_M(x),\ldots,\pi_d(x)-\pi_M(x))^\top\).
+  \item \(F\) --- \texttt{policy-\allowbreak{}contrast loading matrix}; \(\mathbb R^{d\times K}\); \texttt{derived design object}
+  \par\smallskip\noindent\emph{Definition.} \(F=[d_1\;\cdots\;d_K]\operatorname{diag}(p)\).
+  \item \(\tau(q)\) --- \texttt{stratum treatment-\allowbreak{}effect vector}; \(\mathbb R^K\); \texttt{primitive causal functional}
+  \par\smallskip\noindent\emph{Definition.} \(\tau(q)=\mu_1(q)-\mu_0(q)\), using the treatment blocks of \(\beta(q)\).
+  \item \(Q\) --- \texttt{policy-\allowbreak{}contrast right inverse}; \(\mathbb R^{K\times d}\); \texttt{fiber coordinate map}
+  \par\smallskip\noindent\emph{Definition.} A fixed matrix satisfying \(FQ=I_d\).
+  \item \(N\) --- \texttt{policy-\allowbreak{}null loading matrix}; \(\mathbb R^{K\times(K-d)}\); \texttt{fiber coordinate map}
+  \par\smallskip\noindent\emph{Definition.} A fixed full-column-rank matrix with image \(\ker(F)\), so \(FN=0\).
+  \item \(u\) --- \texttt{treatment-\allowbreak{}effect nuisance coordinate}; \(\mathbb R^{K-d}\); \texttt{nuisance parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Coordinate for treatment-\allowbreak{}effect directions that preserve every policy contrast.}
+  \item \(A_{\mathrm{map}}\) --- \texttt{cell-\allowbreak{}mean contrast map}; \(\mathbb R^{d\times 2K}\); \texttt{derived design object}
+  \par\smallskip\noindent\emph{Definition.} \(A_{\mathrm{map}}=[-F\;F]\).
+  \item \(\theta_p(q)\) --- \texttt{p-\allowbreak{}indexed policy-\allowbreak{}welfare contrast vector}; \(\mathbb R^d\); \texttt{target}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_p(q)=A_{\mathrm{map}}\beta(q)=F\tau(q)\), where both \(F\) and \(A_{\mathrm{map}}\) use the stipulated stratum weights \(p\).
+  \item \(\mathscr P_n\) --- \texttt{pilot sigma-\allowbreak{}field}; \texttt{sub-\allowbreak{}sigma-\allowbreak{}fields of the full two-\allowbreak{}wave experiment}; \texttt{conditioning information}
+  \par\smallskip\noindent\emph{Definition.} Sigma-field generated by the independent fully annotated pilot sample of size \(m_n\) and every auxiliary random variable used by the pilot-stage design selector.
+  \item \(R\) --- \texttt{annotation indicator}; \(\{0,1\}\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Indicator that the realized outcome is acquired.}
+  \item \(Y^{\mathrm{obs}}\) --- \texttt{observed outcome}; \(\mathcal Y\cup\{\star\}\); \texttt{observed variable}
+  \par\smallskip\noindent\emph{Definition.} \(Y^{\mathrm{obs}}=Y\) when \(R=1\), and \(Y^{\mathrm{obs}}=\star\) when \(R=0\).
+  \item \(r\) --- \texttt{annotation-\allowbreak{}rate array}; \([0,1]^{2K}\); \texttt{design variable}
+  \par\smallskip\noindent\emph{Definition.} Component \(r_{ax}=P(R=1\mid X=x,A=a)\).
+  \item \(\rho\) --- \texttt{annotation floor}; \((0,1)\); \texttt{design constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known lower bound on every main-\allowbreak{}wave annotation rate.}
+  \item \(B\) --- \texttt{annotation budget}; \([\rho,1]\); \texttt{design constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Maximum expected main-\allowbreak{}wave labeled fraction.}
+  \item \(\mathcal R_B\) --- \texttt{feasible deterministic design set}; subsets of \([\rho,1]^{2K}\); \texttt{design space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_B=\{r\in[\rho,1]^{2K}:\sum_{x=1}^{K}\sum_{a=0}^{1}p_xe_{ax}r_{ax}\le B\}\).
+  \item \(\mathcal H\) --- \texttt{local policy-\allowbreak{}contrast state set}; nonempty compact convex subsets of \(\mathbb R^d\); \texttt{local parameter space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed set of local welfare-\allowbreak{}contrast states containing the origin.}
+  \item \(h\) --- \texttt{local policy-\allowbreak{}contrast state}; \(\mathcal H\); \texttt{parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic local policy-\allowbreak{}welfare contrast state.}
+  \item \(\mathcal E\) --- \texttt{simplex tangent space}; subspaces of \(\mathbb R^{2KL}\); \texttt{tangent space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E=\{s:\sum_{\ell=1}^{L}s_{ax\ell}=0\text{ for every }(a,x)\}\).
+  \item \(B_{\mathrm{mean}}\) --- \texttt{tangent-\allowbreak{}to-\allowbreak{}mean map}; \(\mathcal E\to\mathbb R^{2K}\); \texttt{linear map}
+  \par\smallskip\noindent\emph{Definition.} \((B_{\mathrm{mean}}s)_{ax}=\sum_{\ell=1}^{L}y_\ell s_{ax\ell}\).
+  \item \(A_{\mathrm{tan}}\) --- \texttt{tangent-\allowbreak{}to-\allowbreak{}contrast map}; \(\mathcal E\to\mathbb R^d\); \texttt{linear map}
+  \par\smallskip\noindent\emph{Definition.} \(A_{\mathrm{tan}}=A_{\mathrm{map}}B_{\mathrm{mean}}\).
+  \item \(S_0\) --- \texttt{contrast right inverse}; \(\mathbb R^d\to\mathcal E\); \texttt{local-\allowbreak{}chart primitive}
+  \par\smallskip\noindent\emph{Definition.} A fixed linear map satisfying \(A_{\mathrm{tan}}S_0=I_d\).
+  \item \(W\) --- \texttt{nuisance-\allowbreak{}coordinate isomorphism}; \(\mathbb R^{2K(L-1)-d}\to\ker(A_{\mathrm{tan}})\); \texttt{local-\allowbreak{}chart primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed linear bijection onto the contrast-\allowbreak{}preserving tangent kernel.}
+  \item \(v\) --- \texttt{outcome-\allowbreak{}shape nuisance coordinate}; \(\mathbb R^{2K(L-1)-d}\); \texttt{nuisance parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Coordinate for every contrast-\allowbreak{}preserving cell-\allowbreak{}mean and outcome-\allowbreak{}shape tangent.}
+  \item \(C_v\) --- \texttt{nuisance-\allowbreak{}radius index}; \((0,\infty)\); \texttt{local asymptotic index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fixed radius used before the outer iterated limit expands the nuisance fiber.}
+  \item \(s(h,v)\) --- \texttt{local simplex tangent array}; \(\mathcal E\); \texttt{local parameterization}
+  \par\smallskip\noindent\emph{Definition.} \(s(h,v)=S_0h+Wv\).
+  \item \(q_n(h,v)\) --- \texttt{local affine conditional-\allowbreak{}law chart}; \(\{u\in\mathbb R^{2KL}:\sum_{\ell=1}^{L}u_{ax\ell}=1\text{ for every }(a,x)\}\); \texttt{local experiment}
+  \par\smallskip\noindent\emph{Definition.} \(q_n(h,v)=q^0+s(h,v)/\sqrt n\).
+  \item \(O\) --- \texttt{observed record}; \([K]\times\{0,1\}\times\{0,1\}\times(\mathcal Y\cup\{\star\})\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(O=(X,A,R,Y^{\mathrm{obs}})\).
+  \item \(\mathbb P^{r}_{p,q}\) --- \texttt{p-\allowbreak{}indexed selectively observed law}; probability laws on the sample space of \(O\); \texttt{observed-\allowbreak{}data experiment}
+  \par\smallskip\noindent\emph{Definition.} Law of \(O=(X,A,R,Y^{\mathrm{obs}})\) induced by \(P_{p,q}\), \(R\mid(X=x,A=a)\sim\operatorname{Bernoulli}(r_{ax})\), annotation ignorability, and \(Y^{\mathrm{obs}}=Y\) if \(R=1\) and \(Y^{\mathrm{obs}}=\star\) otherwise.
+  \item \(g_s(O)\) --- \texttt{observed-\allowbreak{}record tangent score}; measurable real functions on the sample space of \(O\); \texttt{LAN score}
+  \par\smallskip\noindent\emph{Definition.} For \(s\in\mathcal E\), \(g_s(O)=R\sum_{\ell=1}^{L}\mathbf 1\{Y^{\mathrm{obs}}=y_\ell\}s_{AX\ell}/q^0_{AX\ell}\).
+  \item \(J_r(s,t)\) --- \texttt{observed tangent information bilinear form}; bilinear forms on \(\mathcal E\times\mathcal E\); \texttt{LAN information}
+  \par\smallskip\noindent\emph{Definition.} \(J_r(s,t)=\sum_{x=1}^{K}\sum_{a=0}^{1}p_xe_{ax}r_{ax}\sum_{\ell=1}^{L}s_{ax\ell}t_{ax\ell}/q^0_{ax\ell}\).
+  \item \(\Delta_n(s)\) --- \texttt{conditional central sequence}; random linear functionals on \(\mathcal E\); \texttt{LAN central sequence}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_n(s)=n^{-1/2}\sum_{i=1}^{n}g_s(O_i)\), formed from the main-wave records conditional on \(\mathscr P_n\).
+  \item \(\operatorname{rem}_{n,r}(h,v)\) --- \texttt{conditional LAN remainder}; real-valued random functions on \(\mathcal H\times\mathbb R^{2K(L-1)-d}\); \texttt{LAN remainder}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{rem}_{n,r}(h,v)=\log\{d(\mathbb P^r_{p,q_n(h,v)})^{\otimes n}/d(\mathbb P^r_{p,q^0})^{\otimes n}\}(O_1,\ldots,O_n)-\Delta_n(s(h,v))+J_r(s(h,v),s(h,v))/2\), where every \(O_i=(X_i,A_i,R_i,Y_i^{\mathrm{obs}})\).
+  \item \(\Sigma(r)\) --- \texttt{policy-\allowbreak{}contrast covariance}; \(\mathbb S_{++}^d\); \texttt{limit-\allowbreak{}experiment covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma(r)=\sum_{x=1}^{K}\sum_{a=0}^{1}p_x\sigma^2_{ax}(q^0)d_xd_x^\top/(e_{ax}r_{ax})\).
+  \item \(I_r\) --- \texttt{efficient cell-\allowbreak{}mean information}; \(\mathbb S_{++}^{2K}\); \texttt{information matrix}
+  \par\smallskip\noindent\emph{Definition.} \(I_r=\operatorname{diag}_{a,x}\{p_xe_{ax}r_{ax}/\sigma^2_{ax}(q^0)\}\).
+  \item \(T_r\) --- \texttt{least-\allowbreak{}favorable mean lift}; \(\mathbb R^{2K\times d}\); \texttt{least-\allowbreak{}favorable construction}
+  \par\smallskip\noindent\emph{Definition.} \(T_r=I_r^{-1}A_{\mathrm{map}}^\top\Sigma(r)^{-1}\).
+  \item \(\mathcal T_r\) --- \texttt{least-\allowbreak{}favorable probability-\allowbreak{}tangent lift}; linear maps \(\mathbb R^d\to\mathcal E\); \texttt{least-\allowbreak{}favorable construction}
+  \par\smallskip\noindent\emph{Definition.} For \(b\in\mathbb R^d\), \((\mathcal T_rb)_{ax\ell}=(T_rb)_{ax}q^0_{ax\ell}(y_\ell-\mu_{ax}(q^0))/\sigma^2_{ax}(q^0)\).
+  \item \(\Pi_r\) --- \texttt{contrast tangent projection}; linear maps \(\mathcal E\to\mathcal E\); \texttt{nuisance projection}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_rs=\mathcal T_rA_{\mathrm{tan}}s\).
+  \item \(U_{n,r}\) --- \texttt{efficient contrast central sequence}; \(\mathbb R^d\); \texttt{projected LAN signal}
+  \par\smallskip\noindent\emph{Definition.} \(U_{n,r}=\Sigma(r)(\Delta_n\circ\mathcal T_r)\), identifying the linear functional \(b\mapsto\Delta_n(\mathcal T_rb)\) with its Euclidean coordinate vector in \(\mathbb R^d\).
+  \item \(Z\) --- \texttt{Gaussian policy-\allowbreak{}contrast signal}; \(\mathbb R^d\); \texttt{limit-\allowbreak{}experiment observation}
+  \par\smallskip\noindent\emph{Definition.} Limit observation with law \(N(h,\Sigma(r))\).
+  \item \(\Delta_M\) --- \texttt{randomized policy-\allowbreak{}action simplex}; \(\{u\in[0,1]^M:\sum_{j=1}^{M}u_j=1\}\); \texttt{action space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Simplex of randomized terminal choices among the frozen policies.}
+  \item \(\delta\) --- \texttt{Gaussian decision rule}; measurable maps \(\mathbb R^d\to\Delta_M\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A possibly randomized rule mapping the Gaussian policy-\allowbreak{}contrast signal to a terminal policy distribution.}
+  \item \(\psi_n\) --- \texttt{finite-\allowbreak{}sample terminal policy selector}; measurable maps from pilot and main-wave observations to \(\Delta_M\); \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} A generic randomized terminal rule based on \(\mathscr P_n\) and \(O_1,\ldots,O_n\).
+  \item \(\ell_{\mathrm{reg}}(h,j)\) --- \texttt{local welfare-\allowbreak{}regret loss}; \([0,\infty)\); \texttt{loss}
+  \par\smallskip\noindent\emph{Definition.} With \(h_M=0\), \(\ell_{\mathrm{reg}}(h,j)=\max_{k\in[M]}h_k-h_j\).
+  \item \(L(r)\) --- \texttt{deterministic-\allowbreak{}design Gaussian minimax value}; \([0,\infty)\); \texttt{focal value}
+  \par\smallskip\noindent\emph{Definition.} \(L(r)=\inf_\delta\sup_{h\in\mathcal H}E_{Z\sim N(h,\Sigma(r))}[\sum_{j=1}^{M}\delta_j(Z)\ell_{\mathrm{reg}}(h,j)]\).
+  \item \(\sigma\) --- \texttt{binary Gaussian noise scale}; \((0,\infty)\); \texttt{benchmark parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Standard deviation in the one-\allowbreak{}dimensional two-\allowbreak{}policy Gaussian benchmark.}
+  \item \(L_{\sigma}(\mathcal H)\) --- \texttt{binary Gaussian minimax regret value}; \([0,\infty)\); \texttt{binary benchmark value}
+  \par\smallskip\noindent\emph{Definition.} When \(M=2\) and \(\mathcal H\subset\mathbb R\), \(L_{\sigma}(\mathcal H)=\inf_\delta\sup_{h\in\mathcal H}E_{Z\sim N(h,\sigma^2)}[\sum_{j=1}^{2}\delta_j(Z)\ell_{\mathrm{reg}}(h,j)]\).
+  \item \(V^*\) --- \texttt{optimal annotation minimax value}; \([0,\infty)\); \texttt{headline value}
+  \par\smallskip\noindent\emph{Definition.} \(V^*=\min_{r\in\mathcal R_B}L(r)\).
+  \item \(\mathfrak A_{\mathrm{det}}\) --- \texttt{admissible annotation-\allowbreak{}and-\allowbreak{}decision procedure class}; \texttt{sequences of measurable procedures}; \texttt{comparison class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def:admissible-procedures}\).
+  \item \(\mathcal A\) --- \texttt{generic annotation-\allowbreak{}and-\allowbreak{}decision procedure}; \(\mathfrak A_{\mathrm{det}}\); \texttt{procedure}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic admissible procedure sequence.}
+  \item \(\mathcal A^*\) --- \texttt{attaining annotation-\allowbreak{}and-\allowbreak{}decision procedure}; \(\mathfrak A_{\mathrm{det}}\); \texttt{constructed procedure}
+  \par\smallskip\noindent\emph{Definition.} Procedure derived by \(\mathrm{thm:feasible-risk-attainment}\) from the implementation handle.
+  \item \(J_n(\mathcal A)\) --- \texttt{terminal selected policy}; \([M]\); \texttt{decision}
+  \par\smallskip\noindent\emph{Definition.} Policy label output by procedure \(\mathcal A\) after its pilot and main wave.
+  \item \(\mathcal R_-(\mathcal A)\) --- \texttt{iterated local lower risk}; \([0,\infty]\); \texttt{asymptotic lower risk}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_-(\mathcal A)=\lim_{C_v\to\infty}\liminf_{n\to\infty}\sup_{h\in\mathcal H,\lVert v\rVert\le C_v}E_{P_{p,q_n(h,v)},\mathcal A}[\ell_{\mathrm{reg}}(h,J_n(\mathcal A))]\).
+  \item \(\mathcal R_+(\mathcal A)\) --- \texttt{iterated local upper risk}; \([0,\infty]\); \texttt{asymptotic upper risk}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_+(\mathcal A)=\lim_{C_v\to\infty}\limsup_{n\to\infty}\sup_{h\in\mathcal H,\lVert v\rVert\le C_v}E_{P_{p,q_n(h,v)},\mathcal A}[\ell_{\mathrm{reg}}(h,J_n(\mathcal A))]\).
+  \item \(P_B\) --- \texttt{feasible-\allowbreak{}design projection}; \([\rho,1]^{2K}\to\mathcal R_B\); \texttt{implementation map}
+  \par\smallskip\noindent\emph{Definition.} For \(z=\rho\mathbf 1+u\), \(P_B(z)=\rho\mathbf 1+\min\{1,(B-\rho)/(\sum_{x,a}p_xe_{ax}u_{ax})\}u\), with the constant convention at \(u=0\) or \(B=\rho\).
+  \item \(\mathcal D_k^\dagger\) --- \texttt{canonical selected ambient dyadic box}; closed dyadic boxes in \([\rho,1]^{2K}\); \texttt{canonical-\allowbreak{}selection construction}
+  \par\smallskip\noindent\emph{Definition.} Order the \(2K\) annotation-rate coordinates as \((r_{01},r_{11},r_{02},r_{12},\ldots,r_{0K},r_{1K})\). Order child multi-indices \(b=(b_{01},b_{11},\ldots,b_{0K},b_{1K})\in\{0,1\}^{2K}\) lexicographically in that coordinate order, with \(0<1\). Set \(\mathcal D_0^\dagger=[\rho,1]^{2K}\). Given \(\mathcal D_k^\dagger\), index its \(2^{2K}\) closed dyadic child boxes by \(b\) and define \(\mathcal D_{k+1}^\dagger\) to be the lexicographically first child \(D_b\) satisfying \(\mathcal R_B\cap D_b\ne\varnothing\) and \(\min_{r\in\mathcal R_B\cap D_b}L(r)=V^*\). A point on a boundary shared by several closed children makes every child containing it separately eligible, and the same lexicographically first convention resolves that boundary tie. Only children of the already selected box \(\mathcal D_k^\dagger\) are eligible at depth \(k+1\).
+  \item \(\mathcal C_k^\dagger\) --- \texttt{canonical selected dyadic design cell}; nonempty closed subsets of \(\mathcal R_B\); \texttt{canonical-\allowbreak{}selection construction}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_k^\dagger=\mathcal R_B\cap\mathcal D_k^\dagger\). At least one eligible child exists at every depth because the closed children cover the selected parent box and \(\mathcal C_k^\dagger\) contains a minimizer. Thus \(\mathcal C_{k+1}^\dagger\subseteq\mathcal C_k^\dagger\), every selected cell is nonempty and closed, and \(\operatorname{diam}(\mathcal C_k^\dagger)\le\sqrt{2K}(1-\rho)2^{-k}\to0\).
+  \item \(r^\dagger\) --- \texttt{canonical regret-\allowbreak{}optimal design}; \(\mathcal R_B\); \texttt{deterministic target design}
+  \par\smallskip\noindent\emph{Definition.} The unique point defined by \(\{r^\dagger\}=\bigcap_{k=0}^{\infty}\mathcal C_k^\dagger\). The intersection is a singleton because the cells are nested, nonempty, and closed inside the compact set \(\mathcal R_B\), while their diameters tend to zero.
+  \item \(a_n(L)\) --- \texttt{canonical-\allowbreak{}selection convergence rate}; \texttt{positive deterministic sequences converging to zero}; \texttt{derived rate}
+  \par\smallskip\noindent\emph{Definition.} Law-specific rate sequence derived by \(\mathrm{thm:coupled-measurable-attainment}\) from the certified prefix-separation profile of the exact lexicographic closed-cell sequence \(\mathcal C_k^\dagger\) for \(L\).
+  \item \(\widehat r_n\) --- \texttt{pilot-\allowbreak{}selected annotation design}; \(\mathcal R_B\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Output of the projected nested-cell design sieve in \(\mathrm{def:implementation-handle}\).
+  \item \(\widehat\beta\) --- \texttt{pilot cell-\allowbreak{}mean estimator}; \(\mathbb R^{2K}\); \texttt{pilot estimator}
+  \par\smallskip\noindent\emph{Definition.} Vector of fully labeled pilot cell means, clipped to the convex hull of \(\mathcal Y\).
+  \item \(\widetilde\beta_n\) --- \texttt{AIPW cell-\allowbreak{}mean estimator}; \(\mathbb R^{2K}\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} Its \((a,x)\)-entry is \(\widehat\beta_{ax}+n^{-1}\sum_{i=1}^{n}\mathbf 1\{X_i=x,A_i=a,R_i=1\}(Y_i^{\mathrm{obs}}-\widehat\beta_{ax})/(p_xe_{ax}\widehat r_{n,ax})\).
+  \item \(\widetilde\theta_n\) --- \texttt{joint AIPW policy-\allowbreak{}contrast estimator}; \(\mathbb R^d\); \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\theta_n=A_{\mathrm{map}}\widetilde\beta_n\).
+  \item \(\varepsilon\) --- \texttt{certificate tolerance}; \((0,\infty)\); \texttt{computational input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Requested absolute width of the certified value interval.}
+  \item \(\mathfrak I_{\mathrm{rep}}\) --- \texttt{effectively represented problem instances}; \texttt{finite encoded tuples}; \texttt{computability domain}
+  \par\smallskip\noindent\emph{Definition.} The class of inputs for which \(\mathcal H\) is a nonempty compact rational polytope supplied by a finite rational-inequality encoding, \(p,e,\rho,B,\mathcal Y,q^0\) are rational or real-algebraic encoded numbers, \(\pi\) is binary encoded, and positivity, rank, compactness, and feasibility are accompanied by exact certificates.
+  \item \(\zeta_{\mathrm{tail}}\) --- \texttt{Gaussian tail-\allowbreak{}enclosure tolerance}; \((0,\infty)\); \texttt{computational input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Positive error budget for Gaussian tail truncation.}
+  \item \(\zeta_{\mathrm{quad}}\) --- \texttt{Gaussian quadrature tolerance}; \((0,\infty)\); \texttt{computational input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Positive error budget for adaptive quadrature.}
+  \item \(\zeta_{\mathrm{round}}\) --- \texttt{directed-\allowbreak{}rounding tolerance}; \((0,\infty)\); \texttt{computational input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Positive error budget for outward-\allowbreak{}rounding accumulation.}
+  \item \(\operatorname{GRect}\) --- \texttt{validated Gaussian rectangle-\allowbreak{}probability primitive}; \texttt{algorithms on algebraic Gaussian parameters and rational rectangles}; \texttt{certified integration primitive}
+  \par\smallskip\noindent\emph{Definition.} A terminating outward-rounded primitive that Cholesky-conditions a positive-definite algebraic Gaussian law, truncates one-dimensional tails at error \(\zeta_{\mathrm{tail}}\), adaptively subdivides the resulting compact iterated integral using certified derivative bounds until quadrature width is at most \(\zeta_{\mathrm{quad}}\), and accumulates interval arithmetic with outward-rounding width at most \(\zeta_{\mathrm{round}}\).
+  \item \(\mathsf C_\varepsilon\) --- \texttt{certified finite-\allowbreak{}grid output}; \texttt{intervals,\allowbreak{} feasible designs,\allowbreak{} rules,\allowbreak{} and design-\allowbreak{}cell covers}; \texttt{computational certificate}
+  \par\smallskip\noindent\emph{Definition.} Output of the represented state-net, \(\operatorname{GRect}\), projected-design-grid, and rational primal--dual certification construction at tolerance \(\varepsilon>0\).
+  \item \(\omega_0\) --- \texttt{rational three-\allowbreak{}policy witness}; \texttt{model and design primitives}; \texttt{separation witness}
+  \par\smallskip\noindent\emph{Definition.} The witness has \(K=4\), \(M=3\), \(p=(3/100,3/10,1/4,21/50)\), \(e_{ax}=1/2\), \(\rho=1/20\), \(B=11/20\), \(\pi_3=(0,0,0,0)\), \(\pi_1=(1,0,1,0)\), \(\pi_2=(0,1,1,0)\), \(\mathcal Y=\{-1,0,1\}\), \(\eta=1/10\), \(q^0_{ax}=(1/8,3/4,1/8)\), \(\mathcal H=[-1,1]^2\), \(Q=((100/3,0),(0,10/3),(0,0),(0,0))\), and \(N=((-25/3,0),(-5/6,0),(1,0),(0,1))\).
+  \item \(\omega\) --- \texttt{admissible witness perturbation}; primitive tuples near \(\omega_0\); \texttt{robustness parameter}
+  \par\smallskip\noindent\emph{Definition.} An admissible tuple varying only the stratum masses, tied interior baseline outcome laws, and annotation budget, while holding \(K\), \(M\), \(e\), \(\rho\), \(\pi\), \(\mathcal Y\), \(\eta\), and \(\mathcal H\) fixed at their \(\omega_0\) values.
+  \item \(p^\omega\) --- \texttt{perturbed stratum-\allowbreak{}mass vector}; \(\{u\in(0,1)^K:\sum_xu_x=1\}\); \texttt{perturbed primitive}
+  \par\smallskip\noindent\emph{Definition.} The stratum-mass coordinate of \(\omega\).
+  \item \(F^\omega\) --- \texttt{perturbed policy-\allowbreak{}contrast loading matrix}; \(\mathbb R^{2\times4}\); \texttt{perturbed design object}
+  \par\smallskip\noindent\emph{Definition.} \(F^\omega=[d_1\;\cdots\;d_4]\operatorname{diag}(p^\omega)\).
+  \item \(\theta_{p^\omega}(q)\) --- \texttt{perturbed policy-\allowbreak{}welfare contrast vector}; \(\mathbb R^2\); \texttt{perturbed target}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{p^\omega}(q)=F^\omega\tau(q)\).
+  \item \(q^{0,\omega}\) --- \texttt{perturbed tied baseline probability array}; \((\Delta_{L-1})^{2K}\); \texttt{perturbed primitive}
+  \par\smallskip\noindent\emph{Definition.} The baseline-law coordinate of \(\omega\), required by admissibility to satisfy \(P_{p^\omega,q^{0,\omega}}\in\mathcal M_\eta(p^\omega)\) and \(\theta_{p^\omega}(q^{0,\omega})=0\).
+  \item \(B^\omega\) --- \texttt{perturbed annotation budget}; \([\rho,1]\); \texttt{perturbed primitive}
+  \par\smallskip\noindent\emph{Definition.} The annotation-budget coordinate of \(\omega\).
+  \item \(\mathcal R_B(\omega)\) --- \texttt{perturbed feasible design set}; subsets of \([\rho,1]^{2K}\); \texttt{perturbed design space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_B(\omega)=\{r\in[\rho,1]^{2K}:\sum_{x=1}^{K}\sum_{a=0}^{1}p_x^\omega e_{ax}r_{ax}\le B^\omega\}\).
+  \item \(\Sigma_\omega(r)\) --- \texttt{perturbed policy-\allowbreak{}contrast covariance}; \(\mathbb S_{++}^2\); \texttt{perturbed limit covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma_\omega(r)=\sum_{x=1}^{4}\sum_{a=0}^{1}p_x^\omega\sigma^2_{ax}(q^{0,\omega})d_xd_x^\top/(e_{ax}r_{ax})\), using the \(p^\omega\)-indexed law and welfare loadings.
+  \item \(L_\omega(r)\) --- \texttt{perturbed Gaussian minimax regret value}; \([0,\infty)\); \texttt{perturbed focal value}
+  \par\smallskip\noindent\emph{Definition.} \(L_\omega(r)=\inf_\delta\sup_{h\in\mathcal H}E_{Z\sim N(h,\Sigma_\omega(r))}[\sum_{j=1}^{3}\delta_j(Z)\ell_{\mathrm{reg}}(h,j)]\).
+  \item \(G_\omega(r)\) --- \texttt{internally chosen maximum-\allowbreak{}pairwise-\allowbreak{}contrast-\allowbreak{}variance functional}; \([0,\infty)\); \texttt{internal geometric probe}
+  \par\smallskip\noindent\emph{Definition.} \(G_\omega(r)=\max\{(\Sigma_\omega(r))_{11},(\Sigma_\omega(r))_{22},(\Sigma_\omega(r))_{11}+(\Sigma_\omega(r))_{22}-2(\Sigma_\omega(r))_{12}\}\).
+  \item \(\mathcal G(\omega)\) --- \texttt{auxiliary variance-\allowbreak{}functional optimizer set}; nonempty compact subsets of \(\mathcal R_B(\omega)\); \texttt{internal geometric probe optimizer}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G(\omega)=\operatorname*{argmin}_{r\in\mathcal R_B(\omega)}G_\omega(r)\).
+  \item \(P_\omega\) --- \texttt{perturbed feasible-\allowbreak{}design projection}; \([\rho,1]^{8}\to\mathcal R_B(\omega)\); \texttt{robustness projection}
+  \par\smallskip\noindent\emph{Definition.} For \(z=\rho\mathbf 1+w\), \(P_\omega(z)=\rho\mathbf 1+\min\{1,(B^\omega-\rho)/(\sum_{x,a}p_x^\omega e_{ax}w_{ax})\}w\), with the constant convention when \(w=0\) or \(B^\omega=\rho\).
+  \item \(r_{\mathrm{alt}}^0\) --- \texttt{rational witness rate vector}; \([\rho,1]^8\); \texttt{separation primitive}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm{alt}}^0=(3/10,93/100,241/250,1/20,3/10,93/100,241/250,1/20)\), ordered by arm within the four strata.
+  \item \(r_{\mathrm{alt}}(\omega)\) --- \texttt{rescaled feasible witness design}; \(\mathcal R_B(\omega)\); \texttt{separation construction}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm{alt}}(\omega)=P_\omega(r_{\mathrm{alt}}^0)\). At \(\omega_0\), exact arithmetic gives \(\sum_{x=1}^{4}\sum_{a=0}^{1}p_xe_{ax}r^0_{\mathrm{alt},ax}=11/20=B\). Thus \(r_{\mathrm{alt}}^0\) is feasible, its projection equals itself, and \(r_{\mathrm{alt}}(\omega_0)=r_{\mathrm{alt}}^0\).
+  \item \(\mathcal U_{10^{-6}}\) --- \texttt{witness neighborhood}; open subsets of admissible perturbations \(\omega\); \texttt{robustness region}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal U_{10^{-6}}\) is the relative open set of admissible \(\omega\) satisfying \(\max_x|p_x^\omega-p_x^{\omega_0}|<10^{-6}\), \(\max_{a,x}|\sqrt{\sigma^2_{ax}(q^{0,\omega})}-1/2|<10^{-6}\), and \(|B^\omega-11/20|<10^{-6}\).
+  \item \(s_{\mathrm H}\) --- \texttt{smooth-\allowbreak{}policy parameter dimension}; \(\mathbb N\); \texttt{comparator dimension}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Dimension of the continuously parameterized action in the Higbee comparator class.}
+  \item \(\Gamma_{\mathrm H}\) --- \texttt{smooth-\allowbreak{}policy action set}; nonempty compact convex subsets of \(\mathbb R^{s_{\mathrm H}}\); \texttt{comparator action space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Continuously parameterized terminal-\allowbreak{}action set in the Higbee comparator class.}
+  \item \(\gamma\) --- \texttt{smooth-\allowbreak{}policy action}; \(\Gamma_{\mathrm H}\); \texttt{comparator action}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic continuously parameterized terminal action in the Higbee comparator class.}
+  \item \(\mathcal U_{\mathrm H}\) --- \texttt{comparator local-\allowbreak{}state neighborhood}; relative open neighborhoods of \(0\) in \(\mathcal H\); \texttt{comparator localization}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A relative open neighborhood of the tied local state used to state the maintained smooth-\allowbreak{}optimum conditions.}
+  \item \(W_{\mathrm H}\) --- \texttt{smooth comparator welfare}; real-valued functions on \(\mathcal U_{\mathrm H}\times\Gamma_{\mathrm H}\); \texttt{comparator criterion}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Population welfare criterion for a continuously parameterized policy action in the Higbee comparator class.}
+  \item \(c_{\mathrm H}\) --- \texttt{strong-\allowbreak{}concavity constant}; \((0,\infty)\); \texttt{comparator regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform local curvature lower bound in the Higbee comparator class.}
+  \item \(\mathfrak C_{\mathrm H}\) --- \texttt{Higbee smooth unique-\allowbreak{}optimum comparator class}; \texttt{classes of two-\allowbreak{}wave policy-\allowbreak{}design problems}; \texttt{theorem-\allowbreak{}level comparator class}
+  \par\smallskip\noindent\emph{Definition.} The class of two-wave policy-design problems with terminal action \(\gamma\in\Gamma_{\mathrm H}\), local state \(h\in\mathcal U_{\mathrm H}\), and criterion \(W_{\mathrm H}(h,\gamma)\) such that \(W_{\mathrm H}\) is twice continuously differentiable in \(\gamma\) on a relative neighborhood of its optimizer graph, \(\operatorname*{argmax}_{\gamma\in\Gamma_{\mathrm H}}W_{\mathrm H}(h,\gamma)\) is a singleton contained in \(\operatorname{relint}(\Gamma_{\mathrm H})\) for every \(h\in\mathcal U_{\mathrm H}\), and \(-\nabla_{\gamma}^2W_{\mathrm H}(h,\gamma)\succeq c_{\mathrm H}I_{s_{\mathrm H}}\) on that neighborhood.
+  \item \(\iota_{\mathrm H}\) --- \texttt{policy-\allowbreak{}label embedding}; injective maps from \([3]\) to \(\Gamma_{\mathrm H}\); \texttt{comparator representation map}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A generic injective map used to test whether a smooth-\allowbreak{}policy comparator preserves all three labeled terminal choices.}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:randomization]\label{ass:randomization}
+\((Y(0),Y(1))\perp A\mid X\).
+\par\smallskip\noindent\emph{Standard} (Known-propensity conditional randomization, \cite{NwankwoGoldkindZhou2026BatchAdaptive}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=Y(A)\).
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{AtheyWager2021PolicyLearning}).
+\end{assumption}
+
+\begin{assumption}[ass:annotation-ignorability]\label{ass:annotation-ignorability}
+For every main-wave record, \(R_i\perp Y_i\mid(X_i,A_i,\mathscr P_n)\).
+\par\smallskip\noindent\emph{Standard} (Outcome-annotation ignorability imposed by randomized acquisition, \cite{NwankwoGoldkindZhou2026BatchAdaptive}).
+\end{assumption}
+
+\begin{assumption}[ass:eta-interior]\label{ass:eta-interior}
+\(q_{ax\ell}\ge\eta\) for every \((a,x,\ell)\).
+\par\smallskip\noindent\emph{Standard} (Uniform interior-point positivity for a finite multinomial model, \cite{vanDerVaart1998AsymptoticStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-interior-slack]\label{ass:strict-interior-slack}
+\(\delta_q>0\).
+\par\smallskip\noindent\emph{Standard} (Strict interior localization in a finite multinomial model, \cite{vanDerVaart1998AsymptoticStatistics}).
+\end{assumption}
+
+\begin{assumption}[ass:menu-rank]\label{ass:menu-rank}
+\(\operatorname{rank}(F)=d\).
+\par\smallskip\noindent\emph{Standard} (Full-row-rank contrast condition, \cite{WangWangMiao2026MaximinTwoPhase}).
+\end{assumption}
+
+\begin{assumption}[ass:tied-baseline]\label{ass:tied-baseline}
+\(\theta_p(q^0)=0\).
+\par\smallskip\noindent\emph{Standard} (Local least-favorable tie localization, \cite{HiranoPorter2009AsymptoticsTreatmentRules}).
+\end{assumption}
+
+\begin{assumption}[ass:pilot-vanishes]\label{ass:pilot-vanishes}
+\(m_n/n\to0\).
+\par\smallskip\noindent\emph{Standard} (Vanishing pilot-fraction condition, \cite{Kato2026BestArm}).
+\end{assumption}
+
+\begin{assumption}[ass:pilot-rate]\label{ass:pilot-rate}
+\(m_n\to\infty\).
+\par\smallskip\noindent\emph{Novel.} An arbitrarily slowly diverging fully labelled pilot consistently estimates the finitely many bounded cell moments; together with the separate vanishing-share condition, this is sufficient for design selection, covariance stabilization, and negligible pilot information.
+\end{assumption}
+
+\begin{assumption}[ass:deterministic-rate-limit]\label{ass:deterministic-rate-limit}
+Every \(\mathcal A\in\mathfrak A_{\mathrm{det}}\) has a main-wave rate converging locally uniformly in probability to one deterministic \(r\in\mathcal R_B\).
+\par\smallskip\noindent\emph{Novel.} Prospective validation protocols commonly require investigators to freeze a stable acquisition rule after a pilot; deterministic limiting rates formalize that precommitment while allowing finite-sample pilot adaptation.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:saturated-model]\label{def:saturated-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Saturated finite-\allowbreak{}support causal model}
+\par\smallskip\noindent\emph{Construction.} For each admissible \(p\), \(\mathcal M_\eta(p)=\{P_{p,q}:q\in(\Delta_{L-1})^{2K},\ P_{p,q}\text{ satisfies }\mathrm{ass:randomization},\mathrm{ass:consistency},\mathrm{ass:eta-interior}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}randomization}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}eta-\allowbreak{}interior}.
+\end{definition}
+
+\begin{definition}[def:local-fiber]\label{def:local-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full contrast-\allowbreak{}and-\allowbreak{}shape local fiber}
+\par\smallskip\noindent\emph{Construction.} For every fixed \(C_v<\infty\) and every \(n\) satisfying \(\sup_{h\in\mathcal H,\lVert v\rVert\le C_v}\lVert s(h,v)\rVert_\infty/\sqrt n<\delta_q\), the local fiber of causal laws is \(\{P_{p,q_n(h,v)}:h\in\mathcal H,\lVert v\rVert\le C_v\}\), where \(s(h,v)=S_0h+Wv\) and \(q_n(h,v)=q^0+s(h,v)/\sqrt n\).
+\par\smallskip\noindent\emph{Inputs.} \(q^0\); \(S_0\); \(W\); \(\mathcal H\).
+\end{definition}
+
+\begin{definition}[def:gaussian-game]\label{def:gaussian-game}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Correlated finite-\allowbreak{}policy Gaussian minimax game}
+\par\smallskip\noindent\emph{Construction.} For each \(r\in\mathcal R_B\), observe \(Z\sim N(h,\Sigma(r))\), choose \(\delta(Z)\in\Delta_M\), incur \(\sum_{j=1}^{M}\delta_j(Z)\ell_{\mathrm{reg}}(h,j)\), and define its value as \(L(r)\).
+\par\smallskip\noindent\emph{Inputs.} \(\Sigma(r)\); \(\mathcal H\); \(\Delta_M\).
+\end{definition}
+
+\begin{definition}[def:admissible-procedures]\label{def:admissible-procedures}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deterministic-\allowbreak{}limit pilot annotation procedures}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak A_{\mathrm{det}}=\{(\mathcal A_n)_{n\ge1}:\mathcal A_n\text{ uses an independent fully labeled pilot of size }m_n,\text{ selects a measurable rate in }\mathcal R_B,\text{ labels main-wave outcomes independently by that rate, and satisfies }\mathrm{ass:pilot-vanishes},\mathrm{ass:deterministic-rate-limit}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}pilot-\allowbreak{}vanishes}; \texttt{ass:\allowbreak{}deterministic-\allowbreak{}rate-\allowbreak{}limit}.
+\end{definition}
+
+\begin{definition}[def:implementation-handle]\label{def:implementation-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Projected nested-\allowbreak{}cell and Gaussian-\allowbreak{}grid implementation handle}
+\par\smallskip\noindent\emph{Construction.} Use \(P_B\) to generate feasible nets and use exactly the coordinate order, lexicographic child order, parent-only recursion, and closed-boundary convention fixed by \(\mathcal D_k^\dagger\) and \(\mathcal C_k^\dagger\). At depth \(k+1\), evaluate the uniform approximation test only on the nonempty feasible parts of the closed dyadic children of the unique ambient box selected at depth \(k\), retain every such child whose approximated cell value is within the prescribed vanishing tolerance of the approximated minimum over those siblings, and select the lexicographically first retained child. If a boundary point belongs to several retained closed children, treat all of them as eligible and apply that same lexicographic rule; never compare or select an unrelated cell. The empirical feasible cells are therefore a nested sequence of nonempty closed cells, because the sibling attaining the finite approximated minimum is always retained, and their ambient dyadic diameters tend to zero. Couple the resulting singleton-targeted \(\widehat r_n\) to \(\widetilde\theta_n\) and to a rectangle-constant Gaussian minimax rule whose state, observation, and integration meshes refine slowly enough for the conditional normal-approximation error to vanish.
+\par\smallskip\noindent\emph{Inputs.} \(P_B\); \(\mathcal D_k^\dagger\); \(\mathcal C_k^\dagger\); \(L(r)\); \(\widetilde\theta_n\).
+\end{definition}
+
+\begin{definition}[def:certified-solver]\label{def:certified-solver}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}grid certification construction}
+\par\smallskip\noindent\emph{Construction.} For an input in \(\mathfrak I_{\mathrm{rep}}\) and \(\varepsilon>0\), enumerate rational state nets from the finite rational-inequality encoding of \(\mathcal H\), project rational full-box design nets through \(P_B\), truncate and tile the Gaussian observation space by rational rectangles, call \(\operatorname{GRect}\) with explicit tolerances \(\zeta_{\mathrm{tail}}\), \(\zeta_{\mathrm{quad}}\), and \(\zeta_{\mathrm{round}}\) for every rectangle probability, solve the finite games with rational primal and dual certificates, and refine the state, design, observation, tail, integration, rounding, and optimization errors until their proved sum is at most \(\varepsilon\).
+\par\smallskip\noindent\emph{Inputs.} \(\mathfrak I_{\mathrm{rep}}\); \(\mathcal H\); \(P_B\); \(\Sigma(r)\); \(\operatorname{GRect}\).
+\end{definition}
+
+\begin{definition}[def:witness-benchmark]\label{def:witness-benchmark}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Internal covariance-\allowbreak{}geometry probe at the rational witness}
+\par\smallskip\noindent\emph{Construction.} Coordinate specialization gives \(\mathcal R_B(\omega_0)=\mathcal R_B\) and \(L_{\omega_0}(r)=L(r)\). The internally chosen probe \(G_{\omega_0}\) records only the largest of the three pairwise marginal contrast variances. Form its optimizer set \(\mathcal G(\omega_0)\) and compare that set with the explicitly projected feasible design \(r_{\mathrm{alt}}(\omega_0)\) under the full Gaussian minimax-regret functional.
+\par\smallskip\noindent\emph{Inputs.} \(\omega_0\); \(G_\omega(r)\); \(L_\omega(r)\); \(L(r)\); \(r_{\mathrm{alt}}(\omega)\).
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:local-chart-membership]\label{thm:local-chart-membership}
+For every fixed \(C_v<\infty\), compactness and linearity give \(\sup_{h\in\mathcal H,\lVert v\rVert\le C_v}\lVert s(h,v)\rVert_\infty<\infty\). Because \(\delta_q>0\), all sufficiently large \(n\) satisfy \(\sup_{h\in\mathcal H,\lVert v\rVert\le C_v}\lVert s(h,v)\rVert_\infty/\sqrt n<\delta_q\), so every positive or negative coordinate tilt obeys \(q_{n,ax\ell}(h,v)\ge q^0_{ax\ell}-|s(h,v)_{ax\ell}|/\sqrt n>\eta\). Uniformly on that domain, \(q_n(h,v)\in(\Delta_{L-1})^{2K}\), \(P_{p,q_n(h,v)}\in\mathcal M_\eta(p)\), and \(\sqrt n\,\theta_p(q_n(h,v))=h\). Moreover, for every bounded \(u\), some bounded nuisance coordinate \(v\) satisfies \(\sqrt n\{\tau(q_n(h,v))-\tau(q^0)\}=Qh+Nu\), while the remaining coordinates range over every common-arm-mean and zero-mean outcome-shape direction.
+\end{theorem}
+\begin{proof}
+Put \(c=(a,x)\). Because \(L\ge2\), the support contains two distinct values. Since \(q^0_{c\ell}\ge\eta>0\) by \(\mathrm{ass:eta\text{-}interior}\), every support point has positive probability and hence \(\sigma_c^2(q^0)>0\). Define
+\[
+m_{c\ell}=\frac{q^0_{c\ell}\{y_\ell-\mu_c(q^0)\}}{\sigma_c^2(q^0)}.
+\tag{1}
+\]
+The definitions of \(\mu_c(q^0)\) and \(\sigma_c^2(q^0)\) give
+\[
+\sum_{\ell=1}^L m_{c\ell}=0,
+\qquad
+\sum_{\ell=1}^L y_\ell m_{c\ell}=1.
+\tag{2}
+\]
+Thus the cellwise map from the simplex tangent to its mean is onto. Because \(\operatorname{rank}(F)=d\) by \(\mathrm{ass:menu\text{-}rank}\), the matrix \(A_{\mathrm{map}}=[-F\;F]\) has row rank \(d\). Since \(B_{\mathrm{mean}}\) is onto by (1)--(2), \(A_{\mathrm{tan}}=A_{\mathrm{map}}B_{\mathrm{mean}}\) is onto as well.
+
+Fix \(C_v<\infty\). The set \(\mathcal H\times\{v:\lVert v\rVert\le C_v\}\) is compact, and \((h,v)\mapsto S_0h+Wv\) is linear and continuous. Consequently
+\[
+C_s(C_v):=\sup_{h\in\mathcal H,\,\lVert v\rVert\le C_v}
+\lVert S_0h+Wv\rVert_\infty<\infty.
+\tag{3}
+\]
+If \(n>\{C_s(C_v)/\delta_q\}^2\), then, for every \((a,x,\ell)\),
+\[
+q_{n,ax\ell}(h,v)
+=q^0_{ax\ell}+\frac{s(h,v)_{ax\ell}}{\sqrt n}
+\ge q^0_{ax\ell}-\frac{C_s(C_v)}{\sqrt n}
+>q^0_{ax\ell}-\delta_q\ge\eta.
+\tag{4}
+\]
+Here \(\delta_q>0\) is \(\mathrm{ass:strict\text{-}interior\text{-}slack}\). Moreover \(s(h,v)\in\mathcal E\), so every cell of \(q_n(h,v)\) sums to one. The three member properties in \(\mathrm{def:saturated\text{-}model}\), together with (4), therefore give \(P_{p,q_n(h,v)}\in\mathcal M_\eta(p)\), uniformly on the displayed compact set.
+
+Linearity of the cell means and the definitions of \(S_0\) and \(W\) give
+\[
+\sqrt n\{\theta_p(q_n(h,v))-\theta_p(q^0)\}
+=A_{\mathrm{tan}}s(h,v)
+=A_{\mathrm{tan}}S_0h+A_{\mathrm{tan}}Wv=h.
+\tag{5}
+\]
+By \(\mathrm{ass:tied\text{-}baseline}\), \(\theta_p(q^0)=0\), so (5) proves \(\sqrt n\,\theta_p(q_n(h,v))=h\).
+
+It remains to verify the advertised nuisance coverage. For arbitrary \(h\in\mathcal H\) and bounded \(u\in\mathbb R^{K-d}\), prescribe the cell-mean tangent blocks \(b_0=0\) and \(b_1=Qh+Nu\). Applying (1) cellwise supplies \(s_b\in\mathcal E\) with \(B_{\mathrm{mean}}s_b=b\). Since \(FQ=I_d\) and \(FN=0\),
+\[
+A_{\mathrm{tan}}s_b=A_{\mathrm{map}}b=F(Qh+Nu)=h.
+\]
+Thus \(s_b-S_0h\in\ker(A_{\mathrm{tan}})=\operatorname{im}(W)\), and bijectivity of \(W\) gives a unique \(v=W^{-1}(s_b-S_0h)\). Boundedness of this \(v\) on bounded \((h,u)\)-sets follows from continuity of the inverse linear map in finite dimension.
+
+More generally, a contrast-preserving mean tangent satisfies \(F(b_1-b_0)=0\). It decomposes uniquely as a common-arm-mean direction \(b_0=b_1=c\) plus a treatment-effect direction \(b_0=0\), \(b_1=Nu\), because \(\operatorname{im}(N)=\ker(F)\) and \(N\) has full column rank. After fixing these cell means, the remaining tangent in each cell is exactly a vector \(k_c\) satisfying
+\[
+\sum_{\ell=1}^L k_{c\ell}=\sum_{\ell=1}^L y_\ell k_{c\ell}=0.
+\tag{6}
+\]
+The two linear functionals in (6) are independent because the support contains two distinct values, so this cellwise zero-mean shape space has dimension \(L-2\). In particular, it is the zero-dimensional space when \(L=2\). Across all cells, the common-arm-mean, treatment-effect-null, and shape subspaces have dimensions \(K\), \(K-d\), and \(2K(L-2)\), respectively. Their sum is
+\[
+K+(K-d)+2K(L-2)=2K(L-1)-d=\dim\ker(A_{\mathrm{tan}}),
+\]
+where the last equality uses surjectivity of \(A_{\mathrm{tan}}\). The explicit decomposition above shows that their sum is direct and exhausts the kernel. Hence every common-arm-mean and zero-mean outcome-shape direction, including the vacuous shape component for binary outcomes, is represented by the nuisance coordinate \(v\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem verifies that the entire \(Qh+Nu\) treatment-effect fiber and every remaining shape nuisance form a legal local submodel rather than an assumed least-favorable family. \textit{Gap.} Hirano and Porter localize regular models but do not construct the saturated finite-support fiber under design-dependent annotation. \textit{Consumer.} The nuisance-uniform lower bound uses the full fiber, including every treatment-effect and outcome-shape tangent that leaves policy contrasts unchanged.
+
+\begin{lemma}[lem:efficient-contrast-information]\label{lem:efficient-contrast-information}
+At \(q^0\), the residual mean tilt in each \((a,x)\) cell is Fisher-orthogonal to every zero-mean shape tangent, the efficient cell-mean information under design \(r\) is \(I_r\), and the least-favorable lift \(T_r\) satisfies \(A_{\mathrm{map}}T_r=I_d\) and \(T_r^\top I_rT_r=\Sigma(r)^{-1}\).
+\end{lemma}
+\begin{proof}
+Put \(c=(a,x)\), \(\mu_c=\mu_{ax}(q^0)\), and \(\sigma_c^2=\sigma^2_{ax}(q^0)\).  The support contains at least two distinct values and \(q^0_{c\ell}\geq\eta>0\), by \(\mathrm{def:saturated\text{-}model}\) and \(\mathrm{ass:eta\text{-}interior}\).  Hence
+\[
+ \sigma_c^2=\sum_{\ell=1}^Lq^0_{c\ell}(y_\ell-\mu_c)^2>0.
+ \tag{1}
+\]
+Define the residual-mean tangent in cell \(c\) by
+\[
+ m_{c\ell}=\frac{q^0_{c\ell}(y_\ell-\mu_c)}{\sigma_c^2}.
+\]
+The definitions of \(\mu_c\) and \(\sigma_c^2\) give
+\[
+ \sum_\ell m_{c\ell}=0,\qquad
+ \sum_\ell y_\ell m_{c\ell}=1.                                      \tag{2}
+\]
+For an arbitrary simplex tangent \(s_c\), set
+\[
+ b_c=\sum_\ell y_\ell s_{c\ell},\qquad k_c=s_c-b_cm_c.
+\]
+Because \(\sum_\ell s_{c\ell}=0\), equations (2) imply
+\[
+ \sum_\ell k_{c\ell}=0,\qquad \sum_\ell y_\ell k_{c\ell}=0.          \tag{3}
+\]
+This decomposition is unique because applying the mean map to \(s_c=bm_c+k_c\) recovers \(b\).  It remains valid when \(L=2\); then the subspace described by (3) is zero-dimensional.
+
+For the multinomial Fisher inner product at \(q^0_c\), equations (2)--(3) yield
+\[
+ \sum_\ell\frac{m_{c\ell}k_{c\ell}}{q^0_{c\ell}}
+ =\frac1{\sigma_c^2}\sum_\ell(y_\ell-\mu_c)k_{c\ell}=0,\qquad
+ \sum_\ell\frac{m_{c\ell}^2}{q^0_{c\ell}}=\frac1{\sigma_c^2}.       \tag{4}
+\]
+Under \(\mathrm{ass:annotation\text{-}ignorability}\), a labelled observation in cell \(c=(a,x)\) occurs with probability \(p_xe_{ax}r_{ax}\), and an unlabelled observation has zero outcome score.  Multiplying (4) by this probability proves both Fisher orthogonality to every zero-mean shape tangent and the efficient cell-mean information
+\[
+ (I_r)_{cc}=\frac{p_xe_{ax}r_{ax}}{\sigma^2_{ax}(q^0)}.                \tag{5}
+\]
+Every entry in (5) is positive: \(p_x>0\) and \(e_{ax}>0\) by their stipulated spaces, \(r_{ax}\geq\rho>0\) because \(r\in\mathcal R_B\), and (1) supplies positive variance.  Thus \(I_r\) is invertible.
+
+The arm-\(a\), stratum-\(x\) column of \(A_{\mathrm{map}}\) is \((-1)^{1-a}p_xd_x\).  Consequently direct block multiplication gives
+\[
+ A_{\mathrm{map}}I_r^{-1}A_{\mathrm{map}}^\top
+ =\sum_{x=1}^K\sum_{a=0}^1
+ \frac{p_x\sigma^2_{ax}(q^0)}{e_{ax}r_{ax}}d_xd_x^\top
+ =\Sigma(r).                                                         \tag{6}
+\]
+By \(\mathrm{ass:menu\text{-}rank}\), \(A_{\mathrm{map}}=[-F\;F]\) has row rank \(d\).  For \(z\neq0\), therefore \(A_{\mathrm{map}}^\top z\neq0\), and (6) gives
+\[
+ z^\top\Sigma(r)z=(A_{\mathrm{map}}^\top z)^\top I_r^{-1}
+ (A_{\mathrm{map}}^\top z)>0.
+\]
+Thus \(\Sigma(r)\) is positive definite.  Substituting the definition
+\(T_r=I_r^{-1}A_{\mathrm{map}}^\top\Sigma(r)^{-1}\) into (6) now proves
+\[
+ A_{\mathrm{map}}T_r=I_d,\qquad
+ T_r^\top I_rT_r
+ =\Sigma(r)^{-1}A_{\mathrm{map}}I_r^{-1}A_{\mathrm{map}}^\top
+   \Sigma(r)^{-1}
+ =\Sigma(r)^{-1}.                                                     \tag{7}
+\]
+Finally, applying (2)--(5) cellwise to the defined probability lift gives
+\[
+ A_{\mathrm{tan}}\mathcal T_rb=A_{\mathrm{map}}T_rb=b,\qquad
+ J_r(\mathcal T_rb,\mathcal T_rc)=b^\top\Sigma(r)^{-1}c.              \tag{8}
+\]
+Equations (4), (5), and (7) are precisely the claimed orthogonality, efficient information, and least-favourable identities.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identities expose the exact covariance of the efficient policy-contrast signal after selective annotation. \textit{Gap.} Levis et al. give general observed-data influence-function projection, but not this full saturated tangent decomposition or overlapping-policy covariance identity. \textit{Consumer.} The lemma supplies the least-favorable slice and the covariance input for both the Gaussian game and the AIPW estimator.
+
+\begin{theorem}[thm:nuisance-uniform-experiment]\label{thm:nuisance-uniform-experiment}
+Fix \(r\in\mathcal R_B\), \(C_v<\infty\), and \(\mathcal A\in\mathfrak A_{\mathrm{det}}\) whose pilot-measurable main-wave rate \(\widehat r_n\) converges locally uniformly in probability to \(r\). The strict slack \(\delta_q>0\) implies that, for all sufficiently large \(n\), every positive or negative tilt on \(\mathcal H\times\{v:\lVert v\rVert\le C_v\}\) lies in \(\mathcal M_\eta(p)\). Conditional on \(\mathscr P_n\), every fixed finite collection of points in that domain obeys the observed-data expansion \[\log\frac{d(\mathbb P^{\widehat r_n}_{p,q_n(h,v)})^{\otimes n}}{d(\mathbb P^{\widehat r_n}_{p,q^0})^{\otimes n}}(O_1,\ldots,O_n)=\Delta_n(s(h,v))-\tfrac12J_{\widehat r_n}(s(h,v),s(h,v))+\operatorname{rem}_{n,\widehat r_n}(h,v),\] where \(\sup_{h\in\mathcal H,\lVert v\rVert\le C_v}|\operatorname{rem}_{n,\widehat r_n}(h,v)|=o_{\mathbb P^{\widehat r_n}_{p,q^0}}(1)\). Under \(\mathbb P^{\widehat r_n}_{p,q^0}\), the conditional finite-coordinate law of \(\Delta_n\) converges to a centered Gaussian process with covariance \(J_r\), uniformly on that compact domain. The map \(\Pi_rs=\mathcal T_rA_{\mathrm{tan}}s\) is the \(J_r\)-orthogonal contrast projection, and under \(\mathbb P^{\widehat r_n}_{p,q_n(h,v)}\), \(U_{n,r}\Rightarrow N(h,\Sigma(r))\) uniformly on the same domain. The likelihood contribution from \(\mathscr P_n\), whose fully labeled pilot records satisfy \(R=1\) and \(Y^{\mathrm{obs}}=Y\), is asymptotically negligible because \(m_n/n\to0\). Consequently, for every finite prior on \(\mathcal H\), the infimum over all \(\psi_n\) of the prior regret along the least-favorable submodels \(q^0+\mathcal T_rh/\sqrt n\), which also remain in \(\mathcal M_\eta(p)\) for both signs and all sufficiently large \(n\) by the same slack argument, converges to the Bayes regret in \(Z\sim N(h,\Sigma(r))\); this finite-prior risk-transfer conclusion, rather than total-variation convergence of experiments, is the conclusion used downstream.
+\end{theorem}
+\begin{proof}
+Fix \(C_v<\infty\), and let
+\[
+ \mathcal S_C=\{s(h,v):h\in\mathcal H,\ \lVert v\rVert\leq C_v\}.
+\]
+This set is compact because \(\mathcal H\) and the closed nuisance ball are compact in finite dimension and \(s(h,v)=S_0h+Wv\) is linear.  By \(\mathrm{thm:local\text{-}chart\text{-}membership}\), which uses \(\mathrm{ass:eta\text{-}interior}\), \(\mathrm{ass:strict\text{-}interior\text{-}slack}\), and \(\mathrm{ass:tied\text{-}baseline}\), for all sufficiently large \(n\), uniformly on this set,
+\[
+ q_n(h,v)\in(\Delta_{L-1})^{2K},\quad
+ P_{p,q_n(h,v)}\in\mathcal M_\eta(p),\quad
+ \sqrt n\,\theta_p(q_n(h,v))=h.                                     \tag{1}
+\]
+This proves the claimed membership for both signs of every bounded tangent.  Also
+\[
+ A_C:=\sup_{s\in\mathcal S_C}\max_{a,x,\ell}
+ \left|\frac{s_{ax\ell}}{q^0_{ax\ell}}\right|<\infty                 \tag{2}
+\]
+because \(\mathcal S_C\) is compact and \(q^0_{ax\ell}\geq\eta>0\).
+
+Condition on \(\mathscr P_n\).  Then \(\widehat r_n\) is fixed and, by \(\mathrm{def:admissible\text{-}procedures}\), the main-wave records are independent with annotation probabilities \(\widehat r_n\).  Annotation ignorability makes the factors involving \(R\) identical under \(q_n(h,v)\) and \(q^0\).  Thus the one-record likelihood ratio is \(1\) when \(R=0\), and, when \(R=1\) and \(Y^{\mathrm{obs}}=y_\ell\), it is
+\[
+ \frac{q^0_{AX\ell}+s_{AX\ell}/\sqrt n}{q^0_{AX\ell}}
+ =1+\frac{g_s(O)}{\sqrt n}.                                         \tag{3}
+\]
+For \(|z|\leq1/2\), Taylor's formula with integral remainder gives
+\[
+ \log(1+z)=z-\frac{z^2}{2}+r(z),\qquad |r(z)|\leq\frac23|z|^3.       \tag{4}
+\]
+Once \(A_C/\sqrt n\leq1/2\), summing (4) and using (2) therefore gives, simultaneously for \(s\in\mathcal S_C\),
+\[
+ \log\Lambda_{n,\mathrm{main}}(s)
+ =\Delta_n(s)-\frac1{2n}\sum_{i=1}^ng_s(O_i)^2+R_n(s),\qquad
+ \sup_{s\in\mathcal S_C}|R_n(s)|\leq\frac{2A_C^3}{3\sqrt n}.       \tag{5}
+\]
+Under the conditional baseline law, the simplex-tangent identity \(\sum_\ell s_{ax\ell}=0\) and direct summation over observed cells give
+\[
+ E_0\{g_s(O_i)\mid\mathscr P_n\}=0,\qquad
+ E_0\{g_s(O_i)g_t(O_i)\mid\mathscr P_n\}=J_{\widehat r_n}(s,t).     \tag{6}
+\]
+Choose a basis \(e_1,\ldots,e_D\) of \(\mathcal E\).  Each \(g_{e_j}g_{e_k}\) is bounded because the observed support is finite and \(q^0\geq\eta\).  Conditional Chebyshev inequalities followed by a union bound over the \(D^2\) pairs imply
+\[
+ \max_{j,k}\left|\frac1n\sum_{i=1}^ng_{e_j}(O_i)g_{e_k}(O_i)
+ -J_{\widehat r_n}(e_j,e_k)\right|=o_{P_0}(1).                       \tag{7}
+\]
+The coordinate image of \(\mathcal S_C\) is compact.  Hence the quadratic form controlled in (7) is uniformly controlled there, and (5) becomes
+\[
+ \sup_{h\in\mathcal H,\ \lVert v\rVert\leq C_v}
+ |\operatorname{rem}_{n,\widehat r_n}(h,v)|=o_{P_0}(1).              \tag{8}
+\]
+All constants in (2), (5), and (7) are common to the displayed compact fiber.  Together with the assumed locally uniform convergence \(\widehat r_n\to r\), this also proves the asserted local uniformity.
+
+For any fixed \(t_1,\ldots,t_s\in\mathcal E\), the conditional triangular-array summands
+\[
+ n^{-1/2}(g_{t_1}(O_i),\ldots,g_{t_s}(O_i))
+\]
+are centered by (6), uniformly bounded by a constant times \(n^{-1/2}\), and have summed covariance converging in probability to \((J_r(t_j,t_k))_{j,k}\).  Their Lindeberg sums are therefore eventually zero for each positive threshold.  The frozen \(\mathrm{lem:finite\text{-}dimensional\text{-}lindeberg\text{-}feller}\) proves conditional convergence to the centered Gaussian vector with that covariance.  Applying it once to the \(D\)-dimensional basis-score vector and then taking linear images proves finite-coordinate convergence uniformly over \(\mathcal S_C\).
+
+We next identify the contrast projection.  Put \(m(s)=B_{\mathrm{mean}}s\).  The cellwise decomposition in \(\mathrm{lem:efficient\text{-}contrast\text{-}information}\) gives, for \(b\in\mathbb R^d\) and \(s\in\mathcal E\),
+\[
+ \begin{aligned}
+ J_r(\mathcal T_rb,s)
+ &=(T_rb)^\top I_rm(s)\\
+ &=b^\top\Sigma(r)^{-1}A_{\mathrm{map}}m(s)
+ =b^\top\Sigma(r)^{-1}A_{\mathrm{tan}}s.                            \tag{9}
+ \end{aligned}
+\]
+Taking \(s=\mathcal T_rc\) and using \(A_{\mathrm{tan}}\mathcal T_r=I_d\) yields
+\[
+ J_r(\mathcal T_rb,\mathcal T_rc)=b^\top\Sigma(r)^{-1}c.             \tag{10}
+\]
+Furthermore \(A_{\mathrm{tan}}\Pi_rs=A_{\mathrm{tan}}s\), so \(s-\Pi_rs\in\ker(A_{\mathrm{tan}})\); equation (9) makes this difference \(J_r\)-orthogonal to \(\operatorname{im}(\mathcal T_r)\).  Thus \(\Pi_r\) is the asserted \(J_r\)-orthogonal projection.
+
+The alternative-law limit follows directly.  For \(s=s(h,v)\) and \(t,u\in\mathcal E\), summation under \(q_n(h,v)\) gives, conditional on the pilot,
+\[
+ E_sg_t(O_i)=\frac{J_{\widehat r_n}(t,s)}{\sqrt n},\qquad
+ \operatorname{Cov}_s\{g_t(O_i),g_u(O_i)\}
+ =J_{\widehat r_n}(t,u)+O(n^{-1/2}),                                 \tag{11}
+\]
+where the remainder is uniform for \(s\in\mathcal S_C\), by (2) and finite support.  The centered summands remain uniformly bounded, so the same Lindeberg--Feller argument applies.  With \(t=\mathcal T_rb\), equations (9)--(11), \(A_{\mathrm{tan}}s(h,v)=h\), and \(\widehat r_n\to r\) show that \(\Delta_n\circ\mathcal T_r\) has limiting mean \(\Sigma(r)^{-1}h\) and covariance \(\Sigma(r)^{-1}\), independently of \(v\).  Hence
+\[
+ U_{n,r}=\Sigma(r)(\Delta_n\circ\mathcal T_r)
+ \ \Rightarrow\ N(h,\Sigma(r))                                    \tag{12}
+\]
+locally uniformly on the fixed nuisance fiber.
+
+It remains to prove the precise risk transfer and account for the pilot.  For a fully labelled pilot record, the likelihood ratio in tangent \(s\) is again \(1+g_s/\sqrt n\), now with \(R=1\).  If \(J_1\) denotes \(J_r\) with all annotation rates equal to one, independence gives
+\[
+ E_0\Lambda_{n,\mathrm{pilot}}(s)^2
+ =\left(1+\frac{J_1(s,s)}n\right)^{m_n}
+ \leq\exp\left\{\frac{m_n}{n}J_1(s,s)\right\}=1+o(1),             \tag{13}
+\]
+uniformly on \(\mathcal S_C\), by \(\mathrm{ass:pilot\text{-}vanishes}\).  Since its mean is one, (13) implies \(\Lambda_{n,\mathrm{pilot}}(s)\to1\) in \(L^2(P_0)\).  Conditional on any pilot realization,
+\[
+ E_0\{\Lambda_{n,\mathrm{main}}(s)^2\mid\mathscr P_n\}
+ =\left(1+\frac{J_{\widehat r_n}(s,s)}n\right)^n
+ \leq e^{J_1(s,s)}.                                                  \tag{14}
+\]
+Equations (13)--(14) give a uniform \(L^2\) bound for every fixed finite vector of full two-wave likelihood ratios, regardless of discontinuities of the pilot selector.
+
+Let \(\nu=\sum_{\alpha=1}^Nw_\alpha\delta_{h_\alpha}\) be a finite prior.  Put \(t_\alpha=\mathcal T_rh_\alpha\).  By (8) of the efficient-information lemma, \(A_{\mathrm{tan}}t_\alpha=h_\alpha\).  Therefore
+\[
+ t_\alpha-S_0h_\alpha\in\ker(A_{\mathrm{tan}})=\operatorname{im}(W),
+\]
+so \(t_\alpha=S_0h_\alpha+Wv_\alpha\) for a unique \(v_\alpha\).  Finiteness places all \(v_\alpha\) in one bounded ball, and (1) places both signs of all these least-favourable submodels in \(\mathcal M_\eta(p)\) eventually.
+
+Pointwise minimization over the finite action set shows that the infimum prior regret over all measurable \(\psi_n\) equals
+\[
+ E_0\min_{j\in[M]}\sum_{\alpha=1}^N
+ w_\alpha\ell_{\mathrm{reg}}(h_\alpha,j)\Lambda_n(t_\alpha).        \tag{15}
+\]
+The integrand is continuous in the finite likelihood vector and is bounded by
+\[
+ 2\sup_{h\in\mathcal H}\lVert h\rVert_\infty
+ \sum_\alpha w_\alpha\Lambda_n(t_\alpha).
+\]
+The \(L^2\) bound (13)--(14) makes this envelope uniformly integrable.  Joint likelihood convergence from (5), (8), and the conditional Gaussian limit therefore passes the expectation in (15) to the limit.  The limiting likelihood coordinates are
+\[
+ \exp\left\{h_\alpha^\top\Sigma(r)^{-1}Z
+ -\tfrac12h_\alpha^\top\Sigma(r)^{-1}h_\alpha\right\},\qquad
+ Z\sim N(0,\Sigma(r)),                                               \tag{16}
+\]
+which are exactly the likelihood ratios of \(N(h_\alpha,\Sigma(r))\).  Thus (15) converges to the finite-prior Gaussian Bayes regret.  This proves the stated risk-transfer conclusion without asserting total-variation convergence of the experiments, and (13) proves that the pilot contribution is asymptotically negligible.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit conditional LAN expansion and finite-prior transfer identify exactly what survives a discontinuous pilot design and the complete contrast-preserving nuisance fiber. \textit{Gap.} Hirano and Porter provide fixed-experiment scalar treatment-rule transfer, while Cook et al. provide stabilized adaptive AIPW Gaussianity; neither conditions on a pilot sigma-field to prove a design-indexed finite-coordinate LAN expansion and least-favorable finite-prior transfer over all outcome-shape tangents. \textit{Consumer.} It licenses lower-risk transfer for any admissible prospective annotation procedure and prevents a restricted outcome family from determining the design.
+
+\begin{theorem}[thm:gaussian-value-characterization]\label{thm:gaussian-value-characterization}
+For every \(r\in\mathcal R_B\), the full-fiber Gaussian minimax regret equals \(L(r)\); the infimum over \(\delta\) is attained, \(L\) is continuous on \(\mathcal R_B\), and \(V^*=\min_{r\in\mathcal R_B}L(r)\) is attained. The value also equals the supremum of finite-prior Bayes values over \(\mathcal H\).
+\end{theorem}
+\begin{proof}
+Fix \(r\in\mathcal R_B\).  By \(\mathrm{lem:efficient\text{-}contrast\text{-}information}\), \(I_r\) and \(\Sigma(r)\) are positive definite and
+\[
+ A_{\mathrm{map}}I_r^{-1}A_{\mathrm{map}}^\top=\Sigma(r),\quad
+ A_{\mathrm{map}}T_r=I_d,\quad T_r^\top I_rT_r=\Sigma(r)^{-1}.        \tag{1}
+\]
+To make the full-fiber assertion explicit, consider the Gaussian cell-mean experiment \(Y_G\sim N(b,I_r^{-1})\), with state \(h=A_{\mathrm{map}}b\) and arbitrary nuisance component of \(b\) in \(\ker(A_{\mathrm{map}})\).  The statistic \(Z=A_{\mathrm{map}}Y_G\) has law \(N(h,\Sigma(r))\) by (1).  Hence rules based only on \(Z\) show that the full-fiber value is at most \(L(r)\).
+
+For the reverse inequality restrict the nuisance fiber to \(b=T_rh\), and define
+\[
+ E_G=Y_G-T_rA_{\mathrm{map}}Y_G.
+\]
+Equations (1) imply
+\[
+ E(E_G)=T_rh-T_rh=0,\qquad
+ \operatorname{Cov}(E_G,Z)=I_r^{-1}A_{\mathrm{map}}^\top-T_r\Sigma(r)=0. \tag{2}
+\]
+Joint Gaussianity and (2) make \(E_G\) independent of \(Z\), with a law not depending on \(h\).  Averaging any rule based on \((Z,E_G)\) over this ancillary law produces a randomized rule based on \(Z\) with exactly the same risk at every \(h\).  Thus even this subexperiment has value \(L(r)\), which proves the reverse inequality and hence the full-fiber characterization.
+
+We next prove existence and minimax duality.  Let \(\mu\) be a nondegenerate Gaussian probability measure on \(\mathbb R^d\).  Every \(N(h,\Sigma(r))\) is equivalent to \(\mu\).  Represent a rule by \((\delta_1,\ldots,\delta_M)\in L^\infty(\mu)^M\) satisfying \(\delta_j\geq0\) and \(\sum_j\delta_j=1\).  This set is convex and weak-star closed in the product of unit balls, hence weak-star compact by \(\mathrm{lem:weak\text{-}star\text{-}rule\text{-}compactness}\).  For fixed \(h\), risk is a weak-star continuous linear functional, because the normal density relative to \(\mu\), multiplied by the bounded loss, belongs to \(L^1(\mu)\).  It is also continuous in \(h\).
+
+The probability measures on compact \(\mathcal H\) form a compact convex set in the weak topology.  Expected risk is affine in both the rule and the prior and continuous in the compact-side variables just described.  The hypotheses of \(\mathrm{lem:sion\text{-}minimax}\) therefore hold, giving
+\[
+ \inf_\delta\sup_{h\in\mathcal H}R_r(h,\delta)
+ =\sup_{\nu\in\mathcal P(\mathcal H)}\inf_\delta
+   \int R_r(h,\delta)\,d\nu(h),                                    \tag{3}
+\]
+and weak-star compactness makes the infimum over \(\delta\) attained.
+
+For completeness, finite priors suffice in (3).  Put \(U=\sup_{h\in\mathcal H}\lVert h\rVert_\infty\) and \(R_0=2U\).  Compactness of \(\mathcal R_B\), \(r_{ax}\geq\rho\), and (1) give
+\[
+ \lambda_0:=\min_{s\in\mathcal R_B}\lambda_{\min}\{\Sigma(s)\}>0. \tag{4}
+\]
+For probability densities \(p,q\), partition at \(A=\{p\geq q\}\), apply the log-sum inequality on \(A,A^c\), and write \(t=P(A)-Q(A)\).  The resulting Bernoulli divergence has second derivative at least \(4\), and value and first derivative zero at \(t=0\); hence
+\[
+ d_{\mathrm{TV}}(P,Q)^2\leq\tfrac12D_{\mathrm{KL}}(P\Vert Q).        \tag{5}
+\]
+For equal-covariance normals, (4)--(5) yield
+\[
+ d_{\mathrm{TV}}\{N(h,\Sigma(r)),N(g,\Sigma(r))\}
+ \leq\frac{\sqrt d}{2\sqrt{\lambda_0}}\lVert h-g\rVert_\infty.    \tag{6}
+\]
+The loss is bounded by \(R_0\) and satisfies \(\max_j|\ell_{\mathrm{reg}}(h,j)-\ell_{\mathrm{reg}}(g,j)|\leq2\lVert h-g\rVert_\infty\).  Thus every rule obeys the common modulus
+\[
+ |R_r(h,\delta)-R_r(g,\delta)|
+ \leq\left(2+\frac{R_0\sqrt d}{2\sqrt{\lambda_0}}\right)
+ \lVert h-g\rVert_\infty.                                          \tag{7}
+\]
+Pushing any prior to a nearest point of a finite net of \(\mathcal H\) changes every rule's integrated risk by at most (7) times the mesh.  Taking infima and then refining proves that the supremum in (3) equals the supremum over finite priors.
+
+Finally, \(r\mapsto\Sigma(r)\) is continuous on \(\mathcal R_B\), since every \(r_{ax}\geq\rho>0\).  For positive definite \(S,T\), the Gaussian formula
+\[
+ D_{\mathrm{KL}}\{N(h,T)\Vert N(h,S)\}
+ =\tfrac12\{\operatorname{tr}(S^{-1}T)-d-\log\det(S^{-1}T)\}        \tag{8}
+\]
+is independent of \(h\) and tends uniformly to zero as \(T\to S\) on the compact covariance range.  Equations (5) and (8), followed by the loss bound, show that \(L(r)\) is continuous.  The set \(\mathcal R_B\) is nonempty because \(\rho\mathbf1\in\mathcal R_B\), and it is closed and bounded, hence compact.  Therefore \(L\) attains its minimum, which by definition is \(V^*\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This identifies the design objective and establishes that both the terminal rule and annotation optimum exist. \textit{Gap.} Masten and Kato analyze many-action games for treatment arms; the theorem concerns correlated overlapping policy values whose covariance is chosen through selective outcome observation. \textit{Consumer.} Prospective validators obtain a well-defined population target \(V^*\) instead of a collection of unrelated contrast variances.
+
+\begin{theorem}[thm:finite-menu-higbee-contrast]\label{thm:finite-menu-higbee-contrast}
+For the theorem-level comparison, \(\mathfrak C_{\mathrm H}\) is the class of two-wave policy-design problems with a continuously parameterized action \(\gamma\in\Gamma_{\mathrm H}\), local state \(h\in\mathcal U_{\mathrm H}\), and population welfare \(W_{\mathrm H}(h,\gamma)\) satisfying the following maintained conditions: \(W_{\mathrm H}\) is twice continuously differentiable in \(\gamma\) on a relative neighborhood of its optimizer graph; for every \(h\in\mathcal U_{\mathrm H}\), \(\operatorname*{argmax}_{\gamma\in\Gamma_{\mathrm H}}W_{\mathrm H}(h,\gamma)\) is a singleton in \(\operatorname{relint}(\Gamma_{\mathrm H})\); and \(-\nabla_{\gamma}^2W_{\mathrm H}(h,\gamma)\succeq c_{\mathrm H}I_{s_{\mathrm H}}\) on that neighborhood for one \(c_{\mathrm H}>0\). At \(\omega_0\), the finite-menu choice correspondence at \(h=0\) is \(\operatorname*{argmax}_{j\in[3]}h_j=[3]\), with \(h_3=0\), and every relative neighborhood of \(0\) in \(\mathcal H=[-1,1]^2\) contains states at which each labeled policy is uniquely welfare maximizing. If an instance of \(\mathfrak C_{\mathrm H}\) preserved the three labeled choices through an injective map \(\iota_{\mathrm H}:[3]\to\Gamma_{\mathrm H}\), in the explicit sense that \(\operatorname*{argmax}_{\gamma\in\Gamma_{\mathrm H}}W_{\mathrm H}(h,\gamma)=\{\iota_{\mathrm H}(j):j\in\operatorname*{argmax}_{k\in[3]}h_k\}\) for every \(h\in\mathcal U_{\mathrm H}\), then at \(h=0\) its optimizer set would contain the three distinct points \(\iota_{\mathrm H}(1),\iota_{\mathrm H}(2),\iota_{\mathrm H}(3)\), directly contradicting the maintained singleton condition. Thus the rational witness is outside \(\mathfrak C_{\mathrm H}\) because its three-way tie fails uniqueness. Moreover, with \(K=4\), \(L=3\), and \(d=2\), the selectively observed model has \(2K(L-1)-d=14\) contrast-preserving nuisance coordinates, and projecting them by \(\Pi_r\) yields the design-dependent non-diagonal efficient covariance \(\Sigma(r)\). Higbee's smooth unique-optimum comparator therefore covers neither the witness's finite-menu tie geometry nor its selective-annotation nuisance step.
+\end{theorem}
+\begin{proof}
+The defining member properties of \(\mathfrak C_{\mathrm H}\) are exactly the smoothness, singleton interior optimizer, and uniform strong-concavity conditions stated in the first part of the theorem.  At \(\omega_0\), policy coordinates are \((h_1,h_2,h_3)=(h_1,h_2,0)\).  At \(h=(0,0)\), all three coordinates are equal, and hence
+\[
+ \operatorname*{argmax}_{j\in[3]}h_j=[3].                            \tag{1}
+\]
+Every relative neighborhood of zero in \([-1,1]^2\) contains points of the respective forms \((t,0)\), \((0,t)\), and \((-t,-t)\), with \(t>0\).  At these points policies \(1\), \(2\), and \(3\), respectively, are uniquely optimal.
+
+Suppose that the injective representation in the claim existed.  Evaluating it at \(h=0\) and using (1) would give
+\[
+ \operatorname*{argmax}_{\gamma\in\Gamma_{\mathrm H}}W_{\mathrm H}(0,\gamma)
+ =\{\iota_{\mathrm H}(1),\iota_{\mathrm H}(2),\iota_{\mathrm H}(3)\}.
+\]
+Injectivity makes these three elements distinct, contradicting the singleton-optimizer condition in \(\mathfrak C_{\mathrm H}\).  Thus the witness cannot belong to that comparator class while preserving the three labelled choices.
+
+For the observation-model obstruction, the dimension in the saturated tangent chart is, using the witness values \(K=4\), \(L=3\), and \(d=2\),
+\[
+ 2K(L-1)-d=2\cdot4\cdot2-2=14.                                     \tag{2}
+\]
+By \(\mathrm{lem:efficient\text{-}contrast\text{-}information}\), the \(J_r\)-projection \(\Pi_r\) of these contrast-preserving directions leaves the efficient contrast signal with covariance \(\Sigma(r)\).  At the witness,
+\[
+ d_1=(1,0)^\top,\quad d_2=(0,1)^\top,\quad d_3=(1,1)^\top,\quad d_4=0.
+\]
+Only stratum \(3\) contributes off-diagonally, and its coefficient \(\sum_a p_3\sigma^2_{a3}(q^0)/(e_{a3}r_{a3})\) is strictly positive.  Hence \(\Sigma(r)\) is non-diagonal and changes with the annotation rates.  Equations (1)--(2) establish, respectively, the tie-geometry and selective-annotation nuisance obstructions claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem isolates both obstructions to importing smooth unique-optimum policy-design theory: a genuine three-way local tie and an observation-design-dependent nuisance projection. \textit{Gap.} Higbee (2026) derives two-wave policy design under a unique, strongly concave smooth policy optimum; the finite-menu tie geometry and selective-annotation nuisance experiment in this theorem lie outside those assumptions. \textit{Consumer.} The result tells the attainment proof exactly which smooth argmax and direct-policy-observation reductions are unavailable at the rational witness.
+
+\begin{theorem}[thm:local-minimax-lower-bound]\label{thm:local-minimax-lower-bound}
+If \(\mathcal A\in\mathfrak A_{\mathrm{det}}\) has deterministic limiting rate \(r\in\mathcal R_B\), then \(\mathcal R_-(\mathcal A)\ge L(r)\ge V^*\). The supremum in \(\mathcal R_-\) ranges over the entire local fiber before \(C_v\to\infty\), and the claim does not require regularity or convergence of the terminal policy selector.
+\end{theorem}
+\begin{proof}
+Let \(\mathcal A\in\mathfrak A_{\mathrm{det}}\) have deterministic limiting rate \(r\in\mathcal R_B\), and fix a finite prior \(\nu=\sum_{s=1}^Nw_s\delta_{h_s}\) on \(\mathcal H\).  The finite-prior part of \(\mathrm{thm:nuisance\text{-}uniform\text{-}experiment}\) supplies its least-favourable submodels \(q^0+\mathcal T_rh_s/\sqrt n\), places both signs in \(\mathcal M_\eta(p)\) eventually, and places the finitely many corresponding nuisance coordinates in a common finite ball.  By \(\mathrm{thm:local\text{-}chart\text{-}membership}\), that ball is contained in the full local fiber for all sufficiently large \(n\).  Denote its radius by \(C(\nu)<\infty\).
+
+For every \(C_v\geq C(\nu)\), the supremum defining \(\mathcal R_-(\mathcal A)\) contains this finite submodel.  A supremum dominates a prior average, and the Bayes envelope dominates no particular terminal rule.  The finite-prior transfer in \(\mathrm{thm:nuisance\text{-}uniform\text{-}experiment}\) therefore gives
+\[
+ \mathcal R_-(\mathcal A)\geq B_r(\nu),                              \tag{1}
+\]
+where \(B_r(\nu)\) is the Bayes regret in \(Z\sim N(h,\Sigma(r))\).  This step uses no convergence or regularity of the terminal selector: pointwise minimization supplies the Bayes envelope for every measurable selector.
+
+Taking the supremum of (1) over finite priors and invoking the finite-prior equality in \(\mathrm{thm:gaussian\text{-}value\text{-}characterization}\) yields
+\[
+ \mathcal R_-(\mathcal A)\geq\sup_{\nu\ {\rm finite}}B_r(\nu)=L(r). \tag{2}
+\]
+The order of limits is the advertised one: \(n\to\infty\) is taken for a fixed ball containing the chosen finite prior, and only afterward does \(C_v\to\infty\).  Finally \(r\in\mathcal R_B\), so the definition \(V^*=\min_{s\in\mathcal R_B}L(s)\) gives
+\[
+ \mathcal R_-(\mathcal A)\geq L(r)\geq V^*.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem supplies the minimax converse against every measurable deterministic-limit annotation procedure. \textit{Gap.} Hirano and Porter do not optimize an observation design, and Nwankwo et al. optimize scalar estimation variance rather than terminal policy regret. \textit{Consumer.} The lower bound certifies that no alternative fixed-limit targeted follow-up scheme can uniformly beat the proposed value.
+
+\begin{theorem}[thm:certified-computation]\label{thm:certified-computation}
+For every input in \(\mathfrak I_{\mathrm{rep}}\) and every \(\varepsilon>0\), the construction \(\mathsf C_\varepsilon\) terminates. With explicitly chosen \(\zeta_{\mathrm{tail}},\zeta_{\mathrm{quad}},\zeta_{\mathrm{round}}>0\), every Gaussian rectangle call to \(\operatorname{GRect}\) returns an outward interval whose width is bounded by the sum of those three budgets, and the propagated certificate returns an interval containing \(V^*\) with width at most \(\varepsilon\), an \(\varepsilon\)-optimal feasible design and Gaussian rule, and an outer finite union of design cells containing every minimizer of \(L\). No termination claim is made for an opaque real input or an oracle-free compact set.
+\end{theorem}
+\begin{proof}
+Fix an input in \(\mathfrak I_{\mathrm{rep}}\).  Its exact positivity and rank certificates, the definition of \(\Sigma(r)\), and the floor \(r_{ax}\geq\rho\) give effective spectral bounds
+\[
+ 0<\lambda_0:=\lambda_{\min}\{\Sigma(\mathbf1)\}
+ \leq\lambda_{\min}\{\Sigma(r)\},\qquad
+ \lambda_{\max}\{\Sigma(r)\}\leq
+ \Lambda_0:=\lambda_{\max}\{\Sigma(\rho\mathbf1)\}                \tag{1}
+\]
+for all \(r\in\mathcal R_B\).  These inequalities follow termwise because every summand of \(\Sigma(r)\) is positive semidefinite and \(1\leq1/r_{ax}\leq1/\rho\).
+
+Put \(H_{ax}=p_x\sigma^2_{ax}(q^0)d_xd_x^\top/e_{ax}\).  Since \(r_{ax},s_{ax}\geq\rho\),
+\[
+ \lVert\Sigma(r)-\Sigma(s)\rVert_F
+ \leq C_r\lVert r-s\rVert_\infty,\qquad
+ C_r=\rho^{-2}\sum_{a,x}\lVert H_{ax}\rVert_F.                     \tag{2}
+\]
+If \(S,T\succeq\lambda_0I\) and \(\lVert T-S\rVert_F\leq\lambda_0/2\), set \(E=S^{-1/2}(T-S)S^{-1/2}\).  Then \(\lVert E\rVert_{\mathrm{op}}\leq1/2\).  Diagonalizing \(E\) and using \(u-\log(1+u)\leq u^2\) for \(|u|\leq1/2\) in the Gaussian divergence formula gives
+\[
+ D_{\mathrm{KL}}\{N(h,T)\Vert N(h,S)\}\leq\tfrac12\lVert E\rVert_F^2.
+\]
+The entropy-to-total-variation inequality derived in \(\mathrm{thm:gaussian\text{-}value\text{-}characterization}\) therefore gives
+\[
+ d_{\mathrm{TV}}\{N(h,T),N(h,S)\}
+ \leq\frac{\lVert T-S\rVert_F}{2\lambda_0}.                         \tag{3}
+\]
+Let \(U=\max_{h\in\mathcal H}\lVert h\rVert_\infty\) and \(R_0=2U\).  Regret is bounded by \(R_0\), and the state-risk modulus proved in that theorem is
+\[
+ |R(h,\delta)-R(g,\delta)|\leq K_H\lVert h-g\rVert_\infty,\qquad
+ K_H=2+\frac{R_0\sqrt d}{2\sqrt{\lambda_0}}.                        \tag{4}
+\]
+
+We next construct finite feasible design covers.  The map \(P_B\) is the identity on \(\mathcal R_B\) and maps the full box onto \(\mathcal R_B\).  If \(B=\rho\), it is constant.  If \(B>\rho\), write \(D(u)=\sum_{a,x}p_xe_{ax}u_{ax}\).  On \(D(u)\leq B-\rho\) the map is the identity; on the other piece its derivative is
+\[
+ \frac{B-\rho}{D(u)}I-
+ \frac{B-\rho}{D(u)^2}u(p_xe_{ax})_{a,x}^{\top}.
+\]
+Because \(\sum_{a,x}p_xe_{ax}=1\), \(D(u)>B-\rho\), and \(\lVert u\rVert_\infty\leq1-\rho\), its sup-norm operator norm is at most \(1+(1-\rho)/(B-\rho)\).  The two formulas agree at the boundary, so the same bound is global.  Thus a rational full-box mesh projects to a finite certified cover of \(\mathcal R_B\).  By (2)--(3), covering radius \(\delta_r\) contributes at most
+\[
+ E_{\mathrm{des}}=\frac{R_0C_r\delta_r}{2\lambda_0}.                 \tag{5}
+\]
+
+Choose \(T>U\).  By (1) and a union bound over coordinates,
+\[
+ \sup_{h,r}P_{N(h,\Sigma(r))}\{Z\notin[-T,T]^d\}
+ \leq2d\exp\left\{-\frac{(T-U)^2}{2\Lambda_0}\right\}=:p_T.       \tag{6}
+\]
+Tile the cube exactly by rational cubes of side \(\gamma\).  If \(f\) is any relevant Gaussian density and \(\bar f\) its coordinatewise cell average, repeated use of the fundamental theorem of calculus and the \(L^1\)-contraction of averaging gives
+\[
+ \lVert f-\bar f\rVert_1
+ \leq\gamma\sum_{j=1}^d\lVert\partial_jf\rVert_1
+ \leq\frac{d\gamma}{\sqrt{\lambda_0}}.                             \tag{7}
+\]
+The last inequality follows because a Gaussian score coordinate has first absolute moment at most the square root of its variance, and \((\Sigma^{-1})_{jj}\leq1/\lambda_0\).  Averaging any rule on each cube and fixing one action outside changes its risk by at most
+\[
+ E_{\mathrm{obs}}=R_0\left(p_T+\frac{d\gamma}{\sqrt{\lambda_0}}\right). \tag{8}
+\]
+
+At a projected design-grid point \(r\), take a rational \(\xi\)-net of the represented rational polytope \(\mathcal H\), and let \(v(r)\) be the finite zero-sum game value for that state net and the rectangle-constant rules just constructed.  Averaging an arbitrary Gaussian rule proves the first inequality below; applying (4) from a nearest net point to an optimal finite rule proves the second:
+\[
+ v(r)-E_{\mathrm{obs}}\leq L(r)\leq v(r)+K_H\xi.                    \tag{9}
+\]
+
+Every rectangle probability is evaluated by \(\operatorname{GRect}\).  Positive definiteness in (1) makes the algebraic Cholesky conditioning valid.  After tails of total mass at most \(\zeta_{\mathrm{tail}}\) are removed, the iterated integral is over a compact rectangle; all Gaussian derivatives there have finite effective algebraic bounds.  Adaptive subdivision therefore reaches quadrature width \(\zeta_{\mathrm{quad}}\), and increasing interval precision reaches outward-rounding width \(\zeta_{\mathrm{round}}\).  This proves termination and the asserted sum-of-budgets width for each call.
+
+The resulting finite game is a linear program with rational interval coefficients.  Its variables are, explicitly, the action probabilities \(\delta_{jm}\geq0\) for policy \(j\) on observation rectangle \(m\), subject to \(\sum_{j=1}^M\delta_{jm}=1\), together with the epigraph risk variable; the adversary ranges over the finite state net.  Rational primal and dual feasible vectors give outward lower and upper values by weak duality.  Enumeration of rational feasible vectors, mesh refinement, and interval-precision refinement reduce the certified gap below any chosen \(E_{\mathrm{LP}}>0\).  If the maximum rowwise sum of rectangle-probability enclosure widths is \(e_P\), its risk effect is at most \(E_P=R_0e_P\).
+
+Let \(v_{\mathrm{grid}}\) be the smallest certified finite-game value on the design grid.  Combining (5) and (9), in both approximation directions, gives the global enclosure
+\[
+ \begin{split}
+ v_{\mathrm{grid}}-E_{\mathrm{obs}}-E_{\mathrm{des}}-E_{\mathrm{LP}}-E_P
+ &\leq V^*\\
+ &\leq v_{\mathrm{grid}}+K_H\xi+E_{\mathrm{LP}}+E_P.                \tag{10}
+ \end{split}
+\]
+Every error in (10) is effective and tends to zero as its enumerated mesh or tolerance is refined.  Thus refinement terminates once the width is at most the requested \(\varepsilon\).  The minimizing grid point is feasible by construction, and its certified finite-game rule, with (8)--(10), is \(\varepsilon\)-optimal after allocating the total error budget to be at most \(\varepsilon\).
+
+Finally, cover \(\mathcal R_B\) by the finitely many projected design cells.  For each cell subtract the modulus (5), evaluated at its certified radius, from its finite-game lower bound, and discard it only when that lower bound exceeds the global upper endpoint in (10).  A true minimizer cannot be discarded, so the surviving finite union contains every minimizer.  The construction uses the exact representations required by \(\mathfrak I_{\mathrm{rep}}\); without represented reals or a finite encoding of the compact state set, none of the enumerations is asserted to terminate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem places the numerical claim on an effective domain and makes every Gaussian probability and accumulated error auditable. \textit{Gap.} Masten proposes computational-game methods and Kato certifies a particular three-arm comparison, but neither gives a general two-sided grid theorem for a design-indexed correlated policy game. \textit{Consumer.} A trial designer can audit the claimed regret value, feasible rates, and all surviving optimal-design cells at a declared tolerance.
+
+\begin{theorem}[thm:feasible-risk-attainment]\label{thm:feasible-risk-attainment}
+The result \(\mathrm{thm:coupled-measurable-attainment}\), combined with \(\widetilde\theta_n\), yields \(\mathcal A^*\in\mathfrak A_{\mathrm{det}}\) whose empirical selected ambient box at depth \(k+1\) is the lexicographically first eligible closed child of its unique depth-\(k\) selected ambient box under the fixed arm-within-stratum coordinate order, with shared-boundary children tested separately and no unrelated cell eligible. Every fixed empirical prefix stabilizes to \(\mathcal D_k^\dagger\), its feasible cells stabilize to the nested population cells \(\mathcal C_k^\dagger\), and \(\widehat r_n\to r^\dagger\) locally uniformly in probability, where \(\{r^\dagger\}=\bigcap_{k=0}^{\infty}\mathcal C_k^\dagger\). Moreover, \(\sqrt n\{\widetilde\theta_n-\theta_p(q_n(h,v))\}\Rightarrow N(0,\Sigma(r^\dagger))\) uniformly over every fixed bounded nuisance fiber, and \(\mathcal R_+(\mathcal A^*)\le V^*\). Hence the lower and upper deterministic-limit local minimax envelopes both equal \(V^*\).
+\end{theorem}
+\begin{proof}
+Use the jointly measurable construction proved in \(\mathrm{thm:coupled\text{-}measurable\text{-}attainment}\): fully label the independent pilot, select \(\widehat r_n\in\mathcal R_B\), annotate each main-wave outcome independently at its selected cell rate, compute \(\widetilde\theta_n\), and apply the coupled rectangle-constant Gaussian rule to \(\sqrt n\,\widetilde\theta_n\). Feasibility holds sample by sample. The condition \(\mathrm{ass:pilot\text{-}rate}\) gives \(m_n\to\infty\), while \(\mathrm{ass:pilot\text{-}vanishes}\) gives \(m_n/n\to0\). The former is enough for the design and nuisance estimates, and the latter makes the pilot likelihood asymptotically negligible in \(\mathrm{thm:nuisance\text{-}uniform\text{-}experiment}\). Together with \(\widehat r_n\to r^\dagger\), these facts put the constructed sequence \(\mathcal A^*\) in \(\mathfrak A_{\mathrm{det}}\). The prescribed coordinate order, parent-only recursion, separate testing of shared-boundary children, stabilization of every fixed prefix, and the rate \(O_P\{a_n(L)\}\) follow from \(\mathrm{thm:coupled\text{-}measurable\text{-}attainment}\).
+
+We verify the estimator limit and its precise pilot requirement. Fix \(C_v<\infty\), and define
+\[
+c_{ax}=p_xe_{ax},\qquad
+\beta_n=\beta(q_n(h,v)),\qquad
+b=\beta_n-\widehat\beta,
+\]
+and, conditionally on \(\mathscr P_n\),
+\[
+H_{i,ax}=\frac{\mathbf1\{X_i=x,A_i=a,R_i=1\}}
+{c_{ax}\widehat r_{n,ax}}
+(Y_i^{\mathrm{obs}}-\widehat\beta_{ax}).
+\tag{36}
+\]
+By \(\mathrm{ass:randomization}\) and \(\mathrm{ass:consistency}\), the conditional observed-outcome mean is \(\beta_{n,ax}\). By \(\mathrm{ass:annotation\text{-}ignorability}\) and the selected Bernoulli acquisition probability,
+\[
+E(H_{i,ax}\mid\mathscr P_n)
+=\frac{c_{ax}\widehat r_{n,ax}}
+{c_{ax}\widehat r_{n,ax}}
+(\beta_{n,ax}-\widehat\beta_{ax})=b_{ax}.
+\tag{37}
+\]
+Using the definitions of \(\widetilde\beta_n\), \(\widetilde\theta_n\), and \(\theta_p\), (37) yields the exact identities
+\[
+E(\widetilde\beta_n\mid\mathscr P_n)=\beta_n,
+\qquad
+\sqrt n\{\widetilde\theta_n-\theta_p(q_n(h,v))\}
+=\frac1{\sqrt n}\sum_{i=1}^nA_{\mathrm{map}}(H_i-b).
+\tag{38}
+\]
+
+Only one coordinate of \(H_i\) is nonzero. Its conditional second moment and (37) therefore give the exact covariance
+\[
+S_n=A_{\mathrm{map}}\left[
+\operatorname{diag}_{a,x}\left\{
+\frac{\sigma^2_{ax}(q_n(h,v))+b_{ax}^2}
+{p_xe_{ax}\widehat r_{n,ax}}
+\right\}-bb^\top\right]A_{\mathrm{map}}^\top.
+\tag{39}
+\]
+The bracketed remainder
+\[
+\operatorname{diag}_{a,x}\left\{
+\frac{b_{ax}^2}{p_xe_{ax}\widehat r_{n,ax}}
+\right\}-bb^\top
+\tag{40}
+\]
+is positive semidefinite because it is the covariance of the vector with coordinate \(b_{ax}\mathbf1\{X=x,A=a,R=1\}/(p_xe_{ax}\widehat r_{n,ax})\).
+
+The pilot observations are bounded, the number of cells is fixed, and each cell probability \(p_xe_{ax}\) is positive. The second-moment calculation in \(\mathrm{thm:coupled\text{-}measurable\text{-}attainment}\), now applied at the natural stochastic scale, gives
+\[
+\lVert b\rVert=O_P(m_n^{-1/2})
+\tag{41}
+\]
+locally uniformly over the fixed nuisance fiber; the probability of an empty pilot cell tends to zero under \(m_n\to\infty\). Because \(q_n-q^0=s(h,v)/\sqrt n\), finiteness of the support and boundedness of \(s(h,v)\) give
+\[
+\max_{a,x}|\sigma^2_{ax}(q_n(h,v))-\sigma^2_{ax}(q^0)|=O(n^{-1/2})
+\tag{42}
+\]
+uniformly on that fiber. The \((0,x)\) and \((1,x)\) columns of \(A_{\mathrm{map}}=[-F\;F]\) are \(-p_xd_x\) and \(p_xd_x\), respectively. Consequently
+\[
+A_{\mathrm{map}}\operatorname{diag}_{a,x}\left\{
+\frac{\sigma^2_{ax}(q^0)}{p_xe_{ax}r_{ax}}
+\right\}A_{\mathrm{map}}^\top
+=\sum_{x=1}^K\sum_{a=0}^1
+\frac{p_x\sigma^2_{ax}(q^0)}{e_{ax}r_{ax}}d_xd_x^\top
+=\Sigma(r).
+\tag{43}
+\]
+The fixed lower bounds on \(p_xe_{ax}\widehat r_{n,ax}\), (39)--(43), and \(\widehat r_n\to r^\dagger\) now imply
+\[
+\lVert S_n-\Sigma(r^\dagger)\rVert
+=O_P(m_n^{-1}+n^{-1/2})+o_P(1)=o_P(1).
+\tag{44}
+\]
+Thus the covariance remainder uses only \(m_n^{-1}\to0\).
+
+The variance identity (7) in \(\mathrm{thm:coupled\text{-}measurable\text{-}attainment}\), \(q^0_{ax\ell}\ge\eta\), and the two distinct support points available for every \(L\ge2\) give a positive cell-variance floor. Together with \(\operatorname{rank}(F)=d\), equation (43) gives a common positive lower eigenvalue for \(S_n\) with probability tending to one. The summands in (38) are uniformly bounded because \(|Y|\le C_Y\), the pilot means are clipped to the convex hull of \(\mathcal Y\), \(\widehat r_{n,ax}\ge\rho\), and \(p_xe_{ax}>0\). After normalization by \(S_n^{-1/2}\), the sum of third Euclidean absolute moments of the \(n\) scaled summands is \(O(n^{-1/2})\). Applying \(\mathrm{lem:bentkus\text{-}convex\text{-}set}\) and then (44) proves
+\[
+\sqrt n\{\widetilde\theta_n-\theta_p(q_n(h,v))\}
+\Rightarrow N(0,\Sigma(r^\dagger))
+\tag{45}
+\]
+locally uniformly over \(h\in\mathcal H\) and \(\lVert v\rVert\le C_v\).
+
+The revalidated \(\mathrm{thm:local\text{-}chart\text{-}membership}\) gives \(\sqrt n\,\theta_p(q_n(h,v))=h\), including when \(L=2\). Hence the input \(\sqrt n\,\widetilde\theta_n\) to the terminal rule converges to \(N(h,\Sigma(r^\dagger))\). The coupled theorem chooses its rectangle count \(J_{s_n}\) with \(J_{s_n}/\sqrt n\to0\), so the convex-set error summed over its finitely many rectangles is \(o(1)\). Its state-mesh, Gaussian-tail, quadrature, rounding, covariance, and finite-game errors also vanish. Since \(r^\dagger\) minimizes \(L\),
+\[
+L(r^\dagger)=V^*.
+\]
+Therefore
+\[
+\sup_{h\in\mathcal H,\,\lVert v\rVert\le C_v}
+E_{P_{p,q_n(h,v)},\mathcal A^*}
+[\ell_{\mathrm{reg}}(h,J_n(\mathcal A^*))]
+\le V^*+o(1).
+\tag{46}
+\]
+The loss is bounded by \(2\sup_{h\in\mathcal H}\lVert h\rVert_\infty\), so conditional errors converging in probability may be integrated. Taking \(\limsup_{n\to\infty}\) in (46) for fixed \(C_v\), and then \(C_v\to\infty\), gives
+\[
+\mathcal R_+(\mathcal A^*)\le V^*.
+\tag{47}
+\]
+The established \(\mathrm{thm:local\text{-}minimax\text{-}lower\text{-}bound}\) gives \(\mathcal R_-(\mathcal A)\ge V^*\) for every \(\mathcal A\in\mathfrak A_{\mathrm{det}}\). Since \(\mathcal R_-(\mathcal A^*)\le\mathcal R_+(\mathcal A^*)\), (47) proves that the lower and upper deterministic-limit local minimax envelopes both equal \(V^*\), completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The upper theorem matches the full-nuisance converse with an implementable arbitrarily slowly diverging, vanishing-share pilot, a joint estimator, and a terminal rule. \textit{Gap.} Nwankwo et al. attain scalar ATE variance and Cook et al. prove scalar adaptive AIPW limits; neither couples a set-valued regret design to a multivariate discontinuous minimax rule under the minimal pilot limits \(m_n\to\infty\) and \(m_n/n\to0\). \textit{Consumer.} Independent validation of a frozen clinical-policy menu can target scarce follow-up toward the cells that minimize eventual welfare loss without reserving a polynomial-order pilot.
+
+\begin{theorem}[thm:witness-separation]\label{thm:witness-separation}
+At \(\omega_0\), the optimizer set \(\mathcal G(\omega_0)\) of the internally chosen functional \(G_{\omega_0}\) is a singleton. For its unique element \(r\), outward-rounded certificates establish \(L_{\omega_0}(r)>0.1965\) and \(L_{\omega_0}(r_{\mathrm{alt}}(\omega_0))<0.18453\). Thus minimizing the scalar maximum of the three pairwise marginal contrast variances does not determine a Gaussian minimax-regret-optimal design: every minimizer of \(L_{\omega_0}\) differs from that \(r\), with certified regret gap exceeding \(0.01197\) relative to the displayed feasible alternative.
+\end{theorem}
+\begin{proof}
+At \(\omega_0\), the loading vectors are
+\[
+ d_1=(1,0)^\top,\quad d_2=(0,1)^\top,\quad d_3=(1,1)^\top,\quad d_4=0.
+\]
+Because \(e_{ax}=1/2\) and every cell variance is \(1/4\), averaging the two arm rates within a stratum preserves annotation cost, while strict convexity of \(t\mapsto1/t\) weakly decreases that stratum's covariance coefficient, with equality only for equal arm rates.  For symmetric useful-stratum rates write
+\[
+ a=\frac{0.03}{r_1},\qquad b=\frac{0.30}{r_2},\qquad c=\frac{0.25}{r_3}.
+\]
+Then
+\[
+ \Sigma(r)=\begin{pmatrix}a+c&c\\c&b+c\end{pmatrix},\qquad
+ G_{\omega_0}(r)=\max\{a+c,b+c,a+b\}.                               \tag{1}
+\]
+
+Set \(\alpha=9/634\) and
+\[
+ H_\alpha(r)=\alpha(a+b)+(1-\alpha)(b+c).
+\]
+This convex combination is at most (1).  As a function of the six useful arm rates, \(H_\alpha\) is strictly convex and strictly decreasing in each rate.  Thus all budget not spent at the forced floor in stratum \(4\) is used.  The Lagrange equations for the remaining linear budget constraint give the unique ratios
+\[
+ \frac{r_{1G}}{r_{3G}}=\sqrt{\frac\alpha{1-\alpha}}=\frac3{25},\qquad
+ \frac{r_{2G}}{r_{3G}}=\frac1{\sqrt{1-\alpha}}=\frac{\sqrt{634}}{25}=:s.
+\]
+Since the remaining budget is \(11/20-(21/50)(1/20)=529/1000\), the solution is
+\[
+ r_{3G}=\frac{529/1000}{317/1250+(3/10)s},\quad
+ r_{2G}=sr_{3G},\quad r_{1G}=\frac3{25}r_{3G},\quad r_{4G}=\frac1{20}. \tag{2}
+\]
+Exact comparison after squaring the positive algebraic quantities shows all three useful rates in (2) lie in \((1/20,1)\).  At (2), \(a=c<b\), and hence \(H_\alpha(r_G)=a+b=b+c=G_{\omega_0}(r_G)\).  For every feasible \(r\),
+\[
+ G_{\omega_0}(r)\geq H_\alpha(r)\geq H_\alpha(r_G)=G_{\omega_0}(r_G). \tag{3}
+\]
+Strict convexity, its equality condition under arm symmetrization, and strict decrease in useful rates force equality in (3) only at (2), with both agreement-stratum rates at their floor.  Therefore \(\mathcal G(\omega_0)=\{r_G\}\).
+
+For the lower certificate take the prior atoms and weights
+\[
+ h^0=(-5/8,-5/8),\quad h^1=(0,5/8),\quad h^2=(5/8,0),\qquad
+ (w_0,w_1,w_2)=(13/40,7/20,13/40).                                  \tag{4}
+\]
+At atom \(h^k\), action \(k\) has zero regret and either other action has regret \(5/8\).  With
+\[
+ \beta_k=\Sigma(r_G)^{-1}h^k,\qquad
+ b_k=\log w_k-\tfrac12(h^k)^\top\Sigma(r_G)^{-1}h^k,
+\]
+the Bayes rule selects the largest affine score \(\beta_k^\top z+b_k\).  If \(P_{kk}\) denotes its correct-selection probability under atom \(k\), its Bayes risk is exactly
+\[
+ B_G=\frac58\left(1-\sum_{k=0}^2w_kP_{kk}\right)\leq L_{\omega_0}(r_G). \tag{5}
+\]
+Each \(P_{kk}\) is a bivariate Gaussian probability of two affine inequalities.  Differentiating the bivariate normal distribution in its correlation gives
+\[
+ \Phi_2(u,v;q)=\Phi(u)\Phi(v)+\int_0^q\phi_2(u,v;t)\,dt.              \tag{6}
+\]
+For \(|t|\leq q_*<1\), diagonalization of its quadratic form and \(\sup_z z^2e^{-z^2/2}=2/e\) give
+\[
+ |\partial_t\phi_2(u,v;t)|\leq
+ \frac{q_*+2/e}{2\pi(1-q_*^2)^{3/2}}.                               \tag{7}
+\]
+Thus \(N\)-panel midpoint quadrature for (6) has outward error at most \(q_*^2\) times (7) divided by \(4N\).  Applying the certified arithmetic of \(\mathrm{thm:certified\text{-}computation}\) with \(N=512\) and \(96\)-bit outward rounding to the algebraic design (2), equations (4)--(7) return the strict enclosure
+\[
+ B_G>0.1965.                                                         \tag{8}
+\]
+
+For the feasible alternative, exact rational arithmetic gives
+\[
+ \sum_xp_xr^0_{\mathrm{alt},x}=\frac{11}{20},\qquad
+ \Sigma(r^0_{\mathrm{alt}})=
+ \begin{pmatrix}433/1205&125/482\\125/482&8695/14942\end{pmatrix}. \tag{9}
+\]
+Use the feasible rule selecting the largest of \(z_1,z_2,0\).  With \(v_\Sigma=\Sigma_{11}+\Sigma_{22}-2\Sigma_{12}\), its selection probabilities are
+\[
+ \begin{aligned}
+ P_1(h)&=\Phi_2\!\left(\frac{h_1}{\sqrt{\Sigma_{11}}},
+ \frac{h_1-h_2}{\sqrt{v_\Sigma}};
+ \frac{\Sigma_{11}-\Sigma_{12}}{\sqrt{\Sigma_{11}v_\Sigma}}\right),\\
+ P_2(h)&=\Phi_2\!\left(\frac{h_2}{\sqrt{\Sigma_{22}}},
+ \frac{h_2-h_1}{\sqrt{v_\Sigma}};
+ \frac{\Sigma_{22}-\Sigma_{12}}{\sqrt{\Sigma_{22}v_\Sigma}}\right),
+ \end{aligned}                                                       \tag{10}
+\]
+and its risk is
+\[
+ R(h)=\max(0,h_1,h_2)-h_1P_1(h)-h_2P_2(h).                           \tag{11}
+\]
+The common state-risk modulus on a square of sup-norm half-width \(w\) is
+\[
+ \left(2+\frac{\sqrt2}{\sqrt{\lambda_{\min}\{\Sigma(r^0_{\mathrm{alt}})\}}}\right)w. \tag{12}
+\]
+Using (6)--(7) with \(N=64\), a directed dyadic cover of \([-1,1]^2\) with \(74107\) accepted leaves and maximum depth \(10\), and adding (12) on every leaf, the outward certificate gives
+\[
+ \sup_{h\in[-1,1]^2}R(h)<0.184529576390235<0.18453.                 \tag{13}
+\]
+There is no observation truncation in (10).  Equations (5), (8), and (13) prove
+\[
+ L_{\omega_0}(r_G)>0.1965,\qquad
+ L_{\omega_0}(r_{\mathrm{alt}}(\omega_0))<0.18453.
+\]
+The difference is strictly greater than \(0.1965-0.18453=0.01197\).  Since the displayed alternative is feasible, no minimizer of \(L_{\omega_0}\) can equal the unique \(G_{\omega_0}\)-minimizer.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem positively identifies a feature of correlated three-policy regret geometry that the scalar maximum pairwise-variance summary does not preserve. \textit{Gap.} The inspected Gaussian treatment-choice and annotation results do not give an exact open-region example in which two designs ordered by a self-contained pairwise-variance probe are strictly reversed by the full overlapping-policy regret game. \textit{Consumer.} For CodiEtAl2025ClinicalRules and KimEtAl2025AzithromycinRules, prospective independent validation of the frozen ABCD azithromycin policy menu can use the internal \(G_\omega\) probe to diagnose whether a covariance summary retains enough joint information for the validation design. Neither cited paper is claimed to use or recommend \(G_\omega\).
+
+\begin{theorem}[thm:open-neighborhood-separation]\label{thm:open-neighborhood-separation}
+For every \(\omega\in\mathcal U_{10^{-6}}\), the internally defined set \(\mathcal G(\omega)\) is a singleton and, for its unique element \(r\), \(L_\omega(r)>0.1964558>0.1845960>L_\omega(r_{\mathrm{alt}}(\omega))\), where \(r_{\mathrm{alt}}(\omega)=P_\omega(r_{\mathrm{alt}}^0)\in\mathcal R_B(\omega)\).
+\end{theorem}
+\begin{proof}
+Fix \(\omega\in\mathcal U_{10^{-6}}\).  We verify all numerical inequalities on the closed coordinate box obtained by replacing the strict radii by weak ones; restriction to the admissible relative open subset then proves the claim.  Write
+\[
+ \sigma_{ax}=\sqrt{\sigma^2_{ax}(q^{0,\omega})},\quad
+ S_x=\sigma_{0x}+\sigma_{1x},\quad A_x=p_x^\omega S_x^2,\quad
+ t_x=\frac{r_{0x}+r_{1x}}2,
+\]
+and
+\[
+ b_x(r)=2p_x^\omega\sum_{a=0}^1\frac{\sigma_{ax}^2}{r_{ax}}.
+\]
+All denominators are positive because \(r_{ax}\geq\rho>0\), while \(S_x>0\) follows from eta-interiority and the distinct support values.  Cellwise Cauchy--Schwarz gives
+\[
+ S_x^2
+ \leq(r_{0x}+r_{1x})\sum_{a=0}^1\frac{\sigma_{ax}^2}{r_{ax}},\qquad
+ b_x(r)\geq\frac{A_x}{t_x},                                        \tag{1}
+\]
+with equality if and only if
+\[
+ r_{ax}=\frac{2t_x\sigma_{ax}}{S_x},\qquad a\in\{0,1\}.             \tag{2}
+\]
+The fixed loading vectors imply
+\[
+ G_\omega(r)=\max\{b_1(r)+b_3(r),\ b_2(r)+b_3(r),\ b_1(r)+b_2(r)\}. \tag{3}
+\]
+
+Define
+\[
+ \begin{gathered}
+ C=B^\omega-\rho p_4^\omega,\qquad
+ C_{13}=p_1^\omega A_1+p_3^\omega A_3,\qquad C_2=p_2^\omega A_2,\\
+ z=\frac{(\sqrt{C_{13}}+\sqrt{C_2})\sqrt{C_{13}}}{C},\qquad
+ y=\frac{(\sqrt{C_{13}}+\sqrt{C_2})\sqrt{C_2}}{C},\\
+ t_1^\star=A_1/z,\qquad t_2^\star=A_2/y,\qquad t_3^\star=A_3/z,\qquad
+ t_4^\star=\rho.                                                     \tag{4}
+ \end{gathered}
+\]
+All quantities divided by in (4) are positive on the closed box.  Directed interval evaluation at radius \(10^{-6}\), using rational endpoints and outward square-root rounding, verifies
+\[
+ C_{13}<C_2,\qquad
+ \rho<\frac{2t_x^\star\sigma_{ax}}{S_x}<1
+ \quad(x\leq3,\ a\in\{0,1\}).                                     \tag{5}
+\]
+Define \(r_G(\omega)\) by (2) with \(t_x=t_x^\star\) for \(x\leq3\), and put \(r_{a4}=\rho\).  Equations (4)--(5) give the box constraints, and
+\[
+ \sum_{x,a}p_x^\omega e_{ax}r_{G,ax}(\omega)
+ =\rho p_4^\omega+\frac{C_{13}}z+\frac{C_2}y
+ =\rho p_4^\omega+C=B^\omega.                                     \tag{6}
+\]
+Thus this design is feasible.
+
+Set \(\alpha=p_1^\omega A_1/C_{13}\in(0,1)\).  From (1) and (3), every feasible design satisfies
+\[
+ \begin{aligned}
+ G_\omega(r)
+ &\geq\alpha\{b_1(r)+b_2(r)\}+(1-\alpha)\{b_2(r)+b_3(r)\}\\
+ &\geq\frac{\alpha A_1}{t_1}+\frac{A_2}{t_2}
+       +\frac{(1-\alpha)A_3}{t_3}.                                  \tag{7}
+ \end{aligned}
+\]
+Feasibility and \(t_4\geq\rho\) imply
+\[
+ p_1^\omega t_1+p_2^\omega t_2+p_3^\omega t_3\leq C.               \tag{8}
+\]
+Cauchy--Schwarz applied to (7), followed by (8), yields
+\[
+ \begin{aligned}
+ \frac{\alpha A_1}{t_1}+\frac{A_2}{t_2}+
+ \frac{(1-\alpha)A_3}{t_3}
+ &\geq\frac{\left\{\sqrt{\alpha A_1p_1^\omega}+
+ \sqrt{A_2p_2^\omega}+\sqrt{(1-\alpha)A_3p_3^\omega}\right\}^2}{C}\\
+ &=\frac{(\sqrt{C_{13}}+\sqrt{C_2})^2}{C}=z+y.                     \tag{9}
+ \end{aligned}
+\]
+Here \(\sqrt{\alpha A_1p_1^\omega}=p_1^\omega A_1/\sqrt{C_{13}}\) and the analogous stratum-\(3\) identity prove the second line.  At \(r_G(\omega)\), equality holds in (1), and
+\[
+ b_1(r_G)=z,\qquad b_2(r_G)=y,\qquad b_3(r_G)=z.
+\]
+By (5), \(z<y\), so (3) equals \(z+y\).  Equality in (9) uniquely fixes \(t_1,t_2,t_3\) at (4), and equality in (8) fixes \(t_4=\rho\).  Since each fourth-stratum arm rate is at least \(\rho\), their average can equal \(\rho\) only when both equal \(\rho\); equality in (1) fixes both arm rates in each informative stratum via (2).  Therefore
+\[
+ \mathcal G(\omega)=\{r_G(\omega)\}.                               \tag{10}
+\]
+
+For the alternative put
+\[
+ D_\omega=\sum_xp_x^\omega r^0_{\mathrm{alt},x}-\rho>0,\qquad
+ \kappa_\omega=\min\left\{1,\frac{B^\omega-\rho}{D_\omega}\right\}.
+\]
+The definition of \(P_\omega\) gives
+\[
+ r_{\mathrm{alt},ax}(\omega)=\rho+\kappa_\omega
+ (r^0_{\mathrm{alt},x}-\rho).                                      \tag{11}
+\]
+If the raw vector is below budget, \(\kappa_\omega=1\) and its cost is at most \(B^\omega\).  If it is above budget, \(\kappa_\omega<1\) and its cost is exactly \(\rho+\kappa_\omega D_\omega=B^\omega\).  Thus (11) is feasible in both branches.  At \(\omega_0\), exact arithmetic gives raw cost \(11/20\), so the projection is the identity there; no unasserted positive budget slack is used.
+
+The outward computation from \(\mathrm{thm:certified\text{-}computation}\), split over the two branches in (11), gives on the entire closed box
+\[
+ \begin{aligned}
+ \lVert\Sigma_\omega(r_G(\omega))-\Sigma_{\omega_0}(r_G(\omega_0))\rVert_F
+ &\leq4.0459382\times10^{-5},\\
+ \lVert\Sigma_\omega(r_{\mathrm{alt}}(\omega))-
+ \Sigma_{\omega_0}(r^0_{\mathrm{alt}})\rVert_F
+ &\leq1.2428859\times10^{-5}.                                      \tag{12}
+ \end{aligned}
+\]
+All matrices in these enclosures are positive definite by positive cell weights and full row rank.  Propagating (12) through the center dual prior certificate and center primal rule from \(\mathrm{thm:witness\text{-}separation}\) gives outward total-variation bounds \(7.058912\times10^{-5}\) and \(3.298190\times10^{-5}\), respectively.  The dual-prior loss is bounded by \(5/8\), and regret on \([-1,1]^2\) is bounded by \(2\).  Hence the adverse risk changes are bounded by
+\[
+ \frac58(7.058912\times10^{-5})=4.4118200\times10^{-5},\qquad
+ 2(3.298190\times10^{-5})=6.5963800\times10^{-5}.                   \tag{13}
+\]
+Using the strict center certificates and weak duality or primal feasibility as appropriate,
+\[
+ \begin{aligned}
+ L_\omega(r_G(\omega))
+ &>0.1965-0.0000441182=0.1964558818>0.1964558,\\
+ L_\omega(r_{\mathrm{alt}}(\omega))
+ &<0.18453+0.0000659638=0.1845959638<0.1845960.                     \tag{14}
+ \end{aligned}
+\]
+Since \(0.1964558>0.1845960\), equations (10)--(14) prove the asserted strict separation.
+
+Finally, the neighborhood is nonempty within the stated causal model.  Every allowed standard deviation is realized on \(\{-1,0,1\}\) by
+\[
+ q^{0,\omega}_{ax}=(\sigma_{ax}^2/2,\ 1-\sigma_{ax}^2,\ \sigma_{ax}^2/2).
+\]
+These probabilities sum to one, have mean zero and variance \(\sigma_{ax}^2\), and outward endpoint comparison on \(|\sigma_{ax}-1/2|\leq10^{-6}\) puts every coordinate strictly above \(\eta=1/10\).  The zero means imply the required policy tie.  Thus the displayed relative open set contains admissible perturbations.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An open-region theorem rules out the interpretation that separation is caused by one knife-edge rational law. \textit{Gap.} No inspected result establishes an open neighborhood on which an internally specified pairwise-marginal-variance probe and the full correlated welfare-regret game have strictly separated optimizer values. \textit{Consumer.} For CodiEtAl2025ClinicalRules and KimEtAl2025AzithromycinRules, prospective independent validation of the frozen ABCD azithromycin policy menu can use the internal \(G_\omega\) probe to diagnose whether a covariance summary retains enough joint information under small misspecification of stratum weights, budget, and arm-specific outcome variation. Neither cited paper is claimed to use or recommend \(G_\omega\).
+
+\begin{proposition}[prop:binary-reduction]\label{prop:binary-reduction}
+If the menu is specialized to \(M=2\), then \(d=1\), \(L(r)=L_{\sqrt{\Sigma(r)}}(\mathcal H)\), and the exact scale identity is \(L_{\sigma}(\mathcal H)=\sigma L_1(\mathcal H/\sigma)\). If \(0<\sigma_1\le\sigma_2\), then \(N(h,\sigma_1^2)\) Blackwell dominates \(N(h,\sigma_2^2)\) by addition of independent Gaussian noise, so \(L_{\sigma_1}(\mathcal H)\le L_{\sigma_2}(\mathcal H)\). Therefore every design minimizing the single contrast variance is regret-optimal; no converse or strict monotonicity is asserted without an additional condition on \(\mathcal H\).
+\end{proposition}
+\begin{proof}
+When \(M=2\), the definition \(d=M-1\) gives \(d=1\), and the game in \(\mathrm{def:gaussian\text{-}game}\) observes \(N(h,\Sigma(r))\).  By the definition of the binary benchmark,
+\[
+ L(r)=L_{\sqrt{\Sigma(r)}}(\mathcal H).                              \tag{1}
+\]
+If \(Z=h+\sigma\varepsilon\), put \(g=h/\sigma\).  Then \(Z/\sigma\sim N(g,1)\), and positive homogeneity of binary regret gives
+\[
+ \ell_{\mathrm{reg}}(h,j)=\sigma\ell_{\mathrm{reg}}(g,j).
+\]
+The maps \(h\leftrightarrow g\) and \(Z\leftrightarrow Z/\sigma\) are bijective because \(\sigma>0\).  Taking the same infimum over rules and supremum over the reparameterized state set therefore proves
+\[
+ L_\sigma(\mathcal H)=\sigma L_1(\mathcal H/\sigma).                \tag{2}
+\]
+
+Now let \(0<\sigma_1\leq\sigma_2\).  Given \(Z_1\sim N(h,\sigma_1^2)\), generate independently \(E\sim N(0,\sigma_2^2-\sigma_1^2)\).  Then \(Z_1+E\sim N(h,\sigma_2^2)\).  Consequently the smaller-noise experiment can reproduce, by this Markov kernel, the risk vector of every rule in the larger-noise experiment.  Taking minimax values yields
+\[
+ L_{\sigma_1}(\mathcal H)\leq L_{\sigma_2}(\mathcal H).            \tag{3}
+\]
+Thus a design minimizing the sole contrast variance also minimizes the binary regret value in (1).  The simulation argument proves only the weak inequality (3), so it supplies neither a converse nor strict monotonicity without an additional condition on \(\mathcal H\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The binary reduction is the required sanity check and isolates why three overlapping policies are the first nontrivial case. \textit{Gap.} Binary Gaussian treatment-choice and Neyman allocation results are known; this proposition verifies exact compatibility rather than claiming novelty. \textit{Consumer.} Readers can diagnose whether the new regret criterion changes design only because the action menu creates genuinely multivariate tie geometry.
+
+\begin{theorem}[thm:coupled-measurable-attainment]\label{thm:coupled-measurable-attainment}
+There is a jointly measurable implementation of \(\mathrm{def:implementation\text{-}handle}\) with the stipulated coordinate order, parent-only recursion, lexicographic child order, and separate testing of every closed child containing a shared-boundary point. For each fixed depth \(k\), its selected ambient boxes and feasible cells equal \(\mathcal D_j^\dagger\) and \(\mathcal C_j^\dagger\), respectively, for all \(j\le k\) with probability tending to one locally uniformly on every bounded nuisance fiber. Define the population prefix gaps \(\gamma_j(L)\) as in the proof and let \(j_n(L)\) be the largest certified depth for which the approximation envelope is smaller than all preceding positive prefix gaps. Then \(a_n(L)=\sup_{m\ge n}2^{-j_m(L)}\downarrow0\) and \(\lVert\widehat r_n-r^\dagger\rVert=O_P(a_n(L))\) locally uniformly. This conclusion includes disconnected, flat, tied, and dyadic-boundary minimizing sets. A jointly refined rectangle-constant Gaussian rule has risk error \(o(1)\) uniformly over every fixed bounded nuisance fiber. The final rate limitation is only a generic continuous-objective statement: on \([0,1]\), continuity and uniform objective-approximation control alone imply no spatial recovery modulus tending to zero uniformly over all continuous objectives, because for every \(\epsilon>0\), \(f_+(z)=\epsilon z\) and \(f_-(z)=\epsilon(1-z)\) have canonical minimizers zero and one while \(g(z)=\epsilon/2\) is within \(\epsilon/2\) uniformly of both. No model-specific impossibility over the Gaussian-risk family \(r\mapsto L(r)\) is asserted.
+\end{theorem}
+\begin{proof}
+Fix \(C_v<\infty\), and write \(c_{ax}=p_xe_{ax}\). The stipulated spaces of \(p\) and \(e\) give \(c_{ax}>0\) for every one of the finitely many cells. Choose two distinct support values \(y_u\ne y_w\), which exist because \(L\ge2\) and the elements of \(\mathcal Y\) are distinct. For any probability vector \(q_{ax}\), direct expansion of the variance gives
+\[
+\sigma^2_{ax}(q)=\sum_{\ell<m}q_{ax\ell}q_{axm}(y_\ell-y_m)^2.
+\tag{7}
+\]
+Thus \(q^0_{ax\ell}\ge\eta\), by \(\mathrm{ass:eta\text{-}interior}\), implies
+\[
+\underline\sigma^2:=\eta^2(y_u-y_w)^2
+\le \sigma^2_{ax}(q^0)\le 4C_Y^2.
+\tag{8}
+\]
+The upper inequality follows from \(|Y-EY|\le2C_Y\). For \(z\in\mathbb R^d\), the definition of \(\Sigma(r)\) yields
+\[
+z^\top\Sigma(r)z
+=\sum_{x=1}^K\sum_{a=0}^1
+\frac{p_x\sigma^2_{ax}(q^0)}{e_{ax}r_{ax}}(z^\top d_x)^2.
+\tag{9}
+\]
+Because \(r_{ax}\in[\rho,1]\), all coefficients in (9) have fixed positive lower and finite upper bounds. Moreover, \(\operatorname{rank}(F)=d\) by \(\mathrm{ass:menu\text{-}rank}\), and multiplication by the positive diagonal matrix \(\operatorname{diag}(p)\) does not change row rank, so \(d_1,\ldots,d_K\) span \(\mathbb R^d\). The continuous function \(z\mapsto\sum_x(z^\top d_x)^2\) therefore has a positive minimum on the Euclidean unit sphere. Equations (8)--(9) consequently place \(\{\Sigma(r):r\in\mathcal R_B\}\) in a fixed compact subset \(\mathcal K\subset\mathbb S_{++}^d\). This argument uses only two distinct support values, so it is unchanged for \(L=2\).
+
+We next construct the pilot objective and prove its uniform accuracy under \(\mathrm{ass:pilot\text{-}rate}\). Put
+\[
+b_n=m_n^{-1/4}+n^{-1/2},\qquad t_n=b_n^{1/2}.
+\tag{10}
+\]
+Since \(m_n\to\infty\),
+\[
+b_n\to0,\qquad t_n\to0,\qquad \frac{b_n}{t_n}=b_n^{1/2}\to0.
+\tag{11}
+\]
+Let \(N_{ax}\) be the number of fully labelled pilot records in cell \((a,x)\), and let \(\widehat\nu_{s,ax}\) be the within-cell average of \(Y^s\), for \(s=1,2\), with an arbitrary value in \([-C_Y^s,C_Y^s]\) when \(N_{ax}=0\). If \(\nu_{s,ax,n}=E_{q_n(h,v)}(Y^s\mid A=a,X=x)\), then independence and boundedness give
+\[
+\operatorname{Var}\!\left(\frac{N_{ax}}{m_n}\right)\le\frac{c_{ax}}{m_n},
+\qquad
+E\!\left[\left\{\frac1{m_n}\sum_{i=1}^{m_n}
+\mathbf1\{X_i=x,A_i=a\}(Y_i^s-\nu_{s,ax,n})\right\}^2\right]
+\le\frac{c_{ax}(2C_Y^s)^2}{m_n}.
+\tag{12}
+\]
+Chebyshev's inequality applied first to \(N_{ax}/m_n\) gives \(P(N_{ax}<m_nc_{ax}/2)=O(m_n^{-1})\). On its complement, applying Chebyshev at threshold proportional to \(m_n^{-1/4}\) to the centered numerator in (12), and dividing by \(N_{ax}/m_n\ge c_{ax}/2\), gives
+\[
+\sup_{h\in\mathcal H,\,\lVert v\rVert\le C_v}
+P_{q_n(h,v)}\!\left(
+|\widehat\nu_{s,ax}-\nu_{s,ax,n}|>C_{ax,s}m_n^{-1/4}
+\right)=O(m_n^{-1/2}).
+\tag{13}
+\]
+The constants do not depend on \((h,v)\), because only the fixed bounds on \(Y\) and the fixed cell probabilities \(c_{ax}\) were used. A union bound over the fixed \(4K\) moment coordinates gives events \(E_n(C_v)\) such that
+\[
+\inf_{h\in\mathcal H,\,\lVert v\rVert\le C_v}
+P_{q_n(h,v)}\{E_n(C_v)\}\to1.
+\tag{14}
+\]
+
+Linearity of \(s(h,v)=S_0h+Wv\), compactness of \(\mathcal H\), and boundedness of \(\{v:\lVert v\rVert\le C_v\}\) imply a finite \(D(C_v)\) with \(\sup_{h,v}\lVert s(h,v)\rVert_\infty\le D(C_v)\). Since \(q_n-q^0=s(h,v)/\sqrt n\) and the support is finite,
+\[
+\max_{a,x,s\in\{1,2\}}|\nu_{s,ax,n}-\nu_{s,ax,0}|
+\le C(C_v)n^{-1/2}.
+\tag{15}
+\]
+The variance map \((\nu_1,\nu_2)\mapsto\nu_2-\nu_1^2\) is Lipschitz on the bounded moment rectangle. Therefore, after clipping the pilot variance estimates to \([\underline\sigma^2/2,4C_Y^2]\), (13)--(15) imply on \(E_n(C_v)\)
+\[
+\max_{a,x}|\widehat\sigma^2_{ax}-\sigma^2_{ax}(q^0)|
+\le C_0(C_v)b_n.
+\tag{16}
+\]
+This is the only pilot-moment event needed for design selection, and its proof uses \(m_n\to\infty\), with no rate comparison between \(m_n\) and \(\sqrt n\).
+
+Let \(\widehat\Sigma_n(r)\) be the formula for \(\Sigma(r)\) with \(\widehat\sigma^2_{ax}\) in place of \(\sigma^2_{ax}(q^0)\), and let \(\widehat L_n(r)\) be the corresponding Gaussian minimax value. Since \(r_{ax}\ge\rho\), (16) gives
+\[
+\sup_{r\in\mathcal R_B}\lVert\widehat\Sigma_n(r)-\Sigma(r)\rVert
+\le C_1(C_v)b_n.
+\tag{17}
+\]
+For \(S,S'\) in a sufficiently small fixed compact enlargement of \(\mathcal K\), differentiate the centered normal density along \(S_u=(1-u)S+uS'\). The derivative identity
+\[
+\frac{d}{du}\phi_{S_u}(z)
+=\frac12\phi_{S_u}(z)
+\left[z^\top S_u^{-1}(S'-S)S_u^{-1}z
+-\operatorname{tr}\{S_u^{-1}(S'-S)\}\right]
+\]
+and the common positive lower and finite upper eigenvalue bounds imply, after integration in \(z\) and \(u\),
+\[
+\sup_{h\in\mathbb R^d}
+\operatorname{TV}\{N(h,S),N(h,S')\}
+\le C_2\lVert S-S'\rVert.
+\]
+The regret is bounded by \(R_H=2\sup_{h\in\mathcal H}\lVert h\rVert_\infty<\infty\). Hence, for every rule \(\delta\) and state \(h\), changing \(S\) to \(S'\) changes expected regret by at most \(R_HC_2\lVert S-S'\rVert\). Taking the supremum over \(h\), then the infimum over \(\delta\), in both directions proves from (17)
+\[
+\sup_{r\in\mathcal R_B}|\widehat L_n(r)-L(r)|
+\le C_3(C_v)b_n
+\quad\text{on }E_n(C_v).
+\tag{18}
+\]
+
+We now give the measurable nested-cell selector. Set \(k_n=\lfloor\log_2\log(n+2)\rfloor\). Through depth \(k_n\), use exactly the coordinate order, parent-only recursion, closed-child convention, and lexicographic order in \(\mathrm{def:implementation\text{-}handle}\). For each nonempty feasible part of a child of the currently selected parent, approximate its minimum \(\widehat L_n\)-value with deterministic error at most \(b_n\). Such approximations can be constructed by successively refining finite state nets, Gaussian observation rectangles, and the projected design nets supplied by \(P_B\).
+
+To verify the boundary case, continuity of \(P_B\), its identity action on \(\mathcal R_B\), and density of the ambient full-box nets make their projected images dense in \(\mathcal R_B\). If \(C=\mathcal R_B\cap D\) is a nonempty closed child cell, send each projected net point \(g\) to its Euclidean nearest point \(c_C(g)\in C\). Existence follows from compactness; uniqueness follows because \(C\) is convex and squared Euclidean distance is strictly convex. If \(c\in C\) and \(\lVert g-c\rVert\le\xi\), then
+\[
+\lVert c_C(g)-c\rVert
+\le\lVert c_C(g)-g\rVert+\lVert g-c\rVert\le2\xi,
+\]
+so these cell projections form refining finite nets even when \(C\) is a singleton or lies wholly on a dyadic boundary. For effectively represented instances, \(\mathrm{thm:certified\text{-}computation}\), applied after appending the child's rational box inequalities, gives terminating outward certificates. For a fixed mathematical instance, deterministic simple-function approximations give the same existence conclusion without asserting an effective stopping rule: the Gaussian total-variation bound above gives uniform covariance continuity and compactness of \(\mathcal H\) gives finite state nets. Every finite-stage operation is a Gaussian rectangle integral, a finite sum, a cell projection, or a finite linear program. The child index is finite at each stage; resolving its finitely many ties lexicographically makes the resulting map of the pilot moments Borel measurable.
+
+The game approximation is uniform rather than pointwise. Differentiating a Gaussian density in its mean gives a constant \(C_5\), uniform over the compact covariance family, such that
+\[
+\operatorname{TV}\{N(h,S),N(h',S)\}\le C_5\lVert h-h'\rVert.
+\]
+Since \(h\mapsto\ell_{\mathrm{reg}}(h,j)\) is Lipschitz uniformly over \(j\in[M]\), every rule's risk has one common modulus of continuity in \(h\). Thus replacing \(\mathcal H\) by a sufficiently fine finite net changes every worst-state risk by a uniformly vanishing amount. For a finite state net and a finite covariance net, let \(\mu\) be the sum of the finitely many Gaussian laws involved. Rational rectangles generate the Borel sigma-field, so each component of any measurable simplex-valued rule has rectangle-simple approximants converging in \(L^1(\mu)\); projecting their vector of values onto \(\Delta_M\) preserves measurability and changes the finite collection of risks by a quantity tending to zero. A covariance net and the Gaussian total-variation bound extend this approximation uniformly over \(\mathcal K\). Taking a rule within an arbitrary positive amount of the defining infimum of \(L\) proves that the finite rectangle games converge uniformly to the Gaussian games. This justifies both the deterministic cell-value accuracy and the finite linear-program representation.
+
+Let \(\widehat v_{n,j,b}\) be the resulting approximate value of feasible child \(b\) at depth \(j\), and, when the parent is \(\mathcal D_{j-1}^\dagger\), let
+\[
+v_{j,b}=\min_{r\in\mathcal R_B\cap D_{j,b}}L(r).
+\]
+Equation (18) and the deterministic numerical tolerance give a deterministic \(\alpha_n=C_4(C_v)b_n\) such that, on \(E_n(C_v)\),
+\[
+|\widehat v_{n,j,b}-v_{j,b}|\le\alpha_n
+\tag{19}
+\]
+simultaneously for every child tested through depth \(k_n\). By (10)--(11), \(\alpha_n=o(t_n)\). Retain precisely the siblings satisfying
+\[
+\widehat v_{n,j,b}\le\min_c\widehat v_{n,j,c}+t_n,
+\tag{20}
+\]
+and select the lexicographically first retained child. A sibling attaining the finite approximated minimum is always retained, so all empirical cells are nonempty; the parent-only recursion makes them nested.
+
+For the feasible children of the population parent \(\mathcal D_{j-1}^\dagger\), define
+\[
+E_j=\{b:v_{j,b}=V^*\},\qquad
+\gamma_j(L)=
+\begin{cases}
+\min_{b\notin E_j}\{v_{j,b}-V^*\},&
+E_j\text{ is not the set of all feasible children},\\
++\infty,&E_j\text{ is the set of all feasible children}.
+\end{cases}
+\tag{21}
+\]
+At least one child is in \(E_j\): the finitely many closed children cover the selected parent cell, which contains a minimizer by the definitions of \(\mathcal D_{j-1}^\dagger\) and \(\mathcal C_{j-1}^\dagger\). Each feasible child is compact, and continuity of \(L\), which follows from the Gaussian total-variation bound and the continuous covariance formula, makes its displayed minimum attained. Consequently every ineligible child has value strictly above \(V^*\); finiteness of the sibling set gives \(\gamma_j(L)>0\).
+
+Suppose inductively that the empirical parent at depth \(j-1\) is \(\mathcal D_{j-1}^\dagger\). By (19), every child in \(E_j\) lies within \(2\alpha_n\) of the smallest empirical value and is retained if \(2\alpha_n<t_n\). Every child outside \(E_j\) lies at least \(\gamma_j(L)-2\alpha_n\) above the smallest empirical value and is rejected if
+\[
+t_n+2\alpha_n<\gamma_j(L).
+\tag{22}
+\]
+Under these inequalities the retained set equals \(E_j\), so its lexicographically first element is exactly \(\mathcal D_j^\dagger\). Induction proves stabilization of every fixed prefix. If a population minimizer is on a shared dyadic boundary, every closed child containing it is separately feasible and belongs to \(E_j\); (20) retains all such children before the same lexicographic convention is applied. Disconnected, flat, or tied minimizing sets merely enlarge \(E_j\). Thus the argument includes both separated tied minima and dyadic-boundary minima, establishing the stated early-kill property.
+
+The outward cell bounds in \(\mathrm{thm:certified\text{-}computation}\), or the same deterministic convergent bounds for a fixed instance, eventually give a positive lower certificate for every positive gap in (21). Let \(j_n(L)\) be the largest \(j\le k_n\) for which the certified lower gap bounds exceed \(2t_n\) at every level \(1\le i\le j\), with \(j_n(L)=0\) if none is certified. This definition depends only on the pilot schedule and the population prefix-separation profile, not on \(C_v\). For each fixed \(C_v\), (11) implies that eventually \(2\alpha_n<t_n\), so \(2t_n<\gamma_i(L)\) implies (22). Every finite minimum \(\min_{i\le j}\gamma_i(L)\) is positive, whereas \(k_n\to\infty\) and \(t_n\to0\). Hence
+\[
+j_n(L)\to\infty,
+\qquad
+a_n(L):=\sup_{m\ge n}2^{-j_m(L)}\downarrow0.
+\tag{23}
+\]
+On \(E_n(C_v)\), the empirical and population paths agree through depth \(j_n(L)\). Choose the final feasible point of a selected cell by successively minimizing its coordinates over that compact cell; since the cell indices form a countable discrete set, this is a measurable fixed lookup. Both this point \(\widehat r_n\) and \(r^\dagger\) lie in the same depth-\(j_n(L)\) population cell, even if later empirical descendants select another minimizing branch within it. The dyadic diameter bound gives
+\[
+\lVert\widehat r_n-r^\dagger\rVert
+\le\sqrt{2K}(1-\rho)2^{-j_n(L)}
+\le\sqrt{2K}(1-\rho)a_n(L).
+\tag{24}
+\]
+Combining (14), (23), and (24) proves locally uniform convergence and \(\lVert\widehat r_n-r^\dagger\rVert=O_P\{a_n(L)\}\). The sequence is necessarily schedule- and law-specific through \(b_n\) and the prefix gaps \(\gamma_j(L)\).
+
+It remains to couple this design selector to the terminal rule. At deterministic refinement level \(s\), use the pilot covariance \(\widehat\Sigma_n(\widehat r_n)\), take a finite state net, a rational observation-rectangle partition after tail truncation, and solve the resulting finite primal--dual Gaussian game to total error at most \(2^{-s}\); resolve all finite ties lexicographically. The construction in \(\mathrm{thm:certified\text{-}computation}\) supplies these objects on represented instances, and the deterministic refinements above supply them for the fixed mathematical instance. Let \(J_s<\infty\) be the number of rectangles. A diagonal sequence \(s_n\uparrow\infty\) can be chosen sufficiently slowly that
+\[
+J_{s_n}n^{-1/2}\to0,
+\tag{25}
+\]
+while its state-mesh, tail, quadrature, rounding, covariance, and finite-game errors all tend to zero. Because each level uses finitely many Borel pilot statistics and lexicographic comparisons, this rectangle-constant rule is jointly measurable with \(\widehat r_n\).
+
+For the distributional coupling, let \(\beta_n=\beta(q_n(h,v))\), \(b=\beta_n-\widehat\beta\), and, conditional on \(\mathscr P_n\), define
+\[
+H_{i,ax}=\frac{\mathbf1\{X_i=x,A_i=a,R_i=1\}}
+{p_xe_{ax}\widehat r_{n,ax}}
+(Y_i^{\mathrm{obs}}-\widehat\beta_{ax}).
+\tag{26}
+\]
+Annotation ignorability gives \(E(H_i\mid\mathscr P_n)=b\). The summands \(A_{\mathrm{map}}(H_i-b)\) are conditionally centered and uniformly bounded, because \(|Y|\le C_Y\), \(\widehat\beta\) is clipped to the convex hull of \(\mathcal Y\), \(p_xe_{ax}>0\), and \(\widehat r_{n,ax}\ge\rho\). Only one coordinate of \(H_i\) can be nonzero, so direct multiplication gives their exact covariance
+\[
+S_n=A_{\mathrm{map}}\left[
+\operatorname{diag}_{a,x}\left\{
+\frac{\sigma^2_{ax}(q_n)+b_{ax}^2}
+{p_xe_{ax}\widehat r_{n,ax}}
+\right\}-bb^\top\right]A_{\mathrm{map}}^\top.
+\tag{27}
+\]
+The last two terms inside the brackets form a covariance matrix and are positive semidefinite. Applying the same second-moment calculation as in (12) to the pilot cell means yields, locally uniformly,
+\[
+\lVert b\rVert=O_P(m_n^{-1/2}).
+\tag{28}
+\]
+The affine chart gives \(\max_{a,x}|\sigma^2_{ax}(q_n)-\sigma^2_{ax}(q^0)|=O(n^{-1/2})\) uniformly on the bounded fiber. Inserting the columns \(-p_xd_x\) and \(p_xd_x\) of \(A_{\mathrm{map}}=[-F\;F]\) shows exactly that
+\[
+A_{\mathrm{map}}\operatorname{diag}_{a,x}\left\{
+\frac{\sigma^2_{ax}(q^0)}{p_xe_{ax}r_{ax}}
+\right\}A_{\mathrm{map}}^\top=\Sigma(r).
+\tag{29}
+\]
+Equations (24), (27)--(29), the annotation floor, and continuity of \(r\mapsto1/r\) on \([\rho,1]\) imply
+\[
+\lVert S_n-\Sigma(r^\dagger)\rVert
+=O_P\{m_n^{-1}+n^{-1/2}+a_n(L)\}=o_P(1)
+\tag{30}
+\]
+locally uniformly. This is where pilot estimation enters the covariance: \(m_n^{-1}\to0\) suffices.
+
+By (8), the uniform \(O(n^{-1/2})\) variance perturbation from \(q^0\) to \(q_n\), and the rank argument following (9), \(S_n\) has a common positive lower eigenvalue with probability tending to one uniformly on the bounded fiber. Normalize the \(n\) summands in
+\[
+\sqrt n\{\widetilde\theta_n-\theta_p(q_n(h,v))\}
+=\frac1{\sqrt n}\sum_{i=1}^nA_{\mathrm{map}}(H_i-b)
+\tag{31}
+\]
+by \(S_n^{-1/2}\). Uniform boundedness makes the sum of their third Euclidean absolute moments \(O(n^{-1/2})\). The frozen result \(\mathrm{lem:bentkus\text{-}convex\text{-}set}\) therefore bounds the conditional probability error of each observation rectangle by \(O(n^{-1/2})\). Summing over the \(J_{s_n}\) rectangles and using (25), then using (30) and the Gaussian total-variation bound, gives
+\[
+\sup_{h\in\mathcal H,\,\lVert v\rVert\le C_v}
+|\operatorname{Risk}_n(h,v)-\operatorname{Risk}_{G,n}(h,v)|=o(1).
+\tag{32}
+\]
+Here \(\operatorname{Risk}_{G,n}(h,v)\) is the risk of the same rectangle rule when its input has law \(N(\sqrt n\,\theta_p(q_n(h,v)),\Sigma(r^\dagger))\); \(\mathrm{thm:local\text{-}chart\text{-}membership}\) identifies this mean with \(h\). Bounded regret turns the locally uniform conditional convergence in probability into unconditional convergence. This proves the jointly refined Gaussian-rule risk coupling. The separate condition \(m_n/n\to0\) in \(\mathrm{ass:pilot\text{-}vanishes}\) keeps the pilot likelihood negligible in \(\mathrm{thm:nuisance\text{-}uniform\text{-}experiment}\); no stronger pilot growth is used.
+
+Finally, the claimed limitation is only generic. For any \(\epsilon>0\), define on \([0,1]\)
+\[
+f_+(z)=\epsilon z,\qquad f_-(z)=\epsilon(1-z),\qquad g(z)=\epsilon/2.
+\tag{33}
+\]
+The unique canonical minimizers of \(f_+\) and \(f_-\) are zero and one, while
+\[
+\lVert g-f_+\rVert_\infty=\lVert g-f_-\rVert_\infty=\epsilon/2.
+\tag{34}
+\]
+Any selector seeing only the common approximation \(g\) returns the same \(z_g\) in the two cases, and
+\[
+\max\{|z_g|,|z_g-1|\}\ge\frac12.
+\tag{35}
+\]
+Letting \(\epsilon\downarrow0\) proves that continuity plus uniform objective-approximation control alone gives no spatial recovery modulus tending to zero uniformly over all continuous objectives. Because (33) is not asserted to lie in the Gaussian-risk family \(r\mapsto L(r)\), this establishes no model-specific impossibility, exactly as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The construction gives a jointly measurable deterministic-limit selector from any diverging, vanishing-share pilot, stabilizes every fixed nested-cell prefix at nonunique and boundary optima, supplies a schedule- and law-specific spatial rate, and couples the selector to a slowly refining Gaussian rectangle rule. \textit{Gap.} The selector rate depends jointly on the pilot schedule and the objective's certified prefix-separation profile. The proof's counterexample establishes only that generic continuity plus uniform objective-approximation control cannot yield an objective-uniform spatial recovery modulus; it makes no model-specific impossibility claim for the Gaussian-risk family. \textit{Consumer.} This theorem supplies the implementable design and decision schedule required by the full-nuisance attainment theorem, even when the fully labelled pilot diverges arbitrarily slowly.
+
+\begin{lemma}[lem:finite-dimensional-lindeberg-feller]\label{lem:finite-dimensional-lindeberg-feller}
+\texttt{For a row-\allowbreak{}wise independent triangular array of centered random vectors of fixed finite dimension,\allowbreak{} convergence of the summed covariance matrices together with the Lindeberg condition implies convergence in distribution of the row sums to the centered normal law with the limiting covariance.}
+\end{lemma}
+
+\begin{lemma}[lem:weak-star-rule-compactness]\label{lem:weak-star-rule-compactness}
+For every finite measure \(\mu\), the closed unit ball of \(L^\infty(\mu)=(L^1(\mu))^*\) is compact in the weak-star topology.
+\end{lemma}
+
+\begin{lemma}[lem:sion-minimax]\label{lem:sion-minimax}
+\texttt{If one strategy set is compact and convex,\allowbreak{} the other is convex,\allowbreak{} and the payoff is upper semicontinuous and concave in the compact-\allowbreak{}side variable and lower semicontinuous and convex in the other variable,\allowbreak{} then the maximum of the infima equals the infimum of the maxima.}
+\end{lemma}
+
+\begin{lemma}[lem:bentkus-convex-set]\label{lem:bentkus-convex-set}
+Let independent centered random vectors in a fixed finite dimension have identity summed covariance. The supremum, over convex Borel sets, of the absolute difference between the distribution of their sum and the standard Gaussian distribution is at most \(400\) times the fourth root of the dimension times the sum of their third Euclidean absolute moments.
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The nested-cell implementation is measurable and stabilizes every fixed prefix, including separated ties, flat or disconnected minimizing sets, and dyadic-boundary minima. The resulting deterministic spatial rate \(a_n(L)\) is schedule- and law-specific because it depends on both the pilot approximation envelope and the positive prefix-separation profile of the particular objective. The displayed pair \(f_+(z)=\epsilon z\) and \(f_-(z)=\epsilon(1-z)\), both uniformly approximated by \(g(z)=\epsilon/2\), proves that continuity plus uniform objective-approximation control alone supplies no spatial recovery modulus over the generic class of continuous objectives. It does not prove that no law-uniform rate exists on the narrower Gaussian-risk family \(r\mapsto L(r)\); such a model-specific impossibility would require a separate embedding or identification-modulus argument.
+
+\section{Honest scope}
+
+The comparison class contains procedures whose fully labelled pilot sizes satisfy \(m_n\to\infty\) and \(m_n/n\to0\), and whose main-wave annotation rates converge to a deterministic feasible design; no polynomial pilot-growth condition is imposed. Fully sequential acquisition, positive-fraction pilots, bounded pilots, and random limiting designs are different experiments. The known fixed finite support has \(L\ge2\) distinct values and uniformly positive cell probabilities, so binary outcomes are included; continuous clinical outcomes require a separate support formulation. Certified computation is asserted only for rational-polytopal state sets and rational or real-algebraic encoded inputs with exact certificates; no algorithmic claim covers arbitrary opaque reals or oracle-free compact sets. The certificate returns value bounds and an outer minimizer cover, while the measurable selector has a schedule- and law-specific spatial rate determined by its pilot envelope and certified prefix gaps. The generic continuous-objective counterexample rules out a recovery modulus based only on continuity and uniform objective error; it does not establish a model-specific rate impossibility for the Gaussian-risk family. The auxiliary pairwise-variance functional \(G_\omega\) is used solely as the geometric probe in the explicit \(L=3\) witness. The \(M=2\) proposition recovers the known Blackwell-monotone variance benchmark; new geometry begins at three overlapping policies.
+
+\begin{thebibliography}{99}
+
+  \bibitem{HiranoPorter2009AsymptoticsTreatmentRules} Hirano, K., and J. R. Porter (2009). Asymptotics for Statistical Treatment Rules. Econometrica 77(5), 1683--1701. DOI: 10.3982/ECTA6630.
+
+  \bibitem{Masten2023ManyTreatments} Masten, M. A. (2023). Minimax-Regret Treatment Rules with Many Treatments. Japanese Economic Review 74, 501--537. DOI: 10.1007/s42973-023-00147-0.
+
+  \bibitem{HuZhuBrunskillWager2024MinimaxSample} Hu, Y., H. Zhu, E. Brunskill, and S. Wager (2024). Minimax-Regret Sample Selection in Randomized Experiments. arXiv:2403.01386v2.
+
+  \bibitem{NwankwoGoldkindZhou2026BatchAdaptive} Nwankwo, E., L. Goldkind, and A. Zhou (2026). Optimal Causal Annotations: An Application to Casenotes in Social Services. AISTATS; arXiv:2502.10605v4.
+
+  \bibitem{WangWangMiao2026MaximinTwoPhase} Wang, R., Q. Wang, and W. Miao (2026). A Maximin Optimal Approach for Sampling Designs in Two-Phase Studies. Preprint, arXiv:2312.10596; listed as a FUTURE article by Statistica Sinica, DOI: 10.5705/ss.202024.0359.
+
+  \bibitem{LevisEtAl2024DoubleSampling} Levis, A. W., R. Mukherjee, R. Wang, H. Fischer, and S. Haneuse (2024). Double Sampling for Informatively Missing Data in Electronic Health Record-Based Comparative Effectiveness Research. Statistics in Medicine. DOI: 10.1002/sim.10298.
+
+  \bibitem{CookMishlerRamdas2024AdaptiveAIPW} Cook, T., A. Mishler, and A. Ramdas (2024). Semiparametric Efficient Inference in Adaptive Experiments. Conference on Causal Learning and Reasoning; arXiv:2311.18274v3.
+
+  \bibitem{LuedtkeVanderLaan2016OptimalValue} Luedtke, A. R., and M. J. van der Laan (2016). Statistical Inference for the Mean Outcome Under a Possibly Non-Unique Optimal Treatment Strategy. Annals of Statistics 44(2), 713--742. DOI: 10.1214/15-AOS1384.
+
+  \bibitem{LuedtkeChambaz2020FasterRates} Luedtke, A., and A. Chambaz (2020). Performance Guarantees for Policy Learning. Annales de l'Institut Henri Poincare, Probabilites et Statistiques 56(3), 2162--2188. DOI: 10.1214/19-AIHP1034.
+
+  \bibitem{McIsaacCook2015AdaptiveTwoPhase} McIsaac, M. A., and R. J. Cook (2015). Adaptive Sampling in Two-Phase Designs: A Biomarker Study for Progression in Arthritis. Statistics in Medicine 34, 2899--2912. DOI: 10.1002/sim.6523.
+
+  \bibitem{Manski2007MissingOutcome} Manski, C. F. (2007). Minimax-Regret Treatment Choice with Missing Outcome Data. Journal of Econometrics 139(1), 105--115. DOI: 10.1016/j.jeconom.2006.06.006.
+
+  \bibitem{Stoye2007IncompleteMany} Stoye, J. (2007). Minimax Regret Treatment Choice with Incomplete Data and Many Treatments. Econometric Theory 23(1), 190--199. DOI: 10.1017/S0266466607070076.
+
+  \bibitem{Stoye2007FiniteMissing} Stoye, J. (2007). Minimax-Regret Treatment Choice with Finite Samples and Missing Outcome Data. Proceedings of the Fifth International Symposium on Imprecise Probability: Theories and Applications, 415--424.
+
+  \bibitem{Stoye2009MinimaxRegretTreatmentChoice} Stoye, J. (2009). Minimax Regret Treatment Choice with Finite Samples. Journal of Econometrics 151(1), 70--81. DOI: 10.1016/j.jeconom.2009.02.013.
+
+  \bibitem{Kato2026BestArm} Kato, M. (2026). Minimax and Bayes Optimal Best-Arm Identification. arXiv:2506.24007v6.
+
+  \bibitem{Higbee2026PolicyDesign} Higbee, S. D. (2026). Experimental Design for Policy Choice. arXiv:2609.10971v1.
+
+  \bibitem{CodiEtAl2025ClinicalRules} Codi, A., S. Kim, E. Rogawski McQuade, D. Benkeser, and the ABCD Study Group (2025). Machine Learning for Estimating and Comparing Clinical Rules for Treating Diarrheal Illness with Antibiotics. medRxiv. DOI: 10.1101/2025.01.10.25320357; PMCID: PMC11741478.
+
+  \bibitem{KimEtAl2025AzithromycinRules} Kim, S. S., A. Codi, J. A. Platts-Mills, et al. (2025). Personalized Azithromycin Treatment Rules for Children with Watery Diarrhea Using Machine Learning. Nature Communications 16. DOI: 10.1038/s41467-025-60682-9.
+
+  \bibitem{AtheyWager2021PolicyLearning} Athey, S., and S. Wager (2021). Policy Learning with Observational Data. Econometrica 89(1), 133--161. DOI: 10.3982/ECTA15732.
+
+  \bibitem{vanDerVaart1998AsymptoticStatistics} van der Vaart, A. W. (1998). Asymptotic Statistics. Cambridge University Press.
+
+  \bibitem{doi:10.2307/1968829} Alaoglu, L. (1940). Weak Topologies of Normed Linear Spaces. Annals of Mathematics 41(1), 252--267. DOI: 10.2307/1968829.
+
+  \bibitem{doi:10.2140/pjm.1958.8.171} Sion, M. (1958). On General Minimax Theorems. Pacific Journal of Mathematics 8(1), 171--176. DOI: 10.2140/pjm.1958.8.171.
+
+  \bibitem{doi:10.1016/S0378-3758(02)00094-0} Bentkus, V. (2003). On the Dependence of the Berry--Esseen Bound on Dimension. Journal of Statistical Planning and Inference 113(2), 385--402. DOI: 10.1016/S0378-3758(02)00094-0.
+
+\end{thebibliography}
+
+\end{document}

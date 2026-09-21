@@ -15,10 +15,13 @@ likelihood scaffolding absent from Mathlib and Causalean.  It is **not** a
 `theorem`/`axiom`; its own async proof discharges it before banking.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Analysis.Calculus.Deriv.Basic
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

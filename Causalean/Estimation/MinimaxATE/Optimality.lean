@@ -3,43 +3,43 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Structure-agnostic ATE: the minimax rate is `Θ(√(εg·εm))`, attained by AIPW
+# Structure-agnostic ATE: finite-sample lower and upper miss bounds
 
-This file closes the structure-agnostic optimality loop.  The **converse**
-(`minimax_lower_bound_var`, `LowerBoundVar.lean`) shows no estimator beats the
-doubly-robust product rate; the **achievability** (`AIPWEstimator.lean`) bounds the fixed-center
-AIPW estimator's worst-case miss.  Here we:
+This file places a structure-agnostic converse and achievability bound in one finite-sample
+interface.  The **converse**
+(`minimax_lower_bound_var`, `VaryingCenterCase1/LowerBound.lean`) gives a lower miss bound at its
+construction-induced separation; the **achievability** (`AIPWEstimator.lean`) bounds the
+fixed-center AIPW estimator's worst-case miss at a separately supplied separation. Here we:
 
 * turn the bias + variance bounds into a Chebyshev **worst-case miss** upper bound for AIPW
   (`aipw_minimaxMiss_le`), uniform over the structure-agnostic class;
-* define the reusable `MinimaxRateThreshold` vocabulary (an estimator with a converse
+* define the reusable `FiniteSampleTwoThresholdBounds` vocabulary (an estimator with a converse
   miss-lower-bound at one separation and an achievability miss-upper-bound at another);
-* assemble the capstone `aipw_attains_minimax_rate`: at separation `Θ(√(εg·εm))`
-  every estimator misses with probability `≥ 1/4`, while the AIPW estimator's worst-case miss
-  `→ 0` as `n·εg·εm → ∞` at a separation of the same order.  Hence the minimax rate is
-  `Θ(√(εg·εm))` and the DR/AIPW estimator attains it (constant-factor, not constant-sharp).
+* assemble `aipw_finiteSample_twoThreshold_bounds`, which records the construction's lower
+  miss bound and the AIPW upper miss bound at a caller-supplied separation.  The interface does
+  not compare the two separations, require the lower separation to be positive, or state an
+  asymptotic rate conclusion.
 
-This is the finite, elementary specialization of the general DML asymptotic-normality theorem
-`Estimation/ATE/DML.lean` (`dml_ATE_tendstoNormal`); the finite form is what pairs cleanly with
-the finite converse.
+These finite bounds are complementary to the asymptotic-normality development for DML estimators.
 -/
 
-import Causalean.Estimation.MinimaxATE.Achievability.AIPWEstimator
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.LowerBound
+module
+public import Causalean.Estimation.MinimaxATE.Achievability.AIPWEstimator
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.LowerBound
 
-/-! # AIPW Optimality
+/-! # Finite-Sample AIPW Lower and Upper Bounds
 
-This file combines the cell-varying minimax converse with the finite-sample AIPW upper bound.  It
-records that the structure-agnostic ATE minimax rate is of product-bias order and that the AIPW
-estimator attains this order up to constants.
+This file combines the cell-varying minimax converse with the finite-sample AIPW upper bound.
 
 The file first proves finite-sample facts for the fixed-center AIPW estimator: `aipw_mean_eq`
 identifies its mean, `aipw_nMiss_le` turns a bias and variance bound into a miss-probability
 bound, `aipw_inclass_bias_bound` supplies the uniform product-bias estimate over `InClass`, and
 `aipw_minimaxMiss_le` lifts these bounds to the minimax miss probability.  It then defines
-`MinimaxRateThreshold` and assembles the lower and upper bounds in `aipw_attains_minimax_rate`,
-showing that the cell-varying lower-bound construction and the AIPW upper bound have matching
-`sqrt(εg * εm)` separation order. -/
+`FiniteSampleTwoThresholdBounds` and assembles the two finite-sample inequalities in
+`aipw_finiteSample_twoThreshold_bounds`. No comparison between the lower and upper separation,
+positivity of the lower separation, or asymptotic rate claim is included. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -152,21 +152,21 @@ theorem aipw_minimaxMiss_le {mhat : C → ℝ} {ghat : Bool → C → ℝ} {εg 
     (aipw_inclass_bias_bound hε hco p.2)
     (aipw_var_bound p.2.valid mhat ghat hghat hε hco n) hsb
 
-/-- **Minimax rate threshold** (reusable vocabulary).  An estimation problem over the finite model
-exhibits a rate threshold when a *single* estimator's worst-case miss is bounded above at one
-separation (`sepUpper`), while *every* estimator's worst-case miss is bounded below at a (smaller)
-separation (`sepLower`).  When `sepLower` and `sepUpper` are of the same order, this certifies the
-minimax rate and that `estimator` attains it. -/
-structure MinimaxRateThreshold (mhat : C → ℝ) (ghat : Bool → C → ℝ) (εg εm : ℝ) (n : ℕ) where
-  /-- The rate-optimal estimator. -/
+/-- For [fixed nuisance centers](hyp:mhat,ghat), [error budgets](hyp:εg,εm), and [a sample
+size](hyp:n), the finite-sample two-threshold bounds package a lower miss bound for every
+measurable estimator at one separation and an upper miss bound for one estimator at another.
+They do not assert that the separations are positive, ordered, or comparable in rate. -/
+structure FiniteSampleTwoThresholdBounds
+    (mhat : C → ℝ) (ghat : Bool → C → ℝ) (εg εm : ℝ) (n : ℕ) where
+  /-- The estimator appearing in the upper bound. -/
   estimator : (Fin n → Obs C) → ℝ
-  /-- Impossibility separation. -/
+  /-- Separation used by the lower bound. -/
   sepLower : ℝ
   /-- Lower bound on every estimator's worst-case miss at `sepLower`. -/
   probLower : ℝ
   converse : ∀ est : (Fin n → Obs C) → ℝ, Measurable est →
     probLower ≤ minimaxMiss mhat ghat εg εm n est sepLower
-  /-- Achievability separation (of the same order as `sepLower`). -/
+  /-- Separation used by the upper bound. -/
   sepUpper : ℝ
   /-- Upper bound on `estimator`'s worst-case miss at `sepUpper`. -/
   missUpper : ℝ
@@ -185,21 +185,16 @@ normalized squared sum satisfies $(n^2/2)\sum_j(\Gamma_j/K)^2\leq\log 2$](hyp:hr
 For [a positive overlap constant](hyp:ε,hε) such that [the fitted propensity is between
 $\varepsilon$ and $1-\varepsilon$ in every covariate cell](hyp:hco), and [a separation
 $s$ strictly larger than $\varepsilon^{-1}2\sqrt{\varepsilon_g}\sqrt{\varepsilon_m}$](hyp:s,hsb),
-[the minimax-rate threshold certificate](goal) specifies the fixed-center augmented
+[the finite-sample two-threshold bounds](goal) specify the fixed-center augmented
 inverse-probability-weighted estimator, its upper miss-probability bound at $s$, and the
 construction-induced lower miss-probability bound for every measurable estimator.
 
-**Capstone — DR/AIPW attains the structure-agnostic minimax rate.**  For the cell-varying
-construction `P` with the per-pair budgets and regularity conditions of the lower bound, the
-problem exhibits a `MinimaxRateThreshold`:
-
-* `sepLower = s_P` (the construction's `gap/2 ≍ √(εg·εm)`): **every** measurable estimator misses
-  with probability `≥ 1/4` (this is `minimax_lower_bound_var`);
-* the fixed-center AIPW estimator's worst-case miss at any `sepUpper > ε⁻¹·2·√εg·√εm` is
-  `≤ ((1+2/ε)²/n)/(sepUpper − ε⁻¹·2·√εg·√εm)²`, which `→ 0` as `n·εg·εm → ∞`.
-
-Both separations are `Θ(√(εg·εm))`, so the minimax rate is `Θ(√(εg·εm))` and AIPW attains it. -/
-noncomputable def aipw_attains_minimax_rate (P : VarConstr K) [NeZero K] {n : ℕ}
+The lower separation is the construction's gap divided by two, and its miss lower bound is
+`1/4`. The upper separation is the caller-supplied `s`, with the displayed Chebyshev upper bound.
+This declaration does not require a positive lower separation, relate the two separations, or
+prove that either is of order `√(εg·εm)`; those facts would require additional nondegeneracy and
+comparison hypotheses. -/
+noncomputable def aipw_finiteSample_twoThreshold_bounds (P : VarConstr K) [NeZero K] {n : ℕ}
     (hn : 0 < n) {εg εm : ℝ}
     (hm : ∀ j, (P.m₀ j * (P.β / P.g₁ j)) ^ 2 ≤ εm)
     (hg : ∀ j, P.g₁ j ^ 2 * (P.α + P.β) ^ 2 / (P.g₁ j - P.β) ^ 2 ≤ εg)
@@ -209,7 +204,7 @@ noncomputable def aipw_attains_minimax_rate (P : VarConstr K) [NeZero K] {n : �
     {ε : ℝ} (hε : 0 < ε)
     (hco : ∀ x, ε ≤ P.mhatV x ∧ ε ≤ 1 - P.mhatV x)
     {s : ℝ} (hsb : ε⁻¹ * (2 * Real.sqrt εg * Real.sqrt εm) < s) :
-    MinimaxRateThreshold P.mhatV P.ghatV εg εm n where
+    FiniteSampleTwoThresholdBounds P.mhatV P.ghatV εg εm n where
   estimator := estAIPW P.mhatV P.ghatV n
   sepLower := (Fintype.card (Fin K × Bool) : ℝ)⁻¹ * (2 * P.β * (P.α + P.β))
         * (∑ j : Fin K, P.g₁ j / (P.g₁ j ^ 2 - P.β ^ 2)) / 2

@@ -1,12 +1,15 @@
-import Causalean.Estimation.ATT.Score.MeanZero
-import Causalean.Estimation.ATT.Score.FiniteVar
-import Causalean.Tactic.IntegralLinearity
+module
+public import Causalean.Estimation.ATT.Score.MeanZero
+public import Causalean.Estimation.ATT.Score.FiniteVar
+public import Causalean.Tactic.IntegralLinearity
 
 /-!
 Establishes the exact second-order remainder formula for the ATT AIPW moment.
 The identity reduces the population moment error to products of propensity and
 outcome-regression nuisance errors under the back-door ATT setup.
 -/
+
+public section
 
 /-
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
@@ -37,11 +40,13 @@ the ATT remainder has only **one** μ-residual (the control-arm
 `E[e_val · (μ₀_val − μ̂₀)]` regardless of `ê` — so the only `ê`-error appears
 through the IPW correction term, weighted by `1/(1 − ê)`.
 
-This is essentially Hahn (1998) Theorem 1, equation 7, in its second-order
-form.
+Hahn (1998), Theorem 1 and equation (7), give the ATT semiparametric
+efficiency bound. The candidate-nuisance cross-product remainder displayed
+here is instead derived algebraically from the ATT score and back-door
+identities.
 
 The proof reduces `Y − μ₀_val(X)`-type residuals to σ(X)-conditional zero-means
-via `μ₀_compat` (the control-arm version of `cate_backdoor`) and applies the
+via `μ₀_compat` (the control-arm version of `conditionalMeanOutcome_backdoor`) and applies the
 score pull-out lemmas from `ScorePullout.lean`.
 -/
 
@@ -287,12 +292,12 @@ theorem aipw_remainder_identity_ATT
               - S.toPOBackdoorSystem.adjustedCE false ω)) P.μ := by
     refine hfalse₀_int.congr ?_
     filter_upwards [S.e_compat, S.μ₀_compat hA,
-      S.control_cate_backdoor hA] with ω he hμ hcat
+      S.conditionalMeanOutcome_backdoor_control hA] with ω he hμ hcat
     have hμ_eq : S.μ₀_val (X ω) =
         S.toPOBackdoorSystem.adjustedCE false ω := by
-      have hcate_eq : S.toPOBackdoorSystem.CATE false ω =
+      have hcate_eq : S.toPOBackdoorSystem.conditionalMeanOutcome false ω =
           S.μ₀_val (S.toPOBackdoorSystem.factualX ω) := by
-        simpa [POBackdoorSystem.CATE] using hμ
+        simpa [POBackdoorSystem.conditionalMeanOutcome] using hμ
       rw [← hcate_eq, hcat]
     have he_eq : S.e_val (X ω) = S.toPOBackdoorSystem.propScore true ω := by
       simpa [X] using he.symm
@@ -495,7 +500,7 @@ theorem aipw_remainder_identity_ATT
         dsimp [dμ]
         ring
       simpa [X, A] using
-        indicator_to_propScore_integral S hA true
+        indicator_to_propScore_integral S true
           (fun x => - (η.μ₀_fn x - S.μ₀_val x)) hf_meas hf_ind_int
     have hF_part :
         ∫ ω, ((η.e_fn (X ω) / (1 - η.e_fn (X ω))) *
@@ -516,7 +521,7 @@ theorem aipw_remainder_identity_ATT
         dsimp [crossInd, dμ, gηX]
         ring
       simpa [X, F] using
-        indicator_to_propScore_integral S hA false
+        indicator_to_propScore_integral S false
           (fun x => (η.e_fn x / (1 - η.e_fn x)) *
             (η.μ₀_fn x - S.μ₀_val x)) hf_meas hf_ind_int
     calc

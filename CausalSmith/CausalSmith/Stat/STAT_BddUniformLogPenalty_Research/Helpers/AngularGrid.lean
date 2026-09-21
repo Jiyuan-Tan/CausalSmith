@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
 
 /-!
 # Lower-edge angular packing grid
@@ -8,6 +9,8 @@ half of the lower edge of the unit square. It proves boundary membership,
 exact pairwise distances, quantitative separation, and disjointness of the
 associated closed half-disc cells.
 -/
+
+@[expose] public section
 
 open Set Filter
 

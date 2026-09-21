@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # The one-dimensional kernel for the shorter apolar stack
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LowerOrderApolarRank
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.EmptyFiber
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LowerOrderApolarRank
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.EmptyFiber
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

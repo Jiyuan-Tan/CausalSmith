@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Mathlib.MeasureTheory.Function.AEEqOfIntegral
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+module
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Mathlib.MeasureTheory.Function.AEEqOfIntegral
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 
 /-!
 # Bernoulli disintegration over a common measurable statistic
@@ -16,6 +17,8 @@ This module constructs conditional Bernoulli success parameters by
 Radon–Nikodym differentiation, identifies the associated composition-product
 law, and bounds its KL divergence under localized parameter changes.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
@@ -55,10 +58,13 @@ lemma commonStatisticBernoulliKernel_isMarkovKernel
   exact Causalean.Mathlib.Probability.bernoulliLaw_isProbabilityMeasure
     (h0 r) (h1 r)
 
-/-- A common statistic with conditionally Bernoulli outcomes has KL bounded
-by the squared change in its success parameter, integrated only over the
-statistic region where that parameter can change.  This is the generic
-disintegration step used by the signed hard-cell comparison. -/
+/-- For [a finite statistic law](hyp:m), [two measurable conditional success
+parameters](hyp:p,q,hp,hq) that [both lie in the middle half of the unit
+interval](hyp:hp0,hp1,hq0,hq1), [a nonnegative discrepancy bound](hyp:D,hD),
+[a measurable exceptional region](hyp:E,hE), and [an almost-everywhere localized
+parameter difference](hyp:hdiff), [the KL divergence of the corresponding Bernoulli
+composition products is bounded by the squared discrepancy times the exceptional
+region's mass](goal). -/
 lemma commonStatisticBernoulli_klDiv_le_of_localized_parameter
     (m : Measure ℝ) [IsFiniteMeasure m] (p q : ℝ → ℝ)
     (hp : Measurable p) (hq : Measurable q)
@@ -117,9 +123,12 @@ lemma commonStatisticBernoulli_klDiv_le_of_localized_parameter
       exact ne_top_of_le_ne_top ENNReal.ofReal_ne_top hkl
     exact (InformationTheory.klDiv_ne_top_iff.mp hfinite).1
 
-/-- Swapping a common statistic behind its Bernoulli outcome preserves the
-localized KL estimate, giving the `(outcome, statistic)` coordinate order
-used by signed observations. -/
+/-- For [a finite statistic law](hyp:m), [two measurable conditional success
+parameters](hyp:p,q,hp,hq) that [both lie in the middle half of the unit
+interval](hyp:hp0,hp1,hq0,hq1), [a nonnegative discrepancy bound](hyp:D,hD),
+[a measurable exceptional region](hyp:E,hE), and [an almost-everywhere localized
+parameter difference](hyp:hdiff), [swapping each Bernoulli composition product to
+outcome-first coordinate order preserves the localized KL bound](goal). -/
 lemma commonStatisticBernoulliOutcome_klDiv_le_of_localized_parameter
     (m : Measure ℝ) [IsFiniteMeasure m] (p q : ℝ → ℝ)
     (hp : Measurable p) (hq : Measurable q)
@@ -306,6 +315,8 @@ noncomputable def clippedStatisticSuccessParameter
   fun r => max (1 / 4 : ℝ) (min (3 / 4 : ℝ)
     (statisticSuccessParameter nu p stat r))
 
+/-- Given [a measure](hyp:nu), [a success-weight function](hyp:p), and [a statistic](hyp:stat),
+[the clipped statistic-level success parameter is measurable](goal). -/
 @[fun_prop]
 lemma clippedStatisticSuccessParameter_measurable
     {A : Type*} [MeasurableSpace A]
@@ -314,6 +325,9 @@ lemma clippedStatisticSuccessParameter_measurable
   unfold clippedStatisticSuccessParameter statisticSuccessParameter
   fun_prop
 
+/-- Given [a measure](hyp:nu), [a success-weight function](hyp:p), [a statistic](hyp:stat), and
+[a statistic value](hyp:r), [the clipped statistic-level success parameter lies between one
+quarter and three quarters](goal). -/
 lemma clippedStatisticSuccessParameter_mem_Icc
     {A : Type*} [MeasurableSpace A]
     (nu : Measure A) (p : A → ℝ) (stat : A → ℝ) (r : ℝ) :
@@ -322,6 +336,10 @@ lemma clippedStatisticSuccessParameter_mem_Icc
   unfold clippedStatisticSuccessParameter
   constructor <;> simp <;> norm_num
 
+/-- For [a finite measure](hyp:nu), [a measurable success-weight function](hyp:p,hp), and [a
+measurable statistic](hyp:stat,hstat), if [the success weight is everywhere at least one
+quarter](hyp:hp0) and [at most three quarters](hyp:hp1), then [clipping leaves the statistic-level
+success parameter unchanged almost everywhere under the statistic's distribution](goal). -/
 lemma clippedStatisticSuccessParameter_ae_eq
     {A : Type*} [MeasurableSpace A] (nu : Measure A) [IsFiniteMeasure nu]
     (p : A → ℝ) (stat : A → ℝ) (hp : Measurable p)

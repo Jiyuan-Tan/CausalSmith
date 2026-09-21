@@ -1,9 +1,12 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.ScoreDesign
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.ShrinkageRisk
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_embedded_two_arm_converse
-import Mathlib.Analysis.Asymptotics.SpecificAsymptotics
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.ScoreDesign
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.ShrinkageRisk
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_embedded_two_arm_converse
+public import Mathlib.Analysis.Asymptotics.SpecificAsymptotics
 
 /-! Universal `n^{-4/3}` second-order improvement. -/
+
+@[expose] public section
 
 open Filter
 

@@ -1,8 +1,11 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.FiniteQuery
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryWitness
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TSupportRegimeOpenIllegalDichotomy
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.FiniteQuery
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryWitness
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TSupportRegimeOpenIllegalDichotomy
 
 /-! # Binary success-query legality gaps -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

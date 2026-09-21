@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.LocalMarkov
-import Causalean.Graph.DSep.Ancestral
-import Causalean.Graph.DSep.OrderedLocalSG
+module
+
+public import Causalean.Graph.DSep.Ancestral
+public import Causalean.Graph.DSep.OrderedLocalSG
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.SCM.Do.LocalMarkov
 
 /-! # Full Global Markov Property
 
@@ -19,10 +22,21 @@ The main exported theorem is `SCM.full_globalMarkov`, with
 `SCM.full_globalMarkov_with_fixed` providing the form used by do-calculus proofs
 where fixed intervention nodes appear in the graphical conditioning set but only
 random coordinates remain in the probabilistic conditioning set. The file also
-exposes `SCM.reindexSubtypeProj` and
+exposes `Causalean.Mathlib.MeasureTheory.reindexSubtypeProj` and
 `SCM.indepFun_valuesProjection_latentProduct`, the product-measure independence
 tools used internally by the Markov proof.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Independence
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 
@@ -311,29 +325,6 @@ private theorem evalMap_valuesProjection_factors_through_latent_base_and_residua
 -- § 0. Product-space CI bridge (used by § 1)
 -- ============================================================
 
-/-- For [a finite coordinate population with a measurable outcome space for each coordinate](hyp:M',Ω'),
-    [a finite coordinate subset](hyp:P), [a finite set of coordinates](hyp:S), and [the condition
-    that this set is contained in the subset](hyp:hS), the [measurable equivalence between the two
-    coordinate tuples](goal) relabels an assignment indexed first by membership in the set and then
-    by membership in the subset as the same assignment indexed directly by membership in the set.
-
-    It is the identity on values, only relabelling the index from a doubly-nested
-    membership certificate to a direct membership certificate. -/
-noncomputable def reindexSubtypeProj {M' : Type*} [DecidableEq M'] [Fintype M']
-    {Ω' : M' → Type*} [∀ n, MeasurableSpace (Ω' n)] {P : Finset M'}
-    (S : Finset M') (hS : S ⊆ P) :
-    ((i : {i // i ∈ (S.subtype (· ∈ P))}) → Ω' i.val.val) ≃ᵐ
-      ((j : {j // j ∈ S}) → Ω' j.val) where
-  toFun := fun f j => f ⟨⟨j.val, hS j.property⟩, by
-    simp only [Finset.mem_subtype]; exact j.property⟩
-  invFun := fun g i => g ⟨i.val.val, by
-    have := i.property; rw [Finset.mem_subtype] at this; exact this⟩
-  left_inv := fun _ => rfl
-  right_inv := fun _ => rfl
-  measurable_toFun := by
-    apply measurable_pi_lambda; intro j; exact measurable_pi_apply _
-  measurable_invFun := by
-    apply measurable_pi_lambda; intro i; exact measurable_pi_apply _
 
 /-- Under `M.latentProduct = ⊗_{u ∈ 𝐋} ℙ(L_u)`, the coordinate-tuple
     projections at two disjoint latent blocks `A`, `B ⊆ M.unobserved` are

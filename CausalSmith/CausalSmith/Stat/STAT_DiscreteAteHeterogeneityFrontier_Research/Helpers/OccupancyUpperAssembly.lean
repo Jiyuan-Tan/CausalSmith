@@ -1,7 +1,10 @@
 /- Final assembly of the occupancy-weighted estimator risk bound. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.OccupancyUpper
-import Causalean.Mathlib.Analysis.ClipInterval
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.OccupancyUpper
+public import Causalean.Mathlib.Analysis.ClipInterval
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

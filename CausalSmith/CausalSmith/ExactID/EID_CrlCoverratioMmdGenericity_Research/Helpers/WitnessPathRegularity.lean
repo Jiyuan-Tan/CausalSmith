@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessPath
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessPath
 
 /-!
 # Affine witness-path regularity
@@ -7,6 +8,11 @@ This file records the positive, normalized, smooth part of stratum preservation
 along the closed affine path.  Causal minimality and the fixed-sign cell are
 handled separately by the analytic perturbation argument.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -18,7 +24,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- Convex interpolation with the embedded sparse endpoint preserves positivity,
 normalization, and `C³` smoothness throughout the closed unit interval.  Given [the stated inputs and conditions](hyp:hji,ht), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_positive_normalized_smooth
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) 1) :
     PositiveNormalizedSmoothMechanisms G (affinePathExtension s θ hji t) := by

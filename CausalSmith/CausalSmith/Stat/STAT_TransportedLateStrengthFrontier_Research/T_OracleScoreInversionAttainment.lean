@@ -2,9 +2,12 @@
 # Oracle score-inversion attainment
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.ScoreInversion
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_FixedGeometryFrontier
-import Causalean.Stat.Sample.EffectiveSampleSize
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.ScoreInversion
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_FixedGeometryFrontier
+public import Causalean.Stat.Sample.EffectiveSampleSize
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -117,6 +120,7 @@ theorem oracle_score_inversion_attainment
         have hK : Measurable (fun s : SourceSample 𝒳 n =>
             empiricalKish w n s) := by
           unfold empiricalKish Causalean.Stat.empiricalKishDispersion
+            Causalean.Stat.empiricalWeightSecondMoment
           fun_prop
         unfold inversionHandle
         refine (measurableSet_Icc.preimage measurable_snd).inter ?_
@@ -1091,6 +1095,7 @@ theorem oracle_score_inversion_attainment
         simpa [hSratio] using hSbadRaw
       have hKMeas : Measurable K := by
         unfold K empiricalKish Causalean.Stat.empiricalKishDispersion
+          Causalean.Stat.empiricalWeightSecondMoment
         fun_prop
       have hSMeas : Measurable S := by
         rw [hSeq]

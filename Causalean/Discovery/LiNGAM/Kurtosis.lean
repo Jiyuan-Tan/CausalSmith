@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Independence.Integration
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Data.Matrix.Mul
+module
+public import Mathlib.Probability.Independence.Integration
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Data.Matrix.Mul
 
 /-!
 # Kurtosis-based column support for ICA / LiNGAM
@@ -25,6 +26,8 @@ centered sources; `colSupport_of_kurtosis` combines it with independence of `y�
 (which makes the cross-cumulant vanish) and the same-sign assumption.
 -/
 
+@[expose] public section
+
 namespace Causalean.Discovery.LiNGAM
 
 open MeasureTheory ProbabilityTheory
@@ -32,17 +35,18 @@ open scoped BigOperators
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
-/-- For [a measurable sample space](hyp:Ω), [a real-valued random variable](hyp:X), and
-[a measure on that sample space](hyp:P), [its excess kurtosis](goal) is its fourth moment minus
-three times the square of its second moment.
+/-- [The zero-mean fourth cumulant](goal) measures the non-Gaussian tail shape that LiNGAM uses to
+separate sources: it compares the fourth moment with three squared second moments for [random
+variable `X`](hyp:X) under [measure `P`](hyp:P) on [a measurable sample space](hyp:Ω).
 
-For a centered variable $X$ it is $E[X^4]-3(E[X^2])^2$; Gaussian variables have zero
-excess kurtosis, while LiNGAM's kurtosis route assumes every source has nonzero excess kurtosis
-of one common sign. -/
-noncomputable def kurt (X : Ω → ℝ) (P : Measure Ω) : ℝ :=
+When `X` is centered, this expression is its unnormalized fourth cumulant. Without centering it is
+only the displayed raw-moment expression; in particular, it is not excess kurtosis, which also
+standardizes by the variance squared. LiNGAM's fourth-cumulant route assumes centered sources whose
+values of this expression are nonzero and have one common sign. -/
+noncomputable def fourthCumulantAtZeroMean (X : Ω → ℝ) (P : Measure Ω) : ℝ :=
   (∫ ω, (X ω) ^ 4 ∂P) - 3 * (∫ ω, (X ω) ^ 2 ∂P) ^ 2
 
-/-- **Fourth cross-cumulant identity (Isserlis / cumulant multilinearity).**  Let
+/-- **Fourth cross-cumulant identity from cumulant multilinearity.** Let
 `e` be a family of real sources on a probability space such that [each coordinate
 `eⱼ` is measurable](hyp:hmeas), [the coordinates are mutually independent](hyp:hindep),
 [each has finite fourth moment](hyp:hL4), and [each is centered](hyp:hcent). Then for
@@ -57,7 +61,7 @@ theorem cross_fourth_cumulant_eq_sum {n : ℕ} {e : Ω → Fin n → ℝ} (a b :
     (∫ ω, (∑ j, a j * e ω j) ^ 2 * (∑ j, b j * e ω j) ^ 2 ∂P)
       - (∫ ω, (∑ j, a j * e ω j) ^ 2 ∂P) * (∫ ω, (∑ j, b j * e ω j) ^ 2 ∂P)
       - 2 * (∫ ω, (∑ j, a j * e ω j) * (∑ j, b j * e ω j) ∂P) ^ 2
-      = ∑ j, (a j) ^ 2 * (b j) ^ 2 * kurt (fun ω => e ω j) P := by
+      = ∑ j, (a j) ^ 2 * (b j) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω j) P := by
   classical
   let m : Fin n → ℝ := fun j => ∫ ω, (e ω j) ^ 2 ∂P
   let q : Fin n → ℝ := fun j => ∫ ω, (e ω j) ^ 4 ∂P
@@ -607,26 +611,28 @@ theorem cross_fourth_cumulant_eq_sum {n : ℕ} {e : Ω → Fin n → ℝ} (a b :
             rw [hI4 i i' k k']
       _ = _ := hfinite
   rw [h4, hAA, hBB, hAB]
-  simp only [kurt, m, q]
+  simp only [fourthCumulantAtZeroMean, m, q]
   ring_nf
   rw [Finset.sum_mul, ← Finset.sum_sub_distrib]
 
-/-- **Kurtosis-based column support.**  Let `e` be a family of real sources on a
-probability space such that [each coordinate `eⱼ` is measurable](hyp:hmeas),
-[the coordinates are mutually independent](hyp:hindep), [each has finite fourth
-moment](hyp:hL4), [each is centered](hyp:hcent), and [the fourth cumulant (excess
-kurtosis) of every coordinate is nonzero and of one common sign, all positive or all
-negative](hyp:hsign). For [two distinct row indices `i ≠ k`](hyp:hik) of a mixing
-matrix `W`, if [the linear forms `Σⱼ Wᵢⱼ eⱼ` and `Σⱼ Wₖⱼ eⱼ` are
-independent](hyp:hyindep), then [every column `j` satisfies `Wᵢⱼ · Wₖⱼ =
-0`](goal).  This is the input required by `genPerm_of_det_ne_zero_of_colSupport`. -/
+/-- **Kurtosis-based column support.**  Let `e` be a family of real sources on a probability space
+such that [each coordinate `eⱼ` is measurable](hyp:hmeas),
+[the coordinates are mutually independent](hyp:hindep), [each has finite fourth moment](hyp:hL4),
+[each is centered](hyp:hcent), and
+[the unnormalized fourth cumulant of every coordinate is nonzero and of one common sign,
+all positive or all negative](hyp:hsign).
+If [two rows `i` and `k` of a mixing matrix `W` produce independent linear forms
+`Σⱼ Wᵢⱼ eⱼ` and `Σⱼ Wₖⱼ eⱼ`](hyp:hyindep), then
+[every column `j` satisfies `Wᵢⱼ · Wₖⱼ = 0`](goal). This is the input required by
+`genPerm_of_det_ne_zero_of_colSupport`. -/
 theorem colSupport_of_kurtosis {n : ℕ} {e : Ω → Fin n → ℝ} {W : Matrix (Fin n) (Fin n) ℝ}
     (hmeas : ∀ j, Measurable (fun ω => e ω j))
     (hindep : iIndepFun (fun j ω => e ω j) P)
     (hL4 : ∀ j, MemLp (fun ω => e ω j) 4 P)
     (hcent : ∀ j, ∫ ω, e ω j ∂P = 0)
-    (hsign : (∀ j, 0 < kurt (fun ω => e ω j) P) ∨ (∀ j, kurt (fun ω => e ω j) P < 0))
-    {i k : Fin n} (hik : i ≠ k)
+    (hsign : (∀ j, 0 < fourthCumulantAtZeroMean (fun ω => e ω j) P) ∨
+      (∀ j, fourthCumulantAtZeroMean (fun ω => e ω j) P < 0))
+    {i k : Fin n}
     (hyindep : IndepFun (fun ω => ∑ j, W i j * e ω j) (fun ω => ∑ j, W k j * e ω j) P) :
     ∀ j, W i j * W k j = 0 := by
   classical
@@ -679,43 +685,43 @@ theorem colSupport_of_kurtosis {n : ℕ} {e : Ω → Fin n → ℝ} {W : Matrix 
     exact hsq_indep.integral_fun_mul_eq_mul_integral
       (hy_meas.pow_const 2).aestronglyMeasurable (hz_meas.pow_const 2).aestronglyMeasurable
   have hsum0 :
-      (∑ j, (W i j) ^ 2 * (W k j) ^ 2 * kurt (fun ω => e ω j) P) = 0 := by
+      (∑ j, (W i j) ^ 2 * (W k j) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω j) P) = 0 := by
     have hcum := cross_fourth_cumulant_eq_sum (P := P) (e := e)
       (fun j => W i j) (fun j => W k j) hmeas hindep hL4 hcent
     simpa [y, z, hy2z2_int, hyz_int] using hcum.symm
   intro j
   rcases hsign with hpos | hneg
   · have hterm0 :
-        (W i j) ^ 2 * (W k j) ^ 2 * kurt (fun ω => e ω j) P = 0 := by
+        (W i j) ^ 2 * (W k j) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω j) P = 0 := by
       have hnonneg :
           ∀ x ∈ (Finset.univ : Finset (Fin n)),
-            0 ≤ (W i x) ^ 2 * (W k x) ^ 2 * kurt (fun ω => e ω x) P := by
+            0 ≤ (W i x) ^ 2 * (W k x) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω x) P := by
         intro x _
         have hsq : 0 ≤ (W i x) ^ 2 * (W k x) ^ 2 := mul_nonneg (sq_nonneg _) (sq_nonneg _)
         exact mul_nonneg hsq (le_of_lt (hpos x))
       exact (Finset.sum_eq_zero_iff_of_nonneg hnonneg).mp hsum0 j (Finset.mem_univ j)
-    have hkurt_ne : kurt (fun ω => e ω j) P ≠ 0 := ne_of_gt (hpos j)
+    have hkurt_ne : fourthCumulantAtZeroMean (fun ω => e ω j) P ≠ 0 := ne_of_gt (hpos j)
     have hsqsq : (W i j) ^ 2 * (W k j) ^ 2 = 0 := by
       exact (mul_eq_zero.mp hterm0).resolve_right hkurt_ne
     have hpowsq : (W i j * W k j) ^ 2 = 0 := by
       simpa [mul_pow] using hsqsq
     exact eq_zero_of_pow_eq_zero hpowsq
   · have hsum0_neg :
-        (∑ x, -((W i x) ^ 2 * (W k x) ^ 2 * kurt (fun ω => e ω x) P)) = 0 := by
+        (∑ x, -((W i x) ^ 2 * (W k x) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω x) P)) = 0 := by
       rw [Finset.sum_neg_distrib, hsum0, neg_zero]
     have hterm0_neg :
-        -((W i j) ^ 2 * (W k j) ^ 2 * kurt (fun ω => e ω j) P) = 0 := by
+        -((W i j) ^ 2 * (W k j) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω j) P) = 0 := by
       have hnonneg :
           ∀ x ∈ (Finset.univ : Finset (Fin n)),
-            0 ≤ -((W i x) ^ 2 * (W k x) ^ 2 * kurt (fun ω => e ω x) P) := by
+            0 ≤ -((W i x) ^ 2 * (W k x) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω x) P) := by
         intro x _
         have hsq : 0 ≤ (W i x) ^ 2 * (W k x) ^ 2 := mul_nonneg (sq_nonneg _) (sq_nonneg _)
-        have hk : kurt (fun ω => e ω x) P ≤ 0 := le_of_lt (hneg x)
+        have hk : fourthCumulantAtZeroMean (fun ω => e ω x) P ≤ 0 := le_of_lt (hneg x)
         exact neg_nonneg.mpr (mul_nonpos_of_nonneg_of_nonpos hsq hk)
       exact (Finset.sum_eq_zero_iff_of_nonneg hnonneg).mp hsum0_neg j (Finset.mem_univ j)
-    have hterm0 : (W i j) ^ 2 * (W k j) ^ 2 * kurt (fun ω => e ω j) P = 0 := by
+    have hterm0 : (W i j) ^ 2 * (W k j) ^ 2 * fourthCumulantAtZeroMean (fun ω => e ω j) P = 0 := by
       linarith
-    have hkurt_ne : kurt (fun ω => e ω j) P ≠ 0 := ne_of_lt (hneg j)
+    have hkurt_ne : fourthCumulantAtZeroMean (fun ω => e ω j) P ≠ 0 := ne_of_lt (hneg j)
     have hsqsq : (W i j) ^ 2 * (W k j) ^ 2 = 0 := by
       exact (mul_eq_zero.mp hterm0).resolve_right hkurt_ne
     have hpowsq : (W i j * W k j) ^ 2 = 0 := by

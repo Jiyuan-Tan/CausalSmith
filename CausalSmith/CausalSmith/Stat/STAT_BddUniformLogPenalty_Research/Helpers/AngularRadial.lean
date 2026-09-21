@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
 
 /-!
 # Radial cancellation for angular packing cells
@@ -8,6 +9,8 @@ subsets and transports them to the square-truncated cells used by the angular
 packing.  These setwise identities are the leaf input for equality of adjacent
 radius pushforwards.
 -/
+
+public section
 
 open MeasureTheory Set
 

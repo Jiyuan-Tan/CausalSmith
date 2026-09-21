@@ -1,7 +1,8 @@
-import Causalean.Mathlib.MeasureTheory.SupCountableDense
-import Causalean.Mathlib.IIDCenteredSum
-import Mathlib.Analysis.Normed.Algebra.Exponential
-import Mathlib.MeasureTheory.Function.LpSpace.Complete
+module
+public import Causalean.Mathlib.MeasureTheory.SupCountableDense
+public import Causalean.Mathlib.Probability.IdentDistrib.CenteredSum
+public import Mathlib.Analysis.Normed.Algebra.Exponential
+public import Mathlib.MeasureTheory.Function.LpSpace.Complete
 
 /-!
 # Measurable uniform bounds for analytic series on a disk
@@ -11,6 +12,8 @@ arguments: a power-series coefficient majorant controls the supremum norm on a
 closed disk, and a countable dense skeleton makes that supremum measurable and
 transfers an `L²` envelope bound to it.
 -/
+
+@[expose] public section
 
 noncomputable section
 

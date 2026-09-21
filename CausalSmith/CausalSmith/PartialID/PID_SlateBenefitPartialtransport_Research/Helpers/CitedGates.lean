@@ -1,8 +1,9 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
-import Causalean.Stat.Inference.HadamardDeriv
-import Causalean.Stat.Limit.Convergence
-import Mathlib.Probability.Distributions.Gaussian.Basic
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
+public import Causalean.Stat.Inference.HadamardDeriv
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.Probability.Distributions.Gaussian.Basic
 
 /-!
 # Cited logical gates
@@ -10,6 +11,8 @@ import Mathlib.Probability.Distributions.Gaussian.Basic
 These named propositions are explicit external inputs. This paper neither proves
 them nor hides them behind axioms.
 -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open MeasureTheory Filter Topology ProbabilityTheory

@@ -12,7 +12,8 @@ causal effect.  These are pure linearity-of-expectation arguments: the inverse-p
 weight cancels the exposure probability `E[1(expo i = d)] = π_i(d)`.
 -/
 
-import Causalean.Experimentation.DesignBased.HT.Estimator
+module
+public import Causalean.Experimentation.DesignBased.HT.Estimator
 
 /-! # Horvitz-Thompson unbiasedness
 
@@ -24,6 +25,8 @@ inverse-probability weight cancels `E[1(expo i = d)]`. The theorem `E_htMean` sc
 population mean `muTrue`, and `E_htEffect` proves unbiasedness of the exposure contrast estimator
 `htEffect` for `tauTrue`.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

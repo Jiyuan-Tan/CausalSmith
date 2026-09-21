@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeEnumeration
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeEnumeration
 
 /-! # Polynomial cardinality of the structured lattice -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

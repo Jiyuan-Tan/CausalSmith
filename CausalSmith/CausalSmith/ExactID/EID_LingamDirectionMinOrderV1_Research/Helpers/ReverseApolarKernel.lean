@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Reverse apolar kernel and its polynomial rank witness
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarRankBridge
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernelAux
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarRankBridge
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernelAux
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -311,6 +314,7 @@ private lemma reverseDehom_support_coeff (m : ℕ) (η : ParamSpace ℂ m) :
   let g : Polynomial ℂ := ∏ j, f j
   have hgdeg : g.natDegree = m + 1 := hprodDeg
   have hgmonic : g.Monic := hprodMonic
+  rw [Polynomial.coeff_neg]
   change -g.coeff (m + 1) = -1
   calc
     -g.coeff (m + 1) = -g.coeff g.natDegree := by rw [hgdeg]

@@ -31,9 +31,10 @@ Crucially the alternative side is measured at each component's true ATE — neve
 shared value — which is why a one-sided per-component bound suffices.
 -/
 
-import Causalean.Estimation.MinimaxATE.Model
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.Mixture
+module
+public import Causalean.Estimation.MinimaxATE.Model
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.Mixture
 
 /-! # Mixture Two-Point Reduction
 
@@ -46,6 +47,8 @@ The main theorem `mixture_two_point_lower_bound` combines the total-variation te
 with `mixtureReal_le` and `nMiss_le_minimaxMiss`: the null miss event is dominated directly, while
 the complement of the null miss event is contained in each alternative's own miss event by the
 per-component separation. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

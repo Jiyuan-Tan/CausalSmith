@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepth
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FinitePrefixMarginal
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.TerminalPosteriorBound
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepth
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FinitePrefixMarginal
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.TerminalPosteriorBound
 
 set_option linter.style.longLine false
 
 /-! # Finite observed-prefix filter for the signed-depth family -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

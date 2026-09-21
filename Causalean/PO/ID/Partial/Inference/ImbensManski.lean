@@ -64,9 +64,10 @@ the nuisance width) and the symmetric upper-protected theorem are not addressed
 here.
 -/
 
-import Causalean.PO.ID.Partial.Inference.Basic
-import Causalean.Stat.Inference.Studentize
-import Causalean.Stat.CLT.GaussianTail
+module
+public import Causalean.PO.ID.Partial.Inference.Basic
+public import Causalean.Stat.Inference.Studentize
+public import Causalean.Stat.CLT.GaussianTail
 
 /-! # Imbens-Manski Asymptotic Confidence Intervals
 
@@ -88,6 +89,8 @@ one-sided critical value `c`.
 Only this endpoint orientation is formalized here; the symmetric
 upper-protected statement and uniform-in-distribution refinements are outside
 this file. -/
+
+public section
 
 namespace Causalean.PartialID.Inference
 

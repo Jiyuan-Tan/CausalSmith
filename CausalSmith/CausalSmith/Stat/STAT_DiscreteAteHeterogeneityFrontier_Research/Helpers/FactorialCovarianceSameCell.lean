@@ -1,6 +1,9 @@
 /- Same-cell partial-matching and coefficient assembly. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.FactorialCovarianceExpansion
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.FactorialCovarianceExpansion
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

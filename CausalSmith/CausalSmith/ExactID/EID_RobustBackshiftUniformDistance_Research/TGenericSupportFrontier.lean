@@ -1,11 +1,14 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GenericAffineOccupancy
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TSharpReplacementRadius
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GenericAffineOccupancy
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TSharpReplacementRadius
 
 /-!
 # Generic sparse-support frontier
 
 The almost-sure support-incidence formula and its uniform robust-identification criterion.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

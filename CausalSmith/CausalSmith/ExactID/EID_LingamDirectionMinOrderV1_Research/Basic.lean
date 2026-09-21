@@ -8,4 +8,7 @@ Authors: Jiyuan Tan
 Compatibility barrel for the shared world, cumulant, source-swap, and direction-preservation layers.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.TAdmissibleSwaps
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.TAdmissibleSwaps
+
+public section

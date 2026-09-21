@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolder
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolder
 
 /-!
 # Derivative scaling for localized packing bumps
@@ -7,6 +8,8 @@ This module records the exact iterated-Fréchet derivative formula for the
 translated and rescaled bump used by the angular packing.  It is kept separate
 from `BumpHolder` so the core bump module remains focused and short.
 -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 

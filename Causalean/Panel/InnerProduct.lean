@@ -12,7 +12,7 @@ weighted inner product
     ⟨A, B⟩_ω  :=  ∑_{r ∈ R} ω_r · A_r · B_r
 
 and its matrix-valued lift live entirely in
-`Causalean/Panel/Weighted/InnerProduct.lean` (declarations `WeightedSupport.ip`,
+`Causalean/Stat/Weighted/InnerProduct.lean` (declarations `WeightedSupport.ip`,
 `WeightedSupport.ipMat`, and their algebraic properties).  Because
 `Cells I T` is defined as an `abbrev` of `WeightedSupport (I × T)`, all
 dot-notation `c.ip A B`, `c.ipMat A B`, etc., resolves through the
@@ -22,11 +22,11 @@ This file exists as the documentation anchor for the panel-level inner
 product and to provide an import point for downstream panel files that
 expect `Causalean.Panel.InnerProduct` to bring `ip`/`ipMat` into scope.
 
-Mirrors Definition 2.1 of `CausalSmith/doc/general_projection_carryover_note.tex`.
 -/
 
-import Causalean.Panel.Cells
-import Causalean.Panel.Weighted.InnerProduct
+module
+public import Causalean.Panel.Cells
+public import Causalean.Stat.Weighted.InnerProduct
 
 /-! # Panel Inner Products
 
@@ -38,6 +38,8 @@ scalar aliases `Cells.ip`, `Cells.ip_eq_weighted`, the matrix-valued aliases
 homogeneity, nonnegativity, vanishing, and transpose lemmas used by panel
 projection proofs. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Panel
 namespace Cells
@@ -46,7 +48,7 @@ variable {I T : Type*}
 variable [Fintype I] [Fintype T] [DecidableEq I] [DecidableEq T]
 
 -- Most scalar / matrix weighted-inner-product declarations live under
--- `Causalean.Panel.Weighted.WeightedSupport.*` and are inherited through the
+-- `Causalean.Stat.Weighted.WeightedSupport.*` and are inherited through the
 -- `Cells := WeightedSupport (I × T)` abbreviation.
 
 -- Name-level aliases under `Cells` for `unfold`-based proofs that
@@ -60,13 +62,13 @@ variable [Fintype I] [Fintype T] [DecidableEq I] [DecidableEq T]
 /-- Bare-name alias for `c.ip`.  Defined with the explicit finset-sum body
 (same as `WeightedSupport.ip`) so that `unfold ip` exposes the sum form
 expected by the pre-refactor proof scripts.  Definitionally equal (by
-`rfl`) to `Causalean.Panel.Weighted.WeightedSupport.ip`. -/
+`rfl`) to `Causalean.Stat.Weighted.WeightedSupport.ip`. -/
 def ip (c : Cells I T) (A B : (I × T) → ℝ) : ℝ :=
   ∑ r ∈ c.observed, c.weight r * A r * B r
 
 /-- `Cells.ip` is definitionally equal to `WeightedSupport.ip`. -/
 lemma ip_eq_weighted (c : Cells I T) (A B : (I × T) → ℝ) :
-    ip c A B = Causalean.Panel.Weighted.WeightedSupport.ip c A B := rfl
+    ip c A B = Causalean.Stat.Weighted.WeightedSupport.ip c A B := rfl
 
 variable {K : ℕ}
 
@@ -79,7 +81,7 @@ def ipMat (c : Cells I T) (A B : Fin K → (I × T) → ℝ) :
 
 /-- `Cells.ipMat` is definitionally equal to `WeightedSupport.ipMat`. -/
 lemma ipMat_eq_weighted (c : Cells I T) (A B : Fin K → (I × T) → ℝ) :
-    ipMat c A B = Causalean.Panel.Weighted.WeightedSupport.ipMat c A B := rfl
+    ipMat c A B = Causalean.Stat.Weighted.WeightedSupport.ipMat c A B := rfl
 
 /-! ### Panel-level wrappers of `WeightedSupport` inner-product lemmas
 
@@ -96,38 +98,38 @@ unit-period cells. -/
 /-- The panel weighted inner product is symmetric in its two arrays. -/
 lemma ip_symm (c : Cells I T) (A B : (I × T) → ℝ) :
     c.ip A B = c.ip B A :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_symm c A B
+  Causalean.Stat.Weighted.WeightedSupport.ip_symm c A B
 
 /-- The panel weighted inner product is additive in its left array. -/
 lemma ip_add_left (c : Cells I T) (A A' B : (I × T) → ℝ) :
     c.ip (A + A') B = c.ip A B + c.ip A' B :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_add_left c A A' B
+  Causalean.Stat.Weighted.WeightedSupport.ip_add_left c A A' B
 
 /-- The panel weighted inner product is additive in its right array. -/
 lemma ip_add_right (c : Cells I T) (A B B' : (I × T) → ℝ) :
     c.ip A (B + B') = c.ip A B + c.ip A B' :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_add_right c A B B'
+  Causalean.Stat.Weighted.WeightedSupport.ip_add_right c A B B'
 
 /-- The panel weighted inner product is homogeneous in its left array. -/
 lemma ip_smul_left (c : Cells I T) (s : ℝ) (A B : (I × T) → ℝ) :
     c.ip (s • A) B = s * c.ip A B :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_smul_left c s A B
+  Causalean.Stat.Weighted.WeightedSupport.ip_smul_left c s A B
 
 /-- The panel weighted inner product is homogeneous in its right array. -/
 lemma ip_smul_right (c : Cells I T) (s : ℝ) (A B : (I × T) → ℝ) :
     c.ip A (s • B) = s * c.ip A B :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_smul_right c s A B
+  Causalean.Stat.Weighted.WeightedSupport.ip_smul_right c s A B
 
 /-- The self inner product of any panel array is nonnegative. -/
 lemma ip_self_nonneg (c : Cells I T) (A : (I × T) → ℝ) :
     0 ≤ c.ip A A :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_self_nonneg c A
+  Causalean.Stat.Weighted.WeightedSupport.ip_self_nonneg c A
 
 /-- For [a panel cell structure](hyp:c) and [a panel array `A`](hyp:A), [the self inner product
 `c.ip A A` is zero exactly when `A` vanishes on every observed cell of `c`](goal). -/
 lemma ip_self_eq_zero_iff (c : Cells I T) (A : (I × T) → ℝ) :
     c.ip A A = 0 ↔ ∀ r ∈ c.observed, A r = 0 :=
-  Causalean.Panel.Weighted.WeightedSupport.ip_self_eq_zero_iff c A
+  Causalean.Stat.Weighted.WeightedSupport.ip_self_eq_zero_iff c A
 
 /-- The matrix-valued panel inner product has entries equal to scalar inner
 products of the corresponding array columns. -/
@@ -139,31 +141,31 @@ products of the corresponding array columns. -/
 product. -/
 lemma ipMat_transpose (c : Cells I T) (A B : Fin K → (I × T) → ℝ) :
     (c.ipMat A B).transpose = c.ipMat B A :=
-  Causalean.Panel.Weighted.WeightedSupport.ipMat_transpose c A B
+  Causalean.Stat.Weighted.WeightedSupport.ipMat_transpose c A B
 
 /-- The matrix-valued panel inner product is additive in its left tuple of
 arrays. -/
 lemma ipMat_add_left (c : Cells I T) (A A' B : Fin K → (I × T) → ℝ) :
     c.ipMat (A + A') B = c.ipMat A B + c.ipMat A' B :=
-  Causalean.Panel.Weighted.WeightedSupport.ipMat_add_left c A A' B
+  Causalean.Stat.Weighted.WeightedSupport.ipMat_add_left c A A' B
 
 /-- The matrix-valued panel inner product is additive in its right tuple of
 arrays. -/
 lemma ipMat_add_right (c : Cells I T) (A B B' : Fin K → (I × T) → ℝ) :
     c.ipMat A (B + B') = c.ipMat A B + c.ipMat A B' :=
-  Causalean.Panel.Weighted.WeightedSupport.ipMat_add_right c A B B'
+  Causalean.Stat.Weighted.WeightedSupport.ipMat_add_right c A B B'
 
 /-- The matrix-valued panel inner product is homogeneous in its left tuple of
 arrays. -/
 lemma ipMat_smul_left (c : Cells I T) (s : ℝ) (A B : Fin K → (I × T) → ℝ) :
     c.ipMat (s • A) B = s • c.ipMat A B :=
-  Causalean.Panel.Weighted.WeightedSupport.ipMat_smul_left c s A B
+  Causalean.Stat.Weighted.WeightedSupport.ipMat_smul_left c s A B
 
 /-- The matrix-valued panel inner product is homogeneous in its right tuple of
 arrays. -/
 lemma ipMat_smul_right (c : Cells I T) (s : ℝ) (A B : Fin K → (I × T) → ℝ) :
     c.ipMat A (s • B) = s • c.ipMat A B :=
-  Causalean.Panel.Weighted.WeightedSupport.ipMat_smul_right c s A B
+  Causalean.Stat.Weighted.WeightedSupport.ipMat_smul_right c s A B
 
 end Cells
 end Panel

@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.Recovery
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.Recovery
 
 /-!
 # Quantitative Gaussian-feature coordinate bounds
@@ -7,6 +8,8 @@ This module turns norm control of the explicit Gaussian mean embedding into
 simultaneous control of finitely many Gaussian-weighted monomial moments.  It
 reuses the neutral explicit `ℓ²` feature realization rather than duplicating it.
 -/
+
+public section
 
 open MeasureTheory
 open scoped BigOperators

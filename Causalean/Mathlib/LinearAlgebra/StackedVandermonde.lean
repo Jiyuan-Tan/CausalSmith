@@ -5,14 +5,14 @@ Authors: Jiyuan Tan
 
 # Stacked block-Vandermonde injectivity
 
-For distinct nodes, the stacked contraction map
-`B_D(e) = (Σ_j c_{j,n+k} e_j ℓ_j^k)_{k=0}^{n-2}` has generic rank `n` at `K = 2n - 2`
-(partition the indices into blocks `J_k` of size `≤ k+1`, use Vandermonde independence),
-so a concrete choice of weights makes `B_D(e) = 0 ⟹ e = 0`.
+For distinct nodes, this file constructs concrete block weights for which the stacked
+contraction map is injective. The construction separates one coordinate into the first
+block and uses Vandermonde independence on the remaining coordinates in the last block.
 -/
 
-import Mathlib.LinearAlgebra.Vandermonde
-import Mathlib.Analysis.Complex.Basic
+module
+public import Mathlib.LinearAlgebra.Vandermonde
+public import Mathlib.Analysis.Complex.Basic
 
 /-!
 # Stacked Vandermonde systems
@@ -20,6 +20,8 @@ import Mathlib.Analysis.Complex.Basic
 This file gives a constructive injectivity certificate for a stacked family of
 weighted Vandermonde evaluation maps at distinct nodes in a commutative domain.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.LinearAlgebra
 
@@ -67,11 +69,14 @@ def blockVandermondeWitnessWeights {K : Type*} [Zero K] [One K] (N : ℕ) (hN : 
     else if k = topBlock then 1 else 0
 
 /-- For a commutative integral domain `K`, [at least three indices `N + 1`](hyp:hN) (`2 ≤ N`),
-and [pairwise distinct slope values `slopes : Fin (N + 1) → K`](hyp:hslopes),
+and [slope values `slopes : Fin (N + 1) → K`](hyp:slopes) that are
+[pairwise distinct](hyp:hslopes),
 [there exist weights `Fin (N + 1) → Fin N → K` for which the stacked contraction is
 injective](goal). The first block detects coordinate `0`, while the
-last block is a square Vandermonde system on coordinates `1,…,N`. -/
-theorem stacked_contraction_injective_of_generic_weights {K : Type*} [CommRing K] [IsDomain K]
+last block is a square Vandermonde system on coordinates `1,…,N`.
+
+This is an explicit-witness existence result; it does not characterize a generic set of weights. -/
+theorem exists_weights_stackedContraction_injective {K : Type*} [CommRing K] [IsDomain K]
   {N : ℕ} (hN : 2 ≤ N) (slopes : Fin (N + 1) → K)
     (hslopes : Function.Injective slopes) :
     ∃ weights : Fin (N + 1) → Fin N → K,

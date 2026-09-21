@@ -9,13 +9,14 @@ This file contains the quantitative remainder bounds after the exact remainder
 identity is established in `Remainder/Identity.lean`.
 -/
 
-import Causalean.Estimation.ATE.Remainder.Identity
-import Causalean.Tactic.IntegralLinearity
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Order.Group.Lattice
+module
+public import Causalean.Estimation.ATE.Remainder.Identity
+public import Causalean.Tactic.IntegralLinearity
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Order.Group.Lattice
 
 /-! # AIPW Remainder Bound
 
@@ -30,6 +31,8 @@ The headline theorem `aipw_remainder_bound` applies the identity from
 under strict overlap.  The corollary `aipw_remainder_op` lifts that bound to
 an `o_p(n^{-1/2})` population-moment remainder for random nuisance estimators.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -224,8 +227,8 @@ theorem aipw_remainder_bound
 
 If `μ̂(n)` and `ê(n)` realize `H_ε_aeL2` and satisfy the L²-product rate
 hypothesis at `n^{-1/2}`, then the population AIPW moment at the random
-nuisance is `o_p(n^{-1/2})`.  This is the form consumed at
-`DML.lean:152` (the `R₁` cross-term). -/
+nuisance is `o_p(n^{-1/2})`. This is the form consumed by
+`dml_ATE_isAsymLinear_of_goodSet` for the `R₁` cross-term. -/
 
 /-- **AIPW remainder is `o_p(n^{-1/2})` under the product rate.**  Fix [strict
 overlap at level `ε`](hyp:h_overlap), [the back-door identification

@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SpectralCoordinates
-import Mathlib.Algebra.Order.Chebyshev
-import Mathlib.LinearAlgebra.Matrix.PosDef
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SpectralCoordinates
+public import Mathlib.Algebra.Order.Chebyshev
+public import Mathlib.LinearAlgebra.Matrix.PosDef
 
 /-! # Matrix-side symmetry reduction (block-constant averaging, no group action)
 
@@ -22,6 +24,8 @@ while the Frobenius term drops by Cauchy–Schwarz (`(∑x)² ≤ N·∑x²`).  
 `X` further forces `X(u,v) ∈ E_m^blk` via the quadratic forms `1ᵀX1 ≥ 0`, `sᵀXs ≥ 0`,
 `(eᵢ−eⱼ)ᵀX(eᵢ−eⱼ) ≥ 0`.  Hence orbit-averaging never worsens the objective — with no
 group machinery. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

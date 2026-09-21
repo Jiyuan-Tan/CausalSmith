@@ -3,15 +3,16 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.Data.Real.Basic
+
+module
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.Data.Real.Basic
 
 /-!
 # Diagonal-conjugation scaling of the design moment matrix inverse
 
-The interior local-polynomial leverage `(M⁻¹)₀₀` lives on the population moment matrix `S` at the
-scale `Θ(Nh)`. The change of variables `u = (a−t)/h` factors the population matrix as a diagonal
-conjugation of a *bandwidth-free* shape matrix `T`:
+The change of variables `u = (a−t)/h` factors the population moment matrix `S` as a diagonal
+conjugation of a *bandwidth-free* shape matrix `T` with an explicit `Nh` scalar factor:
 
 `S = (N·h) • (D · T · D)`,  with `D = diagonal (fun j => h^j)`,
 
@@ -22,9 +23,12 @@ invertible, and `κ ≠ 0`, then `S` is invertible and its leverage entry collap
 `(S⁻¹)₀₀ = κ⁻¹ · (T⁻¹)₀₀`.
 
 The `D₀₀ = 1` cancellation is exactly why the bandwidth powers drop out of the `(0,0)` entry,
-leaving the clean `Θ(1/(Nh))` rate (the off-diagonal `h^j` factors never touch the intercept). The
-companion top-entry identity `S₀₀ = κ · T₀₀` is recorded for the leverage product `M₀₀·(M⁻¹)₀₀`.
+leaving an exact `1/(Nh)` factor (the off-diagonal `h^j` factors never touch the intercept). An
+`O(1/(Nh))` conclusion additionally requires an upper bound on `(T⁻¹)₀₀`. The companion top-entry
+identity `S₀₀ = κ · T₀₀` is recorded for the leverage product `M₀₀·(M⁻¹)₀₀`.
 -/
+
+public section
 
 namespace Causalean.Stat.Nonparametric
 

@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteEncodingTransport
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteEncodingTransport
 
 set_option linter.style.longLine false
 
@@ -9,6 +10,8 @@ A finite-symbol construction device for the paper's explicit hard families and
 application.  It is used only to build witnesses; the ambient model in `Basic`
 continues to allow arbitrary probability laws on real rewards.
 -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

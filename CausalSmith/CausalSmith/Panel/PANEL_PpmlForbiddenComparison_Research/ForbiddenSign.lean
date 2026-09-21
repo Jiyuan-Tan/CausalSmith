@@ -1,9 +1,12 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.PoissonArgmaxDerivative
-import Mathlib.Analysis.Calculus.Deriv.Basic
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.PoissonArgmaxDerivative
+public import Mathlib.Analysis.Calculus.Deriv.Basic
 
 /-! Sharp effect-derivative and forbidden-cell sign characterization. -/
+
+@[expose] public section
 
 open scoped BigOperators
 

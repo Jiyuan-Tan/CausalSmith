@@ -1,0 +1,1280 @@
+{
+  "qid": "exp_supply_kway_uniform_dosage",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "target_estimand": "\\(\\beta=(\\beta_S)_{S\\in\\mathcal I_k}\\)",
+  "estimand_functional": "For any interior dosage \\(d\\in\\mathcal D_L\\cap(0,1)^p\\), \\(\\beta=\\Sigma_k(d)^{-1}\\mathbb E_d[\\phi(X)Y]\\).",
+  "sampling_model": {
+    "design": "Choose \\(d\\in\\mathcal D_L\\); the focal design is \\(d^\\star=u\\mathbf 1_p\\).",
+    "units": "There are \\(n\\) independent experimental units.",
+    "treatment": "Each unit receives mutually independent coordinates \\(Z_{ai}\\sim\\operatorname{Bernoulli}(d_i)\\), coded as \\(X_{ai}=2Z_{ai}-1\\).",
+    "overlap": "Boundary dosages are allowed in \\(\\mathcal D_L\\) but have singular Gram matrices. For fixed \\(L>0\\), the optimizer \\(d^\\star\\) is interior; no claim is uniform as \\(L\\downarrow0\\).",
+    "nuisance_estimation": "The chosen \\(\\Sigma_k(d^\\star)\\) is known from the randomization, so no nuisance is estimated."
+  },
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ShyamalZhangUhler2025",
+      "comparator_claim": "For the additive model with \\(k=1\\), uniform limited-supply dosage is optimal up to a vanishing finite-sample factor.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SchwabeWong1999",
+      "comparator_claim": "Downward-closed hierarchical product designs satisfy an inverse-trace sum over products of marginal inverse-information excesses.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Tropp2012",
+      "comparator_claim": "Matrix Chernoff bounds control both extreme eigenvalues of sums of independent bounded positive semidefinite matrices.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HsuKakadeZhang2014",
+      "comparator_claim": "Random-design least-squares error separates covariance estimation, approximation, and response-noise contributions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DerezinskiWarmuth2017",
+      "comparator_claim": "Volume sampling yields exact pseudoinverse expectations and an unbiased least-squares estimator under dependent subset sampling.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "For independent product-Bernoulli assignment and the fixed complete Fourier basis through order \\(k\\), the population \\(A\\)-criterion is an explicit elementary-symmetric polynomial. Its unique shared-supply optimizer is the uniform dosage \\(u=\\min\\{L/p,1/2\\}\\), with an exact criterion value and a global quadratic stability certificate whose coefficient is sharp when \\(L\\ge p/2\\). Exact leverage and a rare-activation rank obstruction complement a two-sided threshold-OLS risk theorem. A fixed spectral threshold, the mean-zero whitened Gram, and a second-order inverse identity yield an explicit uniform \\(O(n^{-1})\\) relative-risk expansion at fixed dimension. This is oracle attainment at the population-optimal independent design, not finite-sample dosage minimaxity.",
+  "project_justification": {
+    "gap": "The modern PFED paper resolves limited supply analytically only for additive responses and reports numerical evidence for interaction models. Classical product-design theory gives the inverse-trace identity but not the shared expected-supply optimizer, its stability certificate, or the fixed-threshold second-order risk translation with fallback bias.",
+    "niche": "The fixed dosage-independent Fourier basis and downward closure permit an exact orthonormal triangular reduction, while the rank-one whitened rows expose both exact leverage and the second moment needed for a mean-cancelled inverse-Gram expansion.",
+    "fill": "The project derives the exact all-order criterion, proves uniform dosage with a global modulus whose coefficient is sharp when \\(L\\ge p/2\\), and couples the design to exact leverage, rank-failure probability, the exact good-event/fallback risk decomposition, and a uniform \\(O(n^{-1})\\) fixed-threshold oracle-risk bound."
+  },
+  "related_work": "Shyamal, Zhang, and Uhler introduce the same product-Bernoulli factorial model and bounded-order Fourier regression, but their limited-supply closed form is additive-only. Schwabe and Wong provide the classical downward-closed product-design inverse-trace identity specialized here, so that identity is not presented as new. Tropp supplies the matrix-Chernoff engine for the empirical Gram event; the present second-order inverse calculation additionally uses the exact product-Fourier leverage bound and mean-zero whitened Gram to obtain the quantified relative-risk remainder. Hsu, Kakade, and Zhang motivate separating Gram conditioning from response noise in random-design regression. Dereziński and Warmuth obtain exact inverse-Gram expectations under volume sampling, a dependent design outside the admissible class here. Freise and Schwabe and Ravichandran and coauthors study restricted factorial regions or cell allocations under dependent randomization rather than independent coordinate dosage. Yao and coauthors are only an idealized high-multiplicity interaction-screen consumer: their application does not establish independent delivery or the homoskedastic Fourier regression assumed here.",
+  "technical_internal_limitation": "At \\(\\beta=0\\), spectral fallback can make finite-sample truncated risk smaller than the population \\(A\\)-risk. Thus the exact population optimizer is not asserted to minimize finite-sample risk over designs, and no minimax claim follows from the risk sandwich.",
+  "honest_scope": "The note establishes the exact population identity and optimizer, a global stability modulus whose coefficient is sharp only when \\(L\\ge p/2\\), exact leverage, the rank obstruction, the finite-sample risk sandwich, and a fixed-threshold uniform \\(O(n^{-1})\\) oracle-risk expansion at fixed \\(p,k,L,B,\\sigma_{\\min},\\sigma_{\\max}\\). Exact finite-sample minimax dosage remains open. The core excludes dependent or fixed-count assignment, growing dimension, heteroskedastic outcomes, adaptive rounds, model misspecification, and uniformity as supply vanishes. The Yao application is only an idealized consumer under independent delivery and the stated regression model.",
+  "symbols": [
+    {
+      "name": "p",
+      "type": "integer",
+      "space": "\\(\\mathbb Z\\)",
+      "def": "The number of treatment coordinates.",
+      "role": "design dimension"
+    },
+    {
+      "name": "k",
+      "type": "integer",
+      "space": "\\(\\mathbb Z\\)",
+      "def": "The largest retained Fourier interaction order.",
+      "role": "model order",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "n",
+      "type": "integer",
+      "space": "\\(\\mathbb Z\\)",
+      "def": "The number of independently randomized experimental units.",
+      "role": "sample size"
+    },
+    {
+      "name": "L",
+      "type": "scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The upper bound on expected active treatments per unit.",
+      "role": "shared supply",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "scalar",
+      "space": "\\([0,\\infty)\\)",
+      "def": "The Euclidean radius of the Fourier coefficient class.",
+      "role": "coefficient bound"
+    },
+    {
+      "name": "sigmaMin",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "The lower noise-standard-deviation bound \\(\\sigma_{\\min}\\).",
+      "role": "uniformity constant"
+    },
+    {
+      "name": "sigmaMax",
+      "type": "scalar",
+      "space": "\\([\\sigma_{\\min},\\infty)\\)",
+      "def": "The upper noise-standard-deviation bound \\(\\sigma_{\\max}\\).",
+      "role": "uniformity constant",
+      "refs": [
+        "sigmaMin"
+      ]
+    },
+    {
+      "name": "epsilonThreshold",
+      "type": "scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "The spectral threshold \\(\\varepsilon\\).",
+      "role": "estimator tuning"
+    },
+    {
+      "name": "indexSet",
+      "type": "finite set",
+      "space": "\\(2^{[p]}\\)",
+      "def": "\\(\\mathcal I_k=\\{S\\subseteq[p]:|S|\\le k\\}\\).",
+      "role": "retained interactions",
+      "refs": [
+        "p",
+        "k"
+      ]
+    },
+    {
+      "name": "q",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(q=|\\mathcal I_k|=\\sum_{j=0}^{k}\\binom pj\\).",
+      "role": "regression dimension",
+      "refs": [
+        "p",
+        "k",
+        "indexSet"
+      ]
+    },
+    {
+      "name": "d",
+      "type": "vector",
+      "space": "\\(\\mathbb R^p\\)",
+      "def": "\\(d=(d_1,\\ldots,d_p)\\) is a dosage vector.",
+      "role": "design decision",
+      "refs": [
+        "p"
+      ]
+    },
+    {
+      "name": "designClass",
+      "type": "class",
+      "space": "\\(\\mathcal D_L\\subset[0,1]^p\\)",
+      "def": "\\(\\mathcal D_L=\\{d\\in[0,1]^p:\\sum_{i=1}^p d_i\\le L\\}\\).",
+      "role": "feasible product designs",
+      "refs": [
+        "p",
+        "L",
+        "d"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "scalar",
+      "space": "\\((0,1/2]\\)",
+      "def": "\\(u=\\min\\{L/p,1/2\\}\\).",
+      "role": "uniform dosage level",
+      "refs": [
+        "p",
+        "L"
+      ]
+    },
+    {
+      "name": "dStar",
+      "type": "vector",
+      "space": "\\((0,1)^p\\)",
+      "def": "\\(d^\\star=u\\mathbf 1_p\\).",
+      "role": "candidate optimal dosage",
+      "refs": [
+        "p",
+        "u"
+      ]
+    },
+    {
+      "name": "Pd",
+      "type": "probability law",
+      "space": "probability measures on \\(\\{0,1\\}^p\\)",
+      "def": "\\(P_d=\\bigotimes_{i=1}^p\\operatorname{Bernoulli}(d_i)\\).",
+      "role": "known randomization",
+      "refs": [
+        "p",
+        "d"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "triangular array",
+      "space": "\\(\\{0,1\\}^{n\\times p}\\)",
+      "def": "\\(Z_a=(Z_{a1},\\ldots,Z_{ap})\\stackrel{\\mathrm{iid}}{\\sim}P_d\\) across units.",
+      "role": "assignment",
+      "refs": [
+        "n",
+        "p",
+        "Pd"
+      ]
+    },
+    {
+      "name": "X",
+      "type": "triangular array",
+      "space": "\\(\\{-1,1\\}^{n\\times p}\\)",
+      "def": "\\(X_{ai}=2Z_{ai}-1\\).",
+      "role": "coded assignment",
+      "refs": [
+        "Z"
+      ]
+    },
+    {
+      "name": "phi",
+      "type": "feature map",
+      "space": "\\(\\{-1,1\\}^p\\to\\mathbb R^q\\)",
+      "sig": "\\(\\phi(x)=(\\phi_S(x))_{S\\in\\mathcal I_k}\\)",
+      "def": "\\(\\phi_S(x)=\\prod_{i\\in S}x_i\\), including \\(\\phi_{\\varnothing}(x)=1\\).",
+      "role": "fixed dosage-independent Fourier basis",
+      "refs": [
+        "p",
+        "q",
+        "indexSet"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "vector",
+      "space": "\\(\\mathbb R^q\\)",
+      "def": "\\(\\beta=(\\beta_S)_{S\\in\\mathcal I_k}\\) is the low-order causal response coefficient vector.",
+      "role": "target",
+      "refs": [
+        "q",
+        "indexSet"
+      ]
+    },
+    {
+      "name": "epsilonNoise",
+      "type": "vector",
+      "space": "\\(\\mathbb R^n\\)",
+      "def": "\\(\\epsilon=(\\epsilon_1,\\ldots,\\epsilon_n)^{\\mathsf T}\\) is the outcome-noise vector.",
+      "role": "noise",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "sigma",
+      "type": "scalar",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(\\sigma\\) is the homoskedastic noise standard deviation.",
+      "role": "noise scale",
+      "refs": [
+        "sigmaMin",
+        "sigmaMax"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "vector",
+      "space": "\\(\\mathbb R^n\\)",
+      "def": "\\(Y_a=\\phi(X_a)^{\\mathsf T}\\beta+\\epsilon_a\\).",
+      "role": "observed outcome",
+      "refs": [
+        "n",
+        "X",
+        "phi",
+        "beta",
+        "epsilonNoise"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^q\\)",
+      "def": "\\(x_a=\\phi(X_a)\\).",
+      "role": "regression row",
+      "refs": [
+        "q",
+        "X",
+        "phi"
+      ]
+    },
+    {
+      "name": "Sigma",
+      "type": "matrix-valued map",
+      "space": "\\(\\mathbb S_{+}^q\\)",
+      "def": "\\(\\Sigma_k(d)=\\mathbb E_d[x_ax_a^{\\mathsf T}]\\).",
+      "role": "population Gram matrix",
+      "refs": [
+        "q",
+        "d",
+        "Pd",
+        "x"
+      ]
+    },
+    {
+      "name": "Phi",
+      "type": "extended-real scalar-valued map",
+      "space": "\\((0,\\infty]\\)",
+      "def": "\\(\\Phi_k(d)=\\operatorname{tr}(\\Sigma_k(d)^{-1})\\) when \\(\\Sigma_k(d)\\) is invertible, and \\(\\Phi_k(d)=+\\infty\\) otherwise.",
+      "role": "population A-criterion",
+      "refs": [
+        "d",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "scalar function",
+      "space": "\\((0,1)\\to[1,\\infty)\\)",
+      "def": "\\(r(v)=\\{2v(1-v)\\}^{-1}-1\\).",
+      "role": "one-coordinate inverse-information factor"
+    },
+    {
+      "name": "PhiStar",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\Phi^\\star=\\Phi_k(d^\\star)\\).",
+      "role": "optimal population criterion",
+      "refs": [
+        "Phi",
+        "dStar"
+      ]
+    },
+    {
+      "name": "Cpk",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(C_{p,k}=\\sum_{h=0}^{k-1}\\binom{p-1}{h}\\).",
+      "role": "curvature multiplicity",
+      "refs": [
+        "p",
+        "k"
+      ]
+    },
+    {
+      "name": "mu",
+      "type": "scalar-valued map",
+      "space": "\\((0,1)^p\\to(0,\\infty)\\)",
+      "def": "\\(\\mu(d)=\\max_{z\\in\\{0,1\\}^p}\\phi(2z-\\mathbf 1_p)^{\\mathsf T}\\Sigma_k(d)^{-1}\\phi(2z-\\mathbf 1_p)\\).",
+      "role": "maximum whitened leverage",
+      "refs": [
+        "p",
+        "d",
+        "phi",
+        "Sigma"
+      ]
+    },
+    {
+      "name": "muStar",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\mu^\\star=\\mu(d^\\star)\\).",
+      "role": "optimal-design leverage",
+      "refs": [
+        "mu",
+        "dStar"
+      ]
+    },
+    {
+      "name": "epsilonSequence",
+      "type": "scalar",
+      "space": "\\((0,1/2)\\)",
+      "def": "\\(\\bar\\varepsilon\\in(0,1/2)\\) is fixed independently of \\(n\\).",
+      "role": "fixed oracle spectral threshold",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{n\\times q}\\)",
+      "def": "The \\(a\\)-th row of \\(F\\) is \\(x_a^{\\mathsf T}\\).",
+      "role": "realized design matrix",
+      "refs": [
+        "n",
+        "q",
+        "x"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "random matrix",
+      "space": "\\(\\mathbb S^q\\)",
+      "def": "\\(H_n(\\varepsilon)=\\Sigma_k(d^\\star)^{-1/2}(F^{\\mathsf T}F/n)\\Sigma_k(d^\\star)^{-1/2}-I_q\\).",
+      "role": "whitened Gram deviation",
+      "refs": [
+        "q",
+        "n",
+        "epsilonThreshold",
+        "Sigma",
+        "dStar",
+        "F"
+      ]
+    },
+    {
+      "name": "G",
+      "type": "event",
+      "space": "events generated by \\(Z\\)",
+      "def": "\\(G_n(\\varepsilon)=\\{\\|H_n(\\varepsilon)\\|_{\\mathrm{op}}\\le\\varepsilon\\}\\).",
+      "role": "well-conditioned Gram event",
+      "refs": [
+        "Z",
+        "epsilonThreshold",
+        "H"
+      ]
+    },
+    {
+      "name": "betaHat",
+      "type": "estimator",
+      "space": "\\(\\mathbb R^q\\)",
+      "def": "\\(\\widehat\\beta_{\\varepsilon}=(F^{\\mathsf T}F)^{-1}F^{\\mathsf T}Y\\) on \\(G_n(\\varepsilon)\\), and \\(\\widehat\\beta_{\\varepsilon}=0\\) otherwise.",
+      "role": "known-Gram spectral-threshold OLS",
+      "refs": [
+        "q",
+        "epsilonThreshold",
+        "F",
+        "Y",
+        "G"
+      ]
+    },
+    {
+      "name": "badProb",
+      "type": "scalar",
+      "space": "\\([0,1]\\)",
+      "def": "\\(b_{n,\\varepsilon}=\\mathbb P_{d^\\star}(G_n(\\varepsilon)^c)\\).",
+      "role": "fallback probability",
+      "refs": [
+        "n",
+        "epsilonThreshold",
+        "Pd",
+        "dStar",
+        "G"
+      ]
+    },
+    {
+      "name": "chernoffEnvelope",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\delta_{n,\\varepsilon}=2q\\exp\\{-n\\varepsilon^2/(3\\mu^\\star)\\}\\).",
+      "role": "matrix-Chernoff envelope",
+      "refs": [
+        "n",
+        "epsilonThreshold",
+        "q",
+        "muStar"
+      ]
+    },
+    {
+      "name": "risk",
+      "type": "scalar-valued functional",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(R_n(\\beta,\\sigma,\\varepsilon)=\\mathbb E_{d^\\star}\\|\\widehat\\beta_{\\varepsilon}-\\beta\\|_2^2\\).",
+      "role": "unconditional coefficient risk",
+      "refs": [
+        "n",
+        "beta",
+        "sigma",
+        "epsilonThreshold",
+        "Pd",
+        "dStar",
+        "betaHat"
+      ]
+    },
+    {
+      "name": "finiteMinimaxHandle",
+      "type": "method handle",
+      "def": "Permutation-symmetrize the exact finite-support law of \\(F^{\\mathsf T}F\\), retain the coefficient-ball fallback bias, and solve the resulting dosage-versus-coefficient saddle problem.",
+      "role": "route for the open finite-risk question",
+      "refs": [
+        "F",
+        "beta",
+        "B",
+        "d",
+        "designClass"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:factor-count",
+      "kind": "dimension",
+      "condition": "\\(p\\ge2\\).",
+      "free_symbols": [
+        "p"
+      ],
+      "standard": {
+        "name": "multifactor design",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "lem:schwabe-wong-product-trace",
+        "lem:trace-identity"
+      ]
+    },
+    {
+      "id": "ass:interaction-order",
+      "kind": "model order",
+      "condition": "\\(k\\in\\{1,\\ldots,p\\}\\).",
+      "free_symbols": [
+        "k",
+        "p"
+      ],
+      "standard": {
+        "name": "bounded-order Fourier interaction model",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "lem:trace-identity",
+        "prop:exact-leverage"
+      ]
+    },
+    {
+      "id": "ass:sample-size",
+      "kind": "sampling",
+      "condition": "\\(n\\ge1\\).",
+      "free_symbols": [
+        "n"
+      ],
+      "standard": {
+        "name": "finite random-design sample",
+        "cite": "HsuKakadeZhang2014"
+      },
+      "used_by": [
+        "lem:tropp-matrix-chernoff",
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:supply-range",
+      "kind": "design feasibility",
+      "condition": "\\(L\\in(0,p]\\).",
+      "free_symbols": [
+        "L",
+        "p"
+      ],
+      "standard": {
+        "name": "expected-treatment supply bound",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "prop:exact-leverage",
+        "thm:uniform-optimum"
+      ]
+    },
+    {
+      "id": "ass:box-dosage",
+      "kind": "design feasibility",
+      "condition": "\\(d\\in[0,1]^p\\).",
+      "free_symbols": [
+        "d",
+        "p"
+      ],
+      "standard": {
+        "name": "Bernoulli dosage box",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "def:design-class",
+        "lem:trace-identity"
+      ]
+    },
+    {
+      "id": "ass:expected-supply",
+      "kind": "design feasibility",
+      "condition": "\\(\\sum_{i=1}^p d_i\\le L\\).",
+      "free_symbols": [
+        "d",
+        "p",
+        "L"
+      ],
+      "standard": {
+        "name": "limited expected supply",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "def:design-class",
+        "thm:uniform-optimum"
+      ]
+    },
+    {
+      "id": "ass:product-randomization",
+      "kind": "randomization",
+      "condition": "The variables \\(Z_{ai}\\) are mutually independent with \\(Z_{ai}\\sim\\operatorname{Bernoulli}(d_i)\\).",
+      "free_symbols": [
+        "Z",
+        "d",
+        "n",
+        "p"
+      ],
+      "standard": {
+        "name": "product-Bernoulli probabilistic factorial design",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "lem:trace-identity",
+        "prop:exact-leverage",
+        "prop:rank-obstruction",
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:coefficient-ball",
+      "kind": "parameter class",
+      "condition": "\\(\\|\\beta\\|_2\\le B\\).",
+      "free_symbols": [
+        "beta",
+        "B"
+      ],
+      "standard": {
+        "name": "bounded Fourier coefficient class",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:linear-response",
+      "kind": "outcome model",
+      "condition": "\\(Y_a=\\phi(X_a)^{\\mathsf T}\\beta+\\epsilon_a\\) for every \\(a\\in\\{1,\\ldots,n\\}\\).",
+      "free_symbols": [
+        "Y",
+        "phi",
+        "X",
+        "beta",
+        "epsilonNoise",
+        "n"
+      ],
+      "standard": {
+        "name": "bounded-order Fourier regression",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:conditional-centering",
+      "kind": "noise",
+      "condition": "\\(\\mathbb E[\\epsilon\\mid F]=0\\).",
+      "free_symbols": [
+        "epsilonNoise",
+        "F"
+      ],
+      "standard": {
+        "name": "conditionally centered regression noise",
+        "cite": "HsuKakadeZhang2014"
+      },
+      "used_by": [
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:conditional-homoskedasticity",
+      "kind": "noise",
+      "condition": "\\(\\operatorname{Cov}(\\epsilon\\mid F)=\\sigma^2I_n\\).",
+      "free_symbols": [
+        "epsilonNoise",
+        "F",
+        "sigma",
+        "n"
+      ],
+      "standard": {
+        "name": "conditionally homoskedastic uncorrelated noise",
+        "cite": "ShyamalZhangUhler2025"
+      },
+      "used_by": [
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:variance-range",
+      "kind": "uniformity",
+      "condition": "\\(\\sigma\\in[\\sigma_{\\min},\\sigma_{\\max}]\\).",
+      "free_symbols": [
+        "sigma",
+        "sigmaMin",
+        "sigmaMax"
+      ],
+      "standard": {
+        "name": "positive bounded noise variance",
+        "cite": "HsuKakadeZhang2014"
+      },
+      "used_by": [
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:spectral-threshold",
+      "kind": "tuning",
+      "condition": "\\(0<\\varepsilon<1/2\\).",
+      "free_symbols": [
+        "epsilonThreshold"
+      ],
+      "standard": {
+        "name": "relative Gram spectral threshold",
+        "cite": "Tropp2012"
+      },
+      "used_by": [
+        "thm:risk-sandwich"
+      ]
+    },
+    {
+      "id": "ass:fixed-dimension",
+      "kind": "asymptotic regime",
+      "condition": "\\(p,k,L,B,\\sigma_{\\min},\\sigma_{\\max}\\) remain fixed as \\(n\\to\\infty\\).",
+      "free_symbols": [
+        "p",
+        "k",
+        "L",
+        "B",
+        "sigmaMin",
+        "sigmaMax",
+        "n"
+      ],
+      "standard": {
+        "name": "fixed-dimensional random-design asymptotics",
+        "cite": "HsuKakadeZhang2014"
+      },
+      "used_by": [
+        "thm:oracle-attainment"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:index-family",
+      "name": "Retained Fourier family",
+      "construction": "\\(\\mathcal I_k=\\{S\\subseteq\\{1,\\ldots,p\\}:|S|\\le k\\}\\).",
+      "free_symbols": [
+        "indexSet",
+        "p",
+        "k"
+      ],
+      "inputs": [
+        "p",
+        "k"
+      ]
+    },
+    {
+      "id": "def:regression-dimension",
+      "name": "Regression dimension",
+      "construction": "\\(q=\\sum_{j=0}^{k}\\binom pj\\).",
+      "free_symbols": [
+        "q",
+        "p",
+        "k"
+      ],
+      "inputs": [
+        "p",
+        "k"
+      ]
+    },
+    {
+      "id": "def:design-class",
+      "name": "Feasible product-dosage class",
+      "construction": "\\(\\mathcal D_L=\\{d\\in[0,1]^p: \\sum_{i=1}^p d_i\\le L\\}\\), with every index \\(i\\in\\{1,\\ldots,p\\}\\).",
+      "free_symbols": [
+        "designClass",
+        "d",
+        "p",
+        "L"
+      ],
+      "by_member_properties": [
+        "ass:box-dosage",
+        "ass:expected-supply"
+      ]
+    },
+    {
+      "id": "def:uniform-dosage",
+      "name": "Uniform feasible dosage",
+      "construction": "\\(u=\\min\\{L/p,1/2\\}\\) and \\(d^\\star=u\\mathbf 1_p\\).",
+      "free_symbols": [
+        "u",
+        "dStar",
+        "L",
+        "p"
+      ],
+      "inputs": [
+        "L",
+        "p"
+      ]
+    },
+    {
+      "id": "def:product-law",
+      "name": "Product-Bernoulli randomization",
+      "construction": "\\(P_d(z)=\\prod_{i=1}^p d_i^{z_i}(1-d_i)^{1-z_i}\\) for every \\(z\\in\\{0,1\\}^p\\).",
+      "free_symbols": [
+        "Pd",
+        "d",
+        "p"
+      ],
+      "inputs": [
+        "d"
+      ]
+    },
+    {
+      "id": "def:fourier-features",
+      "name": "Fixed low-order Fourier features",
+      "construction": "\\(\\phi(x)=(\\prod_{i\\in S}x_i)_{S\\in\\mathcal I_k}\\), with the empty product equal to one.",
+      "free_symbols": [
+        "phi",
+        "indexSet",
+        "p",
+        "k",
+        "q"
+      ],
+      "inputs": [
+        "indexSet"
+      ]
+    },
+    {
+      "id": "def:population-criterion",
+      "name": "Population information and criterion",
+      "construction": "\\(\\Sigma_k(d)=\\mathbb E_d[\\phi(X_a)\\phi(X_a)^{\\mathsf T}]\\); set \\(\\Phi_k(d)=\\operatorname{tr}(\\Sigma_k(d)^{-1})\\) when \\(\\Sigma_k(d)\\) is invertible and \\(\\Phi_k(d)=+\\infty\\) otherwise.",
+      "free_symbols": [
+        "Sigma",
+        "Phi",
+        "d",
+        "Pd",
+        "phi",
+        "X"
+      ],
+      "inputs": [
+        "d",
+        "Pd",
+        "phi"
+      ]
+    },
+    {
+      "id": "def:coordinate-factor",
+      "name": "Coordinate inverse-information factor",
+      "construction": "\\(r(v)=\\{2v(1-v)\\}^{-1}-1\\).",
+      "free_symbols": [
+        "r"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "def:curvature-multiplicity",
+      "name": "Curvature multiplicity",
+      "construction": "\\(C_{p,k}=\\sum_{h=0}^{k-1}\\binom{p-1}{h}\\).",
+      "free_symbols": [
+        "Cpk",
+        "p",
+        "k"
+      ],
+      "inputs": [
+        "p",
+        "k"
+      ]
+    },
+    {
+      "id": "def:optimal-criterion",
+      "name": "Optimal population criterion",
+      "construction": "\\(\\Phi^\\star=\\Phi_k(d^\\star)\\).",
+      "free_symbols": [
+        "PhiStar",
+        "Phi",
+        "dStar"
+      ],
+      "inputs": [
+        "Phi",
+        "dStar"
+      ]
+    },
+    {
+      "id": "def:maximum-leverage",
+      "name": "Maximum whitened leverage",
+      "construction": "\\(\\mu(d)=\\max_{z\\in\\{0,1\\}^p}\\phi(2z-\\mathbf 1_p)^{\\mathsf T}\\Sigma_k(d)^{-1}\\phi(2z-\\mathbf 1_p)\\) and \\(\\mu^\\star=\\mu(d^\\star)\\).",
+      "free_symbols": [
+        "mu",
+        "muStar",
+        "d",
+        "p",
+        "phi",
+        "Sigma",
+        "dStar"
+      ],
+      "inputs": [
+        "d",
+        "phi",
+        "Sigma"
+      ]
+    },
+    {
+      "id": "def:oracle-threshold",
+      "name": "Fixed oracle spectral threshold",
+      "construction": "Fix a constant \\(\\bar\\varepsilon\\in(0,1/2)\\), independent of \\(n\\).",
+      "free_symbols": [
+        "epsilonSequence",
+        "n"
+      ],
+      "inputs": []
+    },
+    {
+      "id": "def:spectral-threshold-ols",
+      "name": "Known-information spectral-threshold OLS",
+      "construction": "Form \\(H_n(\\varepsilon)=\\Sigma_k(d^\\star)^{-1/2}(F^{\\mathsf T}F/n)\\Sigma_k(d^\\star)^{-1/2}-I_q\\); on \\(G_n(\\varepsilon)=\\{\\|H_n(\\varepsilon)\\|_{\\mathrm{op}}\\le\\varepsilon\\}\\), set \\(\\widehat\\beta_{\\varepsilon}=(F^{\\mathsf T}F)^{-1}F^{\\mathsf T}Y\\), and set it to zero on the complement.",
+      "free_symbols": [
+        "H",
+        "epsilonThreshold",
+        "Sigma",
+        "dStar",
+        "F",
+        "n",
+        "q",
+        "G",
+        "betaHat",
+        "Y"
+      ],
+      "inputs": [
+        "F",
+        "Y",
+        "Sigma",
+        "dStar",
+        "epsilonThreshold"
+      ]
+    },
+    {
+      "id": "def:risk-objects",
+      "name": "Unconditional risk objects",
+      "construction": "\\(b_{n,\\varepsilon}=\\mathbb P_{d^\\star}(G_n(\\varepsilon)^c)\\), \\(\\delta_{n,\\varepsilon}=2q\\exp\\{-n\\varepsilon^2/(3\\mu^\\star)\\}\\), and \\(R_n(\\beta,\\sigma,\\varepsilon)=\\mathbb E_{d^\\star}\\|\\widehat\\beta_{\\varepsilon}-\\beta\\|_2^2\\).",
+      "free_symbols": [
+        "badProb",
+        "n",
+        "epsilonThreshold",
+        "Pd",
+        "dStar",
+        "G",
+        "chernoffEnvelope",
+        "q",
+        "muStar",
+        "risk",
+        "beta",
+        "sigma",
+        "betaHat"
+      ],
+      "inputs": [
+        "G",
+        "muStar",
+        "betaHat"
+      ]
+    },
+    {
+      "id": "def:finite-minimax-handle",
+      "name": "Finite-risk saddle handle",
+      "construction": "Permutation-symmetrize the exact finite-support law of \\(F^{\\mathsf T}F\\), retain the coefficient-ball spectral-fallback bias, and solve the resulting dosage-versus-coefficient saddle problem.",
+      "free_symbols": [
+        "finiteMinimaxHandle",
+        "F",
+        "beta",
+        "B",
+        "d",
+        "designClass"
+      ],
+      "inputs": [
+        "F",
+        "beta",
+        "B",
+        "designClass"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:trace-identity",
+      "kind": "lemma",
+      "statement": "For every \\(d\\in\\mathcal D_L\\cap(0,1)^p\\), the population Gram matrix is positive definite and \\[\\Phi_k(d)=\\sum_{T\\in\\mathcal I_k}\\prod_{i\\in T}r(d_i)=\\sum_{j=0}^{k}e_j(r(d_1),\\ldots,r(d_p)).\\] If any coordinate of \\(d\\) equals zero or one, then \\(\\Sigma_k(d)\\) is singular and \\(\\Phi_k(d)=+\\infty\\). The interior identity is obtained by the triangular change from the fixed monomials to product-orthonormal features and is the Bernoulli specialization of the downward-closed product-design identity of Schwabe and Wong.",
+      "free_symbols": [
+        "d",
+        "designClass",
+        "Sigma",
+        "Phi",
+        "indexSet",
+        "r",
+        "k",
+        "p"
+      ],
+      "depends_on": [
+        "ass:factor-count",
+        "ass:interaction-order",
+        "ass:box-dosage",
+        "ass:product-randomization",
+        "def:index-family",
+        "def:product-law",
+        "def:fourier-features",
+        "def:population-criterion",
+        "def:coordinate-factor",
+        "lem:schwabe-wong-product-trace"
+      ],
+      "proof_tex": "Put \\(m_i=\\mathbb E_d[X_{ai}]=2d_i-1\\) and \\(v_i=1-m_i^2=4d_i(1-d_i)\\).  First let \\(d\\in\\mathcal D_L\\cap(0,1)^p\\).  Then \\(v_i>0\\) for every \\(i\\).  For each \\(T\\in\\mathcal I_k\\), define the proof-intermediate feature\n\\[\n \\psi_T(X_a)=\\prod_{i\\in T}\\frac{X_{ai}-m_i}{\\sqrt{v_i}}.\n\\]\nThe product-randomization assumption makes the coordinate factors independent.  Each factor has mean zero and second moment one.  Hence, for \\(T,U\\in\\mathcal I_k\\),\n\\[\n \\mathbb E_d[\\psi_T(X_a)\\psi_U(X_a)]=\\mathbf 1\\{T=U\\}.\n\\]\nIndeed, if \\(T\\ne U\\), any coordinate in \\(T\\mathbin\\triangle U\\) occurs exactly once in the product and contributes its zero mean; if \\(T=U\\), independence and unit second moments give one.\n\nExpanding the centered products gives\n\\[\n \\psi_T\n =\\sum_{S\\subseteq T}\n \\frac{\\prod_{i\\in T\\setminus S}(-m_i)}\n      {\\prod_{i\\in T}\\sqrt{v_i}}\\,\\phi_S.\n\\]\nBecause \\(\\mathcal I_k\\) is downward closed, every \\(S\\subseteq T\\in\\mathcal I_k\\) is again retained.  Thus \\(\\psi=A\\phi\\), where\n\\[\n A_{T,S}=\\mathbf 1\\{S\\subseteq T\\}\n \\frac{\\prod_{i\\in T\\setminus S}(-m_i)}\n      {\\prod_{i\\in T}\\sqrt{v_i}}.\n\\]\nOrder \\(\\mathcal I_k\\) compatibly with inclusion.  The matrix \\(A\\) is triangular and\n\\[\n A_{T,T}=\\prod_{i\\in T}v_i^{-1/2}>0,\n\\]\nso \\(A\\) is invertible.  Orthonormality of the \\(\\psi_T\\)'s and the definition of \\(\\Sigma_k(d)\\) imply\n\\[\n A\\Sigma_k(d)A^{\\mathsf T}=I_q.\n\\]\nConsequently \\(\\Sigma_k(d)=A^{-1}A^{-\\mathsf T}\\) is positive definite and\n\\[\n \\Sigma_k(d)^{-1}=A^{\\mathsf T}A.\n\\]\nTaking traces and using the displayed entries of \\(A\\),\n\\[\n\\begin{aligned}\n \\Phi_k(d)\n &=\\operatorname{tr}(A^{\\mathsf T}A)\\\\\n &=\\sum_{T\\in\\mathcal I_k}\\sum_{S\\subseteq T}A_{T,S}^2\\\\\n &=\\sum_{T\\in\\mathcal I_k}\n   \\frac{1}{\\prod_{i\\in T}v_i}\n   \\sum_{S\\subseteq T}\\prod_{i\\in T\\setminus S}m_i^2\\\\\n &=\\sum_{T\\in\\mathcal I_k}\n   \\prod_{i\\in T}\\frac{1+m_i^2}{1-m_i^2}.\n\\end{aligned}\n\\]\nThe third-to-fourth-line transition is the finite product expansion\n\\(\\sum_{S\\subseteq T}\\prod_{i\\in T\\setminus S}m_i^2\n=\\prod_{i\\in T}(1+m_i^2)\\).  Since \\(m_i=2d_i-1\\),\n\\[\n \\frac{1+m_i^2}{1-m_i^2}\n =\\frac{d_i^2+(1-d_i)^2}{2d_i(1-d_i)}\n =\\frac{1}{2d_i(1-d_i)}-1\n =r(d_i).\n\\]\nIt follows that\n\\[\n \\Phi_k(d)=\\sum_{T\\in\\mathcal I_k}\\prod_{i\\in T}r(d_i)\n =\\sum_{j=0}^{k}e_j\\bigl(r(d_1),\\ldots,r(d_p)\\bigr),\n\\]\nwhere the last equality groups the retained subsets by cardinality.  This direct triangular calculation also specializes the cited Schwabe--Wong identity: the marginal information matrix for \\((1,X_i)\\) is\n\\[\n M_i=\\begin{pmatrix}1&m_i\\\\m_i&1\\end{pmatrix},\n \\qquad\n \\operatorname{tr}(M_i^{-1})-1\n =\\frac{1+m_i^2}{1-m_i^2}=r(d_i),\n\\]\nand substitution in that downward-closed product-design identity yields the same sum.\n\nIt remains to treat the boundary.  If \\(d_i=0\\), then \\(X_{ai}=-1\\) almost surely, so the column \\(\\phi_{\\{i\\}}\\) equals minus the intercept column almost surely.  If \\(d_i=1\\), the same singleton column equals the intercept column almost surely.  The interaction-order assumption gives \\(k\\ge1\\), so both columns belong to \\(\\mathcal I_k\\).  In either case the feature vector satisfies a nonzero deterministic linear relation, and therefore \\(\\Sigma_k(d)=\\mathbb E_d[\\phi(X_a)\\phi(X_a)^{\\mathsf T}]\\) is singular.  The extended-real definition of \\(\\Phi_k\\) then gives \\(\\Phi_k(d)=+\\infty\\).\n\nAs the required smallest exact check, take \\(p=3\\) and \\(k=2\\).  At \\(d=(1/3,1/3,1/3)\\), each coordinate factor is \\(5/4\\), and the proved identity gives\n\\[\n \\Phi_2(d)=1+3\\frac54+3\\left(\\frac54\\right)^2=\\frac{151}{16}.\n\\]\nAt \\(d=(1/4,1/3,5/12)\\), the three factors are \\(5/3\\), \\(5/4\\), and \\(37/35\\), whence\n\\[\n \\Phi_2(d)=1+\\frac{1669}{420}+\\frac{217}{42}=\\frac{4259}{420}.\n\\]\nThus both direct inverse-trace checks agree with the general formula.",
+      "justification": "This representation removes the higher-order characteristic-polynomial obstruction and exposes separable curvature.",
+      "gap": "SchwabeWong1999 contains the general identity, while ShyamalZhangUhler2025 does not specialize it to solve the shared-supply all-order problem.",
+      "consumer": "The identity turns the interaction-design problem into an explicit scalar symmetric-polynomial optimization usable by the dosage theorem.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:uniform-optimum",
+      "kind": "theorem",
+      "statement": "The unique minimizer of \\(\\Phi_k(d)\\) over \\(d\\in\\mathcal D_L\\) is \\(d^\\star=u\\mathbf 1_p\\), where \\(u=\\min\\{L/p,1/2\\}\\), and \\[\\Phi^\\star=\\sum_{j=0}^{k}\\binom pj r(u)^j.\\] Moreover, every \\(d\\in\\mathcal D_L\\) satisfies \\[\\Phi_k(d)-\\Phi^\\star\\ge 8C_{p,k}\\|d-d^\\star\\|_2^2.\\] The coefficient \\(8C_{p,k}\\) is the best global strong-convexity certificate when \\(L\\ge p/2\\).",
+      "free_symbols": [
+        "Phi",
+        "d",
+        "designClass",
+        "dStar",
+        "u",
+        "p",
+        "L",
+        "PhiStar",
+        "k",
+        "r",
+        "Cpk"
+      ],
+      "depends_on": [
+        "ass:supply-range",
+        "ass:expected-supply",
+        "def:design-class",
+        "def:uniform-dosage",
+        "def:curvature-multiplicity",
+        "def:optimal-criterion",
+        "lem:trace-identity",
+        "def:coordinate-factor",
+        "def:index-family"
+      ],
+      "justification": "This is the exact design choice and a quantitative certificate of the loss from dosage imbalance.",
+      "gap": "ShyamalZhangUhler2025 proves the limited-supply closed form only for \\(k=1\\); SchwabeWong1999 does not impose or optimize the shared expected-supply simplex.",
+      "consumer": "An independent-delivery interaction screen can set all dosages to \\(u\\) and quantify the population precision penalty of implementation error.",
+      "proof_tex": "By \\texttt{ass:supply-range} and \\texttt{def:uniform-dosage},\n\\(u=\\min\\{L/p,1/2\\}\\in(0,1/2]\\), and \\(d^\\star=u\\mathbf 1_p\\) is an interior point of the cube and belongs to \\(\\mathcal D_L\\).  Indeed, if \\(L<p/2\\), then \\(\\sum_i d_i^\\star=pu=L\\), whereas if \\(L\\ge p/2\\), then \\(\\sum_i d_i^\\star=p/2\\le L\\).\n\nWe first establish the curvature certificate on the open cube.  For \\(0<v<1\\), put \\(m=2v-1\\).  The definition \\texttt{def:coordinate-factor} gives\n\\[\n r(v)=\\frac{1+m^2}{1-m^2}\\ge 1,\n\\qquad\n r'(v)=-\\frac{1-2v}{2v^2(1-v)^2},\n\\]\nwhere \\(|m|<1\\) makes the first denominator positive.  Direct differentiation also gives the exact log-curvature identity\n\\[\n (\\log r)''(v)\n =16\\frac{1+3m^4}{(1-m^4)^2}\n =16+16\\frac{m^4(5-m^4)}{(1-m^4)^2}\n \\ge 16. \\tag{1}\n\\]\nThe last inequality follows from \\(0\\le m^4<1\\), so every factor and denominator in the remainder is nonnegative or positive as appropriate.\n\nBy the already established \\texttt{lem:trace-identity}, on \\((0,1)^p\\) one has\n\\[\n \\Phi_k(d)=\\sum_{T\\in\\mathcal I_k} f_T(d),\n \\qquad\n f_T(d):=\\prod_{i\\in T}r(d_i).\n\\]\nFor a nonempty \\(T\\), define the vector \\(a_T(d)\\in\\mathbb R^p\\) and diagonal matrix \\(D_T(d)\\in\\mathbb R^{p\\times p}\\) by\n\\[\n (a_T(d))_i=\\mathbf 1\\{i\\in T\\}(\\log r)'(d_i),\n \\qquad\n (D_T(d))_{ii}=\\mathbf 1\\{i\\in T\\}(\\log r)''(d_i).\n\\]\nTwice differentiating the finite product yields\n\\[\n \\nabla^2 f_T(d)\n =f_T(d)\\bigl(D_T(d)+a_T(d)a_T(d)^{\\mathsf T}\\bigr).\n\\]\nThe matrix \\(a_Ta_T^{\\mathsf T}\\) is positive semidefinite.  Moreover, \\(f_T(d)\\ge1\\) by the first display and every active diagonal entry of \\(D_T\\) is at least \\(16\\) by (1).  Hence\n\\[\n \\nabla^2 f_T(d)\\succeq\n 16\\operatorname{diag}\\bigl((\\mathbf 1\\{i\\in T\\})_{i=1}^p\\bigr). \\tag{2}\n\\]\nFor a fixed coordinate \\(i\\), the number of nonempty sets \\(T\\in\\mathcal I_k\\) containing \\(i\\) is, by \\texttt{def:index-family} and \\texttt{def:curvature-multiplicity},\n\\[\n \\sum_{h=0}^{k-1}\\binom{p-1}{h}=C_{p,k};\n\\]\none chooses the other \\(h=|T|-1\\) elements from the remaining \\(p-1\\) coordinates.  Summing (2), while noting that the empty-set summand is constant, proves\n\\[\n \\nabla^2\\Phi_k(d)\\succeq16C_{p,k}I_p\n \\qquad(d\\in(0,1)^p). \\tag{3}\n\\]\n\nLet \\(d\\in\\mathcal D_L\\cap(0,1)^p\\), set \\(\\delta=d-d^\\star\\), and apply the one-dimensional fundamental theorem of calculus twice to \\(g(t)=\\Phi_k(d^\\star+t\\delta)\\).  The whole segment lies in the open cube, and (3) gives\n\\[\n\\begin{aligned}\n \\Phi_k(d)-\\Phi_k(d^\\star)\n &=\\nabla\\Phi_k(d^\\star)^{\\mathsf T}\\delta\n   +\\int_0^1(1-t)\\,\\delta^{\\mathsf T}\n       \\nabla^2\\Phi_k(d^\\star+t\\delta)\\delta\\,dt\\\\\n &\\ge \\nabla\\Phi_k(d^\\star)^{\\mathsf T}\\delta\n   +8C_{p,k}\\|\\delta\\|_2^2. \\tag{4}\n\\end{aligned}\n\\]\nIt remains to verify the sign of the first-order term rather than discard it without justification.  Differentiating the trace identity and using the fact that all coordinates of \\(d^\\star\\) equal \\(u\\) gives, for every \\(i\\),\n\\[\n \\frac{\\partial\\Phi_k}{\\partial d_i}(d^\\star)\n =r'(u)\\sum_{h=0}^{k-1}\\binom{p-1}{h}r(u)^h\n =:\\gamma_u. \\tag{5}\n\\]\nIf \\(u=1/2\\), the displayed formula for \\(r'\\) gives \\(\\gamma_u=0\\).  If \\(u=L/p<1/2\\), then \\(r'(u)<0\\), while the sum in (5) is strictly positive because its \\(h=0\\) term is one; thus \\(\\gamma_u<0\\).  Feasibility from \\texttt{ass:expected-supply} gives\n\\[\n \\sum_{i=1}^p\\delta_i=\\sum_{i=1}^p d_i-pu\\le L-L=0,\n\\]\nand consequently\n\\(\\nabla\\Phi_k(d^\\star)^{\\mathsf T}\\delta\n=\\gamma_u\\sum_i\\delta_i\\ge0\\).  In either supply regime, (4) therefore proves\n\\[\n \\Phi_k(d)-\\Phi_k(d^\\star)\n \\ge8C_{p,k}\\|d-d^\\star\\|_2^2. \\tag{6}\n\\]\nIf \\(d\\) is on the boundary of \\([0,1]^p\\), at least one coordinate is zero or one, and \\texttt{lem:trace-identity} gives \\(\\Phi_k(d)=+\\infty\\); hence (6) remains true in the extended-real sense.  Since \\(C_{p,k}\\ge1\\), (6) is strict for every \\(d\\ne d^\\star\\), proving that \\(d^\\star\\) is the unique minimizer over \\(\\mathcal D_L\\).\n\nFinally, substitution of the uniform dosage into the trace identity, followed by grouping sets according to their cardinality, gives the claimed exact value:\n\\[\n \\Phi^\\star=\\Phi_k(d^\\star)\n =\\sum_{T\\in\\mathcal I_k}r(u)^{|T|}\n =\\sum_{j=0}^k\\binom pj r(u)^j. \\tag{7}\n\\]\n\nIt remains to prove sharpness when \\(L\\ge p/2\\).  Then \\(d^\\star=(1/2)\\mathbf 1_p\\).  At this point every \\(f_T=1\\), every \\(a_T=0\\), and every active diagonal entry of \\(D_T\\) equals \\(16\\) by (1).  The same counting used in (3) therefore gives the equality\n\\[\n \\nabla^2\\Phi_k(d^\\star)=16C_{p,k}I_p. \\tag{8}\n\\]\nThe assumption \\(p\\ge2\\), inherited through \\texttt{lem:trace-identity}, permits the nonzero direction \\(h=e_1-e_2\\).  For all sufficiently small \\(|t|\\), the point \\(d(t)=d^\\star+th\\) lies in \\((0,1)^p\\), has coordinate sum \\(p/2\\le L\\), and hence is feasible.  Applying the same twice-integrated identity as in (4), using \\(\\nabla\\Phi_k(d^\\star)=0\\), continuity of the finite-sum Hessian, and (8), yields\n\\[\n \\lim_{t\\to0}\n \\frac{\\Phi_k(d(t))-\\Phi_k(d^\\star)}\n      {\\|d(t)-d^\\star\\|_2^2}\n =\\frac{\\frac12 h^{\\mathsf T}(16C_{p,k}I_p)h}{\\|h\\|_2^2}\n =8C_{p,k}. \\tag{9}\n\\]\nThus any larger coefficient in a global inequality of the form (6) would fail along this feasible path.  Together with (6), this proves that \\(8C_{p,k}\\) is the best global quadratic certificate when \\(L\\ge p/2\\).",
+      "status": "proved"
+    },
+    {
+      "id": "prop:exact-leverage",
+      "kind": "proposition",
+      "statement": "At the optimal dosage, the exact maximum whitened leverage is \\[\\mu^\\star=\\sum_{j=0}^{k}\\binom pj\\left(\\frac{1-u}{u}\\right)^j.\\]",
+      "free_symbols": [
+        "muStar",
+        "p",
+        "k",
+        "u"
+      ],
+      "depends_on": [
+        "ass:interaction-order",
+        "ass:product-randomization",
+        "ass:supply-range",
+        "def:index-family",
+        "def:uniform-dosage",
+        "def:fourier-features",
+        "def:population-criterion",
+        "def:maximum-leverage",
+        "lem:trace-identity"
+      ],
+      "proof_tex": "By \\(\\textnormal{ass:supply-range}\\) and \\(\\textnormal{def:uniform-dosage}\\),\n\\[\n 0<u=\\min\\{L/p,1/2\\}\\le \\frac12<1,\n\\]\nso \\(d^\\star=u\\mathbf 1_p\\) is an interior dosage.  In particular, the positive-definiteness conclusion of \\(\\textnormal{lem:trace-identity}\\) applies to \\(\\Sigma_k(d^\\star)\\).\n\nWe make the triangular change of basis explicit.  Put\n\\[\n m=2u-1,\n \\qquad\n s=\\sqrt{4u(1-u)}>0,\n \\qquad\n g_i(x_i)=\\frac{x_i-m}{s},\n \\qquad\n \\psi_T(x)=\\prod_{i\\in T}g_i(x_i)\n \\quad(T\\in\\mathcal I_k).\n\\]\nUnder the product randomization at \\(d^\\star\\), the coordinates \\(X_i\\) are independent and satisfy\n\\[\n \\mathbb E_{d^\\star}X_i=m,\n \\qquad\n \\mathbb E_{d^\\star}(X_i-m)^2=s^2.\n\\]\nConsequently \\(\\mathbb E_{d^\\star}g_i(X_i)=0\\) and \\(\\mathbb E_{d^\\star}g_i(X_i)^2=1\\).  Independence then gives, for \\(T,U\\in\\mathcal I_k\\),\n\\[\n \\mathbb E_{d^\\star}\\{\\psi_T(X)\\psi_U(X)\\}\n =\\prod_{i\\in T\\cap U}\\mathbb E_{d^\\star}g_i(X_i)^2\n   \\prod_{i\\in T\\mathbin\\triangle U}\\mathbb E_{d^\\star}g_i(X_i)\n =\\mathbf 1\\{T=U\\}.\n\\]\n\nFor each \\(T\\in\\mathcal I_k\\), expansion of the product yields\n\\[\n \\psi_T(x)\n =s^{-|T|}\\prod_{i\\in T}(x_i-m)\n =s^{-|T|}\\sum_{R\\subseteq T}(-m)^{|T\\setminus R|}\\phi_R(x).\n\\]\nBecause \\(R\\subseteq T\\) implies \\(R\\in\\mathcal I_k\\), this defines a square matrix \\(A\\), indexed by \\(\\mathcal I_k\\), such that \\(\\psi(x)=A\\phi(x)\\).  Ordering subsets by nondecreasing cardinality makes \\(A\\) triangular, and its diagonal entry indexed by \\(T\\) is \\(s^{-|T|}>0\\); hence \\(A\\) is invertible.  The preceding orthonormality calculation and the definition of \\(\\Sigma_k\\) give\n\\[\n I_q\n =\\mathbb E_{d^\\star}\\{\\psi(X)\\psi(X)^{\\mathsf T}\\}\n =A\\Sigma_k(d^\\star)A^{\\mathsf T}.\n\\]\nTherefore\n\\[\n \\Sigma_k(d^\\star)^{-1}=A^{\\mathsf T}A,\n\\]\nand, for every \\(x\\in\\{-1,1\\}^p\\),\n\\[\n \\phi(x)^{\\mathsf T}\\Sigma_k(d^\\star)^{-1}\\phi(x)\n =\\|A\\phi(x)\\|_2^2\n =\\sum_{T\\in\\mathcal I_k}\\psi_T(x)^2.\n\\]\n\nFor each coordinate, direct substitution gives\n\\[\n g_i(x_i)^2\n =\\begin{cases}\n \\dfrac{1-u}{u},&x_i=1,\\\\[6pt]\n \\dfrac{u}{1-u},&x_i=-1.\n \\end{cases}\n\\]\nSince \\(0<u\\le1/2\\),\n\\[\n \\frac{u}{1-u}\\le\\frac{1-u}{u}.\n\\]\nEvery term \\(\\psi_T(x)^2=\\prod_{i\\in T}g_i(x_i)^2\\) is a product of nonnegative coordinate factors.  Thus all terms in their sum are simultaneously maximized at \\(x=\\mathbf 1_p\\).  By \\(\\textnormal{def:maximum-leverage}\\),\n\\[\n \\mu^\\star\n =\\sum_{T\\in\\mathcal I_k}\\prod_{i\\in T}\\frac{1-u}{u}\n =\\sum_{j=0}^{k}\\binom pj\\left(\\frac{1-u}{u}\\right)^j,\n\\]\nwhere the last equality groups subsets by cardinality.  This proves the asserted exact maximum.",
+      "justification": "The leverage is the exact concentration scale of the whitened empirical Gram matrix.",
+      "gap": "Generic bounded-design analyses use dimension-dependent envelopes and do not compute this supply-sensitive Boolean leverage.",
+      "consumer": "The expression gives an explicit sample-size diagnostic before running a sparse-supply interaction experiment.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:rank-obstruction",
+      "kind": "proposition",
+      "statement": "For every fixed \\(T\\in\\mathcal I_k\\) with \\( |T|=k\\), if no sampled unit has \\(Z_{ai}=1\\) for all \\(i\\in T\\), then \\(F\\) is rank deficient. Consequently, under \\(d^\\star\\), \\[\\mathbb P_{d^\\star}(\\operatorname{rank}(F)<q)\\ge(1-u^k)^n.\\]",
+      "free_symbols": [
+        "indexSet",
+        "k",
+        "Z",
+        "F",
+        "dStar",
+        "Pd",
+        "q",
+        "u",
+        "n"
+      ],
+      "depends_on": [
+        "ass:product-randomization",
+        "def:index-family",
+        "def:uniform-dosage",
+        "def:fourier-features"
+      ],
+      "justification": "This discrete null vector proves that rare joint activations are a necessary obstacle, not an artifact of matrix concentration.",
+      "gap": "HsuKakadeZhang2014 treats generic random-design conditioning and does not exploit Boolean activation polynomials.",
+      "consumer": "The bound warns a screen designer when a proposed sample size cannot reliably identify all \\(k\\)-fold coefficients.",
+      "proof_tex": "Fix \\(T\\subseteq[p]\\) with \\(|T|=k\\). Because \\(Z_{ai}=(1+X_{ai})/2\\), the retained polynomial\n\\[\n g_T(X_a):=\\prod_{i\\in T}Z_{ai}\n =2^{-k}\\prod_{i\\in T}(1+X_{ai})\n =2^{-k}\\sum_{S\\subseteq T}\\phi_S(X_a)\n\\]\nis a nonzero linear combination of columns of \\(F\\); every \\(S\\subseteq T\\) lies in \\(\\mathcal I_k\\). If no sampled unit activates every coordinate of \\(T\\), then \\(g_T(X_a)=0\\) for every row \\(a\\). Hence the nonzero coefficient vector having entry \\(2^{-k}\\) on each \\(S\\subseteq T\\) and zero elsewhere belongs to the null space of \\(F\\), so \\(\\operatorname{rank}(F)<q\\).\n\nUnder \\(d^\\star\\), product randomization gives\n\\[\n \\mathbb P_{d^\\star}\\{Z_{ai}=1\\text{ for all }i\\in T\\}=u^k\n\\]\nfor each unit. Independence across the \\(n\\) units then gives probability \\((1-u^k)^n\\) that no unit realizes this activation. That event is contained in \\(\\{\\operatorname{rank}(F)<q\\}\\), proving\n\\[\n \\mathbb P_{d^\\star}\\{\\operatorname{rank}(F)<q\\}\\ge(1-u^k)^n.\n\\]",
+      "status": "proved"
+    },
+    {
+      "id": "thm:risk-sandwich",
+      "kind": "theorem",
+      "statement": "Under \\(d^\\star\\), let \\(b_{n,\\varepsilon}=\\mathbb P_{d^\\star}(G_n(\\varepsilon)^c)\\). On \\(G_n(\\varepsilon)\\),\n\\[\n \\operatorname{Cov}(\\widehat\\beta_{\\varepsilon}\\mid F)\n =\\sigma^2(F^{\\mathsf T}F)^{-1},\n\\]\nand\n\\[\n \\frac{\\sigma^2}{n(1+\\varepsilon)}\\Sigma_k(d^\\star)^{-1}\n \\preceq\\operatorname{Cov}(\\widehat\\beta_{\\varepsilon}\\mid F)\n \\preceq\n \\frac{\\sigma^2}{n(1-\\varepsilon)}\\Sigma_k(d^\\star)^{-1}.\n\\]\nUnconditionally,\n\\[\n R_n(\\beta,\\sigma,\\varepsilon)\n =\\sigma^2\\mathbb E_{d^\\star}\\!\\left[\n \\mathbf 1_{G_n(\\varepsilon)}\n \\operatorname{tr}\\{(F^{\\mathsf T}F)^{-1}\\}\\right]\n +\\|\\beta\\|_2^2b_{n,\\varepsilon}.\n\\]\nFurthermore,\n\\[\n b_{n,\\varepsilon}\\le\n \\min\\!\\left\\{1,2q\\exp\\!\\left(-\\frac{n\\varepsilon^2}{3\\mu^\\star}\\right)\\right\\}\n =\\min\\{1,\\delta_{n,\\varepsilon}\\},\n\\]\nand\n\\[\n \\frac{\\sigma^2\\Phi^\\star}{n}\\frac{1-b_{n,\\varepsilon}}{1+\\varepsilon}\n \\le R_n(\\beta,\\sigma,\\varepsilon)\n \\le \\frac{\\sigma^2\\Phi^\\star}{n(1-\\varepsilon)}+B^2b_{n,\\varepsilon}.\n\\]\nIn particular,\n\\[\n R_n(\\beta,\\sigma,\\varepsilon)\n \\le \\frac{\\sigma^2\\Phi^\\star}{n}(1+2\\varepsilon)\n +2B^2q\\exp\\!\\left(-\\frac{n\\varepsilon^2}{3\\mu^\\star}\\right).\n\\]\nFor the fixed threshold \\(\\bar\\varepsilon\\in(0,1/2)\\), the second-order inverse identity gives the sharper relative-risk bound\n\\[\n\\begin{aligned}\n \\left|\n \\frac{R_n(\\beta,\\sigma,\\bar\\varepsilon)}{\\sigma^2\\Phi^\\star/n}-1\n \\right|\n &\\le\n \\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\n +\\left(1+\\mu^\\star+\n \\frac{n\\|\\beta\\|_2^2}{\\sigma^2\\Phi^\\star}\\right)b_{n,\\bar\\varepsilon}\\\\\n &\\le\n \\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\n +2q\\left(1+\\mu^\\star+\n \\frac{nB^2}{\\sigma_{\\min}^2\\Phi^\\star}\\right)\n \\exp\\!\\left(-\\frac{n\\bar\\varepsilon^2}{3\\mu^\\star}\\right).\n\\end{aligned}\n\\]",
+      "depends_on": [
+        "ass:sample-size",
+        "ass:coefficient-ball",
+        "ass:linear-response",
+        "ass:conditional-centering",
+        "ass:conditional-homoskedasticity",
+        "ass:variance-range",
+        "ass:spectral-threshold",
+        "ass:product-randomization",
+        "def:population-criterion",
+        "def:optimal-criterion",
+        "def:regression-dimension",
+        "def:spectral-threshold-ols",
+        "def:risk-objects",
+        "def:oracle-threshold",
+        "lem:trace-identity",
+        "prop:exact-leverage",
+        "lem:tropp-matrix-chernoff"
+      ],
+      "justification": "The theorem verifies the exact Chernoff constant, preserves fallback bias, and exploits mean-zero whitened-Gram fluctuations to give an explicit second-order relative-risk error.",
+      "gap": "Tropp supplies the matrix tail inequality and general random-design regression work supplies conditioning templates, but neither gives this product-Fourier leverage calibration, fallback branch, or fixed-threshold second-order constant.",
+      "consumer": "The result turns the exact population design into an auditable finite-sample precision guarantee and supplies the quantitative input for fixed-dimensional oracle attainment.",
+      "proof_tex": "Write \\(\\Sigma=\\Sigma_k(d^\\star)\\).  The uniform-dosage definition and the supply range give \\(0<u\\le1/2\\) and \\(pu\\le L\\), so \\(d^\\star\\in\\mathcal D_L\\cap(0,1)^p\\).  Lemma \\(\\textnormal{lem:trace-identity}\\) therefore gives\n\\[\n \\Sigma\\succ0,\n \\qquad\n 0<\\Phi^\\star=\\operatorname{tr}(\\Sigma^{-1})<\\infty .\n \\tag{1}\n\\]\nThus every inverse and inverse square root used below exists.\n\nFor each experimental unit define the proof-intermediate whitened row and rank-one matrix\n\\[\n w_a=\\Sigma^{-1/2}x_a,\n \\qquad\n K_a=w_aw_a^{\\mathsf T}.\n\\]\nProduct randomization across units and the definition of \\(\\Sigma\\) show that \\(K_1,\\ldots,K_n\\) are independent positive-semidefinite random matrices and\n\\[\n \\mathbb E_{d^\\star}K_a\n =\\Sigma^{-1/2}\\mathbb E_{d^\\star}(x_ax_a^{\\mathsf T})\\Sigma^{-1/2}\n =I_q.\n \\tag{2}\n\\]\nMoreover, Proposition \\(\\textnormal{prop:exact-leverage}\\) and the definition of maximum leverage imply at every assignment point that\n\\[\n \\lambda_{\\max}(K_a)=\\|w_a\\|_2^2\n =x_a^{\\mathsf T}\\Sigma^{-1}x_a\\le\\mu^\\star.\n \\tag{3}\n\\]\nIn particular, \\(0\\preceq K_a\\preceq\\mu^\\star I_q\\).  The exact formula in Proposition \\(\\textnormal{prop:exact-leverage}\\) also gives \\(\\mu^\\star>1\\).\n\nApply Lemma \\(\\textnormal{lem:tropp-matrix-chernoff}\\) with \\(R=\\mu^\\star\\).  Equation \\((2)\\) gives\n\\[\n \\sum_{a=1}^n\\mathbb E K_a=nI_q,\n \\qquad\n \\mu_{\\min}=\\mu_{\\max}=n.\n \\tag{4}\n\\]\nFor \\(0\\le t\\le1/2\\), put\n\\[\n h_+(t)=(1+t)\\log(1+t)-t,\n \\qquad\n h_-(t)=t+(1-t)\\log(1-t).\n\\]\nEach function and its first derivative vanish at zero, whereas\n\\[\n h_+''(t)=\\frac1{1+t}\\ge\\frac23,\n \\qquad\n h_-''(t)=\\frac1{1-t}\\ge1.\n\\]\nIntegrating twice from zero yields \\(h_+(t)\\ge t^2/3\\) and \\(h_-(t)\\ge t^2/2\\ge t^2/3\\).  On the other hand,\n\\[\n \\frac1n\\sum_{a=1}^nK_a\n =\\Sigma^{-1/2}(F^{\\mathsf T}F/n)\\Sigma^{-1/2}\n =I_q+H_n(\\varepsilon).\n \\tag{5}\n\\]\nThe two matrix-Chernoff inequalities and the union bound therefore give, for \\(0<\\varepsilon<1/2\\),\n\\[\n\\begin{aligned}\n \\mathbb P_{d^\\star}\\!\\left\\{\\lambda_{\\min}\\!\\left(\\frac1n\\sum_{a=1}^nK_a\\right)\\le1-\\varepsilon\\right\\}\n &\\le q\\exp\\!\\left(-\\frac{n\\varepsilon^2}{3\\mu^\\star}\\right),\\\\\n \\mathbb P_{d^\\star}\\!\\left\\{\\lambda_{\\max}\\!\\left(\\frac1n\\sum_{a=1}^nK_a\\right)\\ge1+\\varepsilon\\right\\}\n &\\le q\\exp\\!\\left(-\\frac{n\\varepsilon^2}{3\\mu^\\star}\\right).\n\\end{aligned}\n\\]\nConsequently,\n\\[\n b_{n,\\varepsilon}\n \\le\\min\\!\\left\\{1,2q\\exp\\!\\left(-\\frac{n\\varepsilon^2}{3\\mu^\\star}\\right)\\right\\}\n =\\min\\{1,\\delta_{n,\\varepsilon}\\}.\n \\tag{6}\n\\]\nThis derives the stated concentration constant from independence, isotropy, and the exact leverage bound.\n\nOn \\(G_n(\\varepsilon)\\), equation \\((5)\\) and the operator-norm definition of this event imply\n\\[\n (1-\\varepsilon)\\Sigma\n \\preceq F^{\\mathsf T}F/n\n \\preceq(1+\\varepsilon)\\Sigma.\n \\tag{7}\n\\]\nSince \\(\\varepsilon<1\\) and \\(\\Sigma\\succ0\\), the empirical Gram matrix is invertible on this event.  Inversion reverses Loewner order, and hence\n\\[\n \\frac1{n(1+\\varepsilon)}\\Sigma^{-1}\n \\preceq(F^{\\mathsf T}F)^{-1}\n \\preceq\\frac1{n(1-\\varepsilon)}\\Sigma^{-1}.\n \\tag{8}\n\\]\nThe linear-response assumption and the estimator definition give, conditionally on any \\(F\\in G_n(\\varepsilon)\\),\n\\[\n \\widehat\\beta_\\varepsilon-\\beta\n =(F^{\\mathsf T}F)^{-1}F^{\\mathsf T}\\epsilon.\n \\tag{9}\n\\]\nConditional centering makes the right-hand side conditionally mean zero.  Conditional homoskedasticity then gives\n\\[\n\\begin{aligned}\n \\operatorname{Cov}(\\widehat\\beta_\\varepsilon\\mid F)\n &=(F^{\\mathsf T}F)^{-1}F^{\\mathsf T}(\\sigma^2I_n)F(F^{\\mathsf T}F)^{-1}\\\\\n &=\\sigma^2(F^{\\mathsf T}F)^{-1}.\n\\end{aligned}\n \\tag{10}\n\\]\nMultiplying \\((8)\\) by \\(\\sigma^2>0\\) proves the asserted conditional covariance sandwich.\n\nThe causal coefficient vector is distinct from its observed-law identifying functional.  Indeed, linear response, iterated expectation, and conditional centering give\n\\[\n\\begin{aligned}\n \\mathbb E_{d^\\star}[x_aY_a]\n &=\\mathbb E_{d^\\star}[x_ax_a^{\\mathsf T}]\\beta\n   +\\mathbb E_{d^\\star}[x_a\\epsilon_a]\\\\\n &=\\Sigma\\beta+\n \\mathbb E_{d^\\star}\\!\\left[x_a\\mathbb E(\\epsilon_a\\mid F)\\right]\n =\\Sigma\\beta.\n\\end{aligned}\n\\]\nBecause \\(\\Sigma\\) is invertible by \\((1)\\), this proves, rather than defines, the relationship \\(\\beta=\\Sigma^{-1}\\mathbb E_{d^\\star}[x_aY_a]\\).\n\nThe event \\(G_n(\\varepsilon)\\) is measurable with respect to \\(F\\).  On that event, equations \\((9)\\)--\\((10)\\) imply\n\\[\n \\mathbb E\\!\\left(\\|\\widehat\\beta_\\varepsilon-\\beta\\|_2^2\\mid F\\right)\n =\\sigma^2\\operatorname{tr}\\{(F^{\\mathsf T}F)^{-1}\\}.\n\\]\nOn the complementary event the estimator equals zero, so its squared error is exactly \\(\\|\\beta\\|_2^2\\).  Splitting the expectation over the two events yields the exact unconditional decomposition\n\\[\n R_n(\\beta,\\sigma,\\varepsilon)\n =\\sigma^2\\mathbb E_{d^\\star}\\!\\left[\n \\mathbf 1_{G_n(\\varepsilon)}\\operatorname{tr}\\{(F^{\\mathsf T}F)^{-1}\\}\\right]\n +\\|\\beta\\|_2^2b_{n,\\varepsilon}.\n \\tag{11}\n\\]\nThus the fallback bias is retained.  Taking traces in \\((8)\\), using \\(\\operatorname{tr}(\\Sigma^{-1})=\\Phi^\\star\\), and invoking \\(\\|\\beta\\|_2\\le B\\), we obtain\n\\[\n \\frac{\\sigma^2\\Phi^\\star}{n}\\frac{1-b_{n,\\varepsilon}}{1+\\varepsilon}\n \\le R_n(\\beta,\\sigma,\\varepsilon)\n \\le\\frac{\\sigma^2\\Phi^\\star}{n(1-\\varepsilon)}+B^2b_{n,\\varepsilon}.\n \\tag{12}\n\\]\nSince \\((1-\\varepsilon)^{-1}\\le1+2\\varepsilon\\) for \\(0<\\varepsilon<1/2\\), substituting \\((6)\\) into the upper bound in \\((12)\\) proves the first-order risk bound.\n\nIt remains to prove the fixed-threshold second-order assertion.  Fix \\(\\bar\\varepsilon\\in(0,1/2)\\) as in Definition \\(\\textnormal{def:oracle-threshold}\\), abbreviate\n\\[\n \\overline G=G_n(\\bar\\varepsilon),\n \\qquad b=b_{n,\\bar\\varepsilon},\n \\qquad H=H_n(\\bar\\varepsilon),\n \\qquad D=\\Sigma^{-1}.\n\\]\nEquations \\((2)\\) and \\((5)\\) imply\n\\[\n H=\\frac1n\\sum_{a=1}^n(K_a-I_q),\n \\qquad \\mathbb EH=0.\n \\tag{13}\n\\]\nBecause \\(K_a\\) has rank one, \\(K_a^2=\\|w_a\\|_2^2K_a\\).  Equation \\((3)\\) therefore yields\n\\[\n K_a^2\\preceq\\mu^\\star K_a,\n \\qquad\n \\mathbb E(K_a-I_q)^2=\\mathbb EK_a^2-I_q\n \\preceq(\\mu^\\star-1)I_q.\n \\tag{14}\n\\]\nFor \\(a\\ne c\\), independence and centering give \\(\\mathbb E[(K_a-I_q)(K_c-I_q)]=0\\).  Expanding the square in \\((13)\\) and applying \\((14)\\) gives\n\\[\n \\mathbb EH^2\n =\\frac1{n^2}\\sum_{a=1}^n\\mathbb E(K_a-I_q)^2\n \\preceq\\frac{\\mu^\\star-1}{n}I_q.\n \\tag{15}\n\\]\n\nOn \\(\\overline G\\), the spectrum of \\(I_q+H\\) is contained in \\([1-\\bar\\varepsilon,1+\\bar\\varepsilon]\\).  Direct multiplication by \\(I_q+H\\) verifies the exact identity\n\\[\n (I_q+H)^{-1}=I_q-H+H^2(I_q+H)^{-1}.\n \\tag{16}\n\\]\nSince \\(H\\) commutes with \\((I_q+H)^{-1}\\), functional calculus gives\n\\[\n 0\\preceq H^2(I_q+H)^{-1}\n \\preceq\\frac1{1-\\bar\\varepsilon}H^2\n \\quad\\text{on }\\overline G.\n \\tag{17}\n\\]\nBecause \\(D\\succeq0\\), equations \\((15)\\)--\\((17)\\) imply\n\\[\n 0\\le\n \\mathbb E\\!\\left[\\mathbf 1_{\\overline G}\n \\operatorname{tr}\\{DH^2(I_q+H)^{-1}\\}\\right]\n \\le\\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\\operatorname{tr}(D).\n \\tag{18}\n\\]\nIndeed, after using \\((17)\\), dropping the indicator can only increase the trace, and \\((15)\\) applies after expectation.\n\nThe pointwise bounds \\(0\\preceq n^{-1}\\sum_aK_a\\preceq\\mu^\\star I_q\\), obtained from \\((3)\\), imply\n\\[\n -I_q\\preceq H\\preceq(\\mu^\\star-1)I_q,\n \\qquad\n \\|H\\|_{\\mathrm{op}}\\le\\mu^\\star.\n\\]\nConsequently,\n\\[\n |\\operatorname{tr}(DH)|\n \\le\\|H\\|_{\\mathrm{op}}\\operatorname{tr}(D)\n \\le\\mu^\\star\\Phi^\\star.\n \\tag{19}\n\\]\nTaking the \\(D\\)-weighted trace of \\((16)\\), restricting to \\(\\overline G\\), and using \\(\\mathbb E\\operatorname{tr}(DH)=0\\) from \\((13)\\), we find\n\\[\n\\begin{aligned}\n &\\mathbb E\\!\\left[\\mathbf 1_{\\overline G}\n \\operatorname{tr}\\{D(I_q+H)^{-1}\\}\\right]-\\Phi^\\star\\\\\n &\\quad=-b\\Phi^\\star\n +\\mathbb E\\!\\left[\\mathbf 1_{\\overline G^c}\\operatorname{tr}(DH)\\right]\n +\\mathbb E\\!\\left[\\mathbf 1_{\\overline G}\n \\operatorname{tr}\\{DH^2(I_q+H)^{-1}\\}\\right].\n\\end{aligned}\n \\tag{20}\n\\]\nEquations \\((18)\\)--\\((20)\\) and the triangle inequality prove\n\\[\n \\left|\n \\frac{\\mathbb E[\\mathbf 1_{\\overline G}\n \\operatorname{tr}\\{D(I_q+H)^{-1}\\}]}{\\Phi^\\star}-1\n \\right|\n \\le\\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\n +(1+\\mu^\\star)b.\n \\tag{21}\n\\]\nFinally, on \\(\\overline G\\), congruence in \\((5)\\) gives\n\\[\n \\operatorname{tr}\\{(F^{\\mathsf T}F)^{-1}\\}\n =\\frac1n\\operatorname{tr}\\{D(I_q+H)^{-1}\\}.\n\\]\nSubstitute this identity into \\((11)\\), divide by the positive quantity \\(\\sigma^2\\Phi^\\star/n\\), and apply \\((21)\\).  This yields\n\\[\n \\left|\n \\frac{R_n(\\beta,\\sigma,\\bar\\varepsilon)}{\\sigma^2\\Phi^\\star/n}-1\n \\right|\n \\le\\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\n +\\left(1+\\mu^\\star+\n \\frac{n\\|\\beta\\|_2^2}{\\sigma^2\\Phi^\\star}\\right)b_{n,\\bar\\varepsilon}.\n\\]\nUsing \\(\\|\\beta\\|_2\\le B\\), \\(\\sigma\\ge\\sigma_{\\min}>0\\), and the fixed-threshold instance of \\((6)\\) proves the theorem's final displayed inequality.  The argument uses only the stipulated conditional first and second noise moments; it assumes neither conditional Gaussianity nor finite-sample optimality over dosage designs.",
+      "status": "proved"
+    },
+    {
+      "id": "thm:oracle-attainment",
+      "kind": "theorem",
+      "statement": "For any fixed \\(\\bar\\varepsilon\\in(0,1/2)\\), with \\(p,k,L,B,\\sigma_{\\min},\\sigma_{\\max}\\) fixed, for every \\(n\\ge1\\),\n\\[\n\\begin{aligned}\n &\\sup_{\\substack{\\|\\beta\\|_2\\le B,\\;\\sigma\\in[\\sigma_{\\min},\\sigma_{\\max}]\\\\\n \\textnormal{admissible conditional-noise laws}}}\n \\left|\n \\frac{R_n(\\beta,\\sigma,\\bar\\varepsilon)}{\\sigma^2\\Phi^\\star/n}-1\n \\right|\\\\\n &\\qquad\\le\n \\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\n +2q\\left(1+\\mu^\\star+\n \\frac{nB^2}{\\sigma_{\\min}^2\\Phi^\\star}\\right)\n \\exp\\!\\left(-\\frac{n\\bar\\varepsilon^2}{3\\mu^\\star}\\right)\n =O(n^{-1}).\n\\end{aligned}\n\\]\nConsequently, the displayed supremum converges to zero. This is a uniform fixed-dimensional oracle-risk expansion for the specified estimator at \\(d^\\star\\); it is not a finite-\\(n\\) minimax-optimality statement over dosage designs.",
+      "depends_on": [
+        "ass:fixed-dimension",
+        "def:oracle-threshold",
+        "thm:risk-sandwich"
+      ],
+      "justification": "This gives a finite-sample, uniform \\(O(n^{-1})\\) relative-risk expansion for the fixed-threshold known-information estimator at the exact population-optimal dosage.",
+      "gap": "PFED does not provide an all-order shared-supply oracle constant, and the generic concentration references do not derive the mean-cancelled second-order remainder with this exact leverage and fallback term.",
+      "consumer": "An independent-delivery interaction screen can use a fixed conditioning threshold and read off a uniform finite-sample error bound around the population oracle risk, without interpreting it as finite-sample design minimaxity.",
+      "proof_tex": "Fix \\(\\bar\\varepsilon\\in(0,1/2)\\) according to Definition \\(\\textnormal{def:oracle-threshold}\\).  Under the fixed-dimension assumption, \\(q\\), \\(\\mu^\\star\\), \\(\\Phi^\\star\\), \\(B\\), and \\(\\sigma_{\\min}\\) are constants as \\(n\\to\\infty\\).  The trace and exact-leverage results used in Theorem \\(\\textnormal{thm:risk-sandwich}\\) give\n\\[\n 1<\\mu^\\star<\\infty,\n \\qquad\n 0<\\Phi^\\star<\\infty.\n\\]\nHence \\(\\sigma^2\\Phi^\\star/n>0\\) uniformly for \\(\\sigma\\in[\\sigma_{\\min},\\sigma_{\\max}]\\).\n\nFor an admissible coefficient, noise scale, and conditional-noise law, define the proof-intermediate relative risk\n\\[\n \\rho_n(\\beta,\\sigma)\n =\\frac{R_n(\\beta,\\sigma,\\bar\\varepsilon)}{\\sigma^2\\Phi^\\star/n}.\n\\]\nThe fixed-threshold conclusion of Theorem \\(\\textnormal{thm:risk-sandwich}\\), together with \\(\\|\\beta\\|_2\\le B\\) and \\(\\sigma^2\\ge\\sigma_{\\min}^2\\), gives simultaneously over the entire displayed class\n\\[\n \\left|\\rho_n(\\beta,\\sigma)-1\\right|\n \\le\n \\frac{\\mu^\\star-1}{(1-\\bar\\varepsilon)n}\n +2q\\left(1+\\mu^\\star+\n \\frac{nB^2}{\\sigma_{\\min}^2\\Phi^\\star}\\right)\n \\exp\\!\\left(-\\frac{n\\bar\\varepsilon^2}{3\\mu^\\star}\\right).\n \\tag{1}\n\\]\nThe right-hand side is deterministic and independent of \\(\\beta\\), \\(\\sigma\\), and the particular admissible conditional-noise law.  Taking the stated supremum therefore preserves \\((1)\\).\n\nSet \\(c=\\bar\\varepsilon^2/(3\\mu^\\star)>0\\).  For each fixed integer \\(m\\ge0\\), differentiation of \\(f_m(x)=x^me^{-cx}\\) on \\([1,\\infty)\\) shows that its only possible interior maximizer is \\(x=m/c\\), while \\(f_m(x)\\to0\\) as \\(x\\to\\infty\\).  Thus \\(ne^{-cn}\\) and \\(n^2e^{-cn}\\) are bounded.  After multiplying the right-hand side of \\((1)\\) by \\(n\\), its first term is constant and its exponential terms are fixed linear combinations of \\(ne^{-cn}\\) and \\(n^2e^{-cn}\\).  The entire right-hand side of \\((1)\\) is therefore \\(O(n^{-1})\\), and in particular converges to zero.\n\nThis proves the explicit uniform fixed-dimensional oracle-risk expansion for the known-information, fixed-threshold estimator under independent product-Bernoulli delivery at \\(d^\\star\\).  Because no lower bound over competing finite-sample dosage designs enters the argument, the conclusion is not a finite-\\(n\\) dosage-minimax statement.",
+      "status": "proved"
+    },
+    {
+      "id": "prop:additive-reduction",
+      "kind": "proposition",
+      "statement": "When \\(k=1\\), the criterion reduces to \\(\\Phi_1(d)=1+\\sum_{i=1}^p r(d_i)\\), and the optimizer reduces to the uniform limited-supply dosage in the additive PFED setting. When \\(L\\ge p/2\\), it further reduces to half dosage with \\(\\Phi^\\star=1+p\\).",
+      "free_symbols": [
+        "k",
+        "Phi",
+        "d",
+        "p",
+        "r",
+        "L",
+        "PhiStar"
+      ],
+      "depends_on": [
+        "lem:trace-identity",
+        "thm:uniform-optimum",
+        "def:index-family",
+        "def:population-criterion",
+        "def:coordinate-factor"
+      ],
+      "justification": "This is the required sanity reduction to the known additive and unconstrained designs.",
+      "gap": "The reduction is known from ShyamalZhangUhler2025; it is included as a fidelity check rather than a novelty claim.",
+      "consumer": "Readers can verify that the all-order theorem preserves the established additive benchmark.",
+      "proof_tex": "Suppose \\(k=1\\).  By \\texttt{def:index-family}, the retained family is\n\\(\\mathcal I_1=\\{\\varnothing,\\{1\\},\\ldots,\\{p\\}\\}\\).  Therefore the already established \\texttt{lem:trace-identity} gives, for every interior feasible dosage,\n\\[\n \\Phi_1(d)\n =\\prod_{i\\in\\varnothing}r(d_i)\n  +\\sum_{i=1}^p\\prod_{\\ell\\in\\{i\\}}r(d_\\ell)\n =1+\\sum_{i=1}^p r(d_i). \\tag{1}\n\\]\nAt a boundary dosage the same trace lemma assigns \\(\\Phi_1(d)=+\\infty\\), consistently with the singular-design convention in \\texttt{def:population-criterion}.\n\nApplying \\texttt{thm:uniform-optimum} with \\(k=1\\) shows that the unique optimizer is the uniform limited-supply dosage\n\\[\n d_i=u=\\min\\{L/p,1/2\\}\\qquad(1\\le i\\le p).\n\\]\nThis is precisely the additive product-Bernoulli allocation asserted in the proposition.  If \\(L\\ge p/2\\), then \\(u=1/2\\), and \\texttt{def:coordinate-factor} gives\n\\[\n r(1/2)=\\frac{1}{2(1/2)(1/2)}-1=1.\n\\]\nSubstituting into (1), or equivalently into the exact value in \\texttt{thm:uniform-optimum}, yields \\(\\Phi^\\star=1+p\\), as required.",
+      "status": "proved"
+    },
+    {
+      "id": "oeq:finite-minimax-frontier",
+      "kind": "openendedquestion",
+      "statement": "Using the finite-risk saddle handle, characterize the dosage in \\(\\mathcal D_L\\) minimizing the worst-case unconditional risk of the specified spectral-threshold OLS estimator over \\(\\|\\beta\\|_2\\le B\\) and the admissible conditional-noise class. Determine an explicit finite-\\(n\\) frontier separating regimes in which \\(d^\\star\\) is minimax from regimes in which a nonuniform independent dosage has strictly smaller worst-case risk.",
+      "free_symbols": [
+        "finiteMinimaxHandle",
+        "designClass",
+        "risk",
+        "beta",
+        "B",
+        "d",
+        "n",
+        "dStar",
+        "betaHat"
+      ],
+      "depends_on": [
+        "def:finite-minimax-handle",
+        "thm:risk-sandwich",
+        "prop:rank-obstruction"
+      ],
+      "justification": "Population \\(A\\)-optimality does not settle the discontinuous finite-sample risk created by missing patterns and fallback bias.",
+      "gap": "ShyamalZhangUhler2025 proves only near-optimal bounds, and DerezinskiWarmuth2017 obtains exact inverse-Gram identities under a different dependent sampling law.",
+      "consumer": "The frontier would tell small interaction screens whether the asymptotically optimal uniform dosage is also the correct finite-budget design.",
+      "obligation": {
+        "what_is_open": "An explicit finite-\\(n\\) comparison over \\(d\\in\\mathcal D_L\\) requires a dosage-indexed spectral event, estimator, bad-event probability, and unconditional risk, followed by solution of the resulting nonconvex finite-support optimization.",
+        "obstruction": "The frozen objects \\(G_n(\\varepsilon)\\), \\(\\widehat\\beta_\\varepsilon\\), and \\(R_n(\\beta,\\sigma,\\varepsilon)\\) are defined only using \\(\\Sigma_k(d^\\star)\\) and expectation under \\(P_{d^\\star}\\). Thus the frozen core contains no well-typed objective map whose argument is a competing dosage \\(d\\), so no minimizer or frontier over \\(\\mathcal D_L\\) can be proved without first adding that construction and specifying its threshold convention.",
+        "attempted": "I substituted the exact conditional-risk decomposition, maximized its two nonnegative terms over the coefficient ball and variance interval, and reduced the assignment expectation to a finite Boolean-support sum. This closes the coefficient/noise saddle at \\(d^\\star\\), but permutation symmetry does not compare different product dosages, and extending the estimator by silently replacing \\(d^\\star\\) with \\(d\\) would change the frozen construction and the question's formal scope.",
+        "partial_result": "At the single dosage \\(d^\\star\\) for which the frozen estimator and risk are defined, the proved decomposition gives the computable worst-case value\n\\[\n \\sup_{\\substack{\\|\\beta\\|_2\\le B,\\ \n \\sigma\\in[\\sigma_{\\min},\\sigma_{\\max}]\\\\\n \\text{admissible conditional-noise laws}}}\n R_n(\\beta,\\sigma,\\varepsilon)\n =\\sigma_{\\max}^2\\mathbb E_{d^\\star}\\!\\left[\n \\mathbf 1_{G_n(\\varepsilon)}\\operatorname{tr}\\{(F^{\\mathsf T}F)^{-1}\\}\\right]\n +B^2b_{n,\\varepsilon}.\n\\]\nThe equality follows because the two terms depend on \\(\\sigma^2\\) and \\(\\|\\beta\\|_2^2\\), respectively, with nonnegative coefficients, and admissible centered homoskedastic noise laws exist at every allowed variance. This settles the worst-case coefficient/noise optimization at \\(d^\\star\\), but it does not define or compare the corresponding quantity at \\(d\\ne d^\\star\\)."
+      },
+      "status": "to-prove"
+    },
+    {
+      "id": "lem:schwabe-wong-product-trace",
+      "kind": "lemma",
+      "statement": "Let \\(\\Delta\\) be a downward-closed collection of subsets and let \\(\\xi=\\xi_1\\otimes\\cdots\\otimes\\xi_p\\) be a product design for the associated interaction model, with nonsingular marginal information matrices \\(M_i(\\xi_i)\\). Then the product-design inverse-trace identity of Schwabe and Wong is\n\\[\n \\operatorname{tr}\\{M(\\xi)^{-1}\\}\n =\\sum_{T\\in\\Delta}\\prod_{i\\in T}\n \\bigl[\\operatorname{tr}\\{M_i(\\xi_i)^{-1}\\}-1\\bigr].\n\\]",
+      "free_symbols": [
+        "p"
+      ],
+      "depends_on": [
+        "ass:factor-count"
+      ],
+      "source": {
+        "cite": "SchwabeWong1999",
+        "locator": "Section 4, page 729, displayed downward-closed product-design trace identity",
+        "carrier": "logical-claim",
+        "verbatim_statement": "\\(\\operatorname{tr} M(\\xi_1\\times\\cdots\\times\\xi_p)^{-1}=\\sum_{T\\in\\Delta}\\prod_{i\\in T}[\\operatorname{tr}M_i(\\xi_i)^{-1}-1]\\).",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed from Schwabe and Wong (1999), Section 4, page 729, using the source location supplied in the presolve evidence."
+        }
+      },
+      "status": "cited"
+    },
+    {
+      "id": "lem:tropp-matrix-chernoff",
+      "kind": "lemma",
+      "statement": "Let \\(K_1,\\ldots,K_n\\) be independent positive-semidefinite random matrices of dimension \\(q\\), and suppose for a constant \\(R>0\\) that \\(\\lambda_{\\max}(K_a)\\le R\\) almost surely. Define\n\\[\n \\mu_{\\min}=\\lambda_{\\min}\\!\\left(\\sum_{a=1}^n\\mathbb E K_a\\right),\n \\qquad\n \\mu_{\\max}=\\lambda_{\\max}\\!\\left(\\sum_{a=1}^n\\mathbb E K_a\\right).\n\\]\nFor \\(0<\\varepsilon<1\\),\n\\[\n\\begin{aligned}\n \\mathbb P\\!\\left\\{\\lambda_{\\min}\\!\\left(\\sum_{a=1}^nK_a\\right)\\le(1-\\varepsilon)\\mu_{\\min}\\right\\}\n &\\le q\\left[\\frac{e^{-\\varepsilon}}{(1-\\varepsilon)^{1-\\varepsilon}}\\right]^{\\mu_{\\min}/R},\\\\\n \\mathbb P\\!\\left\\{\\lambda_{\\max}\\!\\left(\\sum_{a=1}^nK_a\\right)\\ge(1+\\varepsilon)\\mu_{\\max}\\right\\}\n &\\le q\\left[\\frac{e^{\\varepsilon}}{(1+\\varepsilon)^{1+\\varepsilon}}\\right]^{\\mu_{\\max}/R}.\n\\end{aligned}\n\\]",
+      "free_symbols": [
+        "n",
+        "q",
+        "epsilonThreshold"
+      ],
+      "depends_on": [
+        "ass:sample-size",
+        "def:regression-dimension"
+      ],
+      "source": {
+        "cite": "Tropp2012",
+        "locator": "Corollary 5.2, Matrix Chernoff II, equations (5.1) and (5.2)",
+        "carrier": "logical-claim",
+        "verbatim_statement": "For independent positive-semidefinite self-adjoint matrices with uniform eigenvalue bound \\(R\\), Corollary 5.2 gives \\(\\mathbb P\\{\\lambda_{\\min}(\\sum_kX_k)\\le(1-\\delta)\\mu_{\\min}\\}\\le d[e^{-\\delta}/(1-\\delta)^{1-\\delta}]^{\\mu_{\\min}/R}\\) and \\(\\mathbb P\\{\\lambda_{\\max}(\\sum_kX_k)\\ge(1+\\delta)\\mu_{\\max}\\}\\le d[e^{\\delta}/(1+\\delta)^{1+\\delta}]^{\\mu_{\\max}/R}\\).",
+        "attestation": {
+          "by": "d0-agent",
+          "note": "Transcribed from Tropp (2012), Corollary 5.2, equations (5.1) and (5.2), at the source location identified in the supplied presolve evidence."
+        }
+      },
+      "status": "cited"
+    }
+  ],
+  "bibliography": [
+    {
+      "key": "ShyamalZhangUhler2025",
+      "citation": "Divya Shyamal, Jiaqi Zhang, and Caroline Uhler. Probabilistic Factorial Experimental Design for Combinatorial Interventions. Proceedings of Machine Learning Research, volume 267, 2025."
+    },
+    {
+      "key": "SchwabeWong1999",
+      "citation": "Rainer Schwabe and Weng Kee Wong. Efficiency Bounds for Product Designs in Linear Models. Annals of the Institute of Statistical Mathematics, 51:723--730, 1999."
+    },
+    {
+      "key": "Tropp2012",
+      "citation": "Joel A. Tropp. User-Friendly Tail Bounds for Sums of Random Matrices. Foundations of Computational Mathematics, 12:389--434, 2012."
+    },
+    {
+      "key": "HsuKakadeZhang2014",
+      "citation": "Daniel Hsu, Sham M. Kakade, and Tong Zhang. Random Design Analysis of Ridge Regression. Foundations of Computational Mathematics, 14:569--600, 2014."
+    },
+    {
+      "key": "DerezinskiWarmuth2017",
+      "citation": "Michał Dereziński and Manfred K. Warmuth. Unbiased Estimates for Linear Regression via Volume Sampling. Advances in Neural Information Processing Systems, 30, 2017."
+    },
+    {
+      "key": "FreiseSchwabe2019",
+      "citation": "Fritjof Freise and Rainer Schwabe. Optimal Designs for \\(K\\)-Factor Two-Level Models with First-Order Interactions on a Symmetrically Restricted Design Region. Statistical Papers, 2019."
+    },
+    {
+      "key": "RavichandranEtAl2024",
+      "citation": "Arun Ravichandran, Nicole E. Pashley, Brian Libgober, and Tirthankar Dasgupta. Optimal Allocation of Sample Size for Randomization-Based Inference from \\(2^K\\) Factorial Designs. Journal of Causal Inference, 2024."
+    },
+    {
+      "key": "YaoEtAl2024",
+      "citation": "Douglas Yao and coauthors. Scalable Genetic Screening for Regulatory Circuits Using Compressed Perturb-seq. Nature Biotechnology, 42:1282--1295, 2024."
+    }
+  ]
+}

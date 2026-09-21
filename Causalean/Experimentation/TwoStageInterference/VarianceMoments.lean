@@ -20,7 +20,8 @@ This `E_Shat` lemma is paper-agnostic in the selection family; the treated case 
 moment fact consumed by `E_varHat_conservative`.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Variance
+module
+public import Causalean.Experimentation.TwoStageInterference.Variance
 
 /-! # Within-group sample-variance moments
 
@@ -36,6 +37,8 @@ selection families in the Hudgens-Halloran two-stage-interference variance estim
 support-congruence helper `E_congr_supp` lets the proof rewrite the statistic only on assignments
 that have positive design mass.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

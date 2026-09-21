@@ -3,24 +3,18 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Słoczyński (2022): finite-partition OLS weights with heterogeneous effects
+# Finite-partition OLS weights with heterogeneous effects
 
-Pure finite-cell algebra for the Słoczyński saturated-OLS weight formulas.
-Formalizes:
+Pure finite-cell algebra for saturated-OLS overlap weights. It proves:
 
-* `prop:po-estimand-sloczynski-ols-finite-weights` — the saturated OLS
-  estimand decomposes as `Σ ω_g τ_g`, `ω_g ∝ π_g p_g (1−p_g)`.
-* `prop:po-estimand-sloczynski-ols-equal-groups` (finite half) — if every
-  `p_g = 1/2`, the overlap weights collapse to the cell probabilities.
-* `prop:po-estimand-sloczynski-ols-homogeneous` (saturated half) — if
-  `τ` is constant, the OLS estimand is that constant.
+* the saturated OLS estimand decomposes as `Σ ω_g τ_g`, with
+  `ω_g ∝ π_g p_g (1−p_g)`;
+* if every `p_g = 1/2`, the overlap weights collapse to cell probabilities;
+* if `τ` is constant, the saturated OLS estimand is that constant.
 
-The opposite-group ATT/ATU representation
-(`ass:po-estimand-sloczynski-ols-opposite-group`,
-`prop:po-estimand-sloczynski-ols-opposite-group`,
-`prop:po-estimand-sloczynski-ols-equal-groups` ATT/ATU half,
-`prop:po-estimand-sloczynski-ols-homogeneous` ATT/ATU half) is recorded
-as a separate algebraic structure `OppositeGroupRepr`.
+An assumed two-component ATT/ATU representation is recorded separately as the
+algebraic scaffold `AssumedTwoComponentOLS`. Its corollaries do not derive the
+representation from an OLS projection.
 
 This file is pure finite-cell algebra. The symbols `π`, `p`, and `τ` stand for
 cell probabilities, treated shares, and cell-level effects in the finite
@@ -28,33 +22,35 @@ partition. Their probability-space interpretation — including
 `τ_g = E[Y(1)−Y(0) ∣ G=g]` built from potential outcomes under the finite-cell
 bridge condition — is supplied by `bridge_finite_residualized_eq_overlap` in
 `OverlapWeightedATE.lean`, where `partitionOf` instantiates this structure from
-a probability space. See
-`prop:po-estimand-sloczynski-ols-finite-weights` and
-`Causalean/Panel/EstimandCharacterization/OLSWeightDecomposition/OverlapWeightedATE.lean`.
+a probability space. See `OverlapWeightedATE.lean` for that bridge.
 
-NL artifact:
+The motivating NL artifact is:
 `doc/basic_concepts/po/estimand_characterization/sloczynski_ols_heterogeneous.md`.
-Source LaTeX:
-`doc/basic_concepts/po/estimand_characterization/sloczynski_ols_heterogeneous.tex`.
+The algebra here does not derive the paper's treated-versus-untreated
+representation; `AssumedTwoComponentOLS` stores that representation as input.
 -/
 
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
-/-! # Słoczyński Finite Partition Algebra
+module
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
 
-This file formalizes the finite-cell algebra behind Słoczyński's saturated
-ordinary least squares weights with heterogeneous treatment effects. It defines
+/-! # Finite-Partition OLS Algebra
+
+This file formalizes finite-cell saturated ordinary least squares weights with
+heterogeneous treatment effects. It defines
 `FinitePartition`, `cellOverlap`, `overlapWeight`, and
 `overlapWeightedATE`, proves the normalized-weight identity
 `finite_weights_eq_sum`, and records the equal-share and homogeneous-effect
 collapses. It also defines `perTreatedWeight` and `perUntreatedWeight` for the
-per-observation leverage interpretation, and `OppositeGroupRepr` for the
-separate ATT/ATU opposite-group representation with the derived theorem
-`represents`. -/
+per-observation leverage interpretation, and `AssumedTwoComponentOLS` for a
+separate ATT/ATU algebraic scaffold whose two-component identity and
+equal-dispersion weight are supplied as fields. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -62,7 +58,7 @@ namespace OLSWeightDecomposition
 
 open Finset
 
-/-- A finite covariate partition for Słoczyński's saturated-OLS weight decomposition, carrying
+/-- A finite covariate partition for a saturated-OLS weight decomposition, carrying
 [cell probabilities](hyp:π), [within-cell treated shares](hyp:p), and [within-cell conditional
 treatment effects](hyp:τ), together with the side conditions used by the saturated-OLS algebra:
 [the cell probabilities are nonnegative](hyp:π_nonneg) and [sum to one](hyp:π_sum_one), [the
@@ -88,24 +84,34 @@ structure FinitePartition (𝒢 : Type*) [Fintype 𝒢] where
 
 namespace FinitePartition
 
-/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [within-cell treatment overlap](goal) is $p_g(1-p_g)$, where $p_g$ is that cell's treated share. -/
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g),
+the [within-cell treatment overlap](goal) is $p_g(1-p_g)$, where $p_g$ is
+that cell's treated share. -/
 def cellOverlap {𝒢 : Type*} [Fintype 𝒢] (P : FinitePartition 𝒢) (g : 𝒢) : ℝ :=
   P.p g * (1 - P.p g)
 
-/-- For [a finite covariate partition](hyp:P), the [overlap-weighted numerator](goal) is $\sum_g \pi_g p_g(1-p_g)\tau_g$, the sum of each cell effect weighted by its probability and treatment overlap. -/
+/-- For [a finite covariate partition](hyp:P), the
+[overlap-weighted numerator](goal) is $\sum_g \pi_g p_g(1-p_g)\tau_g$,
+the sum of each cell effect weighted by its probability and treatment overlap. -/
 def overlapNumerator {𝒢 : Type*} [Fintype 𝒢] (P : FinitePartition 𝒢) : ℝ :=
   ∑ g, P.π g * P.cellOverlap g * P.τ g
 
-/-- For [a finite covariate partition](hyp:P), the [overlap-weighted denominator](goal) is $\sum_g \pi_g p_g(1-p_g)$, the probability-weighted sum of within-cell treatment overlap. -/
+/-- For [a finite covariate partition](hyp:P), the
+[overlap-weighted denominator](goal) is $\sum_g \pi_g p_g(1-p_g)$,
+the probability-weighted sum of within-cell treatment overlap. -/
 def overlapDenominator {𝒢 : Type*} [Fintype 𝒢] (P : FinitePartition 𝒢) : ℝ :=
   ∑ g, P.π g * P.cellOverlap g
 
-/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [normalized overlap weight](goal) is $\pi_g p_g(1-p_g)/\sum_h\pi_h p_h(1-p_h)$. -/
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g),
+the [normalized overlap weight](goal) is
+$\pi_g p_g(1-p_g)/\sum_h\pi_h p_h(1-p_h)$. -/
 noncomputable def overlapWeight {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) (g : 𝒢) : ℝ :=
   (P.π g * P.cellOverlap g) / P.overlapDenominator
 
-/-- For [a finite covariate partition](hyp:P), the [saturated ordinary-least-squares estimand](goal) is $\sum_g\pi_g p_g(1-p_g)\tau_g / \sum_g\pi_g p_g(1-p_g)$. -/
+/-- For [a finite covariate partition](hyp:P), the
+[saturated ordinary-least-squares estimand](goal) is
+$\sum_g\pi_g p_g(1-p_g)\tau_g / \sum_g\pi_g p_g(1-p_g)$. -/
 noncomputable def overlapWeightedATE {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) : ℝ :=
   P.overlapNumerator / P.overlapDenominator
@@ -161,8 +167,7 @@ theorem equal_groups_collapses
   refine Finset.sum_congr rfl (fun g _ => ?_)
   rw [P.equal_groups_weight_eq_pi h g]
 
-/-- **Homogeneous-effect collapse** (saturated half of
-`prop:po-estimand-sloczynski-ols-homogeneous`). If [the cell-level treatment
+/-- **Homogeneous-effect collapse.** If [the cell-level treatment
 effect equals a common constant `τ₀` in every cell](hyp:h), then [the
 saturated-OLS estimand `β_sat` equals `τ₀`](goal). -/
 theorem homogeneous_collapses
@@ -175,19 +180,21 @@ theorem homogeneous_collapses
     rw [h g]; ring
   rw [overlapWeightedATE, hnum, mul_div_assoc, div_self hD, mul_one]
 
-/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [per-treated-observation leverage factor](goal) is $1-p_g$, the untreated share in that cell.
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g),
+the [per-treated-observation leverage factor](goal) is $1-p_g$, the untreated
+share in that cell.
 
-The paper (Słoczyński 2022, Remark `rem:po-estimand-sloczynski-ols-group-size`)
-notes that in the overlap-weighted OLS formula each treated observation in
-cell `g` contributes a leverage factor of `1 − p_g` (the untreated share),
-while each untreated observation contributes `p_g` (the treated share).
-This definition makes the first factor explicit; see
+In the finite-cell overlap formula, each treated observation in cell `g` has
+the leverage factor `1 − p_g`, while each untreated observation has the
+factor `p_g`. This definition makes the first factor explicit; see
 `perTreatedWeight_antitone`, `perUntreatedWeight_monotone`, and
 `cellOverlap_eq_perWeights_mul` for the main monotonicity claims. -/
 noncomputable def perTreatedWeight {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) (g : 𝒢) : ℝ := 1 - P.p g
 
-/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g), the [per-untreated-observation leverage factor](goal) is $p_g$, the treated share in that cell.
+/-- For [a finite covariate partition](hyp:P) and [one of its cells](hyp:g),
+the [per-untreated-observation leverage factor](goal) is $p_g$, the treated
+share in that cell.
 
 Each untreated observation in cell `g` contributes a leverage factor of
 `p_g` (the treated share). Cells with more treated units (high `p_g`) give
@@ -199,16 +206,14 @@ noncomputable def perUntreatedWeight {𝒢 : Type*} [Fintype 𝒢]
 
 /-- The cell overlap variance is the product of the two per-observation
 leverage factors: `p_g (1−p_g) = perUntreatedWeight_g · perTreatedWeight_g`.
-This links the finite-cell denominator directly to the paper's per-unit
-weight interpretation. -/
+This links the finite-cell denominator to its two per-observation factors. -/
 theorem cellOverlap_eq_perWeights_mul {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) (g : 𝒢) :
     P.cellOverlap g = P.perUntreatedWeight g * P.perTreatedWeight g := by
   unfold cellOverlap perUntreatedWeight perTreatedWeight
   ring
 
-/-- **Headline monotonicity — smaller treated group gets larger per-treated
-weight** (`rem:po-estimand-sloczynski-ols-group-size`). The per-treated-observation
+/-- **Monotonicity of the per-treated factor.** The per-treated-observation
 leverage factor `1 − p_g` is antitone in the treated share: if [cell `g` has a
 treated share no larger than cell `h`'s](hyp:hph), then [`g`'s per-treated-observation
 leverage factor is at least `h`'s:
@@ -220,8 +225,8 @@ larger per-observation weight. A cell where almost everyone is treated
 almost no one is treated (`p_g ≈ 0`) upweights each treated observation
 toward 1.
 
-This formalizes the paper's title insight ("Smaller Groups Get Larger
-Weights") for the treated side. -/
+This is a property of the finite-cell overlap factors; it is not the paper's
+ATT/ATU group-weight representation. -/
 theorem perTreatedWeight_antitone {𝒢 : Type*} [Fintype 𝒢]
     (P : FinitePartition 𝒢) {g h : 𝒢}
     (hph : P.p g ≤ P.p h) :
@@ -229,8 +234,7 @@ theorem perTreatedWeight_antitone {𝒢 : Type*} [Fintype 𝒢]
   simp only [perTreatedWeight]
   linarith
 
-/-- **Monotonicity — larger treated group gives larger per-untreated weight**
-(`rem:po-estimand-sloczynski-ols-group-size`, untreated side). The
+/-- **Monotonicity of the per-untreated factor.** The
 per-untreated-observation leverage factor `p_g` is monotone in the treated
 share: if [cell `g` has a treated share no larger than cell `h`'s](hyp:hph),
 then [`h`'s per-untreated-observation leverage factor is at least `g`'s:
@@ -247,29 +251,14 @@ theorem perUntreatedWeight_monotone {𝒢 : Type*} [Fintype 𝒢]
 
 end FinitePartition
 
-/-- Słoczyński's two-component ATT/ATU representation
-(`ass:po-estimand-sloczynski-ols-opposite-group`).
+/-- An algebraic scaffold in which [an OLS coefficient is supplied as a two-component
+ATT/ATU combination](hyp:twoComponent), [the supplied weights sum to one](hyp:weights_sum_one),
+and [the ATT weight is supplied as the untreated share](hyp:equalDispersion), with [a treated
+share between zero and one](hyp:ρ_nonneg,ρ_le_one).
 
-The conventional (single-dummy) OLS treatment coefficient is *assumed* to
-admit Słoczyński's two-component causal representation
-`β_ols = w₁·τ_ATT + w₀·τ_ATU` with `w₁ + w₀ = 1` (field `twoComponent`,
-`weights_sum_one`). This is the paper's genuine structural assumption: per
-`rem:po-estimand-sloczynski-ols-no-covariate-caveat` it is recorded
-*separately* and must NOT be derived from the saturated-overlap formula
-(`β_sat = Σ ω_g τ_g`), which is a different, non-saturated estimand — they
-disagree numerically in general. The **equal-dispersion** case then imposes
-the opposite-group weight `w₁ = 1 − ρ` (field `equalDispersion`); `w₀ = ρ`
-follows from `weights_sum_one` (lemma `w0_eq_rho`).
-
-The opposite-group identity `β_ols = (1−ρ)·τ_ATT + ρ·τ_ATU`
-is not a structure field: it is the *derived* theorem `represents`,
-matching Proposition `prop:po-estimand-sloczynski-ols-opposite-group`, whose
-proof is exactly the substitution `w₁ = 1−ρ`, `w₀ = ρ` into the two-component
-representation. The general weight formula in terms of conditional
-treatment-variance dispersion is not specified by the source and so is not
-formalized; the equal-dispersion weights are the substantive content the
-paper highlights. -/
-structure OppositeGroupRepr where
+This structure does not construct an OLS projection or derive its two-component
+representation. Its corollaries only substitute the supplied weight identities. -/
+structure AssumedTwoComponentOLS where
   /-- Treated share `ρ = ℙ(D=1)`. -/
   ρ : ℝ
   /-- ATT, `τ_ATT = E[Y(1)−Y(0) | D=1]`. -/
@@ -286,56 +275,56 @@ structure OppositeGroupRepr where
   ρ_nonneg : 0 ≤ ρ
   /-- `ρ` is a probability — `≤ 1` side. -/
   ρ_le_one : ρ ≤ 1
-  /-- **Structural assumption** (Słoczyński two-component representation,
-  `ass:po-estimand-sloczynski-ols-opposite-group`): the OLS coefficient is a
-  convex-style combination of the group-status effects. This is genuinely
-  weaker than the opposite-group conclusion — it does not fix the weights. -/
+  /-- Supplied two-component identity: the OLS coefficient is a combination of
+  the group-status effects. -/
   twoComponent : β_ols = w₁ * τ_ATT + w₀ * τ_ATU
   /-- The two weights sum to one. -/
   weights_sum_one : w₁ + w₀ = 1
-  /-- **Equal-dispersion specialization**: the ATT weight equals the untreated
-  share `1 − ρ` (`ass:po-estimand-sloczynski-ols-opposite-group`). -/
+  /-- Supplied equal-dispersion weight identity: the ATT weight equals the
+  untreated share `1 − ρ`. -/
   equalDispersion : w₁ = 1 - ρ
 
-namespace OppositeGroupRepr
+namespace AssumedTwoComponentOLS
 
-/-- For [an opposite-group representation](hyp:R), the [average treatment effect](goal) is $\rho\tau_{ATT}+(1-\rho)\tau_{ATU}$, the treated-share-weighted average of the effects on treated and untreated groups. -/
-def tau_ATE (R : OppositeGroupRepr) : ℝ := R.ρ * R.τ_ATT + (1 - R.ρ) * R.τ_ATU
+/-- For [an assumed two-component OLS scaffold](hyp:R), the
+[average treatment effect](goal) is $\rho\tau_{ATT}+(1-\rho)\tau_{ATU}$,
+the treated-share-weighted average of the effects on treated and untreated groups. -/
+def tau_ATE (R : AssumedTwoComponentOLS) : ℝ := R.ρ * R.τ_ATT + (1 - R.ρ) * R.τ_ATU
 
-variable (R : OppositeGroupRepr)
+variable (R : AssumedTwoComponentOLS)
 
-/-- The untreated weight in the equal-dispersion case is the treated share `ρ`,
-forced by `w₁ + w₀ = 1` and `w₁ = 1 − ρ`. -/
-theorem w0_eq_rho : R.w₀ = R.ρ := by
+/-- For [an assumed two-component scaffold](hyp:R), [the untreated weight equals the treated
+share `ρ`](goal), by substituting the two supplied weight identities. -/
+theorem w0_eq_rho_of_assumed_weights : R.w₀ = R.ρ := by
   have h := R.weights_sum_one
   rw [R.equalDispersion] at h; linarith
 
-/-- **Słoczyński opposite-group identity** (`prop:po-estimand-sloczynski-ols-opposite-group`) —
-derived rather than assumed. [Substituting the equal-dispersion weights into the two-component
-representation shows that the OLS coefficient equals `(1−ρ)·τ_ATT + ρ·τ_ATU`: the treated-group
-effect receives the untreated share as its weight, and vice versa](goal). -/
-theorem represents : R.β_ols = (1 - R.ρ) * R.τ_ATT + R.ρ * R.τ_ATU := by
-  rw [R.twoComponent, R.equalDispersion, R.w0_eq_rho]
+/-- For [an OLS coefficient already supplied in two-component form with the stated weight
+identities](hyp:R), [substitution shows that it equals `(1−ρ)·τ_ATT + ρ·τ_ATU`](goal).
 
-/-- **Equal-group-size collapse to the ATE** (top half of
-`prop:po-estimand-sloczynski-ols-equal-groups`). If [the treated share `ρ`
-equals one half](hyp:h), then [the opposite-group OLS coefficient `β_ols`
-equals the ATE `τ_ATE = ρ·τ_ATT + (1−ρ)·τ_ATU`](goal). -/
-theorem equal_groups_eq_ATE (h : R.ρ = 1 / 2) :
+This is an algebraic corollary of the fields of `R`, not a derivation of the
+two-component representation from a regression problem. -/
+theorem opposite_group_identity_of_assumed_twoComponent :
+    R.β_ols = (1 - R.ρ) * R.τ_ATT + R.ρ * R.τ_ATU := by
+  rw [R.twoComponent, R.equalDispersion, R.w0_eq_rho_of_assumed_weights]
+
+/-- **Equal-group-size collapse within the assumed scaffold.** For [an assumed
+two-component scaffold](hyp:R), if [the treated share `ρ` equals one half](hyp:h), then [the
+supplied OLS coefficient `β_ols` equals the ATE `τ_ATE = ρ·τ_ATT + (1−ρ)·τ_ATU`](goal). -/
+theorem equal_groups_eq_ATE_of_assumed_twoComponent (h : R.ρ = 1 / 2) :
     R.β_ols = R.tau_ATE := by
-  rw [R.represents, tau_ATE, h]; ring
+  rw [R.opposite_group_identity_of_assumed_twoComponent, tau_ATE, h]; ring
 
-/-- **Homogeneous-effect collapse for the opposite-group representation**
-(ATT/ATU half of `prop:po-estimand-sloczynski-ols-homogeneous`). If [the ATT
-equals a common constant `τ₀`](hyp:hT) and [the ATU equals that same constant
-`τ₀`](hyp:hU), then [the opposite-group OLS coefficient `β_ols` equals `τ₀`,
-regardless of the treated share `ρ`](goal). -/
-theorem homogeneous_eq_constant
+/-- **Homogeneous-effect collapse within the assumed scaffold.** For [an assumed
+two-component scaffold](hyp:R), if [the ATT equals a common constant `τ₀`](hyp:hT) and
+[the ATU equals that same constant `τ₀`](hyp:hU), then [the supplied OLS coefficient
+`β_ols` equals `τ₀`, regardless of the treated share `ρ`](goal). -/
+theorem homogeneous_eq_constant_of_assumed_twoComponent
     {τ₀ : ℝ} (hT : R.τ_ATT = τ₀) (hU : R.τ_ATU = τ₀) :
     R.β_ols = τ₀ := by
-  rw [R.represents, hT, hU]; ring
+  rw [R.opposite_group_identity_of_assumed_twoComponent, hT, hU]; ring
 
-end OppositeGroupRepr
+end AssumedTwoComponentOLS
 
 end OLSWeightDecomposition
 end Panel.EstimandCharacterization

@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Taylor
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Taylor
 
 /-!
 # Quantitative second-moment stability from Gaussian mean embeddings
@@ -7,6 +8,8 @@ This module combines finite coordinate control with a uniform approximation
 remainder.  It exports the `[0,5]`, degree-202, coefficient-`5151` theorem and
 its explicit contrapositive lower bound.
 -/
+
+public section
 
 open MeasureTheory Set
 open scoped BigOperators

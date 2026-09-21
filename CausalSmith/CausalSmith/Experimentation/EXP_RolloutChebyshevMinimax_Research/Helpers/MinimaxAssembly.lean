@@ -6,10 +6,13 @@ Authors: Jiyuan Tan
 # Chebyshev minimax theorem assembly helpers
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevEndpoint
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EhlichZeller
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Schedule
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevEndpoint
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EhlichZeller
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Schedule
+
+public section
 
 open scoped BigOperators
 

@@ -1,0 +1,203 @@
+%%% FIELD proof-counting-separation
+We first construct an exact polynomial-time verifier for the stability-filtered count. Let \(C\in\mathbb Q^{q\times q}\), and consider the rational linear system in the \(q^2\) entries of \(H\),
+\[
+ H-C^{\mathsf T}HC=I_q. \tag{1}
+\]
+We claim that
+\[
+ \rho(C)<1
+ \quad\Longleftrightarrow\quad
+ \text{equation (1) has a real symmetric solution \(H\succ0\)}, \tag{2}
+\]
+and that the solution is unique when \(\rho(C)<1\).
+
+Suppose first that \(\rho(C)<1\). Choose a real number \(a\) with \(\rho(C)<a<1\). Complex Jordan normal form and the binomial formula for powers of a Jordan block imply that there is a finite constant \(K_a\) such that
+\[
+ \lVert C^k\rVert_2\leq K_a a^k
+\]
+for all sufficiently large \(k\): the factors \(\binom{k}{j}\), where \(0\leq j<q\), are absorbed by the strict gap between every eigenvalue modulus and \(a\). Consequently
+\[
+ H_C:=\sum_{k=0}^{\infty}(C^k)^{\mathsf T}C^k \tag{3}
+\]
+converges absolutely in operator norm. Every summand is real symmetric positive semidefinite, and the zeroth summand is \(I_q\); hence \(H_C\succ0\). Absolute convergence permits an index shift, which gives
+\[
+ C^{\mathsf T}H_CC
+ =\sum_{k=1}^{\infty}(C^k)^{\mathsf T}C^k
+ =H_C-I_q.
+\]
+Thus \(H_C\) solves (1). If \(K-C^{\mathsf T}KC=0\), iteration yields
+\[
+ K=(C^m)^{\mathsf T}KC^m,
+ \qquad
+ \lVert K\rVert_2
+ \leq \lVert C^m\rVert_2^2\lVert K\rVert_2
+ \longrightarrow0.
+\]
+Therefore \(K=0\), proving uniqueness.
+
+Conversely, suppose that a real symmetric matrix \(H\succ0\) solves (1). If \(Cv=\lambda v\) for a nonzero complex vector \(v\), complexifying the real quadratic form in (1) gives
+\[
+ (1-|\lambda|^2)v^*Hv
+ =v^*(H-C^{\mathsf T}HC)v
+ =v^*v>0. \tag{4}
+\]
+Positive definiteness gives \(v^*Hv>0\), so division in (4) is valid and yields \(|\lambda|<1\). This holds for every eigenvalue of \(C\), and hence \(\rho(C)<1\). This proves (2). It also shows that if the coefficient operator of (1) is singular, then \(C\) cannot be stable, because stability would have implied uniqueness.
+
+The test in (2) has polynomial bit complexity. After clearing denominators, (1) is an integer linear system of dimension \(d=q^2\); the bit length of every coefficient is polynomial in \(q\) and the encoding length of \(C\). If those integer coefficients have absolute value at most \(2^K\), every \(d\)-by-\(d\) determinant arising in fraction-free elimination has absolute value at most
+\[
+ d!\,2^{dK}
+\]
+by the Leibniz formula, and therefore has at most \(dK+\lceil\log_2(d!)\rceil+1\) bits. The same estimate applies to the relevant minors and Cramer numerators. Fraction-free elimination thus decides singularity and computes the unique rational solution, when it exists, using polynomially many operations on polynomial-bit integers. Symmetry is checked exactly. For a symmetric solution, Sylvester's criterion follows by successive completion of the square: writing
+\[
+ H=\begin{pmatrix}h&b^{\mathsf T}\\ b&D\end{pmatrix},
+ \qquad h>0,
+\]
+one has
+\[
+ \begin{pmatrix}s\\y\end{pmatrix}^{\!\mathsf T}
+ H
+ \begin{pmatrix}s\\y\end{pmatrix}
+ =h\left(s+h^{-1}b^{\mathsf T}y\right)^2
+  +y^{\mathsf T}\left(D-h^{-1}bb^{\mathsf T}\right)y.
+\]
+Induction shows that \(H\succ0\) exactly when all leading principal minors are positive. These signs are decidable by exact determinant computation under the same bit bound. Applying this procedure to \(I_q-W\) also decides the reference-stability condition in the definition of \(\mathcal R_q\) in polynomial time; rationality, unit diagonal, and invertibility are decidable directly by exact arithmetic.
+
+We now prove membership in \(\#\mathrm P\). Extend the promised counting function to all binary strings by returning zero unless the input parses as a square rational matrix in \(\mathcal R_q\), a condition decidable by the preceding paragraph. On an input \(W\in\mathcal R_q\), a nondeterministic branch guesses a fixed-length canonical list encoding of a map \(\pi:[q]\to[q]\), checks that the list is a permutation, and checks
+\[
+ d_{\pi,i}=W_{\pi(i),i}\neq0
+ \qquad(1\leq i\leq q). \tag{5}
+\]
+Only after the nonzero checks in (5) does the verifier form
+\[
+ B_\pi
+ =I_q-
+ \operatorname{diag}\bigl(d_{\pi,1}^{-1},\ldots,d_{\pi,q}^{-1}\bigr)
+ P_\pi W. \tag{6}
+\]
+All arithmetic in (6) is exact. Inverting a checked nonzero rational and multiplying input rationals increases bit length by at most a polynomial in \(q+L\), so the entries of \(B_\pi\) have polynomial bit length. The verifier accepts precisely when the Lyapunov test (1)--(4), with \(C=B_\pi\), returns a positive-definite solution. By (2), this is equivalent to \(\rho(B_\pi)<1\). The canonical encoding supplies exactly one branch for each permutation, so the number of accepting branches is exactly
+\[
+ |\{\pi\in\mathfrak S_q:d_{\pi,i}\neq0\text{ for every }i,\ 
+ \rho(B_\pi)<1\}|
+ =N_{\mathrm{stab}}(W).
+\]
+Thus stable-orbit counting on \(\mathcal R_q\) belongs to \(\#\mathrm P\).
+
+For hardness, let \(G\) be a simple graph on \(n\geq1\) vertices and compute the frozen rational gadget \(W_G\). The stable-orbit realization theorem gives
+\[
+ \rho(B_G)<1,
+ \qquad
+ N_{\mathrm{stab}}(W_G)=|\mathcal I(G)|, \tag{7}
+\]
+and gives \(O(\log(n+1))\) bits per nonzero entry. The graph-gadget definition has zero diagonal in \(B_G\), because each local block has zero diagonal and the simple-graph adjacency matrix has zero diagonal; hence \(W_G=I_{3n}-B_G\) has unit diagonal. If \(W_Gz=0\) for a nonzero complex vector \(z\), then \(B_Gz=z\), contradicting \(\rho(B_G)<1\). Therefore \(W_G\) is invertible. It follows from the definition of \(\mathcal R_{3n}\) that \(W_G\in\mathcal R_{3n}\), and its complete matrix encoding has length polynomial in \(n\). Since \(G\mapsto|\mathcal I(G)|\) is \(\#\mathrm P\)-complete under polynomial-time Turing reductions, (7) is a polynomial-time one-query count-preserving reduction. Together with membership, this proves \(\#\mathrm P\)-completeness on \(\mathcal R_q\).
+
+Next suppose that an FPRAS for \(N_{\mathrm{stab}}\) existed on the gadget images \(W_G\) of graphs having maximum degree at most six. Given such a graph \(G\), construct \(W_G\), invoke the scheme with the requested relative tolerance and failure probability, and return its output. The positive exact equality in (7) preserves both the relative-error event and its probability. This would be an FPRAS for independent-set counting on graphs of maximum degree at most six, contrary to the cited bounded-degree inapproximability lemma unless \(\mathrm{RP}=\mathrm{NP}\).
+
+It remains to identify the unfiltered count. Define the zero--one support matrix
+\[
+ A(W)_{ri}:=\mathbf 1\{W_{ri}\neq0\}.
+\]
+The definition of the admissible orbit gives, for every \(\pi\in\mathfrak S_q\),
+\[
+ \pi\in\mathcal P_{\mathrm{adm}}(W)
+ \quad\Longleftrightarrow\quad
+ \prod_{i=1}^q A(W)_{\pi(i),i}=1. \tag{8}
+\]
+Inversion is a bijection of \(\mathfrak S_q\). Setting \(\sigma=\pi^{-1}\) in the finite sum and using (8), we obtain
+\[
+\begin{aligned}
+ N_{\mathrm{adm}}(W)
+ &=\sum_{\pi\in\mathfrak S_q}
+   \prod_{i=1}^q A(W)_{\pi(i),i}\\
+ &=\sum_{\sigma\in\mathfrak S_q}
+   \prod_{r=1}^q A(W)_{r,\sigma(r)}
+ =\operatorname{per}(A(W)).
+\end{aligned} \tag{9}
+\]
+The matrix \(A(W)\) is nonnegative. The cited nonnegative-permanent lemma therefore supplies an FPRAS for (9). Equations (7) and (9) prove the asserted exact and approximate separation between the Schur-stable orbit count and the unfiltered normalized-assignment count.
+
+%%% FIELD statement-one-scc-hardness
+For every simple graph \(G\) on \(n\geq1\) labelled vertices, let \(G^+\) be its cone, obtained by adjoining one new vertex \(x\) adjacent to every vertex of \(G\). Then \(G^+\) is connected,
+\[
+ |\mathcal I(G^+)|=|\mathcal I(G)|+1,
+\]
+\(W_{G^+}\in\mathcal R_{3(n+1)}\), and the directed support graph of \(B_{G^+}\) has exactly one strongly connected component. Computing \(N_{\mathrm{stab}}\) remains \(\#\mathrm P\)-complete under polynomial-time Turing reductions on rational stable-reference gadget matrices whose support digraph has one strongly connected component. Unless \(\mathrm{RP}=\mathrm{NP}\), there is no FPRAS on this one-component gadget class. No bounded-degree promise is asserted for the coned images.
+
+%%% FIELD proof-one-scc-hardness
+Fix a simple graph \(G=(V,E)\) with \(V=[n]\) and \(n\geq1\). Let \(x\notin V\), and define the cone \(G^+\) to have vertex set \(V\cup\{x\}\) and edge set
+\[
+ E\cup\bigl\{\{x,i\}:i\in V\bigr\}. \tag{10}
+\]
+Every original vertex is adjacent to \(x\), so any two vertices of \(G^+\) are joined by a path of length at most two. Thus \(G^+\) is connected.
+
+Partition the independent sets of \(G^+\) according as they contain \(x\). If \(x\) is absent, restriction to \(V\) is an arbitrary member of \(\mathcal I(G)\), and every member of \(\mathcal I(G)\) extends uniquely in this way. If \(x\) is present, (10) forbids every vertex of \(V\), so the only such independent set is \(\{x\}\). The two cases are disjoint; hence
+\[
+ \mathcal I(G^+)
+ =\mathcal I(G)\,\dot\cup\,\bigl\{\{x\}\bigr\},
+ \qquad
+ |\mathcal I(G^+)|=|\mathcal I(G)|+1. \tag{11}
+\]
+
+We next verify the single-component assertion directly from the frozen gadget support. For a graph \(H\), define its coefficient-support digraph to have an arrow \(b\to a\) when \((B_H)_{ab}\neq0\). In the local coordinates \((u_i,v_i,w_i)\), the gadget block is
+\[
+ \begin{pmatrix}
+ 0&1&1\\
+ p&0&0\\
+ r&0&0
+ \end{pmatrix}. \tag{12}
+\]
+Here \(p=-25/16\neq0\), and \(r=(15/16)(1-\delta)>0\), because \(0<\delta<1\) at the frozen value. Thus (12) gives all four arrows
+\[
+ u_i\longleftrightarrow v_i,
+ \qquad
+ u_i\longleftrightarrow w_i. \tag{13}
+\]
+Each local triple is therefore strongly connected. If \(\{i,j\}\) is an undirected edge of \(H\), symmetry of its adjacency matrix and \(g>0\) give
+\[
+ (B_H)_{u_i u_j}=g=(B_H)_{u_j u_i}, \tag{14}
+\]
+so (14) supplies both arrows \(u_i\to u_j\) and \(u_j\to u_i\). When \(H\) is connected, a graph path, (14), and transitivity of directed reachability show that every pair of root coordinates is mutually reachable. Equations (13) then show that every coordinate in every local triple is mutually reachable from every other coordinate. Hence the support digraph of \(B_H\) has one strongly connected component. Applying this conclusion to the connected graph \(H=G^+\) proves the asserted support property.
+
+The stable-orbit realization theorem, applied to \(G^+\), gives
+\[
+ \rho(B_{G^+})<1,
+ \qquad
+ N_{\mathrm{stab}}(W_{G^+})
+ =|\mathcal I(G^+)|, \tag{15}
+\]
+and rational entries of polynomial encoding length. The diagonal of \(B_{G^+}\) is zero by the gadget definition, so \(W_{G^+}\) has unit diagonal. If \(W_{G^+}z=0\) for nonzero \(z\), then \(B_{G^+}z=z\), contradicting (15). Thus \(W_{G^+}\) is invertible, and all defining conditions of \(\mathcal R_{3(n+1)}\) hold.
+
+For exact hardness, let an oracle compute \(N_{\mathrm{stab}}\) on the promised one-SCC gadget class. Given arbitrary \(G\), construct \(G^+\) and \(W_{G^+}\), make one oracle call, and return
+\[
+ N_{\mathrm{stab}}(W_{G^+})-1
+ =|\mathcal I(G^+)|-1
+ =|\mathcal I(G)|, \tag{16}
+\]
+where the first equality uses (15) and the second uses (11). Both constructions have polynomial size. The cited independent-set counting theorem makes (16) a polynomial-time one-query Turing reduction from a \(\#\mathrm P\)-complete function. Membership in \(\#\mathrm P\) follows by restricting the verifier proved in \(\mathrm{thm:counting\mbox{-}separation}\) to this subclass of \(\mathcal R_q\). Therefore the restricted problem is \(\#\mathrm P\)-complete.
+
+For approximation hardness, suppose instead that an FPRAS exists on this one-SCC gadget class. Take a maximum-degree-six donor graph \(G\), put
+\[
+ Z=|\mathcal I(G)|,
+ \qquad
+ Z'=N_{\mathrm{stab}}(W_{G^+})=Z+1.
+\]
+The empty set is independent, so \(Z\geq1\), and consequently
+\[
+ Z'=Z+1\leq2Z. \tag{17}
+\]
+For a requested \(0<\epsilon<1\), invoke the assumed scheme for \(Z'\) with relative tolerance \(\epsilon/2\), and let its output be \(Y\). Return
+\[
+ \widehat Z=\max\{0,Y-1\}. \tag{18}
+\]
+On the scheme's success event,
+\[
+ |Y-Z'|\leq\frac{\epsilon}{2}Z'. \tag{19}
+\]
+Projection onto \([0,\infty)\) cannot increase distance from the nonnegative number \(Z\): if \(Y-1\geq0\) this is equality, while if \(Y-1<0\), then \(Z\leq Z-(Y-1)\). Using (17)--(19),
+\[
+ |\widehat Z-Z|
+ \leq |(Y-1)-Z|
+ =|Y-Z'|
+ \leq\frac{\epsilon}{2}Z'
+ \leq\epsilon Z. \tag{20}
+\]
+The success probability is unchanged, and replacing \(\epsilon\) by \(\epsilon/2\) preserves polynomial running time. Thus (18) would be an FPRAS for independent-set counting on maximum-degree-six graphs, contradicting the cited inapproximability lemma unless \(\mathrm{RP}=\mathrm{NP}\). The cone vertex has degree \(n\), so this argument intentionally makes no bounded-degree claim about the output matrices. Since every hard output has a single support SCC, the hardness cannot be attributed to multiplying many SCC-local counts.

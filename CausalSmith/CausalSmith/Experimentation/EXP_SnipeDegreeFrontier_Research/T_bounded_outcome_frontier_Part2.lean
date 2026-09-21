@@ -1,11 +1,12 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HeadlineSupport
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.MinimaxRisk
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier_Part1
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HeadlineSupport
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier_Part1
 
 /-!
 # Exact risks on the complete-block design
@@ -13,6 +14,8 @@ import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_ou
 Evaluates every risk functional appearing in the frontier theorem exactly on the
 complete-block interaction graph.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

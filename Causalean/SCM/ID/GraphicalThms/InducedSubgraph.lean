@@ -24,7 +24,8 @@ itself a `SWIGGraph`, so this file no longer needs a separate
   2.19 (ancestrally-closed hypothesis).
 -/
 
-import Causalean.Graph.Induce
+module
+public import Causalean.Graph.Induce
 
 /-! # Induced Subgraphs for Identification
 
@@ -35,10 +36,16 @@ and the descendant/non-descendant sets `properDescIn` and `nonDescIn` used in
 Tian-style fixing arguments, together with their basic disjointness and coverage
 lemmas. -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 namespace Causalean
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 
+namespace Graph
 namespace SWIGGraph
 
 variable (G : SWIGGraph N)
@@ -60,6 +67,7 @@ instance decIsAncestrallyClosed : Decidable G.isAncestrallyClosed := by
   infer_instance
 
 end SWIGGraph
+end Graph
 
 /-- For [a single-world intervention graph](hyp:G) and [a selected finite set of nodes](hyp:R),
 [the induced subgraph](goal) is the graph obtained by restricting the original graph to those
@@ -69,6 +77,7 @@ This is the graph restriction used for identification subproblems. -/
 abbrev InducedFrom (G : SWIGGraph N) (R : Finset (SWIGNode N)) : SWIGGraph N :=
   G.induce R
 
+namespace Graph
 namespace SWIGGraph
 
 variable (G : SWIGGraph N)
@@ -161,5 +170,6 @@ lemma properDescIn_union_nonDescIn_eq_erase
       exact ⟨⟨hne, hxR⟩, hdesc⟩
 
 end SWIGGraph
+end Graph
 
 end Causalean

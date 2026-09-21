@@ -11,8 +11,11 @@ ratios `D_arm/card O − 1` vanish in probability — the `o_p(1)` factors of th
 ratio-remainder argument (`RatioRemainder.lean`).
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorControl
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorControl
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.unusedSimpArgs false

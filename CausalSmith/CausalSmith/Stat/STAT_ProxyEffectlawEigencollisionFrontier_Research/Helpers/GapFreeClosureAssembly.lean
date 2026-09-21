@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeModulusBridge
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryMetric
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-
-namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeModulusBridge
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryMetric
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 /-! Dense extension while preserving the paper's explicit `dS` control function. -/
+
+@[expose] public section
+
+namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 namespace GapFreeClosureAssembly
 

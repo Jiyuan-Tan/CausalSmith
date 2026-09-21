@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Lee.ControlMean
-import Causalean.PO.ID.Partial.Lee.TrimBound
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Lee.ControlMean
+public import Causalean.PO.ID.Partial.Lee.TrimBound
 
 /-! # Lee Bounds
 
@@ -21,6 +24,10 @@ proof assembles the control mean identity, selected-treated decomposition,
 latent finite-support transfer, and trim-weight sandwich developed in the
 preceding Lee modules. -/
 
+public section
+
+open Causalean.Mathlib.Probability
+
 namespace Causalean
 namespace PO
 
@@ -30,7 +37,7 @@ namespace POLeeSystem
 
 variable {P : POSystem} (S : POLeeSystem P)
 
-/-- **Finite-support Lee bounds** -- prop:po-lee-bounds. Under [the baseline Lee sample-selection
+/-- **Finite-support Lee bounds.** Under [the baseline Lee sample-selection
 assumptions](hyp:hA), [monotone sample selection](hyp:hMono), and [almost-sure finite support
 `𝒴` for the factual outcome on the selected-treated cell](hyp:hSupp), [the average treatment
 effect among always-selected units — those who would be selected for observation whether treated
@@ -41,18 +48,18 @@ theorem lee_bounds_ATT_AS [IsFiniteMeasure P.μ]
     (𝒴 : Finset ℝ)
     (hSupp : ∀ᵐ ω ∂(P.μ.restrict S.selectedTreated), S.factualY ω ∈ 𝒴) :
     S.lowerTrimMean 𝒴 - S.m0
-      ≤ eventCondExp P.μ S.alwaysSelected
+      ≤ normalizedRestrictedIntegral P.μ S.alwaysSelected
           (fun ω => S.YofA true ω - S.YofA false ω)
-    ∧ eventCondExp P.μ S.alwaysSelected
+    ∧ normalizedRestrictedIntegral P.μ S.alwaysSelected
           (fun ω => S.YofA true ω - S.YofA false ω)
       ≤ S.upperTrimMean 𝒴 - S.m0 := by
   have hStepA := S.m0_eq_eventCondExp_Y0_alwaysSelected hA hMono
   have hStepC := S.trimmed_bounds_condExp_Y1_AS hA hMono 𝒴 hSupp
   have hSub :
-      eventCondExp P.μ S.alwaysSelected
+      normalizedRestrictedIntegral P.μ S.alwaysSelected
           (fun ω => S.YofA true ω - S.YofA false ω)
-        = eventCondExp P.μ S.alwaysSelected (S.YofA true)
-          - eventCondExp P.μ S.alwaysSelected (S.YofA false) := by
+        = normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA true)
+          - normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA false) := by
     exact
       (eventCondExp_sub P.μ S.alwaysSelected
         (g₁ := S.YofA true) (g₂ := S.YofA false)

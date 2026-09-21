@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
-import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
-import Mathlib.Algebra.Module.Submodule.Union
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
+public import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
+public import Mathlib.Algebra.Module.Submodule.Union
 
 /-!
 # Uniqueness on overlapping environment sets
@@ -8,6 +9,8 @@ import Mathlib.Algebra.Module.Submodule.Union
 Two normalized BACKSHIFT explanations agreeing on a sufficiently rich overlap have the same
 structural matrix.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

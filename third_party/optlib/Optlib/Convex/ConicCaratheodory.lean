@@ -3,7 +3,9 @@ Copyright (c) 2024 Shengyang Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shengyang Xu
 -/
-import Mathlib.Analysis.InnerProductSpace.PiL2
+
+module
+public import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
 # ConicCaratheodory
@@ -13,6 +15,8 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 This file contains the proof of conic version of Caratheodory theorem.
 
 -/
+
+@[expose] public section
 
 open Finset
 

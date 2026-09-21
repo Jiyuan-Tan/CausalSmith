@@ -1,14 +1,9 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
--/
-
-import Mathlib.Data.Fintype.CardEmbedding
-import Mathlib.Data.Fintype.Perm
-import Mathlib.Data.Fintype.Powerset
-import Mathlib.Data.Finset.Card
-import Mathlib.Data.Finset.Powerset
+module
+public import Mathlib.Data.Fintype.CardEmbedding
+public import Mathlib.Data.Fintype.Perm
+public import Mathlib.Data.Fintype.Powerset
+public import Mathlib.Data.Finset.Card
+public import Mathlib.Data.Finset.Powerset
 
 /-!
 # Finite partial matchings
@@ -17,6 +12,14 @@ This module packages a partial matching between two finite coordinate sets as
 an equivalence between selected subsets.  It provides the fixed-cardinality
 families used to classify collisions between two ordered injective tuples.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

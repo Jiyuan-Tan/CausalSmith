@@ -4,129 +4,31 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.SCM
-import Causalean.Mathlib.CondIndep.CondExp
-import Mathlib.Probability.Independence.Conditional
+module
+
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.Mathlib.Probability.Independence.Conditional.CondExp
+public import Causalean.SCM.Model.SCM
+public import Mathlib.Probability.Independence.Conditional
 
 /-! # Conditional Independence for Finite-Product Projections
 
-This file provides the finite-product projection infrastructure used by SCM
-conditional-independence proofs. It proves compositional and sigma-algebra facts
-for `valuesProjection`, defines `valuesUnionMk` for assembling two coordinate
-blocks into their union, and proves the specialized weak-union and contraction
-rules `condIndep_valuesProjection_weak_union` and
-`condIndep_valuesProjection_contraction`. These results specialize general
-conditional-expectation semi-graphoid identities to the value-block projections
-used by structural causal models. -/
+This file specializes the weak-union rule for conditional independence to finite-product
+coordinate projections. General projection algebra lives in
+`Causalean.Mathlib.MeasureTheory.FinsetValues`; general contraction for these projections lives
+in `Causalean.Mathlib.Probability.Independence.Conditional.CondExp_Part2`. -/
+
+public section
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 
 open scoped MeasureTheory ProbabilityTheory
 
 universe uM uΩ
-
-/-- Composition identity for `valuesProjection`: restricting to `K ⊆ J ⊆ I`
-    in one step equals composing the two restrictions. -/
-theorem valuesProjection_comp {M : Type*}
-    {I J K : Finset M} {Ω' : M → Type*} [∀ n, MeasurableSpace (Ω' n)]
-    (hKJ : K ⊆ J) (hJI : J ⊆ I) :
-    valuesProjection (Ω := Ω') (hKJ.trans hJI) =
-      valuesProjection hKJ ∘ valuesProjection hJI := by
-  funext ξ ⟨k, hk⟩
-  simp only [Function.comp_apply, valuesProjection]
-
-/-- The comap σ-algebra is monotone in the projected set:
-    if `A ⊆ B ⊆ I`, then `σ(π_A) ≤ σ(π_B)` on `ValuesOn I`. -/
-theorem comap_valuesProjection_mono {M : Type*}
-    {I A B : Finset M} {Ω' : M → Type*} [∀ n, MeasurableSpace (Ω' n)]
-    (hAB : A ⊆ B) (hBI : B ⊆ I) :
-    MeasurableSpace.comap (valuesProjection (Ω := Ω') (hAB.trans hBI)) inferInstance ≤
-      MeasurableSpace.comap (valuesProjection (Ω := Ω') hBI) inferInstance := by
-  have hcomp := valuesProjection_comp (Ω' := Ω') hAB hBI
-  rw [hcomp]
-  intro s ⟨t, ht, hts⟩
-  exact ⟨valuesProjection hAB ⁻¹' t, measurable_valuesProjection hAB ht, hts⟩
-
-/-- The projection to `A ∪ B` is measurable for the supremum of the separate
-    projection σ-algebras. -/
-theorem measurable_valuesProjection_union_sup
-    {M : Type*} [DecidableEq M]
-    {I A B : Finset M} {Ω' : M → Type*} [∀ n, MeasurableSpace (Ω' n)]
-    (hA : A ⊆ I) (hB : B ⊆ I) :
-    @Measurable (ValuesOn I Ω') (ValuesOn (A ∪ B) Ω')
-      (MeasurableSpace.comap (valuesProjection (Ω := Ω') hA) inferInstance ⊔
-        MeasurableSpace.comap (valuesProjection (Ω := Ω') hB) inferInstance)
-      inferInstance
-      (valuesProjection (Ω := Ω') (Finset.union_subset hA hB)) := by
-  let hAB : A ∪ B ⊆ I := Finset.union_subset hA hB
-  change @Measurable (ValuesOn I Ω') (∀ i : {i // i ∈ A ∪ B}, Ω' i.val)
-    (MeasurableSpace.comap (valuesProjection (Ω := Ω') hA) inferInstance ⊔
-      MeasurableSpace.comap (valuesProjection (Ω := Ω') hB) inferInstance)
-    inferInstance
-    (fun ξ : ValuesOn I Ω' => fun i : {i // i ∈ A ∪ B} =>
-      ξ ⟨i.val, hAB i.property⟩)
-  refine (@measurable_pi_iff (ValuesOn I Ω') {i // i ∈ A ∪ B}
-    (fun i : {i // i ∈ A ∪ B} => Ω' i.val)
-    (MeasurableSpace.comap (valuesProjection (Ω := Ω') hA) inferInstance ⊔
-      MeasurableSpace.comap (valuesProjection (Ω := Ω') hB) inferInstance)
-    inferInstance
-    (fun ξ : ValuesOn I Ω' => fun i : {i // i ∈ A ∪ B} =>
-      ξ ⟨i.val, hAB i.property⟩)).2 ?_
-  intro ⟨i, hiAB⟩
-  by_cases hiA : i ∈ A
-  · have hπA :
-        @Measurable (ValuesOn I Ω') (ValuesOn A Ω')
-          (MeasurableSpace.comap (valuesProjection (Ω := Ω') hA) inferInstance ⊔
-            MeasurableSpace.comap (valuesProjection (Ω := Ω') hB) inferInstance)
-          inferInstance
-          (valuesProjection (Ω := Ω') hA) :=
-      Measurable.of_comap_le le_sup_left
-    exact (measurable_pi_apply (⟨i, hiA⟩ : {j // j ∈ A})).comp hπA
-  · have hiB : i ∈ B := (Finset.mem_union.mp hiAB).resolve_left hiA
-    have hπB :
-        @Measurable (ValuesOn I Ω') (ValuesOn B Ω')
-          (MeasurableSpace.comap (valuesProjection (Ω := Ω') hA) inferInstance ⊔
-            MeasurableSpace.comap (valuesProjection (Ω := Ω') hB) inferInstance)
-          inferInstance
-          (valuesProjection (Ω := Ω') hB) :=
-      Measurable.of_comap_le le_sup_right
-    exact (measurable_pi_apply (⟨i, hiB⟩ : {j // j ∈ B})).comp hπB
-
-/-- The σ-algebra generated by the projection to `A ∪ B` is the supremum of
-    the σ-algebras generated by the separate projections to `A` and to `B`. -/
-theorem comap_valuesProjection_union_eq_sup
-    {M : Type*} [DecidableEq M]
-    {I A B : Finset M} {Ω' : M → Type*} [∀ n, MeasurableSpace (Ω' n)]
-    (hA : A ⊆ I) (hB : B ⊆ I) :
-    MeasurableSpace.comap (valuesProjection (Ω := Ω') (Finset.union_subset hA hB)) inferInstance =
-      MeasurableSpace.comap (valuesProjection (Ω := Ω') hA) inferInstance ⊔
-        MeasurableSpace.comap (valuesProjection (Ω := Ω') hB) inferInstance := by
-  let hAB : A ∪ B ⊆ I := Finset.union_subset hA hB
-  apply le_antisymm
-  · exact Measurable.comap_le (measurable_valuesProjection_union_sup (Ω' := Ω') hA hB)
-  · exact sup_le
-      (comap_valuesProjection_mono (Ω' := Ω') Finset.subset_union_left hAB)
-      (comap_valuesProjection_mono (Ω' := Ω') Finset.subset_union_right hAB)
-
--- `valuesUnionMk` and `measurable_valuesUnionMk` are the generic value-space
--- union-injection; they now live in
--- `Causalean/Mathlib/MeasureTheory/FinsetValues.lean` (namespace `Causalean`),
--- shared with the SWIG-specialized call sites in `Rule2Kernel/Helpers.lean`.
-
-/-- Projecting to `A` and `B` and then assembling the union block recovers the
-    direct projection to `A ∪ B`. -/
-theorem valuesUnionMk_projection_comp
-    {M : Type*} [DecidableEq M]
-    {I A B : Finset M} {Ω' : M → Type*} [∀ n, MeasurableSpace (Ω' n)]
-    (hA : A ⊆ I) (hB : B ⊆ I) :
-    (fun ξ : ValuesOn I Ω' =>
-      valuesUnionMk (Ω := Ω') (valuesProjection hA ξ) (valuesProjection hB ξ))
-      = valuesProjection (Finset.union_subset hA hB) := by
-  let hAB : A ∪ B ⊆ I := Finset.union_subset hA hB
-  funext ξ ⟨i, hiAB⟩
-  by_cases hiA : i ∈ A
-  · simp [valuesUnionMk, valuesProjection, hiA]
-  · simp [valuesUnionMk, valuesProjection, hiA]
 
 /-- **Weak union for coordinate projections.** Let `X`, `Y`, `W`, `Z` be subsets of a finite
     index set `I`, with [X](hyp:hX), [the union of Y and W](hyp:hYW), and [the union of Z and
@@ -202,88 +104,5 @@ theorem condIndep_valuesProjection_weak_union
           MeasurableSpace.comap (valuesProjection (Ω := Ω) hW) inferInstance :=
     comap_valuesProjection_union_eq_sup (Ω' := Ω) hZ hW
   simpa [hσ] using hweak
-
-/-- **Contraction for coordinate projections.** Let `X`, `Y`, `W`, `Z` be subsets of a common
-    finite index set `I`, with [X](hyp:hX), [Y](hyp:hY), [W](hyp:hW), and [Z](hyp:hZ) all
-    contained in `I`, and let μ be a finite measure on the resulting finite-product value space
-    indexed by `I`. If [X is conditionally independent of Y given the union of Z and
-    W](hyp:h1) and [X is conditionally independent of W given Z](hyp:h2), then [X is
-    conditionally independent of the union of Y and W given Z](goal), where independence is
-    always of the corresponding coordinate projections under μ. -/
-theorem condIndep_valuesProjection_contraction
-    {M : Type uM} [DecidableEq M]
-    {I X Y W Z : Finset M}
-    {Ω : M → Type uΩ} [∀ n, MeasurableSpace (Ω n)]
-    [StandardBorelSpace (ValuesOn I Ω)]
-    (hX : X ⊆ I) (hY : Y ⊆ I) (hW : W ⊆ I)
-    (hZ : Z ⊆ I)
-    {μ : MeasureTheory.Measure (ValuesOn I Ω)} [MeasureTheory.IsFiniteMeasure μ]
-    (h1 :
-      ProbabilityTheory.CondIndepFun
-        (MeasurableSpace.comap
-          (valuesProjection (Ω := Ω) (Finset.union_subset hZ hW)) inferInstance)
-        (comap_valuesProjection_le (Ω' := Ω) (Finset.union_subset hZ hW))
-        (valuesProjection (Ω := Ω) hX)
-        (valuesProjection (Ω := Ω) hY)
-        μ)
-    (h2 :
-      ProbabilityTheory.CondIndepFun
-        (MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance)
-        (comap_valuesProjection_le (Ω' := Ω) hZ)
-        (valuesProjection (Ω := Ω) hX)
-        (valuesProjection (Ω := Ω) hW)
-        μ) :
-    ProbabilityTheory.CondIndepFun
-      (MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance)
-      (comap_valuesProjection_le (Ω' := Ω) hZ)
-      (valuesProjection (Ω := Ω) hX)
-      (valuesProjection (Ω := Ω) (Finset.union_subset hY hW))
-      μ := by
-  let hYW : (Y ∪ W) ⊆ I := Finset.union_subset hY hW
-  let hZW : (Z ∪ W) ⊆ I := Finset.union_subset hZ hW
-  have hσ :
-      MeasurableSpace.comap (valuesProjection (Ω := Ω) hZW) inferInstance =
-        MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance ⊔
-          MeasurableSpace.comap (valuesProjection (Ω := Ω) hW) inferInstance :=
-    comap_valuesProjection_union_eq_sup (Ω' := Ω) hZ hW
-  have h1' :
-      ProbabilityTheory.CondIndepFun
-        (MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance ⊔
-          MeasurableSpace.comap (valuesProjection (Ω := Ω) hW) inferInstance)
-        (sup_le (comap_valuesProjection_le (Ω' := Ω) hZ)
-          (comap_valuesProjection_le (Ω' := Ω) hW))
-        (valuesProjection (Ω := Ω) hX)
-        (valuesProjection (Ω := Ω) hY)
-        μ := by
-    simpa [hσ] using h1
-  have hpair :
-      ProbabilityTheory.CondIndepFun
-        (MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance)
-        (comap_valuesProjection_le (Ω' := Ω) hZ)
-        (valuesProjection (Ω := Ω) hX)
-        (fun ξ : ValuesOn I Ω =>
-          (valuesProjection (Ω := Ω) hY ξ, valuesProjection (Ω := Ω) hW ξ))
-        μ :=
-    condIndepFun_contraction_of_prodMk
-      (m := MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance)
-      (mΩ := inferInstance)
-      (μ := μ)
-      (comap_valuesProjection_le (Ω' := Ω) hZ)
-      (measurable_valuesProjection (Ω' := Ω) hX)
-      (measurable_valuesProjection (Ω' := Ω) hY)
-      (measurable_valuesProjection (Ω' := Ω) hW)
-      h1' h2
-  have hassembled :
-      ProbabilityTheory.CondIndepFun
-        (MeasurableSpace.comap (valuesProjection (Ω := Ω) hZ) inferInstance)
-        (comap_valuesProjection_le (Ω' := Ω) hZ)
-        (valuesProjection (Ω := Ω) hX)
-        (fun ξ : ValuesOn I Ω =>
-          valuesUnionMk (Ω := Ω) (valuesProjection (Ω := Ω) hY ξ)
-            (valuesProjection (Ω := Ω) hW ξ))
-        μ :=
-    hpair.comp measurable_id (measurable_valuesUnionMk (Ω := Ω))
-  simpa [Function.comp_def, valuesUnionMk_projection_comp (Ω' := Ω) hY hW]
-    using hassembled
 
 end Causalean

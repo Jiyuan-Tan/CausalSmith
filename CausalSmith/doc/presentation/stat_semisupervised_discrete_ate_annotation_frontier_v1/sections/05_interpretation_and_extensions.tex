@@ -1,0 +1,95 @@
+\section{Interpretation and extensions}\label{sec:interpretation}
+
+The main minimax theorem yields three interpretable sequence consequences. In the notation of \cref{obj:def:frontier-rate-handle}, the risk is consistent precisely along sequences for which the labeled sample grows and the treatment--covariate information is sufficiently rich relative to the alphabet size. The first component, \(1/n\), is the irreducible cost of observing binary outcomes; the second component, \(d^2/\{(n+m)^2\ell_n^2\}\), is the cost of learning enough about the treatment--covariate distribution to stabilize the inverse-probability structure of \cref{obj:def:ate-functional}. Thus the auxiliary sample improves risk through the marginal table rather than through direct outcome information.
+
+The parametric regime is the portion of the experiment in which the marginal-frequency component is of order \(1/n\) or smaller. There the sharp rate in \cref{obj:thm:sharp-annotation-frontier} matches the labeled-outcome benchmark up to constants depending only on the overlap constant. In that range, the hybrid estimator of \cref{obj:def:mixed-estimator-handle} uses the auxiliary treatment--covariate records to make the nuisance marginal problem small enough that the remaining mean-squared error is governed by outcome sampling.
+
+A complementary regime is where annotation yields strict improvement over the supervised endpoint. With \(m=0\), the marginal table is learned only from the labeled sample, and the second term in \cref{obj:def:frontier-rate-handle} is \(d^2/(n^2\ell_n^2)\). Adding outcome-unlabeled treatment--covariate records replaces \(n\) by \(n+m\) in that component. Consequently, when the alphabet is large enough for the marginal-frequency term to matter and the auxiliary sample makes \(n+m\) substantially larger than \(n\), \cref{obj:thm:sharp-annotation-frontier} gives a quantitative risk reduction inside the same overlap model and target functional. This is the sense in which outcome annotation has value here: it converts unlabeled treatment--covariate information into a sharper stabilized estimate of the average treatment effect.
+
+The hybrid rule in \cref{obj:def:mixed-estimator-handle} is calibrated to attain the logarithmic rate in \cref{obj:def:frontier-rate-handle}. A simpler comparison is obtained by using inverse-count stabilization everywhere, without the light-cell polynomial correction. The next definition records this baseline in the same sample-splitting and Poisson-prefix format, so that the comparison isolates the role of the polynomial branch. Every quotient in this definition uses totalized real division: when \(u=0\), division by \(u\) evaluates to zero. Consequently the clipped prefix statistic remains defined for \(n=1,2\), where \(M_0=u=0\).
+
+\begin{definitionv}{synth_5}[Poisson-prefix inverse-count estimator]
+For \(n\ge1\), \(m\ge0\), and \(d\ge2\), put
+\[
+M_0=\lfloor n/3\rfloor,\qquad
+n_p=\left\lfloor\frac{n-M_0}{2}\right\rfloor,\qquad
+n_f=n-M_0-n_p,\qquad
+m_p=\lfloor m/2\rfloor,\qquad
+m_f=m-m_p,
+\]
+and \(u=M_0/8\). Given a labeled sample \(\mathcal L_n\) and an auxiliary sample \(\mathcal U_m\), define \(\widehat\tau^{\mathrm{IC,prefix}}_{n,m,d}(r_0,r_f)=0\) when \(r_0>M_0\) or \(r_f>n_f+m_f\). For \(0\le r_0\le M_0\) and \(0\le r_f\le n_f+m_f\), let \(S_{ax}(r_0)\) be the number of records among the first \(r_0\) labeled observations with \((X,A,Y)=(x,a,1)\). Let \(K_{ax}(r_f)\) be the number of records with \((X,A)=(x,a)\) in the factorial prefix formed from the last \(n_f\) labeled records and the last \(m_f\) auxiliary records, taking the first \(r_f\) records of that pooled factorial block in its fixed order. Define
+\[
+\widehat\tau^{\mathrm{IC,prefix}}_{n,m,d}(r_0,r_f)
+=
+\operatorname{clip}_{[-1,1]}
+\left[
+\sum_{x=1}^d
+\left\{
+\frac{S_{1x}(r_0)}{u}
+\frac{K_{0x}(r_f)+K_{1x}(r_f)+1}{K_{1x}(r_f)+1}
+-
+\frac{S_{0x}(r_0)}{u}
+\frac{K_{0x}(r_f)+K_{1x}(r_f)+1}{K_{0x}(r_f)+1}
+\right\}
+\right].
+\]
+\end{definitionv}
+
+The statistic in \cref{obj:synth_5} uses the outcome prefix to estimate treated and control success masses and the factorial prefix to form stabilized inverse-count weights. The added ones make the expression finite in every cell and for every realized prefix length. Averaging over the Poisson prefix lengths derandomizes the construction while preserving the same count structure.
+
+\begin{theoremv}{thm:inverse-count-baseline}[Inverse-count baseline bound]
+Fix an overlap constant \(\epsilon\) with \(0<\epsilon<1/2\).  Then there is a constant \(C_\epsilon>0\) such that, for every \(n\ge1\), \(m\ge0\), and \(d\ge2\), the clipped derandomized inverse-count estimator defined for each sample \(Z=(\mathcal L_n,\mathcal U_m)\) by
+\[
+\widehat\tau^{\mathrm{IC}}_{n,m,d}(Z)
+=
+\sum_{r_0=0}^{M_0}
+\sum_{r_f=0}^{n_f+m_f}
+\mathbb P\{\operatorname{Poi}(M_0/8)=r_0\}
+\mathbb P\{\operatorname{Poi}((n_f+m_f)/8)=r_f\}
+\,\widehat\tau^{\mathrm{IC,prefix}}_{n,m,d}(Z;r_0,r_f)
+\]
+is measurable.  Here \(M_0=\lfloor n/3\rfloor\), \(n_p=\lfloor(n-M_0)/2\rfloor\), \(n_f=n-M_0-n_p\), \(m_p=\lfloor m/2\rfloor\), and \(m_f=m-m_p\) are the block sizes from \cref{obj:def:mixed-estimator-handle}, and \(\widehat\tau^{\mathrm{IC,prefix}}_{n,m,d}(Z;r_0,r_f)\) is the sample-and-prefix-count statistic of \cref{obj:synth_5}.
+
+Moreover,
+\[
+\sup_{P\in\mathcal M_{d,\epsilon}}
+\mathbb E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+\left[
+\left\{
+\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)
+\right\}^2
+\right]
+\le
+C_\epsilon
+\min\left\{
+1,\frac1n+\frac{d^2}{(n+m)^2}
+\right\}.
+\]
+Here \(\mathcal M_{d,\epsilon}\) is the overlap class in \cref{obj:def:model-class}, \(\tau(P)\) is the average treatment effect functional in \cref{obj:def:ate-functional}, and the expectation is under the annotation experiment of \cref{obj:def:annotation-experiment}.  Consequently, for the minimax risk in \cref{obj:def:minimax-risk},
+\[
+R_\epsilon(n,m,d)
+\le
+C_\epsilon
+\min\left\{
+1,\frac1n+\frac{d^2}{(n+m)^2}
+\right\}.
+\]
+\end{theoremv}
+
+\Cref{obj:thm:inverse-count-baseline} shows that direct inverse-count stabilization already converts auxiliary treatment--covariate observations into a risk bound with the same two-resource form as the sharp theorem: a labeled-outcome term and a marginal-frequency term. Its marginal term is \(d^2/(n+m)^2\), whereas \cref{obj:thm:sharp-annotation-frontier} attains the logarithmically improved \(d^2/\{(n+m)^2\ell_n^2\}\) rate through the calibrated light-cell polynomial component. The comparison identifies the gain supplied by the hybrid construction in sparse cells while keeping the same model, target, and product-sample experiment.
+
+The general rate also has a simple specialization at the smallest nontrivial alphabet size. When the covariate alphabet is binary, the marginal-frequency component is uniformly absorbed into the labeled-outcome scale.
+
+\begin{theoremv}{prop:binary-alphabet-parametric-rate}[Binary parametric rate]
+Let \(0<\epsilon<1/2\). For the minimax risk \(R_\epsilon(n,m,d)\) defined in \cref{obj:def:minimax-risk}, at binary alphabet size \(d=2\) there exist constants \(c_\epsilon,C_\epsilon\in\mathbb R\) with \(0<c_\epsilon\le C_\epsilon\) such that, for every integer \(n\ge1\) and every integer \(m\ge0\),
+\[
+\frac{c_\epsilon}{n}\le R_\epsilon(n,m,2)\le \frac{C_\epsilon}{n}.
+\]
+\end{theoremv}
+
+\Cref{obj:prop:binary-alphabet-parametric-rate} gives the exact order of the minimax risk for \(d=2\): the experiment is parametric for every auxiliary sample size. The upper bound follows the same scale as the labeled-outcome term in the main theorem, while the lower bound records that binary outcomes still require order \(1/n\) mean-squared error uniformly over the overlap class. Thus, in the binary-alphabet case, auxiliary treatment--covariate records fit naturally into the constant factor rather than changing the rate.
+
+The result complements semisupervised causal and surrogate-outcome analyses in which auxiliary observations improve estimation through nuisance-function, design-distribution, or surrogate-response learning \citep{ChengAnanthakrishnanCai2021,ChakraborttyDai2024,KallusMao2025}. Here the finite-alphabet structure makes that role explicit in minimax form: unlabeled treatment--covariate records sharpen the marginal component of the risk, and the sharp theorem characterizes exactly when that sharpening changes the rate.
+
+\paragraph{Limitations and future work.}
+The analysis treats independent random outcome labeling from a shared population, binary treatment and outcome, a known finite covariate alphabet, occupied-cell overlap, and unrestricted cellwise nuisance functions. These conditions define a transparent discrete benchmark in which the value of outcome annotation can be characterized exactly. The constants in the explicit calibration are deliberately proof-oriented rather than implementation-oriented: for example, already at degree \(L=2\), the stronger displayed polynomial-size condition \(L^6 7056^{2L}\le n\) requires \(n\) on the order of \(1.6\times10^{17}\). Thus the theorem establishes a finite-sample minimax rate and an explicit witness, but it does not recommend this conservative calibration as a practical estimator at ordinary sample sizes. Natural extensions include sharper implementable tuning, continuous or growing covariate representations, multi-valued treatments or outcomes, adaptive annotation designs, and structural restrictions on the cellwise outcome regressions or propensity scores.

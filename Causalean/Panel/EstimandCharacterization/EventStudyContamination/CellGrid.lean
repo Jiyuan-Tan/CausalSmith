@@ -3,7 +3,7 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Sun-Abraham (2021): cell-grid weighted residualization
+# Listed-cohort cell-grid weighted residualization
 
 Derives the finite-cell orthogonality conditions recorded by
 `ConventionalResidualization` and the coefficient identity `D.mu =
@@ -23,46 +23,53 @@ reproduces the finite-cell sums verbatim, so:
 The inputs are: (i) `Rdot` is the weighted residual of the displayed-event
 indicator against the cell-nuisance span, and (ii) `D.mu` solves the weighted
 normal equations, i.e. is the projection coefficient. Cell-mass positivity on
-admissible cells is a mild population-regularity hypothesis.
+admissible cells is a population-regularity hypothesis. This grid contains only
+the cohorts listed in `P.cohorts` and relative times in `D.eventSupport`; it does
+not include the never-treated path.
 -/
 
-import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Conventional
-import Causalean.Panel.Weighted.ScalarFWL
+module
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Conventional
+public import Causalean.Stat.Weighted.ScalarFWL
 
-/-! # Sun-Abraham Cell-Grid Projection
+/-! # Listed-Cohort Cell-Grid Projection
 
-This file derives the finite-cell residualization and ratio identities for the
-conventional Sun-Abraham event-study coefficient from a genuine weighted
-projection on the cohort-by-relative-time cell grid. The resulting bridge
-supplies the orthogonality and normal-equation inputs used by the contamination
-representation. -/
+This file derives finite-cell residualization and ratio identities from a
+weighted projection on the listed-cohort-by-relative-time cell grid. The grid
+omits the never-treated path and every cell outside the declared event support,
+so it is not identified here with a full-population TWFE regression. The
+resulting bridge supplies the orthogonality and normal-equation inputs used by
+the contamination representation. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace EventStudyContamination
 
-open Finset Causalean.Panel.Weighted
+open Finset Causalean.Stat.Weighted
 
 namespace EventStudySystem
 
 variable {T : ℕ}
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [cell index](goal) is the collection of
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [cell index](goal) is the collection of
 admissible cohort--relative-time cells in that design. -/
 abbrev CellIndex (P : EventStudySystem T) (D : P.ConventionalDesign) : Type :=
   {ge : Fin T × ℤ // ge ∈ P.admissibleCells D.eventSupport}
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [total admissible cell mass](goal) is the sum
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [total admissible cell mass](goal) is the sum
 of the population masses of all admissible cohort--relative-time cells. -/
 noncomputable def cellTotalMass (P : EventStudySystem T) (D : P.ConventionalDesign) : ℝ :=
   ∑ ge ∈ P.admissibleCells D.eventSupport, P.cellMassAtEvent ge.1 ge.2
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), if [every admissible cohort--relative-time cell
-has strictly positive population mass](hyp:hpos) and [at least one admissible
-cell exists](hyp:hne), the [cell-grid weighted support](goal) is the finite
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), if
+[every admissible cohort--relative-time cell has strictly positive population mass](hyp:hpos)
+and [at least one admissible cell exists](hyp:hne), the [cell-grid weighted support](goal) is the
+finite
 population of admissible cells, weighted by each cell's mass divided by total
 admissible cell mass.
 
@@ -133,8 +140,8 @@ lemma ip_cellSupport (P : EventStudySystem T) (D : P.ConventionalDesign)
 
 /-! ### Cell-nuisance subspace on the cell grid -/
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [generators of the cell-nuisance space](goal)
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [generators of the cell-nuisance space](goal)
 are precisely the functions on admissible cells obtained by averaging an
 event-study nuisance function within each cohort--relative-time cell. -/
 def cellNuisanceGen (P : EventStudySystem T) (D : P.ConventionalDesign) :
@@ -142,8 +149,8 @@ def cellNuisanceGen (P : EventStudySystem T) (D : P.ConventionalDesign) :
   {f | ∃ hCell : Fin T → Fin T → ℝ, P.IsEventStudyNuisance D hCell ∧
         f = fun cell => P.cellAverage hCell cell.val.1 cell.val.2}
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [cell-nuisance space](goal) is the linear span
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [cell-nuisance space](goal) is the linear span
 of all cell-level averages of event-study nuisance functions. -/
 noncomputable def cellNuisance (P : EventStudySystem T) (D : P.ConventionalDesign) :
     Submodule ℝ (P.CellIndex D → ℝ) :=
@@ -248,37 +255,31 @@ lemma sum_admissible_mul_eventIndicator (P : EventStudySystem T) (D : P.Conventi
 
 /-! ### Genuine cell-grid residualization input -/
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [cell-grid regressor](goal) assigns one to an
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [cell-grid regressor](goal) assigns one to an
 admissible cell exactly when its relative time is the displayed event time, and
 zero otherwise. -/
 noncomputable def cellRegressor (P : EventStudySystem T) (D : P.ConventionalDesign) :
     P.CellIndex D → ℝ :=
   fun cell => eventIndicator D.displayedEvent cell.val.2
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [cell-grid outcome](goal) assigns to each
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [cell-grid outcome](goal) assigns to each
 admissible cohort--relative-time cell its observed mean outcome. -/
 noncomputable def cellOutcome (P : EventStudySystem T) (D : P.ConventionalDesign) :
     P.CellIndex D → ℝ :=
   fun cell => P.observedCellMean cell.val.1 cell.val.2
 
 /-- **Cell-grid residualization input.**
+[An event-study design on a finite system](hyp:P,D) is backed by a well-posed weighted
+cell-grid projection when [every admissible cell has positive mass](hyp:hCellMassPos),
+[the grid is nonempty](hyp:hCellNonempty),
+[the residualized regressor has positive energy](hyp:hDenomPos),
+[the recorded residual is the projected displayed indicator](hyp:hRdotResidual),
+and
+[a nuisance fit satisfies both normal equations](hyp:hMuNormalEqs).
 
-Hypotheses saying that the conventional event-study coefficient is produced by
-a weighted cell-grid projection:
-
-* `hCellMassPos` / `hCellNonempty` — population regularity: admissible cells
-  carry positive mass.
-* `hDenomPos` — the residualized regressor has positive energy (already a
-  hypothesis of the source theorem).
-* `hRdotResidual` — `D.Rdot` **is** the weighted residual of the displayed-event
-  indicator against the cell-nuisance span (the *definition* of `Rdot`).
-* `hFitted` / `hNormal_R` / `hNormal_H` — `D.mu` solves the weighted normal
-  equations, i.e. is the population projection coefficient (the *definition* of
-  `mu`).
-
-From these, the three finite-cell orthogonality conditions and the identity
+From these fields, the finite-cell orthogonality conditions and the identity
 `D.mu = conventionalMuRatio` are derived. -/
 structure CellGridResidualization (P : EventStudySystem T)
     (D : P.ConventionalDesign) : Prop where
@@ -307,9 +308,9 @@ lemma tildeX_eq_Rdot (h : P.CellGridResidualization D) :
       = fun cell => D.Rdot cell.val.1 cell.val.2 := by
   funext cell; exact (h.hRdotResidual cell).symm
 
-/-- **Cell-grid FWL bridge.** [Under cell-grid residualization of the event-study
-design](hyp:h), [the conventional event-study coefficient equals the Frisch–Waugh–Lovell
-residualized ratio computed directly on the cohort × relative-time cell grid](goal).
+/-- **Cell-grid FWL bridge.**
+[Under cell-grid residualization of the event-study design](hyp:h),
+[the recorded coefficient equals the FWL residualized ratio on the cell grid](goal).
 
 This is derived from the weighted normal equations via `scalar_fwl_of_normalEqs`. -/
 theorem cellGrid_mu_eq_conventionalMuRatio (h : P.CellGridResidualization D) :
@@ -354,13 +355,13 @@ theorem cellGrid_mu_eq_conventionalMuRatio (h : P.CellGridResidualization D) :
   have hDen : P.residualDenom D ≠ 0 := h.hDenomPos.ne'
   field_simp
 
-/-- For a conventional event-study design `D` over an event-study system `P`, if [every
-admissible cohort-relative-time cell has strictly positive population mass](hyp:hCellMassPos),
-[the collection of admissible cells is nonempty](hyp:hCellNonempty), and [the design's
-residualized displayed-event indicator `Rdot` agrees, cell by cell, with the weighted
-projection residual on the cell grid](hyp:hRdotResidual), then [the three finite-cell
-orthogonality conditions packaged as `ConventionalResidualization` — derived here from a
-genuine weighted projection rather than assumed — hold for `D`](goal). -/
+/-- For an event-study design `D` over an event-study system `P`, if
+[every admissible cell has strictly positive population mass](hyp:hCellMassPos),
+[the collection of admissible cells is nonempty](hyp:hCellNonempty), and
+[`Rdot` agrees cellwise with the weighted cell-grid projection residual](hyp:hRdotResidual),
+then
+[the three finite-cell orthogonality conditions hold for `D` as projection consequences](goal).
+-/
 theorem cellGrid_provides_residualization
     (hCellMassPos : ∀ ge ∈ P.admissibleCells D.eventSupport,
       0 < P.cellMassAtEvent ge.1 ge.2)

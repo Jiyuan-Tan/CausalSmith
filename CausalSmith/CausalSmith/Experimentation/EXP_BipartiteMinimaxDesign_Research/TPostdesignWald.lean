@@ -10,11 +10,14 @@ the variance scale, and the induced Wald interval has asymptotic coverage at
 least `1 − α_cov` along nondegenerate sequences.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.THeteroClt
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.THeteroEnvelope
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Causalean.Experimentation.DesignBased.WaldCoverage
-import Mathlib.Order.LiminfLimsup
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.THeteroClt
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.THeteroEnvelope
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Causalean.Experimentation.DesignBased.WaldCoverage
+public import Mathlib.Order.LiminfLimsup
+
+public section
 
 set_option linter.style.longLine false
 

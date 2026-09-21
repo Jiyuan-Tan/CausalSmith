@@ -6,7 +6,7 @@ Authors: Jiyuan Tan
 # Z- / M-estimator regularity (parametric inference workhorse, structure layer)
 
 Regularity bundle `ZEstimatorRegularity` for the parametric Z/M-estimator CLT
-(`def:par-z-clt`).  The headline theorem `zEstimator_clt` lives downstream in
+(`def:par-z-clt`).  The headline theorem `zEstimator_asymLinear` lives downstream in
 `Causalean/Stat/MEstimation/ZEstimatorCLT.lean` because its proof pulls in
 `Causalean/Stat/MEstimation/EmpiricalExpansion.lean`, which in turn imports this file for
 `ZEstimatorRegularity`.  Splitting the structure (here) from the theorem (in
@@ -17,21 +17,25 @@ Spec: `def:par-smoothness`, `thm:par-z-clt` in
 `doc/basic_concepts/Semi-parametric Inference/parametric_inference.tex`.
 -/
 
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Sample
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Sample
+public import Mathlib.Analysis.Calculus.FDeriv.Basic
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 
 /-! # Z-estimator regularity
 
 This module records the public regularity bundle `ZEstimatorRegularity` for
 parametric Z-estimator and M-estimator central limit theorems.  The structure
 collects population identification, derivative invertibility, finite variance,
-measurability, local integrability, continuity of the population Jacobian, and
-an integrable `L2` score envelope used by the empirical-expansion and
-asymptotic-linearity layers.
+measurability, and local integrability. Empirical-process control is supplied
+separately by the smooth-score, local-Lipschitz, or high-level stochastic-
+equicontinuity routes.
 -/
+
+@[expose] public section
+
 
 namespace Causalean.Stat
 
@@ -47,10 +51,8 @@ function and target parameter θ₀ under a sampling law, [the population identi
 that the score vanishes in mean at the truth](hyp:identification), [a Jacobian of the population
 score at θ₀ together with a witnessed inverse](hyp:J₀,J₀_inv,J₀_inverse,J₀_spec), [finite
 variance of the score at the truth](hyp:finite_var), [measurability of the score at every
-parameter value](hyp:psi_meas), [continuity of the population score map at
-θ₀](hyp:jacobian_continuity), [local integrability of the score on a neighborhood of
-θ₀](hyp:psi_int_neighborhood), and [an integrable `L²` envelope bounding local score
-differences](hyp:score_envelope).
+parameter value](hyp:psi_meas), and [local integrability of the score on a neighborhood of
+θ₀](hyp:psi_int_neighborhood).
 
 Existing fields (population identification + smoothness + measurability):
 
@@ -65,15 +67,14 @@ Existing fields (population identification + smoothness + measurability):
 * `finite_var`         : `∫ ‖ψ(z; θ₀)‖² dP < ∞`.
 * `psi_meas`           : `ψ(·; θ)` is measurable for every `θ`.
 
-Empirical-process / smoothness fields (added for the CLT proof,
-van der Vaart 1998 §5.6, `def:par-smoothness`):
-
-* `jacobian_continuity`  : `θ ↦ ∫ ψ(z;θ) dP` is continuous at `θ₀`.  Implied
-                            by `J₀_spec`, but stated explicitly so downstream
-                            CLT code does not have to redo the derivation.
 * `psi_int_neighborhood` : `ψ(·;θ)` is `P`-integrable on a neighborhood of
                             `θ₀`, ensuring `∫ ψ(·;θ) dP` is well-defined for
-                            all `θ` close enough to `θ₀`. -/
+                            all `θ` close enough to `θ₀`.
+
+No observationwise smoothness or Lipschitz envelope is bundled here. This is
+deliberate: Newey--McFadden (1994), Theorem 7.2, and the estimator-indexed
+conclusion of van der Vaart (1998), Lemma 19.24, cover nonsmooth scores through
+an external `StochEquicontAt` hypothesis. -/
 structure ZEstimatorRegularity
     (ψ : E → X → E) (θ₀ : E) (P : Measure X) where
   identification : ∫ z, ψ θ₀ z ∂P = 0
@@ -83,29 +84,8 @@ structure ZEstimatorRegularity
   J₀_spec        : HasFDerivAt (fun θ => ∫ z, ψ θ z ∂P) J₀ θ₀
   finite_var     : Integrable (fun z => ‖ψ θ₀ z‖^2) P
   psi_meas       : ∀ θ, Measurable (ψ θ)
-  /-- `θ ↦ ∫ ψ(z;θ) dP` is continuous at `θ₀`.  Follows from `J₀_spec` but
-  stated explicitly so downstream proofs can quote it directly. -/
-  jacobian_continuity :
-    ContinuousAt (fun θ : E => ∫ z, ψ θ z ∂P) θ₀
   /-- `ψ(·;θ)` is `P`-integrable on a neighborhood of `θ₀`. -/
   psi_int_neighborhood :
     ∃ δ : ℝ, 0 < δ ∧ ∀ θ : E, ‖θ - θ₀‖ < δ → Integrable (ψ θ) P
-  /-- **Integrable almost-everywhere envelope** for the local score differences.
-  Near the target parameter, outside one `P`-null observation set, every local
-  score change is bounded by the parameter displacement times a nonnegative
-  measurable envelope whose square is integrable under the sampling law. This is
-  an `L²` envelope form of the usual local square-integrable smoothness condition
-  in van der Vaart (1998), §5.6, and Newey--McFadden style Z-estimation
-  arguments.
-
-  The null set is uniform over nearby parameters, which is enough to transfer the
-  bound to random sample-dependent estimators after pulling the a.e. statement
-  through each IID coordinate. Used to close `score_diff_L2_isLittleOp_sqrt` in
-  `EmpiricalExpansion.lean`. -/
-  score_envelope :
-    ∃ δ : ℝ, 0 < δ ∧ ∃ F : X → ℝ,
-      Measurable F ∧ (∀ z, 0 ≤ F z) ∧ Integrable (fun z => F z ^ 2) P ∧
-      ∀ᵐ z ∂P, ∀ θ : E, ‖θ - θ₀‖ < δ →
-        ‖ψ θ z - ψ θ₀ z‖ ≤ ‖θ - θ₀‖ * F z
 
 end Causalean.Stat

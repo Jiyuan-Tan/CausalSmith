@@ -15,9 +15,10 @@ The imported FoML development is MIT-licensed; see the FoML package metadata
 for provenance and license terms.
 -/
 
-import FoML.Defs
-import FoML.BoundedDifference
-import Causalean.Tactic.Attr
+module
+public import FoML.Defs
+public import FoML.BoundedDifference
+public import Causalean.Tactic.Attr
 
 /-!
 Re-exports FoML Rademacher-complexity primitives and adds congruence lemmas for empirical and
@@ -42,6 +43,8 @@ which let callers replace a function class by an equal-on-samples or
 almost-everywhere equal representative without changing the corresponding
 Rademacher complexity.
 -/
+
+public section
 
 namespace Causalean
 namespace Stat

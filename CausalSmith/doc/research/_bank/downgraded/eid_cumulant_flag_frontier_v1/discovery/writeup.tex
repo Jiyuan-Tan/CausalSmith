@@ -1,0 +1,2229 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}cumulant\_\allowbreak{}flag\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} In a new calibrated low-rank multi-environment submodel, any finite projected cumulant breakout identifies the structural effect at the population level, even above the inference order cap; within the bounded legal-swap domain, global no-breakout is exactly source-label ambiguous.  A three-environment construction is ambiguous in every pair yet identified jointly.  On bounded first-breakout shells, cumulant-SVD estimation and conservative Anderson--Rubin length have the sharp weak-flag rates, while externally randomized multiplier inversion gives asymptotically exact unconditional coverage throughout the bounded ambient class, including singular, rank-changing, and zero influence covariance.
+
+\section{Project justification}
+
+\paragraph{Gap.} Kivva et al. establish a simultaneous-source obstruction in a two-environment setting.  That obstruction transfers here only on the explicitly demonstrated pairwise intersection; their published result does not supply positive identification for arbitrary simultaneous shifts, nor the calibrated low-rank multi-environment population frontier proved here.
+
+\paragraph{Niche.} The paper studies a new population class in which latent cumulant-shift profiles occupy an unknown rank-\(d\) plane calibrated by observed treatment contrasts.  A complementary treatment-noise direction can be invisible in every pairwise analysis but visible jointly, separating population identification from bounded inference and legal source swapping.
+
+\paragraph{Fill.} The results give an explicit unrestricted-order population identifying quotient, an exact if-and-only-if frontier on the bounded legal-swap domain, a legal three-environment pairwise-ambiguous joint-rescue witness, the sharp \(d+2\) environment and delayed-order constructions, shell-specific estimation and conservative-length rates, an ambient-class generated-projector expansion, and externally randomized singularity-safe calibration.  Estimator and conservative-length upper bounds hold over every fixed admissible bounded class, whereas matching minimax lower bounds are certified only on one fixed compatible experiment.
+
+\section{Related work}
+
+Kivva, Akbari, Salehkaleybar, and Kiyavash (2025), especially Theorem 3.6 and its source-swap argument, provide the closest two-environment obstruction.  Their positive-radius local analytic-moment condition implies finite absolute moments of every order, but their theorem is invoked only for the demonstrated pairwise intersection; this paper's low-rank calibrated population class is new and does not claim positive identification for arbitrary simultaneous shifts in their class.  Rothenhäusler, Heinze, Peters, and Meinshausen (2015) study BACKSHIFT's different covariance joint-diagonalization geometry.  Higher-cumulant work by Cai et al. (2023), Leyes Carreno, Meroni, and Seigal (2025), and Tramontano et al. (2025) uses one-latent-component, targeted-intervention, proxy, or instrumental structure rather than the source-label frontier here.  Long et al. (2023) provide an environmental GMM template, while Andrews and Guggenberger (2019) study singularity-robust testing for supplied moments; neither supplies the same-sample cumulant-plane correction or the structural weak-flag lower-bound family.  Sachs et al. (2005) supply the multi-perturbation protein-signaling setting, and Mooij, Magliacane, and Claassen (2020) explain its latent-confounding and intervention-target complications; neither source verifies the new profile restriction empirically.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\beta\).
+Primary functional / estimator / diagnostic: \(\beta=\langle Q_Ac_{r^\star},Q_Am_{r^\star}\rangle/\lVert Q_Ac_{r^\star}\rVert_2^2\) whenever \(\theta\in\Theta_{\mathrm{pop}}\) and \(r^\star<\infty\).
+\begin{itemize}
+  \item \texttt{d} --- \texttt{positive integer}; \(\mathbb N\); \texttt{latent cumulant-\allowbreak{}profile dimension}
+  \item \texttt{E} --- \texttt{integer}; \(\mathbb N\); \texttt{number of environments}
+  \item \texttt{R\_\allowbreak{}\{\textbackslash{}\allowbreak{}max\}\allowbreak{}} --- \texttt{integer}; \(\mathbb N\); \texttt{largest cumulant order admitted by the experiment}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E} --- \texttt{finite index set}; \texttt{environment set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E=\{0,\ldots,E-1\}\)
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{total sample size}
+  \item \texttt{n\_\allowbreak{}e} --- \texttt{positive integer array}; \(\mathbb N^{\mathcal E}\); \texttt{environment sample sizes}
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}e} --- \texttt{real array}; \texttt{environment sample shares}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_e=n_e/n\)
+  \item \texttt{\textbackslash{}\allowbreak{}underline\textbackslash{}\allowbreak{}pi} --- \texttt{positive real constant}; \((0,1)\); \texttt{lower share bound}
+  \item \texttt{\textbackslash{}\allowbreak{}overline\textbackslash{}\allowbreak{}pi} --- \texttt{positive real constant}; \((0,1)\); \texttt{upper share bound}
+  \item \texttt{B} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{effect bound}
+  \item \texttt{a\_\allowbreak{}0} --- \texttt{positive real constant}; \((0,\infty)\); lower bound for \(\lvert\alpha\rvert\)
+  \item \texttt{a\_\allowbreak{}1} --- \texttt{positive real constant}; \((a_0,\infty)\); upper bound for \(\lvert\alpha\rvert\)
+  \item \texttt{q\_\allowbreak{}0} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{lower bound for confounding slope magnitude}
+  \item \texttt{q\_\allowbreak{}1} --- \texttt{positive real constant}; \((q_0,\infty)\); \texttt{upper bound for confounding slope magnitude}
+  \item \texttt{q} --- \texttt{positive real scalar}; \((0,\infty)\); \texttt{confounding magnitude in the explicit no-\allowbreak{}breakout witness}
+  \item \texttt{L} --- \texttt{positive real scalar}; \((0,\infty)\); \texttt{baseline compound-\allowbreak{}Poisson intensity}
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{positive real scalar}; \((0,\infty)\); \texttt{environment-\allowbreak{}specific intensity increment}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}t\textasciicircum{}2} --- \texttt{positive real scalar}; \((0,\infty)\); \texttt{variance of the invariant Gaussian treatment source}
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}y\textasciicircum{}2} --- \texttt{positive real scalar}; \((0,\infty)\); \texttt{variance of the invariant Gaussian outcome source}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}\{e,\allowbreak{}j\}\allowbreak{}} --- \texttt{positive real array}; \texttt{compound-\allowbreak{}Poisson intensities in the no-\allowbreak{}breakout witness}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_{0,j}=L\) and \(\lambda_{e,j}=L+\eta\mathbf 1\{e=j\}\) for \(e=1,\ldots,E-1\) and \(j=1,\ldots,d\)
+  \item \texttt{N\_\allowbreak{}\{e,\allowbreak{}j\}\allowbreak{}} --- \texttt{array of Poisson random variables}; \texttt{Poisson counts in the no-\allowbreak{}breakout witness}
+  \par\smallskip\noindent\emph{Definition.} \(N_{e,j}\sim\operatorname{Poisson}(\lambda_{e,j})\), independently over \(e\) and \(j\)
+  \item \texttt{M} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{uniform absolute-\allowbreak{}moment envelope}
+  \item \texttt{\textbackslash{}\allowbreak{}delta} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{moment slack exponent}
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}0} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{calibration singular-\allowbreak{}value gap}
+  \item \texttt{\textbackslash{}\allowbreak{}rho} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{interior margin for legal source swaps}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha\_\allowbreak{}0} --- \texttt{real constant}; \((0,1/2)\); \texttt{confidence error probability}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{real scalar}; \(\mathbb R\); \texttt{latent-\allowbreak{}to-\allowbreak{}treatment coefficient}
+  \item \texttt{\textbackslash{}\allowbreak{}beta} --- \texttt{real scalar}; \(\mathbb R\); \texttt{structural direct treatment effect}
+  \item \texttt{\textbackslash{}\allowbreak{}gamma} --- \texttt{real scalar}; \(\mathbb R\); \texttt{latent-\allowbreak{}to-\allowbreak{}outcome coefficient}
+  \item \texttt{\textbackslash{}\allowbreak{}epsilon\_\allowbreak{}\{u,\allowbreak{}e\}\allowbreak{}} --- \texttt{array of real random variables}; \(\{L^0(\Omega,\mathcal F,\Pr)\}^{\mathcal E}\); \texttt{environment-\allowbreak{}specific latent noises}
+  \item \texttt{\textbackslash{}\allowbreak{}epsilon\_\allowbreak{}\{t,\allowbreak{}e\}\allowbreak{}} --- \texttt{array of real random variables}; \(\{L^0(\Omega,\mathcal F,\Pr)\}^{\mathcal E}\); \texttt{environment-\allowbreak{}specific treatment noises}
+  \item \texttt{\textbackslash{}\allowbreak{}epsilon\_\allowbreak{}y} --- \texttt{real random variable}; \(L^0(\Omega,\mathcal F,\Pr)\); \texttt{environment-\allowbreak{}invariant outcome noise}
+  \item \texttt{U\_\allowbreak{}e} --- \texttt{array of real random variables}; \texttt{latent confounders}
+  \par\smallskip\noindent\emph{Definition.} \(U_e=\epsilon_{u,e}\)
+  \item \texttt{T\_\allowbreak{}e} --- \texttt{array of real random variables}; \texttt{treatments}
+  \par\smallskip\noindent\emph{Definition.} \(T_e=\alpha U_e+\epsilon_{t,e}\)
+  \item \texttt{Y\_\allowbreak{}e} --- \texttt{array of real random variables}; \texttt{outcomes}
+  \par\smallskip\noindent\emph{Definition.} \(Y_e=\beta T_e+\gamma U_e+\epsilon_y\)
+  \item \texttt{P\_\allowbreak{}e} --- \texttt{array of probability laws}; \texttt{observed environment laws}
+  \par\smallskip\noindent\emph{Definition.} \(P_e=\mathcal L(T_e,Y_e)\)
+  \item \texttt{k} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{generic cumulant order}
+  \item \texttt{V\_\allowbreak{}d} --- \texttt{real matrix}; \(\mathbb R^{d\times d}\); \texttt{scaled Vandermonde calibration block}
+  \par\smallskip\noindent\emph{Definition.} \(V_d=[j^k]_{j=1,\ldots,d;\ k=2,\ldots,d+1}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf e\_\allowbreak{}j} --- \texttt{standard basis vector array}; \(\mathbb R^{E-1}\); \texttt{coordinate basis for the explicit calibration plane}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf e_j\) has entry one in coordinate \(j\) and zero elsewhere for \(j=1,\ldots,d\)
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}k} --- \texttt{multilinear functional}; \(\kappa_k:(L^k)^k\to\mathbb R\); \texttt{observable and source cumulant operator}
+  \par\smallskip\noindent\emph{Definition.} the joint cumulant of order \(k\)
+  \item \texttt{u\_\allowbreak{}k} --- \texttt{vector sequence}; \(\mathbb R^{E-1}\); \texttt{latent cumulant-\allowbreak{}shift profiles}
+  \par\smallskip\noindent\emph{Definition.} \(u_k=(\kappa_k(\epsilon_{u,e})-\kappa_k(\epsilon_{u,0}))_{e=1}^{E-1}\)
+  \item \texttt{c\_\allowbreak{}k} --- \texttt{vector sequence}; \(\mathbb R^{E-1}\); \texttt{observed treatment cumulant contrasts}
+  \par\smallskip\noindent\emph{Definition.} \(c_k=(\kappa_k(T_e)-\kappa_k(T_0))_{e=1}^{E-1}\)
+  \item \texttt{m\_\allowbreak{}k} --- \texttt{vector sequence}; \(\mathbb R^{E-1}\); \texttt{observed mixed cumulant contrasts}
+  \par\smallskip\noindent\emph{Definition.} \(m_k=(\kappa_k(Y_e,T_e,\ldots,T_e)-\kappa_k(Y_0,T_0,\ldots,T_0))_{e=1}^{E-1}\)
+  \item \texttt{C} --- \texttt{real matrix}; \(\mathbb R^{(E-1)\times d}\); \texttt{calibration contrast matrix}
+  \par\smallskip\noindent\emph{Definition.} \(C=[c_2\mid\cdots\mid c_{d+1}]\)
+  \item \texttt{A} --- \texttt{linear subspace}; \(\operatorname{Gr}(d,E-1)\); \texttt{latent cumulant-\allowbreak{}shift plane}
+  \par\smallskip\noindent\emph{Definition.} \(A=\operatorname{col}(C)\)
+  \item \texttt{Q\_\allowbreak{}A} --- \texttt{linear operator}; \(\mathbb R^{(E-1)\times(E-1)}\); orthogonal projector onto \(A^\perp\)
+  \par\smallskip\noindent\emph{Definition.} \(Q_A=I_{E-1}-C(C^\top C)^{-1}C^\top\)
+  \item \texttt{r\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{extended integer}; \(\{d+2,d+3,\ldots\}\cup\{\infty\}\); \texttt{first projected cumulant breakout}
+  \par\smallskip\noindent\emph{Definition.} \(r^\star=\min\{k\ge d+2:Q_Ac_k\ne0\}\), with \(\min\varnothing=\infty\)
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{structural parameter}; \texttt{one multi-\allowbreak{}environment SEM}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=(\alpha,\beta,\gamma,\{\epsilon_{u,e},\epsilon_{t,e}\}_{e\in\mathcal E},\epsilon_y)\)
+  \item \texttt{S} --- \texttt{map on structural parameters}; \(S:\theta\mapsto S\theta\); \texttt{exact source-\allowbreak{}swap map}
+  \par\smallskip\noindent\emph{Definition.} \(S(\alpha,\beta,\gamma,\epsilon_{u,e},\epsilon_{t,e},\epsilon_y)=(1,\beta+\gamma/\alpha,-\gamma/\alpha,\epsilon_{t,e},\alpha\epsilon_{u,e},\epsilon_y)\)
+  \item \texttt{\textbackslash{}\allowbreak{}Theta} --- \texttt{class of structural parameters}; \texttt{bounded calibrated simultaneous-\allowbreak{}shift model}
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}\textbackslash{}\allowbreak{}rho\textasciicircum{}\textbackslash{}\allowbreak{}circ} --- \texttt{class of structural parameters}; \(\rho\)-interior of the bounded model
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B} --- \texttt{class of structural parameters}; \texttt{finite-\allowbreak{}breakout branch}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal N\_\allowbreak{}\textbackslash{}\allowbreak{}rho} --- \texttt{class of structural parameters}; \texttt{pairwise-\allowbreak{}legal no-\allowbreak{}breakout branch}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}\textbackslash{}\allowbreak{}rho} --- \texttt{class of structural parameters}; \texttt{identification domain}
+  \item \texttt{r} --- \texttt{integer}; \(\{d+2,\ldots,R_{\max}\}\); \texttt{candidate breakout order}
+  \item \texttt{p} --- \texttt{nonnegative integer}; \(\mathbb N_0\); \texttt{treatment monomial order}
+  \item \texttt{\textbackslash{}\allowbreak{}ell} --- \texttt{nonnegative integer}; \(\mathbb N_0\); \texttt{outcome monomial order}
+  \item \texttt{b} --- \texttt{real scalar}; \([-B,B]\); \texttt{candidate effect under inversion}
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}0} --- \texttt{structural parameter}; \(\Theta\); \texttt{first lower-\allowbreak{}bound witness}
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}1} --- \texttt{structural parameter}; \(\Theta\); \texttt{second lower-\allowbreak{}bound witness}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n} --- \texttt{positive real sequence}; \((0,\infty)\); \texttt{local breakout magnitude}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}r(\textbackslash{}\allowbreak{}lambda\_\allowbreak{}n)} --- \texttt{class of structural parameters}; \texttt{first-\allowbreak{}breakout shell}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat C} --- \texttt{random matrix}; \(\mathbb R^{(E-1)\times d}\); \texttt{sample cumulant calibration matrix}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Q} --- \texttt{random linear operator}; \(\mathbb R^{(E-1)\times(E-1)}\); rank-\(d\) SVD projector estimated from \(\widehat C\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat c\_\allowbreak{}k} --- \texttt{random vector sequence}; \(\mathbb R^{E-1}\); \texttt{unbiased sample treatment-\allowbreak{}cumulant contrasts}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat m\_\allowbreak{}k} --- \texttt{random vector sequence}; \(\mathbb R^{E-1}\); \texttt{unbiased sample mixed-\allowbreak{}cumulant contrasts}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}beta} --- \texttt{real-\allowbreak{}valued statistic}; \([-B,B]\); \texttt{cumulant-\allowbreak{}SVD quotient GMM estimator}
+  \item \texttt{t\_\allowbreak{}\{\textbackslash{}\allowbreak{}alpha\_\allowbreak{}0\}\allowbreak{}} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{uniform Anderson-\allowbreak{}-\allowbreak{}Rubin calibration radius}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n} --- \texttt{random interval}; subsets of \([-B,B]\); \texttt{Anderson-\allowbreak{}-\allowbreak{}Rubin inversion interval}
+  \item \texttt{D\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{AR\}\allowbreak{}\}\allowbreak{}} --- \texttt{positive integer}; \(\mathbb N\); \texttt{dimension of the stacked Anderson-\allowbreak{}-\allowbreak{}Rubin projected-\allowbreak{}moment vector}
+  \par\smallskip\noindent\emph{Definition.} \(D_{\mathrm{AR}}=(E-1)(R_{\max}-d-1)\)
+  \item \texttt{\textbackslash{}\allowbreak{}varrho\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{AR\}\allowbreak{}\}\allowbreak{}} --- \texttt{positive real constant}; \((0,\infty)\); \texttt{admissible upper exponent for vanishing Anderson-\allowbreak{}-\allowbreak{}Rubin jitter}
+  \par\smallskip\noindent\emph{Definition.} \(\varrho_{\mathrm{AR}}=\min\{1,\delta/R_{\max}\}/\bigl(8+4\min\{1,\delta/R_{\max}\}\bigr)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{RJ\}\allowbreak{}\}\allowbreak{}} --- \texttt{random confidence set}; subsets of \([-B,B]\); \texttt{randomized-\allowbreak{}jitter Gaussian-\allowbreak{}multiplier Anderson-\allowbreak{}-\allowbreak{}Rubin inversion set}
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{pop\}\allowbreak{}\}\allowbreak{}} --- \texttt{class of structural parameters}; \texttt{broad population cumulant-\allowbreak{}flag model}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:positive-profile-dimension]\label{ass:positive-profile-dimension}
+\(d\ge1\).
+\par\smallskip\noindent\emph{Novel.} This proposal-specific indexing restriction declares a positive latent-profile dimension; it is an uncited maintained restriction, not a literature contribution.
+\end{assumption}
+
+\begin{assumption}[ass:environment-indexing]\label{ass:environment-indexing}
+\(E\ge d+1\).
+\par\smallskip\noindent\emph{Novel.} The count \(E\ge d+1\) is the model-specific minimum needed to house a rank-\(d\) calibration plane; it is an uncited design restriction, not a claimed literature contribution.
+\end{assumption}
+
+\begin{assumption}[ass:order-cap]\label{ass:order-cap}
+\(R_{\max}\ge d+2\).
+\par\smallskip\noindent\emph{Novel.} The finite order cap is a proposal-specific scope restriction fixing which cumulants and source moments are controlled; it is not attributed to prior work or claimed as a contribution.
+\end{assumption}
+
+\begin{assumption}[ass:balanced-shares]\label{ass:balanced-shares}
+\(\underline\pi\le\pi_e\le\overline\pi\) for every \(e\in\mathcal E\).
+\par\smallskip\noindent\emph{Standard} (Balanced stratified sampling, \cite{LongZhuDoHa2023}).
+\end{assumption}
+
+\begin{assumption}[ass:centered-sources]\label{ass:centered-sources}
+\(\mathbb E[\epsilon_{u,e}]=\mathbb E[\epsilon_{t,e}]=\mathbb E[\epsilon_y]=0\) for every \(e\in\mathcal E\).
+\par\smallskip\noindent\emph{Standard} (Centered exogenous noises, \cite{KivvaAkbariSalehkaleybarKiyavash2025}).
+\end{assumption}
+
+\begin{assumption}[ass:source-independence]\label{ass:source-independence}
+\(\epsilon_{u,e}\), \(\epsilon_{t,e}\), and \(\epsilon_y\) are mutually independent within every \(e\in\mathcal E\).
+\par\smallskip\noindent\emph{Standard} (Independent-noise linear SCM, \cite{KivvaAkbariSalehkaleybarKiyavash2025}).
+\end{assumption}
+
+\begin{assumption}[ass:effect-bound]\label{ass:effect-bound}
+\(\lvert\beta\rvert\le B\).
+\par\smallskip\noindent\emph{Novel.} The compact effect range is an uncited proposal-specific restriction used to state bounded loss and interval length; it is not a claimed literature contribution.
+\end{assumption}
+
+\begin{assumption}[ass:treatment-loading-bound]\label{ass:treatment-loading-bound}
+\(a_0\le\lvert\alpha\rvert\le a_1\).
+\par\smallskip\noindent\emph{Novel.} The loading bounds are uncited model-specific restrictions that exclude a degenerate treatment equation while allowing an open neighborhood around the explicit loading \(\alpha=1\); they are not claimed as a literature contribution.
+\end{assumption}
+
+\begin{assumption}[ass:confounding-bound]\label{ass:confounding-bound}
+\(q_0\le\lvert\gamma/\alpha\rvert\le q_1\).
+\par\smallskip\noindent\emph{Novel.} The two-sided confounding bound is an uncited model-specific restriction ensuring that source swapping changes the causal effect by a material amount; it holds on ordinary compact coefficient neighborhoods and is not claimed as a contribution.
+\end{assumption}
+
+\begin{assumption}[ass:moment-envelope]\label{ass:moment-envelope}
+\(\max_{e\in\mathcal E}\max_{X\in\{\epsilon_{u,e},\epsilon_{t,e},\epsilon_y\}}\mathbb E\lvert X\rvert^{2R_{\max}+\delta}\le M\).
+\par\smallskip\noindent\emph{Novel.} This source-level envelope is a newly maintained restriction satisfied by Gaussian and bounded-jump compound-Poisson families with intensities in compact sets.  Andrews and Guggenberger concern inference from supplied moments and are not support for this primitive source condition.
+\end{assumption}
+
+\begin{assumption}[ass:calibration-rank]\label{ass:calibration-rank}
+\(\operatorname{rank}(C)=d\).
+\par\smallskip\noindent\emph{Novel.} Full rank of the cumulant calibration matrix is an uncited proposal-specific relevance restriction.  It is directly satisfied by the scaled Vandermonde construction and is distinct from BACKSHIFT's joint-diagonalization condition.
+\end{assumption}
+
+\begin{assumption}[ass:calibration-gap]\label{ass:calibration-gap}
+\(\sigma_d(C)\ge\kappa_0\).
+\par\smallskip\noindent\emph{Novel.} The fixed calibration gap is an uncited model-specific stability restriction.  It holds for the explicit scaled Vandermonde family when \(\eta\sigma_d(V_d)\ge\kappa_0+\rho\), and is not attributed to BACKSHIFT.
+\end{assumption}
+
+\begin{assumption}[ass:latent-profile-plane]\label{ass:latent-profile-plane}
+\(u_k\in A\) for every integer \(k\ge2\).
+\par\smallskip\noindent\emph{Novel.} This is a low-rank restriction on how one latent source changes across environments, not a restriction on a named estimator.  It is satisfied when environments modify the latent source through \(d\) shared intensity or mixture-weight factors, including finite compound-Poisson families with environment-dependent rates in a fixed \(d\)-dimensional span.
+\end{assumption}
+
+\begin{assumption}[ass:all-absolute-moments]\label{ass:all-absolute-moments}
+For every \(e\in\mathcal E\) and every integer \(s\geq1\),
+\[
+ \mathbb E|\epsilon_{u,e}|^s<\infty,
+ \qquad
+ \mathbb E|\epsilon_{t,e}|^s<\infty,
+ \qquad
+ \mathbb E|\epsilon_y|^s<\infty.
+\]
+\par\smallskip\noindent\emph{Novel.} novel: proposal-specific all-order moment existence replacing the unnecessarily strong entire-mgf restriction
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:cumulant-contrasts]\label{def:cumulant-contrasts}
+\par\smallskip\noindent\emph{Defined object.} \texttt{environmental cumulant contrasts}
+\par\smallskip\noindent\emph{Construction.} For every \(k\ge2\), set \(u_k=(\kappa_k(\epsilon_{u,e})-\kappa_k(\epsilon_{u,0}))_{e=1}^{E-1}\), \(c_k=(\kappa_k(T_e)-\kappa_k(T_0))_{e=1}^{E-1}\), and \(m_k=(\kappa_k(Y_e,T_e,\ldots,T_e)-\kappa_k(Y_0,T_0,\ldots,T_0))_{e=1}^{E-1}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}e}.
+\end{definition}
+
+\begin{definition}[def:calibration-matrix]\label{def:calibration-matrix}
+\par\smallskip\noindent\emph{Defined object.} \texttt{calibration matrix and plane}
+\par\smallskip\noindent\emph{Construction.} Set \(C=[c_2\mid\cdots\mid c_{d+1}]\) and \(A=\operatorname{col}(C)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cumulant-\allowbreak{}contrasts}.
+\end{definition}
+
+\begin{definition}[def:plane-projector]\label{def:plane-projector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{environmental cumulant flag projector}
+\par\smallskip\noindent\emph{Construction.} Set \(Q_A=I_{E-1}-C(C^\top C)^{-1}C^\top\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}calibration-\allowbreak{}matrix}.
+\end{definition}
+
+\begin{definition}[def:first-breakout]\label{def:first-breakout}
+\par\smallskip\noindent\emph{Defined object.} \texttt{first projected breakout}
+\par\smallskip\noindent\emph{Construction.} Set \(r^\star=\min\{k\ge d+2:Q_Ac_k\ne0\}\), with \(r^\star=\infty\) when every such flag vanishes.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cumulant-\allowbreak{}contrasts}; \texttt{def:\allowbreak{}plane-\allowbreak{}projector}.
+\end{definition}
+
+\begin{definition}[def:source-swap]\label{def:source-swap}
+\par\smallskip\noindent\emph{Defined object.} \texttt{legal source swap}
+\par\smallskip\noindent\emph{Construction.} For every \(e\in\mathcal E\), define \(S\theta=(1,\beta+\gamma/\alpha,-\gamma/\alpha,\{\epsilon_{t,e},\alpha\epsilon_{u,e}\}_{e\in\mathcal E},\epsilon_y)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}theta}.
+\end{definition}
+
+\begin{definition}[def:ambient-class]\label{def:ambient-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{bounded calibrated simultaneous-\allowbreak{}shift model}
+\par\smallskip\noindent\emph{Construction.} \(\Theta=\{\theta=(\alpha,\beta,\gamma,\{\epsilon_{u,e},\epsilon_{t,e}\}_{e\in\mathcal E},\epsilon_y): U_e=\epsilon_{u,e},\ T_e=\alpha U_e+\epsilon_{t,e},\ Y_e=\beta T_e+\gamma U_e+\epsilon_y,\ \theta\text{ satisfies every member property listed below}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positive-\allowbreak{}profile-\allowbreak{}dimension}; \texttt{ass:\allowbreak{}environment-\allowbreak{}indexing}; \texttt{ass:\allowbreak{}order-\allowbreak{}cap}; \texttt{ass:\allowbreak{}centered-\allowbreak{}sources}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}all-\allowbreak{}absolute-\allowbreak{}moments}; \texttt{ass:\allowbreak{}effect-\allowbreak{}bound}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}loading-\allowbreak{}bound}; \texttt{ass:\allowbreak{}confounding-\allowbreak{}bound}; \texttt{ass:\allowbreak{}moment-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}rank}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}gap}; \texttt{ass:\allowbreak{}latent-\allowbreak{}profile-\allowbreak{}plane}.
+\end{definition}
+
+\begin{definition}[def:rho-interior]\label{def:rho-interior}
+\par\smallskip\noindent\emph{Defined object.} \texttt{swap-\allowbreak{}safe interior}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_\rho^\circ=\{\theta\in\Theta:\lvert\beta\rvert\le B-\rho,\ a_0+\rho\le\lvert\alpha\rvert\le a_1-\rho,\ q_0+\rho\le\lvert\gamma/\alpha\rvert\le q_1-\rho,\ \max_{e\in\mathcal E}\max_{X\in\{\epsilon_{u,e},\epsilon_{t,e},\epsilon_y\}}\mathbb E\lvert X\rvert^{2R_{\max}+\delta}\le M-\rho,\ \sigma_d(C)\ge\kappa_0+\rho\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}effect-\allowbreak{}bound}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}loading-\allowbreak{}bound}; \texttt{ass:\allowbreak{}confounding-\allowbreak{}bound}; \texttt{ass:\allowbreak{}moment-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}gap}.
+\end{definition}
+
+\begin{definition}[def:no-breakout-witness]\label{def:no-breakout-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{explicit Poisson-\allowbreak{}-\allowbreak{}Gaussian no-\allowbreak{}breakout witness}
+\par\smallskip\noindent\emph{Construction.} Fix \(E\ge d+1\) and positive \(q,L,\eta,\sigma_t^2,\sigma_y^2\) such that \(a_0+\rho\le1\le a_1-\rho\), \(q_0+\rho\le q\le q_1-\rho\), and \(q/2\le B-\rho\).  Let \(\lambda_{0,j}=L\) and \(\lambda_{e,j}=L+\eta\mathbf 1\{e=j\}\) for \(j=1,\ldots,d\), with all environments \(e>d\) at the baseline intensities, and take independent \(N_{e,j}\sim\operatorname{Poisson}(\lambda_{e,j})\).  Set \(\epsilon_{u,e}=\sum_{j=1}^d j(N_{e,j}-\lambda_{e,j})\), let every \(\epsilon_{t,e}\) have the common law \(\mathcal N(0,\sigma_t^2)\), take \(\epsilon_y\sim\mathcal N(0,\sigma_y^2)\), and make these sources mutually independent.  Set \(\alpha=1\), \(\beta=-q/2\), and \(\gamma=q\).  Require \(\eta\sigma_d(V_d)\ge\kappa_0+\rho\) and \[\max\left\{\max_{e\in\mathcal E}\mathbb E\left|\sum_{j=1}^d j(N_{e,j}-\lambda_{e,j})\right|^{2R_{\max}+\delta},\ \mathbb E|\epsilon_{t,0}|^{2R_{\max}+\delta},\ \mathbb E|\epsilon_y|^{2R_{\max}+\delta}\right\}\le M-\rho.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}source-\allowbreak{}swap}; \texttt{def:\allowbreak{}rho-\allowbreak{}interior}.
+\end{definition}
+
+\begin{definition}[def:breakout-branch]\label{def:breakout-branch}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite-\allowbreak{}breakout branch}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B=\{\theta\in\Theta:d+2\le r^\star\le R_{\max}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}latent-\allowbreak{}profile-\allowbreak{}plane}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}rank}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}gap}.
+\end{definition}
+
+\begin{definition}[def:no-breakout-branch]\label{def:no-breakout-branch}
+\par\smallskip\noindent\emph{Defined object.} \texttt{pairwise-\allowbreak{}legal no-\allowbreak{}breakout branch}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal N_\rho=\{\theta\in\Theta_\rho^\circ:r^\star=\infty,\ S\theta\in\Theta_\rho^\circ,\ r^\star(S\theta)=\infty\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}latent-\allowbreak{}profile-\allowbreak{}plane}; \texttt{ass:\allowbreak{}confounding-\allowbreak{}bound}.
+\end{definition}
+
+\begin{definition}[def:identification-domain]\label{def:identification-domain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{cumulant-\allowbreak{}flag domain}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal D_\rho=\mathcal B\cup\mathcal N_\rho\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}breakout-\allowbreak{}branch}; \texttt{def:\allowbreak{}no-\allowbreak{}breakout-\allowbreak{}branch}.
+\end{definition}
+
+\begin{definition}[def:first-breakout-shell]\label{def:first-breakout-shell}
+\par\smallskip\noindent\emph{Defined object.} \texttt{local first-\allowbreak{}breakout shell}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_r(\lambda_n)=\{\theta\in\mathcal B:r^\star=r,\ \lambda_n\le\lVert Q_Ac_r\rVert_2\le2\lambda_n\}\) for each \(r\in\{d+2,\ldots,R_{\max}\}\) and sample size \(n\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}calibration-\allowbreak{}gap}; \texttt{ass:\allowbreak{}moment-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}balanced-\allowbreak{}shares}.
+\end{definition}
+
+\begin{definition}[def:poisson-difference-witness]\label{def:poisson-difference-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{delayed-\allowbreak{}order compound-\allowbreak{}Poisson handle}
+\par\smallskip\noindent\emph{Construction.} For a prescribed \(r\), start from strictly positive compound-Poisson jump intensities on \(\{1,\ldots,r\}\) and perturb the spare environment by signed intensity changes \(\varepsilon(-1)^{r-j}{r\choose j}\) at jump \(j\), with \(\varepsilon\) smaller than the baseline intensity margin; combine this with the exact source swap \(S\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}source-\allowbreak{}swap}.
+\end{definition}
+
+\begin{definition}[def:cumulant-svd-estimator]\label{def:cumulant-svd-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{cumulant-\allowbreak{}SVD quotient GMM}
+\par\smallskip\noindent\emph{Construction.} If every environment has at least \(R_{\max}\) observations, construct \(\widehat c_k\) and \(\widehat m_k\) from symmetrized unbiased cumulant U-statistics, set \(\widehat C=[\widehat c_2\mid\cdots\mid\widehat c_{d+1}]\), let \(\widehat Q\) be the orthogonal-complement projector from the rank-\(d\) SVD of \(\widehat C\), and set
+\[
+ \widehat\beta=\min\operatorname*{arg\,min}_{b\in[-B,B]}
+ \max_{d+2\leq k\leq R_{\max}}
+ \left\lVert\widehat Q(\widehat m_k-b\widehat c_k)\right\rVert_2.
+\]
+If some environment has fewer than \(R_{\max}\) observations, set \(\widehat\beta=0\); the sample cumulants and projector are then not used.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}e}; \texttt{n\_\allowbreak{}e}.
+\end{definition}
+
+\begin{definition}[def:ar-interval]\label{def:ar-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{singularity-\allowbreak{}safe Anderson-\allowbreak{}-\allowbreak{}Rubin inversion}
+\par\smallskip\noindent\emph{Construction.} For a fixed deterministic calibration constant \(t_{\alpha_0}\), consider the set
+\[
+ \left\{b\in[-B,B]:
+ \max_{d+2\leq k\leq R_{\max}}
+ \left\lVert\widehat Q(\widehat m_k-b\widehat c_k)\right\rVert_2
+ \leq \frac{t_{\alpha_0}}{\sqrt n}\right\}.
+\]
+If every environment has at least \(R_{\max}\) observations, define \(\mathcal C_n\) to be this set when it is nonempty and define \(\mathcal C_n=\{\widehat\beta\}\) when it is empty.  If some environment has fewer than \(R_{\max}\) observations, define \(\mathcal C_n=[-B,B]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cumulant-\allowbreak{}svd-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:generated-projector-handle]\label{def:generated-projector-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{generated-\allowbreak{}projector influence handle}
+\par\smallskip\noindent\emph{Construction.} Begin with the joint Hoeffding projections of the symmetrized cumulant U-statistics, apply the Fréchet derivative of the rank-\(d\) spectral projector at \(C\), and use a triangular-array Gaussian approximation formulated on the image of the possibly singular influence covariance.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cumulant-\allowbreak{}svd-\allowbreak{}estimator}.
+\end{definition}
+
+\begin{definition}[def:randomized-gaussian-ar]\label{def:randomized-gaussian-ar}
+\par\smallskip\noindent\emph{Defined object.} \texttt{randomized-\allowbreak{}jitter Gaussian-\allowbreak{}multiplier Anderson-\allowbreak{}-\allowbreak{}Rubin inversion}
+\par\smallskip\noindent\emph{Construction.} If some environment has \(n_e<R_{\max}\), define
+\[
+ \mathcal C_n^{\mathrm{RJ}}=[-B,B]
+\]
+and stop: none of the \(U\)-statistics, leave-one-out projections, multipliers, or jitters below is formed.  Suppose henceforth that \(n_e\geq R_{\max}\) for every \(e\in\mathcal E\).  Put
+\[
+ \mathcal K=\{d+2,\ldots,R_{\max}\},
+ \qquad
+ D_{\mathrm{AR}}=(E-1)|\mathcal K|,
+ \qquad
+ \|x\|_{\max}=\max_{k\in\mathcal K}\|x_k\|_2
+\]
+for \(x=(x_k:k\in\mathcal K)\in\mathbb R^{D_{\mathrm{AR}}}\).  Write \(W_{e,i}=(T_{e,i},Y_{e,i})\).  Each coordinate of a sample cumulant is a fixed finite linear combination of symmetric \(U\)-statistics.  For an order-\(s\) constituent with symmetric kernel \(g\) in environment \(e\), write
+\[
+ U_{e,s}(g)={n_e\choose s}^{-1}
+ \sum_{\substack{I\subset\{1,\ldots,n_e\}\\ |I|=s}}g(W_{e,I})
+\]
+and define its leave-one-out first-projection estimate by
+\[
+ \widehat\psi_{g,e,i}
+ =s\left[
+ {n_e-1\choose s-1}^{-1}
+ \sum_{\substack{J\subset\{1,\ldots,n_e\}\setminus\{i\}\\ |J|=s-1}}
+ g\bigl(W_{e,i},W_{e,J}\bigr)-U_{e,s}(g)
+ \right].
+\]
+Apply the same finite linear combinations and the same environment-versus-baseline contrast signs as in \(\widehat C\), \(\widehat c_k\), and \(\widehat m_k\) to obtain \(\widehat\psi^C_{e,i}\), \(\widehat\psi^c_{e,k,i}\), and \(\widehat\psi^m_{e,k,i}\).  Define
+\[
+ \widehat C^\dagger=
+ \begin{cases}
+  (\widehat C^\top\widehat C)^{-1}\widehat C^\top,
+    &\sigma_d(\widehat C)\geq\kappa_0/2,\\
+  0,&\sigma_d(\widehat C)<\kappa_0/2,
+ \end{cases}
+\]
+and, for \(b\in[-B,B]\),
+\[
+ \widehat h_k(b)=\widehat m_k-b\widehat c_k,
+ \qquad
+ \widehat\zeta_{e,k,i}(b)
+ =\widehat Q\left\{
+ \widehat\psi^m_{e,k,i}-b\widehat\psi^c_{e,k,i}
+ -\widehat\psi^C_{e,i}\widehat C^\dagger\widehat h_k(b)
+ \right\}.
+\]
+Let \(\widehat\zeta_{e,i}(b)\in\mathbb R^{D_{\mathrm{AR}}}\) stack these vectors over \(k\in\mathcal K\), and put
+\[
+ H_n(b)=\left(
+ \sqrt n\,\widehat Q(\widehat m_k-b\widehat c_k):k\in\mathcal K
+ \right).
+\]
+Set
+\[
+ \nu=\min\{1,\delta/R_{\max}\},
+ \qquad
+ \varrho_{\mathrm{AR}}=\frac{\nu}{8+4\nu}.
+\]
+Choose \(0<\chi<\varrho_{\mathrm{AR}}\), put \(\tau_n=n^{-\chi}\), and choose a deterministic integer sequence \(m_n\to\infty\).  Independently of the data, draw mutually independent standard normal variables
+\[
+ \{\omega^{(j)}_{e,i}:e\in\mathcal E,\ 1\leq i\leq n_e,
+ 1\leq j\leq m_n\}
+ \quad\text{and}\quad
+ \xi_0,\xi_1,\ldots,\xi_{m_n}.
+\]
+For every \(b\in[-B,B]\), form
+\[
+ G_n^{*(j)}(b)=\frac1{\sqrt n}
+ \sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+ \pi_e^{-1}\widehat\zeta_{e,i}(b)\omega^{(j)}_{e,i},
+\]
+\[
+ V_n(b)=\|H_n(b)\|_{\max}+\tau_n\xi_0,
+ \qquad
+ V_n^{*(j)}(b)=\|G_n^{*(j)}(b)\|_{\max}+\tau_n\xi_j,
+\]
+and
+\[
+ \widehat p_{n,m_n}(b)=\frac1{m_n}\sum_{j=1}^{m_n}
+ \mathbf 1\{V_n^{*(j)}(b)\geq V_n(b)\}.
+\]
+The randomized-jitter Gaussian-multiplier Anderson--Rubin inversion is
+\[
+ \mathcal C_n^{\mathrm{RJ}}
+ =\{b\in[-B,B]:\widehat p_{n,m_n}(b)>\alpha_0\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}cumulant-\allowbreak{}svd-\allowbreak{}estimator}; \texttt{def:\allowbreak{}generated-\allowbreak{}projector-\allowbreak{}handle}; \texttt{def:\allowbreak{}ar-\allowbreak{}interval}.
+\end{definition}
+
+\begin{definition}[def:population-flag-class]\label{def:population-flag-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{population cumulant-\allowbreak{}flag class}
+\par\smallskip\noindent\emph{Construction.} Let \(\Theta_{\mathrm{pop}}\) be the class of structural parameters
+\[
+ \theta=(\alpha,\beta,\gamma,
+          \{\epsilon_{u,e},\epsilon_{t,e}\}_{e\in\mathcal E},
+          \epsilon_y)
+\]
+for which \(U_e=\epsilon_{u,e}\), \(T_e=\alpha U_e+\epsilon_{t,e}\), and \(Y_e=\beta T_e+\gamma U_e+\epsilon_y\) in every environment, and which satisfy every member property listed below.  No coefficient bound, fixed singular-value gap, finite inference-order cap, or source-swap closure is imposed in \(\Theta_{\mathrm{pop}}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positive-\allowbreak{}profile-\allowbreak{}dimension}; \texttt{ass:\allowbreak{}environment-\allowbreak{}indexing}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}all-\allowbreak{}absolute-\allowbreak{}moments}; \texttt{ass:\allowbreak{}calibration-\allowbreak{}rank}; \texttt{ass:\allowbreak{}latent-\allowbreak{}profile-\allowbreak{}plane}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:cumulant-cancellation]\label{lem:cumulant-cancellation}
+For every \(\theta\in\Theta\) and integer \(k\ge2\), \(m_k-\beta c_k=\alpha^{k-1}\gamma u_k\in A\), and therefore \(Q_Am_k=\beta Q_Ac_k\).
+\end{lemma}
+\begin{proof}
+Let \(\theta\in\Theta\) and \(k\ge2\). By \texttt{lem:ambient-subset-population-flag-class}, \(\theta\in\Theta_{\mathrm{pop}}\). Applying \texttt{lem:population-cumulant-cancellation} gives
+\[
+m_k-\beta c_k=\alpha^{k-1}\gamma u_k\in A,\qquad
+Q_Am_k=\beta Q_Ac_k,
+\]
+which is the claimed bounded-class corollary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This bounded-class statement is the literal corollary of ambient inclusion and population cumulant cancellation. \textit{Gap.} The projected vector relation is new to the calibrated low-rank model. \textit{Consumer.} The bounded generated-projector and inference results use this exact zero-moment relation.
+
+\begin{proposition}[prop:no-breakout-nonvacuity]\label{prop:no-breakout-nonvacuity}
+Suppose \(E\ge d+1\) and positive \(q,L,\eta,\sigma_t^2,\sigma_y^2\) satisfy \(a_0+\rho\le1\le a_1-\rho\), \(q_0+\rho\le q\le q_1-\rho\), \(q/2\le B-\rho\), \(\eta\sigma_d(V_d)\ge\kappa_0+\rho\), and the \(2R_{\max}+\delta\)-moment maximum displayed in the explicit Poisson--Gaussian witness is at most \(M-\rho\).  For the resulting \(\theta\), every \(k\ge2\) obeys \(u_k=\eta(1^k,\ldots,d^k,0,\ldots,0)^\top\) and \(c_k=u_k\).  The leading \(d\times d\) block of \(C\) is \(\eta V_d=\eta[j^k]_{j=1,\ldots,d;\ k=2,\ldots,d+1}\), which is nonsingular because it is a Vandermonde matrix after factoring \(j^2\) from row \(j\); moreover \(\sigma_d(C)\ge\eta\sigma_d(V_d)\ge\kappa_0+\rho\).  Consequently \(A=\operatorname{span}\{\mathbf e_1,\ldots,\mathbf e_d\}\), every \(c_k\) lies in \(A\), and \(r^\star(\theta)=\infty\).  Under \(S\), the invariant Gaussian treatment source is the latent source, so every latent cumulant-shift vector is zero, while the observed \(C\) is unchanged and \(r^\star(S\theta)=\infty\).  In both representations, \(T_e=\epsilon_{u,e}+\epsilon_{t,e}\) and \(Y_e=(q/2)\epsilon_{u,e}-(q/2)\epsilon_{t,e}+\epsilon_y\), whereas the effects are respectively \(-q/2\) and \(q/2\).  Thus \(\theta,S\theta\in\Theta_\rho^\circ\), they generate the same \(P_e\) in every environment, \(\theta\in\mathcal N_\rho\), and \(\mathcal N_\rho\ne\varnothing\) for every compatible collection of bounds satisfying these feasibility conditions.
+\end{proposition}
+\begin{proof}
+Put \(V_e=\epsilon_{u,e}\) and \(W_e=\epsilon_{t,e}\).  We first compute the environmental cumulant profiles of the witness.  If \(N\sim\operatorname{Poisson}(\lambda)\), then, directly from the Poisson moment generating function,
+\[
+ \log \mathbb E\exp\{t j(N-\lambda)\}
+ =\lambda\bigl(\exp(jt)-1-jt\bigr).
+\]
+By the definition of a cumulant as a derivative at zero of the log moment generating function, for every integer \(k\geq2\),
+\[
+ \kappa_k\bigl(j(N-\lambda)\bigr)=\lambda j^k.                 \tag{1}
+\]
+For fixed \(e\), independence of the variables \(N_{e,j}\) makes the moment generating function of their sum a product, so its logarithm is the sum of their log moment generating functions.  Thus (1), the witness definition, and the definition of \(u_k\) give
+\[
+ \begin{aligned}
+ (u_k)_e
+ &=\kappa_k(V_e)-\kappa_k(V_0)\\
+ &=\sum_{j=1}^d(\lambda_{e,j}-\lambda_{0,j})j^k\\
+ &=\begin{cases}
+      \eta e^k,&1\leq e\leq d,\\
+      0,&d<e\leq E-1.
+    \end{cases}
+ \end{aligned}                                                   \tag{2}
+\]
+The final case is absent when \(E=d+1\).  Consequently,
+\[
+ u_k=\eta(1^k,2^k,\ldots,d^k,0,\ldots,0)^\top.                 \tag{3}
+\]
+
+The treatment equation in this witness is \(T_e=V_e+W_e\).  By source independence, the cumulant of this sum is the sum of the source cumulants, by the same log-moment-generating-function calculation used above.  The variables \(W_e\) have one common Gaussian law in all environments, so their cumulant contrasts are zero.  It follows from the definition of \(c_k\) and (3) that
+\[
+ c_k=u_k\qquad(k\geq2).                                         \tag{4}
+\]
+In particular, using the definition \(C=[c_2\mid\cdots\mid c_{d+1}]\),
+\[
+ C=\begin{bmatrix}\eta V_d\\[2pt]0\end{bmatrix},
+ \qquad
+ V_d=[j^k]_{j=1,\ldots,d;\ k=2,\ldots,d+1}.                    \tag{5}
+\]
+
+We verify the asserted rank rather than assuming it.  Factoring \(j^2\) from row \(j\) of \(V_d\) leaves the matrix \([j^\ell]_{j=1,\ldots,d;\ \ell=0,\ldots,d-1}\).  If a linear combination of its columns were zero, the associated polynomial of degree at most \(d-1\) would vanish at the \(d\) distinct points \(1,\ldots,d\).  Repeated application of the factor theorem would then make it divisible by a polynomial of degree \(d\), so it must be the zero polynomial.  Its columns, and hence those of \(V_d\), are therefore linearly independent.  Since \(\eta>0\), (5) yields
+\[
+ C^\top C=\eta^2V_d^\top V_d,
+ \qquad
+ \sigma_d(C)=\eta\sigma_d(V_d)\geq\kappa_0+\rho.              \tag{6}
+\]
+Thus \(\operatorname{rank}(C)=d\), so the projector \(Q_A\) is well defined.  Equations (3)--(5) also show
+\[
+ A=\operatorname{col}(C)
+  =\operatorname{span}\{\mathbf e_1,\ldots,\mathbf e_d\},
+ \qquad
+ c_k,u_k\in A\quad(k\geq2).                                   \tag{7}
+\]
+By the definition of an orthogonal projector, (7) implies \(Q_Ac_k=0\) for every \(k\geq2\).  The definition of the first breakout therefore gives
+\[
+ r^\star(\theta)=\infty.                                       \tag{8}
+\]
+
+We next check membership in the bounded interior.  Every constructed source is centered: this is immediate for \(N_{e,j}-\lambda_{e,j}\), and the Gaussian sources have mean zero.  Mutual independence within each environment holds by the witness construction, as required by source independence.  The displayed Poisson log moment generating function is finite for both signs of every real argument, as are the Gaussian moment generating functions.  For any such source \(X\), any \(h>0\), and every positive integer \(s\),
+\[
+ |X|^s\leq s!h^{-s}\exp(h|X|),
+ \qquad
+ \exp(h|X|)\leq\exp(hX)+\exp(-hX).
+\]
+Taking expectations proves \(\mathbb E|X|^s<\infty\), which verifies the all-absolute-moments member property.  The feasibility inequality in the witness definition gives the required \((2R_{\max}+\delta)\)-moment bound for \(V_e\) and \(\epsilon_y\).  It also gives that bound for every \(W_e\), because all \(W_e\) have the same law as \(W_0\).  Thus the moment envelope holds with \(\rho\) slack.
+
+For the coefficients, the witness and its feasibility conditions give, separately,
+\[
+ |\beta|=q/2\leq B-\rho,
+ \qquad
+ a_0+\rho\leq|\alpha|=1\leq a_1-\rho,
+ \qquad
+ q_0+\rho\leq|\gamma/\alpha|=q\leq q_1-\rho.                  \tag{9}
+\]
+The positive-profile and environment-indexing conditions hold by the standing assumptions and \(E\geq d+1\); the structural equations hold by construction.  Rank and the calibration gap follow from (6), while the latent-profile-plane property follows from (7).  Together with the centeredness, independence, all-order moments, and moment bound just checked, these are all member properties of \(\Theta\), and (6) and (9) are precisely the additional slack inequalities in the definition of \(\Theta_\rho^\circ\).  Hence
+\[
+ \theta\in\Theta_\rho^\circ.                                \tag{10}
+\]
+
+It remains to check the source swap.  In the original representation, direct substitution of \(\alpha=1\), \(\beta=-q/2\), and \(\gamma=q\) gives, for every \(e\in\mathcal E\),
+\[
+ T_e=V_e+W_e,
+ \qquad
+ Y_e=-\frac q2(V_e+W_e)+qV_e+\epsilon_y
+     =\frac q2V_e-\frac q2W_e+\epsilon_y.                       \tag{11}
+\]
+By the definition of \(S\), the swapped structural parameter has
+\[
+ \alpha'=1,
+ \qquad
+ \beta'=\beta+\gamma/\alpha=q/2,
+ \qquad
+ \gamma'=-\gamma/\alpha=-q,
+ \qquad
+ \epsilon'_{u,e}=W_e,
+ \qquad
+ \epsilon'_{t,e}=V_e.                                          \tag{12}
+\]
+Its structural equations consequently produce
+\[
+ T'_e=W_e+V_e=T_e
+\]
+and, using (12),
+\[
+ Y'_e=\frac q2(W_e+V_e)-qW_e+\epsilon_y
+     =\frac q2V_e-\frac q2W_e+\epsilon_y
+     =Y_e.                                                       \tag{13}
+\]
+Therefore the two parameters induce exactly the same observed law \(P_e=\mathcal L(T_e,Y_e)\) in every environment, rather than merely matching finitely many moments.  In particular, their observed contrasts \(c_k\), their matrix \(C\), their plane \(A\), and their projector \(Q_A\) coincide.
+
+The swapped latent source \(W_e\) has the same Gaussian law in every environment.  Hence its latent cumulant-shift profile is zero at every order and so belongs to \(A\).  By (4), the unchanged observed treatment contrasts all lie in \(A\), whence
+\[
+ r^\star(S\theta)=\infty.                                      \tag{14}
+\]
+Centeredness, source independence, and all-order moment existence are preserved when the two independent source families are interchanged.  Because \(\alpha=1\), the source-level moment maximum is also unchanged by this interchange.  The swapped effect, loading, and confounding magnitudes are, by (12), \(q/2\), \(1\), and \(q\), respectively, so the same three inequalities (9) apply.  Finally, the observed \(C\) is unchanged, so (6) supplies the same rank and singular-value gap.  These checks establish
+\[
+ S\theta\in\Theta_\rho^\circ.                                \tag{15}
+\]
+
+Combining (8), (10), (14), and (15) with the definition of \(\mathcal N_\rho\) yields \(\theta\in\mathcal N_\rho\).  The two observationally identical structural parameters have effects \(-q/2\) and \(q/2\), which are unequal because \(q>0\).  Thus \(\mathcal N_\rho\neq\varnothing\) for every collection of constants satisfying the feasibility conditions in the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit scaled-Vandermonde construction proves that the source-swap branch contains interior unequal-effect laws whenever the fixed bounds are jointly feasible. \textit{Gap.} Kivva et al.'s two-environment swap supplies the algebraic ambiguity, but it does not establish nonvacuity of this calibrated \(d\)-plane, fixed-gap, bounded-moment interior domain. \textit{Consumer.} The proposition ensures that the no-breakout verdict used for a Sachs edge corresponds to an attainable simultaneous-shift model rather than a branch created only by set notation.
+
+\begin{theorem}[thm:environment-sharpness]\label{thm:environment-sharpness}
+Under \(\operatorname{rank}(C)=d\), a finite breakout can occur only if \(E\ge d+2\).  If \(E=d+1\), then \(A=\mathbb R^d\) and \(Q_A=0\).  Conversely, for every \(d\ge1\), \(E\ge d+2\), and \(R_{\max}\ge d+2\), there exist finite \(M\), positive \(\kappa_0\), and one fixed choice of the remaining bounds such that, for every \(r\in\{d+2,\ldots,R_{\max}\}\), centered independent entire-mgf source laws satisfy those same bounds and calibration gap with \(r^\star=r\).
+\end{theorem}
+\begin{proof}
+The columns of \(C\) lie in \(\mathbb R^{E-1}\).  Hence the assumption \(\operatorname{rank}(C)=d\) first gives \(d\leq E-1\).  By the definitions of \(A\) and \(Q_A\), the latter is the orthogonal projector onto \(A^\perp\), and
+\[
+ \dim(A^\perp)=(E-1)-d.
+\]
+If a finite breakout occurs, then \(Q_Ac_k\neq0\) for some \(k\geq d+2\).  Thus \(A^\perp\neq\{0\}\), so \((E-1)-d\geq1\), or equivalently \(E\geq d+2\).  At the boundary \(E=d+1\), full rank gives
+\[
+ A=\operatorname{col}(C)=\mathbb R^d,
+ \qquad
+ Q_A=0,
+\]
+which rules out every finite breakout.
+
+It remains to prove that this dimension requirement is attainable uniformly over all prescribed breakout orders.  Fix \(d\geq1\), \(E\geq d+2\), and \(R_{\max}\geq d+2\).  For every \(s\in\{d+2,\ldots,R_{\max}\}\) and \(1\leq j\leq s\), define
+\[
+ \nu_{s j}=(-1)^{s-j}{s\choose j}.
+\]
+The binomial identity
+\[
+ \sum_{j=0}^{s}(-1)^{s-j}{s\choose j}e^{jt}=(e^t-1)^s
+\]
+and differentiation at \(t=0\) imply, for integer \(k\geq1\),
+\[
+ \sum_{j=1}^{s}\nu_{s j}j^k=0\quad(1\leq k<s),
+ \qquad
+ \sum_{j=1}^{s}\nu_{s j}j^s=s!.
+ \tag{2}
+\]
+Indeed, the omitted \(j=0\) term has zero \(k\)-th derivative for \(k\geq1\), while \((e^t-1)^s\) has a zero of order \(s\) at zero and its \(s\)-th derivative there is \(s!\).  This is exactly the alternating-intensity component of the delayed-order compound-Poisson handle.
+
+Let
+\[
+ K=\max_{d+2\leq s\leq R_{\max}}\max_{1\leq j\leq s}|\nu_{s j}|,
+\]
+choose fixed \(L>0\) and \(\eta>0\), and choose one fixed \(\varepsilon\) with
+\[
+ 0<\varepsilon<\frac{L}{2K}.
+ \tag{3}
+\]
+For nonnegative intensities \(\lambda_1,\ldots,\lambda_J\), write
+\[
+ X(\lambda_1,\ldots,\lambda_J)
+ =\sum_{j=1}^J j(N_j-\lambda_j),
+ \qquad N_j\sim\operatorname{Poisson}(\lambda_j)
+\]
+with the \(N_j\)'s independent.  This variable is centered, and its complex moment generating function satisfies
+\[
+ \mathbb E e^{zX}
+ =\exp\!\left\{\sum_{j=1}^J\lambda_j(e^{jz}-1-jz)\right\}.
+ \tag{4}
+\]
+Thus it has an entire moment generating function, and differentiation of the logarithm in (4) gives
+\[
+ \kappa_k(X)=\sum_{j=1}^J\lambda_jj^k,
+ \qquad k\geq2.
+ \tag{5}
+\]
+
+Fix a desired \(r\in\{d+2,\ldots,R_{\max}\}\).  In environment \(e\), construct the latent noise as a centered compound-Poisson variable with jumps \(1,\ldots,d\) and intensities
+\[
+ \lambda^{u}_{e,j}=L+\eta\mathbf 1\{e=j\},
+ \qquad 1\leq j\leq d.
+ \tag{6}
+\]
+Construct the treatment noise as a centered compound-Poisson variable with jumps \(1,\ldots,R_{\max}\) and intensities
+\[
+ \lambda^{t,r}_{e,j}
+ =L+\varepsilon\nu_{rj}\mathbf 1\{e=d+1\}\mathbf 1\{j\leq r\},
+ \qquad 1\leq j\leq R_{\max}.
+ \tag{7}
+\]
+The coordinate \(e=d+1\) exists because \(E\geq d+2\).  Equations (3) and (7) give \(\lambda^{t,r}_{e,j}>L/2>0\), so every displayed compound-Poisson law is legal.  Take all source variables mutually independent within each environment, take the invariant \(\epsilon_y\) to be standard Gaussian and independent of the other sources, and set
+\[
+ \alpha=1,
+ \qquad \beta=0,
+ \qquad \gamma=1.
+ \tag{8}
+\]
+The sources are centered by construction, and (4), together with the Gaussian moment generating function, shows that all of them have entire moment generating functions.
+
+Let \(\mathbf e_j\) denote the \(j\)-th coordinate vector of \(\mathbb R^{E-1}\).  From (5)--(7), the latent cumulant contrast and the treatment-noise cumulant contrast are respectively
+\[
+ u_k=\eta(1^k,2^k,\ldots,d^k,0,\ldots,0)^\top
+\]
+and
+\[
+ v_k
+ =\varepsilon\left(\sum_{j=1}^{r}\nu_{rj}j^k\right)\mathbf e_{d+1}.
+ \tag{9}
+\]
+Independence of \(U_e\) and \(\epsilon_{t,e}\), the equation \(T_e=U_e+\epsilon_{t,e}\) from (8), and additivity of log moment generating functions yield additivity of their cumulants.  Consequently
+\[
+ c_k=u_k+v_k.
+ \tag{10}
+\]
+For \(2\leq k\leq d+1\), we have \(k<r\), so (2) makes \(v_k=0\).  Therefore, with
+\[
+ V_d=(i^{\ell+1})_{1\leq i,\ell\leq d},
+\]
+the calibration matrix is
+\[
+ C=
+ \begin{bmatrix}
+  \eta V_d\\
+  0_{(E-1-d)\times d}
+ \end{bmatrix}.
+ \tag{11}
+\]
+To verify that \(V_d\) is nonsingular, suppose \(V_dx=0\) and put \(q(z)=\sum_{\ell=1}^d x_\ell z^{\ell-1}\).  For every \(i\in\{1,\ldots,d\}\), equation \(V_dx=0\) gives \(i^2q(i)=0\), hence \(q(i)=0\).  Repeated application of the factor theorem shows that a polynomial of degree at most \(d-1\) with these \(d\) distinct roots is zero.  Thus \(x=0\), proving that \(V_d\) is nonsingular.
+
+It follows from (11) that
+\[
+ \operatorname{rank}(C)=d,
+ \qquad
+ A=\operatorname{span}\{\mathbf e_1,\ldots,\mathbf e_d\},
+ \qquad
+ \sigma_d(C)=\eta\sigma_d(V_d)>0.
+ \tag{12}
+\]
+In particular, (9) shows directly that \(u_k\in A\) for every integer \(k\geq2\), as required by the latent-profile-plane assumption.  For \(d+2\leq k<r\), equations (2), (9), and (10) give \(Q_Ac_k=0\).  At order \(r\), the same equations give
+\[
+ Q_Ac_r
+ =\varepsilon r!\,\mathbf e_{d+1}\neq0.
+ \tag{13}
+\]
+The definition of the first breakout now yields \(r^\star=r\).
+
+Finally, all constants can be chosen once, independently of \(r\).  The values \(L\), \(\eta\), and \(\varepsilon\) were fixed using only \(d\) and \(R_{\max}\), and the calibration matrix (11) does not depend on \(r\).  Thus one may take
+\[
+ \kappa_0=\frac12\eta\sigma_d(V_d)>0.
+\]
+There are only finitely many candidate orders, environments, and source laws in (6)--(8).  Each has finite absolute moments of every positive order, so
+\[
+ M
+ =1+\max_{\substack{d+2\leq r\leq R_{\max}\,,\ e\in\mathcal E\\
+ X\in\{\epsilon_{u,e},\epsilon^{(r)}_{t,e},\epsilon_y\}}}
+ \mathbb E|X|^{2R_{\max}+\delta}
+ <\infty
+ \tag{14}
+\]
+is one common moment envelope.  For example, the one-time choices
+\[
+ B=1,
+ \qquad a_0=\frac12,
+ \qquad a_1=2,
+ \qquad q_0=\frac12,
+ \qquad q_1=2
+\]
+contain the coefficients in (8) and satisfy all coefficient inequalities.  Equations (3), (12), and (14) verify positivity, the fixed singular gap, and the common moment bound.  Hence the same collection of bounds admits, for every prescribed \(r\), centered independent entire-moment-generating-function sources with \(r^\star=r\).  Together with the dimension obstruction, this proves the claimed sharp threshold.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The environment count is an exact resource threshold once the latent profile dimension is fixed. \textit{Gap.} BACKSHIFT's three-setting threshold concerns covariance joint diagonalization; the proposed \(d+2\) threshold concerns a selected confounded effect and includes realizability at every prescribed higher order. \textit{Consumer.} The result tells experimentalists how many perturbation environments are minimally required to leave a \(d\)-factor latent-shift geometry.
+
+\begin{theorem}[thm:moment-order-sharpness]\label{thm:moment-order-sharpness}
+For every \(d\geq1\), \(E\geq d+2\), and \(R_{\max}\geq d+2\), there is one fixed compatible choice of the bounded model \(\Theta\), common to all \(r\in\{d+2,\ldots,R_{\max}\}\), such that for every such \(r\) the resulting \(\mathcal B\) contains a nondegenerate finite-dimensional Poisson--Gaussian subclass and two members \(\theta_0,\theta_1\) satisfying \(\beta(\theta_0)\neq\beta(\theta_1)\), \(r^\star(\theta_0)=r^\star(\theta_1)=r\), and \(\mathbb E_{\theta_0}[T_e^pY_e^{\ell}]=\mathbb E_{\theta_1}[T_e^pY_e^{\ell}]\) for every \(e\in\mathcal E\) and every \(p,\ell\geq0\) with \(p+\ell<r\).
+\end{theorem}
+\begin{proof}
+Fix \(d\geq1\), \(E\geq d+2\), and \(R_{\max}\geq d+2\).  The already established environment-sharpness theorem shows that \(E\geq d+2\) is exactly the environmental regime in which a finite breakout can occur.  We now construct, with one collection of bounds for all admissible \(r\), unequal-effect pairs that cannot be distinguished by lower-order mixed moments.
+
+For \(r\in\{d+2,\ldots,R_{\max}\}\), define
+\[
+ \nu_{rj}=(-1)^{r-j}{r\choose j},\qquad 1\leq j\leq r.
+\]
+The identity
+\[
+ \sum_{j=0}^{r}(-1)^{r-j}{r\choose j}e^{jx}=(e^x-1)^r
+ \tag{1}
+\]
+is the binomial theorem applied to \(e^x-1\).  Differentiating (1) \(k\) times at zero gives
+\[
+ \sum_{j=1}^{r}\nu_{rj}j^k=0\quad(1\leq k<r),
+ \qquad
+ \sum_{j=1}^{r}\nu_{rj}j^r=r!.
+ \tag{2}
+\]
+Thus the signed measure with masses \(\nu_{rj}\) at \(j\) annihilates every positive-order monomial below degree \(r\), but not the degree-\(r\) monomial.
+
+Put
+\[
+ K=\max_{d+2\leq s\leq R_{\max}}\max_{1\leq j\leq s}|\nu_{sj}|<\infty
+\]
+and fix \(\eta>0\) and \(0<\varepsilon<(2K)^{-1}\).  Let \(L\) vary in \([1,2]\).  For \(1\leq j\leq R_{\max}\) and \(e\in\mathcal E\), define baseline intensities
+\[
+ \Lambda^{V}_{e,j}=L+\eta\mathbf 1\{1\leq e=j\leq d\},
+ \qquad
+ \Lambda^{W}_{e,j}=L+2\eta\mathbf 1\{1\leq e=j\leq d\}.
+ \tag{3}
+\]
+For an intensity vector \(\Lambda=(\Lambda_1,\ldots,\Lambda_{R_{\max}})\) and \(\sigma^2>0\), let
+\[
+ X(\Lambda,\sigma^2)
+ =G_{\sigma}+
+   \sum_{j=1}^{R_{\max}}j\{N_j-\Lambda_j\},
+ \tag{4}
+\]
+where \(G_{\sigma}\sim N(0,\sigma^2)\), the variables \(N_j\sim\operatorname{Poisson}(\Lambda_j)\) are independent, and the Gaussian variable is independent of all the counts.  Its log moment generating function is
+\[
+ \log\mathbb E e^{xX(\Lambda,\sigma^2)}
+ =\frac{\sigma^2x^2}{2}
+  +\sum_{j=1}^{R_{\max}}\Lambda_j(e^{jx}-1-jx),
+ \tag{5}
+\]
+which is finite for every real \(x\).  Formula (4) is centered, and differentiating (5) shows that for every \(k\geq2\),
+\[
+ \kappa_k\{X(\Lambda,\sigma^2)\}
+ =\sigma^2\mathbf 1\{k=2\}+
+   \sum_{j=1}^{R_{\max}}\Lambda_jj^k.
+ \tag{6}
+\]
+
+Choose \((\sigma_V^2,\sigma_W^2,\sigma_y^2)\in[1,2]^3\).  Let \(V_e^\circ\) and \(W_e^\circ\) have the laws in (4) with intensities \(\Lambda^V_e\) and \(\Lambda^W_e\), and variances \(\sigma_V^2\) and \(\sigma_W^2\), respectively.  Let \(Z\sim N(0,\sigma_y^2)\).  All sources are chosen mutually independent within each environment.  Consider first the two unperturbed structural representations
+\[
+ \begin{array}{c|ccc|ccc}
+ &\alpha&\beta&\gamma&\epsilon_{u,e}&\epsilon_{t,e}&\epsilon_y\\ \hline
+ \theta_0^\circ&1&2&1&V_e^\circ&W_e^\circ&Z\\
+ \theta_1^\circ&1&3&-1&W_e^\circ&V_e^\circ&Z.
+ \end{array}
+ \tag{7}
+\]
+The second row is the exact source swap \(S\theta_0^\circ\).  More directly, the structural equations give in both rows
+\[
+ T_e=V_e^\circ+W_e^\circ,
+ \qquad
+ Y_e=3V_e^\circ+2W_e^\circ+Z.
+ \tag{8}
+\]
+Hence the complete baseline observed laws, not merely selected moments, coincide.
+
+Fix an admissible \(r\).  Because \(E\geq d+2\), the environment \(e=d+1\) exists.  Form \(W_e^{(r)}\) from \(W_e^\circ\) by replacing, only when \(e=d+1\), its jump-\(j\) intensity by
+\[
+ \Lambda^W_{d+1,j}+\varepsilon\nu_{rj}\mathbf 1\{j\leq r\}.
+ \tag{9}
+\]
+Define \(V_e^{(r)}\) analogously from \(V_e^\circ\).  Every intensity in (9) is at least
+\[
+ 1-\varepsilon K>\frac12,
+ \tag{10}
+\]
+so both perturbations are probability laws of the form (4), rather than signed laws.  Define
+\[
+ \begin{array}{c|ccc|ccc}
+ &\alpha&\beta&\gamma&\epsilon_{u,e}&\epsilon_{t,e}&\epsilon_y\\ \hline
+ \theta_{0,r}&1&2&1&V_e^\circ&W_e^{(r)}&Z\\
+ \theta_{1,r}&1&3&-1&W_e^\circ&V_e^{(r)}&Z.
+ \end{array}
+ \tag{11}
+\]
+Thus the order-specific perturbation is always placed in the treatment noise.  In particular, it does not alter either latent cumulant profile.
+
+We next prove lower-order observational equality.  Define the entire function
+\[
+ H_r(x)=\varepsilon\sum_{j=1}^{r}\nu_{rj}(e^{jx}-1-jx).
+ \tag{12}
+\]
+By (2), every derivative of \(H_r\) at zero of order smaller than \(r\) vanishes, whereas
+\[
+ H_r^{(r)}(0)=\varepsilon r!.
+ \tag{13}
+\]
+Let \(M_e^\circ(s,t)\) denote the common joint moment generating function of the baseline pair in (8).  Outside the spare environment, the observed laws in (11) equal their respective baseline laws and hence agree.  In the spare environment, independence, (5), and the coefficients with which the perturbed treatment source enters \((T,Y)\) give
+\[
+ \begin{aligned}
+ M_{0,d+1}(s,t)&=M_{d+1}^\circ(s,t)\exp\{H_r(s+2t)\},\\
+ M_{1,d+1}(s,t)&=M_{d+1}^\circ(s,t)\exp\{H_r(s+3t)\}.
+ \end{aligned}
+ \tag{14}
+\]
+Equations (12)--(13) imply that \(H_r(x)=x^rg_r(x)\) for an entire \(g_r\).  Consequently, each exponential factor in (14) equals one plus an analytic function all of whose monomials have total degree at least \(r\).  Taking \(p\) derivatives in \(s\) and \(\ell\) derivatives in \(t\) at \((0,0)\), and using that derivatives of a joint moment generating function are mixed moments, yields
+\[
+ \mathbb E_{\theta_{0,r}}[T_e^pY_e^\ell]
+ =\mathbb E_{\theta_{1,r}}[T_e^pY_e^\ell]
+ \quad
+ \text{for every }e\in\mathcal E\text{ and }p+\ell<r.
+ \tag{15}
+\]
+This also covers total degrees zero and one because the laws are normalized and the sources are centered.
+
+It remains to verify the calibration plane, the first breakout, and uniform membership in one bounded model.  By (3), (6), and (2), the treatment cumulant contrasts of either member of (11) are, for every \(k\geq2\),
+\[
+ c_k
+ =3\eta\sum_{j=1}^{d}j^k\mathbf e_j
+  +h_{r,k}\mathbf e_{d+1},
+ \qquad
+ h_{r,k}=\varepsilon\sum_{j=1}^{r}\nu_{rj}j^k.
+ \tag{16}
+\]
+In particular, \(h_{r,k}=0\) for \(2\leq k<r\), and \(h_{r,r}=\varepsilon r!\).  Since \(r\geq d+2\), the calibration matrix is
+\[
+ C=3\eta
+ \begin{bmatrix}
+ V_d\\
+ 0_{(E-1-d)\times d}
+ \end{bmatrix},
+ \qquad
+ V_d=[j^k]_{j=1,\ldots,d;\ k=2,\ldots,d+1}.
+ \tag{17}
+\]
+Factoring \(j^2\) from row \(j\) reduces \(V_d\) to the ordinary Vandermonde matrix, so
+\[
+ \det(V_d)=
+ \left(\prod_{j=1}^{d}j^2\right)
+ \left(\prod_{1\leq i<j\leq d}(j-i)\right)\neq0.
+ \tag{18}
+\]
+Therefore \(C\) has rank \(d\),
+\[
+ A=\operatorname{span}\{\mathbf e_1,\ldots,\mathbf e_d\},
+ \qquad
+ \sigma_d(C)=3\eta\sigma_d(V_d)>0,
+ \tag{19}
+\]
+and \(Q_A\) deletes precisely the first \(d\) coordinates.  Moreover, the latent profiles in (11) are
+\[
+ u_k(\theta_{0,r})=\eta\sum_{j=1}^{d}j^k\mathbf e_j,
+ \qquad
+ u_k(\theta_{1,r})=2\eta\sum_{j=1}^{d}j^k\mathbf e_j,
+ \tag{20}
+\]
+for every \(k\geq2\).  Thus both profiles belong to \(A\) at every order.  Finally, (2) and (16) give
+\[
+ Q_Ac_k=0\quad(d+2\leq k<r),
+ \qquad
+ Q_Ac_r=\varepsilon r!\mathbf e_{d+1}\neq0.
+ \tag{21}
+\]
+By the definition of the first breakout, (21) proves
+\[
+ r^\star(\theta_{0,r})=r^\star(\theta_{1,r})=r.
+ \tag{22}
+\]
+
+Choose the fixed coefficient bounds
+\[
+ B=4,\qquad a_0=\frac12,qquad a_1=\frac32,qquad
+ q_0=\frac12,qquad q_1=\frac32,
+ \tag{23}
+\]
+and choose
+\[
+ \kappa_0=\frac32\eta\sigma_d(V_d)>0.
+ \tag{24}
+\]
+Both rows of (11) satisfy the effect, treatment-loading, and two-sided confounding bounds because their coefficient triples are \((1,2,1)\) and \((1,3,-1)\).  Equations (18)--(20) verify the calibration-rank, calibration-gap, and latent-profile-plane conditions.  Centering and within-environment source independence hold by construction, and (5) implies finite absolute moments of every integer order.
+
+For completeness, one moment envelope works for every \(r\) and every parameter value just used.  Across the finite collection of orders, all intensities are bounded above by \(2+2\eta+\varepsilon K\), all jumps are bounded by \(R_{\max}\), and all Gaussian variances are at most two.  Hence (5) is bounded uniformly over this collection at \(x=1\) and \(x=-1\).  For \(s=2R_{\max}+\delta\), the elementary bound
+\[
+ |x|^s\leq C_s(e^x+e^{-x}),
+ \qquad
+ C_s=\sup_{z\geq0}z^se^{-z}<\infty,
+ \tag{25}
+\]
+therefore gives a finite uniform upper bound on the required absolute source moments.  Choose \(M\) strictly larger than this bound.  The same \(M\), the same \(\kappa_0\), and the coefficient bounds in (23) apply to every \(r\).  Thus each parameter in (11) belongs to this single \(\Theta\), and (22), together with \(d+2\leq r\leq R_{\max}\), puts it in \(\mathcal B\).
+
+For each \(r\), let \(L\) and the three Gaussian variances range over \([1,2]^4\), and include both rows of (11).  This is a finite-dimensional subclass with nonempty continuous parameter rectangles; its compound-Poisson intensities are strictly positive by (10), and its Gaussian components have strictly positive variances.  It is therefore a nondegenerate Poisson--Gaussian subclass of \(\mathcal B\).  Choosing the same interior rectangle point in its two rows gives members \(\theta_0=\theta_{0,r}\) and \(\theta_1=\theta_{1,r}\) for which (15) and (22) hold, while
+\[
+ \beta(\theta_0)=2\neq3=\beta(\theta_1).
+\]
+Because all bounds and the subclass parameter rectangle were chosen independently of \(r\), this proves the claim with one fixed compatible bounded model.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The first breakout order is information-theoretically meaningful, not an artifact of one estimator's search loop. \textit{Gap.} Existing cumulant methods assume a useful nonzero order; they do not construct legal unequal-effect SEMs that match every lower observed mixed moment and become identified exactly at the prescribed order. \textit{Consumer.} The theorem prevents analysts from truncating the moment search below \(r\) while claiming uniform identification over delayed-breakout environments.
+
+\begin{proposition}[prop:two-environment-reduction]\label{prop:two-environment-reduction}
+In the special case \(d=1\) and \(E=2\), \(\operatorname{rank}(C)=1\) implies \(A=\mathbb R\) and \(Q_A=0\), so the finite-breakout branch \(\mathcal B\) is empty.  For every \(\theta\in\mathcal N_\rho\), the legal pair \(\theta,S\theta\) has the same observed laws \(\{P_e:e\in\mathcal E\}\) and the distinct effects \(\beta\) and \(\beta+\gamma/\alpha\), reproducing the simultaneous-noise nonidentification of Kivva et al., Theorem 3.6, whenever this branch is nonempty.
+\end{proposition}
+\begin{proof}
+Assume \(d=1\), \(E=2\), and \(\operatorname{rank}(C)=1\).  Then \(E=d+1\), so the boundary conclusion of the environment-sharpness theorem gives
+\[
+ A=\mathbb R,
+ \qquad
+ Q_A=0.
+\]
+Equivalently, \(C=[c_2]\) is a one-by-one matrix with \(c_2\neq0\), and the projector formula gives
+\[
+ Q_A
+ =1-c_2(c_2^2)^{-1}c_2
+ =0.
+\]
+It follows that \(Q_Ac_k=0\) for every \(k\geq3=d+2\).  By the convention in the definition of \(r^\star\), every calibrated parameter at this boundary has \(r^\star=\infty\).  The definition
+\[
+ \mathcal B=\{\theta\in\Theta:d+2\leq r^\star\leq R_{\max}\}
+\]
+therefore implies \(\mathcal B=\varnothing\).
+
+Now fix \(\theta\in\mathcal N_\rho\).  Write primes for the structural quantities under \(S\theta\).  The source-swap definition gives, in every environment,
+\[
+ \alpha'=1,
+ \quad
+ \beta'=\beta+\frac{\gamma}{\alpha},
+ \quad
+ \gamma'=-\frac{\gamma}{\alpha},
+ \quad
+ \epsilon'_{u,e}=\epsilon_{t,e},
+ \quad
+ \epsilon'_{t,e}=\alpha\epsilon_{u,e}.
+\]
+Couple the two representations using these displayed source variables.  Their treatments then agree pointwise:
+\[
+ T'_e
+ =\alpha'\epsilon'_{u,e}+\epsilon'_{t,e}
+ =\epsilon_{t,e}+\alpha\epsilon_{u,e}
+ =T_e.
+ \tag{15}
+\]
+Using \(\epsilon_{t,e}=T_e-\alpha U_e\), their outcomes also agree pointwise:
+\[
+ \begin{aligned}
+ Y'_e
+ &=\left(\beta+\frac{\gamma}{\alpha}\right)T'_e
+   -\frac{\gamma}{\alpha}\epsilon_{t,e}+\epsilon_y\\
+ &=\left(\beta+\frac{\gamma}{\alpha}\right)T_e
+   -\frac{\gamma}{\alpha}(T_e-\alpha U_e)+\epsilon_y\\
+ &=\beta T_e+\gamma U_e+\epsilon_y
+ =Y_e.
+ \end{aligned}
+ \tag{16}
+\]
+Equations (15)--(16) imply
+\[
+ P_e^{\theta}=P_e^{S\theta}
+ \qquad(e\in\mathcal E).
+\]
+The two direct effects are \(\beta\) and \(\beta+\gamma/\alpha\).  The no-breakout clause of the already-established population-identification-frontier theorem applies to \(\theta\in\mathcal N_\rho\): it places both \(\theta\) and \(S\theta\) in \(\mathcal D_\rho\) and states that these effects are distinct.  Concretely, the distinction follows from the ambient lower confounding bound \(|\gamma/\alpha|\geq q_0>0\), which is among that theorem's declared hypotheses.  Thus every element of a nonempty \(\mathcal N_\rho\) has a legal observationally equivalent partner with a different direct effect.  For \(d=1\) and \(E=2\), this is precisely the simultaneous-noise nonidentification configuration referenced in Kivva et al., Theorem 3.6; the reference is a scope comparison, while (15)--(16) establish the claim directly.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction checks that the new frontier collapses to the closest known result at the two-environment boundary. \textit{Gap.} This is already known from Kivva et al., Theorem 3.6, and is included only as a fidelity reduction rather than a novelty claim. \textit{Consumer.} It lets users interpret the new condition as a strict joint-environment rescue of the established two-environment obstruction.
+
+\begin{proposition}[prop:no-breakout-length]\label{prop:no-breakout-length}
+For every \(\theta\in\mathcal N_\rho\), any random interval with coverage at least \(1-\alpha_0\) at both \(\theta\) and \(S\theta\) satisfies \(\mathbb E_\theta[\operatorname{length}(\mathcal C_n)]\ge(1-2\alpha_0)\lvert\gamma/\alpha\rvert\).
+\end{proposition}
+\begin{proof}
+Fix \(\theta\in\mathcal N_\rho\), and write \(\theta'=S\theta\), \(b_0=\beta(\theta)\), and \(b_1=\beta(\theta')\).  By \(\text{thm:population-identification-frontier}\) and the definition of \(\mathcal N_\rho\), both \(\theta\) and \(\theta'\) belong to \(\mathcal D_\rho\), their observed environment laws agree, and
+\[
+ P_e^{\theta}=P_e^{\theta'}\quad(e\in\mathcal E),
+ \qquad
+ b_1=b_0+\frac{\gamma}{\alpha}.
+ \tag{1}
+\]
+The quotient in (1) is well defined: the treatment-loading condition used by \(\text{thm:population-identification-frontier}\) gives \(a_0\leq |\alpha|\), while \(a_0>0\), hence \(\alpha\neq0\).  Moreover, the confounding bound gives
+\[
+ \left|b_1-b_0\right|=\left|\frac{\gamma}{\alpha}\right|\geq q_0>0,
+ \tag{2}
+\]
+so the two effects are distinct.
+
+Let \(\mathbb P\) denote the common law of the observed sample, together with any parameter-independent auxiliary randomization used to construct \(\mathcal C_n\).  Such a common law exists because (1) gives equality of every environment-specific observed law, and the sampling design is the same at \(\theta\) and \(\theta'\).  Define the measurable events
+\[
+ H_0=\{b_0\in\mathcal C_n\},
+ \qquad
+ H_1=\{b_1\in\mathcal C_n\}.
+\]
+Coverage at least \(1-\alpha_0\) at each of the two parameters, evaluated under their common observed-data law, says
+\[
+ \mathbb P(H_0)\geq1-\alpha_0,
+ \qquad
+ \mathbb P(H_1)\geq1-\alpha_0.
+ \tag{3}
+\]
+Therefore the union bound applied to the complements in (3) yields
+\[
+ \mathbb P(H_0\cap H_1)
+ =1-\mathbb P(H_0^c\cup H_1^c)
+ \geq1-\mathbb P(H_0^c)-\mathbb P(H_1^c)
+ \geq1-2\alpha_0.
+ \tag{4}
+\]
+On \(H_0\cap H_1\), the interval \(\mathcal C_n\) contains both \(b_0\) and \(b_1\).  Hence, by the defining order property of an interval and (1),
+\[
+ \operatorname{length}(\mathcal C_n)
+ \geq |b_1-b_0|
+ =\left|\frac{\gamma}{\alpha}\right|.
+ \tag{5}
+\]
+Since interval length is nonnegative, multiplying (5) by \(\mathbf 1_{H_0\cap H_1}\), taking expectation under \(\theta\), and then using (4) gives
+\[
+ \begin{aligned}
+ \mathbb E_\theta\!\left[\operatorname{length}(\mathcal C_n)\right]
+ &\geq
+ \mathbb E_\theta\!\left[
+   \operatorname{length}(\mathcal C_n)\mathbf 1_{H_0\cap H_1}
+ \right]\\
+ &\geq
+ \left|\frac{\gamma}{\alpha}\right|
+ \mathbb P(H_0\cap H_1)\\
+ &\geq
+ (1-2\alpha_0)\left|\frac{\gamma}{\alpha}\right|.
+ \end{aligned}
+\]
+Finally, \(\alpha_0\in(0,1/2)\) ensures that the displayed lower bound is nonnegative and nonvacuous; by (2), it is strictly positive.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact observational equivalence forces a nonvanishing honest interval at the no-breakout boundary. \textit{Gap.} This honest-interval consequence is an incremental application of the standard two-point coverage argument; Kivva et al.'s population nonidentification result does not state the \(1-2\alpha_0\) expected-length factor. \textit{Consumer.} The proposition prevents a narrow reported interval from masking exact source-label ambiguity when every flag vanishes.
+
+\begin{lemma}[lem:population-cumulant-cancellation]\label{lem:population-cumulant-cancellation}
+For every \(\theta\in\Theta_{\mathrm{pop}}\) and every integer \(k\geq2\),
+\[
+ m_k-\beta c_k=\alpha^{k-1}\gamma u_k\in A,
+ \qquad Q_Am_k=\beta Q_Ac_k.
+\]
+These identities require only finite moments through order \(k\), source independence, and the population-plane restriction; they do not require a moment generating function.
+\end{lemma}
+\begin{proof}
+Fix \(\theta\in\Theta_{\mathrm{pop}}\) and an integer \(k\geq2\).  All moments appearing below are finite by the all-absolute-moments member property of \(\Theta_{\mathrm{pop}}\).  For random variables \(X_1,\ldots,X_k\) with finite absolute moments through order \(k\), their joint cumulant is the finite moment--cumulant polynomial
+\[
+ \kappa_k(X_1,\ldots,X_k)
+ =\sum_{\pi\in\mathfrak P_k}(|\pi|-1)!(-1)^{|\pi|-1}
+   \prod_{D\in\pi}\mathbb E\!\left[\prod_{j\in D}X_j\right],             \tag{1}
+\]
+where \(\mathfrak P_k\) is the set of partitions of \(\{1,\ldots,k\}\).  Formula (1) is multilinear because every argument occurs exactly once in every expanded monomial.  It also makes a cumulant containing variables from two independent source families vanish.  Indeed, retain from the finite formal moment series in indeterminates \(t_1,\ldots,t_k\) only monomials in which every exponent is at most one and expand the formal logarithm \(\log(1+z)=\sum_{j=1}^k(-1)^{j-1}z^j/j\).  The coefficient of \(t_1\cdots t_k\) is (1).  Independence factors the formal moment series, so its formal logarithm is a sum of terms involving only one source family and has no mixed coefficient.  This is a finite polynomial argument and requires no analytic moment generating function.
+
+Define the proof-local treatment-source contrast
+\[
+ v_k=\bigl(\kappa_k(\epsilon_{t,e})-
+                 \kappa_k(\epsilon_{t,0})\bigr)_{e=1}^{E-1}.
+\]
+The structural equations in the population-class definition give
+\[
+ T_e=\alpha\epsilon_{u,e}+\epsilon_{t,e},
+ \qquad
+ Y_e=(\alpha\beta+\gamma)\epsilon_{u,e}
+       +\beta\epsilon_{t,e}+\epsilon_y.                                  \tag{2}
+\]
+By multilinearity of (1), mutual independence of the three sources, and the preceding mixed-source cancellation,
+\[
+ \kappa_k(T_e)=\alpha^k\kappa_k(\epsilon_{u,e})
+                  +\kappa_k(\epsilon_{t,e}),                              \tag{3}
+\]
+and, because \(k\geq2\),
+\[
+ \kappa_k(Y_e,T_e,\ldots,T_e)
+ =(\alpha\beta+\gamma)\alpha^{k-1}\kappa_k(\epsilon_{u,e})
+   +\beta\kappa_k(\epsilon_{t,e}).                                       \tag{4}
+\]
+The invariant outcome source contributes nothing to (4), since selecting \(\epsilon_y\) in the first argument produces a mixed cumulant with the independent treatment arguments.
+
+Subtracting the baseline-environment versions of (3)--(4) and applying the definitions of \(u_k,c_k,m_k\) gives
+\[
+ c_k=\alpha^ku_k+v_k,                                                       \tag{5}
+\]
+and
+\[
+ \begin{aligned}
+ m_k
+ &=(\alpha\beta+\gamma)\alpha^{k-1}u_k+\beta v_k\\
+ &=\beta(\alpha^ku_k+v_k)+\alpha^{k-1}\gamma u_k
+  =\beta c_k+\alpha^{k-1}\gamma u_k.
+ \end{aligned}                                                            \tag{6}
+\]
+The population-plane restriction gives \(u_k\in A\), so (6) proves \(m_k-\beta c_k\in A\).  The calibration-rank condition gives \(\operatorname{rank}(C)=d\), hence \(C^\top C\) is invertible and the declared \(Q_A\) is the orthogonal projector onto \(A^\perp\).  Applying \(Q_A\) to (6) proves \(Q_Am_k=\beta Q_Ac_k\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The moment--cumulant polynomial isolates the projected observable relation without any global moment-generating-function requirement. \textit{Gap.} The projected vector cancellation is the algebraic kernel of the new population flag class. \textit{Consumer.} The population identification theorem and its bounded-class corollary consume this lemma.
+
+\begin{lemma}[lem:ambient-subset-population-flag-class]\label{lem:ambient-subset-population-flag-class}
+The bounded calibrated class is a subclass of the population flag class:
+\[
+ \Theta\subseteq\Theta_{\mathrm{pop}}.
+\]
+\end{lemma}
+\begin{proof}
+Let \(\theta\in\Theta\).  The ambient-class definition supplies the same three structural equations as the population-class definition.  Its source-independence member property supplies mutual independence within every environment, its all-absolute-moments member property supplies finite absolute moments of every positive integer order, its calibration-rank property gives \(\operatorname{rank}(C)=d\), and its latent-profile-plane property gives \(u_k\in A\) for every integer \(k\geq2\).  These are precisely the substantive membership requirements of \(\Theta_{\mathrm{pop}}\), with the positive-dimension and environment-indexing conditions supplying the shared typing conditions.  The remaining centering, coefficient, moment-envelope, order-cap, and singular-gap restrictions defining \(\Theta\) only make the class smaller.  Thus \(\theta\in\Theta_{\mathrm{pop}}\), proving the inclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma formally separates population identification from the additional bounded inference and legal-swap restrictions. \textit{Gap.} The broad and bounded classes must be related explicitly rather than conflated by notation. \textit{Consumer.} The bounded cancellation corollary and the population identification theorem use this inclusion.
+
+\begin{theorem}[thm:population-identification-frontier]\label{thm:population-identification-frontier}
+In the population flag class \(\Theta_{\mathrm{pop}}\), the structural direct effect \(\beta\) is identified at every parameter with \(r^\star<\infty\), including when \(r^\star>R_{\max}\).  More precisely, for every integer \(k\geq2\) such that \(Q_Ac_k\neq0\),
+\[
+ \beta=\frac{\langle Q_Ac_k,Q_Am_k\rangle}
+              {\lVert Q_Ac_k\rVert_2^2}.                                  \tag{1}
+\]
+On the bounded legal-swap domain \(\mathcal D_\rho\), \(\beta\) is identified if and only if \(r^\star<\infty\).  At every \(\theta\in\mathcal N_\rho\), the parameters \(\theta\) and \(S\theta\) both lie in \(\mathcal D_\rho\), induce the same collection \(\{P_e:e\in\mathcal E\}\), and have the distinct effects \(\beta\) and \(\beta+\gamma/\alpha\).
+\end{theorem}
+\begin{proof}
+The causal target is the structural coefficient \(\beta\), not the right-hand side of (1).  Under the intervention setting treatment to \(t\), while leaving the exogenous variables fixed, the outcome equation gives
+\[
+ Y_e(t)=\beta t+\gamma U_e+\epsilon_y,
+ \qquad Y_e(t+1)-Y_e(t)=\beta.                                             \tag{2}
+\]
+We now prove that the observable quotient equals this intervention contrast under the population restrictions.
+
+Let \(\theta\in\Theta_{\mathrm{pop}}\), and suppose \(Q_Ac_k\neq0\) for some integer \(k\geq2\).  The population cumulant-cancellation lemma gives
+\[
+ Q_Am_k=\beta Q_Ac_k.                                                       \tag{3}
+\]
+Taking the Euclidean inner product of (3) with \(Q_Ac_k\) yields
+\[
+ \langle Q_Ac_k,Q_Am_k\rangle
+ =\beta\lVert Q_Ac_k\rVert_2^2.                                          \tag{4}
+\]
+The assumed nonzero flag makes the denominator in (4) strictly positive, so division proves (1).
+
+Every object on the right of (1) is determined by the observed laws.  All required moments exist in \(\Theta_{\mathrm{pop}}\), so the laws \(P_e\) determine \(c_k\) and \(m_k\).  They also determine \(C=[c_2\mid\cdots\mid c_{d+1}]\).  The rank condition \(\operatorname{rank}(C)=d\) makes \(C^\top C\) invertible, so the observed laws determine
+\[
+ Q_A=I_{E-1}-C(C^\top C)^{-1}C^\top.                                    \tag{5}
+\]
+Let \(\widetilde\theta\in\Theta_{\mathrm{pop}}\) induce the same collection of observed laws as \(\theta\).  It has the same \(c_j,m_j,C,Q_A\) for every \(j\), and hence the same \(r^\star\).  If \(r^\star<\infty\), applying (1) at \(k=r^\star\) to both representations gives
+\[
+ \widetilde\beta
+ =\frac{\langle Q_Ac_{r^\star},Q_Am_{r^\star}\rangle}
+        {\lVert Q_Ac_{r^\star}\rVert_2^2}
+ =\beta.                                                                   \tag{6}
+\]
+No order cap entered the argument, so (6) includes \(r^\star>R_{\max}\).  This proves point identification relative to the broad population class.
+
+We next specialize to \(\mathcal D_\rho\).  The ambient-subclass lemma gives \(\Theta\subseteq\Theta_{\mathrm{pop}}\), hence every member of \(\mathcal B\), whose breakout is finite, is identified by (6).  Equivalently, any second member of \(\mathcal D_\rho\) with the same observed laws has the same finite breakout, cannot lie in the no-breakout branch, and has the same effect by (6).
+
+Let instead \(\theta\in\mathcal N_\rho\).  The treatment-loading bound in \(\Theta_\rho^\circ\) gives \(|\alpha|\geq a_0+\rho>0\), so the proof-local ratio \(q=\gamma/\alpha\) is well defined.  Put
+\[
+ V_e=\alpha\epsilon_{u,e},
+ \qquad W_e=\epsilon_{t,e}.
+\]
+The observed variables under \(\theta\) are
+\[
+ T_e=V_e+W_e,
+ \qquad
+ Y_e=(\beta+q)V_e+\beta W_e+\epsilon_y.                                   \tag{7}
+\]
+Under \(S\theta\), the latent and treatment sources are respectively \(W_e\) and \(V_e\), while the coefficients are \(1,\beta+q,-q\).  Therefore
+\[
+ T'_e=W_e+V_e=T_e,
+\]
+and
+\[
+ Y'_e=(\beta+q)(W_e+V_e)-qW_e+\epsilon_y
+     =(\beta+q)V_e+\beta W_e+\epsilon_y=Y_e.                              \tag{8}
+\]
+Thus the swap preserves the complete observed law in every environment, not only the selected cumulants.
+
+By definition of \(\mathcal N_\rho\), both \(\theta\) and \(S\theta\) lie in \(\Theta_\rho^\circ\), and both have infinite breakout.  To check that the second representation itself lies in \(\mathcal N_\rho\), compute
+\[
+ S^2\theta
+ =\left(1,\beta,q,
+   \{\alpha\epsilon_{u,e},\epsilon_{t,e}\}_{e\in\mathcal E},\epsilon_y\right).       \tag{9}
+\]
+The loading value one is interior because it is already the loading of \(S\theta\); the effect \(\beta\) and confounding ratio \(q\) obey the interior bounds because \(\theta\) does.  The two source families in (9) are precisely the two source families of \(S\theta\) with their structural roles reversed, so their centering, independence, all-order moments, and \((2R_{\max}+\delta)\)-moment bounds follow from \(S\theta\in\Theta_\rho^\circ\).  The latent contrast at order \(k\) in (9) is \(\alpha^ku_k\in A\), and (7)--(8) show that its observed \(C\), calibration gap, and infinite breakout are unchanged.  Hence \(S^2\theta\in\Theta_\rho^\circ\) and \(r^\star(S^2\theta)=\infty\), which proves
+\[
+ S\theta\in\mathcal N_\rho\subseteq\mathcal D_\rho.
+\]
+
+Finally, the two effects differ by \(q=\gamma/\alpha\), and the confounding bound gives \(|q|\geq q_0>0\).  Two parameters in \(\mathcal D_\rho\) therefore have identical observed laws and distinct causal targets, so no observed-law functional identifies \(\beta\) at any member of \(\mathcal N_\rho\).  Combining this explicit obstruction with finite-breakout identification proves the if-and-only-if frontier on \(\mathcal D_\rho\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: it separates broad population identification from bounded legal-swap nonidentification and proves the observable quotient equals the structural intervention coefficient. \textit{Gap.} No cited result supplies this calibrated multi-environment finite-breakout map; the Kivva obstruction is used only as pairwise context, not as authority for the new class. \textit{Consumer.} A Sachs-panel edge receives either an explicit direct-effect functional at a finite flag or an exact ambiguity report on the bounded no-flag branch.
+
+\begin{proposition}[prop:pairwise-ambiguous-joint-rescue]\label{prop:pairwise-ambiguous-joint-rescue}
+Let \(d=1\), \(E=3\), and \(r\in\{3,\ldots,R_{\max}\}\).  Put \(x_0=0,x_1=1,x_2=2\) and \(y_0=0,y_1=2,y_2=-1\), and define
+\[
+ a=(x_1-x_0,x_2-x_0)^\top=(1,2)^\top,
+ \qquad b=(y_1-y_0,y_2-y_0)^\top=(2,-1)^\top.
+\]
+There exist positive \(\eta,\zeta,\varepsilon\) and centered compound-Poisson latent and treatment sources with cumulant-shift profiles
+\[
+ u_k=\eta a,
+ \qquad
+ w_k:=\bigl(\kappa_k(\epsilon_{t,e})-
+                  \kappa_k(\epsilon_{t,0})\bigr)_{e=1}^2
+      =\zeta a+\varepsilon\Delta_{r,k}b,
+ \qquad
+ \Delta_{r,k}=\sum_{j=0}^r(-1)^{r-j}\binom rj j^k,                       \tag{1}
+\]
+where \(\Delta_{r,k}=0\) for \(1\leq k<r\) and \(\Delta_{r,r}=r!\).  Choose positive Poisson baselines so that every intensity is positive, and choose \(q>0\), an invariant centered Gaussian outcome source, and compatible interior model bounds satisfying
+\[
+ a_0+\rho<1<a_1-\rho,\qquad
+ q_0+\rho\leq q\leq q_1-\rho,\qquad
+ q/2\leq B-\rho,\qquad
+ \eta+\zeta\geq\kappa_0+\rho,                                           \tag{2}
+\]
+with all source \((2R_{\max}+\delta)\)-moments at most \(M-\rho\).  With \(\alpha=1\), \(\beta=-q/2\), and \(\gamma=q\), the resulting parameter has \(A=\operatorname{span}(a)\), \(r^\star=r\), and is jointly identified.  Both source laws change between every pair of environments.  Nevertheless, on each of the three two-environment restrictions the scalar calibration contrast \(c_2^{ef}\) is nonzero and the legal source swap gives an observationally equivalent no-breakout representation with effect \(q/2\).  Jointly, the swapped latent profile at order \(r\) is not in \(A\), so that swapped representation is excluded by the maintained population-plane restriction.
+\end{proposition}
+\begin{proof}
+For \(e\in\{0,1,2\}\), let
+\[
+ N^u_e\sim\operatorname{Poisson}(L_u+\eta x_e),
+ \qquad
+ \epsilon_{u,e}=N^u_e-(L_u+\eta x_e),                                    \tag{3}
+\]
+where \(L_u>0\).  Independently, for \(j=1,\ldots,r\), let
+\[
+ N^t_{e,j}\sim\operatorname{Poisson}(\lambda_{e,j}^t),
+ \qquad
+ \lambda_{e,j}^t
+ =L_j+\zeta x_e\mathbf 1\{j=1\}
+   +\varepsilon y_e(-1)^{r-j}\binom rj,                                  \tag{4}
+\]
+and set
+\[
+ \epsilon_{t,e}=\sum_{j=1}^r j\bigl(N^t_{e,j}-\lambda_{e,j}^t\bigr).      \tag{5}
+\]
+For every \(j\), choose
+\[
+ L_j>\max_{e\in\{0,1,2\}}
+ \left|\zeta x_e\mathbf 1\{j=1\}
+   +\varepsilon y_e(-1)^{r-j}\binom rj\right|.                           \tag{6}
+\]
+Then every intensity in (4) is strictly positive.  Take all counts mutually independent and take \(\epsilon_y\) to be an independent centered Gaussian variable.  Compensating each count proves centering.  Finite compound-Poisson sums and the Gaussian source have moment generating functions finite on the real line, and therefore have finite absolute moments of every order.  Choosing \(M\) above the maximum of the finitely many required source moments, including the same sources after pairwise swapping, gives the stipulated \(\rho\)-slack.
+
+For a compensated Poisson variable with jump size \(j\) and intensity \(\lambda\), differentiating \(\lambda(e^{jt}-1-jt)\) shows that every cumulant of order \(k\geq2\) is \(\lambda j^k\).  Thus (3) gives
+\[
+ u_k=\eta(x_1-x_0,x_2-x_0)^\top=\eta a.                                  \tag{7}
+\]
+Equations (4)--(5) give
+\[
+ w_k=\zeta a+\varepsilon b
+       \sum_{j=0}^r(-1)^{r-j}\binom rj j^k.                              \tag{8}
+\]
+For \(1\leq k\), the sum in (8) is the \(r\)-th forward difference at zero of the polynomial \(z\mapsto z^k\).  The binomial identity
+\[
+ \sum_{j=0}^r(-1)^{r-j}\binom rj e^{jt}=(e^t-1)^r                        \tag{9}
+\]
+and differentiation at \(t=0\) give
+\[
+ \Delta_{r,k}=0\quad(1\leq k<r),
+ \qquad \Delta_{r,r}=r!.                                                  \tag{10}
+\]
+This formulation never invokes \(0^0\).
+
+Set \(\alpha=1\), \(\beta=-q/2\), and \(\gamma=q\).  By source independence and cumulant additivity, the observed treatment contrasts are
+\[
+ c_k=u_k+w_k=(\eta+\zeta)a+\varepsilon\Delta_{r,k}b.                      \tag{11}
+\]
+Since \(r\geq3\), (10) gives \(\Delta_{r,2}=0\).  Hence
+\[
+ C=[c_2]=[(\eta+\zeta)a],
+ \qquad A=\operatorname{span}(a),
+ \qquad \sigma_1(C)=(\eta+\zeta)\|a\|_2\geq\kappa_0+\rho.             \tag{12}
+\]
+The latent profiles (7) lie in \(A\) at every order.  Equations (10)--(11) show \(Q_Ac_k=0\) for \(3\leq k<r\).  Because
+\[
+ \langle a,b\rangle=1\cdot2+2\cdot(-1)=0,
+ \qquad b\neq0,                                                           \tag{13}
+\]
+we have
+\[
+ Q_Ac_r=\varepsilon r!b\neq0.                                             \tag{14}
+\]
+Thus \(r^\star=r\), and the population identification theorem identifies the original effect jointly by the quotient at order \(r\).
+
+For distinct \(e,f\in\{0,1,2\}\), the latent variance contrast is \(\eta(x_e-x_f)\neq0\), because \(x_0,x_1,x_2\) are pairwise distinct.  By (8) and \(\Delta_{r,2}=0\), the treatment-source variance contrast is \(\zeta(x_e-x_f)\neq0\).  Variances differ, so both source laws change in every environment pair.  The observed scalar calibration contrast for that pair is
+\[
+ c_2^{ef}=(\eta+\zeta)(x_e-x_f)\neq0.                                    \tag{15}
+\]
+In a two-environment restriction with \(d=1\), the nonzero scalar (15) spans the entire one-dimensional contrast space.  Its orthogonal projector is zero, so every cumulant flag vanishes in either source ordering.  The inequalities (2), the moment choice, and positivity (6) make both orderings legal in the corresponding pairwise bounded interior.  Directly, the original representation is
+\[
+ T_e=\epsilon_{u,e}+\epsilon_{t,e},
+ \qquad
+ Y_e=\frac q2\epsilon_{u,e}-\frac q2\epsilon_{t,e}+\epsilon_y,           \tag{16}
+\]
+whereas its source swap uses latent source \(\epsilon_{t,e}\), treatment source \(\epsilon_{u,e}\), and coefficients \((1,q/2,-q)\).  Substitution gives exactly the same \((T_e,Y_e)\) in (16), while the effect changes from \(-q/2\) to \(q/2\).  This proves a legal unequal-effect no-breakout ambiguity separately for every pair.
+
+Finally, the jointly swapped latent source is the original treatment source, whose order-\(r\) profile is
+\[
+ w_r=\zeta a+\varepsilon r!b.                                             \tag{17}
+\]
+By (13) and \(\varepsilon>0\), (17) is not in \(A=\operatorname{span}(a)\).  Thus the pairwise swaps cannot be assembled into an admissible joint representation: the joint swap violates the population-plane restriction.  Equations (14)--(17) establish the simultaneous pairwise ambiguity and joint rescue.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit compound-Poisson construction proves that joint information can identify even though every environment pair admits a legal unequal-effect source swap. \textit{Gap.} This same-model pairwise-intersection certificate is not supplied by the published two-environment obstruction. \textit{Consumer.} It justifies analyzing a perturbation panel jointly rather than interpreting failed pairwise identification as a panel-wide impossibility.
+
+\begin{theorem}[thm:ambient-weak-breakout-frontier]\label{thm:ambient-weak-breakout-frontier}
+For every fixed admissible bounded class \(\Theta\), each \(r\in\{d+2,\ldots,R_{\max}\}\), and every nonempty shell \(\mathcal M_r(\lambda_n)\), the cumulant-SVD estimator satisfies
+\[
+ \sup_{\theta\in\mathcal M_r(\lambda_n)}
+ \mathbb E_\theta(\widehat\beta-\beta)^2
+ \leq K\min\left\{B^2,\frac1{n\lambda_n^2}\right\}.                    \tag{1}
+\]
+For a deterministic \(t_{\alpha_0}\) depending only on the fixed model envelopes, the conservative interval \(\mathcal C_n\) satisfies
+\[
+ \inf_{\theta\in\Theta}\Pr_\theta\{\beta\in\mathcal C_n\}
+ \geq1-\alpha_0                                                         \tag{2}
+\]
+and
+\[
+ \sup_{\theta\in\mathcal M_r(\lambda_n)}
+ \mathbb E_\theta\operatorname{length}(\mathcal C_n)
+ \leq K\min\left\{B,\frac1{\sqrt n\lambda_n}\right\},                  \tag{3}
+\]
+without knowing \(r\).  Moreover, for every \(d\geq1\), \(E\geq d+2\), \(R_{\max}\geq d+2\), and \(\delta>0\), there is one fixed compatible choice of the bounded experiment, common to all admitted \(r\), on which the matching minimax lower bounds hold for squared error and for intervals honest on the shell alone, hence also for intervals honest on \(\Theta\).  On that experiment the two minimax quantities have the orders in (1) and (3), and uniform consistency along a shell sequence is possible if and only if \(\sqrt n\lambda_n\to\infty\).
+\end{theorem}
+\begin{proof}
+Put \(s_0=2R_{\max}+\delta\).  The treatment-loading, confounding, effect, and source-moment bounds imply
+\[
+ |\gamma|=|\alpha|\,|\gamma/\alpha|\leq a_1q_1.
+\]
+Minkowski's inequality in \(L^{s_0}\), applied to the two structural equations, therefore gives a constant \(K_0<\infty\), depending only on the fixed envelopes, such that
+\[
+ \sup_{\theta\in\Theta}\max_{e\in\mathcal E}
+ \mathbb E_\theta\left[|T_e|^{s_0}+|Y_e|^{s_0}\right]\leq K_0.           \tag{4}
+\]
+The ratio used here is well defined because \(|\alpha|\geq a_0>0\).
+
+For \(k\leq R_{\max}\), the moment--cumulant polynomial proved in the population cumulant-cancellation lemma expresses every cumulant used here as a finite polynomial in moments of total degree at most \(k\).  If \(\pi=\{D_1,\ldots,D_s\}\) is a partition occurring in that polynomial, an unbiased estimator of its product of moments in environment \(e\) is
+\[
+ \frac1{(n_e)_s}
+ \sum_{\substack{i_1,\ldots,i_s\\\text{distinct}}}
+ \prod_{a=1}^s\prod_{j\in D_a}X_{j,e,i_a}.                               \tag{5}
+\]
+Independence across observations proves unbiasedness term by term.  The square of a summand in (5) has total degree at most \(2k\leq2R_{\max}<s_0\), so (4), Lyapunov's inequality, and H\"older's inequality bound its second moment uniformly.  In the variance double sum, disjoint index tuples are independent, and only \(O(n_e^{2s-1})\) of the \(O(n_e^{2s})\) pairs overlap.  The admitted orders, partitions, and environments are finite, while balanced shares give \(n_e\geq\underline\pi n\).  Consequently, whenever all \(n_e\geq R_{\max}\),
+\[
+ \sup_{\theta\in\Theta}
+ \mathbb E_\theta\left[
+  \|\widehat c_k-c_k\|_2^2+\|\widehat m_k-m_k\|_2^2
+ \right]\leq\frac{K_1}{n},
+ \qquad 2\leq k\leq R_{\max}.                                           \tag{6}
+\]
+The same polynomial and (4) uniformly bound \(\|c_k\|_2\) and \(\|m_k\|_2\).
+
+Let \(H=\widehat C-C\), and let \(\widehat A\) be the rank-\(d\) left singular subspace used to construct \(\widehat Q\).  If \(\|H\|_{\mathrm{op}}\leq\kappa_0/2\) and \(x=Cy\) is a unit vector in \(A\), then \(\|y\|_2\leq\kappa_0^{-1}\) and
+\[
+ \operatorname{dist}(x,\widehat A)
+ \leq\|Hy\|_2\leq\kappa_0^{-1}\|H\|_{\mathrm{op}}.                    \tag{7}
+\]
+The variational definition of singular values gives
+\[
+ \sigma_d(\widehat C)\geq\sigma_d(C)-\|H\|_{\mathrm{op}}
+ \geq\kappa_0/2.                                                          \tag{8}
+\]
+Thus, if \(z=\widehat Cy\) is a unit vector in \(\widehat A\), then \(\|y\|_2\leq2/\kappa_0\) and
+\[
+ \operatorname{dist}(z,A)\leq2\kappa_0^{-1}\|H\|_{\mathrm{op}}.         \tag{9}
+\]
+The two directed distances (7) and (9), applied to the orthogonal decompositions for two equal-dimensional subspaces, imply
+\[
+ \|\widehat Q-Q_A\|_{\mathrm{op}}
+ \leq4\kappa_0^{-1}\|H\|_{\mathrm{op}}.                                \tag{10}
+\]
+On the complementary event the left side is at most two.  Equation (6) for the fixed \(d\) columns of \(H\), followed by Markov's inequality, therefore yields
+\[
+ \sup_{\theta\in\Theta}
+ \mathbb E_\theta\|\widehat Q-Q_A\|_{\mathrm{op}}^2\leq\frac{K_2}{n}. \tag{11}
+\]
+This calculation never inverts an influence covariance and remains valid when that covariance is singular.
+
+For \(|b|\leq B\), define
+\[
+ g_k(b)=Q_A(m_k-bc_k),
+ \qquad \widehat g_k(b)=\widehat Q(\widehat m_k-b\widehat c_k),
+\]
+and
+\[
+ \Delta_n=\max_{d+2\leq k\leq R_{\max}}
+ \sup_{|b|\leq B}\|\widehat g_k(b)-g_k(b)\|_2.
+\]
+The exact decomposition
+\[
+ \widehat g_k(b)-g_k(b)
+ =\widehat Q\{(\widehat m_k-m_k)-b(\widehat c_k-c_k)\}
+  +(\widehat Q-Q_A)(m_k-bc_k)                                             \tag{12}
+\]
+and (6), (11), and the population cumulant bounds imply
+\[
+ \sup_{\theta\in\Theta}\mathbb E_\theta\Delta_n^2\leq\frac{K_3}{n}.    \tag{13}
+\]
+This uniform same-sample generated-plane control uses neither \(r\), \(\lambda_n\), nor a nonzero flag.
+
+By the ambient-subclass lemma and population cumulant cancellation, every \(\theta\in\Theta\) obeys
+\[
+ g_k(b)=(\beta-b)Q_Ac_k,
+ \qquad g_k(\beta)=0.                                                      \tag{14}
+\]
+If \(\theta\in\mathcal M_r(\lambda_n)\), optimality of the estimator and (12)--(14) yield
+\[
+ \begin{aligned}
+ |\widehat\beta-\beta|\,\|Q_Ac_r\|_2
+ &=\|g_r(\widehat\beta)\|_2\\
+ &\leq\|\widehat g_r(\widehat\beta)\|_2+\Delta_n\\
+ &\leq\max_k\|\widehat g_k(\widehat\beta)\|_2+\Delta_n\\
+ &\leq\max_k\|\widehat g_k(\beta)\|_2+\Delta_n
+ \leq2\Delta_n.
+ \end{aligned}                                                            \tag{15}
+\]
+The minimizer exists because the objective is continuous on the compact interval \([-B,B]\).  The shell gives \(\|Q_Ac_r\|_2\geq\lambda_n\), while both effects lie in \([-B,B]\).  Equations (13)--(15) therefore prove (1), after changing the constant.
+
+Choose \(t_{\alpha_0}\) so that
+\[
+ t_{\alpha_0}^2\geq K_3/\alpha_0.                                        \tag{16}
+\]
+Let \(\mathcal R_n\) be the raw norm-sublevel set in the definition of \(\mathcal C_n\).  By (14), on \(\{\Delta_n\leq t_{\alpha_0}/\sqrt n\}\) the true \(\beta\) belongs to \(\mathcal R_n\).  On this event the raw set is nonempty, so its empty-set fallback is irrelevant.  Markov's inequality, (13), and (16) give
+\[
+ \inf_{\theta\in\Theta}
+ \Pr_\theta\{\beta\in\mathcal C_n\}\geq1-\alpha_0.                    \tag{17}
+\]
+Thus conservative coverage is valid on the entire bounded ambient class, including no-breakout parameters.  The prescribed small-sample set \([-B,B]\) covers identically.
+
+Each constraint defining \(\mathcal R_n\) is a convex sublevel set of the norm of an affine function of the scalar \(b\), so their intersection with \([-B,B]\) is an interval.  If \(b,b'\in\mathcal R_n\), then on the shell, (12)--(14) give
+\[
+ |b-b'|\lambda_n
+ \leq\|g_r(b)-g_r(b')\|_2
+ \leq2\left(\frac{t_{\alpha_0}}{\sqrt n}+\Delta_n\right).               \tag{18}
+\]
+If \(\mathcal R_n\) is empty, the fallback is a singleton and has length zero.  The box bound \(2B\), (13), (18), and Cauchy--Schwarz prove (3).  The true \(r\) appears only in the analysis; both procedures maximize over all admitted orders.
+
+Balanced shares imply that some \(n_e<R_{\max}\) only when \(n<R_{\max}/\underline\pi\).  The deterministic error and length bounds \(4B^2\) and \(2B\), together with the uniform cumulant bound \(\|Q_Ac_k\|_2\leq\Lambda\), allow enlargement of the constants in (1) and (3) to cover these finitely many sample sizes whenever the shell is nonempty.
+
+We now construct one compatible bounded experiment giving both lower bounds, common to all admitted \(r\).  Put
+\[
+ J=[19/10,23/10],
+ \qquad \Sigma=\begin{pmatrix}2&5\\5&14\end{pmatrix},
+\]
+and, for \(b\in J\), define
+\[
+ f_b=\frac{5-2b}{3-b},\qquad
+ g_b=\frac1{3-b},\qquad z_b=b-1.                                         \tag{19}
+\]
+All denominators and all three variances are bounded away from zero on \(J\).  Let \(V_b,W_b,Z_b\) be independent centered Gaussian variables with variances \(f_b,g_b,z_b\).  Direct substitution gives
+\[
+ f_b+g_b=2,
+ \qquad3f_b+bg_b=5,
+ \qquad9f_b+b^2g_b+z_b=14.                                                \tag{20}
+\]
+Consequently
+\[
+ G_b=(V_b+W_b,3V_b+bW_b+Z_b)\sim\mathcal N(0,\Sigma)                     \tag{21}
+\]
+for every \(b\in J\).
+
+Independently construct
+\[
+ L_e=\sum_{j=1}^d j(N_{e,j}-\lambda_{e,j}),
+\]
+where the independent Poisson rates have a common positive baseline and the jump-\(j\) rate is increased by a fixed \(\eta>0\) only in environment \(e=j\); environments \(e>d\) retain the baseline rates.  Define
+\[
+ \epsilon_{u,e}=L_e+V_b,\qquad
+ \epsilon_{t,e}=W_b,\qquad
+ \epsilon_y=Z_b,\qquad
+ \alpha=1,\quad\beta=b,\quad\gamma=3-b.                                 \tag{22}
+\]
+Before the perturbation below,
+\[
+ (T_e,Y_e)=(L_e,3L_e)+G_b,                                                 \tag{23}
+\]
+so the complete observed law is independent of \(b\).  The latent profiles are \(u_k=\eta(1^k,\ldots,d^k,0,\ldots,0)^\top\), whence the leading calibration block is \(\eta V_d\), \(A=\operatorname{span}\{\mathbf e_1,\ldots,\mathbf e_d\}\), and \(u_k\in A\) for all \(k\).
+
+For an admitted \(r\), let \(\operatorname{He}_r\) be the probabilists' Hermite polynomial and set
+\[
+ h_r(x)=e^{-x^2}\operatorname{He}_r(\sqrt3x),
+ \qquad \mu_r=\frac{r!}{3^{(r+1)/2}}.                                    \tag{24}
+\]
+Both \(h_r\) and its derivative are bounded.  If \(N\sim\mathcal N(0,1)\), the substitution \(u=\sqrt3x\), the Rodrigues identity, and \(r\) integrations by parts give
+\[
+ \mathbb E[N^kh_r(N)]
+ =3^{-(k+1)/2}\mathbb E[N^k\operatorname{He}_r(N)]
+ =\begin{cases}0,&0\leq k<r,\\ \mu_r,&k=r.\end{cases}                   \tag{25}
+\]
+Every boundary term vanishes because a polynomial times a Gaussian density tends to zero at both endpoints.
+
+Only in environment \(e=d+1\), replace the density of \(W_b\) by
+\[
+ p_{b,\lambda}(w)=\phi_{g_b}(w)
+ \left\{1+\frac{\lambda}{\mu_rg_b^{r/2}}
+ h_r\!\left(\frac w{\sqrt{g_b}}\right)\right\}.                         \tag{26}
+\]
+Compactness of \(J\) and finiteness of the admitted order set give one \(\lambda_0>0\), common to all \(r\), for which the bracket lies in \([1/2,3/2]\) whenever \(0<\lambda\leq\lambda_0\).  Formula (25) at \(k=0,1\) proves normalization and centering.  It shows that raw moments below \(r\) are unchanged and the order-\(r\) raw moment increases by exactly \(\lambda\).  Since the order-\(r\) cumulant is the order-\(r\) moment plus a polynomial in lower moments, its increase is also \(\lambda\).  Gaussian domination gives every absolute moment and the required fixed moment envelope.
+
+Because \(r\geq d+2\), the perturbation leaves \(C\) unchanged.  Lower projected contrasts vanish and
+\[
+ Q_Ac_r=\lambda\mathbf e_{d+1},
+ \qquad Q_Am_r=b\lambda\mathbf e_{d+1}.                                  \tag{27}
+\]
+Choose fixed coefficient bounds containing \(\alpha=1\), \(b\in J\), and \(\gamma=3-b\); choose \(B>23/10\), \(\kappa_0<\eta\sigma_d(V_d)\), and the moment envelope above the compact supremum over \(b\in J\), \(0\leq\lambda\leq\lambda_0\), and the finite order set.  All ambient assumptions then hold with constants common to \(r\), and (27) places each law in \(\mathcal M_r(\lambda)\).
+
+We bound divergence for the complete observations.  Under (21), Gaussian completion of squares gives
+\[
+ \mathbb E_b[W_b\mid G_b=x]=\ell_b^\top x,
+ \qquad \ell_b^\top=g_b(1,b)\Sigma^{-1},                                 \tag{28}
+\]
+and
+\[
+ \tau_b^2=\operatorname{Var}_b(W_b\mid G_b)
+ =g_b-g_b^2(1,b)\Sigma^{-1}(1,b)^\top
+ =-\frac{(b-1)(2b-5)}{3(b-3)^2}>0.                                       \tag{29}
+\]
+The last quantity is uniformly positive on \(J\).  Conditioning the likelihood ratio in (26) on \(G_b=x\) gives observed density
+\[
+ \phi_\Sigma(x)\{1+\lambda R_b(x)\},
+ \qquad
+ R_b(x)=\frac1{\mu_rg_b^{r/2}}
+ \mathbb E\left[h_r\!\left(
+ \frac{\ell_b^\top x+\tau_bN}{\sqrt{g_b}}\right)\right].               \tag{30}
+\]
+The coefficients in (28)--(30) are continuously differentiable on \(J\), and \(g_b,\tau_b\) are bounded away from zero.  Boundedness of \(h_r,h_r'\) permits differentiation under the Gaussian expectation with envelope \(K(1+\|x\|_2+|N|)\).  Uniformly over the finite order set,
+\[
+ |R_b(x)|\leq K_4,
+ \qquad |\partial_bR_b(x)|\leq K_5(1+\|x\|_2).                           \tag{31}
+\]
+The mean-value theorem and the finite second moment of \(\mathcal N(0,\Sigma)\) imply
+\[
+ \int\{R_b(x)-R_{b'}(x)\}^2\phi_\Sigma(x)\,dx
+ \leq K_6|b-b'|^2.                                                        \tag{32}
+\]
+After reducing \(\lambda_0\) so that \(\lambda_0K_4\leq1/2\), substitution of the two densities into chi-square divergence yields
+\[
+ \chi^2(P^G_{b,\lambda},P^G_{b',\lambda})
+ \leq2K_6\lambda^2|b-b'|^2.                                              \tag{33}
+\]
+Adding the independent \(L_e\) and applying the common measurable map (23) cannot increase chi-square divergence: the image likelihood ratio is the conditional expectation of the original likelihood ratio, and conditional Jensen's inequality applies to its squared centered value.  The other environments have laws independent of \(b\).  Independence across observations and \(1+x\leq e^x\) therefore give
+\[
+ 1+\chi^2(P_{b,\lambda}^{n},P_{b',\lambda}^{n})
+ \leq\exp\{K_7n\lambda^2|b-b'|^2\}.                                    \tag{34}
+\]
+For dominated laws, Cauchy--Schwarz gives
+\[
+ \|P-Q\|_{\mathrm{TV}}\leq\frac12\sqrt{\chi^2(P,Q)}.                  \tag{35}
+\]
+
+Fix \(b_0=2\), let
+\[
+ h_n=c\min\left\{B,\frac1{\sqrt n\lambda}\right\},
+ \qquad b_1=b_0+h_n,                                                       \tag{36}
+\]
+and choose fixed \(c>0\) small enough that \(b_1\in J\) and (34)--(35) imply
+\[
+ \|P_{b_0,\lambda}^{n}-P_{b_1,\lambda}^{n}\|_{\mathrm{TV}}
+ \leq v<\min\{1/2,1-2\alpha_0\}.                                       \tag{37}
+\]
+For any estimator, let \(D\) be the event that it is closer to \(b_0\) than to \(b_1\).  Its squared error is at least \(h_n^2/4\) under the first law on \(D^c\) and under the second law on \(D\).  The definition of total variation gives
+\[
+ \max_{j=0,1}\mathbb E_{b_j,\lambda}
+ (\widetilde\beta-b_j)^2\geq\frac{h_n^2}{8}(1-v).                        \tag{38}
+\]
+If a random interval covers both parameters with probability at least \(1-\alpha_0\), then under the first law the two coverage events intersect with probability at least \(1-2\alpha_0-v\).  Connectedness forces length at least \(h_n\) there, so
+\[
+ \mathbb E_{b_0,\lambda}\operatorname{length}(\mathcal I_n)
+ \geq h_n(1-2\alpha_0-v).                                                \tag{39}
+\]
+Both laws lie in the same shell; hence (38)--(39) apply even under shell-only honesty.
+
+For signals \(\lambda\in[\lambda_0,\Lambda]\), the same fixed bounded experiment contains a regular parametric subpath.  Retain a shell member's \(\alpha\), latent sources, and treatment sources; choose fixed \(q\in(q_0,q_1)\), set \(\gamma=\alpha q\), use an independent centered Gaussian outcome noise with fixed positive variance \(\sigma_y^2\), and vary \(\beta\) over a fixed interior interval.  These changes leave \(C,A,r^\star\), and shell strength unchanged and fit the fixed envelopes chosen with slack.  In the more informative experiment observing \((U,T,Y)\), two effects separated by \(h\) have
+\[
+ \operatorname{KL}(P_\beta^n,P_{\beta+h}^n)
+ =\frac{h^2}{2\sigma_y^2}
+   \sum_{e\in\mathcal E}n_e\mathbb E[T_e^2]
+ \leq K_8nh^2.                                                           \tag{40}
+\]
+Marginalization cannot increase relative entropy, by conditional Jensen's inequality for the image likelihood ratio.  Applying data processing to an indicator event attaining total variation and Taylor's theorem for binary relative entropy gives \(\operatorname{KL}(P,Q)\geq2\|P-Q\|_{\mathrm{TV}}^2\).  Taking \(h=c\min\{B,n^{-1/2}\}\) and repeating (38)--(39) gives lower orders \(\min\{B^2,n^{-1}\}\) and \(\min\{B,n^{-1/2}\}\).  Uniformly for \(\lambda\in[\lambda_0,\Lambda]\), these are equivalent, up to constants fixed by the experiment, to the expressions in (1) and (3).
+
+Taking infima over estimators and over intervals honest on the shell, and combining (38)--(40) with the upper bounds, proves the two minimax orders on this one fixed compatible experiment.  Shell-only honesty is weaker than honesty on \(\Theta\), so the interval lower bound also applies to the latter class.
+
+If \(\sqrt n\lambda_n\to\infty\), (1) proves uniform mean-square and hence uniform probabilistic consistency on every nonempty shell sequence.  Conversely, if this divergence fails, some subsequence has \(\sqrt n\lambda_n\) bounded.  Along a further subsequence \(\lambda_n\leq\lambda_0\), and (36)--(38) bound minimax risk away from zero.  If no such further subsequence existed, \(\lambda_n\) would be bounded below and \(\sqrt n\lambda_n\) would diverge, a contradiction.  Thus no uniformly consistent estimator exists on the bounded subsequence.  This proves the if-and-only-if consistency frontier on the fixed lower-bound experiment.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem converts flag magnitude into sharp shell-specific risk and honest-length rates while proving conservative coverage over the full bounded ambient class. \textit{Gap.} The matching lower bounds use one fixed compatible full-observation experiment; they are not claimed uniformly over every bounded shell. \textit{Consumer.} The rate provides a precision and consistency diagnostic for empirical environmental flags.
+
+\begin{lemma}[lem:ambient-uniform-generated-projector-expansion]\label{lem:ambient-uniform-generated-projector-expansion}
+For the fixed bounded class \(\Theta\), uniformly over all triangular arrays \(\theta_n\in\Theta\), write the observation in environment \(e\) as \(W_{e,i}=(T_{e,i},Y_{e,i})\), put \(C^+=(C^\top C)^{-1}C^\top\), and put \(h_k=m_k-\beta c_k\).  There are centered first-projection arrays \(\psi^C_{e,n}(W_{e,i})\), \(\psi^c_{e,k,n}(W_{e,i})\), and \(\psi^m_{e,k,n}(W_{e,i})\) such that, simultaneously for \(d+2\leq k\leq R_{\max}\),
+\[
+ \sqrt n\,\widehat Q(\widehat m_k-\beta\widehat c_k)
+ =Z_{n,k}+o_{\mathbb P}(1),
+ \qquad
+ Z_{n,k}=\frac1{\sqrt n}\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}\pi_e^{-1}\zeta_{e,k,n}(W_{e,i}),
+\]
+uniformly over \(\Theta\), where
+\[
+ \zeta_{e,k,n}
+ =Q_A\bigl(\psi^m_{e,k,n}-\beta\psi^c_{e,k,n}
+       -\psi^C_{e,n}C^+h_k\bigr).
+\]
+The stacked vector \(Z_n=(Z_{n,k}:d+2\leq k\leq R_{\max})\) satisfies
+\[
+ \sup_{\theta\in\Theta}
+ d_{\mathrm{BL}}\!\left(\mathcal L_\theta(Z_n),N(0,\Sigma_{n,\theta})\right)\longrightarrow0,
+ \qquad
+ \Sigma_{n,\theta}=\sum_{e\in\mathcal E}\pi_e^{-1}
+ \mathbb E_\theta\bigl[\zeta_{e,n}\zeta_{e,n}^{\top}\bigr].
+\]
+This conclusion does not require a nonzero projected cumulant flag and allows \(\Sigma_{n,\theta}\) to be singular, to change rank along a triangular array, or to equal zero.  The term \(-Q_A\psi^C_{e,n}C^+h_k\) is the same-sample estimated-\(A\) correction.
+\end{lemma}
+\begin{proof}
+Fix an arbitrary triangular array \(\theta_n\in\Theta\), and suppress the triangular-array index on its population quantities.  The observations are independent across environments and, in environment \(e\), \(W_{e,1},\ldots,W_{e,n_e}\) are identically distributed with law \(P_e\).  By balanced shares,
+\[
+ n_e=n\pi_e\geq n\underline\pi. \tag{1}
+\]
+Consequently every environment eventually has at least \(R_{\max}\) observations, so the small-sample fallback in the definition of the cumulant estimator is eventually inactive.
+
+We first obtain all moment bounds needed below from the declared source envelope.  The coefficient restrictions give
+\[
+ |\alpha|\leq a_1,
+ \qquad |\beta|\leq B,
+ \qquad |\gamma|=|\alpha|\,|\gamma/\alpha|\leq a_1q_1. \tag{2}
+\]
+The structural equations therefore read
+\[
+ T_e=\alpha\epsilon_{u,e}+\epsilon_{t,e},
+ \qquad
+ Y_e=(\beta\alpha+\gamma)\epsilon_{u,e}
+       +\beta\epsilon_{t,e}+\epsilon_y. \tag{3}
+\]
+Put \(s_0=2R_{\max}+\delta\).  Since \(s_0>1\), convexity gives
+\[
+ |x_1+\cdots+x_j|^{s_0}
+ \leq j^{s_0-1}\sum_{a=1}^j|x_a|^{s_0}. \tag{4}
+\]
+Applying (4) to (3), then using (2) and the source moment envelope, gives a constant \(K_W<\infty\), depending only on the fixed envelopes in \(\Theta\), such that
+\[
+ \sup_n\max_{e\in\mathcal E}
+ \mathbb E_{\theta_n}\|W_{e,1}\|^{2R_{\max}+\delta}
+ \leq K_W. \tag{5}
+\]
+In particular, H\"older's inequality bounds uniformly every observed moment through order \(2R_{\max}\).  The finite moment--cumulant polynomial then bounds uniformly \(C,c_k,m_k\), and \(h_k:=m_k-\beta c_k\), for \(2\leq k\leq R_{\max}\).
+
+We next derive the linear representations rather than assume them.  For integrable products through order \(k\), the joint cumulant is
+\[
+ \kappa_k(X_1,\ldots,X_k)
+ =\sum_{\mathcal P\in\Pi_k}
+ (|\mathcal P|-1)!(-1)^{|\mathcal P|-1}
+ \prod_{D\in\mathcal P}
+ \mathbb E\!\left[\prod_{j\in D}X_j\right], \tag{6}
+\]
+where \(\Pi_k\) is the finite set of partitions of \(\{1,\ldots,k\}\).  For a partition with \(s\) blocks, replace the product of its \(s\) expectations by the symmetrized average of the corresponding block monomials over \(s\) distinct observations.  Thus each unbiased sample cumulant appearing in the construction is a fixed finite linear combination of symmetric \(U\)-statistics of orders at most \(k\), and every constituent kernel has total polynomial degree at most \(k\).
+
+Consider one order-\(s\) constituent \(U_{n_e,s}(g)\).  Successive subtraction of conditional expectations produces centered canonical kernels \(g_j\), \(1\leq j\leq s\), and the exact algebraic decomposition
+\[
+ U_{n_e,s}(g)-\mathbb Eg
+ =\frac1{n_e}\sum_{i=1}^{n_e}\psi_{g,e}(W_{e,i})
+  +\sum_{j=2}^s {s\choose j}U_{n_e,j}(g_j), \tag{7}
+\]
+where
+\[
+ \psi_{g,e}(w)
+ =s\{\mathbb E[g(w,W_{e,2},\ldots,W_{e,s})]-\mathbb Eg\},
+ \qquad \mathbb E\psi_{g,e}(W_{e,1})=0. \tag{8}
+\]
+If two distinct unordered \(j\)-tuples index summands in \(U_{n_e,j}(g_j)\), one tuple contains an index absent from the other.  Conditioning on all remaining observations and using degeneracy in that argument shows that their covariance is zero.  Hence
+\[
+ \mathbb E\!\left[U_{n_e,j}(g_j)^2\right]
+ ={n_e\choose j}^{-1}\mathbb E[g_j^2]
+ \leq K n_e^{-j}. \tag{9}
+\]
+The last bound is uniform: a squared constituent kernel uses observed moments of order at most \(2R_{\max}\), which are bounded by (5), and there are only finitely many orders and partitions.  Therefore all projections of order at least two in (7) are \(O_{L^2}(n_e^{-1})\), uniformly.
+
+Apply the environment-versus-baseline signs in the definitions of \(C,c_k,m_k\) to the first projections (8), and stack them.  This defines centered arrays \(\psi^C_{e,n}\), \(\psi^c_{e,k,n}\), and \(\psi^m_{e,k,n}\).  Since \(n_e=n\pi_e\), equations (1), (7), and (9) give, simultaneously over the finitely many relevant orders,
+\[
+ \begin{aligned}
+ \sqrt n(\widehat C-C)
+ &=\frac1{\sqrt n}\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+      \pi_e^{-1}\psi^C_{e,n}(W_{e,i})+o_{L^2}(1),\\
+ \sqrt n(\widehat c_k-c_k)
+ &=\frac1{\sqrt n}\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+      \pi_e^{-1}\psi^c_{e,k,n}(W_{e,i})+o_{L^2}(1),\\
+ \sqrt n(\widehat m_k-m_k)
+ &=\frac1{\sqrt n}\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+      \pi_e^{-1}\psi^m_{e,k,n}(W_{e,i})+o_{L^2}(1).
+ \end{aligned} \tag{10}
+\]
+Indeed, multiplication of the \(O_{L^2}(n_e^{-1})\) remainder by \(\sqrt n\) gives \(O(n^{-1/2})\) by (1).
+
+Let
+\[
+ \nu=\min\{1,\delta/R_{\max}\}>0. \tag{11}
+\]
+Each first projection in (10) is a finite sum of polynomials of degree at most \(R_{\max}\) in one observation, with coefficients made from uniformly bounded lower-order moments.  Conditional Jensen, (5), and
+\((2+\nu)R_{\max}\leq2R_{\max}+\delta\) therefore imply
+\[
+ \sup_{n,e,\theta_n\in\Theta}\mathbb E_{\theta_n}\!\left[
+ \|\psi^C_{e,n}\|^{2+\nu}
+ +\sum_{k=2}^{R_{\max}}
+ \{\|\psi^c_{e,k,n}\|^{2+\nu}
+   +\|\psi^m_{e,k,n}\|^{2+\nu}\}\right]<\infty. \tag{12}
+\]
+
+We now linearize the generated projector.  Put \(C^+=(C^\top C)^{-1}C^\top\) and \(P_C=CC^+\), so \(Q_A=I_{E-1}-P_C\).  The calibration gap licenses the inverse and gives
+\[
+ \|C^+\|_{\mathrm{op}}=\sigma_d(C)^{-1}\leq\kappa_0^{-1}. \tag{13}
+\]
+For \(\|H\|_{\mathrm{op}}\leq\kappa_0/2\), the variational definition of singular values yields
+\[
+ \sigma_d(C+H)\geq\sigma_d(C)-\|H\|_{\mathrm{op}}
+ \geq\kappa_0/2. \tag{14}
+\]
+Writing \(G=C^\top C\) and \(D=C^\top H+H^\top C+H^\top H\), the exact inverse identity
+\[
+ (G+D)^{-1}=G^{-1}-G^{-1}DG^{-1}
+ +G^{-1}DG^{-1}D(G+D)^{-1} \tag{15}
+\]
+and direct substitution into
+\(P_{C+H}=(C+H)\{(C+H)^\top(C+H)\}^{-1}(C+H)^\top\)
+give
+\[
+ P_{C+H}-P_C
+ =Q_AHC^+ +(Q_AHC^+)^\top+R_C(H),
+ \qquad \|R_C(H)\|_{\mathrm{op}}
+ \leq K_P\|H\|_{\mathrm{op}}^2. \tag{16}
+\]
+The constant is uniform because (5)--(6) bound \(\|C\|\), (13) bounds \(G^{-1}\), and (14) bounds the last inverse in (15).
+
+Taking \(H=\widehat C-C\), equations (10) and (12) show that \(\|H\|=O_{\mathbb P}(n^{-1/2})\) uniformly.  Thus (16) applies with probability tending to one uniformly, with an \(O_{\mathbb P}(n^{-1})\) remainder.  On this event the rank-\(d\) SVD projector is the column-space projector of \(\widehat C\), so
+\[
+ \widehat Q-Q_A
+ =-Q_A(\widehat C-C)C^+
+  -\{Q_A(\widehat C-C)C^+\}^\top
+  +o_{\mathbb P}(n^{-1/2}) \tag{17}
+\]
+uniformly.
+
+The already established cumulant-cancellation lemma applies to every \(\theta_n\in\Theta\) and gives
+\[
+ h_k=m_k-\beta c_k=\alpha^{k-1}\gamma u_k\in A=\operatorname{col}(C),
+ \qquad Q_Ah_k=0. \tag{18}
+\]
+Consequently the transposed derivative term vanishes on \(h_k\):
+\[
+ \{Q_A(\widehat C-C)C^+\}^\top h_k
+ =C^{+\top}(\widehat C-C)^\top Q_Ah_k=0. \tag{19}
+\]
+Put \(\widehat h_k=\widehat m_k-\beta\widehat c_k\).  Expanding the product, using (10) and (17)--(19), and using the uniform bounds on \(\beta,h_k,C^+\), gives
+\[
+ \begin{aligned}
+ \sqrt n\,\widehat Q\widehat h_k
+ &=\sqrt n\,Q_A(\widehat h_k-h_k)
+   +\sqrt n(\widehat Q-Q_A)h_k
+   +\sqrt n(\widehat Q-Q_A)(\widehat h_k-h_k)\\
+ &=\sqrt n\,Q_A\{(\widehat m_k-m_k)
+       -\beta(\widehat c_k-c_k)\}
+   -\sqrt n\,Q_A(\widehat C-C)C^+h_k
+   +o_{\mathbb P}(1).
+ \end{aligned} \tag{20}
+\]
+The product in the first line after multiplication by \(\sqrt n\) is \(O_{\mathbb P}(n^{-1/2})\), uniformly, because each estimation error is \(O_{\mathbb P}(n^{-1/2})\).  Substitution of (10) into (20) proves, simultaneously for \(d+2\leq k\leq R_{\max}\),
+\[
+ \sqrt n\,\widehat Q(\widehat m_k-\beta\widehat c_k)
+ =\frac1{\sqrt n}\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+   \pi_e^{-1}\zeta_{e,k,n}(W_{e,i})+o_{\mathbb P}(1), \tag{21}
+\]
+where
+\[
+ \zeta_{e,k,n}
+ =Q_A\{\psi^m_{e,k,n}-\beta\psi^c_{e,k,n}
+          -\psi^C_{e,n}C^+h_k\}. \tag{22}
+\]
+This establishes both the sign and the form of the same-sample estimated-plane correction.  No step has used a breakout or a lower bound on a projected cumulant.
+
+It remains to prove the asserted Gaussian approximation without imposing a covariance-rank condition.  Stack (22) over \(d+2\leq k\leq R_{\max}\).  Equations (12)--(13) and the uniform bound on \(h_k\) give
+\[
+ \sup_{n,e,\theta_n\in\Theta}
+ \mathbb E_{\theta_n}\|\zeta_{e,n}\|^{2+\nu}<\infty. \tag{23}
+\]
+Index the independent summands by \(a=(e,i)\), and set
+\[
+ X_a=n^{-1/2}\pi_e^{-1}\zeta_{e,n}(W_{e,i}),
+ \qquad L_n=\sum_a\mathbb E\|X_a\|^{2+\nu}.
+\]
+Balanced shares and (23) imply
+\[
+ L_n
+ \leq K n^{-1-\nu/2}
+       \sum_{e\in\mathcal E}n_e\pi_e^{-(2+\nu)}
+ \leq K'n^{-\nu/2}. \tag{24}
+\]
+For each \(a\), let \(G_a\) be an independent centered Gaussian vector having the covariance of \(X_a\).  In the fixed stacked dimension, the Gaussian moment formula and Lyapunov's inequality give
+\[
+ \mathbb E\|G_a\|^{2+\nu}
+ \leq K\{\mathbb E\|X_a\|^2\}^{1+\nu/2}
+ \leq K\mathbb E\|X_a\|^{2+\nu}. \tag{25}
+\]
+
+For a function \(f\) bounded by one and one-Lipschitz, let
+\(f_\varepsilon(x)=\mathbb E[f(x+\varepsilon Z_0)]\), where \(Z_0\) is standard Gaussian in the fixed stacked dimension.  Coupling gives \(\|f_\varepsilon-f\|_\infty\leq K\varepsilon\).  Differentiating the Gaussian convolution gives
+\[
+ \sup_x\|D^2f_\varepsilon(x)\|\leq K\varepsilon^{-1},
+ \qquad
+ \sup_x\|D^3f_\varepsilon(x)\|\leq K\varepsilon^{-2}.
+\]
+The minimum of the bounds furnished by these two displays, together with
+\(\min\{u,v\}\leq u^\nu v^{1-\nu}\), yields
+\[
+ \|D^2f_\varepsilon(x)-D^2f_\varepsilon(y)\|
+ \leq K\varepsilon^{-(1+\nu)}\|x-y\|^\nu. \tag{26}
+\]
+The integral second-order Taylor remainder is therefore at most
+\(K\varepsilon^{-(1+\nu)}\|v\|^{2+\nu}\).  Replace the \(X_a\)'s successively by the \(G_a\)'s.  At each replacement, the constant, linear, and quadratic Taylor terms have equal expectations because the paired variables have the same mean and covariance.  Equations (25)--(26) give
+\[
+ \left|\mathbb Ef_\varepsilon\!\left(\sum_aX_a\right)
+       -\mathbb Ef_\varepsilon\!\left(\sum_aG_a\right)\right|
+ \leq K\varepsilon^{-(1+\nu)}L_n. \tag{27}
+\]
+After removing the smoothing,
+\[
+ d_{\mathrm{BL}}\!\left(\mathcal L\!\left(\sum_aX_a\right),
+                         \mathcal L\!\left(\sum_aG_a\right)\right)
+ \leq K\{\varepsilon+\varepsilon^{-(1+\nu)}L_n\}. \tag{28}
+\]
+If \(L_n>0\), choose \(\varepsilon=L_n^{1/(2+\nu)}\); if \(L_n=0\), all summands on both sides vanish almost surely.  Equations (24) and (28) prove uniform convergence to zero.  Finally,
+\[
+ \operatorname{Cov}\!\left(\sum_aG_a\right)
+ =\frac1n\sum_{e\in\mathcal E}n_e\pi_e^{-2}
+   \mathbb E[\zeta_{e,n}\zeta_{e,n}^\top]
+ =\sum_{e\in\mathcal E}\pi_e^{-1}
+   \mathbb E[\zeta_{e,n}\zeta_{e,n}^\top]
+ =\Sigma_{n,\theta_n}. \tag{29}
+\]
+Thus the comparison law is \(N(0,\Sigma_{n,\theta_n})\).  Its construction used only positive semidefiniteness: when the covariance is singular it is supported on its image, and when the covariance is zero it is a point mass.  Since the triangular array was arbitrary and every displayed bound is uniform over the fixed envelopes defining \(\Theta\), (21)--(29) prove every asserted uniformity and singular-covariance clause.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This replacement supplies an ambient-class linearization, including the correction for estimating the environmental cumulant plane from the same sample. \textit{Gap.} The projector derivative is composed with the cumulant influence process before a singular Gaussian approximation is taken. \textit{Consumer.} The ambient randomized calibration theorem and the local quotient reduction consume this expansion.
+
+\begin{theorem}[thm:ambient-randomized-generated-projector-calibration]\label{thm:ambient-randomized-generated-projector-calibration}
+Put
+\[
+ \nu=\min\{1,\delta/R_{\max}\},
+ \qquad
+ \varrho_{\mathrm{AR}}=\frac{\nu}{8+4\nu}.
+\]
+Let \(0<\chi<\varrho_{\mathrm{AR}}\) and \(m_n\to\infty\) be deterministic.  The randomized-jitter Gaussian-multiplier set \(\mathcal C_n^{\mathrm{RJ}}\) is implementable from the stratified observations and the specified auxiliary standard normal draws, and
+\[
+ \lim_{n\to\infty}
+ \sup_{\theta\in\Theta}
+ \left|
+ \Pr_\theta\{\beta\in\mathcal C_n^{\mathrm{RJ}}\}
+ -(1-\alpha_0)
+ \right|=0.
+\]
+The probability is unconditional over the observations, all Gaussian multipliers, the observed-statistic jitter, and all Monte Carlo jitters.  This ambient-class conclusion includes parameters with no projected cumulant breakout.  It allows the same-sample estimated-\(A\) influence covariance \(\Sigma_{n,\theta}\) to be singular, to change rank along a triangular array, or to equal zero, and it uses neither a covariance inverse nor a positive-eigenvalue bound.  Since \(\tau_n=n^{-\chi}\to0\), the external randomization vanishes on the root-\(n\) projected-moment scale underlying \(\mathcal C_n\).  No expected-length or diameter optimality is asserted for \(\mathcal C_n^{\mathrm{RJ}}\).
+
+There is also a precise atomic limitation for deterministic single-threshold calibration.  If a reference statistic has distribution function \(F\), has an atom at a proposed cutoff \(x_0\), and
+\[
+ F(x_0-)<1-\alpha_0<F(x_0),
+\]
+then neither the deterministic rule accepting below \(x_0\) nor the deterministic rule accepting at or below \(x_0\) has acceptance probability \(1-\alpha_0\).  This limitation concerns only those deterministic single-threshold conventions at an atom; it is not an impossibility claim about every procedure without external randomization.
+\end{theorem}
+\begin{proof}
+Write \(\mathcal K=\{d+2,\ldots,R_{\max}\}\) and use the block maximum norm from the randomized-jitter construction.  Its dimension \(D_{\mathrm{AR}}=(E-1)(R_{\max}-d-1)\) is fixed.  All constants below depend only on the fixed envelopes defining \(\Theta\), never on \(\theta\in\Theta\).  Balanced shares give \(n_e\geq n\underline\pi\), so every stratum eventually contains at least \(R_{\max}\) observations.  The finite-sample fallback makes the confidence set defined before that point, while the formulas in the definition apply eventually.
+
+At the true candidate \(b=\beta\), the ambient generated-projector expansion gives
+\[
+ H_n(\beta)=Z_n+R_n,
+ \qquad
+ Z_n=\frac1{\sqrt n}\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+ \pi_e^{-1}\zeta_{e,n}(W_{e,i}), \tag{1}
+\]
+where \(R_n=o_{\mathbb P}(1)\) uniformly and
+\[
+ \Sigma_{n,\theta}=\sum_{e\in\mathcal E}\pi_e^{-1}
+ \mathbb E_\theta[\zeta_{e,n}\zeta_{e,n}^\top]. \tag{2}
+\]
+That lemma also proves, for
+\[
+ \nu=\min\{1,\delta/R_{\max}\}>0,
+\]
+the uniform moment bound
+\[
+ \sup_{n,e,\theta\in\Theta}
+ \mathbb E_\theta\|\zeta_{e,n}\|^{2+\nu}\leq K. \tag{3}
+\]
+The exact relation used at \(b=\beta\) is
+\(Q_A(m_k-\beta c_k)=0\), so (1)--(3) do not require a breakout.
+
+We first make the approximation rates explicit.  With
+\(X_{e,i,n}=n^{-1/2}\pi_e^{-1}\zeta_{e,n}(W_{e,i})\), balanced shares and (3) imply
+\[
+ \sum_{e\in\mathcal E}\sum_{i=1}^{n_e}
+ \mathbb E\|X_{e,i,n}\|^{2+\nu}
+ \leq K n^{-\nu/2}. \tag{4}
+\]
+The Gaussian smoothing and covariance-matched Lindeberg replacement derived in the expansion proof bound the bounded-Lipschitz distance by
+\[
+ K\{s+n^{-\nu/2}s^{-1-\nu}\}.
+\]
+Taking \(s=n^{-\nu/(4+2\nu)}\) yields
+\[
+ \sup_{\theta\in\Theta}
+ d_{\mathrm{BL}}\bigl(\mathcal L_\theta(Z_n),
+ N(0,\Sigma_{n,\theta})\bigr)
+ \leq K n^{-\nu/(4+2\nu)}. \tag{5}
+\]
+No eigenvalue has been divided by in this comparison.
+
+We also need a rate for the expansion remainder because the later jitter vanishes.  The degenerate projections of order at least two have root-\(n\) mean square \(O(n^{-1})\), by the distinct-index covariance cancellation used in the preceding proof.  Moreover,
+\[
+ \mathbb E\|\widehat C-C\|^2\leq K/n,
+ \qquad
+ \Pr\{\|\widehat C-C\|>\kappa_0/2\}\leq K/n. \tag{6}
+\]
+On the complementary good event, the spectral-projector remainder is bounded by
+\(K\sqrt n\|\widehat C-C\|^2\); the remaining nonlinear terms are bounded by \(K\sqrt n\) times a product of two root-mean-square \(O(n^{-1/2})\) estimation errors.  Cauchy--Schwarz, (6), and truncation by one therefore give
+\[
+ \sup_{\theta\in\Theta}
+ \mathbb E_\theta[1\wedge\|R_n\|]
+ \leq K n^{-1/2}. \tag{7}
+\]
+Since \(\nu\leq1\), combining (5)--(7) gives
+\[
+ \sup_{\theta\in\Theta}
+ d_{\mathrm{BL}}\bigl(\mathcal L_\theta(H_n(\beta)),
+ N(0,\Sigma_{n,\theta})\bigr)
+ \leq K n^{-\nu/(4+2\nu)}. \tag{8}
+\]
+
+We next control the covariance of the estimated leave-one-out influences at a rate faster than the squared jitter scale.  For an order-\(s\) constituent kernel \(g\), denote its population first projection by
+\[
+ \psi_{g,e}(w)=s\{\mathbb E[g(w,W_{e,2},\ldots,W_{e,s})]-\mathbb Eg\}.
+\]
+For \(s\geq2\), conditional on \(W_{e,i}\), the first average in \(\widehat\psi_{g,e,i}\) is an order-\((s-1)\) \(U\)-statistic based on the remaining observations.  In its conditional variance, disjoint indexing tuples are conditionally independent, whereas only \(O(n_e^{2s-3})\) ordered pairs overlap, out of \(O(n_e^{2s-2})\) pairs.  The kernel second moments are uniformly bounded by the source moment and coefficient envelopes.  The same overlap count applies to \(U_{e,s}(g)\); for \(s=1\) the conditional-estimation term is absent.  After taking the fixed linear combinations and contrast signs, this proves
+\[
+ \mathbb E R_n^\psi\leq K/n,
+ \qquad
+ R_n^\psi=\frac1n\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}\pi_e^{-2}
+ \|\widehat\psi_{e,i}-\psi_{e,n}(W_{e,i})\|^2. \tag{9}
+\]
+Conditional Jensen applied to the leave-one-out averages and ordinary Jensen applied to the \(U\)-statistics also give uniform \((2+\nu)\)-moment bounds for both estimated and population projections, because their polynomial degree is at most \(R_{\max}\) and
+\((2+\nu)R_{\max}\leq2R_{\max}+\delta\).
+
+Put \(h_k=m_k-\beta c_k\), \(\widehat h_k=\widehat m_k-\beta\widehat c_k\), and
+\[
+ L_n^2=\|\widehat Q-Q_A\|_{\mathrm{op}}^2
+ +\|\widehat C^\dagger-C^+\|_{\mathrm{op}}^2
+ +\sum_{k\in\mathcal K}\|\widehat h_k-h_k\|^2. \tag{10}
+\]
+On \(\{\|\widehat C-C\|\leq\kappa_0/2\}\), singular-value perturbation and the inverse identity give
+\(\|\widehat C^\dagger-C^+\|\leq K\|\widehat C-C\|\) and
+\(\|\widehat Q-Q_A\|\leq K\|\widehat C-C\|\).  Off that event, the threshold in the definition gives \(\|\widehat C^\dagger\|\leq2/\kappa_0\), while both projectors have operator norm at most one; (6) controls the event.  Together with the sample-cumulant mean-square bounds, this yields
+\[
+ \mathbb E L_n^2\leq K/n,
+ \qquad
+ \mathbb E L_n\leq K n^{-1/2}. \tag{11}
+\]
+
+Let \(a=\nu/2\) and set
+\[
+ Y_n=1+\frac1n\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}\pi_e^{-2}
+ \{\|\psi_{e,n}(W_{e,i})\|^2+\|\widehat\psi_{e,i}\|^2\}.
+\]
+Convexity and the \((2+\nu)\)-moment bounds imply
+\[
+ \mathbb E Y_n^{1+a}\leq K. \tag{12}
+\]
+Expand \(\widehat\zeta_{e,i}(\beta)-\zeta_{e,n}(W_{e,i})\) and add and subtract one estimated factor at a time.  The bounds on \(C^+,\widehat C^\dagger,h_k\), together with empirical Cauchy--Schwarz, give the deterministic inequality
+\[
+ B_n:=\frac1n\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}\pi_e^{-2}
+ \|\widehat\zeta_{e,i}(\beta)-\zeta_{e,n}(W_{e,i})\|^2
+ \leq K\{R_n^\psi+L_n^2Y_n\}. \tag{13}
+\]
+This inequality uses no independence between the global errors in \(L_n\) and the empirical envelope \(Y_n\).
+
+Define
+\[
+ \widetilde\Sigma_n=\frac1n\sum_{e\in\mathcal E}\sum_{i=1}^{n_e}\pi_e^{-2}
+ \zeta_{e,n}(W_{e,i})\zeta_{e,n}(W_{e,i})^\top
+\]
+and let \(\widehat\Sigma_n(\beta)\) be the analogous empirical covariance formed from \(\widehat\zeta_{e,i}(\beta)\).  Expanding the difference of the two outer products and applying empirical Cauchy--Schwarz with (13) gives
+\[
+ \|\widehat\Sigma_n(\beta)-\widetilde\Sigma_n\|_{\mathrm{op}}
+ \leq K\{(R_n^\psi Y_n)^{1/2}+L_nY_n
+              +R_n^\psi+L_n^2Y_n\}. \tag{14}
+\]
+We now integrate (14) without an independence assumption.  For every \(t>0\), (9) and (12) imply
+\[
+ \mathbb E[1\wedge R_n^\psi Y_n]
+ \leq t\mathbb ER_n^\psi+\Pr(Y_n>t)
+ \leq K\{t/n+t^{-(1+a)}\}.
+\]
+Taking \(t=n^{1/(2+a)}\) and applying Jensen to the square root gives
+\[
+ \mathbb E[1\wedge(R_n^\psi Y_n)^{1/2}]
+ \leq K n^{-\kappa},
+ \qquad
+ \kappa=\frac{1+a}{2(2+a)}. \tag{15}
+\]
+Similarly, (11)--(12), split over \(\{Y_n\leq t\}\), give
+\[
+ \mathbb E[1\wedge L_nY_n]
+ \leq K\{tn^{-1/2}+t^{-(1+a)}\}
+ \leq K n^{-\kappa}
+\]
+upon choosing \(t=n^{1/\{2(2+a)\}}\).  The remaining terms in (14) are faster: \(\mathbb ER_n^\psi\leq K/n\), and the choice \(t=n^{1/(2+a)}\) gives
+\[
+ \mathbb E[1\wedge L_n^2Y_n]
+ \leq K n^{-(1+a)/(2+a)}.
+\]
+Therefore
+\[
+ \sup_{\theta\in\Theta}\mathbb E_\theta\!\left[
+ 1\wedge\|\widehat\Sigma_n(\beta)-\widetilde\Sigma_n\|_{\mathrm{op}}
+ \right]
+ \leq K n^{-\kappa}. \tag{16}
+\]
+
+For the fluctuation of \(\widetilde\Sigma_n\), each matrix
+\(\zeta_{e,n}\zeta_{e,n}^\top\) has a uniformly bounded \((1+a)\)-moment by (3).  Truncate its norm at
+\(\ell_n=n^{1/\{2(1+a)\}}\).  The truncation bias is at most \(K\ell_n^{-a}\).  Independence across observations, fixed dimension, and balanced shares bound the expected norm of the centered truncated average by
+\[
+ K n^{-1/2}\ell_n^{(1-a)/2},
+\]
+because \(x^2\mathbf 1\{x\leq\ell_n\}\leq\ell_n^{1-a}x^{1+a}\).  This term is no larger than the truncation bias.  Also,
+\[
+ \mathbb E\widetilde\Sigma_n
+ =\frac1n\sum_e n_e\pi_e^{-2}
+   \mathbb E[\zeta_{e,n}\zeta_{e,n}^\top]
+ =\Sigma_{n,\theta}.
+\]
+It follows that
+\[
+ \sup_{\theta\in\Theta}\mathbb E_\theta
+ \|\widetilde\Sigma_n-\Sigma_{n,\theta}\|_{\mathrm{op}}
+ \leq K n^{-a/\{2(1+a)\}}
+ =K n^{-\nu/(4+2\nu)}. \tag{17}
+\]
+By the definition of \(\varrho_{\mathrm{AR}}\),
+\[
+ 2\varrho_{\mathrm{AR}}=\frac{a}{2(1+a)},
+ \qquad
+ \kappa-2\varrho_{\mathrm{AR}}
+ =\frac{1}{2(2+a)(1+a)}>0. \tag{18}
+\]
+Combining (16)--(18), and recalling \(\tau_n=n^{-\chi}\) with
+\(0<\chi<\varrho_{\mathrm{AR}}\), gives
+\[
+ \sup_{\theta\in\Theta}\mathbb E_\theta\!\left[
+ 1\wedge\|\widehat\Sigma_n(\beta)-\Sigma_{n,\theta}\|_{\mathrm{op}}
+ \right]
+ \leq K n^{-2\varrho_{\mathrm{AR}}}=o(\tau_n^2). \tag{19}
+\]
+
+Conditionally on the observations, \(G_n^{*(j)}(\beta)\) is exactly centered Gaussian with covariance \(\widehat\Sigma_n(\beta)\).  For positive semidefinite matrices \(S,T\), the integral representation
+\[
+ S^{1/2}=\frac1\pi\int_0^\infty t^{-1/2}S(S+tI)^{-1}\,dt
+\]
+and the resolvent identity, with the integral split at
+\(t=\|S-T\|_{\mathrm{op}}\), give
+\[
+ \|S^{1/2}-T^{1/2}\|_{\mathrm{op}}
+ \leq K\|S-T\|_{\mathrm{op}}^{1/2}. \tag{20}
+\]
+This calculation is valid for singular matrices because \(S+tI\) and \(T+tI\) are invertible for every \(t>0\).  Couple the conditional multiplier Gaussian and \(N(0,\Sigma_{n,\theta})\) as
+\(\widehat\Sigma_n(\beta)^{1/2}Z\) and
+\(\Sigma_{n,\theta}^{1/2}Z\), where \(Z\sim N(0,I_{D_{\mathrm{AR}}})\).  Equations (19)--(20), truncation by one, and Jensen give
+\[
+ \sup_{\theta\in\Theta}\mathbb E_\theta
+ d_{\mathrm{BL}}\bigl(\mathcal L^*(G_n^{*(j)}(\beta)),
+ N(0,\Sigma_{n,\theta})\bigr)
+ \leq K n^{-\varrho_{\mathrm{AR}}}. \tag{21}
+\]
+
+It remains to remove all atomic discontinuities.  Let
+\(G_{n,\theta}\sim N(0,\Sigma_{n,\theta})\), let
+\(\xi\sim N(0,1)\) be independent, and define
+\[
+ F_{n,\theta}^{\circ}(t)
+ =\Pr\{\|G_{n,\theta}\|_{\max}+\tau_n\xi\leq t\}.
+\]
+For each \(t\), the map
+\[
+ x\longmapsto
+ \Phi\!\left(\frac{t-\|x\|_{\max}}{\tau_n}\right)
+\]
+is bounded by one and has Lipschitz constant at most
+\((\sqrt{2\pi}\tau_n)^{-1}\).  Thus (8), (21), and
+\(\chi<\varrho_{\mathrm{AR}}\) imply
+\[
+ \sup_{\theta\in\Theta,t\in\mathbb R}
+ \left|\Pr_\theta\{V_n(\beta)\leq t\}
+ -F_{n,\theta}^{\circ}(t)\right|
+ \leq K n^{\chi-2\varrho_{\mathrm{AR}}}\longrightarrow0, \tag{22}
+\]
+and
+\[
+ \sup_{\theta\in\Theta}\mathbb E_\theta\sup_{t\in\mathbb R}
+ \left|\Pr^*\{V_n^{*(j)}(\beta)\leq t\}
+ -F_{n,\theta}^{\circ}(t)\right|
+ \leq K n^{\chi-\varrho_{\mathrm{AR}}}\longrightarrow0. \tag{23}
+\]
+The ideal distribution is continuous and strictly increasing even when
+\(\Sigma_{n,\theta}\) is singular or zero, because it has the everywhere positive density
+\[
+ t\longmapsto
+ \mathbb E\!\left[\tau_n^{-1}\phi\!\left(
+ \frac{t-\|G_{n,\theta}\|_{\max}}{\tau_n}\right)\right]. \tag{24}
+\]
+
+Condition on the observations and the observed-statistic jitter \(\xi_0\), and put
+\[
+ p_n^*(\beta)=\Pr^*\{V_n^{*(j)}(\beta)\geq V_n(\beta)\}.
+\]
+The multiplier jitter makes the conditional law continuous, so the weak inequality is immaterial.  Equation (23) gives, uniformly in probability,
+\[
+ p_n^*(\beta)
+ =1-F_{n,\theta}^{\circ}(V_n(\beta))+o_{\mathbb P}(1). \tag{25}
+\]
+For any \(u\in(0,1)\), strict continuity of \(F_{n,\theta}^{\circ}\) and its inverse show from (22) that
+\[
+ \left|\Pr_\theta\{F_{n,\theta}^{\circ}(V_n(\beta))\leq u\}-u\right|
+ \leq
+ \sup_t\left|\Pr_\theta\{V_n(\beta)\leq t\}
+                  -F_{n,\theta}^{\circ}(t)\right|.
+\]
+Hence (22) and (25), with an arbitrary vanishing deterministic tolerance, imply
+\[
+ p_n^*(\beta)\Longrightarrow\operatorname{Unif}(0,1)
+ \quad\text{uniformly over }\Theta. \tag{26}
+\]
+
+Conditionally on the observations and \(\xi_0\), the \(m_n\) indicators defining
+\(\widehat p_{n,m_n}(\beta)\) are independent Bernoulli variables with success probability \(p_n^*(\beta)\).  Therefore
+\[
+ \operatorname{Var}\!\left(
+ \widehat p_{n,m_n}(\beta)\mid\text{observations},\xi_0
+ \right)\leq\frac1{4m_n}. \tag{27}
+\]
+Chebyshev's inequality and \(m_n\to\infty\) make the Monte Carlo error uniformly \(o_{\mathbb P}(1)\).  Since \(\alpha_0\in(0,1/2)\) is a continuity point of the limiting uniform law, (26)--(27) give
+\[
+ \sup_{\theta\in\Theta}
+ \left|\Pr_\theta\{\widehat p_{n,m_n}(\beta)>\alpha_0\}
+ -(1-\alpha_0)\right|\longrightarrow0. \tag{28}
+\]
+By definition, the event in (28) is exactly
+\(\{\beta\in\mathcal C_n^{\mathrm{RJ}}\}\).  The probability integrates over the stratified observations, the observed jitter, all Gaussian multipliers, and all Monte Carlo jitters.  This proves the coverage assertion for the entire ambient class, including no-breakout laws and singular, rank-changing, or zero influence covariances.  Every ingredient of the construction is a finite function of the observed strata and the specified auxiliary standard normals, so the set is implementable.  Moreover \(\tau_n\to0\), so the added jitter vanishes on the root-\(n\) projected-moment scale.  The proof contains no diameter or expected-length bound, and therefore establishes no such optimality.
+
+Finally, let a reference statistic have distribution function \(F\) with an atom at \(x_0\).  The deterministic rule accepting strictly below \(x_0\) has probability \(F(x_0-)\), while the deterministic rule accepting at or below \(x_0\) has probability \(F(x_0)\).  Under
+\[
+ F(x_0-)<1-\alpha_0<F(x_0),
+\]
+neither equals \(1-\alpha_0\).  This proves exactly the stated limitation on the two deterministic single-threshold conventions.  It does not imply a broader impossibility: for example, conditional randomization on the equality event with probability
+\[
+ \frac{1-\alpha_0-F(x_0-)}{F(x_0)-F(x_0-)}
+\]
+attains acceptance probability \(1-\alpha_0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Vanishing external Gaussian jitter makes null calibration exact throughout the bounded ambient class without an influence-covariance eigenvalue condition. \textit{Gap.} A direct uniform-integrability argument makes estimated-influence covariance replacement negligible relative to the squared jitter scale. \textit{Consumer.} The result supplies an implementable covariance-adaptive confidence set, but makes no expected-length or diameter optimality claim.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The bounded inference results are fixed-dimensional and use balanced deterministic environment shares, a fixed calibration singular gap, and a \(2R_{\max}+\delta\) source-moment envelope.  Estimator risk and conservative expected-length upper bounds are uniform over each fixed admissible bounded class, but the matching full-observation minimax lower bounds are proved only on one fixed compatible experiment, not on every arbitrary nonempty shell.  The randomized multiplier interval has asymptotically exact unconditional coverage over the ambient bounded class under external Gaussian and Monte Carlo randomization, including singular, rank-changing, and zero influence covariance; no finite-sample exactness, conditional-on-randomization validity, expected-length optimality, or diameter optimality is claimed for \(\mathcal C_n^{\mathrm{RJ}}\).
+
+\section{Honest scope}
+
+The broad positive result is conditional on the newly imposed calibrated low-rank population class \(\Theta_{\mathrm{pop}}\); it is not a theorem for arbitrary simultaneous latent- and treatment-noise shifts.  The global if-and-only-if statement remains confined to the bounded union \(\mathcal D_\rho\), whose no-breakout branch requires an explicitly legal interior source-swapped partner.  Global real-MGF finiteness is not used and is replaced in the bounded class by finite absolute moments of every integer order; Kivva et al.'s local analytic condition is mentioned only because it implies that weaker moment requirement.  A finite scan through \(R_{\max}\) does not certify global no-breakout, although any later population breakout still identifies.  Conservative \(\mathcal C_n\) coverage holds on the bounded ambient class, but its risk and expected-length rate statements are shell-specific.  Matching minimax lower bounds hold only on one fixed compatible experiment.  The Sachs application is a consumer illustration, not evidence that calibration rank, the latent profile plane, or the singular gap holds in those data.
+
+\begin{thebibliography}{99}
+
+  \bibitem{KivvaAkbariSalehkaleybarKiyavash2025} Y. Kivva, S. Akbari, S. Salehkaleybar, and N. Kiyavash (2025), \emph{Causal Effect Identification in Heterogeneous Environments from Higher-Order Moments}, Proceedings of UAI, PMLR 286, arXiv:2506.11756.
+
+  \bibitem{RothenhauslerHeinzePetersMeinshausen2015} D. Rothenhäusler, C. Heinze, J. Peters, and N. Meinshausen (2015), \emph{BACKSHIFT: Learning Causal Cyclic Graphs from Unknown Shift Interventions}, Advances in Neural Information Processing Systems 28, arXiv:1506.02494.
+
+  \bibitem{LongZhuDoHa2023} J. P. Long, H. Zhu, K.-A. Do, and M. J. Ha (2023), \emph{Estimating Causal Effects with Hidden Confounding Using Instrumental Variables and Environments}, Electronic Journal of Statistics 17, 2588--2622.
+
+  \bibitem{Andrews2019SingularityRobust} Donald W. K. Andrews and Patrik Guggenberger (2019), \emph{Identification- and Singularity-Robust Inference for Moment Condition Models}, Quantitative Economics 10, 1703--1746.
+
+  \bibitem{DavisKahan1970} C. Davis and W. M. Kahan (1970), \emph{The Rotation of Eigenvectors by a Perturbation. III}, SIAM Journal on Numerical Analysis 7, 1--46.
+
+  \bibitem{RothenhauslerBuhlmannMeinshausen2019} D. Rothenhäusler, P. Bühlmann, and N. Meinshausen (2019), \emph{Causal Dantzig: Fast Inference in Linear Structural Equation Models with Hidden Variables under Additive Interventions}, Annals of Statistics 47, 1688--1722.
+
+  \bibitem{CaiHuangChenHaoZhang2023} R. Cai, Z. Huang, W. Chen, Z. Hao, and K. Zhang (2023), \emph{Causal Discovery with Latent Confounders Based on Higher-Order Cumulants}, Proceedings of ICML, PMLR 202.
+
+  \bibitem{LeyesCarrenoMeroniSeigal2025} P. Leyes Carreno, C. Meroni, and A. Seigal (2025), \emph{Linear Causal Disentanglement via Higher-Order Cumulants}, La Matematica 4, 885--924.
+
+  \bibitem{TramontanoKivvaSalehkaleybarDrtonKiyavash2025} D. Tramontano, Y. Kivva, S. Salehkaleybar, M. Drton, and N. Kiyavash (2025), \emph{Causal Effect Identification in Latent-Variable LiNGAM from Higher-Order Cumulants}, Proceedings of ICML, arXiv:2506.05202.
+
+  \bibitem{LiKwokGuoLiu2026} X.-C. Li, J. Kwok, J. Guo, and T. Liu (2026), \emph{Causal Effect Identifiability in the Presence of Latent Confounders Without Auxiliary Variables}, Proceedings of ICML.
+
+  \bibitem{WangChanYe2025} R. Wang, K. C. G. Chan, and T. Ye (2025), \emph{GMM with Many Weak Moment Conditions and Nuisance Parameters: General Theory and Applications to Causal Inference}, arXiv:2505.07295.
+
+  \bibitem{MooijMagliacaneClaassen2020} J. M. Mooij, S. Magliacane, and T. Claassen (2020), \emph{Joint Causal Inference from Multiple Contexts}, Journal of Machine Learning Research 21, 1--108.
+
+  \bibitem{SachsPerezPeerLauffenburgerNolan2005} K. Sachs, O. Perez, D. Pe'er, D. A. Lauffenburger, and G. P. Nolan (2005), \emph{Causal Protein-Signaling Networks Derived from Multiparameter Single-Cell Data}, Science 308, 523--529.
+
+\end{thebibliography}
+
+\end{document}

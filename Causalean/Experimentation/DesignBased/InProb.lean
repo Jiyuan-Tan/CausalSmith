@@ -20,10 +20,13 @@ The substrate provides:
   one).
 -/
 
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Causalean.Experimentation.DesignBased.Risk
-import Mathlib.Topology.MetricSpace.Pseudo.Defs
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import Causalean.Experimentation.DesignBased.Risk
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
+public import Causalean.Stat.Limit.StochasticOrder
+public import Mathlib.Analysis.SpecificLimits.Basic
+public import Mathlib.Topology.MetricSpace.Pseudo.Defs
 
 /-! # Convergence in probability for finite designs
 
@@ -37,6 +40,8 @@ inequality. The closure result `TendstoInProb.sub` handles differences, and
 `tendstoInProb_div_one` is the Hájek/Slutsky ratio step for denominators converging in probability
 to one.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter
@@ -56,6 +61,20 @@ $\varepsilon$ tends to zero as the sequence index tends to infinity. -/
 def TendstoInProb (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) (c : ℕ → ℝ) : Prop :=
   ∀ ε : ℝ, 0 < ε →
     Tendsto (fun m => (D m).Pr (fun z => ε ≤ |X m z - c m|)) atTop (𝓝 0)
+
+/-- For [finite assignment spaces](hyp:Ω), [randomization designs](hyp:D), [row
+statistics](hyp:X), and [row targets](hyp:c), [finite-design convergence in probability is
+equivalent to convergence in probability under the induced row measures](goal). -/
+theorem tendstoInProb_iff_tendstoInProbability
+    (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) (c : ℕ → ℝ) :
+    TendstoInProb D X c ↔
+      @Causalean.Stat.Modes.TendstoInProbability ℕ Ω (fun _ => ⊤) ℝ inferInstance
+        (fun m => @FiniteDesign.toMeasure (Ω m) (by infer_instance) ⊤ (D m))
+        X atTop (fun m _ => c m) := by
+  letI : ∀ m, MeasurableSpace (Ω m) := fun _ => ⊤
+  rw [Causalean.Stat.Modes.tendstoInProbability_iff_measureReal_norm]
+  simp only [Real.norm_eq_abs, FiniteDesign.toMeasure_real_setOf]
+  rfl
 
 /-- Under [a sequence of finite-design laws](hyp:D), if [a deterministic real sequence](hyp:a)
 [converges to a constant](hyp:c,ha), then [the corresponding constant-on-assignment statistics
@@ -311,6 +330,45 @@ convergence in probability. -/
 def BoundedInProb (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) : Prop :=
   ∀ η : ℝ, 0 < η → ∃ M : ℝ, ∀ᶠ m in atTop, (D m).Pr (fun z => M ≤ |X m z|) ≤ η
 
+/-- For [finite assignment spaces](hyp:Ω), [randomization designs](hyp:D), and [row
+statistics](hyp:X), [finite-design boundedness in probability is equivalent to the shared
+measure-theoretic stochastic-order notion at constant rate one](goal). -/
+theorem boundedInProb_iff_boundedInProbability
+    (D : ∀ m, FiniteDesign (Ω m)) (X : ∀ m, Ω m → ℝ) :
+    BoundedInProb D X ↔
+      @Causalean.Stat.Modes.BoundedInProbability ℕ Ω (fun _ => ⊤) ℝ inferInstance
+        (fun m => @FiniteDesign.toMeasure (Ω m) (by infer_instance) ⊤ (D m))
+        X atTop (fun _ => 1) := by
+  letI : ∀ m, MeasurableSpace (Ω m) := fun _ => ⊤
+  constructor
+  · intro h δ hδ
+    by_cases hδtop : δ = ⊤
+    · exact ⟨1, one_pos, by simp [hδtop]⟩
+    have hδreal : 0 < δ.toReal := ENNReal.toReal_pos hδ.ne' hδtop
+    obtain ⟨M, hM⟩ := h δ.toReal hδreal
+    let M' : ℝ := |M| + 1
+    have hM' : 0 < M' := by simp [M']; positivity
+    refine ⟨M', hM', ?_⟩
+    filter_upwards [hM] with m hm
+    apply (ENNReal.toReal_le_toReal (MeasureTheory.measure_ne_top _ _) hδtop).1
+    simp only [mul_one, Real.norm_eq_abs]
+    change (D m).toMeasure.real {z | M' ≤ |X m z|} ≤ δ.toReal
+    rw [(D m).toMeasure_real_setOf]
+    refine le_trans ((D m).Pr_mono (fun z => M' ≤ |X m z|) (fun z => M ≤ |X m z|) ?_) hm
+    intro z hz
+    have hMM' : M ≤ M' := by dsimp [M']; linarith [le_abs_self M]
+    exact hMM'.trans hz
+  · intro h η hη
+    obtain ⟨M, _hMpos, hM⟩ := h (ENNReal.ofReal η) (ENNReal.ofReal_pos.mpr hη)
+    refine ⟨M, ?_⟩
+    filter_upwards [hM] with m hm
+    have hto :=
+      (ENNReal.toReal_le_toReal (MeasureTheory.measure_ne_top _ _) ENNReal.ofReal_ne_top).2 hm
+    simp only [mul_one, Real.norm_eq_abs] at hto
+    change (D m).toMeasure.real {z | M ≤ |X m z|} ≤ (ENNReal.ofReal η).toReal at hto
+    rw [(D m).toMeasure_real_setOf, ENNReal.toReal_ofReal hη.le] at hto
+    exact hto
+
 /-- An eventual variance bound together with an eventual mean bound makes a sequence bounded in
 probability: if the design variances `Var(X m)` are eventually at most `V` and the means `E(X m)`
 eventually lie within `c` of zero, then `X` is uniformly tight. -/
@@ -367,10 +425,10 @@ theorem TendstoInProb.const_mul {D : ∀ m, FiniteDesign (Ω m)} {X : ∀ m, Ω 
   refine squeeze_zero (fun m => (D m).Pr_nonneg _) hsub ?_
   simpa using h (ε / (|c| + 1)) hεc
 
-/-- **Product-tightness (`o_p × O_p = o_p`).** If `U m` converges to zero in probability and `V m`
-is uniformly tight (bounded in probability), then the product `U m · V m` converges to zero in
-probability.  This is the engine that turns a delta-method remainder — a vanishing factor times a
-bounded factor — into an `o_p(1)` term. -/
+/-- If [one sequence converges to zero in probability](hyp:hU) and [a second sequence is bounded
+in probability](hyp:hV), then [their product converges to zero in probability](goal).  This is the
+product-tightness principle that turns a vanishing factor times a bounded factor into a vanishing
+remainder. -/
 theorem TendstoInProb.mul_boundedInProb {D : ∀ m, FiniteDesign (Ω m)} {U V : ∀ m, Ω m → ℝ}
     (hU : TendstoInProb D U (fun _ => 0)) (hV : BoundedInProb D V) :
     TendstoInProb D (fun m z => U m z * V m z) (fun _ => 0) := by

@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic
 
 set_option linter.style.longLine false
 set_option linter.unusedVariables false
 
 /-! Nonassertive carriers for the unresolved sharp-constant route and question. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

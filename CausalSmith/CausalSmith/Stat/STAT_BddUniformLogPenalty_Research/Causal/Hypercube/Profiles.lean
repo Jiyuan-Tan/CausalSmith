@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.ScoreLaw
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.ScoreLaw
 
 /-!
 # Bounded potential-outcome profiles for the causal hard square
@@ -7,6 +8,8 @@ This file specializes the existing smooth packing regression to the wider
 fixed square.  The smaller affine slope leaves room for one positive local
 bump while keeping every Bernoulli parameter in the middle half.
 -/
+
+@[expose] public section
 
 open Set
 

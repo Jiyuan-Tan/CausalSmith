@@ -1,5 +1,6 @@
-import Causalean.Mathlib.Analysis.SingularValueWeyl
-import Mathlib.Analysis.InnerProductSpace.ProdL2
+module
+public import Causalean.Mathlib.Analysis.SingularValueWeyl
+public import Mathlib.Analysis.InnerProductSpace.ProdL2
 
 /-!
 # Rectangular signal singular values
@@ -9,6 +10,8 @@ products, orthonormal compression to an adjoint range, and vertical stacking. Th
 works on the rank-sized signal subspace rather than assuming an ambient adjoint is injective;
 all results retain Mathlib's zero-extended singular-value indexing.
 -/
+
+@[expose] public section
 
 open Module
 open scoped InnerProductSpace

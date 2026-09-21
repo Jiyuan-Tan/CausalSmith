@@ -6,6 +6,8 @@ use `lean_goal` and `lean_diagnostic_messages` as the default edit→check loop.
 Do not replace it with repeated `lake env lean`/`lake build` probes. If an MCP call actually
 fails, record the exact failure and fall back to the shell compiler.
 
+{{HEADER_CONTRACT}}
+
 BUILD GREEN BEFORE YOU STOP. After the LSP edit loop, run one actual `lake build <edited modules>` as
 your LAST step and read its output; a proof that does not compile is not done, and a self-report on an
 unverified build is a failure. Confirm 0 errors and no `sorry`/`admit` you did not deliberately leave as a
@@ -125,8 +127,9 @@ Target each Lean file at ≤600 lines; split before ~900 only for an independent
 - A self-contained helper cluster that would push the file past ~900 lines goes in its own
   `Helpers/<Topic>.lean` (or `T<id>_<Topic>.lean`) RIGHT THEN, before proving it.
 - An already-oversized file is split BEFORE adding to it: relocate decls byte-for-byte into topic files
-  in a dependency chain, de-privatize only what now crosses a boundary, preserve every `-- @node:`
-  anchor and declaration name, keep a thin barrel re-importing the parts so importers are unchanged.
+  in a dependency chain, preserve every `-- @node:` anchor and declaration name, and follow the HEADER
+  CONTRACT above: helpers stay bare; nothing is private in module files unless it is truly file-local
+  and never needed by a proof downstream; the thin barrel is imports-only.
 - Group by function (definitions / proof-step family / assembled theorem). Split only when it genuinely
   helps; do not churn stable files. Verify the build still passes (0 NEW errors, no dropped/renamed
   decls) after any split.

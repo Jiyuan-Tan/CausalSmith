@@ -1,5 +1,6 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
-import Mathlib.Data.Matrix.Basic
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
+public import Mathlib.Data.Matrix.Basic
 
 /-!
 # Exact-mass partial transport
@@ -7,6 +8,8 @@ import Mathlib.Data.Matrix.Basic
 The finite capacity polytopes, strict-benefit objective, and total endpoint-flow
 selectors used by the sharpness and complexity statements.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Matrix
 open Set MeasureTheory Causalean PO
@@ -111,13 +114,13 @@ noncomputable def positiveSupportCard (γ : Coupling K) : ℕ :=
 /-- One positive sparse allocation, represented by its row, column, and mass. -/
 abbrev Allocation (K : ℕ) := Fin K × Fin K × ℝ
 
-private def indexedMasses (f : Fin K → ℝ) : List (Fin K × ℝ) :=
+def indexedMasses (f : Fin K → ℝ) : List (Fin K × ℝ) :=
   (List.finRange K).map fun i => (i, f i)
 
 /-- A sparse nested-graph pass returns both its emitted allocations and the
 unconsumed row and column capacities. Carrying the residuals through the pass
 avoids a later quadratic family of residual folds. -/
-private structure SparsePassResult (K : ℕ) where
+structure SparsePassResult (K : ℕ) where
   allocations : List (Allocation K)
   rowResiduals : List (Fin K × ℝ)
   columnResiduals : List (Fin K × ℝ)
@@ -126,7 +129,7 @@ private structure SparsePassResult (K : ℕ) where
 remaining row is matched to the largest column when eligible. If `j ≤ i`, that
 row is retained as a residual and discarded from the benefit scan, since no
 later (smaller) column can use it. -/
-private def maxBenefitPass :
+def maxBenefitPass :
     List (Fin K × ℝ) → List (Fin K × ℝ) → SparsePassResult K
   | [], columns => ⟨[], [], columns⟩
   | rows, [] => ⟨[], rows, []⟩
@@ -146,7 +149,7 @@ decreasing_by all_goals simp_wf
 
 /-- Ascending two-pointer pass on the nested nonbenefit graph `j ≤ i`.  A
 row skipped because `i < j` is retained for the complete residual pass. -/
-private def maxNonBenefitPass :
+def maxNonBenefitPass :
     List (Fin K × ℝ) → List (Fin K × ℝ) → SparsePassResult K
   | [], columns => ⟨[], [], columns⟩
   | rows, [] => ⟨[], rows, []⟩
@@ -171,7 +174,7 @@ private def maxNonBenefitSparse (rows columns : List (Fin K × ℝ)) : List (All
   (maxNonBenefitPass rows columns).allocations
 
 /-- Ordinary two-pointer transport on the residual complete bipartite graph. -/
-private def completeSparse :
+def completeSparse :
     List (Fin K × ℝ) → List (Fin K × ℝ) → List (Allocation K)
   | [], _ => []
   | _, [] => []
@@ -183,10 +186,10 @@ private def completeSparse :
 termination_by rows columns => rows.length + columns.length
 decreasing_by all_goals simp_wf
 
-private def completePrimary (primary : SparsePassResult K) : List (Allocation K) :=
+def completePrimary (primary : SparsePassResult K) : List (Allocation K) :=
   primary.allocations ++ completeSparse primary.rowResiduals primary.columnResiduals
 
-private def sparseMatrix (a : List (Allocation K)) : Coupling K :=
+def sparseMatrix (a : List (Allocation K)) : Coupling K :=
   fun i j => a.foldl
     (fun total e => if e.1 = i ∧ e.2.1 = j then total + e.2.2 else total) 0
 
@@ -2330,13 +2333,13 @@ structure Costed (α : Type*) where
   value : α
   operations : ℕ
 
-private def prefixInclusive (values : List ℝ) : List ℝ :=
+def prefixInclusive (values : List ℝ) : List ℝ :=
   (values.scanl (· + ·) 0).drop 1
 
-private def prefixStrict (values : List ℝ) : List ℝ :=
+def prefixStrict (values : List ℝ) : List ℝ :=
   (values.scanl (· + ·) 0).take values.length
 
-private def strictUpperTail (values : List ℝ) : List ℝ :=
+def strictUpperTail (values : List ℝ) : List ℝ :=
   ((values.reverse.scanl (· + ·) 0).take values.length).reverse
 
 private theorem foldl_add_eq_add_sum (values : List ℝ) (a : ℝ) :
@@ -2476,7 +2479,7 @@ private theorem strictUpperTail_length (values : List ℝ) :
   simp [strictUpperTail]
 
 /-- All lower candidates from a single pair of prefix scans. -/
-private def lowerThresholdValues (c : Capacities 𝒳 K) (x : 𝒳) : List ℝ :=
+def lowerThresholdValues (c : Capacities 𝒳 K) (x : 𝒳) : List ℝ :=
   let lower := (List.finRange K).map (c.lower x)
   let upper := (List.finRange K).map (c.upper x)
   let gapPart := min (upper.sum - lower.sum) 0
@@ -2484,7 +2487,7 @@ private def lowerThresholdValues (c : Capacities 𝒳 K) (x : 𝒳) : List ℝ :
     (prefixInclusive lower) (prefixInclusive upper)
 
 /-- All upper candidates from one prefix and one reverse-prefix scan. -/
-private def upperThresholdValues (c : Capacities 𝒳 K) (x : 𝒳) : List ℝ :=
+def upperThresholdValues (c : Capacities 𝒳 K) (x : 𝒳) : List ℝ :=
   let lower := (List.finRange K).map (c.lower x)
   let upper := (List.finRange K).map (c.upper x)
   let mass := min lower.sum upper.sum
@@ -2656,7 +2659,7 @@ theorem costedThresholdCuts_value (c : Capacities 𝒳 K) (x : 𝒳) :
   rw [foldl_max_finRange_eq_sup', foldl_min_finRange_eq_inf']
   rfl
 
-private def maxBenefitSparseOperations :
+def maxBenefitSparseOperations :
     List (Fin K × ℝ) → List (Fin K × ℝ) → ℕ
   | [], _ => 1
   | _, [] => 1
@@ -2668,7 +2671,7 @@ private def maxBenefitSparseOperations :
 termination_by rows columns => rows.length + columns.length
 decreasing_by all_goals simp_wf
 
-private def maxNonBenefitSparseOperations :
+def maxNonBenefitSparseOperations :
     List (Fin K × ℝ) → List (Fin K × ℝ) → ℕ
   | [], _ => 1
   | _, [] => 1
@@ -2680,7 +2683,7 @@ private def maxNonBenefitSparseOperations :
 termination_by rows columns => rows.length + columns.length
 decreasing_by all_goals simp_wf
 
-private def completeSparseOperations :
+def completeSparseOperations :
     List (Fin K × ℝ) → List (Fin K × ℝ) → ℕ
   | [], _ => 1
   | _, [] => 1

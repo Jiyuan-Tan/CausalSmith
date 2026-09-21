@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Algebra for the equal-smoothness private CATE corollary
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RateAlgebra
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RateAlgebra
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

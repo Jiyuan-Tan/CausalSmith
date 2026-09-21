@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.TwoPointLower
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Parametric
-import Mathlib.Analysis.Complex.ExponentialBounds
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.TwoPointLower
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Parametric
+public import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-! A regular parametric submodel for the bounded-alphabet lower bound. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

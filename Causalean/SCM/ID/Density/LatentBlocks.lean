@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.Kernel
-import Causalean.SCM.Model.CounterfactualLemmas
-import Causalean.Graph.CComponents
+module
+public import Causalean.SCM.Model.Kernel
+public import Causalean.SCM.Model.CounterfactualLemmas
+public import Causalean.Graph.CComponents
 
 /-! # Latent-block factorization and local consistency
 
@@ -16,6 +17,13 @@ across c-components.  Local consistency says that an observed assignment agrees
 with the structural function at a node when parents are read from fixed values,
 the observed assignment, and a latent realization.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 
@@ -206,6 +214,9 @@ lemma observedAt_observedIndex_subtype (M : Causalean.SCM N Ω)
     M.observedAt (M.observedIndex ⟨v, hv⟩) = ⟨v, hv⟩ :=
   Subtype.ext (M.observedAt_observedIndex ⟨v, hv⟩)
 
+/-- For [a structural causal model and observed assignment](hyp:M,x), [an observed
+parent](hyp:hobs) that [precedes the current node in topological order](hyp:hlt)
+[is read by the previous-value function as its value in the assignment](goal). -/
 lemma prevFromObservedValues_apply_observed
     (M : Causalean.SCM N Ω) (x : ValuesOn M.observed (swigΩ Ω))
     {n : ℕ} {hn : n < M.observed.card}
@@ -227,6 +238,10 @@ lemma prevFromObservedValues_apply_observed
   subst hsub
   rfl
 
+/-- Given [a finite structural causal model, fixed, observed, and latent assignments, an observed-node
+index, and one of that node's parents](hyp:N,Ω,M,s,x,ℓ,j,w), [the parent map built from preceding
+observed values returns the latent value for an unobserved parent, the fixed value for a fixed parent,
+and the observed value otherwise](goal). -/
 lemma parentMap_prevFromObservedValues_eq_dispatch
     (M : Causalean.SCM N Ω) (s : M.FixedValues)
     (x : ValuesOn M.observed (swigΩ Ω)) (ℓ : M.LatentValues)
@@ -379,6 +394,9 @@ private lemma localConsistent_iff_structFun_dispatch_at_observedAt
     exact parentMap_prevFromObservedValues_eq_dispatch M s x ℓ j w
   rw [hfun]
 
+/-- Given [a finite structural causal model, fixed, observed, and latent assignments, and an observed
+node](hyp:N,Ω,M,s,x,v,hv,ℓ), [local consistency at that node holds exactly when its structural
+function, supplied latent, fixed, or observed parent values as appropriate, equals its observed value](goal). -/
 lemma localConsistent_iff_structFun_dispatch
     (M : Causalean.SCM N Ω) (s : M.FixedValues)
     (x : ValuesOn M.observed (swigΩ Ω)) (v : SWIGNode N)

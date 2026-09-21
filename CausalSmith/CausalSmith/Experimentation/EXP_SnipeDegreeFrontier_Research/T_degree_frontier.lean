@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier
 
 /-!
 # Coefficient-mass degree frontier
@@ -7,6 +8,8 @@ import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_ou
 This specializes the simultaneous two-class theorem and replaces block energy
 by its exposed-order binomial comparison.
 -/
+
+public section
 
 namespace CausalSmith.Experimentation.SnipeDegreeFrontier
 

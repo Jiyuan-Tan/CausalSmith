@@ -6,11 +6,14 @@ Authors: Jiyuan Tan
 # Finite height-one reduction for the exceptional locus
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ArrowPolynomialGeometry
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisPrincipalEquations
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisImageGeometry
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisReversal
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PrincipalHeightOne
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ArrowPolynomialGeometry
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisPrincipalEquations
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisImageGeometry
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisReversal
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PrincipalHeightOne
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

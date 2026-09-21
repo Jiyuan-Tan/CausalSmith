@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
-import Mathlib.Probability.Kernel.Composition.IntegralCompProd
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
+public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
 
 set_option linter.style.longLine false
 
 /-! # Partial-history weight algebra and one-step integral peeling -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

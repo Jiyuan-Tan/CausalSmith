@@ -11,8 +11,11 @@ event where the denominator ratio is at least `1/2` the last factor is bounded b
 capped product bound consumed by the tightness assembly (`THeteroClt.lean`).
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.NumeratorMoment
-import Causalean.Experimentation.DesignBased.RatioLinearization
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.NumeratorMoment
+public import Causalean.Experimentation.DesignBased.RatioLinearization
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.unusedSimpArgs false

@@ -20,7 +20,8 @@ This statement is purely scalar — it depends only on `Real.log` and arithmetic
 — and is a candidate for upstream contribution to Mathlib.
 -/
 
-import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+module
+public import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
 
 /-! # Bernoulli KL Band Bound
 
@@ -28,6 +29,8 @@ This file proves a scalar upper bound on the Kullback--Leibler divergence betwee
 Bernoulli laws whose success probabilities both lie in the interval $[1/4,3/4]$.
 It supplies a Mathlib-adjacent analytic estimate used by finite-sample information
 arguments elsewhere in the library. -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Analysis
 

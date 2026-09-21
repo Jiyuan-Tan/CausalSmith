@@ -3,21 +3,23 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.BackdoorCriterion
-import Causalean.SCM.ID.Toolkit.ObsChainRule
-import Causalean.SCM.ID.Toolkit.Derivation
-import Causalean.SCM.Do.Rule2Kernel.Helpers
-import Causalean.SCM.Do.Rule2AE
-import Causalean.Mathlib.Probability.Kernel.CompProdAssembly
-import Mathlib.Probability.Kernel.CompProdEqIff
+
+module
+public import Causalean.SCM.ID.BackdoorCriterion
+public import Causalean.SCM.ID.Toolkit.ObsChainRule
+public import Causalean.SCM.ID.Toolkit.Derivation
+public import Causalean.SCM.Do.Rule2Kernel.Helpers
+public import Causalean.SCM.Do.Rule2AE
+public import Causalean.Mathlib.Probability.Kernel.CompProdAssembly
+public import Mathlib.Probability.Kernel.CompProdEqIff
 
 /-!
 # Backdoor identification, a.e. in the treatment value
 
-The kernel-equality `backdoor_completeness` is pointwise in the post-intervention slice, hence
-pointwise in the treatment value `t`.  For non-atomic (continuous) treatment that statement reads
-the conditional `obsCondKernel` on the measure-zero `{X = t}` slice, where Mathlib's disintegration
-representative is not pinned by the observational law — so the pointwise form is too strong.
+The kernel equality proved by `backdoor_completeness_ae` is almost everywhere in the treatment
+value. For non-atomic (continuous) treatment, a pointwise version would read the conditional
+`obsCondKernel` on the measure-zero `{X = t}` slice, where Mathlib's disintegration representative
+is not pinned by the observational law, so such a pointwise form would be too strong.
 
 This file states the **honest, regime-uniform** version: the identity holds for `νX`-almost-every
 treatment value `t`, where `νX` is the observational treatment marginal, under a standard
@@ -39,6 +41,13 @@ a.e. statement follows by `ProbabilityTheory.Kernel.ae_eq_of_compProd_eq`.
 * `SCM.backdoor_completeness_ae` — almost-every treatment-value completeness.
 * `SCM.backdoor_identifiable_ae` — cross-SCM almost-every identifiability.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -213,10 +222,15 @@ theorem doKernelY_marginal_const (M : Causalean.SCM N Ω) (X : Finset N)
 -- § 3. Completeness, a.e. in treatment (compProd primary + Form A corollary)
 -- ============================================================
 
-/-- **Joint (compProd) completeness — primary form.**
-
-    `νX ⊗ₘ doKernelY = νX ⊗ₘ adjustmentKernelY` at base `s₀`, under the backdoor criterion,
-    joint overlap (`Rule2JointOverlap`) and joint positivity (`BackdoorPositivityAE`).  This is the
+/-- For [a finite node population with measurable, standard-Borel, nonempty value
+spaces](hyp:N,Ω), [a structural causal model](hyp:M), [a treatment set](hyp:X)
+[whose random copies are observed and whose fixed copies are not already fixed](hyp:hObs,hFix),
+[observed outcome and adjustment sets](hyp:Y,Z,hY,hZ), [a backdoor
+criterion, including its disjointness conditions](hyp:h_bd),
+[a fixed-node assignment](hyp:s0), and [product positivity](hyp:_hPositivity), [the
+treatment-marginal joint laws of the interventional and adjustment kernels are equal](goal).
+    **Joint (compProd) completeness — primary form.**
+    `νX ⊗ₘ doKernelY = νX ⊗ₘ adjustmentKernelY` at base `s₀`.  This is the
     object that is well-posed for continuous treatment: it never reads `obsCondKernel` on a
     `μXZ`-null treatment slice. -/
 theorem backdoor_completeness_ae_compProd
@@ -225,13 +239,8 @@ theorem backdoor_completeness_ae_compProd
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
     (Y Z : Finset (SWIGNode N))
     (hY : Y ⊆ M.observed) (hZ : Z ⊆ M.observed)
-    (_h_bd : M.toSWIGGraph.backdoorCriterion X hObs hFix Y Z)
-    (hDisj_YXr : Disjoint Y (X.image SWIGNode.random))
-    (hDisj_XrZ : Disjoint (X.image SWIGNode.random) Z)
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z)
     (s0 : M.FixedValues)
-    (hOverlap : ∀ s : (M.fixSet X hObs hFix).FixedValues,
-      Causalean.SCM.ID.Rule2JointOverlap M X hObs hFix Z
-        (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ) s)
     (_hPositivity : M.BackdoorPositivityAE X Z hZ
       (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ) s0) :
     (M.treatmentMarginal X (Finset.subset_union_left.trans
@@ -264,7 +273,7 @@ theorem backdoor_completeness_ae_compProd
           ∘ₘ μZ := by
     intro t
     rw [doKernelY_disintegrate M X hObs hFix Y Z hY hZ s0 t,
-      doKernelY_marginal_const M X hObs hFix Z hZ _h_bd.2.2.2.1 s0 t]
+      doKernelY_marginal_const M X hObs hFix Z hZ h_bd.2.2.2.1 s0 t]
   -- ============================================================
   -- Reduction 2 (unfold backdoorAdjustment): the adjustment-side kernel at t.
   -- adjustmentKernelY t = (sectR condPost (sT t)) ∘ₘ μZ
@@ -329,8 +338,11 @@ theorem backdoor_completeness_ae_compProd
         ≪ ((M.obsKernel s0).map (valuesProjection hXrZ)) := _hPositivity
   -- Rule 2 straight from the backdoor criterion: the applicator derives the
   -- d-separation + non-descendance premises internally.
-  have hR2 := SCM.backdoor_rule2_ae M X hObs hFix Y Z hY hZ hXr hXrZ
-    hDisj_YXr hDisj_XrZ _h_bd s0 hOverlap hPos_ae
+  have hR2 := SCM.obsCondKernel_fixSet_eq_ae_witness M X hObs hFix Y Z hY hZ hXr hXrZ
+    (backdoorCriterion_dSep_fixSet M X hObs hFix Y Z hY hXr h_bd)
+    (backdoorCriterion_W_nonDesc M X hObs hFix Y Z h_bd)
+    (backdoorCriterion_W_nonDescM1 M X hObs hFix Y Z h_bd)
+    s0 hPos_ae
   haveI hdoKfin : ProbabilityTheory.IsFiniteKernel
       (M.doKernelY X hObs hFix Y hY s0) := by
     rw [SCM.doKernelY]; infer_instance
@@ -377,13 +389,13 @@ theorem backdoor_completeness_ae_compProd
     (M.adjustmentKernelY X hObs hFix Y Z hY hZ s0)
     fL fR hL hR hae
 
-/-- **Backdoor completeness, a.e. in the treatment value.** Fix a causal model `M` and a
-    treatment set `X` [whose random copy is observed and whose fixed copy is not already held
-    fixed in `M`](hyp:hObs,hFix), and let `Y`, `Z` be [observed outcome and adjustment sets,
-    neither of which overlaps the treatment's random nodes](hyp:hY,hZ,hDisj_YXr,hDisj_XrZ),
+/-- **Backdoor completeness, a.e. in the treatment value.** For [a finite node population
+    with measurable, standard-Borel, nonempty value spaces](hyp:N,Ω), fix [a causal
+    model](hyp:M) and [a treatment set](hyp:X) [whose random copy is observed and whose fixed
+    copy is not already held fixed in `M`](hyp:hObs,hFix), and let [outcome and adjustment
+    sets](hyp:Y,Z) be [observed](hyp:hY,hZ),
     [satisfying the backdoor criterion relative to `(X,Y)`](hyp:h_bd). Given a base
-    configuration `s0` at which [overlap holds along every post-intervention
-    slice](hyp:hOverlap) and [the product of the observational treatment and adjustment-set
+    [configuration](hyp:s0), and [the product of the observational treatment and adjustment-set
     marginals is absolutely continuous with respect to their joint observational
     law](hyp:hPositivity), then [for almost every treatment value `t` under the observational
     treatment marginal, the post-intervention outcome distribution at `t` equals the
@@ -397,13 +409,8 @@ theorem backdoor_completeness_ae
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
     (Y Z : Finset (SWIGNode N))
     (hY : Y ⊆ M.observed) (hZ : Z ⊆ M.observed)
-    (h_bd : M.toSWIGGraph.backdoorCriterion X hObs hFix Y Z)
-    (hDisj_YXr : Disjoint Y (X.image SWIGNode.random))
-    (hDisj_XrZ : Disjoint (X.image SWIGNode.random) Z)
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z)
     (s0 : M.FixedValues)
-    (hOverlap : ∀ s : (M.fixSet X hObs hFix).FixedValues,
-      Causalean.SCM.ID.Rule2JointOverlap M X hObs hFix Z
-        (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ) s)
     (hPositivity : M.BackdoorPositivityAE X Z hZ
       (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ) s0) :
     ∀ᵐ t ∂(M.treatmentMarginal X (Finset.subset_union_left.trans
@@ -419,17 +426,17 @@ theorem backdoor_completeness_ae
     exact (M.obsKernel s0).isFiniteMeasure_map _
   exact ProbabilityTheory.Kernel.ae_eq_of_compProd_eq
     (M.backdoor_completeness_ae_compProd X hObs hFix Y Z hY hZ h_bd
-      hDisj_YXr hDisj_XrZ s0 hOverlap hPositivity)
+      s0 hPositivity)
 
-/-- **Backdoor identifiability, a.e. in the treatment value (cross-SCM corollary).** Fix two causal
-    models `M₁`, `M₂` that [share the same SWIG graph](hyp:h_swig) and [the same observational
+/-- **Backdoor identifiability, a.e. in the treatment value (cross-SCM corollary).** For
+    [a finite node population with measurable, standard-Borel, nonempty value spaces](hyp:N,Ω),
+    fix [two causal models](hyp:M₁,M₂) that [share the same SWIG graph](hyp:h_swig) and [the same observational
     kernel](hyp:h_obs), with base configurations that [agree under this shared
-    identification](hyp:h_s0). Fix a treatment set `X` [valid in both
-    models](hyp:hObs₁,hFix₁,hObs₂,hFix₂) and disjoint outcome/adjustment sets `Y`, `Z` that are
-    [observed in both models and disjoint from the treatment's random
-    nodes](hyp:hY₁,hZ₁,hY₂,hZ₂,hDisj_YXr,hDisj_XrZ), such that `Z` [satisfies the backdoor criterion
-    for `(X,Y)` in each model separately](hyp:h_bd₁,h_bd₂), with [overlap holding along every
-    post-intervention slice in each model](hyp:hOverlap₁,hOverlap₂) and [product positivity of the
+    identification](hyp:h_s0). Fix [a treatment set](hyp:X) [valid in both
+    models](hyp:hObs₁,hFix₁,hObs₂,hFix₂) and [outcome/adjustment sets](hyp:Y,Z) that are
+    [observed in both models](hyp:hY₁,hZ₁,hY₂,hZ₂), such that `Z` [satisfies the backdoor criterion
+    for `(X,Y)` in each model separately](hyp:h_bd₁,h_bd₂), at [base configurations](hyp:s0₁,s0₂),
+    with [product positivity of the
     observational treatment and adjustment-set marginals holding in each
     model](hyp:hPositivity₁,hPositivity₂). Then [for almost every treatment value `t` under the
     shared observational treatment marginal, the post-intervention outcome distribution computed in
@@ -457,17 +464,9 @@ theorem backdoor_identifiable_ae
     (hFix₂ : ∀ D ∈ X, SWIGNode.fixed D ∉ M₂.fixed)
     (hY₁ : Y ⊆ M₁.observed) (hZ₁ : Z ⊆ M₁.observed)
     (hY₂ : Y ⊆ M₂.observed) (hZ₂ : Z ⊆ M₂.observed)
-    (h_bd₁ : M₁.toSWIGGraph.backdoorCriterion X hObs₁ hFix₁ Y Z)
-    (h_bd₂ : M₂.toSWIGGraph.backdoorCriterion X hObs₂ hFix₂ Y Z)
-    (hDisj_YXr : Disjoint Y (X.image SWIGNode.random))
-    (hDisj_XrZ : Disjoint (X.image SWIGNode.random) Z)
+    (h_bd₁ : Causalean.SWIGGraph.backdoorCriterion M₁.toSWIGGraph X hObs₁ hFix₁ Y Z)
+    (h_bd₂ : Causalean.SWIGGraph.backdoorCriterion M₂.toSWIGGraph X hObs₂ hFix₂ Y Z)
     (s0₁ : M₁.FixedValues) (s0₂ : M₂.FixedValues)
-    (hOverlap₁ : ∀ s : (M₁.fixSet X hObs₁ hFix₁).FixedValues,
-      Causalean.SCM.ID.Rule2JointOverlap M₁ X hObs₁ hFix₁ Z
-        (Finset.union_subset (Finset.image_subset_iff.mpr hObs₁) hZ₁) s)
-    (hOverlap₂ : ∀ s : (M₂.fixSet X hObs₂ hFix₂).FixedValues,
-      Causalean.SCM.ID.Rule2JointOverlap M₂ X hObs₂ hFix₂ Z
-        (Finset.union_subset (Finset.image_subset_iff.mpr hObs₂) hZ₂) s)
     (hPositivity₁ : M₁.BackdoorPositivityAE X Z hZ₁
       (Finset.union_subset (Finset.image_subset_iff.mpr hObs₁) hZ₁) s0₁)
     (hPositivity₂ : M₂.BackdoorPositivityAE X Z hZ₂
@@ -502,13 +501,13 @@ theorem backdoor_identifiable_ae
   have hc1 := backdoor_completeness_ae
     ⟨⟨dag₁, fixed₁, observed₁, unobserved₁, fio₁, oi₁, od₁, oou₁,
        foi₁, fou₁, aic₁, dc₁, foff₁, aco₁⟩, eT₁, iota₁, sf₁, mf₁, lD₁, pL₁⟩
-    X hObs₁ hFix₁ Y Z hY₁ hZ₁ h_bd₁ hDisj_YXr hDisj_XrZ
-    s0₁ hOverlap₁ hPositivity₁
+    X hObs₁ hFix₁ Y Z hY₁ hZ₁ h_bd₁
+    s0₁ hPositivity₁
   have hc2 := backdoor_completeness_ae
     ⟨⟨dag₁, fixed₁, observed₁, unobserved₁, fio₁, oi₁, od₁, oou₁,
        foi₁, fou₁, aic₁, dc₁, foff₁, aco₁⟩, eT₂, iota₂, sf₂, mf₂, lD₂, pL₂⟩
-    X hObs₂ hFix₂ Y Z hY₂ hZ₂ h_bd₂ hDisj_YXr hDisj_XrZ
-    s0₁ hOverlap₂ hPositivity₂
+    X hObs₂ hFix₂ Y Z hY₂ hZ₂ h_bd₂
+    s0₁ hPositivity₂
   -- Step 2: cross-SCM invariance of the adjustment kernel.
   have hinv :
       (⟨⟨dag₁, fixed₁, observed₁, unobserved₁, fio₁, oi₁, od₁, oou₁,

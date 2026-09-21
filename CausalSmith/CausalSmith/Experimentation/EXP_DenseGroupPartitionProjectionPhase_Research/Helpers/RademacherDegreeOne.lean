@@ -1,7 +1,8 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherPriors
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherMoments
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactKneserIdentity
-import Causalean.Experimentation.FinitePopulationMoments
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherPriors
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherMoments
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactKneserIdentity
+public import Causalean.Experimentation.FinitePopulationMoments
 
 /-!
 # Degree-one slice bridges for additive schedules
@@ -9,6 +10,8 @@ import Causalean.Experimentation.FinitePopulationMoments
 This file connects centered inclusion-linear functions in the reusable Johnson
 space to the paper-local uniform-slice expectation.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Filter
@@ -18,7 +21,7 @@ namespace CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase
 
 open Causalean.Experimentation.DesignBased
 open Causalean.Experimentation.FinitePopulationMoments
-open Causalean.Mathlib.Combinatorics.JohnsonKneser
+open Causalean.Mathlib.Combinatorics.JohnsonScheme
 
 -- @node: mem_johnsonHarmonic_one_of_degreeOne_mean_zero
 /-- Given [the stated population sizes, design objects, functions, and conditions](hyp:n,M,hM,f,hf,hmean), [the stated membership property holds](goal). -/
@@ -34,7 +37,7 @@ lemma mem_johnsonHarmonic_one_of_degreeOne_mean_zero {n M : ℕ}
     simp only [Real.inner_apply, constFn]
     unfold mean at hmean
     have hcard : (Fintype.card
-        (Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega n M) : ℝ) ≠ 0 := by
+        (Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M) : ℝ) ≠ 0 := by
       rw [card_omega hM]
       exact_mod_cast (Nat.choose_pos hM).ne'
     have hsum : ∑ A, f A = 0 := by
@@ -47,12 +50,12 @@ lemma mem_johnsonHarmonic_one_of_degreeOne_mean_zero {n M : ℕ}
 lemma johnsonMean_sampleMean_eq_sliceExpectation {n M : ℕ} (hM : M ≤ n)
     (x : Fin n → ℝ) :
     mean (WithLp.toLp 2 (fun A :
-      Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega n M =>
+      Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M =>
         (∑ i ∈ A.1, x i) / (M : ℝ))) =
       (slice n M hM).E (sampleMean M x) := by
   classical
   let e : Omega n M ≃
-      Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega n M :=
+      Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M :=
     { toFun := fun A => ⟨A.1, A.2⟩
       invFun := fun A => ⟨A.1, A.2⟩
       left_inv := fun A => by cases A; rfl
@@ -61,7 +64,7 @@ lemma johnsonMean_sampleMean_eq_sliceExpectation {n M : ℕ} (hM : M ≤ n)
   simp only [one_div]
   rw [← Finset.mul_sum]
   have hcard : Fintype.card
-      (Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega n M) =
+      (Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M) =
       Fintype.card (Omega n M) := by
     exact Fintype.card_congr e.symm
   rw [hcard]
@@ -82,7 +85,7 @@ lemma johnsonMean_sampleMean_eq_sliceExpectation {n M : ℕ} (hM : M ≤ n)
 /-- Given [the stated population sizes, design objects, functions, and conditions](hyp:n,M,x), [the stated membership property holds](goal). -/
 lemma sampleMean_mem_degreeAtMost_one {n M : ℕ} (x : Fin n → ℝ) :
     WithLp.toLp 2 (fun A :
-      Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega n M =>
+      Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M =>
         (∑ i ∈ A.1, x i) / (M : ℝ)) ∈ degreeAtMost n M 1 := by
   have hgen (i : Fin n) : inclusionMonomial (M := M) {i} ∈ degreeAtMost n M 1 :=
     Submodule.subset_span ⟨{i}, by simp, rfl⟩
@@ -101,16 +104,16 @@ lemma centeredSampleMean_mem_johnsonHarmonic_one {n M : ℕ}
     WithLp.toLp 2 (fun A : Omega n M =>
       sampleMean M x A - (slice n M hMn).E (sampleMean M x)) ∈
       johnsonHarmonic n M 1 := by
-  unfold Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega
+  unfold Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega
   let f : WithLp 2 ({A : Finset (Fin n) // A.card = M} → ℝ) :=
     WithLp.toLp 2 (fun A => sampleMean M x A)
   have hf : f ∈ degreeAtMost n M 1 := by
     simpa [f, sampleMean,
-      Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega] using
+      Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega] using
       sampleMean_mem_degreeAtMost_one (M := M) x
   have hm : mean f = (slice n M hMn).E (sampleMean M x) := by
     simpa [f, sampleMean,
-      Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega] using
+      Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega] using
       johnsonMean_sampleMean_eq_sliceExpectation hMn x
   have heq : WithLp.toLp 2 (fun A : {A : Finset (Fin n) // A.card = M} =>
       sampleMean M x A - (slice n M hMn).E (sampleMean M x)) =
@@ -125,7 +128,7 @@ lemma centeredSampleMean_mem_johnsonHarmonic_one {n M : ℕ}
       have hc := (mem_degreeAtMost_zero_iff hMn
         (constFn (n := n) (M := M) (mean f))).2 ⟨mean f, rfl⟩
       simpa [constFn,
-        Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega] using hc
+        Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega] using hc
   · unfold mean
     change (Fintype.card ({A : Finset (Fin n) // A.card = M}) : ℝ)⁻¹ *
       ∑ A : {A : Finset (Fin n) // A.card = M}, (f A -

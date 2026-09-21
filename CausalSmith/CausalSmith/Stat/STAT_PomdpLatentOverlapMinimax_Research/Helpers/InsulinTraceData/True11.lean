@@ -1,11 +1,13 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.Base
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.Base
+
+@[expose] public section
 
 set_option linter.style.longLine false
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 /-- For [the i input](hyp:i), [this defines the insulin True Trace Row11 object](goal). -/
 def insulinTrueTraceRow11 (i : Fin 360) : RatInterval :=
   match i.val with

@@ -4,24 +4,27 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Query
-import Causalean.SCM.ID.DiscreteID.Positive
-import Causalean.SCM.ID.GraphicalThms.QFactorIdentity
-import Causalean.SCM.ID.Density.FiniteReference
-import Causalean.SCM.ID.Density.DoLawMarginal
-import Causalean.SCM.ID.DoLawTransport
-import Causalean.SCM.ID.GraphicalThms.DoGFormula
-import Causalean.SCM.ID.GraphicalThms.DoGFormulaTian
-import Causalean.Mathlib.MeasureTheory.EqOfRnDerivEq
+module
+
+public import Causalean.Mathlib.MeasureTheory.EqOfRnDerivEq
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.SCM.ID.Density.DoLawMarginal
+public import Causalean.SCM.ID.Density.FiniteReference
+public import Causalean.SCM.ID.DiscreteID.Positive
+public import Causalean.SCM.ID.DoLawTransport
+public import Causalean.SCM.ID.GraphicalThms.DoGFormula
+public import Causalean.SCM.ID.GraphicalThms.DoGFormulaTian
+public import Causalean.SCM.ID.GraphicalThms.NonAncestorKernelTransport
+public import Causalean.SCM.ID.Query
 
 /-!
 # ID Algorithm Soundness for the No-Fixing Fragment
 
 This file records the graph-side success certificate for the ID algorithm and
-states that the certificate identifies the interventional outcome kernel. The
-proved soundness theorem combines branch alignment for the total query's
-well-formedness predicate with the Tian c-factor decomposition for the valid
-branch.
+states that the certificate identifies the interventional outcome kernel when
+the admissible model class is inhabited. The proved soundness theorem combines
+branch alignment for the total query's well-formedness predicate with the Tian
+c-factor decomposition for the valid branch.
 
 The success predicate is structural. It computes the ancestors of the requested
 outcomes after splitting the treatment variables in the SWIG, induces the
@@ -30,6 +33,13 @@ available in the original graph. This is the no-additional-fixing case of the
 Tian/Shpitser reachability condition; the general fixing-sequence predicate is
 deferred here rather than encoded as a circular appeal to identifiability.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.ID
 
@@ -43,7 +53,9 @@ variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 -- statement could be weakened to `Finite`.
 set_option linter.unusedFintypeInType false
 
-/-- Two standard models with the same SWIG graph have the same canonical fixed-value assignment after type transport.
+/-- Given [two finite structural causal models](hyp:N,Ω,M₁,M₂) with [equal fixed-node sets](hyp:hf),
+if [the first model is standard](hyp:h₁), then [their canonical fixed-value assignments are equal
+after type transport](goal).
 
 Both fixed-node sets are empty, so each fixed-value product is a one-point space. -/
 theorem standardFixedValues_heq (M₁ M₂ : Causalean.SCM N Ω)
@@ -174,7 +186,7 @@ Route, reusing the proven density bricks:
    — `qFactorDensityProduct_eq_prod_cComponentFactor` (D2), the commutative scalar
    regrouping.
 4. *Recover each factor.*  Under `idSucceeds` each truncated component is a full
-   c-component of `G` (`cFactorReachable`), so `district_id` identifies its factor
+   c-component of `G` (`cFactorReachable`), so a separate density recovery theorem identifies its factor
    as a functional of the observational density.
 5. *Transport.*  Equal `obsDensity` ⟹ equal recovered factors ⟹ equal product.
 
@@ -431,7 +443,7 @@ This is the `Y`-marginal wrapper around the density-level ID theorem. Under
 product, over the
 c-components of the ancestral subgraph `(G_X).induce (An_{G_X}(Y))`, of the
 recovered full-district c-factors; each district c-factor is a functional of the
-observational density `obsDensity` by `district_id`/`q_factor_identity`, with the
+observational density `obsDensity` by the separate density-recovery results, with the
 truncation realized by the *fixing* mechanism (`M.fixSet Wn`, fixing the nodes
 outside each district) rather than by `SCM.induce` on the ancestral set — which does
 not apply because that set is not ancestrally closed in the SCM sense after the
@@ -507,7 +519,7 @@ finite structural causal models `M₁`, `M₂` that share [the same SWIG graph
 faithful to the graph](hyp:href,_hdom₁,_hdom₂), [satisfy discrete positivity of their
 observational kernels](hyp:hpos₁,hpos₂), and [have heterogeneously equal observational
 kernels](hyp:_hobs), if [the total interventional query on outcome set `Y` under intervention
-`X` is well formed in both models](hyp:hvalid₁,hvalid₂) and `X`, `Y` admit a successful
+`X` is well formed in both models](hyp:hvalid₁,hvalid₂) and `X`, `Y` have a successful
 no-fixing ID certificate on `G`, then [the two models' post-intervention outcome kernels for
 `Y` are heterogeneously equal](goal).
 
@@ -551,20 +563,22 @@ theorem doKernelY_eq_cfactor_decomposition
     (doObsKernelYMarginal_heq_of_obsKernel_heq X Y G ref href _hID M₁ M₂ _hsg₁ _hsg₂
       _hdom₁ _hdom₂ hpos₁ hpos₂ _hobs hvalid₁ hvalid₂)
 
-/-- **Soundness of the no-fixing ID algorithm.** Fix an intervention target set `X`, an outcome
-node set `Y`, a SWIG graph `G`, and [a reference-measure family `ref` that is faithful to the
-graph](hyp:href). Then [whenever the no-fixing ID certificate succeeds for `X`, `Y` on `G`, the
-interventional query mapping `X` to `Y` is identifiable within the class of models dominated by
-`ref` with discretely positive observational kernels: any two such models that share graph `G`
-and observational kernel agree on the query](goal).
+/-- **Soundness of the no-fixing ID algorithm.** Fix [targets](hyp:X),
+[outcomes](hyp:Y), [a standard graph](hyp:G,hG), and
+[a faithful reference family](hyp:ref,href), and assume
+[an inhabited compatible dominated-positive class](hyp:hNonempty). Then
+[certificate success guarantees query identification within that class](goal).
 
 Dominance and discrete positivity are carried as the structural assumption `As`
 of `IdentifiableUnder`; domination makes the density-assisted Tian assembly
 available, while positivity supplies the nonzero point masses needed by the
-ratio identities.  Proof: branch alignment
-(`interventionalQueryValid_iff_of_toSWIGGraph_eq`) reduces to the valid branch,
-where `doKernelY_eq_cfactor_decomposition` performs the density-level c-factor
-decomposition; the invalid branch returns the fixed fallback kernel for both.
+ratio identities.  The standard-graph guard, intervention-validity certificate,
+and observed outcome condition put every model in the meaningful query branch;
+`doKernelY_eq_cfactor_decomposition` performs the density-level c-factor
+decomposition there.
+
+The inhabitation premise rules out identification by vacuous universal
+quantification over an empty compatible model class.
 
 This is soundness of the `idSucceeds` no-additional-fixing approximation.  The
 full recursive Tian-Shpitser-Pearl certificate is handled by `id_sound_rec`; this
@@ -573,7 +587,9 @@ theorem uses the Tian c-factor core in `SCM/ID/Density/MechCFactor.lean` and
 theorem id_sound [∀ n, StandardBorelSpace (Ω n)] [∀ n, Nonempty (Ω n)]
     [∀ n, Fintype (Ω n)] [∀ n, MeasurableSingletonClass (Ω n)]
     (X : Finset N) (Y : Finset (SWIGNode N)) (G : SWIGGraph N)
-    (ref : ReferenceMeasures Ω) (href : ReferenceFaithful ref) :
+    (ref : ReferenceMeasures Ω) (href : ReferenceFaithful ref) (hG : G.isStandard)
+    (hNonempty : ∃ M : Causalean.SCM N Ω,
+      M.toSWIGGraph = G ∧ DominatedObs M ref ∧ DiscreteID.DiscretePositive M) :
     idSucceeds X Y G →
       IdentifiableUnder (Ω := Ω) G (fun _ => True)
         (fun M => DominatedObs M ref ∧ DiscreteID.DiscretePositive M)

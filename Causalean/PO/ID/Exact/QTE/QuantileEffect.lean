@@ -44,7 +44,8 @@ adds the quantile layer on top.
   with the (now proven) `cfUnderLaw_eq_ipwLaw` from `DistributionalBackdoor.lean`.
 -/
 
-import Causalean.PO.ID.Exact.QTE.DistributionalBackdoor
+module
+public import Causalean.PO.ID.Exact.QTE.DistributionalBackdoor
 
 /-! # Quantile Treatment Effect
 
@@ -59,6 +60,8 @@ is the difference of their quantiles. The theorem `qte_backdoor` supplies the
 causal backdoor corollary by using `cfUnderLaw_eq_ipwLaw` from
 `DistributionalBackdoor` to identify those two laws with observable IPW laws. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace PO
 
@@ -69,11 +72,18 @@ namespace POBackdoorSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- For [a potential-outcomes backdoor system](hyp:S), [a treatment arm](hyp:d), [a measure on its sample space](hyp:μ), and [a real quantile level](hyp:τ), the [arm-specific potential-outcome quantile](goal) is the generalized $\tau$-quantile of the potential outcome under that treatment arm, evaluated under that measure. -/
+/-- [The arm-specific potential-outcome quantile](goal) for [a backdoor system](hyp:S)
+[takes the generalized quantile at the selected level](hyp:τ) of the outcome under
+[the selected treatment arm](hyp:d), [evaluated under the chosen population law](hyp:μ),
+[thereby turning an identified counterfactual law into an arm-level distributional
+estimand](step:1). -/
 noncomputable def qtdQuantile (d : Bool) (μ : Measure P.Ω) (τ : ℝ) : ℝ :=
   S.yVar.cfUnderQuantile S.dVar d μ τ
 
-/-- For [a potential-outcomes backdoor system](hyp:S), [a measure on its sample space](hyp:μ), and [a real quantile level](hyp:τ), the [totalized quantile treatment effect](goal) is the generalized $\tau$-quantile of the treated potential outcome minus that of the control potential outcome. It is defined for every real $\tau$.
+/-- [The totalized quantile treatment effect](goal) for [a backdoor system](hyp:S)
+[compares outcomes under a chosen population law](hyp:μ) at [a real quantile
+level](hyp:τ) by [subtracting the control potential-outcome quantile from the treated
+potential-outcome quantile](step:1); interior levels recover the usual econometric QTE.
 
 Literature-facing quantile effects normally restrict `τ` to the unit interval. -/
 noncomputable def qte (μ : Measure P.Ω) (τ : ℝ) : ℝ :=
@@ -87,7 +97,8 @@ lemma qtdQuantile_eq_quantile_cfUnderLaw (d : Bool) (μ : Measure P.Ω) (τ : �
 /-- **QTE as a functional of the identified potential-outcome laws.** If [the
 law of the potential outcome `Y(1)` equals a given observable measure
 `ν₁`](hyp:h₁) and [the law of the potential outcome `Y(0)` equals a given
-observable measure `ν₀`](hyp:h₀), then for every real quantile level `τ`,
+observable measure `ν₀`](hyp:h₀), then [for the chosen backdoor system and population
+law](hyp:S,μ) and [every real quantile level](hyp:τ),
 [the totalized quantile treatment effect equals the difference of the
 `τ`-quantiles of `ν₁` and `ν₀`](goal). This is the payoff of the quantile
 layer: identification of the QTE reduces to distributional identification of
@@ -108,8 +119,9 @@ theorem qte_eq_of_law_eq (μ : Measure P.Ω) (τ : ℝ) {ν₁ ν₀ : Measure �
       S.qtdQuantile_eq_quantile_cfUnderLaw false μ τ, h₁, h₀]
 
 /-- **Backdoor QTE identification.** Under [the ATE backdoor identifying
-assumption bundle](hyp:hA), [the totalized generalized-quantile treatment
-effect at any real level `τ` equals the difference of the quantiles of the
+assumption bundle](hyp:hA) for [a backdoor system](hyp:S), [at any selected real
+quantile level](hyp:τ), [the totalized generalized-quantile treatment effect equals the
+difference of the quantiles of the
 two observable inverse-probability-weighted outcome laws](goal):
 
     QTE(τ) = quantile(ipwLaw 1) τ − quantile(ipwLaw 0) τ.

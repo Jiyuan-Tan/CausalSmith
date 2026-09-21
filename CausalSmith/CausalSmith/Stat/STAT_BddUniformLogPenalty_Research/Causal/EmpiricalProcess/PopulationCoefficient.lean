@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.ScoreL2
-import Mathlib.Analysis.Matrix.PosDef
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.ScoreL2
+public import Mathlib.Analysis.Matrix.PosDef
 
 /-!
 # Uniform population-coefficient radius
@@ -9,6 +10,8 @@ quadratic-form Gram floor to put every population coefficient in one fixed
 ball.  This is the adapter needed to embed the actual score process into the
 bounded-coefficient entropy class.
 -/
+
+public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

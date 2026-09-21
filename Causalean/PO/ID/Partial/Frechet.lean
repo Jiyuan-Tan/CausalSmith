@@ -24,9 +24,11 @@ These are exactly the directions provable from a *fixed* joint distribution. We 
 **not** assert sharpness/attainability of these bounds (that is Makarov's hard
 theorem and is out of scope here).
 -/
-import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
-import Mathlib.MeasureTheory.Measure.MeasureSpace
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
+
+module
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+public import Mathlib.MeasureTheory.Measure.MeasureSpace
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
 
 /-! # Fréchet-Hoeffding and Makarov Bounds
 
@@ -36,6 +38,8 @@ an elementary lower Makarov bound for the cumulative distribution function of th
 
 The results apply to an already fixed coupling and do not establish the sharp
 attainability part of Makarov's theorem, which requires construction of extremal couplings. -/
+
+public section
 
 open MeasureTheory
 
@@ -80,11 +84,12 @@ theorem frechet_upper (u v : ℝ) :
   · exact ENNReal.toReal_mono (measure_ne_top_of_prob P _)
       (measure_mono (fun ω hω => hω.2))
 
-/-- **Fréchet–Hoeffding lower bound.** For a fixed joint law of two real random variables
-`X, Y` under a probability measure, if [`Y` is measurable](hyp:hY), then [the joint
+/-- **Fréchet–Hoeffding lower bound.** For a fixed joint law of two real random variables,
+if [`Y` is measurable](hyp:hY), then [the joint
 probability `P(X ≤ u, Y ≤ v)` is at least the larger of zero and the sum of the two
 marginal CDF values at `u` and `v` minus one](goal):
-`max (P(X ≤ u) + P(Y ≤ v) - 1) 0 ≤ P(X ≤ u, Y ≤ v)`. -/
+`max (P(X ≤ u) + P(Y ≤ v) - 1) 0 ≤ P(X ≤ u, Y ≤ v)`, for [thresholds
+`u` and `v`](hyp:u,v). -/
 theorem frechet_lower (hY : Measurable Y) (u v : ℝ) :
     max ((P {ω | X ω ≤ u}).toReal + (P {ω | Y ω ≤ v}).toReal - 1) 0
       ≤ (P {ω | X ω ≤ u ∧ Y ω ≤ v}).toReal := by
@@ -96,8 +101,9 @@ theorem frechet_lower (hY : Measurable Y) (u v : ℝ) :
   exact prob_inter_ge P hB
 
 /-- **Makarov lower bound (easy direction), per-threshold form.** For a fixed joint law of
-two real random variables `X, Y`, if [`Y` is measurable](hyp:hY), then for every reference
-point `a` and threshold `s`, [the CDF of the difference `X - Y` at `s` is at least the
+two real random variables, if [`Y` is measurable](hyp:hY), then for every
+[reference point `a`](hyp:a) and [threshold
+`s`](hyp:s), [the CDF of the difference `X - Y` at `s` is at least the
 larger of zero and the gap between the CDF of `X` at `a` and the CDF of `Y` just below
 `a - s`](goal): `max (P(X ≤ a) - P(Y < a - s)) 0 ≤ P(X - Y ≤ s)`. -/
 theorem makarov_lower_param (hY : Measurable Y) (s a : ℝ) :
@@ -130,10 +136,10 @@ theorem makarov_lower_param (hY : Measurable Y) (s a : ℝ) :
   linarith
 
 /-- **Makarov lower bound (easy direction), sup-convolution envelope form.** For a fixed
-joint law of two real random variables `X, Y`, if [`Y` is measurable](hyp:hY), then
-[taking the supremum, over every reference point, of the per-threshold Makarov lower
-bound still lower-bounds the CDF of the difference `X - Y` at the given
-threshold](goal). -/
+joint law of two real random variables, if [`Y` is measurable](hyp:hY), then for a
+[threshold `s`](hyp:s), [taking the supremum over
+every reference point of the per-threshold Makarov lower bound still lower-bounds
+the CDF of the difference `X - Y` at `s`](goal). -/
 theorem makarov_lower_iSup (hY : Measurable Y) (s : ℝ) :
     ⨆ a : ℝ, max ((P {ω | X ω ≤ a}).toReal - (P {ω | Y ω < a - s}).toReal) 0
       ≤ (P {ω | X ω - Y ω ≤ s}).toReal :=

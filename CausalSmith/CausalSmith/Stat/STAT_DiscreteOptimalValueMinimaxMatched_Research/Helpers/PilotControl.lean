@@ -1,13 +1,16 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.Estimator
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialProductRisk
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonCertificate
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
-import Causalean.Stat.Concentration.PoissonSelfNormalized.Scaling
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.Estimator
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialProductRisk
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonCertificate
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Partition.Splitting
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
+public import Causalean.Stat.Concentration.Poisson.SelfNormalized.Scaling
 
 set_option linter.style.longLine false
 
 /-! Moment, bias, and variance control for the pilot-local factorial construction. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

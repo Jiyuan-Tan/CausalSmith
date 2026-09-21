@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationDesign
-import Causalean.Mathlib.Analysis.MonomialGram
-import Causalean.Stat.Nonparametric.Approximation.HolderTaylorMonomial
-import Causalean.Mathlib.Analysis.ConvexProjection
-import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
-import Mathlib.MeasureTheory.Group.Integral
-import Mathlib.Algebra.Order.Chebyshev
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationDesign
+public import Causalean.Mathlib.Analysis.MonomialGram
+public import Causalean.Stat.Nonparametric.Approximation.HolderTaylorMonomial
+public import Causalean.Mathlib.Analysis.ConvexProjection
+public import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
+public import Mathlib.MeasureTheory.Group.Integral
+public import Mathlib.Algebra.Order.Chebyshev
 
 /-!
 # Population local-polynomial Gram matrices
@@ -19,6 +20,8 @@ This module defines the population normal equations for one treatment arm and pr
 uniform localization estimates used to control them.  All constants in the results are
 functions only of model and kernel parameters, never of the law or bandwidth.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -117,7 +120,8 @@ theorem gramSummand_eq_zero_of_not_mem {d p : ℕ} {h : ℝ} {x0 : Fin d → ℝ
     (a : Fin 2) (O : CateObs d) (k l : Fin p) (hO : O.X ∉ supBall x0 h) :
     gramSummand h x0 expo K a O k l = 0 := by
   have hex : ∃ j, h < |O.X j - x0 j| := by
-    simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hO
+    simpa [supBall, Causalean.Stat.Nonparametric.supBall,
+      Causalean.Mathlib.Analysis.supBall, not_forall, not_le] using hO
   obtain ⟨j, hj⟩ := hex
   have hu : 1 < |uCoord h x0 O.X j| := by
     rw [uCoord, abs_div, abs_of_pos hh]
@@ -131,7 +135,8 @@ theorem momSummand_eq_zero_of_not_mem {d p : ℕ} {h : ℝ} {x0 : Fin d → ℝ}
     (a : Fin 2) (O : CateObs d) (k : Fin p) (hO : O.X ∉ supBall x0 h) :
     momSummand h x0 expo K a O k = 0 := by
   have hex : ∃ j, h < |O.X j - x0 j| := by
-    simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hO
+    simpa [supBall, Causalean.Stat.Nonparametric.supBall,
+      Causalean.Mathlib.Analysis.supBall, not_forall, not_le] using hO
   obtain ⟨j, hj⟩ := hex
   have hu : 1 < |uCoord h x0 O.X j| := by
     rw [uCoord, abs_div, abs_of_pos hh]
@@ -211,7 +216,8 @@ theorem integral_uCoord_comp {d : ℕ} (h : ℝ) (hh : 0 < h) (x0 : Fin d → �
       MeasurableSet (supBall c R) := by
     rw [show supBall c R = ⋂ i : Fin d, {x | |x i - c i| ≤ R} by
       ext x
-      simp [supBall, Causalean.Stat.Nonparametric.supBall]]
+      simp [supBall, Causalean.Stat.Nonparametric.supBall,
+        Causalean.Mathlib.Analysis.supBall]]
     exact MeasurableSet.iInter fun i ↦ measurableSet_le
       (continuous_abs.measurable.comp ((measurable_pi_apply i).sub measurable_const))
       measurable_const
@@ -223,7 +229,8 @@ theorem integral_uCoord_comp {d : ℕ} (h : ℝ) (hh : 0 < h) (x0 : Fin d → �
     apply integral_congr_ae
     filter_upwards with y
     have hmem : x0 + y ∈ Sx ↔ y ∈ Sh := by
-      simp [Sx, Sh, supBall, Causalean.Stat.Nonparametric.supBall]
+      simp [Sx, Sh, supBall, Causalean.Stat.Nonparametric.supBall,
+        Causalean.Mathlib.Analysis.supBall]
     have hu : uCoord h x0 (x0 + y) = h⁻¹ • y := by
       funext i
       simp [uCoord, Pi.smul_apply, div_eq_mul_inv, mul_comm]
@@ -233,8 +240,8 @@ theorem integral_uCoord_comp {d : ℕ} (h : ℝ) (hh : 0 < h) (x0 : Fin d → �
   have hscale : h⁻¹ • Sh = S0 := by
     ext u
     rw [Set.mem_smul_set_iff_inv_smul_mem₀ (inv_ne_zero hh.ne')]
-    simp only [Sh, S0, supBall, Causalean.Stat.Nonparametric.supBall, Set.mem_setOf_eq,
-      Pi.zero_apply, sub_zero,
+    simp only [Sh, S0, supBall, Causalean.Stat.Nonparametric.supBall,
+      Causalean.Mathlib.Analysis.supBall, Set.mem_setOf_eq, Pi.zero_apply, sub_zero,
       Pi.smul_apply, inv_inv]
     constructor
     · intro hu i
@@ -302,7 +309,8 @@ private theorem gramQuad_eq_zero_of_not_mem {d p : ℕ} {h : ℝ} (hh : 0 < h)
     (hKsupp : ∀ u, (∃ j, 1 < |u j|) → K u = 0) (z : Fin p → ℝ)
     {x : Fin d → ℝ} (hx : x ∉ supBall x0 h) : gramQuad h x0 expo K z x = 0 := by
   have hex : ∃ j, h < |x j - x0 j| := by
-    simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hx
+    simpa [supBall, Causalean.Stat.Nonparametric.supBall,
+      Causalean.Mathlib.Analysis.supBall, not_forall, not_le] using hx
   obtain ⟨j, hj⟩ := hex
   have hu : 1 < |uCoord h x0 x j| := by
     rw [uCoord, abs_div, abs_of_pos hh]
@@ -525,8 +533,8 @@ private theorem popGram_quadForm_lower {d p : ℕ}
   have hScompact : IsCompact S := by
     have heq : S = Metric.closedBall x0 (h * rinner) := by
       ext x
-      simp only [S, supBall, Causalean.Stat.Nonparametric.supBall, Set.mem_setOf_eq,
-        Metric.mem_closedBall]
+      simp only [S, supBall, Causalean.Stat.Nonparametric.supBall,
+        Causalean.Mathlib.Analysis.supBall, Set.mem_setOf_eq, Metric.mem_closedBall]
       rw [dist_pi_le_iff (mul_nonneg hh.le hrin.le)]
       simp [Real.dist_eq]
     rw [heq]
@@ -582,8 +590,9 @@ private theorem popGram_quadForm_lower {d p : ℕ}
     have hcomp : IsCompact (supBall (0 : Fin d → ℝ) rinner) := by
       have heq : supBall (0 : Fin d → ℝ) rinner = Metric.closedBall 0 rinner := by
         ext u
-        simp only [supBall, Causalean.Stat.Nonparametric.supBall, Set.mem_setOf_eq,
-          Pi.zero_apply, sub_zero, Metric.mem_closedBall]
+        simp only [supBall, Causalean.Stat.Nonparametric.supBall,
+          Causalean.Mathlib.Analysis.supBall, Set.mem_setOf_eq, Pi.zero_apply, sub_zero,
+          Metric.mem_closedBall]
         rw [dist_pi_le_iff hrin.le]
         simp
       rw [heq]
@@ -629,7 +638,8 @@ private theorem popGram_quadForm_lower {d p : ℕ}
       _ = f0 * Kmin * (∑ k, ∑ l, z k * monomialGram expo rinner k l * z l) := by ring
       _ = f0 * Kmin * ∫ u in supBall (0 : Fin d → ℝ) rinner, V u := by
         rw [hmono]
-        simp [V, supBall, Causalean.Stat.Nonparametric.supBall]
+        simp [V, supBall, Causalean.Stat.Nonparametric.supBall,
+          Causalean.Mathlib.Analysis.supBall]
       _ = f0 * (h ^ (-(d : ℝ)) * Kmin *
           (∫ x in S, V (uCoord h x0 x))) := by
         rw [hcv]

@@ -1,15 +1,17 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
-import Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.TailLift
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
+public import Causalean.Stat.Quantile.MarkedSubsampleEmpiricalCDF.TailLift
 
 /-! # Finite-sample endpoint-band coverage helpers -/
 
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped BigOperators ENNReal
 
-open Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw
+open Causalean.Stat.Quantile.MarkedSubsampleEmpiricalCDF
 
 universe u
 

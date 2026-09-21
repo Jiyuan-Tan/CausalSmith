@@ -1,3 +1,5 @@
+module
+
 /-!
 # Open calibration question
 
@@ -5,6 +7,8 @@ This file records the unresolved inferential question as descriptive metadata.
 It intentionally makes no mathematical assertion and supplies no witness for a
 calibration procedure.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.PartialID.SlateBenefitPartialTransport
 

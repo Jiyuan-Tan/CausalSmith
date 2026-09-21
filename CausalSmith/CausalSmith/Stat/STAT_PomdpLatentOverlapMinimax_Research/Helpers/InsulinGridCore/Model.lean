@@ -1,21 +1,24 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteEncoding
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Basic
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Operations
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Exponential
-import Causalean.Mathlib.Probability.StdNormalCDF
-import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.Main
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteEncoding
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Basic
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Operations
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Exponential
+public import Causalean.Mathlib.Probability.StdNormalCDF
+public import Causalean.Mathlib.Probability.Certified.Main
 
 set_option linter.style.longLine false
 
 /-! # Refreshed finite insulin-policy application -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.CertifiedNormalCDFEnclosure
 

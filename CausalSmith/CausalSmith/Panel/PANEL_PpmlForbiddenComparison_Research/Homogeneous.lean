@@ -1,6 +1,9 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Collapse
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Collapse
 
 /-! Correct-specification reduction under a homogeneous proportional effect. -/
+
+public section
 
 open Causalean.Stat
 

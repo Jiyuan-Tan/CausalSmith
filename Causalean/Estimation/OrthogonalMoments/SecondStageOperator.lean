@@ -5,9 +5,11 @@ Authors: Jiyuan Tan
 
 # Abstract second-stage regression operator for the DR-Learner CATE estimator
 
-This file provides the abstract `SecondStageOperator` bundle described in
-`doc/basic_concepts/po/estimation/dr_learner_cate.tex`
-(`def:est-cate-second-stage`, `def:est-cate-stability`, `thm:est-cate-dr-oracle`).
+This file provides the abstract `SecondStageOperator` bundle and stability
+predicate described in `doc/basic_concepts/po/estimation/dr_learner_cate.tex`
+(`def:est-cate-second-stage` and `def:est-cate-stability`). Its elimination
+lemma can be used after a caller has supplied the conclusion required by that
+stability predicate; it does not formalize `thm:est-cate-dr-oracle` itself.
 
 The operator takes:
 * a sample-size index `n`,
@@ -19,24 +21,27 @@ The operator takes:
 and returns a real number `̂E_{n,B}{f(Z) | X = x}`.
 
 The structure here is deliberately abstract: the linear-smoother specialisation
-lives in `Causalean/Estimation/OrthogonalMoments/LinearSmoother.lean`, and callers supply a
-`BiasIdent` predicate to `Stable` / `oracle_expansion` to encode the
+lives in `Causalean/Estimation/OrthogonalMoments/LinearSmoother.lean`, and
+callers supply a `BiasIdent` predicate to `Stable` / `Stable.isLittleOp` to encode the
 conditional-bias identification (e.g. AIPW DR cross-product = condExp at fold A).
 
-`oracle_expansion` is fully proved (one-line application of `Stable`).
+`Stable.isLittleOp` is the elimination lemma for the stability predicate.
 -/
 
-import Causalean.Stat.Limit.Convergence
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
+module
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 /-! # Abstract Second-Stage Regression Operators
 
 This file defines the target-agnostic second-stage operator used in DR-Learner
 CATE estimation. The public API consists of `SecondStageOperator`, the
-input-linearity predicate `SecondStageOperator.IsLinearInInput`, the oracle
+input-additivity predicate `SecondStageOperator.IsAdditiveInInput`, the oracle
 estimator and oracle risk scale, the stability predicate `Stable`, and the
-abstract oracle-expansion theorem `oracle_expansion`. It separates the operator
-itself from linearity and conditional-bias identification assumptions. -/
+elimination lemma `Stable.isLittleOp`. It separates the operator itself from
+additivity and conditional-bias identification assumptions. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -44,13 +49,12 @@ namespace OrthogonalMoments
 
 open MeasureTheory Filter Topology Causalean.Stat
 
-/-- Abstract bundle for a second-stage regression operator (Def `def:est-cate-second-stage`):
-[an operator](hyp:evalAt) mapping a sample size, a randomness scope, a real-valued pseudo-outcome
-function of a data tuple, and a query point to a real-valued estimate, together with the minimal
-requirement that [for every sample size and constant pseudo-outcome, the map from randomness
-scope and query point to the operator's value is jointly measurable](hyp:meas_evalAt_const);
-stronger measurability, and any linearity of the operator in its function input, are deferred to
-concrete instances or the separate `IsLinearInInput` predicate.
+/-- For [randomness and query spaces with a measure](hyp:Ω,μ,γ), an
+abstract second-stage regression operator stores [an operator](hyp:evalAt)
+mapping a sample size, a randomness scope, a real-valued pseudo-outcome
+function, and a query point to an estimate, together with [joint measurability
+for constant pseudo-outcomes](hyp:meas_evalAt_const). Stronger measurability
+and linearity are deferred to concrete instances and separate predicates.
 
 * `evalAt n ω f x` is the operator at sample size `n`, randomness scope `ω : Ω`,
   applied to the pseudo-outcome `f : γ × Bool × ℝ → ℝ` and evaluated at the
@@ -62,9 +66,8 @@ concrete instances or the separate `IsLinearInInput` predicate.
   concrete instances.
 
 The linearity of the operator in its function input is **not** required by the
-structure; instead it is supplied as the separate predicate `IsLinearInInput`
-below. This keeps the structure usable for nonlinear smoothers (e.g. local
-constant regression). -/
+structure; the separate predicate `IsAdditiveInInput` below records only
+additivity. This keeps the structure usable for nonlinear smoothers. -/
 structure SecondStageOperator
     (Ω : Type*) [MeasurableSpace Ω] (μ : Measure Ω)
     (γ : Type*) [MeasurableSpace γ] where
@@ -78,13 +81,12 @@ namespace SecondStageOperator
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- For [a second-stage regression operator](hyp:op), [linearity in the
+/-- For [a second-stage regression operator](hyp:op), [additivity in the
 pseudo-outcome input](goal) means that, for every sample size, randomness
 realization, pair of real-valued pseudo-outcome functions, and query point,
 the estimate for their pointwise sum equals the sum of their separate estimates.
-Linear smoothers satisfy this predicate; kernel-or-tree mean estimators with
-random splits need not satisfy it. -/
-def IsLinearInInput (op : SecondStageOperator Ω μ γ) : Prop :=
+This predicate does not assert scalar homogeneity. -/
+def IsAdditiveInInput (op : SecondStageOperator Ω μ γ) : Prop :=
   ∀ (n : ℕ) (ω : Ω) (f g : γ × Bool × ℝ → ℝ) (x : γ),
     op.evalAt n ω (fun z => f z + g z) x =
       op.evalAt n ω f x + op.evalAt n ω g x
@@ -155,25 +157,16 @@ def Stable
           - op.evalAt n ω (fun z => bHat_n n ω z.1) x)
       (fun n => SecondStageOperator.oracleRiskScale op f target x n) μ
 
-/-- **Oracle expansion for the DR-Learner** (Thm `thm:est-cate-dr-oracle`, abstract
-operator-level form). Given [a second-stage regression operator `op` that is stable at the
-query point `x` for target function `target`, with respect to a distance `d_n` between
-pseudo-outcomes and a caller-supplied conditional-bias identification predicate
-`BiasIdent`](hyp:op,target,x,d_n,BiasIdent,hStab), suppose [`d_n` converges to zero in
-probability under μ, i.e. the first-stage pseudo-outcome estimate is
-consistent](hyp:hCons), and suppose [the estimated pseudo-outcome `fHat_n`, the true
-pseudo-outcome `f`, and the claimed conditional bias `bHat_n` satisfy
-`BiasIdent`](hyp:fHat_n,f,bHat_n,hBias). Then [the discrepancy between the operator applied to
-`fHat_n` and to `f`, minus the operator applied to `bHat_n`, is `o_p` of the oracle risk scale
-under μ](goal): the operator-level oracle expansion holds modulo `o_p(R^*_n(x))`.
+/-- Given [a second-stage operator and all data appearing in a stability
+claim](hyp:op,target,x,d_n,fHat_n,f,bHat_n,BiasIdent), [stability for those
+data](hyp:hStab), [consistency of the supplied distance](hyp:hCons), and [the
+caller-supplied bias-identification assertion](hyp:hBias), [the discrepancy in
+the definition of stability is little-o in probability of the oracle risk
+scale](goal).
 
-The model-specific input — Prop `prop:est-cate-dr-bias-identity` — enters
-through `hBias : BiasIdent …`, which the caller supplies.
-
-NOTE: statement is the operator-level conclusion `̂E{fHat} − ̂E{f} − ̂E{bHat} =
-o_p(R^*_n(x))`; the rearrangement to `\hat\tau^{DR}_n(x) - \tilde\tau_n(x)
-= ̂E{bHat_n} + o_p(R^*_n(x))` is bookkeeping handled at the application site. -/
-theorem oracle_expansion
+This is an elimination lemma for `Stable`: it does not independently derive a
+DR-Learner oracle expansion or the bias-identification assertion. -/
+theorem Stable.isLittleOp
     (op : SecondStageOperator Ω μ γ) (target : γ → ℝ) (x : γ)
     (d_n : ℕ → Ω → ℝ)
     (fHat_n : ℕ → Ω → γ × Bool × ℝ → ℝ) (f : γ × Bool × ℝ → ℝ)

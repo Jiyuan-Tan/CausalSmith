@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.RationalGridCertificateFinite
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.RationalGridCertificateFinite
 
 /-! Exact rational primal/dual certificates and their asymptotic sandwich. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 

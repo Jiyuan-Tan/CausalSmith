@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.DriftBound
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.DriftBound
 
 /-! Provides localized VC process and cross-fit offset-control helpers. -/
+
+public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

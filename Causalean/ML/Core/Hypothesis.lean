@@ -3,14 +3,16 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.MeasurableSpace.Defs
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Real.Basic
+
+module
+public import Mathlib.MeasureTheory.MeasurableSpace.Defs
+public import Mathlib.Data.Fintype.Basic
+public import Mathlib.Data.Real.Basic
 
 /-! # Hypothesis classes and parametrized predictors
 
-The standalone ML spine carries two views of a learning method, connected later
-by `Causalean.ML.Core.Bridge`:
+The standalone ML spine carries two views of a learning method, connected by
+`Causalean.ML.Core.Bridge`:
 
 * the **parametric** view (`Predictor`): a parameter type `Θ` together with an
   admissible set and a prediction map `Θ → X → Y`.  Optimization, convexity and
@@ -21,6 +23,8 @@ by `Causalean.ML.Core.Bridge`:
 `FeatureMap` packages a feature transform `X → (K → ℝ)` so that linear-in-features
 regression (and hence series/sieve regression) is a single object.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 

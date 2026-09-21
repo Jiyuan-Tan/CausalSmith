@@ -39,12 +39,13 @@ continuity with the individual rates into the `o_p(1)` form consumed by the
 `R₂` argument in the ATT DML pipeline.
 -/
 
-import Causalean.Estimation.ATT.Score.AIPWMoment
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
+module
+public import Causalean.Estimation.ATT.Score.AIPWMoment
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 Proves `L²(P_Z)` continuity bounds for the ATT AIPW score as the nuisance
@@ -58,6 +59,8 @@ errors are individually `o_p(1)` in `L²(P_X)`, then the AIPW score difference i
 `o_p(1)` in `L²(P_Z)`. This is the empirical-process input for ATT double
 machine learning.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -569,14 +572,14 @@ private theorem residual_mul_e_error_isLittleOp_one_ATT
   have hnorm_nonneg :
       0 ≤ (eLpNorm (fun z : γ × Bool × ℝ => R z * |deZ n ω z|) 2 S.P_Z).toReal :=
     ENNReal.toReal_nonneg
-  have hlt_norm :
-      δ < (eLpNorm (fun z : γ × Bool × ℝ => R z * |deZ n ω z|) 2 S.P_Z).toReal := by
+  have hnorm_large :
+      δ ≤ (eLpNorm (fun z : γ × Bool × ℝ => R z * |deZ n ω z|) 2 S.P_Z).toReal := by
     simpa [R, deZ, abs_of_nonneg hnorm_nonneg] using hω
-  have hde_large : δ / (2 * M) < (eLpNorm (deZ n ω) 2 S.P_Z).toReal := by
+  have hde_large : δ / (2 * M) ≤ (eLpNorm (deZ n ω) 2 S.P_Z).toReal := by
     have hb := hcross_bound n ω
     by_contra hnot
     have hle : (eLpNorm (deZ n ω) 2 S.P_Z).toReal ≤ δ / (2 * M) :=
-      le_of_not_gt hnot
+      (lt_of_not_ge hnot).le
     have hprod_le :
         M * (eLpNorm (deZ n ω) 2 S.P_Z).toReal ≤ δ / 2 := by
       calc
@@ -587,13 +590,13 @@ private theorem residual_mul_e_error_isLittleOp_one_ATT
         2 S.P_Z).toReal ≤ δ / 2 + τ := by
       exact hb.trans (add_le_add hprod_le le_rfl)
     dsimp [τ] at hcross_le
-    nlinarith
+    nlinarith [hnorm_large]
   have heq_norm :
       (eLpNorm (deZ n ω) 2 S.P_Z).toReal =
         (eLpNorm (fun x => (η_hat n ω).e_fn x - S.e_val x) 2 S.P_X).toReal := by
     simpa [deZ] using e_error_eLpNorm_projX_toReal_eq_ATT S (η_hat n ω) (h_e_memLp n ω)
   have hde_large_X :
-      δ / (2 * M) <
+      δ / (2 * M) ≤
         (eLpNorm (fun x => (η_hat n ω).e_fn x - S.e_val x) 2 S.P_X).toReal := by
     simpa [heq_norm] using hde_large
   have hde_nonneg :

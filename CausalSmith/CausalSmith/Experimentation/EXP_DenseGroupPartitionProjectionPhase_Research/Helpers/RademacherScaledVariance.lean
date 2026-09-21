@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherDegreeOne
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherDegreeOne
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
 
 /-!
 # Exact scaled variance for additive Rademacher schedules
@@ -7,6 +8,8 @@ import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Resear
 This file supplies the rowwise spectral identities used to assemble the two
 Rademacher-prior variance limits.
 -/
+
+public section
 
 open scoped Topology
 open Filter

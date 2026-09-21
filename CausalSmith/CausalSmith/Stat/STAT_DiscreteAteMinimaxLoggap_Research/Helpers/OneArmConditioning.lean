@@ -1,5 +1,6 @@
-import Causalean.Stat.Minimax.TotalVariation
-import Mathlib.MeasureTheory.Measure.Real
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import Mathlib.MeasureTheory.Measure.Real
 
 /-!
 # Total-variation cost of conditioning a prior
@@ -9,6 +10,8 @@ to a "good" event: the triangle inequality for total variation, and the bound
 saying that conditioning moves the prior predictive law by at most the discarded
 prior mass.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

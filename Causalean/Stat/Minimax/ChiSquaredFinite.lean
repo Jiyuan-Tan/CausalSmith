@@ -17,15 +17,18 @@ minimax lower bounds:
   mass of a single point factorizes as `∏ᵢ (μ i){ωᵢ}`.
 -/
 
-import Causalean.Stat.Minimax.ChiSquared
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Real
+module
+public import Causalean.Stat.Minimax.ChiSquared
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Real
 
 /-! # Finite Chi-Squared Identities
 
 This file proves discrete and product-measure identities for chi-squared
 divergence on finite sample spaces. These identities turn Radon-Nikodym formulas
 into point-mass sums and product point masses for finite minimax constructions. -/
+
+public section
 
 namespace Causalean.Stat
 

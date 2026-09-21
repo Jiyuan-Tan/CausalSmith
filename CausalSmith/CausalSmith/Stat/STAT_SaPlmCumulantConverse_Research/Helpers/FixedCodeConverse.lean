@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
 
 /-!
 # Fixed-code non-Gaussian minimax converse
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
 This module packages the affine-Gaussian two-point construction while retaining
 both supplied nuisance-code functions.
 -/
+
+public section
 
 noncomputable section
 

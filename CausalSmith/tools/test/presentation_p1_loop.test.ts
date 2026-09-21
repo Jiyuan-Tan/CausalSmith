@@ -4,10 +4,12 @@ import {
   presentedBody,
   routeNotationProblems,
   migrateSynthLedger,
-  releaseLeanResolvableSynths,
+  legacySynthInputs,
+  releaseSynths,
   safelyFramesUndeliveredRemark,
   undeliveredRemarkBody,
 } from "../src/presentation/stages/p1_plan.js";
+import { synthInputsFingerprint } from "../src/presentation/synth_lean_match.js";
 import {
   paperOrder,
   insertSynths,
@@ -294,8 +296,8 @@ describe("migrateSynthLedger (pre-v2 p1_cache.json)", () => {
   });
 });
 
-describe("releaseLeanResolvableSynths (Lean-first re-synthesis of cached prose definitions)", () => {
-  it("drops presentation-only definitions whose symbols the Lean defines, and the calls that made them", () => {
+describe("releaseSynths / legacySynthInputs (input-fingerprinted synthesized definitions)", () => {
+  it("drops the given definitions and the synthesis calls that made them", () => {
     const cache = {
       synth: {
         k1: { groups: [], ids: ["synth_1", null] },
@@ -307,10 +309,19 @@ describe("releaseLeanResolvableSynths (Lean-first re-synthesis of cached prose d
         synth_3: { symbols: ["\\kappa"], body: "from Lean", lean: { decl: "JacksonTuning", file: "E.lean" } },
       },
     };
-    const released = releaseLeanResolvableSynths(cache, (symbols) => symbols.includes("\\operatorname{summaryRadius}") || symbols.includes("\\kappa"));
-    expect(released).toEqual(["synth_1"]);
-    expect(Object.keys(cache.synthEnvs)).toEqual(["synth_2", "synth_3"]); // a linked definition is never released
+    releaseSynths(cache, ["synth_1"]);
+    expect(Object.keys(cache.synthEnvs)).toEqual(["synth_2", "synth_3"]);
     expect(Object.keys(cache.synth)).toEqual(["k2"]);
+  });
+
+  it("implies, for a record without a fingerprint, that its symbols live in its own declaration", () => {
+    const lean = { decl: "JacksonTuning", file: "E.lean" };
+    const stamped = synthInputsFingerprint(["\\kappa"], { homes: [{ decl: "JacksonTuning", file: "E.lean", line: 7, decl_kind: "def", symbols: ["\\kappa"] }], presentedBy: new Map() }, "src");
+    expect(legacySynthInputs({ symbols: ["\\kappa"], lean }, "src")).toBe(stamped);
+    // A vanished declaration (no source) never matches the text the legacy record implies.
+    expect(legacySynthInputs({ symbols: ["\\kappa"], lean }, null)).not.toBe(synthInputsFingerprint(["\\kappa"], { homes: [{ decl: "JacksonTuning", file: "E.lean", line: 7, decl_kind: "def", symbols: ["\\kappa"] }], presentedBy: new Map() }, null));
+    // A prose definition implies no Lean placement at all.
+    expect(legacySynthInputs({ symbols: ["x"] }, null)).toBe(synthInputsFingerprint(["x"], { homes: [], presentedBy: new Map() }));
   });
 });
 

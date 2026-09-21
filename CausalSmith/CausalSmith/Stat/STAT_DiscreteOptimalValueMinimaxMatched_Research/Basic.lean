@@ -1,9 +1,10 @@
-import Causalean.Stat.Minimax.MinimaxValue
-import Causalean.Stat.Minimax.MinimaxRisk
-import Causalean.Stat.Sample.PiTransport
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
-import Mathlib.Probability.ProductMeasure
+module
+public import Causalean.Stat.Minimax.MinimaxValue
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import Causalean.Stat.Sample.PiTransport
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+public import Mathlib.Probability.ProductMeasure
 
 set_option linter.style.longLine false
 
@@ -14,6 +15,8 @@ Finite-PMF substrate for the observed and full-data experiments.  The general
 regime-indexed potential-outcome API is intentionally bypassed because all
 variables here are coordinates of a finite product.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -254,7 +257,7 @@ noncomputable def observedRisk (n : ℕ) {d : ℕ} (est : Estimator n d)
 -- @node: def:minimax-risk
 /-- Thin paper-local notation for the reused generic minimax value. -/
 noncomputable abbrev minimaxRisk (n d : ℕ) (epsilon : ℝ) : ℝ :=
-  Causalean.Stat.minimaxValue (observedRisk n (d := d) (epsilon := epsilon))
+  Causalean.Stat.minimaxValueReal (observedRisk n (d := d) (epsilon := epsilon))
   -- @realizes \(\mathfrak R_{n,d,\epsilon}\)(minimax squared risk)
 
 /-- For [the specified alphabet size, overlap level](hyp:d,epsilon), the [causal model law is a potential-outcome law belonging to the causal completion class at the chosen overlap level](goal). -/
@@ -268,7 +271,7 @@ noncomputable def causalRisk (n : ℕ) {d : ℕ} (est : Estimator n d)
 
 /-- For [the specified sample size, alphabet size, overlap level](hyp:n,d,epsilon), the [causal minimax risk is the minimax squared-error risk over the causal model class](goal). -/
 noncomputable def causalMinimaxRisk (n d : ℕ) (epsilon : ℝ) : ℝ :=
-  Causalean.Stat.minimaxValue (causalRisk n (d := d) (epsilon := epsilon))
+  Causalean.Stat.minimaxValueReal (causalRisk n (d := d) (epsilon := epsilon))
 
 /-- The logarithmic alphabet scale. -/
 noncomputable def logAlphabet (d : ℕ) : ℝ := Real.log (Real.exp 1 * d)

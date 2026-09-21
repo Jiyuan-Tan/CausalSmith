@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.ChebyshevCertificate
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.MultinomialMoments
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotConditioning
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotSandwich
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.ChebyshevCertificate
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.MultinomialMoments
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotConditioning
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotSandwich
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

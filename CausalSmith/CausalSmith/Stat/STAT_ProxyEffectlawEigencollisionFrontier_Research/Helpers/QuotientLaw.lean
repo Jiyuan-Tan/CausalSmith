@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
 
 /-!
 Validity and bundling of the quotient latent-effect law, after the observed-margin
 consequences needed for its support bound are available.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

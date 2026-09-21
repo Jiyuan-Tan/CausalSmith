@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Topology.Algebra.Field
+
+module
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Topology.Algebra.Field
 
 /-! # Symmetric signed two-point mean channel
 
@@ -27,6 +29,8 @@ This file provides:
 It is the reusable least-favorable outcome channel for two-point / Le Cam minimax lower bounds in
 a mean-estimation setting.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Probability
 

@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
 
 /-!
 # Degeneracy of the simultaneous bounded-outcome Gaussian intersection
 -/
+
+public section
 
 noncomputable section
 

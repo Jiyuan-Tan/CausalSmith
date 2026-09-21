@@ -1,7 +1,10 @@
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
+module
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Partition.Splitting
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
 
 /-! Exact histogram law for an unmarked finite Poisson sample. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

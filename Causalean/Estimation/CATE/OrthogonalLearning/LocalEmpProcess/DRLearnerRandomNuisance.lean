@@ -3,12 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# DR-Learner oracle inequality at a *random* (cross-fitted) nuisance
+# DR-Learner oracle inequality at a random nuisance under an assumed modulus
 
-`oracle_inequality_drLearner_highProb_honest` pins the nuisance to a fixed
-deterministic `h`.  This file un-pins it: the nuisance is a fold-A-estimated
-*random* `ĥ : ℕ → Ω → NuisanceVec γ`, and the bias term becomes the *random*
-product of the two nuisance L²-errors evaluated at the realised `ĥ n ω`.
+`oracle_inequality_drLearner_fixed_nuisance_product_bias_highProb` pins the
+nuisance to a fixed deterministic `h`. This file allows an arbitrary random
+`ĥ : ℕ → Ω → NuisanceVec γ`, and the bias term becomes the random product of
+the two nuisance L²-errors evaluated at the realised `ĥ n ω`.
 
 This is the genuinely double-robust statement: the second-order bias
 `(2B/ε)·Σ_a ‖ĥ.μ_fn a − μ_val a‖₂·‖ĥ.e_fn − e_val‖₂` is a random quantity that
@@ -23,57 +23,65 @@ Two observations make this clean:
 * `drBias_le_product` already holds for **any** `h ∈ H_ε`, hence for the random
   realisation `ĥ n ω` — its bias bound is already random-ready.
 
-What this theorem still *takes as a hypothesis* is the realised empirical-process
-modulus event `hMod`: a high-probability set on which the centred excess-risk
-process is controlled at the realised `(τ̂ n ω, ĥ n ω)`.  Discharging `hMod`
-from concentration plus the **cross-fitting independence** of fold B from the
-fold-A nuisance (via `foldB_pi_law`) is the remaining frontier — it is the only
-place the fixed-`g` modulus bridge needs to be lifted to the random nuisance.
-
-See Kennedy (2023) and `def:est-osl-second-order-bias`.
+The theorem assumes the realised empirical-process modulus event `hMod`: a
+high-probability set on which the centred excess-risk process is controlled at
+the realised `(τ̂ n ω, ĥ n ω)`. It does not assume that `ĥ` is fold-A measurable
+or derive `hMod` from fold independence, so it is not a cross-fitting theorem.
 -/
 
-import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.DRLearnerHonest
+module
+public import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.DRLearnerFixedNuisance
 
 /-! # Random-Nuisance DR-Learner Bound
 
 This file extends the doubly robust learner oracle inequality from a fixed
-nuisance value to a cross-fitted random nuisance estimate. The resulting bound
-keeps the empirical-process control as an event and evaluates the second-order
-bias at the realized nuisance estimate. The main theorem
-`oracle_inequality_drLearner_random_nuisance` combines the deterministic
-plug-in ERM oracle inequality with the product-bias bound applied pointwise to
-the realized nuisance. -/
+nuisance value to an arbitrary random nuisance. It assumes the required
+empirical-process modulus event and evaluates the second-order bias at the
+realized nuisance. The main theorem
+`oracle_inequality_drLearner_random_nuisance_of_assumed_modulus` combines the
+deterministic plug-in ERM oracle inequality with the product-bias bound applied
+pointwise to the realized nuisance. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology TopologicalSpace Causalean.PO
-  Causalean.Estimation.ATE Causalean.Estimation.CATE Causalean.Stat Causalean.Stat.Concentration
+  Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning Causalean.Stat Causalean.Stat.Concentration
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
-/-- **DR-Learner oracle inequality at a random cross-fitted nuisance.** Consider a CATE
-estimation system satisfying [the backdoor identification assumptions](hyp:hA), with [an
-evaluation functional measurable in its parameter and recovering the true CATE at a parameter θ₀
-in the constraint set](hyp:θ₀_mem,eval_meas,eval_θ₀), and suppose [the overlap parameter is
-positive while the true nuisance and every realization of the random, fold-A-estimated nuisance
-ĥ n ω lie in the ε-overlap slice](hyp:hε_pos,h_overlap_η₀,hĥ_overlap). Assume [the estimator
-sequence stays in the constraint set as an approximate sample-split plug-in empirical-risk
-minimizer with respect to the random nuisance (slack r_opt), whose excess population risk at
-each realized ĥ n ω obeys a strong-convexity-type lower bound with constant σ>0, together with a
-first-order orthogonality inequality at the true nuisance's directional
-derivative](hyp:hτ_mem,hPluginERM,hσ,hSC,hFOI), and that [on a high-probability event the centred
-excess empirical risk at the realized estimator and nuisance is controlled by a rate
-ρ n](hyp:hMod). Finally, [a battery of boundedness and integrability conditions governs the
-directional-derivative
-envelope](hyp:hB_nonneg,hdEval_unif,h_μ_ĥ_int,h_phi_int,h_phiw_int) and [bounds the two random
-nuisance-error terms](hyp:hΔμ_memLp,hΔe_memLp,hA_int,hB_int). Then [for every n, with probability
-at least 1-δ the squared estimation error is bounded
-by the oracle/Rademacher term `(4(1+σ)/σ²)·(ρ n)²` plus a random second-order product-bias term
-`(4/σ)·(2B/ε)·Σ_a ‖(ĥ n ω).μ_fn a − μ_val a‖₂·‖(ĥ n ω).e_fn − e_val‖₂` evaluated at the realized
-nuisance, plus an optimization slack `(4/σ)·r_opt n`](goal).
+/-- **DR-Learner oracle inequality at a random nuisance under an assumed modulus.** For
+[a CATE estimation system](hyp:S) satisfying [backdoor identification](hyp:hA), take
+[a target Hilbert space](hyp:Θ), [a convex constraint set](hyp:Θ_set,Θ_convex),
+[a target parameter](hyp:θ₀) [in that set](hyp:θ₀_mem), and
+[an evaluation functional](hyp:eval) that [is measurable](hyp:eval_meas),
+[recovers the true CATE](hyp:eval_θ₀), and [is minimized at the target](hyp:θ₀_minimizes).
+Given [an IID sample](hyp:S_iid), [a one-shot split](hyp:split),
+[an overlap level](hyp:ε) that [is positive](hyp:hε_pos), and
+[a true nuisance in the overlap slice](hyp:h_overlap_η₀), fix
+[target and nuisance derivatives](hyp:D,ND), [a random nuisance](hyp:ĥ) whose
+[realizations remain in the overlap slice](hyp:hĥ_overlap), and
+[an estimator sequence](hyp:τhat) [remaining in the constraint set](hyp:hτ_mem).
+For [an optimization slack](hyp:r_opt), assume [the plug-in ERM property](hyp:hPluginERM),
+[a curvature constant](hyp:σ) that [is positive](hyp:hσ),
+[the strong-convexity lower bound](hyp:hSC), and
+[the first-order inequality](hyp:hFOI). Given [a rate sequence](hyp:ρ) and
+[a confidence tolerance](hyp:δ), assume
+[the realized high-probability modulus event](hyp:hMod). For
+[a derivative bound](hyp:B) that [is nonnegative](hyp:hB_nonneg), assume
+[uniformly bounded evaluation derivatives](hyp:hdEval_unif),
+[integrable realized nuisance regressions](hyp:h_μ_ĥ_int),
+[integrable pseudo-outcome differences](hyp:h_phi_int),
+[integrable weighted pseudo-outcome differences](hyp:h_phiw_int),
+[square-integrable outcome-regression errors](hyp:hΔμ_memLp),
+[square-integrable propensity errors](hyp:hΔe_memLp), and
+[integrability of both directional terms](hyp:hA_int,hB_int). Then
+[the stated high-probability random-nuisance oracle inequality holds](goal).
 
 Given a random nuisance `ĥ : ℕ → Ω → NuisanceVec γ` (each `ĥ n ω` in the overlap
 slice `H_ε`), the plug-in ERM target estimator, and — on a high-probability set
@@ -87,8 +95,9 @@ squared estimation error is bounded by the oracle/Rademacher term plus the
         + (4/σ)·r_opt n.
 
 The bias term is random (it depends on `ĥ n ω`), exposing the double-robust
-product structure that the fixed-nuisance theorem hid. -/
-theorem oracle_inequality_drLearner_random_nuisance
+product structure that the fixed-nuisance theorem hid. No fold-A measurability
+or fold-independence conclusion is supplied by this theorem. -/
+theorem oracle_inequality_drLearner_random_nuisance_of_assumed_modulus
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (S : CATEEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions)
@@ -217,5 +226,6 @@ theorem oracle_inequality_drLearner_random_nuisance
   linarith [hdet, hbias']
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

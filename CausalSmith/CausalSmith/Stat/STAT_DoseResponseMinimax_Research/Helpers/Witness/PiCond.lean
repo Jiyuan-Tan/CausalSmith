@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Dose-response minimax lower bound: treatment-density semantic tie
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Regression
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Regression
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

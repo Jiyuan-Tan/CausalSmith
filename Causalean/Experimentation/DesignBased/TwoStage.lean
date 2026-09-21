@@ -20,7 +20,8 @@ randomization to the marginal expectation of group `j`'s conditional design,
 Hudgens–Halloran unbiasedness theorems.
 -/
 
-import Causalean.Experimentation.DesignBased.Product
+module
+public import Causalean.Stat.FiniteDesign.Product
 
 /-! # Two-stage compound randomization designs
 
@@ -33,8 +34,11 @@ from a first-stage design and conditionally independent coordinate designs.  Lem
 one coordinate to that coordinate's conditional marginal expectation.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
+
 
 namespace Causalean
 namespace Experimentation

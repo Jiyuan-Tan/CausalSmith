@@ -1,11 +1,14 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Witness
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
-import Causalean.Experimentation.FinitePopulationMoments
-import Mathlib.Tactic.FinCases
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Witness
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
+public import Causalean.Experimentation.FinitePopulationMoments
+public import Mathlib.Tactic.FinCases
 
 /-!
 # Exact moments of the eight-unit witness
 -/
+
+public section
 
 namespace CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase
 

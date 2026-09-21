@@ -20,3 +20,4 @@ require mathlib from git
 
 @[default_target]
 lean_lib «Optlib» where
+  requiresModuleSystem := true

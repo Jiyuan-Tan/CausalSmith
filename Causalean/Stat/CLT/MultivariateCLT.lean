@@ -18,7 +18,7 @@ package), and each value `charFun(μ.map vecNS)(t)` equals the *scalar* char.
 function of the projected sum `⟪t, vecNS⟫ = (1/√n) Σ ⟪t, ψ(Zᵢ)⟫`, to which the
 already-proven scalar CLT applies.  This discharges the multivariate CLT
 contact `_hCLT` taken as a hypothesis by
-`IsAsymLinearVec.tendsto_normal_vec` and `deltaMethod` (the vector Δ-method).
+`IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum` and `deltaMethod` (the vector Δ-method).
 
 ## Status of the limit law
 
@@ -52,9 +52,11 @@ Key declarations:
   normality from vector asymptotic linearity (no CLT hypothesis).
 -/
 
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.CLT.AsymptoticLinearityVec
-import Causalean.Stat.Limit.ConvergenceVec
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.CLT.AsymptoticLinearityVec
+public import Causalean.Stat.Limit.ConvergenceVec
+public import Mathlib.MeasureTheory.Measure.LevyConvergence
 
 /-! # Multivariate Central Limit Theorem
 
@@ -72,6 +74,8 @@ Cramér-Wold wrapper, `IIDSample.clt_normalizedSum_vec_of_charFun` for the
 abstract Gaussian-target CLT, and `IsAsymLinearVec.tendsto_normal_vec_clt` for
 end-to-end vector asymptotic normality. -/
 
+@[expose] public section
+
 namespace Causalean.Stat
 
 open MeasureTheory ProbabilityTheory Filter Topology Complex
@@ -83,7 +87,7 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
     [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
 
 /-- Range index family (the full-sample case). -/
-private noncomputable abbrev rng : ℕ → Finset ℕ := fun m => Finset.range m
+noncomputable abbrev rng : ℕ → Finset ℕ := fun m => Finset.range m
 
 /-! ## Projection of the vector normalised sum -/
 
@@ -144,7 +148,7 @@ theorem IIDSample.normalizedSum_vec_charFun_tendsto_of_proj_integrable
   -- scalar CLT for the projected influence function
   have h_scalar :=
     S.clt_normalized_sum hψt_meas hψt_mean hψt_var
-  unfold Tendsto_dist at h_scalar
+  rw [Tendsto_dist_iff] at h_scalar
   -- convert weak convergence to pointwise charFun convergence (Lévy, E = ℝ)
   have h_char1 :
       Tendsto
@@ -230,7 +234,7 @@ theorem Tendsto_dist_vec.of_charFun_tendsto
     (hchar : ∀ t : E,
       Tendsto (fun n => charFun (μ.map (Xn n)) t) atTop (𝓝 (charFun Q t))) :
     Tendsto_dist_vec Xn Q μ hXn := by
-  unfold Tendsto_dist_vec
+  rw [Tendsto_dist_vec_iff]
   refine MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr fun t => ?_
   simpa [ProbabilityMeasure.coe_mk] using hchar t
 
@@ -243,7 +247,7 @@ function is [the Gaussian one $\exp(-\tfrac12\int\langle t,\psi\rangle^2\,dP)$ a
 `t`](hyp:hQ), then [the vector normalised sum converges in distribution to `Q`](goal).
 
     This discharges the `_hCLT` hypothesis of
-`IsAsymLinearVec.tendsto_normal_vec` and of `deltaMethod`. -/
+`IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum` and of `deltaMethod`. -/
 theorem IIDSample.clt_normalizedSum_vec_of_charFun
     (S : IIDSample Ω X μ P) {ψ : X → E}
     (hψ_meas : Measurable ψ)
@@ -287,7 +291,7 @@ t,\psi\rangle^2\,dP)$ at every point `t`](hyp:hQ), and [the rescaled estimator i
 measurable at every sample size](hyp:hθn_meas), then [the pushforward laws of the rescaled
 estimator converge to `Q`](goal).
 
-    Combines `IsAsymLinearVec.tendsto_normal_vec` with the
+    Combines `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum` with the
 multivariate CLT contact `clt_normalizedSum_vec_of_charFun`. -/
 theorem IsAsymLinearVec.tendsto_normal_vec_clt
     {θn : ℕ → Ω → E} {θ₀ : E} {ψ : X → E}
@@ -310,8 +314,10 @@ theorem IsAsymLinearVec.tendsto_normal_vec_clt
       unfold IsAsymLinearVec.normalizedSum
       exact ((Finset.measurable_sum _
         (fun i _ => hψ_meas.comp (S.meas i))).const_smul _).aemeasurable
-    exact IsAsymLinearVec.tendsto_normal_vec ⟨Q, ‹IsProbabilityMeasure Q›⟩ h.remainder
+    exact IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum
+      ⟨Q, ‹IsProbabilityMeasure Q›⟩ h.remainder
       hθn_meas hSum_meas
-      (S.clt_normalizedSum_vec_of_charFun hψ_meas h.mean_zero h.finite_var Q hQ)
+      ((Tendsto_dist_vec_iff _ _ _ hSum_meas).1
+        (S.clt_normalizedSum_vec_of_charFun hψ_meas h.mean_zero h.finite_var Q hQ))
 
 end Causalean.Stat

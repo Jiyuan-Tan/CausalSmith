@@ -1,10 +1,11 @@
-import Mathlib.Algebra.MvPolynomial.Funext
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Function.LocallyIntegrable
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Measure.OpenPos
+module
+public import Mathlib.Algebra.MvPolynomial.Funext
+public import Mathlib.Analysis.Matrix.PosDef
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Function.LocallyIntegrable
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.MeasureTheory.Measure.OpenPos
 
 /-!
 # Multivariate monomial Gram matrices
@@ -12,6 +13,8 @@ import Mathlib.MeasureTheory.Measure.OpenPos
 This module proves that distinct multivariate monomials have a positive-definite Gram matrix on
 every nondegenerate real cube.  It also supplies the resulting uniform quadratic coercivity bound.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open MeasureTheory Set

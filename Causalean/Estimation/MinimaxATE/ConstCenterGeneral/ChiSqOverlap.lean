@@ -21,7 +21,8 @@ summing over the two positions of a pair leaves only the `λ·λ'` cross term �
 the structure the abstract `ingster_bound` consumes (instantiated with `γ = Γ/2`).
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Gap
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Gap
 
 /-! # General-Center Chi-Squared Second-Moment Overlap
 
@@ -37,6 +38,8 @@ single-observation overlap, `obsReal_pertG_eq` gives the denominator-free
 observed-mass formula for the four treatment/outcome cells, and
 `chiSqOverlap_eqG` proves the closed form
 `1 + (Γ / K) * ∑ j, signOf (lam j) * signOf (lam' j)`. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

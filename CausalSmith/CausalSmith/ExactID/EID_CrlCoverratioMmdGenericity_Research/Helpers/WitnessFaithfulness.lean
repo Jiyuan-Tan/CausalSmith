@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessQuantitative
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
-import Causalean.Mathlib.Indep
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessQuantitative
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
+public import Causalean.Mathlib.Probability.Independence.Basic
 
 /-!
 # Graph reduction for explicit-witness faithfulness
@@ -9,9 +10,18 @@ This file isolates the finite graph calculation used to reduce faithfulness of
 the explicit three-node witnesses to dependence of the unique adjacent pair.
 -/
 
+public section
+
+open Causalean.Graph
+
+
 noncomputable section
 
 open MeasureTheory ProbabilityTheory Set
+
+open Causalean.Mathlib.Probability.Independence
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
@@ -53,7 +63,7 @@ lemma indepFun_of_condIndepFun_bot
 /-- Coordinate-block conditional independence given the empty block implies ordinary
 independence whenever the observational law is a probability measure.  Given [the stated inputs and conditions](hyp:hCI), [the stated conclusion](goal) follows. -/
 lemma indepFun_of_condIndepCoordinates_empty
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (X Y : Finset (Fin n)) [IsProbabilityMeasure (observationalLaw θ)]
     (hCI : CondIndepCoordinates θ X Y ∅) :
     IndepFun (coordinateProjection X) (coordinateProjection Y) (observationalLaw θ) := by
@@ -61,7 +71,7 @@ lemma indepFun_of_condIndepCoordinates_empty
   let _ := hμ
   have hbot : MeasurableSpace.comap (coordinateProjection (∅ : Finset (Fin n)))
       inferInstance = (⊥ : MeasurableSpace (LatentState n)) :=
-    Causalean.comap_eq_bot_of_subsingleton _
+    comap_eq_bot_of_subsingleton _
   rw [condIndepFun_iff_condExp_inter_preimage_eq_mul hX hY] at hCI
   rw [hbot] at hCI
   apply indepFun_of_condIndepFun_bot hX hY
@@ -85,7 +95,7 @@ lemma threeNodeDAG_not_dSep_iff_cross_edge (X Y Z : Finset (Fin 3))
 /-- Conditional independence of two coordinate blocks descends to any chosen singleton
 coordinate from each block.  Given [the stated inputs and conditions](hyp:ha,hb,hCI), [the stated conclusion](goal) follows. -/
 lemma condIndepCoordinates_singletons_of_mem
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (X Y Z : Finset (Fin n)) {a b : Fin n} (ha : a ∈ X) (hb : b ∈ Y)
     (hCI : CondIndepCoordinates θ X Y Z) :
     CondIndepCoordinates θ {a} {b} Z := by
@@ -120,7 +130,7 @@ lemma condIndepCoordinates_singletons_of_mem
 -- @node: condIndepCoordinates_symm
 /-- Coordinate-block conditional independence is symmetric in its two query blocks.  Given [the stated inputs and conditions](hyp:hCI), [the stated conclusion](goal) follows. -/
 lemma condIndepCoordinates_symm
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {X Y Z : Finset (Fin n)} (hCI : CondIndepCoordinates θ X Y Z) :
     CondIndepCoordinates θ Y X Z := by
   rcases hCI with ⟨hμ, hX, hY, hZ, hCI⟩
@@ -177,7 +187,7 @@ lemma threeNodeDAG_faithful_of_unconditional_edge_dependence
     rcases hisolated with ⟨_, hX', hW', hEmpty, hXW⟩
     have hbot : MeasurableSpace.comap (coordinateProjection (∅ : Finset (Fin 3)))
         inferInstance = (⊥ : MeasurableSpace (LatentState 3)) :=
-      Causalean.comap_eq_bot_of_subsingleton _
+      comap_eq_bot_of_subsingleton _
     have hXY' : ProbabilityTheory.CondIndepFun
         ((⊥ : MeasurableSpace (LatentState 3)) ⊔
           MeasurableSpace.comap (coordinateProjection ({2} : Finset (Fin 3))) inferInstance)
@@ -188,7 +198,7 @@ lemma threeNodeDAG_faithful_of_unconditional_edge_dependence
         (⊥ : MeasurableSpace (LatentState 3)) bot_le
         (coordinateProjection {0}) (coordinateProjection {2}) (observationalLaw θ) := by
       simpa only [hbot] using hXW
-    have hpair := Causalean.condIndepFun_contraction_of_prodMk bot_le
+    have hpair := condIndepFun_contraction_of_prodMk bot_le
       hX hY hW hXY' hXW'
     have hplain : ProbabilityTheory.CondIndepFun
         (⊥ : MeasurableSpace (LatentState 3)) bot_le
@@ -213,7 +223,7 @@ lemma threeNodeDAG_isolated_independence
     ext k
     fin_cases k <;> decide
   have hraw := mechanism_condIndepGiven_orderedLocalMarkov hpos τ 2 ∅
-    (by simp [hpred]) (by simp [threeNodeDAG, threeNodeEdge, Causalean.DAG.parents])
+    (by simp [hpred]) (by simp [threeNodeDAG, threeNodeEdge, DAG.parents])
   rw [hpred] at hraw
   rcases hraw with ⟨hμ, h2, h01, hE, hci⟩
   letI := hμ
@@ -270,7 +280,7 @@ lemma threeNodeDAG_faithful_of_causalMinimality
     apply hm
     convert h10 using 1
     ext k
-    fin_cases k <;> simp [threeNodeDAG, threeNodeEdge, Causalean.DAG.parents]
+    fin_cases k <;> simp [threeNodeDAG, threeNodeEdge, DAG.parents]
   · exact threeNodeDAG_isolated_independence hpos
 
 end CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity

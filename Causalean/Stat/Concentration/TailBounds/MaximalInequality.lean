@@ -21,7 +21,8 @@ theory.
   `t.sup' (fun i => |Y i ω|)`.
 -/
 
-import Causalean.Stat.Concentration.TailBounds.SubExponential
+module
+public import Causalean.Stat.Concentration.TailBounds.SubExponential
 
 /-! # Finite Maximal Inequalities
 
@@ -31,6 +32,8 @@ sub-exponential random variables.  The theorem
 variable, `measure_exists_abs_ge_le` applies a finite union bound to an indexed
 family, and `measure_sup'_ge_le` states the same estimate for a finite pointwise
 maximum. -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

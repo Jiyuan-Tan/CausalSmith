@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwVariance
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.StationaryRewardSupport
-import Mathlib.Probability.Moments.Variance
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwVariance
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.StationaryRewardSupport
+public import Mathlib.Probability.Moments.Variance
 
 set_option linter.style.longLine false
 
 /-! # Bias and variance bound for partial-history weighting -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

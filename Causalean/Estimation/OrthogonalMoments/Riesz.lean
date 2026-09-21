@@ -3,15 +3,16 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Riesz representer pattern
+# Mean-pairing representer pattern
 
 A unifying abstraction for linear-in-γ causal functionals
 (ATE, policy value, average derivative, weighted treatment effects).
 
-When a target functional `θ(P)` depends on a regression function `γ_0`
-only through a continuous linear functional `L(γ_0)`, by the Riesz
-representation theorem there exists `α_0 : X → ℝ` such that
+The interface in this file assumes directly that a function `α_0 : X → ℝ`
+represents a supplied map `L` through the identity
 `L(γ) = E_{P_X}[α_0(X) · γ(X)]` for every `γ` in the regression class.
+It does not assert that `L` is linear or continuous or derive existence from
+the Riesz representation theorem.
 
 The orthogonal score is then
 
@@ -23,17 +24,21 @@ explaining why product rates suffice in DML.
 Reference:
 * `def:sp-riesz` in `doc/basic_concepts/Semi-parametric Inference/
   semi_parametric_inference.tex`.
-* Chernozhukov–Newey–Singh (2022) Riesz/RieszNet learning.
+* Chernozhukov–Newey–Singh (2022) automatic debiased machine learning.
+* Chernozhukov–Newey–Quintas-Martínez–Syrgkanis (2022) RieszNet.
 -/
 
-import Causalean.Estimation.OrthogonalMoments.MomentFunctional
+module
+public import Causalean.Estimation.OrthogonalMoments.MomentFunctional
 
-/-! # Riesz Scores for Orthogonal Moments
+/-! # Mean-Pairing Scores for Orthogonal Moments
 
-This file provides the Riesz-representation pattern for linear-in-regression
-causal functionals. It defines the representer, the corresponding orthogonal
-score, and the mean-zero and bilinear-remainder identities used by automatic
-debiasing and double machine learning. -/
+This file provides a mean-pairing representation assumed for maps on a
+regression class. It defines the representation witness, the corresponding
+score, and mean-zero and bilinear-remainder identities. It does not encode
+linearity or continuity of the represented map. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -45,32 +50,47 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {X : Type*} [MeasurableSpace X]
 
-/-- A **Riesz representation** for a continuous linear functional on a regression class
-under a covariate measure: a function [α₀](hyp:α₀) on the covariate space that is
-[measurable](hyp:α₀_meas), [integrable against the covariate measure](hyp:α₀_integrable), and
+/-- For [a regression class, its evaluation map, a real-valued map, and a
+covariate measure](hyp:H_γ,γ_target,L,P_X), a mean-pairing
+representation stores a function [α₀](hyp:α₀) on the covariate space that is
+[measurable](hyp:α₀_meas), [square-integrable against the covariate measure](hyp:α₀_memLp), and
 that [represents the functional's value at every element of the regression class as the
 covariate-measure integral of α₀ against that element's evaluation](hyp:representation).
 
 Concrete causal targets such as ATE and policy value construct an instance of
 this structure from their identification proof. -/
-structure RieszRepresentation
+structure MeanPairingRepresentation
     (H_γ : Type*) [AddCommGroup H_γ] [Module ℝ H_γ]
     (γ_target : H_γ → X → ℝ)
     (L : H_γ → ℝ)
     (P_X : Measure X) where
   α₀ : X → ℝ
   α₀_meas : Measurable α₀
-  α₀_integrable : Integrable α₀ P_X
+  α₀_memLp : MemLp α₀ 2 P_X
   representation : ∀ γ : H_γ, L γ = ∫ x, α₀ x * γ_target γ x ∂P_X
 
-/-- For [an observed-data space and a covariate space](hyp:Z,X), [a regression-function vector space](hyp:H_γ), [a map assigning each regression function
-its value at every covariate](hyp:γ_target), [a real-valued linear functional of that regression
-function](hyp:L), [an observed-data-to-covariate map](hyp:proj_X), [an observed outcome map](hyp:Y_obs),
-[a regression function](hyp:γ), [a Riesz representer](hyp:α), [a scalar target](hyp:θ), and [an
-observed-data realization](hyp:z), the [generic Riesz orthogonal score](goal) is the functional
-evaluated at the regression function plus the representer times its observed residual, minus the target.
+/-- On [a probability space, the representer's square-integrability](hyp:rep)
+[implies that the representer is integrable](goal). -/
+@[fun_prop]
+theorem MeanPairingRepresentation.α₀_integrable
+    {H_γ : Type*} [AddCommGroup H_γ] [Module ℝ H_γ]
+    {γ_target : H_γ → X → ℝ} {L : H_γ → ℝ} {P_X : Measure X}
+    [IsProbabilityMeasure P_X]
+    (rep : MeanPairingRepresentation H_γ γ_target L P_X) :
+    Integrable rep.α₀ P_X :=
+  rep.α₀_memLp.integrable (by norm_num)
 
-Given a Riesz representation,
+/-- For [an observed-data space and a covariate space](hyp:Z,X), [a
+regression-function vector space](hyp:H_γ), [a map assigning each regression
+function its value at every covariate](hyp:γ_target), [a real-valued map on
+regression functions](hyp:L), [an observed-data-to-covariate map](hyp:proj_X),
+[an observed outcome map](hyp:Y_obs), [a regression function](hyp:γ), [a
+pairing function](hyp:α), [a scalar target](hyp:θ), and [an observed-data
+realization](hyp:z), the [augmented pairing score](goal) is the supplied map
+evaluated at the regression function plus the pairing term times its observed
+residual, minus the target.
+
+Given a mean-pairing representation,
 the orthogonal moment for the target `θ(P) := L(γ_0)` is
 
   `m(z; θ, γ, α) := L(γ) + α(X) · (Y_obs z − γ(X)) − θ`,
@@ -78,7 +98,7 @@ the orthogonal moment for the target `θ(P) := L(γ_0)` is
 where `X = proj_X z`.  Concrete instances (ATE, policy value) supply the
 projections `proj_X` and outcome `Y_obs` and integrate this with the
 `GeneralMoment` interface. -/
-noncomputable def rieszScore
+noncomputable def pairingScore
     {H_γ : Type*} [AddCommGroup H_γ] [Module ℝ H_γ]
     (γ_target : H_γ → X → ℝ)
     (L : H_γ → ℝ)
@@ -86,29 +106,29 @@ noncomputable def rieszScore
     (γ : H_γ) (α : X → ℝ) (θ : ℝ) (z : Z) : ℝ :=
   L γ + α (proj_X z) * (Y_obs z - γ_target γ (proj_X z)) - θ
 
-/-- **Mean-zero of the Riesz score at the truth.** Given [a Riesz representation `rep` of a
-linear functional L on the regression class H_γ under P_X](hyp:H_γ,P_X,rep), with true
+/-- **Mean-zero of the pairing score at the truth.** Given [a mean-pairing
+representation `rep` for L on the regression class H_γ under P_X](hyp:H_γ,P_X,rep), with true
 regression function [γ₀](hyp:γ₀), and observed data given by [the covariate projection
 `proj_X` and the outcome `Y_obs`](hyp:proj_X,Y_obs), suppose [the representer residual
 α₀(proj_X z)·(Y_obs z − γ_target γ₀ (proj_X z)) has population mean zero under
 P_Z](hyp:h_orthog) — which holds when `γ_target γ₀` is the conditional expectation of `Y_obs`
 given `proj_X`, since residuals are orthogonal to all square-integrable functions of `proj_X`.
-Then [the orthogonal score `rieszScore` evaluated at the truth (γ₀, α₀, L γ₀) integrates to
+Then [the score `pairingScore` evaluated at the truth (γ₀, α₀, L γ₀) integrates to
 zero under P_Z](goal):
 
-    ∫ z, rieszScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z = 0. -/
-theorem rieszScore_meanZero
+    ∫ z, pairingScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z = 0. -/
+theorem pairingScore_meanZero
     {H_γ : Type*} [AddCommGroup H_γ] [Module ℝ H_γ]
     {γ_target : H_γ → X → ℝ}
     {L : H_γ → ℝ}
     {P_X : Measure X}
     [IsProbabilityMeasure P_Z]
-    (rep : RieszRepresentation H_γ γ_target L P_X)
+    (rep : MeanPairingRepresentation H_γ γ_target L P_X)
     (γ₀ : H_γ) (proj_X : Z → X) (Y_obs : Z → ℝ)
     (h_orthog :
       ∫ z, rep.α₀ (proj_X z) * (Y_obs z - γ_target γ₀ (proj_X z)) ∂P_Z = 0) :
-    ∫ z, rieszScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z = 0 := by
-  unfold rieszScore
+    ∫ z, pairingScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z = 0 := by
+  unfold pairingScore
   have h1 :
       (fun z => L γ₀ + rep.α₀ (proj_X z) * (Y_obs z - γ_target γ₀ (proj_X z)) - L γ₀)
         = fun z => rep.α₀ (proj_X z) * (Y_obs z - γ_target γ₀ (proj_X z)) := by
@@ -128,7 +148,7 @@ private lemma integral_comp_proj_eq
   rw [MeasureTheory.integral_map h_proj_meas.aemeasurable hf_map]
 
 omit [MeasurableSpace X] in
-private lemma rieszScore_integral_eq
+private lemma pairingScore_integral_eq
     {H_γ : Type*} [AddCommGroup H_γ] [Module ℝ H_γ]
     {γ_target : H_γ → X → ℝ}
     {L : H_γ → ℝ}
@@ -144,7 +164,7 @@ private lemma rieszScore_integral_eq
       Integrable (fun z => α (proj_X z) * γ_target γ (proj_X z)) P_Z)
     (h_int_αγ₀ :
       Integrable (fun z => α (proj_X z) * γ_target γ₀ (proj_X z)) P_Z) :
-    ∫ z, rieszScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z
+    ∫ z, pairingScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z
       = L γ - L γ₀
           - ∫ z, α (proj_X z) * γ_target γ (proj_X z) ∂P_Z
           + ∫ z, α (proj_X z) * γ_target γ₀ (proj_X z) ∂P_Z := by
@@ -157,10 +177,10 @@ private lemma rieszScore_integral_eq
   let prod₀ : Z → ℝ :=
     fun z => α (proj_X z) * γ_target γ₀ (proj_X z)
   have hscore :
-      (fun z => rieszScore γ_target L proj_X Y_obs γ α (L γ₀) z)
+      (fun z => pairingScore γ_target L proj_X Y_obs γ α (L γ₀) z)
         = fun z => const z + resid z + negProd z + prod₀ z := by
     funext z
-    simp [rieszScore, const, resid, prod, negProd, prod₀]
+    simp [pairingScore, const, resid, prod, negProd, prod₀]
     ring
   have hconst : Integrable const P_Z := integrable_const _
   have hresid : Integrable resid P_Z := h_int_resid_α
@@ -185,19 +205,18 @@ private lemma rieszScore_integral_eq
   simp [const, prod, prod₀]
   ring_nf
 
-/-- **Bilinear remainder identity for the Riesz score.**
-
-For any perturbation `(γ, α)` with finite residual and product moments,
+/-- **Bilinear remainder identity for the pairing score.** For any perturbation
+`(γ, α)` with finite residual and product moments,
 the population orthogonal moment at `θ₀ := L γ₀` factorises as a product
 of the regression error and the representer error:
 
-    ∫ z, rieszScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z
-        − ∫ z, rieszScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z
+    ∫ z, pairingScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z
+        − ∫ z, pairingScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z
       = − ∫ x, (α x − rep.α₀ x) · (γ_target γ x − γ_target γ₀ x) ∂P_X.
 
-(With `score` evaluated at `(γ, α)` perturbed and `(γ₀, α₀)` the truth;
-the difference of population scores equals the negative inner product of
-the two errors in `L²(P_X)`.)
+(With `score` evaluated at `(γ, α)` perturbed and `(γ₀, α₀)` the truth,
+the difference of population scores equals the negative integral pairing of
+the two errors under `P_X`.)
 
 Hypotheses bundle the standard ingredients:
 
@@ -212,13 +231,13 @@ Hypotheses bundle the standard ingredients:
   residual condition is needed mathematically for Bochner integral linearity;
   product integrability under `P_X` is recovered from the composition
   integrability under `P_Z` using the pushforward identity. -/
-theorem rieszScore_bilinearRem
+theorem pairingScore_bilinearRem
     {H_γ : Type*} [AddCommGroup H_γ] [Module ℝ H_γ]
     {γ_target : H_γ → X → ℝ}
     {L : H_γ → ℝ}
     {P_X : Measure X}
     [IsProbabilityMeasure P_Z]
-    (rep : RieszRepresentation H_γ γ_target L P_X)
+    (rep : MeanPairingRepresentation H_γ γ_target L P_X)
     (γ₀ γ : H_γ) (α : X → ℝ)
     (proj_X : Z → X) (Y_obs : Z → ℝ)
     (h_pushforward : P_X = P_Z.map proj_X)
@@ -241,8 +260,8 @@ theorem rieszScore_bilinearRem
     (h_int_α : Integrable α P_X)
     (h_int_γ : Integrable (γ_target γ) P_X)
     (h_int_γ₀ : Integrable (γ_target γ₀) P_X) :
-    (∫ z, rieszScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z)
-        - (∫ z, rieszScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z)
+    (∫ z, pairingScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z)
+        - (∫ z, pairingScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z)
       = - ∫ x, (α x - rep.α₀ x) * (γ_target γ x - γ_target γ₀ x) ∂P_X := by
   have h_int_αγ_X :
       Integrable (fun x => α x * γ_target γ x) P_X := by
@@ -261,15 +280,15 @@ theorem rieszScore_bilinearRem
       exact h_int_α.aestronglyMeasurable.fun_mul h_int_γ₀.aestronglyMeasurable
     exact (MeasureTheory.integrable_map_measure h_asm h_proj_meas.aemeasurable).2 h_int_αγ₀
   have hscore :
-      ∫ z, rieszScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z
+      ∫ z, pairingScore γ_target L proj_X Y_obs γ α (L γ₀) z ∂P_Z
         = L γ - L γ₀
             - ∫ z, α (proj_X z) * γ_target γ (proj_X z) ∂P_Z
             + ∫ z, α (proj_X z) * γ_target γ₀ (proj_X z) ∂P_Z :=
-    rieszScore_integral_eq γ₀ γ α proj_X Y_obs h_orthog_α h_int_resid_α
+    pairingScore_integral_eq γ₀ γ α proj_X Y_obs h_orthog_α h_int_resid_α
       h_int_αγ h_int_αγ₀
   have htruth :
-      ∫ z, rieszScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z = 0 :=
-    rieszScore_meanZero rep γ₀ proj_X Y_obs h_orthog_α₀
+      ∫ z, pairingScore γ_target L proj_X Y_obs γ₀ rep.α₀ (L γ₀) z ∂P_Z = 0 :=
+    pairingScore_meanZero rep γ₀ proj_X Y_obs h_orthog_α₀
   have hmap_αγ :
       ∫ z, α (proj_X z) * γ_target γ (proj_X z) ∂P_Z
         = ∫ x, α x * γ_target γ x ∂P_X :=

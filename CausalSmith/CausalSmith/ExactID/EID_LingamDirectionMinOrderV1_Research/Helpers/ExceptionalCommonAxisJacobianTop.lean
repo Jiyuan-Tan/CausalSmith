@@ -6,7 +6,12 @@ Authors: Jiyuan Tan
 # The pinned confluent top block for the common-axis Jacobian
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalJacobianCoordinates
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalJacobianCoordinates
+
+/-! Public common-axis top-Jacobian constructions for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -429,7 +434,7 @@ def canonicalCommonAxisTopAugmentedJacobianAtWitness
         (forwardCommonAxisCoordinatePolynomial m (2 * m + 2) hm (by omega)
           (commonAxisTopAugmentedRow m a)))
 
-private def commonAxisTopAugmentedLowerLeft (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisTopAugmentedLowerLeft (m : ℕ) (hm : 1 ≤ m) :
     Matrix Unit (CommonAxisTopIndex m) ℂ :=
   fun u b => canonicalCommonAxisTopAugmentedJacobianAtWitness m hm
     (Sum.inr u) (Sum.inl b)

@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGram
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGram
 
 /-!
 # Population-Gram certificate for the hard square
@@ -7,6 +8,8 @@ This module transports the hard law to its score density, restricts the Gram
 quadratic form to a fixed radial sector in either assignment arm, and combines
 the resulting polar integral with finite-dimensional polynomial coercivity.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

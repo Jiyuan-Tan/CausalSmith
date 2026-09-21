@@ -1,9 +1,11 @@
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.Probability.Notation
-import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
-import Mathlib.Probability.Independence.Basic
-import Mathlib.MeasureTheory.Integral.Prod
+module
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Mathlib.Probability.Notation
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Finite
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.MeasureTheory.Integral.Prod
 
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 

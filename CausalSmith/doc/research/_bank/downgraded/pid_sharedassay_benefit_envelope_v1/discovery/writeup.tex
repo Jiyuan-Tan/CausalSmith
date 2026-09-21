@@ -1,0 +1,1014 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}sharedassay\_\allowbreak{}benefit\_\allowbreak{}envelope}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Average efficacy can conceal simultaneous benefit and harm, while an imperfect binary endpoint assay makes even the two latent arm risks uncertain and couples them through one blinded channel. The proposal derives a unique probability-compatible latent-table root and proves that the sharp probability-of-benefit interval under a finite cross-product odds band is obtained from at most ten explicit channel candidates. It constructs attaining laws, separates closed-model endpoints from strict positive-cell attainment, and projects four exact binomial confidence sets through a finite contact-robust map with excess width of order \(1/(\kappa\sqrt{N_{\min}})\).
+
+\section{Project justification}
+
+\paragraph{Gap.} Binary probability-of-benefit sensitivity analyses take the latent arm margins as observed, while direct misclassification methods do not exploit the special coupling created by one uncertain assay channel or the finite odds-band root geometry. Existing bound-inference work does not give finite-sample validation-binomial coverage through ties and assay-feasibility contacts.
+
+\paragraph{Niche.} A shared channel converts two separate margin intervals into a two-dimensional convex polygon whose nonlinear odds-root objective has an unusually small and explicitly classifiable stationary set.
+
+\paragraph{Fill.} The paper supplies the complete ten-candidate envelope, constructive sharpness, an exact strict-attainment criterion, and exact primitive confidence projection with a Youden-index width modulus.
+
+\section{Related work}
+
+Rubin1974 supplies the randomized potential-outcome framework and consistency conditions used to identify the two observed arm risks. ZhangNieSoonLiu2013, Section 3.3, supplies the fixed-margin binary odds reconstruction adapted in the compatible-root lemma. LuDingDasgupta2018 places probability-of-benefit functionals within the sharp-bound theory for ordinal potential outcomes with clean observed outcomes; it does not incorporate an uncertain shared assay channel. CiocaneaTeodorescuGabrielSjolander2025, Theorem 1 and its discussion of compatibility, provides the closest clean-outcome probability-of-benefit sensitivity formulation and the motivation arc from cancellation of benefit and harm. Molinari2008, equations (2.1)--(2.3), supplies the direct channel-matrix view and constructive interpretation of sharp latent distributions. EdwardsZivichShookSaCole2026 supplies the binary sensitivity-specificity inversion and positive-Youden condition, whereas the present problem couples two latent margins through the same uncertain channel and then bounds their joint benefit probability. GabrielSachsJensen2024 derives symbolic ordinal benefit bounds, evaluates bootstrap coverage, documents regular-bootstrap undercoverage near parameter-space boundaries, and reports a conservative \(m\)-out-of-\(n\) correction. The inference novelty here is limited to exact simultaneous inversion of the trial-risk and validation binomials coupled with the finite contact-complete shared-assay evaluator. ClopperPearson1934 provides the exact marginal binomial confidence sets, Hoeffding1963 supplies their deviation-radius control, and Boole1854 supplies the union bound combining the four marginal guarantees before projection. FanPark2010 develops inference for switching sharp treatment-effect-distribution bounds. KaidoMolinariStoye2019 supplies the calibrated-projection comparison, although the present procedure uses exact binomial inversion rather than asymptotic calibration. RossColeEdwardsEtAl2024 makes assay transport an explicit data-fusion condition rather than an implication of blinding. HengShaw2025 treats finite-population randomization tests under misclassification and motivates certified edge handling, but its target is warning accuracy rather than a superpopulation benefit interval. PolackEtAl2020 supplies the prospective clinical workflow: a blinded vaccine trial with a laboratory-confirmed binary endpoint, not evidence that a transported common assay channel already holds.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \texttt{b =\allowbreak{} P(Y(0)=\allowbreak{}0,\allowbreak{}Y(1)=\allowbreak{}1)}.
+Primary functional / estimator / diagnostic: \texttt{[L,\allowbreak{}U]=\allowbreak{}[\textbackslash{}\allowbreak{}min\_\allowbreak{}\{z\textbackslash{}\allowbreak{}in C\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta\_\allowbreak{}U\}\allowbreak{}\}\allowbreak{}b\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta\_\allowbreak{}U\}\allowbreak{}(z),\allowbreak{}\textbackslash{}\allowbreak{}max\_\allowbreak{}\{z\textbackslash{}\allowbreak{}in C\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta\_\allowbreak{}L\}\allowbreak{}\}\allowbreak{}b\_\allowbreak{}\{\textbackslash{}\allowbreak{}theta\_\allowbreak{}L\}\allowbreak{}(z)]}.
+\begin{itemize}
+  \item \texttt{A} --- \texttt{binary treatment assignment}; \(\{0,1\}\); \texttt{assignment}
+  \par\smallskip\noindent\emph{Definition.} Randomized assignment, with control coded by \(0\) and treatment coded by \(1\).
+  \item \texttt{Y0} --- \texttt{binary potential outcome}; \(\{0,1\}\); \texttt{control potential outcome}
+  \par\smallskip\noindent\emph{Definition.} \(Y_0=Y(0)\) is the favorable latent outcome under control.
+  \item \texttt{Y1} --- \texttt{binary potential outcome}; \(\{0,1\}\); \texttt{treatment potential outcome}
+  \par\smallskip\noindent\emph{Definition.} \(Y_1=Y(1)\) is the favorable latent outcome under treatment.
+  \item \texttt{W0} --- \texttt{binary recorded potential outcome}; \(\{0,1\}\); \texttt{control recorded endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(W_0=W(0)\) is the assay-recorded outcome under control.
+  \item \texttt{W1} --- \texttt{binary recorded potential outcome}; \(\{0,1\}\); \texttt{treatment recorded endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(W_1=W(1)\) is the assay-recorded outcome under treatment.
+  \item \texttt{W} --- \texttt{binary observed outcome}; \(\{0,1\}\); \texttt{observed endpoint}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed recorded endpoint selected by assignment.}
+  \item \texttt{P} --- \texttt{population law}; \(\mathcal P(\{0,1\}^{6})\); \texttt{data-\allowbreak{}generating law}
+  \par\smallskip\noindent\emph{Definition.} The joint law of \(A,Y_0,Y_1,W_0,W_1,W\).
+  \item \texttt{q0} --- \texttt{observed arm risk}; \([0,1]\); \texttt{control recorded risk}
+  \par\smallskip\noindent\emph{Definition.} \(q_0=P(W=1\mid A=0)\), defined under \(P(A=0)>0\).
+  \item \texttt{q1} --- \texttt{observed arm risk}; \([0,1]\); \texttt{treatment recorded risk}
+  \par\smallskip\noindent\emph{Definition.} \(q_1=P(W=1\mid A=1)\), defined under \(P(A=1)>0\).
+  \item \texttt{s} --- \texttt{assay sensitivity}; \([0,1]\); \texttt{assay parameter}
+  \par\smallskip\noindent\emph{Definition.} The common sensitivity coefficient satisfying \(P(W_a=1,Y_a=1)=sP(Y_a=1)\) in each arm.
+  \item \texttt{c} --- \texttt{assay specificity}; \([0,1]\); \texttt{assay parameter}
+  \par\smallskip\noindent\emph{Definition.} The common specificity coefficient satisfying \(P(W_a=0,Y_a=0)=cP(Y_a=0)\) in each arm.
+  \item \texttt{u} --- \texttt{false-\allowbreak{}positive probability}; \([0,1]\); \texttt{channel coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(u=1-c\).
+  \item \texttt{v} --- \texttt{true-\allowbreak{}positive probability}; \([0,1]\); \texttt{channel coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(v=s\).
+  \item \texttt{d} --- \texttt{Youden index}; \([-1,1]\); \texttt{assay informativeness}
+  \par\smallskip\noindent\emph{Definition.} \(d=v-u=s+c-1\).
+  \item \texttt{kappa} --- \texttt{positive informativeness floor}; \((0,1]\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed lower bound on the Youden index.}
+  \item \texttt{uL} --- \texttt{lower false-\allowbreak{}positive bound}; \([0,1]\); \texttt{channel-\allowbreak{}box constant}
+  \par\smallskip\noindent\emph{Definition.} \(u_L\) is the lower endpoint of the false-positive rectangle coordinate.
+  \item \texttt{uU} --- \texttt{upper false-\allowbreak{}positive bound}; \([0,1]\); \texttt{channel-\allowbreak{}box constant}
+  \par\smallskip\noindent\emph{Definition.} \(u_U\) is the upper endpoint of the false-positive rectangle coordinate.
+  \item \texttt{vL} --- \texttt{lower true-\allowbreak{}positive bound}; \([0,1]\); \texttt{channel-\allowbreak{}box constant}
+  \par\smallskip\noindent\emph{Definition.} \(v_L\) is the lower endpoint of the true-positive rectangle coordinate.
+  \item \texttt{vU} --- \texttt{upper true-\allowbreak{}positive bound}; \([0,1]\); \texttt{channel-\allowbreak{}box constant}
+  \par\smallskip\noindent\emph{Definition.} \(v_U\) is the upper endpoint of the true-positive rectangle coordinate.
+  \item \texttt{thetaL} --- \texttt{lower cross-\allowbreak{}product odds bound}; \((0,\infty)\); \texttt{sensitivity parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_L\) is the fixed lower endpoint of the latent association band.
+  \item \texttt{thetaU} --- \texttt{upper cross-\allowbreak{}product odds bound}; \((0,\infty)\); \texttt{sensitivity parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_U\) is the fixed upper endpoint of the latent association band.
+  \item \texttt{theta} --- \texttt{cross-\allowbreak{}product odds index}; \((0,\infty)\); \texttt{association coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\theta\) indexes a member of the finite association band.
+  \item \texttt{p0} --- \texttt{latent control risk}; \([0,1]\); \texttt{latent margin}
+  \par\smallskip\noindent\emph{Definition.} \(p_0=P(Y_0=1)\).
+  \item \texttt{p1} --- \texttt{latent treatment risk}; \([0,1]\); \texttt{latent margin}
+  \par\smallskip\noindent\emph{Definition.} \(p_1=P(Y_1=1)\).
+  \item \texttt{p00} --- \texttt{latent type probability}; \([0,1]\); \texttt{never-\allowbreak{}favorable type mass}
+  \par\smallskip\noindent\emph{Definition.} \(p_{00}=P(Y_0=0,Y_1=0)\).
+  \item \texttt{p01} --- \texttt{latent type probability}; \([0,1]\); \texttt{benefit type mass}
+  \par\smallskip\noindent\emph{Definition.} \(p_{01}=P(Y_0=0,Y_1=1)\).
+  \item \texttt{p10} --- \texttt{latent type probability}; \([0,1]\); \texttt{harm type mass}
+  \par\smallskip\noindent\emph{Definition.} \(p_{10}=P(Y_0=1,Y_1=0)\).
+  \item \texttt{p11} --- \texttt{latent type probability}; \([0,1]\); \texttt{always-\allowbreak{}favorable type mass}
+  \par\smallskip\noindent\emph{Definition.} \(p_{11}=P(Y_0=1,Y_1=1)\).
+  \item \texttt{b} --- \texttt{probability of benefit}; \([0,1]\); \texttt{causal target}
+  \par\smallskip\noindent\emph{Definition.} \(b=p_{01}=P(Y_0=0,Y_1=1)\).
+  \item \texttt{Delta} --- \texttt{latent risk difference}; \([-1,1]\); \texttt{root coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta=p_1-p_0\).
+  \item \texttt{r} --- \texttt{centered odds index}; \((-1,\infty)\); \texttt{root coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(r=\theta-1\).
+  \item \texttt{Bcoef} --- \texttt{quadratic coefficient}; \(\mathbb R\); \texttt{root coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(B=1-r\Delta\).
+  \item \texttt{Ccoef} --- \texttt{quadratic coefficient}; \([0,1]\); \texttt{root coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(C=p_1(1-p_0)\).
+  \item \texttt{D} --- \texttt{feasible channel polygon}; \(2^{[0,1]^2}\); \texttt{channel feasibility region}
+  \par\smallskip\noindent\emph{Definition.} \(D=\{(u,v):u_L\le u\le\min(u_U,q_0,q_1),\ \max(v_L,q_0,q_1)\le v\le v_U,\ v-u\ge\kappa\}\).
+  \item \texttt{btheta} --- \texttt{compatible-\allowbreak{}root map}; \(b_{\theta}:D\times[\theta_L,\theta_U]\to[0,1]\); \texttt{endpoint branch}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The probability-\allowbreak{}compatible root after substituting the shared-\allowbreak{}channel corrected margins.}
+  \item \texttt{Dstrict} --- \texttt{strictly compatible channel set}; \(2^{[0,1]^2}\); \texttt{positive-\allowbreak{}cell channel region}
+  \par\smallskip\noindent\emph{Definition.} \(D^{\circ}=D\cap\{(u,v):u<\min(q_0,q_1),\ v>\max(q_0,q_1)\}\).
+  \item \texttt{Ctheta} --- \texttt{finite channel-\allowbreak{}candidate map}; \(C_{\theta}: [\theta_L,\theta_U]\to 2^D\); \texttt{finite optimizer set}
+  \par\smallskip\noindent\emph{Definition.} The feasible vertices and boundary contacts specified in \(\mathrm{def:candidate-map}\).
+  \item \texttt{L} --- \texttt{lower sharp endpoint}; \([0,1]\); \texttt{identified-\allowbreak{}set endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L=\min_{z\in C_{\theta_U}}b_{\theta_U}(z)\).
+  \item \texttt{U} --- \texttt{upper sharp endpoint}; \([0,1]\); \texttt{identified-\allowbreak{}set endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U=\max_{z\in C_{\theta_L}}b_{\theta_L}(z)\).
+  \item \texttt{n0} --- \texttt{positive arm sample size}; \(\mathbb N_{+}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \(n_0\) is the fixed control-arm sample size.
+  \item \texttt{n1} --- \texttt{positive arm sample size}; \(\mathbb N_{+}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \(n_1\) is the fixed treatment-arm sample size.
+  \item \texttt{m1} --- \texttt{positive validation sample size}; \(\mathbb N_{+}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \(m_1\) is the gold-standard true-positive stratum size.
+  \item \texttt{m0} --- \texttt{positive validation sample size}; \(\mathbb N_{+}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} \(m_0\) is the gold-standard true-negative stratum size.
+  \item \texttt{T0} --- \texttt{control recorded-\allowbreak{}success count}; \(\{0,\ldots,n_0\}\); \texttt{trial count}
+  \par\smallskip\noindent\emph{Definition.} \(T_0\) counts recorded favorable outcomes in the control arm.
+  \item \texttt{T1} --- \texttt{treatment recorded-\allowbreak{}success count}; \(\{0,\ldots,n_1\}\); \texttt{trial count}
+  \par\smallskip\noindent\emph{Definition.} \(T_1\) counts recorded favorable outcomes in the treatment arm.
+  \item \texttt{V1} --- \texttt{validation true-\allowbreak{}positive count}; \(\{0,\ldots,m_1\}\); \texttt{validation count}
+  \par\smallskip\noindent\emph{Definition.} \(V_1\) counts assay positives among gold-standard positives.
+  \item \texttt{V0} --- \texttt{validation true-\allowbreak{}negative count}; \(\{0,\ldots,m_0\}\); \texttt{validation count}
+  \par\smallskip\noindent\emph{Definition.} \(V_0\) counts assay negatives among gold-standard negatives.
+  \item \texttt{beta} --- \texttt{total noncoverage level}; \((0,1)\); \texttt{confidence constant}
+  \par\smallskip\noindent\emph{Definition.} \(\beta\) is the target simultaneous noncoverage probability.
+  \item \texttt{beta0} --- \texttt{positive marginal noncoverage budget}; \((0,1)\); \texttt{confidence constant}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_0\) is the control-risk noncoverage budget.
+  \item \texttt{beta1} --- \texttt{positive marginal noncoverage budget}; \((0,1)\); \texttt{confidence constant}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_1\) is the treatment-risk noncoverage budget.
+  \item \texttt{betaS} --- \texttt{positive marginal noncoverage budget}; \((0,1)\); \texttt{confidence constant}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_s\) is the sensitivity noncoverage budget.
+  \item \texttt{betaC} --- \texttt{positive marginal noncoverage budget}; \((0,1)\); \texttt{confidence constant}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_c\) is the specificity noncoverage budget.
+  \item \texttt{Q0} --- \texttt{exact binomial confidence interval}; \(2^{[0,1]}\); \texttt{primitive confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(Q_0\) is the two-sided Clopper--Pearson interval from \(T_0\) with noncoverage \(\beta_0\).
+  \item \texttt{Q1} --- \texttt{exact binomial confidence interval}; \(2^{[0,1]}\); \texttt{primitive confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(Q_1\) is the two-sided Clopper--Pearson interval from \(T_1\) with noncoverage \(\beta_1\).
+  \item \texttt{Sint} --- \texttt{exact binomial confidence interval}; \(2^{[0,1]}\); \texttt{primitive confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(S\) is the two-sided Clopper--Pearson interval from \(V_1\) with noncoverage \(\beta_s\).
+  \item \texttt{Cint} --- \texttt{exact binomial confidence interval}; \(2^{[0,1]}\); \texttt{primitive confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(C\) is the two-sided Clopper--Pearson interval from \(V_0\) with noncoverage \(\beta_c\).
+  \item \texttt{Fhat} --- \texttt{primitive confidence polytope}; \(2^{[0,1]^4}\); \texttt{confidence projection domain}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The compatible trial-\allowbreak{}risk and channel tuples retained by the four primitive intervals,\allowbreak{} the fixed channel rectangle,\allowbreak{} and the informativeness floor.}
+  \item \texttt{Ibeta} --- \texttt{projected confidence interval}; \(2^{[0,1]}\); \texttt{confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(I_{\beta}\) is the interval image of \(\widehat{\mathcal F}\times[\theta_L,\theta_U]\) through the compatible-root map.
+  \item \texttt{Kstar} --- \texttt{true-\allowbreak{}channel sharp interval}; \(2^{[0,1]}\); \texttt{confidence target}
+  \par\smallskip\noindent\emph{Definition.} \(K^{\star}=[b_{\theta_U}(u,v),b_{\theta_L}(u,v)]\) at the population trial risks and transported true channel.
+  \item \texttt{Nmin} --- \texttt{minimum primitive sample size}; \(\mathbb N_{+}\); \texttt{rate index}
+  \par\smallskip\noindent\emph{Definition.} \(N_{\min}=\min(n_0,n_1,m_1,m_0)\).
+  \item \texttt{Mstar} --- \texttt{minimal universal candidate cap}; \(\mathbb N_{+}\); \texttt{open combinatorial complexity target}
+  \par\smallskip\noindent\emph{Definition.} \(M^{\star}\) is the smallest number of channel evaluations sufficient in the worst case to recover one endpoint over the stated polygon family.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:randomization]\label{ass:randomization}
+\(A\perp (Y_0,Y_1,W_0,W_1)\).
+\par\smallskip\noindent\emph{Standard} (random treatment assignment, \cite{Rubin1974}).
+\end{assumption}
+
+\begin{assumption}[ass:assignment-positivity]\label{ass:assignment-positivity}
+\(P(A=a)>0\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (positive treatment-assignment probability, \cite{Rubin1974}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(W=W_A\).
+\par\smallskip\noindent\emph{Standard} (potential-outcome consistency, \cite{Rubin1974}).
+\end{assumption}
+
+\begin{assumption}[ass:shared-sensitivity]\label{ass:shared-sensitivity}
+\(P(W_a=1,Y_a=1)=sP(Y_a=1)\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (nondifferential outcome sensitivity shared across arms, \cite{EdwardsZivichShookSaCole2026}).
+\end{assumption}
+
+\begin{assumption}[ass:shared-specificity]\label{ass:shared-specificity}
+\(P(W_a=0,Y_a=0)=cP(Y_a=0)\) for each \(a\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (nondifferential outcome specificity shared across arms, \cite{EdwardsZivichShookSaCole2026}).
+\end{assumption}
+
+\begin{assumption}[ass:channel-rectangle]\label{ass:channel-rectangle}
+\((u,v)\in[u_L,u_U]\times[v_L,v_U]\).
+\par\smallskip\noindent\emph{Standard} (rectangle restriction on a direct misclassification matrix, \cite{Molinari2008}).
+\end{assumption}
+
+\begin{assumption}[ass:youden-floor]\label{ass:youden-floor}
+\(d\ge\kappa\).
+\par\smallskip\noindent\emph{Standard} (positive Youden-index invertibility condition, \cite{EdwardsZivichShookSaCole2026}).
+\end{assumption}
+
+\begin{assumption}[ass:ordered-odds-band]\label{ass:ordered-odds-band}
+\(0<\theta_L\le\theta_U<\infty\).
+\par\smallskip\noindent\emph{Standard} (finite positive odds-ratio sensitivity band, \cite{ZhangNieSoonLiu2013}).
+\end{assumption}
+
+\begin{assumption}[ass:closed-cross-product-band]\label{ass:closed-cross-product-band}
+\(\theta_Lp_{10}p_{01}\le p_{11}p_{00}\le\theta_Up_{10}p_{01}\).
+\par\smallskip\noindent\emph{Standard} (closed-cell extension of the binary potential-outcome odds-ratio band, \cite{CiocaneaTeodorescuGabrielSjolander2025}).
+\end{assumption}
+
+\begin{assumption}[ass:strict-positive-cells]\label{ass:strict-positive-cells}
+\(p_{ij}>0\) for every \(i,j\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (strict positivity for a finite log odds ratio, \cite{CiocaneaTeodorescuGabrielSjolander2025}).
+\end{assumption}
+
+\begin{assumption}[ass:validation-transport]\label{ass:validation-transport}
+The sensitivity and specificity in the blinded gold-standard validation population equal the trial-channel quantities \(s\) and \(c\).
+\par\smallskip\noindent\emph{Standard} (point transportability of outcome-misclassification parameters, \cite{RossColeEdwardsEtAl2024}).
+\end{assumption}
+
+\begin{assumption}[ass:trial-control-binomial]\label{ass:trial-control-binomial}
+\(T_0\sim\operatorname{Bin}(n_0,q_0)\).
+\par\smallskip\noindent\emph{Standard} (fixed-size armwise binomial sampling, \cite{ClopperPearson1934}).
+\end{assumption}
+
+\begin{assumption}[ass:trial-treatment-binomial]\label{ass:trial-treatment-binomial}
+\(T_1\sim\operatorname{Bin}(n_1,q_1)\).
+\par\smallskip\noindent\emph{Standard} (fixed-size armwise binomial sampling, \cite{ClopperPearson1934}).
+\end{assumption}
+
+\begin{assumption}[ass:validation-sensitivity-binomial]\label{ass:validation-sensitivity-binomial}
+\(V_1\sim\operatorname{Bin}(m_1,s)\).
+\par\smallskip\noindent\emph{Standard} (gold-standard sensitivity validation sampling, \cite{EdwardsZivichShookSaCole2026}).
+\end{assumption}
+
+\begin{assumption}[ass:validation-specificity-binomial]\label{ass:validation-specificity-binomial}
+\(V_0\sim\operatorname{Bin}(m_0,c)\).
+\par\smallskip\noindent\emph{Standard} (gold-standard specificity validation sampling, \cite{EdwardsZivichShookSaCole2026}).
+\end{assumption}
+
+\begin{assumption}[ass:confidence-budget]\label{ass:confidence-budget}
+\(\beta_0+\beta_1+\beta_s+\beta_c\le\beta\).
+\par\smallskip\noindent\emph{Standard} (Bonferroni allocation of marginal noncoverage, \cite{Boole1854}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:closed-model]\label{def:closed-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{closed shared-\allowbreak{}assay odds-\allowbreak{}band model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{cl}}=\{P:(A,Y_0,Y_1,W_0,W_1,W)\text{ satisfies randomization, assignment positivity, consistency, the two common-channel equalities, the channel rectangle, }d\ge\kappa,\text{ and the closed cross-product band}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}randomization}; \texttt{ass:\allowbreak{}assignment-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}shared-\allowbreak{}sensitivity}; \texttt{ass:\allowbreak{}shared-\allowbreak{}specificity}; \texttt{ass:\allowbreak{}channel-\allowbreak{}rectangle}; \texttt{ass:\allowbreak{}youden-\allowbreak{}floor}; \texttt{ass:\allowbreak{}ordered-\allowbreak{}odds-\allowbreak{}band}; \texttt{ass:\allowbreak{}closed-\allowbreak{}cross-\allowbreak{}product-\allowbreak{}band}.
+\end{definition}
+
+\begin{definition}[def:strict-model]\label{def:strict-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{strict finite-\allowbreak{}log-\allowbreak{}odds model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{+}=\{P\in\mathcal M_{\mathrm{cl}}:p_{00}>0,\ p_{01}>0,\ p_{10}>0,\ p_{11}>0\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}randomization}; \texttt{ass:\allowbreak{}assignment-\allowbreak{}positivity}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}shared-\allowbreak{}sensitivity}; \texttt{ass:\allowbreak{}shared-\allowbreak{}specificity}; \texttt{ass:\allowbreak{}channel-\allowbreak{}rectangle}; \texttt{ass:\allowbreak{}youden-\allowbreak{}floor}; \texttt{ass:\allowbreak{}ordered-\allowbreak{}odds-\allowbreak{}band}; \texttt{ass:\allowbreak{}closed-\allowbreak{}cross-\allowbreak{}product-\allowbreak{}band}; \texttt{ass:\allowbreak{}strict-\allowbreak{}positive-\allowbreak{}cells}.
+\end{definition}
+
+\begin{definition}[def:channel-polygon]\label{def:channel-polygon}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compatible channel polygon}
+\par\smallskip\noindent\emph{Construction.} \[D=\{(u,v):u_L\le u\le\min(u_U,q_0,q_1),\ \max(v_L,q_0,q_1)\le v\le v_U,\ v-u\ge\kappa\}.\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{q0}; \texttt{q1}; \texttt{uL}; \texttt{uU}; \texttt{vL}; \texttt{vU}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:compatible-root]\label{def:compatible-root}
+\par\smallskip\noindent\emph{Defined object.} \texttt{probability-\allowbreak{}compatible benefit root}
+\par\smallskip\noindent\emph{Construction.} For \(p_0=(q_0-u)/(v-u)\), \(p_1=(q_1-u)/(v-u)\), \(\Delta=p_1-p_0\), \(r=\theta-1\), \(B=1-r\Delta\), and \(C=p_1(1-p_0)\), define \[b_{\theta}(u,v)=\begin{cases}C,&\theta=1,\\(-B+\sqrt{B^2+4rC})/(2r),&\theta\ne1.\end{cases}\] The second branch is evaluated by its algebraically equivalent stable form when cancellation would occur.
+\par\smallskip\noindent\emph{Inputs.} \texttt{q0}; \texttt{q1}; \texttt{u}; \texttt{v}; \texttt{theta}.
+\end{definition}
+
+\begin{definition}[def:candidate-map]\label{def:candidate-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{ten-\allowbreak{}point channel candidate map}
+\par\smallskip\noindent\emph{Construction.} \(C_{\theta}\) is obtained by retaining feasible points from: every vertex of \(D\); every intersection of an axis-aligned edge of \(D\) with \(u+v=q_0+q_1+\sqrt{\theta}|q_1-q_0|\) or \(u+v=q_0+q_1-\sqrt{\theta}|q_1-q_0|\); and, on the edge \(v-u=\kappa\), the point satisfying \(u+v=q_0+q_1\). Duplicate points are removed.
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{q0}; \texttt{q1}; \texttt{theta}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:sharp-endpoints]\label{def:sharp-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite-\allowbreak{}map envelope endpoints}
+\par\smallskip\noindent\emph{Construction.} \[L=\min_{z\in C_{\theta_U}}b_{\theta_U}(z),\qquad U=\max_{z\in C_{\theta_L}}b_{\theta_L}(z).\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ctheta}; \texttt{btheta}; \texttt{thetaL}; \texttt{thetaU}.
+\end{definition}
+
+\begin{definition}[def:attaining-law]\label{def:attaining-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{attaining four-\allowbreak{}type law and assay coupling}
+\par\smallskip\noindent\emph{Construction.} Given a feasible \((u,v,\theta)\), assign masses \((p_{00},p_{01},p_{10},p_{11})=(1-p_0-b,b,b-\Delta,p_1-b)\) at \(b=b_{\theta}(u,v)\). Conditional on \(Y_a\), generate \(W_a\) with \(P(W_a=1\mid Y_a)=u+(v-u)Y_a\), and randomize \(A\) independently.
+\par\smallskip\noindent\emph{Inputs.} \texttt{u}; \texttt{v}; \texttt{theta}; \texttt{q0}; \texttt{q1}.
+\end{definition}
+
+\begin{definition}[def:confidence-projection]\label{def:confidence-projection}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact primitive-\allowbreak{}set projection}
+\par\smallskip\noindent\emph{Construction.} Let \(Q_a\), \(S\), and \(C\) be the four Clopper--Pearson intervals. Define \[\widehat{\mathcal F}=\{(\widetilde q_0,\widetilde q_1,\widetilde u,\widetilde v):\widetilde q_a\in Q_a,\ \widetilde v\in S\cap[v_L,v_U],\ 1-\widetilde u\in C,\ \widetilde u\in[u_L,u_U],\ \widetilde u\le\widetilde q_a\le\widetilde v,\ \widetilde v-\widetilde u\ge\kappa\}.\] Define \(I_{\beta}\) as the interval image of \(\widehat{\mathcal F}\times[\theta_L,\theta_U]\) through the compatible-root construction.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T0}; \texttt{T1}; \texttt{V1}; \texttt{V0}; \texttt{beta0}; \texttt{beta1}; \texttt{betaS}; \texttt{betaC}.
+\end{definition}
+
+\begin{definition}[def:kill-test-witness]\label{def:kill-test-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{informativeness-\allowbreak{}edge regression witness}
+\par\smallskip\noindent\emph{Construction.} Use \(Q_0=[0.3404283626,0.4000678118]\), \(Q_1=[0.3318863111,0.4298465225]\), \(u\in[0.0395824405,0.2768789299]\), \(v\in[0.3547209432,0.6799566824]\), \(\kappa=0.4490386602\), and \(\theta=0.9016929770\); retain the legal edge point \((u,v)=(0.0395824405,0.4886211008)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q0}; \texttt{Q1}; \texttt{u}; \texttt{v}; \texttt{kappa}; \texttt{theta}.
+\end{definition}
+
+\begin{definition}[def:candidate-complexity-handle]\label{def:candidate-complexity-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{oriented boundary-\allowbreak{}arrangement handle}
+\par\smallskip\noindent\emph{Construction.} Classify realizable incidences among the at most five polygon vertices, the two slope \(-1\) stationary lines, and the slope \(1\) informativeness edge; use oriented sign patterns and endpoint-preserving perturbations to derive a universal evaluation cap and a matching configuration.
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{Ctheta}; \texttt{kappa}; \texttt{theta}; \texttt{q0}; \texttt{q1}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:assay-inversion]\label{lem:assay-inversion}
+For every law satisfying the shared sensitivity and specificity equalities with \(d\ge\kappa\), the latent margins obey \(p_a=(q_a-u)/(v-u)\). A channel is probability-compatible if and only if it belongs to \(D\).
+\end{lemma}
+\begin{proof}
+Fix \(a\in\{0,1\}\).  Assignment positivity makes \(q_a\) well defined.  Consistency gives
+\[
+ q_a=P(W_a=1\mid A=a),
+\]
+and randomization then gives \(q_a=P(W_a=1)\).  Put \(p_a=P(Y_a=1)\).  The shared-sensitivity equality gives \(P(W_a=1,Y_a=1)=sp_a\).  The shared-specificity equality gives \(P(W_a=0,Y_a=0)=c(1-p_a)\), hence \(P(W_a=1,Y_a=0)=(1-c)(1-p_a)\).  These equalities remain well defined when either latent stratum is null, where the corresponding identity is \(0=0\).  Thus the law of total probability gives
+\[
+\begin{aligned}
+q_a
+ &=P(W_a=1,Y_a=1)+P(W_a=1,Y_a=0)\\
+ &=s p_a+(1-c)(1-p_a)\\
+ &=v p_a+u(1-p_a)=u+(v-u)p_a.
+\end{aligned}
+\]
+The Youden-floor assumption gives \(v-u=d\geq\kappa>0\), so division is valid and
+\[
+ p_a=\frac{q_a-u}{v-u}.
+\]
+Because the denominator is positive, \(0\leq p_a\leq1\) is equivalent to \(u\leq q_a\leq v\).  Imposing this simultaneously for \(a=0,1\), together with the channel rectangle and \(v-u\geq\kappa\), gives exactly
+\[
+ u_L\leq u\leq\min(u_U,q_0,q_1),\qquad
+ \max(v_L,q_0,q_1)\leq v\leq v_U,
+ \qquad v-u\geq\kappa,
+\]
+which is the definition of \(D\).  This proves necessity.  Conversely, if \((u,v)\in D\), the displayed fractions lie in \([0,1]\).  Choose Bernoulli variables with these two margins (for example, independently), generate each \(W_a\) conditionally with success probability \(u+(v-u)Y_a\), randomize \(A\) independently with positive arm probabilities, and impose consistency.  The resulting law has observed risks \(q_a\) and the required common channel.  This proves sufficiency and hence the claimed equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The common channel couples the two corrected margins, so its exact feasible polygon is the first nonseparable object. \textit{Gap.} Molinari2008 gives a general linear channel system; this lemma specializes it to one common binary assay and records the exact joint compatibility polygon. \textit{Consumer.} The polygon is the feasible domain used by every endpoint and confidence-projection calculation.
+
+\begin{lemma}[lem:unique-compatible-root]\label{lem:unique-compatible-root}
+Fix \(z=(u,v)\in D\) and \(\theta\in[\theta_L,\theta_U]\). On \([\max(0,\Delta),\min(p_1,1-p_0)]\), the equation \[(\theta-1)b^2+\{1-(\theta-1)\Delta\}b-p_1(1-p_0)=0\] has exactly one root, namely \(b_{\theta}(z)\) from \(\mathrm{def:compatible-root}\), and its four masses from \(\mathrm{def:attaining-law}\) are nonnegative and satisfy \(p_{11}p_{00}=\theta p_{10}p_{01}\).
+\end{lemma}
+\begin{proof}
+Fix \(z=(u,v)\in D\) and \(\theta\in[\theta_L,\theta_U]\). By \(\mathrm{lem:assay\text{-}inversion}\),
+\[
+p_a=\frac{q_a-u}{v-u}\in[0,1],\qquad a\in\{0,1\},
+\]
+where \(v-u=d\geq\kappa>0\), so every displayed division is valid. For a proposed benefit mass \(b=p_{01}\), the two margin equations and total mass force
+\[
+(p_{00},p_{01},p_{10},p_{11})
+=(1-p_0-b,b,b-\Delta,p_1-b),
+\qquad \Delta=p_1-p_0.
+\]
+All four coordinates are nonnegative exactly when
+\[
+b\in J:=\bigl[\max(0,\Delta),\min(p_1,1-p_0)\bigr].
+\]
+This interval is nonempty: \(\max(0,p_1-p_0)\leq p_1\) and \(\max(0,p_1-p_0)\leq1-p_0\), using \(0\leq p_0,p_1\leq1\).
+
+The cross-product equality is equivalent to
+\[
+F(b):=\theta b(b-\Delta)-(p_1-b)(1-p_0-b)
+=r b^2+(1-r\Delta)b-p_1(1-p_0)=0,
+\qquad r=\theta-1.
+\]
+At the lower endpoint of \(J\), either \(b=0\) or \(b-\Delta=0\), and hence \(F(b)\leq0\). At the upper endpoint, either \(p_1-b=0\) or \(1-p_0-b=0\), and hence \(F(b)\geq0\). Polynomial continuity and the intermediate value theorem therefore give a root in \(J\).
+
+For every \(b\in J\), write the four displayed nonnegative cell masses. Direct differentiation gives
+\[
+F'(b)=\theta(p_{01}+p_{10})+p_{11}+p_{00}
+\geq \min(\theta,1)
+(p_{00}+p_{01}+p_{10}+p_{11})
+=\min(\theta,1)>0,
+\]
+where positivity of \(\theta\) follows from \(0<\theta_L\leq\theta\leq\theta_U<\infty\). Thus \(F\) is strictly increasing on \(J\), and the feasible root is unique.
+
+If \(\theta=1\), then \(r=0\) and the equation gives
+\[
+b=p_1(1-p_0)=C.
+\]
+If \(r\neq0\), put \(B=1-r\Delta\) and \(C=p_1(1-p_0)\). Completing the square yields
+\[
+(2rb+B)^2=B^2+4rC.
+\]
+At the root,
+\[
+2rb+B=F'(b)>0,
+\]
+so the positive square-root sign is forced, and
+\[
+b=\frac{-B+\sqrt{B^2+4rC}}{2r}=b_\theta(u,v).
+\]
+Membership in \(J\) proves nonnegativity of the four masses, and direct addition shows that they sum to one. Finally, \(F(b)=0\) is exactly
+\[
+p_{11}p_{00}=\theta p_{10}p_{01}.
+\]
+The argument includes structural-zero contacts because it uses nonnegativity and \(\theta>0\), never division by a cell probability.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A unique probability-compatible branch prevents algebraic root selection from contaminating sharpness. \textit{Gap.} ZhangNieSoonLiu2013, Section 3.3, reconstructs a positive \(2\times2\) table at fixed clean margins; this lemma includes structural-zero margins created at assay-feasibility contacts. \textit{Consumer.} The selected branch is the evaluable objective for certified endpoint enumeration.
+
+\begin{lemma}[lem:root-comparative-statics]\label{lem:root-comparative-statics}
+The compatible-root map is continuous on \(D\times[\theta_L,\theta_U]\), nonincreasing in \(\theta\), nonincreasing in \(p_0\), and nondecreasing in \(p_1\). Wherever differentiated, \[\frac{\partial b}{\partial\theta}=-\frac{p_{01}p_{10}}{\theta(p_{01}+p_{10})+p_{11}+p_{00}},\quad -1\le\frac{\partial b}{\partial p_0}\le0,\quad 0\le\frac{\partial b}{\partial p_1}\le1.\] These inequalities extend to boundary contacts by continuity.
+\end{lemma}
+\begin{proof}
+Write
+\[
+F(b;p_0,p_1,\theta)
+=\theta b(b-p_1+p_0)-(p_1-b)(1-p_0-b).
+\]
+Consider any convergent sequence \((p_{0n},p_{1n},\theta_n)\to(p_0,p_1,\theta)\) in \([0,1]^2\times[\theta_L,\theta_U]\), with corresponding compatible roots \(b_n\). Compactness of \([0,1]\) gives a convergent subsequence \(b_{n_k}\to b_*\). The Fr\'echet inequalities defining each feasible interval pass to the limit, so \(b_*\in[\max(0,p_1-p_0),\min(p_1,1-p_0)]\). Polynomial continuity gives \(F(b_*;p_0,p_1,\theta)=0\). By \(\mathrm{lem:unique\text{-}compatible\text{-}root}\), \(b_*\) is the unique compatible root at the limiting arguments. Thus every convergent subsequence has that same limit, which proves continuity of \(b_\theta\), including at structural-zero contacts and at \(\theta=1\).
+
+At every point where derivatives are taken, the unique-root proof gives the strictly positive denominator
+\[
+F_b=\theta(p_{01}+p_{10})+p_{11}+p_{00}>0.
+\]
+Holding \(b\) fixed while differentiating the defining equation gives
+\[
+F_\theta=p_{01}p_{10},\qquad
+F_{p_0}=\theta p_{01}+p_{11},\qquad
+F_{p_1}=-(\theta p_{01}+p_{00}).
+\]
+The implicit-function theorem applies because \(F_b>0\). Solving \(F_b\,db+F_t\,dt=0\) for each coordinate \(t\) yields
+\[
+\frac{\partial b}{\partial\theta}
+=-\frac{p_{01}p_{10}}
+{\theta(p_{01}+p_{10})+p_{11}+p_{00}},
+\]
+\[
+\frac{\partial b}{\partial p_0}
+=-\frac{\theta p_{01}+p_{11}}
+{\theta(p_{01}+p_{10})+p_{11}+p_{00}},
+\qquad
+\frac{\partial b}{\partial p_1}
+=\frac{\theta p_{01}+p_{00}}
+{\theta(p_{01}+p_{10})+p_{11}+p_{00}}.
+\]
+Every displayed numerator is nonnegative. The common denominator minus the numerator of \(-\partial b/\partial p_0\) equals \(\theta p_{10}+p_{00}\geq0\), and the denominator minus the numerator of \(\partial b/\partial p_1\) equals \(\theta p_{10}+p_{11}\geq0\). Consequently,
+\[
+\frac{\partial b}{\partial\theta}\leq0,
+\qquad
+-1\leq\frac{\partial b}{\partial p_0}\leq0,
+\qquad
+0\leq\frac{\partial b}{\partial p_1}\leq1.
+\]
+Integrating along coordinate segments on which the arguments are interior proves that the root is nonincreasing in \(\theta\), nonincreasing in \(p_0\), and nondecreasing in \(p_1\). Approximating any boundary segment by interior segments and using continuity extends these monotonicities and the one-sided derivative bounds to boundary contacts. The same coordinate-segment integration gives, for fixed \(\theta\),
+\[
+|b(p_0,p_1,\theta)-b(p'_0,p'_1,\theta)|
+\leq |p_0-p'_0|+|p_1-p'_1|.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Monotonicity profiles out the odds band and supplies the uniform Lipschitz control used in inference. \textit{Gap.} CiocaneaTeodorescuGabrielSjolander2025 studies a clean-outcome marginal sensitivity parameter; it does not derive comparative statics through a shared uncertain assay polygon. \textit{Consumer.} The derivative bounds reduce optimization to \(\theta_U\) for the lower endpoint and \(\theta_L\) for the upper endpoint.
+
+\begin{theorem}[thm:finite-sharp-envelope]\label{thm:finite-sharp-envelope}
+If \(D\neq\varnothing\), the identified set of \(b=P(Y_0=0,Y_1=1)\) over \(\mathcal M_{\mathrm{cl}}\) is exactly \([L,U]\). Each endpoint is attained by the construction in \(\mathrm{def:attaining-law}\). For each fixed odds endpoint, \(C_{\theta}\) is complete and contains at most ten distinct channels: at most five vertices, at most four axis-edge contacts with the two stationary lines, and at most one stationary point on \(v-u=\kappa\). Without the informativeness cut, at most eight channels suffice.
+\end{theorem}
+\begin{proof}
+Put \(x=q_0\), \(y=q_1\), \(\delta=y-x\), and \(d=v-u\). By \(\mathrm{def:channel\text{-}polygon}\), \(D\) is a closed rectangle intersected with the closed half-plane \(v-u\geq\kappa\). It is therefore compact and convex, and it has at most five vertices. The assumption \(D\neq\varnothing\), together with \(d\geq\kappa>0\), makes every corrected margin well defined.
+
+For fixed \(\theta\), multiply the root equation by \(d^2>0\) to obtain
+\[
+H(u,v,b)
+=r d^2b^2+(d-r\delta)d b-(y-u)(v-x)=0.
+\]
+The unique-root lemma gives
+\[
+H_b=d^2\{\theta(p_{01}+p_{10})+p_{11}+p_{00}\}>0.
+\]
+Thus implicit differentiation along every line segment in \(D\) is legitimate away from its endpoints, including when \(\theta=1\).
+
+We first exclude unlisted interior extrema. If \(x\neq y\), then
+\[
+\det\frac{\partial(p_0,p_1)}{\partial(u,v)}
+=\frac{y-x}{(v-u)^3}\neq0.
+\]
+At an interior channel, both corrected margins lie strictly between zero and one. Since \(0<\theta<\infty\), the strict endpoint signs in the proof of \(\mathrm{lem:unique\text{-}compatible\text{-}root}\) put the root strictly inside its Fr\'echet interval, so all four cells are positive. The margin derivatives in \(\mathrm{lem:root\text{-}comparative\text{-}statics}\) are then respectively strictly negative and strictly positive. Their nonzero gradient cannot be annihilated by the invertible Jacobian above, so no interior stationary point exists.
+
+If \(x=y=q\), then \(p_0=p_1=p\), and the equation becomes
+\[
+r b^2+b=p(1-p),
+\qquad
+\frac{db}{dp}=\frac{1-2p}{1+2rb}.
+\]
+The denominator is the positive root derivative. Hence the only interior stationary set is \(p=1/2\), equivalently \(u+v=2q\), and there
+\[
+b=\frac{1}{2(1+\sqrt\theta)}.
+\]
+If this ridge meets \(D\), the endpoints of its intersection with the compact polygon lie on the boundary. They are stationary-line contacts on axis-aligned edges or the single central contact on the informativeness edge, so the candidate rule lists a representative having the ridge value.
+
+It remains to classify every boundary edge. Direct differentiation at fixed \(b\) gives
+\[
+\begin{aligned}
+H_u&=-2rdb^2-(2d-r\delta)b+v-x,\\
+H_v&= 2rdb^2+(2d-r\delta)b-(y-u),\\
+H_u+H_v&=u+v-x-y.
+\end{aligned}
+\]
+For \(r\neq0\), direct expansion of the quadratic--linear resultants gives
+\[
+\operatorname{Res}_b(H,H_u)
+=-r^2d^2(v-x)(v-y)
+\{\theta\delta^2-(u+v-x-y)^2\},
+\]
+\[
+\operatorname{Res}_b(H,H_v)
+=-r^2d^2(u-x)(u-y)
+\{\theta\delta^2-(u+v-x-y)^2\}.
+\]
+On a horizontal edge, stationarity in its varying \(u\)-coordinate requires \(H_u=0\). Away from a margin-contact factor and using \(r\neq0\) and \(d>0\), the first resultant therefore forces
+\[
+u+v=x+y\pm\sqrt\theta\,|y-x|.
+\]
+On a vertical edge, the second resultant and \(H_v=0\) give the same two lines. When \(r=0\), the root is
+\[
+b=\frac{(y-u)(v-x)}{(v-u)^2},
+\]
+and direct differentiation gives
+\[
+b_u=\frac{(v-x)(2y-u-v)}{(v-u)^3},
+\qquad
+b_v=\frac{(y-u)(2x-u-v)}{(v-u)^3}.
+\]
+Thus the two stationary lines are \(u+v=2y\) and \(u+v=2x\), exactly the preceding formula at \(\theta=1\).
+
+The excluded margin-contact edges have no hidden extrema. If \(x\leq y\), then on \(u=x\) support compatibility gives
+\[
+b=\frac{y-x}{v-x},
+\]
+and on \(v=y\) it gives
+\[
+b=\frac{y-x}{y-u};
+\]
+each expression is monotone along its edge. If \(y\leq x\), then on \(u=y\) or \(v=x\) support compatibility gives \(b=0\). Equal-risk contact edges likewise have \(b=0\). Their extrema are therefore at vertices.
+
+Finally, on the informativeness edge \(v=u+\kappa\), implicit differentiation and the identity for \(H_u+H_v\) give
+\[
+\frac{d}{du}b_\theta(u,u+\kappa)
+=-\frac{2u+\kappa-x-y}{H_b}.
+\]
+There is at most one stationary point, namely the listed point satisfying \(u+v=x+y\); vertices cover the remaining edge endpoints. The same one-dimensional argument covers a nondegenerate segment, while a singleton is itself a vertex. This proves candidate completeness.
+
+For the count, intersecting a rectangle with one half-plane whose boundary can truncate one rectangle corner produces at most five vertices. Each of the two distinct-or-coincident slope \(-1\) stationary lines intersects the boundary of a convex polygon in at most two points. Since neither line can coincide with an axis-aligned edge or the slope \(1\) informativeness edge, each contributes at most two axis-edge contacts. The informativeness edge contributes at most one further stationary point. After duplicate points are removed,
+\[
+|C_\theta|\leq5+4+1=10.
+\]
+Without the informativeness cut, the feasible polygon is a rectangle, so the corresponding count is \(4+4=8\).
+
+By \(\mathrm{lem:root\text{-}comparative\text{-}statics}\), the minimum over \(\theta\in[\theta_L,\theta_U]\) occurs at \(\theta_U\), and the maximum occurs at \(\theta_L\). Candidate completeness and \(\mathrm{def:sharp\text{-}endpoints}\) therefore identify the extrema of the continuous root map over \(D\times[\theta_L,\theta_U]\) as \(L\) and \(U\).
+
+We now prove sharpness. For every \((u,v,\theta)\in D\times[\theta_L,\theta_U]\), \(\mathrm{lem:unique\text{-}compatible\text{-}root}\) makes the four masses in \(\mathrm{def:attaining\text{-}law}\) nonnegative, summing to one, and satisfying
+\[
+p_{11}p_{00}=\theta p_{10}p_{01}.
+\]
+Because \(\theta_L\leq\theta\leq\theta_U\) and \(p_{10}p_{01}\geq0\), this equality implies the closed cross-product band. Conditional Bernoulli generation gives
+\[
+P(W_a=1\mid Y_a=1)=v=s,
+\qquad
+P(W_a=0\mid Y_a=0)=1-u=c.
+\]
+Independent randomization and consistency then give the observed risks \(q_a=u+(v-u)p_a\). Thus every compatible-root value is attained by a law in \(\mathcal M_{\mathrm{cl}}\).
+
+Conversely, every law in \(\mathcal M_{\mathrm{cl}}\) supplies a channel in \(D\) by \(\mathrm{lem:assay\text{-}inversion}\). If \(p_{10}p_{01}>0\), its closed band supplies
+\[
+\theta=\frac{p_{11}p_{00}}{p_{10}p_{01}}
+\in[\theta_L,\theta_U].
+\]
+If \(p_{10}p_{01}=0\), the two closed inequalities force \(p_{11}p_{00}=0\), so the cross-product equality holds for every \(\theta\) in the nonempty band. Root uniqueness therefore makes the law's benefit equal to \(b_\theta(u,v)\).
+
+The domain \(D\times[\theta_L,\theta_U]\) is convex and hence path-connected. The root map is continuous, so its real-valued image is connected and therefore an interval. Compactness makes this image closed and makes its extrema attainable. Since its extrema are \(L\) and \(U\), its image, and hence the identified set, is exactly \([L,U]\). The laws constructed at optimizing candidates attain both endpoints.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: a nonlinear sharp set becomes a constant-size, closed-form candidate map with constructive attainment. \textit{Gap.} ZhangNieSoonLiu2013 fixes clean margins and Molinari2008 leaves general channel restrictions to nonlinear programming; neither supplies the shared-channel stationary-line completeness theorem. \textit{Consumer.} A validation-enabled trial analyst can compute sharp benefit bounds without trusting a generic nonlinear optimizer at feasibility edges.
+
+\begin{theorem}[thm:strict-endpoint-attainment]\label{thm:strict-endpoint-attainment}
+If \(D^{\circ}\neq\varnothing\), the infimum and supremum of \(b\) over \(\mathcal M_{+}\) equal \(L\) and \(U\). The lower endpoint is attained in \(\mathcal M_{+}\) if and only if some \(z\in C_{\theta_U}\cap D^{\circ}\) satisfies \(b_{\theta_U}(z)=L\); the upper endpoint is attained if and only if some \(z\in C_{\theta_L}\cap D^{\circ}\) satisfies \(b_{\theta_L}(z)=U\).
+\end{theorem}
+\begin{proof}
+Assume \(D^\circ\neq\varnothing\), and fix \(z^\circ\in D^\circ\). Since \(D\) is convex, for every \(z\in D\) and \(0<t\leq1\),
+\[
+z_t=(1-t)z+t z^\circ\in D^\circ.
+\]
+Indeed, the two strict inequalities defining \(D^\circ\) hold at \(z_t\) because they hold at \(z^\circ\) and weakly at \(z\). Thus \(D^\circ\) is dense in \(D\).
+
+By assay inversion and \(v-u\geq\kappa>0\), a channel lies in \(D^\circ\) exactly when both corrected margins lie in \((0,1)\). For finite \(0<\theta<\infty\), the endpoint signs in the unique-root proof are then strict at both ends of the Fr\'echet interval. Hence the compatible root is strictly inside that interval and all four cells are positive. Conversely, four positive cells force both margins into \((0,1)\). Therefore \(D^\circ\times[\theta_L,\theta_U]\) is precisely the channel--odds domain represented by laws in \(\mathcal M_+\).
+
+Continuity of the root and density of \(D^\circ\) in \(D\), together with \(\mathrm{thm:finite\text{-}sharp\text{-}envelope}\), give
+\[
+\inf_{P\in\mathcal M_+}b(P)
+=\min_{P\in\mathcal M_{\mathrm{cl}}}b(P)=L,
+\qquad
+\sup_{P\in\mathcal M_+}b(P)
+=\max_{P\in\mathcal M_{\mathrm{cl}}}b(P)=U.
+\]
+
+For lower-endpoint attainment, suppose first that some \(z\in C_{\theta_U}\cap D^\circ\) satisfies \(b_{\theta_U}(z)=L\). The attaining-law construction has four positive cells by the preceding argument and therefore belongs to \(\mathcal M_+\); hence it attains \(L\).
+
+Conversely, suppose a strict law attains \(L\). Its four cells are positive, so the derivative formula gives
+\[
+\frac{\partial b}{\partial\theta}<0.
+\]
+It follows that its odds coordinate must equal \(\theta_U\): if it were smaller, increasing it to \(\theta_U\) at the same channel would strictly reduce \(b\), contradicting global minimality. Its channel is consequently a minimizer in \(D^\circ\).
+
+If \(q_0\neq q_1\), the interior argument in \(\mathrm{thm:finite\text{-}sharp\text{-}envelope}\) excludes an interior stationary channel. A strict boundary minimizer cannot lie on a marginal-contact edge. On an axis-aligned edge it is a vertex or a stationary-line contact, and on the informativeness edge it is a vertex or its unique stationary point. Hence it belongs to \(C_{\theta_U}\cap D^\circ\).
+
+If \(q_0=q_1=q\), the only additional possibility is the ridge \(u+v=2q\). Its intersection with \(D\), if nonempty, is a compact segment or singleton and has a boundary representative with the same objective value. Every point on the ridge satisfies \(u<q<v\), because \(v-u\geq\kappa>0\), so that representative remains in \(D^\circ\). The candidate map lists it as an axis-edge contact, an informativeness-edge stationary point, or a vertex. Degenerate polygon cases are covered by the same edge argument. This proves necessity for the lower endpoint.
+
+Replacing minimization by maximization and \(\theta_U\) by \(\theta_L\) gives the identical equivalence for \(U\). Thus each strict endpoint is attained exactly under the stated finite-candidate criterion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Strict log-odds models can lose endpoint attainment at marginal contacts even when their closure has the same bounds. \textit{Gap.} CiocaneaTeodorescuGabrielSjolander2025 assumes positive cells; the exact closure-to-strict transfer and finite attainment criterion under assay uncertainty are not given there. \textit{Consumer.} Software and applied reports can distinguish an attained sharp bound from a merely approachable sensitivity limit.
+
+\begin{proposition}[prop:standard-reductions]\label{prop:standard-reductions}
+When \(s=c=1\), the compatible-root formula reduces to the fixed-clean-margin binary odds reconstruction of ZhangNieSoonLiu2013. When additionally \(\theta_L=\theta_U=1\), it reduces to \(b=p_1(1-p_0)\). For the synthetic box \(q_0=1/5\), \(q_1=3/10\), \(u\in[1/20,1/10]\), \(v\in[4/5,9/10]\), \(\theta\in[1,4]\), and \(\kappa\le7/10\), the endpoints are \((\sqrt{193}-5)/48\) and \(4/15\), both attained by positive-cell laws.
+\end{proposition}
+\begin{proof}
+If \(s=c=1\), then \(u=1-c=0\), \(v=s=1\), and \(d=1\). By \(\mathrm{lem:assay\text{-}inversion}\), \(p_a=q_a\). Substitution into the unique quadratic in \(\mathrm{lem:unique\text{-}compatible\text{-}root}\) is therefore exactly the fixed-clean-margin binary odds reconstruction. If also \(\theta_L=\theta_U=1\), then \(r=0\), and the unique-root formula reduces to
+\[
+b=p_1(1-p_0).
+\]
+
+For the stated synthetic box,
+\[
+u\leq\frac1{10}<q_0<q_1<\frac45\leq v,
+\qquad
+\min(v-u)=\frac45-\frac1{10}=\frac7{10}.
+\]
+Thus every point of the rectangle is feasible whenever \(\kappa\leq7/10\), and the informativeness cut is redundant.
+
+At \(\theta=4\), the two stationary-line sums are
+\[
+q_0+q_1\pm2|q_1-q_0|
+=\frac3{10},\frac7{10},
+\]
+both below the rectangle's minimum sum \(1/20+4/5=17/20\). Hence \(\mathrm{thm:finite\text{-}sharp\text{-}envelope}\) reduces the lower endpoint calculation to the four vertices. In lexicographic order
+\[
+(u,v)\in
+\left\{
+\left(\frac1{20},\frac45\right),
+\left(\frac1{20},\frac9{10}\right),
+\left(\frac1{10},\frac45\right),
+\left(\frac1{10},\frac9{10}\right)
+\right\},
+\]
+their \(\theta=4\) root values are
+\[
+-\frac1{10}+\frac{\sqrt{89}}{30},
+\qquad
+\frac{10}{51},
+\qquad
+-\frac2{21}+\frac{2\sqrt{10}}{21},
+\qquad
+\frac{\sqrt{193}-5}{48}.
+\]
+Moving the positive rational terms to the other side and squaring verifies that the last quantity is no larger than each of the first three. At that vertex,
+\[
+p_0=\frac18,
+\qquad
+p_1=\frac14,
+\qquad
+96b^2+20b-7=0.
+\]
+The unique feasible root is therefore
+\[
+L=\frac{\sqrt{193}-5}{48}.
+\]
+
+At \(\theta=1\), the stationary-line sums are \(2q_0=2/5\) and \(2q_1=3/5\), again below the rectangle. At the four vertices in the same order, the values are
+\[
+\frac4{15},
+\qquad
+\frac{70}{289},
+\qquad
+\frac{12}{49},
+\qquad
+\frac7{32}.
+\]
+Cross multiplication shows that \(4/15\) is the largest. It occurs at \((u,v)=(1/20,4/5)\), where \(p_0=1/5\) and \(p_1=1/3\). Thus
+\[
+U=p_1(1-p_0)=\frac4{15}.
+\]
+
+The corresponding cell vectors, in \((00,01,10,11)\) order, are
+\[
+\left(
+\frac{47-\sqrt{193}}{48},
+\frac{\sqrt{193}-5}{48},
+\frac{\sqrt{193}-11}{48},
+\frac{17-\sqrt{193}}{48}
+\right)
+\]
+and
+\[
+\left(\frac8{15},\frac4{15},\frac2{15},\frac1{15}\right).
+\]
+Since \(11<\sqrt{193}<14<17\), every displayed cell is positive. Direct multiplication verifies the cross-product equalities at \(\theta=4\) and \(\theta=1\), respectively. The attaining-law construction therefore produces positive-cell laws attaining both endpoints.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Known-case collapse and an exact nondegenerate witness guard the candidate algebra against sign and root-selection errors. \textit{Gap.} The clean-assay reductions are prior art; the exact uncertain-assay witness is a diagnostic specialization of the new envelope rather than an independent novelty claim. \textit{Consumer.} The exact values provide regression tests for a certified implementation and a transparent worked example for trial analysts.
+
+\begin{theorem}[thm:exact-confidence-projection]\label{thm:exact-confidence-projection}
+Under assignment positivity, the four marginal binomial sampling laws, validation transport, and the confidence-budget condition, \[\inf_{P\in\mathcal M_{\mathrm{cl}}}\Pr_P\{K^{\star}\subseteq I_{\beta}\}\ge1-\beta.\] No mutual-independence condition on \(T_0,T_1,V_1,V_0\) is required. Coverage holds uniformly through optimizer ties, marginal contacts, and collapsed faces. Moreover, each endpoint of \(I_{\beta}\) is computable by a four-region profiling rule: the nontrivial root region uses the ten-point map, the two fractional regions use polygon vertices, and the constant region uses a feasibility check. Applied to \(\mathrm{def:kill-test-witness}\), the lower projection retains the legal edge value \(0.1320580555\) to the displayed precision.
+\end{theorem}
+\begin{proof}
+For the four primitive intervals, define
+\[
+E_0=\{q_0\in Q_0\},\qquad
+E_1=\{q_1\in Q_1\},\qquad
+E_s=\{s\in S\},\qquad
+E_c=\{c\in C\}.
+\]
+By the four marginal binomial assumptions and \(\mathrm{lem:clopper\text{-}pearson\text{-}exact\text{-}coverage}\),
+\[
+\Pr_P(E_0^c)\leq\beta_0,
+\quad
+\Pr_P(E_1^c)\leq\beta_1,
+\quad
+\Pr_P(E_s^c)\leq\beta_s,
+\quad
+\Pr_P(E_c^c)\leq\beta_c.
+\]
+The pointwise indicator inequality
+\[
+\mathbf 1_{(E_0\cap E_1\cap E_s\cap E_c)^c}
+\leq
+\mathbf 1_{E_0^c}+\mathbf 1_{E_1^c}
++\mathbf 1_{E_s^c}+\mathbf 1_{E_c^c}
+\]
+and \(\mathrm{ass:confidence\text{-}budget}\) imply
+\[
+\Pr_P(E_0\cap E_1\cap E_s\cap E_c)
+\geq1-(\beta_0+\beta_1+\beta_s+\beta_c)
+\geq1-\beta.
+\]
+This is a union-bound argument and uses no mutual-independence condition on the four counts.
+
+Put \(E=E_0\cap E_1\cap E_s\cap E_c\). On \(E\), validation transport gives \(v=s\in S\) and \(1-u=c\in C\). Membership in \(\mathcal M_{\mathrm{cl}}\) gives the channel rectangle and \(v-u=d\geq\kappa\). Moreover, \(\mathrm{lem:assay\text{-}inversion}\) gives \(u\leq q_a\leq v\) for \(a\in\{0,1\}\). Hence
+\[
+(q_0,q_1,u,v)\in\widehat{\mathcal F}.
+\]
+For every \(\theta\in[\theta_L,\theta_U]\), the compatible-root value at this true tuple belongs to the image projected in \(\mathrm{def:confidence\text{-}projection}\). By continuity and monotonicity in \(\theta\) from \(\mathrm{lem:root\text{-}comparative\text{-}statics}\), the true-channel image is
+\[
+\{b_\theta(u,v):\theta\in[\theta_L,\theta_U]\}
+=[b_{\theta_U}(u,v),b_{\theta_L}(u,v)]
+=K^\star.
+\]
+Since \(I_\beta\) is the interval image over the larger projected domain, \(K^\star\subseteq I_\beta\) on \(E\). The probability bound is pointwise for every compatible \(P\), so
+\[
+\inf_{P\in\mathcal M_{\mathrm{cl}}}
+\Pr_P\{K^\star\subseteq I_\beta\}\geq1-\beta.
+\]
+Neither the set-inclusion argument nor the union bound invokes uniqueness or differentiability of an optimizer, or positive dimension of a feasible face. Coverage therefore remains valid at optimizer ties, marginal contacts, and collapsed faces.
+
+We next prove the asserted finite computation. Write \(Q_a=[\ell_a,h_a]\), and define the closed validation rectangle in channel coordinates by
+\[
+R_{uv}
+=\bigl([u_L,u_U]\cap\{1-c':c'\in C\}\bigr)
+\times\bigl([v_L,v_U]\cap S\bigr).
+\]
+A channel permits at least one pair \((\widetilde q_0,\widetilde q_1)\in Q_0\times Q_1\) satisfying \(u\leq\widetilde q_a\leq v\) if and only if it lies in
+\[
+D_Q=R_{uv}\cap
+\{u\leq\min(h_0,h_1),\ v\geq\max(\ell_0,\ell_1),\ v-u\geq\kappa\}.
+\]
+Necessity follows from \(u\leq\widetilde q_a\leq h_a\) and \(v\geq\widetilde q_a\geq\ell_a\). Conversely, these inequalities say that each pair of closed intervals \([\ell_a,h_a]\) and \([u,v]\) intersects, so a feasible \(\widetilde q_a\) can be chosen from that intersection.
+
+Fix \((u,v)\in D_Q\). The corrected margins are increasing in their respective trial risks. The monotonicities in \(\mathrm{lem:root\text{-}comparative\text{-}statics}\) therefore give the exact profiles
+\[
+\begin{array}{c|ccc}
+&\widetilde q_0&\widetilde q_1&\theta\\ \hline
+\text{lower endpoint}&\min(h_0,v)&\max(\ell_1,u)&\theta_U\\
+\text{upper endpoint}&\max(\ell_0,u)&\min(h_1,v)&\theta_L.
+\end{array}
+\]
+For the lower endpoint, if \(D_Q\cap\{v\leq h_0\}\neq\varnothing\), the profile has \(p_0=1\); if \(D_Q\cap\{u\geq\ell_1\}\neq\varnothing\), it has \(p_1=0\). In either case the support interval in \(\mathrm{lem:unique\text{-}compatible\text{-}root}\) forces \(b=0\), the global minimum because \(b\) is a probability. Each nonemptiness question is a finite linear feasibility check. If both clipped polygons are empty, every point of \(D_Q\) has \(v>h_0\) and \(u<\ell_1\), and the lower profile fixes
+\[
+(\widetilde q_0,\widetilde q_1)=(h_0,\ell_1).
+\]
+After relabeling the endpoints of \(R_{uv}\) as the channel rectangle, the remaining domain is a channel polygon of the form in \(\mathrm{def:channel\text{-}polygon}\). The completeness result in \(\mathrm{thm:finite\text{-}sharp\text{-}envelope}\) therefore computes its minimum with the ten-point candidate map.
+
+For the upper endpoint, split \(D_Q\) by the two lines \(u=\ell_0\) and \(v=h_1\). On the resulting four closed polygonal regions, the profiled objective is
+\[
+\begin{array}{c|c}
+u\leq\ell_0,\ v\geq h_1
+&b_{\theta_L}(\ell_0,h_1;u,v)\\
+u\geq\ell_0,\ v\geq h_1
+&\dfrac{h_1-u}{v-u}\\
+u\leq\ell_0,\ v\leq h_1
+&\dfrac{v-\ell_0}{v-u}\\
+u\geq\ell_0,\ v\leq h_1
+&1.
+\end{array}
+\]
+The first row is the nontrivial compatible-root region. In the second region \(p_0=0\), so support compatibility forces \(b=p_1=(h_1-u)/(v-u)\). In the third, \(p_1=1\), so it forces \(b=1-p_0=(v-\ell_0)/(v-u)\). In the fourth, \((p_0,p_1)=(0,1)\), so \(b=1\). The first region is again a channel polygon and is evaluated by the ten-point map; the fourth requires only a linear feasibility check.
+
+On either fractional region, the denominator \(G(u,v)=v-u\) is affine and satisfies \(G\geq\kappa>0\). If \(z=\sum_i\lambda_i z_i\) is a convex combination of the vertices of that region and \(N\) denotes its affine numerator, then
+\[
+\frac{N(z)}{G(z)}
+=\sum_i
+\frac{\lambda_iG(z_i)}{\sum_k\lambda_kG(z_k)}
+\frac{N(z_i)}{G(z_i)}.
+\]
+The coefficients on the right are nonnegative and sum to one. Hence every fractional value is a convex combination of vertex values, and each fractional-region maximum occurs at a polygon vertex. Shared boundaries may be included in both adjacent regions; deleting duplicates does not change the maximum. This proves the four-region profiling rule, including contacts and tied optimizers.
+
+Finally, consider \(\mathrm{def:kill\text{-}test\text{-}witness}\). The lower profile uses
+\[
+\widetilde q_0=0.4000678118,
+\qquad
+\widetilde q_1=0.3318863111,
+\qquad
+\theta=0.9016929770.
+\]
+The displayed channel \((u,v)=(0.0395824405,0.4886211008)\) lies in the stated calibration rectangle, obeys both margin inequalities, and satisfies
+\[
+v-u=0.4490386603>0.4490386602=\kappa.
+\]
+It is therefore retained by the projected feasible set. Direct substitution into \(\mathrm{def:compatible\text{-}root}\), using the algebraically equivalent stable quadratic form, gives
+\[
+p_0=0.802793619282\ldots,
+\qquad
+p_1=0.650954798424\ldots,
+\qquad
+b=0.132058055576\ldots.
+\]
+For a fully exact decimal check, regard each displayed decimal input as its terminating rational value and define
+\[
+F(t)=(\theta-1)t^2+
+\{1-(\theta-1)(p_1-p_0)\}t-p_1(1-p_0).
+\]
+Exact rational substitution gives
+\[
+F(0.1320580555)<0<F(0.1320580556).
+\]
+The derivative \(F'(t)=2(\theta-1)t+1-(\theta-1)(p_1-p_0)\) is positive throughout the compatible support interval by \(\mathrm{lem:unique\text{-}compatible\text{-}root}\). Hence the unique root lies between those two decimals, and the lower projection retains \(0.1320580555\) to the displayed truncation precision.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact primitive inversion avoids branchwise bootstrap failures and remains valid at every nonsmooth contact. \textit{Gap.} GabrielSachsJensen2024 evaluates bootstrap coverage, documents regular-bootstrap undercoverage near boundaries, and reports a conservative \(m\)-out-of-\(n\) correction; FanPark2010 and KaidoMolinariStoye2019 provide adjacent clean-bound and generic projection inference. None gives exact simultaneous validation-binomial projection through the finite contact-complete shared-assay evaluator. \textit{Consumer.} A prospective BNT162b2-style endpoint study with a blinded validation substudy obtains a uniformly valid confidence set for its full true-channel benefit interval.
+
+\begin{theorem}[thm:excess-width]\label{thm:excess-width}
+Under assignment positivity, let \(N_j=(n_0,n_1,m_1,m_0)\), \(w_j=(1,1,2,2)\), and \(\varepsilon_j=\sqrt{\log(2/\beta_j)/(2N_j)}\). Uniformly over compatible primitives with \(d\ge\kappa\), with probability at least \(1-\beta\), \[K^{\star}\subseteq I_{\beta}\subseteq[\inf K^{\star}-R,\sup K^{\star}+R]\cap[0,1],\qquad R=\frac{2}{\kappa}\sum_jw_j\varepsilon_j.\] In addition, \(\sup_P E_P[\{\operatorname{length}(I_{\beta})-\operatorname{length}(K^{\star})\}_{+}]=O(1/(\kappa\sqrt{N_{\min}}))\) for fixed marginal budgets. These claims use only the four marginal binomial laws and do not require their counts to be mutually independent.
+\end{theorem}
+\begin{proof}
+We first establish a deterministic modulus. Let \(\eta=(q_0,q_1,u,v)\) and \(\eta'=(q'_0,q'_1,u',v')\) be compatible primitive tuples, and fix \(\theta\in[\theta_L,\theta_U]\). The segment joining them remains compatible because the channel rectangle, the inequalities \(u\leq q_a\leq v\), and the floor \(v-u\geq\kappa\) are linear. Along the segment, \(d=v-u\geq\kappa>0\). Direct differentiation of
+\[
+p_a=\frac{q_a-u}{v-u}
+\]
+gives
+\[
+\left|\frac{\partial p_a}{\partial q_a}\right|=\frac1d,
+\qquad
+\left|\frac{\partial p_a}{\partial u}\right|
+=\frac{v-q_a}{d^2}=\frac{1-p_a}{d},
+\qquad
+\left|\frac{\partial p_a}{\partial v}\right|
+=\frac{q_a-u}{d^2}=\frac{p_a}{d}.
+\]
+Compatibility gives \(0\leq p_a\leq1\), so all three absolute derivatives are at most \(1/\kappa\). Segment integration yields
+\[
+|p_a(\eta)-p_a(\eta')|
+\leq\frac{|q_a-q'_a|+|u-u'|+|v-v'|}{\kappa}.
+\]
+The unit coordinatewise margin bounds in \(\mathrm{lem:root\text{-}comparative\text{-}statics}\), extended to boundary contacts by continuity, now give
+\[
+|b(\eta,\theta)-b(\eta',\theta)|
+\leq\frac{|q_0-q'_0|+|q_1-q'_1|
++2|u-u'|+2|v-v'|}{\kappa}.
+\tag{1}
+\]
+Since \(|u-u'|=|c-c'|\) and \(|v-v'|=|s-s'|\), equation \((1)\) proves the weights \((1,1,2,2)\) for the primitive coordinates \((q_0,q_1,s,c)\).
+
+We next bound a Clopper--Pearson interval deterministically. Suppose \(X\sim\operatorname{Bin}(N,p)\), let \(Q_\gamma(X)=[L_X,U_X]\) be its equal-tailed interval of total noncoverage \(\gamma\), and put
+\[
+\varepsilon(N,\gamma)
+=\sqrt{\frac{\log(2/\gamma)}{2N}}.
+\]
+For \(X<N\), its upper endpoint satisfies
+\[
+\Pr_{U_X}\{X'\leq X\}=\gamma/2.
+\]
+Because \(U_X\geq X/N\), the lower-tail half of \(\mathrm{lem:hoeffding\text{-}binomial\text{-}deviation}\) implies
+\[
+\frac\gamma2
+\leq\exp\{-2N(U_X-X/N)^2\},
+\]
+and hence \(U_X-X/N\leq\varepsilon(N,\gamma)\). If \(X=N\), then \(U_X=1=X/N\). The symmetric upper-tail argument gives \(X/N-L_X\leq\varepsilon(N,\gamma)\), including \(X=0\), where \(L_X=0\). Consequently, for every observation,
+\[
+Q_\gamma(X)
+\subseteq
+[X/N-\varepsilon(N,\gamma),X/N+\varepsilon(N,\gamma)]\cap[0,1].
+\tag{2}
+\]
+
+Index the four primitive probabilities by
+\[
+(p_j^\star)_j=(q_0,q_1,s,c),
+\qquad
+(N_j)_j=(n_0,n_1,m_1,m_0),
+\qquad
+(w_j)_j=(1,1,2,2),
+\]
+and set \(\varepsilon_j=\sqrt{\log(2/\beta_j)/(2N_j)}\). On the simultaneous coverage event \(E\) constructed in \(\mathrm{thm:exact\text{-}confidence\text{-}projection}\), the true and every projected value of primitive coordinate \(j\) lie in the same primitive interval. By \((2)\), their distance is at most \(2\varepsilon_j\). Applying \((1)\) to any projected tuple and the true tuple, for the same \(\theta\), gives
+\[
+|b(\widetilde\eta,\theta)-b(\eta^\star,\theta)|
+\leq R,
+\qquad
+R=\frac2\kappa\sum_jw_j\varepsilon_j.
+\tag{3}
+\]
+The true tuple is feasible on \(E\), so \(\mathrm{thm:exact\text{-}confidence\text{-}projection}\) gives the first inclusion below. As \(\theta\) varies, the true-root values fill \(K^\star\). Taking the infimum and supremum over every projected tuple and \(\theta\) in \((3)\) gives
+\[
+K^\star\subseteq I_\beta
+\subseteq[\inf K^\star-R,\sup K^\star+R]\cap[0,1].
+\]
+This event has probability at least \(1-\beta\). Only marginal tail bounds and the union bound were used, so mutual independence of the counts is unnecessary.
+
+For the expectation assertion, let \(\widehat p_j\) be the four empirical proportions and define
+\[
+R_{\mathrm{data}}
+=\frac1\kappa\sum_jw_j
+\bigl(|\widehat p_j-p_j^\star|+\varepsilon_j\bigr).
+\]
+The deterministic enclosure \((2)\) shows, without conditioning on coverage, that every projected value of coordinate \(j\) is within \(|\widehat p_j-p_j^\star|+\varepsilon_j\) of the truth. Equation \((1)\) therefore puts the entire projected root image inside the \(R_{\mathrm{data}}\)-enlargement of \(K^\star\). Taking the interval image, and assigning length zero when the projected feasible set is empty, yields
+\[
+\{\operatorname{length}(I_\beta)-\operatorname{length}(K^\star)\}_+
+\leq2R_{\mathrm{data}}.
+\tag{4}
+\]
+For each binomial empirical proportion, Cauchy--Schwarz and the binomial variance formula give
+\[
+E_P|\widehat p_j-p_j^\star|
+\leq\sqrt{E_P(\widehat p_j-p_j^\star)^2}
+=\sqrt{\frac{p_j^\star(1-p_j^\star)}{N_j}}
+\leq\frac1{2\sqrt{N_j}}.
+\]
+Taking expectations in \((4)\) gives the uniform bound
+\[
+\sup_P E_P
+\{\operatorname{length}(I_\beta)-\operatorname{length}(K^\star)\}_+
+\leq\frac2\kappa\sum_jw_j
+\left\{\frac1{2\sqrt{N_j}}+\varepsilon_j\right\}
+=O\!\left(\frac1{\kappa\sqrt{N_{\min}}}\right),
+\]
+where the last equality uses fixed positive marginal budgets. Every displayed constant is independent of the compatible primitive probabilities, proving the claimed uniformity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Coverage alone can be vacuous; the width theorem quantifies the statistical price of weak assay informativeness and four primitive intervals. \textit{Gap.} KaidoMolinariStoye2019 establishes uniform asymptotic coverage for generic moment projections but not an exact finite-sample width modulus indexed by the Youden floor. \textit{Consumer.} Validation-study designers can translate a desired benefit-interval precision into trial and gold-standard stratum sizes.
+
+\begin{openendedquestion}[oeq:minimal-candidate-cap]\label{oeq:minimal-candidate-cap}
+Determine \(M^{\star}\) only after explicitly specifying an admissible evaluation/query model, including the available inputs, permissible preprocessing and dominance tests, the information returned by a channel evaluation, and the charged cost.  Within that model, prove either a universal reduction below the ten-point complete map or a matching worst-case lower bound, without altering the established results.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The proved constant-size map need not be combinatorially minimal, and minimality is the honest open mathematical content beyond completeness. \textit{Gap.} No cited benefit-bound or misclassification paper studies the worst-case evaluation complexity of a shared-channel semialgebraic envelope. \textit{Consumer.} A sharp cap yields the smallest auditable branch set for exact arithmetic and formal verification.
+
+\begin{lemma}[lem:clopper-pearson-exact-coverage]\label{lem:clopper-pearson-exact-coverage}
+Let \(X\sim\operatorname{Bin}(N,p)\), where \(N\geq1\), \(p\in[0,1]\), and \(0<\gamma<1\).  The two-sided equal-tailed Clopper--Pearson interval with total noncoverage \(\gamma\), obtained by inversion of the two binomial tails, contains \(p\) with probability at least \(1-\gamma\).
+\end{lemma}
+
+\begin{lemma}[lem:hoeffding-binomial-deviation]\label{lem:hoeffding-binomial-deviation}
+If \(X\sim\operatorname{Bin}(N,p)\), \(N\geq1\), and \(t>0\), then
+\[
+ \Pr_p\{X/N-p\geq t\}\leq \exp(-2Nt^2),
+ \qquad
+ \Pr_p\{p-X/N\geq t\}\leq \exp(-2Nt^2).
+\]
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+A floating-point generic optimizer missed a legal informativeness-edge minimum, returning \(0.1443566356\) instead of the explicit candidate value \(0.1320580555\). This is an implementation diagnostic, not a theorem contribution. Exact feasibility predicates and outward-rounded root evaluation remain necessary before empirical deployment.
+
+\section{Honest scope}
+
+The ten-point closed-model envelope, constructive endpoint attainment, strict-model bound transfer and exact strict-attainment criterion, exact projection, and \(O(1/(\kappa\sqrt{N_{\min}}))\) width rate are proved above. The exact minimal universal evaluation cap remains open: ten is a proved complete candidate-map upper bound (eight when the informativeness cut is absent), not a proved minimum. Assay transport is maintained prospectively and is not inferred from trial blinding. Infinite odds endpoints, zero informativeness, covariate-dependent channels, and an empirical reanalysis of PolackEtAl2020 remain outside the formal claim.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Rubin1974} Rubin, D. B. (1974). Estimating causal effects of treatments in randomized and nonrandomized studies. Journal of Educational Psychology 66, 688--701.
+
+  \bibitem{Molinari2008} Molinari, F. (2008). Partial identification of probability distributions with misclassified data. Journal of Econometrics 144, 81--117. doi:10.1016/j.jeconom.2007.12.003.
+
+  \bibitem{FanPark2010} Fan, Y. and Park, S. S. (2010). Sharp bounds on the distribution of treatment effects and their statistical inference. Econometric Theory 26, 931--951. doi:10.1017/S0266466609990168.
+
+  \bibitem{ZhangNieSoonLiu2013} Zhang, Z., Wang, C., Nie, L., and Soon, G. (2013). Assessing the heterogeneity of treatment effects via potential outcomes of individual patients. Journal of the Royal Statistical Society, Series C 62, 687--704. doi:10.1111/rssc.12012.
+
+  \bibitem{LuDingDasgupta2018} Lu, J., Ding, P., and Dasgupta, T. (2018). Treatment effects on ordinal outcomes: causal estimands and sharp bounds. Journal of Educational and Behavioral Statistics 43, 540--567. arXiv:1507.01542.
+
+  \bibitem{KaidoMolinariStoye2019} Kaido, H., Molinari, F., and Stoye, J. (2019). Confidence intervals for projections of partially identified parameters. Econometrica 87, 1397--1432. arXiv:1601.00934.
+
+  \bibitem{PolackEtAl2020} Polack, F. P. and coauthors (2020). Safety and efficacy of the BNT162b2 mRNA Covid-19 vaccine. New England Journal of Medicine 383, 2603--2615. doi:10.1056/NEJMoa2034577.
+
+  \bibitem{RossColeEdwardsEtAl2024} Ross, R. K., Cole, S. R., Edwards, J. K., and coauthors (2024). Leveraging external validation data: the challenges of transporting measurement error parameters. Epidemiology 35, 196--207. doi:10.1097/EDE.0000000000001701.
+
+  \bibitem{GabrielSachsJensen2024} Gabriel, E. E., Sachs, M. C., and Jensen, A. K. (2024). Sharp symbolic nonparametric bounds for measures of benefit in observational and imperfect randomized studies with ordinal outcomes. Biometrika 111, 1429--1436. arXiv:2305.10555.
+
+  \bibitem{HengShaw2025} Heng, S. and Shaw, P. A. (2025). Sensitivity analysis for binary outcome misclassification in randomization tests via integer programming. Journal of Computational and Graphical Statistics. arXiv:2201.03111.
+
+  \bibitem{CiocaneaTeodorescuGabrielSjolander2025} Ciocănea-Teodorescu, I., Gabriel, E. E., and Sjölander, A. (2025). Sensitivity analysis for the probability of benefit in randomized controlled trials with a binary treatment and a binary outcome. Biostatistics 26, kxaf011. doi:10.1093/biostatistics/kxaf011.
+
+  \bibitem{ClopperPearson1934} Clopper, C. J. and Pearson, E. S. (1934). The use of confidence or fiducial limits illustrated in the case of the binomial. Biometrika 26, 404--413.
+
+  \bibitem{Hoeffding1963} Hoeffding, W. (1963). Probability inequalities for sums of bounded random variables. Journal of the American Statistical Association 58, 13--30.
+
+  \bibitem{Boole1854} Boole, G. (1854). An Investigation of the Laws of Thought. Walton and Maberly, London.
+
+  \bibitem{EdwardsZivichShookSaCole2026} Edwards, J. K., Zivich, P. N., Shook-Sa, B. E., and Cole, S. R. (2026). The Rogan--Gladen estimator for outcome misclassification. American Journal of Epidemiology 195, 2091--2093. doi:10.1093/aje/kwag057.
+
+\end{thebibliography}
+
+\end{document}

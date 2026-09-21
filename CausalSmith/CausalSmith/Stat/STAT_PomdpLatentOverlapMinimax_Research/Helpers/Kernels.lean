@@ -1,13 +1,16 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Basic
-import Causalean.Stat.Minimax.TotalVariation
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.Analysis.Convex.StdSimplex
-import Mathlib.Analysis.Normed.Lp.PiLp
-import Mathlib.Topology.MetricSpace.Contracting
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Basic
+public import Causalean.Stat.Minimax.TotalVariation
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.Analysis.Convex.StdSimplex
+public import Mathlib.Analysis.Normed.Lp.PiLp
+public import Mathlib.Topology.MetricSpace.Contracting
 
 set_option linter.style.longLine false
 
 /-! # Kernel, stationary-law, support, and clipping lemmas -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
@@ -574,6 +577,5 @@ lemma overlapRadius_mem {C : ℝ} (hC : 1 ≤ C) : overlapRadius C ∈ Set.Ico 0
   constructor
   · exact div_nonneg (sub_nonneg.mpr hC) hC_pos.le
   · exact (div_lt_one hC_pos).2 (by linarith)
-
 
 end CausalSmith.Stat.PomdpLatentOverlapMinimax

@@ -21,7 +21,8 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-local-modulus`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.PluginERM
+module
+public import Causalean.Estimation.OrthogonalLearning.PluginERM
 
 /-! # Local Empirical-Process Modulus
 
@@ -30,6 +31,8 @@ orthogonal statistical learning: with high probability, empirical excess risk
 is uniformly close to population excess risk at a rate depending on the
 distance to the population target. The predicate serves as the bridge from
 empirical-process theory to oracle inequalities for plug-in estimators. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

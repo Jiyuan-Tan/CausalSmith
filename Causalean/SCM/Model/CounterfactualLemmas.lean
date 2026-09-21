@@ -17,8 +17,9 @@ the original structural equations; the pathwise identities use induction along
 the topological order in `Evaluation.lean`.
 -/
 
-import Causalean.SCM.Model.Evaluation
-import Causalean.SCM.Model.InterventionSet
+module
+public import Causalean.SCM.Model.Evaluation
+public import Causalean.SCM.Model.InterventionSet
 
 /-! # Counterfactual Identities for Structural Causal Models
 
@@ -30,6 +31,11 @@ original structural equations. The main theorems `evalMap_fixSet_factual_eq` and
 `evalMap_fixSet_union_eq` provide SCM-level factual consistency and composition
 with an intermediate-value hypothesis, which are used by the potential-outcome
 bridge. -/
+
+public section
+
+open Causalean.Graph
+
 
 namespace Causalean
 namespace SCM

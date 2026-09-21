@@ -4,36 +4,33 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Topology.Order.IntermediateValue
-import Mathlib.Topology.Instances.Real.Lemmas
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
+module
+public import Causalean.Stat.AttainableSet
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Mathlib.Topology.Instances.Real.Lemmas
+public import Mathlib.Topology.Order.IntermediateValue
 
 /-! # Partial Identification Basics
 
 This file provides abstract infrastructure for scalar partial-identification
-intervals. It defines the identified interval as the set of objective values
-attainable over a feasible parameter set and proves general criteria for
-placing that set inside, or identifying it exactly with, a closed real
+sets. It builds on the shared identified set—the set of objective
+values attainable over a feasible parameter set—and proves general criteria
+for placing that set inside, or identifying it exactly with, a closed real
 interval.
 
 The results are independent of the potential-outcome framework and are reused
 by concrete bound constructions such as Balke-Pearl intervals. -/
 
+public section
+
+open Causalean.Stat.AttainableSet
+
 namespace Causalean
 namespace PartialID
 
-/-- For [a parameter space](hyp:α), [an objective function](hyp:obj), and [a feasibility condition on its parameter
-values](hyp:feasible), the [sharp identified interval](goal) is the set of all objective
-values attained by feasible parameters.
-
-Sharp identified interval: the set of all objective values attainable by
-a feasible parameter. -/
-noncomputable def IdentifiedInterval {α : Type*} (obj : α → ℝ) (feasible : α → Prop) : Set ℝ :=
-  Set.range (fun x : {x // feasible x} => obj x)
-
-/-- A feasible parameter's objective value belongs to the identified interval. -/
-lemma mem_identifiedInterval {α : Type*} {obj : α → ℝ} {feasible : α → Prop}
-    {x : α} (hx : feasible x) : obj x ∈ IdentifiedInterval obj feasible :=
+/-- A feasible parameter's objective value belongs to the identified set. -/
+lemma mem_identifiedSet {α : Type*} {obj : α → ℝ} {feasible : α → Prop}
+    {x : α} (hx : feasible x) : obj x ∈ IdentifiedSet obj feasible :=
   ⟨⟨x, hx⟩, rfl⟩
 
 /-- **Sandwich → membership.**  The literal content of a two-sided bound
@@ -56,11 +53,11 @@ theorem mem_Icc_csInf_csSup {s : Set ℝ} {y : ℝ}
 variable {α : Type*} {obj : α → ℝ} {feasible : α → Prop}
 
 /-- **Outer bound.**  If the objective is uniformly bounded below by `L` and
-above by `U` over the feasible set, the sharp identified interval is contained
+above by `U` over the feasible set, the identified set is contained
 in `[L, U]`. -/
-theorem identifiedInterval_subset_Icc {L U : ℝ}
+theorem identifiedSet_subset_Icc {L U : ℝ}
     (hL : ∀ x, feasible x → L ≤ obj x) (hU : ∀ x, feasible x → obj x ≤ U) :
-    IdentifiedInterval obj feasible ⊆ Set.Icc L U := by
+    IdentifiedSet obj feasible ⊆ Set.Icc L U := by
   rintro _ ⟨x, rfl⟩
   exact ⟨hL x.1 x.2, hU x.1 x.2⟩
 
@@ -73,34 +70,34 @@ values is order-connected — it contains every real number between any two of i
 members](hyp:hconn). Then [the identified interval — the set of all objective values
 attainable over the feasible parameter set — equals the closed interval `[L, U]`
 exactly](goal). Order-connectedness is the abstract substitute for "no gaps", supplied
-concretely by `identifiedInterval_param_Icc` through continuity + connectedness of a
+concretely by `identifiedSet_param_Icc` through continuity + connectedness of a
 parameterization. -/
-theorem identifiedInterval_eq_Icc {L U : ℝ}
+theorem identifiedSet_eq_Icc {L U : ℝ}
     (hL : ∀ x, feasible x → L ≤ obj x) (hU : ∀ x, feasible x → obj x ≤ U)
-    (hLmem : L ∈ IdentifiedInterval obj feasible)
-    (hUmem : U ∈ IdentifiedInterval obj feasible)
-    (hconn : (IdentifiedInterval obj feasible).OrdConnected) :
-    IdentifiedInterval obj feasible = Set.Icc L U :=
-  Set.Subset.antisymm (identifiedInterval_subset_Icc hL hU) (hconn.out hLmem hUmem)
+    (hLmem : L ∈ IdentifiedSet obj feasible)
+    (hUmem : U ∈ IdentifiedSet obj feasible)
+    (hconn : (IdentifiedSet obj feasible).OrdConnected) :
+    IdentifiedSet obj feasible = Set.Icc L U :=
+  Set.Subset.antisymm (identifiedSet_subset_Icc hL hU) (hconn.out hLmem hUmem)
 
 /-- **Mixing-pattern constructor.** Suppose [the feasible parameter set is exactly the
 image of the unit interval `[0, 1]` under a path `γ`](hyp:hfeas), [the objective composed
 with `γ` is continuous on `[0, 1]`](hyp:hcont), [the objective value at the path's start
 equals `L`](hyp:hL), [the objective value at the path's end equals `U`](hyp:hU), and [the
 objective stays between `L` and `U` at every point along the path](hyp:hbound). Then [the
-sharp identified interval is exactly `[L, U]`](goal). This is the canonical
+identified set is exactly `[L, U]`](goal). This is the canonical
 partial-identification "mixing" shape: an unidentified nuisance ranging over a connected
 parameter set sweeps the objective continuously across the whole interval between its
 extreme values. -/
-theorem identifiedInterval_param_Icc {γ : ℝ → α} {L U : ℝ}
+theorem identifiedSet_param_Icc {γ : ℝ → α} {L U : ℝ}
     (hfeas : ∀ x, feasible x ↔ ∃ t ∈ Set.Icc (0 : ℝ) 1, γ t = x)
     (hcont : ContinuousOn (fun t => obj (γ t)) (Set.Icc 0 1))
     (hL : obj (γ 0) = L) (hU : obj (γ 1) = U)
     (hbound : ∀ t ∈ Set.Icc (0 : ℝ) 1, L ≤ obj (γ t) ∧ obj (γ t) ≤ U) :
-    IdentifiedInterval obj feasible = Set.Icc L U := by
-  have himg : IdentifiedInterval obj feasible = (fun t => obj (γ t)) '' Set.Icc 0 1 := by
+    IdentifiedSet obj feasible = Set.Icc L U := by
+  have himg : IdentifiedSet obj feasible = (fun t => obj (γ t)) '' Set.Icc 0 1 := by
     ext y
-    simp only [IdentifiedInterval, Set.mem_range, Set.mem_image, Subtype.exists]
+    simp only [IdentifiedSet, Set.mem_range, Set.mem_image, Subtype.exists]
     constructor
     · rintro ⟨x, hx, rfl⟩
       obtain ⟨t, ht, rfl⟩ := (hfeas x).1 hx
@@ -114,6 +111,19 @@ theorem identifiedInterval_param_Icc {γ : ℝ → α} {L U : ℝ}
   · rintro _ ⟨t, ht, rfl⟩
     exact ⟨(hbound t ht).1, (hbound t ht).2⟩
   · exact hord.out ⟨0, by norm_num, hL⟩ ⟨1, by norm_num, hU⟩
+
+/-- Deprecated former name of `mem_identifiedSet`. -/
+@[deprecated (since := "2026-09-16")]
+alias mem_identifiedInterval := mem_identifiedSet
+/-- Deprecated former name of `identifiedSet_subset_Icc`. -/
+@[deprecated (since := "2026-09-16")]
+alias identifiedInterval_subset_Icc := identifiedSet_subset_Icc
+/-- Deprecated former name of `identifiedSet_eq_Icc`. -/
+@[deprecated (since := "2026-09-16")]
+alias identifiedInterval_eq_Icc := identifiedSet_eq_Icc
+/-- Deprecated former name of `identifiedSet_param_Icc`. -/
+@[deprecated (since := "2026-09-16")]
+alias identifiedInterval_param_Icc := identifiedSet_param_Icc
 
 end PartialID
 end Causalean

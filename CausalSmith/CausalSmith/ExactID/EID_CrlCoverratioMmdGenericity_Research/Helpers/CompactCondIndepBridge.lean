@@ -1,9 +1,10 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CompactCubeBridge
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
-import Causalean.Graph.FiniteDensity.Positive.Main
-import Causalean.Mathlib.CondIndep.DomainTransport.AeRetraction
-import CausalSmith.Substrate.MeasurePreservingCondindepDomainTransport.WithDensity
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.UnitIntervalOpenPos
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CompactCubeBridge
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
+public import Causalean.Graph.Density.FiniteDAG.Positive.Main
+public import Causalean.Mathlib.Probability.Independence.Conditional.Transport.AeRetraction
+public import CausalSmith.Substrate.MeasurePreservingCondindepDomainTransport.WithDensity
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.UnitIntervalOpenPos
 
 /-!
 # Conditional-independence bridge to compact cube factorizations
@@ -12,10 +13,17 @@ This file transports the paper's ambient, cube-supported coordinate conditional 
 to the compact coordinate-product presentation used by positive finite-DAG factorizations.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
 
 noncomputable section
+
+open Causalean.Mathlib.Probability.Independence.Conditional.Transport
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
@@ -113,9 +121,9 @@ lemma comap_compact_realCoordinate_eq (n : ℕ) (i : Fin n) :
 /-- The real-coordinate presentation on the compact cube is equivalent to the native
 subtype-coordinate presentation of a compact positive factorization.  [the stated conclusion](goal) follows. -/
 lemma compactRealCondIndep_iff
-    {n : ℕ} {G : Causalean.DAG (Fin n)}
+    {n : ℕ} {G : DAG (Fin n)}
     {mu : Fin n → Measure (Set.Icc (0 : ℝ) 1)} [∀ k, SigmaFinite (mu k)]
-    (M : CompactPositiveFactorization G
+    (M : UniformlyPositiveContinuousFactorization G
       (fun _ : Fin n ↦ Set.Icc (0 : ℝ) 1) mu)
     (i j : Fin n) (C : Finset (Fin n)) :
     CondIndepFun
@@ -127,7 +135,7 @@ lemma compactRealCondIndep_iff
         ((fun v : LatentState n ↦ v j) ∘ compactCubeInclude n)
         M.observationalMeasure ↔
       M.CondIndepCoordinates i j C := by
-  unfold CompactPositiveFactorization.CondIndepCoordinates
+  unfold UniformlyPositiveContinuousFactorization.CondIndepCoordinates
   rw [ProbabilityTheory.condIndepFun_iff_condIndep,
     ProbabilityTheory.condIndepFun_iff_condIndep]
   have hZ := comap_compact_realProjection_eq n C
@@ -139,10 +147,10 @@ lemma compactRealCondIndep_iff
 ambient observational law, then the two singleton-coordinate conditional-independence
 encodings are equivalent.  Given [the stated inputs and conditions](hyp:hobs), [the stated conclusion](goal) follows. -/
 lemma condIndepCoordinates_iff_compactPositiveFactorization
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {mu : Fin n → Measure (Set.Icc (0 : ℝ) 1)} [∀ k, SigmaFinite (mu k)]
     (theta : StratumPoint G s)
-    (M : CompactPositiveFactorization G
+    (M : UniformlyPositiveContinuousFactorization G
       (fun _ : Fin n ↦ Set.Icc (0 : ℝ) 1)
       mu)
     (hobs : Measure.map (compactCubeInclude n) M.observationalMeasure =
@@ -156,7 +164,7 @@ lemma condIndepCoordinates_iff_compactPositiveFactorization
       M.observationalMeasure := by
     rw [← hobs]
     exact map_compactCubeRetract_map_compactCubeInclude M.observationalMeasure
-  have hcompact := Causalean.condIndepFun_comp_aeEquiv_iff
+  have hcompact := condIndepFun_comp_aeEquiv_iff
     (compactCubeInclude n) (compactCubeRetract n)
     (measurable_compactCubeInclude n) (measurable_compactCubeRetract n)
     hobs hmapRetract
@@ -178,10 +186,10 @@ lemma condIndepCoordinates_iff_compactPositiveFactorization
 /-- The paper and compact-factorization singleton conditional-independence encodings agree for
 an arbitrary mechanism whenever their observational measures agree.  Given [the stated inputs and conditions](hyp:hobs), [the stated conclusion](goal) follows. -/
 lemma condIndepCoordinates_iff_compactPositiveFactorization_mechanism
-    {n : ℕ} {G : Causalean.DAG (Fin n)}
+    {n : ℕ} {G : DAG (Fin n)}
     {mu : Fin n → Measure (Set.Icc (0 : ℝ) 1)} [∀ k, SigmaFinite (mu k)]
     (theta : Mechanism n G)
-    (M : CompactPositiveFactorization G
+    (M : UniformlyPositiveContinuousFactorization G
       (fun _ : Fin n ↦ Set.Icc (0 : ℝ) 1) mu)
     (hobs : Measure.map (compactCubeInclude n) M.observationalMeasure =
       observationalLaw theta)
@@ -194,7 +202,7 @@ lemma condIndepCoordinates_iff_compactPositiveFactorization_mechanism
       M.observationalMeasure := by
     rw [← hobs]
     exact map_compactCubeRetract_map_compactCubeInclude M.observationalMeasure
-  have hcompact := Causalean.condIndepFun_comp_aeEquiv_iff
+  have hcompact := condIndepFun_comp_aeEquiv_iff
     (compactCubeInclude n) (compactCubeRetract n)
     (measurable_compactCubeInclude n) (measurable_compactCubeRetract n)
     hobs hmapRetract
@@ -216,9 +224,9 @@ lemma condIndepCoordinates_iff_compactPositiveFactorization_mechanism
 /-- A positive normalized smooth paper mechanism restricts to a compact positive
 factorization on the product of unit-interval coordinate subtypes. -/
 def mechanismCompactPositiveFactorization
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {theta : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {theta : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G theta) :
-    CompactPositiveFactorization G
+    UniformlyPositiveContinuousFactorization G
       (fun _ : Fin n ↦ Set.Icc (0 : ℝ) 1)
       (fun _ : Fin n ↦ (volume : Measure (Set.Icc (0 : ℝ) 1))) := by
   let B := mechanismUnitCubeFactorization hpos
@@ -316,7 +324,7 @@ def mechanismCompactPositiveFactorization
 /-- The compact factorization's local factor is the paper mechanism factor evaluated at the
 included compact assignment.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma mechanismCompactPositiveFactorization_factor_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {theta : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {theta : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G theta)
     (i : Fin n) (x : (k : Fin n) → Set.Icc (0 : ℝ) 1) :
     (mechanismCompactPositiveFactorization hpos).toFactorization.factor i x =
@@ -337,24 +345,27 @@ lemma mechanismCompactPositiveFactorization_factor_eq
 /-- Uniform closeness of paper observational factors implies `FactorSupClose` for their compact
 positive factorizations.  Given [the stated inputs and conditions](hyp:hθ,hη,hclose), [the stated conclusion](goal) follows. -/
 lemma mechanismCompact_factorSupClose_of_p_close
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {theta eta : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {theta eta : Mechanism n G}
     (hθ : PositiveNormalizedSmoothMechanisms G theta)
     (hη : PositiveNormalizedSmoothMechanisms G eta) {ε : ℝ}
     (hclose : ∀ i v, v ∈ latentCube n → |eta.p i v - theta.p i v| < ε) :
     (mechanismCompactPositiveFactorization hθ).FactorSupClose
       (mechanismCompactPositiveFactorization hη) ε := by
   intro i x
-  rw [mechanismCompactPositiveFactorization_factor_eq,
-    mechanismCompactPositiveFactorization_factor_eq]
   have hx : compactCubeInclude n x ∈ latentCube n := fun k _ => (x k).property
-  rw [ENNReal.toReal_ofReal (hη.1 i _ hx).le,
+  change
+    |((mechanismCompactPositiveFactorization hη).toFactorization.factor i x).toReal -
+      ((mechanismCompactPositiveFactorization hθ).toFactorization.factor i x).toReal| < ε
+  rw [mechanismCompactPositiveFactorization_factor_eq,
+    mechanismCompactPositiveFactorization_factor_eq,
+    ENNReal.toReal_ofReal (hη.1 i _ hx).le,
     ENNReal.toReal_ofReal (hθ.1 i _ hx).le]
   exact hclose i _ hx
 
 /-- Including the compact factorization's observational measure into the ambient latent
 space recovers the paper's cube-supported observational law.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma mechanismCompactPositiveFactorization_observationalMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {theta : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {theta : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G theta) :
     Measure.map (compactCubeInclude n)
         (mechanismCompactPositiveFactorization hpos).observationalMeasure =
@@ -375,7 +386,7 @@ lemma mechanismCompactPositiveFactorization_observationalMeasure
     exact (hpos.1 i (compactCubeInclude n x) (fun k _ => (x k).property)).le
   have heWeighted : Measure.map e M.observationalMeasure =
       (volume : Measure {v : LatentState n // v ∈ latentCube n}).withDensity d := by
-    unfold CompactPositiveFactorization.observationalMeasure
+    unfold UniformlyPositiveContinuousFactorization.observationalMeasure
       Causalean.Graph.FiniteDensity.Factorization.observationalMeasure
     rw [hdensity]
     exact map_withDensity_comp_measurableEquiv e
@@ -406,10 +417,10 @@ lemma mechanismCompactPositiveFactorization_observationalMeasure
 /-- For a positive smooth mechanism, the paper's singleton-block conditional independence is
 exactly the compact positive factorization's coordinate conditional independence.  [the stated conclusion](goal) follows. -/
 lemma condIndepCoordinates_iff_mechanismCompactPositiveFactorization
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) (i j : Fin n) (C : Finset (Fin n)) :
     CondIndepCoordinates theta.1 {i} {j} C ↔
-      CompactPositiveFactorization.CondIndepCoordinates
+      UniformlyPositiveContinuousFactorization.CondIndepCoordinates
         (mechanismCompactPositiveFactorization theta.property.positiveSmooth) i j C := by
   exact condIndepCoordinates_iff_compactPositiveFactorization theta
     (mechanismCompactPositiveFactorization theta.property.positiveSmooth)
@@ -419,10 +430,10 @@ lemma condIndepCoordinates_iff_mechanismCompactPositiveFactorization
 /-- Every paper stratum point has one uniform compact-factor neighborhood in which causal
 minimality persists on all directed edges.  [the stated conclusion](goal) follows. -/
 lemma mechanismCompact_all_edge_witnesses_open
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) :
     let M := mechanismCompactPositiveFactorization theta.property.positiveSmooth
-    ∃ ε > 0, ∀ N : CompactPositiveFactorization G
+    ∃ ε > 0, ∀ N : UniformlyPositiveContinuousFactorization G
         (fun _ : Fin n ↦ Set.Icc (0 : ℝ) 1)
         (fun _ : Fin n ↦ (volume : Measure (Set.Icc (0 : ℝ) 1))),
       M.FactorSupClose N ε →

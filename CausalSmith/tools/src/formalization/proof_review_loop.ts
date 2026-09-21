@@ -202,16 +202,19 @@ export async function leanModuleTargets(repoRoot: string, leanDir: string): Prom
  * break every other run's default build (the same cross-run coupling the compile gate avoids).
  * Regenerated at F-stage entry so it cannot drift from the file set. Deterministic (sorted).
  */
-export async function writeRunBarrel(repoRoot: string, leanDir: string): Promise<string | null> {
+export async function writeRunBarrel(
+  repoRoot: string,
+  leanDir: string,
+): Promise<string | null> {
   const mods = (await leanModuleTargets(repoRoot, leanDir)).sort();
   if (mods.length === 0) return null;
   const barrelPath = `${leanDir}.lean`;
-  // `import` must be at the very top of a Lean file, and a `/-! -/` module docstring is a
-  // DECLARATION — so the overview goes AFTER the imports, not before (a plain `/- -/` copyright
-  // comment is fine above them).
+  // Imports precede the module docstring. The bare `module` header sits after the copyright block
+  // and every import is public so this barrel re-exports the run.
   const src =
     "/-\nCopyright (c) 2026 Jiyuan Tan. All rights reserved.\nReleased under Apache 2.0 license as described in the file LICENSE.\nAuthors: Jiyuan Tan\n-/\n\n" +
-    mods.map((m) => `import ${m}`).join("\n") +
+    "module\n" +
+    mods.map((m) => `public import ${m}`).join("\n") +
     "\n\n/-! # Run barrel (auto-generated)\n\nAggregates every module of this causalsmith run so the whole run is ONE buildable target\n(`lake build <this module>`). Research modules are not reachable from the top-level\n`CausalSmith.lean` barrel, so the default lake target skips them and reports green on stale\noleans. Rewritten from the run's module set on every F-stage entry — do not hand-edit. -/\n";
   await writeFile(barrelPath, src, "utf8");
   return barrelPath;

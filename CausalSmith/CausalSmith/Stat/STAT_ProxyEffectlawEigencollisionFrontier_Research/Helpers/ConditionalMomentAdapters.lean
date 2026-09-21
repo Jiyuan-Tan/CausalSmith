@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
-import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
 
 /-!
 Paper-local adapters from the model's conditional-mean assumptions and almost-sure coordinate
 bounds to normalized restricted moments.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

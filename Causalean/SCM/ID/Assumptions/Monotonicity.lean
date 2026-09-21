@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.SCM
+module
+public import Causalean.SCM.Model.SCM
 
 /-! # Structural Monotonicity Assumptions
 
@@ -18,6 +19,11 @@ satisfies the structural restriction and one model violates it. These witnesses
 show that the predicate is a genuine constraint on `structFun`, not a vacuous
 edge label.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.SCM.Assumptions
 
@@ -62,7 +68,7 @@ def MonotoneMechanism [∀ n, Preorder (Ω n)]
 inductive BoolChainNode
   | d
   | y
-  deriving DecidableEq, Repr
+  deriving DecidableEq
 
 namespace BoolChainNode
 
@@ -101,7 +107,9 @@ private theorem topo_injective : Function.Injective topo := by
   intro a b h
   cases a <;> cases b <;> simp [topo] at h ⊢
 
-private theorem topo_lt : ∀ a b, edge a b → topo a < topo b := by
+/-- For [two nodes in the Boolean chain joined by a directed edge](hyp:a,b), [the first has a
+smaller topological index](goal). -/
+theorem topo_lt : ∀ a b, edge a b → topo a < topo b := by
   intro a b h
   cases a <;> cases b <;> simp [edge, topo] at h ⊢
 

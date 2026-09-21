@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.SelfBound
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.BochnerIntegrability
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.SelfBound
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.BochnerIntegrability
 
 /-! Provides feasible ERM bridge and master-bound algebra helpers. -/
+
+public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

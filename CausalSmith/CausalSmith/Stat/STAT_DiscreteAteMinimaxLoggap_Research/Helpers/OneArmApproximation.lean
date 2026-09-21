@@ -1,5 +1,6 @@
-import Causalean.Mathlib.Analysis.EhlichZellerMesh.Bernstein
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+module
+public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.Bernstein
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
 
 /-!
 # A three-point obstruction for the one-arm rational approximation problem
@@ -9,6 +10,8 @@ bound used in the one-arm prior construction.  Evaluating the rational target
 at the first three multiples of its pole scale produces a fixed linear
 combination in which the nuisance reciprocal term cancels.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

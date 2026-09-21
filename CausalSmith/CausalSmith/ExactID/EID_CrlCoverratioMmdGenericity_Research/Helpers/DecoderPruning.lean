@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
 
 /-!
 # Exact parent pruning
@@ -8,6 +9,11 @@ conditional-independence test characterizes exactly the supersets of the true
 parent set, that set is the unique inclusion-minimal admissible set and the
 decoder's selected graph is the permuted latent graph.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -19,7 +25,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- At one common order, the conditional-independence characterization makes the true parent
 set the unique inclusion-minimal admissible set.  Given [the stated inputs and conditions](hyp:hparents,hiff), [the stated conclusion](goal) follows. -/
 lemma exactParentPruning_at_order
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (laws : ObservedProbabilityLawFamily n)
     (order : Fin n → ℕ)
     (hparents : ∀ i, environmentParentSet W i ⊆ predecessorSet order i)
@@ -50,7 +56,7 @@ lemma exactParentPruning_at_order
 /-- If admissibility is equivalent to containing the true environment-label parents for every
 valid ordering, parent pruning has that parent set as its unique minimum.  Given [the stated inputs and conditions](hyp:hpred,hiff), [the stated conclusion](goal) follows. -/
 lemma exactParentPruning_of_condIndepCharacterization
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (laws : ObservedProbabilityLawFamily n)
     (hpred : ∀ order, IsTopologicalOrdering
@@ -93,7 +99,7 @@ lemma exactParentPruning_of_condIndepCharacterization
 /-- Exact unique parent pruning at the selected topological order makes the decoder's returned
 DAG equal to the environment-label pullback of the latent DAG.  Given [the stated inputs and conditions](hyp:hprune), [the stated conclusion](goal) follows. -/
 lemma selectedParentDAG_eq_permutedGraph_of_exactPruning
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (laws : ObservedProbabilityLawFamily n)
     (hprune : ∀ i,

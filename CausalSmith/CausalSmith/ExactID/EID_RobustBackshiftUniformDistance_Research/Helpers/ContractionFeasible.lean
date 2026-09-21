@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionTopology
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionResidual
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionTopology
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionResidual
 
 /-!
 # Closed feasible tuples for uniform contraction
@@ -7,6 +8,8 @@ import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.C
 This module records the closed compactification of true and candidate BACKSHIFT explanations on
 one fixed retained environment set.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

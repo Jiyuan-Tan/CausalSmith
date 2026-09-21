@@ -5,12 +5,10 @@ Authors: Jiyuan Tan
 
 # AIPW second-order remainder identity
 
-The AIPW moment functional `m_AIPW(η, z, θ₀)` from `AIPWMoment.lean` is
-Neyman-orthogonal at `(η₀, θ₀)` (`Neyman.lean`), meaning the directional
-derivative of `η ↦ ∫ m(η, z, θ₀) dP_Z` at `η₀` vanishes on `H_ε`.  The DML
-asymptotic-linearity proof needs the *second-order* consequence. This file
-proves the exact integrated identity that rewrites the population moment at
-`η` as a product of outcome-regression and propensity-score errors; the
+For a nuisance in `H_ε_aeL2`, the AIPW moment functional
+`m_AIPW(η, z, θ₀)` from `AIPWMoment.lean` has a second-order integrated
+remainder. This file proves the exact identity that rewrites its population
+moment as a product of outcome-regression and propensity-score errors. The
 quantitative L² bound and stochastic product-rate corollary are in
 `Remainder/Bound.lean`.
 
@@ -19,13 +17,14 @@ only the constant-case Cauchy–Schwarz bound from
 `Causalean/Stat/ConditionalOp.lean`; we collect it here too for symmetry.
 -/
 
-import Causalean.Estimation.ATE.Score.AIPWMoment
-import Causalean.Tactic.IntegralLinearity
-import Causalean.Estimation.ATE.Score.MeanZero
-import Causalean.Estimation.ATE.Score.ScorePullout
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
+module
+public import Causalean.Estimation.ATE.Score.AIPWMoment
+public import Causalean.Tactic.IntegralLinearity
+public import Causalean.Estimation.ATE.Score.MeanZero
+public import Causalean.Estimation.ATE.Score.ScorePullout
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 /-!
 Establishes the exact second-order AIPW remainder identity for back-door
@@ -39,6 +38,8 @@ The identity pushes the population AIPW moment from the observed-data law
 errors in `μ` and `e`; `Remainder/Bound.lean` then turns this identity into an
 L² product bound and an `o_p(n^{-1/2})` corollary.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -77,19 +78,18 @@ theorem plugin_bias_le_eLpNorm
 
 /-! ## AIPW second-order remainder
 
-Algebraic identity: at any `η = (μ_fn, e_fn) ∈ H_ε`, expanding the AIPW
+Algebraic identity: at any `η = (μ_fn, e_fn) ∈ H_ε_aeL2 S ε`, expanding the AIPW
 moment around `η₀` in `(μ_fn − μ_val, e_fn − e_val)` and integrating against
-`dP_Z` cancels the linear term (Neyman orthogonality, `aipw_neyman` part B)
-and leaves a quadratic remainder of the form
+`dP_Z` cancels the linear term and leaves a quadratic remainder of the form
 
     Σ_{a ∈ {0,1}} ∫ Δμ_a(x) · Δe_a(x) · w_a(x; η, η₀) dP_X(x),
 
-where `w_a` is uniformly bounded by `2/(ε(1−ε))` on `H_ε`.  Cauchy–Schwarz
-on each summand then gives the product-rate bound.
+where `w_a` is bounded by `2/(ε(1−ε))` on the full-measure overlap set
+provided by `H_ε_aeL2`. Cauchy–Schwarz on each summand then gives the
+product-rate bound in `Remainder/Bound.lean`.
 
-The statement below packages the conclusion directly; the proof body
-performs the expansion and applies `integral_abs_mul_le_eLpNorm_mul_eLpNorm`
-componentwise. -/
+The statement below performs the expansion and conditional-expectation
+pull-outs; `Remainder/Bound.lean` applies the componentwise L² estimate. -/
 
 /-- For [a real overlap level](hyp:ε), the [AIPW remainder constant](goal) is $2/[ε(1-ε)]$, the uniform strict-overlap weight bound used in the second-order remainder estimate. -/
 noncomputable def aipw_rem_const (ε : ℝ) : ℝ := 2 / (ε * (1 - ε))
@@ -522,7 +522,7 @@ lemma aipw_remainder_identity
                 ring
         _ = ∫ ω, ((η.μ_fn true (X ω) - S.μ_val true (X ω)) /
                 η.e_fn (X ω)) * S.e_val_label true (X ω) ∂P.μ :=
-              indicator_to_propScore_integral S hA true
+              indicator_to_propScore_integral S true
                 (fun x => (η.μ_fn true x - S.μ_val true x) / η.e_fn x)
                 hf_meas hf_ind_int
         _ = ∫ ω, pT ω ∂P.μ := by
@@ -549,7 +549,7 @@ lemma aipw_remainder_identity
                 ring
         _ = ∫ ω, ((η.μ_fn false (X ω) - S.μ_val false (X ω)) /
                 (1 - η.e_fn (X ω))) * S.e_val_label false (X ω) ∂P.μ :=
-              indicator_to_propScore_integral S hA false
+              indicator_to_propScore_integral S false
                 (fun x => (η.μ_fn false x - S.μ_val false x) / (1 - η.e_fn x))
                 hf_meas hf_ind_int
         _ = ∫ ω, pF ω ∂P.μ := by

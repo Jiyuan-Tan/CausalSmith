@@ -1,13 +1,18 @@
-import Causalean.Stat.FiniteRaoBlackwell.Core
+module
+public import Causalean.Stat.FiniteRaoBlackwell.Core
 
 /-!
-# Finite factorization sufficiency
+# A sufficient finite factorization condition
 
-This module gives a finite Fisher--Neyman factorization criterion for the statistic of a
-`FiniteUniformExperiment`.  A state-dependent factor through the statistic and a nonnegative
-state-independent carrier weight determine a common conditional distribution of the full data
-given the statistic.  Null carrier fibers are totalized by the experiment's fallback point.
+This module formalizes the sufficient direction of a finite Fisher--Neyman-style factorization
+result for the statistic of a `FiniteUniformExperiment`.  A state-dependent factor through the
+statistic and a nonnegative state-independent carrier weight determine a common conditional
+distribution of the full data given the statistic.  Null carrier fibers are totalized by the
+experiment's fallback point.  No converse from a common conditional law to a factorization is
+proved here.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

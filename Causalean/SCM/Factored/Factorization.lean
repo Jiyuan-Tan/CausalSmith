@@ -22,8 +22,10 @@ map that identifies the full prefix state with `RandomValues M`.
 * `SCM.jointKernel_eq_factored_kernel` — kernel-level restatement.
 -/
 
-import Causalean.SCM.Factored.EvalMapCorrespond
-import Causalean.SCM.Model.Kernel
+module
+public import Causalean.Mathlib.MeasureTheory.CastMeasurable
+public import Causalean.SCM.Factored.EvalMapCorrespond
+public import Causalean.SCM.Model.Kernel
 
 /-! # Factorization of the Joint Kernel
 
@@ -32,6 +34,11 @@ factorization theorem for the joint kernel of a structural causal model. It
 identifies the full prefix state with all random coordinates, proves the
 reindexing map is measurable, relates the full deterministic prefix map to
 `evalMap`, and states both pointwise and kernel-level factorization theorems. -/
+
+@[expose] public section
+
+open Causalean.Graph
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

@@ -27,23 +27,26 @@ Hence `χ²(Qtrue‖Qfalse) ≤ 1`, so `tvDist ≤ ½√χ² ≤ 1/2`
 `minimax_lower_bound` concludes `1/4 ≤ minimaxMiss`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ExplicitWitness
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSqOverlap
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Ingster
-import Causalean.Stat.Minimax.ChiSquaredFinite
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ExplicitWitness
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSqOverlap
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Ingster
+public import Causalean.Stat.Minimax.ChiSquaredFinite
 
 /-! # Chi-Squared Core
 
 This file proves the statistical indistinguishability bound for the baseline structure-agnostic
-ATE construction. It first supplies finite-support facts such as
-`absolutelyContinuous_of_singleton_pos`, `productLaw_real_singleton`, `Qfalse_singleton_ne_zero`,
-and `Qtrue_real_singleton`.
+ATE construction. It first supplies finite-support facts such as `productLaw_real_singleton`,
+`Qfalse_singleton_ne_zero`, and `Qtrue_real_singleton`, using the common full-support
+absolute-continuity lemma from `ChiSqOverlap`.
 
 The core identity `one_add_chiSqDiv_Qtrue_Qfalse` evaluates the mixture second moment. The
 theorem `chiSqDiv_Qtrue_Qfalse_le_one` applies `ingster_bound`, and
 `tvDist_Qfalse_Qtrue_le_half` converts that chi-squared bound into total-variation
 indistinguishability. The final theorem `minimax_lower_bound` discharges the abstract
 two-point witness and gives the unconditional finite-cell minimax lower bound. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -52,17 +55,6 @@ open Causalean.Stat
 open scoped ENNReal BigOperators
 
 variable {K n : ℕ} {α β εg εm : ℝ}
-
-/-- **Absolute continuity from full support.** If `ν` charges every singleton, every
-measure is absolutely continuous w.r.t. `ν` (a `ν`-null set must be empty). -/
-theorem absolutelyContinuous_of_singleton_pos {Ω : Type*} [MeasurableSpace Ω]
-    (μ ν : Measure Ω) (hν : ∀ x, ν {x} ≠ 0) : μ ≪ ν := by
-  intro s hs
-  have hempty : s = ∅ := by
-    by_contra hne
-    obtain ⟨x, hx⟩ := Set.nonempty_iff_ne_empty.mpr hne
-    exact hν x (le_antisymm (hs ▸ measure_mono (Set.singleton_subset_iff.mpr hx)) zero_le)
-  rw [hempty]; exact measure_empty
 
 /-- The `.real` product point mass of an `n`-sample DGP law factorizes over draws. -/
 theorem productLaw_real_singleton [NeZero K] {m : Fin K × Bool → ℝ}
@@ -209,7 +201,9 @@ tolerances εg, εm](hyp:hεg,hεm), in [the sample-size regime `2n²γ² ≤ K�
 treatment effect from `n` i.i.d. paired-cell observations](hyp:hest), [the worst-case-over-class
 probability that it misses the true ATE by `s = β(α+β)/(1−4β²)`, over the structure-agnostic
 nuisance class centered at the constant estimates `(m̂, ĝ) = (1/2, 1/2)`, is at least
-`1/4`](goal) — the doubly-robust product rate is unbeatable. -/
+`1/4`](goal). This is a finite-sample bound at the displayed perturbation-dependent
+separation; the one-sided budget assumptions do not lower-bound that separation by
+the budget product scale. -/
 theorem minimax_lower_bound [NeZero K]
     (hα : 0 ≤ α) (hβ : 0 ≤ β) (hαβ : α + 2 * β ≤ 1 / 2)
     (hm : β ^ 2 ≤ εm) (hg : (α + β) ^ 2 / (1 - 2 * β) ^ 2 ≤ εg)

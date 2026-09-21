@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernelAux
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ReverseApolarKernel
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernelAux
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ReverseApolarKernel
 
 /-!
 This file recovers, with multiplicity, the finite forward and reverse loading
 slopes from the one-dimensional common apolar-contraction kernel.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -5,19 +5,21 @@ Authors: Jiyuan Tan
 
 # DR-Learner localized high-probability oracle inequality
 
-This file is the localized sibling of `Estimation/CATE/OrthogonalLearning/LocalEmpProcess/DRLearnerEndToEnd.lean`.
-It chains the sharp Foster-Syrgkanis localized modulus realization
+This file is the localized sibling of
+`Estimation/CATE/OrthogonalLearning/LocalEmpProcess/DRLearnerEndToEnd.lean`.
+It chains the Foster-Syrgkanis-style localized modulus realization
 `localEmpProcessModulus_localized_drLearner` with the generic
 `oracle_inequality_plugin_ERM_highProb`.
 
 The resulting rate uses the critical radius of the centred DR-loss class:
 
   `ρ n := if |B(n)| = 0 then √(2b)
-          else (8L + 3) * criticalRadius (ψ |B(n)|)`.
+          else (10L + 3) * criticalRadius (ψ |B(n)|)`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.OracleInequality
-import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.LocalizedDRLearner
+module
+public import Causalean.Estimation.OrthogonalLearning.OracleInequality
+public import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.LocalizedDRLearner
 
 /-! # Localized DR-Learner Oracle Chain
 
@@ -26,12 +28,16 @@ with the generic orthogonal statistical learning oracle inequality. It provides
 the high-probability CATE bound whose rate is governed by the localized critical
 radius, with a separate bounded branch for an empty validation fold. -/
 
+public section
+
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology TopologicalSpace
   Causalean.PO Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
   Causalean.Stat Causalean.Stat.Concentration
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
@@ -43,23 +49,21 @@ the true CATE at a parameter θ₀ in the constraint set](hyp:θ₀_mem,eval_mea
 while the nuisance's propensity score satisfies ε-overlap](hyp:hM_Θ,hM_Y,hM_μ,hOverlap). Assume
 [the centred DR-loss is continuous in θ, a clamped version of θ₀ minimizes it, its population
 Rademacher complexity along a dense index sequence is controlled by a sub-root envelope ψ with
-respect to a seminorm invariant under almost-everywhere modification, and the same Rademacher
-upper bound extends to loss differences across the whole constraint
-set](hyp:hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
+respect to a seminorm invariant under almost-everywhere modification, with an explicit Rademacher
+upper bound on that dense indexed class](hyp:hLoss_cont,hclamp_minimizes,hψ,hnorm_ae,hψ_ub), together with [Lipschitz and diameter
 control of the centred loss increments — nonnegative Lipschitz constant L, a diameter bound Rmax
-dominating every critical radius, and the sub-root fixed-point
-property](hyp:hL_nonneg,hF_lip,hF_diam,hRmax_lb,hcrit_pos,hcrit_fp), plus [boundedness and
+and positive critical radii, with a nonnegative loss-difference norm whose variance is controlled by that norm squared](hyp:hL_nonneg,hF_lip,hF_diam,hcrit_pos,hnorm_nonneg,hvariance), plus [boundedness and
 integrability of the empirical star-hull Rademacher process needed by the localization
 bridge](hyp:hrad_bdd,hrad_int) and [a confidence level in $(0,1]$ together with the
-Foster–Syrgkanis critical-radius domination inequality across dyadic shell
-counts](hyp:hδ,hδ',hδ_dom). Finally, suppose [the estimator sequence is an approximate
+Foster–Syrgkanis critical-radius domination inequality at one covering dyadic
+depth](hyp:hδ,hδ',hδ_dom). Finally, suppose [the estimator sequence is an approximate
 sample-split plug-in empirical-risk minimizer at the fixed nuisance h (slack r_opt), whose excess
 population risk obeys a strong-convexity-type lower bound with constant σ>0, together with a
 first-order orthogonality inequality at the truth's directional
 derivative](hyp:hPluginERM,hσ,hSC,hFOI). Then [there is a nonnegative envelope b such that, for
 every n, with probability at least 1-δ the squared estimation error is bounded by the oracle term
-`(4(1+σ)/σ²)·(ρ n)²` at the sharp localized Foster–Syrgkanis rate
-`ρ n = (8L+3)·criticalRadius (ψ |B(n)|)` (falling back to `√(2b)` on an empty validation fold),
+`(4(1+σ)/σ²)·(ρ n)²` at the localized Foster–Syrgkanis-style rate
+`ρ n = (10L+3)·criticalRadius (ψ |B(n)|)` (falling back to `√(2b)` on an empty validation fold),
 plus the nuisance bias term `(4/σ)·Bias_n` and an optimization slack `(4/σ)·r_opt n`](goal).
 
 Given the DR-Learner orthogonal-learning system from
@@ -70,8 +74,8 @@ oracle-inequality ingredients, conclude that with `P.μ`-probability at least `1
   `‖τhat n ω − τ₀‖² ≤ (4(1+σ)/σ²) · ρ²_n
                        + (4/σ) · Bias_n + (4/σ) · r_opt n`,
 
-where `ρ n` is the sharp localized Foster-Syrgkanis rate
-`(8L+3)·criticalRadius (ψ |B(n)|)` on nonempty fold-B samples, with the
+where `ρ n` is the localized Foster-Syrgkanis-style rate
+`(10L+3)·criticalRadius (ψ |B(n)|)` on nonempty fold-B samples, with the
 same empty-fold bounded branch as the modulus theorem.
 -/
 theorem oracle_inequality_localized_drLearner_highProb
@@ -80,7 +84,7 @@ theorem oracle_inequality_localized_drLearner_highProb
     (S : CATEEstimationSystem P γ)
     (Θ : Type*) [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
     (Θ_set : Set Θ) (Θ_convex : Convex ℝ Θ_set)
-    [Nonempty Θ_set] [Countable Θ_set]
+    [Nonempty Θ_set]
     (θ₀ : Θ) (θ₀_mem : θ₀ ∈ Θ_set)
     (eval : Θ → γ → ℝ) (eval_meas : ∀ θ, Measurable (eval θ))
     (eval_θ₀ : ∀ x, eval θ₀ x = S.τ_val x)
@@ -121,6 +125,23 @@ theorem oracle_inequality_localized_drLearner_highProb
               (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         ≤ L * ‖θ -
             (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀‖)
+    (hnorm_nonneg : ∀ θ ∈
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set,
+      0 ≤ norm (fun z =>
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ h
+          - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
+              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h))
+    (hvariance : ∀ θ ∈
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set,
+      variance (fun z =>
+        (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ h
+          - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
+              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
+        S.toBackdoorEstimationSystem.P_Z ≤
+          norm (fun z =>
+            (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ h
+              - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
+                  (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h) ^ 2)
     (hF_diam : ∀ θ ∈
         (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set,
       norm (fun z =>
@@ -128,28 +149,23 @@ theorem oracle_inequality_localized_drLearner_highProb
           - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
               (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         ≤ Rmax)
-    (hRmax_lb : ∀ m : ℕ, criticalRadius (ψ m) ≤ Rmax)
     (hcrit_pos : ∀ m : ℕ, 0 < criticalRadius (ψ m))
-    (hcrit_fp : ∀ m : ℕ, ψ m (criticalRadius (ψ m)) ≤ (criticalRadius (ψ m)) ^ 2)
     (hψ_ub : ∀ m : ℕ,
       RademacherUpperBound
-        (fun (θ :
-            (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
+        (fun k
           (z : γ × Bool × ℝ) =>
-          (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h
+          (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx k).val h
             - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
                 (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
         norm S.toBackdoorEstimationSystem.P_Z
         (id : (γ × Bool × ℝ) → γ × Bool × ℝ) m (ψ m))
     (hrad_bdd : ∀ m r, ∀ S_fin : Fin m → γ × Bool × ℝ, ∀ σ : Signs m,
-      BddAbove (Set.range fun p : starHullParam
-            (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set =>
+      BddAbove (Set.range fun p : starHullParam ℕ =>
         |(m : ℝ)⁻¹ * ∑ k : Fin m, (σ k : ℝ) *
           starHullZeroOut
-            (fun (θ :
-                (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
+            (fun i
               (z : γ × Bool × ℝ) =>
-              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h
+              (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx i).val h
                 - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
                     (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
             norm r p (S_fin k)|))
@@ -158,21 +174,24 @@ theorem oracle_inequality_localized_drLearner_highProb
         (fun ω : Fin m → γ × Bool × ℝ =>
           empiricalRademacherComplexity m
             (starHullZeroOut
-              (fun (θ :
-                  (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).Θ_set)
+              (fun i
                 (z : γ × Bool × ℝ) =>
-                (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z θ.val h
+                (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z (idx i).val h
                   - (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).ℓ z
                       (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes).θ₀ h)
               norm r) ((id : (γ × Bool × ℝ) → (γ × Bool × ℝ)) ∘ ω))
         (Measure.pi (fun _ => S.toBackdoorEstimationSystem.P_Z)))
     {δ : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ 1)
-    (hδ_dom : ∀ n K : ℕ, 0 < (split.foldB n).card →
-      Rmax ≤ (criticalRadius (ψ (split.foldB n).card)) * (2 : ℝ) ^ K →
-      2 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2 *
-          Real.sqrt
-            (2 * Real.log (2 * ((K : ℝ) + 1) / δ) / (split.foldB n).card)
-        ≤ (criticalRadius (ψ (split.foldB n).card)) ^ 2)
+    (hδ_dom : ∀ n : ℕ, 0 < (split.foldB n).card →
+      ∃ K : ℕ,
+      Rmax ≤ (criticalRadius (ψ (split.foldB n).card)) * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 16 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2) *
+            Real.log (2 * ((K : ℝ) + 1) / δ) / (split.foldB n).card)
+        + 16 * (M_Θ + 2 * M_μ + 2 * (M_Y + M_μ) / ε) ^ 2 *
+            Real.log (2 * ((K : ℝ) + 1) / δ) /
+              ((split.foldB n).card * criticalRadius (ψ (split.foldB n).card))
+        ≤ criticalRadius (ψ (split.foldB n).card))
     -- Oracle-inequality ingredients specialised to the DR system.
     (Dθ_truth : HasDirDerivTheta
       (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes)
@@ -199,7 +218,7 @@ theorem oracle_inequality_localized_drLearner_highProb
           ‖τhat n ω - θ₀‖ ^ 2
             ≤ (4 * (1 + σ) / σ ^ 2)
                 * (if (split.foldB n).card = 0 then Real.sqrt (2 * b)
-                  else (8 * L + 3) * criticalRadius (ψ (split.foldB n).card)) ^ 2
+                  else (10 * L + 3) * criticalRadius (ψ (split.foldB n).card)) ^ 2
               + (4 / σ) *
                   Bias_n
                     (drLearningSystem S Θ Θ_set Θ_convex θ₀ θ₀_mem eval eval_meas eval_θ₀ θ₀_minimizes)
@@ -214,10 +233,11 @@ theorem oracle_inequality_localized_drLearner_highProb
       (hM_Θ := hM_Θ) (hM_Y := hM_Y) (h := h)
       (hM_μ := hM_μ) (hOverlap := hOverlap)
       (hclamp_minimizes := hclamp_minimizes)
-      (_hLoss_cont := hLoss_cont) (idx := idx) (_idx_dense := idx_dense)
+      (hLoss_cont := hLoss_cont) (idx := idx) (idx_dense := idx_dense)
       (hψ := hψ) (hnorm_ae := hnorm_ae) (Rmax := Rmax) (L := L)
-      (hL_nonneg := hL_nonneg) (hF_lip := hF_lip) (hF_diam := hF_diam)
-      (hRmax_lb := hRmax_lb) (hcrit_pos := hcrit_pos) (hcrit_fp := hcrit_fp)
+      (hL_nonneg := hL_nonneg) (hF_lip := hF_lip)
+      (hnorm_nonneg := hnorm_nonneg) (hvariance := hvariance) (hF_diam := hF_diam)
+      (hcrit_pos := hcrit_pos)
       (hψ_ub := hψ_ub) (hrad_bdd := hrad_bdd) (hrad_int := hrad_int)
       (hδ := hδ) (hδ' := hδ') (hδ_dom := hδ_dom) with
     ⟨b, hb_nonneg, hMod⟩
@@ -230,9 +250,10 @@ theorem oracle_inequality_localized_drLearner_highProb
     (σ := σ) (hσ := hσ) (hSC := hSC) (hFOI := hFOI)
     (ρ := fun n =>
       if (split.foldB n).card = 0 then Real.sqrt (2 * b)
-      else (8 * L + 3) * criticalRadius (ψ (split.foldB n).card))
+      else (10 * L + 3) * criticalRadius (ψ (split.foldB n).card))
     (δ := δ) hMod
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

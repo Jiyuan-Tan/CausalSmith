@@ -1,0 +1,241 @@
+{
+  "units": [
+    {
+      "unit": "thm:algorithmic-certificates",
+      "targets": [
+        "thm:algorithmic-certificates",
+        "def:support-compression-handle"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:algorithmic-certificates",
+            "proof_tex": "Compatibility is checked by the \\(mr\\) inequalities \\(e_{is}\\geq o_{is}\\), together with the two supplied simplex checks, by the compatibility theorem. All reduced coordinates require \\(O(mr)\\) additions. Since\n\\[\n b_i-\\sum_{j\\in\\mathcal J\\setminus\\{i\\}}h_j=b_i-H+h_i,\n\\]\nthe lower endpoint is evaluated from \\(H\\), \\(\\sum_ja_j\\), and the \\(k\\) displayed singleton values in \\(O(k)\\) further operations.\n\nFor the upper endpoint, let \\(c_{(1)}\\leq\\cdots\\leq c_{(k)}\\). For each fixed \\(2\\leq\\ell\\leq k\\), an exchange argument gives\n\\[\n \\min_{S\\subseteq\\mathcal J,\\ |S|=\\ell}\\sum_{j\\in S}c_j\n =\\sum_{u=1}^{\\ell}c_{(u)}.\n\\]\nIndeed, if a minimizing \\(S\\) omitted some \\(c_{(u)}\\) no larger than a selected entry, exchanging those two entries could not increase its sum; iteration leaves the \\(\\ell\\) smallest entries. Sorting once and scanning the prefix sums therefore evaluates every subset-cardinality term, as well as \\(g\\) and the marginal terms, in \\(O(k\\log k)\\) operations. Together with the table scan, this proves the claimed \\(O(mr+k\\log k)\\) arithmetic-and-comparison bound.\n\nWe next construct grid-preserving endpoint witnesses. Before categorical lifting, begin with at most \\(m\\) positive factual-stratum cells. Splitting each queried factual stratum into its factual-success and factual-failure parts introduces at most \\(k\\) additional cells. In the upper construction, the \\(k\\) within-success common pieces and the one unqueried common piece introduce at most \\(k+1\\) further cells, and the \\(k\\) residual success fillings introduce at most \\(k\\), because each call to \\(\\operatorname{TAKE}\\) splits at most one positive-mass cell. Thus the upper indicator law has at most \\(m+3k+1\\) cells.\n\nFor the lower construction, each of the \\(k\\) left vertices has an edge to right block zero and to the \\(k-1\\) non-diagonal queried blocks, so there are exactly \\(k^2\\) possible middle edges. Realizing every positive edge flow introduces at most \\(k^2\\) cells, and filling the residual demand of each left row introduces at most \\(k\\) more. Including the initial factual-success splits, the lower indicator law has at most \\(m+k^2+2k\\) cells. The lower-attainment lemma proves that residual filling is eligible even when a row has unused flow capacity.\n\nIn categorical lifting, for each of the \\(m\\) potential-outcome coordinates, allocate the first \\(r-1\\) labels separately inside and outside its factual stratum. Each allocation adds at most one cell, and the last label receives the remainder. Hence lifting adds at most \\(2m(r-1)\\) cells. The TAKE lemma's zero-mass branch makes no split, so the same count holds on every boundary face. Since \\(k\\geq2\\), either endpoint witness has support at most\n\\[\n \\max\\{m+3k+1,m+k^2+2k\\}+2m(r-1)\n \\leq m+2m(r-1)+k^2+3k+1=N_\\star.\n\\]\nThe upper- and lower-attainment lemmas and categorical lifting show that these are laws in \\(\\mathcal Q(o,e)\\) attaining the respective endpoints.\n\nNow suppose the input is rational. By definition of \\(D\\), every input mass and every reduced coordinate lies in \\(D^{-1}\\mathbb Z\\), and \\(\\log_2D\\leq B\\). For the lower network, multiply every capacity by \\(D\\). Starting from zero flow, augment by the least residual capacity on a path. Inductively every scaled flow remains integral, and scaling back places every flow piece in \\(D^{-1}\\mathbb Z\\). Every residual demand and every categorical lifting demand is on the same grid, so the grid-preservation clause of the TAKE lemma places every lower atom in \\(D^{-1}\\mathbb Z\\).\n\nFor completeness, a polynomial exact maximum-flow implementation chooses a shortest residual augmenting path. After an augmentation, residual shortest-path distances do not decrease. If an oriented edge is a bottleneck, is later restored by a reverse augmentation, and is again a bottleneck, the shortest distance to its tail has increased by at least two. Thus each oriented edge is a bottleneck only \\(O(k)\\) times. The network has \\(O(k)\\) vertices and \\(O(k^2)\\) edges, so there are \\(O(k^3)\\) augmentations; a breadth-first search and update uses \\(O(k^2)\\) operations. All scaled capacities are bounded by \\(2D\\), and therefore have \\(O(B)\\) bits. This yields a conservative \\(O(k^5)\\) exact-operation bound with polynomial bit cost.\n\nFor the upper endpoint, if the active certificate is \\(g\\) or a marginal \\(a_j\\), then \\(U(o,e)\\in D^{-1}\\mathbb Z\\). If an active subset \\(S\\) has size \\(\\ell\\), then\n\\[\n U(o,e)=\\frac{\\sum_{j\\in S}c_j}{\\ell-1}\n \\in \\frac{1}{D(\\ell-1)}\\mathbb Z.\n\\]\nInitialization by \\((U-c_i)_+\\), enlargement within the capacities, residual filling, and categorical lifting use only addition, subtraction, minimum, comparison, and TAKE. The TAKE grid invariant therefore puts every atom of this original upper witness in \\((D(\\ell-1))^{-1}\\mathbb Z\\). No step divides by a cell mass. This proves the asserted denominator divisibility for the original witnesses of support at most \\(N_\\star\\).\n\nApply the certificate-preserving support-compression lemma separately to these lower and upper laws. It returns exact endpoint laws with support at most\n\\[\n 2mr-m,\n\\]\npreserves the same active-affine or minimum-cut certificate, and has polynomial-bit rational weights. This is a second witness guarantee: the special divisibility by \\(D\\) or \\(D(\\ell-1)\\) has just been proved for the original \\(N_\\star\\)-support constructions and is not asserted for their compressed versions.\n\nAll original construction stages make only polynomially many selections on lists of at most \\(N_\\star\\) cells. An atom records one rational mass, one factual treatment, and \\(m\\) outcome labels, so its encoding length is polynomial in \\(m,r,k,B\\). Compression is polynomial-time by the compression lemma. Verification sums the supplied atom masses for each of the \\(mr\\) observational cells and \\(mr\\) intervention cells, and sums the conjunction atoms; it is therefore polynomial in the displayed support and bit length. An upper certificate specifies an attaining piece among \\(g\\), one margin \\(a_j\\), or one subset \\(S\\); the upper-attainment lemma proves the corresponding affine upper inequality. A lower certificate specifies an attaining empty, full, or singleton deleted-diagonal cut; the lower-attainment lemma proves its cut value. Equality of the checked primal endpoint with the displayed dual value certifies optimality. Ties require only one attaining certificate. This proves the evaluation, construction, support, denominator, certification, boundary, and bit-complexity claims."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:certificate-preserving-support-compression",
+            "kind": "lemma",
+            "statement": "Let \\(Q\\in\\mathcal Q(o,e)\\) have finite support and satisfy\n\\[\n Q\\!\\left(\\bigcap_{j\\in\\mathcal J}A_j\\right)\\in\\{L(o,e),U(o,e)\\}.\n\\]\nThe support-compression construction produces a law \\(\\widetilde Q\\in\\mathcal Q(o,e)\\) with the same conjunction probability, at most \\(2mr-m\\) positive response atoms, and the same active-affine or minimum-cut endpoint certificate. If \\(o,e,Q\\) are rational and the encoding length of \\(Q\\) is polynomial in \\(m,r,k,B\\), the compression is computable by exact rational arithmetic in polynomial time and the encoding length of \\(\\widetilde Q\\) is polynomial in \\(m,r,k,B\\).",
+            "free_symbols": [
+              "Q",
+              "\\mathcal Q",
+              "o",
+              "e",
+              "\\sigma",
+              "L",
+              "U",
+              "A",
+              "\\mathcal J",
+              "m",
+              "r",
+              "k",
+              "B"
+            ],
+            "depends_on": [
+              "def:model-class",
+              "def:sharp-endpoints",
+              "def:support-compression-handle",
+              "lem:upper-packing-attainment",
+              "lem:lower-flow-attainment",
+              "thm:sharp-interval"
+            ],
+            "proof_tex": "Put \\(\\Omega=\\mathcal X\\times\\mathcal Y^m\\), and write an atom as \\(z=(x,y_1,\\ldots,y_m)\\). For each \\(z\\in\\Omega\\), define the column\n\\[\n \\Phi(z)=\\left(\n   \\bigl(\\mathbf 1\\{x=i,y_i=s\\}\\bigr)_{(i,s)\\in\\mathcal X\\times\\mathcal Y},\n   \\bigl(\\mathbf 1\\{y_j=s\\}\\bigr)_{j\\in\\mathcal X,\\ 1\\leq s<r}\n \\right).\n\\]\nThere are exactly\n\\[\n R=mr+m(r-1)=2mr-m\n\\]\ncoordinates. The first \\(mr\\) coordinates record every observational cell, and the remaining \\(m(r-1)\\) coordinates record all but label \\(r\\) of every intervention margin. Let \\(S=\\{z:Q(z)>0\\}\\), let \\(M_S\\) be the matrix with columns \\(\\Phi(z)\\), \\(z\\in S\\), and let \\(q_S=(Q(z))_{z\\in S}\\). Then\n\\[\n M_Sq_S=\\beta,\n\\]\nwhere \\(\\beta\\) consists of the entries \\(o_{is}\\) and \\(e_{js}\\) with \\(s<r\\).\n\nSuppose the active columns are linearly dependent. Choose \\(0\\neq v\\in\\ker M_S\\). Summing all observational coordinates of \\(M_Sv=0\\) gives\n\\[\n \\sum_{z\\in S}v_z=0,\n\\]\nbecause every column has exactly one observational coordinate equal to one. Hence \\(v\\) has both a positive and a negative component. If\n\\[\n 0<\\varepsilon<\\min_{z:v_z\\neq0}\\frac{Q(z)}{|v_z|},\n\\]\nthen both \\(q_S+\\varepsilon v\\) and \\(q_S-\\varepsilon v\\) are nonnegative and preserve \\(M_Sq_S=\\beta\\). They preserve total mass because \\(\\sum_zv_z=0\\). For an omitted intervention cell, preservation follows from\n\\[\n \\sum_z(q_{S,z}\\pm\\varepsilon v_z)\\mathbf 1\\{y_j=r\\}\n =1-\\sum_{s<r}\\sum_z(q_{S,z}\\pm\\varepsilon v_z)\\mathbf 1\\{y_j=s\\}\n =1-\\sum_{s<r}e_{js}=e_{jr},\n\\]\nwhere the last equality also follows by applying the same identity to the original member \\(Q\\in\\mathcal Q(o,e)\\). Thus both perturbed vectors define members of \\(\\mathcal Q(o,e)\\); consistency is retained because their atoms remain in the same response space \\(\\Omega\\).\n\nLet\n\\[\n \\psi(z)=\\mathbf 1\\{y_j=s_j^\\star\\text{ for every }j\\in\\mathcal J\\},\n \\qquad \\delta=\\sum_{z\\in S}\\psi(z)v_z.\n\\]\nIf \\(Q\\) is a lower-endpoint law and \\(\\delta\\neq0\\), one of the two feasible perturbations has conjunction probability strictly below \\(L(o,e)\\). If \\(Q\\) is an upper-endpoint law and \\(\\delta\\neq0\\), one of them has conjunction probability strictly above \\(U(o,e)\\). Either conclusion contradicts the sharp-interval theorem. Therefore\n\\[\n \\delta=0.\n\\]\nThis is the certificate-preserving kernel identity: every feasible two-sided support direction at a globally optimal endpoint has zero query derivative.\n\nBecause \\(v\\) has a positive component, the maximal boundary step\n\\[\n \\eta=\\min_{z:v_z>0}\\frac{Q(z)}{v_z},\n \\qquad q'_S=q_S-\\eta v\n\\]\nis well defined. It is nonnegative, satisfies \\(M_Sq'_S=\\beta\\), preserves the conjunction probability because \\(\\delta=0\\), and makes at least one formerly positive coordinate zero. Delete all zero coordinates and repeat whenever the remaining active columns are dependent. Support strictly decreases at every iteration, so the procedure terminates after at most \\(|S|-1\\) iterations. At termination the active columns are linearly independent, and hence their number is at most the number \\(R=2mr-m\\) of rows. This proves the asserted support bound over real inputs.\n\nThe active upper certificate is one of the affine pieces attaining \\(U(o,e)\\), and the active lower certificate is a cut attaining the deleted-diagonal maximum-flow value. Compression changes neither \\((o,e)\\) nor the attained conjunction probability. Consequently equality of the compressed primal value with the same displayed affine value or cut value remains a valid endpoint certificate.\n\nFor the bit audit, assume rational input and start from a rational \\(Q\\). The matrix \\(M_S\\) is a zero-one matrix. Exact Gaussian elimination finds a dependent set and a nonzero rational kernel vector in polynomial time; clearing denominators gives an integer vector. One may choose a minimally dependent set, in which case cofactor expansion gives a circuit vector whose components are signed minors of a zero-one matrix with at most \\(R\\) rows. The Leibniz determinant expansion has at most \\(R!\\) nonzero signed products, each of absolute value at most one, so every component has bit length \\(O(R\\log R)\\). If the current masses share a denominator \\(E\\), a boundary update using a circuit component \\(v_z\\) can be represented over the common denominator \\(E|v_z|\\). Thus each iteration adds only \\(O(R\\log R)\\) denominator bits, and there are no more than the polynomially many atoms in the supplied law.\n\nThere is also a direct final-output bound. If the terminal support has \\(p\\leq R\\) atoms, select \\(p\\) linearly independent rows to obtain an invertible zero-one matrix \\(C\\). The terminal positive weights \\(x\\) uniquely satisfy\n\\[\n Cx=\\beta_C.\n\\]\nAll entries of \\(\\beta_C\\) have denominators dividing \\(D\\). Cofactor expansion of \\(C\\operatorname{adj}(C)\\) gives \\(C^{-1}=\\operatorname{adj}(C)/\\det C\\), and hence\n\\[\n x_u=\\frac{\\det C_u}{\\det C},\n \\qquad 1\\leq |\\det C|\\leq p!,\n\\]\nand each numerator has bit length \\(O(B+p\\log p)\\). Hence every terminal weight has bit length \\(O(B+R\\log R)\\). Polynomially many exact eliminations, ratio comparisons, and updates on numbers of polynomial bit length give a polynomial-time algorithm. This establishes the rational complexity assertion. Notice that this argument proves polynomial bit length, not preservation of the special input grid; the latter remains a property of the uncompressed endpoint constructions.",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [
+          {
+            "id": "def:support-compression-handle",
+            "proposed": "Given a finite law \\(Q\\in\\mathcal Q(o,e)\\) attaining either \\(L(o,e)\\) or \\(U(o,e)\\), form the zero-one margin matrix whose \\(mr\\) observational rows are indexed by \\(\\mathcal X\\times\\mathcal Y\\), whose \\(m(r-1)\\) intervention rows omit label \\(r\\) for each treatment coordinate, and whose columns are indexed by the positive response atoms of \\(Q\\). While the active columns are linearly dependent, choose an exact nonzero kernel vector, move maximally in either nonnegative direction, delete newly zero atoms, and retain the original active-affine or minimum-cut certificate. Apply this compression separately to the lower- and upper-endpoint laws. For the matching support lower direction, retain the forced-positive-cell family used to lower-bound \\(\\max\\{s_L(o,e),s_U(o,e)\\}\\).",
+            "reason": "The former handle stopped at an endpoint-face existence argument and retained an unnecessary objective row. The corrected construction performs explicit margin-kernel boundary cancellation on exactly the independent observational and intervention margin rows, preserving the endpoint certificate and yielding the directed support bound.",
+            "direction": "correct"
+          }
+        ],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "definition-replace",
+            "id": "def:support-compression-handle",
+            "proposed": {
+              "id": "def:support-compression-handle",
+              "name": "Certificate-preserving margin-kernel compression handle",
+              "construction": "Given a finite law \\(Q\\in\\mathcal Q(o,e)\\) attaining either \\(L(o,e)\\) or \\(U(o,e)\\), form the zero-one margin matrix whose \\(mr\\) observational rows are indexed by \\(\\mathcal X\\times\\mathcal Y\\), whose \\(m(r-1)\\) intervention rows omit label \\(r\\) for each treatment coordinate, and whose columns are indexed by the positive response atoms of \\(Q\\). While the active columns are linearly dependent, choose an exact nonzero kernel vector, move maximally in either nonnegative direction, delete newly zero atoms, and retain the original active-affine or minimum-cut certificate. Apply this compression separately to the lower- and upper-endpoint laws. For the matching support lower direction, retain the forced-positive-cell family used to lower-bound \\(\\max\\{s_L(o,e),s_U(o,e)\\}\\).",
+              "free_symbols": [
+                "Q",
+                "\\mathcal Q",
+                "o",
+                "e",
+                "L",
+                "U",
+                "m",
+                "r",
+                "\\mathcal X",
+                "\\mathcal Y",
+                "s_L",
+                "s_U"
+              ],
+              "inputs": [
+                "def:model-class",
+                "def:sharp-endpoints",
+                "def:upper-packing",
+                "def:lower-flow-network"
+              ]
+            },
+            "reason": "The corrected construction uses additional model, endpoint, alphabet, and support objects, so the complete definition metadata and inputs must move atomically with its construction.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:algorithmic-certificates",
+            "proposed": {
+              "id": "thm:algorithmic-certificates",
+              "kind": "theorem",
+              "statement": "For rational input of total encoding length \\(B\\), compatibility and the endpoints are evaluable in \\(O(mr+k\\log k)\\) arithmetic and comparison operations using \\(c_{(\\cdot)}\\). Endpoint-attaining laws with support at most \\(N_\\star\\), atom denominators dividing \\(D\\) for the lower endpoint and dividing \\(D(\\ell-1)\\) for an upper endpoint certified by an active subset of size \\(\\ell\\), and active-affine or minimum-cut optimality certificates are constructible and checkable in time polynomial in \\(m,r,k,B\\). Zero cells cause no division.",
+              "free_symbols": [
+                "B",
+                "m",
+                "r",
+                "k",
+                "c_{(\\cdot)}",
+                "N_\\star",
+                "D"
+              ],
+              "depends_on": [
+                "def:reduced-coordinates",
+                "def:sharp-endpoints",
+                "def:take-refinement",
+                "def:upper-packing",
+                "def:lower-flow-network",
+                "lem:take-refinement-valid",
+                "lem:upper-packing-attainment",
+                "lem:lower-flow-attainment",
+                "thm:compatibility",
+                "thm:sharp-interval",
+                "lem:certificate-preserving-support-compression"
+              ],
+              "status": "to-prove",
+              "justification": "Exact grid-preserving primal laws and short dual cuts give a directly auditable endpoint computation, while certificate-preserving compression supplies constructive linear support.",
+              "gap": "Generic response-signature linear programs can have exponentially many columns and do not provide this sorted endpoint evaluator, explicit grid witness, or certificate-preserving linear-support compression.",
+              "consumer": "A regulator or replication archive can verify every categorical margin and endpoint using exact arithmetic, retain the input-grid witness when desired, or audit a compressed witness with at most \\(2mr-m\\) atoms."
+            },
+            "reason": "The proof now directly consumes the compatibility characterization, endpoint definitions, and the certificate-preserving compression lemma; the theorem claim itself remains unchanged, while its dependency spine and result notes are made complete.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [],
+        "prose_updates": {
+          "tldr": "Common-population observational and single-treatment intervention margins determine the exact identified interval for every finite-alphabet scalar conjunction probability of causation. The Shu--Wang--Li endpoints are attained for every compatible real input by an information-preserving indicator coarsening, upper intersection packing, and a deleted-diagonal lower maximum flow with a residual-failure invariant. Rational inputs admit sorted endpoint evaluation, exact grid-preserving SCM witnesses of support at most \\(N_\\star\\), and short active-affine or minimum-cut certificates; exact margin-kernel cancellation then preserves the certificate while compressing either endpoint law to at most \\(2mr-m\\) atoms of polynomial bit length. The support frontier is therefore \\(\\Theta(mr)\\), and block-multinomial confidence-region inversion adds uniform finite-sample coverage without appropriating the directional asymptotics of Cheng--Mao--Pearl--Li.",
+          "project_justification": {
+            "gap": "Shu--Wang--Li prove all-dimensional validity but leave pointwise tightness open, Xie--Li's constructive proof is binary, and generic response-signature programs conceal the scalar geometry in exponentially many response states while supplying neither the structured endpoint evaluator nor the present certificate-preserving support guarantee.",
+            "niche": "The common-population scalar conjunction problem has two complementary finite structures: factual failures delete diagonal flow edges, and every endpoint-optimal response law is flat along the kernel of the \\(2mr-m\\) independent margin rows.",
+            "fill": "The paper derives exact categorical lifting, packing and flow endpoint laws, sorted and min-cut duals, grid-preserving polynomial witnesses, constructive certificate-preserving compression to at most \\(2mr-m\\) atoms, the matching \\(mr\\) support lower family, and a boundary-safe finite-sample inversion."
+          },
+          "related_work": "Shu--Wang--Li Theorem 2 supplies the scalar affine formulas and explicitly leaves their general-dimensional tightness unresolved. Xie--Li Theorem 3.2 supplies the closest constructive precedent by solving the binary eight-cell system. Koperberg Proposition 6 supplies the finite Hall--Strassen coupling principle adapted to the lower deleted-diagonal network. Tian--Pearl supplies the binary PNS interval used solely as an unnumbered algebraic sanity regression for the general formulas and witness constructions. Li--Pearl provides the earlier recursive multivalued bounds but is not treated as a direct theorem target. Rossetto--Antonucci gives a generic sharp response-signature linear program and SCM realization; it remains the generic computational baseline, whereas the present scalar geometry gives sorted endpoint evaluation, explicit active-affine or min-cut certificates, grid-preserving witnesses, and certificate-preserving \\(O(mr)\\)-support compression. Cheng--Mao--Pearl--Li gives the active-set directional limit theory, which is credited rather than relabeled. Horowitz--Lee, Stoye, and Kaido--Molinari--Stoye motivate confidence-region and projection inference, while the stated finite-sample result is specialized to the present block-multinomial polytope. Harinen and coauthors provide the hypothetical common-population customer-journey setting in which a prespecified multichannel response-pattern probability is a concrete scalar consumer.",
+          "technical_internal_limitation": "Scalar sharpness does not imply simultaneous sharpness for several response patterns, so separately summing scalar endpoint values can produce an unattainable policy utility. The confidence interval is a conservative outer inversion and carries no optimal-width claim. The endpoint-support frontier is now known to lie between \\(mr\\) and \\(2mr-m\\), hence has exact order \\(mr\\), but its exact constant remains open. The divisibility by \\(D\\) or \\(D(\\ell-1)\\) belongs to the original grid-preserving witnesses of support at most \\(N_\\star\\); compression guarantees polynomial-bit rational weights, not preservation of those divisors.",
+          "honest_scope": "The finite max-flow/min-cut theorem, multinomial concentration, and exact rational linear algebra are standard inputs. The proved contribution is all-alphabet categorical lifting, upper and lower endpoint attainment, the residual-failure invariant, exact interval equality, the grid and bit audit, and constructive certificate-preserving compression. Unequal alphabets and repeated queried labels are covered, but factual-conditioned representative PoCs, incomplete subpopulations, mediator restrictions, population mismatch, and simultaneous vectors of conjunctions are outside the theorem. The Tian--Pearl binary reduction is an unnumbered sanity corollary and regression test, not a research-target theorem. For \\(k=1\\), the target is the known marginal \\(a_1\\); for \\(r=1\\), the interval is \\([1,1]\\). The support frontier has proved order \\(mr\\), with lower bound \\(mr\\) and constructive upper bound \\(2mr-m\\); only the exact constant, not the order, remains unresolved.",
+          "statement_notes": [
+            {
+              "id": "thm:algorithmic-certificates",
+              "justification": "Exact grid-preserving primal laws and short dual cuts give a directly auditable endpoint computation, while certificate-preserving compression supplies constructive linear support.",
+              "gap": "Generic response-signature linear programs can have exponentially many columns and do not provide this sorted endpoint evaluator, explicit grid witness, or certificate-preserving linear-support compression.",
+              "consumer": "A regulator or replication archive can verify every categorical margin and endpoint using exact arithmetic, retain the input-grid witness when desired, or audit a compressed witness with at most \\(2mr-m\\) atoms."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "unit": "thm:optimal-support-frontier-order",
+      "targets": [
+        "thm:optimal-support-frontier-order"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:optimal-support-frontier-order",
+            "proof_tex": "Let \\((o,e)\\in\\mathcal C_{m,r,k}\\).  By the certificate-preserving endpoint-compression lemma, applied separately to \\(t=L(o,e)\\) and \\(t=U(o,e)\\), both endpoint faces contain laws with at most\n\\[\n R=mr+m(r-1)=2mr-m\n\\]\npositive response atoms.  Therefore\n\\[\n s_L(o,e)\\leq2mr-m,\n \\qquad\n s_U(o,e)\\leq2mr-m.\n\\]\nTaking first the maximum and then the supremum over the compatibility domain gives the stronger upper bound\n\\[\n s_\\star(m,r,k)\\leq2mr-m.\n\\]\nIn particular, it implies the stated bound \\(s_\\star(m,r,k)\\leq2mr-m+1\\).  The compression is constructive from either already constructed endpoint law, retains its active-affine or minimum-cut certificate, and, for a rational sparse starting law, has polynomial running time and polynomial output bit length.  As proved in the compression lemma, this last conclusion intentionally makes no denominator-divisibility claim for the compressed weights.\n\nFor the lower bound, use the forced-positive-cell technique.  Define\n\\[\n o_{is}=\\frac1{mr}\n \\quad(i\\in\\mathcal X, s\\in\\mathcal Y),\n \\qquad\n e_{js}=\\frac1r\n \\quad(j\\in\\mathcal X, s\\in\\mathcal Y).\n\\]\nThe observational entries sum to one, and each intervention row sums to one.  Since \\(m\\geq k\\geq2\\),\n\\[\n e_{is}=\\frac1r\\geq\\frac1{mr}=o_{is}\n\\]\nfor every \\(i,s\\).  The compatibility theorem therefore gives \\((o,e)\\in\\mathcal C_{m,r,k}\\).  For any \\(Q\\in\\mathcal Q(o,e)\\), the \\(mr\\) sets\n\\[\n C_{is}=\\{(x,y_1,\\ldots,y_m)\\in\\Omega:x=i, y_i=s\\},\n \\qquad i\\in\\mathcal X, s\\in\\mathcal Y,\n\\]\nare pairwise disjoint, exhaust \\(\\Omega\\), and satisfy\n\\[\n Q(C_{is})=o_{is}=\\frac1{mr}>0.\n\\]\nThus the support of \\(Q\\) must meet every one of these \\(mr\\) disjoint cells, so \\(\\sigma(Q)\\geq mr\\).  The sharp-interval theorem ensures that both endpoint faces are nonempty.  Consequently their separate support minima obey\n\\[\n s_L(o,e)\\geq mr,\n \\qquad\n s_U(o,e)\\geq mr.\n\\]\nTaking the supremum in the definition of \\(s_\\star\\) yields\n\\[\n s_\\star(m,r,k)\\geq mr.\n\\]\nCombining the two directions proves, uniformly over \\(2\\leq k\\leq m\\) and \\(r\\geq1\\),\n\\[\n mr\\leq s_\\star(m,r,k)\\leq2mr-m\\leq2mr.\n\\]\nHence \\(s_\\star(m,r,k)=\\Theta(mr)\\) with constants independent of \\(k\\).  In particular, the quadratic \\(k^2\\) term in \\(N_\\star\\) is overhead of the uncompressed explicit witness rather than an intrinsic requirement for exact endpoint support; only the exact worst-case constant between the displayed linear bounds remains undetermined."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:certificate-preserving-endpoint-compression",
+            "kind": "lemma",
+            "statement": "For every \\((o,e)\\in\\mathcal C_{m,r,k}\\), every \\(t\\in\\{L(o,e),U(o,e)\\}\\), and every \\(Q_0\\in\\mathcal Q(o,e)\\) satisfying\n\\[\n Q_0\\!\\left(\\bigcap_{j\\in\\mathcal J}A_j\\right)=t,\n\\]\nfinite margin-kernel boundary cancellation produces a law \\(Q_{\\mathrm c}\\in\\mathcal Q(o,e)\\) with the same endpoint value and\n\\[\n \\sigma(Q_{\\mathrm c})\\leq mr+m(r-1)=2mr-m.\n\\]\nThe cancellation preserves any active-affine upper certificate or deleted-diagonal minimum-cut lower certificate attached to \\(Q_0\\).  Given \\(Q_0\\) as a rational sparse list, the cancellation is computable in time polynomial in the list's encoding length, \\(m\\), and \\(r\\), and the output weights have polynomial bit length.  This polynomial-bit assertion does not assert preservation of any denominator-divisibility grid enjoyed by \\(Q_0\\).",
+            "free_symbols": [
+              "m",
+              "r",
+              "k",
+              "o",
+              "e",
+              "Q",
+              "\\mathcal C_{m,r,k}",
+              "\\mathcal Q",
+              "L",
+              "U",
+              "\\sigma",
+              "A",
+              "\\mathcal J"
+            ],
+            "depends_on": [
+              "ass:query-range",
+              "def:model-class",
+              "def:sharp-endpoints",
+              "def:support-compression-handle",
+              "thm:sharp-interval"
+            ],
+            "proof_tex": "Put \\(\\Omega=\\mathcal X\\times\\mathcal Y^m\\), and regard a law on \\(\\Omega\\) as a nonnegative column vector indexed by \\(\\omega=(x,y_1,\\ldots,y_m)\\in\\Omega\\).  We use the finite-dimensional kernel-cancellation technique.  Define a zero-one matrix \\(M\\) with the following\n\\[\n R=mr+m(r-1)=2mr-m\n\\]\nrows:\n\\[\n M^{\\mathrm{obs}}_{is}(\\omega)\n =\\mathbf 1\\{x=i, y_i=s\\},\n \\qquad i\\in\\mathcal X, s\\in\\mathcal Y,\n\\]\nand\n\\[\n M^{\\mathrm{int}}_{js}(\\omega)\n =\\mathbf 1\\{y_j=s\\},\n \\qquad j\\in\\mathcal X, s\\in\\{1,\\ldots,r-1\\}.\n\\]\nWhen \\(r=1\\), the second family is empty.  The first family records all \\(mr\\) observational cells, and the second records the first \\(r-1\\) intervention cells for every treatment coordinate.  The observational rows satisfy\n\\[\n \\sum_{i\\in\\mathcal X}\\sum_{s\\in\\mathcal Y}\n M^{\\mathrm{obs}}_{is}(\\omega)=1\n \\quad\\text{for every }\\omega\\in\\Omega.\n\\]\nConsequently, if \\(Mv=0\\), then \\(\\sum_{\\omega\\in\\Omega}v_\\omega=0\\).  Moreover, preserving \\(MQ\\) preserves total mass and the displayed observational and intervention cells.  For every \\(j\\in\\mathcal X\\), it also preserves the omitted intervention cell because\n\\[\n \\Pr_Q(Y_j=r)=1-\\sum_{s=1}^{r-1}\\Pr_Q(Y_j=s).\n\\]\nThus, by the definition of \\(\\mathcal Q(o,e)\\), a nonnegative vector supported on \\(\\Omega\\) with the same value of \\(MQ\\) as a member of \\(\\mathcal Q(o,e)\\) is again a member of \\(\\mathcal Q(o,e)\\).  Consistency is retained because every atom in \\(\\Omega\\) is interpreted with factual outcome \\(Y=y_x\\).\n\nLet\n\\[\n z(\\omega)=\\mathbf 1\\{y_j=s_j^\\star\n \\text{ for every }j\\in\\mathcal J\\}.\n\\]\nThen the conjunction functional is the linear functional \\(z^\\top Q\\).  Fix an endpoint-attaining \\(Q\\), initially \\(Q=Q_0\\), and write \\(S=\\{\\omega:Q_\\omega>0\\}\\).  If \\(|S|>R\\), the \\(|S|\\) columns of the \\(R\\)-row matrix \\(M_S\\) are linearly dependent.  Hence there is a nonzero real vector \\(v\\), extended by zero outside \\(S\\), such that\n\\[\n Mv=0.\n\\]\nBecause every \\(Q_\\omega\\) for \\(\\omega\\in S\\) is positive, there is an \\(\\varepsilon>0\\) for which both \\(Q+\\varepsilon v\\) and \\(Q-\\varepsilon v\\) are nonnegative.  The preceding margin calculation shows that both perturbed vectors belong to \\(\\mathcal Q(o,e)\\).\n\nWe next use endpoint optimality, and this is the step that removes the extra endpoint row from the rank count.  If \\(t=L(o,e)\\), the sharp-interval theorem says that no member of \\(\\mathcal Q(o,e)\\) has conjunction value below \\(t\\).  If \\(z^\\top v\\neq0\\), one of the two feasible perturbations has conjunction value\n\\[\n z^\\top Q-\\varepsilon |z^\\top v|<t,\n\\]\na contradiction.  If \\(t=U(o,e)\\), the same choice of sign instead gives the forbidden value\n\\[\n z^\\top Q+\\varepsilon |z^\\top v|>t.\n\\]\nTherefore, at either endpoint,\n\\[\n z^\\top v=0.\n\\]\n\nSince the all-ones row is a sum of observational rows, \\(Mv=0\\) gives \\(\\sum_\\omega v_\\omega=0\\).  As \\(v\\neq0\\), it has both a positive and a negative coordinate.  Define\n\\[\n \\lambda=\\min_{\\omega\\in S:\\ v_\\omega>0}\n \\frac{Q_\\omega}{v_\\omega}>0,\n \\qquad Q'=Q-\\lambda v.\n\\]\nThere is no division by a zero coordinate: the minimum ranges only over \\(v_\\omega>0\\), and every indexed \\(Q_\\omega\\) is positive.  By the definition of \\(\\lambda\\), \\(Q'\\geq0\\); at least one formerly positive coordinate becomes zero; and no coordinate outside \\(S\\) becomes positive.  Also\n\\[\n MQ'=MQ-\\lambda Mv=MQ,\n \\qquad\n z^\\top Q'=z^\\top Q-\\lambda z^\\top v=t.\n\\]\nThus \\(Q'\\) is an endpoint-attaining member of \\(\\mathcal Q(o,e)\\) whose support is strictly smaller.  Discard its zero coordinates and repeat.  Each iteration removes at least one positive atom, so after finitely many iterations the process stops at a law \\(Q_{\\mathrm c}\\) with\n\\[\n \\sigma(Q_{\\mathrm c})\\leq R=2mr-m.\n\\]\nThis also covers every boundary case: zero-mass atoms are absent from \\(S\\), and if the current support is already at most \\(R\\), no cancellation is performed.\n\nAn active-affine upper certificate and a deleted-diagonal minimum-cut lower certificate are functions of the fixed margins and certify equality of their dual value with the endpoint value.  The cancellation changes neither the margins nor \\(t\\).  Hence exactly the same certificate, including its active subset or cut, remains valid for \\(Q_{\\mathrm c}\\).\n\nIt remains to audit exact computation.  Suppose the supplied sparse list for \\(Q_0\\) is rational.  At a stage with more than \\(R\\) atoms, rational Gaussian elimination on the zero-one matrix \\(M_S\\) finds a nonzero rational kernel vector in polynomial time.  More explicitly, one may select a minimally dependent collection of at most \\(R+1\\) columns and clear denominators in the cofactor solution.  Hadamard's determinant bound then gives an integer vector \\(v\\) whose nonzero coordinates have bit length \\(O(R\\log(R+1))\\).  If all current weights are written over a common positive denominator \\(D_0\\), the boundary update using an integer \\(v\\) can be written over the common denominator\n\\[\n D_0|v_{\\omega_0}|,\n\\]\nwhere \\(\\omega_0\\) attains the displayed minimum defining \\(\\lambda\\).  Hence one cancellation increases the common-denominator bit length by at most \\(O(R\\log(R+1))\\).  The weights stay in \\([0,1]\\), so their numerator bit lengths obey the same bound.  There are at most \\(\\sigma(Q_0)-R\\) cancellations.  Gaussian elimination, the ratio comparisons, and the vector update are all polynomial in the current sparse-list size and bit length.  Therefore total running time and output bit length are polynomial in the input sparse representation, \\(m\\), and \\(r\\).  The new factor \\(|v_{\\omega_0}|\\) explains why this argument preserves polynomial bit length but does not, without an additional argument, preserve the original denominator-divisibility grid.",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:optimal-support-frontier-order",
+            "proposed": {
+              "id": "thm:optimal-support-frontier-order",
+              "kind": "theorem",
+              "statement": "For every \\(2\\leq k\\leq m\\) and \\(r\\geq1\\),\n\\[\n mr\\leq s_\\star(m,r,k)\\leq 2mr-m+1.\n\\]\nConsequently \\(s_\\star(m,r,k)=\\Theta(mr)\\) uniformly in \\(k\\).  The upper bound simultaneously controls the two separately minimized endpoint supports \\(s_L(o,e)\\) and \\(s_U(o,e)\\) for every \\((o,e)\\in\\mathcal C_{m,r,k}\\).  The lower bound is witnessed by the compatible family \\(o_{is}=1/(mr)\\), \\(e_{js}=1/r\\), for which both endpoint support minima are at least \\(mr\\).  Hence the quadratic \\(k^2\\) term in \\(N_\\star\\) is not intrinsic to exact endpoint witnesses.",
+              "free_symbols": [
+                "m",
+                "r",
+                "k",
+                "s_\\star",
+                "s_L",
+                "s_U",
+                "o",
+                "e",
+                "\\mathcal C_{m,r,k}",
+                "N_\\star"
+              ],
+              "depends_on": [
+                "ass:query-range",
+                "def:model-class",
+                "def:support-compression-handle",
+                "thm:compatibility",
+                "thm:sharp-interval",
+                "lem:certificate-preserving-endpoint-compression"
+              ],
+              "status": "to-prove",
+              "justification": "A finite-rank endpoint-face compression and a forced-positive-cell witness give matching linear order in the number of observational cells.",
+              "gap": "This closes the former support-frontier question and separates intrinsic support from the quadratic overhead of the explicit flow realization.",
+              "consumer": "An audit standard may require only order \\(mr\\) response atoms for exact endpoint existence, although the direct constructive certificate retains its larger explicit bound."
+            },
+            "reason": "Adds the proved certificate-preserving compression dependency required by the maximality repair.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": []
+      }
+    }
+  ]
+}

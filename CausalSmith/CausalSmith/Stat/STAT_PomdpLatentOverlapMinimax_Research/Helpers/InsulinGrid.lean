@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGridCore
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkAssembly
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGridCore
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkAssembly
+
+public section
 
 set_option linter.style.longLine false
 
@@ -8,7 +11,7 @@ namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 set_option maxRecDepth 10000 in

@@ -6,9 +6,12 @@ Authors: Jiyuan Tan
 # Exact dimension of a fixed-loading fiber
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AffineSubspaceDimension
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.BandDimensionTransfer
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LoadingWeightKernelDimension
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AffineSubspaceDimension
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.BandDimensionTransfer
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LoadingWeightKernelDimension
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -1,10 +1,11 @@
-import Causalean.Graph.DAG
-import Causalean.Graph.DSep.Separation
-import Causalean.Mathlib.CondIndep
-import Mathlib.Analysis.Calculus.ContDiff.Defs
-import Mathlib.MeasureTheory.Measure.Decomposition.Lebesgue
-import Mathlib.MeasureTheory.Measure.Map
-import Mathlib.Topology.UniformSpace.UniformConvergenceTopology
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.DSep.Separation
+public import Causalean.Mathlib.Probability.Independence.Conditional
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
+public import Mathlib.MeasureTheory.Measure.Decomposition.Lebesgue
+public import Mathlib.MeasureTheory.Measure.Map
+public import Mathlib.Topology.UniformSpace.UniformConvergenceTopology
 
 /-!
 # Cover-ratio causal representation model
@@ -12,6 +13,11 @@ import Mathlib.Topology.UniformSpace.UniformConvergenceTopology
 This file fixes the latent finite-DAG mechanism, its observed environment family,
 and the population assumptions shared by the paper's results.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory ProbabilityTheory Set Filter
 open scoped BigOperators ENNReal Topology UniformConvergence
@@ -36,7 +42,7 @@ structure SignVector (n : ℕ) where
 
 /-- A family of observational conditional densities and parent-independent intervention
 densities. The proof field makes the parent scope part of the carrier. -/
-structure Mechanism (n : ℕ) (G : Causalean.DAG (Fin n)) where
+structure Mechanism (n : ℕ) (G : DAG (Fin n)) where
   p : Fin n → LatentState n → ℝ -- @realizes \(p_i\)(conditional-density carrier)
   q : Fin n → ℝ → ℝ -- @realizes \(q_i\)(parent-independent density carrier)
   parent_local : ∀ i v w, v i = w i →
@@ -47,7 +53,7 @@ structure Mechanism (n : ℕ) (G : Causalean.DAG (Fin n)) where
 equipped with uniform convergence there. Pulling this topology back gives the paper's finite
 relative product `C²` topology, including its one-sided boundary derivatives, rather than Lean's
 default pointwise function topology. -/
-def mechanismC2Coordinates {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G) :=
+def mechanismC2Coordinates {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G) :=
   ((fun i => UniformOnFun.ofFun {latentCube n} (θ.p i)),
     (fun i => UniformOnFun.ofFun {latentCube n} (fderivWithin ℝ (θ.p i) (latentCube n))),
     (fun i => UniformOnFun.ofFun {latentCube n}
@@ -60,34 +66,34 @@ def mechanismC2Coordinates {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism
 
 /-- For a [finite latent dimension](hyp:n) and [DAG](hyp:G), the [mechanism space carries
 the relative product C² topology](goal). -/
-instance {n : ℕ} {G : Causalean.DAG (Fin n)} : TopologicalSpace (Mechanism n G) :=
+instance {n : ℕ} {G : DAG (Fin n)} : TopologicalSpace (Mechanism n G) :=
   TopologicalSpace.induced mechanismC2Coordinates inferInstance
 
 /-- The intervention distribution function `Q_i(v) = ∫₀ᵛ q_i(u) du`. -/
-def interventionCDF {n : ℕ} {G : Causalean.DAG (Fin n)}
+def interventionCDF {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) (i : Fin n) (v : ℝ) : ℝ :=
   ∫ u in (0 : ℝ)..v, θ.q i u -- @realizes \(Q_i\)(integral of q_i)
 
 /-- The observational product density. -/
-def observationalDensity {n : ℕ} {G : Causalean.DAG (Fin n)}
+def observationalDensity {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) (v : LatentState n) : ℝ :=
   ∏ i, θ.p i v -- @realizes \(p^0\)(product of observational mechanisms)
 
 /-- The density after replacing exactly the target mechanism by `q_i`. -/
-def interventionalDensity {n : ℕ} {G : Causalean.DAG (Fin n)}
+def interventionalDensity {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) (i : Fin n) (v : LatentState n) : ℝ :=
   θ.q i (v i) * ∏ l ∈ Finset.univ.erase i, θ.p l v
   -- @realizes \(p^i\)(q_i times all non-target p_l)
 
 /-- The observational law on the compact latent cube. -/
-def observationalLaw {n : ℕ} {G : Causalean.DAG (Fin n)}
+def observationalLaw {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) : Measure (LatentState n) :=
   (volume.restrict (latentCube n)).withDensity
     (fun v => ENNReal.ofReal (observationalDensity θ v))
   -- @realizes \(p^0\)(law with observational product density)
 
 /-- The target-`i` perfect-intervention law on the latent cube. -/
-def interventionalLaw {n : ℕ} {G : Causalean.DAG (Fin n)}
+def interventionalLaw {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) (i : Fin n) : Measure (LatentState n) :=
   (volume.restrict (latentCube n)).withDensity
     (fun v => ENNReal.ofReal (interventionalDensity θ i v))
@@ -98,7 +104,7 @@ def coordinateProjection {n : ℕ} (S : Finset (Fin n)) (v : LatentState n) :
     (j : {j // j ∈ S}) → ℝ := fun j => v j
 
 /-- Conditional independence of latent coordinate blocks under the observational law. -/
-def CondIndepCoordinates {n : ℕ} {G : Causalean.DAG (Fin n)}
+def CondIndepCoordinates {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) (X Y Z : Finset (Fin n)) : Prop :=
   ∃ hμ : MeasureTheory.IsFiniteMeasure (observationalLaw θ),
     letI := hμ
@@ -111,21 +117,21 @@ def CondIndepCoordinates {n : ℕ} {G : Causalean.DAG (Fin n)}
             (observationalLaw θ)
 
 /-- The own-coordinate derivative of the latent log density ratio. -/
-def ownLogRatioDerivative {n : ℕ} {G : Causalean.DAG (Fin n)}
+def ownLogRatioDerivative {n : ℕ} {G : DAG (Fin n)}
     (θ : Mechanism n G) (i : Fin n) (v : LatentState n) : ℝ :=
   derivWithin (fun z => Real.log (θ.q i z / θ.p i (Function.update v i z)))
     (Set.Icc (0 : ℝ) 1) (v i)
 
 -- @env: S1
 variable {n : ℕ} -- @realizes n(number of latent nodes)
-  (G : Causalean.DAG (Fin n)) -- @realizes G(finite labeled DAG on Fin n)
+  (G : DAG (Fin n)) -- @realizes G(finite labeled DAG on Fin n)
   (s : SignVector n) -- @realizes s(prescribed derivative signs)
 
 -- @realizes \([n]\)(implemented as Fin n)
 -- @realizes \(j\lessdot_G i\)(CovBy for DAG.isAncestor)
 /-- For a [finite node set](hyp:n) and [DAG](hyp:G), the [ancestral cover relation consists
 of cover pairs in the DAG's ancestor order](goal). -/
-abbrev ancestralCover (G : Causalean.DAG (Fin n)) : Fin n → Fin n → Prop :=
+abbrev ancestralCover (G : DAG (Fin n)) : Fin n → Fin n → Prop :=
   @CovBy (Fin n) ⟨G.isAncestor⟩
 
 -- @node: ass:positive-normalized-smooth-mechanisms

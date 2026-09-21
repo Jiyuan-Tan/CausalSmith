@@ -5,8 +5,11 @@ The oracle score, empirical first stage, empirical Kish scale, and its inverted
 acceptance set.  The target sample is absent from the definition.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Frontier
-import Causalean.Stat.Sample.EffectiveSampleSize
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Frontier
+public import Causalean.Stat.Sample.EffectiveSampleSize
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -58,7 +61,7 @@ lemma inversionHandle_congr_of_sample
     inversionHandle weight e n L sample =
       inversionHandle weight' e n L sample := by
   unfold inversionHandle scoreOutcomeMean scoreReceiptMean empiricalKish
-    Causalean.Stat.empiricalKishDispersion
+    Causalean.Stat.empiricalKishDispersion Causalean.Stat.empiricalWeightSecondMoment
   simp_rw [h]
 
 /-- Every density-ratio version agrees with the canonical version

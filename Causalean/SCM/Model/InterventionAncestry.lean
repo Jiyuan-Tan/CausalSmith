@@ -4,21 +4,27 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.InterventionSet
-import Causalean.Graph.DSep.BackdoorBridges
+module
+public import Causalean.SCM.Model.InterventionSet
+public import Causalean.Graph.DSep.BackdoorBridges
 
 /-! # Intervention Ancestry
 
 This file relates ancestry in the graph after a set intervention to ancestry in the
 original structural causal model. It supplies the graph bridge used to turn a
 non-descendant condition in a back-door criterion into the non-ancestry hypothesis
-needed for Rule 3 of do-calculus.
+needed for the library's non-ancestor Rule 3* transport.
 
 The main theorem, `SCM.fixSet_isAncestor_fixed_forward`, lifts a directed ancestry
 path starting at an intervened fixed copy in `(M.fixSet X).dag` to an ancestry
 path starting at the corresponding random node in the base graph. The auxiliary
 `DAG.not_isAncestor_of_root'` records that a root has no proper ancestors.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 namespace Causalean
 

@@ -6,7 +6,7 @@ Authors: Jiyuan Tan
 # Ancestral reduction of d-separation
 
 This file proves the classical *ancestral reduction* result: every vertex on an
-active path between `X` and `Y` given `Z` lies inside the ancestral set
+active walk between `X` and `Y` given `Z` lies inside the ancestral set
 `ancestralSet (X ∪ Y ∪ Z)`. It also provides finset corollaries used when
 reasoning about Bayes Ball witnesses.
 
@@ -16,33 +16,35 @@ The endpoint corollary exposed downstream is
         (G.bbReachableVertices Z X) ∩ Y ⊆ G.ancestralSet (X ∪ Y ∪ Z)`
 
 It says only that a reachable target endpoint already lies in the ancestral set
-because it is in `Y`. The stronger active-path witness statement is
-`activePath_witness_subset_ancestralSet`.
+because it is in `Y`. The stronger active-walk witness statement is
+`activeWalk_witness_subset_ancestralSet`.
 
 ## Main results
 
-* `DAG.activePath_nodes_are_ancestors` — every node on an active `X-Y` path,
+* `DAG.activeWalk_nodes_are_ancestors` — every node on an active `X-Y` walk,
   given `Z`, lies in `ancestralSet (X ∪ Y ∪ Z)`. (Core ancestral lemma.)
 * `DAG.subset_ancestralSet_of_subset` — endpoint inclusion for
   reachable targets in finset form.
 
 ## References
 
-* Pearl (2009), Causality (2nd ed.), §1.2.3 (ancestral graphs)
-* Verma & Pearl (1990), *Equivalence and synthesis of causal models*
+* Pearl (2009), Causality (2nd ed.), §1.2.3 (“The d-Separation Criterion”)
 -/
 
-import Causalean.Graph.DSep.Separation
+module
+public import Causalean.Graph.DSep.Separation
 
 /-! # Ancestral Reduction for d-Separation
 
-This file proves that active paths relevant to a d-separation query can be
+This file proves that active walks relevant to a d-separation query can be
 restricted to the ancestral set of the source, target, and conditioning
 vertices. The resulting finset lemmas distinguish the trivial reachable-target
 endpoint inclusion from the stronger statement about all nodes on a witnessing
-active path. -/
+active walk. -/
 
-namespace Causalean
+public section
+
+namespace Causalean.Graph
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -54,12 +56,14 @@ variable (G : DAG V)
 -- Auxiliary lemmas about `ancestralSet`
 -- ============================================================
 
-/-- `S ⊆ ancestralSet S`: every member is in its own ancestral set. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [every member of a vertex
+set](hyp:S) [belongs to that set's ancestral closure](goal). -/
 lemma subset_ancestralSet (S : Finset V) : S ⊆ G.ancestralSet S := by
   intro v hv
   exact Finset.mem_union_left _ hv
 
-/-- `ancestralSet` is monotone in its argument. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), if [one vertex set is contained in
+another](hyp:S,T,h), then [its ancestral closure is contained in the other's](goal). -/
 lemma ancestralSet_mono {S T : Finset V} (h : S ⊆ T) :
     G.ancestralSet S ⊆ G.ancestralSet T := by
   intro v hv
@@ -71,7 +75,9 @@ lemma ancestralSet_mono {S T : Finset V} (h : S ⊆ T) :
       (by simp only [ancestorsSet, Finset.mem_filter, Finset.mem_univ, true_and]
           exact ⟨w, h hwS, haw⟩)
 
-/-- If `u` is an ancestor of some vertex `w ∈ S`, then `u ∈ ancestralSet S`. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), if [a vertex belongs to a target
+set](hyp:w,S,hwS) and [another vertex is its ancestor](hyp:u,h), then [that ancestor belongs
+to the target set's ancestral closure](goal). -/
 lemma mem_ancestralSet_of_isAncestor
     {u w : V} {S : Finset V} (hwS : w ∈ S) (h : G.isAncestor u w) :
     u ∈ G.ancestralSet S := by
@@ -79,9 +85,9 @@ lemma mem_ancestralSet_of_isAncestor
   simp only [ancestorsSet, Finset.mem_filter, Finset.mem_univ, true_and]
   exact ⟨w, hwS, h⟩
 
-/-- `bbZAncestors Z ⊆ ancestralSet S` whenever `Z ⊆ S`. Used to lift a
-    collider-activation witness `m ∈ bbZAncestors Z` into the larger
-    `ancestralSet (X ∪ Y ∪ Z)`. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [containment of one conditioning
+set in another](hyp:Z,S,hZS) implies that [every collider activated by the first set belongs
+to the second set's ancestral closure](goal). -/
 lemma bbZAncestors_subset_ancestralSet_of_subset
     {Z S : Finset V} (hZS : Z ⊆ S) :
     G.bbZAncestors Z ⊆ G.ancestralSet S := by
@@ -89,10 +95,12 @@ lemma bbZAncestors_subset_ancestralSet_of_subset
   exact G.ancestralSet_mono hZS
 
 -- ============================================================
--- Reading edges off an active path
+-- Reading edges off an active walk
 -- ============================================================
 
-/-- A non-collider triple `(l, m, r)` has at least one outgoing edge from `m`. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [three vertices](hyp:l,m,r) whose
+[consecutive pairs are adjacent](hyp:hadj_lm,hadj_mr) but whose [middle vertex is not a
+collider](hyp:hnc) have [an outgoing edge from the middle vertex to an outer vertex](goal). -/
 lemma nonCollider_has_outgoing
     {l m r : V} (hadj_lm : G.UAdj l m) (hadj_mr : G.UAdj m r)
     (hnc : ¬ G.IsCollider l m r) :
@@ -111,8 +119,9 @@ lemma nonCollider_has_outgoing
   · -- edge m l: outgoing on the left.
     exact Or.inl hml
 
-/-- When a directed edge points to a vertex in the ancestral closure of a set,
-    its source vertex is also in that ancestral closure. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), if [an edge joins two
+vertices](hyp:u,v,huv) and [its target belongs to a set's ancestral closure](hyp:S,hv), then
+[its source also belongs to that ancestral closure](goal). -/
 lemma mem_ancestralSet_of_edge_to_mem
     {u v : V} {S : Finset V} (huv : G.edge u v)
     (hv : v ∈ G.ancestralSet S) :
@@ -124,13 +133,13 @@ lemma mem_ancestralSet_of_edge_to_mem
     obtain ⟨w, hwS, hvw⟩ := hvA
     exact ⟨w, hwS, G.isAncestor_trans (isAncestor.edge huv) hvw⟩
 
-/-- Walking right along a directed edge in an active path reaches either the
+/-- Walking right along a directed edge in an active walk reaches either the
     endpoint or an active collider; in both cases the starting node is in the
     target ancestral set. -/
 private theorem walk_right_witness
     {S Z : Finset V} {p : List V} {y : V}
     (hZS : Z ⊆ S) (hyS : y ∈ S)
-    (hp : G.IsActivePath Z p) (hlast : p.getLast? = some y)
+    (hp : G.IsActiveWalk Z p) (hlast : p.getLast? = some y)
     (j : ℕ) (hj : j + 1 < p.length)
     (hedge : G.edge (p.get ⟨j, by omega⟩) (p.get ⟨j + 1, hj⟩)) :
     p.get ⟨j, by omega⟩ ∈ G.ancestralSet S := by
@@ -177,7 +186,7 @@ decreasing_by omega
 private theorem walk_left_witness
     {S Z : Finset V} {p : List V} {x : V}
     (hZS : Z ⊆ S) (hxS : x ∈ S)
-    (hp : G.IsActivePath Z p) (hhead : p.head? = some x)
+    (hp : G.IsActiveWalk Z p) (hhead : p.head? = some x)
     (j : ℕ) (hjpos : 0 < j) (hj : j < p.length)
     (hedge : G.edge (p.get ⟨j, hj⟩) (p.get ⟨j - 1, by omega⟩)) :
     p.get ⟨j, hj⟩ ∈ G.ancestralSet S := by
@@ -228,10 +237,10 @@ termination_by j
 decreasing_by omega
 
 -- ============================================================
--- Core: every node on an active path is in the ancestral set
+-- Core: every node on an active walk is in the ancestral set
 -- ============================================================
 
-/-- Walking forward from a non-collider in an active path, we either reach the
+/-- Walking forward from a non-collider in an active walk, we either reach the
     end of the path (giving an ancestor witness in `Y` via the endpoint) or
     we hit a collider node (which is in `bbZAncestors Z` and hence in the
     ancestral set). In either case, the starting node is an ancestor of some
@@ -242,7 +251,7 @@ decreasing_by omega
 private theorem walk_forward_witness
     {X Y Z : Finset V} {p : List V} {x y : V}
     (hxX : x ∈ X) (hyY : y ∈ Y)
-    (hp : G.IsActivePath Z p)
+    (hp : G.IsActiveWalk Z p)
     (hhead : p.head? = some x) (hlast : p.getLast? = some y)
     (i : ℕ) (hi : i < p.length) :
     p.get ⟨i, hi⟩ ∈ G.ancestralSet (X ∪ Y ∪ Z) := by
@@ -280,7 +289,7 @@ private theorem walk_forward_witness
       -- Set up the triple (p.get (i-1), p.get i, p.get (i+1)).
       have hi_ge_1 : 1 ≤ i := Nat.one_le_iff_ne_zero.mpr hi0
       have hi_succ : i + 1 < p.length := by omega
-      -- The collider/non-collider clause from IsActivePath at index i-1.
+      -- The collider/non-collider clause from IsActiveWalk at index i-1.
       have hk_idx : (i - 1) + 2 < p.length := by omega
       have hcoll_clause := hp.2 (i - 1) hk_idx
       -- Reindex i-1+1 = i, i-1+2 = i+1.
@@ -316,17 +325,17 @@ private theorem walk_forward_witness
           exact G.walk_right_witness hZsub hyS hp hlast i hi_succ
             (by simpa [hm_def, hr_def] using hmr)
 
-/-- **Active-path nodes lie in the ancestral set.** For finite vertex sets `X`, `Y`, `Z`, consider
-[a path `p` that is active given `Z`](hyp:hp) [running from a node `x` in `X`](hyp:hxX,hhead) to
+/-- **Active-walk nodes lie in the ancestral set.** For finite vertex sets `X`, `Y`, `Z`, consider
+[a walk `p` that is active given `Z`](hyp:hp) [running from a node `x` in `X`](hyp:hxX,hhead) to
 [a node `y` in `Y`](hyp:hyY,hlast). Then [every vertex on `p` lies in the ancestral set of
 `X ∪ Y ∪ Z`](goal). This is the main classical lemma used to justify ancestral reduction of
 d-separation.
 
     The per-index witness is supplied by `walk_forward_witness`. -/
-theorem activePath_nodes_are_ancestors
+theorem activeWalk_nodes_are_ancestors
     {X Y Z : Finset V} {x y : V} {p : List V}
     (hxX : x ∈ X) (hyY : y ∈ Y)
-    (hp : G.IsActivePath Z p)
+    (hp : G.IsActiveWalk Z p)
     (hhead : p.head? = some x) (hlast : p.getLast? = some y) :
     ∀ v ∈ p, v ∈ G.ancestralSet (X ∪ Y ∪ Z) := by
   intro v hv
@@ -340,7 +349,9 @@ theorem activePath_nodes_are_ancestors
 -- Endpoint corollary: BFS-reachable vertex in Y is in the ancestral set
 -- ============================================================
 
-/-- Every element of a subset belongs to the ancestral closure of its ambient set. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [containment of one vertex set in
+another](hyp:Y,S,hYS) ensures that [the smaller set lies in the larger set's ancestral
+closure](goal). -/
 theorem subset_ancestralSet_of_subset
     {Y S : Finset V} (hYS : Y ⊆ S) :
     Y ⊆ G.ancestralSet S := by
@@ -349,43 +360,49 @@ theorem subset_ancestralSet_of_subset
   exact hYS hvY
 
 -- ============================================================
--- Inner-node version: any *intermediate* node of an active X-Y path is
+-- Inner-node version: any *intermediate* node of an active X-Y walk is
 -- in the ancestral set. This is the genuinely informative form.
 -- ============================================================
 
-/-- **Active-path inner nodes lie in the ancestral set** (informative form).
+/-- In [a finite directed acyclic graph](hyp:V,G), [source, target, and conditioning
+sets with a selected target](hyp:X,Y,Z,v), if [the target is Bayes-Ball reachable from the
+source](hyp:hvR) and [belongs to the target set](hyp:hvY), then [there is a witnessing active
+walk whose every vertex lies in the query's ancestral closure](goal).
 
-    Specialization of `activePath_nodes_are_ancestors` to a witness
+    Specialization of `activeWalk_nodes_are_ancestors` to a witness
     expressed via `bbReachableVertices`. If `v ∈ Y` is BFS-reachable from
     `X` given `Z`, then for every node `w` along the witnessing active
-    path, `w ∈ ancestralSet (X ∪ Y ∪ Z)`. -/
-theorem activePath_witness_subset_ancestralSet
+    walk, `w ∈ ancestralSet (X ∪ Y ∪ Z)`. -/
+theorem activeWalk_witness_subset_ancestralSet
     {X Y Z : Finset V} {v : V}
     (hvR : v ∈ G.bbReachableVertices Z X) (hvY : v ∈ Y) :
     ∃ (p : List V) (x : V), x ∈ X ∧ p.length ≥ 2 ∧
-      G.IsActivePath Z p ∧ p.head? = some x ∧ p.getLast? = some v ∧
+      G.IsActiveWalk Z p ∧ p.head? = some x ∧ p.getLast? = some v ∧
       ∀ w ∈ p, w ∈ G.ancestralSet (X ∪ Y ∪ Z) := by
-  -- Pull an active path witness from `bbReachableVertices_iff_activePath`,
-  -- then apply `activePath_nodes_are_ancestors`.
+  -- Pull an active walk witness from `bbReachableVertices_iff_activeWalk`,
+  -- then apply `activeWalk_nodes_are_ancestors`.
   obtain ⟨x, hxX, p, hlen, hact, hhead, hlast⟩ :=
-    (G.bbReachableVertices_iff_activePath X Z v).mp hvR
+    (G.bbReachableVertices_iff_activeWalk X Z v).mp hvR
   exact ⟨p, x, hxX, hlen, hact, hhead, hlast,
-    G.activePath_nodes_are_ancestors hxX hvY hact hhead hlast⟩
+    G.activeWalk_nodes_are_ancestors hxX hvY hact hhead hlast⟩
 
 -- ============================================================
 -- Ancestral intersection from d-separation (graph-theoretic core)
 -- ============================================================
 
-/-- A *forward*-directed path whose interior vertices avoid `Z` is an active path given `Z`.
+/-- In [a finite directed acyclic graph](hyp:V,G), [a walk and conditioning
+set](hyp:p,Z) whose [edges all point forward](hyp:hdir) and whose [interior vertices avoid
+the conditioning set](hyp:hZ) form [an active walk](goal).
+
     "Forward-directed" means each edge points from the *earlier* index to the
     *later* index. Every interior vertex is then a non-collider (incoming +
     outgoing), and by the avoidance hypothesis none is in `Z`; endpoints may lie in `Z`. -/
-theorem isActivePath_of_directed
+theorem isActiveWalk_of_directed
     {Z : Finset V} {p : List V}
     (hdir : ∀ (i : ℕ) (hi : i + 1 < p.length),
         G.edge (p.get ⟨i, by omega⟩) (p.get ⟨i + 1, hi⟩))
     (hZ : ∀ (i : ℕ) (hi : i + 2 < p.length), p.get ⟨i + 1, by omega⟩ ∉ Z) :
-    G.IsActivePath Z p := by
+    G.IsActiveWalk Z p := by
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
   · -- Adjacency: G.edge p[i] p[i+1] gives UAdj.
     exact Or.inl (hdir i hi)
@@ -401,26 +418,33 @@ theorem isActivePath_of_directed
     rw [if_neg hnotcoll]
     exact hZ i hi
 
-/-- An ancestor outside the conditioning set's ancestral closure has an active path
-to its descendant.
+/-- In [a finite directed acyclic graph](hyp:V,G), [two vertices and a conditioning
+set](hyp:u,v,Z) such that [the first is an ancestor of the second](hyp:huv) and [lies outside
+the conditioning set's ancestral closure](hyp:huZ) admit [an active walk from the ancestor
+to the descendant](goal).
 
     The internal
     nodes of the path are also ancestors of `v` (hence members of
     `ancestralSet S` for any `S ∋ v`). -/
-theorem exists_activePath_of_ancestor_avoiding
+theorem exists_activeWalk_of_ancestor_avoiding
     {Z : Finset V} {u v : V} (huv : G.isAncestor u v)
     (huZ : u ∉ G.ancestralSet Z) :
     ∃ (p : List V), p.length ≥ 2 ∧ p.head? = some u ∧ p.getLast? = some v ∧
-      G.IsActivePath Z p := by
+      G.IsActiveWalk Z p := by
   obtain ⟨p, hlen, hhead, hlast, hedge, hZavoid⟩ :=
     G.exists_directedPath_avoiding huv huZ
   exact ⟨p, hlen, hhead, hlast,
-    G.isActivePath_of_directed hedge (fun i hi => hZavoid _ (List.get_mem _ _))⟩
+    G.isActiveWalk_of_directed hedge (fun i hi => hZavoid _ (List.get_mem _ _))⟩
 
-/-- Two directed paths from one unconditioned vertex can be joined through that fork.
+/-- In [a finite directed acyclic graph](hyp:V,G), [a conditioning set, fork vertex,
+endpoints, and two walks](hyp:Z,u,x,y,xp,yp), if [the first walk is a directed path from the
+fork to the first endpoint and avoids conditioning](hyp:hxp_len,hxp_head,hxp_last,hxp_edge,hxp_Z)
+and [the second does likewise](hyp:hyp_len,hyp_head,hyp_last,hyp_edge,hyp_Z), then
+[reversing the first and joining it to the second gives an active walk between the
+endpoints](goal).
 
-The resulting path is active between their endpoints. -/
-theorem fork_isActivePath
+The resulting walk is active between their endpoints. -/
+theorem fork_isActiveWalk
     {Z : Finset V} {u x y : V} {xp yp : List V}
     (hxp_len : xp.length ≥ 2) (hxp_head : xp.head? = some u)
     (hxp_last : xp.getLast? = some x)
@@ -434,7 +458,7 @@ theorem fork_isActivePath
     (hyp_Z : ∀ z ∈ yp, z ∉ Z) :
     let p := xp.reverse ++ yp.tail
     p.length ≥ 2 ∧ p.head? = some x ∧ p.getLast? = some y ∧
-      G.IsActivePath Z p := by
+      G.IsActiveWalk Z p := by
   -- yp.head = u, yp.tail = yp without u
   have hyp_ne : yp ≠ [] := by
     intro h; rw [h] at hyp_len; simp at hyp_len
@@ -492,7 +516,7 @@ theorem fork_isActivePath
     simp only [hp_def, List.getLast?_append, hlast_tail]
     rfl
   refine ⟨hp_len, hp_head, hp_last, ?_⟩
-  -- Now show `IsActivePath Z p`.
+  -- Now show `IsActiveWalk Z p`.
   -- Layout: p[k] = xp.reverse[k] = xp[xp.length - 1 - k] for k < xp.length.
   --         p[k] = yp.tail[k - xp.length] = yp[k - xp.length + 1] for k ≥ xp.length.
   -- The seam is at k = xp.length - 1 (= u, since xp.reverse[xp.length-1] = xp[0] = u),
@@ -753,34 +777,34 @@ theorem ancestralSet_inter_subset_ancestralSet_of_dSep
     rcases huY with h | ⟨y, hyY, hay⟩
     · exact Or.inl h
     · exact Or.inr ⟨y, hyY, hay⟩
-  -- Convert dSep to: no active path from X to Y given Z.
+  -- Convert dSep to: no active walk from X to Y given Z.
   have hNoPath : ∀ (x y : V), x ∈ X → y ∈ Y →
-      ¬ ∃ (p : List V), p.length ≥ 2 ∧ G.IsActivePath Z p ∧
+      ¬ ∃ (p : List V), p.length ≥ 2 ∧ G.IsActiveWalk Z p ∧
         p.head? = some x ∧ p.getLast? = some y := by
     intro x y hxX hyY ⟨p, hlen, hact, hhead, hlast⟩
     -- y ∈ bbReachableVertices Z X, but dSep says it's disjoint from Y.
     have hyR : y ∈ G.bbReachableVertices Z X := by
-      rw [G.bbReachableVertices_iff_activePath]
+      rw [G.bbReachableVertices_iff_activeWalk]
       exact ⟨x, hxX, p, hlen, hact, hhead, hlast⟩
     exact (Finset.disjoint_left.mp hReach) hyR hyY
-  -- Build the active path. Three cases on (huX', huY').
+  -- Build the active walk. Three cases on (huX', huY').
   rcases huX' with hxIs | ⟨x, hxX, hax⟩
   · -- u ∈ X. Use directed path u → ... → y for some y ∈ Y.
     rcases huY' with hyIs | ⟨y, hyY, hay⟩
     · -- u ∈ X ∩ Y, contradicting disjointness.
       exact absurd hyIs ((Finset.disjoint_left.mp hXY) hxIs)
     · obtain ⟨p, hplen, hphead, hplast, hpact⟩ :=
-        G.exists_activePath_of_ancestor_avoiding hay huZ
+        G.exists_activeWalk_of_ancestor_avoiding hay huZ
       exact hNoPath u y hxIs hyY ⟨p, hplen, hpact, hphead, hplast⟩
   · -- u is a strict ancestor of x ∈ X.
     obtain ⟨xp, hxp_len, hxp_head, hxp_last, hxp_edge, hxp_Z⟩ :=
       G.exists_directedPath_avoiding hax huZ
     rcases huY' with hyIs | ⟨y, hyY, hay⟩
-    · -- u ∈ Y. The directed path xp (u → ... → x) is itself an active path
-      -- from u to x; reverse it via the public `isActivePath_reverse`.
-      have hxp_act_fwd : G.IsActivePath Z xp :=
-        G.isActivePath_of_directed hxp_edge (fun i hi => hxp_Z _ (List.get_mem _ _))
-      have hxp_act : G.IsActivePath Z xp.reverse := G.isActivePath_reverse hxp_act_fwd
+    · -- u ∈ Y. The directed path xp (u → ... → x) is itself an active walk
+      -- from u to x; reverse it via the public `isActiveWalk_reverse`.
+      have hxp_act_fwd : G.IsActiveWalk Z xp :=
+        G.isActiveWalk_of_directed hxp_edge (fun i hi => hxp_Z _ (List.get_mem _ _))
+      have hxp_act : G.IsActiveWalk Z xp.reverse := G.isActiveWalk_reverse hxp_act_fwd
       have hxp_rev_len : xp.reverse.length ≥ 2 := by
         rw [List.length_reverse]; exact hxp_len
       have hxp_rev_head : xp.reverse.head? = some x := by
@@ -792,10 +816,10 @@ theorem ancestralSet_inter_subset_ancestralSet_of_dSep
       obtain ⟨yp, hyp_len, hyp_head, hyp_last, hyp_edge, hyp_Z⟩ :=
         G.exists_directedPath_avoiding hay huZ
       obtain ⟨hp_len, hp_head, hp_last, hp_act⟩ :=
-        G.fork_isActivePath hxp_len hxp_head hxp_last hxp_edge hxp_Z
+        G.fork_isActiveWalk hxp_len hxp_head hxp_last hxp_edge hxp_Z
           hyp_len hyp_head hyp_last hyp_edge hyp_Z
       exact hNoPath x y hxX hyY ⟨_, hp_len, hp_act, hp_head, hp_last⟩
 
 end DAG
 
-end Causalean
+end Causalean.Graph

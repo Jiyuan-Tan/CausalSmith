@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.FullCondIndep
-import Causalean.SCM.Model.EvalFactorization
-import Causalean.SCM.Model.EvalLatent
-import Causalean.Mathlib.Indep
+module
+
+public import Causalean.Mathlib.Probability.Independence.Basic
+public import Causalean.Mathlib.Probability.Independence.Conditional.Transport
+public import Causalean.SCM.Do.FullCondIndep
+public import Causalean.SCM.Model.EvalFactorization
+public import Causalean.SCM.Model.EvalLatent
 
 /-! # Full Local Markov Property
 
@@ -19,13 +22,25 @@ conditional independence through the evaluation map.
 
 The main public results are:
 
-* `SCM.condIndepFun_of_map`, which transports conditional independence through a
+* `Causalean.Mathlib.Probability.Independence.Conditional.condIndepFun_of_map`,
+  which transports conditional independence through a
   measurable pushforward.
 * `SCM.full_local_markov`, the observed-node local Markov property for
   `jointKernel`.
 * `SCM.full_local_markov_latent`, the corresponding independence statement for
   latent root nodes.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Independence
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 
@@ -51,55 +66,6 @@ theorem observed_subset_randomVars (M : Causalean.SCM N Ω) :
 -- § 2. Pushforward bridge for CondIndepFun
 -- ============================================================
 
-/-- **Pushforward bridge for CondIndepFun.**
-
-    If `X ∘ φ`, `Y ∘ φ`, `Z ∘ φ` satisfy conditional independence under `ν`,
-    then `X`, `Y`, `Z` satisfy conditional independence under `ν.map φ`.
-
-    **Proof**: Use the `condDistrib` characterization of conditional independence
-    (`condIndepFun_iff_condDistrib_prod_ae_eq_prodMkRight`). Since `condDistrib`
-    is `(μ.map (X, Y)).condKernel`, precomposing both arguments by `φ` commutes
-    with `condDistrib` via `Measure.map_map`. -/
-theorem condIndepFun_of_map
-    {α : Type*} [MeasurableSpace α] [StandardBorelSpace α]
-    {β : Type*} [MeasurableSpace β] [StandardBorelSpace β]
-    {γ : Type*} [MeasurableSpace γ] [StandardBorelSpace γ] [Nonempty γ]
-    {δ : Type*} [MeasurableSpace δ] [StandardBorelSpace δ] [Nonempty δ]
-    {ε : Type*} [MeasurableSpace ε]
-    {φ : α → β} (hφ : Measurable φ)
-    {X : β → γ} (hX : Measurable X)
-    {Y : β → δ} (hY : Measurable Y)
-    {Z : β → ε} (hZ : Measurable Z)
-    {ν : MeasureTheory.Measure α} [MeasureTheory.IsFiniteMeasure ν]
-    [MeasureTheory.IsFiniteMeasure (ν.map φ)]
-    (h : ProbabilityTheory.CondIndepFun
-      (MeasurableSpace.comap (Z ∘ φ) inferInstance)
-      (Measurable.comap_le (hZ.comp hφ))
-      (X ∘ φ) (Y ∘ φ) ν) :
-    ProbabilityTheory.CondIndepFun
-      (MeasurableSpace.comap Z inferInstance) (hZ.comap_le)
-      X Y (ν.map φ) := by
-  -- condDistrib commutes with precomposition by φ (via Measure.map_map)
-  have hcd1 : ProbabilityTheory.condDistrib (Y ∘ φ) (Z ∘ φ) ν =
-      ProbabilityTheory.condDistrib Y Z (ν.map φ) := by
-    simp only [ProbabilityTheory.condDistrib]
-    congr 1
-    exact (MeasureTheory.Measure.map_map (hZ.prodMk hY) hφ).symm
-  have hcd2 : ProbabilityTheory.condDistrib (Y ∘ φ)
-        (fun ω ↦ ((Z ∘ φ) ω, (X ∘ φ) ω)) ν =
-      ProbabilityTheory.condDistrib Y (fun b ↦ (Z b, X b)) (ν.map φ) := by
-    simp only [ProbabilityTheory.condDistrib]
-    congr 1
-    exact (MeasureTheory.Measure.map_map ((hZ.prodMk hX).prodMk hY) hφ).symm
-  have hfilt : ν.map (fun ω ↦ ((Z ∘ φ) ω, (X ∘ φ) ω)) =
-      (ν.map φ).map (fun b ↦ (Z b, X b)) :=
-    (MeasureTheory.Measure.map_map (hZ.prodMk hX) hφ).symm
-  -- Use the condDistrib characterization of conditional independence
-  rw [ProbabilityTheory.condIndepFun_iff_condDistrib_prod_ae_eq_prodMkRight hY hX hZ]
-  have h' := (ProbabilityTheory.condIndepFun_iff_condDistrib_prod_ae_eq_prodMkRight
-    (hY.comp hφ) (hX.comp hφ) (hZ.comp hφ)).mp h
-  rw [hcd2, hcd1, hfilt] at h'
-  exact h'
 
 -- ============================================================
 -- § 3. Full Local Markov Property

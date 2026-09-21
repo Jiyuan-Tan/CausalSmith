@@ -3,7 +3,9 @@ Copyright (c) 2024 Shengyang Xu. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Shengyang Xu
 -/
-import Optlib.Convex.ConicCaratheodory
+
+module
+public import Optlib.Convex.ConicCaratheodory
 
 /-!
 # ClosedCone
@@ -17,6 +19,8 @@ This file contains the following parts of closed cone.
   can by represented
 * proof of the closedness of a cone with linear independent basis
 -/
+
+@[expose] public section
 
 section ClosedCone
 

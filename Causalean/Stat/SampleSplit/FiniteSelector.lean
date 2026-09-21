@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.IndepIntegral
-import Causalean.Stat.SampleSplit.OneShot
+module
+public import Causalean.Mathlib.Probability.Independence.Integral
+public import Causalean.Stat.SampleSplit.OneShot
 
 /-!
 # Finite pilot-selected L2 transfer
@@ -20,6 +21,8 @@ uses independence to factor each cell probability from its fixed-branch tail
 risk. The statements are neutral about the meaning of the branches and sample
 coordinates.
 -/
+
+@[expose] public section
 
 noncomputable section
 

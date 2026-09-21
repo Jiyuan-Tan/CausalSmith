@@ -1,11 +1,12 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.OverlapCount
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
-import Mathlib.Algebra.Order.Chebyshev
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance_Part1
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance_Part2
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.OverlapCount
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Mathlib.Algebra.Order.Chebyshev
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance_Part1
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance_Part2
 
 /-!
 # The degree-weighted second-moment bound
@@ -14,6 +15,8 @@ Bounds the second moment of a sum of block-dependent terms by the maximum degree
 times the total energy, and applies it to the SNIPE score to obtain the
 single-overlap variance bound.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

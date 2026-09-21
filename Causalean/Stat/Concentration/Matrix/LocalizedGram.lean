@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Concentration.TailBounds.Bernstein
-import Causalean.Stat.Concentration.Matrix.LocalizedGramBasic
+
+module
+public import Causalean.Stat.Concentration.TailBounds.Bernstein
+public import Causalean.Stat.Concentration.Matrix.LocalizedGramBasic
 
 /-!
 # Bernstein coercivity for localized empirical Gram matrices
@@ -14,6 +16,8 @@ deterministic entrywise perturbation argument.  The result applies to any
 finite feature index type and any bounded measurable local weight, independently
 of threshold, density, or local-polynomial constructions.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Concentration
 

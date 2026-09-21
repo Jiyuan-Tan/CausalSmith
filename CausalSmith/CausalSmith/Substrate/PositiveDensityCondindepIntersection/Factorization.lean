@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.ThreeBlockFactorization
+module
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.ThreeBlockFactorization
 
 /-!
 # Conditional independence as density factorization
@@ -8,6 +9,8 @@ intersection proof.  They deliberately use the same canonical four-block product
 the subsequent splicing argument does not have to transport almost-everywhere statements across
 ad hoc reorderings.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

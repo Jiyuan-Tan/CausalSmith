@@ -11,8 +11,11 @@ model-class membership. None of these touch the data law; they are the generic
 analytic plumbing shared by the membership proof.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Base
-import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Base
+public import Mathlib.Analysis.Calculus.ContDiff.FTaylorSeries
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

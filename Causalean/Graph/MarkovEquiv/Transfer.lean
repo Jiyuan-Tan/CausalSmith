@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.MarkovEquiv.Decompose
+module
+public import Causalean.Graph.MarkovEquiv.Decompose
 
 /-! # Markov equivalence — the hard direction (via the covered-edge route)
 
@@ -16,6 +17,10 @@ reversals, each of which preserves every d-separation (`markovEquiv_flipEdge`); 
 is `markovEquiv_of_sameSkeleton_sameImmoralities` (`Decompose.lean`).
 -/
 
-namespace Causalean
+public section
 
-end Causalean
+namespace Causalean.Graph
+
+open Causalean.Graph.MarkovEquiv
+
+end Causalean.Graph

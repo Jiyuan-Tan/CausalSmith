@@ -3,23 +3,29 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Sun-Abraham (2021): conventional event-study contamination
+# Listed cohort cell-grid event-study contamination
 
-Finite-cell contamination algebra for the conventional TWFE event-study
-coefficient. The orthogonality conditions (`ConventionalResidualization`) and
+Finite-cell contamination algebra for a coefficient defined by a projection on
+listed cohort-by-relative-time cells. The orthogonality conditions
+(`ConventionalResidualization`) and
 the FWL ratio (`D.mu = conventionalMuRatio`) are consumed here as hypotheses.
 Both are derived from a weighted cell-grid projection in `CellGrid.lean`, with
 public entry points in `Contamination.lean`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Setup
+module
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Setup
 
-/-! # Sun-Abraham Conventional Event Study
+/-! # Listed-Cohort Cell-Grid Event Study
 
-This file formalizes the finite-cell algebra for the conventional two-way fixed
-effects event-study coefficient in the Sun-Abraham setting. It expresses the
-coefficient as a weighted average of cohort-relative-time treatment effects
-under supplied residualization, support, and integrability conditions. -/
+This file formalizes finite-cell algebra for an event-study coefficient defined
+by a projection on the listed finite cohorts and declared relative-time cells.
+It expresses that coefficient as a generally signed weighted sum of
+cohort-relative-time treatment effects under supplied residualization and
+support conditions. The projection does not include the never-treated path and
+is not asserted to equal a full-population two-way fixed-effects regression. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -36,31 +42,41 @@ one when they are equal and zero otherwise. -/
 noncomputable def eventIndicator (k e : ℤ) : ℝ :=
   if e = k then 1 else 0
 
-/-- Conventional event-study finite design for the coefficient on
-`displayedEvent`. -/
+/-- An event-study cell-grid design on [a finite system](hyp:P) records
+[the relative-time support used in its cell expansion](hyp:eventSupport),
+[the included event-time regressors](hyp:includedEvents),
+[an omitted-event metadata label](hyp:omittedEvent),
+[the displayed event time](hyp:displayedEvent),
+[the displayed indicator's cellwise residual](hyp:Rdot), and
+[the displayed cell-grid coefficient](hyp:mu).
+
+No current validity condition constrains the omitted-event label, and no theorem in this
+development reads it; the included-event set itself determines the post-omission regressors.
+The structure's legacy name does not assert that this coefficient equals a full-population
+TWFE coefficient. -/
 structure ConventionalDesign (P : EventStudySystem T) where
   /-- Finite support of relative times used in the cell expansion. -/
   eventSupport : Finset ℤ
-  /-- Included relative-time indicators in the conventional TWFE regression. -/
+  /-- Included relative-time indicators in the cell-grid projection. -/
   includedEvents : Finset ℤ
-  /-- Omitted reference relative time. -/
+  /-- Source-facing omitted-reference label; currently unconstrained and computationally inert. -/
   omittedEvent : ℤ
   /-- Displayed event time `l` whose coefficient is characterized. -/
   displayedEvent : ℤ
   /-- Residualized relative-time indicator `Rdot^l`, constant on cells. -/
   Rdot : Fin T → ℤ → ℝ
-  /-- Conventional population TWFE event-study coefficient `mu_l`. -/
+  /-- Coefficient on the displayed indicator in the cell-grid projection. -/
   mu : ℝ
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [a
-conventional design](hyp:D), and [a cohort-period function](hyp:h), the
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P),
+[a cell-grid design](hyp:D), and [a cohort-period function](hyp:h), the
 [event-study nuisance condition](goal) holds exactly when the function is the
 sum of a cohort-and-period additive component and a linear combination of the
 included relative-time indicators other than the displayed indicator, for every
 cohort in the system and every period. -/
 def IsEventStudyNuisance (P : EventStudySystem T) (D : P.ConventionalDesign)
     (h : Fin T → Fin T → ℝ) : Prop :=
-  ∃ hAdd : Fin T → Fin T → ℝ, Causalean.Panel.Weighted.IsUnitTimeAdditive hAdd ∧
+  ∃ hAdd : Fin T → Fin T → ℝ, Causalean.Stat.Weighted.IsUnitTimeAdditive hAdd ∧
     ∃ gamma : ℤ → ℝ,
       ∀ g ∈ P.cohorts, ∀ t,
         h g t = hAdd g t +
@@ -76,7 +92,7 @@ noncomputable def cellAverage (P : EventStudySystem T)
   ((P.targetPeriods g e).card : ℝ)⁻¹ *
     ∑ t ∈ P.targetPeriods g e, h g t
 
-/-- Finite-cell residualization record for the conventional coefficient.
+/-- Finite-cell residualization record for the cell-grid coefficient.
 
 The fields are the finite-cell consequences of `Rdot^l` being the residual of
 the displayed relative-time indicator `R^l` against the event-study nuisance
@@ -103,8 +119,8 @@ structure ConventionalResidualization (P : EventStudySystem T)
       ∑ g ∈ P.cohortsAtEvent D.eventSupport e,
         P.cellMassAtEvent g e * D.Rdot g e = 0
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [residualized denominator](goal) is the sum
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [residualized denominator](goal) is the sum
 over admissible cells of cell mass times the design residual times the
 indicator for the displayed event time. -/
 noncomputable def residualDenom (P : EventStudySystem T)
@@ -113,8 +129,8 @@ noncomputable def residualDenom (P : EventStudySystem T)
     P.cellMassAtEvent ge.1 ge.2 * D.Rdot ge.1 ge.2 *
       eventIndicator D.displayedEvent ge.2
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [residualized numerator](goal) is the sum over
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[a cell-grid design](hyp:D), the [residualized numerator](goal) is the sum over
 admissible cells of cell mass times the design residual times the observed cell
 mean. -/
 noncomputable def residualNumerator (P : EventStudySystem T)
@@ -123,8 +139,8 @@ noncomputable def residualNumerator (P : EventStudySystem T)
     P.cellMassAtEvent ge.1 ge.2 * D.Rdot ge.1 ge.2 *
       P.observedCellMean ge.1 ge.2
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and [a
-conventional design](hyp:D), the [conventional coefficient ratio](goal) is the
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), and
+[an event-study design](hyp:D), the [cell-grid coefficient ratio](goal) is the
 residualized numerator divided by the residualized denominator. -/
 noncomputable def conventionalMuRatio (P : EventStudySystem T)
     (D : P.ConventionalDesign) : ℝ :=
@@ -141,9 +157,9 @@ structure ConventionalFiniteSupport (P : EventStudySystem T)
   hCellsSupported :
     ∀ ge ∈ P.admissibleCells D.eventSupport, ge.1 ∈ P.cohorts ∧ ge.2 ∈ D.eventSupport
 
-/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P), [a
-conventional design](hyp:D), [a cohort](hyp:g), and [a relative time](hyp:e),
-the [Sun--Abraham contamination weight](goal) is that cell's mass times its
+/-- For a [finite time horizon](hyp:T), [an event-study system](hyp:P),
+[a cell-grid design](hyp:D), [a cohort](hyp:g), and [a relative time](hyp:e),
+the [cell-grid contamination weight](goal) is that cell's mass times its
 design residual, divided by the residualized denominator. -/
 noncomputable def omega (P : EventStudySystem T) (D : P.ConventionalDesign)
     (g : Fin T) (e : ℤ) : ℝ :=
@@ -192,16 +208,15 @@ theorem other_included_event_weights_sum_zero (P : EventStudySystem T)
       rw [hOtherZero]
     _ = 0 := zero_div _
 
-/-- **Conventional Sun-Abraham contamination representation.** For an event-study system `P`
-and conventional design `D`, if [observed outcomes equal the potential outcome under the
-realized treatment path (consistency)](hyp:hConsistency), [the never-treated potential outcome
-follows an additive parallel-trends restriction](hyp:hMeanParallelUntreated), [the residualized
-displayed-event indicator `Rdot` is orthogonal in expectation to every function in the
-event-study nuisance class](hyp:hNuisanceOrthogonal), [the residualized denominator is
-strictly positive](hyp:hDenomPos), [the coefficient `D.mu` equals its FWL residualized-ratio
-form](hyp:hMuRatio), and [the included, displayed, and admissible event times all lie within
-the declared finite support](hyp:hSupport), then [`D.mu` equals the Sun-Abraham
-contamination-weighted sum of cohort-relative-time CATTs over every admissible cell](goal).
+/-- **Finite-cell contamination representation.**
+[For an event-study system and cell-grid design](hyp:P,D), if
+[observed outcomes equal the own-path potential-outcome means](hyp:hConsistency),
+[never-treated means obey additive parallel trends](hyp:hMeanParallelUntreated),
+[`Rdot` is orthogonal to every event-study nuisance function](hyp:hNuisanceOrthogonal),
+[the residualized denominator is strictly positive](hyp:hDenomPos),
+[`D.mu` equals its FWL residualized ratio](hyp:hMuRatio), and
+[the included, displayed, and admissible event times have finite support](hyp:hSupport), then
+[`D.mu` equals the contamination-weighted sum of CATTs over admissible cells](goal).
 
 Takes the FWL ratio identity `D.mu = conventionalMuRatio D` and the finite-cell
 orthogonality conditions `ConventionalResidualization` as hypotheses. See
@@ -318,16 +333,14 @@ theorem contamination_representation (P : EventStudySystem T)
       ring
 
 set_option linter.flexible false in
-/-- For an event-study system `P` and conventional design `D`, if [observed outcomes equal the
-potential outcome under the realized treatment path (consistency)](hyp:hConsistency),
-[the never-treated outcome satisfies additive parallel trends](hyp:hMeanParallelUntreated),
-[the design satisfies the finite-cell orthogonality conditions
-`ConventionalResidualization`](hyp:hResidualization), [the residualized denominator is strictly
-positive](hyp:hDenomPos), [the coefficient `D.mu` equals its FWL residualized-ratio
-form](hyp:hMuRatio), and [the included, displayed, and admissible event times all lie within
-the declared finite support](hyp:hSupport), then [`D.mu` splits as the displayed-event-time
-contamination term plus the contamination-weighted sum over every other admissible
-cohort-relative-time cell](goal). -/
+/-- [For an event-study system and cell-grid design](hyp:P,D), if
+[observed outcomes equal the own-path potential-outcome means](hyp:hConsistency),
+[never-treated means obey additive parallel trends](hyp:hMeanParallelUntreated),
+[the design satisfies the finite-cell orthogonality conditions](hyp:hResidualization),
+[the residualized denominator is strictly positive](hyp:hDenomPos),
+[`D.mu` equals its FWL residualized ratio](hyp:hMuRatio), and
+[the included, displayed, and admissible event times have finite support](hyp:hSupport), then
+[`D.mu` splits into its displayed-event term and all other admissible-cell terms](goal). -/
 theorem contamination_representation_split (P : EventStudySystem T)
     (D : P.ConventionalDesign)
     (hConsistency : P.Consistency)
@@ -391,18 +404,19 @@ theorem contamination_representation_split (P : EventStudySystem T)
       rw [hDisplayedCells, Finset.sum_map]
       rfl
 
-/-- For an event-study system `P` and conventional design `D`, if [the consistency,
-mean-parallel-trends, and no-anticipation causal restrictions hold](hyp:hCausal), [the
-residualized displayed-event indicator `Rdot` is orthogonal in expectation to every function in
-the event-study nuisance class](hyp:hNuisanceOrthogonal), [the residualized denominator is
-strictly positive](hyp:hDenomPos), [the coefficient `D.mu` equals its FWL residualized-ratio
-form](hyp:hMuRatio), and [the included, displayed, and admissible event times all lie within
-the declared finite support](hyp:hSupport), then [`D.mu` equals the contamination-weighted sum
-of cohort-relative-time CATTs restricted to nonnegative relative times, i.e. once every
-negative-relative-time CATT vanishes under no-anticipation, the displayed lead's coefficient is
-a weighted sum of post-treatment effects](goal). -/
+set_option linter.unusedVariables false in
+/-- [For an event-study system and cell-grid design](hyp:P,D), if
+[the displayed event is a lead](hyp:hLead),
+[the consistency, parallel-trends, and no-anticipation restrictions hold](hyp:hCausal),
+[`Rdot` is orthogonal to every event-study nuisance function](hyp:hNuisanceOrthogonal),
+[the residualized denominator is strictly positive](hyp:hDenomPos),
+[`D.mu` equals its FWL residualized ratio](hyp:hMuRatio), and
+[the included, displayed, and admissible event times have finite support](hyp:hSupport), then
+[`D.mu` is a generally signed contamination-weighted sum of nonnegative-event-time CATTs](goal).
+-/
 theorem apparent_pretrends_from_post_treatment (P : EventStudySystem T)
     (D : P.ConventionalDesign)
+    (hLead : D.displayedEvent < 0)
     (hCausal : P.EventStudyCausalRestrictions)
     (hNuisanceOrthogonal :
       ∀ h : Fin T → Fin T → ℝ, P.IsEventStudyNuisance D h →

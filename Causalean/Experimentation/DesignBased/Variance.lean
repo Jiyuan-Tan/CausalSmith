@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.Variance.Conservative
+module
+public import Causalean.Experimentation.DesignBased.Variance.Conservative
 
 /-!
 # Variance estimation

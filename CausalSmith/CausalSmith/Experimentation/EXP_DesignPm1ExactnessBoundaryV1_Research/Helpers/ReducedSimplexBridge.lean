@@ -3,10 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationDefs
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationDefs
 
 /-! # Bridge between reduced triangle coordinates and weighted-simplex coordinates -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

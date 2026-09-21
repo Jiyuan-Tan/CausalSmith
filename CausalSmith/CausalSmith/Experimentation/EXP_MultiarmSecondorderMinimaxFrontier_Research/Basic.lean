@@ -1,14 +1,15 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitLikelihood
-import Causalean.Mathlib.Optimization.RationalLP
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Stat.Minimax.MinimaxValue
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.Data.Rat.Defs
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitLikelihood
+public import Causalean.Mathlib.Optimization.RationalLP
+public import Causalean.Stat.FiniteDesign.Product
+public import Causalean.Stat.Minimax.MinimaxValue
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Data.Rat.Defs
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
 Core objects for the unrestricted labeled game, its response-type orbit game,
@@ -18,6 +19,8 @@ The LP feasibility predicate intentionally has no sign row and no upper bound
 for its epigraph coordinate.  Nonnegativity and attainment are theorem-level
 consequences handled by the rational LP bridge.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set Filter
@@ -29,7 +32,7 @@ variable {K n : ℕ} (c : Contrast ℝ K)
 -- @node: def:labeled-schedule-game
 /-- Unrestricted design-and-estimator minimax risk over complete labeled schedules. -/
 noncomputable def rhoN (K n : ℕ) (c : Contrast ℝ K) : ℝ :=
-  Causalean.Stat.minimaxValue (fun (p : Procedure K n c) (z : Schedule K n) =>
+  Causalean.Stat.minimaxValueReal (fun (p : Procedure K n c) (z : Schedule K n) =>
     labeledRisk c p z)
 -- @realizes \rho_n(c)(inf_{D,τ̂} max_z R_n(D,τ̂;z))
 
@@ -51,7 +54,7 @@ noncomputable def orbitRisk (q : OrbitProcedure K n c) (m : CountVec K n) : ℝ 
 -- @node: def:finite-orbit-game
 /-- Minimax value of the finite response-type orbit experiment. -/
 noncomputable def orbitGameValue (K n : ℕ) (c : Contrast ℝ K) : ℝ :=
-  Causalean.Stat.minimaxValue (fun (q : OrbitProcedure K n c) (m : CountVec K n) =>
+  Causalean.Stat.minimaxValueReal (fun (q : OrbitProcedure K n c) (m : CountVec K n) =>
     orbitRisk c q m)
 -- @realizes G_n(c)(inf_{π,δ} max_m ∑_r π_r ∑_x P_m(x|r)(δ-τ_c(m))²)
 
@@ -593,7 +596,7 @@ def PublishedTwoArmScalarAttainmentScope : Sort 0 :=
       IsLeastFavorableScalarPrior prior ∧ rho2 n = scalarMinimaxValue n ∧
       (∃ fullProcedure : Procedure 2 n twoArmContrast,
         IsBalancedBernoulliScalarProcedure n f fullProcedure ∧
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (fun (p : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
             labeledRisk twoArmContrast p z) fullProcedure = rho2 n ∧
         IsAdmissibleTwoArmProcedure fullProcedure)) ∧

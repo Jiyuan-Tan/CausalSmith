@@ -9,7 +9,7 @@ Given a gSCM `M` and a fixed subset `C ⊆ M.observed`, the override evaluation
 `evalMap_overrideC M hY hC s c ℓ` mirrors `evalMap` but short-circuits at every
 observed node `v ∈ C`, reading the value from `c ⟨v, hC ‹›⟩` instead of computing
 through `M.structFun`.  This is the canonical SWIG-aligned representative of the
-conditional kernel used by `obsCondKernel` (see `Causal/Model/Kernel.lean`).
+conditional kernel used by `obsCondKernel` (see `Causalean/SCM/Model/Kernel.lean`).
 
 Four facts are proved in this file:
 
@@ -29,7 +29,9 @@ in `Evaluation.lean`; the new short-circuit case is the C-membership branch.
 the refactor plan.
 -/
 
-import Causalean.SCM.Model.Evaluation
+module
+public import Causalean.Mathlib.MeasureTheory.CastMeasurable
+public import Causalean.SCM.Model.Evaluation
 
 /-!
 This file defines and analyzes a structural-model evaluation rule that holds a
@@ -53,6 +55,13 @@ measurable jointly in the fixed values, override values, and latent realization.
 * `SCM.measurable_evalMap_overrideC` proves joint measurability of the override
   evaluation.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

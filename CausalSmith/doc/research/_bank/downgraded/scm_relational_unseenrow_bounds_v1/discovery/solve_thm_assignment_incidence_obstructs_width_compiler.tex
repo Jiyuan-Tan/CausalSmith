@@ -1,0 +1,64 @@
+%%% FIELD proof-assignment-incidence-obstruction
+Fix an integer \(k\geq 1\).  We construct the asserted instance.  Take a fixed finite relational schema with two binary endogenous attribute types, denoted \(A\) and \(C\), and take its relational causal graph to have no directed edges.  Let the source list consist of one grounding having one isolated node of type \(A\), and let its fully observed rational law put mass \(1/2\) on each of the two outcomes.  The parent context of this source node is the empty tuple, which has probability one, so the corresponding conditional row is recovered in \(K\).  Let the target grounding have the isolated binary nodes
+\[
+X_1,\ldots,X_{k+1}.
+\]
+Give \(X_1,\ldots,X_k\) type \(A\) in the supported empty-parent context, and give \(X_{k+1}\) type \(C\) in a type--context key that occurs in no source grounding.  Designate the latter key by \(rstar\), and choose the fixed schema so that these are the only target-relevant type--context keys.  The row at \(rstar\) is therefore the unique unsupported target-relevant row.
+
+All endogenous domains are finite, as required by \(\texttt{ass:finite-domains}\).  Every source and target ground graph is edgeless, hence acyclic, so \(\texttt{ass:acyclic-groundings}\) holds.  A family of singleton bags \(\{X_j\}\), connected in any tree, is a tree decomposition of the target ground graph: every vertex is in a bag, there is no edge to cover, and the bags containing any fixed vertex form a connected one-vertex subtree.  Thus the width is
+\[
+w=1-1=0.
+\]
+The schema, graph, and source table have constant encoded size.  The ordered target-node list has \(k+1\) entries, its edge list is empty, and the event below is represented by two node indices.  Hence the combined canonical input size before materializing \(Ictx\) is \(O(k)\).
+
+Use the empty intervention and the compact equality event
+\[
+B_k:=\bigl\{x\in\{0,1\}^{k+1}:x_1=x_{k+1}\bigr\}.
+\]
+By the supported source row and \(\texttt{ass:type-sharing}\), the factor used at every occurrence \(X_j\), for \(1\leq j\leq k\), is
+\[
+p_A(x_j)=\frac12,
+\qquad x_j\in\{0,1\}.
+\]
+Write the shared unsupported binary row as
+\[
+p_q(z)=(1-q)^{1-z}q^z,
+\qquad z\in\{0,1\},\qquad q\in[0,1].
+\]
+Because the target graph has no edges and the intervention is empty, the truncated-factorization replay that defines \(F\) gives
+\[
+F_k(q)
+=\sum_{\substack{x\in\{0,1\}^{k+1}\\x_1=x_{k+1}}}
+  \left(\prod_{j=1}^{k}\frac12\right)
+  (1-q)^{1-x_{k+1}}q^{x_{k+1}}.
+\]
+For the terms with \(x_{k+1}=0\), the event forces \(x_1=0\), while \(x_2,\ldots,x_k\) are arbitrary.  There are \(2^{k-1}\) such terms, and their sum is
+\[
+2^{k-1}2^{-k}(1-q)=\frac{1-q}{2}.
+\]
+For the terms with \(x_{k+1}=1\), the event forces \(x_1=1\), again leaving \(2^{k-1}\) choices, and their sum is
+\[
+2^{k-1}2^{-k}q=\frac q2.
+\]
+Consequently,
+\[
+F_k(q)=\frac{1-q}{2}+\frac q2=\frac12
+\qquad\text{for every }q\in[0,1].
+\]
+Thus the replayed dense polynomial is the asserted constant \(F=1/2\).  It is nontrivial in the sense relevant to the claim: it is neither zero nor one, and the underlying event is not a tautology, since, for example, any assignment with \(x_1=0\) and \(x_{k+1}=1\) lies outside \(B_k\).  Its constancy results from exact cancellation against the fair supported row at \(X_1\).
+
+The key \(rstar\) is nevertheless directly event-relevant.  Indeed, \(X_{k+1}\) is not intervened upon, changing its value can change membership in \(B_k\) with the other coordinates held fixed, and every event-consistent complete-assignment term in the displayed replay contains exactly one factor \(p_q(x_{k+1})\) labeled by \(rstar\).  Therefore the target-relevance information required by the definition of \(Ictx\) marks this occurrence as event-relevant even though summation cancels its parameter from \(F_k\).
+
+It remains to count the records mandated by the grammar.  An assignment in \(B_k\) is obtained by choosing the common value \(x_1=x_{k+1}\) in two ways and independently choosing \(x_2,\ldots,x_k\) in \(2^{k-1}\) ways.  Hence
+\[
+|B_k|=2\cdot 2^{k-1}=2^k.
+\]
+By the definition of \(Ictx\), its assignment-level part has one distinct record for every event-consistent complete target-assignment term.  By \(\texttt{def:checker}\), \(Check\) verifies exhaustive lexicographic indexing of those records and rejects an omission.  Thus, whenever a compiler produces an \(Ictx\) that is accepted by \(Check\) on this instance, that \(Ictx\) contains at least \(2^k\) distinct assignment records.
+
+The fixed tagged and length-delimited serialization in \(\texttt{def:certificate-grammar}\) gives every record positive encoded length.  Therefore every such accepted output has bit length at least a positive constant times \(2^k\), namely
+\[
+\operatorname{length}(Ictx)=\Omega(2^k).
+\]
+In the sequential bit-cost model, writing an explicit string takes at least one step per output bit, so its production time is also \(\Omega(2^k)\).
+
+Finally, suppose a proof-carrying compiler for the present grammar were correct on every member of this family and had time and output length bounded by a polynomial in the explicit pre-incidence grounding size times a factor exponential only in the supplied treewidth \(w\).  On the constructed family the former size is \(O(k)\) and \(w=0\).  Such a bound is therefore polynomial in \(k\), contradicting the proved lower bound \(\Omega(2^k)\).  No width-sensitive guarantee of the stated form can consequently hold for the exhaustive assignment-level \(Ictx\) and the present \(Check\).  This obstruction is specific to that interface: consistently with \(\texttt{def:compiler-handle}\), a replacement circuit-level incidence grammar could retain a compact variable-elimination representation of the constant polynomial \(1/2\) without explicitly listing all \(2^k\) event-consistent assignments.

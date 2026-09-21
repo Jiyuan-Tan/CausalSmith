@@ -13,8 +13,11 @@ and the elementary Jordan decomposition used to turn the signed certificate
 into two finite probability vectors.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevEndpoint
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevEndpoint
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+
+@[expose] public section
 
 open scoped BigOperators
 

@@ -1,0 +1,974 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}binary\_\allowbreak{}ctf\_\allowbreak{}thicket\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For two complete experiments on the binary collider with two independent shared roots and private outcome noise, arbitrary normalized tables \(A,B\), including structural zeros, are compatible exactly when \(-(1-p)r\le a-b\le p(1-r)\).  When compatible, the all-zero joint-intervention risk has the sharp closed interval \([\max\{a,b,a+b-pr\},\min\{a+1-p,b+1-r,a+b+(1-p)(1-r)\}]\).  One common deterministic outcome law with independent binary-valued source roots and at most eight private-root atoms attains every real interval point; rational inputs have exact rational endpoint certificates, yielding a constant-time fixed-graph procedure and an optional conservative outer sampling interval.
+
+\section{Project justification}
+
+\paragraph{Gap.} General discrete-SCM methods can optimize this query sharply by a polynomial program, and causal-marginal methods explain why overlapping reports must be compatible, but the checked literature does not supply this graph-specific closed-simplex frontier, its analytic endpoints, or the small common-SCM witness.
+
+\paragraph{Niche.} For this fixed binary collider and intervention menu, four natural-treatment strata expose the exact obstruction, while the product law of the two latent sources rules out unrestricted latent coupling and must be retained in every attaining model.
+
+\paragraph{Fill.} The paper proves the closed-simplex two-mass fiber, its source-preserving finite extension with explicit null-stratum branches, the resulting iff test and max--min sharp interval, and exact endpoint certificates.  This is an analytic specialization for the same fixed input handled by Autobounds, not a new general bounding compiler.
+
+\section{Related work}
+
+Duarte et al., JASA 2024, prove sharp finite-discrete causal bounds through generic polynomial programs with product disturbance probabilities and observational or experimental constraints, and implement that workflow in Autobounds.  Their theorem covers supplied categorical laws without a strict-positivity restriction; the present binary two-source collider is therefore a same-input closed-simplex specialization.  What is new here is not generic sharpness, but the derived compatibility inequality, closed-form endpoint map, and at-most-eight-atom common-SCM certificates that replace generic optimization for this one menu.  Zhang, Tian, and Bareinboim prove finite canonical SCM sufficiency for categorical counterfactual distributions, but their general reduction does not yield this source-preserving certificate size or these formulas.  Gresele et al. study compatibility of overlapping causal marginals, while Sachs et al. and Finkelstein and Shpitser provide neighboring response-function and logical-bound machinery; none of the checked statements gives this collider result.  Zaffalon et al., IJAR 2023, fuse observational, biased, and randomized sources to obtain approximate counterfactual ranges, making their work adjacent multi-source bounding rather than an exact theorem-level comparator.  Autobounds is the concrete software consumer: for this fixed graph, tables, and all-zero intervention query, the analytic certificate can serve as a special-case dispatch and regression oracle.  No package modification or runtime benchmark is claimed.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(q=P_M(Y=1\mid\operatorname{do}(X=0,Z=0))\).
+Primary functional / estimator / diagnostic: \(QI(A,B)=[\max\{a,b,a+b-pr\},\min\{a+1-p,b+1-r,a+b+(1-p)(1-r)\}]\).
+\begin{itemize}
+  \item \texttt{D} --- \texttt{finite set}; \(\{0,1\}\); \texttt{common state space of the observed variables}
+  \par\smallskip\noindent\emph{Definition.} \(D:=\{0,1\}\)
+  \item \texttt{U0} --- \texttt{exogenous random element}; \texttt{arbitrary measurable space}; root shared only by \(X\) and \(Y\)
+  \item \texttt{V0} --- \texttt{exogenous random element}; \texttt{arbitrary measurable space}; root shared only by \(Z\) and \(Y\)
+  \item \texttt{W0} --- \texttt{exogenous random element}; \texttt{arbitrary measurable space}; \texttt{private outcome root}
+  \item \texttt{fX} --- \texttt{measurable structural function}; \(\operatorname{supp}(U0)\to D\); assignment for \(X\)
+  \item \texttt{fZ} --- \texttt{measurable structural function}; \(\operatorname{supp}(V0)\to D\); assignment for \(Z\)
+  \item \texttt{fY} --- \texttt{measurable structural function}; \(D^2\times\operatorname{supp}(U0)\times\operatorname{supp}(V0)\times\operatorname{supp}(W0)\to D\); \texttt{single outcome assignment used in every regime}
+  \item \texttt{X} --- \texttt{binary endogenous random variable}; \(D\)
+  \par\smallskip\noindent\emph{Definition.} \(X:=fX(U0)\)
+  \item \texttt{Z} --- \texttt{binary endogenous random variable}; \(D\)
+  \par\smallskip\noindent\emph{Definition.} \(Z:=fZ(V0)\)
+  \item \texttt{Y} --- \texttt{binary endogenous random variable}; \(D\)
+  \par\smallskip\noindent\emph{Definition.} \(Y:=fY(X,Z,U0,V0,W0)\)
+  \item \texttt{M} --- \texttt{recursive structural causal model}; \texttt{candidate SCM on the allowed binary collider graph}
+  \par\smallskip\noindent\emph{Definition.} \(M:=(U0,V0,W0,fX,fZ,fY)\)
+  \item \texttt{PM} --- \texttt{probability law}
+  \par\smallskip\noindent\emph{Definition.} law induced by \(M\) under surgical interventions
+  \item \texttt{A} --- \texttt{normalized nonnegative probability table}; \(\Delta(D^2)\); given normalized law of \(X,Y\) under \(\operatorname{do}(Z=0)\)
+  \item \texttt{B} --- \texttt{normalized nonnegative probability table}; \(\Delta(D^2)\); given normalized law of \(Z,Y\) under \(\operatorname{do}(X=0)\)
+  \item \texttt{p} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(p:=A(0,0)+A(0,1)\)
+  \item \texttt{r} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(r:=B(0,0)+B(0,1)\)
+  \item \texttt{a} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(a:=A(0,1)\)
+  \item \texttt{b} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(b:=B(0,1)\)
+  \item \texttt{w00} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(w00:=pr\)
+  \item \texttt{w01} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(w01:=p(1-r)\)
+  \item \texttt{w10} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(w10:=(1-p)r\)
+  \item \texttt{w11} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(w11:=(1-p)(1-r)\)
+  \item \texttt{Xn} --- \texttt{binary random variable}; \(D\); natural value of \(X\)
+  \par\smallskip\noindent\emph{Definition.} \(Xn:=fX(U0)\)
+  \item \texttt{Zn} --- \texttt{binary random variable}; \(D\); natural value of \(Z\)
+  \par\smallskip\noindent\emph{Definition.} \(Zn:=fZ(V0)\)
+  \item \texttt{Y00} --- \texttt{binary counterfactual random variable}; \(D\)
+  \par\smallskip\noindent\emph{Definition.} \(Y00:=fY(0,0,U0,V0,W0)\)
+  \item \texttt{s} --- \texttt{array of success masses}; \([0,1]^{D^2}\)
+  \par\smallskip\noindent\emph{Definition.} \(s(i,j):=PM(Xn=i,Zn=j,Y00=1)\)
+  \item \texttt{c} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(c:=s(0,0)\)
+  \item \texttt{d} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(d:=s(1,1)\)
+  \item \texttt{q} --- \texttt{joint-\allowbreak{}intervention risk}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(q:=PM(Y=1\mid\operatorname{do}(X=0,Z=0))=PM(Y00=1)\)
+  \item \texttt{cL} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(cL:=\max\{0,a-w01,b-w10\}\)
+  \item \texttt{cU} --- \texttt{scalar}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(cU:=\min\{w00,a,b\}\)
+  \item \texttt{qL} --- \texttt{lower endpoint functional}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(qL:=\max\{a,b,a+b-pr\}\)
+  \item \texttt{qU} --- \texttt{upper endpoint functional}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(qU:=\min\{a+1-p,b+1-r,a+b+(1-p)(1-r)\}\)
+  \item \texttt{MC} --- \texttt{class of compatible SCMs}; \texttt{subclass of recursive SCMs}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:model-class}\)
+  \item \texttt{F} --- \texttt{two-\allowbreak{}dimensional feasible mass set}; subset of \(\mathbb R^2\)
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:mass-fiber}\)
+  \item \texttt{QI} --- \texttt{identified set}; subset of \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:identified-set}\)
+  \item \texttt{Hthr} --- \texttt{construction handle}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:threshold-extension-handle}\)
+  \item \texttt{Cert} --- \texttt{deterministic procedure}; two \(2\times2\) probability tables \(\to\) a compatibility decision, two endpoints, and optional rational endpoint certificates; \texttt{constant-\allowbreak{}size analytic decision,\allowbreak{} endpoint,\allowbreak{} and rational-\allowbreak{}witness procedure for the fixed graph}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:certificate-procedure}\)
+  \item \texttt{nA} --- \texttt{positive integer}; \(\mathbb N\); sample size in regime \(A\)
+  \item \texttt{nB} --- \texttt{positive integer}; \(\mathbb N\); sample size in regime \(B\)
+  \item \texttt{Ah} --- \texttt{empirical probability table}; \(\Delta(D^2)\); multinomial frequency table from regime \(A\)
+  \item \texttt{Bh} --- \texttt{empirical probability table}; \(\Delta(D^2)\); multinomial frequency table from regime \(B\)
+  \item \texttt{qLh} --- \texttt{empirical lower endpoint}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} the formula for \(qL\) with \((A,B)\) replaced by \((Ah,Bh)\)
+  \item \texttt{qUh} --- \texttt{empirical upper endpoint}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} the formula for \(qU\) with \((A,B)\) replaced by \((Ah,Bh)\)
+  \item \texttt{alpha} --- \texttt{confidence error probability}; \((0,1)\)
+  \item \texttt{eps} --- \texttt{simultaneous cell radius}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(eps:=\max\{\sqrt{\log(16/alpha)/(2nA)},\sqrt{\log(16/alpha)/(2nB)}\}\)
+  \item \texttt{CIout} --- \texttt{random closed interval}; subsets of \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:empirical-outer-interval}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:independent-roots]\label{ass:independent-roots}
+The exogenous roots \(U0\), \(V0\), and \(W0\) are mutually independent under \(PM\).
+\par\smallskip\noindent\emph{Standard} (Independent-disturbance condition for a canonical hidden-variable DAG, \cite{DuarteEtAl2024}).
+\end{assumption}
+
+\begin{assumption}[ass:regime-a-match]\label{ass:regime-a-match}
+For every \((x,y)\in D^2\), \(PM(X=x,Y=y\mid\operatorname{do}(Z=0))=A(x,y)\).
+\par\smallskip\noindent\emph{Standard} (SCM intervention consistency for an experimental distribution, \cite{ZhangTianBareinboim2022}).
+\end{assumption}
+
+\begin{assumption}[ass:regime-b-match]\label{ass:regime-b-match}
+For every \((z,y)\in D^2\), \(PM(Z=z,Y=y\mid\operatorname{do}(X=0))=B(z,y)\).
+\par\smallskip\noindent\emph{Standard} (SCM intervention consistency for an experimental distribution, \cite{ZhangTianBareinboim2022}).
+\end{assumption}
+
+\begin{assumption}[ass:multinomial-a]\label{ass:multinomial-a}
+Conditional on \(nA\), \(Ah\) is the frequency table of \(nA\) independent and identically distributed draws with cell law \(A\).
+\par\smallskip\noindent\emph{Standard} (Multinomial sampling model, \cite{DuarteEtAl2024}).
+\end{assumption}
+
+\begin{assumption}[ass:multinomial-b]\label{ass:multinomial-b}
+Conditional on \(nB\), \(Bh\) is the frequency table of \(nB\) independent and identically distributed draws with cell law \(B\).
+\par\smallskip\noindent\emph{Standard} (Multinomial sampling model, \cite{DuarteEtAl2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{MC}
+\par\smallskip\noindent\emph{Construction.} \(MC(A,B):=\{M: U0\perp V0\perp W0,\ PM(X=x,Y=y\mid\operatorname{do}(Z=0))=A(x,y)\ \forall(x,y)\in D^2,\ PM(Z=z,Y=y\mid\operatorname{do}(X=0))=B(z,y)\ \forall(z,y)\in D^2\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}independent-\allowbreak{}roots}; \texttt{ass:\allowbreak{}regime-\allowbreak{}a-\allowbreak{}match}; \texttt{ass:\allowbreak{}regime-\allowbreak{}b-\allowbreak{}match}.
+\end{definition}
+
+\begin{definition}[def:natural-response-masses]\label{def:natural-response-masses}
+\par\smallskip\noindent\emph{Defined object.} \texttt{s}
+\par\smallskip\noindent\emph{Construction.} \(Xn=fX(U0)\), \(Zn=fZ(V0)\), \(Y00=fY(0,0,U0,V0,W0)\), and \(s(i,j)=PM(Xn=i,Zn=j,Y00=1)\) for \((i,j)\in D^2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{M}.
+\end{definition}
+
+\begin{definition}[def:mass-fiber]\label{def:mass-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{F}
+\par\smallskip\noindent\emph{Construction.} \(F(A,B):=\{(c,d)\in\mathbb R^2:cL\le c\le cU,\ 0\le d\le w11\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:identified-set]\label{def:identified-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{QI}
+\par\smallskip\noindent\emph{Construction.} \(QI(A,B):=\{q(M):M\in MC(A,B)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{B}; \texttt{MC}.
+\end{definition}
+
+\begin{definition}[def:threshold-extension-handle]\label{def:threshold-extension-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Hthr}
+\par\smallskip\noindent\emph{Construction.} Source-preserving threshold-extension handle on normalized nonnegative tables: for \((c,d)\in F(A,B)\), set \((n_{00},n_{01},n_{10},n_{11})=(c,a-c,b-c,d)\), define \(t_{ij}=n_{ij}/w_{ij}\) when \(w_{ij}>0\) and \(t_{ij}=0\) when \(w_{ij}=0\), define \(\gamma_A=A(1,1)/(1-p)\) when \(1-p>0\) and \(\gamma_A=0\) when \(1-p=0\), and define \(\gamma_B=B(1,1)/(1-r)\) when \(1-r>0\) and \(\gamma_B=0\) when \(1-r=0\).  Use response probability \(t_{uv}\) at \((x,z)=(0,0)\), \(\gamma_A\) at \((x,z)=(1,0)\), \(\gamma_B\) at \((x,z)=(0,1)\), and \(1/2\) at \((x,z)=(1,1)\).  Order the distinct values of these probabilities together with \(0,1\); successive threshold gaps are the atom masses of one private root \(W0\), and threshold indicators define one deterministic map \(fY\) for every regime while \(U0\) and \(V0\) retain their independent source laws.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{B}; \texttt{F}.
+\end{definition}
+
+\begin{definition}[def:certificate-procedure]\label{def:certificate-procedure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cert}
+\par\smallskip\noindent\emph{Construction.} On input normalized nonnegative tables \((A,B)\), compute \((p,r,a,b)\), return incompatible exactly when either \(a-b<-(1-p)r\) or \(a-b>p(1-r)\), and otherwise return \((qL,qU)\) from their three-branch formulas.  If all input cells are rational and the pair is compatible, also use \((c,d)=(cU,0)\) and \((c,d)=(cL,w11)\).  For either pair set \((n_{00},n_{01},n_{10},n_{11})=(c,a-c,b-c,d)\), compute \(t_{ij}=n_{ij}/w_{ij}\) when \(w_{ij}>0\) and set \(t_{ij}=0\) when \(w_{ij}=0\); compute \(\gamma_A=A(1,1)/(1-p)\) when \(1-p>0\) and set \(\gamma_A=0\) when \(1-p=0\); compute \(\gamma_B=B(1,1)/(1-r)\) when \(1-r>0\) and set \(\gamma_B=0\) when \(1-r=0\).  Use response probabilities \(t_{uv}\) when \((x,z)=(0,0)\), \(\gamma_A\) when \((x,z)=(1,0)\), \(\gamma_B\) when \((x,z)=(0,1)\), and \(1/2\) when \((x,z)=(1,1)\).  Sort the distinct elements of these probabilities together with \(\{0,1\}\) as \(0=\lambda_0<\cdots<\lambda_m=1\), give \(W0=k\) mass \(\lambda_k-\lambda_{k-1}\), take independent binary-valued \(U0,V0\) with zero-probabilities \(p,r\), set \(fX(u)=u\), \(fZ(v)=v\), and set \(fY(x,z,u,v,k)=\mathbf 1\{\lambda_k\le h(x,z,u,v)\}\) for the specified response probability \(h\).  Emit the resulting two models in \(MC(A,B)\) as lower- and upper-endpoint certificates.
+\par\smallskip\noindent\emph{Inputs.} \texttt{A}; \texttt{B}.
+\end{definition}
+
+\begin{definition}[def:empirical-outer-interval]\label{def:empirical-outer-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{CIout}
+\par\smallskip\noindent\emph{Construction.} \(CIout:=[\max\{0,qLh-6eps\},\min\{1,qUh+6eps\}]\), interpreted as empty if its displayed lower endpoint exceeds its displayed upper endpoint.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ah}; \texttt{Bh}; \texttt{nA}; \texttt{nB}; \texttt{alpha}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:four-stratum-reduction]\label{lem:four-stratum-reduction}
+For every \(M\in MC(A,B)\), independence gives \(PM(Xn=0,Zn=0)=w00\), \(PM(Xn=0,Zn=1)=w01\), \(PM(Xn=1,Zn=0)=w10\), and \(PM(Xn=1,Zn=1)=w11\). Regime consistency gives \(a=s(0,0)+s(0,1)\), \(b=s(0,0)+s(1,0)\), and \(q=a+b-c+d\). Consequently the admissible success masses are exactly parameterized at the mass-accounting level by \(cL\le c\le cU\) and \(0\le d\le w11\).
+\end{lemma}
+\begin{proof}
+Fix \(M\in MC(A,B)\), and write \(\mathbb P_M\) for its induced law \(PM\).  Under \(\operatorname{do}(Z=0)\), the structural equation for \(X\) is unchanged, so \(X=Xn\).  Therefore \(\text{ass:regime-a-match}\), the definition of \(p\), and normalization of \(A\) give
+\[
+\begin{aligned}
+\mathbb P_M(Xn=0)
+&=\sum_{y\in D}\mathbb P_M(X=0,Y=y\mid\operatorname{do}(Z=0))\\
+&=A(0,0)+A(0,1)=p.
+\end{aligned}
+\]
+Similarly, under \(\operatorname{do}(X=0)\), the equation for \(Z\) is unchanged, so \(Z=Zn\), and \(\text{ass:regime-b-match}\) yields
+\[
+\mathbb P_M(Zn=0)=B(0,0)+B(0,1)=r.
+\]
+
+By \(\text{ass:independent-roots}\), \(U0\) and \(V0\) are independent.  Since \(Xn=fX(U0)\) and \(Zn=fZ(V0)\), for every \((i,j)\in D^2\) the inverse-image definition of a pushforward gives
+\[
+\begin{aligned}
+\mathbb P_M(Xn=i,Zn=j)
+&=\mathbb P_M\bigl(U0\in fX^{-1}(\{i\}),V0\in fZ^{-1}(\{j\})\bigr)\\
+&=\mathbb P_M\bigl(U0\in fX^{-1}(\{i\})\bigr)
+  \mathbb P_M\bigl(V0\in fZ^{-1}(\{j\})\bigr)\\
+&=\mathbb P_M(Xn=i)\mathbb P_M(Zn=j).
+\end{aligned}
+\]
+Substitution of the two marginal probabilities and their complements proves
+\[
+\begin{aligned}
+\mathbb P_M(Xn=0,Zn=0)&=pr=w00,\\
+\mathbb P_M(Xn=0,Zn=1)&=p(1-r)=w01,\\
+\mathbb P_M(Xn=1,Zn=0)&=(1-p)r=w10,\\
+\mathbb P_M(Xn=1,Zn=1)&=(1-p)(1-r)=w11.
+\end{aligned}
+\]
+
+On the event \(\{Xn=0\}\), surgical substitution under \(\operatorname{do}(Z=0)\) gives
+\[
+Y=fY(Xn,0,U0,V0,W0)=fY(0,0,U0,V0,W0)=Y00.
+\]
+Partitioning \(\{Xn=0\}\) by the two values of \(Zn\), and using \(\text{def:natural-response-masses}\), gives
+\[
+\begin{aligned}
+a=A(0,1)
+&=\mathbb P_M(X=0,Y=1\mid\operatorname{do}(Z=0))\\
+&=\mathbb P_M(Xn=0,Y00=1)\\
+&=s(0,0)+s(0,1).
+\end{aligned}
+\]
+Symmetrically, on \(\{Zn=0\}\) under \(\operatorname{do}(X=0)\), one has \(Y=Y00\), and hence
+\[
+\begin{aligned}
+b=B(0,1)
+&=\mathbb P_M(Z=0,Y=1\mid\operatorname{do}(X=0))\\
+&=\mathbb P_M(Zn=0,Y00=1)\\
+&=s(0,0)+s(1,0).
+\end{aligned}
+\]
+Writing \(c=s(0,0)\) and \(d=s(1,1)\), these two identities force
+\[
+\bigl(s(0,0),s(0,1),s(1,0),s(1,1)\bigr)
+=\bigl(c,a-c,b-c,d\bigr).
+\]
+The four events \(\{Xn=i,Zn=j\}\), \((i,j)\in D^2\), partition the sample space.  Therefore the definition of \(q\) and finite additivity give
+\[
+\begin{aligned}
+q
+&=\mathbb P_M(Y00=1)\\
+&=\sum_{i,j\in D}s(i,j)\\
+&=c+(a-c)+(b-c)+d=a+b-c+d.
+\end{aligned}
+\]
+
+For each stratum, its success event is contained in the stratum itself.  The four stratum-mass identities therefore imply
+\[
+0\le c\le w00,\qquad
+0\le a-c\le w01,\qquad
+0\le b-c\le w10,\qquad
+0\le d\le w11.
+\]
+The first three pairs are equivalent, one endpoint at a time, to
+\[
+\max\{0,a-w01,b-w10\}=cL
+\le c\le
+\min\{w00,a,b\}=cU.
+\]
+Conversely, if \(cL\le c\le cU\) and \(0\le d\le w11\), then \(c\ge0\) and \(c\le w00\); moreover, \(c\le a\) and \(c\ge a-w01\) give \(0\le a-c\le w01\), while \(c\le b\) and \(c\ge b-w10\) give \(0\le b-c\le w10\).  Thus \((c,a-c,b-c,d)\) obeys exactly the four stratum-capacity constraints.  This proves the claimed exact parameterization at the mass-accounting level, including strata of zero mass.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduction isolates the only two free masses without discarding the independence of the two latent sources. \textit{Gap.} Generic response-function programs retain many latent probabilities; no checked source states this four-stratum reduction for the two experimental tables. \textit{Consumer.} The reduction is the symbolic presolver used by the constant-time certificate procedure.
+
+\begin{theorem}[thm:compatibility-frontier]\label{thm:compatibility-frontier}
+The model class \(MC(A,B)\) is nonempty if and only if \(-(1-p)r\le a-b\le p(1-r)\), equivalently if and only if \(cL\le cU\).
+\end{theorem}
+\begin{proof}
+Because \(A\) and \(B\) are normalized nonnegative probability tables, their row sums and selected cells satisfy
+\[
+0\le p\le1,\qquad 0\le r\le1,\qquad 0\le a\le p,\qquad 0\le b\le r.
+\]
+Consequently every \(w_{ij}\) is nonnegative, and
+\[
+p=w00+w01,\qquad r=w00+w10.
+\]
+
+First suppose \(MC(A,B)\ne\varnothing\), and choose \(M\in MC(A,B)\).  By \(\text{lem:four-stratum-reduction}\), the mass \(c=s(0,0)\) of this model satisfies \(cL\le c\le cU\).  Hence \(cL\le cU\).
+
+Conversely, suppose \(cL\le cU\).  Set \(c=cL\) and \(d=0\).  The definition of \(F(A,B)\) gives \(cL\le c\le cU\).  Moreover,
+\[
+0\le d=0\le w11=(1-p)(1-r),
+\]
+where the last inequality uses only \(p,r\in[0,1]\); it remains valid when \(w11=0\).  Thus \((cL,0)\in F(A,B)\).  The closed-simplex source-preserving lift \(\text{thm:source-preserving-lift-closed-simplex}\) then constructs an \(M\in MC(A,B)\).  We have proved
+\[
+MC(A,B)\ne\varnothing\quad\Longleftrightarrow\quad cL\le cU.
+\]
+
+It remains to simplify the latter condition without any strict inequality.  Since
+\[
+cL=\max\{0,a-w01,b-w10\},\qquad cU=\min\{w00,a,b\},
+\]
+the inequality \(cL\le cU\) is equivalent to requiring that each of the three lower candidates be at most each of the three upper candidates.  The comparisons involving the lower candidate \(0\) hold because \(w00,a,b\ge0\).  For the lower candidate \(a-w01\),
+\[
+a-w01\le w00
+\]
+follows from \(a\le p=w00+w01\), and \(a-w01\le a\) follows from \(w01\ge0\).  Its only remaining comparison is \(a-w01\le b\).  Similarly,
+\[
+b-w10\le w00
+\]
+follows from \(b\le r=w00+w10\), and \(b-w10\le b\) follows from \(w10\ge0\); its only remaining comparison is \(b-w10\le a\).  Therefore
+\[
+\begin{aligned}
+cL\le cU
+&\quad\Longleftrightarrow\quad a-w01\le b\ \text{ and }\ b-w10\le a\\
+&\quad\Longleftrightarrow\quad -w10\le a-b\le w01\\
+&\quad\Longleftrightarrow\quad -(1-p)r\le a-b\le p(1-r).
+\end{aligned}
+\]
+Every step used weak inequalities only, so this equivalence covers \(p,r\in\{0,1\}\) and all equality cases.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem turns compatibility of two complete experiments with one SCM into two scalar weak inequalities on the entire closed simplex. \textit{Gap.} General causal-marginal and polynomial-program methods do not state this closed-form iff frontier for the two-source confounded collider. \textit{Consumer.} A data-fusion analyst can reject mutually inconsistent tables, including tables with structural zeros, before causal optimization.
+
+\begin{theorem}[thm:sharp-risk-interval]\label{thm:sharp-risk-interval}
+Whenever \(MC(A,B)\neq\varnothing\), the complete identified set is \(QI(A,B)=[qL,qU]\), where \(qL=\max\{a,b,a+b-pr\}\) and \(qU=\min\{a+1-p,b+1-r,a+b+(1-p)(1-r)\}\); every real point of this interval is attained by one finite member of \(MC(A,B)\).
+\end{theorem}
+\begin{proof}
+Assume \(MC(A,B)\neq\varnothing\).  For any \(M\in MC(A,B)\), the four-stratum reduction gives a pair
+\[
+(c,d)\in[cL,cU]\times[0,w11]
+\]
+and the identity \(q=a+b-c+d\).  Consequently every compatible value obeys
+\[
+a+b-cU\le q\le a+b-cL+w11.
+\]
+The two endpoints simplify by elementary min--max algebra:
+\[
+\begin{aligned}
+a+b-cU
+&=a+b-\min\{w00,a,b\}\\
+&=\max\{a+b-w00,b,a\}=qL,
+\end{aligned}
+\]
+and
+\[
+\begin{aligned}
+a+b-cL+w11
+&=a+b+w11-\max\{0,a-w01,b-w10\}\\
+&=\min\{a+b+w11,b+w01+w11,a+w10+w11\}\\
+&=\min\{a+b+(1-p)(1-r),b+1-r,a+1-p\}=qU,
+\end{aligned}
+\]
+where \(w01+w11=1-r\) and \(w10+w11=1-p\).
+
+To prove attainment of every point, let \(q_\star\in[qL,qU]\), put
+\[
+\delta:=q_\star-qL,\qquad C:=cU-cL,
+\]
+and define
+\[
+v:=\min\{\delta,C\},\qquad c:=cU-v,\qquad d:=\delta-v.
+\]
+Compatibility gives \(C\ge0\), and the endpoint calculation gives
+\[
+0\le\delta\le qU-qL=C+w11.
+\]
+Thus \(0\le v\le C\), whence \(cL\le c\le cU\).  If \(\delta\le C\), then \(d=0\); if \(\delta>C\), then \(d=\delta-C\le w11\).  Therefore \((c,d)\in F(A,B)\).  Moreover,
+\[
+a+b-c+d=(a+b-cU)+v+(\delta-v)=qL+\delta=q_\star.
+\]
+The source-preserving lift constructs one finite member of \(MC(A,B)\) attaining this value.  Hence the image defining \(QI(A,B)\) is exactly the complete closed interval \([qL,qU]\), not merely a convex outer bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Closed-form sharpness replaces repeated nonconvex optimization by an exact expression with a common-SCM attainment guarantee. \textit{Gap.} Duarte et al. supply a sharp generic polynomial program and Zaffalon et al. supply approximate multi-source inner ranges; neither checked result states these endpoints or their full source-preserving attainment. \textit{Consumer.} Autobounds can dispatch this fixed graph and query to an analytic specialization and use the formula as a solver regression oracle.
+
+\begin{proposition}[prop:rational-endpoint-certificates]\label{prop:rational-endpoint-certificates}
+If every cell of \(A\) and \(B\) is rational and \(MC(A,B)\neq\varnothing\), there exist endpoint-attaining SCMs for \(qL\) and \(qU\) with binary roots \(U0,V0\), a private root \(W0\) having at most eight atoms, rational root weights, and deterministic structural functions; each certificate is checkable by at most \(32\) exogenous assignments.
+\end{proposition}
+\begin{proof}
+Assume that all cells of the normalized tables \(A\) and \(B\) are rational and that \(MC(A,B)\ne\varnothing\).  Then \(p,r,a,b\), the four products \(w_{ij}\), and the max--min quantities \(cL,cU\) are rational.  By \(\text{thm:sharp-risk-interval}\), the lower endpoint is attained at
+\[
+(c,d)=(cU,0),
+\]
+and the upper endpoint is attained at
+\[
+(c,d)=(cL,w11).
+\]
+Compatibility gives \(cL\le cU\), and \(w11\ge0\), so both displayed pairs belong to \(F(A,B)\).
+
+For either endpoint pair, put
+\[
+(n_{00},n_{01},n_{10},n_{11}):=(c,a-c,b-c,d).
+\]
+Define, branch by branch,
+\[
+t_{ij}:=
+\begin{cases}
+n_{ij}/w_{ij},&w_{ij}>0,\\
+0,&w_{ij}=0,
+\end{cases}
+\qquad (i,j)\in D^2,
+\]
+and
+\[
+\gamma_A:=
+\begin{cases}
+A(1,1)/(1-p),&1-p>0,\\
+0,&1-p=0,
+\end{cases}
+\qquad
+\gamma_B:=
+\begin{cases}
+B(1,1)/(1-r),&1-r>0,\\
+0,&1-r=0.
+\end{cases}
+\]
+Every numerator and every positive denominator in these formulas is rational.  Division of two rationals by a nonzero rational is rational, and each zero branch equals the rational number \(0\).  Hence all \(t_{ij},\gamma_A,\gamma_B\) are rational, including on every support face.
+
+The closed-simplex lift \(\text{thm:source-preserving-lift-closed-simplex}\) forms the distinct ordered thresholds from
+\[
+\{t_{00},t_{01},t_{10},t_{11},\gamma_A,\gamma_B,1/2,0,1\}.
+\]
+There are at most nine distinct listed values, hence at most eight successive differences.  Because every threshold is rational, every private-root mass \(\lambda_k-\lambda_{k-1}\) is rational.  The binary-source masses \(p,1-p,r,1-r\) are rational as well, while \(fX,fZ,fY\) are deterministic.  The lift therefore supplies rational-weight endpoint models with \(|\operatorname{supp}(W0)|\le8\).
+
+Each source root has at most two support points.  Thus the number of exogenous assignments with labels retained is at most
+\[
+2\cdot2\cdot8=32.
+\]
+Enumerating these assignments, multiplying their rational product weights, applying the deterministic structural functions under \(\operatorname{do}(Z=0)\), \(\operatorname{do}(X=0)\), and \(\operatorname{do}(X=0,Z=0)\), and summing verifies all eight supplied cells and the relevant endpoint exactly.  This proves the claimed rational certificates even when one or both source roots are degenerate.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Branchwise rational witnesses make sharpness exactly auditable even when a natural-treatment stratum or observed row has zero mass. \textit{Gap.} Generic finite canonical SCM bounds do not furnish this menu-specific rational certificate size and explicit null-stratum convention. \textit{Consumer.} A software test suite can validate compatibility, all observed cells, and both endpoint values by at most \(32\) exact exogenous assignments.
+
+\begin{proposition}[prop:constant-time-certificate]\label{prop:constant-time-certificate}
+For the fixed binary graph, \(Cert(A,B)\) decides compatibility and returns the sharp endpoints using a constant number of arithmetic operations and comparisons; for rational inputs it additionally emits the certificates of \(\text{prop:rational-endpoint-certificates}\).
+\end{proposition}
+\begin{proof}
+Fix normalized nonnegative \(2\times2\) tables \(A\) and \(B\).  We count exact rational arithmetic operations and comparisons, rather than bit operations on integers of unbounded encoding length.  Forming
+\[
+p=A(0,0)+A(0,1),\qquad r=B(0,0)+B(0,1),\qquad a=A(0,1),\qquad b=B(0,1)
+\]
+requires a fixed number of table accesses and two additions.  The procedure \(\mathrm{Cert}\), by \(\text{def:certificate-procedure}\), declares incompatibility precisely when
+\[
+a-b<-(1-p)r\quad\text{or}\quad a-b>p(1-r).
+\]
+Each side is evaluated with a fixed number of additions, subtractions, multiplications, and comparisons.  By \(\text{thm:compatibility-frontier}\), neither strict inequality holds if and only if \(MC(A,B)\neq\varnothing\).  Thus the decision returned by \(\mathrm{Cert}\) is correct, including on the boundary faces \(p,r\in\{0,1\}\).
+
+Suppose next that the pair is compatible.  By \(\text{def:certificate-procedure}\), \(\mathrm{Cert}\) evaluates the three lower candidates
+\[
+a,\qquad b,\qquad a+b-pr
+\]
+and the three upper candidates
+\[
+a+1-p,\qquad b+1-r,\qquad a+b+(1-p)(1-r),
+\]
+then takes respectively their maximum and minimum.  This uses a fixed number of arithmetic operations and four comparisons after the candidates have been formed.  The returned numbers are therefore \(qL\) and \(qU\) by their defining formulas, and \(\text{thm:sharp-risk-interval}\) proves that they are the sharp endpoints of \(QI(A,B)\).
+
+It remains to verify the certificate-emission part.  Assume every cell of \(A\) and \(B\) is rational.  Then \(p,r,a,b\), all four \(w_{ij}\),
+\[
+cU=\min\{pr,a,b\},\qquad
+cL=\max\{0,a-p(1-r),b-(1-p)r\},
+\]
+and the two pairs \((cU,0)\) and \((cL,w11)\) used by \(\mathrm{Cert}\) are rational.  For either pair, every numerator
+\[
+(n_{00},n_{01},n_{10},n_{11})=(c,a-c,b-c,d)
+\]
+is rational.  The zero-denominator branches in \(\text{def:certificate-procedure}\) are explicit: for each \((i,j)\in D^2\),
+\[
+t_{ij}=
+\begin{cases}
+n_{ij}/w_{ij},&w_{ij}>0,\\
+0,&w_{ij}=0,
+\end{cases}
+\]
+so \(t_{ij}\) is rational in both cases.  Likewise,
+\[
+\gamma_A=
+\begin{cases}
+A(1,1)/(1-p),&1-p>0,\\
+0,&1-p=0,
+\end{cases}
+\qquad
+\gamma_B=
+\begin{cases}
+B(1,1)/(1-r),&1-r>0,\\
+0,&1-r=0,
+\end{cases}
+\]
+are rational in every branch.  Compatibility and \(\text{thm:compatibility-frontier}\) give \(cL\le cU\).  Since normalized nonnegative tables imply \(0\le p,r\le1\), one has \(w11=(1-p)(1-r)\ge0\).  Hence each selected pair satisfies
+\[
+cL\le c\le cU,\qquad 0\le d\le w11.
+\]
+The definitions of \(cL\) and \(cU\) then imply
+\[
+0\le c\le w00,\qquad
+0\le a-c\le w01,\qquad
+0\le b-c\le w10,\qquad
+0\le d\le w11.
+\]
+Indeed, the lower bounds follow respectively from \(c\ge0\), \(c\le a\), \(c\le b\), and \(d\ge0\); the upper bounds follow from \(c\le w00\), \(c\ge a-w01\), \(c\ge b-w10\), and \(d\le w11\).  Therefore \(0\le n_{ij}\le w_{ij}\) for every stratum.  In particular, \(w_{ij}=0\) forces \(n_{ij}=0\), so the branchwise definition of \(t_{ij}\) gives both \(0\le t_{ij}\le1\) and
+\[
+w_{ij}t_{ij}=n_{ij}
+\]
+whether \(w_{ij}\) is positive or zero.  Moreover, normalization and nonnegativity give \(0\le A(1,1)\le1-p\) and \(0\le B(1,1)\le1-r\), so both branchwise values \(\gamma_A\) and \(\gamma_B\) lie in \([0,1]\).  Thus the four values \(t_{ij}\), the two values \(\gamma_A,\gamma_B\), and \(1/2\) give at most seven rational response probabilities in \([0,1]\).  Adjoining \(0\) and \(1\) and sorting distinct values gives at most nine thresholds
+\[
+0=\lambda_0<\lambda_1<\cdots<\lambda_m=1,
+\qquad m\le 8.
+\]
+Consequently the successive masses \(\lambda_k-\lambda_{k-1}\), \(1\le k\le m\), are nonnegative rational numbers summing to one and define a private root \(W0\) with at most eight atoms.  The source-root probabilities \(p,1-p,r,1-r\) are also rational.  All structural maps emitted by \(\mathrm{Cert}\) are threshold indicators and hence deterministic.  The divisions above occur only under strictly positive denominators; the assigned value zero on every null stratum or null row avoids every undefined quotient.
+
+We now check directly that the resulting finite laws reproduce both source tables.
+
+Every response probability \(h(x,z,u,v)\) used by the construction is one of the sorted thresholds.  If \(h(x,z,u,v)=\lambda_j\), independence of the private root and telescoping give
+\[
+PM\bigl(fY(x,z,u,v,W0)=1\bigr)
+=\sum_{k=1}^{j}(\lambda_k-\lambda_{k-1})
+=\lambda_j
+=h(x,z,u,v).
+\]
+The binary source roots are drawn independently with \(PM(U0=0)=p\) and \(PM(V0=0)=r\), and \(W0\) is independently drawn from the threshold-gap law.  Thus the three roots are mutually independent, while the same deterministic map \(fY\) is used in every intervention regime.
+
+Under \(\operatorname{do}(Z=0)\), the success cell in the natural row \(X=0\) is
+\[
+\begin{aligned}
+PM(X=0,Y=1\mid\operatorname{do}(Z=0))
+&=p\{r t_{00}+(1-r)t_{01}\}\\
+&=w00t_{00}+w01t_{01}\\
+&=n_{00}+n_{01}=c+(a-c)=a=A(0,1).
+\end{aligned}
+\]
+For the row \(X=1\),
+\[
+PM(X=1,Y=1\mid\operatorname{do}(Z=0))=(1-p)\gamma_A=A(1,1).
+\]
+When \(1-p>0\), this is the defining quotient identity.  When \(1-p=0\), normalization and nonnegativity give \(A(1,0)+A(1,1)=1-p=0\), hence \(A(1,1)=0=(1-p)\gamma_A\).  The row masses are \(p\) and \(1-p\), so subtracting each success cell from its row mass also gives \(A(0,0)\) and \(A(1,0)\).  Thus all four cells of \(A\) are reproduced.
+
+Symmetrically, under \(\operatorname{do}(X=0)\),
+\[
+\begin{aligned}
+PM(Z=0,Y=1\mid\operatorname{do}(X=0))
+&=r\{p t_{00}+(1-p)t_{10}\}\\
+&=w00t_{00}+w10t_{10}\\
+&=n_{00}+n_{10}=c+(b-c)=b=B(0,1),
+\end{aligned}
+\]
+and
+\[
+PM(Z=1,Y=1\mid\operatorname{do}(X=0))=(1-r)\gamma_B=B(1,1).
+\]
+The last equality follows by division if \(1-r>0\); if \(1-r=0\), normalization and nonnegativity give \(B(1,1)=0\).  Subtraction from the row masses \(r\) and \(1-r\) gives the two failure cells, so all four cells of \(B\) are reproduced.  Finally, under \(\operatorname{do}(X=0,Z=0)\),
+\[
+q=\sum_{i,j\in D}w_{ij}t_{ij}
+=\sum_{i,j\in D}n_{ij}
+=c+(a-c)+(b-c)+d
+=a+b-c+d.
+\]
+
+For completeness, the two chosen pairs correspond algebraically to the advertised endpoints.  For the first pair, the constructed risk is
+\[
+a+b-cU
+=a+b-\min\{pr,a,b\}
+=\max\{a+b-pr,b,a\}
+=qL.
+\]
+For the second pair, using \(w11=(1-p)(1-r)\), it is
+\[
+\begin{aligned}
+a+b-cL+w11
+&=\min\bigl\{a+b+w11,\ b+w11+p(1-r),\ a+w11+(1-p)r\bigr\}\\
+&=\min\bigl\{a+b+(1-p)(1-r),\ b+1-r,\ a+1-p\bigr\}\\
+&=qU.
+\end{aligned}
+\]
+The preceding source-preserving construction and endpoint equalities give exactly the endpoint-attaining finite SCMs asserted by \(\text{prop:rational-endpoint-certificates}\).  Since \(U0\) and \(V0\) are binary-valued and \(W0\) has at most eight atoms, each certificate contains at most
+\[
+2\cdot2\cdot8=32
+\]
+exogenous assignments to check.
+
+Finally, all lists manipulated by \(\mathrm{Cert}\) have fixed size: two inequalities, six endpoint candidates, two endpoint pairs, at most seven response probabilities per pair, at most nine thresholds per pair, and at most thirty-two assignments per emitted model.  Sorting nine values can, for example, be performed by a fixed comparison network, so its comparison count is constant.  Hence both the arithmetic-operation count and the output-certificate size are bounded by absolute constants for this fixed binary graph and intervention menu.  Together with the correctness conclusions above, this proves the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition states the operational gain over invoking a generic polynomial optimizer on every input. \textit{Gap.} Existing general algorithms emphasize coverage across graphs; the checked literature does not expose a constant-size certificate for this fixed menu. \textit{Consumer.} Autobounds can use \(Cert\) as a special-case dispatch and as a correctness oracle for its generic optimizer.
+
+\begin{proposition}[prop:boundary-kill-test]\label{prop:boundary-kill-test}
+For \(A=((1/8,3/8),(3/8,1/8))\) and \(B=((3/8,1/8),(3/8,1/8))\), both tables are strictly positive, \(cL=cU=1/8\), and \(QI(A,B)=[3/8,5/8]\); the two endpoints admit finite certificates satisfying all eight cells and mutual root independence.
+\end{proposition}
+\begin{proof}
+For the displayed tables,
+\[
+p=\frac18+\frac38=\frac12,
+\qquad
+r=\frac38+\frac18=\frac12,
+\qquad
+a=\frac38,
+\qquad
+b=\frac18.
+\]
+Every displayed cell is positive, and \(w00=w01=w10=w11=1/4\).  Hence
+\[
+cL=\max\left\{0,\frac38-\frac14,\frac18-\frac14\right\}=\frac18,
+\qquad
+cU=\min\left\{\frac14,\frac38,\frac18\right\}=\frac18.
+\]
+The endpoint formulas give
+\[
+qL=\frac38+\frac18-\frac18=\frac38,
+\qquad
+qU=qL+\frac14=\frac58.
+\]
+
+For an explicit pair of certificates, let \(U0,V0\) be independent fair binary roots and set \(X=U0\), \(Z=V0\).  In both models use
+\[
+t_{00}=\frac12,\qquad t_{01}=1,\qquad t_{10}=0,\qquad
+\gamma_A=\gamma_B=\frac14,
+\]
+and use \(t_{11}=0\) for the lower model and \(t_{11}=1\) for the upper model.  The distinct thresholds are contained in \(\{0,1/4,1/2,1\}\), so one may take a private root \(W0\), independent of \((U0,V0)\), with three masses \(1/4,1/4,1/2\), and use the deterministic threshold function from the source-preserving lift.  This is one deterministic outcome function within each endpoint model and it is used in all regimes.
+
+For either endpoint model, direct summation gives the four \(A\)-cells
+\[
+\begin{aligned}
+\mathbb P_M(X=0,Y=1\mid\operatorname{do}(Z=0))&=\tfrac14(\tfrac12)+\tfrac14(1)=\tfrac38,\\
+\mathbb P_M(X=0,Y=0\mid\operatorname{do}(Z=0))&=\tfrac12-\tfrac38=\tfrac18,\\
+\mathbb P_M(X=1,Y=1\mid\operatorname{do}(Z=0))&=\tfrac12(\tfrac14)=\tfrac18,\\
+\mathbb P_M(X=1,Y=0\mid\operatorname{do}(Z=0))&=\tfrac12-\tfrac18=\tfrac38,
+\end{aligned}
+\]
+and the four \(B\)-cells
+\[
+\begin{aligned}
+\mathbb P_M(Z=0,Y=1\mid\operatorname{do}(X=0))&=\tfrac14(\tfrac12)+\tfrac14(0)=\tfrac18,\\
+\mathbb P_M(Z=0,Y=0\mid\operatorname{do}(X=0))&=\tfrac12-\tfrac18=\tfrac38,\\
+\mathbb P_M(Z=1,Y=1\mid\operatorname{do}(X=0))&=\tfrac12(\tfrac14)=\tfrac18,\\
+\mathbb P_M(Z=1,Y=0\mid\operatorname{do}(X=0))&=\tfrac12-\tfrac18=\tfrac38.
+\end{aligned}
+\]
+Finally, the joint-intervention success mass is
+\[
+\frac14\left(\frac12+1+0+t_{11}\right),
+\]
+which equals \(3/8\) when \(t_{11}=0\) and \(5/8\) when \(t_{11}=1\).  Thus the independent-root endpoint models agree with all eight cells exactly and certify the asserted identified interval.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This pinned-fiber instance is the earliest destructive check on the universal extension at a compatibility boundary. \textit{Gap.} A numerical endpoint alone would not verify that the same deterministic outcome law reproduces both complete tables. \textit{Consumer.} The example is a fixed exact regression test for implementations of the certificate generator.
+
+\begin{proposition}[prop:outer-confidence-interval]\label{prop:outer-confidence-interval}
+Under \(\text{ass:multinomial-a}\) and \(\text{ass:multinomial-b}\), with probability at least \(1-alpha\), \(CIout\) contains the complete population set \(QI(A,B)\), including at endpoint ties and compatibility boundaries.
+\end{proposition}
+\begin{proof}
+Put \(n_A:=nA\), \(n_B:=nB\), \(\widehat A:=Ah\), and \(\widehat B:=Bh\), and define
+\[
+ \varepsilon_A:=\sqrt{\frac{\log(16/\alpha)}{2n_A}},
+ \qquad
+ \varepsilon_B:=\sqrt{\frac{\log(16/\alpha)}{2n_B}}.
+\]
+By the definition of \(eps\),
+\[
+ eps=\max\{\varepsilon_A,\varepsilon_B\}.
+\]
+For each \((x,y)\in D^2\), the empirical cell frequency \(\widehat A(x,y)\) is the average of \(n_A\) independent Bernoulli indicators with mean \(A(x,y)\), by \(\text{ass:multinomial-a}\).  Therefore \(\text{lem:hoeffding-bernoulli}\) gives
+\[
+ \Pr\!\left(\left|\widehat A(x,y)-A(x,y)\right|>\varepsilon_A\right)
+ \le 2\exp(-2n_A\varepsilon_A^2)
+ =2\exp\!\left(-\log(16/\alpha)\right)
+ =\frac{\alpha}{8}.
+\]
+Similarly, by \(\text{ass:multinomial-b}\) and \(\text{lem:hoeffding-bernoulli}\), for each \((z,y)\in D^2\),
+\[
+ \Pr\!\left(\left|\widehat B(z,y)-B(z,y)\right|>\varepsilon_B\right)
+ \le \frac{\alpha}{8}.
+\]
+Let \(\mathcal E\) be the event that all eight displayed cell errors are no larger than their respective radii.  The union bound, which does not require independence between the two experimental samples, yields
+\[
+ \Pr(\mathcal E^c)
+ \le 4\frac{\alpha}{8}+4\frac{\alpha}{8}
+ =\alpha,
+ \qquad\text{hence}\qquad
+ \Pr(\mathcal E)\ge 1-\alpha.
+\]
+
+Work henceforth on \(\mathcal E\).  Let \(\widehat a,\widehat b,\widehat p,\widehat r\) denote the quantities \(a,b,p,r\) computed from \((\widehat A,\widehat B)\).  Since \(eps\ge\varepsilon_A,\varepsilon_B\), the cell bounds and the triangle inequality give
+\[
+ |\widehat a-a|\le eps,
+ \qquad
+ |\widehat b-b|\le eps,
+ \qquad
+ |\widehat p-p|\le 2eps,
+ \qquad
+ |\widehat r-r|\le 2eps.
+\]
+Both empirical and population marginals belong to \([0,1]\), because \(A,B,\widehat A,\widehat B\) are probability tables.  Consequently,
+\[
+ |\widehat p\widehat r-pr|
+ \le \widehat p\,|\widehat r-r|+r|\widehat p-p|
+ \le 4eps.
+\]
+Applying the same calculation to the complementary marginals gives
+\[
+ |(1-\widehat p)(1-\widehat r)-(1-p)(1-r)|
+ \le (1-\widehat p)|\widehat r-r|+(1-r)|\widehat p-p|
+ \le 4eps.
+\]
+Thus the three branches in the maximum defining \(qLh\), compared in their displayed order with the corresponding branches defining \(qL\), have absolute errors at most
+\[
+ eps,\qquad eps,\qquad eps+eps+4eps=6eps.
+\]
+The three branches in the minimum defining \(qUh\), compared with those defining \(qU\), have absolute errors at most
+\[
+ eps+2eps=3eps,\qquad eps+2eps=3eps,\qquad eps+eps+4eps=6eps.
+\]
+For any two finite real vectors \((u_i)_i\) and \((v_i)_i\), if \(\delta:=\max_i|u_i-v_i|\), then \(u_i\le v_i+\delta\) and \(v_i\le u_i+\delta\) for every \(i\).  Taking maxima, and then taking minima, proves respectively
+\[
+ \left|\max_i u_i-\max_i v_i\right|\le\delta,
+ \qquad
+ \left|\min_i u_i-\min_i v_i\right|\le\delta.
+\]
+It follows that
+\[
+ |qLh-qL|\le 6eps,
+ \qquad
+ |qUh-qU|\le 6eps.
+\]
+
+Suppose first that \(MC(A,B)\ne\varnothing\).  By \(\text{thm:sharp-risk-interval}\),
+\[
+ QI(A,B)=[qL,qU]\subseteq[0,1].
+\]
+The preceding inequalities imply \(qLh-6eps\le qL\) and \(qU\le qUh+6eps\).  Since also \(0\le qL\le qU\le1\),
+\[
+ \max\{0,qLh-6eps\}
+ \le qL
+ \le qU
+ \le \min\{1,qUh+6eps\}.
+\]
+By \(\text{def:empirical-outer-interval}\), this proves \(QI(A,B)\subseteq CIout\), and it also shows that the displayed interval is nonempty on \(\mathcal E\).  If instead \(MC(A,B)=\varnothing\), then \(QI(A,B)=\varnothing\) by \(\text{def:identified-set}\), so \(QI(A,B)\subseteq CIout\) holds automatically, whether or not the displayed empirical interval is interpreted as empty.  Hence the containment holds throughout \(\mathcal E\), whose probability is at least \(1-\alpha\).
+
+Finally, the argument used only non-strict inequalities and the Lipschitz bounds for a finite maximum and minimum; it never selected a unique active branch.  It therefore remains valid when endpoint branches tie and when the population tables lie on a compatibility or support boundary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A simultaneous cellwise concentration layer gives a transparent conservative sampling guarantee without smooth-branch selection. \textit{Gap.} Duarte et al. project general confidence regions through optimization; this fixed formula admits a direct finite-sample outer interval, but no nominal or optimal inference claim is made. \textit{Consumer.} Analysts using empirical experiment tables obtain an immediate conservative uncertainty report alongside the population certificate.
+
+\begin{lemma}[lem:hoeffding-bernoulli]\label{lem:hoeffding-bernoulli}
+Let \(T_1,\ldots,T_n\) be independent and identically distributed random variables taking values in \(\{0,1\}\), with \(\mathbb E[T_i]=\theta\), and let \(\overline T_n=n^{-1}\sum_{i=1}^nT_i\).  For every \(t>0\),
+\[
+\Pr\bigl(|\overline T_n-\theta|\ge t\bigr)\le 2\exp(-2nt^2).
+\]
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This classical finite-sample inequality controls each multinomial cell frequency. \textit{Gap.} This is cited classical substrate, not a contribution of the note. \textit{Consumer.} It is used only by the outer-confidence-interval proposition.
+
+\begin{theorem}[thm:source-preserving-lift-closed-simplex]\label{thm:source-preserving-lift-closed-simplex}
+For every pair \((A,B)\) of normalized nonnegative \(2\times2\) probability tables for which \(F(A,B)\ne\varnothing\), and every \((c,d)\in F(A,B)\), the handle \(Hthr\) constructs a finite model \(M\in MC(A,B)\) with binary-valued roots \(U0,V0\) (possibly degenerate), a private root \(W0\) with at most eight support points, mutually independent roots, and one deterministic outcome function \(fY\) shared by all regimes, such that \(q=a+b-c+d\).  The construction reproduces all four cells of \(A\) and all four cells of \(B\).
+\end{theorem}
+\begin{proof}
+Fix normalized nonnegative \(2\times2\) probability tables \(A,B\) and a pair \((c,d)\in F(A,B)\).  Normalization and nonnegativity imply
+\[
+0\le p,r\le1,\qquad 0\le a\le p,\qquad 0\le b\le r.
+\]
+Let
+\[
+(n_{00},n_{01},n_{10},n_{11}):=(c,a-c,b-c,d).
+\]
+Membership in \(F(A,B)\) means
+\[
+\max\{0,a-w01,b-w10\}\le c\le\min\{w00,a,b\},
+\qquad 0\le d\le w11.
+\]
+It follows, term by term, that
+\[
+0\le n_{00}\le w00,\qquad
+0\le n_{01}\le w01,\qquad
+0\le n_{10}\le w10,\qquad
+0\le n_{11}\le w11.
+\]
+For example, \(n_{01}\ge0\) follows from \(c\le a\), while \(n_{01}\le w01\) follows from \(c\ge a-w01\); the argument for \(n_{10}\) is symmetric.  In particular,
+\[
+w_{ij}=0\quad\Longrightarrow\quad n_{ij}=0.
+\]
+Define
+\[
+t_{ij}:=
+\begin{cases}
+n_{ij}/w_{ij},&w_{ij}>0,\\
+0,&w_{ij}=0.
+\end{cases}
+\]
+The displayed mass inequalities prove \(0\le t_{ij}\le1\), and the two branches jointly give the identity
+\[
+w_{ij}t_{ij}=n_{ij}
+\]
+for every \((i,j)\in D^2\).
+
+Define the remaining two response probabilities by
+\[
+\gamma_A:=
+\begin{cases}
+A(1,1)/(1-p),&1-p>0,\\
+0,&1-p=0,
+\end{cases}
+\qquad
+\gamma_B:=
+\begin{cases}
+B(1,1)/(1-r),&1-r>0,\\
+0,&1-r=0.
+\end{cases}
+\]
+If \(1-p>0\), then normalization and nonnegativity give
+\[
+0\le A(1,1)\le A(1,0)+A(1,1)=1-p,
+\]
+so \(0\le\gamma_A\le1\).  If \(1-p=0\), the same row-sum identity forces \(A(1,0)=A(1,1)=0\), and hence the chosen value \(\gamma_A=0\) satisfies
+\[
+(1-p)\gamma_A=A(1,1).
+\]
+The positive-denominator branch satisfies this identity by cancellation.  Thus it holds in both branches.  The identical argument for the second table proves \(0\le\gamma_B\le1\) and
+\[
+(1-r)\gamma_B=B(1,1).
+\]
+
+Let \(U0,V0\) be independent \(D\)-valued roots with
+\[
+\mathbb P(U0=0)=p,
+\qquad
+\mathbb P(V0=0)=r,
+\]
+and set \(fX(u)=u\), \(fZ(v)=v\).  Degenerate laws at \(p\in\{0,1\}\) or \(r\in\{0,1\}\) are allowed.  For \((x,z,u,v)\in D^4\), prescribe
+\[
+h(x,z,u,v):=
+\begin{cases}
+t_{uv},&(x,z)=(0,0),\\
+\gamma_A,&(x,z)=(1,0),\\
+\gamma_B,&(x,z)=(0,1),\\
+1/2,&(x,z)=(1,1).
+\end{cases}
+\]
+The set
+\[
+\mathcal H:=\{t_{00},t_{01},t_{10},t_{11},\gamma_A,\gamma_B,1/2\}
+\]
+contains at most seven values, all in \([0,1]\).  List the distinct elements of \(\mathcal H\cup\{0,1\}\) as
+\[
+0=\lambda_0<\lambda_1<\cdots<\lambda_m=1.
+\]
+There are at most nine listed values, so \(m\le8\).  Independently of \((U0,V0)\), let \(W0\) take values \(1,\ldots,m\) with
+\[
+\mathbb P(W0=k)=\lambda_k-\lambda_{k-1},
+\qquad 1\le k\le m.
+\]
+These masses are positive by distinctness and sum to \(1\) by telescoping.  Define
+\[
+g(h,k):=\mathbf 1\{\lambda_k\le h\}.
+\]
+For every \(h=\lambda_j\in\mathcal H\), including \(j=0\) and \(j=m\),
+\[
+\mathbb P\{g(h,W0)=1\}
+=\sum_{k=1}^{j}(\lambda_k-\lambda_{k-1})
+=\lambda_j=h,
+\]
+with the sum understood as empty when \(j=0\).  Now define the single deterministic structural function
+\[
+fY(x,z,u,v,k):=g(h(x,z,u,v),k).
+\]
+The product law makes \(U0,V0,W0\) mutually independent, and this same \(fY\) is used under every intervention.
+
+We verify the complete experimental tables.  Under \(\operatorname{do}(Z=0)\), the threshold identity and the branchwise identities \(w_{ij}t_{ij}=n_{ij}\) give
+\[
+\begin{aligned}
+\mathbb P_M(X=0,Y=1\mid\operatorname{do}(Z=0))
+&=w00t_{00}+w01t_{01}=n_{00}+n_{01}=a=A(0,1),\\
+\mathbb P_M(X=1,Y=1\mid\operatorname{do}(Z=0))
+&=(1-p)\gamma_A=A(1,1).
+\end{aligned}
+\]
+Since the two \(X\)-row masses are \(p\) and \(1-p\), normalization yields
+\[
+\begin{aligned}
+\mathbb P_M(X=0,Y=0\mid\operatorname{do}(Z=0))&=p-a=A(0,0),\\
+\mathbb P_M(X=1,Y=0\mid\operatorname{do}(Z=0))&=1-p-A(1,1)=A(1,0).
+\end{aligned}
+\]
+Under \(\operatorname{do}(X=0)\), the symmetric calculation gives
+\[
+\begin{aligned}
+\mathbb P_M(Z=0,Y=1\mid\operatorname{do}(X=0))
+&=w00t_{00}+w10t_{10}=n_{00}+n_{10}=b=B(0,1),\\
+\mathbb P_M(Z=1,Y=1\mid\operatorname{do}(X=0))
+&=(1-r)\gamma_B=B(1,1),\\
+\mathbb P_M(Z=0,Y=0\mid\operatorname{do}(X=0))&=r-b=B(0,0),\\
+\mathbb P_M(Z=1,Y=0\mid\operatorname{do}(X=0))&=1-r-B(1,1)=B(1,0).
+\end{aligned}
+\]
+Thus all eight cells agree exactly, including null rows, and the constructed model belongs to \(MC(A,B)\).
+
+Finally, under \(\operatorname{do}(X=0,Z=0)\),
+\[
+\begin{aligned}
+q
+&=\sum_{i,j\in D}\mathbb P(U0=i,V0=j)t_{ij}\\
+&=\sum_{i,j\in D}w_{ij}t_{ij}\\
+&=n_{00}+n_{01}+n_{10}+n_{11}\\
+&=c+(a-c)+(b-c)+d=a+b-c+d.
+\end{aligned}
+\]
+This proves the construction and its support bound on the entire closed simplex.
+
+For the prescribed kill test,
+\[
+A=((1/8,3/8),(3/8,1/8)),
+\qquad
+B=((3/8,1/8),(3/8,1/8)),
+\]
+one has \(p=r=1/2\), \(a=3/8\), \(b=1/8\), and \(cL=cU=1/8\).  Both endpoint models use independent fair \(U0,V0\),
+\[
+(t_{00},t_{01},t_{10})=(1/2,1,0),
+\qquad
+\gamma_A=\gamma_B=1/4,
+\]
+with \(t_{11}=0\) at the lower endpoint and \(t_{11}=1\) at the upper endpoint.  The ordered threshold set is \(\{0,1/4,1/2,1\}\), so \(W0\) has masses \(1/4,1/4,1/2\).  Direct substitution into the preceding eight cell identities recovers exactly the displayed \(A\) and \(B\), while
+\[
+q=\frac14\left(\frac12+1+0+t_{11}\right)
+\]
+equals \(3/8\) and \(5/8\), respectively.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The common threshold construction proves that every feasible mass pair, including those on structural-zero faces, lifts without coupling the two source roots. \textit{Gap.} Generic finite canonicalization does not itself provide this eight-point source-preserving certificate or its explicit zero-denominator branches. \textit{Consumer.} The theorem supplies common-SCM attainment for compatibility, sharpness, exact endpoint certificates, and the fixed-graph analytic dispatch.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The source-preserving step is now constructive on every support face: feasibility forces a zero success numerator whenever its stratum mass is zero, and null observed rows use explicit arbitrary response values.  The proof uses one common deterministic \(fY\), one private threshold root \(W0\), and mutually independent, possibly degenerate, source roots \(U0,V0\), and it verifies all eight experimental cells.  The product-source restriction remains load-bearing: a correlated source model can escape the interval.  The at-most-eight support count is sufficient, not proved minimal, and the optional sampling interval is conservative rather than tie-optimal.
+
+\section{Honest scope}
+
+The result covers arbitrary normalized binary \(2\times2\) experimental tables, including structural zeros and \(p,r\in\{0,1\}\), for the fixed collider, the two stated intervention tables, mutually independent source roots, private outcome noise, and the single risk \(P_M(Y=1\mid\operatorname{do}(X=0,Z=0))\).  Correlated or dependence-budget sources, different study populations, a simultaneous region for all four joint-intervention risks, three or more parents, an optimal-support theorem, tie-optimal inference, a general thicket compiler, and any field-tier claim remain excluded.  For compatible inputs, the interior width observation \(qU-qL\ge w11>0\) is asserted only when \(0<p,r<1\); boundary faces may have \(w11=0\) and can point-identify the risk.
+
+\begin{thebibliography}{99}
+
+  \bibitem{DuarteEtAl2024} Duarte, Guilherme, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. 2024. ``An Automated Approach to Causal Inference in Discrete Settings.'' Journal of the American Statistical Association 119(547): 1778--1793. doi:10.1080/01621459.2023.2216909.
+
+  \bibitem{GreseleEtAl2022} Gresele, Luigi, Julius von Kuegelgen, Jonas M. Kuebler, Elke Kirschbaum, Bernhard Schoelkopf, and Dominik Janzing. 2022. ``Causal Inference Through the Structural Causal Marginal Problem.'' Proceedings of the 39th International Conference on Machine Learning, PMLR 162: 7793--7824.
+
+  \bibitem{ZhangTianBareinboim2022} Zhang, Junzhe, Jin Tian, and Elias Bareinboim. 2022. ``Partial Counterfactual Identification from Observational and Experimental Data.'' Proceedings of the 39th International Conference on Machine Learning, PMLR 162.
+
+  \bibitem{ZaffalonEtAl2023} Zaffalon, Marco, Alessandro Antonucci, Rafael Cabanas, and David Huber. 2023. ``Approximating Counterfactual Bounds while Fusing Observational, Biased and Randomised Data Sources.'' International Journal of Approximate Reasoning 162: 109023. doi:10.1016/j.ijar.2023.109023.
+
+  \bibitem{SachsJonzonSjolanderGabriel2022} Sachs, Michael C., Gustav Jonzon, Arvid Sjoelander, and Erin E. Gabriel. 2023. ``A General Method for Deriving Tight Symbolic Bounds on Causal Effects.'' Journal of Computational and Graphical Statistics 32(2): 567--576. Published online in 2022. doi:10.1080/10618600.2022.2071905.
+
+  \bibitem{ShridharanIyengar2023} Shridharan, Madhumitha, and Garud Iyengar. 2023. ``Causal Bounds in Quasi-Markovian Graphs.'' Proceedings of the 40th International Conference on Machine Learning, PMLR 202: 31675--31692.
+
+  \bibitem{FinkelsteinShpitser2020} Finkelstein, Noam, and Ilya Shpitser. 2020. ``Deriving Bounds and Inequality Constraints Using Logical Relations Among Counterfactuals.'' Proceedings of the 36th Conference on Uncertainty in Artificial Intelligence, PMLR 124: 1348--1357.
+
+  \bibitem{BalkePearl1997} Balke, Alexander, and Judea Pearl. 1997. ``Bounds on Treatment Effects from Studies with Imperfect Compliance.'' Journal of the American Statistical Association 92(439): 1171--1176.
+
+  \bibitem{Hoeffding1963} Hoeffding, Wassily. 1963. ``Probability Inequalities for Sums of Bounded Random Variables.'' Journal of the American Statistical Association 58(301): 13--30.
+
+\end{thebibliography}
+
+\end{document}

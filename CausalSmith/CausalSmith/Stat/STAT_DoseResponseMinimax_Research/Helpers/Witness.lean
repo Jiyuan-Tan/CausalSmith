@@ -6,8 +6,9 @@ Authors: Jiyuan Tan
 # Dose-response minimax lower bound: genuine two-point witnesses
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Measure
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.PiCond
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Theta
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Measure
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.PiCond
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Theta
 
 /-! Thin barrel for the split genuine witness construction. -/

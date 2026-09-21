@@ -28,8 +28,9 @@ Combined with `OrthogonalLearning/OracleInequality.lean`, this gives:
 `‖τ̂_n − τ₀‖² = O(R_n² + nuisance_remainder²)` with high probability.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Rademacher
-import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
+module
+public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Rademacher
+public import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
 
 /-! # DR-Learner Empirical Modulus
 
@@ -43,12 +44,16 @@ the assumption predicates `DREvalBounded`, `DROutcomeBounded`,
 `dr_loss_uniformly_bounded`, and the modulus theorem
 `localEmpProcessModulus_drLearner`. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology TopologicalSpace
   Causalean.PO Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
   Causalean.Stat Causalean.Stat.Concentration
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
@@ -256,9 +261,9 @@ theorem dr_loss_uniformly_bounded
     using hsq
 
 /-- **DR-Learner bounded-loss Rademacher modulus.** Consider the doubly robust
-orthogonal-learning system for conditional treatment effects, cross-fitted via a one-shot sample
-split, whose truth-identifying candidate [belongs to the target set, has a measurable evaluation
-map, and recovers the population CATE function through that evaluation
+orthogonal-learning system for conditional treatment effects, evaluated on the held-out fold at
+a fixed nuisance, whose truth-identifying candidate [belongs to the target set, has a measurable
+evaluation map, and recovers the population CATE function through that evaluation
 map](hyp:θ₀_mem,eval_meas,eval_θ₀). Suppose [the candidate evaluation maps are uniformly bounded,
 the observed outcome is almost-surely bounded, the realised nuisance outcome-regression is
 uniformly bounded on both treatment arms, and the realised propensity stays away from `0` and `1`
@@ -324,5 +329,6 @@ theorem localEmpProcessModulus_drLearner
       simpa [DRClampedThetaMinimizes, hb_def, drLearningSystem] using hclamp_minimizes) hδ hδ'
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

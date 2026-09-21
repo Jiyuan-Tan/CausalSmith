@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Regression
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Regression
 
 /-!
 # Invariant Causal Prediction — residual equals the target noise
@@ -21,6 +22,8 @@ Both use that the target's own coefficient is `0` (`hNoSelf`) to turn the
 `Σ_{k≠0}` of the structural equation into the full `Σ_k` of the residual.
 -/
 
+@[expose] public section
+
 namespace Causalean.Discovery.InvariantPrediction.LinearGaussian
 
 open MeasureTheory ProbabilityTheory
@@ -28,9 +31,9 @@ open scoped BigOperators
 
 variable {p : ℕ}
 
-/-- For [an observational linear-Gaussian structural equation model](hyp:M), [the causal
-coefficient vector](goal) assigns to each variable its coefficient in the structural equation
-for the target outcome. -/
+/-- [The causal coefficient vector](goal) extracts the target equation's coefficients from [an
+observational linear-Gaussian SEM](hyp:M) with [predictor dimension `p`](hyp:p), making its
+regression residual coincide with target noise. -/
 def causalCoeff (M : ObsSEM p) : Fin (p + 1) → ℝ := fun k => M.β (target p) k
 
 /-- With the causal coefficient, the full-sum `Σ_k β₀ₖ X_k` equals the

@@ -10,7 +10,8 @@ these definitions. Pure finite ℝ data — **no probability space, no potential
 outcomes**. See `StaggeredTWFEDecomposition.lean` for the folder layer-map.
 
 Layer A — pure finite-cell algebra. This file holds the cell-statistics record
-`CohortPanel`, the adoption-date helpers, the residualized treatment `Dtilde`,
+`CohortPanel`, compatibility aliases for the shared adoption-path predicates,
+the residualized treatment `Dtilde`,
 the residualized variance `VD`, the window mean `Ybar`, the three 2x2
 comparison contrasts `Δ_TN, Δ_EL, Δ_LE`, the raw and normalized weights
 (`λ_TN, λ_EL, λ_LE, w_TN, w_EL, w_LE`), and the comparison index set
@@ -29,16 +30,18 @@ Source LaTeX:
 `doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.tex`.
 -/
 
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Causalean.Panel.WeightedTwoWayPanel
-import Mathlib.Data.Real.Basic
-import Mathlib.Data.Fin.Basic
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Order.WithBot
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+module
+public import Causalean.Panel.AdoptionPath
+public import Causalean.Panel.WeightedTwoWayPanel
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Data.Fin.Basic
+public import Mathlib.Data.Fintype.Prod
+public import Mathlib.Order.WithBot
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
 
 /-! # Goodman-Bacon Panel Algebra
 
@@ -47,6 +50,8 @@ two-way fixed-effect decomposition. It defines staggered adoption panels,
 absorbing treatment, residualized treatment, the TWFE coefficient, comparison
 windows, pairwise comparison contrasts, and the raw and normalized weights for
 treated-versus-never, early-versus-late, and late-versus-early comparisons. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -82,17 +87,39 @@ structure CohortPanel (𝒢 : Type*) (T : ℕ) [Fintype 𝒢] where
 
 namespace AdoptionDate
 
-/-- For [an adoption date](hyp:a) and [a panel period](hyp:t), [the adopted-by-period condition](goal) holds exactly when the adoption date is no later than that period; a never-adopting cohort does not satisfy it. -/
-def le {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop := a ≤ (t : WithTop (Fin T))
+/-- For [an adoption date](hyp:a) and [a panel period](hyp:t), [the adopted-by-period
+condition](goal) holds exactly when the adoption date is no later than that period; a
+never-adopting cohort does not satisfy it.
 
-/-- For [an adoption date](hyp:a) and [a panel period](hyp:t), [the untreated-at-period condition](goal) holds exactly when the period precedes the adoption date, including every period for a never-adopting cohort. -/
-def lt {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop := (t : WithTop (Fin T)) < a
+Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.le`. -/
+@[deprecated Causalean.Panel.AdoptionPath.le (since := "2026-09-19")]
+abbrev le {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop :=
+  Causalean.Panel.AdoptionPath.le a t
 
-/-- For [an adoption date](hyp:a), [the eventually-treated condition](goal) holds exactly when the date is a finite panel period rather than the never-adopting value. -/
-def isFin {T : ℕ} (a : WithTop (Fin T)) : Prop := a ≠ ⊤
+/-- For [an adoption date](hyp:a) and [a panel period](hyp:t), [the untreated-at-period
+condition](goal) holds exactly when the period precedes the adoption date, including every
+period for a never-adopting cohort.
 
-/-- For [an adoption date](hyp:a), [the never-treated condition](goal) holds exactly when the date is the never-adopting value. -/
-def isInf {T : ℕ} (a : WithTop (Fin T)) : Prop := a = ⊤
+Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.lt`. -/
+@[deprecated Causalean.Panel.AdoptionPath.lt (since := "2026-09-19")]
+abbrev lt {T : ℕ} (a : WithTop (Fin T)) (t : Fin T) : Prop :=
+  Causalean.Panel.AdoptionPath.lt a t
+
+/-- For [an adoption date](hyp:a), [the eventually-treated condition](goal) holds exactly when
+the date is a finite panel period rather than the never-adopting value.
+
+Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.isFinite`. -/
+@[deprecated Causalean.Panel.AdoptionPath.isFinite (since := "2026-09-19")]
+abbrev isFin {T : ℕ} (a : WithTop (Fin T)) : Prop :=
+  Causalean.Panel.AdoptionPath.isFinite a
+
+/-- For [an adoption date](hyp:a), [the never-treated condition](goal) holds exactly when the
+date is the never-adopting value.
+
+Deprecated in favor of the paper-neutral `Causalean.Panel.AdoptionPath.isInfinite`. -/
+@[deprecated Causalean.Panel.AdoptionPath.isInfinite (since := "2026-09-19")]
+abbrev isInf {T : ℕ} (a : WithTop (Fin T)) : Prop :=
+  Causalean.Panel.AdoptionPath.isInfinite a
 
 end AdoptionDate
 
@@ -103,7 +130,7 @@ open Classical in
 
 Marked `noncomputable` because the adoption-date order predicate is taken via classical decidability. -/
 noncomputable def D (P : CohortPanel 𝒢 T) (g : 𝒢) (t : Fin T) : ℝ :=
-  if AdoptionDate.le (P.A g) t then 1 else 0
+  if AdoptionPath.le (P.A g) t then 1 else 0
 
 /-- For [a cohort panel](hyp:P) and [a cohort](hyp:g), [the cohort treatment share](goal) is that cohort's treatment indicator averaged over all panel periods. -/
 noncomputable def barD (P : CohortPanel 𝒢 T) (g : 𝒢) : ℝ :=
@@ -165,22 +192,22 @@ noncomputable def Ybar (P : CohortPanel 𝒢 T) (g : 𝒢) (S : Finset (Fin T)) 
 open Classical in
 /-- For [a cohort panel](hyp:P) and [a cohort](hyp:g), [the treated-versus-never untreated window](goal) is the set of all panel periods before that cohort's adoption date. -/
 noncomputable def S0_TN (P : CohortPanel 𝒢 T) (g : 𝒢) : Finset (Fin T) :=
-  Finset.univ.filter (fun t => AdoptionDate.lt (P.A g) t)
+  Finset.univ.filter (fun t => AdoptionPath.lt (P.A g) t)
 
 open Classical in
 /-- For [a cohort panel](hyp:P) and [a cohort](hyp:g), [the treated-versus-never treated window](goal) is the set of all panel periods at or after that cohort's adoption date. -/
 noncomputable def S1_TN (P : CohortPanel 𝒢 T) (g : 𝒢) : Finset (Fin T) :=
-  Finset.univ.filter (fun t => AdoptionDate.le (P.A g) t)
+  Finset.univ.filter (fun t => AdoptionPath.le (P.A g) t)
 
 open Classical in
 /-- For [a cohort panel](hyp:P) and [an early-adopting cohort](hyp:e), [the early-versus-late untreated window](goal) is the set of all periods before the early cohort's adoption date. -/
 noncomputable def S0_EL (P : CohortPanel 𝒢 T) (e : 𝒢) : Finset (Fin T) :=
-  Finset.univ.filter (fun t => AdoptionDate.lt (P.A e) t)
+  Finset.univ.filter (fun t => AdoptionPath.lt (P.A e) t)
 
 open Classical in
 /-- For [a cohort panel](hyp:P), [an early cohort](hyp:e), and [a late cohort](hyp:ℓ), [the early-versus-late treated window](goal) is the set of periods from the early cohort's adoption through the period before the late cohort's adoption. -/
 noncomputable def S1_EL (P : CohortPanel 𝒢 T) (e ℓ : 𝒢) : Finset (Fin T) :=
-  Finset.univ.filter (fun t => AdoptionDate.le (P.A e) t ∧ AdoptionDate.lt (P.A ℓ) t)
+  Finset.univ.filter (fun t => AdoptionPath.le (P.A e) t ∧ AdoptionPath.lt (P.A ℓ) t)
 
 open Classical in
 /-- For [a cohort panel](hyp:P), [an early cohort](hyp:e), and [a late cohort](hyp:ℓ), [the late-versus-early early-treated window](goal) is the set of periods from the early cohort's adoption through the period before the late cohort's adoption. -/
@@ -190,7 +217,7 @@ noncomputable def S0_LE (P : CohortPanel 𝒢 T) (e ℓ : 𝒢) : Finset (Fin T)
 open Classical in
 /-- For [a cohort panel](hyp:P) and [a late cohort](hyp:ℓ), [the late-versus-early both-treated window](goal) is the set of all periods at or after the late cohort's adoption date. -/
 noncomputable def S1_LE (P : CohortPanel 𝒢 T) (ℓ : 𝒢) : Finset (Fin T) :=
-  Finset.univ.filter (fun t => AdoptionDate.le (P.A ℓ) t)
+  Finset.univ.filter (fun t => AdoptionPath.le (P.A ℓ) t)
 
 /-! ### 2x2 comparison contrasts -/
 
@@ -234,9 +261,9 @@ noncomputable def lambdaLE (P : CohortPanel 𝒢 T) (e ℓ : 𝒢) : ℝ :=
 open Classical in
 /-- For [a cohort panel](hyp:P), [the aggregate raw-weight denominator](goal) is the sum of treated-versus-never raw weights for finite-versus-never-treated pairs and the two timing-comparison raw weights for ordered finite adoption-date pairs. -/
 noncomputable def Lambda (P : CohortPanel 𝒢 T) : ℝ :=
-  (∑ g, ∑ u, if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then
+  (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
               lambdaTN P g u else 0)
-  + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+  + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
                 lambdaEL P e ℓ + lambdaLE P e ℓ else 0)
 
 /-- For [a cohort panel](hyp:P), [a treated cohort](hyp:g), and [a never-treated cohort](hyp:u), [the normalized treated-versus-never weight](goal) is its raw weight divided by the aggregate raw-weight denominator. -/
@@ -257,13 +284,13 @@ noncomputable def w_LE (P : CohortPanel 𝒢 T) (e ℓ : 𝒢) : ℝ :=
 def admissible (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) : Prop :=
   match k.1 with
   | CompTag.TN =>
-      AdoptionDate.isFin (P.A k.2.1) ∧ AdoptionDate.isInf (P.A k.2.2)
+      AdoptionPath.isFinite (P.A k.2.1) ∧ AdoptionPath.isInfinite (P.A k.2.2)
         ∧ 0 < P.p k.2.1 ∧ 0 < P.p k.2.2
   | CompTag.EL =>
-      P.A k.2.1 < P.A k.2.2 ∧ AdoptionDate.isFin (P.A k.2.2)
+      P.A k.2.1 < P.A k.2.2 ∧ AdoptionPath.isFinite (P.A k.2.2)
         ∧ 0 < P.p k.2.1 ∧ 0 < P.p k.2.2
   | CompTag.LE =>
-      P.A k.2.1 < P.A k.2.2 ∧ AdoptionDate.isFin (P.A k.2.2)
+      P.A k.2.1 < P.A k.2.2 ∧ AdoptionPath.isFinite (P.A k.2.2)
         ∧ 0 < P.p k.2.1 ∧ 0 < P.p k.2.2
 
 open Classical in

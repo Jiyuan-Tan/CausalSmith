@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # DTR estimation system: structure, data law, value-space DTR estimand (n = 2)
 
-The `DTREstimationSystem` extends `PODTRSystem P 2 δ γ` with the value-space
+The `DTREstimationSystem` extends `POLongitudinalPathSystem P 2 δ γ` with the value-space
 factorization of the σ(historyBundle k)-measurable representatives
 (Doob–Dynkin lift) at each stage.  This file collects:
 
@@ -17,7 +17,7 @@ factorization of the σ(historyBundle k)-measurable representatives
 * the marginals `P_H₀`, `P_H₁`, the factual data tuple `factualZ`,
   the joint law `P_Z`;
 * the value-space estimand `θ₀` and its agreement with the PO-level
-  `dtrEffect` at the chosen target regime `dbar`.
+  `treatmentPathMean` at the chosen target regime `dbar`.
 
 Mirrors the structure of `Estimation/ATE/Setup.lean` stage-by-stage.
 
@@ -29,9 +29,10 @@ regression / propensity take domain `γ 1 × δ × γ 0` (cons order:
 outer → inner).
 -/
 
-import Causalean.PO.ID.Exact.DTR.Main
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Causalean.Tactic.Attr
+module
+public import Causalean.PO.ID.Exact.DTR.Main
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Causalean.Tactic.Attr
 
 /-!
 # Two-Stage DTR Estimation Setup
@@ -46,6 +47,8 @@ This module is specialized to horizon two, with a discrete treatment space so th
 target-regime equality indicators are measurable.
 -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Estimation
 namespace DTR
@@ -54,7 +57,7 @@ open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO
 
 /-! ## DTR estimation system (n = 2)
 
-A `DTREstimationSystem` extends `PODTRSystem P 2 δ γ` with value-space
+A `DTREstimationSystem` extends `POLongitudinalPathSystem P 2 δ γ` with value-space
 representatives of the stagewise outcome regressions and propensities at the
 target regime `dbar`.  The σ-compat fields encode the Doob–Dynkin lift
 through the factual history coordinates. -/
@@ -90,7 +93,7 @@ structure DTREstimationSystem (P : POSystem) (δ : Type) (γ : Fin 2 → Type)
     [MeasurableSpace δ] [MeasurableSingletonClass δ]
     [∀ k, MeasurableSpace (γ k)]
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    extends PODTRSystem P 2 δ γ where
+    extends POLongitudinalPathSystem P 2 δ γ where
   /-- Target regime stored at the system level (mirrors the design rationale
   in the brief: regime is multi-stage, so we fix it). -/
   dbar : Fin 2 → δ
@@ -115,16 +118,16 @@ structure DTREstimationSystem (P : POSystem) (δ : Type) (γ : Fin 2 → Type)
   the factual data), with NO counterfactual: `μ₀_val (factualS 0 ·) =ᵐ innerReg dbar 1`.
   The counterfactual reading `μ[Y(dbar)|σ(historyBundle 0)] =ᵐ μ₀_val ∘ factualS 0` is
   NOT assumed here — it is the *derived* lemma `μ₀_compat` below, which requires
-  `Assumptions` via the sequential back-door identity `cdtr_backdoor`. -/
+  `Assumptions` via the sequential back-door identity `conditionalPath_backdoor`. -/
   μ₀_reg_compat :
-    (fun ω => μ₀_val (toPODTRSystem.factualS ⟨0, by decide⟩ ω))
-      =ᵐ[P.μ] toPODTRSystem.innerReg dbar 1
+    (fun ω => μ₀_val (toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
+      =ᵐ[P.μ] toPOLongitudinalPathSystem.innerReg dbar 1
   /-- Stage-0 propensity factors through `factualS 0`:
   `μ[1_{D₀ = dbar 0} | σ(historyBundle 0)] =ᵐ e₀_val (factualS 0 ·)`. -/
   e₀_compat :
-    (toPODTRSystem.historyBundle 0 (by decide)).condExpGiven
-        ((toPODTRSystem.dVar ⟨0, by decide⟩).indicator (dbar ⟨0, by decide⟩)) P.μ
-      =ᵐ[P.μ] (fun ω => e₀_val (toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+    (toPOLongitudinalPathSystem.historyBundle 0 (by decide)).condExpGiven
+        ((toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator (dbar ⟨0, by decide⟩)) P.μ
+      =ᵐ[P.μ] (fun ω => e₀_val (toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
   /-- The stage-1 regression `μ₁_val` represents the **observable** last-stage
   regression `f₂ = E[Y | hist₁, D₁=dbar₁]`, written as the ratio
   `condExpRatio_{hist₁}(Y·1_{D₁=dbar₁}, 1_{D₁=dbar₁})` (the paper's nested-regression
@@ -136,23 +139,23 @@ structure DTREstimationSystem (P : POSystem) (δ : Type) (γ : Fin 2 → Type)
   intermediate counterfactual. -/
   μ₁_reg_compat :
     (fun ω => μ₁_val
-        (toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-         toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-         toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+        (toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+         toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+         toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
       =ᵐ[P.μ]
-    (toPODTRSystem.historyBundle 1 (by decide)).condExpRatio
-        (fun ω => toPODTRSystem.factualY ω *
-          (toPODTRSystem.dVar ⟨1, by decide⟩).indicator (dbar ⟨1, by decide⟩) ω)
-        ((toPODTRSystem.dVar ⟨1, by decide⟩).indicator (dbar ⟨1, by decide⟩)) P.μ
+    (toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpRatio
+        (fun ω => toPOLongitudinalPathSystem.factualY ω *
+          (toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator (dbar ⟨1, by decide⟩) ω)
+        ((toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator (dbar ⟨1, by decide⟩)) P.μ
   /-- Stage-1 propensity factors through `(factualS 1, factualD 0, factualS 0)`:
   `μ[1_{D₁ = dbar 1} | σ(historyBundle 1)] =ᵐ e₁_val (factualS 1, factualD 0, factualS 0)`. -/
   e₁_compat :
-    (toPODTRSystem.historyBundle 1 (by decide)).condExpGiven
-        ((toPODTRSystem.dVar ⟨1, by decide⟩).indicator (dbar ⟨1, by decide⟩)) P.μ
+    (toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpGiven
+        ((toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator (dbar ⟨1, by decide⟩)) P.μ
       =ᵐ[P.μ] (fun ω => e₁_val
-        (toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-         toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-         toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+        (toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+         toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+         toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
 
 namespace DTREstimationSystem
 
@@ -200,11 +203,12 @@ lemma stronglyMeasurable_e₁_val (S : DTREstimationSystem P δ γ) :
 This is derived from the observable regression compatibility and the sequential backdoor identity,
 rather than stored as a field of the estimation system. -/
 lemma μ₀_compat (S : DTREstimationSystem P δ γ)
-    (hA : S.toPODTRSystem.Assumptions) :
-    (S.toPODTRSystem.historyBundle 0 (by decide)).condExpGiven
-        (S.toPODTRSystem.Y_of S.dbar) P.μ
-      =ᵐ[P.μ] (fun ω => S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) :=
-  (S.toPODTRSystem.cdtr_backdoor hA S.dbar (by decide)).trans S.μ₀_reg_compat.symm
+    (hA : S.toPOLongitudinalPathSystem.Assumptions) :
+    (S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)).condExpGiven
+        (S.toPOLongitudinalPathSystem.Y_of S.dbar) P.μ
+      =ᵐ[P.μ] (fun ω => S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) :=
+  (S.toPOLongitudinalPathSystem.conditionalPath_backdoor hA S.dbar (by decide)).trans
+    S.μ₀_reg_compat.symm
 
 /-! ### Stage-1 observable regression `f₂` (target of `μ₁_val`) -/
 
@@ -216,10 +220,10 @@ conditional mean of that indicator given the second-period history.
 This is the observable stage-1 regression of the outcome within the target final treatment arm.
 It is the nested-regression base case represented by the system's stage-1 value-space regression. -/
 noncomputable def stageOneReg (S : DTREstimationSystem P δ γ) : P.Ω → ℝ :=
-  (S.toPODTRSystem.historyBundle 1 (by decide)).condExpRatio
-    (fun ω => S.toPODTRSystem.factualY ω *
-      (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator (S.dbar ⟨1, by decide⟩) ω)
-    ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator (S.dbar ⟨1, by decide⟩)) P.μ
+  (S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpRatio
+    (fun ω => S.toPOLongitudinalPathSystem.factualY ω *
+      (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator (S.dbar ⟨1, by decide⟩) ω)
+    ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator (S.dbar ⟨1, by decide⟩)) P.μ
 
 /-- The stage-1 value-space regression agrees almost everywhere with the observable stage-1 regression.
 
@@ -227,9 +231,9 @@ This is the system's stage-1 regression compatibility field restated using the `
 abbreviation. -/
 lemma μ₁_val_comp_eq_stageOneReg (S : DTREstimationSystem P δ γ) :
     (fun ω => S.μ₁_val
-        (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-         S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-         S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+        (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+         S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+         S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
       =ᵐ[P.μ] S.stageOneReg :=
   S.μ₁_reg_compat
 
@@ -238,13 +242,13 @@ lemma μ₁_val_comp_eq_stageOneReg (S : DTREstimationSystem P δ γ) :
 This identification is the stage-1 foundation for the sequential AIPW mean-zero and score
 arguments. -/
 lemma stageOneReg_indD_eq (S : DTREstimationSystem P δ γ)
-    (hA : S.toPODTRSystem.Assumptions) :
-    (fun ω => S.stageOneReg ω * S.toPODTRSystem.indD S.dbar 1 ω)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions) :
+    (fun ω => S.stageOneReg ω * S.toPOLongitudinalPathSystem.indD S.dbar 1 ω)
       =ᵐ[P.μ]
-    (fun ω => S.toPODTRSystem.indD S.dbar 1 ω *
-      (S.toPODTRSystem.historyBundle 1 (by decide)).condExpGiven
-        (S.toPODTRSystem.Y_of S.dbar) P.μ ω) := by
-  let T := S.toPODTRSystem
+    (fun ω => S.toPOLongitudinalPathSystem.indD S.dbar 1 ω *
+      (S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpGiven
+        (S.toPOLongitudinalPathSystem.Y_of S.dbar) P.μ ω) := by
+  let T := S.toPOLongitudinalPathSystem
   let kLast : Fin 2 := ⟨1, by decide⟩
   let I1 : P.Ω → ℝ := (T.dVar kLast).indicator (S.dbar kLast)
   let B := T.historyBundle 1 (by decide)
@@ -335,7 +339,7 @@ lemma stageOneReg_indD_eq (S : DTREstimationSystem P δ γ)
         T.innerReg S.dbar 0 ω =
           B.condExpGiven (fun ω => T.factualY ω * T.indD S.dbar 2 ω) P.μ ω /
             B.condExpGiven (T.indD S.dbar 2) P.μ ω := by
-      unfold PODTRSystem.innerReg
+      unfold POLongitudinalPathSystem.innerReg
       simp only [Nat.ofNat_pos, ↓reduceDIte]
       rfl
     rw [hstage, hinner, hN, hD]
@@ -347,40 +351,42 @@ lemma stageOneReg_indD_eq (S : DTREstimationSystem P δ γ)
         linarith
       rw [h1]
       field_simp [hne]
-  have hbase := T.cdtr_base hA S.dbar (by decide : 0 < 2)
+  have hbase := T.conditionalPath_base hA S.dbar (by decide : 0 < 2)
   exact hbridge.trans (by simpa [T, B] using hbase)
 
 /-- Composed observable `μ₁_val`, multiplied by the partial regime indicator
 `indD dbar 1`, agrees with the corresponding counterfactual conditional
 expectation. This is the consumer-facing form of `stageOneReg_indD_eq`. -/
 lemma μ₁_val_comp_mul_indD_eq (S : DTREstimationSystem P δ γ)
-    (hA : S.toPODTRSystem.Assumptions) :
+    (hA : S.toPOLongitudinalPathSystem.Assumptions) :
     (fun ω => S.μ₁_val
-        (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-         S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-         S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        S.toPODTRSystem.indD S.dbar 1 ω)
+        (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+         S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+         S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        S.toPOLongitudinalPathSystem.indD S.dbar 1 ω)
       =ᵐ[P.μ]
-    (fun ω => S.toPODTRSystem.indD S.dbar 1 ω *
-      (S.toPODTRSystem.historyBundle 1 (by decide)).condExpGiven
-        (S.toPODTRSystem.Y_of S.dbar) P.μ ω) := by
+    (fun ω => S.toPOLongitudinalPathSystem.indD S.dbar 1 ω *
+      (S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpGiven
+        (S.toPOLongitudinalPathSystem.Y_of S.dbar) P.μ ω) := by
   filter_upwards [S.μ₁_val_comp_eq_stageOneReg, S.stageOneReg_indD_eq hA] with ω hμ hstage
   rw [hμ]
   exact hstage
 
-/-- Same as `μ₁_val_comp_mul_indD_eq`, with the partial regime indicator written on
-the left. -/
+/-- For [a two-period estimation system](hyp:S) satisfying
+[its longitudinal identification assumptions](hyp:hA),
+[the first-stage partial-regime indicator times the fitted second-stage regression agrees almost
+surely with that indicator times the corresponding conditional expectation](goal). -/
 lemma indD_mul_μ₁_val_comp_eq (S : DTREstimationSystem P δ γ)
-    (hA : S.toPODTRSystem.Assumptions) :
-    (fun ω => S.toPODTRSystem.indD S.dbar 1 ω *
+    (hA : S.toPOLongitudinalPathSystem.Assumptions) :
+    (fun ω => S.toPOLongitudinalPathSystem.indD S.dbar 1 ω *
         S.μ₁_val
-          (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-           S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-           S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+          (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+           S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+           S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
       =ᵐ[P.μ]
-    (fun ω => S.toPODTRSystem.indD S.dbar 1 ω *
-      (S.toPODTRSystem.historyBundle 1 (by decide)).condExpGiven
-        (S.toPODTRSystem.Y_of S.dbar) P.μ ω) := by
+    (fun ω => S.toPOLongitudinalPathSystem.indD S.dbar 1 ω *
+      (S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpGiven
+        (S.toPOLongitudinalPathSystem.Y_of S.dbar) P.μ ω) := by
   filter_upwards [S.μ₁_val_comp_mul_indD_eq hA] with ω hω
   simpa [mul_comm] using hω
 
@@ -396,15 +402,19 @@ The overlap level is positive and at most one half, and the bounds hold almost s
 def StrictOverlap (S : DTREstimationSystem P δ γ) (ε : ℝ) : Prop :=
   0 < ε ∧ ε ≤ 1 / 2 ∧
     (∀ᵐ ω ∂P.μ,
-      (ε ≤ (S.toPODTRSystem.historyBundle 0 (by decide)).condExpGiven
-          ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator (S.dbar ⟨0, by decide⟩)) P.μ ω
-        ∧ (S.toPODTRSystem.historyBundle 0 (by decide)).condExpGiven
-          ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator (S.dbar ⟨0, by decide⟩)) P.μ ω
+      (ε ≤ (S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)).condExpGiven
+          ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
+            (S.dbar ⟨0, by decide⟩)) P.μ ω
+        ∧ (S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)).condExpGiven
+          ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
+            (S.dbar ⟨0, by decide⟩)) P.μ ω
             ≤ 1 - ε)
-        ∧ (ε ≤ (S.toPODTRSystem.historyBundle 1 (by decide)).condExpGiven
-            ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator (S.dbar ⟨1, by decide⟩)) P.μ ω
-          ∧ (S.toPODTRSystem.historyBundle 1 (by decide)).condExpGiven
-              ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator (S.dbar ⟨1, by decide⟩)) P.μ ω
+        ∧ (ε ≤ (S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpGiven
+            ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
+              (S.dbar ⟨1, by decide⟩)) P.μ ω
+          ∧ (S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)).condExpGiven
+              ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
+                (S.dbar ⟨1, by decide⟩)) P.μ ω
                 ≤ 1 - ε))
 
 /-- The observable stage-1 regression is square-integrable under strict overlap and a factual second moment.
@@ -412,9 +422,9 @@ def StrictOverlap (S : DTREstimationSystem P δ γ) (ε : ℝ) : Prop :=
 This supplies the L² input used by downstream DTR score and moment results. -/
 lemma stageOneReg_memLp (S : DTREstimationSystem P δ γ) {ε : ℝ}
     (hov : S.StrictOverlap ε)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ) :
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ) :
     MemLp S.stageOneReg 2 P.μ := by
-  let T := S.toPODTRSystem
+  let T := S.toPOLongitudinalPathSystem
   let kLast : Fin 2 := ⟨1, by decide⟩
   let I1 : P.Ω → ℝ := (T.dVar kLast).indicator (S.dbar kLast)
   let B := T.historyBundle 1 (by decide)
@@ -465,7 +475,7 @@ lemma stageOneReg_memLp (S : DTREstimationSystem P δ γ) {ε : ℝ}
 /-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [marginal law of
 the first-period state](goal) is the population distribution induced by that system's factual first-period state. -/
 noncomputable def P_H₀ (S : DTREstimationSystem P δ γ) : Measure (γ 0) :=
-  P.μ.map (S.toPODTRSystem.factualS ⟨0, by decide⟩)
+  P.μ.map (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩)
 
 /-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [marginal law of
 the second-period history](goal) is the population distribution of the second-period state,
@@ -473,9 +483,9 @@ first-period treatment, and first-period state, in that order. -/
 noncomputable def P_H₁ (S : DTREstimationSystem P δ γ) :
     Measure (γ 1 × δ × γ 0) :=
   P.μ.map (fun ω =>
-    (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-     S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-     S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+    (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
 
 /-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [factual
 two-stage data map](goal) sends each sample realization to its factual first-period state,
@@ -483,21 +493,21 @@ first-period treatment, second-period state, second-period treatment, and outcom
 noncomputable def factualZ (S : DTREstimationSystem P δ γ) :
     P.Ω → γ 0 × δ × γ 1 × δ × ℝ :=
   fun ω =>
-    (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω,
-     S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-     S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-     S.toPODTRSystem.factualD ⟨1, by decide⟩ ω,
-     S.toPODTRSystem.factualY ω)
+    (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualD ⟨1, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualY ω)
 
 /-- The full observed two-stage data tuple is measurable. -/
 @[fun_prop]
 lemma measurable_factualZ (S : DTREstimationSystem P δ γ) :
     Measurable S.factualZ := by
-  refine (S.toPODTRSystem.measurable_factualS ⟨0, by decide⟩).prodMk ?_
-  refine (S.toPODTRSystem.measurable_factualD ⟨0, by decide⟩).prodMk ?_
-  refine (S.toPODTRSystem.measurable_factualS ⟨1, by decide⟩).prodMk ?_
-  exact (S.toPODTRSystem.measurable_factualD ⟨1, by decide⟩).prodMk
-    S.toPODTRSystem.measurable_factualY
+  refine (S.toPOLongitudinalPathSystem.measurable_factualS ⟨0, by decide⟩).prodMk ?_
+  refine (S.toPOLongitudinalPathSystem.measurable_factualD ⟨0, by decide⟩).prodMk ?_
+  refine (S.toPOLongitudinalPathSystem.measurable_factualS ⟨1, by decide⟩).prodMk ?_
+  exact (S.toPOLongitudinalPathSystem.measurable_factualD ⟨1, by decide⟩).prodMk
+    S.toPOLongitudinalPathSystem.measurable_factualY
 
 /-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [joint law of
 the factual two-stage data tuple](goal) is the population distribution induced by its factual
@@ -515,17 +525,18 @@ lemma P_Z_eq (S : DTREstimationSystem P δ γ) :
 
 /-! ### DTR estimand on the value space -/
 
-/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and [the pair of first- and second-period state spaces](hyp:γ), given [a two-stage dynamic treatment-regime estimation system](hyp:S), the [target regime
-mean outcome](goal) is the potential-outcome dynamic-treatment-regime effect for the treatment
-regime selected by that system. -/
+/-- For [a population outcome system](hyp:P), [a treatment space](hyp:δ), and
+[the pair of first- and second-period state spaces](hyp:γ), given [a two-stage
+estimation system with a prescribed treatment path](hyp:S), the [target path mean
+outcome](goal) is the potential-outcome mean for the path selected by that system. -/
 noncomputable def θ₀ (S : DTREstimationSystem P δ γ) : ℝ :=
-  S.toPODTRSystem.dtrEffect S.dbar
+  S.toPOLongitudinalPathSystem.treatmentPathMean S.dbar
 
-/-- For [a two-stage dynamic treatment regime estimation system](hyp:S), [its value-space DTR
-estimand `θ₀` equals the potential-outcome DTR effect evaluated at the chosen
-regime `dbar`](goal). -/
-theorem θ₀_eq_dtrEffect (S : DTREstimationSystem P δ γ) :
-    S.θ₀ = S.toPODTRSystem.dtrEffect S.dbar := rfl
+/-- For [a two-stage estimation system with a prescribed treatment path](hyp:S),
+[its value-space estimand `θ₀` equals the potential-outcome mean under the chosen
+path `dbar`](goal). -/
+theorem θ₀_eq_treatmentPathMean (S : DTREstimationSystem P δ γ) :
+    S.θ₀ = S.toPOLongitudinalPathSystem.treatmentPathMean S.dbar := rfl
 
 end DTREstimationSystem
 

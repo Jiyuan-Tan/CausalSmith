@@ -1,12 +1,15 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.ForbiddenSign
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
-import Causalean.Stat.MEstimation.FinitePoissonSign
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWLContinuity
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Homogeneous
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.PrimitiveFrontier
-import Mathlib.Tactic.NormNum
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.ForbiddenSign
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
+public import Causalean.Stat.MEstimation.FinitePoissonSign
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWLContinuity
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Homogeneous
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.PrimitiveFrontier
+public import Mathlib.Tactic.NormNum
 
 /-! The explicit four-cohort sign-reversal fixture and its local diagnostic. -/
+
+@[expose] public section
 
 open Causalean.Stat
 
@@ -408,7 +411,7 @@ lemma fourResidualTable_orthogonal :
   intro h hh
   refine Submodule.span_induction ?_ ?_ ?_ ?_ hh
   · rintro x ⟨j, rfl⟩
-    simp only [Causalean.Panel.Weighted.WeightedSupport.ip_def]
+    simp only [Causalean.Stat.Weighted.WeightedSupport.ip_def]
     change (∑ r : SupportedCell 4 fourCohortSupport,
       (meanWeightedSupport 4 fourCohortSupport fourHorizonPositive fourSupportNonempty
         fourCohortShare fourCohortLimitBaseline fourCohortGamma zeroEffects4).weight r *
@@ -426,11 +429,11 @@ lemma fourResidualTable_orthogonal :
       intro r hr
       ring]
     rw [fourResidualTable_nuisance_normal, mul_zero]
-  · simp [Causalean.Panel.Weighted.WeightedSupport.ip]
+  · simp [Causalean.Stat.Weighted.WeightedSupport.ip]
   · intro x y _ _ hx hy
-    rw [Causalean.Panel.Weighted.WeightedSupport.ip_add_right, hx, hy, add_zero]
+    rw [Causalean.Stat.Weighted.WeightedSupport.ip_add_right, hx, hy, add_zero]
   · intro s x _ hx
-    rw [Causalean.Panel.Weighted.WeightedSupport.ip_smul_right, hx, mul_zero]
+    rw [Causalean.Stat.Weighted.WeightedSupport.ip_smul_right, hx, mul_zero]
 
 /-- In the four-cohort zero-effect design, the weighted FWL treatment residual equals the
 explicit residual-table entry in every cell. -/

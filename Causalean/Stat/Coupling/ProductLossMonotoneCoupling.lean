@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.PIT
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.Coupling
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.FrechetHoeffding
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.FrechetHoeffdingAttainment
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.TailIntegral
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.Survival
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.HoeffdingFubini
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.HoeffdingFubiniIntegrability
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.Hoeffding
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling.Optimality
+module
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.Coupling
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.FrechetHoeffding
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.FrechetHoeffdingAttainment
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.Hoeffding
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.HoeffdingFubini
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.HoeffdingFubiniIntegrability
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.Optimality
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.PIT
+public import Causalean.Stat.Coupling.Monotone.ProductLoss.Survival
+public import Causalean.Mathlib.Analysis.SignedTailRepresentation
 
 /-!
 # Product-loss monotone couplings

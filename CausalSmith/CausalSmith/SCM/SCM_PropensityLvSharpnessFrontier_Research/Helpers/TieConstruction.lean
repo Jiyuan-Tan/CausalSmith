@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.ProductPerturbation
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.ProductPerturbation
 
 /-! # Explicit two-point alternatives at CDF contacts -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

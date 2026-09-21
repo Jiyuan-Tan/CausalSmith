@@ -14,7 +14,8 @@ Balakrishnan et al.: `𝔐ⁿ,γ ≥ ρ ⟹` minimax `𝔼`-risk `≥ (1−γ)ρ
 
 This file makes that implication explicit and mechanical via the Chebyshev/Markov
 bridge `nMiss_sq_le_nMSE`: every estimator has mean-squared error at least
-`s²/4 ≍ εg·εm` on **some** in-class DGP, where `s = β(α+β)/(1−4β²)`.
+`s²/4` on **some** in-class DGP, where `s = β(α+β)/(1−4β²)` is the
+construction's perturbation-dependent separation.
 
 The witness DGP is extracted from the two-point bound `1/4 ≤ max(…)`: either the
 null estimate `(m̂, ĝ)` itself (left branch) or a single Rademacher-perturbed DGP
@@ -22,7 +23,8 @@ null estimate `(m̂, ĝ)` itself (left branch) or a single Rademacher-perturbed 
 since a finite average is `≤` its maximal component).
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
 
 /-! # Mean-Squared-Error Lower Bound
 
@@ -32,8 +34,11 @@ probability-of-miss statement into an expected mean-squared-error statement. The
 `nMiss_sq_le_nMSE` and extracts a single in-class witness DGP from either the null law or the
 uniform perturbed mixture.
 
-The result isolates the finite-model argument showing that the doubly-robust product rate is an
-unavoidable expected-risk floor for some data-generating process in the nuisance class. -/
+The result gives an expected-risk lower bound at the construction's caller-supplied
+perturbation scale. That scale may be zero, and the theorem does not select it from the
+nuisance budgets. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -49,9 +54,9 @@ budgets `β² ≤ εm` and `(α+β)²/(1−2β)² ≤ εg`](hyp:hm,hg) for [nonn
 εg, εm](hyp:hεg,hεm), in [the sample-size regime `2n²γ² ≤ K·log 2` with `γ = α²+2αβ+3β²` and
 `2γ ≤ 1`](hyp:hγ,hreg). Then for [any measurable estimator of the average treatment
 effect](hyp:hest), [there is a data-generating process in the structure-agnostic nuisance class
-on which its mean-squared error is at least `s²/4`, with `s = β(α+β)/(1−4β²) ≍
-√(εg·εm)`](goal) — the doubly-robust product rate is an unbeatable expected-squared-error
-floor. This is the weaker, `(1−γ)`-factored consequence (`γ = 3/4`) of the quantile bound, in
+on which its mean-squared error is at least `s²/4`, with the displayed separation
+`s = β(α+β)/(1−4β²)`](goal). This is the weaker, `(1−γ)`-factored consequence
+(`γ = 3/4`) of the quantile bound, in
 the form used by Balakrishnan et al. -/
 theorem minimax_lower_bound_mse [NeZero K]
     (hα : 0 ≤ α) (hβ : 0 ≤ β) (hαβ : α + 2 * β ≤ 1 / 2)

@@ -6,11 +6,15 @@ Authors: Jiyuan Tan
 # Linear-tilt path construction
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.TiltConstructionHelpers
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.TiltConstructionHelpers
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 
 open MeasureTheory Asymptotics
+open Causalean.Mathlib.InformationTheory.KullbackLeibler.DensityTilt
 open scoped BigOperators Topology
 
 -- @node: lem:linear-tilt-path-valid
@@ -69,7 +73,7 @@ lemma linear_tilt_path_valid (nu : Measure (ℝ × ℝ)) (hnu : MTan nu) (u : �
         h0, h1, h2, ⟨C, fun y _hy => hC y⟩⟩
     · intro h hh a
       rw [hmargin h hh a]
-      simp [linearTiltArm, Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure]
+      simp [linearTiltArm, tiltMeasure]
   · refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩
     · simp [p, linearTiltJointPath]
     · intro h

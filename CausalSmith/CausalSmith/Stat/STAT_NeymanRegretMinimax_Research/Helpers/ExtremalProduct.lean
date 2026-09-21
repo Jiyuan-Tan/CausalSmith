@@ -9,9 +9,12 @@ This file builds balanced `M_tan` laws by taking the product of the
 one-dimensional three-point extremal law from the moment-residual envelope.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ScoreProgram
-import Causalean.Stat.Nonparametric.MomentProblems.BoundedOutcomeEnvelope.Attainment
-import Causalean.Stat.Nonparametric.MomentProblems.BoundedOutcomeEnvelope.Bounds
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ScoreProgram
+public import Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.Attainment
+public import Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.Bounds
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

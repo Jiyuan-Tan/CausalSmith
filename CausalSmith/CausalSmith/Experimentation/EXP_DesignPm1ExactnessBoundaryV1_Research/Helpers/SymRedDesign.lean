@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedMatrix
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedMatrix
 
 /-! # Design-side symmetry reduction (orbit averaging over the automorphism group)
 
@@ -15,6 +17,8 @@ moment is the orbit average `X(D')ᵢⱼ = |H|⁻¹ ∑_σ X(D)_{σi,σj}`.  Bec
 permutes the within/cross pair-Finsets, the block sums are preserved
 (`Ssame(X(D')) = Ssame(X(D))`, likewise `Scross`), so every trace term is unchanged,
 while the Frobenius norm drops by convexity — giving a no-worse block-exchangeable law. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

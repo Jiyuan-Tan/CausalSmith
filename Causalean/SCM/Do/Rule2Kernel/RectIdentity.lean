@@ -20,15 +20,27 @@ treatment. The sound continuous Rule 2 is the product-a.e. statement
 `obsCondKernel_fixSet_eq_ae_witness` in `Rule2AE.lean`.
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.WMarginal
-import Causalean.Mathlib.CondDistrib
-import Causalean.Mathlib.MeasurableEmbeddingExtras
+module
+
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.Mathlib.MeasureTheory.MeasurableSpace.Embedding
+public import Causalean.Mathlib.Probability.Kernel.CondDistrib
+public import Causalean.SCM.Do.Rule2Kernel.WMarginal
 
 /-! # Rule 2 conditional-kernel a.e. helpers
 
 This file provides two almost-everywhere equalities of conditional kernels — a
 d-separation collapse and a cross-model image comparison — consumed by the
 discrete-treatment backdoor Rule-2 derivation. -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Kernel
 
 namespace Causalean
 
@@ -321,8 +333,8 @@ lemma obsCondKernel_dSep_collapse_ae
     and [whose fixed copies are not yet part of the base model's fixed coordinates](hyp:hZ_fixed),
     with outcome set [`Y`](hyp:hY) and conditioning set [`W`](hyp:hW) contained in the observed
     variables, [the union of the random copies of `Z` and `W` contained in the observed
-    variables](hyp:hZrW) with [the random copies of `Z` disjoint from `W`](hyp:hDisj_ZrW), fix an
-    intervened fixed assignment `s`; then for [a measurable outcome set `B`](hyp:hB) and almost
+    variables](hyp:hZrW) with [the random copies of `Z` disjoint from `W`](hyp:hDisj_ZrW), fix
+    [an intervened fixed assignment `s`](hyp:s); then for [a measurable outcome set `B`](hyp:hB) and almost
     every conditioning value `w`, taken with respect to the pullback of the base model's law on
     `Z.random ∪ W` under the filled-assignment map, [the base model's conditional distribution of
     `Y` given `Z.random ∪ W`, evaluated at the filled point built from `w`, and the intervened
@@ -332,9 +344,9 @@ lemma obsCondKernel_dSep_collapse_ae
     The base-model conditional kernel evaluated along
     `F w := fillZrW W s w` agrees almost everywhere with the do-model
     conditional kernel evaluated at the same filled treatment-random-copy and W
-    coordinates.  The almost-everywhere measure is the pullback of the
-    base-model law on `Z.random ∪ W` through `F`; the statement also carries the
-    Rule 2 joint-overlap hypothesis required by its public API.
+    coordinates. The almost-everywhere measure is the pullback of the
+    base-model law on `Z.random ∪ W` through `F`; no separate joint-overlap
+    hypothesis occurs in this statement.
 
     More precisely, if we let
     `μ_C^{M1} := (M1.obsKernel sM1).map π_C` and let

@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Chebyshev schedule admissibility
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ScheduleGrid
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ScheduleGrid
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+
+public section
 
 open scoped BigOperators
 

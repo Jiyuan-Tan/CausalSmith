@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # No-extrapolation boundary
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ScheduleGrid
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ScheduleGrid
+
+public section
 
 open scoped BigOperators
 

@@ -1,10 +1,12 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessTransport
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessAssembly
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.ContrastIntegral
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessTransport
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessAssembly
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.ContrastIntegral
+public import Mathlib.Analysis.Calculus.ParametricIntegral
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.IntegrationByParts
+public import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Stability
 
-import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Stability
+@[expose] public section
 
 open MeasureTheory Set Filter
 open scoped Topology

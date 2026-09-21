@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Basic
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Basic
 
 /-! # Fixed-stratum bow and mixture classes -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

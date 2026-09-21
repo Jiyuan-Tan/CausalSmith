@@ -1,5 +1,6 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.FullLawPasting
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.FullLawPasting
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 /-!
 # Full-law endpoint attainment
@@ -7,6 +8,8 @@ import Mathlib.MeasureTheory.Constructions.Polish.Basic
 The cellwise threshold flows are completed into genuine potential-outcome laws
 that preserve the observed distribution and attain both aggregate endpoints.
 -/
+
+@[expose] public section
 
 open MeasureTheory Causalean PO
 

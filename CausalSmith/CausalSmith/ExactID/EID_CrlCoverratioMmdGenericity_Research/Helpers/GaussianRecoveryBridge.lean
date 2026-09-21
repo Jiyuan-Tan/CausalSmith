@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
-import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.Recovery
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
+public import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.Recovery
 
 /-!
 # Gaussian recovery bridge
@@ -7,6 +8,11 @@ import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.Recovery
 This file connects the paper's duplicated explicit Gaussian feature expansion
 and its canonical ratio laws to the neutral bounded-support recovery theorem.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 open scoped ENNReal
@@ -18,7 +24,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 open Causalean.Graph.FiniteDensity
 
 private lemma factorization_interventionMeasure_eq_withDensity_targetRatio
-    {n : ℕ} {G : Causalean.DAG (Fin n)}
+    {n : ℕ} {G : DAG (Fin n)}
     (B : UnitCubeFactorization (Fin n) G) (i : Fin n)
     (q : InterventionDensity i (fun _ : Fin n => ℝ)
       (fun _ : Fin n => unitIntervalReference))
@@ -52,7 +58,7 @@ private lemma factorization_interventionMeasure_eq_withDensity_targetRatio
 
 /-- The identity-mixing canonical world satisfies the paper's perfect-intervention contract.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonicalObservedWorld_onePerfectInterventionPerNode
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n)) :
     OnePerfectInterventionPerNode G θ (canonicalObservedWorld G θ π) := by
   let W := canonicalObservedWorld G θ π
@@ -135,7 +141,7 @@ set_option maxHeartbeats 800000 in
 -- Canonical pushforward and finite-density reductions create a large elaboration term.
 /-- A nonzero canonical raw second-moment contrast forces positive paper-local Gaussian MMD.  Given [the stated inputs and conditions](hyp:hpos,hmom), [the stated conclusion](goal) follows. -/
 lemma canonical_populationDiscrepancy_pos_of_secondMomentContrast_ne
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n))
     (j i : Fin n)
     (hmom : secondMomentContrast (canonicalObservedWorld G θ π) j i ≠ 0) :

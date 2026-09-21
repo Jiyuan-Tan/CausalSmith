@@ -6,10 +6,10 @@ Authors: Jiyuan Tan
 # Bernstein's inequality for bounded i.i.d. samples
 
 Bernstein-type concentration built on the sub-exponential framework of
-`Causalean.Stat.Concentration.SubExponential`.  Following the design decision to
-route the bound through the constant-`v` sub-exponential structure (rather than
-the sharper denominator-form MGF estimate), the variance enters with a factor
-`2`, giving the tail `exp(−n ε² / (2 (2σ² + c ε)))`.
+`Causalean.Stat.Concentration.TailBounds.SubExponential`. Following the design
+decision to route the bound through the constant-`v` sub-exponential structure
+(rather than the sharper denominator-form MGF estimate), the variance enters
+with a factor `2`, giving the tail `exp(−n ε² / (2 (2σ² + c ε)))`.
 
 ## Proof route
 
@@ -36,11 +36,11 @@ sub-exponential structure (it needs a bespoke Chernoff optimisation on the
 denominator-form MGF), so the variance proxy is `2σ²` and the scale is `c`.
 -/
 
-import Causalean.Stat.Concentration.TailBounds.SubExponential
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
-import Causalean.Stat.Sample.PiTransport
-
-import Causalean.Tactic.IntegralLinearity
+module
+public import Causalean.Stat.Concentration.TailBounds.SubExponential
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
+public import Causalean.Stat.Sample.PiTransport
+public import Causalean.Tactic.IntegralLinearity
 
 /-! # Bernstein inequalities
 
@@ -54,6 +54,8 @@ The constants intentionally come from the constant-`v` sub-exponential route:
 the variance proxy is `2 * σ ^ 2` and the final exponent is
 `-n * ε ^ 2 / (2 * (2 * σ ^ 2 + c * ε))`.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

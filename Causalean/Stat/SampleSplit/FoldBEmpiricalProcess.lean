@@ -29,23 +29,30 @@ This file provides:
 
 * `foldB_centered_sum_isLittleOp_one`  — `G_n = o_p(1)` from `‖f‖₂ = o_p(1)`
                                           via conditional Chebyshev.
-* `sqrtFoldB_integral_isLittleOp_one`  — `B_n = o_p(1)` from
-                                          `‖f‖₂ = o_p(n^{-1/2})` plus
-                                          `|B(n)|/n → c`.
+* `sqrtFoldB_integral_isLittleOp_one`  — the plug-in form, from the strong rate
+                                          `‖f‖₂ = o_p(n^{-1/2})`.
+* `sqrtFoldB_integral_isLittleOp_one_of_integral_rate` — the DML form, directly
+                                          from the second-order population-bias
+                                          rate `|∫ f dP| = o_p(n^{-1/2})`.
 
 Causal-agnostic; candidate Mathlib upstream once stable.
 -/
 
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Mathlib.ELpNormMeasurable
-import Causalean.Mathlib.IIDCenteredSum
-import Mathlib.Probability.Independence.Basic
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
+module
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit.FiniteCategoryPilot
+public import Causalean.Stat.SampleSplit.FiniteSelector
+public import Causalean.Stat.SampleSplit.FoldBWLLN
+public import Causalean.Stat.SampleSplit.KFold
+public import Causalean.Stat.SampleSplit.OneShot
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Mathlib.MeasureTheory.Function.LpSeminorm.Measurable
+public import Causalean.Mathlib.Probability.IdentDistrib.CenteredSum
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 # Fold-B empirical-process bounds
@@ -64,9 +71,12 @@ records the fold-B product-law bridge needed by downstream local empirical
 process modules.
 -/
 
+public section
+
 namespace Causalean.Stat
 
 open MeasureTheory ProbabilityTheory Filter Topology
+open Causalean.Mathlib.MeasureTheory.Function.LpSeminorm
 
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X} [IsProbabilityMeasure μ]
@@ -241,6 +251,9 @@ private lemma evalSum_truncated_isLittleOp_one
       simpa [Y] using
         (hsum.const_mul (Real.sqrt ((eval n).card : ℝ))⁻¹).aemeasurable
     exact (hY_ae.pow_const 2).ennreal_ofReal
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ) Y atTop (fun _ => (1 : ℝ))
+    (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
   have hmarkov_bound : ∀ᶠ n in atTop,
       μ {ω | ε < |Y n ω|} ≤
@@ -369,27 +382,30 @@ private lemma kFold_iid
 
 /-! ## Abstract bias term: `√|eval n| · ∫ f(n, ω, ·) dP` is `o_p(1)` -/
 
-omit [IsProbabilityMeasure μ] in
+omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
 /-- **Abstract: bias term is `o_p(1)` under fixed-ratio split.**
 
 Same proof as the OneShot version, but parameterised by an arbitrary
 evaluation-fold index `eval n` with `((eval n).card : ℝ) / n → c ∈ (0, 1)`.
 The fold-A measurability hypothesis is unnecessary because the integral
 already collapses fold-dependence. -/
-private lemma evalSum_bias_isLittleOp_one
+private lemma evalSum_integral_isLittleOp_one
     (_S : IIDSample Ω X μ P)
     (eval : ℕ → Finset ℕ)
     {c : ℝ} (hc_pos : 0 < c)
     (h_eval_ratio :
       Tendsto (fun n => ((eval n).card : ℝ) / n) atTop (𝓝 c))
     (f : ℕ → Ω → X → ℝ)
-    (hf_memLp : ∀ n ω, MemLp (f n ω) 2 P)
     (hf_rate :
-      IsLittleOp (fun n ω => (eLpNorm (f n ω) 2 P).toReal)
+      IsLittleOp (fun n ω => |∫ x, f n ω x ∂P|)
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ) :
     IsLittleOp
       (fun n ω => Real.sqrt ((eval n).card : ℝ) * ∫ x, f n ω x ∂P)
       (fun _ => (1 : ℝ)) μ := by
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ)
+    (fun n ω => Real.sqrt ((eval n).card : ℝ) * ∫ x, f n ω x ∂P)
+    atTop (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
   rw [ENNReal.tendsto_nhds_zero]
   intro δ hδ
@@ -429,8 +445,6 @@ private lemma evalSum_bias_isLittleOp_one
         rw [Real.sqrt_mul (sq_nonneg C)]
       _ = C * Real.sqrt (n : ℝ) := by
         rw [Real.sqrt_sq hCnonneg]
-  have hI_le : |∫ x, f n ω x ∂P| ≤ (eLpNorm (f n ω) 2 P).toReal :=
-    abs_integral_le_eLpNorm_two (hf_memLp n ω)
   have hsqrtcard_nonneg : 0 ≤ Real.sqrt ((eval n).card : ℝ) :=
     Real.sqrt_nonneg _
   have hlt_prod :
@@ -438,26 +452,61 @@ private lemma evalSum_bias_isLittleOp_one
     simpa [abs_mul, abs_of_nonneg hsqrtcard_nonneg] using hω
   have hle_prod :
       Real.sqrt ((eval n).card : ℝ) * |∫ x, f n ω x ∂P| ≤
-        (C * Real.sqrt (n : ℝ)) * (eLpNorm (f n ω) 2 P).toReal :=
-    mul_le_mul hsqrt_le hI_le (abs_nonneg _)
-      (mul_nonneg hCnonneg hsqrtn_nonneg)
+        (C * Real.sqrt (n : ℝ)) * |∫ x, f n ω x ∂P| :=
+    mul_le_mul_of_nonneg_right hsqrt_le (abs_nonneg _)
   have hlt_bound :
-      ε < (C * Real.sqrt (n : ℝ)) * (eLpNorm (f n ω) 2 P).toReal :=
+      ε < (C * Real.sqrt (n : ℝ)) * |∫ x, f n ω x ∂P| :=
     lt_of_lt_of_le hlt_prod hle_prod
   have hrn_eq : (n : ℝ) ^ (-(1 / 2 : ℝ)) = (Real.sqrt (n : ℝ))⁻¹ := by
     rw [Real.rpow_neg hn_nonneg]
     rw [← Real.sqrt_eq_rpow]
   have hdiv_lt :
-      ε / (C * Real.sqrt (n : ℝ)) < (eLpNorm (f n ω) 2 P).toReal := by
+      ε / (C * Real.sqrt (n : ℝ)) < |∫ x, f n ω x ∂P| := by
     rw [div_lt_iff₀ (mul_pos hCpos hsqrtn_pos)]
     nlinarith [hlt_bound]
   have hsmall :
       (ε / C) * ((n : ℝ) ^ (-(1 / 2 : ℝ))) <
-        (eLpNorm (f n ω) 2 P).toReal := by
+        |∫ x, f n ω x ∂P| := by
     rw [hrn_eq]
     convert hdiv_lt using 1
     field_simp [hCpos.ne', hsqrtn_pos.ne']
-  exact hsmall.trans_le (le_abs_self _)
+  exact (hsmall.trans_le (le_abs_self _)).le
+
+omit [IsProbabilityMeasure μ] in
+/-- The L² plug-in form follows from the direct integrated-bias form by
+Cauchy--Schwarz. -/
+private lemma evalSum_bias_isLittleOp_one
+    (S : IIDSample Ω X μ P)
+    (eval : ℕ → Finset ℕ)
+    {c : ℝ} (hc_pos : 0 < c)
+    (h_eval_ratio :
+      Tendsto (fun n => ((eval n).card : ℝ) / n) atTop (𝓝 c))
+    (f : ℕ → Ω → X → ℝ)
+    (hf_memLp : ∀ n, ∀ᵐ ω ∂μ, MemLp (f n ω) 2 P)
+    (hf_rate :
+      IsLittleOp (fun n ω => (eLpNorm (f n ω) 2 P).toReal)
+        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ) :
+    IsLittleOp
+      (fun n ω => Real.sqrt ((eval n).card : ℝ) * ∫ x, f n ω x ∂P)
+      (fun _ => (1 : ℝ)) μ := by
+  apply evalSum_integral_isLittleOp_one S eval hc_pos h_eval_ratio f
+  intro ε hε
+  have htarget := hf_rate ε hε
+  rw [ENNReal.tendsto_nhds_zero] at htarget ⊢
+  intro δ hδ
+  filter_upwards [htarget δ hδ] with n hn
+  refine (measure_mono_ae ?_).trans hn
+  filter_upwards [hf_memLp n] with ω hmem
+  intro hω
+  have hI := abs_integral_le_eLpNorm_two hmem
+  have hle : ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) ≤
+      |∫ x, f n ω x ∂P| := by
+    change ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) ≤
+      |(|∫ x, f n ω x ∂P|)| at hω
+    simpa only [abs_abs] using hω
+  change ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) ≤
+    |(eLpNorm (f n ω) 2 P).toReal|
+  exact hle.trans (hI.trans (le_abs_self _))
 
 /-! ## Abstract centered evaluation-fold sum is `o_p(1)`
 
@@ -509,7 +558,7 @@ private lemma evalSum_isLittleOp_one
     rw [hftil_def]
     have hnorm :
         Measurable (fun p : Ω × X => (eLpNorm (f n p.1) 2 P).toReal) :=
-      (Causalean.Mathlib.measurable_eLpNorm_toReal_of_uncurry
+      (measurable_eLpNorm_toReal_of_uncurry
           (P := P) (by norm_num) (by norm_num) (hf_meas n)).comp measurable_fst
     exact Measurable.ite (measurableSet_le hnorm measurable_const)
       (hf_meas n) measurable_const
@@ -521,7 +570,7 @@ private lemma evalSum_isLittleOp_one
     have hnorm :
         Measurable[(m_train n).prod (inferInstance : MeasurableSpace X)]
           (fun p : Ω × X => (eLpNorm (f n p.1) 2 P).toReal) := by
-      exact (Causalean.Mathlib.measurable_eLpNorm_toReal_of_uncurry_of_factor
+      exact (measurable_eLpNorm_toReal_of_uncurry_of_factor
         (P := P) (by norm_num) (by norm_num) (hf_uncurry_train n)).comp measurable_fst
     exact Measurable.ite (measurableSet_le hnorm measurable_const)
       (hf_uncurry_train n) measurable_const
@@ -553,10 +602,9 @@ private lemma evalSum_isLittleOp_one
     intro δ hδ
     exact (htarget δ hδ).mono fun n hn => (measure_mono (by
       intro ω hω
-      have hω' : ε * (1 : ℝ) < (eLpNorm (ftil n ω) 2 P).toReal := by
+      have hω' : ε * (1 : ℝ) ≤ (eLpNorm (ftil n ω) 2 P).toReal := by
         simpa [abs_of_nonneg ENNReal.toReal_nonneg] using hω
-      exact (lt_of_lt_of_le hω' (hftil_norm_le n ω)).trans_le
-        (le_abs_self _))).trans hn
+      exact hω'.trans (hftil_norm_le n ω) |>.trans (le_abs_self _))).trans hn
   -- Step 2: reduce to truncated centered sum.
   have h_diff_to_zero :
       Tendsto (fun n =>
@@ -577,7 +625,7 @@ private lemma evalSum_isLittleOp_one
         have hgtabs :
             1 * (1 : ℝ) < |(eLpNorm (f n ω) 2 P).toReal| := by
           simpa [abs_of_nonneg ENNReal.toReal_nonneg] using hgt
-        exact hleabs hgtabs
+        exact hleabs hgtabs.le
       simp [hftil_def, hle] at hω)).trans hn
   apply IsLittleOp.of_eq_on_asymptotic h_diff_to_zero
   -- Step 3: BCT step `E[‖ftil n ω‖²₂] → 0`.
@@ -591,7 +639,7 @@ private lemma evalSum_isLittleOp_one
     · intro n
       have hnorm_meas :
           Measurable (fun ω => (eLpNorm (ftil n ω) 2 P).toReal) :=
-        Causalean.Mathlib.measurable_eLpNorm_toReal_of_uncurry
+        measurable_eLpNorm_toReal_of_uncurry
           (P := P) (by norm_num) (by norm_num) (hftil_meas n)
       exact hnorm_meas.pow_const 2
     · intro n ω
@@ -610,11 +658,11 @@ private lemma evalSum_isLittleOp_one
         intro ω hω
         have hxnon : 0 ≤ (eLpNorm (ftil n ω) 2 P).toReal :=
           ENNReal.toReal_nonneg
-        have hx2 : ε < (eLpNorm (ftil n ω) 2 P).toReal ^ 2 := by
+        have hx2 : ε ≤ (eLpNorm (ftil n ω) 2 P).toReal ^ 2 := by
           simpa [abs_of_nonneg
             (sq_nonneg ((eLpNorm (ftil n ω) 2 P).toReal))] using hω
-        have hx : Real.sqrt ε < (eLpNorm (ftil n ω) 2 P).toReal :=
-          (Real.sqrt_lt (le_of_lt hε) hxnon).mpr hx2
+        have hx : Real.sqrt ε ≤ (eLpNorm (ftil n ω) 2 P).toReal := by
+          nlinarith [Real.sq_sqrt hε.le, Real.sqrt_nonneg ε]
         simpa [abs_of_nonneg hxnon] using hx)).trans hn
   -- Markov + variance bound + BCT → o_p(1).
   intro ε hε
@@ -705,8 +753,9 @@ Direct corollary of the constant-case Cauchy–Schwarz
 omit [IsProbabilityMeasure μ] in
 /-- **Bias term is `o_p(1)` under fixed-ratio split.** Given [a positive limiting fold-B sampling
 ratio $c$](hyp:hc_pos) with [the fold-B fraction $|B(n)|/n$ converging to $c$](hyp:h_split_rate),
-and a family of random functions `f n ω` that is [square-integrable under the population measure,
-for every `n`, `ω`](hyp:hf_memLp) with [$L^2(P)$ norm that is $o_p(n^{-1/2})$ under the sampling
+  and a family of random functions `f n ω` that is [square-integrable under the population measure,
+  for every `n` and almost every `ω`](hyp:hf_memLp) with [$L^2(P)$ norm that is
+  $o_p(n^{-1/2})$ under the sampling
 measure](hyp:hf_rate), [the bias term $\sqrt{|B(n)|}\cdot\int f(n,\omega,\cdot)\,dP$ is
 $o_p(1)$](goal).
 
@@ -721,7 +770,7 @@ theorem sqrtFoldB_integral_isLittleOp_one
     (h_split_rate :
       Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
     (f : ℕ → Ω → X → ℝ)
-    (hf_memLp : ∀ n ω, MemLp (f n ω) 2 P)
+    (hf_memLp : ∀ n, ∀ᵐ ω ∂μ, MemLp (f n ω) 2 P)
     (hf_rate :
       IsLittleOp (fun n ω => (eLpNorm (f n ω) 2 P).toReal)
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ) :
@@ -731,6 +780,30 @@ theorem sqrtFoldB_integral_isLittleOp_one
       (fun _ => (1 : ℝ)) μ :=
   evalSum_bias_isLittleOp_one S (fun n => split.foldB n) hc_pos
     h_split_rate f hf_memLp hf_rate
+
+omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
+/-- **DML bias term under a second-order remainder rate.** Given [an i.i.d.
+sample](hyp:S), [a one-shot split](hyp:split), [a positive limiting evaluation-fold
+ratio](hyp:c,hc_pos), [convergence of the fold ratio](hyp:h_split_rate), and [a
+random integrand](hyp:f) whose [absolute population integral is
+`o_p(n^{-1/2})`](hyp:hf_rate), [the fold-size-scaled population remainder is
+`o_p(1)`](goal). No pointwise L² rate or everywhere square-integrability is
+required; this is the form used by DML second-order remainders. -/
+theorem sqrtFoldB_integral_isLittleOp_one_of_integral_rate
+    (S : IIDSample Ω X μ P) (split : OneShotSplit S)
+    {c : ℝ} (hc_pos : 0 < c)
+    (h_split_rate :
+      Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
+    (f : ℕ → Ω → X → ℝ)
+    (hf_rate :
+      IsLittleOp (fun n ω => |∫ x, f n ω x ∂P|)
+        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ) :
+    IsLittleOp
+      (fun n ω =>
+        Real.sqrt ((split.foldB n).card : ℝ) * ∫ x, f n ω x ∂P)
+      (fun _ => (1 : ℝ)) μ :=
+  evalSum_integral_isLittleOp_one S (fun n => split.foldB n) hc_pos
+    h_split_rate f hf_rate
 
 /-! ## K-fold per-fold corollaries
 
@@ -776,15 +849,16 @@ theorem KFoldSplit.fold_centered_sum_isLittleOp_one
 omit [IsProbabilityMeasure μ] in
 /-- **Per-fold bias term is `o_p(1)` under a nonempty K-fold split.** For an i.i.d. sample and a
 `K`-fold split with [a positive number of folds $K$](hyp:hK_pos_nat), given a family of random
-functions `f n ω` that is [square-integrable under the population measure, for every `n`,
-`ω`](hyp:hf_memLp) with [$L^2(P)$ norm that is $o_p(n^{-1/2})$](hyp:hf_rate), [the per-fold bias
+  functions `f n ω` that is [square-integrable under the population measure, for every `n` and
+  almost every `ω`](hyp:hf_memLp) with
+  [$L^2(P)$ norm that is $o_p(n^{-1/2})$](hyp:hf_rate), [the per-fold bias
 term $\sqrt{|{\rm fold}(n,k)|}\cdot\int f(n,\omega,\cdot)\,dP$ at evaluation fold `k` is
 $o_p(1)$](goal). -/
 theorem KFoldSplit.sqrtFold_integral_isLittleOp_one
     (S : IIDSample Ω X μ P) {K : ℕ} (split : KFoldSplit S K) (k : Fin K)
     (hK_pos_nat : 0 < K)
     (f : ℕ → Ω → X → ℝ)
-    (hf_memLp : ∀ n ω, MemLp (f n ω) 2 P)
+    (hf_memLp : ∀ n, ∀ᵐ ω ∂μ, MemLp (f n ω) 2 P)
     (hf_rate : IsLittleOp (fun n ω => (eLpNorm (f n ω) 2 P).toReal)
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ) :
     IsLittleOp
@@ -795,5 +869,27 @@ theorem KFoldSplit.sqrtFold_integral_isLittleOp_one
   have hc_pos : 0 < (K : ℝ)⁻¹ := inv_pos.mpr hK_pos
   exact evalSum_bias_isLittleOp_one S (fun n => split.fold n k)
     hc_pos (split.ratio k) f hf_memLp hf_rate
+
+omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
+/-- **K-fold DML bias term under a second-order remainder rate.** Given [an
+i.i.d. sample](hyp:S), [a K-fold split](hyp:split), [an evaluation-fold
+index](hyp:k), [a positive number of folds](hyp:hK_pos_nat), and [a random
+integrand](hyp:f) whose [absolute population integral is
+`o_p(n^{-1/2})`](hyp:hf_rate), [the fold-size-scaled population remainder is
+`o_p(1)`](goal). -/
+theorem KFoldSplit.sqrtFold_integral_isLittleOp_one_of_integral_rate
+    (S : IIDSample Ω X μ P) {K : ℕ} (split : KFoldSplit S K) (k : Fin K)
+    (hK_pos_nat : 0 < K)
+    (f : ℕ → Ω → X → ℝ)
+    (hf_rate : IsLittleOp (fun n ω => |∫ x, f n ω x ∂P|)
+        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) μ) :
+    IsLittleOp
+      (fun n ω =>
+        Real.sqrt ((split.fold n k).card : ℝ) * ∫ x, f n ω x ∂P)
+      (fun _ => (1 : ℝ)) μ := by
+  have hK_pos : 0 < (K : ℝ) := by exact_mod_cast hK_pos_nat
+  have hc_pos : 0 < (K : ℝ)⁻¹ := inv_pos.mpr hK_pos
+  exact evalSum_integral_isLittleOp_one S (fun n => split.fold n k)
+    hc_pos (split.ratio k) f hf_rate
 
 end Causalean.Stat

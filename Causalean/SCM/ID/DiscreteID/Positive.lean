@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.DiscreteID.Mass
-import Causalean.SCM.ID.Identifiable
+module
+public import Causalean.SCM.ID.DiscreteID.Mass
+public import Causalean.SCM.ID.Identifiable
 
 /-!
 # Positivity assumptions for discrete ID formulas
@@ -22,6 +23,10 @@ point mass is preserved by measurable surjections and coordinate projections.
 These lemmas turn full observational support into the denominator positivity
 needed by `conditionalMass`.
 -/
+
+@[expose] public section
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.ID.DiscreteID
 

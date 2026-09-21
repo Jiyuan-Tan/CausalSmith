@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineScore
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineRisk
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineScore
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SineRisk
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
 
 /-!
 # Gaussian--Rademacher sine-score benchmark
@@ -8,6 +9,8 @@ import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTra
 This module assembles the explicit transform identities and the generic
 clipped-ratio risk bound for the local-to-Gaussian path.
 -/
+
+@[expose] public section
 
 noncomputable section
 

@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
-import Causalean.Mathlib.MeasureTheory.PolynomialZeroLocus
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
+public import Causalean.Mathlib.MeasureTheory.PolynomialZeroLocus
 
 /-!
 # Generic affine occupancy
@@ -7,11 +8,11 @@ import Causalean.Mathlib.MeasureTheory.PolynomialZeroLocus
 The common almost-sure occupancy lemma for both honest-set and full-design applications.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open MeasureTheory
-open Causalean.Mathlib.MeasureTheory
-
 -- @node: genericActiveAmplitudes_ae_positive
 /-- Absolute continuity with respect to volume restricted to the positive orthant forces the
 active amplitude vector to lie in that orthant almost surely. [Under the stated hypotheses](hyp:h_generic) [this conclusion](goal) applies. -/
@@ -78,7 +79,8 @@ lemma genericActiveAmplitudes_ae_polynomial_ne_zero
     {x | MvPolynomial.eval x P = 0}
   have hSmeas : MeasurableSet S := by
     exact (MvPolynomial.continuous_eval P).measurable (measurableSet_singleton 0)
-  have hSnull : volume S = 0 := volume_zeroLocus_mvPolynomial_finite P hP
+  have hSnull : volume S = 0 :=
+    Causalean.Mathlib.MeasureTheory.volume_zeroLocus_mvPolynomial_finite P hP
   simpa [S] using genericActiveAmplitudes_ae_avoid_volume_null
     I Z a μ h_generic S hSmeas hSnull
 

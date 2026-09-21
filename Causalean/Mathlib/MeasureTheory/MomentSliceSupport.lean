@@ -3,15 +3,17 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.LinearAlgebra.Dimension.Finite
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Dirac
-import Mathlib.MeasureTheory.Measure.Prokhorov
-import Mathlib.Topology.Order.Compact
-import Mathlib.Data.Finset.Sort
-import Mathlib.Data.Set.Card
-import Mathlib.MeasureTheory.Measure.Support
-import Mathlib.MeasureTheory.Measure.WithDensity
+
+module
+public import Mathlib.LinearAlgebra.Dimension.Finite
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.Dirac
+public import Mathlib.MeasureTheory.Measure.Prokhorov
+public import Mathlib.Topology.Order.Compact
+public import Mathlib.Data.Finset.Sort
+public import Mathlib.Data.Set.Card
+public import Mathlib.MeasureTheory.Measure.Support
+public import Mathlib.MeasureTheory.Measure.WithDensity
 
 /-!
 # Moment-slice extreme-point support bound (Richter–Rogosinski / Winkler)
@@ -42,6 +44,8 @@ Main results:
   `exists_cardSupportLe_three_of_isExtremePoint` — the same conclusion as a positive
   discrete-measure representation and as a finite support carrier.
 -/
+
+@[expose] public section
 
 open MeasureTheory Finset
 open scoped ENNReal NNReal BoundedContinuousFunction

@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Risk
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Risk
 
 /-! # Ordered masses of locally separated finite atomic laws -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

@@ -1,5 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { normalizeStatementReplacementStatuses } from "../../src/discovery/solve/unit_io.js";
+import {
+  normalizeEmptySolveUnitContainers,
+  normalizeStatementReplacementStatuses,
+} from "../../src/discovery/solve/unit_io.js";
+
+describe("normalizeEmptySolveUnitContainers", () => {
+  it.each([{}, []])("treats empty prose_updates %j as omission", (prose_updates) => {
+    const body: { prose_updates?: unknown } = { prose_updates };
+
+    normalizeEmptySolveUnitContainers(body);
+
+    expect(body.prose_updates).toBeUndefined();
+  });
+
+  it("preserves nonempty malformed containers for strict schema rejection", () => {
+    const body: { prose_updates?: unknown } = { prose_updates: ["unexpected"] };
+
+    normalizeEmptySolveUnitContainers(body);
+
+    expect(body.prose_updates).toEqual(["unexpected"]);
+  });
+});
 
 describe("normalizeStatementReplacementStatuses", () => {
   it("derives replacement status from citation provenance instead of model output", () => {

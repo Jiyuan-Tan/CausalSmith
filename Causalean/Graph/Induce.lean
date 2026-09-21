@@ -17,12 +17,12 @@ weakened `dag_edges_classified` invariant.
   restricted observed set, and filter edges to those with both endpoints in the
   new active set.
 
-## References
-
-* Basic Concepts.tex, Definition 2.11 (Induced subgraph)
+This is a library construction; the current Basic Concepts graphical-definitions
+note does not state an induced-SWIG-subgraph definition.
 -/
 
-import Causalean.Graph.SWIG
+module
+public import Causalean.Graph.SWIG
 
 /-! # Induced SWIG Subgraphs
 
@@ -32,14 +32,18 @@ retains only fixed nodes whose random counterparts remain observed, retains only
 latent roots that feed those observed nodes, and filters edges to the resulting
 active vertex set.
 
-The auxiliary `inducedEdge` and `inducedDag` restrict the ambient DAG while
-preserving its topological order. The main constructor `SWIGGraph.induce` builds
-the restricted SWIG and proves all structural invariants; `inducedDag_edge_iff`
-and the parent/child subset lemmas expose the relationship with the ambient
-graph. The theorem `induce_isAncestor_mem_R` shows that every nontrivial
-descendant in an induced subgraph lies in the retained observed part of `R`. -/
+The auxiliary `inducedEdge` and `inducedDag` restrict the ambient DAG. The
+ambient DAG's derived topological order supplies an acyclicity witness for the
+restriction; the restricted DAG derives its own order. The main constructor
+`SWIGGraph.induce` builds the restricted SWIG and proves all structural
+invariants; `inducedDag_edge_iff` and the parent/child subset lemmas expose the
+relationship with the ambient graph. The theorem `induce_isAncestor_mem_R`
+shows that every nontrivial descendant in an induced subgraph lies in the
+retained observed part of `R`. -/
 
-namespace Causalean
+@[expose] public section
+
+namespace Causalean.Graph
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 
@@ -62,9 +66,12 @@ instance inducedEdge_decidable (active : Finset (SWIGNode N)) :
   unfold inducedEdge
   infer_instance
 
-/-- For [a single-world intervention graph](hyp:G) and [a set of active split nodes](hyp:active), the [induced directed acyclic graph](goal) retains exactly the original directed edges whose two endpoints are active.
+/-- [The directed acyclic graph induced](goal) by [a single-world intervention
+    graph](hyp:G) on [an active set of split nodes](hyp:active) keeps exactly the original
+    directed edges whose two endpoints remain active.
 
-    Acyclicity follows from the parent graph via the parent's topological order (every restricted edge is an original edge). -/
+    Every restricted edge is an original edge, so the ambient DAG's derived
+    topological order supplies an acyclicity witness. -/
 def inducedDag (active : Finset (SWIGNode N)) : DAG (SWIGNode N) where
   edge := G.inducedEdge active
   decEdge := G.inducedEdge_decidable active
@@ -284,4 +291,4 @@ lemma induce_isAncestor_mem_R (R : Finset (SWIGNode N)) {u v : SWIGNode N}
 
 end SWIGGraph
 
-end Causalean
+end Causalean.Graph

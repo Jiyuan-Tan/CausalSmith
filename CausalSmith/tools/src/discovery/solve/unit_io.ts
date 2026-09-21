@@ -18,7 +18,7 @@ import {
   repairLatexStringsDeep,
 } from "../core/latex_serialization.js";
 import { SolveUnitOutputSchema, type SolveUnitOutput } from "./schemas.js";
-import { companionPathFor, isTexRef, sliceTexCompanion, resolveTexRefs } from "./tex_companion.js";
+import { isTexRef, sliceTexCompanion, resolveTexRefs } from "./tex_companion.js";
 
 /** The persisted artifact is not a readable carrier (damaged JSON / TeX bytes)
  * even after the deterministic repairs: the model call itself failed and may be
@@ -91,13 +91,14 @@ export function repairSolveUnitLatexSerialization(value: unknown): void {
   repairLatexStringsDeep(value);
 }
 
-/** `prose_updates: {}` is an omission, not a prose write. */
+/** Empty `prose_updates` containers are omissions, not prose writes. */
 export function normalizeEmptySolveUnitContainers(value: unknown): void {
   if (value === null || typeof value !== "object" || Array.isArray(value)) return;
   const body = value as Record<string, unknown>;
   const prose = body.prose_updates;
-  if (prose !== null && typeof prose === "object" && !Array.isArray(prose) &&
-      Object.keys(prose as Record<string, unknown>).length === 0) {
+  if ((Array.isArray(prose) && prose.length === 0) ||
+      (prose !== null && typeof prose === "object" && !Array.isArray(prose) &&
+       Object.keys(prose as Record<string, unknown>).length === 0)) {
     delete body.prose_updates;
   }
 }
@@ -257,6 +258,8 @@ export interface ReadSolveUnitOutputOptions {
   onValidatedSnapshot?: (snapshot: { companionBlocks: Map<string, string>; companionRaw: string | null }) => void;
   /** Require the current D0 prompt's companion-only carrier for long TeX fields. */
   requireCompanionLongFields?: boolean;
+  /** Exact companion generation selected by the live solve before dispatch. */
+  companionPath: string;
 }
 
 function assertLongTexFieldsUseCompanion(body: unknown, companionPath: string): void {
@@ -344,12 +347,12 @@ function assertCompanionHasNoDecodedControlChars(blocks: Map<string, string>, co
 export async function readSolveUnitOutput(
   outPath: string,
   label: string,
-  options: ReadSolveUnitOutputOptions = {},
+  options: ReadSolveUnitOutputOptions,
 ): Promise<SolveUnitOutput> {
   if (!existsSync(outPath)) throw new Error(`Stage 0-SOLVE unit ${label} completed without writing ${outPath}`);
   try {
     const raw = await readFile(outPath, "utf8");
-    const companionPath = companionPathFor(outPath);
+    const companionPath = options.companionPath;
     const companionRawAtStart = existsSync(companionPath) ? await readFile(companionPath, "utf8") : null;
     const normalizedRaw = normalizeRawModelJson(raw);
     const body = JSON.parse(normalizedRaw);

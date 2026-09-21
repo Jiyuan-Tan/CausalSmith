@@ -1,7 +1,10 @@
 /- Headline two-sided minimax brackets. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_FrontierUpper
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_RadiusChannelConverse
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_FrontierUpper
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_RadiusChannelConverse
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
@@ -143,8 +146,6 @@ theorem two_sided_minimax_bracket :
     exact hcap
   refine ⟨?_, hupper⟩
   simpa [converseRate, min_eq_right hratio] using hlower
-
-private abbrev BinLaw := CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
 
 -- @node: prop:zeng-class-inclusion-and-lower-transfer
 /-- [The canonical affine embedding realizes the binary subclasses, with strict image inclusion

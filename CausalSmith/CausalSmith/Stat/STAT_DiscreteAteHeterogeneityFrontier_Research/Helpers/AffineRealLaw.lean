@@ -1,8 +1,11 @@
 /- Canonical affine real-law construction for binary source experiments. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.AffineEmbedding
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Endpoint
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HeavyCellMoments
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.AffineEmbedding
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Endpoint
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HeavyCellMoments
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
@@ -10,8 +13,6 @@ open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal BigOperators
 noncomputable section
 
-private abbrev BinLaw := CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-private abbrev BinObs := CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 -- @node: binaryOutcomePMF
 /-- This is the two-point outcome distribution with the specified success probability and affine
   outcome scale. -/

@@ -96,4 +96,26 @@ theorem foo (h : Nat) : True := by
     // theorem header is on line 6 in the original source
     expect(r.findings[0]?.declLine).toBe(6);
   });
+
+  it("lints theorems published by an unclosed module public section", () => {
+    const src = `module
+@[expose] public section
+theorem moduleFoo (hUsed : True) (hUnused : True) : True := by
+  exact hUsed
+`;
+    const r = lintUnusedHypotheses(src);
+    expect(r.theoremsInspected).toBe(1);
+    expect(r.findings).toContainEqual(expect.objectContaining({ theoremName: "moduleFoo", hypothesisName: "hUnused" }));
+  });
+
+  it("lints theorems published by a public noncomputable section", () => {
+    const src = `module
+public noncomputable section
+theorem moduleFoo (hUsed : True) (hUnused : True) : True := by
+  exact hUsed
+`;
+    const r = lintUnusedHypotheses(src);
+    expect(r.theoremsInspected).toBe(1);
+    expect(r.findings).toContainEqual(expect.objectContaining({ theoremName: "moduleFoo", hypothesisName: "hUnused" }));
+  });
 });

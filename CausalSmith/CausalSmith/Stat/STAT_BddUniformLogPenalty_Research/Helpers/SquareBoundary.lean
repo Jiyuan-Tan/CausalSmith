@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
 
 /-!
 # Rectifiable boundary of the packing square
@@ -7,6 +8,8 @@ This file gives an explicit piecewise-linear traversal of the boundary of the
 unit square and proves the Lipschitz and image properties needed by the CTY
 law class.
 -/
+
+@[expose] public section
 
 open Set
 open scoped NNReal

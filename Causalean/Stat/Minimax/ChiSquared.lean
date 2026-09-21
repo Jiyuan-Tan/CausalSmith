@@ -25,12 +25,14 @@ Main results:
 * `chiSqDiv_eq` — the expansion `χ² = ∫ p² ∂ν − 1` under `μ ≪ ν`.
 -/
 
-import Causalean.Stat.Minimax.Scheffe
-import Causalean.Tactic.IntegralLinearity
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Measure.WithDensity
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import Causalean.Mathlib.Probability.ProductAbsolutelyContinuous
+public import Causalean.Stat.Minimax.Scheffe
+public import Causalean.Tactic.IntegralLinearity
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.MeasureTheory.Measure.WithDensity
+public import Mathlib.MeasureTheory.Constructions.Pi
 
 /-! # Chi-squared divergence
 
@@ -43,6 +45,10 @@ interfaces.  The base results include `chiSqDiv_nonneg`,
 testing layer culminates in `testing_error_lower_of_chi` and
 `le_cam_two_point_chisq`.
 -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability.ProductAbsolutelyContinuous
 
 namespace Causalean.Stat
 
@@ -155,32 +161,6 @@ section Tensorization
 
 variable {α : Type*} {mα : MeasurableSpace α} {β : Type*} {mβ : MeasurableSpace β}
 
-/-- **Product density factorization.** For `μ₁ ≪ ν₁` and `μ₂ ≪ ν₂`, the Radon–Nikodym
-density of the product is (a.e.) the product of the marginal densities. -/
-theorem rnDeriv_prod_eq (μ₁ ν₁ : Measure α) (μ₂ ν₂ : Measure β)
-    [SigmaFinite ν₁] [SigmaFinite ν₂] [SFinite ν₂]
-    [μ₁.HaveLebesgueDecomposition ν₁] [μ₂.HaveLebesgueDecomposition ν₂]
-    (h₁ : μ₁ ≪ ν₁) (h₂ : μ₂ ≪ ν₂) :
-    (μ₁.prod μ₂).rnDeriv (ν₁.prod ν₂)
-      =ᵐ[ν₁.prod ν₂]
-        fun z => μ₁.rnDeriv ν₁ z.1 * μ₂.rnDeriv ν₂ z.2 := by
-  -- Rewrite `μᵢ = νᵢ.withDensity (rnDeriv μᵢ νᵢ)` and use `prod_withDensity₀`.
-  have hfac : μ₁.prod μ₂
-      = (ν₁.prod ν₂).withDensity (fun z => μ₁.rnDeriv ν₁ z.1 * μ₂.rnDeriv ν₂ z.2) := by
-    conv_lhs =>
-      rw [← Measure.withDensity_rnDeriv_eq _ _ h₁, ← Measure.withDensity_rnDeriv_eq _ _ h₂]
-    exact prod_withDensity₀ (Measure.measurable_rnDeriv _ _).aemeasurable
-      (Measure.measurable_rnDeriv _ _).aemeasurable
-  calc (μ₁.prod μ₂).rnDeriv (ν₁.prod ν₂)
-      =ᵐ[ν₁.prod ν₂]
-        ((ν₁.prod ν₂).withDensity
-          (fun z => μ₁.rnDeriv ν₁ z.1 * μ₂.rnDeriv ν₂ z.2)).rnDeriv (ν₁.prod ν₂) := by
-        rw [hfac]
-    _ =ᵐ[ν₁.prod ν₂] fun z => μ₁.rnDeriv ν₁ z.1 * μ₂.rnDeriv ν₂ z.2 :=
-        Measure.rnDeriv_withDensity₀ _
-          (((Measure.measurable_rnDeriv _ _).comp measurable_fst).mul
-            ((Measure.measurable_rnDeriv _ _).comp measurable_snd)).aemeasurable
-
 /-- **Binary tensorization of the χ²-divergence.** For probability measures with
 `μ₁ ≪ ν₁` and `μ₂ ≪ ν₂` and integrable squared density deviations, the χ²-divergence
 tensorizes multiplicatively:
@@ -265,30 +245,6 @@ theorem chiSqDiv_self {Ω : Type*} [MeasurableSpace Ω] (ρ : Measure Ω) [Sigma
   rw [integral_eq_zero_of_ae]
   filter_upwards [ρ.rnDeriv_self] with x hx
   simp [hx]
-
-/-- The `n`-fold product of `μ` is absolutely continuous w.r.t. that of `ν` whenever
-`μ ≪ ν` (for sigma-finite factors). Proved by induction via the
-`piFinSuccAbove` equivalence and the binary `AbsolutelyContinuous.prod`. -/
-theorem pi_iid_absolutelyContinuous {Ω : Type*} [MeasurableSpace Ω]
-    (μ ν : Measure Ω) [SigmaFinite μ] [SigmaFinite ν] (hac : μ ≪ ν) (n : ℕ) :
-    Measure.pi (fun _ : Fin n => μ) ≪ Measure.pi (fun _ : Fin n => ν) := by
-  induction n with
-  | zero =>
-    rw [Measure.pi_of_empty (fun _ : Fin 0 => μ), Measure.pi_of_empty (fun _ : Fin 0 => ν)]
-  | succ n ih =>
-    set e := MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => Ω) 0 with he
-    have hμ := (measurePreserving_piFinSuccAbove (fun _ : Fin (n + 1) => μ) 0).map_eq
-    have hν := (measurePreserving_piFinSuccAbove (fun _ : Fin (n + 1) => ν) 0).map_eq
-    have hprod : μ.prod (Measure.pi (fun _ : Fin n => μ))
-        ≪ ν.prod (Measure.pi (fun _ : Fin n => ν)) := hac.prod ih
-    have hmap : (Measure.pi (fun _ : Fin (n + 1) => μ)).map e
-        ≪ (Measure.pi (fun _ : Fin (n + 1) => ν)).map e := by
-      rw [hμ, hν]; exact hprod
-    have hmapped := hmap.map (f := e.symm) e.symm.measurable
-    rwa [Measure.map_map e.symm.measurable e.measurable,
-      MeasurableEquiv.symm_comp_self, Measure.map_id,
-      Measure.map_map e.symm.measurable e.measurable,
-      MeasurableEquiv.symm_comp_self, Measure.map_id] at hmapped
 
 set_option linter.unusedFintypeInType false in
 /-- **`n`-fold i.i.d. tensorization of the χ²-divergence** on a finite sample space.

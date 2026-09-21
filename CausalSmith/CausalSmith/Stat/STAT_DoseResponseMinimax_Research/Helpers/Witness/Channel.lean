@@ -13,7 +13,10 @@ chain-rule arguments it is far cleaner to view it as a SINGLE bind of the shared
 the downstream leaves consume.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

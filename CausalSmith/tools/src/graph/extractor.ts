@@ -5,6 +5,7 @@ import { isUndeliveredNode, type FormalizationGraph, type GraphEdge } from "./ty
 import { isPaperTmpPath } from "../paths.js";
 import { statementHash } from "./hash.js";
 import { maskLeanCommentsAndStrings } from "../shared/lean_mask.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_DECL_MODIFIERS, LEAN_SECTION_RE } from "../shared/lean_syntax.js";
 
 export { maskLeanCommentsAndStrings };
 
@@ -21,7 +22,7 @@ const NODE_TAG_RE = /^--\s*@node:\s*([A-Za-z0-9_:.\-]+)\s*$/;
 // decl keyword + name. Kept permissive so a tagged decl is never missed because of an attribute or
 // an extra modifier (the historical source of "@node didn't link" errors).
 const DECL_RE =
-  /^\s*(?:@\[[^\]]*\]\s*)*(?:noncomputable\s+|private\s+|protected\s+|scoped\s+|local\s+|partial\s+|unsafe\s+|nonrec\s+)*(def|abbrev|structure|theorem|lemma|instance|class|inductive)\s+([A-Za-z0-9_'.]+)/;
+  new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}(?:(?:${LEAN_DECL_MODIFIERS})\s+)*(def|abbrev|structure|theorem|lemma|instance|class|inductive)\s+([A-Za-z0-9_'.]+)`);
 
 export interface ExtractedDecl {
   nodeId: string;
@@ -232,7 +233,7 @@ function namespaceByLine(raw: string): string[] {
       blockStack.push({ kind: "namespace", count: parts.length });
       continue;
     }
-    if (/^\s*section(?:\s+[A-Za-z0-9_'.]+)?\s*$/.test(ln)) {
+    if (LEAN_SECTION_RE.test(ln)) {
       blockStack.push({ kind: "section", count: 0 });
       continue;
     }

@@ -12,7 +12,8 @@ nuisance by `δ` times a sign function `σ` (with `(σ x)² = 1`) moves the `L²
 by exactly `δ²`, which lands a Rademacher bump on the boundary of the budget class.
 -/
 
-import Causalean.Estimation.MinimaxATE.Model
+module
+public import Causalean.Estimation.MinimaxATE.Model
 
 /-! # Squared-Distance Bump Algebra
 
@@ -22,6 +23,8 @@ records the Rademacher-bump identity `l2sq_bump`: if `a x = b x + δ * σ x` and
 `(σ x)^2 = 1`, then the squared distance from `a` to `b` is exactly `δ^2` on a nonempty finite
 space.  This is the reusable membership calculation for lower-bound perturbations that are placed
 on the boundary of an `InClass` budget. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

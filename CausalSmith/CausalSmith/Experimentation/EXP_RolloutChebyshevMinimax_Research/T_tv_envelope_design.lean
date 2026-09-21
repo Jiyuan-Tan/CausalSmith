@@ -8,12 +8,15 @@ Authors: Jiyuan Tan
 `thm:tv-envelope-design`.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Variance
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.MinimaxAssembly
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.Data.Real.Pointwise
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Variance
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.MinimaxAssembly
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Data.Real.Pointwise
+
+public section
 
 open Causalean.Experimentation.DesignBased
 open scoped BigOperators Pointwise

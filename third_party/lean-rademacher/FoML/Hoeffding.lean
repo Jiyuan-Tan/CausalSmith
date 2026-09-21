@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Kei Tsukamoto, Kazumi Kasaura, Naoto Onda, Sho Sonoda, Yuma Mizuno
 -/
 
-import FoML.ForMathlib.Probability.Moments
+module
+public import FoML.ForMathlib.Probability.Moments
 
 /-!
 # Hoeffding's lemma
@@ -22,13 +23,15 @@ This file states Hoeffding's lemma.
 We follow [martin2019] and [mehryar2018] for the proof of Hoeffding's lemma.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Real
 
 namespace ProbabilityTheory
 
 universe u
 
-variable {Ω : Type u} [MeasurableSpace Ω] (μ : Measure Ω := by volume_tac)
+variable {Ω : Type u} [MeasurableSpace Ω] (μ : Measure Ω)
 
 theorem cgf_zero_deriv [IsProbabilityMeasure μ] {X : Ω → ℝ} (h0 : μ[X] = 0) :
     let f' := fun t ↦ ∫ (x : Ω), X x ∂Measure.tilted μ fun ω ↦ t * X ω;

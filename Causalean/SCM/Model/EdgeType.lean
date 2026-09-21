@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.DAG
+module
+public import Causalean.Graph.DAG
 
 /-! # Edge Type Hierarchy
 
@@ -25,13 +26,19 @@ models and is used to track functional assumptions.
   default assignment.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 namespace Causalean
 
-/-- [A monotonicity classification](goal) is one of [nondecreasing](hyp:nonDecreasing), [nonincreasing](hyp:nonIncreasing), [strictly increasing](hyp:strictlyIncreasing), or [strictly decreasing](hyp:strictlyDecreasing).
+namespace SCM.Model
 
-    For every monotonicity classification and every natural-number pretty-printing
-precedence, the derived representation function returns a standard formatted
-description of that classification.
+/-- [A monotonicity classification](goal) is one of
+[nondecreasing](hyp:nonDecreasing), [nonincreasing](hyp:nonIncreasing),
+[strictly increasing](hyp:strictlyIncreasing), or
+[strictly decreasing](hyp:strictlyDecreasing).
 
     From the tex: "Monotonic: non-increasing, non-decreasing,
     strictly increasing, or strictly decreasing." -/
@@ -40,15 +47,15 @@ inductive MonotonicityKind
   | nonIncreasing
   | strictlyIncreasing
   | strictlyDecreasing
-  deriving DecidableEq, Repr
+  deriving DecidableEq
 
-/-- [An edge-type classification](goal) is either [nonparametric](hyp:nonparametric), [monotonic with a specified monotonicity classification](hyp:monotonic), [linear](hyp:linear), or [parametric](hyp:parametric).
+/-- [An edge-type classification](goal) is either
+[nonparametric](hyp:nonparametric),
+[monotonic with a specified monotonicity classification](hyp:monotonic),
+[linear](hyp:linear), or [parametric](hyp:parametric).
 
     For any two edge-type classifications, the derived equality procedure decides
-whether the first classification is equal to the second; for every edge-type
-classification and every natural-number pretty-printing precedence, the derived
-representation function returns a standard formatted description of that
-classification.
+whether the first classification is equal to the second.
 
     From the tex (Section 2):
     1. Nonparametric: no assumption on the structural equation.
@@ -62,7 +69,9 @@ inductive EdgeType
   | monotonic (kind : MonotonicityKind)
   | linear
   | parametric
-  deriving DecidableEq, Repr
+  deriving DecidableEq
+
+end SCM.Model
 
 namespace EdgeType
 
@@ -76,7 +85,7 @@ parametric classes refine only their respective matching classes.
     automatically monotone: without a sign restriction on its coefficient, the
     linear structural function need not be strictly increasing. Returns `Bool`
     for decidability; use `refines` for the `Prop` version. -/
-def refinesBool : EdgeType → EdgeType → Bool
+def refinesBool : SCM.Model.EdgeType → SCM.Model.EdgeType → Bool
   | _, .nonparametric => true
   | .monotonic k₁, .monotonic k₂ => k₁ == k₂
   | .linear, .linear => true
@@ -88,14 +97,16 @@ when their Boolean refinement indicator is true; thus the first assumption is at
 restrictive as the second.
 
     Nonparametric is the weakest assumption: every edge type refines it. -/
-def refines (e₁ e₂ : EdgeType) : Prop := e₁.refinesBool e₂ = true
+def refines (e₁ e₂ : SCM.Model.EdgeType) : Prop := refinesBool e₁ e₂ = true
 
-/-- For [each first edge-type assumption](hyp:e₁) and [each second edge-type assumption](hyp:e₂), [a decision procedure for whether the first refines the second](goal) is provided. -/
-instance decRefines (e₁ e₂ : EdgeType) : Decidable (e₁.refines e₂) :=
+/-- For [each first edge-type assumption](hyp:e₁) and
+[each second edge-type assumption](hyp:e₂),
+[a decision procedure for whether the first refines the second](goal) is provided. -/
+instance decRefines (e₁ e₂ : SCM.Model.EdgeType) : Decidable (refines e₁ e₂) :=
   inferInstanceAs (Decidable (_ = true))
 
 /-- Every edge-type assumption refines itself. -/
-theorem refines_refl : (e : EdgeType) → e.refines e
+theorem refines_refl : (e : SCM.Model.EdgeType) → refines e e
   | .nonparametric => rfl
   | .monotonic k => by cases k <;> rfl
   | .linear => rfl
@@ -104,12 +115,14 @@ theorem refines_refl : (e : EdgeType) → e.refines e
 /-- [Every edge-type functional-form assumption `e`](hyp:e) [refines the
 nonparametric assumption](goal): nonparametric is the weakest assumption in the
 refinement order, so every other assumption is at least as specific as it. -/
-theorem refines_nonparametric (e : EdgeType) : e.refines .nonparametric := by
+theorem refines_nonparametric (e : SCM.Model.EdgeType) : refines e .nonparametric := by
   cases e <;> simp [refines, refinesBool]
 
 end EdgeType
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
+
+namespace SCM.Model
 
 /-- An edge type assignment attaches [a functional-assumption label to each directed edge of a
 graph](hyp:edgeType).
@@ -125,6 +138,8 @@ structure EdgeTypeAssignment (G : DAG V) where
       Only meaningful when `G.edge u v` holds. -/
   edgeType : V → V → EdgeType
 
+end SCM.Model
+
 namespace EdgeTypeAssignment
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
@@ -132,22 +147,27 @@ variable {G : DAG V}
 
 /-- For [a directed acyclic graph](hyp:G), [the all-nonparametric edge-type assignment](goal)
 labels every ordered pair of its vertices as nonparametric. -/
-def allNonparametric (G : DAG V) : EdgeTypeAssignment G where
+def allNonparametric (G : DAG V) : SCM.Model.EdgeTypeAssignment G where
   edgeType := fun _ _ => .nonparametric
 
 /-- For [an edge-type assignment](hyp:a) and [a vertex](hyp:v) in its graph, [the incoming
 edge-type set](goal) is the finite set of labels assigned to all parents of that vertex. -/
-def incomingTypes (a : EdgeTypeAssignment G) (v : V) : Finset EdgeType :=
+def incomingTypes (a : SCM.Model.EdgeTypeAssignment G) (v : V) :
+    Finset SCM.Model.EdgeType :=
   (G.parents v).image (fun u => a.edgeType u v)
 
 /-- For [an edge-type assignment](hyp:a), [full nonparametricity](goal) holds exactly when, for
 every ordered pair of vertices joined by a directed edge, the assigned label is nonparametric. -/
-def isFullyNonparametric (a : EdgeTypeAssignment G) : Prop :=
+def isFullyNonparametric (a : SCM.Model.EdgeTypeAssignment G) : Prop :=
   ∀ u v, G.edge u v → a.edgeType u v = .nonparametric
 
-/-- For [a finite vertex set whose members can be compared for equality and a directed acyclic graph on it](hyp:V,G) and [an edge-type assignment on that graph](hyp:a), [a decision procedure for whether every directed edge has the nonparametric label](goal) is provided. -/
-instance decIsFullyNonparametric (a : EdgeTypeAssignment G) :
-    Decidable a.isFullyNonparametric :=
+/-- For
+[a finite decidable vertex set and a directed acyclic graph](hyp:V,G)
+and [an edge-type assignment on that graph](hyp:a),
+[a decision procedure for whether every directed edge has the nonparametric label](goal)
+is provided. -/
+instance decIsFullyNonparametric (a : SCM.Model.EdgeTypeAssignment G) :
+    Decidable (isFullyNonparametric a) :=
   inferInstanceAs (Decidable (∀ u v, G.edge u v → _))
 
 end EdgeTypeAssignment

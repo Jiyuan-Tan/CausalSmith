@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Consistency
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Consistency
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # Local-dependence CLT interface (Aronow-Samii 2017, via Chen-Shao 2004)
@@ -19,6 +20,7 @@ statement consumed by the interval theorem, while `SteinInstance.lean` connects 
 the dependency-graph Stein CLT developed elsewhere in the library.
 -/
 
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter MeasureTheory

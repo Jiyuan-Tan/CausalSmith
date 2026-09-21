@@ -1,0 +1,250 @@
+%%% FIELD def-proportional-design-multi
+Given \(m\in\{2,\ldots,K-1\}\), \(T\), \(s\), \(w\), and \(0<\rho<1\), the design \(\mathsf D_{\rho,w,m}\) assigns the first-batch observations by deterministic largest-remainder rounding of \(T\rho w_i\), retains the set \(J\in\mathcal J_m:=\{J\subseteq\mathcal A:|J|=m\}\) of the \(m\) largest first-batch sample means using arm-index tie breaking, and assigns all remaining observations among \(i\in J\) by deterministic largest-remainder rounding of \((1-\rho)T w_i/W_J\), where \(W_J=\sum_{k\in J}w_k\). It deploys the survivor with the largest aggregate mean from both batches, again using arm-index tie breaking. Write \(r_i(J;\rho)=(1-\rho)w_i/W_J\) for \(i\in J\), \(r_i(J;\rho)=0\) for \(i\notin J\), and \(n_i(J;\rho)=\rho w_i+r_i(J;\rho)\). The original eliminate-one design is the specialization \(\mathsf D_{\rho,w}=\mathsf D_{\rho,w,K-1}\), with \(J=\mathcal A\setminus\{e\}\).
+%%% FIELD def-branch-programs-multi
+For \(J\in\mathcal J_m\), define
+\[
+ \mathcal B_J=\{x\in\mathbb R^K:x_a\ge x_b\text{ for every }a\in J,\ b\notin J\},
+\]
+\[
+ R_J(x,z;\mu)=\sum_{i\in\mathcal A}\frac{\rho w_i(x_i-\mu_i)^2}{2s_i}
+ +\sum_{i\in J}\frac{r_i(J;\rho)(z_i-\mu_i)^2}{2s_i},
+ \qquad
+ \bar m_i(J;x,z)=\frac{\rho w_i x_i+r_i(J;\rho)z_i}{n_i(J;\rho)}\quad(i\in J).
+\]
+For \(J\in\mathcal J_m\) with \(h\notin J\), set
+\[
+ Q_J^{\mathrm E}(\rho,\mu)=\inf_{x\in\mathcal B_J}
+ \sum_{i\in\mathcal A}\frac{\rho w_i(x_i-\mu_i)^2}{2s_i}.
+\]
+For \(J\in\mathcal J_m\) with \(h\in J\) and \(j\in J\setminus\{h\}\), set
+\[
+ Q_{J,j}^{\mathrm T}(\rho,\mu)=
+ \inf\{R_J(x,z;\mu):x\in\mathcal B_J,\ \bar m_j(J;x,z)\ge \bar m_h(J;x,z)\}.
+\]
+When \(m=K-1\) and \(J=\mathcal A\setminus\{e\}\), these objects are respectively the original cone \(\mathcal B_e\), rate \(R_e\), aggregate means \(m_i(e)\), and branch programs \(Q_h^{\mathrm E}\) or \(Q_{e,j}^{\mathrm T}\).
+%%% FIELD def-projection-coefficient-multi
+For \(m\in\{2,\ldots,K-1\}\), \(h\in\mathcal A\), and \(S\subseteq\mathcal A\setminus\{h\}\) with \(|S|=m\), define
+\[
+ F_{h,S}(t)=\frac{t^2}{2v_h}+\sum_{j\in S}\frac{(d_{hj}-t)_+^2}{2v_j},
+ \qquad C_{h,S}(v)=\min_{t\ge0}F_{h,S}(t),
+\]
+and
+\[
+ C_m(v)=\min_{h\in\mathcal A}\ \min_{\substack{S\subseteq\mathcal A\setminus\{h\}\\|S|=m}}C_{h,S}(v).
+\]
+Each \(C_{h,S}\) is computed by sorting the \(m\) breakpoints \(d_{hj}\), evaluating on every induced interval the stationary point
+\[
+ t_A=\frac{\sum_{j\in A}d_{hj}/v_j}{1/v_h+\sum_{j\in A}1/v_j},
+\]
+clipped to that interval, and taking the smallest value. Thus at most \(m+1\le K\) one-dimensional quadratic pieces are required. The original coefficient satisfies \(C_h=C_{h,\mathcal A\setminus\{h\}}\) and \(C=C_{K-1}\).
+%%% FIELD def-robust-schedule-multi
+Put \(\ell=K-m\), let
+\[
+ \zeta_\ell(w)=\min_{\substack{E\subseteq\mathcal A\\|E|=\ell}}\sum_{e\in E}w_e
+\]
+be the sum of the \(\ell\) smallest coordinates of \(w\), and set
+\[
+ \eta_\ell=\frac{\zeta_\ell}{1-\zeta_\ell},\qquad
+ \rho_m^\star=\frac{1+\eta_\ell}{C_m+\eta_\ell},\qquad
+ G_m=\frac{C_m(1+\eta_\ell)}{C_m+\eta_\ell}.
+\]
+Finally define \(G_{\mathrm{multi}}=\max_{2\le m\le K-1}G_m\) and let \(m^\star\) be the smallest maximizer. For \(m=K-1\), one has \(\ell=1\), \(\eta_1=\eta\), \(\rho_{K-1}^\star=\rho^\star\), and \(G_{K-1}=G\).
+%%% FIELD def-finite-certificate-multi
+For each retained set \(J\), replace the proportions in the corresponding programs by the exact largest-remainder fractions \(N_{i,T}^{(1)}/T\) and \(N_{i,T}^{(2)}(J)/T\), and denote the resulting values by \(Q_{T,J}^{\mathrm E}\) and \(Q_{T,J,j}^{\mathrm T}\). Define
+\[
+ B_{T,m}=\sum_{\substack{J\in\mathcal J_m\\h\notin J}}e^{-TQ_{T,J}^{\mathrm E}}
+ +\sum_{\substack{J\in\mathcal J_m\\h\in J}}\ \sum_{j\in J\setminus\{h\}}e^{-TQ_{T,J,j}^{\mathrm T}}.
+\]
+At \(m=K-1\), this is the original certificate \(B_T\), after writing the unique omitted arm as \(e\).
+%%% FIELD def-full-handle-eliminate-one
+For the variance vector \(s\), optimize the joint finite-branch Gaussian rate over an interior first-batch allocation \(a\in\mathcal W\), a first-batch fraction, and branch-specific interior allocations on the \(K-1\) survivors after one arm is eliminated, using the dual multipliers of the eliminate-one and terminal polyhedra as a saddle-point certificate over the explicitly eliminate-one-only class \(\mathfrak D_2^{\mathrm{all}}\). Optimization over the number of eliminated arms is not included in this residual handle.
+%%% FIELD stmt-multi-frontier
+Fix \(m\in\{2,\ldots,K-1\}\) and put \(\ell=K-m\). For every \(0<\rho<1\), the rounded top-\(m\) design has the exact exponent
+\[
+ \Gamma_{\rho,w,m}(\mu)=
+ \min\left\{
+ \min_{\substack{J\in\mathcal J_m\\h\notin J}}Q_J^{\mathrm E}(\rho,\mu),\ 
+ \min_{\substack{J\in\mathcal J_m\\h\in J}}\ \min_{j\in J\setminus\{h\}}Q_{J,j}^{\mathrm T}(\rho,\mu)
+ \right\}. \tag{21}
+\]
+There are exactly \(\binom{K-1}{m}\) best-exclusion branches and \((m-1)\binom{K-1}{m-1}\) terminal branches. Each closed-polyhedron infimum in (21) equals the infimum over the corresponding strict branch event, and deterministic largest-remainder rounding leaves (21) unchanged. Moreover,
+\[
+ \inf_{\mu:\,|\arg\max_i\mu_i|=1}
+ \frac{\Gamma_{\rho,w,m}(\mu)}{I_w(\mu)}
+ =L_m(\rho):=\min\{\rho C_m,\ 1+(1-\rho)\eta_\ell\}. \tag{22}
+\]
+A best-exclusion construction attains the first term whenever it is the smaller term, and a separated survivor-set terminal construction attains the second term whenever it is the smaller term. Consequently \(\rho_m^\star\) is the unique maximizer of \(L_m\) on \((0,1)\), its value is \(G_m>1\), and the certified optimum over \(\mathfrak D_2^{\mathrm{multi}}=\bigcup_{m=2}^{K-1}\mathfrak D_{2,m}\) is
+\[
+ \max_{2\le m\le K-1}\ \sup_{0<\rho<1}\ \inf_{\mu:\,|\arg\max_i\mu_i|=1}
+ \frac{\Gamma_{\rho,w,m}(\mu)}{I_w(\mu)}=G_{\mathrm{multi}},
+\]
+attained by \((m^\star,\rho_{m^\star}^\star)\). For every budget for which all prescribed positive counts are at least one,
+\[
+ \mathbb P_{\mu,s}^{\rho,w,m}(\widehat h_{T,m}\ne h)\le B_{T,m},
+ \qquad
+ \lim_{T\to\infty}-T^{-1}\log B_{T,m}=\Gamma_{\rho,w,m}(\mu). \tag{23}
+\]
+If \(s_i=\sigma^2\) for every \(i\), then
+\[
+ C_m=\frac{2m}{m+1},\qquad \eta_\ell=\frac{K-m}{m},\qquad
+ \rho_m^\star=\frac{K(m+1)}{m^2+(K-1)m+K},\qquad
+ G_m=\frac{2mK}{m^2+(K-1)m+K}, \tag{24}
+\]
+and, for \(2\le m\le K-2\), \(\operatorname{sign}(G_{m+1}-G_m)=\operatorname{sign}\{K-m(m+1)\}\). Hence an optimal \(m\) is of order \(\sqrt K\) and \(G_{\mathrm{multi}}\to2\) as \(K\to\infty\). At \(m=K-1\), (21)--(24) reduce to the eliminate-one formulas.
+%%% FIELD proof-multi-frontier
+Write \(q_i=\rho w_i\). Since \(s_i=w_iv_i\), every first-batch quadratic cost is
+\[
+ \frac{q_i(x_i-\mu_i)^2}{2s_i}=\rho\frac{(x_i-\mu_i)^2}{2v_i}. \tag{25}
+\]
+We first establish the exact branch exponent rather than assume a limit law. Fix a retained set \(J\). The vector consisting of the first-batch means and the fresh second-batch means for arms in \(J\) is Gaussian by \(\text{ass:gaussian-marginals}\), has independent coordinates by \(\text{ass:independent-streams}\), and has density proportional to \(\exp\{-T R_{J,T}(x,z;\mu)\}\), where \(R_{J,T}\) is obtained from \(R_J\) by using the exact rounded fractions. Largest-remainder rounding gives coefficientwise convergence \(R_{J,T}\to R_J\).
+
+For completeness, let \(X_T\sim\mathcal N(a,\Sigma_T/T)\) in a fixed finite dimension, with \(\Sigma_T\) positive definite and converging to a positive-definite matrix, and let \(P_T\) be one of the closed convex branch polyhedra formed with the exact rounded aggregate coefficients. Let \(x_T^\circ\) minimize \(I_T(x)=\tfrac12(x-a)^\top\Sigma_T^{-1}(x-a)\) over \(P_T\). The projection inequality gives
+\[
+ (x_T^\circ-a)^\top\Sigma_T^{-1}(x-x_T^\circ)\ge0\qquad(x\in P_T). \tag{26}
+\]
+Thus membership in \(P_T\) implies
+\[
+ (x_T^\circ-a)^\top\Sigma_T^{-1}(X_T-a)\ge 2I_T(x_T^\circ).
+\]
+The scalar on the left is centered Gaussian with variance \(2I_T(x_T^\circ)/T\); its exponential-moment bound, optimized at the corresponding one-dimensional Gaussian tilt, yields
+\[
+ \mathbb P(X_T\in P_T)\le e^{-T I_T(x_T^\circ)}. \tag{27}
+\]
+Conversely, if \(x\) lies in the strict limiting branch polyhedron, convergence of every rounded linear constraint coefficient puts a sufficiently small Euclidean ball around \(x\) inside \(P_T\) for all large \(T\). Integrating the Gaussian density on that ball gives
+\[
+ \liminf_{T\to\infty}T^{-1}\log\mathbb P(X_T\in P_T)\ge-I(x), \tag{28}
+\]
+because the fixed-dimensional normalizing determinant and ball volume have logarithms \(o(T)\). Every branch polyhedron has a strict feasible point: separate all retained first-batch coordinates from all excluded ones, and, for a terminal branch, additionally move the fresh challenger coordinate upward. A convex combination of such a point with any weakly feasible point is strict and converges to the weakly feasible point. Continuity of the quadratic rate therefore shows that the strict and closed infima agree. Equations (27)--(28) prove the Gaussian large-deviation equality for each branch.
+
+The rounded quadratic forms are uniformly coercive for all sufficiently large \(T\), since every limiting first-batch coefficient and every limiting survivor second-batch coefficient is positive. The rounded terminal inequalities are linear and their coefficients converge to those of the displayed aggregate comparison. Comparing minimizers with a fixed limiting strict feasible point, which remains feasible for all large \(T\), bounds the minimizers. Every convergent subsequence is feasible for the limiting weak inequalities and gives the lower limit by coefficientwise convergence. Conversely, an arbitrarily near-optimal limiting strict point remains rounded-feasible and gives the upper limit. Hence every rounded branch value converges to its displayed population-fraction program.
+
+If \(h\notin J\), retaining \(J\) already causes error and gives one best-exclusion branch. There are \(\binom{K-1}{m}\) such sets. If \(h\in J\), an error requires at least one of the \(m-1\) other survivors to have aggregate mean at least that of \(h\); there are \(\binom{K-1}{m-1}\) such survivor sets. Gaussian ties have probability zero. Taking the exponent of this finite union, using the branch equalities just proved, gives (21), its asserted branch count, strict-interior equality, and rounding invariance.
+
+We next lower-bound best exclusion. Put \(I=I_w(\mu)>0\). If \(h\notin J\), the constraints imply \(x_j\ge x_h\) for every \(j\in J\). After translating all means, write \(x_h=\mu_h-a\). Minimizing the other coordinates subject only to these inequalities and using (25) gives
+\[
+ Q_J^{\mathrm E}\ge \rho\inf_{a\in\mathbb R}
+ \left\{\frac{a^2}{2v_h}+\sum_{j\in J}\frac{(\Delta_j-a)_+^2}{2v_j}\right\}. \tag{29}
+\]
+The objective decreases when a negative \(a\) is moved toward zero, so the infimum may be restricted to \(a\ge0\). By the definition of \(I_w\), \(\Delta_j\ge\sqrt I\,d_{hj}\). Substituting \(a=\sqrt I\,t\) in (29) and using monotonicity of the positive part yields
+\[
+ Q_J^{\mathrm E}\ge \rho I C_{h,J}\ge \rho I C_m. \tag{30}
+\]
+
+For later use we verify strictly that \(C_m>1\). For any \(j\in J\) and \(t\ge0\),
+\[
+ \frac{t^2}{2v_h}+\frac{(d_{hj}-t)_+^2}{2v_j}\ge1. \tag{31}
+\]
+Indeed, on \(t<d_{hj}\) this is a two-variable quadratic whose minimum is \(d_{hj}^2/\{2(v_h+v_j)\}=1\), while on \(t\ge d_{hj}\) it is larger than \(d_{hj}^2/(2v_h)>1\). Equality in (31) requires
+\[
+ t=\frac{v_h d_{hj}}{v_h+v_j}<\sqrt{2v_h}.
+\]
+For every different \(k\in J\), \(d_{hk}=\sqrt{2(v_h+v_k)}>\sqrt{2v_h}>t\), so the \(k\)-term in \(F_{h,J}(t)\) is then strictly positive. Since \(|J|=m\ge2\), \(F_{h,J}(t)>1\) for all \(t\ge0\). Continuity and coercivity make its minimum attained, hence \(C_{h,J}>1\), and finiteness of the choices gives \(C_m>1\). On each interval determined by the breakpoints, differentiation gives exactly the stationary point in \(\text{def:projection-coefficient}\), proving the stated piecewise-quadratic computation.
+
+Now consider a terminal branch with \(h,j\in J\). Put
+\[
+ c_J=\rho+\frac{1-\rho}{W_J}=1+(1-\rho)\frac{1-W_J}{W_J}. \tag{32}
+\]
+For a survivor \(i\), fixing its aggregate value \(y_i=\bar m_i(J;x,z)\) and completing the square gives the exact identity
+\[
+ \inf_{\rho w_i x_i+r_i z_i=n_i y_i}
+ \left\{\frac{\rho w_i(x_i-\mu_i)^2}{2s_i}
+ +\frac{r_i(z_i-\mu_i)^2}{2s_i}\right\}
+ =\frac{n_i(y_i-\mu_i)^2}{2s_i}
+ =c_J\frac{(y_i-\mu_i)^2}{2v_i}, \tag{33}
+\]
+where \(r_i=r_i(J;\rho)\) and \(n_i=c_Jw_i\). Dropping the first-batch survivor-set inequalities and applying (33) to \(h\) and \(j\), the constraint \(y_j\ge y_h\) has the two-arm projection value
+\[
+ Q_{J,j}^{\mathrm T}\ge c_J\frac{\Delta_j^2}{2(v_h+v_j)}\ge c_J I. \tag{34}
+\]
+If \(E=\mathcal A\setminus J\), then \(|E|=\ell\), \(1-W_J=\sum_{e\in E}w_e\ge\zeta_\ell\), and \(u\mapsto u/(1-u)\) is strictly increasing on \((0,1)\). Equations (32)--(34) imply
+\[
+ Q_{J,j}^{\mathrm T}\ge \{1+(1-\rho)\eta_\ell\}I. \tag{35}
+\]
+Combining (21), (30), and (35) proves that the ratio in (22) is at least \(L_m(\rho)\).
+
+Both bounds have matching instances. Choose \((h_0,S_0)\) attaining \(C_m\), let \(\mu_{h_0}=0\), let \(\mu_j=-d_{h_0j}\) for \(j\in S_0\), and put every remaining mean equal to \(-M\). For sufficiently large \(M\), \(h_0\) is uniquely best, all pairs involving a remaining arm have static exponent at least one, and hence \(I_w=1\). At the optimizer of \(F_{h_0,S_0}\), the remaining excluded first-batch coordinates stay at \(-M\) and lie strictly below the retained coordinates. Thus the survivor-set constraints add no cost and
+\[
+ Q_{S_0}^{\mathrm E}=\rho C_m. \tag{36}
+\]
+Therefore the infimum in (22) is at most its first term.
+
+For the terminal witness, choose \(E_0\) attaining \(\zeta_\ell\), put \(J_0=\mathcal A\setminus E_0\), and choose distinct \(h,j\in J_0\), possible because \(m\ge2\). Set
+\[
+ \mu_h=0,\qquad \mu_j=-d_{hj},\qquad
+ \mu_k=-M\ (k\in J_0\setminus\{h,j\}),\qquad
+ \mu_e=-2M\ (e\in E_0). \tag{37}
+\]
+For sufficiently large \(M\), again \(I_w=1\). The unconstrained optimizer in (34) sets \(x_h=z_h=x_j=z_j=y\), where
+\[
+ y=\frac{\mu_h/v_h+\mu_j/v_j}{1/v_h+1/v_j},
+\]
+keeps every unrelated survivor at \(-M\), and every excluded first-batch coordinate at \(-2M\). For large \(M\), all survivor-set inequalities are strict at this optimizer. Hence
+\[
+ Q_{J_0,j}^{\mathrm T}=c_{J_0}=1+(1-\rho)\eta_\ell. \tag{38}
+\]
+This supplies the second upper bound. Together with the universal lower bound, (36)--(38) prove (22); the appropriate witness attains the complete worst-instance ratio whenever its branch is the smaller one.
+
+The function \(\rho C_m\) is strictly increasing and \(1+(1-\rho)\eta_\ell\) is strictly decreasing. Their unique intersection is
+\[
+ \rho_m^\star=\frac{1+\eta_\ell}{C_m+\eta_\ell}.
+\]
+Because \(C_m>1\) and \(\eta_\ell>0\), one has \(1/C_m<\rho_m^\star<1\), and the intersection value is \(G_m>1\). Maximizing the finitely many certified values over \(m\) proves the \(G_{\mathrm{multi}}\) assertion and attainment by \(m^\star\).
+
+For the finite-budget assertion, apply (27) to each rounded closed branch and take a union bound. This gives (23) with exactly
+\[
+ \binom{K-1}{m}+(m-1)\binom{K-1}{m-1}
+\]
+terms. If these finitely many rounded branch values are \(a_{b,T}\), then
+\[
+ \min_b a_{b,T}-\frac{\log L}{T}
+ \le-\frac1T\log\sum_{b=1}^L e^{-Ta_{b,T}}
+ \le\min_b a_{b,T}.
+\]
+Their already proved convergence and (21) yield the limit in (23).
+
+Finally suppose \(s_i=\sigma^2\). The maximin allocation is uniform: if \(u_{(1)}\le u_{(2)}\) are the two smallest allocation coordinates, then \(u_{(1)}+u_{(2)}\le2/K\) and
+\[
+ \max_{i<j}\sigma^2(1/u_i+1/u_j)\ge
+ \sigma^2(1/u_{(1)}+1/u_{(2)})\ge2K\sigma^2,
+\]
+with equality only at \(u_i=1/K\). Thus \(v_i=K\sigma^2=:V\) and \(d_{hj}=2\sqrt V\). For every \((h,S)\),
+\[
+ F_{h,S}(t)=\frac{t^2}{2V}+\frac{m(2\sqrt V-t)_+^2}{2V},
+\]
+whose minimizer is \(2m\sqrt V/(m+1)\) and whose minimum is \(2m/(m+1)\). Also \(\zeta_\ell=\ell/K\) and \(\eta_\ell=(K-m)/m\). Substitution proves (24). Direct cross multiplication gives
+\[
+ \operatorname{sign}(G_{m+1}-G_m)
+ =\operatorname{sign}\{(m+1)[m^2+(K-1)m+K]-m[m^2+(K+1)m+2K]\}
+ =\operatorname{sign}\{K-m(m+1)\}.
+\]
+Hence a maximizing index straddles the positive root of \(m(m+1)=K\), so \(m\asymp\sqrt K\). Taking, for example, an admissible integer \(m\sim\sqrt K\) in (24) gives \(G_m\to2\), while \(G_m<2\) because its denominator exceeds \(mK\) by \(m^2-m+K>0\). Therefore \(G_{\mathrm{multi}}\to2\).
+
+When \(m=K-1\), the only best-exclusion survivor set is \(\mathcal A\setminus\{h\}\), an excluded set has one arm, \(C_m=C\), and \(\eta_1=\min_e w_e/(1-w_e)=\eta\). All branch programs, schedules, witnesses, and certificates then coincide with the original eliminate-one objects. In the smallest heteroskedastic check \(K=3\), \(s=(1,1,4)\), this specialization gives exactly \(C=(6+2\sqrt2)/7\), \(\eta=(2\sqrt2-1)/7\), \(\rho^\star=2\sqrt2-2\), and \(G=(8\sqrt2-4)/7\); the best-exclusion and terminal constructions above are respectively the two exact witnesses, so the early kill test does not contradict the coupling formula.
+%%% FIELD stmt-old-frontier
+For every \(0<\rho<1\), the exact worst-instance multiplier within \(\mathfrak D_2\) is
+\[
+ \inf_{\mu:\,|\arg\max_i\mu_i|=1}\frac{\Gamma_{\rho,w}(\mu)}{I_w(\mu)}=\min\left\{\rho C,\ 1+(1-\rho)\eta\right\}.
+\]
+A best-elimination witness with \(h\in\arg\min_k C_k\) attains the first branch. For an \(e\in\arg\min_k w_k/(1-w_k)\), two distinct survivors and a sufficiently separated eliminated arm attain the second branch. Consequently \(\rho^\star\) uniquely maximizes the displayed value and the maximum is \(G\).
+%%% FIELD proof-old-frontier
+Apply \(\text{thm:multi-proportional-frontier}\) with \(m=K-1\) and \(\ell=1\). The specialization identities proved there give
+\[
+ \mathsf D_{\rho,w,K-1}=\mathsf D_{\rho,w},\qquad
+ \Gamma_{\rho,w,K-1}=\Gamma_{\rho,w},\qquad
+ C_{K-1}=C,
+\]
+and
+\[
+ \eta_1=\frac{\min_e w_e}{1-\min_e w_e}
+ =\min_e\frac{w_e}{1-w_e}=\eta.
+\]
+The exact value (22) therefore becomes
+\[
+ \inf_{\mu:\,|\arg\max_i\mu_i|=1}\frac{\Gamma_{\rho,w}(\mu)}{I_w(\mu)}
+ =\min\{\rho C,1+(1-\rho)\eta\}.
+\]
+The best-exclusion construction has \(S=\mathcal A\setminus\{h\}\) and is exactly the stated best-elimination witness. The separated terminal construction has the singleton excluded set \(\{e\}\) with \(e\in\arg\min_k w_k/(1-w_k)\), and it supplies the stated two-survivor comparison while all other survivor means are separated. Finally the intersection and strict monotonicity calculation in the same theorem gives the unique optimizer
+\[
+ \rho^\star=\frac{1+\eta}{C+\eta}
+\]
+and value \(C\rho^\star=G\), proving every assertion.

@@ -11,8 +11,11 @@ certified lower floor reduces to the classical interior pointwise nonparametric
 regression barrier.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.T_SharpPointwiseLowerBound
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.RateAlgebra
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.T_SharpPointwiseLowerBound
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.RateAlgebra
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

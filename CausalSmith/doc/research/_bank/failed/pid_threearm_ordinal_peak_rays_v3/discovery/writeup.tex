@@ -1,0 +1,1332 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}threearm\_\allowbreak{}ordinal\_\allowbreak{}peak\_\allowbreak{}rays}
+
+\noindent\textit{Specialization:} v3\par
+
+\paragraph{TL;DR.} Randomization identifies the three marginals of a prespecified ordinal benefit-risk score but not the population shares for which each dose is uniquely best.  Under weak individual unimodality, the compatible target vectors form a structured three-marginal polytope.  The staircase family with \(3^{L-3}\) weighted facets, the exact small-support counts \(59\), \(197\), and \(721\), and sharp endpoint formulas using at most three full facets are proved.  Independently of any all-support facet stream, a finite legal-incidence program computes all six scalar endpoints exactly in polynomial time for rational input, constructs endpoint-attaining rational mixtures with support at most \(3L-2\), and the \(L=2\) equal-Bernoulli example proves that this support bound is uniformly sharp.  Fixed-\(L\) plug-in rates and exact finite-sample simultaneous endpoint coverage, including zero cells and realized empty arms, are also proved.  The remaining mathematical questions are the all-\(L\) exact-once stream with its finite predecessor and transfer classification, and regular-face equivalence of the exact scalar procedure to a specified efficient Wald interval.  The Goodwin et al. application remains an abstract conditional sensitivity analysis: the trial identifies score marginals but neither identifies nor clinically validates weak individual unimodality.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing two-dose results sharply bound functionals of two potential outcomes, and generic discrete causal or multi-marginal optimizers can return numerical bounds.  The cited two-potential-outcome and generic optimization works do not study the paper-specific task of classifying \(\mathcal H_L\) by a finite predecessor map satisfying \(\mathsf{CHECK}_{2\mathrm{BTAS}}\).  Kaido and Ponomarev's maximal-clique correspondence does not cover this support: all two-dose projections are full, making the potential-response graph complete tripartite and every triple a maximal three-clique, including the deleted strict-middle valleys.  Their graph describes observable support implications, whereas \(Q_{3,L}\) also augments randomized marginals by the three unique-peak target coordinates.
+
+\paragraph{Niche.} The non-valley support is genuinely three-way: every two-coordinate projection of \(\mathcal U_L\) is the unrestricted square \(\mathcal Y_L^2\), even though the full support deletes triples with \(u_0>u_1\) and \(u_2>u_1\). The first new step is therefore minimization of candidate affine slack over that non-Cartesian three-marginal support, followed by tight-row rank classification. Pairwise Hall inequalities and regular compatibility-graph arguments miss weighted full facets, while generic hull enumeration does not explain the observed staircase, doubling, and Fibonacci coefficient families.
+
+\paragraph{Fill.} The proved layer gives an exponential staircase facet family, exact catalogues for \(L\le5\), three-facet sharp endpoint formulas, exact polynomial-time scalar evaluation for rational inputs, sparse endpoint-attaining mixtures, a fixed-\(L\) plug-in rate, and finite-sample simultaneous endpoint honesty.  The open combinatorial layer asks for a finite renormalized predecessor classification and a literal \(\texttt{CHECK\_2BTAS}\)-accepted source whose soundness, completeness, and uniqueness hold for every \(L\).  Separately, regular-face Wald equivalence of the already honest exact scalar interval remains open.
+
+\section{Related work}
+
+Russell (2021) studies sharp bounds for continuous functionals of two potential outcomes in a binary-treatment model through random-set restrictions and convex optimization.  Chiba (2017) studies the binary-treatment ordinal relative-treatment-effect parameter and gives exact randomization inference under independent potential outcomes.  Lu, Ding, and Dasgupta (2018) derive sharp cumulative formulas and attaining tables for unrestricted bivariate ordinal couplings.  Gabriel, Sachs, and Jensen (2024) derive symbolic ordinal-benefit bounds for binary-exposure confounding and binary-instrument noncompliance designs.  None of these two-potential-outcome results transfers sharply to the present three-way forbidden support.  Gao, Ge, and Qian (2025) give an arbitrary-objective multi-marginal transport architecture that can encode illegal cells by extended cost, but their quadratic-objective plug-in rate does not transfer to the indicator endpoint; the present legal-incidence linear program, exact separator, and rational polynomial-time computation are proved directly.  Finite linear-programming strong duality is used in the exact form of Trevisan (2011, Lecture 6, Theorem 6.5), while polynomial-time rational linear programming is drawn from Lecture 5, Section 2.4.  Kaido and Ponomarev (2025) characterize observable implications of support restrictions by compatibility graphs under a maximal-clique correspondence.  Every two-dose projection here is full, so the potential-response graph is complete tripartite and every triple is a maximal three-clique, including the strict-middle valleys deleted from \(\mathcal U_L\); consequently their requirement that every maximal clique correspond to a support point fails.  Their graph concerns observable support implications, whereas \(Q_{3,L}\) additionally carries the three unique-peak target coordinates.  Duarte et al. (2024) provide generic polynomial-program bounds, Bonet (2001) provides a causal-facet precedent, and Avis and Fukuda (1996) motivate duplicate-free predecessor enumeration, but none supplies the paper-specific finite predecessor map.  Cho and Russell (2024), Fang and Santos (2019), and Chernozhukov, Lee, and Rosen (2013) motivate perturbation and intersection-bound inference.  Here exact finite-sample simultaneous honesty and a fixed-\(L\) plug-in rate are proved; only regular-face Wald equivalence remains open.  Goodwin et al. (2022) provide the randomized three-dose setting, used solely for an abstract conditional sensitivity analysis under a prespecified score and an added, clinically unvalidated cross-world unimodality restriction.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=(\theta_0,\theta_1,\theta_2),\quad \theta_d=P\{Y(d)>Y(d')\ \text{for every }d'\ne d\}\).
+Primary functional / estimator / diagnostic: \([\underline\theta_d(p),\overline\theta_d(p)]=[\min_{q\in\Gamma_L(p)}\sum_{u\in\mathcal U_L}B_d(u)q(u),\ \max_{q\in\Gamma_L(p)}\sum_{u\in\mathcal U_L}B_d(u)q(u)]\).
+\begin{itemize}
+  \item \texttt{L} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{number of ordered outcome levels}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D} --- \texttt{finite set}; \texttt{ordered dose set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D=\{0,1,2\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Y\_\allowbreak{}L} --- \texttt{finite ordered set}; \texttt{ordinal outcome support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y_L=\{0,\ldots,L-1\}\)
+  \item \texttt{E(d)} --- \texttt{random variable}; \(\mathbb R\); potential prespecified efficacy component at dose \(d\)
+  \item \texttt{H(d)} --- \texttt{random variable}; \([0,\infty)\); potential prespecified toxicity-burden component at dose \(d\)
+  \item \texttt{w\_\allowbreak{}E} --- \texttt{fixed scalar}; \((0,\infty)\); \texttt{prespecified efficacy weight}
+  \item \texttt{w\_\allowbreak{}H} --- \texttt{fixed scalar}; \((0,\infty)\); \texttt{prespecified toxicity-\allowbreak{}burden weight}
+  \item \texttt{c\_\allowbreak{}j} --- \texttt{fixed extended-\allowbreak{}real cutpoint}; \(j=0,\ldots,L\); \texttt{prespecified ordinalization cutpoints}
+  \par\smallskip\noindent\emph{Definition.} \(-\infty=c_0<c_1<\cdots<c_{L-1}<c_L=+\infty\)
+  \item \texttt{U\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{BR\}\allowbreak{}\}\allowbreak{}(d)} --- \texttt{scalar random variable}; \(\mathbb R\); \texttt{prespecified net benefit-\allowbreak{}risk utility}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:prespecified-benefit-risk-score}\)
+  \item \texttt{Y(d)} --- \texttt{random variable}; \(\mathcal Y_L\); potential prespecified ordinal benefit-risk score at dose \(d\)
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:prespecified-benefit-risk-score}\)
+  \item \texttt{A} --- \texttt{random variable}; \(\mathcal D\); \texttt{randomized assigned dose}
+  \item \texttt{Y} --- \texttt{random variable}; \(\mathcal Y_L\); \texttt{observed ordinal response}
+  \item \texttt{P} --- \texttt{probability law}; laws of \(\{E(d),H(d),Y(d):d\in\mathcal D\},A,Y\); \texttt{data-\allowbreak{}generating law}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}L} --- \texttt{class of probability laws}; \texttt{randomized weak-\allowbreak{}individual-\allowbreak{}unimodality model}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:model-class}\)
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}d} --- \texttt{scalar}; \([0,1]\); \texttt{known randomization probability}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_d=P(A=d)\)
+  \item \texttt{p\_\allowbreak{}\{dj\}\allowbreak{}} --- \texttt{scalar}; \([0,1]\); \texttt{identified arm marginal probability}
+  \par\smallskip\noindent\emph{Definition.} \(p_{dj}=P\{Y(d)=j\}=P(Y=j\mid A=d)\)
+  \item \texttt{p} --- \texttt{vector}; \(\prod_{d\in\mathcal D}\Delta^{L-1}\); \texttt{three randomized arm marginals}
+  \par\smallskip\noindent\emph{Definition.} \(p=(p_{dj})_{d\in\mathcal D,j\in\mathcal Y_L}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal U\_\allowbreak{}L} --- \texttt{finite set}; \texttt{legal weakly unimodal response triples}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:non-valley-support}\)
+  \item \texttt{B\_\allowbreak{}d} --- \texttt{function}; \(\mathcal U_L\to\{0,1\}\); \texttt{unique-\allowbreak{}best-\allowbreak{}dose indicator}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:unique-peak-indicators}\)
+  \item \texttt{q} --- \texttt{probability mass function}; \(\Delta(\mathcal U_L)\); \texttt{latent coupling of the three potential outcomes}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}L(p)} --- \texttt{set of probability mass functions}; \(\Delta(\mathcal U_L)\); \texttt{couplings with the randomized marginals}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:coupling-fiber}\)
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}d(q)} --- \texttt{scalar functional}; \([0,1]\); share for which dose \(d\) is uniquely best
+  \par\smallskip\noindent\emph{Definition.} \(\theta_d(q)=\sum_{u\in\mathcal U_L}B_d(u)q(u)\)
+  \item \texttt{\textbackslash{}\allowbreak{}theta(q)} --- \texttt{vector functional}; \([0,1]^3\); \texttt{unique-\allowbreak{}best-\allowbreak{}dose probability vector}
+  \par\smallskip\noindent\emph{Definition.} \(\theta(q)=(\theta_0(q),\theta_1(q),\theta_2(q))\)
+  \item \texttt{v\_\allowbreak{}L(u)} --- \texttt{vector}; \(\mathbb R^{3L}\); \texttt{augmented peak-\allowbreak{}and-\allowbreak{}marginal response-\allowbreak{}type vertex}
+  \par\smallskip\noindent\emph{Definition.} \(v_L(u)=(B_0(u),B_1(u),B_2(u),(\mathbf 1\{u_d=j\})_{d\in\mathcal D,\,1\le j<L})\)
+  \item \texttt{Q\_\allowbreak{}\{3,\allowbreak{}L\}\allowbreak{}} --- \texttt{polytope}; \(\mathbb R^{3L}\); \texttt{three-\allowbreak{}dose ordinal unique-\allowbreak{}peak polytope}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:peak-polytope}\)
+  \item \texttt{h} --- \texttt{integer coefficient row}; \(\mathbb Z^{3L+1}\); \texttt{canonical supporting row}
+  \par\smallskip\noindent\emph{Definition.} \(h=(\kappa,\beta_0,\beta_1,\beta_2,(\alpha_{dj})_{d\in\mathcal D,\,1\le j<L})\)
+  \item \texttt{s\_\allowbreak{}h(u)} --- \texttt{integer-\allowbreak{}valued function}; \(u=(u_0,u_1,u_2)\in\mathcal U_L\); vertex slack of row \(h\)
+  \par\smallskip\noindent\emph{Definition.} \(s_h(u)=\kappa+\sum_{d\in\mathcal D}\beta_dB_d(u)+\sum_{d\in\mathcal D}\sum_{j=1}^{L-1}\alpha_{dj}\mathbf 1\{u_d=j\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}L} --- \texttt{finite set}; \texttt{primitive canonical facet rows}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:canonical-facet-set}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}L} --- \texttt{finite set}; \texttt{canonical cut facets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_L=\{h\in\mathcal H_L:\max_{u\in\mathcal U_L}s_h(u)=1\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal W\_\allowbreak{}L} --- \texttt{finite set}; \texttt{canonical weighted facets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_L=\mathcal H_L\setminus\mathcal C_L\)
+  \item \texttt{F\_\allowbreak{}L} --- \texttt{nonnegative integer}; \texttt{complete facet count}
+  \par\smallskip\noindent\emph{Definition.} \(F_L=|\mathcal H_L|\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf\{CHECK\}\allowbreak{}\_\allowbreak{}\{2\textbackslash{}\allowbreak{}mathrm\{BTAS\}\allowbreak{}\}\allowbreak{}} --- \texttt{decidable syntactic predicate}; \texttt{oracle-\allowbreak{}free source checker}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:two-pass-source-class}\)
+  \item \texttt{S\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{finite program}; programs accepted by \(\mathsf{CHECK}_{2\mathrm{BTAS}}\); source to be derived in \(\text{oeq:complete-two-pass-facet-stream}\)
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{Out\}\allowbreak{}\_\allowbreak{}L(S\_\allowbreak{}\textbackslash{}\allowbreak{}star)} --- \texttt{finite multiset}; integer rows in \(\mathbb Z^{3L+1}\); \texttt{stream output}
+  \par\smallskip\noindent\emph{Definition.} the multiset of rows emitted on all accepting length-\(L\) traces of \(S_\star\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf T} --- \texttt{finite set}; geometric predecessor types to be derived in \(\text{oeq:complete-two-pass-facet-stream}\)
+  \item \texttt{c\_\allowbreak{}L} --- \texttt{nonnegative integer vector}; \(\mathbb N^{|\mathsf T|}\); \texttt{facet counts by predecessor type}
+  \par\smallskip\noindent\emph{Definition.} \((c_L)_t=|\{h\in\mathcal H_L:\operatorname{type}(h)=t\}|\)
+  \item \texttt{T\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{nonnegative integer matrix}; \(\mathbb N^{|\mathsf T|\times|\mathsf T|}\); \texttt{transfer matrix to be derived from geometric successors}
+  \item \texttt{\textbackslash{}\allowbreak{}underline\textbackslash{}\allowbreak{}theta\_\allowbreak{}d(p)} --- \texttt{scalar functional}; \([0,1]\); \texttt{sharp lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(\underline\theta_d(p)=\min_{q\in\Gamma_L(p)}\theta_d(q)\)
+  \item \texttt{\textbackslash{}\allowbreak{}overline\textbackslash{}\allowbreak{}theta\_\allowbreak{}d(p)} --- \texttt{scalar functional}; \([0,1]\); \texttt{sharp upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(\overline\theta_d(p)=\max_{q\in\Gamma_L(p)}\theta_d(q)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}d\textasciicircum{}-\allowbreak{}} --- \texttt{finite set}; \texttt{lower-\allowbreak{}endpoint facet certificates of support at most three}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:endpoint-dual-certificates}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}d\textasciicircum{}+\allowbreak{}} --- \texttt{finite set}; \texttt{upper-\allowbreak{}endpoint facet certificates of support at most three}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:endpoint-dual-certificates}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}\{N,\allowbreak{}1-\allowbreak{}\textbackslash{}\allowbreak{}alpha\}\allowbreak{}} --- \texttt{random closed rectangle}; subsets of \([0,1]^6\); \texttt{simultaneous endpoint confidence region}
+  \par\smallskip\noindent\emph{Definition.} defined by \(\text{def:inference-handle}\)
+  \item \texttt{N} --- \texttt{positive integer}; \texttt{sample size}
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{observed random vector}; \(\mathcal D\times\mathcal Y_L\); \texttt{observed trial sample}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(A_i,Y_i)\)
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{scalar}; \((0,1)\); \texttt{simultaneous error level}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:random-assignment]\label{ass:random-assignment}
+\(A\perp (Y(0),Y(1),Y(2))\).
+\par\smallskip\noindent\emph{Standard} (Random assignment, \cite{GoodwinEtAl2022}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=Y(A)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{LuDingDasgupta2018}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-randomization]\label{ass:positive-randomization}
+\(\min_{d\in\mathcal D}\pi_d>0\).
+\par\smallskip\noindent\emph{Standard} (Positive treatment assignment, \cite{GoodwinEtAl2022}).
+\end{assumption}
+
+\begin{assumption}[ass:weak-individual-unimodality]\label{ass:weak-individual-unimodality}
+\(P\{(Y(0),Y(1),Y(2))\in\mathcal U_L\}=1\).
+\par\smallskip\noindent\emph{Novel.} For an ordered three-dose benefit-risk outcome, this condition permits monotone improvement, monotone deterioration, an interior optimum, and all ties; it excludes only an individual whose middle dose is strictly worse than both extremes. Such a restriction is substantively interpretable when efficacy rises and toxicity also rises with dose.
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_N\) are independent and identically distributed under \(P\).
+\par\smallskip\noindent\emph{Standard} (Independent sampling, \cite{ChoRussell2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:prespecified-benefit-risk-score]\label{def:prespecified-benefit-risk-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Prespecified ordinal benefit-\allowbreak{}risk scoring rule}
+\par\smallskip\noindent\emph{Construction.} Fix clinically interpretable efficacy score \(E(d)\), toxicity burden \(H(d)\), positive weights \(w_E,w_H\), and cutpoints \(c_j\) before unblinding. Set \(U_{\mathrm{BR}}(d)=w_EE(d)-w_HH(d)\) and \(Y(d)=\sum_{j=1}^{L-1}\mathbf 1\{U_{\mathrm{BR}}(d)\ge c_j\}\in\mathcal Y_L\).
+\end{definition}
+
+\begin{definition}[def:non-valley-support]\label{def:non-valley-support}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Weakly unimodal response support}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal U_L=\{(u_0,u_1,u_2)\in\mathcal Y_L^3:\neg(u_0>u_1\ \wedge\ u_2>u_1)\}\).
+\end{definition}
+
+\begin{definition}[def:unique-peak-indicators]\label{def:unique-peak-indicators}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unique-\allowbreak{}best-\allowbreak{}dose indicators}
+\par\smallskip\noindent\emph{Construction.} For \(u=(u_0,u_1,u_2)\in\mathcal U_L\), set \(B_0(u)=\mathbf 1\{u_0>u_1\}\), \(B_1(u)=\mathbf 1\{u_1>u_0,\ u_1>u_2\}\), and \(B_2(u)=\mathbf 1\{u_2>u_1\}\).
+\end{definition}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}dose weak-\allowbreak{}unimodality model}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_L=\{P:\text{ass:random-assignment}(P)\wedge\text{ass:consistency}(P)\wedge\text{ass:positive-randomization}(P)\wedge\text{ass:weak-individual-unimodality}(P)\wedge\text{ass:iid-sampling}(P)\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}random-\allowbreak{}assignment}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}positive-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}weak-\allowbreak{}individual-\allowbreak{}unimodality}; \texttt{ass:\allowbreak{}iid-\allowbreak{}sampling}.
+\end{definition}
+
+\begin{definition}[def:coupling-fiber]\label{def:coupling-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Marginally compatible non-\allowbreak{}valley couplings}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma_L(p)=\{q\in\Delta(\mathcal U_L):\sum_{u\in\mathcal U_L:u_d=j}q(u)=p_{dj}\ \text{for every }d\in\mathcal D,\ j\in\mathcal Y_L\}\).
+\end{definition}
+
+\begin{definition}[def:peak-polytope]\label{def:peak-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Unique-\allowbreak{}peak and marginal polytope}
+\par\smallskip\noindent\emph{Construction.} \(Q_{3,L}=\operatorname{conv}\{v_L(u):u\in\mathcal U_L\}\subset\mathbb R^{3L}\).
+\end{definition}
+
+\begin{definition}[def:canonical-facet-set]\label{def:canonical-facet-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Primitive canonical full-\allowbreak{}facet rows}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_L=\{h\in\mathbb Z^{3L+1}:s_h(u)\ge0\ \forall u\in\mathcal U_L,\ \gcd(h)=1,\ \operatorname{aff}\{v_L(u):s_h(u)=0\}\ \text{has dimension }3L-1\}\), where the valid orientation is chosen and \(\alpha_{d0}=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}peak-\allowbreak{}polytope}.
+\end{definition}
+
+\begin{definition}[def:two-pass-source-class]\label{def:two-pass-source-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}pass bounded triangular-\allowbreak{}affine source checker}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{CHECK}_{2\mathrm{BTAS}}(S)=1\) exactly when \(S\) is a finite-state program, independent of \(L\), with at most sixteen signed-integer registers; it makes two left-to-right scans of the \(L-1\) nonbaseline levels; every register initializer is affine in \(L\); in one cell, register \(r_k\) is updated to an affine combination of the cell label, \(L\), constants of absolute value at most seven, and pre-update registers \(r_1,\ldots,r_k\); acceptance and branching depend only on the finite label state and boundary position; row emission is affine in the final registers; and no branch queries a register value, slack, rank, validity, facetness, or an external table.
+\end{definition}
+
+\begin{definition}[def:staircase-family]\label{def:staircase-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}letter staircase facet family}
+\par\smallskip\noindent\emph{Construction.} For \(n=L-1\ge2\) and \(\omega\in\{\mathrm L,\mathrm R,\mathrm D\}^{n-1}\) ending in \(\mathrm D\), initialize \(a_0=c_0=0\); set \(d_j=a_{j-1}+c_{j-1}+1\), update \(a_j=d_j\) for letters \(\mathrm L\) or \(\mathrm D\) and otherwise \(a_j=a_{j-1}\), and update \(c_j=d_j\) for letters \(\mathrm R\) or \(\mathrm D\) and otherwise \(c_j=c_{j-1}\). With \(K=a_{n-1}=c_{n-1}\), emit \(\kappa=K\), \(\beta=(0,-K-1,0)\), \(\alpha_{0j}=-a_j\), \(\alpha_{1j}=d_j\), \(\alpha_{2j}=-c_j\) for \(j<n\), and \(\alpha_{0n},\alpha_{1n},\alpha_{2n}=(-K,2K+1,-K)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}canonical-\allowbreak{}facet-\allowbreak{}set}.
+\end{definition}
+
+\begin{definition}[def:stream-synthesis-handle]\label{def:stream-synthesis-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Prefix-\allowbreak{}extremizer rank-\allowbreak{}state synthesis handle}
+\par\smallskip\noindent\emph{Construction.} Partition a valid row by which prefix and suffix argmin sets attain each of the five legal Cartesian-product slack minima at every middle level; augment this label by the rank increments of the tight response-type rows; quotient labels that induce the same renormalized deletion and successor actions; then synthesize the finite transition labels and triangular register coordinates from these geometric actions, with the staircase family in \(\text{def:staircase-family}\) as a mandatory stress-test sublanguage.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}two-\allowbreak{}pass-\allowbreak{}source-\allowbreak{}class}; \texttt{def:\allowbreak{}staircase-\allowbreak{}family}.
+\end{definition}
+
+\begin{definition}[def:endpoint-dual-certificates]\label{def:endpoint-dual-certificates}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}facet endpoint certificates}
+\par\smallskip\noindent\emph{Construction.} Write each \(h_i\in\mathcal H_L\) as \(a_i(p)+\beta_i^\top\theta\ge0\), and let \(e_d\) denote coordinate \(d\) of \(\mathbb R^3\).  For \(d\in\mathcal D\), define
+\[
+ \mathcal D_d^-=
+ \left\{\lambda\in\mathbb R_+^{\mathcal H_L}:
+ |\operatorname{supp}(\lambda)|\le3,\ 
+ \{\beta_i:i\in\operatorname{supp}(\lambda)\}\text{ is linearly independent},\ 
+ \sum_{i\in\mathcal H_L}\lambda_i\beta_i=e_d\right\},
+\]
+and
+\[
+ \mathcal D_d^+=
+ \left\{\mu\in\mathbb R_+^{\mathcal H_L}:
+ |\operatorname{supp}(\mu)|\le3,\ 
+ \{\beta_i:i\in\operatorname{supp}(\mu)\}\text{ is linearly independent},\ 
+ \sum_{i\in\mathcal H_L}\mu_i\beta_i=-e_d\right\}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}canonical-\allowbreak{}facet-\allowbreak{}set}.
+\end{definition}
+
+\begin{definition}[def:inference-handle]\label{def:inference-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact pilot-\allowbreak{}localized multinomial inversion handle}
+\par\smallskip\noindent\emph{Construction.} Split \(N\) observations deterministically into a pilot of size \(\lfloor N^{2/3}\rfloor\) and a main sample. Form an exact pilot product-simplex region with error budget \(\delta_N=\min\{\alpha/2,N^{-2}\}\). If one endpoint contrast is optimal throughout that region, invert its exact conditional product-multinomial distribution on the main sample; otherwise invert every retained contrast from \(\mathcal D_d^-\) and \(\mathcal D_d^+\) with a common Bonferroni allocation and map the intervals through the finite max-min formulas. Empty arms return the logical endpoint range.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}endpoint-\allowbreak{}dual-\allowbreak{}certificates}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:randomization-identifies-marginals]\label{thm:randomization-identifies-marginals}
+For every \(P\in\mathcal P_L\), the observed law identifies \(p_{dj}=P(Y=j\mid A=d)\), and the identified set for \(\theta(q)\) is exactly \(\{\theta(q):q\in\Gamma_L(p)\}\).
+\end{theorem}
+\begin{proof}
+Put \(P_{\mathrm{obs}}(d,j)=P(A=d,Y=j)\) for \((d,j)\in\mathcal D\times\mathcal Y_L\).  Positivity in \(\text{ass:positive-randomization}\) makes each conditional probability below well defined.  Consistency and random assignment give, successively,
+\[
+ P(Y=j\mid A=d)
+ =P\{Y(d)=j\mid A=d\}
+ =P\{Y(d)=j\}
+ =p_{dj}.
+\]
+Thus the observable map is
+\[
+ P_{\mathrm{obs}}(d,j)=\pi_d p_{dj},
+ \qquad d\in\mathcal D,\quad j\in\mathcal Y_L,
+\]
+and the observed law identifies all \(3L\) arm probabilities (subject to the three adding-up restrictions).
+
+It remains to distinguish this observed-law conclusion from the causal identified set.  Define
+\[
+ q_P(u)=P\{(Y(0),Y(1),Y(2))=u\},\qquad u\in\mathcal U_L.
+\]
+Weak individual unimodality implies that \(q_P\in\Delta(\mathcal U_L)\), and the preceding marginal identity implies
+\[
+ \sum_{u:u_d=j}q_P(u)=p_{dj}.
+\]
+Hence \(q_P\in\Gamma_L(p)\).  By the definition of the unique-peak indicators,
+\[
+ P\{Y(d)>Y(d')\text{ for every }d'\ne d\}
+ =\sum_{u\in\mathcal U_L}B_d(u)q_P(u)=\theta_d(q_P).
+\]
+This proves the inclusion of the causal identified set in \(\{\theta(q):q\in\Gamma_L(p)\}\).
+
+For the reverse inclusion, fix any \(q\in\Gamma_L(p)\).  Draw \((Y(0),Y(1),Y(2))\) with mass function \(q\), draw \(A\) independently with probabilities \((\pi_0,\pi_1,\pi_2)\), and set \(Y=Y(A)\).  This construction satisfies random assignment, consistency, positivity, and the support restriction, and it has
+\[
+ P(A=d,Y=j)=\pi_d\sum_{u:u_d=j}q(u)=\pi_dp_{dj}=P_{\mathrm{obs}}(d,j).
+\]
+It also respects the prespecified score construction.  Indeed, choose \(t_0<c_1\) and \(t_j=c_j\) for \(1\le j<L\), and set \(H(d)=0\) and \(E(d)=t_{Y(d)}/w_E\).  Since \(w_E>0\), the resulting benefit-risk utility is \(t_{Y(d)}\), and exactly \(Y(d)\) of the thresholds \(c_1,\ldots,c_{L-1}\) are weakly below it.  Independent replication gives the sampling law in \(\text{ass:iid-sampling}\).  The constructed law therefore belongs to \(\mathcal P_L\), has the same observable distribution, and has target \(\theta(q)\).  Consequently, with \(\Theta_I(P_{\mathrm{obs}})\) denoting the causal identified set,
+\[
+ \Theta_I(P_{\mathrm{obs}})=\{\theta(q):q\in\Gamma_L(p)\}.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This establishes that the geometric object is the sharp causal identified set rather than a relaxation. \textit{Gap.} Generic response-type reductions are known, but the equality is stated here for the exact non-valley and unique-peak objects used throughout. \textit{Consumer.} A randomized three-dose trial can use the bounds for a prespecified ordinal benefit-risk score in a conditional sensitivity analysis without introducing cross-world independence.
+
+\begin{theorem}[thm:dimension-and-staircase-facets]\label{thm:dimension-and-staircase-facets}
+For every \(L\ge2\), \(\dim(Q_{3,L})=3L\). For every \(L\ge3\), the construction in \(\text{def:staircase-family}\) maps the \(3^{L-3}\) words ending in \(\mathrm D\) injectively into \(\mathcal W_L\); the all-\(\mathrm D\) word has coefficients \(2^j-1\), and alternating \(\mathrm L\) and \(\mathrm R\) prefixes attain \(\operatorname{Fib}(L)-1\) at the last common endpoint coefficient.
+\end{theorem}
+\begin{proof}
+Write \(n=L-1\).  We first prove full dimensionality by the affine-annihilator technique.  Let
+\[
+ f(x,b,z)=k+\rho_0B_0(x,b,z)+\rho_1B_1(x,b,z)+\rho_2B_2(x,b,z)
+             +A_x+D_b+C_z,
+\]
+where \(A_0=D_0=C_0=0\), and suppose that \(f\) vanishes on every legal response triple.  The legal triples
+\[
+ (0,0,0),\ (0,0,j),\ (0,j,j),\ (j,j,j),\ (j,j,0),\ (0,j,0),
+ \qquad 1\le j\le n,
+\]
+give, in that order,
+\[
+ k=0,\quad C_j+\rho_2=0,\quad D_j+C_j=0,\quad
+ A_j+D_j+C_j=0,\quad A_j+D_j=0,\quad D_j+\rho_1=0.
+\]
+It follows successively that \(D_j=C_j=A_j=0\) for every \(j\), and that \(\rho_1=\rho_2=0\).  The legal triple \((1,0,0)\) then gives \(\rho_0=0\).  Thus no nonzero affine functional vanishes on all vertices.  Since the ambient space has dimension \(3+3(L-1)=3L\),
+\[
+ \dim(Q_{3,L})=3L.
+\]
+
+Now let \(n\ge2\), let \(\omega\in\{\mathrm L,\mathrm R,\mathrm D\}^{n-1}\) end in \(\mathrm D\), and use the sequences in \(\text{def:staircase-family}\).  Extend their notation by
+\[
+ a_n=c_n=K,\qquad d_n=2K+1.
+\]
+At each \(j<n\), \(d_j>a_{j-1},c_{j-1}\), both \((a_j)\) and \((c_j)\) are nondecreasing, and
+\[
+ \max(a_j,c_j)=d_j,\qquad 0\le a_j,c_j\le K.
+\]
+For a legal triple \((x,b,z)\), the proposed row has slack
+\[
+ s(x,b,z)=K-a_x+d_b-c_z-(K+1)B_1(x,b,z).
+\]
+Here the coefficients of \(B_0\) and \(B_2\) are zero.  If \(x>b\), non-valley support forces \(z\le b<n\), and monotonicity gives
+\[
+ s(x,b,z)=K-a_x+d_b-c_z\ge d_b-c_b\ge0.
+\]
+The case \(z>b\) is symmetric.  If \(b>x,z\), then
+\[
+ s(x,b,z)=d_b-a_x-c_z-1
+ \ge d_b-a_{b-1}-c_{b-1}-1=0,
+\]
+where the displayed equality is also valid at \(b=n\) by the definitions of \(a_n,c_n,d_n\).  In the remaining case there is no unique peak, \(x,z\le b\), and at least one of \(x,z\) equals \(b\).  For \(b<n\),
+\[
+ s(x,b,z)\ge K+d_b-a_b-c_b=K-\min(a_b,c_b)\ge0,
+\]
+whereas for \(b=n\), \(s(x,b,z)\ge K+1\).  These four cases exhaust \(\mathcal U_L\), so the row is valid.  Since \(d_1=1\) and the first letter raises at least one endpoint sequence from zero to one, one coefficient is \(-1\); hence the integer row is primitive.
+
+We next use a tight-row rank certificate to prove facetness.  Let an arbitrary affine row
+\[
+ g(x,b,z)=k+uB_0+vB_1+wB_2+A_x+D_b+C_z
+\]
+vanish on all of the following legal tight triples:
+\[
+ (n,0,0),\ (n-1,0,0),\ (0,0,n),\ (0,0,n-1),\ (n-1,n-1,n-1),
+\]
+\[
+ (j-1,j,j-1),\quad 1\le j\le n,
+\]
+\[
+ (j,j,n)\quad\text{when }\omega_j\in\{\mathrm L,\mathrm D\},
+ \qquad
+ (n,j,j)\quad\text{when }\omega_j\in\{\mathrm R,\mathrm D\},
+ \quad 1\le j<n,
+\]
+and, for \(j<n-1\), also
+\[
+ (j,j+1,j-1)\quad\text{when }\omega_j=\mathrm L,
+ \qquad
+ (j-1,j+1,j)\quad\text{when }\omega_j=\mathrm R.
+\]
+Their tightness follows directly from \(d_j=a_{j-1}+c_{j-1}+1\), from the update specified by the relevant letter, and from \(a_{n-1}=c_{n-1}=K\).
+
+The first four triples imply
+\[
+ A_n=A_{n-1},\quad C_n=C_{n-1},\quad
+ k+A_n+u=0,\quad k+C_n+w=0.
+\]
+Comparison with \((0,0,n)\) shows \(A_j=-D_j\) for each letter \(\mathrm L\) or \(\mathrm D\), while comparison with \((n,0,0)\) shows \(C_j=-D_j\) for each letter \(\mathrm R\) or \(\mathrm D\).  Because the final letter is \(\mathrm D\), the all-\((n-1)\) triple yields
+\[
+ D_{n-1}=k,\qquad A_n=C_n=-k,\qquad u=w=0.
+\]
+Comparing each additional \(\mathrm L\)-triple with \((j,j+1,j)\) gives \(C_j=C_{j-1}\); the analogous \(\mathrm R\)-comparison gives \(A_j=A_{j-1}\).  Finally, the peak triple \((j-1,j,j-1)\) gives
+\[
+ D_j=-A_{j-1}-C_{j-1}-k-v.
+\]
+Set \(\lambda=-k-v\).  Induction over the letters therefore gives
+\[
+ (A_j,D_j,C_j)=\lambda(-a_j,d_j,-c_j),\qquad 1\le j<n.
+\]
+At \(j=n-1\), this identity and \(D_{n-1}=k\) imply \(k=K\lambda\), hence \(v=-(K+1)\lambda\).  The peak equation at \(j=n\) then gives
+\[
+ D_n=(2K+1)\lambda,\qquad A_n=C_n=-K\lambda.
+\]
+Thus the annihilator of the displayed tight augmented vertex rows is exactly the one-dimensional span of the proposed row.  Those rows consequently have rank \(3L\), so their affine span has dimension \(3L-1\).  Full dimensionality and validity now show that the proposed row defines a facet.  Moreover, at \((0,n,n)\),
+\[
+ s(0,n,n)=2K+1\ge3,
+\]
+so the facet is weighted and belongs to \(\mathcal W_L\).
+
+The word is recovered from the row uniquely: at position \(j<n\), exactly \(a_j\) increases for \(\mathrm L\), exactly \(c_j\) increases for \(\mathrm R\), and both increase for \(\mathrm D\).  Hence the construction is injective.  Fixing the last letter leaves \(n-2=L-3\) free letters and therefore gives \(3^{L-3}\) distinct weighted facets.
+
+For the all-\(\mathrm D\) word, \(a_j=c_j=d_j\) and
+\[
+ d_j=2d_{j-1}+1,\qquad d_0=0,
+\]
+so \(d_j=2^j-1\), including \(d_n=2^n-1\).  For an alternating \(\mathrm L,\mathrm R\) prefix, put \(x_j=a_j+1\) and \(y_j=c_j+1\).  An \(\mathrm L\) step sends \((x,y)\) to \((x+y,y)\), and an \(\mathrm R\) step sends it to \((x,x+y)\).  Starting from \((1,1)\), after \(m=L-3\) alternating steps the two entries are consecutive Fibonacci numbers whose sum is \(\operatorname{Fib}(m+3)=\operatorname{Fib}(L)\).  The terminal \(\mathrm D\) step therefore has
+\[
+ K=a_{n-2}+c_{n-2}+1=x_{n-2}+y_{n-2}-1=\operatorname{Fib}(L)-1.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The family supplies an exponential lower bound, explicit weighted facets, and the mandatory encoding stress test. \textit{Gap.} Bonet2001 establishes a causal facet precedent, but no published result exhibits this non-valley staircase family or its Fibonacci and doubling subfamilies. \textit{Consumer.} Any claimed complete generator or coefficient-size bound can be falsified immediately on this explicit family.
+
+\begin{openendedquestion}[oeq:complete-two-pass-facet-stream]\label{oeq:complete-two-pass-facet-stream}
+Does the prefix-extremizer rank-state handle yield a finite set \(\mathsf T\), a renormalized geometric predecessor for every row in \(\mathcal H_{L+1}\), and one fixed program \(S_\star\) with \(\mathsf{CHECK}_{2\mathrm{BTAS}}(S_\star)=1\) such that, for every \(L\ge2\), the output multiset satisfies \(\operatorname{Out}_L(S_\star)=\mathcal H_L\) with multiplicity one, every emitted row is sound, and every canonical cut or weighted facet is emitted? The derived predecessor must give inverse type-labelled successors and include every staircase word from \(\text{def:staircase-family}\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: it upgrades finite hull computation to a uniform analytic and uniquely enumerable facet system. \textit{Gap.} Russell2021 supplies a general sharp-bound program for continuous functionals of the joint law of two potential outcomes, DuarteEtAl2024 gives generic sharp numerical optimization, AvisFukuda1996 gives abstract reverse search, and KaidoPonomarev2025 gives graph-based support inequalities. None proves a dimension-uniform facet grammar after a genuinely three-marginal forbidden-support deletion under the stated syntactic restriction. \textit{Consumer.} The complete stream makes every sharp unique-best endpoint auditable and reproducible for arbitrary prespecified ordinal resolution.
+
+\begin{theorem}[thm:fixed-transfer-recurrence]\label{thm:fixed-transfer-recurrence}
+If \(\text{oeq:complete-two-pass-facet-stream}\) has a positive solution, its geometric successor table determines a fixed matrix \(T_\star\) and finite initial vector \(c_2\) such that \(c_{L+1}=T_\star c_L\) and \(F_L=\mathbf 1^\top c_L\) for every \(L\ge2\); the initial values satisfy \(F_2=7\), \(F_3=59\), \(F_4=197\), and \(F_5=721\).
+\end{theorem}
+\begin{proof}
+Assume that \(\text{oeq:complete-two-pass-facet-stream}\) has a positive solution.  Write \(\rho_L:\mathcal H_{L+1}\to\mathcal H_L\) for its geometric predecessor map.  The stipulated inverse type-labelled successor table has a fixed nonnegative integer multiplicity
+\[
+m_{st}=\#\{\text{successor labels producing type }s
+                 \text{ from one predecessor of type }t\},
+\qquad s,t\in\mathsf T.
+\]
+The table is finite and independent of \(L\), so each \(m_{st}\) is finite and independent of \(L\).  Define the explicit transfer matrix by
+\[
+(T_\star)_{st}=m_{st},\qquad s,t\in\mathsf T. \tag{2}
+\]
+This exposes every variable in the claimed recurrence; no matrix is fitted to finitely many values of \(F_L\).
+
+Fix \(L\ge2\) and \(s\in\mathsf T\).  Unique predecessorhood partitions the type-\(s\) facets in \(\mathcal H_{L+1}\) into the disjoint fibers of \(\rho_L\).  Inverse successorhood says that the type-\(s\) part of the fiber above a predecessor \(g\) of type \(t\) has cardinality \(m_{st}\).  Therefore, using only disjoint finite-set counting and then grouping predecessors by type,
+\[
+\begin{aligned}
+(c_{L+1})_s
+&=\#\{h\in\mathcal H_{L+1}:\operatorname{type}(h)=s\}\\
+&=\sum_{g\in\mathcal H_L}
+   \#\{h\in\mathcal H_{L+1}:\rho_L(h)=g,
+                  \operatorname{type}(h)=s\}\\
+&=\sum_{t\in\mathsf T}
+   \sum_{\substack{g\in\mathcal H_L\\\operatorname{type}(g)=t}}m_{st}\\
+&=\sum_{t\in\mathsf T}m_{st}(c_L)_t
+=(T_\star c_L)_s.
+\end{aligned}\tag{3}
+\]
+Since (3) holds for every \(s\), it proves \(c_{L+1}=T_\star c_L\).  The finite type labels partition the finite set \(\mathcal H_L\), whence
+\[
+F_L=|\mathcal H_L|
+=\sum_{t\in\mathsf T}\#\{h\in\mathcal H_L:\operatorname{type}(h)=t\}
+=\mathbf 1^\top c_L. \tag{4}
+\]
+In particular, \(c_2\in\mathbb N^{|\mathsf T|}\) is a finite initial vector.  Finally, \(\text{lem:small-facet-catalogue-counts}\) gives the exact, independently certified values
+\[
+F_2=7,\qquad F_3=59,\qquad F_4=197,\qquad F_5=721.
+\]
+Equations (2)--(4) prove every assertion of the theorem under precisely its stated positive-solution premise.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A geometric transfer law is the falsifiable enumeration consequence of the finite predecessor theorem. \textit{Gap.} Finite hull counts can always be fit by an ad hoc recurrence; the claim requires the recurrence to be derived from the same sound and unique successor types. \textit{Consumer.} Researchers can know catalogue size and generation cost before computing bounds at a chosen ordinal resolution.
+
+\begin{theorem}[thm:sharp-three-facet-endpoints]\label{thm:sharp-three-facet-endpoints}
+For every compatible \(p\) and \(d\in\mathcal D\), \(\underline\theta_d(p)=\max_{\lambda\in\mathcal D_d^-}-\sum_i\lambda_i a_i(p)\) and \(\overline\theta_d(p)=\min_{\mu\in\mathcal D_d^+}\sum_i\mu_i a_i(p)\). Every certificate uses at most three full facets, and three cannot be replaced uniformly by two: at \(L=2\) and \(p_{0,1}=p_{1,1}=p_{2,1}=1/2\), the sharp upper endpoint \(\overline\theta_1(p)=1/4\) requires three canonical full-facet normals.
+\end{theorem}
+\begin{proof}
+Fix \(L\geq 2\), a compatible arm-marginal vector \(p\), and \(d\in\mathcal D\).  Write \(p^+=(p_{rj})_{r\in\mathcal D,\,1\leq j<L}\), the marginal coordinates retained in \(v_L\).  We first verify that the canonical rows give the complete inequality description needed below.
+
+By \(\text{thm:dimension-and-staircase-facets}\), \(Q_{3,L}\) is full-dimensional in \(\mathbb R^{3L}\).  A facet therefore contains \(3L\) affinely independent vertices.  Those vertices have integral coordinates, so the one-dimensional nullspace of their \(3L\)-by-\((3L+1)\) augmented integer matrix has a nonzero rational generator.  Multiplying by a common denominator, dividing by the positive greatest common divisor, and choosing the valid orientation produces a unique primitive integer row \(h\) of \(\text{def:canonical-facet-set}\).  Conversely, the validity and tight-set rank conditions in that definition say exactly that every \(h\in\mathcal H_L\) supports a facet.  Hence \(\mathcal H_L\) is precisely the finite set of oriented primitive facet rows.
+
+These facet rows describe all of \(Q_{3,L}\).  To see this directly, choose an interior point \(x_0\in Q_{3,L}\).  If \(x\notin Q_{3,L}\), compactness of the finite convex hull implies that the ray segment from \(x_0\) toward \(x\) has a first boundary point.  A boundary point of a full-dimensional polytope belongs to a facet.  The oriented slack of that facet is positive at \(x_0\), zero at the first boundary point, and negative farther along the same ray, in particular at \(x\).  Thus every exterior point violates a row in \(\mathcal H_L\).
+
+For \(h_i\in\mathcal H_L\), write its inequality at coordinates \((\vartheta,p^+)\) as
+\[
+ a_i(p)+\beta_i^{\mathsf T}\vartheta\geq0,
+ \qquad
+ a_i(p)=\kappa_i+\sum_{r\in\mathcal D}\sum_{j=1}^{L-1}\alpha_{irj}p_{rj}.
+\]
+It follows that the marginal section is
+\[
+ K(p):=\{\vartheta\in\mathbb R^3:(\vartheta,p^+)\in Q_{3,L}\}
+ =\{\vartheta:a_i(p)+\beta_i^{\mathsf T}\vartheta\geq0
+       \text{ for every }i\in\mathcal H_L\}.
+ \tag{1}
+\]
+Convex weights on the vertices \(v_L(u)\), \(u\in\mathcal U_L\), are exactly probability masses \(q\in\Delta(\mathcal U_L)\).  Fixing the marginal coordinates gives precisely the equalities in \(\text{def:coupling-fiber}\), including the level-zero equalities because each arm marginal sums to one, while the first three coordinates are \(\theta(q)\) by \(\text{def:unique-peak-indicators}\).  Therefore
+\[
+ K(p)=\{\theta(q):q\in\Gamma_L(p)\}.                 \tag{2}
+\]
+Compatibility makes this set nonempty, and finiteness of \(\mathcal U_L\) makes it compact.  Equations (1)--(2), consistently with the support-constrained primal representation in \(\text{thm:direct-support-transport-dual}\), give
+\[
+ \underline\theta_d(p)=\min_{\vartheta\in K(p)}e_d^{\mathsf T}\vartheta,
+ \qquad
+ \overline\theta_d(p)=\max_{\vartheta\in K(p)}e_d^{\mathsf T}\vartheta.       \tag{3}
+\]
+
+Apply \(\text{lem:finite-lp-strong-duality}\) to the first program in (3), written with the finitely many constraints in (1).  Its dual is
+\[
+ \max_{\lambda\geq0}
+ \left\{-\sum_i\lambda_i a_i(p):
+             \sum_i\lambda_i\beta_i=e_d\right\}.       \tag{4}
+\]
+The primal optimum exists by compactness, so the cited finite-dimensional duality result yields a dual optimizer and equality of the two values.  Weak duality is also visible equation by equation: for every feasible \(\vartheta\) and \(\lambda\),
+\[
+ 0\leq\sum_i\lambda_i\{a_i(p)+\beta_i^{\mathsf T}\vartheta\}
+ =\sum_i\lambda_i a_i(p)+e_d^{\mathsf T}\vartheta.     \tag{5}
+\]
+Let \(\vartheta^-\) and \(\lambda\) be primal and dual optimizers.  Equality of their objective values makes (5) an equality at \(\vartheta^-\).  Since every summand on its left is nonnegative,
+\[
+ \lambda_i>0\quad\Longrightarrow\quad
+ a_i(p)+\beta_i^{\mathsf T}\vartheta^-=0.              \tag{6}
+\]
+
+We now sparsify this optimal certificate without changing its value.  If the normals on \(S=\operatorname{supp}(\lambda)\) are linearly dependent, choose a nonzero vector \(r=(r_i)_{i\in S}\) satisfying \(\sum_{i\in S}r_i\beta_i=0\), and reverse its sign if necessary so that some \(r_i>0\).  Set
+\[
+ t=\min_{i\in S:r_i>0}\frac{\lambda_i}{r_i}>0,
+ \qquad
+ \lambda'_i=\lambda_i-tr_i\quad(i\in S),
+\]
+with \(\lambda'_i=0\) off \(S\).  Then \(\lambda'\geq0\), at least one positive coefficient is removed, and \(\sum_i\lambda'_i\beta_i=e_d\).  By (6),
+\[
+ \sum_{i\in S}r_i a_i(p)
+ =-\left(\sum_{i\in S}r_i\beta_i\right)^{\mathsf T}\vartheta^-=0,             \tag{7}
+\]
+so the objective in (4) is unchanged.  Iterating this finite support-reduction step leaves an optimal certificate with linearly independent normals.  There can be at most three such normals in \(\mathbb R^3\); the resulting certificate lies in \(\mathcal D_d^-\).  Conversely, (5) proves that every member of \(\mathcal D_d^-\) supplies a valid lower bound.  Thus
+\[
+ \underline\theta_d(p)=
+ \max_{\lambda\in\mathcal D_d^-}-\sum_i\lambda_i a_i(p).                    \tag{8}
+\]
+
+For the upper endpoint, minimize \(-e_d^{\mathsf T}\vartheta\) over \(K(p)\).  The same argument gives a nonnegative dual optimizer \(\mu\) satisfying \(\sum_i\mu_i\beta_i=-e_d\), and its value identity is
+\[
+ \overline\theta_d(p)=
+ \min_{\mu\in\mathcal D_d^+}\sum_i\mu_i a_i(p).                            \tag{9}
+\]
+The identical active-facet reduction proves that an optimizer in (9) has at most three linearly independent full-facet normals.  There are only finitely many supports of size at most three, and on each linearly independent support the equation \(\sum_i\rho_i\beta_i=\pm e_d\) has at most one solution.  Hence \(\mathcal D_d^-\) and \(\mathcal D_d^+\) are finite and computable from \(\mathcal H_L\).  Equations (2), (8), and (9) show equality with extrema over compatible latent laws, not merely outer bounds.  Together with \(\text{thm:randomization-identifies-marginals}\), they distinguish the causal target \(\theta(q)\) from the observed-law functionals in (8)--(9) and prove that those functionals are its sharp identified endpoints.
+
+It remains to prove that the number three cannot be replaced uniformly by two.  Let \(L=2\), put \(x_r=p_{r1}\), and list the seven legal triples as
+\[
+ 000,001,010,011,100,110,111;
+\]
+the excluded triple is \(101\) by \(\text{def:non-valley-support}\).  Solving the affine vertex equations gives
+\[
+\begin{aligned}
+ q_{000}&=1-x_1-\theta_0-\theta_2,&
+ q_{001}&=\theta_2,&
+ q_{010}&=\theta_1,\\
+ q_{011}&=x_1-x_0-\theta_1+\theta_0,&
+ q_{100}&=\theta_0,\\
+ q_{110}&=x_1-x_2-\theta_1+\theta_2,&
+ q_{111}&=x_0+x_2-x_1-\theta_0-\theta_2+\theta_1.
+\end{aligned}                                                                  \tag{10}
+\]
+Thus the affine vertex map is invertible.  Since \(Q_{3,2}\) has dimension six, it is the simplex generated by these seven vertices, and its seven canonical full facets are exactly the nonnegativity inequalities in (10).  Their \(\beta\)-normals, in the displayed order, are
+\[
+ (-1,0,-1),\ (0,0,1),\ (0,1,0),\ (1,-1,0),\ (1,0,0),\ (0,-1,1),\ (-1,1,-1). \tag{11}
+\]
+Only \((1,-1,0)\) and \((0,-1,1)\) have a negative second coordinate.  If a nonnegative combination with support at most two used only the first of these, cancellation of its positive first coordinate would require either \((-1,0,-1)\) or \((-1,1,-1)\), leaving an uncancelled negative third coordinate.  The symmetric argument applies if it used only the second.  If it used both, the sum is \((r,-r-s,s)\) with \(r,s>0\), whose first and third coordinates cannot both vanish.  Therefore no nonnegative combination of at most two normals in (11) equals \(-e_1\).  In contrast,
+\[
+ \frac12\bigl\{(-1,0,-1)+(1,-1,0)+(0,-1,1)\bigr\}=-e_1.                    \tag{12}
+\]
+Combining the corresponding three affine inequalities gives
+\[
+ \theta_1\leq\frac{1+x_1-x_0-x_2}{2}.                                      \tag{13}
+\]
+At \(x_0=x_1=x_2=1/2\), (13) gives \(\theta_1\leq1/4\).  The legal coupling assigning mass \(1/4\) to each of \(001,010,100,111\) has all three arm marginals equal to \(1/2\) and has \(\theta_1=1/4\).  Hence (13) is sharp there, while (11)--(12) prove that every full-facet certificate for this upper endpoint needs at least three normals.  This completes both the sharp endpoint formulas and the uniform necessity claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This converts the full mixed-target facet system into evaluable sharp scalar endpoints and pins down the exact dual sparsity. \textit{Gap.} GabrielSachsJensen2024 derives sharp symbolic formulas for ordinal measures of benefit from two potential outcomes under binary treatment, Chiba2017 studies \(P\{Y(1)\ge Y(0)\}\) for binary treatment, and LuDingDasgupta2018 obtains cumulative formulas for two-arm ordinal benefit. The target here is the unique-best indicator among three potential outcomes after deleting strict-middle-valley triples; every two-coordinate projection remains unrestricted, and the sharp endpoint can require three canonical full-facet normals. Thus the three-facet conclusion concerns genuinely three-marginal forbidden-support geometry rather than a reformulation of a two-arm symbolic benefit formula. \textit{Consumer.} The six formulas support an abstract conditional sensitivity analysis of which psilocybin dose is uniquely best under the prespecified score and maintained cross-world restriction.
+
+\begin{theorem}[thm:endpoint-attaining-mixtures]\label{thm:endpoint-attaining-mixtures}
+For every compatible \(p\), dose \(d\), and endpoint in \(\{\underline\theta_d(p),\overline\theta_d(p)\}\), there exists \(q^\star\in\Gamma_L(p)\) attaining that endpoint with \(|\operatorname{supp}(q^\star)|\le3L-2\). For rational \(p\), one can construct \(q^\star\) with rational masses from the active facet certificate and complementary slackness. The support bound is uniformly sharp: at \(L=2\) with \(p_{0,1}=p_{1,1}=p_{2,1}=1/2\), the unique optimizer attaining \(\overline\theta_1(p)=1/4\) assigns mass \(1/4\) to each of \(001,010,100,111\), and therefore has support \(4=3L-2\).
+\end{theorem}
+\begin{proof}
+Fix \(L\geq2\), a compatible \(p\), a dose \(d\in\mathcal D\), and either endpoint objective.  Index columns by \(u\in\mathcal U_L\).  Let \(M\) be the \((3L-2)\)-by-\(|\mathcal U_L|\) matrix with a row \(\varnothing\) and rows \((r,j)\in\mathcal D\times\{1,\ldots,L-1\}\), defined by
+\[
+ M_{\varnothing,u}=1,
+ \qquad
+ M_{(r,j),u}=\mathbf 1\{u_r=j\},
+\]
+and set
+\[
+ b(p)=\bigl(1,(p_{rj})_{r\in\mathcal D,\,1\leq j<L}\bigr)^{\mathsf T}.
+\]
+Then \(\text{def:coupling-fiber}\) is equivalently
+\[
+ \Gamma_L(p)=\{q\in\mathbb R_+^{\mathcal U_L}:Mq=b(p)\}.                    \tag{14}
+\]
+Indeed, a member of the fiber satisfies these equations.  Conversely, the mass row in (14) gives \(\sum_uq(u)=1\), and for every arm \(r\), the omitted level-zero equation follows from
+\[
+ \sum_{u:u_r=0}q(u)
+ =1-\sum_{j=1}^{L-1}\sum_{u:u_r=j}q(u)
+ =1-\sum_{j=1}^{L-1}p_{rj}=p_{r0},                                         \tag{15}
+\]
+where the last equality uses that the compatible arm marginal belongs to \(\Delta^{L-1}\).
+
+The feasible set in (14) is nonempty by compatibility, closed, and contained in the finite probability simplex, hence compact.  The map
+\[
+ q\longmapsto\theta_d(q)=\sum_{u\in\mathcal U_L}B_d(u)q(u)
+\]
+is linear and continuous, so both endpoint extrema are attained.  For either objective choose an optimizer \(q^\star\) with minimum support and put \(S=\operatorname{supp}(q^\star)\).  If the columns \((M_u)_{u\in S}\) were linearly dependent, there would be a nonzero vector \(z\), supported on \(S\), with \(Mz=0\).  For sufficiently small \(\varepsilon>0\), both \(q^\star+\varepsilon z\) and \(q^\star-\varepsilon z\) would be nonnegative and feasible.  Optimality of both signed perturbations forces
+\[
+ \sum_{u\in\mathcal U_L}B_d(u)z(u)=0.                                      \tag{16}
+\]
+The mass row of \(Mz=0\) gives \(\sum_uz(u)=0\), so a nonzero \(z\) has both signs.  Therefore
+\[
+ t=\min_{u\in S:z(u)<0}\frac{q^\star(u)}{-z(u)}>0
+\]
+makes \(q^\star+tz\) feasible, optimal by (16), and supported on a strict subset of \(S\), a contradiction.  The columns on \(S\) are therefore linearly independent, and
+\[
+ |\operatorname{supp}(q^\star)|\leq\operatorname{rank}(M)\leq3L-2.          \tag{17}
+\]
+
+We next make the promised construction from an active facet certificate explicit.  For \(h_i\in\mathcal H_L\), write
+\[
+ a_i(p)=\kappa_i+\sum_{r\in\mathcal D}\sum_{j=1}^{L-1}\alpha_{irj}p_{rj}.
+\]
+For every \(q\in\Gamma_L(p)\), the marginal equalities, the definition of \(\theta(q)\), and the vertex slack in \(\text{def:canonical-facet-set}\) give
+\[
+ a_i(p)+\beta_i^{\mathsf T}\theta(q)
+ =\sum_{u\in\mathcal U_L}s_{h_i}(u)q(u)\geq0.                              \tag{18}
+\]
+For a lower endpoint, \(\text{thm:sharp-three-facet-endpoints}\) supplies an optimal \(\lambda\in\mathcal D_d^-\) with
+\[
+ \sum_i\lambda_i\beta_i=e_d,
+ \qquad
+ \underline\theta_d(p)=-\sum_i\lambda_i a_i(p),
+ \qquad \lambda_i\geq0.                                                     \tag{19}
+\]
+For any lower-endpoint optimizer, summing (18) with these weights yields
+\[
+ 0=\underline\theta_d(p)+\sum_i\lambda_i a_i(p)
+ =\sum_i\lambda_i\sum_{u\in\mathcal U_L}s_{h_i}(u)q^\star(u).             \tag{20}
+\]
+Every term is nonnegative.  Hence \(\lambda_i>0\) and \(q^\star(u)>0\) imply \(s_{h_i}(u)=0\).  For an upper endpoint the same theorem supplies an optimal \(\mu\in\mathcal D_d^+\) satisfying
+\[
+ \sum_i\mu_i\beta_i=-e_d,
+ \qquad
+ \overline\theta_d(p)=\sum_i\mu_i a_i(p),
+ \qquad \mu_i\geq0,                                                        \tag{21}
+\]
+and summing (18) gives the same conclusion from
+\[
+ 0=\sum_i\mu_i a_i(p)-\overline\theta_d(p)
+ =\sum_i\mu_i\sum_{u\in\mathcal U_L}s_{h_i}(u)q^\star(u).                \tag{22}
+\]
+
+Let \(\rho\) denote the relevant certificate, either \(\lambda\) or \(\mu\), and define
+\[
+ T_\rho=\{u\in\mathcal U_L:s_{h_i}(u)=0
+             \text{ for every }i\text{ with }\rho_i>0\}.                  \tag{23}
+\]
+Equations (20)--(22) show that
+\[
+ M_{T_\rho}q_{T_\rho}=b(p),\qquad q_{T_\rho}\geq0                         \tag{24}
+\]
+is feasible.  Conversely, extend any solution of (24) by zero outside \(T_\rho\).  Equation (14) puts it in \(\Gamma_L(p)\), while (18) summed with the certificate weights gives equality in (19) or (21).  It therefore attains the specified endpoint.
+
+This yields a finite constructive procedure.  Enumerate subsets \(S\subseteq T_\rho\) with \(|S|\leq3L-2\), solve
+\[
+ M_Sq_S=b(p),\qquad q_S\geq0,                                               \tag{25}
+\]
+and accept a solution whose columns are linearly independent.  Feasibility of (24) and the support-elimination argument leading to (17), applied within \(T_\rho\), guarantee that the enumeration succeeds.  If \(p\) is rational, then \(b(p)\) is rational and \(M\) is integral.  On the linearly independent support of the active certificate, the equation \(\sum_i\rho_i\beta_i=\pm e_d\) has a unique solution obtained from a nonsingular integer minor, so its weights are rational; the tight set (23) is exactly decidable because every slack is integral.  For an accepted \(S\), choose \(|S|\) rows \(R\) such that the square integer matrix \(M_{R,S}\) is nonsingular.  Then
+\[
+ q_S=M_{R,S}^{-1}b_R(p)                                                     \tag{26}
+\]
+has rational entries.  Exact rational elimination checks the remaining equations and nonnegativity in (25).  Thus complementary slackness with an active certificate constructs a rational endpoint-attaining mixture whenever \(p\) is rational.
+
+Finally, (17) is uniformly sharp.  Take \(L=2\) and \(p_{0,1}=p_{1,1}=p_{2,1}=1/2\).  The only deleted binary triple is \(101\).  Write \(x_{abc}=q(a,b,c)\) for the seven legal triples.  The marginal equations are
+\[
+\begin{aligned}
+ x_{100}+x_{110}+x_{111}&=\frac12,\\
+ x_{010}+x_{011}+x_{110}+x_{111}&=\frac12,\\
+ x_{001}+x_{011}+x_{111}&=\frac12.
+\end{aligned}                                                               \tag{27}
+\]
+Adding the first and third equations and subtracting total mass one gives
+\[
+ x_{000}=x_{111}-x_{010}.                                                    \tag{28}
+\]
+Nonnegativity implies \(x_{111}\geq x_{010}\).  By \(\text{def:unique-peak-indicators}\), \(B_1(u)=1\) only at \(u=010\), so \(\theta_1(q)=x_{010}\).  The middle equation in (27) and (28) imply
+\[
+ \frac12=x_{010}+x_{011}+x_{110}+x_{111}\geq2x_{010},
+\]
+and hence \(\overline\theta_1(p)\leq1/4\).  The coupling
+\[
+ x_{001}=x_{010}=x_{100}=x_{111}=\frac14,
+ \qquad x_{000}=x_{011}=x_{110}=0                                          \tag{29}
+\]
+is legal, satisfies (27), and attains \(\theta_1=1/4\).  If equality holds, then (27)--(28) force \(x_{111}=x_{010}=1/4\) and \(x_{011}=x_{110}=0\); the first and third equations force \(x_{100}=x_{001}=1/4\), and (28) forces \(x_{000}=0\).  Thus (29) is the unique optimizer and every optimizer has support \(4=3L-2\).  Consequently no smaller uniform support bound is possible.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Sharpness requires compatible response-triple laws, not only valid dual inequalities. \textit{Gap.} Two-way constructive tables are available in LuDingDasgupta2018; the present construction must honor a forbidden three-way support at every endpoint branch. \textit{Consumer.} Endpoint-attaining mixtures provide transparent worst-case response profiles for benefit-risk reporting and sensitivity analysis.
+
+\begin{openendedquestion}[oeq:support-aware-joint-inference]\label{oeq:support-aware-joint-inference}
+At each fixed \(P\in\mathcal P_L\) with \(p_{dj}>0\) for every \((d,j)\in\mathcal D\times\mathcal Y_L\), suppose that one affine certificate contrast is uniquely active for a specified scalar endpoint, is separated by a positive gap from every competing contrast, and has positive asymptotic variance.  Is the corresponding scalar side of the finite-sample honest procedure in \(\text{thm:finite-sample-support-honesty}\) asymptotically equivalent to the semiparametrically efficient Wald interval?  The answer must specify whether the limiting critical value uses the global level \(\alpha\) or the procedure's simultaneous error allocation and must preserve the stated simultaneous coverage guarantee.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Identification without boundary-valid uncertainty quantification is inadequate for sparse multi-arm ordinal trials. \textit{Gap.} ChoRussell2024 perturbs LPs for uniform validity and FangSantos2019 simulates directional derivatives; neither delivers finite-sample support honesty plus pointwise efficient scalar adaptation for this six-endpoint map. \textit{Consumer.} The result supplies a single prespecified report that remains honest in small trial cells without paying a permanent efficiency penalty on regular faces.
+
+\begin{theorem}[thm:binary-sanity-reduction]\label{thm:binary-sanity-reduction}
+When \(L=2\), \(Q_{3,2}\) is a full-dimensional unimodular simplex with seven primitive facets. At \(p_{0,1}=p_{1,1}=p_{2,1}=1/2\), the middle-dose endpoint interval is \([\underline\theta_1(p),\overline\theta_1(p)]=[0,1/4]\), attained respectively by mixtures on \(\{000,111\}\) and \(\{001,010,100,111\}\).
+\end{theorem}
+\begin{proof}
+For \(L=2\), the only forbidden binary response triple is \(101\), so the seven vertices of \(Q_{3,2}\) are indexed by
+\[
+ 000,001,010,011,100,110,111.
+\]
+Write \(x_d=p_{d1}\).  Direct marginalization and the definitions of the unique-peak indicators give the inverse affine coordinates
+\[
+\begin{aligned}
+ q_{000}&=1-x_1-\theta_0-\theta_2,&q_{001}&=\theta_2,&q_{010}&=\theta_1,\\
+ q_{011}&=x_1-x_0-\theta_1+\theta_0,&q_{100}&=\theta_0,\\
+ q_{110}&=x_1-x_2-\theta_1+\theta_2,&
+ q_{111}&=x_0+x_2-x_1-\theta_0-\theta_2+\theta_1.
+\end{aligned}
+\]
+Substitution verifies that these masses add to one and reproduce \((\theta_0,\theta_1,\theta_2,x_0,x_1,x_2)\).  Hence the seven augmented vertex rows are affinely independent.  Moreover, both the forward vertex matrix and the displayed inverse have integer entries; their determinants are reciprocal integers and therefore have absolute value one.  Thus \(Q_{3,2}\) is a full-dimensional unimodular simplex in \(\mathbb R^6\).  Its seven barycentric inequalities \(q_u\ge0\) are exactly its seven primitive facets.
+
+At \(x_0=x_1=x_2=1/2\), nonnegativity of \(q_{010}\) gives \(\theta_1\ge0\).  Adding the three nonnegative coordinates \(q_{000},q_{011},q_{110}\) gives
+\[
+ 0\le q_{000}+q_{011}+q_{110}
+   =\frac12-2\theta_1,
+\]
+so \(\theta_1\le1/4\).  The distribution assigning mass \(1/2\) to each of \(000\) and \(111\) has all three marginals equal to \(1/2\) and \(\theta_1=0\).  The distribution assigning mass \(1/4\) to each of \(001,010,100,111\) also has all three marginals equal to \(1/2\) and has \(\theta_1=1/4\).  Both distributions are supported on \(\mathcal U_2\), so the bounds are sharp and
+\[
+ [\underline\theta_1(p),\overline\theta_1(p)]=[0,1/4].
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The binary reduction checks normalization, dimension, sharpness, and attainment against an exactly invertible base case. \textit{Gap.} This is a required reduction rather than a novelty claim. \textit{Consumer.} It anchors the transfer recurrence and supplies a hand-checkable validation case for software and empirical workflows.
+
+\begin{lemma}[lem:small-facet-catalogue-counts]\label{lem:small-facet-catalogue-counts}
+The exact primitive canonical facet counts at the first four outcome resolutions are
+\[
+F_2=7,\qquad F_3=59,\qquad F_4=197,\qquad F_5=721.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(\ell\in\{2,3,4,5\}\), put \(D_\ell=3\ell\), and order \(\mathcal U_\ell\) lexicographically.  The augmented vertex row associated with \(u\in\mathcal U_\ell\) is
+\[
+r_\ell(u)=(1,v_\ell(u))\in\{0,1\}^{D_\ell+1}.
+\]
+The only excluded triples are \((x,b,z)\) with \(x>b\) and \(z>b\).  Consequently,
+\[
+|\mathcal U_\ell|
+=\ell^3-\sum_{b=0}^{\ell-2}(\ell-1-b)^2
+=\ell^3-\frac{(\ell-1)\ell(2\ell-1)}6,
+\]
+which gives \(7,22,50,95\) vertices for \(\ell=2,3,4,5\), respectively.  By \(\text{thm:dimension-and-staircase-facets}\), their augmented rows span \(\mathbb R^{D_\ell+1}\).
+
+Here is an exact, finite determinant catalogue.  For every \(D_\ell\)-element subset \(I\subset\mathcal U_\ell\), let \(R_I\) be the \(D_\ell\) by \(D_\ell+1\) matrix with rows \(r_\ell(u)\), \(u\in I\).  If \(\operatorname{rank}(R_I)=D_\ell\), define its signed-cofactor null vector by
+\[
+(z_I)_k=(-1)^k\det(R_I^{\widehat k}),\qquad 0\le k\le D_\ell,
+\]
+where \(R_I^{\widehat k}\) deletes column \(k\).  Laplace expansion gives \(R_Iz_I=0\), and the rank condition gives \(z_I\ne0\).  Divide \(z_I\) by the positive greatest common divisor of its coordinates.  Retain it if either
+\[
+r_\ell(u)z_I\ge0\quad\text{for every }u\in\mathcal U_\ell
+\]
+or the same inequalities hold after multiplication by \(-1\), choosing the valid orientation.  Let \(E_\ell\) be the set of distinct retained primitive rows.
+
+We verify that this finite calculation is exactly a facet calculation.  If \(e\in E_\ell\), then \(e\) is primitive and valid, and the rows indexed by its generating set \(I\) are tight and have rank \(D_\ell\).  Because all augmented vertex rows have rank \(D_\ell+1\), the complete tight-row matrix of the nonzero vector \(e\) cannot have rank larger than \(D_\ell\).  Its rank is therefore exactly \(D_\ell\), so its tight vertices have affine dimension \(D_\ell-1\).  Thus \(e\in\mathcal H_\ell\).  Conversely, if \(h\in\mathcal H_\ell\), the augmented rows of its tight vertices have rank \(D_\ell\).  Choose a basis \(I\) of \(D_\ell\) such rows.  Then \(\ker(R_I)\) is one-dimensional and contains \(h\); primitive normalization and valid orientation therefore turn \(z_I\) into exactly \(h\).  Hence
+\[
+E_\ell=\mathcal H_\ell. \tag{1}
+\]
+This is the exhaustive-subdeterminant technique: (1) proves both soundness and completeness, without assuming that a numerical hull routine returned all facets.
+
+For auditability, the complete lexicographically ordered row payload is printed below.  A semicolon separates rows, and coordinates within a row occur in the order
+\[
+(\kappa,\beta_0,\beta_1,\beta_2,
+\alpha_{01},\ldots,\alpha_{0,\ell-1},
+\alpha_{11},\ldots,\alpha_{1,\ell-1},
+\alpha_{21},\ldots,\alpha_{2,\ell-1}).
+\]
+Every determinant, greatest common divisor, slack, and rank in the preceding test is an integer.  Thus ties and zero slacks are tested exactly and no positivity, division, or limiting condition is implicit.
+
+{\footnotesize\ttfamily\raggedright
+For \(\ell=2\):\par
+\detokenize{0,-1,1,-1,1,-1,1; 0,0,-1,1,0,1,-1; 0,0,0,1,0,0,0; 0,0,1,0,0,0,0; 0,1,-1,0,-1,1,0; 0,1,0,0,0,0,0; 1,-1,0,-1,0,-1,0}\par
+For \(\ell=3\):\par
+\detokenize{0,-1,0,0,1,1,0,0,0,0; 0,-1,1,-1,1,1,0,-1,1,1; 0,-1,1,-1,1,2,-1,-1,1,2; 0,-1,1,0,1,1,0,-1,0,1; 0,-1,1,0,1,2,-1,-1,1,1; 0,-1,2,-1,1,2,-1,-2,1,2; 0,0,-1,0,0,0,1,1,0,0; 0,0,-1,1,0,0,1,1,0,-1; 0,0,-1,1,0,0,1,2,-1,-1; 0,0,-1,2,0,0,1,2,-1,-2; 0,0,0,-1,0,0,0,0,1,1; 0,0,0,0,0,0,0,0,0,1;
+0,0,0,0,0,0,0,0,1,0; 0,0,0,0,0,0,0,1,0,0; 0,0,0,0,0,0,1,0,0,0; 0,0,0,0,0,1,0,0,0,0; 0,0,0,0,1,0,0,0,0,0; 0,0,0,1,0,0,0,0,0,0; 0,0,0,1,0,0,0,1,0,-1; 0,0,0,1,0,0,1,1,-1,-1; 0,0,1,-1,0,1,0,-1,1,1; 0,0,1,-1,1,1,-1,-1,1,2; 0,0,1,0,0,0,0,0,0,0; 0,0,1,0,0,1,0,-1,0,1;
+0,0,1,0,1,1,-1,-1,1,1; 0,1,-1,0,-1,-1,1,2,0,0; 0,1,-1,0,0,-1,1,1,0,0; 0,1,-1,1,-1,-1,1,2,0,-1; 0,1,-1,1,0,-1,1,2,-1,-1; 0,1,0,0,-1,-1,1,1,0,0; 0,1,0,0,0,-1,0,1,0,0; 0,1,0,0,0,0,0,0,0,0; 0,1,1,1,1,0,-1,0,1,0; 0,2,-1,0,-1,-2,1,2,0,0; 1,-1,-1,-1,0,0,0,0,0,0; 1,-1,-1,0,0,0,0,0,0,-1;
+1,-1,-1,0,0,1,0,1,-1,-1; 1,-1,-1,1,0,1,0,1,-1,-2; 1,-1,0,-1,0,0,0,-1,0,0; 1,-1,0,-1,0,1,-1,-1,0,1; 1,-1,0,0,0,1,-1,-1,0,0; 1,-1,0,0,0,1,0,0,-1,-1; 1,-1,1,-1,0,1,-1,-2,0,1; 1,0,-2,0,-1,-1,1,3,-1,-1; 1,0,-2,2,-1,-1,1,3,-1,-3; 1,0,-1,-1,-1,-1,0,1,0,1; 1,0,-1,-1,0,-1,0,0,0,0; 1,0,-1,1,-1,-1,0,1,0,-1;
+1,0,-1,1,0,0,0,1,-1,-2; 1,0,0,-1,-1,-1,0,0,0,1; 1,0,0,-1,0,0,-1,-1,0,1; 1,0,0,0,-1,-1,0,0,0,0; 1,0,0,0,-1,-1,1,1,-1,-1; 1,0,0,0,0,0,-1,-1,0,0; 1,0,0,0,0,0,0,0,-1,-1; 1,1,-1,-1,-1,-2,0,1,0,1; 1,1,-1,0,-1,-2,0,1,0,0; 1,1,-1,0,0,-1,0,1,-1,-1; 1,2,-2,0,-1,-3,1,3,-1,-1}\par
+For \(\ell=4\):\par
+\detokenize{0,-1,0,0,1,1,1,0,0,0,0,0,0; 0,-1,1,-1,1,1,1,0,0,-1,1,1,1; 0,-1,1,-1,1,1,2,0,-1,-1,1,1,2; 0,-1,1,-1,1,2,2,-1,-1,-1,1,2,2; 0,-1,1,0,1,1,1,0,0,-1,0,0,1; 0,-1,1,0,1,1,2,0,-1,-1,0,1,1; 0,-1,1,0,1,2,2,-1,-1,-1,1,1,1; 0,-1,1,1,1,1,2,1,0,1,-1,0,-1; 0,-1,1,1,1,2,2,-1,0,-1,1,0,1; 0,-1,2,-1,1,1,2,0,-1,-2,1,1,2; 0,-1,2,-1,1,2,2,-1,-1,-2,1,2,2; 0,-1,2,-1,1,2,3,-1,-2,-2,1,2,3;
+0,-1,2,0,1,1,2,0,-1,-2,0,1,2; 0,-1,2,0,1,2,2,-1,-1,-2,1,1,2; 0,-1,2,0,1,2,3,-1,-2,-2,1,2,2; 0,-1,2,1,1,2,2,-1,0,-2,1,0,2; 0,-1,3,-1,1,2,3,-1,-2,-3,1,2,3; 0,0,-1,0,0,0,0,1,1,1,0,0,0; 0,0,-1,1,0,0,0,1,1,1,0,0,-1; 0,0,-1,1,0,0,0,1,1,2,0,-1,-1; 0,0,-1,1,0,0,0,1,2,2,-1,-1,-1; 0,0,-1,2,0,0,0,1,1,2,0,-1,-2; 0,0,-1,2,0,0,0,1,2,2,-1,-1,-2; 0,0,-1,2,0,0,0,1,2,3,-1,-2,-2;
+0,0,-1,3,0,0,0,1,2,3,-1,-2,-3; 0,0,0,-1,0,0,0,0,0,0,1,1,1; 0,0,0,0,0,0,0,0,0,0,0,0,1; 0,0,0,0,0,0,0,0,0,0,0,1,0; 0,0,0,0,0,0,0,0,0,0,1,0,0; 0,0,0,0,0,0,0,0,0,1,0,0,0; 0,0,0,0,0,0,0,0,1,0,0,0,0; 0,0,0,0,0,0,0,1,0,0,0,0,0; 0,0,0,0,0,0,1,0,0,0,0,0,0; 0,0,0,0,0,1,0,0,0,0,0,0,0; 0,0,0,0,1,0,0,0,0,0,0,0,0; 0,0,0,1,0,0,0,0,0,0,0,0,0;
+0,0,0,1,0,0,0,0,0,1,0,0,-1; 0,0,0,1,0,0,0,0,1,1,0,-1,-1; 0,0,0,1,0,0,0,1,1,1,-1,-1,-1; 0,0,1,-1,0,0,1,0,0,-1,1,1,1; 0,0,1,-1,0,1,1,0,-1,-1,1,1,2; 0,0,1,-1,1,1,1,-1,-1,-1,1,2,2; 0,0,1,0,0,0,0,0,0,0,0,0,0; 0,0,1,0,0,0,1,0,0,-1,0,0,1; 0,0,1,0,0,1,1,0,-1,-1,0,1,1; 0,0,1,0,1,1,1,-1,-1,-1,1,1,1; 0,0,1,1,0,1,1,1,0,1,-1,0,-1; 0,0,1,1,1,1,1,-1,0,-1,1,0,1;
+0,0,2,-1,0,1,2,0,-1,-2,1,1,2; 0,0,2,-1,1,1,2,-1,-1,-2,1,2,2; 0,0,2,-1,1,2,2,-1,-2,-2,1,2,3; 0,1,-1,0,-1,-1,-1,1,2,2,0,0,0; 0,1,-1,0,0,-1,-1,1,1,2,0,0,0; 0,1,-1,0,0,0,-1,1,1,1,0,0,0; 0,1,-1,1,-1,-1,-1,1,2,2,0,0,-1; 0,1,-1,1,-1,-1,-1,1,2,3,0,-1,-1; 0,1,-1,1,0,-1,-1,1,1,2,0,0,-1; 0,1,-1,1,0,-1,-1,1,2,3,-1,-1,-1; 0,1,-1,1,0,0,-1,1,1,2,0,-1,-1; 0,1,-1,1,0,0,-1,1,2,2,-1,-1,-1;
+0,1,-1,2,-1,-1,-1,1,2,3,0,-1,-2; 0,1,-1,2,0,-1,-1,1,2,3,-1,-1,-2; 0,1,-1,2,0,0,-1,1,2,3,-1,-2,-2; 0,1,0,0,-1,-1,-1,1,1,1,0,0,0; 0,1,0,0,0,-1,-1,0,1,1,0,0,0; 0,1,0,0,0,0,-1,0,0,1,0,0,0; 0,1,0,0,0,0,0,0,0,0,0,0,0; 0,1,1,-1,-1,0,-1,1,0,1,1,1,2; 0,1,1,-1,1,0,1,-1,0,-1,1,2,2; 0,1,1,0,-1,0,-1,1,0,1,0,1,1; 0,1,1,0,1,0,1,-1,0,-1,1,1,1; 0,1,1,1,-1,0,-1,1,0,1,0,1,0;
+0,1,1,1,-1,0,-1,2,1,2,-1,0,-1; 0,1,1,1,0,1,0,0,-1,0,0,1,0; 0,1,1,1,0,1,0,1,0,1,-1,0,-1; 0,1,1,1,1,0,0,-1,0,0,1,0,0; 0,1,1,1,1,0,1,-1,0,-1,1,0,1; 0,1,1,1,1,1,0,-1,-1,0,1,1,0; 0,1,2,-1,1,0,2,-1,0,-2,1,2,2; 0,2,-1,0,-1,-2,-2,1,2,3,0,0,0; 0,2,-1,0,-1,-1,-2,1,2,2,0,0,0; 0,2,-1,0,0,-1,-2,1,1,2,0,0,0; 0,2,-1,1,-1,-2,-2,1,2,3,0,0,-1; 0,2,-1,1,-1,-1,-2,1,2,3,0,-1,-1;
+0,2,-1,1,0,-1,-2,1,2,3,-1,-1,-1; 0,3,-1,0,-1,-2,-3,1,2,3,0,0,0; 1,-1,-1,-1,0,0,0,0,0,0,0,0,0; 1,-1,-1,0,0,0,0,0,0,0,0,0,-1; 1,-1,-1,0,0,0,1,0,0,1,0,-1,-1; 1,-1,-1,0,0,1,1,0,1,1,-1,-1,-1; 1,-1,-1,1,0,0,1,0,0,1,0,-1,-2; 1,-1,-1,1,0,1,1,0,1,1,-1,-1,-2; 1,-1,-1,1,0,1,1,0,1,2,-1,-2,-2; 1,-1,-1,2,0,1,1,0,1,2,-1,-2,-3; 1,-1,0,-1,0,0,0,0,0,-1,0,0,0; 1,-1,0,-1,0,0,1,0,-1,-1,0,0,1;
+1,-1,0,-1,0,1,1,-1,-1,-1,0,1,1; 1,-1,0,0,0,0,1,0,-1,-1,0,0,0; 1,-1,0,0,0,0,1,0,0,0,0,-1,-1; 1,-1,0,0,0,0,1,1,0,0,-1,-1,-1; 1,-1,0,0,0,1,1,-1,-1,-1,0,0,0; 1,-1,0,0,0,1,1,0,0,0,-1,-1,-1; 1,-1,1,-1,0,0,1,0,-1,-2,0,0,1; 1,-1,1,-1,0,1,1,-1,-1,-2,0,1,1; 1,-1,1,-1,0,1,2,-1,-2,-2,0,1,2; 1,-1,1,0,0,1,1,-1,-1,-2,0,0,1; 1,-1,1,0,0,1,1,0,0,-1,-1,-1,0; 1,-1,1,0,0,1,2,-1,-2,-2,0,1,1;
+1,-1,1,0,0,1,2,0,-1,-1,-1,0,0; 1,-1,1,1,0,1,2,1,0,1,-2,-1,-2; 1,-1,2,-1,0,1,2,-1,-2,-3,0,1,2; 1,0,-2,0,-1,-1,-1,1,3,3,-1,-1,-1; 1,0,-2,0,0,-1,-1,1,1,3,0,-1,-1; 1,0,-2,1,-1,-1,-1,1,2,4,0,-2,-2; 1,0,-2,2,-1,-1,-1,1,3,3,-1,-1,-3; 1,0,-2,2,-1,-1,-1,1,3,5,-1,-3,-3; 1,0,-2,2,0,-1,-1,1,1,3,0,-1,-3; 1,0,-2,3,-1,-1,-1,1,2,4,0,-2,-4; 1,0,-2,4,-1,-1,-1,1,3,5,-1,-3,-5; 1,0,-1,-1,-1,-1,-1,0,1,1,0,1,1;
+1,0,-1,-1,0,-1,-1,0,0,1,0,0,1; 1,0,-1,-1,0,0,-1,0,0,0,0,0,0; 1,0,-1,0,-1,-1,-1,0,1,1,0,0,0; 1,0,-1,0,-1,-1,-1,1,1,2,0,-1,-1; 1,0,-1,0,0,-1,-1,0,1,2,0,-1,-1; 1,0,-1,0,0,-1,-1,1,1,2,-1,-1,-1; 1,0,-1,0,0,0,0,0,1,1,-1,-1,-1; 1,0,-1,1,-1,-1,-1,0,1,1,0,0,-1; 1,0,-1,1,-1,-1,-1,0,1,2,0,-1,-1; 1,0,-1,1,-1,-1,-1,1,1,2,0,-1,-2; 1,0,-1,1,0,-1,-1,0,0,1,0,0,-1; 1,0,-1,1,0,-1,-1,0,1,2,0,-1,-2;
+1,0,-1,1,0,-1,-1,1,1,2,-1,-1,-2; 1,0,-1,1,0,0,0,0,0,1,0,-1,-2; 1,0,-1,1,0,0,0,0,1,1,-1,-1,-2; 1,0,-1,1,0,0,0,0,1,2,-1,-2,-2; 1,0,-1,2,-1,-1,-1,0,1,2,0,-1,-2; 1,0,-1,2,0,0,0,0,1,2,-1,-2,-3; 1,0,0,-1,-1,-1,-1,0,0,0,0,1,1; 1,0,0,-1,-1,-1,-1,1,0,0,0,0,1; 1,0,0,-1,0,-1,-1,0,0,0,0,0,1; 1,0,0,-1,0,0,0,-1,-1,-1,0,1,1; 1,0,0,-1,0,0,0,0,-1,-1,0,0,1; 1,0,0,0,-1,-1,-1,0,0,0,0,0,0;
+1,0,0,0,-1,-1,-1,1,1,1,-1,-1,-1; 1,0,0,0,0,-1,-1,0,1,1,0,-1,-1; 1,0,0,0,0,0,0,-1,-1,-1,0,0,0; 1,0,0,0,0,0,0,0,0,0,-1,-1,-1; 1,0,1,-1,-1,-1,0,0,0,-1,0,1,1; 1,0,1,-1,-1,0,0,0,-1,-1,0,1,2; 1,0,1,-1,0,0,1,-1,-1,-2,0,1,1; 1,0,1,-1,0,1,1,-1,-2,-2,0,1,2; 1,1,-2,0,0,-2,-2,1,2,4,-1,-1,-1; 1,1,-2,2,0,-2,-2,1,2,4,-1,-1,-3; 1,1,-1,-1,-1,-2,-2,0,1,2,0,1,1; 1,1,-1,-1,-1,-1,-2,0,1,1,0,1,1;
+1,1,-1,-1,0,-1,-2,0,0,1,0,0,1; 1,1,-1,0,-1,-2,-2,0,1,2,0,0,0; 1,1,-1,0,-1,-1,-2,0,1,1,0,0,0; 1,1,-1,0,-1,-1,-2,1,1,2,0,-1,-1; 1,1,-1,0,0,-1,-2,0,0,1,0,0,0; 1,1,-1,0,0,-1,-2,0,1,2,0,-1,-1; 1,1,-1,0,0,-1,-2,1,1,2,-1,-1,-1; 1,1,-1,0,0,-1,-1,0,1,2,-1,-1,-1; 1,1,-1,0,0,0,-1,0,0,1,0,-1,-1; 1,1,-1,0,0,0,-1,0,1,1,-1,-1,-1; 1,1,-1,1,-1,-2,-2,0,1,2,0,0,-1; 1,1,-1,1,-1,-1,-2,0,1,2,0,-1,-1;
+1,1,-1,1,0,-1,-1,0,1,2,-1,-1,-2; 1,1,-1,1,0,0,-1,0,1,2,-1,-2,-2; 1,1,1,-1,-2,-1,-2,1,0,1,0,1,2; 1,2,-2,0,-1,-3,-3,1,3,5,-1,-1,-1; 1,2,-2,0,-1,-1,-3,1,3,3,-1,-1,-1; 1,2,-2,0,0,-1,-3,1,1,3,0,-1,-1; 1,2,-2,1,-1,-1,-3,1,2,4,0,-2,-2; 1,2,-2,2,-1,-3,-3,1,3,5,-1,-1,-3; 1,2,-2,2,-1,-1,-3,1,3,5,-1,-3,-3; 1,2,-1,-1,-1,-2,-3,0,1,2,0,1,1; 1,2,-1,0,-1,-2,-3,0,1,2,0,0,0; 1,2,-1,0,0,-1,-2,0,1,2,-1,-1,-1;
+1,3,-2,0,0,-2,-4,1,2,4,-1,-1,-1; 1,4,-2,0,-1,-3,-5,1,3,5,-1,-1,-1; 2,0,-3,0,-1,-2,-2,1,2,5,0,-2,-2; 2,0,-3,0,0,-2,-2,1,2,5,-1,-2,-2; 2,0,-3,3,-1,-2,-2,1,2,5,0,-2,-5; 2,0,-3,3,0,-2,-2,1,2,5,-1,-2,-5; 2,0,-2,0,-1,-2,-2,0,1,3,0,-1,-1; 2,0,-2,0,0,-1,-1,0,1,3,-1,-2,-2; 2,0,-2,2,-1,-2,-2,0,1,3,0,-1,-3; 2,0,-2,2,0,-1,-1,0,1,3,-1,-2,-4; 2,2,-2,0,-1,-2,-4,0,1,3,0,-1,-1; 2,2,-2,0,0,-1,-3,0,1,3,-1,-2,-2;
+2,3,-3,0,-1,-2,-5,1,2,5,0,-2,-2; 2,3,-3,0,0,-2,-5,1,2,5,-1,-2,-2; 3,0,-4,0,-1,-3,-3,1,3,7,-1,-3,-3; 3,0,-4,4,-1,-3,-3,1,3,7,-1,-3,-7; 3,4,-4,0,-1,-3,-7,1,3,7,-1,-3,-3}\par
+For \(\ell=5\):\par
+\detokenize{0,-1,0,0,1,1,1,1,0,0,0,0,0,0,0,0; 0,-1,1,-1,1,1,1,1,0,0,0,-1,1,1,1,1; 0,-1,1,-1,1,1,1,2,0,0,-1,-1,1,1,1,2; 0,-1,1,-1,1,1,2,2,0,-1,-1,-1,1,1,2,2; 0,-1,1,-1,1,2,2,2,-1,-1,-1,-1,1,2,2,2; 0,-1,1,0,1,1,1,1,0,0,0,-1,0,0,0,1; 0,-1,1,0,1,1,1,2,0,0,-1,-1,0,0,1,1; 0,-1,1,0,1,1,2,2,0,-1,-1,-1,0,1,1,1; 0,-1,1,0,1,2,2,2,-1,-1,-1,-1,1,1,1,1; 0,-1,1,1,1,1,1,2,0,1,0,1,0,-1,0,-1; 0,-1,1,1,1,1,1,2,1,1,0,1,-1,-1,0,-1; 0,-1,1,1,1,1,2,2,0,-1,0,-1,0,1,0,1;
+0,-1,1,1,1,1,2,2,1,0,0,1,-1,0,0,-1; 0,-1,1,1,1,1,2,2,1,0,1,0,-1,0,-1,0; 0,-1,1,1,1,1,2,2,1,0,1,1,-1,0,-1,-1; 0,-1,1,1,1,2,2,2,-1,-1,0,-1,1,1,0,1; 0,-1,1,1,1,2,2,2,-1,0,-1,-1,1,0,1,1; 0,-1,1,1,1,2,2,2,-1,0,-1,0,1,0,1,0; 0,-1,1,1,1,2,2,2,-1,0,0,-1,1,0,0,1; 0,-1,2,-1,1,1,1,2,0,0,-1,-2,1,1,1,2; 0,-1,2,-1,1,1,2,2,0,-1,-1,-2,1,1,2,2; 0,-1,2,-1,1,1,2,3,0,-1,-2,-2,1,1,2,3; 0,-1,2,-1,1,2,2,2,-1,-1,-1,-2,1,2,2,2; 0,-1,2,-1,1,2,2,3,-1,-1,-2,-2,1,2,2,3;
+0,-1,2,-1,1,2,3,3,-1,-2,-2,-2,1,2,3,3; 0,-1,2,0,1,1,1,2,0,0,-1,-2,0,0,1,2; 0,-1,2,0,1,1,2,2,0,-1,-1,-2,0,1,1,2; 0,-1,2,0,1,1,2,3,0,-1,-2,-2,0,1,2,2; 0,-1,2,0,1,2,2,2,-1,-1,-1,-2,1,1,1,2; 0,-1,2,0,1,2,2,3,-1,-1,-2,-2,1,1,2,2; 0,-1,2,0,1,2,3,3,-1,-2,-2,-2,1,2,2,2; 0,-1,2,1,1,1,2,2,0,-1,0,-2,0,1,0,2; 0,-1,2,1,1,1,2,2,1,0,1,-1,-1,0,-1,1; 0,-1,2,1,1,2,2,2,-1,-1,0,-2,1,1,0,2; 0,-1,2,1,1,2,2,2,-1,0,-1,-2,1,0,1,2; 0,-1,2,1,1,2,2,2,-1,0,0,-2,1,0,0,2;
+0,-1,2,1,1,2,2,3,-1,0,-2,-2,1,0,2,2; 0,-1,2,1,1,2,2,3,-1,0,-2,-1,1,0,2,1; 0,-1,2,2,1,1,2,3,2,1,0,2,-2,-1,0,-2; 0,-1,2,2,1,2,2,3,-1,1,-1,1,1,-1,1,-1; 0,-1,2,2,1,2,3,3,-1,-2,0,-2,1,2,0,2; 0,-1,3,-1,1,1,2,3,0,-1,-2,-3,1,1,2,3; 0,-1,3,-1,1,2,2,3,-1,-1,-2,-3,1,2,2,3; 0,-1,3,-1,1,2,3,3,-1,-2,-2,-3,1,2,3,3; 0,-1,3,-1,1,2,3,4,-1,-2,-3,-3,1,2,3,4; 0,-1,3,0,1,1,2,3,0,-1,-2,-3,0,1,2,3; 0,-1,3,0,1,2,2,3,-1,-1,-2,-3,1,1,2,3; 0,-1,3,0,1,2,3,3,-1,-2,-2,-3,1,2,2,3;
+0,-1,3,0,1,2,3,4,-1,-2,-3,-3,1,2,3,3; 0,-1,3,1,1,2,2,3,-1,0,-2,-3,1,0,2,3; 0,-1,3,2,1,2,3,3,-1,-2,0,-3,1,2,0,3; 0,-1,4,-1,1,2,3,4,-1,-2,-3,-4,1,2,3,4; 0,0,-1,0,0,0,0,0,1,1,1,1,0,0,0,0; 0,0,-1,1,0,0,0,0,1,1,1,1,0,0,0,-1; 0,0,-1,1,0,0,0,0,1,1,1,2,0,0,-1,-1; 0,0,-1,1,0,0,0,0,1,1,2,2,0,-1,-1,-1; 0,0,-1,1,0,0,0,0,1,2,2,2,-1,-1,-1,-1; 0,0,-1,2,0,0,0,0,1,1,1,2,0,0,-1,-2; 0,0,-1,2,0,0,0,0,1,1,2,2,0,-1,-1,-2; 0,0,-1,2,0,0,0,0,1,1,2,3,0,-1,-2,-2;
+0,0,-1,2,0,0,0,0,1,2,2,2,-1,-1,-1,-2; 0,0,-1,2,0,0,0,0,1,2,2,3,-1,-1,-2,-2; 0,0,-1,2,0,0,0,0,1,2,3,3,-1,-2,-2,-2; 0,0,-1,3,0,0,0,0,1,1,2,3,0,-1,-2,-3; 0,0,-1,3,0,0,0,0,1,2,2,3,-1,-1,-2,-3; 0,0,-1,3,0,0,0,0,1,2,3,3,-1,-2,-2,-3; 0,0,-1,3,0,0,0,0,1,2,3,4,-1,-2,-3,-3; 0,0,-1,4,0,0,0,0,1,2,3,4,-1,-2,-3,-4; 0,0,0,-1,0,0,0,0,0,0,0,0,1,1,1,1; 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1; 0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0; 0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0;
+0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0; 0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0; 0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0; 0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0; 0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0; 0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0; 0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0; 0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0; 0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0; 0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0; 0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,-1; 0,0,0,1,0,0,0,0,0,0,1,1,0,0,-1,-1;
+0,0,0,1,0,0,0,0,0,1,1,1,0,-1,-1,-1; 0,0,0,1,0,0,0,0,1,1,1,1,-1,-1,-1,-1; 0,0,1,-1,0,0,0,1,0,0,0,-1,1,1,1,1; 0,0,1,-1,0,0,1,1,0,0,-1,-1,1,1,1,2; 0,0,1,-1,0,1,1,1,0,-1,-1,-1,1,1,2,2; 0,0,1,-1,1,1,1,1,-1,-1,-1,-1,1,2,2,2; 0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0; 0,0,1,0,0,0,0,1,0,0,0,-1,0,0,0,1; 0,0,1,0,0,0,1,1,0,0,-1,-1,0,0,1,1; 0,0,1,0,0,1,1,1,0,-1,-1,-1,0,1,1,1; 0,0,1,0,1,1,1,1,-1,-1,-1,-1,1,1,1,1; 0,0,1,1,0,0,1,1,0,1,0,1,0,-1,0,-1;
+0,0,1,1,0,0,1,1,1,1,0,1,-1,-1,0,-1; 0,0,1,1,0,1,1,1,0,-1,0,-1,0,1,0,1; 0,0,1,1,0,1,1,1,1,0,0,1,-1,0,0,-1; 0,0,1,1,0,1,1,1,1,0,1,0,-1,0,-1,0; 0,0,1,1,0,1,1,1,1,0,1,1,-1,0,-1,-1; 0,0,1,1,1,1,1,1,-1,-1,0,-1,1,1,0,1; 0,0,1,1,1,1,1,1,-1,0,-1,-1,1,0,1,1; 0,0,1,1,1,1,1,1,-1,0,-1,0,1,0,1,0; 0,0,1,1,1,1,1,1,-1,0,0,-1,1,0,0,1; 0,0,2,-1,0,0,1,2,0,0,-1,-2,1,1,1,2; 0,0,2,-1,0,1,1,2,0,-1,-1,-2,1,1,2,2; 0,0,2,-1,0,1,2,2,0,-1,-2,-2,1,1,2,3;
+0,0,2,-1,1,1,1,2,-1,-1,-1,-2,1,2,2,2; 0,0,2,-1,1,1,2,2,-1,-1,-2,-2,1,2,2,3; 0,0,2,-1,1,2,2,2,-1,-2,-2,-2,1,2,3,3; 0,0,3,-1,0,1,2,3,0,-1,-2,-3,1,1,2,3; 0,0,3,-1,1,1,2,3,-1,-1,-2,-3,1,2,2,3; 0,0,3,-1,1,2,2,3,-1,-2,-2,-3,1,2,3,3; 0,0,3,-1,1,2,3,3,-1,-2,-3,-3,1,2,3,4; 0,1,-1,0,-1,-1,-1,-1,1,2,2,2,0,0,0,0; 0,1,-1,0,0,-1,-1,-1,1,1,2,2,0,0,0,0; 0,1,-1,0,0,0,-1,-1,1,1,1,2,0,0,0,0; 0,1,-1,0,0,0,0,-1,1,1,1,1,0,0,0,0; 0,1,-1,1,-1,-1,-1,-1,1,2,2,2,0,0,0,-1;
+0,1,-1,1,-1,-1,-1,-1,1,2,2,3,0,0,-1,-1; 0,1,-1,1,-1,-1,-1,-1,1,2,3,3,0,-1,-1,-1; 0,1,-1,1,0,-1,-1,-1,1,1,2,2,0,0,0,-1; 0,1,-1,1,0,-1,-1,-1,1,1,2,3,0,0,-1,-1; 0,1,-1,1,0,-1,-1,-1,1,2,3,3,-1,-1,-1,-1; 0,1,-1,1,0,0,-1,-1,1,1,1,2,0,0,0,-1; 0,1,-1,1,0,0,-1,-1,1,1,2,3,0,-1,-1,-1; 0,1,-1,1,0,0,-1,-1,1,2,2,3,-1,-1,-1,-1; 0,1,-1,1,0,0,0,-1,1,1,1,2,0,0,-1,-1; 0,1,-1,1,0,0,0,-1,1,1,2,2,0,-1,-1,-1; 0,1,-1,1,0,0,0,-1,1,2,2,2,-1,-1,-1,-1; 0,1,-1,2,-1,-1,-1,-1,1,2,2,3,0,0,-1,-2;
+0,1,-1,2,-1,-1,-1,-1,1,2,3,3,0,-1,-1,-2; 0,1,-1,2,-1,-1,-1,-1,1,2,3,4,0,-1,-2,-2; 0,1,-1,2,0,-1,-1,-1,1,1,2,3,0,0,-1,-2; 0,1,-1,2,0,-1,-1,-1,1,2,3,3,-1,-1,-1,-2; 0,1,-1,2,0,-1,-1,-1,1,2,3,4,-1,-1,-2,-2; 0,1,-1,2,0,0,-1,-1,1,1,2,3,0,-1,-1,-2; 0,1,-1,2,0,0,-1,-1,1,2,2,3,-1,-1,-1,-2; 0,1,-1,2,0,0,-1,-1,1,2,3,4,-1,-2,-2,-2; 0,1,-1,2,0,0,0,-1,1,1,2,3,0,-1,-2,-2; 0,1,-1,2,0,0,0,-1,1,2,2,3,-1,-1,-2,-2; 0,1,-1,2,0,0,0,-1,1,2,3,3,-1,-2,-2,-2; 0,1,-1,3,-1,-1,-1,-1,1,2,3,4,0,-1,-2,-3;
+0,1,-1,3,0,-1,-1,-1,1,2,3,4,-1,-1,-2,-3; 0,1,-1,3,0,0,-1,-1,1,2,3,4,-1,-2,-2,-3; 0,1,-1,3,0,0,0,-1,1,2,3,4,-1,-2,-3,-3; 0,1,0,0,-1,-1,-1,-1,1,1,1,1,0,0,0,0; 0,1,0,0,0,-1,-1,-1,0,1,1,1,0,0,0,0; 0,1,0,0,0,0,-1,-1,0,0,1,1,0,0,0,0; 0,1,0,0,0,0,0,-1,0,0,0,1,0,0,0,0; 0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0; 0,1,1,-1,-1,-1,0,-1,1,1,0,1,1,1,1,2; 0,1,1,-1,-1,0,-1,-1,1,0,1,1,1,1,2,2; 0,1,1,-1,-1,0,-1,0,1,0,1,0,1,1,2,2; 0,1,1,-1,-1,0,0,-1,1,0,0,1,1,1,2,2;
+0,1,1,-1,0,-1,0,-1,0,1,0,1,1,1,1,2; 0,1,1,-1,0,1,0,1,0,-1,0,-1,1,1,2,2; 0,1,1,-1,1,0,0,1,-1,0,0,-1,1,2,2,2; 0,1,1,-1,1,0,1,0,-1,0,-1,0,1,2,2,2; 0,1,1,-1,1,0,1,1,-1,0,-1,-1,1,2,2,2; 0,1,1,-1,1,1,0,1,-1,-1,0,-1,1,2,2,2; 0,1,1,0,-1,-1,0,-1,1,1,0,1,0,0,1,1; 0,1,1,0,-1,0,-1,-1,1,0,1,1,0,1,1,1; 0,1,1,0,-1,0,-1,0,1,0,1,0,0,1,1,1; 0,1,1,0,-1,0,0,-1,1,0,0,1,0,1,1,1; 0,1,1,0,0,-1,0,-1,0,1,0,1,0,0,1,1; 0,1,1,0,0,1,0,1,0,-1,0,-1,0,1,1,1;
+0,1,1,0,1,0,0,1,-1,0,0,-1,1,1,1,1; 0,1,1,0,1,0,1,0,-1,0,-1,0,1,1,1,1; 0,1,1,0,1,0,1,1,-1,0,-1,-1,1,1,1,1; 0,1,1,0,1,1,0,1,-1,-1,0,-1,1,1,1,1; 0,1,1,1,-1,-1,0,-1,1,1,0,1,0,0,1,0; 0,1,1,1,-1,-1,0,-1,1,2,1,2,0,-1,0,-1; 0,1,1,1,-1,-1,0,-1,2,2,1,2,-1,-1,0,-1; 0,1,1,1,-1,0,-1,-1,1,0,1,1,0,1,0,0; 0,1,1,1,-1,0,-1,-1,2,1,2,2,-1,0,-1,-1; 0,1,1,1,-1,0,-1,0,1,0,1,0,0,1,0,1; 0,1,1,1,-1,0,-1,0,2,1,2,1,-1,0,-1,0; 0,1,1,1,-1,0,0,-1,1,0,0,1,0,1,1,0;
+0,1,1,1,-1,0,0,-1,2,1,1,2,-1,0,0,-1; 0,1,1,1,0,-1,0,-1,0,1,0,1,0,0,1,0; 0,1,1,1,0,-1,0,-1,0,2,1,2,0,-1,0,-1; 0,1,1,1,0,-1,0,-1,1,2,1,2,-1,-1,0,-1; 0,1,1,1,0,0,1,0,0,0,-1,0,0,0,1,0; 0,1,1,1,0,0,1,0,0,1,0,1,0,-1,0,-1; 0,1,1,1,0,0,1,0,1,1,0,1,-1,-1,0,-1; 0,1,1,1,0,1,0,0,0,-1,0,0,0,1,0,0; 0,1,1,1,0,1,0,0,1,0,1,1,-1,0,-1,-1; 0,1,1,1,0,1,0,1,0,-1,0,-1,0,1,0,1; 0,1,1,1,0,1,0,1,1,0,1,0,-1,0,-1,0; 0,1,1,1,0,1,1,0,0,-1,-1,0,0,1,1,0;
+0,1,1,1,0,1,1,0,1,0,0,1,-1,0,0,-1; 0,1,1,1,1,0,0,0,-1,0,0,0,1,0,0,0; 0,1,1,1,1,0,0,1,-1,0,0,-1,1,0,0,1; 0,1,1,1,1,0,1,0,-1,0,-1,0,1,0,1,0; 0,1,1,1,1,0,1,1,-1,0,-1,-1,1,0,1,1; 0,1,1,1,1,1,0,0,-1,-1,0,0,1,1,0,0; 0,1,1,1,1,1,0,1,-1,-1,0,-1,1,1,0,1; 0,1,1,1,1,1,1,0,-1,-1,-1,0,1,1,1,0; 0,1,2,-1,-1,0,-1,1,1,0,1,-1,1,1,2,2; 0,1,2,-1,0,1,0,2,0,-1,0,-2,1,1,2,2; 0,1,2,-1,1,0,0,2,-1,0,0,-2,1,2,2,2; 0,1,2,-1,1,0,1,2,-1,0,-1,-2,1,2,2,2;
+0,1,2,-1,1,0,2,1,-1,0,-2,-1,1,2,2,3; 0,1,2,-1,1,0,2,2,-1,0,-2,-2,1,2,2,3; 0,1,2,-1,1,1,0,2,-1,-1,0,-2,1,2,2,2; 0,1,3,-1,1,0,2,3,-1,0,-2,-3,1,2,2,3; 0,2,-1,0,-1,-2,-2,-2,1,2,3,3,0,0,0,0; 0,2,-1,0,-1,-1,-2,-2,1,2,2,3,0,0,0,0; 0,2,-1,0,-1,-1,-1,-2,1,2,2,2,0,0,0,0; 0,2,-1,0,0,-1,-2,-2,1,1,2,3,0,0,0,0; 0,2,-1,0,0,-1,-1,-2,1,1,2,2,0,0,0,0; 0,2,-1,0,0,0,-1,-2,1,1,1,2,0,0,0,0; 0,2,-1,1,-1,-2,-2,-2,1,2,3,3,0,0,0,-1; 0,2,-1,1,-1,-2,-2,-2,1,2,3,4,0,0,-1,-1;
+0,2,-1,1,-1,-1,-2,-2,1,2,2,3,0,0,0,-1; 0,2,-1,1,-1,-1,-2,-2,1,2,3,4,0,-1,-1,-1; 0,2,-1,1,-1,-1,-1,-2,1,2,2,3,0,0,-1,-1; 0,2,-1,1,-1,-1,-1,-2,1,2,3,3,0,-1,-1,-1; 0,2,-1,1,0,-1,-2,-2,1,1,2,3,0,0,0,-1; 0,2,-1,1,0,-1,-2,-2,1,2,3,4,-1,-1,-1,-1; 0,2,-1,1,0,-1,-1,-2,1,1,2,3,0,0,-1,-1; 0,2,-1,1,0,-1,-1,-2,1,2,3,3,-1,-1,-1,-1; 0,2,-1,1,0,0,-1,-2,1,1,2,3,0,-1,-1,-1; 0,2,-1,1,0,0,-1,-2,1,2,2,3,-1,-1,-1,-1; 0,2,-1,2,-1,-2,-2,-2,1,2,3,4,0,0,-1,-2; 0,2,-1,2,-1,-1,-2,-2,1,2,3,4,0,-1,-1,-2;
+0,2,-1,2,-1,-1,-1,-2,1,2,3,4,0,-1,-2,-2; 0,2,-1,2,0,-1,-2,-2,1,2,3,4,-1,-1,-1,-2; 0,2,-1,2,0,-1,-1,-2,1,2,3,4,-1,-1,-2,-2; 0,2,-1,2,0,0,-1,-2,1,2,3,4,-1,-2,-2,-2; 0,2,2,-1,-2,-1,0,-2,2,1,0,2,1,1,2,3; 0,2,2,-1,1,-1,1,-1,-1,1,-1,1,1,2,2,3; 0,2,2,-1,1,2,0,2,-1,-2,0,-2,1,2,3,3; 0,2,3,-1,1,2,0,3,-1,-2,0,-3,1,2,3,3; 0,3,-1,0,-1,-2,-3,-3,1,2,3,4,0,0,0,0; 0,3,-1,0,-1,-2,-2,-3,1,2,3,3,0,0,0,0; 0,3,-1,0,-1,-1,-2,-3,1,2,2,3,0,0,0,0; 0,3,-1,0,0,-1,-2,-3,1,1,2,3,0,0,0,0;
+0,3,-1,1,-1,-2,-3,-3,1,2,3,4,0,0,0,-1; 0,3,-1,1,-1,-2,-2,-3,1,2,3,4,0,0,-1,-1; 0,3,-1,1,-1,-1,-2,-3,1,2,3,4,0,-1,-1,-1; 0,3,-1,1,0,-1,-2,-3,1,2,3,4,-1,-1,-1,-1; 0,4,-1,0,-1,-2,-3,-4,1,2,3,4,0,0,0,0; 1,-1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0; 1,-1,-1,0,0,0,0,0,0,0,0,0,0,0,0,-1; 1,-1,-1,0,0,0,0,1,0,0,0,1,0,0,-1,-1; 1,-1,-1,0,0,0,1,1,0,0,1,1,0,-1,-1,-1; 1,-1,-1,0,0,1,1,1,0,1,1,1,-1,-1,-1,-1; 1,-1,-1,1,0,0,0,1,0,0,0,1,0,0,-1,-2; 1,-1,-1,1,0,0,1,1,0,0,1,1,0,-1,-1,-2;
+1,-1,-1,1,0,0,1,1,0,0,1,2,0,-1,-2,-2; 1,-1,-1,1,0,1,1,1,0,1,1,1,-1,-1,-1,-2; 1,-1,-1,1,0,1,1,1,0,1,1,2,-1,-1,-2,-2; 1,-1,-1,1,0,1,1,1,0,1,2,2,-1,-2,-2,-2; 1,-1,-1,2,0,0,1,1,0,0,1,2,0,-1,-2,-3; 1,-1,-1,2,0,1,1,1,0,1,1,2,-1,-1,-2,-3; 1,-1,-1,2,0,1,1,1,0,1,2,2,-1,-2,-2,-3; 1,-1,-1,2,0,1,1,1,0,1,2,3,-1,-2,-3,-3; 1,-1,-1,3,0,1,1,1,0,1,2,3,-1,-2,-3,-4; 1,-1,0,-1,0,0,0,0,0,0,0,-1,0,0,0,0; 1,-1,0,-1,0,0,0,1,0,0,-1,-1,0,0,0,1; 1,-1,0,-1,0,0,1,1,0,-1,-1,-1,0,0,1,1;
+1,-1,0,-1,0,1,1,1,-1,-1,-1,-1,0,1,1,1; 1,-1,0,0,0,0,0,1,0,0,-1,-1,0,0,0,0; 1,-1,0,0,0,0,0,1,0,0,0,0,0,0,-1,-1; 1,-1,0,0,0,0,0,1,0,1,0,0,0,-1,-1,-1; 1,-1,0,0,0,0,0,1,1,1,0,0,-1,-1,-1,-1; 1,-1,0,0,0,0,1,1,0,-1,-1,-1,0,0,0,0; 1,-1,0,0,0,0,1,1,0,0,0,0,0,-1,-1,-1; 1,-1,0,0,0,0,1,1,1,0,0,0,-1,-1,-1,-1; 1,-1,0,0,0,1,1,1,-1,-1,-1,-1,0,0,0,0; 1,-1,0,0,0,1,1,1,0,0,0,0,-1,-1,-1,-1; 1,-1,1,-1,0,0,0,1,0,0,-1,-2,0,0,0,1; 1,-1,1,-1,0,0,1,1,0,-1,-1,-2,0,0,1,1;
+1,-1,1,-1,0,0,1,2,0,-1,-2,-2,0,0,1,2; 1,-1,1,-1,0,1,1,1,-1,-1,-1,-2,0,1,1,1; 1,-1,1,-1,0,1,1,2,-1,-1,-2,-2,0,1,1,2; 1,-1,1,-1,0,1,2,2,-1,-2,-2,-2,0,1,2,2; 1,-1,1,0,0,0,1,1,0,-1,-1,-2,0,0,0,1; 1,-1,1,0,0,0,1,1,0,0,0,-1,0,-1,-1,0; 1,-1,1,0,0,0,1,1,1,0,0,-1,-1,-1,-1,0; 1,-1,1,0,0,0,1,2,0,-1,-2,-2,0,0,1,1; 1,-1,1,0,0,0,1,2,0,0,-1,-1,0,-1,0,0; 1,-1,1,0,0,0,1,2,1,0,-1,-1,-1,-1,0,0; 1,-1,1,0,0,1,1,1,-1,-1,-1,-2,0,0,0,1; 1,-1,1,0,0,1,1,1,0,0,0,-1,-1,-1,-1,0;
+1,-1,1,0,0,1,1,2,-1,-1,-2,-2,0,0,1,1; 1,-1,1,0,0,1,1,2,0,0,-1,-1,-1,-1,0,0; 1,-1,1,0,0,1,2,2,-1,-2,-2,-2,0,1,1,1; 1,-1,1,0,0,1,2,2,0,-1,-1,-1,-1,0,0,0; 1,-1,1,1,0,0,1,2,0,1,0,1,0,-2,-1,-2; 1,-1,1,1,0,0,1,2,2,1,0,1,-2,-2,-1,-2; 1,-1,1,1,0,1,1,2,-1,0,-1,0,0,-1,0,-1; 1,-1,1,1,0,1,1,2,0,1,0,1,-1,-2,-1,-2; 1,-1,1,1,0,1,1,2,1,1,0,1,-2,-2,-1,-2; 1,-1,1,1,0,1,2,2,-1,-2,-1,-2,0,1,0,1; 1,-1,1,1,0,1,2,2,1,0,0,1,-2,-1,-1,-2; 1,-1,1,1,0,1,2,2,1,0,1,0,-2,-1,-2,-1;
+1,-1,1,1,0,1,2,2,1,0,1,1,-2,-1,-2,-2; 1,-1,2,-1,0,0,1,2,0,-1,-2,-3,0,0,1,2; 1,-1,2,-1,0,1,1,2,-1,-1,-2,-3,0,1,1,2; 1,-1,2,-1,0,1,2,2,-1,-2,-2,-3,0,1,2,2; 1,-1,2,-1,0,1,2,3,-1,-2,-3,-3,0,1,2,3; 1,-1,2,0,0,1,1,2,-1,-1,-2,-3,0,0,1,2; 1,-1,2,0,0,1,1,2,0,0,-1,-2,-1,-1,0,1; 1,-1,2,0,0,1,2,2,-1,-2,-2,-3,0,1,1,2; 1,-1,2,0,0,1,2,2,0,-1,-1,-2,-1,0,0,1; 1,-1,2,0,0,1,2,3,-1,-2,-3,-3,0,1,2,2; 1,-1,2,0,0,1,2,3,0,-1,-2,-2,-1,0,1,1; 1,-1,2,1,0,1,2,2,-1,-2,-1,-3,0,1,0,2;
+1,-1,2,1,0,1,2,2,1,0,1,-1,-2,-1,-2,0; 1,-1,2,2,0,1,2,3,2,1,0,2,-3,-2,-1,-3; 1,-1,3,-1,0,1,2,3,-1,-2,-3,-4,0,1,2,3; 1,0,-2,0,-1,-1,-1,-1,1,3,3,3,-1,-1,-1,-1; 1,0,-2,0,0,-1,-1,-1,1,1,3,3,0,-1,-1,-1; 1,0,-2,0,0,0,-1,-1,1,1,1,3,0,0,-1,-1; 1,0,-2,1,-1,-1,-1,-1,1,2,2,4,0,0,-2,-2; 1,0,-2,1,-1,-1,-1,-1,1,2,4,4,0,-2,-2,-2; 1,0,-2,1,0,-1,-1,-1,1,1,2,4,0,0,-2,-2; 1,0,-2,2,-1,-1,-1,-1,1,3,3,3,-1,-1,-1,-3; 1,0,-2,2,-1,-1,-1,-1,1,3,3,5,-1,-1,-3,-3; 1,0,-2,2,-1,-1,-1,-1,1,3,5,5,-1,-3,-3,-3;
+1,0,-2,2,0,-1,-1,-1,1,1,3,3,0,-1,-1,-3; 1,0,-2,2,0,-1,-1,-1,1,1,3,5,0,-1,-3,-3; 1,0,-2,2,0,0,-1,-1,1,1,1,3,0,0,-1,-3; 1,0,-2,3,-1,-1,-1,-1,1,2,2,4,0,0,-2,-4; 1,0,-2,3,-1,-1,-1,-1,1,2,4,4,0,-2,-2,-4; 1,0,-2,3,-1,-1,-1,-1,1,2,4,6,0,-2,-4,-4; 1,0,-2,3,0,-1,-1,-1,1,1,2,4,0,0,-2,-4; 1,0,-2,4,-1,-1,-1,-1,1,3,3,5,-1,-1,-3,-5; 1,0,-2,4,-1,-1,-1,-1,1,3,5,5,-1,-3,-3,-5; 1,0,-2,4,-1,-1,-1,-1,1,3,5,7,-1,-3,-5,-5; 1,0,-2,4,0,-1,-1,-1,1,1,3,5,0,-1,-3,-5; 1,0,-2,5,-1,-1,-1,-1,1,2,4,6,0,-2,-4,-6;
+1,0,-2,6,-1,-1,-1,-1,1,3,5,7,-1,-3,-5,-7; 1,0,-1,-1,-1,-1,-1,-1,0,1,1,1,0,1,1,1; 1,0,-1,-1,0,-1,-1,-1,0,0,1,1,0,0,1,1; 1,0,-1,-1,0,0,-1,-1,0,0,0,1,0,0,0,1; 1,0,-1,-1,0,0,0,-1,0,0,0,0,0,0,0,0; 1,0,-1,0,-1,-1,-1,-1,0,1,1,1,0,0,0,0; 1,0,-1,0,-1,-1,-1,-1,1,1,1,2,0,0,-1,-1; 1,0,-1,0,-1,-1,-1,-1,1,1,2,2,0,-1,-1,-1; 1,0,-1,0,0,-1,-1,-1,0,0,1,1,0,0,0,0; 1,0,-1,0,0,-1,-1,-1,0,1,1,2,0,0,-1,-1; 1,0,-1,0,0,-1,-1,-1,0,1,2,2,0,-1,-1,-1; 1,0,-1,0,0,-1,-1,-1,1,1,2,2,-1,-1,-1,-1;
+1,0,-1,0,0,0,-1,-1,0,0,1,2,0,0,-1,-1; 1,0,-1,0,0,0,-1,-1,0,1,1,2,0,-1,-1,-1; 1,0,-1,0,0,0,-1,-1,1,1,1,2,-1,-1,-1,-1; 1,0,-1,0,0,0,0,0,0,0,1,1,0,-1,-1,-1; 1,0,-1,0,0,0,0,0,0,1,1,1,-1,-1,-1,-1; 1,0,-1,1,-1,-1,-1,-1,0,1,1,1,0,0,0,-1; 1,0,-1,1,-1,-1,-1,-1,0,1,1,2,0,0,-1,-1; 1,0,-1,1,-1,-1,-1,-1,0,1,2,2,0,-1,-1,-1; 1,0,-1,1,-1,-1,-1,-1,1,1,1,2,0,0,-1,-2; 1,0,-1,1,-1,-1,-1,-1,1,1,2,2,0,-1,-1,-2; 1,0,-1,1,-1,-1,-1,-1,1,1,2,3,0,-1,-2,-2; 1,0,-1,1,0,-1,-1,-1,0,0,1,1,0,0,0,-1;
+1,0,-1,1,0,-1,-1,-1,0,0,1,2,0,0,-1,-1; 1,0,-1,1,0,-1,-1,-1,0,1,1,2,0,0,-1,-2; 1,0,-1,1,0,-1,-1,-1,0,1,2,2,0,-1,-1,-2; 1,0,-1,1,0,-1,-1,-1,0,1,2,3,0,-1,-2,-2; 1,0,-1,1,0,-1,-1,-1,1,1,2,2,-1,-1,-1,-2; 1,0,-1,1,0,-1,-1,-1,1,1,2,3,-1,-1,-2,-2; 1,0,-1,1,0,0,-1,-1,0,0,0,1,0,0,0,-1; 1,0,-1,1,0,0,-1,-1,0,0,1,2,0,0,-1,-2; 1,0,-1,1,0,0,-1,-1,0,1,1,2,0,-1,-1,-2; 1,0,-1,1,0,0,-1,-1,1,1,1,2,-1,-1,-1,-2; 1,0,-1,1,0,0,0,0,0,0,0,1,0,0,-1,-2; 1,0,-1,1,0,0,0,0,0,0,1,1,0,-1,-1,-2;
+1,0,-1,1,0,0,0,0,0,0,1,2,0,-1,-2,-2; 1,0,-1,1,0,0,0,0,0,1,1,1,-1,-1,-1,-2; 1,0,-1,1,0,0,0,0,0,1,1,2,-1,-1,-2,-2; 1,0,-1,1,0,0,0,0,0,1,2,2,-1,-2,-2,-2; 1,0,-1,2,-1,-1,-1,-1,0,1,1,2,0,0,-1,-2; 1,0,-1,2,-1,-1,-1,-1,0,1,2,2,0,-1,-1,-2; 1,0,-1,2,-1,-1,-1,-1,0,1,2,3,0,-1,-2,-2; 1,0,-1,2,-1,-1,-1,-1,1,1,2,3,0,-1,-2,-3; 1,0,-1,2,0,-1,-1,-1,0,0,1,2,0,0,-1,-2; 1,0,-1,2,0,-1,-1,-1,0,1,2,3,0,-1,-2,-3; 1,0,-1,2,0,-1,-1,-1,1,1,2,3,-1,-1,-2,-3; 1,0,-1,2,0,0,0,0,0,0,1,2,0,-1,-2,-3;
+1,0,-1,2,0,0,0,0,0,1,1,2,-1,-1,-2,-3; 1,0,-1,2,0,0,0,0,0,1,2,2,-1,-2,-2,-3; 1,0,-1,2,0,0,0,0,0,1,2,3,-1,-2,-3,-3; 1,0,-1,3,-1,-1,-1,-1,0,1,2,3,0,-1,-2,-3; 1,0,-1,3,0,0,0,0,0,1,2,3,-1,-2,-3,-4; 1,0,0,-1,-1,-1,-1,-1,0,0,0,0,0,1,1,1; 1,0,0,-1,-1,-1,-1,-1,1,0,0,0,0,0,1,1; 1,0,0,-1,-1,-1,-1,-1,1,1,0,0,0,0,0,1; 1,0,0,-1,0,-1,-1,-1,0,0,0,0,0,0,1,1; 1,0,0,-1,0,-1,-1,-1,0,1,0,0,0,0,0,1; 1,0,0,-1,0,0,-1,-1,0,0,0,0,0,0,0,1; 1,0,0,-1,0,0,0,0,-1,-1,-1,-1,0,1,1,1;
+1,0,0,-1,0,0,0,0,0,-1,-1,-1,0,0,1,1; 1,0,0,-1,0,0,0,0,0,0,-1,-1,0,0,0,1; 1,0,0,0,-1,-1,-1,-1,0,0,0,0,0,0,0,0; 1,0,0,0,-1,-1,-1,-1,1,1,1,1,-1,-1,-1,-1; 1,0,0,0,0,-1,-1,-1,0,1,1,1,0,-1,-1,-1; 1,0,0,0,0,0,-1,-1,0,0,1,1,0,0,-1,-1; 1,0,0,0,0,0,0,0,-1,-1,-1,-1,0,0,0,0; 1,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1; 1,0,1,-1,-1,-1,-1,0,0,0,0,-1,0,1,1,1; 1,0,1,-1,-1,-1,-1,0,1,0,0,-1,0,0,1,1; 1,0,1,-1,-1,-1,0,0,0,0,-1,-1,0,1,1,2; 1,0,1,-1,-1,-1,0,0,1,0,-1,-1,0,0,1,2;
+1,0,1,-1,-1,0,0,0,0,-1,-1,-1,0,1,2,2; 1,0,1,-1,0,-1,-1,0,0,0,0,-1,0,0,1,1; 1,0,1,-1,0,-1,0,0,0,0,-1,-1,0,0,1,2; 1,0,1,-1,0,0,0,1,-1,-1,-1,-2,0,1,1,1; 1,0,1,-1,0,0,0,1,0,-1,-1,-2,0,0,1,1; 1,0,1,-1,0,0,1,1,-1,-1,-2,-2,0,1,1,2; 1,0,1,-1,0,0,1,1,0,-1,-2,-2,0,0,1,2; 1,0,1,-1,0,1,1,1,-1,-2,-2,-2,0,1,2,2; 1,0,2,-1,-1,-1,0,1,0,0,-1,-2,0,1,1,2; 1,0,2,-1,-1,0,0,1,0,-1,-1,-2,0,1,2,2; 1,0,2,-1,-1,0,1,1,0,-1,-2,-2,0,1,2,3; 1,0,2,-1,0,0,1,2,-1,-1,-2,-3,0,1,1,2;
+1,0,2,-1,0,1,1,2,-1,-2,-2,-3,0,1,2,2; 1,0,2,-1,0,1,2,2,-1,-2,-3,-3,0,1,2,3; 1,1,-2,0,0,-2,-2,-2,1,2,4,4,-1,-1,-1,-1; 1,1,-2,0,0,0,-2,-2,1,1,2,4,0,-1,-1,-1; 1,1,-2,0,0,0,-2,-2,1,2,2,4,-1,-1,-1,-1; 1,1,-2,2,0,-2,-2,-2,1,2,4,4,-1,-1,-1,-3; 1,1,-2,2,0,-2,-2,-2,1,2,4,6,-1,-1,-3,-3; 1,1,-2,2,0,0,-2,-2,1,1,2,4,0,-1,-1,-3; 1,1,-2,2,0,0,-2,-2,1,2,2,4,-1,-1,-1,-3; 1,1,-2,4,0,-2,-2,-2,1,2,4,6,-1,-1,-3,-5; 1,1,-1,-1,-1,-2,-2,-2,0,1,2,2,0,1,1,1; 1,1,-1,-1,-1,-1,-2,-2,0,1,1,2,0,1,1,1;
+1,1,-1,-1,-1,-1,-1,-2,0,1,1,1,0,1,1,1; 1,1,-1,-1,0,-1,-2,-2,0,0,1,2,0,0,1,1; 1,1,-1,-1,0,-1,-1,-2,0,0,1,1,0,0,1,1; 1,1,-1,-1,0,0,-1,-2,0,0,0,1,0,0,0,1; 1,1,-1,0,-1,-2,-2,-2,0,1,2,2,0,0,0,0; 1,1,-1,0,-1,-1,-2,-2,0,1,1,2,0,0,0,0; 1,1,-1,0,-1,-1,-2,-2,1,1,2,3,0,-1,-1,-1; 1,1,-1,0,-1,-1,-1,-2,0,1,1,1,0,0,0,0; 1,1,-1,0,-1,-1,-1,-2,1,1,1,2,0,0,-1,-1; 1,1,-1,0,-1,-1,-1,-2,1,1,2,2,0,-1,-1,-1; 1,1,-1,0,0,-1,-2,-2,0,0,1,2,0,0,0,0; 1,1,-1,0,0,-1,-2,-2,0,1,2,3,0,-1,-1,-1;
+1,1,-1,0,0,-1,-2,-2,1,1,2,3,-1,-1,-1,-1; 1,1,-1,0,0,-1,-1,-2,0,0,1,1,0,0,0,0; 1,1,-1,0,0,-1,-1,-2,0,1,1,2,0,0,-1,-1; 1,1,-1,0,0,-1,-1,-2,0,1,2,2,0,-1,-1,-1; 1,1,-1,0,0,-1,-1,-2,1,1,2,2,-1,-1,-1,-1; 1,1,-1,0,0,-1,-1,-1,0,1,2,2,-1,-1,-1,-1; 1,1,-1,0,0,0,-1,-2,0,0,0,1,0,0,0,0; 1,1,-1,0,0,0,-1,-2,0,0,1,2,0,0,-1,-1; 1,1,-1,0,0,0,-1,-2,0,1,1,2,0,-1,-1,-1; 1,1,-1,0,0,0,-1,-2,1,1,1,2,-1,-1,-1,-1; 1,1,-1,0,0,0,-1,-1,0,0,1,2,0,-1,-1,-1; 1,1,-1,0,0,0,-1,-1,0,1,1,2,-1,-1,-1,-1;
+1,1,-1,0,0,0,0,-1,0,0,0,1,0,0,-1,-1; 1,1,-1,0,0,0,0,-1,0,0,1,1,0,-1,-1,-1; 1,1,-1,0,0,0,0,-1,0,1,1,1,-1,-1,-1,-1; 1,1,-1,1,-1,-2,-2,-2,0,1,2,2,0,0,0,-1; 1,1,-1,1,-1,-2,-2,-2,0,1,2,3,0,0,-1,-1; 1,1,-1,1,-1,-1,-2,-2,0,1,1,2,0,0,0,-1; 1,1,-1,1,-1,-1,-2,-2,0,1,2,3,0,-1,-1,-1; 1,1,-1,1,-1,-1,-2,-2,1,1,2,3,0,-1,-1,-2; 1,1,-1,1,-1,-1,-1,-2,0,1,1,2,0,0,-1,-1; 1,1,-1,1,-1,-1,-1,-2,0,1,2,2,0,-1,-1,-1; 1,1,-1,1,-1,-1,-1,-2,1,1,2,3,0,-1,-2,-2; 1,1,-1,1,0,-1,-2,-2,0,0,1,2,0,0,0,-1;
+1,1,-1,1,0,-1,-2,-2,0,1,2,3,0,-1,-1,-2; 1,1,-1,1,0,-1,-2,-2,1,1,2,3,-1,-1,-1,-2; 1,1,-1,1,0,-1,-1,-2,0,0,1,2,0,0,-1,-1; 1,1,-1,1,0,-1,-1,-2,0,1,2,3,0,-1,-2,-2; 1,1,-1,1,0,-1,-1,-2,1,1,2,3,-1,-1,-2,-2; 1,1,-1,1,0,-1,-1,-1,0,1,2,2,-1,-1,-1,-2; 1,1,-1,1,0,-1,-1,-1,0,1,2,3,-1,-1,-2,-2; 1,1,-1,1,0,0,-1,-1,0,0,1,2,0,-1,-1,-2; 1,1,-1,1,0,0,-1,-1,0,1,1,2,-1,-1,-1,-2; 1,1,-1,1,0,0,-1,-1,0,1,2,3,-1,-2,-2,-2; 1,1,-1,1,0,0,0,-1,0,0,1,2,0,-1,-2,-2; 1,1,-1,1,0,0,0,-1,0,1,1,2,-1,-1,-2,-2;
+1,1,-1,1,0,0,0,-1,0,1,2,2,-1,-2,-2,-2; 1,1,-1,2,-1,-2,-2,-2,0,1,2,3,0,0,-1,-2; 1,1,-1,2,-1,-1,-2,-2,0,1,2,3,0,-1,-1,-2; 1,1,-1,2,-1,-1,-1,-2,0,1,2,3,0,-1,-2,-2; 1,1,-1,2,0,-1,-1,-1,0,1,2,3,-1,-1,-2,-3; 1,1,-1,2,0,0,-1,-1,0,1,2,3,-1,-2,-2,-3; 1,1,-1,2,0,0,0,-1,0,1,2,3,-1,-2,-3,-3; 1,1,1,-1,-2,-2,-1,-2,1,1,0,1,0,1,1,2; 1,1,1,-1,-2,-2,-1,-2,2,1,0,1,0,0,1,2; 1,1,1,-1,-2,-1,-2,-2,1,0,1,1,0,1,2,2; 1,1,1,-1,-2,-1,-2,-1,1,0,1,0,0,1,2,2; 1,1,1,-1,-2,-1,-1,-2,1,0,0,1,0,1,2,2;
+1,1,1,-1,-1,-2,-1,-2,0,1,0,1,0,1,1,2; 1,1,1,-1,0,-2,-1,-2,0,1,0,1,0,0,1,2; 1,1,1,-1,0,-1,0,-1,-1,0,-1,0,0,1,1,2; 1,1,1,-1,0,1,0,1,-1,-2,-1,-2,0,1,2,2; 1,1,2,-1,-2,-1,-2,0,1,0,1,-1,0,1,2,2; 1,1,2,-1,0,1,0,2,-1,-2,-1,-3,0,1,2,2; 1,2,-2,0,-1,-3,-3,-3,1,3,5,5,-1,-1,-1,-1; 1,2,-2,0,-1,-1,-3,-3,1,3,3,5,-1,-1,-1,-1; 1,2,-2,0,-1,-1,-1,-3,1,3,3,3,-1,-1,-1,-1; 1,2,-2,0,0,-1,-3,-3,1,1,3,5,0,-1,-1,-1; 1,2,-2,0,0,-1,-1,-3,1,1,3,3,0,-1,-1,-1; 1,2,-2,0,0,0,-1,-3,1,1,1,3,0,0,-1,-1;
+1,2,-2,1,-1,-1,-3,-3,1,2,4,6,0,-2,-2,-2; 1,2,-2,1,-1,-1,-1,-3,1,2,2,4,0,0,-2,-2; 1,2,-2,1,-1,-1,-1,-3,1,2,4,4,0,-2,-2,-2; 1,2,-2,1,0,-1,-1,-3,1,1,2,4,0,0,-2,-2; 1,2,-2,2,-1,-3,-3,-3,1,3,5,5,-1,-1,-1,-3; 1,2,-2,2,-1,-3,-3,-3,1,3,5,7,-1,-1,-3,-3; 1,2,-2,2,-1,-1,-3,-3,1,3,3,5,-1,-1,-1,-3; 1,2,-2,2,-1,-1,-3,-3,1,3,5,7,-1,-3,-3,-3; 1,2,-2,2,-1,-1,-1,-3,1,3,3,5,-1,-1,-3,-3; 1,2,-2,2,-1,-1,-1,-3,1,3,5,5,-1,-3,-3,-3; 1,2,-2,2,0,-1,-3,-3,1,1,3,5,0,-1,-1,-3; 1,2,-2,2,0,-1,-1,-3,1,1,3,5,0,-1,-3,-3;
+1,2,-2,3,-1,-1,-3,-3,1,2,4,6,0,-2,-2,-4; 1,2,-2,3,-1,-1,-1,-3,1,2,4,6,0,-2,-4,-4; 1,2,-2,4,-1,-3,-3,-3,1,3,5,7,-1,-1,-3,-5; 1,2,-2,4,-1,-1,-3,-3,1,3,5,7,-1,-3,-3,-5; 1,2,-2,4,-1,-1,-1,-3,1,3,5,7,-1,-3,-5,-5; 1,2,-1,-1,-1,-2,-3,-3,0,1,2,3,0,1,1,1; 1,2,-1,-1,-1,-2,-2,-3,0,1,2,2,0,1,1,1; 1,2,-1,-1,-1,-1,-2,-3,0,1,1,2,0,1,1,1; 1,2,-1,-1,0,-1,-2,-3,0,0,1,2,0,0,1,1; 1,2,-1,0,-1,-2,-3,-3,0,1,2,3,0,0,0,0; 1,2,-1,0,-1,-2,-2,-3,0,1,2,2,0,0,0,0; 1,2,-1,0,-1,-1,-2,-3,0,1,1,2,0,0,0,0;
+1,2,-1,0,-1,-1,-2,-3,1,1,2,3,0,-1,-1,-1; 1,2,-1,0,0,-1,-2,-3,0,0,1,2,0,0,0,0; 1,2,-1,0,0,-1,-2,-3,0,1,2,3,0,-1,-1,-1; 1,2,-1,0,0,-1,-2,-3,1,1,2,3,-1,-1,-1,-1; 1,2,-1,0,0,-1,-2,-2,0,1,2,3,-1,-1,-1,-1; 1,2,-1,0,0,-1,-1,-2,0,1,2,2,-1,-1,-1,-1; 1,2,-1,0,0,0,-1,-2,0,0,1,2,0,-1,-1,-1; 1,2,-1,0,0,0,-1,-2,0,1,1,2,-1,-1,-1,-1; 1,2,-1,1,-1,-2,-3,-3,0,1,2,3,0,0,0,-1; 1,2,-1,1,-1,-2,-2,-3,0,1,2,3,0,0,-1,-1; 1,2,-1,1,-1,-1,-2,-3,0,1,2,3,0,-1,-1,-1; 1,2,-1,1,0,-1,-2,-2,0,1,2,3,-1,-1,-1,-2;
+1,2,-1,1,0,-1,-1,-2,0,1,2,3,-1,-1,-2,-2; 1,2,-1,1,0,0,-1,-2,0,1,2,3,-1,-2,-2,-2; 1,2,2,-1,-3,-2,-1,-3,2,1,0,2,0,1,2,3; 1,3,-2,0,0,-2,-4,-4,1,2,4,6,-1,-1,-1,-1; 1,3,-2,0,0,-2,-2,-4,1,2,4,4,-1,-1,-1,-1; 1,3,-2,0,0,0,-2,-4,1,1,2,4,0,-1,-1,-1; 1,3,-2,0,0,0,-2,-4,1,2,2,4,-1,-1,-1,-1; 1,3,-2,2,0,-2,-4,-4,1,2,4,6,-1,-1,-1,-3; 1,3,-2,2,0,-2,-2,-4,1,2,4,6,-1,-1,-3,-3; 1,3,-1,-1,-1,-2,-3,-4,0,1,2,3,0,1,1,1; 1,3,-1,0,-1,-2,-3,-4,0,1,2,3,0,0,0,0; 1,3,-1,0,0,-1,-2,-3,0,1,2,3,-1,-1,-1,-1;
+1,4,-2,0,-1,-3,-5,-5,1,3,5,7,-1,-1,-1,-1; 1,4,-2,0,-1,-3,-3,-5,1,3,5,5,-1,-1,-1,-1; 1,4,-2,0,-1,-1,-3,-5,1,3,3,5,-1,-1,-1,-1; 1,4,-2,0,0,-1,-3,-5,1,1,3,5,0,-1,-1,-1; 1,4,-2,1,-1,-1,-3,-5,1,2,4,6,0,-2,-2,-2; 1,4,-2,2,-1,-3,-5,-5,1,3,5,7,-1,-1,-1,-3; 1,4,-2,2,-1,-3,-3,-5,1,3,5,7,-1,-1,-3,-3; 1,4,-2,2,-1,-1,-3,-5,1,3,5,7,-1,-3,-3,-3; 1,5,-2,0,0,-2,-4,-6,1,2,4,6,-1,-1,-1,-1; 1,6,-2,0,-1,-3,-5,-7,1,3,5,7,-1,-1,-1,-1; 2,0,-3,0,-1,-2,-2,-2,1,2,5,5,0,-2,-2,-2; 2,0,-3,0,-1,-1,-2,-2,1,2,2,5,0,0,-2,-2;
+2,0,-3,0,0,-2,-2,-2,1,2,5,5,-1,-2,-2,-2; 2,0,-3,0,0,-1,-2,-2,1,1,2,5,0,0,-2,-2; 2,0,-3,0,0,0,-2,-2,1,1,2,5,0,-1,-2,-2; 2,0,-3,0,0,0,-2,-2,1,2,2,5,-1,-1,-2,-2; 2,0,-3,1,-1,-2,-2,-2,1,2,3,6,0,0,-3,-3; 2,0,-3,2,0,-2,-2,-2,1,2,4,7,-1,-1,-4,-4; 2,0,-3,3,-1,-2,-2,-2,1,2,5,5,0,-2,-2,-5; 2,0,-3,3,-1,-2,-2,-2,1,2,5,8,0,-2,-5,-5; 2,0,-3,3,-1,-1,-2,-2,1,2,2,5,0,0,-2,-5; 2,0,-3,3,0,-2,-2,-2,1,2,5,5,-1,-2,-2,-5; 2,0,-3,3,0,-2,-2,-2,1,2,5,8,-1,-2,-5,-5; 2,0,-3,3,0,-1,-2,-2,1,1,2,5,0,0,-2,-5;
+2,0,-3,3,0,0,-2,-2,1,1,2,5,0,-1,-2,-5; 2,0,-3,3,0,0,-2,-2,1,2,2,5,-1,-1,-2,-5; 2,0,-3,4,-1,-2,-2,-2,1,2,3,6,0,0,-3,-6; 2,0,-3,5,0,-2,-2,-2,1,2,4,7,-1,-1,-4,-7; 2,0,-3,6,-1,-2,-2,-2,1,2,5,8,0,-2,-5,-8; 2,0,-3,6,0,-2,-2,-2,1,2,5,8,-1,-2,-5,-8; 2,0,-2,0,-1,-2,-2,-2,0,1,3,3,0,-1,-1,-1; 2,0,-2,0,-1,-1,-2,-2,0,1,1,3,0,0,-1,-1; 2,0,-2,0,-1,-1,-2,-2,1,1,2,4,0,-1,-2,-2; 2,0,-2,0,0,-1,-2,-2,0,0,1,3,0,0,-1,-1; 2,0,-2,0,0,-1,-2,-2,0,1,2,4,0,-1,-2,-2; 2,0,-2,0,0,-1,-2,-2,1,1,2,4,-1,-1,-2,-2;
+2,0,-2,0,0,-1,-1,-1,0,1,3,3,-1,-2,-2,-2; 2,0,-2,0,0,0,-1,-1,0,0,1,3,0,-1,-2,-2; 2,0,-2,0,0,0,-1,-1,0,1,1,3,-1,-1,-2,-2; 2,0,-2,1,-1,-2,-2,-2,0,1,2,4,0,0,-2,-2; 2,0,-2,1,0,-1,-1,-1,0,1,2,4,-1,-1,-3,-3; 2,0,-2,2,-1,-2,-2,-2,0,1,3,3,0,-1,-1,-3; 2,0,-2,2,-1,-2,-2,-2,0,1,3,5,0,-1,-3,-3; 2,0,-2,2,-1,-1,-2,-2,0,1,1,3,0,0,-1,-3; 2,0,-2,2,-1,-1,-2,-2,1,1,2,4,0,-1,-2,-4; 2,0,-2,2,0,-1,-2,-2,0,0,1,3,0,0,-1,-3; 2,0,-2,2,0,-1,-2,-2,0,1,2,4,0,-1,-2,-4; 2,0,-2,2,0,-1,-2,-2,1,1,2,4,-1,-1,-2,-4;
+2,0,-2,2,0,-1,-1,-1,0,1,3,3,-1,-2,-2,-4; 2,0,-2,2,0,-1,-1,-1,0,1,3,5,-1,-2,-4,-4; 2,0,-2,2,0,0,-1,-1,0,0,1,3,0,-1,-2,-4; 2,0,-2,2,0,0,-1,-1,0,1,1,3,-1,-1,-2,-4; 2,0,-2,3,-1,-2,-2,-2,0,1,2,4,0,0,-2,-4; 2,0,-2,3,0,-1,-1,-1,0,1,2,4,-1,-1,-3,-5; 2,0,-2,4,-1,-2,-2,-2,0,1,3,5,0,-1,-3,-5; 2,0,-2,4,0,-1,-1,-1,0,1,3,5,-1,-2,-4,-6; 2,1,-3,0,0,0,-3,-3,1,2,3,6,-1,-2,-2,-2; 2,1,-3,3,0,0,-3,-3,1,2,3,6,-1,-2,-2,-5; 2,1,-2,0,-1,-1,-3,-3,0,1,2,4,0,-1,-1,-1; 2,1,-2,0,0,0,-2,-2,0,1,2,4,-1,-2,-2,-2;
+2,1,-2,2,-1,-1,-3,-3,0,1,2,4,0,-1,-1,-3; 2,1,-2,2,0,0,-2,-2,0,1,2,4,-1,-2,-2,-4; 2,2,-3,0,-1,-1,-4,-4,1,2,4,7,0,-2,-2,-2; 2,2,-3,3,-1,-1,-4,-4,1,2,4,7,0,-2,-2,-5; 2,2,-2,0,-1,-2,-4,-4,0,1,3,5,0,-1,-1,-1; 2,2,-2,0,-1,-2,-2,-4,0,1,3,3,0,-1,-1,-1; 2,2,-2,0,-1,-1,-2,-4,0,1,1,3,0,0,-1,-1; 2,2,-2,0,-1,-1,-2,-4,1,1,2,4,0,-1,-2,-2; 2,2,-2,0,0,-1,-3,-3,0,1,3,5,-1,-2,-2,-2; 2,2,-2,0,0,-1,-2,-4,0,0,1,3,0,0,-1,-1; 2,2,-2,0,0,-1,-2,-4,0,1,2,4,0,-1,-2,-2; 2,2,-2,0,0,-1,-2,-4,1,1,2,4,-1,-1,-2,-2;
+2,2,-2,0,0,-1,-1,-3,0,1,3,3,-1,-2,-2,-2; 2,2,-2,0,0,0,-1,-3,0,0,1,3,0,-1,-2,-2; 2,2,-2,0,0,0,-1,-3,0,1,1,3,-1,-1,-2,-2; 2,2,-2,1,-1,-2,-2,-4,0,1,2,4,0,0,-2,-2; 2,2,-2,1,0,-1,-1,-3,0,1,2,4,-1,-1,-3,-3; 2,2,-2,2,-1,-2,-4,-4,0,1,3,5,0,-1,-1,-3; 2,2,-2,2,-1,-2,-2,-4,0,1,3,5,0,-1,-3,-3; 2,2,-2,2,0,-1,-3,-3,0,1,3,5,-1,-2,-2,-4; 2,2,-2,2,0,-1,-1,-3,0,1,3,5,-1,-2,-4,-4; 2,3,-3,0,-1,-2,-5,-5,1,2,5,8,0,-2,-2,-2; 2,3,-3,0,-1,-2,-2,-5,1,2,5,5,0,-2,-2,-2; 2,3,-3,0,-1,-1,-2,-5,1,2,2,5,0,0,-2,-2;
+2,3,-3,0,0,-2,-5,-5,1,2,5,8,-1,-2,-2,-2; 2,3,-3,0,0,-2,-2,-5,1,2,5,5,-1,-2,-2,-2; 2,3,-3,0,0,-1,-2,-5,1,1,2,5,0,0,-2,-2; 2,3,-3,0,0,0,-2,-5,1,1,2,5,0,-1,-2,-2; 2,3,-3,0,0,0,-2,-5,1,2,2,5,-1,-1,-2,-2; 2,3,-3,1,-1,-2,-2,-5,1,2,3,6,0,0,-3,-3; 2,3,-3,2,0,-2,-2,-5,1,2,4,7,-1,-1,-4,-4; 2,3,-3,3,-1,-2,-5,-5,1,2,5,8,0,-2,-2,-5; 2,3,-3,3,-1,-2,-2,-5,1,2,5,8,0,-2,-5,-5; 2,3,-3,3,0,-2,-5,-5,1,2,5,8,-1,-2,-2,-5; 2,3,-3,3,0,-2,-2,-5,1,2,5,8,-1,-2,-5,-5; 2,3,-2,0,-1,-1,-3,-5,0,1,2,4,0,-1,-1,-1;
+2,3,-2,0,0,0,-2,-4,0,1,2,4,-1,-2,-2,-2; 2,4,-3,0,0,0,-3,-6,1,2,3,6,-1,-2,-2,-2; 2,4,-2,0,-1,-2,-4,-6,0,1,3,5,0,-1,-1,-1; 2,4,-2,0,0,-1,-3,-5,0,1,3,5,-1,-2,-2,-2; 2,5,-3,0,-1,-1,-4,-7,1,2,4,7,0,-2,-2,-2; 2,6,-3,0,-1,-2,-5,-8,1,2,5,8,0,-2,-2,-2; 2,6,-3,0,0,-2,-5,-8,1,2,5,8,-1,-2,-2,-2; 3,0,-4,0,-1,-3,-3,-3,1,3,7,7,-1,-3,-3,-3; 3,0,-4,0,-1,-2,-3,-3,1,2,3,7,0,0,-3,-3; 3,0,-4,0,-1,-1,-3,-3,1,3,3,7,-1,-1,-3,-3; 3,0,-4,0,0,-1,-3,-3,1,1,3,7,0,-1,-3,-3; 3,0,-4,0,0,0,-3,-3,1,2,3,7,-1,-2,-3,-3;
+3,0,-4,2,-1,-3,-3,-3,1,3,5,9,-1,-1,-5,-5; 3,0,-4,4,-1,-3,-3,-3,1,3,7,7,-1,-3,-3,-7; 3,0,-4,4,-1,-3,-3,-3,1,3,7,11,-1,-3,-7,-7; 3,0,-4,4,-1,-2,-3,-3,1,2,3,7,0,0,-3,-7; 3,0,-4,4,-1,-1,-3,-3,1,3,3,7,-1,-1,-3,-7; 3,0,-4,4,0,-1,-3,-3,1,1,3,7,0,-1,-3,-7; 3,0,-4,4,0,0,-3,-3,1,2,3,7,-1,-2,-3,-7; 3,0,-4,6,-1,-3,-3,-3,1,3,5,9,-1,-1,-5,-9; 3,0,-4,8,-1,-3,-3,-3,1,3,7,11,-1,-3,-7,-11; 3,0,-3,0,-1,-2,-3,-3,0,1,2,5,0,0,-2,-2; 3,0,-3,0,-1,-1,-3,-3,0,1,2,5,0,-1,-2,-2; 3,0,-3,0,0,-1,-2,-2,0,1,2,5,-1,-1,-3,-3;
+3,0,-3,0,0,0,-2,-2,0,1,2,5,-1,-2,-3,-3; 3,0,-3,3,-1,-2,-3,-3,0,1,2,5,0,0,-2,-5; 3,0,-3,3,-1,-1,-3,-3,0,1,2,5,0,-1,-2,-5; 3,0,-3,3,0,-1,-2,-2,0,1,2,5,-1,-1,-3,-6; 3,0,-3,3,0,0,-2,-2,0,1,2,5,-1,-2,-3,-6; 3,2,-4,0,-1,-1,-5,-5,1,3,5,9,-1,-3,-3,-3; 3,2,-4,4,-1,-1,-5,-5,1,3,5,9,-1,-3,-3,-7; 3,3,-3,0,-1,-2,-3,-6,0,1,2,5,0,0,-2,-2; 3,3,-3,0,-1,-1,-3,-6,0,1,2,5,0,-1,-2,-2; 3,3,-3,0,0,-1,-2,-5,0,1,2,5,-1,-1,-3,-3; 3,3,-3,0,0,0,-2,-5,0,1,2,5,-1,-2,-3,-3; 3,4,-4,0,-1,-3,-7,-7,1,3,7,11,-1,-3,-3,-3;
+3,4,-4,0,-1,-3,-3,-7,1,3,7,7,-1,-3,-3,-3; 3,4,-4,0,-1,-2,-3,-7,1,2,3,7,0,0,-3,-3; 3,4,-4,0,-1,-1,-3,-7,1,3,3,7,-1,-1,-3,-3; 3,4,-4,0,0,-1,-3,-7,1,1,3,7,0,-1,-3,-3; 3,4,-4,0,0,0,-3,-7,1,2,3,7,-1,-2,-3,-3; 3,4,-4,2,-1,-3,-3,-7,1,3,5,9,-1,-1,-5,-5; 3,4,-4,4,-1,-3,-7,-7,1,3,7,11,-1,-3,-3,-7; 3,4,-4,4,-1,-3,-3,-7,1,3,7,11,-1,-3,-7,-7; 3,6,-4,0,-1,-1,-5,-9,1,3,5,9,-1,-3,-3,-3; 3,8,-4,0,-1,-3,-7,-11,1,3,7,11,-1,-3,-3,-3; 4,0,-5,0,-1,-1,-4,-4,1,2,4,9,0,-2,-4,-4; 4,0,-5,0,0,-2,-4,-4,1,2,4,9,-1,-1,-4,-4;
+4,0,-5,5,-1,-1,-4,-4,1,2,4,9,0,-2,-4,-9; 4,0,-5,5,0,-2,-4,-4,1,2,4,9,-1,-1,-4,-9; 4,0,-4,0,-1,-2,-4,-4,0,1,3,7,0,-1,-3,-3; 4,0,-4,0,0,-1,-3,-3,0,1,3,7,-1,-2,-4,-4; 4,0,-4,4,-1,-2,-4,-4,0,1,3,7,0,-1,-3,-7; 4,0,-4,4,0,-1,-3,-3,0,1,3,7,-1,-2,-4,-8; 4,4,-4,0,-1,-2,-4,-8,0,1,3,7,0,-1,-3,-3; 4,4,-4,0,0,-1,-3,-7,0,1,3,7,-1,-2,-4,-4; 4,5,-5,0,-1,-1,-4,-9,1,2,4,9,0,-2,-4,-4; 4,5,-5,0,0,-2,-4,-9,1,2,4,9,-1,-1,-4,-4; 5,0,-6,0,-1,-3,-5,-5,1,3,5,11,-1,-1,-5,-5; 5,0,-6,0,-1,-2,-5,-5,1,2,5,11,0,-2,-5,-5;
+5,0,-6,0,-1,-1,-5,-5,1,3,5,11,-1,-3,-5,-5; 5,0,-6,0,0,-2,-5,-5,1,2,5,11,-1,-2,-5,-5; 5,0,-6,6,-1,-3,-5,-5,1,3,5,11,-1,-1,-5,-11; 5,0,-6,6,-1,-2,-5,-5,1,2,5,11,0,-2,-5,-11; 5,0,-6,6,-1,-1,-5,-5,1,3,5,11,-1,-3,-5,-11; 5,0,-6,6,0,-2,-5,-5,1,2,5,11,-1,-2,-5,-11; 5,6,-6,0,-1,-3,-5,-11,1,3,5,11,-1,-1,-5,-5; 5,6,-6,0,-1,-2,-5,-11,1,2,5,11,0,-2,-5,-5; 5,6,-6,0,-1,-1,-5,-11,1,3,5,11,-1,-3,-5,-5; 5,6,-6,0,0,-2,-5,-11,1,2,5,11,-1,-2,-5,-5; 7,0,-8,0,-1,-3,-7,-7,1,3,7,15,-1,-3,-7,-7; 7,0,-8,8,-1,-3,-7,-7,1,3,7,15,-1,-3,-7,-15;
+7,8,-8,0,-1,-3,-7,-15,1,3,7,15,-1,-3,-7,-7}\par
+}
+
+For an independently checkable arithmetic summary, direct substitution of these rows into \(r_\ell(u)h=s_h(u)\) gives
+\[
+\begin{array}{c|r|r|r|r|r}
+\ell&\binom{|\mathcal U_\ell|}{D_\ell}&|E_\ell|&|\mathcal C_\ell|&|\mathcal W_\ell|&
+\sum_{h\in E_\ell}\|h\|_1\\ \hline
+2&7&7&7&0&21\\
+3&497{,}420&59&31&28&342\\
+4&121{,}399{,}651{,}100&197&33&164&2{,}345\\
+5&110{,}375{,}347{,}398{,}090{,}219&721&40&681&15{,}704.
+\end{array}
+\]
+Writing \(a:b\) when exactly \(b\) rows have maximum slack \(a\), the complete maximum-slack histograms are
+\[
+\begin{aligned}
+\ell=2:&\quad \{1:7\},\\
+\ell=3:&\quad \{1:31,2:19,3:9\},\\
+\ell=4:&\quad \{1:33,2:74,3:49,4:26,5:12,7:3\},\\
+\ell=5:&\quad \{1:40,2:109,3:226,4:124,5:90,6:50,7:31,8:20,9:10,10:2,11:16,15:3\}.
+\end{aligned}
+\]
+The first numeric column is the number of subsets in the exhaustive loop.  The \(\mathcal C_\ell\) and \(\mathcal W_\ell\) columns partition \(E_\ell\) according to the defining test \(\max_{u\in\mathcal U_\ell}s_h(u)=1\), and the histograms record every possible maximum slack.  In particular, (1) and the \(|E_\ell|\) column give
+\[
+F_2=7,\qquad F_3=59,\qquad F_4=197,\qquad F_5=721,
+\]
+as claimed.
+\end{proof}
+
+\begin{lemma}[lem:finite-lp-strong-duality]\label{lem:finite-lp-strong-duality}
+\texttt{For a finite-\allowbreak{}dimensional primal-\allowbreak{}-\allowbreak{}dual linear-\allowbreak{}programming pair in standard form,\allowbreak{} if the primal has an optimal solution,\allowbreak{} then the dual has an optimal solution and the two optimal values are equal.}
+\end{lemma}
+
+\begin{theorem}[thm:direct-support-transport-dual]\label{thm:direct-support-transport-dual}
+Fix \(L\ge2\).  Let \(G_L\) be the \(3L\)-by-\(|\mathcal U_L|\) legal-response incidence matrix with rows indexed by \((r,j)\in\mathcal D\times\mathcal Y_L\), columns indexed by \(u\in\mathcal U_L\), and entries \((G_L)_{(r,j),u}=\mathbf 1\{u_r=j\}\).  For \(d\in\mathcal D\), let \(c^{(d)}_u=B_d(u)\), and regard \(p=(p_{rj})_{r,j}\) here as the full \(3L\)-vector of arm probabilities.  For every compatible \(p\),
+\[
+ \underline\theta_d(p)=
+ \max_{y\in\mathbb R^{3L}}
+ \left\{\sum_{r\in\mathcal D}\sum_{j\in\mathcal Y_L}p_{rj}y_{rj}:
+ \sum_{r\in\mathcal D}y_{r,u_r}\le B_d(u)\quad\forall u\in\mathcal U_L\right\},
+\]
+and
+\[
+ \overline\theta_d(p)=
+ \min_{z\in\mathbb R^{3L}}
+ \left\{\sum_{r\in\mathcal D}\sum_{j\in\mathcal Y_L}p_{rj}z_{rj}:
+ \sum_{r\in\mathcal D}z_{r,u_r}\ge B_d(u)\quad\forall u\in\mathcal U_L\right\}.
+\]
+Both dual optima are attained.  Moreover, feasibility of either dual candidate has an \(O(L)\) exact separation oracle.  For arrays \(x=(x_{rj})\) and \(\sigma\in\{-1,1\}\), all prefix and suffix maxima can be computed in two passes, after which
+\[
+ \max_{u\in\mathcal U_L}\left\{\sum_{r\in\mathcal D}x_{r,u_r}-\sigma B_d(u)\right\}
+\]
+is the maximum, over \(k\in\mathcal Y_L\), of five explicitly evaluable region scores corresponding to \(u_0>k,u_2\le k\); \(u_2>k,u_0\le k\); \(u_0<k,u_2<k\); \(u_0=k,u_2\le k\); and \(u_0<k,u_2=k\).  Thus scalar endpoints can be computed by a finite linear program with this separator, using exact rational arithmetic whenever \(p\) is rational.  The complete all-\(L\) canonical facet stream is needed to catalogue the joint polytope, but is not needed merely to evaluate a scalar endpoint.
+\end{theorem}
+\begin{proof}
+Fix \(L\ge2\), a compatible marginal vector \(p\), and \(d\in\mathcal D\).  At the optimization level of this theorem the input is the full marginal vector \(p=(p_{rj})_{r,j}\).  If \(p\) is obtained from an observed randomized law, the observable map is \(P\mapsto(P(Y=j\mid A=r))_{r,j}\); the theorem itself uses only the supplied value of \(p\) and the maintained support \(\mathcal U_L\).  To keep the causal object distinct from its observed-law bound, define the scalar identified set induced by these marginals and the support restriction as
+\[
+ \Theta_{I,d}(p)=\{\theta_d(q):q\in\Gamma_L(p)\}.
+\]
+By \(\text{def:coupling-fiber}\), compatibility is exactly feasibility of
+\[
+ G_Lq=p,\qquad q\ge0.
+ \tag{1}
+\]
+Summing the \(L\) equations for any fixed arm in (1) gives \(\sum_{u\in\mathcal U_L}q(u)=1\).  Hence \(\Gamma_L(p)\) is a closed subset of the finite probability simplex and is compact.  It is convex, and \(q\mapsto\theta_d(q)\) is linear by \(\text{def:unique-peak-indicators}\).  Therefore \(\Theta_{I,d}(p)\) is the compact interval
+\[
+ \Theta_{I,d}(p)=[\underline\theta_d(p),\overline\theta_d(p)].
+ \tag{2}
+\]
+Thus any equality proved below is a sharp endpoint characterization, not merely an outer bound.
+
+Put \(c^{(d)}_u=B_d(u)\).  The lower endpoint is the finite linear program
+\[
+ \min_{q\ge0}\left\{(c^{(d)})^{\mathsf T}q:G_Lq=p\right\}.
+ \tag{3}
+\]
+It has an optimizer by compactness.  Its equality-form dual is
+\[
+ \max_{y\in\mathbb R^{3L}}
+ \left\{p^{\mathsf T}y:G_L^{\mathsf T}y\le c^{(d)}\right\};
+ \tag{4}
+\]
+the dual variable is unrestricted in sign because the primal constraints are equalities.  Applying the finite linear-programming strong-duality result \(\text{lem:finite-lp-strong-duality}\), in the exact form attributed there to Trevisan, Lecture 6, Theorem 6.5, shows that (4) attains the value of (3).  Since
+\[
+ (G_L^{\mathsf T}y)_u=\sum_{r\in\mathcal D}y_{r,u_r},
+ \qquad
+ p^{\mathsf T}y=\sum_{r\in\mathcal D}\sum_{j\in\mathcal Y_L}p_{rj}y_{rj},
+\]
+this is the asserted lower dual formula.  Applying the same theorem to the maximization primal
+\[
+ \max_{q\ge0}\left\{(c^{(d)})^{\mathsf T}q:G_Lq=p\right\}
+\]
+gives the attained dual minimum
+\[
+ \min_{z\in\mathbb R^{3L}}
+ \left\{p^{\mathsf T}z:G_L^{\mathsf T}z\ge c^{(d)}\right\},
+\]
+which is the asserted upper formula.  Combining these equalities with (2) proves that the displayed dual values equal the sharp causal endpoints over all compatible latent couplings; that relationship was derived from the coupling fiber and was not imposed by definition.
+
+We next derive the exact separator.  For \(r\in\{0,2\}\) and \(k\in\mathcal Y_L\), define
+\[
+ P_r^{\le}(k)=\max_{0\le j\le k}x_{rj},\qquad
+ P_r^{<}(k)=\max_{0\le j<k}x_{rj},\qquad
+ S_r^{>}(k)=\max_{k<j<L}x_{rj},
+ \tag{5}
+\]
+where a maximum over an empty set is \(-\infty\).  The recursions
+\[
+ P_r^{\le}(k)=\max\{P_r^{\le}(k-1),x_{rk}\},
+ \qquad
+ S_r^{>}(k)=\max\{x_{r,k+1},S_r^{>}(k+1)\}
+\]
+with the evident boundary conventions compute all quantities in (5) in one forward and one backward pass, using \(O(L)\) exact additions and comparisons.
+
+Fix \(u_1=k\).  By \(\text{def:non-valley-support}\), legality is equivalent to \(u_0\le k\) or \(u_2\le k\).  The legal pairs \((u_0,u_2)\) form the following five disjoint regions:
+\[
+\begin{array}{c|c|c}
+\text{region}&\text{conditions}&B_d(u)\\ \hline
+R_0&u_0>k,\ u_2\le k&\mathbf 1\{d=0\}\\
+R_2&u_2>k,\ u_0\le k&\mathbf 1\{d=2\}\\
+R_1&u_0<k,\ u_2<k&\mathbf 1\{d=1\}\\
+R_{01}&u_0=k,\ u_2\le k&0\\
+R_{12}&u_0<k,\ u_2=k&0.
+\end{array}
+ \tag{6}
+\]
+Indeed, if \(u_0>k\), legality forces \(u_2\le k\), giving \(R_0\); if \(u_2>k\), legality forces \(u_0\le k\), giving \(R_2\); otherwise both outer coordinates are at most \(k\), and the last three rows of (6) partition that case according as both inequalities are strict, only the first is an equality, or only the second is an equality.  On these regions, direct additive maximization gives
+\[
+\begin{aligned}
+ V_{0d}(k)&=S_0^{>}(k)+x_{1k}+P_2^{\le}(k)-\sigma\mathbf 1\{d=0\},\\
+ V_{2d}(k)&=P_0^{\le}(k)+x_{1k}+S_2^{>}(k)-\sigma\mathbf 1\{d=2\},\\
+ V_{1d}(k)&=P_0^{<}(k)+x_{1k}+P_2^{<}(k)-\sigma\mathbf 1\{d=1\},\\
+ V_{01,d}(k)&=x_{0k}+x_{1k}+P_2^{\le}(k),\\
+ V_{12,d}(k)&=P_0^{<}(k)+x_{1k}+x_{2k}.
+\end{aligned}
+ \tag{7}
+\]
+Consequently,
+\[
+ \max_{u\in\mathcal U_L}
+ \left\{\sum_{r\in\mathcal D}x_{r,u_r}-\sigma B_d(u)\right\}
+ =\max_{k\in\mathcal Y_L}
+ \max\{V_{0d}(k),V_{2d}(k),V_{1d}(k),V_{01,d}(k),V_{12,d}(k)\}.
+ \tag{8}
+\]
+For the lower dual take \(x=y\) and \(\sigma=1\); its candidate is feasible exactly when (8) is at most zero.  For the upper dual take \(x=-z\) and \(\sigma=-1\), because the left side of (8) then equals
+\[
+ \max_{u\in\mathcal U_L}\left\{B_d(u)-\sum_{r\in\mathcal D}z_{r,u_r}\right\}.
+\]
+Keeping an argmax in every prefix and suffix recursion also returns a maximizing legal triple, and hence a violated dual constraint whenever the maximum is positive.  This proves the \(O(L)\) exact separation claim.  Because \(\mathcal U_L\) is finite, adding a newly violated constraint terminates after at most \(|\mathcal U_L|\) additions; equivalently, one may enumerate all legal columns and solve the resulting finite rational program.  Thus rational input gives a fully exact finite computation without any catalogue of canonical facets.
+
+For completeness, we prove the stronger rational-input complexity and sparsity corollary.  A triple is excluded precisely when, for \(u_1=k\), both outer coordinates lie in \(\{k+1,\ldots,L-1\}\).  Hence
+\[
+ |\mathcal U_L|
+ =L^3-\sum_{k=0}^{L-2}(L-1-k)^2
+ =L^3-\sum_{m=1}^{L-1}m^2
+ =L^3-\frac{(L-1)L(2L-1)}6
+ =O(L^3).
+ \tag{9}
+\]
+The explicit feasibility program and each of the six primal endpoint programs therefore have a number of binary-encoded rational coefficients polynomial in \(L\) and in the encoding length of \(p\).  The rational linear-programming algorithm in \(\text{lem:rational-lp-polynomial-time}\) decides compatibility and, when compatible, returns the exact optimum of every one of these six bounded programs in polynomial time.
+
+To expose the optimizer construction and its support bound, replace the redundant full marginal equations by the matrix \(M_L\) whose rows are one normalization row and the \(3(L-1)\) rows indexed by \((r,j)\in\mathcal D\times\{1,\ldots,L-1\}\):
+\[
+ (M_L)_{\varnothing,u}=1,
+ \qquad
+ (M_L)_{(r,j),u}=\mathbf 1\{u_r=j\}.
+ \tag{10}
+\]
+For \(b(p)=(1,(p_{rj})_{r,1\le j<L})^{\mathsf T}\), the simplex identities imply
+\[
+ \Gamma_L(p)=\{q\ge0:M_Lq=b(p)\}.
+ \tag{11}
+\]
+Indeed, the omitted level-zero equation for arm \(r\) is
+\[
+ \sum_{u:u_r=0}q(u)
+ =1-\sum_{j=1}^{L-1}p_{rj}=p_{r0}.
+\]
+The matrix in (10) has only \(3L-2\) rows.  An optimal basic feasible solution consequently has at most \(3L-2\) positive entries.  Such a solution is obtainable within the stated polynomial bound.  After computing the rational optimal value \(v\), start with the nonempty compact rational polytope obtained from (11) by adding the equality \((c^{(d)})^{\mathsf T}q=v\).  In a fixed ordering of its \(O(L^3)\) coordinates, sequentially minimize each coordinate over the face left by all preceding minimizations and add the equality fixing that coordinate at its attained minimum.  Each minimum is attained at a vertex of the original optimal face, so Cramer's rule applied to a submatrix of the original rational system bounds its encoding length polynomially in the original input.  Each step is therefore an exact rational linear program of polynomial encoding length, and there are \(O(L^3)\) steps.  At the end every coordinate is fixed, so the remaining face is a singleton.  A singleton face of the optimal face is an extreme point of (11), hence a basic optimal solution.  If the positive columns of \(M_L\) at that point were dependent, a sufficiently small two-sided null perturbation would express it as the midpoint of two distinct feasible points, contradicting extremality.  Thus its support has size at most \(\operatorname{rank}(M_L)\le3L-2\).
+
+The same support bound also has an explicit support-elimination certificate.  If a rational optimizer \(q\) has support \(S\) with \(|S|>3L-2\), the columns \((M_{L,u})_{u\in S}\) are dependent, so exact Gaussian elimination returns nonzero rational \(a\), supported on \(S\), with \(M_La=0\).  The normalization row implies \(\sum_ua(u)=0\), so \(a\) has both signs.  For sufficiently small \(\varepsilon>0\), both \(q+\varepsilon a\) and \(q-\varepsilon a\) are feasible.  Optimality for either the minimum or maximum of the linear cost forces
+\[
+ \sum_{u\in\mathcal U_L}B_d(u)a(u)=0;
+\]
+otherwise one of the two signs would improve the objective.  Therefore
+\[
+ t=\min_{u\in S:a(u)<0}\frac{q(u)}{-a(u)}>0
+\]
+makes \(q+ta\) a rational optimizer with strictly smaller support.  At most \(|\mathcal U_L|-(3L-2)\) repetitions give a rational endpoint optimizer supported on at most \(3L-2\) legal triples.  The preceding sequential-face construction supplies such a basic optimizer with a polynomial number of exact rational-LP calls, while this elimination argument certifies the support bound equation by equation.  Thus compatibility, all six endpoints, and sparse rational endpoint-attaining mixtures are exactly computable in time polynomial in \(L\) and the input bit length, while the all-\(L\) canonical facet stream remains unnecessary for scalar endpoint evaluation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The direct legal-incidence program yields sharp scalar endpoints, an exact \(O(L)\) separator, polynomial-time rational compatibility and endpoint computation, and rational sparse optimizers without the unresolved facet catalogue. \textit{Gap.} Gao, Ge, and Qian's arbitrary-objective transport architecture can encode the support with extended costs, but its quadratic-objective rate does not transfer.  The present finite legal-support program and its exact algorithmic consequences are proved directly, using Trevisan's Theorem 6.5 for strong duality. \textit{Consumer.} All six scalar endpoints and endpoint-attaining worst-case response mixtures can be computed before the all-\(L\) canonical joint-polytope stream is known.
+
+\begin{theorem}[thm:fixed-l-endpoint-lipschitz-rate]\label{thm:fixed-l-endpoint-lipschitz-rate}
+Fix \(L\ge2\), and write \(x=(x_{rj})_{r\in\mathcal D,\,1\le j<L}\in\mathbb R^{3(L-1)}\).  For \(h_i\in\mathcal H_L\), put \(a_i(x)=\kappa_i+\sum_{r\in\mathcal D}\sum_{j=1}^{L-1}\alpha_{irj}x_{rj}\), and define the global affine extensions
+\[
+ F_{d,L}^-(x)=\max_{\lambda\in\mathcal D_d^-}-\sum_i\lambda_i a_i(x),
+ \qquad
+ F_{d,L}^+(x)=\min_{\mu\in\mathcal D_d^+}\sum_i\mu_i a_i(x).
+\]
+For any norm \(\|\cdot\|_r\) with \(1\le r\le\infty\) and dual exponent \(r^*\), define
+\[
+ C_{L,r}=\max_{d\in\mathcal D}\max\left\{
+ \max_{\lambda\in\mathcal D_d^-}
+ \left\|\left(\sum_i\lambda_i\alpha_{ikj}\right)_{k,j}\right\|_{r^*},
+ \max_{\mu\in\mathcal D_d^+}
+ \left\|\left(\sum_i\mu_i\alpha_{ikj}\right)_{k,j}\right\|_{r^*}
+ \right\}.
+\]
+This constant is finite and computable from the fixed-\(L\) certificate lists, and for all \(x,x'\in\mathbb R^{3(L-1)}\),
+\[
+ \max_{d\in\mathcal D,\,s\in\{-,+\}}
+ |F_{d,L}^s(x)-F_{d,L}^s(x')|\le C_{L,r}\|x-x'\|_r.
+\]
+On compatible marginals, \(F_{d,L}^-(p)=\underline\theta_d(p)\) and \(F_{d,L}^+(p)=\overline\theta_d(p)\).
+
+Under independent sampling, let \(N_d=\sum_{i=1}^N\mathbf 1\{A_i=d\}\), let \(\widehat p_{dj}=N_d^{-1}\sum_i\mathbf 1\{A_i=d,Y_i=j\}\) when \(N_d>0\), and assign any simplex value when \(N_d=0\).  Put \(\pi_{\min}=\min_d\pi_d\).  For every \(M>0\),
+\[
+ P\left\{
+ \max_{d,s}|F_{d,L}^s(\widehat p)-F_{d,L}^s(p)|>
+ \frac{C_{L,2}M}{\sqrt{N\pi_{\min}}}
+ \right\}
+ \le \frac{6}{M^2}+\frac{12}{N\pi_{\min}}.
+\]
+Consequently, whenever \(N\pi_{\min}\to\infty\), every plug-in endpoint extension has error \(O_P((N\pi_{\min})^{-1/2})\); in particular, at a fixed law satisfying positive randomization the rate is \(N^{-1/2}\), with constant proportional to \(C_{L,2}/\sqrt{\pi_{\min}}\).
+\end{theorem}
+\begin{proof}
+Fix \(L\geq2\).  By \(\text{thm:sharp-three-facet-endpoints}\), each certificate set \(\mathcal D_d^-\) and \(\mathcal D_d^+\) is finite and nonempty, and its affine maximum or minimum agrees with the corresponding sharp endpoint on every compatible marginal vector.
+
+For a lower certificate \(\lambda\), the gradient of its affine contrast with respect to \(x=(x_{kj})_{k\in\mathcal D,\,1\leq j<L}\) is
+\[
+ -\left(\sum_i\lambda_i\alpha_{ikj}\right)_{k,j},
+\]
+and for an upper certificate \(\mu\) it is the same array without the minus sign.  By the definition of the dual norm, every such affine contrast \(f\) obeys
+\[
+ |f(x)-f(x')|
+ =|\langle\nabla f,x-x'\rangle|
+ \leq\|\nabla f\|_{r^*}\|x-x'\|_r.                                      \tag{30}
+\]
+For any two finite real families indexed by the same set,
+\[
+ \left|\max_t a_t-\max_t b_t\right|\leq\max_t|a_t-b_t|,
+ \qquad
+ \left|\min_t a_t-\min_t b_t\right|\leq\max_t|a_t-b_t|.                 \tag{31}
+\]
+Indeed, choosing an index maximizing the first family bounds the first directed difference, and exchanging the two families bounds the reverse difference; minima follow after multiplying by \(-1\).  Applying (30)--(31) to the certificate lists gives
+\[
+ \max_{d\in\mathcal D,\,s\in\{-,+\}}
+ |F_{d,L}^s(x)-F_{d,L}^s(x')|
+ \leq C_{L,r}\|x-x'\|_r.                                                  \tag{32}
+\]
+The constant is finite because the lists are finite.  It is exactly computable from \(\mathcal H_L\): enumerate supports of at most three linearly independent normals, solve the corresponding systems \(\sum_i\rho_i\beta_i=\pm e_d\), retain the nonnegative solutions, and maximize the displayed dual norms.  The endpoint equalities on compatible \(p\) are precisely those already proved in \(\text{thm:sharp-three-facet-endpoints}\).
+
+We next prove the finite-sample probability bound.  Put \(\pi_{\min}=\min_{d\in\mathcal D}\pi_d>0\), using \(\text{ass:positive-randomization}\), and define
+\[
+ E_N=\bigcap_{d\in\mathcal D}\{N_d\geq N\pi_d/2\}.
+\]
+Under \(\text{ass:iid-sampling}\), \(N_d\) is binomial with mean \(N\pi_d\) and variance \(N\pi_d(1-\pi_d)\).  Since
+\[
+ \mathbf 1\{|N_d-N\pi_d|\geq N\pi_d/2\}
+ \leq \frac{4(N_d-N\pi_d)^2}{N^2\pi_d^2},
+\]
+taking expectations and then using \(\mathbf 1_{\cup_d E_d}\leq\sum_d\mathbf 1_{E_d}\) gives
+\[
+ P(E_N^c)
+ \leq\sum_{d\in\mathcal D}\frac{4(1-\pi_d)}{N\pi_d}
+ \leq\frac{12}{N\pi_{\min}}.                                              \tag{33}
+\]
+
+Conditional on the arm counts, the outcome counts in arm \(d\) are multinomial with cell probabilities \((p_{dj})_{j\in\mathcal Y_L}\).  On \(E_N\), all denominators are positive and
+\[
+\begin{aligned}
+ \mathbb E\!\left(\|\widehat p-p\|_2^2\mid(N_d)_{d\in\mathcal D}\right)
+ &=\sum_{d\in\mathcal D}\frac1{N_d}
+   \sum_{j=1}^{L-1}p_{dj}(1-p_{dj})\\
+ &\leq\sum_{d\in\mathcal D}\frac1{N_d}
+ \leq\frac6{N\pi_{\min}}.                                                 \tag{34}
+\end{aligned}
+\]
+Only coordinate variances enter the squared Euclidean norm; multinomial covariances therefore do not enter (34).  Pointwise,
+\[
+ \mathbf 1\!\left\{\|\widehat p-p\|_2>
+       \frac{M}{\sqrt{N\pi_{\min}}}\right\}
+ \leq\frac{N\pi_{\min}}{M^2}\|\widehat p-p\|_2^2.
+\]
+Taking conditional expectations on count vectors in \(E_N\), using (34), and averaging over the counts yields
+\[
+ P\!\left\{\|\widehat p-p\|_2>
+       \frac{M}{\sqrt{N\pi_{\min}}},\ E_N\right\}
+ \leq\frac6{M^2}.                                                          \tag{35}
+\]
+On \(E_N\) no arm is empty, so the arbitrary simplex convention for an empty arm is irrelevant.  Combining (32) with \(r=2\), (33), and (35) proves
+\[
+ P\!\left\{
+ \max_{d,s}|F_{d,L}^s(\widehat p)-F_{d,L}^s(p)|>
+ \frac{C_{L,2}M}{\sqrt{N\pi_{\min}}}
+ \right\}
+ \leq\frac6{M^2}+\frac{12}{N\pi_{\min}}.                                 \tag{36}
+\]
+If \(N\pi_{\min}\to\infty\), (36) is exactly the asserted \(O_P((N\pi_{\min})^{-1/2})\) statement.  At a fixed law, positivity fixes \(\pi_{\min}>0\), giving the \(N^{-1/2}\) rate and the stated constant dependence.  This proof uses the endpoint's finite affine representation and elementary multinomial second moments; it invokes no rate transfer from a different transport objective.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite affine certificate representation yields a global stability modulus and a transparent plug-in rate for every fixed ordinal support. \textit{Gap.} The rate follows from the indicator endpoint's own finite affine map; a quadratic-objective transport rate does not establish it. \textit{Consumer.} The theorem quantifies how random arm-marginal error propagates to all six endpoint estimates, including the explicit penalty from the least-randomized arm.
+
+\begin{theorem}[thm:finite-sample-support-honesty]\label{thm:finite-sample-support-honesty}
+For every fixed \(L\ge2\), \(N\ge1\), and \(\alpha\in(0,1)\), the exact pilot-localized handle in \(\text{def:inference-handle}\) has a completion producing a random closed rectangle \(\mathcal I_{N,1-\alpha}\) such that
+\[
+ \inf_{P\in\mathcal P_L}P\left\{
+ (\underline\theta_d(p),\overline\theta_d(p))_{d\in\mathcal D}
+ \in\mathcal I_{N,1-\alpha}\right\}\ge1-\alpha.
+\]
+The completion uses a pilot product-simplex region with total error \(\delta_N=\min\{\alpha/2,N^{-2}\}\), exact least-favourable conditional product-multinomial inversion over compact affine null slices on the main sample, a common Bonferroni allocation summing to at most \(\alpha-\delta_N\), closed interval hulls for every retained affine certificate contrast, and the finite endpoint maximum/minimum maps.  Empty pilot arms use full simplices and any main-sample contrast involving an empty required arm uses its full logical range.  Thus the coverage assertion includes zero cells, realized empty arms, and tied active facets.  This theorem asserts finite-sample honesty only; it does not assert regular-face equivalence to a Wald interval.
+\end{theorem}
+\begin{proof}
+Fix \(L\geq2\), \(N\geq1\), \(\alpha\in(0,1)\), and \(P\in\mathcal P_L\).  Split the observations as in \(\text{def:inference-handle}\), with pilot size \(n_0=\lfloor N^{2/3}\rfloor\) and main size \(n_1=N-n_0\).  The subsamples are independent by \(\text{ass:iid-sampling}\).  Conditional on the arm counts in either subsample, random assignment, consistency, and \(\text{thm:randomization-identifies-marginals}\) imply that the three within-arm outcome-count vectors are independent multinomials with respective cell probabilities \((p_{dj})_{j\in\mathcal Y_L}\).
+
+Set \(\delta_N=\min\{\alpha/2,N^{-2}\}\) and \(\gamma_N=\delta_N/(3L)\).  For \(X\sim\operatorname{Bin}(n,\rho)\) and an observed count \(k\), define
+\[
+ C_{n,k}(\gamma_N)=\left\{\rho\in[0,1]:
+ P_\rho(X\leq k)\geq\frac{\gamma_N}{2},\quad
+ P_\rho(X\geq k)\geq\frac{\gamma_N}{2}\right\},                         \tag{37}
+\]
+and set \(C_{0,0}(\gamma_N)=[0,1]\).  For \(n>0\), binomial tail probabilities are polynomials in \(\rho\), so (37) is closed.  At the true \(\rho\), the event \(P_\rho(X\leq X_{\mathrm{obs}})<\gamma_N/2\) is empty or a lower set \(\{X_{\mathrm{obs}}\leq k_0\}\), and its probability is then the corresponding lower tail, less than \(\gamma_N/2\).  The analogous upper-tail event has probability less than \(\gamma_N/2\).  Since the indicator of a union is bounded by the sum of its two indicators,
+\[
+ P_\rho\{\rho\in C_{n,X_{\mathrm{obs}}}(\gamma_N)\}\geq1-\gamma_N.        \tag{38}
+\]
+This argument includes \(\rho=0\) and \(\rho=1\).
+
+For pilot arm \(d\), intersect its \(L\) cell sets with \(\Delta^{L-1}\).  If the arm is empty or the intersection is empty, replace it by the full simplex.  Let \(R_N\) be the Cartesian product of the three resulting nonempty compact sets.  Conditional on each pilot arm count, every cell count is marginally binomial.  Applying (38) to all \(3L\) cells and using the pointwise inequality between the indicator of a union and the sum of its indicators, then averaging over the arm counts, gives
+\[
+ P_p\{p\in R_N\}\geq1-3L\gamma_N=1-\delta_N.                              \tag{39}
+\]
+Replacing an empty intersection by a full simplex cannot remove the true \(p\), so (39) remains valid for empty arms and zero-probability cells.
+
+By \(\text{thm:sharp-three-facet-endpoints}\), each endpoint is a maximum or minimum over a finite list of affine contrasts
+\[
+ \ell_r(p)=b_r+\sum_{d\in\mathcal D}\sum_{j=1}^{L-1}g_{rdj}p_{dj}.          \tag{40}
+\]
+For a lower endpoint, call \(r_*\) pilot-uniformly optimal if \(\ell_{r_*}(\widetilde p)\geq\ell_r(\widetilde p)\) for every \(\widetilde p\in R_N\) and every contrast \(r\) in that endpoint's list.  For an upper endpoint reverse the inequality.  If such an \(r_*\) exists, retain one; otherwise retain the entire finite list.  Thus, throughout \(R_N\), the maximum or minimum over retained contrasts equals the full endpoint map.  This statement remains true at ties: either a retained contrast is optimal throughout the region or the full list is retained.
+
+Condition on the pilot data and on the main-sample arm counts \(m=(m_0,m_1,m_2)\).  Write \(M_{dj}\) for the number of main-sample observations with \((A,Y)=(d,j)\), so that \(m_d=\sum_{j\in\mathcal Y_L}M_{dj}\).  If \(m_d=0\) for an arm on which contrast \(r\) has a nonzero coefficient vector, assign that contrast its full logical range
+\[
+ \ell_r\!\left(\prod_{d\in\mathcal D}\Delta^{L-1}\right),                 \tag{41}
+\]
+a compact interval containing \(\ell_r(p)\) surely.  Otherwise define
+\[
+ \widehat\ell_r=b_r+\sum_{d,j}g_{rdj}\frac{M_{dj}}{m_d},                   \tag{42}
+\]
+omitting arms whose coefficient vectors vanish.  Let \(K_N\) be the number of retained contrast copies not already handled by (41).  If \(K_N>0\), allocate \(\eta_N=(\alpha-\delta_N)/K_N\) to each; if \(K_N=0\), no testing error is allocated.
+
+For a contrast treated by (42) and \(t\in\ell_r(R_N)\), its null slice
+\[
+ \mathcal N_r(t)=\{\widetilde p\in R_N:\ell_r(\widetilde p)=t\}            \tag{43}
+\]
+is nonempty and compact.  Define
+\[
+ c_r(t)=\min\left\{c\geq0:
+ \inf_{\widetilde p\in\mathcal N_r(t)}
+ P_{\widetilde p}\left(|\widehat\ell_r-t|\leq c\mid m\right)
+ \geq1-\eta_N\right\}.                                                     \tag{44}
+\]
+This minimum exists.  Conditional on \(m\), the count sample space is finite; for a fixed acceptance set its product-multinomial probability is a polynomial, hence continuous, in \(\widetilde p\), so its infimum is attained on (43).  As \(c\) varies, the acceptance set changes only at the finitely many distances between \(t\) and possible values of (42), and the largest such distance gives acceptance probability one throughout (43).  Thus one of finitely many radii attains the minimum in (44).
+
+Invert these exact tests by
+\[
+ C_r=\{t\in\ell_r(R_N):|\widehat\ell_r-t|\leq c_r(t)\}.                   \tag{45}
+\]
+If \(C_r\neq\varnothing\), let \(J_r=\operatorname{cl}\operatorname{conv}(C_r)\); if it is empty, let \(J_r\) be the full logical range (41).  The latter fallback can only enlarge coverage.  Each \(J_r\) is a nonempty compact interval.  On \(\{p\in R_N\}\), setting \(t=\ell_r(p)\) in (43)--(44) yields
+\[
+ P_p\{\ell_r(p)\in J_r\mid\text{pilot},m\}\geq1-\eta_N.                 \tag{46}
+\]
+Because all count sample spaces are finite and every operation above is deterministic on them, the resulting interval endpoints are measurable.
+
+Write \(J_r=[L_r,U_r]\).  For a lower endpoint set
+\[
+ I_d^-=[\max_rL_r,\max_rU_r]\cap[0,1],                                    \tag{47}
+\]
+and for an upper endpoint set
+\[
+ I_d^+=[\min_rL_r,\min_rU_r]\cap[0,1].                                    \tag{48}
+\]
+If either displayed intersection is empty, replace it by \([0,1]\).  Whenever all retained true contrasts lie in their respective \(J_r\), monotonicity of maximum and minimum puts the true endpoints in (47)--(48); since every causal endpoint lies in \([0,1]\), intersection with \([0,1]\) does not remove it.  The Cartesian product of the six intervals is therefore a random closed rectangle \(\mathcal I_{N,1-\alpha}\subseteq[0,1]^6\).
+
+On \(\{p\in R_N\}\), the indicator of failure of any nontrivial retained contrast is bounded by the sum of the individual failure indicators.  Taking conditional expectations and using (46) gives conditional failure probability at most
+\[
+ K_N\eta_N=\alpha-\delta_N,                                                 \tag{49}
+\]
+while full-range contrasts have zero failure probability.  Combining (39) and (49), again through the indicator inequality for a union, yields
+\[
+ P_p\left\{(\underline\theta_d(p),\overline\theta_d(p))_{d\in\mathcal D}
+ \notin\mathcal I_{N,1-\alpha}\right\}
+ \leq\delta_N+(\alpha-\delta_N)=\alpha.                                   \tag{50}
+\]
+The construction and bound are conditional on arbitrary realized arm counts and hold for every compatible \(p\), including boundary points.  Taking the infimum over \(P\in\mathcal P_L\) proves the stated finite-sample honesty.  No limit, differentiability, positive-cell, or regular-face condition was used.  In particular, the argument proves no Wald equivalence or scalar efficiency claim.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates exact finite-sample support honesty from the stronger and still unresolved regular-face efficiency claim. \textit{Gap.} Existing asymptotic LP and directional-delta procedures do not supply this conditional finite-sample construction with explicit zero-cell and empty-arm fallbacks. \textit{Consumer.} The six-endpoint report has simultaneous finite-sample coverage even in sparse randomized ordinal tables; no pointwise Wald equivalence is claimed.
+
+\begin{lemma}[lem:rational-lp-polynomial-time]\label{lem:rational-lp-polynomial-time}
+\texttt{Every finite linear program with binary-\allowbreak{}encoded rational coefficients can be solved by an exact algorithm whose running time is polynomial in the total input encoding length:\allowbreak{} the algorithm decides feasibility and,\allowbreak{} when the feasible objective is bounded,\allowbreak{} returns an exact rational optimal value and an exact rational optimal solution.}
+\end{lemma}
+
+\begin{proposition}[prop:rational-endpoint-computation-and-sparse-optimizers]\label{prop:rational-endpoint-computation-and-sparse-optimizers}
+Fix \(L\ge2\).  Given a rational vector \(p\in\prod_{d\in\mathcal D}\Delta^{L-1}\) in binary encoding, whether \(\Gamma_L(p)\) is empty is decidable in time polynomial in \(L\) and the total input bit length.  If it is nonempty, all six values \(\underline\theta_d(p)\) and \(\overline\theta_d(p)\), \(d\in\mathcal D\), are exactly computable within the same complexity class.  For each endpoint, the algorithm also constructs a rational optimizer \(q^\star\in\Gamma_L(p)\) with \(|\operatorname{supp}(q^\star)|\le3L-2\).  These conclusions use \(|\mathcal U_L|=L^3-(L-1)L(2L-1)/6=O(L^3)\) and do not require enumeration of \(\mathcal H_L\).
+\end{proposition}
+\begin{proof}
+For a fixed middle response \(u_1=k\), the illegal strict valleys have independently chosen outer coordinates \(u_0,u_2\in\{k+1,\ldots,L-1\}\), and therefore number \((L-1-k)^2\).  Summing over \(k=0,\ldots,L-2\) gives
+\[
+ |\mathcal U_L|
+ =L^3-\sum_{k=0}^{L-2}(L-1-k)^2
+ =L^3-\frac{(L-1)L(2L-1)}6.
+ \tag{12}
+\]
+In particular, the legal-incidence matrix in \(\text{thm:direct-support-transport-dual}\) has \(3L\) rows and \(O(L^3)\) columns, all with zero--one entries.  For rational \(p\), its binary description has length polynomial in \(L\) and the input encoding length.  Apply \(\text{lem:rational-lp-polynomial-time}\) first to the feasibility system \(G_Lq=p\), \(q\ge0\).  This decides whether \(\Gamma_L(p)\) is empty.  When it is nonempty, apply the same result to the minimization and maximization programs with cost \((B_d(u))_{u\in\mathcal U_L}\), for each of the three values of \(d\).  Their feasible set is contained in the probability simplex and is therefore bounded.  The direct-support dual theorem identifies their six exact optimal values with \(\underline\theta_d(p)\) and \(\overline\theta_d(p)\).  A constant number of polynomial-time calls remains polynomial, proving the computation claim.
+
+It remains to construct the stated optimizer.  Let \(M_L\) have the normalization row and the \(3(L-1)\) nonzero-level marginal rows,
+\[
+ (M_L)_{\varnothing,u}=1,
+ \qquad
+ (M_L)_{(r,j),u}=\mathbf 1\{u_r=j\},
+ \qquad 1\le j<L.
+\]
+For \(b(p)=(1,(p_{rj})_{r,1\le j<L})^{\mathsf T}\), the simplex equations give
+\[
+ \Gamma_L(p)=\{q\ge0:M_Lq=b(p)\},
+ \tag{13}
+\]
+because the omitted equation equals \(1-\sum_{j=1}^{L-1}p_{rj}=p_{r0}\) for every arm \(r\).  For a polynomial-time basic-solution construction, first compute the rational optimal value \(v\).  Add \(c^{\mathsf T}q=v\) to (13), fix an ordering of the \(O(L^3)\) coordinates, and sequentially minimize each coordinate over the nonempty compact face left by preceding minimizations, fixing that coordinate at its exact attained value after each call.  Each minimum is attained at a vertex of the original optimal face; Cramer's rule for a nonsingular submatrix of the original rational system therefore gives it encoding length polynomial in the original input.  The cited algorithm consequently solves every one of these polynomial-size rational programs in polynomial time.  After all coordinates have been fixed, the remaining face is a singleton, hence an extreme point of (13).  Its positive columns of \(M_L\) are linearly independent: otherwise a sufficiently small two-sided null perturbation would express it as the midpoint of two distinct feasible points.  Consequently this rational optimizer has support at most \(\operatorname{rank}(M_L)\le3L-2\).  The number of calls is polynomial because there are \(O(L^3)\) coordinates.
+
+For an equation-by-equation support certificate starting from any rational optimizer \(q\), suppose its support \(S\) has more than \(3L-2\) elements.  Then the corresponding columns of the \((3L-2)\)-row matrix \(M_L\) are dependent.  Exact Gaussian elimination produces nonzero rational \(a\), supported on \(S\), with \(M_La=0\).  The normalization row makes \(a\) have both signs.  Both \(q+\varepsilon a\) and \(q-\varepsilon a\) are feasible for all sufficiently small positive \(\varepsilon\).  If \(c_u=B_d(u)\) is the endpoint cost, optimality of \(q\) under these two perturbations implies \(c^{\mathsf T}a=0\).  Thus
+\[
+ t=\min_{u\in S:a(u)<0}\frac{q(u)}{-a(u)}
+\]
+is positive and rational, and \(q+ta\) is a rational optimizer with at least one fewer positive coordinate.  Repeating yields a rational optimizer with the asserted support.  The sequential-face construction above establishes the polynomial-time guarantee without requiring a bound on the intermediate fractions along this optional elimination path.  Only the legal incidence matrix, the endpoint cost, and the observed marginal vector enter either construction, so no enumeration of \(\mathcal H_L\) is used.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The staircase family and the exact catalogues through \(L=5\) are proved, but they do not furnish the finite predecessor type set or an accepted all-\(L\) source.  In particular, the direct two-register encoding of alternating \(\mathrm L\) and \(\mathrm R\) staircase updates violates a fixed triangular order; a different representation within sixteen registers or an impossibility proof is still required.  Scalar endpoint formulas, polynomial-time rational computation, sparse attaining mixtures, fixed-\(L\) plug-in rates, and exact finite-sample simultaneous honesty do not depend on resolving that stream.  The remaining theoretical inference issue is the uniform local normal and quantile approximation needed to prove regular-face Wald equivalence under the procedure's simultaneous error allocation.  Exact implementation of the least-favourable compact-slice semialgebraic optimization has no proved practical complexity bound.
+
+\section{Honest scope}
+
+The proved results are the all-\(L\) staircase facet family, exact facet counts \(F_2=7\), \(F_3=59\), \(F_4=197\), and \(F_5=721\), sharp scalar endpoint formulas using at most three full facets, exact polynomial-time rational endpoint computation, endpoint-attaining rational mixtures with support at most \(3L-2\), the sharpness of that support bound at \(L=2\), the fixed-\(L\) plug-in rate, and exact finite-sample simultaneous endpoint honesty.  These endpoint and inference results are independent of the unresolved facet stream.  Open claims are confined to the existence or impossibility of one exact-once all-\(L\) two-pass stream with a finite predecessor and transfer classification, and to regular-face equivalence between the exact scalar interval and a semiparametrically efficient Wald interval with an explicitly matched critical value.  No scalar efficiency claim is made.  The Goodwin et al. use case is an abstract conditional sensitivity analysis based on the prespecified score: random assignment and consistency identify arm marginals, but the trial neither identifies nor clinically validates weak individual unimodality, and no data analysis or empirical verification of that restriction is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{DuarteEtAl2024} Duarte, Guilherme, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. 2024. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association 119:1778--1793.
+
+  \bibitem{Bonet2001} Bonet, Blai. 2001. Instrumentality Tests Revisited. Proceedings of Uncertainty in Artificial Intelligence, 48--55.
+
+  \bibitem{AvisFukuda1996} Avis, David, and Komei Fukuda. 1996. Reverse Search for Enumeration. Discrete Applied Mathematics 65:21--46.
+
+  \bibitem{LuDingDasgupta2018} Lu, Jiannan, Peng Ding, and Tirthankar Dasgupta. 2018. Treatment Effects on Ordinal Outcomes: Causal Estimands and Sharp Bounds. Journal of Educational and Behavioral Statistics 43:540--567.
+
+  \bibitem{Kim2014} Kim, Kyoo il. 2014. Identifying the Distribution of Treatment Effects under Support Restrictions. Working paper, arXiv:1410.5885.
+
+  \bibitem{GaoGeQian2025} Gao, Zijun, Shu Ge, and Jian Qian. 2025. Bridging Multiple Worlds: Multi-Marginal Optimal Transport for Causal Partial-Identification Problems. In \emph{Proceedings of the 28th International Conference on Artificial Intelligence and Statistics}, PMLR 258:721--729.
+
+  \bibitem{KaidoPonomarev2025} Kaido, Hiroaki, and Kirill Ponomarev. 2025. Testing Exclusion and Shape Restrictions in Potential Outcomes Models. arXiv:2512.20851.
+
+  \bibitem{ChoRussell2024} Cho, JoonHwan, and Thomas M. Russell. 2024. Simple Inference on Functionals of Set-Identified Parameters Defined by Linear Moments. Journal of Business \& Economic Statistics 42:1188--1201.
+
+  \bibitem{FangSantos2019} Fang, Zheng, and Andres Santos. 2019. Inference on Directionally Differentiable Functions. Review of Economic Studies 86:377--412.
+
+  \bibitem{ChernozhukovLeeRosen2013} Chernozhukov, Victor, Sokbae Lee, and Adam M. Rosen. 2013. Intersection Bounds: Estimation and Inference. Econometrica 81:667--737.
+
+  \bibitem{MastenPoirier2020} Masten, Matthew A., and Alexandre Poirier. 2020. Inference on Breakdown Frontiers. Quantitative Economics 11:41--111.
+
+  \bibitem{Noack2021} Noack, Claudia. 2021. Sensitivity of LATE Estimates to Violations of the Monotonicity Assumption. arXiv:2106.06421.
+
+  \bibitem{GabrielSachsJensen2024} Gabriel, Erin E., Michael C. Sachs, and Andreas Kryger Jensen. 2024. Sharp Symbolic Nonparametric Bounds for Measures of Benefit in Observational and Imperfect Randomized Studies with Ordinal Outcomes. Biometrika 111:1429--1436. doi:10.1093/biomet/asae020.
+
+  \bibitem{HuangEtAl2019} Huang, Emily J., Ethan X. Fang, Daniel F. Hanley, and Michael Rosenblum. 2019. Constructing a Confidence Interval for the Fraction Who Benefit from Treatment, Using Randomized Trial Data. Biometrics 75:1228--1239.
+
+  \bibitem{GoodwinEtAl2022} Goodwin, Guy M., and coauthors. 2022. Single-Dose Psilocybin for a Treatment-Resistant Episode of Major Depression. New England Journal of Medicine 387:1637--1648.
+
+  \bibitem{Russell2021} Russell, Thomas M. 2021. Sharp Bounds on Functionals of the Joint Distribution in the Analysis of Treatment Effects. Journal of Business \& Economic Statistics 39:532--546.
+
+  \bibitem{Chiba2017} Chiba, Yasutaka. 2017. Sharp Nonparametric Bounds and Randomization Inference for Treatment Effects on an Ordinal Outcome. Statistics in Medicine 36:3966--3975.
+
+  \bibitem{Trevisan2011} Trevisan, Luca. 2011. \emph{CS261: A Second Course in Algorithms}. Lecture 5, Section 2.4 (Polynomial Time Algorithms for Linear Programming), and Lecture 6, Theorem 6.5 (Strong Duality). Stanford University lecture notes.
+
+\end{thebibliography}
+
+\end{document}

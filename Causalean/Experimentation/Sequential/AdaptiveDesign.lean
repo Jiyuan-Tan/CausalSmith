@@ -2,35 +2,25 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Adaptive (sequential) experimental designs
-
-In an **adaptive experiment** the treatment-assignment rule evolves with the accumulating data: the
-probability of treating the unit arriving at time `t + 1` may depend on everything observed through
-time `t`, but not on information revealed at assignment time or later.  The formal convention in
-this file is Mathlib's discrete predictability convention: the initial propensity is measurable from
-initial information, and the propensity at `t + 1` is measurable from the prior information
-filtration at `t`.  Adaptivity is exactly what breaks fixed-design and i.i.d. inference and is the
-reason valid sequential inference is built on the martingale layer (`Ville`, `AnytimeValid`): under
-an adaptive design the inverse-propensity residuals form a martingale-difference sequence, so their
-cumulative wealth is a supermartingale to which Ville's inequality applies.  This file records the
-design abstraction and the positivity (overlap) condition that inverse-propensity weighting
-requires.
 -/
 
-import Mathlib.Probability.Process.Predictable
+module
+public import Mathlib.Probability.Process.Predictable
 
 /-! # Adaptive sequential designs
 
-Adaptive experiments use assignment probabilities that are predictable from the pre-assignment
-history: the time-zero propensity is initial-information measurable, and the time-`t + 1`
-propensity is measurable from the information available at time `t`.
+Adaptive experiments allow each treatment probability to depend on the observed pre-assignment
+history. Following Mathlib's discrete predictability convention, the initial propensity is
+initial-information measurable and the propensity at time `t + 1` is measurable from the
+information available at time `t`.
 
-The structure `AdaptiveExperiment` packages the filtration and predictable propensity process,
-while `AdaptiveExperiment.HasOverlap` records the positivity margin `δ ≤ propensity t ω ≤ 1 - δ`
-needed for inverse-propensity weighting.  The lemma `propensity_pos_of_overlap` extracts strict
-positivity from that overlap condition.
+The structure `AdaptiveExperiment` packages the filtration and predictable propensity process.
+Its overlap predicate records a positive margin separating every propensity from zero and one,
+as required by inverse-propensity weighting, and `propensity_pos_of_overlap` extracts strict
+positivity. Sequential inference for such designs is developed through the martingale layer.
 -/
+
+@[expose] public section
 
 open MeasureTheory
 

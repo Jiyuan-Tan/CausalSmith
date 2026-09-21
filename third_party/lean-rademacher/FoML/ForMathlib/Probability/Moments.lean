@@ -1,8 +1,12 @@
-import Mathlib.Probability.Moments.Tilted
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import Mathlib.MeasureTheory.Measure.Tilted
+module
+public import Mathlib.Probability.Moments.Tilted
+public import Mathlib.Analysis.Calculus.ParametricIntegral
+public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import Mathlib.MeasureTheory.Measure.Tilted
 
+/-! ### Derivatives of cumulant-/
+
+@[expose] public section
 
 open MeasureTheory Filter Finset Real
 
@@ -277,7 +281,6 @@ theorem integral_tilted [IsFiniteMeasure μ]
   _ = (∫ ω, rexp (t * X ω) * f (X ω) ∂μ) / μ[fun ω ↦ rexp (t * X ω)] :=
     integral_div (μ[fun ω ↦ rexp (t * X ω)]) fun a ↦ rexp (t * X a) * f (X a)
 
-/-! ### Derivatives of cumulant-/
 
 /-- First derivative of cumulant `cgf X μ f`.
 It can be described by exponential tilting.-/

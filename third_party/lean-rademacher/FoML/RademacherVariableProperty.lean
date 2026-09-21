@@ -1,8 +1,11 @@
-import FoML.Defs
-import FoML.Symmetrization
-import Mathlib.Probability.ProbabilityMassFunction.Basic
-import Mathlib.Probability.Distributions.Uniform
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
+module
+public import FoML.Defs
+public import FoML.Symmetrization
+public import Mathlib.Probability.ProbabilityMassFunction.Basic
+public import Mathlib.Probability.Distributions.Uniform
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+
+@[expose] public section
 
 open Real Function MeasureTheory
 open scoped ENNReal

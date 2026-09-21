@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessAssembly
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessFaithfulness
-import Mathlib.Probability.Independence.Integration
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessAssembly
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessFaithfulness
+public import Mathlib.Probability.Independence.Integration
 
 /-!
 # Explicit-witness faithfulness assembly
@@ -9,6 +10,11 @@ This file turns the explicit sparse density calculation into dependence of the
 unique adjacent coordinate pair, and hence into faithfulness of the sparse
 three-node witness.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory ProbabilityTheory Set
 
@@ -317,7 +323,7 @@ lemma sparseWitness_causalMinimality (s : SignVector 3) :
   apply sparseWitness_not_condIndep_edge s
   have hparents : (threeNodeDAG.parents 1).erase 0 = ∅ := by
     ext k
-    fin_cases k <;> simp [threeNodeDAG, threeNodeEdge, Causalean.DAG.parents]
+    fin_cases k <;> simp [threeNodeDAG, threeNodeEdge, DAG.parents]
   rw [hparents] at hCI
   have hsymm := condIndepCoordinates_symm hCI
   exact hsymm

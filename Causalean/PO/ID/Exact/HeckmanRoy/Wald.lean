@@ -20,7 +20,11 @@ lemma, and interval-subtraction lemma.  The proof shapes mirror
 `PO/ID/Exact/LATE.lean`.
 -/
 
-import Causalean.PO.ID.Exact.HeckmanRoy.Setup
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Conditioning.EventCondExp
+public import Causalean.PO.ID.Exact.HeckmanRoy.Setup
 
 /-! # Heckman-Roy Wald Identification
 
@@ -28,6 +32,10 @@ This file proves the pairwise Wald identification theorem for the
 Heckman-Vytlacil generalized Roy instrumental-variables model. For two
 instrument values with ordered propensities, it identifies the observable Wald
 ratio with the latent interval average treatment effect. -/
+
+public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -200,26 +208,22 @@ theorem first_stage_identity (hA : S.Assumptions) (z₀ z₁ : α)
       rw [hgetU_joint]
     have hcond_d :
         S.condExpDZ z =
-          eventCondExp P.μ (S.zVar.event z)
+          normalizedRestrictedIntegral P.μ (S.zVar.event z)
             (fun ω => ((S.DofZ z ω).toNat : ℝ)) := by
-      unfold POHeckmanRoySystem.condExpDZ eventCondExp
-      congr 1
-      refine MeasureTheory.setIntegral_congr_fun (S.measurableSet_zEvent z) ?_
+      unfold POHeckmanRoySystem.condExpDZ
+      refine eventCondExp_congr_on P.μ (S.measurableSet_zEvent z) ?_
       intro ω hω
       exact congrArg (fun d : Bool => ((d.toNat : ℝ)))
         (S.DofZ_eq_factualD_on_zEvent hA z hω).symm
     have hcond_ind :
-        eventCondExp P.μ (S.zVar.event z)
+        normalizedRestrictedIntegral P.μ (S.zVar.event z)
             (fun ω => ((S.DofZ z ω).toNat : ℝ)) =
-          eventCondExp P.μ (S.zVar.event z)
+          normalizedRestrictedIntegral P.μ (S.zVar.event z)
             (fun ω => if S.factualU ω ≤ S.p z then (1:ℝ) else 0) := by
-      unfold eventCondExp
-      congr 1
-      refine MeasureTheory.setIntegral_congr_ae (S.measurableSet_zEvent z) ?_
-      filter_upwards [hDofZ_to_indicator z] with ω hω _
-      exact hω
+      refine eventCondExp_congr_ae P.μ _ ?_
+      exact ae_restrict_of_ae (hDofZ_to_indicator z)
     rw [hcond_d, hcond_ind,
-      POSystem.eventCondExp_of_consistency_IndepCF hA.instrumentIndep
+      POSystem.eventCondExp_of_ae_eq_IndepCF hA.instrumentIndep
       (a := S.zVar) hh_meas
       (MeasurableSet.singleton z)
       (ae_restrict_of_forall_mem (S.measurableSet_zEvent z) h_cons)
@@ -331,22 +335,17 @@ theorem reduced_form_identity (hA : S.Assumptions) (z₀ z₁ : α)
       rw [hJV1, hJV2]
     have hbridge :
         S.condExpYZ z =
-          eventCondExp P.μ (S.zVar.event z)
+          normalizedRestrictedIntegral P.μ (S.zVar.event z)
             (fun ω => if S.factualU ω ≤ S.p z then S.YofD true ω else S.YofD false ω) := by
-      unfold POHeckmanRoySystem.condExpYZ eventCondExp
-      change (∫ ω in S.zEvent z, S.factualY ω ∂P.μ) / (P.μ (S.zEvent z)).toReal =
-        (∫ ω in S.zVar.event z,
-            (if S.factualU ω ≤ S.p z then S.YofD true ω else S.YofD false ω) ∂P.μ) /
-          (P.μ (S.zVar.event z)).toReal
+      unfold POHeckmanRoySystem.condExpYZ
       have hzev : S.zEvent z = S.zVar.event z := rfl
       rw [hzev]
-      congr 1
-      refine MeasureTheory.setIntegral_congr_ae (S.measurableSet_zEvent z) ?_
-      filter_upwards [h_factualY_ae z] with ω hω hin
-      rw [show S.zEvent z = S.zVar.event z from rfl] at hω
+      refine eventCondExp_congr_ae P.μ _ ?_
+      filter_upwards [ae_restrict_of_ae (h_factualY_ae z),
+        ae_restrict_mem (S.measurableSet_zEvent z)] with ω hω hin
       exact hω hin
     rw [hbridge,
-      POSystem.eventCondExp_of_consistency_IndepCF hA.instrumentIndep
+      POSystem.eventCondExp_of_ae_eq_IndepCF hA.instrumentIndep
       (a := S.zVar) hh_meas
       (MeasurableSet.singleton z)
       (ae_restrict_of_forall_mem (S.measurableSet_zEvent z) h_cons)
@@ -438,8 +437,6 @@ theorem event_conditioning_identity (z₀ z₁ : α) :
     ∫ ω, (S.YofD true ω - S.YofD false ω) *
            (S.intervalComplierEvent z₀ z₁).indicator (fun _ => (1:ℝ)) ω ∂P.μ
       = (P.μ (S.intervalComplierEvent z₀ z₁)).toReal * S.LATE z₀ z₁ := by
-  -- Same event-conditioning algebra as binary LATE, with the interval
-  -- complier event in place of the binary complier event.
   unfold LATE
   have hC : MeasurableSet (S.intervalComplierEvent z₀ z₁) :=
     S.measurableSet_intervalComplierEvent z₀ z₁
@@ -459,15 +456,18 @@ theorem event_conditioning_identity (z₀ z₁ : α) :
       have hne : P.μ (S.intervalComplierEvent z₀ z₁) ≠ ⊤ := measure_ne_top _ _
       exact (ENNReal.toReal_eq_zero_iff _).mp hμ |>.resolve_right hne
     have hrest : P.μ.restrict (S.intervalComplierEvent z₀ z₁) = 0 := by
-      rw [MeasureTheory.Measure.restrict_eq_zero]; exact hμ0
+      rw [MeasureTheory.Measure.restrict_eq_zero]
+      exact hμ0
     simp [hrest]
   · field_simp
 
 /-! ### Main theorem — pairwise Wald identification -/
 
 /-- **Pairwise Wald identification of LATE** (`prop:po-iv-heckman-roy-wald`).
-Under [the Heckman–Roy identifying assumption bundle](hyp:hA), for instrument
-values `z₀, z₁` at which [the event `{Z = z₀}` has positive
+For [a Heckman--Roy model](hyp:S), under
+[the Heckman–Roy identifying assumption bundle](hyp:hA), for instrument
+values [defining the pairwise comparison](hyp:z₀,z₁), at which
+[the event `{Z = z₀}` has positive
 probability](hyp:hZ0), [the event `{Z = z₁}` has positive
 probability](hyp:hZ1), and [the latent selection threshold at `z₀` is
 strictly below the threshold at `z₁`](hyp:hpz), provided [the potential

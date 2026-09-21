@@ -77,6 +77,36 @@ function planCoversLocalId(planObj: unknown, localId: string): boolean {
   );
 }
 
+/** Locate the first bracket mismatch in a JSON text, ignoring brackets inside strings:
+ * "opened `{` at line 128, closed by `]` at line 327". Null when the brackets balance (the
+ * error is elsewhere — a bad escape, a stray comma). Exported for tests. */
+export function describeJsonSyntaxError(text: string): string | null {
+  const stack: Array<{ ch: string; line: number }> = [];
+  let inString = false;
+  let escaped = false;
+  let line = 1;
+  for (const ch of text) {
+    if (ch === "\n") line += 1;
+    if (inString) {
+      if (escaped) escaped = false;
+      else if (ch === "\\") escaped = true;
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') inString = true;
+    else if (ch === "{" || ch === "[") stack.push({ ch, line });
+    else if (ch === "}" || ch === "]") {
+      const open = stack.pop();
+      if (!open) return `stray \`${ch}\` at line ${line}`;
+      if ((open.ch === "{") !== (ch === "}")) {
+        return `opened \`${open.ch}\` at line ${open.line}, closed by \`${ch}\` at line ${line}`;
+      }
+    }
+  }
+  if (stack.length > 0) return `unclosed \`${stack[stack.length - 1]!.ch}\` opened at line ${stack[stack.length - 1]!.line}`;
+  return null;
+}
+
 export async function runStage1(args: {
   ctx: PipelineContext;
   state: StateJson;
@@ -84,6 +114,9 @@ export async function runStage1(args: {
   priorReview?: ReviewResult | null;
   intervention?: Intervention | null;
   attempt?: number;
+  /** Set on the ONE bounded re-dispatch after the planner wrote a plan.json that is not
+   *  valid JSON: the parser's message plus a bracket diagnosis, for an in-place fix. */
+  planSyntaxError?: string;
 }): Promise<StageResult> {
   const paths = artifactPaths(args.ctx, args.state);
   const corePath = coreJsonPath(args.ctx);
@@ -174,14 +207,31 @@ export async function runStage1(args: {
       ].join("\n")
     : "";
 
+  const syntaxFixBlock = args.planSyntaxError
+    ? [
+        "=== PLAN FILE IS NOT VALID JSON — FIX IT IN PLACE ===",
+        `Your previous plan at ${paths.plan} does not parse: ${args.planSyntaxError}`,
+        "Repair the file with a minimal Edit (do not regenerate it), then validate before returning:",
+        "  node -e 'JSON.parse(require(\"fs\").readFileSync(process.argv[1],\"utf8\"))' <plan path>",
+        "",
+      ].join("\n")
+    : "";
+
   const prompt = [
+    syntaxFixBlock,
     correctionBlock(args.priorReview ?? null, args.attempt ?? 1, {
       manifestContract: (args.state.theorems?.length ?? 0) > 0,
     }),
     substrateBuiltBlock,
     reviseBlock,
     interventionBlock(args.intervention),
-    await readPrompt(args.ctx, "stage1_template.txt"),
+    (await readPrompt(args.ctx, "stage1_template.txt")).replaceAll(
+      "{{HEADER_CONTRACT}}",
+      [
+        "HEADER CONTRACT — Every generated Lean file begins, in order, with the optional copyright block, then `module`, contiguous imports written as `public import` (only a rare deliberate exception marked by a `-- private import` comment may use a private import), the `/-! ... -/` module docstring, and exactly one blanket section: `@[expose] public section` when the file defines a `def`, `abbrev`, `instance`, `structure`, `class`, or `inductive`, otherwise `public section`. Keep declarations bare: no per-declaration `public`, `private`, or `@[expose]`; helpers stay bare, and nothing is private unless it is truly file-local and never needed by a proof downstream. Run barrels and `Helpers.lean` are imports-only and use `public import` on every line.",
+        "MODULE-SYSTEM CONSEQUENCES — A `module` file cannot import a legacy non-`module` file: every imported file must itself be a module file, and the scaffold must never add `import all`. A `def` whose body a downstream `rfl`, `decide`, or `unfold` needs must live in a file with `@[expose] public section`. A certificate evaluated by the kernel (`decide +kernel`) must not pass through well-founded recursion such as `Array.ofFn` or `termination_by`, because importers cannot see termination proofs; use a structural construction.",
+      ].join("\n"),
+    ),
     "",
     baseBrief(args.ctx, args.state),
     "",
@@ -242,7 +292,19 @@ export async function runStage1(args: {
         console.warn(`[causalsmith] F1 repaired invalid string escapes in ${paths.plan} and rewrote it canonically.`);
       }
     } catch (err) {
-      console.warn(`[causalsmith] F1 wrote an unparseable plan at ${paths.plan}: ${err instanceof Error ? err.message : String(err)}`);
+      const reason = err instanceof Error ? err.message : String(err);
+      console.warn(`[causalsmith] F1 wrote an unparseable plan at ${paths.plan}: ${reason}`);
+      // A syntax slip is something the planner can fix in seconds; halting the run for it
+      // is not. ONE bounded re-dispatch with the parser's message and a bracket diagnosis.
+      if (!args.planSyntaxError) {
+        const diagnosis = describeJsonSyntaxError(await readFile(paths.plan, "utf8"));
+        console.warn(`[causalsmith] F1: re-dispatching once to repair the plan file (${diagnosis ?? "no bracket diagnosis"})`);
+        return runStage1({
+          ...args,
+          attempt: (args.attempt ?? 1) + 1,
+          planSyntaxError: `${reason}${diagnosis ? `; ${diagnosis}` : ""}`,
+        });
+      }
     }
   }
   // D0.5 has already source-matched every status:"cited" node. F1 must COPY

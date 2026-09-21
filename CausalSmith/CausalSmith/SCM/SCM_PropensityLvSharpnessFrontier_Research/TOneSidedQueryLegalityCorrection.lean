@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryGap
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedBowMixtureCompleteness
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryGap
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedBowMixtureCompleteness
 
 /-! # One-sided legality correction -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

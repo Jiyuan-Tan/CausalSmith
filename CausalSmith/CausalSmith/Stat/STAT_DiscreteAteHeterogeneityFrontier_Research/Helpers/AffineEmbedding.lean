@@ -1,9 +1,12 @@
 /- Binary-to-real affine embedding primitives and sample transport identities. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ParametricLower
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
-import Causalean.Stat.Minimax.MinimaxRisk
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ParametricLower
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
@@ -85,8 +88,6 @@ lemma canonicalBinaryFullCoupling_spec {d : ℕ}
     convert Measure.map_id
     funext z
     exact binaryFullLift_observed z
-
-private abbrev BinLaw := CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
 
 /-- The deterministic affine pushforward on an observed binary record. -/
 noncomputable def affineObserved {d : ℕ} (M : ℝ)

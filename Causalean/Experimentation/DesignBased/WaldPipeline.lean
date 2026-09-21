@@ -8,28 +8,32 @@ Authors: Jiyuan Tan
 `DependencyCLT` supplies the studentized CLT and `WaldCoverage` turns a studentized CLT plus a
 conservative variance into interval coverage.  This file composes them: from primitive
 dependency-graph inputs — bounded, mean-zero, bounded-degree unit contributions whose standardized
-sum is the centered, scaled estimator, together with a deterministic conservative variance — the
+sum is asymptotically equivalent to the centered, scaled estimator, together with a feasible
+random variance estimator — the
 two-sided Wald interval has asymptotic coverage at least `1 − α`.  A design-based interference paper
 instantiates this single theorem instead of separately building a CLT, a Slutsky/coverage argument,
 and their composition.
 -/
 
-import Causalean.Experimentation.DesignBased.DependencyCLT
-import Causalean.Experimentation.DesignBased.WaldCoverage
+module
+public import Causalean.Experimentation.DesignBased.DependencyCLT
+public import Causalean.Experimentation.DesignBased.Slutsky
+public import Causalean.Experimentation.DesignBased.WaldCoverage
 
 /-! # Design-based Wald-interval pipeline
 
 `dependency_wald_coverage` chains the design-based dependency CLT (`dependency_studentized_cdf`)
-into the conservative Wald-coverage transfer (`conservative_wald_liminf_of_studentized_cdf`).  Given
-unit
-contributions `X n` whose standardized sum `depSum(X n)` eventually equals the scaled centered
-estimator `√(m n)·(est n − θ n)`, and a deterministic variance `vhat n` that eventually dominates
-`v n`, the Wald interval
+into the feasible Wald-coverage transfer. Given unit contributions `X n` whose standardized sum
+`depSum(X n)` is asymptotically equivalent to the scaled centered estimator
+`√(m n)·(est n − θ n)`, and a random variance estimator `vhat n` whose probability of materially
+undershooting `v n` vanishes, the Wald interval
 `|θ n − est n| ≤ z·√(vhat n / m n)` has liminf coverage at least `1 − α`.
 -/
 
+public section
+
 open MeasureTheory ProbabilityTheory Filter
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 open scoped Topology BigOperators
 
 namespace Causalean
@@ -43,17 +47,17 @@ most `Dmax`](hyp:hdeg), where [the contributions are uniformly bounded by a nonn
 `M`](hyp:hM,hbound) and [have design mean zero](hyp:hmean). Suppose [the standardizing quantity
 `v n` equals the design second moment of the contributions' sum `depSum(X n)`](hyp:hv), [is
 bounded below by a positive constant `c` times the number of units eventually](hyp:hc,hvc), and
-[the number of units diverges](hyp:hcard). Suppose further that [the standardized sum eventually
-equals `√(m n)·(est n − θ n)` for an estimator `est n` of a target `θ n`](hyp:est,hlink), [the
-normalization `m n` is eventually positive](hyp:hmpos), and [a deterministic conservative variance
-`v̂ n` eventually dominates `v n`](hyp:hvar_le), with [`z` the nonnegative](hyp:hz0) quantile
+[the number of units diverges](hyp:hcard). Suppose further that [the standardized sum is
+asymptotically equivalent in probability to `√(m n)·(est n − θ n)` for an estimator `est n` of a
+target `θ n`](hyp:est,hlinkApprox), [the normalization and oracle variance are positive](hyp:hmpos,hvpos),
+and [a random feasible variance estimator has vanishing probability of material
+underestimation](hyp:vhat,hVhat), with [`z` the nonnegative](hyp:hz0) quantile
 [satisfying `Φ(z) = 1 − α/2`](hyp:hz). Then [the two-sided Wald interval
 `|θ n − est n| ≤ z·√(v̂ n / m n)` has asymptotic (liminf) coverage at least `1 − α`](goal).
 
 This is the complete design-based inference pipeline: it obtains the studentized CLT from the
-dependency-graph engine and feeds it, with the conservative variance, into the Wald-coverage
-transfer, so a paper supplies only its unit-contribution decomposition and a conservative variance
-bound. -/
+dependency-graph engine, transfers it through the in-probability link by converging together, and
+feeds it with the feasible variance into the Wald-coverage transfer. -/
 theorem dependency_wald_coverage
     {Ω : ℕ → Type*} [∀ n, Fintype (Ω n)] [∀ n, MeasurableSpace (Ω n)]
     [∀ n, MeasurableSingletonClass (Ω n)]
@@ -68,30 +72,33 @@ theorem dependency_wald_coverage
     (hvc : ∀ᶠ n in atTop, c * (Fintype.card (ι n) : ℝ) ≤ v n)
     (hcard : Tendsto (fun n => Fintype.card (ι n)) atTop atTop)
     (est : ∀ n, Ω n → ℝ) (θ m : ℕ → ℝ)
-    (hlink : ∀ᶠ n in atTop, ∀ ω, depSum (X n) ω = Real.sqrt (m n) * (est n ω - θ n))
-    (hmpos : ∀ᶠ n in atTop, 0 < m n)
-    (vhat : ℕ → ℝ) (hvar_le : ∀ᶠ n in atTop, v n ≤ vhat n)
+    (hlinkApprox : ∀ η : ℝ, 0 < η → Tendsto (fun n => (D n).Pr (fun ω =>
+      η ≤ |Real.sqrt (m n) * (est n ω - θ n) / Real.sqrt (v n) -
+        depSum (X n) ω / Real.sqrt (v n)|)) atTop (𝓝 0))
+    (hmpos : ∀ n, 0 < m n) (hvpos : ∀ n, 0 < v n)
+    (vhat : ∀ n, Ω n → ℝ)
+    (hVhat : ∀ η : ℝ, 0 < η → Tendsto (fun n =>
+      (D n).Pr (fun ω => vhat n ω < (1 - η) * v n)) atTop (𝓝 0))
     (α z : ℝ) (hz0 : 0 ≤ z) (hz : stdNormalCdf z = 1 - α / 2) :
     1 - α ≤ liminf (fun n =>
-        (D n).Pr (fun ω => |θ n - est n ω| ≤ z * Real.sqrt (vhat n / m n))) atTop := by
+        (D n).Pr (fun ω => |θ n - est n ω| ≤ z * Real.sqrt (vhat n ω / m n))) atTop := by
   classical
+  have horacle : ∀ s : ℝ, Tendsto (fun n =>
+      (D n).Pr (fun ω =>
+        depSum (X n) ω / Real.sqrt (v n) ≤ s))
+      atTop (𝓝 (stdNormalCdf s)) := by
+    intro s
+    exact dependency_studentized_cdf D X Dep Dmax hdeg M hM hbound hmean v hv c hc hvc hcard s
   have hclt : ∀ s : ℝ, Tendsto (fun n =>
       (D n).Pr (fun ω =>
         Real.sqrt (m n) * (est n ω - θ n) / Real.sqrt (v n) ≤ s))
-      atTop (𝓝 (stdNormalCdf s)) := by
-    intro s
-    have h := dependency_studentized_cdf D X Dep Dmax hdeg M hM hbound hmean v hv c hc hvc hcard s
-    refine h.congr' ?_
-    filter_upwards [hlink] with n hlinkn
-    refine (D n).Pr_congr _ _ (fun ω => ?_)
-    rw [hlinkn ω]
-  have hvarpos : ∀ᶠ n in atTop, 0 < v n := by
-    filter_upwards [hvc, (tendsto_atTop.1 hcard 1)] with n hvn hcardn
-    have hcardpos : 0 < (Fintype.card (ι n) : ℝ) := by
-      exact_mod_cast (show 0 < Fintype.card (ι n) from by omega)
-    exact lt_of_lt_of_le (mul_pos hc hcardpos) hvn
-  exact conservative_wald_liminf_of_studentized_cdf D est θ v vhat m hmpos hvarpos hvar_le α z
-    (hclt z) (hclt (-z)) hz0 hz
+      atTop (𝓝 (stdNormalCdf s)) :=
+    finiteDesign_cdf_converging_together D
+      (fun n ω => Real.sqrt (m n) * (est n ω - θ n) / Real.sqrt (v n))
+      (fun n ω => depSum (X n) ω / Real.sqrt (v n)) stdNormalCdf
+      hlinkApprox horacle continuous_stdNormalCdf
+  exact conservative_wald_liminf_of_feasible_studentized_cdf D est θ v m vhat
+    hmpos hvpos hVhat α z hclt hz0 hz
 
 end DesignBased
 end Experimentation

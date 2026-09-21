@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # The common-axis opposite-arrow twin
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ArrowPolynomialGeometry
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.GenericSlopes
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ArrowPolynomialGeometry
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.GenericSlopes
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -20,7 +23,7 @@ is the horizontal axis. -/
 def forwardCommonAxisDivisor (m : ℕ) (hm : 1 ≤ m) : Set (ParamSpace ℂ m) :=
   {θ | θ ∈ genericParameterLocus m (2 * m + 2) ∧ θ.2.1 ⟨0, hm⟩ = 0}
 
-private def commonAxisIndex (m : ℕ) (hm : 1 ≤ m) (j : Fin (m + 2)) : Fin (m + 2) :=
+def commonAxisIndex (m : ℕ) (hm : 1 ≤ m) (j : Fin (m + 2)) : Fin (m + 2) :=
   if j.val = 0 then ⟨1, by omega⟩
   else if j.val = 1 then Fin.last (m + 1)
   else if j.val = m + 1 then 0

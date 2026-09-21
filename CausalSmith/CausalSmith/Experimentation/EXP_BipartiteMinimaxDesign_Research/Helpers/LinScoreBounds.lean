@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Pointwise bounds for heterogeneous linear scores
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Denominator
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Denominator
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.unusedVariables false

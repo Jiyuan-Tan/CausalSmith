@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
-import Causalean.Stat.Orthogonality.ConditionalOp
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
 
 /-!
 # Factorial-series assembly for empirical transforms
@@ -9,6 +10,8 @@ bounds for centered empirical analytic transforms and proves the exact
 coefficient-series identity used to connect those bounds to the paper's
 empirical transforms.
 -/
+
+@[expose] public section
 
 noncomputable section
 open MeasureTheory ProbabilityTheory Set

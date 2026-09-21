@@ -5,19 +5,18 @@ Authors: Jiyuan Tan
 
 # Empirical-process expansion for Z-estimator asymptotic linearity
 
-Empirical-process / linearization layer feeding
-`Causalean/Stat/MEstimation/ZEstimatorCLT.lean`'s `zEstimator_clt`: starting from the
-almost-everywhere integrable derivative envelope (`score_envelope`) of
-`ZEstimatorRegularity` together with the
-Fréchet-derivative spec, it provides four building blocks of the
-classical asymptotic-linearization proof behind van der Vaart (1998),
-Theorem 5.41:
+Empirical-process / linearization results related to
+`Causalean/Stat/MEstimation/ZEstimatorCLT.lean`'s `zEstimator_asymLinear`. It
+contains one standalone mean-square auxiliary and three results used by the
+high-level stochastic-equicontinuity route:
 
 1. `score_diff_L2_isLittleOp_sqrt`              — sample mean-square score
                                                     difference at a consistent
                                                     estimator is `o_p(1)`.
-                                                    proved from the score
-                                                    envelope.
+                                                    proved from an explicit
+                                                    score envelope, but not a
+                                                    proof of stochastic
+                                                    equicontinuity.
 2. `empiricalScoreDiff_isLittleOp_sqrt`          — centered empirical sum of
                                                     `(ψ(θn,·) − ψ(θ₀,·))` is
                                                     `o_p(√n)` (norm).
@@ -49,26 +48,30 @@ downstream Z-estimator CLT, keeping the algebraic linearization separate from
 whatever empirical-process theorem supplies that hypothesis in an application.
 -/
 
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.CLT.AsymptoticLinearityVec
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Sample
-import Causalean.Stat.MEstimation.ZEstimator
-import Causalean.Stat.EmpiricalProcess.Equicontinuity.StochEquicont
-import Mathlib.Analysis.Asymptotics.Defs
-import Mathlib.Analysis.Calculus.FDeriv.Basic
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.CLT.AsymptoticLinearityVec
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Sample
+public import Causalean.Stat.MEstimation.ZEstimator
+public import Causalean.Stat.EmpiricalProcess.Equicontinuity.StochEquicont
+public import Mathlib.Analysis.Asymptotics.Defs
+public import Mathlib.Analysis.Calculus.FDeriv.Basic
 
 /-!
 # Empirical expansion for Z-estimators
 
-This module supplies the empirical-process and population-expansion layer used
-by `zEstimator_clt`.  It proves the mean-square score control
-`score_diff_L2_isLittleOp_sqrt`, packages local stochastic equicontinuity as
-`StochEquicontAt`, derives `empiricalScoreDiff_isLittleOp_sqrt` from that
-package and consistency, restates the population derivative as
-`populationScoreDiff_eq_jacobian_plus_remainder`, and combines the pieces in
-`localStochasticExpansion`.
+This module supplies the population expansion and the high-level
+stochastic-equicontinuity route used by `zEstimator_asymLinear`. It derives
+`empiricalScoreDiff_isLittleOp_sqrt` from an assumed `StochEquicontAt` package
+and consistency, restates the population derivative as
+`populationScoreDiff_eq_jacobian_plus_remainder`, and combines those inputs in
+`localStochasticExpansion`. It also proves the standalone mean-square score
+control `score_diff_L2_isLittleOp_sqrt`; no bridge from that result to
+`StochEquicontAt` is formalized here.
 -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -82,28 +85,37 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 /-! ## (a) Sample mean-square score difference at a consistent estimator -/
 
 omit [FiniteDimensional ℝ E] [BorelSpace E] in
-/-- **(a) Score difference is `o_p(1)` in mean square.**
+/-- **(a) Score difference is `o_p(1)` in mean square.** For [a score](hyp:ψ),
+[target parameter](hyp:θ₀), [sampling law](hyp:P), [iid sample](hyp:S), and
+[estimator sequence](hyp:θn), if [the score has the stated almost-everywhere
+square-integrable local envelope](hyp:hScoreEnvelope) and [the estimator is
+consistent](hyp:hConsistent), then [the empirical mean-square score difference
+is `o_p(1)`](goal).
 
-If `θn → θ₀` in probability and `ψ` has the almost-everywhere integrable derivative envelope
-(`score_envelope`) of `ZEstimatorRegularity`, then the empirical mean-square
-deviation of the score family vanishes in probability:
-`(1/n) Σ_{i<n} ‖ψ(θn n ω, Z_i) − ψ(θ₀, Z_i)‖² = o_p(1)`.
-
-This is the inner step in van der Vaart (1998), Theorem 5.41 — the
-quantitative form of `L²`-stochastic equicontinuity used to control
-the empirical-process error in the localisation argument. -/
+This is a standalone mean-square auxiliary related to an inner estimate in van
+der Vaart (1998), Theorem 5.41. It does not establish `StochEquicontAt`, the
+separate empirical-process hypothesis consumed by the current Z-estimator
+linearization route. -/
 theorem score_diff_L2_isLittleOp_sqrt
     (ψ : E → X → E) (θ₀ : E) (P : Measure X)
-    (reg : ZEstimatorRegularity ψ θ₀ P)
     [IsProbabilityMeasure μ]
     (S : IIDSample Ω X μ P)
     (θn : ℕ → Ω → E)
+    (hScoreEnvelope : ∃ δ : ℝ, 0 < δ ∧ ∃ F : X → ℝ,
+      Measurable F ∧ (∀ z, 0 ≤ F z) ∧ Integrable (fun z => F z ^ 2) P ∧
+      ∀ᵐ z ∂P, ∀ θ : E, ‖θ - θ₀‖ < δ →
+        ‖ψ θ z - ψ θ₀ z‖ ≤ ‖θ - θ₀‖ * F z)
     (hConsistent :
       ∀ ε > 0, Tendsto (fun n => μ {ω | ε < ‖θn n ω - θ₀‖}) atTop (𝓝 0)) :
     IsLittleOp
       (fun n ω => (n : ℝ)⁻¹ * ∑ i ∈ Finset.range n,
         ‖ψ (θn n ω) (S.Z i ω) - ψ θ₀ (S.Z i ω)‖^2)
       (fun _ => (1 : ℝ)) μ := by
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ)
+    (fun (n : ℕ) ω => (n : ℝ)⁻¹ * ∑ i ∈ Finset.range n,
+      ‖ψ (θn n ω) (S.Z i ω) - ψ θ₀ (S.Z i ω)‖ ^ 2)
+    atTop (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
   rw [ENNReal.tendsto_nhds_zero]
   intro γ hγ
@@ -115,7 +127,7 @@ theorem score_diff_L2_isLittleOp_sqrt
   have hαpos : 0 < α := by
     dsimp [α]
     linarith
-  rcases reg.score_envelope with
+  rcases hScoreEnvelope with
     ⟨δenv, hδenv, F, hFmeas, hFnonneg, hFint, hFbound⟩
   let K : ℝ := ∫ z, F z ^ 2 ∂P
   have hK_nonneg : 0 ≤ K := by
@@ -345,25 +357,26 @@ theorem score_diff_L2_isLittleOp_sqrt
 -- foundational equicontinuity modules need not depend on this expansion.
 
 omit [FiniteDimensional ℝ E] [BorelSpace E] in
-/-- **(b) Empirical-process score difference is `o_p(√n)`.**
-
-Under `ZEstimatorRegularity`, consistency `θn →_p θ₀`, and asymptotic
-equicontinuity `StochEquicontAt ψ θ₀ P μ S θn`, the centered empirical sum
-`∑_{i<n} (ψ(θn,Z_i) − ψ(θ₀,Z_i)) − n · ∫ (ψ(θn,·) − ψ(θ₀,·)) dP`
-divided by `√n` tends to zero in probability (in norm).
+/-- **(b) Empirical-process score difference is `o_p(√n)`.** For [a
+score](hyp:ψ), [target parameter](hyp:θ₀), [sampling law](hyp:P), [iid
+sample](hyp:S), and [estimator sequence](hyp:θn), if [the estimator is
+consistent](hyp:hConsistent) and [the score is stochastically equicontinuous
+along it](hyp:hStochEquicont), then [the centered empirical score difference is
+`o_p(√n)`](goal).
 
 This is the empirical-process step of van der Vaart (1998), Theorem 5.41.
-The hypothesis `hStochEquicont` packages the Donsker / chaining content
-that converts the local `L²`-modulus into uniform linearisation; the
-proof here only has to remove the conditioning on `{‖θn − θ₀‖ < δ}` using
-`hConsistent`.  The inner Bochner integral is well-defined for `n` large
-enough thanks to `reg.psi_int_neighborhood`. -/
+The hypothesis `hStochEquicont` packages the required Donsker / chaining
+content directly; it is not derived here from
+`score_diff_L2_isLittleOp_sqrt`. The proof only removes the conditioning on
+`{‖θn − θ₀‖ < δ}` using `hConsistent`. -/
 theorem empiricalScoreDiff_isLittleOp_sqrt
-    (ψ : E → X → E) (θ₀ : E) (P : Measure X)
-    (_reg : ZEstimatorRegularity ψ θ₀ P)
+    {Θ V : Type*}
+    [NormedAddCommGroup Θ] [NormedSpace ℝ Θ]
+    [NormedAddCommGroup V] [NormedSpace ℝ V]
+    (ψ : Θ → X → V) (θ₀ : Θ) (P : Measure X)
     [IsProbabilityMeasure μ]
     (S : IIDSample Ω X μ P)
-    (θn : ℕ → Ω → E)
+    (θn : ℕ → Ω → Θ)
     (hConsistent :
       ∀ ε > 0, Tendsto (fun n => μ {ω | ε < ‖θn n ω - θ₀‖}) atTop (𝓝 0))
     (hStochEquicont : StochEquicontAt ψ θ₀ P μ S θn) :
@@ -375,6 +388,15 @@ theorem empiricalScoreDiff_isLittleOp_sqrt
           - Real.sqrt (n : ℝ) •
               ∫ z, (ψ (θn n ω) z - ψ θ₀ z) ∂P‖)
       (fun _ => (1 : ℝ)) μ := by
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ)
+    (fun (n : ℕ) ω =>
+      ‖(Real.sqrt (n : ℝ))⁻¹ •
+          (∑ i ∈ Finset.range n,
+            (ψ (θn n ω) (S.Z i ω) - ψ θ₀ (S.Z i ω)))
+        - Real.sqrt (n : ℝ) •
+            ∫ z, (ψ (θn n ω) z - ψ θ₀ z) ∂P‖)
+    atTop (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
   rw [ENNReal.tendsto_nhds_zero]
   intro γ hγ
@@ -452,9 +474,8 @@ theorem empiricalScoreDiff_isLittleOp_sqrt
 /-! ## (c) Population Fréchet expansion -/
 
 omit [FiniteDimensional ℝ E] [BorelSpace E] in
-/-- **(c) Population Fréchet expansion of the score difference.**
-
-The population mean of the score difference admits the linearisation
+/-- **(c) Population Fréchet expansion of the score difference.** The
+[population mean of the score difference has the linearisation](goal)
 `∫ (ψ(θ,·) − ψ(θ₀,·)) dP = J₀ (θ − θ₀) + o(‖θ − θ₀‖)` near `θ₀`.
 
 This is exactly `reg.J₀_spec` (Fréchet differentiability) restated as an
@@ -500,12 +521,10 @@ approaches `θ₀` at the parametric rate, `‖θn − θ₀‖ = O_p(1/√n)`](
 average score difference `(1/√n) Σᵢ (ψ(θn,Zᵢ) − ψ(θ₀,Zᵢ))` agrees with its linearization
 `√n · reg.J₀(θn − θ₀)` up to an `o_p(1)` remainder in norm](goal).
 
-The hypothesis `hRate` (i.e. `θn − θ₀ = O_p(1/√n)`) is the rate-of-
-convergence input.  Classically (van der Vaart 1998, §5.3) this rate is
-itself a consequence of consistency together with non-singularity of the
-Jacobian; we expose it as a hypothesis to keep the linearisation step
-independent of the rate-derivation step.  The conclusion feeds directly
-into `zEstimator_clt`. -/
+The hypothesis `hRate` (i.e. `θn − θ₀ = O_p(1/√n)`) keeps this linearisation
+step independent of rate derivation.  The theorem `zEstimator_rootRate` derives
+that input from consistency, stochastic equicontinuity, nonsingularity, and an
+approximate estimating equation; `zEstimator_asymLinear` composes the two steps. -/
 theorem localStochasticExpansion
     (ψ : E → X → E) (θ₀ : E) (P : Measure X)
     (reg : ZEstimatorRegularity ψ θ₀ P)
@@ -534,7 +553,7 @@ theorem localStochasticExpansion
   have hI : IsLittleOp (fun n ω => ‖Sn n ω - In n ω‖)
       (fun _ => (1 : ℝ)) μ := by
     simpa [Sn, In] using
-      empiricalScoreDiff_isLittleOp_sqrt ψ θ₀ P reg S θn hConsistent
+      empiricalScoreDiff_isLittleOp_sqrt ψ θ₀ P S θn hConsistent
         hStochEquicont
   have hF :
       (fun θ => ∫ z, (ψ θ z - ψ θ₀ z) ∂P
@@ -543,6 +562,9 @@ theorem localStochasticExpansion
     populationScoreDiff_eq_jacobian_plus_remainder ψ θ₀ P reg
   have hII : IsLittleOp (fun n ω => ‖In n ω - Jn n ω‖)
       (fun _ => (1 : ℝ)) μ := by
+    apply (Modes.isLittleOpF_iff_strict
+      (fun _ => μ) (fun n ω => ‖In n ω - Jn n ω‖) atTop
+      (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
     intro ε hε
     rw [ENNReal.tendsto_nhds_zero]
     intro δ hδ
@@ -554,7 +576,9 @@ theorem localStochasticExpansion
     have hαpos : 0 < α := by
       dsimp [α]
       linarith
-    rcases hRate α hαpos with ⟨M0, hM0⟩
+    rcases hRate (ENNReal.ofReal α) (ENNReal.ofReal_pos.mpr hαpos) with
+      ⟨M0, _hM0pos, hM0event⟩
+    have hM0 := Filter.limsup_le_of_le (h := hM0event)
     let M : ℝ := max M0 1
     have hMpos : 0 < M := by
       dsimp [M]
@@ -572,7 +596,7 @@ theorem localStochasticExpansion
       dsimp [A] at hω ⊢
       have hrn_nonneg : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ :=
         inv_nonneg.mpr (Real.sqrt_nonneg _)
-      exact lt_of_le_of_lt (mul_le_mul_of_nonneg_right hM0le hrn_nonneg) hω
+      exact (lt_of_le_of_lt (mul_le_mul_of_nonneg_right hM0le hrn_nonneg) hω).le
     have halpha_two : ENNReal.ofReal α < ENNReal.ofReal (2 * α) := by
       rw [ENNReal.ofReal_lt_ofReal_iff]
       · linarith
@@ -682,66 +706,8 @@ theorem localStochasticExpansion
         IsLittleOp Xn (fun _ => (1 : ℝ)) μ →
         IsLittleOp Yn (fun _ => (1 : ℝ)) μ →
         IsLittleOp (fun n ω => Xn n ω + Yn n ω) (fun _ => (1 : ℝ)) μ := by
-    intro Xn Yn hX hY ε hε
-    rw [ENNReal.tendsto_nhds_zero]
-    intro δ hδ
-    by_cases hδtop : δ = ⊤
-    · filter_upwards with n
-      simp [hδtop]
-    have hδpos : 0 < δ.toReal := ENNReal.toReal_pos (ne_of_gt hδ) hδtop
-    let α : ℝ := δ.toReal / 4
-    have hαpos : 0 < α := by
-      dsimp [α]
-      linarith
-    let A : ℕ → Set Ω := fun n => {ω | ε / 2 < |Xn n ω|}
-    let B : ℕ → Set Ω := fun n => {ω | ε / 2 < |Yn n ω|}
-    let C : ℕ → Set Ω := fun n => {ω | ε < |Xn n ω + Yn n ω|}
-    have hXevent_le := (ENNReal.tendsto_nhds_zero.mp (hX (ε / 2) (by linarith)))
-      (ENNReal.ofReal α) (ENNReal.ofReal_pos.mpr hαpos)
-    have hYevent_le := (ENNReal.tendsto_nhds_zero.mp (hY (ε / 2) (by linarith)))
-      (ENNReal.ofReal α) (ENNReal.ofReal_pos.mpr hαpos)
-    have htwo_alpha_lt_delta : ENNReal.ofReal (2 * α) < δ := by
-      rw [ENNReal.ofReal_lt_iff_lt_toReal]
-      · dsimp [α]
-        linarith
-      · dsimp [α]
-        linarith [le_of_lt hδpos]
-      · exact hδtop
-    filter_upwards [hXevent_le, hYevent_le] with n hXA hYB
-    have hXA' : μ (A n) ≤ ENNReal.ofReal α := by
-      simpa [A] using hXA
-    have hYB' : μ (B n) ≤ ENNReal.ofReal α := by
-      simpa [B] using hYB
-    have hsubset : C n ⊆ A n ∪ B n := by
-      intro ω hω
-      by_contra hnot
-      have hnotA : ¬ ε / 2 < |Xn n ω| := by
-        intro hx
-        exact hnot (Or.inl hx)
-      have hnotB : ¬ ε / 2 < |Yn n ω| := by
-        intro hy
-        exact hnot (Or.inr hy)
-      have hXle : |Xn n ω| ≤ ε / 2 := le_of_not_gt hnotA
-      have hYle : |Yn n ω| ≤ ε / 2 := le_of_not_gt hnotB
-      have hsum : |Xn n ω + Yn n ω| ≤ ε := by
-        calc
-          |Xn n ω + Yn n ω| ≤ |Xn n ω| + |Yn n ω| := abs_add_le _ _
-          _ ≤ ε / 2 + ε / 2 := add_le_add hXle hYle
-          _ = ε := by ring
-      exact not_lt_of_ge hsum hω
-    exact le_of_lt <| calc
-      μ {ω | ε * (fun _ => (1 : ℝ)) n < |Xn n ω + Yn n ω|}
-          = μ (C n) := by simp [C]
-      _ ≤ μ (A n ∪ B n) := measure_mono hsubset
-      _ ≤ μ (A n) + μ (B n) := MeasureTheory.measure_union_le (A n) (B n)
-      _ ≤ ENNReal.ofReal α + ENNReal.ofReal α := add_le_add hXA' hYB'
-      _ = ENNReal.ofReal (2 * α) := by
-        rw [← ENNReal.ofReal_add]
-        · congr 1
-          ring
-        · linarith
-        · linarith
-      _ < δ := htwo_alpha_lt_delta
+    intro Xn Yn hX hY
+    exact IsLittleOp.add_one hX hY
   have hsum : IsLittleOp
       (fun n ω => ‖Sn n ω - In n ω‖ + ‖In n ω - Jn n ω‖)
       (fun _ => (1 : ℝ)) μ :=
@@ -758,7 +724,7 @@ theorem localStochasticExpansion
     filter_upwards [hYevent] with n hn
     refine (measure_mono ?_).trans hn
     intro ω hω
-    exact lt_of_lt_of_le hω (hbound n ω)
+    exact hω.trans (by simpa using hbound n ω)
   refine hmono_one hsum ?_
   intro n ω
   have htri :

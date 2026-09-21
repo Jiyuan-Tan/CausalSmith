@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Model
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Model
 
 /-!
 # Invariant Causal Prediction — Gaussian-noise moments
@@ -16,6 +17,8 @@ integral computation in the completeness proof.
 * `eps_integrable` — each `εⱼ` is `M.P`-integrable.
 * `eps_integral_zero` — `E[εⱼ] = 0`.
 -/
+
+public section
 
 namespace Causalean.Discovery.InvariantPrediction.LinearGaussian
 
@@ -51,9 +54,9 @@ theorem eps_integrable (M : ObsSEM p) (j : Fin (p + 1)) :
   · simpa using this
   · rw [M.hGauss j]; exact (memLp_id_gaussianReal 1).aestronglyMeasurable
 
-/-- For [a linear-Gaussian observational SEM](hyp:M) and [coordinate index j](hyp:j), [the
-structural noise `εⱼ` is centered: its expectation under `M`'s probability measure is
-zero](goal). -/
+/-- [Every structural-noise coordinate has zero observational mean](goal), providing the centering
+identity for residual comparisons in [the linear-Gaussian SEM](hyp:M) with [predictor dimension
+`p`](hyp:p) at [coordinate `j`](hyp:j). -/
 theorem eps_integral_zero (M : ObsSEM p) (j : Fin (p + 1)) :
     ∫ ω, M.ε ω j ∂M.P = 0 := by
   have hmeas : AEMeasurable (fun ω => M.ε ω j) M.P := eps_aemeasurable M j

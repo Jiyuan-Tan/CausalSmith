@@ -15,10 +15,13 @@ NONZERO, `Θ(h^{2α+1})` per-observation budget. The product-KL tensorization th
 the `n`-fold bound `≤ n · (single)`.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Channel
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Regression
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Channel
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Regression
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

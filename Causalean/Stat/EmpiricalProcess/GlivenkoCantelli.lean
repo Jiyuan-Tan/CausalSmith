@@ -5,8 +5,8 @@ Authors: Jiyuan Tan
 
 # Glivenko–Cantelli: uniform laws of large numbers
 
-Two sufficient conditions for the (weak) Glivenko–Cantelli property
-`GlivenkoCantelli S f` of a function class `f : ι → X → ℝ` under an
+Two sufficient conditions for the weak Glivenko–Cantelli property
+`WeakGlivenkoCantelli S f` of a function class `f : ι → X → ℝ` under an
 `Causalean.Stat.IIDSample`:
 
 * `glivenkoCantelli_of_fintype` — a **finite** class of integrable functions is
@@ -21,20 +21,26 @@ Two sufficient conditions for the (weak) Glivenko–Cantelli property
   deviations of the finitely many bracket endpoints plus `ε/2`; the endpoint
   deviations vanish by the finite case.
 
-This is the uniform-convergence engine consumed by `MEstimatorConsistency.lean`
-(Newey–McFadden consistency of extremum estimators).
+This is the uniform-convergence engine consumed by
+`MEstimatorConsistency.lean` for separated-maximum extremum-estimator
+consistency.
 -/
 
-import Causalean.Stat.EmpiricalProcess.Basic
-import Causalean.Stat.Limit.WLLN
+module
+public import Causalean.Stat.EmpiricalProcess.Basic
+public import Causalean.Stat.Limit.WLLN
 
 /-!
-This file proves two Glivenko-Cantelli uniform laws for the predicate defined in
+This file proves two weak Glivenko-Cantelli uniform laws for the predicate defined in
 `EmpiricalProcess/Basic.lean`.  The theorem `glivenkoCantelli_of_fintype`
 handles finite integrable classes by a union bound and the weak law of large
 numbers, while `glivenkoCantelli_of_hasL1Bracketing` upgrades finite
 `L¹(P)`-bracketing numbers into a uniform law over an arbitrary indexed class.
+The unqualified name Glivenko–Cantelli is reserved for the almost-sure property,
+which is not yet formalized here.
 -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -112,7 +118,7 @@ theorem glivenkoCantelli_of_fintype [Finite ι] [IsProbabilityMeasure P]
     (S : IIDSample Ω X μ P) (f : ι → X → ℝ)
     (hmeas : ∀ i, Measurable (f i))
     (hint : ∀ i, Integrable (f i) P) :
-    GlivenkoCantelli S f := by
+    WeakGlivenkoCantelli S f := by
   letI := Fintype.ofFinite ι
   intro ε hε
   have hcoord : ∀ i, Tendsto
@@ -161,7 +167,7 @@ theorem glivenkoCantelli_of_hasL1Bracketing [IsProbabilityMeasure P]
     (S : IIDSample Ω X μ P) (f : ι → X → ℝ)
     (hmeas : ∀ i, Measurable (f i))
     (hbr : HasL1Bracketing f P) :
-    GlivenkoCantelli S f := by
+    WeakGlivenkoCantelli S f := by
   intro ε hε
   have hε2 : 0 < ε / 2 := by linarith
   obtain ⟨B⟩ := hbr (ε / 2) hε2

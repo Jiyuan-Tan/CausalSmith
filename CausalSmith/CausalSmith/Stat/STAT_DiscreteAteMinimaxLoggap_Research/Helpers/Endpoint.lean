@@ -1,13 +1,16 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
-import Causalean.Stat.Minimax.MinimaxRisk
-import Causalean.Stat.Minimax.Pinsker
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Parametric
-import Causalean.Mathlib.Probability.IidMeanVariance
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
-import Mathlib.Probability.Moments.Variance
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
-import Mathlib.Analysis.Complex.ExponentialBounds
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import Causalean.Stat.Minimax.Pinsker
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Parametric
+public import Causalean.Mathlib.Probability.IidMeanVariance
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+public import Mathlib.Analysis.Complex.ExponentialBounds
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

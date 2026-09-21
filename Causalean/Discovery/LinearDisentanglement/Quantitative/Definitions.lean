@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+module
+public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 
 /-!
 # Quantitative simultaneous-congruence stability: definitions
@@ -18,35 +19,36 @@ the stability theorem.
 The matrix norm in this API is the Euclidean (`ℓ²`) operator norm.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open scoped BigOperators Matrix Matrix.Norms.L2Operator
 
 namespace Causalean.Discovery.LinearDisentanglement.Quantitative
 
-/-- For [a nonnegative integer dimension](hyp:d), [a square matrix](goal) is a real-valued
-matrix with that many rows and that many columns. -/
+/-- [A square matrix](goal) represents a latent change of coordinates in [dimension
+`d`](hyp:d). -/
 abbrev SqMatrix (d : ℕ) := Matrix (Fin d) (Fin d) ℝ
 
-/-- For [a dimension](hyp:d), [an observed matrix](hyp:A), [a prescribed diagonal vector](hyp:s),
-and [a candidate change-of-coordinates matrix](hyp:B), [the congruence defect](goal) is
-$BAB^\mathsf{T}$ minus the diagonal matrix formed from the prescribed vector. -/
+/-- [The congruence defect](goal) measures how far [candidate coordinates `B`](hyp:B) fail to turn
+[observed matrix `A`](hyp:A) into [the prescribed diagonal `s`](hyp:s), in [dimension
+`d`](hyp:d). -/
 def congruenceDefect {d : ℕ} (A : SqMatrix d) (s : Fin d → ℝ) (B : SqMatrix d) :
     SqMatrix d :=
   B * A * B.transpose - Matrix.diagonal s
 
-/-- For [a dimension](hyp:d), [a nonempty finite environment collection](hyp:E),
-[an observed matrix for each environment](hyp:A), [a prescribed diagonal vector for each
-environment](hyp:s), and [a candidate change-of-coordinates matrix](hyp:B), [the simultaneous
-congruence residual](goal) is the largest Euclidean operator norm of the individual congruence
-defects across environments. -/
+/-- [The simultaneous congruence residual](goal) is the worst transformation error across [a
+nonempty finite environment collection](hyp:E), comparing [observed matrices](hyp:A) with
+[prescribed diagonal shifts](hyp:s) under [candidate coordinates `B`](hyp:B) in [dimension
+`d`](hyp:d). -/
 def simultaneousCongruenceResidual {d : ℕ} {E : Type*} [Fintype E] [Nonempty E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ) (B : SqMatrix d) : ℝ :=
   Finset.univ.sup' Finset.univ_nonempty fun e => ‖congruenceDefect (A e) (s e) B‖
 
-/-- For [a finite real matrix family](hyp:A), [its prescribed diagonal shifts](hyp:s), and
-[a candidate change of coordinates](hyp:B), [the simultaneous-congruence residual is
-nonnegative](goal). -/
+/-- [The worst-environment congruence residual cannot be negative](goal), for [observed
+matrices](hyp:A), [prescribed shifts](hyp:s), and [candidate coordinates](hyp:B) over [environment
+collection `E`](hyp:E) in [dimension `d`](hyp:d). -/
 theorem simultaneousCongruenceResidual_nonneg {d : ℕ} {E : Type*}
     [Fintype E] [Nonempty E] (A : E → SqMatrix d) (s : E → Fin d → ℝ)
     (B : SqMatrix d) :
@@ -56,9 +58,9 @@ theorem simultaneousCongruenceResidual_nonneg {d : ℕ} {E : Type*}
   exact (norm_nonneg _).trans
     (Finset.le_sup' (fun e => ‖congruenceDefect (A e) (s e) B‖) (Finset.mem_univ e))
 
-/-- For [a finite real matrix family](hyp:A), [its prescribed diagonal shifts](hyp:s), [a
-candidate change of coordinates](hyp:B), and [a tolerance](hyp:ε), [the simultaneous
-residual is at most that tolerance exactly when every individual congruence defect is](goal). -/
+/-- [A simultaneous residual meets a tolerance exactly when every environment does](goal), for
+[observed matrices](hyp:A), [prescribed shifts](hyp:s), [candidate coordinates](hyp:B), and
+[tolerance `ε`](hyp:ε) over [environment collection `E`](hyp:E) in [dimension `d`](hyp:d). -/
 theorem simultaneousCongruenceResidual_le_iff {d : ℕ} {E : Type*}
     [Fintype E] [Nonempty E] (A : E → SqMatrix d) (s : E → Fin d → ℝ)
     (B : SqMatrix d) (ε : ℝ) :
@@ -68,101 +70,94 @@ theorem simultaneousCongruenceResidual_le_iff {d : ℕ} {E : Type*}
   simp only [simultaneousCongruenceResidual, Finset.sup'_le_iff, Finset.mem_univ,
     forall_const]
 
-/-- For [a dimension](hyp:d), [a finite environment collection](hyp:E), [a diagonal shift
-vector for each environment](hyp:s), and [a real margin](hyp:δ), [affine minor separation](goal)
-holds when there exist one base environment and one selected environment for each coordinate such
-that the absolute determinant of their shift-difference matrix is at least the margin. -/
+/-- [Affine minor separation](goal) certifies that [environmental shift vectors](hyp:s) span enough
+independent variation to solve all [dimension `d`](hyp:d) coordinates: within [finite environment
+collection `E`](hyp:E), some shift-difference determinant is at least [margin `δ`](hyp:δ). -/
 def AffineMinorSeparated {d : ℕ} {E : Type*} [Fintype E]
     (s : E → Fin d → ℝ) (δ : ℝ) : Prop :=
   ∃ (base : E) (pick : Fin d → E),
     δ ≤ |Matrix.det (fun i j => s (pick i) j - s base j)|
 
-/-- For [a dimension](hyp:d), [a finite environment collection](hyp:E), [a diagonal shift
-vector for each environment](hyp:s), and [a real bound](hyp:L), [the shift-scale bound](goal)
-holds exactly when every coordinate of every prescribed diagonal shift has absolute value at most
-the bound. -/
+/-- [The shift-scale bound](goal) caps every coordinate of [all environmental shifts](hyp:s) by
+[magnitude `L`](hyp:L), across [finite environment collection `E`](hyp:E) in [dimension
+`d`](hyp:d). -/
 def ShiftScaleBound {d : ℕ} {E : Type*} [Fintype E]
     (s : E → Fin d → ℝ) (L : ℝ) : Prop :=
   ∀ e i, |s e i| ≤ L
 
-/-- For [a dimension](hyp:d) and [a square matrix](hyp:B), [unit-diagonal normalization](goal)
-holds exactly when every diagonal entry of the matrix equals one. -/
+/-- [Unit-diagonal normalization](goal) fixes the otherwise free row scales of [matrix
+`B`](hyp:B) in [dimension `d`](hyp:d). -/
 def UnitDiagonal {d : ℕ} (B : SqMatrix d) : Prop :=
   ∀ i, B i i = 1
 
-/-- For [a dimension](hyp:d) and [a square matrix](hyp:B), [its Euclidean operator-norm
-condition number](goal) is the product of its Euclidean operator norm and the Euclidean operator
-norm of its inverse. This is the condition number for a nonsingular matrix; for a singular matrix the
-inverse is zero by convention, so the value is zero, which is why every bound on it in this library is
-paired with a nonsingularity requirement. -/
+/-- [The Euclidean operator-norm condition number](goal) quantifies how strongly [matrix
+`B`](hyp:B) can amplify perturbations in [dimension `d`](hyp:d). It is meaningful with a separate
+nonsingularity condition because the library's inverse convention assigns zero to singular
+matrices. -/
 def operatorConditionNumber {d : ℕ} (B : SqMatrix d) : ℝ :=
   ‖B‖ * ‖B⁻¹‖
 
-/-- For [a dimension](hyp:d), [a real condition bound](hyp:κ), and [a square matrix](hyp:B),
-[bounded conditioning](goal) holds exactly when [the matrix is nonsingular](step:1) and [its
-Euclidean operator-norm condition number is at most the bound](step:2). -/
+/-- [Bounded conditioning](goal) rules out unstable coordinate systems by requiring [matrix
+`B`](hyp:B) in [dimension `d`](hyp:d) to be (1) [nonsingular](step:1) and (2) [no more ill
+conditioned than](step:2) [envelope `κ`](hyp:κ). -/
 def WellConditioned {d : ℕ} (κ : ℝ) (B : SqMatrix d) : Prop :=
   IsUnit B.det ∧ operatorConditionNumber B ≤ κ
 
-/-- For [a dimension](hyp:d), [a real condition bound](hyp:κ), and [a reference and candidate
-matrix](hyp:B₀,B), [the pair condition bound](goal) holds exactly when [the reference matrix is
-boundedly conditioned by that bound](step:1) and [the candidate matrix is boundedly conditioned
-by that bound](step:2). -/
+/-- [The pair condition bound](goal) puts [reference and candidate coordinates](hyp:B₀,B) in the
+same stable class for [dimension `d`](hyp:d): (1) [the reference is well conditioned](step:1) and
+(2) [the candidate is well conditioned](step:2) under [envelope `κ`](hyp:κ). -/
 def PairConditionBound {d : ℕ} (κ : ℝ) (B₀ B : SqMatrix d) : Prop :=
   WellConditioned κ B₀ ∧ WellConditioned κ B
 
-/-- For [a dimension](hyp:d), [a real scale bound](hyp:R), and [a reference and candidate
-matrix](hyp:B₀,B), [the pair matrix-scale bound](goal) holds exactly when [the reference matrix's
-Euclidean operator norm is at most the scale bound](step:1) and [the candidate matrix's Euclidean
-operator norm is at most the scale bound](step:2). -/
+/-- [The pair matrix-scale bound](goal) keeps [reference and candidate coordinates](hyp:B₀,B)
+inside a common compact scale envelope in [dimension `d`](hyp:d) with [radius `R`](hyp:R): (1)
+[the reference norm obeys the radius](step:1) and (2) [the candidate norm obeys it](step:2). -/
 def PairMatrixScaleBound {d : ℕ} (R : ℝ) (B₀ B : SqMatrix d) : Prop :=
   ‖B₀‖ ≤ R ∧ ‖B‖ ≤ R
 
-/-- For [a dimension](hyp:d) and [a reference and candidate matrix](hyp:B₀,B), [the transition
-matrix](goal) is the candidate matrix multiplied by the inverse of the reference matrix. -/
+/-- [The transition matrix](goal) expresses [candidate coordinates relative to the reference
+coordinates](hyp:B₀,B) in [dimension `d`](hyp:d), so identity is exact recovery. -/
 def transition {d : ℕ} (B₀ B : SqMatrix d) : SqMatrix d :=
   B * B₀⁻¹
 
-/-- For [a dimension](hyp:d), [a finite environment collection](hyp:E), [an observed matrix
-for each environment](hyp:A), [a prescribed diagonal vector for each environment](hyp:s), and [a
-reference matrix](hyp:B₀), [exact congruence](goal) holds exactly when, in every environment,
-the reference matrix transforms the observed matrix into the diagonal matrix prescribed there. -/
+/-- [Exact congruence](goal) means [reference coordinates `B₀`](hyp:B₀) recover every [prescribed
+diagonal shift](hyp:s) from [the observed matrix family](hyp:A), throughout [finite environment
+collection `E`](hyp:E) in [dimension `d`](hyp:d). -/
 def ExactCongruence {d : ℕ} {E : Type*} [Fintype E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ) (B₀ : SqMatrix d) : Prop :=
   ∀ e, B₀ * A e * B₀.transpose = Matrix.diagonal (s e)
 
-/-- For [a dimension](hyp:d), [a nonempty finite environment collection](hyp:E),
-[an observed matrix for each environment](hyp:A), [a prescribed diagonal vector for each
-environment](hyp:s), [a candidate matrix](hyp:B), and [a real tolerance](hyp:ε), [approximate
-congruence](goal) holds exactly when the simultaneous congruence residual is at most the
-tolerance. -/
+/-- [Approximate congruence](goal) accepts [candidate coordinates `B`](hyp:B) when their worst
+error against [observed matrices](hyp:A) and [prescribed shifts](hyp:s) is at most [tolerance
+`ε`](hyp:ε), across [environment collection `E`](hyp:E) in [dimension `d`](hyp:d). -/
 def ApproximateCongruence {d : ℕ} {E : Type*} [Fintype E] [Nonempty E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ) (B : SqMatrix d) (ε : ℝ) : Prop :=
   simultaneousCongruenceResidual A s B ≤ ε
 
-/-- For [a dimension](hyp:d), [a shift scale](hyp:L), and [an affine-separation margin](hyp:δ),
-[the affine solve factor](goal) is $d(d-1)!(2L)^{d-1}/\delta$. -/
+/-- [The affine solve factor](goal) converts residual error into coordinate error; it worsens with
+[dimension `d`](hyp:d) and [shift scale `L`](hyp:L), and improves with [affine-separation margin
+`δ`](hyp:δ). -/
 def affineSolveFactor (d : ℕ) (L δ : ℝ) : ℝ :=
   (d : ℝ) * (Nat.factorial (d - 1) : ℝ) * (2 * L) ^ (d - 1) / δ
 
-/-- For [a dimension](hyp:d), [a shift scale](hyp:L), and [an affine-separation margin](hyp:δ),
-[the product-control factor](goal) is twice the affine solve factor. -/
+/-- [The product-control factor](goal) is the two-sided amplification budget for controlling
+transition products from [dimension `d`](hyp:d), [shift scale `L`](hyp:L), and [separation margin
+`δ`](hyp:δ). -/
 def productControlFactor (d : ℕ) (L δ : ℝ) : ℝ :=
   2 * affineSolveFactor d L δ
 
-/-- For [a dimension](hyp:d), [a shift scale](hyp:L), [an affine-separation margin](hyp:δ), [a
-matrix scale](hyp:R), and [a condition-number envelope](hyp:κ), [the stability constant](goal)
-is $2dR\max(1,\kappa)$ times the product-control factor. -/
-def stabilityConstant (d : ℕ) (L δ R κ : ℝ) : ℝ :=
-  2 * (d : ℝ) * R * max 1 κ * productControlFactor d L δ
+/-- [The stability constant](goal) turns congruence residuals into recovery error under [dimension
+`d`](hyp:d), [shift scale `L`](hyp:L), [separation margin `δ`](hyp:δ), and [matrix scale
+`R`](hyp:R). -/
+def stabilityConstant (d : ℕ) (L δ R : ℝ) : ℝ :=
+  2 * (d : ℝ) * R * productControlFactor d L δ
 
-/-- For [a dimension](hyp:d), [a shift scale](hyp:L), [an affine-separation margin](hyp:δ), [a
-matrix scale](hyp:R), and [a condition-number envelope](hyp:κ), [the admissible residual
-radius](goal) is the smaller of the two displayed reciprocal bounds determined by those
-quantities. -/
-def admissibleRadius (d : ℕ) (L δ R κ : ℝ) : ℝ :=
+/-- [The admissible residual radius](goal) is the noise regime where local stability estimates
+remain valid, determined by [dimension `d`](hyp:d), [shift scale `L`](hyp:L), [separation margin
+`δ`](hyp:δ), and [matrix scale `R`](hyp:R). -/
+def admissibleRadius (d : ℕ) (L δ R : ℝ) : ℝ :=
   min (1 / (4 * productControlFactor d L δ))
-    (1 / (4 * (d : ℝ) ^ 2 * (R * max 1 κ) ^ 2 * productControlFactor d L δ))
+    (1 / (4 * (d : ℝ) ^ 2 * R ^ 2 * productControlFactor d L δ))
 
 /-- When [the matrix dimension is positive](hyp:hd), [the shift scale is positive](hyp:hL),
 and [the affine separation margin is positive](hyp:hδ), [the coordinate-product
@@ -176,13 +171,12 @@ theorem productControlFactor_pos {d : ℕ} {L δ : ℝ}
 /-- When [the matrix dimension is positive](hyp:hd), [the shift scale is positive](hyp:hL),
 [the affine separation margin is positive](hyp:hδ), and [the matrix scale is positive](hyp:hR),
 [the declared small-residual radius is strictly positive](goal). -/
-theorem admissibleRadius_pos {d : ℕ} {L δ R κ : ℝ}
+theorem admissibleRadius_pos {d : ℕ} {L δ R : ℝ}
     (hd : 0 < d) (hL : 0 < L) (hδ : 0 < δ) (hR : 0 < R) :
-    0 < admissibleRadius d L δ R κ := by
+    0 < admissibleRadius d L δ R := by
   have hq : 0 < productControlFactor d L δ :=
     productControlFactor_pos hd hL hδ
   unfold admissibleRadius
-  have hmax : 0 < max 1 κ := lt_of_lt_of_le zero_lt_one (le_max_left _ _)
   positivity
 
 end Causalean.Discovery.LinearDisentanglement.Quantitative

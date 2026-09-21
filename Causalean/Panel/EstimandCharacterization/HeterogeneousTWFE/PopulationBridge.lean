@@ -23,8 +23,9 @@ assumption is strengthened — `hcons` is exactly the paper's consistency axiom
 interpretation of those quotients to separate hypotheses or corollaries.
 -/
 
-import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.FinitePanel
-import Causalean.Panel.PO.PopulationCells
+module
+public import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.FinitePanel
+public import Causalean.Panel.PO.PopulationCells
 
 /-! # DCDH Population Bridge
 
@@ -36,11 +37,13 @@ are population cell means, and whose `tau` field is the difference between the
 from the shared cell-partition mean-consistency and finite-partition mass
 identities. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace HeterogeneousTWFE
 
-open MeasureTheory Causalean.PO
+open MeasureTheory Causalean.Panel.PO
 
 /-- For [finite group and time sets](hyp:G,T), [a measurable sample space](hyp:Ω) with [a probability measure](hyp:μ), [group-time cell events](hyp:cellEvent), [factual, untreated-potential, and treated-potential outcome functions](hyp:Yfac,Y0pop,Y1pop), [a cell-level treatment array](hyp:d), and [a residualized-treatment array](hyp:Dtilde), if [the cells are measurable](hyp:hmeas), [pairwise disjoint](hyp:hdisj), and [cover the sample space](hyp:hcov), [every cell has strictly positive probability](hyp:hpos), [treatment is binary in every cell](hyp:hdbin), [pointwise potential-outcome consistency holds in every cell](hyp:hcons), [treatment minus the residualized array is additive in group and time](hyp:hDmem), [the residualized array is weighted-orthogonal to every group-plus-time additive array](hyp:hDorth), and [its weighted sum of squares is strictly positive](hyp:hSD), the [finite cell partition](step:1) supplies cell probabilities and cell means to the [finite DCDH panel](goal), whose treatment effects are treated-minus-untreated population cell means.
 

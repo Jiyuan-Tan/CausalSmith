@@ -1,18 +1,21 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ContourBank
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.ArgumentPrinciple
-import Mathlib.Analysis.Complex.CauchyIntegral
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ContourBank
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.ArgumentPrinciple
+public import Mathlib.Analysis.Complex.CauchyIntegral
 
 /-!
 # Exact contour identification
 -/
 
+public section
+
 noncomputable section
 
 open MeasureTheory ProbabilityTheory Metric Set
-open Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 variable {Xspace : Type*} [MeasurableSpace Xspace]

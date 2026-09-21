@@ -1,11 +1,14 @@
-import Mathlib.Analysis.InnerProductSpace.SingularValues
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Causalean.Mathlib.Analysis.SingularValueWeyl
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+module
+public import Mathlib.Analysis.InnerProductSpace.SingularValues
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Causalean.Mathlib.Analysis.SingularValueWeyl
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
 
 /-!
 Rectangular finite-dimensional spectral helpers used by the proxy-effect-law construction.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

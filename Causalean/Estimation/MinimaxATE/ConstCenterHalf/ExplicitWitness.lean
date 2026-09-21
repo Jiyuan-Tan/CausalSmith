@@ -24,14 +24,17 @@ laws, `tvDist Qfalse Qtrue ≤ 1/2` (the Ingster χ² / Hellinger second-moment 
 the paper, valid in the regime `n · εg · εm ≲ 1`).  Here it is carried as an explicit
 hypothesis `htv`; the sibling χ²-core file discharges it.  Given it,
 `explicit_minimax_lower_bound` concludes that **no** estimator can be within
-`s = β(α+β)/(1−4β²) ≍ √(εg·εm)` of the true ATE with probability `> 3/4` uniformly
-over the class — the doubly-robust product rate is unbeatable.
+the displayed separation `s = β(α+β)/(1−4β²)` of the true ATE with probability
+`> 3/4` uniformly over the class. The hypotheses place the perturbations below
+the nuisance budgets but do not provide a lower comparison between `s` and those
+budgets.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Membership
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Gap
-import Causalean.Estimation.MinimaxATE.Reduction.Witness
-import Causalean.Stat.Minimax.Mixture
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Membership
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Gap
+public import Causalean.Estimation.MinimaxATE.Reduction.Witness
+public import Causalean.Stat.Minimax.Mixture
 
 /-! # Explicit Two-Point Witness
 
@@ -45,6 +48,8 @@ miss functional. The construction `explicitWitness` packages the null and mixed 
 into a `TwoPointWitness` under a supplied total-variation bound, and
 `explicit_minimax_lower_bound` turns that witness into the conditional finite-cell minimax lower
 bound used by the chi-squared core. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

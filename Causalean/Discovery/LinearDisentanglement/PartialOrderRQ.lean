@@ -4,25 +4,28 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Model
-import Mathlib.Logic.Relation
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.GramSchmidtOrtho
-import Mathlib.LinearAlgebra.Dimension.OrzechProperty
-import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+module
+public import Causalean.Discovery.LinearDisentanglement.Model
+public import Mathlib.Logic.Relation
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.InnerProductSpace.GramSchmidtOrtho
+public import Mathlib.LinearAlgebra.Dimension.OrzechProperty
+public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
 
 /-!
 # Linear causal disentanglement: graph order and the partial-order RQ decomposition
 
 We package the graph-theoretic notions used throughout (parents, ancestors, and the
 partial order `≺_𝒢` with `i ≺ j ↔ j ∈ an(i)`), and the **partial order RQ
-decomposition** of the paper (Definition 1, Appendix B): a generalization of the
+decomposition** of the paper (Definition 1 and Appendix D, Proposition 7): a generalization of the
 reduced RQ decomposition where the upper-triangular support of `R` is replaced by
 the partial order, and orthogonality of the rows of `Q` is required only along the
-order.  `porq_exists` / `porq_unique` are its existence and uniqueness (their
-Proposition in Appendix B), proved there by the Gram–Schmidt-style construction in
+order. `porq_exists` / `porq_unique` are its existence and uniqueness (Appendix D,
+Proposition 7), proved there by the Gram–Schmidt-style construction in
 Algorithm "Partial Order RQ Decomposition".
 -/
+
+@[expose] public section
 
 namespace Causalean.Discovery.LinearDisentanglement
 
@@ -32,22 +35,34 @@ variable {d p K : ℕ}
 
 namespace Solution
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a latent node](hyp:i), the [parent set](goal) is the set of latent nodes having a directed edge into that node. -/
+/-- [The parent set](goal) collects the direct latent causes of [node `i`](hyp:i) in [solution
+`S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension `p`](hyp:p), and [intervention
+count `K`](hyp:K). -/
 def pa (S : Solution d p K) (i : Fin d) : Set (Fin d) := {j | S.Edge j i}
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a latent node](hyp:i), the [inclusive parent set](goal) is the union of that node's parent set and the node itself. -/
+/-- [The inclusive parent set](goal) adds [node `i`](hyp:i) itself to its direct causes in [solution
+`S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension `p`](hyp:p), and [intervention
+count `K`](hyp:K). -/
 def Pa (S : Solution d p K) (i : Fin d) : Set (Fin d) := insert i (S.pa i)
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a latent node](hyp:i), the [ancestor set](goal) is the set of latent nodes from which a nonempty directed path leads to that node. -/
+/-- [The ancestor set](goal) collects every latent node with a nonempty causal path to [node
+`i`](hyp:i) in [solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension
+`p`](hyp:p), and [intervention count `K`](hyp:K). -/
 def anc (S : Solution d p K) (i : Fin d) : Set (Fin d) := {j | Relation.TransGen S.Edge j i}
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a latent node](hyp:i), the [inclusive ancestor set](goal) is the union of that node's ancestor set and the node itself. -/
+/-- [The inclusive ancestor set](goal) adds [node `i`](hyp:i) to every cause upstream of it in
+[solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension `p`](hyp:p), and
+[intervention count `K`](hyp:K). -/
 def An (S : Solution d p K) (i : Fin d) : Set (Fin d) := insert i (S.anc i)
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [two latent nodes](hyp:i,j), the [strict causal precedence relation](goal) holds exactly when the second node is a strict ancestor of the first. -/
+/-- [Strict causal precedence](goal) records that [node `j` is a strict ancestor of node
+`i`](hyp:i,j) in [solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension
+`p`](hyp:p), and [intervention count `K`](hyp:K). -/
 def prec (S : Solution d p K) (i j : Fin d) : Prop := Relation.TransGen S.Edge j i
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [two latent nodes](hyp:i,j), the [weak causal precedence relation](goal) holds exactly when the nodes coincide or the second is a strict ancestor of the first. -/
+/-- [Weak causal precedence](goal) allows [node `j` to equal or strictly precede node
+`i`](hyp:i,j) in [solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension
+`p`](hyp:p), and [intervention count `K`](hyp:K). -/
 def preceq (S : Solution d p K) (i j : Fin d) : Prop := i = j ∨ S.prec i j
 
 /-- The strict partial order embeds into the `Fin d` linear order: if `i ≺ j`
@@ -209,9 +224,13 @@ theorem porq_row_split (S : Solution d p K)
   rw [hrow, ← Finset.add_sum_erase Finset.univ (fun k => R i k • Q k) (Finset.mem_univ i)]
 
 open Classical in
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a latent node](hyp:i), the [partial-order RQ residual](goal) is that node's mixing-pseudoinverse row, viewed as a Euclidean vector, minus its orthogonal projection onto the span of residuals of all strict ancestors.  [The ancestor-residual span used in this subtraction](step:1) is generated by the residuals of precisely those strict ancestors.
+/-- [The partial-order RQ residual](goal) isolates the component of [node `i`'s](hyp:i) mixing row
+orthogonal to all strict-ancestor residuals in [solution `S`](hyp:S); [that ancestor span](step:1)
+is generated recursively. The construction uses [latent dimension `d`](hyp:d), [observed
+dimension `p`](hyp:p), and [intervention count `K`](hyp:K).
 
-The recursion terminates because every recursive call is to a strict ancestor, whose node index is larger in the prescribed order. -/
+The recursion terminates because every recursive call is to a strict ancestor, whose node
+index is larger in the prescribed order. -/
 noncomputable def porqResidual (S : Solution d p K) (i : Fin d) :
     EuclideanSpace ℝ (Fin p) :=
   letI W : Submodule ℝ (EuclideanSpace ℝ (Fin p)) :=
@@ -223,7 +242,9 @@ decreasing_by
   omega
 
 open Classical in
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a latent node](hyp:i), the [strict-ancestor residual span](goal) is the real linear subspace generated by the partial-order RQ residuals of all strict ancestors of that node. -/
+/-- [The strict-ancestor residual span](goal) is the information already assigned to causes upstream
+of [node `i`](hyp:i) in [solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed
+dimension `p`](hyp:p), and [intervention count `K`](hyp:K). -/
 noncomputable def porqAncSpan (S : Solution d p K) (i : Fin d) :
     Submodule ℝ (EuclideanSpace ℝ (Fin p)) :=
   Submodule.span ℝ (Set.range (fun k : {k // S.prec i k} => porqResidual S k.1))
@@ -421,7 +442,7 @@ theorem porq_rowCoeffs (S : Solution d p K) (i : Fin d) :
     refine Finset.sum_congr rfl fun k _ => ?_
     simp only [hf, dif_pos k.2]
 
-/-- **Existence of the partial order RQ decomposition** (Appendix B Proposition). For [a
+/-- **Existence of the partial order RQ decomposition** (Appendix D, Proposition 7). For [a
 linear causal disentanglement solution](hyp:S), [there exist matrices R and Q realizing a
 partial order RQ decomposition of S's factor loading matrix H — that is, `H = R·Q` with R's
 diagonal entries nonnegative and R's support confined to the partial order on nodes, and
@@ -490,7 +511,7 @@ theorem porq_exists (S : Solution d p K) :
     rw [porqResidual_orthogonal S hij]
     ring
 
-/-- **Uniqueness of the partial order RQ decomposition** (Appendix B Proposition).
+/-- **Uniqueness of the partial order RQ decomposition** (Appendix D, Proposition 7).
 Given a solution `S`, if [both `(R,Q)` and `(R',Q')` are partial order RQ
 decompositions of `S`'s latent-direction matrix `H` — factoring `H` as a lower-
 triangular-along-the-order matrix `R` times a row-orthonormal-along-the-order matrix

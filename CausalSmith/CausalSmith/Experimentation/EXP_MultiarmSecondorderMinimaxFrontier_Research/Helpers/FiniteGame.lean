@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import Causalean.Stat.Minimax.FiniteSquaredLoss.Saddle
-import Mathlib.Order.SaddlePoint
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import Causalean.Stat.Minimax.SquaredLoss.Finite.Saddle
+public import Mathlib.Order.SaddlePoint
 
 /-! Compact finite-state game separation and saddle-point scaffolding. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -61,16 +64,16 @@ lemma finite_orbit_game_has_saddle : HasOrbitSaddle n c := by
       left_inv := fun _ => rfl
       right_inv := fun q => by cases q; rfl }
   have hvalue :
-      Causalean.Stat.minimaxValue
+      Causalean.Stat.minimaxValueReal
           (Causalean.Stat.Minimax.FiniteSquaredLoss.risk P tau :
             Causalean.Stat.Minimax.FiniteSquaredLoss.Procedure X l u →
               CountVec K n → ℝ) =
         orbitGameValue K n c := by
-    unfold orbitGameValue Causalean.Stat.minimaxValue
+    unfold orbitGameValue Causalean.Stat.minimaxValueReal
     rw [← e.iInf_comp]
     rfl
   obtain ⟨qstar, deltastar, nu, hupper, hlower⟩ :=
-    Causalean.Stat.Minimax.FiniteSquaredLoss.finite_bounded_squared_loss_has_saddle
+    Causalean.Stat.Minimax.FiniteSquaredLoss.finite_bounded_squared_loss_has_saddleReal
       P tau hlu hP
   refine ⟨(qstar, deltastar), nu, ?_, ?_⟩
   · intro m

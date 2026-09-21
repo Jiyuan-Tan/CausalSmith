@@ -6,7 +6,7 @@ Authors: Jiyuan Tan
 # K-fold sample split
 
 Generalises `OneShotSplit` (in `OneShot.lean`) to K disjoint folds.  Used by
-the cross-fitted DML estimator `dml_crossFit_asymptoticLinear` in
+the cross-fitted DML estimator interfaces in
 `Causalean/Estimation/OrthogonalMoments/DMLCrossFit.lean`.
 
 Following Chernozhukov et al. (2018), at each sample size `n` the index
@@ -19,11 +19,12 @@ to estimate the nuisance.
 training complement under `μ`.
 -/
 
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit.OneShot
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Order.Filter.AtTopBot.Basic
-import Mathlib.Topology.Instances.Real.Lemmas
+module
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit.OneShot
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Order.Filter.AtTopBot.Basic
+public import Mathlib.Topology.Instances.Real.Lemmas
 
 /-! # K-Fold Sample Splits
 
@@ -31,6 +32,8 @@ This file defines \(K\)-fold sample-splitting schedules for an i.i.d. sample,
 including disjointness, coverage, fold growth, and limiting fold proportions.
 It also proves that each evaluation fold is independent of its training
 complement, supporting cross-fitted estimation procedures. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

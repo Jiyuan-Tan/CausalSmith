@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Probability.Moments.Variance
-import Causalean.Mathlib.Probability.ConvergingTogether.CharFunBound
+
+module
+public import Mathlib.Probability.Moments.Variance
+public import Causalean.Mathlib.Probability.LimitTheorems.Approximation.CharFunBound
 
 /-!
 # Moments and deviation bounds for i.i.d. empirical means
@@ -14,14 +16,16 @@ as well as scalar and finite-dimensional `L²` and `L¹` deviation bounds under
 the corresponding moment assumptions.
 
 The sample index is an arbitrary nonempty finite type; the sample size is then
-its cardinality.  Each result also has a `Fin n` specialisation under the
-unprimed classical name, so that callers indexing a sample by a `Finset`
-subtype or by a fold of a cross-fitting partition can use the same lemmas.
+its cardinality. Each result also has a `Fin n` specialisation under the
+unprimed classical name, so callers using either a finite subtype or `Fin n`
+can use the same lemmas.
 
 The file also records the integrability / `L²`-membership side conditions of the
 Euclidean deviation bound as public lemmas, since they are needed whenever the
 bound is combined with another integral estimate.
 -/
+
+public section
 
 namespace Causalean.Mathlib.Probability
 

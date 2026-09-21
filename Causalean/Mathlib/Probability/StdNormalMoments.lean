@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.Probability.StdNormalCDF
+module
+public import Causalean.Mathlib.Probability.StdNormalCDF
 
 /-!
 # Standard normal survival integral and truncated first moment
@@ -17,8 +18,10 @@ density `stdNormalPDF` and CDF `stdNormalCDF`:
 * `integral_Ioi_id_mul_stdNormalPDF`: the truncated first moment
   `∫_{c}^∞ t * φ(t) dt = φ(c)`.
 
-The moment identity follows from `d/dt[-φ(t)] = t * φ(t)` and supplies the
-closed-form Gaussian tail moment used by sensitivity calculations. -/
+The moment identity follows from `d/dt[-φ(t)] = t * φ(t)` and supplies a
+closed-form Gaussian tail moment. -/
+
+public section
 
 namespace Causalean.Mathlib
 
@@ -55,8 +58,7 @@ tail integral of `t` times the standard normal density over `(c, ∞)` equals th
 value at `c`](goal).
 
 Because `d/dt[−φ(t)] = t·φ(t)` for the standard normal, the truncated mean integrates to
-the density value at the cutoff. This is the identity behind the closed-form Gaussian MSM
-half-width. -/
+the density value at the cutoff. -/
 lemma integral_Ioi_id_mul_stdNormalPDF (c : ℝ) :
     ∫ t in Set.Ioi c, t * stdNormalPDF t = stdNormalPDF c := by
   let phi : ℝ → ℝ := fun x => Real.exp (-x ^ 2 / 2)

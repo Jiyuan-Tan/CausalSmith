@@ -3,37 +3,41 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# TRAE-DR asymptotic normality
+# Consequences of the abstract TRAE-DR remainder criterion
 
-This file states `thm:est-trae-dr-asymp-normal` from
-`doc/basic_concepts/po/estimation/trae_inverse_problems.tex`:
+This file derives limit results from the abstract unconditional remainder
+criterion in `AsymptoticLinear.lean`:
 
 * the rescaled TRAE-DR estimator converges in distribution to
   `N(0, σ₀²)` along the estimation fold, where
   `σ₀² := ∫ ρ₀(w)² dP_W`;
-* under a consistent variance estimator `σ̂_n`, the studentized statistic
+* under a consistent standard-deviation estimator `σ̂_n`, the studentized statistic
   converges to `N(0, 1)`;
-* the Wald interval `θ̂_n ± z_{1-α/2} σ̂_n / √|B(n)|` has asymptotic
-  coverage `1 − α`.
+* assuming an event-probability bridge from the studentized interval to the
+  Wald interval, the Wald coverage probability has the corresponding limit.
 
-The first theorem is a direct composition of `trae_dr_isAsymLinear`
-(`thm:est-trae-dr-al-criterion`) with
+The first theorem is a direct composition of `trae_dr_isAsymLinear` with
 `IsAsymLinear.tendsto_normal_foldB` (`Causalean/Stat/PartialFoldCLT.lean`).
 
-The studentized and Wald-coverage statements are pragmatic: they
-parameterize over a variance-estimator sequence `σ_hat_n` together with
-its `Tendsto_inProb` consistency hypothesis.
+The studentized statement parameterizes over a standard-deviation-estimator sequence
+`σ_hat_n` together with its `Tendsto_inProb` consistency hypothesis. The
+Wald statement additionally assumes that its coverage event and the
+studentized interval event have asymptotically equal probabilities; it is a
+transfer theorem, not a derivation of that event bridge.
 -/
 
-import Causalean.Estimation.NPIV.DR.AsymptoticLinear
-import Causalean.Stat.SampleSplit.PartialFoldCLT
-import Causalean.Stat.Inference.Studentize
+module
+public import Causalean.Estimation.NPIV.DR.PrimalRate
+public import Causalean.Stat.Inference.Studentize
+public import Causalean.Stat.SampleSplit.PartialFoldCLT
 
 /-!
 Derives asymptotic normality for the doubly robust NPIV estimator from
 asymptotic linearity, Gaussian score limits, and
 studentization/continuous-mapping inputs.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -48,16 +52,14 @@ The portmanteau / Gaussian-boundary helpers and the convergence-in-probability
 primitives used below now live in `Causalean/Stat/Studentize.lean` and
 `Causalean/Stat/ContinuousMapping.lean` (public, estimator-agnostic). -/
 
-/-- **TRAE-DR asymptotic normality** — `thm:est-trae-dr-asymp-normal`. Under [the dual-solution
-hypothesis on `q₀`](hyp:hq₀), [primal nuisance estimators `ĥ_n`, indexed by sample size and
-outcome, satisfying — together with the paired dual estimators — the bundled TRAE-DR remainder
-conditions](hyp:h_hat), and [the law bridge identifying the pushforward of `μ` along the
-observation map `W` with the observation law `P_W`](hyp:h_law_W), suppose further that [the
-√n-rescaled estimator sequence is almost-everywhere measurable at every sample
-size](hyp:h_meas_θ) and [the normalized influence-function partial sum is almost-everywhere
-measurable at every sample size](hyp:_h_meas_sum). Then [the rescaled TRAE-DR estimator
-converges in distribution, along the estimation-fold sizes, to the centered Gaussian law with
-variance `σ₀² := ∫ ρ₀(w)² dP_W`](goal).
+/-- **TRAE-DR asymptotic normality from abstract remainder bounds.** For [an inverse-problem
+system](hyp:S), [a dual solution](hyp:hq₀), [an i.i.d. sample](hyp:sample), [a one-shot
+split](hyp:split), [primal nuisance functions](hyp:h_hat), and [dual nuisance
+functions](hyp:q_hat), assume [the abstract remainder conditions](hyp:_hyps), [the
+observation-law bridge](hyp:h_law_W), [measurability of the oracle score](hyp:_h_ρ₀_meas),
+[measurability of the rescaled estimator](hyp:h_meas_θ), and [measurability of its normalized
+oracle-score sum](hyp:_h_meas_sum). Then [the rescaled estimator converges along the evaluation
+folds to the centered Gaussian law whose variance is the oracle score's second moment](goal).
 
 Under the hypotheses of `trae_dr_isAsymLinear`, the rescaled estimator
 converges in distribution to `N(0, σ₀²)` along the estimation-fold
@@ -103,19 +105,18 @@ theorem trae_dr_asymp_normal
 
 /-! ## Studentized convergence -/
 
-/-- **Studentized TRAE-DR convergence.** Fix [a dual solution `q₀` of the inverse-problem
-system `S`](hyp:hq₀) together with [a first-stage nuisance-estimator sequence `ĥ_n`](hyp:h_hat),
-and suppose [the sample's `W`-marginal is identified as `P_W`](hyp:h_law_W). Assume [the
-efficient influence function `ρ₀` is measurable](hyp:h_ρ₀_meas) and [the rescaled estimator
-sequence, its normalized-sum representation, and the studentized statistic itself are all
-almost-everywhere measurable at every sample
-size](hyp:h_meas_θ,h_meas_sum,h_studentized_meas). If [the asymptotic standard deviation
-`σ₀` is strictly positive with `σ₀² = ∫ ρ₀(w)² dP_W`](hyp:_hσ₀_pos,_hσ_eq) and [a
-variance-estimator sequence `σ̂_n` converges to `σ₀` in probability](hyp:_hσ_consistent), then
-[the studentized statistic `√|B(n)| · (θ̂_n − θ₀) / σ̂_n` converges in distribution to the
-standard normal law `N(0, 1)`](goal).
+/-- **Studentized TRAE-DR convergence.** For [an inverse-problem system](hyp:S), [a dual
+solution](hyp:hq₀), [an i.i.d. sample](hyp:sample), [a one-shot split](hyp:split), [primal
+nuisance functions](hyp:h_hat), and [dual nuisance functions](hyp:q_hat), assume [the abstract
+remainder conditions](hyp:_hyps), [the observation-law bridge](hyp:h_law_W), [a
+standard-deviation estimator](hyp:σ_hat_n), [a positive limiting standard deviation satisfying
+the oracle second-moment identity](hyp:σ₀,_hσ₀_pos,_hσ_eq), [its consistency in
+probability](hyp:_hσ_consistent), [measurability of the oracle score](hyp:h_ρ₀_meas), and
+[the required estimator, oracle-sum, and studentized-statistic measurability
+conditions](hyp:h_meas_θ,h_meas_sum,h_studentized_meas). Then [the studentized statistic
+converges in distribution to the standard normal law](goal).
 
-Given any variance-estimator sequence `σ_hat_n : ℕ → Ω → ℝ` satisfying
+Given any standard-deviation-estimator sequence `σ_hat_n : ℕ → Ω → ℝ` satisfying
 `σ̂_n →_p σ₀` and `σ₀ > 0`,
 
     √|B(n)| · (θ̂_n − θ₀) / σ̂_n  ⇒  N(0, 1).
@@ -176,20 +177,23 @@ theorem trae_dr_studentized
       _hσ_consistent hdiv
   simpa [Xn, IsAsymLinear.rescaledEstimator] using hres
 
-/-! ## Wald-interval asymptotic coverage -/
+/-! ## Wald-coverage transfer from an event-probability bridge -/
 
-/-- **Wald asymptotic coverage** — `thm:est-trae-dr-asymp-normal`. Under the same setup as
-`trae_dr_studentized` — [a dual solution `q₀` of the inverse-problem system `S`](hyp:hq₀),
-[a first-stage nuisance-estimator sequence `ĥ_n`](hyp:h_hat), [the sample's `W`-marginal
-identified as `P_W`](hyp:h_law_W), [measurability of `ρ₀`, of the rescaled estimator, of its
-normalized-sum representation, and of the studentized
-statistic](hyp:h_ρ₀_meas,h_meas_θ,h_meas_sum,h_studentized_meas), and [a variance-estimator
-sequence `σ̂_n` that is consistent in probability for a strictly positive `σ₀` satisfying
-`σ₀² = ∫ ρ₀(w)² dP_W`](hyp:_hσ₀_pos,_hσ_eq,_hσ_consistent) — fix any [strictly positive real
-number `z`](hyp:_hz_pos). Then [provided the coverage probability of the Wald interval
-`θ̂_n ± z · σ̂_n / √|B(n)|` and the probability that the studentized statistic lands in
-`[-z, z]` become asymptotically equal, the Wald-interval coverage probability converges to
-the standard-normal mass `2 Φ(z) − 1` on `[-z, z]`](goal).
+/-- **Wald-coverage transfer from a probability bridge.** For [an inverse-problem
+system](hyp:S), [a dual solution `q₀`](hyp:hq₀), [an i.i.d. sample](hyp:sample),
+[a one-shot split](hyp:split), [primal nuisance estimators](hyp:h_hat), and
+[dual nuisance estimators](hyp:q_hat) [satisfying the TRAE-DR remainder
+conditions](hyp:_hyps), assume [the sample's `W`-marginal is
+`P_W`](hyp:h_law_W), [a standard-deviation-estimator sequence](hyp:σ_hat_n), [a limiting
+standard deviation](hyp:σ₀), [its strict positivity](hyp:_hσ₀_pos), [the
+oracle variance identity](hyp:_hσ_eq), [standard-deviation consistency in
+probability](hyp:_hσ_consistent), and [measurability of `ρ₀`, the rescaled
+estimator, its normalized-sum representation, and the studentized
+statistic](hyp:h_ρ₀_meas,h_meas_θ,h_meas_sum,h_studentized_meas). For [a
+cutoff](hyp:z), if [the Wald coverage
+probability and the studentized interval probability become asymptotically
+equal](hyp:h_wald_studentized), then [the Wald coverage probability converges
+to the standard-normal mass on `[-z,z]`](goal).
 
 The hypothesis `h_wald_studentized` is the event-rewrite/exceptional-set
 bridge: it says the Wald coverage event and the studentized interval event
@@ -197,14 +201,14 @@ have asymptotically equal probabilities.  It is separated from the
 distributional argument so callers can discharge it from positivity of
 `σ̂_n` and the fold-B cardinality in the concrete estimator setup.
 
-In particular, taking `z = z_{1-α/2}` gives asymptotic coverage `1 − α`
-for the Wald interval
+After the bridge is supplied, taking `z = z_{1-α/2}` gives asymptotic
+coverage `1 − α` for the Wald interval
 
     θ̂_n ± z_{1-α/2} · σ̂_n / √|B(n)|.
 
 The conclusion is phrased as a `Tendsto` on the coverage probability;
 plugging in the standard-normal quantile is left to the user. -/
-theorem trae_dr_wald_coverage
+theorem trae_dr_wald_coverage_of_event_bridge
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     [IsProbabilityMeasure μ]
     (S : InverseProblemSystem Ω μ) {q₀ : S.𝒵 → ℝ}
@@ -231,8 +235,8 @@ theorem trae_dr_wald_coverage
         Real.sqrt ((split.foldB n).card : ℝ) *
           (trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀)
           / σ_hat_n n ω) μ)
-    (z : ℝ) (_hz_pos : 0 < z) :
-    Tendsto
+    (z : ℝ)
+    (h_wald_studentized : Tendsto
       (fun n =>
         (μ {ω | |trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀|
             ≤ z * σ_hat_n n ω / Real.sqrt ((split.foldB n).card : ℝ)}).toReal
@@ -242,14 +246,13 @@ theorem trae_dr_wald_coverage
             (trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀)
             / σ_hat_n n ω ∈ Set.Icc (-z) z}).toReal)
       atTop
-      (𝓝 0) →
+      (𝓝 0)) :
     Tendsto
       (fun n =>
         (μ {ω | |trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀|
             ≤ z * σ_hat_n n ω / Real.sqrt ((split.foldB n).card : ℝ)}).toReal)
       atTop
       (𝓝 ((gaussianMeasure 0 1) (Set.Icc (-z) z)).toReal) := by
-  intro h_wald_studentized
   let studentized : ℕ → Ω → ℝ := fun n ω =>
     Real.sqrt ((split.foldB n).card : ℝ) *
       (trae_dr_estimator S sample split h_hat q_hat n ω - S.θ₀)
@@ -266,13 +269,38 @@ theorem trae_dr_wald_coverage
       trae_dr_studentized S hq₀ sample split h_hat q_hat _hyps
         h_law_W σ_hat_n σ₀ _hσ₀_pos _hσ_eq _hσ_consistent
         h_ρ₀_meas h_meas_θ h_meas_sum h_studentized_meas
-  -- The portmanteau argument is now the generic `Tendsto_dist.wald_coverage`
-  -- (in `Causalean/Stat/Studentize.lean`); the studentized limit `hStud` and the
-  -- event-equivalence bridge `h_wald_studentized` are the only inputs.
-  have hcover :=
-    Tendsto_dist.wald_coverage h_studentized_meas hStud _hz_pos coverProb
-      h_wald_studentized
-  simpa [coverProb] using hcover
+  have hfrontier :
+      gaussianMeasure 0 1 (frontier (Set.Icc (-z) z)) = 0 := by
+    by_cases hz : 0 ≤ z
+    · have hle : -z ≤ z := by linarith
+      rw [frontier_Icc hle]
+      rw [show ({-z, z} : Set ℝ) = {-z} ∪ {z} by ext x; simp [or_comm]]
+      exact le_antisymm
+        (by
+          calc
+            gaussianMeasure 0 1 (({-z} : Set ℝ) ∪ {z})
+                ≤ gaussianMeasure 0 1 ({-z} : Set ℝ) +
+                    gaussianMeasure 0 1 ({z} : Set ℝ) := measure_union_le _ _
+            _ = 0 := by simp [gaussianMeasure_zero_one_singleton])
+        zero_le
+    · rw [Set.Icc_eq_empty (by linarith)]
+      simp
+  have hpm := Tendsto_dist.tendsto_measure_of_null_frontier
+    h_studentized_meas hStud hfrontier
+  have hstudent_event :
+      Tendsto studProb atTop
+        (nhds ((gaussianMeasure 0 1) (Set.Icc (-z) z)).toReal) := by
+    refine hpm.congr' ?_
+    filter_upwards with n
+    rw [Measure.map_apply_of_aemeasurable (h_studentized_meas n) measurableSet_Icc]
+    rfl
+  have hsum := hstudent_event.add h_wald_studentized
+  have hsum' : Tendsto (fun n => studProb n + (coverProb n - studProb n)) atTop
+      (nhds ((gaussianMeasure 0 1) (Set.Icc (-z) z)).toReal) := by
+    simpa using hsum
+  refine (hsum'.congr' ?_)
+  filter_upwards with n
+  simp [coverProb]
 
 end DR
 end NPIV

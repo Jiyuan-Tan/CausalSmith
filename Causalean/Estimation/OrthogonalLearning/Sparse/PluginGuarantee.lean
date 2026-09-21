@@ -18,11 +18,12 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `thm:est-osl-sparse-plugin-guarantee`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Sparse.Setup
-import Causalean.Estimation.OrthogonalLearning.Sparse.RSC
-import Mathlib.Analysis.Convex.Function
-import Mathlib.MeasureTheory.Measure.MeasureSpace
-import Mathlib.MeasureTheory.OuterMeasure.Defs
+module
+public import Causalean.Estimation.OrthogonalLearning.Sparse.Setup
+public import Causalean.Estimation.OrthogonalLearning.Sparse.RSC
+public import Mathlib.Analysis.Convex.Function
+public import Mathlib.MeasureTheory.Measure.MeasureSpace
+public import Mathlib.MeasureTheory.OuterMeasure.Defs
 
 /-! # Sparse Plug-In Guarantee
 
@@ -37,6 +38,8 @@ The deterministic theorem `sparse_plugin_guarantee` proves membership of
 error bound. The predicate `LinftyDevTailBound` and theorem
 `sparse_plugin_guarantee_highProb` lift this deterministic guarantee to a
 high-probability event. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -282,25 +285,24 @@ def LinftyDevTailBound
 
 /-- **High-probability sparse plug-in ERM guarantee.** Let empRiskFn(ω) be a random
 empirical risk function on `EuclideanSpace ℝ (Fin p)` with random empirical gradient map
-gradEmp(ω), and popGrad the population gradient. Assume [the support S₀ of the truth θ₀
+gradEmp(ω). Assume [the support S₀ of the truth θ₀
 has cardinality s](hyp:hs), that [θ₀ vanishes off S₀](hyp:h_supp), and that [empRiskFn(ω)
 is convex on the ambient space for every ω](hyp:h_conv). Suppose [the restricted-strong-
-convexity modulus σn is strictly positive](hyp:hσn) and [empRiskFn(ω) is
-σn-restricted-strongly-convex at θ₀ over S₀ for every ω](hyp:h_RSC), and that [the
+convexity modulus σn is strictly positive](hyp:hσn), and that [the
 empirical gradient at θ₀ satisfies the subgradient basic inequality for empRiskFn(ω), for
 every ω](hyp:h_subgrad). Given a penalty level with [`lambda > 0`](hyp:h_lambda_pos), and
-assuming [the index set `Fin p` is nonempty](hyp:hp), that [the population gradient
-vanishes at the truth](hyp:h_FOC_pop), and that [θhat(ω) is a sparse plug-in regularised
+assuming [the index set `Fin p` is nonempty](hyp:hp), and that [θhat(ω) is a sparse plug-in regularised
 empirical-risk minimizer of empRiskFn(ω) at penalty level lambda, for every
-ω](hyp:h_pluginERM). Suppose further that [the deviation of the empirical gradient from
-popGrad at θ₀ obeys a sup-norm tail bound ρ at confidence level δ](hyp:hLambdaTail), with
+ω](hyp:h_pluginERM). Suppose further that [on one measurable event of probability at least
+`1-δ`, restricted strong convexity holds and the empirical-gradient deviation is at most
+ρ](hyp:hGoodEvent), with
 [lambda at least twice that tail level, `lambda ≥ 2ρ`](hyp:h_lambda_dom). Then [there is
 an event of probability at least `1 - δ` on which, for every ω in it, the estimation
 error `θhat ω − θ₀` lies in the restricted cone around S₀ and its Euclidean norm is at
 most `12 · lambda · √s / σn`](goal).
 
 Lift `sparse_plugin_guarantee` to a *probability-1−δ* statement once the
-empirical gradient `gradEmp ω θ₀ − popGrad` satisfies an ℓ∞ tail bound `≤ ρ`
+empirical gradient `gradEmp ω θ₀` satisfies an ℓ∞ tail bound `≤ ρ`
 with `lambda ≥ 2 ρ` (the deterministic version's hypothesis is then
 automatically met on the tail event).
 
@@ -312,7 +314,6 @@ theorem sparse_plugin_guarantee_highProb
     {p : ℕ}
     {Ω : Type*} [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
     (empRiskFn : Ω → EuclideanSpace ℝ (Fin p) → ℝ)
-    (popGrad : EuclideanSpace ℝ (Fin p))
     (gradEmp : Ω → EuclideanSpace ℝ (Fin p) → EuclideanSpace ℝ (Fin p))
     (θ₀ : EuclideanSpace ℝ (Fin p))
     (θhat : Ω → EuclideanSpace ℝ (Fin p))
@@ -321,30 +322,31 @@ theorem sparse_plugin_guarantee_highProb
     (h_supp : ∀ i ∉ S₀, θ₀ i = 0)
     (h_conv : ∀ ω, ConvexOn ℝ Set.univ (empRiskFn ω))
     (σn : ℝ) (hσn : 0 < σn)
-    (h_RSC : ∀ ω, RestrictedStrongConvexity (empRiskFn ω) (gradEmp ω) θ₀ S₀ σn)
     (h_subgrad : ∀ ω, ∀ θ : EuclideanSpace ℝ (Fin p),
       empRiskFn ω θ - empRiskFn ω θ₀ ≥ inner ℝ (gradEmp ω θ₀) (θ - θ₀))
     (lambda : ℝ) (h_lambda_pos : 0 < lambda)
     (hp : (Finset.univ : Finset (Fin p)).Nonempty)
-    (h_FOC_pop : popGrad = 0)
     (h_pluginERM : ∀ ω, SparsePluginERM (empRiskFn ω) (θhat ω) lambda)
     (ρ : ℝ) (δ : ℝ)
-    (hLambdaTail :
-      LinftyDevTailBound μ hp (fun ω => gradEmp ω θ₀ - popGrad) ρ δ)
+    (hGoodEvent : ∃ E : Set Ω,
+      MeasurableSet E ∧ μ E ≥ 1 - ENNReal.ofReal δ ∧
+        ∀ ω ∈ E,
+          RestrictedStrongConvexity (empRiskFn ω) (gradEmp ω) θ₀ S₀ σn ∧
+          linftyDev hp (gradEmp ω θ₀) ≤ ρ)
     (h_lambda_dom : lambda ≥ 2 * ρ) :
     ∃ E : Set Ω, MeasurableSet E ∧ μ E ≥ 1 - ENNReal.ofReal δ ∧
       ∀ ω ∈ E,
         θhat ω - θ₀ ∈ RestrictedCone S₀ ∧
         ‖θhat ω - θ₀‖ ≤ 12 * lambda * Real.sqrt s / σn := by
-  rcases hLambdaTail with ⟨E, hE_meas, hE_mass, hE_dev_bound⟩
+  rcases hGoodEvent with ⟨E, hE_meas, hE_mass, hE_good⟩
   refine ⟨E, hE_meas, hE_mass, ?_⟩
   intro ω hω
   have h_lambda_lb :
-      lambda ≥ 2 * linftyDev hp (gradEmp ω θ₀ - popGrad) := by
-    nlinarith [h_lambda_dom, hE_dev_bound ω hω]
-  exact sparse_plugin_guarantee (empRiskFn ω) popGrad (gradEmp ω) θ₀ (θhat ω)
-    S₀ s hs h_supp (h_conv ω) σn hσn (h_RSC ω) (h_subgrad ω)
-    lambda h_lambda_pos hp h_lambda_lb h_FOC_pop (h_pluginERM ω)
+      lambda ≥ 2 * linftyDev hp (gradEmp ω θ₀) := by
+    nlinarith [h_lambda_dom, (hE_good ω hω).2]
+  simpa using sparse_plugin_guarantee (empRiskFn ω) 0 (gradEmp ω) θ₀ (θhat ω)
+    S₀ s hs h_supp (h_conv ω) σn hσn (hE_good ω hω).1 (h_subgrad ω)
+    lambda h_lambda_pos hp (by simpa using h_lambda_lb) rfl (h_pluginERM ω)
 
 end Sparse
 end OrthogonalLearning

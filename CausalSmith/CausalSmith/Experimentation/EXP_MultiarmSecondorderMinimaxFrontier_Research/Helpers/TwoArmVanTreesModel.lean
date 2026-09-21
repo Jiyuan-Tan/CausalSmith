@@ -1,4 +1,5 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothModel
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothModel
 
 /-!
 Regularized likelihood identities for the smooth two-arm van Trees model.
@@ -8,12 +9,14 @@ inside `(-1,1)` the model and its derivative are exactly the Bernoulli product
 likelihood used by the paper.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset Set MeasureTheory
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 
-open Causalean.Stat.Limit.ObservationDependentVanTrees
+open Causalean.Stat.Minimax.ObservationDependentVanTrees
 
 -- @node: twoArmRegularBernoulliLikelihood
 /-- The Bernoulli product likelihood with its scalar parameter clamped to `[-1,1]`. -/
@@ -211,16 +214,16 @@ lemma finiteCountProduct_integrable_of_continuousSections
 -- @node: twoArmRegularBernoulliLikelihood_hasDerivAt_ae
 /-- [The regularized product likelihood has the advertised derivative almost everywhere on the ambient parameter/counting product measure.](goal) -/
 lemma twoArmRegularBernoulliLikelihood_hasDerivAt_ae {n : ℕ} :
-    ∀ᵐ z ∂((Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    ∀ᵐ z ∂((Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       (-1 / 2) (1 / 2)).prod (Measure.count : Measure (Unit n → Bool))),
       HasDerivAt (fun t => twoArmRegularBernoulliLikelihood t z.2)
         (twoArmBernoulliLikelihoodDeriv z.1 z.2) z.1 := by
-  have hmemθ : ∀ᵐ (θ : ℝ) ∂Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+  have hmemθ : ∀ᵐ (θ : ℝ) ∂Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       (-1 / 2) (1 / 2), θ ∈ Set.Icc (-1 / 2) (1 / 2) := by
-    unfold Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     exact ae_restrict_mem measurableSet_Icc
   have hmem := (Measure.quasiMeasurePreserving_fst
-    (μ := Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    (μ := Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       (-1 / 2) (1 / 2))
     (ν := (Measure.count : Measure (Unit n → Bool)))).tendsto_ae.eventually hmemθ
   filter_upwards [hmem] with z hz
@@ -231,16 +234,16 @@ lemma twoArmRegularBernoulliLikelihood_hasDerivAt_ae {n : ℕ} :
 -- @node: twoArmPosteriorTarget_hasDerivAt_ae
 /-- [The supplied posterior-target derivative is valid almost everywhere on the ambient parameter/counting product measure.](goal) -/
 lemma twoArmPosteriorTarget_hasDerivAt_ae {n : ℕ} (a : ℝ) :
-    ∀ᵐ z ∂((Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    ∀ᵐ z ∂((Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       (-1 / 2) (1 / 2)).prod (Measure.count : Measure (Unit n → Bool))),
       HasDerivAt (fun t => twoArmPosteriorTarget a t z.2)
         (twoArmPosteriorTargetDeriv a z.1 z.2) z.1 := by
-  have hmemθ : ∀ᵐ (θ : ℝ) ∂Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+  have hmemθ : ∀ᵐ (θ : ℝ) ∂Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       (-1 / 2) (1 / 2), θ ∈ Set.Icc (-1 / 2) (1 / 2) := by
-    unfold Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     exact ae_restrict_mem measurableSet_Icc
   have hmem := (Measure.quasiMeasurePreserving_fst
-    (μ := Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    (μ := Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       (-1 / 2) (1 / 2))
     (ν := (Measure.count : Measure (Unit n → Bool)))).tendsto_ae.eventually hmemθ
   filter_upwards [hmem] with z hz

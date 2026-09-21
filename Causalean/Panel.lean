@@ -1,0 +1,57 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Panel.AdoptionPath
+public import Causalean.Panel.Analysis.Residualization
+public import Causalean.Panel.CellBridge
+public import Causalean.Panel.Cells
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Basic
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.CellGrid
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Contamination
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Conventional
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.InteractionWeighted
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.PopulationBridge
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Setup
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.DID
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.PopulationBridge
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.PopulationOrigin
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.TWFE
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.VectorMundlak
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.VectorTWFE
+public import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.FWLBridge
+public import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.FinitePanel
+public import Causalean.Panel.EstimandCharacterization.HeterogeneousTWFE.PopulationBridge
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.FullDesignGaussMarkov
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.PanelBridge
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.PanelGrounding
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.PopulationBridge
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.FinitePartition
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.GeneralCondExp
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.OverlapWeightedATE
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Basic
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Integrals
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Orthogonality
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Partition
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.PerCell
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition
+public import Causalean.Panel.FixedEffect
+public import Causalean.Panel.FixedEffect.IndicatorClosedForms
+public import Causalean.Panel.InnerProduct
+public import Causalean.Panel.PO.CellPO
+public import Causalean.Panel.PO.Consistency
+public import Causalean.Panel.PO.Exposure
+public import Causalean.Panel.PO.PopulationCells
+public import Causalean.Panel.PO.TreatmentPath
+public import Causalean.Panel.Subspace
+public import Causalean.Panel.UniformTwoWayPanel
+public import Causalean.Panel.WeightedTwoWayPanel
+
+/-!
+Tools for causal and statistical analysis of panel data. They support reasoning
+with repeated observations on units over time.
+-/

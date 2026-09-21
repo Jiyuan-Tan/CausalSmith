@@ -4,24 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Regression
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Moments
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Residual
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Invariance
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Regression
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Moments
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Residual
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Invariance
 
 /-!
-# Invariant Causal Prediction — completeness for do-interventions (`prop:1`(i))
+# Invariant Causal Prediction — conditional completeness for do-interventions
 
-The **statement** of Peters–Bühlmann–Meinshausen 2016, Theorem `prop:1`(i): for a
+A specialization of Peters–Bühlmann–Meinshausen 2016, Theorem 2(i): for a
 linear-Gaussian SEM whose interventions are *do-interventions* with shifted
 values (`a^e_j ≠ E[X¹_j]`) and at least one single-node intervention on every
-predictor, the identified set equals the parents of the target:
-`S(E) = PA(Y)`.
+predictor, the identified set equals the parents of the target: `S(E) = PA(Y)`.
+The formal model additionally assumes, through `ObsSEM.hYexo` and `Env.hExo`,
+the target-exogeneity consequences that the paper derives from its recursive SEM.
 
-The intermediate lemmas mirror the paper's appendix proof (`app:proofs`, "Proof
-of Theorem prop:1 (i)"):
+The intermediate lemmas mirror the paper's proof of Theorem 2(i):
 
-1. **Soundness** `icp_sound_linearGaussian` (`S(E) ⊆ PA(Y)`) — `H_{0,PA(Y)}`
+1. **Soundness** `icp_sound_linearGaussian_of_exogeneity` (`S(E) ⊆ PA(Y)`) — `H_{0,PA(Y)}`
    holds with `γ = γ* = β₀,·` and residual `ε₁`, so `PA(Y)` is one of the
    intersected sets (`propos:sem`).
 2. **Youngest-node selection** `exists_youngest_nonzero` — among the indices `k`
@@ -31,13 +32,13 @@ of Theorem prop:1 (i)"):
    `do(X_{k₀} = a)` intervention with `a ≠ E[X¹_{k₀}]` and `α_{k₀} ≠ 0`, the
    residual law in that environment differs from the observational one (their
    means differ by `α_{k₀}·(a − E[X¹_{k₀}]) ≠ 0`), contradicting invariance.
-4. **Completeness** `icp_complete_linearGaussian` — combines 1–3: any
+4. **Completeness** `icp_complete_linearGaussian_of_exogeneity` — combines 1–3: any
    null-satisfying `S` must contain `PA(Y)`, so `S(E) ⊇ PA(Y)`, and with
    soundness `S(E) = PA(Y)`.
 
 ## Encoding choices (fidelity notes)
 
-* **Single-intervention hypothesis (`prop:1`(i)).**  `HasShiftedSingleInterventions`:
+* **Single-intervention hypothesis (Theorem 2(i)).** `HasShiftedSingleInterventions`:
   for each predictor `j`, some environment `i` has `A i = {j}` (single
   intervention on `j`) and `a i j ≠ E[X¹_j]` (the shift condition, with the mean
   taken under the *observational* law).  This is exactly the paper's "`a^e_j ≠
@@ -65,6 +66,9 @@ of Theorem prop:1 (i)"):
   youngest-node selection (`exists_youngest_nonzero` over the support of `α`).
 -/
 
+@[expose] public section
+
+
 namespace Causalean.Discovery.InvariantPrediction.LinearGaussian
 
 open MeasureTheory ProbabilityTheory
@@ -76,18 +80,17 @@ namespace EnvFamily
 
 variable (F : EnvFamily p)
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p), [a linear-Gaussian
-environment family](hyp:F), and [a coordinate index](hyp:j), [the observational mean of that
-coordinate](goal) is its expectation under the family's observational probability law. -/
+/-- [The observational mean of coordinate `j`](goal) supplies the no-intervention baseline against
+which shifted interventions are detected in [a linear-Gaussian environment family](hyp:F) with
+[predictor dimension `p`](hyp:p) and [selected coordinate `j`](hyp:j). -/
 noncomputable def obsMean (j : Fin (p + 1)) : ℝ := ∫ ω, F.obs.X ω j ∂F.obs.P
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p) and [a
-linear-Gaussian environment family](hyp:F), [the shifted single-intervention condition](goal) means
-that for every predictor coordinate there is an environment such that (1) [that environment
-intervenes on that coordinate alone](step:1), and (2) [its assigned value differs from the
-coordinate's observational mean](step:2).
+/-- [The shifted single-intervention condition](goal) ensures that every predictor is experimentally
+distinguishable in [a linear-Gaussian environment family](hyp:F) with [predictor dimension
+`p`](hyp:p): (1) [some environment intervenes on that coordinate alone](step:1), and (2) [the
+assigned value differs from its observational mean](step:2).
 
-**Do-intervention single-intervention hypothesis** of `prop:1`(i): for every
+**Do-intervention single-intervention hypothesis** of Theorem 2(i): for every
 predictor `j`, some environment performs a single shifted do-intervention on `j`,
 i.e. `A i = {j}` and the assigned value differs from the observational mean
 `a i j ≠ E[X¹_j]`. -/
@@ -95,22 +98,24 @@ def HasShiftedSingleInterventions : Prop :=
   ∀ j ∈ predictors p, ∃ i : F.ι,
     (F.env i).A = {j} ∧ (F.env i).a j ≠ F.obsMean j
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p) and [a
-linear-Gaussian environment family](hyp:F), [the observational-integrability condition](goal) means
-that every observational coordinate is integrable under the observational probability law.
+/-- [Observational integrability](goal) guarantees that every coordinate mean used to detect an
+intervention shift is finite for [a linear-Gaussian environment family](hyp:F) with [predictor
+dimension `p`](hyp:p).
 
 Integrability of the observational coordinates (all Gaussian moments exist);
 carried as an explicit hypothesis so the observational means `E[X¹_j]` used by
 the shifted-intervention condition are available. -/
 def ObsIntegrable : Prop := ∀ j, Integrable (fun ω => F.obs.X ω j) F.obs.P
 
-/-- **Soundness** (`propos:sem`). Assuming [the observational predictor coordinates are
-integrable, so their means `E[X¹_j]` are well defined](hyp:_hInt), [the identified set is
+/-- **Soundness under separately certified exogeneity** (`propos:sem`). For [a
+linear-Gaussian environment family whose observational and interventional models carry
+the target-exogeneity fields `ObsSEM.hYexo` and `Env.hExo`](hyp:F), [the identified set is
 contained in the target's parents, `S(E) ⊆ PA(Y)`](goal).
 
 The null `H_{0,PA(Y)}` is correct with the causal coefficient `γ* = β₀,·` and residual
-`ε₁`, so `PA(Y) ∈ invariantSets` and hence is one of the intersected sets. -/
-theorem icp_sound_linearGaussian (_hInt : F.ObsIntegrable) :
+`ε₁`, so `PA(Y) ∈ invariantSets` and hence is one of the intersected sets. The
+exogeneity facts are assumed in the model fields, not derived here. -/
+theorem icp_sound_linearGaussian_of_exogeneity :
     F.identifiedSet ⊆ F.paY := by
   -- It suffices that `PA(Y)` itself satisfies the invariance null, since the
   -- identified set is contained in every invariant set.
@@ -285,8 +290,9 @@ theorem residual_mean_shift_of_doIntervention
   rw [heq, sub_self] at hgap
   exact (mul_ne_zero hk₀ (sub_ne_zero.mpr hai)) hgap.symm
 
-/-- **Completeness for do-interventions — Theorem `prop:1`(i).**
-For [an observational linear-Gaussian SEM with integrable regressors](hyp:hInt) such
+/-- **Conditional completeness for do-interventions (Theorem 2(i) specialization).**
+For [a linear-Gaussian environment family whose models separately certify target
+exogeneity](hyp:F), with [integrable observational regressors](hyp:hInt), such
 that [every predictor $j$ receives at least one environment with a single
 do-intervention $A^e = \{j\}$ whose shifted value $a^e_j$ differs from its
 observational mean $E[X^1_j]$](hyp:hInterv), [the ICP identified set — the
@@ -294,11 +300,11 @@ intersection of all invariant predictor sets — equals exactly the parent set o
 target node, $S(E) = PA(Y)$](goal).
 
 This is the main result of this sub-development. -/
-theorem icp_complete_linearGaussian
+theorem icp_complete_linearGaussian_of_exogeneity
     (hInt : F.ObsIntegrable) (hInterv : F.HasShiftedSingleInterventions) :
     F.identifiedSet = F.paY := by
   classical
-  apply le_antisymm (icp_sound_linearGaussian F hInt)
+  apply le_antisymm (icp_sound_linearGaussian_of_exogeneity F)
   -- `PA(Y) ⊆ S(E)`: every parent lies in every invariant set.
   intro pp hpp
   rw [mem_identifiedSet]

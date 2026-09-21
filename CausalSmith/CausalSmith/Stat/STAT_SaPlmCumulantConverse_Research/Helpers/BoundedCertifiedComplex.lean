@@ -1,6 +1,7 @@
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex.API
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedTranscendental
-import Mathlib.Analysis.Complex.ExponentialBounds
+module
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Contour.API
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.CertifiedTranscendental
+public import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-!
 # Paper-local bounded certified-complex combinators
@@ -12,10 +13,12 @@ by the finite spectral evaluator.  Every executable approximation remains a
 rational rectangle; semantic values occur only in the external certificate.
 -/
 
+@[expose] public section
+
 noncomputable section
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse.BoundedCertifiedComplex
 
@@ -33,11 +36,11 @@ exact values](goal). -/
     (z.add w).value = z.value + w.value := rfl
 
 private lemma width_mono {I J : ComplexRatInterval} (h : I.Subinterval J) :
-    I.width ≤ J.width :=
+    ComplexRatInterval.width I ≤ ComplexRatInterval.width J :=
   max_le_max (RatInterval.width_mono h.1) (RatInterval.width_mono h.2)
 
 private lemma maxAbs_mono {I J : ComplexRatInterval} (h : I.Subinterval J) :
-    I.maxAbs ≤ J.maxAbs :=
+    ComplexRatInterval.maxAbs I ≤ ComplexRatInterval.maxAbs J :=
   max_le_max (ComplexRatInterval.rat_maxAbs_mono h.1)
     (ComplexRatInterval.rat_maxAbs_mono h.2)
 
@@ -70,8 +73,9 @@ leaves its exact value unchanged](goal). -/
 
 /-- Recursive intersections of raw rectangle products. -/
 def mulApprox (z w : CertifiedComplex) : ℕ → ComplexRatInterval
-  | 0 => (z.approx 0).mul (w.approx 0)
-  | n + 1 => (mulApprox z w n).tighten ((z.approx (n + 1)).mul (w.approx (n + 1)))
+  | 0 => ComplexRatInterval.mul (z.approx 0) (w.approx 0)
+  | n + 1 => ComplexRatInterval.tighten (mulApprox z w n)
+      (ComplexRatInterval.mul (z.approx (n + 1)) (w.approx (n + 1)))
 
 /-- [Every stage of the recursively intersected rectangle products encloses the product of the
 two exact values, the stages are nested one inside the previous one, and each stage refines the
@@ -82,7 +86,7 @@ number: soundness, nestedness, and no loss relative to the plain interval produc
 lemma mulApprox_spec (z w : CertifiedComplex) (n : ℕ) :
     (mulApprox z w n).Contains (z.value * w.value) ∧
       (mulApprox z w (n + 1)).Subinterval (mulApprox z w n) ∧
-      (mulApprox z w n).Subinterval ((z.approx n).mul (w.approx n)) := by
+      (mulApprox z w n).Subinterval (ComplexRatInterval.mul (z.approx n) (w.approx n)) := by
   induction n with
   | zero =>
       have h := ComplexRatInterval.mul_sound (z.contains 0) (w.contains 0)
@@ -104,9 +108,9 @@ lemma mulApprox_spec (z w : CertifiedComplex) (n : ℕ) :
             Transcendental.tighten_subinterval_right ih.1.1 hnew.1,
             Transcendental.tighten_subinterval_right ih.1.2 hnew.2⟩⟩
 
-private def mulTolerance (z w : CertifiedComplex) (ε : PosRat) : PosRat :=
-  let A := (z.approx 0).maxAbs
-  let B := (w.approx 0).maxAbs
+def mulTolerance (z w : CertifiedComplex) (ε : PosRat) : PosRat :=
+  let A := ComplexRatInterval.maxAbs (z.approx 0)
+  let B := ComplexRatInterval.maxAbs (w.approx 0)
   ⟨ε.1 / (4 * (A + B + 1)), by
     have hA : 0 ≤ A := (abs_nonneg (z.approx 0).re.lo).trans
       ((le_max_left _ _).trans (le_max_left _ _))
@@ -124,53 +128,61 @@ def mulPrecision (z w : CertifiedComplex) (ε : PosRat) : ℕ :=
 /-- [At the stage index selected by the product precision schedule, the rectangle enclosing the
 product of two certified complex numbers has width at most the requested tolerance](goal). -/
 lemma mul_width_at_precision (z w : CertifiedComplex) (ε : PosRat) :
-    (mulApprox z w (mulPrecision z w ε)).width ≤ ε.1 := by
+    ComplexRatInterval.width (mulApprox z w (mulPrecision z w ε)) ≤ ε.1 := by
   let δ := mulTolerance z w ε
   let k := mulPrecision z w ε
-  let A := (z.approx 0).maxAbs
-  let B := (w.approx 0).maxAbs
+  let A := ComplexRatInterval.maxAbs (z.approx 0)
+  let B := ComplexRatInterval.maxAbs (w.approx 0)
   have hzmono : (z.approx k).Subinterval (z.approx 0) :=
     approx_mono z (Nat.zero_le k)
   have hwmono : (w.approx k).Subinterval (w.approx 0) :=
     approx_mono w (Nat.zero_le k)
-  have hzwidth : (z.approx k).width ≤ δ.1 :=
+  have hzwidth : ComplexRatInterval.width (z.approx k) ≤ δ.1 :=
     (width_mono (approx_mono z (le_max_left _ _))).trans
       (z.width_modulus δ)
-  have hwwidth : (w.approx k).width ≤ δ.1 :=
+  have hwwidth : ComplexRatInterval.width (w.approx k) ≤ δ.1 :=
     (width_mono (approx_mono w (le_max_right _ _))).trans
       (w.width_modulus δ)
-  have hzA : (z.approx k).maxAbs ≤ A := maxAbs_mono hzmono
-  have hwB : (w.approx k).maxAbs ≤ B := maxAbs_mono hwmono
+  have hzA : ComplexRatInterval.maxAbs (z.approx k) ≤ A := maxAbs_mono hzmono
+  have hwB : ComplexRatInterval.maxAbs (w.approx k) ≤ B := maxAbs_mono hwmono
   have hA : 0 ≤ A := (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
   have hB : 0 ≤ B := (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_right _ _))
-  have hzA0 : 0 ≤ (z.approx k).maxAbs :=
+  have hzA0 : 0 ≤ ComplexRatInterval.maxAbs (z.approx k) :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
-  have hwB0 : 0 ≤ (w.approx k).maxAbs :=
+  have hwB0 : 0 ≤ ComplexRatInterval.maxAbs (w.approx k) :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
   have hraw := ComplexRatInterval.mul_width (z.approx k) (w.approx k)
   have htight := width_mono (mulApprox_spec z w k).2.2
   calc
-    (mulApprox z w k).width ≤ ((z.approx k).mul (w.approx k)).width := htight
-    _ ≤ 2 * ((z.approx k).maxAbs * (w.approx k).width +
-        (w.approx k).maxAbs * (z.approx k).width) := hraw
+    ComplexRatInterval.width (mulApprox z w k) ≤
+        ComplexRatInterval.width (ComplexRatInterval.mul (z.approx k) (w.approx k)) := htight
+    _ ≤ 2 * (ComplexRatInterval.maxAbs (z.approx k) *
+          ComplexRatInterval.width (w.approx k) +
+        ComplexRatInterval.maxAbs (w.approx k) *
+          ComplexRatInterval.width (z.approx k)) := hraw
     _ ≤ 2 * (A * δ.1 + B * δ.1) := by
-      have hzw0 : 0 ≤ (z.approx k).width :=
+      have hzw0 : 0 ≤ ComplexRatInterval.width (z.approx k) :=
         (RatInterval.width_nonneg _).trans (le_max_left _ _)
-      have hww0 : 0 ≤ (w.approx k).width :=
+      have hww0 : 0 ≤ ComplexRatInterval.width (w.approx k) :=
         (RatInterval.width_nonneg _).trans (le_max_left _ _)
       nlinarith [mul_le_mul hzA hwwidth hww0 hA,
         mul_le_mul hwB hzwidth hzw0 hB]
     _ ≤ ε.1 := by
       dsimp [δ, mulTolerance, A, B]
-      have hden : 0 < 4 * ((z.approx 0).maxAbs + (w.approx 0).maxAbs + 1) := by
+      have hden : 0 < 4 * (ComplexRatInterval.maxAbs (z.approx 0) +
+          ComplexRatInterval.maxAbs (w.approx 0) + 1) := by
         positivity
       calc
-        2 * ((z.approx 0).maxAbs *
-              (ε.1 / (4 * ((z.approx 0).maxAbs + (w.approx 0).maxAbs + 1))) +
-            (w.approx 0).maxAbs *
-              (ε.1 / (4 * ((z.approx 0).maxAbs + (w.approx 0).maxAbs + 1)))) =
-            (2 * ε.1 * ((z.approx 0).maxAbs + (w.approx 0).maxAbs)) /
-              (4 * ((z.approx 0).maxAbs + (w.approx 0).maxAbs + 1)) := by ring
+        2 * (ComplexRatInterval.maxAbs (z.approx 0) *
+              (ε.1 / (4 * (ComplexRatInterval.maxAbs (z.approx 0) +
+                ComplexRatInterval.maxAbs (w.approx 0) + 1))) +
+            ComplexRatInterval.maxAbs (w.approx 0) *
+              (ε.1 / (4 * (ComplexRatInterval.maxAbs (z.approx 0) +
+                ComplexRatInterval.maxAbs (w.approx 0) + 1)))) =
+            (2 * ε.1 * (ComplexRatInterval.maxAbs (z.approx 0) +
+              ComplexRatInterval.maxAbs (w.approx 0))) /
+              (4 * (ComplexRatInterval.maxAbs (z.approx 0) +
+                ComplexRatInterval.maxAbs (w.approx 0) + 1)) := by ring
         _ ≤ ε.1 := by
           rw [div_le_iff₀ hden]
           nlinarith [ε.2]
@@ -281,7 +293,7 @@ rational midpoint](goal). -/
 argument rectangle width is the displayed coordinatewise expansion. -/
 def centeredComplexExp (I : ComplexRatInterval) (stage : ℕ) :
     ComplexRatInterval :=
-  let allowance := centeredExpEnvelope I * I.width
+  let allowance := centeredExpEnvelope I * ComplexRatInterval.width I
   (centeredExpCenterCore I stage).expand allowance
     (mul_nonneg (centeredExpEnvelope_nonneg I)
       ((RatInterval.width_nonneg I.re).trans (le_max_left _ _)))
@@ -353,11 +365,12 @@ lemma centeredComplexExp_sound (I : ComplexRatInterval) (stage : ℕ) {z : ℂ}
   have hsin := Real.abs_sin_sub_sin_le z.im (d : ℝ)
   have hxc := Transcendental.abs_sub_intervalMid_le_radius hz.1
   have hyd := Transcendental.abs_sub_intervalMid_le_radius hz.2
-  have hreWidth : (I.re.width : ℝ) ≤ (I.width : ℝ) := by
+  have hreWidth : (I.re.width : ℝ) ≤ (ComplexRatInterval.width I : ℝ) := by
     exact_mod_cast le_max_left I.re.width I.im.width
-  have himWidth : (I.im.width : ℝ) ≤ (I.width : ℝ) := by
+  have himWidth : (I.im.width : ℝ) ≤ (ComplexRatInterval.width I : ℝ) := by
     exact_mod_cast le_max_right I.re.width I.im.width
-  have hdist : |z.re - (c : ℝ)| + |z.im - (d : ℝ)| ≤ (I.width : ℝ) := by
+  have hdist : |z.re - (c : ℝ)| + |z.im - (d : ℝ)| ≤
+      (ComplexRatInterval.width I : ℝ) := by
     dsimp [c, d]
     simp only [Transcendental.intervalRadius, Rat.cast_div, Rat.cast_ofNat] at hxc hyd
     linarith
@@ -369,7 +382,7 @@ lemma centeredComplexExp_sound (I : ComplexRatInterval) (stage : ℕ) {z : ℂ}
   have hreDiff :
       |(Complex.exp z).re -
           (Complex.exp ((c : ℝ) + (d : ℝ) * Complex.I)).re| ≤
-        E * (I.width : ℝ) := by
+        E * (ComplexRatInterval.width I : ℝ) := by
     rw [Complex.exp_re, Complex.exp_re, hmidRe, hmidIm]
     calc
       _ = |(Real.exp z.re - Real.exp (c : ℝ)) * Real.cos z.im +
@@ -399,11 +412,11 @@ lemma centeredComplexExp_sound (I : ComplexRatInterval) (stage : ℕ) {z : ℂ}
                   mul_le_mul_of_nonneg_right hEcAbs (abs_nonneg _)
                 _ ≤ E * |z.im - (d : ℝ)| := mul_le_mul_of_nonneg_left hcos hE0
       _ = E * (|z.re - (c : ℝ)| + |z.im - (d : ℝ)|) := by ring
-      _ ≤ E * (I.width : ℝ) := mul_le_mul_of_nonneg_left hdist hE0
+      _ ≤ E * (ComplexRatInterval.width I : ℝ) := mul_le_mul_of_nonneg_left hdist hE0
   have himDiff :
       |(Complex.exp z).im -
           (Complex.exp ((c : ℝ) + (d : ℝ) * Complex.I)).im| ≤
-        E * (I.width : ℝ) := by
+        E * (ComplexRatInterval.width I : ℝ) := by
     rw [Complex.exp_im, Complex.exp_im, hmidRe, hmidIm]
     calc
       _ = |(Real.exp z.re - Real.exp (c : ℝ)) * Real.sin z.im +
@@ -433,7 +446,7 @@ lemma centeredComplexExp_sound (I : ComplexRatInterval) (stage : ℕ) {z : ℂ}
                   mul_le_mul_of_nonneg_right hEcAbs (abs_nonneg _)
                 _ ≤ E * |z.im - (d : ℝ)| := mul_le_mul_of_nonneg_left hsin hE0
       _ = E * (|z.re - (c : ℝ)| + |z.im - (d : ℝ)|) := by ring
-      _ ≤ E * (I.width : ℝ) := mul_le_mul_of_nonneg_left hdist hE0
+      _ ≤ E * (ComplexRatInterval.width I : ℝ) := mul_le_mul_of_nonneg_left hdist hE0
   have hcenter :=
     (Transcendental.complexExpNameApprox_spec (centeredExpCenterName I) stage).1
   have hcenter' :
@@ -455,29 +468,29 @@ the algorithmic remainder plus exactly twice the explicit input-width
 allowance. -/
 lemma centeredComplexExp_width_at_precision (I : ComplexRatInterval)
     (e : PosRat) :
-    (centeredComplexExp I
-      (Transcendental.complexExpPrecision (centeredExpCenterName I) e)).width ≤
-      2 * centeredExpEnvelope I * I.width + e.1 := by
-  let allowance := centeredExpEnvelope I * I.width
+    ComplexRatInterval.width (centeredComplexExp I
+      (Transcendental.complexExpPrecision (centeredExpCenterName I) e)) ≤
+      2 * centeredExpEnvelope I * ComplexRatInterval.width I + e.1 := by
+  let allowance := centeredExpEnvelope I * ComplexRatInterval.width I
   have hallowance : 0 ≤ allowance := by
     exact mul_nonneg (centeredExpEnvelope_nonneg I)
       ((RatInterval.width_nonneg I.re).trans (le_max_left _ _))
   have hcore :
-      (centeredExpCenterCore I
-        (Transcendental.complexExpPrecision (centeredExpCenterName I) e)).width ≤ e.1 := by
+      ComplexRatInterval.width (centeredExpCenterCore I
+        (Transcendental.complexExpPrecision (centeredExpCenterName I) e)) ≤ e.1 := by
     exact Transcendental.complexExp_width_at_precision (centeredExpCenterName I) e
   rw [centeredComplexExp, ComplexRatInterval.width, ComplexRatInterval.expand,
     RatInterval.width_expand, RatInterval.width_expand]
   rw [max_add_add_right]
   simpa [ComplexRatInterval.width, allowance, mul_assoc, add_comm] using
-    (add_le_add_right hcore (2 * centeredExpEnvelope I * I.width))
+    (add_le_add_right hcore (2 * centeredExpEnvelope I * ComplexRatInterval.width I))
 
 end CausalSmith.Stat.SaPlmCumulantConverse.BoundedCertifiedComplex
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 
 /-- Promote a real rational interval to the real axis. -/
 def realRect (I : RatInterval) : ComplexRatInterval :=
@@ -494,7 +507,7 @@ lemma realRect_sound {I : RatInterval} {r : ℝ} (hr : I.Contains r) :
 /-- [Placing a rational interval on the real axis yields a rectangle of exactly the same width as
 the interval](goal). -/
 @[simp] lemma realRect_width (I : RatInterval) :
-    (realRect I).width = I.width := by
+    ComplexRatInterval.width (realRect I) = I.width := by
   rw [realRect, ComplexRatInterval.width]
   simp only [RatInterval.point, RatInterval.width, sub_self]
   exact max_eq_left (RatInterval.width_nonneg I)
@@ -514,13 +527,13 @@ lemma bankRadiusRect_sound (radius : CertifiedReal) (precision : PosRat) :
 
 /-- [The refined radius rectangle has width at most the requested rational precision](goal). -/
 lemma bankRadiusRect_width (radius : CertifiedReal) (precision : PosRat) :
-    (bankRadiusRect radius precision).width ≤ precision.1 := by
+    ComplexRatInterval.width (bankRadiusRect radius precision) ≤ precision.1 := by
   simpa [bankRadiusRect, realRect_width] using CertifiedReal.refine_width radius precision
 
 /-- A certified-real radius times the reused rational-radius-one circle node. -/
 def certifiedRadiusNode (radius : CertifiedReal) (precision : PosRat)
     (schedule : Schedule) (k : ℕ) : ComplexRatInterval :=
-  (bankRadiusRect radius precision).mul (circleNode 1 schedule k)
+  ComplexRatInterval.mul (bankRadiusRect radius precision) (circleNode 1 schedule k)
 
 /-- A Machin-π rectangle for `2 π i`. -/
 def twoPiIRect (precision : ℕ) : ComplexRatInterval :=
@@ -541,7 +554,8 @@ private lemma piInterval_lo_pos (precision : ℕ) :
   exact hzero.trans_le hsub.1
 
 private lemma twoPiIRect_away (precision count : ℕ) :
-    ((twoPiIRect precision).smulRat (max count 1)).normSq.AwayFromZero := by
+    (ComplexRatInterval.normSq
+      (ComplexRatInterval.smulRat (max count 1) (twoPiIRect precision))).AwayFromZero := by
   right
   have hcount : (0 : ℚ) < max count 1 := by positivity
   have hpi := piInterval_lo_pos precision
@@ -554,10 +568,10 @@ private lemma twoPiIRect_away (precision count : ℕ) :
     simp [RatInterval.point, RatInterval.mul, min_eq_left, max_eq_right,
       hpile, hpi.le, hcount.le]
     positivity
-  have hre : 0 ≤ D.re.sq.lo := by
+  have hre : 0 ≤ (RatInterval.sq D.re).lo := by
     unfold RatInterval.sq
     split_ifs <;> dsimp <;> positivity
-  have him : 0 < D.im.sq.lo := by
+  have him : 0 < (RatInterval.sq D.im).lo := by
     have hhi : 0 ≤ D.im.hi := hDim.le.trans D.im.lo_le_hi
     simp [RatInterval.sq, not_lt_of_ge hhi, hDim]
   simpa [D, ComplexRatInterval.normSq, RatInterval.add] using add_pos_of_nonneg_of_pos hre him
@@ -575,7 +589,7 @@ lemma twoPiIRect_sound (precision : ℕ) :
 /-- The tangent rectangle is `2 π i` times the certified-radius node. -/
 def tangentNode (radius : CertifiedReal) (radiusPrecision : PosRat)
     (piPrecision : ℕ) (schedule : Schedule) (k : ℕ) : ComplexRatInterval :=
-  (twoPiIRect piPrecision).mul
+  ComplexRatInterval.mul (twoPiIRect piPrecision)
     (certifiedRadiusNode radius radiusPrecision schedule k)
 
 /-- The map-level target is quadratically smaller than the requested branch
@@ -620,7 +634,7 @@ schedule. -/
 def spectralMesh (tolerance : PosRat) (L : ℚ) : ℕ :=
   explicitMeshFuel L (spectralMeshBudget tolerance)
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL), [dividing that magnitude by the mesh count
+/-- [For a nonnegative Lipschitz constant](hyp:hL), [dividing that constant by the mesh count
 chosen by the spectral schedule leaves a discretization error of at most one third of the
 requested tolerance](goal). -/
 lemma spectralMesh_error_le (tolerance : PosRat) (L : ℚ) (hL : 0 ≤ L) :
@@ -656,8 +670,8 @@ def spectralSchedule (tolerance : PosRat) (operations : ℕ)
     (circleExpFuel 1 (spectralMesh tolerance lipschitz) (spectralNodeTarget tolerance))
     (max (spectralDerivedFuel (spectralNodeTarget tolerance) operations amplification)
       (spectralRawNormFuel tolerance amplification))
-  magnitude := lipschitz
-  magnitude_nonneg := hL
+  lipschitzConstant := lipschitz
+  lipschitzConstant_nonneg := hL
   nodeBudget := tolerance.1 / 3
   meshBudget := tolerance.1 / 3
   quadratureBudget := tolerance.1 / 3
@@ -667,7 +681,7 @@ def spectralSchedule (tolerance : PosRat) (operations : ℕ)
   budget_sum_le := by linarith
   mesh_error_le := spectralMesh_error_le tolerance lipschitz hL
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the input precision recorded by the paper's spectral schedule is exactly the
 circle input precision at radius one for the quadratically reduced node target](goal). -/
 @[simp] lemma spectralSchedule_inputPrecision (tolerance : PosRat)
@@ -676,16 +690,17 @@ circle input precision at radius one for the quadratically reduced node target](
     (spectralSchedule tolerance operations lipschitz amplification hL hAmp).inputPrecision =
       circleInputPrecision 1 (spectralNodeTarget tolerance) := rfl
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
-factor](hyp:hAmp), [the magnitude recorded by the paper's spectral schedule is exactly the
-supplied Lipschitz constant](goal). -/
-@[simp] lemma spectralSchedule_magnitude (tolerance : PosRat)
+/-- For [a tolerance](hyp:tolerance), [operation-count metadata](hyp:operations), [a nonnegative
+Lipschitz constant](hyp:lipschitz,hL), and [a nonnegative amplification
+factor](hyp:amplification,hAmp), [the paper's spectral schedule records exactly the supplied
+Lipschitz constant](goal). -/
+@[simp] lemma spectralSchedule_lipschitzConstant (tolerance : PosRat)
     (operations : ℕ) (lipschitz amplification : ℚ)
     (hL : 0 ≤ lipschitz) (hAmp : 0 ≤ amplification) :
-    (spectralSchedule tolerance operations lipschitz amplification hL hAmp).magnitude =
+    (spectralSchedule tolerance operations lipschitz amplification hL hAmp).lipschitzConstant =
       lipschitz := rfl
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the circle exponential fuel at radius one, taken at the schedule's own mesh
 and at the reduced node target, does not exceed the fuel the schedule budgets](goal). -/
 lemma spectralSchedule_circleExpFuel_le (tolerance : PosRat)
@@ -697,7 +712,7 @@ lemma spectralSchedule_circleExpFuel_le (tolerance : PosRat)
       (spectralSchedule tolerance operations lipschitz amplification hL hAmp).fuel := by
   exact le_max_left _ _
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the dominating non-circle fuel bound at the reduced node target does not
 exceed the fuel the spectral schedule budgets](goal). -/
 lemma spectralSchedule_derivedFuel_le (tolerance : PosRat)
@@ -707,7 +722,7 @@ lemma spectralSchedule_derivedFuel_le (tolerance : PosRat)
       (spectralSchedule tolerance operations lipschitz amplification hL hAmp).fuel := by
   exact (le_max_left _ _).trans (le_max_right _ _)
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the magnitude-aware Newton fuel for taking the modulus of a raw map
 rectangle does not exceed the fuel the spectral schedule budgets](goal). -/
 lemma spectralSchedule_rawNormFuel_le (tolerance : PosRat)
@@ -717,7 +732,7 @@ lemma spectralSchedule_rawNormFuel_le (tolerance : PosRat)
       (spectralSchedule tolerance operations lipschitz amplification hL hAmp).fuel := by
   exact (le_max_right _ _).trans (le_max_right _ _)
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the empirical-map fuel at the reduced node target does not exceed the fuel
 the spectral schedule budgets](goal). -/
 lemma spectralSchedule_empiricalMapFuel_le (tolerance : PosRat)
@@ -728,7 +743,7 @@ lemma spectralSchedule_empiricalMapFuel_le (tolerance : PosRat)
   exact (le_max_left _ _).trans
     (spectralSchedule_derivedFuel_le tolerance operations lipschitz amplification hL hAmp)
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the modulus fuel at the reduced node target does not exceed the fuel the
 spectral schedule budgets](goal). -/
 lemma spectralSchedule_normFuel_le (tolerance : PosRat)
@@ -739,7 +754,7 @@ lemma spectralSchedule_normFuel_le (tolerance : PosRat)
   exact ((le_max_left _ _).trans (le_max_right _ _)).trans
     (spectralSchedule_derivedFuel_le tolerance operations lipschitz amplification hL hAmp)
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the rational-bisection fuel used by the modulus square root at the reduced
 node target does not exceed the fuel the spectral schedule budgets](goal). -/
 lemma spectralSchedule_sqrtFuel_le (tolerance : PosRat)
@@ -751,7 +766,7 @@ lemma spectralSchedule_sqrtFuel_le (tolerance : PosRat)
     ((le_max_right _ _).trans
       (spectralSchedule_derivedFuel_le tolerance operations lipschitz amplification hL hAmp))
 
-/-- [For a nonnegative Lipschitz magnitude](hyp:hL) and [a nonnegative amplification
+/-- [For a nonnegative Lipschitz constant](hyp:hL) and [a nonnegative amplification
 factor](hyp:hAmp), [the fuel for the finite rational endpoint operations at one node does not
 exceed the fuel the spectral schedule budgets](goal). -/
 lemma spectralSchedule_endpointFuel_le (tolerance : PosRat)
@@ -787,13 +802,13 @@ def BoundedComplexMap.Valid {box : ComplexRatInterval}
   ∀ {I : ComplexRatInterval} {z : ℂ}, I.Subinterval box → I.Contains z →
     (∀ fuel, (map.eval I fuel).Contains (map.value z)) ∧
     (∀ fuel, (map.eval I (fuel + 1)).Subinterval (map.eval I fuel)) ∧
-    ∀ e, (map.eval I (map.precision e)).width ≤
-      map.derivativeEnvelope * I.width + e.1
+    ∀ e, ComplexRatInterval.width (map.eval I (map.precision e)) ≤
+      map.derivativeEnvelope * ComplexRatInterval.width I + e.1
 
-private def halfTolerance (e : PosRat) : PosRat :=
+def halfTolerance (e : PosRat) : PosRat :=
   ⟨e.1 / 2, div_pos e.2 (by norm_num)⟩
 
-private def productTolerance (A B : ℚ) (e : PosRat) : PosRat :=
+def productTolerance (A B : ℚ) (e : PosRat) : PosRat :=
   ⟨e.1 / (4 * (|A| + |B| + 1)), by
     exact div_pos e.2
       (mul_pos (by norm_num) (by linarith [abs_nonneg A, abs_nonneg B]))⟩
@@ -817,7 +832,7 @@ def BoundedComplexMap.identity (box : ComplexRatInterval) : BoundedComplexMap bo
   value := id
   eval := fun I _ ↦ I
   operationCount := 1
-  magnitudeEnvelope := box.maxAbs
+  magnitudeEnvelope := ComplexRatInterval.maxAbs box
   derivativeEnvelope := 1
   precision := fun _ ↦ 0
 
@@ -842,7 +857,7 @@ requested tolerance. -/
 def BoundedComplexMap.sub {box : ComplexRatInterval}
     (f g : BoundedComplexMap box) : BoundedComplexMap box where
   value := fun z ↦ f.value z - g.value z
-  eval := fun I fuel ↦ (f.eval I fuel).sub (g.eval I fuel)
+  eval := fun I fuel ↦ ComplexRatInterval.sub (f.eval I fuel) (g.eval I fuel)
   operationCount := f.operationCount + g.operationCount + 1
   magnitudeEnvelope := f.magnitudeEnvelope + g.magnitudeEnvelope
   derivativeEnvelope := f.derivativeEnvelope + g.derivativeEnvelope
@@ -854,7 +869,7 @@ data used by the local width schedule. -/
 def BoundedComplexMap.mulOnBox {box : ComplexRatInterval}
     (f g : BoundedComplexMap box) : BoundedComplexMap box where
   value := fun z ↦ f.value z * g.value z
-  eval := fun I fuel ↦ (f.eval I fuel).mul (g.eval I fuel)
+  eval := fun I fuel ↦ ComplexRatInterval.mul (f.eval I fuel) (g.eval I fuel)
   operationCount := f.operationCount + g.operationCount + 1
   magnitudeEnvelope := 2 * f.magnitudeEnvelope * g.magnitudeEnvelope
   derivativeEnvelope :=
@@ -869,14 +884,16 @@ def BoundedComplexMap.expScaledOnBox (box : ComplexRatInterval) (c : ℚ × ℚ)
     BoundedComplexMap box where
   value := fun z ↦ Complex.exp (((c.1 : ℝ) + (c.2 : ℝ) * Complex.I) * z)
   eval := fun I fuel ↦
-    Transcendental.complexExp ((ComplexRatInterval.point c.1 c.2).mul I) fuel
+    Transcendental.complexExp (ComplexRatInterval.mul
+      (ComplexRatInterval.point c.1 c.2) I) fuel
   operationCount := 8
-  magnitudeEnvelope := 3 ^ Int.toNat ⌈max 0 ((|c.1| + |c.2|) * box.maxAbs)⌉
+  magnitudeEnvelope := 3 ^ Int.toNat
+    ⌈max 0 ((|c.1| + |c.2|) * ComplexRatInterval.maxAbs box)⌉
   derivativeEnvelope := (|c.1| + |c.2|) *
-    (3 ^ Int.toNat ⌈max 0 ((|c.1| + |c.2|) * box.maxAbs)⌉)
+    (3 ^ Int.toNat ⌈max 0 ((|c.1| + |c.2|) * ComplexRatInterval.maxAbs box)⌉)
   precision := fun e ↦ spectralEmpiricalMapFuel e 8
     ((|c.1| + |c.2|) *
-      (3 ^ Int.toNat ⌈max 0 ((|c.1| + |c.2|) * box.maxAbs)⌉))
+      (3 ^ Int.toNat ⌈max 0 ((|c.1| + |c.2|) * ComplexRatInterval.maxAbs box)⌉))
 
 /-- A tangent-corrected guarded quotient evaluator on a fixed disk. -/
 structure BoundedCircleEvaluator (box : ComplexRatInterval) where
@@ -901,9 +918,9 @@ def BoundedCircleEvaluator.Valid {box : ComplexRatInterval}
   ev.numerator.Valid ∧ ev.denominator.Valid ∧
   (∀ k ≤ ev.schedule.mesh,
     (certifiedRadiusNode ev.radius ev.radiusPrecision ev.schedule k).Subinterval box ∧
-    (ev.denominator.eval
+    (ComplexRatInterval.normSq (ev.denominator.eval
       (certifiedRadiusNode ev.radius ev.radiusPrecision ev.schedule k)
-      ev.mapFuel).normSq.AwayFromZero) ∧
+      ev.mapFuel)).AwayFromZero) ∧
   ∀ s ∈ Set.Icc (0 : ℝ) 1, ∀ t ∈ Set.Icc (0 : ℝ) 1,
     ‖CircleMesh.circleIntegrand
         (fun z ↦ ev.numerator.value z / ev.denominator.value z)
@@ -919,9 +936,11 @@ noncomputable def BoundedCircleEvaluator.node {box : ComplexRatInterval}
   let z := certifiedRadiusNode ev.radius ev.radiusPrecision ev.schedule k
   let num := ev.numerator.eval z ev.mapFuel
   let den := ev.denominator.eval z ev.mapFuel
-  let quotient := if h : den.normSq.hi < 0 ∨ 0 < den.normSq.lo then num.div den h
+  let quotient := if h : (ComplexRatInterval.normSq den).hi < 0 ∨
+      0 < (ComplexRatInterval.normSq den).lo then ComplexRatInterval.div num den h
     else ComplexRatInterval.zero
-  quotient.mul (tangentNode ev.radius ev.radiusPrecision ev.piPrecision ev.schedule k)
+  ComplexRatInterval.mul quotient
+    (tangentNode ev.radius ev.radiusPrecision ev.piPrecision ev.schedule k)
 
 /-- The endpoint-complete finite quadrature uses every index `k ≤ mesh`,
 including the terminal trapezoid endpoint. -/
@@ -941,7 +960,9 @@ from zero and returning the zero rectangle otherwise. -/
 noncomputable def boundedContourNormalize (I : ComplexRatInterval) (count piPrecision : ℕ) :
     ComplexRatInterval :=
   let divisor := boundedContourDivisor count piPrecision
-  if h : divisor.normSq.hi < 0 ∨ 0 < divisor.normSq.lo then I.div divisor h
+  if h : (ComplexRatInterval.normSq divisor).hi < 0 ∨
+      0 < (ComplexRatInterval.normSq divisor).lo then
+    ComplexRatInterval.div I divisor h
   else ComplexRatInterval.zero
 
 /-- The exact rational width expression supplied by guarded rectangle
@@ -950,8 +971,11 @@ the branch schedule instead of hiding it in a fuel-only argument. -/
 def boundedContourNormalizationWidthBound (I : ComplexRatInterval)
     (count piPrecision : ℕ) (δ : ℚ) : ℚ :=
   let divisor := boundedContourDivisor count piPrecision
-  (I.mul divisor.conj).maxAbs * divisor.normSq.width / δ ^ 2 +
-    (I.mul divisor.conj).width / δ
+  ComplexRatInterval.maxAbs
+      (ComplexRatInterval.mul I (ComplexRatInterval.conj divisor)) *
+      (ComplexRatInterval.normSq divisor).width / δ ^ 2 +
+    ComplexRatInterval.width
+      (ComplexRatInterval.mul I (ComplexRatInterval.conj divisor)) / δ
 
 /-- [Whenever a rectangle encloses a complex number](hyp:hz), [the normalized rectangle encloses
 that number divided by the node count times two pi times the imaginary unit](goal). -/
@@ -976,11 +1000,14 @@ the normalizing divisor](hyp:hsep), [the normalized rectangle has width at most 
 rational amplification bound recorded for guarded division](goal). -/
 lemma boundedContourNormalize_width (I : ComplexRatInterval) (count piPrecision : ℕ)
     (δ : ℚ) (hδ : 0 < δ)
-    (hsep : δ ≤ (boundedContourDivisor count piPrecision).normSq.lo) :
-    (boundedContourNormalize I count piPrecision).width ≤
+    (hsep : δ ≤ (ComplexRatInterval.normSq
+      (boundedContourDivisor count piPrecision)).lo) :
+    ComplexRatInterval.width (boundedContourNormalize I count piPrecision) ≤
       boundedContourNormalizationWidthBound I count piPrecision δ := by
-  have haway : (boundedContourDivisor count piPrecision).normSq.hi < 0 ∨
-      0 < (boundedContourDivisor count piPrecision).normSq.lo := by
+  have haway : (ComplexRatInterval.normSq
+      (boundedContourDivisor count piPrecision)).hi < 0 ∨
+      0 < (ComplexRatInterval.normSq
+        (boundedContourDivisor count piPrecision)).lo := by
     exact twoPiIRect_away piPrecision count
   unfold boundedContourNormalize
   dsimp only
@@ -996,9 +1023,10 @@ the normalizing divisor](hyp:hsep), and [a target that the explicit amplificatio
 exceed](hyp:hbound), [the normalized rectangle has width at most that target](goal). -/
 lemma boundedContourNormalize_width_le (I : ComplexRatInterval)
     (count piPrecision : ℕ) (δ target : ℚ) (hδ : 0 < δ)
-    (hsep : δ ≤ (boundedContourDivisor count piPrecision).normSq.lo)
+    (hsep : δ ≤ (ComplexRatInterval.normSq
+      (boundedContourDivisor count piPrecision)).lo)
     (hbound : boundedContourNormalizationWidthBound I count piPrecision δ ≤ target) :
-    (boundedContourNormalize I count piPrecision).width ≤ target :=
+    ComplexRatInterval.width (boundedContourNormalize I count piPrecision) ≤ target :=
   (boundedContourNormalize_width I count piPrecision δ hδ hsep).trans hbound
 
 /-- [For any mesh index no larger than the schedule's mesh](hyp:hk), [the certified radius node
@@ -1012,7 +1040,7 @@ lemma certifiedRadiusNode_sound (radius : CertifiedReal) (precision : PosRat)
   have hu := circleNode_sound 1 schedule hk
   have hmul := ComplexRatInterval.mul_sound hr hu
   simpa [certifiedRadiusNode, exactCircleNode, CircleMesh.circleMap,
-    CircleMesh.meshPoint] using hmul
+    circleMap_zero, CircleMesh.meshPoint] using hmul
 
 /-- [For a mesh index no larger than the schedule's mesh](hyp:hk), given [a bound on the largest
 modulus attained by the refined radius rectangle](hyp:hU), [a bound on the width of the
@@ -1022,29 +1050,30 @@ modulus bound times the width bound and the shifted modulus bound times the radi
 precision](goal). -/
 lemma certifiedRadiusNode_width (radius : CertifiedReal) (precision : PosRat)
     (schedule : Schedule) (U w : ℚ) {k : ℕ} (hk : k ≤ schedule.mesh)
-    (hU : (bankRadiusRect radius precision).maxAbs ≤ U)
-    (hw : (circleNode 1 schedule k).width ≤ w)
-    (hunit : (circleNode 1 schedule k).maxAbs ≤ 1 + w) :
-    (certifiedRadiusNode radius precision schedule k).width ≤
+    (hU : ComplexRatInterval.maxAbs (bankRadiusRect radius precision) ≤ U)
+    (hw : ComplexRatInterval.width (circleNode 1 schedule k) ≤ w)
+    (hunit : ComplexRatInterval.maxAbs (circleNode 1 schedule k) ≤ 1 + w) :
+    ComplexRatInterval.width (certifiedRadiusNode radius precision schedule k) ≤
       2 * (U * w + (1 + w) * precision.1) := by
   have hraw := ComplexRatInterval.mul_width
     (bankRadiusRect radius precision) (circleNode 1 schedule k)
   have hrw := bankRadiusRect_width radius precision
-  have hr0 : 0 ≤ (bankRadiusRect radius precision).maxAbs :=
+  have hr0 : 0 ≤ ComplexRatInterval.maxAbs (bankRadiusRect radius precision) :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
-  have hu0 : 0 ≤ (circleNode 1 schedule k).maxAbs :=
+  have hu0 : 0 ≤ ComplexRatInterval.maxAbs (circleNode 1 schedule k) :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
-  have hrWidth0 : 0 ≤ (bankRadiusRect radius precision).width :=
+  have hrWidth0 : 0 ≤ ComplexRatInterval.width (bankRadiusRect radius precision) :=
     (RatInterval.width_nonneg _).trans (le_max_left _ _)
-  have huWidth0 : 0 ≤ (circleNode 1 schedule k).width :=
+  have huWidth0 : 0 ≤ ComplexRatInterval.width (circleNode 1 schedule k) :=
     (RatInterval.width_nonneg _).trans (le_max_left _ _)
   unfold certifiedRadiusNode
   calc
-    ((bankRadiusRect radius precision).mul (circleNode 1 schedule k)).width
-        ≤ 2 * ((bankRadiusRect radius precision).maxAbs *
-            (circleNode 1 schedule k).width +
-          (circleNode 1 schedule k).maxAbs *
-            (bankRadiusRect radius precision).width) := hraw
+    ComplexRatInterval.width (ComplexRatInterval.mul
+      (bankRadiusRect radius precision) (circleNode 1 schedule k))
+        ≤ 2 * (ComplexRatInterval.maxAbs (bankRadiusRect radius precision) *
+            ComplexRatInterval.width (circleNode 1 schedule k) +
+          ComplexRatInterval.maxAbs (circleNode 1 schedule k) *
+            ComplexRatInterval.width (bankRadiusRect radius precision)) := hraw
     _ ≤ 2 * (U * w + (1 + w) * precision.1) := by
       nlinarith [mul_le_mul hU hw huWidth0 (by linarith),
         mul_le_mul hunit hrw hrWidth0 (by linarith)]
@@ -1067,11 +1096,8 @@ lemma tangentNode_sound (radius : CertifiedReal) (radiusPrecision : PosRat)
   have hnode := certifiedRadiusNode_sound radius radiusPrecision schedule hk
   have hmul := ComplexRatInterval.mul_sound htwoPi hnode
   unfold tangentNode
-  convert hmul using 1
-  simp only [CircleMesh.circleTangent, CircleMesh.circleMap,
-    CircleMesh.meshPoint, zero_add]
-  ring_nf
-  norm_num
+  simpa only [CircleMesh.circleTangent, CircleMesh.circleMap, circleMap_zero,
+    Complex.ofReal_mul, Complex.ofReal_ofNat, mul_assoc] using hmul
 
 /-- [For an evaluator satisfying its validity conditions](hyp:hvalid), [the finite
 endpoint-complete quadrature rectangle encloses the true contour integral of the numerator over
@@ -1103,8 +1129,9 @@ met by every node rectangle up to the mesh](hyp:hnode), [the quadrature rectangl
 width at most that node width plus the Lipschitz constant divided by the mesh count](goal). -/
 lemma boundedContourEvaluate_width {box : ComplexRatInterval}
     (ev : BoundedCircleEvaluator box) (hvalid : ev.Valid)
-    (nodeWidth : ℚ) (hnode : ∀ k ≤ ev.schedule.mesh, (ev.node k).width ≤ nodeWidth) :
-    (boundedContourEvaluate ev).width ≤
+    (nodeWidth : ℚ)
+    (hnode : ∀ k ≤ ev.schedule.mesh, ComplexRatInterval.width (ev.node k) ≤ nodeWidth) :
+    ComplexRatInterval.width (boundedContourEvaluate ev) ≤
       nodeWidth + ev.lipschitz / ev.schedule.mesh := by
   have hnode0 := hnode 0 (Nat.zero_le ev.schedule.mesh)
   have hw : 0 ≤ nodeWidth :=
@@ -1188,9 +1215,9 @@ def CertifiedComplexOperations.IsCanonical
   (∀ I, operations.realAbs I = canonicalRealAbsInterval I) ∧
   (∀ I fuel, operations.sqrtInterval I fuel = sqrtBisectInterval I fuel) ∧
   (∀ I J, operations.complexAdd I J = I.add J) ∧
-  (∀ I J, operations.complexSub I J = I.sub J) ∧
-  (∀ I, operations.complexConj I = I.conj) ∧
-  (∀ I J, operations.complexMul I J = I.mul J) ∧
+  (∀ I J, operations.complexSub I J = ComplexRatInterval.sub I J) ∧
+  (∀ I, operations.complexConj I = ComplexRatInterval.conj I) ∧
+  (∀ I J, operations.complexMul I J = ComplexRatInterval.mul I J) ∧
   (∀ I, operations.complexNormSq I = cxModulusSq I) ∧
   (∀ I fuel, operations.complexNorm I fuel = cxModulus I fuel) ∧
   (∀ I J m hm hguard,

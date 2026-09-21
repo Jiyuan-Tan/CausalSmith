@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
-import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
-import Causalean.Experimentation.DesignBased.Exposure
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
+public import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
+public import Causalean.Experimentation.DesignBased.Exposure
 
 /-! Binary Horvitz–Thompson specialization of the Aronow–Samii zero-joint correction. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

@@ -3,32 +3,32 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# One-shot DML / AIPW estimator for the back-door ATT
+# Population-share oracle DML / AIPW estimator for the back-door ATT
 
 `def:est-dml-att` and `thm:est-dml-att-al` instantiated for the
 `TreatedEstimationSystem` used by the ATT estimation layer.
 
 The estimator is
 
-    θ̂ⁿ_DML^ATT := (1/π̂_T) · (1/|B(n)|) Σ_{i ∈ B(n)} m_AIPW^ATT( η̂(n), Zᵢ, 0 ),
+    θ̂ⁿ_oracle := (1/π_T) · (1/|B(n)|) Σ_{i ∈ B(n)} m_AIPW^ATT( η̂(n), Zᵢ, 0 ),
 
 where `m_AIPW^ATT` is the ATT AIPW moment (Hahn 1998 form).  Concretely, with
 `Aᵢ`, `Yᵢ`, `Xᵢ` denoting the
 i-th data triple:
 
-    θ̂ⁿ_DML^ATT := (1/π̂_T) · (1/|B(n)|) Σ_{i ∈ B(n)}
+    θ̂ⁿ_oracle := (1/π_T) · (1/|B(n)|) Σ_{i ∈ B(n)}
         [ Aᵢ · (Yᵢ − μ̂₀(Xᵢ))
           − (1 − Aᵢ) · (ê(Xᵢ)/(1 − ê(Xᵢ))) · (Yᵢ − μ̂₀(Xᵢ)) ].
 
-(For now we use the population marginal `S.π_val` as the rescale; the empirical
-`π̂_T` can be substituted later via continuous-mapping plus delta-method
-arguments — see `Stat/DeltaMethod.lean`.)
+This file retains the population-share normalization as an oracle comparison
+object. The feasible sample-share estimator and its reference expansion are in
+`Estimation/ATT/DML/Feasible.lean`.
 
 The headline theorem gives asymptotic linearity at `θ₀` with influence
 function `ψ_ATT`, under the rate hypothesis
 `|B(n)|/n → c` for some `c ∈ (0, 1)` and the ATT product rate condition.
 
-The proof composes the abstract `att_dml_isAsymLinear` from `ATTInstance.lean`
+The proof composes the abstract `att_oneStepOracleDML_isAsymLinear` from `ATTInstance.lean`
 with two transport equalities:
 
 1. **Rescaled-error / IF transport** —
@@ -41,33 +41,36 @@ Proof sketch (NL doc, `thm:est-dml-att-al`): main term + three remainders
 identity; `R₂` killed by empirical-process Markov + individual rates on the
 ATT score-difference L² rate; `R₃` lower-order arithmetic). -/
 
-import Causalean.Estimation.ATT.InfluenceFunction
-import Causalean.Tactic.IntegralLinearity
-import Causalean.Estimation.ATT.Remainder
-import Causalean.Estimation.ATT.Score.AIPWScoreL2
-import Causalean.Estimation.ATT.ATTInstance
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.SampleSplit.PartialFoldCLT
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+module
+public import Causalean.Estimation.ATT.ATTInstance
+public import Causalean.Estimation.ATT.InfluenceFunction
+public import Causalean.Estimation.ATT.Remainder
+public import Causalean.Estimation.ATT.Score.AIPWScoreL2
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+public import Causalean.Stat.SampleSplit.PartialFoldCLT
+public import Causalean.Tactic.IntegralLinearity
 
 /-! # Double Machine Learning for ATT
 
-This file defines the one-shot sample-split augmented inverse-probability
-weighted estimator for the back-door average treatment effect on the treated
-and states its asymptotic linearity theorem. The theorem connects the estimator
+This file defines the population-share oracle comparison for the one-shot
+sample-split augmented inverse-probability weighted estimator of the back-door
+average treatment effect on the treated. The theorem connects the oracle
 to the ATT AIPW influence function under the one-sided ATT back-door assumption
 bundle, an additional one-sided upper-overlap bound, second-moment,
 sample-split, and nuisance-rate conditions. Parallel to
 `Estimation/ATE/DML.lean`.
 
-The main declarations are `dmlEstimator_ATT`, the derived influence-function
+The main declarations are `oracleEstimator_ATT`, the derived influence-function
 facts `ψ_ATT_integral_zero` and `ψ_ATT_finite_var`, and the production wrapper
-`dml_ATT_isAsymLinear`, which transports the abstract
-`att_dml_isAsymLinear` result to the population-π ATT estimator.
+`oracleEstimator_ATT_isAsymLinear`, which transports the abstract
+`att_oneStepOracleDML_isAsymLinear` result to the population-π ATT estimator.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -79,7 +82,7 @@ open TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a treated estimation system](hyp:S), [an independent and identically distributed sample of observed covariate, treatment, and outcome triples from that system's observed-data distribution](hyp:sample), [a one-shot split of that sample](hyp:split), [a sequence of control-arm outcome-regression estimators](hyp:μ₀_hat), [a sequence of propensity-score estimators](hyp:e_hat), and [a sample-size index](hyp:n), the [one-shot double-machine-learning estimator of the back-door average treatment effect on the treated](goal) is the marginal-treatment-probability-normalized mean, over the split's evaluation fold at that index, of the ATT AIPW score evaluated at zero using the supplied nuisance functions at that index.
+/-- For [a potential-outcomes system with a standard Borel sample space and finite probability measure](hyp:P), [a measurable covariate space](hyp:γ), [a treated estimation system](hyp:S), [an independent and identically distributed sample of observed covariate, treatment, and outcome triples from that system's observed-data distribution](hyp:sample), [a one-shot split of that sample](hyp:split), [a sequence of control-arm outcome-regression estimators](hyp:μ₀_hat), [a sequence of propensity-score estimators](hyp:e_hat), and [a sample-size index](hyp:n), the [population-treated-share oracle ATT estimator](goal) is the marginal-treatment-probability-normalized mean, over the split's evaluation fold at that index, of the ATT AIPW score evaluated at zero using the supplied nuisance functions at that index.
 
 (`def:est-dml-att`).
 
@@ -94,7 +97,7 @@ Inputs:
 Output: `(1/π_val)` times the empirical mean over `B(n)` of
 `m_AIPW^ATT( η̂(n), Zᵢ, 0 )`.  Equivalently, the empirical ATT AIPW
 pseudo-outcome rescaled by the treatment marginal. -/
-noncomputable def dmlEstimator_ATT
+noncomputable def oracleEstimator_ATT
     (S : TreatedEstimationSystem P γ)
     (sample : IIDSample P.Ω (γ × Bool × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
@@ -234,19 +237,22 @@ end ψ_ATT_IF_facts
 set_option maxHeartbeats 1200000 in
 -- The wrapper composes ~20 derived hypotheses (rate translations, score
 -- measurability, integrability, two transport equalities) and applies the
--- abstract `att_dml_isAsymLinear`; the resulting elaboration exceeds the
+-- abstract `att_oneStepOracleDML_isAsymLinear`; the resulting elaboration exceeds the
 -- default heartbeat budget when type-checking the final `refine ⟨…⟩` block.
-/-- **Asymptotic linearity of the one-shot DML ATT** — `thm:est-dml-att-al`. Fix candidate
-control-regression and propensity estimator sequences
-[`μ₀_hat`](hyp:h_μ₀_meas,h_μ₀_memLp,h_μ₀_foldA,h_μ₀_uncurry_foldA) and
-[`e_hat`](hyp:h_e_meas,h_e_memLp,h_e_foldA,h_e_uncurry_foldA), [an i.i.d. sample of the
-data triple](hyp:sample), and [a one-shot cross-fitting split of that sample](hyp:split).
+/-- **Asymptotic linearity of the population-share oracle ATT estimator.** For
+[a potential-outcomes system](hyp:P), [a measurable covariate space](hyp:γ),
+[a treated estimation system](hyp:S), and [an overlap radius](hyp:ε), fix
+[candidate control-regression](hyp:μ₀_hat) and [propensity estimator](hyp:e_hat)
+sequences satisfying [their measurability, square-integrability, and training-fold
+conditions](hyp:h_μ₀_meas,h_μ₀_memLp,h_μ₀_foldA,h_μ₀_uncurry_foldA,h_e_meas,h_e_memLp,h_e_foldA,h_e_uncurry_foldA),
+[an i.i.d. sample of the data triple](hyp:sample), and [a one-shot cross-fitting
+split of that sample](hyp:split).
 Under [the true propensity bounded above by `1 − ε` almost everywhere](hyp:h_e_overlap),
 [nonnegativity of the true propensity](hyp:h_e_lb), [one-sided overlap `ε` on the
 treated-arm propensity](hyp:h_overlap), [the one-sided back-door ATT
 assumptions](hyp:hA), [a strictly positive marginal treatment probability](hyp:hπ_pos),
 [square-integrability of the factual outcome](hyp:h_y2) and of [the untreated potential
-outcome `Y(0)`](hyp:h_y0_2), and [a limiting fold-size fraction `c` strictly between `0`
+outcome `Y(0)`](hyp:h_y0_2), and [a limiting fold-size fraction](hyp:c) [strictly between `0`
 and `1`](hyp:hc_pos,hc_lt) with [the treated-fold cardinality fraction converging to
 `c`](hyp:h_split_rate): if [the candidate propensity is bounded above by `1 − ε` almost
 everywhere, for every `n, ω`](hyp:h_e_hat_overlap), [the candidate propensity is
@@ -267,10 +273,10 @@ The IPW-correction integrability gates (truth and per-learner) are *derived*
 internally via `ipw_truth_integrable` / `ipw_estimated_integrable`, not taken
 as hypotheses.
 
-Conclusion: `IsAsymLinear (dmlEstimator_ATT …) θ₀ ψ_ATT sample split.foldB`.
+Conclusion: `IsAsymLinear (oracleEstimator_ATT …) θ₀ ψ_ATT sample split.foldB`.
 
 The proof is a thin wrapper over the abstract
-`Causalean.Estimation.ATT.att_dml_isAsymLinear` (in
+`Causalean.Estimation.ATT.att_oneStepOracleDML_isAsymLinear` (in
 `Estimation/ATT/ATTInstance.lean`): build the abstract `η_hat` from
 `(μ₀_hat, e_hat)`, translate the rate / measurability / integrability
 hypotheses, apply the abstract theorem, then transport the conclusion by the
@@ -280,7 +286,7 @@ population-π influence function `S.ψ_ATT`.
 The `IsAsymLinear` mean-zero and finite-variance fields for `ψ_ATT` are
 *derived* internally via `ψ_ATT_integral_zero` and `ψ_ATT_finite_var` (from
 `aipw_mean_zero_ATT` / `aipw_finite_var_ATT`), not taken as hypotheses. -/
-theorem dml_ATT_isAsymLinear
+theorem oracleEstimator_ATT_isAsymLinear
     (S : TreatedEstimationSystem P γ) {ε : ℝ}
     (h_e_overlap : ∀ᵐ x ∂S.P_X, S.e_val x ≤ 1 - ε)
     (h_e_lb : ∀ x, 0 ≤ S.e_val x)
@@ -351,7 +357,7 @@ theorem dml_ATT_isAsymLinear
             (eLpNorm (fun x => e_hat n ω x - S.e_val x) 2 S.P_X).toReal)
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ) :
     IsAsymLinear
-      (dmlEstimator_ATT S sample split μ₀_hat e_hat)
+      (oracleEstimator_ATT S sample split μ₀_hat e_hat)
       S.θ₀
       S.ψ_ATT
       sample
@@ -604,7 +610,7 @@ theorem dml_ATT_isAsymLinear
     exact h_product_rate
   -- 5. Apply the abstract theorem.
   have hAL :=
-    att_dml_isAsymLinear S hη₀_mem h_e_lb h_overlap hA hπ_pos h_y2 h_y0_2 hIPW
+    att_oneStepOracleDML_isAsymLinear S hη₀_mem h_e_lb h_overlap hA hπ_pos h_y2 h_y0_2 hIPW
       sample split hc_pos hc_lt h_split_rate η_hat h_in_Hε
       h_e_hat_lb h_mu_diff_memLp h_e_diff_memLp h_IPW_at_abs
       h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int_abs h_m_sq_int_abs
@@ -617,16 +623,16 @@ theorem dml_ATT_isAsymLinear
   have hfun_eq :
       (fun n ω =>
           Real.sqrt ((split.foldB n).card : ℝ) *
-            (dmlEstimator_ATT S sample split μ₀_hat e_hat n ω - S.θ₀) -
+            (oracleEstimator_ATT S sample split μ₀_hat e_hat n ω - S.θ₀) -
             (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ *
               ∑ i ∈ split.foldB n, S.ψ_ATT (sample.Z i ω))
       = (fun n ω =>
           Real.sqrt ((split.foldB n).card : ℝ) *
-            (Causalean.Estimation.OrthogonalMoments.dmlChernozhukovEstimator
+            (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML
               (attGeneralMoment S hη₀_mem hπ_pos) sample split η_hat n ω - S.θ₀) -
             (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ *
               ∑ i ∈ split.foldB n,
-                (-(attGeneralMoment S hη₀_mem hπ_pos).J₀_inv *
+                (-(attGeneralMoment S hη₀_mem hπ_pos).linScaleInv *
                   aipwMomentATTFunctional S.η₀ (sample.Z i ω) S.θ₀)) := by
     funext n ω
     by_cases hcard : (split.foldB n).card = 0
@@ -636,7 +642,7 @@ theorem dml_ATT_isAsymLinear
     · have hcard_pos : 0 < (split.foldB n).card := Nat.pos_of_ne_zero hcard
       have hcardR_pos : 0 < ((split.foldB n).card : ℝ) := by exact_mod_cast hcard_pos
       have hcardR_ne : ((split.foldB n).card : ℝ) ≠ 0 := hcardR_pos.ne'
-      have h_J : (attGeneralMoment S hη₀_mem hπ_pos).J₀_inv = -S.π_val⁻¹ := by
+      have h_J : (attGeneralMoment S hη₀_mem hπ_pos).linScaleInv = -S.π_val⁻¹ := by
         change (-(S.π_val))⁻¹ = -S.π_val⁻¹
         simp
       have hpoint_hat : ∀ i,
@@ -676,7 +682,8 @@ theorem dml_ATT_isAsymLinear
         rw [Finset.sum_congr rfl (fun i _ => hpoint_true i),
           Finset.sum_sub_distrib, Finset.sum_add_distrib, Finset.sum_const, nsmul_eq_mul]
         rw [← Finset.mul_sum, ← Finset.mul_sum]
-      simp only [Causalean.Estimation.OrthogonalMoments.dmlChernozhukovEstimator, dmlEstimator_ATT]
+      simp only [Causalean.Estimation.OrthogonalMoments.oneStepOracleDML,
+        oracleEstimator_ATT]
       rw [h_J]
       simp only [attGeneralMoment, aipwMomentATTFunctional]
       rw [hsum_hat, hsum_true]

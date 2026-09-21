@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-!
 # Small real-power arithmetic helpers
@@ -18,6 +19,8 @@ and an `n` part (`div_rpow_of_nonneg_of_pos`), bound nonpositive powers of natur
 (`rpow_natCast_nonpos_le_one`), and rewrite `q⁻¹ * sqrt q` as `q ^ (-1/2)`
 (`inv_mul_sqrt_eq_rpow_neg_half`).
 -/
+
+public section
 
 namespace Causalean.Mathlib.RpowArith
 

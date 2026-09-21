@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedObservation
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGramCertificate
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialQuantitative
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedObservation
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGramCertificate
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialQuantitative
 
 /-!
 # Half-disc cancellation for signed hard-square observations
@@ -10,6 +11,8 @@ arbitrary score-space center.  In particular it applies without another
 change of coordinates to the translated centers on the bottom edge of the
 hard assignment rectangle.
 -/
+
+public section
 
 open MeasureTheory Set
 

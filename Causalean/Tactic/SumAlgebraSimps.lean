@@ -3,11 +3,13 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Tactic.Attr
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Algebra.BigOperators.Group.Finset.Piecewise
-import Mathlib.Algebra.BigOperators.Field
+
+module
+public import Causalean.Tactic.Attr
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Algebra.BigOperators.Group.Finset.Piecewise
+public import Mathlib.Algebra.BigOperators.Field
 
 /-!
 # The `sum_algebra_simps` normal form
@@ -81,6 +83,8 @@ carries priority `1100`, so the *left* factor's binders end up outermost, agreei
   leaf file for a pattern that does not occur in the design-based or panel algebra.
   `nsmul_eq_mul` is a member because it is what `Finset.sum_const` leaves behind.
 -/
+
+public section
 
 namespace Causalean.Tactic
 

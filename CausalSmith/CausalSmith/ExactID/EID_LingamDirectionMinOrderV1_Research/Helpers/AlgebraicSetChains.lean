@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.Irreducibility
+module
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.Irreducibility
 
 /-!
 # Compatibility reexports for affine algebraic-set chains
@@ -13,6 +14,8 @@ The reusable implementation now lives under
 `Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension`.  These abbreviations
 and reexports preserve the original paper namespace for downstream imports.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

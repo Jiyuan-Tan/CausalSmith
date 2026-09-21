@@ -1,0 +1,2393 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}twsf\_\allowbreak{}path\_\allowbreak{}complexity\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A selected-training Two-Way Synthetic Forecasting path is treated as one growing, conditionally Gaussian orthogonal-score object rather than as a collection of pointwise forecasts. On the balanced, strongly identified fixed-rank class, the observable positive-semidefinite fitted Gram estimator uses implemented PCR coefficients, the observed terminal block, fitted Riesz vectors, and fitted recursive Jacobians; it is relatively consistent for the leading-score covariance, while the path estimator's remaining error is controlled by the proved linearization remainder. The Gaussian-complexity frontier itself holds at every fixed polynomial horizon for which the declared blocks exist: recursive complexity stays bounded, while direct complexity follows the heterogeneous independent-response variance shares. This complexity result does not set the feasible-coverage horizon. Recursive multiplier coverage is proved for \(H_n\le n^\gamma\) for every fixed \(\gamma<1/4\), and direct coverage holds for any fixed polynomial horizon when the declared disjoint lead-response blocks are available. The persistent rank-one subclass retains the exact limits \(\kappa_{\mathrm{rec},n}\to\sqrt{2/\pi}\) and \(\kappa_{\mathrm{dir},n}/\sqrt{\log H_n}\to1\); the separate legal rank-two location family retains the probability and expected maximum-width lower bounds for honest rectangles centered at the direct leading Gaussian estimator. At \(H_n=1\), the algebra agrees with Shen's pointwise interval only on the explicitly restricted Gaussian, strongly identified singleton-menu intersection.
+
+\section{Project justification}
+
+\paragraph{Gap.} Shen (2026, Corollary 2 and Section 6) establishes pointwise inference for prespecified fixed-horizon summaries, but not a selected growing-path ribbon on the present Gaussian, strongly identified class. Greenaway-McGrevy (2013) derives direct-versus-recursive panel-VAR mean-squared prediction-error comparisons, not a causal TWSF orthogonal score, fitted cross-lead Gram covariance, Gaussian maximum, or variance-share frontier. Generic orthogonal-score and Gaussian-comparison results begin only after the panel-specific linearization and covariance approximation have been supplied.
+
+\paragraph{Niche.} The missing object is an observable joint law for direct and recursive causal conditional-mean paths that remains valid under singular correlation, handles auxiliary-block training-layout selection, and distinguishes three separate phenomena: the recursive coverage-rate restriction, the bounded recursive Gaussian complexity, and the direct variance-share multiplicity cost.
+
+\paragraph{Fill.} The paper derives the stacked TWSF scores and an observable positive-semidefinite Gram estimator built from implemented PCR coefficients, the observed terminal block, fitted Riesz vectors, and fitted recursive Jacobians. It proves relative consistency for the leading-score covariance and separately controls the path estimator's linearization remainder. These bounds yield recursive feasible coverage for every fixed exponent below one quarter and direct feasible coverage for any fixed polynomial horizon with the declared disjoint direct response blocks. Independently, the complexity proof applies at every fixed polynomial horizon: the common recursive component is fixed-dimensional and its terminal component has expected maximum \(O(\sqrt{\log(2H_n)/n})\), while direct complexity is equivalent to one plus the heterogeneous independent-share maximum. The paper preserves the exact persistent-subclass complexity limits and the legal rank-two centered-rectangle width lower bound. Its connection to Shen is only an algebraic pointwise reduction on the explicit Gaussian, strongly identified singleton-menu intersection, not a global tightening over Shen's full class.
+
+\section{Related work}
+
+Shen (2026) is the causal-forecasting anchor: Theorem 1 identifies a prospective treated conditional mean, Corollary 2 gives pointwise inference, and Section 6 treats prespecified direct and recursive summaries over fixed horizons. The present \(H_n=1\) calculation reproduces the scalar Gaussian interval only on the explicitly restricted intersection of Shen's setup with the paper's Gaussian, strong-identification, fixed-rank, recovery, and singleton-menu conditions. For \(H_n>1\), the present narrower class supports joint path coverage; no global class inclusion or strict tightening of Shen's full result is claimed. Greenaway-McGrevy (2013), Bhansali (1997), and Ing (2003) compare direct and recursive or plug-in forecasts through asymptotic mean-squared prediction error, not causal selected-training path laws or the fixed-polynomial variance-share Gaussian-complexity frontier proved here. Belloni, Chernozhukov, Chetverikov, and Wei (2018) motivates orthogonal-score multiplier inference, while Chernozhukov, Chetverikov, and Kato (2015, 2017) supply the Gaussian maximum comparison and anti-concentration substrate. Agarwal, Shah, and Shen (2025) informs fixed-design PCR perturbation, and Choi, Kwon, and Liao (2024) informs proof-only decoupling. Li, Shen, and Zhou (2024) studies residual-bootstrap inference for an individual treated unit-time effect. Cai, Low, and Ma (2014) informs width arguments; the present lower bound remains confined to honest rectangles centered at the direct leading Gaussian estimator in the explicit legal rank-two family.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\boldsymbol\theta_n=(\mathbb E[Y_{0,T+\ell}(1)\mid\mathcal F_n])_{\ell=1}^{H_n}\).
+Primary functional / estimator / diagnostic: \(\widehat{\boldsymbol\theta}_{m,n}\ \pm\ \widehat c_{m,n}(1-\alpha)\,(\widehat s_{m,n,\ell})_{\ell=1}^{H_n},\qquad \widehat\Sigma_{m,n}=\widehat\sigma_n^2\widehat Q_{m,n}\widehat Q_{m,n}^{\top}\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common asymptotic size index.}
+  \item \texttt{N\_\allowbreak{}n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Number of treated donor units at size \(n\).
+  \item \texttt{P\_\allowbreak{}n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Length of the target pre-treatment regression at size \(n\).
+  \item \texttt{L\_\allowbreak{}n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Page lag length at size \(n\).
+  \item \texttt{M\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Number of temporal training columns for mode \(m\in\{\mathrm{dir},\mathrm{rec}\}\).
+  \item \texttt{H\_\allowbreak{}n} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Forecast horizon. The recursive feasible-coverage theorem applies to \(H_n\le n^\gamma\) for every fixed \(0\le\gamma<1/4\), while the direct theorem permits any fixed polynomial horizon when the declared disjoint direct response blocks exist; comparator embeddings may set \(H_n=1\), and separately stated benchmark subclasses retain their own displayed horizon sequences.
+  \item \texttt{\textbackslash{}\allowbreak{}boldsymbol v\_\allowbreak{}n} --- \texttt{deterministic vector}; \(\mathbb R^n\)
+  \par\smallskip\noindent\emph{Definition.} Alternating vector with entries \(v_{n,j}=(-1)^j\) along the even-index subsequence, so \(\boldsymbol 1_n^{\top}\boldsymbol v_n=0\) and \(\|\boldsymbol v_n\|_2^2=n\).
+  \item \texttt{\textbackslash{}\allowbreak{}boldsymbol h\_\allowbreak{}n} --- \texttt{deterministic vector}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Lead-sign vector with coordinate \(h_{n,\ell}=(-1)^\ell\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{real number}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Nominal familywise error level.}
+  \item \texttt{\textbackslash{}\allowbreak{}varphi} --- \texttt{real number}; \([-\pi/6,\pi/6]\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index of the legal rank-\allowbreak{}two Gaussian-\allowbreak{}location submodel.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal F\_\allowbreak{}n} --- \texttt{sigma-\allowbreak{}field}
+  \par\smallskip\noindent\emph{Definition.} Sigma-field generated by latent unit factors, latent time factors through lead \(H_n\), assignments, and the deterministic candidate training-cell layout.
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{real number}
+  \par\smallskip\noindent\emph{Definition.} Conditional treated mean \(\theta_{n,\ell}=\mathbb E[Y_{0,T+\ell}(1)\mid\mathcal F_n]\) for \(1\le\ell\le H_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}theta\_\allowbreak{}n} --- \texttt{vector}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Path \((\theta_{n,1},\ldots,\theta_{n,H_n})^{\top}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{finite set}
+  \par\smallskip\noindent\emph{Definition.} Deterministic menu of admissible temporal training layouts for mode \(m\), with cardinality bounded independently of \(n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat d\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random element}; \(\mathcal D_{m,n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Measurable empirical-\allowbreak{}risk minimizer on an auxiliary selection block,\allowbreak{} with a deterministic tie rule.}
+  \item \texttt{\textbackslash{}\allowbreak{}bar Y\_\allowbreak{}n} --- \texttt{matrix}; \(\mathbb R^{P_n\times N_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional-\allowbreak{}mean donor pre-\allowbreak{}treatment design.}
+  \item \texttt{Y\_\allowbreak{}n} --- \texttt{random matrix}; \(\mathbb R^{P_n\times N_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed donor pre-\allowbreak{}treatment design.}
+  \item \texttt{E\_\allowbreak{}\{Y,\allowbreak{}n\}\allowbreak{}} --- \texttt{random matrix}
+  \par\smallskip\noindent\emph{Definition.} Design error \(E_{Y,n}=Y_n-\bar Y_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar y\_\allowbreak{}n} --- \texttt{vector}; \(\mathbb R^{P_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional-\allowbreak{}mean target pre-\allowbreak{}treatment response.}
+  \item \texttt{y\_\allowbreak{}n} --- \texttt{random vector}; \(\mathbb R^{P_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed target pre-\allowbreak{}treatment response.}
+  \item \texttt{e\_\allowbreak{}\{y,\allowbreak{}n\}\allowbreak{}} --- \texttt{random vector}
+  \par\smallskip\noindent\emph{Definition.} Response error \(e_{y,n}=y_n-\bar y_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar Z\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{matrix}; \(\mathbb R^{M_{m,n}\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Conditional-mean temporal lag design selected by \(\widehat d_{m,n}\).
+  \item \texttt{Z\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random matrix}; \(\mathbb R^{M_{m,n}\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed selected temporal lag design.}
+  \item \texttt{E\_\allowbreak{}\{Z,\allowbreak{}m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random matrix}
+  \par\smallskip\noindent\emph{Definition.} Temporal design error \(E_{Z,m,n}=Z_{m,n}-\bar Z_{m,n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{dir\}\allowbreak{},\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{vector}; \(\mathbb R^{M_{\mathrm{dir},n}}\)
+  \par\smallskip\noindent\emph{Definition.} Conditional-mean direct response at lead \(\ell\).
+  \item \texttt{z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{dir\}\allowbreak{},\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{M_{\mathrm{dir},n}}\)
+  \par\smallskip\noindent\emph{Definition.} Observed direct temporal response at lead \(\ell\).
+  \item \texttt{e\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{dir\}\allowbreak{},\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random vector}
+  \par\smallskip\noindent\emph{Definition.} Direct response error \(e_{\mathrm{dir},n,\ell}=z_{\mathrm{dir},n,\ell}-\bar z_{\mathrm{dir},n,\ell}\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{rec\}\allowbreak{},\allowbreak{}n\}\allowbreak{}} --- \texttt{vector}; \(\mathbb R^{M_{\mathrm{rec},n}}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional-\allowbreak{}mean one-\allowbreak{}step recursive training response.}
+  \item \texttt{z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{rec\}\allowbreak{},\allowbreak{}n\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{M_{\mathrm{rec},n}}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed one-\allowbreak{}step recursive training response.}
+  \item \texttt{e\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{rec\}\allowbreak{},\allowbreak{}n\}\allowbreak{}} --- \texttt{random vector}
+  \par\smallskip\noindent\emph{Definition.} Recursive response error \(e_{\mathrm{rec},n}=z_{\mathrm{rec},n}-\bar z_{\mathrm{rec},n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}bar W\_\allowbreak{}n} --- \texttt{matrix}; \(\mathbb R^{N_n\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Conditional-\allowbreak{}mean common terminal donor-\allowbreak{}history block.}
+  \item \texttt{W\_\allowbreak{}n} --- \texttt{random matrix}; \(\mathbb R^{N_n\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed common terminal donor-\allowbreak{}history block.}
+  \item \texttt{E\_\allowbreak{}\{W,\allowbreak{}n\}\allowbreak{}} --- \texttt{random matrix}
+  \par\smallskip\noindent\emph{Definition.} Terminal-block error \(E_{W,n}=W_n-\bar W_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}n\textasciicircum{}2} --- \texttt{positive real number}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Common conditional cell-\allowbreak{}error variance.}
+  \item \texttt{r\_\allowbreak{}\{y,\allowbreak{}n\}\allowbreak{}} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Rank of \(\bar Y_n\).
+  \item \texttt{r\_\allowbreak{}\{z,\allowbreak{}m,\allowbreak{}n\}\allowbreak{}} --- \texttt{positive integer}
+  \par\smallskip\noindent\emph{Definition.} Rank of \(\bar Z_{m,n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}n} --- \texttt{vector}; \(\mathbb R^{N_n}\)
+  \par\smallskip\noindent\emph{Definition.} Minimum-norm unit coefficient \(\beta_n=\bar Y_n^{\dagger}\bar y_n\).
+  \item \texttt{a\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Minimum-norm direct coefficient \(a_{n,\ell}=\bar Z_{\mathrm{dir},n}^{\dagger}\bar z_{\mathrm{dir},n,\ell}\).
+  \item \texttt{a\_\allowbreak{}n} --- \texttt{vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Minimum-norm recursive coefficient \(a_n=\bar Z_{\mathrm{rec},n}^{\dagger}\bar z_{\mathrm{rec},n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}n} --- \texttt{map}; \(\mathbb R^{L_n}\to\mathbb R^{L_n\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Companion map \(\Pi_n(x)=S_n+e_{L_n}x^{\top}\), where \(S_n\) is the superdiagonal shift.
+  \item \texttt{g\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Recursive loading \(g_{n,\ell}=\{\Pi_n(a_n)^\ell\}^{\top}e_{L_n}\).
+  \item \texttt{J\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{matrix}; \(\mathbb R^{L_n\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Jacobian \(J_{n,\ell}=D_x[\{\Pi_n(x)^\ell\}^{\top}e_{L_n}]|_{x=a_n}\).
+  \item \texttt{p\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{vector}; \(\mathbb R^{P_n}\)
+  \par\smallskip\noindent\emph{Definition.} Unit-side Riesz loading \(p_{\mathrm{dir},n,\ell}=\bar Y_n^{\dagger\top}\bar W_n a_{n,\ell}\) and \(p_{\mathrm{rec},n,\ell}=\bar Y_n^{\dagger\top}\bar W_n g_{n,\ell}\).
+  \item \texttt{q\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{vector}; \(\mathbb R^{M_{m,n}}\)
+  \par\smallskip\noindent\emph{Definition.} Temporal Riesz loading \(q_{\mathrm{dir},n,\ell}=\bar Z_{\mathrm{dir},n}^{\dagger\top}\bar W_n^{\top}\beta_n\) and \(q_{\mathrm{rec},n,\ell}=\bar Z_{\mathrm{rec},n}^{\dagger\top}J_{n,\ell}^{\top}\bar W_n^{\top}\beta_n\).
+  \item \texttt{w\_\allowbreak{}n} --- \texttt{vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Population terminal direction \(w_n=\bar W_n^{\top}\beta_n\).
+  \item \texttt{G\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random variable}
+  \par\smallskip\noindent\emph{Definition.} Leading orthogonal score at mode \(m\) and lead \(\ell\).
+  \item \texttt{\textbackslash{}\allowbreak{}boldsymbol G\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Stack \((G_{m,n,1},\ldots,G_{m,n,H_n})^{\top}\).
+  \item \texttt{\textbackslash{}\allowbreak{}boldsymbol r\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Remainder vector in the selected path linearization.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Z\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random matrix}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Rank-\allowbreak{}truncated selected temporal design returned by the selected PCR map.}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}beta\_\allowbreak{}n} --- \texttt{random vector}; \(\mathbb R^{N_n}\)
+  \par\smallskip\noindent\emph{Definition.} Selected PCR unit coefficient computed from \((Y_n,y_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat a\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Selected direct PCR coefficient computed from \((Z_{\mathrm{dir},n},z_{\mathrm{dir},n,\ell})\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat a\_\allowbreak{}n} --- \texttt{random vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Selected recursive PCR coefficient computed from \((Z_{\mathrm{rec},n},z_{\mathrm{rec},n})\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat g\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Fitted recursive loading \(\widehat g_{n,\ell}=\{\Pi_n(\widehat a_n)^\ell\}^{\top}e_{L_n}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat J\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random matrix}; \(\mathbb R^{L_n\times L_n}\)
+  \par\smallskip\noindent\emph{Definition.} Fitted Jacobian obtained by evaluating the derivative defining \(J_{n,\ell}\) at \(\widehat a_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat p\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{P_n}\)
+  \par\smallskip\noindent\emph{Definition.} Fitted unit-side Riesz loading obtained from the selected rank-truncated unit design and observed \(W_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat q\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{M_{m,n}}\)
+  \par\smallskip\noindent\emph{Definition.} Fitted temporal Riesz loading obtained from \(\widehat Z_{m,n}^{\dagger\top}\), observed \(W_n\), \(\widehat\beta_n\), and \(\widehat J_{n,\ell}\) in recursive mode.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}theta\}\allowbreak{}\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random vector}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{Selected-\allowbreak{}training direct or recursive TWSF path center computed by rank-\allowbreak{}truncated PCR with fitted Riesz corrections that vanish by the fitted normal equations.}
+  \item \texttt{\textbackslash{}\allowbreak{}Sigma\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{positive-\allowbreak{}semidefinite matrix}; \(\mathbb R^{H_n\times H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Conditional covariance \(\Sigma_{m,n}=\operatorname{Cov}(\boldsymbol G_{m,n}\mid\mathcal F_n,\widehat d_{m,n})\).
+  \item \texttt{s\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{positive real number}
+  \par\smallskip\noindent\emph{Definition.} Leading standard deviation \(s_{m,n,\ell}^2=\Sigma_{m,n}(\ell,\ell)\).
+  \item \texttt{D\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{diagonal matrix}
+  \par\smallskip\noindent\emph{Definition.} Scale matrix \(D_{m,n}=\operatorname{diag}(s_{m,n,1},\ldots,s_{m,n,H_n})\).
+  \item \texttt{R\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{correlation matrix}
+  \par\smallskip\noindent\emph{Definition.} Correlation \(R_{m,n}=D_{m,n}^{-1}\Sigma_{m,n}D_{m,n}^{-1}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}sigma\_\allowbreak{}n\textasciicircum{}2} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Pooled residual estimator of \(\sigma_n^2\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat Q\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random matrix}
+  \par\smallskip\noindent\emph{Definition.} Concatenated fitted coefficient matrix mapping independent primitive cell errors into all \(H_n\) leading score coordinates.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Sigma\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random positive-\allowbreak{}semidefinite matrix}; \(\mathbb R^{H_n\times H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Observable fitted coefficient-Gram covariance \(\widehat\Sigma_{m,n}=\widehat\sigma_n^2\widehat Q_{m,n}\widehat Q_{m,n}^{\top}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat s\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Fitted standard deviation \(\widehat s_{m,n,\ell}^2=\widehat\Sigma_{m,n}(\ell,\ell)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat R\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random correlation matrix}
+  \par\smallskip\noindent\emph{Definition.} Fitted correlation obtained by diagonal normalization of \(\widehat\Sigma_{m,n}\), with the declared measurable fallback on zero fitted variance.
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Standardized linearization error \(\max_{\ell\le H_n}|\widehat\theta_{m,n,\ell}-\theta_{n,\ell}-G_{m,n,\ell}|/s_{m,n,\ell}\).
+  \item \texttt{t\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Relative scale error \(\max_{\ell\le H_n}|\widehat s_{m,n,\ell}/s_{m,n,\ell}-1|\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Correlation error \(\|\widehat R_{m,n}-R_{m,n}\|_{\max}\).
+  \item \texttt{d\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Kolmogorov distance between \(\max_{\ell\le H_n}|N(0,\widehat R_{m,n})_\ell|\) conditionally on the data and \(\max_{\ell\le H_n}|N(0,R_{m,n})_\ell|\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{positive real number}
+  \par\smallskip\noindent\emph{Definition.} Gaussian complexity \(\mathbb E[\max_{\ell\le H_n}|N(0,R_{m,n})_\ell|\mid\mathcal F_n,\widehat d_{m,n}]\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}\{n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}} --- \texttt{nonnegative real number}
+  \par\smallskip\noindent\emph{Definition.} Lead-specific standardized direct variance share \(\nu_{n,\ell}=\sigma_n^2\|q_{\mathrm{dir},n,\ell}\|_2^2/s_{\mathrm{dir},n,\ell}^2\) of the independent lead response.
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}\{\textbackslash{}\allowbreak{}min,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative real number}
+  \par\smallskip\noindent\emph{Definition.} Minimum lead-specific direct share \(\nu_{\min,n}=\min_{\ell\le H_n}\nu_{n,\ell}\).
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}\{\textbackslash{}\allowbreak{}max,\allowbreak{}n\}\allowbreak{}} --- \texttt{nonnegative real number}
+  \par\smallskip\noindent\emph{Definition.} Maximum lead-specific direct share \(\nu_{\max,n}=\max_{\ell\le H_n}\nu_{n,\ell}\).
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}n} --- \texttt{nonnegative real number}
+  \par\smallskip\noindent\emph{Definition.} Heterogeneous-share Gaussian complexity \(\rho_n=\mathbb E[\max_{\ell\le H_n}\sqrt{\nu_{n,\ell}}|\xi_{n,\ell}|]\) for independent \(\xi_{n,\ell}\sim N(0,1)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat c\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}(1-\allowbreak{}\textbackslash{}\allowbreak{}alpha)} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Conditional \((1-\alpha)\)-quantile of \(\max_{\ell\le H_n}|N(0,\widehat R_{m,n})_\ell|\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}} --- \texttt{random rectangle}
+  \par\smallskip\noindent\emph{Definition.} Band \(\prod_{\ell=1}^{H_n}[\widehat\theta_{m,n,\ell}\pm\widehat c_{m,n}(1-\alpha)\widehat s_{m,n,\ell}]\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n} --- \texttt{class of conditional panel laws}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Balanced,\allowbreak{} strongly identified,\allowbreak{} fixed-\allowbreak{}rank TWSF laws satisfying the declared member conditions.}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal A\_\allowbreak{}n} --- \texttt{subclass of conditional panel laws}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Persistent all-\allowbreak{}ones rank-\allowbreak{}one subclass with the declared disjoint common-\allowbreak{}origin layout.}
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{loc\}\allowbreak{}\}\allowbreak{}} --- \texttt{set}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Legal mean-path curve \(\Theta_n^{\mathrm{loc}}=\{\boldsymbol\vartheta_n(\varphi)=\cos(\varphi)\boldsymbol 1_{H_n}+\sin(\varphi)\boldsymbol h_n:\varphi\in[-\pi/6,\pi/6]\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\_\allowbreak{}\{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}vartheta,\allowbreak{}n\}\allowbreak{}} --- \texttt{conditional panel law}
+  \par\smallskip\noindent\emph{Definition.} Member of the explicit rank-two submodel indexed by \(\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal L\_\allowbreak{}n} --- \texttt{subclass of conditional panel laws}
+  \par\smallskip\noindent\emph{Definition.} Gaussian-location family \(\{\mathbb P_{\boldsymbol\vartheta,n}:\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\}\) constructed from constant and alternating factors.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal S\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{Shen\}\allowbreak{},\allowbreak{}1\}\allowbreak{}} --- \texttt{class of conditional panel laws}
+  \par\smallskip\noindent\emph{Definition.} The \(H_n=1\) Gaussian, balanced, strongly identified fixed-rank specialization of Shen's published deterministic-training TWSF setup.
+  \item \texttt{\textbackslash{}\allowbreak{}Sigma\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{loc\}\allowbreak{}\}\allowbreak{}} --- \texttt{positive-\allowbreak{}definite matrix}; \(\mathbb R^{H_n\times H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Covariance of the direct leading score under \(\mathcal L_n\), which does not depend on \(\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\).
+  \item \texttt{X\_\allowbreak{}n} --- \texttt{random vector}; \(\mathbb R^{H_n}\)
+  \par\smallskip\noindent\emph{Definition.} Direct leading Gaussian location observation \(X_n=\boldsymbol\vartheta+\boldsymbol G_{\mathrm{dir},n}\) under \(\mathbb P_{\boldsymbol\vartheta,n}\in\mathcal L_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak R\_\allowbreak{}n} --- \texttt{class of random rectangles}
+  \par\smallskip\noindent\emph{Definition.} Measurable, possibly asymmetric and randomized coordinate rectangles centered at \(X_n\).
+  \item \texttt{W\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}max\}\allowbreak{}} --- \texttt{nonnegative random variable}
+  \par\smallskip\noindent\emph{Definition.} Maximum standardized halfwidth of a rectangle in \(\mathfrak R_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{nonnegative extended real number}
+  \par\smallskip\noindent\emph{Definition.} Largest polynomial-horizon exponent derived by the open question \(\mathrm{oeq{:}sharp\mbox{-}horizon}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:factor-model]\label{ass:factor-model}
+\texttt{Conditional means obey the invariant-\allowbreak{}unit latent factor model of Shen (2026).}
+\par\smallskip\noindent\emph{Standard} (TWSF invariant-unit latent-factor model, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:hankel-rank]\label{ass:hankel-rank}
+Every treated-state latent temporal component has Hankel rank at most the fixed constant \(Q_0\).
+\par\smallskip\noindent\emph{Standard} (TWSF low-Hankel-rank temporal structure, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:gaussian-cells]\label{ass:gaussian-cells}
+Conditional on \(\mathcal F_n\), the collection of primitive cell errors used in fitting or inference is i.i.d. \(N(0,\sigma_n^2)\).
+\par\smallskip\noindent\emph{Standard} (Homoskedastic Gaussian specialization of the TWSF conditional-noise model, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:noise-scale]\label{ass:noise-scale}
+The common error scale satisfies \(0<c_\sigma\le\sigma_n\le C_\sigma<\infty\).
+\par\smallskip\noindent\emph{Standard} (Uniformly bounded and nonvanishing noise scale, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:balanced-dimensions]\label{ass:balanced-dimensions}
+For fixed \(0<c<C<\infty\), every member satisfies \(cn\le\min\{N_n,P_n,L_n,M_{\mathrm{dir},n},M_{\mathrm{rec},n}\}\le\max\{N_n,P_n,L_n,M_{\mathrm{dir},n},M_{\mathrm{rec},n}\}\le Cn\).
+\par\smallskip\noindent\emph{Standard} (Balanced-panel asymptotics, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-rank]\label{ass:fixed-rank}
+The positive ranks satisfy \(1\le r_{y,n}\vee r_{z,\mathrm{dir},n}\vee r_{z,\mathrm{rec},n}\le r_0\) for a fixed \(r_0\).
+\par\smallskip\noindent\emph{Standard} (Fixed-rank approximate-factor specialization, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:strong-spectrum]\label{ass:strong-spectrum}
+Every nonzero singular value of \(\bar Y_n\) and every selectable \(\bar Z_{m,n}\) lies in \([c_s n,C_s n]\).
+\par\smallskip\noindent\emph{Standard} (Strong fixed-rank spectral signal, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-means]\label{ass:bounded-means}
+All entries of the conditional-mean blocks and all conditional target means have absolute value at most a fixed constant \(C_\mu\).
+\par\smallskip\noindent\emph{Standard} (Uniformly bounded TWSF signal, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:unit-recovery]\label{ass:unit-recovery}
+The selected terminal mean satisfies \(\operatorname{col}(\bar W_n)\subseteq\operatorname{col}(\bar Y_n^{\top})\).
+\par\smallskip\noindent\emph{Standard} (TWSF unit-side row-span recovery, transposed orientation, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:direct-response-span]\label{ass:direct-response-span}
+For every \(1\le\ell\le H_n\) and every selectable direct layout, \(\bar z_{\mathrm{dir},n,\ell}\in\operatorname{col}(\bar Z_{\mathrm{dir},n})\).
+\par\smallskip\noindent\emph{Novel.} This uniform selected-layout version of Shen's fixed-summary span condition is satisfied when each deterministic candidate Page block spans the same finite recurrence space, as for persistent harmonic, polynomial, and exponential factor sequences.
+\end{assumption}
+
+\begin{assumption}[ass:direct-terminal-transport]\label{ass:direct-terminal-transport}
+For every \(1\le\ell\le H_n\), the coefficient \(a_{n,\ell}\) represents the terminal-state conditional mean through \(\theta_{n,\ell}=a_{n,\ell}^{\top}\bar W_n^{\top}\beta_n\).
+\par\smallskip\noindent\emph{Novel.} A common-origin terminal block generated by a finite recurrence has the same horizon-specific coefficient as any correctly aligned training response; persistent and harmonic factor paths provide concrete examples.
+\end{assumption}
+
+\begin{assumption}[ass:recursive-recovery]\label{ass:recursive-recovery}
+For every selectable recursive layout and every \(0\le j<H_n\), each population terminal state advanced \(j\) times by a valid population recurrence belongs to \(\operatorname{col}(\bar Z_{\mathrm{rec},n})\).
+\par\smallskip\noindent\emph{Novel.} This is a selected-layout strengthening of Shen's recursive recovery condition. It is satisfied by persistent harmonic, polynomial, and exponential factor sequences when each deterministic candidate Page block spans the common recurrence space, and it can be screened by predeclared span diagnostics.
+\end{assumption}
+
+\begin{assumption}[ass:independent-selection]\label{ass:independent-selection}
+The auxiliary errors determining \(\widehat d_{m,n}\) are independent, conditional on \(\mathcal F_n\), of all errors in \(Y_n,y_n,Z_{m,n},z_{\mathrm{dir},n,\ell},z_{\mathrm{rec},n},W_n\).
+\par\smallskip\noindent\emph{Novel.} A held-out validation segment is available in prospective panels before the terminal forecast origin, so training layout can be selected on cells excluded from the final fit and Gram calculation. The condition accommodates exact and local risk ties because the tie rule is fixed and measurable.
+\end{assumption}
+
+\begin{assumption}[ass:disjoint-inference-blocks]\label{ass:disjoint-inference-blocks}
+\texttt{Within a mode,\allowbreak{} pre-\allowbreak{}treatment,\allowbreak{} lag-\allowbreak{}design,\allowbreak{} temporal-\allowbreak{}response,\allowbreak{} terminal-\allowbreak{}history,\allowbreak{} and auxiliary-\allowbreak{}selection cells are pairwise disjoint whenever their independence is invoked.}
+\par\smallskip\noindent\emph{Standard} (Disjoint-block Gaussian panel construction, \cite{Shen2026TWSF}).
+\end{assumption}
+
+\begin{assumption}[ass:variance-floor]\label{ass:variance-floor}
+For a fixed \(c_v>0\), \(\min_{m\in\{\mathrm{dir},\mathrm{rec}\},\ell\le H_n}s_{m,n,\ell}\ge c_vn^{-1/2}\).
+\par\smallskip\noindent\emph{Standard} (Uniform marginal-variance nondegeneracy without an eigenvalue bound, \cite{ChernozhukovChetverikovKato2015}).
+\end{assumption}
+
+\begin{assumption}[ass:stable-short-recursion]\label{ass:stable-short-recursion}
+For a fixed \(C_A\), \(\max_{0\le j\le H_n}\|\Pi_n(a_n)^j\|_{\mathrm{op}}\le C_A\) uniformly over selectable recursive layouts.
+\par\smallskip\noindent\emph{Novel.} Short-horizon power boundedness holds for stable and unit-root recurrences with semisimple unit roots, including constant, polynomial-trend after state augmentation, and finite-harmonic factor paths used in economic panels.
+\end{assumption}
+
+\begin{assumption}[ass:persistent-unit-loadings]\label{ass:persistent-unit-loadings}
+\texttt{Every donor and target loading equals one.}
+\par\smallskip\noindent\emph{Novel.} A common level loading represents panels whose units share one persistent aggregate factor while retaining nondegenerate idiosyncratic cell noise.
+\end{assumption}
+
+\begin{assumption}[ass:persistent-time-factor]\label{ass:persistent-time-factor}
+\texttt{Every relevant treated and control mean time factor equals one.}
+\par\smallskip\noindent\emph{Novel.} A persistent level factor is a standard component of epidemic counts, demand, and macroeconomic panels, and yields strongly identified rank-one blocks rather than a collapsed signal.
+\end{assumption}
+
+\begin{assumption}[ass:persistent-balance]\label{ass:persistent-balance}
+On the persistent subclass, \(N_n=P_n=L_n=M_{\mathrm{dir},n}=M_{\mathrm{rec},n}=n\).
+\par\smallskip\noindent\emph{Novel.} Equal block lengths give an implementable balanced benchmark with all signal singular values proportional to \(n\).
+\end{assumption}
+
+\begin{assumption}[ass:persistent-singleton-menu]\label{ass:persistent-singleton-menu}
+On the persistent subclass, \(|\mathcal D_{\mathrm{dir},n}|=|\mathcal D_{\mathrm{rec},n}|=1\).
+\par\smallskip\noindent\emph{Novel.} A singleton menu is the deterministic-training special case used to isolate architecture rather than selection complexity.
+\end{assumption}
+
+\begin{assumption}[ass:persistent-common-origin]\label{ass:persistent-common-origin}
+The persistent direct and recursive layouts use the same terminal block \(W_n\) and the same forecast origin.
+\par\smallskip\noindent\emph{Novel.} Reserving one terminal donor-history block at a common decision date is feasible in prospective panels and makes the architecture comparison hold the forecasting target fixed.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:panel-class]\label{def:panel-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal C_n\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_n=\{\text{conditional panel laws at index }n:\mathrm{ass{:}factor\mbox{-}model},\mathrm{ass{:}hankel\mbox{-}rank},\mathrm{ass{:}gaussian\mbox{-}cells},\mathrm{ass{:}noise\mbox{-}scale},\mathrm{ass{:}balanced\mbox{-}dimensions},\mathrm{ass{:}fixed\mbox{-}rank},\mathrm{ass{:}strong\mbox{-}spectrum},\mathrm{ass{:}bounded\mbox{-}means},\mathrm{ass{:}unit\mbox{-}recovery},\mathrm{ass{:}direct\mbox{-}response\mbox{-}span},\mathrm{ass{:}direct\mbox{-}terminal\mbox{-}transport},\mathrm{ass{:}recursive\mbox{-}recovery},\mathrm{ass{:}independent\mbox{-}selection},\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks},\mathrm{ass{:}variance\mbox{-}floor},\mathrm{ass{:}stable\mbox{-}short\mbox{-}recursion}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}factor-\allowbreak{}model}; \texttt{ass:\allowbreak{}hankel-\allowbreak{}rank}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}cells}; \texttt{ass:\allowbreak{}noise-\allowbreak{}scale}; \texttt{ass:\allowbreak{}balanced-\allowbreak{}dimensions}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}rank}; \texttt{ass:\allowbreak{}strong-\allowbreak{}spectrum}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}means}; \texttt{ass:\allowbreak{}unit-\allowbreak{}recovery}; \texttt{ass:\allowbreak{}direct-\allowbreak{}response-\allowbreak{}span}; \texttt{ass:\allowbreak{}direct-\allowbreak{}terminal-\allowbreak{}transport}; \texttt{ass:\allowbreak{}recursive-\allowbreak{}recovery}; \texttt{ass:\allowbreak{}independent-\allowbreak{}selection}; \texttt{ass:\allowbreak{}disjoint-\allowbreak{}inference-\allowbreak{}blocks}; \texttt{ass:\allowbreak{}variance-\allowbreak{}floor}; \texttt{ass:\allowbreak{}stable-\allowbreak{}short-\allowbreak{}recursion}.
+\end{definition}
+
+\begin{definition}[def:pcr-map]\label{def:pcr-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected PCR map}
+\par\smallskip\noindent\emph{Construction.} For each observed design \(X\), retain the declared rank singular subspace, set \(X_r=\operatorname{HSVT}(X,r)\), and return \(X_r^\dagger u\) for response \(u\); use the threshold \(n_*^{3/4}\) and a deterministic spectral-tie convention when ranks are not supplied.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat d\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{Y\_\allowbreak{}n}; \texttt{y\_\allowbreak{}n}; \texttt{Z\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{dir\}\allowbreak{},\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}}; \texttt{z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{rec\}\allowbreak{},\allowbreak{}n\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:stacked-scores]\label{def:stacked-scores}
+\par\smallskip\noindent\emph{Defined object.} \(\boldsymbol G_{m,n}\)
+\par\smallskip\noindent\emph{Construction.} Let \(\delta_{\beta,n}=e_{y,n}-E_{Y,n}\beta_n\), \(\delta_{\mathrm{dir},n,\ell}=e_{\mathrm{dir},n,\ell}-E_{Z,\mathrm{dir},n}a_{n,\ell}\), and \(\delta_{\mathrm{rec},n}=e_{\mathrm{rec},n}-E_{Z,\mathrm{rec},n}a_n\). Define \(G_{\mathrm{dir},n,\ell}=a_{n,\ell}^{\top}E_{W,n}^{\top}\beta_n+p_{\mathrm{dir},n,\ell}^{\top}\delta_{\beta,n}+q_{\mathrm{dir},n,\ell}^{\top}\delta_{\mathrm{dir},n,\ell}\) and \(G_{\mathrm{rec},n,\ell}=g_{n,\ell}^{\top}E_{W,n}^{\top}\beta_n+p_{\mathrm{rec},n,\ell}^{\top}\delta_{\beta,n}+q_{\mathrm{rec},n,\ell}^{\top}\delta_{\mathrm{rec},n}\), then stack over \(1\le\ell\le H_n\).
+\end{definition}
+
+\begin{definition}[def:gram-covariance]\label{def:gram-covariance}
+\par\smallskip\noindent\emph{Defined object.} \(\widehat\Sigma_{m,n}\)
+\par\smallskip\noindent\emph{Construction.} Write each fitted score coordinate as a concatenated coefficient vector multiplying the independent Gaussian primitive blocks, and set \(\widehat\Sigma_{m,n}=\widehat\sigma_n^2\widehat Q_{m,n}\widehat Q_{m,n}^{\top}\), where \(\widehat Q_{m,n}\) uses the selected rank-truncated PCR coefficients, observed \(W_n\), fitted Riesz vectors, and fitted companion Jacobians. Estimate \(\sigma_n^2\) by the pooled unit-response and first temporal-response residual sum of squares divided by their residual degrees of freedom.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat d\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{Y\_\allowbreak{}n}; \texttt{y\_\allowbreak{}n}; \texttt{Z\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{dir\}\allowbreak{},\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}}; \texttt{z\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{rec\}\allowbreak{},\allowbreak{}n\}\allowbreak{}}; \texttt{W\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:multiplier-band]\label{def:multiplier-band}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal B_{m,n}\)
+\par\smallskip\noindent\emph{Construction.} Simulate \(Z^{\ast}_{m,n}\mid\mathrm{data}\sim N(0,\widehat R_{m,n})\), take \(\widehat c_{m,n}(1-\alpha)=\inf\{c:\Pr(\max_{\ell\le H_n}|Z^{\ast}_{m,n,\ell}|\le c\mid\mathrm{data})\ge1-\alpha\}\), and form \(\mathcal B_{m,n}=\prod_{\ell=1}^{H_n}[\widehat\theta_{m,n,\ell}\pm\widehat c_{m,n}(1-\alpha)\widehat s_{m,n,\ell}]\), with a deterministic measurable fallback on spectral or variance failure.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}theta\}\allowbreak{}\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat R\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat s\_\allowbreak{}\{m,\allowbreak{}n,\allowbreak{}\textbackslash{}\allowbreak{}ell\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:variance-share-complexity]\label{def:variance-share-complexity}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Variance-\allowbreak{}share Gaussian-\allowbreak{}complexity frontier}
+\par\smallskip\noindent\emph{Construction.} The focal map is \((R_{\mathrm{dir},n},R_{\mathrm{rec},n})\mapsto((\nu_{n,\ell})_{\ell=1}^{H_n},\rho_n,\kappa_{\mathrm{dir},n},\kappa_{\mathrm{rec},n})\), where \(\nu_{n,\ell}=\sigma_n^2\|q_{\mathrm{dir},n,\ell}\|_2^2/s_{\mathrm{dir},n,\ell}^2\), \(\rho_n=\mathbb E\max_{\ell\le H_n}\sqrt{\nu_{n,\ell}}|\xi_{n,\ell}|\) for independent standard normal \(\xi_{n,\ell}\), and \(\kappa_{m,n}=\mathbb E\max_{\ell\le H_n}|N(0,R_{m,n})_\ell|\).
+\end{definition}
+
+\begin{definition}[def:persistent-subclass]\label{def:persistent-subclass}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal A_n\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_n=\{P\in\mathcal C_n:P\text{ satisfies }\mathrm{ass{:}persistent\mbox{-}unit\mbox{-}loadings},\mathrm{ass{:}persistent\mbox{-}time\mbox{-}factor},\mathrm{ass{:}persistent\mbox{-}balance},\mathrm{ass{:}persistent\mbox{-}singleton\mbox{-}menu},\mathrm{ass{:}persistent\mbox{-}common\mbox{-}origin}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}persistent-\allowbreak{}unit-\allowbreak{}loadings}; \texttt{ass:\allowbreak{}persistent-\allowbreak{}time-\allowbreak{}factor}; \texttt{ass:\allowbreak{}persistent-\allowbreak{}balance}; \texttt{ass:\allowbreak{}persistent-\allowbreak{}singleton-\allowbreak{}menu}; \texttt{ass:\allowbreak{}persistent-\allowbreak{}common-\allowbreak{}origin}.
+\end{definition}
+
+\begin{definition}[def:legal-location-submodel]\label{def:legal-location-submodel}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal L_n\)
+\par\smallskip\noindent\emph{Construction.} Along even \(n\), let \(\boldsymbol u_n=\boldsymbol 1_n\), \(B_n=\boldsymbol u_n\boldsymbol u_n^{\top}+\boldsymbol v_n\boldsymbol v_n^{\top}\), and use mutually disjoint observed blocks with \(N_n=P_n=L_n=M_{\mathrm{dir},n}=M_{\mathrm{rec},n}=n\), singleton training menus, \(\bar Y_n=\bar Z_{\mathrm{dir},n}=\bar Z_{\mathrm{rec},n}=\bar W_n=B_n\), \(\bar y_n(\varphi)=\cos(\varphi)\boldsymbol u_n+\sin(\varphi)\boldsymbol v_n\), \(\bar z_{\mathrm{dir},n,\ell}=\boldsymbol u_n+(-1)^\ell\boldsymbol v_n\), \(\bar z_{\mathrm{rec},n}=\boldsymbol u_n-\boldsymbol v_n\), and i.i.d. \(N(0,\sigma_n^2)\) cell errors. Constant and alternating latent factors generate these blocks and give \(\boldsymbol\theta_n=\boldsymbol\vartheta_n(\varphi)=\cos(\varphi)\boldsymbol 1_{H_n}+\sin(\varphi)\boldsymbol h_n\). The resulting indexed family is \(\mathcal L_n=\{\mathbb P_{\boldsymbol\vartheta,n}:\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}boldsymbol v\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}boldsymbol h\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}varphi}.
+\end{definition}
+
+\begin{definition}[def:shen-singleton-embedding]\label{def:shen-singleton-embedding}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal S_n^{\mathrm{Shen},1}\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal S_n^{\mathrm{Shen},1}=\{P:P\text{ is in Shen's published deterministic-training TWSF setup with }H_n=1,\ |\mathcal D_{\mathrm{dir},n}|=|\mathcal D_{\mathrm{rec},n}|=1,\text{ and satisfies }\mathrm{ass{:}factor\mbox{-}model},\mathrm{ass{:}hankel\mbox{-}rank},\mathrm{ass{:}gaussian\mbox{-}cells},\mathrm{ass{:}noise\mbox{-}scale},\mathrm{ass{:}balanced\mbox{-}dimensions},\mathrm{ass{:}fixed\mbox{-}rank},\mathrm{ass{:}strong\mbox{-}spectrum},\mathrm{ass{:}bounded\mbox{-}means},\mathrm{ass{:}unit\mbox{-}recovery},\mathrm{ass{:}direct\mbox{-}response\mbox{-}span},\mathrm{ass{:}direct\mbox{-}terminal\mbox{-}transport},\mathrm{ass{:}recursive\mbox{-}recovery},\mathrm{ass{:}independent\mbox{-}selection},\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks},\mathrm{ass{:}variance\mbox{-}floor},\mathrm{ass{:}stable\mbox{-}short\mbox{-}recursion}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}factor-\allowbreak{}model}; \texttt{ass:\allowbreak{}hankel-\allowbreak{}rank}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}cells}; \texttt{ass:\allowbreak{}noise-\allowbreak{}scale}; \texttt{ass:\allowbreak{}balanced-\allowbreak{}dimensions}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}rank}; \texttt{ass:\allowbreak{}strong-\allowbreak{}spectrum}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}means}; \texttt{ass:\allowbreak{}unit-\allowbreak{}recovery}; \texttt{ass:\allowbreak{}direct-\allowbreak{}response-\allowbreak{}span}; \texttt{ass:\allowbreak{}direct-\allowbreak{}terminal-\allowbreak{}transport}; \texttt{ass:\allowbreak{}recursive-\allowbreak{}recovery}; \texttt{ass:\allowbreak{}independent-\allowbreak{}selection}; \texttt{ass:\allowbreak{}disjoint-\allowbreak{}inference-\allowbreak{}blocks}; \texttt{ass:\allowbreak{}variance-\allowbreak{}floor}; \texttt{ass:\allowbreak{}stable-\allowbreak{}short-\allowbreak{}recursion}.
+\end{definition}
+
+\begin{definition}[def:centered-rectangles]\label{def:centered-rectangles}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak R_n\)
+\par\smallskip\noindent\emph{Construction.} In the experiment \(X_n\mid\mathbb P_{\boldsymbol\vartheta,n}\sim N(\boldsymbol\vartheta,\Sigma_n^{\mathrm{loc}})\), define \(\mathfrak R_n=\{\prod_{\ell=1}^{H_n}[X_{n,\ell}-s_{\mathrm{dir},n,\ell}W^-_{n,\ell},X_{n,\ell}+s_{\mathrm{dir},n,\ell}W^+_{n,\ell}]:W^-_{n,\ell},W^+_{n,\ell}\ge0\text{ are measurable in }(X_n,U)\}\), where \(U\) is independent auxiliary randomization, \(\Sigma_n^{\mathrm{loc}}\) is the direct leading-score covariance common to every \(\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\), and \(W_n^{\max}=\max_{\ell\le H_n}(W^-_{n,\ell}\vee W^+_{n,\ell})\).
+\end{definition}
+
+\begin{definition}[def:sharp-horizon-handle]\label{def:sharp-horizon-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp-\allowbreak{}horizon audit handle}
+\par\smallskip\noindent\emph{Construction.} Use the exact sixteen-term orthogonal remainder ledger, a leave-one-block-out spectral coupling for the implemented PCR map, and second-order Fr\'{e}chet bounds for \(x\mapsto\Pi_n(x)^\ell\) to determine \(\gamma^{\star}\) and a matching legal failure sequence.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y\_\allowbreak{}n}; \texttt{Z\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}Sigma\_\allowbreak{}\{m,\allowbreak{}n\}\allowbreak{}}; \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}n}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:stacked-orthogonal-expansion]\label{thm:stacked-orthogonal-expansion}
+Uniformly over \(\mathbb P\in\mathcal C_n\) and conditionally on \((\mathcal F_n,\widehat d_{m,n})\), the selected direct and recursive centers satisfy \(\widehat{\boldsymbol\theta}_{m,n}-\boldsymbol\theta_n=\boldsymbol G_{m,n}+\boldsymbol r_{m,n}\), where \(\boldsymbol G_{m,n}\) is exactly Gaussian with covariance \(\Sigma_{m,n}\), \(\max_{\ell\le H_n}|r_{\mathrm{dir},n,\ell}|/s_{\mathrm{dir},n,\ell}=O_{\Pr}(\log(nH_n)/\sqrt n)\), and \(\max_{\ell\le H_n}|r_{\mathrm{rec},n,\ell}|/s_{\mathrm{rec},n,\ell}=O_{\Pr}(H_n\log(nH_n)/\sqrt n+H_n^2\log(nH_n)/n)\). The direct and recursive score coordinates equal the constructions in \(\mathrm{def{:}stacked\mbox{-}scores}\).
+\end{theorem}
+\begin{proof}
+Fix a mode and condition throughout on \(\mathcal H_{m,n}:=\sigma(\mathcal F_n,\widehat d_{m,n})\).  By \(\mathrm{ass{:}independent\mbox{-}selection}\), this conditioning fixes the selected population layout without changing the conditional laws of its inference-cell errors.  By \(\mathrm{ass{:}gaussian\mbox{-}cells}\) and \(\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks}\), the primitive error blocks used below are independent centered Gaussian blocks whenever independence is asserted.  Put
+\[
+ b_n:=\log(nH_n),\qquad u_n:=K\frac{\sqrt{b_n}}{n},
+\]
+where \(K\) may change from line to line but depends only on the fixed radii in \(\mathrm{def{:}panel\mbox{-}class}\) and on a chosen tail exponent \(A>0\).
+
+We first construct a single uniform event.  If \(E\) is a \(d_1\)-by-\(d_2\) matrix with independent \(N(0,\sigma_n^2)\) entries, a \(1/4\)-net of each unit sphere, of cardinality at most \(9^{d_j}\), gives
+\[
+ \Pr\!\left(\|E\|_{\mathrm{op}}>x\mid\mathcal H_{m,n}\right)
+ \le 2\,9^{d_1+d_2}
+       \exp\!\left(-\frac{x^2}{8\sigma_n^2}\right).
+ \tag{1}
+\]
+Indeed, \(u^{\top}Ev\) is \(N(0,\sigma_n^2)\) for fixed unit vectors \(u,v\), and approximation by the two nets yields \(\|E\|_{\mathrm{op}}\le2\max_{u,v}|u^{\top}Ev|\).  The balanced-dimension and noise-scale assumptions therefore imply, after a union bound over the bounded menus,
+\[
+ \|E_{Y,n}\|_{\mathrm{op}}\vee\|E_{Z,m,n}\|_{\mathrm{op}}
+ \vee\|E_{W,n}\|_{\mathrm{op}}\le K\sqrt n
+ \tag{2}
+\]
+outside an event of conditional probability at most \(K e^{-cn}\).
+
+Let \(\bar X\) be either \(\bar Y_n\) or a selected \(\bar Z_{m,n}\), let \(X=\bar X+E\), and let \(\widehat X\) be the declared rank truncation.  The variational definition of singular values and (2) give
+\[
+ \sigma_r(\widehat X)\ge c_s n-K\sqrt n\ge c_s n/2.
+ \tag{3}
+\]
+If \(P_L,P_R\) and \(\widehat P_L,\widehat P_R\) are the population and fitted left and right signal projectors, then
+\[
+ (I-P_L)\widehat U\widehat S=(I-P_L)E\widehat V,\qquad
+ (I-\widehat P_L)U S=-(I-\widehat P_L)EV.
+\]
+Dividing these identities by the lower singular-value bounds, and repeating them on the right, gives
+\[
+ \|\widehat P_L-P_L\|_{\mathrm{op}}\vee
+ \|\widehat P_R-P_R\|_{\mathrm{op}}\le Kn^{-1/2}.
+ \tag{4}
+\]
+For equal-rank matrices \(B,A\), direct verification of the four Moore--Penrose equations gives
+\[
+\begin{aligned}
+ B^\dagger-A^\dagger={}&-B^\dagger(B-A)A^\dagger
+ +B^\dagger B^{\dagger\top}(B-A)^\top(I-AA^\dagger)\\
+ &+(I-B^\dagger B)(B-A)^\top A^{\dagger\top}A^\dagger .
+\end{aligned}
+ \tag{5}
+\]
+Apply (5) with \(A=\bar X\) and \(B=\widehat X\).  Since
+\(\|\widehat X-\bar X\|_{\mathrm{op}}\le2\|E\|_{\mathrm{op}}\), (2)--(3) imply
+\[
+ \|\widehat X^\dagger\|_{\mathrm{op}}\le K/n,\qquad
+ \|\widehat X^\dagger-\bar X^\dagger\|_{\mathrm{op}}\le Kn^{-3/2}.
+ \tag{6}
+\]
+Thus only the gap from the retained singular values to zero is used; repeated nonzero singular values are harmless.  Moreover, the threshold in \(\mathrm{def{:}pcr\mbox{-}map}\) lies strictly between the \(O(\sqrt n)\) noise singular values and the order-\(n\) signal singular values on this event.  Hence the prescribed rank is recovered, and the deterministic tie convention makes every map measurable.
+
+For a generic selected regression write
+\[
+ \bar u=\bar X\gamma+r,\qquad
+ \gamma=\bar X^\dagger\bar u,\qquad P_Lr=0,\qquad
+ u=\bar u+e,\qquad \widehat\gamma=\widehat X^\dagger u.
+\]
+Because \(\widehat X^\dagger X=\widehat P_R\) and \(P_R\gamma=\gamma\), exact addition and subtraction yields
+\[
+ \widehat\gamma-\gamma
+ = (\widehat P_R-P_R)\gamma-
+   \widehat X^\dagger E\gamma+
+   \widehat X^\dagger r+
+   \widehat X^\dagger e.
+ \tag{7}
+\]
+Bounded means and (6) imply \(\|\gamma\|_2\le K n^{-1/2}\) and \(\|r\|_2\le K\sqrt n\).  Since \(\widehat X^\dagger=\widehat X^\dagger\widehat P_L\) and \(P_Lr=0\),
+\[
+ \|\widehat X^\dagger r\|_2
+ \le \|\widehat X^\dagger\|_{\mathrm{op}}
+      \|\widehat P_L-P_L\|_{\mathrm{op}}\|r\|_2
+ \le K/n.
+ \tag{8}
+\]
+Conditional on \(X\), the final term in (7) is Gaussian of rank at most \(r_0\), with largest covariance eigenvalue at most \(K/n^2\).  The identity
+\(\mathbb E e^{t\chi_r^2}=(1-2t)^{-r/2}\), \(0<t<1/2\), followed by Markov's inequality gives, for any fixed \(A>0\),
+\[
+ \Pr\!\left(\|\widehat X^\dagger e\|_2>K_A\frac{\sqrt{b_n}}n
+       \mathrel{\big|}X,\mathcal H_{m,n}\right)
+ \le K_A(nH_n)^{-A-2}.
+ \tag{9}
+\]
+The response/design independence used here is precisely the disjoint-cell assumption.  A union bound over the \(H_n\) direct responses and the finitely many other regressions proves that one event \(\mathcal E_n(A)\) satisfies
+\[
+ \inf_{\mathbb P\in\mathcal C_n}
+ \Pr_{\mathbb P}\!\left(\mathcal E_n(A)\mid\mathcal H_{m,n}\right)
+ \ge1-K_A(nH_n)^{-A},
+ \tag{10}
+\]
+and, on that event,
+\[
+ \|\widehat\beta_n-\beta_n\|_2\vee
+ \|\widehat a_n-a_n\|_2\vee
+ \max_{\ell\le H_n}\|\widehat a_{n,\ell}-a_{n,\ell}\|_2
+ \le u_n.
+ \tag{11}
+\]
+
+The same inequalities and the definitions of the population representers give
+\[
+ \|\beta_n\|_2\vee\|a_n\|_2\vee
+ \max_{\ell\le H_n}\|a_{n,\ell}\|_2\le K n^{-1/2},\qquad
+ \|\bar W_n^\top\beta_n\|_2\le K\sqrt n,
+ \tag{12}
+\]
+and
+\[
+ \max_{m,\ell}\|p_{m,n,\ell}\|_2\le K n^{-1/2},\quad
+ \max_\ell\|q_{\mathrm{dir},n,\ell}\|_2\le K n^{-1/2},\quad
+ \max_\ell\|q_{\mathrm{rec},n,\ell}\|_2\le K H_n n^{-1/2}.
+ \tag{13}
+\]
+For recursion let \(A_n=\Pi_n(a_n)\), \(\widehat A_n=\Pi_n(\widehat a_n)\), and \(d_a=\widehat a_n-a_n\).  Since
+\[
+ g_{n,\ell}=(A_n^{\ell-1})^\top a_n,\qquad
+ \widehat A_n^j-A_n^j=
+ \sum_{h=0}^{j-1}\widehat A_n^h(\widehat A_n-A_n)A_n^{j-1-h},
+ \tag{14}
+\]
+the stable-short-recursion assumption and \(H_nu_n=o(1)\) show that the fitted powers are uniformly bounded in the recursive horizon regime.  Product differentiation of (14), once and twice, then gives
+\[
+ \|g_{n,\ell}\|_2\vee\|\widehat g_{n,\ell}\|_2\le K n^{-1/2},\quad
+ \|J_{n,\ell}\|_{\mathrm{op}}\le KH_n,
+ \tag{15}
+\]
+\[
+ \|\widehat g_{n,\ell}-g_{n,\ell}\|_2\le KH_nu_n,\qquad
+ \|\widehat J_{n,\ell}-J_{n,\ell}\|_{\mathrm{op}}\le KH_n^2u_n.
+ \tag{16}
+\]
+More precisely, Taylor's formula on the segment from \(a_n\) to \(\widehat a_n\) gives
+\[
+ \widehat g_{n,\ell}=g_{n,\ell}+J_{n,\ell}d_a+\rho_{n,\ell},\qquad
+ \|\rho_{n,\ell}\|_2\le KH_n^2u_n^2.
+ \tag{17}
+\]
+Each horizon factor in (15)--(17) comes from an explicit sum of at most \(H_n\), respectively \(H_n^2\), products of bounded powers.
+
+We next identify the population center.  The direct-terminal-transport assumption gives
+\[
+ \theta_{n,\ell}=a_{n,\ell}^\top\bar W_n^\top\beta_n.
+ \tag{18}
+\]
+The factor model, finite Hankel rank, and recursive-recovery assumption give the corresponding recurrence transport
+\[
+ \theta_{n,\ell}=g_{n,\ell}^\top\bar W_n^\top\beta_n.
+ \tag{19}
+\]
+These are consequences of the causal conditional-mean model and recovery assumptions, not definitions of \(\theta_{n,\ell}\).  Unit recovery implies the Riesz identity
+\[
+ \bar Y_n^\top p_{m,n,\ell}=\bar W_nh_{m,n,\ell},\qquad
+ h_{\mathrm{dir},n,\ell}=a_{n,\ell},\quad
+ h_{\mathrm{rec},n,\ell}=g_{n,\ell}.
+ \tag{20}
+\]
+For recursion, product differentiation yields
+\[
+ J_{n,\ell}^\top\bar W_n^\top\beta_n
+ =\sum_{j=0}^{\ell-1}
+ (e_{L_n}^\top A_n^je_{L_n})
+ A_n^{\ell-1-j}\bar W_n^\top\beta_n.
+ \tag{21}
+\]
+Every summand is a scalar multiple of a terminal state advanced fewer than \(H_n\) times.  Recursive recovery therefore puts (21) in \(\operatorname{col}(\bar Z_{\mathrm{rec},n}^\top)\), and the definition of \(q_{\mathrm{rec},n,\ell}\) gives
+\[
+ \bar Z_{\mathrm{rec},n}^\top q_{\mathrm{rec},n,\ell}
+ =J_{n,\ell}^\top\bar W_n^\top\beta_n.
+ \tag{22}
+\]
+In direct mode, let \(P_R\) be the row-space projector of
+\(\bar Z_{\mathrm{dir},n}\), set \(w_n=\bar W_n^\top\beta_n\), and set
+\(w_n^\perp=(I-P_R)w_n\).  Then
+\[
+ \bar Z_{\mathrm{dir},n}^\top q_{\mathrm{dir},n,\ell}=P_Rw_n.
+\]
+The direct response-span assumption implies \(P_Ra_{n,\ell}=a_{n,\ell}\).
+The coefficient identity (7), now with zero population residual, shows that
+the only part not canceled by this projected Riesz identity is
+\(w_n^{\perp\top}(\widehat a_{n,\ell}-a_{n,\ell})\).  To bound it without
+assuming \(w_n\in\operatorname{col}(\bar Z_{\mathrm{dir},n}^\top)\),
+substitute the right singular-vector equation once into its orthogonal
+projection.  On (2)--(4), this gives
+\[
+ (I-P_R)(\widehat P_R-P_R)P_R
+ =(I-P_R)E_{Z,\mathrm{dir},n}^\top
+   \bar U\bar S^{-1}\bar V^\top+\mathcal R_n,\qquad
+ \|\mathcal R_n\|_{\mathrm{op}}
+ \le K\|E_{Z,\mathrm{dir},n}\|_{\mathrm{op}}^2/n^2,
+\]
+where \(\bar U\bar S\bar V^\top\) is the compact singular-value
+decomposition of \(\bar Z_{\mathrm{dir},n}\).  Paired with
+\(w_n^\perp\) and \(a_{n,\ell}\), the displayed linear term is centered
+Gaussian with variance at most
+\[
+ K\|w_n^\perp\|_2^2\|\bar S^{-1}\bar V^\top a_{n,\ell}\|_2^2
+ \le Kn\,(n^{-3/2})^2=K/n^2.
+\]
+Its maximum over the leads is therefore \(O_{\Pr}(\sqrt{b_n}/n)\).
+The remainder contributes at most
+\(K\|w_n^\perp\|_2\|a_{n,\ell}\|_2/n=K/n\).  Moreover,
+\[
+ \|\widehat Z_{\mathrm{dir},n}^{\dagger\top}w_n^\perp\|_2
+ \le\|\widehat Z_{\mathrm{dir},n}^\dagger\|_{\mathrm{op}}
+    \|(\widehat P_R-P_R)w_n^\perp\|_2\le K/n.
+\]
+Conditional on the design, pairing this vector with the direct response
+error is \(O_{\Pr}(\sqrt{b_n}/n)\), while pairing it with
+\(E_{Z,\mathrm{dir},n}a_{n,\ell}\) is \(O(n^{-1})\) on (2).
+Thus the whole direct row-space leakage is at most
+\(K\sqrt{b_n}/n\) simultaneously over the leads.  No unasserted
+full-row-space recovery condition has been used.
+
+It remains to bound the nonlinear remainder.  Write
+\[
+ d_\beta=\widehat\beta_n-\beta_n,\quad
+ \delta_\beta=e_{y,n}-E_{Y,n}\beta_n,\quad
+ \delta_a=e_{\mathrm{rec},n}-E_{Z,\mathrm{rec},n}a_n,\quad
+ t_\ell=J_{n,\ell}d_a.
+\]
+Let \(P_Y,P_Z\) and \(\widehat P_Y,\widehat P_Z\) be the population and fitted observation-space projectors and define
+\[
+ d_{p,\ell}=(\widehat P_Y-P_Y)p_{\mathrm{rec},n,\ell},\qquad
+ d_{q,\ell}=(\widehat P_Z-P_Z)q_{\mathrm{rec},n,\ell}.
+\]
+Equations (4) and (13) imply
+\[
+ \|d_{p,\ell}\|_2\le K/n,\qquad
+ \|d_{q,\ell}\|_2\le KH_n/n.
+ \tag{23}
+\]
+Conditional on their designs, the response errors are independent Gaussian.  Applying the scalar Gaussian tail bound before taking the union over leads, and then bounding the design-error parts by (2), gives
+\[
+ |d_{p,\ell}^\top\delta_\beta|\le K\frac{\sqrt{b_n}}n,\qquad
+ |d_{q,\ell}^\top\delta_a|\le KH_n\frac{\sqrt{b_n}}n.
+ \tag{24}
+\]
+This scalar contraction, rather than a bound on the full response-vector norm, is what avoids a spurious factor \(\sqrt n\).
+
+The fitted PCR residual is orthogonal to the retained observation space, and the retained left singular vectors are orthogonal to the discarded part of the observed design.  Hence the fitted Riesz corrections are exactly zero.  Add those zeros to the recursive center, expand around (19), use (20) and (22), and subtract the score in \(\mathrm{def{:}stacked\mbox{-}scores}\).  With \(\rho_\ell=\rho_{n,\ell}\), the exact remainder is
+\[
+\begin{aligned}
+ r_{\mathrm{rec},n,\ell}={}&
+ t_\ell^\top\bar W_n^\top d_\beta+t_\ell^\top E_{W,n}^\top\beta_n
+ +g_{n,\ell}^\top E_{W,n}^\top d_\beta+t_\ell^\top E_{W,n}^\top d_\beta\\
+&+\rho_\ell^\top\bar W_n^\top\beta_n
+ +\rho_\ell^\top\bar W_n^\top d_\beta
+ +\rho_\ell^\top E_{W,n}^\top\beta_n
+ +\rho_\ell^\top E_{W,n}^\top d_\beta\\
+&-p_{\mathrm{rec},n,\ell}^\top E_{Y,n}d_\beta
+ -q_{\mathrm{rec},n,\ell}^\top E_{Z,\mathrm{rec},n}d_a
+ +d_{p,\ell}^\top\delta_\beta-d_{p,\ell}^\top\bar Y_nd_\beta
+ -d_{p,\ell}^\top E_{Y,n}d_\beta\\
+&+d_{q,\ell}^\top\delta_a-d_{q,\ell}^\top\bar Z_{\mathrm{rec},n}d_a
+ -d_{q,\ell}^\top E_{Z,\mathrm{rec},n}d_a .
+\end{aligned}
+ \tag{25}
+\]
+For transparency, the respective absolute bounds for the sixteen displayed terms are
+\[
+\begin{gathered}
+ K\frac{H_nb_n}{n},\ K\frac{H_n\sqrt{b_n}}n,\ K\frac{\sqrt{b_n}}n,
+ K\frac{H_nb_n}{n^{3/2}},\ K\frac{H_n^2b_n}{n^{3/2}},
+ K\frac{H_n^2b_n^{3/2}}{n^2},\ K\frac{H_n^2b_n}{n^2},
+ K\frac{H_n^2b_n^{3/2}}{n^{5/2}},\\
+ K\frac{\sqrt{b_n}}n,\ K\frac{H_n\sqrt{b_n}}n,
+ K\frac{\sqrt{b_n}}n,\ K\frac{\sqrt{b_n}}n,
+ K\frac{\sqrt{b_n}}{n^{3/2}},\ K\frac{H_n\sqrt{b_n}}n,
+ K\frac{H_n\sqrt{b_n}}n,\ K\frac{H_n\sqrt{b_n}}{n^{3/2}}.
+\end{gathered}
+ \tag{26}
+\]
+For example, the first and fifth bounds are
+\((KH_nu_n)(Kn)u_n=KH_nb_n/n\) and
+\((KH_n^2u_n^2)(K\sqrt n)=KH_n^2b_n/n^{3/2}\); (24) proves the eleventh and fourteenth bounds.  All other rows follow directly from (2), (11)--(17), and (23).  Consequently
+\[
+ \max_{\ell\le H_n}|r_{\mathrm{rec},n,\ell}|
+ \le K\left(\frac{H_nb_n}{n}+\frac{H_n^2b_n}{n^{3/2}}\right).
+ \tag{27}
+\]
+For direct mode the same normal-equation expansion uses
+\(h_{n,\ell}=a_{n,\ell}\), its linear perturbation
+\(\widehat a_{n,\ell}-a_{n,\ell}\), and no second-order companion remainder.  Equations (11)--(13), (23)--(24), together with the direct row-space leakage bound following (22), give
+\[
+ \max_{\ell\le H_n}|r_{\mathrm{dir},n,\ell}|\le Kb_n/n.
+ \tag{28}
+\]
+The union bounds in (9)--(10) remain valid for any fixed polynomial direct horizon for which the declared disjoint lead-response blocks exist.  In recursive mode the stated regime \(H_n\le n^\gamma\), with fixed \(\gamma<1/4\), ensures all fitted-power and remainder events above.
+
+Finally, the variance floor makes every division legal and gives from (27)--(28)
+\[
+ \max_{\ell\le H_n}\frac{|r_{\mathrm{dir},n,\ell}|}{s_{\mathrm{dir},n,\ell}}
+ =O_{\Pr}\!\left(\frac{\log(nH_n)}{\sqrt n}\right),
+\]
+\[
+ \max_{\ell\le H_n}\frac{|r_{\mathrm{rec},n,\ell}|}{s_{\mathrm{rec},n,\ell}}
+ =O_{\Pr}\!\left(\frac{H_n\log(nH_n)}{\sqrt n}
+ +\frac{H_n^2\log(nH_n)}n\right),
+\]
+uniformly over \(\mathcal C_n\).  After the Riesz cancellations, the remaining linear terms are exactly those in \(\mathrm{def{:}stacked\mbox{-}scores}\).  They are a deterministic linear map, conditional on \(\mathcal H_{m,n}\), of the independent centered Gaussian primitive cells.  Thus \(\boldsymbol G_{m,n}\) is exactly jointly Gaussian with conditional covariance \(\Sigma_{m,n}\), completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the panel-specific uniform linearization that turns a displayed path into one inferential object. \textit{Gap.} Shen (2026, Appendices S12--S13) proves scalar fixed-summary expansions; stacking before aggregation and tracking every power of \(H_n\) is new. \textit{Consumer.} It supplies the influence-score path required for an honest simultaneous conditional-mean ribbon in the TWSF component of \(\texttt{mlsynth}\).
+
+\begin{theorem}[thm:relative-gram-rate]\label{thm:relative-gram-rate}
+The construction \(\widehat\Sigma_{m,n}\) is observable and positive semidefinite. Uniformly over \(\mathcal C_n\),
+\[
+ \max_{\ell,k\le H_n}
+ \frac{|\widehat\Sigma_{\mathrm{dir},n}(\ell,k)-\Sigma_{\mathrm{dir},n}(\ell,k)|}
+ {s_{\mathrm{dir},n,\ell}s_{\mathrm{dir},n,k}}
+ =O_{\Pr}\!\left(\sqrt{\frac{\log(nH_n)}n}\right),
+\]
+and the recursive analogue is
+\[
+ O_{\Pr}\!\left(H_n^2\sqrt{\frac{\log(nH_n)}n}\right).
+\]
+On the same event,
+\[
+ t_{m,n}\vee\Delta_{m,n}\lesssim
+ \max_{\ell,k\le H_n}
+ \frac{|\widehat\Sigma_{m,n}(\ell,k)-\Sigma_{m,n}(\ell,k)|}
+ {s_{m,n,\ell}s_{m,n,k}}.
+\]
+\end{theorem}
+\begin{proof}
+Condition on \(\mathcal H_{m,n}=\sigma(\mathcal F_n,\widehat d_{m,n})\) and use the event \(\mathcal E_n(A)\) constructed in the proof of \(\mathrm{thm{:}stacked\mbox{-}orthogonal\mbox{-}expansion}\).  The construction there was uniform over the bounded layout menus and established
+\[
+ b_n=\log(nH_n),\qquad
+ \|\widehat\beta_n-\beta_n\|_2\vee\|\widehat a_n-a_n\|_2
+ \vee\max_\ell\|\widehat a_{n,\ell}-a_{n,\ell}\|_2
+ \le K\frac{\sqrt{b_n}}n,
+ \tag{1}
+\]
+as well as the spectral bounds
+\[
+ \|\widehat X^\dagger\|_{\mathrm{op}}\le K/n,\qquad
+ \|\widehat X^\dagger-\bar X^\dagger\|_{\mathrm{op}}\le Kn^{-3/2},\qquad
+ \|E_{W,n}\|_{\mathrm{op}}\le K\sqrt n.
+ \tag{2}
+\]
+Its conditional failure probability is at most \(K_A(nH_n)^{-A}\), uniformly in \(\mathbb P\in\mathcal C_n\).
+
+Put \(w_n=\bar W_n^\top\beta_n\).  Bounded means, (1)--(2), and \(\|\beta_n\|_2\le K n^{-1/2}\) imply
+\[
+ \|w_n\|_2\le K\sqrt n,\qquad
+ \|W_n^\top\widehat\beta_n-w_n\|_2
+ \le\|E_{W,n}\|_{\mathrm{op}}\|\beta_n\|_2
+ +\|W_n\|_{\mathrm{op}}\|\widehat\beta_n-\beta_n\|_2
+ \le K\sqrt{b_n}.
+ \tag{3}
+\]
+The companion calculations in that proof give, uniformly in \(\ell\le H_n\),
+\[
+ \|g_{n,\ell}\|_2\vee\|\widehat g_{n,\ell}\|_2\le K n^{-1/2},\quad
+ \|J_{n,\ell}\|_{\mathrm{op}}\le KH_n,
+ \tag{4}
+\]
+\[
+ \|\widehat g_{n,\ell}-g_{n,\ell}\|_2
+ \le K\frac{H_n\sqrt{b_n}}n,\qquad
+ \|\widehat J_{n,\ell}-J_{n,\ell}\|_{\mathrm{op}}
+ \le K\frac{H_n^2\sqrt{b_n}}n.
+ \tag{5}
+\]
+The population coefficient bounds are
+\[
+ \|\beta_n\|_2\vee\|a_n\|_2\vee
+ \max_\ell\{\|a_{n,\ell}\|_2,\|g_{n,\ell}\|_2,
+ \|p_{\mathrm{dir},n,\ell}\|_2,\|p_{\mathrm{rec},n,\ell}\|_2\}
+ \le K n^{-1/2},
+ \tag{6}
+\]
+\[
+ \max_\ell\|q_{\mathrm{dir},n,\ell}\|_2\le K n^{-1/2},\qquad
+ \max_\ell\|q_{\mathrm{rec},n,\ell}\|_2\le KH_n n^{-1/2}.
+ \tag{7}
+\]
+
+We now propagate these inequalities through the implemented representers.  Expanding the fitted unit-side representer into a pseudoinverse perturbation, a terminal-block perturbation, and a coefficient perturbation gives
+\[
+ \max_\ell\left(
+ \|\widehat p_{\mathrm{dir},n,\ell}-p_{\mathrm{dir},n,\ell}\|_2+
+ \|\widehat q_{\mathrm{dir},n,\ell}-q_{\mathrm{dir},n,\ell}\|_2\right)
+ \le K\frac{\sqrt{b_n}}n,
+ \tag{8}
+\]
+and
+\[
+ \max_\ell\|\widehat p_{\mathrm{rec},n,\ell}-p_{\mathrm{rec},n,\ell}\|_2
+ \le K\frac{H_n\sqrt{b_n}}n.
+ \tag{9}
+\]
+For example, the recursive version is the exact three-term expansion
+\[
+\begin{aligned}
+ \widehat p_{\mathrm{rec},n,\ell}-p_{\mathrm{rec},n,\ell}
+={}&(\widehat Y_n^{\dagger\top}-\bar Y_n^{\dagger\top})
+       \bar W_ng_{n,\ell}
+ +\widehat Y_n^{\dagger\top}E_{W,n}g_{n,\ell}\\
+ &+\widehat Y_n^{\dagger\top}W_n
+       (\widehat g_{n,\ell}-g_{n,\ell}),
+\end{aligned}
+\]
+whose three norms are respectively \(O(n^{-1})\), \(O(n^{-1})\), and
+\(O(H_n\sqrt{b_n}/n)\).
+
+Most importantly, the actual recursive temporal representer uses both the noisy terminal block and the fitted Jacobian.  Its exact perturbation identity is
+\[
+\begin{aligned}
+ \widehat q_{\mathrm{rec},n,\ell}-q_{\mathrm{rec},n,\ell}
+={}&(\widehat Z_{\mathrm{rec},n}^{\dagger\top}
+       -\bar Z_{\mathrm{rec},n}^{\dagger\top})J_{n,\ell}^\top w_n\\
+ &+\widehat Z_{\mathrm{rec},n}^{\dagger\top}J_{n,\ell}^\top
+       (W_n^\top\widehat\beta_n-w_n)\\
+ &+\widehat Z_{\mathrm{rec},n}^{\dagger\top}
+       (\widehat J_{n,\ell}-J_{n,\ell})^\top
+       W_n^\top\widehat\beta_n.
+\end{aligned}
+ \tag{10}
+\]
+By (2)--(5), the three displayed lines have norms bounded by
+\[
+ K\frac{H_n}{n},\qquad
+ K\frac{H_n\sqrt{b_n}}n,\qquad
+ K\frac{H_n^2\sqrt{b_n}}{n^{3/2}},
+ \tag{11}
+\]
+respectively.  Since \(H_n\le n^\gamma\) for a fixed \(\gamma<1/4\), the last term is no larger than the second for all sufficiently large \(n\), and hence
+\[
+ \max_{\ell\le H_n}
+ \|\widehat q_{\mathrm{rec},n,\ell}-q_{\mathrm{rec},n,\ell}\|_2
+ \le K\frac{H_n\sqrt{b_n}}n.
+ \tag{12}
+\]
+This is the required actual-PCR bound; neither \(W_n\) nor \(\widehat J_{n,\ell}\) has been replaced by an oracle object.
+
+We next compute the population covariance rather than infer it from repeated panels.  Independence of the primitive blocks and \(\mathrm{def{:}stacked\mbox{-}scores}\) give
+\[
+\begin{aligned}
+ \frac{\Sigma_{\mathrm{dir},n}(\ell,k)}{\sigma_n^2}
+={}&\|\beta_n\|_2^2a_{n,\ell}^\top a_{n,k}
+ +(1+\|\beta_n\|_2^2)p_{\mathrm{dir},n,\ell}^\top p_{\mathrm{dir},n,k}\\
+ &+q_{\mathrm{dir},n,\ell}^\top q_{\mathrm{dir},n,k}
+   \{\mathbf 1\{\ell=k\}+a_{n,\ell}^\top a_{n,k}\},
+\end{aligned}
+ \tag{13}
+\]
+and
+\[
+\begin{aligned}
+ \frac{\Sigma_{\mathrm{rec},n}(\ell,k)}{\sigma_n^2}
+={}&\|\beta_n\|_2^2g_{n,\ell}^\top g_{n,k}
+ +(1+\|\beta_n\|_2^2)p_{\mathrm{rec},n,\ell}^\top p_{\mathrm{rec},n,k}\\
+ &+(1+\|a_n\|_2^2)q_{\mathrm{rec},n,\ell}^\top q_{\mathrm{rec},n,k}.
+\end{aligned}
+ \tag{14}
+\]
+For example,
+\[
+ \operatorname{Cov}(e_{\mathrm{dir},n,\ell}-E_{Z,\mathrm{dir},n}a_{n,\ell},
+ e_{\mathrm{dir},n,k}-E_{Z,\mathrm{dir},n}a_{n,k}\mid\mathcal H_{m,n})
+ =\sigma_n^2\{\mathbf1\{\ell=k\}+a_{n,\ell}^\top a_{n,k}\}I,
+\]
+which proves the last line of (13); all other terms follow by the same entrywise calculation.  The fitted coefficient Gram matrix \(\widehat K_{m,n}=\widehat Q_{m,n}\widehat Q_{m,n}^\top\) is the corresponding hatted expression.  Therefore
+\[
+ \widehat\Sigma_{m,n}=\widehat\sigma_n^2\widehat K_{m,n}
+ =\widehat\sigma_n^2\widehat Q_{m,n}\widehat Q_{m,n}^\top\succeq0.
+ \tag{15}
+\]
+Every factor on the right is computed from the observed inputs listed in
+\(\mathrm{def{:}gram\mbox{-}covariance}\), so (15) is observable.  The conclusion remains true when the Gram matrix is singular.
+
+For arbitrary vectors \(x_\ell,x_k\) and perturbations \(d_\ell,d_k\), Cauchy--Schwarz gives
+\[
+ |(x_\ell+d_\ell)^\top(x_k+d_k)-x_\ell^\top x_k|
+ \le\|x_\ell\|_2\|d_k\|_2+
+      \|x_k\|_2\|d_\ell\|_2+
+      \|d_\ell\|_2\|d_k\|_2.
+ \tag{16}
+\]
+Apply (16) to every Gram term in (13)--(14), including the scalar multipliers involving \(\beta_n\) and \(a_n\).  Equations (1), (4)--(9), and (12) yield
+\[
+ \max_{\ell,k\le H_n}
+ |\widehat K_{\mathrm{dir},n}(\ell,k)-K_{\mathrm{dir},n}(\ell,k)|
+ \le K\frac{\sqrt{b_n}}{n^{3/2}},
+ \tag{17}
+\]
+\[
+ \max_{\ell,k\le H_n}
+ |\widehat K_{\mathrm{rec},n}(\ell,k)-K_{\mathrm{rec},n}(\ell,k)|
+ \le K\frac{H_n^2\sqrt{b_n}}{n^{3/2}},
+ \tag{18}
+\]
+where \(K_{m,n}=\Sigma_{m,n}/\sigma_n^2\).  The largest term in (18) is
+\[
+ \|q_{\mathrm{rec},n,\ell}\|_2
+ \|\widehat q_{\mathrm{rec},n,k}-q_{\mathrm{rec},n,k}\|_2
+ \le K\frac{H_n^2\sqrt{b_n}}{n^{3/2}}.
+\]
+These are deterministic simultaneous pairwise bounds on \(\mathcal E_n(A)\); no additional \(H_n^2\) union factor occurs.
+
+It remains to control the observable pooled scale.  For either residual regression used in \(\widehat\sigma_n^2\), let \(\widehat P_X\) be its fitted observation-space projector and write
+\[
+ (I-\widehat P_X)u=v+(I-\widehat P_X)e,\qquad
+ v=(I-\widehat P_X)\bar u.
+ \tag{19}
+\]
+The invariant-unit factor representation for the unit response and the declared temporal response recovery put \(\bar u\) in the corresponding population observation space.  Hence (4), bounded means, and balanced dimensions give \(\|v\|_2\le K\).  Conditional on the design,
+\(\|(I-\widehat P_X)e\|_2^2/\sigma_n^2\) is chi-square with response dimension minus retained rank degrees of freedom.  Those degrees of freedom are positive and comparable to \(n\) by balanced dimensions and fixed rank.  The cross term in (19) is centered Gaussian with variance at most \(4\sigma_n^2\|v\|_2^2\), while \(\|v\|_2^2\) contributes \(O(n^{-1})\) after division by the pooled degrees of freedom.  Applying the chi-square moment-generating identity used above to the two residual blocks gives, on an enlargement of the same event,
+\[
+ \left|\frac{\widehat\sigma_n^2}{\sigma_n^2}-1\right|
+ \le K\sqrt{\frac{b_n}{n}}.
+ \tag{20}
+\]
+
+Define
+\[
+ B_{m,n}:=\max_{\ell,k\le H_n}
+ \frac{|\widehat\Sigma_{m,n}(\ell,k)-\Sigma_{m,n}(\ell,k)|}
+ {s_{m,n,\ell}s_{m,n,k}}.
+\]
+Since
+\[
+ \widehat\Sigma_{m,n}-\Sigma_{m,n}
+ =\widehat\sigma_n^2(\widehat K_{m,n}-K_{m,n})
+  +(\widehat\sigma_n^2-\sigma_n^2)K_{m,n},
+ \tag{21}
+\]
+the covariance Cauchy--Schwarz inequality gives
+\(|\Sigma_{m,n}(\ell,k)|\le s_{m,n,\ell}s_{m,n,k}\), and the variance floor gives
+\(s_{m,n,\ell}s_{m,n,k}\ge c_v^2/n\).  Combining (17)--(21) proves
+\[
+ B_{\mathrm{dir},n}=O_{\Pr}\!\left(\sqrt{\frac{\log(nH_n)}n}\right),
+ \qquad
+ B_{\mathrm{rec},n}=O_{\Pr}\!\left(H_n^2\sqrt{\frac{\log(nH_n)}n}\right),
+ \tag{22}
+\]
+uniformly over \(\mathcal C_n\).
+
+Finally, on \(B_{m,n}\le1/2\), put
+\(e_\ell=\widehat\Sigma_{m,n}(\ell,\ell)/s_{m,n,\ell}^2-1\) and
+\(r_\ell=\widehat s_{m,n,\ell}/s_{m,n,\ell}=\sqrt{1+e_\ell}\).  Then
+\[
+ |r_\ell-1|=\frac{|e_\ell|}{\sqrt{1+e_\ell}+1}\le B_{m,n},
+\]
+so \(t_{m,n}\le B_{m,n}\) and \(r_\ell\in[1-B_{m,n},1+B_{m,n}]\).  Since \(|R_{m,n}(\ell,k)|\le1\),
+\[
+\begin{aligned}
+ |\widehat R_{m,n}(\ell,k)-R_{m,n}(\ell,k)|
+ &\le \frac{B_{m,n}}{r_\ell r_k}
+ +|R_{m,n}(\ell,k)|\left|\frac1{r_\ell r_k}-1\right|\\
+ &\le K B_{m,n}.
+\end{aligned}
+\]
+Thus \(t_{m,n}\vee\Delta_{m,n}\le K B_{m,n}\), as claimed.  No covariance inverse and no lower eigenvalue bound were used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Relative rather than raw covariance accuracy is the last feasible-input condition for a singular multiplier path law. \textit{Gap.} Agarwal, Shah, and Shen (2025) control PCR prediction directions, and Shen (2026) controls a scalar variance; neither controls the actual fitted cross-lead Gram matrix after recursive Jacobian propagation. \textit{Consumer.} The result provides a software-computable covariance matrix without latent factors, oracle terminal blocks, or covariance inversion.
+
+\begin{theorem}[thm:uniform-selected-band]\label{thm:uniform-selected-band}
+Let
+\[
+ A_{m,n}=(\kappa_{m,n}+1)\varepsilon_{m,n}
+ +(\kappa_{m,n}+1)^2t_{m,n}+d_{m,n}.
+\]
+If \(A_{m,n}=o_{\Pr}(1)\) uniformly over \(\mathcal C_n\), then, for each prespecified \(m\in\{\mathrm{dir},\mathrm{rec}\}\) and every \(\eta>0\),
+\[
+ \sup_{\mathbb P\in\mathcal C_n}
+ \Pr_{\mathbb P}\!\left(
+ \left|\Pr_{\mathbb P}(\boldsymbol\theta_n\in\mathcal B_{m,n}
+ \mid\mathcal F_n)-(1-\alpha)\right|>\eta\right)\longrightarrow0,
+\]
+without a lower eigenvalue condition on \(R_{m,n}\).  The established expansion, observable fitted-Gram, and Gaussian-comparison rates verify \(A_{\mathrm{rec},n}=o_{\Pr}(1)\) whenever \(H_n\le n^\gamma\) for any fixed \(0\le\gamma<1/4\).  They verify \(A_{\mathrm{dir},n}=o_{\Pr}(1)\) whenever \(H_n\le n^\Gamma\) for any fixed \(\Gamma<\infty\), along class sequences for which the declared mutually disjoint direct lead-response blocks are available.  These are sufficient horizon ranges; no sharpness at \(1/4\) is asserted.
+\end{theorem}
+\begin{proof}
+Fix a prespecified mode \(m\in\{\mathrm{dir},\mathrm{rec}\}\).  All probability statements below are under a law \(\mathbb P\in\mathcal C_n\), and all constants are uniform over this class and the finitely many selectable layouts.  First condition on
+\[
+ \mathcal H_{m,n}=\sigma(\mathcal F_n,\widehat d_{m,n}).
+\]
+By \(\mathrm{thm{:}stacked\mbox{-}orthogonal\mbox{-}expansion}\),
+\[
+ \widehat\theta_{m,n,\ell}-\theta_{n,\ell}
+ =G_{m,n,\ell}+r_{m,n,\ell},
+ \qquad 1\le \ell\le H_n,                                      \tag{1}
+\]
+and, conditionally on \(\mathcal H_{m,n}\),
+\[
+ X_{m,n}:=D_{m,n}^{-1}\boldsymbol G_{m,n}
+ \sim N(0,R_{m,n}).                                               \tag{2}
+\]
+Every division in (2) is legal because \(\mathrm{ass{:}variance\mbox{-}floor}\) gives \(s_{m,n,\ell}\ge c_vn^{-1/2}>0\).  Define
+\[
+ T_{m,n}=\max_{\ell\le H_n}|X_{m,n,\ell}|,
+ \qquad
+ F_{m,n}(x)=\Pr(T_{m,n}\le x\mid\mathcal H_{m,n}).               \tag{3}
+\]
+Each coordinate in (2) is a nondegenerate standard normal variable.  Hence, for every \(x\ge0\),
+\[
+ \{T_{m,n}=x\}\subseteq
+ \bigcup_{\ell=1}^{H_n}\{|X_{m,n,\ell}|=x\},
+\]
+and the right-hand side has probability zero.  Thus \(F_{m,n}\) is continuous even if \(R_{m,n}\) is singular.
+
+Let \(\widehat F_{m,n}\) be the conditional distribution function of the multiplier maximum in \(\mathrm{def{:}multiplier\mbox{-}band}\), and abbreviate its lower \((1-\alpha)\)-quantile by \(\widehat c_{m,n}\).  Fix numbers \(e\ge0\), \(0\le t<1/2\), and
+\[
+ 0\le\delta<\tfrac12\min\{\alpha,1-\alpha\}.
+\]
+On the event
+\[
+ \mathcal E(e,t,\delta)=
+ \{\varepsilon_{m,n}\le e,\ t_{m,n}\le t,\ d_{m,n}\le\delta\}, \tag{4}
+\]
+put
+\[
+ c_-=F_{m,n}^{-1}(1-\alpha-\delta),
+ \qquad
+ c_+=F_{m,n}^{-1}(1-\alpha+\delta).                               \tag{5}
+\]
+The definition of \(d_{m,n}\) and the lower-quantile convention imply, pathwise,
+\[
+ c_-\le\widehat c_{m,n}\le c_+.                                  \tag{6}
+\]
+Indeed, if \(x<c_-\), then \(\widehat F_{m,n}(x)\le F_{m,n}(x)+\delta<1-\alpha\), whereas \(\widehat F_{m,n}(c_+)\ge F_{m,n}(c_+)-\delta\ge1-\alpha\).
+
+By (1), the definition of \(\varepsilon_{m,n}\), and
+\[
+ 1-t\le \widehat s_{m,n,\ell}/s_{m,n,\ell}\le1+t,
+\]
+the following deterministic inclusions hold on (4):
+\[
+ \{T_{m,n}\le(1-t)c_- -e\}
+ \subseteq\{\boldsymbol\theta_n\in\mathcal B_{m,n}\}
+ \subseteq\{T_{m,n}\le(1+t)c_+ +e\}.                             \tag{7}
+\]
+For the left inclusion, the standardized absolute estimation error is at most \(T_{m,n}+e\), and for the right inclusion the reverse triangle inequality bounds every standardized score coordinate by \((1+t)c_++e\).
+
+Since \(T_{m,n}\ge0\) and \(\mathbb E(T_{m,n}\mid\mathcal H_{m,n})=\kappa_{m,n}\), Markov's inequality gives
+\[
+ c_+\le \frac{\kappa_{m,n}}{\alpha-\delta}
+ \le C_\alpha(\kappa_{m,n}+1).                                   \tag{8}
+\]
+Continuity gives \(F_{m,n}(c_-)=1-\alpha-\delta\) and \(F_{m,n}(c_+)=1-\alpha+\delta\).  Apply the anti-concentration conclusion of \(\mathrm{lem{:}gaussian\mbox{-}max\mbox{-}comparison\mbox{-}anticoncentration}\) to the displacements \(tc_-+e\) and \(tc_++e\) in (7), and then use (8).  Conditional on \(\mathcal H_{m,n}\), this yields
+\[
+\begin{aligned}
+ &\left|\Pr\{\boldsymbol\theta_n\in\mathcal B_{m,n}
+       \mid\mathcal H_{m,n}\}-(1-\alpha)\right|\\
+ &\quad\le C_\alpha\!\left[
+ \delta+(\kappa_{m,n}+1)e+(\kappa_{m,n}+1)^2t\right]
+ +\Pr\{\mathcal E(e,t,\delta)^c\mid\mathcal H_{m,n}\}.          \tag{9}
+\end{aligned}
+\]
+This quantile sandwich never conditions the Gaussian score on the fitted covariance; dependence between the score and \(\widehat R_{m,n}\) therefore causes no extra step.
+
+Now set
+\[
+ A_{m,n}=(\kappa_{m,n}+1)\varepsilon_{m,n}
+ +(\kappa_{m,n}+1)^2t_{m,n}+d_{m,n}.                               \tag{10}
+\]
+The assumed uniform \(o_{\Pr}(1)\) supplies a deterministic sequence \(a_n\downarrow0\) such that
+\[
+ \eta_n:=\sup_{\mathbb P\in\mathcal C_n}
+ \Pr_{\mathbb P}(A_{m,n}>a_n)\longrightarrow0.                    \tag{11}
+\]
+On \(\{A_{m,n}\le a_n\}\), (4) holds with
+\[
+ e=\frac{a_n}{\kappa_{m,n}+1},\qquad
+ t=\frac{a_n}{(\kappa_{m,n}+1)^2},\qquad
+ \delta=a_n.                                                       \tag{12}
+\]
+For large \(n\), these values obey the restrictions preceding (4).  Equations (9)--(12) imply
+\[
+ \left|\Pr\{\boldsymbol\theta_n\in\mathcal B_{m,n}
+       \mid\mathcal H_{m,n}\}-(1-\alpha)\right|
+ \le C_\alpha a_n+\Pr(A_{m,n}>a_n\mid\mathcal H_{m,n}).           \tag{13}
+\]
+Average (13) over \(\widehat d_{m,n}\) conditional on \(\mathcal F_n\).  The conditioning used in (1)--(2) is valid for every selected layout by \(\mathrm{ass{:}independent\mbox{-}selection}\), and the menu cardinality is uniformly bounded.  Therefore
+\[
+ \left|\Pr\{\boldsymbol\theta_n\in\mathcal B_{m,n}
+       \mid\mathcal F_n\}-(1-\alpha)\right|
+ \le C_\alpha a_n+\Pr(A_{m,n}>a_n\mid\mathcal F_n).               \tag{14}
+\]
+For every fixed \(\eta>0\), conditional Markov inequality and (11) give
+\[
+\begin{aligned}
+ &\sup_{\mathbb P\in\mathcal C_n}
+ \Pr_{\mathbb P}\!\left(
+ \left|\Pr_{\mathbb P}(\boldsymbol\theta_n\in\mathcal B_{m,n}
+ \mid\mathcal F_n)-(1-\alpha)\right|>\eta\right)\\
+ &\qquad\le
+ \frac{2\eta_n}{\eta}\longrightarrow0                            \tag{15}
+\end{aligned}
+\]
+for all large \(n\) such that \(C_\alpha a_n\le\eta/2\).  This proves the first assertion in its well-typed uniform conditional-probability form.
+
+It remains to verify (10) over the advertised horizon regimes.  We first record the needed Gaussian-complexity bounds.  For either mode, the union bound applied to the standardized coordinates gives
+\[
+ \Pr(T_{m,n}>x\mid\mathcal H_{m,n})\le2H_ne^{-x^2/2}.
+\]
+Integration at \(x_0=\sqrt{2\log(2H_n)}\) yields
+\[
+ \kappa_{m,n}\le C\sqrt{\log(2H_n)}.                               \tag{16}
+\]
+For recursion this bound can be sharpened uniformly to a constant for every fixed polynomial horizon.  To see this directly from the declared class, strong spectrum, balanced dimensions, and bounded means give
+\[
+ \|\beta_n\|_2+\|a_n\|_2\le K n^{-1/2}.                            \tag{17}
+\]
+Since \(\Pi_n(a_n)^{\top}e_{L_n}=a_n\), stable short recursion gives, for \(1\le\ell\le H_n\),
+\[
+ g_{n,\ell}=\{\Pi_n(a_n)^{\ell-1}\}^{\top}a_n,
+ \qquad \|g_{n,\ell}\|_2\le K n^{-1/2}.                           \tag{18}
+\]
+By \(\mathrm{def{:}stacked\mbox{-}scores}\), decompose the standardized recursive score as
+\[
+ \frac{G_{\mathrm{rec},n,\ell}}{s_{\mathrm{rec},n,\ell}}
+ =U_{n,\ell}+V_{n,\ell},
+\]
+where \(V_{n,\ell}=g_{n,\ell}^{\top}E_{W,n}^{\top}\beta_n/s_{\mathrm{rec},n,\ell}\) and \(U_{n,\ell}\) contains the unit- and temporal-response terms.  The Gaussian-cell and disjoint-block assumptions make these two centered Gaussian families independent.  The vectors \(p_{\mathrm{rec},n,\ell}\) lie in the rank-\(r_{y,n}\) signal space and the vectors \(q_{\mathrm{rec},n,\ell}\) lie in the rank-\(r_{z,\mathrm{rec},n}\) signal space.  Thus, by the fixed-rank assumption, for a standard Gaussian vector \(Z_n\) of dimension at most \(2r_0\),
+\[
+ U_{n,\ell}=u_{n,\ell}^{\top}Z_n,
+ \qquad \|u_{n,\ell}\|_2^2=\operatorname{Var}(U_{n,\ell}\mid\mathcal H_{m,n})\le1. \tag{19}
+\]
+Consequently \(\mathbb E\max_\ell|U_{n,\ell}|\le\mathbb E\|Z_n\|_2\le\sqrt{2r_0}\).  By (17)--(18), the noise-scale bounds, and the variance floor,
+\[
+ \operatorname{Var}(V_{n,\ell}\mid\mathcal H_{m,n})
+ =\frac{\sigma_n^2\|g_{n,\ell}\|_2^2\|\beta_n\|_2^2}
+ {s_{\mathrm{rec},n,\ell}^2}
+ \le \frac K n.                                                     \tag{20}
+\]
+Another Gaussian union bound therefore gives
+\[
+ \mathbb E\max_{\ell\le H_n}|V_{n,\ell}|
+ \le K\sqrt{\frac{\log(2H_n)}n}.
+\]
+For \(H_n\le n^\Gamma\) with any fixed \(\Gamma<\infty\), (19)--(20) prove
+\[
+ \kappa_{\mathrm{rec},n}\le K.                                     \tag{21}
+\]
+
+Write \(b_n=\log(nH_n)\).  The established expansion and relative-Gram theorems give
+\[
+\begin{aligned}
+ \varepsilon_{\mathrm{dir},n}
+ &=O_{\Pr}\!\left(\frac{b_n}{\sqrt n}\right),
+ &t_{\mathrm{dir},n}\vee\Delta_{\mathrm{dir},n}
+ &=O_{\Pr}\!\left(\sqrt{\frac{b_n}{n}}\right),\\
+ \varepsilon_{\mathrm{rec},n}
+ &=O_{\Pr}\!\left(\frac{H_nb_n}{\sqrt n}
+       +\frac{H_n^2b_n}{n}\right),
+ &t_{\mathrm{rec},n}\vee\Delta_{\mathrm{rec},n}
+ &=O_{\Pr}\!\left(H_n^2\sqrt{\frac{b_n}{n}}\right).              \tag{22}
+\end{aligned}
+\]
+The relative covariance bounds in (22) concern the observable fitted Gram estimator in \(\mathrm{def{:}gram\mbox{-}covariance}\): it uses implemented PCR coefficients, the observed terminal block, fitted Riesz vectors, and fitted recursive Jacobians.  Positive semidefiniteness follows from its factorization \(\widehat\sigma_n^2\widehat Q_{m,n}\widehat Q_{m,n}^{\top}\), and \(\mathrm{thm{:}relative\mbox{-}gram\mbox{-}rate}\) controls its difference from the leading-score covariance.
+
+For a fixed polynomial horizon, \(b_n\asymp\log n\).  The comparison conclusion of \(\mathrm{lem{:}gaussian\mbox{-}max\mbox{-}comparison\mbox{-}anticoncentration}\), with its declared value zero at \(\Delta_{m,n}=0\), and monotonicity of \(x^{1/3}\{1\vee\log(2H_n/x)\}^{2/3}\) for sufficiently small \(x>0\), imply
+\[
+ d_{\mathrm{dir},n}
+ =O_{\Pr}\!\left(n^{-1/6}(\log n)^{5/6}\right).                   \tag{23}
+\]
+Combining (16), (22), and (23), for every fixed \(\Gamma<\infty\) and \(H_n\le n^\Gamma\),
+\[
+ A_{\mathrm{dir},n}
+ =O_{\Pr}\!\left(
+ \frac{(\log n)^{3/2}}{\sqrt n}
+ +n^{-1/6}(\log n)^{5/6}\right)=o_{\Pr}(1).                       \tag{24}
+\]
+This assertion is along the sequences in \(\mathcal C_n\) for which the declared direct lead-response blocks are available with the stipulated disjoint primitive cells; it does not manufacture additional panel cells.
+
+For recursion fix \(0\le\gamma<1/4\) and suppose \(H_n\le n^\gamma\).  The recursive covariance rate in (22) is
+\[
+ \Delta_{\mathrm{rec},n}
+ =O_{\Pr}\!\left(n^{2\gamma-1/2}\sqrt{\log n}\right)=o_{\Pr}(1).
+\]
+The same comparison calculation gives
+\[
+ d_{\mathrm{rec},n}
+ =O_{\Pr}\!\left(
+ n^{-(1-4\gamma)/6}(\log n)^{5/6}\right)=o_{\Pr}(1).              \tag{25}
+\]
+Using (21), the four contributions in (10) are bounded explicitly by
+\[
+ A_{\mathrm{rec},n}
+ =O_{\Pr}\!\left(
+ n^{\gamma-1/2}\log n
+ +n^{2\gamma-1}\log n
+ +n^{2\gamma-1/2}\sqrt{\log n}
+ +n^{-(1-4\gamma)/6}(\log n)^{5/6}
+ \right)=o_{\Pr}(1).                                                \tag{26}
+\]
+Every exponent of \(n\) in (26) is negative when \(\gamma<1/4\).  Equations (15), (24), and (26) prove the two horizon conclusions.  Neither the quantile argument nor the Gaussian comparison uses \(R_{m,n}^{-1}\) or a lower eigenvalue bound.  The result concerns the conditional-mean path \(\boldsymbol\theta_n\), not future realized prediction errors.  Finally, (26) is an achievability statement only: without a legal sequence attaining a matching failure bound, it does not establish that \(1/4\) is sharp.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the headline feasible simultaneous-coverage result. It converts the orthogonal expansion and observable fitted-Gram approximation into a singular-correlation-valid ribbon and gives the distinct proved direct and recursive horizon ranges. \textit{Gap.} Shen gives pointwise inference for prespecified fixed-horizon summaries, while generic high-dimensional inference does not derive the selected TWSF score or implemented Gram inputs. The only Shen equivalence claimed here is on the explicitly restricted Gaussian, strongly identified singleton-menu intersection. \textit{Consumer.} The result supports simultaneous ribbons for prespecified direct or recursive conditional-mean paths, including the daily NFL-stadium path on the declared class. Cumulative transforms, prediction bands, and mode selection require separate analysis.
+
+\begin{theorem}[thm:complexity-frontier]\label{thm:complexity-frontier}
+For \(1\le H_n\le\lfloor n^{1/8}\rfloor\), there exist constants \(0<c<C<\infty\), depending only on the class radii, such that uniformly over \(\mathbb P\in\mathcal C_n\), \(\kappa_{\mathrm{rec},n}\le C\) and \(c(1+\rho_n)\le\kappa_{\mathrm{dir},n}\le C(1+\rho_n)\). Moreover, \(c\sqrt{\nu_{\min,n}\log(2H_n)}\le\rho_n\le C\sqrt{\nu_{\max,n}\log(2H_n)}\). Hence direct complexity is bounded if and only if \(\rho_n=O(1)\). If all shares vanish, direct complexity is bounded; if \(\nu_{\min,n}>0\) and \(\nu_{\max,n}\le K\nu_{\min,n}\) uniformly, then \(\kappa_{\mathrm{dir},n}\asymp1+\sqrt{\nu_{\min,n}\log(2H_n)}\).
+\end{theorem}
+\begin{proof}
+Apply \(\mathrm{thm{:}polynomial\mbox{-}horizon\mbox{-}complexity\mbox{-}frontier}\) with \(\Gamma=1/8\).  The condition \(1\le H_n\le\lfloor n^{1/8}\rfloor\) implies \(H_n\le n^{1/8}\), and the direct part uses precisely the declared disjoint lead-response blocks.  Every displayed bound and every stated consequence of \(\mathrm{thm{:}complexity\mbox{-}frontier}\) therefore follows with the same constants.  In particular, the original horizon restriction is only a corollary restriction and is not used by the complexity argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The displayed \(H_n\le\lfloor n^{1/8}\rfloor\) target is retained as a compatibility corollary of the proved fixed-polynomial complexity theorem; the stronger result identifies the heterogeneous independent-share cost without conflating it with the recursive coverage-rate restriction. \textit{Gap.} Greenaway-McGrevy (2013) provides panel-VAR mean-squared prediction-error rankings, not a causal TWSF Gaussian-maximum or variance-share frontier. Shen (2026) is the causal anchor, and generic Gaussian comparison begins only after the panel-specific score covariance has been derived. \textit{Consumer.} The result tells a practitioner that recursive critical values remain on a constant scale throughout fixed-polynomial horizons, while direct ribbons widen exactly when the heterogeneous independent-share maximum diverges.
+
+\begin{theorem}[thm:persistent-limits]\label{thm:persistent-limits}
+For \(H_n=\lfloor n^{1/8}\rfloor\), the constructed subclass \(\mathcal A_n\) is nonempty and satisfies \(\mathcal A_n\subset\mathcal C_n\). On \(\mathcal A_n\), \(\beta_n=\boldsymbol 1/n\), \(a_n=a_{n,\ell}=\boldsymbol 1/n\), \(J_{n,\ell}^{\top}\boldsymbol 1=c_{n,\ell}\boldsymbol 1\) with \(c_{n,\ell}=(1+1/n)^{\ell-1}\), \(\|g_{n,\ell}\|_2^2=n^{-1}+O(H_n/n^2)\), and \(\nu_{n,\ell}=\nu_{\min,n}=\nu_{\max,n}=1/(2+3/n)\) for every lead. Consequently, \(\kappa_{\mathrm{rec},n}\to\sqrt{2/\pi}\) and \(\kappa_{\mathrm{dir},n}/\sqrt{\log H_n}\to1\); the corresponding fixed-level Gaussian maximum quantiles have limits \(\Phi^{-1}(1-\alpha/2)\) and \(1\) after division by \(\sqrt{\log H_n}\), respectively.
+\end{theorem}
+\begin{proof}
+Put \(H_n=\lfloor n^{1/8}\rfloor\).  We first verify that the subclass is legal and nonempty.  Allocate mutually disjoint pre-treatment, temporal-design, temporal-response, terminal, and auxiliary-selection cells in a sufficiently long balanced panel.  More explicitly, after the \(P_n=n\) pre-treatment periods, take temporal relative indices \(1,\ldots,n\) for the lag rows, \(n+1,\ldots,n+H_n\) for the distinct direct responses, reserve \(n+H_n+1,\ldots,n+2H_n\), and take \(n+2H_n+1,\ldots,2n+2H_n\) for the common terminal block.  Use the first response index for the recursive one-step response, put the auxiliary selection cells in a further disjoint block, and use singleton direct and recursive menus.  This supplies all independence asserted below by \(\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks}\); the singleton menus also make selection deterministic, so \(\mathrm{ass{:}independent\mbox{-}selection}\) holds.
+
+Set \(N_n=P_n=L_n=M_{\mathrm{dir},n}=M_{\mathrm{rec},n}=n\), take one latent unit factor and one latent time factor, and set every relevant loading and every relevant conditional-mean factor value equal to one.  Put independent \(N(0,\sigma_n^2)\) errors on all primitive cells, where \(c_\sigma\leq\sigma_n\leq C_\sigma\).  Thus every population design is
+\[
+ B_n:=\boldsymbol 1_n\boldsymbol 1_n^{\top},
+\]
+and every population response vector and conditional target mean equals an all-ones vector or the scalar one, as appropriate.  This is the rank-one instance of \(\mathrm{ass{:}factor\mbox{-}model}\), and its constant temporal sequence has Hankel rank one as required by \(\mathrm{ass{:}hankel\mbox{-}rank}\).  The matrix \(B_n\) has the single nonzero singular value \(n\); hence \(\mathrm{ass{:}fixed\mbox{-}rank}\), \(\mathrm{ass{:}strong\mbox{-}spectrum}\), \(\mathrm{ass{:}balanced\mbox{-}dimensions}\), and \(\mathrm{ass{:}bounded\mbox{-}means}\) hold with fixed radii.  Its row and column spaces are both \(\operatorname{span}(\boldsymbol 1_n)\), which proves \(\mathrm{ass{:}unit\mbox{-}recovery}\) and \(\mathrm{ass{:}direct\mbox{-}response\mbox{-}span}\).  If \(x\) is any valid recurrence coefficient for the constant population sequence, validity on the all-ones lag state gives \(x^{\top}\boldsymbol 1_n=1\).  Consequently
+\[
+ \Pi_n(x)\boldsymbol 1_n
+ =S_n\boldsymbol 1_n+e_nx^{\top}\boldsymbol 1_n
+ =\boldsymbol 1_n.
+\]
+All advanced terminal states therefore remain in \(\operatorname{span}(\boldsymbol 1_n)\), proving \(\mathrm{ass{:}recursive\mbox{-}recovery}\).  The direct transport equality will be checked explicitly below.  The independent Gaussian construction verifies \(\mathrm{ass{:}gaussian\mbox{-}cells}\) and \(\mathrm{ass{:}noise\mbox{-}scale}\).  We verify the stable-recursion and variance-floor conditions below.  Thus, once those two deferred checks are made, this construction is a member of \(\mathcal C_n\) satisfying all five additional conditions in \(\mathrm{def{:}persistent\mbox{-}subclass}\).  It will follow that \(\mathcal A_n\neq\varnothing\); the inclusion \(\mathcal A_n\subseteq\mathcal C_n\) follows directly from that definition.
+
+We next calculate the population coefficients.  Since
+\[
+ B_n^\dagger={1\over n^2}\boldsymbol 1_n\boldsymbol 1_n^{\top},
+\]
+the definitions of the minimum-norm coefficients give, for every \(1\leq\ell\leq H_n\),
+\[
+ \beta_n=a_n=a_{n,\ell}={\boldsymbol 1_n\over n}.
+ \tag{1}
+\]
+In particular,
+\[
+ a_{n,\ell}^{\top}\bar W_n^{\top}\beta_n
+ ={\boldsymbol 1_n^{\top}\over n}\boldsymbol 1_n=1
+ =\theta_{n,\ell},
+\]
+which verifies \(\mathrm{ass{:}direct\mbox{-}terminal\mbox{-}transport}\).  The unit-side and direct temporal Riesz definitions then yield
+\[
+ p_{\mathrm{dir},n,\ell}={\boldsymbol 1_n\over n},
+ \qquad
+ q_{\mathrm{dir},n,\ell}={\boldsymbol 1_n\over n}.
+ \tag{2}
+\]
+
+Let
+\[
+ A_n:=\Pi_n(a_n)=S_n+e_n{\boldsymbol 1_n^{\top}\over n},
+ \qquad
+ c_{n,\ell}:=\left(1+{1\over n}\right)^{\ell-1}.
+\]
+Because \(\|S_n\|_{\mathrm{op}}=1\) and \(\|a_n\|_2=n^{-1/2}\),
+\[
+ \max_{0\leq j\leq H_n}\|A_n^j\|_{\mathrm{op}}
+ \leq \left(1+n^{-1/2}\right)^{H_n}
+ \leq \exp(n^{-3/8})\leq e.
+ \tag{3}
+\]
+This verifies \(\mathrm{ass{:}stable\mbox{-}short\mbox{-}recursion}\) for the constructed law.
+
+Since \(S_n\) is the superdiagonal shift, the definition \(g_{n,\ell}=(A_n^\ell)^{\top}e_n\) implies
+\[
+ g_{n,1}={\boldsymbol 1_n\over n},
+ \qquad
+ g_{n,\ell+1}=S_n^{\top}g_{n,\ell}
+       +{\boldsymbol 1_n\over n}(g_{n,\ell})_n.
+ \tag{4}
+\]
+Induction in \(\ell\), using \(H_n\leq n\), gives the coordinate identity
+\[
+ (g_{n,\ell})_i=
+ \begin{cases}
+ n^{-1}(c_{n,\ell}-c_{n,\ell-i}),&1\leq i<\ell,\\
+ n^{-1}c_{n,\ell},&\ell\leq i\leq n.
+ \end{cases}
+ \tag{5}
+\]
+Indeed, shifting the coordinates in (5) and adding \(c_{n,\ell}/n^2\) proves the formula at \(\ell+1\), because \(c_{n,j+1}=(1+1/n)c_{n,j}\).  Summing (5), or equivalently using \(A_n\boldsymbol 1_n=\boldsymbol 1_n\), gives
+\[
+ \boldsymbol 1_n^{\top}g_{n,\ell}=1.
+ \tag{6}
+\]
+Squaring (5) gives the exact formula
+\[
+ \|g_{n,\ell}\|_2^2
+ ={(n-\ell+1)c_{n,\ell}^2
+   +\sum_{j=1}^{\ell-1}(c_{n,\ell}-c_{n,j})^2\over n^2}.
+ \tag{7}
+\]
+Uniformly over \(\ell\leq H_n\), the elementary bound
+\[
+ \sup_{j\leq H_n}|c_{n,j}-1|
+ \leq \exp(H_n/n)-1=O(H_n/n)
+\]
+turns (7) into
+\[
+ \|g_{n,\ell}\|_2^2={1\over n}
+       +O\!\left({H_n\over n^2}\right).
+ \tag{8}
+\]
+The constant in this remainder is independent of \(\ell\) and of the law in the persistent subclass.
+
+It remains to compute the Jacobian action.  For a direction \(h\in\mathbb R^n\), the product rule for matrix powers gives
+\[
+ \boldsymbol 1_n^{\top}D_x[\{\Pi_n(x)^\ell\}^{\top}e_n]_{x=a_n}[h]
+ =\sum_{j=0}^{\ell-1}(e_n^{\top}A_n^je_n)
+      h^{\top}A_n^{\ell-1-j}\boldsymbol 1_n.
+ \tag{9}
+\]
+Equation (5) implies
+\[
+ e_n^{\top}A_n^je_n=
+ \begin{cases}
+ 1,&j=0,\\
+ n^{-1}(1+1/n)^{j-1},&1\leq j<n,
+ \end{cases}
+\]
+while \(A_n^k\boldsymbol 1_n=\boldsymbol 1_n\) for every \(k\geq0\).  Hence the right-hand side of (9) equals
+\[
+ \left\{1+{1\over n}\sum_{j=0}^{\ell-2}
+          \left(1+{1\over n}\right)^j\right\}
+ h^{\top}\boldsymbol 1_n
+ =c_{n,\ell}h^{\top}\boldsymbol 1_n.
+\]
+As this holds for every \(h\), the definition of \(J_{n,\ell}\) yields
+\[
+ J_{n,\ell}^{\top}\boldsymbol 1_n
+ =c_{n,\ell}\boldsymbol 1_n.
+ \tag{10}
+\]
+Combining (1), (6), and (10) with the Riesz definitions gives
+\[
+ p_{\mathrm{rec},n,\ell}={\boldsymbol 1_n\over n},
+ \qquad
+ q_{\mathrm{rec},n,\ell}=c_{n,\ell}{\boldsymbol 1_n\over n}.
+ \tag{11}
+\]
+
+We now derive, rather than assume, the score covariances from \(\mathrm{def{:}stacked\mbox{-}scores}\).  Conditional on
+\[
+ \mathcal H_{m,n}:=\sigma(\mathcal F_n,\widehat d_{m,n}),
+\]
+the primitive errors remain independent centered Gaussian variables by \(\mathrm{ass{:}gaussian\mbox{-}cells}\), \(\mathrm{ass{:}independent\mbox{-}selection}\), and \(\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks}\).  For direct mode, separate the independent lead response and write
+\[
+ G_{\mathrm{dir},n,\ell}=C_n+E_{n,\ell},
+\]
+where
+\[
+\begin{aligned}
+ C_n&=a_n^{\top}E_{W,n}^{\top}\beta_n
+ +p_{\mathrm{dir},n,\ell}^{\top}(e_{y,n}-E_{Y,n}\beta_n)
+ -q_{\mathrm{dir},n,\ell}^{\top}E_{Z,\mathrm{dir},n}a_n,\\
+ E_{n,\ell}&=q_{\mathrm{dir},n,\ell}^{\top}e_{\mathrm{dir},n,\ell}.
+\end{aligned}
+\]
+The value of \(C_n\) does not depend on \(\ell\).  The four primitive blocks in these displays are independent, and (1)--(2) give
+\[
+ \operatorname{Var}(C_n\mid\mathcal H_{\mathrm{dir},n})
+ =\sigma_n^2\left\{{1\over n^2}
+   +{1\over n}\left(1+{1\over n}\right)
+   +{1\over n^2}\right\}
+ ={\sigma_n^2\over n}\left(1+{3\over n}\right),
+ \tag{12}
+\]
+and
+\[
+ \operatorname{Var}(E_{n,\ell}\mid\mathcal H_{\mathrm{dir},n})
+ ={\sigma_n^2\over n}.
+ \tag{13}
+\]
+The variables \(E_{n,1},\ldots,E_{n,H_n}\) are mutually independent and independent of \(C_n\).  Therefore
+\[
+ s_{\mathrm{dir},n,\ell}^2
+ ={\sigma_n^2\over n}\left(2+{3\over n}\right),
+ \qquad
+ \nu_{n,\ell}={1\over 2+3/n}.
+ \tag{14}
+\]
+In particular,
+\[
+ \nu_{n,\ell}=\nu_{\min,n}=\nu_{\max,n}={1\over2+3/n}.
+ \tag{15}
+\]
+Writing \(\nu_n=(2+3/n)^{-1}\), equations (12)--(14) also give the exact correlation matrix
+\[
+ R_{\mathrm{dir},n}(\ell,k)
+ =(1-\nu_n)+\nu_n\boldsymbol 1\{\ell=k\}.
+ \tag{16}
+\]
+Thus, on an extension carrying independent standard normal variables \(Z_0,Z_1,\ldots,Z_{H_n}\), a version of the standardized direct score is
+\[
+ {G_{\mathrm{dir},n,\ell}\over s_{\mathrm{dir},n,\ell}}
+ =\sqrt{1-\nu_n}\,Z_0+\sqrt{\nu_n}\,Z_\ell.
+ \tag{17}
+\]
+
+For recursion, set
+\[
+ U_n={\boldsymbol 1_n^{\top}\over n}(e_{y,n}-E_{Y,n}\beta_n),
+ \qquad
+ V_n={\boldsymbol 1_n^{\top}\over n}(e_{\mathrm{rec},n}-E_{Z,\mathrm{rec},n}a_n),
+\]
+and
+\[
+ T_{n,\ell}=g_{n,\ell}^{\top}E_{W,n}^{\top}\beta_n.
+\]
+Equations (6) and (11), substituted into \(\mathrm{def{:}stacked\mbox{-}scores}\), give
+\[
+ G_{\mathrm{rec},n,\ell}=U_n+c_{n,\ell}V_n+T_{n,\ell}.
+ \tag{18}
+\]
+The three primitive blocks are independent, \(U_n\) and \(V_n\) are independent, and
+\[
+ v_n^2:=\operatorname{Var}(U_n\mid\mathcal H_{\mathrm{rec},n})
+ =\operatorname{Var}(V_n\mid\mathcal H_{\mathrm{rec},n})
+ ={\sigma_n^2\over n}\left(1+{1\over n}\right).
+ \tag{19}
+\]
+Moreover,
+\[
+ \operatorname{Var}(T_{n,\ell}\mid\mathcal H_{\mathrm{rec},n})
+ ={\sigma_n^2\over n}\|g_{n,\ell}\|_2^2.
+\]
+It follows that
+\[
+ s_{\mathrm{rec},n,\ell}^2
+ ={\sigma_n^2\over n}
+ \left[\|g_{n,\ell}\|_2^2
+   +\left(1+{1\over n}\right)(1+c_{n,\ell}^2)\right].
+ \tag{20}
+\]
+Equations (14) and (20), together with \(\sigma_n\geq c_\sigma\), yield
+\[
+ \min_{m\in\{\mathrm{dir},\mathrm{rec}\},\,\ell\leq H_n}
+ s_{m,n,\ell}\geq c_\sigma n^{-1/2}.
+\]
+Thus the constructed sequence satisfies \(\mathrm{ass{:}variance\mbox{-}floor}\) with a fixed positive radius.  This completes every deferred membership check, proving \(\mathcal A_n\neq\varnothing\) and \(\mathcal A_n\subseteq\mathcal C_n\).
+
+We next prove the direct maximum and quantile limits without invoking an undeclared extreme-value theorem.  Let
+\[
+ M_H:=\max_{1\leq\ell\leq H}|Z_\ell|.
+\]
+For every fixed \(\eta\in(0,1)\), the Gaussian Chernoff bound gives
+\[
+ \Pr\!\left\{M_H>(1+\eta)\sqrt{2\log H}\right\}
+ \leq2H\exp\{- (1+\eta)^2\log H\}\longrightarrow0.
+ \tag{21}
+\]
+For the reverse inequality, integration of the standard-normal density over
+\([x,x+(1+x)^{-1}]\) gives, for a universal \(c>0\) and every \(x\geq1\),
+\[
+ \Pr(|Z_1|>x)\geq {c\over1+x}e^{-x^2/2}.
+ \tag{22}
+\]
+With \(x=(1-\eta)\sqrt{2\log H}\), the product of \(H\) and the right-hand side of (22) diverges.  Independence therefore implies
+\[
+ \Pr\!\left\{M_H\leq(1-\eta)\sqrt{2\log H}\right\}
+ \leq\exp\{-H\Pr(|Z_1|>x)\}\longrightarrow0.
+ \tag{23}
+\]
+Equations (21)--(23) prove
+\[
+ {M_H\over\sqrt{2\log H}}\longrightarrow1
+ \quad\hbox{in probability}.
+\]
+They also give convergence in mean.  Indeed, the exponential-moment inequality
+\[
+ \mathbb E M_H\leq {\log(2H)\over t}+{t\over2},
+ \qquad t>0,
+\]
+obtained from \(e^{tM_H}\leq\sum_{\ell=1}^H(e^{tZ_\ell}+e^{-tZ_\ell})\), gives
+\(\limsup_{H\to\infty}\mathbb E M_H/\sqrt{2\log H}\leq1\) upon taking \(t=\sqrt{2\log(2H)}\); equation (23) gives the matching lower limit.  Hence
+\[
+ {M_H\over\sqrt{2\log H}}\longrightarrow1
+ \quad\hbox{in probability and in mean}.
+ \tag{24}
+\]
+If
+\[
+ M_{\mathrm{dir},n}:=\max_{\ell\leq H_n}
+ \left|{G_{\mathrm{dir},n,\ell}\over s_{\mathrm{dir},n,\ell}}\right|,
+\]
+then (17) gives the deterministic comparison
+\[
+ \left|M_{\mathrm{dir},n}-\sqrt{\nu_n}M_{H_n}\right|
+ \leq\sqrt{1-\nu_n}|Z_0|.
+ \tag{25}
+\]
+Since \(H_n\to\infty\), \(\nu_n\to1/2\), and
+\(\sqrt{\nu_n}\sqrt{2\log H_n}/\sqrt{\log H_n}\to1\), equations (24)--(25) prove
+\[
+ {M_{\mathrm{dir},n}\over\sqrt{\log H_n}}\longrightarrow1
+ \quad\hbox{in probability and in mean}.
+ \tag{26}
+\]
+By the definition of \(\kappa_{\mathrm{dir},n}\), the mean statement in (26) is exactly
+\[
+ {\kappa_{\mathrm{dir},n}\over\sqrt{\log H_n}}\longrightarrow1.
+ \tag{27}
+\]
+
+For the recursive limit, define
+\[
+ Z_*:={U_n+V_n\over\sqrt{2v_n^2}}.
+\]
+By (19), \(Z_*\sim N(0,1)\).  Equations (8), (19), and (20) imply, uniformly over \(\ell\leq H_n\),
+\[
+ c_{n,\ell}=1+O(H_n/n),
+ \qquad
+ \left|{s_{\mathrm{rec},n,\ell}\over\sqrt{2v_n^2}}-1\right|
+ =O(H_n/n).
+ \tag{28}
+\]
+The first bound follows from the displayed exponential bound after (7); for the second, divide (20) by \(2v_n^2\), use (8), and then use
+\(|\sqrt{1+x}-1|\leq |x|\) for \(x>-1\) sufficiently close to zero.  Consequently, the two common terms in (18) satisfy
+\[
+ \mathbb E\max_{\ell\leq H_n}
+ \left|{U_n+c_{n,\ell}V_n\over s_{\mathrm{rec},n,\ell}}-Z_*\right|
+ =O(H_n/n).
+ \tag{29}
+\]
+For clarity, (29) follows by adding and subtracting \((U_n+V_n)/s_{\mathrm{rec},n,\ell}\): the resulting terms are bounded by the deterministic errors in (28) times \(|Z_*|\) and \(|V_n|/\sqrt{2v_n^2}\), both of which have uniformly bounded first moments.
+
+By (8), (20), and the lower noise-scale cancellation,
+\[
+ \max_{\ell\leq H_n}
+ \operatorname{Var}\!\left(
+ {T_{n,\ell}\over s_{\mathrm{rec},n,\ell}}
+ \mathrel{\big|}\mathcal H_{\mathrm{rec},n}\right)
+ \leq {C\over n}.
+\]
+No independence across \(\ell\) is needed: a Gaussian tail bound followed by a union bound and tail integration gives
+\[
+ \mathbb E\max_{\ell\leq H_n}
+ \left|{T_{n,\ell}\over s_{\mathrm{rec},n,\ell}}\right|
+ \leq C\sqrt{{\log(2H_n)\over n}}.
+ \tag{30}
+\]
+Combining (18), (29), and (30),
+\[
+ \mathbb E\max_{\ell\leq H_n}
+ \left|{G_{\mathrm{rec},n,\ell}\over s_{\mathrm{rec},n,\ell}}-Z_*\right|
+ \leq C\left\{{H_n\over n}
+       +\sqrt{{\log(2H_n)\over n}}\right\}\longrightarrow0,
+ \tag{31}
+\]
+because \(H_n=\lfloor n^{1/8}\rfloor\).  The reverse triangle inequality for maxima now gives
+\[
+ \left|\max_{\ell\leq H_n}
+ \left|{G_{\mathrm{rec},n,\ell}\over s_{\mathrm{rec},n,\ell}}\right|-|Z_*|\right|
+ \leq\max_{\ell\leq H_n}
+ \left|{G_{\mathrm{rec},n,\ell}\over s_{\mathrm{rec},n,\ell}}-Z_*\right|.
+\]
+Thus the recursive maximum converges to \(|Z_*|\) in probability and in mean.  Since \(\mathbb E|Z_*|=\sqrt{2/\pi}\),
+\[
+ \kappa_{\mathrm{rec},n}\longrightarrow\sqrt{2/\pi}.
+ \tag{32}
+\]
+
+Finally define the oracle fixed-level Gaussian maximum quantile by
+\[
+ c^0_{m,n}(1-\alpha)
+ :=\inf\left\{x:\Pr\!\left(
+ \max_{\ell\leq H_n}|N(0,R_{m,n})_\ell|\leq x
+ \mathrel{\big|}\mathcal H_{m,n}\right)\geq1-\alpha\right\}.
+\]
+Equation (26) implies that, for each \(\varepsilon>0\), the distribution probability below \((1-\varepsilon)\sqrt{\log H_n}\) tends to zero and that below \((1+\varepsilon)\sqrt{\log H_n}\) tends to one.  Since \(0<1-\alpha<1\), these two inequalities trap the quantile and prove
+\[
+ {c^0_{\mathrm{dir},n}(1-\alpha)\over\sqrt{\log H_n}}
+ \longrightarrow1.
+ \tag{33}
+\]
+Equation (31) gives convergence in distribution of the recursive maximum to \(|Z_*|\).  The distribution function \(x\mapsto2\Phi(x)-1\) of \(|Z_*|\) is continuous and strictly increasing on \([0,\infty)\); hence the same quantile trapping argument gives
+\[
+ c^0_{\mathrm{rec},n}(1-\alpha)
+ \longrightarrow\Phi^{-1}(1-\alpha/2).
+ \tag{34}
+\]
+Equations (1), (8), (10), (15), (27), and (32)--(34), together with the verified construction and inclusion, prove every assertion of the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact subclass proves that the complexity separation is attainable within the legal fixed-rank model rather than being an abstract covariance example. \textit{Gap.} No located TWSF result computes the full five-component variance shares or the direct and recursive Gaussian maximum limits on a persistent common-origin sequence. \textit{Consumer.} The limit gives an interpretable benchmark for the critical values produced by a TWSF ribbon implementation.
+
+\begin{proposition}[prop:legal-location-embedding]\label{prop:legal-location-embedding}
+For \(H_n=\lfloor n^{1/8}\rfloor\) along even \(n\), the constructed family is nondegenerate and satisfies \(\mathcal L_n=\{\mathbb P_{\boldsymbol\vartheta,n}:\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\}\subset\mathcal C_n\). Under every \(\mathbb P_{\boldsymbol\vartheta,n}\), \(X_n\sim N(\boldsymbol\vartheta,\Sigma_n^{\mathrm{loc}})\) conditionally on \(\mathcal F_n\), where \(\Sigma_n^{\mathrm{loc}}\) is independent of \(\boldsymbol\vartheta\), \(s_{\mathrm{dir},n,\ell}^2=\sigma_n^2(3/n+6/n^2)\), and the independent direct lead-response share equals \((3+6/n)^{-1}\) for every \(\ell\le H_n\).
+\end{proposition}
+\begin{proof}
+Fix a sufficiently large even \(n\), condition on \(\mathcal F_n\), and write
+\[
+ H=H_n,\qquad \boldsymbol u=\boldsymbol 1_n,\qquad
+ \boldsymbol v=\boldsymbol v_n,\qquad h_\ell=(-1)^\ell .
+\]
+The definition of \(\boldsymbol v_n\) gives
+\[
+ \boldsymbol u^{\top}\boldsymbol v=0,
+ \qquad \|\boldsymbol u\|_2^2=\|\boldsymbol v\|_2^2=n.
+\]
+Consequently
+\[
+ P:=\frac{\boldsymbol u\boldsymbol u^{\top}
+              +\boldsymbol v\boldsymbol v^{\top}}{n}
+\]
+is the orthogonal projector onto
+\(\operatorname{span}\{\boldsymbol u,\boldsymbol v\}\).  By
+\(\mathrm{def{:}legal\mbox{-}location\mbox{-}submodel}\), every population
+design matrix appearing in that construction is
+\[
+ B_n=\boldsymbol u\boldsymbol u^{\top}
+       +\boldsymbol v\boldsymbol v^{\top}=nP.
+\]
+Thus \(B_n\) has rank two, both nonzero singular values are \(n\), and
+\[
+ B_n^\dagger=\frac{P}{n}
+ =\frac{\boldsymbol u\boldsymbol u^{\top}
+          +\boldsymbol v\boldsymbol v^{\top}}{n^2}.
+\]
+The definitions of \(\beta_n\), \(a_{n,\ell}\), and \(a_n\) therefore give,
+respectively,
+\[
+ \beta_n=\frac{\cos(\varphi)\boldsymbol u
+                     +\sin(\varphi)\boldsymbol v}{n},
+ \qquad
+ a_{n,\ell}=\frac{\boldsymbol u+h_\ell\boldsymbol v}{n},
+ \qquad
+ a_n=\frac{\boldsymbol u-\boldsymbol v}{n}.
+\]
+In particular,
+\[
+ \|\beta_n\|_2^2=\frac1n,
+ \qquad
+ a_{n,\ell}^{\top}a_{n,k}=\frac{1+h_\ell h_k}{n},
+ \qquad
+ \|a_n\|_2^2=\frac2n.                                      \tag{1}
+\]
+
+We next verify every member condition in
+\(\mathrm{def{:}panel\mbox{-}class}\).  The constant and alternating temporal
+factor coordinates, paired with the row loading \((1,(-1)^i)^{\top}\), give
+\[
+ B_n(i,j)=1+(-1)^{i+j}.
+\]
+Pairing the same temporal factors with the target loading
+\((\cos(\varphi),\sin(\varphi))^{\top}\) gives
+\[
+ \bar y_n(\varphi)=\cos(\varphi)\boldsymbol u
+                    +\sin(\varphi)\boldsymbol v,
+ \qquad
+ \theta_{n,\ell}=\cos(\varphi)+h_\ell\sin(\varphi).          \tag{2}
+\]
+This explicitly realizes \(\mathrm{ass{:}factor\mbox{-}model}\).  A Hankel
+matrix formed from the constant sequence is an outer product of two all-one
+vectors, and a Hankel matrix formed from the alternating sequence is an outer
+product of two sign vectors.  Each therefore has rank one, verifying
+\(\mathrm{ass{:}hankel\mbox{-}rank}\) with \(Q_0\geq1\).
+
+All five dimensions in the construction equal \(n\), which verifies
+\(\mathrm{ass{:}balanced\mbox{-}dimensions}\).  The preceding singular-value
+calculation verifies \(\mathrm{ass{:}fixed\mbox{-}rank}\) and
+\(\mathrm{ass{:}strong\mbox{-}spectrum}\) with fixed admissible envelopes
+containing rank two and singular value \(n\).  Every displayed population
+entry, response mean, and target mean has absolute value at most \(2\), so
+\(\mathrm{ass{:}bounded\mbox{-}means}\) holds with any declared envelope at
+least \(2\).  Equivalently, the fixed radii can be chosen as
+\(r_0=2\), \(c=C=c_s=C_s=1\), and \(C_\mu=2\), or loosened without affecting
+the construction.
+
+Because
+\[
+ \operatorname{col}(B_n)=\operatorname{span}\{\boldsymbol u,\boldsymbol v\}
+ =\operatorname{col}(B_n^{\top}),                             \tag{3}
+\]
+\(\mathrm{ass{:}unit\mbox{-}recovery}\) holds.  Furthermore,
+\[
+ B_na_{n,\ell}=\boldsymbol u+h_\ell\boldsymbol v,
+ \qquad B_na_n=\boldsymbol u-\boldsymbol v,                   \tag{4}
+\]
+so (3)--(4) verify \(\mathrm{ass{:}direct\mbox{-}response\mbox{-}span}\).
+The direct transport equality required by
+\(\mathrm{ass{:}direct\mbox{-}terminal\mbox{-}transport}\) follows by direct
+calculation, rather than by stipulation:
+\[
+\begin{aligned}
+ a_{n,\ell}^{\top}\bar W_n^{\top}\beta_n
+ &=a_{n,\ell}^{\top}B_n\beta_n\\
+ &=\frac{(\boldsymbol u+h_\ell\boldsymbol v)^{\top}
+              (\cos(\varphi)\boldsymbol u+sin(\varphi)\boldsymbol v)}{n}\\
+ &=\cos(\varphi)+h_\ell\sin(\varphi)
+ =\theta_{n,\ell},
+\end{aligned}                                                  \tag{5}
+\]
+where the last equality is (2).
+
+It remains to check recursive recovery and stability.  Let
+\(A=\Pi_n(a_n)=S_n+e_na_n^{\top}\), where \(e_n=e_{L_n}\) because
+\(L_n=n\).  Since \(n\) is even,
+\[
+ a_n^{\top}\boldsymbol u=1,
+ \qquad a_n^{\top}\boldsymbol v=-1,
+ \qquad S_n\boldsymbol u=\boldsymbol u-e_n,
+ \qquad S_n\boldsymbol v=-\boldsymbol v+e_n.
+\]
+Hence
+\[
+ A\boldsymbol u=\boldsymbol u,
+ \qquad A\boldsymbol v=-\boldsymbol v.                       \tag{6}
+\]
+Every population terminal state and every one of its iterates under this valid
+recurrence consequently remains in the space on the right side of (3), which
+is \(\operatorname{col}(\bar Z_{\mathrm{rec},n})\).  This verifies
+\(\mathrm{ass{:}recursive\mbox{-}recovery}\).  Moreover,
+\[
+ \|A\|_{\mathrm{op}}
+ \leq \|S_n\|_{\mathrm{op}}+\|e_na_n^{\top}\|_{\mathrm{op}}
+ =1+\sqrt{2/n}.
+\]
+For \(0\leq j\leq H=\lfloor n^{1/8}\rfloor\), submultiplicativity and
+\(1+x\leq e^x\) imply
+\[
+ \|A^j\|_{\mathrm{op}}
+ \leq(1+\sqrt{2/n})^j
+ \leq\exp(\sqrt2 H/\sqrt n)
+ \leq e^{\sqrt2}.                                             \tag{7}
+\]
+Thus \(\mathrm{ass{:}stable\mbox{-}short\mbox{-}recursion}\) holds uniformly.
+
+The menus are singletons by the construction, so their measurable selections
+are deterministic.  The mutually disjoint observed blocks in
+\(\mathrm{def{:}legal\mbox{-}location\mbox{-}submodel}\), together with
+\(\mathrm{ass{:}gaussian\mbox{-}cells}\), verify
+\(\mathrm{ass{:}independent\mbox{-}selection}\) and
+\(\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks}\).  The same Gaussian
+condition gives independent \(N(0,\sigma_n^2)\) primitive cell errors, and
+\(\mathrm{ass{:}noise\mbox{-}scale}\) supplies
+\(0<c_\sigma\leq\sigma_n\leq C_\sigma<\infty\).
+
+We now calculate the direct covariance and verify the remaining variance
+floor.  The Riesz definitions, (3), and the fact that the displayed
+coefficients belong to \(\operatorname{col}(P)\) yield
+\[
+ p_{\mathrm{dir},n,\ell}
+ =B_n^{\dagger\top}B_na_{n,\ell}=Pa_{n,\ell}=a_{n,\ell},
+ \qquad
+ q_{\mathrm{dir},n,\ell}
+ =B_n^{\dagger\top}B_n^{\top}\beta_n=P\beta_n=\beta_n.       \tag{8}
+\]
+For later use in the recursive variance bound, put
+\(g_{n,\ell}=(A^\ell)^{\top}e_n\).  Equation (6) implies
+\[
+ \boldsymbol u^{\top}g_{n,\ell}=e_n^{\top}A^\ell\boldsymbol u=1,
+ \qquad
+ \boldsymbol v^{\top}g_{n,\ell}=e_n^{\top}A^\ell\boldsymbol v=h_\ell.
+\]
+Therefore
+\[
+ p_{\mathrm{rec},n,\ell}
+ =B_n^{\dagger\top}B_ng_{n,\ell}
+ =Pg_{n,\ell}
+ =\frac{\boldsymbol u+h_\ell\boldsymbol v}{n},
+ \qquad
+ \|p_{\mathrm{rec},n,\ell}\|_2^2=\frac2n.                  \tag{9}
+\]
+In the recursive score of
+\(\mathrm{def{:}stacked\mbox{-}scores}\), the term
+\(p_{\mathrm{rec},n,\ell}^{\top}e_{y,n}\) is independent of all other
+primitive-block terms.  Hence variances add, and (9) gives
+\[
+ s_{\mathrm{rec},n,\ell}^2
+ \geq \sigma_n^2\|p_{\mathrm{rec},n,\ell}\|_2^2
+ =\frac{2\sigma_n^2}{n}.                                    \tag{10}
+\]
+
+For an i.i.d. mean-zero Gaussian matrix \(E\) with cell variance
+\(\sigma_n^2\), direct expansion of the double sum gives
+\[
+ \operatorname{Cov}(x^{\top}Ey,x'^{\top}Ey'\mid\mathcal F_n)
+ =\sigma_n^2(x^{\top}x')(y^{\top}y').                       \tag{11}
+\]
+Apply (11) separately to the mutually independent terminal, unit-regression,
+and temporal-regression blocks in the direct score.  Distinct direct response
+errors are independent, while the same \(E_{Z,\mathrm{dir},n}\) is shared
+across leads.  Using (8), we obtain
+\[
+\begin{aligned}
+ \frac{\operatorname{Cov}(G_{\mathrm{dir},n,\ell},
+                           G_{\mathrm{dir},n,k}\mid\mathcal F_n)}{\sigma_n^2}
+ &=\|\beta_n\|_2^2a_{n,\ell}^{\top}a_{n,k}
+ +(1+\|\beta_n\|_2^2)
+       p_{\mathrm{dir},n,\ell}^{\top}p_{\mathrm{dir},n,k}\\
+ &\quad+\|\beta_n\|_2^2
+       \{\boldsymbol 1\{\ell=k\}+a_{n,\ell}^{\top}a_{n,k}\}.
+\end{aligned}                                                 \tag{12}
+\]
+Substituting (1) and (8) into (12) gives the complete covariance formula
+\[
+ \frac{\Sigma_n^{\mathrm{loc}}(\ell,k)}{\sigma_n^2}
+ =\left(1+\frac3n\right)\frac{1+h_\ell h_k}{n}
+  +\frac{\boldsymbol 1\{\ell=k\}}{n}.                      \tag{13}
+\]
+It is independent of \(\varphi\), and its diagonal is
+\[
+ s_{\mathrm{dir},n,\ell}^2
+ =\sigma_n^2\left(\frac3n+\frac6{n^2}\right).              \tag{14}
+\]
+Equations (10), (14), and \(\sigma_n\geq c_\sigma\) verify
+\(\mathrm{ass{:}variance\mbox{-}floor}\), for example with any
+\(c_v\leq\sqrt2c_\sigma\).
+
+The last summand on the right side of (12) containing
+\(\boldsymbol 1\{\ell=k\}\) is exactly the covariance of the direct
+lead-response terms
+\(q_{\mathrm{dir},n,\ell}^{\top}e_{\mathrm{dir},n,\ell}\).  Their variances
+are \(\sigma_n^2\|\beta_n\|_2^2=\sigma_n^2/n\), and the construction makes
+them independent across \(\ell\) and independent of all remaining score
+terms.  By (14), their standardized variance share is
+\[
+ \frac{\sigma_n^2/n}
+      {\sigma_n^2(3/n+6/n^2)}=\frac1{3+6/n}.                 \tag{15}
+\]
+In matrix form, (13) is
+\[
+ \Sigma_n^{\mathrm{loc}}
+ =\frac{\sigma_n^2}{n}I_H
+  +\frac{\sigma_n^2(1+3/n)}{n}
+    (\boldsymbol 1_H\boldsymbol 1_H^{\top}
+      +\boldsymbol h_n\boldsymbol h_n^{\top})
+ \succeq \frac{\sigma_n^2}{n}I_H.                           \tag{16}
+\]
+Thus \(\Sigma_n^{\mathrm{loc}}\) is positive definite.  The direct score is
+a linear transformation of the primitive Gaussian errors, so it is jointly
+Gaussian with mean zero and covariance (13).  From the definition of \(X_n\)
+and (2),
+\[
+ X_n\mid\mathcal F_n
+ \sim N(\boldsymbol\vartheta_n(\varphi),\Sigma_n^{\mathrm{loc}}). \tag{17}
+\]
+For all sufficiently large \(n\), \(H\geq2\), and
+\(\boldsymbol 1_H\) and \(\boldsymbol h_n\) are linearly independent.
+Consequently the map in (2) is nonconstant (indeed injective on
+\([-\pi/6,\pi/6]\)), while (16) makes the Gaussian experiment nondegenerate.
+We have checked every defining condition of \(\mathcal C_n\), so
+\(\mathcal L_n\subset\mathcal C_n\); equations (14), (15), and (17) prove all
+the remaining assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition supplies the legal fixed-covariance location experiment required by the centered-width argument. \textit{Gap.} The persistent rank-one calculation fixes its mean path and therefore cannot itself support an honesty infimum over a nondegenerate location parameter. \textit{Consumer.} It makes the direct-width certificate auditable as a restriction of the declared TWSF class rather than as an external Gaussian comparison experiment.
+
+\begin{theorem}[thm:centered-rectangle-width]\label{thm:centered-rectangle-width}
+Along the even-index sequence in \(\mathcal L_n\), fix \(0<\eta<1\). For any sequence of rectangles \(C_n^{\mathrm{rect}}\in\mathfrak R_n\) satisfying \(\inf_{\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}}\Pr_{\mathbb P_{\boldsymbol\vartheta,n}}(\boldsymbol\vartheta\in C_n^{\mathrm{rect}}\mid\mathcal F_n)\ge1-\alpha-\delta_n\) with \(\delta_n\to0\), \(\inf_{\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}}\Pr_{\mathbb P_{\boldsymbol\vartheta,n}}\{W_n^{\max}\ge(1-\eta)\sqrt{2(3+6/n)^{-1}\log H_n}\mid\mathcal F_n\}\ge1-\alpha-\delta_n-o(1)\) and \(\inf_{\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}}\mathbb E_{\mathbb P_{\boldsymbol\vartheta,n}}[W_n^{\max}\mid\mathcal F_n]\ge(1-\eta)\sqrt{2(3+6/n)^{-1}\log H_n}\{1-\alpha-\delta_n-o(1)\}\). The quantifiers include asymmetric, data-dependent, and randomized widths centered at \(X_n\), but not alternative centers or unrestricted estimators.
+\end{theorem}
+\begin{proof}
+Fix \(0<\eta<1\), condition throughout on \(\mathcal F_n\), and abbreviate
+\[
+ H=H_n,\qquad
+ \nu_n=(3+6/n)^{-1},\qquad
+ t_n=(1-\eta)\sqrt{2\nu_n\log H}.
+\]
+By \(\mathrm{prop{:}legal\mbox{-}location\mbox{-}embedding}\), the standardized
+direct error
+\[
+ Z_{n,\ell}
+ :=\frac{X_{n,\ell}-\vartheta_\ell}{s_{\mathrm{dir},n,\ell}}
+ =\frac{G_{\mathrm{dir},n,\ell}}{s_{\mathrm{dir},n,\ell}}
+\]
+has an independent direct lead-response component with variance share
+\(\nu_n\).  More explicitly, if
+\[
+ \xi_{n,\ell}
+ :=\frac{q_{\mathrm{dir},n,\ell}^{\top}
+              e_{\mathrm{dir},n,\ell}}{\sigma_n/\sqrt n},
+\]
+then the score calculation in that proposition shows that
+\(\xi_{n,1},\ldots,\xi_{n,H}\) are independent standard normal variables,
+independent of all remaining primitive-block terms.  Hence there is a jointly
+Gaussian vector \(\boldsymbol R_n\), independent of
+\((\xi_{n,1},\ldots,\xi_{n,H})\), such that
+\[
+ Z_{n,\ell}=R_{n,\ell}+\sqrt{\nu_n}\,\xi_{n,\ell},
+ \qquad 1\leq\ell\leq H.                                    \tag{18}
+\]
+No independence among the coordinates of \(\boldsymbol R_n\) is required.
+
+We first prove a uniform small-ball bound.  If \(\xi\sim N(0,1)\), then for
+every \(x\geq0\) and \(b\in\mathbb R\),
+\[
+ \Pr\{|\xi-b|<x\}\leq\Pr\{|\xi|<x\}.                       \tag{19}
+\]
+Indeed, for \(b\geq0\), differentiating
+\(\Phi(b+x)-\Phi(b-x)\) with respect to \(b\) gives
+\(\phi(b+x)-\phi(b-x)\leq0\); symmetry handles \(b<0\).
+Condition on \(\boldsymbol R_n\) in (18), apply (19) coordinatewise, and use
+the conditional independence of the \(\xi_{n,\ell}\)'s.  This gives
+\[
+\begin{aligned}
+ &\Pr\left\{\max_{\ell\leq H}|Z_{n,\ell}|<t_n
+       \mathrel{\big|}\boldsymbol R_n,\mathcal F_n\right\}\\
+ &\qquad\leq
+ \left[\Pr\left\{|\xi|<\frac{t_n}{\sqrt{\nu_n}}\right\}\right]^H
+ =\{1-2\overline\Phi(x_n)\}^{H},
+ \qquad x_n=(1-\eta)\sqrt{2\log H}.                         \tag{20}
+\end{aligned}
+\]
+Because \(H=\lfloor n^{1/8}\rfloor\to\infty\), eventually \(x_n\geq1\).
+For every \(x\geq1\), monotonicity of the standard normal density gives the
+elementary lower bound
+\[
+\begin{aligned}
+ \overline\Phi(x)
+ &=\int_x^\infty\phi(u)\,du
+ \geq\int_x^{x+1/x}\phi(u)\,du\\
+ &\geq\frac1x\phi(x+1/x)
+ \geq\frac{e^{-3/2}}{x}\phi(x).                             \tag{21}
+\end{aligned}
+\]
+Substitution of \(x_n\) into (21) shows that, for a universal constant
+\(c>0\),
+\[
+ 2H\overline\Phi(x_n)
+ \geq c\frac{H^{1-(1-\eta)^2}}{\sqrt{\log H}}
+ =c\frac{H^{2\eta-\eta^2}}{\sqrt{\log H}}
+ \longrightarrow\infty.                                    \tag{22}
+\]
+Since \((1-u)^H\leq e^{-Hu}\) for \(0\leq u\leq1\), integrating (20) over
+\(\boldsymbol R_n\) and using (22) yields
+\[
+ r_n:=\Pr\left\{\max_{\ell\leq H}|Z_{n,\ell}|<t_n
+                 \mathrel{\big|}\mathcal F_n\right\}
+ \leq\exp\{-2H\overline\Phi(x_n)\}=o(1).                  \tag{23}
+\]
+The deterministic upper bound in (23) is independent of
+\(\boldsymbol\vartheta\), because the conditional error law is the same at
+every point of \(\Theta_n^{\mathrm{loc}}\).
+
+Let \(C_n^{\mathrm{rect}}\in\mathfrak R_n\), and fix
+\(\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}\).  Write
+\[
+ A_{n,\boldsymbol\vartheta}
+ :=\{\boldsymbol\vartheta\in C_n^{\mathrm{rect}}\}.
+\]
+By \(\mathrm{def{:}centered\mbox{-}rectangles}\), on this coverage event one
+has, for every coordinate,
+\[
+ -W^+_{n,\ell}
+ \leq \frac{X_{n,\ell}-\vartheta_\ell}{s_{\mathrm{dir},n,\ell}}
+ \leq W^-_{n,\ell}.                                        \tag{24}
+\]
+Consequently the following inclusion holds pointwise in both the data and the
+independent auxiliary randomizer:
+\[
+ A_{n,\boldsymbol\vartheta}\cap\{W_n^{\max}<t_n\}
+ \subseteq\left\{\max_{\ell\leq H}|Z_{n,\ell}|<t_n\right\}. \tag{25}
+\]
+Taking conditional probabilities in (25) and rearranging gives
+\[
+\begin{aligned}
+ \Pr_{\mathbb P_{\boldsymbol\vartheta,n}}
+   \{W_n^{\max}\geq t_n\mid\mathcal F_n\}
+ &\geq
+ \Pr_{\mathbb P_{\boldsymbol\vartheta,n}}
+   (A_{n,\boldsymbol\vartheta}\mid\mathcal F_n)-r_n\\
+ &\geq1-\alpha-\delta_n-r_n.                               \tag{26}
+\end{aligned}
+\]
+The last line uses the assumed uniform conditional coverage.  Since the same
+\(r_n=o(1)\) works for every \(\boldsymbol\vartheta\), taking the infimum in
+(26) proves
+\[
+ \inf_{\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}}
+ \Pr_{\mathbb P_{\boldsymbol\vartheta,n}}
+ \left\{W_n^{\max}\geq
+ (1-\eta)\sqrt{2(3+6/n)^{-1}\log H_n}
+ \mathrel{\big|}\mathcal F_n\right\}
+ \geq1-\alpha-\delta_n-o(1).                               \tag{27}
+\]
+
+Finally, \(W_n^{\max}\geq0\).  The elementary tail-integral inequality
+\(\mathbb E[V]\geq t\Pr\{V\geq t\}\), valid for every nonnegative random
+variable \(V\) and \(t\geq0\), applied conditionally and combined with (26)
+gives
+\[
+ \inf_{\boldsymbol\vartheta\in\Theta_n^{\mathrm{loc}}}
+ \mathbb E_{\mathbb P_{\boldsymbol\vartheta,n}}
+ [W_n^{\max}\mid\mathcal F_n]
+ \geq(1-\eta)\sqrt{2(3+6/n)^{-1}\log H_n}
+       \{1-\alpha-\delta_n-o(1)\}.                          \tag{28}
+\]
+The inclusion (25) did not require symmetric, deterministic, or nonrandom
+widths, so (27)--(28) cover the entire declared class \(\mathfrak R_n\).  It
+did use the center \(X_n\) in (24); therefore the proof makes no assertion
+about alternative centers or unrestricted estimators, exactly as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result certifies that the direct multiplicity cost cannot be hidden by randomized or adaptive widths around the stated center. \textit{Gap.} Cai, Low, and Ma (2014) prove width limits for nonparametric function classes, not for this legal rank-two TWSF Gaussian-location submodel or this estimator-centered scope. \textit{Consumer.} It prevents a direct-TWSF implementation from advertising pointwise-width ribbons as uniformly honest through data-dependent horizonwise resizing.
+
+\begin{proposition}[prop:pointwise-reduction]\label{prop:pointwise-reduction}
+The identity embedding of observed blocks, target, and deterministic training layout satisfies \(\mathcal S_n^{\mathrm{Shen},1}\subset\{\mathbb P\in\mathcal C_n:H_n=1,\ |\mathcal D_{\mathrm{dir},n}|=|\mathcal D_{\mathrm{rec},n}|=1\}\). On this embedded class, selection is deterministic, \(\widehat c_{m,n}(1-\alpha)=\Phi^{-1}(1-\alpha/2)+o_{\Pr}(1)\), and Theorem \(\mathrm{thm{:}uniform\mbox{-}selected\mbox{-}band}\) recovers Shen's published pointwise TWSF interval under the declared Gaussian specialization.
+\end{proposition}
+\begin{proof}
+Fix \(m\in\{\mathrm{dir},\mathrm{rec}\}\) and \(\mathbb P\in\mathcal S_n^{\mathrm{Shen},1}\).  By \(\mathrm{def{:}shen\mbox{-}singleton\mbox{-}embedding}\), this law satisfies every member condition listed in \(\mathrm{def{:}panel\mbox{-}class}\), and it also satisfies
+\[
+ H_n=1,
+ \qquad
+ |\mathcal D_{\mathrm{dir},n}|=|\mathcal D_{\mathrm{rec},n}|=1.
+\]
+Thus the identity map on the observed blocks, conditional-mean target, and deterministic training layout gives
+\[
+ \mathcal S_n^{\mathrm{Shen},1}
+ \subseteq
+ \left\{\mathbb P\in\mathcal C_n:
+ H_n=1,\ |
+ \mathcal D_{\mathrm{dir},n}|=|
+ \mathcal D_{\mathrm{rec},n}|=1\right\}.
+\]
+In particular, the inclusion does not enlarge Shen's hypothesis class: its domain is exactly the restricted Gaussian, strongly identified, singleton-menu subclass specified by \(\mathrm{def{:}shen\mbox{-}singleton\mbox{-}embedding}\).  Since each menu has exactly one element, the empirical-risk minimizer \(\widehat d_{m,n}\) equals that element for every realization.  Hence selection is deterministic; the deterministic tie convention is immaterial here.
+
+It remains to compute the multiplier critical value.  A one-dimensional correlation matrix is the matrix \((1)\).  Therefore \(\widehat R_{m,n}=(1)\) when \(\widehat s_{m,n,1}>0\).  When \(\widehat s_{m,n,1}=0\), the fallback in \(\mathrm{def{:}multiplier\mbox{-}band}\) is required to be a correlation matrix and is consequently also \((1)\).  It follows in all cases that, conditionally on the data,
+\[
+ Z_{m,n}^{\ast}\sim N(0,1).
+\]
+Let \(\Phi\) denote the standard normal distribution function.  For \(c\geq0\), symmetry of the standard normal law gives
+\[
+ \Pr\!\left(
+ \max_{\ell\leq H_n}|Z_{m,n,\ell}^{\ast}|\leq c
+ \mathrel{\big|}\mathrm{data}
+ \right)
+ =\Pr(|Z_{m,n}^{\ast}|\leq c)
+ =\Phi(c)-\Phi(-c)
+ =2\Phi(c)-1.
+\]
+Because \(0<\alpha<1\) and \(c\mapsto2\Phi(c)-1\) is continuous and strictly increasing on \([0,\infty)\), the quantile definition in \(\mathrm{def{:}multiplier\mbox{-}band}\) yields the exact equality
+\[
+ \widehat c_{m,n}(1-\alpha)
+ =\Phi^{-1}(1-\alpha/2).
+\]
+The asserted relation with an \(o_{\Pr}(1)\) term follows because the difference of the two sides is identically zero.
+
+We may now apply \(\mathrm{thm{:}uniform\mbox{-}selected\mbox{-}band}\).  For recursive mode, \(H_n=1\leq n^0\), and \(0<1/4\), so this horizon lies in the theorem's verified recursive range.  For direct mode, the constant horizon is a fixed polynomial horizon and the disjoint direct response blocks required by that theorem are member conditions of \(\mathcal S_n^{\mathrm{Shen},1}\).  Thus the theorem's feasible-coverage premise holds in either prespecified mode on the embedded subclass and supplies conditional coverage \(1-\alpha+o(1)\).
+
+Finally, substituting \(H_n=1\) and the computed critical value into \(\mathrm{def{:}multiplier\mbox{-}band}\) gives
+\[
+ \mathcal B_{m,n}
+ =\left[
+ \widehat\theta_{m,n,1}
+ -\Phi^{-1}(1-\alpha/2)\widehat s_{m,n,1},
+ \ \widehat\theta_{m,n,1}
+ +\Phi^{-1}(1-\alpha/2)\widehat s_{m,n,1}
+ \right].
+\]
+Under the identity embedding from \(\mathrm{def{:}shen\mbox{-}singleton\mbox{-}embedding}\), the observed blocks, deterministic training layout, selected-PCR center, pooled-residual scale, and conditional-mean target in this display are the corresponding objects in the declared Gaussian, balanced, strongly identified fixed-rank specialization of Shen's deterministic-training pointwise TWSF setup.  Hence the displayed interval is algebraically Shen's pointwise TWSF interval on \(\mathcal S_n^{\mathrm{Shen},1}\), while \(\mathrm{thm{:}uniform\mbox{-}selected\mbox{-}band}\) provides its conditional coverage.  This proves all claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This explicit singleton-menu inclusion anchors the growing-path result to the published one-coordinate setup. \textit{Gap.} The recovered pointwise interval is prior-art validation and is not claimed as a new contribution. \textit{Consumer.} It ensures backward compatibility with existing pointwise TWSF reporting.
+
+\begin{openendedquestion}[oeq:sharp-horizon]\label{oeq:sharp-horizon}
+Determine the largest \(\gamma^{\star}\) such that, for every \(\gamma<\gamma^{\star}\) and \(H_n\le n^\gamma\), the actual selected-PCR recursive construction satisfies \((\kappa_{\mathrm{rec},n}+1)\varepsilon_{\mathrm{rec},n}+(\kappa_{\mathrm{rec},n}+1)^2t_{\mathrm{rec},n}+d_{\mathrm{rec},n}=o_{\Pr}(1)\) uniformly over \(\mathcal C_n\), and construct a legal sequence in \(\mathcal C_n\) on which at least one term fails to vanish for every \(\gamma>\gamma^{\star}\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} Recursive feasible coverage is proved for every fixed exponent below \(1/4\), but the one-quarter elbow may reflect conservative companion, Jacobian, and Gram perturbation bounds; the sharp horizon-information boundary remains unresolved. \textit{Gap.} Shen (2026) holds the horizon fixed, and no adjacent PCR or Gaussian-comparison paper determines a maximal growing TWSF horizon for the implemented estimator. \textit{Consumer.} A sharp exponent would determine how far a software ribbon may extrapolate as panel size grows and would separate estimator limitations from proof slack.
+
+\begin{lemma}[lem:gaussian-max-comparison-anticoncentration]\label{lem:gaussian-max-comparison-anticoncentration}
+Let \(X\) and \(\widetilde X\) be centered Gaussian \(H_n\)-vectors with unit coordinate variances and maximum covariance discrepancy \(\Delta_{m,n}\), and apply the maximum results to their \(2H_n\) signed coordinates.  If \(T=\max_{\ell\le H_n}|X_\ell|\), \(\widetilde T=\max_{\ell\le H_n}|\widetilde X_\ell|\), and \(\kappa_{m,n}=\mathbb E T\), then, for a universal constant \(C\),
+\[
+ \sup_x\Pr\{|T-x|\le u\}\le C(\kappa_{m,n}+1)u,\qquad u>0,
+\]
+and
+\[
+ d_{m,n}\le
+ \min\!\left\{1,C\Delta_{m,n}^{1/3}
+ \left[1\vee\log\!\left(\frac{2H_n}{\Delta_{m,n}}\right)\right]^{2/3}\right\},
+\]
+with the right-hand side interpreted as zero when \(\Delta_{m,n}=0\).  These conclusions do not require \(R_{m,n}\) or \(\widehat R_{m,n}\) to be nonsingular.
+\end{lemma}
+
+\begin{theorem}[thm:polynomial-horizon-complexity-frontier]\label{thm:polynomial-horizon-complexity-frontier}
+For every fixed finite \(\Gamma\ge 0\), along every sequence of laws \(\mathbb P_n\in\mathcal C_n\) with \(1\le H_n\le n^\Gamma\), the following conclusions hold uniformly for all sufficiently large \(n\); the direct conclusions are understood along sequences for which the corresponding collection of declared disjoint direct lead-response blocks is available. There are constants \(0<c<C<\infty\), depending only on the class radii, such that
+\[
+ \kappa_{\mathrm{rec},n}\le C,
+ \qquad
+ c(1+\rho_n)\le \kappa_{\mathrm{dir},n}\le C(1+\rho_n),
+\]
+and
+\[
+ c\sqrt{\nu_{\min,n}\log(2H_n)}
+ \le \rho_n\le
+ C\sqrt{\nu_{\max,n}\log(2H_n)}.
+\]
+Consequently, along such a sequence, \(\kappa_{\mathrm{dir},n}=O(1)\) if and only if \(\rho_n=O(1)\). If \(\nu_{n,\ell}=0\) for every available lead, then direct complexity is bounded. If \(0<\nu_{\min,n}\le\nu_{\max,n}\le K\nu_{\min,n}\) uniformly for a fixed finite \(K\), then
+\[
+ \kappa_{\mathrm{dir},n}\asymp
+ 1+\sqrt{\nu_{\min,n}\log(2H_n)},
+\]
+where the comparison constants in the last display may also depend on \(K\).
+\end{theorem}
+\begin{proof}
+Fix a finite \(\Gamma\ge0\), a sequence \(\mathbb P_n\in\mathcal C_n\), and \(1\le H_n\le n^\Gamma\).  Write
+\[
+ \mathcal H_{m,n}:=\sigma(\mathcal F_n,\widehat d_{m,n}).
+\]
+By \(\mathrm{ass{:}independent\mbox{-}selection}\), conditioning on \(\mathcal H_{m,n}\) does not change the conditional law of any fitting or inference error.  Thus \(\mathrm{ass{:}gaussian\mbox{-}cells}\) and \(\mathrm{ass{:}disjoint\mbox{-}inference\mbox{-}blocks}\) make the primitive errors used below independent centered Gaussian variables with common variance \(\sigma_n^2\).  By \(\mathrm{def{:}stacked\mbox{-}scores}\), the leading score vector is the fixed linear combination specified in \(\mathrm{def{:}stacked\mbox{-}scores}\); in particular, it is conditionally centered Gaussian with covariance \(\Sigma_{m,n}\).  Every normalization below is legitimate because \(\mathrm{ass{:}variance\mbox{-}floor}\) gives
+\[
+ s_{m,n,\ell}\ge c_v n^{-1/2}>0.
+ \tag{1}
+\]
+All probabilities and expectations below are conditional on the relevant \(\mathcal H_{m,n}\), except for expectations involving newly introduced standard normal variables, whose laws do not depend on that sigma-field.
+
+We first treat direct forecasting.  The direct temporal Riesz vector does not depend on the lead, so abbreviate it by
+\[
+ q_n:=\bar Z_{\mathrm{dir},n}^{\dagger\top}\bar W_n^{\top}\beta_n.
+\]
+Separate the lead-specific response error from the score and define
+\[
+ X_{n,\ell}:=\frac{G_{\mathrm{dir},n,\ell}}{s_{\mathrm{dir},n,\ell}},
+ \qquad
+ C_{n,\ell}:=\frac{
+ a_{n,\ell}^{\top}E_{W,n}^{\top}\beta_n
+ +p_{\mathrm{dir},n,\ell}^{\top}\delta_{\beta,n}
+ -q_n^{\top}E_{Z,\mathrm{dir},n}a_{n,\ell}}
+ {s_{\mathrm{dir},n,\ell}}.
+\]
+Set \(\boldsymbol C_n=(C_{n,1},\ldots,C_{n,H_n})^\top\).
+For \(q_n\ne0\), put
+\[
+ \xi_{n,\ell}:=\frac{q_n^{\top}e_{\mathrm{dir},n,\ell}}
+ {\sigma_n\|q_n\|_2};
+\]
+when \(q_n=0\), enlarge the conditional probability space by independent standard normal variables \(\xi_{n,\ell}\), which are multiplied by zero below.  The declared disjoint lead-response blocks imply that the \(\xi_{n,\ell}\) are independent \(N(0,1)\) variables and are independent of the centered Gaussian vector \(\boldsymbol C_n\).  Since
+\[
+ \nu_{n,\ell}
+ =\frac{\sigma_n^2\|q_n\|_2^2}{s_{\mathrm{dir},n,\ell}^2},
+\]
+the standardized direct score has the exact decomposition
+\[
+ X_{n,\ell}=C_{n,\ell}+\sqrt{\nu_{n,\ell}}\,\xi_{n,\ell}.
+ \tag{2}
+\]
+
+We next identify the dimension of the common term rather than merely bounding its covariance.  The range identity for the Moore--Penrose inverse gives
+\[
+ a_{n,\ell}\in\operatorname{row}(\bar Z_{\mathrm{dir},n}),
+ \qquad
+ p_{\mathrm{dir},n,\ell}\in
+ \operatorname{col}(\bar Y_n),
+\]
+whose dimensions are at most \(r_{z,\mathrm{dir},n}\) and \(r_{y,n}\), respectively.  Independence of the three common primitive-error blocks and direct calculation from their i.i.d. cell covariances give, for any two leads \(\ell,k\),
+\[
+\begin{aligned}
+ \operatorname{Cov}(C_{n,\ell},C_{n,k}\mid\mathcal H_{\mathrm{dir},n})
+ &={\sigma_n^2(\|\beta_n\|_2^2+\|q_n\|_2^2)
+       a_{n,\ell}^{\top}a_{n,k}
+    \over s_{\mathrm{dir},n,\ell}s_{\mathrm{dir},n,k}}\\
+ &\quad+{\sigma_n^2(1+\|\beta_n\|_2^2)
+       p_{\mathrm{dir},n,\ell}^{\top}p_{\mathrm{dir},n,k}
+    \over s_{\mathrm{dir},n,\ell}s_{\mathrm{dir},n,k}}.
+ \tag{3}
+\end{aligned}
+\]
+Indeed, the first summand combines the terminal error and the common lag-design error, while the second combines \(e_{y,n}\) and \(E_{Y,n}\beta_n\).  Formula (3) is a sum of two Gram matrices of total rank at most
+\[
+ r_{z,\mathrm{dir},n}+r_{y,n}\le2r_0
+ \tag{4}
+\]
+by \(\mathrm{ass{:}fixed\mbox{-}rank}\).  Hence a standard Gaussian vector \(Z_n\) of dimension \(d_n\le2r_0\) and deterministic vectors \(v_{n,\ell}\in\mathbb R^{d_n}\) can be chosen so that
+\[
+ C_{n,\ell}=v_{n,\ell}^{\top}Z_n.
+\]
+Taking variances in (2), using the independence there and \(\operatorname{Var}(X_{n,\ell}\mid\mathcal H_{\mathrm{dir},n})=1\), yields
+\[
+ \|v_{n,\ell}\|_2^2=1-\nu_{n,\ell}\le1.
+ \tag{5}
+\]
+
+The triangle inequality, (2), and (5) now imply
+\[
+\begin{aligned}
+ \kappa_{\mathrm{dir},n}
+ &\le \mathbb E(\|Z_n\|_2\mid\mathcal H_{\mathrm{dir},n})
+ +\mathbb E\max_{\ell\le H_n}
+       \sqrt{\nu_{n,\ell}}|\xi_{n,\ell}|\\
+ &\le \sqrt{\mathbb E\|Z_n\|_2^2}+\rho_n
+ \le\sqrt{2r_0}+\rho_n.
+ \tag{6}
+\end{aligned}
+\]
+For the reverse inequality, condition first on \((\xi_{n,\ell})_{\ell\le H_n}\).  The function
+\[
+ z\longmapsto\max_{\ell\le H_n}
+ \left|v_{n,\ell}^{\top}z+\sqrt{\nu_{n,\ell}}\xi_{n,\ell}\right|
+\]
+is convex.  Jensen's inequality and \(\mathbb E Z_n=0\) therefore give
+\[
+ \kappa_{\mathrm{dir},n}\ge
+ \mathbb E\max_{\ell\le H_n}
+ \sqrt{\nu_{n,\ell}}|\xi_{n,\ell}|=\rho_n.
+ \tag{7}
+\]
+Also, each coordinate \(X_{n,\ell}\) is standard normal, so
+\[
+ \kappa_{\mathrm{dir},n}\ge
+ \mathbb E|X_{n,1}|=\sqrt{2/\pi}.
+ \tag{8}
+\]
+Equations (6)--(8) give constants depending only on \(r_0\) such that
+\[
+ c(1+\rho_n)\le\kappa_{\mathrm{dir},n}
+ \le C(1+\rho_n).
+ \tag{9}
+\]
+No step in (2)--(9) restricts \(H_n\), apart from requiring the declared disjoint direct response blocks.
+
+For recursive forecasting, split the standardized score into
+\[
+ U_{n,\ell}:=\frac{p_{\mathrm{rec},n,\ell}^{\top}\delta_{\beta,n}
+ +q_{\mathrm{rec},n,\ell}^{\top}\delta_{\mathrm{rec},n}}
+ {s_{\mathrm{rec},n,\ell}},
+ \qquad
+ T_{n,\ell}:=\frac{g_{n,\ell}^{\top}E_{W,n}^{\top}\beta_n}
+ {s_{\mathrm{rec},n,\ell}}.
+ \tag{10}
+\]
+The vectors \(p_{\mathrm{rec},n,\ell}\) lie in a space of dimension at most \(r_{y,n}\), and the vectors \(q_{\mathrm{rec},n,\ell}\) lie in \(\operatorname{col}(\bar Z_{\mathrm{rec},n})\), a space of dimension at most \(r_{z,\mathrm{rec},n}\).  The two primitive-error blocks in \(U_{n,\ell}\) are independent.  Consequently the covariance of \((U_{n,\ell})_{\ell\le H_n}\) has rank at most \(2r_0\).  Moreover, the terminal block is independent of those two blocks, so (1) and the variance decomposition of the unit-variance standardized score show
+\[
+ \operatorname{Var}(U_{n,\ell}\mid\mathcal H_{\mathrm{rec},n})\le1.
+\]
+Thus there are a standard Gaussian vector \(\widetilde Z_n\) of dimension at most \(2r_0\) and vectors \(u_{n,\ell}\) with \(\|u_{n,\ell}\|_2\le1\) such that
+\[
+ U_{n,\ell}=u_{n,\ell}^{\top}\widetilde Z_n,
+ \qquad
+ \mathbb E\max_{\ell\le H_n}|U_{n,\ell}|
+ \le\mathbb E\|\widetilde Z_n\|_2\le\sqrt{2r_0}.
+ \tag{11}
+\]
+
+It remains to bound the terminal term in (10).  By \(\mathrm{ass{:}bounded\mbox{-}means}\) and \(\mathrm{ass{:}balanced\mbox{-}dimensions}\),
+\[
+ \|\bar y_n\|_2+\|\bar z_{\mathrm{rec},n}\|_2\le K\sqrt n.
+\]
+The nonzero singular-value lower bound in \(\mathrm{ass{:}strong\mbox{-}spectrum}\) therefore implies
+\[
+ \|\beta_n\|_2
+ \le\|\bar Y_n^\dagger\|_{\mathrm{op}}\|\bar y_n\|_2
+ \le K n^{-1/2},
+ \qquad
+ \|a_n\|_2
+ \le\|\bar Z_{\mathrm{rec},n}^\dagger\|_{\mathrm{op}}
+       \|\bar z_{\mathrm{rec},n}\|_2
+ \le K n^{-1/2}.
+ \tag{12}
+\]
+Because the superdiagonal shift obeys \(S_n^{\top}e_{L_n}=0\),
+\[
+ g_{n,\ell}
+ =\{\Pi_n(a_n)^{\ell-1}\}^{\top}a_n,
+ \qquad \ell\ge1.
+\]
+Combining this identity, (12), and \(\mathrm{ass{:}stable\mbox{-}short\mbox{-}recursion}\) gives
+\[
+ \max_{\ell\le H_n}\|g_{n,\ell}\|_2\le K n^{-1/2}.
+ \tag{13}
+\]
+The i.i.d. terminal-cell covariance, (1), (12), (13), and the upper noise-scale bound now yield
+\[
+ \operatorname{Var}(T_{n,\ell}\mid\mathcal H_{\mathrm{rec},n})
+ ={\sigma_n^2\|g_{n,\ell}\|_2^2\|\beta_n\|_2^2
+   \over s_{\mathrm{rec},n,\ell}^2}
+ \le {K\over n}.
+ \tag{14}
+\]
+Independence across leads is not needed here.  The Gaussian tail bound and a union bound give, for every \(t>0\),
+\[
+ \Pr\!\left(\max_{\ell\le H_n}|T_{n,\ell}|>t
+       \mid\mathcal H_{\mathrm{rec},n}\right)
+ \le2H_n\exp\!\left(-{nt^2\over2K}\right).
+ \tag{15}
+\]
+Integrating (15) above
+\(t_0=\sqrt{2K\log(2H_n)/n}\), and using
+\(\int_x^\infty e^{-au^2}\,du\le e^{-ax^2}/(2ax)\), gives
+\[
+ \mathbb E\max_{\ell\le H_n}|T_{n,\ell}|
+ \le K\sqrt{\frac{\log(2H_n)}n}.
+ \tag{16}
+\]
+Since \(H_n\le n^\Gamma\),
+\[
+ {\log(2H_n)\over n}
+ \le {\log2+\Gamma\log n\over n}\longrightarrow0.
+ \tag{17}
+\]
+The triangle inequality, (11), (16), and (17) prove, uniformly for all sufficiently large \(n\),
+\[
+ \kappa_{\mathrm{rec},n}
+ \le\sqrt{2r_0}+K\sqrt{\frac{\log(2H_n)}n}
+ \le C.
+ \tag{18}
+\]
+The constant \(C\) depends only on the declared class radii; the point after which (18) holds may depend on the fixed \(\Gamma\).
+
+Finally, monotonicity in the deterministic weights gives
+\[
+ \sqrt{\nu_{\min,n}}\,
+ \mathbb E\max_{\ell\le H_n}|\xi_{n,\ell}|
+ \le\rho_n\le
+ \sqrt{\nu_{\max,n}}\,
+ \mathbb E\max_{\ell\le H_n}|\xi_{n,\ell}|.
+ \tag{19}
+\]
+For the upper bound, for every \(t>0\),
+\[
+ \exp\!\left(t\max_{\ell\le H_n}|\xi_{n,\ell}|\right)
+ \le\sum_{\ell=1}^{H_n}
+ \{e^{t\xi_{n,\ell}}+e^{-t\xi_{n,\ell}}\}.
+\]
+Taking expectations, applying Jensen's inequality to the logarithm, and choosing
+\(t=\sqrt{2\log(2H_n)}\) yields
+\[
+ \mathbb E\max_{\ell\le H_n}|\xi_{n,\ell}|
+ \le\sqrt{2\log(2H_n)}.
+ \tag{20}
+\]
+For the lower bound, let \(x_H=c_0\sqrt{\log(2H)}\) for a fixed sufficiently small universal \(c_0>0\).  Integrating the standard normal density on
+\([x_H,x_H+(1+x_H)^{-1}]\) gives
+\[
+ \Pr(|\xi|>x_H)
+ \ge {c\over1+x_H}e^{-x_H^2/2}.
+ \tag{21}
+\]
+For all sufficiently large \(H\), the product of the right-hand side of (21) and \(H\) is at least one.  Independence then gives
+\[
+ \Pr\!\left(\max_{\ell\le H}|\xi_{n,\ell}|>x_H\right)
+ =1-\{1-\Pr(|\xi|>x_H)\}^{H}
+ \ge1-e^{-1}.
+\]
+After decreasing the constant to cover the finitely many remaining \(H\), this and (20) show
+\[
+ c\sqrt{\log(2H_n)}
+ \le\mathbb E\max_{\ell\le H_n}|\xi_{n,\ell}|
+ \le C\sqrt{\log(2H_n)}.
+ \tag{22}
+\]
+Substituting (22) into (19) proves the two heterogeneous-share bounds.
+
+Equation (9) proves that \(\kappa_{\mathrm{dir},n}=O(1)\) exactly when \(\rho_n=O(1)\).  If every share is zero, then \(\rho_n=0\).  If
+\(0<\nu_{\min,n}\le\nu_{\max,n}\le K\nu_{\min,n}\), equations (9), (19), and (22) give
+\[
+ \kappa_{\mathrm{dir},n}\asymp
+ 1+\sqrt{\nu_{\min,n}\log(2H_n)}.
+\]
+All bounds are uniform over the stated class sequences because only the declared rank, dimension, spectrum, signal, noise-scale, variance-floor, and recursion radii enter their constants.  This proves the fixed-polynomial horizon result.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem shows that the variance-share complexity frontier itself remains valid at every fixed polynomial horizon, separately from the stricter rate conditions needed for feasible recursive coverage. \textit{Gap.} Greenaway-McGrevy (2013) derives direct-versus-recursive panel-VAR mean-squared prediction-error comparisons, not a causal TWSF Gaussian-maximum or heterogeneous variance-share frontier. Shen (2026) remains the causal-forecasting anchor, while Chernozhukov et al. (2015) supplies generic Gaussian comparison only after the panel-specific covariance has been identified. \textit{Consumer.} The result tells a practitioner that direct ribbon multiplicity is governed by the independent lead-response variance shares, whereas the recursive critical-value scale stays bounded throughout any fixed polynomial horizon allowed by the declared panel construction.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The covariance theorem concerns the observable fitted Gram estimator for the leading orthogonal score: its inputs are implemented PCR coefficients, the observed terminal block, fitted Riesz vectors, and fitted recursive Jacobians. Relative covariance error is controlled, and the separate linearization theorem controls the remainder between the path estimator and that leading score. The complexity theorem remains valid throughout every fixed polynomial horizon because its recursive terminal maximum is only \(O(\sqrt{\log(2H_n)/n})\); it does not determine the coverage horizon. Recursive feasible coverage is proved for every fixed exponent \(\gamma<1/4\). The value \(1/4\) is sufficient and may reflect conservative companion, Jacobian, and Gram perturbation upper bounds; no admissible matching failure sequence is known. Finite Monte Carlo error in simulated multiplier quantiles, cumulative-path transformations, software integration, prediction shocks, and adaptive selection between direct and recursive modes remain outside the theorem. The legal rank-two lower bound continues to concern only rectangles centered at the direct leading Gaussian estimator, not unrestricted-estimator minimax risk.
+
+\section{Honest scope}
+
+The target is the prospective treated conditional-mean path, not a realized-future prediction path. Training-layout selection must use the declared auxiliary block, and the theorem treats a prespecified direct or recursive mode. Under the Gaussian, fixed-rank, strong-spectrum, recovery, and disjoint-block conditions, the variance-share complexity frontier holds for every fixed polynomial horizon for which the declared blocks exist. This does not enlarge the recursive feasible-coverage range: recursive coverage is proved for \(H_n\le n^\gamma\) for every fixed \(0\le\gamma<1/4\), while direct feasible coverage holds for any fixed polynomial horizon only along sequences where the declared disjoint direct response blocks exist. The value \(1/4\) is an achievability elbow, not a sharp boundary; no legal matching failure sequence is known. The exact complexity limits remain those proved on the persistent all-ones subclass, and the width lower bound remains on the legal rank-two family for rectangles centered at the direct leading Gaussian estimator; neither is an unrestricted-estimator minimax claim. The \(H_n=1\) relation to Shen is only a reduction on the explicitly restricted Gaussian, strongly identified singleton-menu intersection. No global tightening over Shen's full hypothesis class is claimed.
+
+\begin{thebibliography}{99}
+
+  \bibitem{Shen2026TWSF} Shen, D. (2026). From Control to Treatment: Causal Forecasting Beyond the Observed Panel. arXiv:2606.18512, version 3.
+
+  \bibitem{GreenawayMcGrevy2013} Greenaway-McGrevy, R. (2013). Multistep Prediction of Panel Vector Autoregressive Processes. Econometric Theory 29, 699--734. Published online 16 January 2013.
+
+  \bibitem{Bhansali1997} Bhansali, R. J. (1997). Direct Autoregressive Predictors for Multistep Prediction: Order Selection and Performance Relative to the Plug In Predictors. Statistica Sinica 7, 425--449.
+
+  \bibitem{Ing2003} Ing, C.-K. (2003). Multistep Prediction in Autoregressive Processes. Econometric Theory 19, 254--279.
+
+  \bibitem{BelloniChernozhukovChetverikovWei2018} Belloni, A., Chernozhukov, V., Chetverikov, D., and Wei, Y. (2018). Uniformly Valid Post-Regularization Confidence Regions for Many Functional Parameters in Z-Estimation Framework. Annals of Statistics 46, 3643--3675.
+
+  \bibitem{ChernozhukovChetverikovKato2013} Chernozhukov, V., Chetverikov, D., and Kato, K. (2013). Gaussian Approximations and Multiplier Bootstrap for Maxima of Sums of High-Dimensional Random Vectors. Annals of Statistics 41, 2786--2819.
+
+  \bibitem{ChernozhukovChetverikovKato2014Bands} Chernozhukov, V., Chetverikov, D., and Kato, K. (2014). Anti-Concentration and Honest, Adaptive Confidence Bands. Annals of Statistics 42, 1787--1818.
+
+  \bibitem{ChernozhukovChetverikovKato2015} Chernozhukov, V., Chetverikov, D., and Kato, K. (2015). Comparison and Anti-Concentration Bounds for Maxima of Gaussian Random Vectors. Probability Theory and Related Fields 162, 47--70.
+
+  \bibitem{ChernozhukovChetverikovKato2017} Chernozhukov, V., Chetverikov, D., and Kato, K. (2017). Central Limit Theorems and Bootstrap in High Dimensions. Annals of Probability 45, 2309--2352.
+
+  \bibitem{AgarwalShahShen2025} Agarwal, A., Shah, D., and Shen, D. (2025). On Model Identification and Out-of-Sample Prediction of Principal Component Regression: Applications to Synthetic Controls. Journal of Machine Learning Research 26, 1--53.
+
+  \bibitem{ChoiKwonLiao2024} Choi, J., Kwon, H., and Liao, Y. (2024). Inference for Low-Rank Completion without Sample Splitting with Application to Treatment Effect Estimation. Journal of Econometrics 240, 105682.
+
+  \bibitem{LiShenZhou2024} Li, X., Shen, Y., and Zhou, Q. (2024). Confidence Intervals of Treatment Effects in Panel Data Models with Interactive Fixed Effects. Journal of Econometrics 240, 105684.
+
+  \bibitem{ArkhangelskyImbens2024} Arkhangelsky, D. and Imbens, G. W. (2024). Causal Models for Longitudinal and Panel Data: A Survey. The Econometrics Journal 27, C1--C61.
+
+  \bibitem{CaiLowMa2014} Cai, T. T., Low, M. G., and Ma, Z. (2014). Adaptive Confidence Bands for Nonparametric Regression Functions. Journal of the American Statistical Association 109, 1054--1070.
+
+  \bibitem{ArmstrongKolesar2018OptimalInference} Armstrong, T. B. and Koles\'{a}r, M. (2018). Optimal Inference in a Class of Regression Models. Econometrica 86, 655--683.
+
+\end{thebibliography}
+
+\end{document}

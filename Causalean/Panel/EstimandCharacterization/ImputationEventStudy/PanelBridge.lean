@@ -6,8 +6,8 @@ Authors: Jiyuan Tan
 # Borusyak-Jaravel-Spiess ↔ panel linear-algebra substrate bridge
 
 This file connects the bespoke finite design-matrix algebra of the BJS
-imputation setup (`Imputation.lean`) to the shared panel inner-product /
-subspace substrate (`Causalean/Panel/Weighted/`).
+imputation setup (`Imputation.lean`) to the shared weighted inner-product /
+subspace substrate (`Causalean/Stat/Weighted/`).
 
 The OLS imputation estimator is the **uniform-weight** special case of the
 panel WLS substrate.  Concretely, the untreated cells carry the uniform
@@ -19,19 +19,22 @@ left-null-space adjustment in `linear_unbiased_of_prediction_identified` can be
 phrased through the panel `Subspace` orthogonality vocabulary.
 -/
 
-import Causalean.Panel.Weighted.InnerProduct
-import Causalean.Panel.Weighted.Subspace
-import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
+module
+public import Causalean.Stat.Weighted.InnerProduct
+public import Causalean.Stat.Weighted.Subspace
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
 
 /-! # Imputation event-study linear-algebra bridge
 
 This file connects the finite imputation event-study construction to the library's weighted-panel linear algebra. It equips untreated cells with uniform weights, forms the span of their regressor columns, identifies the usual left-null-space restriction with orthogonality to that span, and derives the corresponding linear-unbiasedness characterizations. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace ImputationEventStudy
 
-open Finset Causalean.Panel.Weighted
+open Finset Causalean.Stat.Weighted
 
 noncomputable section
 

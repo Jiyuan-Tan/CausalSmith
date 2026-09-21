@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Assumptions.Consistency
+module
+public import Causalean.PO.Assumptions.Consistency
 
 /-! # Restricted Potential-Outcome Systems
 
@@ -12,9 +13,12 @@ This file builds the potential-outcome system induced by restricting attention
 to a finite set of variables.  `POSystem.liftRegime` embeds regimes on the
 restricted variable set back into the ambient system, `POSystem.restrict` builds
 the sub-system itself, and the lift lemmas show that targets, assignments,
-empty regimes, disjointness, and `Regime.sqcup` are preserved.  The theorem
-`POSystem.restrict_consistency` proves that consistency of the original system
-transfers to the restricted system. -/
+empty regimes, disjointness, and `Regime.sqcup` are preserved. The theorems
+`POSystem.restrict_consistency` and
+`POSystem.restrict_compositionConsistency` show that factual consistency and
+composition consistency transfer separately to the restricted system. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -193,9 +197,10 @@ lemma liftRegime_sqcup
 
 /-! ### Consistency propagates to the sub-system -/
 
-/-- **Restriction preserves consistency.** If [the ambient potential-outcome
-system `P` is consistent (SUTVA holds)](hyp:hP), then [the system `P`
-restricted to `R` is consistent as well](goal).
+/-- **Restriction preserves consistency.** For [a potential-outcome system
+`P`](hyp:P) and [a finite collection `R` of its variables](hyp:R), if [the
+ambient system is factually consistent](hyp:hP), then [the system restricted to
+`R` is factually consistent as well](goal).
 
 rem:po-restrict pragmatic use. -/
 theorem restrict_consistency (hP : P.Consistency) :
@@ -233,6 +238,13 @@ theorem restrict_consistency (hP : P.Consistency) :
       P.eval (P.liftRegime R Regime.empty) ω y.val.val
     rw [liftRegime_empty]
     exact heq
+
+/-- **Restriction preserves composition consistency.** For [a potential-outcome
+system `P`](hyp:P) and [a finite collection `R` of its variables](hyp:R), if
+[the ambient system satisfies composition consistency](hyp:hP), then [the
+system restricted to `R` satisfies composition consistency as well](goal). -/
+theorem restrict_compositionConsistency (hP : P.CompositionConsistency) :
+    (P.restrict R).CompositionConsistency where
   composition := by
     intro r₁' r₂' hd Y hYr ω hag
     -- Build ambient IntermediateAgrees.

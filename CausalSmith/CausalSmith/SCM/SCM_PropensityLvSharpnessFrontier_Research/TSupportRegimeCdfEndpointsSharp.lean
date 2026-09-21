@@ -1,10 +1,13 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CdfMaps
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TBowMixtureCompleteness
-import Mathlib.Probability.CDF
-import Mathlib.Probability.ConditionalProbability
-import Causalean.PO.ID.Partial.Basic
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CdfMaps
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TBowMixtureCompleteness
+public import Mathlib.Probability.CDF
+public import Mathlib.Probability.ConditionalProbability
+public import Causalean.PO.ID.Partial.Basic
 
 /-! # Sharp CDF endpoints in both support regimes -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

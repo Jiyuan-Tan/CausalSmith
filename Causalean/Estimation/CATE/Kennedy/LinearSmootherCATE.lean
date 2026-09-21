@@ -5,33 +5,38 @@ Authors: Jiyuan Tan
 
 # Linear-smoother specialisation for the DR-Learner CATE estimator
 
-This file proves the Hölder-type product bound for the smoothed DR-bias
-term from `doc/basic_concepts/po/estimation/dr_learner_cate.tex`, and the
-resulting oracle-efficiency corollary plugging that bound into
-`dr_oracle_efficient`.
+This file proves a finite-grid Hölder-type product bound for the smoothed
+DR-bias term and records a separate assumption-driven oracle-efficiency
+wrapper. The wrapper does not derive its smoothed-bias rate from the bound.
 
 Two declarations are provided:
 
 * `cate_linear_smoother_bias_bound` — linear-smoother bias bound. The smoothed
   bias of `condBias η_hat η₀` is bounded arm-by-arm by
   `aipw_rem_const ε * c_n * ‖Δπ‖_{w,p} * Σ_a ‖Δμ_a‖_{w,q}` once the linear
-  smoother is witnessed by `IsLinearSmoother op n ω x B w xs` and the
+  smoother is witnessed by `HasWeightedSumRepresentation op n ω x B w xs` and the
   absolute-weight envelope `Σ |w_i| ≤ c_n` is in place.
-* `cate_dr_oracle_efficient_linear` — corollary of `dr_oracle_efficient`
-  specialised to a `LinearSmootherOp`.
+* `cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias` — projection
+  wrapper specialized to a `SecondStageOperatorWithWeights`, assuming stability and the
+  smoothed-bias rate.
 -/
 
-import Causalean.Estimation.CATE.Kennedy.OracleExpansion
-import Causalean.Estimation.OrthogonalMoments.LinearSmoother
-import Causalean.Estimation.ATE.Remainder.Bound
+module
+public import Causalean.Estimation.CATE.Kennedy.OracleExpansion
+public import Causalean.Estimation.OrthogonalMoments.LinearSmoother
+public import Causalean.Estimation.ATE.Remainder.Bound
 
 /-! # Linear-Smoother DR-Learner Bounds
 
-This file specializes the doubly robust CATE oracle expansion to linear
-smoothers. It bounds the smoothed nuisance bias by weighted outcome-regression
-and propensity-score errors in `cate_linear_smoother_bias_bound` and uses the
-linear-smoother projection to obtain the oracle-efficiency corollary
-`cate_dr_oracle_efficient_linear`. -/
+This file proves a deterministic finite-grid Hölder product bound:
+`cate_linear_smoother_bias_bound` bounds the smoothed nuisance bias by weighted
+outcome-regression and propensity-score errors under its displayed overlap,
+linear-smoother, weight-envelope, and conjugate-exponent hypotheses. It also
+provides the separate projection wrapper
+`cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias`, whose stability
+and smoothed-bias rate remain caller-supplied assumptions. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -43,7 +48,7 @@ open MeasureTheory ProbabilityTheory Filter Topology
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **Linear-smoother bias bound for the DR-Learner CATE estimator.** Fix a candidate
+/-- **Finite-grid Hölder product bound for the DR-Learner CATE estimator.** Fix a candidate
 nuisance sequence `η_hat`, a linear-smoother operator `op`, a sample index `n`, a
 realization `ω`, an evaluation point `x`, a data enumeration `xs` over an index set `B`
 with weights `w`, and constants `c_n, p, q`. Under [two-sided strict overlap for the
@@ -57,9 +62,15 @@ Hölder-conjugate exponents](hyp:hConj), then [the smoothed conditional-bias eva
 sum over treatment arms of the weighted-`q`-norm of the outcome-regression error
 `Δμ_a`](goal).
 
+Kennedy (2023), Proposition 2, instead gives an asymptotic stochastic-order
+bound for a generic factorized conditional bias under the paper's own setup.
+The result here is a deterministic CATE-specific inequality from the explicit
+finite-grid hypotheses above, not a formalization of that proposition.
+
 Proof outline: expand `condBias` as a sum over `a : Bool` of
 `((η_hat.e_fn − S.e_val) (η_hat.μ_fn a − S.μ_val a))/(if a then η_hat.e_fn else 1 − η_hat.e_fn)`.
-Use `IsLinearSmoother` to expand `evalAt` as `Σ_i w_i * condBias … (xs i).1`.
+Use `HasWeightedSumRepresentation` to expand `evalAt` as
+`Σ_i w_i * condBias … (xs i).1`.
 For each arm `a`, bound the denominator pointwise by `1/ε` (overlap), then
 factor `Σ |w_j|` and apply Hölder via `Real.inner_le_Lp_mul_Lq_of_nonneg`
 with the normalised weights `α_i = |w_i|/Σ|w_j|`. Sum over arms; absorb the
@@ -67,14 +78,15 @@ with the normalised weights `α_i = |w_i|/Σ|w_j|`. Sum over arms; absorb the
 theorem cate_linear_smoother_bias_bound
     (S : CATEEstimationSystem P γ)
     {ε : ℝ} (h_overlap : S.toBackdoorEstimationSystem.StrictOverlap ε)
-    (op : LinearSmootherOp P.Ω P.μ γ)
+    (op : SecondStageOperatorWithWeights P.Ω P.μ γ)
     (η_hat : ℕ → P.Ω → NuisanceVec γ)
     (n : ℕ) (ω : P.Ω) (x : γ)
     {ι : Type*} (B : Finset ι) (w : ι → ℝ) (xs : ι → γ × Bool × ℝ)
     (c_n p q : ℝ)
     (h_overlap_η_hat : η_hat n ω ∈
                          BackdoorEstimationSystem.H_ε (γ := γ) ε)
-    (hLin : LinearSmootherOp.IsLinearSmoother op n ω x B w xs)
+    (hLin : SecondStageOperatorWithWeights.HasWeightedSumRepresentation
+      op n ω x B w xs)
     (hWeights : ∑ i ∈ B, |w i| ≤ c_n)
     (hConj : Real.HolderConjugate p q) :
     |op.evalAt n ω
@@ -155,14 +167,15 @@ theorem cate_linear_smoother_bias_bound
       _ = C * ∑ a : Bool, |de y| * |dμ a y| := by
             simp
             ring
-  let absOp : LinearSmootherOp P.Ω P.μ γ :=
+  let absOp : SecondStageOperatorWithWeights P.Ω P.μ γ :=
     { evalAt := fun _ _ f _ => ∑ i ∈ B, |w i| * f (xs i)
       meas_evalAt_const := by
         intro _ c
         simpa using (measurable_const :
           Measurable (fun _ : P.Ω × γ => ∑ i ∈ B, |w i| * c))
       weights := fun _ _ _ _ => 0 }
-  have hAbsLin : LinearSmootherOp.IsLinearSmoother absOp n ω x B (fun i => |w i|) xs := by
+  have hAbsLin : SecondStageOperatorWithWeights.HasWeightedSumRepresentation
+      absOp n ω x B (fun i => |w i|) xs := by
     intro f
     rfl
   have hAbsWeights : ∑ i ∈ B, |(|w i|)| ≤ c_n := by
@@ -224,7 +237,8 @@ theorem cate_linear_smoother_bias_bound
             ring
   simpa [hEval, C, de, dμ, η] using hMain
 
-/-- **Oracle efficiency for the DR-Learner with a linear-smoother second stage.** Fix a
+/-- **Linear-smoother DR-Learner efficiency from assumed stability and smoothed-bias
+negligibility.** Fix a
 CATE estimation system, a linear-smoother second-stage operator `op`, an estimated
 nuisance sequence `η_hat`, an evaluation point `x`, a centering-rate sequence `d_n`, and a
 bias-identity relation `BiasIdent`. Under [the back-door identification
@@ -237,18 +251,16 @@ is `o_p` of the oracle risk scale](hyp:hSmoothedBias), then [the DR-Learner CATE
 and the oracle estimator, both built from the linear-smoother second-stage operator,
 differ by `o_p` of the oracle risk scale](goal).
 
-This is just the projection of the linear-smoother operator onto its
-`SecondStageOperator` ancestor (named `toSecondStageOperator` by the
-`extends` declaration in `LinearSmoother.lean` line ~53), composed
-with `dr_oracle_efficient`.
-
-In the load-bearing linear-smoother application the user combines this
-with `cate_linear_smoother_bias_bound` to discharge `hSmoothedBias`. -/
-theorem cate_dr_oracle_efficient_linear
+This is only the projection of the linear-smoother operator onto its
+`SecondStageOperator` ancestor, followed by
+`dr_oracle_efficient_of_stable_of_smoothed_bias`. It does not use
+`cate_linear_smoother_bias_bound` to derive `hSmoothedBias`; that rate is an
+explicit premise. -/
+theorem cate_dr_oracle_efficient_linear_of_stable_of_smoothed_bias
     (S : CATEEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions)
     {ε : ℝ} (_h_overlap : S.toBackdoorEstimationSystem.StrictOverlap ε)
-    (op : LinearSmootherOp P.Ω P.μ γ)
+    (op : SecondStageOperatorWithWeights P.Ω P.μ γ)
     (η_hat : ℕ → P.Ω → NuisanceVec γ)
     (x : γ)
     (d_n : ℕ → P.Ω → ℝ)
@@ -272,7 +284,8 @@ theorem cate_dr_oracle_efficient_linear
       (fun n ω => drLearnerEstimator S op.toSecondStageOperator η_hat n ω x
                     - drOracleEstimator S op.toSecondStageOperator n ω x)
       (fun n => drOracleRiskScale S op.toSecondStageOperator x n) P.μ :=
-  dr_oracle_efficient S hA op.toSecondStageOperator η_hat x d_n BiasIdent
+  dr_oracle_efficient_of_stable_of_smoothed_bias
+    S hA op.toSecondStageOperator η_hat x d_n BiasIdent
     hStab hCons hBias hSmoothedBias
 
 end CATE

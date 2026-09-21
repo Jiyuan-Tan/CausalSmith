@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.GaussianRademacherBenchmark
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.GaussianRademacherBenchmark
 
 /-!
 # Closed local-to-Gaussian upper benchmarks
 -/
+
+public section
 
 noncomputable section
 

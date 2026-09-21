@@ -1,8 +1,11 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.TieConstruction
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TFiniteSampleSimultaneousBand
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.TieConstruction
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TFiniteSampleSimultaneousBand
 
 /-! # Tie-inclusive rectangular-band impossibility -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

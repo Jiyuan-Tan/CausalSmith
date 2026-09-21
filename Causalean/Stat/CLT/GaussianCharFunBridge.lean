@@ -22,9 +22,12 @@ exactly the `hQ` shape those theorems consume. The concrete `Q` is now
 constructed in `Causalean/Stat/CLT/GaussianLimit.lean` (`gaussianLimit`), as
 `stdGaussian.map √Σ` with `Σ` the second-moment operator
 (`Causalean/Stat/CLT/SecondMomentOperator.lean`) and `√Σ` its positive operator square
-root (`Causalean/Mathlib/OperatorSqrt.lean`); de-abstraction is complete.
+root (`Causalean/Mathlib/Analysis/InnerProductSpace/PosDef/Sqrt.lean`);
+de-abstraction is complete.
 -/
-import Mathlib.Probability.Distributions.Gaussian.CharFun
+
+module
+public import Mathlib.Probability.Distributions.Gaussian.CharFun
 
 /-! # Gaussian Characteristic-Function Bridge
 
@@ -38,6 +41,8 @@ function formula to centered Gaussian measures. `charFun_isGaussian_of_cov_eq`
 then rewrites the covariance form into the influence-function integral
 `∫ ⟪t, ψ x⟫² ∂P`, matching the abstract target used by the multivariate CLT
 theorems. -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Complex
 open scoped RealInnerProductSpace

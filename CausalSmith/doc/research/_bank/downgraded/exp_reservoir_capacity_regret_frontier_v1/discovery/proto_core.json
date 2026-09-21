@@ -1,0 +1,1514 @@
+{
+  "qid": "exp_reservoir_capacity_regret_frontier",
+  "specialization": "v1",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "T",
+      "type": "Even positive integer horizon.",
+      "space": "\\(2\\mathbb N\\).",
+      "role": "Number of experimental units."
+    },
+    {
+      "name": "B",
+      "type": "Positive integer.",
+      "space": "\\(\\mathbb N\\).",
+      "role": "Hard reservoir capacity."
+    },
+    {
+      "name": "d",
+      "type": "Positive integer.",
+      "space": "\\(\\mathbb N\\).",
+      "role": "Covariate dimension."
+    },
+    {
+      "name": "beta",
+      "type": "Smoothness exponent.",
+      "space": "\\((0,1]\\).",
+      "def": "\\(\\beta\\) is fixed.",
+      "role": "Hölder regularity index."
+    },
+    {
+      "name": "L",
+      "type": "Positive real constant.",
+      "space": "\\((0,\\infty)\\).",
+      "role": "Hölder seminorm envelope."
+    },
+    {
+      "name": "G",
+      "type": "Positive real constant.",
+      "space": "\\((0,\\infty)\\).",
+      "role": "Prognostic-score envelope."
+    },
+    {
+      "name": "H",
+      "type": "Positive real constant.",
+      "space": "\\((0,\\infty)\\).",
+      "role": "Potential-outcome envelope."
+    },
+    {
+      "name": "flower",
+      "type": "Positive real constant.",
+      "space": "\\((0,1]\\).",
+      "def": "\\(\\underline f\\) is fixed.",
+      "role": "Density lower envelope."
+    },
+    {
+      "name": "fupper",
+      "type": "Finite real constant.",
+      "space": "\\([1,\\infty)\\).",
+      "def": "\\(\\overline f\\) is fixed.",
+      "role": "Density upper envelope."
+    },
+    {
+      "name": "Xspace",
+      "type": "Compact covariate space.",
+      "space": "\\(\\mathcal X=[0,1]^d\\).",
+      "def": "\\(\\mathcal X=[0,1]^d\\).",
+      "role": "Arrival space.",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "Pclass",
+      "type": "Class of laws.",
+      "space": "Probability laws on \\(\\mathcal X\\times[-H,H]^2\\).",
+      "def": "\\(\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) is constructed in Definition \\(\\mathrm{def:model-class}\\).",
+      "role": "Minimax law class.",
+      "refs": [
+        "beta",
+        "d",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "Xspace"
+      ]
+    },
+    {
+      "name": "P",
+      "type": "Probability law.",
+      "space": "\\(\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\).",
+      "role": "Generic data-generating law.",
+      "refs": [
+        "Pclass"
+      ]
+    },
+    {
+      "name": "f",
+      "type": "Lebesgue density.",
+      "sig": "\\(f:\\mathcal X\\to[0,\\infty)\\).",
+      "def": "\\(f\\) is the density of \\(X_i\\) under \\(P\\).",
+      "role": "Primitive covariate density.",
+      "refs": [
+        "P",
+        "Xspace"
+      ]
+    },
+    {
+      "name": "Wi",
+      "type": "Unit-level primitive.",
+      "space": "\\(\\mathcal X\\times[-H,H]^2\\).",
+      "def": "\\(W_i=(X_i,Y_i(0),Y_i(1))\\).",
+      "role": "Potential-outcome unit held fixed under design randomization.",
+      "refs": [
+        "Xspace",
+        "H"
+      ]
+    },
+    {
+      "name": "Xi",
+      "type": "Covariate vector.",
+      "space": "\\(\\mathcal X\\).",
+      "def": "\\(X_i\\) is the first coordinate of \\(W_i\\).",
+      "role": "Sequentially observed matching information.",
+      "refs": [
+        "Wi",
+        "Xspace"
+      ]
+    },
+    {
+      "name": "Yiz",
+      "type": "Potential outcome.",
+      "space": "\\([-H,H]\\).",
+      "def": "\\(Y_i(z)\\) is the potential outcome under \\(z\\in\\{0,1\\}\\).",
+      "role": "Fixed finite-population response under the randomization distribution.",
+      "refs": [
+        "Wi",
+        "H"
+      ]
+    },
+    {
+      "name": "muz",
+      "type": "Conditional mean function.",
+      "sig": "\\(\\mu_z:\\mathcal X\\to\\mathbb R\\).",
+      "def": "\\(\\mu_z(x)=\\mathbb E_P[Y_i(z)\\mid X_i=x]\\).",
+      "role": "Primitive law functional.",
+      "refs": [
+        "P",
+        "Yiz",
+        "Xi",
+        "Xspace"
+      ]
+    },
+    {
+      "name": "vz",
+      "type": "Conditional variance function.",
+      "sig": "\\(v_z:\\mathcal X\\to[0,\\infty)\\).",
+      "def": "\\(v_z(x)=\\operatorname{Var}_P(Y_i(z)\\mid X_i=x)\\).",
+      "role": "Design-invariant conditional-noise component.",
+      "refs": [
+        "P",
+        "Yiz",
+        "Xi",
+        "Xspace"
+      ]
+    },
+    {
+      "name": "g",
+      "type": "Prognostic score.",
+      "sig": "\\(g:\\mathcal X\\to\\mathbb R\\).",
+      "def": "\\(g(x)=\\mu_1(x)+\\mu_0(x)\\).",
+      "role": "Scalar oracle-matching index.",
+      "refs": [
+        "muz",
+        "Xspace"
+      ]
+    },
+    {
+      "name": "xi",
+      "type": "Auxiliary policy random seed.",
+      "space": "An atomless probability space independent of the unit primitives and pair orientations.",
+      "def": "\\(\\xi\\) randomizes matching choices but carries no outcome or treatment-sign information.",
+      "role": "Permits randomized policies."
+    },
+    {
+      "name": "Ft",
+      "type": "Filtration.",
+      "def": "\\(\\mathcal F_t^X=\\sigma(X_1,\\ldots,X_t,\\xi)\\).",
+      "role": "Covariate history and auxiliary matching randomness available for matching at arrival \\(t\\); treatment assignments and orientation signs are excluded.",
+      "refs": [
+        "Xi",
+        "xi",
+        "T"
+      ]
+    },
+    {
+      "name": "PiTB",
+      "type": "Class of sequential designs.",
+      "space": "Policies indexed by \\((T,B)\\).",
+      "def": "\\(\\Pi_{T,B}\\) is constructed in Definition \\(\\mathrm{def:policy-class}\\).",
+      "role": "Feasible design set.",
+      "refs": [
+        "T",
+        "B"
+      ]
+    },
+    {
+      "name": "pi",
+      "type": "Sequential matching policy.",
+      "space": "\\(\\Pi_{T,B}\\).",
+      "role": "Generic feasible decision rule.",
+      "refs": [
+        "PiTB"
+      ]
+    },
+    {
+      "name": "Upit",
+      "type": "Set-valued process.",
+      "space": "Subsets of \\(\\{1,\\ldots,t\\}\\).",
+      "def": "\\(U_\\pi(t)\\) is the set of already assigned but unmatched units after arrival \\(t\\), with \\(U_\\pi(0)=\\varnothing\\).",
+      "role": "Reservoir state whose members have fixed treatments that the matching rule cannot inspect.",
+      "refs": [
+        "pi",
+        "T"
+      ]
+    },
+    {
+      "name": "MatchingsT",
+      "type": "Finite set.",
+      "def": "\\(\\mathfrak M_T\\) is the set of perfect matchings of \\(\\{1,\\ldots,T\\}\\).",
+      "role": "Offline comparison domain.",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "Mpi",
+      "type": "Perfect matching.",
+      "space": "\\(\\mathfrak M_T\\).",
+      "def": "\\(M_\\pi\\) is the terminal arrival-incidence matching induced by \\(\\pi\\).",
+      "role": "Realized blocking design.",
+      "refs": [
+        "pi",
+        "MatchingsT"
+      ]
+    },
+    {
+      "name": "epsk",
+      "type": "Pair-orientation sign.",
+      "space": "\\(\\{-1,1\\}\\).",
+      "def": "After the covariate-only matching decision completes pair \\(k\\), \\(\\varepsilon_k\\) denotes its independent fair orientation sign, \\(1\\le k\\le T/2\\), under the deferred-randomization representation.",
+      "role": "Independent fair orientation of completed pair \\(k\\), represented after the matching decision by deferred randomization.",
+      "refs": [
+        "T"
+      ]
+    },
+    {
+      "name": "Zi",
+      "type": "Treatment assignment.",
+      "space": "\\(\\{0,1\\}\\).",
+      "def": "If arrival \\(i\\) is stored, \\(Z_i\\) is assigned immediately by a private fair coin. If later arrival \\(i_k\\) completes an edge with stored member \\(j_k\\), then \\(Z_{i_k}=1-Z_{j_k}\\), equivalently \\(Z_{j_k}=(1+\\varepsilon_k)/2\\) and \\(Z_{i_k}=(1-\\varepsilon_k)/2\\).",
+      "role": "Immediate treatment assignment whose private randomization is excluded from the matching rule.",
+      "refs": [
+        "Mpi",
+        "epsk"
+      ]
+    },
+    {
+      "name": "Si",
+      "type": "Finite-population prognostic sum.",
+      "space": "\\([-2H,2H]\\).",
+      "def": "\\(S_i=Y_i(1)+Y_i(0)\\).",
+      "role": "Exact design-variance coordinate.",
+      "refs": [
+        "Yiz",
+        "H"
+      ]
+    },
+    {
+      "name": "tauT",
+      "type": "Finite-population causal estimand.",
+      "space": "\\(\\mathbb R\\).",
+      "def": "\\(\\tau_T=T^{-1}\\sum_{i=1}^T\\{Y_i(1)-Y_i(0)\\}\\).",
+      "role": "Target average treatment effect.",
+      "refs": [
+        "T",
+        "Yiz"
+      ]
+    },
+    {
+      "name": "Yiobs",
+      "type": "Observed outcome.",
+      "space": "\\([-H,H]\\).",
+      "def": "\\(Y_i^{\\mathrm{obs}}=Z_iY_i(1)+(1-Z_i)Y_i(0)\\).",
+      "role": "Observed response.",
+      "refs": [
+        "Zi",
+        "Yiz",
+        "H"
+      ]
+    },
+    {
+      "name": "tauhat",
+      "type": "Estimator.",
+      "space": "\\(\\mathbb R\\).",
+      "def": "\\(\\widehat\\tau_{\\mathrm{IPW}}\\) is constructed in Definition \\(\\mathrm{def:ipw-estimator}\\).",
+      "role": "Design-unbiased ATE estimator.",
+      "refs": [
+        "T",
+        "Zi",
+        "Yiobs"
+      ]
+    },
+    {
+      "name": "Cg",
+      "type": "Matching-cost functional.",
+      "sig": "\\(C_g:\\mathfrak M_T\\to[0,\\infty)\\).",
+      "def": "\\(C_g\\) is constructed in Definition \\(\\mathrm{def:pair-cost}\\).",
+      "role": "Matching-dependent expected design variance.",
+      "refs": [
+        "g",
+        "Xi",
+        "MatchingsT"
+      ]
+    },
+    {
+      "name": "Og",
+      "type": "Offline oracle cost.",
+      "space": "\\([0,\\infty)\\).",
+      "def": "\\(O_g(X)\\) is constructed in Definition \\(\\mathrm{def:offline-oracle}\\).",
+      "role": "Full-information causal precision benchmark.",
+      "refs": [
+        "Cg",
+        "Xi",
+        "MatchingsT"
+      ]
+    },
+    {
+      "name": "b",
+      "type": "Effective capacity.",
+      "space": "\\(\\mathbb N\\).",
+      "def": "\\(b=\\min\\{B,T/2\\}\\).",
+      "role": "Maximum usable reservoir size.",
+      "refs": [
+        "B",
+        "T"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "Geometric smoothness exponent.",
+      "space": "\\((0,\\infty)\\).",
+      "def": "\\(\\alpha=2\\beta/d\\).",
+      "role": "Capacity-rate index.",
+      "refs": [
+        "beta",
+        "d"
+      ]
+    },
+    {
+      "name": "Falpha",
+      "type": "Positive frontier function.",
+      "sig": "\\(F_\\alpha:\\{(T,b):1\\le b\\le T/2\\}\\to(0,\\infty)\\).",
+      "def": "\\(F_\\alpha(T,b)\\) is constructed in Definition \\(\\mathrm{def:frontier}\\).",
+      "role": "Candidate capacity--deadline order.",
+      "refs": [
+        "alpha",
+        "T",
+        "b"
+      ]
+    },
+    {
+      "name": "RTB",
+      "type": "Minimax regret.",
+      "space": "\\([0,\\infty)\\).",
+      "def": "\\(R_T(B)\\) is constructed in Definition \\(\\mathrm{def:minimax-regret}\\).",
+      "role": "Headline design criterion.",
+      "refs": [
+        "T",
+        "B",
+        "PiTB",
+        "Pclass",
+        "Cg",
+        "Og",
+        "Mpi"
+      ]
+    },
+    {
+      "name": "pistar",
+      "type": "Attaining sequential policy.",
+      "space": "\\(\\Pi_{T,B}\\).",
+      "def": "\\(\\pi^\\star\\) is the policy to be derived by \\(\\mathrm{oeq:endpoint-safe-coarsening}\\).",
+      "role": "Constructive upper-bound certificate.",
+      "refs": [
+        "PiTB"
+      ]
+    },
+    {
+      "name": "BT",
+      "type": "Capacity schedule.",
+      "sig": "\\(T\\mapsto B_T\\in\\mathbb N\\).",
+      "role": "Memory growth along even horizons.",
+      "refs": [
+        "T"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:iid-units",
+      "kind": "sampling",
+      "condition": "\\((W_i)_{i=1}^T\\) are independent and identically distributed under \\(P\\).",
+      "free_symbols": [
+        "Wi",
+        "T",
+        "P"
+      ],
+      "standard": {
+        "name": "Independent superpopulation draw used only for ex ante design risk",
+        "cite": "bai2022optimality"
+      },
+      "used_by": [
+        "def:model-class",
+        "prop:causal-regret-reduction",
+        "thm:all-policy-lower-frontier"
+      ]
+    },
+    {
+      "id": "ass:density-envelope",
+      "kind": "regularity",
+      "condition": "The density satisfies \\(\\underline f\\le f(x)\\le\\overline f\\) for every \\(x\\in\\mathcal X\\).",
+      "free_symbols": [
+        "f",
+        "flower",
+        "fupper",
+        "Xspace"
+      ],
+      "standard": {
+        "name": "Density bounded above and away from zero on compact support",
+        "cite": "tsybakov2009introduction"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:all-policy-lower-frontier",
+        "oeq:endpoint-safe-coarsening"
+      ]
+    },
+    {
+      "id": "ass:bounded-outcomes",
+      "kind": "moment",
+      "condition": "\\(|Y_i(z)|\\le H\\) for every \\(i\\le T\\) and \\(z\\in\\{0,1\\}\\).",
+      "free_symbols": [
+        "Yiz",
+        "H",
+        "T"
+      ],
+      "standard": {
+        "name": "Uniformly bounded potential outcomes",
+        "cite": "hoeffding1963probability"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:design-variance-identity",
+        "thm:all-policy-lower-frontier"
+      ]
+    },
+    {
+      "id": "ass:score-envelope",
+      "kind": "regularity",
+      "condition": "\\(\\sup_{x\\in\\mathcal X}|g(x)|\\le G\\).",
+      "free_symbols": [
+        "g",
+        "G",
+        "Xspace"
+      ],
+      "standard": {
+        "name": "Supremum envelope for a Hölder class",
+        "cite": "tsybakov2009introduction"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:capped-grid-upper",
+        "oeq:endpoint-safe-coarsening"
+      ]
+    },
+    {
+      "id": "ass:holder-score",
+      "kind": "smoothness",
+      "condition": "\\(|g(x)-g(y)|\\le L\\|x-y\\|_2^\\beta\\) for every \\(x,y\\in\\mathcal X\\).",
+      "free_symbols": [
+        "g",
+        "L",
+        "beta",
+        "Xspace"
+      ],
+      "standard": {
+        "name": "Isotropic \\(\\beta\\)-Hölder regularity",
+        "cite": "tsybakov2009introduction"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:all-policy-lower-frontier",
+        "thm:capped-grid-upper",
+        "oeq:endpoint-safe-coarsening"
+      ]
+    },
+    {
+      "id": "ass:policy-nonanticipating",
+      "kind": "design",
+      "condition": "At arrival \\(t\\), the store-or-match action and partner choice of \\(\\pi\\) are \\(\\mathcal F_t^X\\)-measurable functions only of \\((X_1,\\ldots,X_t,\\xi)\\), with no treatment assignments or pair-orientation signs as arguments.",
+      "free_symbols": [
+        "pi",
+        "Ft",
+        "T",
+        "Xi",
+        "xi",
+        "Zi",
+        "epsk"
+      ],
+      "standard": {
+        "name": "Covariate-only nonanticipating reservoir policy",
+        "cite": "morrison2025reservoir"
+      },
+      "used_by": [
+        "def:policy-class",
+        "thm:all-policy-lower-frontier"
+      ]
+    },
+    {
+      "id": "ass:immediate-assignment",
+      "kind": "design",
+      "condition": "Each \\(Z_i\\) is assigned when unit \\(i\\) arrives and is never revised: a stored arrival receives a private fair assignment, while an arrival that completes a pair receives the treatment opposite to the stored member.",
+      "free_symbols": [
+        "Zi",
+        "T"
+      ],
+      "standard": {
+        "name": "Immediate sequential treatment assignment",
+        "cite": "kapelnerkrieger2023learning"
+      },
+      "used_by": [
+        "def:policy-class",
+        "lem:design-variance-identity"
+      ]
+    },
+    {
+      "id": "ass:arrival-incidence",
+      "kind": "design",
+      "condition": "Every action either inserts the current arrival into \\(U_\\pi(t)\\) or pairs it with one member of \\(U_\\pi(t-1)\\) and removes that member.",
+      "free_symbols": [
+        "pi",
+        "Upit",
+        "T"
+      ],
+      "standard": {
+        "name": "General-arrivals reservoir matching",
+        "cite": "morrison2025reservoir"
+      },
+      "used_by": [
+        "def:policy-class",
+        "thm:all-policy-lower-frontier",
+        "oeq:endpoint-safe-coarsening"
+      ]
+    },
+    {
+      "id": "ass:hard-cap",
+      "kind": "design",
+      "condition": "\\(|U_\\pi(t)|\\le B\\) for every \\(0\\le t\\le T\\).",
+      "free_symbols": [
+        "Upit",
+        "B",
+        "T"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "A deterministic cap represents fixed enrollment-hold capacity, privacy-limited retention, or a prespecified operational queue; the constraint is observable and enforceable at every arrival."
+      },
+      "used_by": [
+        "def:policy-class",
+        "thm:all-policy-lower-frontier",
+        "thm:capped-grid-upper",
+        "oeq:endpoint-safe-coarsening"
+      ]
+    },
+    {
+      "id": "ass:terminal-empty",
+      "kind": "design",
+      "condition": "\\(U_\\pi(T)=\\varnothing\\).",
+      "free_symbols": [
+        "Upit",
+        "T"
+      ],
+      "standard": {
+        "name": "Terminal perfect-matching requirement",
+        "cite": "ascheretal2026generalarrivals"
+      },
+      "used_by": [
+        "def:policy-class",
+        "thm:all-policy-lower-frontier",
+        "oeq:endpoint-safe-coarsening"
+      ]
+    },
+    {
+      "id": "ass:fair-orientations",
+      "kind": "randomization",
+      "condition": "Under the deferred-randomization representation, after each edge is selected without using \\((Z_i)_{i=1}^T\\), draw its sign \\(\\varepsilon_k\\); conditional on \\((W_i)_{i=1}^T\\) and \\(\\xi\\), the signs \\((\\varepsilon_k)_{k=1}^{T/2}\\) are independent Rademacher variables.",
+      "free_symbols": [
+        "Wi",
+        "T",
+        "xi",
+        "epsk",
+        "Zi"
+      ],
+      "standard": {
+        "name": "Independent fair within-pair orientation",
+        "cite": "bai2022optimality"
+      },
+      "used_by": [
+        "def:policy-class",
+        "lem:design-variance-identity",
+        "prop:causal-regret-reduction"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "Hölder prognostic law class",
+      "construction": "\\(\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)=\\{P:(W_i)_{i=1}^T\\text{ satisfies }\\mathrm{ass:iid\\text{-}units},\\mathrm{ass:density\\text{-}envelope},\\mathrm{ass:bounded\\text{-}outcomes},\\mathrm{ass:score\\text{-}envelope},\\mathrm{ass:holder\\text{-}score}\\}\\).",
+      "free_symbols": [
+        "Pclass",
+        "P",
+        "Wi",
+        "T",
+        "beta",
+        "d",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper"
+      ],
+      "by_member_properties": [
+        "ass:iid-units",
+        "ass:density-envelope",
+        "ass:bounded-outcomes",
+        "ass:score-envelope",
+        "ass:holder-score"
+      ]
+    },
+    {
+      "id": "def:policy-class",
+      "name": "Hard-cap arrival-incidence policy class",
+      "construction": "\\(\\Pi_{T,B}=\\{\\pi=(\\pi_t)_{t=1}^T:\\pi\\text{ satisfies }\\mathrm{ass:policy\\text{-}nonanticipating},\\mathrm{ass:immediate\\text{-}assignment},\\mathrm{ass:arrival\\text{-}incidence},\\mathrm{ass:hard\\text{-}cap},\\mathrm{ass:terminal\\text{-}empty},\\mathrm{ass:fair\\text{-}orientations}\\}\\).",
+      "free_symbols": [
+        "PiTB",
+        "T",
+        "B",
+        "pi"
+      ],
+      "by_member_properties": [
+        "ass:policy-nonanticipating",
+        "ass:immediate-assignment",
+        "ass:arrival-incidence",
+        "ass:hard-cap",
+        "ass:terminal-empty",
+        "ass:fair-orientations"
+      ]
+    },
+    {
+      "id": "def:ipw-estimator",
+      "name": "Conditional inverse-probability weighted estimator",
+      "construction": "\\(\\widehat\\tau_{\\mathrm{IPW}}=T^{-1}\\sum_{i=1}^T\\{2Z_iY_i^{\\mathrm{obs}}-2(1-Z_i)Y_i^{\\mathrm{obs}}\\}\\).",
+      "free_symbols": [
+        "tauhat",
+        "T",
+        "Zi",
+        "Yiobs"
+      ],
+      "inputs": [
+        "Zi",
+        "Yiobs"
+      ]
+    },
+    {
+      "id": "def:pair-cost",
+      "name": "Prognostic matching cost",
+      "construction": "\\(C_g(M)=\\sum_{(i,j)\\in M}\\{g(X_i)-g(X_j)\\}^2\\), \\(M\\in\\mathfrak M_T\\).",
+      "free_symbols": [
+        "Cg",
+        "g",
+        "Xi",
+        "MatchingsT"
+      ],
+      "inputs": [
+        "g",
+        "Xi",
+        "MatchingsT"
+      ]
+    },
+    {
+      "id": "def:offline-oracle",
+      "name": "Full-information offline scalar oracle",
+      "construction": "\\(O_g(X)=\\min_{M\\in\\mathfrak M_T}C_g(M)\\).",
+      "free_symbols": [
+        "Og",
+        "Xi",
+        "MatchingsT",
+        "Cg"
+      ],
+      "inputs": [
+        "Cg",
+        "Xi",
+        "MatchingsT"
+      ]
+    },
+    {
+      "id": "def:minimax-regret",
+      "name": "Normalized capacity regret",
+      "construction": "\\(R_T(B)=T^{-1}\\inf_{\\pi\\in\\Pi_{T,B}}\\sup_{P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)}\\mathbb E_{P,\\xi}[C_g(M_\\pi)-O_g(X)]\\).",
+      "free_symbols": [
+        "RTB",
+        "T",
+        "B",
+        "pi",
+        "PiTB",
+        "P",
+        "Pclass",
+        "beta",
+        "d",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "xi",
+        "Cg",
+        "Mpi",
+        "Og",
+        "Xi"
+      ],
+      "inputs": [
+        "PiTB",
+        "Pclass",
+        "Mpi",
+        "Cg",
+        "Og"
+      ]
+    },
+    {
+      "id": "def:frontier",
+      "name": "Capacity--deadline frontier",
+      "construction": "\\(F_\\alpha(T,b)=b^{-\\alpha}+T^{-1}\\sum_{r=1}^{b}r^{-\\alpha}\\), where \\(b=\\min\\{B,T/2\\}\\) and \\(\\alpha=2\\beta/d\\).",
+      "free_symbols": [
+        "Falpha",
+        "alpha",
+        "T",
+        "b",
+        "B",
+        "beta",
+        "d"
+      ],
+      "inputs": [
+        "T",
+        "B",
+        "beta",
+        "d"
+      ]
+    },
+    {
+      "id": "def:coarsening-handle",
+      "name": "Endpoint-safe coarsening handle",
+      "construction": "Begin with a fixed-branching dyadic partition having at most \\(b\\) leaves; pair arrivals within occupied current cells, merge siblings on a deterministic time-to-go schedule, and construct a phasewise workload potential that charges inherited residues and forced clearing across levels to derive \\(\\pi^\\star\\).",
+      "free_symbols": [
+        "b",
+        "T",
+        "pistar"
+      ],
+      "inputs": [
+        "T",
+        "b"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:design-variance-identity",
+      "kind": "lemma",
+      "statement": "For every \\(\\pi\\in\\Pi_{T,B}\\), conditional on \\((W_i)_{i=1}^T\\) and \\(\\xi\\), \\(\\mathbb E_Z[\\widehat\\tau_{\\mathrm{IPW}}]=\\tau_T\\) and \\[\\operatorname{Var}_Z(\\widehat\\tau_{\\mathrm{IPW}})=T^{-2}\\sum_{(i,j)\\in M_\\pi}(S_i-S_j)^2.\\]",
+      "free_symbols": [
+        "pi",
+        "PiTB",
+        "T",
+        "B",
+        "Wi",
+        "xi",
+        "tauhat",
+        "tauT",
+        "Mpi",
+        "Si"
+      ],
+      "depends_on": [
+        "ass:immediate-assignment",
+        "ass:fair-orientations",
+        "def:policy-class",
+        "def:ipw-estimator"
+      ],
+      "status": "to-prove",
+      "justification": "This exact randomization identity makes the finite-population causal target explicit before any ex ante minimax averaging.",
+      "gap": "\\cite{morrison2025reservoir} gives a related conditional formula, but permits a final unmatched reservoir; the present identity is specialized to forced perfect pairs.",
+      "consumer": "It lets trialists interpret matching cost as assignment-variance loss for the finite-population ATE."
+    },
+    {
+      "id": "prop:causal-regret-reduction",
+      "kind": "proposition",
+      "statement": "For every \\(P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) and \\(\\pi\\in\\Pi_{T,B}\\), \\[T\\,\\mathbb E_{P,\\xi}\\!\\left[\\operatorname{Var}_Z\\{\\widehat\\tau_{\\mathrm{IPW}}(M_\\pi)\\mid(W_i)_{i=1}^T,\\xi\\}-\\min_{M\\in\\mathfrak M_T}\\operatorname{Var}_Z\\{\\widehat\\tau_{\\mathrm{IPW}}(M)\\mid(W_i)_{i=1}^T\\}\\right]=T^{-1}\\mathbb E_{P,\\xi}[C_g(M_\\pi)-O_g(X)].\\] Consequently, \\(R_T(B)\\) is exactly \\(T\\) times the minimax ex ante expected design-variance excess over the offline prognostic oracle.",
+      "free_symbols": [
+        "MatchingsT",
+        "Cg",
+        "P",
+        "Pclass",
+        "beta",
+        "d",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "pi",
+        "PiTB",
+        "T",
+        "B",
+        "xi",
+        "tauhat",
+        "Mpi",
+        "Wi",
+        "Og",
+        "Xi",
+        "RTB"
+      ],
+      "depends_on": [
+        "ass:iid-units",
+        "lem:design-variance-identity",
+        "def:pair-cost",
+        "def:offline-oracle",
+        "def:minimax-regret"
+      ],
+      "status": "to-prove",
+      "justification": "The reduction preserves both the causal estimand and Bai's scalar oracle rather than replacing it by Euclidean matching.",
+      "gap": "Bai's variance criterion is offline and Morrison's reservoir may retain unmatched units; neither yields this forced-empty hard-cap regret identity.",
+      "consumer": "The equality converts every frontier bound into a directly interpretable precision guarantee for the conditional IPW estimator."
+    },
+    {
+      "id": "lem:offline-adjacent",
+      "kind": "lemma",
+      "statement": "If \\(g(X_{\\sigma(1)})\\le\\cdots\\le g(X_{\\sigma(T)})\\), then \\[O_g(X)=\\sum_{k=1}^{T/2}\\{g(X_{\\sigma(2k)})-g(X_{\\sigma(2k-1)})\\}^2\\le4G^2.\\]",
+      "free_symbols": [
+        "g",
+        "Xi",
+        "T",
+        "Og",
+        "G"
+      ],
+      "depends_on": [
+        "ass:score-envelope",
+        "def:pair-cost",
+        "def:offline-oracle"
+      ],
+      "status": "to-prove",
+      "justification": "The adjacent-order formula fixes the exact comparator retained in both lower and upper arguments.",
+      "gap": "This is the scalar squared-cost specialization of \\cite{bai2022optimality}; recording it prevents drift to a Euclidean stand-in oracle.",
+      "consumer": "It makes the offline benchmark computable and bounds the oracle subtraction in the minimax converse."
+    },
+    {
+      "id": "thm:all-policy-lower-frontier",
+      "kind": "theorem",
+      "statement": "There exists \\(c>0\\), depending only on \\((d,\\beta,L,G,H,\\underline f,\\overline f)\\), such that for every even \\(T\\ge32\\) and every \\(B\\ge1\\), \\[R_T(B)\\ge cF_\\alpha(T,b).\\] The inequality holds against every randomized policy in \\(\\Pi_{T,B}\\).",
+      "free_symbols": [
+        "d",
+        "beta",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "T",
+        "B",
+        "RTB",
+        "Falpha",
+        "alpha",
+        "b",
+        "PiTB"
+      ],
+      "depends_on": [
+        "ass:iid-units",
+        "ass:density-envelope",
+        "ass:bounded-outcomes",
+        "ass:holder-score",
+        "ass:policy-nonanticipating",
+        "ass:arrival-incidence",
+        "ass:hard-cap",
+        "ass:terminal-empty",
+        "def:model-class",
+        "def:policy-class",
+        "def:frontier",
+        "lem:offline-adjacent",
+        "prop:causal-regret-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "A weighted-suffix converse separates persistent capacity cost from the shrinking-partner deadline cost for all policies.",
+      "gap": "Online matching lower bounds in \\cite{ascheretal2026generalarrivals} and \\cite{azarchiplunkarkaplan2017delays} use competitive ratios or delay adversaries and do not retain the causal scalar-oracle subtraction.",
+      "consumer": "The converse tells investigators how much precision no reservoir implementation can recover at a specified cap."
+    },
+    {
+      "id": "thm:capped-grid-upper",
+      "kind": "theorem",
+      "statement": "For every integer \\(1\\le m\\le b\\), there exists an implementable covariate-only grid-parity policy in \\(\\Pi_{T,B}\\) whose reservoir occupancy never exceeds \\(m\\), which empties at \\(T\\), and whose normalized worst-case regret is at most \\(C\\{m^{-\\alpha}+m/T\\}\\). Consequently, \\[R_T(B)\\le C\\inf_{1\\le m\\le b}\\{m^{-\\alpha}+m/T\\},\\] where \\(C\\) depends only on \\((d,\\beta,L,G,H)\\).",
+      "free_symbols": [
+        "T",
+        "B",
+        "b",
+        "PiTB",
+        "RTB",
+        "alpha",
+        "d",
+        "beta",
+        "L",
+        "G",
+        "H"
+      ],
+      "depends_on": [
+        "ass:score-envelope",
+        "ass:holder-score",
+        "ass:hard-cap",
+        "ass:terminal-empty",
+        "def:policy-class",
+        "def:minimax-regret",
+        "def:frontier",
+        "prop:causal-regret-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "This constructive baseline is already sharp whenever \\(b^{1+\\alpha}\\le T\\) and isolates the only missing deadline regime.",
+      "gap": "\\cite{zhaozhou2024pigeonhole} balances treatment signs immediately and has no stored-unmatched occupancy or terminal-clearing term.",
+      "consumer": "It supplies a simple implementable cap rule and establishes sufficiency of diverging memory even before the sharp endpoint lemma is closed."
+    },
+    {
+      "id": "oeq:endpoint-safe-coarsening",
+      "kind": "openendedquestion",
+      "statement": "Can the endpoint-safe coarsening handle in Definition \\(\\mathrm{def:coarsening-handle}\\) be completed to derive a single implementable \\(\\pi^\\star\\in\\Pi_{T,B}\\) and a constant \\(C<\\infty\\), depending only on the fixed envelopes, such that for every even \\(T\\ge32\\), \\(B\\ge1\\), and \\(P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\), \\[T^{-1}\\mathbb E_{P,\\xi}[C_g(M_{\\pi^\\star})-O_g(X)]\\le CF_\\alpha(T,b)?\\] The construction must certify the hard cap and terminal emptying pathwise while deriving, rather than assuming, the clearance tail or an equivalent expected workload bound.",
+      "free_symbols": [
+        "pistar",
+        "PiTB",
+        "T",
+        "B",
+        "P",
+        "Pclass",
+        "beta",
+        "d",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "xi",
+        "Cg",
+        "Mpi",
+        "Og",
+        "Xi",
+        "Falpha",
+        "alpha",
+        "b"
+      ],
+      "depends_on": [
+        "ass:density-envelope",
+        "ass:score-envelope",
+        "ass:holder-score",
+        "ass:arrival-incidence",
+        "ass:hard-cap",
+        "ass:terminal-empty",
+        "def:model-class",
+        "def:policy-class",
+        "def:pair-cost",
+        "def:offline-oracle",
+        "def:frontier",
+        "def:coarsening-handle",
+        "thm:capped-grid-upper"
+      ],
+      "status": "to-prove",
+      "justification": "This is the genuine open content: adapted inherited residues must be cleared without a false independence or de-Poissonization step.",
+      "gap": "Ascher et al. use branching of order \\(\\log T\\) without a cap, while Kanoria replenishes supply and delay-matching papers price waiting; none yields fixed-branching endpoint safety for this depleting reservoir.",
+      "consumer": "A solution closes the all-regime capacity frontier and gives SeqExpMatch-style software a principled forced-clearing schedule."
+    },
+    {
+      "id": "thm:minimax-frontier",
+      "kind": "theorem",
+      "statement": "There exist constants \\(0<c<C<\\infty\\), depending only on \\((d,\\beta,L,G,H,\\underline f,\\overline f)\\), such that for all even \\(T\\ge32\\) and \\(B\\ge1\\), \\[cF_\\alpha(T,b)\\le R_T(B)\\le CF_\\alpha(T,b).\\] The upper inequality is attained by the implementable hard-cap policy \\(\\pi^\\star\\), and the lower inequality holds over all \\(\\Pi_{T,B}\\).",
+      "free_symbols": [
+        "d",
+        "beta",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "T",
+        "B",
+        "Falpha",
+        "alpha",
+        "b",
+        "RTB",
+        "pistar",
+        "PiTB"
+      ],
+      "depends_on": [
+        "thm:all-policy-lower-frontier",
+        "oeq:endpoint-safe-coarsening"
+      ],
+      "status": "to-prove",
+      "justification": "The matched upper and lower bounds are the theorem-level design certificate: they identify the exact cost of memory and a common deadline.",
+      "gap": "No named comparator simultaneously imposes deterministic capacity, arrival-incidence matching, terminal perfect pairing, and additive causal precision regret over a Hölder class.",
+      "consumer": "Trial designers obtain a capacity calculator that is minimax-certified rather than tuned only by simulation."
+    },
+    {
+      "id": "prop:frontier-regimes",
+      "kind": "proposition",
+      "statement": "The frontier theorem is equivalent, up to fixed constants, to \\[R_T(B)\\asymp\\begin{cases}b^{-\\alpha},&\\alpha<1,\\\\ b^{-1}+T^{-1}\\log(1+b),&\\alpha=1,\\\\ b^{-\\alpha}+T^{-1},&\\alpha>1.\\end{cases}\\]",
+      "free_symbols": [
+        "RTB",
+        "T",
+        "B",
+        "b",
+        "alpha"
+      ],
+      "depends_on": [
+        "def:frontier",
+        "thm:minimax-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The three regimes display when capacity, multiscale deadline accumulation, or the mandatory final pair determines regret.",
+      "gap": "Adjacent papers report dimension-specific matching rates but do not derive this smoothness-by-dimension phase transition under a hard experimental reservoir.",
+      "consumer": "The regime table converts a theorem into sample-size and memory guidance for trial planning."
+    },
+    {
+      "id": "prop:memory-iff",
+      "kind": "proposition",
+      "statement": "For every sequence of even horizons \\(T\\to\\infty\\) and capacities \\(B_T\\ge1\\), \\[R_T(B_T)\\to0\\quad\\Longleftrightarrow\\quad B_T\\to\\infty.\\]",
+      "free_symbols": [
+        "T",
+        "BT",
+        "RTB"
+      ],
+      "depends_on": [
+        "thm:all-policy-lower-frontier",
+        "thm:capped-grid-upper"
+      ],
+      "status": "to-prove",
+      "justification": "The iff statement identifies the exact memory-growth requirement for offline first-order precision.",
+      "gap": "Morrison gives one sufficient growing-reservoir schedule; necessity and the equivalence for arbitrary hard-cap schedules are not published.",
+      "consumer": "An experimenter can determine whether a proposed reservoir growth plan is asymptotically adequate without knowing \\(g\\)."
+    },
+    {
+      "id": "prop:constant-score-sanity",
+      "kind": "proposition",
+      "statement": "For any \\(P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) whose \\(g\\) is constant on \\(\\mathcal X\\), every \\(M\\in\\mathfrak M_T\\) satisfies \\(C_g(M)=O_g(X)=0\\); hence every feasible policy has zero per-law expected design-variance excess.",
+      "free_symbols": [
+        "P",
+        "Pclass",
+        "beta",
+        "d",
+        "L",
+        "G",
+        "H",
+        "flower",
+        "fupper",
+        "g",
+        "Xspace",
+        "MatchingsT",
+        "Cg",
+        "Og",
+        "Xi"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:pair-cost",
+        "def:offline-oracle",
+        "prop:causal-regret-reduction"
+      ],
+      "status": "to-prove",
+      "justification": "This reduction verifies that the frontier measures heterogeneous prognostic geometry rather than creating loss under a design-irrelevant score.",
+      "gap": "It is the homogeneous-score reduction implicit in offline matched-pair optimality and serves as a required internal consistency check.",
+      "consumer": "Applied users can verify that the cap is harmless when baseline prognosis is constant."
+    }
+  ],
+  "sampling_model": {
+    "design": "The store-or-match action and partner choice use only observed covariates and the auxiliary matching seed, never treatment assignments or orientation signs. Operationally, a stored arrival receives an immediate private fair assignment and a later completing arrival receives the opposite treatment. Conditional on the realized units and matching seed, treatment-blind matching makes this law identical to drawing one independent fair orientation sign after each pair is completed; the potential outcomes remain fixed.",
+    "units": "An outer iid law for \\((X_i,Y_i(0),Y_i(1))\\) defines the minimax expected design risk and the unknown prognostic score; it is not used to replace the finite-population causal estimand.",
+    "treatment": "Every unit is assigned at its arrival and the assignment is never revised. Exactly one unit in each arrival-incidence pair receives treatment and the other receives control; conditional on the completed matching, the pair orientations are independent and each has probability \\(1/2\\).",
+    "overlap": "The known marginal treatment probability is \\(1/2\\) for every unit.",
+    "nuisance_estimation": "None. The policy observes covariates only and does not know or estimate \\(g\\); \\(g\\) indexes the law class and the offline precision oracle."
+  },
+  "estimand_functional": "\\(\\widehat\\tau_{\\mathrm{IPW}}=T^{-1}\\sum_{i=1}^T\\{2Z_iY_i^{\\mathrm{obs}}-2(1-Z_i)Y_i^{\\mathrm{obs}}\\},\\quad R_T(B)\\asymp b^{-2\\beta/d}+T^{-1}\\sum_{r=1}^{b}r^{-2\\beta/d}\\)",
+  "target_estimand": "\\(\\tau_T=T^{-1}\\sum_{i=1}^T\\{Y_i(1)-Y_i(0)\\}\\)",
+  "bibliography": [
+    {
+      "key": "bai2022optimality",
+      "citation": "Bai, Y. (2022). Optimality of matched-pair designs in randomized controlled trials. American Economic Review, 112, 3911--3940."
+    },
+    {
+      "key": "kapelnerkrieger2023learning",
+      "citation": "Kapelner, A. and Krieger, A. (2023). A matching procedure for sequential experiments that iteratively learns which covariates improve power. Biometrics, 79, 222--234."
+    },
+    {
+      "key": "morrison2025reservoir",
+      "citation": "Morrison, T. (2025). Reservoir Designs for Online Paired Experiments. arXiv:2505.17247v1, 22 May 2025."
+    },
+    {
+      "key": "zhaozhou2024pigeonhole",
+      "citation": "Zhao, J. and Zhou, Z. (2024). Pigeonhole Design: Balancing Sequential Experiments from an Online Matching Perspective. Management Science, 71(3), 1889--1908. doi:10.1287/mnsc.2023.02184."
+    },
+    {
+      "key": "ascheretal2026generalarrivals",
+      "citation": "Ascher, J., Balkanski, E., Chatzitheodorou, J., and Gkatzelis, V. (2026). Online min-cost matching with general arrivals. Proceedings of the ACM Conference on Economics and Computation."
+    },
+    {
+      "key": "kanoria2025dynamicspatial",
+      "citation": "Kanoria, Y. (2025). Dynamic spatial matching. Annals of Applied Probability, 35."
+    },
+    {
+      "key": "azarchiplunkarkaplan2017delays",
+      "citation": "Azar, Y., Chiplunkar, A., and Kaplan, H. (2017). Polylogarithmic bounds on the competitiveness of min-cost perfect matching with delays. Proceedings of the ACM--SIAM Symposium on Discrete Algorithms."
+    },
+    {
+      "key": "bairomanoshaikh2022inference",
+      "citation": "Bai, Y., Romano, J. P., and Shaikh, A. M. (2022). Inference in experiments with matched pairs. Journal of the American Statistical Association, 117, 1726--1737."
+    },
+    {
+      "key": "bailiutabordmeehan2024tuples",
+      "citation": "Bai, Y., Liu, J., and Tabord-Meehan, M. (2024). Inference for matched tuples and fully blocked factorial designs. Quantitative Economics, 15, 279--330."
+    },
+    {
+      "key": "melnykwangwattenhofer2021kway",
+      "citation": "Melnyk, D., Wang, Y., and Wattenhofer, R. (2021). Online \\(k\\)-way matching with delays and the \\(H\\)-metric. arXiv:2109.06640."
+    },
+    {
+      "key": "tsybakov2009introduction",
+      "citation": "Tsybakov, A. B. (2009). Introduction to Nonparametric Estimation. Springer."
+    },
+    {
+      "key": "hoeffding1963probability",
+      "citation": "Hoeffding, W. (1963). Probability inequalities for sums of bounded random variables. Journal of the American Statistical Association, 58, 13--30."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "bai2022optimality",
+      "comparator_claim": "Theorem 1 identifies adjacent pairing after sorting \\(g\\) as MSE-optimal among half-treatment stratifications.",
+      "matched_by": "Theorem 3",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "morrison2025reservoir",
+      "comparator_claim": "Theorems 1--2 give an offline-variance CLT for an uncapped packing reservoir with a negligible unmatched remainder.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ascheretal2026generalarrivals",
+      "comparator_claim": "Theorem 1 gives an \\(O(\\log^2 T)\\)-competitive general-arrivals line-matching algorithm under unknown iid arrivals.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "zhaozhou2024pigeonhole",
+      "comparator_claim": "The pigeonhole theorem bounds geometric discrepancy for immediate cellwise treatment balancing without a reservoir.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "kanoria2025dynamicspatial",
+      "comparator_claim": "Hierarchical Greedy attains dimension-dependent spatial matching rates with initial or replenished supply.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "azarchiplunkarkaplan2017delays",
+      "comparator_claim": "Tree embedding yields an \\(O(\\log n)\\)-competitive algorithm for min-cost perfect matching with delays.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "bairomanoshaikh2022inference",
+      "comparator_claim": "Covariate-close offline matched pairs admit asymptotically exact superpopulation ATE inference.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    },
+    {
+      "comparator_bibkey": "bailiutabordmeehan2024tuples",
+      "comparator_claim": "Offline matched tuples admit joint asymptotic normality and consistent covariance estimation for treatment contrasts.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    },
+    {
+      "comparator_bibkey": "melnykwangwattenhofer2021kway",
+      "comparator_claim": "Fixed-\\(k\\) matching with delays on \\(H\\)-metrics has an \\(O(\\log n)\\) competitive ratio.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    }
+  ],
+  "tldr": "The target result characterizes the exact order of the precision loss caused by a hard unmatched-unit reservoir and a common enrollment deadline in online matched-pair randomization. Matching decisions use only covariate history; immediate private assignments admit an equivalent deferred representation in which every completed pair receives one independent fair orientation. Conditional on fixed potential outcomes, these orientations give an exactly design-unbiased IPW estimator, and averaging its assignment variance over the law class reduces the matching-dependent excess to \\(R_T(B)\\). The proposed theorem proves \\(R_T(B)\\asymp b^{-2\\beta/d}+T^{-1}\\sum_{r=1}^{b}r^{-2\\beta/d}\\), supplies a capped fixed-branching coarsening policy, and shows that offline first-order precision is attainable if and only if \\(B_T\\to\\infty\\). The lower bound and coarse policy have concrete proof architectures; endpoint-safe clearing in the deadline-dominated regime is the exposed open question.",
+  "project_justification": {
+    "gap": "Offline matched-pair theory identifies the prognostic-score oracle, and recent online reservoir work gives asymptotic sufficient conditions, but no result prices a deterministic reservoir cap jointly with forced terminal completion.",
+    "niche": "The missing object is an additive, finite-horizon capacity--deadline frontier for causal design variance, rather than a tuning heuristic, a competitive ratio, or a CLT that discards the unmatched remainder.",
+    "fill": "A weighted-suffix all-policy converse and a fixed-branching coarsening construction deliver matching orders, an implementable design certificate, and the iff memory rule."
+  },
+  "related_work": "\\cite{bai2022optimality} supplies the offline oracle by showing that sorting the prognostic sum and pairing adjacent units minimizes conditional MSE among half-treatment stratifications. \\cite{kapelnerkrieger2023learning} supplies the operational reservoir and the SeqExpMatch consumer, while leaving time- and occupancy-dependent tuning unresolved. Morrison's \\emph{Reservoir Designs for Online Paired Experiments}, arXiv:2505.17247v1 (22 May 2025), defines covariate-determined reservoir matching in Section 2 and proves its packing-based asymptotic guarantees in Theorems 1--2; \\cite{morrison2025reservoir} informs the variance reduction but allows a negligible unmatched remainder and is not a finite-cap or forced-empty comparator. Zhao and Zhou's \\emph{Pigeonhole Design: Balancing Sequential Experiments from an Online Matching Perspective}, Management Science 71(3), 1889--1908, doi:10.1287/mnsc.2023.02184, supplies the cellwise partition and parity accounting, including the stopping-time decomposition in Theorem 6, but has no stored-unmatched occupancy or terminal clearing; see \\cite{zhaozhou2024pigeonhole}. \\cite{ascheretal2026generalarrivals} supplies a coarsening proof for forced perfect matching under general arrivals, but its pool is uncapped and its objective is a line-metric competitive ratio. \\cite{kanoria2025dynamicspatial} and \\cite{azarchiplunkarkaplan2017delays} motivate multiscale charging under replenishment or delay prices, neither of which controls an adapted depleting reservoir at a fixed endpoint. \\cite{bairomanoshaikh2022inference}, \\cite{bailiutabordmeehan2024tuples}, and \\cite{melnykwangwattenhofer2021kway} inform nonselected inference and multiarm extensions and are not theorem-level targets of the selected pairwise frontier.",
+  "technical_internal_limitation": "The endpoint-safe clearance inequality is not established. The fixed-branching handle must control inherited cell workloads uniformly over the entire bounded-density class without treating multinomial cell counts as independent or invoking unquantified de-Poissonization. Exact finite-state diagnostics reproduced 691 weighted-suffix certificates through \\(T=12\\). Separate uniform-law simulations at \\((d,\\beta)=(1,1/2)\\) and \\((2,1)\\) did not reject branching slack \\(A=8\\) through \\(T=2048\\), whereas \\(A=4\\) caused frequent early clearing in two dimensions. These computations are policy diagnostics only and do not support the theorem.",
+  "honest_scope": "Every formal statement remains to be proved. The exact design-variance identity, adjacent scalar oracle, lower prior, weighted-suffix inequality, and coarse grid policy have explicit derivation paths that require independent checking. The full upper frontier depends on the open endpoint-safe coarsening question. No CLT, variance estimator, outcome-adaptive score learner, multiarm tuple frontier, exact leading constant, or guarantee for the response-adaptive CARA implementation is claimed. As a sanity reduction, a constant prognostic score makes every matching cost and every per-law variance excess exactly zero; the nontrivial minimax frontier arises from uniform performance over the Hölder class.",
+  "seeds": [
+    "seed-capacity-deadline-frontier",
+    "seed-endpoint-clearance",
+    "seed-random-block-inference",
+    "seed-bellman-threshold",
+    "seed-delayed-score-learning",
+    "seed-multiarm-tuples",
+    "seed-critical-logarithm",
+    "seed-power-cost-frontier"
+  ],
+  "seed_details": [
+    {
+      "id": "seed-capacity-deadline-frontier",
+      "kernel": "For hard-cap arrival-incidence matched-pair designs, characterize the minimax expected design-variance regret by \\(F_{\\alpha}(T,b)=b^{-\\alpha}+T^{-1}\\sum_{r=1}^{b}r^{-\\alpha}\\), uniformly over every feasible \\((T,B)\\), and derive the iff memory-growth rule for offline first-order precision.",
+      "anchor_bibkey": "bai2022optimality",
+      "anchor_read_receipt": "Read the Introduction, Theorem 1, equation defining the oracle stratification, the conditional-MSE decomposition in its proof, the Hardy--Littlewood rearrangement lemma, and the Discussion of \\cite{bai2022optimality}. The proof makes adjacent pairing after sorting the prognostic sum \\(g\\) the exact offline benchmark.",
+      "changed_proof_step": "Bai's sorting step uses all covariates before assignment; the first changed step is to lower-bound and attain the excess scalar matching cost when a match may use only the current arrival and at most \\(B\\) earlier unmatched arrivals.",
+      "destination_search": "Searches for ``sequential randomized experiment reservoir capacity matched pair regret'' and ``finite buffer online nonbipartite matching iid deadline'' found Morrison's uncapped packing CLT and Ascher et al.'s uncapped general-arrivals ratio, but no hard-cap causal frontier.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "cynical_objection": "Immediate from \\cite{ascheretal2026generalarrivals} because its coarsening algorithm already handles forced terminal matches.",
+      "rebuttal": "Their theorem has no deterministic waiting-pool cap, treats linear distance on the line, and bounds a competitive ratio; its logarithmic branching does not imply a uniform additive frontier in \\((T,B,\\beta,d)\\).",
+      "anti_pattern_check": "The design is the decision variable and the result includes an all-policy converse and an attaining policy certificate, so this is M13 rather than a fixed-design CLT or an application-only seed.",
+      "adjacent_threads": [
+        "\\cite{morrison2025reservoir}: uncapped packing CLT with a negligible unmatched remainder.",
+        "\\cite{ascheretal2026generalarrivals}: uncapped forced-completion coarsening and competitive ratio.",
+        "\\cite{zhaozhou2024pigeonhole}: immediate cell-parity design without waiting.",
+        "\\cite{kanoria2025dynamicspatial}: hierarchical spatial matching with replenished supply."
+      ],
+      "disposition": "selected"
+    },
+    {
+      "id": "seed-endpoint-clearance",
+      "kernel": "Prove an endpoint-safe workload inequality for fixed-branching dyadic coarsening: inherited cell residues must clear before the common deadline with expected cross-cell Hölder cost of the same order as the weighted suffix lower bound.",
+      "anchor_bibkey": "zhaozhou2024pigeonhole",
+      "anchor_read_receipt": "Read the Introduction, the Pigeonhole Design construction, Theorem 6 and its proof's stopping-time decomposition, and the limitations section of \\cite{zhaozhou2024pigeonhole}. Its cellwise parity calculation controls immediate assignment but has neither a waiting reservoir nor terminal emptying.",
+      "changed_proof_step": "The first changed step is replacing treatment-count imbalance inside fixed cells by a pathwise workload process whose inherited residues can occupy several descendants after cells merge.",
+      "destination_search": "The destination search paired ``endpoint clearing'' with coarsening, hard buffers, and general arrivals. Ascher et al. use large branching and Chernoff bounds; delay papers charge waiting time; neither gives the fixed-branching, density-uniform hard-cap inequality.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 21
+      },
+      "cynical_objection": "Immediate from the pigeonhole-design proof because every cell has at most one residual subject.",
+      "rebuttal": "After merging, a parent inherits multiple adapted residues, and a common deterministic deadline creates a selected suffix that the fixed-cell parity proof never controls.",
+      "anti_pattern_check": "The seed names the workload inequality and the attaining design certificate; it is not a qualitative algorithm suggestion.",
+      "adjacent_threads": [
+        "\\cite{ascheretal2026generalarrivals}: phasewise forced-matching event under logarithmic branching.",
+        "\\cite{kanoria2025dynamicspatial}: multiscale supply-workload barriers under replenishment.",
+        "\\cite{azarchiplunkarkaplan2017delays}: tree-level charging against connection and delay costs.",
+        "\\cite{morrison2025reservoir}: packing control without terminal clearing."
+      ],
+      "disposition": "dropped-as-subsumed-by-selected-frontier"
+    },
+    {
+      "id": "seed-random-block-inference",
+      "kernel": "Derive a design-based limit law and uniform Wald coverage for the finite-population ATE when a hard-cap online policy produces random ordinary and terminal pairs.",
+      "anchor_bibkey": "morrison2025reservoir",
+      "anchor_read_receipt": "Read the Introduction, Proposition 1, Theorems 1--2, the packing construction, and their proofs in \\cite{morrison2025reservoir}. The CLT discards a sufficiently small final reservoir asymptotically rather than forcing every unit into a terminal pair.",
+      "changed_proof_step": "The first changed step is a conditional randomization CLT for an adapted random partition with all potential outcomes fixed; the published proof instead invokes superpopulation matched-pair asymptotics after showing an unmatched remainder is negligible.",
+      "destination_search": "Adjacent searches located offline matched-pair inference, generic covariate-adaptive inference, and Morrison's packing CLT, but no design-based coverage theorem for hard-cap forced-empty random blocks.",
+      "motif": "M12",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "cynical_objection": "Immediate from \\cite{bairomanoshaikh2022inference} once average pair distance vanishes.",
+      "rebuttal": "That theorem assumes completed offline-close blocks under superpopulation sampling; it does not derive a finite-population assignment CLT for an adapted matching graph with a terminally selected suffix.",
+      "anti_pattern_check": "This is a genuine M12 lane because the proposed limit must be derived from pairwise orientation and finite-population negligibility, not assumed from a sampling CLT.",
+      "adjacent_threads": [
+        "\\cite{bairomanoshaikh2022inference}: pairs-of-pairs variance correction and superpopulation matched-pair limit theory.",
+        "\\cite{kapelnerkrieger2023learning}: random matched and reservoir counts with simulation-based inference.",
+        "\\cite{zhaozhou2024pigeonhole}: sequential assignment blocks generated from covariate cells."
+      ],
+      "disposition": "survived-not-chosen"
+    },
+    {
+      "id": "seed-bellman-threshold",
+      "kernel": "Characterize a cap-aware finite-horizon matching index in time remaining, occupancy, and local cell state, together with a constant-factor certificate against the minimax frontier.",
+      "anchor_bibkey": "kapelnerkrieger2023learning",
+      "anchor_read_receipt": "Read the Introduction, the matching-on-the-fly construction, estimator discussion, and the final Discussion of \\cite{kapelnerkrieger2023learning}; the paper explicitly leaves the cutoff's dependence on study progress and reservoir size open.",
+      "changed_proof_step": "The first changed step is a sufficient-state reduction for the Bellman recursion; the published rule calibrates a distance cutoff from accumulated distances without pricing the option value of the final reservoir slots.",
+      "destination_search": "Searches over dynamic thresholds found rematching heuristics and staggered-rollout dynamic programs but no threshold theorem for arrival-incidence geometric pairing under a hard cap and common deadline.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 19
+      },
+      "cynical_objection": "The threshold is just the Bellman minimizer of a standard finite-horizon Markov decision process.",
+      "rebuttal": "The geometric reservoir is an unordered continuous state; measurable threshold structure, state compression, and a frontier-relative certificate are not consequences of writing the Bellman equation.",
+      "anti_pattern_check": "The seed demands a structural characterization and certificate, not a heuristic dynamic program.",
+      "disposition": "dropped-for-feasibility"
+    },
+    {
+      "id": "seed-delayed-score-learning",
+      "kernel": "Obtain an oracle inequality separating hard-cap geometry from delayed online estimation of \\(g\\), and pair it with martingale-valid ATE inference under outcome-to-design feedback.",
+      "anchor_bibkey": "kapelnerkrieger2023learning",
+      "anchor_read_receipt": "Read the Introduction, the covariate-weight learning construction, the simulation evidence on early instability, and the Discussion paragraphs on blockwise updates under delayed outcomes in \\cite{kapelnerkrieger2023learning}.",
+      "changed_proof_step": "The deterministic Hölder oscillation bound for accepted pairs must first be replaced by an online prediction-error inequality evaluated on adaptively selected reservoir pairs.",
+      "destination_search": "The destination search found response-adaptive sample splitting and adaptive ATE designs, but not a learning-plus-hard-cap decomposition for online pair formation.",
+      "motif": "M13+M14",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 21
+      },
+      "cynical_objection": "Immediate from ordinary nonparametric regression rates plus the oracle capacity bound.",
+      "rebuttal": "Reservoir pairs are selected by the estimated score and delayed filtration, so ordinary risk does not control prediction error on selected edges or restore randomization inference.",
+      "anti_pattern_check": "The motif is M13+M14 because design regret and adaptive inference are both focal; it is not mislabeled as a bare M8 extension.",
+      "disposition": "dropped-for-two-simultaneous-bottlenecks"
+    },
+    {
+      "id": "seed-multiarm-tuples",
+      "kernel": "Characterize the hard-cap frontier for online \\(q\\)-unit tuples receiving every treatment once, including the dependence on residue vectors modulo \\(q\\) and terminal tuple completion.",
+      "anchor_bibkey": "bailiutabordmeehan2024tuples",
+      "anchor_read_receipt": "Read the Introduction, matched-tuples setup, Theorems 3.1--3.2, the conditional-array proof decomposition, and the recommendations section of \\cite{bailiutabordmeehan2024tuples}. The paper assumes homogeneous offline tuples already exist.",
+      "changed_proof_step": "Pairwise parity must first be replaced by a vector of cell residues modulo \\(q\\), and the capacity certificate must control incomplete tuples across coarsening levels.",
+      "destination_search": "The destination pair ``online \\(q\\)-way matching plus matched-tuples causal precision'' found \\cite{melnykwangwattenhofer2021kway}, whose delay objective and \\(H\\)-metric have no hard capacity or common deadline.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "cynical_objection": "Immediate by replacing parity with residues modulo \\(q\\) in the pairwise proof.",
+      "rebuttal": "Tuple completion couples \\(q-1\\) deficit coordinates and the causal loss is a contrast covariance matrix, so neither the lower prior nor endpoint workload argument transfers mechanically.",
+      "anti_pattern_check": "The seed is an optimal-design frontier, not a routine binary-to-multiple-treatment relabeling, because the first combinatorial invariant changes from scalar parity to a residue vector.",
+      "adjacent_threads": [
+        "\\cite{melnykwangwattenhofer2021kway}: reduction of an \\(H\\)-metric tuple cost to pairwise tree distances.",
+        "\\cite{kapelnerkrieger2023learning}: explicit multiarm online-matching direction without a theorem.",
+        "\\cite{bai2022optimality}: optimal fixed treated-fraction strata formed by sorting an inverse-probability prognostic index."
+      ],
+      "disposition": "survived-not-chosen"
+    },
+    {
+      "id": "seed-critical-logarithm",
+      "kernel": "At \\(d=1\\) and \\(\\beta=1/2\\), prove the sharp \\(\\Theta(\\log T)\\) total geometric cost at maximal usable capacity and identify whether cross-scale cancellation yields a limiting constant.",
+      "anchor_bibkey": "ascheretal2026generalarrivals",
+      "anchor_read_receipt": "Read the Introduction, Theorem 1, the algorithmic framework, the forced-matching event proof for the uniform-law warm-up, and the lower-bound discussion of \\cite{ascheretal2026generalarrivals}. Their known-iid line algorithm uses branching of order \\(\\log T\\) and gives an \\(O(\\log^2 T)\\) ratio.",
+      "changed_proof_step": "The first changed step is to replace a union bound across large merged buckets by fixed-branching workload cancellation while preserving deterministic occupancy.",
+      "destination_search": "Searches for the uniform-line critical logarithm found only the gap between logarithmic and squared-logarithmic costs in adjacent dynamic-matching models.",
+      "motif": "M13",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 3,
+        "total": 18
+      },
+      "cynical_objection": "This merely closes one logarithm in an online-matching special case.",
+      "rebuttal": "The hard-cap causal model yields a different additive oracle regret, but the one-dimensional critical slice alone is narrower than the full frontier and is therefore not selected.",
+      "anti_pattern_check": "The seed has a named critical logarithm and constant question, but its special-case scope limits ambition.",
+      "disposition": "dropped-as-subsumed-by-selected-frontier"
+    },
+    {
+      "id": "seed-power-cost-frontier",
+      "kernel": "For matching loss \\(\\|X_i-X_j\\|^p\\), derive the hard-cap phase diagram in \\((p,d,B,T)\\) and identify the macro-scale versus nearest-neighbor transition.",
+      "anchor_bibkey": "kanoria2025dynamicspatial",
+      "anchor_read_receipt": "Read the Introduction, the static and dynamic scaling theorems, the Hierarchical Greedy construction and correctness proof, and the Discussion's open direction for power costs in \\cite{kanoria2025dynamicspatial}.",
+      "changed_proof_step": "Kanoria's replenished supply lower boundaries must first be replaced by a depleting arrival-incidence reservoir whose last unmatched suffix has no replenishment.",
+      "destination_search": "Searching ``power cost hard buffer online spatial matching deadline'' did not reveal a finite-horizon hard-cap theorem; the closest sources study replenished supply or delay penalties.",
+      "motif": "M13",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3,
+        "total": 18
+      },
+      "cynical_objection": "The phase diagram is already implicit in Hierarchical Greedy's level-by-level sum.",
+      "rebuttal": "That sum relies on permanent supply lower bounds; a common terminal deadline introduces a weighted suffix term absent from the replenished model.",
+      "anti_pattern_check": "This is a design frontier with a changed resource process, but it is less directly causal than the selected prognostic-score kernel.",
+      "disposition": "dropped-for-consumer-value"
+    }
+  ],
+  "literature_map": "The selected seed sits between offline causal optimality and online general-arrivals matching. \\cite{bai2022optimality} identifies adjacent pairing after sorting the prognostic sum \\(g\\) as the conditional-MSE-minimizing half-treatment design. \\cite{morrison2025reservoir} gives an uncapped packing reservoir and a superpopulation CLT when its unmatched remainder is negligible, but it neither empties the reservoir nor characterizes finite-horizon regret. \\cite{kapelnerkrieger2023learning} supplies the practitioner reservoir and explicitly leaves capacity- and time-dependent tuning unresolved. \\cite{zhaozhou2024pigeonhole} supplies the experiment-native cell-parity construction without waiting or terminal clearing. \\cite{ascheretal2026generalarrivals} studies the same arrival-incidence matching primitive and proves forced completion with a large-branching coarsening algorithm, but it imposes no hard pool cap and uses a competitive-ratio objective. \\cite{kanoria2025dynamicspatial} and \\cite{azarchiplunkarkaplan2017delays} supply multiscale accounting under replenished supply and delay costs, respectively; neither controls a depleting capped reservoir at a common endpoint. For the surviving inference seed, \\cite{bairomanoshaikh2022inference} and \\cite{morrison2025reservoir} settle superpopulation matched-pair CLTs but not fixed-potential-outcome inference for adapted terminal blocks. For the surviving tuple seed, \\cite{bailiutabordmeehan2024tuples} settles offline tuple inference and \\cite{melnykwangwattenhofer2021kway} settles delayed \\(k\\)-way matching on \\(H\\)-metrics, leaving their hard-cap causal intersection empty.",
+  "literature_checklist": [
+    {
+      "author": "Bai",
+      "year": 2022,
+      "venue": "American Economic Review",
+      "bibkey": "bai2022optimality",
+      "one_line": "Adjacent pairing after sorting the prognostic sum minimizes conditional MSE among half-treatment stratifications.",
+      "relevant_to": "lem:offline-adjacent"
+    },
+    {
+      "author": "Kapelner and Krieger",
+      "year": 2023,
+      "venue": "Biometrics",
+      "bibkey": "kapelnerkrieger2023learning",
+      "one_line": "A sequential reservoir matches arrivals to randomized earlier units and leaves dynamic threshold tuning open.",
+      "relevant_to": "oeq:endpoint-safe-coarsening"
+    },
+    {
+      "author": "Morrison",
+      "year": 2025,
+      "venue": "arXiv preprint",
+      "bibkey": "morrison2025reservoir",
+      "one_line": "A packing reservoir attains the offline matched-pair CLT when its unmatched remainder is asymptotically negligible.",
+      "relevant_to": "prop:causal-regret-reduction"
+    },
+    {
+      "author": "Zhao and Zhou",
+      "year": 2024,
+      "venue": "Management Science",
+      "bibkey": "zhaozhou2024pigeonhole",
+      "one_line": "Cellwise online treatment balance yields geometric discrepancy guarantees without a waiting reservoir.",
+      "relevant_to": "thm:capped-grid-upper"
+    },
+    {
+      "author": "Ascher, Balkanski, Chatzitheodorou, and Gkatzelis",
+      "year": 2026,
+      "venue": "ACM Conference on Economics and Computation",
+      "bibkey": "ascheretal2026generalarrivals",
+      "one_line": "Unknown-iid general-arrivals matching on the line admits an \\(O(\\log^2 T)\\)-competitive coarsening algorithm.",
+      "relevant_to": "oeq:endpoint-safe-coarsening"
+    },
+    {
+      "author": "Kanoria",
+      "year": 2025,
+      "venue": "Annals of Applied Probability",
+      "bibkey": "kanoria2025dynamicspatial",
+      "one_line": "Hierarchical Greedy separates spatial matching cost across scales under static or replenished supply.",
+      "relevant_to": "oeq:endpoint-safe-coarsening"
+    },
+    {
+      "author": "Azar, Chiplunkar, and Kaplan",
+      "year": 2017,
+      "venue": "ACM--SIAM Symposium on Discrete Algorithms",
+      "bibkey": "azarchiplunkarkaplan2017delays",
+      "one_line": "Tree embedding and levelwise charging give logarithmic competitiveness for matching with delays.",
+      "relevant_to": "oeq:endpoint-safe-coarsening"
+    },
+    {
+      "author": "Bai, Romano, and Shaikh",
+      "year": 2022,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "bairomanoshaikh2022inference",
+      "one_line": "Covariate-close offline matched pairs admit asymptotically exact ATE inference with a tailored variance estimator.",
+      "relevant_to": "lem:design-variance-identity"
+    },
+    {
+      "author": "Bai, Liu, and Tabord-Meehan",
+      "year": 2024,
+      "venue": "Quantitative Economics",
+      "bibkey": "bailiutabordmeehan2024tuples",
+      "one_line": "Offline matched tuples yield joint limit theory and consistent covariance estimation for treatment contrasts.",
+      "relevant_to": "thm:minimax-frontier"
+    },
+    {
+      "author": "Melnyk, Wang, and Wattenhofer",
+      "year": 2021,
+      "venue": "arXiv preprint",
+      "bibkey": "melnykwangwattenhofer2021kway",
+      "one_line": "An \\(H\\)-metric reduction supports logarithmic competitive guarantees for delayed \\(k\\)-way matching.",
+      "relevant_to": "thm:minimax-frontier"
+    }
+  ],
+  "novelty_justification": "The closest causal result is \\cite{morrison2025reservoir}: its packing policy is allowed a random unmatched remainder and yields an asymptotic sufficient condition, whereas the present kernel asks for a nonasymptotic minimax law for every hard cap and requires all units to belong to independently oriented pairs at the deadline. The closest matching result is \\cite{ascheretal2026generalarrivals}: it shares arrival-incidence perfect matching and forced completion, but has no deterministic occupancy constraint, studies linear line distance, and controls a ratio to offline cost rather than the additive prognostic-score regret that equals causal design-variance excess. The new mathematical object is the capacity--deadline frontier \\(F_{\\alpha}(T,b)\\), whose suffix sum records the shrinking set of feasible partners. No closer source found in the anchor citations, citing threads, or target--method searches states either side of this frontier or the iff rule \\(B_T\\to\\infty\\)."
+}

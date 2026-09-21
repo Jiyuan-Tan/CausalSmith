@@ -1,10 +1,13 @@
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.Probability.Notation
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Analysis.Convex.Integral
-import Mathlib.Probability.Independence.Integration
-import FoML.Hoeffding
-import FoML.Defs
+module
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Mathlib.Probability.Notation
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Analysis.Convex.Integral
+public import Mathlib.Probability.Independence.Integration
+public import FoML.Hoeffding
+public import FoML.Defs
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Real
 

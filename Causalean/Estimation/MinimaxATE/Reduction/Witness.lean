@@ -34,8 +34,9 @@ research content of the paper (the Ingster χ² / fuzzy-hypothesis step); this f
 is correct regardless of how the witness is built.
 -/
 
-import Causalean.Estimation.MinimaxATE.Model
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import Causalean.Estimation.MinimaxATE.Model
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-! # Two-Point Reduction
 
@@ -48,6 +49,8 @@ half-scale, a total-variation budget, and the domination condition connecting ea
 `minimaxMiss`.  The theorem `twoPointWitness_lower_bound` gives the Le Cam lower bound
 `(1 - c) / 2`, and `twoPointWitness_quarter` specializes it to the common `c ≤ 1/2` case used by
 the explicit minimax constructions. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -68,7 +71,7 @@ in-class minimax miss probability](hyp:dominated) — the realizability conditio
 mixture-of-in-class-DGPs construction discharges. -/
 structure TwoPointWitness (C : Type*) [Fintype C] [Nonempty C] [MeasurableSpace C]
     (n : ℕ) (mhat : C → ℝ) (ghat : Bool → C → ℝ) (εg εm : ℝ) where
-  /-- Separation half-scale (a concrete witness achieves `s ≍ √εg · √εm`). -/
+  /-- Separation half-scale. -/
   s : ℝ
   /-- Total-variation budget between the two `n`-sample laws (`c < 1` is what bites). -/
   c : ℝ

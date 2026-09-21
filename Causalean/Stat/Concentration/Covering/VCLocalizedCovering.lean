@@ -1,13 +1,17 @@
-import Causalean.Stat.Concentration.Covering.EmpiricalPseudoMetric
-import Causalean.Stat.Concentration.Covering.HausslerPacking
+module
+public import Causalean.Stat.Concentration.Covering.EmpiricalPseudoMetric
+public import Causalean.Stat.Concentration.Covering.HausslerPacking
+public import Mathlib.Tactic.Positivity.Finset
 
 /-!
-Metric bridge between empirical L² distance and weighted Boolean Hamming distance.
+A standalone metric identity for binary-factored function classes.
 
-This file records the samplewise algebra used by localized finite-VC covering
-arguments: for binary-factored real classes, empirical L² distance is exactly
-the weighted Hamming distance of the induced Boolean traces.
+The result identifies empirical L² distance with weighted Boolean Hamming
+distance on a fixed sample. It is available as an algebraic bridge but is not
+used by the finite-pattern localized Rademacher pipeline.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

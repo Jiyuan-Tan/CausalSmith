@@ -1,0 +1,621 @@
+%%% FIELD proof-fpt-minimal-polynomial
+Put \(r=|D\setminus T|\).  This integer is read from the input, so the cases \(r=0\) and \(r>0\) are deterministic, mutually exclusive, and exhaustive.
+
+Suppose first that \(r=0\).  By \(\mathrm{lem:tree\mbox{-}class\mbox{-}algorithm\mbox{-}transfer}\), \(\mathcal G_{n,0}\) is exactly the rooted-tree mixed-graph class of the published complete procedure, including arbitrary bidirected support and bows.  Running that procedure with tolerance \(\delta\) returns either all one or two generic values as \(\operatorname{FASTP}\) expressions or the infinite tag.  Thus it gives exactly the first two rows of \(\mathrm{def:certificate\mbox{-}algorithm}\), with error probability at most \(\delta\).
+
+Now suppose that \(r>0\), and enumerate the source coordinates by
+\[
+ u=(\lambda_D,\omega_B,\omega_{\mathrm{diag}})=(u_1,\ldots,u_N),
+ \qquad N=|D|+|B|+n.
+\tag{1}
+\]
+Then \(L=\mathbb C(u_1,\ldots,u_N)\).  By \(\mathrm{ass:acyclic}\), a topological ordering makes \(\Lambda\) strictly triangular, so \(\Lambda^n=0\) and
+\[
+ (I_n-\Lambda)^{-1}=I_n+\Lambda+\cdots+\Lambda^{n-1}.
+\tag{2}
+\]
+Consequently each covariance coordinate
+\[
+ s_{ij}(u)=\phi_G(\sigma_{ij})
+ =\bigl[(I_n-\Lambda)^{-\mathsf T}\Omega(I_n-\Lambda)^{-1}\bigr]_{ij}
+\tag{3}
+\]
+is a polynomial of degree at most \(2n-1\), represented by an arithmetic circuit of size polynomial in \(n\).  Let \(J_0=\partial s/\partial u\), and let \(J_1\) be obtained from \(J_0\) by adjoining the row \(\partial\lambda_e/\partial u\).  Entries of \(J_0\) have degree at most \(2n-2\), and the added row is constant.
+
+We establish the rank criterion directly.  For elements \(a_1,\ldots,a_M\in L\), choose a maximal algebraically independent subfamily \(b_1,\ldots,b_q\), and extend it by \(c_1,\ldots,c_\ell\) to a transcendence basis of \(L/\mathbb C\).  Characteristic zero makes \(L/\mathbb C(b,c)\) finite separable.  The derivations of \(\mathbb C(b,c)\) that send one \(b_j\) to \(1\) and all other basis elements to \(0\) extend uniquely through that separable extension: if \(v\) has minimal polynomial \(g(t)=\sum_h g_h t^h\), differentiating \(g(v)=0\) gives
+\[
+ g'(v)\,dv=-\sum_h v^h\,dg_h,
+\tag{4}
+\]
+and \(g'(v)\ne0\).  These extended derivations show that \(db_1,\ldots,db_q\) are linearly independent over \(L\).  Conversely, each \(a_i\) is separably algebraic over \(\mathbb C(b_1,\ldots,b_q)\), and the same differentiation argument puts \(da_i\) in the span of the \(db_j\).  Therefore
+\[
+ \dim_L\operatorname{span}_L\{da_1,\ldots,da_M\}
+ =\operatorname{trdeg}_{\mathbb C}\mathbb C(a_1,\ldots,a_M).
+\tag{5}
+\]
+In the basis \(du_1,\ldots,du_N\) of \(\Omega_{L/\mathbb C}\), the coefficient rows of the differentials in (5) are the corresponding Jacobian rows.  Hence
+\[
+ \operatorname{rank}_L J_0=\operatorname{trdeg}_{\mathbb C}K_G,
+ \qquad
+ \operatorname{rank}_L J_1=\operatorname{trdeg}_{\mathbb C}K_G(\lambda_e).
+\tag{6}
+\]
+Adjoining one element preserves transcendence degree precisely when that element is algebraic and otherwise raises it by one.  Thus the two generic ranks are equal if and only if \(d_e(G)<\infty\); otherwise the augmented rank is larger by one and \(d_e(G)=\infty\).
+
+Acyclicity bounds \(|D|\leq n(n-1)/2\), while \(|B|\leq n(n-1)/2\); hence \(N\leq n^2\).  There are at most \(n(n+1)/2+1\leq n^2+1\) rows.  A nonzero minor witnessing either generic rank has degree at most
+\[
+ n^2(2n-2)\leq2n^3,
+\tag{7}
+\]
+where \(n\geq2\) is \(\mathrm{ass:size}\).  Choose a finite rational sampling set \(S\) with \(|S|\geq\lceil4n^3/\delta\rceil\), and sample the source coordinates independently and uniformly from \(S\).  Specialization cannot increase rank.  If one evaluated rank is smaller than its generic rank, a fixed nonzero maximal minor vanishes.  By \(\mathrm{lem:schwartz\mbox{-}zippel\mbox{-}bound}\), this has probability at most \(\delta/2\) for each Jacobian.  A union bound therefore makes both ranks correct with probability at least \(1-\delta\).  The exact sample, pivot positions, evaluated pivot minors, and identity-test transcript constitute \(\mathcal J_{G,e}\).
+
+On this error-free event, a rank increase means that \(\lambda_e\) is transcendental over \(K_G\).  The homomorphism
+\[
+ K_G[t]\longrightarrow A_K,\qquad t\longmapsto\lambda_e,
+\tag{8}
+\]
+is then injective.  By \(\mathrm{thm:incidence\mbox{-}localization}\), \(A_K\) is an integral finitely generated \(K_G\)-algebra with fraction field \(L\).  Thus (8) induces a dominant morphism \(\operatorname{Spec}(A_K)\to\mathbb A^1_{K_G}\); moreover \(\dim A_K=\operatorname{trdeg}_{K_G}L\geq1\).  The source parametrization together with the augmented-rank transcript is exactly the dominance certificate \(\mathcal N_{G,e}\) specified in \(\mathrm{def:certificate\mbox{-}algorithm}\).  This proves the fourth output row.
+
+If the ranks are equal, \(d_e(G)<\infty\).  By \(\mathrm{thm:orientation\mbox{-}upper\mbox{-}bound}\) and \(\mathrm{lem:tournament\mbox{-}score\mbox{-}fiber\mbox{-}ceiling}\),
+\[
+\begin{aligned}
+ d_e(G)
+ &\leq\min\{2^{|D|-n+2},\tau_{n-1}\}\\
+ &\leq\min\{2^{|D|-n+2},2^{\binom{n-2}{2}}\}
+ =2^{\min\{|D|-n+2,\binom{n-2}{2}\}}.
+\end{aligned}
+\tag{9}
+\]
+Since \(|T|=n-1\),
+\[
+ |D|-n+2=|D\setminus T|+1=r+1\leq k+1,
+\tag{10}
+\]
+and therefore
+\[
+ d_e(G)\leq2^{\min\{|D|-n+2,\binom{n-2}{2}\}}
+ \leq2^{\min\{k+1,\binom{n-2}{2}\}}.
+\tag{11}
+\]
+This is exactly the third output row; neither the rank transcript nor (9) purports to compute \(d_e(G)\), \(p_e\), \(\mathcal Q_{G,e}\), or \(h_{G,e}\).
+
+The tree procedure has randomized polynomial cost by the transfer lemma.  On the positive-excess branch, (2), matrix multiplication, circuit differentiation, exact specialization, and Gaussian elimination on matrices of dimensions at most \((n^2+1)\)-by-\(n^2\) have polynomial arithmetic cost.  Each sampled value needs \(O(\log n+\log(1/\delta))\) bits, whose separate bit cost is excluded by \(\mathsf{ArithmeticModel}\).  Since \(n\geq2\) and \(k\geq0\), one universal \(C>0\) bounds both branches by
+\[
+ n^{C(k+1)}\operatorname{poly}(\log(1/\delta)).
+\tag{12}
+\]
+Only one branch is executed.  The error bounds above establish total symbolic error at most \(\delta\), and the deterministic split by \(r\), followed by the rank dichotomy (6), proves mutual exclusivity and exhaustiveness of all four outputs.
+
+%%% FIELD proof-real-root-lifting
+Write \(s=(s_{ij}:i\leq j)\) for real symmetric covariance variables, \(z\) for the queried value, and \(\ell=(\ell_f:f\in D)\) for real directed-coefficient variables.  Define the first-order formula
+\[
+ \Phi_G(s,z)\quad\Longleftrightarrow\quad
+ \exists\ell\in\mathbb R^D\left[
+   \ell_e=z\ \wedge\
+   \bigwedge_{i\leftrightarrow j\notin B}F_{ij}(\ell,s)=0
+ \right].
+\tag{13}
+\]
+Every polynomial in (13) has rational coefficients: \(D\) and \(B\) merely select variables and equations, while the displayed residual formula has coefficients in \(\{0,1,-1\}\).  By \(\mathrm{def:real\mbox{-}retained\mbox{-}set}\),
+\[
+ \Phi_G(\Sigma,z)\quad\Longleftrightarrow\quad
+ z\in\mathcal R_e(G,\Sigma).
+\tag{14}
+\]
+Apply the exact quantifier-elimination algorithm asserted by \(\mathrm{lem:effective\mbox{-}real\mbox{-}quantifier\mbox{-}elimination}\) over the real closed field \(\mathbb R\), with \(\ell\) quantified and \((s,z)\) free.  By the meaning of quantifier elimination, its output is a finite quantifier-free Boolean combination of polynomial equalities and strict inequalities with rational coefficients, say
+\[
+ \Psi_G(s,z)=\bigvee_a\bigwedge_b
+ \bigl(\operatorname{sign}g_{ab}(s,z)=\epsilon_{ab}\bigr),
+ \qquad
+ g_{ab}\in\mathbb Q[s,z],\quad
+ \epsilon_{ab}\in\{-1,0,1\},
+\tag{15}
+\]
+and \(\Psi_G\) is equivalent to \(\Phi_G\).  This uses only the cited existence of quantifier elimination; no complexity, ordered-domain input, or sign-determination guarantee is attributed to that citation.  Equations (14)--(15) are the claimed effectively computable if-and-only-if condition.  Because (13) uses the original residual equations and makes no division, it includes positive-dimensional fibers and real components contained in denominator-zero loci of intermediate reductions.
+
+Under the valid-chart and successful-output hypotheses, let \(\Sigma\succ0\) be real, in the covariance-model image, and outside \(\mathcal E_{G,e}\).  Then \(\mathrm{thm:exceptional\mbox{-}set\mbox{-}validity}\) gives
+\[
+ \{z\in\mathbb C:p_e(\Sigma,z)=0\}=\mathcal Z_e(G,\Sigma).
+\tag{16}
+\]
+The nonvanishing squarefreeness circuit makes all roots simple.  Evaluating (15) therefore decides, for each simple real root in (16), exactly whether it extends to a complete real supported coefficient vector.  In particular, neither complex degree nor the Jacobian rank is used as a real-uniqueness assertion.
+
+Suppose next that the entries of \(\Sigma\) are real algebraic numbers supplied by exact univariate representations and isolating data.  Every coefficient circuit of \(p_e\) is then exactly evaluable because the certified denominators are nonzero.  After multiplication by a known nonzero common denominator, \(p_e(\Sigma,t)=0\) becomes a nonzero univariate polynomial over an explicitly ordered real algebraic coefficient domain.  Apply \(\mathrm{lem:real\mbox{-}algebraic\mbox{-}sampling}\) to that univariate zero set, including among its sign polynomials the derivative and the finitely many polynomials appearing in (15).  Its real zero set is finite, and hence each semialgebraically connected component is one root.  The returned univariate representations and their isolating data consequently enumerate all simple real roots and provide the exact signs required to evaluate (15).
+
+For an enumerated root \(z\), also form
+\[
+ Q_{\Sigma,z}(\ell)
+ =(\ell_e-z)^2+
+ \sum_{i\leftrightarrow j\notin B}F_{ij}(\ell,\Sigma)^2.
+\tag{17}
+\]
+Over an ordered field a sum of squares is zero exactly when every summand is zero.  Thus
+\[
+ Z_{\mathbb R}(Q_{\Sigma,z})\ne\varnothing
+ \quad\Longleftrightarrow\quad
+ \Phi_G(\Sigma,z)
+ \quad\Longleftrightarrow\quad
+ z\in\mathcal R_e(G,\Sigma).
+\tag{18}
+\]
+Apply the algebraic-sampling lemma again to (17), over the ordered algebraic domain generated by the supplied representations of \(\Sigma\) and \(z\).  If (17) has a real zero, the algorithm returns a real univariate representation of a complete lift \(\ell\); if it has none, the exact sign evaluation of (15) rejects.  Arithmetic in a finite tower of represented real algebraic numbers is reduced to one primitive-element representation by testing finitely many rational linear combinations and refining isolating intervals; all tests are exact polynomial remainder and sign computations.  Therefore the root representation, isolating interval, signs in (15), and, in the accepting case, the sampled lift form a finite \(\mathsf{LiftCert}\) which accepts exactly the roots in \(\mathcal R_e(G,\Sigma)\).  The theorem makes no evaluation claim when the real entries of \(\Sigma\) lack such finite exact representations.
+
+Finally, let \(\Lambda\in\mathbb R^D\) be an accepted lift and put \(R=I_n-\Lambda\).  By \(\mathrm{ass:acyclic}\), \(R\) is unit triangular in a topological order and is invertible.  Define
+\[
+ \Omega=R^{\mathsf T}\Sigma R.
+\tag{19}
+\]
+For every nonzero real vector \(x\), \(Rx\ne0\), and therefore
+\[
+ x^{\mathsf T}\Omega x=(Rx)^{\mathsf T}\Sigma(Rx)>0.
+\tag{20}
+\]
+Thus \(\Omega\succ0\).  Entrywise expansion of (19) gives \(\Omega_{ij}=F_{ij}(\Lambda,\Sigma)\).  The accepting equations make this entry zero whenever \(i\leftrightarrow j\notin B\), which is exactly \(\mathrm{ass:noise\mbox{-}support}\).  Conversely, every real supported SEM lift satisfies these residual equations.  Rearranging (19) gives \(\Sigma=R^{-\mathsf T}\Omega R^{-1}\), proving both the exact real-extension characterization and the positive-definiteness conclusion by congruence.
+
+%%% FIELD proof-derived-root-separation
+Put \(d=d_e(G)\).  On the successful finite-output event,
+\[
+ p_e(\Sigma,t)=t^d+\sum_{a=0}^{d-1}c_a(\Sigma)t^a.
+\tag{21}
+\]
+Each \(c_a\) is a rational covariance circuit.  By \(\mathrm{def:regular\mbox{-}class}\), \(\mathcal K_G\) is compact and lies in \(\mathcal M_G\setminus\mathcal E_{G,e}\).  Thus every denominator, specialized-leading-coefficient factor, and squarefreeness factor occurring in \(h_{G,e}\) is continuous and nonzero on \(\mathcal K_G\).  Each has a positive minimum in absolute value, while every numerator has a finite maximum.  Hence there exists \(M<\infty\) such that
+\[
+ \max_{0\leq a<d}|c_a(\Sigma)|\leq M
+ \qquad(\Sigma\in\mathcal K_G).
+\tag{22}
+\]
+If \(z\) is a root and \(|z|>1+M\), then
+\[
+ |z|^d
+ \leq M\sum_{a=0}^{d-1}|z|^a
+ =M\frac{|z|^d-1}{|z|-1}
+ <|z|^d,
+\tag{23}
+\]
+a contradiction.  Hence all roots lie in the fixed disk \(|z|\leq1+M\).  The incidence set
+\[
+ \mathcal Z_{\mathrm{root}}
+ =\{(\Sigma,z)\in\mathcal K_G\times\mathbb C:p_e(\Sigma,z)=0\}
+\tag{24}
+\]
+is closed in a compact set and is therefore compact.
+
+The nonzero squarefreeness circuit says that \(p_e(\Sigma,\cdot)\) and \(\partial_t p_e(\Sigma,\cdot)\) have no common root.  Thus \(\partial_t p_e\ne0\) on (24), and continuity gives
+\[
+ \eta=\min_{(\Sigma,z)\in\mathcal Z_{\mathrm{root}}}
+ |\partial_t p_e(\Sigma,z)|>0.
+\tag{25}
+\]
+Suppose that no uniform root separation existed.  There would then be \(\Sigma_\nu\in\mathcal K_G\) and distinct roots \(z_\nu,w_\nu\) with \(|z_\nu-w_\nu|\to0\).  Compactness provides a subsequence for which \(\Sigma_\nu\to\Sigma_*\) and \(z_\nu,w_\nu\to z_*\).  The divided difference
+\[
+ \frac{p_e(\Sigma,z)-p_e(\Sigma,w)}{z-w}
+\tag{26}
+\]
+extends polynomially to \(z=w\), where it equals \(\partial_t p_e(\Sigma,z)\).  It vanishes along the sequence, so passage to the limit gives both \(p_e(\Sigma_*,z_*)=0\) and \(\partial_t p_e(\Sigma_*,z_*)=0\), contradicting (25).  Therefore some \(\gamma>0\) separates every two distinct complex roots uniformly on \(\mathcal K_G\).  By \(\mathrm{def:regular\mbox{-}class}\), the selected class lies in a regular-cell refinement whose retained values are labeled among the real roots of \(p_e\); hence the same \(\gamma\) separates all distinct retained roots.
+
+%%% FIELD proof-regular-finite-set-inference
+Let \(q=n(n+1)/2\), fix an ordering \(\operatorname{vech}\) of symmetric entries, and define
+\[
+ W_r=\operatorname{vech}\!\left(X^{(r)}X^{(r)\mathsf T}-\Sigma\right).
+\tag{27}
+\]
+Then
+\[
+ \sqrt m\,\operatorname{vech}(S_m-\Sigma)
+ =m^{-1/2}\sum_{r=1}^m W_r.
+\tag{28}
+\]
+Under \(\mathrm{ass:iid\mbox{-}gaussian}\), the summands are independent and centered.  Differentiating the Gaussian moment-generating function gives
+\[
+ \mathbb E_\Sigma(X_iX_jX_kX_l)
+ =\sigma_{ij}\sigma_{kl}+\sigma_{ik}\sigma_{jl}+\sigma_{il}\sigma_{jk},
+\tag{29}
+\]
+so
+\[
+ \operatorname{Cov}_\Sigma(W_{r,ij},W_{r,kl})
+ =\sigma_{ik}\sigma_{jl}+\sigma_{il}\sigma_{jk}
+ =(V_\Sigma)_{ij,kl}.
+\tag{30}
+\]
+Compactness of \(\mathcal K_G\) uniformly bounds every fixed Gaussian moment, including \(\mathbb E_\Sigma\|W_r\|^3\).  For each fixed \(u\in\mathbb R^q\), Taylor expansion of the characteristic function, with its remainder controlled by this third moment, gives uniformly in \(\Sigma\in\mathcal K_G\)
+\[
+ \mathbb E_\Sigma\exp\!\left(\frac{i u^{\mathsf T}W_r}{\sqrt m}\right)
+ =1-\frac{u^{\mathsf T}V_\Sigma u}{2m}+O(m^{-3/2}).
+\tag{31}
+\]
+Taking the \(m\)-th power proves
+\[
+ \sqrt m\,\operatorname{vech}(S_m-\Sigma)
+ \rightsquigarrow N(0,V_\Sigma)
+\tag{32}
+\]
+uniformly on \(\mathcal K_G\).  Indeed, along every sequence in the compact class, a convergent covariance subsequence exists; (31) identifies its unique weak limit, while the uniformly bounded second moments give tightness.  Chebyshev's inequality also yields
+\[
+ \|S_m-\Sigma\|=O_{\mathbb P}(m^{-1/2})
+\tag{33}
+\]
+uniformly.
+
+On the projection tube write \(\widehat\Sigma_m=\pi_G(S_m)\).  The projection fixes its smooth stratum, so \(\pi_G(\Sigma)=\Sigma\).  Smoothness on a neighborhood of the compact set and Taylor's theorem give
+\[
+ \operatorname{vech}(\widehat\Sigma_m-\Sigma)
+ =D\pi_G(\Sigma)\operatorname{vech}(S_m-\Sigma)
+ +O_{\mathbb P}(\|S_m-\Sigma\|^2)
+\tag{34}
+\]
+uniformly.  Every coefficient circuit of \(p_e\) is smooth near \(\mathcal K_G\), because its denominator has a positive minimum there.  The preceding root-separation lemma supplies a common separation margin and a positive lower bound for \(|\partial_t p_e|\).  The implicit-function argument applied to
+\(p_e(\Sigma,r_j(\Sigma))=0\) therefore gives one unique smooth branch through each retained root, with uniformly bounded first and second derivatives on a finite cover, and
+\[
+ Dr_j(\Sigma)[H]
+ =-\frac{D_\Sigma p_e(\Sigma,r_j(\Sigma))[H]}
+         {\partial_t p_e(\Sigma,r_j(\Sigma))}.
+\tag{35}
+\]
+Increasing order, uniform separation, and the constant extension labels built into \(\mathrm{def:regular\mbox{-}cell}\) give the common labeling \(r=(r_1,\ldots,r_J)\).  Equations (32)--(35), Taylor's theorem, and multiplication of characteristic functions by remainders converging to zero in probability yield
+\[
+ \sqrt m\{r(\pi_G(S_m))-r(\Sigma)\}
+ \rightsquigarrow N\!\left(0,
+ Dr(\Sigma)D\pi_G(\Sigma)V_\Sigma
+ D\pi_G(\Sigma)^{\mathsf T}Dr(\Sigma)^{\mathsf T}
+ \right)
+\tag{36}
+\]
+uniformly on \(\mathcal K_G\).
+
+All certificate factors are continuous and nonzero on \(\mathcal K_G\), and extension labels are locally constant on the selected cell.  Compactness supplies a relative neighborhood \(U\) on which the projection is defined, all certificate factors remain valid, and precisely the same \(J\) branches are retained.  With \(\gamma\) from the separation lemma, define
+\[
+ \mathcal H_m=\left\{
+ \begin{array}{l}
+ S_m\text{ lies in the projection tube},\quad \widehat\Sigma_m\in U,\\[2pt]
+ \displaystyle\max_{1\leq j\leq J}
+ |r_j(\widehat\Sigma_m)-r_j(\Sigma)|<\gamma/3
+ \end{array}
+ \right\}.
+\tag{37}
+\]
+Uniform consistency in (33)--(34), uniform continuity of the finitely many root maps, and the positive certificate margins imply
+\[
+ \inf_{\Sigma\in\mathcal K_G}\Pr_\Sigma(\mathcal H_m)\longrightarrow1.
+\tag{38}
+\]
+On \(\mathcal H_m\), \(\mathrm{thm:real\mbox{-}root\mbox{-}lifting}\) and \(\mathrm{def:finite\mbox{-}set\mbox{-}estimator}\) give
+\[
+ \widehat{\mathcal R}_{e,m}
+ =\{r_1(\widehat\Sigma_m),\ldots,r_J(\widehat\Sigma_m)\}.
+\tag{39}
+\]
+The margin in (37) makes (39) a bijective matching to \(\mathcal R_e(G,\Sigma)\).  By \(\mathrm{lem:regular\mbox{-}cell\mbox{-}existence}\), \(J\geq1\), so the estimated set is nonempty on \(\mathcal H_m\).  Moreover,
+\[
+ d_H(\widehat{\mathcal R}_{e,m},\mathcal R_e(G,\Sigma))
+ \leq\max_j|r_j(\widehat\Sigma_m)-r_j(\Sigma)|
+ =O_{\mathbb P}(m^{-1/2})
+\tag{40}
+\]
+uniformly.  Formally, for every \(\varepsilon>0\), first use (38) to make \(\Pr_\Sigma(\mathcal H_m^c)<\varepsilon/2\) uniformly, and then choose the constant in the \(O_{\mathbb P}\) bound on the right side of (40) to make its exceedance probability below \(\varepsilon/2\).  This also handles the stipulated infinite Hausdorff distance on \(\mathcal H_m^c\).  Finally,
+\[
+ \sup_{\Sigma\in\mathcal K_G}
+ \Pr_\Sigma(\widehat{\mathcal R}_{e,m}=\varnothing)
+ \leq\sup_{\Sigma\in\mathcal K_G}\Pr_\Sigma(\mathcal H_m^c)
+ \longrightarrow0.
+\tag{41}
+\]
+
+It remains to construct simultaneous neighborhoods.  Let \(s=\dim\mathcal C_{G,e}\) and
+\[
+ W_\pi(\Sigma)=D\pi_G(\Sigma)V_\Sigma D\pi_G(\Sigma)^{\mathsf T}.
+\tag{42}
+\]
+For any nonzero symmetric direction \(H\), (29) gives
+\[
+ \operatorname{Var}_\Sigma(X^{\mathsf T}HX)
+ =2\operatorname{tr}\!\left((\Sigma^{1/2}H\Sigma^{1/2})^2\right)>0,
+\tag{43}
+\]
+because \(\Sigma\succ0\).  Hence \(V_\Sigma\) is positive definite on symmetric-coordinate directions.  The nearest-point projection fixes the stratum; its derivative is the identity on the tangent space and has that \(s\)-dimensional space as image.  Therefore \(W_\pi\) has constant rank \(s\).  Compactness bounds its smallest positive eigenvalue away from zero, so its Moore--Penrose inverse is continuous.  With the continuous plug-in matrix \(\widehat W_{\pi,m}\), (32)--(34) and continuous mapping yield
+\[
+ m\,\operatorname{vech}(\widehat\Sigma_m-\Sigma)^{\mathsf T}
+ \widehat W_{\pi,m}^{+}
+ \operatorname{vech}(\widehat\Sigma_m-\Sigma)
+ \rightsquigarrow\chi_s^2
+\tag{44}
+\]
+uniformly.  To see the limiting law directly, diagonalize \(W_\pi\): for \(Z\sim N(0,W_\pi)\), the quadratic form \(Z^{\mathsf T}W_\pi^+Z\) is the sum of \(s\) independent squared standard normal variables.
+
+Let \(E_m\) be the corresponding confidence ellipsoid centered at \(\widehat\Sigma_m\), intersected with the regular projected neighborhood, and use the \((1-\alpha)\)-quantile of \(\chi_s^2\).  Equation (44) gives
+\[
+ \liminf_{m\to\infty}\inf_{\Sigma\in\mathcal K_G}
+ \Pr_\Sigma(\Sigma\in E_m)\geq1-\alpha.
+\tag{45}
+\]
+If \(s=0\), use the degenerate ellipsoid at the locally constant projected point, whose limiting coverage is one.  Define \(\mathcal A_{m,j}=r_j(E_m)\), as in \(\mathrm{def:branch\mbox{-}neighborhoods}\).  Whenever \(\Sigma\in E_m\), every inclusion \(r_j(\Sigma)\in\mathcal A_{m,j}\) holds simultaneously.  Thus
+\[
+ \liminf_{m\to\infty}\inf_{\Sigma\in\mathcal K_G}
+ \Pr_\Sigma\!\left(
+ r_j(\Sigma)\in\mathcal A_{m,j}\text{ for all }1\leq j\leq J
+ \right)\geq1-\alpha,
+\tag{46}
+\]
+which covers every retained branch and selects none.
+
+%%% FIELD proof-singleton-inference
+Assume that \(\mathcal R_e(G,\Sigma)=\{r_1(\Sigma)\}\) throughout \(\mathcal K_G\).  On the events \(\mathcal H_m\) supplied by \(\mathrm{thm:regular\mbox{-}finite\mbox{-}set\mbox{-}inference}\), the estimated set is bijectively matched to this singleton.  Hence it has exactly one element, denoted by \(\widehat r_m\), and
+\[
+ \inf_{\Sigma\in\mathcal K_G}\Pr_\Sigma\!\left(
+ \widehat{\mathcal R}_{e,m}=\{\widehat r_m\}\right)\longrightarrow1.
+\tag{47}
+\]
+Define \(\widehat r_m=0\) off that event; (47) makes this modification uniformly negligible.  For singleton sets the Hausdorff distance is absolute error, so the rate conclusion of the preceding theorem gives
+\[
+ |\widehat r_m-r_1(\Sigma)|=O_{\mathbb P}(m^{-1/2})
+\tag{48}
+\]
+uniformly, and therefore consistency.  Taking the sole coordinate of the joint branch limit gives
+\[
+ \sqrt m\{\widehat r_m-r_1(\Sigma)\}
+ \rightsquigarrow N(0,W_{11}(\Sigma)),
+\tag{49}
+\]
+where
+\[
+ W(\Sigma)=Dr(\Sigma)D\pi_G(\Sigma)V_\Sigma
+ D\pi_G(\Sigma)^{\mathsf T}Dr(\Sigma)^{\mathsf T}.
+\tag{50}
+\]
+The negligible off-event definition does not affect the limit.  If \(W_{11}(\Sigma)=0\), (49) denotes the degenerate centered normal law; no variance lower bound has been assumed or used.
+
+%%% FIELD proof-conditional-geometric-resolution
+Fix one source-consistent recorded stratum.  By \(\mathrm{lem:quadratic\mbox{-}core}\) and \(\mathrm{def:source\mbox{-}prime\mbox{-}chart}\), its exposed tuple is \(x=(x_1,\ldots,x_r)\) with \(r\leq2k\), and \(P=\ker\xi\subset K_G[x]\).  Chart validity gives
+\[
+ P K_G[x]_{H\Delta}
+ =(h_1,\ldots,h_c)K_G[x]_{H\Delta},
+ \qquad \xi(H\Delta)\ne0,
+\tag{51}
+\]
+where \(c=\operatorname{ht}P\), the localized sequence is reduced and regular, and \(\Delta\) is a nonzero \(c\)-by-\(c\) Jacobian minor.  Hence (51) presents the localization of the source prime, rather than an extraneous residual component.  It is smooth and pure dimensional of dimension
+\[
+ q=r-c\leq2k.
+\tag{52}
+\]
+The principal open set is represented polynomially by adjoining a variable \(u\) and the equation \(uH\Delta-1=0\).
+
+Let \(E=K_G(\lambda_e)\).  The hypothesis \(d_e(G)<\infty\) and characteristic zero make \(E/K_G\) finite separable.  For each \(K_G\)-embedding \(\tau:E\to\overline{K_G}\), the algebra
+\[
+ L\otimes_{E,\tau}\overline{K_G}
+\tag{53}
+\]
+is nonzero: after identifying \(E\) with \(\tau(E)\), this follows because extension by the field \(\overline{K_G}\) is faithfully flat.  Thus the base-changed source-prime chart has a nonempty geometric component above every conjugate of \(\lambda_e\), and \(H\Delta\) remains nonzero on the corresponding principal open component.
+
+The generic slicing operation in \(\mathrm{lem:groebner\mbox{-}free\mbox{-}geometric\mbox{-}resolution}\), applied to the reduced regular sequence (51), supplies \(q\) affine linear forms whose successive intersections are transverse, zero dimensional, and nonempty on every one of the finitely many conjugate components.  If \(q=0\), no slice is added.  Generic choices avoiding the finitely many transversality and leading-form polynomials work simultaneously for all components.  The cited algorithm then returns, on successful choices, a finite reduced algebra \(B_{\mathfrak C}\), multiplication matrices, and a primitive-element representation for the slice.  The chart's rational lifting circuits recover every eliminated directed coordinate, including \(\lambda_e\), and the chart identities make all original residuals vanish in the source-prime localization.
+
+Let \(M_{e,\mathfrak C}\) be multiplication by the recovered \(\lambda_e\) on \(B_{\mathfrak C}\), and put
+\[
+ \chi_{e,\mathfrak C}(t)=\det(tI-M_{e,\mathfrak C}).
+\tag{54}
+\]
+Since \(p_e(\lambda_e)=0\) in the source field, every root occurring in (54) is a root of \(p_e\).  Conversely, (53) supplies a component above every root of \(p_e\), and the simultaneous slice meets every such component; hence every root of \(p_e\) occurs in at least one polynomial (54).  Repetitions may arise from multiple slice points or charts, but characteristic zero makes \(p_e\) separable.  It follows that
+\[
+ p_e(t)=\operatorname{sqfree}\!\left(
+   \prod_{\mathfrak C}\chi_{e,\mathfrak C}(t)
+ \right),
+ \qquad \deg p_e=d_e(G).
+\tag{55}
+\]
+Indeed, the right side is monic and has exactly the distinct \(K_G\)-conjugates of \(\lambda_e\) as its roots.  Thus (55) recovers the single-coordinate minimal polynomial even when the unsliced parameter fiber is positive dimensional.
+
+All chart coefficients and lifting maps are rational arithmetic circuits in the covariance entries.  Determinants, multiplication-matrix operations, differentiation, subresultant greatest-common-divisor computations, squarefree extraction, and monic normalization are arithmetic-circuit operations over \(K_G\); hence (55) gives rational circuits for all coefficients of \(p_e\).  For each lifting identity, clear covariance denominators and record both those denominators and the resulting original-incidence identity.  Homogenization before slicing records the projective leading forms; univariate normalization records the specialized leading coefficient and squarefreeness resultant.  Covariance-localization factors are retained separately.  The rational-univariate coordinate formulas, their denominators, their isolating-data input polynomials, and the cleared original-residual verification identities form the real-lifting circuits; quantifier elimination is performed only later, in \(\mathrm{thm:real\mbox{-}root\mbox{-}lifting}\), and is not charged to this construction.  These finitely many certified nonzero circuits form \(\mathcal Q_{G,e}\), and their repetition-free cleared product is \(h_{G,e}\).  Equation (51) and \(\mathrm{thm:incidence\mbox{-}localization}\) ensure that no directed-coordinate expression is inverted, so every recorded pole or identically zero-over-zero stratum is either represented by a supplied valid chart or checked after lifting against the original incidence equations.
+
+For arbitrary recorded equations and inequations use \(\mathrm{lem:lifting\mbox{-}fiber\mbox{-}equidimensional\mbox{-}decomposition}\); for regular localized slices use \(\mathrm{lem:groebner\mbox{-}free\mbox{-}geometric\mbox{-}resolution}\).  Their stated complexity bounds, (52), multiplication-matrix linear algebra, and construction of the finite lifting and verification circuits give a universal \(a>0\) for which the total arithmetic work and output length are at most
+\[
+ (n+s)^{a(k+1)}\mathfrak d^a
+ \operatorname{poly}(\log(1/\delta)),
+\tag{56}
+\]
+where \(s=s(\mathfrak C_{G,e})\) and \(\mathfrak d=\mathfrak d(\mathfrak C_{G,e})\).  By definition, \(\mathfrak d\) charges every successive intersection, localization, slice, and lifting fiber, so no created branch is omitted from (56).
+
+Every randomized decision is a nonvanishing test for an explicit chart, transversality, leading-form, lifting, or resultant polynomial.  If their degree bounds are \(d_1,\ldots,d_M\), sample independently from finite sets \(S_j\) satisfying \(d_j/|S_j|\leq\delta/M\).  By \(\mathrm{lem:schwartz\mbox{-}zippel\mbox{-}bound}\) and a union bound,
+\[
+ \Pr(\text{some symbolic genericity decision is wrong})
+ \leq\sum_{j=1}^M\frac{d_j}{|S_j|}\leq\delta.
+\tag{57}
+\]
+On the complementary event, (51)--(55) show that the returned tuple is exactly \((d_e(G),p_e,\mathcal Q_{G,e},h_{G,e})\).
+
+Finally, if \(s\leq n^b\) and \(\mathfrak d\leq n^{b(k+1)}\), then \(n\geq2\) implies, after enlarging a universal exponent,
+\[
+ (n+s)^{a(k+1)}\mathfrak d^a
+ \leq n^{a(\max\{1,b\}+1+b)(k+1)}
+ \leq n^{C(k+1)}.
+\tag{58}
+\]
+This proves the asserted fixed-parameter specialization.  Every step began with supplied valid localized source-prime charts; no step constructs those charts or selects the embedded source prime without them.
+
+%%% FIELD proof-maximality-threshold
+Fix an admissible pair \(n\geq2\) and \(k\geq0\), as required by \(\mathrm{ass:size}\) and \(\mathrm{ass:k\mbox{-}domain}\).  If
+\[
+ n\geq2k+4,
+\tag{59}
+\]
+then \(\mathrm{thm:large\mbox{-}size\mbox{-}frontier}\) gives
+\[
+ D_k(n)=2^{k+1}.
+\tag{60}
+\]
+
+Conversely, suppose \(n<2k+4\), and set \(N=n-1\) and \(g=k+1\).  Then \(N\geq1\), \(g\geq1\), and
+\[
+ N=n-1<2(k+1)+1=2g+1.
+\tag{61}
+\]
+By \(\mathrm{prop:joint\mbox{-}orientation\mbox{-}maximality\mbox{-}threshold}\), (61) gives
+\[
+ \vartheta_{n-1,k+1}=\vartheta_{N,g}<2^g=2^{k+1}.
+\tag{62}
+\]
+On the other hand, \(\mathrm{thm:orientation\mbox{-}upper\mbox{-}bound}\), on the graph class fixed by \(\mathrm{def:graph\mbox{-}class}\), yields
+\[
+ D_k(n)\leq\vartheta_{n-1,k+1}.
+\tag{63}
+\]
+Combining (62)--(63) gives
+\[
+ D_k(n)\leq\vartheta_{n-1,k+1}<2^{k+1}.
+\tag{64}
+\]
+Equations (60) and (64) prove
+\[
+ D_k(n)=2^{k+1}\quad\Longleftrightarrow\quad n\geq2k+4.
+\tag{65}
+\]
+Below the threshold, (63) is only an upper bound; the argument neither determines \(D_k(n)\) nor identifies it with \(\vartheta_{n-1,k+1}\), as claimed.
+
+%%% FIELD proof-orientation-upper-bound
+Fix \((G,T,e)\in\mathcal G_{n,k}\) and suppose \(d_e(G)<\infty\).  Multiplication of the covariance identity by \((I_n-\Lambda)^{\mathsf T}\) on the left and by \(I_n-\Lambda\) on the right gives
+\[
+ \Omega=(I_n-\Lambda)^{\mathsf T}\Sigma(I_n-\Lambda).
+\tag{66}
+\]
+Thus every disturbance coordinate lies in \(K_G(\lambda_D)\).  The reverse inclusion follows from \(K_G\subseteq L\) and \(\lambda_D\subseteq L\), so
+\[
+ L=K_G(\lambda_D).
+\tag{67}
+\]
+
+Choose \(U\subseteq\lambda_D\setminus\{\lambda_e\}\) maximal algebraically independent over \(K_G\), put \(F=K_G(U)\), and enumerate the remaining directed coordinates as \(y=(y_1,\ldots,y_q)\), with \(\lambda_e\) among them.  Maximality, finiteness of \(\lambda_D\), the assumed algebraicity of \(\lambda_e\), and (67) imply that \(L/F\) is finite and, in characteristic zero, separable.
+
+Let \(p\in K_G[t]\) be the monic minimal polynomial of \(\lambda_e\).  It remains irreducible over the purely transcendental extension \(F/K_G\).  Indeed, a factorization over \(K_G(U)[t]\) can be cleared of denominators and made primitive in the unique-factorization domain \(K_G[U]\); comparing degrees in the indeterminates \(U\) then gives a factorization over \(K_G[t]\), contrary to irreducibility.  Therefore
+\[
+ [F(\lambda_e):F]=[K_G(\lambda_e):K_G]=d_e(G).
+\tag{68}
+\]
+
+By \(\mathrm{thm:incidence\mbox{-}localization}\) and \(\mathrm{def:generic\mbox{-}fiber}\), first adjoining \(U\) and then passing to its fraction field gives an evaluation homomorphism
+\[
+ \rho:F[y_1,\ldots,y_q]\longrightarrow L
+\tag{69}
+\]
+whose kernel is generated by the images of the missing-bidirected residuals \(F_{ij}\).  The map is surjective: (67) says its image generates \(L\) as a field, while all \(y_a\) are algebraic over \(F\), so the image is a finite-dimensional domain over \(F\), hence a field.
+
+For every \(a\), let \(g_a\in F[t]\) be the minimal polynomial of \(y_a\).  Because \(g_a(y_a)\in\ker\rho\), there exist \(c_{a,ij}\in F[y]\) such that
+\[
+ g_a(y_a)=\sum_{i\leftrightarrow j\notin B}c_{a,ij}(y)F_{ij}(y).
+\tag{70}
+\]
+Differentiate (70) in the free cotangent space \(\Omega_{F[y]/F}\otimes_{F[y],\rho}L\).  Every residual vanishes after applying \(\rho\), so
+\[
+ g_a'(y_a)\,dy_a
+ =\sum_{i\leftrightarrow j\notin B}c_{a,ij}(y)\,dF_{ij}.
+\tag{71}
+\]
+Separability gives \(g_a'(y_a)\ne0\).  Hence the evaluated residual differentials span all \(dy_a\), and the residual Jacobian with respect to \(y\) has rank \(q\).  Select distinct residuals \(f_1,\ldots,f_q\) for which
+\[
+ \Delta=\det\left(\frac{\partial f_\ell}{\partial y_a}\right)_{\ell,a=1}^{q}
+\tag{72}
+\]
+is nonzero in \(L\).
+
+Put \(E=F(\lambda_e)\).  By (68), \(E/F\) has exactly \(d=d_e(G)\) embeddings into an algebraic closure \(\overline F\).  Each extends to an \(F\)-embedding of \(L\): for an embedding \(\eta:E\to\overline F\), the nonzero finite algebra \(L\otimes_{E,\eta}\overline F\) has a maximal ideal, and its residue map gives such an extension.  Choose one extension for each \(\eta\).  Applying them to \(y\) gives \(d\) common zeros of \(f_1,\ldots,f_q\) over \(\overline F\).  Their Jacobians are nonsingular because every embedding sends the nonzero element \(\Delta\) to a nonzero element, and their \(\lambda_e\)-coordinates are pairwise distinct because their restrictions to \(E\) differ.
+
+We now specialize only finitely many coefficients, while preserving this selected set.  Since \(L/F\) is finite separable, choose a primitive element \(\theta\), write \(L=F(\theta)\), let \(Q\in F[t]\) be its monic minimal polynomial, and put \(h=[L:F]\).  Express every \(y_a\), \(\Delta\), and \(\lambda_e\) as a rational polynomial in \(\theta\) of degree below \(h\).  All finitely many coefficients lie in the ambient rational function field \(L=\mathbb C(\lambda_D,\omega_B,\omega_{\mathrm{diag}})\).  Form the product of the numerators and denominators needed for those expressions and identities, together with \(\operatorname{disc}(Q)\), \(\operatorname{disc}(p)\), and the field norms of all expression denominators and of \(\Delta\).  Every factor is nonzero by construction, separability, and (72).  After clearing denominators this is a nonzero polynomial in the algebraically independent source coordinates.  Since \(\mathbb C\) is infinite, those coordinates admit a complex specialization at which that polynomial is nonzero.
+
+At this specialization, \(Q\) has \(h\) distinct complex roots; all coordinate expressions are finite; every specialized residual identity vanishes; and the specialized Jacobian determinant is nonzero at every resulting point.  Multiplication by \(\lambda_e\) on the \(F\)-vector space \(L\) has characteristic polynomial
+\[
+ \det(tI-m_{\lambda_e})=p(t)^{h/d},
+\tag{73}
+\]
+because each of the \(d\) embeddings of \(E/F\) has exactly \([L:E]=h/d\) extensions to \(L\).  Identity (73) survives the specialization, and the inverted discriminant of \(p\) makes its \(d\) specialized roots distinct.  Hence the specialized square system over \(\mathbb C\) contains a selected set of \(d=d_e(G)\) distinct nonsingular affine zeros with pairwise distinct \(\lambda_e\)-coordinates.
+
+Partition \(y\) into its nonempty blocks indexed by child vertices, and let \(r_v\) be the number of coordinates in the block indexed by \(v\).  Then
+\[
+ 1\leq r_v\leq\operatorname{indeg}_D(v).
+\tag{74}
+\]
+Each residual \(F_{ij}\) is affine-linear in the incoming-coefficient block of \(i\), affine-linear in that of \(j\), and independent of every other child block.  Once the coordinates in \(U\) are coefficients in \(F\), a selected residual is therefore unary or binary, with degree at most one in each incident block.
+
+Decompose the bipartite equation--block incidence graph into connected components.  A nonzero determinant term in (72) is a perfect row--variable matching.  Because every matched row and variable lie in the same incidence component, each component has equally many scalar equations and scalar variables, and the Jacobian becomes block diagonal with a nonsingular square block after permutation.  Consider the component containing \(\lambda_e\).  Its projections of the \(d\) selected affine zeros remain distinct, because their \(\lambda_e\)-coordinates are distinct, and each projected zero has nonsingular component Jacobian.
+
+Let this component contain \(b\) variable blocks, \(u\) unary equations, and \(m_H\) binary equations.  If \(b>1\), its binary equations form a connected simple graph \(H\): unary equations connect no two blocks, and an unordered pair of distinct child vertices supplies at most the one residual \(F_{ij}\).  If \(b=1\), let \(H\) be the one-vertex graph.  Squareness gives
+\[
+ \sum_{v\in V(H)}r_v=u+m_H.
+\tag{75}
+\]
+
+Apply \(\mathrm{lem:finite\mbox{-}nonsingular\mbox{-}perturbation\mbox{-}bound}\) to precisely these \(d\) selected nonsingular affine zeros, with unary block-degree vector \(X_v\) and binary block-degree vector \(X_v+X_w\).  This is the paper-owned bridge from a possibly positive-dimensional subsystem to the cited finite-system multihomogeneous B\'ezout theorem: its generic perturbation stays within the same block multidegrees, block-homogenizes the system, makes the perturbed projective intersection finite, and uses the implicit-function theorem in neighborhoods contained in the affine charts where all homogenizing coordinates equal \(1\).  Thus each selected zero continues to a distinct affine zero, and its distinct \(\lambda_e\)-coordinate remains in a disjoint neighborhood; no selected queried-coordinate branch is lost to or imported from projective infinity.  The lemma then gives exactly
+\[
+ d_e(G)\leq
+ [\prod_vX_v^{r_v}]
+ \left(\prod_{\ell=1}^{u}X_{v(\ell)}\right)
+ \left(\prod_{\{v,w\}\in E(H)}(X_v+X_w)\right).
+\tag{76}
+\]
+The underlying cited multihomogeneous B\'ezout result is used only inside that bridge, after the perturbed common-zero set has been made finite; no isolated-zero extension of the cited result is asserted.
+
+Let \(u_v\) be the number of unary equations in block \(v\), and put \(s_v=r_v-u_v\).  The coefficient in (76) must be nonzero because its left side is positive; hence each \(s_v\geq0\).  Removing the forced unary powers from (76) leaves
+\[
+ [\prod_vX_v^{s_v}]\prod_{\{v,w\}\in E(H)}(X_v+X_w)=c_H(s),
+\tag{77}
+\]
+the number of orientations of \(H\) having prescribed indegree vector \(s\).  Therefore
+\[
+ d_e(G)\leq c_H(s).
+\tag{78}
+\]
+
+The root of the supplied arborescence has no incoming directed edge: otherwise that edge together with the directed tree path from the root to its tail would form a directed cycle, contradicting \(\mathrm{ass:acyclic}\).  It supplies no nonempty child block, so
+\[
+ b\leq n-1.
+\tag{79}
+\]
+For \(b>1\), the cyclomatic number of \(H\) is \(g_H=m_H-b+1\).  By (74)--(75), nonnegativity of \(u\), and the incoming tree edge at every nonroot vertex,
+\[
+\begin{aligned}
+ g_H
+ &=\sum_{v\in V(H)}r_v-u-b+1\\
+ &\leq\sum_{v\in V(H)}\bigl(\operatorname{indeg}_D(v)-1\bigr)+1\\
+ &\leq\sum_{v\ne\operatorname{root}(T)}
+       \bigl(\operatorname{indeg}_D(v)-1\bigr)+1\\
+ &=|D|-n+2.
+\end{aligned}
+\tag{80}
+\]
+The omitted summands are nonnegative because every nonroot vertex receives its tree edge.  For \(b=1\), set \(g_H=0\); then the same inequality follows from \(|D|\geq|T|=n-1\).  Equations (78)--(80) and \(\mathrm{def:joint\mbox{-}orientation\mbox{-}frontier}\) imply
+\[
+ d_e(G)\leq\vartheta_{n-1,\,|D|-n+2}.
+\tag{81}
+\]
+
+Because \(T\subseteq D\), \(|T|=n-1\), and \(\mathrm{ass:excess\mbox{-}budget}\) holds,
+\[
+ |D|-n+2=|D\setminus T|+1\leq k+1.
+\tag{82}
+\]
+Monotonicity and the bounds in \(\mathrm{lem:joint\mbox{-}orientation\mbox{-}frontier}\), together with \(\mathrm{lem:tournament\mbox{-}score\mbox{-}fiber\mbox{-}ceiling}\), now give
+\[
+ d_e(G)
+ \leq\vartheta_{n-1,\,|D|-n+2}
+ \leq\vartheta_{n-1,k+1}
+ \leq\min\{2^{k+1},\tau_{n-1}\},
+\tag{83}
+\]
+and, before (82),
+\[
+ d_e(G)\leq\min\{2^{|D|-n+2},\tau_{n-1}\}.
+\tag{84}
+\]
+Maximizing (83) over all finite-degree members of \(\mathcal G_{n,k}\) yields
+\[
+ D_k(n)\leq\vartheta_{n-1,k+1}.
+\tag{85}
+\]
+The argument counted only a finite selected set of nonsingular conjugate zeros and never assumed that the full generic parameter fiber was zero dimensional.
+
+For \(n=6\), \(\mathrm{lem:joint\mbox{-}orientation\mbox{-}frontier}\) gives \(\vartheta_{5,3}=6\), \(\vartheta_{5,4}=8\), \(\vartheta_{5,5}=12\), and \(\vartheta_{5,g}=24\) for \(g\geq6\).  Substituting \(g=k+1\) in (85) proves
+\[
+ D_2(6)\leq6,\qquad D_3(6)\leq8,\qquad D_4(6)\leq12,
+ \qquad D_k(6)\leq24\quad(k\geq5),
+\tag{86}
+\]
+for every admissible \(k\).
+
+%%% FIELD statement-effective-real-quantifier-elimination
+For every real closed field \(R\), there exists an algorithm for performing quantifier elimination from first-order formulas over \(R\).

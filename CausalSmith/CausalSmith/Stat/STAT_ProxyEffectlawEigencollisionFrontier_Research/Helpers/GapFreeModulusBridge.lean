@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
-import Mathlib.Topology.UniformSpace.UniformEmbedding
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
+public import Mathlib.Topology.UniformSpace.UniformEmbedding
 
 /-!
 Paper-local bridges from the radius-indexed quotient-law carrier to the neutral
 collision-safe finite-atomic Wasserstein substrate.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

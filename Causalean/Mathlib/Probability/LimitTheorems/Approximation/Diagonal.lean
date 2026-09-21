@@ -1,0 +1,217 @@
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+module
+public import Causalean.Mathlib.Probability.LimitTheorems.Approximation.CharFunBound
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.MeasureTheory.Measure.LevyConvergence
+
+/-!
+# An L² common-limit converging-together theorem for real random variables
+
+This file proves a real-valued, finite-variance **converging-together** result: a sequence of real
+random variables that is approximated in `L²` by a triangular family, each row of which converges
+in distribution to a common limit law `G`, itself converges in distribution to `G`. It is an
+L²/common-limit corollary of the more general metric-space converging-together theorem
+(Billingsley, Theorem 3.2), not a formalization of that theorem at its full generality. This is the
+diagonal step needed by approximation-based CLTs using this stronger interface.
+
+The proof is the standard characteristic-function ε/3 argument:
+* for each frequency `t`, split
+  `‖charFun (law S n) t − charFun G t‖ ≤ ‖charFun (law S n) t − charFun (law T m n) t‖
+        + ‖charFun (law T m n) t − charFun G t‖`;
+* bound the first summand by the approximation bound `norm_charFun_sub_le_L2` plus the iterated
+  `L²` control `(H2)`;
+* the second summand tends to `0` by the per-row weak convergence `(H1)` (the easy direction of
+  Lévy continuity, `tendsto_iff_tendsto_charFun.mp`);
+* pick `m` large then `n` large to conclude pointwise `charFun (law S n) t → charFun G t`;
+* upgrade pointwise characteristic-function convergence to weak convergence with the `clt`
+  package's Lévy continuity theorem
+  `MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun`.
+
+The `L²` discrepancies are controlled in `ℝ≥0∞` via `Filter.limsup`, which sidesteps the
+boundedness side-conditions of the real-valued `limsup`; the squared `L²` integral
+`∫ ω, (S n ω − T m n ω)² ∂(μ n)` is wrapped with `ENNReal.ofReal`. This is an
+`L²` sufficient condition for the approximation-in-probability hypothesis used by the more
+general converging-together theorem.
+
+Everything is stated for a general limit law `G : ProbabilityMeasure ℝ`; `clt_of_l2_approx`
+specializes to the standard normal `gaussianReal 0 1`, the shape an m-dependent-approximation CLT
+consumes.
+-/
+
+@[expose] public section
+
+open MeasureTheory ProbabilityTheory Filter
+open scoped Real Topology ENNReal
+
+namespace Causalean.Mathlib.Probability.ConvergingTogether
+
+/-- Given [a measure on the real line and a proof that it has total mass one](hyp:m,h), the
+[bundled real probability law](goal) is that measure regarded as a probability law on the
+real line.
+
+Bundle a probability measure on `ℝ` (with an explicit `IsProbabilityMeasure` proof) as a
+`ProbabilityMeasure ℝ`.  A thin wrapper around the subtype constructor whose declared return type
+keeps the bundled `ProbabilityMeasure` topology in scope (avoiding the raw-subtype unfolding that
+breaks `𝓝`). -/
+def lawPM (m : Measure ℝ) (h : IsProbabilityMeasure m) : ProbabilityMeasure ℝ := ⟨m, h⟩
+
+/-- Coercing the bundled probability law back to a measure returns the
+original measure. -/
+@[simp] lemma lawPM_coe (m : Measure ℝ) (h : IsProbabilityMeasure m) :
+    (lawPM m h : Measure ℝ) = m := rfl
+
+/-- **An L²/common-limit corollary of the converging-together theorem.**
+Let $G$ be a limit probability law on the reals, let $(S_n)$ be a sequence of real random
+variables, one on each probability space in a sequence, and for every row index $m$ let
+$(T_{m,n})_n$ be the $m$-th approximating triangular row of real random variables on the same
+spaces, with [every $S_n$ square-integrable](hyp:hS_sq) and [every $T_{m,n}$
+square-integrable](hyp:hT_sq). Suppose [for every fixed row $m$ the law of $T_{m,n}$ converges
+weakly to $G$ as $n \to \infty$](hyp:H1), and [for every tolerance $\varepsilon > 0$ some row $M$
+makes the limit superior over $n$ of $E[(S_n - T_{M,n})^2]$ at most $\varepsilon$, i.e. row $M$
+approximates $S_n$ in $L^2$ uniformly enough in the iterated-limsup sense](hyp:H2). Then [the law
+of $S_n$ converges weakly to $G$ as $n \to \infty$](goal).
+
+This is a real-valued finite-variance specialization of Billingsley's Theorem 3.2: it uses a common
+row limit and an `L²` condition stronger than approximation in probability. It is proved through
+characteristic functions, reusing the `clt` package's Lévy continuity theorem.
+-/
+theorem tendsto_inDistribution_of_l2_approx
+    {Ω : ℕ → Type*} [∀ n, MeasurableSpace (Ω n)]
+    (μ : (n : ℕ) → Measure (Ω n)) [∀ n, IsProbabilityMeasure (μ n)]
+    (G : ProbabilityMeasure ℝ)
+    (S : (n : ℕ) → Ω n → ℝ) (T : ℕ → (n : ℕ) → Ω n → ℝ)
+    (hS_sq : ∀ n, MemLp (S n) 2 (μ n)) (hT_sq : ∀ m n, MemLp (T m n) 2 (μ n))
+    (H1 : ∀ m, Tendsto
+      (fun n =>
+        lawPM ((μ n).map (T m n))
+          (Measure.isProbabilityMeasure_map (hT_sq m n).aestronglyMeasurable.aemeasurable))
+        atTop (𝓝 G))
+    (H2 : ∀ ε : ℝ, 0 < ε → ∃ M : ℕ,
+      Filter.limsup (fun n => ENNReal.ofReal (∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n))) atTop
+        ≤ ENNReal.ofReal ε) :
+    Tendsto
+      (fun n =>
+        lawPM ((μ n).map (S n))
+          (Measure.isProbabilityMeasure_map (hS_sq n).aestronglyMeasurable.aemeasurable))
+        atTop (𝓝 G) := by
+  refine MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr ?_
+  intro t
+  let c := charFun (G : Measure ℝ) t
+  have hrow : ∀ m, Tendsto (fun n => charFun ((μ n).map (T m n)) t) atTop (𝓝 c) := by
+    intro m
+    have h := (MeasureTheory.ProbabilityMeasure.tendsto_iff_tendsto_charFun.mp (H1 m)) t
+    simpa [lawPM_coe, c] using h
+  rw [Metric.tendsto_atTop]
+  intro δ hδ
+  let ε : ℝ := (δ / (2 * (|t| + 1))) ^ 2 / 2
+  have hε : 0 < ε := by
+    have htpos : 0 < |t| + 1 := by positivity
+    have hbase : 0 < δ / (2 * (|t| + 1)) := by positivity
+    dsimp [ε]
+    positivity
+  have hεbound : |t| * Real.sqrt (2 * ε) < δ / 2 := by
+    have htpos : 0 < |t| + 1 := by positivity
+    have hbase_nonneg : 0 ≤ δ / (2 * (|t| + 1)) := by positivity
+    have hsqrt : Real.sqrt (2 * ε) = δ / (2 * (|t| + 1)) := by
+      dsimp [ε]
+      rw [mul_div_cancel₀ _ (by norm_num : (2 : ℝ) ≠ 0)]
+      exact Real.sqrt_sq hbase_nonneg
+    rw [hsqrt]
+    have hlt : |t| / (|t| + 1) < 1 := by
+      rw [div_lt_one htpos]
+      linarith [abs_nonneg t]
+    calc
+      |t| * (δ / (2 * (|t| + 1)))
+          = (δ / 2) * (|t| / (|t| + 1)) := by
+            field_simp [ne_of_gt htpos, (by norm_num : (2 : ℝ) ≠ 0)]
+      _ < (δ / 2) * 1 := mul_lt_mul_of_pos_left hlt (by linarith)
+      _ = δ / 2 := by ring
+  obtain ⟨M, hM⟩ := H2 ε hε
+  have hlim :
+      Filter.limsup
+          (fun n => ENNReal.ofReal (∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n))) atTop
+        ≤ ENNReal.ofReal ε := hM
+  have hεlt : ENNReal.ofReal ε < ENNReal.ofReal (2 * ε) := by
+    rw [ENNReal.ofReal_lt_ofReal_iff]
+    · linarith
+    · linarith
+  have hev :
+      ∀ᶠ n in atTop,
+        ENNReal.ofReal (∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n))
+          < ENNReal.ofReal (2 * ε) :=
+    eventually_lt_of_limsup_lt (lt_of_le_of_lt hlim hεlt)
+  obtain ⟨N₁, hN₁⟩ := (Metric.tendsto_atTop.mp (hrow M) (δ / 2) (by linarith))
+  obtain ⟨N₂, hN₂⟩ := Filter.eventually_atTop.mp hev
+  refine ⟨max N₁ N₂, fun n hn => ?_⟩
+  have hn₁ : n ≥ N₁ := le_trans (le_max_left _ _) hn
+  have hn₂ : n ≥ N₂ := le_trans (le_max_right _ _) hn
+  have hsecond : dist (charFun ((μ n).map (T M n)) t) c < δ / 2 := hN₁ n hn₁
+  have hsq_nonneg : 0 ≤ ∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n) := by
+    exact integral_nonneg fun ω => sq_nonneg _
+  have hsq_lt : ∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n) < 2 * ε := by
+    have := hN₂ n hn₂
+    exact (ENNReal.ofReal_lt_ofReal_iff_of_nonneg hsq_nonneg).mp this
+  have hsqrt_le :
+      Real.sqrt (∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n))
+        ≤ Real.sqrt (2 * ε) :=
+    Real.sqrt_le_sqrt hsq_lt.le
+  have hfirst_le :
+      dist (charFun ((μ n).map (S n)) t) (charFun ((μ n).map (T M n)) t)
+        ≤ |t| * Real.sqrt (2 * ε) := by
+    calc
+      dist (charFun ((μ n).map (S n)) t) (charFun ((μ n).map (T M n)) t)
+          = ‖charFun ((μ n).map (S n)) t - charFun ((μ n).map (T M n)) t‖ := by
+            rw [dist_eq_norm]
+      _ ≤ |t| * Real.sqrt (∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n)) :=
+            norm_charFun_sub_le_L2 (μ n)
+              (hS_sq n).aestronglyMeasurable.aemeasurable
+              (hT_sq M n).aestronglyMeasurable.aemeasurable
+              ((hS_sq n).sub (hT_sq M n)) t
+      _ ≤ |t| * Real.sqrt (2 * ε) := by
+            exact mul_le_mul_of_nonneg_left hsqrt_le (abs_nonneg t)
+  have hfirst : dist (charFun ((μ n).map (S n)) t) (charFun ((μ n).map (T M n)) t) < δ / 2 :=
+    lt_of_le_of_lt hfirst_le hεbound
+  calc
+    dist (charFun ((μ n).map (S n)) t) c
+        ≤ dist (charFun ((μ n).map (S n)) t) (charFun ((μ n).map (T M n)) t)
+            + dist (charFun ((μ n).map (T M n)) t) c := dist_triangle _ _ _
+    _ < δ := by linarith
+
+/-- **Converging-together corollary for the standard normal (the CLT diagonal step).**
+The specialization of `tendsto_inDistribution_of_l2_approx` to the standard normal limit law:
+let $(S_n)$ be a sequence of real random variables, one on each probability space in a sequence,
+and for every row index $m$ let $(T_{m,n})_n$ be the $m$-th approximating triangular row on the
+same spaces, with [every $S_n$ square-integrable](hyp:hS_sq) and [every $T_{m,n}$
+square-integrable](hyp:hT_sq). If [for every fixed row $m$ the law of $T_{m,n}$ converges weakly
+to the standard normal as $n \to \infty$, i.e. row $m$ obeys its own standard-normal central
+limit theorem](hyp:H1), and [for every tolerance $\varepsilon > 0$ some row $M$ makes the limit
+superior over $n$ of $E[(S_n - T_{M,n})^2]$ at most $\varepsilon$, so row $M$ approximates $S_n$
+in $L^2$ in the iterated-limsup sense](hyp:H2), then [the law of $S_n$ converges weakly to the
+standard normal as $n \to \infty$](goal).
+
+This is exactly the shape an m-dependent-approximation CLT consumes to pass from the per-`m`
+m-dependent CLT to the limit. -/
+theorem clt_of_l2_approx
+    {Ω : ℕ → Type*} [∀ n, MeasurableSpace (Ω n)]
+    (μ : (n : ℕ) → Measure (Ω n)) [∀ n, IsProbabilityMeasure (μ n)]
+    (S : (n : ℕ) → Ω n → ℝ) (T : ℕ → (n : ℕ) → Ω n → ℝ)
+    (hS_sq : ∀ n, MemLp (S n) 2 (μ n)) (hT_sq : ∀ m n, MemLp (T m n) 2 (μ n))
+    (H1 : ∀ m, Tendsto
+      (fun n => lawPM ((μ n).map (T m n))
+        (Measure.isProbabilityMeasure_map (hT_sq m n).aestronglyMeasurable.aemeasurable)) atTop
+        (𝓝 (lawPM (gaussianReal 0 1) inferInstance)))
+    (H2 : ∀ ε : ℝ, 0 < ε → ∃ M : ℕ,
+      Filter.limsup (fun n => ENNReal.ofReal (∫ ω, (S n ω - T M n ω) ^ 2 ∂(μ n))) atTop
+        ≤ ENNReal.ofReal ε) :
+    Tendsto
+      (fun n => lawPM ((μ n).map (S n))
+        (Measure.isProbabilityMeasure_map (hS_sq n).aestronglyMeasurable.aemeasurable)) atTop
+      (𝓝 (lawPM (gaussianReal 0 1) inferInstance)) :=
+  tendsto_inDistribution_of_l2_approx μ _ S T hS_sq hT_sq H1 H2
+
+end Causalean.Mathlib.Probability.ConvergingTogether

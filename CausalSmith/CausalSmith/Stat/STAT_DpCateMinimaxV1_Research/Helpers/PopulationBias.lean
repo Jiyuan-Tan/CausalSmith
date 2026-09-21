@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationGram
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationGram
 
 /-!
 # Bias of the population local-polynomial normal equations
@@ -13,6 +14,8 @@ This module bounds the intercept bias of the population local-polynomial fit.  T
 uniform over the model class and the bandwidth; the Gram-matrix conditioning is supplied as an
 explicit hypothesis.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -102,7 +105,8 @@ private lemma abs_feature_le {d p : ℕ} {h Kmax : ℝ} {x0 : Fin d → ℝ}
       _ = h ^ (-(d : ℝ)) * Kmax := by ring
   · have hex : ∃ j, 1 < |uCoord h x0 x j| := by
       have : ∃ j, h < |x j - x0 j| := by
-        simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hx
+        simpa [supBall, Causalean.Mathlib.Analysis.supBall, Set.mem_ofPred_eq,
+          not_forall, not_le] using hx
       obtain ⟨j, hj⟩ := this
       refine ⟨j, ?_⟩
       rw [uCoord, abs_div, abs_of_pos hh]
@@ -131,7 +135,8 @@ private lemma abs_gram_feature_le {d p : ℕ} {h Kmax : ℝ} {x0 : Fin d → ℝ
       _ = h ^ (-(d : ℝ)) * Kmax := by ring
   · have hex : ∃ j, 1 < |uCoord h x0 x j| := by
       have : ∃ j, h < |x j - x0 j| := by
-        simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hx
+        simpa [supBall, Causalean.Mathlib.Analysis.supBall, Set.mem_ofPred_eq,
+          not_forall, not_le] using hx
       obtain ⟨j, hj⟩ := this
       refine ⟨j, ?_⟩
       rw [uCoord, abs_div, abs_of_pos hh]
@@ -312,7 +317,8 @@ theorem popGram_inv_popMom_bias {d p : ℕ}
     · have hz : feat k x = 0 := by
         have hex : ∃ j, 1 < |uCoord h x0 x j| := by
           have : ∃ j, h < |x j - x0 j| := by
-            simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hx
+            simpa [supBall, Causalean.Mathlib.Analysis.supBall, Set.mem_ofPred_eq,
+              not_forall, not_le] using hx
           obtain ⟨j, hj⟩ := this
           refine ⟨j, ?_⟩
           rw [uCoord, abs_div, abs_of_pos hh]
@@ -401,7 +407,8 @@ theorem popGram_inv_popMom_bias {d p : ℕ}
             show feat k O.X = 0 by
               have hex : ∃ j, 1 < |uCoord h x0 O.X j| := by
                 have : ∃ j, h < |O.X j - x0 j| := by
-                  simpa [supBall, Causalean.Stat.Nonparametric.supBall, not_forall, not_le] using hO
+                  simpa [supBall, Causalean.Mathlib.Analysis.supBall, Set.mem_ofPred_eq,
+                    not_forall, not_le] using hO
                 obtain ⟨j, hj⟩ := this
                 refine ⟨j, ?_⟩
                 rw [uCoord, abs_div, abs_of_pos hh]

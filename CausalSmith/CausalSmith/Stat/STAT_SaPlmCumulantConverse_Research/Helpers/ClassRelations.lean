@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
 
 /-!
 # Relations among the non-Gaussian and published ACE classes
 -/
+
+public section
 
 noncomputable section
 

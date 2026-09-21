@@ -4,33 +4,41 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Conditioning.EventCondExp
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Manski IV Setup
 
-This file defines the data layer for Manski bounds with a discrete instrument,
-a binary treatment, and a real-valued outcome. It provides the potential
-outcomes, factual variables, instrument support, target average treatment
-effect, and the four observable bound functionals used by the Manski
-identification arguments.
+This file defines a singleton-stratum data layer for Manski bounds with a
+measurable instrument, a binary treatment, and a real-valued outcome. It
+provides the potential outcomes, factual variables, atomic instrument support,
+target average treatment effect, and the four observable bound functionals
+used by the Manski identification arguments.
 
 Assumption bundles are kept in the companion assumptions file. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
 
 open MeasureTheory
 
-/-- The Manski IV data layer records a discrete instrument, a binary treatment,
-and a real outcome inside a potential-outcome system.
+/-- For [a potential-outcome system](hyp:P) and [an instrument value space whose
+singletons are measurable](hyp:α), the Manski singleton-stratum data layer records
+[an instrument](hyp:Z), [a binary treatment](hyp:D), and [a real outcome](hyp:Y), with
+[measurable equivalences to their value spaces](hyp:hZ,hDbool,hYreal) and [pairwise distinct
+variable labels](hyp:hZD,hZY,hDY).
 
-This is the discrete-IV system for Manski average-treatment-effect bounds,
-corresponding to `def:po-iv-manski-system`.
-
-`α` is the value space of the instrument; discreteness enters via
-`MeasurableSingletonClass α`, which makes the events `{Z = z}` measurable. -/
+This generalizes the discrete-IV system in `def:po-iv-manski-system`: it agrees
+with that setup when `α` is finite or countable, but the typeclasses here only
+ensure that singleton events `{Z = z}` are measurable. They do not make `α`
+discrete or countable. -/
 structure POManskiIVSystem (P : POSystem) (α : Type*)
     [MeasurableSpace α] [MeasurableSingletonClass α] where
   Z : P.V
@@ -147,25 +155,32 @@ noncomputable def ATE : ℝ := ∫ ω, S.YofD true ω - S.YofD false ω ∂P.μ
 whose singleton values are measurable](hyp:α), and [a Manski instrumental-variables
 system based on them](hyp:S), [the instrument
 support](goal) is the set of instrument values whose observed-instrument
-stratum has nonzero probability. -/
+stratum has nonzero probability.
+
+This is the atomic singleton support. It can be empty for an atomless
+instrument, even when the instrument itself has nonempty measure-theoretic
+support. -/
 def support : Set α := {z | P.μ (S.zEvent z) ≠ 0}
 
 /-- For [a potential-outcome system](hyp:P), [a measurable instrument-value space
 whose singleton values are measurable](hyp:α), [a Manski instrumental-variables
 system based on them](hyp:S), [a binary treatment
 arm](hyp:d), [a real-valued outcome bound](hyp:c), and [an instrument value](hyp:z),
-[the arm-bound functional](goal) is the conditional mean within that instrument
-stratum of the observed outcome for units on the specified arm and the supplied
-bound for units on the opposite arm.
+[the arm-bound functional](goal) is the normalized restricted integral within
+that instrument stratum of the observed outcome for units on the specified arm
+and the supplied bound for units on the opposite arm.
 
 The unified arm-bound functional averages the observed outcome on arm `d` and
 the supplied outcome floor or ceiling on the opposite arm within instrument stratum `z`.
+
+On a null stratum this functional is defined to be zero; it has the usual
+conditional-mean interpretation only on positive-mass strata.
 
 The outcome-bound parameter `c` is applied on the counterfactual arm `!d`.
 Specialising `d` to `true`/`false` and `c` to `lo`/`hi` recovers the four
 named functionals `lowerBound1`, `upperBound1`, `lowerBound0`, `upperBound0`. -/
 noncomputable def boundArm (d : Bool) (c : ℝ) (z : α) : ℝ :=
-  eventCondExp P.μ (S.zEvent z)
+  normalizedRestrictedIntegral P.μ (S.zEvent z)
     (fun ω => S.factualY ω * S.dVar.indicator d ω
                + c * S.dVar.indicator (!d) ω)
 

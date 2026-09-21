@@ -1,0 +1,142 @@
+%%% FIELD proof-prop-causal-regret-reduction
+Put \(g_i=g(X_i)\) and
+\[
+v_i=\operatorname{Var}_P(S_i\mid X_i).
+\]
+These conditional variances are finite because the declared range of \(S_i\) is \([-2H,2H]\).  For a perfect matching \(M\in\mathfrak M_T\) fixed given \((X_i)_{i=1}^T\), the pairwise orientation calculation in Lemma \(\mathrm{lem:design\text{-}variance\text{-}identity}\) yields
+\[
+\mathbb E_P\!\left[
+ \operatorname{Var}_Z\{\widehat\tau_{\mathrm{IPW}}(M)\mid (W_i)_{i=1}^T\}
+ \mathrel{\middle|}(X_i)_{i=1}^T
+\right]
+=T^{-2}\sum_{(i,j)\in M}
+ \mathbb E_P\!\left[(S_i-S_j)^2\mathrel{\middle|}(X_i)_{i=1}^T\right].
+\]
+Assumption \(\mathrm{ass:iid\text{-}units}\) implies that, conditionally on the covariate vector, \(S_i\) and \(S_j\) are independent whenever \(i\ne j\).  Moreover, by the definitions of \(S_i\), \(\mu_z\), and \(g\),
+\[
+\mathbb E_P(S_i\mid X_i)
+=\mathbb E_P\{Y_i(1)+Y_i(0)\mid X_i\}
+=\mu_1(X_i)+\mu_0(X_i)
+=g_i.
+\]
+Expanding the conditional second moment and using conditional independence therefore gives, for every distinct \(i,j\),
+\[
+\mathbb E_P\!\left[(S_i-S_j)^2\mathrel{\middle|}(X_i)_{i=1}^T\right]
+=v_i+v_j+(g_i-g_j)^2.
+\]
+Every perfect matching uses every index exactly once.  Hence Definition \(\mathrm{def:pair\text{-}cost}\) gives
+\[
+\mathbb E_P\!\left[
+ \operatorname{Var}_Z\{\widehat\tau_{\mathrm{IPW}}(M)\mid (W_i)_{i=1}^T\}
+ \mathrel{\middle|}(X_i)_{i=1}^T
+\right]
+=T^{-2}\left\{\sum_{i=1}^T v_i+C_g(M)\right\}.
+\tag{1}
+\]
+For \(M=M_\pi\), Assumption \(\mathrm{ass:policy\text{-}nonanticipating}\) makes \(M_\pi\) fixed after conditioning on \((X_i)_{i=1}^T\) and \(\xi\), while excluding all treatment signs from its construction.  Thus the identical calculation, now conditional also on \(\xi\), proves
+\[
+\mathbb E_P\!\left[
+ \operatorname{Var}_Z\{\widehat\tau_{\mathrm{IPW}}(M_\pi)\mid (W_i)_{i=1}^T,\xi\}
+ \mathrel{\middle|}(X_i)_{i=1}^T,\xi
+\right]
+=T^{-2}\left\{\sum_{i=1}^T v_i+C_g(M_\pi)\right\}.
+\tag{2}
+\]
+The first term in braces in (1) does not depend on \(M\).  The finiteness of \(\mathfrak M_T\) and Definition \(\mathrm{def:offline\text{-}oracle}\) consequently imply
+\[
+\min_{M\in\mathfrak M_T}
+\mathbb E_P\!\left[
+ \operatorname{Var}_Z\{\widehat\tau_{\mathrm{IPW}}(M)\mid (W_i)_{i=1}^T\}
+ \mathrel{\middle|}(X_i)_{i=1}^T
+\right]
+=T^{-2}\left\{\sum_{i=1}^T v_i+O_g(X)\right\}.
+\tag{3}
+\]
+Subtracting (3) from (2), taking \(\mathbb E_{P,\xi}\), and multiplying by \(T\) proves the displayed equality in the proposition.  Finally, Definition \(\mathrm{def:minimax\text{-}regret}\) applies the same supremum over \(P\) and infimum over \(\pi\) to its right-hand side.  This proves the asserted exact interpretation of \(R_T(B)\); in particular, the causal target remains \(\tau_T\), whose conditional design unbiasedness is supplied by Lemma \(\mathrm{lem:design\text{-}variance\text{-}identity}\).
+
+%%% FIELD proof-thm-all-policy-lower-frontier
+Fix an arbitrary, possibly randomized, \(\pi\in\Pi_{T,B}\), and write \(C_h\) for the cost in Definition \(\mathrm{def:pair\text{-}cost}\) when the prognostic score is \(h\).  Independently of the uniform covariates and the auxiliary seed \(\xi\), draw \(h\sim\nu\), where \(\nu\) is the probability measure furnished by Lemma \(\mathrm{lem:holder\text{-}variogram\text{-}prior}\), and let \(P_h\) be the corresponding law in \(\mathcal P_{\beta,d}(L,G,H,\underline f,\overline f)\).  Assumption \(\mathrm{ass:policy\text{-}nonanticipating}\) implies that \(M_\pi\) is a measurable function of the covariates and \(\xi\), and hence does not depend on the auxiliary draw of \(h\).  Since the edge sum is finite and \(|h|\le A_\nu\), Tonelli's theorem (or finite-sum linearity followed by bounded Fubini) gives
+\[
+\begin{aligned}
+\mathbb E_{h\sim\nu}\mathbb E_{P_h,\xi} C_h(M_\pi)
+&=\mathbb E_{X,\xi}\sum_{(i,j)\in M_\pi}
+  \mathbb E_{h\sim\nu}\{h(X_i)-h(X_j)\}^2 \\
+&\ge c_\nu\,\mathbb E_{X,\xi}\sum_{(i,j)\in M_\pi}
+  \|X_i-X_j\|_2^{2\beta} \\
+&\ge \frac{c_\nu c_{\mathrm{geo}}}{2}\,T F_\alpha(T,b).
+\end{aligned}
+\tag{4}
+\]
+The first inequality is the variogram conclusion of Lemma \(\mathrm{lem:holder\text{-}variogram\text{-}prior}\).  The second is Lemma \(\mathrm{lem:weighted\text{-}suffix\text{-}geometric\text{-}lower}\), which applies to every randomized feasible policy and uses the effective capacity \(b=\min\{B,T/2\}\) and \(\alpha=2\beta/d\) from Definition \(\mathrm{def:frontier}\).
+
+To bound the oracle subtraction, order the values as \(h_{(1)}\le\cdots\le h_{(T)}\).  Lemma \(\mathrm{lem:offline\text{-}adjacent}\) identifies the oracle with the sum of the squared alternate adjacent gaps.  Since all adjacent gaps are nonnegative and \(\|h\|_\infty\le A_\nu\),
+\[
+0\le O_h(X)
+=\sum_{k=1}^{T/2}(h_{(2k)}-h_{(2k-1)})^2
+\le\left\{\sum_{\ell=1}^{T-1}(h_{(\ell+1)}-h_{(\ell)})\right\}^2
+=(h_{(T)}-h_{(1)})^2
+\le 4A_\nu^2
+\tag{5}
+\]
+for every covariate realization and every \(h\) in the support of \(\nu\).  Define
+\[
+Q_\pi
+=T^{-1}\sup_{P\in\mathcal P_{\beta,d}(L,G,H,\underline f,\overline f)}
+ \mathbb E_{P,\xi}\{C_g(M_\pi)-O_g(X)\}.
+\]
+Every \(P_h\) belongs to the displayed model class by Lemma \(\mathrm{lem:holder\text{-}variogram\text{-}prior}\).  A supremum dominates an average over members of its domain, so (4)--(5) imply, with \(c_1=c_\nu c_{\mathrm{geo}}/2>0\),
+\[
+Q_\pi
+\ge T^{-1}\mathbb E_{h\sim\nu}
+ \mathbb E_{P_h,\xi}\{C_h(M_\pi)-O_h(X)\}
+\ge c_1F_\alpha(T,b)-\frac{4A_\nu^2}{T}.
+\tag{6}
+\]
+The subtraction in (6) is repaired uniformly, rather than discarded.  Indeed, Lemma \(\mathrm{lem:mandatory\text{-}final\text{-}pair\text{-}lower}\) supplies one law in the same model class for which every feasible \(\pi\) has normalized regret at least \(c_{\mathrm{end}}/T\).  Therefore
+\[
+Q_\pi\ge \frac{c_{\mathrm{end}}}{T}.
+\tag{7}
+\]
+Combining (6) and (7) yields
+\[
+c_1F_\alpha(T,b)
+\le Q_\pi+\frac{4A_\nu^2}{T}
+\le \left(1+\frac{4A_\nu^2}{c_{\mathrm{end}}}\right)Q_\pi.
+\]
+Consequently
+\[
+Q_\pi\ge
+\frac{c_1}{1+4A_\nu^2/c_{\mathrm{end}}}\,F_\alpha(T,b).
+\tag{8}
+\]
+All constants in (8) depend only on the fixed parameters allowed in the theorem.  Because \(\pi\) was arbitrary, taking the infimum over \(\Pi_{T,B}\) in Definition \(\mathrm{def:minimax\text{-}regret}\) proves
+\[
+R_T(B)\ge cF_\alpha(T,b),
+\qquad
+c=\frac{c_1}{1+4A_\nu^2/c_{\mathrm{end}}}>0.
+\]
+The argument never conditions on or observes the pair-orientation signs, so it covers all randomized policies allowed by Definition \(\mathrm{def:policy\text{-}class}\).
+
+%%% FIELD partial-thm-minimax-frontier
+The established converse and the capped-grid construction give
+\[
+cF_\alpha(T,b)
+\le R_T(B)
+\le C\inf_{1\le m\le b}\left\{m^{-\alpha}+\frac{m}{T}\right\}.
+\]
+If \(b^{1+\alpha}\le T\), choosing \(m=b\) and using \(b/T\le b^{-\alpha}\le F_\alpha(T,b)\) gives
+\[
+cF_\alpha(T,b)\le R_T(B)\le 2C F_\alpha(T,b).
+\]
+Thus the claimed frontier is proved in the capacity-dominated regime.  For general \(b\), the all-policy lower bound remains valid, but the available upper bound need not be within a constant factor of \(F_\alpha(T,b)\).  A pathwise hard-cap, terminal-empty policy with expected inherited-clearance cost of order \(\sum_{r=1}^b r^{-\alpha}\) is the remaining step needed for the theorem as stated.
+
+%%% FIELD proof-prop-constant-score-sanity
+Suppose that \(g\) is constant on \(\mathcal X\), say \(g(x)=c\).  Then for every edge \((i,j)\) of every \(M\in\mathfrak M_T\),
+\[
+\{g(X_i)-g(X_j)\}^2=(c-c)^2=0.
+\]
+Definition \(\mathrm{def:pair\text{-}cost}\) therefore gives \(C_g(M)=0\) for every perfect matching \(M\).  Taking the minimum over \(M\) in Definition \(\mathrm{def:offline\text{-}oracle}\) gives \(O_g(X)=0\).  In particular, for every feasible \(\pi\),
+\[
+T^{-1}\mathbb E_{P,\xi}\{C_g(M_\pi)-O_g(X)\}=0.
+\]
+Proposition \(\mathrm{prop:causal\text{-}regret\text{-}reduction}\) identifies this quantity exactly with \(T\) times the ex ante mean conditional design-variance excess relative to the covariate prognostic oracle.  Hence that excess is also zero.

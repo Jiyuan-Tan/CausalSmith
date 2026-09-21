@@ -1,8 +1,9 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Estimator
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Causalean.Experimentation.DesignBased.InProb
-import Mathlib.Analysis.SpecificLimits.Basic
-import Mathlib.Data.EReal.Basic
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Estimator
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Causalean.Experimentation.DesignBased.InProb
+public import Mathlib.Analysis.SpecificLimits.Basic
+public import Mathlib.Data.EReal.Basic
 
 /-!
 # Triangular arrays and the dense schedule class
@@ -10,6 +11,8 @@ import Mathlib.Data.EReal.Basic
 This file bundles each deterministic row of the experiment and defines exactly
 the five asymptotic/support conditions used by the paper.
 -/
+
+@[expose] public section
 
 open Filter
 

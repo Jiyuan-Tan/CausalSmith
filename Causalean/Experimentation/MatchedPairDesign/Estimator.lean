@@ -2,35 +2,24 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Bai (2022): the matched-pair difference-in-means estimator
-
-For a fixed matched-pair randomization design, each unit is the position `b : Bool` of a pair
-`p : P`, with treated/control potential outcomes `y1 p b` / `y0 p b`.  Under the matched-pair design
-the coin `z p` selects the treated position in pair `p`; the **matched-pair difference-in-means
-estimator** averages, over pairs, the observed treated outcome minus the observed control outcome:
-`τ̂ = (1/N) ∑ₚ (y1 p (zₚ) − y0 p (¬zₚ))`, with `N = |P|` pairs.  This file records the estimator, the
-sample average treatment effect over the `2N` units, and the theorem that the matched-pair estimator
-is **unbiased** for the SATE — each pair contributes its own average effect in expectation.
-
-This is the estimator-side template: a design-based estimator written as a per-pair sum, with
-unbiasedness reduced to the single-coordinate (per-pair) marginal of the product design.
 -/
 
-import Causalean.Experimentation.MatchedPairDesign.MatchedPair
+module
+public import Causalean.Experimentation.MatchedPairDesign.MatchedPair
 
 /-! # Matched-pair estimators
 
-For a fixed matched-pair randomization design, each unit is the position `b : Bool` of a pair
-`p : P`, with treated/control potential outcomes `y1 p b` and `y0 p b`.  Under the matched-pair
-design the coin `z p` selects the treated position in pair `p`; `pairContribution` records that
-pair's observed treated-minus-control contrast `y1 p (z p) - y0 p (!z p)`.
+For Bai's fixed matched-pair randomization design, a fair coin selects the treated position in each
+pair. The difference-in-means estimator averages the observed treated-minus-control contrast over
+pairs, while the sample average treatment effect averages both potential-outcome contrasts over
+all units.
 
-This file defines the sample average treatment effect `sate`, the matched-pair
-difference-in-means estimator `matchedPairEstimator`, the per-pair expectation identity
-`E_pairContribution`, and the unbiasedness theorem `E_matchedPairEstimator` for Bai's
-matched-pair design.
+This file defines those two averages and proves that the estimator is unbiased for the sample
+average treatment effect. The proof reduces to the one-pair marginal of the product design: each
+pair's observed contrast has expectation equal to that pair's average treatment effect.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

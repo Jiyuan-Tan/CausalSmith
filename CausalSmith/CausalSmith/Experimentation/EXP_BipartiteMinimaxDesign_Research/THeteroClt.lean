@@ -10,9 +10,12 @@ is asymptotically standard normal, via a first-order linearization onto the
 centered scores and the bounded-degree dependency-graph CLT.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers
-import Causalean.Experimentation.DesignBased.GaussianCDF
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+
+@[expose] public section
 
 set_option linter.style.longLine false
 set_option linter.unusedVariables false
@@ -21,7 +24,7 @@ open scoped BigOperators Topology
 open Finset Filter
 open Causalean.Experimentation.DesignBased
 open Causalean.Experimentation.UnknownInterference
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace CausalSmith.Experimentation.BipartiteMinimaxDesign
 

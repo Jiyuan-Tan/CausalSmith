@@ -6,11 +6,16 @@ Authors: Jiyuan Tan
 # Polynomial geometry of the two arrow maps
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalGeometryBasic
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiniteCumBand
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarRankBridge
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
-import Mathlib.Algebra.MvPolynomial.Funext
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalGeometryBasic
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiniteCumBand
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarRankBridge
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
+public import Mathlib.Algebra.MvPolynomial.Funext
+
+/-! Public arrow-polynomial geometry for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -242,7 +247,7 @@ whole reverse arrow variety.  On the forward common-axis family the same zero
 row is supplied by the loading `(1,ρ₀)=(1,0)`.
 -/
 
-private def retainedCumCoordOf {L r a : ℕ} (hr : 2 ≤ r) (hrL : r ≤ L)
+def retainedCumCoordOf {L r a : ℕ} (hr : 2 ≤ r) (hrL : r ≤ L)
     (ha : a ≤ r) : RetainedCumCoord L :=
   ⟨(⟨r, by omega⟩, ⟨a, by omega⟩), hr, ha⟩
 
@@ -264,7 +269,7 @@ def horizontalContractionMinorPolynomial (m : ℕ) :
     MvPolynomial (RetainedCumCoord (2 * m + 2)) ℂ :=
   (horizontalContractionMinorMatrixPolynomial m).det
 
-private def horizontalContractionMinorMatrix (m : ℕ) (t : CumVec ℂ) :
+def horizontalContractionMinorMatrix (m : ℕ) (t : CumVec ℂ) :
     Matrix (Fin (m + 2)) (Fin (m + 2)) ℂ :=
   fun i b => Fin.cases (t (m + 2) (b.1 + 1))
     (fun a => (m.choose a.1 : ℂ) * t (2 * m + 2) (a.1 + b.1 + 1)) i

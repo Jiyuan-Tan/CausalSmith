@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import Causalean.Experimentation.DesignBased.MeasureBridge
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import Causalean.Stat.FiniteDesign.MeasureBridge
 
 /-! Finite-sample Lipschitz continuity of square-root minimax risk. -/
+
+@[expose] public section
 
 open scoped BigOperators
 
@@ -233,9 +236,9 @@ lemma transferred_root_risk_le {K n : ℕ} (c c' : Contrast ℝ K)
 /-- [the stated side condition holds](hyp:hrisk), [the sqrt worst case risk equals property holds](goal). -/
 lemma sqrt_worstCaseRisk_eq {E Θ : Type*} [Nonempty Θ] [Fintype Θ]
     (risk : E → Θ → ℝ) (e : E) (hrisk : ∀ θ, 0 ≤ risk e θ) :
-    Real.sqrt (Causalean.Stat.worstCaseRisk risk e) =
-      Causalean.Stat.worstCaseRisk (fun e θ => Real.sqrt (risk e θ)) e := by
-  unfold Causalean.Stat.worstCaseRisk
+    Real.sqrt (Causalean.Stat.worstCaseRiskReal risk e) =
+      Causalean.Stat.worstCaseRiskReal (fun e θ => Real.sqrt (risk e θ)) e := by
+  unfold Causalean.Stat.worstCaseRiskReal
   exact Real.sqrt_monotone.map_ciSup_of_continuousAt
     Real.continuous_sqrt.continuousAt (bdd := (Set.finite_range (risk e)).bddAbove)
 
@@ -243,12 +246,12 @@ lemma sqrt_worstCaseRisk_eq {E Θ : Type*} [Nonempty Θ] [Fintype Θ]
 /-- [the sqrt rho n equals root minimax](goal). -/
 lemma sqrt_rhoN_eq_root_minimax {K n : ℕ} (c : Contrast ℝ K) :
     Real.sqrt (rhoN K n c) =
-      Causalean.Stat.minimaxValue
+      Causalean.Stat.minimaxValueReal
         (fun (p : Procedure K n c) (z : Schedule K n) => Real.sqrt (labeledRisk c p z)) := by
   letI : Nonempty (Procedure K n c) := ⟨contrastWeightedProcedure K n c⟩
-  unfold rhoN Causalean.Stat.minimaxValue
+  unfold rhoN Causalean.Stat.minimaxValueReal
   have hbdd : BddBelow (Set.range (fun p : Procedure K n c =>
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z) p)) := by
     refine ⟨0, ?_⟩
     rintro _ ⟨p, rfl⟩
@@ -269,10 +272,10 @@ lemma root_minimax_one_sided_contrast_le (K n : ℕ) (c c' : Contrast ℝ K)
   apply sub_le_iff_le_add.mp
   apply Causalean.Stat.le_minimaxValue
   intro p
-  have htransfer : Causalean.Stat.worstCaseRisk
+  have htransfer : Causalean.Stat.worstCaseRiskReal
       (fun (q : Procedure K n c) (z : Schedule K n) => Real.sqrt (labeledRisk c q z))
       (transferProcedure c p) ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (q : Procedure K n c') (z : Schedule K n) => Real.sqrt (labeledRisk c' q z)) p +
         contrastDistance c c' := by
     apply Causalean.Stat.worstCaseRisk_le
@@ -281,7 +284,7 @@ lemma root_minimax_one_sided_contrast_le (K n : ℕ) (c c' : Contrast ℝ K)
       Real.sqrt (labeledRisk c (transferProcedure c p) z) ≤
           Real.sqrt (labeledRisk c' p z) + contrastDistance c c' :=
         transferred_root_risk_le c c' p z hn
-      _ ≤ Causalean.Stat.worstCaseRisk
+      _ ≤ Causalean.Stat.worstCaseRiskReal
             (fun (p : Procedure K n c') (z : Schedule K n) =>
               Real.sqrt (labeledRisk c' p z)) p + contrastDistance c c' := by
         gcongr

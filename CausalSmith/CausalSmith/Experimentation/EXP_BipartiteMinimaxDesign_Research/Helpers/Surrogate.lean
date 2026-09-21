@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Surrogate-certificate finite product and envelope-sandwich helpers
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.style.whitespace false

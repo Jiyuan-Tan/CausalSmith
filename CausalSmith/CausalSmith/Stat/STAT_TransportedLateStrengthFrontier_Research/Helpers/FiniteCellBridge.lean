@@ -2,9 +2,12 @@
 # Finite-cell procedure and regular-class bridge
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk
-import Causalean.Stat.Minimax.HonestConfidenceSet
-import Causalean.Stat.Sample.CollisionEstimator
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+public import Causalean.Stat.Sample.CollisionEstimator
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

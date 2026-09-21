@@ -1,13 +1,16 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedConditionalKL
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepthMembership
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Mathlib.InformationTheory.KullbackLeibler.ChainRule
-import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedConditionalKL
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepthMembership
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Mathlib.InformationTheory.KullbackLeibler.ChainRule
+public import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
 
 set_option linter.style.longLine false
 
 /-! # Observed-path KL bounds for the signed-depth alternatives -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

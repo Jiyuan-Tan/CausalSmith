@@ -1,0 +1,486 @@
+%%% FIELD proof-polynomial-reduction
+Fix a row \(r\in K\).  By the definition of \(K\) and the incidence data \(Ictx\), there are a source occurrence \(v\), a parent tuple \(c\), and a table \(P\in Psrc\) such that the type--context key of \((v,c)\) is \(r\) and
+\[
+ P\{\operatorname{pa}(v)=c\}>0.
+\]
+Consequently every category \(y\) in this row is determined by
+\[
+ K_r(y)=
+ \frac{P\{v=y,\operatorname{pa}(v)=c\}}
+      {P\{\operatorname{pa}(v)=c\}}.
+\]
+The denominator is strictly positive by the displayed support condition, so the division is valid.  Both numerator and denominator are rational because \(Psrc\) consists of rational tables.  If \((v',c')\) is another positive-probability source occurrence with key \(r\), \(\texttt{ass:source-compatibility}\) says that its conditional row equals the displayed row.  By \(\texttt{ass:type-sharing}\), this common row is used at every occurrence of the key.  Thus every row in \(K\) is uniquely recovered and rational.
+
+Let \(V_a\) be the nonintervened nodes of the target grounding.  By \(\texttt{ass:acyclic-groundings}\), choose a topological ordering of \(V_a\).  A model \(M\in Mone\) has mutually independent distinct exogenous variables by \(\texttt{def:model-class}\).  Induction in the topological order therefore gives the truncated factorization
+\[
+ Q(M)
+ =\sum_{x:\,x\models B}
+   \prod_{v\in V_a}
+   P_M\!\left(x_v\mid x_{\operatorname{pa}(v)}\right).
+\]
+Indeed, conditional on all earlier endogenous variables, the current node is a function only of its recorded parent tuple and its own independent noise; intervened nodes contribute point masses fixed by \(a\), and hence their factors are omitted.
+
+For an event-consistent assignment \(x\), let \(r(v,x)\) be the type--context key recorded by \(Ictx\).  By \(\texttt{ass:one-unsupported-row}\), every factor in a target-relevant summand is either an entry of a recovered row in \(K\) or an entry of \(rstar\).  By \(\texttt{ass:binary-free-row}\) and \(\texttt{ass:type-sharing}\), all occurrences of \(rstar\) use one common pair \((1-q_M,q_M)\) for a scalar \(q_M\in[0,1]\).  Let \(s_x\) and \(f_x\) be the numbers of success and failure factors from this row, and let \(w_x\in\mathbb Q\) be the product of all supported-row factors.  The preceding factorization becomes
+\[
+ Q(M)=\sum_{x:\,x\models B}
+ w_x q_M^{s_x}(1-q_M)^{f_x}.
+\]
+This is exactly the gate-by-gate replay used to define \(F\), so \(Q(M)=F(q_M)\).  Conversely, if the one free shared row is replaced by \((1-q_0,q_0)\) for any \(q_0\in[0,1]\), the same assignment-wise calculation gives the replay value \(F(q_0)\).  This last statement is an algebraic substitution claim; existence of a compatible model realizing each substitution is proved separately by \(\texttt{thm:endpoint-models}\) and, more generally, by \(\texttt{thm:finite-unsupported-endpoint-models}\).
+
+Expanding each \((1-q)^{f_x}\) shows that every summand, and hence \(F\), lies in \(\mathbb Q[q]\).  If \(m_\star\) is the maximum number of target nodes carrying \(rstar\) in any complete assignment consistent with the intervention, then
+\[
+ s_x+f_x\leq m_\star
+\]
+for every event summand.  Thus every summand has degree at most \(m_\star\), so their sum has degree \(D\leq m_\star\).  If there are no event-consistent assignments, then \(F=0\) and the convention \(D=0\) gives the same conclusion.
+
+%%% FIELD proof-multivariate-polynomial-reduction
+By \(\texttt{ass:finite-domains}\), every endogenous outcome alphabet is finite.  The target grounding \(\rho\) and the explicit incidence table \(Ictx\) are finite, so only finitely many type--context keys occur in event-consistent target terms.  Hence \(\mathcal R_{\mathrm{free}}\) is finite.  Each factor \(\Delta_r\) in \(\mathcal P_{\mathrm{free}}\) is nonempty because it contains every point mass on \(\mathcal Y_r\); a finite product is nonempty, and the stipulated empty product is a singleton.
+
+Fix an event-consistent assignment \(x\) of the nonintervened target nodes.  By \(\texttt{ass:acyclic-groundings}\), take a topological order.  By \(\texttt{ass:markovian-noises}\), induction in this order gives
+\[
+ P_M^\rho(x\mid\operatorname{do}(a))
+ =\prod_{v\notin\operatorname{dom}(a)}
+ P_M\!\left(x_v\mid x_{\operatorname{pa}(v)}\right).
+\]
+By \(\texttt{ass:type-sharing}\), the factor at \(v\) depends on its type--context key, not its occurrence label.  If a key \(r\) has a source occurrence with parent context \(c\) of positive probability, its row is recovered coordinatewise as
+\[
+ K_r(y)=
+ \frac{Psrc\{Y=y,C=c\}}{Psrc\{C=c\}}.
+\]
+The denominator is positive by the definition of positive source support; both entries are rational; and \(\texttt{ass:source-compatibility}\) makes the ratio independent of which positive-support occurrence is used.  Otherwise the target-relevant key belongs to \(\mathcal R_{\mathrm{free}}\), and its factor is the coordinate \(p_{r,x_v}\).  Thus the probability of each complete assignment is a monomial in the coordinates of \(p\), multiplied by a rational coefficient.  There are finitely many assignments, and their sum over \(B\) is precisely the replay in \(\texttt{def:multivariate-target-polynomial}\).  Therefore \(\Phi\) is a multivariate polynomial with rational coefficients.
+
+Now fix \(M\in\mathcal M_{\mathrm{fin}}\).  Each unrestricted finite conditional row of \(M\) is a probability vector, and type sharing assigns one such vector to each free key.  Their collection \(p_M\) therefore belongs to \(\mathcal P_{\mathrm{free}}\).  Substituting these actual rows into the preceding assignment-wise factorization makes its event sum equal both to the causal quantity \(Q_{\mathrm{fin}}(M)\) and to the observed-law replay functional \(\Phi(p_M)\).  Hence
+\[
+ Q_{\mathrm{fin}}(M)=\Phi(p_M).
+\]
+This proves the causal-to-polynomial relation rather than imposing it as a definition.
+
+%%% FIELD proof-finite-unsupported-endpoint-models
+Fix \(p_0\in\mathcal P_{\mathrm{free}}\).  For each endogenous type \(t\), order its finite alphabet as \(\{1,\ldots,k_t\}\).  Let \(\mathcal C_t(p_0)\) contain every distinct conditional row of type \(t\) recovered from a positive-probability source parent context and every target-relevant free row of type \(t\) specified by \(p_0\).  Source compatibility makes a row recovered at more than one occurrence identical, so this finite collection is well defined.
+
+For \(c\in\mathcal C_t(p_0)\), write
+\[
+ b_{c,j}=\sum_{h=1}^{j}p_{c,h},
+ \qquad j=0,\ldots,k_t,
+\]
+where \(b_{c,0}=0\) and \(b_{c,k_t}=1\).  Sort the distinct members of
+\[
+ \{0,1\}\cup
+ \{b_{c,j}:c\in\mathcal C_t(p_0),\ 1\leq j<k_t\}
+\]
+as
+\[
+ 0=d_{t,0}<d_{t,1}<\cdots<d_{t,h_t}=1.
+\]
+Give the type-\(t\) exogenous noise the atoms \(e_{t,j}\), \(1\leq j\leq h_t\), with masses
+\[
+ \mu_t(e_{t,j})=d_{t,j}-d_{t,j-1}>0.
+\]
+The masses sum to one by telescoping.
+
+Choose any \(u_{t,j}\in(d_{t,j-1},d_{t,j})\).  At context \(c\), define the common type mechanism on atom \(e_{t,j}\) to output the unique nonempty category interval containing \(u_{t,j}\), namely the unique \(y\) with
+\[
+ b_{c,y-1}<u_{t,j}<b_{c,y},
+\]
+skipping categories of probability zero.  No cumulative threshold lies in an open atom interval, so the output is independent of the chosen interior point.  The intervals whose output is at most \(y\) have total mass \(b_{c,y}\).  Subtracting consecutive cumulative masses gives
+\[
+ \Pr\{Y=y\mid c\}=b_{c,y}-b_{c,y-1}=p_{c,y}.
+\]
+For a context outside \(\mathcal C_t(p_0)\), choose an arbitrary fixed category.  Such a context is neither a positive-support source row nor a target-relevant supported or free row, so this arbitrary choice changes neither the supplied source laws nor the query replay.
+
+Use this one context-indexed mechanism at every occurrence of type \(t\), and give distinct ground nodes mutually independent copies of the type-\(t\) noise.  The construction is therefore type shared and satisfies the independent-noise restriction.  In an acyclic source grounding, induct in topological order.  On every parent history having positive probability, the next node uses exactly the recovered conditional row.  A zero-probability parent history contributes zero to the joint law regardless of its arbitrary row.  Thus the constructed source joint law is the product of the recovered rows, which equals the supplied table in \(Psrc\) by \(\texttt{ass:source-compatibility}\).  The constructed model consequently lies in \(\mathcal M_{\mathrm{fin}}\), and its free rows are exactly \(p_0\).
+
+Applying \(\texttt{lem:multivariate-polynomial-reduction}\) to this model yields
+\[
+ Q_{\mathrm{fin}}(M_{p_0})=\Phi(p_0).
+\]
+Finally, there are at most \(|\mathcal C_t(p_0)|(k_t-1)\) distinct internal cumulative thresholds.  Together with \(0\) and \(1\), they cut \([0,1]\) into at most
+\[
+ 1+|\mathcal C_t(p_0)|(k_t-1)
+\]
+positive adjacent intervals.  Coincident thresholds can only reduce this number, proving the atom bound.
+
+%%% FIELD proof-sharp-finite-unsupported-rows
+By \(\texttt{lem:multivariate-polynomial-reduction}\), every \(M\in\mathcal M_{\mathrm{fin}}\) has a vector \(p_M\in\mathcal P_{\mathrm{free}}\) with \(Q_{\mathrm{fin}}(M)=\Phi(p_M)\).  Hence
+\[
+ \Theta_{\mathrm{fin}}\subseteq\Phi(\mathcal P_{\mathrm{free}}).
+\]
+Conversely, for every \(p_0\in\mathcal P_{\mathrm{free}}\), \(\texttt{thm:finite-unsupported-endpoint-models}\) supplies a compatible model \(M_{p_0}\) satisfying \(Q_{\mathrm{fin}}(M_{p_0})=\Phi(p_0)\).  Therefore
+\[
+ \Theta_{\mathrm{fin}}=\Phi(\mathcal P_{\mathrm{free}}).
+\]
+
+We next characterize this scalar image.  Write the finitely many free-row coordinates as a vector in \([0,1]^d\).  From any sequence in \(\mathcal P_{\mathrm{free}}\), repeated interval bisection extracts a subsequence converging in the first coordinate; iterating through the finite coordinates and taking the diagonal subsequence gives a coordinatewise convergent subsequence.  Each limiting coordinate is nonnegative, and passage to the limit in every finite row-sum equality preserves \(\sum_y p_{r,y}=1\).  Thus the limit remains in \(\mathcal P_{\mathrm{free}}\).  When \(d=0\), the product is already a singleton.
+
+Let \(u=\sup\Phi(\mathcal P_{\mathrm{free}})\), and take \(p_j\) with \(\Phi(p_j)\to u\).  A subsequence converges to some \(p^+\in\mathcal P_{\mathrm{free}}\).  A polynomial is continuous because it is a finite sum of finite products of coordinates, so \(\Phi(p^+)=u\).  The same argument for the infimum gives \(p^-\in\mathcal P_{\mathrm{free}}\) with \(\Phi(p^-)=l:=\inf\Phi(\mathcal P_{\mathrm{free}})\).
+
+The product of simplices is convex: for \(s\in[0,1]\), every row of \((1-s)p^-+sp^+\) remains nonnegative and sums to one.  Define
+\[
+ g(s)=\Phi((1-s)p^-+sp^+).
+\]
+This is a continuous univariate polynomial with \(g(0)=l\) and \(g(1)=u\).  For any \(z\in[l,u]\), recursively bisect \([0,1]\) and retain a half whose endpoint values lie on opposite weak sides of \(z\).  The nested intervals have lengths tending to zero and therefore determine a point \(s_z\); continuity gives \(g(s_z)=z\).  Hence \([l,u]\subseteq\Phi(\mathcal P_{\mathrm{free}})\).  The reverse inclusion follows from the definitions of \(l\) and \(u\).  We have proved
+\[
+ \Theta_{\mathrm{fin}}=Phi(\mathcal P_{\mathrm{free}})
+ =\left[\min_{p\in\mathcal P_{\mathrm{free}}}\Phi(p),
+         \max_{p\in\mathcal P_{\mathrm{free}}}\Phi(p)\right].
+\]
+Applying the finite-noise construction to \(p^-\) and \(p^+\) supplies endpoint-attaining type-shared models.  No optimization algorithm for a general multivariate \(\Phi\) has been used or asserted.
+
+%%% FIELD proof-sharp-one-row
+Under \(\texttt{ass:one-unsupported-row}\) and \(\texttt{ass:binary-free-row}\), the generalized objects specialize to
+\[
+ \mathcal R_{\mathrm{free}}=\{rstar\},
+ \qquad
+ \mathcal P_{\mathrm{free}}=\{(1-q,q):0\leq q\leq1\}.
+\]
+Comparing \(\texttt{def:model-class}\) with \(\texttt{def:finite-unsupported-model-class}\), all remaining membership requirements agree in this specialization: the schema, graph, source and target groundings, mutual independence of distinct exogenous variables, exclusion of exogenous relational parents, exclusion of a non-relational exogenous parent shared by distinct ground endogenous variables, finite type-shared mechanisms, reproduction of \(Psrc\), and use of \(K\) at every positive-support key are identical.  The comparator-only condition \(\texttt{ass:bounded-relational-parent-multisets}\) is not a membership clause of either structural class.  Therefore
+\[
+ \mathcal M_{\mathrm{fin}}=Mone,
+ \qquad Q_{\mathrm{fin}}=Q.
+\]
+The substitution \(p_{rstar}=(1-q,q)\) in \(\texttt{def:multivariate-target-polynomial}\) is the same replay as the definition of \(F\); equivalently, \(\texttt{lem:polynomial-reduction}\) proves assignment by assignment that
+\[
+ \Phi((1-q,q))=F(q).
+\]
+Specializing \(\texttt{thm:sharp-finite-unsupported-rows}\) now gives
+\[
+ \Theta=F([0,1])
+ =\left[\min_{q\in[0,1]}F(q),
+         \max_{q\in[0,1]}F(q)\right].
+\]
+In particular, both inclusions are causal: every compatible model maps to a point of the polynomial image, and every parameter point is realized by a compatible finite-noise model.
+
+It remains to identify the extrema with the declared candidate values.  The interval \([0,1]\) is sequentially compact by bisection, and the polynomial \(F\) is continuous, so a minimizing sequence and a maximizing sequence have convergent subsequences whose limits attain the minimum and maximum.  If a nonconstant \(F\) has an interior minimizer \(c\), then for all sufficiently small \(h>0\),
+\[
+ \frac{F(c+h)-F(c)}{h}\geq0,
+ \qquad
+ \frac{F(c)-F(c-h)}{h}\leq0.
+\]
+Both quotients tend to \(F'(c)\), so \(F'(c)=0\).  Reversing the inequalities proves the same conclusion for an interior maximizer.  Hence every optimizer is \(0\), \(1\), or a distinct feasible real root of \(F'\), and therefore belongs to \(Ccrit\).  Since \(Ccrit\subseteq[0,1]\),
+\[
+ \min_{q\in[0,1]}F(q)=\min_{c\in Ccrit}F(c)=L,
+ \qquad
+ \max_{q\in[0,1]}F(q)=\max_{c\in Ccrit}F(c)=U.
+\]
+If \(F\) is constant, the boundary candidates already attain its common value, so the same identities hold.  This proves the unconditional structural assertion \(\Theta=F([0,1])=[L,U]\).
+
+We now prove exactly the conditional comparator clauses.  By the cited leaf \(\texttt{lem:ejaz-bareinboim-rho-markovian-scope}\), Definition 3.2 supplies the \(\rho\)-Markovian exogenous-parent restrictions, while Section 5 assumptions (I)--(III) separately delimit the neural-completeness domain, including the stated global relational-parent bound.  Thus that bound is not inferred from the finiteness of the listed source and target groundings.
+
+Fix an instance satisfying the comparator-domain and Definition 3.2 conditions in the theorem, and write \(\mathcal E\) for the corresponding Ejaz--Bareinboim compatible class for the same source laws and causal query.  The additional hypothesis is precisely
+\[
+ Mone\subseteq\mathcal E.
+\]
+If \(F\) is nonconstant, choose \(q_1,q_2\in[0,1]\) with \(F(q_1)\neq F(q_2)\).  The structural equality just proved supplies \(M_1,M_2\in Mone\) reproducing the same source laws and satisfying
+\[
+ Q(M_1)=F(q_1)\neq F(q_2)=Q(M_2).
+\]
+The inclusion places both witnesses in \(\mathcal E\), so the query is not point identified there.  If Algorithm 1 returns \(\mathsf{FAIL}\), that report does not alter the structural equality already established for \(Mone\).  Inclusion gives no restriction on values attained by models in \(\mathcal E\setminus Mone\), so it transfers neither the sharp endpoints nor equality of the two identified sets.
+
+If \(F\) is constant, the structural result gives \(L=U\) throughout \(Mone\).  Equality of the two compatible classes transfers this singleton by direct substitution.  Under a strict inclusion, the values on additional models are unconstrained by constancy on \(Mone\), so singleton identification does not follow.
+
+Finally, unsupportedness alone does not imply \(\mathsf{FAIL}\).  Consider a finite acyclic two-node instance in the Section 5 domain whose supplied graph excludes additional shared-exogenous structure, so the comparator class and \(Mone\) coincide.  Let \(A\) be a supported fair binary node, let \(X\) use the unsupported binary row \((1-q,q)\), take the empty intervention, and set \(B=\{A=X\}\).  Independence gives
+\[
+ P(B\mid\operatorname{do}(a))
+ =P(A=0)P(X=0)+P(A=1)P(X=1)
+ =\frac{1-q}{2}+\frac q2=\frac12.
+\]
+The row is event relevant, but its coordinate cancels.  On the cited sound-and-complete comparator domain, an identified instance cannot be labeled \(\mathsf{FAIL}\).
+
+As a load-bearing stress test for type sharing, take two independent target nodes using the same unsupported binary key and let the event be exactly one success.  Under type sharing the image is \(2q(1-q)\leq1/2\).  If only type sharing is removed, occurrence-specific choices \(q_1=1\) and \(q_2=0\) yield event probability one.  Thus the common coordinate used in the proof is essential.
+
+%%% FIELD proof-endpoint-models
+By \(\texttt{thm:sharp-one-row}\) and the definitions of the selected candidates,
+\[
+ q_{\mathrm{minus}},q_{\mathrm{plus}}\in[0,1],
+ \qquad
+ F(q_{\mathrm{minus}})=L,
+ \qquad
+ F(q_{\mathrm{plus}})=U.
+\]
+We analyze the breakpoint construction once for \(q_\circ=q_{\mathrm{minus}}\) and once for \(q_\circ=q_{\mathrm{plus}}\).
+
+Fix an endogenous type \(t\) with ordered alphabet \(\mathcal X_t=\{1,\ldots,k_t\}\).  For every explicit context \(c\), let
+\[
+ 0=s_{c,0}\leq s_{c,1}\leq\cdots\leq s_{c,k_t}=1
+\]
+be the cumulative probabilities of its prescribed row.  Supported thresholds are rational because \(K\) is rational.  At the one free binary context the thresholds are \(0,q_\circ,1\).  Sort all distinct thresholds as
+\[
+ 0=u_0<u_1<\cdots<u_J=1
+\]
+and give the type-level noise atom \(e_j\) mass
+\[
+ \mu_t(e_j)=u_j-u_{j-1},\qquad 1\leq j\leq J.
+\]
+These masses are positive and telescope to one.  For context \(c\), define the common mechanism on \(e_j\) to output the unique nonempty category interval containing any interior point of \((u_{j-1},u_j)\).  Because each \(s_{c,\ell}\) is a breakpoint, no atom interval crosses a context threshold.  The total mass assigned to categories at most \(\ell\) telescopes to \(s_{c,\ell}\), so the mechanism realizes exactly the prescribed row.
+
+Use this same context table at every occurrence of type \(t\), and give distinct ground nodes independent copies of its noise law.  This proves type sharing and mutual independence of distinct ground noises.  The construction has no exogenous relational parents and shares no non-relational exogenous parent between distinct ground nodes.  In an acyclic source grounding, topological induction gives the product of the prescribed conditional rows.  That product equals the supplied source law by \(\texttt{ass:source-compatibility}\); zero-probability parent contexts do not affect the joint law.  Hence every table in \(Psrc\) is reproduced exactly.  The same induction after removing the intervened factors gives the target truncated factorization, whose value is \(F(q_\circ)\) by the defining replay.  The two constructed models therefore satisfy every clause of \(\texttt{def:model-class}\), and
+\[
+ Q(Mminus)=F(q_{\mathrm{minus}})=L,
+ \qquad
+ Q(Mplus)=F(q_{\mathrm{plus}})=U.
+\]
+
+The record \(Z\) lists each ordered breakpoint, adjacent-interval mass, and context-specific output on each atom.  For every source and target node in \(Ictx\), it stores the node label, parent tuple, context key, intervention status, and a reference to the common type table.  Because \(Ictx\) exhaustively lists these occurrences and target terms, the record determines every requested source and target grounding without an occurrence-specific mechanism.
+
+Each explicit context contributes at most \(k_t-1\) internal cumulative thresholds.  Therefore there are at most
+\[
+ 2+\sum_c(k_t-1)
+\]
+distinct breakpoints and at most
+\[
+ 1+\sum_c(|\mathcal X_t|-1)
+\]
+positive adjacent-interval atoms.  Duplicate thresholds and zero-length intervals only decrease the count.
+
+All supported thresholds are rational.  If \(q_\circ\) is rational, every adjacent difference is rational.  If it is irrational, it lies strictly between two consecutive thresholds \(a<b\) of the rational breakpoint set before insertion.  Inserting it replaces the single rational mass \(b-a\) by
+\[
+ q_\circ-a
+ \quad\text{and}\quad
+ b-q_\circ.
+\]
+These are the only two possibly irrational masses in the entire endpoint model, and each is affine in the selected algebraic optimizer.  At \(0\), \(1\), or an existing rational threshold, duplicate removal introduces no positive atom.  This also covers every boundary coincidence.
+
+%%% FIELD proof-certificate-soundness
+Assume
+\[
+ Check(S,G,Rsrc,Psrc,\rho,a,B,Ictx,K,F,Z,\Gamma)=1.
+\]
+By \(\texttt{def:checker}\), every guarded check in the deterministic checker has returned true.  We derive the advertised conclusions in the order of those checks.
+
+First, the checker recomputes the injective length-delimited canonical digest from the supplied fixed instance and \(Z\).  Equality with the digest stored in \(\Gamma\) therefore binds the certificate to equality of the complete encoded tuple, not merely to an ambiguous concatenation.  The schema-reference, graph-reference, exhaustive lexicographic-index, acyclicity, and relevance checks show that the accepted \(Ictx\) has exactly one record for every required source node and every event-consistent complete target-assignment term, with the correct parent tuple, type--context key, intervention status, relevance flag, and multiplicity.  Thus \(Ictx\) is the exact incidence table for the bound instance.
+
+For each row claimed to be supported, the checker recomputes the rational probability of its source parent context and verifies strict positivity before division.  It divides the corresponding joint cells by this positive value and compares every quotient with the row in \(K\).  Thus every division is defined and \(K\) contains exactly the recovered target-relevant positive-support rows.  Equality of rows bearing the same type--context label verifies type sharing.  Exhaustiveness of the relevance and support records leaves exactly \(rstar\) as the unsupported target-relevant key.  The checker then verifies every rational addition and multiplication in the truncated-factorization replay and compares the terminal dense coefficient list coefficientwise with \(F\).  Hence the accepted \(F\) is exactly the replay polynomial.
+
+For the algebraic portion, the checker verifies an integer clearing of \(F'\), its gcd data, and the square-free part \(g\).  If \(F\) is constant or \(F'\) is a nonzero constant, the checked branch contains only the required boundary candidates.  Otherwise, \(\texttt{lem:sturm-root-count-correctness}\) implies that an accepted rational isolator of Sturm count one contains exactly one distinct real root of \(g\), an interval of count zero contains none, and the checked variation counts across the disjoint subdivision account for every real root.  The exact signs relative to \(0\) and \(1\) retain precisely the roots in \((0,1)\), and boundary records add \(0\) and \(1\).  Since \(F'\) and its square-free part have the same distinct roots, the accepted list is exactly \(Ccrit\), including repeated-root and boundary cases.
+
+Fix a listed interior candidate \(c\).  Then \(g(c)=0\).  At \(z=F(c)\), the two polynomials in the checked resultant share the root \(c\), so their Sylvester evaluation matrix has a nonzero kernel and its determinant vanishes.  Thus the linked value is among the roots of the checked value polynomial.  A resultant can also contain values arising from conjugate or infeasible roots, so the checker additionally verifies candidate-specific Sturm--Tarski signs.  If \(J=(\ell,u)\) is the one-root isolator carrying the proposed label, the accepted signs establish
+\[
+ \ell<F(c)<u,
+\]
+and the root-count check establishes that \(J\) contains exactly one value root.  The linked algebraic number is therefore \(F(c)\), not an unrelated resultant conjugate.  Boundary links are checked by exact rational substitution.
+
+Exact equality tests assign one shared label precisely to candidates with the same value.  Otherwise disjoint one-root isolators and certified strict signs order their labels.  Therefore equal interior values, boundary ties, and boundary--interior coincidences require no false numerical separation.  The least and greatest linked labels give
+\[
+ L=\min_{c\in Ccrit}F(c),
+ \qquad
+ U=\max_{c\in Ccrit}F(c).
+\]
+The critical-point argument in \(\texttt{thm:sharp-one-row}\) then gives
+\[
+ L=\min_{q\in[0,1]}F(q),
+ \qquad
+ U=\max_{q\in[0,1]}F(q).
+\]
+No algebraic root lacking a feasible-candidate link can be selected.  The same exact sign tests compare each selected optimizer with rational breakpoints, including equality.
+
+Finally decode \(Z\).  Accepted nonnegativity signs and unit-sum identities make every finite-noise table a probability law.  Shared table labels give one mechanism per endogenous type; distinct node-copy records give mutually independent exogenous variables; graph and mechanism records verify the two no-confounding restrictions in \(\texttt{def:model-class}\).  Summing atom masses over output labels recovers every asserted conditional row.  The source evaluation records multiply these rows in a checked topological order and agree cellwise with \(Psrc\).  The target records omit exactly the intervened factors, include every event-consistent term in \(Ictx\), and evaluate exactly to \(L\) and \(U\).  Hence
+\[
+ Mminus,Mplus\in Mone,
+ \qquad Q(Mminus)=L,
+ \qquad Q(Mplus)=U.
+\]
+Every implication used an exact identity, a certified root count, or a certified sign.  Repeated derivative roots, boundary critical points, ties, algebraic conjugates, and threshold coincidences therefore do not alter the conclusions.
+
+%%% FIELD proof-certificate-completeness
+Put
+\[
+ N=D+LF+T+1.
+\]
+We construct \(Z\) and \(\Gamma\), verify acceptance directly, and bound both encoded length and checking cost.
+
+Copy the canonical fixed-instance fields, the exhaustive table \(Ictx\), and the supported rational rows into the certificate.  Their total length is \(O(T+LF)\).  Because \(F\) is obtained by replaying the target factorization, record the corresponding additions and multiplications indexed by the explicit entries of \(Ictx\), together with their dense intermediate polynomials.  There are polynomially many gates in \(T\).  Every intermediate degree is at most the number of target occurrences represented in the explicit incidence input, hence at most \(T\); this bound is used rather than the final degree \(D\), since cancellation can lower the latter.  For rational multiplication, numerator and denominator bit lengths add, apart from the logarithmic growth caused by summing at most \(T\) coefficient products.  For rational addition, a common denominator may be the product of the input denominators, whose bit length is their summed bit length.  Induction over at most polynomially many gates therefore bounds every intermediate coefficient length by a polynomial in \(T+LF+1\).  The replay list consequently has polynomial length and terminates at the supplied dense list \(F\).
+
+Choose \(M>0\) and primitive \(A\in\mathbb Z[q]\) with
+\[
+ F(q)=\frac{A(q)}{M}.
+\]
+Clearing the denominators in the dense coefficient list and primitively reducing shows that the coefficient bit length \(\tau\) of \(A\), as well as \(\log M\), is polynomial in \(D+LF+1\).  If \(D=0\), use the boundary-only record, take \(q_{\mathrm{minus}}=q_{\mathrm{plus}}=0\), and set \(L=U=F(0)\).  If \(D=1\), \(F'\) is a nonzero constant, so only the boundary candidates are required.  All selected quantities in these cases are rational and admit degree-one primitive polynomials and rational isolators.
+
+Suppose \(D\geq2\).  Compute
+\[
+ g=\operatorname{sqfree}(A')
+\]
+by fraction-free gcd arithmetic.  Subresultant coefficients are determinants of matrices of dimension \(O(D)\).  Expanding a determinant gives at most \(D!\) products, so its coefficient bit length is bounded by the sum of \(O(D)\) input bit lengths plus \(O(D\log D)\).  Hence \(g\) has degree at most \(D-1\), polynomial coefficient length, and polynomial-time fraction-free arithmetic suffices to compute and verify it.  By \(\texttt{lem:integer-root-isolation-polynomial-time}\), all real roots of \(g\) have pairwise disjoint rational isolators of polynomial bit length, computable in polynomial bit time.  Sturm counts retain exactly the roots in \((0,1)\), while separate records add \(0\) and \(1\).  Square-free reduction represents every repeated derivative root once.
+
+Apply \(\texttt{lem:rational-polynomial-factorization-polynomial-time}\) to \(g\).  For each retained interior candidate, attach the primitive irreducible integer factor containing the isolated root.  That factor and isolator give an exact simple-extension representation of the candidate of polynomial length.
+
+Introduce a value indeterminate \(z\) and form
+\[
+ E(z)=
+ (Mz-A(0))(Mz-A(1))
+ \operatorname{Res}_{q}\!\left(g(q),A(q)-Mz\right).
+\]
+The resultant factor is nonzero.  Indeed, over \(\mathbb Q(z)\), a common divisor in \(q\) of \(g(q)\) and \(A(q)-Mz\) would divide their coefficient \(-M\) of \(z\), and hence would be a unit.  The Sylvester matrix has dimension \(O(D)\), entries of \(z\)-degree at most one, and coefficient length polynomial in \(D+\tau+1\).  The same determinant bound gives
+\[
+ \deg E\leq D+1
+\]
+and polynomial coefficient length.  Primitive and square-free reduction preserve polynomial bounds by the same subresultant calculation.
+
+Isolate the distinct real roots of the square-free part of \(E\) using \(\texttt{lem:integer-root-isolation-polynomial-time}\).  For an interior candidate \(c\), regard \(A(c)-Mz\) as a linear polynomial in \(z\) over \(\mathbb Q(c)\).  The algorithm in \(\texttt{lem:algebraic-extension-isolation-polynomial-time}\) isolates its unique real root \(F(c)\) with polynomial-size data and polynomial bit cost.  Equality with a rational endpoint \(r\) is decided by reducing \(A(c)-Mr\) modulo the irreducible polynomial of \(c\); if it is nonzero, the subresultant sign sequence and isolator decide its strict sign.  Refinement therefore produces a one-root rational interval \((\ell,u)\) satisfying
+\[
+ \ell<F(c)<u.
+\]
+Existence follows because at \(z=F(c)\) the Sylvester matrix has the kernel vector induced by the common root \(c\), so \(E(F(c))=0\).  Uniqueness follows from disjoint one-root value isolators.  Boundary candidates are evaluated and linked by exact rational arithmetic.
+
+Two candidates have equal values exactly when their exact extension-field equality test vanishes; otherwise isolator refinement and exact signs strictly order them.  Assign one label to each equality class and sort the labels.  This handles all ties, including boundary--interior ties, and prevents selection of an extraneous resultant root having no feasible-candidate link.  The least and greatest linked labels determine \(L,U,q_{\mathrm{minus}},q_{\mathrm{plus}}\).  Sturm--Tarski sign records serialize every link, equality, strict order, and rational-threshold comparison required by \(\texttt{def:certificate-grammar}\).
+
+Factor the square-free value polynomial and retain for each selected endpoint the primitive irreducible factor associated with its isolator.  An interior optimizer \(q_\circ\) is a root of \(A'\), so
+\[
+ [\mathbb Q(q_\circ):\mathbb Q]\leq D-1.
+\]
+Since \(F(q_\circ)=A(q_\circ)/M\), the field \(\mathbb Q(F(q_\circ))\) is a subfield of \(\mathbb Q(q_\circ)\).  Any \(\mathbb Q\)-linearly independent subset of the subfield remains linearly independent in the larger field, and therefore
+\[
+ [\mathbb Q(F(q_\circ)):\mathbb Q]\leq D-1.
+\]
+Boundary optimizers and their values are rational.  Thus every selected optimizer and endpoint has algebraic degree at most \(\max\{1,D-1\}\), and each is stored by a primitive irreducible integer polynomial and a rational isolating interval.
+
+Construct the two endpoint models by \(\texttt{thm:endpoint-models}\).  If type \(t\) has \(R_t\) explicit contexts and alphabet size \(k_t\), it has at most \(1+R_t(k_t-1)\) positive atoms.  The canonical explicit input lists all these rows, so \(\sum_tR_tk_t=O(T)\).  The number of context-by-atom outputs is consequently bounded by
+\[
+ \sum_t R_t\{1+R_t(k_t-1)\}=O(T^2).
+\]
+Source cell and target-term evaluation records add at most another polynomial factor because every source cell and every target term is already explicitly represented in \(Psrc\) or \(Ictx\).  Supported breakpoints are rational input values.  For each endpoint, only the two masses adjacent to an irrational \(q_\circ\) can be irrational, and both reuse the stored descriptor of \(q_\circ\).  Exact extension-field signs certify their nonnegativity, including equality with a rational threshold.  Hence \(Z\) has polynomial bit length and is constructible in polynomial bit time.
+
+Complete \(\Gamma\) with the canonical digest, local incidence records, gate identities, gcd and square-free identities, Sturm counts, candidate-to-value links, equality labels, order records, and exact source and target evaluations.  There are at most \(D-1\) interior candidates, two boundary candidates, and at most \(D+1\) roots of \(E\).  Even all pairwise comparisons require only \(O(D^2)\) records.  Every recorded integer, rational interval, polynomial, table entry, and arithmetic identity has polynomial bit length by the preceding bounds and the three cited algebraic algorithms.  Therefore, for one fixed polynomial \(P_1\),
+\[
+ |Z|+|\Gamma|\leq P_1(N).
+\]
+
+Acceptance is checked directly, not inferred from soundness.  The digest matches its canonical encoding; the copied incidence list is exhaustive; positive source contexts and \(K\) agree by the instance hypotheses; gate replay ends at \(F\); the gcd, Sturm, resultant, factor, isolator, link, tie, and order identities hold by construction; and the two breakpoint models reproduce \(Psrc\) and evaluate to \(L,U\) by \(\texttt{thm:endpoint-models}\).  Unfolding \(\texttt{def:checker}\), no rejection guard fires, and therefore
+\[
+ Check(S,G,Rsrc,Psrc,\rho,a,B,Ictx,K,F,Z,\Gamma)=1.
+\]
+The checker traverses polynomially many records.  Rational arithmetic, fraction-free gcd and resultant verification, Sturm variations, factor and algebraic-sign checks, table traversal, and finite-model evaluation use polynomially many integers of polynomial bit length.  Schoolbook integer arithmetic already bounds each such operation polynomially, so the total checking time is at most a fixed polynomial \(P_2(N)\).  Replacing \(P_1\) and \(P_2\) by their sum proves the claimed common polynomial bound, as well as certificate existence and the algebraic-degree assertion.
+
+%%% FIELD proof-cubic-kill-test
+We specify the three-copy forest.  In a source grounding, let \(X_1,X_2,X_3\) be binary brake nodes with mutually independent fair noises.  Let a binary outcome \(Y\) have the supported conditional row indexed by the brake count \(k=X_1+X_2+X_3\), with
+\[
+ P(Y=1\mid X_1+X_2+X_3=k)=b_k,
+ \qquad
+ (b_0,b_1,b_2,b_3)
+ =\left(\frac14,\frac5{12},\frac7{12},\frac5{12}\right).
+\]
+Every displayed number lies strictly between zero and one.  Hence every brake-count context has positive source probability and the complete rational source table is
+\[
+ P(X_1=x_1,X_2=x_2,X_3=x_3,Y=y)
+ =2^{-3}b_{x_1+x_2+x_3}^{\,y}
+       (1-b_{x_1+x_2+x_3})^{1-y}.
+\]
+It factorizes according to the acyclic source graph and identifies the fair brake row and all four outcome rows in \(K\).
+
+In the target grounding, attach two binary signal parents to each brake and intervene to set all six signals to one.  The common brake type--context row with two active signals is absent from every source occurrence; designate it by \(rstar\) and write it as \((1-q,q)\).  The source brake row and all outcome rows are supported, and signal factors are removed by intervention, so \(rstar\) is the unique target-relevant unsupported row.  The directed forest has signal-to-brake arrows and brake-to-outcome arrows and is acyclic.  All noises are independent and all mechanisms are type shared.
+
+For \(B=\{Y=1\}\), target brakes are independent conditional on the intervention and share success probability \(q\).  The exact replay is the Bernstein polynomial
+\[
+ \begin{aligned}
+ F(q)
+ &=\sum_{k=0}^{3}b_k\binom3kq^k(1-q)^{3-k}\\
+ &=\frac14+\frac12q-\frac13q^3.
+ \end{aligned}
+\]
+Its derivative and square-free integer clearing are
+\[
+ F'(q)=\frac12-q^2,
+ \qquad 1-2q^2.
+\]
+The latter has exactly one root in \((0,1)\),
+\[
+ q_{\mathrm{plus}}=\frac{\sqrt2}{2},
+ \qquad 2q_{\mathrm{plus}}^2-1=0,
+ \qquad \frac{70}{100}<q_{\mathrm{plus}}<\frac{71}{100}.
+\]
+The derivative is positive on \([0,q_{\mathrm{plus}})\) and negative on \((q_{\mathrm{plus}},1]\).  Exact substitution gives
+\[
+ F(0)=\frac14,
+ \qquad F(1)=\frac5{12},
+ \qquad F(q_{\mathrm{plus}})=\frac14+\frac{\sqrt2}{6}.
+\]
+Thus \(\texttt{thm:sharp-one-row}\) yields
+\[
+ \Theta=\left[\frac14,\frac14+\frac{\sqrt2}{6}\right],
+ \qquad q_{\mathrm{minus}}=0.
+\]
+The upper endpoint is the unique root in \((48/100,49/100)\) of
+\[
+ 144z^2-72z+1,
+\]
+whose other root is the extraneous conjugate \(1/4-\sqrt2/6<1/4\).
+
+For the lower endpoint, the brake-type construction uses only the rational supported threshold \(1/2\), since inserting \(q_{\mathrm{minus}}=0\) creates no positive interval.  For the upper endpoint, the distinct brake breakpoints and masses are
+\[
+ 0,\ \frac12,\ q_{\mathrm{plus}},\ 1,
+ \qquad
+ \frac12,\ q_{\mathrm{plus}}-\frac12,\ 1-q_{\mathrm{plus}}.
+\]
+All outcome-type breakpoints are rational.  By \(\texttt{thm:endpoint-models}\), the inverse-threshold mechanisms share these tables, independent ground-node copies reproduce every displayed source cell, and the two target values are the stated endpoints.  They therefore serialize into a legal \(Z\).  Applying \(\texttt{thm:certificate-completeness}\) to this explicit instance supplies \(\Gamma\) with
+\[
+ Check(S,G,Rsrc,Psrc,\rho,a,B,Ictx,K,F,Z,\Gamma)=1.
+\]
+
+For rejection of the conjugate, no feasible candidate in \(\{0,1,q_{\mathrm{plus}}\}\) maps to \(1/4-\sqrt2/6\); indeed it is strictly below the linked boundary value \(F(0)=1/4\).  Any record selecting it must fail either the candidate-to-value link or the extremal linked-label check, so \(Check\) returns zero.  If the positive critical point is omitted, the certified Sturm count of \(1-2q^2\) on \((0,1)\) is one while the purported interior list has count zero.  Candidate exhaustiveness then fails, and \(Check\) again returns zero.
+
+%%% FIELD proof-confidence-enclosure
+If \(Cn=\varnothing\), the universal assertion over \(\eta\in Cn\) is vacuous and \(\texttt{def:confidence-enclosure}\) returns \(Kn=[0,1]\).  Fix henceforth an outcome for which \(Cn\neq\varnothing\), so the deterministic center \(\widehat\eta\in Cn\) is defined.
+
+For every \(\eta\in Cn\), supported row \(r\), and category \(y\), both \(\eta_{r,y}\) and \(\widehat\eta_{r,y}\) lie in \([\ell_{r,y},u_{r,y}]\).  Therefore
+\[
+ \operatorname{TV}(\eta_r,\widehat\eta_r)
+ =\frac12\sum_y|\eta_{r,y}-\widehat\eta_{r,y}|
+ \leq \frac12\sum_y
+ \max\{|\ell_{r,y}-\widehat\eta_{r,y}|,
+          |u_{r,y}-\widehat\eta_{r,y}|\}.
+\]
+If the right-hand side before truncation is at most one, this is bounded by \(\epsilon_r\) by definition; if it exceeds one, total variation is at most one, again giving
+\[
+ \operatorname{TV}(\eta_r,\widehat\eta_r)\leq\epsilon_r.
+\]
+
+Fix \(q\in[0,1]\).  Couple the target systems with supported rows \(\eta\) and \(\widehat\eta\) in a topological order of the intervened acyclic ground graph.  Intervened nodes are set equal.  Conditional on no earlier disagreement, the two systems have the same realized parents and hence the same current type--context label, although this label may depend on their common history.  At \(rstar\), use the same draw from \((1-q,q)\), so disagreement has probability zero.
+
+At a supported row \(r\), put \(c_y=\min\{\eta_{r,y},\widehat\eta_{r,y}\}\) and \(s=\sum_yc_y\).  Give the pair \((y,y)\) mass \(c_y\).  If \(s<1\), give \((y,z)\) the residual mass
+\[
+ \frac{(\eta_{r,y}-c_y)(\widehat\eta_{r,z}-c_z)}{1-s};
+\]
+if \(s=1\), there is no residual part.  Direct summation gives the required marginals.  For each \(y\), at least one of \(\eta_{r,y}-c_y\) and \(\widehat\eta_{r,y}-c_y\) is zero, so the residual law has no diagonal mass.  Its disagreement probability is
+\[
+ 1-s=\operatorname{TV}(\eta_r,\widehat\eta_r)\leq\epsilon_r.
+\]
+Fresh coupling randomness at distinct ground nodes preserves the required independent-noise marginal law in each system.
+
+By definition, \(m_r\) is a pathwise upper bound on the number of target occurrences bearing label \(r\).  The hypotheses of the already established \(\texttt{lem:multiplicative-occurrence-radius}\) therefore hold despite history-dependent labels.  Consequently
+\[
+ \Pr\{\text{some target-node disagreement}\}
+ \leq\delta
+ =1-\prod_r(1-\epsilon_r)^{m_r}
+ \leq\min\left\{1,\sum_rm_r\epsilon_r\right\}.
+\]
+The two indicators of \(B\) can differ only after a node disagreement.  Hence
+\[
+ \begin{aligned}
+ |H(\eta,q)-H(\widehat\eta,q)|
+ &=\left|\mathbb E\{\mathbf1_B(X)-\mathbf1_B(\widehat X)\}\right|\\
+ &\leq\mathbb E|\mathbf1_B(X)-\mathbf1_B(\widehat X)|\\
+ &\leq\Pr\{X\neq\widehat X\}\leq\delta.
+ \end{aligned}
+\]
+This proves the asserted bound simultaneously for every \(\eta\in Cn\) and \(q\in[0,1]\).
+
+Let \(E_n=\{\eta_0\in Cn\}\).  The sampling-context positivity assumption makes every population conditional row in \(\eta_0\) well defined, and \(\texttt{ass:joint-box-coverage}\) gives \(\Pr(E_n)\geq1-\alpha\).  On \(E_n\), the preceding bound with \(\eta=\eta_0\) and the definitions of \(Lhat\) and \(Uhat\) give, for every \(q\in[0,1]\),
+\[
+ Lhat-\delta\leq H(\eta_0,q)\leq Uhat+\delta.
+\]
+Because \(H\) is a probability functional, intersecting with \([0,1]\) preserves inclusion.  Thus
+\[
+ \{H(\eta_0,q):q\in[0,1]\}\subseteq Kn
+\]
+on \(E_n\), and the inclusion has probability at least \(1-\alpha\).  The construction optimizes only the center polynomial in \(q\) and then inflates uniformly; it does not optimize jointly over \(\eta\in Cn\), so it yields no exact multivariate-projection claim.
+
+%%% FIELD statement-comparator-cited
+The Ejaz--Bareinboim \(\rho\)-Markovian restriction in Definition 3.2 requires that no ground endogenous variable have an exogenous relational parent and permits a non-relational exogenous parent to be shared only by attributes of the same instance.  Separately, Section 5 assumptions (I)--(III) specify the neural-completeness domain, including finite observed domains and one uniform finite bound on relational-parent multiset size over every admissible skeleton in the declared domain.  Theorem 5.2 establishes RNCM expressivity, while Algorithm 1 together with Appendix D, Corollary D.7 in arXiv v2 supplies sound and complete neural identification on that Section 5 domain.
+
+%%% FIELD statement-compiler-negative
+Under the present exhaustive assignment-level \(Ictx\) and \(Check\), the answer to the proof-carrying compiler question is negative.  There is a family with pre-incidence input size \(O(k)\) and treewidth \(w=0\) for which every accepted output contains exactly \(2^k\) event-consistent complete-assignment records and hence has length and production time \(\Omega(2^k)\).  Therefore no compiler for the present grammar has time and certificate length polynomial in explicit grounding size and exponential only in \(w\).  This obstruction does not rule out such a guarantee after replacement by a compact circuit-level incidence grammar and checker.
+
+%%% FIELD proof-compiler-negative
+The declared result \(\texttt{thm:assignment-incidence-obstructs-width-compiler}\) constructs, for every \(k\geq1\), an edgeless target grounding of treewidth \(w=0\) and pre-incidence size \(O(k)\) whose equality event has exactly \(2^k\) event-consistent complete assignments.  It also proves that the present grammar requires a distinct positive-length \(Ictx\) record for each assignment and that \(Check\) rejects any omission.  Thus every accepted compiler output on this family has length \(\Omega(2^k)\), and producing the output takes at least \(\Omega(2^k)\) bit operations.
+
+Suppose a compiler satisfying the question existed.  On the displayed family, its factor exponential only in \(w\) would be constant because \(w=0\), while its remaining factor would be polynomial in an \(O(k)\) input.  Its output length and time would therefore be polynomial in \(k\), contradicting the preceding exponential lower bound.  The answer for the current grammar is consequently negative.  As \(\texttt{def:compiler-handle}\) explicitly distinguishes exhaustive assignment incidence from compact circuit messages, this argument makes no claim against a redesigned circuit-level grammar and checker.

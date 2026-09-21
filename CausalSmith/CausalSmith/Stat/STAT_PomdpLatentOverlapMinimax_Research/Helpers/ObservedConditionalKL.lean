@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepthObservedChain
-import Causalean.Mathlib.InformationTheory.KLBind
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepthObservedChain
+public import Causalean.Mathlib.InformationTheory.KLBind
 
 set_option linter.style.longLine false
 
 /-! # Conditional signed-depth KL factorization -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

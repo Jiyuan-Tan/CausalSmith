@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConfiguration
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonPredictive
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.CellLaws
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConfiguration
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonPredictive
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Partition.CellLaws
 
 /-!
 # Poisson sufficient counts for the control-zero one-arm model
@@ -10,6 +11,8 @@ The observation alphabet is coarsened into the three possible control-zero
 outcomes in each category.  Finite marked-Poisson splitting then makes all
 category/triple counts independent Poisson variables.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

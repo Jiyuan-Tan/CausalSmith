@@ -1,7 +1,8 @@
-import Mathlib.GroupTheory.Perm.Cycle.Factors
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.Topology.Instances.Matrix
-import Mathlib.Topology.Instances.Real.Lemmas
+module
+public import Mathlib.GroupTheory.Perm.Cycle.Factors
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.Topology.Instances.Matrix
+public import Mathlib.Topology.Instances.Real.Lemmas
 
 /-!
 # Cycle-product normalization
@@ -9,6 +10,8 @@ import Mathlib.Topology.Instances.Real.Lemmas
 Finite directed simple cycles and the maximum absolute matrix-entry product used by the
 BACKSHIFT normalization.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

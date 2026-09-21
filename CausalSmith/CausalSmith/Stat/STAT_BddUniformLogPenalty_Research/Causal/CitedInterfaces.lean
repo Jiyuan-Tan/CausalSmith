@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Estimator
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Estimator
 
 /-!
 # Cited CTY interfaces
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Estimator
 These three named propositions record external source statements.  They are
 never proved here; every consumer takes an explicit inhabitant.
 -/
+
+@[expose] public section
 
 open Filter MeasureTheory ProbabilityTheory Set
 open scoped BigOperators ENNReal NNReal Topology

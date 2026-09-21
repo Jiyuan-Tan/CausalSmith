@@ -7,11 +7,16 @@ finite calculation is scoped to the injected support supplied by
 `RegularFiniteCellClass`.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
-import Causalean.Stat.Sample.EmpiricalMass
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
+public import Causalean.Stat.Sample.EmpiricalMass
+
+/-! ## Statistics and deterministic constants -/
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -20,7 +25,6 @@ open scoped BigOperators ENNReal Topology
 
 variable {𝒳 : Type*} [MeasurableSpace 𝒳]
 
-/-! ## Statistics and deterministic constants -/
 /-- For the source-sample average weighted by target cell masses, this result gives its mean, an upper bound on its variance, and square integrability. The mean is the target-mass-weighted sum of the cell means. -/
 lemma weighted_iid_average_mean_variance
     (P : TransportedArray 𝒳) (n : ℕ) (hn : 0 < n)

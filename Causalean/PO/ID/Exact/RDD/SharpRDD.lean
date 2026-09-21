@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Analysis.Regression
-import Causalean.PO.ID.Exact.RDD.RDDLimits
+module
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Analysis.Regression
+public import Causalean.PO.ID.Exact.RDD.RDDLimits
 
 /-! # Sharp Regression Discontinuity
 
@@ -20,18 +21,19 @@ The proof reduces the sharp cutoff to half-line agreement between observable
 and potential-outcome regressions, then invokes the shared one-sided limit
 engine for regression-discontinuity designs. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace PO
 
 open Filter MeasureTheory
 open scoped Topology
 
-/-- **Sharp regression-discontinuity model in the potential-outcome framework.** A unit has [a
-continuous running variable `X`](hyp:Xvar), [a deterministic treatment `D` that switches on
-exactly when `X` crosses the cutoff `c`, jumping from 0 to 1 at the cutoff](hyp:Dvar), and [a real
-outcome `Y`](hyp:Yvar), with [the outcome and treatment nodes distinct](hyp:hYD). The jump in the
-outcome regression at the cutoff identifies the cutoff-local average treatment effect
-(`def:po-sharp-rdd-system`). -/
+/-- **Data layout for sharp regression discontinuity.** The system records [a real-valued
+running variable](hyp:Xvar), [a binary treatment](hyp:Dvar), [a real outcome](hyp:Yvar), and
+[a cutoff](hyp:c), with [distinct outcome and treatment nodes](hyp:hYD). The deterministic
+assignment rule and continuity and support conditions that make the design sharp are imposed
+separately by `Assumptions`; they are not properties of this bare variable bundle. -/
 structure POSharpRDDSystem (P : POSystem) where
   /-- Running (forcing) variable `X`. -/
   Xvar : POVar P ℝ
@@ -47,36 +49,50 @@ namespace POSharpRDDSystem
 
 variable {P : POSystem} (S : POSharpRDDSystem P)
 
-/-- For [a sharp regression-discontinuity system](hyp:S), the [factual running variable](goal) assigns to each unit its real-valued forcing variable under the factual regime. -/
+/-- The [observed running variable](goal) in [a sharp regression-discontinuity
+design](hyp:S) [records each unit's realized forcing score](step:1), whose position around
+the cutoff determines treatment. -/
 noncomputable def factualX : P.Ω → ℝ := S.Xvar.factual
 
-/-- For [a sharp regression-discontinuity system](hyp:S), the [factual treatment](goal) assigns to each unit its binary treatment under the factual regime. -/
+/-- The [observed treatment](goal) in [a sharp regression-discontinuity design](hyp:S)
+[records each unit's realized side-of-cutoff assignment](step:1). -/
 noncomputable def factualD : P.Ω → Bool := S.Dvar.factual
 
-/-- For [a sharp regression-discontinuity system](hyp:S), the [factual outcome](goal) assigns to each unit its real-valued outcome under the factual regime. -/
+/-- The [observed outcome](goal) in [a sharp regression-discontinuity design](hyp:S)
+[records each unit's realized real-valued response](step:1). -/
 noncomputable def factualY : P.Ω → ℝ := S.Yvar.factual
 
-/-- For [a sharp regression-discontinuity system](hyp:S) and [a binary treatment level](hyp:d), the [treatment-specific potential outcome](goal) assigns to each unit the outcome it would have under an intervention setting treatment to that level. -/
+/-- The [treatment-specific potential outcome](goal) in [a sharp
+regression-discontinuity design](hyp:S) [records each unit's response if assigned the
+selected treatment](step:1), with [that treatment level](hyp:d) defining one side of the
+cutoff effect. -/
 noncomputable def YofD (d : Bool) : P.Ω → ℝ := S.Yvar.cfUnder S.Dvar d
 
-/-- The factual running variable is measurable. -/
+/-- [The running variable in a sharp regression-discontinuity design](hyp:S) is
+[measurable, so cutoff neighborhoods and the running-variable law are valid](goal). -/
 @[fun_prop]
 lemma measurable_factualX : Measurable S.factualX := S.Xvar.measurable_factual
-/-- The factual treatment is measurable. -/
+/-- [Treatment in a sharp regression-discontinuity design](hyp:S) is [measurable, so
+the two cutoff-assigned groups define valid events](goal). -/
 @[fun_prop]
 lemma measurable_factualD : Measurable S.factualD := S.Dvar.measurable_factual
-/-- The factual outcome is measurable. -/
+/-- [The outcome in a sharp regression-discontinuity design](hyp:S) is [measurable,
+so its regression on the running variable is well-defined](goal). -/
 @[fun_prop]
 lemma measurable_factualY : Measurable S.factualY := S.Yvar.measurable_factual
-/-- The treatment-specific potential outcome is measurable. -/
+/-- In [a sharp regression-discontinuity design](hyp:S), [the potential outcome under
+a treatment level](hyp:d) is [measurable, so its cutoff regression is well-defined](goal). -/
 @[fun_prop]
 lemma measurable_YofD (d : Bool) : Measurable (S.YofD d) :=
   S.Yvar.measurable_cfUnder S.Dvar d
 
-/-- For [a sharp regression-discontinuity system](hyp:S) and [a binary treatment level](hyp:d), the [factual-treatment event](goal) is the set of units whose factual treatment equals that level. -/
+/-- The [observed treatment group](goal) in [a sharp regression-discontinuity
+design](hyp:S) [collects units assigned the selected treatment level](step:1), with
+[that level](hyp:d) distinguishing the two cutoff sides. -/
 def dEvent (d : Bool) : Set P.Ω := S.Dvar.event d
 
-/-- The factual treatment event is measurable. -/
+/-- In [a sharp regression-discontinuity design](hyp:S), [an observed treatment
+level](hyp:d) defines [a measurable event suitable for consistency arguments](goal). -/
 lemma measurableSet_dEvent (d : Bool) : MeasurableSet (S.dEvent d) :=
   by simpa [dEvent] using S.Dvar.measurableSet_event d
 
@@ -112,35 +128,44 @@ structure Assumptions (S : POSharpRDDSystem P) where
   nu_right_limit_exists : ∃ L : ℝ, Tendsto nu (𝓝[>] S.c) (𝓝 L)
   nu_left_limit_exists : ∃ L : ℝ, Tendsto nu (𝓝[<] S.c) (𝓝 L)
 
-/-- For [a sharp regression-discontinuity system](hyp:S) satisfying [its sharp-RDD assumptions](hyp:hA), the [cutoff-local regression-discontinuity estimand](goal) is the treated treatment-specific regression representative at the cutoff minus the untreated representative there.
+/-- The [cutoff-local treatment effect](goal) for [a sharp regression-discontinuity
+design](hyp:S) under [the sharp-RDD assumptions](hyp:hA) [contrasts the treated and
+untreated potential-outcome regression representatives at the cutoff](step:1).
 
-By definition it is the difference of the treatment-specific regression representatives at the cutoff. In the standard
-reading of `μ_d c = E[Y(d) | X = c]`, this is `E[Y(1) - Y(0) | X = c]`. -/
+By definition it is the difference of the treatment-specific regression representatives at
+the cutoff. In the standard reading of `μ_d c = E[Y(d) | X = c]`, this is
+`E[Y(1) - Y(0) | X = c]`. -/
 noncomputable def tau_RDD (hA : S.Assumptions) : ℝ :=
   hA.mu true S.c - hA.mu false S.c
 
-/-- For [a sharp regression-discontinuity system](hyp:S) satisfying [its sharp-RDD assumptions](hyp:hA), the [chosen right-hand limit of the observable outcome regression at the cutoff](goal) is the real number supplied by the assumption that this one-sided limit exists.
+/-- The [observable outcome regression's right-hand cutoff limit](goal) for [a sharp
+regression-discontinuity design](hyp:S) under [the sharp-RDD assumptions](hyp:hA) [selects
+the limiting outcome level approached from above the cutoff](step:1).
 
 The right-hand limit `lim_{x ↓ c} ν(x)` chosen from the existence witness
 of `Assumptions`. -/
 noncomputable def nu_right_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nu_right_limit_exists
 
-/-- For [a sharp regression-discontinuity system](hyp:S) satisfying [its sharp-RDD assumptions](hyp:hA), the [chosen left-hand limit of the observable outcome regression at the cutoff](goal) is the real number supplied by the assumption that this one-sided limit exists.
+/-- The [observable outcome regression's left-hand cutoff limit](goal) for [a sharp
+regression-discontinuity design](hyp:S) under [the sharp-RDD assumptions](hyp:hA) [selects
+the limiting outcome level approached from below the cutoff](step:1).
 
 The left-hand limit `lim_{x ↑ c} ν(x)` chosen from the existence witness
 of `Assumptions`. -/
 noncomputable def nu_left_limit (hA : S.Assumptions) : ℝ :=
   Classical.choose hA.nu_left_limit_exists
 
-/-- The chosen right-hand observable regression limit is a genuine right-hand
-limit at the cutoff. -/
+/-- Under [the sharp-RDD assumptions](hyp:hA), [the selected right-hand limit for the
+design](hyp:S) [is attained by the observable outcome regression as the running variable
+approaches the cutoff from above](goal). -/
 lemma tendsto_nu_right_limit (hA : S.Assumptions) :
     Tendsto hA.nu (𝓝[>] S.c) (𝓝 (S.nu_right_limit hA)) :=
   Classical.choose_spec hA.nu_right_limit_exists
 
-/-- The chosen left-hand observable regression limit is a genuine left-hand
-limit at the cutoff. -/
+/-- Under [the sharp-RDD assumptions](hyp:hA), [the selected left-hand limit for the
+design](hyp:S) [is attained by the observable outcome regression as the running variable
+approaches the cutoff from below](goal). -/
 lemma tendsto_nu_left_limit (hA : S.Assumptions) :
     Tendsto hA.nu (𝓝[<] S.c) (𝓝 (S.nu_left_limit hA)) :=
   Classical.choose_spec hA.nu_left_limit_exists
@@ -185,8 +210,10 @@ private lemma factualY_eq_YofD_false_ae_restrict_Iio
 
 /-! ### Slice-level integral bridges between `ν` and `μ_d` -/
 
-/-- Integral bridge between the chosen observable and treated regression
-representatives on right-side measurable slices. -/
+/-- Under [the sharp-RDD assumptions](hyp:hA), [the observed and treated latent outcome
+regressions have the same population integral on a right-side slice](goal) for [the
+design](hyp:S), provided [the slice lies weakly above the cutoff](hyp:hAsub) and [is
+measurable](hyp:hAmeas). -/
 private lemma regression_integral_bridge_right
     (hA : S.Assumptions) {A : Set ℝ}
     (hAsub : A ⊆ Set.Ici S.c) (hAmeas : MeasurableSet A) :
@@ -202,8 +229,10 @@ private lemma regression_integral_bridge_right
     _ = ∫ ω in S.factualX ⁻¹' A, hA.mu true (S.factualX ω) ∂P.μ :=
           (hA.mu_isReg true).integral_preimage_eq A hAmeas
 
-/-- Integral bridge between the chosen observable and untreated regression
-representatives on left-side measurable slices. -/
+/-- Under [the sharp-RDD assumptions](hyp:hA), [the observed and untreated latent outcome
+regressions have the same population integral on a left-side slice](goal) for [the
+design](hyp:S), provided [the slice lies below the cutoff](hyp:hAsub) and [is
+measurable](hyp:hAmeas). -/
 private lemma regression_integral_bridge_left
     (hA : S.Assumptions) {A : Set ℝ}
     (hAsub : A ⊆ Set.Iio S.c) (hAmeas : MeasurableSet A) :
@@ -221,13 +250,17 @@ private lemma regression_integral_bridge_left
 
 /-! ### Pushforward integrability and integral identity -/
 
-/-- The observed running variable is almost-everywhere measurable. -/
+/-- [The running variable in a sharp regression-discontinuity design](hyp:S) is
+[almost-everywhere measurable under the population law](goal), allowing regressions to
+be pushed forward to its marginal distribution. -/
 @[fun_prop]
 lemma aemeasurable_factualX (S : POSharpRDDSystem P) :
     AEMeasurable S.factualX P.μ := S.measurable_factualX.aemeasurable
 
-/-- Pushforward form of the right-side integral bridge: on every measurable
-subset of `Ici c`, integrals of `ν` and `μ_1` agree under the law of `X`. -/
+/-- Under [the sharp-RDD assumptions](hyp:hA), [the observed and treated latent
+regressions have equal integrals under the running-variable law](goal) for [the
+design](hyp:S), on [a slice weakly above the cutoff](hyp:hAsub) that [is
+measurable](hyp:hAmeas). -/
 private lemma setIntegral_pushforward_eq_right
     (hA : S.Assumptions) {A : Set ℝ}
     (hAsub : A ⊆ Set.Ici S.c) (hAmeas : MeasurableSet A) :
@@ -242,7 +275,10 @@ private lemma setIntegral_pushforward_eq_right
   rw [hnu, hmu]
   exact S.regression_integral_bridge_right hA hAsub hAmeas
 
-/-- Pushforward form of the left-side integral bridge. -/
+/-- Under [the sharp-RDD assumptions](hyp:hA), [the observed and untreated latent
+regressions have equal integrals under the running-variable law](goal) for [the
+design](hyp:S), on [a slice below the cutoff](hyp:hAsub) that [is
+measurable](hyp:hAmeas). -/
 private lemma setIntegral_pushforward_eq_left
     (hA : S.Assumptions) {A : Set ℝ}
     (hAsub : A ⊆ Set.Iio S.c) (hAmeas : MeasurableSet A) :
@@ -265,8 +301,8 @@ private lemma nu_eq_mu_true_ae_restrict_Ici (hA : S.Assumptions) :
   set π := P.μ.map S.factualX
   refine MeasureTheory.Integrable.ae_eq_of_forall_setIntegral_eq
     hA.nu (hA.mu true)
-    (hA.nu_isReg.integrable_pushforward S.aemeasurable_factualX).restrict
-    ((hA.mu_isReg true).integrable_pushforward S.aemeasurable_factualX).restrict
+    (hA.nu_isReg.integrable_pushforward).restrict
+    ((hA.mu_isReg true).integrable_pushforward).restrict
     ?_
   intro s hs _
   simp_rw [Measure.restrict_restrict (μ := π) hs]
@@ -279,8 +315,8 @@ private lemma nu_eq_mu_false_ae_restrict_Iio (hA : S.Assumptions) :
   set π := P.μ.map S.factualX
   refine MeasureTheory.Integrable.ae_eq_of_forall_setIntegral_eq
     hA.nu (hA.mu false)
-    (hA.nu_isReg.integrable_pushforward S.aemeasurable_factualX).restrict
-    ((hA.mu_isReg false).integrable_pushforward S.aemeasurable_factualX).restrict
+    (hA.nu_isReg.integrable_pushforward).restrict
+    ((hA.mu_isReg false).integrable_pushforward).restrict
     ?_
   intro s hs _
   simp_rw [Measure.restrict_restrict (μ := π) hs]
@@ -313,7 +349,8 @@ theorem nu_left_limit_eq (hA : S.Assumptions) {L : ℝ}
 
 /-! ### Sharp RDD identification — prop:po-sharp-rdd -/
 
-/-- **Sharp RDD identification at the cutoff** (textbook form). Under [the sharp-RDD
+/-- **Sharp RDD identification at the cutoff** (textbook form). For [a sharp-RDD
+design](hyp:S), under [the sharp-RDD
 assumption bundle — SUTVA consistency, deterministic treatment assignment `D = 1{X ≥ c}`
 almost surely, regression-function representatives for the potential and observed outcomes,
 continuity of the potential-outcome regression functions at the cutoff, positive local mass

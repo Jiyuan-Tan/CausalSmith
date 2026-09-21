@@ -1,8 +1,9 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
-import Mathlib.Probability.Kernel.CondDistrib
-import Mathlib.Probability.Kernel.Composition.MeasureCompProd
-import Mathlib.Probability.Moments.Variance
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
+public import Mathlib.Probability.Kernel.CondDistrib
+public import Mathlib.Probability.Kernel.Composition.MeasureCompProd
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.MeasureTheory.Constructions.Pi
 
 /-!
 # CTY Assumptions 1--2: causal world and known geometry
@@ -11,6 +12,8 @@ This module introduces the selected-conditional-kernel causal law used by the
 second half of the paper, together with its known assignment geometry and the
 signed-distance observation.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped BigOperators ENNReal NNReal Topology

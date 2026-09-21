@@ -20,7 +20,8 @@ positions), leaving only the `λ·λ'` cross term — exactly the non-uniform st
 the generalized `ingster_bound_general` consumes (with `d j = Γⱼ/K`).
 -/
 
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Gap
+module
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Gap
 
 /-! # Cell-Varying Chi-Squared Second-Moment Overlap
 
@@ -35,6 +36,8 @@ The declaration `ΓV` is the nonnegative per-pair coefficient proved by `ΓV_non
 the null.  The algebraic lemmas `obsReal_pertV_eq` and `chiSqOverlap_eqV` compute that overlap as
 `1 + sum_j (ΓV j / K) * signOf (lam j) * signOf (lam' j)`, which is the form consumed by
 `ingster_bound_general`. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

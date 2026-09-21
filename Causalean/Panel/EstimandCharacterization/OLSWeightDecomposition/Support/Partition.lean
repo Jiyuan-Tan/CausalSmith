@@ -3,19 +3,22 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Słoczyński (2022): partition and residualization witnesses
+# Finite partition and residualization witnesses
 
 Builds the finite partition and residualization witnesses for the
 saturated-control probability-space bridge.
 -/
 
-import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.FinitePartition
-import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Orthogonality
+module
 
-/-! # Słoczyński partition bridge
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.FinitePartition
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Orthogonality
+
+/-! # Finite-Partition Bridge
 
 This file constructs the finite partition and residualization witnesses used to
-connect saturated-control population objects with Słoczyński's finite-partition
+connect saturated-control population objects with the finite-partition
 OLS weight algebra. The definition `partitionOf` packages measurable binary
 treatment and a finite cell classifier into the `FinitePartition` consumed by
 the algebraic theorems, while `partitionOf_p_eq_eventCondExp` and
@@ -24,12 +27,22 @@ treatment effects are shared population cell means. The definitions
 `residWitnessD` and `residWitnessY` build the residualization witnesses for the
 treatment and observed outcome variables against the saturated control class. -/
 
+@[expose] public section
+
+open Causalean.Mathlib.Probability
+
 namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 
 open MeasureTheory Finset Causalean.Panel
 open scoped BigOperators
 
-/-- Given [a probability measure](hyp:μ), [a treatment variable](hyp:D), [the untreated and treated potential-outcome variables](hyp:Y0,Y1), and [a measurable finite cell classifier](hyp:G,G_meas), with [treatment equal to zero or one almost surely](hyp:D_binary) and [a strictly positive sum of cell masses times treated-share variances](hyp:overlap), [the finite Słoczyński partition](goal) consists of the cell masses, treated shares, and within-cell treatment effects.
+/-- Given [a probability measure](hyp:μ), [a treatment variable](hyp:D),
+[the untreated and treated potential-outcome variables](hyp:Y0,Y1), and
+[a measurable finite cell classifier](hyp:G,G_meas), with
+[treatment equal to zero or one almost surely](hyp:D_binary) and
+[a strictly positive sum of cell masses times treated-share variances](hyp:overlap),
+[the finite overlap partition](goal) consists of the cell masses, treated shares,
+and within-cell treatment effects.
 
 The resulting partition uses the classifier's cell masses, within-cell treated
 shares, and within-cell averages of the treated-minus-control potential-outcome
@@ -40,10 +53,10 @@ noncomputable def partitionOf {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype �
     (D Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢)
     (G_meas : Measurable G)
     (D_binary : ∀ᵐ ω ∂μ, D ω = 0 ∨ D ω = 1)
-    (overlap : 0 < ∑ g, cellMass μ G g
+    (overlap : 0 < ∑ g, CellBridge.cellMass μ G g
                   * (cellShare μ D G g * (1 - cellShare μ D G g))) :
     FinitePartition 𝒢 :=
-  ⟨ cellMass μ G
+  ⟨ CellBridge.cellMass μ G
   , cellShare μ D G
   , cellTau μ Y0 Y1 G
   , fun g => cellMass_nonneg μ G g
@@ -61,35 +74,41 @@ noncomputable def partitionOf {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype �
 data `D`, `Y0`, `Y1`, suppose [treatment is binary almost
 everywhere](hyp:D_binary) and [the covariate cells have nondegenerate
 treatment overlap](hyp:overlap). Then, for any cell `g`, [the treated share
-`p_g` of the Słoczyński partition `partitionOf` equals the shared population
-cell mean `E[D ∣ G = g]`](goal) (via `eventCondExp`). -/
+`p_g` of the finite partition `partitionOf` equals the shared population
+cell mean `E[D ∣ G = g]`](goal) (via `normalizedRestrictedIntegral`). -/
 theorem partitionOf_p_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     [Fintype 𝒢] [DecidableEq 𝒢] [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (D Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (G_meas : Measurable G)
     (D_binary : ∀ᵐ ω ∂μ, D ω = 0 ∨ D ω = 1)
-    (overlap : 0 < ∑ g, cellMass μ G g
+    (overlap : 0 < ∑ g, CellBridge.cellMass μ G g
                   * (cellShare μ D G g * (1 - cellShare μ D G g))) (g : 𝒢) :
     (partitionOf μ D Y0 Y1 G G_meas D_binary overlap).p g
-      = Causalean.PO.eventCondExp μ {ω | G ω = g} D :=
+      = Causalean.Mathlib.Probability.normalizedRestrictedIntegral μ {ω | G ω = g} D :=
   cellShare_eq_eventCondExp μ D G G_meas g
 
 /-- **Population-cell certificate for `partitionOf`.** The cell treatment effect
-`τ_g` of the Słoczyński partition is the shared population potential-outcome
-contrast `E[Y(1) − Y(0) | G = g]` (via `eventCondExp`), so the overlap-weighted
-estimand is built from genuine potential-outcome cell means. -/
+`τ_g` of the finite partition is the shared population potential-outcome
+contrast `E[Y(1) − Y(0) | G = g]` (via `normalizedRestrictedIntegral`), so the
+overlap-weighted estimand is built from genuine potential-outcome cell means. -/
 theorem partitionOf_tau_eq_eventCondExp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     [Fintype 𝒢] [DecidableEq 𝒢] [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (D Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (G_meas : Measurable G)
     (D_binary : ∀ᵐ ω ∂μ, D ω = 0 ∨ D ω = 1)
-    (overlap : 0 < ∑ g, cellMass μ G g
+    (overlap : 0 < ∑ g, CellBridge.cellMass μ G g
                   * (cellShare μ D G g * (1 - cellShare μ D G g))) (g : 𝒢) :
     (partitionOf μ D Y0 Y1 G G_meas D_binary overlap).τ g
-      = Causalean.PO.eventCondExp μ {ω | G ω = g} (fun ω => Y1 ω - Y0 ω) :=
+      = Causalean.Mathlib.Probability.normalizedRestrictedIntegral μ
+          {ω | G ω = g} (fun ω => Y1 ω - Y0 ω) :=
   cellTau_eq_eventCondExp μ Y0 Y1 G G_meas g
 
-/-- Given [a probability measure](hyp:μ), [a treatment variable](hyp:D), and [a measurable finite cell classifier](hyp:G,G_meas), where [the treatment is measurable](hyp:D_meas) and [equals zero or one almost surely](hyp:D_binary), [the residualization witness for the treatment variable](goal) decomposes treatment into its saturated-cell propensity and an orthogonal residual.
+/-- Given [a probability measure](hyp:μ), [a treatment variable](hyp:D), and
+[a measurable finite cell classifier](hyp:G,G_meas), where
+[the treatment is measurable](hyp:D_meas) and
+[equals zero or one almost surely](hyp:D_binary),
+[the residualization witness for the treatment variable](goal) decomposes
+treatment into its saturated-cell propensity and an orthogonal residual.
 
 With `VH := propensity μ D G` and
 `Vtilde ω := D ω − propensity μ D G ω`, this packages the four
@@ -159,7 +178,11 @@ noncomputable def residWitnessD {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 
                 (fun g => residD_cell_orthogonal μ D G G_meas D_meas D_binary g)
       }
 
-/-- Given [a probability measure](hyp:μ), [an outcome variable](hyp:Y), [a measurable finite cell classifier](hyp:G,G_meas), and [a finite second moment for the outcome](hyp:Y_memLp), [the residualization witness for the outcome variable](goal) decomposes the outcome into its saturated-cell mean regression and an orthogonal residual.
+/-- Given [a probability measure](hyp:μ), [an outcome variable](hyp:Y),
+[a measurable finite cell classifier](hyp:G,G_meas), and
+[a finite second moment for the outcome](hyp:Y_memLp),
+[the residualization witness for the outcome variable](goal) decomposes the
+outcome into its saturated-cell mean regression and an orthogonal residual.
 
 With `VH := meanReg μ Y G`
 and `Vtilde ω := Y ω − meanReg μ Y G ω`, the witness obligations are as for
@@ -176,7 +199,8 @@ noncomputable def residWitnessY {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 
     , Vtilde := fun ω => Y ω - meanReg μ Y G ω
     , VH_mem := meanReg_mem_saturatedClass μ Y G G_meas
     , Vtilde_memLp := by
-        exact Y_memLp.sub ((saturatedClass μ G G_meas).memLp (meanReg_mem_saturatedClass μ Y G G_meas))
+        exact Y_memLp.sub
+          ((saturatedClass μ G G_meas).memLp (meanReg_mem_saturatedClass μ Y G G_meas))
       , decomp := by
           filter_upwards [] with ω
           simp [sub_eq_add_neg, add_left_comm]

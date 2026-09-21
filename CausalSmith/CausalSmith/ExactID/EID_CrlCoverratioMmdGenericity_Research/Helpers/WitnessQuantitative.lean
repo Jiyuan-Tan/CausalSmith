@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessSigns
-import Mathlib.Analysis.Complex.ExponentialBounds
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessSigns
+public import Mathlib.Analysis.Complex.ExponentialBounds
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Rational bounds for the explicit sparse witness
@@ -8,6 +9,8 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 This file isolates the elementary exponential and rational estimates used in
 the quantitative moment and Gaussian-MMD certificate.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 

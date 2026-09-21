@@ -4,11 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.Model
-import Causalean.Discovery.InvariantPrediction.Invariance
-import Causalean.Discovery.InvariantPrediction.IdentifiedSet
-import Causalean.Discovery.InvariantPrediction.Soundness
-import Causalean.Discovery.InvariantPrediction.LinearGaussian
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian
+public import Causalean.Discovery.InvariantPrediction.Soundness
 
 /-!
 # Invariant Causal Prediction — umbrella
@@ -31,18 +29,19 @@ beside non-Gaussianity (`LiNGAM`) and interventions-plus-second-moments
   when the conditional law of the target given `X_S` is the same in every
   environment; `mechanism_invariant` shows the target's observed parents are
   always invariant.
-* `EnvFamily.icp_sound` (`Soundness.lean`) — **Theorem 1 (soundness).** The
-  identified set `S(E) = ⋂{invariant S}` is contained in the target's observed
-  parents `PA(Y)`: ICP never selects a non-parent.  The formal theorem is stated
-  in the nonparametric SCM setting, faithful to the paper's Assumption 1
-  (`εᵉ ⊥ Xᵉ_{S*}` exogeneity, conditioning on `X_{PA(Y)}` regardless of
-  intervention status).
+* `EnvFamily.icp_sound` (`Soundness.lean`) — a population set-inclusion consequence
+  of the mechanism validity represented by Proposition 1. The identified set
+  `S(E) = ⋂{invariant S}` is contained in the target's observed parents `PA(Y)`:
+  ICP never selects a non-parent. The paper's Theorem 1 is instead a finite-sample
+  coverage guarantee and is not formalized here.
 
 ## Status
 
-Theorem 1 (soundness) is formalized in the nonparametric SCM setting. **Theorem
-2 (completeness, `S(E) = PA(Y)`)** is established by the paper for linear
-Gaussian SEMs and lives in the dedicated linear-Gaussian sub-development
-`LinearGaussian/`, including the theorem `icp_complete_linearGaussian` and its
-intermediate lemmas.
+The Proposition 1 mechanism-validity/population-soundness analogue is formalized
+in the nonparametric SCM setting. A separate random-variable/regression API under
+`LinearGaussian/` proves
+`icp_complete_linearGaussian_of_exogeneity`, a specialization of the paper's
+Theorem 2(i) with observational and interventional target exogeneity supplied as
+structure fields. Its `identifiedSet` is not definitionally the nonparametric
+`idSet`; no equivalence theorem between the two APIs is claimed here.
 -/

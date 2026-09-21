@@ -74,7 +74,7 @@ export type ReviewResult =
        * refuted the kernel while proving an independently flagship-grade
        * positive result (`refuted_with_positive_result`). The second value is
        * a Stage 0.5 refutation-as-flagship outcome — see flagship rubric path
-       * (d) in `stage0_5_review.txt`. Defaults to `as_proposed` when omitted.
+       * (d) in `stage0_5_rubric_review.txt`. Defaults to `as_proposed` when omitted.
        */
       kernel_status?: "as_proposed" | "refuted_with_positive_result";
       journal_recommendations: Array<{

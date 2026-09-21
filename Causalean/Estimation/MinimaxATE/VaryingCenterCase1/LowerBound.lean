@@ -20,12 +20,13 @@ budgets met and the regularity conditions `Σⱼ Γⱼ/K ≤ 1` and
 constant center this is `minimax_lower_bound_gen`.
 -/
 
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Membership
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.ChiSqOverlap
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Ingster
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
-import Causalean.Estimation.MinimaxATE.Reduction.Witness
-import Causalean.Stat.Minimax.Mixture
+module
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Membership
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.ChiSqOverlap
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Ingster
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
+public import Causalean.Estimation.MinimaxATE.Reduction.Witness
+public import Causalean.Stat.Minimax.Mixture
 
 /-! # Cell-Varying Lower Bound
 
@@ -39,7 +40,10 @@ probability-measure and point-mass facts, computes the mixture second moment in
 indistinguishability bounds `chiSqDiv_QtrueV_QfalseV_le_one` and
 `tvDist_QfalseV_QtrueV_le_half`.  The headline theorem `minimax_lower_bound_var` packages these
 ingredients into a `TwoPointWitness`, proving a `1 / 4` minimax miss lower bound at half the
-cell-varying ATE gap. -/
+cell-varying ATE gap. The hypotheses neither require this gap to be positive nor lower-bound
+it in terms of the nuisance budgets. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -48,12 +52,6 @@ open Causalean.Stat
 open scoped ENNReal BigOperators
 
 namespace VarConstr
-
-/-- For every [positive number $K$ of paired cells](hyp:K), [the paired-cell covariate space](goal) contains [the first cell paired with the true binary position](step:1).
-
-The paired-cell covariate is nonempty whenever $K \ne 0$. -/
-instance instNonemptyFinBoolProd {K : ℕ} [NeZero K] : Nonempty (Fin K × Bool) :=
-  ⟨(⟨0, Nat.pos_of_ne_zero (NeZero.ne K)⟩, true)⟩
 
 variable {K : ℕ}
 

@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Profiles
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareClassGeometry
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.CoordinateEnvelope
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Profiles
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareClassGeometry
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.CoordinateEnvelope
 
 /-!
 # Decorated laws in the causal hard family
@@ -9,6 +10,8 @@ This module packages the normalized angular score measure and the two
 Bernoulli profiles into the selected-kernel potential-outcome law used at
 each hypercube vertex.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

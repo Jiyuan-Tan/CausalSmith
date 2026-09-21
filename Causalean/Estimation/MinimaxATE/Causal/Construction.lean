@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.MinimaxATE.Model
-import Causalean.PO.ID.Exact.ATE
-import Causalean.PO.Bridge.FromSCM
-import Causalean.Graph.DAG
-import Causalean.Graph.SWIG
-import Causalean.SCM.Model.EdgeType
-import Causalean.SCM.Model.SCM
-import Mathlib.Probability.Distributions.Uniform
+module
+public import Causalean.Estimation.MinimaxATE.Model
+public import Causalean.PO.ID.Exact.ATE
+public import Causalean.PO.Bridge.FromSCM
+public import Causalean.Graph.DAG
+public import Causalean.Graph.SWIG
+public import Causalean.SCM.Model.EdgeType
+public import Causalean.SCM.Model.SCM
+public import Mathlib.Probability.Distributions.Uniform
 
 /-!
 # Causal Grounding of the Minimax ATE Model
@@ -35,15 +36,18 @@ The DAG is the backdoor triangle on the OBSERVED covariate `Xc`:
   (`Ey ~ U[0,1]`), the consistency assignment; `Ea ⟂ Ey | X` so unconfoundedness
   `A ⟂ (Y(1), Y(0)) | X` holds.
 
-Mirrors the proven-shape witness construction in
-`CausalSmith/.../STAT_AteOverlapDecay_Clean/Witness/Construction.lean` (Causalean
-cannot import CausalSmith, so the construction is reproduced here, specialized to
-a finite covariate `C` and the propensity/outcome pair `(m, g)`).  The main
+The construction is stated directly for a finite covariate `C` and the
+propensity/outcome pair `(m, g)`. The main
 public objects are the witness graph data `WNode`, `wDAG`, and `wSWIGGraph`; the
 structural functions `treatFun` and `outFun`; the laws `unifLaw` and `covLaw`;
 the concrete SCM `dgpSCM`; and the induced potential-outcome/backdoor systems
 `dgpPO` and `dgpBackdoor`.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.Estimation.MinimaxATE.Causal
 
@@ -52,29 +56,18 @@ open MeasureTheory
 
 /-! ## The witness node type and graph (covariate-independent) -/
 
-/-- The [finite backdoor witness-node type](goal) consists of [the observed covariate node](hyp:Xc), the treatment node, the outcome node, the latent covariate-draw node, the treatment-noise node, and the outcome-noise node. -/
+/-- The [finite backdoor witness-node type](goal) consists of
+[the observed covariate node](hyp:Xc), the treatment node, the outcome node,
+the latent covariate-draw node, the treatment-noise node, and the outcome-noise node. -/
 inductive WNode
   | Xc | A | Y | Un | Ea | Ey
   deriving DecidableEq
 
 namespace WNode
 
-/-- [The printable representation of a witness-graph node](goal) is its corresponding node label,
-with [the observed covariate](step:1), [treatment](step:2), [outcome](step:3), [the latent
-covariate draw](step:4), [treatment noise](step:5), and [outcome noise](step:6) given their six
-respective labels. -/
-protected def repr : WNode → Nat → Std.Format
-  | Xc, _ => "WNode.Xc"
-  | A, _ => "WNode.A"
-  | Y, _ => "WNode.Y"
-  | Un, _ => "WNode.Un"
-  | Ea, _ => "WNode.Ea"
-  | Ey, _ => "WNode.Ey"
-
-/-- The [printable representation of a finite backdoor witness node](goal) is [the node's corresponding label](step:1). -/
-instance : Repr WNode := ⟨WNode.repr⟩
-
-/-- The [finite enumeration of backdoor witness nodes](goal) consists of [the six witness nodes, with every witness node included](step:1) and [a proof that this enumeration is exhaustive](step:2). -/
+/-- The [finite enumeration of backdoor witness nodes](goal) consists of
+[the six witness nodes, with every witness node included](step:1) and
+[a proof that this enumeration is exhaustive](step:2). -/
 instance : Fintype WNode where
   elems := {Xc, A, Y, Un, Ea, Ey}
   complete := by intro x; cases x <;> simp
@@ -87,7 +80,8 @@ open WNode
 latent covariate draw to the observed covariate](step:1), [the arrow from the observed covariate
 to treatment](step:2), [the arrow from the observed covariate to outcome](step:3), [the arrow
 from treatment to outcome](step:4), [the arrow from treatment noise to treatment](step:5), and
-[the arrow from outcome noise to outcome](step:6); [every other ordered pair has no arrow](step:7). -/
+[the arrow from outcome noise to outcome](step:6);
+[every other ordered pair has no arrow](step:7). -/
 def wEdge : WNode → WNode → Prop
   | Un, Xc => True
   | Xc, A  => True
@@ -97,7 +91,8 @@ def wEdge : WNode → WNode → Prop
   | Ey, Y  => True
   | _,  _  => False
 
-/-- The [procedure deciding whether an ordered pair of witness nodes is an edge](goal) [examines the finite witness-graph edge relation](step:1). -/
+/-- The [procedure deciding whether an ordered pair of witness nodes is an edge](goal)
+[examines the finite witness-graph edge relation](step:1). -/
 instance : DecidableRel wEdge := by
   intro a b; cases a <;> cases b <;> simp [wEdge] <;> infer_instance
 
@@ -160,8 +155,9 @@ variable (C : Type) [Fintype C] [Nonempty C] [MeasurableSpace C]
   [MeasurableSingletonClass C] [StandardBorelSpace C]
 
 /-- For [a covariate space](hyp:C), [the value space assigned to each witness-graph node](goal)
-is [the covariate space for the observed covariate](step:1), [the binary space for treatment](step:2),
-[the real line for the outcome](step:3), [the covariate space for the latent covariate draw](step:4),
+is [the covariate space for the observed covariate](step:1),
+[the binary space for treatment](step:2), [the real line for the outcome](step:3),
+[the covariate space for the latent covariate draw](step:4),
 [the real line for treatment noise](step:5), and [the real line for outcome noise](step:6). -/
 def WΩ : WNode → Type
   | Xc => C
@@ -171,7 +167,15 @@ def WΩ : WNode → Type
   | Ea => ℝ
   | Ey => ℝ
 
-/-- For [a covariate space equipped with a measurable structure](hyp:C) and [each witness node](hyp:n), the [measurable-space structure for that witness-node value space](goal) is [the given covariate measurable structure for the observed covariate](step:1), [the binary measurable structure for treatment](step:2), [the real-line measurable structure for outcome](step:3), [the given covariate measurable structure for the latent covariate draw](step:4), [the real-line measurable structure for treatment noise](step:5), and [the real-line measurable structure for outcome noise](step:6). -/
+/-- For [a covariate space equipped with a measurable structure](hyp:C) and
+[each witness node](hyp:n), the
+[measurable-space structure for that witness-node value space](goal) is
+[the given covariate measurable structure for the observed covariate](step:1),
+[the binary measurable structure for treatment](step:2),
+[the real-line measurable structure for outcome](step:3),
+[the given covariate measurable structure for the latent covariate draw](step:4),
+[the real-line measurable structure for treatment noise](step:5), and
+[the real-line measurable structure for outcome noise](step:6). -/
 noncomputable instance WΩ_meas : ∀ n, MeasurableSpace (WΩ C n)
   | Xc => inferInstanceAs (MeasurableSpace C)
   | A  => inferInstanceAs (MeasurableSpace Bool)
@@ -180,7 +184,15 @@ noncomputable instance WΩ_meas : ∀ n, MeasurableSpace (WΩ C n)
   | Ea => inferInstanceAs (MeasurableSpace ℝ)
   | Ey => inferInstanceAs (MeasurableSpace ℝ)
 
-/-- For [a covariate space equipped with a measurable structure and a standard-Borel structure](hyp:C) and [each witness node](hyp:n), the [standard-Borel structure for that witness-node value space](goal) is [the given structure for the observed covariate](step:1), [the binary structure for treatment](step:2), [the real-line structure for outcome](step:3), [the given structure for the latent covariate draw](step:4), [the real-line structure for treatment noise](step:5), and [the real-line structure for outcome noise](step:6). -/
+/-- For [a covariate space with measurable and standard-Borel structures](hyp:C) and
+[each witness node](hyp:n), the
+[standard-Borel structure for that witness-node value space](goal) is
+[the given structure for the observed covariate](step:1),
+[the binary structure for treatment](step:2),
+[the real-line structure for outcome](step:3),
+[the given structure for the latent covariate draw](step:4),
+[the real-line structure for treatment noise](step:5), and
+[the real-line structure for outcome noise](step:6). -/
 noncomputable instance WΩ_borel : ∀ n, StandardBorelSpace (WΩ C n)
   | Xc => inferInstanceAs (StandardBorelSpace C)
   | A  => inferInstanceAs (StandardBorelSpace Bool)
@@ -189,7 +201,13 @@ noncomputable instance WΩ_borel : ∀ n, StandardBorelSpace (WΩ C n)
   | Ea => inferInstanceAs (StandardBorelSpace ℝ)
   | Ey => inferInstanceAs (StandardBorelSpace ℝ)
 
-/-- For [a nonempty covariate space](hyp:C) and [each witness node](hyp:n), the [nonemptiness certificate for that witness-node value space](goal) is [the given certificate for the observed covariate](step:1), [a binary value for treatment](step:2), [a real value for outcome](step:3), [the given certificate for the latent covariate draw](step:4), [a real value for treatment noise](step:5), and [a real value for outcome noise](step:6). -/
+/-- For [a nonempty covariate space](hyp:C) and [each witness node](hyp:n), the
+[nonemptiness certificate for that witness-node value space](goal) is
+[the given certificate for the observed covariate](step:1),
+[a binary value for treatment](step:2), [a real value for outcome](step:3),
+[the given certificate for the latent covariate draw](step:4),
+[a real value for treatment noise](step:5), and
+[a real value for outcome noise](step:6). -/
 instance WΩ_nonempty : ∀ n, Nonempty (WΩ C n)
   | Xc => inferInstanceAs (Nonempty C)
   | A  => inferInstanceAs (Nonempty Bool)
@@ -205,7 +223,8 @@ instance WΩ_nonempty : ∀ n, Nonempty (WΩ C n)
 the propensity score. -/
 noncomputable def treatFun (p ea : ℝ) : Bool := decide (ea ≤ p)
 
-/-- Given [a covariate space](hyp:C), [an outcome-regression function indexed by binary treatment and covariate value](hyp:g),
+/-- Given [a covariate space](hyp:C),
+[an outcome-regression function indexed by binary treatment and covariate value](hyp:g),
 [a binary treatment value](hyp:a), [a covariate value](hyp:x), and [a real-valued outcome-noise
 draw](hyp:ey), [the real-valued outcome](goal) is one exactly when the noise draw is no greater
 than the corresponding outcome-regression value, and is zero otherwise. -/
@@ -243,7 +262,8 @@ instance instIsProbabilityMeasureUnifLaw : IsProbabilityMeasure unifLaw := by
 [the covariate probability law](goal) assigns equal probability to every covariate value. -/
 noncomputable def covLaw : Measure C := (PMF.uniformOfFintype C).toMeasure
 
-/-- For [a finite, nonempty covariate space equipped with a measurable structure](hyp:C), [the uniform covariate law is a probability measure](goal). -/
+/-- For [a finite, nonempty covariate space with a measurable structure](hyp:C),
+[the uniform covariate law is a probability measure](goal). -/
 instance instIsProbabilityMeasureCovLaw : IsProbabilityMeasure (covLaw C) := by
   unfold covLaw; infer_instance
 

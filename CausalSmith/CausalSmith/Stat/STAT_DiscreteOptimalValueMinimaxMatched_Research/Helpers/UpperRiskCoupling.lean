@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.PilotControlTheorem
-import Causalean.Stat.Minimax.MarkovKernelTransport
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.PilotControlTheorem
+public import Causalean.Stat.Minimax.MarkovKernelTransport
 
 /-! The marked finite-Poisson statistic and its capped fixed-sample Rao--Blackwell coupling. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

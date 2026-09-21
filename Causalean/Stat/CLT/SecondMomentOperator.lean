@@ -17,19 +17,21 @@ asymptotic-covariance integral
     ⟪Σ t, s⟫ = ∫ ⟪t, ψ x⟫ ⟪s, ψ x⟫ ∂P.
 
 This is the operator `Σ` whose square root (`LinearMap.IsPositive.posSqrt`,
-`Causalean/Mathlib/OperatorSqrt.lean`) builds the limiting Gaussian in the
-multivariate CLT.  Centering (`∫ ψ = 0`) is *not* assumed here; `Σ` is the raw
-second moment.  In the CLT application `ψ` is already centred, so `Σ` is the
-covariance.
+`Causalean/Mathlib/Analysis/InnerProductSpace/PosDef/Sqrt.lean`) builds the
+limiting Gaussian in the multivariate CLT. Centering (`∫ ψ = 0`) is *not*
+assumed here; `Σ` is the raw second moment. In the CLT application `ψ` is
+already centred, so `Σ` is the covariance.
 
 Key declarations:
 * `secondMomentLM` — the operator as a `LinearMap`.
 * `secondMomentLM_inner` — the quadratic-form identity.
 * `secondMomentLM_isPositive` — `Σ` is a positive operator.
 -/
-import Causalean.Mathlib.OperatorSqrt
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
+
+module
+public import Causalean.Mathlib.Analysis.InnerProductSpace.PosDef.Sqrt
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Function.SpecialFunctions.Inner
 
 /-! # Second-Moment Operator
 
@@ -42,6 +44,8 @@ integrand. The main API is `secondMomentLM`, the bilinear-form identity
 `secondMomentLM_inner`, and `secondMomentLM_isPositive`, which supplies the
 positivity needed to take the operator square root used by the concrete Gaussian
 limit. -/
+
+@[expose] public section
 
 open MeasureTheory
 open scoped RealInnerProductSpace

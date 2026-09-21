@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxAssembly
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.DirectProduct
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxAssembly
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.DirectProduct
 
 /-!
 # Causal finite-maximum decoders
@@ -7,6 +8,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.DirectProduct
 This module reconstructs each fixed-geometry signed-distance section from the
 local compressed Poisson block and the remaining raw partition blocks.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

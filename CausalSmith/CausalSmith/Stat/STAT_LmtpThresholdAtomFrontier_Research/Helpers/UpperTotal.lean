@@ -1,4 +1,7 @@
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperEmpirical
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperEmpirical
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

@@ -254,11 +254,12 @@ export function runStructuralGate(coreInput: unknown, opts: GateOptions = {}): G
     //     fires on `i.i.d. \(N(0,\sigma^2)\)` and the terminal-closer guard
     //     below disables itself on any decimal constant;
     // (2) protect a period whose entire remaining suffix is only closing TeX
-    //     math delimiters (terminal `.\n\\]` is not a second sentence) — UNLESS
+    //     math delimiters (terminal `.\n\\]`, `.\n$` and `.$$` included: papers
+    //     write display math as `$ … $` too) — UNLESS
     //     an earlier plausible sentence end exists, in which case the terminal
     //     period is a real boundary after a lowercase-led second sentence.
     const masked = maskNonBoundaryPeriods(a.condition);
-    const terminalCloserPeriod = /\.(?=\s*(?:\\(?:\]|\)|end\{[^{}]+\})\s*)+$)/.exec(masked);
+    const terminalCloserPeriod = /\.(?=\s*(?:(?:\\(?:\]|\)|end\{[^{}]+\})|\${1,2})\s*)+$)/.exec(masked);
     const earlierPlausibleEnd = terminalCloserPeriod
       ? hasPlausibleSentenceEnd(masked.slice(0, terminalCloserPeriod.index))
       : false;

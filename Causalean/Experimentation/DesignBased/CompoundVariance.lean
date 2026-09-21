@@ -20,7 +20,8 @@ within-group assignments.  The enabling step is the tower property of expectatio
 stage-2 (product-design) conditional expectation.
 -/
 
-import Causalean.Experimentation.DesignBased.TwoStage
+module
+public import Causalean.Experimentation.DesignBased.TwoStage
 
 /-!
 # Compound-design variance decomposition
@@ -31,6 +32,8 @@ This file proves the expectation tower property `FiniteDesign.E_compound_tower` 
 within-stage variance plus the stage-1 variance of the stage-2 conditional mean, the algebraic form
 used by partial-interference between-group and within-group variance decompositions.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

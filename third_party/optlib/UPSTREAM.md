@@ -43,3 +43,7 @@ mathematical content was altered. Notably, the current mathlib pin supplies
 `tangentConeAt` / `posTangentConeAt` natively, so unfolding-based rewrites were
 adjusted to the current definition. Upstream is referenced here only for
 provenance and license attribution.
+
+The vendored Lean library sources were converted to the Lean module system on
+2026-09-14 using a blanket `@[expose] public section`. Re-apply upstream diffs
+on top of that module header rather than replacing it.

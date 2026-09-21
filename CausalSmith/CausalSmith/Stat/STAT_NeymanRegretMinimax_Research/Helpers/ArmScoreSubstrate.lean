@@ -10,15 +10,19 @@ Neyman-regret scaffold to the reusable Causalean constrained quadratic score
 program.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Rayleigh
-import Causalean.Stat.Nonparametric.MomentProblems.ScoreProgram.ScoreProgram
-import Mathlib.Probability.Moments.Variance
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Rayleigh
+public import Causalean.Stat.MomentProblems.ScoreProgram
+public import Mathlib.Probability.Moments.Variance
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 
 open MeasureTheory
 open scoped ProbabilityTheory
-open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge (FiniteMoment4 l2ResidualQuadratic)
+open Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge
+  (FiniteMoment4 l2ResidualQuadratic)
 open Causalean.Stat.MomentProblems (rawMoment)
 
 -- @node: armMarginal_isProbabilityMeasure
@@ -150,12 +154,15 @@ lemma armTangentStrength_eq_l2ResidualQuadratic (nu : Measure (ℝ × ℝ)) (hnu
             rfl
       _ ≤ ∫ y,
             (y ^ 2 - Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optIntercept μ
-              - Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optSlope μ * y) ^ 2 ∂μ :=
+              - Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optSlope μ * y) ^ 2
+          ∂μ :=
             ciInf_le hbdd
               (Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optIntercept μ,
                 Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optSlope μ)
       _ = l2ResidualQuadratic μ := by
-            exact Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.residualQuad_opt_eq μ hfin hnd
+            exact
+              Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.residualQuad_opt_eq
+                μ hfin hnd
   · refine le_ciInf ?_
     intro b
     change l2ResidualQuadratic μ ≤
@@ -167,7 +174,8 @@ lemma armTangentStrength_eq_l2ResidualQuadratic (nu : Measure (ℝ × ℝ)) (hnu
 /-- The projection residual is bounded on `[0,1]` because it is a quadratic polynomial. -/
 lemma projResidual_bounded_Icc (μ : Measure ℝ) :
     ∃ C : ℝ, ∀ y ∈ Set.Icc (0 : ℝ) 1,
-      |Causalean.Stat.MomentProblems.ResidualQuadratic.ProjectionResidual.projResidual μ y| ≤ C := by
+      |Causalean.Stat.MomentProblems.ResidualQuadratic.ProjectionResidual.projResidual μ y| ≤ C :=
+      by
   let b0 := Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optIntercept μ
   let b1 := Causalean.Stat.MomentProblems.ResidualQuadratic.MeasureBridge.optSlope μ
   refine ⟨1 + |b0| + |b1|, ?_⟩

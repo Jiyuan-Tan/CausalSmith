@@ -2,33 +2,25 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Sävje–Aronow–Hudgens (2021): the Bernoulli randomization design
-
-The Bernoulli design assigns each unit's treatment by an independent coin flip with unit-specific
-probability `p i`.  It is exactly the product design `prodDesign` of the per-unit coin designs, so
-cross-unit independence — and, more importantly, independence of two units' outcomes whenever they
-are not interference dependent — is the structural disjoint-block independence of the product
-design.  This file reuses the canonical coin design, builds the Bernoulli design, and records the
-marginal facts (`Z_i ⊥ Z_{-i}`, `E[Z_i] = p_i`) used for Horvitz–Thompson unbiasedness.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.Coin
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Experimentation.UnknownInterference.Basic
+module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Causalean.Experimentation.UnknownInterference.Basic
 
 /-! # Bernoulli design under unknown interference
 
 Independent Bernoulli assignment supplies the product-design independence used for
 Sävje-Aronow-Hudgens unknown-interference results.
 
-This file reuses the canonical single-unit `coinDesign`, builds the product Bernoulli randomization
-design `bernoulliDesign`, and proves the one-coordinate marginal identities used throughout the
-Horvitz-Thompson and Hájek arguments.  `coinDesign_E` expands the two-point expectation,
-`bernoulliDesign_E_eval` reduces any function of one unit's assignment to the corresponding coin
-expectation, and `bernoulliDesign_E_treat` / `bernoulliDesign_E_ctrl` give the marginal treatment
-and control probabilities `p_i` and `1 - p_i`.
+Each unit is treated by an independent coin with its own probability. Consequently, one unit's
+assignment is independent of all other assignment coordinates, and its treatment indicator has
+expectation equal to its treatment probability. This file provides deprecated compatibility names
+for the canonical design and these one-coordinate marginal identities. New code should use the
+corresponding declarations in `DesignBased` directly.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -41,43 +33,35 @@ open DesignBased
 
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
-/-- For every [finite population of units whose members can be compared for equality](hyp:U), every
-[unit-specific treatment-probability function](hyp:p), and every such function whose [values are
-nonnegative](hyp:hp0) and [at most one](hyp:hp1), the [Bernoulli randomization design](goal) is the
-probability design on all binary treatment assignments in which each unit is independently treated
-with its specified probability.
+/-- The legacy unknown-interference spelling of the [canonical Bernoulli randomization
+design](goal) for [unit-specific probabilities](hyp:p) [between zero and one](hyp:hp0,hp1). -/
+@[deprecated DesignBased.bernoulliDesign (since := "2026-09-19")]
+noncomputable abbrev bernoulliDesign
+    (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) : FiniteDesign (U → Bool) :=
+  DesignBased.bernoulliDesign p hp0 hp1
 
-Built as the product of the per-unit coin designs. -/
-noncomputable def bernoulliDesign (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) :
-    FiniteDesign (U → Bool) :=
-  prodDesign (fun i => coinDesign (p i) (hp0 i) (hp1 i))
-
-/-- **Marginalizing the Bernoulli design to a single coordinate.** Under the Bernoulli design with
-per-unit treatment probabilities `p` [taking values in `[0, 1]`](hyp:hp0,hp1), [the expected
-value of any function `g` of a single unit `i`'s treatment status coincides with its expectation
-under that unit's own coin design with success probability `p i`](goal) — the `Zᵢ ⊥ Z₋ᵢ`
-marginalization. -/
+/-- Under [independent Bernoulli assignment for a finite unit population](hyp:U) with
+[unit-specific treatment probabilities](hyp:p) [between zero and one](hyp:hp0,hp1), [the expected
+value of any transformation](hyp:g) of [one unit's assignment](hyp:i) [equals its expectation under
+that unit's Bernoulli coin](goal). -/
+@[deprecated DesignBased.bernoulliDesign_E_eval (since := "2026-09-19")]
 lemma bernoulliDesign_E_eval (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (i : U) (g : Bool → ℝ) :
     (bernoulliDesign p hp0 hp1).E (fun z => g (z i))
       = (coinDesign (p i) (hp0 i) (hp1 i)).E g :=
-  FiniteDesign.E_prod_apply (fun i => coinDesign (p i) (hp0 i) (hp1 i)) i g
+  DesignBased.bernoulliDesign_E_eval p hp0 hp1 i g
 
-/-- **Marginal treatment-indicator expectation under the Bernoulli design.** Under the Bernoulli
-design with per-unit treatment probabilities `p` [taking values in `[0, 1]`](hyp:hp0,hp1),
-[the expected value of the indicator that unit `i` is treated equals `p i`](goal). -/
+/-- The legacy unknown-interference wrapper for the canonical treatment-indicator expectation. -/
+@[deprecated DesignBased.bernoulliDesign_E_treat (since := "2026-09-19")]
 lemma bernoulliDesign_E_treat (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) (i : U) :
     (bernoulliDesign p hp0 hp1).E (fun z => if z i then (1 : ℝ) else 0) = p i := by
-  rw [bernoulliDesign_E_eval p hp0 hp1 i (fun b => if b then (1 : ℝ) else 0), coinDesign_E]
-  simp
+  exact DesignBased.bernoulliDesign_E_treat p hp0 hp1 i
 
-/-- **Marginal control-indicator expectation under the Bernoulli design.** Under the Bernoulli
-design with per-unit treatment probabilities `p` [taking values in `[0, 1]`](hyp:hp0,hp1),
-[the expected value of the indicator that unit `i` is untreated equals `1 - p i`](goal). -/
+/-- The legacy unknown-interference wrapper for the canonical control-indicator expectation. -/
+@[deprecated DesignBased.bernoulliDesign_E_ctrl (since := "2026-09-19")]
 lemma bernoulliDesign_E_ctrl (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) (i : U) :
     (bernoulliDesign p hp0 hp1).E (fun z => if z i then (0 : ℝ) else 1) = 1 - p i := by
-  rw [bernoulliDesign_E_eval p hp0 hp1 i (fun b => if b then (0 : ℝ) else 1), coinDesign_E]
-  simp
+  exact DesignBased.bernoulliDesign_E_ctrl p hp0 hp1 i
 
 end UnknownInterference
 end Experimentation

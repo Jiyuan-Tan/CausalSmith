@@ -1,0 +1,1605 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}pebble\_\allowbreak{}singular\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Short panels with systematic missing outcomes require gluing cohort-specific covariance eigenspaces before missing untreated means become causal functionals. A deterministic smallest-two anchor convention maps every mask to the published rank-two count certificate of Pimentel--Alarcón, Boston, and Nowak, with Streinu--Theran pebble recognition and extraction as background. When the certificate passes, the observed local eigenspaces determine the global factor plane and an explicit complete-observed-law map recovers every untreated cohort-time mean. When it fails, the factor plane is generically nonunique, but the frozen primitive class does not imply causal-target nonidentification because an allowed tight-radius class has \(\mu=0\) throughout. The panel-specific corollary \(O_3\Rightarrow\) certificate acceptance is strict for masks \(123,145,256,346\). Covariance PCA gives the unconditional squared-risk upper bound \(\min\{1,4b_\lambda^2,C_0/(Ns_N^2)\}\), and robust profile-recentered moment inversion gives uniformly honest rectangles with upper half-width \(\min\{b_\lambda,C_\alpha\min(1,(\sqrt N s_N)^{-1})\}\). The universal same-shell deformation questions have negative answers on the zero-target boundary. Construction of a frontier-scale testing pair on a quantitatively nondegenerate frozen-model subclass, and a corresponding honest-width lower bound, remain open; \(Ns_N^2\to\infty\) is sufficient but not necessary for consistency. The frozen stochastic class is not the full Lei--Ross class and does not itself assume strict exogeneity; its overlap with Lei--Ross is the no-covariate, no-fixed-effect, strictly exogenous, spherical-error subclass.
+
+\section{Project justification}
+
+\paragraph{Gap.} Pimentel-Alarcón, Boston, and Nowak provide the rank-two deterministic count criterion, Streinu and Theran provide sparse-hypergraph pebble machinery, and Lei and Ross provide \(O_3\)-sufficient identification and regular APM inference. What remains distinct here is the positive causal transport from observed cohort moments through local eigenspaces and the relation kernel to an explicit complete-observed-law functional. Under the frozen primitive class, certificate failure proves factor-plane ambiguity but not different causal-target values; shell nonemptiness alone also fails to supply a target-separating lower experiment. No model-specific minimax or honest-width lower frontier is claimed.
+
+\paragraph{Niche.} The paper studies fixed-\(T\) causal recovery under deterministic cohort masks, separating generic factor-plane certification from causal-target identification. It combines the published certificate with an explicit observed-law mean functional, the strict panel-specific \(O_3\) containment witness, a radius-adaptive covariance-PCA upper risk bound, and a radius-adaptive uniformly honest moment-inversion upper width near a singular relation margin.
+
+\paragraph{Fill.} The paper takes the published count and pebble results as inputs, proves that certificate acceptance yields complete-observed-law identification of every untreated cohort-time mean, and proves that certificate failure yields only generic factor-plane nonuniqueness without further primitive slack. It records strict \(O_3\) containment and develops the upper bounds \(\min\{1,4b_\lambda^2,C_0/(Ns_N^2)\}\) for risk and \(\min\{b_\lambda,C_\alpha\min(1,(\sqrt N s_N)^{-1})\}\) for honest-rectangle half-width. The universal same-shell deformation claims are refuted by a legal zero-target boundary class; lower frontiers require a separately verified nondegenerate restriction.
+
+\section{Related work}
+
+Pimentel-Alarcón, Boston, and Nowak provide the rank-two deterministic count criterion for generic subspace identification and matrix completion; that rank/count reduction is cited background rather than a novelty claim. Streinu and Theran supply sparse-hypergraph pebble recognition, extraction, component algorithms, and complexity. Király, Theran, and Tomioka identify generic completion through Jacobian closure and determinantal matroids. The distinct causal step here recovers cohort conditional eigenspaces from the complete observed law and proves that certificate acceptance yields an explicit functional for every missing untreated mean; certificate failure is interpreted only as generic factor-plane nonuniqueness. Lei and Ross provide the closest econometric geometry through their \(O_3\) overlap-merging condition and APM estimator. The frozen stochastic class is not the full Lei--Ross class and is not merely its strict-exogeneity intersection: it assumes cohort conditional mean-zero errors, loading--error covariance orthogonality, spherical conditional error covariance, and the stated moment and eigengap restrictions. Its overlap with Lei--Ross is the no-covariate, no-fixed-effect, strictly exogenous, spherical-error subclass. The use of \(O_3\) here is geometric: its acceptance implies canonical certificate acceptance, while masks \(123,145,256,346\) are certificate-accepted and \(O_3\)-rejected. Srivastava and Pimentel-Alarcón establish reciprocal-singular-value projection perturbation, which supports upper analysis but does not furnish a legal target-separating experiment in this frozen model. Yan and Wainwright study growing staggered-block matrices, Zhu studies weak-factor honesty costs, and Andrews and Cheng develop identification-robust inference; none supplies the nondegenerate same-shell testing pair needed for lower risk and width frontiers here. Liu, Wang, and Xu provide a concrete consumer through the \(\operatorname{fect}\) counterfactual-imputation workflow.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mu=(\mu_{ct})_{c\in[C],t\in[T]},\qquad \mu_{ct}=\mathbb E[Y_{it}(0)\mid C_i=c]\).
+Primary functional / estimator / diagnostic: \(\widehat\mu_c=\operatorname{clip}_{[-b_\lambda,b_\lambda]^T}\!\left\{\widehat U(\widehat U_{S_c}^{\prime}\widehat U_{S_c})^{-1}\widehat U_{S_c}^{\prime}\widehat\nu_c\right\}\), with the zero fallback specified in \(\operatorname{def:pca\text{-}estimator}\), and \[\mathcal R_N\leq\min\!\left\{1,4b_\lambda^2,\frac{C_0}{Ns_N^2}\right\},\qquad \mathcal W_{N,\alpha}\leq\min\!\left\{b_\lambda,C_\alpha\min\{1,(\sqrt N s_N)^{-1}\}\right\}.\] The observed-moment estimator and radius are the robust joint-moment constructions \(\widehat\theta\) and \(\widehat\rho_N\). These are unconditional upper guarantees on nonempty shells. The frozen class does not support a positive universal lower bound or necessity of \(Ns_N^2\to\infty\); a frontier-scale testing pair on a quantitatively nondegenerate subclass and a model-specific honest-width lower bound remain open..
+\begin{itemize}
+  \item \texttt{T} --- \texttt{number of outcome coordinates}; \(\mathbb N\); \texttt{fixed panel dimension}
+  \item \texttt{C} --- \texttt{number of cohorts}; \(\mathbb N\); \texttt{fixed cohort dimension}
+  \item \texttt{N} --- \texttt{sample size}; \(\mathbb N\)
+  \item \texttt{S} --- \texttt{deterministic untreated observation masks}; \((S_c)_{c=1}^C\in(2^{[T]})^C\)
+  \item \texttt{p} --- \texttt{cohort-\allowbreak{}share vector}; \(\Delta^{C-1}\)
+  \par\smallskip\noindent\emph{Definition.} \(p_c=\Pr(C_i=c)\)
+  \item \texttt{P} --- \texttt{full-\allowbreak{}data law}; \texttt{model index}
+  \item \texttt{Gamma} --- \texttt{rank-\allowbreak{}two time-\allowbreak{}factor matrix}; \(\mathbb R^{T\times 2}\)
+  \item \texttt{gamma} --- \texttt{time-\allowbreak{}factor row}; \(\mathbb R^2\)
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_t^{\prime}=e_t^{\prime}\Gamma\)
+  \item \texttt{lambda} --- \texttt{unit loading vector}; \(\mathbb R^2\)
+  \item \texttt{epsilon} --- \texttt{untreated outcome error vector}; \(\mathbb R^T\)
+  \item \texttt{Y0} --- \texttt{untreated potential-\allowbreak{}outcome vector}; \(\mathbb R^T\)
+  \par\smallskip\noindent\emph{Definition.} \(Y_i(0)=\Gamma\lambda_i+\varepsilon_i\)
+  \item \texttt{O} --- \texttt{observed unit record}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(C_i,J_{C_i}Y_i(0))\)
+  \item \texttt{PO} --- \texttt{observed-\allowbreak{}data marginal law}
+  \par\smallskip\noindent\emph{Definition.} \(P_O=P\circ O^{-1}\)
+  \item \texttt{mload} --- \texttt{cohort loading mean}; \(\mathbb R^2\)
+  \par\smallskip\noindent\emph{Definition.} \(m_c=\mathbb E_P[\lambda_i\mid C_i=c]\)
+  \item \texttt{H} --- \texttt{cohort loading covariance}; \(\mathbb S_{++}^2\)
+  \par\smallskip\noindent\emph{Definition.} \(H_c=\operatorname{Cov}_P(\lambda_i\mid C_i=c)\)
+  \item \texttt{sigma} --- \texttt{cohort error scale}; \([0,\infty)\)
+  \item \texttt{J} --- \texttt{coordinate restriction matrix}; \(\{0,1\}^{|S_c|\times T}\)
+  \par\smallskip\noindent\emph{Definition.} \(J_c x=x_{S_c}\)
+  \item \texttt{nu} --- \texttt{observed untreated cohort mean}; \(\mathbb R^{|S_c|}\)
+  \par\smallskip\noindent\emph{Definition.} \(\nu_c=\mathbb E_P[J_cY_i(0)\mid C_i=c]\)
+  \item \texttt{V} --- \texttt{observed untreated cohort covariance}; \(\mathbb S_+^{|S_c|}\)
+  \par\smallskip\noindent\emph{Definition.} \(V_c=\operatorname{Cov}_P(J_cY_i(0)\mid C_i=c)\)
+  \item \texttt{Q} --- \texttt{local orthogonal-\allowbreak{}complement projector}; \(\mathbb S_+^{|S_c|}\)
+  \par\smallskip\noindent\emph{Definition.} \(Q_c=I_{|S_c|}-\Pi_2(V_c)\)
+  \item \texttt{Rbar} --- \texttt{padded population relation operator}; \(\mathbb R^{(\sum_c |S_c|-2C)\times T}\)
+  \par\smallskip\noindent\emph{Definition.} \(\overline R(P)=\operatorname{stack}_{c=1}^C\sqrt{p_c}B_cJ_c\), where \(B_cB_c^{\prime}=I\) and \(B_c^{\prime}B_c=Q_c\)
+  \item \texttt{A} --- \texttt{aggregated projection matrix}; \(\mathbb S_+^T\)
+  \par\smallskip\noindent\emph{Definition.} \(A(P)=\overline R(P)^{\prime}\overline R(P)=\sum_{c=1}^Cp_cJ_c^{\prime}Q_cJ_c\)
+  \item \texttt{H3} --- \texttt{anchor-\allowbreak{}triple multihypergraph}; \(3\text{-uniform multihypergraphs on }[T]\)
+  \item \texttt{Zexc} --- \texttt{proper algebraic exceptional set for the mask relation matroid}; \(\mathcal Z_S\subsetneq\mathbb R^{T\times2}\)
+  \item \texttt{Medge} --- \texttt{number of anchor triples}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(m=\sum_{c=1}^C(|S_c|-2)\)
+  \item \texttt{rankH} --- \((1,2)\)-sparsity-matroid rank; \(\{0,\ldots,T-2\}\)
+  \par\smallskip\noindent\emph{Definition.} \(r_{1,2}(H_3)=\max\{|F|:F\subseteq E(H_3),\ |F'|\le |V(F')|-2\text{ for every }\varnothing\ne F'\subseteq F\}\)
+  \item \texttt{s} --- \texttt{relation singular margin}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(s(P)=\sigma_{T-2}(\overline R(P))\), with singular values in decreasing order
+  \item \texttt{sN} --- \texttt{deterministic shell sequence}; \((0,1]^{\mathbb N}\)
+  \item \texttt{Mclass} --- \texttt{rank-\allowbreak{}two short-\allowbreak{}panel law class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M\)
+  \item \texttt{PN} --- \texttt{rank-\allowbreak{}two singular-\allowbreak{}margin shell}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P_N(s_N)\)
+  \item \texttt{mu} --- \texttt{full vector of untreated cohort-\allowbreak{}time means}; \(\mathbb R^{C\times T}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_c(P)=\Gamma m_c=\mathbb E_P[Y_i(0)\mid C_i=c]\)
+  \item \texttt{muhat} --- \texttt{estimator of untreated cohort-\allowbreak{}time means}; \(\mathbb R^{C\times T}\)
+  \item \texttt{loss} --- \texttt{normalized squared sup-\allowbreak{}norm loss}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(L(\widehat\mu,\mu)=\min\{1,\|\widehat\mu-\mu\|_\infty^2\}\)
+  \item \texttt{riskfront} --- \texttt{minimax squared sup-\allowbreak{}norm risk}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_N=\inf_{\widetilde\mu}\sup_{P\in\mathcal P_N(s_N)}\mathbb E_PL(\widetilde\mu,\mu(P))\)
+  \item \texttt{rect} --- \texttt{simultaneous confidence rectangle}; \(\prod_{c,t}[\ell_{ct},u_{ct}]\subseteq\mathbb R^{CT}\)
+  \item \texttt{width} --- \texttt{normalized maximal rectangle half-\allowbreak{}width}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(W(\mathcal I)=\min\{1,\max_{c,t}(u_{ct}-\ell_{ct})/2\}\)
+  \item \texttt{alpha} --- \texttt{miscoverage level}; \((0,1/2)\)
+  \item \texttt{kconst} --- \texttt{positive constants depending only on fixed primitive radii}
+  \par\smallskip\noindent\emph{Definition.} \(c,c_0,c_1,c_\alpha,C_0,C_\alpha,K,K_\alpha\in(0,\infty)\)
+  \item \texttt{honestset} --- class of level-\((1-\alpha)\) honest rectangles
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak I_{N,\alpha}=\{\mathcal I_N:\inf_{P\in\mathcal P_N(s_N)}\Pr_P(\mu(P)\in\mathcal I_N)\ge1-\alpha\}\)
+  \item \texttt{widthfront} --- \texttt{minimax expected honest maximal half-\allowbreak{}width}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_{N,\alpha}=\inf_{\mathcal I_N\in\mathfrak I_{N,\alpha}}\sup_{P\in\mathcal P_N(s_N)}\mathbb E_PW(\mathcal I_N)\)
+  \item \texttt{qmom} --- \texttt{dimension of the joint observed-\allowbreak{}moment vector}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(q=\sum_{c=1}^C\{1+|S_c|+|S_c|(|S_c|+1)/2\}\)
+  \item \texttt{Zmom} --- \texttt{joint observed-\allowbreak{}moment feature vector}; \(\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(Z_i=\operatorname{stack}_{c=1}^C 1\{C_i=c\}\bigl(1,(J_cY_i(0))^{\prime},\operatorname{vech}\{J_cY_i(0)Y_i(0)^{\prime}J_c^{\prime}\}^{\prime}\bigr)^{\prime}\)
+  \item \texttt{theta} --- \texttt{population joint observed-\allowbreak{}moment vector}; \(\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta(P)=\mathbb E_P Z_i\)
+  \item \texttt{thetahat} --- \texttt{coordinatewise median-\allowbreak{}of-\allowbreak{}means observed-\allowbreak{}moment estimator}; \(\mathbb R^q\)
+  \item \texttt{vhat} --- \texttt{coordinatewise robust block-\allowbreak{}variance estimates}; \([0,\infty)^q\)
+  \item \texttt{momentnorm} --- \texttt{simultaneous observed-\allowbreak{}moment norm}
+  \par\smallskip\noindent\emph{Definition.} \(\|x\|_{\mathsf m}=\max_{1\le j\le q}|x_j|\)
+  \item \texttt{Theta} --- \texttt{compact primitive moment-\allowbreak{}feasibility set}
+  \par\smallskip\noindent\emph{Definition.} \(\overline\Theta_N(s_N)\)
+  \item \texttt{dprof} --- \texttt{profiled distance to the primitive moment model}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(d_N=\inf_{\vartheta\in\overline\Theta_N(s_N)}\|g(\vartheta)-\widehat\theta\|_{\mathsf m}\)
+  \item \texttt{kblocks} --- \texttt{number of robust moment blocks}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(k_\alpha=\lceil8\log(2q/\alpha)\rceil\)
+  \item \texttt{Fevent} --- \texttt{full-\allowbreak{}box fallback event}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf F_N=\{N<2k_\alpha\}\), where \(k_\alpha=\lceil8\log(2q/\alpha)\rceil\)
+  \item \texttt{eta} --- \texttt{four-\allowbreak{}mask slope perturbation}; \(\mathbb R\)
+  \item \texttt{z} --- \texttt{sixth slope}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(z=19/5+\eta\)
+  \item \texttt{d} --- \texttt{local deformation magnitude}; \(\mathbb R\)
+  \item \texttt{h} --- \texttt{least-\allowbreak{}conditioned global direction}; \(\mathbb R^T\)
+  \item \texttt{a0} --- \texttt{rank-\allowbreak{}one loading direction}; \(\mathbb R^2\)
+  \item \texttt{b} --- \texttt{cohort inverse-\allowbreak{}transform direction}; \(\mathbb R^2\)
+  \par\smallskip\noindent\emph{Definition.} \(b_c=\Gamma_{S_c}^{\dagger}h_{S_c}\)
+  \item \texttt{e} --- \texttt{local relation residual}; \(\mathbb R^{|S_c|}\)
+  \par\smallskip\noindent\emph{Definition.} \(e_c=h_{S_c}-\Gamma_{S_c}b_c=Q_ch_{S_c}\)
+  \item \texttt{D} --- \texttt{four-\allowbreak{}mask raw relation matrix}; \(\mathbb R^{4\times 6}\)
+  \item \texttt{O3} --- \texttt{observed-\allowbreak{}outcome-\allowbreak{}overlap algorithm}; \texttt{published sufficient identification screen}
+  \item \texttt{Ppath} --- \texttt{four-\allowbreak{}mask slope-\allowbreak{}path law}
+  \par\smallskip\noindent\emph{Definition.} \((P_\eta)_{|\eta|<\eta_0}\)
+  \item \texttt{delta} --- \texttt{moment slack exponent}; \((0,\infty)\)
+  \item \texttt{pstar} --- \texttt{cohort-\allowbreak{}share floor}; \((0,1)\)
+  \item \texttt{vstar} --- \texttt{loading-\allowbreak{}covariance lower bound}; \((0,\infty)\)
+  \item \texttt{vupper} --- \texttt{loading-\allowbreak{}covariance upper bound}; \((0,\infty)\)
+  \item \texttt{gstar} --- \texttt{local signal eigengap floor}; \((0,\infty)\)
+  \item \texttt{Mmom} --- \texttt{common moment radius}; \((0,\infty)\)
+  \item \texttt{B} --- \texttt{derived target radius}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(B=M_{\mathrm{mom}}^{1/(4+\delta)}\)
+  \item \texttt{Mmean} --- \texttt{class of admissible cohort loading means}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_{\lambda}(H)\)
+  \item \texttt{rho} --- \texttt{data-\allowbreak{}driven simultaneous observed-\allowbreak{}moment radius}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\rho_N=K_\alpha\{M_{\mathrm{mom}}^{2/(4+\delta)}+\sqrt{1+\max_{j\le q}\widehat v_j}\}/\sqrt N\)
+  \item \texttt{q0} --- \texttt{Lyapunov moment exponent}; \((4,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(q_0=4+\delta\)
+  \item \texttt{blambda} --- \texttt{effective loading-\allowbreak{}mean and target-\allowbreak{}coordinate radius}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(b_\lambda=(M_{\mathrm{mom}}^{2/q_0}-2v_\star)_+^{1/2}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-dimensions]\label{ass:fixed-dimensions}
+\((T,C)\in\{3,4,\ldots\}\times\mathbb N\)
+\par\smallskip\noindent\emph{Standard} (Fixed-outcome, large-cohort short-panel asymptotics, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:deterministic-masks]\label{ass:deterministic-masks}
+\(S\in(2^{[T]})^C,\qquad |S_c|\ge3\quad\forall c\in[C]\)
+\par\smallskip\noindent\emph{Standard} (Deterministic cohort missingness with locally estimable rank-two factors, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-units]\label{ass:iid-units}
+\(O_1,\ldots,O_N\stackrel{\mathrm{iid}}{\sim}P_O\)
+\par\smallskip\noindent\emph{Standard} (Independent cross-sectional sampling, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-shares]\label{ass:positive-shares}
+\(\min_{c\in[C]}p_c\ge p_{\star}>0\)
+\par\smallskip\noindent\emph{Standard} (Positive fixed cohort shares, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:observed-record]\label{ass:observed-record}
+\(O_i=(C_i,J_{C_i}Y_i(0))\)
+\par\smallskip\noindent\emph{Standard} (Consistency for observed untreated potential outcomes, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-two-factor-law]\label{ass:rank-two-factor-law}
+\(Y_i(0)=\Gamma\lambda_i+\varepsilon_i\)
+\par\smallskip\noindent\emph{Standard} (Interactive fixed-effects outcome equation, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-two]\label{ass:rank-two}
+\(\operatorname{rank}(\Gamma)=2\)
+\par\smallskip\noindent\emph{Standard} (Exact rank-two factor plane, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:factor-normalization]\label{ass:factor-normalization}
+\(\Gamma^{\prime}\Gamma=I_2\)
+\par\smallskip\noindent\emph{Standard} (Orthonormal factor-plane normalization, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:loading-covariance]\label{ass:loading-covariance}
+\(v_{\star}I_2\preceq H_c\preceq v^{\star}I_2\quad\forall c\in[C]\)
+\par\smallskip\noindent\emph{Standard} (Uniformly positive definite loading covariance, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:error-mean]\label{ass:error-mean}
+\(\mathbb E_P[\varepsilon_i\mid C_i=c]=0\quad\forall c\in[C]\)
+\par\smallskip\noindent\emph{Standard} (Conditional mean-zero outcome errors, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:loading-error-orthogonality]\label{ass:loading-error-orthogonality}
+\(\operatorname{Cov}_P(\lambda_i,\varepsilon_i\mid C_i=c)=0\quad\forall c\in[C]\)
+\par\smallskip\noindent\emph{Standard} (Conditional loading-error orthogonality, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-homoskedasticity]\label{ass:conditional-homoskedasticity}
+\(\operatorname{Cov}_P(\varepsilon_i\mid C_i=c)=\sigma_c^2I_T\quad\forall c\in[C]\)
+\par\smallskip\noindent\emph{Standard} (Within-cohort spherical outcome errors, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:local-signal-gap]\label{ass:local-signal-gap}
+\(\lambda_2(\Gamma_{S_c}H_c\Gamma_{S_c}^{\prime})\ge g_{\star}>0\quad\forall c\in[C]\)
+\par\smallskip\noindent\emph{Standard} (Uniform local rank-two signal eigengap, \cite{LeiRoss2023}).
+\end{assumption}
+
+\begin{assumption}[ass:moment-radius]\label{ass:moment-radius}
+\(\max_{c\in[C]}\mathbb E_P[\|\lambda_i\|^{4+\delta}+\|\varepsilon_i\|^{4+\delta}\mid C_i=c]\le M_{\mathrm{mom}}\)
+\par\smallskip\noindent\emph{Standard} (Uniform Lyapunov moment bound, \cite{vanDerVaart1998}).
+\end{assumption}
+
+\begin{assumption}[ass:generic-factor-rows]\label{ass:generic-factor-rows}
+\(\Gamma\notin\mathcal Z_S\)
+\par\smallskip\noindent\emph{Standard} (Generic determinantal-matroid regularity, \cite{KiralyTheranTomioka2015}).
+\end{assumption}
+
+\begin{assumption}[ass:singular-shell]\label{ass:singular-shell}
+\(s_N\le s(P)\le2s_N\)
+\par\smallskip\noindent\emph{Novel.} The shell indexes empirically visible alignment strength rather than an oracle factor norm. It is realized by smooth factor-row paths, including the four-mask slope path \(z=19/5+\eta\), while local signal eigenvalues and cohort moment radii remain fixed.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:base-model]\label{def:base-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{rank-\allowbreak{}two short-\allowbreak{}panel law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M=\{P=P^{(N)}:3\le T<\infty,\ 1\le C<\infty,\ |S_c|\ge3,\ O_1,\ldots,O_N\stackrel{\mathrm{iid}}{\sim}P_O,\ O_i=(C_i,J_{C_i}Y_i(0)),\ Y_i(0)=\Gamma\lambda_i+\varepsilon_i,\ \operatorname{rank}(\Gamma)=2,\ \Gamma^{\prime}\Gamma=I_2,\ \min_cp_c\ge p_{\star},\ v_{\star}I_2\preceq H_c\preceq v^{\star}I_2,\ \mathbb E_P[\varepsilon_i\mid C_i=c]=0,\ \operatorname{Cov}_P(\lambda_i,\varepsilon_i\mid C_i=c)=0,\ \operatorname{Cov}_P(\varepsilon_i\mid C_i=c)=\sigma_c^2I_T,\ \lambda_2(\Gamma_{S_c}H_c\Gamma_{S_c}^{\prime})\ge g_{\star},\ \max_c\mathbb E_P[\|\lambda_i\|^{4+\delta}+\|\varepsilon_i\|^{4+\delta}\mid C_i=c]\le M_{\mathrm{mom}},\ \Gamma\text{ is relation-matroid generic}\}\) for deterministic \(S\), with the cohort conditions holding for every \(c\in[C]\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}fixed-\allowbreak{}dimensions}; \texttt{ass:\allowbreak{}deterministic-\allowbreak{}masks}; \texttt{ass:\allowbreak{}iid-\allowbreak{}units}; \texttt{ass:\allowbreak{}positive-\allowbreak{}shares}; \texttt{ass:\allowbreak{}observed-\allowbreak{}record}; \texttt{ass:\allowbreak{}rank-\allowbreak{}two-\allowbreak{}factor-\allowbreak{}law}; \texttt{ass:\allowbreak{}rank-\allowbreak{}two}; \texttt{ass:\allowbreak{}factor-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}loading-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}error-\allowbreak{}mean}; \texttt{ass:\allowbreak{}loading-\allowbreak{}error-\allowbreak{}orthogonality}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}homoskedasticity}; \texttt{ass:\allowbreak{}local-\allowbreak{}signal-\allowbreak{}gap}; \texttt{ass:\allowbreak{}moment-\allowbreak{}radius}; \texttt{ass:\allowbreak{}generic-\allowbreak{}factor-\allowbreak{}rows}.
+\end{definition}
+
+\begin{definition}[def:admissible-loading-means]\label{def:admissible-loading-means}
+\par\smallskip\noindent\emph{Defined object.} \texttt{admissible cohort loading-\allowbreak{}mean class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak M_{\lambda}(H)=\{m=(m_c)_{c=1}^C\in(\mathbb R^2)^C:\text{ for every }c\in[C]\text{ there is a probability law }F_c\text{ on }\mathbb R^2\text{ with }\mathbb E_{F_c}[\lambda]=m_c,\ \operatorname{Cov}_{F_c}(\lambda)=H_c,\text{ and }\mathbb E_{F_c}\|\lambda\|^{4+\delta}\le M_{\mathrm{mom}}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}loading-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}moment-\allowbreak{}radius}.
+\end{definition}
+
+\begin{definition}[def:margin-shell]\label{def:margin-shell}
+\par\smallskip\noindent\emph{Defined object.} \texttt{singular-\allowbreak{}margin law shell}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_N(s_N)=\{P=P^{(N)}\in\mathcal M:s_N\le s(P)\le2s_N\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}fixed-\allowbreak{}dimensions}; \texttt{ass:\allowbreak{}deterministic-\allowbreak{}masks}; \texttt{ass:\allowbreak{}iid-\allowbreak{}units}; \texttt{ass:\allowbreak{}positive-\allowbreak{}shares}; \texttt{ass:\allowbreak{}observed-\allowbreak{}record}; \texttt{ass:\allowbreak{}rank-\allowbreak{}two-\allowbreak{}factor-\allowbreak{}law}; \texttt{ass:\allowbreak{}rank-\allowbreak{}two}; \texttt{ass:\allowbreak{}factor-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}loading-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}error-\allowbreak{}mean}; \texttt{ass:\allowbreak{}loading-\allowbreak{}error-\allowbreak{}orthogonality}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}homoskedasticity}; \texttt{ass:\allowbreak{}local-\allowbreak{}signal-\allowbreak{}gap}; \texttt{ass:\allowbreak{}moment-\allowbreak{}radius}; \texttt{ass:\allowbreak{}generic-\allowbreak{}factor-\allowbreak{}rows}; \texttt{ass:\allowbreak{}singular-\allowbreak{}shell}.
+\end{definition}
+
+\begin{definition}[def:anchor-hypergraph]\label{def:anchor-hypergraph}
+\par\smallskip\noindent\emph{Defined object.} \texttt{canonical anchor-\allowbreak{}triple hypergraph}
+\par\smallskip\noindent\emph{Construction.} For each \(c\), let \(a_c=\min S_c\) and \(b_c=\min(S_c\setminus\{a_c\})\); set \(E(H_3)=\biguplus_{c=1}^C\{\{a_c,b_c,t\}:t\in S_c\setminus\{a_c,b_c\}\}\), retaining cohort labels and multiplicities.
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:pebble-certificate]\label{def:pebble-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{published rank-\allowbreak{}two count certificate}
+\par\smallskip\noindent\emph{Construction.} Using the rank-two deterministic count criterion of Pimentel--Alarcón, Boston, and Nowak and the \( (1,2)\)-sparsity formulation of Streinu and Theran, set \(\operatorname{CSC}_2(H_3)=\{F\subseteq E(H_3):|F'|\le|V(F')|-2\text{ for every }\varnothing\ne F'\subseteq F\}\); accept exactly when a maximum member has \(T-2\) edges and spans \([T]\). The published pebble algorithms decide acceptance and extract a maximum member and tight components in \(O(Tm)\) operations and \(O(T+m)\) storage.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}anchor-\allowbreak{}hypergraph}.
+\end{definition}
+
+\begin{definition}[def:relation-operator]\label{def:relation-operator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{padded orthonormal relation construction}
+\par\smallskip\noindent\emph{Construction.} Compute \(Q_c=I_{|S_c|}-\Pi_2(V_c)\), choose any \(B_c\) with \(B_cB_c^{\prime}=I\) and \(B_c^{\prime}B_c=Q_c\), and stack \(\overline R(P)=\operatorname{stack}_{c=1}^C\sqrt{p_c}B_cJ_c\); its Gram matrix is \(A(P)=\sum_cp_cJ_c^{\prime}Q_cJ_c\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{V}; \texttt{p}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:relation-margin]\label{def:relation-margin}
+\par\smallskip\noindent\emph{Defined object.} \texttt{observable relation-\allowbreak{}margin construction}
+\par\smallskip\noindent\emph{Construction.} \(s(P)=\sigma_{T-2}(\overline R(P))=\sqrt{\lambda_{T-2}(A(P))}\), with ordered singular values padded by zeros.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}relation-\allowbreak{}operator}.
+\end{definition}
+
+\begin{definition}[def:counterfactual-functional]\label{def:counterfactual-functional}
+\par\smallskip\noindent\emph{Defined object.} \texttt{observed-\allowbreak{}law counterfactual construction}
+\par\smallskip\noindent\emph{Construction.} When \(r_{1,2}(H_3)=T-2\), let \(U(P)\in\mathbb R^{T\times2}\) be any orthonormal basis of \(\ker\overline R(P)\); define \(\mu_c(P)=U(P)(U_{S_c}(P)^{\prime}U_{S_c}(P))^{-1}U_{S_c}(P)^{\prime}\nu_c\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}pebble-\allowbreak{}certificate}; \texttt{def:\allowbreak{}relation-\allowbreak{}operator}; \texttt{nu}.
+\end{definition}
+
+\begin{definition}[def:pca-estimator]\label{def:pca-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{covariance-\allowbreak{}PCA and APM least-\allowbreak{}squares construction}
+\par\smallskip\noindent\emph{Construction.} Estimate \(\nu_c\) and \(V_c\) by cohort sample moments, form \(\widehat Q_c=I-\Pi_2(\widehat V_c)\) and \(\widehat A=\sum_c\widehat p_cJ_c^{\prime}\widehat Q_cJ_c\), and take \(\widehat U\) as its bottom two eigenvectors, using fixed deterministic Borel tie-breaking conventions for every eigenspace and basis. Whenever all required cohort moments and inverses exist, set
+\[
+\widehat\mu_c=\operatorname{clip}_{[-b_\lambda,b_\lambda]^T}\!\left\{\widehat U(\widehat U_{S_c}^{\prime}\widehat U_{S_c})^{-1}\widehat U_{S_c}^{\prime}\widehat\nu_c\right\}.
+\]
+If a required cohort moment is unavailable or any displayed inverse does not exist, set the entire vector \(\widehat\mu\) equal to zero. Thus the construction is everywhere a measurable element of \(\mathbb R^{C\times T}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{N}; \texttt{def:\allowbreak{}counterfactual-\allowbreak{}functional}; \texttt{def:\allowbreak{}effective-\allowbreak{}loading-\allowbreak{}mean-\allowbreak{}radius}.
+\end{definition}
+
+\begin{definition}[def:primitive-moment-class]\label{def:primitive-moment-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compact primitive moment-\allowbreak{}feasibility class}
+\par\smallskip\noindent\emph{Construction.} \(\overline\Theta_N(s_N)=\operatorname{cl}\{\vartheta=(p,\Gamma,(m_c,H_c,\sigma_c)_{c=1}^C):p\in\Delta^{C-1},\ \min_cp_c\ge p_{\star},\ \Gamma^{\prime}\Gamma=I_2,\ v_{\star}I_2\preceq H_c\preceq v^{\star}I_2,\ m\in\mathfrak M_{\lambda}(H),\ 0\le\sigma_c\le B,\ \lambda_2(\Gamma_{S_c}H_c\Gamma_{S_c}^{\prime})\ge g_{\star}\text{ for every }c\in[C],\ s_N\le s(\vartheta)\le2s_N\}\) for every \(N\in\mathbb N\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positive-\allowbreak{}shares}; \texttt{ass:\allowbreak{}factor-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}loading-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}local-\allowbreak{}signal-\allowbreak{}gap}; \texttt{ass:\allowbreak{}moment-\allowbreak{}radius}; \texttt{ass:\allowbreak{}singular-\allowbreak{}shell}.
+\end{definition}
+
+\begin{definition}[def:robust-observed-moments]\label{def:robust-observed-moments}
+\par\smallskip\noindent\emph{Defined object.} \texttt{data-\allowbreak{}driven robust observed-\allowbreak{}moment ball}
+\par\smallskip\noindent\emph{Construction.} For \(k_\alpha=\lceil8\log(2q/\alpha)\rceil\) and \(N\ge2k_\alpha\), partition the observations deterministically into \(k_\alpha\) nearly equal blocks. For each coordinate \(j\), let \(\widehat\theta_j\) be the median of its block means and let \(\widehat v_j\) be the median of the corresponding within-block empirical second moments about \(\widehat\theta_j\). Use the norm \(\|x\|_{\mathsf m}=\max_{j\le q}|x_j|\) and radius \(\widehat\rho_N=K_\alpha\{M_{\mathrm{mom}}^{2/(4+\delta)}+\sqrt{1+\max_{j\le q}\widehat v_j}\}/\sqrt N\), where \(K_\alpha\) is a fixed calibrated constant. On \(N<2k_\alpha\), declare \(\mathsf F_N\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O}; \texttt{N}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:moment-inversion]\label{def:moment-inversion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{profile-\allowbreak{}recentered observed-\allowbreak{}moment inversion}
+\par\smallskip\noindent\emph{Construction.} For \(\vartheta\in\overline\Theta_N(s_N)\), let \(g(\vartheta)\) stack, for each cohort \(c\), \(p_c\), \(p_c\Gamma_{S_c}m_c\), and \(p_c\operatorname{vech}[\Gamma_{S_c}(H_c+m_cm_c^{\prime})\Gamma_{S_c}^{\prime}+\sigma_c^2I]\). Compute \(d_N=\min_{\vartheta\in\overline\Theta_N(s_N)}\|g(\vartheta)-\widehat\theta\|_{\mathsf m}\) and retain
+\[
+\mathcal C_N=\left\{\vartheta\in\overline\Theta_N(s_N):
+\|g(\vartheta)-\widehat\theta\|_{\mathsf m}
+\le d_N+\widehat\rho_N\right\}.
+\]
+For \(N\ge2k_\alpha\), return the intersection of \([-b_\lambda,b_\lambda]^{CT}\) with the coordinatewise smallest rectangle enclosing
+\[
+\left\{(\Gamma m_c)_{c=1}^C:\vartheta\in\mathcal C_N\right\}.
+\]
+Compactness makes \(\mathcal C_N\) nonempty. On \(\mathsf F_N=\{N<2k_\alpha\}\), return \([-b_\lambda,b_\lambda]^{CT}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}robust-\allowbreak{}observed-\allowbreak{}moments}; \texttt{def:\allowbreak{}primitive-\allowbreak{}moment-\allowbreak{}class}; \texttt{def:\allowbreak{}margin-\allowbreak{}shell}; \texttt{def:\allowbreak{}admissible-\allowbreak{}loading-\allowbreak{}means}; \texttt{def:\allowbreak{}effective-\allowbreak{}loading-\allowbreak{}mean-\allowbreak{}radius}.
+\end{definition}
+
+\begin{definition}[def:shell-handle]\label{def:shell-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{nuisance-\allowbreak{}compensated shell-\allowbreak{}deformation handle}
+\par\smallskip\noindent\emph{Construction.} Begin from a least-conditioned unit vector \(h\perp\operatorname{col}(\Gamma)\), use the exact cohortwise inverse loading transform associated with the rank-one factor perturbation in direction \(ha_0^{\prime}\), and allocate primitive slack along the four-mask path \(z=19/5+\eta\) to seek alternatives remaining in the same prescribed shell while separating a missing coordinate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}margin-\allowbreak{}shell}; \texttt{def:\allowbreak{}relation-\allowbreak{}margin}.
+\end{definition}
+
+\begin{definition}[def:four-mask-witness]\label{def:four-mask-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{four-\allowbreak{}mask separating construction}
+\par\smallskip\noindent\emph{Construction.} Take \(T=6\), \(S_1=\{1,2,3\}\), \(S_2=\{1,4,5\}\), \(S_3=\{2,5,6\}\), \(S_4=\{3,4,6\}\), raw rows \(\gamma_t=(1,t)\), and relation rows \(D_{1\cdot}=(-1,2,-1,0,0,0)\), \(D_{2\cdot}=(-1,0,0,4,-3,0)\), \(D_{3\cdot}=(0,-1,0,0,4,-3)\), and \(D_{4\cdot}=(0,0,-2,3,0,-1)\); optionally replace the sixth slope by \(z=19/5+\eta\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{eta}.
+\end{definition}
+
+\begin{definition}[def:effective-loading-mean-radius]\label{def:effective-loading-mean-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{effective loading-\allowbreak{}mean radius}
+\par\smallskip\noindent\emph{Construction.} Put
+\[
+q_0=4+\delta,
+\qquad
+b_\lambda=\left(M_{\mathrm{mom}}^{2/q_0}-2v_\star\right)_+^{1/2}.
+\]
+The number \(b_\lambda\) is the effective loading-mean and untreated-mean coordinate radius determined by the primitive moment and loading-covariance radii.
+\par\smallskip\noindent\emph{Inputs.} \texttt{delta}; \texttt{Mmom}; \texttt{vstar}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:pebble-full-law]\label{thm:pebble-full-law}
+Apply the published rank-two deterministic count certificate to the canonical anchor hypergraph. For every \(P\in\mathcal M\) with generic factor rows, if \(r_{1,2}(H_3)=T-2\), then every coordinate of \(\mu(P)\) is a functional of the entire observed law \(P_O\), and that functional is the construction in \(\texttt{def:counterfactual-functional}\). If \(r_{1,2}(H_3)<T-2\), then \(\ker\overline R(P)\supsetneq\operatorname{col}(\Gamma)\), and there is a two-dimensional subspace \(\widetilde{\mathcal L}\neq\operatorname{col}(\Gamma)\) such that \((\widetilde{\mathcal L})_{S_c}=\operatorname{col}(\Gamma_{S_c})\) for every \(c\in[C]\). Thus certificate failure implies generic nonuniqueness of the factor plane. It does not, under the frozen primitive assumptions alone, imply causal-target nonidentification: those assumptions permit a nonempty certificate-failing specification on which \(\mu(P)=0\) for every \(P\in\mathcal M\).
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal M\), and put \(\mathcal L=\operatorname{col}(\Gamma)\). The conditional moments used below exist by \(\texttt{ass:moment-radius}\), and conditioning on cohort \(c\) is well defined because \(p_c\geq p_\star>0\) by \(\texttt{ass:positive-shares}\). By \(\texttt{ass:rank-two-factor-law}\) and \(\texttt{ass:error-mean}\),
+\[
+\begin{aligned}
+\nu_c
+&=\mathbb E_P[J_cY_i(0)\mid C_i=c]\\
+&=\mathbb E_P[\Gamma_{S_c}\lambda_i+\varepsilon_{i,S_c}\mid C_i=c]\\
+&=\Gamma_{S_c}m_c.
+\end{aligned}
+\tag{1}
+\]
+Likewise, \(\texttt{ass:loading-error-orthogonality}\) makes the two cross-covariance terms vanish, and \(\texttt{ass:conditional-homoskedasticity}\) gives
+\[
+\begin{aligned}
+V_c
+&=\operatorname{Cov}_P(\Gamma_{S_c}\lambda_i+\varepsilon_{i,S_c}\mid C_i=c)\\
+&=\Gamma_{S_c}H_c\Gamma_{S_c}^{\prime}+\sigma_c^2I_{|S_c|}.
+\end{aligned}
+\tag{2}
+\]
+By \(\texttt{ass:local-signal-gap}\), the first summand in (2) has rank two and second eigenvalue at least \(g_\star>0\). Hence exactly the two largest eigenvalues of \(V_c\) exceed \(\sigma_c^2\), and
+\[
+\Pi_2(V_c)=\Pi_{\operatorname{col}(\Gamma_{S_c})},
+\qquad
+Q_c=I_{|S_c|}-\Pi_{\operatorname{col}(\Gamma_{S_c})}.
+\tag{3}
+\]
+The entire observed law \(P_O\) determines \(p_c\), \(\nu_c\), and \(V_c\) for every \(c\), because \(p_c>0\). It therefore determines every local plane in (3).
+
+Choose \(B_c\) as in \(\operatorname{def:relation\text{-}operator}\). Since \(B_c^{\prime}B_c=Q_c\),
+\[
+\|B_cy\|_2^2=y^{\prime}Q_cy
+\quad\text{for every }y\in\mathbb R^{|S_c|},
+\]
+so \(\ker B_c=\ker Q_c=\operatorname{col}(\Gamma_{S_c})\). Positivity of the cohort shares implies the basis-independent identity
+\[
+\begin{aligned}
+\mathcal K(P):=\ker\overline R(P)
+&=\bigcap_{c=1}^C\ker(B_cJ_c)\\
+&=\left\{x\in\mathbb R^T:x_{S_c}\in
+\operatorname{col}(\Gamma_{S_c})\text{ for every }c\in[C]\right\}.
+\end{aligned}
+\tag{4}
+\]
+In particular, \(\mathcal L\subseteq\mathcal K(P)\), and (4) shows that \(\mathcal K(P)\) is a functional of \(P_O\), even though the individual row bases \(B_c\) are not unique.
+
+By \(\texttt{lem:generic-rank-two-coordinate-projection-certificate}\), under \(\texttt{ass:fixed-dimensions}\), \(\texttt{ass:deterministic-masks}\), and \(\texttt{ass:generic-factor-rows}\), the local planes determine \(\mathcal L\) uniquely if and only if the anchor multihypergraph from \(\operatorname{def:anchor\text{-}hypergraph}\) contains a family \(F\) of \(T-2\) triples satisfying
+\[
+|F'|\leq |V(F')|-2
+\quad\text{for every nonempty }F'\subseteq F.
+\tag{5}
+\]
+By \(\operatorname{def:pebble\text{-}certificate}\), this is equivalent to \(r_{1,2}(H_3)=T-2\). Such an \(F\) spans \([T]\), because applying (5) to \(F\) gives
+\[
+T-2=|F|\leq |V(F)|-2\leq T-2.
+\]
+
+We next connect uniqueness to (4). If \(\mathcal K(P)=\mathcal L\) and a two-dimensional subspace \(\widetilde{\mathcal L}\) has \((\widetilde{\mathcal L})_{S_c}=\operatorname{col}(\Gamma_{S_c})\) for every \(c\), then (4) gives \(\widetilde{\mathcal L}\subseteq\mathcal K(P)=\mathcal L\); equality follows from the dimensions. Conversely, suppose \(\mathcal K(P)\supsetneq\mathcal L\). Choose \(h\in\mathcal K(P)\setminus\mathcal L\) and a basis \(u_1,u_2\) of \(\mathcal L\), and, for \(z\neq0\), set
+\[
+\mathcal L_z=\operatorname{span}(u_1+zh,u_2).
+\tag{6}
+\]
+The two generators are independent, since any dependence would imply \(h\in\mathcal L\); the same observation gives \(\mathcal L_z\neq\mathcal L\). Equation (4) gives \((\mathcal L_z)_{S_c}\subseteq\operatorname{col}(\Gamma_{S_c})\). At \(z=0\), every restricted pair has rank two because the local signal gap implies \(\operatorname{rank}(\Gamma_{S_c})=2\). For each cohort choose a nonzero two-by-two minor of that restricted pair. Each selected minor is continuous in \(z\), and there are finitely many cohorts. Therefore all remain nonzero for sufficiently small \(|z|>0\), and then
+\[
+(\mathcal L_z)_{S_c}=\operatorname{col}(\Gamma_{S_c})
+\quad\text{for every }c\in[C].
+\tag{7}
+\]
+Thus strict inclusion in (4) produces a distinct compatible plane. The generic coordinate-projection certificate consequently yields
+\[
+r_{1,2}(H_3)=T-2
+\quad\Longleftrightarrow\quad
+\mathcal K(P)=\operatorname{col}(\Gamma).
+\tag{8}
+\]
+In particular, certificate failure gives \(\ker\overline R(P)\supsetneq\operatorname{col}(\Gamma)\), and (6)--(7) construct the asserted \(\widetilde{\mathcal L}\).
+
+Now suppose \(r_{1,2}(H_3)=T-2\). Let \(U\) be any orthonormal basis of the observed-law kernel \(\mathcal K(P)\). By (8) and \(\Gamma^{\prime}\Gamma=I_2\), there is an orthogonal matrix \(W\in\mathbb R^{2\times2}\) such that \(U=\Gamma W\). The local signal gap makes \(U_{S_c}\) full column rank. With \(G_c=\Gamma_{S_c}^{\prime}\Gamma_{S_c}\succ0\), (1) and \((W^{\prime}G_cW)^{-1}=W^{\prime}G_c^{-1}W\) give
+\[
+\begin{aligned}
+U(U_{S_c}^{\prime}U_{S_c})^{-1}U_{S_c}^{\prime}\nu_c
+&=\Gamma W(W^{\prime}G_cW)^{-1}W^{\prime}G_cm_c\\
+&=\Gamma m_c.
+\end{aligned}
+\tag{9}
+\]
+The right side is the causal mean rather than its definition as an observed-law functional: the factor law and conditional mean-zero error imply
+\[
+\mathbb E_P[Y_i(0)\mid C_i=c]
+=\Gamma\mathbb E_P[\lambda_i\mid C_i=c]
++\mathbb E_P[\varepsilon_i\mid C_i=c]
+=\Gamma m_c=\mu_c(P).
+\tag{10}
+\]
+The left side of (9) is invariant under replacing \(U\) by any other orthonormal basis of its column space. Since \(P_O\) determines \(\mathcal K(P)\) and \(\nu_c\), (9) is precisely the construction in \(\operatorname{def:counterfactual\text{-}functional}\). Hence two model laws with the same entire observed law have the same value of that map, and (9)--(10) prove that every coordinate of \(\mu\) is identified when the certificate passes.
+
+It remains to show why certificate failure alone does not imply causal-target nonidentification under the frozen primitives. Take \(T=4\), \(C=1\), and \(S_1=\{1,2,3\}\). The anchor hypergraph has one edge, so
+\[
+r_{1,2}(H_3)=1<T-2=2.
+\tag{11}
+\]
+Let
+\[
+G_0=
+\begin{pmatrix}
+1&0\\
+0&1\\
+1&1\\
+1&2
+\end{pmatrix},
+\qquad
+\Gamma_0=G_0(G_0^{\prime}G_0)^{-1/2}.
+\tag{12}
+\]
+Then \(\Gamma_0^{\prime}\Gamma_0=I_2\). The three two-by-two minors formed from the first three rows of \(G_0\) are \(1\), \(1\), and \(-1\); multiplication on the right by the invertible normalizer preserves their nonvanishing. Thus \(\Gamma_{0,S_1}\) has rank two and is outside the exceptional set for this single anchor relation.
+
+Fix \(v>0\), take \(p_1=1\), put \(v_\star=v\) and \(v^{\star}=2v\), let \(\lambda_i\), conditional on the sole cohort, be uniform on the circle of radius \(\sqrt{2v}\) in \(\mathbb R^2\), and set \(\varepsilon_i=0\) almost surely. Then
+\[
+\mathbb E[\lambda_i]=0,
+\qquad
+\operatorname{Cov}(\lambda_i)=vI_2,
+\qquad
+\mathbb E\|\lambda_i\|^{4+\delta}=(2v)^{(4+\delta)/2}.
+\tag{13}
+\]
+Choose
+\[
+M_{\mathrm{mom}}=(2v)^{(4+\delta)/2},
+\qquad
+0<g_\star<\lambda_2(\Gamma_{0,S_1}vI_2\Gamma_{0,S_1}^{\prime}),
+\qquad
+0<p_\star<1.
+\tag{14}
+\]
+The right side defining the gap is positive because \(\Gamma_{0,S_1}\) has rank two. Equations (12)--(14), together with independent sampling, verify every condition in \(\mathcal M\): exact rank and normalization, positive share, covariance bounds, conditional error mean zero, loading--error orthogonality, spherical errors with \(\sigma_1=0\), the local gap, the common moment radius, and genericity. Thus this certificate-failing specification is nonempty.
+
+Here \(q_0=4+\delta\) and \(M_{\mathrm{mom}}=(2v_\star)^{q_0/2}\). The corrected \(\texttt{lem:tight-moment-radius-forces-zero-means}\) applies to every law in this fixed model and yields
+\[
+m_c=0,
+\qquad
+\varepsilon_i=0\ \text{almost surely given }C_i=c,
+\qquad
+\mu(P)=0.
+\tag{15}
+\]
+Thus the causal target on this nonempty certificate-failing model is the constant observed-law functional zero, although (8) still gives generic nonuniqueness of the factor plane. Certificate failure therefore entails the asserted factor-plane ambiguity, but not, without further restrictions, observed-law-equivalent laws with different causal means. This proves every assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem transports the published generic count certificate into an explicit complete-observed-law identifying functional when the certificate passes and proves factor-plane nonuniqueness as the exact unconditional algebraic consequence when it fails. \textit{Gap.} Published count and pebble results do not derive the observed conditional eigenspaces or the causal mean map. Conversely, the frozen primitive model includes a nonempty tight-radius certificate-failing specification with a constant zero target, so complete-observed-law countermodels with different missing means cannot be asserted without further restrictions. \textit{Consumer.} A passing certificate licenses complete untreated-mean recovery for Lei--Ross \(\operatorname{apm}\) and Liu--Wang--Xu \(\operatorname{fect}\); a failing certificate warns of factor-plane ambiguity but does not itself certify causal-target nonidentification.
+
+\begin{proposition}[prop:o3-strict-inclusion]\label{prop:o3-strict-inclusion}
+Define acceptance by the rank-two Lei--Ross \(O_3\) procedure to mean convergence to one super-cohort whose observed-outcome union is \([T]\). Under the canonical anchor encoding, such acceptance implies \(r_{1,2}(H_3)=T-2\). The implication is strict: for \(T=6\) and masks \(123,145,256,346\), \(O_3\) has no edge whereas \(r_{1,2}(H_3)=4=T-2\). For the raw rows in \(\operatorname{def:four-mask-witness}\), \(D\Gamma_{\mathrm{raw}}=0\), \(\operatorname{rank}(D)=4\), and the first-four-column minor is \(-11\). With equal shares and unit-normalized relation rows at sixth slope \(z=6\), \(0.16936528<s<0.16936530\). If instead \(z=19/5+\eta\), with equal shares and the factor plane obtained by orthonormalizing the rows \((1,t)\), then \(s(P_\eta)\asymp|\eta|\) for sufficiently small \(|\eta|\), and every local matrix \(\Gamma_{S_c}\) has rank two.
+\end{proposition}
+\begin{proof}
+For the first implication, apply \(\texttt{lem:lei-ross-o3-nullspace}\) in its stated rank-two general-position setting. It gives \(\ker A(P)=\operatorname{col}(\Gamma)\), and hence \(\operatorname{rank}A(P)=T-2\). The kernel does not depend on the choice of positive cohort weights, because
+\[
+x^{\prime}A(P)x
+=\sum_{c=1}^Cp_c\|Q_cJ_cx\|_2^2=0
+\quad\Longleftrightarrow\quad
+Q_cJ_cx=0\quad\text{for every }c.
+\tag{1}
+\]
+Within a cohort, the \(|S_c|-2\) anchor-triple relations span the orthogonal complement of \(\operatorname{col}(\Gamma_{S_c})\). Indeed, the generic anchor pair is independent, and the relation associated with a nonanchor coordinate \(t\) has a nonzero coefficient at \(t\) and zero coefficients at all other nonanchor coordinates. These relations are therefore independent and their number equals the dimension of the complement. Their padded global row span consequently equals the relation row span defining \(A(P)\). By \(\texttt{lem:generic-three-coordinate-relation-independence}\), its rank is \(r_{1,2}(H_3)\). Thus \(O_3\) acceptance implies
+\[
+r_{1,2}(H_3)=\operatorname{rank}A(P)=T-2.
+\tag{2}
+\]
+
+For the strict witness, the four canonical triples are
+\[
+123,\qquad145,\qquad256,\qquad346.
+\]
+Every pair meets in one vertex, every three cover at least five vertices, and all four cover six vertices. Hence a subfamily of \(k=1,2,3,4\) edges has at least \(k+2\) vertices. The four-edge family is \((1,2)\)-sparse and tight, so \(r_{1,2}(H_3)=4=T-2\). Every pair of the original masks intersects in only one outcome. A rank-two \(O_3\) merge therefore has no eligible edge at its first iteration, so the procedure terminates without a merge.
+
+Let \(X\) be the six-by-two matrix with rows \((1,t)\), \(t=1,\ldots,6\). Direct multiplication of each displayed row in \(\operatorname{def:four\text{-}mask\text{-}witness}\) by the constant and slope columns gives
+\[
+DX=0.
+\tag{3}
+\]
+The determinant of the first four columns of \(D\) is \(-11\). Thus \(\operatorname{rank}D=4\). With equal cohort shares, a relation matrix with unit-normalized rows is
+\[
+R=\frac12\operatorname{diag}(6^{-1/2},26^{-1/2},26^{-1/2},14^{-1/2})D.
+\tag{4}
+\]
+For an indeterminate \(x\), exact determinant expansion gives
+\[
+\det(xI_6-R^{\prime}R)=\frac{x^2}{4845568}f(x),
+\]
+where
+\[
+f(x)=4845568x^4-4845568x^3+1601152x^2-189696x+4235.
+\tag{5}
+\]
+On \([0,3/100]\),
+\[
+\frac{d}{dx}\frac{f(x)}{4845568}
+=4x^3-3x^2+\frac{1787}{2704}x-\frac{57}{1456}
+\leq4(3/100)^3+\frac{1787}{2704}(3/100)-\frac{57}{1456}
+=-\frac{22730361}{1183000000}<0.
+\tag{6}
+\]
+Put \(a=16936528/10^8\) and \(b=16936530/10^8\). Exact integer arithmetic gives
+\[
+f(a^2)=
+\frac{161278657620904604391277014466117463622902567103}
+{568434188608080148696899414062500000000000000000000}>0
+\tag{7}
+\]
+and
+\[
+f(b^2)=
+-\frac{11157943628704037946208225251724738321835808755137}
+{24414062500000000000000000000000000000000000000000000}<0.
+\tag{8}
+\]
+Since \(a^2,b^2<3/100\), (6)--(8) locate the smallest positive eigenvalue of \(R^{\prime}R\) strictly between \(a^2\) and \(b^2\). Equations (3)--(4) show that \(R\) has rank four, so its two remaining eigenvalues are zero. By \(\operatorname{def:relation\text{-}margin}\),
+\[
+0.16936528<s<0.16936530.
+\tag{9}
+\]
+
+Finally, put \(z=19/5+\eta\). Valid relation rows for the two masks containing coordinate six are
+\[
+D_3(z)=(0,5-z,0,0,z-2,-3),
+\qquad
+D_4(z)=(0,0,4-z,z-3,0,-1).
+\tag{10}
+\]
+They annihilate both the constant column and the slope column by direct multiplication. At \(z=19/5\), the first three rows restricted to the first three columns have determinant \(6/5\), so \(\operatorname{rank}D(19/5)=3\). On the other hand, the four-by-four minor on columns \(1,2,3,6\) equals
+\[
+19-5z=-5\eta.
+\tag{11}
+\]
+After continuous positive row normalization and multiplication by the equal-share factor \(1/2\), denote the relation matrix by \(R(z)\). At \(\eta=0\), its fourth singular value is zero, while (10) gives
+\[
+\sigma_4\{R(z)\}
+\leq\|R(z)-R(19/5)\|_{\mathrm{op}}
+\leq C|\eta|.
+\tag{12}
+\]
+By Cauchy--Binet applied to \(R(z)R(z)^{\prime}\), the normalized version of the nonzero minor (11) gives
+\[
+\prod_{j=1}^4\sigma_j\{R(z)\}
+=\det\{R(z)R(z)^{\prime}\}^{1/2}
+\geq c|\eta|.
+\tag{13}
+\]
+The first three singular values are uniformly bounded above near \(\eta=0\), so (13) implies \(\sigma_4\{R(z)\}\geq c'|\eta|\). Together with (12), this proves \(s(P_\eta)\asymp|\eta|\). In each of the four masks, the three slopes are distinct for sufficiently small \(|\eta|\), so the corresponding three-by-two restriction has rank two. Right multiplication of the slope matrix by its invertible orthonormalizer preserves these local ranks and all relation projectors. This proves the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This panel-specific corollary locates the published \(O_3\) screen inside the published count acceptance region and records an exact strict witness and singular path; it is not a new generic sparsity theorem. \textit{Gap.} Lei and Ross prove \(O_3\) sufficiency, while the deterministic count criterion is due to Pimentel-Alarcón, Boston, and Nowak; the panel-specific delta is the explicit containment check and strict causal-panel mask witness. \textit{Consumer.} The strict witness is a regression test for mask screening in \(\operatorname{apm}\) and \(\operatorname{fect}\) workflows and supplies the early-kill path for singular-shell analysis.
+
+\begin{lemma}[lem:pca-upper]\label{lem:pca-upper}
+The estimator in \(\operatorname{def:pca\text{-}estimator}\) satisfies
+\[
+\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_P L(\widehat\mu,\mu(P))
+\le \min\!\left\{1,4b_\lambda^2,\frac{K}{Ns_N^2}\right\},
+\]
+where \(K\) depends only on the fixed primitive radii and \((T,C)\).
+\end{lemma}
+\begin{proof}
+Put \(q_0=4+\delta\), and let \(K\) denote a finite positive constant, allowed to change from line to line, that depends only on the fixed primitive radii and \((T,C)\). Fix \(P\in\mathcal P_N(s_N)\). Shell membership gives every condition of \(\mathcal M\) and \(s(P)\geq s_N>0\). Since \(\Gamma^{\prime}\Gamma=I_2\), \(\|\Gamma\|_{\mathrm{op}}=1\). Thus, conditional on \(C_i=c\), for \(X_{ic}=J_cY_i(0)\),
+\[
+\|X_{ic}\|_2
+\leq\|\Gamma\lambda_i\|_2+\|\varepsilon_i\|_2
+\leq\|\lambda_i\|_2+\|\varepsilon_i\|_2.
+\]
+Because \(q_0>4\), the elementary power-mean inequality, \((x+y)^4\leq8(x^4+y^4)\), and \(\texttt{ass:moment-radius}\) imply
+\[
+\max_{c\in[C]}\mathbb E_P(\|X_{ic}\|_2^4\mid C_i=c)\leq K.
+\tag{1}
+\]
+
+Let \(N_c=\sum_{i=1}^N1\{C_i=c\}\) and define
+\[
+G_N=\bigcap_{c=1}^C\{N_c\geq Np_\star/2\}.
+\]
+Since \(N_c\) is binomial with mean \(Np_c\), \(p_c\geq p_\star\), and \(\operatorname{Var}(N_c)\leq N\), Chebyshev's inequality and a union bound give
+\[
+\Pr_P(G_N^c)
+\leq\sum_{c=1}^C\frac{4\operatorname{Var}_P(N_c)}{N^2p_\star^2}
+\leq\frac K N.
+\tag{2}
+\]
+For all \(N\) above a fixed constant, \(G_N\) gives \(N_c\geq2\) for every cohort. Conditional on the counts, observations within cohort \(c\) are independent with mean \(\nu_c\), covariance \(V_c\), and uniformly bounded fourth moment. The sample-mean variance identity gives
+\[
+\mathbb E_P(\|\widehat\nu_c-\nu_c\|_2^2\mid N_c)
+=\frac{\operatorname{tr}(V_c)}{N_c}\leq\frac K{N_c}.
+\]
+Writing the centered empirical covariance as the empirical average of \((X_{ic}-\nu_c)(X_{ic}-\nu_c)^{\prime}\) minus the outer product of the sample-mean error, using \(\|xx^{\prime}\|_{\mathrm F}=\|x\|_2^2\), and expanding independent centered sums gives
+\[
+\mathbb E_P(\|\widehat V_c-V_c\|_{\mathrm F}^2\mid N_c)
+\leq\frac K{N_c}.
+\]
+Also \(\mathbb E_P\|\widehat p-p\|_2^2\leq K/N\). Consequently,
+\[
+\mathbb E_P\!\left[
+\sum_{c=1}^C\{\|\widehat\nu_c-\nu_c\|_2^2
++\|\widehat V_c-V_c\|_{\mathrm F}^2\}
++\|\widehat p-p\|_2^2;G_N\right]
+\leq\frac K N.
+\tag{3}
+\]
+
+Put \(P_c=I-Q_c=\Pi_2(V_c)\) and \(\widehat P_c=I-\widehat Q_c=\Pi_2(\widehat V_c)\). The factor law, loading--error orthogonality, and spherical error covariance give
+\[
+V_c=\Gamma_{S_c}H_c\Gamma_{S_c}^{\prime}+\sigma_c^2I_{|S_c|}.
+\tag{4}
+\]
+The first term has rank two and second eigenvalue at least \(g_\star\). For any rank-two orthogonal projector \(P_0\), spectral decomposition of that term therefore gives
+\[
+\operatorname{tr}\{V_c(P_c-P_0)\}
+\geq\frac{g_\star}{2}\|P_c-P_0\|_{\mathrm F}^2.
+\tag{5}
+\]
+The empirical top-two projector \(\widehat P_c\) maximizes \(P_0\mapsto\operatorname{tr}(\widehat V_cP_0)\). Hence
+\[
+\begin{aligned}
+\operatorname{tr}\{V_c(P_c-\widehat P_c)\}
+&\leq\operatorname{tr}\{(V_c-\widehat V_c)(P_c-\widehat P_c)\}\\
+&\leq\|V_c-\widehat V_c\|_{\mathrm F}\|P_c-\widehat P_c\|_{\mathrm F}.
+\end{aligned}
+\]
+Combining this with (5), including the zero-distance case, proves
+\[
+\|\widehat Q_c-Q_c\|_{\mathrm F}
+\leq\frac{2}{g_\star}\|\widehat V_c-V_c\|_{\mathrm F}.
+\tag{6}
+\]
+
+Introduce padded relation matrices
+\[
+\mathcal R=\operatorname{stack}_{c=1}^C\sqrt{p_c}\,Q_cJ_c,
+\qquad
+\widehat{\mathcal R}=\operatorname{stack}_{c=1}^C
+\sqrt{\widehat p_c}\,\widehat Q_cJ_c.
+\]
+Their Gram matrices are \(A(P)\) and \(\widehat A\); padding changes no positive singular value relative to \(\overline R(P)\). On \(G_N\), \(p_c\geq p_\star\) and \(\widehat p_c\geq p_\star/2\). From
+\[
+\sqrt{\widehat p_c}\widehat Q_c-\sqrt{p_c}Q_c
+=\sqrt{\widehat p_c}(\widehat Q_c-Q_c)
++(\sqrt{\widehat p_c}-\sqrt{p_c})Q_c,
+\]
+the identity \(|\sqrt x-\sqrt y|=|x-y|/(\sqrt x+\sqrt y)\), (3), and (6), we obtain
+\[
+\mathbb E_P[\|\widehat{\mathcal R}-\mathcal R\|_{\mathrm F}^2;G_N]
+\leq\frac K N.
+\tag{7}
+\]
+
+Equation (4) implies \(Q_c\Gamma_{S_c}=0\), so \(\operatorname{col}(\Gamma)\subseteq\ker\mathcal R\). Since \(s(P)=\sigma_{T-2}(\mathcal R)\geq s_N>0\) while \(\operatorname{rank}(\Gamma)=2\),
+\[
+\ker\mathcal R=\operatorname{col}(\Gamma).
+\tag{8}
+\]
+Let \(U\) be an orthonormal basis of this kernel. The bottom-two eigenspace optimality defining \(\widehat U\) gives
+\[
+\|\widehat{\mathcal R}\widehat U\|_{\mathrm F}
+\leq\|\widehat{\mathcal R}U\|_{\mathrm F}.
+\]
+Therefore
+\[
+\|\mathcal R\widehat U\|_{\mathrm F}
+\leq2\|\widehat{\mathcal R}-\mathcal R\|_{\mathrm F}.
+\]
+The restriction of \(\mathcal R\) to \(\operatorname{col}(U)^\perp\) has smallest singular value at least \(s_N\). Thus
+\[
+E_U:=\|(I-UU^{\prime})\widehat U\|_{\mathrm F}
+\leq\frac{2}{s_N}\|\widehat{\mathcal R}-\mathcal R\|_{\mathrm F}.
+\tag{9}
+\]
+
+The covariance upper bound and local signal gap imply
+\[
+g_\star
+\leq\lambda_2(\Gamma_{S_c}H_c\Gamma_{S_c}^{\prime})
+\leq v^{\star}\sigma_2(\Gamma_{S_c})^2.
+\]
+Since \(U=\Gamma W_0\) for an orthogonal \(W_0\),
+\[
+\sigma_2(U_{S_c})\geq a:=\sqrt{g_\star/v^{\star}}>0.
+\tag{10}
+\]
+The elementary principal-angle decomposition supplies an orthogonal two-by-two matrix \(W\) such that, with \(\widetilde U=\widehat UW\),
+\[
+\|\widetilde U-U\|_{\mathrm F}^2
+=2\sum_{j=1}^2(1-\cos\phi_j)
+\leq2\sum_{j=1}^2\sin^2\phi_j
+=2E_U^2.
+\tag{11}
+\]
+If \(E_U\leq a/(4\sqrt2)\), singular-value perturbation and (11) give \(\sigma_2(\widetilde U_{S_c})\geq a/2\) for every \(c\). Define, whenever the inverse exists,
+\[
+K_c(X)=X(X_{S_c}^{\prime}X_{S_c})^{-1}X_{S_c}^{\prime}.
+\]
+This map is right-orthogonally invariant. For \(X=U\) and \(X=\widetilde U\), (10)--(11) uniformly bound the inverse Gram matrices. The identity
+\[
+G^{-1}-\widetilde G^{-1}=G^{-1}(\widetilde G-G)\widetilde G^{-1}
+\]
+and a three-term expansion of \(K_c(\widetilde U)-K_c(U)\) then yield
+\[
+\|K_c(\widetilde U)-K_c(U)\|_{\mathrm{op}}
+\leq K\|\widetilde U-U\|_{\mathrm F}
+\leq KE_U.
+\tag{12}
+\]
+
+The factor law and conditional error mean zero give \(\nu_c=\Gamma_{S_c}m_c\). Hence full local column rank and \(U=\Gamma W_0\) imply
+\[
+K_c(U)\nu_c=\Gamma m_c=\mu_c(P).
+\tag{13}
+\]
+By \(\texttt{lem:effective-loading-mean-bound}\), \(\|m_c\|_2\leq b_\lambda\), so \(\|\nu_c\|_2\leq b_\lambda\). On \(G_N\cap\{E_U\leq a/(4\sqrt2)\}\), every displayed inverse in the least-squares branch exists, and (9), (12), and (13) give
+\[
+\|K_c(\widetilde U)\widehat\nu_c-\mu_c(P)\|_2
+\leq K\left\{\|\widehat\nu_c-\nu_c\|_2
++\frac{\|\widehat{\mathcal R}-\mathcal R\|_{\mathrm F}}{s_N}\right\}.
+\tag{14}
+\]
+Coordinatewise clipping to \([-b_\lambda,b_\lambda]^T\) cannot increase the distance from \(\mu_c(P)\), because the same lemma puts every target coordinate in that interval. Equations (3), (7), and (14) bound the expected squared sup-norm error on this event by \(K/(Ns_N^2)\). By (2), (7), (9), and Markov's inequality,
+\[
+\Pr_P(G_N^c)+\Pr_P\{E_U>a/(4\sqrt2),G_N\}
+\leq\frac K N+\frac{K}{Ns_N^2}
+\leq\frac{K}{Ns_N^2},
+\tag{15}
+\]
+where \(s_N\leq1\). The loss is at most one on the complement, including every sample on which the prescribed zero fallback is used. Thus, for all sufficiently large \(N\),
+\[
+\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_PL(\widehat\mu,\mu(P))
+\leq\frac{K}{Ns_N^2}.
+\tag{16}
+\]
+Increasing \(K\) handles the finitely many smaller sample sizes because \(s_N\leq1\) and \(L\leq1\).
+
+Finally, both estimator branches lie in \([-b_\lambda,b_\lambda]^{CT}\), and the target lies in that box. Deterministically,
+\[
+L(\widehat\mu,\mu(P))\leq\min\{1,4b_\lambda^2\}.
+\tag{17}
+\]
+Taking the minimum of (16) and (17) proves the claimed uniform bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite-sample proof combines cohort moment concentration, an explicit eigenspace perturbation argument, local least-squares stability, and the effective target radius to obtain the strongest unconditional upper bound available from the frozen primitives. \textit{Gap.} Existing APM and projection results do not supply the radius-adaptive causal mean risk bound uniformly over shrinking complete-law shells. \textit{Consumer.} Covariance--PCA implementations obtain a tuning-free bound that adapts both to relation conditioning and to the feasible size of cohort loading means.
+
+\begin{lemma}[lem:robust-moment-ball]\label{lem:robust-moment-ball}
+For \(N\ge2k_\alpha\), the construction in \(\operatorname{def:robust-observed-moments}\) satisfies \(\inf_{P\in\mathcal M}\Pr_P\{\|\widehat\theta-\theta(P)\|_{\mathsf m}\le\widehat\rho_N\}\ge1-\alpha\) and \(\sup_{P\in\mathcal M}\mathbb E_P[\|\widehat\theta-\theta(P)\|_{\mathsf m}+\widehat\rho_N]\le K_\alpha N^{-1/2}\). The construction is total for \(N\ge2k_\alpha\), so \(\Pr_P(\mathsf F_N)=0\) for every \(P\in\mathcal M\) and all such \(N\).
+\end{lemma}
+\begin{proof}
+Put \(q_0=4+\delta\). For every coordinate \(X=Z_{ij}\), the factor normalization and the conditional moment restriction imply
+\[
+\operatorname{Var}_P(X)\leq\mathbb E_PX^2\leq \Sigma^2,
+\qquad
+\Sigma\leq K\{1+M_{\mathrm{mom}}^{2/q_0}\}. \tag{1}
+\]
+Indeed probability coordinates are bounded, first-moment coordinates satisfy \(Y_t^2\leq\|\lambda\|^2+2\|\lambda\|\|\varepsilon\|+\|\varepsilon\|^2\), and for a second-moment coordinate \((Y_tY_u)^2\leq\|Y\|^4\leq8(\|\lambda\|^4+\|\varepsilon\|^4)\); Lyapunov's inequality then gives (1).
+
+Let \(k=k_\alpha\), and let \(n_b\) be a block size. When \(N\geq2k\), \(n_b\geq N/(2k)\). For a block mean \(\overline X_b\), Chebyshev's inequality gives
+\[
+\Pr_P\{|\overline X_b-\mathbb EX|>4\Sigma\sqrt{k/N}\}\leq\frac18. \tag{2}
+\]
+The blocks are independent. If their median violates the same inequality, at least \(\lceil k/2\rceil\) block means violate it. Consequently
+\[
+\Pr_P\{|\widehat\theta_j-\theta_j|>4\Sigma\sqrt{k/N}\}
+\leq \binom{k}{\lceil k/2\rceil}2^{-3\lceil k/2\rceil}
+\leq2^{-k/2}\leq\frac\alpha q, \tag{3}
+\]
+where the last inequality follows from \(k=\lceil8\log(2q/\alpha)\rceil\). A union bound over the fixed \(q\) coordinates proves simultaneous coverage once the calibrated \(K_\alpha\) in \(\widehat\rho_N\) is chosen at least as large as the fixed constant in (1)--(3), because deterministically
+\[
+\widehat\rho_N\geq K_\alpha\{1+M_{\mathrm{mom}}^{2/q_0}\}/\sqrt N.
+\]
+
+For completeness, the same median argument gives the required first moments rather than only a fixed tail probability. If \(r=\lceil k/2\rceil\), then for \(u\geq\Sigma/\sqrt{\min_b n_b}\),
+\[
+\Pr_P\{|\widehat\theta_j-\theta_j|>u\}
+\leq2^k\left(\frac{\Sigma^2}{(\min_b n_b)u^2}\right)^r. \tag{4}
+\]
+Integrating (4), and using \(r>2\), yields
+\[
+\mathbb E_P|\widehat\theta_j-\theta_j|+\{\mathbb E_P|\widehat\theta_j-\theta_j|^2\}^{1/2}leq K_\alpha\Sigma N^{-1/2}. \tag{5}
+\]
+
+Let \(w_{bj}=n_b^{-1}\sum_{i\in b}(Z_{ij}-\widehat\theta_j)^2\). Since the median of nonnegative numbers is at most twice their average and the block sizes differ by at most one,
+\[
+\widehat v_j\leq \frac K N\sum_{i=1}^N(Z_{ij}-\widehat\theta_j)^2
+\leq \frac{2K}{N}\sum_{i=1}^N(Z_{ij}-\theta_j)^2+2K(\widehat\theta_j-\theta_j)^2. \tag{6}
+\]
+Taking expectations in (6) and using (1) and (5) gives \(\sup_P\mathbb E_P\max_{j\leq q}\widehat v_j\leq K_\alpha\), because \(q\) is fixed. Jensen's inequality therefore gives \(\sup_P\mathbb E_P\widehat\rho_N\leq K_\alpha N^{-1/2}\). Summing (5) over coordinates gives \(\sup_P\mathbb E_P\|\widehat\theta-\theta(P)\|_{\mathsf m}\leq K_\alpha N^{-1/2}\). This proves both asserted bounds. Finally, by construction \(\mathsf F_N=\{N<2k_\alpha\}\) is false whenever \(N\geq2k_\alpha\), so its probability is exactly zero.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma supplies the explicit finite-sample coverage and first-moment radius control needed for honest inversion and expected-width analysis under the declared \(4+\delta\) moment bound. \textit{Gap.} Generic weak-identification references do not furnish a simultaneous robust ball for the cohort probabilities, first moments, and second moments under the panel's common finite-moment radius. \textit{Consumer.} The guarantee makes moment inversion a fully specified confidence procedure rather than an oracle-radius feasibility device.
+
+\begin{theorem}[thm:minimax-frontier]\label{thm:minimax-frontier}
+For every \(N\in\mathbb N\) and every \(s_N\in(0,1]\) for which \(\mathcal P_N(s_N)\) is nonempty,
+\[
+\inf_{\widetilde\mu}\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_P L\{\widetilde\mu,\mu(P)\}
+\le \min\!\left\{1,4b_\lambda^2,\frac{C_0}{Ns_N^2}\right\},
+\]
+where the infimum is over all measurable estimators based on the entire observed sample. The covariance--PCA and APM least-squares estimator in \(\operatorname{def:pca\text{-}estimator}\) attains this upper bound, with \(C_0\) depending only on the fixed primitive radii and \((T,C)\).
+\end{theorem}
+\begin{proof}
+Fix \(N\in\mathbb N\) and \(s_N\in(0,1]\) with \(\mathcal P_N(s_N)\neq\varnothing\). Let \(\widehat\mu\) be the covariance--PCA and APM least-squares estimator in \(\operatorname{def:pca\text{-}estimator}\). Its deterministic tie-breaking and zero fallback make it an everywhere-defined measurable estimator. By \(\texttt{lem:pca-upper}\),
+\[
+\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_PL\{\widehat\mu,\mu(P)\}
+\leq\min\!\left\{1,4b_\lambda^2,\frac{K}{Ns_N^2}\right\}.
+\tag{1}
+\]
+The minimax infimum ranges over all measurable estimators based on the observed sample and therefore includes \(\widehat\mu\). Consequently,
+\[
+\begin{aligned}
+\inf_{\widetilde\mu}\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_PL\{\widetilde\mu,\mu(P)\}
+&\leq\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_PL\{\widehat\mu,\mu(P)\}\\
+&\leq\min\!\left\{1,4b_\lambda^2,\frac{K}{Ns_N^2}\right\}.
+\end{aligned}
+\]
+Taking \(C_0=K\) proves both the upper bound and the attainment claim. The dependence of \(C_0\) is exactly the dependence established in \(\texttt{lem:pca-upper}\). No lower bound is used or asserted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Evaluating the minimax infimum at the total covariance--PCA estimator gives the unconditional radius-adaptive upper bound; no positive universal lower bound is asserted. \textit{Gap.} The result adds a fixed-panel complete-law upper guarantee with the primitive radius ceiling, while the same-shell target-separating construction required for a matching lower bound remains unavailable. \textit{Consumer.} Users of \(\operatorname{apm}\) and \(\operatorname{fect}\) receive a sufficient finite-sample recovery guarantee rather than an overstated impossibility frontier.
+
+\begin{theorem}[thm:honest-rectangle]\label{thm:honest-rectangle}
+For every \(N\in\mathbb N\) and every \(s_N\in(0,1]\) for which \(\mathcal P_N(s_N)\) is nonempty, let \(\mathcal I_N^{\mathrm{inv}}\) be the profile-recentered rectangle in \(\operatorname{def:moment\text{-}inversion}\), intersected with the effective-radius box as specified there. This rectangle is measurable and satisfies
+\[
+\inf_{P\in\mathcal P_N(s_N)}
+\Pr_P\{\mu(P)\in\mathcal I_N^{\mathrm{inv}}\}\ge 1-\alpha,
+\qquad
+\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_P W(\mathcal I_N^{\mathrm{inv}})
+\le \min\!\left\{b_\lambda,
+C_\alpha\min\{1,(\sqrt N s_N)^{-1}\}\right\}.
+\]
+Consequently \(\mathcal I_N^{\mathrm{inv}}\in\mathfrak I_{N,\alpha}\) and
+\[
+\inf_{\mathcal I_N\in\mathfrak I_{N,\alpha}}
+\sup_{P\in\mathcal P_N(s_N)}\mathbb E_PW(\mathcal I_N)
+\le \min\!\left\{b_\lambda,
+C_\alpha\min\{1,(\sqrt N s_N)^{-1}\}\right\}.
+\]
+The effective-box fallback is used only when \(\mathsf F_N=\{N<2k_\alpha\}\); hence its expected contribution is exactly zero for all \(N\ge2k_\alpha\), and therefore is \(o\{(\sqrt N s_N)^{-1}\}\) uniformly over \(s_N\in(0,1]\).
+\end{theorem}
+\begin{proof}
+Fix \(N\in\mathbb N\) and \(s_N\in(0,1]\) for which \(\mathcal P_N(s_N)\neq\varnothing\), and fix \(P\in\mathcal P_N(s_N)\).  By \(\operatorname{ass:positive\text{-}shares}\), \(p_c\geq p_\star>0\), so every cohort-conditional moment used below is well defined.  Put \(q_0=4+\delta>4\), as in \(\operatorname{def:effective\text{-}loading\text{-}mean\text{-}radius}\), and let
+\[
+ \vartheta_0=\bigl(p,\Gamma,(m_c,H_c,\sigma_c)_{c=1}^C\bigr)
+\]
+be the primitive parameter induced by \(P\).
+
+We first establish the effective-radius bound, including the condition needed to take its square root.  For each \(c\in[C]\), the definition of \(H_c\) and \(\operatorname{ass:loading\text{-}covariance}\) give
+\[
+ \mathbb E_P\!\left(\|\lambda_i\|_2^2\mid C_i=c\right)
+ =\operatorname{tr}(H_c)+\|m_c\|_2^2
+ \geq 2v_\star+\|m_c\|_2^2.
+ \tag{1}
+\]
+Because \(q_0>2\), Lyapunov's inequality and \(\operatorname{ass:moment\text{-}radius}\) imply
+\[
+ \left(2v_\star+\|m_c\|_2^2\right)^{q_0/2}
+ \leq
+ \left\{\mathbb E_P\!\left(\|\lambda_i\|_2^2\mid C_i=c\right)\right\}^{q_0/2}
+ \leq
+ \mathbb E_P\!\left(\|\lambda_i\|_2^{q_0}\mid C_i=c\right)
+ \leq M_{\mathrm{mom}}.
+ \tag{2}
+\]
+Taking the increasing power \(2/q_0\) in (2) yields
+\[
+ 0\leq\|m_c\|_2^2
+ \leq M_{\mathrm{mom}}^{2/q_0}-2v_\star,
+ \qquad
+ \|m_c\|_2\leq b_\lambda.
+ \tag{3}
+\]
+Thus nonemptiness of the model entails \(M_{\mathrm{mom}}^{2/q_0}-2v_\star\geq0\), and the positive part in the definition of \(b_\lambda\) does not change this bound.  By \(\operatorname{ass:rank\text{-}two\text{-}factor\text{-}law}\) and \(\operatorname{ass:error\text{-}mean}\),
+\[
+ \mu_c(P)=\mathbb E_P\!\left\{Y_i(0)\mid C_i=c\right\}=\Gamma m_c.
+ \tag{4}
+\]
+The normalization \(\Gamma'\Gamma=I_2\) in \(\operatorname{ass:factor\text{-}normalization}\) gives \(\|\Gamma\|_{\mathrm{op}}=1\), and therefore \(\|\Gamma_{t\cdot}\|_2\leq1\).  Equations (3)--(4) consequently give
+\[
+ |\mu_{ct}(P)|=|\Gamma_{t\cdot}m_c|
+ \leq\|\Gamma_{t\cdot}\|_2\|m_c\|_2
+ \leq b_\lambda
+ \quad(c\in[C],\ t\in[T]).
+ \tag{5}
+\]
+
+The same bound holds at every \(\vartheta\in\overline\Theta_N(s_N)\).  Indeed, by the closure in \(\operatorname{def:primitive\text{-}moment\text{-}class}\), choose pre-closure primitive points \(\vartheta^{(r)}\to\vartheta\).  At each such point, membership of \(m^{(r)}\) in \(\mathfrak M_\lambda(H^{(r)})\), as defined in \(\operatorname{def:admissible\text{-}loading\text{-}means}\), supplies for each cohort a loading law with mean \(m_c^{(r)}\), covariance \(H_c^{(r)}\), and \(q_0\)-moment at most \(M_{\mathrm{mom}}\).  The primitive constraints also give \(H_c^{(r)}\succeq v_\star I_2\) and \((\Gamma^{(r)})'\Gamma^{(r)}=I_2\).  Repeating (1)--(5) at \(\vartheta^{(r)}\), then using continuity of matrix multiplication and closedness of the box, gives
+\[
+ (\Gamma m_c)_{c=1}^C\in[-b_\lambda,b_\lambda]^{CT}
+ \quad\text{for every }\vartheta\in\overline\Theta_N(s_N).
+ \tag{6}
+\]
+
+We next verify that the true primitive parameter is feasible.  By \(\operatorname{ass:error\text{-}mean}\) and \(\operatorname{ass:conditional\text{-}homoskedasticity}\),
+\[
+ \mathbb E_P\!\left(\|\varepsilon_i\|_2^2\mid C_i=c\right)
+ =\operatorname{tr}\!\left\{\operatorname{Cov}_P(\varepsilon_i\mid C_i=c)\right\}
+ =T\sigma_c^2.
+\]
+Lyapunov's inequality and \(\operatorname{ass:moment\text{-}radius}\) therefore yield
+\[
+ (T\sigma_c^2)^{q_0/2}
+ \leq\mathbb E_P\!\left(\|\varepsilon_i\|_2^{q_0}\mid C_i=c\right)
+ \leq M_{\mathrm{mom}},
+ \qquad
+ 0\leq\sigma_c\leq \frac{M_{\mathrm{mom}}^{1/q_0}}{\sqrt T}\leq B.
+ \tag{7}
+\]
+The actual conditional law of \(\lambda_i\) witnesses \(m\in\mathfrak M_\lambda(H)\).  Equation (7), the constraints in \(\operatorname{ass:positive\text{-}shares}\), \(\operatorname{ass:factor\text{-}normalization}\), \(\operatorname{ass:loading\text{-}covariance}\), and \(\operatorname{ass:local\text{-}signal\text{-}gap}\), and the inequalities \(s_N\leq s(P)\leq2s_N\) from \(\operatorname{ass:singular\text{-}shell}\) verify every condition in \(\operatorname{def:primitive\text{-}moment\text{-}class}\).  Hence
+\[
+ \vartheta_0\in\overline\Theta_N(s_N).
+ \tag{8}
+\]
+
+We now prove, rather than define, the relationship between the observed-law moment map and the causal target.  The factor law and conditional mean-zero error give
+\[
+ \mathbb E_P\!\left\{J_cY_i(0)\mid C_i=c\right\}=\Gamma_{S_c}m_c.
+ \tag{9}
+\]
+Furthermore, \(\operatorname{ass:loading\text{-}error\text{-}orthogonality}\) and \(\operatorname{ass:error\text{-}mean}\) imply
+\[
+ \mathbb E_P\!\left(\lambda_i\varepsilon_i'\mid C_i=c\right)
+ =\operatorname{Cov}_P(\lambda_i,\varepsilon_i\mid C_i=c)
+ +m_c\mathbb E_P\!\left(\varepsilon_i'\mid C_i=c\right)
+ =0,
+ \tag{10}
+\]
+and the transposed cross moment also vanishes.  Since
+\(\mathbb E_P(\lambda_i\lambda_i'\mid C_i=c)=H_c+m_cm_c'\), conditional homoskedasticity and (10) give
+\[
+ \mathbb E_P\!\left\{J_cY_i(0)Y_i(0)'J_c'\mid C_i=c\right\}
+ =\Gamma_{S_c}(H_c+m_cm_c')\Gamma_{S_c}'
+ +\sigma_c^2I_{|S_c|}.
+ \tag{11}
+\]
+Multiplying (9) and (11) by \(p_c\), and adjoining the indicator moment \(p_c\), reproduces coordinate by coordinate the map in \(\operatorname{def:moment\text{-}inversion}\).  Consequently
+\[
+ g(\vartheta_0)=\theta(P),
+ \tag{12}
+\]
+while (4) establishes that the target represented by \(\vartheta_0\) is the causal untreated mean.
+
+Suppose first that \(N\geq2k_\alpha\), and define
+\[
+ E_N=\|\widehat\theta-\theta(P)\|_{\mathsf m},
+ \qquad
+ \mathcal E_N=\{E_N\leq\widehat\rho_N\}.
+\]
+Compactness of \(\overline\Theta_N(s_N)\) makes the profiled minimum attainable.  From (8), (12), and the definition of \(d_N\),
+\[
+ d_N\leq\|g(\vartheta_0)-\widehat\theta\|_{\mathsf m}=E_N.
+ \tag{13}
+\]
+On \(\mathcal E_N\), equations (12)--(13) show
+\[
+ \|g(\vartheta_0)-\widehat\theta\|_{\mathsf m}
+ =E_N\leq\widehat\rho_N\leq d_N+\widehat\rho_N,
+\]
+so \(\vartheta_0\in\mathcal C_N\).  The raw enclosing rectangle therefore contains \(\mu(P)\) by (4), and the effective-radius box contains it by (5); their intersection contains \(\mu(P)\) on \(\mathcal E_N\).  The coverage conclusion of \(\operatorname{lem:robust\text{-}moment\text{-}ball}\) now yields
+\[
+ \inf_{P\in\mathcal P_N(s_N)}
+ \Pr_P\!\left\{\mu(P)\in\mathcal I_N^{\mathrm{inv}}\right\}
+ \geq
+ \inf_{P\in\mathcal P_N(s_N)}\Pr_P(\mathcal E_N)
+ \geq1-\alpha.
+ \tag{14}
+\]
+If \(N<2k_\alpha\), \(\operatorname{def:moment\text{-}inversion}\) returns \([-b_\lambda,b_\lambda]^{CT}\), which covers with probability one by (5).  Thus (14) holds for every \(N\in\mathbb N\).
+
+We verify measurability.  Let \(K_N=\overline\Theta_N(s_N)\).  It is a nonempty compact subset of a finite-dimensional Euclidean space by (8) and \(\operatorname{def:primitive\text{-}moment\text{-}class}\).  Choose a deterministic countable dense subset \((\vartheta_\ell)_{\ell\geq1}\) of \(K_N\), and let \(h_j(\vartheta)\) denote coordinate \(j\) of \((\Gamma m_c)_{c=1}^C\).  Continuity of \(g\) and the reverse triangle inequality give
+\[
+ d(x)=\min_{\vartheta\in K_N}\|g(\vartheta)-x\|_{\mathsf m},
+ \qquad
+ |d(x)-d(y)|\leq\|x-y\|_{\mathsf m};
+ \tag{15}
+\]
+hence \(d\) is continuous.  For \(r>0\), define
+\[
+ \phi_{j\ell k}(x,r)=
+ \begin{cases}
+ h_j(\vartheta_\ell),&
+ \|g(\vartheta_\ell)-x\|_{\mathsf m}<d(x)+r+k^{-1},\\
+ -b_\lambda,&\text{otherwise},
+ \end{cases}
+ \qquad
+ u_{j,k}(x,r)=\sup_{\ell\geq1}\phi_{j\ell k}(x,r).
+ \tag{16}
+\]
+Every \(\phi_{j\ell k}\), and hence the countable supremum \(u_{j,k}\), is Borel measurable.  Compactness, continuity, density, and \(r>0\) imply
+\[
+ \lim_{k\to\infty}u_{j,k}(x,r)
+ =\max_{\substack{\vartheta\in K_N:\ 
+ \|g(\vartheta)-x\|_{\mathsf m}\leq d(x)+r}}
+ h_j(\vartheta).
+ \tag{17}
+\]
+For the lower inequality in (17), approximate any feasible point by the dense sequence; the positive slack \(r+k^{-1}\) makes its approximants admissible for all sufficiently large indices \(k\).  For the reverse inequality, choose approximate maximizers in (16); a convergent subsequence exists by compactness, and its limit obeys the weak constraint in (17).  Applying the same construction to \(-h_j\) proves measurability of the raw lower endpoint.  The block medians \(\widehat\theta\) and \(\widehat v\), and therefore the strictly positive \(\widehat\rho_N\), are measurable by \(\operatorname{def:robust\text{-}observed\text{-}moments}\).  Substitution of \((x,r)=(\widehat\theta,\widehat\rho_N)\) in (17), followed by coordinatewise intersection with the deterministic box, proves measurability of \(\mathcal I_N^{\mathrm{inv}}\) when \(N\geq2k_\alpha\).  The small-sample box is deterministic, so the rectangle is measurable for every \(N\).
+
+It remains to bound its width.  The feasible set \(\mathcal C_N\) is nonempty because any minimizer attaining \(d_N\) belongs to it.  For arbitrary \(\vartheta,\widetilde\vartheta\in\mathcal C_N\), the triangle inequality and (13), without conditioning on \(\mathcal E_N\), give
+\[
+ \begin{aligned}
+ \|g(\vartheta)-g(\widetilde\vartheta)\|_{\mathsf m}
+ &\leq\|g(\vartheta)-\widehat\theta\|_{\mathsf m}
+ +\|g(\widetilde\vartheta)-\widehat\theta\|_{\mathsf m}\\
+ &\leq2(d_N+\widehat\rho_N)
+ \leq2(E_N+\widehat\rho_N).
+ \end{aligned}
+ \tag{18}
+\]
+Both parameters lie in \(\overline\Theta_N(s_N)\).  Applying \(\operatorname{lem:observed\text{-}moment\text{-}inverse\text{-}modulus}\) to (18), and enlarging its fixed constant to absorb the factor two, yields
+\[
+ \max_{c\in[C]}
+ \|\Gamma m_c-\widetilde\Gamma\widetilde m_c\|_\infty
+ \leq K\min\!\left\{1,
+ \frac{E_N+\widehat\rho_N}{s_N}\right\}.
+ \tag{19}
+\]
+The half-width of the coordinatewise enclosing rectangle is at most half the corresponding target-coordinate diameter, and intersection with a box cannot increase it.  Equation (19), the definition of \(W\), and (6) thus give the simultaneous pointwise bounds
+\[
+ W(\mathcal I_N^{\mathrm{inv}})\leq b_\lambda,
+ \qquad
+ W(\mathcal I_N^{\mathrm{inv}})
+ \leq K\min\!\left\{1,
+ \frac{E_N+\widehat\rho_N}{s_N}\right\}.
+ \tag{20}
+\]
+The map \(x\mapsto\min\{1,x\}\) is increasing and concave on \([0,\infty)\).  Jensen's inequality and the expectation conclusion of \(\operatorname{lem:robust\text{-}moment\text{-}ball}\) imply, after enlarging constants depending only on \(\alpha\), the fixed primitive radii, and \((T,C)\),
+\[
+ \begin{aligned}
+ \sup_{P\in\mathcal P_N(s_N)}
+ \mathbb E_P W(\mathcal I_N^{\mathrm{inv}})
+ &\leq K\min\!\left\{1,
+ \frac{\sup_{P\in\mathcal P_N(s_N)}
+ \mathbb E_P(E_N+\widehat\rho_N)}{s_N}\right\}\\
+ &\leq C_\alpha\min\!\left\{1,(\sqrt N s_N)^{-1}\right\}.
+ \end{aligned}
+ \tag{21}
+\]
+Combining (21) with the first inequality in (20) proves the claimed minimum bound when \(N\geq2k_\alpha\).
+
+If \(N<2k_\alpha\), the fallback box has normalized maximal half-width \(\min\{1,b_\lambda\}\), which is at most \(b_\lambda\).  Since \(s_N\leq1\),
+\[
+ \min\!\left\{1,(\sqrt N s_N)^{-1}\right\}
+ \geq(2k_\alpha)^{-1/2}.
+ \tag{22}
+\]
+Choosing \(C_\alpha\geq\sqrt{2k_\alpha}\) makes the fallback width no larger than the second term in the asserted minimum.  This proves the width bound for every \(N\).
+
+By (14) and the definition of \(\mathfrak I_{N,\alpha}\), the constructed rectangle belongs to \(\mathfrak I_{N,\alpha}\).  Evaluating the infimum over uniformly honest rectangles at this particular rectangle proves the theorem's second displayed inequality.  Finally, \(\mathsf F_N=\{N<2k_\alpha\}\) is deterministic and false whenever \(N\geq2k_\alpha\).  Therefore
+\[
+ \mathbb E_P\!\left[W(\mathcal I_N^{\mathrm{inv}})1\{\mathsf F_N\}\right]=0
+ \quad\text{for every }P\in\mathcal P_N(s_N)\text{ and }N\geq2k_\alpha.
+\]
+The ratio of this zero quantity to the positive scale \((\sqrt N s_N)^{-1}\) is identically zero for all \(s_N\in(0,1]\), which proves the asserted uniform little-\(o\) conclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Profile recentering makes the nonlinear feasible set nonempty, a calibrated data-driven moment radius gives uniform coverage, and the inverse modulus yields the unconditional width upper bound. No model-specific lower width is claimed under the frozen class. \textit{Gap.} Andrews and Cheng establish generic identification-robust inversion, and Zhu establishes weak-factor honesty costs; neither provides a total finite-moment inversion rule, a simultaneous moment-ball guarantee, or the \(s_N\)-specific missing-mean modulus for this cohort system. \textit{Consumer.} The result provides simultaneous uncertainty bands for all missing untreated means in the Veneto wage application and in interactive-fixed-effect event studies without relying on pointwise Wald linearization.
+
+\begin{proposition}[prop:consistency-frontier]\label{prop:consistency-frontier}
+For every sequence of nonempty shells, \(Ns_N^2\to\infty\) implies
+\[
+\inf_{\widetilde\mu}\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_P L\{\widetilde\mu,\mu(P)\}\longrightarrow0.
+\]
+This condition is not necessary under the frozen assumptions: there are allowed fixed primitive radii and a sequence of nonempty shells with \(Ns_N^2\to0\) for which \(\mu(P)=0\) for every \(P\in\mathcal P_N(s_N)\), and hence the identically zero estimator has zero risk for every \(N\).
+\end{proposition}
+\begin{proof}
+For each \(N\), define
+\[
+R_N=\inf_{\widetilde\mu}\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_PL\{\widetilde\mu,\mu(P)\}.
+\]
+Nonnegativity of the loss and \(\texttt{thm:minimax-frontier}\) give
+\[
+0\leq R_N\leq\min\!\left\{1,4b_\lambda^2,\frac{C_0}{Ns_N^2}\right\}.
+\tag{1}
+\]
+If \(Ns_N^2\to\infty\), the last term in (1) tends to zero, and therefore \(R_N\to0\).
+
+For nonnecessity, use the legal equal-share family from \(\texttt{thm:four-mask-early-kill-negative}\). There are constants \(a_0,a_1,\eta_0>0\) such that
+\[
+a_0|\eta|\leq s(P_\eta)\leq a_1|\eta|
+\quad\text{for }0<|\eta|\leq\eta_0,
+\qquad
+\mu(P)=0\quad\text{for every law in that fixed model}.
+\tag{2}
+\]
+Set
+\[
+\eta_N=\frac{\eta_0}{N+1},
+\qquad
+s_N=s(P_{\eta_N}).
+\tag{3}
+\]
+The lower inequality in (2) makes \(s_N>0\). Moreover, for every \(x\in\mathbb R^T\), \(0\preceq Q_c\preceq I\) and \(\sum_cp_c=1\) imply
+\[
+x^{\prime}A(P)x
+=\sum_{c=1}^Cp_c\|Q_cJ_cx\|_2^2
+\leq\sum_{c=1}^Cp_c\|J_cx\|_2^2
+\leq\|x\|_2^2.
+\tag{4}
+\]
+Thus \(A(P)\preceq I_T\), so \(s(P)\leq1\) by \(\operatorname{def:relation\text{-}margin}\). Hence \(s_N\in(0,1]\), and \(P_{\eta_N}\in\mathcal P_N(s_N)\); every shell is nonempty. The upper inequality in (2) gives
+\[
+Ns_N^2\leq\frac{Na_1^2\eta_0^2}{(N+1)^2}\longrightarrow0.
+\tag{5}
+\]
+Every member of these shells belongs to the same zero-target ambient model. Therefore the identically zero estimator satisfies
+\[
+\sup_{P\in\mathcal P_N(s_N)}
+\mathbb E_PL\{0,\mu(P)\}=0.
+\tag{6}
+\]
+By nonnegativity, \(R_N=0\) for every \(N\), while (5) gives \(Ns_N^2\to0\). Thus divergence of \(Ns_N^2\) is sufficient but not necessary under the frozen assumptions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corrected risk bound still makes \(Ns_N^2\to\infty\) sufficient, and its \(4b_\lambda^2\) term makes clear why a zero-radius boundary defeats any model-wide necessity claim. \textit{Gap.} Regular fixed-\(T\) consistency does not distinguish a weak relation from a target class that has collapsed to zero; this proposition records that distinction. \textit{Consumer.} The observed margin is a conservative sufficiency diagnostic, not a declaration of failure whenever \(Ns_N^2\) stays bounded.
+
+\begin{lemma}[lem:generic-rank-two-coordinate-projection-certificate]\label{lem:generic-rank-two-coordinate-projection-certificate}
+Let \(S=(S_c)_{c=1}^C\) have \(|S_c|\geq 3\), and expand every support \(S_c\) into the anchor triples of \(H_3\).  For almost every two-dimensional subspace of \(\mathbb R^T\), its coordinate projections on the supports \(S_c\) determine it uniquely if and only if the expanded triple multiset contains \(T-2\) triples such that every subcollection of \(k\) triples is supported on at least \(k+2\) coordinates.
+\end{lemma}
+
+\begin{theorem}[thm:four-mask-early-kill-negative]\label{thm:four-mask-early-kill-negative}
+The answer to \(\operatorname{oeq:four-mask-early-kill}\) is negative under the frozen assumptions. There are allowed fixed primitive radii and a legal equal-share four-mask family \((P_\eta)\), with \(s(P_\eta)\asymp|\eta|\) and every local factor restriction of rank two, for which \(\mu(P)=0\) for every law in the model. Hence no alternatives in the same shell can have \(\|\mu(P_{\eta,d})-\mu(P_{\eta,0})\|_\infty\geq c_1|d|\) for any \(c_1>0\) and \(d\ne0\), even though the shells are nonempty.
+\end{theorem}
+\begin{proof}
+Put \(q_0=4+\delta\). Choose allowed fixed constants \(v_\star=v>0\), \(v^{\star}=2v\), and
+\[
+M_{\mathrm{mom}}=(2v)^{q_0/2},
+\]
+and take \(p_c=1/4\) with \(0<p_\star<1/4\). For the four masks in \(\operatorname{def:four\text{-}mask\text{-}witness}\), let \(X_\eta\) have rows \((1,x_t)\), where
+\[
+(x_1,\ldots,x_6)=(1,2,3,4,5,19/5+\eta),
+\]
+and put
+\[
+\Gamma_\eta=X_\eta(X_\eta^{\prime}X_\eta)^{-1/2}.
+\tag{1}
+\]
+The two columns of \(X_\eta\) are independent, so (1) is defined and \(\Gamma_\eta^{\prime}\Gamma_\eta=I_2\). For all sufficiently small \(|\eta|\), each mask contains three distinct slopes; hence every \(\Gamma_{\eta,S_c}\) has rank two. On a sufficiently small closed neighborhood of zero, continuity and finiteness of the cohort set give
+\[
+\underline g:=v\min_{c,\,|\eta|\leq\eta_0}
+\sigma_2(\Gamma_{\eta,S_c})^2>0.
+\]
+Choose a fixed \(g_\star\in(0,\underline g)\).
+
+Conditional on every cohort, let \(\lambda_i\) be uniform on
+\[
+\{\sqrt{2v}e_1,-\sqrt{2v}e_1,
+\sqrt{2v}e_2,-\sqrt{2v}e_2\},
+\]
+and set \(\varepsilon_i=0\) almost surely. Then, for every cohort,
+\[
+m_c=0,
+\qquad
+H_c=vI_2,
+\qquad
+\mathbb E\|\lambda_i\|_2^{q_0}=(2v)^{q_0/2}=M_{\mathrm{mom}}.
+\tag{2}
+\]
+Thus the covariance bounds, conditional error mean, loading--error covariance orthogonality, spherical error covariance with \(\sigma_c=0\), local eigengap, and common moment bound all hold. Independent sampling supplies the sampling assumption.
+
+For every sufficiently small nonzero \(\eta\), the minor calculation in \(\texttt{prop:o3-strict-inclusion}\) gives relation rank four, the generic maximum \(T-2\); hence \(\Gamma_\eta\notin\mathcal Z_S\). The same proposition gives constants \(a_0,a_1>0\), independent of \(\eta\), such that
+\[
+a_0|\eta|\leq s(P_\eta)\leq a_1|\eta|.
+\tag{3}
+\]
+Equations (1)--(3) verify that \((P_\eta)\) is a legal equal-share family in the frozen class and that every local restriction has rank two.
+
+The boundary equality in (2) is \(M_{\mathrm{mom}}=(2v_\star)^{q_0/2}\). By the corrected \(\texttt{lem:tight-moment-radius-forces-zero-means}\), it forces
+\[
+\mu(P)=0
+\quad\text{for every }P\in\mathcal M
+\tag{4}
+\]
+for these fixed primitive radii, not merely for the displayed family. For any sufficiently small nonzero \(\eta\), put \(s_N=s(P_\eta)\). Since a padded projector relation has operator norm at most one, \(s_N\leq1\), and plainly \(P_\eta\in\mathcal P_N(s_N)\). Thus the shell is nonempty. But (4) implies, for every pair of laws in this shell and every \(d\neq0\),
+\[
+\|\mu(P_{\eta,d})-\mu(P_{\eta,0})\|_\infty=0
+<c_1|d|
+\quad\text{for every }c_1>0.
+\tag{5}
+\]
+The target-separation conjunct in \(\operatorname{oeq:four\text{-}mask\text{-}early\text{-}kill}\) therefore fails on a legal nonempty family. This proves the asserted negative answer independently of whether moment inversion has an upper width bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit slope path passes the algebraic rank-loss test, but the allowed moment boundary collapses the causal target and therefore refutes the required target-separation conjunct. \textit{Gap.} A relation singularity does not by itself provide primitive slack for a complete-law lower experiment. \textit{Consumer.} The result blocks use of the four-mask path as an unconditional minimax or confidence-width converse.
+
+\begin{theorem}[thm:nonempty-shell-does-not-imply-deformation]\label{thm:nonempty-shell-does-not-imply-deformation}
+The answer to \(\operatorname{oeq:shell-deformation}\) is negative: nonemptiness of \(\mathcal P_N(s_N)\) does not imply any positive target-separating deformation under the frozen primitive restrictions. In particular, there are allowed fixed primitive radii and a sequence of nonempty four-mask shells for which \(\mu(P)=0\) for every \(P\) in the ambient model, so the requested order-\(|d|\) separation fails for every \(d\ne0\). Moreover, the original condition \(0<|d|\leq c_0\min\{1,(\sqrt N s_N)^{-1}\}\) has no lower bound on \(|d|\) and therefore, even when pairs exist, does not by itself imply a frontier-scale minimax lower bound.
+\end{theorem}
+\begin{proof}
+Use the legal fixed-radius family constructed in \(\texttt{thm:four-mask-early-kill-negative}\). Choose \(\eta_\star>0\) small enough that every nonzero \(|\eta|\leq\eta_\star\) belongs to the legal punctured neighborhood in that theorem, put \(\eta_N=\eta_\star/(N+1)\), and set
+\[
+s_N=s(P_{\eta_N}).
+\]
+For every \(N\), \(s_N\in(0,1]\) and \(P_{\eta_N}\in\mathcal P_N(s_N)\), so these shells are nonempty. The corrected \(\texttt{lem:tight-moment-radius-forces-zero-means}\) applies to every law in their ambient model and gives \(\mu(P)=0\). Consequently, for any two same-shell laws,
+\[
+\|\mu(P_d)-\mu(P_0)\|_\infty=0.
+\tag{1}
+\]
+For \(c_1>0\) and \(d\neq0\), (1) contradicts the required inequality \(\|\mu(P_d)-\mu(P_0)\|_\infty\geq c_1|d|\). Nonemptiness therefore does not imply the proposed legal target-separating deformation.
+
+There is also a separate scale obstruction. Write
+\[
+r_N=\min\{1,(\sqrt N s_N)^{-1}\}.
+\]
+The condition in the question requires only \(0<|d|\leq c_0r_N\). It permits, for example, \(|d_N|=r_N/N\), for which \(d_N^2=o(r_N^2)\). Even if a pair had target separation of order \(|d_N|\) and bounded testing divergence, the resulting two-point squared-loss lower bound could be only of order \(d_N^2=o\{\min(1,(Ns_N^2)^{-1})\}\). Thus an upper bound on \(|d|\), without a comparable lower scale, does not logically imply a frontier-scale minimax lower bound. Both assertions follow.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The zero-target boundary supplies an explicit nonempty-shell counterexample, and the one-sided deformation scale is independently too weak for a frontier lower bound. \textit{Gap.} A valid converse needs both quantitative target nondegeneracy and a deformation bounded below at the asserted scale. \textit{Consumer.} Future lower-bound work must state and verify an interior-slack subclass rather than infer it from shell nonemptiness.
+
+\begin{lemma}[lem:lei-ross-o3-nullspace]\label{lem:lei-ross-o3-nullspace}
+Suppose the rank is two, the factor rows are in general position, and the rank-two observed-outcome-overlap algorithm converges to one super-cohort whose observed-outcome union is \([T]\). Then \(\operatorname{col}(\Gamma)=\ker A(P)\).
+\end{lemma}
+
+\begin{lemma}[lem:generic-three-coordinate-relation-independence]\label{lem:generic-three-coordinate-relation-independence}
+For a generic two-dimensional subspace and three-coordinate restrictions, relation vectors indexed by a set \(F\) of triples are linearly independent if and only if every nonempty \(F'\subseteq F\) satisfies \(|F'|\leq |V(F')|-2\). Consequently their generic rank is \(r_{1,2}(H_3)\).
+\end{lemma}
+
+\begin{lemma}[lem:tight-moment-radius-forces-zero-means]\label{lem:tight-moment-radius-forces-zero-means}
+Let \(q_0=4+\delta\). If the allowed primitive constants satisfy \(M_{\mathrm{mom}}=(2v_\star)^{q_0/2}\), with no additional restriction \(v^{\star}=v_\star\), then every \(P\in\mathcal M\) satisfies, for every \(c\in[C]\),
+\[
+H_c=v_\star I_2,
+\qquad
+m_c=0,
+\qquad
+\varepsilon_i=0\quad\text{almost surely conditional on }C_i=c,
+\qquad
+\mu_c(P)=0.
+\]
+In particular, \(\mu(P)=0\) throughout this allowed model class.
+\end{lemma}
+\begin{proof}
+Put \(q_0=4+\delta\), and suppose
+\[
+M_{\mathrm{mom}}=(2v_\star)^{q_0/2}.
+\]
+If \(\mathcal M=\varnothing\), the asserted universal conclusion is vacuous. Otherwise fix arbitrary \(P\in\mathcal M\) and \(c\in[C]\). By \(\delta>0\) and \(v_\star>0\), one has \(q_0>0\) and \(2v_\star>0\). Hence the definition \(\operatorname{def:effective\text{-}loading\text{-}mean\text{-}radius}\) gives
+\[
+\begin{aligned}
+b_\lambda
+&=\left(M_{\mathrm{mom}}^{2/q_0}-2v_\star\right)_+^{1/2}\\
+&=\left(\left\{(2v_\star)^{q_0/2}\right\}^{2/q_0}-2v_\star\right)_+^{1/2}\\
+&=\left(2v_\star-2v_\star\right)_+^{1/2}=0.
+\end{aligned}
+\]
+The zero-radius boundary conclusion in \(\operatorname{lem:effective\text{-}loading\text{-}mean\text{-}radius\text{-}bound}\), applied to this \(P\) and \(c\), therefore yields
+\[
+H_c=v_\star I_2,
+\qquad
+m_c=0,
+\qquad
+\varepsilon_i=0\quad\text{almost surely conditional on }C_i=c,
+\qquad
+\mu_c(P)=0.
+\]
+Because \(P\in\mathcal M\) and \(c\in[C]\) were arbitrary, \(\mu(P)=0\) for every \(P\in\mathcal M\). No step uses \(v^{\star}=v_\star\), so no equality between the covariance upper and lower radii is required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The sharp moment boundary and the loading-covariance lower bound force equality throughout the moment chain; no equality between the covariance upper and lower radii is needed. \textit{Gap.} The earlier premise equating the two covariance radii was redundant and obscured the actual boundary mechanism. \textit{Consumer.} The corrected lemma supplies the model-wide zero-target certificate used by the negative deformation and nonnecessity results.
+
+\begin{lemma}[lem:observed-moment-inverse-modulus]\label{lem:observed-moment-inverse-modulus}
+There is a constant \(K\), depending only on the fixed primitive radii and \((T,C)\), such that for every \(N\), every \(s_N\in(0,1]\), and every \(\vartheta,\widetilde\vartheta\in\overline\Theta_N(s_N)\),
+\[
+\max_{c\in[C]}\|\Gamma m_c-\widetilde\Gamma\widetilde m_c\|_\infty
+\leq K\min\!\left\{1,\frac{\|g(\vartheta)-g(\widetilde\vartheta)\|_{\mathsf m}}{s_N}\right\}.
+\]
+\end{lemma}
+\begin{proof}
+Write \(e=\|g(\vartheta)-g(\widetilde\vartheta)\|_{\mathsf m}\). All norms below are equivalent with constants depending only on fixed \((T,C)\). The first coordinates of \(g\) imply \(|p_c-\widetilde p_c|\leq e\). Since \(p_c,\widetilde p_c\geq p_\star\), division by cohort shares is valid. The loading-mean moment restriction gives \(\|m_c\|,\|\widetilde m_c\|\leq B\), while \(H_c,\widetilde H_c\preceq v^\star I_2\), \(\sigma_c,\widetilde\sigma_c\leq B\), and \(\|\Gamma\|_{\mathrm{op}}=\|\widetilde\Gamma\|_{\mathrm{op}}=1\). Hence the conditional first and second raw moments are uniformly bounded. Dividing the corresponding weighted coordinates of \(g\) by \(p_c\) and \(\widetilde p_c\), and then subtracting the outer products of the conditional means, yields
+\[
+\max_c\{\|\nu_c-\widetilde\nu_c\|+\|V_c-\widetilde V_c\|_{\mathrm F}\}\leq K e. \tag{1}
+\]
+
+Let \(P_c=I-Q_c\) and \(\widetilde P_c=I-\widetilde Q_c\). The two signal eigenvalues of \(V_c\) exceed its remaining eigenvalue \(\sigma_c^2\) by at least \(g_\star\). Thus for every rank-two projector \(P\), spectral decomposition gives
+\[
+\operatorname{tr}\{V_c(P_c-P)\}\geq \frac{g_\star}{2}\|P_c-P\|_{\mathrm F}^2. \tag{2}
+\]
+Because \(\widetilde P_c\) maximizes \(P\mapsto\operatorname{tr}(\widetilde V_cP)\) over rank-two projectors,
+\[
+\operatorname{tr}\{V_c(P_c-\widetilde P_c)\}
+\leq \operatorname{tr}\{(V_c-\widetilde V_c)(P_c-\widetilde P_c)\}
+\leq \|V_c-\widetilde V_c\|_{\mathrm F}\|P_c-\widetilde P_c\|_{\mathrm F}.
+\]
+Combining this display with (1)--(2) proves \(\max_c\|Q_c-\widetilde Q_c\|_{\mathrm F}\leq Ke\).
+
+Use the padded relation matrices
+\[
+\mathcal R=\operatorname{stack}_{c=1}^C\sqrt{p_c}\,Q_cJ_c,
+\qquad
+\widetilde{\mathcal R}=\operatorname{stack}_{c=1}^C\sqrt{\widetilde p_c}\,\widetilde Q_cJ_c.
+\]
+They have Gram matrices \(A(P)\) and \(A(\widetilde P)\), respectively, and therefore have the same singular values and kernels as the relation constructions in the core. Since \(p_c,\widetilde p_c\geq p_\star\), (1) and the preceding projector bound imply
+\[
+\|\mathcal R-\widetilde{\mathcal R}\|_{\mathrm F}\leq Ke. \tag{3}
+\]
+Let \(U,\widetilde U\) be orthonormal bases for their two-dimensional kernels. For every matrix \(X\) with columns orthogonal to \(U\), the margin restriction gives \(\|\mathcal RX\|_{\mathrm F}\geq s_N\|X\|_{\mathrm F}\). Since \(\widetilde{\mathcal R}\widetilde U=0\), (3) gives
+\[
+s_N\|(I-UU')\widetilde U\|_{\mathrm F}
+\leq \|\mathcal R\widetilde U\|_{\mathrm F}
+\leq \|\mathcal R-\widetilde{\mathcal R}\|_{\mathrm F}\|\widetilde U\|_{\mathrm{op}}
+\leq Ke. \tag{4}
+\]
+
+The local signal-gap and loading upper bound imply
+\[
+g_\star\leq\lambda_2(\Gamma_{S_c}H_c\Gamma_{S_c}')
+\leq v^\star\sigma_2(\Gamma_{S_c})^2,
+\qquad
+\sigma_2(\Gamma_{S_c})\geq a:=\sqrt{g_\star/v^\star}>0. \tag{5}
+\]
+The same bound holds for \(\widetilde\Gamma_{S_c}\). If the right side of (4) is at most a sufficiently small fixed constant, an orthogonal change of basis aligns \(\widetilde U\) to \(U\) with \(\|U-\widetilde U\|_{\mathrm F}\leq K e/s_N\). Formula (5), the identity
+\[
+G^{-1}-\widetilde G^{-1}=G^{-1}(\widetilde G-G)\widetilde G^{-1},
+\]
+and direct multiplication then show that the reconstruction maps
+\[
+K_c(U)=U(U_{S_c}'U_{S_c})^{-1}U_{S_c}'
+\]
+satisfy \(\|K_c(U)-K_c(\widetilde U)\|_{\mathrm{op}}\leq Ke/s_N\). Since \(\nu_c=U_{S_c}r_c\) for some \(r_c\), the core functional gives \(K_c(U)\nu_c=\Gamma m_c\), and similarly for the tilded parameter. Therefore (1) implies
+\[
+\|\Gamma m_c-\widetilde\Gamma\widetilde m_c\|_\infty
+\leq K\{e+e/s_N\}\leq Ke/s_N.
+\]
+If the smallness condition fails, both target vectors have coordinates bounded by \(B\), so the left side is at most \(2B\), which is bounded by a fixed multiple of \(\min\{1,e/s_N\}\) in that regime. This proves the global assertion.
+\end{proof}
+
+\begin{lemma}[lem:effective-loading-mean-bound]\label{lem:effective-loading-mean-bound}
+For every \(P\in\mathcal M\) and every \(c\in[C]\),
+\[
+\|m_c\|_2^2+\operatorname{tr}(H_c)\le M_{\mathrm{mom}}^{2/q_0},
+\qquad
+\|m_c\|_2\le b_\lambda,
+\qquad
+\max_{t\in[T]}|\mu_{ct}(P)|\le b_\lambda.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M\) and \(c\in[C]\).  The exponent \(q_0=4+\delta\) in \(\operatorname{def:effective\text{-}loading\text{-}mean\text{-}radius}\) is larger than two because \(\delta>0\).  By the definition of the conditional mean and covariance,
+\[
+\mathbb E_P\!\left(\|\lambda_i\|_2^2\mid C_i=c\right)
+=\|m_c\|_2^2+\operatorname{tr}(H_c).
+\tag{1}
+\]
+Lyapunov's inequality, followed by the nonnegativity of the error moment and \(\operatorname{ass:moment\text{-}radius}\), gives
+\[
+\begin{aligned}
+\left\{\|m_c\|_2^2+\operatorname{tr}(H_c)\right\}^{q_0/2}
+&=\left\{\mathbb E_P(\|\lambda_i\|_2^2\mid C_i=c)\right\}^{q_0/2}\\
+&\le \mathbb E_P(\|\lambda_i\|_2^{q_0}\mid C_i=c)\\
+&\le \mathbb E_P(\|\lambda_i\|_2^{q_0}+\|\varepsilon_i\|_2^{q_0}\mid C_i=c)\\
+&\le M_{\mathrm{mom}}.
+\end{aligned}
+\tag{2}
+\]
+Taking the power \(2/q_0>0\) in (2) proves the first displayed inequality in the statement.  By \(\operatorname{ass:loading\text{-}covariance}\), both eigenvalues of \(H_c\) are at least \(v_\star\), and therefore
+\[
+\operatorname{tr}(H_c)\ge 2v_\star.
+\tag{3}
+\]
+Combining (2)--(3) yields
+\[
+\|m_c\|_2^2
+\le M_{\mathrm{mom}}^{2/q_0}-2v_\star.
+\tag{4}
+\]
+The left side of (4) is nonnegative.  Hence the right side is nonnegative for every nonempty model, and the definition of \(b_\lambda\) gives \(\|m_c\|_2\le b_\lambda\).  Finally, \(\operatorname{ass:factor\text{-}normalization}\) implies \(\|\Gamma\|_{\mathrm{op}}=1\).  Since \(\mu_c(P)=\Gamma m_c\), for each \(t\in[T]\),
+\[
+|\mu_{ct}(P)|
+=|e_t^{\prime}\Gamma m_c|
+\le \|e_t^{\prime}\Gamma\|_2\|m_c\|_2
+\le \|\Gamma\|_{\mathrm{op}}\|m_c\|_2
+\le b_\lambda.
+\]
+This proves all three assertions.
+\end{proof}
+
+\begin{lemma}[lem:effective-loading-mean-radius-bound]\label{lem:effective-loading-mean-radius-bound}
+Let \(q_0=4+\delta\), and let \(b_\lambda\) be defined by \(\operatorname{def:effective\text{-}loading\text{-}mean\text{-}radius}\). For every \(P\in\mathcal M\), every \(c\in[C]\), and every \(t\in[T]\),
+\[
+\|m_c\|_2\leq b_\lambda,
+\qquad
+|\mu_{ct}(P)|\leq b_\lambda.
+\]
+If \(\mathcal M\) is nonempty, then \(b_\lambda=0\) is equivalent to \(M_{\mathrm{mom}}=(2v_\star)^{q_0/2}\). At this zero-radius value, every \(P\in\mathcal M\) satisfies, for every \(c\in[C]\),
+\[
+H_c=v_\star I_2,
+\qquad
+m_c=0,
+\qquad
+\varepsilon_i=0\quad\text{almost surely conditional on }C_i=c,
+\qquad
+\mu_c(P)=0.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M\) and \(c\in[C]\). The positive-share condition makes the conditional law well defined. Put \(q_0=4+\delta>2\). By the definitions of \(m_c\) and \(H_c\),
+\[
+\mathbb E_P[\|\lambda_i\|_2^2\mid C_i=c]
+=\operatorname{tr}(H_c)+\|m_c\|_2^2.
+\tag{1}
+\]
+To justify the moment comparison without importing an undeclared theorem, let \(r=q_0/2>1\). For every \(x\geq0\), convexity of \(x^r\), or direct differentiation, gives
+\[
+x\leq\frac{r-1}{r}+\frac{x^r}{r}.
+\]
+Apply this inequality to a nonnegative random variable divided by its \(r\)-th moment scale and then take expectations; the zero-moment case is immediate. This proves \((\mathbb EX)^r\leq\mathbb E(X^r)\). Conditional application with \(X=\|\lambda_i\|_2^2\), followed by the primitive moment restriction, gives
+\[
+\left\{\operatorname{tr}(H_c)+\|m_c\|_2^2\right\}^{q_0/2}
+\leq\mathbb E_P[\|\lambda_i\|_2^{q_0}\mid C_i=c]
+\leq M_{\mathrm{mom}}.
+\tag{2}
+\]
+Since \(H_c\succeq v_\star I_2\),
+\[
+\operatorname{tr}(H_c)\geq2v_\star.
+\tag{3}
+\]
+Taking the positive power \(2/q_0\) in (2), using (3), and subtracting gives
+\[
+0\leq\|m_c\|_2^2
+\leq M_{\mathrm{mom}}^{2/q_0}-\operatorname{tr}(H_c)
+\leq M_{\mathrm{mom}}^{2/q_0}-2v_\star.
+\tag{4}
+\]
+Thus \(\|m_c\|_2\leq b_\lambda\). Also \(\Gamma^{\prime}\Gamma=I_2\) gives \(\|\Gamma\|_{\mathrm{op}}=1\), while the factor equation and conditional mean-zero error give \(\mu_c(P)=\Gamma m_c\). Hence
+\[
+|\mu_{ct}(P)|
+\leq\|\Gamma m_c\|_2
+\leq\|m_c\|_2
+\leq b_\lambda.
+\tag{5}
+\]
+
+Suppose now that \(\mathcal M\) is nonempty. For any \(P\in\mathcal M\), (2)--(3) imply
+\[
+M_{\mathrm{mom}}\geq(2v_\star)^{q_0/2}.
+\tag{6}
+\]
+By the positive-part definition, \(b_\lambda=0\) is equivalent to \(M_{\mathrm{mom}}^{2/q_0}\leq2v_\star\). Combining this with (6) proves
+\[
+b_\lambda=0
+\quad\Longleftrightarrow\quad
+M_{\mathrm{mom}}=(2v_\star)^{q_0/2}.
+\tag{7}
+\]
+
+Assume the equivalent boundary conditions in (7). For arbitrary \(P\in\mathcal M\) and \(c\in[C]\), retain every nonnegative term in the moment restriction to obtain
+\[
+\begin{aligned}
+(2v_\star)^{q_0/2}=M_{\mathrm{mom}}
+&\geq\mathbb E_P[\|\lambda_i\|_2^{q_0}+\|\varepsilon_i\|_2^{q_0}\mid C_i=c]\\
+&\geq\mathbb E_P[\|\lambda_i\|_2^{q_0}\mid C_i=c]\\
+&\geq\{\operatorname{tr}(H_c)+\|m_c\|_2^2\}^{q_0/2}\\
+&\geq(2v_\star)^{q_0/2}.
+\end{aligned}
+\tag{8}
+\]
+The endpoints coincide, so equality holds throughout. Strict monotonicity gives
+\[
+\operatorname{tr}(H_c)+\|m_c\|_2^2=2v_\star.
+\]
+Both summands \(\operatorname{tr}(H_c)-2v_\star\) and \(\|m_c\|_2^2\) are nonnegative; hence
+\[
+\operatorname{tr}(H_c)=2v_\star,
+\qquad
+m_c=0.
+\tag{9}
+\]
+The matrix \(H_c-v_\star I_2\) is positive semidefinite and has trace zero, so both of its eigenvalues vanish and
+\[
+H_c=v_\star I_2.
+\tag{10}
+\]
+Equality between the first two expectation terms in (8) also gives
+\[
+\mathbb E_P[\|\varepsilon_i\|_2^{q_0}\mid C_i=c]=0.
+\]
+The integrand is nonnegative, so \(\varepsilon_i=0\) almost surely conditional on \(C_i=c\). Finally, \(\mu_c(P)=\Gamma m_c=0\) by (9). Since \(P\) and \(c\) were arbitrary, all boundary conclusions hold throughout \(\mathcal M\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The common moment radius and covariance trace lower bound yield the exact feasible loading-mean radius and its equality case. \textit{Gap.} A generic fixed target box misses the collapse of the estimand class at the sharp moment boundary. \textit{Consumer.} The radius controls point-estimator clipping, risk adaptation, confidence-set intersection, and the zero-target counterexample.
+
+\begin{theorem}[thm:four-mask-early-kill-resolution]\label{thm:four-mask-early-kill-resolution}
+The answer to \(\operatorname{oeq:four\text{-}mask\text{-}early\text{-}kill}\) is negative under the frozen assumptions. There are allowed fixed primitive radii and a legal equal-share four-mask family with \(s(P_\eta)\asymp|\eta|\), nonempty shells, and full-rank local factor restrictions, but \(\mu(P)=0\) for every law in the ambient model. Hence no two same-shell laws can satisfy positive order-\(|d|\) target separation, and the conjunction posed by the open-ended question fails regardless of the performance of observed-moment inversion.
+\end{theorem}
+\begin{proof}
+The family and fixed radii constructed in \(\texttt{thm:four-mask-early-kill-negative}\) satisfy every asserted rank, shell, and moment condition, while that theorem proves \(\mu(P)=0\) throughout the ambient model. Therefore every same-shell target difference is zero, so it cannot be at least \(c_1|d|\) when \(c_1>0\) and \(d\neq0\). Since the question asks for this separation jointly with the other properties, failure of this conjunct proves the stated negative answer.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An explicit legal boundary family refutes the target-separation conjunct of the proposed four-mask experiment. \textit{Gap.} Algebraic rank loss alone cannot create target separation when the primitive moment radius collapses every admissible loading mean to zero. \textit{Consumer.} The negative resolution prevents the four-mask path from being used as an unconditional minimax or confidence-width lower experiment.
+
+\begin{theorem}[thm:shell-deformation-resolution]\label{thm:shell-deformation-resolution}
+The answer to \(\operatorname{oeq:shell\text{-}deformation}\) is negative. Nonemptiness of \(\mathcal P_N(s_N)\) does not imply a positive target-separating deformation under the frozen primitive restrictions: there are allowed fixed radii and nonempty four-mask shells for which \(\mu(P)=0\) for every law in the ambient model. Moreover, an upper restriction \(0<|d|\leq c_0\min\{1,(\sqrt N s_N)^{-1}\}\), without a comparable lower restriction on \(|d|\), is insufficient by itself to deliver a frontier-scale squared-risk lower bound.
+\end{theorem}
+\begin{proof}
+The explicit family in \(\texttt{thm:nonempty-shell-does-not-imply-deformation}\) gives nonempty shells on which every target equals zero, so no two laws have a positive target difference. That theorem also shows that the stated one-sided restriction permits \(|d|\) to be little-oh of the frontier scale, making its squared separation little-oh of \(\min\{1,(Ns_N^2)^{-1}\}\). These two facts prove both parts of the negative answer.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A nonempty singular-margin shell may lie on a zero-target boundary, and the proposed deformation scale has only an upper bound. \textit{Gap.} Shell nonemptiness supplies neither target-radius slack nor a deformation bounded below at the frontier scale. \textit{Consumer.} Any future converse must impose and verify a quantitative nondegeneracy and same-shell interior condition.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Certificate failure makes the generic factor plane nonunique, but the frozen primitive class permits a tight moment radius that forces every cohort loading mean, and hence every causal target coordinate, to zero. Therefore certificate failure alone does not imply causal-target nonidentification, shell nonemptiness does not imply a target-separating deformation, and \(Ns_N^2\to\infty\) is sufficient but not necessary for consistency. The covariance-PCA guarantee is the unconditional upper bound \(\min\{1,4b_\lambda^2,C_0/(Ns_N^2)\}\); robust profile inversion gives the upper half-width \(\min\{b_\lambda,C_\alpha\min(1,(\sqrt N s_N)^{-1})\}\). A frontier-scale testing pair on a quantitatively nondegenerate subclass and a model-specific honest-width lower bound remain open. The profile inversion is an exact optimization over a compact primitive closure; numerical certification is outside the theorem.
+
+\section{Honest scope}
+
+The smallest-two anchor convention is deterministic, and the rank-two count criterion and pebble algorithms are published background. The paper claims the distinct positive causal transport: certificate acceptance makes every untreated cohort-time mean an explicit functional of the complete observed law. On certificate failure it claims generic nonuniqueness of the factor plane only, not observed-law-equivalent causal targets with different missing means. The panel-specific corollary \(O_3\Rightarrow\) certificate acceptance and its strict four-mask witness remain. Covariance PCA and the total profile-recentered robust moment inversion provide radius-adaptive upper guarantees on nonempty singular-margin shells. The universal early-kill and shell-deformation questions are answered negatively by a legal zero-target boundary class, so no minimax lower frontier, honest-width lower frontier, or necessity of \(Ns_N^2\to\infty\) is claimed under the frozen class. The frozen stochastic class itself does not impose strict exogeneity and is not identical to the Lei--Ross class; only the no-covariate, no-fixed-effect, strictly exogenous, spherical-error subclass is shared, and \(O_3\) is used only for geometry.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LeiRoss2023} Lihua Lei and Brad Ross (2023, revised 2025), Estimating Counterfactual Matrix Means with Short Panel Data, arXiv:2312.07520, Theorems 1--5 and Appendices A--C and H.1.
+
+  \bibitem{KiralyTheranTomioka2015} Franz J. Király, Louis Theran, and Ryota Tomioka (2015), The Algebraic Combinatorial Approach for Low-Rank Matrix Completion, Journal of Machine Learning Research 16, 1391--1436, Theorems 10, 12, and 17.
+
+  \bibitem{StreinuTheran2009} Ileana Streinu and Louis Theran (2009), Sparse Hypergraphs and Pebble Game Algorithms, European Journal of Combinatorics 30, 1944--1964, Theorem 1.8 and Algorithms 6.1 and 6.8.
+
+  \bibitem{PimentelAlarconBostonNowak2016} Daniel L. Pimentel-Alarcón, Nigel Boston, and Robert D. Nowak (2016), A Characterization of Deterministic Sampling Patterns for Low-Rank Matrix Completion, IEEE Journal of Selected Topics in Signal Processing 10, 623--636, Theorems 1 and 2.
+
+  \bibitem{PimentelAlarconNowakBoston2015} Daniel L. Pimentel-Alarcón, Robert D. Nowak, and Nigel Boston (2015), Deterministic Conditions for Subspace Identifiability from Incomplete Sampling, arXiv:1410.0633, Theorem 1 and Corollaries 1--2.
+
+  \bibitem{SrivastavaPimentel2022} Karan Srivastava and Daniel L. Pimentel-Alarcón (2022), A Perturbation Bound on the Subspace Estimator from Canonical Projections, IEEE International Symposium on Information Theory, arXiv:2206.14278, Theorem 1.
+
+  \bibitem{YanWainwright2024} Yuling Yan and Martin J. Wainwright (2024), Entrywise Inference for Missing Panel Data: A Simple and Instance-Optimal Approach, arXiv:2401.13665, Theorems 1--3.
+
+  \bibitem{Zhu2019} Yinchu Zhu (2019), How Well Can We Learn Large Factor Models without Assuming Strong Factors?, arXiv:1910.10382, Theorems 1--7.
+
+  \bibitem{AndrewsCheng2012} Donald W. K. Andrews and Xu Cheng (2012), Estimation and Inference with Weak, Semi-Strong, and Strong Identification, Econometrica 80, 2153--2211.
+
+  \bibitem{FariasLiPeng2022} Vivek F. Farias, Andrew A. Li, and Tianyi Peng (2022), Learning Treatment Effects in Panels with General Intervention Patterns, Proceedings of AISTATS 151, 3153--3175, Theorems 1--2 and Proposition 2.
+
+  \bibitem{ShapiroXieZhang2019} Alexander Shapiro, Yao Xie, and Rui Zhang (2019), Matrix Completion with Deterministic Pattern: A Geometric Perspective, IEEE Transactions on Signal Processing 67, 1088--1103, Theorem III.1 and Proposition III.3.
+
+  \bibitem{ChenFanMaYan2019} Yuxin Chen, Jianqing Fan, Cong Ma, and Yuling Yan (2019), Inference and Uncertainty Quantification for Noisy Matrix Completion, Proceedings of the National Academy of Sciences 116, 22931--22937, Theorems 1--2.
+
+  \bibitem{ChoiYuan2024} Jungjun Choi and Ming Yuan (2024), Matrix Completion When Missing Is Not at Random and Its Applications in Causal Panel Data Models, Journal of the American Statistical Association, doi:10.1080/01621459.2024.2380105.
+
+  \bibitem{LiuWangXu2024} Licheng Liu, Ye Wang, and Yiqing Xu (2024), A Practical Guide to Counterfactual Estimators for Causal Inference with Time-Series Cross-Sectional Data, American Journal of Political Science 68, 160--176.
+
+  \bibitem{Manski2005} Charles F. Manski (2005), Partial Identification with Missing Data: Concepts and Findings, International Journal of Approximate Reasoning 39, 151--165.
+
+  \bibitem{ChernozhukovHongTamer2007} Victor Chernozhukov, Han Hong, and Elie Tamer (2007), Estimation and Confidence Regions for Parameter Sets in Econometric Models, Econometrica 75, 1243--1284.
+
+  \bibitem{vanDerVaart1998} A. W. van der Vaart (1998), Asymptotic Statistics, Cambridge University Press, Chapters 2 and 5.
+
+\end{thebibliography}
+
+\end{document}

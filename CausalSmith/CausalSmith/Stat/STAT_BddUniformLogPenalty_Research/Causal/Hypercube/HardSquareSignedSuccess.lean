@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCertificate
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCertificate
 
 /-!
 # Signed hard-cell success-mass localization
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Hard
 This module converts the half-disc angular cancellation into the setwise
 success-mass estimate needed by the common-statistic Bernoulli KL argument.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

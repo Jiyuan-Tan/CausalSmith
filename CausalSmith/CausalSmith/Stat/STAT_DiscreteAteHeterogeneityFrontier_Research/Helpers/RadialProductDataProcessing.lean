@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmCountSufficiency
-import Causalean.Stat.Minimax.MarkovKernelTransport
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmCountSufficiency
+public import Causalean.Stat.Minimax.MarkovKernelTransport
 
 /-!
 # Product total-variation contraction for the radial channel
@@ -8,6 +9,8 @@ import Causalean.Stat.Minimax.MarkovKernelTransport
 This module lifts a one-record common Markov-kernel identity to the finite
 product experiments and records the resulting data-processing inequality.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

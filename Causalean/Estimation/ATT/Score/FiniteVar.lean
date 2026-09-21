@@ -1,12 +1,15 @@
-import Causalean.Estimation.ATT.Score.AIPWMoment
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
+module
+public import Causalean.Estimation.ATT.Score.AIPWMoment
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 /-!
 Proves finite variance for the ATT AIPW moment under back-door assumptions,
 one-sided overlap, and square-integrable outcomes. The result supplies the L2
 input required by the ATT asymptotic-linear and CLT arguments.
 -/
+
+public section
 
 /-
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
@@ -314,7 +317,7 @@ The PO-level control-arm IPW residual is `L²(P.μ) ⊆ L¹(P.μ)`.  Derived fro
 `ipw_estimated_integrable` at the truth `η₀`: transfer the value-space integral
 back to `P.μ` along the data map `factualZ`, then rewrite to the PO
 representatives via `e_compat`, `μ₀_reg_compat`, and the indicator identity.
-Discharges the `hIPW` gate of `aipw_mean_zero_ATT` / `att_dml_isAsymLinear`
+Discharges the `hIPW` gate of `aipw_mean_zero_ATT` / `att_oneStepOracleDML_isAsymLinear`
 from one-sided overlap and `L²` outcomes alone (no pointwise bounds). -/
 theorem ipw_truth_integrable
     (S : TreatedEstimationSystem P γ) {ε : ℝ}

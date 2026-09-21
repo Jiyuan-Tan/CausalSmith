@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Rademacher
-import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.RandomParam
+module
+public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Rademacher
+public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.RandomParam
 
 /-!
 # Random-nuisance empirical-process modulus (cross-fitting lift)
@@ -20,7 +21,7 @@ selected by `ĥ n ω`.
 
 `LocalEmpProcessModulusRandom` is the random-`g` analogue of
 `LocalEmpProcessModulus` — exactly the `hMod` hypothesis of
-`oracle_inequality_drLearner_random_nuisance`.
+`oracle_inequality_drLearner_random_nuisance_of_assumed_modulus`.
 
 The proof structure factors the fixed-nuisance Rademacher argument into
 `g`-parametric lemmas, then lifts them with the cross-fit conditioning keystone
@@ -42,6 +43,7 @@ The fold-A-measurability of `ĥ n` and the joint measurability of
 same spirit as `RademacherBound` / `LossContinuousOnΘset`.
 -/
 
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -57,12 +59,14 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
 
 /-! ## The random-nuisance modulus predicate -/
 
-/-- Given [an orthogonal statistical-learning system](hyp:S), [an independent and identically
-distributed sample with the system's population law](hyp:S_iid), [a one-shot sample split](hyp:split),
+/-- Given [an orthogonal statistical-learning system](hyp:S),
+[an IID sample with the system's population law](hyp:S_iid),
+[a one-shot sample split](hyp:split),
 [a rate sequence](hyp:ρ), [a confidence tolerance](hyp:δ), and [a sample-dependent nuisance
 estimator](hyp:ĥ), the [random-nuisance local empirical-process modulus condition](goal) holds
 exactly when, for every sample size, there exists an event that is [measurable](step:1), has
-measure at least $1-\delta^+$, with subtraction truncated at zero, and on which, uniformly over the target class, the
+measure at least $1-\delta^+$, with subtraction truncated at zero, and on which,
+uniformly over the target class, the
 population excess risk at the realized nuisance estimate minus the fold-B empirical excess risk is
 at most $\rho_n$ times the distance from the distinguished target plus $\rho_n^2$. -/
 def LocalEmpProcessModulusRandom
@@ -79,8 +83,8 @@ def LocalEmpProcessModulusRandom
 
 /-! ## `g`-parametric pieces of the fixed-nuisance bridge -/
 
-/-- Given [an independent and identically distributed sample](hyp:S_iid), [a one-shot sample
-split](hyp:split), and [a sample size](hyp:n), the [fold-B coordinate map](goal) sends each sample
+/-- Given [an IID sample](hyp:S_iid), [a one-shot sample split](hyp:split), and
+[a sample size](hyp:n), the [fold-B coordinate map](goal) sends each sample
 realization to its fold-B observations, indexed in their canonical finite order. -/
 noncomputable def foldBCoord
     (S_iid : IIDSample Ω Z μ P_Z)
@@ -88,10 +92,12 @@ noncomputable def foldBCoord
     (n : ℕ) : Ω → Fin (split.foldB n).card → Z :=
   fun ω j => S_iid.Z (((split.foldB n).orderIsoOfFin rfl) j).val ω
 
-/-- Given [an orthogonal statistical-learning system](hyp:S), [an independent and identically
-distributed sample with the system's population law](hyp:S_iid), [a one-shot sample split](hyp:split),
+/-- Given [an orthogonal statistical-learning system](hyp:S),
+[an IID sample with the system's population law](hyp:S_iid),
+[a one-shot sample split](hyp:split),
 [a sample size](hyp:n), [a loss bound](hyp:b), [a confidence tolerance](hyp:δ), [a candidate
-complexity-bound sequence](hyp:_R), and [a nuisance function](hyp:g), the [product-sample bad event](goal)
+complexity-bound sequence](hyp:_R), and [a nuisance function](hyp:g), the
+[product-sample bad event](goal)
 is the set of fold-B observation vectors for which twice the centred-loss Rademacher complexity plus
 $2b\sqrt{2\log(1/\delta)/m}$, where $m$ is the fold-B size, does not exceed the centred-loss
 uniform deviation.
@@ -112,7 +118,8 @@ noncomputable def badDataSet
       ≤ uniformDeviation (split.foldB n).card
           (fun (θ : S.Θ_set) z => S.ℓ z θ.val g - S.ℓ z S.θ₀ g) P_Z id (id ∘ s)}
 
-/-- Given [an independent and identically distributed sample](hyp:S_iid), [a one-shot sample split](hyp:split), [a loss bound](hyp:b), [a confidence
+/-- Given [an IID sample](hyp:S_iid), [a one-shot sample split](hyp:split),
+[a loss bound](hyp:b), [a confidence
 tolerance](hyp:δ), and [a complexity-bound sequence](hyp:R), the [deterministic modulus-radius
 sequence](goal) assigns to every sample size $n$ the value $\sqrt{2b}$ when fold B is empty, and
 otherwise the value $\sqrt{2R_n+2b\sqrt{2\log(1/\delta)/m}}$, where $m$ is the fold-B size. -/
@@ -144,7 +151,7 @@ theorem foldBCoord_law
         (x := fun i : split.foldB n => S_iid.Z i.val ω) (i := e j)).symm
   rw [hY_eq, ← Measure.map_map T.measurable
     (measurable_pi_lambda YB fun i => S_iid.meas i.val)]
-  rw [foldB_pi_law S_iid split n]
+  rw [Causalean.Stat.oneShot_iid S_iid split n]
   simpa [T] using Measure.pi_map_piCongrLeft (e := e.symm.toEquiv)
     (β := fun _ : Fin m => Z) (μ := fun _ : Fin m => P_Z)
 
@@ -169,9 +176,9 @@ theorem badDataSet_mass_le
   simp only [badDataSet]
   let m : ℕ := (split.foldB n).card
   let fθ : S.Θ_set → Z → ℝ := fun θ z => S.ℓ z θ.val g - S.ℓ z S.θ₀ g
-  haveI : Nonempty Z := nonempty_of_isProbabilityMeasure P_Z
-  haveI : Nonempty S.Θ_set := ⟨⟨S.θ₀, S.θ₀_mem⟩⟩
-  haveI : SeparableSpace S.Θ_set := by
+  have : Nonempty Z := nonempty_of_isProbabilityMeasure P_Z
+  have : Nonempty S.Θ_set := ⟨⟨S.θ₀, S.θ₀_mem⟩⟩
+  have : SeparableSpace S.Θ_set := by
     exact ⟨⟨Set.range idx, Set.countable_range idx, idx_dense⟩⟩
   have hf_meas : ∀ θ : S.Θ_set, Measurable (fθ θ) := by
     intro θ
@@ -253,7 +260,7 @@ theorem modulus_of_not_badData
       ≤ modulusRadius split b δ R n * ‖θ - S.θ₀‖
         + (modulusRadius split b δ R n) ^ 2 := by
   classical
-  haveI : IsProbabilityMeasure P_Z := by
+  have : IsProbabilityMeasure P_Z := by
     rw [← S_iid.law]
     exact Measure.isProbabilityMeasure_map (S_iid.meas 0).aemeasurable
   have hR_nonneg : 0 ≤ R n := (hR n).1
@@ -261,9 +268,9 @@ theorem modulus_of_not_badData
   have hm_pos' : 0 < ((split.foldB n).card : ℝ) := Nat.cast_pos.mpr hm_pos
   set m : ℕ := (split.foldB n).card with hm_def
   let fθ : S.Θ_set → Z → ℝ := fun θ z => S.ℓ z θ.val g - S.ℓ z S.θ₀ g
-  haveI : Nonempty Z := nonempty_of_isProbabilityMeasure P_Z
-  haveI : Nonempty S.Θ_set := ⟨⟨S.θ₀, S.θ₀_mem⟩⟩
-  haveI : SeparableSpace S.Θ_set := by
+  have : Nonempty Z := nonempty_of_isProbabilityMeasure P_Z
+  have : Nonempty S.Θ_set := ⟨⟨S.θ₀, S.θ₀_mem⟩⟩
+  have : SeparableSpace S.Θ_set := by
     exact ⟨⟨Set.range idx, Set.countable_range idx, idx_dense⟩⟩
   have hf_meas : ∀ θ : S.Θ_set, Measurable (fθ θ) := by
     intro θ
@@ -324,7 +331,7 @@ theorem modulus_of_not_badData
     exact hsep_sup (by
       apply Continuous.abs
       apply Continuous.const_mul
-      exact continuous_finset_sum Finset.univ fun k _ =>
+      exact continuous_finsetSum Finset.univ fun k _ =>
         continuous_const.mul (hf_cont (sample k)))
   have hrad_full_le : rademacherComplexity m fθ P_Z id ≤ R n := by
     have hfull_dense :
@@ -377,7 +384,7 @@ theorem modulus_of_not_badData
   have hgood : ¬ (2 • rademacherComplexity m fθ P_Z id + ε ≤
       uniformDeviation m fθ P_Z id (id ∘ Y ω)) := by
     have hoff' := hoff
-    simp only [badDataSet, Set.mem_setOf_eq] at hoff'
+    simp only [badDataSet, Set.mem_ofPred_eq] at hoff'
     exact hoff'
   let θs : S.Θ_set := ⟨θ, hθ⟩
   have hdev_lt : uniformDeviation m fθ P_Z id (Y ω) < 2 * R n + ε := by
@@ -691,7 +698,7 @@ theorem localEmpProcessModulus_random_of_bounded_rademacher
     have hm_pos : 0 < (split.foldB n).card := Nat.pos_of_ne_zero hm0
     set Bad : Ω → Set (Fin (split.foldB n).card → Z) :=
       fun ω => badDataSet S S_iid split n b δ R (ĥ n ω) with hBad_def
-    haveI : IsProbabilityMeasure (Measure.pi (fun _ : Fin (split.foldB n).card => P_Z)) := by
+    have : IsProbabilityMeasure (Measure.pi (fun _ : Fin (split.foldB n).card => P_Z)) := by
       infer_instance
     have hsec : ∀ ω, Measure.pi (fun _ : Fin (split.foldB n).card => P_Z) (Bad ω)
         ≤ ENNReal.ofReal δ :=

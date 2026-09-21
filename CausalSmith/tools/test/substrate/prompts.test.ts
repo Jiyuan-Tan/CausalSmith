@@ -75,7 +75,9 @@ describe("substrate prompts", () => {
       lastFailureLog: null,
     });
     expect(p).toMatch(/audit EVERY promoted Lean file/i);
-    expect(p).toMatch(/every file containing a public `theorem` or `lemma`/i);
+    expect(p).toMatch(/every promoted file containing a public `theorem` or `lemma`/i);
+    // scoped to promotions: files that stay under CausalSmith/ get no Causalean sidecar entry
+    expect(p).toMatch(/Files that remain under `CausalSmith\/` get NO sidecar entry/i);
     expect(p).toMatch(/single required headline anchor/i);
     expect(p).toMatch(/Preserve every existing sidecar entry/i);
     expect(p).toMatch(/existing top-level subject area/i);

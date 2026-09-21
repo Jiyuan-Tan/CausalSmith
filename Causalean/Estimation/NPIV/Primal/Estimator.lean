@@ -28,9 +28,10 @@ arbitrary measurable nuisance: the rate theorem consumes the optimality
 hypothesis rather than constructing the estimator.
 -/
 
-import Causalean.Estimation.NPIV.Operator
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit
+module
+public import Causalean.Estimation.NPIV.Operator
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit
 
 /-!
 # TRAE Primal Estimator Interface
@@ -42,6 +43,8 @@ the empirical objective pieces `innerIntegrand`, `innerObjective`, and
 `supObjective`, and the predicate `IsTRAEPrimalEstimator` recording membership,
 empirical sup-min optimality, and joint measurability of the estimator.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -86,18 +89,18 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 /-! ## Candidate / critic classes -/
 
 /-- This structure packages [a nonempty statistical candidate class for the primal
-nuisance](hyp:H,H_nonempty) that [sits inside the ambient closed candidate set](hyp:H_subset),
+nuisance](hyp:H,H_nonempty) that [sits inside the ambient candidate set](hyp:H_subset),
 together with [a nonempty statistical critic class](hyp:F,F_nonempty) that [sits inside the
-ambient closed critic set](hyp:F_subset), for the primal Tikhonov-regularized adversarial
+ambient critic set](hyp:F_subset), for the primal Tikhonov-regularized adversarial
 optimization (`def:est-trae-population-criterion`, line 139). -/
 structure TRAEClasses (S : OperatorSystem Ω μ) where
   /-- Statistical candidate class for the primal nuisance. -/
   H : Set (S.𝒳 → ℝ)
   /-- Statistical critic class. -/
   F : Set (S.𝒵 → ℝ)
-  /-- `H` is contained in the closed candidate set `Hbar`. -/
+  /-- `H` is contained in the candidate set `Hbar`. -/
   H_subset : H ⊆ S.Hbar
-  /-- `F` is contained in the closed candidate set `Qbar`. -/
+  /-- `F` is contained in the candidate set `Qbar`. -/
   F_subset : F ⊆ S.Qbar
   /-- The candidate class is non-empty. -/
   H_nonempty : H.Nonempty
@@ -106,7 +109,9 @@ structure TRAEClasses (S : OperatorSystem Ω μ) where
 
 /-! ## Empirical objectives -/
 
-/-- For [an NPIV operator system](hyp:S), [a real regularization level](hyp:lambda), [a covariate candidate function](hyp:h), [an instrument critic function](hyp:f), and [an observation](hyp:w), [the empirical integrand is $2\{m(w;f)-h(x)f(z)\}-f(z)^2+\lambda h(x)^2$, where $x$ and $z$ are that observation's covariate and instrument](goal).
+/-- [The empirical integrand](goal) for [an NPIV operator system](hyp:S), [regularization
+level](hyp:lambda), [candidate](hyp:h), and [critic](hyp:f) at [an observation](hyp:w) is
+`2(m(w;f) - h(x)f(z)) - f(z)² + λh(x)²`, with the system's covariate and instrument.
 
 The fold-`A` empirical pointwise integrand at `(h, f)` and observation
 `w : 𝒲`:
@@ -120,7 +125,10 @@ noncomputable def innerIntegrand
   2 * (S.m w f - h (S.xOf w) * f (S.zOf w))
     - f (S.zOf w) ^ 2 + lambda * h (S.xOf w) ^ 2
 
-/-- For [an NPIV operator system](hyp:S), [an independent sample](hyp:sample), [a one-shot sample split](hyp:split), [a real regularization level](hyp:lambda), [a covariate candidate function](hyp:h), [an instrument critic function](hyp:f), [a sample-size index](hyp:n), and [a sample realization](hyp:ω), [the fold-A inner objective is the average empirical integrand over the nuisance fold at that index](goal).
+/-- [The fold-A inner objective](goal) averages the empirical integrand for [an NPIV
+operator system](hyp:S), [sample and split](hyp:sample,split), [regularization level,
+candidate, and critic](hyp:lambda,h,f) over the nuisance fold selected by [the sample-size
+index and realization](hyp:n,ω).
 
 The fold-`A` empirical inner objective at a candidate `h` and critic
 `f`: the average of `innerIntegrand` over the nuisance fold `A(n)`. -/
@@ -135,7 +143,10 @@ noncomputable def innerObjective
     ∑ i ∈ split.foldA n,
       innerIntegrand S lambda h f (sample.Z i ω)
 
-/-- For [an NPIV operator system](hyp:S), [candidate and critic classes](hyp:TC), [an independent sample](hyp:sample), [a one-shot sample split](hyp:split), [a real regularization level](hyp:lambda), [a covariate candidate function](hyp:h), [a sample-size index](hyp:n), and [a sample realization](hyp:ω), [the TRAE primal sup-min objective is the supremum of the fold-A inner objective over the critic class](goal).
+/-- [The TRAE primal sup-min objective](goal) takes the supremum of the fold-A inner
+objective over [the critic class](hyp:TC), for [an NPIV operator system](hyp:S), [sample and
+split](hyp:sample,split), [regularization level and candidate](hyp:lambda,h), and [the chosen
+sample-size index and realization](hyp:n,ω).
 
 The TRAE primal sup-min objective:
     `sup_{f ∈ TC.F} P_{A(n)} [innerIntegrand λ h f W]`. -/
@@ -186,6 +197,32 @@ structure IsTRAEPrimalEstimator
       supObjective S TC sample split lambda (h_hat n ω) n ω
         ≤ supObjective S TC sample split lambda h' n ω
   /-- Joint measurability of `(ω, x) ↦ h_hat n ω x`. -/
+  measurable :
+    ∀ n, Measurable (fun p : Ω × S.𝒳 => h_hat n p.1 p.2)
+
+/-- For [an NPIV operator system](hyp:S), [candidate and critic classes](hyp:TC),
+[an independent sample](hyp:sample), [a one-shot split](hyp:split), [a regularization
+sequence](hyp:lambda), and [an estimator sequence](hyp:h_hat), the estimator is a
+sample-size-dependent TRAE estimator when its [candidate belongs to the statistical
+class](hyp:mem_H), [minimizes the empirical objective formed with `lambda n` at each
+index](hyp:opt), and [is jointly measurable](hyp:measurable).
+
+This is the standard interface for a vanishing Tikhonov sequence. -/
+structure IsTRAEPrimalEstimatorSequence
+    (S : OperatorSystem Ω μ) (TC : TRAEClasses S)
+    {P_W : Measure S.𝒲}
+    (sample : IIDSample Ω S.𝒲 μ P_W)
+    (split : OneShotSplit sample)
+    (lambda : ℕ → ℝ)
+    (h_hat : ℕ → Ω → S.𝒳 → ℝ) : Prop where
+  /-- Membership of the empirical optimizer in the statistical class `H`. -/
+  mem_H : ∀ n ω, h_hat n ω ∈ TC.H
+  /-- Empirical sup-min optimality at index `n`, using `lambda n`. -/
+  opt :
+    ∀ n ω, ∀ h' ∈ TC.H,
+      supObjective S TC sample split (lambda n) (h_hat n ω) n ω
+        ≤ supObjective S TC sample split (lambda n) h' n ω
+  /-- Joint measurability of `(omega, x) ↦ h_hat n omega x`. -/
   measurable :
     ∀ n, Measurable (fun p : Ω × S.𝒳 => h_hat n p.1 p.2)
 

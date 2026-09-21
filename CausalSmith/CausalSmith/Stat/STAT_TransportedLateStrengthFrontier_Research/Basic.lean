@@ -16,26 +16,29 @@ The two independent finite product samples reuse `Causalean.Stat.Sample` and
 `Causalean.Stat.Sample.PiTransport`.
 -/
 
-import Mathlib.MeasureTheory.Measure.Decomposition.Lebesgue
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Probability.ConditionalProbability
-import Mathlib.Probability.ProductMeasure
-import Mathlib.Probability.Distributions.Uniform
-import Mathlib.Probability.UniformOn
-import Mathlib.Topology.Instances.ENNReal.Lemmas
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Order.Filter.AtTopBot.CountablyGenerated
-import Causalean.Stat.Sample
-import Causalean.Stat.Sample.PiTransport
-import Causalean.PO.ID.Exact.LATE
+module
+public import Mathlib.MeasureTheory.Measure.Decomposition.Lebesgue
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Probability.ConditionalProbability
+public import Mathlib.Probability.ProductMeasure
+public import Mathlib.Probability.Distributions.Uniform
+public import Mathlib.Probability.UniformOn
+public import Mathlib.Topology.Instances.ENNReal.Lemmas
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Order.Filter.AtTopBot.CountablyGenerated
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Sample.PiTransport
+public import Causalean.PO.ID.Exact.LATE
+
+/-! ## Explicit full-data and observed-data worlds -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
 open Filter MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal Topology
-
-/-! ## Explicit full-data and observed-data worlds -/
 
 /-- Full-data coordinate `(S,X,D(0),D(1),Y(0),Y(1))`. -/
 abbrev FullData (𝒳 : Type*) := Bool × 𝒳 × Bool × Bool × ℝ × ℝ

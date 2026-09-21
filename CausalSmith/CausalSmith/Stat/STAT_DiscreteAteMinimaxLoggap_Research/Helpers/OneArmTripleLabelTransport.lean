@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmObservationCounts
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmFuzzyReduction
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmObservationCounts
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmFuzzyReduction
 
 /-!
 # Lossless triple-label transport on the control-zero model
@@ -8,6 +9,8 @@ The three observation labels admit a canonical representative.  On a
 control-zero law this representative channel loses no information, because
 the omitted control-success atom has probability zero.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

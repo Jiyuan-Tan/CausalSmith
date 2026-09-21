@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic
-import Mathlib.Data.Nat.Factorial.BigOperators
-import Mathlib.Probability.Distributions.Poisson.Basic
-import Mathlib.RingTheory.Binomial
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic
+public import Mathlib.Data.Nat.Factorial.BigOperators
+public import Mathlib.Probability.Distributions.Poisson.Basic
+public import Mathlib.RingTheory.Binomial
 
 /-! Centered falling-factorial lifts for Poisson counts. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

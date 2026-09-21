@@ -1,0 +1,869 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}multiintervention\_\allowbreak{}width\_\allowbreak{}bounds}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For the headline subcase \(\mathfrak I_{q,k}^{\ge3}\) of the cardinality-unrestricted superclass \(\mathfrak J_{q,k}\), raw observational rows bound every original response block by \(q^2(k+1)\) coordinates. Every local and equality-factor feasible set is first posed in a finite-dimensional real space by an explicit rational H-representation; separate lemmas establish boundedness, compactness, rational extreme points, and \(O(B^2)\) coordinate encoding before support enumeration. Connected equality splitting preserves width and block-affinity, so standard min-sum and max-sum elimination computes exact sharp multi-intervention endpoints, rational attaining SCMs, and skeptical replay certificates in \(2^{O(q^2(k+1)^2)}\operatorname{poly}(B)\) bit operations. The one- and two-component restrictions of \(\mathfrak J_{q,k}\) reproduce the published linear and quadratic programs. The genuine open step is executable serialized refinement with universal compatible-SCM validity and endpoint realization.
+
+\section{Project justification}
+
+\paragraph{Gap.} Higher-degree quasi-Markovian causal bounds are addressed by stationary-point search or general epsilon-sharp polynomial optimization. Their broad admissible program classes strictly contain the semantic image of the present explicit rational bounded-width class, but neither source gives exact endpoint and skeptical-certificate guarantees on that common image.
+
+\paragraph{Niche.} Small discrete multi-intervention queries often already materialize response columns and raw equalities, so their scalar interaction graph can be narrow even though the causal graph, objective degree, or canonical latent cardinality alone gives no tractability guarantee.
+
+\paragraph{Fill.} The project supplies explicit rational H-representations in real ambient spaces, proves factor boundedness and rational vertex encoding before enumeration, proves the raw clique bound and exact within-block gluing, and then derives exact elimination and an abstract mathematical certificate theorem. A concrete serialized parser, generator, executable checker, and their end-to-end refinement proof remain open.
+
+\section{Related work}
+
+Shridharan and Iyengar motivate the problem most directly: their admissible canonical program class contains the forgetful image of \(\mathfrak I_{q,k}^{\ge3}\), while their exact linear and quadratic subfamily is incomparable with the headline class because the latter contains genuine degree-at-least-three objectives and excludes one- and two-component inputs. Their higher-degree guarantee is stationary-point convergence; the exact-width theorem strictly tightens that guarantee only on the common explicit bounded-width image. Duarte et al.'s discrete causal polynomial-program class also strictly contains this image because it permits broader graphs, real input tables, and unbounded scalar width; the exact-width theorem tightens epsilon-sharp output to exact rational sharpness only on the shared subclass and does not subsume their admissible class. Zaffalon, Antonucci, and Cabañas establish the quasi-Markovian credal correspondence, while Zaffalon et al. show that ordinary polytree structure does not make exact credal causal inference tractable in general. Dechter supplies the standard induced-width elimination and backpointer machinery; no new elimination rule is claimed. Sachs et al. supply response-function matrices and tight symbolic certificates for a linear class, and Li, Passmore, and Paulson supply the skeptical producer--checker architecture. Arroyo et al. address response-state explosion through single-intervention column generation under a different representation. Alvarez and Ferrando's recent dynamic-regime recursion occupies rectangular chain-style backward induction but not the canonical response-width kernel. The causaloptim interface of Jonzon, Sachs, and Gabriel is the prospective consumer, contingent on a future eligible-input exporter.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=\Pr_M(E_Y\mid\operatorname{do}(a))\).
+Primary functional / estimator / diagnostic: \([\underline\theta,\overline\theta]=[\min_{z\in\prod_{c\in C}K_c}g(z),\max_{z\in\prod_{c\in C}K_c}g(z)]\).
+\begin{itemize}
+  \item \texttt{G} --- \texttt{A finite directed graph.}; \(\mathsf{DAG}\); \texttt{structural input}
+  \par\smallskip\noindent\emph{Definition.} \(G\) is the declared causal graph.
+  \item \texttt{V} --- \texttt{A finite indexed family of observed endogenous variables.}; \texttt{observed variables}
+  \par\smallskip\noindent\emph{Definition.} \(V=V(G)\cap\mathsf{Observed}\).
+  \item \texttt{Uroot} --- \texttt{A finite indexed family of exogenous root variables.}; \texttt{latent roots}
+  \par\smallskip\noindent\emph{Definition.} \(U_{\mathrm{root}}=V(G)\cap\mathsf{Exogenous}\).
+  \item \texttt{C} --- \texttt{An indexed family of observed child blocks.}; \texttt{C-\allowbreak{}components}
+  \par\smallskip\noindent\emph{Definition.} \(C=(C_c)_c\), where \(C_c\subseteq V\) is the set of observed children of exogenous root \(c\in U_{\mathrm{root}}\).
+  \item \texttt{q} --- \texttt{A positive integer.}; \(\mathbb N_{\ge 2}\); \texttt{alphabet parameter}
+  \par\smallskip\noindent\emph{Definition.} \(q\) is the largest allowed observed alphabet size.
+  \item \texttt{Pobs} --- A probability mass function on the joint alphabet of \(V\).; \(\Delta(\operatorname{Val}(V))\); \texttt{observational law}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\mathrm{obs}}(v)\) is the supplied observational cell probability.
+  \item \texttt{a} --- A fixed partial intervention assignment on \(V\).; \texttt{intervention}
+  \par\smallskip\noindent\emph{Definition.} \(a\in\prod_{X\in\operatorname{dom}(a)}\operatorname{Val}(X)\), where \(\operatorname{dom}(a)\subseteq V\).
+  \item \texttt{EY} --- \texttt{An event in the interventional observed sample space.}; \texttt{query event}
+  \par\smallskip\noindent\emph{Definition.} \(E_Y\subseteq\operatorname{Val}(V)\) is the declared outcome event.
+  \item \texttt{M} --- \texttt{A class of finite structural causal models.}; \texttt{compatible-\allowbreak{}SCM class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M(G,P_{\mathrm{obs}})\) is the class of finite quasi-Markovian SCMs with graph \(G\) and observational law \(P_{\mathrm{obs}}\).
+  \item \texttt{Q} --- A real-valued causal-query functional on \(M\).; \(Q:\mathcal M(G,P_{\mathrm{obs}})\to[0,1]\); \texttt{causal estimand functional}
+  \par\smallskip\noindent\emph{Definition.} \(Q(M_0)=\Pr_{M_0}(E_Y\mid\operatorname{do}(a))\).
+  \item \texttt{I} --- \texttt{A finite binary serialization.}; \texttt{algorithmic input}
+  \par\smallskip\noindent\emph{Definition.} \(I\) encodes \(G,P_{\mathrm{obs}},a,E_Y\) and the explicit canonical response optimization records.
+  \item \texttt{B} --- \texttt{A positive integer.}; \(\mathbb N\); \texttt{input-\allowbreak{}size parameter}
+  \par\smallskip\noindent\emph{Definition.} \(B=|I|_{\mathrm{bit}}\) is the full binary length of \(I\).
+  \item \texttt{Rc} --- For each \(c\), a finite set of canonical response-table tuples.; \texttt{canonical response domain}
+  \par\smallskip\noindent\emph{Definition.} \(R_c=\prod_{X\in C_c}\operatorname{Fun}(\operatorname{Val}(\operatorname{pa}_G(X)),\operatorname{Val}(X))\), as fully listed in \(I\).
+  \item \texttt{zc} --- For each \(c\), a real response-mass vector.; \(\mathbb R^{R_c}\); \texttt{optimization variable}
+  \par\smallskip\noindent\emph{Definition.} \(z_c=(z_{c,r})_{r\in R_c}\).
+  \item \texttt{Ac} --- For each \(c\), a rational zero--one matrix.; \texttt{raw observational equality matrix}
+  \par\smallskip\noindent\emph{Definition.} \(A_c[e,v_c,r]=\mathbf 1\{r\text{ produces }v_c\text{ under external-parent context }e\}\), with every raw row serialized in \(I\).
+  \item \texttt{bc} --- For each \(c\), a positive rational vector indexed by external-parent contexts and child outputs.; \texttt{component kernel}
+  \par\smallskip\noindent\emph{Definition.} For a topological order \(V_1,\ldots,V_m\), \(b_c[e,v_c]=\prod_{i:V_i\in C_c}P_{\mathrm{obs}}(V_i=v_i\mid V_1=v_1,\ldots,V_{i-1}=v_{i-1})\), evaluated at the assignment matching \((e,v_c)\).
+  \item \texttt{Kc} --- For each \(c\), a polytope in a finite-dimensional real vector space with rational H-representation.; \texttt{local feasible response masses}
+  \par\smallskip\noindent\emph{Definition.} \(K_c=\{z_c\in\mathbb R^{R_c}:\begin{bmatrix}A_c\\-A_c\\-I_{R_c}\end{bmatrix}z_c\le\begin{bmatrix}b_c\\-b_c\\0\end{bmatrix}\}\).
+  \item \texttt{K} --- \texttt{A product of finite-\allowbreak{}dimensional real polytopes with rational H-\allowbreak{}representations.}; \texttt{global canonical feasible set}
+  \par\smallskip\noindent\emph{Definition.} \(K=\prod_{c\in C}K_c\).
+  \item \texttt{g} --- \texttt{A rational block-\allowbreak{}affine polynomial.}; \(g:K\to\mathbb R\); \texttt{expanded causal query}
+  \par\smallskip\noindent\emph{Definition.} \(g(z)=\sum_j\gamma_j\prod_{(c,r)\in S_j}z_{c,r}\), where \(\gamma_j\in\mathbb Q\) and each \(S_j\) contains at most one coordinate from any original block \(c\).
+  \item \texttt{Primal} --- \texttt{A finite undirected graph.}; \texttt{scalar response-\allowbreak{}factor primal graph}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R(I)\) has one vertex for each scalar \(z_{c,r}\) and an edge for each pair co-occurring in a raw equality row or one monomial of \(g\).
+  \item \texttt{T} --- A tree decomposition of \(Primal\).; \texttt{elimination certificate input}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal T\) is the supplied bag tree whose bags cover every vertex and edge of \(\mathcal R(I)\) and satisfy running intersection.
+  \item \texttt{k} --- \texttt{A nonnegative integer.}; \(\mathbb N\); \texttt{supplied width}
+  \par\smallskip\noindent\emph{Definition.} \(k=\max_{t\in\mathcal T}|\operatorname{bag}(t)|-1\).
+  \item \texttt{InputClassAll} --- A class of serialized inputs indexed by \(q\) and \(k\).; \texttt{cardinality-\allowbreak{}unrestricted analysis domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak J_{q,k}\) is the bounded-width canonical superclass constructed in \(\text{def:canonical-input-superclass}\); it imposes no lower bound on the number of intervention-touched C-components.
+  \item \texttt{InputClass} --- A subclass of \(\mathfrak J_{q,k}\) indexed by \(q\) and \(k\).; \texttt{headline multi-\allowbreak{}component analysis domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak I_{q,k}^{\ge3}\) is the headline input class constructed in \(\text{def:input-class}\).
+  \item \texttt{InputClassNoWidth} --- A class of fully expanded serialized inputs indexed by \(q\).; \texttt{no-\allowbreak{}width binary analysis domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak J_q^{\mathrm{nw}}\) is the class constructed in \(\text{def:no-width-input-class}\), with neither an intervention-cardinality restriction nor a supplied-width requirement.
+  \item \texttt{Eq} --- A spanning subgraph of \(Primal\).; \texttt{equality-\allowbreak{}incidence graph}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E\) retains exactly the edges induced by co-occurrence in rows of \(A_cz_c=b_c\).
+  \item \texttt{H} --- \texttt{A finite indexed family of vertex sets.}; \texttt{connected equality factors}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal H=\operatorname{cc}(\mathcal E)\), including isolated response coordinates.
+  \item \texttt{AH} --- For each \(H\in\mathcal H\), a rational matrix.; \texttt{factor equality matrix}
+  \par\smallskip\noindent\emph{Definition.} \(A_H\) is the restriction of the raw matrices \((A_c)_c\) to all rows and columns supported in \(H\).
+  \item \texttt{bH} --- For each \(H\in\mathcal H\), a rational vector.; \texttt{factor equality right-\allowbreak{}hand side}
+  \par\smallskip\noindent\emph{Definition.} \(b_H\) is the restriction of the raw kernel vectors \((b_c)_c\) to the rows retained in \(A_H\).
+  \item \texttt{KH} --- For each \(H\in\mathcal H\), a polytope in \(\mathbb R^H\) with rational H-representation.; \texttt{split local factor}
+  \par\smallskip\noindent\emph{Definition.} \(K_H=\{x_H\in\mathbb R^H:\begin{bmatrix}A_H\\-A_H\\-I_H\end{bmatrix}x_H\le\begin{bmatrix}b_H\\-b_H\\0\end{bmatrix}\}\).
+  \item \texttt{Ksplit} --- \texttt{A product of finite-\allowbreak{}dimensional real polytopes with rational H-\allowbreak{}representations.}; \texttt{split global feasible set}
+  \par\smallskip\noindent\emph{Definition.} \(K^{\mathrm{split}}=\prod_{H\in\mathcal H}K_H\).
+  \item \texttt{s} --- \texttt{A positive integer.}; \texttt{local coordinate bound}
+  \par\smallskip\noindent\emph{Definition.} \(s=q^2(k+1)\).
+  \item \texttt{VH} --- For each \(H\in\mathcal H\), a finite set of rational vectors.; \texttt{finite elimination domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V_H\) is the canonical list obtained by solving \(A_{H,S}x_S=b_H\) over every linearly independent support \(S\subseteq H\), extending each nonnegative solution by zeros, and removing duplicates; \(\text{lem:rational-factor-vertices}\) derives \(\mathcal V_H=\operatorname{ext}(K_H)\).
+  \item \texttt{ell} --- \texttt{A nonnegative integer.}; \texttt{relevant-\allowbreak{}block parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\ell\) is the number of original blocks \(c\) that occur in at least one monomial scope \(S_j\) of \(g\).
+  \item \texttt{thetaL} --- \texttt{An extended real number.}; \texttt{sharp lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(\underline\theta=\inf_{M_0\in\mathcal M(G,P_{\mathrm{obs}})}Q(M_0)\).
+  \item \texttt{thetaU} --- \texttt{An extended real number.}; \texttt{sharp upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(\overline\theta=\sup_{M_0\in\mathcal M(G,P_{\mathrm{obs}})}Q(M_0)\).
+  \item \texttt{Cert} --- \texttt{A finite serialized certificate record.}; \texttt{replay evidence}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma\) contains canonical local vertex lists, support classifications, contracted bags, lower and upper separator tables, attaining backpointers, and two reconstructed original response-mass vectors.
+  \item \texttt{Verify} --- \texttt{A total Boolean function.}; \(\operatorname{Verify}:I\times\Gamma\to\{0,1\}\); \texttt{skeptical verifier}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Verify}(I,\Gamma)\) is the exact-arithmetic replay construction in \(\text{def:certificate-verifier}\).
+  \item \texttt{Gen} --- \texttt{A partial certificate-\allowbreak{}producing function on well-\allowbreak{}formed inputs.}; \(\operatorname{Gen}:\mathfrak I_{q,k}^{\ge3}\to\Gamma\); \texttt{untrusted certificate generator}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Gen}(I)\) exhaustively enumerates local supports, fills exact separator tables, and records attaining backpointers and endpoint masses.
+  \item \texttt{Handle} --- \texttt{A proof-\allowbreak{}and-\allowbreak{}construction handle.}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Refine}\) is the skeptical exact-rational parser and replay route specified in \(\text{def:refinement-handle}\).
+  \item \texttt{Forget} --- \texttt{A forgetful map from serialized canonical inputs to algebraic canonical programs.}; \texttt{comparator embedding}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi(I)\) deletes only serialization order and the supplied decomposition from \(I\), retaining its canonical variables, raw equalities, nonnegativity constraints, and query polynomial.
+  \item \texttt{SIPrograms} --- \texttt{The admissible quasi-\allowbreak{}Markovian canonical program class of Shridharan-\allowbreak{}-\allowbreak{}Iyengar.}; \texttt{published comparator classes}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak S_{\mathrm{SI}}\) contains their finite quasi-Markovian canonical multilinear programs, and \(\mathfrak S_{\mathrm{SI}}^{\le2}\) is its at-most-quadratic exact-optimization subfamily.
+  \item \texttt{DuartePrograms} --- \texttt{The admissible discrete causal polynomial-\allowbreak{}program class of Duarte et al.}; \texttt{published comparator class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak S_{\mathrm{D}}\) contains the finite discrete SCM polynomial programs covered by their causal-program equivalence and epsilon-sharp spatial branch-and-bound guarantee.
+  \item \texttt{Fixture} --- \texttt{A finite fully serialized canonical input and two endpoint response-\allowbreak{}mass records.}; \texttt{sanity and corruption-\allowbreak{}test fixture}
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf F_\star\) is the exact binary three-component record constructed in \(\text{def:serialized-sanity-fixture}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-acyclic]\label{ass:finite-acyclic}
+\(G\) is finite and acyclic.
+\par\smallskip\noindent\emph{Standard} (Finite acyclic SCM graph, \cite{DuarteEtAl2023}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-roots]\label{ass:independent-roots}
+Every \(M_0\in\mathcal M(G,P_{\mathrm{obs}})\) has mutually independent variables in \(U_{\mathrm{root}}\).
+\par\smallskip\noindent\emph{Standard} (Quasi-Markovian independent-root condition, \cite{ZaffalonAntonucciCabanas2020}).
+\end{assumption}
+
+\begin{assumption}[ass:unique-root-parent]\label{ass:unique-root-parent}
+Every variable in \(V\) has at most one parent in \(U_{\mathrm{root}}\).
+\par\smallskip\noindent\emph{Standard} (Quasi-Markovian unique exogenous-parent condition, \cite{ShridharanIyengar2023}).
+\end{assumption}
+
+\begin{assumption}[ass:two-children]\label{ass:two-children}
+Every variable in \(U_{\mathrm{root}}\) has at most two children in \(V\).
+\par\smallskip\noindent\emph{Standard} (At-most-two-child quasi-Markovian condition, \cite{ZaffalonAntonucciCabanas2020}).
+\end{assumption}
+
+\begin{assumption}[ass:alphabet-bound]\label{ass:alphabet-bound}
+\(|\operatorname{Val}(X)|\le q\) for every \(X\in V\).
+\par\smallskip\noindent\emph{Standard} (Finite discrete alphabet condition, \cite{DuarteEtAl2023}).
+\end{assumption}
+
+\begin{assumption}[ass:rational-table]\label{ass:rational-table}
+\(P_{\mathrm{obs}}(v)\in\mathbb Q\) for every \(v\in\operatorname{Val}(V)\).
+\par\smallskip\noindent\emph{Novel.} Exact rational tables arise from finite cell counts and from released tabulations; the condition defines the certifiable-data regime rather than changing the causal model.
+\end{assumption}
+
+\begin{assumption}[ass:positive-table]\label{ass:positive-table}
+\(P_{\mathrm{obs}}(v)>0\) for every \(v\in\operatorname{Val}(V)\).
+\par\smallskip\noindent\emph{Novel.} Full-support finite tables occur in randomized factorial systems and in deliberately smoothed public contingency tables; positivity makes every prefix component kernel unambiguous while leaving endpoint response masses free to vanish.
+\end{assumption}
+
+\begin{assumption}[ass:compatible-law]\label{ass:compatible-law}
+\(\mathcal M(G,P_{\mathrm{obs}})\ne\varnothing\).
+\par\smallskip\noindent\emph{Standard} (Observational compatibility, \cite{DuarteEtAl2023}).
+\end{assumption}
+
+\begin{assumption}[ass:multi-component-treatment]\label{ass:multi-component-treatment}
+The intervention assignment \(a\) touches at least three distinct blocks in \(C\).
+\par\smallskip\noindent\emph{Standard} (Higher-degree intervened-C-component regime, \cite{ShridharanIyengar2023}).
+\end{assumption}
+
+\begin{assumption}[ass:complete-response-list]\label{ass:complete-response-list}
+\(I\) contains exactly one record for every element of every \(R_c\).
+\par\smallskip\noindent\emph{Novel.} Graph-to-response compilers already generate explicit canonical response columns for small discrete graphs, including the matrices used by symbolic-bound software; this condition makes that existing finite representation auditable.
+\end{assumption}
+
+\begin{assumption}[ass:complete-raw-equalities]\label{ass:complete-raw-equalities}
+\(I\) contains every row of \(A_cz_c=b_c\) for every block \(c\).
+\par\smallskip\noindent\emph{Novel.} Explicit response-function matrices used for small discrete SCMs naturally expose these rows; retaining redundant rows provides a stable, independently checkable serialization contract.
+\end{assumption}
+
+\begin{assumption}[ass:complete-nonnegativity]\label{ass:complete-nonnegativity}
+\(I\) contains one scalar nonnegativity record for every coordinate of every \(z_c\).
+\par\smallskip\noindent\emph{Novel.} Explicit canonical response programs already list scalar response masses, so recording each sign restriction is a direct and auditable finite representation.
+\end{assumption}
+
+\begin{assumption}[ass:block-affine-query]\label{ass:block-affine-query}
+Every monomial of \(g\) contains at most one coordinate from each original block \(c\in C\).
+\par\smallskip\noindent\emph{Standard} (C-component-wise affine canonical query, \cite{ShridharanIyengar2023}).
+\end{assumption}
+
+\begin{assumption}[ass:complete-query-expansion]\label{ass:complete-query-expansion}
+\(I\) contains every nonzero rational coefficient and scalar scope in the declared canonical expansion of \(g\).
+\par\smallskip\noindent\emph{Novel.} Literal canonical query expansion is generated for small graph-to-bound instances and permits a third party to replay the source query without trusting an algebraic simplifier.
+\end{assumption}
+
+\begin{assumption}[ass:valid-decomposition]\label{ass:valid-decomposition}
+\(T\) is a valid tree decomposition of \(Primal\) with width \(k\).
+\par\smallskip\noindent\emph{Standard} (Tree-decomposition running-intersection condition, \cite{Dechter1999}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:canonical-input-superclass]\label{def:canonical-input-superclass}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Cardinality-\allowbreak{}unrestricted fully expanded bounded-\allowbreak{}width canonical input superclass}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak J_{q,k}=\{I:\text{for every block }c\in C\text{ and every serialized row, coordinate, monomial, and bag index, }I\text{ satisfies }\text{ass:finite-acyclic},\text{ass:independent-roots},\text{ass:unique-root-parent},\text{ass:two-children},\text{ass:alphabet-bound},\text{ass:rational-table},\text{ass:positive-table},\text{ass:compatible-law},\text{ass:complete-response-list},\text{ass:complete-raw-equalities},\text{ass:complete-nonnegativity},\text{ass:block-affine-query},\text{ass:complete-query-expansion},\text{ass:valid-decomposition}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}acyclic}; \texttt{ass:\allowbreak{}independent-\allowbreak{}roots}; \texttt{ass:\allowbreak{}unique-\allowbreak{}root-\allowbreak{}parent}; \texttt{ass:\allowbreak{}two-\allowbreak{}children}; \texttt{ass:\allowbreak{}alphabet-\allowbreak{}bound}; \texttt{ass:\allowbreak{}rational-\allowbreak{}table}; \texttt{ass:\allowbreak{}positive-\allowbreak{}table}; \texttt{ass:\allowbreak{}compatible-\allowbreak{}law}; \texttt{ass:\allowbreak{}complete-\allowbreak{}response-\allowbreak{}list}; \texttt{ass:\allowbreak{}complete-\allowbreak{}raw-\allowbreak{}equalities}; \texttt{ass:\allowbreak{}complete-\allowbreak{}nonnegativity}; \texttt{ass:\allowbreak{}block-\allowbreak{}affine-\allowbreak{}query}; \texttt{ass:\allowbreak{}complete-\allowbreak{}query-\allowbreak{}expansion}; \texttt{ass:\allowbreak{}valid-\allowbreak{}decomposition}.
+\end{definition}
+
+\begin{definition}[def:input-class]\label{def:input-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Headline multi-\allowbreak{}intervention fully expanded bounded-\allowbreak{}width canonical input class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak I_{q,k}^{\ge3}=\{I\in\mathfrak J_{q,k}:I\text{ satisfies }\text{ass:multi-component-treatment}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}acyclic}; \texttt{ass:\allowbreak{}independent-\allowbreak{}roots}; \texttt{ass:\allowbreak{}unique-\allowbreak{}root-\allowbreak{}parent}; \texttt{ass:\allowbreak{}two-\allowbreak{}children}; \texttt{ass:\allowbreak{}alphabet-\allowbreak{}bound}; \texttt{ass:\allowbreak{}rational-\allowbreak{}table}; \texttt{ass:\allowbreak{}positive-\allowbreak{}table}; \texttt{ass:\allowbreak{}compatible-\allowbreak{}law}; \texttt{ass:\allowbreak{}multi-\allowbreak{}component-\allowbreak{}treatment}; \texttt{ass:\allowbreak{}complete-\allowbreak{}response-\allowbreak{}list}; \texttt{ass:\allowbreak{}complete-\allowbreak{}raw-\allowbreak{}equalities}; \texttt{ass:\allowbreak{}complete-\allowbreak{}nonnegativity}; \texttt{ass:\allowbreak{}block-\allowbreak{}affine-\allowbreak{}query}; \texttt{ass:\allowbreak{}complete-\allowbreak{}query-\allowbreak{}expansion}; \texttt{ass:\allowbreak{}valid-\allowbreak{}decomposition}.
+\end{definition}
+
+\begin{definition}[def:no-width-input-class]\label{def:no-width-input-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fully expanded canonical input class without width or intervention-\allowbreak{}cardinality restrictions}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak J_q^{\mathrm{nw}}=\{I:\text{for every block }c\in C\text{ and every serialized row, coordinate, and monomial, }I\text{ satisfies }\text{ass:finite-acyclic},\text{ass:independent-roots},\text{ass:unique-root-parent},\text{ass:two-children},\text{ass:alphabet-bound},\text{ass:rational-table},\text{ass:positive-table},\text{ass:compatible-law},\text{ass:complete-response-list},\text{ass:complete-raw-equalities},\text{ass:complete-nonnegativity},\text{ass:block-affine-query},\text{ass:complete-query-expansion}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}acyclic}; \texttt{ass:\allowbreak{}independent-\allowbreak{}roots}; \texttt{ass:\allowbreak{}unique-\allowbreak{}root-\allowbreak{}parent}; \texttt{ass:\allowbreak{}two-\allowbreak{}children}; \texttt{ass:\allowbreak{}alphabet-\allowbreak{}bound}; \texttt{ass:\allowbreak{}rational-\allowbreak{}table}; \texttt{ass:\allowbreak{}positive-\allowbreak{}table}; \texttt{ass:\allowbreak{}compatible-\allowbreak{}law}; \texttt{ass:\allowbreak{}complete-\allowbreak{}response-\allowbreak{}list}; \texttt{ass:\allowbreak{}complete-\allowbreak{}raw-\allowbreak{}equalities}; \texttt{ass:\allowbreak{}complete-\allowbreak{}nonnegativity}; \texttt{ass:\allowbreak{}block-\allowbreak{}affine-\allowbreak{}query}; \texttt{ass:\allowbreak{}complete-\allowbreak{}query-\allowbreak{}expansion}.
+\end{definition}
+
+\begin{definition}[def:local-response-product]\label{def:local-response-product}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical response feasible product}
+\par\smallskip\noindent\emph{Construction.} \(K=\prod_{c\in C}K_c\), where \(K_c=\{z_c\in\mathbb R^{R_c}:H_cz_c\le h_c\}\), \(H_c=\begin{bmatrix}A_c\\-A_c\\-I_{R_c}\end{bmatrix}\), and \(h_c=\begin{bmatrix}b_c\\-b_c\\0\end{bmatrix}\); every entry of \(H_c,h_c\) is rational and explicitly serialized or reconstructed from \(I\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}; \texttt{Pobs}.
+\end{definition}
+
+\begin{definition}[def:equality-factor-product]\label{def:equality-factor-product}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Connected equality-\allowbreak{}factor product}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H=\operatorname{cc}(\mathcal E)\) and \(K^{\mathrm{split}}=\prod_{H\in\mathcal H}K_H\), where \(K_H=\{x_H\in\mathbb R^H:H_Hx_H\le h_H\}\), \(H_H=\begin{bmatrix}A_H\\-A_H\\-I_H\end{bmatrix}\), and \(h_H=\begin{bmatrix}b_H\\-b_H\\0\end{bmatrix}\); \(A_H,b_H\) use every raw row whose support lies in \(H\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}.
+\end{definition}
+
+\begin{definition}[def:sharp-interval]\label{def:sharp-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp compatible-\allowbreak{}SCM interval}
+\par\smallskip\noindent\emph{Construction.} \([\underline\theta,\overline\theta]=[\inf_{M_0\in\mathcal M(G,P_{\mathrm{obs}})}Q(M_0),\sup_{M_0\in\mathcal M(G,P_{\mathrm{obs}})}Q(M_0)]\).
+\end{definition}
+
+\begin{definition}[def:serialized-sanity-fixture]\label{def:serialized-sanity-fixture}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fully serialized positive binary cubic fixture}
+\par\smallskip\noindent\emph{Construction.} The record \(\mathsf F_\star\) orders every index lexicographically and contains the following exact fields. Its graph has observed vertices \(V_\star=\{X_i,M_i:i\in\{1,2,3\}\}\), independent roots \(U_i\) with edges \(U_i\to X_i,U_i\to M_i,X_i\to M_i\), and edges \(M_1\to M_2\to M_3\); put \(D_1=\{\star\}\), \(D_2=D_3=\{0,1\}\), and \(M_0=\star\). The observational table lists all \(64\) cells as \(P_\star(x_1,m_1,x_2,m_2,x_3,m_3)=2^{-3}\prod_{i=1}^3\pi_i(x_i,m_{i-1})^{m_i}[1-\pi_i(x_i,m_{i-1})]^{1-m_i}\), where \(\pi_1(x,\star)=1/2\), \(\pi_i(0,0)=1/4\), \(\pi_i(0,1)=3/4\), and \(\pi_i(1,p)=1/2\) for \(i\in\{2,3\}\). The intervention is \(a_\star=(X_1,X_2,X_3)=(0,0,0)\), the event is \(E_\star=\{M_3=1\}\), and \(R_i^\star=\{(x,f):x\in\{0,1\},\ f:\{0,1\}\times D_i\to\{0,1\}\}\), giving block sizes \(8,32,32\). The input lists every coordinate, every indicator row \(A_i[p,x^{\prime},m,(x,f)]=\mathbf 1\{x=x^{\prime}\}\mathbf 1\{f(x^{\prime},p)=m\}\), with right-hand side \(b_i[p,x^{\prime},m]=2^{-1}\operatorname{Ber}(m;\pi_i(x^{\prime},p))\) and \(\operatorname{Ber}(v;p)=p^v(1-p)^{1-v}\), every nonnegativity row, and the query polynomial \(g_\star(z)=\sum_{r_1,r_2,r_3}z_{1,r_1}z_{2,r_2}z_{3,r_3}\mathbf 1\{f_3(0,f_2(0,f_1(0,\star)))=1\}\), which has \(4096\) nonzero cubic monomials. Its supplied decomposition is the one-node tree with bag \(\{z_{i,r}:i\in\{1,2,3\},r\in R_i^\star\}\), hence width \(71\). For a map \(h:D_i\to\{0,1\}\), define factual-table laws by
+\[
+\kappa_{1,x}(h)=\frac12\quad(x\in\{0,1\}),
+\]
+\[
+\begin{aligned}
+\kappa_{i,0}(h)
+&=\frac34\mathbf 1\{(h(0),h(1))=(0,1)\}
++\frac14\mathbf 1\{(h(0),h(1))=(1,0)\},\\
+\kappa_{i,1}(h)
+&=\frac12\mathbf 1\{(h(0),h(1))=(0,1)\}
++\frac12\mathbf 1\{(h(0),h(1))=(1,0)\},
+\qquad i\in\{2,3\}.
+\end{aligned}
+\]
+For \(t\in\{0,1\}\), the endpoint vector field is
+\[
+z_{i,(x,f)}^{\star,t}
+=\frac12\,\kappa_{i,x}\bigl(p\mapsto f(x,p)\bigr)
+\mathbf 1\{f(1-x,p)=t\text{ for all }p\in D_i\}.
+\]
+The lower record uses \(t=0\), the upper record uses \(t=1\), and the replay record requires exact checks of all raw equalities, nonnegativity, unit root masses, all \(64\) observational cells, \(g_\star(z^{\star,0})=11/64\), \(g_\star(z^{\star,1})=53/64\), equality-factor sizes \(2,2,2,2\) and \(16,16\) in each later block, factor-vertex counts \(80\) and \(32\) in each later block, \(243\) projected vertex tuples, the one-row empty-separator tables \(11/64\) and \(53/64\), and backpointers to the two listed endpoint vectors.
+\end{definition}
+
+\begin{definition}[def:certificate-verifier]\label{def:certificate-verifier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact support and separator verifier}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Verify}(I,\Gamma)\) parses canonical records; recomputes \(b_c\), \(\mathcal E\), \(\mathcal H\), and contracted bags; classifies every support \(S\subseteq H\) by exact rational rank, consistency, and nonnegativity; compares the resulting canonical list with \(\mathcal V_H\); recomputes every lower and upper separator-table row by finite min-sum or max-sum recurrence; follows backpointers; and accepts exactly when both reconstructed original mass vectors satisfy all raw equalities and evaluate under \(g\) to the claimed endpoints.
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}; \texttt{Cert}.
+\end{definition}
+
+\begin{definition}[def:refinement-handle]\label{def:refinement-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Skeptical executable-\allowbreak{}refinement handle}
+\par\smallskip\noindent\emph{Construction.} Use a length-delimited parser for \(I\) and \(\Gamma\), a normalized arbitrary-precision rational datatype, exhaustive support classification by fraction-free linear algebra, and bag-local dynamic-programming replay; derive the untrusted generator from the same mathematical support domains while proving only the parser, checker, and decoder trusted. This specifies the starting technique and target objects, not a candidate implementation.
+\par\smallskip\noindent\emph{Inputs.} \texttt{I}; \texttt{Cert}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:canonical-semantics]\label{prop:canonical-semantics}
+For every \(I\in\mathfrak J_q^{\mathrm{nw}}\), canonicalization and the prefix component kernels are sound and complete: \(\{Q(M_0):M_0\in\mathcal M(G,P_{\mathrm{obs}})\}=\{g(z):z\in\prod_{c\in C}K_c\}\). In particular, concatenating feasible real response masses produces a finite compatible SCM, and pushing any finite compatible SCM through its deterministic response tables produces a feasible point with the same query value.
+\end{proposition}
+\begin{proof}
+Fix \(I\in\mathfrak J_q^{\mathrm{nw}}\), and fix the topological order \(V_1,\ldots,V_m\) used in the definition of \(b_c\).  Write \(v_{<i}=(v_1,\ldots,v_{i-1})\) and
+\[
+p_i(v):=\frac{P_{\mathrm{obs}}(v_{\le i})}{P_{\mathrm{obs}}(v_{<i})}.
+\]
+Every denominator is positive by \(\text{ass:positive-table}\), because it is a sum of positive full-cell probabilities.  Hence the chain rule gives
+\[
+P_{\mathrm{obs}}(v)=\prod_{i=1}^m p_i(v). \tag{1}
+\]
+An observed variable with no exogenous parent is deterministic given its observed parents.  If it had at least two possible values, then, for any positive-probability parent assignment, one of those values would have conditional probability zero, contradicting \(\text{ass:positive-table}\).  Such a variable therefore has singleton alphabet and contributes the factor one below.
+
+First let \(M_0\in\mathcal M(G,P_{\mathrm{obs}})\).  For a root \(c\), each value \(u_c\) selects, through the structural equations, one deterministic response tuple \(r_c(u_c)\in R_c\).  Push the law of \(u_c\) forward through this map and set
+\[
+z_{c,r}:=\Pr_{M_0}\{r_c(U_c)=r\}.
+\]
+These masses are nonnegative and sum to one.  For a full assignment \(v\), define the prefix factor
+\[
+F_{c,i}(v):=
+\sum_{r\in R_c}z_{c,r}
+\prod_{j\le i:\,V_j\in C_c}
+\mathbf 1\{r\text{ produces }v_j\text{ at the parent values in }v_{<j}\}.
+\]
+Acyclicity from \(\text{ass:finite-acyclic}\) ensures that every parent value needed in the product is already in the prefix.  Mutual independence of the roots, \(\text{ass:independent-roots}\), and the unique-root-parent condition give
+\[
+\Pr_{M_0}(V_{\le i}=v_{\le i})=\prod_c F_{c,i}(v). \tag{2}
+\]
+When \(V_i\in C_c\), only the \(c\)-factor changes from (2) at \(i-1\) to (2) at \(i\).  Both sides of (2) are positive, so division is legitimate and
+\[
+p_i(v)=\frac{F_{c,i}(v)}{F_{c,i-1}(v)}. \tag{3}
+\]
+Multiplying (3) over the indices for which \(V_i\in C_c\) telescopes, because \(F_{c,0}=1\), and yields
+\[
+F_{c,m}(v)=\prod_{i:\,V_i\in C_c}p_i(v)=b_c[e_c(v),v_{C_c}]. \tag{4}
+\]
+The left side of (4) is exactly the corresponding row of \(A_cz_c\).  Thus \(z_c\in K_c\).  Canonicalization has preserved every structural equation under observation and intervention, and \(\text{ass:complete-query-expansion}\) therefore gives
+\[
+Q(M_0)=g(z). \tag{5}
+\]
+This proves the inclusion from left to right in the asserted equality of value sets.
+
+Conversely, let \(z=(z_c)_c\in\prod_cK_c\).  Fix one external-parent context \(e\) for block \(c\).  Acyclic evaluation of the children in \(C_c\) maps each \(r\in R_c\) to exactly one output \(v_c\), so the supports of the rows \((e,v_c)\) partition \(R_c\).  Applying (4) to any compatible model, whose existence is \(\text{ass:compatible-law}\), shows that the corresponding right-hand sides form a probability mass function and hence sum to one.  Summing all equations for that fixed \(e\) now gives
+\[
+\sum_{r\in R_c}z_{c,r}=
+\sum_{v_c}b_c[e,v_c]=1. \tag{6}
+\]
+Thus each \(z_c\) is a probability law.  Construct a finite SCM by taking mutually independent roots with laws \(z_c\) and using the response tuples as the deterministic structural equations.  For every full assignment \(v\), its observational probability in this constructed model is, by root independence and the raw equations,
+\[
+\prod_c (A_cz_c)[e_c(v),v_{C_c}]
+=\prod_c b_c[e_c(v),v_{C_c}]
+=\prod_c\prod_{i:\,V_i\in C_c}p_i(v)
+=P_{\mathrm{obs}}(v), \tag{7}
+\]
+where the last equality is (1), with singleton rootless variables contributing one.  Hence the constructed model lies in \(\mathcal M(G,P_{\mathrm{obs}})\).  Direct evaluation after replacing the equations for \(\operatorname{dom}(a)\) gives the fully serialized polynomial, so
+\[
+Q(M_z)=g(z). \tag{8}
+\]
+Equations (5) and (8) establish both inclusions.  The response-function architecture is the one credited to \cite{ShridharanIyengar2023} and \cite{ZaffalonAntonucciCabanas2020}; equations (2)--(7) supply the required prefix-kernel audit, including interleaved endogenous parents.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the semantic bridge preventing a certificate for the wrong component kernel from being reported as a causal bound. \textit{Gap.} Duarte et al. and Zaffalon et al. establish canonical polynomial or credal semantics; the new part is the explicit prefix-kernel audit needed for interleaved parents and serialized replay. \textit{Consumer.} A graph-to-bound exporter can reject an ordinary-conditional source kernel before optimization.
+
+\begin{lemma}[lem:raw-clique-width]\label{lem:raw-clique-width}
+Fix \(I\in\mathfrak J_{q,k}\), a block \(c\in C\), and one external-parent context. The raw equality supports partition \(R_c\) into at most \(q^2\) cliques of \(Primal\). Consequently \(|R_c|\le q^2(k+1)=s\), without adding an explicit normalization row.
+\end{lemma}
+\begin{proof}
+Fix \(I\in\mathfrak J_{q,k}\), a block \(c\), and an external-parent context \(e\).  By \(\text{ass:finite-acyclic}\), evaluating the children in \(C_c\) in topological order sends each deterministic response tuple \(r\in R_c\) to one and only one output vector \(v_c\).  Consequently the row supports
+\[
+S_{e,v_c}:=\{r\in R_c:A_c[e,v_c,r]=1\}
+\]
+are pairwise disjoint and satisfy
+\[
+R_c=\mathop{\dot\bigcup}_{v_c\in\operatorname{Val}(C_c)}S_{e,v_c}. \tag{9}
+\]
+There are at most
+\[
+|\operatorname{Val}(C_c)|
+=\prod_{X\in C_c}|\operatorname{Val}(X)|
+\le q^{|C_c|}\le q^2 \tag{10}
+\]
+such sets, using \(\text{ass:two-children}\) and \(\text{ass:alphabet-bound}\).  By the definition of \(Primal\), every two distinct coordinates in one nonempty \(S_{e,v_c}\) are adjacent, because they co-occur in the raw equality row serialized under \(\text{ass:complete-raw-equalities}\).  Thus each support in (9) is a clique.
+
+It remains to bound the size of a clique from the supplied decomposition.  For every vertex of a clique, the bags containing it form a connected subtree of \(T\).  The subtrees for two clique vertices intersect because some bag covers their edge.  Pairwise-intersecting subtrees of a tree have a common node: choose two nodes at maximum distance among the union of their pairwise intersections; the unique-path property otherwise produces a pair of disjoint subtrees.  Hence one bag contains the whole clique.  By \(\text{ass:valid-decomposition}\), that bag has size at most \(k+1\).  Summing (9) and applying (10) yields
+\[
+|R_c|=\sum_{v_c}|S_{e,v_c}|
+\le |\operatorname{Val}(C_c)|(k+1)
+\le q^2(k+1)=s. \tag{11}
+\]
+Only the raw partition rows were used; no normalization row was added.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma converts the supplied scalar width into a bound on each explicit response block, which is the missing finite-domain parameter. \textit{Gap.} Shridharan--Iyengar note the fixed-context partition and implied normalization but do not combine it with scalar primal width to bound canonical block size. \textit{Consumer.} The support enumerator obtains a finite \(2^s\) local domain without reconstructing any unlisted canonical state.
+
+\begin{lemma}[lem:rational-h-representations]\label{lem:rational-h-representations}
+For every \(I\in\mathfrak J_q^{\mathrm{nw}}\), each local feasible set is the nonempty bounded real polyhedron \(K_c=\{z_c\in\mathbb R^{R_c}:H_cz_c\le h_c\}\), with \(H_c=[A_c^{\mathsf T},-A_c^{\mathsf T},-I_{R_c}]^{\mathsf T}\) and \(h_c=[b_c^{\mathsf T},-b_c^{\mathsf T},0^{\mathsf T}]^{\mathsf T}\). Each equality factor is the nonempty bounded real polyhedron \(K_H=\{x_H\in\mathbb R^H:H_Hx_H\le h_H\}\) with the analogous explicit rational matrices. For a fixed external-parent context, summing the partition rows supported in \(H\) gives \(\sum_{r\in H}x_{H,r}=\mu_H\) for a rational \(0\le\mu_H\le1\); hence every \(K_c\) and \(K_H\) is closed, bounded, and compact. If also \(I\in\mathfrak J_{q,k}\), then \(|H|\le q^2(k+1)\).
+\end{lemma}
+\begin{proof}
+Fix \(I\in\mathfrak J_q^{\mathrm{nw}}\).  Every entry of \(A_c\) is zero or one.  Every prefix marginal is a finite sum of entries of the rational table \(P_{\mathrm{obs}}\), and its denominator is nonzero by \(\text{ass:positive-table}\).  Therefore each prefix conditional and each finite product defining \(b_c\) is rational.  The displayed matrices \(H_c,h_c\), and their restrictions \(H_H,h_H\), are consequently rational, and the equality-plus-nonnegativity definitions give exactly
+\[
+K_c=\{z_c:H_cz_c\le h_c\},\qquad
+K_H=\{x_H:H_Hx_H\le h_H\}. \tag{12}
+\]
+
+By \(\text{prop:canonical-semantics}\) and \(\text{ass:compatible-law}\), every \(K_c\) contains the response masses of a compatible model.  Restricting one such vector to the coordinates of each equality component proves that every \(K_H\) is nonempty.  Equality edges never join two original blocks, so every \(H\) is contained in one \(R_c\).  Moreover, the support of each raw equality row is a clique and hence is contained wholly in one equality component, including the singleton-support case.
+
+Fix an external-parent context \(e\) for that block.  By the partition (9), the rows for \(e\) whose supports lie in \(H\) partition \(H\).  Summing precisely those equalities gives
+\[
+\sum_{r\in H}x_{H,r}
+=\sum_{v_c:S_{e,v_c}\subseteq H}b_c[e,v_c]
+=:\mu_H. \tag{13}
+\]
+The full row sum is one by equation (6), and each summand is nonnegative, so
+\[
+0\le\mu_H\le1. \tag{14}
+\]
+Together with \(x_H\ge0\), (13)--(14) imply \(0\le x_{H,r}\le1\) for every coordinate.  Summing all fixed-context rows similarly gives \(\sum_{r\in R_c}z_{c,r}=1\), so the same coordinate bound holds on \(K_c\).  Both sets are intersections of finitely many closed half-spaces and are therefore closed; the coordinate bounds make them bounded.  In their finite-dimensional Euclidean spaces, they are compact.
+
+If in addition \(I\in\mathfrak J_{q,k}\), then \(H\subseteq R_c\) and (11) imply
+\[
+|H|\le |R_c|\le q^2(k+1). \tag{15}
+\]
+This proves every assertion, including factorwise boundedness without an explicit normalization constraint.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The feasible objects must be genuine compact subsets of finite-dimensional real spaces before compactness or vertex arguments can be invoked. \textit{Gap.} The canonical causal-program papers write equality-and-nonnegativity systems, but do not isolate the within-block factors with this explicit H-representation and factorwise mass bound. \textit{Consumer.} Every later use of compactness and finite support domains is grounded in an auditable rational inequality system.
+
+\begin{lemma}[lem:rational-factor-vertices]\label{lem:rational-factor-vertices}
+For every \(I\in\mathfrak J_q^{\mathrm{nw}}\) and equality factor \(H\), a feasible \(x_H\in K_H\) is extreme if and only if the columns of \(A_H\) indexed by its positive support are linearly independent. The support construction defining \(\mathcal V_H\) therefore satisfies \(\mathcal V_H=\operatorname{ext}(K_H)\), contains at most \(2^{|H|}\) rational vectors, and every numerator and denominator in every listed vector has binary encoding length \(O(B^2)\). The same conclusions hold for each \(K_c\); in particular, rationality and the encoding-length bound are established before any endpoint theorem invokes vertex enumeration or elimination.
+\end{lemma}
+\begin{proof}
+Fix an equality factor and abbreviate \(A=A_H\), \(b=b_H\), and \(K=\{x\ge0:Ax=b\}\).  Let \(S_+(x)=\{j:x_j>0\}\).
+
+Suppose first that the columns \(A_{S_+(x)}\) are linearly dependent.  Choose \(0\ne d_{S_+(x)}\in\ker A_{S_+(x)}\) and extend it by zero.  Since every coordinate of \(x\) on this finite support is positive, there is \(\epsilon>0\) such that \(x\pm\epsilon d\ge0\).  Then
+\[
+A(x\pm\epsilon d)=b,\qquad
+x=\tfrac12(x+\epsilon d)+\tfrac12(x-\epsilon d), \tag{16}
+\]
+with two distinct feasible endpoints.  Thus \(x\) is not extreme.
+
+Conversely, suppose the positive-support columns are independent and
+\(x=\lambda y+(1-\lambda)w\) for \(0<\lambda<1\) and \(y,w\in K\).  If \(j\notin S_+(x)\), nonnegativity and \(0=\lambda y_j+(1-\lambda)w_j\) force \(y_j=w_j=0\).  Hence \(A_{S_+(x)}y_{S_+(x)}=b=A_{S_+(x)}w_{S_+(x)}\).  Column independence makes the supported solution unique, so \(y=w=x\).  Therefore
+\[
+x\in\operatorname{ext}(K_H)
+\quad\Longleftrightarrow\quad
+A_{H,S_+(x)}\text{ has full column rank}. \tag{17}
+\]
+
+For each \(S\subseteq H\), the construction of \(\mathcal V_H\) rejects a dependent set; for an independent set it solves the overdetermined system exactly, rejects inconsistency or negativity, and extends an accepted solution by zero.  An accepted vector is extreme by (17), even if a computed zero reduces its positive support.  Conversely, applying the construction to \(S_+(x)\) lists every extreme point \(x\).  Canonical duplicate removal therefore gives
+\[
+\mathcal V_H=\operatorname{ext}(K_H),\qquad
+|\mathcal V_H|\le2^{|H|}. \tag{18}
+\]
+
+For the encoding bound, every tested subsystem uses at most \(B\) rows and columns.  Its coefficient matrix is zero--one, while all rational entries of its right-hand side are serialized or reconstructed from a rational table whose total binary description is charged to \(B\).  A prefix marginal is a sum of serialized cell probabilities; forming all prefix denominators used by one tested subsystem and then the at-most-two-child products introduces at most \(O(B)\) rational factors, each of at most \(O(B)\) bits.  Thus a common denominator for the selected right-hand side, and every integer numerator over it, has \(O(B^2)\) bits.  If \(r\) independent columns are accepted, select \(r\) independent rows and call the resulting integer zero--one matrix \(D\).  The adjugate formula \(D^{-1}=\operatorname{adj}(D)/\det(D)\) expresses each coordinate as a sum of \(r\) right-hand-side entries multiplied by zero--one cofactors.  Each cofactor has absolute value at most \((r-1)!\), so it has \(O(r\log r)\) bits, and \(r\le B\).  Hence every resulting numerator and denominator has
+\[
+O(B^2+r\log r)=O(B^2) \tag{19}
+\]
+binary digits.  The same argument with \(A_c,b_c\) proves (17)--(19) for \(K_c\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates rational vertex existence and bit growth from the later optimization theorem instead of smuggling them into an undefined use of \(\operatorname{ext}\). \textit{Gap.} Standard rational-polyhedron facts do not by themselves certify that the serialized support list is exhaustive or quantify its coordinate encoding under this canonical input measure. \textit{Consumer.} The generator and skeptical verifier obtain an exact finite rational domain with an explicit per-coordinate bit budget.
+
+\begin{proposition}[prop:comparator-class-relations]\label{prop:comparator-class-relations}
+For every fixed \(q,k\), \(\Phi(\mathfrak I_{q,k}^{\ge3})\subsetneq\mathfrak S_{\mathrm{SI}}\cap\mathfrak S_{\mathrm{D}}\): inclusion follows from canonical semantics, and it is proper because both published admissible classes permit nonrational tables and programs with scalar width exceeding \(k\), while the Duarte et al. class additionally permits broader discrete causal structures.  For every \(q,k\), \(\mathfrak S_{\mathrm{SI}}^{\le2}\not\subseteq\Phi(\mathfrak I_{q,k}^{\ge3})\), since the former contains one- and two-component programs excluded by the headline treatment-cardinality condition.  If \(k\ge71\), then also \(\Phi(\mathfrak I_{q,k}^{\ge3})\not\subseteq\mathfrak S_{\mathrm{SI}}^{\le2}\), witnessed by a positive binary three-component cubic input and padding of its supplied decomposition to width exactly \(k\).  Thus the two classes are incomparable for \(k\ge71\).  No reverse noncontainment is asserted for \(k<71\).  The exact-width theorem is a strict guarantee improvement only on the common explicit bounded-width higher-degree image, not a subsumption of either comparator's full admissible program class.
+\end{proposition}
+\begin{proof}
+By \(\text{prop:canonical-semantics}\), forgetting serialization order and the supplied decomposition from any \(I\in\mathfrak I_{q,k}^{\ge3}\) leaves a finite quasi-Markovian canonical multilinear program with exactly the same feasible response laws and causal objective.  The published scopes recorded in \(\text{lem:shridharan-degree-frank-wolfe}\) and \(\text{lem:duarte-polynomial-bounds}\) therefore imply
+\[
+\Phi(\mathfrak I_{q,k}^{\ge3})
+\subseteq\mathfrak S_{\mathrm{SI}}\cap\mathfrak S_{\mathrm D}. \tag{20}
+\]
+The inclusion is proper.  For any fixed \(q\ge2\) and \(k\), take a binary quasi-Markovian canonical program with three touched components and give one child sufficiently many binary observed parents.  For a fixed parent context, one output row then contains more than \(k+1\) complete response coordinates.  That row creates a clique of size greater than \(k+1\), so no width-\(k\) decomposition exists, while the resulting finite canonical polynomial program is in both published admissible classes.  Alternatively, choosing an irrational Bernoulli observational probability produces a member of both published real-probability classes that violates \(\text{ass:rational-table}\).  Either witness is outside the image in (20), proving strictness.  Duarte et al.'s all-discrete scope also contains structures outside the quasi-Markovian graph restriction, as recorded by its cited leaf.
+
+For the first reverse noncontainment, a one-component linear canonical program belongs to \(\mathfrak S_{\mathrm{SI}}^{\le2}\) by \(\text{lem:shridharan-degree-frank-wolfe}\), but it is excluded from every \(\mathfrak I_{q,k}^{\ge3}\) by \(\text{ass:multi-component-treatment}\).  Hence
+\[
+\mathfrak S_{\mathrm{SI}}^{\le2}
+\not\subseteq\Phi(\mathfrak I_{q,k}^{\ge3}). \tag{21}
+\]
+
+For the other direction at \(k=71\), use three binary root blocks of sizes \(8,32,32\), a strictly positive rational chain law, intervention on one treatment in every block, and the fully expanded event probability whose \(4096\) nonzero monomials each select one coordinate from every block.  The one-bag decomposition on all \(72\) coordinates has width \(71\), and the objective has degree three; thus its forgotten program is not in \(\mathfrak S_{\mathrm{SI}}^{\le2}\).  For \(k>71\), add enough irrelevant binary one-child blocks to provide at least \(k-71\) additional isolated scalar coordinates, include those coordinates in the central bag, and attach their singleton raw-row bags.  Bag size becomes \(k+1\), edge coverage and running intersection remain valid, and the same cubic objective is unchanged.  Since binary alphabets satisfy every bound \(q\ge2\),
+\[
+k\ge71\quad\Longrightarrow\quad
+\Phi(\mathfrak I_{q,k}^{\ge3})
+\not\subseteq\mathfrak S_{\mathrm{SI}}^{\le2}. \tag{22}
+\]
+Equations (20)--(22) prove the narrowed proposition.  The restriction is necessary: every monomial scope is a clique of \(Primal\), so width \(k<2\) rules out a nonzero degree-three monomial and cannot support the original universal noncontainment argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The guarantee comparison is meaningful only after the proposed serialized class is located exactly inside the published admissible program domains. \textit{Gap.} The comparator papers do not formulate the explicit scalar equality-and-objective width subclass, so neither their broad admissibility nor their low-degree tractability statement supplies this inclusion audit. \textit{Consumer.} A referee can distinguish a strict guarantee improvement on a common subclass from a false claim that bounded scalar width covers every published causal program.
+
+\begin{proposition}[prop:low-component-reductions]\label{prop:low-component-reductions}
+For every \(I\in\mathfrak J_{q,k}\), exact substitution of the observational component kernels for every intervention-untouched original block produces an equivalent canonical program. If the intervention touches exactly one original block, the reduced objective is linear and reproduces the one-component linear program of Shridharan--Iyengar. If it touches exactly two original blocks, the reduced objective is block-bilinear, hence quadratic after scalar expansion, and reproduces their two-component quadratic program. The headline domain is exactly \(\mathfrak I_{q,k}^{\ge3}=\{I\in\mathfrak J_{q,k}:a\text{ touches at least three blocks in }C\}\).
+\end{proposition}
+\begin{proof}
+Fix \(I\in\mathfrak J_{q,k}\).  In the derivation of \(\text{prop:canonical-semantics}\), equation (4) shows that the contribution of a block with no intervened child is the fixed observational prefix kernel
+\[
+b_c[e,v_c]=\prod_{i:V_i\in C_c}p_i(v). \tag{23}
+\]
+Summing the non-outcome variables and substituting (23) therefore removes every intervention-untouched block without changing any value \(Q(M_0)\); this is an algebraic substitution of its raw equalities, not an independence assumption.  This is also the degree reduction recorded in \(\text{lem:shridharan-degree-frank-wolfe}\).
+
+After the substitution, \(\text{ass:block-affine-query}\) says that every remaining monomial contains at most one scalar coordinate from each touched original block.  With one touched block, every monomial consequently has degree at most one, so the objective and constraints form a linear program.  With two touched blocks, every monomial has degree at most two and is affine in each block, so scalar expansion is a quadratic, block-bilinear program.  The published cited result identifies these as precisely the one- and two-component reductions.  Finally, the displayed equality for the headline domain is the defining set difference in \(\text{def:input-class}\) relative to \(\text{def:canonical-input-superclass}\).  This proves all three assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The superclass makes the required one- and two-component sanity reductions well-typed without weakening the headline three-component domain. \textit{Gap.} Shridharan--Iyengar supply the low-degree programs, while the missing formal point here is their exact restriction relation to the cardinality-unrestricted serialized superclass. \textit{Consumer.} A frontend can dispatch one- and two-component inputs to the published low-degree path and reserve the certified-width path for the headline subcase.
+
+\begin{theorem}[thm:equality-factor-gluing]\label{thm:equality-factor-gluing}
+For every \(I\in\mathfrak J_{q,k}\), the coordinate restriction map is an isomorphism of real polytopes with rational H-representations, \(\prod_{c\in C}K_c\cong\prod_{H\in\mathcal H}K_H\). The polynomial \(g\) is affine in each \(K_H\); contracting every connected \(H\) in \(Primal\) preserves width at most \(k\); every extremum of \(g\) over the product is attained at a point in \(\prod_H\mathcal V_H\); and every such rational product vertex concatenates into one normalized independent-root finite SCM compatible with \(P_{\mathrm{obs}}\).
+\end{theorem}
+\begin{proof}
+Every raw equality row contains coordinates from one original block, and its nonempty support is contained in one connected component of \(\mathcal E\).  Hence, after permuting rows and columns, the full family of systems \(A_cz_c=b_c\), \(z_c\ge0\), is block diagonal with diagonal blocks \(A_Hx_H=b_H\), \(x_H\ge0\).  Coordinate restriction and concatenation are inverse linear maps, so
+\[
+\rho:\prod_{c\in C}K_c\longrightarrow\prod_{H\in\mathcal H}K_H,
+\qquad \rho(z)=(z|_H)_H, \tag{24}
+\]
+is an isomorphism.  The matrices in both representations are rational by \(\text{lem:rational-h-representations}\).
+
+Each \(H\) lies within one original block.  Since a monomial of \(g\) uses at most one coordinate from an original block by \(\text{ass:block-affine-query}\), it uses at most one coordinate from \(H\).  Holding all other factors fixed therefore makes \(g\) an affine function of \(x_H\).
+
+To contract the equality factors in the supplied decomposition, replace every scalar vertex label in every bag by its component label \(H\) and remove duplicates.  For a fixed \(H\), the original occurrence bags of each scalar vertex form a subtree.  If two scalar vertices are adjacent along a path in the connected graph \(\mathcal E[H]\), the two subtrees intersect in a bag covering that equality edge.  The union of the subtrees along a connected spanning tree of \(H\) is therefore connected.  It is exactly the occurrence set of the contracted label.  Thus running intersection survives.  Every contracted edge is covered by the image of a bag covering an original edge, and deduplication never increases bag size.  The contracted decomposition consequently has width at most \(k\).
+
+By \(\text{lem:rational-h-representations}\), the product in (24) is compact, so \(g\) has a maximum.  Starting from a maximizer, fix every factor except one.  The remaining section is affine on a polytope and attains its maximum on a face containing a vertex: if a maximizer is not extreme, decompose it and retain an endpoint with the same affine value, iterating in finite dimension.  Replace the selected factor by that vertex.  Global optimality prevents an increase, so the value is preserved.  Repeating over all factors gives a maximizer in \(\prod_H\mathcal V_H\) by \(\text{lem:rational-factor-vertices}\).  Applying the same argument to \(-g\) gives a product-vertex minimizer.
+
+Finally, concatenate any \((x_H)_H\in\prod_H\mathcal V_H\) using \(\rho^{-1}\).  Equations (13)--(14) and the complete fixed-context row partitions give a normalized vector in every original block.  Its coordinates are rational by \(\text{lem:rational-factor-vertices}\).  The converse direction of \(\text{prop:canonical-semantics}\) then constructs mutually independent finite roots with exactly these masses, proves compatibility with \(P_{\mathrm{obs}}\), and preserves \(g\).  The split factors have thus been glued into the original roots; they were not declared to be new independent roots.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem rules out the false relaxation in which disconnected pieces are treated as unrelated latent roots or contracted without running intersection. \textit{Gap.} Zaffalon et al. and Shridharan--Iyengar prove products across exogenous roots or C-components, not an iff within-block equality split with width-preserving contraction and source-preserving gluing. \textit{Consumer.} The global optimizer may enumerate small equality factors independently while still returning endpoint models in the originally declared SCM class.
+
+\begin{theorem}[thm:certified-width-endpoints]\label{thm:certified-width-endpoints}
+For every \(I\in\mathfrak I_{q,k}^{\ge3}\), complete support enumeration of the explicitly H-represented factors \(K_H\), followed by standard exact min-sum and max-sum elimination on the contracted decomposition, computes \(\underline\theta\) and \(\overline\theta\), two rational attaining finite SCMs, and a certificate \(\Gamma\) in \(2^{O(q^2(k+1)^2)}\operatorname{poly}(B)\) bit operations. Under the forgetful embeddings in \(\text{prop:comparator-class-relations}\), this strictly tightens the stationary-point guarantee of Shridharan--Iyengar and the epsilon-sharp computational guarantee of Duarte et al. on the common explicit bounded-width subclass by returning exact rational sharp endpoints and independently replayable attainment records.
+\end{theorem}
+\begin{proof}
+Put \(s=q^2(k+1)\).  By \(\text{lem:raw-clique-width}\) and \(\text{lem:rational-h-representations}\), every equality factor has at most \(s\) scalar coordinates.  By \(\text{lem:rational-factor-vertices}\), exhaustive support classification lists its exact vertex domain and
+\[
+|\mathcal V_H|\le 2^s=:D. \tag{25}
+\]
+The product-vertex conclusion of \(\text{thm:equality-factor-gluing}\) shows that replacing \(K_H\) by \(\mathcal V_H\) changes neither extremum.
+
+Contract the supplied decomposition as in that theorem and root its bag tree.  Every monomial scope is a clique of the contracted primal graph: its distinct scalar coordinates were pairwise adjacent before contraction, and block affinity prevents two of them from collapsing from the same original block.  The pairwise-intersecting occurrence subtrees of the clique have a common bag by the tree argument used in \(\text{lem:raw-clique-width}\).  Assign each monomial, by a fixed lexicographic rule, to one containing bag.  Let \(F_t\) be the sum of monomials assigned to bag \(t\), let \(S_t\) be the intersection of that bag with its parent, and let \(S_t=\varnothing\) at the root.
+
+For a separator assignment \(a_t\), define the upper recurrence
+\[
+M_t^+(a_t)=
+\max_{\substack{x\in\prod_{H\in\operatorname{bag}(t)}\mathcal V_H\\x|_{S_t}=a_t}}
+\left\{F_t(x)+\sum_{u\in\operatorname{ch}(t)}M_u^+(x|_{S_u})\right\}, \tag{26}
+\]
+and define \(M_t^-\) by replacing the maximum with a minimum.  Record one attaining bag assignment for every finite row.  The induction invariant is that \(M_t^+(a_t)\) is the exact maximum of all monomials assigned in the subtree of \(t\), conditional on \(a_t\); analogously for \(M_t^-\).  It holds at a leaf by direct enumeration.  Conditional on a bag assignment, interiors of two child subtrees are disjoint, since any shared label would, by running intersection, also occur in the parent bag.  Thus optimizing the child interiors separates and (26) proves the induction step.  The empty-separator root rows are therefore
+\[
+M_{\mathrm{root}}^-(\varnothing)=\min_{z\in K}g(z),
+\qquad
+M_{\mathrm{root}}^+(\varnothing)=\max_{z\in K}g(z). \tag{27}
+\]
+For arbitrary finite rational local factors, subtracting each factor's finite minimum makes the min-sum network nonnegative and changes its optimum only by the known sum of shifts.  Applying the same reduction to the negatives of the local factors gives max-sum.  Thus this is the exact elimination and reconstruction result credited in \(\text{lem:dechter-finite-domain-elimination}\), with the two elementary shifts supplying the adaptation to the present signed rational factors.  Backtracking the recorded choices gives consistent product vertices attaining both values.
+
+By \(\text{prop:canonical-semantics}\), \(\text{def:sharp-interval}\), and \(\text{thm:equality-factor-gluing}\), (27) equals \(\underline\theta,\overline\theta\), and the backtracked rational products concatenate into finite compatible SCMs attaining them.
+
+It remains to account for bit operations.  Support enumeration performs at most \(2^s\) exact rank, consistency, sign, and duplicate tests per factor.  A contracted bag has at most \(k+1\) labels, so it has at most
+\[
+D^{k+1}=2^{s(k+1)}=2^{q^2(k+1)^2} \tag{28}
+\]
+assignments.  The numbers of factors, bags, raw rows, and serialized monomials are all at most polynomial in \(B\).  By (19), local vertex coordinates have polynomial bit length.  A table candidate is a sum of at most \(B\) input monomials and child values.  Each monomial multiplies at most \(B\) rational coordinates and one serialized coefficient, so ordinary numerator and denominator length remains polynomial in \(B\).  A minimum or maximum selects a candidate and does not multiply the denominators of competing candidates.  Exact arithmetic, comparison, and backpointer writing therefore cost \(\operatorname{poly}(B)\) per enumerated object.  Equations (25)--(28) prove the claimed
+\[
+2^{O(q^2(k+1)^2)}\operatorname{poly}(B) \tag{29}
+\]
+bound for generation, certificate length, and replay data.
+
+Finally, \(\text{lem:shridharan-degree-frank-wolfe}\) supplies only a stationary-point guarantee in the higher-degree regime, and \(\text{lem:duarte-polynomial-bounds}\) supplies finite-time valid \(\varepsilon\)-sharp outer bounds.  On their common explicit bounded-width higher-degree image, (27) and the two backtracked rational compatible models certify global exactness and attainment, which is the stated strict guarantee improvement; \(\text{prop:comparator-class-relations}\) prevents interpreting this as class subsumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem is the exact tractability kernel for higher-degree canonical bounds under a representation parameter that genuinely controls every local domain. \textit{Gap.} Shridharan--Iyengar use Frank--Wolfe for three or more intervened C-components, while Duarte et al. provide epsilon-sharp branch-and-bound; neither gives this exact width-sensitive rational guarantee. \textit{Consumer.} The causaloptim graph-to-bound workflow gains a mathematically specified fallback for eligible small higher-degree instances after a future exporter supplies the explicit input and decomposition.
+
+\begin{theorem}[thm:verifier-refinement]\label{thm:verifier-refinement}
+For every \(I\in\mathfrak I_{q,k}^{\ge3}\) and serialized \(\Gamma\), \(\operatorname{Verify}(I,\Gamma)=1\) implies \(Q(M_0)\in[\underline\theta,\overline\theta]\) for every \(M_0\in\mathcal M(G,P_{\mathrm{obs}})\), and the two decoded rational finite SCMs belong to \(\mathcal M(G,P_{\mathrm{obs}})\) and attain \(\underline\theta\) and \(\overline\theta\). Moreover, \(\operatorname{Verify}(I,\operatorname{Gen}(I))=1\), and generation, certificate length, and verification use \(2^{O(q^2(k+1)^2)}\operatorname{poly}(B)\) bit operations.
+\end{theorem}
+\begin{proof}
+Fix a well-formed \(I\in\mathfrak I_{q,k}^{\ge3}\) and a serialized record \(\Gamma\) with \(\operatorname{Verify}(I,\Gamma)=1\).  The parser is total, so acceptance first certifies that every referenced index and rational is well typed.  The verifier recomputes \(b_c\) from the positive rational observational table, rather than trusting a supplied conditional; it also recomputes \(\mathcal E,\mathcal H\), and the contracted bags.  Thus the factors checked are exactly those of \(I\).
+
+For every \(H\), the verifier visits every support \(S\subseteq H\), computes exact rank and consistency, solves every independent consistent support, checks nonnegativity, and removes duplicates canonically.  By the two directions of (17), equality of this recomputed list with the certified list proves
+\[
+\widehat{\mathcal V}_H=\operatorname{ext}(K_H). \tag{30}
+\]
+The verifier then recomputes every value in (26), for both signs, from the original rational monomials and already checked child rows.  Induction on the bag tree, exactly as in the proof of \(\text{thm:certified-width-endpoints}\), proves that every accepted row equals its universal conditional optimum.  Hence the accepted root values satisfy
+\[
+\widehat L=\min_{(x_H)\in\prod_H\mathcal V_H}g(x),
+\qquad
+\widehat U=\max_{(x_H)\in\prod_H\mathcal V_H}g(x). \tag{31}
+\]
+The recorded choices are re-evaluated and required to attain each row, so backtracking yields two globally consistent product vertices attaining \(\widehat L,\widehat U\).
+
+Acceptance additionally concatenates these factor vectors in the original coordinate order and checks every raw equality and every nonnegativity record.  The fixed-context partition then verifies unit mass as in (6).  By \(\text{prop:canonical-semantics}\), the decoded vectors therefore define two rational finite SCMs in \(\mathcal M(G,P_{\mathrm{obs}})\), and the independently evaluated polynomial gives their query values \(\widehat L,\widehat U\).  Equations (30)--(31), \(\text{thm:equality-factor-gluing}\), and canonical semantics identify
+\[
+\widehat L=\underline\theta,\qquad \widehat U=\overline\theta. \tag{32}
+\]
+For arbitrary \(M_0\in\mathcal M(G,P_{\mathrm{obs}})\), canonical semantics supplies \(z(M_0)\in K\), and (31)--(32) give
+\[
+\underline\theta\le g(z(M_0))=Q(M_0)\le\overline\theta. \tag{33}
+\]
+This proves acceptance soundness, universal interval validity, and rational endpoint realization.
+
+For completeness, \(\operatorname{Gen}(I)\) performs the same exhaustive support classification, evaluates the recurrences (26), records a lexicographically first optimizer for every row, backtracks at the root, and serializes the two concatenated vectors.  Each comparison required by \(\operatorname{Verify}\) is therefore reflexively satisfied, so
+\[
+\operatorname{Verify}(I,\operatorname{Gen}(I))=1. \tag{34}
+\]
+The counts and bit-length estimates (25)--(29) apply to generator work, every serialized row and backpointer, and the verifier's independent replay.  This proves the final complexity assertion.  Notice that (34) is a theorem about the finite algorithms defined in \(\text{def:certificate-verifier}\); it does not claim that a separate parser implementation has already been refined to them.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact endpoints become portable scientific claims only when a skeptical checker establishes both universal dominance and endpoint realization. \textit{Gap.} Linear response-bound certificates and generic untrusted algebraic certificates do not compose canonical parsing, exhaustive local supports, separator recurrences, and compatible-SCM decoding for higher-degree queries. \textit{Consumer.} An independent auditor can validate a numerical interval and its endpoint models without trusting the optimizer that produced them.
+
+\begin{theorem}[thm:binary-relevant-block]\label{thm:binary-relevant-block}
+For every \(I\in\mathfrak J_2^{\mathrm{nw}}\), let \(\mathcal D\subseteq C\) be the set of the \(\ell\ge1\) original response blocks occurring in \(g\), and for \(c\in\mathcal D\) put \(N_c=|R_c|\), \(r_c=\operatorname{rank}(A_c)\), and \(L_c=\sum_{j=0}^{r_c}\binom{N_c}{j}\). If every nontrivial variable in \(V\) is binary, then the exact sharp endpoints \(\underline\theta,\overline\theta\) and rational attaining finite SCMs are computable without a width assumption. For any omitted block \(c_*\in\mathcal D\), one complete algorithm enumerates the vertex lists only for \(c\in\mathcal D\setminus\{c_*\}\) and, for each resulting tuple, solves one bounded rational linear program over \(K_{c_*}\) for either endpoint. Its bit complexity is
+\[
+\left(
+ \sum_{c\in\mathcal D\setminus\{c_*\}}L_c
+ +\prod_{c\in\mathcal D\setminus\{c_*\}}
+       |\operatorname{ext}(K_c)|
+\right)\operatorname{poly}(B),
+\]
+and the product in this display is exactly the number of outer linear programs for either endpoint. Dovetailing the choices of \(c_*\) attains the minimum of the displayed instance bounds up to a polynomial factor. In particular, choosing \(c_*\) with largest \(L_c\) gives
+\[
+B^{O((\ell-1)(1+\log B)^2)}\operatorname{poly}(B),
+\]
+so \(\ell=1\) is an exact polynomial-time case. Every query-irrelevant block is completed by rational linear-program feasibility rather than support enumeration.
+\end{theorem}
+\begin{proof}
+Fix \(I\in\mathfrak J_2^{\mathrm{nw}}\), and let \(\mathcal D\subseteq C\) be the set of original blocks appearing in a monomial of \(g\), so that \(|\mathcal D|=\ell\ge 1\).  Membership in \(\mathfrak J_2^{\mathrm{nw}}\), by \(\text{def:no-width-input-class}\), supplies the finite acyclic quasi-Markovian structure, the at-most-two-child condition \(\text{ass:two-children}\), the complete response records \(\text{ass:complete-response-list}\), the rational bounded feasible products of \(\text{def:local-response-product}\), and the block-affine query condition \(\text{ass:block-affine-query}\).  The additional condition in the theorem says that every non-singleton observed alphabet is binary.  Singleton-valued arguments may be deleted from a response table without changing its set of functions or any raw equality row.
+
+We first bound the rank of the raw equality matrix of an original block.  Fix \(c\in C\).  If \(c\) has two nontrivial observed children, let \(d_i\) be the number of nontrivial binary observed argument positions in the serialized response table of child \(i\), and set \(h_i=2^{d_i}\), for \(i=1,2\).  A deterministic binary response function on \(d_i\) binary arguments is a binary string of length \(h_i\), so there are \(2^{h_i}\) such functions.  Since \(R_c\) is the Cartesian product of the child response-function sets and the response list is complete,
+\[
+ N_c=|R_c|=2^{h_1+h_2}.
+ \tag{1}
+\]
+There are at most \(2^{d_1+d_2}=h_1h_2\) joint external-parent contexts.  A shared observed parent identifies argument positions and an observed edge internal to the component removes, rather than adds, a freely assignable external-parent coordinate, so this is an upper bound in all two-child cases.  At any fixed external-parent context, a deterministic response tuple produces exactly one of at most four joint binary child outputs.  Therefore the raw rows at that context have pairwise disjoint supports whose union is \(R_c\), and there are at most four such rows.  Consequently \(A_c\) has at most \(4h_1h_2\) raw rows and
+\[
+ r_c:=\operatorname{rank}(A_c)
+ \le 4h_1h_2
+ \le (h_1+h_2)^2
+ = (\log_2 N_c)^2,
+ \tag{2}
+\]
+where the second inequality is \((h_1-h_2)^2\ge0\), and the last equality uses (1).
+
+If \(c\) has exactly one nontrivial child, let \(d\) be the number of its nontrivial binary observed arguments and put \(h=2^d\).  The unique nontrivial response function has \(2^h\) possible tables, hence \(N_c=2^h\).  There are at most \(h\) external-parent contexts and two output rows per context, whence
+\[
+ r_c\le 2h=2\log_2 N_c.
+ \tag{3}
+\]
+If \(c\) has no nontrivial child, then \(N_c=1\) and \(r_c\le1\).  The three cases (2)--(3) imply the uniform bound
+\[
+ r_c\le4(1+\log_2N_c)^2.
+ \tag{4}
+\]
+This argument uses no tree decomposition or width assumption.
+
+Define
+\[
+ L_c=\sum_{j=0}^{r_c}\binom{N_c}{j}.
+ \tag{5}
+\]
+By \(\text{lem:rational-factor-vertices}\), a feasible point of \(K_c\) is a vertex if and only if the columns of \(A_c\) indexed by its positive support are linearly independent.  In particular, every vertex has positive-support size at most \(r_c\).  Thus the following finite procedure generates the complete list \(\operatorname{ext}(K_c)\): for every \(S\subseteq R_c\) with \(|S|\le r_c\), test exact linear independence of \(A_{c,S}\); when the columns are independent, solve \(A_{c,S}x_S=b_c\), extend a consistent solution by zero off \(S\), retain it exactly when it is nonnegative and satisfies all serialized equalities, and remove exact duplicates.  The same vertex lemma proves both directions of this criterion, so no vertex is omitted and no retained nonvertex survives.
+
+There are exactly \(L_c\) candidate supports in this procedure.  Its linear-algebra work per support is polynomial in \(B\): all rows and columns are explicitly encoded, their number is at most \(B\), and fraction-free elimination expresses every intermediate entry as a minor of an input integer matrix after clearing denominators.  The Leibniz expansion bounds the bit length of such a minor by the sum of the input bit lengths plus \(O(B\log B)\), hence by a polynomial in \(B\).  Moreover, \(\text{lem:rational-factor-vertices}\) gives an \(O(B^2)\) binary encoding bound for every retained numerator and denominator.  Complete-list generation therefore costs \(L_c\operatorname{poly}(B)\) bit operations.  Since \(r_c\le N_c\),
+\[
+ L_c
+ \le \sum_{j=0}^{r_c}N_c^j
+ \le (N_c+1)^{r_c+1}.
+ \tag{6}
+\]
+The complete response serialization contains a distinct nonempty record for every element of \(R_c\), so \(N_c\le B\).  Combining this fact with (4)--(6) yields
+\[
+ L_c\le B^{O((1+\log B)^2)}.
+ \tag{7}
+\]
+
+Now fix one block \(c_*\in\mathcal D\).  Generate complete vertex lists only for the blocks in \(\mathcal D\setminus\{c_*\}\).  For each tuple
+\[
+ v_{-*}\in
+ \prod_{c\in\mathcal D\setminus\{c_*\}}
+ \operatorname{ext}(K_c),
+ \tag{8}
+\]
+substitution into the explicitly serialized expansion of \(g\) leaves at most one coordinate from block \(c_*\) in each monomial, by \(\text{ass:block-affine-query}\).  Hence it produces the explicit rational affine objective
+\[
+ g(v_{-*},x)=\alpha_{v_{-*}}+p_{v_{-*}}^{\mathsf T}x,
+ \qquad x\in K_{c_*}.
+ \tag{9}
+\]
+The coefficient encoding in (9) has length polynomial in \(B\): the expansion has at most \(B\) recorded factors and coefficients in total, while every substituted rational coordinate has \(O(B^2)\) bits, and multiplication and addition increase binary length by at most the sum of operand lengths plus a logarithmic carry term.
+
+By \(\text{lem:rational-h-representations}\), \(K_{c_*}\) is a nonempty bounded rational polyhedron with an explicit representation of polynomial encoding length.  Applying \(\text{lem:exact-rational-linear-programming}\) to (9), with the sign of \(p_{v_{-*}}\) chosen according to the endpoint, computes its exact optimum in \(\operatorname{poly}(B)\) bit operations and returns a rational optimizer.  One may retain a basic optimizer without changing that bound: after computing the optimum, restrict to its rational optimal face and lexicographically maximize the \(N_{c_*}\le B\) coordinates using at most \(N_{c_*}\) further exact rational linear programs.  Each intermediate coordinate optimum is attained at a vertex of the current face and hence at a vertex of \(K_{c_*}\), so \(\text{lem:rational-factor-vertices}\) bounds the newly appended rational equality by \(O(B^2)\) bits.  Every intermediate linear-program encoding therefore remains polynomial in \(B\).  The final face is a singleton, because any two surviving points agree successively in every coordinate; a singleton face is a vertex of \(K_{c_*}\).  Its coordinates consequently have \(O(B^2)\) bits by the same lemma.  Thus (9) is one outer linear optimization problem per tuple, and basic-solution recovery contributes only a polynomial factor.
+
+We next prove that these optimizations give the global endpoints.  Every \(K_c\) is compact by \(\text{lem:rational-h-representations}\), and there are finitely many blocks because \(I\) is finite.  Hence \(\prod_cK_c\) is compact.  The polynomial \(g\) is continuous, so it attains a maximum.  Starting from a global maximizer, fix all but one block \(c\in\mathcal D\setminus\{c_*\}\).  Block-affinity makes the remaining objective affine on \(K_c\).  Its maximum is attained at a vertex: if an optimizer is not extreme, write it as a nontrivial convex combination; affinity shows that at least one constituent is also optimal, and iteration over a finite-dimensional face ends at an extreme point.  Replacing the selected block by such a vertex cannot exceed the already-global value and cannot decrease it, so it preserves the global maximum.  Repeating this operation for every \(c\ne c_*\) proves that a global maximizer has the form enumerated in (8), followed by an optimizer of (9).  Applying the same argument to \(-g\) proves the minimum identity.  Explicitly,
+\[
+ \begin{aligned}
+ \max_{z\in\prod_{c\in C}K_c}g(z)
+ &=\max_{v_{-*}\text{ as in }(8)}
+   \max_{x\in K_{c_*}}g(v_{-*},x),\\
+ \min_{z\in\prod_{c\in C}K_c}g(z)
+ &=\min_{v_{-*}\text{ as in }(8)}
+   \min_{x\in K_{c_*}}g(v_{-*},x).
+ \end{aligned}
+ \tag{10}
+\]
+Blocks outside \(\mathcal D\) do not occur in \(g\).  For each such block, apply \(\text{lem:exact-rational-linear-programming}\) to feasibility, equivalently to the zero objective over the nonempty bounded rational polyhedron \(K_c\).  This supplies a rational feasible completion in polynomial bit time and performs no support enumeration.  There are at most \(B\) blocks because each has at least one explicitly serialized response record, so all irrelevant-block completions together cost \(\operatorname{poly}(B)\).
+
+For fixed \(c_*\), vertex-list construction costs
+\[
+ \left(\sum_{c\in\mathcal D\setminus\{c_*\}}L_c\right)
+ \operatorname{poly}(B),
+ \tag{11}
+\]
+and (10) has exactly
+\[
+ E_{c_*}:=
+ \prod_{c\in\mathcal D\setminus\{c_*\}}
+ |\operatorname{ext}(K_c)|
+ \tag{12}
+\]
+outer linear optimization problems for either endpoint.  Exact rational objective evaluation, comparison, and storage of an optimizing tuple have polynomial bit cost by the encoding bounds above.  Therefore the fixed-branch complexity is
+\[
+ \left(
+ \sum_{c\in\mathcal D\setminus\{c_*\}}L_c+E_{c_*}
+ \right)\operatorname{poly}(B).
+ \tag{13}
+\]
+Running the \(\ell\) choices of \(c_*\) in round-robin and stopping when the first branch finishes multiplies the least instance bound in (13) by at most \(\ell\le B\).  This is a polynomial factor and proves the stated dovetailed minimum guarantee.
+
+For the uniform bound, compute the ranks and the integers \(L_c\) and choose \(c_*\) with largest \(L_c\).  Exact rank computation and comparison of the binary encodings of the \(L_c\)'s are polynomial-time preliminary operations.  Since \(|\operatorname{ext}(K_c)|\le L_c\), equation (7) gives
+\[
+ \begin{aligned}
+ \sum_{c\ne c_*}L_c+E_{c_*}
+ &\le (\ell-1)\max_{c\in\mathcal D}L_c
+      +\left(\max_{c\in\mathcal D}L_c\right)^{\ell-1}\\
+ &\le B^{O((\ell-1)(1+\log B)^2)}\operatorname{poly}(B).
+ \end{aligned}
+ \tag{14}
+\]
+When \(\ell=1\), the sum in (13) is zero and the empty product in (12) is one.  Thus no relevant-block vertex list is generated, and one rational linear optimization problem for each endpoint, plus polynomial-time basic recovery and irrelevant-block completion, gives an exact polynomial-time algorithm.
+
+Finally, combine each rational optimizing tuple furnished by (10) with the rational feasible points selected for the irrelevant blocks.  This gives rational elements of \(\prod_{c\in C}K_c\) attaining the two extrema.  By \(\text{prop:canonical-semantics}\),
+\[
+ \{Q(M_0):M_0\in\mathcal M(G,P_{\mathrm{obs}})\}
+ =\{g(z):z\in\prod_{c\in C}K_c\}.
+ \tag{15}
+\]
+The same proposition reconstructs from each concatenated feasible response-mass vector a normalized finite independent-root SCM with graph \(G\), observational law \(P_{\mathrm{obs}}\), and identical interventional query value.  Because the selected masses are rational, these are rational finite compatible SCMs.  Equations (10) and (15) therefore show that the computed values are exactly the sharp causal endpoints \(\underline\theta\) and \(\overline\theta\), and that both endpoints are attained.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives a second exact regime when a useful decomposition is unavailable but the query touches few original roots. \textit{Gap.} Arroyo et al. obtain polynomial-cardinality column generation for one intervention; the proposed logarithmic-square rank bound covers several explicitly represented relevant blocks and an objective of degree at least three. \textit{Consumer.} A canonical optimizer can dispatch sparse-block binary queries even when its measured scalar response width is large.
+
+\begin{proposition}[prop:three-component-sanity]\label{prop:three-component-sanity}
+The fully serialized record \(\mathsf F_\star\) satisfies \(\mathsf F_\star.I\in\mathfrak I_{2,71}^{\ge3}\). Its listed observational table has \(64\) strictly positive rational cells; its listed raw matrices split into factors of sizes \(2,2,2,2\) and \(16,16\) in each later block; its one-bag decomposition covers every equality and each of its \(4096\) cubic monomial scopes; and exact replay of the two listed response-mass vectors verifies all raw equalities, nonnegativity, unit root masses, and reconstruction of the same table. Complete support replay returns factor-vertex counts \(80\) and \(32\) in each later block, \(243\) projected tuples, and the sharp values \(g_\star(z^{\star,0})=11/64\) and \(g_\star(z^{\star,1})=53/64\). Thus the endpoint masses may contain zeros while every observational cell remains positive.
+\end{proposition}
+\begin{proof}
+For \(\mathsf F_\star\), each treatment bit has probability \(1/2\), and every mediator conditional in the displayed table is one of \(1/4,1/2,3/4\).  Thus all \(64\) cells are positive rational numbers and sum to one by successive Bernoulli summation.  The graph is acyclic, each root has exactly two observed children, each observed variable has one root parent, and the three-variable intervention touches three distinct root blocks.  The complete response counts are
+\[
+|R_1^\star|=2\cdot2^2=8,\qquad
+|R_2^\star|=|R_3^\star|=2\cdot2^4=32. \tag{42}
+\]
+All coordinates, raw rows, signs, and \(4096=8\cdot32\cdot32/2\) nonzero cubic query terms are explicitly listed by the construction.  The single bag contains all \(72\) scalar coordinates, so it covers every edge, has running intersection trivially, and has width \(72-1=71\).  Hence \(\mathsf F_\star.I\in\mathfrak I_{2,71}^{\ge3}\).
+
+For the first block, fixing natural treatment \(x\) and its factual output \(f(x,\star)\) leaves the single counterfactual bit free.  Each raw row therefore has support two, and the four rows are disconnected, giving factor sizes \(2,2,2,2\).
+
+For a later block, fixing the natural treatment \(x\) leaves a factor of \(16\) response functions.  Its equality columns depend only on the two factual bits \((f(x,0),f(x,1))\); each of the four factual column types has multiplicity four, indexed by the two counterfactual bits.  For \(x=0\), the factor mass is \(1/2\) and the two success masses are \(1/8\) and \(3/8\).  If \(w\) is the mass on factual type \((1,1)\), the four factual-type masses are
+\[
+(m_{00},m_{01},m_{10},m_{11})
+=(w,\,3/8-w,\,1/8-w,\,w),
+\qquad 0\le w\le1/8, \tag{43}
+\]
+where the first coordinate equals \(1/2-1/8-3/8+w=w\).  At \(w=0\) the support has size two, and at \(w=1/8\) it has size three.  An extreme lift chooses one of four duplicate counterfactual columns for each positive factual type.  Thus this factor has
+\[
+4^2+4^3=80 \tag{44}
+\]
+vertices.  For \(x=1\), both success masses are \(1/4\), so
+\[
+(m_{00},m_{01},m_{10},m_{11})
+=(w,\,1/4-w,\,1/4-w,\,w),
+\qquad 0\le w\le1/4. \tag{45}
+\]
+Both endpoints have two positive factual types, giving
+\[
+2\cdot4^2=32 \tag{46}
+\]
+vertices.  Equations (43)--(46) also show exact rank three.  The two natural-treatment factors are disconnected because their raw row supports are disjoint.  This proves the asserted \(16,16\) split and vertex counts for each later block.
+
+Under intervention at treatment zero, the first block's fixed natural-zero contribution to \(\Pr(M_1=1)\) is \(1/4\), while the natural-one mass \(1/2\) is counterfactual-free.  Its projected vertex values are therefore
+\[
+p_1\in\{1/4,1/2,3/4\}. \tag{47}
+\]
+At each later stage, the fixed natural-zero success masses are \(1/8\) at predecessor value zero and \(3/8\) at predecessor value one.  The two positive factual atoms at an endpoint of (45), each of mass \(1/4\), may be assigned arbitrary counterfactual bit pairs.  Their coordinatewise success counts can independently be \(0,1,2\).  Hence the projected vertex pairs form exactly
+\[
+\{1/8,3/8,5/8\}\times\{3/8,5/8,7/8\}, \tag{48}
+\]
+which has nine elements.  Equations (47)--(48) give \(3\cdot9\cdot9=243\) projected tuples.
+
+For all feasible masses, convexity fills the intervals
+\[
+p_1\in[1/4,3/4],\qquad
+a_{i0}\in[1/8,5/8],\quad
+a_{i1}\in[3/8,7/8]\quad(i=2,3), \tag{49}
+\]
+and every corner is attainable by assigning the free natural-one counterfactual bits.  The interventional recursion is
+\[
+p_2=(1-p_1)a_{20}+p_1a_{21},\qquad
+p_3=(1-p_2)a_{30}+p_2a_{31}. \tag{50}
+\]
+All coefficients are nonnegative on (49).  Therefore the lower choices give
+\[
+p_2=\frac18+\frac{p_1}{4}\ge\frac{3}{16},
+\qquad
+p_3=\frac18+\frac{p_2}{4}\ge\frac{11}{64}, \tag{51}
+\]
+and the upper choices give
+\[
+p_2=\frac58+\frac{p_1}{4}\le\frac{13}{16},
+\qquad
+p_3=\frac58+\frac{p_2}{4}\le\frac{53}{64}. \tag{52}
+\]
+The vectors \(z^{\star,0}\) and \(z^{\star,1}\) choose \(w=0\) in (43) and (45) and force every response table opposite the natural treatment to zero or one, respectively.  Hence every equality factor is at a vertex and the two vectors attain equality in (51) and (52).  Each \(\kappa_{i,x}\) sums to one; its factual marginals are \(\pi_i(x,p)\), so every root mass sums to one, all masses are nonnegative, and conditioning on the natural treatment reproduces every raw equality.  Root independence then reconstructs the displayed observational table.  Their block supports are \(4,4,4\), so they contain zero masses although the observed table is positive.  Canonical semantics and \(\text{thm:certified-width-endpoints}\) now identify the two displayed attained values as the sharp endpoints.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A complete cubic fixture is the direct sanity check on sharpness, zero endpoint masses, the source kernel, the decomposition, and certificate replay. \textit{Gap.} Recent sharp dynamic-regime recursion covers a rectangular transition model, while this witness tests a canonical response program with disconnected equality factors and no rectangularity assumption supplied externally. \textit{Consumer.} The record is a positive conformance fixture for the generator, verifier, and deliberate certificate-corruption tests.
+
+\begin{openendedquestion}[oeq:executable-refinement]\label{oeq:executable-refinement}
+Using \(\mathsf{Refine}\), can one construct a concrete serialized parser, generator, and executable exact-rational checker that refines \(\operatorname{Gen}\) and \(\operatorname{Verify}\) and prove, for every well-formed \(I\in\mathfrak I_{q,k}^{\ge3}\), the soundness, generator completeness, rational endpoint realization, and \(2^{O(q^2(k+1)^2)}\operatorname{poly}(B)\) bit bound asserted in \(\text{thm:verifier-refinement}\), while replaying \(\mathsf F_\star\) and rejecting a deleted necessary vertex, a corrupted separator entry, a singular-support misclassification, and a source-kernel mismatch?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the load-bearing open content: the abstract finite algorithm must survive serialization, parser, arithmetic, and decoder refinement without weakening the causal guarantee. \textit{Gap.} Li, Passmore, and Paulson establish the producer--checker architecture for univariate algebra, while causaloptim-lean covers linear causal certificates; neither supplies this multiblock support-and-separator refinement. \textit{Consumer.} A portable certificate artifact can be independently replayed by causal-bound software and by a later proof-assistant implementation.
+
+\begin{lemma}[lem:shridharan-degree-frank-wolfe]\label{lem:shridharan-degree-frank-wolfe}
+Within \(\mathfrak S_{\mathrm{SI}}\), Shridharan--Iyengar's canonical reduction for intervention \(a\) has objective \(g\) of degree equal to the number of intervention-touched blocks in \(C\).  Its one-component specialization is linear, its two-component specialization has degree at most two, and for the higher-degree case their Frank--Wolfe method is guaranteed to converge only to an approximate stationary point, rather than to a certified global sharp endpoint.
+\end{lemma}
+
+\begin{lemma}[lem:duarte-polynomial-bounds]\label{lem:duarte-polynomial-bounds}
+The class \(\mathfrak S_{\mathrm D}\) of Duarte et al. contains finite discrete causal polynomial programs, including structures beyond the quasi-Markovian class.  Their spatial branch-and-bound method maintains valid outer bounds, converges to the sharp bounds with sufficient computation, and at finite termination reports an \(\varepsilon\)-sharpness guarantee rather than an exact rational attainment certificate.
+\end{lemma}
+
+\begin{lemma}[lem:dechter-finite-domain-elimination]\label{lem:dechter-finite-domain-elimination}
+\texttt{For a finite nonnegative cost network,\allowbreak{} min-\allowbreak{}sum bucket elimination computes a representation from which a minimum-\allowbreak{}cost assignment is recovered by backtracking,\allowbreak{} and its time and space are exponential in the adjusted induced width.}
+\end{lemma}
+
+\begin{lemma}[lem:exact-rational-linear-programming]\label{lem:exact-rational-linear-programming}
+Given a rational matrix \(D\), rational vectors \(d,p\), and their binary encoding, linear-program feasibility and the finite optimum of \(p^{\mathsf T}x\) over \(\{x:Dx\le d\}\) can be computed exactly in a number of bit operations polynomial in the encoding length; in the nonempty bounded case the computation returns a rational optimal point.
+\end{lemma}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The feasible response masses range over real H-polytopes; rationality is a derived property of their extreme points, not a restriction of the compatible-SCM class. The width bound is representation-sensitive and applies only after every canonical response coordinate, raw equality, nonnegativity record, query monomial, and decomposition bag is charged to \(B\). It does not transfer to implicit response columns or arbitrary algebraic rewrites. Fixing \(P_{\mathrm{obs}}\) is essential because optimization over a rational statistical confidence region can have irrational endpoints. A positive observed table does not justify strictly positive endpoint response masses.
+
+\section{Honest scope}
+
+Every formal node remains to be proved. The abstract support and separator verifier is specified mathematically; the serialized executable refinement, generator completeness proof, parser correctness, adversarial corruption tests, and end-to-end bit bound are explicitly open in \(\text{oeq:executable-refinement}\). The exact endpoint and skeptical-certificate theorems apply to \(\mathfrak I_{q,k}^{\ge3}\); the one- and two-component reductions are statements over \(\mathfrak J_{q,k}\), and the binary relevant-block theorem uses \(\mathfrak J_2^{\mathrm{nw}}\). The fully serialized fixture \(\mathsf F_\star\) fixes the graph, table, intervention, polynomial, decomposition, endpoint masses, and replay obligations. The result excludes hardness, implicit column generation, statistical projection, new elimination machinery, benchmark gains, and any claim that causaloptim already implements the fallback.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ShridharanIyengar2023} Madhumitha Shridharan and Garud Iyengar. Causal Bounds in Quasi-Markovian Graphs. Proceedings of the 40th International Conference on Machine Learning, 2023.
+
+  \bibitem{ShridharanIyengar2022} Madhumitha Shridharan and Garud Iyengar. Scalable Computation of Causal Bounds. Proceedings of the 39th International Conference on Machine Learning, 2022.
+
+  \bibitem{DuarteEtAl2023} Guilherme Duarte, Noam Finkelstein, Dean Knox, Jonathan Mummolo, and Ilya Shpitser. An Automated Approach to Causal Inference in Discrete Settings. Journal of the American Statistical Association, 2023. DOI: 10.1080/01621459.2023.2216909.
+
+  \bibitem{ZaffalonAntonucciCabanas2020} Marco Zaffalon, Alessandro Antonucci, and Rafael Cabañas. Structural Causal Models Are Solvable by Credal Networks. Proceedings of the 10th International Conference on Probabilistic Graphical Models, 2020.
+
+  \bibitem{ZaffalonEtAl2024} Marco Zaffalon, Alessandro Antonucci, Rafael Cabañas, David Huber, and Dario Azzimonti. Efficient Computation of Counterfactual Bounds. International Journal of Approximate Reasoning, 2024.
+
+  \bibitem{Dechter1999} Rina Dechter. Bucket Elimination: A Unifying Framework for Reasoning. Artificial Intelligence 113, 1999.
+
+  \bibitem{Khachiyan1980} Leonid G. Khachiyan. Polynomial Algorithms in Linear Programming. USSR Computational Mathematics and Mathematical Physics 20(1):53–72, 1980. DOI: 10.1016/0041-5553(80)90061-0.
+
+  \bibitem{SachsJonzonSjolanderGabriel2023} Michael C. Sachs, Gustav Jonzon, Arvid Sjölander, and Erin E. Gabriel. A General Method for Deriving Tight Symbolic Bounds on Causal Effects. Journal of Computational and Graphical Statistics 32, 2023.
+
+  \bibitem{ArroyoEtAl2025} João P. Arroyo and coauthors. Multilinear and Linear Programs for Partially Identifiable Queries in Quasi-Markovian Structural Causal Models. UAI Workshop on Causal Abstraction and Representation, 2025. arXiv:2509.03548.
+
+  \bibitem{ChenDarwiche2022} Yizuo Chen and Adnan Darwiche. On the Definition and Computation of Causal Treewidth. Proceedings of the 38th Conference on Uncertainty in Artificial Intelligence, 2022.
+
+  \bibitem{MauaDeCamposBenavoliAntonucci2014} Denis D. Mauá, Cassio P. de Campos, Alessio Benavoli, and Alessandro Antonucci. On the Complexity of Strong and Epistemic Credal Networks. Journal of Artificial Intelligence Research 50, 2014.
+
+  \bibitem{LiPassmorePaulson2019} Wenda Li, Grant Olney Passmore, and Lawrence C. Paulson. Deciding Univariate Polynomial Problems Using Untrusted Certificates in Isabelle/HOL. Journal of Automated Reasoning 62, 2019.
+
+  \bibitem{JonzonSachsGabriel2023} Gustav Jonzon, Michael C. Sachs, and Erin E. Gabriel. Accessible Computation of Tight Symbolic Bounds on Causal Effects Using an Intuitive Graphical Interface. The R Journal, 2023.
+
+  \bibitem{AlvarezFerrando2026} Alexander Alvarez and Sebastian E. Ferrando. Sharp Causal Bounds for Dynamic Treatment Regimes. arXiv:2609.06397, 2026.
+
+\end{thebibliography}
+
+\end{document}

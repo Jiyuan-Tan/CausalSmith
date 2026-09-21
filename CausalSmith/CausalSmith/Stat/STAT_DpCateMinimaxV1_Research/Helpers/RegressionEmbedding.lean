@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CateWitness
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CateWitness
 
 /-! # Regression embedding for the private CATE witness
 
@@ -12,6 +13,8 @@ This module identifies the treated arm of the two-point CATE witness with a
 pointwise-regression experiment.  It also isolates the common, contrast-independent
 control law and proves that the full observed law is the corresponding mixture.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

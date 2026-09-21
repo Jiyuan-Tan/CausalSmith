@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLaw
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLaw
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
 
 /-!
 # Radial outcome representation for the angular packing
@@ -9,6 +10,8 @@ packing vertex directly as the pushforward of its score-first disintegration.
 The representation is the bridge from radial cancellation to the exceptional-
 radius equality and one-point KL estimates used by the final certificate.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

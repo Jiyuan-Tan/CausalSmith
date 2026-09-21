@@ -9,7 +9,7 @@ Every genuine "population bridge" in `Panel/EstimandCharacterization/*` is the
 same construction: a probability space `(Ω, μ)`, a finite measurable partition
 of `Ω` into cells, and potential outcomes on `Ω`; each causal field of a
 paper-specific finite structure is a **cell-conditional mean of a potential
-outcome** (`eventCondExp μ (cell i) f`), and the structure's consistency field
+outcome** (`normalizedRestrictedIntegral μ (cell i) f`), and the structure's consistency field
 is *derived* from pointwise potential-outcome consistency on cells.
 
 This file factors that shared substrate out once:
@@ -21,13 +21,15 @@ This file factors that shared substrate out once:
 * the mass-sums-to-one identity, the finite-partition total law, and the
   congruence/algebra lemmas each paper's bridge reuses.
 
-The canonical cell mean is `Causalean.PO.eventCondExp` (an event-level integral
+The canonical cell mean is `Causalean.Mathlib.Probability.normalizedRestrictedIntegral` (an event-level integral
 divided by the event's real mass); `CellPartition.mean` is a thin wrapper so the
-`eventCondExp` algebra (`eventCondExp_congr_on`, `eventCondExp_sub`, the total
+`normalizedRestrictedIntegral` algebra (`eventCondExp_congr_on`, `eventCondExp_sub`, the total
 law `integral_eq_sum_measure_mul_eventCondExp`) is available cell-indexed.
 -/
 
-import Causalean.PO.Conditioning.EventCondExp
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
 
 /-! # Population cell partition
 
@@ -36,10 +38,13 @@ panel estimand-characterization population bridges are built: a finite
 measurable partition of a probability space into positive-mass cells, together
 with cell masses, cell-conditional means, and their basic identities. -/
 
+@[expose] public section
+
+open Causalean.Mathlib.Probability
+
 namespace Causalean.Panel.PO
 
 open MeasureTheory
-open Causalean.PO
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
@@ -98,7 +103,7 @@ def mass (P : CellPartition μ ι) (i : ι) : ℝ := (μ (P.cell i)).toReal
 Cell-conditional mean `E[f ∣ cell i]`, i.e. the average of `f` over the
 cell computed as its integral over the cell divided by the cell's real mass. -/
 noncomputable def mean (P : CellPartition μ ι) (f : Ω → ℝ) (i : ι) : ℝ :=
-  eventCondExp μ (P.cell i) f
+  normalizedRestrictedIntegral μ (P.cell i) f
 
 /-- Every cell has strictly positive mass. -/
 theorem mass_pos (P : CellPartition μ ι) (i : ι) : 0 < P.mass i := P.cell_pos i

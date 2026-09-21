@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Limit.ContinuousMapping
-import Mathlib.Data.Finset.Max
+module
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Mathlib.Data.Finset.Max
 
 /-!
 # Consistency of finite penalized model selection
@@ -18,6 +19,8 @@ eventually lies in the population-minimizer class.  The selector is expressed
 with an explicit tie rank so applications can impose a fixed deterministic tie rule;
 consistency does not require the rank to be injective.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

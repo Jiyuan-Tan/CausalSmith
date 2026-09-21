@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthLower
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthLower
 
 /-! # Measurability and elementary length bounds for the honest interval -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.DAG
+module
+public import Causalean.Graph.DAG
 
 /-! # Constructing a DAG from a raw acyclic edge relation
 
@@ -23,7 +24,9 @@ structure directly and discharge its `acyclic` field with
 relation definitionally transparent.
 -/
 
-namespace Causalean
+@[expose] public section
+
+namespace Causalean.Graph
 
 namespace DAG
 
@@ -47,4 +50,4 @@ relation](goal). -/
 
 end DAG
 
-end Causalean
+end Causalean.Graph

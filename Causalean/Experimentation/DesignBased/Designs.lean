@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.Bernoulli
-import Causalean.Experimentation.DesignBased.Designs.BernoulliMoments
-import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
-import Causalean.Experimentation.DesignBased.Designs.Stratified
-import Causalean.Experimentation.DesignBased.Designs.ClusterRandomization
+module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Causalean.Experimentation.DesignBased.Designs.BernoulliMoments
+public import Causalean.Experimentation.DesignBased.Designs.ClusterRandomization
+public import Causalean.Experimentation.DesignBased.Designs.Coin
+public import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
+public import Causalean.Experimentation.DesignBased.Designs.Stratified
 
 /-!
 # The design zoo

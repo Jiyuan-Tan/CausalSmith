@@ -1,7 +1,10 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.SharpFunctionalCalculus
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.SharpFunctionalCalculus
 
 /-! # Sharp collision-safe operator-to-law composition -/
+
+public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

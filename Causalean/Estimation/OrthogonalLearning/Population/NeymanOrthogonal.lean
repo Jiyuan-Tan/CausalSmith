@@ -10,39 +10,40 @@ derivative `∫ M.dℓ_θg θ g z dP_Z` vanishes for every admissible target
 direction `θ ∈ Θ_set` and nuisance direction `g ∈ G_set`.  This is the
 loss-side analogue of `Estimation.OrthogonalMoments.NeymanOrthogonal`.
 
-We also state DCT envelope predicates `DiffQuotientEnvelopeTheta` and
-`DiffQuotientEnvelopeG` for the two coordinate directions, mirroring
-`Estimation.OrthogonalMoments.DiffQuotientEnvelope`.  These envelopes are the
-hypotheses required to swap derivative and integral when bridging from
-the pointwise dir derivatives to the integrated population risk.
+We also state difference-quotient envelope predicates
+`DiffQuotientEnvelopeTheta` and `DiffQuotientEnvelopeG` for the two coordinate
+directions, mirroring `Estimation.OrthogonalMoments.DiffQuotientEnvelope`.
+They record domination conditions for future limit--integral bridges; no
+theorem below derives such a bridge from these predicates.
 
-Finally, we record the score-reformulation theorem
-`neymanOrthog_iff_score_deriv_zero`: the note states that Neyman
-orthogonality is equivalent to the score map `g ↦ D_θ L(θ₀, g)[ν_θ]`
-having zero first derivative at `g₀` for every admissible `ν_θ`.  The
-equivalence requires a DCT swap, packaged here as
-`MixedScoreDCTBridge`; under that hypothesis the proof is a routine
-limit-uniqueness argument.
+Finally, `neymanOrthog_iff_score_deriv_zero` reformulates orthogonality in
+terms of the map from a nuisance value to the integral of the bundled
+pointwise target derivative. The required nuisance-direction limit--integral
+swap is packaged as `MixedScoreDCTBridge`. Identifying this integral-valued
+map with a derivative of the population risk would additionally require a
+target-direction limit--integral bridge, which is not proved here.
 
 See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-neyman-loss`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Population.DirectionalDeriv
+module
+public import Causalean.Estimation.OrthogonalLearning.Population.DirectionalDeriv
 
 /-! # Neyman Orthogonality for Losses
 
 This file formulates Neyman orthogonality for an orthogonal
 statistical-learning loss as the vanishing of the integrated mixed directional
 derivative in every admissible target and nuisance direction. It also records
-the domination assumptions needed to pass between pointwise directional
-derivatives and derivatives of the population risk.
+domination predicates intended for limit--integral interchange arguments.
 
 The main predicate is `NeymanOrthogLoss`. The auxiliary predicates
 `DiffQuotientEnvelopeTheta`, `DiffQuotientEnvelopeG`, and `MixedScoreDCTBridge`
 package dominated-convergence hypotheses, and
 `neymanOrthog_iff_score_deriv_zero` proves the score-derivative reformulation
 under the bridge hypothesis. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -55,7 +56,10 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- For [an orthogonal statistical-learning system](hyp:S) and [a bundle of mixed target--nuisance directional derivatives of its loss](hyp:M), the [Neyman-orthogonality condition for the loss](goal) states that, for every target in the candidate target set and every nuisance function in the admissible nuisance set, the observation-law integral of the mixed directional derivative at those target and nuisance directions equals zero.
+/-- For [an orthogonal statistical-learning system](hyp:S) and
+[mixed target--nuisance derivative data](hyp:M), the
+[Neyman-orthogonality condition for the loss](goal) states that every admissible target and
+nuisance direction has zero observation-law integral of its mixed directional derivative.
 
 Neyman orthogonality of the loss: for every admissible target and
 nuisance direction, the integrated mixed directional derivative at
@@ -64,7 +68,11 @@ def NeymanOrthogLoss
     (S : LearningSystem Ω μ Z P_Z Θ G) (M : HasMixedDirDeriv S) : Prop :=
   ∀ θ ∈ S.Θ_set, ∀ g ∈ S.G_set, ∫ z, M.dℓ_θg θ g z ∂P_Z = 0
 
-/-- For [an orthogonal statistical-learning system](hyp:S) and [a nuisance function](hyp:g), the [target-direction difference-quotient envelope condition](goal) states that every candidate target has [a positive neighborhood radius](step:1) and an integrable envelope such that for almost every observation and every nonzero perturbation smaller than that radius, the absolute target-direction loss difference quotient is bounded by the envelope.
+/-- For [an orthogonal statistical-learning system](hyp:S) and
+[a nuisance function](hyp:g), the
+[target-direction difference-quotient envelope condition](goal) gives each candidate target
+[a positive neighborhood radius](step:1) and an integrable envelope that bounds the absolute
+loss difference quotient almost everywhere for every smaller nonzero perturbation.
 
 L¹(P_Z) envelope dominating the *target-direction* difference quotient
 of the loss locally near `t = 0`, uniformly in `θ ∈ Θ_set`.  Mirrors
@@ -76,7 +84,10 @@ def DiffQuotientEnvelopeTheta
     ∀ᵐ z ∂P_Z, ∀ t : ℝ, t ∈ Set.Ioo (-δ) δ → t ≠ 0 →
       ‖(S.ℓ z (S.θ₀ + t • (θ - S.θ₀)) g - S.ℓ z S.θ₀ g) / t‖ ≤ env z
 
-/-- For [an orthogonal statistical-learning system](hyp:S), the [nuisance-direction difference-quotient envelope condition](goal) states that every admissible nuisance function has [a positive neighborhood radius](step:1) and an integrable envelope such that for almost every observation and every nonzero perturbation smaller than that radius, the absolute nuisance-direction loss difference quotient is bounded by the envelope.
+/-- For [an orthogonal statistical-learning system](hyp:S), the
+[nuisance-direction difference-quotient envelope condition](goal) gives each admissible nuisance
+[a positive neighborhood radius](step:1) and an integrable envelope that bounds the absolute
+loss difference quotient almost everywhere for every smaller nonzero perturbation.
 
 L¹(P_Z) envelope dominating the *nuisance-direction* difference quotient
 of the loss locally near `t = 0`, uniformly in `g ∈ G_set`.  Mirrors
@@ -88,7 +99,11 @@ def DiffQuotientEnvelopeG
     ∀ᵐ z ∂P_Z, ∀ t : ℝ, t ∈ Set.Ioo (-δ) δ → t ≠ 0 →
       ‖(S.ℓ z S.θ₀ (S.g₀ + t • (g - S.g₀)) - S.ℓ z S.θ₀ S.g₀) / t‖ ≤ env z
 
-/-- For [an orthogonal statistical-learning system](hyp:S) and [a bundle of mixed target--nuisance directional derivatives of its loss](hyp:M), the [mixed-score dominated-convergence bridge](goal) states that, for every candidate target and admissible nuisance function, the integrated centered difference quotient of the target-direction derivative along the nuisance perturbation converges, as the nonzero perturbation tends to zero, to the observation-law integral of the corresponding mixed directional derivative.
+/-- For [an orthogonal statistical-learning system](hyp:S) and
+[mixed target--nuisance derivative data](hyp:M), the
+[mixed-derivative limit--integral bridge](goal) says the integrated centered quotient along
+every admissible nuisance perturbation tends to the integral of the corresponding mixed
+directional derivative.
 
 DCT-bridge hypothesis for the score reformulation: for every admissible
 target direction `ν_θ = θ - θ₀` and nuisance direction `ν_g = g - g₀`,
@@ -96,10 +111,10 @@ the integrated centred difference quotient of the target dir derivatives
 along the nuisance perturbation tends to the integrated mixed dir
 derivative `∫ z, M.dℓ_θg θ g z ∂P_Z` as `t → 0` along `𝓝[≠] 0`.
 
-This is exactly what the dominated-convergence theorem yields under the
-nuisance-direction envelope `DiffQuotientEnvelopeG` together with
-integrability of the inner integrands.  We package the conclusion as a
-hypothesis so that the score reformulation can be stated abstractly. -/
+A concrete sufficient envelope for these target-derivative difference
+quotients is not supplied here. We package the limit conclusion directly as a
+hypothesis so that the integrated-derivative reformulation can be stated
+abstractly. -/
 def MixedScoreDCTBridge
     (S : LearningSystem Ω μ Z P_Z Θ G) (M : HasMixedDirDeriv S) : Prop :=
   ∀ θ ∈ S.Θ_set, ∀ g ∈ S.G_set,
@@ -108,12 +123,10 @@ def MixedScoreDCTBridge
         - (∫ z, (M.Dθ_at S.g₀).dℓ_θ θ z ∂P_Z)) / t)
       (𝓝[≠] 0) (𝓝 (∫ z, M.dℓ_θg θ g z ∂P_Z))
 
-/-- **Score reformulation of Neyman orthogonality.** Assume [the DCT-bridge condition —
-the integrated centred target-direction difference quotient along a nuisance perturbation
-converges to the integrated mixed directional derivative as the perturbation size tends to
-zero](hyp:hBridge). Then [Neyman orthogonality of the loss is equivalent to the score map
-`g' ↦ D_θ L(θ₀, g')[ν_θ]` having zero first derivative at `g₀`, for every admissible
-target direction `ν_θ`](goal).
+/-- **Integrated-derivative reformulation of Neyman orthogonality.** Assume
+[the stated limit--integral bridge for the bundled derivatives](hyp:hBridge). Then
+[Neyman orthogonality is equivalent to zero directional derivative of the integrated map](goal)
+for every admissible target and nuisance direction.
 
 Operationally, this is the statement that the difference quotient
 `((Dθ_at(g₀ + t • (g - g₀))).dℓ_θ θ z - (Dθ_at g₀).dℓ_θ θ z) / t`

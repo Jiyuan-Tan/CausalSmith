@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Consistency
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Intervals
+module
+public import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Consistency
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Intervals
 
 /-!
-# Consistency of the conservative variance estimator (Aronow–Samii 2017)
+# Consistency of the conservative variance estimator
 
-The feasible Wald interval of Aronow–Samii (Prop 6.5) uses the *estimated* variance `Vh`
-(`htEffectVarEst`).  Its asymptotic coverage (`wald_coverage_feasible`) consumes a single
+The feasible Wald interval in Aronow–Samii (2017), Proposition 6.2, uses the *estimated* variance
+`Vh` (`htEffectVarEst`). Its asymptotic coverage (`wald_coverage_feasible`) consumes a single
 analytic input: the conservative estimate undershoots the true variance only with vanishing
 probability,
 
@@ -24,17 +25,20 @@ This file **reduces that input to one clean L²-relative-consistency limit**
   `Var[Vh] / Var[τ̂]² → 0`
 
 via the finite Chebyshev inequality and the already-proven conservativeness
-`Var[τ̂] ≤ E[Vh]` (`E_htEffectVarEst_ge`, Prop 5.x):
+`Var[τ̂] ≤ E[Vh]` (`E_htEffectVarEst_ge`, a positive-joint-probability specialization of
+Proposition 5.6):
 
   `{ Vh < (1−ε)·Var } ⊆ { ε·Var ≤ |Vh − E Vh| }`  (using `E Vh ≥ Var`),
   `Pr[ ε·Var ≤ |Vh − E Vh| ] ≤ Var[Vh]/(ε·Var)² = (1/ε²)·(Var[Vh]/Var²)`,
 
-and the right side tends to `0`.  The hypothesis `Var[Vh]/Var² → 0` is the precise,
-isolated remaining input — the quantitative content of the paper's appendix
-variance-estimator-consistency bound under Conditions 1/3/4.  Note that under Condition 4
-(`N·Var → c > 0`, so `Var ∼ c/N`) this relative limit is equivalent to `Var[N·Vh] → 0`.
+and the right side tends to `0`. The hypothesis `Var[Vh]/Var² → 0` is the precise isolated
+remaining input. Under the separately assumed scaled-variance limit `N·Var → c > 0`, this
+relative limit follows from `Var[N·Vh] → 0`. The bounded-degree, factorization, and
+covariance-vanishing hypotheses used elsewhere in this development are alternative sufficient
+conditions, not a restatement of the paper's Conditions 3, 5, and 6.
 -/
 
+public section
 
 open scoped BigOperators Topology
 open Filter
@@ -45,15 +49,16 @@ namespace ExposureMappingInterference
 
 open Causalean.Experimentation.DesignBased
 
-/-- **Reduction of feasible-interval variance consistency to L²-relative consistency.** For [a pair
-of treatment sequences `dk`, `dl`](hyp:dk,dl) with [`dk n ≠ dl n` for every `n`](hyp:hne), suppose
-[every unit has nonzero exposure propensity under `dk`](hyp:hk) and [under `dl`](hyp:hl), and
-[every off-diagonal pair has nonzero same-arm](hyp:hjk,hjl) and [nonzero cross-arm](hyp:hjc) joint
-exposure propensities — the standing overlap conditions giving the conservativeness
-`Var[τ̂] ≤ E[V̂]`. If [the true effect-estimator variance is everywhere positive](hyp:hVarpos) and
-[the L²-relative-consistency limit `Var[V̂]/Var[τ̂]² → 0` holds](hyp:hrel), then [the conservative
-variance estimator undershoots the true variance only with vanishing probability: for every
-`ε > 0`, `Pr[Vh < (1−ε)·Var[τ̂]] → 0`](goal).
+/-- **Reduction of feasible-interval variance consistency to L²-relative consistency.** For
+[a sequence of experiments](hyp:Exp) and [treatment contrasts](hyp:dk,dl), suppose
+[the two arms are distinct](hyp:hne),
+[every unit has nonzero `dk` exposure propensity](hyp:hk),
+[every unit has nonzero `dl` exposure propensity](hyp:hl),
+[same-arm joint propensities are nonzero](hyp:hjk,hjl), and
+[cross-arm joint propensities are nonzero](hyp:hjc). If
+[the true effect-estimator variance is everywhere positive](hyp:hVarpos) and
+[the L²-relative-consistency limit holds](hyp:hrel), then
+[the variance-estimator undershoot probability vanishes for every positive threshold](goal).
 
 This is exactly the hypothesis `hVhat` consumed by `wald_coverage_feasible`. -/
 theorem htEffectVarEst_undershoot_tendsto_zero
@@ -123,16 +128,16 @@ theorem htEffectVarEst_undershoot_tendsto_zero
     have h := hrel.const_mul (1 / ε ^ 2)
     simpa using h
 
-/-- **Feasible Wald coverage from L²-relative variance consistency (capstone).** For [a pair
-of treatment sequences `dk`, `dl`](hyp:dk,dl) with [`dk n ≠ dl n` for every `n`](hyp:hne),
-suppose [the studentized effect statistic satisfies the local-dependence central limit
-theorem](hyp:hclt), [every unit has nonzero exposure propensity under `dk`](hyp:hk) and
-[under `dl`](hyp:hl), and [every off-diagonal pair has nonzero same-arm](hyp:hjk,hjl) and
-[nonzero cross-arm](hyp:hjc) joint exposure propensities. If [the true effect-estimator
-variance is everywhere positive](hyp:hVar) and [the L²-relative-consistency limit
-`Var[V̂]/Var[τ̂]² → 0` holds](hyp:hrel), with [`zq` a nonnegative quantile](hyp:hzq0)
-[satisfying `Φ(zq) = 1 − α/2`](hyp:hzq), then [the paper's actual interval `τ̂ ± zq·√V̂`
-attains asymptotic (liminf) coverage at least `1 − α`](goal).
+/-- **Feasible Wald coverage from L²-relative variance consistency.** For
+[a sequence of experiments and treatment contrasts](hyp:Exp,dk,dl) with
+[distinct arms in every experiment](hyp:hne), suppose
+[the studentized effect statistic satisfies the local-dependence CLT](hyp:hclt),
+[all marginal propensities are nonzero](hyp:hk,hl), and
+[all off-diagonal joint propensities are nonzero](hyp:hjk,hjl,hjc). If
+[the true effect-estimator variance is everywhere positive](hyp:hVar) and
+[the L²-relative-consistency limit holds](hyp:hrel), then for
+[a nonnegative quantile](hyp:α,zq,hzq0) [satisfying `Φ(zq) = 1 − α/2`](hyp:hzq),
+[the feasible Wald interval has liminf coverage at least `1 − α`](goal).
 
 This is the feasible counterpart of `wald_coverage_of_conditions` with the
 variance-estimator-consistency premise reduced to its quantitative core. -/
@@ -168,15 +173,19 @@ theorem wald_coverage_feasible_of_relVar
     (htEffectVarEst_undershoot_tendsto_zero Exp dk dl hne hk hl hjk hjl hjc hVar hrel)
     zq hzq0 hzq
 
-/-- **Bridge from `Var[N·V̂] → 0` to L²-relative consistency.**  The paper's appendix establishes
-`Var[N·V̂_n] → 0` (here as `N²·Var[V̂_n] → 0`); together with Condition 4
-(`N·Var[τ̂_n] → c > 0`) this yields the relative limit `Var[V̂_n]/Var[τ̂_n]² → 0`, via the
-identity `Var[V̂]/Var² = (N²·Var[V̂])/(N·Var)²` and `Tendsto.div` (numerator `→ 0`, denominator
-`→ c² > 0`). -/
+/-- **Bridge from scaled variance-estimator control to L²-relative consistency.** For
+[a sequence of experiments and exposure contrasts](hyp:Exp,dk,dl), if
+[the limiting scaled true variance is a positive constant](hyp:hc),
+[the scaled true variances converge to that constant](hyp:hScaledVar), and
+[the scaled variance-estimator variances converge to zero](hyp:hVN), then
+[the relative limit `Var[V̂_n]/Var[τ̂_n]² → 0`](goal).
+
+The proof uses the identity
+`Var[V̂]/Var² = (N²·Var[V̂])/(N·Var)²` and `Tendsto.div`. -/
 theorem relVar_of_NsqVar_tendsto
     (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ)
     {c : ℝ} (hc : 0 < c)
-    (hCond4 : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ) *
+    (hScaledVar : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ) *
         (Exp n).D.Var (htEffect (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (dk n) (dl n)))
       atTop (𝓝 c))
     (hVN : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ) ^ 2 *
@@ -197,12 +206,12 @@ theorem relVar_of_NsqVar_tendsto
     with hVhdef
   -- `(N·Vr)² → c² ≠ 0`, and `N²·Vh → 0`, so the quotient tends to `0/c² = 0`.
   have hf : Tendsto (fun n => card n ^ 2 * Vh n / (card n * Vr n) ^ 2) atTop (𝓝 0) := by
-    have h := hVN.div (hCond4.pow 2) (pow_ne_zero 2 hc.ne')
+    have h := hVN.div (hScaledVar.pow 2) (pow_ne_zero 2 hc.ne')
     rw [zero_div] at h
     exact h
   -- Eventually `N·Vr > 0`, hence `N ≠ 0` and `Vr ≠ 0`, giving the algebraic identity.
   have hpos : ∀ᶠ n in atTop, 0 < card n * Vr n :=
-    hCond4.eventually (eventually_gt_nhds hc)
+    hScaledVar.eventually (eventually_gt_nhds hc)
   have hev : (fun n => card n ^ 2 * Vh n / (card n * Vr n) ^ 2)
       =ᶠ[atTop] (fun n => Vh n / Vr n ^ 2) := by
     filter_upwards [hpos] with n hn

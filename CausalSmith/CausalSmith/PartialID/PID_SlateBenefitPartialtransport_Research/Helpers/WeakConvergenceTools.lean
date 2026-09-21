@@ -1,9 +1,12 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
-import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
-import Mathlib.MeasureTheory.Measure.Prokhorov
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
+public import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
+public import Mathlib.MeasureTheory.Measure.Prokhorov
 
 /-! Small measure-theoretic bridges used by the pointwise limit theorem. -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set Filter Topology
 

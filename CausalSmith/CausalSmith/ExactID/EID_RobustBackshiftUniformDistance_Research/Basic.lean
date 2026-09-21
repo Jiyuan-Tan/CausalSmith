@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Cycles
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Cycles
+public import Mathlib.Analysis.Matrix.Order
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
 
 /-!
 # Population BACKSHIFT covariance world
@@ -9,6 +10,8 @@ import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
 The population matrix system, admissible structural matrices, named assumptions, and the
 replacement-compatibility recovery map.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

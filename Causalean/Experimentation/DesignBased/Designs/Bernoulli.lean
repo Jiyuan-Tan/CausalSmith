@@ -13,12 +13,13 @@ the first-order inclusion probability of a unit is `p i`, the treatment indicato
 `p i (1 − p i)`, and two distinct units' treatment indicators have joint expectation `p i · p j`
 and zero covariance.
 
-This is the paper-agnostic canonical Bernoulli design in the design zoo; the Sävje–Aronow–Hudgens
-folder carries its own copy used by that paper's development.
+This is the paper-agnostic canonical Bernoulli design in the design zoo. Paper-specific
+developments reuse this definition and its moment API.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.Coin
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import Causalean.Experimentation.DesignBased.Designs.Coin
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-! # Bernoulli randomization designs
 
@@ -27,6 +28,8 @@ Bernoulli designs assign each unit independently with unit-specific treatment pr
 This file builds the product Bernoulli design from the canonical single-coin design, then records
 the first- and second-order inclusion facts used by estimator bias and variance calculations.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -63,6 +66,15 @@ noncomputable def bernoulliDesign (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 
     FiniteDesign (U → Bool) :=
   prodDesign (fun i => coinDesign (p i) (hp0 i) (hp1 i))
 
+/-- Under the Bernoulli design with [unit-specific probabilities](hyp:p) [between zero and
+one](hyp:hp0,hp1), the [expectation of a function of one unit's assignment equals its expectation
+under that unit's coin design](goal). -/
+lemma bernoulliDesign_E_eval (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
+    (i : U) (g : Bool → ℝ) :
+    (bernoulliDesign p hp0 hp1).E (fun z => g (z i)) =
+      (coinDesign (p i) (hp0 i) (hp1 i)).E g :=
+  FiniteDesign.E_prod_apply (fun i => coinDesign (p i) (hp0 i) (hp1 i)) i g
+
 /-- For a finite population [of units](hyp:U), [a unit](hyp:i), and [a treatment assignment for
 that population](hyp:z), the [treatment indicator for that unit](goal) equals one when the unit is
 assigned treatment and zero otherwise. -/
@@ -73,10 +85,21 @@ treatment weighted by `p i` plus its value under control weighted by `1 - p i`. 
 lemma bernoulliDesign_E_treatInd (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (i : U) (g : Bool → ℝ) :
     (bernoulliDesign p hp0 hp1).E (fun z => g (z i)) = p i * g true + (1 - p i) * g false := by
-  change (prodDesign (fun k => coinDesign (p k) (hp0 k) (hp1 k))).E
-      (fun z => g (z i)) = p i * g true + (1 - p i) * g false
-  rw [FiniteDesign.E_prod_apply (fun k => coinDesign (p k) (hp0 k) (hp1 k)) i
-        g, coinDesign_E]
+  rw [bernoulliDesign_E_eval, coinDesign_E]
+
+/-- Under the Bernoulli design with [unit-specific probabilities](hyp:p) [between zero and
+one](hyp:hp0,hp1), the [expected treatment indicator of unit `i` is `p i`](goal). -/
+lemma bernoulliDesign_E_treat (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) (i : U) :
+    (bernoulliDesign p hp0 hp1).E (fun z => if z i then (1 : ℝ) else 0) = p i := by
+  simpa using
+    (bernoulliDesign_E_treatInd p hp0 hp1 i (fun b => if b then (1 : ℝ) else 0))
+
+/-- Under the Bernoulli design with [unit-specific probabilities](hyp:p) [between zero and
+one](hyp:hp0,hp1), the [expected control indicator of unit `i` is `1 - p i`](goal). -/
+lemma bernoulliDesign_E_ctrl (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) (i : U) :
+    (bernoulliDesign p hp0 hp1).E (fun z => if z i then (0 : ℝ) else 1) = 1 - p i := by
+  simpa using
+    (bernoulliDesign_E_treatInd p hp0 hp1 i (fun b => if b then (0 : ℝ) else 1))
 
 /-- The treatment indicator of unit `i` has variance `p i (1 − p i)` under the Bernoulli design. -/
 lemma bernoulliDesign_Var_treatInd (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1) (i : U) :

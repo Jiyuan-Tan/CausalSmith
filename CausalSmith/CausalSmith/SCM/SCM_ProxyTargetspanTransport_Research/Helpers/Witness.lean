@@ -1,27 +1,30 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Basic
-import Mathlib.Data.Real.Basic
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Basic
+public import Mathlib.Data.Real.Basic
 
 set_option linter.style.longLine false
-
-/-! The explicit rational rank-deficient model from the paper. -/
 
 open scoped BigOperators Matrix
 open Finset
 
+/-! The explicit rational rank-deficient model from the paper. -/
+
+@[expose] public section
+
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
-private noncomputable def witnessPi : Fin 2 → ℝ := ![1 / 2, 1 / 2]
-private noncomputable def witnessS : Matrix (Fin 3) (Fin 2) ℝ :=
+noncomputable def witnessPi : Fin 2 → ℝ := ![1 / 2, 1 / 2]
+noncomputable def witnessS : Matrix (Fin 3) (Fin 2) ℝ :=
   !![9 / 19, 1 / 12; 2 / 19, 2 / 3; 8 / 19, 1 / 4]
-private noncomputable def witnessM : Matrix (Fin 3) (Fin 3) ℝ :=
+noncomputable def witnessM : Matrix (Fin 3) (Fin 3) ℝ :=
   !![4 / 5, 1 / 10, 1 / 10; 1 / 10, 4 / 5, 1 / 10; 1 / 10, 1 / 10, 4 / 5]
-private noncomputable def witnessA : Fin 2 → Fin 3 → ℝ :=
+noncomputable def witnessA : Fin 2 → Fin 3 → ℝ :=
   fun x u => if x = 1 then ![1 / 10, 3 / 5, 1 / 5] u else 1 - ![1 / 10, 3 / 5, 1 / 5] u
-private noncomputable def witnessF : Fin 2 → Fin 2 → Fin 3 → Fin 3 → ℝ :=
+noncomputable def witnessF : Fin 2 → Fin 2 → Fin 3 → Fin 3 → ℝ :=
   fun x y u w =>
     let p := 1 / 5 + (x : ℝ) / 5 + (u : ℝ) / 20 + (w : ℝ) / 100
     if y = 1 then p else 1 - p
-private noncomputable def witnessQ : Fin 3 → ℝ := ![1197 / 5837, 2436 / 5837, 2204 / 5837]
+noncomputable def witnessQ : Fin 3 → ℝ := ![1197 / 5837, 2436 / 5837, 2204 / 5837]
 
 -- @node: def:rank-deficient-success-witness
 set_option maxHeartbeats 1000000 in

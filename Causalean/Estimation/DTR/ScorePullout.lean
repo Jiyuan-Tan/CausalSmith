@@ -19,7 +19,8 @@ conditions on `historyBundle 1 = cons S₁ (cons D₀ (cons S₀ nil))` whose
 `jointValue` factors through `(factualS 1, factualD 0, factualS 0)`.
 -/
 
-import Causalean.Estimation.DTR.MeanZero
+module
+public import Causalean.Estimation.DTR.MeanZero
 
 /-!
 # Score pull-out identities for two-stage DTR scores
@@ -37,6 +38,8 @@ history `(S₁, D₀, S₀)`.
 These lemmas move treatment indicators, history sigma-algebras, and regression
 residuals into forms suitable for the DTR mean-zero and remainder proofs.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -79,67 +82,67 @@ theorem weighted_residual_integral_zero_stage0
     (S : DTREstimationSystem P δ γ)
     {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (g : γ 0 → ℝ) (hg_meas : Measurable g)
     (h_int : Integrable
-      (fun ω => g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+      (fun ω => g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω *
           (S.μ₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) -
-            S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)))) P.μ) :
-    ∫ ω, g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) -
+            S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)))) P.μ) :
+    ∫ ω, g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω *
           (S.μ₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) -
-            S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))) ∂P.μ = 0 := by
-  let B0 := S.toPODTRSystem.historyBundle 0 (by decide)
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) -
+            S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))) ∂P.μ = 0 := by
+  let B0 := S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)
   let I0 : P.Ω → ℝ :=
-    (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
       (S.dbar ⟨0, by decide⟩)
   let M0 : P.Ω → ℝ :=
-    fun ω => S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)
+    fun ω => S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)
   let M1 : P.Ω → ℝ :=
     fun ω => S.μ₁_val
-      (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-       S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-       S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)
+      (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+       S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+       S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)
   let R : P.Ω → ℝ := fun ω => I0 ω * (M1 ω - M0 ω)
   have hg_sm : StronglyMeasurable[B0.sigma]
-      (fun ω => g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) := by
+      (fun ω => g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) := by
     have hs0 : Measurable[B0.sigma]
-        (S.toPODTRSystem.factualS ⟨0, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualS_sigma_history 0 (by decide)
+        (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualS_sigma_history 0 (by decide)
         ⟨0, by decide⟩ (by decide)
     exact (hg_meas.comp hs0).stronglyMeasurable
   have hM0_int : Integrable M0 P.μ := by
-    exact (B0.integrable_condExpGiven (S.toPODTRSystem.Y_of S.dbar)).congr
+    exact (B0.integrable_condExpGiven (S.toPOLongitudinalPathSystem.Y_of S.dbar)).congr
       (by simpa [B0, M0] using S.μ₀_compat hA)
   have hM1_int : Integrable M1 P.μ := by
-    let B1 := S.toPODTRSystem.historyBundle 1 (by decide)
+    let B1 := S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)
     have hM1_L2 : MemLp M1 2 P.μ := by
       simpa [M1] using (S.stageOneReg_memLp h_overlap h_y2).ae_eq
         (S.μ₁_val_comp_eq_stageOneReg).symm
     exact hM1_L2.integrable (by norm_num)
   have hM0_meas : Measurable M0 :=
-    S.μ₀_meas.comp (S.toPODTRSystem.measurable_factualS ⟨0, by decide⟩)
+    S.μ₀_meas.comp (S.toPOLongitudinalPathSystem.measurable_factualS ⟨0, by decide⟩)
   have hM1_meas : Measurable M1 := by
-    have hs1 := S.toPODTRSystem.measurable_factualS ⟨1, by decide⟩
-    have hd0 := S.toPODTRSystem.measurable_factualD ⟨0, by decide⟩
-    have hs0 := S.toPODTRSystem.measurable_factualS ⟨0, by decide⟩
+    have hs1 := S.toPOLongitudinalPathSystem.measurable_factualS ⟨1, by decide⟩
+    have hd0 := S.toPOLongitudinalPathSystem.measurable_factualD ⟨0, by decide⟩
+    have hs0 := S.toPOLongitudinalPathSystem.measurable_factualS ⟨0, by decide⟩
     exact S.μ₁_meas.comp (hs1.prod (hd0.prod hs0))
   have hI0M0_int : Integrable (fun ω => I0 ω * M0 ω) P.μ := by
-    have h := (S.toPODTRSystem.dVar ⟨0, by decide⟩).integrable_mul_indicator
+    have h := (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).integrable_mul_indicator
       (S.dbar ⟨0, by decide⟩) (MeasurableSet.singleton _) hM0_int
     exact h.congr (Filter.Eventually.of_forall (fun ω => by simp [I0, M0, mul_comm]))
   have hI0M1_int : Integrable (fun ω => I0 ω * M1 ω) P.μ := by
-    have h := (S.toPODTRSystem.dVar ⟨0, by decide⟩).integrable_mul_indicator
+    have h := (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).integrable_mul_indicator
       (S.dbar ⟨0, by decide⟩) (MeasurableSet.singleton _) hM1_int
     exact h.congr (Filter.Eventually.of_forall (fun ω => by simp [I0, M1, mul_comm]))
   have hR_int : Integrable R P.μ := by
@@ -150,7 +153,7 @@ theorem weighted_residual_integral_zero_stage0
       ring)
   have hcondexp_pull :=
     B0.condExpGiven_mul_of_stronglyMeasurable_left
-      (f := fun ω => g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))
+      (f := fun ω => g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))
       (g := R) hg_sm
       (by
         exact h_int.congr (Filter.Eventually.of_forall (fun ω => by
@@ -162,24 +165,24 @@ theorem weighted_residual_integral_zero_stage0
       cond_exp_residual_zero_stage0 S h_overlap hA h_y2
   have hgresid_ce_zero :
       B0.condExpGiven
-          (fun ω => g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) * R ω) P.μ
+          (fun ω => g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) * R ω) P.μ
         =ᵐ[P.μ] (fun _ => (0 : ℝ)) := by
     refine hcondexp_pull.trans ?_
     filter_upwards [h_residual_ce_zero] with ω hω
     rw [Pi.mul_apply, hω, mul_zero]
   calc
-    ∫ ω, g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    ∫ ω, g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω *
           (S.μ₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) -
-            S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))) ∂P.μ
-        = ∫ ω, g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) * R ω ∂P.μ := by
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) -
+            S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))) ∂P.μ
+        = ∫ ω, g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) * R ω ∂P.μ := by
           rfl
     _ = ∫ ω, B0.condExpGiven
-          (fun ω => g (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) * R ω) P.μ ω
+          (fun ω => g (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) * R ω) P.μ ω
           ∂P.μ := by
         exact (MeasureTheory.integral_condExp B0.sigma_le).symm
     _ = ∫ _, (0 : ℝ) ∂P.μ :=
@@ -199,52 +202,52 @@ theorem indicator_to_propScore_integral_stage0
     (S : DTREstimationSystem P δ γ)
     (f : γ 0 → ℝ) (hf_meas : Measurable f)
     (hf_ind_int : Integrable
-      (fun ω => f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+      (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω) P.μ) :
-    ∫ ω, f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω ∂P.μ
-      = ∫ ω, f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-          S.e₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ := by
-  let B := S.toPODTRSystem.historyBundle 0 (by decide)
+      = ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+          S.e₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ := by
+  let B := S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)
   have hf_sm : StronglyMeasurable[B.sigma]
-      (fun ω => f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) := by
+      (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) := by
     have hs0 : Measurable[B.sigma]
-        (S.toPODTRSystem.factualS ⟨0, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualS_sigma_history 0 (by decide)
+        (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualS_sigma_history 0 (by decide)
         ⟨0, by decide⟩ (by decide)
     exact (hf_meas.comp hs0).stronglyMeasurable
   have hind_int : Integrable
-      ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+      ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
         (S.dbar ⟨0, by decide⟩)) P.μ :=
-    (S.toPODTRSystem.dVar ⟨0, by decide⟩).integrable_indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).integrable_indicator
       (S.dbar ⟨0, by decide⟩) (MeasurableSet.singleton _)
   have hCE_pull :=
     B.condExpGiven_mul_of_stronglyMeasurable_left
       (μ := P.μ) hf_sm hf_ind_int hind_int
   have hCE_replace :
       B.condExpGiven
-          (fun ω => f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-            (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+          (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+            (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
               (S.dbar ⟨0, by decide⟩) ω) P.μ
         =ᵐ[P.μ]
-          (fun ω => f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-            S.e₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) := by
+          (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+            S.e₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) := by
     refine hCE_pull.trans ?_
     filter_upwards [S.e₀_compat] with ω hω
     rw [Pi.mul_apply, hω]
   calc
-    ∫ ω, f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω ∂P.μ
       = ∫ ω, B.condExpGiven
-          (fun ω => f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-            (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+          (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+            (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
               (S.dbar ⟨0, by decide⟩) ω) P.μ ω ∂P.μ :=
         (MeasureTheory.integral_condExp B.sigma_le).symm
-    _ = ∫ ω, f (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-          S.e₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ :=
+    _ = ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+          S.e₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ :=
         MeasureTheory.integral_congr_ae hCE_replace
 
 /-! ## Stage 1 helpers
@@ -275,93 +278,93 @@ theorem weighted_residual_integral_zero_stage1
     (S : DTREstimationSystem P δ γ)
     {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (g : γ 1 × δ × γ 0 → ℝ) (hg_meas : Measurable g)
     (h_int : Integrable
-      (fun ω => g (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                   S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                   S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+      (fun ω => g (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω *
-         ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+         ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
             (S.dbar ⟨1, by decide⟩) ω *
-          (S.toPODTRSystem.factualY ω -
+          (S.toPOLongitudinalPathSystem.factualY ω -
             S.μ₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))))) P.μ) :
-    ∫ ω, g (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-            S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-            S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))))) P.μ) :
+    ∫ ω, g (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω *
-         ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+         ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
             (S.dbar ⟨1, by decide⟩) ω *
-          (S.toPODTRSystem.factualY ω -
+          (S.toPOLongitudinalPathSystem.factualY ω -
             S.μ₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)))) ∂P.μ = 0 := by
-  let B1 := S.toPODTRSystem.historyBundle 1 (by decide)
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)))) ∂P.μ = 0 := by
+  let B1 := S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)
   let H1 : P.Ω → γ 1 × δ × γ 0 := fun ω =>
-    (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-     S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-     S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)
+    (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)
   let I0 : P.Ω → ℝ :=
-    (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
       (S.dbar ⟨0, by decide⟩)
   let I1 : P.Ω → ℝ :=
-    (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
       (S.dbar ⟨1, by decide⟩)
   let M1 : P.Ω → ℝ := fun ω => S.μ₁_val (H1 ω)
   let R : P.Ω → ℝ :=
-    fun ω => I0 ω * (I1 ω * (S.toPODTRSystem.factualY ω - M1 ω))
+    fun ω => I0 ω * (I1 ω * (S.toPOLongitudinalPathSystem.factualY ω - M1 ω))
   have hg_sm : StronglyMeasurable[B1.sigma] (fun ω => g (H1 ω)) := by
-    have hs1 : Measurable[B1.sigma] (S.toPODTRSystem.factualS ⟨1, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualS_sigma_history 1 (by decide)
+    have hs1 : Measurable[B1.sigma] (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualS_sigma_history 1 (by decide)
         ⟨1, by decide⟩ (by decide)
-    have hd0 : Measurable[B1.sigma] (S.toPODTRSystem.factualD ⟨0, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualD_sigma_history 1 (by decide)
+    have hd0 : Measurable[B1.sigma] (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualD_sigma_history 1 (by decide)
         ⟨0, by decide⟩ (by decide)
-    have hs0 : Measurable[B1.sigma] (S.toPODTRSystem.factualS ⟨0, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualS_sigma_history 1 (by decide)
+    have hs0 : Measurable[B1.sigma] (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualS_sigma_history 1 (by decide)
         ⟨0, by decide⟩ (by decide)
     exact (hg_meas.comp (hs1.prod (hd0.prod hs0))).stronglyMeasurable
-  have hYf_int : Integrable S.toPODTRSystem.factualY P.μ := hA.integrable_factualY
+  have hYf_int : Integrable S.toPOLongitudinalPathSystem.factualY P.μ := hA.integrable_factualY
   have hM1_int : Integrable M1 P.μ := by
     have hM1_L2 : MemLp M1 2 P.μ := by
       simpa [H1, M1] using (S.stageOneReg_memLp h_overlap h_y2).ae_eq
         (S.μ₁_val_comp_eq_stageOneReg).symm
     exact hM1_L2.integrable (by norm_num)
   have hM1_meas : Measurable M1 := by
-    have hs1 := S.toPODTRSystem.measurable_factualS ⟨1, by decide⟩
-    have hd0 := S.toPODTRSystem.measurable_factualD ⟨0, by decide⟩
-    have hs0 := S.toPODTRSystem.measurable_factualS ⟨0, by decide⟩
+    have hs1 := S.toPOLongitudinalPathSystem.measurable_factualS ⟨1, by decide⟩
+    have hd0 := S.toPOLongitudinalPathSystem.measurable_factualD ⟨0, by decide⟩
+    have hs0 := S.toPOLongitudinalPathSystem.measurable_factualS ⟨0, by decide⟩
     exact S.μ₁_meas.comp (hs1.prod (hd0.prod hs0))
   have hI1Yf_int : Integrable
-      (fun ω => I1 ω * S.toPODTRSystem.factualY ω) P.μ := by
-    have h := (S.toPODTRSystem.dVar ⟨1, by decide⟩).integrable_mul_indicator
+      (fun ω => I1 ω * S.toPOLongitudinalPathSystem.factualY ω) P.μ := by
+    have h := (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).integrable_mul_indicator
       (S.dbar ⟨1, by decide⟩) (MeasurableSet.singleton _) hYf_int
     exact h.congr (Filter.Eventually.of_forall (fun ω => by simp [I1, mul_comm]))
   have hI1M1_int : Integrable (fun ω => I1 ω * M1 ω) P.μ := by
-    have h := (S.toPODTRSystem.dVar ⟨1, by decide⟩).integrable_mul_indicator
+    have h := (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).integrable_mul_indicator
       (S.dbar ⟨1, by decide⟩) (MeasurableSet.singleton _) hM1_int
     exact h.congr (Filter.Eventually.of_forall (fun ω => by simp [I1, M1, mul_comm]))
   have hI1_res_int : Integrable
-      (fun ω => I1 ω * (S.toPODTRSystem.factualY ω - M1 ω)) P.μ := by
+      (fun ω => I1 ω * (S.toPOLongitudinalPathSystem.factualY ω - M1 ω)) P.μ := by
     have hsub := hI1Yf_int.sub hI1M1_int
     refine hsub.congr ?_
     exact Filter.Eventually.of_forall (fun ω => by
       rw [Pi.sub_apply]
       ring)
   have hI1_res_meas : Measurable
-      (fun ω => I1 ω * (S.toPODTRSystem.factualY ω - M1 ω)) :=
-    ((S.toPODTRSystem.dVar ⟨1, by decide⟩).measurable_indicator
+      (fun ω => I1 ω * (S.toPOLongitudinalPathSystem.factualY ω - M1 ω)) :=
+    ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).measurable_indicator
       (S.dbar ⟨1, by decide⟩) (MeasurableSet.singleton _)).mul
-      (S.toPODTRSystem.measurable_factualY.sub hM1_meas)
+      (S.toPOLongitudinalPathSystem.measurable_factualY.sub hM1_meas)
   have hR_int : Integrable R P.μ := by
-    have h := (S.toPODTRSystem.dVar ⟨0, by decide⟩).integrable_mul_indicator
+    have h := (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).integrable_mul_indicator
       (S.dbar ⟨0, by decide⟩) (MeasurableSet.singleton _) hI1_res_int
     exact h.congr (Filter.Eventually.of_forall (fun ω => by
       simp [R, I0, I1, M1, mul_comm]))
@@ -383,18 +386,18 @@ theorem weighted_residual_integral_zero_stage1
     filter_upwards [h_residual_ce_zero] with ω hω
     rw [Pi.mul_apply, hω, mul_zero]
   calc
-    ∫ ω, g (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-            S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-            S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    ∫ ω, g (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
             (S.dbar ⟨0, by decide⟩) ω *
-         ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+         ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
             (S.dbar ⟨1, by decide⟩) ω *
-          (S.toPODTRSystem.factualY ω -
+          (S.toPOLongitudinalPathSystem.factualY ω -
             S.μ₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)))) ∂P.μ
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)))) ∂P.μ
         = ∫ ω, g (H1 ω) * R ω ∂P.μ := by
           rfl
     _ = ∫ ω, B1.condExpGiven (fun ω => g (H1 ω) * R ω) P.μ ω ∂P.μ := by
@@ -416,87 +419,87 @@ theorem indicator_to_propScore_integral_stage1
     (S : DTREstimationSystem P δ γ)
     (f : γ 1 × δ × γ 0 → ℝ) (hf_meas : Measurable f)
     (hf_ind_int : Integrable
-      (fun ω => f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                   S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                   S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+      (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
             (S.dbar ⟨1, by decide⟩) ω) P.μ) :
-    ∫ ω, f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-            S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-            S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+    ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
             (S.dbar ⟨1, by decide⟩) ω ∂P.μ
-      = ∫ ω, f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
+      = ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
           S.e₁_val
-            (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-             S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-             S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ := by
-  let B := S.toPODTRSystem.historyBundle 1 (by decide)
+            (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+             S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+             S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ := by
+  let B := S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)
   have hf_sm : StronglyMeasurable[B.sigma]
-      (fun ω => f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                   S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                   S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) := by
+      (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) := by
     have hs1 : Measurable[B.sigma]
-        (S.toPODTRSystem.factualS ⟨1, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualS_sigma_history 1 (by decide)
+        (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualS_sigma_history 1 (by decide)
         ⟨1, by decide⟩ (by decide)
     have hd0 : Measurable[B.sigma]
-        (S.toPODTRSystem.factualD ⟨0, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualD_sigma_history 1 (by decide)
+        (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualD_sigma_history 1 (by decide)
         ⟨0, by decide⟩ (by decide)
     have hs0 : Measurable[B.sigma]
-        (S.toPODTRSystem.factualS ⟨0, by decide⟩) :=
-      S.toPODTRSystem.measurable_factualS_sigma_history 1 (by decide)
+        (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩) :=
+      S.toPOLongitudinalPathSystem.measurable_factualS_sigma_history 1 (by decide)
         ⟨0, by decide⟩ (by decide)
     exact (hf_meas.comp (hs1.prod (hd0.prod hs0))).stronglyMeasurable
   have hind_int : Integrable
-      ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+      ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
         (S.dbar ⟨1, by decide⟩)) P.μ :=
-    (S.toPODTRSystem.dVar ⟨1, by decide⟩).integrable_indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).integrable_indicator
       (S.dbar ⟨1, by decide⟩) (MeasurableSet.singleton _)
   have hCE_pull :=
     B.condExpGiven_mul_of_stronglyMeasurable_left
       (μ := P.μ) hf_sm hf_ind_int hind_int
   have hCE_replace :
       B.condExpGiven
-          (fun ω => f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                       S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                       S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-            (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+          (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                       S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                       S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+            (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
               (S.dbar ⟨1, by decide⟩) ω) P.μ
         =ᵐ[P.μ]
-          (fun ω => f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                       S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                       S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
+          (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                       S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                       S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
             S.e₁_val
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) := by
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) := by
     refine hCE_pull.trans ?_
     filter_upwards [S.e₁_compat] with ω hω
     rw [Pi.mul_apply, hω]
   calc
-    ∫ ω, f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-            S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-            S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-        (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+    ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+            S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+        (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
             (S.dbar ⟨1, by decide⟩) ω ∂P.μ
       = ∫ ω, B.condExpGiven
-          (fun ω => f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                       S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                       S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
-            (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+          (fun ω => f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                       S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                       S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
+            (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
               (S.dbar ⟨1, by decide⟩) ω) P.μ ω ∂P.μ :=
         (MeasureTheory.integral_condExp B.sigma_le).symm
-    _ = ∫ ω, f (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
+    _ = ∫ ω, f (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
           S.e₁_val
-            (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-             S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-             S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ :=
+            (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+             S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+             S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ∂P.μ :=
         MeasureTheory.integral_congr_ae hCE_replace
 
 end DTREstimationSystem

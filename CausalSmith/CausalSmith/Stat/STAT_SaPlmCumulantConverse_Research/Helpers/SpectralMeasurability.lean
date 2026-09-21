@@ -1,16 +1,20 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralEstimator
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Basic
-import Mathlib.MeasureTheory.Function.Floor
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralEstimator
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.Basic
+public import Mathlib.MeasureTheory.Function.Floor
 
 /-! # Measurability of the finite rational spectral program -/
+
+@[expose] public section
 
 noncomputable section
 
 open MeasureTheory Set
-open Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch
+open Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
+open Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
@@ -115,7 +119,8 @@ private def tightenHistory {α : Type*} (raw : α → ℕ → ComplexRatInterval
     (fuel : ℕ) → (Fin (fuel + 1) → α) → ComplexRatInterval
   | 0, samples => raw (samples 0) 0
   | fuel + 1, samples =>
-      (tightenHistory raw fuel (fun i => samples i.castSucc)).tighten
+      ComplexRatInterval.tighten
+        (tightenHistory raw fuel (fun i => samples i.castSucc))
         (raw (samples (Fin.last (fuel + 1))) (fuel + 1))
 
 private lemma tightenHistory_of_sequence {α : Type*}
@@ -140,9 +145,9 @@ private def denominatorRawEvalFromIntervals {p : Parameters}
     (fuel : ℕ) : ComplexRatInterval :=
   let terms := I.toList.map fun i ↦
     let residual := (samples i).1.add (samples i).2.neg
-    let argument := z.mul (realRect residual)
+    let argument := ComplexRatInterval.mul z (realRect residual)
     let exponential := BoundedCertifiedComplex.centeredComplexExp argument fuel
-    (realRect (residual.npow derivative)).mul exponential
+    ComplexRatInterval.mul (realRect (residual.npow derivative)) exponential
   (intervalSum terms).smulRat ((max I.card 1 : ℚ)⁻¹)
 
 private def denominatorEvalFromHistory {p : Parameters}
@@ -184,7 +189,8 @@ private def pilotModulusAtL (input : RepresentedSpectralInput p) (B : ContourBan
       let schedule := spectralSchedule tolerance
         operations L scheduleMagnitude hL hMagnitude
       CircleMesh.infEnclosure
-        (fun k ↦ (map.eval (spectralRadiusNode B j schedule k) schedule.fuel).normInterval
+        (fun k ↦ ComplexRatInterval.normInterval
+          (map.eval (spectralRadiusNode B j schedule k) schedule.fuel)
           schedule.fuel) L hL schedule.mesh schedule.mesh_pos
     else RatInterval.point 0
   else RatInterval.point 0
@@ -339,7 +345,8 @@ lemma measurable_pilotModulus_canonical
           Fin (schedule.fuel + 1) → Fin p.n → RatInterval × RatInterval ↦
         CircleMesh.infEnclosure (fun k : ℕ ↦
           let z := spectralRadiusNode B j schedule k
-          (denominatorEvalFromHistory (spectralFold p.n a) 0 z schedule.fuel samples).normInterval
+          ComplexRatInterval.normInterval
+            (denominatorEvalFromHistory (spectralFold p.n a) 0 z schedule.fuel samples)
             schedule.fuel) L ‹0 ≤ L› schedule.mesh schedule.mesh_pos
       have hfinish : Measurable finish := measurable_of_countable finish
       have hcomposed := hfinish.comp hintervals
@@ -369,10 +376,12 @@ private def windingFinish {p : Parameters} (B : ContourBankData) (j : Fin (B.JBa
     let z := spectralRadiusNode B j schedule k
     let num := denominatorEvalFromHistory (spectralFold p.n 0) 1 z schedule.fuel samples
     let den := denominatorEvalFromHistory (spectralFold p.n 0) 0 z schedule.fuel samples
-    let quotient := if h : den.normSq.hi < 0 ∨ 0 < den.normSq.lo then num.div den h
+    let quotient := if h : (ComplexRatInterval.normSq den).hi < 0 ∨
+        0 < (ComplexRatInterval.normSq den).lo then ComplexRatInterval.div num den h
       else ComplexRatInterval.zero
-    quotient.mul (tangentNode (B.rhoName j) (bankRadiusPrecision schedule.tolerance
-      (spectralNodeTarget schedule.tolerance).1) schedule.inputPrecision schedule k)
+    ComplexRatInterval.mul quotient
+      (tangentNode (B.rhoName j) (bankRadiusPrecision schedule.tolerance
+        (spectralNodeTarget schedule.tolerance).1) schedule.inputPrecision schedule k)
   let integral := CircleMesh.integralEnclosure node L hL schedule.mesh schedule.mesh_pos
   boundedContourNormalize integral 1 schedule.inputPrecision
 
@@ -590,9 +599,9 @@ private def numeratorRawEvalFromIntervals {p : Parameters} (I : Finset (Fin p.n)
   let terms := I.toList.map fun i ↦
     let residual := (samples i).1.1.add (samples i).1.2.neg
     let weight := (samples i).2
-    let argument := z.mul (realRect residual)
+    let argument := ComplexRatInterval.mul z (realRect residual)
     let exponential := BoundedCertifiedComplex.centeredComplexExp argument fuel
-    (realRect (weight.mul (residual.npow derivative))).mul exponential
+    ComplexRatInterval.mul (realRect (weight.mul (residual.npow derivative))) exponential
   (intervalSum terms).smulRat ((max I.card 1 : ℚ)⁻¹)
 
 private def numeratorEvalFromHistory {p : Parameters} (I : Finset (Fin p.n))
@@ -642,10 +651,12 @@ private def evaluationFinish {p : Parameters} (B : ContourBankData)
     let num := numeratorEvalFromHistory (spectralFold p.n 1) 0 z schedule.fuel samples
     let den := denominatorEvalFromHistory (spectralFold p.n 1) 0 z schedule.fuel
       (fun fuel i ↦ (samples fuel i).1)
-    let quotient := if h : den.normSq.hi < 0 ∨ 0 < den.normSq.lo then num.div den h
+    let quotient := if h : (ComplexRatInterval.normSq den).hi < 0 ∨
+        0 < (ComplexRatInterval.normSq den).lo then ComplexRatInterval.div num den h
       else ComplexRatInterval.zero
-    quotient.mul (tangentNode (B.rhoName j) (bankRadiusPrecision schedule.tolerance
-      (spectralNodeTarget schedule.tolerance).1) schedule.inputPrecision schedule k)
+    ComplexRatInterval.mul quotient
+      (tangentNode (B.rhoName j) (bankRadiusPrecision schedule.tolerance
+        (spectralNodeTarget schedule.tolerance).1) schedule.inputPrecision schedule k)
   let integral := CircleMesh.integralEnclosure node L hL schedule.mesh schedule.mesh_pos
   boundedContourNormalize integral (max N 1) schedule.inputPrecision
 

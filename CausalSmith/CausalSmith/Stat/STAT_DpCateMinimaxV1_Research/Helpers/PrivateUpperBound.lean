@@ -16,13 +16,16 @@ sensitivity bound is build-inline but constructive. The remaining construction
 gap is isolated immediately above the endpoint theorem.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import Causalean.Mathlib.Analysis.ConvexProjection
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Data.Matrix.Basic
-import Mathlib.Data.Matrix.Mul
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Matrix.PosDef
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import Causalean.Mathlib.Analysis.ConvexProjection
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Data.Matrix.Basic
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

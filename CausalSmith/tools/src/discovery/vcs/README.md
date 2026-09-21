@@ -50,7 +50,8 @@ nothing.
 6. **Derived, never stored.** Status, `used_by`, ordering, `core.json`, the paper.
    If a field can be computed from the tree, compute it.
 7. **Small surface.** The orchestrator's interface is `d0_vc.ts`: `commit`,
-   `reset`, `pr show|merge|reapply|close`, `log|show|diff|status|fsck|migrate`. A new
+   `reset`, evidence-backed `resolve-oeq`, `pr show|merge|reapply|close`,
+   `log|show|diff|status|fsck|migrate`. A new
    situation gets a message that names one of these, not a new flag.
 8. **Layout is never a reason to lose content, and blame is verified.** Positions
    are derived: `normalizeGraph` places every symbol after the symbols it references
@@ -62,6 +63,15 @@ nothing.
    PR keeps its raw inputs so `pr reapply` can replay the round against a repaired
    main: the recovery from ANY mis-drop is "fix the cause on main, reapply", never
    retyping solver output.
+
+`resolve-oeq Q --by T` is a two-phase operation, deliberately narrower than a
+graph setter. The prepare phase deterministically opens a normal review PR with a
+proved alias `W` whose claim has exactly `T`'s mathematical content, then stops.
+An adjudicator must positively merge `W`; `resolve-oeq Q --by T --from-pr PR`
+then verifies the immutable merge/accepted-head lineage and exact `contentKey`
+identity, removes the duplicate `W`, and pins `T` in the resolved question's graph-only
+`proof_basis`. A later change to `T` therefore fails V2 instead of silently leaving
+the old resolution attached to a new claim.
 
 ## What enforces what
 
@@ -105,6 +115,7 @@ nothing.
 | the checks a tree must pass | `checks.ts` |
 | the single write path, `publishCore`, rendered-main sidecar | `commit.ts` |
 | solver output → unit head, fold, approval, merge, PR records | `pr.ts` |
+| reviewed duplicate answer → existing-theorem OEQ resolution | `resolve.ts` |
 | a solve round: units, dispatch, reuse receipts, outcome | `round.ts` |
 | bringing an old run onto the store, legacy carry, re-proposal | `convert.ts` |
 | orphan lemmas, dangling citations | `hygiene.ts` |

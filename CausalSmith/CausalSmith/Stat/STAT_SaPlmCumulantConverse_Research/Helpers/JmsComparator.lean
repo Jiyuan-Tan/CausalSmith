@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Causalean.Stat.Quantile.Quantile
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Causalean.Stat.Quantile.Quantile
 
 /-!
 # Jin--Mackey--Syrgkanis ACE comparator
 -/
+
+@[expose] public section
 
 noncomputable section
 

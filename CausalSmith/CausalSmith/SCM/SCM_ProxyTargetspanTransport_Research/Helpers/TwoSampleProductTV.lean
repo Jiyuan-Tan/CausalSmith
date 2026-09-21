@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductTV
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductTV
 
 /-! A reusable additive total-variation bound for products of two probability measures. -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 
@@ -15,8 +18,8 @@ theorem tvDist_prod_le_add
     [IsProbabilityMeasure rho] [IsProbabilityMeasure sigma] :
     Causalean.Stat.tvDist (mu.prod rho) (nu.prod sigma) ≤
       Causalean.Stat.tvDist mu nu + Causalean.Stat.tvDist rho sigma := by
-  let gammaA := Causalean.Stat.maximalCoupling mu nu
-  let gammaB := Causalean.Stat.maximalCoupling rho sigma
+  let gammaA := Causalean.Stat.overlapCoupling mu nu
+  let gammaB := Causalean.Stat.overlapCoupling rho sigma
   let Gamma := gammaA.prod gammaB
   let left : (A × A) × (B × B) → A × B := fun z => (z.1.1, z.2.1)
   let right : (A × A) × (B × B) → A × B := fun z => (z.1.2, z.2.2)
@@ -24,14 +27,14 @@ theorem tvDist_prod_le_add
     change (gammaA.prod gammaB).map left = _
     rw [show left = Prod.map Prod.fst Prod.fst by rfl,
       ← Measure.map_prod_map gammaA gammaB measurable_fst measurable_fst,
-      Causalean.Stat.maximalCoupling_map_fst,
-      Causalean.Stat.maximalCoupling_map_fst]
+      Causalean.Stat.overlapCoupling_map_fst,
+      Causalean.Stat.overlapCoupling_map_fst]
   have hright : Gamma.map right = nu.prod sigma := by
     change (gammaA.prod gammaB).map right = _
     rw [show right = Prod.map Prod.snd Prod.snd by rfl,
       ← Measure.map_prod_map gammaA gammaB measurable_snd measurable_snd,
-      Causalean.Stat.maximalCoupling_map_snd,
-      Causalean.Stat.maximalCoupling_map_snd]
+      Causalean.Stat.overlapCoupling_map_snd,
+      Causalean.Stat.overlapCoupling_map_snd]
   have hcouple :=
     CausalSmith.Stat.DiscreteAteMinimaxLoggap.tvDist_le_coupling_ne
       (mu.prod rho) (nu.prod sigma) Gamma left right (by fun_prop) (by fun_prop)
@@ -80,7 +83,7 @@ theorem tvDist_prod_le_add
       rw [hmA, hmB]
     _ ≤ Causalean.Stat.tvDist mu nu + Causalean.Stat.tvDist rho sigma :=
       add_le_add
-        (CausalSmith.Stat.DiscreteAteMinimaxLoggap.maximalCoupling_ne_mass_le mu nu)
-        (CausalSmith.Stat.DiscreteAteMinimaxLoggap.maximalCoupling_ne_mass_le rho sigma)
+        (CausalSmith.Stat.DiscreteAteMinimaxLoggap.overlapCoupling_ne_mass_le mu nu)
+        (CausalSmith.Stat.DiscreteAteMinimaxLoggap.overlapCoupling_ne_mass_le rho sigma)
 
 end CausalSmith.SCM.ProxyTargetspanTransport

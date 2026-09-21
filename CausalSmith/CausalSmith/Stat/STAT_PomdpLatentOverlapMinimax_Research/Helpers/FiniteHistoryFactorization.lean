@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FinitePrefixMarginal
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FinitePrefixMarginal
 
 set_option linter.style.longLine false
 
 /-! # Finite chronological history factorization -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

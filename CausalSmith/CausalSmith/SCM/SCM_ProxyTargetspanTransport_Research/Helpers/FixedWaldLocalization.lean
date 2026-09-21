@@ -1,15 +1,18 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.StudentizedWitness
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FiniteSampleCoverage
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.StudentizedWitness
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FiniteSampleCoverage
 
 /-! Local deterministic control of the rank-one Wald rule at the explicit baseline. -/
+
+@[expose] public section
 
 open scoped BigOperators Matrix Matrix.Norms.Elementwise
 open Finset Matrix MeasureTheory
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
-private abbrev BaselinePO := Fin 2 → Fin 2 → Fin 1 → Fin 2 → ℝ
-private abbrev BaselineB := Fin 2 → ℝ
+abbrev BaselinePO := Fin 2 → Fin 2 → Fin 1 → Fin 2 → ℝ
+abbrev BaselineB := Fin 2 → ℝ
 private abbrev BaselineHz := Matrix (Fin 2) (Fin 2) ℝ × (Fin 2 → ℝ)
 private abbrev BaselineInput :=
   Causalean.Mathlib.Analysis.WaldInput (Fin 2)

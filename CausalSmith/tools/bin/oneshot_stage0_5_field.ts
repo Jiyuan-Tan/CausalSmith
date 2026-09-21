@@ -39,7 +39,7 @@ async function main() {
   };
   const paths = artifactPaths(ctx, state);
   const tex = notePath ? await readFile(notePath, "utf8") : await readFile(paths.tex, "utf8");
-  const promptHeader = await readPrompt(ctx, "stage0_5_review.txt");
+  const promptHeader = await readPrompt(ctx, "stage0_5_rubric_review.txt");
   const prompt = [
     promptHeader,
     "",

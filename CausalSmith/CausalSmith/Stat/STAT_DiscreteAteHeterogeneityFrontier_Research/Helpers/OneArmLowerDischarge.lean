@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmHeadlineAssembly
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmHeadlineAssembly
 
 /-! # One-arm lower-bound discharge
 
 This module exposes the proved binary one-arm lower bound in the local
 heterogeneity-frontier namespace.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

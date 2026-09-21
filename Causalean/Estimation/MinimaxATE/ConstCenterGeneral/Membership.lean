@@ -22,8 +22,9 @@ The capstone `inClassG` packages these into `InClass m̂ ĝ εg εm mλ gλ` whe
 `inClass_perturbed` of `Membership.lean` at `m₀ = g₁ = 1/2`.
 -/
 
-import Causalean.Estimation.MinimaxATE.Reduction.Bump
-import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Gap
+module
+public import Causalean.Estimation.MinimaxATE.Reduction.Bump
+public import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Gap
 
 /-! # General-Center Membership
 
@@ -35,6 +36,8 @@ pointwise deviation, and `l2sq_gPertG_true_le` for the uniform treated-arm error
 
 The capstone `inClassG` packages these estimates into the realizability input required by the
 general-center minimax lower bound. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

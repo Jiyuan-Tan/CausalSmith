@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
 
 /-! # Vertex certificates on the reduced triangle
 
@@ -11,6 +13,8 @@ Three elementary linear-plus-weighted-Frobenius optimality certificates over
 `T_m`: the cut vertex `(0,2m,0)`, the spread vertex `(2m/q,0,0)`, and the
 Frobenius center `(1,1,1)`. The `0 < qParam m` side-condition is the
 non-degeneracy `m ≥ 2` regularity premise. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

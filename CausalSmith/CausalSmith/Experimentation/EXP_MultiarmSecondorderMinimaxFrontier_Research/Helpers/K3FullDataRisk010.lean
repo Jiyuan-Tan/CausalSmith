@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.K3FullDataWitnessBase
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.K3FullDataWitnessBase
 
 /-! One response-type slice of the exact full-data risk certificate. -/
+
+public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 

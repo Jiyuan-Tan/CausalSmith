@@ -25,7 +25,7 @@ import { clusterFor, loadClusterSetupBlock } from "../cluster_setup.js";
 import { directivesConsumed, formatDirectiveContext, pendingDirectives, readEscalationLog } from "../escalation_log.js";
 import { projectFrozenCore, serializeFrozenCoreSnapshot } from "../solve/context_projection.js";
 import type { SolveUnitOutput } from "../solve/schemas.js";
-import { companionPathFor } from "../solve/tex_companion.js";
+import { companionPathsFor } from "../solve/tex_companion.js";
 import {
   SolveUnitCarrierError,
   acquireSolvePathLease,
@@ -42,7 +42,7 @@ import { sha256Hex } from "./node.js";
 import { listPrs, mergePr, openPr, prLosses, scopeSubmissionProse, type PrRecord, type UnitSubmission } from "./pr.js";
 import { renderCore } from "./render.js";
 import { MAIN_REF, VcsStore } from "./store.js";
-import { deriveStatus, openStatements, proofVerdict } from "./validity.js";
+import { deriveStatus, openStatements, proofCoversCurrentClosure, proofVerdict } from "./validity.js";
 
 const METADATA_TARGET_FIELDS: Record<string, string> = {
   "metadata:target-estimand": "target_estimand",
@@ -253,6 +253,8 @@ async function publishFrozenCoreSnapshot(ctx: PipelineContext, core: Core): Prom
 interface UnitPlan {
   label: string;
   targets: CoreStatement[];
+  /** Every graph node assigned to this unit, including directed catalog targets. */
+  targetIds: string[];
   priorContext: string;
   proseRole: "owner" | "omit";
 }
@@ -290,7 +292,7 @@ export function planUnits(args: {
   let groups = groupToProveByComponent([...open.values()]);
   if (args.hasDirective && requiredTargets.size > 0) {
     const scoped = groups.filter((g) => g.targets.some((t) => requiredTargets.has(t.id)));
-    if (scoped.length > 0 && scoped.length < groups.length) groups = scoped;
+    groups = scoped;
   }
   const plans: UnitPlan[] = groups.map((g, i) => {
     const targetIds = new Set(g.targets.map((t) => t.id));
@@ -325,10 +327,15 @@ export function planUnits(args: {
     // round one deterministic unit owns it; ordinary solve rounds cannot invent
     // approval-free global framing from a partial component view.
     const proseRole: UnitPlan["proseRole"] = args.hasDirective && i === 0 ? "owner" : "omit";
-    return { label: g.label, targets: g.targets, priorContext, proseRole };
+    return { label: g.label, targets: g.targets, targetIds: g.targets.map((target) => target.id), priorContext, proseRole };
   });
+  // Catalog nodes are not members of statement dependency components. Assign all
+  // directed catalog work to one deterministic unit instead of silently dropping
+  // it whenever the same directive also names a statement.
+  const catalogTargets = [...requiredTargets].filter((id) => !byId.has(id));
+  if (catalogTargets.length > 0 && plans.length > 0) plans[0].targetIds.push(...catalogTargets);
   if (plans.length === 0 && args.hasDirective) {
-    plans.push({ label: "directive", targets: [], priorContext: args.directiveContext, proseRole: "owner" });
+    plans.push({ label: "directive", targets: [], targetIds: catalogTargets, priorContext: args.directiveContext, proseRole: "owner" });
   }
   return plans;
 }
@@ -345,16 +352,34 @@ async function solveUnit(args: {
   const { ctx, plan } = args;
   const label = plan.label;
   const outPath = unitOutPath(ctx, label);
+  const [canonicalCompanionPath, legacyCompanionPath] = companionPathsFor(outPath);
+  const hasCanonicalCompanion = existsSync(canonicalCompanionPath);
+  const hasLegacyCompanion = existsSync(legacyCompanionPath);
+  const companionPath = hasLegacyCompanion && !hasCanonicalCompanion
+    ? legacyCompanionPath
+    : canonicalCompanionPath;
+  const ambiguousExistingCompanions = hasCanonicalCompanion && hasLegacyCompanion;
   await mkdir(path.dirname(outPath), { recursive: true });
-  await mkdir(path.dirname(companionPathFor(outPath)), { recursive: true });
+  await mkdir(path.dirname(companionPath), { recursive: true });
   const lease = await acquireSolvePathLease(outPath);
   try {
-    const projected = projectFrozenCore(args.core, new Set(plan.targets.map((t) => t.id)));
-    const targetReceipts = plan.targets.map((t) => {
-      if (t.status === "cited") return t;
-      const { statement: _s, depends_on: _d, proof_tex: _p, ...receipt } = t;
-      return receipt;
-    });
+    const projected = projectFrozenCore(args.core, new Set(plan.targetIds));
+    const targetReceipts: unknown[] = [];
+    for (const id of plan.targetIds) {
+      const statement = plan.targets.find((target) => target.id === id);
+      if (statement !== undefined) {
+        if (statement.status === "cited") targetReceipts.push(statement);
+        else {
+          const { statement: _s, depends_on: _d, proof_tex: _p, ...receipt } = statement;
+          targetReceipts.push(receipt);
+        }
+        continue;
+      }
+      const catalog = args.core.definitions.find((entry) => entry.id === id)
+        ?? args.core.assumptions.find((entry) => entry.id === id)
+        ?? args.core.symbols.find((entry) => `sym:${entry.name}` === id);
+      if (catalog !== undefined) targetReceipts.push(catalog);
+    }
     const prompt = [
       await readPrompt(ctx, "stage0_common_discovery.txt"),
       "",
@@ -392,7 +417,7 @@ async function solveUnit(args: {
       JSON.stringify(targetReceipts, null, 2),
       "",
       `SOLVE_OUTPUT_PATH: ${outPath}`,
-      `SOLVE_COMPANION_PATH: ${companionPathFor(outPath)}`,
+      `SOLVE_COMPANION_PATH: ${companionPath}`,
       "Both paths above are already absolute. Write exactly those paths; never prefix them with the cwd or repo name.",
       "D-orchestration validates and mechanically normalizes the artifact after this call; spend this call on the mathematics.",
       'Return only JSON on stdout: {"status":"completed","message":"...","artifacts":["<solve.json>"]}.',
@@ -405,10 +430,10 @@ async function solveUnit(args: {
         persistCanonical: true,
         assertPersistenceLease: lease.assertOwned,
         requireCompanionLongFields: true,
+        companionPath,
       });
     const companionSha = async (): Promise<string | undefined> => {
-      const p = companionPathFor(outPath);
-      return existsSync(p) ? sha256Hex(await readFile(p, "utf8")) : undefined;
+      return existsSync(companionPath) ? sha256Hex(await readFile(companionPath, "utf8")) : undefined;
     };
     const writeReceipt = async (): Promise<void> => {
       await mkdir(path.dirname(receiptPath), { recursive: true });
@@ -420,14 +445,14 @@ async function solveUnit(args: {
       }, null, 2)}\n`, "utf8");
     };
     // Reuse lane: a validated output bound to this exact prompt is not re-paid.
-    if (process.env.CAUSALSMITH_D0_REUSE !== "0" && existsSync(receiptPath) && existsSync(outPath)) {
+    if (!ambiguousExistingCompanions && process.env.CAUSALSMITH_D0_REUSE !== "0" && existsSync(receiptPath) && existsSync(outPath)) {
       try {
         const r = JSON.parse(await readFile(receiptPath, "utf8")) as Record<string, unknown>;
         if (r.format === "v2" && r.model === MODEL_PLAN.stage0_solve.model && r.effort === MODEL_PLAN.stage0_solve.effort &&
             r.prompt_sha256 === promptSha && r.output_sha256 === sha256Hex(await readFile(outPath, "utf8")) &&
             (r.companion_sha256 ?? undefined) === (await companionSha())) {
           const reused = (scopeSubmissionProse({
-            unit: plan.label, targets: plan.targets.map((target) => target.id), output: await readValidated(),
+        unit: plan.label, targets: plan.targetIds, output: await readValidated(),
           }, plan.proseRole)).output;
           console.warn(`[D0-SOLVE] unit ${label}: reusing the persisted validated output (prompt unchanged) — no model call.`);
           await writeReceipt();
@@ -439,7 +464,10 @@ async function solveUnit(args: {
     }
     await rm(receiptPath, { force: true });
     await rm(outPath, { force: true });
-    await rm(companionPathFor(outPath), { force: true });
+    await Promise.all([
+      rm(canonicalCompanionPath, { force: true }),
+      rm(legacyCompanionPath, { force: true }),
+    ]);
 
     const attempt = async (retryNote?: string): Promise<SolveUnitOutput> => {
       const out = await dispatchAgent({
@@ -464,16 +492,19 @@ async function solveUnit(args: {
     let output: SolveUnitOutput;
     try {
       output = (scopeSubmissionProse({
-        unit: plan.label, targets: plan.targets.map((target) => target.id), output: await attempt(),
+        unit: plan.label, targets: plan.targetIds, output: await attempt(),
       }, plan.proseRole)).output;
     } catch (err) {
       if (!(err instanceof SolveUnitMechanicalReadError)) throw err;
       if (existsSync(outPath) && !(err.cause instanceof SolveUnitCarrierError)) throw err;
       console.warn(`[D0-SOLVE] unit ${label} wrote no trustworthy solve artifact; repeating this unit once: ${err.message}`);
       await rm(outPath, { force: true });
-      await rm(companionPathFor(outPath), { force: true });
+      await Promise.all([
+        rm(canonicalCompanionPath, { force: true }),
+        rm(legacyCompanionPath, { force: true }),
+      ]);
       output = (scopeSubmissionProse({
-        unit: plan.label, targets: plan.targets.map((target) => target.id), output: await attempt(err.message),
+        unit: plan.label, targets: plan.targetIds, output: await attempt(err.message),
       }, plan.proseRole)).output;
     }
     await writeReceipt();
@@ -545,7 +576,7 @@ export async function runVcsSolveRound(args: { ctx: PipelineContext; state: Stat
   }
   if (outputs.length === 0) throw settled.find((r) => r.status === "rejected") ? (settled.find((r) => r.status === "rejected") as PromiseRejectedResult).reason : new Error("no unit returned");
   const submissions: UnitSubmission[] = outputs.map(({ plan, output }) => ({
-    unit: plan.label, targets: plan.targets.map((t) => t.id), proseRole: plan.proseRole, output,
+    unit: plan.label, targets: plan.targetIds, proseRole: plan.proseRole, output,
   }));
   const { pr, head: prHead } = await openPr({ store, base: head, round: args.round, submissions, journalLength: journal.length });
   // Directives are consumed when the round's PR merges (below, or `d0_vc pr merge`);
@@ -563,11 +594,25 @@ export async function runVcsSolveRound(args: { ctx: PipelineContext; state: Stat
   ]);
   const unaddressedTargets = resolvedTargets.flatMap(([declaredId, graphId]) => {
     if (graphId === null || blockedOutputIds.has(graphId) || blockedOutputIds.has(declaredId)) return [declaredId];
+    // A directive target also selects the component in which new mathematics is
+    // to be authored.  An additive corollary can answer that directive without
+    // rewriting its already-proved source theorem.  Recognize this from the
+    // landed graph edge, not from a model-authored claim of compliance.
+    const target = statementBlob(baseGraph, graphId);
+    const settledTarget = target !== undefined &&
+      (["theorem", "lemma", "proposition"] as const).some((kind) => target.body.kind === kind) &&
+      deriveStatus(baseGraph, graphId) !== "to-prove";
+    const landedDependent = settledTarget && roundDiff.added.some((id) => {
+      const blob = statementBlob(prHead, id);
+      return blob !== undefined && (["theorem", "lemma", "proposition"] as const).some((kind) => blob.body.kind === kind) &&
+        blob.body.depends_on.includes(graphId) && deriveStatus(prHead, id) === "proved" &&
+        proofCoversCurrentClosure(prHead, id);
+    });
     const receipts = submissions.flatMap((s) => {
       const receipt = outputTargetReceipt(s.output, declaredId);
       return receipt === null ? [] : [receipt];
     });
-    if (receipts.length === 0) return [declaredId];
+    if (receipts.length === 0) return landedDependent ? [] : [declaredId];
     // Reverse dependencies are a verified derived view; their typed rebuild edit
     // is intentionally diff-free.  Every other target must have landed bytes,
     // and metadata aliases must change their own field rather than a sibling.
@@ -575,7 +620,8 @@ export async function runVcsSolveRound(args: { ctx: PipelineContext; state: Stat
     if (receipts.some((receipt) => receipt.removal) && roundDiff.removed.includes(graphId)) return [];
     const landedFields = changedFields.get(graphId);
     const landed = landedFields !== undefined && receipts.some((receipt) => [...receipt.fields].some((field) => landedFields.has(field)));
-    return landed ? [] : [declaredId];
+    if (landed) return [];
+    return landedDependent ? [] : [declaredId];
   });
   const rejectedNote = pr.units.flatMap((u) => u.rejected.map((r) => `${u.unit}: ${r.channel} ${r.id} — ${r.reason}`));
   const droppedNote = pr.dropped.map((d) => `${d.id} — ${d.reason}`);

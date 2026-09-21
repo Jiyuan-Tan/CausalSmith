@@ -1,11 +1,14 @@
-import Causalean.Mathlib.Analysis.TwoByTwoSpectralRoots
-import Mathlib.Data.Matrix.Mul
+module
+public import Causalean.Mathlib.Analysis.TwoByTwoSpectralRoots
+public import Mathlib.Data.Matrix.Mul
 
 /-!
 # Choice-free top spectral projector in dimension two
 
 This module turns the two explicit roots into an algebraic projector onto the upper eigenspace of a real symmetric two-by-two matrix.  The formula is independent of any sign or basis choice for an eigenvector and is continuously differentiable on the strict-gap region.
 -/
+
+@[expose] public section
 
 open Matrix
 open scoped Matrix.Norms.Elementwise

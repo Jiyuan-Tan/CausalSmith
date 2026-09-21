@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
-import Causalean.Stat.Concentration.TailBounds.BinomialCount
-import Causalean.Stat.Sample.PiTransport
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+public import Causalean.Stat.Concentration.TailBounds.BinomialCount
+public import Causalean.Stat.Sample.PiTransport
 
 /-!
 # Finite-product transport to deterministic sample blocks
@@ -16,6 +17,8 @@ arbitrary deterministic block, reindex that block by `Fin I.card`, and connect
 the resulting coordinate sum to the range-indexed Causalean count API through
 the canonical infinite-product sample. No ambient i.i.d. stream is assumed.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

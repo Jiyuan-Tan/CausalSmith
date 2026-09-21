@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Divergence
-import Mathlib.MeasureTheory.Measure.Sub
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Divergence
+public import Mathlib.MeasureTheory.Measure.Sub
 
 /-! # Mixture, measure-cap, and likelihood-ratio bridges -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

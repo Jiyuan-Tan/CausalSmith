@@ -521,6 +521,7 @@ describe("block inputs and cache keys", () => {
     expect(isTheoremLike("noncomputable def d := 1")).toBe(false);
     expect(isTheoremLike("structure S where x : Nat")).toBe(false);
     expect(isTheoremLike("lemma l : True := trivial")).toBe(true);
+    expect(isTheoremLike("@[expose] public theorem published : True := trivial")).toBe(true);
   });
 
   it("gives explicit Prop-valued definitions fine-grained rows", () => {

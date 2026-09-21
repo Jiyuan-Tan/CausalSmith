@@ -3,14 +3,19 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.BlockPairSums
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SpectralMembership
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.BlockPairSums
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SpectralMembership
+
 /-! # Block spectral coordinates
 
 The four-way orthogonal eigendecomposition of `ℝⁿ` (`span 1_n`, `span s_m`, the
 within-`A` and within-`B` contrast subspaces) reads off the eigenvalues of `X(u,v)`
 as `x = 1−u`, `y = 1+(m−1)u−mv`, `z = 1+(m−1)u+mv`, converts elliptope membership
 into the reduced triangle, and gives the closed-form objective `φ`. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

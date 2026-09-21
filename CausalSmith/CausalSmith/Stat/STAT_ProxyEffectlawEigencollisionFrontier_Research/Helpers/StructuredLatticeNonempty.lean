@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeEnumeration
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeEnumeration
 
 /-!
 # A canonical point in the paper's structured lattice
@@ -7,6 +8,8 @@ The exhaustive search is nonempty for every core-domain parameter tuple.  The wi
 first `k` coordinate vectors, the identity coordinate matrix, zero effects, and an integer-simplex
 weight vector with the required floor.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

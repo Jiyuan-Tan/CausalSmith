@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier
 
 /-!
 # Fair-coin energy frontier
@@ -7,6 +8,8 @@ import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_ou
 At probability one half the even Bernoulli contrasts cancel, leaving four
 times the sum of the eligible odd binomial coefficients.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

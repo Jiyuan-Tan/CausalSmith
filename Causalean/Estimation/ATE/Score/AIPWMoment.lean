@@ -11,14 +11,15 @@ Authors: Jiyuan Tan
                                            equipped with componentwise `AddCommGroup`
                                            and `Module ℝ` instances so it can be fed
                                            to `NeymanOrthogonal`.
-* `H_ε ε`                                — legacy pointwise overlap-bounded realization set.
+* `H_ε ε`                                — stronger pointwise overlap class.
 * `H_ε_aeL2 S ε`                         — source-shaped a.e./L² nuisance set.
 * `aipwMomentFunctional`                 — `m_AIPW` viewed as `NuisanceVec γ → … → ℝ`.
 -/
 
-import Causalean.Estimation.ATE.Setup
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Causalean.Tactic.Attr
+module
+public import Causalean.Estimation.ATE.Setup
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Causalean.Tactic.Attr
 
 /-!
 Defines the AIPW score objects used throughout the back-door ATE estimation
@@ -27,11 +28,13 @@ theory.
 The main declarations are the observed-data projections `projX`, `projA`,
 `projY`, the treatment indicator `indA`, the AIPW moment `aipwMoment`, the
 truth influence function `ψ_AIPW`, and the nuisance vector space
-`NuisanceVec`.  The file also defines the truth nuisance `η₀`, the legacy
+`NuisanceVec`. The file also defines the truth nuisance `η₀`, the stronger
 pointwise overlap class `H_ε`, the source-shaped a.e./L² nuisance class
 `H_ε_aeL2`, transport lemmas for its a.e. overlap condition, and
-`aipwMomentFunctional` for use in orthogonality and DML theorems.
+`aipwMomentFunctional` for use in the DML theorems.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -102,7 +105,7 @@ noncomputable def ψ_AIPW (S : BackdoorEstimationSystem P γ)
     (z : γ × Bool × ℝ) : ℝ :=
   aipwMoment z S.μ_val S.e_val (S.θ₀)
 
-/-! ## Overlap-bounded nuisance space `H_ε`
+/-! ## Nuisance vectors and overlap classes
 
 We package nuisance pairs `(μ_fn, e_fn)` together with their measurability as
 `NuisanceVec`, with vector-space operations defined componentwise.  The
@@ -293,8 +296,9 @@ noncomputable def η₀ (S : BackdoorEstimationSystem P γ) : NuisanceVec γ :=
 
 /-- For a [measurable covariate space](hyp:γ) and [a real overlap level](hyp:ε), the [pointwise overlap-bounded nuisance class](goal) is the set of all nuisance vectors whose propensity score lies between $ε$ and $1-ε$ at every covariate value.
 
-This pointwise version remains for existing denominator-bound proofs that have
-not yet been migrated to a.e. overlap. -/
+This stronger pointwise class is available when everywhere overlap is needed;
+the AIPW/DML results use `H_ε_aeL2`, whose overlap condition holds under the
+covariate law almost everywhere. -/
 def H_ε (ε : ℝ) : Set (NuisanceVec γ) :=
   { η | ∀ x, ε ≤ η.e_fn x ∧ η.e_fn x ≤ 1 - ε }
 

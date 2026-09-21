@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Probability.Moments.Variance
-import Mathlib.Probability.Independence.Basic
+
+module
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.Probability.Independence.Basic
 
 /-!
 # Concentration building blocks for the random design
@@ -22,6 +24,8 @@ coordinates:
 These are the building blocks that turn the algebraic reductions (bias `≤ √(M₀₀(M⁻¹)₀₀)`,
 variance `≤ σ² W (M⁻¹)₀₀`) into rate statements via the design density.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

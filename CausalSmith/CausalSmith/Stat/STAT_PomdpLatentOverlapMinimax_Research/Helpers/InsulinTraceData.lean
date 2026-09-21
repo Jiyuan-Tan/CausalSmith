@@ -1,12 +1,14 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.False10
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.False11
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.True10
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.True11
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.False10
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.False11
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.True10
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData.True11
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 /-- For [the target input](hyp:target), [the k input](hyp:k), [the i input](hyp:i), [this defines the insulin Trace Interval object](goal). -/
 def insulinTraceInterval (target : Bool) (k : Fin 2) (i : Fin 360) : RatInterval :=
   if k.val = 0 then

@@ -1,11 +1,14 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockPriorHellinger
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockPriorHellinger
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-!
 # Continuous-prior minimax converse
 -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open Finset MeasureTheory

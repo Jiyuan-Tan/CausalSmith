@@ -6,10 +6,13 @@ Authors: Jiyuan Tan
 # A polynomial rank witness for the genuine weighted contraction
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernelIdentity
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Vandermonde
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernelIdentity
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Vandermonde
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -180,7 +183,7 @@ private lemma contraction_injective_of_minor_det_ne_zero (m : ℕ)
       ring
     _ = 0 := sub_eq_zero.mpr (congrFun he k)
 
-private def witnessParameter (m : ℕ) : ParamSpace ℂ m :=
+def witnessParameter (m : ℕ) : ParamSpace ℂ m :=
   ((1 : ℂ), (fun i => (i.1 + 2 : ℕ)), fun j r =>
     if r = m + 2 then if j.1 = m + 1 then 1 else 0
     else if r = 2 * m + 2 then if j.1 = m + 1 then 0 else 1

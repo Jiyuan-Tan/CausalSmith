@@ -1,0 +1,2142 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}mnar\_\allowbreak{}window\_\allowbreak{}blockloo}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For a deterministic common-start missing block, the native one-missing-cell convex optimizer has a complete three-block tangent score and a serial rank-projection drift. Neighborhood replacement through the native fixed point, centered quadratic aggregation, residual finite-lag covariance estimation, and fitted Hessian and weight stability yield feasible uniform scalar Wald inference whenever \(\psi_{\min,\mathrm{loc}}\ge\omega_n\sqrt n\,\ell_n^2(\ell_n+H^{1/4})\) with \(\omega_n\to\infty\). This is a sufficient envelope, not a sharp frontier.
+
+\section{Project justification}
+
+\paragraph{Gap.} Choi and Yuan's deterministic-MNAR result treats independent cell noise under its own subgroup-size, loading, and rate conditions, while dependent-noise factor and residual-HAC results do not control the implemented masked convex completion estimator at the shrinking standard-error scale of a growing causal window. The Choi--Yuan class and this note's strengthened uniform class are not nested.
+
+\paragraph{Niche.} The missing object is a native-optimizer second-order expansion whose first differential retains donor-window, treated-pre, and negative donor-pre overlap terms and whose projector curvature is contracted against finite-lag covariance, with all errors controlled at the oracle window scale.
+
+\paragraph{Fill.} The project supplies that expansion, a feasible Hessian--lag covariance correction, an influence-weighted residual covariance estimator, an independent-row finite-range central limit theorem, and uniform Wald coverage under the rate-exact sufficient envelope \(\psi_{\min,\mathrm{loc}}\ge\omega_n\sqrt n\,\ell_n^2(\ell_n+H^{1/4})\). The one-date Choi--Yuan reduction is stated only on the explicit intersection with their Conditions (i)--(v), while the separate exponent-indexed sharp-frontier question remains open.
+
+\section{Related work}
+
+Choi and Yuan (2024) provide the deterministic-MNAR subgroup nuclear-norm and rank-projection architecture under independent cell noise and their stated subgroup-size, loading, and rate conditions. This note is an extension of their balanced, fixed-rank, common-start, singleton-subgroup regime along the serial-dependence and growing-window axes, under a strengthened uniform class; neither full class contains the other, and the formal one-date reduction is only on the explicit intersection with Choi--Yuan Conditions (i)--(v). Choi and Yuan (2025) provide the fully observed leave-neighbor weak-factor precedent; the present proof transfers neighborhood replacement through the actual masked convex fixed point. Cen and Lam (2025) motivate residual HAC for missing-factor scores, whereas the present result contracts fitted rank-projection Hessians and aggregate influence weights against finite-lag covariance. Choi, Kwon, and Liao (2024) supply only a backup coupling pattern and do not replace the estimator.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=(gH)^{-1}\sum_{i\in G}\sum_{t\in W}\{Y_{it}(1)-M_{it}\}\).
+Primary functional / estimator / diagnostic: \(\widehat\tau_{\mathrm{bc}}=(gH)^{-1}\sum_{i\in G,t\in W}(Y^{\mathrm{obs}}_{it}-\widehat M_{it})+\widehat B_2,\quad (\widehat\tau_{\mathrm{bc}}-\tau)/\sqrt{\widehat V}\Rightarrow N(0,1)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{asymptotic index}; \(\mathbb N\); \texttt{indexes the triangular array}
+  \item \texttt{a} --- \texttt{signal-\allowbreak{}strength exponent}; \([1/2,1]\); \texttt{indexes the frontier signal order}
+  \item \texttt{b} --- \texttt{treated-\allowbreak{}cohort exponent}; \((0,1]\); \texttt{indexes the frontier cohort order}
+  \item \texttt{c} --- \texttt{post-\allowbreak{}window exponent}; \([0,1]\); \texttt{indexes the frontier window order}
+  \item \texttt{N} --- \texttt{row dimension}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(N=N_n\)
+  \item \texttt{T} --- \texttt{time dimension}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(T=T_n\)
+  \item \texttt{I} --- \texttt{row index set}; \(\{1,\ldots,N\}\)
+  \par\smallskip\noindent\emph{Definition.} \(I=[N]\)
+  \item \texttt{J} --- \texttt{time index set}; \(\{1,\ldots,T\}\)
+  \par\smallskip\noindent\emph{Definition.} \(J=[T]\)
+  \item \texttt{G} --- \texttt{treated cohort}; \(2^I\)
+  \item \texttt{g} --- \texttt{treated-\allowbreak{}cohort size}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(g=|G|\)
+  \item \texttt{S} --- \texttt{consecutive pretreatment index set}; \(2^J\)
+  \item \texttt{m} --- \texttt{pretreatment length}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(m=|S|\)
+  \item \texttt{W} --- \texttt{consecutive post-\allowbreak{}treatment window}; \(2^J\)
+  \item \texttt{H} --- \texttt{post-\allowbreak{}window length}; \(\mathbb N\)
+  \par\smallskip\noindent\emph{Definition.} \(H=|W|\)
+  \item \texttt{C} --- \texttt{donor-\allowbreak{}set map}; \(C:J\to 2^I\)
+  \par\smallskip\noindent\emph{Definition.} \(C(t)=I\setminus G\) for the common-start design
+  \item \texttt{r} --- \texttt{known rank}; \(\mathbb N\)
+  \item \texttt{q} --- \texttt{known serial dependence range}; \(\mathbb N_0\)
+  \item \texttt{eta} --- \texttt{signal-\allowbreak{}envelope slack}; \((0,1/4)\)
+  \item \texttt{kappa} --- \texttt{condition-\allowbreak{}number bound}; \([1,\infty)\)
+  \item \texttt{mu} --- \texttt{incoherence bound}; \([1,\infty)\)
+  \item \texttt{K} --- \texttt{sub-\allowbreak{}Gaussian norm bound}; \((0,\infty)\)
+  \item \texttt{elllog} --- \texttt{logarithmic factor}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\ell_n=\log(n+2)\)
+  \item \texttt{rhoalt} --- \texttt{calibration loading-\allowbreak{}alternation amplitude}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\rho_{\mathrm{alt}}=1/2\)
+  \item \texttt{palt} --- \texttt{positive alternating loading-\allowbreak{}numerator sequence}; \(p^{\mathrm{alt}}:J\to(0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(p^{\mathrm{alt}}_t=1+\rho_{\mathrm{alt}}(-1)^t\)
+  \item \texttt{ucal} --- \texttt{normalized constant calibration left factor}; \(\mathbb R^N\)
+  \par\smallskip\noindent\emph{Definition.} \(u^{\mathrm{cal}}_i=N^{-1/2}\) for \(i\in I\)
+  \item \texttt{vcal} --- \texttt{normalized positive alternating calibration right factor}; \(\mathbb R^T\)
+  \par\smallskip\noindent\emph{Definition.} \(v^{\mathrm{cal}}_t=p^{\mathrm{alt}}_t/\sqrt{T(1+\rho_{\mathrm{alt}}^2)}\) for the even values of \(T\) used by the calibration array
+  \item \texttt{U} --- \texttt{left singular-\allowbreak{}vector matrix}; \(\mathbb R^{N\times r}\)
+  \item \texttt{V} --- \texttt{right singular-\allowbreak{}vector matrix}; \(\mathbb R^{T\times r}\)
+  \item \texttt{D} --- \texttt{positive singular-\allowbreak{}value matrix}; \(\mathbb R^{r\times r}\)
+  \par\smallskip\noindent\emph{Definition.} \(D=\operatorname{diag}(d_1,\ldots,d_r)\) with \(d_1\ge\cdots\ge d_r>0\)
+  \item \texttt{X} --- \texttt{scaled row-\allowbreak{}factor matrix}; \(\mathbb R^{N\times r}\)
+  \par\smallskip\noindent\emph{Definition.} \(X=UD^{1/2}\)
+  \item \texttt{F} --- \texttt{scaled time-\allowbreak{}factor matrix}; \(\mathbb R^{T\times r}\)
+  \par\smallskip\noindent\emph{Definition.} \(F=VD^{1/2}\)
+  \item \texttt{M} --- \texttt{untreated signal matrix}; \(\mathbb R^{N\times T}\)
+  \par\smallskip\noindent\emph{Definition.} \(M=UDV^{\top}=XF^{\top}\)
+  \item \texttt{psi} --- \texttt{minimum nonzero singular value}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\psi=d_r=\sigma_r(M)\)
+  \item \texttt{cloc} --- \texttt{local-\allowbreak{}to-\allowbreak{}global signal comparability constant}; \((0,1]\); \texttt{fixed lower bound for every target-\allowbreak{}specific restricted signal}
+  \item \texttt{epsilon} --- \texttt{noise array}; \(\mathbb R^{N\times T}\)
+  \item \texttt{zinnov} --- \texttt{Gaussian innovation array for the rank-\allowbreak{}one calibration family}; \(\mathbb R^{N\times(T+1)}\)
+  \par\smallskip\noindent\emph{Definition.} \(z=(z_{it})_{i\in I,t\in\{0,\ldots,T\}}\)
+  \item \texttt{gamma} --- \texttt{serial autocovariance}; \(\gamma:\mathbb Z\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\gamma(h)=\mathbb E[\epsilon_{i,t}\epsilon_{i,t+h}\mid M]\)
+  \item \texttt{Yzero} --- \texttt{untreated potential-\allowbreak{}outcome matrix}; \(\mathbb R^{N\times T}\)
+  \item \texttt{Yone} --- \texttt{treated potential-\allowbreak{}outcome matrix}; \(\mathbb R^{N\times T}\)
+  \item \texttt{A} --- \texttt{deterministic treatment matrix}; \(\{0,1\}^{N\times T}\)
+  \item \texttt{Yobs} --- \texttt{observed outcome matrix}; \(\mathbb R^{N\times T}\)
+  \item \texttt{Omega} --- \texttt{untreated observation set}; \(2^{I\times J}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=(I\times J)\setminus(G\times W)\)
+  \item \texttt{Gaux} --- \texttt{target-\allowbreak{}specific leave-\allowbreak{}neighborhood sigma-\allowbreak{}field}; \(\mathcal G^{(-t)}_{it}:G\times W\to\text{sigma-fields}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_{it}^{(-t)}=\sigma(\{\epsilon_{js}:j\ne i,\ s\in J\}\cup\{\epsilon_{is}:|s-t|>q\})\vee\sigma(M,\Omega)\)
+  \item \texttt{lambda} --- \texttt{nuclear-\allowbreak{}norm penalty}; \((0,\infty)\)
+  \item \texttt{Pr} --- best rank-\(r\) projection; \(\mathcal P_r:\mathbb R^{\mathcal I\times\mathcal J}\to\mathbb R^{\mathcal I\times\mathcal J}\) for finite ordered index sets \(\mathcal I\) and \(\mathcal J\)
+  \par\smallskip\noindent\emph{Definition.} A measurable Frobenius-best rank-\(r\) projection with deterministic singular-vector tie breaking.
+  \item \texttt{Iit} --- \texttt{target-\allowbreak{}specific ordered row index set}; \(I_{it}:G\times W\to 2^I\)
+  \par\smallskip\noindent\emph{Definition.} \(I_{it}=C(t)\cup\{i\}\), equipped with the increasing deterministic ordering inherited from \(I\)
+  \item \texttt{Jit} --- \texttt{target-\allowbreak{}specific ordered time index set}; \(J_{it}:G\times W\to 2^J\)
+  \par\smallskip\noindent\emph{Definition.} \(J_{it}=S\cup\{t\}\), equipped with the increasing deterministic ordering inherited from \(J\)
+  \item \texttt{Rit} --- \texttt{target-\allowbreak{}specific restriction and reindexing map}; \(R_{it}:\mathbb R^{I\times J}\to\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(R_{it}(E)=(E_{ju})_{j\in I_{it},u\in J_{it}}\) in the fixed orderings of \(I_{it}\) and \(J_{it}\)
+  \item \texttt{Olocal} --- \texttt{target-\allowbreak{}specific local observed set}; \(\Omega_{\mathrm{loc}}^{it}:G\times W\to 2^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_{\mathrm{loc}}^{it}=\Omega\cap(I_{it}\times J_{it})=C(t)\times(S\cup\{t\})\;\cup\;\{i\}\times S\), expressed in the fixed local chart
+  \item \texttt{Nhood} --- \texttt{serial replacement-\allowbreak{}neighborhood map}; \(\mathcal N_q:J\to2^J\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal N_q(t)=\{s\in J:|s-t|\le q\}\)
+  \item \texttt{epsaux} --- \texttt{target-\allowbreak{}specific neighborhood-\allowbreak{}noise-\allowbreak{}replaced array map}; \(\mathbb R^{N\times T}\)
+  \par\smallskip\noindent\emph{Definition.} \(\epsilon^{(-it)}_{js}=\epsilon_{js}1\{j\ne i\text{ or }|s-t|>q\}\) for \((i,t)\in G\times W\)
+  \item \texttt{epsilonlocal} --- \texttt{target-\allowbreak{}specific local noise-\allowbreak{}block map}; \(\epsilon^{it}:G\times W\to\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(\epsilon^{it}=R_{it}(\epsilon)\)
+  \item \texttt{Mlocal} --- \texttt{local signal-\allowbreak{}block map}; \(M^{it}:G\times W\to\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(M^{it}=R_{it}(M)\)
+  \item \texttt{psiminloc} --- \texttt{minimum target-\allowbreak{}specific local signal}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\psi_{\min,\mathrm{loc}}=\inf_{(i,t)\in G\times W}\sigma_r(M^{it})\)
+  \item \texttt{psilocal} --- \texttt{target-\allowbreak{}specific local minimum singular-\allowbreak{}value map}; \(\psi_{\mathrm{loc}}:G\times W\to(0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\psi_{\mathrm{loc},it}=\sigma_r(M^{it})\)
+  \item \texttt{kappadrift} --- \texttt{calibration global-\allowbreak{}signal drift coefficient}; \(\kappa^{\mathrm{drift}}:W\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\kappa^{\mathrm{drift}}_t=-2\gamma(1)p^{\mathrm{alt}}_t(n/m)(1-\rho_{\mathrm{alt}}^2)/(1+\rho_{\mathrm{alt}}^2)^{3/2}\)
+  \item \texttt{Ecoord} --- \texttt{local coordinate matrices}; \(E^{it}_{ju}\in\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(E^{it}_{ju}\) is the canonical basis matrix with one in local coordinate \((j,u)\) and zero elsewhere in the fixed ordered local space
+  \item \texttt{At} --- \texttt{donor restricted Gram}; \(\mathbb R^{r\times r}\)
+  \par\smallskip\noindent\emph{Definition.} \(A_t=\sum_{j\in C(t)}x_jx_j^{\top}\)
+  \item \texttt{Bpre} --- \texttt{pretreatment restricted Gram}; \(\mathbb R^{r\times r}\)
+  \par\smallskip\noindent\emph{Definition.} \(B_S=\sum_{s\in S}f_sf_s^{\top}\)
+  \item \texttt{aweight} --- \texttt{donor influence weights}
+  \par\smallskip\noindent\emph{Definition.} \(a_{ij,t}=x_i^{\top}A_t^{-1}x_j\)
+  \item \texttt{bweight} --- \texttt{pretreatment influence weights}
+  \par\smallskip\noindent\emph{Definition.} \(b_{t,s}=f_t^{\top}B_S^{-1}f_s\)
+  \item \texttt{ellscore} --- \texttt{local tangent-\allowbreak{}score map}; \(\ell_{it}:\mathbb R^{I_{it}\times J_{it}}\to\mathbb R\)
+  \item \texttt{Lagg} --- \texttt{aggregate oracle tangent score}; \(\mathbb R\)
+  \item \texttt{Qmap} --- \texttt{local quadratic projector map}; \(Q_{it}:\mathbb R^{I_{it}\times J_{it}}\to\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(Q_{it}(E)=\tfrac12D^2\mathcal P_r(M^{it})[E,E]\)
+  \item \texttt{hlev} --- \texttt{target projector leverage}; \([0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(h_{it}=\langle E^{it}_{it},D\mathcal P_r(M^{it})[E^{it}_{it}]\rangle_F\)
+  \item \texttt{qscore} --- \texttt{local quadratic scalar map}; \(q_{it}:\mathbb R^{I_{it}\times J_{it}}\to\mathbb R\)
+  \item \texttt{Qagg} --- \texttt{aggregate random quadratic term}; \(\mathbb R\)
+  \item \texttt{Btwo} --- \texttt{serial quadratic drift}; \(\mathbb R\)
+  \item \texttt{Mtilde} --- \texttt{family of native local convex solutions}; \(\widetilde M^{it}\in\mathbb R^{I_{it}\times J_{it}}\) for \((i,t)\in G\times W\)
+  \item \texttt{Zlocal} --- \texttt{native completed local matrix map}; \(Z^{it}:G\times W\to\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(Z^{it}=P_{\Omega_{\mathrm{loc}}^{it}}R_{it}(Y^{\mathrm{obs}})+P_{(\Omega_{\mathrm{loc}}^{it})^c}\widetilde M^{it}\)
+  \item \texttt{Mhat} --- \texttt{rank-\allowbreak{}projected native counterfactual estimator}; \(\mathbb R^{G\times W}\)
+  \item \texttt{Maux} --- \texttt{rank-\allowbreak{}projected neighborhood-\allowbreak{}replaced auxiliary fit}; \(\mathbb R^{G\times W}\)
+  \item \texttt{Daux} --- \texttt{native-\allowbreak{}minus-\allowbreak{}auxiliary second-\allowbreak{}order transfer error}; \(\mathbb R^{G\times W}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Delta^{\mathrm{aux}}_{it}=(\widehat M_{it}-\widehat M^{\mathrm{aux}}_{it})-\{\ell_{it}(R_{it}\epsilon)-\ell_{it}(R_{it}\epsilon^{(-it)})\}-\{q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)-q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon^{(-it)})\}\)
+  \item \texttt{Ragg} --- \texttt{signed aggregate higher-\allowbreak{}order remainder}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(R_{\mathrm{agg}}=(gH)^{-1}\sum_{i\in G,t\in W}(\widehat M_{it}-M_{it})-L-Q\)
+  \item \texttt{tau} --- \texttt{realized cohort-\allowbreak{}window causal contrast}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau=(gH)^{-1}\sum_{i\in G,t\in W}\{Y_{it}(1)-M_{it}\}\)
+  \item \texttt{tauhat} --- \texttt{uncorrected cohort-\allowbreak{}window estimator}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau=(gH)^{-1}\sum_{i\in G,t\in W}(Y^{\mathrm{obs}}_{it}-\widehat M_{it})\)
+  \item \texttt{Mpre} --- pretreatment rank-\(r\) residual fit
+  \item \texttt{resid} --- \texttt{pretreatment residual array}
+  \item \texttt{gammahat} --- \texttt{pooled finite-\allowbreak{}lag residual covariance}; \(\widehat\gamma:\{-q,\ldots,q\}\to\mathbb R\)
+  \item \texttt{Deltagamma} --- \texttt{maximum covariance estimation error}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_\gamma=\max_{|h|\le q}|\widehat\gamma(h)-\gamma(h)|\)
+  \item \texttt{ellhat} --- \texttt{fitted local tangent-\allowbreak{}score map}; \(\widehat\ell_{it}:\mathbb R^{I_{it}\times J_{it}}\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\ell_{it}\) is obtained from \(\ell_{it}\) by using the rank-\(r\) singular factors of \(\mathcal P_r(Z^{it})\) in the same ordered local chart
+  \item \texttt{Qhatmap} --- \texttt{fitted local quadratic projector map}; \(\widehat Q_{it}:\mathbb R^{I_{it}\times J_{it}}\to\mathbb R^{I_{it}\times J_{it}}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat Q_{it}(E)=\tfrac12D^2\mathcal P_r(\mathcal P_r(Z^{it}))[E,E]\)
+  \item \texttt{hhat} --- \texttt{fitted target projector leverage}; \([0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat h_{it}=\langle E^{it}_{it},D\mathcal P_r(\mathcal P_r(Z^{it}))[E^{it}_{it}]\rangle_F\)
+  \item \texttt{qhat} --- \texttt{fitted local quadratic scalar map}; \(\widehat q_{it}:\mathbb R^{I_{it}\times J_{it}}\to\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat q_{it}(e)=[\widehat Q_{it}(e+\widehat\ell_{it}(e)E^{it}_{it})]_{it}/(1-\widehat h_{it})\) in the fixed ordered local chart
+  \item \texttt{Btwohat} --- \texttt{feasible Hessian-\allowbreak{}-\allowbreak{}lag covariance correction}; \(\mathbb R\)
+  \item \texttt{taubc} --- \texttt{bias-\allowbreak{}corrected cohort-\allowbreak{}window estimator}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\tau_{\mathrm{bc}}=\widehat\tau+\widehat B_2\)
+  \item \texttt{w} --- \texttt{oracle aggregate influence-\allowbreak{}weight array}; \(\mathbb R^{N\times T}\)
+  \par\smallskip\noindent\emph{Definition.} \(L=\sum_{i=1}^N\sum_{t=1}^T w_{it}\epsilon_{it}\)
+  \item \texttt{what} --- \texttt{fitted aggregate influence-\allowbreak{}weight array}; \(\mathbb R^{N\times T}\)
+  \item \texttt{svar} --- \texttt{oracle aggregate variance}; \((0,\infty)\)
+  \item \texttt{s} --- \texttt{oracle aggregate standard error}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(s=\sqrt{s^2}\)
+  \item \texttt{Vhat} --- \texttt{feasible aggregate variance estimator}; \([0,\infty)\)
+  \item \texttt{alpha} --- \texttt{nominal error probability}; \((0,1)\)
+  \item \texttt{zalpha} --- \texttt{standard-\allowbreak{}normal critical value}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(z_{1-\alpha/2}=\Phi^{-1}(1-\alpha/2)\)
+  \item \texttt{CI} --- \texttt{Wald confidence interval}
+  \item \texttt{deltafit} --- \texttt{uniform pretreatment reconstruction error}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\delta_{\mathrm{fit}}=\max_{i\in I}m^{-1/2}\|(\widehat M^{\mathrm{pre}}-M)_{i,S}\|_2\)
+  \item \texttt{phasefrontier} --- \texttt{sharp polynomial phase region}; \(2^{[1/2,1]\times(0,1]\times[0,1]}\); \texttt{derived by Open-\allowbreak{}ended Question 1 over the exponent-\allowbreak{}indexed class}
+  \item \texttt{P} --- \texttt{data-\allowbreak{}generating law}; \texttt{generic law used in uniform probability statements}
+  \item \texttt{Pclass} --- \texttt{triangular-\allowbreak{}array model class}
+  \item \texttt{Pfrontier} --- \texttt{exponent-\allowbreak{}indexed triangular-\allowbreak{}array model class}; \(\mathcal P_n(a,b,c)\)
+  \item \texttt{omegaenv} --- \texttt{signal-\allowbreak{}envelope divergence sequence}; \((0,\infty)^{\mathbb N}\); \texttt{indexes slack in the sufficient local-\allowbreak{}signal envelope}
+  \par\smallskip\noindent\emph{Definition.} \(\omega_n\to\infty\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:balanced-growth]\label{ass:balanced-growth}
+There are constants \(0<c<C<\infty\) such that \(cn\le N,T\le Cn\) for every \(n\).
+\par\smallskip\noindent\emph{Standard} (balanced large-panel growth, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:cohort-fraction]\label{ass:cohort-fraction}
+There are constants \(0<c_G<C_G<1\) such that \(c_Gn\le g\le C_Gn\).
+\par\smallskip\noindent\emph{Novel.} A policy experiment that assigns a fixed positive share of eligible securities to treatment generates this regime; the SEC Tick Size Pilot has precisely a cohort-level intervention rather than isolated treated cells.
+\end{assumption}
+
+\begin{assumption}[ass:preperiod-fraction]\label{ass:preperiod-fraction}
+There are constants \(0<c_S<C_S<1\) such that \(c_Sn\le m\le C_Sn\).
+\par\smallskip\noindent\emph{Standard} (nonvanishing pretreatment fraction, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:donor-fraction]\label{ass:donor-fraction}
+There are constants \(0<c_C<C_C<1\) such that \(c_Cn\le |C(t)|\le C_Cn\) uniformly over \(t\in W\).
+\par\smallskip\noindent\emph{Standard} (nonvanishing donor fraction, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:window-consecutive]\label{ass:window-consecutive}
+The set \(W\) is an interval in \(J\).
+\par\smallskip\noindent\emph{Standard} (consecutive post-treatment window, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:window-after-preperiod]\label{ass:window-after-preperiod}
+The sets satisfy \(\max S<\min W\).
+\par\smallskip\noindent\emph{Standard} (ordered preperiod and post-treatment window, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:window-length]\label{ass:window-length}
+There is a constant \(c_W\in(0,1)\) such that \(1\le H\le(1-c_W)T\).
+\par\smallskip\noindent\emph{Standard} (post-window length below the full time dimension, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:rank-index]\label{ass:rank-index}
+The integer \(r\) is fixed and known.
+\par\smallskip\noindent\emph{Standard} (fixed known factor rank, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:exact-rank]\label{ass:exact-rank}
+The signal satisfies \(\operatorname{rank}(M)=r\).
+\par\smallskip\noindent\emph{Standard} (exact low-rank signal, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-known-range]\label{ass:fixed-known-range}
+The integer \(q\) is fixed and known.
+\par\smallskip\noindent\emph{Standard} (fixed finite dependence range, \cite{choiYuan2025WeakFactors}).
+\end{assumption}
+
+\begin{assumption}[ass:common-start-mask]\label{ass:common-start-mask}
+The treatment matrix satisfies \(A_{it}=1\{i\in G,t\in W\}\).
+\par\smallskip\noindent\emph{Standard} (common-start treatment block, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:deterministic-mask]\label{ass:deterministic-mask}
+The untreated observation set \(\Omega\) is nonrandom.
+\par\smallskip\noindent\emph{Standard} (deterministic missingness pattern, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:untreated-factor-model]\label{ass:untreated-factor-model}
+The untreated potential outcomes obey \(Y_{it}(0)=M_{it}+\epsilon_{it}\).
+\par\smallskip\noindent\emph{Standard} (interactive fixed-effects untreated-outcome model, \cite{atheyEtAl2021MatrixCompletion}).
+\end{assumption}
+
+\begin{assumption}[ass:causal-consistency]\label{ass:causal-consistency}
+The observed outcomes obey \(Y^{\mathrm{obs}}_{it}=A_{it}Y_{it}(1)+(1-A_{it})Y_{it}(0)\).
+\par\smallskip\noindent\emph{Standard} (potential-outcome consistency, \cite{atheyEtAl2021MatrixCompletion}).
+\end{assumption}
+
+\begin{assumption}[ass:local-signal]\label{ass:local-signal}
+For a fixed constant \(c_{\mathrm{loc}}\in(0,1]\), every local signal block satisfies \(\sigma_r(M^{it})\ge c_{\mathrm{loc}}\psi\) for \((i,t)\in G\times W\).
+\par\smallskip\noindent\emph{Novel.} A fixed local-to-global signal ratio holds when donor and pretreatment restrictions retain nonvanishing factor mass; balanced common-start panels with bounded positive loadings, including the displayed alternating-factor calibration, satisfy it.
+\end{assumption}
+
+\begin{assumption}[ass:condition-number]\label{ass:condition-number}
+Every local signal block satisfies \(\sigma_1(M^{it})/\sigma_r(M^{it})\le\kappa\).
+\par\smallskip\noindent\emph{Standard} (bounded local condition number, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:incoherence]\label{ass:incoherence}
+The singular vectors satisfy \(\max\{N\max_i\|U_{i\cdot}\|_2^2,T\max_t\|V_{t\cdot}\|_2^2\}\le\mu r\).
+\par\smallskip\noindent\emph{Standard} (matrix-completion incoherence, \cite{chenChiFanMaYan2020ConvexMC}).
+\end{assumption}
+
+\begin{assumption}[ass:donor-restricted-gram]\label{ass:donor-restricted-gram}
+For constants \(0<c_A<C_A<\infty\), \(c_AI_r\preceq D^{-1/2}A_tD^{-1/2}\preceq C_AI_r\) uniformly over \(t\in W\).
+\par\smallskip\noindent\emph{Standard} (normalized donor restricted-Gram bound, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:pre-restricted-gram]\label{ass:pre-restricted-gram}
+For constants \(0<c_B<C_B<\infty\), \(c_BI_r\preceq D^{-1/2}B_SD^{-1/2}\preceq C_BI_r\).
+\par\smallskip\noindent\emph{Standard} (normalized pretreatment restricted-Gram bound, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:independent-rows]\label{ass:independent-rows}
+Conditional on \(M\), the joint row law factorizes across \(i\in I\): the sigma-fields \(\sigma(\epsilon_{it}:t\in J)\) are mutually conditionally independent.
+\par\smallskip\noindent\emph{Standard} (cross-sectional independence, \cite{choiYuan2025WeakFactors}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-block-dependence]\label{ass:conditional-block-dependence}
+For every row \(i\in I\) and index sets \(\mathcal A,\mathcal B\subset J\) satisfying \(\min_{u\in\mathcal A,v\in\mathcal B}|u-v|>q\), the sigma-fields \(\sigma(\epsilon_{iu}:u\in\mathcal A)\) and \(\sigma(\epsilon_{iv}:v\in\mathcal B)\) are conditionally independent given \(M\).
+\par\smallskip\noindent\emph{Standard} (conditional finite-range block dependence, \cite{choiYuan2025WeakFactors}).
+\end{assumption}
+
+\begin{assumption}[ass:centered-noise]\label{ass:centered-noise}
+The errors satisfy \(\mathbb E[\epsilon_{it}\mid M]=0\) for every \((i,t)\).
+\par\smallskip\noindent\emph{Standard} (conditionally centered idiosyncratic errors, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:subgaussian-noise]\label{ass:subgaussian-noise}
+The errors satisfy \(\|\epsilon_{it}\|_{\psi_2}\le K\) uniformly over \((i,t)\).
+\par\smallskip\noindent\emph{Standard} (uniform sub-Gaussian tails, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:common-stationary-covariance]\label{ass:common-stationary-covariance}
+The conditional covariance is common and stationary: \(\mathbb E[\epsilon_{it}\epsilon_{is}\mid M]=\gamma(s-t)\).
+\par\smallskip\noindent\emph{Standard} (common stationary serial covariance, \cite{choiYuan2025WeakFactors}).
+\end{assumption}
+
+\begin{assumption}[ass:variance-nondegeneracy]\label{ass:variance-nondegeneracy}
+There are constants \(0<c_s<C_s<\infty\) such that \(c_s/(nH)\le s^2\le C_s/(nH)\).
+\par\smallskip\noindent\emph{Standard} (long-run variance nondegeneracy with diffuse weights, \cite{cenLam2025TensorImputation}).
+\end{assumption}
+
+\begin{assumption}[ass:signal-window-envelope]\label{ass:signal-window-envelope}
+The minimum local signal satisfies
+\[
+ \psi_{\min,\mathrm{loc}}
+ \ge \omega_n\sqrt n\,\ell_n^2\bigl(\ell_n+H^{1/4}\bigr).
+\]
+\par\smallskip\noindent\emph{Novel.} This is a sufficient rather than sharp envelope. It gives threshold order \(\omega_n n^{3/4}\ell_n^2\) when \(H\asymp n\) and \(\omega_n\sqrt n\,\ell_n^3\) when \(H\) is fixed, while retaining the native estimator and its feasible correction.
+\end{assumption}
+
+\begin{assumption}[ass:penalty-level]\label{ass:penalty-level}
+The penalty satisfies \(c_\lambda K\sqrt n\,\ell_n\le\lambda\le C_\lambda K\sqrt n\,\ell_n\) for constants \(0<c_\lambda<C_\lambda<\infty\).
+\par\smallskip\noindent\emph{Standard} (spectral-noise nuclear-norm penalty, \cite{choiYuan2024MNAR}).
+\end{assumption}
+
+\begin{assumption}[ass:frontier-cohort-growth]\label{ass:frontier-cohort-growth}
+There are constants \(0<c_g<C_g<\infty\), locally uniform when \((a,b,c)\) ranges over compact exponent sets, such that \(c_g n^b\le g\le C_g n^b\).
+\par\smallskip\noindent\emph{Novel.} Exponent-indexed cohort growth represents policy panels ranging from a sparse but expanding treated group to a fixed treated fraction, including subgroup analyses of the SEC Tick Size Pilot.
+\end{assumption}
+
+\begin{assumption}[ass:frontier-window-growth]\label{ass:frontier-window-growth}
+There are constants \(0<c_H<C_H<\infty\), locally uniform when \((a,b,c)\) ranges over compact exponent sets, such that \(c_H n^c\le H\le C_H n^c\).
+\par\smallskip\noindent\emph{Novel.} A polynomial window scale distinguishes short-run, intermediate, and sustained policy summaries while the existing ordering and subset conditions enforce calendar feasibility.
+\end{assumption}
+
+\begin{assumption}[ass:frontier-signal-growth]\label{ass:frontier-signal-growth}
+There are constants \(0<c_\psi<C_\psi<\infty\), locally uniform when \((a,b,c)\) ranges over compact exponent sets, such that \(c_\psi n^a\le\psi\le C_\psi n^a\).
+\par\smallskip\noindent\emph{Novel.} The exponent-indexed signal scale contains weak through strong bounded-incoherence factor arrays and exposes rather than assumes the interaction between signal, cohort, and window growth.
+\end{assumption}
+
+\begin{assumption}[ass:frontier-variance-scale]\label{ass:frontier-variance-scale}
+There are constants \(0<c_v<C_v<\infty\), locally uniform over compact exponent sets, such that \(c_v\{(nH)^{-1}+(ng)^{-1}\}\le s^2\le C_v\{(nH)^{-1}+(ng)^{-1}\}\).
+\par\smallskip\noindent\emph{Novel.} This nondegeneracy condition allows donor-window and treated-pre score components to determine the larger sampling scale and rules out cancellation only at the variance level.
+\end{assumption}
+
+\begin{assumption}[ass:conditional-subgaussian-noise]\label{ass:conditional-subgaussian-noise}
+Almost surely, the conditional exponential moments satisfy
+\[
+ \sup_{i\in I,\,t\in J}\mathbb E\!\left[\exp\!\left(\epsilon_{it}^2/K^2\right)\middle|M\right]\le2.
+\]
+\par\smallskip\noindent\emph{Novel.} standard
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniform deterministic-\allowbreak{}MNAR weak-\allowbreak{}signal class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_n=\{P_n:P_n\text{ governs }(M_n,\epsilon_n,Y_n(0),Y_n(1),A_n,G_n,S_n,W_n)\text{ and satisfies every member property listed for }\mathcal P_n\text{ at index }n\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}balanced-\allowbreak{}growth}; \texttt{ass:\allowbreak{}cohort-\allowbreak{}fraction}; \texttt{ass:\allowbreak{}preperiod-\allowbreak{}fraction}; \texttt{ass:\allowbreak{}donor-\allowbreak{}fraction}; \texttt{ass:\allowbreak{}window-\allowbreak{}consecutive}; \texttt{ass:\allowbreak{}window-\allowbreak{}after-\allowbreak{}preperiod}; \texttt{ass:\allowbreak{}window-\allowbreak{}length}; \texttt{ass:\allowbreak{}rank-\allowbreak{}index}; \texttt{ass:\allowbreak{}exact-\allowbreak{}rank}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}known-\allowbreak{}range}; \texttt{ass:\allowbreak{}common-\allowbreak{}start-\allowbreak{}mask}; \texttt{ass:\allowbreak{}deterministic-\allowbreak{}mask}; \texttt{ass:\allowbreak{}untreated-\allowbreak{}factor-\allowbreak{}model}; \texttt{ass:\allowbreak{}causal-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}local-\allowbreak{}signal}; \texttt{ass:\allowbreak{}condition-\allowbreak{}number}; \texttt{ass:\allowbreak{}incoherence}; \texttt{ass:\allowbreak{}donor-\allowbreak{}restricted-\allowbreak{}gram}; \texttt{ass:\allowbreak{}pre-\allowbreak{}restricted-\allowbreak{}gram}; \texttt{ass:\allowbreak{}independent-\allowbreak{}rows}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}block-\allowbreak{}dependence}; \texttt{ass:\allowbreak{}centered-\allowbreak{}noise}; \texttt{ass:\allowbreak{}subgaussian-\allowbreak{}noise}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}subgaussian-\allowbreak{}noise}; \texttt{ass:\allowbreak{}common-\allowbreak{}stationary-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}variance-\allowbreak{}nondegeneracy}; \texttt{ass:\allowbreak{}signal-\allowbreak{}window-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}penalty-\allowbreak{}level}.
+\end{definition}
+
+\begin{definition}[def:frontier-class]\label{def:frontier-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exponent-\allowbreak{}indexed signal-\allowbreak{}-\allowbreak{}cohort-\allowbreak{}-\allowbreak{}window class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_n(a,b,c)=\{P_n:P_n\text{ governs }(M_n,\epsilon_n,Y_n(0),Y_n(1),A_n,G_n,S_n,W_n)\text{ and satisfies every member property listed for }\mathcal P_n(a,b,c)\text{ at index }n\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}balanced-\allowbreak{}growth}; \texttt{ass:\allowbreak{}frontier-\allowbreak{}cohort-\allowbreak{}growth}; \texttt{ass:\allowbreak{}preperiod-\allowbreak{}fraction}; \texttt{ass:\allowbreak{}donor-\allowbreak{}fraction}; \texttt{ass:\allowbreak{}window-\allowbreak{}consecutive}; \texttt{ass:\allowbreak{}window-\allowbreak{}after-\allowbreak{}preperiod}; \texttt{ass:\allowbreak{}frontier-\allowbreak{}window-\allowbreak{}growth}; \texttt{ass:\allowbreak{}rank-\allowbreak{}index}; \texttt{ass:\allowbreak{}exact-\allowbreak{}rank}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}known-\allowbreak{}range}; \texttt{ass:\allowbreak{}common-\allowbreak{}start-\allowbreak{}mask}; \texttt{ass:\allowbreak{}deterministic-\allowbreak{}mask}; \texttt{ass:\allowbreak{}untreated-\allowbreak{}factor-\allowbreak{}model}; \texttt{ass:\allowbreak{}causal-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}local-\allowbreak{}signal}; \texttt{ass:\allowbreak{}frontier-\allowbreak{}signal-\allowbreak{}growth}; \texttt{ass:\allowbreak{}condition-\allowbreak{}number}; \texttt{ass:\allowbreak{}incoherence}; \texttt{ass:\allowbreak{}donor-\allowbreak{}restricted-\allowbreak{}gram}; \texttt{ass:\allowbreak{}pre-\allowbreak{}restricted-\allowbreak{}gram}; \texttt{ass:\allowbreak{}independent-\allowbreak{}rows}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}block-\allowbreak{}dependence}; \texttt{ass:\allowbreak{}centered-\allowbreak{}noise}; \texttt{ass:\allowbreak{}subgaussian-\allowbreak{}noise}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}subgaussian-\allowbreak{}noise}; \texttt{ass:\allowbreak{}common-\allowbreak{}stationary-\allowbreak{}covariance}; \texttt{ass:\allowbreak{}frontier-\allowbreak{}variance-\allowbreak{}scale}; \texttt{ass:\allowbreak{}penalty-\allowbreak{}level}.
+\end{definition}
+
+\begin{definition}[def:native-estimator]\label{def:native-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Native subgroup convex estimator}
+\par\smallskip\noindent\emph{Construction.} For each \((i,t)\in G\times W\), set \(Y^{\mathrm{obs},it}=R_{it}(Y^{\mathrm{obs}})\), choose \(\widetilde M^{it}\in\arg\min_{A\in\mathbb R^{I_{it}\times J_{it}}}\{\tfrac12\|P_{\Omega_{\mathrm{loc}}^{it}}(Y^{\mathrm{obs},it}-A)\|_F^2+\lambda\|A\|_*\}\) by a fixed measurable rule, set \(Z^{it}=P_{\Omega_{\mathrm{loc}}^{it}}Y^{\mathrm{obs},it}+P_{(\Omega_{\mathrm{loc}}^{it})^c}\widetilde M^{it}\), and set \(\widehat M_{it}=[\mathcal P_r(Z^{it})]_{it}\) in that same ordered local chart.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Yobs}; \texttt{Olocal}; \texttt{lambda}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:neighbor-replaced-auxiliary]\label{def:neighbor-replaced-auxiliary}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Neighborhood-\allowbreak{}noise-\allowbreak{}replaced auxiliary fit}
+\par\smallskip\noindent\emph{Construction.} For each \((i,t)\in G\times W\), form \(Y^{\mathrm{aux},it}=M^{it}+P_{\Omega_{\mathrm{loc}}^{it}}R_{it}(\epsilon^{(-it)})\) in \(\mathbb R^{I_{it}\times J_{it}}\), apply the same masked nuclear-norm optimizer and rank-\(r\) projection in the identical ordered local chart as in the native estimator, and denote its target cell by \(\widehat M^{\mathrm{aux}}_{it}\). Only the noise coordinates in row \(i\) and \(\mathcal N_q(t)\) are replaced by zero; all other rows and the row-\(i\) coordinates outside that neighborhood are retained. The resulting target-specific fit is constructed as a \(\mathcal G_{it}^{(-t)}\)-measurable object.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Mlocal}; \texttt{Olocal}; \texttt{epsaux}; \texttt{lambda}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:complete-tangent-score]\label{def:complete-tangent-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete local tangent score}
+\par\smallskip\noindent\emph{Construction.} For \(e\in\mathbb R^{I_{it}\times J_{it}}\), \(\ell_{it}(e)=\sum_{j\in C(t)}a_{ij,t}e_{jt}+\sum_{s\in S}b_{t,s}e_{is}-\sum_{j\in C(t)}\sum_{s\in S}a_{ij,t}b_{t,s}e_{js}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{aweight}; \texttt{bweight}; \texttt{C}; \texttt{S}.
+\end{definition}
+
+\begin{definition}[def:quadratic-drift]\label{def:quadratic-drift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rank-\allowbreak{}projection quadratic drift}
+\par\smallskip\noindent\emph{Construction.} In the ordered space \(\mathbb R^{I_{it}\times J_{it}}\), let \(Q_{it}(E)=\tfrac12D^2\mathcal P_r(M^{it})[E,E]\), \(q_{it}(e)=[Q_{it}(e+\ell_{it}(e)E^{it}_{it})]_{it}/(1-h_{it})\), \(Q=(gH)^{-1}\sum_{i\in G,t\in W}q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)\), and \(B_2=\mathbb E[Q\mid M,\Omega]\). Different targets may use different local spaces; only the scalar \(q_{it}(\cdot)\) is aggregated.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pr}; \texttt{Mlocal}; \texttt{ellscore}; \texttt{hlev}; \texttt{epsilon}; \texttt{Olocal}.
+\end{definition}
+
+\begin{definition}[def:oracle-score-variance]\label{def:oracle-score-variance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Oracle aggregate score and variance}
+\par\smallskip\noindent\emph{Construction.} Set \(L=(gH)^{-1}\sum_{i\in G,t\in W}\ell_{it}(R_{it}\epsilon)=\sum_{j=1}^N\sum_{s=1}^T w_{js}\epsilon_{js}\) and \(s^2=\sum_{j=1}^N\sum_{h=-q}^q\gamma(h)\sum_{s=1}^T w_{js}w_{j,s+h}\), with \(w_{j,u}=0\) outside \(J\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ellscore}; \texttt{epsilon}; \texttt{gamma}.
+\end{definition}
+
+\begin{definition}[def:residual-lag-covariance]\label{def:residual-lag-covariance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Pretreatment residual lag covariance}
+\par\smallskip\noindent\emph{Construction.} Set \(\widehat M^{\mathrm{pre}}=\mathcal P_r(Y^{\mathrm{obs}}_{I\times S})\), \(\widehat e_{is}=Y^{\mathrm{obs}}_{is}-\widehat M^{\mathrm{pre}}_{is}\), and \(\widehat\gamma(h)=\{N(m-|h|)\}^{-1}\sum_{i=1}^N\sum_{s\in S:s+|h|\in S}\widehat e_{is}\widehat e_{i,s+|h|}\) for \(|h|\le q\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Yobs}; \texttt{S}; \texttt{r}; \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:feasible-curvature-correction]\label{def:feasible-curvature-correction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Feasible Hessian-\allowbreak{}-\allowbreak{}lag covariance correction}
+\par\smallskip\noindent\emph{Construction.} For each target, use the declared \(\widehat Q_{it}\), \(\widehat\ell_{it}\), \(\widehat h_{it}\), and resulting \(\widehat q_{it}\) in the identical ordered \(I_{it}\times J_{it}\) chart. Then set \(\widehat B_2=(gH)^{-1}\sum_{i\in G,t\in W}[\widehat\gamma(0)\sum_{(j,u)\in\Omega_{\mathrm{loc}}^{it}}\widehat q_{it}(E^{it}_{ju})+\sum_{h=1}^q\widehat\gamma(h)\sum_{(j,s),(j,s+h)\in\Omega_{\mathrm{loc}}^{it}}\{\widehat q_{it}(E^{it}_{js}+E^{it}_{j,s+h})-\widehat q_{it}(E^{it}_{js})-\widehat q_{it}(E^{it}_{j,s+h})\}]\) and \(\widehat\tau_{\mathrm{bc}}=\widehat\tau+\widehat B_2\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Mtilde}; \texttt{qscore}; \texttt{gammahat}; \texttt{Ecoord}.
+\end{definition}
+
+\begin{definition}[def:feasible-variance-interval]\label{def:feasible-variance-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Influence-\allowbreak{}weighted finite-\allowbreak{}lag variance and Wald interval}
+\par\smallskip\noindent\emph{Construction.} Define \(\widehat w\) by \((gH)^{-1}\sum_{i\in G,t\in W}\widehat\ell_{it}(R_{it}e)=\sum_{j=1}^N\sum_{s=1}^T\widehat w_{js}e_{js}\), where every \(\widehat\ell_{it}\) uses its declared ordered local chart. Set \(\widehat V=\sum_{j=1}^N\sum_{h=-q}^q\widehat\gamma(h)\sum_{s=1}^T\widehat w_{js}\widehat w_{j,s+h}\) and \(\mathrm{CI}_{1-\alpha}=[\widehat\tau_{\mathrm{bc}}\pm z_{1-\alpha/2}\sqrt{\widehat V}]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{gammahat}; \texttt{ellhat}; \texttt{taubc}.
+\end{definition}
+
+\begin{definition}[def:rankone-calibration-array]\label{def:rankone-calibration-array}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Complete rank-\allowbreak{}one alternating-\allowbreak{}factor calibration array}
+\par\smallskip\noindent\emph{Construction.} Along \(n\in8\mathbb N\), set \(N=T=n\), \(I=J=\{1,\ldots,n\}\), \(G=\{1,\ldots,n/4\}\), \(S=\{1,\ldots,n/2\}\), \(W=\{n/2+2,\ldots,3n/4+1\}\), and \(C(t)=I\setminus G\). Hence \((N/n,T/n,m/n,g/n,H/n)=(1,1,1/2,1/4,1/4)\). For each target use \(I_{it}=C(t)\cup\{i\}\), \(J_{it}=S\cup\{t\}\), the increasing orderings, and \(R_{it}\); every target is at least two calendar periods after \(S\), and \(\Omega_{\mathrm{loc}}^{it}=\Omega\cap(I_{it}\times J_{it})=C(t)\times(S\cup\{t\})\;\cup\;\{i\}\times S\), with sole missing local coordinate \((i,t)\). Set \(r=q=1\), \(c_{\mathrm{loc}}=1/2<\sqrt{3/8}\), \(U_{i1}=u^{\mathrm{cal}}_i=n^{-1/2}\), \(p_t=p^{\mathrm{alt}}_t=1+\tfrac12(-1)^t\), \(V_{t1}=v^{\mathrm{cal}}_t=p_t/\sqrt{5n/4}\), \(\psi=n^{4/5}\), \(D=(\psi)\), \(M=UDV^{\top}\), \(\epsilon_{it}=z_{it}+\tfrac12z_{i,t-1}\) for independent \(z_{it}\sim N(0,1)\), and \(\lambda_n=4\sqrt n\,\log(n+2)\). The induced covariance is \(\gamma(0)=5/4\), \(\gamma(1)=1/2\), and \(\gamma(h)=0\) for \(|h|>1\). For \(t\in W\), \(\psi_{\mathrm{loc},it}=\sigma_1(R_{it}M)=\psi\sqrt{(3/4+1/n)\{1/2+4p_t^2/(5n)\}}\), so \(\inf_{i,t}\psi_{\mathrm{loc},it}/\psi>c_{\mathrm{loc}}\) for all sufficiently large \(n\), and \(\kappa^{\mathrm{drift}}_t=-2\gamma(1)p_t(n/m)(1-\rho_{\mathrm{alt}}^2)/(1+\rho_{\mathrm{alt}}^2)^{3/2}=-12p_t/(5\sqrt5)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:phase-frontier-handle]\label{def:phase-frontier-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rank-\allowbreak{}one proximal-\allowbreak{}contraction frontier handle}
+\par\smallskip\noindent\emph{Construction.} Expand the exact rank-one masked proximal fixed point over \(\mathcal P_n(a,b,c)\) and derive each native-transfer, centered-quadratic, cubic, penalty, covariance-plug-in, Hessian-plug-in, and weight-plug-in bound as an explicit function of \(n,g,H,\psi_{\min,\mathrm{loc}}\). Substitute \(g\asymp n^b\), \(H\asymp n^c\), \(\psi_{\min,\mathrm{loc}}\ge c_{\mathrm{loc}}n^a\), and \(s^2\asymp(nH)^{-1}+(ng)^{-1}\); state the resulting finite list of affine exponent inequalities and define \(\mathfrak F\) exactly as their intersection. For every exterior face, construct a relatively open positive-covariance Gaussian \(q\)-dependent rank-one family with \(|G_n|\asymp n^b\), \(|W_n|\asymp n^c\), and a positive local-to-global signal ratio, and prove that a named contraction fails at scale \(s\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pfrontier}; \texttt{Mtilde}; \texttt{q}; \texttt{G}; \texttt{W}; \texttt{s}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:proximal-identity]\label{lem:proximal-identity}
+For every \((i,t)\in G\times W\), in the fixed ordered local space \(\mathbb R^{I_{it}\times J_{it}}\), every native local optimizer satisfies the exact identity \(\widetilde M^{it}=\operatorname{SVT}_{\lambda}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}Y^{\mathrm{obs}}+P_{(\Omega_{\mathrm{loc}}^{it})^c}\widetilde M^{it})\). This identity holds for the implemented masked convex solution, not only for an auxiliary least-squares fit.
+\end{lemma}
+\begin{proof}
+Fix \((i,t)\in G\times W\), suppress the superscript \(it\), and write \(\mathcal O=\Omega_{\mathrm{loc}}^{it}\), \(Y=R_{it}Y^{\mathrm{obs}}\), and \(\widetilde M=\widetilde M^{it}\).  The local objective in Definition \(\mathrm{def:native\mbox{-}estimator}\) is the proper convex function
+\[
+ f(A)=\frac12\lVert P_{\mathcal O}(Y-A)\rVert_F^2+\lambda\lVert A\rVert_*.
+\]
+Because the space is finite dimensional and \(\lambda>0\) by \(\mathrm{ass:penalty\mbox{-}level}\), the convex first-order condition at every minimizer is
+\[
+ 0\in P_{\mathcal O}(\widetilde M-Y)+\lambda\,\partial\lVert\widetilde M\rVert_*.
+\]
+Set \(Z=P_{\mathcal O}Y+P_{\mathcal O^c}\widetilde M\).  Orthogonality of the two coordinate projections gives
+\[
+ \widetilde M-Z=P_{\mathcal O}(\widetilde M-Y),
+\]
+so the preceding condition is exactly
+\[
+ 0\in \widetilde M-Z+\lambda\,\partial\lVert\widetilde M\rVert_*.
+\]
+This is the necessary and sufficient optimality condition for the strictly convex proximal problem
+\[
+ \min_A\left\{\frac12\lVert Z-A\rVert_F^2+\lambda\lVert A\rVert_*\right\}.
+\]
+For completeness, if \(Z=P\operatorname{diag}(\sigma_k)Q^{\top}\) is a singular-value decomposition, von Neumann's trace inequality reduces this problem to the separate scalar minimizations
+\[
+ \min_{a_k\ge0}\left\{\frac12(\sigma_k-a_k)^2+\lambda a_k\right\},
+ \qquad a_k=(\sigma_k-\lambda)_+.
+\]
+Equality in the trace inequality is obtained by retaining the singular vectors \(P,Q\).  Hence the unique proximal minimizer is \(\operatorname{SVT}_{\lambda}(Z)\), and therefore
+\[
+ \widetilde M^{it}=\operatorname{SVT}_{\lambda}\!\left(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}Y^{\mathrm{obs}}+P_{(\Omega_{\mathrm{loc}}^{it})^c}\widetilde M^{it}\right).
+\]
+The argument applies to each minimizer selected by the fixed measurable rule and uses the actual masked objective.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fixed-point identity is the entry point for differentiating the actual estimator under neighborhood replacement. \textit{Gap.} Choi, Kwon, and Liao analyze an auxiliary-to-native bridge, but not this serial masked fixed point at second order. \textit{Consumer.} The native second-order transfer theorem uses the identity to keep every perturbation tied to the optimizer implemented in the Tick Size reanalysis.
+
+\begin{lemma}[lem:complete-tangent]\label{lem:complete-tangent}
+Uniformly over \((i,t)\in G\times W\), for \(e\in\mathbb R^{I_{it}\times J_{it}}\), the first differential of the rank-\(r\) target-cell completion map at \(M^{it}=R_{it}M\) is \(\ell_{it}(e)=\sum_{j\in C(t)}a_{ij,t}e_{jt}+\sum_{s\in S}b_{t,s}e_{is}-\sum_{j\in C(t),s\in S}a_{ij,t}b_{t,s}e_{js}\). The minus donor-pre overlap term is part of the differential and is not a remainder.
+\end{lemma}
+\begin{proof}
+Fix a target \((i,t)\), and write \(E_{it}=E^{it}_{it}\) for its local coordinate matrix.  Let \(P_X\) and \(P_F\) denote the orthogonal projectors onto the column spaces of the local factor matrices \(X_{I_{it}}\) and \(F_{J_{it}}\).  Exact rank and positivity of the local signal give a positive gap between its \(r\)-th and \((r+1)\)-st singular values.  Hence the best rank-\(r\) projection is differentiable at \(M^{it}\).  Its derivative is the orthogonal projection onto the rank-\(r\) tangent space:
+\[
+ D\mathcal P_r(M^{it})[E]
+ =P_XE+EP_F-P_XEP_F.
+\]
+Indeed, a differentiable rank-\(r\) local chart shows that the derivative belongs to the tangent space, while differentiating the least-squares normal equation makes the residual \(E-D\mathcal P_r(M^{it})[E]\) orthogonal to that space; the displayed expression is exactly this orthogonal projector.  This argument depends only on the two factor spans and therefore remains valid when positive singular values are repeated.
+
+The local completion map fills the missing coordinate by the rank-projection fixed point.  If \(e\) is an observed perturbation, so its target coordinate is set to zero, and \(\delta\) is the derivative of the filled target cell, differentiation of that fixed point gives
+\[
+ \delta=\left[D\mathcal P_r(M^{it})[e+\delta E_{it}]\right]_{it}.
+\]
+Set \(P_{jk}=(P_X)_{jk}\), \(Q_{su}=(P_F)_{su}\), and
+\[
+ h=P_{ii}+Q_{tt}-P_{ii}Q_{tt}.
+\]
+Then \([D\mathcal P_r(M^{it})[E_{it}]]_{it}=h\), and consequently
+\[
+ \delta=\frac{[P_Xe+eP_F-P_XeP_F]_{it}}{1-h}.
+\]
+
+The required division is legitimate.  With \(X_C=(x_j^{\top})_{j\in C(t)}\), Sherman--Morrison and the positive-definite donor Gram give
+\[
+ P_{ii}=\frac{x_i^{\top}A_t^{-1}x_i}{1+x_i^{\top}A_t^{-1}x_i}<1,
+ \qquad
+ \frac{P_{ij}}{1-P_{ii}}=x_i^{\top}A_t^{-1}x_j=a_{ij,t}.
+\]
+Likewise the positive-definite pretreatment Gram gives
+\[
+ Q_{tt}=\frac{f_t^{\top}B_S^{-1}f_t}{1+f_t^{\top}B_S^{-1}f_t}<1,
+ \qquad
+ \frac{Q_{st}}{1-Q_{tt}}=f_s^{\top}B_S^{-1}f_t=b_{t,s}.
+\]
+Thus \(1-h=(1-P_{ii})(1-Q_{tt})>0\).  Since \(e_{it}=0\), expansion of the numerator retains all three observed blocks:
+\[
+ \begin{aligned}
+ [P_Xe+eP_F-P_XeP_F]_{it}
+ &=(1-Q_{tt})\sum_{j\in C(t)}P_{ij}e_{jt}
+ +(1-P_{ii})\sum_{s\in S}Q_{st}e_{is}\\
+ &\quad-\sum_{j\in C(t)}\sum_{s\in S}P_{ij}Q_{st}e_{js}.
+ \end{aligned}
+\]
+Dividing by \((1-P_{ii})(1-Q_{tt})\) therefore yields
+\[
+ \delta
+ =\sum_{j\in C(t)}a_{ij,t}e_{jt}
+ +\sum_{s\in S}b_{t,s}e_{is}
+ -\sum_{j\in C(t)}\sum_{s\in S}a_{ij,t}b_{t,s}e_{js}
+ =\ell_{it}(e).
+\]
+The donor and pretreatment Gram lower bounds hold uniformly over targets, so every inverse and every denominator used above is uniformly valid.  The donor-pre overlap is therefore part of the differential, not a remainder.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A growing target window makes the overlap score load-bearing for both centering and variance. \textit{Gap.} The pointwise Choi--Yuan decomposition displays donor-window and treated-pre leading terms; it does not state this full three-term aggregate differential. \textit{Consumer.} The formula supplies the influence weights used by the finite-lag covariance estimator and prevents understated uncertainty for sustained policy effects.
+
+\begin{lemma}[lem:auxiliary-measurability]\label{lem:auxiliary-measurability}
+For every \(P\in\mathcal P_n\) and \((i,t)\in G\times W\), the target-specific auxiliary fit \(\widehat M^{\mathrm{aux}}_{it}\) is \(\mathcal G_{it}^{(-t)}\)-measurable, and \(\epsilon_{it}\perp\!\!\!\perp\mathcal G_{it}^{(-t)}\mid(M,\Omega)\). The conclusion concerns the target noise coordinate; it does not assert independence between the entire deleted neighborhood and its complement.
+\end{lemma}
+\begin{proof}
+Fix \((i,t)\in G\times W\) and put \(\mathcal H_{it}=\sigma(\epsilon_{js}:j\ne i,\ s\in J)\vee\sigma(\epsilon_{is}:|s-t|>q)\).  By Definition \(\mathrm{def:neighbor\mbox{-}replaced\mbox{-}auxiliary}\), every entry of the auxiliary input
+\[
+ M^{it}+P_{\Omega_{\mathrm{loc}}^{it}}R_{it}(\epsilon^{(-it)})
+\]
+is measurable with respect to \(\mathcal H_{it}\vee\sigma(M,\Omega)=\mathcal G_{it}^{(-t)}\).  The mask is nonrandom by \(\mathrm{ass:deterministic\mbox{-}mask}\), and the optimizer selection, restriction, coordinate projections, and rank projection are fixed measurable maps.  Their composition, and hence \(\widehat M^{\mathrm{aux}}_{it}\), is \(\mathcal G_{it}^{(-t)}\)-measurable.
+
+It remains to prove the asserted separation.  Conditional on \(M\), \(\mathrm{ass:independent\mbox{-}rows}\) makes the full row sigma-field of row \(i\) independent of the joined sigma-field of all rows \(j\ne i\).  Within row \(i\), apply \(\mathrm{ass:conditional\mbox{-}block\mbox{-}dependence}\) with \(\mathcal A=\{t\}\) and \(\mathcal B=\{s\in J:|s-t|>q\}\).  Their distance is greater than \(q\), so
+\[
+ \sigma(\epsilon_{it})\perp\!\!\!\perp
+ \sigma(\epsilon_{is}:|s-t|>q)\mid M.
+\]
+Combining this within-row factorization with the conditional product law across rows gives
+\[
+ \sigma(\epsilon_{it})\perp\!\!\!\perp\mathcal H_{it}\mid M.
+\]
+Because \(\Omega\) is deterministic, adjoining it to the conditioning sigma-field does not change this factorization.  Consequently
+\[
+ \epsilon_{it}\perp\!\!\!\perp\mathcal G_{it}^{(-t)}\mid(M,\Omega).
+\]
+Only the singleton target coordinate is separated; no independence of the whole deleted neighborhood has been used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Conditional row factorization and within-row block dependence give the exact sigma-field separation needed for target-specific leave-neighborhood conditioning. \textit{Gap.} Fully observed leave-neighbor PCA uses an analogous conditioning device, but the measurable object here is the output of a masked convex optimizer. \textit{Consumer.} The native transfer expansion can condition on the auxiliary fit without treating dependent neighboring noise coordinates as independent.
+
+\begin{theorem}[thm:native-second-order-transfer]\label{thm:native-second-order-transfer}
+Uniformly over \(P\in\mathcal P_n\), first express all perturbation bounds through \(\psi_{\min,\mathrm{loc}}=\inf_{(i,t)\in G\times W}\sigma_r(M^{it})\). The native and neighborhood-replaced fits satisfy \(|(gH)^{-1}\sum_{i\in G,t\in W}\Delta^{\mathrm{aux}}_{it}|=O_{\mathbb P}(\ell_n^4\{\sqrt n/\psi_{\min,\mathrm{loc}}^2+n^{-3/2}\})\), and the native estimator obeys \((gH)^{-1}\sum_{i\in G,t\in W}(\widehat M_{it}-M_{it})=L+Q+R_{\mathrm{agg}}\), where \(|Q-B_2|=O_{\mathbb P}(\ell_n^4/(\psi_{\min,\mathrm{loc}}\sqrt n))\), \(|R_{\mathrm{agg}}|=O_{\mathbb P}(\ell_n^4\{\sqrt n/\psi_{\min,\mathrm{loc}}^2+n^{-3/2}\})\), \(\delta_{\mathrm{fit}}=O_{\mathbb P}(\ell_n^2/\sqrt n)\), \(\Delta_\gamma=O_{\mathbb P}(\sqrt{\log n/m}+\log n/m+\delta_{\mathrm{fit}}+\delta_{\mathrm{fit}}^2)\), \(|\widehat B_2-B_2|=O_{\mathbb P}(\ell_n^4\sqrt n/\psi_{\min,\mathrm{loc}}^2+\Delta_\gamma/\psi_{\min,\mathrm{loc}})\), and \(\sum_i\|\widehat w_{i\cdot}-w_{i\cdot}\|_2^2=o_{\mathbb P}(s^2)\). The term \(R_{\mathrm{agg}}\) contains the cubic, penalty, and native-transfer components fixed by its definition. Since \(c_{\mathrm{loc}}\psi\le\psi_{\min,\mathrm{loc}}\le\psi\), substitution changes only constants. The class envelope \(\psi_{\min,\mathrm{loc}}\ge\omega_n\sqrt n\,\ell_n^2(\ell_n+H^{1/4})\), \(\omega_n\to\infty\), directly implies the active-resolvent and oracle-scale perturbation smallness conditions; hence the corresponding remainder-to-standard-error ratios, of orders \(\ell_n^4\sqrt H/\psi_{\min,\mathrm{loc}}\), \(\ell_n^4n\sqrt H/\psi_{\min,\mathrm{loc}}^2\), \(\ell_n^4\sqrt H/n\), and \(\Delta_\gamma\sqrt{nH}/\psi_{\min,\mathrm{loc}}\), are all \(o_{\mathbb P}(1)\).
+\end{theorem}
+\begin{proof}
+Write \(\psi_*:=\psi_{\min,\mathrm{loc}}\).  All orders below are uniform over \(P\in\mathcal P_n\).  By the penalty bound,
+\[
+ \sqrt n\ell_n+\lambda\le C_0\sqrt n\ell_n.
+\]
+The signal-window envelope consequently implies, for
+\(\rho_n=(\sqrt n\ell_n+\lambda)/\psi_*\),
+\[
+ \rho_n\ell_n^2
+ \le\frac{C_0\sqrt n\ell_n^3}
+ {\omega_n\sqrt n\ell_n^2(\ell_n+H^{1/4})}
+ \le\frac{C_0}{\omega_n}=o(1),
+ \tag{1}
+\]
+and
+\[
+ \frac{\ell_n^4n\sqrt H}{\psi_*^2}
+ \le\frac{\sqrt H}{\omega_n^2(\ell_n+H^{1/4})^2}
+ \le\omega_n^{-2}=o(1).
+ \tag{2}
+\]
+Thus the active-resolvent and second-order smallness conditions are consequences of the declared envelope, not extra assumptions.
+
+The neighborhood-coupling lemma gives
+\[
+ \left|\frac1{gH}\sum_{i\in G,t\in W}\Delta^{\mathrm{aux}}_{it}\right|
+ =O_{\mathbb P}\!\left[
+ \ell_n^4\left\{\frac{\sqrt n}{\psi_*^2}+n^{-3/2}\right\}\right].
+ \tag{3}
+\]
+On the active event, the implicit-expansion lemma supplies the declared complete linear score, quadratic score, and three remainder classes.  Averaging and applying the centered-aggregate lemma yields
+\[
+ \frac1{gH}\sum_{i\in G,t\in W}(\widehat M_{it}-M_{it})
+ =L+Q+R_{\mathrm{agg}},
+ \tag{4}
+\]
+\[
+ |Q-B_2|=O_{\mathbb P}\!\left(\frac{\ell_n^4}{\psi_*\sqrt n}\right),
+ \qquad
+ |R_{\mathrm{agg}}|=O_{\mathbb P}\!\left[
+ \ell_n^4\left\{\frac{\sqrt n}{\psi_*^2}+n^{-3/2}\right\}\right].
+ \tag{5}
+\]
+The definition of \(R_{\mathrm{agg}}\) and the construction in that lemma show that its terms are exactly the cubic, polar/regularization, scalar-resolvent, and native-transfer components stated in the theorem.
+
+The preperiod lemma gives
+\[
+ \delta_{\mathrm{fit}}=O_{\mathbb P}(\ell_n^2/\sqrt n),
+ \tag{6}
+\]
+and
+\[
+ \Delta_\gamma=O_{\mathbb P}\!\left(
+ \sqrt{\frac{\log n}{m}}+\frac{\log n}{m}
+ +\delta_{\mathrm{fit}}+\delta_{\mathrm{fit}}^2\right).
+ \tag{7}
+\]
+The fitted-stability lemma then gives
+\[
+ |\widehat B_2-B_2|=O_{\mathbb P}\!\left(
+ \frac{\ell_n^4\sqrt n}{\psi_*^2}
+ +\frac{\Delta_\gamma}{\psi_*}\right),
+ \qquad
+ \sum_{j=1}^N\|\widehat w_{j\cdot}-w_{j\cdot}\|_2^2=o_{\mathbb P}(s^2).
+ \tag{8}
+\]
+Equations (3)--(8) prove every raw bound in the theorem.
+
+It remains to verify the oracle-scale conclusions.  Variance nondegeneracy gives \(s^{-1}\le C\sqrt{nH}\), so (5) and (8) imply
+\[
+ \frac{|Q-B_2|}{s}
+ =O_{\mathbb P}\!\left(\frac{\ell_n^4\sqrt H}{\psi_*}\right),
+ \tag{9}
+\]
+\[
+ \frac{|R_{\mathrm{agg}}|}{s}
+ =O_{\mathbb P}\!\left(
+ \frac{\ell_n^4n\sqrt H}{\psi_*^2}
+ +\frac{\ell_n^4\sqrt H}{n}\right),
+ \tag{10}
+\]
+and
+\[
+ \frac{|\widehat B_2-B_2|}{s}
+ =O_{\mathbb P}\!\left(
+ \frac{\ell_n^4n\sqrt H}{\psi_*^2}
+ +\frac{\Delta_\gamma\sqrt{nH}}{\psi_*}\right).
+ \tag{11}
+\]
+Balanced growth and the window bound imply \(H\le Cn\).  Hence
+\[
+ \frac{\ell_n^4\sqrt H}{\psi_*}
+ \le\frac{\ell_n^2H^{1/4}}{\omega_n\sqrt n}
+ \le\frac{C\ell_n^2}{\omega_n n^{1/4}}=o(1),
+ \tag{12}
+\]
+the first term in (10)--(11) is \(o(1)\) by (2), and
+\[
+ \frac{\ell_n^4\sqrt H}{n}\le C\ell_n^4n^{-1/2}=o(1).
+ \tag{13}
+\]
+Because \(m\ge c_Sn\), (6)--(7) give
+\[
+ \Delta_\gamma=O_{\mathbb P}(\ell_n^2/\sqrt n).
+ \tag{14}
+\]
+Consequently,
+\[
+ \frac{\Delta_\gamma\sqrt{nH}}{\psi_*}
+ =O_{\mathbb P}\!\left(\frac{\ell_n^2\sqrt H}{\psi_*}\right)
+ \le O_{\mathbb P}\!\left(
+ \frac{\sqrt H}{\omega_n\sqrt n(\ell_n+H^{1/4})}\right)
+ =o_{\mathbb P}(1).
+ \tag{15}
+\]
+Equations (9)--(15) establish every displayed remainder-to-standard-error order and its negligibility.
+
+Finally, \texttt{ass:local-signal} gives \(\psi_*\ge c_{\mathrm{loc}}\psi\).  Row and column restrictions are contractions, so the singular-value inequality \(\sigma_r(AMB)\le\|A\|_{\mathrm{op}}\|B\|_{\mathrm{op}}\sigma_r(M)\) gives \(\psi_*\le\psi\).  Thus replacing \(\psi_*\) by \(\psi\) changes only fixed constants.  This completes the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem transports the complete linear and quadratic expansion through the native masked optimizer and proves oracle-scale negligibility under the rate-exact sufficient local-signal envelope. \textit{Gap.} Independent-noise MNAR completion and fully observed leave-neighbor PCA do not supply the native scalar resolvent, centered ambient quadratic kernel, or feasible serial-curvature stability needed at a growing-window standard-error scale. \textit{Consumer.} The result certifies that the estimator used for the SEC Tick Size Pilot panel can be bias-corrected and studentized without replacing its native convex fit.
+
+\begin{proposition}[prop:rankone-serial-drift]\label{prop:rankone-serial-drift}
+On the complete rank-one alternating-factor calibration array with \(c_{\mathrm{loc}}=1/2\), let \(p_t=1+\tfrac12(-1)^t\). In the target chart \(I_{it}\times J_{it}\), the exact formula \(\psi_{\mathrm{loc},it}/\psi=\sqrt{(3/4+1/n)\{1/2+4p_t^2/(5n)\}}\) implies \(\inf_{i,t}\psi_{\mathrm{loc},it}/\psi>c_{\mathrm{loc}}\) for all sufficiently large \(n\) and \(\psi_{\mathrm{loc},it}/\psi\to\sqrt{3/8}\). Direct contraction of the rank-one projector Hessian against the moving-average covariance in that same chart gives \(\psi_{\mathrm{loc},it}\,\mathbb E[q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)\mid M]\to-6\sqrt{3/2}\,p_t/(5\sqrt5)\), and therefore \(\psi\,\mathbb E[q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)\mid M]\to\kappa^{\mathrm{drift}}_t=-2\gamma(1)p_t(n/m)(1-\rho_{\mathrm{alt}}^2)/(1+\rho_{\mathrm{alt}}^2)^{3/2}=-12p_t/(5\sqrt5)\) for every fixed parity of \(t\in W\). Thus the global-signal limits are \(-18/(5\sqrt5)\) for even targets and \(-6/(5\sqrt5)\) for odd targets, and \(\psi B_2\to-12/(5\sqrt5)\) because the consecutive window contains equally many targets of each parity. For the native masked optimizer with \(\lambda_n=4\sqrt n\log(n+2)\) and \(\psi=n^{4/5}\), the fitted correction removes this drift and \(n\{(gH)^{-1}\sum_{i\in G,t\in W}(\widehat M_{it}-M_{it})-L-\widehat B_2\}\to_{\mathbb P}0\).
+\end{proposition}
+\begin{proof}
+In the calibration array, restriction of \(u^{\mathrm{cal}}\) to \(I_{it}=C(t)\cup\{i\}\) gives
+\[
+ \|u^{\mathrm{cal}}_{I_{it}}\|_2^2
+ =\frac{3n/4+1}{n}=\frac34+\frac1n.
+ \tag{1}
+\]
+The set \(S\) has equally many even and odd dates, so restriction of \(v^{\mathrm{cal}}\) to \(J_{it}=S\cup\{t\}\) gives
+\[
+ \|v^{\mathrm{cal}}_{J_{it}}\|_2^2
+ =\frac12+\frac{p_t^2}{n(1+\rho_{\mathrm{alt}}^2)}
+ =\frac12+\frac{4p_t^2}{5n}.
+ \tag{2}
+\]
+Since the restricted signal is rank one, (1)--(2) give the exact formula
+\[
+ \frac{\psi_{\mathrm{loc},it}}\psi
+ =\sqrt{\left(\frac34+\frac1n\right)
+ \left(\frac12+\frac{4p_t^2}{5n}\right)}
+ \longrightarrow\sqrt{\frac38}>\frac12=c_{\mathrm{loc}}.
+ \tag{3}
+\]
+The displayed strict inequality is therefore uniform over targets for all sufficiently large \(n\).
+
+We next contract the rank-one Hessian.  For a rank-one matrix \(suv^{\top}\), with unit \(u,v\), define
+\[
+ c=(I-uu^{\top})Ev,
+ \quad b=(I-vv^{\top})E^{\top}u,
+ \quad D_\perp=(I-uu^{\top})E(I-vv^{\top}).
+\]
+Writing a nearby rank-one matrix in the orthogonal \((u,u^\perp)\)-by-\((v,v^\perp)\) chart and expanding its normal equations through order two gives
+\[
+ \frac12D^2\mathcal P_1(suv^{\top})[E,E]
+ =\frac{D_\perp b\,v^{\top}+uc^{\top}D_\perp+cb^{\top}}s.
+ \tag{4}
+\]
+This follows directly from the lower-right rank-one constraint
+\(T(s+R)^{-1}S\): its quadratic term is \(cs^{-1}b^{\top}\), while the two off-diagonal normal equations contribute the first two terms in (4).
+
+Insert into (4) the completed perturbation
+\[
+ E_1=P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon
+ +\ell_{it}(R_{it}\epsilon)E^{it}_{it},
+\]
+where \(\ell_{it}\) is the complete three-term score.  Cross-row products have zero conditional expectation.  For the moving-average noise, products within a row vanish except at lags zero and one.  In the contraction of (4), the lag-zero contributions of the donor-window and treated-pre legs are canceled by the two corresponding contractions of the negative donor-pre overlap.  The two orientations of the lag-one pairs remain.  Substitution of
+\[
+ u_j=(3n/4+1)^{-1/2},
+ \qquad
+ v_s=\frac{p_s}{\{(5n/4)(1/2+4p_t^2/(5n))\}^{1/2}}
+\]
+in the local chart, followed by summation over the \(m/2\) even and \(m/2\) odd preperiod dates, yields
+\[
+ \begin{aligned}
+ &\psi_{\mathrm{loc},it}
+ \mathbb E\!\left[q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)\mid M\right]\\
+ &\quad=-2\gamma(1)p_t\frac nm
+ \frac{1-\rho_{\mathrm{alt}}^2}{(1+\rho_{\mathrm{alt}}^2)^{3/2}}
+ \frac{\psi_{\mathrm{loc},it}}\psi+O(n^{-1}).
+ \end{aligned}
+ \tag{5}
+\]
+Every covariance used in (5) carries its actual calendar lag; in particular, the target date is not treated as adjacent to the last preperiod date.  Formula (5) is the complete contraction because (4) has only its three displayed terms and the noise covariance has support \(\{-1,0,1\}\).
+
+Using \(m=n/2\), \(\gamma(1)=1/2\), \(\rho_{\mathrm{alt}}=1/2\), and (3), (5) gives
+\[
+ \psi_{\mathrm{loc},it}
+ \mathbb E[q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)\mid M]
+ \longrightarrow-\frac{6\sqrt{3/2}}{5\sqrt5}p_t,
+ \tag{6}
+\]
+and division by the limit in (3) gives
+\[
+ \psi\,\mathbb E[q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)\mid M]
+ \longrightarrow-\frac{12p_t}{5\sqrt5}=\kappa_t^{\mathrm{drift}}.
+ \tag{7}
+\]
+Thus the limits are \(-18/(5\sqrt5)\) at even targets and \(-6/(5\sqrt5)\) at odd targets.  The consecutive calibration window contains equally many dates of each parity, whence
+\[
+ \psi B_2\longrightarrow-\frac{12}{5\sqrt5}.
+ \tag{8}
+\]
+
+Define
+\[
+ \mathcal R_n=\frac1{gH}\sum_{i\in G,t\in W}(\widehat M_{it}-M_{it})-L-\widehat B_2.
+\]
+The calibration has \(H\asymp m\asymp n\), \(\psi=n^{4/5}\), and, by (3), \(\psi_{\min,\mathrm{loc}}\ge\psi/2\) eventually.  It satisfies the signal envelope, for example with \(\omega_n=n^{1/40}/\ell_n^2\to\infty\).  The preperiod covariance rate is \(\Delta_\gamma=O_{\mathbb P}(\ell_n^2n^{-1/2})\).  The native-transfer theorem and the triangle inequality give
+\[
+ |\mathcal R_n|
+ \le |Q-B_2|+|R_{\mathrm{agg}}|+|\widehat B_2-B_2|.
+\]
+Substitution of these calibration rates yields
+\[
+ n|\mathcal R_n|=O_{\mathbb P}\!\left(
+ \ell_n^4n^{-3/10}+\ell_n^4n^{-1/10}
+ +\ell_n^4n^{-1/2}+\ell_n^2n^{-3/10}\right)=o_{\mathbb P}(1).
+ \tag{9}
+\]
+Hence the fitted correction removes the nonzero serial quadratic drift for the native optimizer and the claimed early-kill calibration conclusion follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact parity constants and inverse-panel corrected-remainder rate verify the early kill test for the declared mask, factor normalization, moving-average law, and native penalty. \textit{Gap.} Existing independent-noise MNAR and fully observed weak-factor results do not contain this masked rank-projection serial coefficient. \textit{Consumer.} The calibration detects omitted overlap, curvature, or regularization terms before empirical use.
+
+\begin{lemma}[lem:score-diffuseness]\label{lem:score-diffuseness}
+The complete aggregate tangent weights implied by incoherence and the two normalized restricted-Gram bounds satisfy \(\sup_{P\in\mathcal P_n}s^{-2}\sum_{j\in I,s'\in J}w_{js'}^2=O(1)\) and \(\sup_{P\in\mathcal P_n}s^{-1}\max_{j\in I,s'\in J}|w_{js'}|=o(1)\).
+\end{lemma}
+\begin{proof}
+Put
+\[
+ u_i=D^{-1/2}x_i,
+ \qquad v_t=D^{-1/2}f_t.
+\]
+These vectors are well defined because exact rank makes \(D\) positive definite.  From \(X=UD^{1/2}\), \(F=VD^{1/2}\), incoherence, fixed rank, and balanced growth,
+\[
+ \max_i\|u_i\|_2\le Cn^{-1/2},
+ \qquad
+ \max_t\|v_t\|_2\le Cn^{-1/2}.
+ \tag{1}
+\]
+Furthermore, the normalized restricted-Gram assumptions say
+\[
+ G_{A,t}:=\sum_{j\in C(t)}u_ju_j^{\top}\succeq c_AI_r,
+ \qquad
+ G_B:=\sum_{s\in S}v_sv_s^{\top}\succeq c_BI_r.
+ \tag{2}
+\]
+Thus both inverses exist, and Cauchy--Schwarz gives
+\[
+ |a_{ij,t}|=|u_i^{\top}G_{A,t}^{-1}u_j|\le Cn^{-1},
+ \qquad
+ |b_{t,s}|=|v_t^{\top}G_B^{-1}v_s|\le Cn^{-1}.
+ \tag{3}
+\]
+
+Under the common-start design \(C(t)=I\setminus G\).  Expanding the complete score in \texttt{def:oracle-score-variance}, the three pairwise disjoint supports have weights
+\[
+ \begin{aligned}
+ w^{(1)}_{jt}&=\frac1{gH}\sum_{i\in G}a_{ij,t},
+ &&(j,t)\in(I\setminus G)\times W,\\
+ w^{(2)}_{is}&=\frac1{gH}\sum_{t\in W}b_{t,s},
+ &&(i,s)\in G\times S,\\
+ w^{(3)}_{js}&=-\frac1{gH}\sum_{i\in G}\sum_{t\in W}
+ a_{ij,t}b_{t,s},
+ &&(j,s)\in(I\setminus G)\times S.
+ \end{aligned}
+ \tag{4}
+\]
+The supports are disjoint because \(G\cap(I\setminus G)=\varnothing\) and \(S\cap W=\varnothing\).  Equations (3)--(4) imply
+\[
+ \max|w^{(1)}|\le\frac{C}{nH},
+ \qquad
+ \max|w^{(2)}|\le\frac{C}{gn},
+ \qquad
+ \max|w^{(3)}|\le\frac{C}{n^2}.
+ \tag{5}
+\]
+Their support sizes are at most \(CnH\), \(Cgn\), and \(Cn^2\), respectively.  Hence
+\[
+ \sum_{j\in I,u\in J}w_{ju}^2
+ \le C\left\{\frac1{nH}+\frac1{ng}+\frac1{n^2}\right\}.
+ \tag{6}
+\]
+Since \(g\asymp n\), \(1\le H\le Cn\), and variance nondegeneracy gives \(s^2\ge c_s/(nH)>0\), (6) yields
+\[
+ s^{-2}\sum_{j,u}w_{ju}^2=O(1).
+ \tag{7}
+\]
+The same lower bound on \(s\), together with (5), gives
+\[
+ \frac{\max_{j,u}|w_{ju}|}{s}
+ \le C\left\{\frac1{\sqrt{nH}}+
+ \frac{\sqrt{nH}}{n^2}\right\}
+ \le C(n^{-1/2}+n^{-1})\longrightarrow0.
+ \tag{8}
+\]
+All constants in (1)--(8) depend only on the fixed class constants, so both conclusions are uniform over \(P\in\mathcal P_n\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} These structural weight bounds are the weighted-Lindeberg input and are derived from factor geometry rather than imposed as asymptotic normality. \textit{Gap.} The one-date subgroup theorem does not state score diffuseness uniformly over a growing cohort-window geometry. \textit{Consumer.} The dependency-graph central limit theorem and feasible studentization use these bounds to exclude domination by one noise coordinate.
+
+\begin{lemma}[lem:frontier-score-diffuseness]\label{lem:frontier-score-diffuseness}
+Uniformly over \(P\in\mathcal P_n(a,b,c)\) when \((a,b,c)\) ranges over a compact subset of \([1/2,1]\times(0,1]\times[0,1]\), the complete aggregate tangent weights implied by incoherence and the two normalized restricted-Gram bounds satisfy \(s^{-2}\sum_{j\in I,s'\in J}w_{js'}^2=O(1)\) and \(s^{-1}\max_{j\in I,s'\in J}|w_{js'}|=o(1)\).
+\end{lemma}
+\begin{proof}
+Fix a compact set \(\mathcal K\subset[1/2,1]\times(0,1]\times[0,1]\), and let
+\[
+ b_*:=\min\{b:(a,b,c)\in\mathcal K\}>0.
+\]
+The constants below are uniform over \((a,b,c)\in\mathcal K\) because the frontier growth and variance constants are locally uniform on compact exponent sets.
+
+The normalized-factor calculation from incoherence, balanced growth, and the restricted-Gram assumptions gives directly
+\[
+ \max_{i,j,t}|a_{ij,t}|\le Cn^{-1},
+ \qquad
+ \max_{t,s}|b_{t,s}|\le Cn^{-1}.
+ \tag{1}
+\]
+Expanding the same complete three-block score as in \texttt{def:oracle-score-variance}, on the disjoint supports \((I\setminus G)\times W\), \(G\times S\), and \((I\setminus G)\times S\), gives
+\[
+ \max_{j,u}|w_{ju}|
+ \le C\max\left\{\frac1{nH},\frac1{ng},\frac1{n^2}\right\}
+ \tag{2}
+\]
+and
+\[
+ \sum_{j,u}w_{ju}^2
+ \le C\left\{\frac1{nH}+\frac1{ng}+\frac1{n^2}\right\}.
+ \tag{3}
+\]
+Set \(A_n=(nH)^{-1}\) and \(B_n=(ng)^{-1}\).  The frontier variance assumption gives
+\[
+ s^2\ge c_v(A_n+B_n)>0.
+ \tag{4}
+\]
+Since \(H\le C_Hn^c\le Cn\), \(n^{-2}\le CA_n\).  Division of (3) by (4) therefore gives
+\[
+ s^{-2}\sum_{j,u}w_{ju}^2
+ \le C\frac{A_n+B_n+n^{-2}}{A_n+B_n}=O(1).
+ \tag{5}
+\]
+Also, (2)--(4) imply
+\[
+ \frac{A_n}{s}\le C\sqrt{A_n},
+ \qquad
+ \frac{B_n}{s}\le C\sqrt{B_n},
+ \qquad
+ \frac{n^{-2}}s\le C\frac{\sqrt{nH}}{n^2}\le Cn^{-1}.
+ \tag{6}
+\]
+Because \(H\ge c_Hn^c\ge c_H\) and \(g\ge c_gn^b\ge c_gn^{b_*}\), (6) yields
+\[
+ \sup_{(a,b,c)\in\mathcal K}\sup_{P\in\mathcal P_n(a,b,c)}
+ \frac{\max_{j,u}|w_{ju}|}{s}
+ \le C\{n^{-1/2}+n^{-(1+b_*)/2}+n^{-1}\}
+ \longrightarrow0.
+ \tag{7}
+\]
+Equations (5) and (7) prove the claimed compact-uniform diffuseness bounds.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The frontier weighted-Lindeberg bounds must adapt to both the treated-pre and donor-window variance components as \(b\) and \(c\) vary. \textit{Gap.} No checked weak-factor result derives score diffuseness uniformly over a three-exponent deterministic block-missing class. \textit{Consumer.} The frontier central limit theorem uses these bounds without fixing the cohort exponent at one.
+
+\begin{lemma}[lem:uniform-score-clt]\label{lem:uniform-score-clt}
+Conditional on \((M,\Omega)\), fixed \(q\), uniform conditional sub-Gaussian moments, row-law factorization, conditional within-row block dependence, variance nondegeneracy, and the derived score-diffuseness bounds imply
+\[
+ \sup_{P\in\mathcal P_n}\sup_{z\in\mathbb R}
+ \left|\mathbb P_P(L/s\le z\mid M,\Omega)-\Phi(z)\right|\longrightarrow0.
+\]
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P_n\) and condition on \((M,\Omega)\).  Since \(\Omega\) is deterministic, conditioning on it does not alter the conditional independence or moment conditions given \(M\).  Define
+\[
+ X_{ju}=s^{-1}w_{ju}\epsilon_{ju},
+ \qquad (j,u)\in I\times J.
+\]
+The weights are fixed under this conditional law, and centered noise gives \(\mathbb E(X_{ju}\mid M,\Omega)=0\).
+
+Equip \(I\times J\) with the maximum metric.  For two index collections separated by more than \(q\), distinct-row components are independent by \texttt{ass:independent-rows}; within a common row their time sets are separated by more than \(q\), so they are independent by \texttt{ass:conditional-block-dependence}.  Factoring over rows shows that \(\{X_{ju}\}\) is a conditionally \(q\)-dependent random field.  If \(q=0\), it is also one-dependent, so set \(k_0=\max\{q,1\}\).
+
+Conditional row independence makes cross-row covariances zero.  Within a row, centering and block dependence make covariances zero for \(|h|>q\), while common stationary covariance makes them \(\gamma(h)\) for \(|h|\le q\).  Therefore, using the zero-extension convention for \(w\),
+\[
+ \operatorname{Var}\!\left(\sum_{j,u}X_{ju}\middle|M,\Omega\right)
+ =s^{-2}\sum_{j=1}^N\sum_{h=-q}^q\gamma(h)
+    \sum_{u=1}^Tw_{ju}w_{j,u+h}=1.
+ \tag{1}
+\]
+Division by \(s\) is valid because variance nondegeneracy gives \(s^2\ge c_s/(nH)>0\).
+
+The conditional exponential-moment assumption and the elementary inequality \(|x|^3\le C_3K^3\exp(x^2/K^2)\) imply
+\[
+ \sup_{j,u}\mathbb E(|\epsilon_{ju}|^3\mid M,\Omega)
+ \le 2C_3K^3.
+ \tag{2}
+\]
+Apply the already declared Chen--Shao finite-range normal bound, \texttt{lem:chen-shao-finite-range-normal-bound}, conditionally with \(p_0=3\), \(d_0=2\), \(k_0=\max\{q,1\}\), and index set \(I\times J\).  The centering, dependence, third-moment, and unit-variance premises were verified above.  Because \(\sum_{j,u}X_{ju}=L/s\), that bound and (2) give
+\[
+ \begin{aligned}
+ &\sup_{z\in\mathbb R}
+ \left|\mathbb P_P(L/s\le z\mid M,\Omega)-\Phi(z)\right|\\
+ &\quad\le C_qK^3s^{-3}\sum_{j,u}|w_{ju}|^3\\
+ &\quad\le C_qK^3
+ \left(s^{-1}\max_{j,u}|w_{ju}|\right)
+ \left(s^{-2}\sum_{j,u}w_{ju}^2\right).
+ \end{aligned}
+ \tag{3}
+\]
+By \texttt{lem:score-diffuseness}, the first factor in the last line is \(o(1)\) and the second is \(O(1)\), uniformly over \(P\in\mathcal P_n\).  The constants \(q\) and \(K\) are fixed.  Taking the supremum over \(P\) in (3) proves the asserted uniform conditional central limit theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A uniform finite-range random-field Berry--Esseen argument derives the Gaussian limit from primitive conditional dependence, moments, and diffuse weights. \textit{Gap.} Existing serial factor central limit theorems do not cover this complete three-block influence array under deterministic causal-block masking. \textit{Consumer.} The Wald theorem uses this derived score limit instead of assuming asymptotic normality.
+
+\begin{lemma}[lem:frontier-score-clt]\label{lem:frontier-score-clt}
+Conditional on \((M,\Omega)\), fixed \(q\), uniform sub-Gaussian moments, row-law factorization, conditional within-row block dependence, frontier variance nondegeneracy, and frontier score diffuseness imply \(\sup_{P\in\mathcal P_n(a,b,c)}\sup_{z\in\mathbb R}|\mathbb P_P(L/s\le z\mid M,\Omega)-\Phi(z)|\to0\) uniformly when \((a,b,c)\) ranges over a compact subset of \([1/2,1]\times(0,1]\times[0,1]\).
+\end{lemma}
+\begin{proof}
+Fix a compact \(\mathcal K\subset[1/2,1]\times(0,1]\times[0,1]\), and condition on \((M,\Omega)\).  Put
+\[
+ X_{ju}=s^{-1}w_{ju}\epsilon_{ju},
+ \qquad \frac Ls=\sum_{j,u}X_{ju}.
+\]
+Centered noise makes every \(X_{ju}\) conditionally centered.  Row independence and within-row \(q\)-dependence imply that two coordinates can be dependent only when they have the same row and their dates differ by at most \(q\).  Conditional sub-Gaussianity gives, for every fixed \(p>0\),
+\[
+ \sup_{j,u}\mathbb E(|\epsilon_{ju}|^p\mid M,\Omega)
+ \le C_pK^p.
+ \tag{1}
+\]
+
+Define the compact-uniform quantities
+\[
+ A_n=\sup_{(a,b,c)\in\mathcal K}\sup_{P\in\mathcal P_n(a,b,c)}
+ s^{-2}\sum_{j,u}w_{ju}^2,
+ \quad
+ \delta_n=\sup_{(a,b,c)\in\mathcal K}\sup_{P\in\mathcal P_n(a,b,c)}
+ s^{-1}\max_{j,u}|w_{ju}|.
+\]
+The frontier diffuseness lemma gives \(\sup_nA_n<\infty\) and \(\delta_n\to0\).  Let
+\[
+ \bar\delta_n=\max\{\delta_n,n^{-1}\},
+ \qquad k_n=\lfloor\bar\delta_n^{-1}\rfloor.
+\]
+Then \(k_n\to\infty\) and \(k_n\delta_n^2\le\bar\delta_n\to0\).
+
+Within each row partition time into retained consecutive blocks of length at most \(k_n\), separated by gaps of \(q\) deleted dates.  Averaging over the \(k_n+q\) possible origins shows that an origin can be selected, separately in every row, for which the deleted set \(D_n\) satisfies
+\[
+ \sum_{(j,u)\in D_n}w_{ju}^2
+ \le\frac{q}{k_n+q}\sum_{j,u}w_{ju}^2.
+ \tag{2}
+\]
+For deterministic coefficients \(c_{ju}\), the dependency degree, Cauchy--Schwarz, and (1) with \(p=2\) give
+\[
+ \operatorname{Var}\!\left(\sum_{j,u}c_{ju}\epsilon_{ju}\middle|M,\Omega\right)
+ \le C_qK^2\sum_{j,u}c_{ju}^2.
+ \tag{3}
+\]
+Thus, for \(R_n=\sum_{(j,u)\in D_n}X_{ju}\),
+\[
+ \sup_{(a,b,c),P}\operatorname{Var}(R_n\mid M,\Omega)
+ \le C_qK^2\frac{q}{k_n+q}A_n=o(1).
+ \tag{4}
+\]
+
+Distinct retained blocks are conditionally independent: blocks in different rows are independent, and blocks in the same row are separated by \(q\) deleted dates.  Let \(Z_B=\sum_{(j,u)\in B}X_{ju}\).  Splitting a block into its \(q+1\) residue classes makes the variables in each class independent.  Expanding fourth moments within a residue class, using (1), and then using \(|x_0+\cdots+x_q|^4\le(q+1)^3\sum_r|x_r|^4\), yields
+\[
+ \mathbb E(|Z_B|^4\mid M,\Omega)
+ \le C_qK^4\left(\sum_{(j,u)\in B}\frac{w_{ju}^2}{s^2}\right)^2.
+ \tag{5}
+\]
+Lyapunov's inequality and the fact that a block has at most \(k_n\) entries therefore give
+\[
+ \begin{aligned}
+ \sum_B\mathbb E(|Z_B|^3\mid M,\Omega)
+ &\le C_qK^3
+ \left(\max_B\sum_{(j,u)\in B}\frac{w_{ju}^2}{s^2}\right)^{1/2}A_n\\
+ &\le C_qK^3\sqrt{k_n}\,\delta_nA_n=o(1).
+ \end{aligned}
+ \tag{6}
+\]
+
+The oracle variance definition, row independence, block dependence, and stationary covariance give
+\[
+ \operatorname{Var}(L/s\mid M,\Omega)=1.
+ \tag{7}
+\]
+If \(v_n^2=\operatorname{Var}(\sum_BZ_B\mid M,\Omega)\), then (4), (7), and Cauchy--Schwarz imply
+\[
+ |v_n^2-1|
+ \le\operatorname{Var}(R_n\mid M,\Omega)
+ +2\sqrt{\operatorname{Var}(R_n\mid M,\Omega)}=o(1).
+ \tag{8}
+\]
+
+For completeness, normal approximation of the independent blocks follows by replacement.  Put \(U_B=Z_B/v_n\), and let conditionally independent centered Gaussian variables \(G_B\) have the same conditional variances as \(U_B\).  For any \(C^3\) function \(f\), replacing blocks one at a time and Taylor-expanding through order two cancels the first two moments and gives
+\[
+ \left|\mathbb Ef\!\left(\sum_BU_B\right)
+ -\mathbb Ef\!\left(\sum_BG_B\right)\right|
+ \le\frac{\|f'''\|_\infty}{6}
+ \sum_B\{\mathbb E|U_B|^3+\mathbb E|G_B|^3\}.
+ \tag{9}
+\]
+Since \(\mathbb E|G_B|^3\le C\mathbb E|U_B|^3\), (6), (8), and a smooth-indicator sandwich imply
+\[
+ \sup_z\left|\mathbb P\!\left(\sum_BZ_B/v_n\le z\middle|M,\Omega\right)-\Phi(z)\right|\to0
+ \tag{10}
+\]
+uniformly on \(\mathcal K\).  Equation (8) removes \(v_n\), and (4) plus Chebyshev removes \(R_n\).  Since \(L/s=\sum_BZ_B+R_n\), (10) proves the claimed compact-uniform conditional central limit theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A dependency-graph Lyapunov argument remains valid uniformly as the cohort and window exponents vary because the frontier weights are diffuse at their rescaled standard error. \textit{Gap.} Available serial factor central limit theorems do not provide this compact-uniform exponent-indexed statement for deterministic causal-block masking. \textit{Consumer.} The sharp-frontier achievability direction can focus on native-optimizer remainders rather than postulating a Gaussian leading score.
+
+\begin{theorem}[thm:feasible-window-wald]\label{thm:feasible-window-wald}
+For every sequence in \(\mathcal P_n\), including sequences with \(H\to\infty\), \(\widehat\tau_{\mathrm{bc}}-\tau=-L+o_{\mathbb P}(s)\), \(\widehat V/s^2\to_{\mathbb P}1\), and the primitive conditional block-dependence and score-diffuseness conditions yield \(\sup_{P\in\mathcal P_n}\sup_{z\in\mathbb R}|\mathbb P_P\{(\widehat\tau_{\mathrm{bc}}-\tau)/\sqrt{\widehat V}\le z\mid M,\Omega\}-\Phi(z)|\to0\). Consequently, \(\inf_{P\in\mathcal P_n}\mathbb P_P\{\tau\in\mathrm{CI}_{1-\alpha}\mid M,\Omega\}\to1-\alpha\). This is an extension of the balanced, fixed-rank, common-start, singleton-subgroup Choi--Yuan regime along the serial-dependence and growing-window axes, under a strengthened uniform class. Neither full class contains the other, and the \(q=0,H=1\) reduction is asserted only on the intersection with Choi--Yuan Conditions (i)--(v).
+\end{theorem}
+\begin{proof}
+Fix an arbitrary sequence \(P\in\mathcal P_n\) and condition on \((M,\Omega)\).  On \(G\times W\), the common-start mask has \(A_{it}=1\), so causal consistency gives \(Y^{\mathrm{obs}}_{it}=Y_{it}(1)\).  Comparing the estimator with the causal target gives the exact bridge
+\[
+ \begin{aligned}
+ \widehat\tau-\tau
+ &=\frac1{gH}\sum_{i\in G,t\in W}
+ \left[Y^{\mathrm{obs}}_{it}-\widehat M_{it}
+ -\{Y_{it}(1)-M_{it}\}\right]\\
+ &=-\frac1{gH}\sum_{i\in G,t\in W}(\widehat M_{it}-M_{it}).
+ \end{aligned}
+ \tag{1}
+\]
+Thus the observed-law estimator has not been equated to the causal target by definition.
+
+The native-transfer theorem gives
+\[
+ \frac1{gH}\sum_{i,t}(\widehat M_{it}-M_{it})=L+Q+R_{\mathrm{agg}}.
+\]
+Using \(\widehat\tau_{\mathrm{bc}}=\widehat\tau+\widehat B_2\), equation (1) becomes
+\[
+ \widehat\tau_{\mathrm{bc}}-\tau
+ =-L-(Q-B_2)-R_{\mathrm{agg}}+(\widehat B_2-B_2).
+ \tag{2}
+\]
+The oracle-scale bounds in that theorem make the last three terms in (2) \(o_{\mathbb P}(s)\), uniformly over the class.  Therefore
+\[
+ \widehat\tau_{\mathrm{bc}}-\tau=-L+o_{\mathbb P}(s).
+ \tag{3}
+\]
+
+For variance consistency, set \(d_{j\cdot}=\widehat w_{j\cdot}-w_{j\cdot}\), and define the banded matrices
+\[
+ (\Gamma_q)_{uv}=1\{|u-v|\le q\}\gamma(v-u),
+ \qquad
+ (\widehat\Gamma_q)_{uv}=1\{|u-v|\le q\}\widehat\gamma(v-u).
+\]
+Then the two variance definitions give
+\[
+ s^2=\sum_{j=1}^Nw_{j\cdot}^{\top}\Gamma_qw_{j\cdot},
+ \qquad
+ \widehat V=\sum_{j=1}^N(w_{j\cdot}+d_{j\cdot})^{\top}
+ \widehat\Gamma_q(w_{j\cdot}+d_{j\cdot}).
+ \tag{4}
+\]
+Conditional sub-Gaussianity bounds \(|\gamma(h)|\) by Cauchy--Schwarz.  Since \(q\) is fixed and \(\Delta_\gamma=o_{\mathbb P}(1)\),
+\[
+ \|\Gamma_q\|_{\mathrm{op}}=O(1),
+ \quad
+ \|\widehat\Gamma_q-\Gamma_q\|_{\mathrm{op}}
+ \le(2q+1)\Delta_\gamma=o_{\mathbb P}(1),
+ \quad
+ \|\widehat\Gamma_q\|_{\mathrm{op}}=O_{\mathbb P}(1).
+ \tag{5}
+\]
+Expanding (4) and applying Cauchy--Schwarz in the direct sum of the row spaces yields
+\[
+ \begin{aligned}
+ |\widehat V-s^2|
+ &\le\|\widehat\Gamma_q-\Gamma_q\|_{\mathrm{op}}\|w\|_F^2
+ +2\|\widehat\Gamma_q\|_{\mathrm{op}}\|w\|_F\|d\|_F\\
+ &\quad+\|\widehat\Gamma_q\|_{\mathrm{op}}\|d\|_F^2.
+ \end{aligned}
+ \tag{6}
+\]
+Score diffuseness gives \(\|w\|_F^2=O(s^2)\), and fitted-weight stability gives \(\|d\|_F^2=o_{\mathbb P}(s^2)\).  Because \(s^2>0\), (5)--(6) prove
+\[
+ \widehat V/s^2\to_{\mathbb P}1.
+ \tag{7}
+\]
+In particular, \(\widehat V>0\) with probability tending uniformly to one.
+
+The uniform-score central limit theorem gives
+\[
+ \sup_{P\in\mathcal P_n}\sup_z
+ \left|\mathbb P_P(L/s\le z\mid M,\Omega)-\Phi(z)\right|\to0.
+ \tag{8}
+\]
+Normal symmetry gives the same result for \(-L/s\).  Uniform conditional Slutsky applied to (3), (7), and (8) yields
+\[
+ \sup_{P\in\mathcal P_n}\sup_z
+ \left|\mathbb P_P\!\left(
+ \frac{\widehat\tau_{\mathrm{bc}}-\tau}{\sqrt{\widehat V}}
+ \le z\middle|M,\Omega\right)-\Phi(z)\right|\to0.
+ \tag{9}
+\]
+Evaluating (9) at \(\pm z_{1-\alpha/2}\), which are continuity points of \(\Phi\), proves
+\[
+ \inf_{P\in\mathcal P_n}
+ \mathbb P_P\{\tau\in\mathrm{CI}_{1-\alpha}\mid M,\Omega\}
+ \longrightarrow1-\alpha.
+\]
+
+The proof is scalar and remains valid when \(H\to\infty\); it provides neither event-time bands nor unknown-rank inference.  The final comparison follows from \texttt{prop:published-reduction}: the reduction is only on the explicit intersection with Choi--Yuan Conditions (i)--(v), \(q=0\), and \(H=1\).  Choi--Yuan use independent cell noise and their own subgroup, loading, and rate conditions, whereas the present class permits fixed-range serial dependence but imposes its stated balanced, fixed-rank, incoherent, common-start, and fixed-fraction geometry.  Hence neither full class contains the other, exactly as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Native expansion, feasible curvature correction, finite-lag covariance consistency, and fitted-weight stability yield uniform scalar Wald inference over the strengthened class. \textit{Gap.} The result extends the balanced, fixed-rank, common-start, singleton-subgroup Choi--Yuan regime only along serial-dependence and growing-window axes; the full classes are incomparable, and the one-date reduction holds only on their explicit condition intersection. \textit{Consumer.} The interval supports a scalar reanalysis of the SEC Tick Size Pilot's realized average sustained liquidity effect over the treated cohort and declared post window.
+
+\begin{proposition}[prop:published-reduction]\label{prop:published-reduction}
+Let \(P_n\in\mathcal P_n\) satisfy, in addition, conditions (i)--(v) of Choi and Yuan (2024), Theorem 3.1, and specialize to \(q=0\), \(H=1\), and \(W=\{t_0\}\). Then \(B_2=o_{\mathbb P}(s)\); the complete score \(L\) differs by \(o_{\mathbb P}(s)\) from the two-component Choi--Yuan score; the ratio of \(s^2\) to their displayed variance converges to one; and the resulting standardized leading score converges in distribution to \(\mathcal N(0,1)\). This is a reduction on the explicit intersection of the two sets of conditions, not an assertion that the Choi--Yuan model class and \(\mathcal P_n\) coincide. In this intersection-reduction sense, the construction is an extension of the balanced, fixed-rank, common-start, singleton-subgroup Choi--Yuan regime along the serial-dependence and growing-window axes, under a strengthened uniform class.
+\end{proposition}
+\begin{proof}
+Fix \(P_n\in\mathcal P_n\) satisfying Conditions (i)--(v) of Choi and Yuan (2024), Theorem 3.1, and set \(q=0\), \(H=1\), and \(W=\{t_0\}\).  Write \(A=A_{t_0}\), \(B=B_S\), and \(\bar x_G=g^{-1}\sum_{i\in G}x_i\).  The two restricted-Gram assumptions make \(A\) and \(B\) positive definite.  The complete-tangent lemma gives the exact decomposition
+\[
+ L=\mathcal D_n+\mathcal T_n-\mathcal O_n,
+ \tag{1}
+\]
+where
+\[
+ \mathcal D_n=\sum_{j\in C(t_0)}\bar x_G^{\top}A^{-1}x_j\epsilon_{j,t_0},
+ \qquad
+ \mathcal T_n=\frac1g\sum_{i\in G}\sum_{u\in S}
+ f_{t_0}^{\top}B^{-1}f_u\epsilon_{iu},
+ \tag{2}
+\]
+and \(\mathcal O_n\) is the overlap score declared in \texttt{lem:one-date-curvature-overlap}.  Thus the overlap has not been removed by definition.
+
+For \(q=0\), the three coordinate supports in (1) are pairwise disjoint and conditionally independent.  Consequently,
+\[
+ \operatorname{Var}(\mathcal D_n\mid M,\Omega)
+ =\gamma(0)\bar x_G^{\top}A^{-1}\bar x_G,
+ \tag{3}
+\]
+because \(A=\sum_{j\in C(t_0)}x_jx_j^{\top}\), and
+\[
+ \operatorname{Var}(\mathcal T_n\mid M,\Omega)
+ =\frac{\gamma(0)}g f_{t_0}^{\top}B^{-1}f_{t_0},
+ \tag{4}
+\]
+because \(B=\sum_{u\in S}f_uf_u^{\top}\) and the \(g\) treated rows are independent.  Hence
+\[
+ V_{\mathrm{CY}}:=\operatorname{Var}(\mathcal D_n+\mathcal T_n\mid M,\Omega)
+ =\gamma(0)\left\{\bar x_G^{\top}A^{-1}\bar x_G
+ +g^{-1}f_{t_0}^{\top}B^{-1}f_{t_0}\right\}.
+ \tag{5}
+\]
+Writing \(X=UD^{1/2}\) and \(F=VD^{1/2}\) in (5) cancels \(D^{1/2}\) on both sides of each inverse.  Thus (5) is exactly the donor-loading quadratic form plus the group-size-scaled pretreatment-factor quadratic form in the declared Choi--Yuan one-date theorem.
+
+By (1) and conditional independence,
+\[
+ s^2=V_{\mathrm{CY}}+\operatorname{Var}(\mathcal O_n\mid M,\Omega).
+ \tag{6}
+\]
+The one-date curvature-and-overlap lemma gives
+\[
+ \mathcal O_n=o_{\mathbb P}(s),
+ \quad
+ \operatorname{Var}(\mathcal O_n\mid M,\Omega)=O(n^{-2}),
+ \quad B_2=o_{\mathbb P}(s).
+ \tag{7}
+\]
+Since \(s^2\ge c_s/n\), (6)--(7) imply
+\[
+ 0\le\frac{\operatorname{Var}(\mathcal O_n\mid M,\Omega)}{s^2}
+ \le Cn^{-1}\to0,
+ \qquad
+ \frac{s^2}{V_{\mathrm{CY}}}\to1.
+ \tag{8}
+\]
+
+On the stated intersection, the declared cited result \texttt{lem:choi-yuan-one-date-group-clt} gives
+\[
+ \frac{\mathcal D_n+\mathcal T_n}{\sqrt{V_{\mathrm{CY}}}}
+ \Rightarrow N(0,1).
+\]
+Combining this with (1), (7), and (8) gives
+\[
+ \frac Ls
+ =\frac{\mathcal D_n+\mathcal T_n}{\sqrt{V_{\mathrm{CY}}}}
+   \sqrt{\frac{V_{\mathrm{CY}}}{s^2}}
+  -\frac{\mathcal O_n}{s}
+ \Rightarrow N(0,1).
+\]
+The same conclusion is unchanged by the \(o_{\mathbb P}(s)\) curvature term.  Every invocation of the published theorem occurred only after imposing its Conditions (i)--(v); therefore this is an intersection reduction and proves no equality or nesting of the full model classes.  It establishes precisely the extension interpretation stated in the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction guards against changing the estimand or estimator while enlarging the dependence and target regimes. \textit{Gap.} The published theorem is the reduction target rather than an unresolved result. \textit{Consumer.} Applied users recover the existing one-date procedure when no serial or window correction is needed.
+
+\begin{openendedquestion}[oeq:sharp-phase-frontier]\label{oeq:sharp-phase-frontier}
+Characterize the sharp region \(\mathfrak F\) of exponent triples \((a,b,c)\in[1/2,1]\times(0,1]\times[0,1]\) for which the primitive class \(\mathcal P_n(a,b,c)\), with global signal \(\psi=\sigma_r(M)\asymp n^a\), local comparability \(\psi_{\min,\mathrm{loc}}\ge c_{\mathrm{loc}}\psi\), \(g\asymp n^b\), \(H\asymp n^c\), and \(s^2\asymp(nH)^{-1}+(ng)^{-1}\asymp n^{-1-\min\{b,c\}}\), permits oracle-scale curvature-corrected native-optimizer inference. Derive raw bounds for every native-transfer, centered-quadratic, cubic, penalty, covariance-plug-in, Hessian-plug-in, and weight-plug-in remainder as functions of \(n,g,H,\psi_{\min,\mathrm{loc}}\); after exponent substitution, define \(\mathfrak F\) exactly by the resulting affine inequalities that make every remainder divided by \(s\) vanish. On every compact subset of its interior, prove \(s^{-1}|(gH)^{-1}\sum_{i\in G,t\in W}\Delta^{\mathrm{aux}}_{it}|\to_{\mathbb P}0\), \(s^{-1}|Q-B_2|\to_{\mathbb P}0\), \(s^{-1}|R_{\mathrm{agg}}|\to_{\mathbb P}0\), \(s^{-1}|\widehat B_2-B_2|\to_{\mathbb P}0\), and \(\widehat V/s^2\to_{\mathbb P}1\), together with the studentized limit. For every exterior boundary face, construct a relatively open rank-one Gaussian \(q\)-dependent family with \(|G_n|\asymp n^b\), \(|W_n|\asymp n^c\), and \(\inf_{i,t}\sigma_1(R_{it}M)/\sigma_1(M)>0\), satisfying the remaining primitive conditions, on which one named native-optimizer error is not \(o_{\mathbb P}(s)\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The sufficient proportional-cohort envelope is useful but does not locate the statistical or algorithmic boundary when signal, cohort, and window exponents all vary. \textit{Gap.} Existing papers provide separate sufficient weak-factor conditions or bias-aware impossibilities, not a matched native-optimizer frontier over the exponent-indexed class with the two-component oracle variance scale. \textit{Consumer.} The frontier determines whether a desired Tick Size post window must be shortened, the treated cohort subdivided, or the reported interval declared unsupported.
+
+\begin{lemma}[lem:chen-shao-finite-range-normal-bound]\label{lem:chen-shao-finite-range-normal-bound}
+Let \(d_0,k_0\in\mathbb N\), let \(2<p_0\le 3\), and let \(\mathcal J_0\) be a finite subset of \(\mathbb Z_+^{d_0}\).  Suppose that \(\{X_u:u\in\mathcal J_0\}\) is a centered \(k_0\)-dependent random field, \(\mathbb E|X_u|^{p_0}<\infty\), \(W_0=\sum_{u\in\mathcal J_0}X_u\), and \(\operatorname{Var}(W_0)=1\).  If \(F_0\) is the distribution function of \(W_0\), then
+\[
+ \sup_{z\in\mathbb R}|F_0(z)-\Phi(z)|
+ \le 75(10k_0+1)^{(p_0-1)d_0}
+       \sum_{u\in\mathcal J_0}\mathbb E|X_u|^{p_0}.
+\]
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This finite-range Berry--Esseen inequality converts the primitive dependence and third-moment bounds into the required conditional Gaussian approximation. \textit{Gap.} It is classical probability substrate; the application to the complete causal-panel influence array is proved separately in this note. \textit{Consumer.} The uniform score central limit lemma invokes the bound conditionally on the signal and deterministic mask.
+
+\begin{lemma}[lem:choi-yuan-one-date-group-clt]\label{lem:choi-yuan-one-date-group-clt}
+\texttt{Under conditions (i)-\allowbreak{}-\allowbreak{}(v) of Choi and Yuan (2024),\allowbreak{} Theorem 3.1,\allowbreak{} their common-\allowbreak{}adoption,\allowbreak{} one-\allowbreak{}date subgroup matrix-\allowbreak{}completion estimator has a group-\allowbreak{}average imputation error which,\allowbreak{} after division by the square root of their displayed variance,\allowbreak{} converges in distribution to a standard normal variable.  Their variance is the sum of a donor-\allowbreak{}loading quadratic form and a group-\allowbreak{}size-\allowbreak{}scaled pretreatment-\allowbreak{}factor quadratic form.}
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This is the published one-date benchmark to which the new complete score is reduced. \textit{Gap.} The source treats its one-date independent-noise design; the overlap and curvature comparisons are derived in this note. \textit{Consumer.} The published-reduction proposition uses the theorem only after proving the factor-scaling and negligible-term map.
+
+\begin{lemma}[lem:one-date-curvature-overlap]\label{lem:one-date-curvature-overlap}
+Uniformly over \(P\in\mathcal P_n\), specialize to \(q=0\) and \(H=1\), and write \(W=\{t_0\}\).  Define the aggregate donor--pretreatment overlap score
+\[
+ \mathcal O_n
+ =\frac1g\sum_{i\in G}\sum_{j\in C(t_0)}\sum_{u\in S}
+   a_{ij,t_0}b_{t_0,u}\epsilon_{ju}.
+\]
+Then \(\mathcal O_n=o_{\mathbb P}(s)\) and \(B_2=o_{\mathbb P}(s)\).  In fact,
+\[
+ \operatorname{Var}(\mathcal O_n\mid M,\Omega)=O(n^{-2}),
+ \qquad |B_2|=O(\psi^{-1}),
+\]
+where both bounds are uniform with constants depending only on the fixed class constants.
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal P_n\), specialize to \(q=0\), \(H=1\), and write \(W=\{t_0\}\).  Condition on \((M,\Omega)\).  Jensen's inequality and conditional sub-Gaussianity give
+\[
+ \gamma(0)=\mathbb E(\epsilon_{ju}^2\mid M)\le K^2\log2.
+ \tag{1}
+\]
+When \(q=0\), conditional row independence and block dependence make distinct noise coordinates conditionally independent.
+
+Abbreviate \(A=A_{t_0}\), \(B=B_S\), and put
+\[
+ c_i=x_i^{\top}A^{-1}x_i,
+ \qquad d_0=f_{t_0}^{\top}B^{-1}f_{t_0}.
+\]
+The normalized Gram lower bounds imply \(A^{-1}\preceq c_A^{-1}D^{-1}\) and \(B^{-1}\preceq c_B^{-1}D^{-1}\).  Incoherence and balanced growth therefore give
+\[
+ c_i=O(n^{-1}),
+ \qquad d_0=O(n^{-1}).
+ \tag{2}
+\]
+Moreover,
+\[
+ \sum_{j\in C(t_0)}a_{ij,t_0}^2=c_i,
+ \quad
+ \sum_{u\in S}b_{t_0,u}^2=d_0,
+ \quad
+ \sum_{j,u}a_{ij,t_0}^2b_{t_0,u}^2=c_id_0.
+ \tag{3}
+\]
+
+Let \(\bar x_G=g^{-1}\sum_{i\in G}x_i\) and \(\bar a_j=\bar x_G^{\top}A^{-1}x_j\).  Convexity and incoherence imply
+\[
+ \bar x_G^{\top}D^{-1}\bar x_G
+ \le\frac1g\sum_{i\in G}x_i^{\top}D^{-1}x_i=O(n^{-1}),
+\]
+so
+\[
+ \sum_{j\in C(t_0)}\bar a_j^2
+ =\bar x_G^{\top}A^{-1}\bar x_G=O(n^{-1}).
+ \tag{4}
+\]
+Using conditional independence, (1), (3), and (4),
+\[
+ \operatorname{Var}(\mathcal O_n\mid M,\Omega)
+ =\gamma(0)
+ \left(\sum_j\bar a_j^2\right)
+ \left(\sum_ub_{t_0,u}^2\right)=O(n^{-2}).
+ \tag{5}
+\]
+Variance nondegeneracy at \(H=1\) gives \(s^2\ge c_s/n\).  Conditional Chebyshev and (5) then yield \(\mathcal O_n=o_{\mathbb P}(s)\), uniformly.
+
+For curvature, take a compact singular value decomposition
+\(M^{it_0}=\mathsf U\mathsf D\mathsf V^{\top}\), and use orthogonal complements.  If
+\[
+ \mathsf B=\mathsf U^{\top}Z\mathsf V_\perp,
+ \quad \mathsf C=\mathsf U_\perp^{\top}Z\mathsf V,
+ \quad \mathsf D_0=\mathsf U_\perp^{\top}Z\mathsf V_\perp,
+\]
+then expansion of the local rank-\(r\) normal equations gives
+\[
+ \begin{aligned}
+ Q_{it_0}(Z)={}&
+ \mathsf U_\perp\mathsf D_0\mathsf B^{\top}\mathsf D^{-1}\mathsf V^{\top}
+ +\mathsf U\mathsf D^{-1}\mathsf C^{\top}\mathsf D_0\mathsf V_\perp^{\top}\\
+ &+\mathsf U_\perp\mathsf C\mathsf D^{-1}\mathsf B\mathsf V_\perp^{\top}.
+ \end{aligned}
+ \tag{6}
+\]
+Indeed, a nearby rank-\(r\) matrix in these coordinates has lower-right block \(T(\mathsf D+R)^{-1}S\); expanding the four Frobenius normal equations through order two gives (6).  It follows that
+\[
+ |[Q_{it_0}(Z)]_{it_0}|
+ \le\frac{3}{\sigma_r(M^{it_0})}\|Z\|_F^2.
+ \tag{7}
+\]
+
+Let \(l_{it_0}\) be the observed-coordinate vector of the complete tangent score, extended by zero at the target coordinate \(e_k\).  By (2)--(3), \(\|l_{it_0}\|_2^2=O(n^{-1})\).  For
+\[
+ Z_1=P_{\Omega_{\mathrm{loc}}^{it_0}}R_{it_0}\epsilon
+ +\ell_{it_0}(R_{it_0}\epsilon)E^{it_0}_{it_0},
+\]
+conditional independence gives
+\[
+ \operatorname{Cov}(\operatorname{vec}Z_1\mid M,\Omega)
+ =\gamma(0)(I+\mathsf R_{it_0}),
+\]
+where
+\[
+ \mathsf R_{it_0}=-e_ke_k^{\top}+e_kl_{it_0}^{\top}
+ +l_{it_0}e_k^{\top}+\|l_{it_0}\|_2^2e_ke_k^{\top}.
+ \tag{8}
+\]
+The correction in (8) has rank at most two and bounded operator norm.  Each term in (6) has zero mean under identity covariance by the orthogonalities \(\mathsf U_\perp^{\top}\mathsf U=0\) and \(\mathsf V_\perp^{\top}\mathsf V=0\).  If \(\mathsf H_{it_0}\) is the symmetric matrix representing the target-cell quadratic form, (7)--(8) yield
+\[
+ |\mathbb E[Q_{it_0}(Z_1)]_{it_0}\mid M,\Omega]|
+ =\gamma(0)|\operatorname{tr}(\mathsf H_{it_0}\mathsf R_{it_0})|
+ \le\frac{C}{\sigma_r(M^{it_0})}.
+ \tag{9}
+\]
+
+The target row and column leverages are \(\pi_i=c_i/(1+c_i)\) and \(\nu_{t_0}=d_0/(1+d_0)\), by the Sherman--Morrison identity.  Thus
+\[
+ h_{it_0}=\pi_i+\nu_{t_0}-\pi_i\nu_{t_0}=O(n^{-1}),
+\]
+and \((1-h_{it_0})^{-1}\le2\) eventually.  By the definition of \(q_{it_0}\), (9), and local signal comparability,
+\[
+ |B_2|\le\frac1g\sum_{i\in G}
+ \frac{C}{(1-h_{it_0})\sigma_r(M^{it_0})}
+ \le\frac{C}{\psi}.
+ \tag{10}
+\]
+Finally, the signal envelope at \(H=1\) gives
+\[
+ \frac{|B_2|}{s}
+ \le C\frac{\sqrt n}{\psi}
+ \le\frac{C}{\omega_n\ell_n^2(\ell_n+1)}\longrightarrow0.
+\]
+Together with (5), this proves all assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit curvature and overlap estimates are the missing mathematical bridge in the one-date reduction. \textit{Gap.} The published theorem suppresses these terms at its scale but does not state the complete three-term differential or this Hessian trace calculation. \textit{Consumer.} The published-reduction proposition uses both negligible-term conclusions.
+
+\begin{lemma}[lem:uniform-native-active-resolvent]\label{lem:uniform-native-active-resolvent}
+Uniformly over \(P\in\mathcal P_n\) and \((i,t)\in G\times W\), put \(e_{it}=E^{it}_{it}\) and \(E_{it}=P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon\). With probability tending to one, every minimizer in the definition of the native estimator has
+\[
+ \|Z^{it}-M^{it}\|_{\mathrm{op}}\le C\sqrt n\,\ell_n,
+ \qquad
+ \frac{\sqrt n\,\ell_n+\lambda}{\psi_{\min,\mathrm{loc}}}=o(1),
+\]
+simultaneously over at most \(gH=O(n^2)\) targets. On this event,
+\[
+ \sigma_r(Z^{it})\ge\frac12\psi_{\min,\mathrm{loc}},
+ \qquad \sigma_{r+1}(Z^{it})<\lambda,
+\]
+and every convex minimizer satisfies
+\[
+ \widetilde M^{it}=\mathcal P_r(Z^{it})-\lambda\mathsf S_r(Z^{it}),
+ \qquad \mathsf S_r(Z)=U_r(Z)V_r(Z)^{\top}.
+\]
+The missing-coordinate equation has derivative
+\[
+ 1-h_{it}+O\!\left(\frac{\sqrt n\,\ell_n+\lambda}
+ {\psi_{\min,\mathrm{loc}}}\right),
+ \qquad h_{it}=O(\mu r/n),
+\]
+whose reciprocal is uniformly bounded. Hence its target value is unique, so the conclusion applies to the minimizer selected by the fixed measurable rule.
+\end{lemma}
+\begin{proof}
+Fix a target \((i,t)\), abbreviate its ordered local chart by \(\mathcal I\times\mathcal J\), and put \(k=(i,t)\), \(e=e_{it}\), \(M_0=M^{it}\), and \(E=P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon\). The common-start mask in \(\mathrm{ass:common\mbox{-}start\mbox{-}mask}\) and the definition of \(\Omega_{\mathrm{loc}}^{it}\) give
+\[
+ P_{\Omega_{\mathrm{loc}}^{it}}=I-e\otimes e,
+ \qquad E_k=0,
+ \qquad Z^{it}=M_0+E+\delta e,
+ \quad \delta=\widetilde M^{it}_k-M_{0,k}.
+\tag{1}
+\]
+Thus there is exactly one unobserved coordinate in this local problem.
+
+We first record the uniform noise event used below. For an integer \(p\ge2\), expand
+\(\operatorname{tr}\{(EE^{\top})^p\}\) into closed alternating walks. Conditional centering from \(\mathrm{ass:centered\mbox{-}noise}\), conditional row factorization from \(\mathrm{ass:independent\mbox{-}rows}\), and the range-\(q\) block factorization from \(\mathrm{ass:conditional\mbox{-}block\mbox{-}dependence}\) make a term zero whenever its row--time dependency graph has an isolated vertex. Every surviving walk can be exposed by choosing at most \(p\) free row or time indices and then at most \((2q+1)^{2p}(2p)^{2p}\) neighboring repetitions. The moment implication of \(\|\epsilon_{js}\|_{\psi_2}\le K\) is
+\[
+ \mathbb E|\epsilon_{js}|^u\le 2(K\sqrt u)^u,
+ \qquad u\ge2.
+\tag{2}
+\]
+Hölder's inequality applied to every surviving product, followed by the walk count, yields, uniformly in the local chart,
+\[
+ \mathbb E\operatorname{tr}\{(EE^{\top})^p\}
+ \le (N+T)\{C_qK^2np\}^{p}.
+\tag{3}
+\]
+The same calculation is valid after deleting one row neighborhood, because deletion cannot create a surviving isolated vertex. Taking \(p=\lceil 12\ell_n\rceil\), using \(\|E\|_{\mathrm{op}}^{2p}\le\operatorname{tr}\{(EE^{\top})^p\}\), and applying Markov's inequality and a union bound over \(gH=O(n^2)\), where the last order follows from \(\mathrm{ass:balanced\mbox{-}growth}\), \(\mathrm{ass:cohort\mbox{-}fraction}\), and \(\mathrm{ass:window\mbox{-}length}\), gives
+\[
+ \max_{i\in G,t\in W}\|E_{it}\|_{\mathrm{op}}
+ =O_{\mathbb P}(K\sqrt{n\ell_n})=o_{\mathbb P}(\lambda).
+\tag{4}
+\]
+Here the last relation uses the lower penalty bound in \(\mathrm{ass:penalty\mbox{-}level}\).
+
+Let \(T_0\) be the tangent space at \(M_0\). The normalized donor and preperiod Gram bounds imply that the restricted left and right singular-vector leverages at the missing coordinate obey
+\[
+ P_{ii}^{\mathrm{loc}}=x_i^{\top}(X_{\mathcal I}^{\top}X_{\mathcal I})^{-1}x_i
+ \le C\mu r/n,
+ \qquad
+ P_{tt}^{\mathrm{loc}}=f_t^{\top}(F_{\mathcal J}^{\top}F_{\mathcal J})^{-1}f_t
+ \le C\mu r/n.
+\tag{5}
+\]
+Indeed, \(\mathrm{ass:donor\mbox{-}restricted\mbox{-}gram}\) and \(\mathrm{ass:pre\mbox{-}restricted\mbox{-}gram}\) bound the two inverse Gram matrices by constant multiples of \(D^{-1}\), while \(\mathrm{ass:incoherence}\) bounds \(\|x_i\|_2^2\) and \(\|f_t\|_2^2\) by \(C\mu r\|D\|_{\mathrm{op}}/n\); the bounded local condition number absorbs \(\|D\|_{\mathrm{op}}/d_r\). Consequently
+\[
+ h_{it}=\|P_{T_0}e\|_F^2
+ =P_{ii}^{\mathrm{loc}}+P_{tt}^{\mathrm{loc}}
+  -P_{ii}^{\mathrm{loc}}P_{tt}^{\mathrm{loc}}
+ \le C\mu r/n.
+\tag{6}
+\]
+For every \(A\in T_0\), (6) gives
+\[
+ \|P_{\Omega_{\mathrm{loc}}^{it}}A\|_F^2
+ =\|A\|_F^2-|A_k|^2
+ \ge(1-h_{it})\|A\|_F^2.
+\tag{7}
+\]
+This is the required tangent-space injectivity; it is uniform because \(r\) and \(\mu\) are fixed.
+
+Let \(\Delta=\widetilde M^{it}-M_0\). Comparing the convex objective at \(M_0+\Delta\) and \(M_0\), using
+\(\langle E,P_\Omega\Delta\rangle\le\|E\|_{\mathrm{op}}\|P_\Omega\Delta\|_*\), decomposability of the nuclear norm at \(T_0\), and (7), gives the two deterministic inequalities
+\[
+ \|P_\Omega\Delta\|_F
+ \le C\sqrt r(\|E\|_{\mathrm{op}}+\lambda),
+ \qquad
+ \|P_{T_0^\perp}\Delta\|_*
+ \le3\|P_{T_0}\Delta\|_*+C|\delta|\sqrt{h_{it}}.
+\tag{8}
+\]
+Projecting \(\Delta=P_\Omega\Delta+\delta e\) onto \(T_0\), applying (7), and then solving the resulting scalar inequality with \(h_{it}<1/2\) yields the sharper missing-coordinate bound
+\[
+ |\delta|le C\left\{K\sqrt{\ell_n}+\frac{\lambda}{n}
+ +\frac{(\|E\|_{\mathrm{op}}+\lambda)^2}{\psi_{\mathrm{loc},it}}\right\}.
+\tag{9}
+\]
+To justify the final term without presuming smoothness, split \(\Delta\) into its best rank-\(2r\) part and its orthogonal tail in (8); (7) controls the first part, while the nuclear-norm subgradient inequality controls the tail. Weyl's inequality then converts the product of the two controlled parts into the last term in (9). This argument applies to every minimizer and therefore rules out a remote minimizer.
+
+By \(\mathrm{ass:local\mbox{-}signal}\), \(\mathrm{ass:signal\mbox{-}window\mbox{-}envelope}\), and \(H\ge1\),
+\[
+ \rho_n:=\frac{\sqrt n\,\ell_n+\lambda}{\psi_{\min,\mathrm{loc}}}
+ \quad\text{satisfies}\quad
+ \rho_n\ell_n^2
+ \le \frac{C\ell_n}{\omega_n(\ell_n+H^{1/4})}
+ \le C/\omega_n=o(1),
+ \qquad\text{hence }\rho_n=o(1).
+\tag{10}
+\]
+Equations (1), (4), (9), and (10) now imply simultaneously
+\[
+ \|Z^{it}-M_0\|_{\mathrm{op}}le C\sqrt n\,\ell_n,
+ \quad \sigma_r(Z^{it})\ge\psi_{\mathrm{loc},it}-\|Z^{it}-M_0\|_{\mathrm{op}}
+ \ge\tfrac12\psi_{\min,\mathrm{loc}}.
+\tag{11}
+\]
+Moreover the component orthogonal to the rank-\(r\) signal space is \(O_{\mathbb P}(K\sqrt{n\ell_n}+\lambda/n)=o_{\mathbb P}(\lambda)\), so the min--max principle gives
+\[
+ \max_{i,t}\sigma_{r+1}(Z^{it})<\lambda
+\tag{12}
+\]
+with probability tending to one. This sharper estimate, rather than the deliberately loose first bound in (11), is why no lower-bound constant beyond \(c_\lambda>0\) is required.
+
+By \(\mathrm{lem:proximal\mbox{-}identity}\), (11)--(12) put every minimizer on the same singular-value-thresholding branch,
+\[
+ \widetilde M^{it}=\mathcal P_r(Z^{it})-\lambda\mathsf S_r(Z^{it}).
+\tag{13}
+\]
+The missing-coordinate residual is therefore
+\(F(x)=x-[\mathcal P_r(Y_\Omega+xe)-\lambda\mathsf S_r(Y_\Omega+xe)]_k\). Resolvent differentiation on the gap in (11)--(12), together with (6), gives uniformly on the neighborhood containing every minimizer
+\[
+ F'(x)=1-h_{it}+O(\rho_n).
+\tag{14}
+\]
+For large \(n\), (6), (10), and (14) give \(F'(x)\ge1/2\). Hence \(F\) has only one zero in that neighborhood. Since (9) placed every convex minimizer there, all minimizers have the same missing value. This proves the assertion for the fixed measurable selection and completes the proof.
+\end{proof}
+
+\begin{lemma}[lem:native-implicit-second-order-expansion]\label{lem:native-implicit-second-order-expansion}
+On the simultaneous active event of \(\mathrm{lem:uniform\mbox{-}native\mbox{-}active\mbox{-}resolvent}\), the exact scalar equations for the native fill and reported rank projection admit the uniform expansion
+\[
+ \widehat M_{it}-M_{it}
+ =\ell_{it}(R_{it}\epsilon)
+  +q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)
+  +r^{(3)}_{it}+r^{(\mathrm{pol})}_{it}+r^{(\mathrm{res})}_{it}.
+\]
+Here \(r^{(3)}_{it}\) is the integral third-and-higher projection remainder, \(r^{(\mathrm{pol})}_{it}\) is the polar-factor and regularization remainder after cancellation of the order-\(\lambda\) shrinkage term, and \(r^{(\mathrm{res})}_{it}\) is the scalar-resolvent substitution remainder. Uniformly on the same event,
+\[
+ \|D^2\mathcal P_r(M^{it})\|\le C\psi_{\min,\mathrm{loc}}^{-1},
+ \qquad
+ \|D^3\mathcal P_r(M^{it})\|\le C\psi_{\min,\mathrm{loc}}^{-2},
+\]
+and the linear and quadratic terms are exactly the declared \(\ell_{it}\) and \(q_{it}\), including the negative donor--pre overlap in \(\ell_{it}\).
+\end{lemma}
+\begin{proof}
+Fix a target \((i,t)\), suppress its indices, and work on the simultaneous active event of \texttt{lem:uniform-native-active-resolvent}.  Put \(M_0=M^{it}\), let \(e=E^{it}_{it}\), let \(E=P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon\), and write the unknown missing entry as \(x=M_{0,it}+\delta\).  Then
+\[
+ Z(x)=M_0+E+\delta e.
+\]
+The active-resolvent lemma, which follows from the exact proximal identity, gives the two exact equations
+\[
+ x=[\mathcal P_r\{Z(x)\}-\lambda\mathsf S_r\{Z(x)\}]_{it},
+ \qquad
+ \widehat M_{it}=[\mathcal P_r\{Z(x)\}]_{it},
+ \tag{1}
+\]
+where \(\mathsf S_r(Z)=U_r(Z)V_r(Z)^{\top}\).  Its scalar derivative is bounded away from zero uniformly, so all substitutions below are legitimate.
+
+We first justify the differentiations.  For a rectangular matrix \(A\), form its symmetric dilation
+\[
+ \mathscr A(A)=\begin{pmatrix}0&A\\A^{\top}&0\end{pmatrix}.
+\]
+Because \(\sigma_r(M_0)\ge\psi_{\min,\mathrm{loc}}>0\) by \texttt{ass:local-signal}, the cluster of the \(2r\) nonzero eigenvalues of \(\mathscr A(M_0)\) is separated from zero.  The Riesz formula
+\[
+ \Pi(A)=\frac{1}{2\pi\mathrm i}\int_{\mathcal C}
+ (zI-\mathscr A(A))^{-1}\,dz
+\]
+on a contour at distance \(\sigma_r(M_0)/4\) from zero, followed by the resolvent identity, yields
+\[
+ \|D^2\mathcal P_r(M_0)[A,B]\|_F
+ \le \frac{C}{\sigma_r(M_0)}
+ \{\|A\|_F\|B\|_{\mathrm{op}}+\|B\|_F\|A\|_{\mathrm{op}}\},
+ \tag{2}
+\]
+and
+\[
+ \|D^3\mathcal P_r(M_0)[A,B,C]\|_F
+ \le \frac{C}{\sigma_r(M_0)^2}
+ \sum_{\mathrm{cyc}}\|A\|_F\|B\|_{\mathrm{op}}\|C\|_{\mathrm{op}}.
+ \tag{3}
+\]
+Indeed, each derivative of the resolvent inserts one copy of \(\mathscr A(A)\), and the contour has length of order \(\sigma_r(M_0)\); (2)--(3) follow after multiplying the spectral projectors by \(A\).  Inserting a target-row or target-column coordinate projection before taking norms gives the same inequalities with the corresponding leverage square root.  Incoherence and the two restricted-Gram bounds make every such leverage \(O(n^{-1})\).  Thus, uniformly in the target,
+\[
+ \|D^2\mathcal P_r(M_0)\|\le C\psi_{\min,\mathrm{loc}}^{-1},
+ \qquad
+ \|D^3\mathcal P_r(M_0)\|\le C\psi_{\min,\mathrm{loc}}^{-2}.
+ \tag{4}
+\]
+
+Let \(T=D\mathcal P_r(M_0)\), \(Q(A)=\tfrac12D^2\mathcal P_r(M_0)[A,A]\),
+\[
+ h=\langle e,T(e)\rangle_F,
+ \qquad t(E)=[T(E)]_{it}.
+\]
+Taylor expansion of the first equation in (1), with integral remainder, gives
+\[
+ (1-h)\delta
+ =t(E)-\lambda[\mathsf S_r(M_0)]_{it}
+   +[Q(E+\delta e)]_{it}+u_3+u_{\mathrm{pol}},
+ \tag{5}
+\]
+where \(u_3\) is the third-and-higher integral remainder controlled by (3), and
+\[
+ u_{\mathrm{pol}}
+ =-\lambda[\mathsf S_r\{Z(x)\}-\mathsf S_r(M_0)]_{it}.
+\]
+The two equations in (1) also imply the exact identity
+\[
+ \widehat M_{it}-M_{0,it}
+ =\delta+\lambda[\mathsf S_r\{Z(x)\}]_{it}.
+ \tag{6}
+\]
+Keeping only the constant polar term in (5) gives
+\[
+ \delta_1=\frac{t(E)-\lambda[\mathsf S_r(M_0)]_{it}}{1-h}.
+\]
+Substitution into (6) shows explicitly that
+\[
+ \delta_1+\lambda[\mathsf S_r(M_0)]_{it}
+ =\frac{t(E)}{1-h}
+  -\frac{\lambda h}{1-h}[\mathsf S_r(M_0)]_{it}.
+ \tag{7}
+\]
+Thus the order-\(\lambda\) shrinkage term cancels; the surviving term has two target leverages because \(h=O(\mu r/n)\) and \(|[\mathsf S_r(M_0)]_{it}|=O(\mu r/n)\).
+
+By \texttt{lem:complete-tangent},
+\[
+ \frac{t(E)}{1-h}=\ell_{it}(R_{it}\epsilon)
+ =\sum_{j\in C(t)}a_{ij,t}\epsilon_{jt}
+  +\sum_{s\in S}b_{t,s}\epsilon_{is}
+  -\sum_{j\in C(t)}\sum_{s\in S}a_{ij,t}b_{t,s}\epsilon_{js}.
+ \tag{8}
+\]
+In particular, the donor--pretreatment term in (8) is part of the differential.  Put
+\[
+ Z_1=E+\ell_{it}(R_{it}\epsilon)e.
+\]
+Replacing \(\delta\) by its first-order noise component in the quadratic term of (5) gives, by \texttt{def:quadratic-drift},
+\[
+ \frac{[Q(Z_1)]_{it}}{1-h}
+ =q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon).
+ \tag{9}
+\]
+Define \(r^{(3)}_{it}\) to be the integral remainder generated by (3), define \(r^{(\mathrm{pol})}_{it}\) to contain the last term in (7), \(u_{\mathrm{pol}}\), and all subsequent polar/penalty terms, and define \(r^{(\mathrm{res})}_{it}\) to be the difference made in (9) by replacing the exact \(\delta\) by its first-order noise component and replacing the exact scalar inverse by \((1-h)^{-1}\).  Equations (5)--(9) then give exactly
+\[
+ \widehat M_{it}-M_{it}
+ =\ell_{it}(R_{it}\epsilon)
+  +q_{it}(P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon)
+  +r^{(3)}_{it}+r^{(\mathrm{pol})}_{it}+r^{(\mathrm{res})}_{it}.
+\]
+The bounded scalar inverse from the active-resolvent lemma, (2)--(4), and the leverage bounds make this expansion simultaneous and uniform over \(G\times W\), proving the claim.
+\end{proof}
+
+\begin{lemma}[lem:neighborhood-native-coupling]\label{lem:neighborhood-native-coupling}
+Uniformly over \(P\in\mathcal P_n\), the native and neighborhood-noise-replaced scalar resolvents satisfy
+\[
+ \left|\frac1{gH}\sum_{i\in G,t\in W}\Delta^{\mathrm{aux}}_{it}\right|
+ =O_{\mathbb P}\!\left[
+ \ell_n^4\left\{\frac{\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+ +n^{-3/2}\right\}\right].
+\]
+In the common-start local chart the native and auxiliary inputs, and hence their selected target values, agree identically whenever \(S\cap\mathcal N_q(t)=\varnothing\); because \(q\) is fixed and \(W\) is consecutive after \(S\), only \(O(q)\) target dates can contribute.
+\end{lemma}
+\begin{proof}
+Fix \((i,t)\).  By \texttt{def:neighbor-replaced-auxiliary}, the native and auxiliary observed perturbations can differ only at coordinates \((i,s)\) with
+\[
+ s\in S\cap\mathcal N_q(t).
+ \tag{1}
+\]
+The coordinate \((i,t)\) itself is missing, so it appears in neither observed input.  Consequently,
+\[
+ S\cap\mathcal N_q(t)=\varnothing
+ \quad\Longrightarrow\quad
+ P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon
+ =P_{\Omega_{\mathrm{loc}}^{it}}R_{it}\epsilon^{(-it)}.
+ \tag{2}
+\]
+In (2) the two masked convex objectives are identical.  The fixed measurable selection rule in \texttt{def:native-estimator}, equivalently the uniqueness of the target value proved in \texttt{lem:uniform-native-active-resolvent}, therefore gives identical reported target values.  Their linear and quadratic terms are also identical, and hence \(\Delta^{\mathrm{aux}}_{it}=0\).
+
+Let \(s_0=\max S\).  The ordering assumption \(s_0<\min W\), the fact that \(W\) is consecutive, and the definition of \(\mathcal N_q(t)\) imply
+\[
+ S\cap\mathcal N_q(t)\ne\varnothing
+ \quad\Longrightarrow\quad
+ 1\le t-s_0\le q.
+ \tag{3}
+\]
+Thus no more than \(q\) target dates contribute.  On such a date the difference of the two inputs is supported on at most \(q\) observed cells in row \(i\).  Conditional sub-Gaussianity implies, uniformly over the \(O(n^2)\) target charts,
+\[
+ \max_{i,t}\|P_{\Omega_{\mathrm{loc}}^{it}}R_{it}
+ (\epsilon-\epsilon^{(-it)})\|_F=O_{\mathbb P}(\ell_n).
+ \tag{4}
+\]
+
+Apply the exact scalar resolvent expansion from \texttt{lem:native-implicit-second-order-expansion} along the segment joining the two inputs.  The linear and quadratic increments cancel by the definition of \(\Delta^{\mathrm{aux}}_{it}\).  To record the remaining coefficient calculation, normalize factors as
+\[
+ u_j=D^{-1/2}x_j,
+ \qquad v_s=D^{-1/2}f_s.
+\]
+Incoherence, balanced growth, and the inverse restricted-Gram bounds give
+\[
+ \max_{i,j,t}|a_{ij,t}|+\max_{t,s}|b_{t,s}|\le Cn^{-1},
+ \qquad
+ \sum_j a_{ij,t}^2+\sum_s b_{t,s}^2\le Cn^{-1}.
+ \tag{5}
+\]
+Insert (5) into the rowwise versions of the second- and third-resolvent bounds (2)--(3) in the preceding proof.  For each boundary date, conditional row independence and Cauchy--Schwarz applied before summing over \(i\) give
+\[
+ \left\|
+  \frac1g\sum_{i\in G}\Delta^{\mathrm{aux}}_{it}
+ \right|_{L^2(P\mid M,\Omega)}
+ \le C\ell_n^4
+ \left\{\frac{\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+              +n^{-3/2}\right\}.
+ \tag{6}
+\]
+Here the first term in (6) is obtained as follows: the third-resolvent denominator is \(\psi_{\min,\mathrm{loc}}^{-2}\); one target-row insertion and the independent-row average contribute \(n^{-1/2}\) each; and at most two free donor or pretreatment contractions contribute at most \(n^{3/2}\) by (5).  The polar/penalty contribution has two target leverages and is bounded by
+\[
+ C\lambda n^{-2}\ell_n^3
+ \le C\ell_n^4n^{-3/2}
+ \tag{7}
+\]
+under \texttt{ass:penalty-level}.  All higher resolvent terms multiply the right side of (6) by successive powers of
+\[
+ \rho_n=\frac{\sqrt n\ell_n+\lambda}{\psi_{\min,\mathrm{loc}}}=o(1),
+\]
+where the last relation follows from \texttt{ass:signal-window-envelope}; hence their geometric sum is covered by (6).  Markov's inequality converts (6) into the same uniform \(O_{\mathbb P}\) bound.
+
+Finally sum (6) over the at most \(q\) dates in (3), divide by \(H\ge1\), and use that \(q\) is fixed by \texttt{ass:fixed-known-range}.  This yields
+\[
+ \left|\frac1{gH}\sum_{i\in G,t\in W}\Delta^{\mathrm{aux}}_{it}\right|
+ =O_{\mathbb P}\!\left[
+ \ell_n^4\left\{\frac{\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+ +n^{-3/2}\right\}\right],
+\]
+as required.
+\end{proof}
+
+\begin{lemma}[lem:centered-quadratic-and-higher-aggregate]\label{lem:centered-quadratic-and-higher-aggregate}
+Uniformly over \(P\in\mathcal P_n\), the local quadratic kernels lift to a symmetric matrix \(A_n\) on the common ambient observed array such that
+\[
+ Q-B_2=\epsilon^{\top}A_n\epsilon
+ -\mathbb E[\epsilon^{\top}A_n\epsilon\mid M,\Omega]
+\]
+and
+\[
+ |Q-B_2|=O_{\mathbb P}\!\left(
+ \frac{\ell_n^4}{\psi_{\min,\mathrm{loc}}\sqrt n}\right).
+\]
+The cubic, polar/regularization, scalar-resolvent, and native--auxiliary terms in the signed aggregate obey
+\[
+ |R_{\mathrm{agg}}|=O_{\mathbb P}\!\left[
+ \ell_n^4\left\{\frac{\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+ +n^{-3/2}\right\}\right].
+\]
+These are centered aggregate bounds; they do not follow by summing pointwise absolute errors.
+\end{lemma}
+\begin{proof}
+For each target, \(e\mapsto q_{it}(e)\) is a homogeneous quadratic form.  Let \(H_{it}\) be its symmetric coefficient matrix in the ordered observed local chart, extend it by zero to the ambient coordinates \(I\times J\), and average equal ambient coordinates before taking norms.  With
+\[
+ A_n=\frac1{gH}\sum_{i\in G,t\in W}\iota_{it}H_{it}\iota_{it}^{\top},
+\]
+where \(\iota_{it}\) is the deterministic local-to-ambient coordinate injection, the definitions of \(Q\) and \(B_2\) give the exact identities
+\[
+ Q=\epsilon^{\top}A_n\epsilon,
+ \qquad
+ B_2=\mathbb E(\epsilon^{\top}A_n\epsilon\mid M,\Omega).
+ \tag{1}
+\]
+
+We derive the needed coefficient bounds.  Put \(u_i=D^{-1/2}x_i\) and \(v_t=D^{-1/2}f_t\).  Incoherence, balanced growth, and the two normalized restricted-Gram assumptions imply
+\[
+ \max_{i,j,t}|a_{ij,t}|\le Cn^{-1},
+ \quad \max_{t,s}|b_{t,s}|\le Cn^{-1},
+ \quad
+ \sum_{j\in C(t)}a_{ij,t}^2+
+ \sum_{s\in S}b_{t,s}^2\le Cn^{-1}.
+ \tag{2}
+\]
+The completed first-order perturbation has coefficient operator
+\[
+ \mathcal C_{it}e
+ =P_{\Omega_{\mathrm{loc}}^{it}}e
+  +\ell_{it}(e)E^{it}_{it}.
+\]
+Substituting all three blocks of the complete tangent score, including the coefficient \(-a_{ij,t}b_{t,s}\) on donor--pretreatment cells, into the rowwise Hessian bound
+\[
+ \|D^2\mathcal P_r(M^{it})[A,B]\|_F
+ \le C\psi_{\min,\mathrm{loc}}^{-1}
+ \{\|A\|_F\|B\|_{\mathrm{op}}+\|B\|_F\|A\|_{\mathrm{op}}\}
+\]
+and applying (2) before the target average gives
+\[
+ \|A_n\|_F^2\le\frac{C}{n\psi_{\min,\mathrm{loc}}^2},
+ \qquad
+ \max_u\sum_v|(A_n)_{uv}|
+ \le\frac{C}{n\psi_{\min,\mathrm{loc}}},
+ \tag{3}
+\]
+and
+\[
+ |\operatorname{tr}(A_n\Gamma_q)|
+ \le C\psi_{\min,\mathrm{loc}}^{-1}.
+ \tag{4}
+\]
+For clarity about the contraction in (3), a donor-window leg contributes \(n^{-1}H^{-1}\), a treated-pre leg contributes \(n^{-1}g^{-1}\), and the overlap leg contributes \(n^{-2}\); summing their squared coefficients over supports of sizes at most \(CnH\), \(Cgn\), and \(Cn^2\), respectively, and multiplying by the Hessian factor \(\psi_{\min,\mathrm{loc}}^{-2}\), gives the first inequality.  In the mixed donor--pre contractions the two product terms from the first two legs are canceled by the negative overlap leg.  This gives the row-sum inequality rather than a bound larger by a factor \(n^{1/2}\).
+
+Conditional on \((M,\Omega)\), the coordinate dependency graph joins only cells in the same row within \(q\) dates and hence has degree at most \(2q\).  Truncate each error at \(K\ell_n\) and recenter it.  The conditional exponential-moment assumption and \(NT=O(n^2)\) give
+\[
+ \mathbb P\!\left(\max_{i,t}|\epsilon_{it}|>K\ell_n\mid M,\Omega\right)
+ \le 2NT\exp(-\ell_n^2)=o(1).
+ \tag{5}
+\]
+In the variance expansion of the centered quadratic form, the covariance of two products is zero when their two vertex sets are separated in this dependency graph.  Exposing one coefficient pair and then one of the at most \(C_q\) admissible neighboring pairs, Cauchy--Schwarz and (3) give
+\[
+ \mathbb E\!\left[
+ \{Q-B_2\}^2\mid M,\Omega\right]
+ \le C_qK^4\ell_n^8\|A_n\|_F^2
+ \le\frac{C\ell_n^8}{n\psi_{\min,\mathrm{loc}}^2}.
+ \tag{6}
+\]
+The truncation error is negligible by (5).  Conditional Chebyshev therefore yields
+\[
+ |Q-B_2|=O_{\mathbb P}\!\left(
+ \frac{\ell_n^4}{\psi_{\min,\mathrm{loc}}\sqrt n}\right).
+ \tag{7}
+\]
+
+It remains to aggregate the higher-order terms without summing pointwise absolute errors.  Expand the analytic scalar resolvent from \texttt{lem:native-implicit-second-order-expansion} into multilinear kernels in the ambient errors, aggregate equal monomials, and take the Hoeffding decomposition with respect to independent rows and a \((2q+1)\)-coloring of time.  Denote by \(R_k\) the aggregate homogeneous component of degree \(k\ge3\).  The rowwise bounds for \(D^2\mathcal P_r\) and \(D^3\mathcal P_r\), (2), and the bounded scalar inverse give
+\[
+ |\mathbb E(R_k\mid M,\Omega)|
+ +\|R_k-\mathbb E(R_k\mid M,\Omega)\|_{2,M,\Omega}
+ \le C\ell_n^4
+ \left\{\frac{\sqrt n}{\psi_{\min,\mathrm{loc}}^2}+n^{-3/2}\right\}
+ \rho_n^{,k-3},
+ \tag{8}
+\]
+where
+\[
+ \rho_n=\frac{\sqrt n\ell_n+\lambda}{\psi_{\min,\mathrm{loc}}}.
+\]
+To verify (8), pair every nonfree vertex of a degenerate monomial with a vertex in the same row and within \(q\) dates.  The two remaining factor sums cost at most \(n\); the normalization is \((gH)^{-1}\); (2) contributes \(n^{-1/2}\) for every unpaired tangent leg; and the third-resolvent denominator is \(\psi_{\min,\mathrm{loc}}^{-2}\).  A degree-one Hoeffding projection changes a tangent coefficient by at most \(C\ell_n^2\sqrt n/\psi_{\min,\mathrm{loc}}^2\); retaining that difference in \(R_k\), rather than redefining \(L\), gives the first term in braces.  Terms containing the post-cancellation polar factor have two target leverages and obey
+\[
+ \lambda n^{-2}\ell_n^3
+ =O(\ell_n^4n^{-3/2}),
+ \tag{9}
+\]
+which gives the second term.  This establishes (8) coefficient by coefficient on the common ambient polynomial.
+
+The signal envelope implies \(\rho_n=o(1)\).  Summing the geometric series in (8), adding the polar and scalar-resolvent contributions in (9), and adding the native--auxiliary discrepancy from \texttt{lem:neighborhood-native-coupling} proves
+\[
+ |R_{\mathrm{agg}}|=O_{\mathbb P}\!\left[
+ \ell_n^4\left\{\frac{\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+ +n^{-3/2}\right\}\right].
+ \tag{10}
+\]
+Equations (1), (7), and (10) prove all parts of the lemma.
+\end{proof}
+
+\begin{lemma}[lem:preperiod-reconstruction-and-lag-covariance]\label{lem:preperiod-reconstruction-and-lag-covariance}
+Uniformly over \(P\in\mathcal P_n\), the pretreatment rank-\(r\) fit satisfies
+\[
+ \delta_{\mathrm{fit}}=O_{\mathbb P}(\ell_n^2/\sqrt n).
+\]
+For every fixed \(|h|\le q\), decomposition into the oracle residual-product average, two signal-error cross terms, and a quadratic signal-error term gives
+\[
+ |\widehat\gamma(h)-\gamma(h)|
+ =O_{\mathbb P}\!\left(
+ \sqrt{\frac{\log n}{m}}+\frac{\log n}{m}
+ +\delta_{\mathrm{fit}}+\delta_{\mathrm{fit}}^2\right),
+\]
+and hence the same bound holds for \(\Delta_\gamma\).
+\end{lemma}
+\begin{proof}
+The ordering of \(S\) and \(W\), the common-start mask, and causal consistency imply that treatment is absent on \(I\times S\).  Hence
+\[
+ Y^{\mathrm{obs}}_{I\times S}=M_{I\times S}+\epsilon_{I\times S}.
+ \tag{1}
+\]
+Write \(M_{I\times S}=UDV_S^{\top}\).  Since
+\[
+ D^{-1/2}B_SD^{-1/2}=V_S^{\top}V_S\succeq c_BI_r,
+\]
+exact rank and \texttt{ass:pre-restricted-gram} give
+\[
+ \sigma_r(M_{I\times S})
+ =\sigma_r(DV_S^{\top})\ge \sqrt{c_B}\,\psi.
+ \tag{2}
+\]
+
+Conditional row independence, fixed \(q\), and the conditional sub-Gaussian exponential-moment bound imply, by coloring the columns into \(q+1\) classes and applying an \(1/4\)-net bound to each bilinear form, that
+\[
+ \|\epsilon_{I\times S}\|_{\mathrm{op}}=O_{\mathbb P}(\sqrt n\,\ell_n).
+ \tag{3}
+\]
+By local signal comparability, \(\psi\ge\psi_{\min,\mathrm{loc}}\), and the signal envelope makes the ratio of (3) to (2) tend to zero.  Thus the rank-\(r\) projection is on its spectral-gap branch.
+
+The first derivative at \(M_{I\times S}\) is
+\[
+ D\mathcal P_r(M_{I\times S})[E]
+ =P_UE+EP_{V_S}-P_UEP_{V_S}.
+ \tag{4}
+\]
+For the rowwise norm in the definition of \(\delta_{\mathrm{fit}}\), the row-
+\(i\) term \(EP_{V_S}\) in (4) is a fixed-rank projection of one conditionally sub-Gaussian, \(q\)-dependent row; \(P_UE\) averages independent rows with coefficient norm \(\|U_{i\cdot}\|_2=O(n^{-1/2})\).  Applying the same coloring and a union bound over \(N=O(n)\) rows yields
+\[
+ \max_{i\in I}m^{-1/2}
+ \|[D\mathcal P_r(M_{I\times S})epsilon_{I\times S}]_{i,S}\|_2
+ =O_{\mathbb P}(\ell_n/\sqrt n).
+ \tag{5}
+\]
+The rowwise resolvent versions of
+\[
+ \|D^2\mathcal P_r(M_{I\times S})\|\le C\psi^{-1},
+ \qquad
+ \|D^3\mathcal P_r(M_{I\times S})\|\le C\psi^{-2},
+\]
+together with (3), incoherence, and
+\[
+ \frac{\sqrt n\ell_n^3}{\psi}
+ \le\frac{C}{\omega_n}=o(1),
+ \tag{6}
+\]
+bound the normalized rowwise quadratic and integral remainders by \(O_{\mathbb P}(\ell_n^2/\sqrt n)\).  Combining this with (1), (4), and (5) proves
+\[
+ \delta_{\mathrm{fit}}=O_{\mathbb P}(\ell_n^2/\sqrt n).
+ \tag{7}
+\]
+
+For \(|h|\le q\), define the oracle residual-product average
+\[
+ \widetilde\gamma(h)=\frac{1}{N(m-|h|)}
+ \sum_{i=1}^N\sum_{s\in S:s+|h|\in S}
+ \epsilon_{is}\epsilon_{i,s+|h|}.
+\]
+Its conditional mean is \(\gamma(h)\) by common stationary covariance.  The products have a fixed dependence range at most \(2q+|h|\), are independent across rows, and have uniformly bounded conditional sub-exponential norms.  Coloring time into a fixed number of classes and applying the exponential Markov inequality gives, uniformly over the finitely many \(|h|\le q\),
+\[
+ |\widetilde\gamma(h)-\gamma(h)|
+ =O_{\mathbb P}\!\left(
+ \sqrt{\frac{\log n}{m}}+\frac{\log n}{m}\right).
+ \tag{8}
+\]
+This deliberately conservative rate remains valid after ignoring the additional averaging over \(N\).
+
+Put \(d_{is}=\widehat M^{\mathrm{pre}}_{is}-M_{is}\).  Since \(\widehat e_{is}=\epsilon_{is}-d_{is}\), exact expansion gives
+\[
+ \widehat\gamma(h)-\widetilde\gamma(h)
+ =-\overline{d_s\epsilon_{s+|h|}}
+  -\overline{\epsilon_sd_{s+|h|}}
+  +\overline{d_sd_{s+|h|}},
+ \tag{9}
+\]
+where every bar has the same normalization \(N(m-|h|)\).  Conditional sub-Gaussianity and finite-range dependence imply \((Nm)^{-1}\sum_{i,s}\epsilon_{is}^2=O_{\mathbb P}(1)\).  Cauchy--Schwarz and (7) therefore give
+\[
+ |\overline{d_s\epsilon_{s+|h|}}|
+ +|\overline{\epsilon_sd_{s+|h|}}|
+ =O_{\mathbb P}(\delta_{\mathrm{fit}}),
+ \qquad
+ |\overline{d_sd_{s+|h|}}|
+ =O_{\mathbb P}(\delta_{\mathrm{fit}}^2).
+ \tag{10}
+\]
+Combining (8)--(10) and taking the maximum over the fixed set \(|h|\le q\) proves
+\[
+ \Delta_\gamma=O_{\mathbb P}\!\left(
+ \sqrt{\frac{\log n}{m}}+\frac{\log n}{m}
+ +\delta_{\mathrm{fit}}+\delta_{\mathrm{fit}}^2\right),
+\]
+as asserted.
+\end{proof}
+
+\begin{lemma}[lem:fitted-curvature-and-weight-stability]\label{lem:fitted-curvature-and-weight-stability}
+Uniformly over \(P\in\mathcal P_n\), differentiation of the fitted local singular spaces, leverage, Hessian, and polar factor on the active event, combined with the pretreatment covariance bound, gives
+\[
+ |\widehat B_2-B_2|=O_{\mathbb P}\!\left(
+ \frac{\ell_n^4\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+ +\frac{\Delta_\gamma}{\psi_{\min,\mathrm{loc}}}\right).
+\]
+The fitted tangent kernel is relatively stable, and therefore
+\[
+ \sum_{j=1}^N\|\widehat w_{j\cdot}-w_{j\cdot}\|_2^2
+ =o_{\mathbb P}(s^2).
+\]
+\end{lemma}
+\begin{proof}
+Let \(\overline M^{it}=\mathcal P_r(Z^{it})\), and work on the simultaneous active event from \texttt{lem:uniform-native-active-resolvent}.  That lemma and the spectral gap give, uniformly over targets,
+\[
+ \|\overline M^{it}-M^{it}\|_{\mathrm{op}}
+ =O_{\mathbb P}(\sqrt n\ell_n),
+ \qquad
+ \operatorname{dist}(\widehat T_{it},T_{it})
+ =O_{\mathbb P}\!\left(
+ \frac{\sqrt n\ell_n}{\psi_{\min,\mathrm{loc}}}\right),
+ \tag{1}
+\]
+where \(T_{it}\) and \(\widehat T_{it}\) are the oracle and fitted tangent projectors.  Differentiating the same Riesz resolvent used for the native expansion one additional time yields
+\[
+ \|D^2\mathcal P_r(\overline M^{it})
+       -D^2\mathcal P_r(M^{it})\|
+ \le C\frac{\sqrt n\ell_n}{\psi_{\min,\mathrm{loc}}^2},
+ \tag{2}
+\]
+and, after inserting target coordinates and using incoherence,
+\[
+ |\widehat h_{it}-h_{it}|
+ \le C\frac{\ell_n^2}{n}\rho_n,
+ \qquad
+ \rho_n:=\frac{\sqrt n\ell_n+\lambda}{\psi_{\min,\mathrm{loc}}}.
+ \tag{3}
+\]
+The identical perturbation order holds for the polar derivative.  The active-resolvent lemma bounds both \((1-h_{it})^{-1}\) and \((1-\widehat h_{it})^{-1}\) uniformly.
+
+First hold the covariance sequence fixed at its oracle value.  Substitute (1)--(3) into the finite-lag coordinate contraction in \texttt{def:feasible-curvature-correction}.  The coefficient identities
+\[
+ \max|a_{ij,t}|+\max|b_{t,s}|\le Cn^{-1},
+ \qquad
+ \sum_j a_{ij,t}^2+\sum_s b_{t,s}^2\le Cn^{-1}
+ \tag{4}
+\]
+follow from incoherence and the normalized restricted Grams.  Aggregating coordinates before taking absolute values, (2)--(4) give
+\[
+ |\widehat B_2(\gamma)-B_2|
+ =O_{\mathbb P}\!\left(
+ \frac{\ell_n^4\sqrt n}{\psi_{\min,\mathrm{loc}}^2}\right).
+ \tag{5}
+\]
+The sum of the absolute coordinate coefficients in each fitted quadratic contraction is, by the same calculation and the bounded leverage inverse,
+\[
+ \sup_{i,t}\sum_{|h|\le q}|c_{it,h}|
+ =O_{\mathbb P}(\psi_{\min,\mathrm{loc}}^{-1}).
+ \tag{6}
+\]
+Therefore replacement of \(\gamma\) by \(\widehat\gamma\) changes the correction by at most
+\[
+ |\widehat B_2(\widehat\gamma)-\widehat B_2(\gamma)|
+ \le O_{\mathbb P}(\Delta_\gamma/\psi_{\min,\mathrm{loc}}).
+ \tag{7}
+\]
+Equations (5)--(7) prove
+\[
+ |\widehat B_2-B_2|=O_{\mathbb P}\!\left(
+ \frac{\ell_n^4\sqrt n}{\psi_{\min,\mathrm{loc}}^2}
+ +\frac{\Delta_\gamma}{\psi_{\min,\mathrm{loc}}}\right).
+ \tag{8}
+\]
+
+For the tangent weights, aggregate equal ambient coordinates in the fitted and oracle complete three-term scores.  The first-order singular-space bound in (1), the leverage-inverse bound in (3), and (4) imply the relative coefficient inequality
+\[
+ \|\widehat w-w\|_F
+ \le O_{\mathbb P}(\rho_n\ell_n^2)\|w\|_F.
+ \tag{9}
+\]
+No division by a possibly vanishing coordinate is used in (9): it is an inequality for the three complete coefficient arrays after their common coordinates have been collected.  By the penalty bound and the signal envelope,
+\[
+ \rho_n\ell_n^2
+ \le
+ \frac{C\sqrt n\ell_n^3}
+ {\omega_n\sqrt n\ell_n^2(\ell_n+H^{1/4})}
+ \le\frac{C}{\omega_n}=o(1).
+ \tag{10}
+\]
+The score-diffuseness lemma gives \(\|w\|_F^2=O(s^2)\).  Squaring (9) and using (10) proves
+\[
+ \sum_{j=1}^N\|\widehat w_{j\cdot}-w_{j\cdot}\|_2^2
+ =o_{\mathbb P}(s^2),
+\]
+which completes the proof.
+\end{proof}
+
+\section{Interpretation}
+
+The confidence interval concerns one scalar: the realized treated cohort's average sustained effect over the declared consecutive post window. For the SEC Tick Size Pilot reanalysis, it supports a cohort-window liquidity contrast after native completion and serial-curvature correction; it is not an event-time band.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Uniformity requires exact known fixed rank, fixed known dependence range, balanced dimensions, a proportional treated cohort, normalized donor and pretreatment Gram bounds, local-to-global signal comparability, conditional sub-Gaussian tails, and \(\psi_{\min,\mathrm{loc}}\ge\omega_n\sqrt n\,\ell_n^2(\ell_n+H^{1/4})\). The proof uses a one-missing-coordinate common-start chart and fixed-range dependency-graph coloring. It does not establish larger missing local blocks, unknown rank, heterogeneous or long-range covariance, simultaneous event-time bands, or validity at the proportional-window spectral-noise boundary; the sufficient envelope is not claimed sharp.
+
+\section{Honest scope}
+
+The proved class conditions on exact known fixed rank, fixed known dependence range, conditionally independent rows, genuine within-row finite-range dependence, common stationary covariance, conditional sub-Gaussian tails, a fixed positive local-to-global signal ratio, a proportional treated cohort, bounded aspect ratios, and explicit donor and pretreatment restricted-Gram bounds. It covers growing windows under \(\psi_{\min,\mathrm{loc}}\ge\omega_n\sqrt n\,\ell_n^2(\ell_n+H^{1/4})\), including \(H\asymp n\) at sufficient order \(\omega_n n^{3/4}\ell_n^2\) and the rank-one calibration \(\psi=n^{4/5}\). It does not claim that this is the sharp frontier, that its class contains the full Choi--Yuan class, or that \(q=0,H=1\) makes the classes identical. It does not cover simultaneous event-time bands, unknown rank, heterogeneous covariance, hidden-block identification, rank overprojection, or proportional-window inference arbitrarily close to signal order \(n^{1/2}\).
+
+\begin{thebibliography}{99}
+
+  \bibitem{choiYuan2024MNAR} Choi, J., and M. Yuan (2024). Matrix completion when missing is not at random and its applications in causal panel data models. \emph{Journal of the American Statistical Association}. arXiv:2308.02364.
+
+  \bibitem{choiYuan2025WeakFactors} Choi, J., and M. Yuan (2025). High dimensional factor analysis with weak factors. \emph{Journal of Econometrics}, article 106086. arXiv:2402.05789.
+
+  \bibitem{choiKwonLiao2024NoSplit} Choi, J., H. Kwon, and Y. Liao (2024). Inference for low-rank completion without sample splitting with application to treatment effect estimation. \emph{Journal of Econometrics}, article 105682. arXiv:2307.16370.
+
+  \bibitem{cenLam2025TensorImputation} Cen, Z., and C. Lam (2025). Tensor time series imputation through tensor factor modelling. \emph{Journal of Econometrics}, article 105974. arXiv:2403.13153.
+
+  \bibitem{chenChiFanMaYan2020ConvexMC} Chen, Y., Y. Chi, J. Fan, C. Ma, and Y. Yan (2020). Noisy matrix completion: understanding statistical guarantees for convex relaxation via nonconvex optimization. \emph{SIAM Journal on Optimization}, 30, 3098--3121. arXiv:1902.07698.
+
+  \bibitem{xiaYuan2021LinearForms} Xia, D., and M. Yuan (2021). Statistical inferences of linear forms for noisy matrix completion. \emph{Journal of the Royal Statistical Society, Series B}, 83, 58--77. arXiv:1909.00116.
+
+  \bibitem{liShenZhou2024TreatmentCI} Li, X., Y. Shen, and Q. Zhou (2024). Confidence intervals of treatment effects in panel data models with interactive fixed effects. \emph{Journal of Econometrics}, article 105684. arXiv:2202.12078.
+
+  \bibitem{xiongPelger2023MissingFactors} Xiong, W., and M. Pelger (2023). Large-dimensional latent factor modeling with missing observations and applications to causal inference. \emph{Journal of Econometrics}. arXiv:1910.08273.
+
+  \bibitem{suWang2025GeneralMissingFactors} Su, L., and F. Wang (2025). Inference for large dimensional factor models under general missing data patterns. \emph{Journal of Econometrics}, article 106022.
+
+  \bibitem{armstrongWeidnerZeleneev2026RobustIFE} Armstrong, T. B., M. Weidner, and A. Zeleneev (2026). Robust estimation and inference in panels with interactive fixed effects. \emph{Journal of Political Economy}. arXiv:2210.06639.
+
+  \bibitem{suWangWang2026UnbalancedIFE} Su, L., F. Wang, and Y. Wang (2026). Estimation and inference for unbalanced panel data models with interactive fixed effects. \emph{Journal of Econometrics}, 255, 106222.
+
+  \bibitem{atheyEtAl2021MatrixCompletion} Athey, S., M. Bayati, N. Doudchenko, G. Imbens, and K. Khosravi (2021). Matrix completion methods for causal panel data models. \emph{Journal of the American Statistical Association}, 116, 1716--1730.
+
+  \bibitem{benMichaelFeller2026Discussion} Ben-Michael, E., and A. Feller (2026). Discussion of matrix completion when missing is not at random. \emph{Journal of the American Statistical Association} discussion. arXiv:2602.21314.
+
+  \bibitem{chenShao2004LocalDependence} Chen, L. H. Y., and Q.-M. Shao (2004). Normal approximation under local dependence. Annals of Probability 32(3A), 1985--2028. arXiv:math/0410104. DOI: 10.1214/009117904000000450.
+
+\end{thebibliography}
+
+\end{document}

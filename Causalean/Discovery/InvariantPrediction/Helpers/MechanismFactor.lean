@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.Model
-import Causalean.Mathlib.CondDistrib
-import Causalean.Mathlib.Probability.Kernel.GraphMapProd
-import Causalean.SCM.Model.EvalFactorization
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
+module
+public import Causalean.Discovery.InvariantPrediction.Model
+public import Causalean.Mathlib.Probability.Kernel.CondDistrib
+public import Causalean.Mathlib.Probability.Kernel.GraphMapProd
+public import Causalean.SCM.Model.EvalFactorization
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 /-!
 # Mechanism-factor helpers for invariant prediction
@@ -33,6 +34,13 @@ The main ingredients are:
   fixed-parent-parameterized mechanism kernels.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
 namespace Causalean.Discovery.InvariantPrediction
 
 open Causalean MeasureTheory ProbabilityTheory
@@ -44,10 +52,10 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι]
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
-environment](hyp:i), [the latent-parent set of the target](goal) is the set of target parents that
-are unobserved in that environment. -/
+/-- [The target's latent-parent set](goal) isolates the parents whose values must be integrated out
+when evaluating the target mechanism in [environment `i`](hyp:i) of [an invariant-prediction
+family](hyp:F) over [finite node](hyp:N) and [environment](hyp:ι) indices with [measurable
+coordinate outcomes](hyp:Ω). -/
 def paLat (F : EnvFamily N Ω ι) (i : ι) : Finset (SWIGNode N) :=
   (F.M i).dag.parents F.yNode ∩ (F.M i).unobserved
 
@@ -80,12 +88,11 @@ theorem obsKernel_map_valuesProjection_eq_jointKernel_map
     (measurable_valuesProjection hSobs) M.measurable_randomToObserved]
   rw [hcomp]
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), [a reference
-environment selecting the observed parents](hyp:i₀), and [an environment supplying the structural
-mechanism and latent parents](hyp:i), [the target mechanism function](goal) maps values of those
-observed parents and that environment's latent parents to the target's value, using the
-environment's intervention assignment for any fixed parents. -/
+/-- [The target mechanism function](goal) reconstructs the target from observed-parent values chosen
+by [a reference environment](hyp:i₀), latent-parent values and fixed interventions supplied by
+[the active environment](hyp:i), and the shared mechanism of [an invariant-prediction
+family](hyp:F). It applies to [finite node](hyp:N) and [environment](hyp:ι) indices with
+[measurable coordinate outcomes](hyp:Ω). -/
 noncomputable def mechanismFun (F : EnvFamily N Ω ι) (i₀ i : ι) :
     ValuesOn (F.paObs i₀) (swigΩ Ω) × ValuesOn (F.paLat i) (swigΩ Ω) →
       ValuesOn ({F.yNode} : Finset (SWIGNode N)) (swigΩ Ω) :=
@@ -112,12 +119,11 @@ noncomputable def mechanismFun (F : EnvFamily N Ω ι) (i₀ i : ι) :
               exact Finset.mem_inter.mpr ⟨d.property, hobs⟩⟩)
     cast (congrArg (swigΩ Ω) (Finset.mem_singleton.mp w.property).symm) val
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), [a reference
-environment selecting the observed parents](hyp:i₀), [an environment supplying the structural
-mechanism and latent parents](hyp:i), and [values for that environment's fixed target parents](hyp:cf),
-[the fixed-parent-parameterized target mechanism function](goal) maps values of the selected
-observed and latent parents to the target's value, using the supplied fixed-parent values.
+/-- [The fixed-parent-parameterized target mechanism](goal) separates the target's structural rule
+from the intervention assignment: it combines observed parents selected by [a reference
+environment](hyp:i₀), latent parents from [the active environment](hyp:i), and [explicit values for
+the fixed parents](hyp:cf) in [an invariant-prediction family](hyp:F). It applies to [finite
+node](hyp:N) and [environment](hyp:ι) indices with [measurable coordinate outcomes](hyp:Ω).
 
 The target mechanism as a measurable map of observed and latent parents,
 **parameterized by an explicit fixed-parent value argument** `cf`.  Identical to
@@ -160,7 +166,10 @@ theorem mechanismFunCf_fixedParentVals (F : EnvFamily N Ω ι) (i₀ i : ι) :
     F.mechanismFunCf i₀ i (F.fixedParentVals i) = F.mechanismFun i₀ i := by
   rfl
 
-/-- `mechanismFunCf` is measurable. -/
+/-- [Explicitly supplying fixed-parent values](hyp:cf) preserves [measurability of the target
+mechanism](goal), so it can be pushed forward to form a kernel for [family `F`](hyp:F),
+[reference environment `i₀`](hyp:i₀), and [active environment `i`](hyp:i) over [finite
+nodes](hyp:N), [environments](hyp:ι), and [measurable coordinate outcomes](hyp:Ω). -/
 @[fun_prop]
 theorem measurable_mechanismFunCf (F : EnvFamily N Ω ι) (i₀ i : ι)
     (cf : ValuesOn (F.paFix i) (swigΩ Ω)) :
@@ -182,7 +191,10 @@ theorem measurable_mechanismFunCf (F : EnvFamily N Ω ι) (i₀ i : ι)
         · simp only [dif_neg hfix]
           exact (measurable_pi_apply _).comp measurable_fst)
 
-/-- `mechanismFun` is measurable. -/
+/-- [The intervention-indexed target mechanism](hyp:F,i) remains [measurable as a function of the
+observed and latent parents](goal), including when their observed coordinates are selected by
+[reference environment `i₀`](hyp:i₀), over [finite nodes](hyp:N), [finite environments](hyp:ι), and
+[measurable coordinate outcomes](hyp:Ω). -/
 @[fun_prop]
 theorem measurable_mechanismFun (F : EnvFamily N Ω ι) (i₀ i : ι) :
     Measurable (F.mechanismFun i₀ i) := by
@@ -322,13 +334,11 @@ theorem latentProduct_heq (F : EnvFamily N Ω ι) (i j : ι) :
   unfold SCM.latentProduct
   exact measure_pi_heq (F.hUnobs i j) (F.hLatent i j)
 
-/-- Let $X$, $L$, and $Y$ be [measurable](hyp:hX,hL,hY) random elements of a probability
-space, with $Y$'s value space standard Borel and nonempty, and let $Φ$ be a
-[measurable](hyp:hΦ) map such that [$Y$ equals $Φ(X,L)$ almost everywhere](hyp:hYeq).
-If [$L$ is independent of $X$](hyp:hind), then [the conditional distribution of $Y$
-given $X$ agrees, for almost every pushed-forward value of $X$, with the mechanism
-kernel obtained by pushing the law of $L$ forward through $Φ$ paired with that value
-of $X$](goal).
+/-- [Conditioning a structural outcome on its predictors integrates out only the independent
+latent input](goal). On [source, predictor, latent, and outcome spaces](hyp:α,β,γ,δ) with
+[probability law `μ`](hyp:μ), for [predictors `X`, latent input `L`, outcome `Y`, and mechanism
+`Φ`](hyp:X,L,Y,Φ), this follows from [measurability](hyp:hX,hL,hY,hΦ), [independence of `L` and
+`X`](hyp:hind), and [the almost-sure structural equation](hyp:hYeq).
 
 This is the measure-theoretic factorization used by `mechanism_invariant`: once
 the target is generated from predictors and latent parents, and those latent
@@ -424,12 +434,11 @@ theorem condDistrib_eq_mechanismKernel_of_indep_of_pair_map
         (Causalean.Mathlib.GraphMapProd.mechanismKernel (μ.map L) Φ) :=
       Causalean.Mathlib.GraphMapProd.map_graph_prod_eq_compProd (μ.map X) (μ.map L) hΦ
 
-/-- For [an invariant-prediction environment family](hyp:F) and [a reference index i₀
-together with an environment i](hyp:i₀,i), [in environment i the conditional law of the
-target given its observed parents, under the joint kernel restricted to that environment,
-agrees with the mechanism kernel formed by pushing the latent-parent law of environment i
-forward through the target's structural mechanism function, paired with the parent
-value](goal). -/
+/-- [The target's conditional law given its observed parents equals the structural-mechanism
+kernel](goal): in [environment `i`](hyp:i), latent-parent uncertainty is pushed through the target
+mechanism while observed parents are indexed using [reference environment `i₀`](hyp:i₀) of
+[family `F`](hyp:F), over [finite nodes](hyp:N), [finite environments](hyp:ι), and [measurable
+coordinate outcomes](hyp:Ω). -/
 theorem condDistrib_target_eq_mechanismKernel
     (F : EnvFamily N Ω ι) (i₀ i : ι) :
     (by
@@ -540,8 +549,6 @@ theorem condDistrib_target_eq_mechanismKernel
     (measurable_valuesProjection hPrv) (measurable_valuesProjection hLrv)
     (measurable_valuesProjection hYrv) (F.measurable_mechanismFun i₀ i) hind hpair
 
--- `fixed_parent_mem_fixed_of_mem` now lives in `Model.lean` (EnvFamily namespace).
-
 /-- Cross-environment equality of the target structural function applied to
 coordinatewise-equal target-parent tuples. -/
 theorem structFun_yNode_apply_eq (F : EnvFamily N Ω ι) (i j : ι)
@@ -565,13 +572,12 @@ theorem structFun_yNode_apply_eq (F : EnvFamily N Ω ι) (i j : ι)
     exact hξ di hdi hdj
   exact congr_heq (F.hStruct i j) hξHeq
 
-/-- Fix an environment family, a base environment `i₀`, two environments `i` and `j`,
-and a fixed-parent value assignment `cf` for environment `i`. If [the latent parents
-of the target in environment `i` are among its random variables](hyp:hLrv) and
-[likewise for environment `j`](hyp:hLrv'), then [the target-mechanism kernel built
-from environment `i` at `cf` equals the target-mechanism kernel built from
-environment `j` at the value obtained by transporting `cf` through the shared
-fixed-parent set](goal).
+/-- [The target-mechanism kernel is environment-independent once fixed-parent assignments are
+transported](goal), which is the structural basis for ICP invariance. In [family `F`](hyp:F),
+this compares [base environment `i₀` and environments `i,j`](hyp:i₀,i,j) at [fixed-parent values
+`cf`](hyp:cf), assuming [the latent parents in each environment are random](hyp:hLrv,hLrv'). The
+setup has [finite nodes](hyp:N), [finite environments](hyp:ι), and [measurable coordinate
+outcomes](hyp:Ω).
 
 The kernel first integrates out the latent parents of the target and then applies
 the target structural mechanism parameterized by an explicit fixed-parent value

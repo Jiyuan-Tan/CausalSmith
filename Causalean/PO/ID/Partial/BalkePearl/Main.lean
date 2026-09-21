@@ -22,8 +22,9 @@ the true ATE always lies in the LP-identified interval.
 The sharpness counterpart `balkePearl_sharp` is proved in `Sharp.lean`.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.LatentTable
-import Causalean.PO.ID.Partial.Basic
+module
+public import Causalean.PO.ID.Partial.BalkePearl.LatentTable
+public import Causalean.PO.ID.Partial.Basic
 
 /-! # Balke-Pearl latent-table necessity theorem
 
@@ -32,6 +33,10 @@ bounds. It defines feasibility, the ATE objective, the identified objective
 range, proves that the realized latent table is feasible, and shows that the
 true ATE belongs to that range.
 -/
+
+@[expose] public section
+
+open Causalean.Stat.AttainableSet
 
 namespace Causalean
 namespace PO
@@ -74,7 +79,7 @@ noncomputable def BPObjective (π : Bool → Bool → Bool → Bool → ℝ) : �
 /-- For [a potential-outcomes system](hyp:P), [a binary Balke--Pearl system on it](hyp:S), and [proof that the system satisfies the Balke--Pearl base assumptions](hyp:hA), the [sharp identified interval for the average treatment effect](goal) is the set of values of the Balke--Pearl linear-program objective over all feasible latent response-type tables. -/
 noncomputable def BPIdentifiedInterval (S : POBalkePearlSystem P) (hA : S.BaseAssumptions) :
     Set ℝ :=
-  PartialID.IdentifiedInterval BPObjective (BPFeasible S hA)
+  Causalean.Stat.AttainableSet.IdentifiedSet BPObjective (BPFeasible S hA)
 
 /-! ### The realized latent table is feasible -/
 
@@ -87,8 +92,8 @@ theorem latentProb_feasible (hA : S.BaseAssumptions) :
 
 /-! ### ATE equals LP objective at the realized table -/
 
-/-- ATE = BPObjective applied to the realized latent table. -/
-theorem ATE_eq_BPObjective (_hA : S.BaseAssumptions) :
+/-- The system's ATE equals the Balke–Pearl objective evaluated at its realized latent table. -/
+theorem ATE_eq_BPObjective :
     S.ATE = BPObjective S.latentProb := by
   unfold BPObjective
   exact S.ATE_eq_sum_latent
@@ -103,7 +108,7 @@ Every observationally-consistent model produces a feasible latent table
 theorem ATE_mem_BPIdentifiedInterval (hA : S.BaseAssumptions) :
     S.ATE ∈ S.BPIdentifiedInterval hA := by
   unfold BPIdentifiedInterval
-  rw [S.ATE_eq_BPObjective hA]  -- hA used here for type-checking only
+  rw [S.ATE_eq_BPObjective]
   exact PartialID.mem_identifiedInterval (S.latentProb_feasible hA)
 
 /-! ### Sharpness — see `Sharp.lean` for the proof.

@@ -1,12 +1,15 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeModulusBridge
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.AmbientOperatorBridge
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OutcomeFactorization
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.RealDiagonalizationBridge
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelRealDiagonalization
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelSpectralCertificate
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeClosureAssembly
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeModulusBridge
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.AmbientOperatorBridge
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OutcomeFactorization
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.RealDiagonalizationBridge
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelRealDiagonalization
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelSpectralCertificate
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeClosureAssembly
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -21,7 +24,8 @@ theorem gap_free_positive_measure_modulus
     (hpiMax : pi0 ≤ 1 / (2 * k : ℝ)) (hsigma : 0 < sigma0) (hsigmaMax : sigma0 ≤ 1) :
     ∃ Cmod : ℝ, 0 < Cmod ∧ -- @realizes \(C_{\mathrm{mod}}\)(positive modulus constant)
       (∀ (P Q : ModelLaw k dx dz L pi0 sigma0),
-        AtomicLaw.LawModulo.wass1 (by letI := P.prob; exact quotientLaw P.P P.model)
+        AtomicLaw.LawModulo.wass1 (k := k) (radius := effectRadius dz L sigma0)
+            (by letI := P.prob; exact quotientLaw P.P P.model)
             (by letI := Q.prob; exact quotientLaw Q.P Q.model) ≤
           Cmod * dS P.summary Q.summary) ∧
       ∃ Fbar : {q // q ∈ summaryClosure k dx dz L pi0 sigma0} →

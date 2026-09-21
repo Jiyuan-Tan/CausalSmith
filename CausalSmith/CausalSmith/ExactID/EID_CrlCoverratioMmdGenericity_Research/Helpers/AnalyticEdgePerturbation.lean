@@ -1,13 +1,14 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.AffinePathTopology
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CompactCondIndepBridge
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.TSparseWitnessCertificate
-import Causalean.Stat.Sample.PiTransport
-import Causalean.Mathlib.Analysis.ParametricRationalIntegralAnalyticity.Main
-import Mathlib.Analysis.Analytic.IsolatedZeros
-import Mathlib.Algebra.Polynomial.BigOperators
-import Mathlib.Algebra.Polynomial.Coeff
-import Mathlib.Topology.TietzeExtension
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.AffinePathTopology
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CompactCondIndepBridge
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.TSparseWitnessCertificate
+public import Causalean.Stat.Sample.PiTransport
+public import Causalean.Mathlib.Analysis.Analytic.ParametricIntegral.Rational.Main
+public import Mathlib.Analysis.Analytic.IsolatedZeros
+public import Mathlib.Algebra.Polynomial.BigOperators
+public import Mathlib.Algebra.Polynomial.Coeff
+public import Mathlib.Topology.TietzeExtension
 
 /-!
 # Analytic edge perturbation
@@ -15,6 +16,11 @@ import Mathlib.Topology.TietzeExtension
 The lemma states the path integral identity, analytic nonidentity certificate,
 isolated-zero property, and arbitrarily small stratum-preserving perturbation.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set Filter
 open scoped BigOperators Topology
@@ -122,13 +128,13 @@ lemma integral_fin_two_pi_eq_iterated (μ : Measure ℝ) [SigmaFinite μ]
   fin_cases k <;> rfl
 
 /-- Direct-edge contrast along the identity-target affine path. -/
-def affinePathContrast {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+def affinePathContrast {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (t : ℝ) : ℝ :=
   let θt := affinePathExtension s θ hji t
   secondMomentContrast (canonicalObservedWorld G θt (Equiv.refl (Fin n))) j i
 
 /-- The explicit rational-integral expression for the direct-edge path contrast. -/
-def affinePathContrastIntegral {n : ℕ} {G : Causalean.DAG (Fin n)}
+def affinePathContrastIntegral {n : ℕ} {G : DAG (Fin n)}
     (s : SignVector n) (θ : StratumPoint G s) {j i : Fin n}
     (hji : G.edge j i) (t : ℝ) : ℝ :=
   let θt := affinePathExtension s θ hji t
@@ -154,7 +160,7 @@ lemma affineFactorPolynomial_natDegree_le_one (a b : ℝ) :
 
 /-- Polynomial encoding of the complete numerator in `affinePathContrastIntegral`. -/
 def affinePathNumeratorPolynomial
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (v : LatentState n) : Polynomial ℝ :=
   let θstar := embeddedSparseWitness s hji
@@ -166,7 +172,7 @@ def affinePathNumeratorPolynomial
 
 /-- Evaluating the numerator polynomial recovers exactly the affine-path numerator.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathNumeratorPolynomial_eval
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (t : ℝ) (v : LatentState n) :
     (affinePathNumeratorPolynomial s θs hji v).eval t =
@@ -182,7 +188,7 @@ lemma affinePathNumeratorPolynomial_eval
 
 /-- Coefficients of the affine-path numerator, padded to the uniform degree bound `n + 3`. -/
 def affinePathNumeratorCoefficient
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     Fin (n + 3 + 1) → LatentState n → ℝ :=
   fun k v ↦ (affinePathNumeratorPolynomial s θs hji v).coeff k
@@ -236,7 +242,7 @@ lemma continuousOn_polynomial_finsetProd_coeff
 
 /-- The uniform padding bound really contains every numerator coefficient.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathNumeratorPolynomial_natDegree_lt
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (v : LatentState n) :
     (affinePathNumeratorPolynomial s θs hji v).natDegree < n + 3 + 1 := by
@@ -272,7 +278,7 @@ lemma affinePathNumeratorPolynomial_natDegree_lt
 
 /-- The padded coefficient family evaluates to the complete affine numerator.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathNumerator_polynomialNumerator_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (t : ℝ) (v : LatentState n) :
     Causalean.Mathlib.Analysis.ParametricRationalIntegralAnalyticity.polynomialNumerator
@@ -287,7 +293,7 @@ lemma affinePathNumerator_polynomialNumerator_eq
 
 /-- Every padded numerator coefficient is continuous on the compact latent cube.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathNumeratorCoefficient_continuousOn
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (k : Fin (n + 3 + 1)) :
     ContinuousOn (affinePathNumeratorCoefficient s θs hji k) (latentCube n) := by
@@ -350,7 +356,7 @@ lemma latentCube_isClosed (n : ℕ) : IsClosed (latentCube n) := by
 [directed edge endpoints](hyp:j,i), [edge certificate](hyp:hji), and [coefficient index](hyp:k),
 the [globally continuous extension of the affine numerator coefficient](goal) agrees on the cube. -/
 noncomputable def affinePathNumeratorCoefficientExtension
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (k : Fin (n + 3 + 1)) : LatentState n → ℝ :=
   let f : C({v : LatentState n // v ∈ latentCube n}, ℝ) :=
@@ -361,7 +367,7 @@ noncomputable def affinePathNumeratorCoefficientExtension
 /-- Given [the selected directed edge](hyp:hji), the [extended affine numerator coefficient is
 continuous on the ambient latent space](goal). -/
 lemma affinePathNumeratorCoefficientExtension_continuous
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (k : Fin (n + 3 + 1)) :
     Continuous (affinePathNumeratorCoefficientExtension s θs hji k) := by
@@ -374,7 +380,7 @@ lemma affinePathNumeratorCoefficientExtension_continuous
 /-- Given [the selected directed edge](hyp:hji) and [a point in the latent cube](hyp:hv), the
 [coefficient extension agrees with the original coefficient](goal). -/
 lemma affinePathNumeratorCoefficientExtension_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (k : Fin (n + 3 + 1)) {v : LatentState n} (hv : v ∈ latentCube n) :
     affinePathNumeratorCoefficientExtension s θs hji k v =
@@ -391,7 +397,7 @@ lemma affinePathNumeratorCoefficientExtension_eq
 /-- Given [the selected directed edge](hyp:hji) and [a point in the latent cube](hyp:hv), the
 [extended polynomial numerator equals the original numerator polynomial evaluation](goal). -/
 lemma affinePathNumerator_extension_polynomialNumerator_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (t : ℝ) {v : LatentState n} (hv : v ∈ latentCube n) :
     Causalean.Mathlib.Analysis.ParametricRationalIntegralAnalyticity.polynomialNumerator
@@ -406,7 +412,7 @@ lemma affinePathNumerator_extension_polynomialNumerator_eq
 /-- Given [the selected directed edge](hyp:hji), the [extended affine numerator coefficient is
 measurable](goal). -/
 lemma affinePathNumeratorCoefficientExtension_measurable
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (k : Fin (n + 3 + 1)) :
     Measurable (affinePathNumeratorCoefficientExtension s θs hji k) :=
@@ -415,7 +421,7 @@ lemma affinePathNumeratorCoefficientExtension_measurable
 /-- Given [the selected directed edge](hyp:hji), the [extended numerator coefficients have
 uniform bounds on the compact latent cube](goal). -/
 lemma affinePathNumeratorCoefficientExtension_compact_bounds
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     ∃ C : Fin (n + 3 + 1) → ℝ, ∀ k v, v ∈ latentCube n →
       |affinePathNumeratorCoefficientExtension s θs hji k v| ≤ C k := by
@@ -429,7 +435,7 @@ lemma affinePathNumeratorCoefficientExtension_compact_bounds
 
 /-- A globally continuous representative of the initial distinguished denominator factor. -/
 noncomputable def affinePathDenominatorStartExtension
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) (i : Fin n) : LatentState n → ℝ :=
   let f : C({v : LatentState n // v ∈ latentCube n}, ℝ) :=
     ⟨fun v ↦ theta.1.p i v.1, (theta.property.positiveSmooth.2.2.1 i).continuousOn.restrict⟩
@@ -437,7 +443,7 @@ noncomputable def affinePathDenominatorStartExtension
 
 /-- A globally continuous representative of the terminal distinguished denominator factor. -/
 noncomputable def affinePathDenominatorEndExtension
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {j i : Fin n} (hji : G.edge j i) : LatentState n → ℝ :=
   let thetaStar := embeddedSparseWitness s hji
   let f : C({v : LatentState n // v ∈ latentCube n}, ℝ) :=
@@ -447,7 +453,7 @@ noncomputable def affinePathDenominatorEndExtension
 
 /-- The [initial denominator extension is continuous on the ambient latent space](goal). -/
 lemma affinePathDenominatorStartExtension_continuous
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) (i : Fin n) :
     Continuous (affinePathDenominatorStartExtension theta i) := by
   unfold affinePathDenominatorStartExtension
@@ -459,7 +465,7 @@ lemma affinePathDenominatorStartExtension_continuous
 /-- Given [the selected directed edge](hyp:hji), the [terminal denominator extension is
 continuous on the ambient latent space](goal). -/
 lemma affinePathDenominatorEndExtension_continuous
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {j i : Fin n} (hji : G.edge j i) :
     Continuous (affinePathDenominatorEndExtension s hji) := by
   unfold affinePathDenominatorEndExtension
@@ -471,7 +477,7 @@ lemma affinePathDenominatorEndExtension_continuous
 /-- For [a point in the latent cube](hyp:hv), the [initial denominator extension agrees with
 the stratum mechanism factor](goal). -/
 lemma affinePathDenominatorStartExtension_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) (i : Fin n) {v : LatentState n}
     (hv : v ∈ latentCube n) :
     affinePathDenominatorStartExtension theta i v = theta.1.p i v := by
@@ -486,7 +492,7 @@ lemma affinePathDenominatorStartExtension_eq
 /-- Given [the selected directed edge](hyp:hji) and [a point in the latent cube](hyp:hv), the
 [terminal denominator extension agrees with the sparse-witness factor](goal). -/
 lemma affinePathDenominatorEndExtension_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {j i : Fin n} (hji : G.edge j i) {v : LatentState n}
     (hv : v ∈ latentCube n) :
     affinePathDenominatorEndExtension s hji v =
@@ -503,7 +509,7 @@ lemma affinePathDenominatorEndExtension_eq
 -- @node: affinePathExtension_zero
 /-- The unrestricted affine extension starts at the supplied stratum point.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_zero
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     affinePathExtension s θ hji 0 = θ.1 := by
   rcases θ with ⟨⟨p, q, hlocal⟩, hprop⟩
@@ -512,7 +518,7 @@ lemma affinePathExtension_zero
 -- @node: affinePathExtension_one
 /-- The unrestricted affine extension ends at the edge-specific sparse witness.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_one
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     affinePathExtension s θ hji 1 = embeddedSparseWitness s hji := by
   rcases θ with ⟨⟨p, q, hlocal⟩, hprop⟩
@@ -523,7 +529,7 @@ lemma affinePathExtension_one
 parameter; only positivity requires restricting the parameter to a neighborhood of the
 closed unit interval.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_normalized_smooth
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (t : ℝ) :
     (∀ l, ContDiffOn ℝ 3 ((affinePathExtension s θ hji t).p l) (latentCube n)) ∧
     (∀ l, ContDiffOn ℝ 3 ((affinePathExtension s θ hji t).q l) (Set.Icc (0 : ℝ) 1)) ∧
@@ -582,7 +588,7 @@ lemma affinePathExtension_normalized_smooth
 /-- Positivity and compactness give one strict lower bound valid for every observational
 mechanism slot on the latent cube.  Given [the stated inputs and conditions](hyp:hθ), [the stated conclusion](goal) follows. -/
 lemma mechanism_p_uniform_lower
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hθ : PositiveNormalizedSmoothMechanisms G θ) :
     ∃ ε > 0, ∀ i v, v ∈ latentCube n → ε ≤ θ.p i v := by
   let K : Set (Fin n × LatentState n) := Set.univ ×ˢ latentCube n
@@ -605,7 +611,7 @@ lemma mechanism_p_uniform_lower
 /-- Positivity and compactness give one strict lower bound valid for every intervention
 mechanism slot on the unit interval.  Given [the stated inputs and conditions](hyp:hθ), [the stated conclusion](goal) follows. -/
 lemma mechanism_q_uniform_lower
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hθ : PositiveNormalizedSmoothMechanisms G θ) :
     ∃ ε > 0, ∀ i z, z ∈ Set.Icc (0 : ℝ) 1 → ε ≤ θ.q i z := by
   let K : Set (Fin n × ℝ) := Set.univ ×ˢ Set.Icc (0 : ℝ) 1
@@ -624,7 +630,7 @@ lemma mechanism_q_uniform_lower
 /-- The closed affine path admits an open parameter enlargement on which all factors remain
 positive and the distinguished observational denominator has one uniform separation margin.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_open_positive_uniformDenominator
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     ∃ O : Set ℝ, ∃ ε > 0, IsOpen O ∧ Set.Icc (0 : ℝ) 1 ⊆ O ∧ Convex ℝ O ∧
       ∀ t ∈ O,
@@ -711,7 +717,7 @@ lemma affinePathExtension_open_positive_uniformDenominator
 /-- The ambient continuous extensions used by the generic analytic theorem give exactly the
 paper's rational integral, because the integration measure is restricted to the latent cube.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathContrastIntegral_eq_extendedIntegral
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (t : ℝ) :
     affinePathContrastIntegral s theta hji t =
       ∫ v in latentCube n,
@@ -736,7 +742,7 @@ lemma affinePathContrastIntegral_eq_extendedIntegral
 
 /-- The affine-path rational integral is analytic on the common positive enlargement.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathContrastIntegral_analyticOnNhd
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (theta : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     ∃ O : Set ℝ, IsOpen O ∧ Set.Icc (0 : ℝ) 1 ⊆ O ∧ Convex ℝ O ∧
       (∀ t ∈ O, PositiveNormalizedSmoothMechanisms G
@@ -778,7 +784,7 @@ lemma affinePathContrastIntegral_analyticOnNhd
 intervention logarithmic derivative and the full-cube observational Fréchet derivative in the
 own-coordinate direction.  Given [the stated inputs and conditions](hyp:hθ,hv), [the stated conclusion](goal) follows. -/
 lemma ownLogRatioDerivative_eq_fderivWithin
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hθ : PositiveNormalizedSmoothMechanisms G θ)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n) :
     ownLogRatioDerivative θ i v =
@@ -819,7 +825,7 @@ lemma ownLogRatioDerivative_eq_fderivWithin
 -- @node: affinePathContrast_zero
 /-- At the initial endpoint, the affine-path contrast is the original mechanism's contrast.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathContrast_zero
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     affinePathContrast s θ hji 0 =
       secondMomentContrast
@@ -830,7 +836,7 @@ lemma affinePathContrast_zero
 -- @node: affinePathContrast_one
 /-- At the terminal endpoint, the affine-path contrast is the embedded sparse contrast.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathContrast_one
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     affinePathContrast s θ hji 1 =
       secondMomentContrast
@@ -844,7 +850,7 @@ lemma affinePathContrast_one
 canonical second-moment contrast equals the rational mechanism integral obtained by cancelling
 the observational child-density factor.  Given [the stated inputs and conditions](hyp:hpos,hji), [the stated conclusion](goal) follows. -/
 lemma canonical_secondMomentContrast_eq_integral
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) {j i : Fin n}
     (hji : j ≠ i) :
     secondMomentContrast (canonicalObservedWorld G θ (Equiv.refl (Fin n))) j i =
@@ -939,7 +945,7 @@ lemma canonical_secondMomentContrast_eq_integral
 -- @node: affinePathContrast_eq_integral_of_mem_Icc
 /-- On the closed affine path, the contrast is exactly its rational mechanism integral.  Given [the stated inputs and conditions](hyp:hji,ht), [the stated conclusion](goal) follows. -/
 lemma affinePathContrast_eq_integral_of_mem_Icc
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     {t : ℝ} (ht : t ∈ Set.Icc (0 : ℝ) 1) :
     affinePathContrast s θs hji t = affinePathContrastIntegral s θs hji t := by
@@ -992,7 +998,7 @@ lemma threeNode_affinePathContrast_one_ne_zero (s : SignVector 3)
 -- @node: affinePathContrast_one_ne_zero
 /-- Every edge-specific affine path ends at a sparse mechanism with nonzero contrast.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathContrast_one_ne_zero
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     affinePathContrast s θs hji 1 ≠ 0 := by
   have hne : j ≠ i := by
@@ -1146,7 +1152,7 @@ lemma affinePathContrast_one_ne_zero
 
 /-- Causal minimality persists for sufficiently small positive parameters along the affine path.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_eventually_causalMinimal
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     ∃ δ > 0, ∀ t : {t : ℝ // t ∈ Set.Icc (0 : ℝ) 1}, t.1 < δ →
       CausalMinimality G (affinePathExtension s θs hji t.1) := by
@@ -1176,7 +1182,7 @@ lemma affinePathExtension_eventually_causalMinimal
 parameters.  Compactness is used only in the latent-state variable; finiteness then combines the
 nodewise neighborhoods.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_eventually_fixedOwnDerivativeSign
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     ∃ δ > 0, ∀ t : {t : ℝ // t ∈ Set.Icc (0 : ℝ) 1}, t.1 < δ →
       FixedOwnDerivativeSign G s (affinePathExtension s θs hji t.1) := by
@@ -1349,7 +1355,7 @@ lemma affinePathExtension_eventually_fixedOwnDerivativeSign
 /-- All three paper-local stratum conditions hold simultaneously along a sufficiently short
 positive initial segment of the affine path.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_eventually_modelStratum
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     ∃ δ > 0, ∀ t : {t : ℝ // t ∈ Set.Icc (0 : ℝ) 1}, t.1 < δ →
       ModelStratum G s (affinePathExtension s θs hji t.1) := by
@@ -1366,7 +1372,7 @@ lemma affinePathExtension_eventually_modelStratum
 /-- Once the analytic package is available, isolated zeros, affine-path continuity, and local
 stratum preservation produce the arbitrarily small nonzero perturbation used by the headline.  Given [the stated inputs and conditions](hyp:hji,hO,hanalytic,hisolated,hN), [the stated conclusion](goal) follows. -/
 lemma affinePath_exists_small_stratum_nonzero
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     {O : Set ℝ} (hO : Set.Icc (0 : ℝ) 1 ⊆ O)
     (hanalytic : AnalyticOnNhd ℝ (affinePathContrast s θs hji) O)
@@ -1431,7 +1437,7 @@ lemma affinePath_exists_small_stratum_nonzero
 /-- Every edge admits arbitrarily small stratum-preserving affine perturbations with nonzero
 second-moment contrast; the contrast has the stated analytic integral and isolated zeros.  Given [the stated inputs and conditions](hyp:hji,hIntervention), [the stated conclusion](goal) follows. -/
 lemma analytic_edge_perturbation
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θs : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (hIntervention : OnePerfectInterventionPerNode G θs.1
       (canonicalObservedWorld G θs.1 (Equiv.refl (Fin n)))) :

@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.Separability
-import Causalean.Stat.Concentration.Covering.RealValuedVCSubgraph.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.Separability
+public import Causalean.Stat.Concentration.VC.Basic
+public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 
 /-!
 # Population L² radius of the winsorized score
@@ -11,6 +12,8 @@ probability of a bandwidth ball, while the selected conditional moment bound
 controls the winsorized response without introducing the winsorization level
 into the population `L²` radius.
 -/
+
+public section
 
 open Causalean.Stat.Concentration
 open MeasureTheory Set

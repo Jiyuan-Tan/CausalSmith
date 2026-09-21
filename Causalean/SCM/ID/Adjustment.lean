@@ -2,39 +2,12 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Adjustment functionals (backdoor and frontdoor)
-
-This file defines the **graph-level adjustment functionals** that turn an
-SCM's observational kernel into a post-intervention `Y`-marginal under
-the backdoor / frontdoor identification criteria.  Their purpose is to
-factor cross-SCM identifiability proofs into:
-
-1. A *single-SCM completeness* lemma stating
-   `(M.fixSet X).obsKernel.map proj_Y = M.adjustmentFunctional X Y Z`,
-   whose content is the do-calculus reasoning (Rules 2 and 3).
-2. A *cross-SCM congruence* lemma stating that
-   `M.adjustmentFunctional X Y Z` depends only on `M.toSWIGGraph` and
-   `M.obsKernel`, hence transports across two SCMs sharing both.
-
-The two pieces compose into the corresponding downstream completeness and
-identifiability theorems. The functionals themselves are kernel-native:
-their bodies are compositions of observational marginals, `obsCondKernel`,
-`Kernel.comap`, `Kernel.map`, and `compProd`, and the invariance theorems
-show that no structural fields beyond the SWIG graph and observational kernel
-enter the adjustment formulas.
-
-## References
-
-* Basic Concepts.tex, Theorems `thm:scm-backdoor` (lines 636-645) and
-  `thm:scm-frontdoor` (lines 647-660).
-* Pearl, J. (2009), *Causality*, Theorem 3.3.2 (backdoor) and
-  Theorem 3.3.4 (frontdoor).
 -/
 
-import Causalean.SCM.Do.DoCalculus
-import Causalean.SCM.Model.InterventionSet
-import Causalean.SCM.Model.Kernel
+module
+public import Causalean.SCM.Do.DoCalculus
+public import Causalean.SCM.Model.InterventionSet
+public import Causalean.SCM.Model.Kernel
 
 /-! # Adjustment Functionals
 
@@ -43,6 +16,13 @@ identification. These functionals express post-intervention outcome distribution
 terms of observational kernels, enabling single-model completeness arguments to be
 combined with cross-model invariance statements. It also proves finite-kernel
 instances and cross-SCM invariance for both adjustment functionals. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

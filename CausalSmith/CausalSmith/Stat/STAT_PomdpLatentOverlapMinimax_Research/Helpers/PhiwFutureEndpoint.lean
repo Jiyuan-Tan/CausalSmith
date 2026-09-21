@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureIteration
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.StationaryRewardSupport
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureIteration
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.StationaryRewardSupport
 
 set_option linter.style.longLine false
 
 /-! # Terminal endpoint of future PHIW peeling -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

@@ -1,9 +1,10 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Estimator
-import Causalean.Stat.Concentration.Covering.Separable
-import Causalean.Stat.Concentration.VarianceAdaptiveVCExpectedMaximal.Separability
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Haar.Unique
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Estimator
+public import Causalean.Stat.Concentration.Covering.Separable
+public import Causalean.Stat.Concentration.VC.Separability
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Haar.Unique
 
 /-!
 # Countable reduction for the winsorized score class
@@ -13,6 +14,8 @@ that a continuum-indexed empirical-process supremum has a fixed countable
 pointwise-dense subfamily.  It is the bridge from outer expectation to the
 countable-index concentration API.
 -/
+
+@[expose] public section
 
 open Filter MeasureTheory Set
 open scoped BigOperators ENNReal

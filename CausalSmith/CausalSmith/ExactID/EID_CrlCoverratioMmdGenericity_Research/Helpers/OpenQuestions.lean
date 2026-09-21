@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.BoundedSubclass
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.BoundedSubclass
 
 /-!
 # Generated-rank frontier
@@ -6,6 +7,8 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Bound
 The second-stage procedure and sharp remainder criterion are intentionally left
 undefined by the paper, so the complete question is preserved as text.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 

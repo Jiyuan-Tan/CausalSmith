@@ -4,27 +4,29 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Uniqueness
+module
+public import Causalean.Discovery.LinearDisentanglement.Uniqueness
 
 /-!
-# Linear causal disentanglement: identifiability up to `S(𝒢)` and signed scaling
+# Linear causal disentanglement: conditional uniqueness up to relabeling and signed scaling
 
-Flagship Theorem 2.
+An unnormalized matrix-level relaxation inspired by Squires, Seigal, Bhate & Uhler,
+*Linear Causal Disentanglement via Interventions* (ICML 2023). This is not a
+formalization of the paper's Theorem 2: `Solution` omits the row normalization in
+Assumption 1(c), and the result below assumes intervention nondegeneracy separately.
 
-The headline result of Squires, Seigal, Bhate & Uhler, *Linear Causal Disentanglement
-via Interventions* (ICML 2023), Theorem 2 (`thm:main_id_non_constructive`), in its
-algebraic (matrix-level) form.
+Under the encoded linear model and perfect-intervention equations, plus one
+intervention per latent node and explicit nondegeneracy, the latent graph and
+intervention targets are unique up to `S(𝒢)`, the order-preserving relabelings,
+while the latent directions are unique only up to nonzero signed diagonal scaling.
 
-Under Assumption 1 (linear latent model, single-node interventions, linear
-observations) and Assumption 2 (perfect interventions), with **one intervention per
-latent node**, the latent graph and intervention targets are identifiable up to
-`S(𝒢)`, the order-preserving relabelings, while the latent directions are identifiable
-only up to nonzero signed diagonal scaling.  The signed diagonal is unavoidable because
-the observable precision matrices are even in `H`.
-
-The (⊆) inclusion is `disentanglement_uniqueness`; the (⊇) inclusion is
-`sigma_solutions`.
+`sigma_solutions` separately shows that order-preserving permutations produce
+observationally equivalent solutions. It does not construct every signed-scaling
+ambiguity permitted by the conclusion below, so these results do not establish a
+full orbit characterization for this unnormalized model.
 -/
+
+public section
 
 namespace Causalean.Discovery.LinearDisentanglement
 
@@ -32,11 +34,11 @@ open scoped Matrix
 
 variable {d p K : ℕ}
 
-/-- **Linear causal disentanglement identifiability (Theorem 2).**  Let `S` and `S'`
+/-- **Conditional unnormalized uniqueness up to signed scaling.** Let `S` and `S'`
 be two solutions of the linear causal disentanglement model such that [each solution's
 intervention-target map is a bijection onto the latent coordinates, i.e. one
 intervention per latent node](hyp:hcov,hcov') and [`S`'s interventions are
-non-degenerate (the paper's genericity / Assumption 1(b)): every intervened
+non-degenerate: every intervened
 precision matrix `Θ_k` differs from the observational precision matrix
 `Θ_0`](hyp:hNondeg). If [`S` and `S'` share the same observational precision
 matrix](hyp:hΘ0) and [agree, context by context, on every interventional precision
@@ -45,7 +47,8 @@ relabeling `σ` of the latent coordinates, a nonzero scaling vector `μ`, and a 
 sign vector `ν`: `σ`, `μ`, `ν` transport `S`'s latent-direction matrix and structural
 coefficient matrices onto `S'`'s, and `σ` carries `S`'s intervention targets onto
 `S'`'s](goal). -/
-theorem disentanglement_identifiability (S S' : Solution d p K)
+theorem disentanglement_identifiability_up_to_signed_scaling_of_nondegenerate
+    (S S' : Solution d p K)
     (hcov : Function.Bijective S.target) (hcov' : Function.Bijective S'.target)
     (hNondeg : ∀ k, S.Theta k ≠ S.Theta0)
     (hΘ0 : S.Theta0 = S'.Theta0) (hΘ : ∀ k, S.Theta k = S'.Theta k) :
@@ -57,6 +60,7 @@ theorem disentanglement_identifiability (S S' : Solution d p K)
       (∀ k, S'.Bint k * (Matrix.diagonal μ * permMat σ) =
         Matrix.diagonal ν * permMat σ * S.Bint k) ∧
       (∀ k, S'.target k = σ (S.target k)) :=
-  disentanglement_uniqueness S S' hcov hcov' hNondeg hΘ0 hΘ
+  disentanglement_uniqueness_up_to_signed_scaling_of_nondegenerate
+    S S' hcov hcov' hNondeg hΘ0 hΘ
 
 end Causalean.Discovery.LinearDisentanglement

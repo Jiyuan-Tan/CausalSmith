@@ -2,42 +2,23 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Finite-partition integral algebra
-
-Causal-agnostic measure-theory utilities for decomposing an integral over the
-*fibers* of a finite-valued map `H : Ω → ι` (a finite partition of the sample
-space). They live in `Causalean/Mathlib/MeasureTheory/` so any layer (estimation, panel
-cell algebra, partial-ID) can use them without pulling in the statistics or
-potential-outcome layers.
-
-The companion lemma `Causalean.PO.integral_eq_sum_measure_mul_eventCondExp`
-(file `Causalean/PO/Conditioning/EventCondExp.lean`) gives the *measure-weighted /
-`eventCondExp`* form for an explicit `Fintype`-indexed set family; the lemmas
-here are the *measurable-map / set-integral* form, plus the **cell-constant
-pull-out** that the eventCondExp file does not provide:
-
-* `integral_eq_sum_setIntegral_fiber` : `∫ f = ∑ h, ∫_{H⁻¹{h}} f`.
-* `integral_cellConst_mul` : `∫ c(H ω)·f ω = ∑ h, c h · ∫_{H⁻¹{h}} f`.
-* `integral_cellConst` : `∫ c(H ω) = ∑ h, c h · μ(H⁻¹{h})` (finite measure).
-
-The index type carries `[Fintype ι]`; supplied measurable-fiber assumptions ensure that the
-fibers `H⁻¹{h}` are measurable, pairwise disjoint, and cover `univ`.  No measurability of
-`c : ι → ℝ` is required: on
-each fiber `c ∘ H` is the *constant* `c h`, pulled out per cell.
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Set
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
 
 /-!
 # Finite-partition integral algebra
 
-This file decomposes integrals over the fibres of a finite-valued map with measurable fibres and
-proves that cell-constant weights can be pulled out fibre by fibre. The public lemmas
-are `integral_eq_sum_setIntegral_fiber`, `integral_cellConst_mul`, and
-`integral_cellConst`, which turn a finite partition of a sample space into finite sums
-of set integrals or cell weights.
+This file decomposes integrals over the measurable fibres of a finite-valued map and proves that
+weights constant on each fibre can be pulled outside the corresponding fibre integral.
+
+The public lemmas are `integral_eq_sum_setIntegral_fiber`, `integral_cellConst_mul`, and
+`integral_cellConst`, which turn a finite partition into finite sums of set integrals or fibre
+weights.
 -/
+
+public section
 
 -- `open` BEFORE the namespace: inside `namespace Causalean.Mathlib.MeasureTheory`
 -- the token `MeasureTheory` would resolve to this local namespace and shadow the
@@ -76,10 +57,9 @@ private theorem iUnion_fiber {ι : Type*} (H : Ω → ι) : (⋃ h, H ⁻¹' {h}
 
 /-! ## Integral decomposition over fibers -/
 
-/-- If [`H` is a finite-valued map on the sample space whose fibers `H⁻¹{h}` are all
-measurable](hyp:hfiber) and [`f` is integrable with respect to the ambient measure](hyp:hf),
-then [the integral of `f` splits as the sum, over the finitely many values `h` of `H`, of the
-set integrals of `f` restricted to the fiber `H⁻¹{h}`](goal). -/
+/-- [The integral of a function is the sum of its integrals over the fibres of a finite-valued
+map](goal) when [every fibre is measurable](hyp:hfiber) and [the function is
+integrable](hyp:hf). -/
 theorem integral_eq_sum_setIntegral_fiber {ι : Type*} [Fintype ι]
     {H : Ω → ι} (hfiber : ∀ h, MeasurableSet (H ⁻¹' {h}))
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -94,15 +74,12 @@ theorem integral_eq_sum_setIntegral_fiber {ι : Type*} [Fintype ι]
     _ = ∫ ω in ⋃ h, H ⁻¹' {h}, f ω ∂μ := by rw [iUnion_fiber]
     _ = ∑ h : ι, ∫ ω in H ⁻¹' {h}, f ω ∂μ := hsplit
 
-/-- **Cell-constant pull-out.** If [`H` is a finite-valued map on the sample space whose
-fibers `H⁻¹{h}` are all measurable](hyp:hfiber) and [`f` is integrable with respect to the
-ambient measure](hyp:hf), then, for any weighting `c` of the fiber values, [the integral of the
-`ω`-dependent product `c (H ω) • f ω` decomposes as the sum, over the values `h` of `H`, of
-`c h` scaling the set integral of `f` over the fiber `H⁻¹{h}`](goal). No measurability of `c`
-is needed: on each fiber `c (H ω)` is the constant `c h`.
+/-- [A function weighted by a constant on each fibre integrates as the sum of the fibre
+integrals with their corresponding weights](goal) when [every fibre is
+measurable](hyp:hfiber), [the weighting assigns a real number to each fibre](hyp:c), and [the
+function is integrable](hyp:hf).
 
-This is the workhorse for panel cell-by-cell regression algebra and for
-estimands written as cell-weighted averages. -/
+The identity requires no measurability of `c`, because it is constant on each fiber. -/
 theorem integral_cellConst_mul {ι : Type*} [Fintype ι]
     {H : Ω → ι} (hfiber : ∀ h, MeasurableSet (H ⁻¹' {h})) (c : ι → ℝ)
     {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
@@ -135,9 +112,10 @@ theorem integral_cellConst_mul {ι : Type*} [Fintype ι]
           simp [hω]
         rw [hcell, integral_smul]
 
-/-- **Cell-weight aggregation.**  For a finite measure, the integral of a
-cell-constant function `c (H ω)` is the cell-weighted sum `∑ h, c h · μ(H⁻¹{h})`.
-Special case of `integral_cellConst_mul` with `f ≡ 1`. -/
+/-- [The integral of a function constant on each fibre is the sum of each constant times the
+measure of its fibre](goal) for a finite measure, provided [every fibre is
+measurable](hyp:hfiber) and [a real weight is assigned to each fibre](hyp:c). This is the
+constant-function case of `integral_cellConst_mul`. -/
 theorem integral_cellConst {ι : Type*} [Fintype ι]
     [IsFiniteMeasure μ] {H : Ω → ι}
     (hfiber : ∀ h, MeasurableSet (H ⁻¹' {h})) (c : ι → ℝ) :

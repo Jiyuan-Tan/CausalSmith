@@ -4,7 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Coupling.ProductLossMonotoneCoupling
+module
+public import Causalean.Stat.Coupling.Basic
+public import Causalean.Stat.Coupling.Monotone
+public import Causalean.Stat.Coupling.ProductLossMonotoneCoupling
 
 /-!
 # Statistical couplings

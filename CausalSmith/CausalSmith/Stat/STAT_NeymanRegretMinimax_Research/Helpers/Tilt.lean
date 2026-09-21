@@ -9,7 +9,10 @@ Stage-2 scaffold.  The local-path handle `IsLocalPath`, the linear-tilt path
 validity lemma, path existence, and band-continuity of linear tilts.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.TiltScore
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.TiltScore
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

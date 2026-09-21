@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
-import Causalean.Mathlib.Indep
-import Causalean.Mathlib.Probability.ConvergingTogether.CharFunBound
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
+public import Causalean.Mathlib.Probability.Independence.Basic
+public import Causalean.Mathlib.Probability.LimitTheorems.Approximation.CharFunBound
 
 /-!
 # Expected-length reductions for the bias-aware interval
@@ -16,9 +17,13 @@ displayed sample-dependent radius.  It also records the exact mean of the
 atom-frequency estimate, the population input needed to bound that radius.
 -/
 
+@[expose] public section
+
+open Causalean.Mathlib.Probability.Independence
+
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
-open MeasureTheory Set
+open MeasureTheory Set Causalean.Stat.Concentration.RandomDesignWeightedHoeffding
 open scoped BigOperators
 
 noncomputable section
@@ -52,10 +57,10 @@ lemma integral_mul_I1_I2
     (F : ((i : {i // i ∈ B.I1}) → ClampObs J) → ℝ)
     (G : ((i : {i // i ∈ B.I2}) → ClampObs J) → ℝ)
     (hF : Measurable F) (hG : Measurable G) :
-    (∫ z, F (Causalean.finsetCoordProj B.I1 z) *
-        G (Causalean.finsetCoordProj B.I2 z) ∂iidProduct P n) =
-      (∫ z, F (Causalean.finsetCoordProj B.I1 z) ∂iidProduct P n) *
-        ∫ z, G (Causalean.finsetCoordProj B.I2 z) ∂iidProduct P n := by
+    (∫ z, F (finsetCoordProj B.I1 z) *
+        G (finsetCoordProj B.I2 z) ∂iidProduct P n) =
+      (∫ z, F (finsetCoordProj B.I1 z) ∂iidProduct P n) *
+        ∫ z, G (finsetCoordProj B.I2 z) ∂iidProduct P n := by
   letI : IsProbabilityMeasure P.dataMeasure := hprob
   have hi : ProbabilityTheory.iIndepFun
       (fun (i : Fin n) (z : Fin n → ClampObs J) => z i) (iidProduct P n) := by
@@ -68,8 +73,8 @@ lemma integral_mul_I1_I2
     (∫ z, F (fun i => z i.1) ∂iidProduct P n) *
       ∫ z, G (fun i => z i.1) ∂iidProduct P n
   exact hind.integral_fun_comp_mul_comp
-    (Causalean.measurable_finsetCoordProj B.I1).aemeasurable
-    (Causalean.measurable_finsetCoordProj B.I2).aemeasurable
+    (measurable_finsetCoordProj B.I1).aemeasurable
+    (measurable_finsetCoordProj B.I2).aemeasurable
     hF.aestronglyMeasurable hG.aestronglyMeasurable
 
 /-- The displayed radius of the bias-aware interval. -/
@@ -243,7 +248,7 @@ lemma integral_sqrt_interceptWeight_energy_le
     (∫ z, energy z ∂iidProduct P n) =
         ∫ z, ∑ i,
           (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-            (Causalean.Mathlib.Probability.designVector
+            (designVector
               (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2 ∂iidProduct P n := by
       apply integral_congr_ae
       filter_upwards with z

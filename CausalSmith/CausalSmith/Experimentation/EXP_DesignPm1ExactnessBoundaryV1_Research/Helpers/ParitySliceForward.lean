@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
 
 /-! # ±1 reduced-slice characterization: the forward (necessity) direction
 
@@ -18,6 +20,8 @@ sums `S_A = ∑_{i∈A} Z_i`, `S_B = ∑_{i∈B} Z_i` satisfy
 `E[(S_A−S_B)²] = 2m·y ≥ 0`, `E[(S_A+S_B)²] = 2m·z ≥ 0`, and for odd `m` the
 parity `S_A, S_B` odd forces `E[S_A²], E[S_B²] ≥ 1`, so `y+z = (E[S_A²]+E[S_B²])/m ≥ 2/m`.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

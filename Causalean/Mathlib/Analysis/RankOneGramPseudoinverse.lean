@@ -1,11 +1,14 @@
-import Causalean.Mathlib.Analysis.TwoByTwoSpectralProjector
-import Mathlib.Analysis.Matrix.PosDef
+module
+public import Causalean.Mathlib.Analysis.TwoByTwoSpectralProjector
+public import Mathlib.Analysis.Matrix.PosDef
 
 /-!
 # Rank-one truncation and pseudoinverse from a two-row Gram matrix
 
 This module identifies eigenvector-based rank-one truncation and pseudoinverse formulas with a choice-free algebraic construction from the left Gram matrix.  It proves the Moore--Penrose identities and local continuous differentiability on the isolated-positive-root region.
 -/
+
+@[expose] public section
 
 open Matrix
 open scoped Matrix.Norms.Elementwise

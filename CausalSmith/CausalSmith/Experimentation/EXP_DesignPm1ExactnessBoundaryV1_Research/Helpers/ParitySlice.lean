@@ -3,14 +3,18 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceForward
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceDesigns
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceForward
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceDesigns
 
 /-! # ±1 reduced-slice characterization (parity content)
 
 After full two-block symmetrization, the ±1 covariance image in spectral
 coordinates is `T_m` (m even) or `T_m ∩ {y+z ≥ 2/m}` (m odd), via
 `y + z = m⁻¹ E[S_A² + S_B²]` and the parity bound `S_A², S_B² ≥ 1` for odd `m`. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

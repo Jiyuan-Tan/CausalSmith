@@ -1,0 +1,1062 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}selective\_\allowbreak{}holdout\_\allowbreak{}power\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For an arbitrary fixed finite nonempty stratum set \(S\), a common holdout fraction \(\rho\) indexes a chronological two-stage enrichment randomization and its same-design Fisher sharp-null reference. Stage-one randomized action is the pair of holdout and treatment vectors; this gives a formal specialization of Freidling--Zhao--Gao's augmented-action representation, with their Proposition 1 supplying validity independently of imputability and Proposition 2 supplying computability at the sharp null. A per-array common remainder transfers the shifted sampling cdf and the zero-drift data-dependent reference cdf on every complete signed cell. Finite-product factorization reduces each active cell to a scalar selected Gaussian power. Ehrhard--Borell convexity reduces arbitrary compact positive alternatives to their least coordinate, the sign of \(\Delta_j=A_s-\kappa_jb_{1j}\) fixes the side of the proportional stage weight, all nonnegative discrepancies force the largest holdout, and an explicit two-stratum mixture certifies an interior negative-discrepancy regime. Mixed signs have a complete equality-aware analytic branch characterization, while interval computation returns certified value and optimizer-set boxes and asserts uniqueness only with separation.
+
+\section{Project justification}
+
+\paragraph{Gap.} Freidling, Zhao, and Gao provide a broader adaptive-experiment validity and conditional-reference framework, but do not derive a finite-population selected Gaussian power limit or optimize a common holdout and cell-specific stage weights. Existing finite-population central limit theorems are unconditional, and Rosenblum, Fang, and Liu study nonnested normal model-based policies with a different expected-sample-size and familywise-error objective. None supplies the present field-level sampling/reference transfer and maximin conditional-power frontier over arbitrary fixed finite strata.
+
+\paragraph{Niche.} The missing design object is a fixed-finite-stratum, design-based maximin problem in which one scalar holdout changes both selection and retained first-stage information, while each active complete-cell coordinate has its own nonnegative unit-norm stage weight. The optimizer can be an endpoint, an interior point, or a set-valued mixed-sign correspondence.
+
+\paragraph{Fill.} The project embeds the stage-one action as \(\widetilde Z_{n1si}=(D_{nsi},Z_{n1si})\), with \(D_{nsi}=\mathbf 1\{i\in H_{n,s}\}\), duplicates potential outcomes across the holdout label, and verifies the FZG A1--A3 and same-selector resampling equations. At the sharp null, Proposition 2 computes the explicit chronological reference and Proposition 1 separately transfers exact validity. The new contribution then derives, for arbitrary fixed finite \(S\), a common per-array split-conditional Gaussian and reference transfer, scalar complete-cell power integrals, least-coordinate reduction, the \(\Delta\)-indexed weight theorem, a unique largest-holdout region, a certified two-stratum interior witness, full mixed-sign branch geometry, and tolerance-certified optimizer sets.
+
+\section{Related work}
+
+Freidling, Zhao, and Gao's Definition 1 and Propositions 1--2 provide the broader adaptive-experiment representation specialized here. The exact map uses stage-one population \(\mathcal R_1\), augmented action \(D,Z_1\), selector \(\mathcal S_1=C\), selected population \(\mathcal R_2(C)\), and a constant sharp-null schedule \(\mathcal G\). Their Proposition 1 yields validity without imputability; A2--A3 in Proposition 2 yield the conditional-law representation, and A1 plus imputability yield computability. This is a specialization, not class equivalence, and their broader \(K\)-stage class supplies no selected Gaussian power frontier. Li and Ding supply the finite-population vector central limit theorem used after the present influence bounds. Shenfeld and van Handel supply Ehrhard--Borell convexity and equality cases. Rosenblum, Fang, and Liu are a nonnested architectural comparator: their normal model-based policies optimize expected sample size and familywise error rather than exact complete-cell conditional-randomization local power, so no optimality theorem transfers. Chen and Andrews concern parametric Gaussian adaptive experiments rather than fixed finite populations.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau^{(h)}_{n,s}=N_{n\cdot s}^{-1}\sum_{k\in K}\sum_{i\le N_{nks}}\{Y^{(h)}_{nksi}(1)-Y^{(h)}_{nksi}(0)\}=h_s/\sqrt n\).
+Primary functional / estimator / diagnostic: \((V^{\star},\mathcal{S}^{\star})=\operatorname*{maxval,argmax}_{\rho\in I,\,\theta\in[0,\pi/2]^J}\min_{j=(C,s)\in J}\min_{h\in H}\Pi_j(\rho,\theta_j,h_s)\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{index}; \(\mathbb{N}\); \texttt{triangular-\allowbreak{}array size}
+  \item \texttt{S} --- \texttt{finite set}; \(\{\mathcal S:\mathcal S\text{ is a set and }1\le |\mathcal S|<\infty\}\); \texttt{strata}
+  \par\smallskip\noindent\emph{Definition.} \(S\) is an arbitrary fixed finite nonempty baseline-stratum index set.
+  \item \texttt{K} --- \texttt{finite set}; \(\{1,2\}\); \texttt{stages}
+  \par\smallskip\noindent\emph{Definition.} \texttt{stage index set}
+  \item \texttt{rho0} --- \texttt{scalar}; \((0,1/2)\); \texttt{holdout boundary}
+  \item \texttt{I} --- \texttt{compact interval}; \([\rho_0,1-\rho_0]\); \texttt{design space}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the admissible holdout fractions}
+  \item \texttt{rho} --- \texttt{scalar}; \(I\); \texttt{holdout fraction}
+  \item \texttt{N} --- \texttt{integer array}; \(\{N_{nks}:k\in K,s\in S\}\); \texttt{stage-\allowbreak{}-\allowbreak{}stratum sizes}
+  \item \texttt{mtr} --- \texttt{integer array}; \(\{m_{nks}:k\in K,s\in S\}\); \texttt{balanced complete-\allowbreak{}randomization quotas}
+  \par\smallskip\noindent\emph{Definition.} \(m_{nks}=\lfloor N_{nks}/2\rfloor\) is the prespecified treated quota in stage--stratum block \((k,s)\).
+  \item \texttt{h} --- \texttt{vector}; \([0,\infty)^S\); \texttt{local effect coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(h=(h_s)_{s\in S}\) is the local additive-effect coordinate.
+  \item \texttt{H} --- \texttt{compact set}; \([h_0,h_1]^S\) with \(0<h_0\le h_1<\infty\); \texttt{positive local-\allowbreak{}alternative set}
+  \item \texttt{B} --- \texttt{triangular array}; \(\{B_{nksi}:k\in K,s\in S,i\le N_{nks}\}\); \texttt{baseline finite population}
+  \par\smallskip\noindent\emph{Definition.} \(B_n\) is the fixed baseline-outcome triangular array.
+  \item \texttt{Y} --- \texttt{local-\allowbreak{}alternative triangular array}; \(\{Y^{(h)}_{nksi}(z):k\in K,s\in S,i\le N_{nks},z\in\{0,1\}\}\); \texttt{fixed local-\allowbreak{}alternative potential outcomes}
+  \par\smallskip\noindent\emph{Definition.} For every \(h\in H\cup\{0\}\), \(Y^{(h)}_{nksi}(0)=B_{nksi}\) and \(Y^{(h)}_{nksi}(1)=B_{nksi}+h_s/\sqrt n\). At \(h=0\), this construction is the prespecified Fisher sharp-zero array.
+  \item \texttt{tau} --- \texttt{scalar array}; \(\mathbb{R}^{S}\); \texttt{finite-\allowbreak{}population stratum effect}
+  \par\smallskip\noindent\emph{Definition.} \(\tau^{(h)}_{n,s}=N_{n\cdot s}^{-1}\sum_{k\in K}\sum_{i\le N_{nks}}\{Y^{(h)}_{nksi}(1)-Y^{(h)}_{nksi}(0)\}=h_s/\sqrt n\)
+  \item \texttt{Kpair} --- \texttt{nonnegative function array}; \texttt{local ordered-\allowbreak{}pair crossing count}
+  \par\smallskip\noindent\emph{Definition.} For \(u>0\), \(K_{nks}(u)=\sum_{i,l}\{\mathbf 1[0<B_{nksl}-B_{nksi}<u]+\tfrac12\mathbf 1[B_{nksl}-B_{nksi}=0]+\tfrac12\mathbf 1[B_{nksl}-B_{nksi}=u]\}\), and \(K_{nks}(0)=0\). This is the exact ordered-pair crossing-count convention for baseline midranks.
+  \item \texttt{U0} --- \texttt{deterministic score array}; \([0,1]^{\sum_{k,s}N_{nks}}\); \texttt{finite-\allowbreak{}population rank coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(U^0_{nksi}=N_{nks}^{-1}\{\sum_{l=1}^{N_{nks}}\mathbf 1[B_{nksl}<B_{nksi}]+\tfrac12\sum_{l=1}^{N_{nks}}\mathbf 1[B_{nksl}=B_{nksi}]\}\) is the normalized baseline midrank.
+  \item \texttt{lambda} --- \texttt{positive array}; \((0,\infty)^{K\times S}\); \texttt{local pair-\allowbreak{}spacing slope}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_{ks}\) is the coefficient in the uniform limit \(N_{nks}^{-3/2}K_{nks}(u/\sqrt{N_{nks}})\to\lambda_{ks}u\) on the declared compact \(u\)-window.
+  \item \texttt{rshare} --- \texttt{positive array}; \(\{r_{ks}:k\in K,s\in S\}\); \texttt{limiting shares}
+  \par\smallskip\noindent\emph{Definition.} \(r_{ks}=\lim_{n\to\infty}N_{nks}/n\)
+  \item \texttt{Z1} --- \texttt{random triangular array}; \(\prod_{s\in S}\{0,1\}^{N_{n1s}}\); \texttt{stage-\allowbreak{}1 treatment assignment}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{n1si}\) is drawn at stage 1 before recruitment, with exactly \(m_{n1s}\) treated units in stratum \(s\).
+  \item \texttt{Yobs1} --- \texttt{random triangular array}; \texttt{observed stage-\allowbreak{}1 responses}
+  \par\smallskip\noindent\emph{Definition.} \(Y^{\mathrm{obs},1}_{nsi}=Z_{n1si}Y^{(h)}_{n1si}(1)+(1-Z_{n1si})Y^{(h)}_{n1si}(0)\).
+  \item \texttt{Hld} --- \texttt{random set array}; \(H_{n,s}(\rho)\subseteq\{1,\ldots,N_{n1s}\}\); \texttt{stage-\allowbreak{}1 holdout}
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1)\); \texttt{test size}
+  \item \texttt{beta} --- \texttt{scalar}; \((0,1)\); \texttt{generic selected upper-\allowbreak{}tail probability}
+  \item \texttt{rg} --- \texttt{scalar}; \([0,1)\); \texttt{generic selected-\allowbreak{}score correlation}
+  \par\smallskip\noindent\emph{Definition.} \(r_{\mathrm g}\) is the generic correlation argument of the selected-score quantile.
+  \item \texttt{c} --- \texttt{vector}; \(\mathbb{R}^{S}\); \texttt{fixed recruitment thresholds}
+  \item \texttt{X} --- \texttt{random vector}; \(\mathbb R^{S}\); \texttt{exact complement-\allowbreak{}studentized recruitment selector}
+  \par\smallskip\noindent\emph{Definition.} Let \(G_{ns}(\rho)=\{1,\ldots,N_{n1s}\}\setminus H_{n,s}(\rho)\), \(g^z_{ns}=\sum_{i\in G_{ns}(\rho)}\mathbf 1\{Z_{n1si}=z\}\), \(\bar Y^z_{G,ns}=(g^z_{ns})^{-1}\sum_{i\in G_{ns}(\rho)}\mathbf 1\{Z_{n1si}=z\}Y^{\mathrm{obs},1}_{nsi}\), and \(s^{2,z}_{G,ns}=(g^z_{ns}-1)^{-1}\sum_{i\in G_{ns}(\rho)}\mathbf 1\{Z_{n1si}=z\}(Y^{\mathrm{obs},1}_{nsi}-\bar Y^z_{G,ns})^2\). When \(g^0_{ns},g^1_{ns}\ge2\) and \(\widehat v^X_{ns}=s^{2,1}_{G,ns}/g^1_{ns}+s^{2,0}_{G,ns}/g^0_{ns}>0\), define the uncentered selector \(X_{n,s}(\rho)=(\bar Y^1_{G,ns}-\bar Y^0_{G,ns})/\sqrt{\widehat v^X_{ns}}\); otherwise set \(X_{n,s}(\rho)=c_s-1\), which deterministically means no recruitment.
+  \item \texttt{C} --- \texttt{cell label}; \(\{0,1\}^{S}\); \texttt{signed selection-\allowbreak{}cell label}
+  \par\smallskip\noindent\emph{Definition.} \(C=(C_s)_{s\in S}\) is a deterministic finite-stratum recruitment label, with \(C_s=1\) meaning that stratum \(s\) is recruited.
+  \item \texttt{Cn} --- \texttt{random vector}; \(\{0,1\}^{S}\); \texttt{realized recruitment cell}
+  \par\smallskip\noindent\emph{Definition.} \(C_n(\rho)=(\mathbf{1}\{X_{n,s}(\rho)>c_s\}:s\in S)\)
+  \item \texttt{Hist1} --- \texttt{sigma-\allowbreak{}field array}; \texttt{chronological recruitment history}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal F_{n,1}(\rho)=\sigma\{H_{n,t}(\rho),Z_{n1ti},Y^{\mathrm{obs},1}_{nti},X_{n,t}(\rho),C_n(\rho):t\in S,i\le N_{n1t}\}\) is the realized history after stage-1 assignment and recruitment and before stage-2 assignment.
+  \item \texttt{Z2} --- \texttt{history-\allowbreak{}conditional random triangular array}; \(\prod_{s:C_{n,s}(\rho)=1}\{0,1\}^{N_{n2s}}\); \texttt{stage-\allowbreak{}2 treatment assignment}
+  \par\smallskip\noindent\emph{Definition.} \(Z_{n2si}\) exists only for a recruited stratum and is drawn after \(\mathcal F_{n,1}(\rho)\), with exactly \(m_{n2s}\) treated units.
+  \item \texttt{Yobs2} --- \texttt{history-\allowbreak{}conditional random triangular array}; \texttt{observed stage-\allowbreak{}2 responses}
+  \par\smallskip\noindent\emph{Definition.} For \(C_{n,s}(\rho)=1\), \(Y^{\mathrm{obs},2}_{nsi}=Z_{n2si}Y^{(h)}_{n2si}(1)+(1-Z_{n2si})Y^{(h)}_{n2si}(0)\).
+  \item \texttt{Dobs} --- \texttt{design-\allowbreak{}indexed random data object}; realized alternative dataset at holdout fraction \(\rho\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_n^{h,\rho}=(H_{n,s}(\rho),Z_{n1s},Y^{\mathrm{obs},1}_{ns},C_n(\rho),(Z_{n2s},Y^{\mathrm{obs},2}_{ns})_{s:C_{n,s}(\rho)=1})_{s\in S}\) is the chronologically observed dataset.
+  \item \texttt{YF} --- \texttt{design-\allowbreak{}indexed data-\allowbreak{}dependent potential-\allowbreak{}outcome completion}; \texttt{sharp-\allowbreak{}null completion used only by rerandomization}
+  \par\smallskip\noindent\emph{Definition.} For every unit observed in \(\mathcal D_n^{h,\rho}\), the Fisher completion indexed by the same design value sets \(\widetilde Y^{0,\mathcal D(\rho)}_{nksi}(0)=\widetilde Y^{0,\mathcal D(\rho)}_{nksi}(1)=Y^{\mathrm{obs},k}_{nsi}\); no equality between \(Y^{(h)}(1)\) and \(Y^{(h)}(0)\) is imposed when \(h\ne0\).
+  \item \texttt{Omega1} --- \texttt{design-\allowbreak{}indexed finite support}; \texttt{explicit stage-\allowbreak{}1 holdout-\allowbreak{}-\allowbreak{}assignment candidate support}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_{n,1s}(\rho)=\{(H'_{n,s},z'_{n1s}):H'_{n,s}\subseteq\{1,\ldots,N_{n1s}\},\ |H'_{n,s}|=\lfloor\rho N_{n1s}\rfloor,\ z'_{n1s}\in\{0,1\}^{N_{n1s}},\ \sum_i z'_{n1si}=m_{n1s}\}\). Under the pre-cell candidate law, each element has mass \(\{\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}\binom{N_{n1s}}{m_{n1s}}\}^{-1}\), independently across \(s\in S\).
+  \item \texttt{Xprime} --- \texttt{data-\allowbreak{}dependent candidate score}; \texttt{Fisher-\allowbreak{}completed selector recomputed for every stage-\allowbreak{}1 candidate}
+  \par\smallskip\noindent\emph{Definition.} For \((H'_{n,s},z'_{n1s})\in\Omega_{n,1s}(\rho)\), let \(G'_s=\{1,\ldots,N_{n1s}\}\setminus H'_{n,s}\), \(g_s^{\prime z}=\sum_{i\in G'_s}\mathbf 1\{z'_{n1si}=z\}\), \(\bar Y_{G,s}^{\prime z}=(g_s^{\prime z})^{-1}\sum_{i\in G'_s}\mathbf 1\{z'_{n1si}=z\}\widetilde Y^{0,\mathcal D(\rho)}_{n1si}\), and \(s_{G,s}^{\prime2,z}=(g_s^{\prime z}-1)^{-1}\sum_{i\in G'_s}\mathbf 1\{z'_{n1si}=z\}(\widetilde Y^{0,\mathcal D(\rho)}_{n1si}-\bar Y_{G,s}^{\prime z})^2\). If \(g_s^{\prime0},g_s^{\prime1}\ge2\) and \(\widehat v_{ns}^{X\prime}=s_{G,s}^{\prime2,1}/g_s^{\prime1}+s_{G,s}^{\prime2,0}/g_s^{\prime0}>0\), set \(X'_{n,s}=(\bar Y_{G,s}^{\prime1}-\bar Y_{G,s}^{\prime0})/\sqrt{\widehat v_{ns}^{X\prime}}\); otherwise set \(X'_{n,s}=c_s-1\).
+  \item \texttt{Cprime} --- \texttt{data-\allowbreak{}dependent candidate cell label}; \(\{0,1\}^{S}\); \texttt{recomputed complete signed recruitment cell}
+  \par\smallskip\noindent\emph{Definition.} For a candidate \(((H'_{n,s},z'_{n1s}))_{s\in S}\in\prod_{s\in S}\Omega_{n,1s}(\rho)\), \(C'_n(\rho)=(\mathbf 1\{X'_{n,s}>c_s\}:s\in S)\).
+  \item \texttt{OmegaC} --- \texttt{design-\allowbreak{}indexed data-\allowbreak{}dependent finite support}; \texttt{explicit same-\allowbreak{}cell chronological candidate-\allowbreak{}history support}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\) contains exactly the histories \(((H'_{n,s},z'_{n1s})_{s\in S},(z'_{n2s})_{s:C_s=1})\) such that \((H'_{n,s},z'_{n1s})\in\Omega_{n,1s}(\rho)\), \(C'_n(\rho)=C_n(\rho)=C\), and \(z'_{n2s}\in\{0,1\}^{N_{n2s}}\) with \(\sum_i z'_{n2si}=m_{n2s}\) for every retained stratum \(s\) satisfying \(C_s=1\). There is no stage-2 coordinate when \(C_s=0\).
+  \item \texttt{Pn} --- \texttt{design-\allowbreak{}indexed probability kernel}; chronological local-alternative sampling law at holdout fraction \(\rho\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf P_n^{h,\rho}\) is the sampling law for the fixed array \(B_n\): draw the independent simple-random holdouts, then the two independent stratumwise stage-1 complete randomizations, observe responses from \(Y^{(h)}\), realize \(C_n(\rho)\), and finally draw independent stage-2 complete randomizations only in recruited strata conditional on \(\mathcal F_{n,1}(\rho)\).
+  \item \texttt{Rbase} --- \texttt{design-\allowbreak{}indexed random probability kernel}; \texttt{explicit pre-\allowbreak{}cell stage-\allowbreak{}1 Fisher candidate law}
+  \par\smallskip\noindent\emph{Definition.} Given \(\mathcal D_n^{h,\rho}\), \(\mathsf R_{n,\mathcal D(\rho)}^{0,\mathrm{base}}\) is the stage-1 candidate law that assigns independently across strata mass \(\prod_{s\in S}\{\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}\binom{N_{n1s}}{m_{n1s}}\}^{-1}\) to every element of \(\prod_{s\in S}\Omega_{n,1s}(\rho)\), then recomputes \(X'_{n,s}\) and \(C'_n(\rho)\) from \(\widetilde Y^{0,\mathcal D(\rho)}\). It generates no stage-2 assignment before the candidate cell is retained.
+  \item \texttt{EC} --- \texttt{event array}; \texttt{complete signed two-\allowbreak{}stratum selection-\allowbreak{}cell event}
+  \par\smallskip\noindent\emph{Definition.} \(E_{n,C}(\rho)=\{C_n(\rho)=C\}=\bigcap_{t\in S:C_t=1}\{X_{n,t}(\rho)>c_t\}\cap\bigcap_{t\in S:C_t=0}\{X_{n,t}(\rho)\le c_t\}\)
+  \item \texttt{prefcell} --- \texttt{design-\allowbreak{}indexed random scalar}; \([0,1]\); \texttt{explicit pre-\allowbreak{}cell Fisher reference probability}
+  \par\smallskip\noindent\emph{Definition.} \(p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)=\mathsf R_{n,\mathcal D(\rho)}^{0,\mathrm{base}}\{C'_n(\rho)=C\}\) equals the sum, over all \(((H'_{n,s},z'_{n1s}))_{s\in S}\in\prod_{s\in S}\Omega_{n,1s}(\rho)\) with \(C'_n(\rho)=C\), of \(\prod_{s\in S}\{\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}\binom{N_{n1s}}{m_{n1s}}\}^{-1}\).
+  \item \texttt{J} --- \texttt{finite set}; \(J\subseteq\{(C,s):C\in\{0,1\}^{S},\ s\in S,\ C_s=1\}\); \texttt{active full-\allowbreak{}cell conditional-\allowbreak{}power indices}
+  \par\smallskip\noindent\emph{Definition.} the fixed nonempty set of retained active cell--stratum pairs; inactive pairs with \(C_s=0\) are never tested
+  \item \texttt{R1} --- \texttt{random array}; \(\mathbb R^{J}\); \texttt{exact full-\allowbreak{}stage-\allowbreak{}1 permutation-\allowbreak{}studentized Wilcoxon contrast}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), set \(U^{\mathrm{obs},1}_{nsi}=N_{n1s}^{-1}\{\sum_l\mathbf 1[Y^{\mathrm{obs},1}_{nsl}<Y^{\mathrm{obs},1}_{nsi}]+\tfrac12\sum_l\mathbf 1[Y^{\mathrm{obs},1}_{nsl}=Y^{\mathrm{obs},1}_{nsi}]\}\), \(\bar U^{\mathrm{obs},1}_{ns}=N_{n1s}^{-1}\sum_iU^{\mathrm{obs},1}_{nsi}\), and \(S^{2,U}_{n1s}=(N_{n1s}-1)^{-1}\sum_i(U^{\mathrm{obs},1}_{nsi}-\bar U^{\mathrm{obs},1}_{ns})^2\). When \(1\le m_{n1s}<N_{n1s}\) and \(S^{2,U}_{n1s}>0\), let \(D^R_{n1s}=m_{n1s}^{-1}\sum_iZ_{n1si}U^{\mathrm{obs},1}_{nsi}-(N_{n1s}-m_{n1s})^{-1}\sum_i(1-Z_{n1si})U^{\mathrm{obs},1}_{nsi}\), \(\widehat v^R_{n1s}=S^{2,U}_{n1s}\{m_{n1s}^{-1}+(N_{n1s}-m_{n1s})^{-1}\}\), and \(R_{1j}=D^R_{n1s}/\sqrt{\widehat v^R_{n1s}}\); otherwise set \(R_{1j}=0\).
+  \item \texttt{R2} --- \texttt{random array}; \(\mathbb R^{J}\); \texttt{exact stage-\allowbreak{}2 permutation-\allowbreak{}studentized Wilcoxon contrast}
+  \par\smallskip\noindent\emph{Definition.} For active \(j=(C,s)\in J\), set \(U^{\mathrm{obs},2}_{nsi}=N_{n2s}^{-1}\{\sum_l\mathbf 1[Y^{\mathrm{obs},2}_{nsl}<Y^{\mathrm{obs},2}_{nsi}]+\tfrac12\sum_l\mathbf 1[Y^{\mathrm{obs},2}_{nsl}=Y^{\mathrm{obs},2}_{nsi}]\}\), \(\bar U^{\mathrm{obs},2}_{ns}=N_{n2s}^{-1}\sum_iU^{\mathrm{obs},2}_{nsi}\), and \(S^{2,U}_{n2s}=(N_{n2s}-1)^{-1}\sum_i(U^{\mathrm{obs},2}_{nsi}-\bar U^{\mathrm{obs},2}_{ns})^2\). When \(1\le m_{n2s}<N_{n2s}\) and \(S^{2,U}_{n2s}>0\), let \(D^R_{n2s}=m_{n2s}^{-1}\sum_iZ_{n2si}U^{\mathrm{obs},2}_{nsi}-(N_{n2s}-m_{n2s})^{-1}\sum_i(1-Z_{n2si})U^{\mathrm{obs},2}_{nsi}\), \(\widehat v^R_{n2s}=S^{2,U}_{n2s}\{m_{n2s}^{-1}+(N_{n2s}-m_{n2s})^{-1}\}\), and \(R_{2j}=D^R_{n2s}/\sqrt{\widehat v^R_{n2s}}\); otherwise set \(R_{2j}=0\).
+  \item \texttt{theta} --- \texttt{vector}; \([0,\pi/2]^J\); \texttt{cell-\allowbreak{}specific stage-\allowbreak{}weight angles}
+  \item \texttt{T} --- \texttt{random array}; \(\mathbb{R}^{J}\); \texttt{weighted rank statistic}
+  \par\smallskip\noindent\emph{Definition.} \(T_j(\theta_j)=\cos(\theta_j)R_{1j}+\sin(\theta_j)R_{2j}\)
+  \item \texttt{Rprime} --- \texttt{data-\allowbreak{}dependent candidate statistic array}; \(\mathbb R^{K\times J}\); \texttt{exact Fisher-\allowbreak{}completed candidate stage statistics}
+  \par\smallskip\noindent\emph{Definition.} For a history in \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\), stage \(k\), and \(j=(C,s)\in J\), set \(U'_{nksi}=N_{nks}^{-1}\{\sum_l\mathbf 1[\widetilde Y^{0,\mathcal D(\rho)}_{nksl}<\widetilde Y^{0,\mathcal D(\rho)}_{nksi}]+\tfrac12\sum_l\mathbf 1[\widetilde Y^{0,\mathcal D(\rho)}_{nksl}=\widetilde Y^{0,\mathcal D(\rho)}_{nksi}]\}\), \(\bar U'_{nks}=N_{nks}^{-1}\sum_iU'_{nksi}\), and \(S_{nks}^{\prime2,U}=(N_{nks}-1)^{-1}\sum_i(U'_{nksi}-\bar U'_{nks})^2\). With the candidate assignment \(z'_{nks}\), define \(D_{nks}^{R\prime}=m_{nks}^{-1}\sum_i z'_{nksi}U'_{nksi}-(N_{nks}-m_{nks})^{-1}\sum_i(1-z'_{nksi})U'_{nksi}\), \(\widehat v_{nks}^{R\prime}=S_{nks}^{\prime2,U}\{m_{nks}^{-1}+(N_{nks}-m_{nks})^{-1}\}\), and \(R'_{kj}=D_{nks}^{R\prime}/\sqrt{\widehat v_{nks}^{R\prime}}\) when the quotas and variance are nondegenerate; otherwise set \(R'_{kj}=0\).
+  \item \texttt{Tprime} --- \texttt{data-\allowbreak{}dependent candidate statistic array}; \(\mathbb R^{J}\); \texttt{recomputed weighted statistic under the Fisher reference}
+  \par\smallskip\noindent\emph{Definition.} \(T'_j(\theta_j)=\cos(\theta_j)R'_{1j}+\sin(\theta_j)R'_{2j}\) for each supported candidate history and active \(j\in J\).
+  \item \texttt{Pref} --- \texttt{design-\allowbreak{}indexed random probability kernel}; \texttt{explicit same-\allowbreak{}cell Fisher sharp-\allowbreak{}null chronological reference}
+  \par\smallskip\noindent\emph{Definition.} When \(p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)>0\), first restrict and normalize \(\mathsf R_{n,\mathcal D(\rho)}^{0,\mathrm{base}}\) on \(C'_n(\rho)=C_n(\rho)=C\), then independently draw each quota-respecting \(z'_{n2s}\) only for \(C_s=1\). The resulting \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\) has support exactly \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\); each supported history has mass \(p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)^{-1}\prod_{s\in S}\{\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}\binom{N_{n1s}}{m_{n1s}}\}^{-1}\prod_{s:C_s=1}\binom{N_{n2s}}{m_{n2s}}^{-1}\), and its statistic is \(T'_j(\theta_j)\).
+  \item \texttt{phi} --- \texttt{function}; \(\phi:\mathbb{R}\to(0,\infty)\); \texttt{Gaussian primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{standard normal density}
+  \item \texttt{Phi} --- \texttt{function}; \(\Phi:\mathbb{R}\to(0,1)\); \texttt{Gaussian primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{standard normal distribution function}
+  \item \texttt{Q} --- \texttt{function}; \(Q:\mathbb{R}\to(0,1)\); \texttt{Gaussian survival function}
+  \par\smallskip\noindent\emph{Definition.} \(Q(x)=1-\Phi(x)\)
+  \item \texttt{A} --- \texttt{positive array}; \((0,\infty)^S\); \texttt{array-\allowbreak{}derived selector-\allowbreak{}drift limit}
+  \par\smallskip\noindent\emph{Definition.} Writing \(\bar B_{n1s}=N_{n1s}^{-1}\sum_iB_{n1si}\) and \(S^2_{B,n1s}=(N_{n1s}-1)^{-1}\sum_i(B_{n1si}-\bar B_{n1s})^2\), define \(A_s=\lim_{n\to\infty}[nS^2_{B,n1s}\{m_{n1s}^{-1}+(N_{n1s}-m_{n1s})^{-1}\}]^{-1/2}\).
+  \item \texttt{b1} --- \texttt{positive array}; \((0,\infty)^J\); \texttt{array-\allowbreak{}derived stage-\allowbreak{}1 rank-\allowbreak{}drift limit}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), define \(b_{1j}=\lim_{n\to\infty}\sqrt3K_{n1s}(h_s/\sqrt n)/(h_sN_{n1s}^{3/2})=\sqrt3\lambda_{1s}\sqrt{r_{1s}}\), using the exact crossing count that generates the local mean of \(R_{1j}\).
+  \item \texttt{b2} --- \texttt{positive array}; \((0,\infty)^J\); \texttt{array-\allowbreak{}derived stage-\allowbreak{}2 rank-\allowbreak{}drift limit}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), define \(b_{2j}=\lim_{n\to\infty}\sqrt3K_{n2s}(h_s/\sqrt n)/(h_sN_{n2s}^{3/2})=\sqrt3\lambda_{2s}\sqrt{r_{2s}}\), using the exact crossing count that generates the local mean of \(R_{2j}\).
+  \item \texttt{kappa} --- \texttt{array}; \((0,1]^J\); \texttt{array-\allowbreak{}derived selector-\allowbreak{}-\allowbreak{}stage-\allowbreak{}1-\allowbreak{}rank correlation limit}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), define \(\kappa_j=\lim_{n\to\infty}\frac{\sum_i(B_{n1si}-\bar B_{n1s})(U^0_{n1si}-\bar U^0_{n1s})}{[\sum_i(B_{n1si}-\bar B_{n1s})^2\sum_i(U^0_{n1si}-\bar U^0_{n1s})^2]^{1/2}}\), where the bars are block averages.
+  \item \texttt{Delta} --- \texttt{array}; \(\mathbb{R}^{J}\); \texttt{weight-\allowbreak{}side discrepancy}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), \(\Delta_j=A_s-\kappa_j b_{1j}\)
+  \item \texttt{a} --- \texttt{array-\allowbreak{}valued function}; \texttt{selector drift}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), \(a_j(\rho)=A_s\sqrt{1-\rho}\)
+  \item \texttt{r} --- \texttt{array-\allowbreak{}valued function}; \texttt{selector-\allowbreak{}-\allowbreak{}test correlation}
+  \par\smallskip\noindent\emph{Definition.} \(r_j(\rho,\theta_j)=\kappa_j\sqrt{1-\rho}\cos(\theta_j)\)
+  \item \texttt{d} --- \texttt{array-\allowbreak{}valued function}; \texttt{test drift}
+  \par\smallskip\noindent\emph{Definition.} \(d_j(\theta_j)=b_{1j}\cos(\theta_j)+b_{2j}\sin(\theta_j)\)
+  \item \texttt{v} --- \texttt{array-\allowbreak{}valued function}; \texttt{conditional residual scale}
+  \par\smallskip\noindent\emph{Definition.} \(v_j(\rho,\theta_j)=\sqrt{1-r_j(\rho,\theta_j)^2}\)
+  \item \texttt{qbeta} --- \texttt{function}; \(q_{\beta}:[0,1)\times\mathbb R\to\mathbb R\); \texttt{generic selected-\allowbreak{}score upper quantile}
+  \par\smallskip\noindent\emph{Definition.} \(q_{\beta}(r_{\mathrm g},x)\) is the unique \(q\) satisfying \(\Pr\{r_{\mathrm g}Z+\sqrt{1-r_{\mathrm g}^2}E>q\mid Z>x\}=\beta\) for independent standard normal \(Z,E\).
+  \item \texttt{Eq} --- \texttt{predicate}; \(\operatorname{Eq}_{\beta,r}(c_0,c_1;t)\); \texttt{selected-\allowbreak{}quantile chord-\allowbreak{}equality predicate}
+  \par\smallskip\noindent\emph{Definition.} For \(0<t<1\), \(\operatorname{Eq}_{\beta,r}(c_0,c_1;t)\) means \(q_{\beta}(r,(1-t)c_0+tc_1)=(1-t)q_{\beta}(r,c_0)+tq_{\beta}(r,c_1)\).
+  \item \texttt{qalpha} --- \texttt{array-\allowbreak{}valued function}; \texttt{full-\allowbreak{}cell selected sharp-\allowbreak{}null critical value}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), \(q_{\alpha,j}(\rho,\theta_j)\) is the unique \(q\) satisfying \(\int_{c_s}^{\infty}\phi(z)Q((q-r_j(\rho,\theta_j)z)/v_j(\rho,\theta_j))\,dz=\alpha Q(c_s)\); this is the active-stratum null quantile after conditioning on the full event \(E_{n,C}(\rho)\)
+  \item \texttt{Pi} --- \texttt{array-\allowbreak{}valued function}; \texttt{full-\allowbreak{}cell Gaussian conditional local power}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), \(\Pi_j(\rho,\theta_j,h_s)=Q(c_s-a_j(\rho)h_s)^{-1}\int_{c_s-a_j(\rho)h_s}^{\infty}\phi(z)Q((q_{\alpha,j}(\rho,\theta_j)-d_j(\theta_j)h_s-r_j(\rho,\theta_j)z)/v_j(\rho,\theta_j))\,dz\); this is power conditional on the complete signed event \(E_{n,C}(\rho)\)
+  \item \texttt{Gshift} --- \texttt{array-\allowbreak{}valued distribution function}; \texttt{shifted Gaussian sampling-\allowbreak{}cdf limit}
+  \par\smallskip\noindent\emph{Definition.} \(G^h_j(x;\rho,\theta_j)\) is the cdf of \(T_j(\theta_j)\) in \(\mathrm{def{:}gaussian\mbox{-}experiment}\) with drift \(h_s\), conditional on its complete signed cell \(E_C\).
+  \item \texttt{Gzero} --- \texttt{array-\allowbreak{}valued distribution function}; \texttt{zero-\allowbreak{}drift Gaussian reference-\allowbreak{}cdf limit}
+  \par\smallskip\noindent\emph{Definition.} \(G^0_j(x;\rho,\theta_j)\) is the same complete-cell conditional Gaussian cdf with every drift set to zero; its upper \(\alpha\)-quantile is \(q_{\alpha,j}(\rho,\theta_j)\).
+  \item \texttt{ell} --- \texttt{vector}; \((0,\infty)^S\); \texttt{least alternative coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_s=\min\{h_s:h\in H\}\)
+  \item \texttt{M} --- \texttt{array-\allowbreak{}valued function}; \texttt{cell power envelope}
+  \par\smallskip\noindent\emph{Definition.} \(M_j(\rho)=\max_{\vartheta\in[0,\pi/2]}\Pi_j(\rho,\vartheta,\ell_s)\) for \(j=(C,s)\)
+  \item \texttt{F} --- \texttt{function}; \texttt{weight-\allowbreak{}optimized worst-\allowbreak{}cell power}
+  \par\smallskip\noindent\emph{Definition.} \(F(\rho)=\min_{j\in J}M_j(\rho)\)
+  \item \texttt{Vstar} --- \texttt{scalar}; \texttt{maximin conditional-\allowbreak{}local-\allowbreak{}power value}
+  \par\smallskip\noindent\emph{Definition.} \(V^{\star}=\max_{\rho\in I}F(\rho)\)
+  \item \texttt{Sstar} --- \texttt{compact set}; \texttt{optimal design correspondence}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal{S}^{\star}=\{(\rho,(\theta_j)_{j\in J}):\min_{j\in J}\Pi_j(\rho,\theta_j,\ell_s)=V^{\star}\}\)
+  \item \texttt{epsilon} --- \texttt{scalar}; \((0,\infty)\); \texttt{finite-\allowbreak{}population variance and selection-\allowbreak{}probability margin}
+  \item \texttt{M4} --- \texttt{scalar}; \((0,\infty)\); \texttt{baseline fourth-\allowbreak{}moment bound}
+  \par\smallskip\noindent\emph{Definition.} \(M_4\) is the uniform empirical centered fourth-moment bound for the baseline blocks.
+  \item \texttt{eta} --- \texttt{baseline-\allowbreak{}indexed sequence}; \(\{\eta_n(B):n\in\mathbb N\}\); \texttt{array-\allowbreak{}dependent transfer error}
+  \par\smallskip\noindent\emph{Definition.} For each admissible fixed baseline array \(B=(B_n)_n\), \(\eta_n(B)\downarrow0\) is an array-dependent common approximation remainder derived in \(\mathrm{thm{:}uniform\mbox{-}selected\mbox{-}transfer}\).
+  \item \texttt{dsamp} --- \texttt{nonnegative array-\allowbreak{}valued functional}; \texttt{sampling-\allowbreak{}cdf selected-\allowbreak{}law distance}
+  \par\smallskip\noindent\emph{Definition.} \(d^{\mathrm{samp}}_n(B)\) is the supremum over active \(j=(C,s)\in J\), \(\rho\in I\), \(\theta\in[0,\pi/2]^J\), \(h\in H\), and \(x\in\mathbb R\) of \(\lvert\mathsf P_n^{h,\rho}\{T_j(\theta_j)\le x\mid E_{n,C}(\rho)\}-G^h_j(x;\rho,\theta_j)\rvert\).
+  \item \texttt{Fref} --- \texttt{design-\allowbreak{}indexed random distribution function}; \texttt{fixed-\allowbreak{}design data-\allowbreak{}dependent Fisher-\allowbreak{}reference cdf}
+  \par\smallskip\noindent\emph{Definition.} For \(j=(C,s)\in J\), \(F^{\mathrm{ref}}_{n,j}(x;\rho,\theta_j,\mathcal D_n^{h,\rho})=\mathsf R_{n,\mathcal D(\rho)}^{0,C}\{T'_j(\theta_j)\le x\}\) is the Fisher-reference cdf built from the dataset realized under \(\mathsf P_n^{h,\rho}\) at that same \(\rho\).
+  \item \texttt{qrefn} --- \texttt{design-\allowbreak{}indexed random scalar function}; \texttt{fixed-\allowbreak{}design data-\allowbreak{}dependent Fisher critical value}
+  \par\smallskip\noindent\emph{Definition.} \(q^{\mathrm{ref}}_{n,j}(\rho,\theta_j,\mathcal D_n^{h,\rho})=\inf\{x:F^{\mathrm{ref}}_{n,j}(x;\rho,\theta_j,\mathcal D_n^{h,\rho})\ge1-\alpha\}\) is the upper \(\alpha\)-critical value of the same \(\rho\)-indexed Fisher-reference cdf.
+  \item \texttt{dref} --- \texttt{design-\allowbreak{}indexed random nonnegative functional}; \texttt{fixed-\allowbreak{}design data-\allowbreak{}dependent zero-\allowbreak{}null reference distance}
+  \par\smallskip\noindent\emph{Definition.} For a dataset \(\mathcal D_n^{h,\rho}\) realized at a fixed \(\rho\), \(d^{\mathrm{ref}}_n(B,\rho,\mathcal D_n^{h,\rho})=\sup_{j=(C,s)\in J,\,\theta\in[0,\pi/2]^J,\,x\in\mathbb R}\max\{\lvert F^{\mathrm{ref}}_{n,j}(x;\rho,\theta_j,\mathcal D_n^{h,\rho})-G^0_j(x;\rho,\theta_j)\rvert,\lvert q^{\mathrm{ref}}_{n,j}(\rho,\theta_j,\mathcal D_n^{h,\rho})-q_{\alpha,j}(\rho,\theta_j)\rvert\}\).
+  \item \texttt{Wmix} --- \texttt{finite-\allowbreak{}population triangular-\allowbreak{}array construction}; \texttt{certified negative-\allowbreak{}discrepancy interior witness}
+  \par\smallskip\noindent\emph{Definition.} the deterministic-quantile two-component-uniform baseline schedule specified in \(\mathrm{def{:}negative\mbox{-}mixture\mbox{-}witness}\), with local outcomes generated from it by \(Y^{(h)}(0)=B\) and \(Y^{(h)}(1)=B+h_s/\sqrt n\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:no-interference]\label{ass:no-interference}
+Each \(Y^{(h)}_{nksi}(z)\) depends only on unit \(i\)'s own treatment \(z\).
+\par\smallskip\noindent\emph{Standard} (finite-population no interference, \cite{FreidlingZhaoGao2026SelectiveRI}).
+\end{assumption}
+
+\begin{assumption}[ass:stage1-complete-randomization]\label{ass:stage1-complete-randomization}
+After the holdouts are drawn and before recruitment is evaluated, \(\mathcal L((Z_{n1s})_{s\in S}\mid(H_{n,s}(\rho))_{s\in S})=\bigotimes_{s\in S}\mathrm{Unif}\{z\in\{0,1\}^{N_{n1s}}:\sum_i z_i=m_{n1s}\}\), and this conditional law is constant in the realized holdouts.
+\par\smallskip\noindent\emph{Standard} (stratified stage-1 complete randomization, \cite{LiDing2017FinitePopulationCLT}).
+\end{assumption}
+
+\begin{assumption}[ass:stage2-complete-randomization]\label{ass:stage2-complete-randomization}
+Conditional on the realized stage-1 recruitment history, \(\mathcal L((Z_{n2s})_{s:C_{n,s}(\rho)=1}\mid\mathcal F_{n,1}(\rho))=\bigotimes_{s:C_{n,s}(\rho)=1}\mathrm{Unif}\{z\in\{0,1\}^{N_{n2s}}:\sum_i z_i=m_{n2s}\}\), and no stage-2 assignment vector is generated when \(C_{n,s}(\rho)=0\).
+\par\smallskip\noindent\emph{Standard} (history-conditional stage-2 complete randomization, \cite{FreidlingZhaoGao2026SelectiveRI}).
+\end{assumption}
+
+\begin{assumption}[ass:random-holdout]\label{ass:random-holdout}
+Before stage-1 treatment assignment, \(\{H_{n,s}(\rho):s\in S\}\) is drawn independently of the fixed baseline array \(B\), independently across strata, and uniformly over subsets of \(\{1,\ldots,N_{n1s}\}\) of size \(\lfloor\rho N_{n1s}\rfloor\).
+\par\smallskip\noindent\emph{Standard} (independent stratified simple random sampling without replacement, \cite{LiDing2017FinitePopulationCLT}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-compact-alternatives]\label{ass:positive-compact-alternatives}
+\(H\) is nonempty and compact and satisfies \(H\subseteq[h_0,h_1]^S\) for fixed \(0<h_0\le h_1<\infty\).
+\par\smallskip\noindent\emph{Standard} (compact local parameter set, \cite{TianTaylor2018RandomizedResponse}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-shares]\label{ass:positive-shares}
+For every \((k,s)\in K\times S\), \(N_{nks}/n\to r_{ks}\) uniformly with \(\min_{k,s}r_{ks}>0\).
+\par\smallskip\noindent\emph{Standard} (stable treatment-group proportions, \cite{LiDing2017FinitePopulationCLT}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-fourth-moments]\label{ass:bounded-fourth-moments}
+For every \(n\), \(k\in K\), and \(s\in S\), writing \(\bar B_{nks}=N_{nks}^{-1}\sum_{i=1}^{N_{nks}}B_{nksi}\), the empirical centered fourth moment satisfies \(N_{nks}^{-1}\sum_{i=1}^{N_{nks}}(B_{nksi}-\bar B_{nks})^4\le M_4\).
+\par\smallskip\noindent\emph{Standard} (bounded fourth-moment condition, \cite{ShiDing2025BerryEsseen}).
+\end{assumption}
+
+\begin{assumption}[ass:variance-margin]\label{ass:variance-margin}
+The finite-population variances of \(B_{nksi}\) and \(U^0_{nksi}\) are eventually at least \(\epsilon\), uniformly over \((k,s)\in K\times S\).
+\par\smallskip\noindent\emph{Standard} (finite-population variance nondegeneracy condition, \cite{ShiDing2025BerryEsseen}).
+\end{assumption}
+
+\begin{assumption}[ass:pair-spacing]\label{ass:pair-spacing}
+Uniformly over \((k,s)\in K\times S\) and every \(u\) in the compact displacement window containing \(h_s\sqrt{r_{ks}}\) for \(h\in H\), \(N_{nks}^{-3/2}K_{nks}(u/\sqrt{N_{nks}})\to\lambda_{ks}u\), with \(0<\inf_{k,s}\lambda_{ks}\le\sup_{k,s}\lambda_{ks}<\infty\).
+\par\smallskip\noindent\emph{Novel.} For each stage--stratum block, take a distribution on a bounded interval with continuously differentiable density \(f_{ks}\) satisfying \(0<\underline f\le f_{ks}\le\overline f<\infty\), and set \(B_{nksi}=F_{ks}^{-1}((i-1/2)/N_{nks})\). A uniform Riemann-sum calculation over every fixed compact displacement window gives \(N_{nks}^{-3/2}K_{nks}(u/\sqrt{N_{nks}})\to u\int f_{ks}(x)^2\,dx\). Thus the condition is realized by explicit bounded continuous-baseline quantile arrays, with \(\lambda_{ks}=\int f_{ks}^2\), and does not encode any holdout or weight conclusion.
+\end{assumption}
+
+\begin{assumption}[ass:primitive-compactness]\label{ass:primitive-compactness}
+The vector \( ((A_s)_{s\in S},(b_{1j},b_{2j},\kappa_j)_{j=(C,s)\in J},(c_s)_{s\in S})\) belongs to a fixed compact set every element of which is a joint limit, along one and the same baseline array \(B\), of the exact finite-array formulas displayed in the definitions of \(A_s\), \(b_{1j}\), \(b_{2j}\), and \(\kappa_j\).
+\par\smallskip\noindent\emph{Novel.} Bounded continuous laws with outcome variance, local pair density, and mean--rank covariance bounded away from zero, including uniform laws and bounded two-component uniform mixtures, generate compact sets of these joint array limits. Requiring a single array to generate all coordinates excludes incompatible Gaussian tuples without stipulating any optimizer conclusion.
+\end{assumption}
+
+\begin{assumption}[ass:sampling-selection-margin]\label{ass:sampling-selection-margin}
+\(\liminf_{n\to\infty}\inf_{\rho\in I,h\in H,C:\exists s\,(C,s)\in J}\mathsf P_n^{h,\rho}\{E_{n,C}(\rho)\}\ge\epsilon\).
+\par\smallskip\noindent\emph{Novel.} Fixed finite thresholds and bounded continuous baseline laws yield nonvanishing Gaussian probabilities for each prespecified complete signed recruitment cell. Trial protocols can omit cells whose design probability is below a declared operational minimum.
+\end{assumption}
+
+\begin{assumption}[ass:reference-selection-margin]\label{ass:reference-selection-margin}
+\(\sup_{\rho\in I,h\in H}\mathsf P_n^{h,\rho}\{\min_{C:\exists s\,(C,s)\in J}p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)<\epsilon\}\to0\text{ for each fixed admissible }B\).
+\par\smallskip\noindent\emph{Novel.} For bounded continuous quantile arrays and fixed thresholds, the Fisher-completed candidate selector has a nondegenerate Gaussian limit conditionally on the realized data, so its complete-cell probabilities converge in probability to positive Gaussian cell probabilities.
+\end{assumption}
+
+\begin{assumption}[ass:fixed-thresholds]\label{ass:fixed-thresholds}
+The threshold vector \(c\) is fixed before treatment assignment and does not vary with \(n\).
+\par\smallskip\noindent\emph{Standard} (prespecified enrichment rule, \cite{RosenblumFangLiu2020OptimalEnrichment}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:population-class]\label{def:population-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniform local-\allowbreak{}pair-\allowbreak{}spacing enrichment class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M=\{(B,N,Z_1,Z_2,H_{\mathrm{ld}}):\mathrm{ass{:}no\mbox{-}interference},\mathrm{ass{:}stage1\mbox{-}complete\mbox{-}randomization},\mathrm{ass{:}stage2\mbox{-}complete\mbox{-}randomization},\mathrm{ass{:}random\mbox{-}holdout},\mathrm{ass{:}positive\mbox{-}shares},\mathrm{ass{:}bounded\mbox{-}fourth\mbox{-}moments},\mathrm{ass{:}variance\mbox{-}margin},\mathrm{ass{:}pair\mbox{-}spacing},\mathrm{ass{:}primitive\mbox{-}compactness},\mathrm{ass{:}sampling\mbox{-}selection\mbox{-}margin},\mathrm{ass{:}reference\mbox{-}selection\mbox{-}margin},\mathrm{ass{:}fixed\mbox{-}thresholds}\text{ hold for every }n\in\mathbb N\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}no-\allowbreak{}interference}; \texttt{ass:\allowbreak{}stage1-\allowbreak{}complete-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}stage2-\allowbreak{}complete-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}random-\allowbreak{}holdout}; \texttt{ass:\allowbreak{}positive-\allowbreak{}shares}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}fourth-\allowbreak{}moments}; \texttt{ass:\allowbreak{}variance-\allowbreak{}margin}; \texttt{ass:\allowbreak{}pair-\allowbreak{}spacing}; \texttt{ass:\allowbreak{}primitive-\allowbreak{}compactness}; \texttt{ass:\allowbreak{}sampling-\allowbreak{}selection-\allowbreak{}margin}; \texttt{ass:\allowbreak{}reference-\allowbreak{}selection-\allowbreak{}margin}; \texttt{ass:\allowbreak{}fixed-\allowbreak{}thresholds}.
+\end{definition}
+
+\begin{definition}[def:sequential-design]\label{def:sequential-design}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Two-\allowbreak{}stage selective holdout design}
+\par\smallskip\noindent\emph{Construction.} For \(\rho\in I\) and a fixed \(B_n\), construct \(Y^{(h)}\), draw the independent stratumwise holdouts, completely randomize stage one in every stratum \(s\in S\), observe \(Y^{\mathrm{obs},1}\), compute \(X_{n,s}(\rho)\), and realize \(C_n(\rho)\) and \(\mathcal F_{n,1}(\rho)\). Then recruit exactly the strata with \(C_{n,s}(\rho)=1\) and, conditional on that history, draw stage two independently by complete randomization only in those strata. This chronological construction is \(\mathsf P_n^{h,\rho}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{B}; \texttt{N}; \texttt{h}.
+\end{definition}
+
+\begin{definition}[def:local-alternative-law]\label{def:local-alternative-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Chronological local-\allowbreak{}alternative sampling law}
+\par\smallskip\noindent\emph{Construction.} For each fixed \(B_n\), \(h\in H\cup\{0\}\), and \(\rho\in I\), generate outcomes from \(Y^{(h)}(0)=B\) and \(Y^{(h)}(1)=B+h_s/\sqrt n\), then execute \(\mathrm{def{:}sequential\mbox{-}design}\); the resulting probability kernel is \(\mathsf P_n^{h,\rho}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{h}; \texttt{rho}.
+\end{definition}
+
+\begin{definition}[def:fisher-null-reference]\label{def:fisher-null-reference}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Dataset-\allowbreak{}specific Fisher sharp-\allowbreak{}null reference}
+\par\smallskip\noindent\emph{Construction.} For each \(\rho\in I\) and dataset \(\mathcal D_n^{h,\rho}\) realized under \(\mathsf P_n^{h,\rho}\), form \(\widetilde Y^{0,\mathcal D(\rho)}\), enumerate \(\prod_{s\in S}\Omega_{n,1s}(\rho)\), recompute \(X'_{n,s}\) and \(C'_n(\rho)\), retain exactly \(C'_n(\rho)=C_n(\rho)=C\), and then enumerate quota-respecting stage-2 assignments only in retained strata. This gives \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\), cell probability \(p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)\), normalized kernel \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\), cdf \(F^{\mathrm{ref}}_{n,j}(\cdot;\rho,\theta_j,\mathcal D_n^{h,\rho})\), and critical value \(q^{\mathrm{ref}}_{n,j}(\rho,\theta_j,\mathcal D_n^{h,\rho})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{Dobs}; \texttt{C}.
+\end{definition}
+
+\begin{definition}[def:selective-test]\label{def:selective-test}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Active-\allowbreak{}pair weighted selective randomization test}
+\par\smallskip\noindent\emph{Construction.} For \(C=C_n(\rho)\) and active \(j=(C,s)\in J\) with \(C_s=1\), reject when \(T_j(\theta_j)\) exceeds the upper \(\alpha\)-critical value under \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\), the data-dependent chronological Fisher reference supported exactly on \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{theta}.
+\end{definition}
+
+\begin{definition}[def:gaussian-experiment]\label{def:gaussian-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Full-\allowbreak{}cell exchangeable square-\allowbreak{}root selected Gaussian experiment}
+\par\smallskip\noindent\emph{Construction.} For each fixed label \(C\), first draw the stage-1 Gaussian blocks independently across \(t\in S\): \(X_t\sim\mathcal N(A_t\sqrt{1-\rho}h_t,1)\), and for each active \(j=(C,s)\in J\), \((X_s,R_{1j})\) has correlation \(\kappa_j\sqrt{1-\rho}\) and mean \((A_s\sqrt{1-\rho}h_s,b_{1j}h_s)\). Realize the signed cell from the inequalities \(X_t>c_t\). Conditional on obtaining \(C\), draw \(R_{2j}\sim\mathcal N(b_{2j}h_s,1)\) independently across active strata and independently of all stage-1 blocks. Thus, for active \(j=(C,s)\), the chronological triple has covariance \(\begin{psmallmatrix}1&\kappa_j\sqrt{1-\rho}&0\\\kappa_j\sqrt{1-\rho}&1&0\\0&0&1\end{psmallmatrix}\), and its selected law is restricted and normalized to \(E_C=\bigcap_{t:C_t=1}\{X_t>c_t\}\cap\bigcap_{t:C_t=0}\{X_t\le c_t\}\).
+\end{definition}
+
+\begin{definition}[def:selected-quantile]\label{def:selected-quantile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected-\allowbreak{}score upper quantile}
+\par\smallskip\noindent\emph{Construction.} For \(0\le r_{\mathrm g}<1\), \(q_{\beta}(r_{\mathrm g},x)\) is the unique \(q\) satisfying \(\Pr\{r_{\mathrm g}Z+\sqrt{1-r_{\mathrm g}^2}E>q\mid Z>x\}=\beta\) for independent standard normal \(Z,E\).
+\end{definition}
+
+\begin{definition}[def:selected-quantile-equality]\label{def:selected-quantile-equality}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected-\allowbreak{}quantile chord equality}
+\par\smallskip\noindent\emph{Construction.} For \(0<\beta<1\), \(0\le r<1\), \(c_0,c_1\in\mathbb R\), and \(0<t<1\), \(\operatorname{Eq}_{\beta,r}(c_0,c_1;t)\) is the predicate \(q_{\beta}(r,(1-t)c_0+tc_1)=(1-t)q_{\beta}(r,c_0)+tq_{\beta}(r,c_1)\).
+\end{definition}
+
+\begin{definition}[def:design-objective]\label{def:design-objective}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Worst-\allowbreak{}cell maximin conditional local power}
+\par\smallskip\noindent\emph{Construction.} \(\Psi(\rho,\theta)=\min_{j=(C,s)\in J}\min_{h\in H}\Pi_j(\rho,\theta_j,h_s)\), with optimized value \(\max_{\rho\in I,\theta\in[0,\pi/2]^J}\Psi(\rho,\theta)\).
+\end{definition}
+
+\begin{definition}[def:delta-index]\label{def:delta-index}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Primitive discrepancy index}
+\par\smallskip\noindent\emph{Construction.} For every \(j=(C,s)\in J\), \(\Delta_j=A_s-\kappa_jb_{1j}\) and \(\theta_{0j}=\arctan(b_{2j}/b_{1j})\).
+\end{definition}
+
+\begin{definition}[def:negative-mixture-witness]\label{def:negative-mixture-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit two-\allowbreak{}component-\allowbreak{}uniform-\allowbreak{}mixture witness}
+\par\smallskip\noindent\emph{Construction.} Let \(L=53\sqrt3/80\), \(F_1=(3/5)\,\mathrm{Unif}[-L/10,L/10]+(2/5)\,\mathrm{Unif}[-L,L]\), and \(F_2=\mathrm{Unif}[-25\sqrt3/43,25\sqrt3/43]\). In each stratum \(s\in\{1,2\}\), allocate \(N_{n1s}=N_{n2s}=\lfloor n/4\rfloor\) units and \(m_{nks}=\lfloor N_{nks}/2\rfloor\), and set \(B_{nksi}=F_k^{-1}((i-1/2)/N_{nks})\). Under \(\mathsf P_n^{h,\rho}\), set \(Y^{(h)}_{nksi}(0)=B_{nksi}\) and \(Y^{(h)}_{nksi}(1)=B_{nksi}+h_s/\sqrt n\). Before scaling, the stage-1 mixture has weights \(3/5\) and \(2/5\), supports \([-1/10,1/10]\) and \([-1,1]\), variance \(203/1500\), pair-spacing slope \(53/25\), and mean--normalized-rank covariance \(1393/15000\). Thus the exact array formulas yield \(S^2_{B,n1s}\to L^2(203/1500)=2851135/16000000\), \(\lambda_{1s}=53/(25L)\), \(\operatorname{Cov}(B_{1s},U^0_{1s})\to L(1393/15000)\), \(\operatorname{Var}(U^0_{1s})\to1/12\), \(\lambda_{2s}=43/(50\sqrt3)\), and \(S^2_{B,n2s}\to625/1849\). Set \(M_4=2\), \(\rho_0=1/50\), \(\alpha=1/20\), \(c_1=c_2=-113/100\), \(H=\{(33/20,33/20)\}\), \(C=(1,1)\), and \(J=\{((1,1),1),((1,1),2)\}\). For both active pairs, \(A=200\sqrt5/(53\sqrt{203})\), \(b_1=8/5\), \(b_2=43/100\), and \(\kappa=1393\sqrt5/(250\sqrt{203})\), with certified enclosures \(A\in[0.59223096280598,0.59223096280600]\), \(b_1\in[1.60000000000000,1.60000000000000]\), \(b_2\in[0.43000000000000,0.43000000000000]\), \(\kappa\in[0.87447639506005,0.87447639506008]\), and \(\Delta\in[-0.80693126929013,-0.80693126929009]\).
+\end{definition}
+
+\begin{definition}[def:branch-system]\label{def:branch-system}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Analytic branch and equality system}
+\par\smallskip\noindent\emph{Construction.} Form all angular roots \(\partial_{\theta}\Pi_j=0\), angular multiple roots, angular endpoint transitions, reduced-factor projection endpoints, holdout stationary roots, multiple stationary roots, distinct-branch crossings, nontransverse crossings, candidate-value ties, flat-branch identities, and identical-branch identities on \(I\); retain every point, interval, and symbolic equality predicate generated by these systems.
+\end{definition}
+
+\begin{definition}[def:tolerance-handle]\label{def:tolerance-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tolerance-\allowbreak{}certified optimizer handle}
+\par\smallskip\noindent\emph{Construction.} Use outward-rounded Gaussian tail integration, monotone critical-value brackets, derivative-based oscillation bounds, and adaptive box subdivision of the compact \((\rho,\theta)\)-domain to enclose \(V^{\star}\) and the near-optimal design sets; an optional separation certificate consists of isolating boxes, interval root uniqueness tests, exclusions on their complements, strict candidate-value comparisons, and a positive objective gap outside the winning boxes.
+\end{definition}
+
+\begin{definition}[def:shrinking-margin-handle]\label{def:shrinking-margin-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Shrinking-\allowbreak{}margin transfer handle}
+\par\smallskip\noindent\emph{Construction.} For each fixed baseline array \(B\), combine a joint permutation Berry--Esseen bound for selector, ranks, counts, and studentizers with a selected numerator--denominator ratio inequality and Gaussian anti-concentration to compare the cell margin \(m_n\) with the array-dependent error \(\eta_n(B)\).
+\end{definition}
+
+\begin{definition}[def:fzg-augmented-action-map]\label{def:fzg-augmented-action-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Freidling-\allowbreak{}-\allowbreak{}Zhao-\allowbreak{}-\allowbreak{}Gao augmented-\allowbreak{}action map}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal R_1=\{(1,s,i):s\in S,\ i\le N_{n1s}\}\) be the fixed stage-one population.  Define \(D_{nsi}=\mathbf 1\{i\in H_{n,s}(\rho)\}\), the augmented action \(\widetilde Z_{n1si}=(D_{nsi},Z_{n1si})\), and duplicated potential outcomes \(\widetilde Y_{n1si}(d,z)=Y^{(h)}_{n1si}(z)\) for \((d,z)\in\{0,1\}^2\).  For a cell \(C\), let \(\mathcal R_2(C)=\{(2,s,i):C_s=1,\ i\le N_{n2s}\}\), let the first selector be \(\mathcal S_1=C\), and under the full sharp null let \(\mathcal G\) be constant at the fixed schedule \(B\).  The known first-action mass is
+\[
+q_1((d_s,z_s)_{s\in S})=
+\prod_{s\in S}
+\left\{
+\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}
+\binom{N_{n1s}}{m_{n1s}}
+\right\}^{-1}
+\]
+on vectors satisfying \(\sum_i d_{nsi}=\lfloor\rho N_{n1s}\rfloor\) and \(\sum_i z_{n1si}=m_{n1s}\), and zero otherwise.  Given \(C\), the known second-action mass is \(q_2((z_{n2s})_{C_s=1}\mid C)=\prod_{s:C_s=1}\binom{N_{n2s}}{m_{n2s}}^{-1}\) on quota-respecting vectors.  Candidate augmented actions are independently resampled from these masses, their selector is recomputed, and the first action is restricted to the same value \(C\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{B}; \texttt{N}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:explicit-candidate-support]\label{lem:explicit-candidate-support}
+Fix \(\rho\in I\), a realized dataset \(\mathcal D_n^{h,\rho}\), and \(C=C_n(\rho)\) with \(p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)>0\). Under \(\widetilde Y^{0,\mathcal D(\rho)}\), every history in \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\) is imputable for \(X'\), \(C'\), \(R'_1\), \(R'_2\), and \(T'\). Conversely, every quota-respecting chronological holdout--assignment history on which these statistics are imputable and whose recomputed complete signed cell equals \(C\) belongs to \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\). Therefore this explicit support is exactly the same-cell imputability support, with no additional conditioning event.
+\end{lemma}
+\begin{proof}
+Fix \(\rho\in I\), the realized dataset, and a cell \(C=C_n(\rho)\) for which the displayed reference-cell probability is positive.  The Fisher completion assigns to every observed unit one known response under both candidate treatment labels.  Consequently, for every \((H'_{n,s},z'_{n1s})\in\Omega_{n,1s}(\rho)\), every summand in the candidate complement means and variances is known.  The exceptional cases are also imputable because the definition assigns the fixed value \(c_s-1\).  Thus \(X'_{n,s}\) and \(C'_n(\rho)\) are known for every candidate action.  The same completion determines every full-block midrank and hence \(R'_{1j}\); after a retained stratum receives a quota-respecting second-stage assignment it also determines \(R'_{2j}\) and \(T'_j\).  If \(C_s=0\), chronology supplies no second-stage coordinate.
+
+By definition, \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\) imposes precisely the following conditions, each for every member of the fixed finite set \(S\): the holdout has size \(\lfloor\rho N_{n1s}\rfloor\); the first-stage assignment has quota \(m_{n1s}\); the recomputed complete signed label is \(C\); and, exactly when \(C_s=1\), the second-stage assignment has quota \(m_{n2s}\).  The preceding paragraph proves imputability on every history satisfying these conditions.
+
+Conversely, a quota-respecting chronological history belongs to \(\prod_{s\in S}\Omega_{n,1s}(\rho)\) at stage one.  If its recomputed label is \(C\), it lies in the same-cell fiber; chronology then supplies a second-stage vector exactly for the coordinates with \(C_s=1\).  These are all the defining conditions of \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\).  Since \(p_{\mathrm{ref}}>0\), normalization on this finite support is defined.  There is no additional event in either direction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The support identifies every rerandomized augmented action and recomputed quantity for arbitrary fixed finite strata. \textit{Gap.} FZG Proposition 2 gives an abstract conditional reference under its hypotheses; this lemma identifies the exact combinatorial same-cell support of the present specialization. \textit{Consumer.} Implementations can enumerate the reference without an unspecified fiber or hidden event.
+
+\begin{theorem}[thm:exact-selective-level]\label{thm:exact-selective-level}
+At the prespecified sharp-zero null \(h=0\), for every realized label \(C=C_n(\rho)\) with \(p_{\mathrm{ref}}(n,C,\mathcal D_n^{0,\rho},\rho)>0\) and every active \(j=(C,s)\in J\), the upper-rank selective randomization \(p\)-value from \(\mathrm{def{:}selective\mbox{-}test}\) is superuniform conditional on \(E_{n,C}(\rho)\) under \(\mathsf P_n^{0,\rho}\). Because \(Y^{(0)}(1)=Y^{(0)}(0)=B\), the conditional true chronological assignment law has exactly the support \(\Omega_{n,C}(\mathcal D_n^{0,\rho},\rho)\) and equals \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\); summing its explicit product masses preserves level \(\alpha\).
+\end{theorem}
+\begin{proof}
+At \(h=0\), the potential-outcome definition and no interference give
+\[
+Y^{(0)}_{nksi}(1)=Y^{(0)}_{nksi}(0)=B_{nksi}
+\qquad(k\in K, s\in S, i\le N_{nks}).
+\]
+Thus the Fisher completion is the fixed baseline array on every observed coordinate and is independent of the realized action.  By the random-holdout and stage-one complete-randomization assumptions, a candidate first-stage history has mass
+\[
+\prod_{s\in S}
+\left\{
+\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}
+\binom{N_{n1s}}{m_{n1s}}
+\right\}^{-1}.
+\]
+The fixed thresholds make its cell the deterministic recomputation \(C'_n(\rho)\).  Conditional on \(C'_n(\rho)=C\), the second-stage design gives the independent product of uniform quota laws exactly over \(s\) with \(C_s=1\).  The explicit-support lemma therefore shows that, for every supported history \(\omega\), Bayes' formula is
+\[
+\mathsf P_n^{0,\rho}\{\omega\mid E_{n,C}(\rho)\}
+=\frac{1}{p_{\mathrm{ref}}(n,C,\mathcal D_n^{0,\rho},\rho)}
+\prod_{s\in S}
+\left\{
+\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}
+\binom{N_{n1s}}{m_{n1s}}
+\right\}^{-1}
+\prod_{s:C_s=1}\binom{N_{n2s}}{m_{n2s}}^{-1}.
+\]
+This is exactly \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\{\omega\}\).
+
+It remains only the finite-space randomization inequality.  If a statistic has distinct values \(t_1>\cdots>t_L\) with masses \(w_l\), its nonrandomized upper-tail value is \(p(t_l)=\sum_{a\le l}w_a\).  Hence, for \(0\le u\le1\),
+\[
+\Pr\{p(T)\le u\}
+=\sum_{l:\,\sum_{a\le l}w_a\le u}w_l\le u.
+\]
+Ties can therefore only make the test conservative.  Applying this identity to the conditional law just identified proves superuniformity and conditional rejection probability at most \(\alpha\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves finite-sample design-based validity on the same complete signed cell used throughout the power theory. \textit{Gap.} Validity specializes FZG Proposition 1, while computability of this exact reference uses their Proposition 2 only after sharp-null imputability is verified. \textit{Consumer.} The optimized design retains exact sharp-null randomization inference for any fixed finite number of strata.
+
+\begin{lemma}[lem:full-cell-factorization]\label{lem:full-cell-factorization}
+Fix a complete label \(C\) represented in \(J\), and let \(j=(C,s)\in J\), so \(C_s=1\). Under \(\mathsf P_n^{h,\rho}\), the stratumwise holdout--stage-1 histories are independent, and each history-conditional stage-2 kernel is stratum-local and independent across retained strata. Thus, for measurable \(B_0\), \(\mathsf P_n^{h,\rho}\{(X_{n,s},R_{1j},R_{2j})\in B_0,E_{n,C}(\rho)\}=\mathsf P_n^{h,\rho}\{(X_{n,s},R_{1j},R_{2j})\in B_0,X_{n,s}>c_s\}\prod_{t\ne s}p_{nt}^{C_t}(1-p_{nt})^{1-C_t}\), where \(p_{nt}=\mathsf P_n^{h,\rho}\{X_{n,t}>c_t\}\), and the same identity without \(B_0\) gives the cell probability. Under \(\mathsf R_{n,\mathcal D(\rho)}^{0,\mathrm{base}}\), the product combinatorial mass on \(\prod_t\Omega_{n,1t}(\rho)\) and the stratum-local map \(X'_t\) give the same signed stage-1 factorization with \(p'_{nt}=\mathsf R_{n,\mathcal D(\rho)}^{0,\mathrm{base}}\{X'_{n,t}>c_t\}\); after restriction to \(C'_n(\rho)=C\), the stage-2 part of \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\) is an independent product over retained strata. The factorization holds likewise in \(\mathrm{def{:}gaussian\mbox{-}experiment}\). Division cancels every \(t\ne s\) signed factor under the sampling, explicit reference, and Gaussian laws, yielding exactly the displayed one-dimensional \(q_{\alpha,j}\) equation and \(\Pi_j\) integral.
+\end{lemma}
+\begin{proof}
+For each \(t\in S\), let \(\mathcal H_{nt}\) be its holdout and stage-one history.  The holdout and stage-one design assumptions make \((\mathcal H_{nt})_{t\in S}\) mutually independent.  The variable \(X_{n,t}\) and its signed selection event are stratum-local measurable functions.  Conditional on the combined first-stage history, the second-stage assumption supplies independent stratum-local kernels.  Equivalently one may pre-generate those kernels and reveal only the recruited coordinates.  Thus, for \(j=(C,s)\in J\) and measurable \(B_0\), finite-product independence yields
+\[
+\begin{aligned}
+&\mathsf P_n^{h,\rho}\{(X_{n,s},R_{1j},R_{2j})\in B_0,E_{n,C}(\rho)\}\\
+&\quad=\mathsf P_n^{h,\rho}\{(X_{n,s},R_{1j},R_{2j})\in B_0,X_{n,s}>c_s\}
+\prod_{t\in S\setminus\{s\}}p_{nt}^{C_t}(1-p_{nt})^{1-C_t}.
+\end{aligned}
+\]
+Taking \(B_0\) to be the whole space gives the corresponding cell probability, and division cancels every factor with \(t\ne s\) whenever that probability is positive.
+
+Under \(\mathsf R_{n,\mathcal D(\rho)}^{0,\mathrm{base}}\), both the candidate mass and the completed selector map factor over the fixed finite set \(S\).  Hence its signed cell probability is \(\prod_{t\in S}(p'_{nt})^{C_t}(1-p'_{nt})^{1-C_t}\).  Restriction to \(C'_n=C\) divides by this product, and the subsequent second-stage law is an independent product over retained strata.  The assumed positivity of \(p_{\mathrm{ref}}\) justifies the division.  The independent Gaussian blocks give the same calculation.
+
+For the active coordinate write
+\[
+X_s=a_j(\rho)h_s+Z,
+\qquad
+T_j=d_j(\theta_j)h_s+r_j(\rho,\theta_j)Z+v_j(\rho,\theta_j)E,
+\]
+where \(Z,E\) are independent standard normals.  Under the null, selection is \(Z>c_s\), so integrating over \(E\) gives the defining equation for \(q_{\alpha,j}\).  Under the local alternative, selection is \(Z>c_s-a_j(\rho)h_s\), and the same integration gives exactly \(\Pi_j\).  Thus no signed inequality belonging to another coordinate of the complete cell has been discarded.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Finite-product cancellation licenses the scalar Gaussian power integral without dropping any positive or negative cell inequality. \textit{Gap.} Abstract selective validity does not by itself supply the product cancellation required by the analytic power problem. \textit{Consumer.} Every cell calculation may be performed one active coordinate at a time after the complete event is retained.
+
+\begin{lemma}[lem:derived-max-influence]\label{lem:derived-max-influence}
+Write \(\bar B_{nks}=N_{nks}^{-1}\sum_iB_{nksi}\) and \(\bar U^0_{nks}=N_{nks}^{-1}\sum_iU^0_{nksi}\). Under the empirical centered fourth-moment bound, the variance margin, and positive shares, eventually and uniformly over the finite set \((k,s)\in K\times S\), \[\frac{\max_i(B_{nksi}-\bar B_{nks})^2}{\sum_i(B_{nksi}-\bar B_{nks})^2}\le\frac{\sqrt{M_4N_{nks}}}{(N_{nks}-1)\epsilon}\longrightarrow0.\] Because \(0\le U^0_{nksi}\le1\), the normalized centered midranks satisfy \[\frac{\max_i(U^0_{nksi}-\bar U^0_{nks})^2}{\sum_i(U^0_{nksi}-\bar U^0_{nks})^2}\le\frac{1}{(N_{nks}-1)\epsilon}\longrightarrow0.\] Hence both finite-population maximum-influence conditions required by the joint permutation approximation are consequences of the primitive class conditions rather than separate assumptions.
+\end{lemma}
+\begin{proof}
+Fix a block and suppress its indices.  From \(\max_i x_i^4\le\sum_i x_i^4\) and the fourth-moment condition,
+\[
+\max_i(B_i-\bar B)^2
+\le\left\{\sum_i(B_i-\bar B)^4\right\}^{1/2}
+\le\sqrt{M_4N}.
+\]
+The variance margin gives \(\sum_i(B_i-\bar B)^2=(N-1)S_B^2\ge(N-1)\epsilon\), proving the first claimed ratio bound.  Since \(0\le U_i^0\le1\), one has \(\max_i(U_i^0-\bar U^0)^2\le1\), while the same margin gives a denominator at least \((N-1)\epsilon\).  Positive shares imply \(N_{nks}\to\infty\) uniformly over the fixed finite set \(K\times S\).  Both displayed ratios therefore converge uniformly to zero, and every division is licensed by \(\epsilon>0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite-population Lindeberg ratios needed for transfer follow quantitatively from maintained moment, variance, and share conditions. \textit{Gap.} Finite-population central limit theorems commonly state maximum-influence as a premise; this lemma records the exact implication for centered outcomes and normalized midranks in the present class. \textit{Consumer.} The selected-transfer theorem no longer relies on a redundant regularity assumption that trial populations would have to verify separately.
+
+\begin{lemma}[lem:derived-residual-scale]\label{lem:derived-residual-scale}
+For every active \(j\in J\), \(\rho\in I\), and \(\theta_j\in[0,\pi/2]\), the correlation definition and \(\lvert\kappa_j\rvert\le1\) give \[v_j(\rho,\theta_j)^2=1-\kappa_j^2(1-\rho)\cos^2(\theta_j)\ge\rho\ge\rho_0.\] This is a lower bound for the residual variance in the limiting selected Gaussian experiment; it does not assert a finite-\(n\) covariance bound.
+\end{lemma}
+\begin{proof}
+Cauchy--Schwarz applied to the defining covariance ratio gives \(\lvert\kappa_j\rvert\le1\).  Since \(\rho\in[\rho_0,1-\rho_0]\) and \(0\le\cos^2\theta_j\le1\),
+\[
+v_j(\rho,\theta_j)^2
+=1-\kappa_j^2(1-\rho)\cos^2\theta_j
+\ge1-(1-\rho)=\rho\ge\rho_0>0.
+\]
+This calculation concerns only the limiting Gaussian covariance and asserts no finite-sample covariance inequality.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Compact holdout support itself prevents degeneration of the Gaussian conditional residual scale. \textit{Gap.} The residual-scale margin is an algebraic consequence of the present square-root path and therefore should not be imposed as an independent positive-definiteness condition. \textit{Consumer.} All Gaussian quantile, branch, and certification bounds can use the declared design constant \(\rho_0\) directly.
+
+\begin{theorem}[thm:uniform-selected-transfer]\label{thm:uniform-selected-transfer}
+For every fixed admissible baseline array \(B=(B_n)_n\), there is an array-dependent deterministic sequence \(\eta_n(B)\downarrow0\) with two separate conclusions. First, the sampling distance \(d_n^{\mathrm{samp}}(B)\), formed from the family of separately indexed laws \(\{\mathsf P_n^{h,\rho}:\rho\in I,h\in H\}\), satisfies \(d_n^{\mathrm{samp}}(B)\le\eta_n(B)\); hence the sampling cdf conditional on \(E_{n,C}(\rho)\) converges to \(G_j^h(\cdot;\rho,\theta_j)\) uniformly over \(\rho\in I\), \(\theta\in[0,\pi/2]^J\), and \(h\in H\). Second, each \(\rho\)-indexed dataset \(\mathcal D_n^{h,\rho}\sim\mathsf P_n^{h,\rho}\) generates its own completion, kernel, cdf \(F^{\mathrm{ref}}_{n,j}(\cdot;\rho,\theta_j,\mathcal D_n^{h,\rho})\), critical value \(q^{\mathrm{ref}}_{n,j}(\rho,\theta_j,\mathcal D_n^{h,\rho})\), and distance \(d_n^{\mathrm{ref}}(B,\rho,\mathcal D_n^{h,\rho})\), and \(\sup_{\rho\in I,\,h\in H}\mathsf P_n^{h,\rho}\{d_n^{\mathrm{ref}}(B,\rho,\mathcal D_n^{h,\rho})>\eta_n(B)\}\to0\). Thus the random Fisher-reference cdf and critical value converge in their corresponding sampling probabilities to \(G_j^0(\cdot;\rho,\theta_j)\) and \(q_{\alpha,j}(\rho,\theta_j)\), uniformly in the displayed outer supremum. The permutation approximation uses the maximum-influence bounds derived in \(\mathrm{lem{:}derived\mbox{-}max\mbox{-}influence}\), while selected Gaussian ratio and anti-concentration bounds use the common lower margin \(\min\{\epsilon,\rho_0\}\) from the selection or variance premises and \(\mathrm{lem{:}derived\mbox{-}residual\mbox{-}scale}\). After \(\mathrm{lem{:}full\mbox{-}cell\mbox{-}factorization}\), the rejection probability under each \(\mathsf P_n^{h,\rho}\) converges uniformly to \(\Pi_j(\rho,\theta_j,h_s)\). No deterministic rate is asserted uniformly over all baseline arrays in \(\mathcal M\), and no finite-\(n\) covariance bound is inferred from the limiting \(\rho_0\) inequality.
+\end{theorem}
+\begin{proof}
+Fix one admissible baseline array \(B=(B_n)_n\).  All uniformities below are over the displayed compact parameter sets for this array; there is no supremum over different arrays.
+
+For a stage-one block write \(N=N_{n1s}\), \(m=m_{n1s}\), \(\delta=h_s/\sqrt n\), and let \(G\) be the random complement.  The hypergeometric mean and variance formulas, the bounds \(\rho_0\le\rho\le1-\rho_0\), and balanced quotas give, uniformly in \(\rho\),
+\[
+\frac{g^1}{N}\xrightarrow{\mathsf P}\frac{1-\rho}{2},
+\qquad
+\frac{g^0}{N}\xrightarrow{\mathsf P}\frac{1-\rho}{2}.
+\]
+For \(f_i\) equal to \(B_i-\bar B\), \((B_i-\bar B)^2\), or \((B_i-\bar B)(U_i^0-\bar U^0)\), the simple-random-sampling variance identity and Cauchy--Schwarz with the fourth-moment bound imply
+\[
+|G|^{-1}\sum_{i\in G}f_i-N^{-1}\sum_{i=1}^Nf_i=o_{\mathsf P}(1)
+\]
+uniformly over the admissible complement sizes.  Conditioning on the treatment quota and applying the same identity within \(G\) gives the corresponding statement for either arm; the preceding count limit bounds the random denominators away from zero with probability tending to one.  Hence both arm variances converge to their finite-population limits, the exceptional totalization event vanishes, and direct studentization yields
+\[
+X_{n,s}=A_s\sqrt{1-\rho}\,h_s+X^0_{n,s}+o_{\mathsf P}(1),
+\]
+where \(X^0_{n,s}\) is the standardized complement contrast of the fixed baselines.
+
+For ranks, let \(K_N(\delta)\) be the ordered-pair crossing count.  Complete-randomization inclusion probabilities give
+\[
+\mathsf E(\text{treated crossed-pair count})
+=\frac{m(N-m)}{N(N-1)}K_N(\delta).
+\]
+Writing the variance as a double sum of ordered edges, pairs sharing a vertex contribute at most a constant times \(NK_N(\delta)\), whereas disjoint pairs have covariance of order \(N^{-1}\) and contribute at most a constant times \(K_N(\delta)^2/N\).  Therefore
+\[
+\operatorname{Var}(\text{crossed-pair count})
+\le C\{NK_N(\delta)+K_N(\delta)^2/N\}.
+\]
+The uniform pair-spacing condition gives \(K_N(\delta)=O(N^{3/2})\).  After division by the null rank-sum standard deviation, which is of order \(N^{3/2}\), the centered crossing term is \(o_{\mathsf P}(1)\), while its expectation converges to the stated drift.  If \(d_i\) is the number of crossings incident to unit \(i\), then
+\[
+\frac1N\sum_i(d_i/N)^2\le\frac{2K_N(\delta)}{N^2}=O(N^{-1/2}),
+\]
+so the observed ranks and baseline ranks have the same limiting variance and covariance.  The pair-spacing premise also makes the squared empirical tie masses vanish, whence the normalized-midrank variance tends to \(1/12\).  Consequently
+\[
+R_{1j}=b_{1j}h_s+R^0_{1j}+o_{\mathsf P}(1),
+\qquad
+R_{2j}=b_{2j}h_s+R^0_{2j}+o_{\mathsf P}(1).
+\]
+
+Conditional on a nonexceptional holdout, every scalar projection of \((X^0_{n,s},R^0_{1j})\) obeys the maximum-influence condition proved in \(\mathrm{lem{:}derived\mbox{-}max\mbox{-}influence}\).  The cited finite-population vector central limit theorem applies.  A covariance calculation with \(W_i=2Z_i-1\), using \(\mathsf E(W_iW_l)=-1/(N-1)\) for \(i\ne l\), gives
+\[
+\operatorname{Corr}(X^0_{n,s},R^0_{1j})
+\longrightarrow\kappa_j\sqrt{1-\rho};
+\]
+the complement indicator contributes one factor \(1-\rho\) to covariance and one square-root factor to the selector standard deviation.  Stage two is independent conditional on the history.  Since \(S\) and \(J\) are fixed and finite, the cited vector theorem applies to the concatenated fixed-dimensional vector.  It follows that
+\[
+(X_{n,s},R_{1j},R_{2j})\Longrightarrow
+\mathcal N\!\left(
+\begin{pmatrix}A_s\sqrt{1-\rho}h_s\\b_{1j}h_s\\b_{2j}h_s\end{pmatrix},
+\begin{pmatrix}
+1&\kappa_j\sqrt{1-\rho}&0\\
+\kappa_j\sqrt{1-\rho}&1&0\\
+0&0&1
+\end{pmatrix}
+\right).
+\]
+Uniformity follows by subsequences: a violating sequence of \((\rho,h,\theta)\) has a convergent subsequence, and the uniform share, moment, pair-spacing, and influence bounds give the same limit along it.  The residual-scale lemma excludes singular projected limits.
+
+For the Fisher reference, the completed stage-one values are \(B_i+\delta Z_i\).  Their centered second and fourth moments differ from those of \(B\) by \(o_{\mathsf P}(1)\), and their normalized ranks differ in empirical squared norm by \(o_{\mathsf P}(1)\) by the crossing-degree bound.  Candidate treatment labels and holdouts are freshly randomized from their product law, so every candidate contrast is null-centered; candidate stage-two assignments are independent after the candidate cell is retained.  The same finite-population argument therefore makes the pre-cell reference vector converge, in the corresponding \(\mathsf P_n^{h,\rho}\)-probability and uniformly in \((\rho,h,\theta)\), to the same Gaussian vector with all drifts zero.
+
+Rectangle convergence at the fixed thresholds transfers both joint numerators and cell probabilities.  The sampling margin bounds the true denominators below by \(\epsilon\), and the reference margin does so with probability tending to one.  The conditioning-ratio lemma and the finite-product factorization then yield the two asserted uniform conditional-cdf limits.  The inequality \(v_j^2\ge\rho_0\), finiteness of \(S,J\), compactness of the parameters, and Gaussian tail bounds place all null critical values in one compact interval and give a positive lower density bound on a slightly larger interval.  The quantile part of the ratio lemma therefore transfers the random reference quantiles uniformly.
+
+Let \(a_n=d_n^{\mathrm{samp}}(B)\), and let \(Z_n(\rho,h)\) denote the reference distance.  The preceding steps show \(a_n\to0\) and, for every \(u>0\),
+\[
+\sup_{\rho\in I,h\in H}\mathsf P_n^{h,\rho}\{Z_n(\rho,h)>u\}\to0.
+\]
+Choose \(N_m\uparrow\infty\) so that for \(n\ge N_m\), \(a_n\le1/m\) and the last supremum at \(u=1/m\) is at most \(1/m\).  Defining \(\eta_n(B)=1/m\) on \([N_m,N_{m+1})\), with finitely many initial terms enlarged, gives the common decreasing remainder.
+
+Finally bracket the rejection event on the event that its random critical value is within \(\zeta\) of \(q_{\alpha,j}\).  The complement has probability tending to zero; on the bracketed event the sampling cdf is evaluated at \(q_{\alpha,j}\pm\zeta\).  Gaussian anti-concentration, followed by \(\zeta\downarrow0\), gives the rejection limit.  The factorization lemma identifies that limit with \(\Pi_j(\rho,\theta_j,h_s)\).  This proves the stated field-level sampling and reference transfer with one array-dependent remainder.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the new load-bearing bridge from finite-population complete-cell conditioning to the Gaussian design criterion for fixed finite \(S\). \textit{Gap.} Neither FZG's exact framework nor unconditional finite-population central limit theorems handle the joint split, random counts, studentization, imputed reference, selection ratio, and moving quantile with one remainder. \textit{Consumer.} Gaussian holdout choices become uniformly valid asymptotic conditional-power statements for the randomized trial.
+
+\begin{theorem}[thm:selected-quantile-convexity]\label{thm:selected-quantile-convexity}
+For every \(0<\beta<1\) and \(0\le r<1\), the map \(x\mapsto q_{\beta}(r,x)\) is convex on \(\mathbb R\). Moreover, for every \(c_0,c_1\in\mathbb R\) and \(0<t<1\), \(\operatorname{Eq}_{\beta,r}(c_0,c_1;t)\) holds if and only if \(r=0\) or \(c_0=c_1\).
+\end{theorem}
+\begin{proof}
+Let \(\gamma_2\) be standard Gaussian measure on \(\mathbb R^2\) and define
+\[
+\mathcal T(c,z)=Q^{-1}\{Q(c)Q(z)\}.
+\]
+Minkowski interpolation of the orthants \([c,\infty)\times[z,\infty)\) interpolates their thresholds.  The cited Ehrhard--Borell inequality and \(Q^{-1}(u)=-\Phi^{-1}(u)\) therefore show that \(\mathcal T\) is jointly convex.  Moreover, for standard normal \(Z\),
+\[
+\Pr\{\mathcal T(c,Z)>y\}=\frac{Q(y)}{Q(c)},\qquad y>c,
+\]
+so \(\mathcal T(c,Z)\) has the law of a standard normal conditioned to exceed \(c\).
+
+Put \(v=(1-r^2)^{1/2}>0\), \(W(c,z,e)=r\mathcal T(c,z)+ve\), and
+\[
+\mathcal A(c,q)=\{(z,e):W(c,z,e)\le q\}.
+\]
+For \(r\ge0\), convexity gives
+\[
+(1-t)\mathcal A(c_0,q_0)+t\mathcal A(c_1,q_1)
+\subseteq\mathcal A((1-t)c_0+tc_1,(1-t)q_0+tq_1).
+\]
+Taking \(q_i=q_\beta(r,c_i)\), both left sets have Gaussian measure \(1-\beta\).  Ehrhard--Borell, the inclusion, and uniqueness of the quantile (supplied by the independent \(vE\) term) imply
+\[
+q_\beta(r,(1-t)c_0+tc_1)
+\le(1-t)q_\beta(r,c_0)+tq_\beta(r,c_1).
+\]
+
+If \(r=0\), this quantile is constant; if \(c_0=c_1\), chord equality is tautological.  Conversely suppose \(r>0\), \(c_0\ne c_1\), and equality holds.  Equality must then hold in the Gaussian-set comparison.  By the cited equality classification, the two closed convex sets \(\mathcal A(c_i,q_i)\) are parallel half-spaces or equal up to null sets.  Their boundaries
+\[
+e=\{q_i-r\mathcal T(c_i,z)\}/v
+\]
+are not affine because \(\mathcal T(c,z)\to c\) as \(z\to-\infty\) and tends to infinity as \(z\to\infty\).  Equality up to null sets between closed convex sets with nonempty interiors is equality, so \(\mathcal T(c_0,z)-\mathcal T(c_1,z)\) would be constant.  Its limit at \(-\infty\) is \(c_0-c_1\).  Integration by parts gives the needed Mills bounds: \(Q(x)<x^{-1}\int_x^\infty t\phi(t)\,dt=\phi(x)/x\), while \(Q(x)=\phi(x)/x-\int_x^\infty\phi(t)t^{-2}\,dt>\phi(x)/x-Q(x)/x^2\).  Hence
+\[
+\frac{\phi(x)}{x+x^{-1}}<Q(x)<\frac{\phi(x)}x\qquad(x>0)
+\]
+make the ratio of the two tails tend to zero or infinity as \(z\to\infty\), whereas the defining identity makes it the finite constant \(Q(c_0)/Q(c_1)\).  Thus the constant is zero and \(c_0=c_1\), a contradiction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Convexity supplies the global single-crossing fact needed to optimize over arbitrary compact alternatives. \textit{Gap.} Shenfeld and van Handel prove Gaussian-measure convexity and equality cases but do not derive convexity of conditional selected-score quantiles. \textit{Consumer.} Power calculations need only the least clinically relevant effect coordinate, even when the prespecified alternative set is nonconvex.
+
+\begin{theorem}[thm:least-coordinate-reduction]\label{thm:least-coordinate-reduction}
+For each active \(j=(C,s)\in J\), each fixed \( (\rho,\theta_j)\), and every \(u>\alpha\), \(\min_{h\in H}\Pi_j(\rho,\theta_j,h_s)\ge u\) if and only if \(\Pi_j(\rho,\theta_j,\ell_s)\ge u\), where \(\Pi_j\) is conditional on the complete signed event \(E_{n,C}(\rho)\). Hence the maximin value and every globally optimal design are unchanged when \(H\) is replaced by its least-coordinate vector \(\ell\).
+\end{theorem}
+\begin{proof}
+Fix \(j=(C,s)\), \(\rho\), and \(\theta_j\), and abbreviate \(a=a_j(\rho)>0\), \(d=d_j(\theta_j)>0\), and \(r=r_j(\rho,\theta_j)\).  For \(u\in(\alpha,1)\), the selected-quantile definition gives
+\[
+\Pi_j(\rho,\theta_j,h_s)\ge u
+\quad\Longleftrightarrow\quad
+B_u(h_s):=dh_s+q_u(r,c_s-ah_s)-q_\alpha(r,c_s)\ge0.
+\]
+The selected-quantile theorem makes \(B_u\) continuous and convex.  Since \(u>\alpha\), \(B_u(0)<0\).  As \(h_s\to\infty\), the selected threshold tends to \(-\infty\), its selected quantile tends to the ordinary Gaussian quantile, and \(dh_s\to\infty\); hence \(B_u(h_s)\to\infty\).  A convex function negative at zero has at most one positive transition from negative to nonnegative: at a zero \(x>0\), every right secant slope is at least \(\{B_u(x)-B_u(0)\}/x>0\).  Thus its nonnegative set on \((0,\infty)\) is an upper interval.
+
+Compactness of \(H\) attains \(\ell_s=\min_{h\in H}h_s>0\), and every other admissible coordinate is at least \(\ell_s\).  The upper-interval property proves the stated equivalence.  The feasible pure-stage-two weight \(\theta_j=\pi/2\) has \(r=0\) and power
+\[
+Q\{\Phi^{-1}(1-\alpha)-b_{2j}h_s\}>\alpha.
+\]
+Therefore all optimized cell values and the global optimized value exceed \(\alpha\).  Equality of all superlevel predicates above \(\alpha\) implies equality of both optimized values and complete argmax sets.  This argument is coordinatewise and uses only finiteness of \(J\), not a two-coordinate property.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This eliminates an infinite alternative-set optimization without imposing coordinatewise monotonicity below size. \textit{Gap.} No inspected enrichment or selective-inference result gives an exact above-size least-coordinate reduction for arbitrary compact positive alternatives. \textit{Consumer.} Designers can specify a clinically meaningful compact uncertainty set without introducing a numerical inner minimization.
+
+\begin{theorem}[thm:weight-side]\label{thm:weight-side}
+Let \(\theta_{0j}=\arctan(b_{2j}/b_{1j})\). For the full-cell conditional power \(\Pi_j\), every maximizer of \(\theta_j\mapsto\Pi_j(\rho,\theta_j,\ell_s)\) lies in \( (\theta_{0j},\pi/2]\) when \(\Delta_j>0\), equals \(\theta_{0j}\) uniquely when \(\Delta_j=0\), and lies in \( (0,\theta_{0j})\) when \(\Delta_j<0\). These are exact equality strata for every active \(j=(C,s)\in J\).
+\end{theorem}
+\begin{proof}
+Fix an active pair and suppress its index.  Put \(t=\sqrt{1-\rho}\), \(a=At\), \(\gamma=\kappa t\), \(d=b_1\cos\theta+b_2\sin\theta\), \(r=\gamma\cos\theta\), and \(v=\sqrt{1-r^2}\).  For \(h=\ell_s>0\), set
+\[
+L=c-ah,\quad K=q_\alpha(r,c)-dh,\quad
+u_0=\frac{c-rq_\alpha(r,c)}v,\quad
+u_h=\frac{L-rK}v,
+\quad D_h=\frac{\phi(K)Q(u_h)}{Q(L)}>0.
+\]
+Differentiation of the Gaussian tail integral and its null critical equation gives
+\[
+q_r=\frac{\mu(u_0)}v,\qquad P_d=hD_h,qquad
+P_r=\frac{D_h}{v}\{\mu(u_h)-\mu(u_0)\},
+\]
+where \(\mu(x)=\phi(x)/Q(x)\).  Every division is valid because \(v^2\ge\rho_0\) and Gaussian tails are positive.  The identity \(\mu'(x)=\mu(x)\{\mu(x)-x\}\) gives \(\mu'(x)>0\), because \(\mu(x)=\mathsf E(Z\mid Z>x)>x\).  Integration by parts also gives \(\operatorname{Var}(Z\mid Z>x)=1-\mu'(x)>0\), and hence \(\mu'(x)<1\).  Therefore the secant
+\[
+\bar s=\frac{\mu(u_0)-\mu(u_h)}{u_0-u_h}
+\]
+(with \(\mu'(u_0)\) at equality) lies in \((0,1)\), while \(u_0-u_h=h(a-rd)/v\).
+
+With \(d'=b_2\cos\theta-b_1\sin\theta\) and \(r'=-\gamma\sin\theta\), the chain rule yields
+\[
+\frac{P_\theta}{hD_h}
+=d'+\frac{\gamma\sin\theta\,(a-rd)\bar s}{v^2}.
+\]
+Using \(\cos\theta\,d=b_1+\sin\theta\,d'\) and \(\Delta=A-\kappa b_1\), this becomes
+\[
+\frac{P_\theta}{hD_h}
+=\mathcal Ld'+\frac{\kappa t^2\sin\theta\,\Delta\bar s}{v^2},
+\qquad
+\mathcal L=1-\frac{\gamma^2\sin^2\theta\,\bar s}{v^2}>0,
+\]
+because \(v^2-\gamma^2\sin^2\theta\bar s\ge1-\gamma^2\ge\rho>0\).  Now \(d'\) is positive below \(\theta_0=\arctan(b_2/b_1)\), zero there, and negative above.  If \(\Delta>0\), the derivative is positive throughout \([0,\theta_0]\); if \(\Delta<0\), it is negative throughout \([\theta_0,\pi/2]\), while \(P_\theta(0)=hb_2D_h>0\); and if \(\Delta=0\), its sign is exactly that of \(d'\).  Compactness supplies maximizers and proves all three claimed strata.  The least-coordinate theorem transfers the result to the original compact alternative set.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The discrepancy index converts a two-dimensional weight search into a signed one-sided problem and identifies the proportional equality case. \textit{Gap.} Freidling, Zhao, and Gao suggest adaptive weighting, while Chen and Andrews study leftover Gaussian information; neither derives this primitive sign rule for enrichment holdouts. \textit{Consumer.} A trial designer obtains a falsifiable rule for whether stage 1 must receive more or less weight than the proportional-information benchmark.
+
+\begin{lemma}[lem:realizability-bound]\label{lem:realizability-bound}
+Every jointly realizable continuous-rank primitive vector in \(\mathcal{M}\) satisfies \(A_s\kappa_j/b_{1j}\le5\sqrt{15}/18\), uniformly over active \(j=(C,s)\in J\).
+\end{lemma}
+\begin{proof}
+Fix a jointly realizable active stage-one block, center its empirical baseline law, and let its limiting variance and pair slope be \(\sigma^2>0\) and \(\lambda>0\).  Convolve the empirical law with the uniform density on an interval of width \(\delta_N=u_\star/\sqrt N\), where \([0,u_\star]\) is inside the pair-spacing window.  For the resulting density \(f_N\), the ordered-pair convention gives the exact overlap identity
+\[
+\|f_N\|_2^2
+=\frac{2}{N^2\delta_N^2}\int_0^{\delta_N}K_N(u)\,du
+=\frac{2}{u_\star^2}\int_0^{u_\star}N^{-3/2}K_N(x/\sqrt N)\,dx
+\longrightarrow\lambda.
+\]
+Its variance is \(\sigma_N^2+\delta_N^2/12\), which tends to \(\sigma^2\) by the variance and share premises.
+
+For any centered density \(f\) of variance \(\sigma_f^2>0\), take \(a=\sqrt5\sigma_f\) and \(g(x)=3(1-x^2/a^2)_+/(4a)\).  Since \((1-x^2/a^2)_+\ge1-x^2/a^2\),
+\[
+\int fg\ge\frac{3}{5a},
+\qquad
+\int g^2=\frac{3}{5a}.
+\]
+The inequality \(\int(f-g)^2\ge0\) gives \(\|f\|_2^2\sigma_f\ge3/(5\sqrt5)\).  Applying it to \(f_N\) gives \(\lambda\sigma\ge3/(5\sqrt5)\).
+
+Pair spacing removes asymptotic atoms, so the normalized midrank variance tends to \(1/12\).  Cauchy--Schwarz gives \(\operatorname{Cov}(B,U^0)\le\sigma/\sqrt{12}\).  Joint realizability and the definitions imply
+\[
+A=\frac{\sqrt{r_1}}{2\sigma},\qquad
+b_1=\sqrt3\lambda\sqrt{r_1},\qquad
+\kappa=\frac{\sqrt{12}\operatorname{Cov}(B,U^0)}\sigma.
+\]
+Consequently
+\[
+\frac{A\kappa}{b_1}
+=\frac{\operatorname{Cov}(B,U^0)}{\sigma^2\lambda}
+\le\frac{1}{\sqrt{12}\sigma\lambda}
+\le\frac{5\sqrt{15}}{18}.
+\]
+All denominators are positive by the primitive variance and pair-spacing conditions, and the argument is cellwise, hence uniform over finite \(J\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This rules out a terminal pure-stage-2 plateau by linking Gaussian coordinates back to feasible finite populations. \textit{Gap.} The bound combines pair-spacing density, variance, and rank covariance and is not present in the Gaussian optimization literature. \textit{Consumer.} Endpoint optimality is certified over actual finite-population limits rather than an enlarged, potentially impossible Gaussian parameter box.
+
+\begin{theorem}[thm:global-endpoint]\label{thm:global-endpoint}
+If \(\Delta_j\ge0\) for every active \(j=(C,s)\in J\), then \(\rho^{\star}=1-\rho_0\) is the unique maximizing holdout fraction for the full-cell conditional-power objective. At that fraction every binding cell has an optimal weight in \([\theta_{0j},\pi/2)\), with equality to \(\theta_{0j}\) exactly when \(\Delta_j=0\); slack-cell weights are the full superlevel sets required by \(\mathcal{S}^{\star}\).
+\end{theorem}
+\begin{proof}
+Fix \(j\) with \(\Delta_j\ge0\) and write \(P(\rho,\theta)=\Pi_j(\rho,\theta,\ell_s)\).  In the notation of the weight-side proof, differentiation gives, for \(r>0\),
+\[
+P_a=h\mu(L)\left[Q\!\left(\frac{q-dh-rL}{v}\right)-P\right]<0,
+\qquad
+\operatorname{sign}(P_r)=\operatorname{sign}(rd-a).
+\]
+The strict inequality holds because conditional rejection probability increases strictly with the selected Gaussian coordinate, so its boundary value is below its selected-tail average.  Every individually optimal angle obeys \(\theta\ge\theta_0\), and on this interval \(\cos\theta\,d\le b_1\).  Hence
+\[
+a-rd=t\{A-\kappa\cos\theta\,d\}\ge t\Delta\ge0,
+\]
+so \(P_r\le0\).  Since \(a_\rho=-A/(2t)\) and \(r_\rho=-\kappa\cos\theta/(2t)\),
+\[
+P_\rho=-\frac{AP_a+\kappa\cos\theta P_r}{2t}>0
+\]
+at every optimal non-pure angle.  At \(\theta=\pi/2\), power is the constant \(p_2=Q\{\Phi^{-1}(1-\alpha)-b_2\ell_s\}\).
+
+At \(\rho=1-\rho_0\), the inward angular derivative from \(\pi/2\) is
+\[
+\phi\{\Phi^{-1}(1-\alpha)-b_2h\}
+\left[b_1h-\kappa t\{\mu(c)-\mu(c-Ath)\}\right].
+\]
+Because \(0<\mu'<1\), its bracket exceeds \(h(b_1-\kappa At^2)\).  The realizability bound and \(t^2=\rho_0<1/2\) yield
+\[
+\frac{\kappa At^2}{b_1}
+\le\rho_0\frac{5\sqrt{15}}{18}<1,
+\]
+so the pure-stage-two value is strictly improvable at the endpoint.
+
+Thus \(M_j(\rho)\) is strictly smaller at every \(\rho<1-\rho_0\): if its optimizer is pure stage two, its value is \(p_2\), below the endpoint value; otherwise its fixed-angle power strictly increases toward the endpoint.  Choose a cell binding in the finite minimum at the endpoint.  Its strict inequality implies
+\[
+F(\rho)<F(1-\rho_0)\qquad(\rho<1-\rho_0),
+\]
+proving uniqueness of the holdout fraction.  The weight-side theorem gives the binding-cell angle location and equality stratum, while the definition of \(\mathcal S^\star\) gives the stated superlevel sets for slack cells.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A primitive sign certificate gives the unique largest-holdout decision for any finite collection of active cells. \textit{Gap.} No comparator derives this finite-population-realizable endpoint certificate. \textit{Consumer.} A design with all nonnegative discrepancies avoids global numerical holdout search.
+
+\begin{proposition}[prop:negative-mixture-primitives]\label{prop:negative-mixture-primitives}
+With \(M_4=2\) and \(\epsilon=1/100\), the baseline triangular array \(W_{\mathrm{mix}}\) belongs to \(\mathcal M\), and \(\mathsf P_n^{h,\rho}\) is its chronological local-alternative law. Its bounded symmetric supports give the empirical centered fourth-moment inequality in \(\mathrm{ass{:}bounded\mbox{-}fourth\mbox{-}moments}\). Substitution of its deterministic quantiles into the exact formulas for \(X\), \(R_1\), and \(R_2\) gives, for both active pairs \(j=((1,1),s)\), \(A_s=200\sqrt5/(53\sqrt{203})\), \(b_{1j}=8/5\), \(b_{2j}=43/100\), and \(\kappa_j=1393\sqrt5/(250\sqrt{203})\), with the certified enclosures in \(\mathrm{def{:}negative\mbox{-}mixture\mbox{-}witness}\) and \(\Delta_j\in[-0.80693126929013,-0.80693126929009]\). Uniformly over \(\rho\in I\) and \(h\in H\), the sampling probability of \(E_{n,(1,1)}(\rho)\) has limit inferior at least \(Q(-113/100)^2\in[0.75822626517532,0.75822626517534]\). Moreover, for every \(\delta>0\), \(\sup_{\rho\in I,h\in H}\mathsf P_n^{h,\rho}\{\lvert p_{\mathrm{ref}}(n,(1,1),\mathcal D_n^{h,\rho},\rho)-Q(-113/100)^2\rvert>\delta\}\to0\). Thus \(W_{\mathrm{mix}}\) satisfies both the deterministic sampling margin and the random-reference margin.
+\end{proposition}
+\begin{proof}
+Before scaling, the stage-one density is \(16/5\) on \([-1/10,1/10]\) and \(1/5\) on the remainder of \([-1,1]\).  Direct integration gives
+\[
+\operatorname{Var}(B)=\frac{203}{1500},\qquad
+\int f^2=\frac{53}{25},\qquad
+\operatorname{Cov}\{B,F(B)\}=\frac14\mathsf E|B-B'|=\frac{1393}{15000}.
+\]
+Scaling by \(L=53\sqrt3/80\) multiplies variance by \(L^2\), divides the pair slope by \(L\), and multiplies the covariance by \(L\).  The stage-two uniform law has variance \(625/1849\) and pair slope \(43/(50\sqrt3)\).  With share \(1/4\), substitution gives
+\[
+A=\frac{200\sqrt5}{53\sqrt{203}},\qquad
+b_1=\frac85,\qquad b_2=\frac{43}{100},\qquad
+\kappa=\frac{1393\sqrt5}{250\sqrt{203}}.
+\]
+Squaring positive quantities and comparing integers verifies the displayed outward rational-decimal enclosures and \(\Delta=A-\kappa b_1<0\).
+
+Both supports are bounded by \(1.15\), so centered empirical fourth moments are eventually below \(2\).  Their variances and normalized-rank variances converge to constants exceeding \(1/100\), and all four block shares converge to \(1/4\).  Deterministic quantile Riemann sums for each bounded piecewise-constant density give
+\[
+N^{-3/2}K_N(u/\sqrt N)\longrightarrow u\int f^2
+\]
+uniformly on fixed compact \(u\)-windows.  The displayed singleton primitive vector is compact and jointly generated by this array.  The design assumptions and no interference hold by construction.
+
+The split-assignment finite-population central limit theorem and studentizer consistency give, uniformly in \(\rho\),
+\[
+\Pr\{X_{n,s}>-113/100\}
+\longrightarrow Q\{-113/100-A\sqrt{1-\rho}\,h_s\}
+\ge Q(-113/100).
+\]
+Independence between the two witness strata gives the squared lower bound.  Under the Fisher completion, local shifts are \(O(n^{-1/2})\), do not change empirical second moments, and newly randomized candidate contrasts are null-centered.  The same conditional central limit theorem makes each candidate selection probability converge in sampling probability to \(Q(-113/100)\), uniformly in \((\rho,h)\); their product converges to its square.  Outward-rounded Gaussian evaluation gives
+\[
+Q(-113/100)^2\in[0.75822626517532,0.75822626517534]>1/100.
+\]
+Thus the two-stratum witness satisfies every member condition and both margins within the general finite-stratum theory.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This verifies joint finite-population realizability and exposes every numerical ingredient used by the interior certificate. \textit{Gap.} Gaussian-coordinate counterexamples alone need not correspond to any randomized finite population; this proposition realizes the signed regime with exact bounded distributions and certified primitive boxes. \textit{Consumer.} A referee can reproduce the negative-discrepancy example from its mixture weights, supports, allocation, and exact radical primitives.
+
+\begin{theorem}[thm:negative-interior]\label{thm:negative-interior}
+Under the shifted sampling limit of \(\mathsf P_n^{h,\rho}\) and the separate zero-drift critical-value limit of \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\), for the explicit symmetric population \(W_{\mathrm{mix}}\), the active set is \(J=\{((1,1),1),((1,1),2)\}\), both discrepancies are negative, and the rational interior design \( (\rho,\theta_1,\theta_2)=(5034/10000,25363/100000,25363/100000)\) has worst-cell power conditional on the complete both-selected event greater than \(0.86428621266\). Every admissible weight vector at \(\rho=0.02\) has worst-cell conditional power below \(0.86304573855\), and every admissible weight vector at \(\rho=0.98\) has worst-cell conditional power below \(0.86241162520\). Therefore every global maximizing holdout fraction is strictly interior.
+\end{theorem}
+\begin{proof}
+The witness has exactly two active cells and identical primitives, so equal angles give equal cell powers.  The weight-side theorem restricts every endpoint maximizer to \(0<\theta<\theta_0\), because both discrepancies are negative.
+
+The numerical inequalities are interval certificates using \(100\)-bit Arb balls.  At each queried design, the monotone null-tail equation was bracketed on opposite signs to width \(2\cdot10^{-7}\).  The power integral was evaluated outwardly on \([c-ah,12]\), and the omitted tail is below \(Q(12)<10^{-31}\).  At the rational interior point this yields
+\[
+\Pi_j(5034/10000,25363/100000,33/20)
+\in[0.8642862126664672633,0.8642862583791498921].
+\]
+On \(0\le\theta\le\theta_0\), direct differentiation gives the certified Lipschitz bound
+\[
+|\partial_\theta\Pi_j|
+\le\frac{h}{\sqrt{2\pi}Q(c-ah)}
+\left[b_2+
+\frac{\gamma\sin\theta_0\{a+\gamma\sqrt{b_1^2+b_2^2}\}}
+{1-\gamma^2}\right]=:L_\theta,
+\]
+whose denominators are positive because \(\gamma^2\le1-\rho_0<1\).  A \(129\)-point uniform mesh, enlarged by \(L_\theta\theta_0/256\), certifies
+\[
+\sup_{\theta\in[0,\pi/2]}\Pi_j(0.02,\theta,33/20)
+\le0.8630457385441023483,
+\]
+and
+\[
+\sup_{\theta\in[0,\pi/2]}\Pi_j(0.98,\theta,33/20)
+\le0.8624116251942651582.
+\]
+The weight-side restriction covers the unmeshed complement.  Both endpoint bounds are below the certified interior lower bound.  The transfer theorem identifies these as limiting rejection powers with a shifted sampling law and a separate zero-drift reference critical law.  Compactness gives an optimizer; neither endpoint can be one, so every maximizing holdout fraction is interior.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit two-stratum subcase proves that the endpoint result has a genuine opposite regime. \textit{Gap.} A free Gaussian tuple would not certify finite-population realizability; the mixture and margins do. \textit{Consumer.} Designers are warned that the largest holdout can lose conditional power.
+
+\begin{lemma}[lem:semianalytic-finite-stratification]\label{lem:semianalytic-finite-stratification}
+\texttt{A finite family of real-\allowbreak{}analytic functions admits,\allowbreak{} locally,\allowbreak{} Weierstrass polynomial preparation and a compatible semianalytic stratification. A relatively compact semianalytic set consequently has finitely many connected components and a finite compatible stratification into connected real-\allowbreak{}analytic manifolds. Projections of relatively compact semianalytic sets are subanalytic,\allowbreak{} and the number of connected components of the fibers of a relatively compact subanalytic map is locally bounded. In dimension one,\allowbreak{} every punctured local semianalytic branch admits a real-\allowbreak{}analytic arc parametrization,\allowbreak{} with Puiseux preparation available as a proof mechanism. At a simple zero,\allowbreak{} the corresponding branch is an analytic graph by the analytic implicit-\allowbreak{}function theorem.}
+\end{lemma}
+
+\begin{theorem}[thm:full-branch-geometry]\label{thm:full-branch-geometry}
+On every primitive stratum defined by \(\mathrm{def{:}branch\mbox{-}system}\), each active cell's complete-event conditional envelope \(M_j\) and the global envelope \(F\) are finite maxima and minima of analytic or Puiseux-continuable branches. The global maximizing holdout set consists exactly of the retained interval endpoints, projected branch endpoints, stationary branch roots, branch intersections, and flat maximizing intervals attaining \(V^{\star}\); for each such \(\rho\), the full weight set is \(\prod_{j=(C,s)\in J}\{\theta_j:\Pi_j(\rho,\theta_j,\ell_s)\ge V^{\star}\}\). This characterization is necessary and sufficient in all positive, negative, zero, and mixed-sign \(\Delta\) regimes, with every \(\Pi_j\) conditioned on \(E_{n,C}(\rho)\).
+\end{theorem}
+\begin{proof}
+Fix a primitive stratum and \(j=(C,s)\in J\).  Set \(p_j(\rho,\vartheta)=\Pi_j(\rho,\vartheta,\ell_s)\) on \(D_j=I\times[0,\pi/2]\).  The residual bound keeps \(r_j\) in a compact subset of \((-1,1)\).  The null selected-tail map
+\[
+H_s(q,r)=Q(c_s)^{-1}\int_{c_s}^{\infty}
+\phi(z)Q\!\left(\frac{q-rz}{\sqrt{1-r^2}}\right)\,dz
+\]
+is real analytic, by differentiation under a common Gaussian envelope, and
+\[
+\partial_qH_s(q,r)=-\frac{1}{Q(c_s)\sqrt{1-r^2}}
+\int_{c_s}^{\infty}\phi(z)
+\phi\!\left(\frac{q-rz}{\sqrt{1-r^2}}\right)\,dz<0.
+\]
+The analytic implicit-function theorem makes \(q_{\alpha,j}\), and hence \(p_j\), analytic on a neighborhood of \(D_j\).
+
+Let \(Z_j=\{\partial_\vartheta p_j=0\}\cap D_j\).  It has no two-dimensional open component: otherwise analytic continuation would make \(p_j(\rho,\cdot)\) constant, contradicting the weight-side theorem in each of the positive, negative, and zero discrepancy strata.  The cited semianalytic stratification theorem therefore decomposes \(Z_j\), compatibly with projection and the boundary, into finitely many point and arc strata.  After finitely many cuts, each rank-one projected arc is an analytic graph \(\vartheta=\vartheta_{j\ell}(\rho)\); its ramified endpoints have the retained Weierstrass--Puiseux continuation.  Vertical arcs project to retained points, and angular endpoints are included.
+
+Continuity gives an angular maximizer, and Fermat's rule puts every interior maximizer in \(Z_j\).  Hence on every projected stratum
+\[
+M_j(\rho)=\max_{\ell\in L_j}g_{j\ell}(\rho),
+\qquad
+g_{j\ell}(\rho)=p_j(\rho,\vartheta_{j\ell}(\rho)),
+\]
+with finitely many analytic or Puiseux-continuable branches.  Because \(J\) is fixed and finite, refining by every branch crossing, multiple root, endpoint, value tie, and identical-branch predicate remains a finite semianalytic refinement.  On each remaining interval the order is fixed, so
+\[
+F(\rho)=\min_{j\in J}M_j(\rho)
+\]
+equals a retained branch, with all ties recorded.
+
+An interior maximizer on a nonconstant active branch is a stationary root.  A constant maximizing branch contributes its entire flat interval; all other maximizers are interval endpoints, projected endpoints, or retained intersections and ties.  Conversely, every listed candidate attaining \(V^\star\) is a maximizer by definition.  This proves necessity and sufficiency of the holdout list.
+
+For fixed \(\rho\), separate cell-specific angles give
+\[
+\max_{\theta\in[0,\pi/2]^J}\min_{j\in J}p_j(\rho,\theta_j)
+=\min_{j\in J}M_j(\rho)=F(\rho).
+\]
+The least-coordinate theorem makes this the original alternative-set problem.  Therefore, at a maximizing holdout, the complete weight correspondence is exactly
+\[
+\prod_{j=(C,s)\in J}
+\{\theta_j\in[0,\pi/2]:
+\Pi_j(\rho,\theta_j,\ell_s)\ge V^\star\}.
+\]
+This retains all slack-cell continua.  No argument used \(|S|=2\) or a common sign of \(\Delta\); finiteness of \(S\) and \(J\) is the only product and stratification requirement.  The endpoint theorem and the two-stratum negative witness supply the stated special regimes.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The branch system exhausts positive, negative, zero, and mixed signs for arbitrary fixed finite \(J\), retaining all equality strata and slack-cell continua. \textit{Gap.} The nonnested RFL program does not characterize this continuous exact-conditional optimizer correspondence. \textit{Consumer.} Global optimization remains auditable even when the optimum is nonunique or lies at a transition.
+
+\begin{theorem}[thm:tolerance-certificate]\label{thm:tolerance-certificate}
+For rational or algebraic primitive inputs, finite unions of closed rational intervals presenting each projected alternative coordinate, and every rational tolerance \(\varepsilon>0\), the handle in \(\mathrm{def{:}tolerance\mbox{-}handle}\) terminates with an interval of width at most \(\varepsilon\) containing the full-cell conditional value \(V^{\star}\), a finite outer union containing \(\mathcal{S}^{\star}\) and contained in the \(2\varepsilon\)-power superlevel set, and a finite inner union contained in the \(\varepsilon\)-power superlevel set. It asserts a unique design only when the supplied separation certificate proves uniqueness against every retained competing branch and slack-cell weight set.
+\end{theorem}
+\begin{proof}
+On the compact domain \(D=I\times[0,\pi/2]^J\), define
+\[
+\Psi(\rho,\theta)=\min_{j=(C,s)\in J}\Pi_j(\rho,\theta_j,\ell_s).
+\]
+For rational or algebraic inputs, Taylor expansion with rational remainder bounds encloses \(\phi\), while integration by parts gives
+\[
+Q(M)\le\frac{\phi(M)}M\qquad(M>0).
+\]
+Truncation at a computably increasing rational \(M\), bounded-interval quadrature, and outward rounding thus enclose every Gaussian integral and derivative to arbitrary prescribed accuracy.  Finiteness of \(S,J\) permits common bounds.
+
+Choose a certified rational \(\underline q_c<\min_{s\in S}Q(c_s)\) and \(M_q\) so that \(Q(M_q)<\min\{\alpha,1-\alpha\}\underline q_c\).  Since \(rZ+\sqrt{1-r^2}E\) is standard normal, conditioning on \(Z>c_s\) shows every null critical value lies in \([-M_q,M_q]\).  The residual bound and restriction of the derivative integral to \([c_s,c_s+1]\) give a computable common positive lower bound on \(|\partial_qH_s|\).  Bisection therefore terminates uniformly.  The alternative selection denominators also have a positive common bound on the compact domain, so differentiation gives an effective finite Lipschitz constant \(L\) for \(\Psi\), using
+\[
+|\min_j u_j-\min_j v_j|\le\max_j|u_j-v_j|.
+\]
+
+Subdivide \(D\) into finitely many rational boxes and evaluate each center accurately enough that
+\[
+L_B\le\Psi(x)\le U_B\quad(x\in B),
+\qquad U_B-L_B\le\delta\le\varepsilon.
+\]
+Let \(L^\star=\max_BL_B\) and \(U^\star=\max_BU_B\).  A maximizing box and the boxwise widths imply
+\[
+L^\star\le V^\star\le U^\star\le L^\star+\delta.
+\]
+Boxes with \(U_B\ge L^\star\) contain every optimizer and consist only of points with power at least \(V^\star-2\varepsilon\).  Boxes with \(L_B\ge U^\star-\varepsilon\) form a nonempty inner union contained in the \(\varepsilon\)-superlevel set.  All comparisons are rational interval comparisons.
+
+If the optional separation data are supplied, interval root-uniqueness tests isolate each claimed branch root, complement bounds exclude all others, strict interval comparisons eliminate competing values, and a positive objective gap excludes the complement.  Applying the same procedure to every factor in the finite product of weight superlevel sets excludes slack alternatives.  Only this certificate licenses a singleton assertion; absent it, the algorithm returns the value interval and set boxes just proved.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Certified boxes provide usable values and optimizer sets without an exact-real equality oracle. \textit{Gap.} Numerical point estimates do not certify the full optimizer correspondence across equality strata. \textit{Consumer.} Protocols can archive verifiable boxes and claim uniqueness only after separation.
+
+\begin{theorem}[thm:shrinking-margin-ratio-obstruction]\label{thm:shrinking-margin-ratio-obstruction}
+The frozen class does not determine a sharp necessary-and-sufficient shrinking-margin frontier solely from \(m_n\) and the sequence \(\eta_n(B)\). For any joint numerator-and-denominator approximation with absolute error at most \(\eta_n(B)\) and limiting cell probability at least \(m_n>\eta_n(B)\), conditional-cdf error is at most \(2\eta_n(B)/(m_n-\eta_n(B))\); hence \(\eta_n(B)=o(m_n)\) is a universal sufficient relation. It is not necessary as a relation involving the declared \(\eta_n(B)\), because that sequence is a noncanonical upper bound that may be enlarged without changing any law or conditional error. Moreover, the frozen sampling and reference margin assumptions impose a fixed positive \(\epsilon\), so no \(m_n\downarrow0\) regime occurs inside \(\mathcal M\). A sharp failure sequence therefore requires an enlarged class together with a canonical minimal joint-approximation modulus and explicit moving-threshold or boundary-density conditions; it cannot be constructed or characterized from the frozen primitives alone.
+\end{theorem}
+\begin{proof}
+Apply the conditioning-ratio lemma with \(\delta=\eta_n(B)\) and \(m=m_n\).  It gives conditional-cdf error at most
+\[
+\frac{2\eta_n(B)}{m_n-\eta_n(B)},
+\]
+which vanishes under \(\eta_n(B)=o(m_n)\).  If the limiting density near the critical quantile is bounded below by \(g_n>0\), the quantile error is at most \(2\eta_n(B)/\{g_n(m_n-\eta_n(B))\}\); threshold bracketing then transfers power.
+
+Necessity cannot be expressed through the declared remainder.  If \(\eta_n(B)\) is valid, any decreasing \(\widetilde\eta_n(B)\ge\eta_n(B)\) tending to zero is also valid, although its ratio to \(m_n\) can differ.  Absolute numerator and denominator errors may also cancel in their ratio.  Finally, the two frozen margin assumptions bound every represented cell probability below by the fixed \(\epsilon>0\), so \(m_n\downarrow0\) does not occur within \(\mathcal M\).  A sharp frontier would require an enlarged class, a canonical minimal modulus, and moving-boundary conditions; none is supplied by the frozen primitives.
+\end{proof}
+
+\begin{lemma}[lem:finite-population-vector-clt]\label{lem:finite-population-vector-clt}
+\texttt{Consider a sequence of finite populations of fixed-\allowbreak{}dimensional vectors assigned by complete randomization to a fixed number of groups whose limiting proportions are positive. If every scalar projection satisfies the finite-\allowbreak{}population maximum-\allowbreak{}influence condition and the correlation matrices converge,\allowbreak{} then the coordinatewise variance-\allowbreak{}standardized vector of group-\allowbreak{}contrast estimators converges in distribution to the centered Gaussian vector having the limiting correlation matrix.}
+\end{lemma}
+
+\begin{lemma}[lem:conditioning-ratio-transfer]\label{lem:conditioning-ratio-transfer}
+Let \(P_n\) and \(P\) be probability laws, let \(E_n,E\) be events, and let \(A_n(x)\subseteq E_n\) and \(A(x)\subseteq E\) be nested events indexed by \(x\in\mathbb R\). If \(P(E)\ge m>\delta\), \(\lvert P_n(E_n)-P(E)\rvert\le\delta\), and \(\sup_x\lvert P_n(A_n(x))-P(A(x))\rvert\le\delta\), then
+\[
+\sup_x\left\lvert P_n\{A_n(x)\mid E_n\}-P\{A(x)\mid E\}\right\rvert\le \frac{2\delta}{m-\delta}.
+\]
+If the conditional limit cdf has density at least \(g>0\) on a radius-\(a\) neighborhood of its \(p\)-quantile and the left side is at most \(e<ag\), then the generalized \(p\)-quantile differs from the limiting quantile by at most \(e/g\).
+\end{lemma}
+\begin{proof}
+Put \(p_n=P_n(E_n)\), \(p=P(E)\), \(a_n(x)=P_n(A_n(x))\), and \(a(x)=P(A(x))\).  Then \(p_n\ge m-\delta>0\) and \(0\le a(x)\le p\).  Therefore
+\[
+\left|\frac{a_n(x)}{p_n}-\frac{a(x)}p\right|
+\le\frac{|a_n(x)-a(x)|}{p_n}
++\frac{a(x)|p_n-p|}{p_np}
+\le\frac{2\delta}{m-\delta}.
+\]
+Taking the supremum proves the cdf bound.  If \(q\) is the limiting \(p\)-quantile, the density condition gives \(F(q-t)\le p-gt\) and \(F(q+t)\ge p+gt\) for \(0<t<a\).  Whenever \(t>e/g\), uniform cdf error yields \(F_n(q-t)<p<F_n(q+t)\), so the generalized quantile satisfies \(q-t<q_n\le q+t\).  Letting \(t\downarrow e/g\) proves the quantile bound.
+\end{proof}
+
+\begin{lemma}[lem:ehrhard-borell-convex-equality]\label{lem:ehrhard-borell-convex-equality}
+For closed convex sets \(A_0,A_1\subseteq\mathbb R^d\) and \(0<t<1\), Gaussian measure satisfies the Ehrhard--Borell inequality
+\[
+\Phi^{-1}\!\bigl(\gamma_d((1-t)A_0+tA_1)\bigr)\ge(1-t)\Phi^{-1}(\gamma_d(A_0))+t\Phi^{-1}(\gamma_d(A_1)).
+\]
+When both measures lie strictly between zero and one, equality for weights summing to one occurs only when the sets are parallel half-spaces or when \(A_0=A_1\), apart from Gaussian-null modifications.
+\end{lemma}
+
+\begin{lemma}[lem:fzg-selective-validity]\label{lem:fzg-selective-validity}
+For the selective randomization \(p\)-value of Definition 1 in Freidling, Zhao, and Gao, with the auxiliary \(Z^*\) satisfying equations (5)--(7), Proposition 1 gives conditional superuniformity and selective type-I-error control; no imputability premise is required.
+\end{lemma}
+
+\begin{lemma}[lem:fzg-reference-computability]\label{lem:fzg-reference-computability}
+In the adaptive-experiment framework of Freidling, Zhao, and Gao, Proposition 2 states that A2--A3 give the conditional-law representation obtained by independent candidate-action resampling restricted to the same selector, while A1 together with imputability of the test statistic, selector, and action mass with respect to \(\mathcal G\) makes that reference distribution computable.
+\end{lemma}
+
+\begin{proposition}[prop:fzg-augmented-action-embedding]\label{prop:fzg-augmented-action-embedding}
+Under no interference and the random-holdout, stage-one, and stage-two design assumptions, the construction in \(\mathrm{def{:}fzg\mbox{-}augmented\mbox{-}action\mbox{-}map}\) is a specialization of the Freidling--Zhao--Gao adaptive-experiment representation.  Its product action mass verifies A1, exogenous randomization verifies A2, and dependence of second-stage recruitment and assignment on the first action only through \(C\) verifies A3.  Independent candidate-action resampling restricted to the same \(C\) gives their Definition 1 equations (5)--(7).  Under \(h=0\), duplicated outcomes make the statistic, selector, and action mass imputable with respect to constant \(\mathcal G\); their Proposition 2 then gives exactly \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\), while their Proposition 1 separately gives exact selective validity.  This is a specialization, not a class equivalence, and their broader multistage result supplies neither the selected Gaussian transfer nor the holdout-power optimizer.
+\end{proposition}
+\begin{proof}
+Fix \(n\), \(\rho\in I\), and the fixed potential-outcome schedule.  For each \(s\in S\), put
+\[
+\mathcal A_{1s}(\rho)=\left\{(d_s,z_s)\in\{0,1\}^{N_{n1s}}\times\{0,1\}^{N_{n1s}}:
+\sum_i d_{si}=\lfloor\rho N_{n1s}\rfloor,
+\ \sum_i z_{si}=m_{n1s}\right\}.
+\]
+The definition \(D_{nsi}=\mathbf 1\{i\in H_{n,s}(\rho)\}\) is part of \(\mathrm{def{:}fzg\mbox{-}augmented\mbox{-}action\mbox{-}map}\).  By \(\mathrm{ass{:}random\mbox{-}holdout}\), \(D_{ns}\) is uniform on the vectors having \(\lfloor\rho N_{n1s}\rfloor\) ones, is independent across \(s\), and is independent of the fixed baseline schedule.  By \(\mathrm{ass{:}stage1\mbox{-}complete\mbox{-}randomization}\), conditionally on all holdouts the vectors \(Z_{n1s}\) are independent across strata, each is uniform on the vectors having \(m_{n1s}\) ones, and this conditional law is constant in the realized holdouts.  Consequently, for every \(((d_s,z_s))_{s\in S}\),
+\[
+\Pr\!\left\{(D_{ns},Z_{n1s})=(d_s,z_s),\ s\in S\right\}
+=q_1((d_s,z_s)_{s\in S})
+=\prod_{s\in S}
+\frac{\mathbf 1\{(d_s,z_s)\in\mathcal A_{1s}(\rho)\}}
+{\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}\binom{N_{n1s}}{m_{n1s}}}.
+\]
+Because \(S\) is finite and nonempty, summing the last display over its finite product support factorizes into a product of sums, each equal to one.  Thus \(q_1\) is normalized, known from \((N,m,\rho)\), and strictly positive at every supported first action.  This verifies A1 for the first augmented action.  The potential outcomes are fixed under the design, the holdout is independent of the baseline schedule by \(\mathrm{ass{:}random\mbox{-}holdout}\), and the treatment law is the fixed conditional law just displayed; hence the augmented first action is exogenous relative to the potential-outcome schedule.  This is A2.  The duplication
+\[
+\widetilde Y_{n1si}(d,z)=Y^{(h)}_{n1si}(z)
+\]
+from \(\mathrm{def{:}fzg\mbox{-}augmented\mbox{-}action\mbox{-}map}\) is well defined because \(\mathrm{ass{:}no\mbox{-}interference}\) makes the original potential outcome depend only on the unit's own treatment coordinate \(z\).
+
+The threshold vector is fixed before randomization by \(\mathrm{ass{:}fixed\mbox{-}thresholds}\), so the formulas defining \(X\) and \(C\) make \(C\) a prespecified measurable function of the first augmented action and its observed outcomes.  Once \(C\) is realized, the recruited second-stage population is exactly
+\[
+\mathcal R_2(C)=\{(2,s,i):C_s=1,\ i\le N_{n2s}\}.
+\]
+By \(\mathrm{ass{:}stage2\mbox{-}complete\mbox{-}randomization}\), for any quota-respecting collection \(z_2=(z_{n2s})_{s:C_s=1}\),
+\[
+\Pr\{Z_{n2}=z_2\mid\mathcal F_{n,1}(\rho)\}
+=q_2(z_2\mid C)
+=\prod_{s:C_s=1}\binom{N_{n2s}}{m_{n2s}}^{-1},
+\]
+and the probability is zero off that support.  No second-stage coordinate exists when \(C_s=0\).  Thus both the recruited population and the second-action kernel depend on the first-stage history only through \(C\), which verifies A3.
+
+We next identify the candidate law exactly.  Fix a realized dataset \(\mathcal D_n^{h,\rho}\) and write \(C=C_n(\rho)\).  Its realized first action belongs to \(\prod_{s\in S}\mathcal A_{1s}(\rho)\).  If that same action is used as a candidate, the Fisher completion in \(\mathrm{def{:}fisher\mbox{-}null\mbox{-}reference}\) reproduces every actually observed response entering the selector.  Hence the candidate formulas give \(X'_{n,s}=X_{n,s}\) for every \(s\), including under the common deterministic degeneracy convention, and therefore \(C'_n(\rho)=C_n(\rho)=C\).  Since \(q_1\) is positive at the realized action,
+\[
+p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)
+=\sum_{a'_1}q_1(a'_1)\mathbf 1\{C'_n(a'_1;\rho)=C\}>0.
+\]
+Thus the same-cell normalization is always legal for a realized cell.  Independent candidate-action resampling, restriction to that cell, and subsequent second-stage resampling assign a candidate history \((a'_1,a'_2)\) the mass
+\[
+\frac{q_1(a'_1)\mathbf 1\{C'_n(a'_1;\rho)=C\}}
+{p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)}
+q_2(a'_2\mid C).
+\]
+Substitution of the two product masses gives
+\[
+\frac{\mathbf 1\{C'_n(a'_1;\rho)=C\}}
+{p_{\mathrm{ref}}(n,C,\mathcal D_n^{h,\rho},\rho)}
+\prod_{s\in S}
+\left\{
+\binom{N_{n1s}}{\lfloor\rho N_{n1s}\rfloor}
+\binom{N_{n1s}}{m_{n1s}}
+\right\}^{-1}
+\prod_{s:C_s=1}\binom{N_{n2s}}{m_{n2s}}^{-1}
+\]
+on quota-respecting histories and zero otherwise.  By \(\mathrm{lem{:}explicit\mbox{-}candidate\mbox{-}support}\), the positive-mass, same-cell histories in this display are exactly \(\Omega_{n,C}(\mathcal D_n^{h,\rho},\rho)\), with no additional imputability restriction.  The displayed mass is therefore exactly the kernel \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\) of \(\mathrm{def{:}fisher\mbox{-}null\mbox{-}reference}\).  These are precisely the independent resampling, same-selector restriction, and conditional product identities in equations (5)--(7) of the cited Freidling--Zhao--Gao construction recorded in \(\mathrm{lem{:}fzg\mbox{-}reference\mbox{-}computability}\).
+
+It remains to separate computability from validity.  At \(h=0\), the sharp-null construction gives
+\[
+Y^{(0)}_{nksi}(0)=Y^{(0)}_{nksi}(1)=B_{nksi}.
+\]
+Accordingly, the duplicated outcome satisfies \(\widetilde Y_{n1si}(d,z)=B_{n1si}\) for every augmented action, and the Fisher completion also equals the fixed observed baseline value on every observed unit.  Relative to the constant schedule \(\mathcal G\) specified in \(\mathrm{def{:}fzg\mbox{-}augmented\mbox{-}action\mbox{-}map}\), the selector can therefore be recomputed for every candidate action, the statistics \(R'_1,R'_2,T'\) can be recomputed on the support identified above, and \(q_1,q_2\) are known functions of the design quantities.  Thus the statistic, selector, and action masses are imputable with respect to \(\mathcal G\).  Having already verified A2--A3 and A1, respectively, \(\mathrm{lem{:}fzg\mbox{-}reference\mbox{-}computability}\) applies and identifies the computable Proposition 2 reference with the kernel \(\mathsf R_{n,\mathcal D(\rho)}^{0,C}\) just derived.
+
+Separately, \(\mathrm{lem{:}fzg\mbox{-}selective\mbox{-}validity}\) applies to the same-selector randomization \(p\)-value and gives its conditional superuniformity under the sharp null.  Hence the rejection rule in \(\mathrm{def{:}selective\mbox{-}test}\), with strict rejection above the upper \(\alpha\)-critical value, has conditional type-I error at most \(\alpha\) in every selected cell of positive probability; discreteness can only make it conservative.  This invocation of Proposition 1 does not use imputability as a premise.  The argument proves an exact specialization of the cited representation, not the converse inclusion of model classes.  Moreover, the two cited results used here assert only selective validity and reference-law computability; neither supplies a selected Gaussian limit nor any optimization over \(\rho\) or the weights \(\theta\).  Therefore no Gaussian-transfer or holdout-power optimality conclusion has been imported through the specialization.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This records the precise augmented-action specialization and separates Proposition 1 validity from Proposition 2 computability. \textit{Gap.} Without the holdout indicator in the randomized action, the candidate law would fail to rerandomize the split and would not match the implemented reference. \textit{Consumer.} Readers can audit the exact reference against the published adaptive-experiment representation while seeing that the power frontier remains new.
+
+\begin{proposition}[prop:proportional-finite-strata]\label{prop:proportional-finite-strata}
+Suppose \(J\) is any fixed finite nonempty active set and \(\Delta_j=0\) for every \(j=(C,s)\in J\).  Then every cell has the unique individually optimal weight \(\theta_{0j}=\arctan(b_{2j}/b_{1j})\), and the unique maximizing holdout fraction is \(1-\rho_0\).  The complete optimal-design correspondence is
+\[
+\mathcal S^\star=
+\{1-\rho_0\}\times
+\prod_{j=(C,s)\in J}
+\left\{\theta_j\in[0,\pi/2]:
+\Pi_j(1-\rho_0,\theta_j,\ell_s)\ge V^\star\right\}.
+\]
+It is a singleton exactly when every displayed cellwise superlevel set is a singleton; in particular this holds when every cell binds at its individual envelope.
+\end{proposition}
+\begin{proof}
+For each \(j\in J\), the zero-discrepancy clause of the weight-side theorem makes \(\theta_{0j}\) its unique individual maximizer for every holdout.  Since all discrepancies are nonnegative, the global-endpoint theorem makes \(1-\rho_0\) the unique maximizing holdout fraction.  At that holdout, the separate cell-specific coordinates imply
+\[
+\min_j\Pi_j(1-\rho_0,\theta_j,\ell_s)=V^\star
+\]
+if and only if every cell power is at least \(V^\star\); this is exactly the displayed Cartesian product.  A finite Cartesian product is a singleton exactly when each factor is.  If every cell binds, its factor is the set on which power reaches its individual maximum, which is \(\{\theta_{0j}\}\) by uniqueness.  No equality of primitives across cells is required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives the correct arbitrary-finite-stratum proportional benchmark and the exact condition under which the full design, rather than only its holdout, is unique. \textit{Gap.} The obsolete two-identical-cell statement imposed an unnecessary premise and obscured slack-cell optimizer sets. \textit{Consumer.} Implementers can validate each cellwise proportional weight while retaining all globally admissible slack weights.
+
+\section{Interpretation}
+
+The result separates a reusable exact-inference layer from a new design layer. The augmented-action map certifies that the finite reference is a computable specialization of established selective randomization inference at the sharp null. The Gaussian transfer and the ensuing endpoint, interior, and mixed-sign optimizer geometry are additional results, valid uniformly over a common scalar holdout and finitely many active complete-cell coordinates.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The per-array transfer remains qualitative: it controls random complement counts, studentizers, local rank crossings, complete signed-cell conditioning, null imputation, and moving critical values with one \(\eta_n(B)\), but supplies no deterministic rate uniform over all baseline arrays. Finiteness of \(S\) and \(J\) is essential to the joint Cramér--Wold, finite-product cancellation, common margin, and semianalytic refinement arguments. The FZG bridge establishes only representation, computability, and validity; it does not imply the Gaussian approximation or any holdout-power optimum. The two-component mixture remains deliberately two-stratum and certifies interiority, not uniqueness.
+
+\section{Honest scope}
+
+The strata may form any fixed finite nonempty set, but may not grow with \(n\). The common scalar holdout is chosen from the fixed compact interval \(I\), and only active pairs in finite \(J\) are tested. Finite-sample exactness is confined to the prespecified Fisher sharp-zero null. Positive local alternatives use a shifted sampling law, while each realized dataset creates a separate zero-drift Fisher reference. The FZG relationship is a specialization of their augmented-action representation, not class equivalence; their results do not supply this note's Gaussian transfer or optimizer. Rosenblum--Fang--Liu is nonnested and transfers no optimality claim. The explicit \(W_{\mathrm{mix}}\) witness sets \(S=\{1,2\}\) only for that counterexample. General outputs remain set-valued unless an explicit separation certificate proves a unique design.
+
+\begin{thebibliography}{99}
+
+  \bibitem{BierstoneMilman1988Semianalytic} Edward Bierstone and Pierre D. Milman. Semianalytic and subanalytic sets. Publications Mathematiques de l'IHES, 67:5--42, 1988. doi:10.1007/BF02699126.
+
+  \bibitem{FreidlingZhaoGao2026SelectiveRI} Tobias Freidling, Qingyuan Zhao, and Zijun Gao. Selective Randomization Inference for Adaptive Experiments. Journal of the Royal Statistical Society: Series B, 2026. doi:10.1093/jrsssb/qkag081; arXiv:2405.07026v4.
+
+  \bibitem{LiDing2017FinitePopulationCLT} Xinran Li and Peng Ding. General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference. Journal of the American Statistical Association, 112:1759--1769, 2017. doi:10.1080/01621459.2017.1295865; arXiv:1610.04821.
+
+  \bibitem{TianTaylor2018RandomizedResponse} Xiaoying Tian and Jonathan E. Taylor. Selective Inference with a Randomized Response. The Annals of Statistics, 46:679--710, 2018. doi:10.1214/17-AOS1564; arXiv:1507.06739.
+
+  \bibitem{ShiDing2025BerryEsseen} Lei Shi and Peng Ding. Berry--Esseen Bounds for Design-Based Causal Inference with Possibly Diverging Treatment Levels and Varying Group Sizes. arXiv:2209.12345, revised 2025.
+
+  \bibitem{ShenfeldVanHandel2018EhrhardEquality} Yair Shenfeld and Ramon van Handel. The Equality Cases of the Ehrhard--Borell Inequality. Advances in Mathematics, 331:339--386, 2018. doi:10.1016/j.aim.2018.04.013; arXiv:1709.00061.
+
+  \bibitem{RosenblumFangLiu2020OptimalEnrichment} Michael Rosenblum, Ethan X. Fang, and Han Liu. Optimal, Two-Stage, Adaptive Enrichment Designs for Randomized Trials, Using Sparse Linear Programming. Journal of the Royal Statistical Society: Series B, 82:749--772, 2020. doi:10.1111/rssb.12366.
+
+  \bibitem{ChenAndrews2026OptimalConditional} Jiafeng Chen and Isaiah Andrews. Optimal Conditional Inference in Adaptive Experiments. arXiv:2309.12162v2, 2026.
+
+  \bibitem{Thall2021AdaptiveEnrichmentSurvey} Peter F. Thall. Adaptive Enrichment Designs in Clinical Trials. Annual Review of Statistics and Its Application, 8:393--411, 2021. doi:10.1146/annurev-statistics-040720-032818.
+
+  \bibitem{WuDing2021WeakNullFRT} Jason Wu and Peng Ding. Randomization Tests for Weak Null Hypotheses in Randomized Experiments. Journal of the American Statistical Association, 116:1898--1913, 2021. doi:10.1080/01621459.2020.1750415; arXiv:1809.07419.
+
+  \bibitem{CohenFogarty2022GaussianPrepivoting} Peter L. Cohen and Colin B. Fogarty. Gaussian Prepivoting for Finite Population Causal Inference. Journal of the Royal Statistical Society: Series B, 84:295--320, 2022. doi:10.1111/rssb.12439; arXiv:2002.06654.
+
+  \bibitem{CaugheyDafoeLiMiratrix2023BeyondSharp} Devin Caughey, Allan Dafoe, Xinran Li, and Luke Miratrix. Randomization Inference beyond the Sharp Null: Bounded Null Hypotheses and Quantiles of Individual Treatment Effects. Journal of the Royal Statistical Society: Series B, 85:1471--1491, 2023. doi:10.1093/jrsssb/qkad080; arXiv:2101.09195.
+
+  \bibitem{Gao2025ContinuousBiomarkerSRI} Zijun Gao. Selective Randomization Inference for Subgroup Effects with Continuous Biomarkers. arXiv:2504.19380, 2025.
+
+  \bibitem{Stallard2023ContinuousBiomarker} Nigel Stallard. Adaptive Enrichment Designs with a Continuous Biomarker. Biometrics, 79:9--19, 2023. doi:10.1111/biom.13644.
+
+\end{thebibliography}
+
+\end{document}

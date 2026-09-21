@@ -1,10 +1,13 @@
-import Causalean.Mathlib.Analysis.HalfDiscPolar
+module
+public import Causalean.Mathlib.Analysis.HalfDiscPolar
 
 /-!
 # Re-exported half-disc polar identities
 
 The general planar identities now live in Causalean.
 -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 

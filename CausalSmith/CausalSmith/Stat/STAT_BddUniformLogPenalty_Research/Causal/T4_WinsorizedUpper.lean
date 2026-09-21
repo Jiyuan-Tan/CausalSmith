@@ -1,9 +1,10 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.WinsorizedScoreMaximal
-import Causalean.Mathlib.Analysis.ConvexProjection
-import Causalean.Mathlib.Analysis.ClipInterval
-import Mathlib.Probability.Kernel.Composition.IntegralCompProd
-import Mathlib.Analysis.SpecialFunctions.Log.Monotone
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.WinsorizedScoreMaximal
+public import Causalean.Mathlib.Analysis.ConvexProjection
+public import Causalean.Mathlib.Analysis.ClipInterval
+public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
+public import Mathlib.Analysis.SpecialFunctions.Log.Monotone
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-!
 # Outer-expected upper bound for the explicit winsorized estimator
@@ -13,6 +14,8 @@ identification, sequential first-order bias, and the supplement's expected
 Gram/raw-score bounds.  The bounded winsorized-score maximal inequality is
 proved in run and introduces no fourth hypothesis.
 -/
+
+@[expose] public section
 
 open Filter MeasureTheory Set
 open scoped ENNReal Topology

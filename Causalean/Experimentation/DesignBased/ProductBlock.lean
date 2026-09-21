@@ -18,10 +18,11 @@ package this as a vanishing covariance: `Cov_prod_block_zero` (complement split)
 `Cov_prod_disjoint_zero` (arbitrary disjoint blocks).
 -/
 
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Experimentation.DesignBased.ProductMeasure
-import Mathlib.Logic.Equiv.Fin.Basic
-import Mathlib.Probability.Independence.Integration
+module
+public import Causalean.Stat.FiniteDesign.Product
+public import Causalean.Stat.FiniteDesign.ProductMeasure
+public import Mathlib.Logic.Equiv.Fin.Basic
+public import Mathlib.Probability.Independence.Integration
 
 /-! # Disjoint-block independence for product designs
 
@@ -33,9 +34,13 @@ corollaries `FiniteDesign.Cov_prod_block_zero` and `FiniteDesign.Cov_prod_disjoi
 that independence for complement blocks and for arbitrary disjoint blocks.
 -/
 
+public section
+
 open scoped BigOperators
 open Finset
 open MeasureTheory ProbabilityTheory
+
+open Causalean.Experimentation.DesignBased.FiniteDesign
 
 namespace Causalean
 namespace Experimentation

@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Basic
-import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
-import Mathlib.MeasureTheory.Measure.AbsolutelyContinuous
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Basic
+public import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+public import Mathlib.MeasureTheory.Measure.AbsolutelyContinuous
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 set_option linter.style.longLine false
 
@@ -12,6 +13,8 @@ Foundational finite-symbol trajectory definitions, separated from their
 chronological factorization proofs so that the latter can reuse the finite
 path marginalization library without an import cycle.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

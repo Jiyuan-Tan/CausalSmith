@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.Probability.Moments.Variance
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Ring
+module
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.Tactic.NormNum
+public import Mathlib.Tactic.Ring
 
 /-!
 # Variance decomposition on a product probability space
@@ -15,6 +16,8 @@ import Mathlib.Tactic.Ring
 This file provides the law of total variance in an explicit form for a statistic of two
 independent coordinates, using its within-slice variances and slice means.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 

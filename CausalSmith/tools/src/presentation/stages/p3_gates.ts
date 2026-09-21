@@ -3,7 +3,6 @@ import { MODELS } from "../../models.js";
 import { join } from "node:path";
 import type { StageIO } from "../pipeline.js";
 import { presentationPrompt } from "../prompt_io.js";
-import { parseOutline } from "../stage_util.js";
 import { CITATION_SUPPORT_REPLY, OVERCLAIM_REPLY, REPLACEMENTS_REPLY, RUBRIC_REPLY } from "../reply_schemas.js";
 import { canonicalizeObjRefs, lintAnchors, lintEnvOrder, hashEnvBody, normalizeCrefs, parseAnchoredEnvs, repairObjRefs, reviewerTexFor } from "../tex_anchors.js";
 import { FormalLayerSource, blocksToTex } from "../formal_layer.js";

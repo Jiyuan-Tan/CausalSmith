@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.DiscreteID.Mass
-import Causalean.SCM.ID.Density.ChainRuleDensity
+module
+public import Causalean.SCM.ID.DiscreteID.Mass
+public import Causalean.SCM.ID.Density.ChainRuleDensity
 
 /-!
 # Point-mass bridges for finite discrete densities
@@ -15,6 +16,13 @@ derivatives and conditional kernels into singleton-mass ratios on finite
 measurable-singleton spaces.  The statements are reference-measure agnostic:
 they apply to any faithful finite reference family, not only counting measure.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 

@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TGeneratorIffFrontier
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedGeneratorIffFrontier
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TGeneratorIffFrontier
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedGeneratorIffFrontier
 
 /-! # Heterogeneous-propensity elbow -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -1,0 +1,58 @@
+{
+  "node_type": "meta",
+  "body": {
+    "qid": "panel_loading_transition",
+    "specialization": "v1",
+    "cluster": "panel",
+    "target_estimand": "\\(\\theta_n=uA^+v\\)",
+    "estimand_functional": "\\(I_n^{\\mathrm{out}}=\\begin{cases}[\\widehat\\theta_n-\\sigma^2W_n-d_n,\\widehat\\theta_n+\\sigma^2W_n+d_n],&\\text{if }G_n,\\\\{}[-B^2/c,B^2/c],&\\text{if }G_n^c.\\end{cases}\\)",
+    "sampling_model": {
+      "design": "Four-block strong-factor panel experiment with one unobserved counterfactual mean and a donor-only spectral construction.",
+      "units": "For each \\(n\\), the donor block is \\(n\\times n\\), the target row is \\(1\\times n\\), and the target column is \\(n\\times1\\).",
+      "treatment": "Treatment masks the lower-right untreated potential-outcome entry; identification of its mean follows from the exact rank and span restrictions.",
+      "overlap": "No target-loading lower bound is imposed; donor singular values satisfy \\(cn\\le s_r(A)\\le s_1(A)\\le C_0n\\).",
+      "nuisance_estimation": "Known \\(r\\) and \\(\\sigma\\); \\(A\\), its singular spaces, and both target loading coordinates are unknown and estimated only through the real Gaussian observations \\(X,R,C\\). The certified implementation first applies the measurable map \\(\\mathsf{Enc}_{p_n,L_n}\\) and retains an explicit encoding-exception flag."
+    },
+    "comparator_promise_table": [
+      {
+        "comparator_bibkey": "YanWainwright2024",
+        "comparator_claim": "Theorem 1 gives Gaussian entrywise inference under condition \\(4.4\\mathrm{c}\\).  The present upper guarantee removes that condition only on the canonical square one-target subclass proved by the embedding proposition; the local lower bound on this subclass transfers to any containing class because honesty on the larger class implies honesty on the subclass.",
+        "matched_by": "prop:yan-wainwright-class-embedding, thm:uniform-coverage, thm:local-length-lower-bound",
+        "match_kind": "strict_tightening"
+      },
+      {
+        "comparator_bibkey": "BeiNavjeevan2026",
+        "comparator_claim": "Theorems 4.1--4.2 give uniformly valid minimum-distance inference for first-order-degenerate smooth transformations from a uniformly Gaussian primitive estimator.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "XiaYanWainwright2025",
+        "comparator_claim": "Appendix C proposes a first-order bilinear interval and states that analogous validity requires modified projected-loading conditions.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "TeraoWatanabeOzaki2025",
+        "comparator_claim": "Residuals from computed SVD factors produce verified enclosures for singular values.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "VuChunikhinaRaich2021",
+        "comparator_claim": "Truncated SVD has explicit first- and second-order perturbation expansions and normwise remainder bounds.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      }
+    ],
+    "tldr": "A strong donor block identifies the missing untreated panel mean as \\(\\theta_n=uA^+v\\). The donor-only interval \\(I_n^{\\mathrm{out}}\\) retains the bilinear transition term through an exact conditional Gaussian reduction, covers uniformly without a target-loading lower bound, has expected length of order \\(w_n=a_n+b_n\\), and attains the Gaussian oracle constant along every first-order-dominant sequence. The corrected canonical comparison uses Yan--Wainwright's normalization \\(\\omega=\\sigma(n+1)\\), giving global noise ratio \\(O(n^{-1/2})\\) and local ratios \\(O(n^{-3/2})\\). A measurable dyadic encoding plus residual-certified directed arithmetic now yields the same coverage and length guarantees, including uniformly negligible numerical padding, under exact-dyadic public controls.",
+    "project_justification": {
+      "gap": "Existing four-block panel intervals are sharp only after a target-loading lower bound, while generic first-order-degeneracy inference assumes that the primitive Gaussian experiment and its covariance are already available. Neither literature controls donor-SVD target drift at the quadratic \\(n^{-1}\\) width or certifies floating-point endpoints.",
+      "niche": "Known-rank Gaussian strong-donor panels isolate a finite-dimensional bilinear reduced experiment while retaining the repeated-spectrum, joint-zero, and arbitrarily slow-transition cases that defeat a single delta-method normalization.",
+      "fill": "The project derives the donor-conditional experiment, constructs an analytic outer interval with an observable donor allowance and bounded fallback, proves transition-order and every-sequence oracle length results, and supplies a certified implementation. The implementation measurably encodes the continuous Gaussian observations, constructs inverse candidates by residual-certified Newton--Schulz iteration, encloses invariant projectors with an explicit matrix-sign truncation tail, propagates noncommutative rounding error through a solved recurrence, and falls back to a bounded branch hull whenever the spectral decision is uncertain."
+    },
+    "related_work": "Yan and Wainwright (2024) supply the four-block spectral estimator, regular Gaussian interval, and lower-bound architecture. Under their variance convention the present embedded \\((n+1)\\)-by-\\((n+1)\\) model has \\(\\omega=\\sigma(n+1)\\), so their global noise quantity is \\(O(n^{-1/2})\\), while the local quantities in condition \\(4.4\\) are \\(O(n^{-3/2})\\); these corrected rates still verify conditions \\(4.1\\)--\\(4.4\\mathrm b\\), and joint-zero loadings fail condition \\(4.4\\mathrm c\\). The upper extension is only on this canonical square one-target subclass, never the full published class. Bei and Navjeevan (2026) supply the general first-order-degeneracy perspective, whereas the present contribution is the strong-donor panel transfer, observable donor allowance, all-sequence length theorem, and certified computation. Xia, Yan, and Wainwright (2025) and CAST are the same-question consumers. Verified-SVD and floating-point references motivate individual numerical ingredients but do not themselves prove the combined coverage-preserving implementation; that claim is derived here under the stated exact-dyadic public-control model.",
+    "technical_internal_limitation": "The numerical theorem is for the abstract directed radix-two model with arbitrary signed exponents and exact-dyadic public controls. A non-dyadic refinable control requires a separate known uniform time-and-output-size modulus, inclusion of that modulus in the schedules and bit count, and propagation of the returned control interval. An IEEE implementation must still realize the stipulated exact power-of-two rescaling, exponent widening, outward special-function evaluation, and rejection of flushed values. The statistical model continues to require known fixed rank, known homoskedastic Gaussian variance, strong donor factors, and exact row and column span membership.",
+    "honest_scope": "The result covers square strong-donor panels of known fixed rank with known homoskedastic Gaussian variance, exact row and column span membership, fixed incoherence, and bounded entries. It does not claim unknown-rank adaptation, weak-donor inference, approximate-factor robustness, dependence robustness, or inference for a realized untreated outcome. Its comparison with Yan--Wainwright is confined to the proved canonical square one-target subclass. Real Gaussian observations remain continuous and are passed through the measurable encoding map; only the public controls are restricted to exact dyadic inputs for the proved polynomial-time certificate. Arbitrary refinable public controls and a deployed IEEE implementation remain outside the theorem unless their additional moduli and exceptional-state checks are supplied."
+  }
+}

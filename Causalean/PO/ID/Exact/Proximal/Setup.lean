@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Assumptions.IndepCF
+module
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Assumptions.IndepCF
 
 /-! # Proximal Setup
 
@@ -20,6 +21,8 @@ sub-sigma-algebra lemmas.
 
 Assumption bundles and the identification theorem are kept in the companion
 `Proximal.Assumptions` and `Proximal.Main` files. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -57,92 +60,121 @@ variable {P : POSystem}
 
 /-! ### Factual maps -/
 
-/-- For [a proximal potential-outcome system](hyp:S), the [factual covariate](goal) assigns to each unit its covariate under the factual, unmanipulated regime. -/
+/-- [The factual covariate](goal) records each unit's observed baseline covariates in
+[the proximal system's](hyp:S) unmanipulated regime
+[by reading its designated covariate variable](step:1). -/
 noncomputable def X : P.Ω → γ_X := S.Xvar.factual
 
-/-- For [a proximal potential-outcome system](hyp:S), the [factual binary treatment](goal) assigns to each unit its treatment under the factual, unmanipulated regime. -/
+/-- [The factual binary treatment](goal) records the treatment actually received in
+[the proximal system's](hyp:S) observed regime
+[by reading its designated treatment variable](step:1). -/
 noncomputable def A : P.Ω → Bool := S.Avar.factual
 
-/-- For [a proximal potential-outcome system](hyp:S), the [factual treatment-side proxy](goal) assigns to each unit its treatment-side proxy value under the factual regime. -/
+/-- [The factual treatment-side proxy](goal) records the observed negative-control exposure
+from [the proximal system](hyp:S) [through its designated treatment-side proxy](step:1). -/
 noncomputable def Z : P.Ω → γ_Z := S.Zvar.factual
 
-/-- For [a proximal potential-outcome system](hyp:S), the [factual outcome-side proxy](goal) assigns to each unit its outcome-side proxy value under the factual regime. -/
+/-- [The factual outcome-side proxy](goal) records the observed negative-control outcome
+from [the proximal system](hyp:S) [through its designated outcome-side proxy](step:1). -/
 noncomputable def W : P.Ω → γ_W := S.Wvar.factual
 
-/-- For [a proximal potential-outcome system](hyp:S), the [factual outcome](goal) assigns to each unit its real-valued outcome under the factual regime. -/
+/-- [The factual outcome](goal) is the real response observed under
+[the proximal system's](hyp:S) realized treatment
+[as read from its designated outcome variable](step:1). -/
 noncomputable def Y : P.Ω → ℝ := S.Yvar.factual
 
-/-- For [a proximal potential-outcome system](hyp:S), the [latent confounder](goal) assigns to each unit its unobserved confounder value. -/
+/-- [The latent confounder](goal) records the unobserved common cause represented in
+[the proximal system](hyp:S) [through its designated confounder variable](step:1). -/
 noncomputable def U : P.Ω → γ_U := S.Uvar.factual
 
 /-! ### Measurability of factual maps -/
 
-/-- The factual covariate is measurable. -/
+/-- [The factual covariate in the proximal system](hyp:S) [is measurable](goal), so it can
+serve as an observed conditioning variable. -/
 @[fun_prop]
 lemma measurable_X : Measurable S.X := S.Xvar.measurable_factual
-/-- The factual treatment is measurable. -/
+/-- [The realized treatment in the proximal system](hyp:S) [is measurable](goal), making
+treatment-arm events observable. -/
 @[fun_prop]
 lemma measurable_A : Measurable S.A := S.Avar.measurable_factual
-/-- The factual treatment-side proxy is measurable. -/
+/-- [The observed treatment-side proxy in the proximal system](hyp:S)
+[is measurable](goal), so it may enter observable bridge moments. -/
 @[fun_prop]
 lemma measurable_Z : Measurable S.Z := S.Zvar.measurable_factual
-/-- The factual outcome-side proxy is measurable. -/
+/-- [The observed outcome-side proxy in the proximal system](hyp:S)
+[is measurable](goal), so bridge functions may be evaluated on it. -/
 @[fun_prop]
 lemma measurable_W : Measurable S.W := S.Wvar.measurable_factual
-/-- The factual outcome is measurable. -/
+/-- [The observed outcome in the proximal system](hyp:S) [is measurable](goal), hence
+defines observable outcome moments. -/
 @[fun_prop]
 lemma measurable_Y : Measurable S.Y := S.Yvar.measurable_factual
-/-- The factual latent confounder is measurable. -/
+/-- [The latent confounder represented by the proximal system](hyp:S)
+[is measurable](goal), allowing latent conditional-expectation arguments. -/
 @[fun_prop]
 lemma measurable_U : Measurable S.U := S.Uvar.measurable_factual
 
 /-! ### Counterfactual outcome under treatment -/
 
-/-- For [a proximal potential-outcome system](hyp:S) and [a treatment level](hyp:a), the [treatment-specific potential outcome](goal) assigns to each unit the real outcome it would have under an intervention setting treatment to that level. -/
+/-- [The treatment-specific potential outcome](goal) is the response each unit would have
+if [the proximal system](hyp:S) intervened to set treatment to [the chosen arm](hyp:a),
+[using the counterfactual outcome under that intervention](step:1). -/
 noncomputable def YofA (a : Bool) : P.Ω → ℝ := S.Yvar.cfUnder S.Avar a
 
-/-- The treatment-specific potential outcome is measurable. -/
+/-- [The potential outcome under a chosen treatment arm](hyp:S,a) [is measurable](goal),
+so its conditional means and population mean are well formed. -/
 @[fun_prop]
 lemma measurable_YofA (a : Bool) : Measurable (S.YofA a) :=
   S.Yvar.measurable_cfUnder S.Avar a
 
 /-! ### Tuple maps (used as conditioning targets) -/
 
-/-- For [a proximal potential-outcome system](hyp:S), the [joint treatment, treatment-side-proxy, and covariate map](goal) assigns to each unit its factual treatment, treatment-side proxy, and covariate. -/
+/-- [The observable treatment-side conditioning vector](goal) combines realized treatment,
+the treatment-side proxy, and baseline covariates from [the proximal system](hyp:S)
+[in that order](step:1). -/
 noncomputable def AZX : P.Ω → Bool × γ_Z × γ_X :=
   fun ω => (S.A ω, S.Z ω, S.X ω)
 
-/-- For [a proximal potential-outcome system](hyp:S), the [joint treatment, latent-confounder, and covariate map](goal) assigns to each unit its factual treatment, latent confounder, and covariate. -/
+/-- [The latent treatment-stratum vector](goal) combines realized treatment, the latent
+confounder, and baseline covariates from [the proximal system](hyp:S)
+[in that order](step:1). -/
 noncomputable def AUX : P.Ω → Bool × γ_U × γ_X :=
   fun ω => (S.A ω, S.U ω, S.X ω)
 
-/-- For [a proximal potential-outcome system](hyp:S), the [joint latent-confounder and covariate map](goal) assigns to each unit its latent confounder and covariate. -/
+/-- [The latent adjustment vector](goal) pairs the confounder with baseline covariates in
+[the proximal system](hyp:S) [in that order](step:1), producing the conditioning set used
+by latent exchangeability. -/
 noncomputable def UX : P.Ω → γ_U × γ_X :=
   fun ω => (S.U ω, S.X ω)
 
-/-- For [a proximal potential-outcome system](hyp:S), the [joint treatment, proxy, latent-confounder, and covariate map](goal) assigns to each unit its factual treatment, treatment-side proxy, latent confounder, and covariate. -/
+/-- [The augmented proximal conditioning vector](goal) combines treatment, the
+treatment-side proxy, the latent confounder, and covariates from
+[the proximal system](hyp:S) [in that order](step:1). -/
 noncomputable def AZUX : P.Ω → Bool × γ_Z × γ_U × γ_X :=
   fun ω => (S.A ω, S.Z ω, S.U ω, S.X ω)
 
 /-! ### Measurability of tuple maps -/
 
-/-- The treatment, treatment-side proxy, and covariate tuple is measurable. -/
+/-- [The observable treatment-side conditioning vector](hyp:S) [is measurable](goal), so
+conditioning on treatment, proxy, and covariates is legitimate. -/
 @[fun_prop]
 lemma measurable_AZX : Measurable S.AZX :=
   Measurable.prodMk S.measurable_A (Measurable.prodMk S.measurable_Z S.measurable_X)
 
-/-- The treatment, latent confounder, and covariate tuple is measurable. -/
+/-- [The latent treatment-stratum vector](hyp:S) [is measurable](goal), supporting
+conditional expectations given treatment, confounder, and covariates. -/
 @[fun_prop]
 lemma measurable_AUX : Measurable S.AUX :=
   Measurable.prodMk S.measurable_A (Measurable.prodMk S.measurable_U S.measurable_X)
 
-/-- The latent confounder and covariate tuple is measurable. -/
+/-- [The latent adjustment vector](hyp:S) [is measurable](goal), so it generates the
+conditioning information used in proximal exchangeability. -/
 @[fun_prop]
 lemma measurable_UX : Measurable S.UX :=
   Measurable.prodMk S.measurable_U S.measurable_X
 
-/-- The treatment, treatment-side proxy, latent confounder, and covariate tuple is
-measurable. -/
+/-- [The augmented proximal conditioning vector](hyp:S) [is measurable](goal), allowing
+joint conditioning on treatment, proxy, confounder, and covariates. -/
 @[fun_prop]
 lemma measurable_AZUX : Measurable S.AZUX :=
   Measurable.prodMk S.measurable_A
@@ -150,19 +182,27 @@ lemma measurable_AZUX : Measurable S.AZUX :=
 
 /-! ### σ-algebra abbreviations -/
 
-/-- For [a proximal potential-outcome system](hyp:S), the [σ-algebra generated by factual treatment, treatment-side proxy, and covariate](goal) is the pullback to the sample space of the product σ-algebra for those three measurements. -/
+/-- [The observable treatment-side information set](goal) generated by
+[the proximal system](hyp:S) [pulls back the product σ-algebra of treatment, the
+treatment-side proxy, and covariates](step:1). -/
 noncomputable def σ_AZX : MeasurableSpace P.Ω :=
   MeasurableSpace.comap S.AZX inferInstance
 
-/-- For [a proximal potential-outcome system](hyp:S), the [σ-algebra generated by factual treatment, latent confounder, and covariate](goal) is the pullback to the sample space of the product σ-algebra for those three measurements. -/
+/-- [The latent treatment-stratum information set](goal) generated by
+[the proximal system](hyp:S) [pulls back the product σ-algebra of treatment, the
+confounder, and covariates](step:1). -/
 noncomputable def σ_AUX : MeasurableSpace P.Ω :=
   MeasurableSpace.comap S.AUX inferInstance
 
-/-- For [a proximal potential-outcome system](hyp:S), the [σ-algebra generated by latent confounder and covariate](goal) is the pullback to the sample space of the product σ-algebra for those two measurements. -/
+/-- [The latent adjustment information set](goal) generated by
+[the proximal system](hyp:S) [pulls back the product σ-algebra of the confounder and
+baseline covariates](step:1). -/
 noncomputable def σ_UX : MeasurableSpace P.Ω :=
   MeasurableSpace.comap S.UX inferInstance
 
-/-- For [a proximal potential-outcome system](hyp:S), the [σ-algebra generated by factual treatment, treatment-side proxy, latent confounder, and covariate](goal) is the pullback to the sample space of the corresponding product σ-algebra. -/
+/-- [The augmented proximal information set](goal) generated by
+[the proximal system](hyp:S) [pulls back the product σ-algebra of treatment, the
+treatment-side proxy, the confounder, and covariates](step:1). -/
 noncomputable def σ_AZUX : MeasurableSpace P.Ω :=
   MeasurableSpace.comap S.AZUX inferInstance
 
@@ -178,8 +218,9 @@ a sub-sigma-algebra of the ambient space. -/
 lemma σ_AUX_le : S.σ_AUX ≤ (inferInstance : MeasurableSpace P.Ω) :=
   S.measurable_AUX.comap_le
 
-/-- [The σ-algebra generated by the latent confounder and covariate is a
-sub-σ-algebra of the ambient measurable space](goal). -/
+/-- [The latent adjustment information set from the proximal system](hyp:S)
+[contains only ambiently measurable events](goal), so it is a valid conditioning
+σ-algebra. -/
 lemma σ_UX_le : S.σ_UX ≤ (inferInstance : MeasurableSpace P.Ω) :=
   S.measurable_UX.comap_le
 

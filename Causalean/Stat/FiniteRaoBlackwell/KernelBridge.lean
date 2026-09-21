@@ -1,8 +1,9 @@
-import Causalean.Stat.FiniteRaoBlackwell.RaoBlackwell
-import Causalean.Stat.FiniteRaoBlackwell.Posterior
-import Causalean.Experimentation.DesignBased.FiniteDesignMeasure
-import Causalean.Stat.Minimax.FiniteKernelBayes
-import Mathlib.Probability.Kernel.Basic
+module
+public import Causalean.Stat.FiniteRaoBlackwell.RaoBlackwell
+public import Causalean.Stat.FiniteRaoBlackwell.Posterior
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
+public import Causalean.Stat.Minimax.FiniteKernelBayes
+public import Mathlib.Probability.Kernel.Basic
 
 /-!
 # Markov-kernel and finite-Bayes bridges
@@ -14,6 +15,8 @@ and a finite-prior posterior law of the latent state given the statistic.  Singl
 probabilities are identified with real finite masses, so the kernels can be passed directly to
 `Causalean.Stat.Minimax.FiniteKernelBayes` without an `ENNReal` loss conversion.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators

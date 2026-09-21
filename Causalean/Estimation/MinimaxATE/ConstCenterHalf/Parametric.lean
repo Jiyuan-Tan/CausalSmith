@@ -3,14 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Structure-agnostic ATE estimation: the parametric `Ω(1/n)` lower bound
+# Structure-agnostic ATE estimation: a parametric-shift two-point lower bound
 
-The Jin–Syrgkanis 2024 minimax rate for structure-agnostic ATE estimation is
-`Ω(εg εm + 1/n)`.  The sibling files (`ExplicitWitness.lean`/`ChiSquaredCore.lean`,
-`LowerBoundGen.lean`) deliver the **structure-agnostic** product term `εg εm` via the
-Rademacher-bump / Ingster-χ² construction.  This file delivers the additive,
-**parametric** `1/n` term — the irreducible statistical noise that survives even when
-the nuisances are known up to a one-dimensional constant shift.
+Jin–Syrgkanis 2024 includes an additive parametric term in its minimax rate. This file
+formalizes a perturbation-indexed ingredient for such an argument: a two-point lower bound
+at a caller-supplied treated-arm shift `δ`. The sibling files
+(`ExplicitWitness.lean`/`ChiSquaredCore.lean` and
+`ConstCenterGeneral/LowerBound.lean`) provide analogous perturbation-indexed product
+converses.
 
 The construction is a single two-point (Le Cam) testing problem on a general finite
 covariate `C`, with **constant** nuisances:
@@ -32,24 +32,25 @@ Tensorizing over `n` i.i.d. draws (`one_add_chiSqDiv_pi_iid`) and using
 bound (`twoPointWitness_quarter`) then forces every measurable estimator to miss the
 true ATE by `s = δ/2` with probability `≥ 1/4` somewhere in the class.
 
-Solving the regime constraint for the largest admissible gap gives
-`δ² ≍ g₁(1−g₁) log 2 /(m₀ n)`, i.e. `s = δ/2 ≍ 1/√n`, the parametric rate.
+The theorem below does not select `δ` from `n` or require it to be positive. A separate
+parameter-selection result would be needed to turn this family into a nonzero `1/√n`
+separation, or an `Ω(1/n)` squared-risk statement.
 
 Main result:
 
 * `parametric_lower_bound` — the headline `1/4 ≤ minimaxMiss … (δ/2)`.
 -/
 
-import Causalean.Estimation.MinimaxATE.Reduction.Witness
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSqOverlap
-import Causalean.Estimation.MinimaxATE.Reduction.Bump
-import Causalean.Stat.Minimax.ChiSquaredFinite
+module
+public import Causalean.Estimation.MinimaxATE.Reduction.Witness
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSqOverlap
+public import Causalean.Estimation.MinimaxATE.Reduction.Bump
+public import Causalean.Stat.Minimax.ChiSquaredFinite
 
 /-! # Parametric Lower Bound
 
-This file proves the parametric component of the structure-agnostic ATE minimax lower bound.  It
-uses a two-point constant-nuisance experiment to show that ordinary sampling noise imposes a
-one-over-sample-size squared-risk floor even apart from the product-bias obstruction.
+This file proves a perturbation-indexed two-point lower bound for a constant-nuisance
+experiment. It does not choose a nonzero perturbation as a function of sample size.
 
 The construction fixes a constant propensity `mC`, a null outcome regression `gNull`, and a
 treated-arm shift `gPert`.  The supporting lemmas prove validity (`validDGP_null`,
@@ -59,6 +60,10 @@ treated-arm shift `gPert`.  The supporting lemmas prove validity (`validDGP_null
 `parametric_lower_bound` applies the two-point reduction to show that every measurable estimator
 misses by `δ / 2` with probability at least `1 / 4` somewhere in the class under the stated
 budget and indistinguishability conditions. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability.ProductAbsolutelyContinuous
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -155,16 +160,13 @@ theorem inClass_pert {εg εm : ℝ} (hv : ValidDGP (C := C) (mC m₀) (gPert g�
     · simpa using hbudget
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- **Absolute continuity from full support.** If `ν` charges every singleton, every
-measure is absolutely continuous w.r.t. `ν`. -/
-theorem absolutelyContinuous_of_singleton_pos {Ω : Type*} [MeasurableSpace Ω]
-    (μ ν : Measure Ω) (hν : ∀ x, ν {x} ≠ 0) : μ ≪ ν := by
-  intro s hs
-  have hempty : s = ∅ := by
-    by_contra hne
-    obtain ⟨x, hx⟩ := Set.nonempty_iff_ne_empty.mpr hne
-    exact hν x (le_antisymm (hs ▸ measure_mono (Set.singleton_subset_iff.mpr hx)) zero_le)
-  rw [hempty]; exact measure_empty
+/-- Compatibility alias for the common full-support lemma: for [measures `μ` and `ν` on
+the same measurable space](hyp:μ,ν), if [`ν` charges every singleton](hyp:hν), then [`μ` is
+absolutely continuous with respect to `ν`](goal). -/
+@[deprecated Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos
+  (since := "2026-09-15")]
+alias absolutelyContinuous_of_singleton_pos :=
+  Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos
 
 /-- The null single-observation law charges every point (its mass is positive). -/
 theorem obsLaw_null_singleton_ne_zero (hv : ValidDGP (C := C) (mC m₀) (gNull g₀ g₁))
@@ -203,7 +205,7 @@ theorem one_add_chiSqDiv_obsPert_obsNull
   have hm0ne : m₀ ≠ 0 := hm0.ne'
   have h1m0ne : (1 - m₀) ≠ 0 := by intro h; rw [sub_eq_zero] at h; linarith
   have hac : obsLaw hvP ≪ obsLaw hvN :=
-    absolutelyContinuous_of_singleton_pos _ _
+    Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos _ _
       (obsLaw_null_singleton_ne_zero hvN hm0 hm1 hg0 hg0' hg1 hg1')
   rw [finite_one_add_chiSqDiv (obsLaw hvP) (obsLaw hvN) hac]
   -- rewrite each singleton mass to its real form
@@ -254,7 +256,7 @@ theorem chiSqDiv_productLaw_le_one {n : ℕ}
   haveI : IsProbabilityMeasure (obsLaw hvP) := obsLaw_isProb hvP
   haveI : IsProbabilityMeasure (obsLaw hvN) := obsLaw_isProb hvN
   have hac : obsLaw hvP ≪ obsLaw hvN :=
-    absolutelyContinuous_of_singleton_pos _ _
+    Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos _ _
       (obsLaw_null_singleton_ne_zero hvN hm0 hm1 hg0 hg0' hg1 hg1')
   -- the single-observation χ² value `χ²₁ = m₀ δ²/(g₁(1−g₁))`
   set χ₁ := m₀ * δ ^ 2 / (g₁ * (1 - g₁)) with hχ₁
@@ -280,7 +282,9 @@ theorem chiSqDiv_productLaw_le_one {n : ℕ}
       _ = 2 := h2
   linarith [htensor, hpow, hexp2]
 
-/-- **Total-variation indistinguishability of the `n`-sample laws.** -/
+/-- **The null and perturbed `n`-sample laws are close in total variation.** Under the
+displayed single-observation chi-squared regime, their total-variation distance is
+at most one half. -/
 theorem tvDist_productLaw_le_half {n : ℕ}
     (hvN : ValidDGP (C := C) (mC m₀) (gNull g₀ g₁))
     (hvP : ValidDGP (C := C) (mC m₀) (gPert g₀ g₁ δ))
@@ -291,7 +295,7 @@ theorem tvDist_productLaw_le_half {n : ℕ}
   haveI : IsProbabilityMeasure (productLaw hvP n) := productLaw_isProb hvP n
   haveI : IsProbabilityMeasure (productLaw hvN n) := productLaw_isProb hvN n
   have hac : obsLaw hvP ≪ obsLaw hvN :=
-    absolutelyContinuous_of_singleton_pos _ _
+    Causalean.Estimation.MinimaxATE.absolutelyContinuous_of_singleton_pos _ _
       (obsLaw_null_singleton_ne_zero hvN hm0 hm1 hg0 hg0' hg1 hg1')
   have hacP : productLaw hvP n ≪ productLaw hvN n := by
     rw [productLaw, productLaw]; exact pi_iid_absolutelyContinuous _ _ hac n
@@ -307,18 +311,17 @@ theorem tvDist_productLaw_le_half {n : ℕ}
 end Parametric
 
 open Parametric in
-/-- **Parametric `Ω(1/n)` minimax lower bound for structure-agnostic ATE estimation.**
+/-- **Parametric-shift minimax lower bound for structure-agnostic ATE estimation.**
 Around [a constant nuisance center `(m₀, g₀, g₁)` with all three coordinates strictly between
 `0` and `1`](hyp:hm0,hm1,hg0,hg0',hg1,hg1'), with [a nonnegative treated-arm shift δ satisfying
 `g₁ + δ ≤ 1`](hyp:hδ,hδU) that lies inside [the outcome-error budget
 `δ² ≤ εg`](hyp:hbudget) for [a nonnegative propensity-error tolerance εm](hyp:hεm), and in
-[the sample-size regime `n·m₀δ²/(g₁(1−g₁)) ≤ log 2`](hyp:hreg), [for any measurable estimator
-of the average treatment effect](hyp:hest) [the worst-case-over-class probability that it
+[the sample-size regime `n·m₀δ²/(g₁(1−g₁)) ≤ log 2`](hyp:hreg), then [for any measurable
+estimator of the average treatment effect](hyp:hest), [the worst-case-over-class probability that it
 misses the true ATE by `s = δ/2` is at least `1/4`](goal).
 
-Taking `δ ≍ √(g₁(1−g₁) log 2 /(m₀ n))` (the largest admissible shift) gives `s = δ/2 ≍
-1/√n`, the irreducible parametric noise that adds to the structure-agnostic product
-term `εg εm` in the Jin–Syrgkanis 2024 rate `Ω(εg εm + 1/n)`. -/
+This result accepts any admissible `δ`, including zero. It therefore does not by itself
+establish a nonzero `1/√n` separation or an `Ω(1/n)` squared-risk floor. -/
 theorem parametric_lower_bound {C : Type*} [Fintype C] [Nonempty C] [MeasurableSpace C]
     [MeasurableSingletonClass C]
     {n : ℕ} {m₀ g₀ g₁ δ εg εm : ℝ}

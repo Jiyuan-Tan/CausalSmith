@@ -1,8 +1,9 @@
-import Causalean.Mathlib.AlgebraicGeometry.RationalMap
-import Mathlib.Analysis.Calculus.Deriv.Inv
-import Mathlib.Analysis.Calculus.FDeriv.Mul
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Combinatorics.Nullstellensatz
+module
+public import Causalean.Mathlib.AlgebraicGeometry.RationalMap
+public import Mathlib.Analysis.Calculus.Deriv.Inv
+public import Mathlib.Analysis.Calculus.FDeriv.Mul
+public import Mathlib.Analysis.Calculus.MeanValue
+public import Mathlib.Combinatorics.Nullstellensatz
 
 /-!
 # Rational scalar derivative compiler
@@ -12,6 +13,8 @@ rational scalar coordinate into one polynomial equation.  The quotient-rule nume
 combined by a sum of squares; nonzeroness follows either from formal nonconstancy, an explicit
 derivative witness, or semantic nonconstancy on a convex domain.
 -/
+
+@[expose] public section
 
 open Set
 open scoped BigOperators
@@ -208,10 +211,11 @@ polynomial zero locus within that domain](goal). -/
 theorem derivative_zero_locus [Fintype S] [DecidableEq S]
     (r : RationalScalar S) (D : Set (S → ℝ)) (hD : r.DefinedOn D) :
     {x | x ∈ D ∧ fderiv ℝ r.eval x = 0} =
-      D ∩ Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus r.derivativePolynomial := by
+      D ∩ Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus
+        r.derivativePolynomial := by
   ext x
   simp only [Set.mem_ofPred_eq, Set.mem_inter_iff,
-    Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus]
+    Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus]
   apply and_congr_right
   intro hx
   exact fderiv_eq_zero_iff_derivativePolynomial_eq_zero r x (hD x hx)
@@ -268,4 +272,3 @@ theorem derivativePolynomial_ne_zero_of_nonconstantOn_convex
 end RationalScalar
 
 end Causalean.Mathlib.AlgebraicGeometry
-

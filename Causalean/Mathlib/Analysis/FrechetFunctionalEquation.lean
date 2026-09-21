@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Topology.Instances.RealVectorSpace
-import Mathlib.Analysis.Normed.Module.Basic
+module
+public import Mathlib.Topology.Instances.RealVectorSpace
+public import Mathlib.Analysis.Normed.Module.Basic
 
 /-!
 # Fréchet's functional equation (degree-one case)
@@ -19,6 +20,8 @@ The argument is classical: a vanishing second difference makes `f` midpoint-affi
 subtracting `f 0` yields an additive function; a continuous additive map of real
 vector spaces is `ℝ`-linear (`AddMonoidHom.toRealLinearMap`).
 -/
+
+public section
 
 namespace Causalean.Mathlib.Analysis
 

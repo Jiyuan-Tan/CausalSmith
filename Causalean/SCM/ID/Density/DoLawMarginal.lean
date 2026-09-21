@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Density.ReferenceMeasure
+module
+public import Causalean.SCM.ID.Density.ReferenceMeasure
 
 /-! # Foundational helpers for the do-law Y-marginal
 
@@ -17,6 +18,8 @@ hypothesis "the two models have the same observational law" into "the two models
 have the same observational density", from which the recovered c-factors — and
 hence the identifiable do-law `Y`-marginal — are read off.
 -/
+
+public section
 
 namespace Causalean.SCM
 

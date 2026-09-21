@@ -6,27 +6,27 @@ Authors: Jiyuan Tan
 # Rule 2 — Discrete-Z helpers (Pearl/SWIG backdoor identification surface)
 
 This file contains the discrete-treatment branch of the Rule 2 kernel proof. It
-uses the Pearl/SWIG backdoor condition for `W`, a joint overlap hypothesis, and a
-positivity hypothesis to compare the post-intervention `Y | W` kernel with the
+uses the Pearl/SWIG backdoor condition for `W` and a positivity hypothesis to
+compare the post-intervention `Y | W` kernel with the
 pre-intervention `Y | (Z.random ∪ W)` kernel at the filled assignment
 `fillZrW`.
 
 The key public declarations are:
 
-* `obsKernel_fixSet_W_marginal_eq_M1_marginal`, the Rule 3 `W`-marginal equality.
+* `obsKernel_fixSet_W_marginal_eq_M1_marginal`, the Rule 3* `W`-marginal equality.
 * `mu_C_comap_F_eq_nu_C_comap_F`, the cross-SCM pullback equality along
   `fillZrW`.
 * `obsCondKernel_cross_eq_ae_of_discrete`, the discrete-treatment conditional
   kernel bridge.
 
-## Discrete-Z typeclass
+## Pointwise slice assumptions
 
-The discrete-Z scope is signalled by
-  `[∀ z : {z // z ∈ Z}, Countable (swigΩ Ω (SWIGNode.random z.val))]`,
-combined with the standing `MeasurableSingletonClass (ValuesOn (Zr ∪ W) _)`.
-This is the regime in which the canonical pointwise `obsCondKernel` is
-well-defined on positive-mass atoms, supporting the rectangle identity's
-final disintegration step.
+The pointwise slice argument assumes
+`MeasurableSingletonClass (ValuesOn (Zr ∪ W) _)` together with a slice-level
+absolute-continuity hypothesis from the `W`-marginal to the pullback of the
+`Z.random ∪ W` marginal along `fillZrW`. It does not assume a per-treatment
+`Countable` instance. These are the live assumptions supporting the rectangle
+identity's final disintegration step.
 
 ## Continuous-treatment support
 
@@ -39,9 +39,10 @@ the treatment and adjustment marginals.  The structural pointwise facts in
 that product-a.e. proof.
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.RectIdentity
-import Causalean.SCM.Do.Rule3
-import Causalean.Mathlib.MeasurableEmbeddingExtras
+module
+public import Causalean.SCM.Do.Rule2Kernel.RectIdentity
+public import Causalean.SCM.Do.Rule3
+public import Causalean.Mathlib.MeasureTheory.MeasurableSpace.Embedding
 
 /-! # Discrete Treatment Helpers for Rule 2
 
@@ -52,8 +53,15 @@ equality `obsKernel_fixSet_W_marginal_eq_M1_marginal`, the filled-assignment
 pullback equality `mu_C_comap_F_eq_nu_C_comap_F`, and the discrete conditional
 kernel bridge `obsCondKernel_cross_eq_ae_of_discrete`. Together these connect
 post-intervention adjustment marginals to pre-intervention joint marginals using
-overlap, positivity, and the non-descendance condition needed for the Rule 3
+overlap, positivity, and the non-descendance condition needed for the Rule 3*
 marginal step. -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -65,10 +73,10 @@ namespace SCM
 open scoped MeasureTheory ProbabilityTheory
 
 -- ============================================================
--- § Rule 3 W-marginal equality
+-- § Rule 3* W-marginal equality
 -- ============================================================
 
-/-- **Rule 3 `W`-marginal equality for Rule 2.** For the intervention on names [`Z`, whose random
+/-- **Rule 3* `W`-marginal equality for Rule 2.** For the intervention on names [`Z`, whose random
     copies are observed in the base model](hyp:hZ_obs) and [whose fixed copies are not yet part
     of the base model's fixed coordinates](hyp:hZ_fixed), and a conditioning set [`W` contained
     in the observed variables](hyp:hW), if [no fixed copy of a name in `Z` is an ancestor, in the
@@ -100,7 +108,7 @@ theorem obsKernel_fixSet_W_marginal_eq_M1_marginal
           ((fixSet_observed M' Z hZ_obs hZ_fixed).symm ▸ hW))
       = (M'.obsKernel (M'.fixSetProj Z hZ_obs hZ_fixed s)).map
           (valuesProjection hW) := by
-  -- Rule 3 specialised to `T := W`: the W-marginal of the intervention
+  -- Rule 3* specialised to `T := W`: the W-marginal of the intervention
   -- kernel equals the W-marginal of the original kernel, because no z ∈ Z
   -- has `.fixed z` as ancestor of any v ∈ W in the post-intervention DAG.
   exact condDistrib_intervention_ancestral_eq M' Z hZ_obs hZ_fixed W hW
@@ -173,14 +181,21 @@ lemma mu_C_comap_F_eq_nu_C_comap_F
 -- § Discrete-treatment conditional-kernel bridge
 -- ============================================================
 
-/-- **Discrete-treatment cross-SCM conditional-kernel equality.**
+/-- **Discrete-treatment cross-SCM conditional-kernel equality.** For [an intervention target
+    whose random copies are observed and fixed copies are not already fixed](hyp:hZ_obs,hZ_fixed),
+    [observed outcome and conditioning blocks](hyp:hY,hW), and [an observed union of the target's
+    random copies with the conditioning block](hyp:hZrW), assume [the post-intervention
+    d-separation premise](hyp:hdSep) and [non-descendancy of the conditioning block](hyp:hWNonDesc).
+    At [a post-intervention fixed assignment](hyp:s), if [the base conditioning marginal is
+    absolutely continuous with respect to the pullback of the base joint marginal](hyp:hPositivity)
+    and [the outcome event is measurable](hyp:hB), then [the base and post-intervention
+    conditional kernels agree almost everywhere under the post-intervention conditioning
+    marginal](goal).
 
     Establishes the `ν_W`-a.e. agreement of the M1 and M2 conditional kernels
-    under the **Pearl/SWIG backdoor hypotheses**:
+    under the **Pearl/SWIG backdoor and positivity hypotheses**:
 
-    * `hWNonDesc` — Rule 3 / backdoor criterion (i) for `W`.
-    * `hOverlap`  — `Rule2JointOverlap`, the M2 → M1 absolute-continuity
-                    direction (the joint AC bound on Zr ∪ W).
+    * `hWNonDesc` — Rule 3* non-ancestor condition / backdoor criterion (i) for `W`.
     * `hPositivity` — `μ_W ≪ μ_C.comap F`, Pearl's positivity / overlap on
                       the W-marginal: for M1's marginal `μ_W`-a.e. `w`, the
                       point `(z*, w)` lies in M1's joint support on `Zr ∪ W`.
@@ -204,7 +219,7 @@ lemma mu_C_comap_F_eq_nu_C_comap_F
     5. Chain L1 and L2 on `μ_C.comap F`-a.e.
     6. **Transport `μ_C.comap F`-a.e. → `μ_W`-a.e.** via `hPositivity` and
        `MeasureTheory.Measure.AbsolutelyContinuous.ae_eq`.
-    7. Rewrite `ν_W = μ_W` using the Rule 3 marginal equality to land on the
+    7. Rewrite `ν_W = μ_W` using the Rule 3* marginal equality to land on the
        goal measure. -/
 lemma obsCondKernel_cross_eq_ae_of_discrete
     (M' : Causalean.SCM N Ω) (Z : Finset N)
@@ -296,7 +311,7 @@ lemma obsCondKernel_cross_eq_ae_of_discrete
   -- (3) Pullback equality: μ_C.comap F = ν_C.comap F.
   have hPartA : μ_C.comap F = ν_C.comap F :=
     mu_C_comap_F_eq_nu_C_comap_F M' Z hZ_obs hZ_fixed W hZrW hDisj_ZrW s
-  -- (4) Rule 3 marginal equality: ν_W = μ_W as measures.
+  -- (4) Rule 3* marginal equality: ν_W = μ_W as measures.
   have hν_W_eq_μ_W : ν_W = μ_W := by
     change (M2.obsKernel s).map (valuesProjection hW_M2)
          = (M'.obsKernel sM1).map (valuesProjection hW)
@@ -369,7 +384,7 @@ lemma obsCondKernel_cross_eq_ae_of_discrete
         (sM1, F w)) B
       = (M2.obsCondKernel Y W hY_M2 hW_M2 (s, w)) B :=
     hPositivity.ae_eq h_chain_μ
-  -- (10) Rewrite the goal's measure ν_W to μ_W via the Rule 3 marginal equality.
+  -- (10) Rewrite the goal's measure ν_W to μ_W via the Rule 3* marginal equality.
   change ∀ᵐ w ∂ν_W, _
   rw [hν_W_eq_μ_W]
   exact h_chain_μW

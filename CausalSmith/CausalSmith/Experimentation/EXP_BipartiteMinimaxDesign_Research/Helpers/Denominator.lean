@@ -12,7 +12,10 @@ C / card (Ox n)`. The bound comes from a Chebyshev inequality on the exposure-co
 denominators built from the bounded-degree covariance count.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorControl
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorControl
+
+public section
 
 set_option linter.style.longLine false
 
@@ -33,10 +36,10 @@ lemma treatDenominator_zero_prob_le (E : BipartiteExperiment I O)
     (hdeg : BoundedOutcomeDegree E dbar) (hdep : BoundedOverlapDependency E Dbar)
     (q : I → ℝ) (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1)
     (hq : FeasibleDesign ε B q) :
-    (bernoulliDesign q hq0 hq1).Pr (fun z => (E.hajekDenominators q z).1 = 0)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Pr (fun z => (E.hajekDenominators q z).1 = 0)
       ≤ Dbar * denominatorKernelBound ε dbar / (Fintype.card O : ℝ) := by
   classical
-  let D := bernoulliDesign q hq0 hq1
+  let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
   let X : (I → Bool) → ℝ := fun z => ∑ i, E.expT z i / E.piT q i
   let nR : ℝ := Fintype.card O
   have hnRpos : 0 < nR := by
@@ -80,10 +83,10 @@ lemma ctrlDenominator_zero_prob_le (E : BipartiteExperiment I O)
     (hdeg : BoundedOutcomeDegree E dbar) (hdep : BoundedOverlapDependency E Dbar)
     (q : I → ℝ) (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1)
     (hq : FeasibleDesign ε B q) :
-    (bernoulliDesign q hq0 hq1).Pr (fun z => (E.hajekDenominators q z).2 = 0)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Pr (fun z => (E.hajekDenominators q z).2 = 0)
       ≤ Dbar * denominatorKernelBound ε dbar / (Fintype.card O : ℝ) := by
   classical
-  let D := bernoulliDesign q hq0 hq1
+  let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
   let X : (I → Bool) → ℝ := fun z => ∑ i, E.expC z i / E.piC q i
   let nR : ℝ := Fintype.card O
   have hnRpos : 0 < nR := by
@@ -172,7 +175,7 @@ lemma denominator_positivity
       ∀ᶠ n in atTop, ∀ (q : Ix n → ℝ)
         (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1),
         FeasibleDesign ε (B n) q →   -- @realizes P_{n,B_n,epsilon}(cluster member: the feasible-design predicate whose `prob` field pins q ∈ [0,1]^{m_n}, the ambient box of the design class P_{n,B_n,ε}, alongside the floor and budget clauses at the FIXED budget B n; the ∀-over-q IS the note's supremum over the class)
-        (bernoulliDesign q hq0 hq1).Pr
+        (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Pr
             -- @realizes D_1(p,Z)(cluster member: `(hajekDenominators q z).1`, the [0,∞)-valued treated
             -- denominator, whose degenerate boundary value 0 this bound makes O(1/n)-rare)
             -- @realizes D_0(p,Z)(cluster member: `(hajekDenominators q z).2`, the [0,∞)-valued control
@@ -188,7 +191,7 @@ lemma denominator_positivity
     intro q hq0 hq1 hq
     have hcardO' : 0 < Fintype.card (Ox n) := by
       rw [hcard n]; exact Nat.lt_of_lt_of_le Nat.zero_lt_one hn
-    let D := bernoulliDesign q hq0 hq1
+    let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
     let nR : ℝ := Fintype.card (Ox n)
     have hnR : nR = (n : ℝ) := by
       unfold nR; exact_mod_cast congrArg (Nat.cast : ℕ → ℝ) (hcard n)
@@ -198,7 +201,7 @@ lemma denominator_positivity
     have hctrl := ctrlDenominator_zero_prob_le (E n) ε (B n) dbar Dbar hε0 hε2
       hcardO' (hdeg n) (hdep n) q hq0 hq1 hq
     calc
-      (bernoulliDesign q hq0 hq1).Pr
+      (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Pr
           (fun z => ((E n).hajekDenominators q z).1 = 0 ∨ ((E n).hajekDenominators q z).2 = 0)
           ≤ D.Pr (fun z => ((E n).hajekDenominators q z).1 = 0)
               + D.Pr (fun z => ((E n).hajekDenominators q z).2 = 0) := by

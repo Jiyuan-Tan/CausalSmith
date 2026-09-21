@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CondClasses
-import Mathlib.MeasureTheory.Measure.SeparableMeasure
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CondClasses
+public import Mathlib.MeasureTheory.Measure.SeparableMeasure
 
 /-! # Common-conull kernel pasting infrastructure -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

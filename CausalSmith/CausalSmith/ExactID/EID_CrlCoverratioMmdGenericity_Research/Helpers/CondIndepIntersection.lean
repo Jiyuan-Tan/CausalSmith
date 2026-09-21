@@ -1,8 +1,9 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.FiniteCoordinates
-import Causalean.Mathlib.CondIndep.CondExp
-import Mathlib.Probability.Kernel.CondDistrib
-import Mathlib.Probability.ProductMeasure
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.FiniteCoordinates
+public import Causalean.Mathlib.Probability.Independence.Conditional.CondExp
+public import Mathlib.Probability.Kernel.CondDistrib
+public import Mathlib.Probability.ProductMeasure
 
 /-!
 # Conditional-independence bridges for parent pruning
@@ -11,16 +12,25 @@ This file scaffolds the positivity-based graphoid intersection step and the
 finite-coordinate product bridge used with Causalean's generic weak-union lemma.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory ProbabilityTheory
 open Causalean
 
 noncomputable section
 
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Independence.Conditional
+
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 /-- The latent coordinate targeted by an environment label, expressed on observed space. -/
 def observedLatentCoordinate
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (e : Fin n) : LatentState n → ℝ :=
   by
     classical
@@ -31,7 +41,7 @@ def observedLatentCoordinate
 /-- The support-restricted version of an observed latent coordinate is measurable; on the
 observed support it is exactly the corresponding coordinate of the inverse mixing map.  Given [the stated inputs and conditions](hyp:hmix), [the stated conclusion](goal) follows. -/
 lemma measurable_observedLatentCoordinate
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hmix : SharedDiffeomorphicMixing G θ W) (e : Fin n) :
     Measurable (observedLatentCoordinate W e) := by
   classical
@@ -48,7 +58,7 @@ lemma measurable_observedLatentCoordinate
 /-- On the latent cube, the measurable observed coordinate version recovers the targeted
 latent coordinate after applying the mixing map.  Given [the stated inputs and conditions](hyp:hmix,hv), [the stated conclusion](goal) follows. -/
 lemma observedLatentCoordinate_mix
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hmix : SharedDiffeomorphicMixing G θ W)
     (e : Fin n) (v : LatentState n) (hv : v ∈ latentCube n) :
     observedLatentCoordinate W e (W.mix v) = v (W.targetPerm e) := by
@@ -631,7 +641,7 @@ paper's full product support.  The disjointness hypotheses are the internal DAG 
 in equations (15)--(18); they are not assumptions of the delivered decoder theorem.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hib,hiC,hiZ,hbC,hbZ,hCZ,h₁,h₂), [the stated conclusion](goal) follows. -/
 -- @node: condIndep_intersection_of_pos
 lemma condIndep_intersection_of_pos
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -879,7 +889,7 @@ lemma condIndep_coordSplit_prodMk
   refine ⟨hsigma, ?_⟩
   rcases hCIpair with ⟨hμ, hXi, hPair, hZA, hCIpair⟩
   refine ⟨hμ, hXi, hU b, hproj _, ?_⟩
-  have hraw := Causalean.condIndepFun_weak_union_of_prodMk hZA.comap_le
+  have hraw := condIndepFun_weak_union_of_prodMk hZA.comap_le
     (hU i) (hU b) (hproj ((S \ A).erase b)) hCIpair
   simpa only [hsigma] using hraw
 

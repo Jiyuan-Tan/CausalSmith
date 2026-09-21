@@ -9,10 +9,13 @@ Authors: Jiyuan Tan
 `lem:oversampled-chebyshev-lobatto-norming` (conditional consumer).
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import Causalean.Mathlib.Analysis.EhlichZellerMesh.Mesh
-import Mathlib.RingTheory.Polynomial.Chebyshev
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.Mesh
+public import Mathlib.RingTheory.Polynomial.Chebyshev
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+
+@[expose] public section
 
 open scoped BigOperators
 

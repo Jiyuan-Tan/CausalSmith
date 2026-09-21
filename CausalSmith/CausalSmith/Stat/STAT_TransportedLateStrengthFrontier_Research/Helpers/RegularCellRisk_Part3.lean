@@ -7,12 +7,17 @@ finite calculation is scoped to the injected support supplied by
 `RegularFiniteCellClass`.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part2
-import Causalean.Mathlib.Probability.VarianceProd
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part2
+public import Causalean.Mathlib.Probability.VarianceProd
+
+/-! ## Statistics and deterministic constants -/
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -21,7 +26,6 @@ open scoped BigOperators ENNReal Topology
 
 variable {𝒳 : Type*} [MeasurableSpace 𝒳]
 
-/-! ## Statistics and deterministic constants -/
 /-- At the target CACE, randomness of the target empirical score mean
 contributes at most `4 / N`. -/
 lemma regularCell_target_score_mean_variance_for_witness

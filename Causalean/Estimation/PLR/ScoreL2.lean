@@ -5,8 +5,8 @@ Authors: Jiyuan Tan
 
 # Partially linear score L²(P_Z) continuity
 
-Discharges the `o_p(1)` score-difference hypothesis `h_score_diff_rate` that
-`Estimation/PLR/DML.lean`'s `plr_dml_isAsymLinear` consumes from the abstract
+Constructs the `o_p(1)` score-difference rate that
+`Estimation/PLR/DML.lean`'s `plr_oneStepOracleDML_isAsymLinear` supplies to the abstract
 Chernozhukov engine.  Writing `z = (x, d, y)`, `ℓ̂ = (η̂ n ω).lFn`,
 `m̂ = (η̂ n ω).mFn`, `ℓ₀ = ℓ_val`, `m₀ = m_val`, `Δℓ = ℓ₀ − ℓ̂`, `Δm = m₀ − m̂`,
 `v₀ = d − m₀`, and `A = y − ℓ₀ − θ₀·v₀`, the Robinson partialling-out score
@@ -15,32 +15,36 @@ difference factors as
     ψ(η̂, z, θ₀) − ψ(η₀, z, θ₀)
       = A·Δm + Δℓ·v₀ + Δℓ·Δm − θ₀·Δm·v₀ − θ₀·Δm²,
 
-a pure `ring` identity.  Each of the five summands is a product of a uniformly
-bounded factor (`A`, `v₀`, or one copy of `Δℓ`/`Δm`) and a single L²-rate factor
-(`Δℓ` or `Δm`, functions of the covariate `x`).  Bounding `‖φ·f‖_{L²(P_Z)} ≤
-‖φ‖_∞ · ‖f‖_{L²(P_Z)}`, transporting the rate factors to `P_X` through the
-projection bridge `eLpNorm_comp_projX`, and assembling with the `IsLittleOp`
-sum/scalar combinators yields the headline
+a pure `ring` identity. Hölder's inequality bounds each product in L² by the
+product of its two L⁴ norms. The true residual factors `A` and `v₀` have fixed
+finite L⁴ norms, while the nuisance errors `Δℓ` and `Δm` converge to zero in L⁴;
+an almost-sure L⁴ envelope controls the quadratic nuisance products. Transporting
+the nuisance norms to `P_X` through the projection bridge
+`eLpNorm_comp_projX`, and assembling with the `IsLittleOp` sum/scalar
+combinators yields the headline
 
     `‖ψ(η̂(n,ω), ·, θ₀) − ψ(η₀, ·, θ₀)‖_{L²(P_Z)} = o_p(1)`,
 
-mirroring `Estimation/ATE/AIPWScoreL2.lean`'s
+mirroring `Estimation/ATE/Score/AIPWScoreL2.lean`'s
 `aipw_score_diff_isLittleOp_one`.
 -/
 
-import Causalean.Estimation.PLR.Setup
-import Causalean.Stat.Limit.Convergence
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
+module
+public import Causalean.Estimation.PLR.Setup
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
 
 /-! # Partially linear score L²(P_Z) `o_p(1)` continuity
 
 This file provides the standalone lemma `plr_score_diff_isLittleOp_one`, which
 discharges the score-difference `o_p(1)` hypothesis of the partially linear DML
-asymptotic-linearity theorem from boundedness of the truth residuals, uniform
-boundedness of the nuisance errors, and the two individual L²(P_X) nuisance
-rates. -/
+asymptotic-linearity theorem from L⁴ moment conditions on the truth residuals,
+almost-sure L⁴ envelopes for the nuisance errors, and the two individual
+L⁴(P_X) nuisance rates. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -61,8 +65,8 @@ equals its L²-seminorm on the covariate marginal: for measurable `g : γ → �
 of the pullback `g ∘ X` against `μ`, since `(X, D, Y)` has covariate component
 `X`. -/
 private lemma eLpNorm_comp_projX
-    (S : PLRSystem P γ) {g : γ → ℝ} (hg : Measurable g) :
-    eLpNorm (fun z : γ × ℝ × ℝ => g z.1) 2 S.P_Z = eLpNorm g 2 S.P_X := by
+    (S : PLRSystem P γ) {g : γ → ℝ} (hg : Measurable g) {p : ENNReal} :
+    eLpNorm (fun z : γ × ℝ × ℝ => g z.1) p S.P_Z = eLpNorm g p S.P_X := by
   have hX_ae : AEMeasurable S.factualX P.μ := S.measurable_factualX.aemeasurable
   have hZ_ae : AEMeasurable S.factualZ P.μ := S.measurable_factualZ.aemeasurable
   -- RHS: pull `g` along `X`.
@@ -116,7 +120,7 @@ private lemma lpNorm_bdd_mul_le
     _ = C * lpNorm f 2 μ := hCabs_norm
 
 /-- The Robinson partialling-out score difference expands into the five-term
-doubly-robust form `A·Δm + Δℓ·v₀ + Δℓ·Δm − θ₀·Δm·v₀ − θ₀·Δm²`, a pure
+Neyman-orthogonal form `A·Δm + Δℓ·v₀ + Δℓ·Δm − θ₀·Δm·v₀ − θ₀·Δm²`, a pure
 algebraic identity in the observation coordinates. -/
 private lemma score_diff_expand
     (S : PLRSystem P γ) (η : PLRNuisance γ) (z : γ × ℝ × ℝ) :
@@ -137,7 +141,7 @@ open Filter in
 /-- Per-`(n, ω)` quantitative bound feeding `plr_score_diff_isLittleOp_one`: the
 real L²(P_Z)-seminorm of the partially linear score difference is dominated by a
 constant multiple of the sum of the two regression-error L²(P_X) magnitudes,
-via the five-term doubly-robust expansion and the bounded-times-L² product
+via the five-term Neyman-orthogonal expansion and the bounded-times-L² product
 estimate. -/
 private theorem plr_score_diff_abs_le
     (S : PLRSystem P γ)
@@ -185,14 +189,14 @@ private theorem plr_score_diff_abs_le
   have hdL_eLp : eLpNorm dL 2 S.P_Z
       = eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 2 S.P_X := by
     have h := eLpNorm_comp_projX S (g := fun x => S.lVal x - (η_hat n ω).lFn x)
-      (S.lVal_meas.sub (η_hat n ω).lMeas)
+      (S.lVal_meas.sub (η_hat n ω).lMeas) (p := 2)
     rw [show dL = (fun z : γ × ℝ × ℝ => (fun x => S.lVal x - (η_hat n ω).lFn x) z.1)
         from rfl, h, ← eLpNorm_neg (fun x => (η_hat n ω).lFn x - S.lVal x)]
     congr 1; funext x; simp only [Pi.neg_apply, neg_sub]
   have hdM_eLp : eLpNorm dM 2 S.P_Z
       = eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 2 S.P_X := by
     have h := eLpNorm_comp_projX S (g := fun x => S.mVal x - (η_hat n ω).mFn x)
-      (S.mVal_meas.sub (η_hat n ω).mMeas)
+      (S.mVal_meas.sub (η_hat n ω).mMeas) (p := 2)
     rw [show dM = (fun z : γ × ℝ × ℝ => (fun x => S.mVal x - (η_hat n ω).mFn x) z.1)
         from rfl, h, ← eLpNorm_neg (fun x => (η_hat n ω).mFn x - S.mVal x)]
     congr 1; funext x; simp only [Pi.neg_apply, neg_sub]
@@ -330,78 +334,278 @@ private theorem plr_score_diff_abs_le
     abs_of_nonneg (add_nonneg (hrateL_nonneg n ω) (hrateM_nonneg n ω))]
   exact hfinal
 
+/-- Hölder's inequality in the `L⁴ × L⁴ → L²` form used by the PLR moment
+argument. -/
+private lemma eLpNorm_mul_four_toReal_le
+    {X : Type*} [MeasurableSpace X] {ν : Measure X} {f g : X → ℝ}
+    (hf : MemLp f 4 ν) (hg : MemLp g 4 ν) :
+    (eLpNorm (f * g) 2 ν).toReal ≤
+      (eLpNorm f 4 ν).toReal * (eLpNorm g 4 ν).toReal := by
+  let : ENNReal.HolderTriple 4 4 2 := by
+    change ENNReal.HolderTriple ((4 : NNReal) : ENNReal) ((4 : NNReal) : ENNReal)
+      ((2 : NNReal) : ENNReal)
+    exact NNReal.HolderTriple.coe_ennreal (by norm_num)
+      (by constructor <;> norm_num : NNReal.HolderTriple 4 4 2)
+  have hle : eLpNorm (f * g) 2 ν ≤ eLpNorm f 4 ν * eLpNorm g 4 ν := by
+    simpa [smul_eq_mul] using
+      (eLpNorm_smul_le_mul_eLpNorm (p := 4) (q := 4) (r := 2) hg.1 hf.1)
+  rw [← ENNReal.toReal_mul]
+  exact ENNReal.toReal_mono (by finiteness) hle
+
+/-- Minkowski's inequality after converting finite `eLpNorm`s to real values. -/
+private lemma eLpNorm_add_two_toReal_le
+    {X : Type*} [MeasurableSpace X] {ν : Measure X} {f g : X → ℝ}
+    (hf : MemLp f 2 ν) (hg : MemLp g 2 ν) :
+    (eLpNorm (f + g) 2 ν).toReal ≤
+      (eLpNorm f 2 ν).toReal + (eLpNorm g 2 ν).toReal := by
+  have hle := eLpNorm_add_le hf.1 hg.1 (by norm_num : (1 : ENNReal) ≤ 2)
+  rw [← ENNReal.toReal_add hf.eLpNorm_ne_top hg.eLpNorm_ne_top]
+  exact ENNReal.toReal_mono (by finiteness) hle
+
 open Filter in
-/-- **Score-difference L²(P_Z) `o_p(1)` for the partially linear model.**  Suppose
-[three nonnegative bounding constants `Ca`, `Cv`, `Cm`](hyp:hCa,hCv,hCm) satisfy:
-[the residualized outcome $A = Y-\ell_{val}(X)-\theta_0(D-m_{val}(X))$ is almost
-surely bounded by `Ca` under the observed-data law](hyp:hA_bdd); [the true treatment
-residual $D-m_{val}(X)$ is almost surely bounded by `Cv`](hyp:hv_bdd); and [the
-treatment-regression estimation error of `η_hat` is uniformly bounded by `Cm` at
-every fold, draw, and covariate value](hyp:hΔm_bdd). Suppose further that for the
-estimated nuisance sequence `η_hat` on the system `S`, [the outcome- and
-treatment-regression estimation errors are square-integrable over the covariate
-law at every fold and draw](hyp:hΔl_memLp,hΔm_memLp), and that [both regression
-errors converge to zero in L²(P_X) at rate $o_p(1)$](hyp:h_l_rate,h_m_rate). Then
+/-- Almost-sure domination by a positive constant times an `oₚ(1)` sequence
+preserves `oₚ(1)`. -/
+private theorem IsLittleOp.of_ae_abs_le_const_mul_one
+    {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+    {Xn Yn : ℕ → Ω → ℝ} {C : ℝ} (hC : 0 < C)
+    (hY : IsLittleOp Yn (fun _ => (1 : ℝ)) μ)
+    (hbound : ∀ n, ∀ᵐ ω ∂μ, |Xn n ω| ≤ C * |Yn n ω|) :
+    IsLittleOp Xn (fun _ => (1 : ℝ)) μ := by
+  intro ε hε
+  rw [ENNReal.tendsto_nhds_zero]
+  intro δ hδ
+  have hYevent := (ENNReal.tendsto_nhds_zero.mp
+    (hY (ε / C) (div_pos hε hC))) δ hδ
+  filter_upwards [hYevent] with n hn
+  refine (measure_mono_ae ?_).trans hn
+  filter_upwards [hbound n] with ω hdom
+  intro hω
+  by_contra hnot
+  simp only [mul_one] at hω hnot
+  have hYlt : |Yn n ω| < (ε / C) := lt_of_not_ge hnot
+  have hprod : C * |Yn n ω| < ε := by
+    calc
+      C * |Yn n ω| < C * (ε / C) := mul_lt_mul_of_pos_left hYlt hC
+      _ = ε := by field_simp [hC.ne']
+  exact (not_le_of_gt (hdom.trans_lt hprod)) hω
+
+/-- **Score-difference L²(P_Z) `o_p(1)` under moment conditions.** For [a PLR
+system](hyp:S) and [estimated nuisance sequence](hyp:η_hat), suppose the [true
+outcome residual](hyp:hA_memLp) and [true treatment residual](hyp:hv_memLp) have
+finite fourth moments. Suppose the [two nuisance errors have finite fourth
+moments](hyp:hΔl_memLp,hΔm_memLp), their [fourth-moment norms are uniformly bounded
+by a nonnegative constant](hyp:B,hB,hΔl_bound,hΔm_bound), and those [norms converge
+to zero in probability](hyp:h_l_rate,h_m_rate). Then
 [the L²(P_Z)-seminorm of the Robinson partialling-out score difference between the
 estimated and the true nuisance is itself $o_p(1)$](goal).
 
-This is exactly the `h_score_diff_rate` hypothesis consumed by
-`plr_dml_isAsymLinear`: the five-term doubly-robust expansion bounds the score
-difference pointwise by a constant multiple of the two regression-error
-magnitudes, each of which vanishes in probability, so their L² product with the
-uniformly bounded residual factors vanishes in probability too. -/
+This is a finite-fourth-moment sufficient condition for the score-continuity
+consequence used in the PLR argument, not a formalization of the full uniform
+model-class package in CCDDHNR Assumption 4.1. Hölder bounds the product terms,
+and the uniform `L⁴` envelope makes the quadratic nuisance products comparable
+to the individual errors. -/
 theorem plr_score_diff_isLittleOp_one
     (S : PLRSystem P γ)
     (η_hat : ℕ → P.Ω → PLRNuisance γ)
-    {Ca Cv Cm : ℝ} (hCa : 0 ≤ Ca) (hCv : 0 ≤ Cv) (hCm : 0 ≤ Cm)
-    (hA_bdd : ∀ᵐ z ∂S.P_Z,
-      |z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)| ≤ Ca)
-    (hv_bdd : ∀ᵐ z ∂S.P_Z, |z.2.1 - S.mVal z.1| ≤ Cv)
-    (hΔm_bdd : ∀ n ω x, |S.mVal x - (η_hat n ω).mFn x| ≤ Cm)
-    (hΔl_memLp : ∀ n ω, MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 2 S.P_X)
-    (hΔm_memLp : ∀ n ω, MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 2 S.P_X)
+    (hA_memLp : MemLp
+      (fun z => z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)) 4 S.P_Z)
+    (hv_memLp : MemLp (fun z => z.2.1 - S.mVal z.1) 4 S.P_Z)
+    {B : ℝ} (hB : 0 ≤ B)
+    (hΔl_memLp : ∀ n ω, MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X)
+    (hΔm_memLp : ∀ n ω, MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X)
+    (hΔl_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal ≤ B)
+    (hΔm_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal ≤ B)
     (h_l_rate :
       IsLittleOp
         (fun n ω =>
-          (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 2 S.P_X).toReal)
+          (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal)
         (fun _ => (1 : ℝ)) P.μ)
     (h_m_rate :
       IsLittleOp
         (fun n ω =>
-          (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 2 S.P_X).toReal)
+          (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal)
         (fun _ => (1 : ℝ)) P.μ) :
     IsLittleOp
       (fun n ω => (eLpNorm (fun z => plrMomentFunctional (η_hat n ω) z S.θ₀
                                    - plrMomentFunctional S.η₀ z S.θ₀) 2 S.P_Z).toReal)
       (fun _ => (1 : ℝ)) P.μ := by
   classical
-  -- The two L²(P_X) rate functions and their sum.
   set rateL : ℕ → P.Ω → ℝ := fun n ω =>
-    (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 2 S.P_X).toReal with hrateL
+    (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal with hrateL
   set rateM : ℕ → P.Ω → ℝ := fun n ω =>
-    (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 2 S.P_X).toReal with hrateM
+    (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal with hrateM
   have hrateL_nonneg : ∀ n ω, 0 ≤ rateL n ω := fun _ _ => ENNReal.toReal_nonneg
   have hrateM_nonneg : ∀ n ω, 0 ≤ rateM n ω := fun _ _ => ENNReal.toReal_nonneg
-  -- Sum of the two rates is `o_p(1)`.
   have hsum_rate :
       IsLittleOp (fun n ω => rateL n ω + rateM n ω) (fun _ => (1 : ℝ)) P.μ :=
     IsLittleOp.add_one h_l_rate h_m_rate
-  -- The combined constant.
-  set Cconst : ℝ := Ca + Cv + Cm + |S.θ₀| * Cv + |S.θ₀| * Cm with hCconst
+  let A4 := (eLpNorm
+    (fun z => z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)) 4 S.P_Z).toReal
+  let V4 := (eLpNorm (fun z => z.2.1 - S.mVal z.1) 4 S.P_Z).toReal
+  set Cconst : ℝ := A4 + V4 + B + |S.θ₀| * (V4 + B) with hCconst
   have hCconst_pos : 0 < Cconst + 1 := by
-    have : 0 ≤ Cconst := by
-      have hθ : 0 ≤ |S.θ₀| := abs_nonneg _
-      have : 0 ≤ |S.θ₀| * Cv := mul_nonneg hθ hCv
-      have : 0 ≤ |S.θ₀| * Cm := mul_nonneg hθ hCm
-      positivity
+    have : 0 ≤ Cconst := by rw [hCconst]; positivity
     linarith
-  -- Reduce to a constant multiple of the rate sum, then apply the per-`(n, ω)`
-  -- quantitative bound.
-  refine IsLittleOp.of_abs_le_const_mul_one (C := Cconst + 1) hCconst_pos hsum_rate ?_
-  intro n ω
-  exact plr_score_diff_abs_le S η_hat n ω hCa hCv hCm Cconst rateL rateM
-    hrateL hrateM hrateL_nonneg hrateM_nonneg hCconst
-    hA_bdd hv_bdd hΔm_bdd hΔl_memLp hΔm_memLp
+  refine IsLittleOp.of_ae_abs_le_const_mul_one (C := Cconst + 1)
+    hCconst_pos hsum_rate ?_
+  intro n
+  filter_upwards [hΔl_bound n, hΔm_bound n] with ω hL hM
+  let A : (γ × ℝ × ℝ) → ℝ := fun z =>
+    z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)
+  let v : (γ × ℝ × ℝ) → ℝ := fun z => z.2.1 - S.mVal z.1
+  let dL : (γ × ℝ × ℝ) → ℝ := fun z => S.lVal z.1 - (η_hat n ω).lFn z.1
+  let dM : (γ × ℝ × ℝ) → ℝ := fun z => S.mVal z.1 - (η_hat n ω).mFn z.1
+  let t1 := A * dM
+  let t2 := dL * v
+  let t3 := dL * dM
+  let t4 := S.θ₀ • (dM * v)
+  let t5 := S.θ₀ • (dM * dM)
+  have hdL4 : MemLp dL 4 S.P_Z := by
+    have heq := eLpNorm_comp_projX S
+      (g := fun x => S.lVal x - (η_hat n ω).lFn x)
+      (S.lVal_meas.sub (η_hat n ω).lMeas) (p := 4)
+    refine ⟨((S.lVal_meas.sub (η_hat n ω).lMeas).comp measurable_fst).aestronglyMeasurable, ?_⟩
+    rw [show dL = fun z => S.lVal z.1 - (η_hat n ω).lFn z.1 from rfl, heq]
+    have hfun : (fun x => S.lVal x - (η_hat n ω).lFn x) =
+        -(fun x => (η_hat n ω).lFn x - S.lVal x) := by
+      funext x
+      simp
+    rw [hfun, eLpNorm_neg]
+    exact (hΔl_memLp n ω).2
+  have hdM4 : MemLp dM 4 S.P_Z := by
+    have heq := eLpNorm_comp_projX S
+      (g := fun x => S.mVal x - (η_hat n ω).mFn x)
+      (S.mVal_meas.sub (η_hat n ω).mMeas) (p := 4)
+    refine ⟨((S.mVal_meas.sub (η_hat n ω).mMeas).comp measurable_fst).aestronglyMeasurable, ?_⟩
+    rw [show dM = fun z => S.mVal z.1 - (η_hat n ω).mFn z.1 from rfl, heq]
+    have hfun : (fun x => S.mVal x - (η_hat n ω).mFn x) =
+        -(fun x => (η_hat n ω).mFn x - S.mVal x) := by
+      funext x
+      simp
+    rw [hfun, eLpNorm_neg]
+    exact (hΔm_memLp n ω).2
+  have hdL_norm : (eLpNorm dL 4 S.P_Z).toReal = rateL n ω := by
+    change (eLpNorm (fun z => S.lVal z.1 - (η_hat n ω).lFn z.1) 4 S.P_Z).toReal = _
+    have heq := eLpNorm_comp_projX S
+      (g := fun x => S.lVal x - (η_hat n ω).lFn x)
+      (S.lVal_meas.sub (η_hat n ω).lMeas) (p := 4)
+    rw [heq]
+    have hneg : (fun x => S.lVal x - (η_hat n ω).lFn x) =
+        -(fun x => (η_hat n ω).lFn x - S.lVal x) := by
+      funext x
+      simp
+    rw [hneg, eLpNorm_neg]
+  have hdM_norm : (eLpNorm dM 4 S.P_Z).toReal = rateM n ω := by
+    change (eLpNorm (fun z => S.mVal z.1 - (η_hat n ω).mFn z.1) 4 S.P_Z).toReal = _
+    have heq := eLpNorm_comp_projX S
+      (g := fun x => S.mVal x - (η_hat n ω).mFn x)
+      (S.mVal_meas.sub (η_hat n ω).mMeas) (p := 4)
+    rw [heq]
+    have hneg : (fun x => S.mVal x - (η_hat n ω).mFn x) =
+        -(fun x => (η_hat n ω).mFn x - S.mVal x) := by
+      funext x
+      simp
+    rw [hneg, eLpNorm_neg]
+  have ht1 := eLpNorm_mul_four_toReal_le hA_memLp hdM4
+  have ht2 := eLpNorm_mul_four_toReal_le hdL4 hv_memLp
+  have ht3 := eLpNorm_mul_four_toReal_le hdL4 hdM4
+  have ht4base := eLpNorm_mul_four_toReal_le hdM4 hv_memLp
+  have ht5base := eLpNorm_mul_four_toReal_le hdM4 hdM4
+  let : ENNReal.HolderTriple 4 4 2 := by
+    change ENNReal.HolderTriple ((4 : NNReal) : ENNReal) ((4 : NNReal) : ENNReal)
+      ((2 : NNReal) : ENNReal)
+    exact NNReal.HolderTriple.coe_ennreal (by norm_num)
+      (by constructor <;> norm_num : NNReal.HolderTriple 4 4 2)
+  have ht1mem : MemLp t1 2 S.P_Z := hdM4.mul hA_memLp
+  have ht2mem : MemLp t2 2 S.P_Z := hv_memLp.mul hdL4
+  have ht3mem : MemLp t3 2 S.P_Z := hdM4.mul hdL4
+  have ht4mem : MemLp t4 2 S.P_Z := (hv_memLp.mul hdM4).const_smul S.θ₀
+  have ht5mem : MemLp t5 2 S.P_Z := (hdM4.mul hdM4).const_smul S.θ₀
+  have hscore_eq :
+      (fun z => plrMomentFunctional (η_hat n ω) z S.θ₀ -
+        plrMomentFunctional S.η₀ z S.θ₀) = t1 + t2 + t3 + (-t4) + (-t5) := by
+    funext z
+    rw [S.score_diff_expand]
+    simp [t1, t2, t3, t4, t5, A, v, dL, dM, Pi.add_apply, Pi.neg_apply,
+      Pi.mul_apply, Pi.smul_apply, smul_eq_mul]
+    ring
+  have htri :
+      (eLpNorm (t1 + t2 + t3 + (-t4) + (-t5)) 2 S.P_Z).toReal ≤
+        (eLpNorm t1 2 S.P_Z).toReal + (eLpNorm t2 2 S.P_Z).toReal +
+        (eLpNorm t3 2 S.P_Z).toReal + (eLpNorm t4 2 S.P_Z).toReal +
+        (eLpNorm t5 2 S.P_Z).toReal := by
+    calc
+      _ ≤ (eLpNorm (t1 + t2 + t3 + (-t4)) 2 S.P_Z).toReal +
+          (eLpNorm (-t5) 2 S.P_Z).toReal :=
+        eLpNorm_add_two_toReal_le
+          (((ht1mem.add ht2mem).add ht3mem).add ht4mem.neg) ht5mem.neg
+      _ ≤ ((eLpNorm (t1 + t2 + t3) 2 S.P_Z).toReal +
+          (eLpNorm (-t4) 2 S.P_Z).toReal) + (eLpNorm (-t5) 2 S.P_Z).toReal := by
+        gcongr
+        exact eLpNorm_add_two_toReal_le ((ht1mem.add ht2mem).add ht3mem) ht4mem.neg
+      _ ≤ (((eLpNorm (t1 + t2) 2 S.P_Z).toReal + (eLpNorm t3 2 S.P_Z).toReal) +
+          (eLpNorm (-t4) 2 S.P_Z).toReal) + (eLpNorm (-t5) 2 S.P_Z).toReal := by
+        gcongr
+        exact eLpNorm_add_two_toReal_le (ht1mem.add ht2mem) ht3mem
+      _ ≤ ((((eLpNorm t1 2 S.P_Z).toReal + (eLpNorm t2 2 S.P_Z).toReal) +
+          (eLpNorm t3 2 S.P_Z).toReal) + (eLpNorm (-t4) 2 S.P_Z).toReal) +
+          (eLpNorm (-t5) 2 S.P_Z).toReal := by
+        gcongr
+        exact eLpNorm_add_two_toReal_le ht1mem ht2mem
+      _ = _ := by simp only [eLpNorm_neg]
+  rw [hscore_eq, abs_of_nonneg ENNReal.toReal_nonneg,
+    abs_of_nonneg (add_nonneg (hrateL_nonneg n ω) (hrateM_nonneg n ω))]
+  calc
+    _ ≤ (eLpNorm t1 2 S.P_Z).toReal + (eLpNorm t2 2 S.P_Z).toReal +
+        (eLpNorm t3 2 S.P_Z).toReal + (eLpNorm t4 2 S.P_Z).toReal +
+        (eLpNorm t5 2 S.P_Z).toReal := htri
+    _ ≤ A4 * rateM n ω + rateL n ω * V4 + rateL n ω * rateM n ω +
+        |S.θ₀| * (rateM n ω * V4) + |S.θ₀| * (rateM n ω * rateM n ω) := by
+      rw [show (eLpNorm t4 2 S.P_Z).toReal =
+          |S.θ₀| * (eLpNorm (dM * v) 2 S.P_Z).toReal by
+            simp [t4, eLpNorm_const_smul, Real.norm_eq_abs, ENNReal.toReal_mul],
+        show (eLpNorm t5 2 S.P_Z).toReal =
+          |S.θ₀| * (eLpNorm (dM * dM) 2 S.P_Z).toReal by
+            simp [t5, eLpNorm_const_smul, Real.norm_eq_abs, ENNReal.toReal_mul]]
+      have ht1' : (eLpNorm t1 2 S.P_Z).toReal ≤ A4 * rateM n ω := by
+        simpa [t1, A, A4, hdM_norm] using ht1
+      have ht2' : (eLpNorm t2 2 S.P_Z).toReal ≤ rateL n ω * V4 := by
+        simpa [t2, v, V4, hdL_norm] using ht2
+      have ht3' : (eLpNorm t3 2 S.P_Z).toReal ≤ rateL n ω * rateM n ω := by
+        simpa [t3, hdL_norm, hdM_norm] using ht3
+      have ht4' : |S.θ₀| * (eLpNorm (dM * v) 2 S.P_Z).toReal ≤
+          |S.θ₀| * (rateM n ω * V4) := by
+        apply mul_le_mul_of_nonneg_left _ (abs_nonneg _)
+        simpa [v, V4, hdM_norm] using ht4base
+      have ht5' : |S.θ₀| * (eLpNorm (dM * dM) 2 S.P_Z).toReal ≤
+          |S.θ₀| * (rateM n ω * rateM n ω) := by
+        apply mul_le_mul_of_nonneg_left _ (abs_nonneg _)
+        simpa [hdM_norm] using ht5base
+      exact add_le_add (add_le_add (add_le_add (add_le_add ht1' ht2') ht3') ht4') ht5'
+    _ ≤ (Cconst + 1) * (rateL n ω + rateM n ω) := by
+      change rateL n ω ≤ B at hL
+      change rateM n ω ≤ B at hM
+      have hLM : rateL n ω * rateM n ω ≤ B * rateL n ω := by
+        nlinarith [hrateL_nonneg n ω]
+      have hMM : rateM n ω * rateM n ω ≤ B * rateM n ω := by
+        nlinarith [hrateM_nonneg n ω]
+      calc
+        _ ≤ A4 * rateM n ω + rateL n ω * V4 + B * rateL n ω +
+            |S.θ₀| * (rateM n ω * V4) + |S.θ₀| * (B * rateM n ω) := by
+          gcongr
+        _ ≤ (A4 * rateM n ω + rateL n ω * V4 + B * rateL n ω +
+              |S.θ₀| * (rateM n ω * V4) + |S.θ₀| * (B * rateM n ω)) +
+            (A4 * rateL n ω + V4 * rateM n ω + B * rateM n ω +
+              |S.θ₀| * (V4 * rateL n ω) + |S.θ₀| * (B * rateL n ω) +
+              rateL n ω + rateM n ω) := by
+          apply le_add_of_nonneg_right
+          dsimp [A4, V4]
+          positivity
+        _ = (Cconst + 1) * (rateL n ω + rateM n ω) := by
+          rw [hCconst]
+          ring
 
 end PLRSystem
 

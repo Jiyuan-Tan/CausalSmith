@@ -9,8 +9,11 @@ This file defines substitution of zero for off-band source-weight coordinates,
 the corresponding pinned parameter, and the evaluation identities relating them.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
-import Mathlib.Algebra.MvPolynomial.Monad
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
+public import Mathlib.Algebra.MvPolynomial.Monad
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -108,6 +111,12 @@ lemma eval_pinSubst (m L : ℕ) (v : ParamCoord m → ℂ)
     · by_cases hir : 2 ≤ jr.2 ∧ jr.2 ≤ L
       · simp [hir, paramEval, pinParam]
       · simp [hir, paramEval, pinParam]
+  change MvPolynomial.aeval (fun i : ParamCoord m =>
+    MvPolynomial.aeval v
+      (match i with
+      | Sum.inr (Sum.inr jr) =>
+          if 2 ≤ jr.2 ∧ jr.2 ≤ L then MvPolynomial.X i else 0
+      | _ => MvPolynomial.X i)) P = _
   rw [hfamily]
   exact congrFun (MvPolynomial.aeval_eq_eval (paramEval (pinParam m L v))) P
 

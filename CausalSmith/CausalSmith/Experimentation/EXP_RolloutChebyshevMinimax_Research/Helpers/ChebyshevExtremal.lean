@@ -9,11 +9,14 @@ Authors: Jiyuan Tan
 `lem:continuous-chebyshev-endpoint-bound`.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import Mathlib.RingTheory.Polynomial.Chebyshev
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.Extremal
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.RootsExtrema
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import Mathlib.RingTheory.Polynomial.Chebyshev
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.Extremal
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.RootsExtrema
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+
+public section
 
 open scoped BigOperators
 

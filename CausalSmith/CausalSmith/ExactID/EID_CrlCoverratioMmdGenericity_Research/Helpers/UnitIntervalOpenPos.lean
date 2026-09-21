@@ -1,1 +1,4 @@
-import Causalean.Mathlib.MeasureTheory.UnitInterval.OpenPos
+module
+public import Causalean.Mathlib.MeasureTheory.UnitInterval.OpenPos
+
+public section

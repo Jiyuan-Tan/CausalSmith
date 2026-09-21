@@ -16,10 +16,15 @@ deferred conjecture `oeq:generic-exceptional-locus`).
 built as the vanishing set of the vanishing ideal over `MvPolynomial`.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
-import Mathlib.Algebra.MvPolynomial.Eval
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.LinearAlgebra.Matrix.Rank
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
+public import Mathlib.Algebra.MvPolynomial.Eval
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.LinearAlgebra.Matrix.Rank
+
+/-! Public variety constructions for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

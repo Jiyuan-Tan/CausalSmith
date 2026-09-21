@@ -22,7 +22,9 @@
 
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { isTier1, type AreaSidecar, type LibDecl, type Library } from "../library/schema.js";
+import { isTier1, type AreaSidecar, type LibDecl, type Library,
+  resolveLibraryRoot,
+} from "../library/schema.js";
 import { inClusterSubstrate, type ClusterKey } from "../constants.js";
 import { expandQuery, normalizeConcept } from "./causal_aliases.js";
 import { stripNlCrosslinks } from "../shared/nl_crosslinks.js";
@@ -226,7 +228,8 @@ const ixByNameCache = new Map<string, Map<string, IndexedDecl>>();
  *  the in-process caches. Root-only keys served the PRE-regeneration index for the life of
  *  the process — P5's `knownDecls` then spuriously flagged just-built substrate decls as
  *  hallucinated and bought unnecessary revise rounds (audit, 2026-08-26). */
-function retrievalCacheKey(root: string): string {
+function retrievalCacheKey(rootIn: string): string {
+  const root = resolveLibraryRoot(rootIn);
   try {
     return `${root}|${statSync(join(root, "doc", "library_index.json")).mtimeMs}`;
   } catch {
@@ -242,7 +245,8 @@ function retrievalCacheKey(root: string): string {
  * `check_library_index`, not of retrieval — coupling to it would silently disable the
  * feature whenever the curation lags the code (the common mid-development state).
  */
-export function loadLibraryLenient(root: string): Library | null {
+export function loadLibraryLenient(rootIn: string): Library | null {
+  const root = resolveLibraryRoot(rootIn);
   const idxPath = join(root, "doc", "library_index.json");
   if (!existsSync(idxPath)) return null;
   let raw: {
@@ -658,7 +662,8 @@ export function applyRerank(
  * `doc/library_index.json`). Index load is memoized per root. The returned object
  * is the transport-agnostic surface an MCP wrapper / F3 caller re-exposes.
  */
-export function createRetrieval(root: string): Retrieval {
+export function createRetrieval(rootIn: string): Retrieval {
+  const root = resolveLibraryRoot(rootIn);
   const lib = getLibrary(root);
   const byName = lib ? new Map(lib.entries.map((e) => [e.name, e])) : new Map<string, LibDecl>();
   const searchImpl = (q: Query, opts: SearchOpts = {}): Candidate[] => {

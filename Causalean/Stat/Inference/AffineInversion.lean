@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Minimax.HonestConfidenceSet
-import Mathlib.Analysis.Convex.Integral
-import Mathlib.Analysis.Convex.SpecificFunctions.Pow
+module
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+public import Mathlib.Analysis.Convex.Integral
+public import Mathlib.Analysis.Convex.SpecificFunctions.Pow
 
 /-!
 # Affine test inversion
@@ -16,6 +17,8 @@ confidence sets obtained by inverting a scalar affine inequality over a
 finite-volume parameter region. The final result converts a mean-radius bound
 and a bad-slope probability into the capped inverse-square-root frontier rate.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

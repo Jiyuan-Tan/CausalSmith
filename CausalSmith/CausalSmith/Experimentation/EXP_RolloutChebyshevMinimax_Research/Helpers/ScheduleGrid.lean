@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Schedule grid definitions
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.RolloutChebyshev
 

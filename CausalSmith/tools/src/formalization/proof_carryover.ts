@@ -23,6 +23,7 @@ import { readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isPaperTmpPath } from "../paths.js";
 import { stripLeanComments } from "./unused_hypothesis_lint.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
 
 interface DeclSigBody {
   name: string;
@@ -55,9 +56,9 @@ function parseDecls(fileText: string): DeclSigBody[] {
     return start === 0 && !/^\s*--/.test(ln);
   });
   const headerRe =
-    /^\s*(?:noncomputable\s+|private\s+|protected\s+|scoped\s+)*(theorem|lemma)\s+([A-Za-z0-9_'.]+)/;
+    new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(theorem|lemma)\s+([A-Za-z0-9_'.]+)`);
   const topLevelRe =
-    /^\s*@\[|^\s*\/--|^\s*(?:noncomputable\s+|private\s+|protected\s+|scoped\s+)*(?:theorem|lemma|def|abbrev|structure|class|instance|section|namespace|end)\b/;
+    new RegExp(String.raw`^\s*@\[|^\s*\/--|^\s*(?:${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma|def|abbrev|structure|class|instance)\b|(?:public\s+)?section\b|namespace\b|end\b|module\b)`);
   const out: DeclSigBody[] = [];
   let i = 0;
   while (i < lines.length) {

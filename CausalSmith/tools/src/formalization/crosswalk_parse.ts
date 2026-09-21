@@ -7,6 +7,7 @@ import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
 import { isPaperTmpPath } from "../paths.js";
 import { maskLeanCommentsAndStrings } from "../graph/extractor.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_DECL_KEYWORDS, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
 import type { CrosswalkEntry } from "../types.js";
 
 // ---------------------------------------------------------------------------
@@ -102,7 +103,7 @@ export interface LeanDecl {
  * quoted identifiers (`«name»`); a line-only header regex silently misses both. Comments are
  * masked before this runs, while newlines/offsets are preserved for source locations. */
 export const DECL_HEADER_SCAN_RE =
-  /^[ \t]*(?:@\[[^\]]*\][ \t\r\n]*)*(?:(?:noncomputable|private|protected|scoped|local|partial|unsafe)\s+)*(def|abbrev|structure|theorem|lemma|class|instance|inductive|opaque|axiom|constant)\b[ \t\r\n]+(?:«([^»]+)»|([A-Za-z_][A-Za-z0-9_'.]*))/gm;
+  new RegExp(String.raw`^[ \t]*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(${LEAN_DECL_KEYWORDS})\b[ \t\r\n]+(?:«([^»]+)»|([A-Za-z_][A-Za-z0-9_'.]*))`, "gm");
 
 /** A standalone `variable`/`universe` binder command. It is NOT a `DECL_HEADER_SCAN_RE`
  *  anchor, but the scaffolder legitimately tags a shared section binder inline

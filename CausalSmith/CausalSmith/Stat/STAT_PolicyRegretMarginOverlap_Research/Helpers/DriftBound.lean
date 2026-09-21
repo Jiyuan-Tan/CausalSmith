@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.FeasibleERM
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.FeasibleERM
 
 /-! Provides clipped-region localization and drift-bound helpers. -/
+
+public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

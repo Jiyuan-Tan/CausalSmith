@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitLikelihood
-import Mathlib.Algebra.Order.Antidiag.Pi
-import Mathlib.Data.Sym.Card
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitLikelihood
+public import Mathlib.Algebra.Order.Antidiag.Pi
+public import Mathlib.Data.Sym.Card
 
 /-! Orbit cardinalities and contingency-table counting identities. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 

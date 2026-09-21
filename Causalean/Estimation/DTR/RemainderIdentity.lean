@@ -44,13 +44,16 @@ Downstream `RemainderBound.lean` consumes this identity via
 Cauchy–Schwarz componentwise.
 -/
 
-import Causalean.Estimation.DTR.RemainderIdentity.Helpers
+module
+public import Causalean.Estimation.DTR.RemainderIdentity.Helpers
 
 /-!
 Proves the stagewise cross-product remainder identity for sequential doubly
 robust DTR scores. The identity decomposes the population moment error into
 nuisance-error products for the dynamic treatment rule.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -97,9 +100,8 @@ sequential DR remainder identity. -/
 treatment-regime estimation system satisfying [the sequential causal
 assumptions](hyp:hA) (consistency and sequential ignorability), for which [the
 stage-0 and stage-1 propensity scores are bounded within a margin ε of 0 and 1
-(strict overlap)](hyp:h_overlap), and where [the factual outcome](hyp:h_y2) and [the
-potential outcome under every fixed treatment regime](hyp:_h_yd2) each have finite
-second moment. For any candidate nuisance vector η whose stage-0 and stage-1
+(strict overlap)](hyp:h_overlap), and where [the factual outcome has finite second
+moment](hyp:h_y2). For any candidate nuisance vector η whose stage-0 and stage-1
 propensities likewise [lie in this strict-overlap band](hyp:hη), and whose [stage-0
 outcome-regression error](hyp:hΔμ₀_memLp), [stage-1 outcome-regression
 error](hyp:hΔμ₁_memLp), [stage-0 propensity error](hyp:hΔe₀_memLp), and [stage-1
@@ -126,10 +128,8 @@ componentwise. -/
 lemma seqDR_remainder_identity
     (S : DTREstimationSystem P δ γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
-    (_h_yd2 : ∀ dbar : Fin 2 → δ, Integrable
-      (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (η : DTRNuisanceVec₂ δ γ) (hη : η ∈ DTREstimationSystem.H_ε ε)
     (hΔμ₀_memLp : MemLp (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀)
     (hΔμ₁_memLp : MemLp (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁)
@@ -145,17 +145,17 @@ lemma seqDR_remainder_identity
             * (η.e₁_fn h - S.e₁_val h)
             * (1 / (η.e₀_fn h.2.2 * η.e₁_fn h))
             * (η.μ₁_fn h - S.μ₁_val h) ∂(S.P_H₁)) := by
-  let S0 : P.Ω → γ 0 := S.toPODTRSystem.factualS ⟨0, by decide⟩
+  let S0 : P.Ω → γ 0 := S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩
   let H1 : P.Ω → γ 1 × δ × γ 0 := fun ω =>
-    (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-     S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-     S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)
-  let Y : P.Ω → ℝ := S.toPODTRSystem.factualY
+    (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)
+  let Y : P.Ω → ℝ := S.toPOLongitudinalPathSystem.factualY
   let I0 : P.Ω → ℝ :=
-    (S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
       (S.dbar ⟨0, by decide⟩)
   let I1 : P.Ω → ℝ :=
-    (S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+    (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
       (S.dbar ⟨1, by decide⟩)
   let M0 : P.Ω → ℝ := fun ω => S.μ₀_val (S0 ω)
   let M1 : P.Ω → ℝ := fun ω => S.μ₁_val (H1 ω)
@@ -174,7 +174,7 @@ lemma seqDR_remainder_identity
   let p0 : P.Ω → ℝ := fun ω =>
     (dμ0 ω / η.e₀_fn (S0 ω)) * S.e₀_val (S0 ω)
   let p1 : P.Ω → ℝ := fun ω =>
-    indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω) (S.dbar ⟨0, by decide⟩) *
+    indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω) (S.dbar ⟨0, by decide⟩) *
       (dμ1 ω / (η.e₀_fn (S0 ω) * η.e₁_fn (H1 ω))) * S.e₁_val (H1 ω)
   let crossInd : P.Ω → ℝ := fun ω => dμ0 ω + i10 ω - i0 ω - i11 ω
   let crossProp : P.Ω → ℝ := fun ω => dμ0 ω + i10 ω - p0 ω - p1 ω
@@ -190,11 +190,11 @@ lemma seqDR_remainder_identity
   have hS0_meas : Measurable S0 := by fun_prop
   have hH1_meas : Measurable H1 := by fun_prop
   have hM0_int : Integrable M0 P.μ := by
-    let B0 := S.toPODTRSystem.historyBundle 0 (by decide)
-    exact (B0.integrable_condExpGiven (S.toPODTRSystem.Y_of S.dbar)).congr
+    let B0 := S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)
+    exact (B0.integrable_condExpGiven (S.toPOLongitudinalPathSystem.Y_of S.dbar)).congr
       (by simpa [B0, M0, S0] using S.μ₀_compat hA)
   have hM1_int : Integrable M1 P.μ := by
-    let B1 := S.toPODTRSystem.historyBundle 1 (by decide)
+    let B1 := S.toPOLongitudinalPathSystem.historyBundle 1 (by decide)
     have hM1_L2 : MemLp M1 2 P.μ := by
       simpa [M1, H1] using (S.stageOneReg_memLp h_overlap h_y2).ae_eq
         (S.μ₁_val_comp_eq_stageOneReg).symm
@@ -205,7 +205,7 @@ lemma seqDR_remainder_identity
   have hI0M1_int : Integrable (fun ω => I0 ω * M1 ω) P.μ := by fun_prop
   have hR0_int : Integrable R0 P.μ := by fun_prop
   have hI1Y_int : Integrable (fun ω => I1 ω * Y ω) P.μ := by
-    have h := (S.toPODTRSystem.dVar ⟨1, by decide⟩).integrable_mul_indicator
+    have h := (S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).integrable_mul_indicator
       (S.dbar ⟨1, by decide⟩) (MeasurableSet.singleton _) hA.integrable_factualY
     exact h.congr (Filter.Eventually.of_forall (fun ω => by simp [I1, Y, mul_comm]))
   have hI1M1_int : Integrable (fun ω => I1 ω * M1 ω) P.μ := by fun_prop
@@ -287,25 +287,25 @@ lemma seqDR_remainder_identity
   have hr0_zero : ∫ ω, r0 ω ∂P.μ = 0 := by
     have hg_meas : Measurable (fun s₀ => 1 / η.e₀_fn s₀) := by fun_prop
     have h_int : Integrable
-        (fun ω => (1 / η.e₀_fn (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) *
-          ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+        (fun ω => (1 / η.e₀_fn (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) *
+          ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
               (S.dbar ⟨0, by decide⟩) ω *
             (S.μ₁_val
-                (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                 S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                 S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) -
-              S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)))) P.μ := by
+                (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                 S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                 S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) -
+              S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)))) P.μ := by
       simpa [S0, H1, G0, R0, r0, I0, M0, M1, mul_assoc] using hr0_int
     calc
       ∫ ω, r0 ω ∂P.μ
-          = ∫ ω, (1 / η.e₀_fn (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) *
-            ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+          = ∫ ω, (1 / η.e₀_fn (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) *
+            ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
                 (S.dbar ⟨0, by decide⟩) ω *
               (S.μ₁_val
-                  (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                   S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                   S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) -
-                S.μ₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))) ∂P.μ := by
+                  (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) -
+                S.μ₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))) ∂P.μ := by
             apply MeasureTheory.integral_congr_ae
             exact Filter.Eventually.of_forall (fun ω => by
               simp [r0, G0, R0, I0, M0, M1, S0, H1])
@@ -317,37 +317,37 @@ lemma seqDR_remainder_identity
     have hg_meas : Measurable (fun h : γ 1 × δ × γ 0 =>
         1 / (η.e₀_fn h.2.2 * η.e₁_fn h)) := by fun_prop
     have h_int : Integrable
-        (fun ω => (1 / (η.e₀_fn (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
+        (fun ω => (1 / (η.e₀_fn (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
             η.e₁_fn
-              (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-               S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-               S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))) *
-          ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+              (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+               S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))) *
+          ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
               (S.dbar ⟨0, by decide⟩) ω *
-           ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+           ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
               (S.dbar ⟨1, by decide⟩) ω *
-            (S.toPODTRSystem.factualY ω -
+            (S.toPOLongitudinalPathSystem.factualY ω -
               S.μ₁_val
-                (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                 S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                 S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))))) P.μ := by
+                (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                 S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                 S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))))) P.μ := by
       simpa [S0, H1, G1, R1, r1, I0, I1, M1, Y, mul_assoc] using hr1_int
     calc
       ∫ ω, r1 ω ∂P.μ
-          = ∫ ω, (1 / (η.e₀_fn (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) *
+          = ∫ ω, (1 / (η.e₀_fn (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) *
               η.e₁_fn
-                (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                 S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                 S.toPODTRSystem.factualS ⟨0, by decide⟩ ω))) *
-            ((S.toPODTRSystem.dVar ⟨0, by decide⟩).indicator
+                (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                 S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                 S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω))) *
+            ((S.toPOLongitudinalPathSystem.dVar ⟨0, by decide⟩).indicator
                 (S.dbar ⟨0, by decide⟩) ω *
-             ((S.toPODTRSystem.dVar ⟨1, by decide⟩).indicator
+             ((S.toPOLongitudinalPathSystem.dVar ⟨1, by decide⟩).indicator
                 (S.dbar ⟨1, by decide⟩) ω *
-              (S.toPODTRSystem.factualY ω -
+              (S.toPOLongitudinalPathSystem.factualY ω -
                 S.μ₁_val
-                  (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-                   S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-                   S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)))) ∂P.μ := by
+                  (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+                   S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)))) ∂P.μ := by
             apply MeasureTheory.integral_congr_ae
             exact Filter.Eventually.of_forall (fun ω => by
               simp [r1, G1, R1, I0, I1, M1, Y, S0, H1])
@@ -362,18 +362,18 @@ lemma seqDR_remainder_identity
     refine Filter.Eventually.of_forall ?_
     intro ω
     have hI0eq :
-        indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+        indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
             (S.dbar ⟨0, by decide⟩) = I0 ω := by
       simpa [I0] using indEq_factualD0_eq_indicator S ω
     have hI1eq :
-        indEq (S.toPODTRSystem.factualD ⟨1, by decide⟩ ω)
+        indEq (S.toPOLongitudinalPathSystem.factualD ⟨1, by decide⟩ ω)
             (S.dbar ⟨1, by decide⟩) = I1 ω := by
       simpa [I1] using indEq_factualD1_eq_indicator S ω
     have hI0eqn :
-        indEq (S.toPODTRSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
+        indEq (S.toPOLongitudinalPathSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
       simpa using hI0eq
     have hI1eqn :
-        indEq (S.toPODTRSystem.factualD 1 ω) (S.dbar 1) = I1 ω := by
+        indEq (S.toPOLongitudinalPathSystem.factualD 1 ω) (S.dbar 1) = I1 ω := by
       simpa using hI1eq
     change S.seqDRMomentFunctional η (S.factualZ ω) S.θ₀ =
       base ω + r0 ω + r1 ω + crossInd ω
@@ -451,10 +451,10 @@ lemma seqDR_remainder_identity
       ring))
   have hp1_int : Integrable p1 P.μ := by
     let V1 : P.Ω → ℝ := fun ω =>
-      indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω) (S.dbar ⟨0, by decide⟩) *
+      indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω) (S.dbar ⟨0, by decide⟩) *
         (S.e₁_val (H1 ω) / (η.e₀_fn (S0 ω) * η.e₁_fn (H1 ω)))
     have hInd_meas : Measurable
-        (fun ω => indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+        (fun ω => indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
           (S.dbar ⟨0, by decide⟩)) := by fun_prop
     have hV1_meas : Measurable V1 := by fun_prop
     have hV1_bound : ∀ᵐ ω ∂P.μ, ‖V1 ω‖ ≤ (ε * ε)⁻¹ := by
@@ -473,7 +473,7 @@ lemma seqDR_remainder_identity
         rw [abs_of_pos (S.e₁_pos (H1 ω))]
         exact (S.e₁_lt_one (H1 ω)).le
       have hInd_abs :
-          |indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+          |indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
             (S.dbar ⟨0, by decide⟩)| ≤ 1 := by
         unfold indEq
         split <;> simp
@@ -493,7 +493,7 @@ lemma seqDR_remainder_identity
           _ = (ε * ε)⁻¹ := by ring
       calc
         ‖V1 ω‖ =
-            ‖indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+            ‖indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
               (S.dbar ⟨0, by decide⟩)‖ *
             ‖S.e₁_val (H1 ω) / (η.e₀_fn (S0 ω) * η.e₁_fn (H1 ω))‖ := by
           simp [V1, norm_mul]
@@ -549,11 +549,11 @@ lemma seqDR_remainder_identity
         refine hi11_int.congr ?_
         exact Filter.Eventually.of_forall (fun ω => by
           have hI0eq :
-              indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+              indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
                   (S.dbar ⟨0, by decide⟩) = I0 ω := by
             simpa [I0] using indEq_factualD0_eq_indicator S ω
           have hI0eqn :
-              indEq (S.toPODTRSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
+              indEq (S.toPOLongitudinalPathSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
             simpa using hI0eq
           simp [i11, I0, I1, G1, dμ1, H1, S0, hI0eqn]
           ring)
@@ -565,11 +565,11 @@ lemma seqDR_remainder_identity
               apply MeasureTheory.integral_congr_ae
               exact Filter.Eventually.of_forall (fun ω => by
                 have hI0eq :
-                    indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+                    indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
                         (S.dbar ⟨0, by decide⟩) = I0 ω := by
                   simpa [I0] using indEq_factualD0_eq_indicator S ω
                 have hI0eqn :
-                    indEq (S.toPODTRSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
+                    indEq (S.toPOLongitudinalPathSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
                   simpa using hI0eq
                 simp [i11, I0, I1, G1, dμ1, H1, S0, hI0eqn]
                 ring)
@@ -649,31 +649,31 @@ lemma seqDR_remainder_identity
     refine Filter.Eventually.of_forall ?_
     intro ω
     have hI0eq :
-        indEq (S.toPODTRSystem.factualD ⟨0, by decide⟩ ω)
+        indEq (S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω)
             (S.dbar ⟨0, by decide⟩) = I0 ω := by
       simpa [I0] using indEq_factualD0_eq_indicator S ω
     have hI0eqn :
-        indEq (S.toPODTRSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
+        indEq (S.toPOLongitudinalPathSystem.factualD 0 ω) (S.dbar 0) = I0 ω := by
       simpa using hI0eq
     have hden0 : η.e₀_fn (S0 ω) ≠ 0 := (hη0_pos (S0 ω)).ne'
     have hden1 : η.e₁_fn (H1 ω) ≠ 0 := (hη1_pos (H1 ω)).ne'
     have hden01 : η.e₀_fn (S0 ω) * η.e₁_fn (H1 ω) ≠ 0 :=
       mul_ne_zero hden0 hden1
     have hden0n :
-        η.e₀_fn (S.toPODTRSystem.factualS 0 ω) ≠ 0 := by
+        η.e₀_fn (S.toPOLongitudinalPathSystem.factualS 0 ω) ≠ 0 := by
       simpa [S0] using hden0
     have hden1n :
         η.e₁_fn
-          (S.toPODTRSystem.factualS 1 ω,
-           S.toPODTRSystem.factualD 0 ω,
-           S.toPODTRSystem.factualS 0 ω) ≠ 0 := by
+          (S.toPOLongitudinalPathSystem.factualS 1 ω,
+           S.toPOLongitudinalPathSystem.factualD 0 ω,
+           S.toPOLongitudinalPathSystem.factualS 0 ω) ≠ 0 := by
       simpa [H1] using hden1
     have hden01n :
-        η.e₀_fn (S.toPODTRSystem.factualS 0 ω) *
+        η.e₀_fn (S.toPOLongitudinalPathSystem.factualS 0 ω) *
           η.e₁_fn
-            (S.toPODTRSystem.factualS 1 ω,
-             S.toPODTRSystem.factualD 0 ω,
-             S.toPODTRSystem.factualS 0 ω) ≠ 0 :=
+            (S.toPOLongitudinalPathSystem.factualS 1 ω,
+             S.toPOLongitudinalPathSystem.factualD 0 ω,
+             S.toPOLongitudinalPathSystem.factualS 0 ω) ≠ 0 :=
       mul_ne_zero hden0n hden1n
     simp [crossProp, remΩ, rem0, rem1, p0, p1, i10, G0, dμ0, dμ1, S0, H1,
       hI0eqn, div_eq_mul_inv]

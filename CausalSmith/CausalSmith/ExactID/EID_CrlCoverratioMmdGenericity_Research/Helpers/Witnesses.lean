@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Basic
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Basic
+public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 
 /-!
 # Explicit sparse, cancellation, and affine-path mechanisms
@@ -8,6 +9,11 @@ import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 This file contains the elementary compact-cube mechanisms used by the
 genericity and cancellation arguments.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -45,7 +51,7 @@ lemma threeNodeEdge_acyclic (v : Fin 3) : ¬ Relation.TransGen threeNodeEdge v v
   simp_all
 
 /-- The fixed three-node witness DAG. -/
-def threeNodeDAG : Causalean.DAG (Fin 3) where
+def threeNodeDAG : DAG (Fin 3) where
   edge := threeNodeEdge
   decEdge := fun i j => by unfold threeNodeEdge; infer_instance
   acyclic := threeNodeEdge_acyclic
@@ -73,7 +79,7 @@ lemma sparseP_parent_local (s : SignVector 3) :
   simp only [sparseP]
   split
   · rename_i h_i
-    have h0 : v 0 = w 0 := hp 0 (by simp [threeNodeDAG, Causalean.DAG.parents,
+    have h0 : v 0 = w 0 := hp 0 (by simp [threeNodeDAG, DAG.parents,
       threeNodeEdge, h_i])
     have h1 : v 1 = w 1 := by simpa [h_i] using hi
     rw [h0, h1]
@@ -102,7 +108,7 @@ lemma cancellationP_parent_local (s : SignVector 3) :
   simp only [cancellationP]
   split
   · rename_i h_i
-    have h0 : v 0 = w 0 := hp 0 (by simp [threeNodeDAG, Causalean.DAG.parents,
+    have h0 : v 0 = w 0 := hp 0 (by simp [threeNodeDAG, DAG.parents,
       threeNodeEdge, h_i])
     have h1 : v 1 = w 1 := by simpa [h_i] using hi
     rw [h0, h1]
@@ -125,7 +131,7 @@ def embeddedSparseP {n : ℕ} (s : SignVector n)
 
 /-- Given [the selected directed edge](hyp:hji), the [embedded sparse factor depends only on
 its own coordinate and graph parents](goal). -/
-lemma embeddedSparseP_parent_local {n : ℕ} {G : Causalean.DAG (Fin n)}
+lemma embeddedSparseP_parent_local {n : ℕ} {G : DAG (Fin n)}
     (s : SignVector n) {j i : Fin n} (hji : G.edge j i) :
     ∀ l v w, v l = w l → (∀ k ∈ G.parents l, v k = w k) →
       embeddedSparseP s j i l v = embeddedSparseP s j i l w := by
@@ -133,20 +139,20 @@ lemma embeddedSparseP_parent_local {n : ℕ} {G : Causalean.DAG (Fin n)}
   simp only [embeddedSparseP]
   split
   · rename_i hli
-    have hj : v j = w j := hp j (by simpa [Causalean.DAG.parents, hli] using hji)
+    have hj : v j = w j := hp j (by simpa [DAG.parents, hli] using hji)
     have hi : v i = w i := by simpa [hli] using hl
     rw [hj, hi]
   · rfl
 
 /-- The edge-specific sparse endpoint used by the affine perturbation. -/
-def embeddedSparseWitness {n : ℕ} {G : Causalean.DAG (Fin n)}
+def embeddedSparseWitness {n : ℕ} {G : DAG (Fin n)}
     (s : SignVector n) {j i : Fin n} (hji : G.edge j i) : Mechanism n G where
   p := embeddedSparseP s j i
   q := fun l z => exponentialInterventionDensity (reflectedCoordinate s l z)
   parent_local := embeddedSparseP_parent_local s hji
 
 /-- The [affine interpolation of two mechanisms remains local to each node and its parents](goal). -/
-lemma affinePath_parent_local {n : ℕ} {G : Causalean.DAG (Fin n)}
+lemma affinePath_parent_local {n : ℕ} {G : DAG (Fin n)}
     (θ endpoint : Mechanism n G) (t : ℝ) :
     ∀ i v w, v i = w i → (∀ j ∈ G.parents i, v j = w j) →
       ((1 - t) * θ.p i v + t * endpoint.p i v) =
@@ -159,7 +165,7 @@ closed unit interval. The paper's mechanism path itself is the restricted wrappe
 /-- For a [finite dimension](hyp:n), [DAG](hyp:G), [sign pattern](hyp:s), [stratum point](hyp:θ),
 [directed edge endpoints](hyp:j,i), [edge certificate](hyp:hji), and [real path parameter](hyp:t),
 the [unrestricted affine mechanism path](goal) interpolates toward the embedded sparse witness. -/
-def affinePathExtension {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+def affinePathExtension {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (t : ℝ) : Mechanism n G where
   p := fun l v => (1 - t) * θ.1.p l v + t * (embeddedSparseWitness s hji).p l v
   q := fun l z => (1 - t) * θ.1.q l z + t * (embeddedSparseWitness s hji).q l z
@@ -167,7 +173,7 @@ def affinePathExtension {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
 
 -- @node: def:affine-path
 /-- Nodewise normalized affine interpolation, indexed exactly by `t ∈ [0,1]`. -/
-def affinePath {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+def affinePath {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     (t : Set.Icc (0 : ℝ) 1) : Mechanism n G :=
   affinePathExtension s θ hji t.1
@@ -396,7 +402,7 @@ lemma abs_centeredCoordinate_le_one {z : ℝ} (hz : z ∈ Set.Icc (0 : ℝ) 1) :
 
 /-- The embedded sparse conditional stays uniformly between `9/10` and `11/10`
 on the latent cube.  Given [the stated inputs and conditions](hyp:hji,hv), [the stated conclusion](goal) follows. -/
-lemma embeddedSparseP_bounds {n : ℕ} {G : Causalean.DAG (Fin n)}
+lemma embeddedSparseP_bounds {n : ℕ} {G : DAG (Fin n)}
     (s : SignVector n) {j i : Fin n} (hji : G.edge j i)
     (l : Fin n) (v : LatentState n) (hv : v ∈ latentCube n) :
     (9 / 10 : ℝ) ≤ embeddedSparseP s j i l v ∧
@@ -416,7 +422,7 @@ lemma embeddedSparseP_bounds {n : ℕ} {G : Causalean.DAG (Fin n)}
     norm_num
 
 /-- Every embedded sparse observational conditional is normalized in its own coordinate.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
-lemma embeddedSparseP_normalized {n : ℕ} {G : Causalean.DAG (Fin n)}
+lemma embeddedSparseP_normalized {n : ℕ} {G : DAG (Fin n)}
     (s : SignVector n) {j i : Fin n} (hji : G.edge j i)
     (l : Fin n) (v : LatentState n) :
     ∫ z in Set.Icc (0 : ℝ) 1, embeddedSparseP s j i l (Function.update v l z) = 1 := by
@@ -458,7 +464,7 @@ lemma embeddedSparseP_normalized {n : ℕ} {G : Causalean.DAG (Fin n)}
 /-- The edge-specific sparse endpoint is positive, normalized, and smooth on every
 finite DAG, including DAGs with additional unused parents and edges.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma embeddedSparseWitness_positive_normalized_smooth
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {j i : Fin n} (hji : G.edge j i) :
     PositiveNormalizedSmoothMechanisms G (embeddedSparseWitness s hji) := by
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩

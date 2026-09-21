@@ -1,12 +1,14 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.GridApprox
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.FiniteGame
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitCounting
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_exact_response_type_game
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_contrast_risk_continuity
-import Causalean.Stat.Minimax.FiniteSquaredLoss.PosteriorBarycenter
-
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.GridApprox
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.FiniteGame
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.OrbitCounting
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_exact_response_type_game
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_contrast_risk_continuity
+public import Causalean.Stat.Minimax.SquaredLoss.Finite.PosteriorBarycenter
 
 /-! Finite-sample algebra for exact rational grid certificates. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 
@@ -305,7 +307,7 @@ lemma lowerCertificate_eq_posteriorResidual_sInf (c : RatContrast K)
 -- @node: orbitModel_minimax_eq_orbitGameValue
 /-- [the orbit model minimax equals orbit game value](goal). -/
 lemma orbitModel_minimax_eq_orbitGameValue (c : RatContrast K) :
-    Causalean.Stat.minimaxValue
+    Causalean.Stat.minimaxValueReal
       (Causalean.Stat.Minimax.FiniteSquaredLoss.risk
         (l := -Lc (ratContrastToReal c) / 2)
         (u := Lc (ratContrastToReal c) / 2)
@@ -319,7 +321,7 @@ lemma orbitModel_minimax_eq_orbitGameValue (c : RatContrast K) :
       invFun := fun q => (q.design, q.decision)
       left_inv := fun _ => rfl
       right_inv := fun q => by cases q; rfl }
-  unfold orbitGameValue Causalean.Stat.minimaxValue
+  unfold orbitGameValue Causalean.Stat.minimaxValueReal
   rw [← e.iInf_comp]
   rfl
 
@@ -342,13 +344,13 @@ lemma lowerCertificate_le_rhoN (c : RatContrast K) (hn : 0 < n)
   calc
     sInf (Set.range ((rationalOrbitModel (n := n) c).posteriorResidual
         (rationalPriorOf nu hnu))) ≤
-        Causalean.Stat.minimaxValue
+        Causalean.Stat.minimaxValueReal
           (Causalean.Stat.Minimax.FiniteSquaredLoss.risk
             (l := -Lc (ratContrastToReal c) / 2)
             (u := Lc (ratContrastToReal c) / 2)
             (rationalOrbitModel (n := n) c).P
             (rationalOrbitModel (n := n) c).tau) :=
-      (rationalOrbitModel (n := n) c).sInf_posteriorResidual_le_minimaxValue
+      (rationalOrbitModel (n := n) c).sInf_posteriorResidual_le_minimaxValueReal
         (rationalPriorOf nu hnu) hlu
     _ = orbitGameValue K n (ratContrastToReal c) :=
       orbitModel_minimax_eq_orbitGameValue (n := n) c
@@ -472,14 +474,14 @@ lemma rhoN_le_upperCertificate (c : RatContrast K) (hM : 0 < M)
   calc
     rhoN K n (ratContrastToReal c) = orbitGameValue K n (ratContrastToReal c) :=
       (exact_response_type_game K n (ratContrastToReal c) hK).2.2.2.1
-    _ = Causalean.Stat.minimaxValue
+    _ = Causalean.Stat.minimaxValueReal
         (Causalean.Stat.Minimax.FiniteSquaredLoss.risk
           (l := -Lc (ratContrastToReal c) / 2)
           (u := Lc (ratContrastToReal c) / 2)
           (rationalOrbitModel (n := n) c).P
           (rationalOrbitModel (n := n) c).tau) :=
       (orbitModel_minimax_eq_orbitGameValue (n := n) c).symm
-    _ ≤ Causalean.Stat.worstCaseRisk
+    _ ≤ Causalean.Stat.worstCaseRiskReal
         (Causalean.Stat.Minimax.FiniteSquaredLoss.risk
           (rationalOrbitModel (n := n) c).P
           (rationalOrbitModel (n := n) c).tau) q :=
@@ -489,7 +491,7 @@ lemma rhoN_le_upperCertificate (c : RatContrast K) (hM : 0 < M)
           (rationalOrbitModel (n := n) c).tau
           (rationalOrbitModel (n := n) c).P_nonneg q' m) q
     _ = upperCertificate c pi delta := by
-      unfold Causalean.Stat.worstCaseRisk upperCertificate
+      unfold Causalean.Stat.worstCaseRiskReal upperCertificate
       congr with m
       unfold Causalean.Stat.Minimax.FiniteSquaredLoss.risk
       apply Finset.sum_congr rfl

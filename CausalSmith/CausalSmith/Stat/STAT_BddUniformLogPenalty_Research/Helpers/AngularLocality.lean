@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLaw
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLaw
 
 /-!
 # Cellwise locality of the angular hard family
@@ -7,6 +8,8 @@ This module lifts locality of the score design and regression kernel to
 locality of the faithful joint Bernoulli--Gaussian law.  It then applies that
 bridge to one square-truncated packing cell.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

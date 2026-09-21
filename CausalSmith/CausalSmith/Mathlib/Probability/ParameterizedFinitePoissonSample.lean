@@ -1,4 +1,5 @@
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Basic
+module
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Basic
 
 /-!
 # Parameterized finite Poisson sample kernels
@@ -7,6 +8,8 @@ This file turns an atomwise measurable family of probability measures on a
 finite discrete space into the corresponding Markov kernel of finite samples
 with an independent Poisson sample size.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

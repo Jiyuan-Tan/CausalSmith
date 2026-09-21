@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Minimax.FiniteKernelBayes
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Tactic.Ring
+module
+public import Causalean.Stat.Minimax.FiniteKernelBayes
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Tactic.Ring
 
 /-!
 # Finite posterior means and continuous-mixture Bayes risk
@@ -19,6 +20,8 @@ It also transports the construction through a continuous prior mixed into the fi
 space, reusing the induced finite design to transfer estimator-wise integral lower bounds to
 finite and continuous-mixture Bayes risks.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators

@@ -21,18 +21,14 @@ the helper lemmas. Each emitted top-level declaration carries its `@node` tag.
 No new typeclasses or cluster-scale structures are introduced.
 -/
 
-import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.Data.Matrix.Basic
-import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.GroupTheory.Perm.Basic
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Causalean.Experimentation.DesignBased.DesignCore
-
-namespace CausalSmith.Experimentation.DesignPm1
-
-open Causalean.Experimentation.DesignBased
-open scoped BigOperators
+module
+public import Mathlib.LinearAlgebra.Matrix.Trace
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Data.Matrix.Basic
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+public import Mathlib.GroupTheory.Perm.Basic
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 /-! ## Environment S2 — reduced spectral-coordinate world (real objective geometry)
 
@@ -40,6 +36,13 @@ All certificates live on the reduced triangle `T_m` in the spectral coordinates
 `(x,y,z)` produced by `lem:block-spectral-coordinates`; the objective there is the
 linear-plus-weighted-Frobenius form `phi`. These are the shared reduced primitives.
 -/
+
+@[expose] public section
+
+namespace CausalSmith.Experimentation.DesignPm1
+
+open Causalean.Experimentation.DesignBased
+open scoped BigOperators
 
 -- @env: S2
 /-- Reduced multiplicity weight `q = 2(m-1)` (block-contrast eigenspace multiplicity;

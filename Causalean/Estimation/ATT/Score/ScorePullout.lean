@@ -1,10 +1,13 @@
-import Causalean.Estimation.ATT.Score.AIPWMoment
+module
+public import Causalean.Estimation.ATT.Score.AIPWMoment
 
 /-!
 Provides conditioning and reweighting identities for ATT AIPW scores. The
 lemmas pull treatment indicators and propensity weights through conditional
 expectations to isolate treated and control contributions.
 -/
+
+@[expose] public section
 
 /-
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
@@ -53,13 +56,13 @@ lemma measurable_ipwWeight_false (S : TreatedEstimationSystem P γ) :
     Measurable S.ipwWeight_false :=
   S.e_meas.div (measurable_const.sub S.e_meas)
 
-/-- `propScore false =ᵐ 1 − propScore true`.  The indicator pair sums to one
-pointwise, conditional expectation is linear and preserves constants. -/
+/-- [The control-arm propensity equals one minus the treated-arm propensity almost
+surely](goal), by the pointwise indicator sum and linearity of conditional
+expectation. -/
 -- Outline: mirror `BackdoorEstimationSystem.propScore_false_ae` from
 -- `Estimation/ATE/Score/ScorePullout.lean`.  Uses `dVar.indicator_add_indicator_not`
 -- + `condExp_const` + `condExp_add` + `linarith` on the pointwise sum.
-lemma propScore_false_ae (S : TreatedEstimationSystem P γ)
-    (_hA : S.toPOBackdoorSystem.ATTAssumptions) :
+lemma propScore_false_ae (S : TreatedEstimationSystem P γ) :
     S.toPOBackdoorSystem.propScore false
       =ᵐ[P.μ]
         (fun ω => 1 - S.toPOBackdoorSystem.propScore true ω) := by
@@ -101,25 +104,24 @@ lemma propScore_false_ae (S : TreatedEstimationSystem P γ)
   unfold POBackdoorSystem.propScore
   linarith
 
-/-- The treated-arm propensity `propScore true` factors through `factualX` via
-the value-space `e_val`.  Direct restatement of `S.e_compat`. -/
-lemma propScore_eq_e_val_ae (S : TreatedEstimationSystem P γ)
-    (_hA : S.toPOBackdoorSystem.ATTAssumptions) :
+/-- [The treated-arm propensity factors through `factualX` via the value-space
+propensity `e_val`](goal), by the system field `S.e_compat`. -/
+lemma propScore_eq_e_val_ae (S : TreatedEstimationSystem P γ) :
     S.toPOBackdoorSystem.propScore true
       =ᵐ[P.μ]
         (fun ω => S.e_val (S.toPOBackdoorSystem.factualX ω)) :=
   S.e_compat
 
-/-- Control-arm propensity factors through `factualX` as `1 − e_val`. -/
+/-- [The control-arm propensity factors through `factualX` as one minus the
+value-space treated propensity](goal). -/
 -- Outline: combine `propScore_false_ae` with `S.e_compat`; pointwise rewrite
 -- `1 − propScore true ω = 1 − e_val (factualX ω)`.
 lemma propScore_false_eq_one_minus_e_val_ae
-    (S : TreatedEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.ATTAssumptions) :
+    (S : TreatedEstimationSystem P γ) :
     S.toPOBackdoorSystem.propScore false
       =ᵐ[P.μ]
         (fun ω => 1 - S.e_val (S.toPOBackdoorSystem.factualX ω)) := by
-  filter_upwards [propScore_false_ae S hA, S.e_compat] with ω hf hc
+  filter_upwards [propScore_false_ae S, S.e_compat] with ω hf hc
   simp [hf, hc]
 
 private lemma propScore_false_ne_zero (S : TreatedEstimationSystem P γ)
@@ -152,8 +154,8 @@ lemma residual_false_condExp_zero (S : TreatedEstimationSystem P γ)
       (measurableSet_singleton false) hY_int
   have hμ₀x_int :
       Integrable (fun ω => S.μ₀_val (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE false) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome false) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ₀_compat hA)
   have hμ₀x_meas :
@@ -193,8 +195,9 @@ lemma residual_false_condExp_zero (S : TreatedEstimationSystem P γ)
           S.toPOBackdoorSystem.dVar.indicator false ω |
           S.toPOBackdoorSystem.sigmaX]
         =ᵐ[P.μ]
-          S.toPOBackdoorSystem.propScore false * S.toPOBackdoorSystem.CATE false := by
-    have hcate := S.control_cate_backdoor hA
+          S.toPOBackdoorSystem.propScore false *
+            S.toPOBackdoorSystem.conditionalMeanOutcome false := by
+    have hcate := S.conditionalMeanOutcome_backdoor_control hA
     filter_upwards [hcate, propScore_false_ne_zero S hA] with ω hcat hneω
     unfold POBackdoorSystem.adjustedCE at hcat
     rw [Pi.mul_apply, hcat]
@@ -222,9 +225,9 @@ lemma residual_false_condExp_zero (S : TreatedEstimationSystem P γ)
   rw [hres_eq]
   refine hsub.trans ?_
   filter_upwards [hYce, hμce, S.μ₀_compat hA] with ω hy hmu hcompat
-  have hcate_comp : S.toPOBackdoorSystem.CATE false ω =
+  have hcate_comp : S.toPOBackdoorSystem.conditionalMeanOutcome false ω =
       S.μ₀_val (S.toPOBackdoorSystem.factualX ω) := by
-    simpa [POBackdoorSystem.CATE] using hcompat
+    simpa [POBackdoorSystem.conditionalMeanOutcome] using hcompat
   rw [Pi.sub_apply, hy, hmu, Pi.mul_apply, Pi.mul_apply, hcate_comp]
   ring
 
@@ -269,8 +272,8 @@ lemma weighted_residual_false_integral_zero
       (measurableSet_singleton false) hY_int
   have hμ₀x_int :
       Integrable (fun ω => S.μ₀_val (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE false) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome false) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ₀_compat hA)
   have hμ₀x_meas :
@@ -339,8 +342,8 @@ lemma weighted_residual_false_integral_zero
     _ = 0 := MeasureTheory.integral_zero _ _
 
 /-- **Propensity-score pull-out for the treatment indicator (ATT).** Fix a treatment
-label `d`, under [the one-sided back-door ATT assumptions](hyp:hA). If [`f : γ → ℝ` is
-measurable](hyp:hf_meas) and [the product `f(X) · 1{D=d}` is integrable](hyp:hf_ind_int),
+label `d`. If [`f : γ → ℝ` is measurable](hyp:hf_meas) and [the product
+`f(X) · 1{D=d}` is integrable](hyp:hf_ind_int),
 then [replacing the treatment indicator `1{D=d}` by the value-space propensity — `e_val`
 when `d` is true, `1 − e_val` when `d` is false — inside the integral leaves the
 integral unchanged](goal).
@@ -351,7 +354,7 @@ Same shape as the ATE `indicator_to_propScore_integral`. -/
 -- `propScore_false_eq_one_minus_e_val_ae` substitution, and re-integrate.
 lemma indicator_to_propScore_integral
     (S : TreatedEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.ATTAssumptions) (d : Bool)
+    (d : Bool)
     (f : γ → ℝ) (hf_meas : Measurable f)
     (hf_ind_int : Integrable
       (fun ω => f (S.toPOBackdoorSystem.factualX ω)
@@ -379,8 +382,8 @@ lemma indicator_to_propScore_integral
           (fun ω => if d = true then S.e_val (S.toPOBackdoorSystem.factualX ω)
              else 1 - S.e_val (S.toPOBackdoorSystem.factualX ω)) := by
     cases d
-    · simpa using propScore_false_eq_one_minus_e_val_ae S hA
-    · simpa using propScore_eq_e_val_ae S hA
+    · simpa using propScore_false_eq_one_minus_e_val_ae S
+    · simpa using propScore_eq_e_val_ae S
   have hCE_replace :
       P.μ[fun ω => f (S.toPOBackdoorSystem.factualX ω) *
             S.toPOBackdoorSystem.dVar.indicator d ω |

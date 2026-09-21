@@ -7,13 +7,18 @@ finite calculation is scoped to the injected support supplied by
 `RegularFiniteCellClass`.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part2
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part3
-import Causalean.Stat.Sample.EmpiricalMass
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part2
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part3
+public import Causalean.Stat.Sample.EmpiricalMass
+
+/-! ## Statistics and deterministic constants -/
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -22,7 +27,6 @@ open scoped BigOperators ENNReal Topology
 
 variable {𝒳 : Type*} [MeasurableSpace 𝒳]
 
-/-! ## Statistics and deterministic constants -/
 /-- For a transported-IV distribution supported on the regular cells, the Kish dispersion of the transport weights is at least one. -/
 lemma one_le_regularCell_kish
     (P : TransportedArray 𝒳) (N k : ℕ → ℕ)

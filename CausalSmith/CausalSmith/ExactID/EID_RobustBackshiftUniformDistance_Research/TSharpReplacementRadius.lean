@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GlobalCollinearAmbiguity
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.GlobalCollinearAmbiguity
 
 /-!
 # Sharp replacement radius
@@ -6,10 +7,12 @@ import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.G
 The population singleton-recovery threshold and its positive-definite ambiguity witness.
 -/
 
+public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open Set
-open Causalean.Discovery.LinearDisentanglement.CollinearAmbiguity
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 noncomputable section
 
@@ -261,17 +264,15 @@ theorem sharp_replacement_radius {p m c : ℕ} (W : BackshiftSystem p m c)
   · intro hdelta
     let Sigma0 : Environment m → RealMatrix p := fun e ↦
       if e ∈ W.honest then
-        Causalean.Discovery.LinearDisentanglement.CollinearAmbiguity.representedCovariance
-          W.structural 1 (W.shifts e)
+        representedCovariance W.structural 1 (W.shifts e)
       else 1
     have hSigma0pd : ∀ e, (Sigma0 e).PosDef := by
       intro e
       by_cases he : e ∈ W.honest
       · simp only [Sigma0, if_pos he]
-        exact
-          Causalean.Discovery.LinearDisentanglement.CollinearAmbiguity.representedCovariance_posDef
-            W.structural 1 (W.shifts e) W.structural_invertible Matrix.PosDef.one
-            (fun k ↦ nonnegative_shifts e he k)
+        exact representedCovariance_posDef W.structural 1 (W.shifts e)
+          W.structural_invertible Matrix.PosDef.one
+          (fun k ↦ nonnegative_shifts e he k)
       · simpa [Sigma0, he] using (Matrix.PosDef.one : (1 : RealMatrix p).PosDef)
     let W0 : BackshiftSystem p m c :=
       { dimension_at_least_two := W.dimension_at_least_two
@@ -290,8 +291,7 @@ theorem sharp_replacement_radius {p m c : ℕ} (W : BackshiftSystem p m c)
     have hW0nonneg : NonnegativeShifts W0 := nonnegative_shifts
     have hW0model : HonestCovarianceModel W0 := by
       intro e he
-      simp [W0, Sigma0, he,
-        Causalean.Discovery.LinearDisentanglement.CollinearAmbiguity.representedCovariance]
+      simp [W0, Sigma0, he, representedCovariance]
     have hdelta0 : envDeletionDistance W0.honest W0.shifts ≤ c := hdelta
     obtain ⟨replacementCovariance, D', Omega', H', s', hagree, houtside,
         hD'adm, hD'ne, hOmega'pd, hH'card, hs'nonneg, hs'model, hDmem, hD'mem⟩ :=

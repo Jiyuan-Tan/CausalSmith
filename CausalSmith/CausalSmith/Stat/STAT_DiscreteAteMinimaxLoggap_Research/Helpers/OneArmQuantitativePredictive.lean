@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmFullCountCollapse
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmGridPriorLift
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductPredictive
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmFullCountCollapse
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmGridPriorLift
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductPredictive
 
 /-!
 # Quantitative predictive total-variation bounds
@@ -8,6 +9,8 @@ import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPro
 This module combines moment matching, the full count-space Poisson tail, and
 product tensorization into a directly usable predictive bound.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

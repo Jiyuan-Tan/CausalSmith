@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
-import Causalean.Stat.UStatistic.OrderM.Basic
-import Mathlib.RingTheory.Binomial
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
+public import Causalean.Stat.UStatistic.OrderM.Basic
+public import Mathlib.RingTheory.Binomial
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

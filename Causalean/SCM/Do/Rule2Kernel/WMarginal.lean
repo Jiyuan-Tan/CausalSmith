@@ -17,7 +17,8 @@ which assembles the analytic upgrade via d-sep collapse and the cross-SCM
 bridge along the filled assignment.
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.InterSingleton
+module
+public import Causalean.SCM.Do.Rule2Kernel.InterSingleton
 
 /-! # Marginal Identities for Rule 2
 
@@ -30,6 +31,13 @@ measurable embedding, and use that embedding in
 under the explicit hypothesis that the intervened random treatment copies equal
 their assigned fixed intervention values almost surely. These conditional
 identities are later upgraded to the full kernel statement of Rule 2. -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -386,8 +394,8 @@ lemma obsKernel_fixSet_W_marginal_pushforward_eq
     not already been intervened on](hyp:hZ_obs,hZ_fixed), together with [an outcome
     block `Y`](hyp:hY) and [a conditioning block `W`](hyp:hW) of observed variables
     such that [the union of `Z`'s random copies and `W` is observed](hyp:hZrW) and
-    [disjoint from `Z`'s random copies](hyp:hDisj_ZrW). Assume that, [under the
-    intervened model's law given the fixed values `s`, the post-intervention random
+    [disjoint from `Z`'s random copies](hyp:hDisj_ZrW). At [fixed values `s`](hyp:s),
+    assume that [under the intervened model's law, the post-intervention random
     copies of `Z` almost surely equal their assigned intervention values](hyp:hPinned).
     Then for [every measurable `W`-event `A`](hyp:hA) and [every measurable `Y`-event
     `B`](hyp:hB), [integrating, over `A` and with respect to the intervened model's
@@ -396,52 +404,19 @@ lemma obsKernel_fixSet_W_marginal_pushforward_eq
     intervened model's probability that both the `W`-event `A` and the `Y`-event `B`
     occur](goal).
 
-    Under d-separation, joint overlap, and the additional assumption that the
-    post-intervention random treatment copies are pinned almost surely to their
-    assigned do-values, integrating the base-model conditional kernel along
-    `fillZrW W s` against the do-model W-marginal reconstructs the do-model
-    rectangle measure:
+    Under the stated almost-sure pinning assumption, integrating the base-model
+    conditional kernel along `fillZrW W s` against the do-model W-marginal
+    reconstructs the do-model rectangle measure:
     ```
     ∫⁻ w in A, M1.obsCondKernel Y (Zr∪W) (sM1, fillZrW W s w) B
                  d((M2.obsKernel s).map π_W)
       = M2.obsKernel s (π_W⁻¹ A ∩ π_Y⁻¹ B).
     ```
 
-    **Hypotheses.**
-
-    This legacy hPinned-conditional rectangle identity assumes d-separation
-    (to make the observation conditional well-defined), joint absolute
-    continuity of the cross-SCM `Z.rand ∪ W`-marginals (so that the level-set
-    evaluation of the M1 conditional kernel is pinned down up to a null set
-    under M2's W-marginal), and almost-sure pinning of the do-target's random
-    copies:
-    * `hdSep` — `Y` is d-separated from the natural `Z.rand` given
-      `W ∪ M2.fixed` in the post-intervention SWIG DAG.  Equivalent (by
-      `globalMarkov_with_fixed`) to `Y ⊥⊥ Z.rand | W` under
-      `M2.obsKernel s`.
-    * `hOverlap` (= `Rule2JointOverlap`) —
-      `(M2.obsKernel s).map π_C ≪ (M1.obsKernel sM1).map π_C`.
-    * `hPinned` — under `M2.obsKernel s`, every random treatment copy in `Z`
-      equals the corresponding fixed do-value almost surely.
-
-    **Proof outline.** Reduce to the conditional-kernel a.e. equality
-    `M2.obsCondKernel(Y|W)(s, w) =a.e. M1.obsCondKernel(Y|C)(sM1, F w)`
-    (under `(M2.obsKernel s).map π_W`) via the following chain:
-    1. **M2 disintegration** along `π_W`: the RHS already equals
-       `∫_A M2.obsCondKernel(Y|W)(s, w) B d(M_W^M2)`.
-    2. **M2 d-sep collapse** (uses `hdSep`):
-       `M2.obsCondKernel(Y|C)(s, c) =a.e. M2.obsCondKernel(Y|W)(s, π_W^C c)`
-       under `(M2.obsKernel s).map π_C`.
-    3. **Generalized cross-SCM bridge**
-       (`obsKernel_inter_Wset_Zrand_levelset_eq`) integrated:
-       `M2.obsKernel s (π_Y⁻¹B ∩ π_C⁻¹(F''A))
-         = M1.obsKernel sM1 (π_Y⁻¹B ∩ π_C⁻¹(F''A))`.
-    4. **M1 disintegration** (`obsKernel_disintegrate_rect`) on the RHS of (3).
-    5. **Rule2JointOverlap** to lift the (3)–(4) integral identity to an
-       a.e. cross-SCM conditional kernel equality on the `F''W`-image
-       under `M_C^M1` (or equivalently `M_C^M2`).
-    6. **Change of variables** along `F = fillZrW(s, ·)` (measurable
-       injection) to bring the integral back to `M_W^M2`. -/
+    The proof changes variables along the measurable embedding `fillZrW`, uses
+    the pinned-coordinate event to identify the relevant rectangles across the
+    two SCMs, and applies observational disintegration. No d-separation or
+    absolute-continuity hypothesis is part of this theorem. -/
 theorem obsKernel_fixSet_W_rect_integral_eq
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)

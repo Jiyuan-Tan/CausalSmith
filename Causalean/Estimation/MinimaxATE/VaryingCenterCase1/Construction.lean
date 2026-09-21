@@ -30,7 +30,8 @@ This file defines the construction and proves it is a `ValidDGP`; the ATE gap,
 class membership, and the χ² indistinguishability live in the sibling `VaryingCenterCase1` files.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
 
 /-! # Cell-Varying Construction
 
@@ -44,6 +45,8 @@ The structure `VarConstr` stores the bump magnitudes `α`, `β`, the pair-indexe
 defines the center functions `mhatV` and `ghatV`, the sign-dependent perturbations `mPertV` and
 `gPertV`, the denominator positivity lemma `denomV_pos`, and the validity proofs
 `validDGP_hatV` and `validDGP_pertV`. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

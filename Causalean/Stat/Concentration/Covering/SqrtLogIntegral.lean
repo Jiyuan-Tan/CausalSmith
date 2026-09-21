@@ -1,14 +1,17 @@
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+module
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
 /-!
 Dudley entropy-integral evaluation for a logarithmic square-root kernel.
 
 This file proves the elementary bound
-`∫ x in ε..δ, sqrt (log (δ / x)) ≤ δ` for `0 < ε ≤ δ`. The proof uses
+`∫ x in ε..δ, sqrt (log (δ / x)) ≤ δ - ε` for `0 < ε ≤ δ`. The proof uses
 the AM-GM inequality `sqrt t ≤ (t + 1) / 2` for `t ≥ 0` and the explicit
 antiderivative of `log`.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

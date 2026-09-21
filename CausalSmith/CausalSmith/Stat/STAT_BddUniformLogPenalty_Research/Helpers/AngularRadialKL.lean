@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPacking
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPacking
 
 /-!
 # KL assembly for angular radial laws
@@ -8,6 +9,8 @@ one-observation radial-outcome estimate.  In particular, absolute continuity
 and log-likelihood integrability are consequences of a finite real KL bound;
 they need not be proved separately by the angular construction.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

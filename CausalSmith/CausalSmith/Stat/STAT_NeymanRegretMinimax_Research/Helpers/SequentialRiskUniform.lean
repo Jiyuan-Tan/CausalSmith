@@ -11,7 +11,10 @@ which is the quantifier order needed by the Neyman-regret local-neighborhood
 lemma.
 -/
 
-import Causalean.Stat.Limit.SequentialCumulativeRisk
+module
+public import Causalean.Stat.Minimax.SequentialCumulativeRisk
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

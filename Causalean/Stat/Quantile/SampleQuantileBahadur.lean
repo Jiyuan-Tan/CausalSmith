@@ -14,7 +14,10 @@ Re-export over the three layers of the elementary Bahadur derivation:
 Existing consumers importing `Causalean.Stat.Quantile.SampleQuantileBahadur` are unaffected.
 -/
 
-import Causalean.Stat.Quantile.SampleQuantileBahadur.Linearity
+module
+public import Causalean.Stat.Quantile.SampleQuantileBahadur.Linearity
+public import Causalean.Stat.Quantile.SampleQuantileBahadur.Oscillation
+public import Causalean.Stat.Quantile.SampleQuantileBahadur.Rate
 
 /-! # Sample-Quantile Bahadur Representation
 

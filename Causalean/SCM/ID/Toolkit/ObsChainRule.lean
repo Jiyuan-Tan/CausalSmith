@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.Model.Kernel
-import Mathlib.Probability.Kernel.Composition.Lemmas
-import Mathlib.Probability.Kernel.Disintegration.Basic
+
+module
+public import Causalean.SCM.Model.Kernel
+public import Mathlib.Probability.Kernel.Composition.Lemmas
+public import Mathlib.Probability.Kernel.Disintegration.Basic
 
 /-!
 # Observational chain rule (do-calculus identification toolkit, Layer 3)
@@ -26,6 +28,13 @@ The only genuinely-supplied typeclass is finiteness of `M.obsKernel`; every
 `ValuesOn`-product instance (standard-Borel, nonempty, countably-generated)
 infers from the per-node primitives because `ValuesOn I Ω` is a finite product.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

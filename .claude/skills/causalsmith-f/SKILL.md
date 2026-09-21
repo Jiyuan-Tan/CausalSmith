@@ -93,10 +93,19 @@ self-heals; act per route:
   own grep, then DELETE it (default; rebuild after) or add `-- keep: <reason>` directly above it when it
   is deliberate reusable substrate. Never keep silently; never manufacture a use.
 - `fix-source` otherwise → reproduce the Lean↔`.tex` conflict yourself (reference § "Rewind
-  verification"). False → restore and fix the reviewer or scaffolder in place. Scaffold-side drift the
-  F2.5 loop cannot converge → `bin/f2_directive.ts <qid> <spec> --directive "…"` (persistent until
-  `--clear`), then rewind to F1.5. A true note error needing a claim change → `rewind:fix-source`.
-  Escalate only a mathematical defect; fix mechanical errors in place.
+  verification"). A false conflict (the reviewer misread the Lean or the `.tex`) → persist an
+  accept-review whose note is your reproduction; never edit a reviewer prompt to settle a live dispute
+  (prompt rules are offline, user-approved changes), and a repeated flag after an accept-review
+  escalates to main with both reproductions. Scaffold-side drift the F2.5 loop cannot converge →
+  `bin/f2_directive.ts <qid> <spec> --directive "…"` (persistent until `--clear`), then rewind to
+  F1.5. A true note error needing a claim change → `rewind:fix-source`. Escalate only a mathematical
+  defect; fix mechanical errors in place.
+  - AMBIGUOUS NL (`statement-wrong` listing several formal readings): the reading is chosen by whoever
+    owns the claim. If the node is referenced, after unfolding, by a headline or headline-support
+    theorem statement, is an assumption of one, is a cited premise, or is an OEQ node →
+    `rewind:fix-source` (the user picks the reading). Otherwise (proof-internal lemma, construction
+    handle, gate, helper def) pin the reading the Lean realizes in the `.tex`/core NL yourself, log it
+    in the decision log, re-review that node, and confirm no main-result statement hash changed.
   - F2.5 is incremental: a `scaffold-mismatch` reroute patches only the drifted decl; do not rewind to
     F1.5 for a per-node fix. Reserve a full F1.5 rewind for a genuine plan change.
   - Accept-as-is must be persisted: `npx tsx bin/graph.ts accept-review --dir <formalization-dir>

@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.LawClass
-import Causalean.Stat.Nonparametric.LocalPolynomial.CoordinateDerivative
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.LawClass
+public import Causalean.Stat.Nonparametric.LocalPoly.CoordinateDerivative
 
 /-!
 # Coordinate-partial envelope assembly
@@ -7,6 +8,8 @@ import Causalean.Stat.Nonparametric.LocalPolynomial.CoordinateDerivative
 This file converts uniform Fréchet-derivative bounds into the scalar
 coordinate-partial suprema used by the paper's Euclidean extension class.
 -/
+
+public section
 
 open Set
 open scoped Topology

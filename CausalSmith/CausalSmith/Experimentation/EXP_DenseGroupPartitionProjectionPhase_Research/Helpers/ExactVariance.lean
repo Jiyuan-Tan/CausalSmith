@@ -1,9 +1,12 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Estimator
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactKneserIdentity
-import Causalean.Experimentation.DesignBased.CompoundVariance
-import Causalean.Experimentation.TwoStageInterference.VarianceConservative
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Estimator
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactKneserIdentity
+public import Causalean.Experimentation.DesignBased.CompoundVariance
+public import Causalean.Experimentation.TwoStageInterference.VarianceConservative
 
 /-! # Exchangeable moments for the exact two-stage variance calculation -/
+
+public section
 
 open scoped BigOperators
 open Finset
@@ -245,7 +248,7 @@ lemma cr2Var_eq_varHat {n M G G1 : ℕ} (Y : PotentialOutcome n M)
     simp
   have hObsT : armObsMean Y (T, S) true = obsMeanTreated G1 a z := by
     simp [armObsMean, obsMeanTreated, realizedArmSet, armCount, obsGroupMean,
-      a, z, Causalean.Experimentation.TwoStageInterference.T,
+      a, z, Causalean.Experimentation.DesignBased.T,
       crdToBoolOn, FiniteDesign.ind]
     congr 1
     apply Finset.sum_congr rfl
@@ -253,7 +256,7 @@ lemma cr2Var_eq_varHat {n M G G1 : ℕ} (Y : PotentialOutcome n M)
     simp [hg]
   have hObsC : armObsMean Y (T, S) false = obsMeanControl G1 b z := by
     simp [armObsMean, obsMeanControl, realizedArmSet, armCount, obsGroupMean,
-      b, z, Causalean.Experimentation.TwoStageInterference.T,
+      b, z, Causalean.Experimentation.DesignBased.T,
       crdToBoolOn, FiniteDesign.ind, Nat.cast_sub (by omega : G1 ≤ G)]
     congr 1
     rw [hsum, ← Finset.sum_sub_distrib]
@@ -263,7 +266,7 @@ lemma cr2Var_eq_varHat {n M G G1 : ℕ} (Y : PotentialOutcome n M)
   have hVarT : armSampleVar Y (T, S) true (by simpa [armCount] using hG1) =
       ShatTreated G1 a z := by
     simp [armSampleVar, ShatTreated, realizedArmSet, armCount, hObsT,
-      obsGroupMean, a, z, Causalean.Experimentation.TwoStageInterference.T,
+      obsGroupMean, a, z, Causalean.Experimentation.DesignBased.T,
       crdToBoolOn, FiniteDesign.ind,
       Nat.cast_sub (by omega : 1 ≤ G1)]
     congr 1
@@ -273,7 +276,7 @@ lemma cr2Var_eq_varHat {n M G G1 : ℕ} (Y : PotentialOutcome n M)
   have hVarC : armSampleVar Y (T, S) false (by simpa [armCount] using hG0) =
       ShatControl G1 b z := by
     simp [armSampleVar, ShatControl, realizedArmSet, armCount, hObsC,
-      obsGroupMean, b, z, Causalean.Experimentation.TwoStageInterference.T,
+      obsGroupMean, b, z, Causalean.Experimentation.DesignBased.T,
       crdToBoolOn, FiniteDesign.ind,
       Nat.cast_sub (by omega : 1 ≤ G - G1), Nat.cast_sub (by omega : G1 ≤ G)]
     congr 1
@@ -315,17 +318,17 @@ lemma conditional_Var_pameHat {n M G G1 : ℕ} (Y : PotentialOutcome n M)
   rw [hp]
   have hneg : diffInMeans G1 a b = fun S => -tauHat G1 a b (crdToBoolOn G1 S) := by
     funext S
-    have ht : (∑ x, a x * Causalean.Experimentation.TwoStageInterference.T x
+    have ht : (∑ x, a x * Causalean.Experimentation.DesignBased.T x
         (crdToBoolOn G1 S)) = ∑ x, if x ∈ S.1 then a x else 0 := by
       apply Finset.sum_congr rfl
       intro x _
-      by_cases hx : x ∈ S.1 <;> simp [Causalean.Experimentation.TwoStageInterference.T,
+      by_cases hx : x ∈ S.1 <;> simp [Causalean.Experimentation.DesignBased.T,
         crdToBoolOn, FiniteDesign.ind, hx]
-    have hc : (∑ x, b x * (1 - Causalean.Experimentation.TwoStageInterference.T x
+    have hc : (∑ x, b x * (1 - Causalean.Experimentation.DesignBased.T x
         (crdToBoolOn G1 S))) = ∑ x, if x ∈ S.1 then 0 else b x := by
       apply Finset.sum_congr rfl
       intro x _
-      by_cases hx : x ∈ S.1 <;> simp [Causalean.Experimentation.TwoStageInterference.T,
+      by_cases hx : x ∈ S.1 <;> simp [Causalean.Experimentation.DesignBased.T,
         crdToBoolOn, FiniteDesign.ind, hx]
     rw [diffInMeans, treatedMean, controlMean, tauHat, ht, hc]
     rw [Fintype.card_fin, Nat.cast_sub hG1lt.le]

@@ -1,10 +1,13 @@
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Measure.Prod
-import Mathlib.Probability.Notation
-import Mathlib.Tactic.Cases
-import FoML.ExpectationInequalities
-import FoML.Defs
+module
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.MeasureTheory.Measure.Prod
+public import Mathlib.Probability.Notation
+public import Mathlib.Tactic.Cases
+public import FoML.ExpectationInequalities
+public import FoML.Defs
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Real
 

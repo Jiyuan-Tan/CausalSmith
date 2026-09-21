@@ -16,7 +16,8 @@ by the Liu–Hudgens identical-groups derivation to show that the conditional st
 on a stage-1 selection only through the number of selected groups.
 -/
 
-import Causalean.Experimentation.DesignBased.Product
+module
+public import Causalean.Stat.FiniteDesign.Product
 
 /-! # Reindexing product designs
 
@@ -29,8 +30,12 @@ design.  It is used to express selection symmetry in identical-group two-stage a
 invoking measure theory.
 -/
 
+public section
+
 open scoped BigOperators
 open Finset
+
+open Causalean.Experimentation.DesignBased.FiniteDesign
 
 namespace Causalean
 namespace Experimentation

@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Tactic.Attr.Register
+
+module
+public import Mathlib.Tactic.Attr.Register
 
 /-!
 Registers Causalean's custom simp attributes (Mathlib `*_simps` convention;
@@ -17,6 +19,8 @@ direction lives on the attribute itself; the populate files
 plan, sets are populated by evidence (usage-direction counts, confluence), and
 membership never changes any statement.
 -/
+
+public section
 
 /-- The parser description defines the custom simplification attribute named
 `causal_defs_simps`, whose rules rewrite a project-defined object to its defining expression.
@@ -40,7 +44,7 @@ their underlying conditional expectations and restricted integrals.
 
 Conditional-expectation wrapper normal form: unfolds Causalean's
 conditioning wrappers (`POVar`/`POCFBundle` `condExpGiven`, `condExpRatio`, and
-the event-level `eventCondExp`) to the Mathlib primitives they abbreviate —
+the event-level `normalizedRestrictedIntegral`) to the Mathlib primitives they abbreviate —
 `condExp` given the conditioning σ-algebra, and the restricted integral over
 the event's mass — so the Mathlib API applies. Wrapper unfolding ONLY: condExp
 linearity is `=ᵐ[μ]`-valued and out of simp's reach. -/

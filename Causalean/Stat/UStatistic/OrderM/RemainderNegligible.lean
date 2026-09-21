@@ -1,30 +1,5 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Negligibility of the higher-order remainder for fixed-order U-statistics
-
-This file discharges the `OrderDegenerateNegligible` hypothesis carried by the
-order-`m` U-statistic CLT `uStatisticOrder_clt`
-(`Causalean.Stat.UStatistic.OrderM.CLT`): it proves that the rescaled higher-order
-Hájek remainder `√n · Gₙ` is `o_p(1)`.  The end-to-end CLT that composes this
-discharge with the CLT — the order-`m` analogue of `uStatistic_clt_of_symmetric` —
-lives in `OrderM.CLT`.
-
-The two supporting layers:
-
-* `OrderM.FirstDegenKernel` — the `OrderFirstDegenKernel` hypothesis (first-order
-  degeneracy, the correct notion for the remainder — *not* the complete
-  degeneracy of `OrderDegenKernel`) and its `L²` transport lemmas.
-* `OrderM.RemainderSecondMoment` — the keystone `L²` bound
-  `E[(√n·Uₙ)²] ≤ C/n` for first-order degenerate kernels.
-
-Given the keystone bound, negligibility is `L²`-boundedness with variance `→ 0`
-via Chebyshev (mirroring the order-2 `degenerateNegligible_of_degenKernel`).
--/
-
-import Causalean.Stat.UStatistic.OrderM.RemainderSecondMoment
+module
+public import Causalean.Stat.UStatistic.OrderM.RemainderSecondMoment
 
 /-!
 Discharges the fixed-order Hájek remainder negligibility hypothesis.
@@ -37,6 +12,14 @@ this result to the residual kernel `uDegenOrder h P`, producing the
 `OrderDegenerateNegligible S h` hypothesis required by the fixed-order
 asymptotic-linearity and CLT statements.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+public section
 
 namespace Causalean.Stat
 
@@ -65,8 +48,9 @@ theorem integral_rescaled_order_eq_zero (hg : OrderFirstDegenKernel P g)
 omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
 /-- **Negligibility of the higher-order remainder.** For an i.i.d. sample `S`, if the
 order-`m` kernel `g` is [first-order degenerate: measurable, square-integrable, and mean
-zero after integrating out any single coordinate](hyp:hg), then [the `√n`-rescaled
-order-`m` U-statistic of `g` converges to zero in probability, i.e. it is
+zero after holding any single coordinate fixed and integrating out all remaining
+coordinates](hyp:hg), then [the `√n`-rescaled order-`m` U-statistic of `g` converges to
+zero in probability, i.e. it is
 `o_p(1)`](goal).
 
 Proof: `L²` boundedness (`memLp_rescaled_order`) with mean zero and variance `≤ C/n → 0`
@@ -77,6 +61,9 @@ theorem orderDegenerateNegligible_of_firstDegen [IsFiniteMeasure P]
     IsLittleOp (fun n ω => Real.sqrt (n : ℝ) * uStatisticOrder S g n ω)
       (fun _ => (1 : ℝ)) μ := by
   letI : IsProbabilityMeasure μ := S.indep.isProbabilityMeasure
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ) (fun (n : ℕ) ω => Real.sqrt (n : ℝ) * uStatisticOrder S g n ω) atTop
+    (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
   rcases S.integral_rescaled_order_sq_le hg with ⟨C, hCnn, hCbound⟩
   have hb_tendsto :

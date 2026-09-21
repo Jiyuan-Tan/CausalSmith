@@ -15,7 +15,8 @@ and proves:
                                   compatible latent types.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Assumptions
+module
+public import Causalean.PO.ID.Partial.BalkePearl.Assumptions
 
 /-! # Balke-Pearl Latent Table
 
@@ -23,6 +24,8 @@ This file defines the 16-cell latent type table for Balke-Pearl bounds and
 relates it to the average treatment effect and observed conditional cell
 probabilities. The latent cells partition the population by the two treatment
 potential outcomes and the two outcome potential outcomes. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

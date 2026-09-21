@@ -1,7 +1,10 @@
 /- Finite-cell identification of the causal ATE. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
-import Causalean.Mathlib.MeasureTheory.PartitionIntegral
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
+public import Causalean.Mathlib.MeasureTheory.PartitionIntegral
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

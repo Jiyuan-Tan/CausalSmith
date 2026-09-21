@@ -6,11 +6,15 @@ Authors: Jiyuan Tan
 # Arm-level helpers for the linear-tilt path construction
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 
 open MeasureTheory Asymptotics
+open Causalean.Mathlib.InformationTheory.KullbackLeibler.DensityTilt
 open scoped BigOperators Topology
 
 -- @node: linearTiltScore
@@ -24,7 +28,7 @@ noncomputable def linearTiltScore (nu : Measure (ℝ × ℝ)) (u : ℝ × ℝ)
 /-- The arm marginal tilted by `linearTiltScore`. -/
 noncomputable def linearTiltArm (nu : Measure (ℝ × ℝ)) (u : ℝ × ℝ)
     (a : Fin 2) (h : ℝ) : Measure ℝ :=
-  Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure
+  tiltMeasure
     (armMarginal nu a) (linearTiltScore nu u a) h
 
 -- @node: linearTiltJointPath
@@ -65,7 +69,7 @@ lemma linearTiltArm_isProbabilityMeasure (nu : Measure (ℝ × ℝ)) (hnu : MTan
     IsProbabilityMeasure (linearTiltArm nu u a h) := by
   haveI : IsProbabilityMeasure (armMarginal nu a) :=
     armMarginal_isProbabilityMeasure nu hnu.toMInt a
-  exact Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.isProbabilityMeasure_tiltMeasure
+  exact isProbabilityMeasure_tiltMeasure
     (boundedArmScore_measurable nu a (if a = 0 then u.1 else u.2))
     (by simpa [linearTiltScore] using hC)
     (linearTiltScore_moments nu hnu u a).1 hh
@@ -78,7 +82,7 @@ lemma linearTiltArm_support_Icc (nu : Measure (ℝ × ℝ)) (hnu : MTan nu)
     ∀ᵐ y ∂(linearTiltArm nu u a h), y ∈ Set.Icc (0 : ℝ) 1 := by
   have hac :
       linearTiltArm nu u a h ≪ armMarginal nu a :=
-    Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure_absolutelyContinuous
+    tiltMeasure_absolutelyContinuous
       (armMarginal nu a) (linearTiltScore nu u a) h
   exact (armMarginal_support_Icc nu hnu.toMInt a).filter_mono hac.ae_le
 
@@ -111,7 +115,7 @@ lemma linearTiltJointPath_armMarginal (nu : Measure (ℝ × ℝ))
   by_cases hz : h = 0
   · subst h
     simp [linearTiltJointPath, linearTiltArm,
-      Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure]
+      tiltMeasure]
   · haveI : IsProbabilityMeasure (linearTiltArm nu u 0 h) := h0prob
     haveI : IsProbabilityMeasure (linearTiltArm nu u 1 h) := h1prob
     fin_cases a
@@ -178,7 +182,7 @@ lemma linearTiltArm_kl_expansion (nu : Measure (ℝ × ℝ)) (hnu : MTan nu)
   haveI : IsProbabilityMeasure (armMarginal nu a) :=
     armMarginal_isProbabilityMeasure nu hnu.toMInt a
   simpa [linearTiltArm, (linearTiltScore_moments nu hnu u a).2.2.2] using
-    Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.klDiv_tilt_expansion
+    klDiv_tilt_expansion
       (by simpa [linearTiltScore] using
         boundedArmScore_measurable nu a (if a = 0 then u.1 else u.2))
       hC (linearTiltScore_moments nu hnu u a).1

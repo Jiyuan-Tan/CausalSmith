@@ -3,7 +3,7 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Hudgens–Halloran (2008), Theorem 5: within-group difference-in-means variance
+# Hudgens–Halloran (2008): within-group difference-in-means variance identity
 
 The variance of the within-group difference-in-means estimator of a treatment effect, under a
 completely randomized experiment that always treats exactly `K` of the `n` units in the group.
@@ -26,24 +26,31 @@ taken as the data; the connection to the stratified-interference factorization
 (`exists_strat_factor`) is upstream and not re-threaded here.
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
-import Causalean.Experimentation.TwoStageInterference.CompleteRandomization
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Positivity
+module
+public import Causalean.Experimentation.DesignBased.Estimators.NeymanVariance
+public import Causalean.Experimentation.TwoStageInterference.CompleteRandomization
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Positivity
 
 /-!
 # Within-group Neyman variance under complete randomization
 
-This file proves the Hudgens-Halloran within-group difference-in-means variance identity. The
+This file proves the Hudgens-Halloran within-group difference-in-means variance identity used in
+the paper's analysis of its Equation (8) variance estimator and Theorem 5. It is not itself the
+statement of Theorem 5, which concerns that estimator's bias. The
 generic theorem states the Neyman split `S₁/K + S₀/(n−K) − Sτ/n` from first- and second-order
 treatment-indicator moments, then specializes it to the completely randomized within-group design.
 
-The public definitions are the treatment indicator `T`, the difference-in-means statistic
-`tauHat`, the population mean `popMeanV`, and the sample variances `S1`, `S0`, and `Stau`.
+The shared design-based definitions are the treatment indicator `T`, population mean `popMeanV`,
+and sample variances `S1`, `S0`, and `Stau`; this module adds the difference-in-means statistic
+`tauHat`.
 `Var_tauHat` is the moment-conditioned theorem; `Var_tauHat_CRD` is the corresponding theorem for
 the actual completely randomized design, with `crd_mean` and `crd_pair` supplying the moments.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -101,10 +108,6 @@ section Group
 
 variable {n : ℕ}
 
-/-- For [a population of $n$ units](hyp:n) and [a unit $j$](hyp:j), the [treatment indicator of unit $j$](goal) equals one for each within-group assignment that treats $j$ and zero otherwise. -/
-noncomputable def T (j : Fin n) : (Fin n → Bool) → ℝ :=
-  FiniteDesign.ind (fun w => w j = true)
-
 variable (K : ℕ) (a b : Fin n → ℝ)
 
 /-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [unit-level treated potential outcomes](hyp:a), and [unit-level control potential outcomes](hyp:b), the [difference-in-means estimator](goal) maps each realized assignment to the mean control potential outcome among the $n-K$ control units minus the mean treated potential outcome among the $K$ treated units.
@@ -112,21 +115,6 @@ variable (K : ℕ) (a b : Fin n → ℝ)
 On the design's support the treated units realize `a` and the control units realize `b`, so this is linear in the treatment indicators. -/
 noncomputable def tauHat : (Fin n → Bool) → ℝ :=
   fun w => (∑ j, b j * (1 - T j w)) / (n - K : ℝ) - (∑ j, a j * T j w) / K
-
-/-! ### Population sample variances (Neyman, `n−1` denominator) -/
-
-/-- For [a population of $n$ units](hyp:n) and [a real-valued quantity $x_j$ for each unit](hyp:x), the [population mean of that quantity](goal) is $n^{-1}\sum_j x_j$. -/
-noncomputable def popMeanV (x : Fin n → ℝ) : ℝ := (∑ j, x j) / n
-
-/-- For [a population of $n$ units](hyp:n) and [their treated potential outcomes](hyp:a), the [population sample variance of the treated potential outcomes](goal) is $(n-1)^{-1}\sum_j(a_j-\bar a)^2$. -/
-noncomputable def S1 : ℝ := (∑ j, (a j - popMeanV a) ^ 2) / (n - 1 : ℝ)
-
-/-- For [a population of $n$ units](hyp:n) and [their control potential outcomes](hyp:b), the [population sample variance of the control potential outcomes](goal) is $(n-1)^{-1}\sum_j(b_j-\bar b)^2$. -/
-noncomputable def S0 : ℝ := (∑ j, (b j - popMeanV b) ^ 2) / (n - 1 : ℝ)
-
-/-- For [a population of $n$ units](hyp:n), [their treated potential outcomes](hyp:a), and [their control potential outcomes](hyp:b), the [population sample variance of the unit-level treatment effects](goal) is $(n-1)^{-1}\sum_j[(a_j-b_j)-(\bar a-\bar b)]^2$. -/
-noncomputable def Stau : ℝ :=
-  (∑ j, ((a j - b j) - (popMeanV a - popMeanV b)) ^ 2) / (n - 1 : ℝ)
 
 /-! ### Complete-randomization covariances of the treatment indicators -/
 
@@ -138,7 +126,9 @@ variable (hpair : ∀ j k, j ≠ k →
   ρ.E (fun w => T j w * T k w) = (K * (K - 1) : ℝ) / (n * (n - 1)))
 
 include hmean in
-/-- The diagonal covariance `Cov(Tⱼ, Tⱼ) = Var(Tⱼ) = (K/n)(1 − K/n)`. -/
+/-- Given [a population size, treatment count, and assignment design](hyp:n,K,ρ), if [every treatment
+indicator has mean equal to the treated fraction](hyp:hmean), then for [each unit](hyp:j), [the
+indicator's covariance with itself equals the treated fraction times one minus that fraction](goal). -/
 lemma cov_diag (j : Fin n) :
     ρ.Cov (T j) (T j) = (K / n : ℝ) * (1 - K / n) := by
   rw [FiniteDesign.Cov_self]
@@ -148,7 +138,10 @@ lemma cov_diag (j : Fin n) :
   rw [hmean j]
 
 include hmean hpair in
-/-- The off-diagonal covariance `Cov(Tⱼ, Tₖ) = K(K−1)/(n(n−1)) − (K/n)²` for `j ≠ k`. -/
+/-- Given [a population size, treatment count, and assignment design](hyp:n,K,ρ), if [each treatment
+indicator has mean equal to the treated fraction](hyp:hmean) and [distinct indicators have the
+complete-randomization second moment](hyp:hpair), then for [two distinct units](hyp:j,k,hjk), [their
+treatment-indicator covariance is the second moment minus the squared treated fraction](goal). -/
 lemma cov_offdiag (j k : Fin n) (hjk : j ≠ k) :
     ρ.Cov (T j) (T k)
       = (K * (K - 1) : ℝ) / (n * (n - 1)) - (K / n) * (K / n) := by
@@ -156,7 +149,7 @@ lemma cov_offdiag (j k : Fin n) (hjk : j ≠ k) :
 
 end Covariance
 
-/-! ### Theorem 5: the Neyman completely-randomized variance -/
+/-! ### Neyman completely-randomized variance identity -/
 
 section MainVariance
 
@@ -167,7 +160,7 @@ variable (hpair : ∀ j k, j ≠ k →
   ρ.E (fun w => T j w * T k w) = (K * (K - 1) : ℝ) / (n * (n - 1)))
 
 include hK hKn hmean hpair in
-/-- **Hudgens–Halloran (2008), Theorem 5 (within-group / Neyman form).**  For any within-group
+/-- **Within-group Neyman variance identity used by Hudgens–Halloran (2008).** For any within-group
 design whose treatment indicators have first moment `K/n` (`hmean`) and pairwise second moment
 `K(K−1)/(n(n−1))` (`hpair`) — the moments of the completely randomized (mixed) design of
 Assumption 1, which treats exactly `K` of `n` units — with the two-valued potential outcomes `a`
@@ -255,7 +248,7 @@ theorem Var_tauHat :
 
 end MainVariance
 
-/-- **Hudgens–Halloran (2008), Theorem 5, for the completely randomized design.** For a group of
+/-- **Within-group Neyman variance identity for the completely randomized design.** For a group of
 `n` units with potential outcomes `a` (treated state) and `b` (untreated state), consider the
 completely randomized within-group design that treats exactly `K` units uniformly at random,
 where [`K` is positive](hyp:hK) and [strictly less than the group size `n`](hyp:hKn). Then [the
@@ -265,14 +258,18 @@ the treated-state and untreated-state outcomes and `Sτ` is the population sampl
 unit-level treatment effects](goal).
 
 Its first- and second-order treatment moments are the derived facts `crd_mean`/`crd_pair`,
-so — unlike `Var_tauHat` — no moment hypotheses are assumed; this is the identity as Hudgens &
-Halloran state it under their mixed-strategy Assumption 1. -/
+so — unlike `Var_tauHat` — no moment hypotheses are assumed. This is the true-variance identity
+used in Hudgens & Halloran's variance-estimator analysis, not the statement of their Theorem 5. -/
 theorem Var_tauHat_CRD (hK : 0 < K) (hKn : K < n) :
     (crd K hKn.le).Var (tauHat K a b) = S1 a / K + S0 b / (n - K) - Stau a b / n :=
   Var_tauHat K a b (crd K hKn.le) hK hKn
     (fun j => crd_mean K hKn.le j) (fun j k hjk => crd_pair K hKn.le j k hjk)
 
 end Group
+
+/-- Deprecated compatibility name for [the design-level treatment indicator](goal). -/
+@[deprecated (since := "2026-09-17")]
+alias T := DesignBased.T
 
 end TwoStageInterference
 end Experimentation

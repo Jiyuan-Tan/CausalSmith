@@ -3,25 +3,33 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Mogstad-Torgovitsky-Walters multiple-IV finite algebra
+# Abstract sign-aligned multiple-IV finite algebra
 
-Public facade for the finite-support saturated/index algebra used by the MTW
-multiple-IV characterization.  This module exports the ordered finite index,
-the finite matrix first-stage construction, tail coefficients, the saturated
+Public facade for a finite-support ordered-score response-type algebra. This
+module exports the ordered finite index,
+the numeric matrix score adapter, tail coefficients, the
 finite-support population bridge, the observed `E[h(Z)Y] / E[h(Z)D]` bridge,
-response-type weights, and sign-alignment normalization facts.
+response-type weights, and normalization facts conditional on abstract sign
+alignment. It does not formalize MTW partial monotonicity or derive sign
+alignment from behavioral restrictions.
 
 NL artifact:
 `doc/basic_concepts/po/estimand_characterization/mogstad_torgovitsky_walters_multiple_iv.md`.
 -/
 
-import Causalean.PO.ID.Exact.MultipleInstrumentIV.Population
+module
+public import Causalean.PO.ID.Exact.MultipleInstrumentIV.Population
+
 /-! # Multiple-Instrument IV Main Facade
 
-This file provides the public finite-support facade for the
-Mogstad-Torgovitsky-Walters multiple-instrument characterization. It exposes
-the signed adjacent ratio, the response-type weighted-sum form, positivity
-under sign alignment, and the corresponding population bridge statements. -/
+This file provides the public finite-support facade for an abstract
+multiple-instrument response-type algebra. It exposes the signed adjacent
+ratio, the response-type weighted-sum form, positivity under an assumed sign-
+alignment condition, and the corresponding population bridge statements. It
+does not provide the behavioral or empirical conditions in the full MTW
+multiple-instrument characterization. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO.ID.Exact
@@ -33,45 +41,50 @@ namespace ResponseTypeStats
 
 variable {K : ℕ} (I : FiniteIndex K) (R : ResponseTypeStats K)
 
-/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [signed adjacent reduced-form numerator](goal) is the sum of each within-type causal effect multiplied by its unnormalized response-type weight. -/
+/-- [The signed adjacent outcome numerator](goal) aggregates within-type causal effects from
+[finite response-type statistics](hyp:R) using the unnormalized weights induced by [an ordered
+score](hyp:I). -/
 noncomputable def signedAdjacentNumerator : ℝ :=
   ∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g
 
-/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [signed adjacent first-stage denominator](goal) is the sum of all unnormalized response-type weights. -/
+/-- [The signed adjacent treatment denominator](goal) aggregates all unnormalized type weights
+induced by [an ordered score](hyp:I) and [finite response-type statistics](hyp:R). -/
 noncomputable def signedAdjacentDenominator : ℝ :=
   R.typeWeightDenom I
 
-/-- **Finite response-type ratio as signed adjacent ratio.** Provided [the
-signed adjacent first-stage denominator is nonzero](hyp:_hden), [the
-finite-algebra MTW estimand `beta2SLSFiniteAlgebra` equals the signed
-adjacent numerator `Σ_g λ_g Δ_g` divided by the signed adjacent denominator
-`Σ_g λ_g`](goal).
+/-- [The finite-algebra centered-score IV ratio is the signed adjacent outcome numerator divided
+by the treatment denominator](goal) for [an ordered score](hyp:I) and [finite response-type
+statistics](hyp:R), provided [that denominator is nonzero](hyp:_hden).
 
 The `PopulationBridge` facade below upgrades this finite ratio to the
-saturated finite-support population 2SLS ratio. -/
-theorem beta2SLSFiniteAlgebra_eq_signedAdjacentRatio
+corresponding finite-support centered-score IV ratio. A population-2SLS interpretation requires
+separate hypotheses tying the score to an observed first-stage projection. -/
+theorem centeredScoreIVFiniteAlgebra_eq_signedAdjacentRatio
     (_hden : R.signedAdjacentDenominator I ≠ 0) :
-    R.beta2SLSFiniteAlgebra I =
+    R.centeredScoreIVFiniteAlgebra I =
       R.signedAdjacentNumerator I / R.signedAdjacentDenominator I := by
   rfl
 
-/-- Response-type weighted-sum form of the finite MTW algebra
-(`prop:po-estimand-mtw-response-type-form`, finite algebra layer). -/
-theorem beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum'
+/-- [The centered-score IV ratio equals the response-type-weighted causal-effect sum](goal) for
+[an ordered score](hyp:I) and [finite response-type statistics](hyp:R) when [the score-weight
+denominator is nonzero](hyp:hden). -/
+theorem centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum'
     (hden : R.typeWeightDenom I ≠ 0) :
-    R.beta2SLSFiniteAlgebra I = R.responseTypeEstimand I := by
-  exact R.beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum I hden
+    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I := by
+  exact R.centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum I hden
 
-/-- Positive response-type average under MTW sign alignment and a positive
-finite first-stage denominator (`prop:po-estimand-mtw-positive-weights`,
-finite algebra layer). -/
-theorem beta2SLSFiniteAlgebra_eq_positiveResponseTypeAverage'
+/-- [The centered-score IV ratio is a convex response-type average](goal) for [an ordered
+score](hyp:I) and [finite response-type statistics](hyp:R) when [response types are
+sign-aligned](hyp:hAlign) and [the score-weight denominator is positive](hyp:hden).
+
+This does not derive sign alignment from a behavioral monotonicity restriction. -/
+theorem centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned'
     (hAlign : R.SignAligned I)
     (hden : 0 < R.typeWeightDenom I) :
-    R.beta2SLSFiniteAlgebra I = R.responseTypeEstimand I ∧
+    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I ∧
       (∀ g : ResponseType K, 0 ≤ R.normalizedTypeWeight I g) ∧
       (∑ g : ResponseType K, R.normalizedTypeWeight I g = 1) := by
-  exact R.beta2SLSFiniteAlgebra_eq_positiveResponseTypeAverage I hAlign hden
+  exact R.centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned I hAlign hden
 
 end ResponseTypeStats
 
@@ -79,41 +92,38 @@ namespace ResponseTypeStats.PopulationBridge
 
 variable {K : ℕ} (I : FiniteIndex K) (P : ResponseTypeStats.PopulationBridge K)
 
-/-- **Signed adjacent ratio form (population bridge).** Provided [the signed
-adjacent first-stage denominator is nonzero](hyp:hden), [the population-
-bridge 2SLS estimand equals the signed adjacent numerator divided by the
-signed adjacent denominator](goal). -/
-theorem beta2SLSPopulationBridge_eq_signedAdjacentRatio
+/-- [The population-bridge centered-score IV ratio equals the signed adjacent outcome numerator
+divided by its treatment denominator](goal) for [an ordered score](hyp:I) and [finite-support
+population bridge](hyp:P), provided [the denominator is nonzero](hyp:hden). -/
+theorem centeredScoreIVPopulationBridge_eq_signedAdjacentRatio
     (hden : P.stats.signedAdjacentDenominator I ≠ 0) :
-    P.beta2SLSPopulationBridge I =
+    P.centeredScoreIVPopulationBridge I =
       P.stats.signedAdjacentNumerator I / P.stats.signedAdjacentDenominator I := by
-  rw [P.beta2SLSPopulationBridge_eq_beta2SLSFiniteAlgebra I]
-  exact P.stats.beta2SLSFiniteAlgebra_eq_signedAdjacentRatio I hden
+  rw [P.centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra I]
+  exact P.stats.centeredScoreIVFiniteAlgebra_eq_signedAdjacentRatio I hden
 
-/-- **Response-type weighted-sum form (population bridge).** Provided [the
-first-stage type-weight denominator is nonzero](hyp:hden), [the population-
-bridge 2SLS estimand equals the response-type-weighted sum `Σ_g ω_g Δ_g` of
-within-type causal effects](goal). -/
-theorem beta2SLSPopulationBridge_eq_responseTypeWeightedSum
+/-- [The population-bridge centered-score IV ratio equals the response-type-weighted sum of
+within-type causal effects](goal) for [an ordered score](hyp:I) and [finite-support population
+bridge](hyp:P), provided [the score-weight denominator is nonzero](hyp:hden). -/
+theorem centeredScoreIVPopulationBridge_eq_responseTypeWeightedSum
     (hden : P.stats.typeWeightDenom I ≠ 0) :
-    P.beta2SLSPopulationBridge I = P.stats.responseTypeEstimand I := by
-  rw [P.beta2SLSPopulationBridge_eq_beta2SLSFiniteAlgebra I]
-  exact P.stats.beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum I hden
+    P.centeredScoreIVPopulationBridge I = P.stats.responseTypeEstimand I := by
+  rw [P.centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra I]
+  exact P.stats.centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum I hden
 
-/-- **Positive response-type average (population bridge).** When [the response
-types are sign-aligned with the instrument order](hyp:hAlign) and [the
-first-stage type-weight denominator is strictly positive](hyp:hden), [the
-population-bridge 2SLS estimand `beta2SLSPopulationBridge` equals the
-response-type estimand, its normalized response-type weights are all
-nonnegative, and those weights sum to one](goal). -/
-theorem beta2SLSPopulationBridge_eq_positiveResponseTypeAverage
+/-- [The population-bridge centered-score IV ratio is a convex response-type average](goal) for
+[an ordered score](hyp:I) and [finite-support population bridge](hyp:P) when [response types are
+sign-aligned](hyp:hAlign) and [the score-weight denominator is positive](hyp:hden). -/
+theorem centeredScoreIVPopulationBridge_eq_positiveResponseTypeAverage_of_signAligned
     (hAlign : P.stats.SignAligned I)
     (hden : 0 < P.stats.typeWeightDenom I) :
-    P.beta2SLSPopulationBridge I = P.stats.responseTypeEstimand I ∧
+    P.centeredScoreIVPopulationBridge I = P.stats.responseTypeEstimand I ∧
       (∀ g : ResponseType K, 0 ≤ P.stats.normalizedTypeWeight I g) ∧
       (∑ g : ResponseType K, P.stats.normalizedTypeWeight I g = 1) := by
-  rw [P.beta2SLSPopulationBridge_eq_beta2SLSFiniteAlgebra I]
-  exact P.stats.beta2SLSFiniteAlgebra_eq_positiveResponseTypeAverage I hAlign hden
+  rw [P.centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra I]
+  exact
+    P.stats.centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned
+      I hAlign hden
 
 end ResponseTypeStats.PopulationBridge
 
@@ -126,43 +136,39 @@ variable {μ : MeasureTheory.Measure Ω} {Z : Ω → Fin K}
 variable {D : Ω → Bool} {Y : Ω → ℝ}
 variable {I : FiniteIndex K} {P : ResponseTypeStats.PopulationBridge K}
 
-/-- **End-to-end corollary** (`prop:po-estimand-mtw-response-type-form`,
-observed level). Given a bridge `B` linking the data-generating instrument,
-treatment, and outcome to the response-type population, provided [the
-instrument is measurable](hyp:hZ), [the centered-instrument-weighted outcome
-is integrable](hyp:hYInt), [the centered-instrument-weighted treatment is
-integrable](hyp:hDInt), and [the observed first-stage moment
-`observedFirstStageMoment μ Z D I` is nonzero](hyp:hden), [the observed
-population 2SLS ratio equals the response-type weighted sum of within-type
-causal effects](goal).
+/-- [The observed centered-score IV ratio equals the response-type-weighted sum of within-type
+causal effects](goal) when [an observed-data bridge](hyp:B) links instrument, treatment, and
+outcome to the response-type population, [the instrument is measurable](hyp:hZ), [the weighted
+outcome](hyp:hYInt) and [weighted treatment](hyp:hDInt) are integrable, and [the observed first
+stage is nonzero](hyp:hden).
 
 This packages the full bridge chain:
 
-    observedBeta2SLS = β₂SLS(finite algebra) = Σ_g ω_g Δ_g.
+    observedCenteredScoreIV = centeredScoreIVFiniteAlgebra = Σ_g ω_g Δ_g.
 
-The hypothesis `hden` is the observable condition E[h(Z)D] ≠ 0 required by
-`thm:po-estimand-mtw-signed-decomposition`.  Under `ObservedBridge` this
-equals `typeWeightDenom I` (proved by `observedFirstStageMoment_eq_firstStageMoment`
-+ `firstStageMoment_eq_typeWeightDenom`), so callers need not unfold the
-bridge chain to locate the denominator condition. -/
-theorem observedBeta2SLS_eq_responseTypeWeightedSum
+This has the algebraic form used by `prop:po-estimand-mtw-response-type-form`,
+but the cited 2SLS result additionally requires `h` to be the fitted first-stage
+score. Under `ObservedBridge`, `hden` equals `typeWeightDenom I` by
+`observedFirstStageMoment_eq_firstStageMoment` and
+`firstStageMoment_eq_typeWeightDenom`. -/
+theorem observedCenteredScoreIV_eq_responseTypeWeightedSum
     (B : ObservedBridge μ Z D Y I P) [MeasureTheory.IsFiniteMeasure μ]
     (hZ : Measurable Z)
     (hYInt : MeasureTheory.Integrable (fun ω => I.centeredIndex (Z ω) * Y ω) μ)
     (hDInt : MeasureTheory.Integrable
         (fun ω => I.centeredIndex (Z ω) * boolToReal (D ω)) μ)
     (hden : observedFirstStageMoment μ Z D I ≠ 0) :
-    observedBeta2SLS μ Z D Y I = P.stats.responseTypeEstimand I := by
+    observedCenteredScoreIV μ Z D Y I = P.stats.responseTypeEstimand I := by
   -- Step 1: observed → finite algebra
-  have h1 : observedBeta2SLS μ Z D Y I = P.stats.beta2SLSFiniteAlgebra I :=
-    B.observedBeta2SLS_eq_beta2SLSFiniteAlgebra hZ hYInt hDInt
+  have h1 : observedCenteredScoreIV μ Z D Y I = P.stats.centeredScoreIVFiniteAlgebra I :=
+    B.observedCenteredScoreIV_eq_centeredScoreIVFiniteAlgebra hZ hYInt hDInt
   -- Step 2: the observed denominator equals typeWeightDenom
   have hden' : P.stats.typeWeightDenom I ≠ 0 := by
     rwa [← P.firstStageMoment_eq_typeWeightDenom I,
       ← B.observedFirstStageMoment_eq_firstStageMoment hZ hDInt]
   -- Step 3: finite algebra → response-type weighted sum
   rw [h1]
-  exact P.stats.beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum I hden'
+  exact P.stats.centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum I hden'
 
 end ResponseTypeStats.PopulationBridge.ObservedBridge
 

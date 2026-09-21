@@ -3,64 +3,77 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Wooldridge population origin of staggered-DID cell means
+# Wooldridge population origin of staggered-DID outcome means
 
-Makes the conditional-expectation origin of the staggered-DID cell means
-definitional rather than an assumed identification hypothesis.
+Makes the conditional-expectation origin of the staggered-DID outcome means
+definitional rather than an assumed identification hypothesis. It does not
+derive the cell predicates, cohort shares, or covariate weights from the measure.
 
-`StaggeredATTCells.ofPopulation` builds a `StaggeredATTCells` out of a probability
-model `(μ, cellEvent, Y0pop, Ygpop, Yobspop)` by *defining* each cell mean as the
-event-level conditional expectation `eventCondExp μ (cellEvent g t c) ·` of the
-corresponding population outcome. The constructor assumes positive cell mass and
-cell-level integrability for the untreated, cohort-specific, and observed
-outcomes, so the resulting means have the intended population interpretation.
+`StaggeredATTCells.ofPopulation` defines each outcome mean from a measure, cell
+event, and population outcome using `normalizedRestrictedIntegral`. The treated
+and untreated predicates, shares, and weights remain independent inputs; the
+constructor establishes no partition or probability-coherence laws for them.
 With this definition:
 
 * `consistency_treated` / `consistency_untreated` are **derived** from pointwise
   potential-outcome consistency on each cell (`eventCondExp_congr_on`), exactly as
   DCDH's `cellMean_consistency` derives the DCDH consistency identity;
 * the identification hypothesis `hY0` of `PopulationBridge.m0_eq_eventCondExp_*`
-  holds by `rfl`, since `Y0Mean` is now *defined* as that `eventCondExp`.
+  holds by `rfl`, since `Y0Mean` is now *defined* as that `normalizedRestrictedIntegral`.
 
 The payoff corollaries `m0_eq_eventCondExp_treated_ofPopulation` /
 `_untreated_ofPopulation` show that on the relevant cell the saturated
 untreated regression's fitted value equals the population conditional expectation
 `E[Y_t(∞) | G = g, t, C = c]`, with the *causal* content carried entirely by
-`recovers_target_Y0` / `untreatedFit`.  No paper assumption is strengthened: the
-covariate-weight witness (`cohortShare`, `covarWeight`) is passed in exactly as
-DCDH passes the FWL residual `Dtilde`, and the pointwise consistency inputs are
-exactly the paper's consistency axiom restricted to each cell.
+`recovers_target_Y0` / `untreatedFit`. The pointwise consistency inputs are the
+paper's consistency axiom restricted to each supplied cell.
 -/
 
-import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.PopulationBridge
-import Causalean.PO.Conditioning.EventCondExp
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.PopulationBridge
 
 /-! # Wooldridge Population Origin
 
-This file constructs the finite staggered-DID cell system from an underlying
-probability model.  `StaggeredATTCells.ofPopulation` defines the cell means as
-raw event-level quotients of population outcomes and derives the consistency
-fields from pointwise potential-outcome consistency on the corresponding cells.
-The corollaries `m0_eq_eventCondExp_treated_ofPopulation` and
-`m0_eq_eventCondExp_untreated_ofPopulation` specialize the population bridge for
-systems built by this constructor, so the untreated-fit identification
-hypothesis is definitional. -/
+This file constructs only the outcome-mean component of a finite cell system
+from an underlying measure. `StaggeredATTCells.ofPopulation` defines the three
+cell means as normalized restricted integrals and derives their consistency
+fields from pointwise potential-outcome consistency. Cell events, treatment
+predicates, cohort shares, and covariate weights are supplied independently;
+the constructor does not prove that they arise from one probability model. The
+two `m0_eq_eventCondExp_*_ofPopulation` corollaries specialize the population
+bridge, making only the untreated-outcome mean identification definitional. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace FlexibleDIDMundlak
 
-open MeasureTheory Causalean.PO
+open MeasureTheory
 
 variable {Cohort Time Covar : Type*}
   [Fintype Cohort] [Fintype Time] [Fintype Covar]
 
-/-- For [finite cohort, time-period, and covariate sets](hyp:Cohort,Time,Covar), [a measurable sample space](hyp:Ω) with [a measure](hyp:μ), [cohort-time-covariate cell events](hyp:cellEvent), [untreated, cohort-specific, and observed population outcome functions](hyp:Y0pop,Ygpop,Yobspop), [treated and untreated cell indicators](hyp:treatedCell,untreatedCell), [cohort shares](hyp:cohortShare), and [within-cohort covariate weights](hyp:covarWeight), if [every cell event is measurable](hyp:hmeas), [every cell has strictly positive measure](hyp:hcell_pos), [each of the three outcome functions is integrable on every cell](hyp:hY0_int,hYg_int,hYobs_int), [cohort shares are strictly positive on treated cells](hyp:cohortShare_pos_on_treated), [covariate weights are nonnegative and sum to one within every cohort](hyp:covarWeight_nonneg,covarWeight_sum_one), and [the observed outcome agrees pointwise with the cohort-specific outcome on treated cells and with the untreated outcome on untreated cells](hyp:hcons_tr,hcons_ut), the [finite staggered-DID cell system](goal) uses the supplied shares, weights, and indicators and defines each outcome mean as its population event-conditional mean.
+/-- The [finite cell system with population-defined outcome means](goal) uses
+[measure, events, and three outcomes](hyp:Ω,μ,cellEvent,Y0pop,Ygpop,Yobspop) over
+[finite cohort, period, and covariate sets](hyp:Cohort,Time,Covar), while carrying
+[supplied data](hyp:treatedCell,untreatedCell,cohortShare,covarWeight) unchanged.
+[Measurable,
+positive-mass cells](hyp:hmeas,hcell_pos) and [cellwise
+integrability](hyp:hY0_int,hYg_int,hYobs_int) support the conditional-mean
+interpretation;
+[weight conditions](hyp:cohortShare_pos_on_treated,covarWeight_nonneg,covarWeight_sum_one)
+and [pointwise consistency](hyp:hcons_tr,hcons_ut) supply the remaining fields.
 
-Builds a finite staggered-DID cell system from a population model.
+Defines the outcome means of a finite cell system from population outcomes and
+a measure, while carrying the supplied predicates, shares, and weights unchanged.
 
-The probability model has a sample space `Ω` with cell
-events `cellEvent g t c` and population potential / factual outcomes
+The measure data has a sample space `Ω` with cell events `cellEvent g t c`
+and population potential / factual outcomes
 `Y0pop`, `Ygpop`, `Yobspop`.  The cell means are *defined* as the population
 event-level conditional expectations
 
@@ -73,10 +86,9 @@ consistency on each cell (`hcons_tr` / `hcons_ut`) via `eventCondExp_congr_on`:
 on a treated cell the observed factual equals the cohort-`g` outcome pointwise,
 on an untreated cell it equals the untreated outcome pointwise.
 
-As in `DCDHPanel.ofPopulation`, the cell-weight data (`cohortShare`,
-`covarWeight`) and their side conditions (`cohortShare_pos_on_treated`,
-`covarWeight_nonneg`, `covarWeight_sum_one`) are supplied as witnesses — the
-weight construction is separate from the population cell-mean definitions. -/
+The cell events need not form a partition or coincide with the supplied treated
+and untreated predicates. The share and weight functions need not equal
+probabilities under `μ`; their elementary side conditions are supplied separately. -/
 noncomputable def StaggeredATTCells.ofMeasure
     {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
     (cellEvent : Cohort → Time → Covar → Set Ω)
@@ -101,9 +113,9 @@ noncomputable def StaggeredATTCells.ofMeasure
   covarWeight := covarWeight
   treatedCell := treatedCell
   untreatedCell := untreatedCell
-  Y0Mean g t c := eventCondExp μ (cellEvent g t c) Y0pop
-  YgMean g t c := eventCondExp μ (cellEvent g t c) Ygpop
-  observedMean g t c := eventCondExp μ (cellEvent g t c) Yobspop
+  Y0Mean g t c := normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop
+  YgMean g t c := normalizedRestrictedIntegral μ (cellEvent g t c) Ygpop
+  observedMean g t c := normalizedRestrictedIntegral μ (cellEvent g t c) Yobspop
   cohortShare_pos_on_treated := cohortShare_pos_on_treated
   covarWeight_nonneg := covarWeight_nonneg
   covarWeight_sum_one := covarWeight_sum_one
@@ -118,7 +130,17 @@ noncomputable def StaggeredATTCells.ofMeasure
     have _ := hYobs_int g t c
     eventCondExp_congr_on μ (hmeas g t c) (hcons_ut hut c)
 
-/-- For [finite cohort, time-period, and covariate sets](hyp:Cohort,Time,Covar), [a measurable sample space](hyp:Ω) with [a probability measure](hyp:μ), [cohort-time-covariate cell events](hyp:cellEvent), [untreated, cohort-specific, and observed population outcome functions](hyp:Y0pop,Ygpop,Yobspop), [treated and untreated cell indicators](hyp:treatedCell,untreatedCell), [cohort shares](hyp:cohortShare), and [within-cohort covariate weights](hyp:covarWeight), if [every cell event is measurable](hyp:hmeas), [every cell has strictly positive probability](hyp:hcell_pos), [each outcome function is integrable on every cell](hyp:hY0_int,hYg_int,hYobs_int), [cohort shares are strictly positive on treated cells](hyp:cohortShare_pos_on_treated), [covariate weights are nonnegative and sum to one within every cohort](hyp:covarWeight_nonneg,covarWeight_sum_one), and [pointwise consistency holds on treated and untreated cells](hyp:hcons_tr,hcons_ut), the [finite staggered-DID cell system](goal) is the system constructed from the same data by the measure-based constructor.
+/-- The [probability-measure specialization of the outcome-mean
+constructor](goal) uses [probability, events, and three
+outcomes](hyp:Ω,μ,cellEvent,Y0pop,Ygpop,Yobspop) over [finite cohort, period,
+and covariate sets](hyp:Cohort,Time,Covar), while carrying [supplied predicates,
+shares, and weights](hyp:treatedCell,untreatedCell,cohortShare,covarWeight)
+unchanged. It assumes
+[measurable positive-probability cells](hyp:hmeas,hcell_pos), [cellwise
+integrability](hyp:hY0_int,hYg_int,hYobs_int),
+[weight conditions](hyp:cohortShare_pos_on_treated,covarWeight_nonneg,covarWeight_sum_one),
+and [pointwise factual-outcome consistency](hyp:hcons_tr,hcons_ut), exactly as the
+measure-based constructor does.
 
 Probability-measure specialization of `StaggeredATTCells.ofMeasure`. -/
 noncomputable def StaggeredATTCells.ofPopulation
@@ -145,8 +167,8 @@ noncomputable def StaggeredATTCells.ofPopulation
     cohortShare covarWeight hmeas hcell_pos hY0_int hYg_int hYobs_int
     cohortShare_pos_on_treated covarWeight_nonneg covarWeight_sum_one hcons_tr hcons_ut
 
-/-- **On a treated cell in a population-built system, the fitted untreated mean
-equals the population conditional mean of the untreated potential outcome.**
+/-- **When a system's outcome means come from population integrals, its treated-cell
+untreated fit has the same origin.**
 Fix a population model on a sample space `Ω`, with population outcomes
 `Y0pop`, `Ygpop`, `Yobspop`; suppose [every cell event `cellEvent g t c` is
 measurable](hyp:hmeas), [every cell has strictly positive probability
@@ -157,8 +179,8 @@ covariate weights are nonnegative](hyp:covarWeight_nonneg) and [sum to one
 within each cohort](hyp:covarWeight_sum_one), and [the observed outcome agrees
 pointwise with the cohort-`g` outcome on treated cells and with the untreated
 outcome on untreated cells (pointwise consistency)](hyp:hcons_tr,hcons_ut). If
-[the finite cell system `P` is exactly the one built from this population data
-by `StaggeredATTCells.ofPopulation`](hyp:hP) and, for a saturated untreated
+[the finite cell system `P` uses the constructor's population-defined outcome
+means and supplied remaining data](hyp:hP) and, for a saturated untreated
 regression `S` on `P`, [no anticipation holds](hyp:hNA) and [conditional
 parallel trends holds](hyp:hCPT), then on [any treated cell `(g,t)`](hyp:hgt),
 [the saturated regression's fitted value `S.m0 g t c` equals the population
@@ -166,7 +188,7 @@ conditional mean `E[Y0pop | cellEvent g t c]`, for every covariate cell
 `c`](goal).
 
 Because `P.Y0Mean g t c` is defined as
-`eventCondExp μ (cellEvent g t c) Y0pop`, the population-identification
+`normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop`, the population-identification
 hypothesis used by `m0_eq_eventCondExp_treated` holds by `rfl`. The causal
 content (additive extrapolation via conditional parallel trends) is carried by
 `recovers_target_Y0`. -/
@@ -198,17 +220,16 @@ theorem m0_eq_eventCondExp_treated_ofPopulation
     (S : SaturatedUntreatedRegression P)
     (hNA : NoAnticipation P) (hCPT : ConditionalParallelTrendsAdditive P)
     {g : Cohort} {t : Time} (hgt : P.treatedCell g t) (c : Covar) :
-    S.m0 g t c = eventCondExp μ (cellEvent g t c) Y0pop :=
+    S.m0 g t c = normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop :=
   have _ := hcell_pos g t c
   have _ := hY0_int g t c
   have _ := hYg_int g t c
   have _ := hYobs_int g t c
   m0_eq_eventCondExp_treated μ S hNA hCPT hgt c cellEvent Y0pop (by subst hP; rfl)
 
-/-- **On an untreated cell in a population-built system, the fitted untreated
-mean equals the population conditional mean of the untreated potential
-outcome.** Fix a population model on a sample space `Ω`, with population
-outcomes `Y0pop`, `Ygpop`, `Yobspop`; suppose [every cell event
+/-- **When a system's outcome means come from population integrals, its untreated-cell
+fit has the same origin.** Fix population outcomes `Y0pop`, `Ygpop`, and `Yobspop`
+on a measured sample space; suppose [every cell event
 `cellEvent g t c` is measurable](hyp:hmeas), [every cell has strictly positive
 probability mass](hyp:hcell_pos), and [the three population outcomes are each
 integrable on every cell](hyp:hY0_int,hYg_int,hYobs_int). Suppose also [the
@@ -217,8 +238,8 @@ cohort share is strictly positive on every treated cell](hyp:cohortShare_pos_on_
 within each cohort](hyp:covarWeight_sum_one), and [the observed outcome agrees
 pointwise with the cohort-`g` outcome on treated cells and with the untreated
 outcome on untreated cells (pointwise consistency)](hyp:hcons_tr,hcons_ut). If
-[the finite cell system `P` is exactly the one built from this population data
-by `StaggeredATTCells.ofPopulation`](hyp:hP) and, for a saturated untreated
+[the finite cell system `P` uses the constructor's population-defined outcome
+means and supplied remaining data](hyp:hP) and, for a saturated untreated
 regression `S` on `P`, [no anticipation holds](hyp:hNA) and [conditional
 parallel trends holds](hyp:hCPT), then on [any untreated cell `(g,t)`](hyp:hut),
 [the saturated regression's fitted value `S.m0 g t c` equals the population
@@ -252,7 +273,7 @@ theorem m0_eq_eventCondExp_untreated_ofPopulation
     (S : SaturatedUntreatedRegression P)
     (hNA : NoAnticipation P) (hCPT : ConditionalParallelTrendsAdditive P)
     {g : Cohort} {t : Time} (hut : P.untreatedCell g t) (c : Covar) :
-    S.m0 g t c = eventCondExp μ (cellEvent g t c) Y0pop :=
+    S.m0 g t c = normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop :=
   have _ := hcell_pos g t c
   have _ := hY0_int g t c
   have _ := hYg_int g t c

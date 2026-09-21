@@ -3,9 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Potential-outcome layer for the Mogstad-Torgovitsky-Walters multiple-IV algebra
+# Potential-outcome layer for finite multiple-IV response-type algebra
 
-This file puts the finite MTW response-type algebra (`FiniteIndex`,
+This file puts the finite response-type algebra (`FiniteIndex`,
 `ResponseTypeStats`, `PopulationBridge`, `ObservedBridge`) on top of an explicit
 potential-outcome system. It discharges the two transferred-assumption fields of
 `ObservedBridge` (`outcome_cell`, `treatment_cell`) by deriving
@@ -22,23 +22,30 @@ The construction:
   `Δ_g = E[Y(1)-Y(0) | G=g]` populate the finite `ResponseTypeStats`.
 * `Assumptions` requires consistency and, for each support point, instrument
   independence `Z ⟂ (D(zᵏ), Y(1), Y(0))` (the IV exogeneity condition).
-* The end result restates the observed 2SLS ratio `E[h(Z)Y]/E[h(Z)D]` as the
-  response-type weighted sum `Σ_g ω_g Δ_g` in real PO language.
+* The end result restates the observed centered-score IV ratio `E[h(Z)Y]/E[h(Z)D]` as the
+  response-type weighted sum `Σ_g ω_g Δ_g` in real PO language. It does not
+  derive the score from a first-stage projection or derive sign alignment from
+  MTW partial monotonicity.
 
-Source labels: `def:po-estimand-mtw-system`, `ass:po-estimand-mtw-iv-validity`,
-`thm:po-estimand-mtw-signed-decomposition`, `prop:po-estimand-mtw-response-type-form`.
+Background labels: `def:po-estimand-mtw-system`, `ass:po-estimand-mtw-iv-validity`,
+`def:po-estimand-mtw-population-2sls`, `thm:po-estimand-mtw-signed-decomposition`,
+`prop:po-estimand-mtw-response-type-form`. The cited 2SLS results require the fitted
+first-stage score; the generic score endpoint below does not establish that premise.
 NL artifact: `doc/basic_concepts/po/estimand_characterization/mogstad_torgovitsky_walters_multiple_iv.md`.
 -/
 
-import Causalean.PO.ID.Exact.MultipleInstrumentIV.Main
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Assumptions.IndepCF
-import Causalean.PO.Conditioning.EventCondExp
-import Causalean.Tactic.Attr
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Assumptions.IndepCF
+public import Causalean.PO.Conditioning.EventCondExp
+public import Causalean.PO.ID.Exact.MultipleInstrumentIV.Main
+public import Causalean.Tactic.Attr
 
 /-! # Multiple-Instrument IV Potential-Outcome Bridge
 
-This file grounds the MTW multiple-instrument finite algebra in a
+This file grounds a multiple-instrument finite response-type algebra in a
 potential-outcome system. The structure `POMultipleIVSystem` records a finite
 instrument, binary treatment, and real outcome; `responseType`, `mass`,
 `effect`, `toStats`, and `toPopulationBridge` turn its counterfactual response
@@ -47,8 +54,14 @@ types into the finite response-type algebra.
 The bridge lemmas `treatmentDrop` and `outcomeDrop` derive instrument-cell
 conditional means from consistency and instrument independence. The definitions
 `toObservedBridge` and theorem
-`observedBeta2SLS_eq_responseTypeWeightedSum` assemble those derived cell
-identities into the observed MTW 2SLS characterization. -/
+`observedCenteredScoreIV_eq_responseTypeWeightedSum` assemble those derived cell
+identities into an observed finite-support centered-score response-type identity. The
+behavioral and empirical conditions of the full MTW characterization are not
+formalized here, nor is the supplied score proved to be a first-stage fit. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO.ID.Exact
@@ -58,12 +71,10 @@ open Finset MeasureTheory ProbabilityTheory Causalean.PO
 
 noncomputable section
 
-/-- **Multiple-instrument IV potential-outcome subsystem.** Inside a potential-outcome system,
-this bundles [a node serving as the instrument, taking values in a finite support of size
-`K`](hyp:Z,hZfin), [a node serving as the binary treatment](hyp:D,hDbool), and [a node serving
-as the real-valued outcome](hyp:Y,hYreal), subject to [the instrument, treatment, and outcome
-being pairwise distinct nodes](hyp:hZD,hDY,hZY). This is the `Fin K` generalization of
-`PO.POIVSystem`. -/
+/-- A multiple-instrument IV potential-outcome subsystem within [a potential-outcome
+system](hyp:P) and [finite instrument support](hyp:K) records [an instrument node with that
+support](hyp:Z,hZfin), [a binary treatment node](hyp:D,hDbool), and [a real-valued outcome
+node](hyp:Y,hYreal), subject to [the three nodes being pairwise distinct](hyp:hZD,hDY,hZY). -/
 structure POMultipleIVSystem (P : Causalean.PO.POSystem) (K : ℕ) where
   /-- Instrument node. -/
   Z : P.V
@@ -88,60 +99,90 @@ namespace POMultipleIVSystem
 
 variable {P : Causalean.PO.POSystem} {K : ℕ} (S : POMultipleIVSystem P K)
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [instrument variable](goal) is that subsystem's instrument represented as a potential-outcome variable with the stated finite support. -/
+/-- [The finite-valued instrument variable](goal) exposes the assignment node of [a
+multiple-instrument IV subsystem](hyp:S) inside [the potential-outcome system](hyp:P) on [its
+finite support](hyp:K). -/
 def zVar : POVar P (Fin K) := ⟨S.Z, S.hZfin⟩
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [treatment variable](goal) is that subsystem's binary treatment represented as a potential-outcome variable. -/
+/-- [The binary treatment variable](goal) exposes uptake from [a multiple-instrument IV
+subsystem](hyp:S) inside [the potential-outcome system](hyp:P) with [finite instrument
+support](hyp:K). -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [outcome variable](goal) is that subsystem's real-valued outcome represented as a potential-outcome variable. -/
+/-- [The real-valued outcome variable](goal) exposes the response from [a multiple-instrument IV
+subsystem](hyp:S) inside [the potential-outcome system](hyp:P) with [finite instrument
+support](hyp:K). -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [an instrument support point](hyp:k), the [potential treatment](goal) maps each unit to its binary treatment were the instrument fixed at that point. -/
+/-- [Potential treatment](goal) records binary uptake in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) under [a fixed instrument support
+point](hyp:k) from [the finite support](hyp:K). -/
 def DofZ (k : Fin K) : P.Ω → Bool := S.dVar.cfUnder S.zVar k
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [a binary treatment value](hyp:d), the [potential outcome](goal) maps each unit to its real outcome were treatment fixed at that value. -/
+/-- [Potential outcome](goal) records the response in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) under [a fixed treatment arm](hyp:d),
+with exclusion encoded structurally over [the finite instrument support](hyp:K). -/
 def YofD (d : Bool) : P.Ω → ℝ := S.yVar.cfUnder S.dVar d
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [factual instrument](goal) maps each unit to its observed instrument value. -/
+/-- [The observed instrument](goal) records realized assignment in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) on [the finite support](hyp:K). -/
 def factualZ : P.Ω → Fin K := S.zVar.factual
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [factual treatment](goal) maps each unit to its observed binary treatment. -/
+/-- [The observed treatment](goal) records realized binary uptake in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) with [finite instrument
+support](hyp:K). -/
 def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [factual outcome](goal) maps each unit to its observed real-valued outcome. -/
+/-- [The observed outcome](goal) records realized response in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) with [finite instrument
+support](hyp:K). -/
 def factualY : P.Ω → ℝ := S.yVar.factual
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [response-type map](goal) assigns each unit the binary vector of its potential treatments at every instrument support point. -/
+/-- [The treatment response-type map](goal) collects each unit's potential uptake at every point
+of [the finite instrument support](hyp:K) in [a multiple-instrument IV subsystem](hyp:S) of [the
+potential-outcome system](hyp:P). -/
 def responseType : P.Ω → ResponseType K := fun ω k => S.DofZ k ω
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [a response type](hyp:g), the [response-type event](goal) is the set of units whose vector of potential treatments equals that response type. -/
+/-- [A response-type subgroup](goal) selects units in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) whose treatment-response vector equals
+[the chosen type](hyp:g) on [the finite support](hyp:K). -/
 def gEvent (g : ResponseType K) : Set P.Ω := S.responseType ⁻¹' {g}
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [an instrument support point](hyp:k), the [instrument cell](goal) is the set of units whose factual instrument equals that point. -/
+/-- [An observed instrument cell](goal) selects units in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) assigned to [one support
+point](hyp:k) in [the finite support](hyp:K). -/
 def zEvent (k : Fin K) : Set P.Ω := S.zVar.event k
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [an instrument support point](hyp:k), the [potential outcome under the induced treatment](goal) gives each unit's treated potential outcome if that instrument point induces treatment and its untreated potential outcome otherwise. -/
+/-- [Outcome under instrument-induced treatment](goal) selects the treated or untreated
+potential outcome in [a multiple-instrument IV subsystem](hyp:S) of [the potential-outcome
+system](hyp:P) according to uptake induced by [one support point](hyp:k) in [the finite
+support](hyp:K). -/
 def YofDofZ (k : Fin K) : P.Ω → ℝ :=
   fun ω => if S.DofZ k ω then S.YofD true ω else S.YofD false ω
 
-/-- The potential outcome under the treatment that an instrument value induces sends a unit to
-that unit's treated potential outcome when the induced treatment is one, and to its untreated
-potential outcome otherwise. -/
+/-- [Instrument-induced outcome equals the treated potential outcome when uptake occurs and the
+untreated potential outcome otherwise](goal) in [a multiple-instrument IV subsystem](hyp:S), at
+[the chosen support point](hyp:k) of [the finite support](hyp:K). -/
 @[causal_defs_simps]
 lemma YofDofZ_def (k : Fin K) :
     S.YofDofZ k = fun ω => if S.DofZ k ω then S.YofD true ω else S.YofD false ω :=
   rfl
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [an instrument support point](hyp:k), the [regimed treatment variable](goal) represents treatment under an intervention fixing the instrument at that point. -/
+/-- [The regimed treatment response](goal) couples potential uptake in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) with [the support point](hyp:k) fixed
+from [the finite instrument support](hyp:K). -/
 def dUnderZ (k : Fin K) : RegimedVar P Bool :=
   ⟨S.dVar, Regime.single S.Z (S.hZfin.symm k)⟩
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [a binary treatment value](hyp:d), the [regimed outcome variable](goal) represents outcome under an intervention fixing treatment at that value. -/
+/-- [The regimed outcome response](goal) couples potential outcome in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) with [the fixed treatment arm](hyp:d),
+over [the finite instrument support](hyp:K). -/
 def yUnderD (d : Bool) : RegimedVar P ℝ :=
   ⟨S.yVar, Regime.single S.D (S.hDbool.symm d)⟩
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [an instrument support point](hyp:k), the [counterfactual cell](goal) bundles the potential treatment at that point with the treated and untreated potential outcomes. -/
+/-- [The support-point counterfactual cell](goal) bundles potential treatment under [one
+instrument value](hyp:k) with both treatment-arm outcomes in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) on [the finite support](hyp:K). -/
 def cfCell (k : Fin K) : POCFBundle P :=
   POCFBundle.cons (S.dUnderZ k) <|
   POCFBundle.cons (S.yUnderD true) <|
@@ -150,42 +191,60 @@ def cfCell (k : Fin K) : POCFBundle P :=
 
 /-! ### Measurability -/
 
-/-- The potential treatment under any instrument support point is measurable. -/
+/-- [Potential treatment at an instrument support point is measurable](goal) in [a
+multiple-instrument IV subsystem](hyp:S), for [that point](hyp:k) of [the finite
+support](hyp:K) in [the potential-outcome system](hyp:P). -/
 @[fun_prop]
 lemma measurable_DofZ (k : Fin K) : Measurable (S.DofZ k) :=
   S.dVar.measurable_cfUnder S.zVar k
 
-/-- The potential outcome under either treatment arm is measurable. -/
+/-- [Potential outcome under a treatment arm is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S), for [that arm](hyp:d) within [the potential-outcome system](hyp:P) and [finite
+instrument support](hyp:K). -/
 @[fun_prop]
 lemma measurable_YofD (d : Bool) : Measurable (S.YofD d) :=
   S.yVar.measurable_cfUnder S.dVar d
 
-/-- The factual instrument value is measurable. -/
+/-- [The observed instrument is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) on [the finite support](hyp:K), making
+instrument cells observable. -/
 @[fun_prop]
 lemma measurable_factualZ : Measurable S.factualZ := S.zVar.measurable_factual
 
-/-- The factual treatment value is measurable. -/
+/-- [The observed treatment is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) with [finite instrument
+support](hyp:K). -/
 @[fun_prop]
 lemma measurable_factualD : Measurable S.factualD := S.dVar.measurable_factual
 
-/-- The factual outcome value is measurable. -/
+/-- [The observed outcome is measurable](goal) in [a multiple-instrument IV subsystem](hyp:S) of
+[the potential-outcome system](hyp:P) with [finite instrument support](hyp:K), so its moments are
+defined. -/
 @[fun_prop]
 lemma measurable_factualY : Measurable S.factualY := S.yVar.measurable_factual
 
-/-- The response-type map collecting all treatment responses is measurable. -/
+/-- [The full treatment response-type map is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S) of [the potential-outcome system](hyp:P) on [the finite support](hyp:K), making
+latent type cells measurable. -/
 @[fun_prop]
 lemma measurable_responseType : Measurable S.responseType :=
   measurable_pi_lambda _ (fun k => S.measurable_DofZ k)
 
-/-- Each response-type cell is measurable. -/
+/-- [Each response-type subgroup is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S), for [the selected type](hyp:g) on [the finite support](hyp:K) within [the
+potential-outcome system](hyp:P). -/
 lemma measurableSet_gEvent (g : ResponseType K) : MeasurableSet (S.gEvent g) :=
   S.measurable_responseType (measurableSet_singleton g)
 
-/-- Each instrument support cell is measurable. -/
+/-- [Each observed instrument cell is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S), for [the selected point](hyp:k) of [the finite support](hyp:K) within [the
+potential-outcome system](hyp:P). -/
 lemma measurableSet_zEvent (k : Fin K) : MeasurableSet (S.zEvent k) :=
   S.zVar.measurableSet_event k (measurableSet_singleton k)
 
-/-- The outcome under the treatment induced by an instrument support point is measurable. -/
+/-- [Outcome under instrument-induced treatment is measurable](goal) in [a multiple-instrument IV
+subsystem](hyp:S), for [the selected point](hyp:k) of [the finite support](hyp:K) within [the
+potential-outcome system](hyp:P). -/
 @[fun_prop]
 lemma measurable_YofDofZ (k : Fin K) : Measurable (S.YofDofZ k) := by
   unfold YofDofZ
@@ -194,17 +253,17 @@ lemma measurable_YofDofZ (k : Fin K) : Measurable (S.YofDofZ k) := by
 
 /-! ### Assumptions -/
 
-/-- **Classical multi-instrument IV assumption bundle** (`ass:po-estimand-mtw-iv-validity`). For
-a multiple-instrument potential-outcome subsystem, this packages [the observed treatment and
-outcome equaling the potential treatment and outcome realized under the actual instrument value
-(SUTVA)](hyp:consistency), and [at each instrument support point, the instrument being
-independent of the counterfactual triple consisting of the potential treatment under that
-instrument value together with the two treatment-arm potential outcomes (IV
-exogeneity)](hyp:instrumentIndep).
+/-- **Local multi-instrument bridge assumptions.** [A multiple-instrument subsystem](hyp:S) in
+[a potential-outcome system](hyp:P) with [finite instrument support](hyp:K) assumes [the observed
+treatment and outcome equal the potential treatment and outcome realized under the actual
+instrument value](hyp:consistency), and [at each support point the instrument is independent of
+the potential treatment there and both treatment-arm potential outcomes](hyp:instrumentIndep).
 
 Exclusion is encoded by the `Y(d)` interface (outcomes carry no `z` argument, so
 the instrument cannot affect `Y` except through `D`), exactly as in
-`PO.POIVSystem`. -/
+`PO.POIVSystem`. Unlike `ass:po-estimand-mtw-iv-validity`, this structure uses
+support-pointwise independence rather than full joint independence and does not
+store overlap; the endpoint below supplies positive cell mass separately. -/
 structure Assumptions (S : POMultipleIVSystem P K) : Prop where
   /-- Consistency (SUTVA): observed `D`/`Y` equal the realized potential
   treatment/outcome. -/
@@ -219,18 +278,24 @@ structure Assumptions (S : POMultipleIVSystem P K) : Prop where
 
 /-! ### Consistency-on-cell rewrites -/
 
-/-- On `{Z = zᵏ}`, the counterfactual treatment `D(zᵏ)` equals the factual `D`. -/
+/-- [Consistency identifies potential treatment with observed treatment inside an instrument
+cell](goal) under [the local multi-instrument assumptions](hyp:hA), for [the support
+point](hyp:k) and [a unit observed in its cell](hyp:ω,hω). -/
 lemma DofZ_eq_factualD_on_zEvent (hA : S.Assumptions) (k : Fin K)
     {ω : P.Ω} (hω : ω ∈ S.zEvent k) :
     S.DofZ k ω = S.factualD ω :=
   POVar.cf_eq_factual_on_event hA.consistency S.dVar S.zVar k S.hZD.symm hω
 
-/-- Factual `Y` equals `Y(factualD)` pointwise. -/
+/-- [Consistency identifies observed outcome with potential outcome under realized
+treatment](goal) under [the local multi-instrument assumptions](hyp:hA), for [the unit being
+evaluated](hyp:ω). -/
 lemma factualY_eq_YofD_factualD (hA : S.Assumptions) (ω : P.Ω) :
     S.factualY ω = S.YofD (S.factualD ω) ω :=
   POVar.factual_eq_cfUnder_self_selected hA.consistency S.yVar S.dVar S.hDY.symm ω
 
-/-- On `{G = g}`, the potential treatment `D(zᵏ)` is the constant `g k`. -/
+/-- [Within a response-type subgroup, potential treatment at a support point equals that type's
+recorded response](goal) for [the response type](hyp:g), [support point](hyp:k), and [unit in the
+type cell](hyp:ω,hω). This makes cell means expandable over latent types. -/
 lemma DofZ_eq_on_gEvent (g : ResponseType K) (k : Fin K)
     {ω : P.Ω} (hω : ω ∈ S.gEvent g) :
     S.DofZ k ω = g k := by
@@ -245,10 +310,12 @@ These two lemmas are the `Fin K` analogues of the LATE first-stage / reduced-for
 into a measurable projection of the counterfactual cell `(D(zᵏ), Y(1), Y(0))`,
 and instrument independence drops the conditioning. -/
 
-/-- `E[D | Z = zᵏ] = E[D(zᵏ)]` (0/1-coded). -/
+/-- [The observed treatment mean in an instrument cell equals mean potential treatment under
+that support value](goal) under [the local multi-instrument assumptions](hyp:hA), for [the support
+point](hyp:k) when [its observed cell has positive mass](hyp:hZk). -/
 theorem treatmentDrop [IsFiniteMeasure P.μ] (hA : S.Assumptions) (k : Fin K)
     (hZk : P.μ (S.zEvent k) ≠ 0) :
-    eventCondExp P.μ (S.zEvent k) (fun ω => boolToReal (S.factualD ω))
+    normalizedRestrictedIntegral P.μ (S.zEvent k) (fun ω => boolToReal (S.factualD ω))
       = ∫ ω, boolToReal (S.DofZ k ω) ∂P.μ := by
   let h_proj : (∀ i : Fin (S.cfCell k).n, (S.cfCell k).type i) → ℝ :=
     fun f => boolToReal ((f (0 : Fin 3)) : Bool)
@@ -268,9 +335,9 @@ theorem treatmentDrop [IsFiniteMeasure P.μ] (hA : S.Assumptions) (k : Fin K)
     dsimp [h_proj]
     have hJV0 : ((S.cfCell k).jointValue ω (0 : Fin 3) : Bool) = S.DofZ k ω := rfl
     rw [hJV0]
-  change eventCondExp P.μ (S.zVar.event k) (fun ω => boolToReal (S.factualD ω))
+  change normalizedRestrictedIntegral P.μ (S.zVar.event k) (fun ω => boolToReal (S.factualD ω))
       = ∫ ω, boolToReal (S.DofZ k ω) ∂P.μ
-  rw [POSystem.eventCondExp_of_consistency_IndepCF (hA.instrumentIndep k)
+  rw [POSystem.eventCondExp_of_ae_eq_IndepCF (hA.instrumentIndep k)
     (a := S.zVar) hh_meas
     (measurableSet_singleton k)
     (ae_restrict_of_forall_mem (μ := P.μ) (S.measurableSet_zEvent k) hF_eq)
@@ -281,11 +348,14 @@ theorem treatmentDrop [IsFiniteMeasure P.μ] (hA : S.Assumptions) (k : Fin K)
   have hJV0 : ((S.cfCell k).jointValue ω (0 : Fin 3) : Bool) = S.DofZ k ω := rfl
   rw [hJV0]
 
-/-- `E[Y | Z = zᵏ] = E[Y(D(zᵏ))]`. -/
+/-- [The observed outcome mean in an instrument cell equals mean outcome under the treatment
+induced by that support value](goal) under [the local multi-instrument assumptions](hyp:hA), for
+[the support point](hyp:k), when [its cell has positive mass](hyp:hZk) and [treated](hyp:hY1) and
+[untreated](hyp:hY0) potential outcomes are integrable. -/
 theorem outcomeDrop [IsFiniteMeasure P.μ] (hA : S.Assumptions) (k : Fin K)
     (hZk : P.μ (S.zEvent k) ≠ 0)
     (hY1 : Integrable (S.YofD true) P.μ) (hY0 : Integrable (S.YofD false) P.μ) :
-    eventCondExp P.μ (S.zEvent k) S.factualY = ∫ ω, S.YofDofZ k ω ∂P.μ := by
+    normalizedRestrictedIntegral P.μ (S.zEvent k) S.factualY = ∫ ω, S.YofDofZ k ω ∂P.μ := by
   have _hY1 : Integrable (S.YofD true) P.μ := hY1
   have _hY0 : Integrable (S.YofD false) P.μ := hY0
   let getD : (∀ i : Fin (S.cfCell k).n, (S.cfCell k).type i) → Bool :=
@@ -328,8 +398,8 @@ theorem outcomeDrop [IsFiniteMeasure P.μ] (hA : S.Assumptions) (k : Fin K)
     have hJV2 : ((S.cfCell k).jointValue ω (2 : Fin 3) : ℝ) = S.YofD false ω := rfl
     rw [hJV0, hJV1, hJV2]
     cases S.DofZ k ω <;> simp
-  change eventCondExp P.μ (S.zVar.event k) S.factualY = ∫ ω, S.YofDofZ k ω ∂P.μ
-  rw [POSystem.eventCondExp_of_consistency_IndepCF (hA.instrumentIndep k)
+  change normalizedRestrictedIntegral P.μ (S.zVar.event k) S.factualY = ∫ ω, S.YofDofZ k ω ∂P.μ
+  rw [POSystem.eventCondExp_of_ae_eq_IndepCF (hA.instrumentIndep k)
     (a := S.zVar) hh_meas
     (measurableSet_singleton k)
     (ae_restrict_of_forall_mem (μ := P.μ) (S.measurableSet_zEvent k) hF_eq)
@@ -350,7 +420,8 @@ The response type `G` partitions the sample space; the law of total expectation
 rewrites the unconditional integrals from the drop step as finite sums over
 response types. -/
 
-/-- The response-type events are pairwise disjoint. -/
+/-- [Distinct response-type subgroups are disjoint](goal) in [a multiple-instrument IV
+subsystem](hyp:S), so latent types form nonoverlapping population cells. -/
 lemma gEvent_pairwise_disjoint :
     Pairwise (Function.onFun Disjoint S.gEvent) := by
   intro g h hgh
@@ -358,41 +429,57 @@ lemma gEvent_pairwise_disjoint :
   intro ω hg hh
   exact hgh ((Set.mem_singleton_iff.mp hg).symm.trans (Set.mem_singleton_iff.mp hh))
 
-/-- The response-type events cover the sample space. -/
+/-- [The response-type subgroups cover the full population](goal) in [a multiple-instrument IV
+subsystem](hyp:S), so every unit belongs to exactly one latent treatment-response type. -/
 lemma gEvent_iUnion : (⋃ g : ResponseType K, S.gEvent g) = Set.univ := by
   ext ω; simp [gEvent]
 
-/-- Total law over response types for an integrable integrand. -/
+/-- [A population integral equals the sum of response-type masses times within-type
+means](goal) in [a multiple-instrument IV subsystem](hyp:S), for [an integrable
+quantity](hyp:f,hf). This is the finite total law used to expand observed moments. -/
 lemma integral_partition [IsFiniteMeasure P.μ] {f : P.Ω → ℝ} (hf : Integrable f P.μ) :
     ∫ ω, f ω ∂P.μ
-      = ∑ g : ResponseType K, (P.μ (S.gEvent g)).toReal * eventCondExp P.μ (S.gEvent g) f :=
+      = ∑ g : ResponseType K, (P.μ (S.gEvent g)).toReal * normalizedRestrictedIntegral P.μ (S.gEvent g) f :=
   integral_eq_sum_measure_mul_eventCondExp P.μ S.gEvent S.measurableSet_gEvent
     S.gEvent_pairwise_disjoint S.gEvent_iUnion f hf
 
 /-! ### Finite masses, effects, and baseline terms populating the algebra -/
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [a response type](hyp:g), the [response-type mass](goal) is the probability that a unit has that response type. -/
+/-- [A response-type mass](goal) is the population probability of [the selected treatment-response
+type](hyp:g) in [a multiple-instrument IV subsystem](hyp:S) of [the potential-outcome
+system](hyp:P) on [the finite support](hyp:K). -/
 def mass (g : ResponseType K) : ℝ := (P.μ (S.gEvent g)).toReal
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [a response type](hyp:g), the [within-type causal effect](goal) is the conditional expectation of the treated-minus-untreated potential outcome among units of that type. -/
+/-- [The within-type causal effect](goal) averages the treated-minus-untreated outcome contrast
+among units of [one response type](hyp:g) in [a multiple-instrument IV subsystem](hyp:S) of [the
+potential-outcome system](hyp:P) on [the finite support](hyp:K). -/
 def effect (g : ResponseType K) : ℝ :=
-  eventCondExp P.μ (S.gEvent g) (fun ω => S.YofD true ω - S.YofD false ω)
+  normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => S.YofD true ω - S.YofD false ω)
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:_S), and [the condition $K>0$](hyp:hK), the [reference support point](goal) is the first point of the support. -/
+/-- [The reference instrument value](goal) is the first point of [a nonempty finite
+support](hyp:K,hK) for [a multiple-instrument IV subsystem](hyp:_S) in [the potential-outcome
+system](hyp:P). -/
 def z0 (_S : POMultipleIVSystem P K) (hK : 0 < K) : Fin K := ⟨0, hK⟩
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), [the condition $K>0$](hyp:hK), and [a response type](hyp:g), the [baseline response-type outcome](goal) is the conditional expectation, within that type, of the potential outcome under treatment induced by the first instrument support point. -/
+/-- [A response type's baseline outcome](goal) is its mean outcome under treatment induced by the
+first point of [a nonempty finite support](hyp:K,hK), for [the selected type](hyp:g) in [a
+multiple-instrument IV subsystem](hyp:S) of [the potential-outcome system](hyp:P). -/
 def baseOutcome (hK : 0 < K) (g : ResponseType K) : ℝ :=
-  eventCondExp P.μ (S.gEvent g) (S.YofDofZ (S.z0 hK))
+  normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofDofZ (S.z0 hK))
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [the condition $K>0$](hyp:hK), the [baseline treatment mean](goal) is the expectation of treatment induced by the first instrument support point. -/
+/-- [The baseline treatment mean](goal) is average uptake induced by the first point of [a
+nonempty finite support](hyp:K,hK) in [a multiple-instrument IV subsystem](hyp:S) of [the
+potential-outcome system](hyp:P). -/
 def baseTreatment (hK : 0 < K) : ℝ :=
   ∫ ω, boolToReal (S.DofZ (S.z0 hK) ω) ∂P.μ
 
-/-- Response-type masses are nonnegative because they are real-valued probabilities. -/
+/-- [Every response-type mass is nonnegative](goal) in [a multiple-instrument IV
+subsystem](hyp:S), for [the selected response type](hyp:g), because it is a population
+probability. -/
 lemma mass_nonneg (g : ResponseType K) : 0 ≤ S.mass g := ENNReal.toReal_nonneg
 
-/-- Response-type masses sum to one. -/
+/-- [Response-type masses sum to one](goal) in [a multiple-instrument IV subsystem](hyp:S), so
+they form population weights over the exhaustive latent-type partition. -/
 lemma mass_sum_one : ∑ g : ResponseType K, S.mass g = 1 := by
   have hsum :
       (Finset.univ).sum
@@ -411,19 +498,26 @@ lemma mass_sum_one : ∑ g : ResponseType K, S.mass g = 1 := by
           exact measure_ne_top _ _))
   simpa [mass, gEvent, Set.preimage_univ, IsProbabilityMeasure.measure_univ] using hsum
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), and [a multiple-instrument IV subsystem](hyp:S), the [finite response-type statistics](goal) consist of the subsystem's response-type masses and within-type causal effects. -/
+/-- [Finite response-type statistics](goal) collect type masses and within-type causal effects
+from [a multiple-instrument IV subsystem](hyp:S) of [the potential-outcome system](hyp:P) on [the
+finite support](hyp:K). -/
 def toStats : ResponseTypeStats K where
   mass := S.mass
   effect := S.effect
   mass_nonneg := S.mass_nonneg
   mass_sum_one := S.mass_sum_one
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), and [the condition $K>0$](hyp:hK), the [saturated finite-support population bridge](goal) is assembled from its response-type statistics and baseline quantities. -/
+/-- [The finite-support response-type population bridge](goal) combines type statistics and
+baseline outcomes from [a multiple-instrument IV subsystem](hyp:S) of [the potential-outcome
+system](hyp:P) on [a nonempty finite support](hyp:K,hK). -/
 def toPopulationBridge (hK : 0 < K) : ResponseTypeStats.PopulationBridge K where
   stats := S.toStats
   baseOutcome := S.baseOutcome hK
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support of size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), [a real first-stage score at each support point](hyp:dhat), and [the condition that this score is weakly increasing in support order](hyp:hmono), the [ordered finite first-stage index](goal) has the subsystem's instrument probabilities and the supplied score. -/
+/-- [The subsystem's ordered finite score index](goal) combines its instrument-cell probabilities
+with [a supplied support score](hyp:dhat) that is [weakly increasing](hyp:hmono), for [a
+multiple-instrument IV subsystem](hyp:S) of [the potential-outcome system](hyp:P) on [the finite
+support](hyp:K). -/
 def toFiniteIndex (dhat : Fin K → ℝ)
     (hmono : ∀ {k l : Fin K}, k.val ≤ l.val → dhat k ≤ dhat l) :
     FiniteIndex K :=
@@ -431,8 +525,9 @@ def toFiniteIndex (dhat : Fin K → ℝ)
 
 /-! ### Telescoping identity -/
 
-/-- The telescoped adjacent step at support point `k` collapses to the difference
-of endpoint treatments: `Σ_{j≤k}(d_j - d_{j-1}) = g k - g 0`. -/
+/-- [Cumulative adjacent treatment changes equal the response difference between a support point
+and the reference point](goal) in [a multiple-instrument IV subsystem](hyp:S), for [a nonempty
+support](hyp:hK), [response type](hyp:g), and [support point](hyp:k). -/
 lemma telescoped_eq (hK : 0 < K) (g : ResponseType K) (k : Fin K) :
     ResponseTypeStats.PopulationBridge.telescopedTypeStep g k
       = boolToReal (g k) - boolToReal (g (S.z0 hK)) := by
@@ -492,10 +587,13 @@ lemma telescoped_eq (hK : 0 < K) (g : ResponseType K) (k : Fin K) :
 
 /-! ### Cell identities discharging the ObservedBridge transferred assumptions -/
 
-/-- Treatment cell identity: `E[D | Z = zᵏ] = baseTreatment + treatmentAtSupport k`. -/
+/-- [The observed treatment mean in an instrument cell equals the common baseline treatment mean
+plus its response-type treatment expansion](goal) for [a nonempty support](hyp:hK), under [the
+local IV assumptions](hyp:hA), at [a support point](hyp:k) whose [cell has positive
+mass](hyp:hZk). -/
 theorem treatment_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
     (k : Fin K) (hZk : P.μ (S.zEvent k) ≠ 0) :
-    eventCondExp P.μ (S.zEvent k) (fun ω => boolToReal (S.factualD ω))
+    normalizedRestrictedIntegral P.μ (S.zEvent k) (fun ω => boolToReal (S.factualD ω))
       = S.baseTreatment hK
         + (S.toPopulationBridge hK).treatmentAtSupport k := by
   have hDint : ∀ q : Fin K, Integrable (fun ω => boolToReal (S.DofZ q ω)) P.μ := by
@@ -508,12 +606,12 @@ theorem treatment_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumption
         (S.measurable_DofZ q)).aestronglyMeasurable)
       (Filter.Eventually.of_forall hbdd)
   have hCell : ∀ (q : Fin K) (g : ResponseType K),
-      S.mass g * eventCondExp P.μ (S.gEvent g) (fun ω => boolToReal (S.DofZ q ω)) =
+      S.mass g * normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => boolToReal (S.DofZ q ω)) =
         S.mass g * boolToReal (g q) := by
     intro q g
     calc
-      S.mass g * eventCondExp P.μ (S.gEvent g) (fun ω => boolToReal (S.DofZ q ω)) =
-          eventCondExp P.μ (S.gEvent g) (fun ω => boolToReal (S.DofZ q ω)) * S.mass g := by
+      S.mass g * normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => boolToReal (S.DofZ q ω)) =
+          normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => boolToReal (S.DofZ q ω)) * S.mass g := by
         ring
       _ = ∫ ω in S.gEvent g, boolToReal (S.DofZ q ω) ∂P.μ := by
         rw [mass, eventCondExp_mul_measure_toReal _ _ (measure_ne_top _ _)]
@@ -552,11 +650,14 @@ theorem treatment_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumption
   intro g _
   ring
 
-/-- Outcome cell identity: `E[Y | Z = zᵏ] = outcomeAtSupport k`. -/
+/-- [The observed outcome mean in an instrument cell equals its response-type outcome
+expansion](goal) for [a nonempty support](hyp:hK), under [the local IV assumptions](hyp:hA), at [a
+support point](hyp:k) whose [cell has positive mass](hyp:hZk), with [integrable treated](hyp:hY1)
+and [untreated](hyp:hY0) potential outcomes. -/
 theorem outcome_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
     (k : Fin K) (hZk : P.μ (S.zEvent k) ≠ 0)
     (hY1 : Integrable (S.YofD true) P.μ) (hY0 : Integrable (S.YofD false) P.μ) :
-    eventCondExp P.μ (S.zEvent k) S.factualY
+    normalizedRestrictedIntegral P.μ (S.zEvent k) S.factualY
       = (S.toPopulationBridge hK).outcomeAtSupport k := by
   have hYDZ_bdd : ∀ q : Fin K, ∀ ω,
       |S.YofDofZ q ω| ≤ |S.YofD true ω| + |S.YofD false ω| := by
@@ -570,13 +671,13 @@ theorem outcome_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
     exact (hY1.norm.add hY0.norm).mono' (S.measurable_YofDofZ q).aestronglyMeasurable
       (Filter.Eventually.of_forall (hYDZ_bdd q))
   have hCE : ∀ (q : Fin K) (g : ResponseType K),
-      eventCondExp P.μ (S.gEvent g) (S.YofDofZ q) =
-        eventCondExp P.μ (S.gEvent g) (S.YofD false) +
+      normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofDofZ q) =
+        normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofD false) +
           boolToReal (g q) * S.effect g := by
     intro q g
     let c : ℝ := boolToReal (g q)
-    have hcongr : eventCondExp P.μ (S.gEvent g) (S.YofDofZ q) =
-        eventCondExp P.μ (S.gEvent g)
+    have hcongr : normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofDofZ q) =
+        normalizedRestrictedIntegral P.μ (S.gEvent g)
           (fun ω => S.YofD false ω + c * (S.YofD true ω - S.YofD false ω)) := by
       apply eventCondExp_congr_on P.μ (S.measurableSet_gEvent g)
       intro ω hω
@@ -585,25 +686,25 @@ theorem outcome_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
       dsimp [c]
       cases g q <;> simp [boolToReal]
     calc
-      eventCondExp P.μ (S.gEvent g) (S.YofDofZ q) =
-          eventCondExp P.μ (S.gEvent g)
+      normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofDofZ q) =
+          normalizedRestrictedIntegral P.μ (S.gEvent g)
             (fun ω => S.YofD false ω + c * (S.YofD true ω - S.YofD false ω)) := hcongr
-      _ = eventCondExp P.μ (S.gEvent g) (S.YofD false) +
-            eventCondExp P.μ (S.gEvent g) (fun ω => c * (S.YofD true ω - S.YofD false ω)) := by
-        change eventCondExp P.μ (S.gEvent g)
+      _ = normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofD false) +
+            normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => c * (S.YofD true ω - S.YofD false ω)) := by
+        change normalizedRestrictedIntegral P.μ (S.gEvent g)
             ((S.YofD false) + fun ω => c * (S.YofD true ω - S.YofD false ω)) =
-          eventCondExp P.μ (S.gEvent g) (S.YofD false) +
-            eventCondExp P.μ (S.gEvent g) (fun ω => c * (S.YofD true ω - S.YofD false ω))
+          normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofD false) +
+            normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => c * (S.YofD true ω - S.YofD false ω))
         rw [eventCondExp_add]
         · exact hY0.integrableOn
         · exact (hY1.integrableOn.sub hY0.integrableOn).const_mul c
-      _ = eventCondExp P.μ (S.gEvent g) (S.YofD false) +
-            c * eventCondExp P.μ (S.gEvent g) (fun ω => S.YofD true ω - S.YofD false ω) := by
+      _ = normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofD false) +
+            c * normalizedRestrictedIntegral P.μ (S.gEvent g) (fun ω => S.YofD true ω - S.YofD false ω) := by
         rw [eventCondExp_smul]
-      _ = eventCondExp P.μ (S.gEvent g) (S.YofD false) + boolToReal (g q) * S.effect g := by
+      _ = normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofD false) + boolToReal (g q) * S.effect g := by
         rfl
   have hTerm : ∀ g : ResponseType K,
-      eventCondExp P.μ (S.gEvent g) (S.YofDofZ k) =
+      normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofDofZ k) =
         S.baseOutcome hK g +
           ResponseTypeStats.PopulationBridge.telescopedTypeStep g k * S.effect g := by
     intro g
@@ -612,7 +713,7 @@ theorem outcome_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
     ring
   have hInt : ∫ ω, S.YofDofZ k ω ∂P.μ =
       ∑ g : ResponseType K,
-        S.mass g * eventCondExp P.μ (S.gEvent g) (S.YofDofZ k) := by
+        S.mass g * normalizedRestrictedIntegral P.μ (S.gEvent g) (S.YofDofZ k) := by
     rw [S.integral_partition (hYDZ_int k)]
     refine Finset.sum_congr rfl ?_
     intro g _
@@ -623,17 +724,22 @@ theorem outcome_cell_eq [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
   intro g _
   rw [hTerm g]
 
-/-! ### Assembled observed bridge and the potential-outcome 2SLS characterization -/
+/-! ### Assembled observed bridge and the potential-outcome centered-score identity -/
 
-/-- The instrument masses `ρ_k` from `toFiniteIndex` are the probabilities of the
-observed instrument cells. -/
+/-- [The ordered index's support masses equal the observed instrument-cell probabilities](goal)
+for [the supplied score](hyp:dhat), [its monotonicity certificate](hyp:hmono), and [the selected
+support point](hyp:k) in [the multiple-instrument IV subsystem](hyp:S). -/
 lemma rho_eq_zMass (dhat : Fin K → ℝ)
     (hmono : ∀ {k l : Fin K}, k.val ≤ l.val → dhat k ≤ dhat l) (k : Fin K) :
     (S.toFiniteIndex dhat hmono).rho k
       = (P.μ (ResponseTypeStats.PopulationBridge.zEvent S.factualZ k)).toReal := by
   rfl
 
-/-- For [a potential-outcome system](hyp:P), [a finite instrument support size $K$](hyp:K), [a multiple-instrument IV subsystem](hyp:S), [the condition $K>0$](hyp:hK), [its IV assumptions](hyp:hA), [a real first-stage score](hyp:dhat), [weak monotonicity of that score in support order](hyp:hmono), [positive probability for every instrument cell](hyp:hZpos), and [integrable treated and untreated potential outcomes](hyp:hY1,hY0), the [observed population bridge](goal) links factual variables to the finite response-type representation.
+/-- [The observed population bridge](goal) links factual moments to the finite response-type
+representation for [a multiple-instrument IV subsystem](hyp:S) of [the potential-outcome
+system](hyp:P) on [a nonempty support](hyp:K,hK), under [the local IV assumptions](hyp:hA), [a
+weakly increasing support score](hyp:dhat,hmono), [positive instrument-cell mass](hyp:hZpos), and
+[integrable treated and untreated potential outcomes](hyp:hY1,hY0).
 
 The two conditional-mean bridge conditions are derived from consistency and instrument independence. -/
 def toObservedBridge (hK : 0 < K) (hA : S.Assumptions)
@@ -651,22 +757,21 @@ def toObservedBridge (hK : 0 < K) (hA : S.Assumptions)
   treatment_cell := fun k =>
     S.treatment_cell_eq hK hA k (hZpos k)
 
-/-- **Potential-outcome multiple-IV 2SLS characterization**
-(`prop:po-estimand-mtw-response-type-form`, PO level). Consider [a finite
-instrument support of positive size `K`](hyp:hK) together with weights
-`dhat` that are [weakly increasing in the support order](hyp:hmono), under
-[the potential-outcome identifying assumption bundle](hyp:hA). If [every
+/-- **Potential-outcome finite-support centered-score IV identity.** Consider [a nonempty
+finite instrument support](hyp:hK) together with [a real support
+score](hyp:dhat) that is [weakly increasing in the support order](hyp:hmono), under
+[the local consistency and pointwise-exogeneity bundle](hyp:hA). If [every
 instrument-support cell has positive probability](hyp:hZpos), [the potential
 outcome under treatment](hyp:hY1) and [under control](hyp:hY0) are
 integrable, [the centered-instrument-weighted outcome](hyp:hYInt) and
 [treatment](hyp:hDInt) are integrable, and [the observed first-stage moment
-is nonzero](hyp:hden), then [the observed population 2SLS ratio
-`E[h(Z)Y] / E[h(Z)D]` equals the response-type weighted sum `Σ_g ω_g Δ_g` of
-within-type conditional causal effects `Δ_g = E[Y(1) - Y(0) | G = g]`](goal).
+is nonzero](hyp:hden), then [the observed centered-score IV estimand equals the
+response-type-weighted average of within-type causal effects](goal).
 
 The conditional-mean bridges are derived from consistency and instrument
-independence, so this consumes only genuine potential-outcome assumptions. -/
-theorem observedBeta2SLS_eq_responseTypeWeightedSum
+independence. The statement does not identify `dhat` with a saturated
+first-stage propensity score or another linear-projection fitted value. -/
+theorem observedCenteredScoreIV_eq_responseTypeWeightedSum
     [IsFiniteMeasure P.μ] (hK : 0 < K) (hA : S.Assumptions)
     (dhat : Fin K → ℝ)
     (hmono : ∀ {k l : Fin K}, k.val ≤ l.val → dhat k ≤ dhat l)
@@ -679,10 +784,10 @@ theorem observedBeta2SLS_eq_responseTypeWeightedSum
         * boolToReal (S.factualD ω)) P.μ)
     (hden : ResponseTypeStats.PopulationBridge.observedFirstStageMoment
       P.μ S.factualZ S.factualD (S.toFiniteIndex dhat hmono) ≠ 0) :
-    ResponseTypeStats.PopulationBridge.observedBeta2SLS
+    ResponseTypeStats.PopulationBridge.observedCenteredScoreIV
         P.μ S.factualZ S.factualD S.factualY (S.toFiniteIndex dhat hmono)
       = (S.toPopulationBridge hK).stats.responseTypeEstimand (S.toFiniteIndex dhat hmono) :=
-  (S.toObservedBridge hK hA dhat hmono hZpos hY1 hY0).observedBeta2SLS_eq_responseTypeWeightedSum
+  (S.toObservedBridge hK hA dhat hmono hZpos hY1 hY0).observedCenteredScoreIV_eq_responseTypeWeightedSum
     S.measurable_factualZ hYInt hDInt hden
 
 end POMultipleIVSystem

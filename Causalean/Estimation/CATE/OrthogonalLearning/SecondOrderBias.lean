@@ -13,9 +13,9 @@ L²-errors,
 
     |Bias_n| ≤ (2 B / ε) · Σ_a ‖ĥ.μ_fn a − μ_val a‖_{L²(P_X)} · ‖ĥ.e_fn − e_val‖_{L²(P_X)},
 
-where `B` bounds `|D.dEval θ̂|`.  This is the quantitative double-robustness
-statement that the abstract `OrthogonalLearning.Bias_taylor_form` only recorded as a trivial
-existential Taylor-form witness.
+where `B` bounds `|D.dEval θ̂|`.  This is the quantitative double-robustness statement: the bound
+is a product of the two nuisance errors, so either one converging fast enough compensates for the
+other.
 
 Mechanism.  Both directional-derivative bundles passed to `Bias_n` come from
 `drMixedDirDeriv`, whose `dℓ_θ` field is the *literal* closed form
@@ -31,9 +31,10 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-second-order-bias`, and Kennedy (2023).
 -/
 
-import Causalean.Estimation.CATE.Core.SecondOrderBias
-import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner.Analytic
-import Causalean.Estimation.OrthogonalLearning.Population.SecondOrderBias
+module
+public import Causalean.Estimation.CATE.Core.SecondOrderBias
+public import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner.Analytic
+public import Causalean.Estimation.OrthogonalLearning.Population.SecondOrderBias
 
 /-! # DR-Learner Second-Order Bias
 
@@ -43,12 +44,16 @@ error and the propensity-score error. The result makes the double-robust
 second-order remainder in the orthogonal statistical-learning oracle inequality
 explicit. -/
 
+public section
+
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.PO
   Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
@@ -184,5 +189,6 @@ theorem drBias_le_product
                 S.toBackdoorEstimationSystem.P_X).toReal := by ring
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

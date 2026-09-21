@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPriorLift
-import Mathlib.Analysis.SpecialFunctions.Exponential
-import Mathlib.Analysis.Normed.Group.FunctionSeries
-import Mathlib.Probability.ProbabilityMassFunction.Basic
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPriorLift
+public import Mathlib.Analysis.SpecialFunctions.Exponential
+public import Mathlib.Analysis.Normed.Group.FunctionSeries
+public import Mathlib.Probability.ProbabilityMassFunction.Basic
 
 /-!
 # Taylor expansion of the triple-count Poisson atoms
@@ -12,6 +13,8 @@ discarded remainder by a positive exponential-series tail, and shows that two
 priors matching all monomial moments up to a fixed degree produce identical
 truncated predictive masses.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

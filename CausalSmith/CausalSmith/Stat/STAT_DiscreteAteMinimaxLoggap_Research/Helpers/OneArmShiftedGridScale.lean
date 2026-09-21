@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedObstruction
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedObstruction
 
 /-!
 # Overlap-calibrated grid scale
@@ -7,6 +8,8 @@ The smallest positive node shrinks by `κ⁴`; the rational pole is `κ` times
 that node.  This keeps endpoint polynomial variation on the same `κ²` scale
 as the shifted three-point signal.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

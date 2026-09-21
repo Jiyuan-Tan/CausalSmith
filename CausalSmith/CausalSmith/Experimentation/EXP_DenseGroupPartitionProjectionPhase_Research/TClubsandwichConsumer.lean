@@ -1,4 +1,5 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Software
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Software
 
 /-!
 # `clubSandwich` CR2 consumer identity
@@ -6,6 +7,8 @@ import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Resear
 The deterministic equal-group identity is conditional on the two versioned
 software contracts and on the explicit intercept-plus-binary-treatment fit data.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Matrix
 

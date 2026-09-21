@@ -6,21 +6,23 @@ Authors: Jiyuan Tan
 # The dependency-graph CLT from primitive conditions
 
 `stein_cdf_clt` needs the two Stein negligibility limits (`Var(∑XᵢTᵢ)→0`, `∑E[|Xᵢ|Tᵢ²]→0`) and
-the leave-out independence as hypotheses.  Here we *derive* them from a genuine **dependency
-graph** (the Chen–Shao / Aronow–Samii Condition 3): a reflexive symmetric relation `G` on the
-index set whose non-adjacent index sets carry independent variable tuples, with bounded degree
-`m`, together with bounded summands `|Xᵢ| ≤ Bₙ` such that `Bₙ → 0` and `N·Bₙ³ → 0`.
+the leave-out independence as hypotheses. Here we derive them from a standard dependency graph:
+a reflexive symmetric relation `G` on the index set whose non-adjacent index sets carry independent
+variable tuples, with bounded degree `m`, together with bounded summands `|Xᵢ| ≤ Bₙ` such that
+`Bₙ → 0` and `N·Bₙ³ → 0`. This is a graph-based local-dependence condition of the kind
+studied by Chen–Shao. Aronow–Samii impose a bounded-degree dependency graph on exposure variables
+in their Condition 5; that applied setting is an instance of the abstract graph condition used here.
 
 The covariance `Cov(XᵢTᵢ, XⱼTⱼ)` vanishes unless `i,j` are at graph distance at most three
 (so the closed neighborhoods `Nᵢ, Nⱼ` are not separated); there are `≤ N·m³` such pairs, each
 bounded by `2(m·Bₙ²)²`, giving `Var(∑XᵢTᵢ) ≤ 2m⁵·N·Bₙ⁴ → 0`; and
 `∑E[|Xᵢ|Tᵢ²] ≤ m²·N·Bₙ³ → 0`.  The
 leave-out independence is the dependency-graph property applied to `{i}` and `Nᵢᶜ`.  See
-`doc/stein_clt_plan.md`.
 -/
 
-import Causalean.Mathlib.Probability.SteinMethod.CLT
-import Mathlib.Probability.Independence.Basic
+module
+public import Causalean.Mathlib.Probability.SteinMethod.CLT
+public import Mathlib.Probability.Independence.Basic
 
 /-!
 # Dependency-graph central limit theorem from primitive graph conditions
@@ -33,11 +35,12 @@ covariance cancellation, the bounds `DepGraph.var_nbhd_prod_le` and
 `stein_cdf_clt_of_depGraph`.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Filter
 open scoped Real Topology BigOperators
 
-namespace Causalean
-namespace SteinMethod
+namespace Causalean.Mathlib.Probability.SteinMethod
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -467,5 +470,4 @@ theorem stein_cdf_clt_of_depGraph
     B hB hbound hmean hindep hvar
     herr1 herr2 s
 
-end SteinMethod
-end Causalean
+end Causalean.Mathlib.Probability.SteinMethod

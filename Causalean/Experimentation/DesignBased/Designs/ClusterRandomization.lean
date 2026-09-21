@@ -14,7 +14,8 @@ probability (their treatments coincide), while two units in *different* clusters
 with the product of their cluster rates (clusters are independent).
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
 
 /-! # Cluster randomization designs
 
@@ -23,6 +24,8 @@ Cluster randomization treats all units in a cluster according to one cluster-lev
 This file packages cluster-level Bernoulli assignment and proves the resulting unit-level
 inclusion probabilities for same-cluster and cross-cluster pairs.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

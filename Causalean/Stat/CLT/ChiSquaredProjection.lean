@@ -32,7 +32,9 @@ continuous linear map `Pc : E →L[ℝ] S` and set `Q := ι ∘L Pc : E → Eucl
 
 Main result: `stdGaussian_map_normSq_orthogonalProjection`.
 -/
-import Causalean.Stat.CLT.ChiSquared
+
+module
+public import Causalean.Stat.CLT.ChiSquared
 
 /-! # Chi-Squared Law for Projected Gaussians
 
@@ -45,10 +47,16 @@ continuous linear map `P` is self-adjoint and idempotent, then the law of
 `‖P z‖²` under `stdGaussian` is `chiSqDist` with degrees of freedom
 `finrank ℝ (range P)`. -/
 
+public section
+
 open MeasureTheory ProbabilityTheory Complex Causalean.Mathlib
 open scoped RealInnerProductSpace
 
 namespace Causalean.Stat
+
+local notation "stdGaussian" => Causalean.Mathlib.stdGaussian
+local notation "covarianceBilin_stdGaussian" =>
+  Causalean.Mathlib.covarianceBilin_stdGaussian
 
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
   [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]

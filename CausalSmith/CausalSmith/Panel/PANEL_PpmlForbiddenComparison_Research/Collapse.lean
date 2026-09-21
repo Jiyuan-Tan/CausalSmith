@@ -1,7 +1,10 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
 
 /-! Exact unit-FE collapse and convergence to the limiting collapsed projection. -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter

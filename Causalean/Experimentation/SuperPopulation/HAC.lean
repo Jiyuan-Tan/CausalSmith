@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.SuperPopulation.Basic
+module
+public import Causalean.Experimentation.SuperPopulation.Basic
 
 /-!
 # Network-HAC variance estimator
@@ -18,20 +19,23 @@ of within-neighborhood cross-products, so the natural estimator is
 
 i.e. the empirical sum of products over network-adjacent pairs.  This file defines that estimator
 and records its **unbiasedness** anchor: under mean-zero summands its expectation is exactly the
-variance of the network sum.  Sequence-level consistency of `V̂` for the true variance along a
-growing network is developed in the `HACConsistency` modules.
+variance of the network sum. Sequence-level consistency of `V̂` for the true variance along a
+growing network is developed in the `SuperPopulation.Network.HAC` namespace.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 
 namespace Causalean.Experimentation.SuperPopulation
 
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 
 variable {V Ω : Type*} [Fintype V] [DecidableEq V] [MeasurableSpace Ω] {μ : Measure Ω}
 
 /-- Given [a finite population of units](hyp:V), [a measurable sample space](hyp:Ω), [a measure on
-that space](hyp:μ), [a super-population locally dependent network field](hyp:F), and [a sample point](hyp:ω),
+that space](hyp:μ), [a super-population locally dependent network field](hyp:F), and
+[a sample point](hyp:ω),
 the [network-HAC variance estimator](goal) is the sum, over every unit and every unit in its closed
 network neighborhood, of the product of their realized summands.  It targets the variance of the
 network sum, whose cross-terms vanish outside the network neighborhoods. -/

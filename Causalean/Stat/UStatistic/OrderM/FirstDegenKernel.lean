@@ -1,24 +1,5 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# First-order degenerate order-`m` kernels and their `L²` transport
-
-This file introduces `OrderFirstDegenKernel`, the correct hypothesis for the
-higher-order U-statistic remainder: a measurable, square-integrable order-`m`
-kernel whose conditional mean given any single coordinate is zero (equivalently,
-whose mean and every first Hoeffding projection vanish).  This is *strictly
-weaker* than the complete degeneracy of `OrderDegenKernel` (`OrderM/Hajek`) and
-is exactly what the residual `uDegenOrder h P` satisfies for every order `m`; the
-two notions coincide only at `m = 2`.
-
-The generic `L²`/product-law transport lemmas from `OrderM/Variance` apply
-directly because they require only measurability and square-integrability, not
-complete degeneracy.
--/
-
-import Causalean.Stat.UStatistic.OrderM.Variance
+module
+public import Causalean.Stat.UStatistic.OrderM.Variance
 
 /-!
 # First-order degenerate fixed-order kernels
@@ -28,11 +9,24 @@ order-`m` kernel whose conditional mean is zero after integrating out all
 coordinates except any chosen one.  This is the degeneracy notion satisfied by
 the first-order Hoeffding residual in the fixed-order U-statistic CLT.
 
+For symmetric order-two kernels, first-order and complete coordinate
+degeneracy coincide. The two structures remain distinct because
+`OrderDegenKernel` also requires symmetry, whereas `OrderFirstDegenKernel`
+does not.
+
 The namespace results show that such kernels are integrable and have product-law
 mean zero (`OrderFirstDegenKernel.integrable` and
 `OrderFirstDegenKernel.integral_eq_zero`). Generic `IIDSample` transport lemmas
 from `OrderM.Variance` supply the downstream `L²` bounds.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

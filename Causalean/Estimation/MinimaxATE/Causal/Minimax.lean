@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.MinimaxATE.Causal.Bridge
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.LowerBound
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.LowerBound
+module
+public import Causalean.Estimation.MinimaxATE.Causal.Bridge
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.LowerBound
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.LowerBound
 
 /-!
 # Causal re-centering of the cell-varying minimax converses
@@ -29,6 +30,8 @@ side conditions needed to invoke `causalATE_eq_ate` on the null and perturbed
 witnesses.
 -/
 
+@[expose] public section
+
 namespace Causalean.Estimation.MinimaxATE
 
 open MeasureTheory
@@ -41,7 +44,13 @@ variable {C : Type} [Fintype C] [Nonempty C] [MeasurableSpace C]
 
 /-! ## Causal-centered miss probability -/
 
-/-- For [a finite nonempty covariate space, with a measurable structure in which every singleton is measurable](hyp:C), [centered propensity and outcome-regression functions](hyp:mhat,ghat), [two real radii with no sign restrictions](hyp:εg), [a sample size](hyp:n), [an estimator based on that many observed treatment--outcome--covariate records](hyp:est), and [a real error threshold](hyp:s), [the causal-centered minimax miss probability](goal) is the supremum, over all valid observed-data distributions in the nuisance-function class determined by those centers and radii, of the probability that the estimator's absolute error from that distribution's average potential-outcome treatment effect is at least the threshold. -/
+/-- For [a finite nonempty covariate space with measurable singletons](hyp:C),
+[centered propensity and outcome-regression functions](hyp:mhat,ghat),
+[two real radii with no sign restrictions](hyp:εg,εm), [a sample size](hyp:n),
+[an estimator based on that many observed records](hyp:est), and
+[a real error threshold](hyp:s), the [causal-centered minimax miss probability](goal)
+is the supremum over the nuisance class of the probability that the estimator's
+absolute error from the average potential-outcome treatment effect reaches the threshold. -/
 noncomputable def minimaxMissCausal (mhat : C → ℝ) (ghat : Bool → C → ℝ)
     (εg εm : ℝ) (n : ℕ) (est : (Fin n → Obs C) → ℝ) (s : ℝ) : ℝ :=
   ⨆ p : InClassDGP mhat ghat εg εm,
@@ -165,10 +174,12 @@ theorem realV_le_minimaxMissCausal (P : VarConstr K) {n : ℕ} [NeZero K]
       (⟨(m, g), hin⟩ : InClassDGP (P.mhatV (K := K)) P.ghatV εg εm)
       (est := est) (s := s)
 
-/-! ## Causal-centered VaryingCenterCase1 lower bound -/
+/-! ## Causal-centered Case-1-shaped lower bound -/
 
-/-- **Causal-centered structure-agnostic minimax lower bound (Case 1).** For the
-outcome-dominant cell-varying construction `P`, suppose [the squared propensity
+/-- **Causal-centered structure-agnostic minimax lower bound (Case-1-shaped family).** For
+[a first cell-varying construction `P` with `K` paired cells](hyp:K,P),
+[a sample size `n`](hyp:n), and [nuisance-error budgets `εg` and `εm`](hyp:εg,εm),
+suppose [the squared propensity
 perturbation stays within the budget `εm`](hyp:hm), [the squared outcome-regression
 perturbation stays within the budget `εg`](hyp:hg), [the perturbed propensity remains
 strictly below `1` in every cell](hyp:hmU_strict), and [both budgets are
@@ -176,13 +187,14 @@ nonnegative](hyp:hεg,hεm). If in addition [the aggregate separation budget acr
 is at most `1`](hyp:hΓsum) and [the sample size satisfies the stated regularity regime
 relative to that budget](hyp:hreg), then for [every measurable estimator](hyp:hest),
 [the causal-centered miss probability — of missing the true backdoor-identified ATE
-`E[Y(1) − Y(0)]` by at least half the displayed Case-1 separation gap — is at least
+`E[Y(1) − Y(0)]` by at least half the displayed separation gap — is at least
 `1/4` for some data-generating process in the class](goal); the strict
-perturbed-overlap hypothesis is exactly what lets the observed-data Case-1 bound be
+perturbed-overlap hypothesis is exactly what lets the observed-data first-family bound be
 re-centered onto the genuine causal estimand.
 
 The proof uses the same two-point witness as `minimax_lower_bound_var` and
-transfers the null and perturbation miss events through `causalATE_eq_ate`. -/
+transfers the null and perturbation miss events through `causalATE_eq_ate`. The statement
+does not order the nuisance budgets or require the displayed separation to be positive. -/
 theorem minimax_lower_bound_var_causal (P : VarConstr K) {n : ℕ} [NeZero K]
     {εg εm : ℝ}
     (hm : ∀ j, (P.m₀ j * (P.β / P.g₁ j)) ^ 2 ≤ εm)
@@ -307,16 +319,23 @@ theorem real2_le_minimaxMissCausal (P : VarConstr2 K) {n : ℕ} [NeZero K]
       (⟨(m, g), hin⟩ : InClassDGP (P.mhat2 (K := K)) P.ghat2 εg εm)
       (est := est) (s := s)
 
-/-! ## Causal-centered VaryingCenterCase2 lower bound -/
+/-! ## Causal-centered Case-2-shaped lower bound -/
 
-/-- **Causal-centered structure-agnostic minimax lower bound (Case 2).**
-For the propensity-dominant cell-varying construction, a strictly positive
-treated-arm bump and strict perturbed-propensity overlap imply that every
-measurable estimator has causal-centered miss probability at least `1/4` at half
-of the displayed strictly positive ATE separation.
+/-- **Causal-centered structure-agnostic minimax lower bound (Case-2-shaped family).** For
+[a second cell-varying construction `P` with `K` paired cells](hyp:K,P),
+[a sample size `n`](hyp:n), and [nuisance-error budgets `εg` and `εm`](hyp:εg,εm),
+suppose [the treated-arm bump is strictly positive](hyp:hβpos), [the propensity
+perturbation stays within `εm`](hyp:hm), [the outcome perturbation stays within
+`εg`](hyp:hg), [the propensity coefficient is strictly below one](hyp:hκ_strict),
+[the perturbed propensity remains strictly below one](hyp:hmU_strict), [both budgets
+are nonnegative](hyp:hεg,hεm), [the aggregate overlap coefficient is at most
+one](hyp:hΓsum), and [the sample size satisfies the stated regularity
+condition](hyp:hreg). Then for [every measurable estimator](hyp:hest),
+[the causal-centered miss probability at half the displayed strictly positive ATE
+separation is at least `1/4` for some data-generating process in the class](goal).
 
-This is the causal recentering of `minimax_lower_bound_var2`; it covers the
-Case-2 regime left open by the Case-1 theorem `minimax_lower_bound_var_causal`. -/
+This is the causal recentering of `minimax_lower_bound_var2`. It does not assert an
+ordering between the two nuisance budgets. -/
 theorem minimax_lower_bound_var2_causal (P : VarConstr2 K) {n : ℕ} [NeZero K]
     {εg εm : ℝ}
     (hβpos : 0 < P.β)

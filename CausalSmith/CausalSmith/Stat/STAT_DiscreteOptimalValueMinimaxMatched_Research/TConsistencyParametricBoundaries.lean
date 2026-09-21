@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TParentReduction
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TParentReduction
 
 /-! Consistency and parametric-rate boundaries along arbitrary alphabet sequences. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -16,7 +19,7 @@ def BoundedAlphabetSequence (dseq : ℕ → ℕ) : Prop :=
   IsBigO atTop (fun n => (dseq n : ℝ)) (fun _ => (1 : ℝ))
 
 -- @node: phaseScale
-private noncomputable def phaseScale (dseq : ℕ → ℕ) (n : ℕ) : ℝ :=
+noncomputable def phaseScale (dseq : ℕ → ℕ) (n : ℕ) : ℝ :=
   min 1 ((dseq n : ℝ) / (n * logAlphabet (dseq n)))
 
 -- @node: rawPhaseScale

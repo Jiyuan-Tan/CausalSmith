@@ -22,7 +22,8 @@ This file contains two families of factorization theorems for `evalMap`:
 * Basic Concepts.tex, Lemma `lem:scm-ancestral-factor`.
 -/
 
-import Causalean.SCM.Model.Evaluation
+module
+public import Causalean.SCM.Model.Evaluation
 
 /-! # Evaluation Map Factorization
 
@@ -41,6 +42,13 @@ structural causal models.
   measurable factorization through the fixed-ancestor and latent-ancestor
   projections.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

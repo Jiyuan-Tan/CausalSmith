@@ -1,9 +1,12 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionUniformExclusion
-import Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine.Definitions
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionUniformExclusion
+public import Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence.DefinitionsPairwiseAffine
 
 /-!
 # Residuals for the uniform contraction compactification
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
@@ -11,7 +14,7 @@ open Set
 open scoped Matrix.Norms.L2Operator
 
 noncomputable section
-open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 /-- Sum of selected covariance perturbations.  A sum is used instead of a maximum because it is
 continuous without requiring a nonempty selected set and still controls every summand. -/

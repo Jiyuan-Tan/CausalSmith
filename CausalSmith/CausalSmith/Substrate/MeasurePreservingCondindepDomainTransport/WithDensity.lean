@@ -1,5 +1,6 @@
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
-import Mathlib.MeasureTheory.Measure.WithDensity
+module
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Map
+public import Mathlib.MeasureTheory.Measure.WithDensity
 
 /-!
 # Transport of weighted measures across sample-domain equivalences
@@ -8,6 +9,8 @@ This module proves that weighting a measure by a density pulled back along a
 measure-preserving measurable equivalence commutes with pushing the measure
 forward through that equivalence.
 -/
+
+public section
 
 open MeasureTheory
 open scoped ENNReal

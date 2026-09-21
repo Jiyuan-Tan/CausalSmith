@@ -3,22 +3,23 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.InformationTheory.KullbackLeibler.Basic
+
+module
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
 
 /-!
 # Kullback–Leibler divergence between real Gaussian measures
 
 Mathlib provides the real Gaussian measure `ProbabilityTheory.gaussianReal m v`
 (mean `m : ℝ`, variance `v : ℝ≥0`) and the Kullback–Leibler divergence
-`MeasureTheory.klDiv` (an `ℝ≥0∞`), but not the closed form of the KL divergence
+`InformationTheory.klDiv` (an `ℝ≥0∞`), but not the closed form of the KL divergence
 between two Gaussians.  This file derives the **equal-variance** closed form
 
   `klDiv (gaussianReal m₀ v) (gaussianReal m₁ v)
       = ENNReal.ofReal ((m₀ - m₁)^2 / (2 * v))`   (`0 < v`),
 
-which is the canonical KL input for Gaussian-location minimax (Le Cam / two-point)
-lower bounds.
+the standard equal-variance Gaussian KL identity.
 
 ## Proof outline
 
@@ -45,6 +46,8 @@ follows the standard four steps:
 Standard information-theory identity
 `KL(N(m₀,σ²) ∥ N(m₁,σ²)) = (m₀ − m₁)² / (2σ²)` (e.g. Cover & Thomas).
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Real
 open scoped NNReal ENNReal
@@ -173,15 +176,13 @@ lemma integral_llr_gaussianReal (m₀ m₁ : ℝ) (hv : v ≠ 0) :
           field_simp [hden]
           ring
 
-/-- **Equal-variance Gaussian KL divergence (closed form).** For means `m₀`, `m₁` and
-[a strictly positive common variance `v`](hyp:hv), [the Kullback–Leibler divergence between two
-real Gaussians of equal variance `v` and respective means `m₀` and `m₁` equals `(m₀ - m₁)² /
-(2v)`](goal):
+/-- **Equal-variance Gaussian KL divergence (closed form).** For [two real
+means](hyp:m₀,m₁) and [a strictly positive common variance](hyp:v,hv),
+[the Kullback–Leibler divergence between the corresponding equal-variance Gaussians
+equals their squared mean difference divided by twice the variance](goal):
 
   `klDiv (gaussianReal m₀ v) (gaussianReal m₁ v) = ENNReal.ofReal ((m₀ - m₁)^2 / (2*v))`.
-
-This is the canonical KL input for Gaussian-location minimax (Le Cam / two-point)
-lower bounds. -/
+-/
 theorem gaussianKL_eq (m₀ m₁ : ℝ) (hv : 0 < v) :
     InformationTheory.klDiv (gaussianReal m₀ v) (gaussianReal m₁ v)
       = ENNReal.ofReal ((m₀ - m₁) ^ 2 / (2 * (v : ℝ))) := by

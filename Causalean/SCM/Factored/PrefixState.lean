@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.SCM
+module
+public import Causalean.SCM.Model.SCM
 
 /-! # Prefix States for Factored Kernels
 
@@ -13,6 +14,11 @@ causal model's joint kernel sequentially along a topological ordering. The
 definitions package latent values together with already generated observed values,
 with measurability facts for the downstream factored-kernel construction.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean
 

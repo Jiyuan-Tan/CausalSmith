@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.CompactContinuousDetermination
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.CompactContinuousDetermination
 
 /-!
 # Compact-support determination by Gaussian-weighted moments
@@ -7,6 +8,8 @@ This module isolates the approximation-theoretic core of Gaussian mean
 embedding injectivity.  On a common compact interval, equality against every
 Gaussian-weighted monomial determines finite Borel measures.
 -/
+
+public section
 
 open MeasureTheory Set
 

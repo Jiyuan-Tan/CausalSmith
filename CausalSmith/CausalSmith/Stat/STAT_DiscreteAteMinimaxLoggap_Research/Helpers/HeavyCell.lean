@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotSandwich
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotConditioning
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LightCell
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HeavyCellMoments
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HybridProgram
-import Causalean.Mathlib.Probability.IidMeanVariance
-import Causalean.Stat.Sample.PiTransport
-import Mathlib.Probability.Moments.Variance
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotSandwich
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.PilotConditioning
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LightCell
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HeavyCellMoments
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HybridProgram
+public import Causalean.Mathlib.Probability.IidMeanVariance
+public import Causalean.Stat.Sample.PiTransport
+public import Mathlib.Probability.Moments.Variance
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

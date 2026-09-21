@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Coordinate reversal of the common-axis height-one problem
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisImageGeometry
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CoordinateReversalGeometry
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisImageGeometry
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CoordinateReversalGeometry
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

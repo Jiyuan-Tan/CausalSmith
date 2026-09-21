@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TConditionalOneSidedBowMixtureCompleteness
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TConditionalMutualSupportIntersection
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TConditionalOneSidedBowMixtureCompleteness
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TConditionalMutualSupportIntersection
 
 /-! # Conditional mutual-support bow-mixture completeness -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

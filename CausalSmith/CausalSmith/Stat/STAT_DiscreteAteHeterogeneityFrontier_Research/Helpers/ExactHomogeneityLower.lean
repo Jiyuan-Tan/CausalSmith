@@ -1,10 +1,11 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Endpoint
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Ingster
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ExplicitWitness
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
-import Causalean.Stat.Minimax.ChiSquaredFinite
-import Causalean.Stat.Minimax.Mixture
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Endpoint
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Ingster
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ExplicitWitness
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
+public import Causalean.Stat.Minimax.ChiSquaredFinite
+public import Causalean.Stat.Minimax.Mixture
 
 /-!
 # Exact-homogeneity binary lower bound
@@ -16,15 +17,12 @@ symmetric finite Rademacher mixture from Zeng--Balakrishnan--Han--Kennedy,
 Theorem 4 and Appendix C.8.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal
-
-private abbrev BinLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-private abbrev BinObs :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @node: endpoint_null_exact
 /-- If [the alphabet is nonempty](hyp:hd) and [the overlap constant is positive](hyp:he0) and [the

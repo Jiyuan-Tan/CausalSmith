@@ -1,9 +1,13 @@
+module
+
 /-!
 # Bibliographic comparator-scope records
 
 These closed string payloads record cited scope facts. They are metadata only
 and are not logical hypotheses of any theorem.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 

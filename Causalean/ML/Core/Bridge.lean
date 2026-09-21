@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core.ERM
+
+module
+public import Causalean.ML.Core.ERM
 
 /-! # Bridge between the parametric and extensional views
 
@@ -15,17 +17,16 @@ optimization) transfer to the function-class statements (best-in-class,
 population target).
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open MeasureTheory
 
-/-- Given [an arbitrary parameter space](hyp:Θ), [an arbitrary covariate space equipped with a
-σ-algebra](hyp:X), [an arbitrary outcome space equipped with a σ-algebra](hyp:Y), [a parametric
-predictor together with its admissible parameter set](hyp:M) and [evidence that the prediction
-function is measurable for every admissible parameter](hyp:hmeas),
-the [realized hypothesis class](goal) consists exactly of the prediction functions obtained by
-letting the parameter range over that admissible set; its members are equipped with the stated
-measurability guarantee. -/
+/-- [The realized hypothesis class](goal) turns [a parametrized predictor](hyp:Θ,X,Y,M) into
+[exactly its admissible prediction rules](step:1).
+[Measurability of every admissible rule](hyp:hmeas) supplies
+[the class-wide measurability guarantee](step:2) needed for population-risk analysis. -/
 def imageClass {Θ X Y : Type*} [MeasurableSpace X] [MeasurableSpace Y]
     (M : Predictor Θ X Y)
     (hmeas : ∀ θ ∈ M.paramSet, Measurable (M.predict θ)) : HypothesisClass X Y where

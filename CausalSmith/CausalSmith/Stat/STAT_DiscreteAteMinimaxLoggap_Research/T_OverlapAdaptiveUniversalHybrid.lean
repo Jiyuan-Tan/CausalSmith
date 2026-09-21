@@ -1,9 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.CombinedEnvelope
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HybridProgram
-
-namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
-
-open MeasureTheory
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.CombinedEnvelope
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.HybridProgram
 
 /-!
 Clause (v) is deliberately represented by this scope note rather than a Lean
@@ -11,6 +8,12 @@ proposition: every constant below is pointwise in a fixed `epsilon`.  Nothing in
 this theorem asserts a matching lower envelope for triangular arrays
 `epsilon = epsilon_n`.
 -/
+
+public section
+
+namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
+
+open MeasureTheory
 
 -- @node: overlap_adaptive_universal_hybrid_statistical
 /-- The statistical clauses of the universal-hybrid theorem, assembled from

@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Algebra.Order.BigOperators.Ring.Finset
-import Mathlib.Data.Real.Sqrt
+
+module
+public import Mathlib.Algebra.Order.BigOperators.Ring.Finset
+public import Mathlib.Data.Real.Sqrt
 
 /-!
 # Cauchy–Schwarz against a finite nonnegative weight vector
@@ -23,6 +25,8 @@ module records them once, over an arbitrary finite support.
 All four follow from the unweighted inequality by substituting `f ↦ √w · f`,
 `g ↦ √w · g` and simplifying with `Real.sq_sqrt`.
 -/
+
+public section
 
 namespace Causalean.Mathlib.Analysis
 

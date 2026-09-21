@@ -1,12 +1,15 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedGridScale
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FiniteGridSelection
-import Causalean.Mathlib.Analysis.EhlichZellerMesh.Mesh
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmShiftedGridScale
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FiniteGridSelection
+public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.Mesh
 
 /-!
 # Overlap-shifted finite approximation grid
 
 The smallest node is `aκ`, while the rational target has pole `bκ = κaκ`.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

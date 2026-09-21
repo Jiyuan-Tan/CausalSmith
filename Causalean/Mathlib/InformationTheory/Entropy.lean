@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
-import Mathlib.Data.Fintype.BigOperators
+
+module
+public import Mathlib.Analysis.SpecialFunctions.Log.NegMulLog
+public import Mathlib.Data.Fintype.BigOperators
 
 /-!
 # Finite-alphabet Shannon entropy and the maximum-entropy bound
@@ -31,6 +33,8 @@ stated generically over an arbitrary `Fintype α`.
 
 Reference: Cover & Thomas, *Elements of Information Theory* (2e), §2.1 and Thm 2.6.4.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.InformationTheory
 

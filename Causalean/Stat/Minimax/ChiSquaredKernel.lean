@@ -3,8 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Minimax.ChiSquared
-import Mathlib.Probability.Kernel.CompProdEqIff
+
+module
+public import Causalean.Stat.Minimax.ChiSquared
+public import Mathlib.Probability.Kernel.CompProdEqIff
+public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
 
 /-!
 # Chi-squared divergence for retained-design kernel laws
@@ -13,6 +16,8 @@ This module constructs a marked law that retains its base coordinate and samples
 mark from a probability kernel.  It states the chi-squared disintegration formula for
 two such laws with the same base marginal.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

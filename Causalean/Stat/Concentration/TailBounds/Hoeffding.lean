@@ -22,8 +22,9 @@ proxy `n·((b-a)/2)²`, and rescaling by `1/n` yields the `2nε²/(b-a)²`
 exponent.
 -/
 
-import Mathlib.Probability.Moments.SubGaussian
-import Causalean.Stat.Sample
+module
+public import Mathlib.Probability.Moments.SubGaussian
+public import Causalean.Stat.Sample
 
 /-! # Hoeffding inequalities
 
@@ -34,6 +35,8 @@ independence of composed sample statistics (`IIDSample.iIndepFun_comp`), the
 centered sample-mean/sum event identity `sampleMean_sub_ge_setEq`, and the
 one- and two-sided sample-mean bounds `hoeffding_ge` and `hoeffding_abs_ge`.
 -/
+
+public section
 
 namespace Causalean.Stat
 

@@ -3,11 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Doubly-robust bilinear remainder of the partially linear score
+# Neyman-orthogonal second-order remainder of the partially linear score
 
 The Neyman-orthogonality payoff for the partially linear model: the population
 moment evaluated at any nuisance `η = (ℓ̂, m̂)` (but at the true target `θ₀`) is
-controlled by the *product* of the two L²(P_X) nuisance errors.  With
+controlled by second-order products of the L²(P_X) nuisance errors. With
 `Δℓ = ℓ₀ − ℓ̂`, `Δm = m₀ − m̂`, the cross terms vanish (by `integral_U_resid` and
 the conditional-mean-zero facts `condExp_U_sigmaX` / `condExp_resid_sigmaX`),
 leaving
@@ -15,22 +15,26 @@ leaving
     E[ψ(η, ·, θ₀)] = E[Δℓ·Δm] − θ₀·E[Δm²],
     |E[ψ(η, ·, θ₀)]| ≤ (1 + |θ₀|)·max(‖Δℓ‖₂, ‖Δm‖₂)².
 
-This is the product-rate structure the DML engine needs: it makes the
-`o_p(n^{-1/2})` requirement the textbook "both nuisances at `o_p(n^{-1/4})`."
+This is the second-order rate structure the DML engine needs. In particular,
+having both nuisance errors at `o_p(n^{-1/4})` is sufficient for an
+`o_p(n^{-1/2})` remainder.
 -/
 
-import Causalean.Estimation.PLR.Setup
-import Causalean.Stat.Orthogonality.ConditionalOp
+module
+public import Causalean.Estimation.PLR.Setup
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
 
-/-! # Doubly-robust remainder for the partially linear score
+/-! # Neyman-orthogonal second-order remainder for the partially linear score
 
-This file proves the doubly-robust bilinear bound on the population moment at an
-estimated nuisance, the analytic heart of the partially linear DML guarantee.
+This file proves a second-order bound on the population moment at an estimated
+nuisance, the analytic heart of the partially linear DML guarantee.
 The helper `integral_condExpZero_mul_comp_factualX` turns conditional
 mean-zero-with-respect-to-`σ(X)` into orthogonality against covariate functions,
 and `plr_remainder_bound` applies that orthogonality to bound the partially
 linear population score by the product of outcome- and treatment-regression
 L²(P_X) errors. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -48,7 +52,7 @@ variable (S : PLRSystem P γ)
 covariate function `h(X)`: `E[w·h(X)] = 0`.  Mirrors `integral_U_resid`, but the
 σ-algebra is `σ(X)` (so `h(X)` pulls out of the conditional expectation) instead
 of `σ(X,D)`.  Used to kill the three orthogonal cross terms `U·Δm`, `Δℓ·V`,
-`V·Δm` in the doubly-robust remainder. -/
+`V·Δm` in the Neyman-orthogonal second-order remainder. -/
 lemma integral_condExpZero_mul_comp_factualX
     {w : P.Ω → ℝ} {h : γ → ℝ} (hh : Measurable h)
     (hwz : P.μ[w | S.sigmaX] =ᵐ[P.μ] 0)
@@ -81,18 +85,20 @@ lemma integral_condExpZero_mul_comp_factualX
     _ = ∫ _, (0 : ℝ) ∂P.μ := MeasureTheory.integral_congr_ae hce_zero
     _ = 0 := MeasureTheory.integral_zero _ _
 
-/-- **Doubly-robust bilinear remainder.**  Fix [any candidate nuisance pair `η`](hyp:η)
-of outcome and treatment regressions. Assume [the treatment, the baseline
-covariate function, and the structural error are integrable](hyp:hD,hbX,hU); that
-[the outcome- and treatment-regression errors of `η` and the true treatment
-residual are square-integrable](hyp:hΔl,hΔm,hV); and that [the resulting orthogonal
-cross terms and the true structural-error/treatment-residual product are all
-integrable](hyp:hUΔm,hΔlV,hVΔm,hUV). Then [the population Robinson partialling-out
-score at `η` and the true structural slope is bounded in absolute value by
-$(1+|\theta_0|)$ times the product of the two L²(P_X) nuisance-error
-seminorms](goal):
+/-- **Neyman-orthogonal second-order remainder.** For
+[a candidate nuisance pair `η`](hyp:η), suppose [treatment is integrable](hyp:hD),
+[the baseline covariate term is integrable](hyp:hbX),
+[the structural error is integrable](hyp:hU),
+[the outcome-regression error is square-integrable](hyp:hΔl),
+[the treatment-regression error is square-integrable](hyp:hΔm),
+[the true treatment residual is square-integrable](hyp:hV), and the four products
+[of structural error with treatment error](hyp:hUΔm),
+[of outcome error with treatment residual](hyp:hΔlV),
+[of treatment residual with treatment error](hyp:hVΔm), and
+[of structural error with treatment residual](hyp:hUV) are integrable. Then
+[the population Robinson score obeys the displayed second-order L² bound](goal):
 
-    |E[ψ(η, ·, θ₀)]| ≤ (1 + |θ₀|)·max(‖Δℓ‖₂, ‖Δm‖₂)². -/
+    |E[ψ(η, ·, θ₀)]| ≤ (1 + |θ₀|)·‖Δm‖₂·(‖Δℓ‖₂ + ‖Δm‖₂). -/
 lemma plr_remainder_bound (η : PLRNuisance γ)
     (hD : Integrable S.factualD P.μ)
     (hbX : Integrable (fun ω => S.b (S.factualX ω)) P.μ)
@@ -168,7 +174,7 @@ lemma plr_remainder_bound (η : PLRNuisance γ)
     exact S.integral_condExpZero_mul_comp_factualX hδm_meas
       (S.condExp_resid_sigmaX hD) (hV.integrable (by norm_num)) hVΔm
   -- Cauchy–Schwarz integrability of the two surviving (`δl·δm`, `δm²`) terms.
-  haveI : ENNReal.HolderTriple (2 : ENNReal) (2 : ENNReal) (1 : ENNReal) := by
+  have : ENNReal.HolderTriple (2 : ENNReal) (2 : ENNReal) (1 : ENNReal) := by
     constructor; simpa using ENNReal.inv_two_add_inv_two
   have hδlδm_memLp : MemLp (fun ω => δl ω * δm ω) 1 P.μ := MemLp.mul' hδm hδl
   have hδmsq_memLp : MemLp (fun ω => δm ω * δm ω) 1 P.μ := MemLp.mul' hδm hδm
@@ -223,12 +229,12 @@ lemma plr_remainder_bound (η : PLRNuisance γ)
   set b : ℝ := (eLpNorm (fun x => η.mFn x - S.mVal x) 2 S.P_X).toReal with hb_def
   have ha_nonneg : 0 ≤ a := ENNReal.toReal_nonneg
   have hb_nonneg : 0 ≤ b := ENNReal.toReal_nonneg
-  -- The right-hand side is `(1 + |θ₀|)·(max a b)·(max a b)`.
-  have hrhs1 : ((S.plrGeneralMoment.ρ₁ η S.η₀ : NNReal) : ℝ) = max a b := by
+  -- The right-hand side uses `ρ₁ = b` and `ρ₂ = a + b`.
+  have hrhs1 : ((S.plrGeneralMoment.ρ₁ η S.η₀ : NNReal) : ℝ) = b := by
     -- `NNReal.coe_mk` no longer fires as a simp rewrite; it is still `rfl`.
-    simp only [plrGeneralMoment, η₀, ← ha_def, ← hb_def]
+    simp only [plrGeneralMoment, η₀, ← hb_def]
     rfl
-  have hrhs2 : ((S.plrGeneralMoment.ρ₂ η S.η₀ : NNReal) : ℝ) = max a b := by
+  have hrhs2 : ((S.plrGeneralMoment.ρ₂ η S.η₀ : NNReal) : ℝ) = a + b := by
     -- `NNReal.coe_mk` no longer fires as a simp rewrite; it is still `rfl`.
     simp only [plrGeneralMoment, η₀, ← ha_def, ← hb_def]
     rfl
@@ -263,11 +269,8 @@ lemma plr_remainder_bound (η : PLRNuisance γ)
   have hbound_mm : ∫ ω, δm ω * δm ω ∂P.μ ≤ b * b := by
     calc ∫ ω, δm ω * δm ω ∂P.μ = ∫ ω, |δm ω * δm ω| ∂P.μ := by rw [hδmsq_abs]
       _ ≤ b * b := hCS_mm
-  -- Triangle inequality and the `max` bound.
+  -- Triangle inequality and the stage-matched product bound.
   have hθ : S.θ₀ = S.θ := rfl
-  have ha_le : a ≤ max a b := le_max_left a b
-  have hb_le : b ≤ max a b := le_max_right a b
-  have hmax_nonneg : 0 ≤ max a b := le_trans ha_nonneg ha_le
   calc |∫ ω, δl ω * δm ω ∂P.μ - S.θ * ∫ ω, δm ω * δm ω ∂P.μ|
       ≤ |∫ ω, δl ω * δm ω ∂P.μ| + |S.θ * ∫ ω, δm ω * δm ω ∂P.μ| :=
         abs_sub _ _
@@ -276,9 +279,10 @@ lemma plr_remainder_bound (η : PLRNuisance γ)
     _ ≤ a * b + |S.θ| * (b * b) :=
         add_le_add hbound_lm
           (mul_le_mul_of_nonneg_left hbound_mm (abs_nonneg _))
-    _ ≤ max a b * max a b + |S.θ| * (max a b * max a b) := by
-        gcongr
-    _ = (1 + |S.θ₀|) * max a b * max a b := by rw [hθ]; ring
+    _ ≤ (a * b + |S.θ| * (b * b)) + (b * b + |S.θ| * (b * a)) := by
+        apply le_add_of_nonneg_right
+        positivity
+    _ = (1 + |S.θ₀|) * b * (a + b) := by rw [hθ]; ring
 
 end PLRSystem
 

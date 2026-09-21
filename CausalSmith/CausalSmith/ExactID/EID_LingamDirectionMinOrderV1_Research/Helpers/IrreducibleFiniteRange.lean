@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.IrreducibleFiniteRange
+module
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.IrreducibleFiniteRange
 
 /-!
 # Compatibility reexport for finite coordinate ranges
@@ -12,6 +13,8 @@ import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.IrreducibleF
 The reusable irreducibility lemma lives with the affine polynomial-image
 dimension theory in Causalean.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

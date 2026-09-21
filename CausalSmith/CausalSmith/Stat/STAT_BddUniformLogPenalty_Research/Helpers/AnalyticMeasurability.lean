@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
-import Causalean.Mathlib.MeasureTheory.AnalyticSetUniversalMeasurability
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
+public import Causalean.Mathlib.MeasureTheory.Function.Analytic.UniversalMeasurability
 
 /-!
 # Analytic-set interface for completed boundary risks
@@ -9,6 +10,8 @@ are analytic. Causalean's universal-measurability substrate turns those analytic
 projections into completion-measurable sets and identifies completed integration
 with outer integration.
 -/
+
+public section
 
 open MeasureTheory Set
 open scoped ENNReal

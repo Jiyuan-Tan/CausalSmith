@@ -4,20 +4,23 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.LinearAlgebra.Matrix.DotProduct
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Restrict
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Independence.Integration
+module
+
+public import Causalean.Mathlib.Probability.Independence.Integral
+public import Mathlib.LinearAlgebra.Matrix.DotProduct
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.Restrict
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Independence.Integration
 
 /-! # Finite-cell conditional moments
 
 This module provides generic probability tools for conditioning on a measurable
 positive-mass cell by normalizing its restricted measure.  It turns bounded-test
 factorization into independence and into finite-coordinate moment factorization.
-The causal transfer of an outcome bound from an observed arm to a potential outcome
-built on these tools lives in `Causalean.PO.Assumptions.ArmSupportTransfer`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Probability
 
@@ -35,10 +38,9 @@ noncomputable def normalizedRestrict {Ω : Type*} [MeasurableSpace Ω]
     (P : Measure Ω) (C : Set Ω) : Measure Ω :=
   (P C)⁻¹ • P.restrict C
 
-/-- Given [a measurable sample space, a real normed vector-valued outcome space, a measure,
-a cell, and a function on the sample space](hyp:Ω,E,P,C,f), the [normalized restricted
-integral](goal) is the integral of the function with respect to the normalized restricted
-measure of that cell.
+/-- Given [a measurable sample space](hyp:Ω), [a normed outcome space](hyp:E),
+[a measure](hyp:P), [a cell](hyp:C), and [a function](hyp:f), the
+[normalized restricted integral](goal) integrates the function against the normalized restriction.
 
 When the cell has positive finite measure this is the expectation of the function under the
 probability law obtained by conditioning on the cell; otherwise the normalized restriction is the
@@ -47,6 +49,178 @@ noncomputable def normalizedRestrictedIntegral
     {Ω E : Type*} [MeasurableSpace Ω] [NormedAddCommGroup E] [NormedSpace ℝ E]
     (P : Measure Ω) (C : Set Ω) (f : Ω → E) : E :=
   ∫ ω, f ω ∂normalizedRestrict P C
+
+variable {Ω : Type*} [MeasurableSpace Ω]
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [a real function `g`](hyp:g), and
+[a measurable space](hyp:Ω), [the normalized restricted integral is the mass quotient](goal). -/
+lemma eventCondExp_eq (μ : Measure Ω) (A : Set Ω) (g : Ω → ℝ) :
+    normalizedRestrictedIntegral μ A g = (∫ ω in A, g ω ∂μ) / (μ A).toReal := by
+  simp only [normalizedRestrictedIntegral, normalizedRestrict,
+    MeasureTheory.integral_smul_measure, ENNReal.toReal_inv]
+  rw [div_eq_inv_mul, smul_eq_mul]
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [finite mass](hyp:hA_fin),
+[a real function `f`](hyp:f), and [a measurable space](hyp:Ω),
+[the normalized integral satisfies the scaling identity](goal). -/
+lemma eventCondExp_mul_measure_toReal (μ : Measure Ω) (A : Set Ω)
+    (hA_fin : μ A ≠ ⊤) (f : Ω → ℝ) :
+    normalizedRestrictedIntegral μ A f * (μ A).toReal = ∫ ω in A, f ω ∂μ := by
+  simp only [eventCondExp_eq]
+  by_cases h0 : (μ A).toReal = 0
+  · rw [h0, mul_zero]
+    have hμ0 : μ A = 0 := by
+      rcases (ENNReal.toReal_eq_zero_iff _).mp h0 with h | h
+      · exact h
+      · exact absurd h hA_fin
+    exact (MeasureTheory.setIntegral_measure_zero f hμ0).symm
+  · field_simp
+
+/-- For [a finite index type `ι`](hyp:ι), [a finite measure `μ`](hyp:μ),
+[measurable cells `A`](hyp:A) that are [measurable](hyp:hmeas),
+[pairwise disjoint](hyp:hdisj), and [cover the space](hyp:hcov), and an
+[integrable real function `f`](hyp:f,hf) on [a measurable space](hyp:Ω),
+[the finite-partition identity holds](goal). -/
+lemma integral_eq_sum_measure_mul_eventCondExp
+    {ι : Type*} [Fintype ι] (μ : Measure Ω) [IsFiniteMeasure μ]
+    (A : ι → Set Ω) (hmeas : ∀ i, MeasurableSet (A i))
+    (hdisj : Pairwise (Function.onFun Disjoint A))
+    (hcov : (⋃ i, A i) = Set.univ)
+    (f : Ω → ℝ) (hf : Integrable f μ) :
+    ∫ ω, f ω ∂μ
+      = ∑ i, (μ (A i)).toReal * normalizedRestrictedIntegral μ (A i) f := by
+  have hsplit : ∫ ω in (⋃ i, A i), f ω ∂μ = ∑ i, ∫ ω in A i, f ω ∂μ :=
+    MeasureTheory.integral_iUnion_fintype hmeas hdisj
+      (fun _ => hf.integrableOn)
+  have hcov' : ∫ ω, f ω ∂μ = ∑ i, ∫ ω in A i, f ω ∂μ := by
+    rw [← hsplit, hcov, setIntegral_univ]
+  rw [hcov']
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [mul_comm, ← eventCondExp_mul_measure_toReal μ (A i) (measure_ne_top _ _) f]
+
+/-- For [a finite index type `ι`](hyp:ι), [a measure `μ`](hyp:μ),
+[a measurable set `A`](hyp:A,hAmeas), [measurable cells `C`](hyp:C,hCmeas) that are
+[pairwise disjoint](hyp:hdisj), [cover the space](hyp:hcov), and whose intersections with
+`A` have [finite mass](hyp:hAC_fin), and an [integrable function `f`](hyp:f,hf) on
+[a measurable space](hyp:Ω), [the mass-ratio cell decomposition holds](goal). -/
+lemma eventCondExp_eq_sum_condProb_mul_eventCondExp
+    {ι : Type*} [Fintype ι] (μ : Measure Ω)
+    (A : Set Ω) (C : ι → Set Ω) (hAmeas : MeasurableSet A)
+    (hCmeas : ∀ i, MeasurableSet (C i))
+    (hdisj : Pairwise (Function.onFun Disjoint C))
+    (hcov : (⋃ i, C i) = Set.univ)
+    (hAC_fin : ∀ i, μ (A ∩ C i) ≠ ⊤)
+    (f : Ω → ℝ) (hf : Integrable f μ) :
+    normalizedRestrictedIntegral μ A f =
+      ∑ i, (μ (A ∩ C i)).toReal / (μ A).toReal *
+        normalizedRestrictedIntegral μ (A ∩ C i) f := by
+  have hAC_meas : ∀ i, MeasurableSet (A ∩ C i) := fun i => hAmeas.inter (hCmeas i)
+  have hAC_disj : Pairwise (Function.onFun Disjoint (fun i => A ∩ C i)) := by
+    intro i j hij
+    exact (hdisj hij).mono Set.inter_subset_right Set.inter_subset_right
+  have hAC_cov : (⋃ i, A ∩ C i) = A := by
+    rw [← Set.inter_iUnion, hcov, Set.inter_univ]
+  have hsplit : ∫ ω in A, f ω ∂μ = ∑ i, ∫ ω in A ∩ C i, f ω ∂μ := by
+    have h := MeasureTheory.integral_iUnion_fintype hAC_meas hAC_disj
+      (fun _ => hf.integrableOn)
+    rwa [hAC_cov] at h
+  have hcell : ∀ i, ∫ ω in A ∩ C i, f ω ∂μ =
+      (μ (A ∩ C i)).toReal * normalizedRestrictedIntegral μ (A ∩ C i) f := by
+    intro i
+    rw [mul_comm, ← eventCondExp_mul_measure_toReal μ (A ∩ C i) (hAC_fin i) f]
+  have hLHS : normalizedRestrictedIntegral μ A f =
+      (∫ ω in A, f ω ∂μ) / (μ A).toReal :=
+    eventCondExp_eq μ A f
+  rw [hLHS, hsplit, Finset.sum_div]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [hcell i, mul_div_right_comm]
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [a real function `f`](hyp:f),
+[a real function `g`](hyp:g), [a measurable space](hyp:Ω), and
+[almost-everywhere agreement](hyp:h),
+[their normalized restricted integrals are equal](goal). -/
+lemma eventCondExp_congr_ae (μ : Measure Ω) (A : Set Ω) {f g : Ω → ℝ}
+    (h : f =ᵐ[μ.restrict A] g) :
+    normalizedRestrictedIntegral μ A f = normalizedRestrictedIntegral μ A g := by
+  simp only [eventCondExp_eq]
+  rw [MeasureTheory.integral_congr_ae h]
+
+/-- For [a measure `μ`](hyp:μ), [a measurable set `A`](hyp:A,hA),
+[real functions `f` and `g`](hyp:f,g), [a measurable space](hyp:Ω), and
+[pointwise agreement on `A`](hyp:h), [their normalized restricted integrals are equal](goal). -/
+lemma eventCondExp_congr_on (μ : Measure Ω) {A : Set Ω} (hA : MeasurableSet A)
+    {f g : Ω → ℝ} (h : ∀ ω ∈ A, f ω = g ω) :
+    normalizedRestrictedIntegral μ A f = normalizedRestrictedIntegral μ A g := by
+  simp only [eventCondExp_eq]
+  congr 1
+  exact MeasureTheory.setIntegral_congr_fun hA h
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [a real function `f`](hyp:f),
+[a real function `g`](hyp:g), [a measurable space](hyp:Ω),
+[integrability on `A`](hyp:hf,hg), and
+[almost-everywhere order](hyp:hfg), [the normalized integral order is preserved](goal). -/
+lemma eventCondExp_mono_ae (μ : Measure Ω) {A : Set Ω} {f g : Ω → ℝ}
+    (hf : IntegrableOn f A μ) (hg : IntegrableOn g A μ)
+    (hfg : f ≤ᵐ[μ.restrict A] g) :
+    normalizedRestrictedIntegral μ A f ≤ normalizedRestrictedIntegral μ A g := by
+  simp only [eventCondExp_eq]
+  have hint_le : ∫ ω in A, f ω ∂μ ≤ ∫ ω in A, g ω ∂μ :=
+    MeasureTheory.setIntegral_mono_ae_restrict hf hg hfg
+  have hnn : (0 : ℝ) ≤ (μ A).toReal := ENNReal.toReal_nonneg
+  exact div_le_div_of_nonneg_right hint_le hnn
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [a real function `g₁`](hyp:g₁),
+[a real function `g₂`](hyp:g₂), [a measurable space](hyp:Ω), and
+[integrability on `A`](hyp:h₁,h₂),
+[the normalized restricted integral is additive](goal). -/
+lemma eventCondExp_add (μ : Measure Ω) (A : Set Ω)
+    {g₁ g₂ : Ω → ℝ}
+    (h₁ : IntegrableOn g₁ A μ) (h₂ : IntegrableOn g₂ A μ) :
+    normalizedRestrictedIntegral μ A (g₁ + g₂) =
+      normalizedRestrictedIntegral μ A g₁ + normalizedRestrictedIntegral μ A g₂ := by
+  simp only [eventCondExp_eq, Pi.add_apply, integral_add h₁ h₂, add_div]
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [a real function `g₁`](hyp:g₁),
+[a real function `g₂`](hyp:g₂), [a measurable space](hyp:Ω), and
+[integrability on `A`](hyp:h₁,h₂),
+[the normalized restricted integral preserves subtraction](goal). -/
+lemma eventCondExp_sub (μ : Measure Ω) (A : Set Ω)
+    {g₁ g₂ : Ω → ℝ}
+    (h₁ : IntegrableOn g₁ A μ) (h₂ : IntegrableOn g₂ A μ) :
+    normalizedRestrictedIntegral μ A (g₁ - g₂) =
+      normalizedRestrictedIntegral μ A g₁ - normalizedRestrictedIntegral μ A g₂ := by
+  simp only [eventCondExp_eq, Pi.sub_apply, integral_sub h₁ h₂, sub_div]
+
+/-- For [a measure `μ`](hyp:μ), [a set `A`](hyp:A), [a scalar `c`](hyp:c),
+[a real function `g`](hyp:g), and [a measurable space](hyp:Ω),
+[the normalized restricted integral commutes with scalar multiplication](goal). -/
+lemma eventCondExp_smul (μ : Measure Ω) (A : Set Ω) (c : ℝ) (g : Ω → ℝ) :
+    normalizedRestrictedIntegral μ A (fun ω => c * g ω) =
+      c * normalizedRestrictedIntegral μ A g := by
+  simp only [eventCondExp_eq, MeasureTheory.integral_const_mul, mul_div_assoc]
+
+/-- For [measurable spaces](hyp:Ω,α,β), [a measure `μ`](hyp:μ),
+[a random element `z`](hyp:z), [a random element `B`](hyp:B), [independence](hyp:hInd),
+[their measurability](hyp:hz,hB),
+[a real function `factualF`](hyp:factualF), [a measurable real function `h`](hyp:h,hh_meas),
+[a point `x`](hyp:x) with [measurable singleton](hyp:hx), [agreement on its preimage](hyp:hF_eq),
+and [nonzero finite cell mass](hyp:hμA_ne_zero), [the independence identity holds](goal). -/
+theorem eventCondExp_of_ae_eq_IndepFun
+    {α β : Type*} [MeasurableSpace α]
+    [MeasurableSpace β] {μ : Measure Ω}
+    {z : Ω → α} {B : Ω → β}
+    (hInd : IndepFun z B μ) (hz : Measurable z) (hB : Measurable B)
+    {factualF : Ω → ℝ}
+    {h : β → ℝ} (hh_meas : Measurable h) {x : α}
+    (hx : MeasurableSet ({x} : Set α))
+    (hF_eq : factualF =ᵐ[μ.restrict (z ⁻¹' {x})] fun ω => h (B ω))
+    (hμA_ne_zero : (μ (z ⁻¹' {x})).toReal ≠ 0) :
+    normalizedRestrictedIntegral μ (z ⁻¹' {x}) factualF = ∫ ω, h (B ω) ∂μ := by
+  simp only [eventCondExp_eq]
+  rw [MeasureTheory.integral_congr_ae hF_eq]
+  rw [hInd.integral_restrict_preimage_eq_mul hz.aemeasurable hB.aemeasurable
+    hx (hz hx) hh_meas.aestronglyMeasurable]
+  field_simp
 
 /-- For a finite sampling measure, a [measurable cell](hyp:hC) with [strictly
 positive mass](hyp:hCpos) has [a normalized restricted law that is a probability

@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
-import Mathlib.MeasureTheory.MeasurableSpace.Embedding
+
+module
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+public import Mathlib.MeasureTheory.MeasurableSpace.Embedding
 
 /-!
 # Support-local Radon--Nikodym transport
@@ -13,6 +15,8 @@ This module localizes the global measurable-embedding invariance theorem for can
 Radon--Nikodym derivatives.  The maps need only be measurable and mutually inverse on measurable
 sets carrying the two finite source measures.
 -/
+
+@[expose] public section
 
 open Set Function MeasureTheory
 
@@ -175,4 +179,3 @@ theorem map_toReal_rnDeriv_eq_map_toReal_rnDeriv_map_of_support_equiv
           · exact hfn
 
 end Causalean.Mathlib.MeasureTheory
-

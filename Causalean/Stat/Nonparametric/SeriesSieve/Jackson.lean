@@ -3,16 +3,18 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.Approximation.HolderTaylor
+
+module
+public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 
 /-!
-# Jackson-type approximation for the piecewise-polynomial sieve
+# Jackson-type approximation by a piecewise-Taylor function
 
-Jackson-type approximation bounds for piecewise-polynomial sieves on one-dimensional Hölder
+Jackson-type approximation bounds for a piecewise-Taylor construction on one-dimensional Hölder
 classes.
 
-This file proves a **from-scratch Jackson theorem** for a concrete one-dimensional sieve:
-the *piecewise-Taylor* approximant on a uniform `J`-cell partition of a window `[lo, hi]`.
+This file proves a **from-scratch Jackson-type approximation bound** for the *piecewise-Taylor*
+approximant on a uniform `J`-cell partition of a window `[lo, hi]`.
 Splitting `[lo, hi]` into `J` cells of width `δ = (hi − lo)/J` and replacing `f` on each cell
 by its degree-`p` Taylor polynomial, where `p = holderDerivOrder β`, expanded at
 the cell's left endpoint yields a
@@ -25,11 +27,16 @@ derivatives and its `p`-th derivative satisfies the displayed Hölder-type bound
 with exponent `β − p`. For positive integer `β = m`, this means `p = m - 1`
 and exponent `1`.
 
-The result is the deterministic *approximation-error* half of the series least-squares prediction
-analysis. It feeds the empirical projection reduction in `SeriesSieve/Prediction.lean`, where a
-sup-norm approximation bound can control a weighted empirical least-squares objective via
-projection optimality (`lstsq_objective_le_of_orthogonal`).
+The result controls this function-valued approximant only. This file does not define a finite
+basis, represent the approximant by a coefficient vector, or relate `J` to a basis dimension.
+Using the bound in `SeriesSieve/Prediction.lean` therefore requires a separate representation
+theorem that supplies the comparator coefficients expected by `seriesApprox_le_of_sup`.
 -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Analysis.HolderTaylor
+
 
 namespace Causalean.Stat.Nonparametric
 

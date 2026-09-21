@@ -6,9 +6,12 @@ Authors: Jiyuan Tan
 # Equal-spacing arithmetic helpers
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ScheduleGrid
-import Mathlib.Algebra.BigOperators.Intervals
-import Mathlib.Data.Nat.Choose.Basic
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ScheduleGrid
+public import Mathlib.Algebra.BigOperators.Intervals
+public import Mathlib.Data.Nat.Choose.Basic
+
+public section
 
 open scoped BigOperators
 

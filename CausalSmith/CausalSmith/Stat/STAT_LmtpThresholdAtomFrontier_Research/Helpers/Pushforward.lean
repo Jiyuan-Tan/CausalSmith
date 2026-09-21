@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
-import Causalean.Stat.PolynomialTail.PowerIntegral
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+public import Causalean.Mathlib.Analysis.SpecialFunctions.PowerIntegral
 
 /-!
 # Clamp pushforward and exposure support
@@ -14,6 +15,8 @@ The conditional treatment law is represented by its density against Lebesgue
 measure. The clamp pushforward is stated as an equality of measures, including
 the Dirac mass at the threshold and the two-sided atom-mass bound.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

@@ -27,11 +27,12 @@ random nodes.
   rem:po-vs-do (lines 1186–1263).
 -/
 
-import Causalean.PO.Assumptions.Consistency
-import Causalean.SCM.Model.Evaluation
-import Causalean.SCM.Model.InterventionSet
-import Causalean.SCM.Model.CounterfactualLemmas
-import Causalean.SCM.Model.EquivKernel
+module
+public import Causalean.PO.Assumptions.Consistency
+public import Causalean.SCM.Model.Evaluation
+public import Causalean.SCM.Model.InterventionSet
+public import Causalean.SCM.Model.CounterfactualLemmas
+public import Causalean.SCM.Model.EquivKernel
 
 /-! # Potential Outcome Systems from Structural Models
 
@@ -43,10 +44,16 @@ evaluates the intervened model at latent draws, and projects back to the
 observed variables.
 
 The construction is organized around `ObsIdx`, `regimeTargetN`,
-`combinedFixed`, `inducedEval`, and `POSystem.ofSCM`.  The theorem
-`POSystem.ofSCM_consistency` proves that the induced potential-outcome system
-satisfies factual and composition consistency by reducing those clauses to the
+`combinedFixed`, `inducedEval`, and `POSystem.ofSCM`. The theorems
+`POSystem.ofSCM_consistency` and `POSystem.ofSCM_compositionConsistency` prove
+separately that the induced potential-outcome system satisfies factual
+consistency and composition consistency, reducing them to the corresponding
 SCM counterfactual consistency lemmas. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean
 namespace PO
@@ -155,7 +162,7 @@ private lemma regimeTargetN_sqcup
 -- ============================================================
 
 /-- The N-name extracted from an `ObsIdx M` element via `observed_is_random`. -/
-private noncomputable def obsName (M : Causalean.SCM N Ω) (v : ObsIdx M) : N :=
+noncomputable def obsName (M : Causalean.SCM N Ω) (v : ObsIdx M) : N :=
   Classical.choose (M.observed_is_random v.val v.property)
 
 private lemma obsName_spec (M : Causalean.SCM N Ω) (v : ObsIdx M) :
@@ -164,7 +171,7 @@ private lemma obsName_spec (M : Causalean.SCM N Ω) (v : ObsIdx M) :
 
 /-- Existence helper for `combinedFixed`: when `v.val ∉ M.fixed`, there is
     a `v' ∈ r.target` with `.fixed (obsName M v') = v.val`. -/
-private lemma combinedFixed_exists
+lemma combinedFixed_exists
     (M : Causalean.SCM N Ω) (r : Regime (ObsIdx M) (obsValue M))
     (v : {x // x ∈ M.fixed ∪ (regimeTargetN M r).image SWIGNode.fixed})
     (hMfix : v.val ∉ M.fixed) :
@@ -410,8 +417,7 @@ fixed background variables `s`](hyp:s), [the potential-outcome system induced by
 and `s` satisfies the consistency assumption](goal).
 
 The proof reduces factual consistency to the SCM factual-counterfactual
-consistency lemma and composition consistency to the SCM commuting-intervention
-lemma. -/
+consistency lemma. -/
 theorem POSystem.ofSCM_consistency
     (M : Causalean.SCM N Ω) (s : SCM.FixedValues M) :
     (POSystem.ofSCM M s).Consistency where
@@ -447,6 +453,17 @@ theorem POSystem.ofSCM_consistency
         cases hDval
         exact hfa)
       ⟨v.val.val, v.val.property⟩
+
+/-- For [a structural causal model `M`](hyp:M) and [an assignment of values to
+its fixed background variables `s`](hyp:s), [the potential-outcome system
+induced by `M` and `s` satisfies composition consistency](goal).
+
+The property is automatic here because the SCM commuting-intervention lemma
+validates recursive substitution for nested regimes. In a bare potential-outcome
+system, it remains a separate modelling assumption. -/
+theorem POSystem.ofSCM_compositionConsistency
+    (M : Causalean.SCM N Ω) (s : SCM.FixedValues M) :
+    (POSystem.ofSCM M s).CompositionConsistency where
   -- ---------------------------------------------------------------
   -- Composition consistency
   -- ---------------------------------------------------------------

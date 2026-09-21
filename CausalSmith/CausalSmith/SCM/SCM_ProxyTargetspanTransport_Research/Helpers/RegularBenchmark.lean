@@ -1,10 +1,13 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Fibers
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TruncatedSVD
-import Causalean.Mathlib.Probability.StdNormalCDF
-import Mathlib.Analysis.Calculus.FDeriv.Basic
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Fibers
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TruncatedSVD
+public import Causalean.Mathlib.Probability.StdNormalCDF
+public import Mathlib.Analysis.Calculus.FDeriv.Basic
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-! The fixed-rank regular submodel, delta-method variance, and Wald benchmark. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Matrix

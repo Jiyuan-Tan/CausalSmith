@@ -81,7 +81,9 @@ export function projectFrozenCore(
   const resolveSymbolName = (raw: string): string | undefined =>
     symbolByName.get(raw)?.name ?? symbolByNormalizedName.get(normalizeSymbol(raw))?.name;
 
-  const statementIds = new Set(targetIds);
+  const statementIds = new Set([...targetIds].filter((id) => statementById.has(id)));
+  const assumptionIds = new Set([...targetIds].filter((id) => assumptionById.has(id)));
+  const definitionIds = new Set([...targetIds].filter((id) => definitionById.has(id)));
   const affectedDownstreamIds = new Set<string>();
   // Upstream dependency closure.
   const queue = [...statementIds];
@@ -110,8 +112,6 @@ export function projectFrozenCore(
     }
   }
 
-  const assumptionIds = new Set<string>();
-  const definitionIds = new Set<string>();
   const symbolNames = new Set<string>();
   const collectDeclaredSymbols = (freeSymbols: string[] | undefined): void => {
     if (freeSymbols !== undefined) {

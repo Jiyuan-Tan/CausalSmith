@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.UpperRiskCoupling
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TIdentificationAndExtension
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.UpperRiskCoupling
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TIdentificationAndExtension
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
-import Causalean.Stat.Minimax.FinitePosteriorBayesRisk
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
+public import Causalean.Stat.Minimax.FinitePosteriorBayesRisk
 
 /-!
 Finite-posterior bridge for the paper's effect-triple/binomial experiment.
@@ -8,6 +9,8 @@ This identifies the generic native-real finite-design Bayes risk with the
 paper-local `scalarBayesRisk`; it is the finite endpoint needed by the smooth
 continuous-prior converse.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

@@ -1,8 +1,9 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.EndpointDirectional
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.WeakConvergenceTools
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TSharpExactMassThresholdInterval
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.EndpointDirectional
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.WeakConvergenceTools
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TSharpExactMassThresholdInterval
 
 /-!
 # Branch-free pointwise directional limit
@@ -11,6 +12,8 @@ At each fixed finite-support law, screening recovers the positive-survivor
 support, the endpoint estimator is consistent, and its scaled error has the
 directional delta-method limit, including all tie faces.
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Topology ProbabilityTheory
 open Causalean PO Causalean.Stat

@@ -11,10 +11,13 @@ reproved from Vandermonde minors (no general symmetric-tensor apolarity theory).
 These leaves feed `TApolar.generic_apolar_arrow_recovery`.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarDefs
-import Causalean.Stat.Nonparametric.LocalPoly.DesignMatrixPosDef
-import Mathlib.LinearAlgebra.Vandermonde
-import Mathlib.Algebra.MvPolynomial.PDeriv
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarDefs
+public import Causalean.Stat.Nonparametric.LocalPoly.DesignMatrixPosDef
+public import Mathlib.LinearAlgebra.Vandermonde
+public import Mathlib.Algebra.MvPolynomial.PDeriv
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

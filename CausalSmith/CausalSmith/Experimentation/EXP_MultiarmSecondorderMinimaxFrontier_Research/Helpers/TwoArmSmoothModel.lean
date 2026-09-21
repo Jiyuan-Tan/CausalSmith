@@ -1,13 +1,16 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
-import Causalean.Stat.Limit.ObservationDependentVanTrees.Main
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
+public import Causalean.Stat.Minimax.VanTrees.ObservationDependent.Main
+public import Causalean.Stat.FiniteDesign.Product
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-!
 Paper-local analytic identities for the smooth two-arm prior.  These isolate the
 bandwidth and observation-dependent posterior-target calculations needed by the
 finite van Trees assembly.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set MeasureTheory
@@ -515,10 +518,10 @@ lemma twoArmBernoulliLikelihood_pos {n : ℕ} {θ : ℝ} (hθ : |θ| < 1)
 /-- [the parameter lies in the stated interior interval](hyp:hθ), [The promoted guarded likelihood score agrees with the ordinary product score.](goal) -/
 lemma twoArmBernoulli_guardedScore_eq_rawScore {n : ℕ} {θ : ℝ}
     (hθ : |θ| < 1) (s : Unit n → Bool) :
-    Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+    Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
         twoArmBernoulliLikelihood twoArmBernoulliLikelihoodDeriv θ s =
       twoArmBernoulliRawScore θ s := by
-  unfold Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+  unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
   rw [if_pos (twoArmBernoulliLikelihood_pos hθ s)]
   rw [twoArmBernoulliLikelihoodDeriv_eq_mul_score hθ]
   field_simp [(twoArmBernoulliLikelihood_pos hθ s).ne']
@@ -526,11 +529,11 @@ lemma twoArmBernoulli_guardedScore_eq_rawScore {n : ℕ} {θ : ℝ}
 -- @node: twoArmBernoulli_fisherInformation
 /-- [the parameter lies in the stated interior interval](hyp:hθ), [The exact finite counting-measure Fisher information is `n/(1-θ²)`.](goal) -/
 lemma twoArmBernoulli_fisherInformation {n : ℕ} {θ : ℝ} (hθ : |θ| < 1) :
-    Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+    Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
         (X := Unit n → Bool) Measure.count (twoArmBernoulliLikelihood (n := n))
           (twoArmBernoulliLikelihoodDeriv (n := n)) θ =
       (n : ℝ) / (1 - θ ^ 2) := by
-  rw [Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation_count_eq_sum]
+  rw [Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation_count_eq_sum]
   simp_rw [twoArmBernoulli_guardedScore_eq_rawScore hθ]
   rw [← twoArmBernoulliRawScore_sq_mean hθ]
   unfold Causalean.Experimentation.DesignBased.FiniteDesign.E
@@ -553,7 +556,7 @@ lemma twoArmPosteriorTargetDeriv_mean_lower {n : ℕ} (hn : 0 < n)
 /-- [the first arm count satisfies its stated condition](hyp:ha0), [the second arm count satisfies its stated condition](hyp:ha1), [the parameter lies in the stated interior interval](hyp:hθ), [On `|θ| ≤ a/2`, Bernoulli product information is bounded by its value at the edge of that interval.](goal) -/
 lemma twoArmBernoulli_fisherInformation_upper {n : ℕ} {a θ : ℝ}
     (ha0 : 0 ≤ a) (ha1 : a ≤ 1) (hθ : |θ| ≤ a / 2) :
-    Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+    Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
         (X := Unit n → Bool) Measure.count (twoArmBernoulliLikelihood (n := n))
           (twoArmBernoulliLikelihoodDeriv (n := n)) θ ≤
       (n : ℝ) / (1 - a ^ 2 / 4) := by

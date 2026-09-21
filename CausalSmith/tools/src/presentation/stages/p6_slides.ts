@@ -15,8 +15,7 @@ export const SLIDES_STANDARD = "55c0b01b56ba5cfc1c463b44b904263d5f596dd0d2c47deb
 
 /**
  * P6 — seminar slides. Terminal, optional, and strictly post-P5: a derived,
- * compressed pitch-talk view of the FINISHED paper (see
- * internal/plans/2026-08-27-p6-slides-proposal.md). One codex call emits
+ * compressed pitch-talk view of the FINISHED paper. One codex call emits
  * `slides.md`; formal statements are injected from the frozen layer at render
  * time, so no equivalence/proof re-audit runs here. `slides.md` is an AUTHORED
  * SOURCE: hand edits survive regeneration (delete slides.md to regenerate),

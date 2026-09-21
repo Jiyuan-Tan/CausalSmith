@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
-import Causalean.Stat.Nonparametric.LocalPoly.DesignMatrixPosDef
-import Causalean.Stat.Nonparametric.LocalPoly.Weights
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
+public import Causalean.Stat.Nonparametric.LocalPoly.DesignMatrixPosDef
+public import Causalean.Stat.Nonparametric.LocalPoly.Weights
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 
 /-!
 # Realized local-polynomial design and estimators
@@ -16,6 +17,8 @@ This module gives full definitions of the paper's reference Gram, deterministic
 three-way split, local count and total Gram, exact intercept weights, stabilized
 estimator, bias-aware interval, and realized-design modulus handle.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

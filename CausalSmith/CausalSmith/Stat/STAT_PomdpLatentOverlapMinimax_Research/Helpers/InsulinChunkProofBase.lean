@@ -1,16 +1,19 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGridCore
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCertifiedInitial
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkData.False10
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkData.True10
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGridCore
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCertifiedInitial
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkData.False10
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinChunkData.True10
 
 set_option linter.style.longLine false
 
 /-! Proof-producing bounded recurrence certificates for the insulin-grid trace. -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
 open scoped BigOperators
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 /-- For [the target input](hyp:target), [this defines the insulin Generated Initial object](goal). [defining clause 1](step:1); and [defining clause 2](step:2); and [defining clause 3](step:3). -/

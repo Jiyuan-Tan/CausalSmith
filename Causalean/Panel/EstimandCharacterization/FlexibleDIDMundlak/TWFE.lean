@@ -10,7 +10,8 @@ two-way Mundlak equivalence. Vector-regressor TWFE and Mundlak variants live in
 the sibling vector files.
 -/
 
-import Causalean.Panel.UniformTwoWayPanel
+module
+public import Causalean.Panel.UniformTwoWayPanel
 
 /-! # Wooldridge Scalar TWFE and Mundlak
 
@@ -20,6 +21,8 @@ the scalar TWFE problem, coefficient, and normal equation, proves
 `ScalarTWFEProblem.betaTWFE_normalEq` and `ScalarTWFEProblem.betaTWFE_unique`, and
 then proves `twfe_twm_equivalence` and
 `twfe_twm_optional_controls_invariant` for coding-free two-way Mundlak fits. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -70,8 +73,9 @@ of the doubly demeaned regressor times the corresponding residual is zero. -/
 def twfeNormalEq (P : ScalarTWFEProblem Unit Time) (β : ℝ) : Prop :=
   ∑ i, ∑ t, ddot P.X i t * (ddot P.Y i t - ddot P.X i t * β) = 0
 
-/-- The closed-form coefficient satisfies the scalar TWFE normal equation by
-dividing through the positive residualized sum of squares. -/
+/-- The [closed-form scalar TWFE coefficient solves its normal equation](goal) for
+[a finite balanced-panel regression problem](hyp:P) over [finite unit and period
+sets](hyp:Unit,Time), because its residualized regressor has positive sum of squares. -/
 theorem betaTWFE_normalEq (P : ScalarTWFEProblem Unit Time) :
     P.twfeNormalEq P.betaTWFE := by
   let A : ℝ := ∑ i, ∑ t, ddot P.X i t * ddot P.Y i t
@@ -102,7 +106,9 @@ theorem betaTWFE_normalEq (P : ScalarTWFEProblem Unit Time) :
           rw [mul_inv_cancel₀ hden]
           ring
 
-/-- Scalar full-rank uniqueness of the TWFE normal-equation solution. -/
+/-- Any [coefficient satisfying the scalar TWFE normal equation](hyp:hβ) [equals the
+closed-form TWFE coefficient](goal) for [a full-rank finite balanced-panel
+problem](hyp:P) over [finite unit and period sets](hyp:Unit,Time). -/
 theorem betaTWFE_unique (P : ScalarTWFEProblem Unit Time) {β : ℝ}
     (hβ : P.twfeNormalEq β) :
     β = P.betaTWFE := by
@@ -161,8 +167,10 @@ def IsTwoWayMundlakNuisance (X : Unit → Time → ℝ)
         c + γu * unitMean X i + γt * timeMean X t
           + (∑ z, ζ z * Zvar z i) + (∑ m, μ m * Mvar m t)
 
-/-- Mundlak nuisance functions are unit/time additive, so optional
-time-constant and time-only controls lie inside the same orthogonality class. -/
+/-- Every [function satisfying the scalar two-way Mundlak nuisance
+representation](hyp:hh) is [additive in a unit component and a period
+component](goal) for [a regressor and two families of controls](hyp:X,Zvar,Mvar)
+over [finite unit, period, and control sets](hyp:Unit,Time,Z,M). -/
 theorem mundlak_nuisance_unit_time
     (X : Unit → Time → ℝ) (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
     {h : Unit → Time → ℝ}
@@ -192,8 +200,11 @@ structure ScalarTWMFit (P : ScalarTWFEProblem Unit Time)
     ∀ h : Unit → Time → ℝ, IsTwoWayMundlakNuisance P.X Zvar Mvar h →
       ∑ i, ∑ t, h i t * (P.Y i t - P.X i t * beta - nuisance i t) = 0
 
-/-- Residualizing the scalar regressor against the two-way Mundlak nuisance
-span leaves the same residual as double demeaning. -/
+/-- For [a scalar finite-panel regression problem](hyp:P) and [unit-only and
+period-only control families](hyp:Zvar,Mvar), [the regressor minus its double
+demean is unit-time additive and the double-demeaned regressor is orthogonal to
+every two-way Mundlak nuisance function](goal) over [finite unit, period, and
+control sets](hyp:Unit,Time,Z,M). -/
 theorem twfe_twm_residual_common (P : ScalarTWFEProblem Unit Time)
     (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ) :
     IsUnitTimeAdditive (fun i t => P.X i t - ddot P.X i t) ∧
@@ -267,8 +278,10 @@ theorem twfe_twm_equivalence (P : ScalarTWFEProblem Unit Time)
     pow_two]
     using hfw
 
-/-- Adding or removing optional time-constant or time-only controls does not
-change the scalar coefficient, because both fits equal the TWFE coefficient. -/
+/-- [Two scalar two-way Mundlak fits](hyp:fit₁,fit₂) using [possibly different
+unit-only and period-only controls](hyp:Zvar₁,Mvar₁,Zvar₂,Mvar₂) [have the same
+regressor coefficient](goal) for [one finite-panel problem](hyp:P) over [finite
+unit, period, and control sets](hyp:Unit,Time,Z₁,M₁,Z₂,M₂). -/
 theorem twfe_twm_optional_controls_invariant
     {Z₁ M₁ Z₂ M₂ : Type*} [Fintype Z₁] [Fintype M₁] [Fintype Z₂] [Fintype M₂]
     (P : ScalarTWFEProblem Unit Time)

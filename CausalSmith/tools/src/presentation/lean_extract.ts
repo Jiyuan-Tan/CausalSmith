@@ -6,12 +6,13 @@
 
 import { leanNameLeaf, leanSourceDeclarations } from "./lean_decl_name.js";
 import { findProofStart } from "./lean_statement.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_DECL_KEYWORDS, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
 
 const DECL_LINE_RE =
-  /^\s*(?:@\[[^\]]*\]\s*)?(?:(?:private|protected|noncomputable|scoped|unsafe)\s+)*(def|abbrev|structure|class|theorem|lemma)\s+([A-Za-z_][\w'.]*)/;
+  new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:def|abbrev|structure|class|theorem|lemma)\s+([A-Za-z_][\w'.]*)`);
 
 const TOP_LEVEL_BOUNDARY_RE =
-  /^\s*(?:@\[|(?:(?:private|protected|noncomputable|scoped|unsafe)\s+)*(?:def|abbrev|structure|class|theorem|lemma|instance|inductive|coinductive|opaque|axiom|example|macro|syntax|notation)\b|(?:namespace|section|end|open|export|attribute|variable|include|omit|local|set_option)\b)/;
+  new RegExp(String.raw`^\s*(?:@\[|(?:${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:${LEAN_DECL_KEYWORDS}|coinductive|macro|syntax|notation)\b)|(?:(?:public\s+)?section|namespace|end|open|export|attribute|variable|include|omit|local|set_option|module)\b)`);
 
 interface LeanLexState { blockDepth: number; inString: boolean; escaped: boolean }
 
@@ -116,7 +117,7 @@ export function extractDeclSnippet(source: string, decl: string, line: number): 
   }
   if (start - s > 24) s = start; // pathological docstring: show the decl alone, not a wall of doc
   while (s < start && lines[s].trim() === "") s++; // drop any leading blank lines
-  const isProp = /^\s*(?:@\[[^\]]*\]\s*)?(?:private\s+|protected\s+)?(theorem|lemma)\b/.test(
+  const isProp = new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma)\b`).test(
     lines[start],
   );
   const out: string[] = [];

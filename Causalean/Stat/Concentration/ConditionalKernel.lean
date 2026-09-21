@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Kernel.Condexp
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Independence.Kernel.IndepFun
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
-import Mathlib.Probability.Moments.SubGaussian
+module
+public import Mathlib.Probability.Kernel.Condexp
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Independence.Kernel.IndepFun
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Real
+public import Mathlib.Probability.Moments.SubGaussian
 
 /-!
 # Fiberwise facts for regular conditional distributions
@@ -19,6 +20,8 @@ distribution.  In particular, ambient almost-sure facts remain almost sure on
 almost every conditional fiber, and a real random variable measurable with
 respect to the conditioning σ-algebra is constant on almost every fiber.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

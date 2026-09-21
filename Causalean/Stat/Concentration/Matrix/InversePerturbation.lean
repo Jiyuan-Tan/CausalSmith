@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.Analysis.Normed.Ring.Units
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Causalean.Stat.Concentration.Matrix.Resolvent
+
+module
+public import Mathlib.Analysis.Matrix.Normed
+public import Mathlib.Analysis.Normed.Ring.Units
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Causalean.Mathlib.Analysis.NormedSpace.InversePerturbation
 
 /-!
 # Entrywise perturbation of the inverse design moment matrix
@@ -34,6 +36,10 @@ since each entry is dominated by the operator norm. The public statement carries
 hypotheses, so it composes with the iid Chebyshev union bound (for `M` close to `𝔼 M = S`) and
 the population positive-definiteness (`designMatrix_posDef`) without exposing the matrix norm.
 -/
+
+public section
+
+open Causalean.Mathlib.Analysis.InversePerturbation
 
 namespace Causalean.Stat.Concentration
 

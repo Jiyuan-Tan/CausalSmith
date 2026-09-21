@@ -3,17 +3,19 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.LeastSquares.NormalEquations
-import Causalean.Stat.Nonparametric.LeastSquares.SmootherVariance
+
+module
+public import Causalean.Mathlib.LinearAlgebra.NormalEquations
+public import Causalean.Stat.Nonparametric.LinearSmoother.Variance
 
 /-!
 # Series / sieve least-squares prediction error
 
 Prediction-error decompositions for series least squares, combining deterministic approximation
-error with the spherical-noise variance of the projected fit.
+error with the heteroskedastic-noise variance bound for the projected fit.
 
-This file assembles the **series least-squares prediction rate** `O(J^{−s/d} + √(J/N))` from the
-two reusable substrate pieces:
+This file proves a **conditional oracle inequality** for series least-squares prediction from two
+reusable substrate pieces:
 
 * **approximation** (deterministic, bias side): the empirical best-approximation error of the
   least-squares fit is controlled by the sup-norm error of any comparator, so an externally supplied
@@ -24,14 +26,18 @@ two reusable substrate pieces:
 
 Conditioning on the design, the data fit `Φ ĉ` and the noise-free projection `Φ ĉ⁰` differ by a
 *deterministic linear image* of the noise (the hat matrix), so the stochastic term's expectation
-reduces, via the Gauss–Markov spherical-variance identity (`linearSmoother_variance_spherical`),
-to `σ²·∑ᵢ wᵢ ∑ₖ aᵢₖ²`. If a separate design argument bounds that effective-degree-of-freedom
-sum by `V`, and if a separate approximation argument bounds the noise-free projection error by
-`A`, the main theorem gives the oracle inequality `A + σ² V`.
+reduces, via the uncorrelated bounded-variance inequality (`linearSmoother_variance_le`),
+to at most `σbar²·∑ᵢ wᵢ ∑ₖ aᵢₖ²`. If a separate design argument bounds that
+effective-degree-of-freedom sum by `V`, and if a separate approximation argument bounds the
+noise-free projection error by `A`, the main theorem gives the oracle inequality `A + σ² V`.
 
-All results are generic in the design matrix `Φ` (Newey 1997; Chen 2007; Belloni–Chernozhukov–
-Chetverikov–Kato 2015).
+All results are generic in the design matrix `Φ`. They do not connect a concrete smoothness
+approximant to a finite series basis or prove a `J`-dependent prediction rate.
 -/
+
+public section
+
+open Causalean.Mathlib.LinearAlgebra.NormalEquations
 
 namespace Causalean.Stat.Nonparametric
 
@@ -42,8 +48,8 @@ open scoped BigOperators
 least-squares fit `c` to target values `f` has residual orthogonal to every design column
 (`lstsq_normal_equations`) and some comparator `cstar` approximates `f` uniformly within `δ` at
 the design points (`|fᵢ − ∑ⱼ cstarⱼ Φᵢⱼ| ≤ δ`), then the empirical fit error is at most
-`(∑ᵢ wᵢ)·δ²`. With the Jackson rate `δ = C·J^{−s/d}` this is the empirical best-approximation
-half of the series prediction rate. -/
+`(∑ᵢ wᵢ)·δ²`. Applying this to a Jackson approximant requires separately supplying coefficients
+`cstar` that represent that approximant in the chosen finite design. -/
 theorem seriesApprox_le_of_sup {N : ℕ} {ι : Type*} [Fintype ι]
     {Φ : Fin N → ι → ℝ} {w f : Fin N → ℝ} {c cstar : ι → ℝ} {δ : ℝ}
     (hw : ∀ i, 0 ≤ w i)
@@ -84,23 +90,23 @@ theorem seriesLS_prediction_decomp {N : ℕ} {ι : Type*} [Fintype ι]
       = lstsqObjective Φ w f c0 + ∑ i, w i * (∑ j, (c0 j - chat j) * Φ i j) ^ 2 :=
   lstsq_pythagoras hortho chat
 
-/-- **Expected weighted quadratic form of a deterministic linear image of spherical mean-zero
-noise.** If `ε` is a spherical mean-zero square-integrable family with scale `σ`, and `a` is a
-deterministic matrix of coefficients, then the linear image `Dᵢ(ω) = ∑ₖ aᵢₖ εₖ(ω)` has expected
-weighted sum of squares
+/-- **Expected weighted quadratic form of a deterministic linear image of heteroskedastic
+noise.** If [the weights are nonnegative](hyp:hw), [`ε` is a mean-zero square-integrable
+family](hyp:hε,hmean)
+whose [coordinates are uncorrelated and have variances bounded by `σbar²`](hyp:hnoise), then the
+linear image `Dᵢ(ω) = ∑ₖ aᵢₖ εₖ(ω)` has [expected weighted sum of squares bounded by
+`σbar² · ∑ᵢ wᵢ ∑ₖ aᵢₖ²`](goal).
 
-`𝔼[∑ᵢ wᵢ Dᵢ²] = σ² · ∑ᵢ wᵢ ∑ₖ aᵢₖ²`.
-
-The weights are arbitrary real weights in this identity; nonnegative or normalized weights are not
-assumed here. -/
-theorem expected_weighted_sq_image_spherical {Ω : Type*} {N : ℕ} [MeasurableSpace Ω]
+`𝔼[∑ᵢ wᵢ Dᵢ²] ≤ σbar² · ∑ᵢ wᵢ ∑ₖ aᵢₖ²`. -/
+theorem expected_weighted_sq_image_le {Ω : Type*} {N : ℕ} [MeasurableSpace Ω]
     {μ : Measure Ω} [IsProbabilityMeasure μ] {ε : Fin N → Ω → ℝ} {a : Fin N → Fin N → ℝ}
-    {w : Fin N → ℝ} {σ : ℝ}
+    {w : Fin N → ℝ} {σbar : ℝ}
+    (hw : ∀ i, 0 ≤ w i)
     (hε : ∀ k, MemLp (ε k) 2 μ)
     (hmean : ∀ k, ∫ ω, ε k ω ∂μ = 0)
-    (hsph : Causalean.GaussMarkov.SphericalFamily ε μ σ) :
+    (hnoise : UncorrelatedVarianceFamily ε μ σbar) :
     ∫ ω, ∑ i, w i * (∑ k, a i k * ε k ω) ^ 2 ∂μ
-      = σ ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 := by
+      ≤ σbar ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 := by
   -- RECIPE (codex):
   -- Let `D i ω = ∑ k, a i k * ε k ω`.
   -- (1) Pull the finite sum out of the integral: `integral_finset_sum`, with each summand
@@ -114,7 +120,7 @@ theorem expected_weighted_sq_image_spherical {Ω : Type*} {N : ℕ} [MeasurableS
   --     (`Var[X] = ∫ X^2 - (∫ X)^2`, valid for `MemLp X 2`) and simplify the `(∫ D i)^2 = 0` term.
   --     The variance form: `Var[fun ω => ∑ k, a i k * ε k ω; μ]`.
   -- (4) `Var[fun ω => ∑ k, a i k * ε k ω; μ] = σ^2 * ∑ k, (a i k)^2` by
-  --     `linearSmoother_variance_spherical (S := a i) hε hsph`.
+  --     `linearSmoother_variance_le (S := a i) hε hnoise`.
   -- (5) Assemble: `∑ i, w i * (σ^2 * ∑ k, (a i k)^2) = σ^2 * ∑ i, w i * ∑ k, (a i k)^2`
   --     via `Finset.mul_sum`/`ring`-style sum manipulation (reduce with
   --     `Finset.sum_congr rfl (fun _ _ => ?_)` then `ring` at the scalar leaf).
@@ -136,7 +142,7 @@ theorem expected_weighted_sq_image_spherical {Ω : Type*} {N : ℕ} [MeasurableS
                 (fun k _ => ((hε k).const_mul (a i k)).integrable (by norm_num)))
       _ = 0 := by
             simp [integral_const_mul, hmean]
-  have hDsq : ∀ i, ∫ ω, (D i ω) ^ 2 ∂μ = σ ^ 2 * ∑ k, a i k ^ 2 := by
+  have hDsq : ∀ i, ∫ ω, (D i ω) ^ 2 ∂μ ≤ σbar ^ 2 * ∑ k, a i k ^ 2 := by
     intro i
     have hvarint : Var[D i; μ] = ∫ ω, (D i ω) ^ 2 ∂μ := by
       rw [variance_eq_integral (hDmemlp i).aemeasurable]
@@ -144,9 +150,9 @@ theorem expected_weighted_sq_image_spherical {Ω : Type*} {N : ℕ} [MeasurableS
       simp
     calc
       ∫ ω, (D i ω) ^ 2 ∂μ = Var[D i; μ] := hvarint.symm
-      _ = σ ^ 2 * ∑ k, a i k ^ 2 := by
+      _ ≤ σbar ^ 2 * ∑ k, a i k ^ 2 := by
             simpa [D] using
-              (linearSmoother_variance_spherical (Y := ε) (S := a i) (σ := σ) hε hsph)
+              (linearSmoother_variance_le (Y := ε) (S := a i) hε hnoise (le_refl _))
   have hterm_int : ∀ i, Integrable (fun ω => w i * (D i ω) ^ 2) μ := by
     intro i
     exact (hDmemlp i).integrable_sq.const_mul (w i)
@@ -160,10 +166,10 @@ theorem expected_weighted_sq_image_spherical {Ω : Type*} {N : ℕ} [MeasurableS
     _ = ∑ i, w i * ∫ ω, (D i ω) ^ 2 ∂μ := by
           refine Finset.sum_congr rfl (fun i _ => ?_)
           rw [integral_const_mul]
-    _ = ∑ i, w i * (σ ^ 2 * ∑ k, a i k ^ 2) := by
-          refine Finset.sum_congr rfl (fun i _ => ?_)
-          rw [hDsq i]
-    _ = σ ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 := by
+    _ ≤ ∑ i, w i * (σbar ^ 2 * ∑ k, a i k ^ 2) := by
+          refine Finset.sum_le_sum (fun i _ => ?_)
+          exact mul_le_mul_of_nonneg_left (hDsq i) (hw i)
+    _ = σbar ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 := by
           rw [Finset.mul_sum]
           refine Finset.sum_congr rfl (fun i _ => ?_)
           ring
@@ -173,7 +179,8 @@ projection coefficients `c0` have residual orthogonal to every design column](hy
 [the noise-free least-squares objective is bounded by `A`](hyp:hApprox), and suppose [the data fit
 `chat ω` differs from `c0`, at every design row `i`, by a deterministic linear image
 `∑ₖ a i k · ε k ω` of a noise family `ε`](hyp:hlin) that is [square-integrable](hyp:hε), [mean
-zero](hyp:hmean), and [spherical with scale `σ`](hyp:hsph), with [the weighted trace sum
+zero](hyp:hmean), and [uncorrelated with coordinate variances bounded by `σbar²`](hyp:hnoise),
+with [nonnegative weights](hyp:hw) and [the weighted trace sum
 `∑ᵢ wᵢ ∑ₖ aᵢₖ²` bounded by `V`](hyp:hlev). Then [the expected weighted quadratic prediction error
 of the fitted series coefficients against the target values `f` is at most `A + σ² V`](goal):
 
@@ -181,25 +188,28 @@ of the fitted series coefficients against the target values `f` is at most `A + 
 
 where `A` is the assumed bound on the noise-free least-squares objective and `V` is the assumed
 bound on the weighted coefficient sum `∑ᵢ wᵢ ∑ₖ aᵢₖ²`. The theorem does not itself supply
-smoothness rates, nonnegative or normalized weights, or an effective-degree-of-freedom calculation;
-those are supplied — and the full `O(J^{−2s/d} + J/N)` series/sieve rate assembled — in
-`Causalean.Stat.Nonparametric.SeriesSieve.seriesLS_prediction_rate` (module `PredictionRate`).
+smoothness rates, nonnegative or normalized weights, or an effective-degree-of-freedom calculation.
+`SeriesSieve.seriesLS_prediction_rate_of_jackson_bound` specializes the finite-dimensional algebra
+and trace calculation but still assumes the Jackson objective bound; no concrete sieve-membership
+bridge is formalized here.
 
 Hypotheses: `c0` is the noise-free projection (orthogonal residual against `f`); the data fit
 `chat ω` differs from `c0` by the deterministic linear image `a` of the noise `ε`
-(`hlin` — the hat-matrix linearity of least squares); `ε` is spherical mean-zero `L²`. -/
+(`hlin` — the hat-matrix linearity of least squares); `ε` is uncorrelated mean-zero `L²` with
+uniformly bounded coordinate variances. -/
 theorem seriesLS_expected_prediction_le {Ω : Type*} {N : ℕ} {ι : Type*} [Fintype ι]
     [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     {Φ : Fin N → ι → ℝ} {w f : Fin N → ℝ} {c0 : ι → ℝ}
     {chat : Ω → ι → ℝ} {ε : Fin N → Ω → ℝ} {a : Fin N → Fin N → ℝ}
-    {σ A V : ℝ}
+    {σbar A V : ℝ}
     (hortho : ∀ k : ι, ∑ i, w i * lstsqResidual Φ f c0 i * Φ i k = 0)
     (hApprox : lstsqObjective Φ w f c0 ≤ A)
     (hlin : ∀ ω, ∀ i, (∑ j, (c0 j - chat ω j) * Φ i j) = ∑ k, a i k * ε k ω)
+    (hw : ∀ i, 0 ≤ w i)
     (hε : ∀ k, MemLp (ε k) 2 μ) (hmean : ∀ k, ∫ ω, ε k ω ∂μ = 0)
-    (hsph : Causalean.GaussMarkov.SphericalFamily ε μ σ)
+    (hnoise : UncorrelatedVarianceFamily ε μ σbar)
     (hlev : (∑ i, w i * ∑ k, a i k ^ 2) ≤ V) :
-    ∫ ω, lstsqObjective Φ w f (chat ω) ∂μ ≤ A + σ ^ 2 * V := by
+    ∫ ω, lstsqObjective Φ w f (chat ω) ∂μ ≤ A + σbar ^ 2 * V := by
   -- Pointwise decomposition + linearity substitution.
   have hpt : ∀ ω, lstsqObjective Φ w f (chat ω)
       = lstsqObjective Φ w f c0 + ∑ i, w i * (∑ k, a i k * ε k ω) ^ 2 := by
@@ -228,11 +238,12 @@ theorem seriesLS_expected_prediction_le {Ω : Type*} {N : ℕ} {ι : Type*} [Fin
             + ∫ ω, ∑ i, w i * (∑ k, a i k * ε k ω) ^ 2 ∂μ := by
           rw [integral_add (integrable_const _) hstoch_int, integral_const]
           simp
-    _ = lstsqObjective Φ w f c0 + σ ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 := by
-          rw [expected_weighted_sq_image_spherical hε hmean hsph]
-    _ ≤ A + σ ^ 2 * V := by
-          have hvar : σ ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 ≤ σ ^ 2 * V :=
-            mul_le_mul_of_nonneg_left hlev (sq_nonneg σ)
+    _ ≤ lstsqObjective Φ w f c0 + σbar ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 := by
+          gcongr
+          exact expected_weighted_sq_image_le hw hε hmean hnoise
+    _ ≤ A + σbar ^ 2 * V := by
+          have hvar : σbar ^ 2 * ∑ i, w i * ∑ k, a i k ^ 2 ≤ σbar ^ 2 * V :=
+            mul_le_mul_of_nonneg_left hlev (sq_nonneg σbar)
           linarith
 
 end Causalean.Stat.Nonparametric

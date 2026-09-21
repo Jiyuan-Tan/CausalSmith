@@ -2,50 +2,18 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Example: Backdoor Adjustment DAG
-
-This file constructs the canonical backdoor-adjustment DAG and exercises the
-DAG, d-separation, and SWIG/splitMono APIs.
-
-## The DAG
-
-```
-    Z
-   ↙ ↘
-  D → Y
-```
-
-- Observed: D (treatment, binary), Y (outcome, continuous), Z (confounder)
-- Unobserved confounders: none (Z is observed here, unlike the IV setting)
-- Latent root noise sources: U₁ (root for Z), U₂ (root for D), and U₃
-  (root for Y), included as independent exogenous roots satisfying
-  `SWIGGraph.unobs_are_roots`.
-- The backdoor criterion: Z satisfies the backdoor criterion for (D, Y)
-  because (i) no element of Z is a descendant of D, and (ii) Z blocks all
-  backdoor paths from D to Y (the only such path D ← Z → Y is blocked by
-  conditioning on Z).
-
-## Backdoor criterion (informal)
-
-Z satisfies the backdoor criterion for (D → Y) in a DAG G if:
-  (i)  No node in Z is a descendant of D.
-  (ii) Z d-separates Y from D in the lower-bar graph G_{D̄}
-       (i.e., the SWIG after splitting D = the graph where D's incoming
-       edges are cut, operationally `bdSWIG.splitMono {bdD}`).
-
-We demonstrate (ii) directly via `splitMono`.
 -/
 
-import Causalean.Graph.DAG
-import Causalean.Graph.DSep.Separation
-import Causalean.Graph.SWIG
-import Causalean.Graph.SWIGSplitMono
-import Causalean.Graph.CComponents
-import Causalean.SCM.Model.EdgeType
-import Causalean.SCM.Model.SCM
-import Causalean.SCM.ID.BackdoorCriterion
-import Causalean.SCM.ID.GraphicalThms.DoGFormula
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.DSep.Separation
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.Graph.CComponents
+public import Causalean.SCM.Model.EdgeType
+public import Causalean.SCM.Model.SCM
+public import Causalean.SCM.ID.BackdoorCriterion
+public import Causalean.SCM.ID.GraphicalThms.DoGFormula
 
 /-! # Backdoor Adjustment Example
 
@@ -59,6 +27,11 @@ backdoor-criterion example verifies that the observed confounder is a valid
 adjustment set for the treatment-outcome effect.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 set_option linter.style.nativeDecide false
 
 namespace Causalean.SCM.Examples.BackDoor
@@ -67,7 +40,12 @@ namespace Causalean.SCM.Examples.BackDoor
 -- Vertex type
 -- ============================================================
 
-/-- [The backdoor-example node type](goal) consists of [the treatment vertex](hyp:bdD), [the outcome vertex](hyp:bdY), [the observed-confounder vertex](hyp:bdZ), [the latent root for the confounder](hyp:bdU1), [the latent root for treatment](hyp:bdU2), and [the latent root for the outcome](hyp:bdU3). -/
+/-- [The backdoor-example node type](goal) consists of
+[the treatment vertex](hyp:bdD), [the outcome vertex](hyp:bdY),
+[the observed-confounder vertex](hyp:bdZ),
+[the latent root for the confounder](hyp:bdU1),
+[the latent root for treatment](hyp:bdU2), and
+[the latent root for the outcome](hyp:bdU3). -/
 inductive BDNode
   | bdD  -- treatment
   | bdY  -- outcome
@@ -83,8 +61,8 @@ namespace instReprBDNode
 
 /--
 For each vertex of the backdoor-adjustment DAG and each natural-number precedence level, this
-method returns a formatted textual rendering of that vertex. There are no additional hypotheses
-or side conditions.
+method returns [a formatted textual rendering of that vertex](goal). There are no additional
+hypotheses or side conditions.
 
 This helper is the explicit form of the representation method that `deriving Repr` would generate.
 -/
@@ -98,11 +76,14 @@ protected def repr : BDNode → Nat → Std.Format
 
 end instReprBDNode
 
-/-- [A textual representation structure for backdoor-example vertices](goal) is provided by [rendering each vertex through its fully qualified constructor name](step:1). -/
+/-- [A textual representation structure for backdoor-example vertices](goal) is provided by
+[rendering each vertex through its fully qualified constructor name](step:1). -/
 instance instReprBDNode : Repr BDNode where
   reprPrec := instReprBDNode.repr
 
-/-- [A finite enumeration of the backdoor-example node type](goal) is provided by [the collection of its six named vertices](step:1) together with [the assertion that every backdoor-example vertex belongs to that collection](step:2). -/
+/-- [A finite enumeration of the backdoor-example node type](goal) is provided by
+[the collection of its six named vertices](step:1) together with
+[the assertion that every backdoor-example vertex belongs to that collection](step:2). -/
 instance : Fintype BDNode where
   elems := {bdD, bdY, bdZ, bdU1, bdU2, bdU3}
   complete := by intro x; cases x <;> simp
@@ -111,7 +92,14 @@ instance : Fintype BDNode where
 -- Edge relation
 -- ============================================================
 
-/-- [The backdoor-edge relation](goal) contains exactly [the arrow from the observed confounder to treatment](step:1), [the arrow from the observed confounder to outcome](step:2), [the arrow from treatment to outcome](step:3), [the arrow from the first latent root to the confounder](step:4), [the arrow from the second latent root to treatment](step:5), and [the arrow from the third latent root to outcome](step:6); [all other ordered pairs have no edge](step:7). -/
+/-- [The backdoor-edge relation](goal) contains exactly
+[the arrow from the observed confounder to treatment](step:1),
+[the arrow from the observed confounder to outcome](step:2),
+[the arrow from treatment to outcome](step:3),
+[the arrow from the first latent root to the confounder](step:4),
+[the arrow from the second latent root to treatment](step:5), and
+[the arrow from the third latent root to outcome](step:6);
+[all other ordered pairs have no edge](step:7). -/
 def bdEdge : BDNode → BDNode → Prop
   | bdZ,  bdD  => True
   | bdZ,  bdY  => True
@@ -121,7 +109,8 @@ def bdEdge : BDNode → BDNode → Prop
   | bdU3, bdY  => True
   | _,    _    => False
 
-/-- For every ordered pair of backdoor-example vertices, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
+/-- For every ordered pair of backdoor-example vertices,
+[a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance : DecidableRel bdEdge := by
   intro a b; cases a <;> cases b <;> simp [bdEdge] <;> infer_instance
 
@@ -129,7 +118,12 @@ instance : DecidableRel bdEdge := by
 -- Topological order
 -- ============================================================
 
-/-- [The topological-order label for the backdoor graph](goal) [assigns label 0 to the first latent root](step:1), [label 1 to the second latent root](step:2), [label 2 to the third latent root](step:3), [label 3 to the observed confounder](step:4), [label 4 to treatment](step:5), and [label 5 to outcome](step:6). -/
+/-- [The topological-order label for the backdoor graph](goal)
+[assigns label 0 to the first latent root](step:1),
+[label 1 to the second latent root](step:2),
+[label 2 to the third latent root](step:3),
+[label 3 to the observed confounder](step:4),
+[label 4 to treatment](step:5), and [label 5 to outcome](step:6). -/
 def bdTopo : BDNode → ℕ
   | bdU1 => 0
   | bdU2 => 1
@@ -148,7 +142,8 @@ theorem bdTopo_lt : ∀ u v, bdEdge u v → bdTopo u < bdTopo v := by
 -- The DAG
 -- ============================================================
 
-/-- [The backdoor-adjustment directed acyclic graph](goal) has the specified backdoor edge relation and the displayed topological ordering, and is therefore acyclic. -/
+/-- [The backdoor-adjustment directed acyclic graph](goal) has the specified edge relation and
+the displayed topological ordering, and is therefore acyclic. -/
 def bdDAG : DAG BDNode where
   edge := bdEdge
   decEdge := inferInstance
@@ -187,9 +182,7 @@ example : ¬bdDAG.isRoot bdZ := by decide
 -- Y and D are NOT d-separated by ∅ (direct edge D → Y)
 example : ¬bdDAG.dSep {bdY} {bdD} ∅ := by decide
 
--- Y and D ARE d-separated by {Z} (Z blocks D ← Z → Y AND direct path is not a backdoor)
--- Actually: {D → Y} is still open. The backdoor path D ← Z → Y is blocked by Z.
--- But {D → Y} alone means dSep {D} {Y} {Z} is False.
+-- Even conditioning on Z, D and Y are not d-separated because the direct edge D → Y remains open.
 example : ¬bdDAG.dSep {bdD} {bdY} {bdZ} := by decide
 
 -- Z d-separates Y from D in the *interventional* graph (see splitMono below)
@@ -205,7 +198,9 @@ example : bdDAG.dSep {bdU1} {bdU2} ∅ := by decide
 -- SWIG graph (standard model, no intervention)
 -- ============================================================
 
-/-- [The pre-intervention SWIG graph for the backdoor example](goal) has the backdoor directed acyclic graph, no fixed nodes, treatment, outcome, and confounder as observed random nodes, and the three latent roots as unobserved random nodes.
+/-- [The pre-intervention SWIG graph for the backdoor example](goal) has the backdoor directed
+acyclic graph, no fixed nodes, treatment, outcome, and confounder as observed random nodes,
+and the three latent roots as unobserved random nodes.
 
 The treatment, outcome, and confounder are observed random nodes, while the three
 latent roots are unobserved random nodes. -/
@@ -364,26 +359,27 @@ example : (bdSWIG.splitMonoDAG {bdD}).dSep
 -- (bdZ is not a descendant of bdD in bdDAG)
 example : ¬bdDAG.isAncestor bdD bdZ := by decide
 
--- awaits `SWIGGraph.backdoorCriterion` from `SCM/ID/Backdoor.lean`
-
 -- ============================================================
 -- Edge type assignment
 -- ============================================================
 
-/-- [The edge-type assignment for the backdoor graph](goal) classifies every graph edge as nonparametric. -/
-def bdEdgeTypes : EdgeTypeAssignment bdDAG :=
+/-- [The edge-type assignment for the backdoor graph](goal) classifies every graph edge as
+nonparametric. -/
+def bdEdgeTypes : Causalean.SCM.Model.EdgeTypeAssignment bdDAG :=
   EdgeTypeAssignment.allNonparametric bdDAG
 
-example : bdEdgeTypes.isFullyNonparametric := by
+example : EdgeTypeAssignment.isFullyNonparametric bdEdgeTypes := by
   intro u v _; rfl
 
 -- ============================================================
 -- Backdoor criterion (graph-level): (D, Y) with adjustment set {Z}
 -- ============================================================
 
-/-- The observed confounder satisfies the graphical backdoor criterion for the treatment-outcome effect in this example. -/
+/-- The observed confounder
+[satisfies the graphical backdoor criterion for the treatment-outcome effect](goal) in this
+example. -/
 example :
-    bdSWIG.backdoorCriterion {bdD}
+    Causalean.SWIGGraph.backdoorCriterion bdSWIG {bdD}
       (by intro D hD; simp at hD; subst hD; decide)
       (by intro D hD; simp at hD; subst hD; decide)
       {SWIGNode.random bdY}

@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureIteration
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureIteration
 
 set_option linter.style.longLine false
 
 /-! # Reward bounds on the behavior-stationary support -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

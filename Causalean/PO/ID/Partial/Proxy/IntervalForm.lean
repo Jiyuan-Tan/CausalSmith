@@ -22,10 +22,11 @@ corollaries, one per source theorem, sharing the source binders verbatim.
 * `condMeanYofA_WZ_mem_Icc` — `Set.Icc` form of `condMeanYofA_WZ_bounds`.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.WBased
-import Causalean.PO.ID.Partial.Proxy.ZBased
-import Causalean.PO.ID.Partial.Proxy.TwoProxy
-import Causalean.PO.ID.Partial.Basic
+module
+public import Causalean.PO.ID.Partial.Proxy.WBased
+public import Causalean.PO.ID.Partial.Proxy.ZBased
+public import Causalean.PO.ID.Partial.Proxy.TwoProxy
+public import Causalean.PO.ID.Partial.Basic
 
 /-! # Closed-interval forms of proximal proxy bounds
 
@@ -34,6 +35,8 @@ membership statements. The W-based, Z-based, and two-proxy source theorems keep
 their original hypotheses, while this layer adapts them to the common
 partial-identification interval vocabulary.
 -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -51,15 +54,14 @@ variable {P : POSystem}
 
 /-! ### W-based -/
 
-/-- **`Set.Icc` form of Theorem 1** (`condMeanYofA_W_bounds`). Fix a treatment arm `a` and
-assume [the W-only proximal bridge assumption bundle](hyp:HA), with [the treatment and
-outcome variables distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope
-functions bounding the W-proxy density ratio](hyp:hL,hU), with [the off-arm stratum of
-positive mass](hyp:hμpos) and [the envelope-weighted bridge moments
-integrable](hyp:hU_int_h,hL_int_h). Then [the conditional target `E[Y(a) ∣ A ≠ a]` lies
-in the closed interval spanned by the essential `Y`-bounds and the W-proxy envelope
-clamps](goal), the `Set.Icc` membership restatement of the scalar sandwich bound
-`condMeanYofA_W_bounds`. -/
+/-- **Closed-interval form of the conditional W-envelope bound.** [The
+opposite-arm conditional counterfactual mean belongs to the interval spanned by
+chosen outcome-bound witnesses and operational W-envelope clamps](goal). This
+restates the scalar sandwich under [the W-only bridge assumptions](hyp:HA),
+[distinct treatment and outcome variables](hyp:hAY), [a treatment arm and lower
+and upper envelope functions](hyp:a,Lenv,Uenv), [the two operational envelope
+comparisons](hyp:hL,hU), [positive opposite-arm mass](hyp:hμpos), and
+[integrable envelope-weighted bridge moments](hyp:hU_int_h,hL_int_h). -/
 theorem condMeanYofA_W_mem_Icc
     (HA : POProximalSystem.WBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -84,15 +86,15 @@ theorem condMeanYofA_W_mem_Icc
   have h := condMeanYofA_W_bounds HA a hAY Lenv Uenv hL hU hμpos hU_int_h hL_int_h
   exact Causalean.PartialID.mem_Icc_of_sandwich h.1 h.2
 
-/-- **`Set.Icc` form of Corollary 1** (`meanYofA_W_bounds`). Fix a treatment arm `a` and
-assume [the W-only proximal bridge assumption bundle](hyp:HA), with [the treatment and
-outcome variables distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope
-functions bounding the W-proxy density ratio](hyp:hL,hU), and assume [the
-envelope-weighted bridge moments](hyp:hU_int_h,hL_int_h) and [the envelope-weighted
-observed conditional means](hyp:hU_int_Y,hL_int_Y) are integrable. Then [the marginal
-target `E[Y(a)]` lies in the closed interval spanned by the W-proxy marginal lower and
-upper clamps](goal), the `Set.Icc` membership restatement of the scalar sandwich bound
-`meanYofA_W_bounds`. -/
+/-- **Closed-interval form of the marginal W-envelope bound.** [The marginal
+counterfactual mean belongs to the interval spanned by the lower and upper
+operational W-envelope clamps](goal). This restates the scalar sandwich under
+[the W-only bridge assumptions](hyp:HA), [distinct treatment and outcome
+variables](hyp:hAY), [a treatment arm and lower and upper envelope
+functions](hyp:a,Lenv,Uenv), [the two operational envelope
+comparisons](hyp:hL,hU), [integrable envelope-weighted bridge
+moments](hyp:hU_int_h,hL_int_h), and [integrable envelope-weighted observed
+conditional means](hyp:hU_int_Y,hL_int_Y). -/
 theorem meanYofA_W_mem_Icc
     (HA : POProximalSystem.WBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -125,17 +127,16 @@ theorem meanYofA_W_mem_Icc
 
 /-! ### Z-based -/
 
-/-- **`Set.Icc` form of Theorem 2** (`condMeanYofA_Z_bounds`). Fix a treatment arm `a` and
-assume [the Z-only proximal bridge assumption bundle](hyp:HA), with [the treatment and
-outcome variables distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope
-functions bounding the σ(A,Z,X)-conditional mean of the outcome on the on-arm
-stratum](hyp:hL,hU), assumed [integrable](hyp:hLInt,hUInt), with [the envelope weighted
-by the treatment-proxy bridge](hyp:hL_q,hU_q) and [the envelope weighted by the
-likelihood-ratio arm-swap factor](hyp:hL_L,hU_L) both integrable, and [the off-arm
-stratum of positive mass](hyp:hμpos). Then [the conditional target `E[Y(a) ∣ A ≠ a]`
-lies in the closed interval spanned by the normalised on-arm integrals of `Lenv` and
-`Uenv`](goal), the `Set.Icc` membership restatement of the scalar sandwich bound
-`condMeanYofA_Z_bounds`. -/
+/-- **Closed-interval form of the conditional Z-envelope bound.** [The
+opposite-arm conditional counterfactual mean belongs to the interval spanned by
+normalized integrals of lower and upper outcome envelopes](goal). This restates
+the scalar sandwich under [the Z-only bridge assumptions](hyp:HA), [distinct
+treatment and outcome variables](hyp:hAY), [a treatment arm and lower and upper
+envelope functions](hyp:a,Lenv,Uenv), [the two on-arm conditional-mean envelope
+comparisons](hyp:hL,hU), [integrable envelopes](hyp:hLInt,hUInt), [integrability
+after weighting by the treatment bridge](hyp:hL_q,hU_q), [integrability after
+weighting by the arm-swap factor](hyp:hL_L,hU_L), and [positive opposite-arm
+mass](hyp:hμpos). -/
 theorem condMeanYofA_Z_mem_Icc
     (HA : POProximalSystem.ZBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -159,16 +160,15 @@ theorem condMeanYofA_Z_mem_Icc
     hLInt hUInt hL_q hU_q hL_L hU_L hμpos
   exact Causalean.PartialID.mem_Icc_of_sandwich h.1 h.2
 
-/-- **`Set.Icc` form of Corollary 2** (`meanYofA_Z_bounds`). Fix a treatment arm `a` and
-assume [the Z-only proximal bridge assumption bundle](hyp:HA), with [the treatment and
-outcome variables distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope
-functions bounding the σ(A,Z,X)-conditional mean of the outcome on the on-arm
-stratum](hyp:hL,hU), assumed [integrable](hyp:hLInt,hUInt), with [the envelope weighted
-by the treatment-proxy bridge](hyp:hL_q,hU_q) and [the envelope weighted by the
-likelihood-ratio arm-swap factor](hyp:hL_L,hU_L) both integrable. Then [the marginal
-target `E[Y(a)]` lies in the closed interval spanned by the Z-proxy marginal envelope
-integrals](goal), the `Set.Icc` membership restatement of the scalar sandwich bound
-`meanYofA_Z_bounds`. -/
+/-- **Closed-interval form of the marginal Z-envelope bound.** [The marginal
+counterfactual mean belongs to the interval spanned by lower and upper Z-proxy
+envelope integrals](goal). This restates the scalar sandwich under [the Z-only
+bridge assumptions](hyp:HA), [distinct treatment and outcome
+variables](hyp:hAY), [a treatment arm and lower and upper envelope
+functions](hyp:a,Lenv,Uenv), [the two on-arm conditional-mean envelope
+comparisons](hyp:hL,hU), [integrable envelopes](hyp:hLInt,hUInt), [integrability
+after weighting by the treatment bridge](hyp:hL_q,hU_q), and [integrability
+after weighting by the arm-swap factor](hyp:hL_L,hU_L). -/
 theorem meanYofA_Z_mem_Icc
     (HA : POProximalSystem.ZBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -195,15 +195,15 @@ theorem meanYofA_Z_mem_Icc
 
 /-! ### Two-proxy -/
 
-/-- **`Set.Icc` form of Theorem 3** (`condMeanYofA_WZ_bounds`). Fix a treatment arm `a` and
-assume [the two-proxy bridge assumption bundle](hyp:HA), with [the treatment and outcome
-variables distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope functions
-bounding the same-arm joint-versus-product W-Z density ratio](hyp:hL,hU), with [the
-off-arm stratum of positive mass](hyp:hμpos) and [the envelope-weighted product of the
-two conditional bridge means integrable](hyp:hU_envInt,hL_envInt). Then [the conditional
-target `E[Y(a) ∣ A ≠ a]` lies in the closed interval spanned by the essential `Y`-bounds
-and the joint-WZ envelope clamps](goal), the `Set.Icc` membership restatement of the
-scalar sandwich bound `condMeanYofA_WZ_bounds`. -/
+/-- **Closed-interval form of the two-proxy envelope bound.** [The opposite-arm
+conditional counterfactual mean belongs to the interval spanned by chosen
+outcome-bound witnesses and operational joint-proxy envelope clamps](goal).
+This restates the scalar sandwich under [the two-proxy bridge
+assumptions](hyp:HA), [distinct treatment and outcome variables](hyp:hAY), [a
+treatment arm and lower and upper envelope functions](hyp:a,Lenv,Uenv), [the
+two operational joint-proxy comparisons](hyp:hL,hU), [positive opposite-arm
+mass](hyp:hμpos), and [integrability of both envelope-weighted conditional
+bridge products](hyp:hU_envInt,hL_envInt). -/
 theorem condMeanYofA_WZ_mem_Icc
     (HA : POProximalSystem.TwoProxyAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)

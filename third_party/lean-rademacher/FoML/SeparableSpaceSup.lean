@@ -1,8 +1,11 @@
-import Mathlib.Topology.Bases
-import Mathlib.Order.ConditionallyCompleteLattice.Indexed
-import Mathlib.Topology.Order.Lattice
-import Mathlib.Data.Real.Basic
-import Mathlib.Topology.Algebra.Ring.Real
+module
+public import Mathlib.Topology.Bases
+public import Mathlib.Order.ConditionallyCompleteLattice.Indexed
+public import Mathlib.Topology.Order.Lattice
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Topology.Algebra.Ring.Real
+
+@[expose] public section
 
 universe u v
 

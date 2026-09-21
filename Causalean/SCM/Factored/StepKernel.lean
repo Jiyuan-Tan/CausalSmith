@@ -21,8 +21,9 @@ this as a `Kernel.deterministic` kernel whose source is the prefix state
 * `SCM.isMarkov_stepKernel hn` — the `IsMarkovKernel` instance.
 -/
 
-import Causalean.SCM.Factored.ParentLookup
-import Mathlib.Probability.Kernel.Basic
+module
+public import Causalean.SCM.Factored.ParentLookup
+public import Mathlib.Probability.Kernel.Basic
 
 /-! # Step Kernels for Observed Nodes
 
@@ -31,6 +32,11 @@ coordinate from its fixed, latent, and previously generated observed parents.
 The step kernels are the local transition pieces in the sequential
 factorization of the joint kernel, and their measurability follows from the
 parent-lookup map and the SCM structural-function measurability field. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean
 

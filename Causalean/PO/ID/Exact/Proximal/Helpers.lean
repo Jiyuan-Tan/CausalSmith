@@ -21,9 +21,10 @@ different assumption bundles), and a *bundled* form that takes the full
 `POProximalSystem.Assumptions` (used by `Main.lean`).
 -/
 
-import Causalean.PO.ID.Exact.Proximal.Assumptions
-import Causalean.Mathlib.CondIndep
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Exact.Proximal.Assumptions
+public import Causalean.Mathlib.Probability.Independence.Conditional
+public import Causalean.Tactic.CondexpLinearity
 
 /-! # Conditional-expectation helpers for proximal ATE
 
@@ -33,6 +34,10 @@ independence, transporting consistency through event restrictions, and exposing
 both field-level and bundled forms for reuse by exact and partial proximal
 identification modules.
 -/
+
+public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
@@ -125,7 +130,7 @@ lemma condExp_h_drop_Z' {h_fun : Bool × γ_W × γ_X → ℝ}
       (S.σ_UX ⊔ MeasurableSpace.comap S.A inferInstance)
       (sup_le S.σ_UX_le S.measurable_A.comap_le)
       S.W S.Z μ :=
-    Causalean.condIndepFun_weak_union_of_prodMk S.σ_UX_le S.measurable_W
+    condIndepFun_weak_union_of_prodMk S.σ_UX_le S.measurable_W
       S.measurable_Z S.measurable_A hWZA
   -- σ_AUX = σ_UX ⊔ comap A.
   have hσ_AUX : S.σ_AUX = S.σ_UX ⊔ MeasurableSpace.comap S.A inferInstance := by
@@ -145,7 +150,7 @@ lemma condExp_h_drop_Z' {h_fun : Bool × γ_W × γ_X → ℝ}
     exact (measurable_snd.comp measurable_snd) hs
   -- Lift to (W, X) ⟂ Z | σ_AUX.
   have hWX_Z : CondIndepFun S.σ_AUX S.σ_AUX_le (fun ω => (S.W ω, S.X ω)) S.Z μ :=
-    Causalean.condIndepFun_prodMk_of_measurable_left S.σ_AUX_le S.measurable_W S.measurable_Z
+    condIndepFun_prodMk_of_measurable_left S.σ_AUX_le S.measurable_W S.measurable_Z
       hX_m hWZ_AUX'
   let h_comb : γ_W × γ_X → ℝ := fun p => h_fun (a, p.1, p.2)
   have h_comb_meas : Measurable h_comb := by
@@ -192,7 +197,7 @@ lemma condExp_h_drop_A' {h_fun : Bool × γ_W × γ_X → ℝ}
     exact ⟨Prod.snd ⁻¹' s, measurable_snd hs, rfl⟩
   -- Lift to (W, X) ⟂ A | σ_UX.
   have hWX_A : CondIndepFun S.σ_UX S.σ_UX_le (fun ω => (S.W ω, S.X ω)) S.A μ :=
-    Causalean.condIndepFun_prodMk_of_measurable_left S.σ_UX_le S.measurable_W S.measurable_A
+    condIndepFun_prodMk_of_measurable_left S.σ_UX_le S.measurable_W S.measurable_A
       hX_m proxy_WA
   let h_comb : γ_W × γ_X → ℝ := fun p => h_fun (a, p.1, p.2)
   have h_comb_meas : Measurable h_comb := by
@@ -275,14 +280,14 @@ lemma consistency_event' (HC : POSystem.Consistency P) (a : Bool)
     have h_zero_on_s : h =ᵐ[μ.restrict s] 0 := by
       filter_upwards [hYeq] with ω hω
       simp [h, hω]
-    simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs h_zero_on_s
+    simpa using indicator_aeEq_of_aeEq_restrict hs h_zero_on_s
   have hh_zero_on_s : μ[h | S.σ_AUX] =ᵐ[μ.restrict s] 0 := by
     have hindCE_zero : s.indicator (μ[h | S.σ_AUX]) =ᵐ[μ] 0 :=
-      Causalean.condExp_indicator_aeEq_zero hs_in_m hint hind_zero
+      condExp_indicator_aeEq_zero hs_in_m hint hind_zero
     have hindCE_zero' :
         s.indicator (μ[h | S.σ_AUX]) =ᵐ[μ] s.indicator (0 : P.Ω → ℝ) := by
       simpa using hindCE_zero
-    simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs hindCE_zero'
+    simpa using aeEq_restrict_of_indicator_aeEq hs hindCE_zero'
   have hCE_sub : μ[h | S.σ_AUX] =ᵐ[μ] μ[S.Y | S.σ_AUX] - μ[S.YofA a | S.σ_AUX] :=
     by condexp_linearity
   have hCE_sub_restrict : μ[h | S.σ_AUX]
@@ -299,7 +304,7 @@ lemma consistency_event' (HC : POSystem.Consistency P) (a : Bool)
 /-- **Factual-outcome bridge on the treatment-arm event.** From the
 consistency assumption in [the proximal identifying assumption
 bundle](hyp:HA), and given [the treatment and outcome are distinct
-nodes](hyp:hAY), on the event where the treatment equals arm `a`, [the
+nodes](hyp:hAY), on the event for [the selected treatment arm](hyp:a), [the
 conditional expectation of the factual outcome given σ(A,U,X) agrees almost
 surely with the conditional expectation of the potential outcome `Y(a)` given
 the same σ-algebra](goal), since `Y = Y(a)` pointwise there. -/

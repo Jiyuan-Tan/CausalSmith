@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
 
 /-! # Abstract transport of continuity-only decision criteria -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

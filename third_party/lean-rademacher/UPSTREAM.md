@@ -21,6 +21,15 @@ This copy is **adapted for AutoID's Lean/Mathlib pin** and diverges from upstrea
   `db584cd6d46c92f209a44c0f1c829460d327499d` (matching Causalean's `lakefile.toml`).
 - Toolchain-drift fixes to `FoML/McDiarmid`, `FoML/MaximalInequality` (Massart),
   and `FoML/DudleyEntropy` to compile against that pin.
+- `FoML/Hoeffding`: the section variable dropped its `(μ : Measure Ω := by volume_tac)`
+  autoParam default, becoming a plain `(μ : Measure Ω)`. `volume_tac` elaborates to
+  `exact MeasureTheory.MeasureSpace.volume`, so the default can only fire when `Ω` carries a
+  `MeasureSpace` instance; every use site in this package has `Ω` abstract with only
+  `[MeasurableSpace Ω]`, so it could never succeed and no call site relied on it. It is removed
+  as a cleanup, and because it is a hazard if `Ω` is ever instantiated at a concrete type such
+  as `ℝ`: omitting `μ` would then silently substitute Lebesgue measure for the intended
+  probability measure. Callers are unaffected — `apply` unifies `μ` from the goal rather than
+  running the autoParam tactic (checked).
 
 Because it diverges, a plain `git`-require against upstream would not build; the
 adapted source is carried in-tree instead. Upstream is referenced here only for
@@ -34,6 +43,10 @@ provenance and license attribution.
   plus a working-tree fix to `FoML/DudleyEntropy.lean`.
 
 ## Updating
+
+The source was converted to the Lean module system on 2026-09-14 using a
+blanket `@[expose] public section`. Re-apply upstream diffs on top of that
+module header rather than replacing it.
 
 To re-sync with upstream: rebase the AutoID adaptations onto a newer
 `auto-res/lean-rademacher` commit, re-fix any toolchain drift against the current

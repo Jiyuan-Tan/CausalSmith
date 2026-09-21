@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.Probability.IidMeanVariance
+
+module
+public import Causalean.Mathlib.Probability.IidMeanVariance
 
 /-!
 # Empirical mass of a point
@@ -11,6 +13,8 @@ import Causalean.Mathlib.Probability.IidMeanVariance
 This module defines the empirical frequency of one point in a finite i.i.d.
 sample and establishes its range, expectation, and second moment.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

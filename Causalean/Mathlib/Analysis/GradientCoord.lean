@@ -3,11 +3,13 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.Calculus.Gradient.Basic
-import Mathlib.Analysis.Calculus.Deriv.Add
-import Mathlib.Analysis.Calculus.Deriv.Mul
-import Mathlib.Analysis.Calculus.Deriv.Comp
-import Mathlib.Analysis.InnerProductSpace.PiL2
+
+module
+public import Mathlib.Analysis.Calculus.Gradient.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Add
+public import Mathlib.Analysis.Calculus.Deriv.Mul
+public import Mathlib.Analysis.Calculus.Deriv.Comp
+public import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
 # Coordinates of a Euclidean gradient as directional derivatives
@@ -18,6 +20,8 @@ the `a`-th coordinate line. This is the standard tool for computing a gradient c
 coordinate — reduce each entry to a `deriv` of a one-parameter restriction, which the univariate
 calculus API can then evaluate.
 -/
+
+public section
 
 open InnerProductSpace
 

@@ -9,12 +9,15 @@ Implements def:po-iv-system, def:po-iv-assumptions, def:po-late,
 prop:po-late, and rem:po-late from Basic Concepts.tex.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Assumptions.IndepCF
-import Causalean.PO.Conditioning.EventCondExp
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Probability.Independence.Basic
-import Causalean.Tactic.Attr
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Assumptions.IndepCF
+public import Causalean.PO.Conditioning.EventCondExp
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Probability.Independence.Basic
 
 /-! # Instrumental Variables LATE
 
@@ -29,6 +32,10 @@ The proof surface decomposes the Wald argument into public identities:
 `event_conditioning_identity`. The theorem `late_wald` assembles these pieces
 to identify the observable Wald ratio with the complier average treatment
 effect. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -53,24 +60,30 @@ namespace POIVSystem
 
 variable {P : POSystem} (S : POIVSystem P)
 
-/-- For [a binary instrumental-variables system](hyp:S), the [binary instrument potential-outcome variable](goal) is its instrument node with its binary representation. -/
+/-- [The binary instrument variable](goal) exposes the instrument node of [an IV
+system](hyp:S) on the zero-one scale used by the LATE model. -/
 def zVar : POVar P Bool := ⟨S.Z, S.hZbool⟩
 
-/-- For [a binary instrumental-variables system](hyp:S), the [binary treatment potential-outcome variable](goal) is its treatment node with its binary representation. -/
+/-- [The binary treatment variable](goal) exposes the treatment node of [an IV
+system](hyp:S) on the zero-one scale used to define compliance types. -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- For [a binary instrumental-variables system](hyp:S), the [real-valued outcome potential-outcome variable](goal) is its outcome node with its real-valued representation. -/
+/-- [The real-valued outcome variable](goal) exposes the outcome node of [an IV
+system](hyp:S) on the scale over which treatment effects are averaged. -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [instrument intervention regime](goal) fixes the instrument to that value. -/
+/-- [The instrument intervention](goal) fixes [an IV system](hyp:S) at [one binary
+instrument value](hyp:z), defining the counterfactual world used for the first stage. -/
 noncomputable def instrumentRegime (z : Bool) : Regime P.V P.X :=
   Regime.single S.Z (S.hZbool.symm z)
 
-/-- For [a binary instrumental-variables system](hyp:S) and [a treatment value](hyp:d), the [treatment intervention regime](goal) fixes treatment to that value. -/
+/-- [The treatment intervention](goal) fixes [an IV system](hyp:S) at [one binary
+treatment value](hyp:d), defining the counterfactual world used for causal outcomes. -/
 noncomputable def treatmentRegime (d : Bool) : Regime P.V P.X :=
   Regime.single S.D (S.hDbool.symm d)
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [potential treatment](goal) assigns each unit the treatment it would take if the instrument were fixed to that value.
+/-- [Potential treatment](goal) records what each unit in [the IV system](hyp:S) would
+choose under [a fixed binary instrument value](hyp:z), which determines compliance type.
 
 The potential treatment under an instrument value is the treatment that
 would be observed if the instrument were fixed to that value.
@@ -79,7 +92,9 @@ would be observed if the instrument were fixed to that value.
 noncomputable def DofZ (z : Bool) : P.Ω → Bool :=
   S.dVar.cfUnder S.zVar z
 
-/-- For [a binary instrumental-variables system](hyp:S) and [a treatment value](hyp:d), the [potential outcome](goal) assigns each unit the outcome it would have if treatment were fixed to that value.
+/-- [Potential outcome](goal) records what each unit in [the IV system](hyp:S) would
+experience under [a fixed binary treatment value](hyp:d), the primitive contrast averaged by
+LATE.
 
 The potential outcome under a treatment value is the outcome that would be
 observed if treatment were fixed to that value.
@@ -88,89 +103,113 @@ observed if treatment were fixed to that value.
 noncomputable def YofD (d : Bool) : P.Ω → ℝ :=
   S.yVar.cfUnder S.dVar d
 
-/-- For [a binary instrumental-variables system](hyp:S), the [factual instrument](goal) assigns each unit its observed binary instrument. -/
+/-- [The observed instrument](goal) extracts each unit's realized assignment from [the IV
+system](hyp:S). -/
 noncomputable def factualZ : P.Ω → Bool := S.zVar.factual
 
-/-- For [a binary instrumental-variables system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
+/-- [The observed treatment](goal) extracts each unit's realized uptake from [the IV
+system](hyp:S). -/
 noncomputable def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- For [a binary instrumental-variables system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
+/-- [The observed outcome](goal) extracts each unit's realized response from [the IV
+system](hyp:S). -/
 noncomputable def factualY : P.Ω → ℝ := S.yVar.factual
 
-/-- For [a binary instrumental-variables system](hyp:S), the [complier event](goal) is the set of units that would take treatment when the instrument is on and would not take treatment when it is off. -/
+/-- [The complier population](goal) in [a binary IV system](hyp:S) consists of units induced
+into treatment by switching the instrument on and not treated when it is off. -/
 def complierEvent : Set P.Ω :=
   { ω | S.DofZ true ω = true ∧ S.DofZ false ω = false }
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [instrument event](goal) is the set of units whose observed instrument equals that value. -/
+/-- [An observed instrument cell](goal) selects units in [the IV system](hyp:S) whose
+realized instrument equals [the chosen binary value](hyp:z). -/
 def zEvent (z : Bool) : Set P.Ω := S.zVar.event z
 
-/-- The potential treatment under a fixed instrument value is measurable. -/
+/-- [Potential treatment under a fixed instrument value is measurable](goal), so [the IV
+system](hyp:S) admits probabilities and expectations involving treatment response to [that
+value](hyp:z). -/
 @[fun_prop]
 lemma measurable_DofZ (z : Bool) : Measurable (S.DofZ z) :=
   S.dVar.measurable_cfUnder S.zVar z
 
-/-- The factual instrument is measurable. -/
+/-- [The observed instrument is measurable](goal), making its assignment cells observable in
+[the IV system](hyp:S). -/
 @[fun_prop]
 lemma measurable_factualZ : Measurable S.factualZ := S.zVar.measurable_factual
 
-/-- The factual treatment is measurable. -/
+/-- [The observed treatment is measurable](goal), so treatment-cell probabilities are defined
+for [the IV system](hyp:S). -/
 @[fun_prop]
 lemma measurable_factualD : Measurable S.factualD := S.dVar.measurable_factual
 
-/-- The factual outcome is measurable. -/
+/-- [The observed outcome is measurable](goal), so its population moments are defined for [the
+IV system](hyp:S). -/
 @[fun_prop]
 lemma measurable_factualY : Measurable S.factualY := S.yVar.measurable_factual
 
-/-- The potential outcome under a fixed treatment value is measurable. -/
+/-- [Potential outcome under a fixed treatment value is measurable](goal), permitting causal
+outcome averages in [the IV system](hyp:S) for [that treatment arm](hyp:d). -/
 @[fun_prop]
 lemma measurable_YofD (d : Bool) : Measurable (S.YofD d) :=
   S.yVar.measurable_cfUnder S.dVar d
 
-/-- The complier event is measurable. -/
+/-- [The complier population is a measurable event](goal), so [the IV system](hyp:S) assigns it
+a probability and supports complier-conditional outcome means. -/
 lemma measurableSet_complierEvent : MeasurableSet S.complierEvent :=
   (S.measurable_DofZ true (MeasurableSpace.measurableSet_top (s := {true}))).inter
     (S.measurable_DofZ false (MeasurableSpace.measurableSet_top (s := {false})))
 
-/-- The factual instrument event is measurable. -/
+/-- [Each observed instrument cell is measurable](goal), allowing [the IV system](hyp:S) to
+condition observed moments on [the selected assignment](hyp:z). -/
 lemma measurableSet_zEvent (z : Bool) : MeasurableSet (S.zEvent z) :=
   S.zVar.measurableSet_event _ (measurableSet_singleton _)
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [outcome under the instrument-induced treatment](goal) assigns each unit its treated potential outcome if the instrument induces treatment and its untreated potential outcome otherwise. -/
+/-- [Outcome under instrument-induced treatment](goal) selects each unit's treated or untreated
+potential outcome in [the IV system](hyp:S) according to uptake under [the chosen instrument
+value](hyp:z). -/
 noncomputable def YofDofZ (z : Bool) : P.Ω → ℝ :=
   fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω
 
-/-- The potential outcome under the treatment that an instrument value induces sends a unit to
-that unit's treated potential outcome when the induced treatment is one, and to its untreated
-potential outcome otherwise. -/
+/-- [Instrument-induced outcome equals the treated potential outcome when uptake occurs and the
+untreated potential outcome otherwise](goal) in [the IV system](hyp:S) under [the selected
+instrument value](hyp:z). -/
 @[causal_defs_simps]
 lemma YofDofZ_def (z : Bool) :
     S.YofDofZ z = fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω :=
   rfl
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [conditional treatment mean](goal) is the event-conditional mean of observed treatment among units with that instrument value.
+/-- [The observed first-stage cell mean](goal) averages treatment uptake in [the IV
+system](hyp:S) among units receiving [the selected instrument value](hyp:z).
 
 `E[D | Z = z]`, the event-level conditional expectation of the (0/1-coded)
 factual treatment on `{Z = z}`. Uses the shared PO conditioning tool
-`eventCondExp` (definitionally `(∫_A g)/μ(A)`). -/
+`normalizedRestrictedIntegral` (definitionally `(∫_A g)/μ(A)`). -/
 noncomputable def condExpDZ (z : Bool) : ℝ :=
-  eventCondExp P.μ (S.zEvent z) (fun ω => ((S.factualD ω).toNat : ℝ))
+  normalizedRestrictedIntegral P.μ (S.zEvent z) (fun ω => ((S.factualD ω).toNat : ℝ))
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [conditional outcome mean](goal) is the event-conditional mean of observed outcome among units with that instrument value.
+/-- [The observed reduced-form cell mean](goal) averages outcomes in [the IV system](hyp:S)
+among units receiving [the selected instrument value](hyp:z).
 
 `E[Y | Z = z]`, the event-level conditional expectation of the factual outcome
-on `{Z = z}`, via the shared PO conditioning tool `eventCondExp`. -/
+on `{Z = z}`, via the shared PO conditioning tool `normalizedRestrictedIntegral`. -/
 noncomputable def condExpYZ (z : Bool) : ℝ :=
-  eventCondExp P.μ (S.zEvent z) S.factualY
+  normalizedRestrictedIntegral P.μ (S.zEvent z) S.factualY
 
-/-- For [a binary instrumental-variables system](hyp:S) and [an instrument value](hyp:z), the [treatment under the instrument regime](goal) is the potential treatment represented together with the intervention fixing the instrument to that value. -/
+/-- [Treatment under an instrument intervention](goal) packages the treatment response in [the
+IV system](hyp:S) with [the assignment value that generates it](hyp:z), enabling exogeneity
+statements about that counterfactual. -/
 def dUnderZ (z : Bool) : RegimedVar P Bool :=
   ⟨S.dVar, Regime.single S.Z (S.hZbool.symm z)⟩
 
-/-- For [a binary instrumental-variables system](hyp:S) and [a treatment value](hyp:d), the [outcome under the treatment regime](goal) is the potential outcome represented together with the intervention fixing treatment to that value. -/
+/-- [Outcome under a treatment intervention](goal) packages the potential response in [the IV
+system](hyp:S) with [the treatment arm that generates it](hyp:d), enabling joint exogeneity
+statements.
+-/
 def yUnderD (d : Bool) : RegimedVar P ℝ :=
   ⟨S.yVar, Regime.single S.D (S.hDbool.symm d)⟩
 
-/-- For [a binary instrumental-variables system](hyp:S), the [counterfactual bundle](goal) contains potential treatments under both instrument values and potential outcomes under both treatment values. -/
+/-- [The full LATE counterfactual bundle](goal) collects both potential treatments and both
+potential outcomes from [the binary IV system](hyp:S), making instrument independence a single
+joint assumption. -/
 noncomputable def cfBundle : POCFBundle P :=
   POCFBundle.cons (S.dUnderZ true) <|
   POCFBundle.cons (S.dUnderZ false) <|
@@ -212,34 +251,37 @@ structure Assumptions (S : POIVSystem P) : Prop where
       positive mass of units (the LATE denominator is non-zero). -/
   relevance : 0 < (P.μ S.complierEvent).toReal
 
-/-- For [a binary instrumental-variables system](hyp:S), the [local average treatment effect](goal) is the mean difference between treated and untreated potential outcomes among compliers, with value zero when the complier event has zero probability.
+/-- [The local average treatment effect](goal) in [a binary IV system](hyp:S) is the mean treated-
+versus-untreated outcome contrast among compliers, with the zero convention when that population
+has zero probability.
 
 Local Average Treatment Effect -- def:po-late.
 
     `E[Y(1) - Y(0) | C]`, the average treatment effect over the complier event
-    `C`, via the shared PO conditioning tool `eventCondExp` (definitionally
+    `C`, via the shared PO conditioning tool `normalizedRestrictedIntegral` (definitionally
     `(∫_C (Y(1)-Y(0)))/P(C)`). Equals the informal `E[Y(1)-Y(0) | C]` when
     `P(C) > 0`. -/
 noncomputable def LATE : ℝ :=
-  eventCondExp P.μ S.complierEvent (fun ω => S.YofD true ω - S.YofD false ω)
+  normalizedRestrictedIntegral P.μ S.complierEvent (fun ω => S.YofD true ω - S.YofD false ω)
 
-/-- On `zEvent z`, the counterfactual treatment `D(z)` equals the factual `D`.
-    Pointwise specialization of `Consistency.factual` with `r = instrumentRegime z`,
-    `Y = {D}`. -/
+/-- [Consistency identifies potential treatment with observed treatment](goal) for [an IV system
+satisfying the identifying assumptions](hyp:hA), at [an instrument value](hyp:z), and for [a unit
+observed in that instrument cell](hyp:ω,hω). -/
 lemma DofZ_eq_factualD_on_zEvent (hA : S.Assumptions) (z : Bool)
     {ω : P.Ω} (hω : ω ∈ S.zEvent z) :
     S.DofZ z ω = S.factualD ω :=
   POVar.cf_eq_factual_on_event hA.consistency S.dVar S.zVar z S.hZD.symm hω
 
-/-- Factual `Y` equals the counterfactual `Y(factualD ω)`.  Pointwise
-    specialization of `Consistency.factual` with `r = treatmentRegime (factualD ω)`,
-    `Y = {Y}`. -/
+/-- [Consistency identifies each observed outcome with the potential outcome under realized
+treatment](goal) for [an IV system satisfying the identifying assumptions](hyp:hA) and [the unit
+being evaluated](hyp:ω). -/
 lemma factualY_eq_YofD_factualD (hA : S.Assumptions) (ω : P.Ω) :
     S.factualY ω = S.YofD (S.factualD ω) ω :=
   POVar.factual_eq_cfUnder_self_selected hA.consistency S.yVar S.dVar S.hDY.symm ω
 
-/-- Step 1 of rem:po-late: first-stage identity.
-    `E[D | Z=1] - E[D | Z=0] = P(C)`. -/
+/-- [The observed first-stage contrast equals the complier share](goal) under [the binary-IV
+identifying assumptions](hyp:hA) when [both instrument-on](hyp:hZ1) and [instrument-off](hyp:hZ0)
+cells have positive probability. Monotonicity is needed to exclude cancellation by defiers. -/
 theorem first_stage_identity (hA : S.Assumptions)
     (hZ1 : 0 < (P.μ (S.zEvent true)).toReal)
     (hZ0 : 0 < (P.μ (S.zEvent false)).toReal) :
@@ -276,9 +318,9 @@ theorem first_stage_identity (hA : S.Assumptions)
               ((S.cfBundle.jointValue ω (1 : Fin 4)) : Bool)).toNat : ℝ)
       cases z <;> rfl
     have hbridge : S.condExpDZ z =
-        eventCondExp P.μ (S.zVar.event z) (fun ω => ((S.factualD ω).toNat : ℝ)) := rfl
+        normalizedRestrictedIntegral P.μ (S.zVar.event z) (fun ω => ((S.factualD ω).toNat : ℝ)) := rfl
     rw [hbridge,
-      POSystem.eventCondExp_of_consistency_IndepCF hA.instrumentIndep
+      POSystem.eventCondExp_of_ae_eq_IndepCF hA.instrumentIndep
         (a := S.zVar) hh_meas
         (measurableSet_singleton z)
         (ae_restrict_of_forall_mem (S.measurableSet_zEvent z) h_cons)
@@ -323,8 +365,10 @@ theorem first_stage_identity (hA : S.Assumptions)
   rw [MeasureTheory.integral_indicator_const (1:ℝ) S.measurableSet_complierEvent]
   simp [MeasureTheory.measureReal_def]
 
-/-- Step 2 of rem:po-late: reduced-form identity.
-    `E[Y | Z=1] - E[Y | Z=0] = E[Y(D(1)) - Y(D(0))]`. -/
+/-- [The observed outcome contrast across instrument cells equals the population contrast between
+instrument-induced potential outcomes](goal) under [the binary-IV identifying
+assumptions](hyp:hA), [positive instrument-on](hyp:hZ1) and [instrument-off](hyp:hZ0) cells, and
+[integrable treated](hyp:hY1) and [untreated](hyp:hY0) potential outcomes. -/
 theorem reduced_form_identity (hA : S.Assumptions)
     (hZ1 : 0 < (P.μ (S.zEvent true)).toReal)
     (hZ0 : 0 < (P.μ (S.zEvent false)).toReal)
@@ -392,9 +436,9 @@ theorem reduced_form_identity (hA : S.Assumptions)
       rw [hJV0, hJV1, hJV2, hJV3]
       cases z <;> cases S.DofZ _ ω <;> simp
     have hbridge : S.condExpYZ z =
-        eventCondExp P.μ (S.zVar.event z) S.factualY := rfl
+        normalizedRestrictedIntegral P.μ (S.zVar.event z) S.factualY := rfl
     rw [hbridge,
-      POSystem.eventCondExp_of_consistency_IndepCF hA.instrumentIndep
+      POSystem.eventCondExp_of_ae_eq_IndepCF hA.instrumentIndep
         (a := S.zVar) hh_meas
         (measurableSet_singleton z)
         (ae_restrict_of_forall_mem (S.measurableSet_zEvent z) h_cons)
@@ -410,8 +454,9 @@ theorem reduced_form_identity (hA : S.Assumptions)
   rw [hCE true hZ1, hCE false hZ0]
   rw [← MeasureTheory.integral_sub (hYDZ_int true) (hYDZ_int false)]
 
-/-- Step 3 of rem:po-late: pointwise monotonicity identity.
-    `Y(D(1)) - Y(D(0)) = (Y(1) - Y(0)) · 1_C` almost surely. -/
+/-- [The instrument-induced outcome change equals the treatment effect on compliers and vanishes
+for everyone else, almost surely](goal) under [the binary-IV identifying assumptions](hyp:hA).
+This isolates the population whose effect survives in the reduced form. -/
 theorem pointwise_monotonicity (hA : S.Assumptions) :
     ∀ᵐ ω ∂P.μ,
       S.YofDofZ true ω - S.YofDofZ false ω
@@ -422,13 +467,14 @@ theorem pointwise_monotonicity (hA : S.Assumptions) :
   rcases hD1 : S.DofZ true ω <;> rcases hD0 : S.DofZ false ω <;>
     simp_all [Set.indicator]
 
-/-- Step 4 of rem:po-late: event-conditioning identity.
-    `E[(Y(1) - Y(0)) · 1_C] = P(C) · LATE`. -/
+/-- [The population mean of the complier-restricted treatment effect factors into the complier
+share times LATE](goal) for [the binary IV system](hyp:S), converting the reduced-form numerator
+into the target estimand. -/
 theorem event_conditioning_identity :
     ∫ ω, (S.YofD true ω - S.YofD false ω) *
            S.complierEvent.indicator (fun _ => (1:ℝ)) ω ∂P.μ
       = (P.μ S.complierEvent).toReal * S.LATE := by
-  unfold LATE eventCondExp
+  unfold LATE
   have hC : MeasurableSet S.complierEvent := S.measurableSet_complierEvent
   have h_rw :
       (fun ω => (S.YofD true ω - S.YofD false ω) *
@@ -439,15 +485,9 @@ theorem event_conditioning_identity :
     · simp [Set.indicator_of_mem hω]
     · simp [Set.indicator_of_notMem hω]
   rw [h_rw, MeasureTheory.integral_indicator hC]
-  by_cases hμ : (P.μ S.complierEvent).toReal = 0
-  · rw [hμ, zero_mul]
-    have hμ0 : P.μ S.complierEvent = 0 := by
-      have hne : P.μ S.complierEvent ≠ ⊤ := measure_ne_top _ _
-      exact (ENNReal.toReal_eq_zero_iff _).mp hμ |>.resolve_right hne
-    have hrest : P.μ.restrict S.complierEvent = 0 := by
-      rw [MeasureTheory.Measure.restrict_eq_zero]; exact hμ0
-    simp [hrest]
-  · field_simp
+  simpa [mul_comm] using
+    (eventCondExp_mul_measure_toReal P.μ S.complierEvent
+      (measure_ne_top _ _) (fun ω => S.YofD true ω - S.YofD false ω)).symm
 
 /-- **Wald identification of LATE** (`prop:po-late`). Under [the binary-
 instrument LATE identifying assumption bundle](hyp:hA), when [the event

@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.RegularLower
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseLowerAssembly
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.AlphabetPadding
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.RegularLower
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseLowerAssembly
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.AlphabetPadding
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
 
 /-! Numerical and statistical assembly for the lower-bound regime splice. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

@@ -2,36 +2,26 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Ville's inequality and test supermartingales
-
-The probabilistic engine of **anytime-valid inference**.  A *test supermartingale* is a nonnegative
-supermartingale `M` adapted to the data-collection filtration with `E[M₀] ≤ 1`; it is the wealth
-process of a bet against the null hypothesis, and the supermartingale property is what survives
-*adaptive* (sequential, data-dependent) sampling.  **Ville's inequality** is the time-uniform
-maximal inequality: the probability that a nonnegative supermartingale `M` ever exceeds a level `λ`
-is at most `E[M₀] / λ`.  Because the bound holds simultaneously for all times `n`, it licenses
-inference at a data-dependent stopping time — the defining feature of valid sequential inference.
-
-The time-uniform statement is obtained from the finite-horizon supermartingale maximal inequality
-(`supermartingale_maximal_ineq`) by monotone convergence over the horizon; the finite-horizon
-inequality is the one genuinely measure-theoretic step (it is the supermartingale analogue of
-Mathlib's `MeasureTheory.maximal_ineq` for nonnegative submartingales, proved by optional stopping
-at the hitting time of `[λ,∞)`).
 -/
 
-import Mathlib.Probability.Martingale.OptionalStopping
-import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+module
+public import Mathlib.Probability.Martingale.OptionalStopping
+public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 
 /-! # Ville inequality
 
-Ville's inequality gives time-uniform control for nonnegative test supermartingales.
+Ville's inequality bounds, under a probability law, the probability that a nonnegative
+supermartingale ever crosses a positive level by its initial expected value divided by that level.
+Because the bound holds simultaneously over time, it supports inference at data-dependent stopping
+times.
 
-The predicate `IsTestSupermartingale` packages a nonnegative supermartingale with initial expected
-wealth at most one.  The theorem `supermartingale_maximal_ineq` proves the finite-horizon maximal
-bound, `ville_inequality` passes to the event of ever crossing a positive level, and `ville_test`
-specializes the result to the `1/α` threshold used by anytime-valid tests.
+This file packages test supermartingales as nonnegative supermartingales with initial expected
+wealth at most one. It proves the finite-horizon maximal inequality under a finite measure by
+optional stopping at a hitting time, passes to the time-uniform probability bound, and specializes
+the crossing level to `1/α` for anytime-valid testing.
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped NNReal ENNReal MeasureTheory ProbabilityTheory BigOperators
@@ -42,18 +32,27 @@ namespace Sequential
 
 variable {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω} {ℱ : Filtration ℕ m0}
 
-/-- Given [a sample space](hyp:Ω), [a σ-algebra on that space](hyp:m0), [a real-valued process
-indexed by nonnegative integer times](hyp:M), [a filtration on that σ-algebra](hyp:ℱ), and [a
-measure on that measurable space](hyp:μ), a [test supermartingale](goal) is a
+/-- Given [a sample space](hyp:Ω), [a σ-algebra on that space](hyp:m0),
+[a real-valued process indexed by time](hyp:M), [a filtration on that σ-algebra](hyp:ℱ), and
+[a measure on that measurable space](hyp:μ), a [test supermartingale](goal) is a
 supermartingale adapted to that filtration whose value is nonnegative at every time and sample
 point and whose expected initial value is at most one.
 
-It is the wealth process of a bet against the null that cannot grow in expectation under it. -/
+It is the wealth process of a bet against the null that cannot grow in expectation under it.
+
+  The whole sequential stack is stated at finite-measure generality: nothing here uses total mass
+  one. These are measure bounds, and they become statements about probability, type-I error and
+  coverage exactly when a caller instantiates at a probability measure — which is what the
+  inference-facing callers do. The names are read in that setting; the theorems are not restricted
+  to it. -/
 def IsTestSupermartingale (M : ℕ → Ω → ℝ) (ℱ : Filtration ℕ m0) (μ : Measure Ω) : Prop :=
   Supermartingale M ℱ μ ∧ (∀ n, 0 ≤ M n) ∧ μ[M 0] ≤ 1
 
-/-- **Finite-horizon supermartingale maximal inequality.** For a nonnegative supermartingale `M` and
-level `λ > 0`, the probability that `M` reaches `λ` by time `n` is at most `E[M₀] / λ`.
+/-- **Finite-horizon supermartingale maximal inequality.** If
+[`M` is a supermartingale under a finite measure](hyp:hM),
+[`M` is everywhere nonnegative](hyp:hnonneg), [the level `λ` is positive](hyp:lam,hlam), and
+[the horizon is `n`](hyp:n), then
+[the crossing event has measure at most `E[M₀] / λ`](goal).
 
 This is the supermartingale analogue of `MeasureTheory.maximal_ineq` (for nonnegative
 submartingales); it is proved by optional stopping of the supermartingale at the hitting time of
@@ -129,11 +128,11 @@ theorem supermartingale_maximal_ineq [IsFiniteMeasure μ] {M : ℕ → Ω → �
   rw [ENNReal.le_ofReal_iff_toReal_le (measure_ne_top _ _) hdiv_nonneg]
   exact (le_div_iff₀ hlam).2 (by simpa [mul_comm] using hmul)
 
-/-- **Ville's inequality (time-uniform maximal inequality).** If [`M` is a supermartingale adapted
-to the filtration `ℱ` under the finite measure `μ`](hyp:hM), [`M` is everywhere
-nonnegative](hyp:hnonneg), and [the level `λ` is positive](hyp:hlam), then [the probability that
-`M` ever reaches `λ` is at most `E[M₀] / λ`](goal), the bound taken over the event of reaching the
-boundary at some finite time. -/
+/-- **Ville's inequality (time-uniform maximal inequality).** If
+[`M` is a supermartingale under the measure](hyp:hM),
+[`M` is everywhere nonnegative](hyp:hnonneg), and
+[the level `λ` is positive](hyp:lam,hlam), then
+[the measure of the event that `M` ever reaches `λ` is at most `E[M₀] / λ`](goal). -/
 theorem ville_inequality [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ}
     (hM : Supermartingale M ℱ μ) (hnonneg : ∀ n, 0 ≤ M n) {lam : ℝ} (hlam : 0 < lam) :
     μ {ω | ∃ n, lam ≤ M n ω} ≤ ENNReal.ofReal (μ[M 0] / lam) := by
@@ -160,9 +159,11 @@ theorem ville_inequality [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ}
   rw [hUnion, hmono.measure_iUnion]
   exact iSup_le (fun N => supermartingale_maximal_ineq hM hnonneg hlam N)
 
-/-- Ville's inequality for a test supermartingale: the chance of ever reaching `1/α` is at most
-`α`. -/
-theorem ville_test [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ} (hM : IsTestSupermartingale M ℱ μ)
+/-- If [`M` is a test supermartingale](hyp:hM) and
+[the level `α` is positive](hyp:α,hα), then
+[the event that `M` ever reaches `1/α` has measure at most `α`](goal). -/
+theorem ville_test [IsFiniteMeasure μ] {M : ℕ → Ω → ℝ}
+    (hM : IsTestSupermartingale M ℱ μ)
     {α : ℝ} (hα : 0 < α) :
     μ {ω | ∃ n, 1 / α ≤ M n ω} ≤ ENNReal.ofReal α := by
   obtain ⟨hsuper, hnn, hM0⟩ := hM

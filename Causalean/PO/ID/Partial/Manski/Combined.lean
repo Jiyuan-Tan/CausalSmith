@@ -4,23 +4,30 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Manski.MTR
-import Causalean.PO.ID.Partial.Manski.MTS
-import Causalean.PO.ID.Partial.Manski.MIV
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Manski.MIV
+public import Causalean.PO.ID.Partial.Manski.MTR
+public import Causalean.PO.ID.Partial.Manski.MTS
 
 /-! # Manski Combined Bounds
 
 This file proves Manski corollaries that combine shape restrictions. Monotone
 treatment response with monotone treatment selection gives a nonnegative
 average treatment effect bounded above by the observed treated-control mean
-contrast, while monotone treatment response with a monotone instrument gives a
-nonnegative effect bounded above by the integrated monotone-instrument
-envelope.
+contrast, while, for a finite instrument value space, monotone treatment
+response with a monotone instrument gives a nonnegative effect bounded above
+by the integrated monotone-instrument envelope.
 
 The arguments reuse the separate monotonicity, selection, and instrument
 bounds proved in the preceding Manski modules. -/
 
+public section
+
 set_option linter.unusedFintypeInType false
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -34,15 +41,15 @@ variable {P : POSystem} {α : Type*}
   (S : POManskiIVSystem P α)
 
 /-- **cor:po-iv-mtr-mts.** Under [the baseline Manski assumptions](hyp:hA), [monotone treatment
-response, `Y(0) ≤ Y(1)` almost surely](hyp:hMTR), and [monotone treatment selection — each
-potential outcome's mean given control is no larger than its mean given
-treatment](hyp:hMTS), [the average treatment effect is nonnegative and is upper-bounded by the
-naive observed contrast `E[Y | D=1] − E[Y | D=0]`](goal). -/
+response, `Y(0) ≤ Y(1)` almost surely](hyp:hMTR), and [monotone treatment
+selection with `0 < P(D=1) < 1`](hyp:hMTS), [the average treatment effect is
+nonnegative and is upper-bounded by the observed treated-control mean
+contrast](goal). -/
 theorem mtr_mts_bounds_ATE (hA : S.BaseAssumptions)
     (hMTR : S.MTR) (hMTS : S.MTS) :
     0 ≤ S.ATE ∧
-    S.ATE ≤ eventCondExp P.μ (S.dEvent true) S.factualY
-              - eventCondExp P.μ (S.dEvent false) S.factualY := by
+    S.ATE ≤ normalizedRestrictedIntegral P.μ (S.dEvent true) S.factualY
+              - normalizedRestrictedIntegral P.μ (S.dEvent false) S.factualY := by
   refine ⟨S.mtr_nonneg_ATE hA hMTR, ?_⟩
   -- MTS gives E[Y(1)] ≤ E[Y|D=1] and E[Y|D=0] ≤ E[Y(0)].
   have hU := S.mts_E_Y1_le_condY1 hA hMTS
@@ -53,12 +60,12 @@ theorem mtr_mts_bounds_ATE (hA : S.BaseAssumptions)
     exact integral_sub hA.integrable_Y1 hA.integrable_Y0
   rw [hATE_eq]; linarith
 
-/-- **cor:po-iv-mtr-miv.** Under [the baseline Manski assumptions](hyp:hA),
-[monotone treatment response, `Y(0) ≤ Y(1)` almost surely](hyp:hMTR), and [a monotone
-instrumental variable — the conditional mean of each potential outcome is nondecreasing in the
-instrument value across its support](hyp:hMIV), [the average treatment effect is nonnegative and
-is upper-bounded by the integrated monotone-instrument envelope contrast
-`∫ (mUpper1(Z) − mLower0(Z))`](goal). -/
+/-- **Finite-value-space specialization of cor:po-iv-mtr-miv.** For a finite
+instrument value space, under [the baseline Manski assumptions](hyp:hA),
+[monotone treatment response, `Y(0) ≤ Y(1)` almost surely](hyp:hMTR), and [a
+monotone instrumental variable](hyp:hMIV), [the average treatment effect is
+nonnegative and is upper-bounded by the integrated monotone-instrument
+envelope contrast](goal). -/
 theorem mtr_miv_bounds_ATE [IsFiniteMeasure P.μ] [Fintype α]
     (hA : S.BaseAssumptions) (hMTR : S.MTR) (hMIV : S.MIV) :
     letI := hMIV.inst

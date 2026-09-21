@@ -15,7 +15,8 @@ family an optimal design exists.  Keeping the optimality layer generic in `R` is
 order-theoretic content from the particular estimation problem being optimized.
 -/
 
-import Causalean.Experimentation.DesignBased.Risk
+module
+public import Causalean.Experimentation.DesignBased.Risk
 
 /-!
 # Design-family optimality criteria
@@ -29,6 +30,8 @@ nonempty finite design family has an optimal member. The risk functional `mseRis
 mean squared error of a design-indexed estimator, with `mseRisk_nonneg` and
 `mseRisk_eq_var_of_unbiased` connecting it to nonnegativity and variance for unbiased estimators.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

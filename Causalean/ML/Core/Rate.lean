@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Limit.Convergence
-import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
+
+module
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
 
 /-! # Learning-rate abstraction and rate algebra
 
@@ -20,6 +22,8 @@ nuisance-rate conditions).
   into the `o_p(n^{-1/4})` the DML side consumes).
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open MeasureTheory Filter Topology Causalean.Stat
@@ -30,7 +34,7 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {Xn Yn : ℕ → Ω
 theorem isLittleOp_one_of_le_one {rn : ℕ → ℝ} (hr : ∀ n, rn n ≤ 1)
     (h : IsLittleOp Xn rn μ) : IsLittleOp Xn (fun _ => 1) μ := by
   intro ε hε
-  have hlim : Tendsto (fun n => μ {ω | ε * rn n < |Xn n ω|}) atTop (𝓝 0) := h ε hε
+  have hlim : Tendsto (fun n => μ {ω | ε * rn n ≤ |Xn n ω|}) atTop (𝓝 0) := h ε hε
   refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hlim
     (fun n => zero_le) ?_
   intro n
@@ -38,7 +42,7 @@ theorem isLittleOp_one_of_le_one {rn : ℕ → ℝ} (hr : ∀ n, rn n ≤ 1)
   intro ω hω
   have hmul : ε * rn n ≤ ε * 1 :=
     mul_le_mul_of_nonneg_left (hr n) (le_of_lt hε)
-  exact lt_of_le_of_lt hmul (by simpa using hω)
+  exact hmul.trans (by simpa using hω)
 
 /-- **The `n^{-1/4}` product rule.** If [the sequence `Xn` is `o_p(n^{-1/4})`](hyp:hX)
 and [the sequence `Yn` is `o_p(n^{-1/4})`](hyp:hY) under the probability law `μ`, then
@@ -53,10 +57,10 @@ theorem isLittleOp_mul_quarter
   have hδpos : 0 < δ := Real.sqrt_pos.2 hε
   have hδsq : δ * δ = ε := by
     simpa [δ, pow_two] using Real.sq_sqrt (le_of_lt hε)
-  let A : ℕ → Set Ω := fun n => {ω | δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) < |Xn n ω|}
-  let B : ℕ → Set Ω := fun n => {ω | δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) < |Yn n ω|}
+  let A : ℕ → Set Ω := fun n => {ω | δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ |Xn n ω|}
+  let B : ℕ → Set Ω := fun n => {ω | δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ |Yn n ω|}
   let C : ℕ → Set Ω :=
-    fun n => {ω | ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) < |Xn n ω * Yn n ω|}
+    fun n => {ω | ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) ≤ |Xn n ω * Yn n ω|}
   have hAt : Tendsto (fun n => μ (A n)) atTop (𝓝 0) := by
     simpa [A, δ] using hX δ hδpos
   have hBt : Tendsto (fun n => μ (B n)) atTop (𝓝 0) := by
@@ -67,8 +71,6 @@ theorem isLittleOp_mul_quarter
     (Eventually.of_forall fun n => zero_le) ?_
   filter_upwards [eventually_ge_atTop 1] with n hn
   have hnpos : 0 < (n : ℝ) := by exact_mod_cast hn
-  have hrate_nonneg : 0 ≤ (n : ℝ) ^ (-(1 / 4 : ℝ)) :=
-    Real.rpow_nonneg (Nat.cast_nonneg n) _
   have hrate_prod :
       (n : ℝ) ^ (-(1 / 4 : ℝ)) * (n : ℝ) ^ (-(1 / 4 : ℝ)) =
         (n : ℝ) ^ (-(1 / 2 : ℝ)) := by
@@ -79,25 +81,23 @@ theorem isLittleOp_mul_quarter
     have hsubset : C n ⊆ A n ∪ B n := by
       intro ω hω
       by_contra hnot
-      have hnotA : ¬ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) < |Xn n ω| := by
+      have hnotA : ¬ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ |Xn n ω| := by
         intro hx
         exact hnot (Or.inl hx)
-      have hnotB : ¬ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) < |Yn n ω| := by
+      have hnotB : ¬ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ |Yn n ω| := by
         intro hy
         exact hnot (Or.inr hy)
-      have hXle : |Xn n ω| ≤ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) := le_of_not_gt hnotA
-      have hYle : |Yn n ω| ≤ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) := le_of_not_gt hnotB
-      have hbound_nonneg : 0 ≤ δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) :=
-        mul_nonneg (le_of_lt hδpos) hrate_nonneg
-      have hprod : |Xn n ω * Yn n ω| ≤ ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) := by
+      have hXlt : |Xn n ω| < δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) := lt_of_not_ge hnotA
+      have hYlt : |Yn n ω| < δ * (n : ℝ) ^ (-(1 / 4 : ℝ)) := lt_of_not_ge hnotB
+      have hprod : |Xn n ω * Yn n ω| < ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) := by
         calc
           |Xn n ω * Yn n ω| = |Xn n ω| * |Yn n ω| := abs_mul (Xn n ω) (Yn n ω)
-          _ ≤ (δ * (n : ℝ) ^ (-(1 / 4 : ℝ))) *
+          _ < (δ * (n : ℝ) ^ (-(1 / 4 : ℝ))) *
               (δ * (n : ℝ) ^ (-(1 / 4 : ℝ))) :=
-            mul_le_mul hXle hYle (abs_nonneg _) hbound_nonneg
+            mul_lt_mul'' hXlt hYlt (abs_nonneg _) (abs_nonneg _)
           _ = ε * (n : ℝ) ^ (-(1 / 2 : ℝ)) := by
             rw [mul_mul_mul_comm, hδsq, hrate_prod]
-      exact not_lt_of_ge hprod hω
+      exact (not_lt_of_ge hω) hprod
     calc
       μ (C n) ≤ μ (A n ∪ B n) := measure_mono hsubset
       _ ≤ μ (A n) + μ (B n) := MeasureTheory.measure_union_le (A n) (B n)
@@ -114,12 +114,8 @@ theorem isLittleOp_quarter_of_isBigOp_sqrt
   by_cases hδtop : δ = ⊤
   · filter_upwards with n
     simp [hδtop]
-  have hδpos : 0 < δ.toReal := ENNReal.toReal_pos (ne_of_gt hδ) hδtop
-  let α : ℝ := δ.toReal / 2
-  have hαpos : 0 < α := by
-    dsimp [α]
-    linarith
-  rcases h α hαpos with ⟨M0, hM0⟩
+  have hhalfpos : 0 < δ / 2 := ENNReal.div_pos hδ.ne' (by norm_num)
+  rcases h (δ / 2) hhalfpos with ⟨M0, hM0pos, hM0⟩
   let M : ℝ := max M0 1
   have hMpos : 0 < M := by
     dsimp [M]
@@ -127,25 +123,17 @@ theorem isLittleOp_quarter_of_isBigOp_sqrt
   have hM0le : M0 ≤ M := by
     dsimp [M]
     exact le_max_left M0 1
-  let A : ℕ → Set Ω := fun n => {ω | ε * (n : ℝ) ^ (-(1 / 4 : ℝ)) < |Xn n ω|}
-  let B : ℕ → Set Ω := fun n => {ω | M * (Real.sqrt (n : ℝ))⁻¹ < |Xn n ω|}
-  have hlimB : Filter.limsup (fun n => μ (B n)) atTop ≤ ENNReal.ofReal α := by
-    refine le_trans (Filter.limsup_le_limsup (Eventually.of_forall ?_)) hM0
-    intro n
-    apply measure_mono
-    intro ω hω
-    dsimp [B] at hω ⊢
+  let A : ℕ → Set Ω := fun n => {ω | ε * (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ |Xn n ω|}
+  let B : ℕ → Set Ω := fun n => {ω | M * (Real.sqrt (n : ℝ))⁻¹ ≤ |Xn n ω|}
+  have hhalf_lt : δ / 2 < δ := ENNReal.half_lt_self hδ.ne' hδtop
+  have hBevent : ∀ᶠ n : ℕ in atTop, μ (B n) < δ := by
+    filter_upwards [hM0] with n hn
     have hrate_nonneg : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ :=
       inv_nonneg.mpr (Real.sqrt_nonneg _)
-    exact lt_of_le_of_lt (mul_le_mul_of_nonneg_right hM0le hrate_nonneg) hω
-  have hα_lt_delta : ENNReal.ofReal α < δ := by
-    rw [ENNReal.ofReal_lt_iff_lt_toReal]
-    · dsimp [α]
-      linarith
-    · dsimp [α]
-      linarith [le_of_lt hδpos]
-    · exact hδtop
-  have hBevent := Filter.eventually_lt_of_limsup_lt (lt_of_le_of_lt hlimB hα_lt_delta)
+    have hsubset : B n ⊆ {ω | M0 * (Real.sqrt (n : ℝ))⁻¹ ≤ |Xn n ω|} := by
+      intro ω hω
+      exact (mul_le_mul_of_nonneg_right hM0le hrate_nonneg).trans hω
+    exact (le_trans (measure_mono hsubset) hn).trans_lt hhalf_lt
   have hthreshold : ∀ᶠ n : ℕ in atTop,
       M * (Real.sqrt (n : ℝ))⁻¹ ≤ ε * (n : ℝ) ^ (-(1 / 4 : ℝ)) := by
     have ht : Tendsto (fun n : ℕ => (M / ε) * (n : ℝ) ^ (-(1 / 4 : ℝ)))
@@ -186,14 +174,17 @@ theorem isLittleOp_quarter_of_isBigOp_sqrt
   have hsubset : A n ⊆ B n := by
     intro ω hω
     dsimp [A, B] at hω ⊢
-    exact lt_of_le_of_lt hthr hω
-  have heq : {ω | ε * (fun n => (n : ℝ) ^ (-(1 / 4 : ℝ))) n < |Xn n ω|} = A n := by
-    ext ω
-    simp [A]
-  rw [heq]
-  exact le_of_lt (lt_of_le_of_lt (measure_mono hsubset) hBn)
+    exact hthr.trans hω
+  calc
+    μ {ω | ε * (fun n => (n : ℝ) ^ (-(1 / 4 : ℝ))) n ≤ ‖Xn n ω‖} = μ (A n) := by
+      congr 1
+    _ ≤ δ := le_of_lt (lt_of_le_of_lt (measure_mono hsubset) hBn)
 
-/-- For [a measurable sample space](hyp:Ω), [a measurable covariate space](hyp:X), [a sequence of estimated regression functions indexed by sample size and experiment outcome](hyp:hhat), [a target regression function](hyp:hstar), [a joint covariate--response measure](hyp:P), [a real-valued rate sequence](hyp:rn), and [an experiment measure](hyp:μ), [the predicate that the estimators achieve the stated L² rate](goal) holds precisely when [for every sample size and experiment outcome, the L² seminorm of the estimation error under the covariate marginal of the joint measure is finite](step:1), and [the resulting real-valued sequence of L² seminorms is stochastically bounded at the supplied rate under the experiment measure](step:2).
+/-- [Achieving an L² estimation rate](goal) means that
+[experiment-indexed regression estimates](hyp:Ω,X,hhat) approach
+[a target under a joint law](hyp:hstar,P) with [finite L² error everywhere](step:1), and that
+[those errors are stochastically bounded by the claimed rate](step:2)
+under [the experiment law](hyp:μ) at [the supplied rate sequence](hyp:rn).
 
 The L² seminorm is computed using the covariate marginal of the joint law, so the
 real-valued stochastic-order claim never comes from converting an infinite extended norm to zero. -/

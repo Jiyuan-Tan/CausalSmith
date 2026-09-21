@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.LocalPoly.Weights
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.Algebra.Polynomial.Roots
+
+module
+public import Causalean.Stat.Nonparametric.LocalPoly.Weights
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Algebra.Polynomial.Roots
 
 /-!
 # Positive-definiteness and invertibility of the design moment matrix
@@ -22,6 +24,8 @@ weighted design points; e.g. there are `p+1` distinct points with positive weigh
 Vandermonde). This discharges the `IsUnit (designMatrix p x w).det` hypothesis used
 throughout the local-polynomial analysis from a concrete condition on the design.
 -/
+
+public section
 
 namespace Causalean.Stat.Nonparametric
 

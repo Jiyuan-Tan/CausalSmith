@@ -1,12 +1,13 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.OuterExpectation
-import Causalean.Stat.Nonparametric.Approximation.HolderInterpolation
-import Causalean.Mathlib.CondDistrib
-import Mathlib.Probability.Kernel.CondDistrib
-import Mathlib.Probability.Moments.Variance
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Haar.OfBasis
-import Mathlib.MeasureTheory.Measure.Support
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.OuterExpectation
+public import Causalean.Stat.Nonparametric.Approximation.Holder.Interpolation
+public import Causalean.Mathlib.Probability.Kernel.CondDistrib
+public import Mathlib.Probability.Kernel.CondDistrib
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Haar.OfBasis
+public import Mathlib.MeasureTheory.Measure.Support
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
 
 /-!
 # Bounded uniform logarithmic penalty: common definitions
@@ -16,6 +17,8 @@ decision classes, completed and outer risks, and the logarithmic frontier rate.
 The bivariate covariate is represented by `EuclideanSpace ℝ (Fin 2)`, so every
 metric and Hölder condition below uses the paper's Euclidean geometry.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Filter Set
 open scoped BigOperators ENNReal NNReal Topology

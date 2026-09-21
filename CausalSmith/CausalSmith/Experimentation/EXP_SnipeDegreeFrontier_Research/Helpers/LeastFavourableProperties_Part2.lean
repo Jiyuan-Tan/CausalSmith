@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourableProperties_Part1
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourableProperties_Part1
 
 /-!
 # The least-favourable schedule model and its potential outcomes
@@ -8,6 +9,8 @@ Builds the model whose response is the block schedule, evaluates its potential
 outcomes on active and inactive units, and computes the resulting total
 treatment effect.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

@@ -3,13 +3,17 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceForward
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceForward
 
 /-! # Pair counts for the balanced two-block partition
 
 Finite pair-count identities over `A_m` and `B_m`, used by the spectral-coordinate
 trace and Frobenius calculations.
 -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

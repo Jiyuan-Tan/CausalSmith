@@ -1,10 +1,13 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Collapse
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FrontierSign
-import Causalean.Stat.MEstimation.FinitePoissonSign
-import Mathlib.Tactic.NormNum
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Collapse
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FrontierSign
+public import Causalean.Stat.MEstimation.FinitePoissonSign
+public import Mathlib.Tactic.NormNum
 
 /-! The nuisance-free global frontier and the distinct counterfactual-share PTT target. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Causalean.Stat

@@ -21,8 +21,9 @@ which collapses to `2β(α+β)/(1 − 4β²)` of `Gap.lean` at `g₁ = 1/2`.  Wi
 regardless of `s`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Construction
-import Mathlib.Tactic.LinearCombination
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Construction
+public import Mathlib.Tactic.LinearCombination
 
 /-! # General-Center ATE Gap
 
@@ -34,6 +35,8 @@ The main public results are `ate_ghatG`, the null-center ATE calculation;
 `gPertG_true_eq`, which clears the treated-arm denominator for algebraic use;
 `ate_gPertG`, the exact perturbed ATE formula; and `ate_gapG`, the resulting
 constant ATE separation between the perturbation and the null. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

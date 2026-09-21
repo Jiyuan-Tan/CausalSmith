@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.Helpers
-import Causalean.SCM.Do.GlobalMarkov
-import Causalean.SCM.Do.Rule3
+module
+public import Causalean.SCM.Do.Rule2Kernel.Helpers
+public import Causalean.SCM.Do.GlobalMarkov
+public import Causalean.SCM.Do.Rule3
 
 /-! # Rule 2 Level-Set Compatibility
 
@@ -15,6 +16,13 @@ double-intervention models agree on the latent level set where the single
 intervention already realizes the additional treatment values. This is the
 evaluation-map bridge used in the kernel proof of Rule 2 of do-calculus.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

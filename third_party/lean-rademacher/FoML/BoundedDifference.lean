@@ -1,4 +1,7 @@
-import FoML.Rademacher
+module
+public import FoML.Rademacher
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Real
 open scoped ENNReal

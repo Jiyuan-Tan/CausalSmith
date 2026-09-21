@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmHighDimensionalAssembly
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmParametric
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmHighDimensionalAssembly
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmParametric
 
 /-!
 # Scalar final assembly for the one-arm converse
@@ -7,6 +8,8 @@ import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPar
 This module combines a high-dimensional lower bound above a logarithmic
 threshold with the parametric lower bound below that threshold.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

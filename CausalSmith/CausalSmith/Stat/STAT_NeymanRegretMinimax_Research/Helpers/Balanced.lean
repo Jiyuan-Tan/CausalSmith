@@ -9,8 +9,11 @@ This file contains the symmetric-base sanity check and its balanced tangent
 witness, separated from `NeymanAlgebra` so the algebra file stays small.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.NeymanAlgebra
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ExtremalProduct
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.NeymanAlgebra
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ExtremalProduct
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

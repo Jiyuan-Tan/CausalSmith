@@ -1,0 +1,485 @@
+%%% FIELD ass-staffing-window-condition
+The staffing offset satisfies \(\gamma\in[-G,G]\), where the staffing radius \(G\in\mathbb Q_{\geq 0}\) is supplied exactly.
+%%% FIELD def-design-objective-construction
+For the exact supplied staffing radius \(G\in\mathbb Q_{\geq0}\), define
+\[
+ J(p,\gamma)=c_M\gamma+c_Iz_\alpha\sqrt{V_0(p)+V_\gamma(p)},
+ \qquad \gamma\in[-G,G].
+\]
+%%% FIELD def-input-name-construction
+A supplied rational interval name for the design inputs is a nested sequence
+\[
+ \mathfrak r(m)=\prod_j[r_j^-(m),r_j^+(m)],\qquad m\in\mathbb N,
+\]
+of boxes with rational endpoints containing \((p,c_M,c_I,\alpha,G)\), where the \(G\)-coordinate is the degenerate interval \([G,G]\) at every precision and \(G\in\mathbb Q_{\geq0}\) is therefore supplied exactly.  The boxes are nested, their maximum coordinate width is at most \(2^{-m}\), they preserve positive lower bounds for the rate and cost coordinates, and they certify \(0<\alpha<1\).  Thus \([-G,G]\) has rational endpoints and the predicate \(G=0\) is decidable by rational comparison.  This definition specifies supplied input data; it does not assert a procedure that constructs names for arbitrary real inputs.
+%%% FIELD def-interval-oracle-construction
+Relative to a supplied input name whose staffing-radius coordinate is the exact rational interval \([G,G]\), a validated interval oracle consists of a global rational bound \(L_J\in\mathbb Q_{>0}\) and a map which, for every interval \(I=[a,b]\subseteq[-G,G]\) with \(a,b\in\mathbb Q\) and every \(m\in\mathbb N\), returns
+\[
+ \mathfrak O(I,m)=[\underline J(I,m),\overline J(I,m)]\in\mathbb Q^2.
+\]
+For every \(\eta\in I\), the return must satisfy
+\[
+ J(p,\eta)\in\mathfrak O(I,m),
+ \qquad
+ \overline J(I,m)-\underline J(I,m)
+ \leq L_J\operatorname{diam}(I)+2^{-m},
+\]
+and the returned width for a point interval must be at most \(2^{-m}\).  The receipts and all rational inequalities are part of the oracle contract.  No oracle soundness follows merely from a Cauchy name or an unevaluated series description.
+%%% FIELD def-certificate-algorithm-construction
+Conditional on a supplied interval oracle satisfying Definition \(\mathrm{interval\mbox{-}oracle}\), begin with the rational root interval \([-G,G]\).  Decide the case \(G=0\) by exact rational comparison.  If \(G>0\), enumerate \(r=0,1,2,\ldots\) using rational arithmetic until \(8GL_J\leq\epsilon2^r\); the first such integer is \(D_\epsilon\).  Apply the oracle to a fair dyadic branch-and-bound tree for \(J\).  At depth \(r\), bisect every surviving interval, evaluate every child and its midpoint at precision at least \(m_\epsilon+r\), retain a rational incumbent upper bound and an incumbent point \(\gamma_\epsilon\), and prune only an interval whose certified lower bound exceeds the incumbent.  If pruning has not already certified an objective gap at most \(\epsilon\), retain the full-level fallback partition through depth \(D_\epsilon\) and stop there.
+%%% FIELD def-capacity-certificate-construction
+Relative to a supplied oracle satisfying Definition \(\mathrm{interval\mbox{-}oracle}\) on the exact rational root \([-G,G]\),
+\[
+ \mathrm{Cert}=(\gamma_\epsilon,L_\epsilon,U_\epsilon,
+ \{(I_r,\underline J_r,\overline J_r,m_r,\sigma_r)\}_{r=1}^R),
+ \qquad \sigma_r\in\{\mathrm{active},\mathrm{pruned}\},
+\]
+is a finite rational dyadic certificate when every \(I_r\) has rational endpoints, each recorded receipt encloses \(J\) on \(I_r\), every pruned interval satisfies \(\underline J_r>U_\epsilon\), the active intervals cover every global minimizer, the incumbent point receipt at \(\gamma_\epsilon\) has upper endpoint \(U_\epsilon\), and
+\[
+ \mathcal C_\epsilon:=\{I_r:\sigma_r=\mathrm{active}\}
+\]
+is the certificate's unpruned cover.  In addition,
+\[
+ L_\epsilon=\min_{r:\sigma_r=\mathrm{active}}\underline J_r,
+ \qquad U_\epsilon-L_\epsilon\leq\epsilon.
+\]
+The certificate is checkable relative to the supplied receipt contract; this definition alone does not implement an oracle.
+%%% FIELD proof-certified-capacity-design
+We construct the modulus and every oracle return from finite rational receipts.
+
+\emph{Step 1: rational parameter bounds and a global modulus.}
+By Definition \(\mathrm{input\mbox{-}name}\), the \(G\)-coordinate is exactly \([G,G]\), while the other coordinate intervals are nested, have widths tending to zero, and preserve the strict positivity imposed by Assumptions \(\mathrm{rate\mbox{-}bounds}\), \(\mathrm{rate\mbox{-}membership}\), \(\mathrm{staffing\mbox{-}cost\mbox{-}positive}\), and \(\mathrm{information\mbox{-}cost\mbox{-}positive}\).  A finite prefix therefore supplies rationals
+\[
+ 0<\lambda_-\leq\lambda\leq\lambda_+,
+ \quad 0<\tau_-\leq\tau\leq\tau_+,
+ \quad 0<\nu_-\leq\nu\leq\nu_+,
+\tag{1}
+\]
+together with rational upper bounds \(c_M^+\geq c_M\) and \(c_I^+\geq c_I\), and a rational lower bound \(0<\alpha_-\leq\alpha\).  Set
+\[
+ \begin{gathered}
+ d_-:=\lambda_-+\tau_-,\qquad d_+:=\lambda_++\tau_+,
+ \qquad D_+:=\lambda_++\tau_++\nu_+,\\
+ q_-:=\frac{\lambda_-(\tau_-+\nu_-)}{D_+},\qquad
+ q_+:=\frac{\lambda_+(\tau_++\nu_+)}{\lambda_-+\tau_-+\nu_-},
+ \qquad v_*:=\frac{2\lambda_-\tau_-}{d_+^3}.
+ \end{gathered}
+\tag{2}
+\]
+The definitions \(d=\lambda+\tau\), \(D=\lambda+\tau+\nu\), \(q=\lambda(\tau+\nu)/D\), and \(V_0=2\lambda\tau/d^3\), together with (1), give
+\[
+ d_-\leq d\leq d_+,
+ \qquad D\leq D_+,
+ \qquad q_-\leq q\leq q_+,
+ \qquad V_0\geq v_*>0.
+\tag{3}
+\]
+Indeed, the lower bound on \(q\) uses the lower bounds for its numerator and the upper bound \(D_+\) for its denominator; the upper bound uses the upper bounds for its numerator and the positive lower bound \(\lambda_-+\tau_-+\nu_-\) for its denominator.  Rational bisection with squared-endpoint checks produces positive rationals \(s_q,s_d,s_0\) satisfying
+\[
+ s_q^2\geq q_+,
+ \qquad s_d^2\leq d_-,
+ \qquad s_0^2\leq v_*.
+\tag{4}
+\]
+The already established Lemma \(\mathrm{gamma\mbox{-}energy\mbox{-}lipschitz}\) and (3)--(4) imply, uniformly in the supplied parameter box and in \(\gamma\in[-G,G]\),
+\[
+ \left|\frac{\partial V_\gamma}{\partial\gamma}\right|
+ \leq K_V:=\frac{5\nu_+s_q}{d_-^2s_d}.
+\tag{5}
+\]
+
+Enumerate positive integers \(H\) until rational exponential enclosures certify
+\[
+ \frac{e^{-H^2/2}}{H}<\frac{\alpha_-}{2}.
+\tag{6}
+\]
+This enumeration terminates because the left side tends to zero.  Since
+\[
+ 1-\Phi(H)
+ =\frac1{\sqrt{2\pi}}\int_H^\infty e^{-x^2/2}\,dx
+ \leq\frac{e^{-H^2/2}}{H\sqrt{2\pi}}
+ <\frac{\alpha_-}{2}\leq\frac\alpha2,
+\tag{7}
+\]
+where the inequality follows from \(x/H\geq1\) in the integral of \(xe^{-x^2/2}\), monotonicity of \(\Phi\) gives \(z_\alpha<H\).  Moreover, (3)--(4) give \(\sqrt{V_0+V_\gamma}\geq s_0\).  Differentiating Definition \(\mathrm{design\mbox{-}objective}\) and applying (5) yields
+\[
+ |\partial_\gamma J(p,\gamma)|
+ \leq c_M^++\frac{c_I^+HK_V}{2s_0}.
+\tag{8}
+\]
+Consequently
+\[
+ L_J:=1+\left\lceil c_M^++\frac{c_I^+HK_V}{2s_0}\right\rceil
+\tag{9}
+\]
+is a positive rational global Lipschitz constant for \(J(p,\cdot)\).  Its construction uses only finite rational comparisons and the exponential receipts described below.
+
+\emph{Step 2: an exact nonnested point formula.}
+Fix rational \(g\in[-G,G]\), which is meaningful because \(G\) is exact rational.  Let
+\[
+ w_g(x)=
+ \begin{cases}
+ \exp\{-Dx^2/(2q)\},&x\leq g,\\
+ \exp\{-dx^2/(2q)-\nu gx/q+\nu g^2/(2q)\},&x>g.
+ \end{cases}
+\tag{10}
+\]
+Put
+\[
+ s:=-\frac{\nu g}{d},\qquad
+ K:=\frac{\nu Dg^2}{2qd},\qquad
+ \sigma_D:=\sqrt{q/D},\qquad \sigma_d:=\sqrt{q/d},
+\tag{11}
+\]
+and define \(y_D(x):=x/\sigma_D\), \(y(x):=(x-s)/\sigma_d\), and \(y_g:=y(g)\).  Completing the square gives
+\[
+ w_g(x)=e^K\exp\{-(x-s)^2/(2\sigma_d^2)\},\qquad x>g.
+\tag{12}
+\]
+Direct integration of (10)--(12) gives the normalizer \(Z\) and unnormalized first moment \(M\):
+\[
+ \begin{aligned}
+ Z={}&\sqrt{2\pi}\sigma_D\Phi(y_D(g))
+ +e^K\sqrt{2\pi}\sigma_d\{1-\Phi(y_g)\},\\
+ M={}&-\frac qD e^{-Dg^2/(2q)}
+ +e^K\left[s\sqrt{2\pi}\sigma_d\{1-\Phi(y_g)\}
+ +\frac qd e^{-y_g^2/2}\right].
+ \end{aligned}
+\tag{13}
+\]
+Thus \(m_g=M/Z\).  If
+\[
+ A_0(x):=\int_{-\infty}^xw_g(u)\,du,
+ \qquad A_1(x):=\int_{-\infty}^xuw_g(u)\,du,
+\tag{14}
+\]
+then, for \(x\leq g\),
+\[
+ A_0(x)=\sqrt{2\pi}\sigma_D\Phi(y_D(x)),
+ \qquad A_1(x)=-\frac qD e^{-Dx^2/(2q)},
+\tag{15}
+\]
+whereas for \(x>g\), continuity at \(g\) and the substitution \(v=(u-s)/\sigma_d\) give
+\[
+ \begin{aligned}
+ A_0(x)={}&A_0(g)+e^K\sqrt{2\pi}\sigma_d
+ \{\Phi(y(x))-\Phi(y_g)\},\\
+ A_1(x)={}&A_1(g)+e^K\left[s\sqrt{2\pi}\sigma_d
+ \{\Phi(y(x))-\Phi(y_g)\}
+ +\frac qd\{e^{-y_g^2/2}-e^{-y(x)^2/2}\}\right].
+ \end{aligned}
+\tag{16}
+\]
+Define \(\Psi(x):=A_1(x)-m_gA_0(x)\).  Definition \(\mathrm{diffusion\mbox{-}poisson}\) gives \(h_g'(x)=-\Psi(x)/(qw_g(x))\), and \(\pi_g=w_g/Z\).  Substitution into \(V_g=2q\int(h_g')^2\,d\pi_g\) proves
+\[
+ V_g=\frac2{qZ}\int_{\mathbb R}\frac{\Psi(x)^2}{w_g(x)}\,dx.
+\tag{17}
+\]
+Thus no nested improper integral remains.
+
+\emph{Step 3: an explicit tail receipt.}
+The mode of \(w_g\) is
+\[
+ x^*=0\quad\hbox{if }g\geq0,
+ \qquad x^*=-\nu g/d\quad\hbox{if }g<0.
+\tag{18}
+\]
+The negative log-density has derivative zero at \(x^*\), is continuously differentiable, and has second derivative between \(d/q\) and \(D/q\) away from its single kink.  Integrating these derivative bounds separately on each side of the kink yields
+\[
+ w_g(x^*)e^{-D(x-x^*)^2/(2q)}
+ \leq w_g(x)
+ \leq w_g(x^*)e^{-d(x-x^*)^2/(2q)}.
+\tag{19}
+\]
+After integration of the lower bound and division of the upper bound by \(Z\),
+\[
+ \frac Z{w_g(x^*)}\geq\sqrt{\frac{2\pi q}{D}},
+ \qquad
+ \pi_g(x)\leq\sqrt{\frac D{2\pi q}}
+ e^{-d(x-x^*)^2/(2q)}.
+\tag{20}
+\]
+For an integer \(R>|g|+|x^*|\), put \(r:=R-|x^*|>0\).  Since
+\[
+ \int_r^\infty e^{-du^2/(2q)}\,du
+ \leq\frac q{dr}e^{-dr^2/(2q)},
+\]
+(20) implies
+\[
+ \mathbb P_{\pi_g}(|X|>R)
+ \leq B_R:=\sqrt{\frac D{2\pi q}}\frac{2q}{dr}
+ e^{-dr^2/(2q)}.
+\tag{21}
+\]
+The bound \(h_g'\leq1/d\) from the already established Theorem \(\mathrm{diffusion\mbox{-}poisson}\) then gives
+\[
+ 0\leq2q\int_{|x|>R}\{h_g'(x)\}^2\pi_g(x)\,dx
+ \leq\frac{2q}{d^2}B_R.
+\tag{22}
+\]
+On a rational input box, \(|x^*|\leq\nu_+|g|/d_-\).  Replacing the factors in (21)--(22) by outward rational bounds obtained from (2)--(4) produces a rational upper bound dominated by a constant times \(r^{-1}\exp\{-d_-r^2/(2q_+)\}\).  It tends to zero, so enumeration of integer \(R\) terminates at every positive rational tolerance.
+
+\emph{Step 4: finite receipts for elementary functions.}
+The identity
+\[
+ \pi=16\arctan(1/5)-4\arctan(1/239)
+\tag{23}
+\]
+is verified by the rational tangent-addition formulas together with localization of the resulting angle in \((0,\pi)\).  Integrating the finite geometric identity for \((1+t^2)^{-1}\) gives the alternating arctangent expansion with a first-omitted-term rational remainder, so (23) gives nested rational enclosures of \(\pi\).  Positive square roots are enclosed by rational bisection with squared-endpoint checks.
+
+For rational \(x\), choose an integer \(M>2|x|\).  The Taylor expansion of \(e^{x/M}\) has the rational remainder bound
+\[
+ |R_n|\leq\frac{2|x/M|^{n+1}}{(n+1)!},
+\tag{24}
+\]
+because \(e^{|x|/M}\leq\sum_{j\geq0}|x/M|^j\leq2\).  Raising the positive enclosing interval to the integer power \(M\) gives arbitrarily narrow rational enclosures of \(e^x\).  For rational \(x\geq0\), termwise integration gives
+\[
+ \Phi(x)=\frac12+\frac1{\sqrt{2\pi}}
+ \sum_{j=0}^\infty\frac{(-1)^jx^{2j+1}}{2^j j!(2j+1)}.
+\tag{25}
+\]
+After the successive absolute terms become decreasing, their ratios continue to decrease, so the alternating remainder is bounded by the first omitted term; symmetry treats negative \(x\).  Hence (23)--(25) give finite rational enclosures of every elementary expression in (10)--(22).
+
+Assumption \(\mathrm{test\mbox{-}size}\) places \(1-\alpha/2\) strictly between \(1/2\) and \(1\), and (7) brackets \(z_\alpha\) in \([0,H]\).  Monotone bisection inverts \(\Phi\) on this interval.  If enclosures at a trial midpoint overlap the current enclosure of \(1-\alpha/2\), use
+\[
+ \inf_{0\leq x\leq H}\Phi'(x)
+ =\frac{e^{-H^2/2}}{\sqrt{2\pi}}>0
+\tag{26}
+\]
+and the integral identity for differences of \(\Phi\) to retain a valid shrinking bracket.  Refining the input and function enclosures makes this bracket arbitrarily narrow even when equality occurs at a tested midpoint.  Every receipt in (23)--(26) is a finite list of rational terms, remainder inequalities, bisection comparisons, and outward-rounded operations.
+
+\emph{Step 5: a terminating point evaluator.}
+For rational \(g\) and requested precision \(n\), dovetail refinement of the input prefix, enlargement of \(R\), refinement of the elementary receipts, and dyadic refinement of rational partitions of \([-R,g]\) and \([g,R]\).  On every cell, outward rational interval arithmetic applied to the relevant branch of (15)--(16) encloses \(\Psi^2/w_g\).  The denominator is bounded away from zero on the compact interval by (10) and positivity of the refined rate box; (20) supplies a positive lower bound for \(Z\).  The two branch formulas agree at \(g\), so the split omits no kink contribution.
+
+Cell widths times cell ranges give rational lower and upper Darboux sums for the compact part of (17).  On each closed branch the integrand is jointly continuous in the state and in every parameter over a sufficiently refined compact positive input box.  Uniform continuity makes the compact enclosure width tend to zero with the mesh and input widths.  Equation (22) makes the omitted tail tend to zero with \(R\), and Step 4 makes the elementary-function widths tend to zero.  Therefore the dovetailing search terminates with a finite rational receipt
+\[
+ P(g,n)=[P_-(g,n),P_+(g,n)]\ni J(p,g),
+ \qquad P_+(g,n)-P_-(g,n)\leq2^{-n}.
+\tag{27}
+\]
+Here \(V_0=2\lambda\tau/d^3\) is evaluated directly, \(V_g\) is evaluated through (13)--(17), and \(z_\alpha\) through (26).  The receipt records the input prefix, truncation radius, series orders and remainder bounds, quantile bracket, partition, every cell enclosure, both tail bounds, and every outward rational operation.  Thus (27) is checkable finite data rather than an assumed oracle.
+
+\emph{Step 6: interval returns.}
+For \(I=[a,b]\subseteq[-G,G]\) with rational endpoints, set \(g_0:=(a+b)/2\), obtain \(P(g_0,m+1)=[P_-,P_+]\), and return
+\[
+ \mathfrak O(I,m)=
+ \left[P_--\frac{L_J(b-a)}2,
+ P_++\frac{L_J(b-a)}2\right].
+\tag{28}
+\]
+For every \(\eta\in I\), (8)--(9) and the fundamental theorem of calculus give
+\[
+ |J(p,\eta)-J(p,g_0)|
+ \leq L_J|\eta-g_0|
+ \leq\frac{L_J(b-a)}2.
+\tag{29}
+\]
+Combining (27)--(29) proves that (28) encloses \(J(p,\eta)\), and
+\[
+ \begin{aligned}
+ \overline J(I,m)-\underline J(I,m)
+ &=P_+-P_-+L_J(b-a)\\
+ &\leq2^{-(m+1)}+L_J\operatorname{diam}(I)\\
+ &\leq2^{-m}+L_J\operatorname{diam}(I).
+ \end{aligned}
+\tag{30}
+\]
+For a point interval the returned width is at most \(2^{-(m+1)}\leq2^{-m}\).  Equations (9), (27), and (28), together with their finite witnesses, therefore construct the pair \((L_J,\mathfrak O)\) and verify every clause of Definition \(\mathrm{interval\mbox{-}oracle}\).  Oracle soundness is a conclusion, not a premise.
+%%% FIELD proof-oracle-conditional-capacity-certificate
+Let
+\[
+ \mu:=\inf_{|\gamma|\leq G}J(p,\gamma).
+\]
+The supplied oracle encloses the finite continuous objective on every interval it evaluates.  Because \(G\in\mathbb Q_{\geq0}\) is supplied exactly, rational comparison decides whether \(G=0\).
+
+Suppose first that \(G>0\).  Definition \(\mathrm{certificate\mbox{-}algorithm}\) determines \(D_\epsilon\) by enumerating nonnegative integers until
+\[
+ 8GL_J\leq\epsilon2^{D_\epsilon}.
+\tag{1}
+\]
+This enumeration terminates because \(\epsilon>0\), and every comparison is between rationals.  Every interval \(I\) at depth \(D_\epsilon\) in the dyadic tree rooted at the rational interval \([-G,G]\) has rational endpoints and
+\[
+ \operatorname{diam}(I)=2G2^{-D_\epsilon}.
+\]
+Consequently (1) gives
+\[
+ L_J\operatorname{diam}(I)
+ =2GL_J2^{-D_\epsilon}\leq\frac\epsilon4.
+\tag{2}
+\]
+At depth \(r\), the algorithm uses precision at least \(m_\epsilon+r\).  Thus at the terminal level
+\[
+ e_\epsilon:=2^{-(m_\epsilon+D_\epsilon)}
+ \leq2^{-m_\epsilon}\leq\frac\epsilon8,
+\tag{3}
+\]
+by the definition of \(m_\epsilon\).  The interval-oracle contract and (2)--(3) show that every terminal interval receipt has width at most
+\[
+ w_\epsilon:=L_J\operatorname{diam}(I)+e_\epsilon
+ \leq\frac{3\epsilon}{8},
+\tag{4}
+\]
+and every terminal midpoint receipt has width at most \(e_\epsilon\).
+
+Let \(U_t\) be the incumbent upper endpoint at any finite stage and let \(U_\epsilon\) be the final incumbent.  Since an incumbent is the upper endpoint of a point receipt containing its objective value,
+\[
+ U_t\geq\mu,
+ \qquad U_t\geq U_\epsilon.
+\tag{5}
+\]
+If an interval \(I\) contains a global minimizer \(\gamma^*\), oracle inclusion yields
+\[
+ \underline J(I,m)\leq J(p,\gamma^*)=\mu\leq U_t.
+\tag{6}
+\]
+The strict pruning rule therefore never removes an interval containing a global minimizer.  This proves the asserted cover property without convexity, uniqueness, or interiority.
+
+We next show that the terminal active family is nonempty and brackets \(\mu\).  If \(U_\epsilon>\mu\), then for every \(0<\delta<U_\epsilon-\mu\), the definition of infimum supplies \(\eta_\delta\in[-G,G]\) such that
+\[
+ J(p,\eta_\delta)<\mu+\delta<U_\epsilon\leq U_t.
+\tag{7}
+\]
+Every ancestor containing \(\eta_\delta\) has lower receipt no greater than \(J(p,\eta_\delta)\), so (7) prevents its pruning.  If \(U_\epsilon=\mu\), let \(u\) be the evaluated point furnishing the final incumbent.  Its point receipt gives
+\[
+ \mu\leq J(p,u)\leq U_\epsilon=\mu,
+\tag{8}
+\]
+and the same argument prevents pruning of every ancestor containing \(u\).  Thus the terminal active family is nonempty in both cases.
+
+Define \(L_\epsilon\) as the minimum lower endpoint over active terminal interval receipts, as in Definition \(\mathrm{capacity\mbox{-}certificate}\).  For any active terminal interval \(I\) and any \(\eta\in I\), oracle inclusion and (4) imply
+\[
+ \underline J(I,m)\geq J(p,\eta)-w_\epsilon\geq\mu-w_\epsilon.
+\]
+Taking the minimum gives
+\[
+ L_\epsilon\geq\mu-w_\epsilon.
+\tag{9}
+\]
+If \(U_\epsilon>\mu\), the active interval supplied by (7) has lower endpoint below \(\mu+\delta\) for every sufficiently small \(\delta>0\), hence \(L_\epsilon\leq\mu\).  If \(U_\epsilon=\mu\), the active interval from (8) has lower endpoint at most \(J(p,u)=\mu\).  Therefore
+\[
+ L_\epsilon\leq\mu.
+\tag{10}
+\]
+
+If \(U_\epsilon=\mu\), its desired upper bound is immediate.  Otherwise, take \(\eta_\delta\) from (7), let \(I_\delta\) be its active terminal interval, and let \(u_\delta\) be that interval's evaluated midpoint.  Since the interval receipt contains both objective values, (4) gives
+\[
+ J(p,u_\delta)\leq J(p,\eta_\delta)+w_\epsilon
+ <\mu+\delta+w_\epsilon.
+\tag{11}
+\]
+The corresponding point-receipt upper endpoint is at most \(J(p,u_\delta)+e_\epsilon\), and the final incumbent is no larger.  Letting \(\delta\downarrow0\) and using (3)--(4),
+\[
+ U_\epsilon\leq\mu+w_\epsilon+e_\epsilon
+ \leq\mu+\frac\epsilon2.
+\tag{12}
+\]
+Equations (9), (10), and (12) yield
+\[
+ U_\epsilon-L_\epsilon
+ \leq2w_\epsilon+e_\epsilon
+ \leq\frac{7\epsilon}{8}<\epsilon.
+\tag{13}
+\]
+Since \(\gamma_\epsilon\) is the incumbent point, its receipt and (10) also give
+\[
+ L_\epsilon\leq\mu
+ \leq J(p,\gamma_\epsilon)\leq U_\epsilon.
+\tag{14}
+\]
+
+If an interval was pruned when the incumbent was \(U_t\), its recorded lower endpoint exceeds \(U_t\), which is at least \(U_\epsilon\) by (5).  Hence every pruning record satisfies the certificate inequality \(\underline J_r>U_\epsilon\).  Equations (6), (10), (13), and (14), with the retained receipts, verify all remaining semantic clauses of Definition \(\mathrm{capacity\mbox{-}certificate}\).
+
+The full binary tree through depth \(D_\epsilon\) has
+\[
+ \sum_{r=0}^{D_\epsilon}2^r=2^{D_\epsilon+1}-1
+\tag{15}
+\]
+nodes.  Hence the fallback makes at most that many interval evaluations.  With at most one interval request and one midpoint request per node, the total is at most
+\[
+ 2(2^{D_\epsilon+1}-1)<3\cdot2^{D_\epsilon+1}.
+\tag{16}
+\]
+All requested precisions are at least \(m_\epsilon\), and pruning can only decrease the count.
+
+Finally, if the exact rational comparison gives \(G=0\), the feasible set is the singleton \(\{0\}\).  Query it at precision \(m_\epsilon\), put \(\gamma_\epsilon=0\), and use the rational receipt endpoints as \(L_\epsilon,U_\epsilon\).  Then
+\[
+ L_\epsilon\leq J(p,0)\leq U_\epsilon,
+ \qquad U_\epsilon-L_\epsilon\leq2^{-m_\epsilon}
+ \leq\frac\epsilon8<\epsilon.
+\]
+This one-record certificate completes the proof in the remaining case.
+%%% FIELD proof-finite-design-regret
+Define
+\[
+ S_N(p,\gamma):=V_{0,N}(p)+V_{1,N}(p,\gamma),
+ \qquad S(p,\gamma):=V_0(p)+V_\gamma(p).
+\]
+Every summand is nonnegative because it is a stationary Poisson energy.  Assumptions \(\mathrm{rate\mbox{-}membership}\) and \(\mathrm{staffing\mbox{-}window}\), with the exact finite radius \(G\), give the compact domain \(\mathcal P\times[-G,G]\).  The uniform energy convergence in the already established Theorem \(\mathrm{diffusion\mbox{-}poisson}\) therefore implies
+\[
+ \begin{aligned}
+ r_N&:=\sup_{p\in\mathcal P,\,|\gamma|\leq G}
+ |S_N(p,\gamma)-S(p,\gamma)|\\
+ &\leq\sup_{p\in\mathcal P}|V_{0,N}(p)-V_0(p)|
+ +\sup_{p\in\mathcal P,\,|\gamma|\leq G}
+ |V_{1,N}(p,\gamma)-V_\gamma(p)|
+ \longrightarrow0.
+ \end{aligned}
+\tag{1}
+\]
+For \(x,y\geq0\), assume first that \(x\geq y\).  Then
+\[
+ (\sqrt x-\sqrt y)^2=x+y-2\sqrt{xy}\leq x-y=|x-y|,
+\]
+because \(\sqrt{xy}\geq y\); exchanging \(x,y\) proves
+\[
+ |\sqrt x-\sqrt y|\leq\sqrt{|x-y|}
+\tag{2}
+\]
+in all cases.  In the definitions of \(J_N\) and \(J\), the term \(c_M\gamma\) is identical and cancels.  Therefore (1)--(2) give
+\[
+ \Delta_N:=\sup_{p\in\mathcal P,\,|\gamma|\leq G}
+ |J_N(p,\gamma)-J(p,\gamma)|
+ \leq c_Iz_\alpha\sqrt{r_N}\longrightarrow0.
+\tag{3}
+\]
+The multiplier is finite: Assumption \(\mathrm{information\mbox{-}cost\mbox{-}positive}\) gives \(0<c_I<\infty\), and Assumption \(\mathrm{test\mbox{-}size}\) gives \(z_\alpha=\Phi^{-1}(1-\alpha/2)\in(0,\infty)\).  Thus (3) is uniform in \(p\) and \(\gamma\).
+
+Theorem \(\mathrm{certified\mbox{-}capacity\mbox{-}design}\) constructs a sound model-specific interval oracle from the supplied input representation, including the exact rational radius.  Under this theorem's stated premise that the sound oracle and the certificate returned from it are supplied, Theorem \(\mathrm{oracle\mbox{-}conditional\mbox{-}capacity\mbox{-}certificate}\) gives, for each \(p\in\mathcal P\),
+\[
+ L_\epsilon\leq\mu(p):=\inf_{|\gamma|\leq G}J(p,\gamma)
+ \leq J(p,\gamma_\epsilon)\leq U_\epsilon,
+ \qquad U_\epsilon-L_\epsilon\leq\epsilon.
+\tag{4}
+\]
+Hence
+\[
+ J(p,\gamma_\epsilon)-\mu(p)
+ \leq U_\epsilon-L_\epsilon\leq\epsilon.
+\tag{5}
+\]
+By the definition of \(\Delta_N\), for every feasible \(\gamma\),
+\[
+ J_N(p,\gamma)\geq J(p,\gamma)-\Delta_N.
+\]
+Taking the infimum over the same nonempty interval gives
+\[
+ \inf_{|\gamma|\leq G}J_N(p,\gamma)
+ \geq\mu(p)-\Delta_N.
+\tag{6}
+\]
+The feasibility \(\gamma_\epsilon\in[-G,G]\) similarly yields
+\[
+ J_N(p,\gamma_\epsilon)
+ \leq J(p,\gamma_\epsilon)+\Delta_N.
+\tag{7}
+\]
+Subtracting (6) from (7) and applying (5),
+\[
+ \begin{aligned}
+ J_N(p,\gamma_\epsilon)-\inf_{|\gamma|\leq G}J_N(p,\gamma)
+ &\leq J(p,\gamma_\epsilon)-\mu(p)+2\Delta_N\\
+ &\leq\epsilon+2\Delta_N.
+ \end{aligned}
+\tag{8}
+\]
+The same \(\Delta_N\) controls every \(p\in\mathcal P\); taking the supremum in (8) and using (3) proves the uniform \(\epsilon+o(1)\) regret bound.  The recommendation remains conditional on the supplied sound receipts and returned certificate, as stated.

@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic
-import Mathlib.Probability.Distributions.Poisson.Basic
-import Mathlib.Probability.Distributions.Uniform
-import Causalean.Stat.Minimax.MarkovKernelTransport
-import Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Basic
+public import Mathlib.Probability.Distributions.Poisson.Basic
+public import Mathlib.Probability.Distributions.Uniform
+public import Causalean.Stat.Minimax.MarkovKernelTransport
+public import Causalean.Stat.FiniteRaoBlackwell.Poisson.PairedHistogram
 
 /-! Equal-propensity embedding of the normalized two-sample L1 experiment. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -242,7 +245,7 @@ noncomputable def fixedL1Risk {d : ℕ} (n : ℕ) (est : FixedL1Estimator n d)
 
 /-- For [the specified sample size, alphabet size](hyp:n,d), the [fixed-sample L1 minimax risk is the minimax squared-error risk for the paired categorical experiment](goal). -/
 noncomputable def fixedL1MinimaxRisk (n d : ℕ) : ℝ :=
-  Causalean.Stat.minimaxValue (fixedL1Risk (d := d) n)
+  Causalean.Stat.minimaxValueReal (fixedL1Risk (d := d) n)
 
 /-- Two independent vectors of Poisson counts with means `2n P_x` and `2n Q_x`. -/
 noncomputable def poissonPairLaw {d : ℕ} (n : ℕ)
@@ -277,7 +280,7 @@ def FiniteRiskL1Estimator (n d : ℕ) :=
 finite worst-case risk.  The finite-risk scope prevents both the Bochner
 integral and the real supremum from taking junk values. -/
 noncomputable def poissonL1FiniteRiskMinimaxRisk (n d : ℕ) : ℝ :=
-  Causalean.Stat.minimaxValue
+  Causalean.Stat.minimaxValueReal
     (fun est : FiniteRiskL1Estimator n d => poissonL1Risk n est.1)
 
 end CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched

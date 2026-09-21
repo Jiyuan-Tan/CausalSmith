@@ -1,12 +1,15 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.FiniteBandCoverage
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.FiniteBandCoverage
 
 /-! # Finite-sample simultaneous endpoint band -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
-open Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw
+open Causalean.Stat.Quantile.MarkedSubsampleEmpiricalCDF
 
 universe u
 
@@ -45,7 +48,7 @@ theorem honestBand_simultaneous_coverage
     exact ENNReal.ofReal_le_one.mpr (by linarith [hAlpha.1])
   · have hnpos : 0 < n := Nat.pos_of_ne_zero hn
     letI : IsProbabilityMeasure nu := hIID.2.1
-    let S : Causalean.Stat.Quantile.ConditionalMarkedSubsampleDkw.MarkedIID
+    let S : Causalean.Stat.Quantile.MarkedSubsampleEmpiricalCDF.MarkedIID
         Omega n mu nu :=
       { Z := fun i => Z i
         measurable := hIID.2.2.1

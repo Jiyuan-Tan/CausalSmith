@@ -6,10 +6,13 @@ Authors: Jiyuan Tan
 # Rank witnesses for the shorter apolar stack
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ReverseApolarKernel
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.MomentGate
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Vandermonde
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ReverseApolarKernel
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.MomentGate
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Vandermonde
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

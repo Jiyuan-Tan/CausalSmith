@@ -4,18 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.Analysis.BernoulliKL
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.Algebra.BigOperators.Group.Finset.Powerset
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Data.Nat.Choose.Sum
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Ring
-
+module
+public import Causalean.Mathlib.Analysis.BernoulliKL
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.Algebra.BigOperators.Group.Finset.Powerset
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Data.Nat.Choose.Sum
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.NormNum
+public import Mathlib.Tactic.Positivity
+public import Mathlib.Tactic.Ring
 
 /-!
 # Bernoulli measures
@@ -25,6 +25,8 @@ This file defines the Bernoulli law on the real line, supported on `0` and
 and KL-divergence facts. It also provides the corresponding Bool-valued law and
 its measurability, probability, integral, bind, and map formulas.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Probability
 
@@ -272,8 +274,8 @@ lemma bernoulliLaw_lintegral_ofReal {p : ℝ} (f : ℝ → ENNReal) :
 /-- For [any real number interpreted as a success parameter](hyp:p), [the Boolean-valued
 Bernoulli measure](goal) assigns mass $\max(p,0)$ to true and mass $\max(1-p,0)$ to false.
 
-It is the Boolean-valued sibling of `bernoulliLaw`, and its Boolean values make it usable as a
-Markov kernel into a Boolean coordinate of a potential-outcome tuple. -/
+It is the Boolean-valued sibling of `bernoulliLaw` and can be used as the target law of a
+Boolean-valued Markov kernel. -/
 noncomputable def bernoulliBool (p : ℝ) : Measure Bool :=
   ENNReal.ofReal p • Measure.dirac true +
     ENNReal.ofReal (1 - p) • Measure.dirac false
@@ -523,11 +525,14 @@ lemma binomial_totalized_inverse_count_le (m : Nat) (p : Real)
       dsimp [d]
       ring
 
-/-- If [the overlap margin is positive](hyp:hepsilon) and [the success
-probability lies between that margin and one minus the margin](hyp:hlo,hhi),
-[the binomial expectation of the two inverse arm counts on the interior event
-is at most four divided by the trial count plus one times the margin](goal). -/
-lemma binomial_inverse_two_arms_interior_le (m : Nat) (p epsilon : Real)
+/-- For [a trial count](hyp:m), [a success probability](hyp:p), and
+[a parameter margin](hyp:epsilon), if [the margin is positive](hyp:hepsilon) and
+[the probability is at least the margin](hyp:hlo) and
+[at most one minus the margin](hyp:hhi), [the binomial expectation of the inverse success and
+complementary counts on the interior event is at most four divided by the trial count plus one
+times the margin](goal). -/
+lemma binomial_inverse_complementary_counts_interior_le
+    (m : Nat) (p epsilon : Real)
     (hepsilon : 0 < epsilon) (hlo : epsilon ≤ p)
     (hhi : p ≤ 1 - epsilon) :
     (∑ j ∈ Finset.range (m + 1), binomialWeight m p j *

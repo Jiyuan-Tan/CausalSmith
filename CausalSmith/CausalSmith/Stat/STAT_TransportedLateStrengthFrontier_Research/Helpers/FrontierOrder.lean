@@ -8,8 +8,11 @@ bounded by each globally honest procedure's risk.  These live downstream of
 (the slice must be nonempty, or the infimum defining slice honesty collapses).
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
-import Causalean.Stat.Minimax.HonestConfidenceSet
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

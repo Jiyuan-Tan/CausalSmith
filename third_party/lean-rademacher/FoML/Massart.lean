@@ -1,8 +1,11 @@
-import FoML.Defs
-import FoML.MaximalInequality
-import FoML.RademacherVariableProperty
-import FoML.Symmetrization
-import FoML.MeasurePiLemmas
+module
+public import FoML.Defs
+public import FoML.MaximalInequality
+public import FoML.RademacherVariableProperty
+public import FoML.Symmetrization
+public import FoML.MeasurePiLemmas
+
+@[expose] public section
 
 universe v u
 open scoped BigOperators
@@ -291,6 +294,7 @@ lemma massart_lemma_pmf
           measurability
         convert iIndepFun.comp pi_eval_iIndepFun
           (fun i ↦ fun (σi : ({-1, 1} : Finset ℤ)) => (m : ℝ)⁻¹ * (σi.1 : ℝ) * F a (S i)) h
+        · rfl
         · exact heq_of_eq measurablespace_eq
         · aesop
         · exact measure_eq

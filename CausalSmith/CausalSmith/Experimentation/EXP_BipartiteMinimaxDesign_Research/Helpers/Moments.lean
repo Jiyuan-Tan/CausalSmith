@@ -9,7 +9,10 @@ Finite-product moment identities for the all-treated/all-control exposure
 indicators used by the heterogeneous Hajek linearization.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Basic
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Basic
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.style.whitespace false
@@ -144,7 +147,7 @@ lemma treat_ctrl_prod_eq_mixed_of_disjoint {S T : Finset I} (hST : Disjoint S T)
 /-- Under independent Bernoulli assignment, the probability that all interventions in a set are treated is the product of their treatment probabilities. -/
 lemma bernoulli_E_treat_prod (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀ k, p k ≤ 1)
     (S : Finset I) :
-    (bernoulliDesign p hp0 hp1).E
+    (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E
         (fun z => ∏ k ∈ S, (if z k then (1 : ℝ) else 0))
       = ∏ k ∈ S, p k := by
   classical
@@ -155,7 +158,7 @@ lemma bernoulli_E_treat_prod (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀
         funext z
         simpa using (Finset.prod_ite_mem_eq (s := S)
           (f := fun k => if z k then (1 : ℝ) else 0)).symm]
-  unfold bernoulliDesign
+  unfold Causalean.Experimentation.DesignBased.bernoulliDesign
   rw [FiniteDesign.E_prod_prod (fun i => coinDesign (p i) (hp0 i) (hp1 i))
     (fun k b => if k ∈ S then (if b then (1 : ℝ) else 0) else 1)]
   trans ∏ x : I, if x ∈ S then p x else 1
@@ -168,7 +171,7 @@ lemma bernoulli_E_treat_prod (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀
 /-- Under independent Bernoulli assignment, the probability that all interventions in a set are controlled is the product of their control probabilities. -/
 lemma bernoulli_E_ctrl_prod (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀ k, p k ≤ 1)
     (S : Finset I) :
-    (bernoulliDesign p hp0 hp1).E
+    (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E
         (fun z => ∏ k ∈ S, (if z k then (0 : ℝ) else 1))
       = ∏ k ∈ S, (1 - p k) := by
   classical
@@ -179,7 +182,7 @@ lemma bernoulli_E_ctrl_prod (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀ 
         funext z
         simpa using (Finset.prod_ite_mem_eq (s := S)
           (f := fun k => if z k then (0 : ℝ) else 1)).symm]
-  unfold bernoulliDesign
+  unfold Causalean.Experimentation.DesignBased.bernoulliDesign
   rw [FiniteDesign.E_prod_prod (fun i => coinDesign (p i) (hp0 i) (hp1 i))
     (fun k b => if k ∈ S then (if b then (0 : ℝ) else 1) else 1)]
   trans ∏ x : I, if x ∈ S then (1 - p x) else 1
@@ -192,11 +195,11 @@ lemma bernoulli_E_ctrl_prod (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀ 
 /-- Under independent Bernoulli assignment, the expected product of two all-treated exposure indicators is the product of treatment probabilities over their union. -/
 lemma bernoulli_E_treat_mul_treat (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k)
     (hp1 : ∀ k, p k ≤ 1) (S T : Finset I) :
-    (bernoulliDesign p hp0 hp1).E
+    (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E
         (fun z => (∏ k ∈ S, (if z k then (1 : ℝ) else 0)) *
           (∏ k ∈ T, (if z k then (1 : ℝ) else 0)))
       = ∏ k ∈ S ∪ T, p k := by
-  rw [(bernoulliDesign p hp0 hp1).E_congr
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E_congr
     (fun z => treat_prod_mul_eq_union S T z)]
   exact bernoulli_E_treat_prod p hp0 hp1 (S ∪ T)
 
@@ -204,11 +207,11 @@ lemma bernoulli_E_treat_mul_treat (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k)
 /-- Under independent Bernoulli assignment, the expected product of two all-control exposure indicators is the product of control probabilities over their union. -/
 lemma bernoulli_E_ctrl_mul_ctrl (p : I → ℝ) (hp0 : ∀ k, 0 ≤ p k)
     (hp1 : ∀ k, p k ≤ 1) (S T : Finset I) :
-    (bernoulliDesign p hp0 hp1).E
+    (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E
         (fun z => (∏ k ∈ S, (if z k then (0 : ℝ) else 1)) *
           (∏ k ∈ T, (if z k then (0 : ℝ) else 1)))
       = ∏ k ∈ S ∪ T, (1 - p k) := by
-  rw [(bernoulliDesign p hp0 hp1).E_congr
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E_congr
     (fun z => ctrl_prod_mul_eq_union S T z)]
   exact bernoulli_E_ctrl_prod p hp0 hp1 (S ∪ T)
 

@@ -1,6 +1,7 @@
-import CausalSmith.Mathlib.Probability.PoissonUsableOccupancy
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.OccupancyTransport
+module
+public import CausalSmith.Mathlib.Probability.PoissonUsableOccupancy
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.OccupancyTransport
 
 /-!
 # Discharge of the usable-occupancy citation
@@ -9,6 +10,8 @@ This file combines independent-Poisson usable-occupancy bounds with monotone
 half-intensity de-Poissonization and transports the result back to the original
 fixed-size real-outcome sample.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal BigOperators

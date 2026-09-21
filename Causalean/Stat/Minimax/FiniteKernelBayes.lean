@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.FiniteDesignMeasure
-import Causalean.Stat.Minimax.MinimaxValue
-import Mathlib.MeasureTheory.Integral.Bochner.SumMeasure
-import Mathlib.Probability.Kernel.MeasurableIntegral
+module
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
+public import Causalean.Stat.Minimax.MinimaxValue
+public import Mathlib.MeasureTheory.Integral.Bochner.SumMeasure
+public import Mathlib.Probability.Kernel.MeasurableIntegral
 
 /-!
 # Finite-state Bayes risks through probability kernels
@@ -17,6 +18,8 @@ continuous prior is mixed through a Markov kernel, and the resulting average los
 the finite worst-case loss. It also gives deterministic-map and `FiniteDesign` specializations,
 including the finite-sum and measure-integral representations of the mixed risk.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators
@@ -126,30 +129,41 @@ theorem mixedKernelLoss_nonneg (π : Measure Θ) [IsProbabilityMeasure π]
     0 ≤ mixedKernelLoss π K loss a := by
   exact integral_nonneg fun θ ↦ integral_nonneg (hloss a)
 
-/-- If [loss is nonnegative in every state](hyp:hloss), then [the continuous-prior average of
-each action's finite-state kernel loss is no greater than that action's finite worst-case
-risk](goal). -/
-theorem mixedKernelLoss_le_worstCaseRisk (π : Measure Θ) [IsProbabilityMeasure π]
+/-- [The continuous-prior average of each action's finite-state kernel loss is no greater than
+that action's finite worst-case risk](goal). -/
+theorem mixedKernelLoss_le_worstCaseRiskReal (π : Measure Θ) [IsProbabilityMeasure π]
     (K : Kernel Θ S) [IsMarkovKernel K] (loss : A → S → ℝ)
-    (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
-    (∫ θ, ∫ s, loss a s ∂K θ ∂π) ≤ worstCaseRisk loss a := by
+    (a : A) :
+    (∫ θ, ∫ s, loss a s ∂K θ ∂π) ≤ worstCaseRiskReal loss a := by
   calc
     (∫ θ, ∫ s, loss a s ∂K θ ∂π)
-        ≤ ∫ _θ, worstCaseRisk loss a ∂π := by
+        ≤ ∫ _θ, worstCaseRiskReal loss a ∂π := by
           apply integral_mono (integrable_kernelAverageLoss π K loss a)
-            (integrable_const (worstCaseRisk loss a))
+            (integrable_const (worstCaseRiskReal loss a))
           intro θ
-          change kernelAverageLoss K loss a θ ≤ worstCaseRisk loss a
+          change kernelAverageLoss K loss a θ ≤ worstCaseRiskReal loss a
           unfold kernelAverageLoss
           calc
             (∫ s, loss a s ∂K θ)
-                ≤ ∫ _s, worstCaseRisk loss a ∂K θ := by
+                ≤ ∫ _s, worstCaseRiskReal loss a ∂K θ := by
                   apply integral_mono (loss_integrable_kernel K loss a θ)
-                    (integrable_const (worstCaseRisk loss a))
+                    (integrable_const (worstCaseRiskReal loss a))
                   intro s
                   exact le_worstCaseRisk (finite_range_bddAbove (loss a)) s
-            _ = worstCaseRisk loss a := by simp
-    _ = worstCaseRisk loss a := by simp
+            _ = worstCaseRiskReal loss a := by simp
+    _ = worstCaseRiskReal loss a := by simp
+
+/-- If [loss is nonnegative](hyp:hloss), the [nonnegative extension of an action's mixed
+kernel loss is at most its standard extended worst-case risk](goal). -/
+theorem mixedKernelLoss_le_worstCaseRiskENNReal (π : Measure Θ) [IsProbabilityMeasure π]
+    (K : Kernel Θ S) [IsMarkovKernel K] (loss : A → S → ℝ)
+    (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
+    ENNReal.ofReal (mixedKernelLoss π K loss a) ≤ worstCaseRiskOfReal loss a := by
+  rw [ENNReal.ofReal_le_iff_le_toReal
+    (worstCaseRiskOfReal_ne_top_of_bddAbove (finite_range_bddAbove (loss a))),
+    worstCaseRiskENNReal_ofReal_toReal (hloss a)
+      (worstCaseRiskOfReal_ne_top_of_bddAbove (finite_range_bddAbove (loss a)))]
+  exact mixedKernelLoss_le_worstCaseRiskReal π K loss a
 
 /-- Given [a measurable parameter space](hyp:Θ), [a finite measurable state space](hyp:S), [an action space](hyp:A), [a prior measure on the parameter space](hyp:π), [a probability kernel from parameters to states](hyp:K), and [a real-valued loss for each action and state](hyp:loss), [the real Bayes risk](goal) is the infimum, over all actions, of their mixed kernel losses.
 
@@ -170,14 +184,30 @@ theorem realBayesRisk_nonneg (π : Measure Θ) [IsProbabilityMeasure π]
 /-- With at least one available action and [nonnegative statewise loss](hyp:hloss),
 [the real Bayes risk under a continuous prior and finite-state Markov kernel is at most the
 finite-state minimax value](goal). -/
-theorem realBayesRisk_le_minimaxValue [Nonempty A]
+theorem realBayesRisk_le_minimaxValueReal [Nonempty A]
     (π : Measure Θ) [IsProbabilityMeasure π]
     (K : Kernel Θ S) [IsMarkovKernel K] (loss : A → S → ℝ)
     (hloss : ∀ a s, 0 ≤ loss a s) :
-    realBayesRisk π K loss ≤ minimaxValue loss := by
+    realBayesRisk π K loss ≤ minimaxValueReal loss := by
   apply le_minimaxValue
   intro a
-  refine (ciInf_le ?_ a).trans (mixedKernelLoss_le_worstCaseRisk π K loss hloss a)
+  refine (ciInf_le ?_ a).trans (mixedKernelLoss_le_worstCaseRiskReal π K loss a)
+  refine ⟨0, ?_⟩
+  rintro _ ⟨a', rfl⟩
+  exact mixedKernelLoss_nonneg π K loss hloss a'
+
+/-- With [at least one action](hyp:A) and [nonnegative loss](hyp:hloss), the
+[nonnegative extension of the Bayes risk is at most the standard minimax value](goal). -/
+theorem realBayesRisk_le_minimaxValueENNReal [Nonempty A]
+    (π : Measure Θ) [IsProbabilityMeasure π]
+    (K : Kernel Θ S) [IsMarkovKernel K] (loss : A → S → ℝ)
+    (hloss : ∀ a s, 0 ≤ loss a s) :
+    ENNReal.ofReal (realBayesRisk π K loss) ≤ minimaxValueENNRealOfReal loss := by
+  apply le_minimaxValueENNReal
+  intro a
+  refine (ENNReal.ofReal_le_ofReal ?_).trans
+    (mixedKernelLoss_le_worstCaseRiskENNReal π K loss hloss a)
+  apply ciInf_le
   refine ⟨0, ?_⟩
   rintro _ ⟨a', rfl⟩
   exact mixedKernelLoss_nonneg π K loss hloss a'
@@ -204,15 +234,24 @@ theorem mixedKernelLoss_deterministic (π : Measure Θ) [IsProbabilityMeasure π
   change (∫ s, loss a s ∂(Kernel.deterministic f hf) θ) = loss a (f θ)
   rw [Kernel.deterministic_apply, integral_dirac]
 
-/-- If [the state map is measurable](hyp:hf) and
-[the loss is nonnegative in every state](hyp:hloss), then [the prior average of the composed loss is no greater than its finite
-worst-case risk](goal). -/
-theorem integral_loss_comp_le_worstCaseRisk (π : Measure Θ) [IsProbabilityMeasure π]
+/-- If [the state map is measurable](hyp:hf), then [the prior average of the composed loss is no
+greater than its finite worst-case risk](goal). -/
+theorem integral_loss_comp_le_worstCaseRiskReal (π : Measure Θ) [IsProbabilityMeasure π]
+    (f : Θ → S) (hf : Measurable f) (loss : A → S → ℝ)
+    (a : A) :
+    (∫ θ, loss a (f θ) ∂π) ≤ worstCaseRiskReal loss a := by
+  rw [← mixedKernelLoss_deterministic π f hf loss a]
+  exact mixedKernelLoss_le_worstCaseRiskReal π (Kernel.deterministic f hf) loss a
+
+/-- If [the state map is measurable](hyp:hf) and [loss is nonnegative](hyp:hloss), the
+[extended prior-average loss is at most the standard extended worst-case risk](goal). -/
+theorem integral_loss_comp_le_worstCaseRiskENNReal
+    (π : Measure Θ) [IsProbabilityMeasure π]
     (f : Θ → S) (hf : Measurable f) (loss : A → S → ℝ)
     (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
-    (∫ θ, loss a (f θ) ∂π) ≤ worstCaseRisk loss a := by
+    ENNReal.ofReal (∫ θ, loss a (f θ) ∂π) ≤ worstCaseRiskOfReal loss a := by
   rw [← mixedKernelLoss_deterministic π f hf loss a]
-  exact mixedKernelLoss_le_worstCaseRisk π (Kernel.deterministic f hf) loss hloss a
+  exact mixedKernelLoss_le_worstCaseRiskENNReal π (Kernel.deterministic f hf) loss hloss a
 
 /-- Given [a measurable parameter space](hyp:Θ), [a finite measurable state space](hyp:S), [an action space](hyp:A), [a prior measure on the parameter space](hyp:π), [a map assigning each parameter a state](hyp:f), and [a real-valued loss for each action and state](hyp:loss), [the deterministic Bayes risk](goal) is the infimum, over all actions, of the prior-integrated loss evaluated at the state assigned to each parameter.
 
@@ -233,13 +272,24 @@ theorem deterministicBayesRisk_eq_realBayesRisk (π : Measure Θ) [IsProbability
 /-- With at least one available action,
 [a measurable deterministic state map](hyp:hf), and [nonnegative statewise loss](hyp:hloss), [the deterministic Bayes risk is at most
 the finite-state minimax value](goal). -/
-theorem deterministicBayesRisk_le_minimaxValue [Nonempty A]
+theorem deterministicBayesRisk_le_minimaxValueReal [Nonempty A]
     (π : Measure Θ) [IsProbabilityMeasure π]
     (f : Θ → S) (hf : Measurable f) (loss : A → S → ℝ)
     (hloss : ∀ a s, 0 ≤ loss a s) :
-    deterministicBayesRisk π f loss ≤ minimaxValue loss := by
+    deterministicBayesRisk π f loss ≤ minimaxValueReal loss := by
   rw [deterministicBayesRisk_eq_realBayesRisk π f hf loss]
-  exact realBayesRisk_le_minimaxValue π (Kernel.deterministic f hf) loss hloss
+  exact realBayesRisk_le_minimaxValueReal π (Kernel.deterministic f hf) loss hloss
+
+/-- With [at least one action](hyp:A), a [measurable state map](hyp:hf), and
+[nonnegative loss](hyp:hloss), the [extended deterministic Bayes risk is at most the
+standard minimax value](goal). -/
+theorem deterministicBayesRisk_le_minimaxValueENNReal [Nonempty A]
+    (π : Measure Θ) [IsProbabilityMeasure π]
+    (f : Θ → S) (hf : Measurable f) (loss : A → S → ℝ)
+    (hloss : ∀ a s, 0 ≤ loss a s) :
+    ENNReal.ofReal (deterministicBayesRisk π f loss) ≤ minimaxValueENNRealOfReal loss := by
+  rw [deterministicBayesRisk_eq_realBayesRisk π f hf loss]
+  exact realBayesRisk_le_minimaxValueENNReal π (Kernel.deterministic f hf) loss hloss
 
 /-- [A real-valued statistic on a finite design space is integrable under the design's induced
 probability measure](goal). -/
@@ -257,21 +307,45 @@ theorem finiteDesign_expectedLoss_eq_sum_eq_integral
       D.E (loss a) = ∫ s, loss a s ∂D.toMeasure := by
   exact ⟨rfl, (D.integral_toMeasure (loss a)).symm⟩
 
-/-- If [the statewise loss is nonnegative](hyp:hloss), then [a finite design's expected loss
-for each action is no greater than that action's finite worst-case risk](goal). -/
-theorem finiteDesign_expectedLoss_le_worstCaseRisk
+/-- [A finite design's expected loss for each action is no greater than that action's finite
+worst-case risk](goal). -/
+theorem finiteDesign_expectedLoss_le_worstCaseRiskReal
     (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
-    (loss : A → S → ℝ) (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
-    D.E (loss a) ≤ worstCaseRisk loss a := by
+    (loss : A → S → ℝ) (a : A) :
+    D.E (loss a) ≤ worstCaseRiskReal loss a := by
   rw [← D.integral_toMeasure]
   calc
     (∫ s, loss a s ∂D.toMeasure)
-        ≤ ∫ _s, worstCaseRisk loss a ∂D.toMeasure := by
+        ≤ ∫ _s, worstCaseRiskReal loss a ∂D.toMeasure := by
           apply integral_mono (finiteDesign_integrable D (loss a))
-            (integrable_const (worstCaseRisk loss a))
+            (integrable_const (worstCaseRiskReal loss a))
           intro s
           exact le_worstCaseRisk (finite_range_bddAbove (loss a)) s
-    _ = worstCaseRisk loss a := by simp
+    _ = worstCaseRiskReal loss a := by simp
+
+/-- If [loss is nonnegative](hyp:hloss), a [finite design's extended expected loss is at
+most the action's standard extended worst-case risk](goal). -/
+theorem finiteDesign_expectedLoss_le_worstCaseRiskENNReal
+    (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
+    (loss : A → S → ℝ) (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
+    ENNReal.ofReal (D.E (loss a)) ≤ worstCaseRiskOfReal loss a := by
+  rw [ENNReal.ofReal_le_iff_le_toReal
+    (worstCaseRiskOfReal_ne_top_of_bddAbove (finite_range_bddAbove (loss a))),
+    worstCaseRiskENNReal_ofReal_toReal (hloss a)
+      (worstCaseRiskOfReal_ne_top_of_bddAbove (finite_range_bddAbove (loss a)))]
+  exact finiteDesign_expectedLoss_le_worstCaseRiskReal D loss a
+
+/-- If [the loss is nonnegative for every action and state](hyp:hloss), then [the expected loss
+of any fixed action under a finite design is at most that action's worst-case risk](goal).
+
+Deprecated real-valued form of `finiteDesign_expectedLoss_le_worstCaseRiskENNReal`. -/
+@[deprecated finiteDesign_expectedLoss_le_worstCaseRiskReal (since := "2026-09-17")]
+theorem finiteDesign_expectedLoss_le_worstCaseRisk
+    (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
+    (loss : A → S → ℝ) (hloss : ∀ a s, 0 ≤ loss a s) (a : A) :
+    D.E (loss a) ≤ worstCaseRiskReal loss a := by
+  simpa [worstCaseRiskReal] using
+    finiteDesign_expectedLoss_le_worstCaseRiskReal D loss a
 
 /-- Given [a finite state space](hyp:S), [an action space](hyp:A), [a finite randomization design on the state space](hyp:D), and [a real-valued loss for each action and state](hyp:loss), [the finite-design Bayes risk](goal) is the infimum, over all actions, of their expected losses under that design.
 
@@ -284,13 +358,29 @@ noncomputable def finiteDesignBayesRisk
 
 /-- With at least one available action and [nonnegative statewise loss](hyp:hloss),
 [a finite design's Bayes risk is at most the finite-state minimax value](goal). -/
-theorem finiteDesignBayesRisk_le_minimaxValue [Nonempty A]
+theorem finiteDesignBayesRisk_le_minimaxValueReal [Nonempty A]
     (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
     (loss : A → S → ℝ) (hloss : ∀ a s, 0 ≤ loss a s) :
-    finiteDesignBayesRisk D loss ≤ minimaxValue loss := by
+    finiteDesignBayesRisk D loss ≤ minimaxValueReal loss := by
   apply le_minimaxValue
   intro a
-  refine (ciInf_le ?_ a).trans (finiteDesign_expectedLoss_le_worstCaseRisk D loss hloss a)
+  refine (ciInf_le ?_ a).trans
+    (finiteDesign_expectedLoss_le_worstCaseRiskReal D loss a)
+  refine ⟨0, ?_⟩
+  rintro _ ⟨a', rfl⟩
+  exact Finset.sum_nonneg fun s _ ↦ mul_nonneg (D.p_nonneg s) (hloss a' s)
+
+/-- With [at least one action](hyp:A) and [nonnegative loss](hyp:hloss), the [extended
+finite-design Bayes risk is at most the standard minimax value](goal). -/
+theorem finiteDesignBayesRisk_le_minimaxValueENNReal [Nonempty A]
+    (D : Causalean.Experimentation.DesignBased.FiniteDesign S)
+    (loss : A → S → ℝ) (hloss : ∀ a s, 0 ≤ loss a s) :
+    ENNReal.ofReal (finiteDesignBayesRisk D loss) ≤ minimaxValueENNRealOfReal loss := by
+  apply le_minimaxValueENNReal
+  intro a
+  refine (ENNReal.ofReal_le_ofReal ?_).trans
+    (finiteDesign_expectedLoss_le_worstCaseRiskENNReal D loss hloss a)
+  apply ciInf_le
   refine ⟨0, ?_⟩
   rintro _ ⟨a', rfl⟩
   exact Finset.sum_nonneg fun s _ ↦ mul_nonneg (D.p_nonneg s) (hloss a' s)

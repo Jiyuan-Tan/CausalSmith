@@ -3,27 +3,38 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.GraphicalThms.IDAlgorithmRec
 
-/-! # The executable ID algorithm and its soundness
+module
+public import Causalean.SCM.ID.GraphicalThms.IDAlgorithmRec
+
+/-! # A positive-discrete ID acceptance checker and its soundness
 
 `id_sound_rec` proves soundness for the *declarative* success certificate
 `idSucceedsRec` (an inductive predicate — an existence claim needing a hand-built
-derivation).  This file adds the **executable checker**: a computable
-`Bool`-valued function `idAlgorithm` that runs Tian's IDENTIFY procedure with a
+derivation).  This file adds an **executable acceptance checker**: a computable
+`Bool`-valued function `idAlgorithm` that searches for such a derivation within a
 fuel bound, together with `idAlgorithm_sound` — when the checker reports `true`,
-the interventional query is identified.
+the interventional query is identified for a standard graph in the positive
+finite-discrete lane provided the compatible model class is inhabited.
+Only this one-sided implication is formalized: no sufficient-fuel converse or
+failure-to-hedge theorem gives `false` a nonidentifiability interpretation.
 
 * `cFactorReachableRecB` — computable, choice-free fuel-bounded IDENTIFY
   reachability (mirrors the inductive `CFactorReachableRec`, using
   `cComponentSet.any` in place of the noncomputable `containingCComponent`).
 * `idAlgorithm` — the runnable checker: valid intervention, observed query,
   and every post-intervention ancestral district recursively reachable.
-* `idAlgorithm_sound` — the public soundness theorem: `idAlgorithm … = true` implies
-  `IdentifiableUnder … (interventionalQuery X Y)` over the standard discrete
-  positive model class.  Obtained from `id_sound_rec_discrete` through the
-  structural bridge `idAlgorithm_success_toRec`.
+* `idAlgorithm_sound` — the public soundness theorem: on a standard graph with an
+  inhabited compatible model class, `idAlgorithm … = true` implies
+  `IdentifiableUnder … (interventionalQuery X Y)` over the standard discrete positive class.
+  Obtained from
+  `id_sound_rec_discrete` through the structural bridge `idAlgorithm_success_toRec`.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.SCM.ID
 
@@ -130,9 +141,9 @@ instance instDecidableInterventionValid
 the outcomes are observed and disjoint from intervention random nodes, and every
 post-intervention ancestral c-component passes the fuel-bounded reachability check.
 
-**The executable ID checker.**  Runs the recursive Tian–Shpitser algorithm on
-`(G, X, Y)` with `fuel` reduction steps: it requires a valid intervention split, an
-observed query disjoint from `X`, and that every c-component of the
+**The executable ID acceptance checker.**  Searches for a recursive Tian–Shpitser
+success certificate on `(G, X, Y)` with `fuel` reduction steps: it requires a valid
+intervention split, an observed query disjoint from `X`, and that every c-component of the
 post-intervention ancestral graph is recursively reachable from its containing
 district.  Computable — usable with `#eval` / `decide` on concrete graphs. -/
 def idAlgorithm (fuel : ℕ) (G : SWIGGraph N)
@@ -168,20 +179,26 @@ theorem idAlgorithm_success_toRec
     exact hcontain ▸ hrec
   · simp [hX] at h
 
-/-- **Soundness of the executable ID algorithm.**  When [the runnable checker `idAlgorithm`
-returns `true` on the graph `G`, intervention set `X`, query `Y`, and the given fuel
-bound](hyp:h), [the interventional query `P(Y ∣ do(X))` is identified within the standard
-discrete positive model class](goal).
+/-- **Soundness of the executable ID acceptance checker.** For [a fuel bound](hyp:fuel),
+[a standard graph](hyp:G,hG), [an intervention set](hyp:X), [a query](hyp:Y), and
+[an inhabited compatible positive class](hyp:hNonempty), when
+[the runnable checker returns `true`](hyp:h),
+[the corresponding interventional query is identified within that class](goal).
 
-This packages the full recursive Tian–Shpitser identification-soundness result
-(`id_sound_rec_discrete`) behind a computable decision procedure. -/
+This packages the recursive Tian–Shpitser identification-soundness result
+(`id_sound_rec_discrete`) behind a one-sided computable acceptance test.  A
+`false` result carries no nonidentifiability or hedge claim. -/
 theorem idAlgorithm_sound
     [∀ n, StandardBorelSpace (Ω n)] [∀ n, Nonempty (Ω n)]
     [∀ n, Fintype (Ω n)] [∀ n, MeasurableSingletonClass (Ω n)]
     (fuel : ℕ) (G : SWIGGraph N) (X : Finset N) (Y : Finset (SWIGNode N))
+    (hG : G.isStandard)
+    (hNonempty : ∃ M : Causalean.SCM N Ω,
+      M.toSWIGGraph = G ∧ StandardDiscretePositive M)
     (h : idAlgorithm fuel G X Y = true) :
     IdentifiableUnder G (fun _ => True) StandardDiscretePositive
       (interventionalQuery (Ω := Ω) X Y) :=
-  id_sound_rec_discrete X Y G (idAlgorithm_success_toRec fuel G X Y h)
+  id_sound_rec_discrete X Y G hG hNonempty
+    (idAlgorithm_success_toRec fuel G X Y h)
 
 end Causalean.SCM.ID

@@ -1,12 +1,15 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.RealDiagonalizationBridge
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConditionalMomentAdapters
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.RealDiagonalizationBridge
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConditionalMomentAdapters
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
 
 /-!
 Uniformly conditioned ambient real diagonalizations built from a model's thin target-feature
 singular-value decomposition and an orthonormal kernel complement.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

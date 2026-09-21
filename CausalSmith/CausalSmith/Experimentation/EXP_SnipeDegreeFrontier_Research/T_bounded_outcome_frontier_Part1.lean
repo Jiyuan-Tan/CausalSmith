@@ -1,10 +1,11 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HeadlineSupport
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HeadlineSupport
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-!
 # Model-class inclusion and the scaled-block minimax lower bound
@@ -13,6 +14,8 @@ Relates the coefficient-mass and bounded-outcome model classes, defines the
 worst-case risks at a fixed interaction graph, exhibits a strict witness model,
 and proves the scaled-block lower bound on the minimax risk.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

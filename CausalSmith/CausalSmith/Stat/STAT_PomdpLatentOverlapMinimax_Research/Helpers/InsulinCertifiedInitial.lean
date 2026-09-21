@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCertifiedInitialFalse
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCertifiedInitialTrue
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCertifiedInitialFalse
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCertifiedInitialTrue
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 /-- For [the target input](hyp:target), [this defines the insulin Certified Initial object](goal). -/

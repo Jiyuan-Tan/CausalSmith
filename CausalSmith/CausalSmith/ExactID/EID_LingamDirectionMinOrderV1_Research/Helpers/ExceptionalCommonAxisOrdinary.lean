@@ -6,17 +6,20 @@ Authors: Jiyuan Tan
 # Common-axis ordinary-order Jacobian blocks
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalCommonAxisJacobianTop
-import Mathlib.Algebra.Group.Pi.Units
-import Mathlib.Data.Matrix.Block
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Vandermonde
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalCommonAxisJacobianTop
+public import Mathlib.Algebra.Group.Pi.Units
+public import Mathlib.Data.Matrix.Block
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Vandermonde
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
 noncomputable section
 
-private def commonAxisLowWeightColumn (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisLowWeightColumn (m : ℕ) (hm : 1 ≤ m) :
     ForwardLowWeightIndex m → CommonAxisBandCoord m (2 * m + 2) hm
   | ⟨k, j⟩ =>
       ⟨Sum.inr (Sum.inr
@@ -27,7 +30,7 @@ private def commonAxisLowWeightColumn (m : ℕ) (hm : 1 ≤ m) :
         intro h
         cases Sum.inr.inj h⟩
 
-private def commonAxisHighWeightColumn (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisHighWeightColumn (m : ℕ) (hm : 1 ≤ m) :
     ForwardHighWeightIndex m → CommonAxisBandCoord m (2 * m + 2) hm
   | (Sum.inl j, k) =>
       ⟨Sum.inr (Sum.inr
@@ -69,7 +72,7 @@ def canonicalCommonAxisLowWeightJacobianAtWitness (m : ℕ) (hm : 1 ≤ m) :
         (forwardCommonAxisCoordinatePolynomial m (2 * m + 2) hm
           (by omega) (forwardLowWeightRow m a)))
 
-private def commonAxisLowVandermondeBlock (k : Fin (m - 1)) :
+def commonAxisLowVandermondeBlock (k : Fin (m - 1)) :
     Matrix (Fin (k.val + 3)) (Fin (k.val + 3)) ℂ :=
   (Matrix.vandermonde (fun j => (j.val : ℂ))).transpose
 
@@ -150,7 +153,7 @@ def canonicalCommonAxisHighWeightJacobianAtWitness (m : ℕ) (hm : 1 ≤ m) :
         (forwardCommonAxisCoordinatePolynomial m (2 * m + 2) hm
           (by omega) (forwardHighWeightRow m hm a)))
 
-private def commonAxisHighWeightBlock (m : ℕ) (k : Fin (m + 1)) :
+def commonAxisHighWeightBlock (m : ℕ) (k : Fin (m + 1)) :
     Matrix (ForwardHighWeightNode m) (ForwardHighWeightNode m) ℂ :=
   Matrix.fromBlocks
     (Matrix.vandermonde (fun j : Fin (m + 1) => (j.val : ℂ))).transpose
@@ -160,7 +163,7 @@ private def commonAxisHighWeightBlock (m : ℕ) (k : Fin (m + 1)) :
 
 /-- The high-weight block, restated with its lower-left entry presented through
 `Matrix.of` so that the `Matrix.fromBlocks` API lemmas apply. -/
-private theorem commonAxisHighWeightBlock_eq (m : ℕ) (k : Fin (m + 1)) :
+theorem commonAxisHighWeightBlock_eq (m : ℕ) (k : Fin (m + 1)) :
     commonAxisHighWeightBlock m k =
       Matrix.fromBlocks
         (Matrix.vandermonde (fun j : Fin (m + 1) => (j.val : ℂ))).transpose
@@ -169,7 +172,7 @@ private theorem commonAxisHighWeightBlock_eq (m : ℕ) (k : Fin (m + 1)) :
         1 :=
   rfl
 
-private theorem det_commonAxisHighWeightBlock_ne_zero
+theorem det_commonAxisHighWeightBlock_ne_zero
     (m : ℕ) (k : Fin (m + 1)) :
     (commonAxisHighWeightBlock m k).det ≠ 0 := by
   rw [commonAxisHighWeightBlock_eq, Matrix.det_fromBlocks_zero₁₂,

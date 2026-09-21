@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularMeasure
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularMeasure
 
 /-!
 # Full-disc angular cancellation
@@ -8,6 +9,8 @@ assignment boundary.  Its score cells are therefore complete disks rather
 than the support-boundary half-disks used by the original angular packing.
 This module supplies the corresponding zero-mass cancellation.
 -/
+
+public section
 
 open MeasureTheory Set
 

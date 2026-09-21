@@ -1,8 +1,9 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic
-import Mathlib.Data.Finset.Powerset
-import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic
+public import Mathlib.Data.Finset.Powerset
+public import Mathlib.LinearAlgebra.AffineSpace.FiniteDimensional
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
 # Affine occupancy and sparse-design vocabulary
@@ -10,6 +11,8 @@ import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 Finite indexed affine-line occupancy, deletion distance, affine-minor separation, and the
 prespecified sparse-support genericity assumptions.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

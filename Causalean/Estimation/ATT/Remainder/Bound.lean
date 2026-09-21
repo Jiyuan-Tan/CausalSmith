@@ -16,12 +16,13 @@ remainder has only **one** product `‖Δμ₀‖ · ‖Δe‖` rather than a su
 the constant simplifies accordingly.
 -/
 
-import Causalean.Estimation.ATT.Remainder.Identity
-import Causalean.Tactic.IntegralLinearity
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
+module
+public import Causalean.Estimation.ATT.Remainder.Identity
+public import Causalean.Tactic.IntegralLinearity
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
 
 /-! # AIPW Remainder Bound (ATT)
 
@@ -35,6 +36,8 @@ The public results are `aipw_remainder_bound_ATT`, the deterministic L² product
 bound, and `aipw_remainder_op_ATT`, the stochastic `o_p(n^{-1/2})` consequence
 used by the ATT double-machine-learning theorem. Parallel to
 `Estimation/ATE/Remainder/Bound.lean`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

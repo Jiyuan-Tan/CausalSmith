@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Pushforward
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ShiftedPowerCoercivity
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Pushforward
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ShiftedPowerCoercivity
 
 /-!
 # Local-window population-law bridge
@@ -13,6 +14,8 @@ import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ShiftedP
 This module identifies the fixed-stratum treatment marginal with its declared
 density law and transports integrals through that measure identity.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

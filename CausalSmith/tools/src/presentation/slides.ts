@@ -2,7 +2,7 @@ import { lintNegativeContributionFraming, type LintProblem } from "./tex_anchors
 
 /**
  * P6 slides — parser and mechanical lint for `slides.md`, the authored seminar-deck
- * source (see internal/plans/2026-08-27-p6-slides-proposal.md).
+ * source.
  *
  * Format contract (kept deliberately tiny so a single model call can honor it and an
  * operator can hand-edit the file):

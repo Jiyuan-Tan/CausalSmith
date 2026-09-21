@@ -59,7 +59,8 @@ API key is an opt-in alternative — see [Model access](#model-access-for-the-pi
 The agent installs the Lean toolchain; downloads Mathlib's build cache and
 Causalean's **prebuilt oleans** (a `.tar.zst` archive published as a release
 asset on the `build-cache` tag, so the first build takes minutes rather than
-hours); builds the library; installs the Node tooling; downloads the
+hours); builds the library and the light CausalSmith package (the Lean proofs
+of existing papers are opt-in and not built, see below); installs the Node tooling; downloads the
 **fine-tuned retrieval models** (about 2.3 GB, same release tag; they power the
 semantic search tier the pipeline uses to find reusable lemmas); and writes the
 machine-specific config. (Windows users: read the [platform notes](#platform-notes)
@@ -109,6 +110,10 @@ lake exe cache get               # Mathlib's prebuilt oleans
 scripts/fetch_build_cache.sh     # Causalean's prebuilt oleans (a GitHub release asset; needs curl, tar, zstd)
 lake build                       # only what changed since the cached commit
 
+# 2b. The CausalSmith Lean project (the pipeline's package) — light by default
+(cd CausalSmith && lake exe cache get)   # CausalSmith keeps its own Mathlib copy: fetch its cache from inside it
+lake -d CausalSmith build           # Causalean + shared helpers; does NOT build existing papers
+
 # 3. Retrieval tooling — how you actually find things in a ~8000-declaration library
 cd CausalSmith/tools && npm install
 npm run search -- "backdoor adjustment"
@@ -119,11 +124,35 @@ cd CausalSmith/tools && npm run embed:library    # needs Python 3 + sentence-tra
 npm run search -- --semantic "backdoor adjustment"
 ```
 
-Both release assets live on the `build-cache` tag of this repository:
+**Existing papers are opt-in.** The Lean proofs of the existing papers live under
+`CausalSmith/CausalSmith/`, and type-checking all of them from source takes hours.
+The pipeline does not need them: a new research run builds on Causalean, and if
+it imports an earlier paper's module, `lake` compiles only that paper on demand.
+Step 2b therefore skips them. Fetch or build them only when you want to present,
+verify, or browse existing papers:
+
+```sh
+scripts/fetch_build_cache.sh --causalsmith          # prebuilt oleans for every CausalSmith module (release asset)
+lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research   # one paper, via its run barrel
+                                                    # (a few early runs have no barrel: name their module files instead)
+bash CausalSmith/tools/scripts/full_tree_build.sh   # every module
+```
+
+`--causalsmith` fetches only the CausalSmith archive; it needs the step 2 and 2b
+caches already in place.
+
+The Lean build caches live on the `build-cache` tag of this repository:
 `causalean-build-<sha>.tar.zst` / `causalean-build-latest.tar.zst` (the prebuilt
-oleans; `fetch_build_cache.sh` picks the exact commit when published, else the
-latest and lets `lake` rebuild the delta) and `retrieval_model_ft.tar.zst` /
+Causalean oleans) and `causalsmith-build-<sha>.tar.zst` /
+`causalsmith-build-latest.tar.zst` (the prebuilt oleans of every CausalSmith
+module, fetched only with `--causalsmith`). `fetch_build_cache.sh` picks the
+exact commit when published, else the latest, and lets `lake` rebuild the delta.
+A `latest` CausalSmith archive can be a partial CI build: CI strips every module
+it did not finish, and `lake` builds those. The same tag carries `retrieval_model_ft.tar.zst` /
 `retrieval_reranker_ft.tar.zst` (the model weights, unpacked into `doc/`).
+The two models are also published, with a model card, on Hugging Face as
+[`jytan12/causalean-retrieval`](https://huggingface.co/jytan12/causalean-retrieval)
+(retriever at the repository root, reranker under `reranker/`).
 Steps 2 and 4 need `zstd` (`apt install zstd`, `brew install zstd`, or the
 [zstd releases](https://github.com/facebook/zstd/releases) on Windows).
 Step 3 needs Node ≥ 20.20.2 and is worth doing before you read any Lean source:
@@ -232,7 +261,9 @@ lexical ranking. The embedding tier requires `npm run embed:library` (Python 3 +
 the embeddings are present and fresh, so that mode is slower on first use. The
 fine-tuned encoder and reranker behind that tier are gitignored weight
 directories: `scripts/fetch_retrieval_models.sh` downloads them (about 2.3 GB,
-published as release assets) into `doc/`; without them the tooling falls back to
+published as release assets, and mirrored on Hugging Face as
+[`jytan12/causalean-retrieval`](https://huggingface.co/jytan12/causalean-retrieval))
+into `doc/`; without them the tooling falls back to
 the off-the-shelf `BAAI/bge-large-en-v1.5` checkpoint. The download and the tier it
 feeds both work on Windows too — run the script from Git Bash with `zstd` on `PATH`.
 
@@ -289,8 +320,12 @@ packages build independently:
 ```sh
 lake exe cache get          # fetch Mathlib build cache (do this first — it saves hours)
 scripts/fetch_build_cache.sh  # fetch Causalean's prebuilt oleans (release asset; lake rebuilds only the delta)
+                            # --causalsmith instead fetches the CausalSmith (existing papers) oleans
 lake build                  # Causalean, the foundational library
-lake -d CausalSmith build   # CausalSmith pipeline package (optional; depends on Causalean)
+(cd CausalSmith && lake exe cache get)  # CausalSmith keeps its own Mathlib copy; run inside it
+lake -d CausalSmith build   # CausalSmith pipeline package, light: Causalean + shared helpers
+# Optional, existing papers (hours from source; prebuilt oleans via fetch_build_cache.sh --causalsmith):
+lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research   # one paper via its run barrel
 ```
 
 A full `lake build` is slow. When iterating, build a single module —

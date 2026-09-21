@@ -1,11 +1,16 @@
 // Reactive Lean-file splitter (causalsmith Mechanism 3).
 //
 // Splits a single oversized, FLAT-namespace Lean file (one `namespace … end`,
-// no nested `section`/mid-file `variable`/`open`) into size-bounded sibling
+// no nested `section`/mid-file `variable`/`open`, except the module-wide blanket
+// public section) into size-bounded sibling
 // part files.  Relies on the fact that a Lean file is already in dependency
 // order (no forward refs): consecutive chunks + a linear import chain (Part_i
 // imports Part_{i-1}) preserve every reference.  Cross-part `private` decls are
-// de-privatized so later parts (and the original) can see them.
+// de-privatized so later parts (and the original) can see them. In a module file,
+// a cross-part `def`/`abbrev`/`instance` whose body is used by reduction (`rfl`,
+// `decide`) or an explicit unfolding command also gets an exposed body: the
+// owning part's blanket `public section` is upgraded to `@[expose] public section`
+// (or the declaration gets `@[expose]` when no blanket section is present).
 //
 // Two modes for the ORIGINAL file:
 //  * default — it becomes a thin re-export aggregator (imports all parts), so
@@ -19,8 +24,21 @@
 // silently mangles a file with nested sections or local variable scopes.
 // Caller is expected to `lake build` and roll back on failure (verify-or-rollback).
 
-const DECL_RE =
-  /^(?:private\s+|protected\s+|noncomputable\s+|scoped\s+|local\s+|unsafe\s+|partial\s+)*(theorem|lemma|def|abbrev|structure|inductive|instance|class|opaque|axiom)\b/;
+import {
+  LEAN_ATTRS_PREFIX_SRC,
+  LEAN_DECL_HEADER_RE,
+  LEAN_DECL_KEYWORDS,
+  LEAN_DECL_MODIFIERS,
+  LEAN_MODULE_LINE_RE,
+  LEAN_SECTION_RE,
+  isLeanImportLine,
+  isLeanModuleFile,
+} from "../shared/lean_syntax.js";
+
+const DECL_RE = LEAN_DECL_HEADER_RE;
+const DECL_NAME_RE = new RegExp(
+  String.raw`^[ \t]*${LEAN_ATTRS_PREFIX_SRC}((?:(?:${LEAN_DECL_MODIFIERS})\s+)*)(?:${LEAN_DECL_KEYWORDS})\s+([^\s({:[]+)`,
+);
 
 /** Block-comment nesting depth at the START of each line (Lean `/- -/` nest;
  *  `/--`,`/-!` are block comments too).  `--` is a line comment.  Minimal string
@@ -101,6 +119,7 @@ export interface SplitResult {
 
 export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitResult {
   const budget = opts.lineBudget ?? 700;
+  const moduleFile = isLeanModuleFile(text);
   const lines = text.split('\n');
   const depth = commentDepthAtLineStart(lines);
   const fail = (reason: string): SplitResult =>
@@ -118,7 +137,7 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
     // let it through, and because the anonymous `end` closing it is excluded from the `end` count
     // below, such a file passed the "exactly one namespace…end" check and was split into parts
     // that neither reproduce nor close the scope.
-    else if (/^(?:noncomputable\s+)?section\b/.test(t) || /^variable\b/.test(t) || (/^open\b/.test(t) && !isCommandPrefix(t))) {
+    else if (LEAN_SECTION_RE.test(t) || /^variable\b/.test(t) || (/^open\b/.test(t) && !isCommandPrefix(t))) {
       // `open`/`variable` are allowed only in the preamble (before first decl);
       // a `section` anywhere makes scoping non-flat — flag for the post-preamble check.
       badScopes.push(`${i + 1}:${t.slice(0, 30)}`);
@@ -172,25 +191,34 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
   const firstHeader = headers[0];
   for (const s of badScopes) {
     const ln = parseInt(s, 10) - 1;
-    if (s.includes('section')) return fail(`non-flat: 'section' at ${s}`);
+    // House-style module files have one unclosed blanket public section before the namespace.
+    // It is part of the preamble copied into every part, so it creates no split boundary.
+    const blanketPublicSection =
+      moduleFile && ln < nsLine && /\bpublic\s+(?:noncomputable\s+)?section\b/.test(lines[ln]);
+    if (s.includes('section') && !blanketPublicSection) return fail(`non-flat: 'section' at ${s}`);
     if (ln >= firstHeader) return fail(`non-flat: open/variable after first decl at ${s}`);
   }
 
   // ---- Preamble (everything before the first decl header) + namespace name. ----
   const preambleLines = lines.slice(0, firstHeader);
+  const hasPublicBlanket = preambleLines.some((line, i) =>
+    i < nsLine && LEAN_SECTION_RE.test(line) && /\bpublic\s+(?:noncomputable\s+)?section\b/.test(line),
+  );
   const importInsertIdx = (() => {
     let last = -1;
     for (let i = 0; i < preambleLines.length; i++)
-      if (depth[i] === 0 && /^import\b/.test(preambleLines[i].trimStart())) last = i;
+      if (depth[i] === 0 && isLeanImportLine(preambleLines[i])) last = i;
     return last;
   })();
   if (importInsertIdx < 0) return fail('no import line found in preamble');
 
   // ---- Decl name extraction (for de-privatization). ----
-  const declName = (declLine: number): { name: string; isPrivate: boolean } => {
-    const m = lines[declLine].match(
-      /^((?:private\s+|protected\s+|noncomputable\s+|scoped\s+|local\s+|unsafe\s+|partial\s+)*)(?:theorem|lemma|def|abbrev|structure|inductive|instance|class|opaque|axiom)\s+([^\s({:[]+)/);
-    return { name: m ? m[2] : '', isPrivate: /(^|\s)private\s/.test(lines[declLine].slice(0, (lines[declLine].match(DECL_RE)?.[0].length ?? 0))) };
+  const declName = (declLine: number): { name: string; kind: string; isPrivate: boolean } => {
+    const header = lines[declLine];
+    const nameMatch = header.match(DECL_NAME_RE);
+    const kind = header.match(DECL_RE)?.[1] ?? '';
+    const modifiers = nameMatch?.[1] ?? '';
+    return { name: nameMatch?.[2] ?? '', kind, isPrivate: /(^|\s)private(?:\s|$)/.test(modifiers) };
   };
   const declMeta = declLines.map(declName);
 
@@ -244,18 +272,21 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
       return fail(`chunk [${c.from + 1}..${c.to + 1}] is not comment-balanced (start depth ${depth[c.from]}, end depth ${endDepth}) — boundary split a comment`);
   }
 
-  // ---- De-privatization: a private PREFIX decl referenced (as a token) in a
-  // LATER prefix chunk OR in the RETAINED SUFFIX (the theorem that consumes it)
-  // must be made visible. ----
+  // ---- Cross-part visibility/exposure: a private PREFIX decl referenced (as a token) in a
+  // LATER prefix chunk OR in the RETAINED SUFFIX must be made visible. A def-like declaration
+  // used by reduction in another file also needs its body exposed. ----
   const deprivatized: string[] = [];
   const chunkText = chunks.map(c => lines.slice(c.from, c.to + 1).join('\n'));
   // Everything kept in the original from the first pinned decl onward (empty in
   // aggregator mode, where suffixStart === endLine).
   const suffixText = lines.slice(suffixStart, endLine).join('\n');
   const toDeprivatize = new Set<number>(); // decl index
+  const toPublish = new Set<number>(); // cross-file referent in a module with no public blanket
+  const toExpose = new Set<number>(); // def-like decl whose body is used across the boundary
+  const defLike = new Set(['def', 'abbrev', 'instance']);
   for (let di = 0; di < extractCount; di++) {
-    const { name, isPrivate } = declMeta[di];
-    if (!isPrivate || !name) continue;
+    const { name, kind, isPrivate } = declMeta[di];
+    if (!name) continue;
     // which chunk owns decl di?
     const owner = chunks.findIndex(c => di >= c.firstDecl && di <= c.lastDecl);
     const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -265,9 +296,25 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
     const lastComp = name.includes('.') ? name.slice(name.lastIndexOf('.') + 1) : '';
     const reDot = lastComp ? new RegExp(`\\.${esc(lastComp)}([^\\w]|$)`) : null;
     const refdIn = (txt: string) => reFull.test(txt) || (reDot ? reDot.test(txt) : false);
-    let used = refdIn(suffixText);
-    for (let cj = owner + 1; !used && cj < chunks.length; cj++) used = refdIn(chunkText[cj]);
-    if (used) { toDeprivatize.add(di); deprivatized.push(name); }
+    const bodyNeededIn = (txt: string) => {
+      if (!refdIn(txt)) return false;
+      // `rfl`/`decide` may reduce any referenced definition in the consumer. Explicit
+      // simp/dsimp/unfold mentions are tied directly to the declaration name.
+      if (/\b(?:rfl|decide)\b/.test(txt)) return true;
+      const nameSrc = lastComp ? `(?:${esc(name)}|${esc(lastComp)})` : esc(name);
+      return new RegExp(`\\b(?:simp|simpa|dsimp)\\b[^\\n]*\\[[^\\]]*\\b${nameSrc}\\b`).test(txt)
+        || new RegExp(`\\bunfold\\s+${nameSrc}\\b`).test(txt);
+    };
+    const consumers = [suffixText, ...chunkText.slice(owner + 1)];
+    const used = consumers.some(refdIn);
+    if (used) {
+      if (isPrivate) {
+        toDeprivatize.add(di);
+        deprivatized.push(name);
+      }
+      if (moduleFile && !hasPublicBlanket) toPublish.add(di);
+      if (moduleFile && defLike.has(kind) && consumers.some(bodyNeededIn)) toExpose.add(di);
+    }
   }
 
   // ---- Build part files. ----
@@ -275,15 +322,48 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
   const parts: SplitPart[] = chunks.map((c, ci) => {
     const partNo = ci + 1;
     const body: string[] = lines.slice(c.from, c.to + 1).slice();
-    // de-privatize within this chunk (offset of each decl line into the chunk)
+    // Publish cross-part referents. A blanket public section makes a bare declaration public;
+    // without one, module mode requires an explicit `public` modifier.
     for (let di = c.firstDecl; di <= c.lastDecl; di++) {
-      if (!toDeprivatize.has(di)) continue;
+      if (!toDeprivatize.has(di) && !toPublish.has(di)) continue;
       const off = declLines[di] - c.from;
-      if (off >= 0 && off < body.length) body[off] = body[off].replace(/(^\s*)private\s+/, '$1');
+      if (off >= 0 && off < body.length) {
+        let header = body[off].match(DECL_RE)?.[0];
+        if (!header) continue;
+        if (toDeprivatize.has(di)) header = header.replace(/\bprivate\s+/, "");
+        if (toPublish.has(di) && !/\bpublic\s+/.test(header)) {
+          const kind = declMeta[di].kind;
+          const keywordAt = header.lastIndexOf(kind);
+          header = `${header.slice(0, keywordAt)}public ${header.slice(keywordAt)}`;
+        }
+        body[off] = header + body[off].slice(body[off].match(DECL_RE)![0].length);
+      }
     }
     const pre = preambleLines.slice();
+    const exposedDecls = [...toExpose].filter((di) => di >= c.firstDecl && di <= c.lastDecl);
+    let exposedByBlanket = false;
+    if (exposedDecls.length > 0) {
+      const blanketIdx = pre.findIndex((line, i) =>
+        i < nsLine && LEAN_SECTION_RE.test(line) && /\bpublic\s+(?:noncomputable\s+)?section\b/.test(line),
+      );
+      if (blanketIdx >= 0) {
+        if (!/@\[[^\]]*\bexpose\b[^\]]*\]/.test(pre[blanketIdx])) {
+          pre[blanketIdx] = pre[blanketIdx].replace(/^(\s*)/, '$1@[expose] ');
+        }
+        exposedByBlanket = true;
+      }
+    }
+    if (!exposedByBlanket) {
+      for (const di of exposedDecls) {
+        const off = declLines[di] - c.from;
+        if (off >= 0 && off < body.length && !/@\[[^\]]*\bexpose\b[^\]]*\]/.test(body[off])) {
+          body[off] = body[off].replace(/^(\s*)/, '$1@[expose] ');
+        }
+      }
+    }
     const extraImports: string[] = [];
-    for (let k = 1; k < partNo; k++) extraImports.push(`import ${opts.modulePrefix}.${partFor(k)}`);
+    const partImport = moduleFile ? 'public import' : 'import';
+    for (let k = 1; k < partNo; k++) extraImports.push(`${partImport} ${opts.modulePrefix}.${partFor(k)}`);
     // insert earlier-part imports right after the last existing import
     const head = pre.slice(0, importInsertIdx + 1);
     const tail = pre.slice(importInsertIdx + 1);
@@ -308,7 +388,7 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
     // `end`. The theorem stays in its named file; its support lemmas are imported.
     const head = preambleLines.slice(0, importInsertIdx + 1);
     const tailPre = preambleLines.slice(importInsertIdx + 1);
-    const partImports = parts.map(p => `import ${p.moduleName}`);
+    const partImports = parts.map(p => `${moduleFile ? 'public import' : 'import'} ${p.moduleName}`);
     const retained = lines.slice(suffixStart, endLine); // decls from first pinned to last (no `end`)
     aggregator =
       [...head, ...partImports, ...tailPre].join('\n').replace(/\n*$/, '\n') +
@@ -321,10 +401,15 @@ export function splitFlatNamespaceFile(text: string, opts: SplitOptions): SplitR
       if (depth[i] > 0 || opensComment(lines[i]) || isBlankLine(lines[i]) || isLineComment(lines[i])) leadingComment.push(lines[i]);
       else break;
     }
-    const baseImport = preambleLines[importInsertIdx]; // `import …Basic`
+    const baseImport = preambleLines[importInsertIdx]; // `import …Basic` / `public import …Basic`
+    const moduleLine = moduleFile
+      ? lines.find((line, i) => depth[i] === 0 && LEAN_MODULE_LINE_RE.test(line)) ?? 'module'
+      : null;
     aggregator =
       leadingComment.join('\n').replace(/\n*$/, '\n\n') +
-      [baseImport, ...parts.map(p => `import ${p.moduleName}`)].join('\n') + '\n';
+      [moduleLine, baseImport, ...parts.map(p => `${moduleFile ? 'public import' : 'import'} ${p.moduleName}`)]
+        .filter((line): line is string => line !== null)
+        .join('\n') + '\n';
   }
 
   return { ok: true, parts, aggregator, declCount: declLines.length, deprivatized };

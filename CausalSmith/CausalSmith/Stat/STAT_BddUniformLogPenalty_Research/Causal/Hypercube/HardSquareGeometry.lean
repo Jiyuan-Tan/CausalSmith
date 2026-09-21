@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.PotentialOutcomeLaw
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.PotentialOutcomeLaw
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
+public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 
 /-!
 # Geometry of the fixed causal hard square
@@ -8,6 +9,8 @@ import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 This file records the elementary square, rectangle, and disk facts used by
 the causal angular hypercube construction.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 

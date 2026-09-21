@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialOnePointKL
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialQuantitative
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaledDelta
-import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialOnePointKL
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialQuantitative
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaledDelta
+public import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 
 /-!
 # Construction-specific one-point KL bound
@@ -9,6 +10,8 @@ import Mathlib.MeasureTheory.Measure.Lebesgue.VolumeOfBalls
 This module connects the common-radius KL interface to the angular packing,
 including its middle-half parameter clipping and short-radius mass bound.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

@@ -17,7 +17,8 @@ constants depending only on `(κ, cm, cp, t₀)`:
 These `J`-bounds anchor the `I`-bounds too, since `I ≤ J` (file `MomentIBounds`).
 -/
 
-import Causalean.Stat.PolynomialTail.TailIntegralBounds
+module
+public import Causalean.Stat.PolynomialTail.TailIntegralBounds
 
 /-!
 # Three-regime bounds for the inverse first moment
@@ -33,6 +34,10 @@ The helper theorems `powInt_ne_one` and `powInt_eq_one` rewrite the comparison i
 and bounded inverse-moment behavior with constants depending only on the polynomial-tail
 parameters.
 -/
+
+public section
+
+open Causalean.Mathlib.Analysis.PowerIntegral
 
 namespace Causalean.Stat.PolynomialTail
 

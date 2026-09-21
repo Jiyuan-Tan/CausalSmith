@@ -1,7 +1,10 @@
-import Causalean.Mathlib.Topology.SubsequentialLimits
-import Mathlib.Topology.Instances.Real.Lemmas
+module
+public import Causalean.Mathlib.Topology.SubsequentialLimits
+public import Mathlib.Topology.Instances.Real.Lemmas
 
 /-! Stability of cluster sets under asymptotically vanishing perturbations. -/
+
+public section
 
 open Filter Topology
 

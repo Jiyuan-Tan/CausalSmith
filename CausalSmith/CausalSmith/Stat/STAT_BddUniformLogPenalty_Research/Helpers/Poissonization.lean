@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
 
 /-!
 # Run-specific Poissonization specializations
@@ -7,6 +8,8 @@ import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonizati
 This file specializes the shared finite-sample and de-Poissonization substrate
 to the accepted run’s observation law and frontier rate.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set Filter Asymptotics
 open scoped ENNReal NNReal

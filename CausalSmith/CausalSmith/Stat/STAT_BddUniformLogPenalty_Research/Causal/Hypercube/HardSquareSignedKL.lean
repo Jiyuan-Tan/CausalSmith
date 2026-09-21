@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.CommonStatisticBernoulli
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCancellation
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.CommonStatisticBernoulli
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCancellation
 
 /-!
 # Signed-observation KL certificate for the hard square
@@ -8,6 +9,8 @@ This module identifies the observed outcome after signed-distance compression
 with an explicit Bernoulli mixture over the score law.  It then combines the
 half-disc cancellation estimate with the common-statistic Bernoulli KL bound.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

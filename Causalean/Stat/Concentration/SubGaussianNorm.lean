@@ -1,6 +1,6 @@
 module
 
-public import Causalean.Stat.Concentration.FiniteDimensionalNet
+public import Causalean.Mathlib.Analysis.NormedSpace.FiniteNets
 public import Mathlib.Probability.Moments.SubGaussian
 
 /-!
@@ -18,7 +18,9 @@ open scoped NNReal RealInnerProductSpace
 
 noncomputable section
 
-namespace Causalean
+open Causalean.Mathlib.Analysis.NormedSpace
+
+namespace Causalean.Stat.Concentration
 
 /-- Every nonzero vector in a subspace has a point in a finite half-net whose inner
 product with that vector is at least half of its norm. -/
@@ -120,4 +122,4 @@ theorem measure_norm_gt_le_five_pow_finrank {Ω E : Type*} [MeasurableSpace Ω]
     simpa [N] using hMcard
   exact_mod_cast hNcard
 
-end Causalean
+end Causalean.Stat.Concentration

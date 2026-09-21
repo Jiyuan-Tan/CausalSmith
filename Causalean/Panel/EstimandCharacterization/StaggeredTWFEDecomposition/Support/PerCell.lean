@@ -11,7 +11,9 @@ to closed-form expressions in the cohort-period panel statistics
 two-axis analogues of Sloczynski's `denom_per_cell` / `num_per_cell`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Partition
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Partition
+
 /-! # Goodman-Bacon Per-Cell Bridge Identities
 
 This file proves the cell-level integral identities that express the
@@ -19,6 +21,8 @@ residualized-treatment denominator and the residualized-outcome numerator in
 terms of cohort-period panel statistics. These identities supply the local
 algebra needed to connect the measure-theoretic bridge with the finite
 Goodman-Bacon decomposition. -/
+
+@[expose] public section
 
 namespace Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition
 
@@ -36,7 +40,7 @@ in-class residual on cell `(g, t)`: equals
 formula.
 
 We define this in terms of the existing `D` (the indicator
-`AdoptionDate.le (A g) t`) and the cohort/period statistics, so that
+`AdoptionPath.le (A g) t`) and the cohort/period statistics, so that
 `Dtilde P g t = D P g t - barD P g - (E[D | T=t] - E[D])` for the
 `panelOf …` panel `P`. -/
 noncomputable def panelDtilde

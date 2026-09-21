@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Basic
+module
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Basic
 
 /-!
 # Splicing positive density factorizations
@@ -7,6 +8,8 @@ This module isolates the analytic heart of graphoid intersection.  Strict positi
 support lets two factorizations with different conditioning blocks be compared along product
 fibres and spliced into the factorization for the union block.
 -/
+
+public section
 
 open MeasureTheory
 open scoped ENNReal

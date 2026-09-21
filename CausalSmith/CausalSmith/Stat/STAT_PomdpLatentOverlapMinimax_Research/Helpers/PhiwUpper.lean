@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.BiasVariance
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.BiasVariance
 
 set_option linter.style.longLine false
 
 /-! # Fixed-radius PHIW upper bound -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
@@ -17,7 +20,7 @@ lemma phiw_upper {t0 zeta C : ℝ} (ht0 : 0 < t0) (hzeta : 0 < zeta) (hC : 1 ≤
     ∃ cStar : ℝ, 0 < cStar ∧
       ∃ TStar : Nat,
         (∀ T ≥ TStar,
-          Causalean.Stat.worstCaseRisk
+          Causalean.Stat.worstCaseRiskReal
             (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
             (phiwObservable (T := T) (historyDepth T t0 zeta)) ≤
           cStar * (T : ℝ) ^ (-rateExponent t0 zeta)) ∧

@@ -12,15 +12,31 @@ representation (interface `I-4`) — is NOT built here; these `def`s supply only
 the project's own statable reductions.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CAD.CADInterface
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CAD.EffectiveRationalGroebnerCADInterface
-import Mathlib.Computability.PartrecCode
-import Mathlib.Data.Rat.Encodable
-import Mathlib.RingTheory.Polynomial.Resultant.Basic
-import Mathlib.Tactic.DeriveEncodable
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CAD.CADInterface
+public import
+  CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CAD.EffectiveRationalGroebnerCADInterface
+public import Mathlib.Computability.PartrecCode
+public import Mathlib.Data.Rat.Encodable
+public import Mathlib.RingTheory.Polynomial.Resultant.Basic
+public meta import Mathlib.Tactic.DeriveEncodable
+
+-- private import
+import all Mathlib.Tactic.DeriveEncodable
+
+open Lean Elab Command
+
+elab "derive_private_encodable " typeName:ident : command => do
+  let declName ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo typeName
+  let currentNamespace ← getCurrNamespace
+  let implementationNamespace := Name.str currentNamespace "EncodableImplementation"
+  withScope (fun sc => { sc with isPublic := false, currNamespace := implementationNamespace }) do
+    discard <| Mathlib.Deriving.Encodable.mkEncodableInstance #[declName]
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -29,7 +45,10 @@ noncomputable section
 open MeasureTheory
 open scoped ENNReal BigOperators
 
-deriving instance Encodable for Direction
+derive_private_encodable Direction
+
+opaque instEncodableDirection : Encodable Direction := inferInstance
+attribute [instance] instEncodableDirection
 
 /-- Provides the stated computational structure for this data type. -/
 local instance atlasGaussianRationalIrreducible :
@@ -138,12 +157,13 @@ arbitrary realizing non-Gaussian laws.
 *On the note's "truncated-moment-matrix perturbation".*  The note reaches this region by a
 perturbation of a positive compactly-supported density.  That is the note's **method of exhibiting**
 the realizing laws, not a property of the laws it exhibits: "was obtained by a perturbation" is not
-a predicate on a measure, so it is not — and must not be — a conjunct here.  Adding one would make
-the Lean predicate *strictly stronger* than the object the note defines.  The perturbation content the
-development actually uses is a **proved theorem**, not an assumed clause: `truncatedMomentInterior`
-(`Causalean.Stat.MomentProblems.truncatedMomentInterior`, fully proved) supplies exactly the
-moment-cone-interior /
-neighbourhood-realizability fact for which the perturbation is invoked. -/
+a predicate on a measure, so it is not — and must not be — a conjunct here. Adding one would make
+the Lean predicate *strictly stronger* than the object the note defines. The development uses the
+following **proved theorem**, not an assumed clause:
+`truncatedCumulantInterior`
+(`Causalean.Stat.MomentProblems.truncatedCumulantInterior`, fully proved) supplies exactly the
+cumulant-range-interior / neighbourhood-realizability fact for which the perturbation is
+invoked. -/
 def compactlySupportedFeasibleRegion (m L : ℕ) : Set (ParamSpace ℝ m) :=
   { p |
       p.1 ≠ 0 ∧
@@ -382,7 +402,8 @@ abbrev AtlasAssignment (m : ℕ) := AtlasIncidenceCoord m → ℝ
 
 -- The recursive CAD section/sector cell language (`cadEraseCoordinate`, `cadRealRootsAt`,
 -- `IsCADAlgebraicRoot`, `IsCADLastAlgebraicRoot`, `IsRecursivelyLiftedCADCell`) is the output of
--- the section/sector lifting of the cited theorem, so it too lives in `Helpers/CAD/CADInterface.lean`
+-- the section/sector lifting of the cited theorem, so it too lives in
+-- `Helpers/CAD/CADInterface.lean`
 -- as part of the
 -- cited statement of record, generic in the coordinate index.  `AtlasAssignment m` unfolds to
 -- `AtlasIncidenceCoord m → ℝ`, so the atlas below uses those very predicates.
@@ -426,7 +447,8 @@ structure RealAtlasCADData (m : ℕ) where
   forwardCell : ∀ i, Fin (forwardCellCount i) → Set (AtlasAssignment m)
   reverseCell : ∀ i, Fin (reverseCellCount i) → Set (AtlasAssignment m)
   -- The recursion starts from the INCIDENCE presentation and projects on each descent (BPR's
-  -- stage-specific `C_i`), exactly as the cited `IsAdaptedCAD.recursively_lifted` does.  Starting it
+  -- stage-specific `C_i`), exactly as the cited `IsAdaptedCAD.recursively_lifted` does.
+  -- Starting it
   -- from the already fully-accumulated `projectionFamily` would not match the cited theorem.
   forward_recursive : ∀ i k,
     IsRecursivelyLiftedCADCell
@@ -599,7 +621,12 @@ inductive AtlasTraceOperation
   | sectionLifting
   | sectorLifting
   | signConditionTruth
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable AtlasTraceOperation
+
+opaque instEncodableAtlasTraceOperation : Encodable AtlasTraceOperation := inferInstance
+attribute [instance] instEncodableAtlasTraceOperation
 
 /-- The three rational algebra jobs used by the paper-specific atlas.  The
 general cited interface also supports Gaussian-rational jobs, but this atlas
@@ -609,7 +636,12 @@ inductive AtlasRationalAlgebraJob
   | forwardElimination
   | reverseElimination
   | observableIntersection
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable AtlasRationalAlgebraJob
+
+opaque instEncodableAtlasRationalAlgebraJob : Encodable AtlasRationalAlgebraJob := inferInstance
+attribute [instance] instEncodableAtlasRationalAlgebraJob
 
 /-- One primitive operation charged by the cited effective computations, with
 both its paper-side source job and its cited high-level trace stage retained.
@@ -1553,7 +1585,12 @@ theorem CertifiedAtlasConstructionTrace.operationCost_sum_eq_cited
 are discrete data suitable for a genuine machine encoding. -/
 structure AtlasPolynomialCode (σ : Type) where
   terms : List (ℚ × List (σ × ℕ))
-  deriving Encodable
+
+derive_private_encodable AtlasPolynomialCode
+
+opaque instEncodableAtlasPolynomialCode {σ : Type} [Encodable σ] :
+    Encodable (AtlasPolynomialCode σ) := inferInstance
+attribute [instance] instEncodableAtlasPolynomialCode
 
 /-- Finite syntax for one recursively lifted CAD cell.  The six constructors
 record the zero-dimensional point and all five lifting cases of
@@ -1568,7 +1605,11 @@ inductive AtlasCellCode
   | lowerSector (base : AtlasCellCode)
   | boundedSector (lowerIndex : ℕ) (base : AtlasCellCode)
   | upperSector (lowerIndex : ℕ) (base : AtlasCellCode)
-  deriving Encodable
+
+derive_private_encodable AtlasCellCode
+
+opaque instEncodableAtlasCellCode : Encodable AtlasCellCode := inferInstance
+attribute [instance] instEncodableAtlasCellCode
 
 /-- Forget the effective cited certificate's rational root presentations and
 sign row while retaining its exact recursive CAD-cell shape and root indices. -/
@@ -1665,7 +1706,12 @@ structure EncodedAtlasConstruction (m : ℕ) where
   traceComplexObservableFamilies : List (List (AtlasPolynomialCode (ℕ × ℕ)))
   operations : List AtlasTraceOperation
   lookupRows : List (List ℕ × Bool × Bool)
-  deriving Encodable
+
+derive_private_encodable EncodedAtlasConstruction
+
+opaque instEncodableEncodedAtlasConstruction {m : ℕ} :
+    Encodable (EncodedAtlasConstruction m) := inferInstance
+attribute [instance] instEncodableEncodedAtlasConstruction
 
 /-- A real polynomial family is exactly the interpretation of a displayed list
 of rational polynomial codes. -/

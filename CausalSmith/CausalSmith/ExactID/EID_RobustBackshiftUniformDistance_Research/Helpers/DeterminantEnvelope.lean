@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic
 
 /-!
 # Determinant envelope from cycle normalization
@@ -7,6 +8,8 @@ This file bounds determinant monomials by decomposing their permutations into di
 It supplies both the closed cycle-product boundary used in compactness arguments and the strict
 admissible-set specialization.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

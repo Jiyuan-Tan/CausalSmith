@@ -12,6 +12,7 @@
 //    (`\operatorname{summaryRadius}` ↔ `summaryRadius`, `\text{gap-scale domain}` ↔
 //    `GapScaleDomain`), unique among the paper's modules. A plural/singular or synonym gap
 //    resolves nothing — the symbol then goes to the definition writer (the honest state).
+import { createHash } from "node:crypto";
 import type { SymbolCluster } from "../formalization/crosswalk.js";
 import { realizedNotationKey } from "../formalization/crosswalk.js";
 
@@ -102,6 +103,27 @@ export function resolveSymbolHomes(
     else unresolved.push(symbol);
   }
   return { homes: [...homes.values()], unresolved, presentedBy };
+}
+
+/** Content fingerprint of everything a synthesized definition is derived from: its symbols, the
+ *  Lean declaration (if any) the current resolution places each one in, and — for a definition
+ *  rendered from Lean — that declaration's context text (`null` when it no longer exists). A
+ *  cached definition is stale exactly when this value differs from the one recorded at birth,
+ *  whatever moved: a tag, a rename, a deleted or edited declaration, or a prose definition whose
+ *  symbols the Lean now defines. Line numbers are excluded (a shifted line is not a change). */
+export function synthInputsFingerprint(
+  symbols: readonly string[],
+  resolution: { homes: readonly SymbolLeanHome[]; presentedBy: ReadonlyMap<string, string> },
+  leanSource?: string | null,
+): string {
+  const placed = new Map<string, string>();
+  for (const home of resolution.homes) for (const symbol of home.symbols) placed.set(symbol, `${home.decl}@${home.file}`);
+  for (const [symbol, decl] of resolution.presentedBy) placed.set(symbol, `presented:${decl}`);
+  const record = {
+    symbols: [...symbols].sort().map((symbol) => [symbol, placed.get(symbol) ?? null]),
+    lean: leanSource === undefined ? undefined : leanSource,
+  };
+  return createHash("sha256").update(JSON.stringify(record)).digest("hex");
 }
 
 /** The first indexed def-like member of the `@realizes` cluster whose symbol spells the requested

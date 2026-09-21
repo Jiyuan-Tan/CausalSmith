@@ -10,10 +10,15 @@ finite-slope set `{γ, ρ_i}` (resp. reverse `{δ, σ_i}`), with `Q_D(0) ≠ 0` 
 nonzero-slope locus.  Feeds the factorization-recovery clause of the flagship.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernel
-import Mathlib.Algebra.Polynomial.Roots
-import Mathlib.Algebra.Squarefree.Basic
-import Mathlib.FieldTheory.Separable
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernel
+public import Mathlib.Algebra.Polynomial.Roots
+public import Mathlib.Algebra.Squarefree.Basic
+public import Mathlib.FieldTheory.Separable
+
+/-! Public apolar polynomial constructions for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

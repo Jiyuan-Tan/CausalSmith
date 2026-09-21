@@ -5,9 +5,11 @@ Authors: Jiyuan Tan
 
 # Structure-agnostic ATE lower bound: single-observation mass and χ²-overlap
 
-This file records two exact finite computations for the construction of
-`Construction.lean`:
+This file records a full-support measure lemma and two exact finite computations
+for the construction of `Construction.lean`:
 
+* `absolutelyContinuous_of_singleton_pos` — any measure is absolutely continuous
+  with respect to a measure that charges every singleton;
 * `obsLaw_real_singleton` — the single-observation law assigns to each point
   `z` exactly the real mass `obsReal m g z`;
 * `chiSqOverlap_eq` — the closed form of the single-observation χ²-overlap of two
@@ -16,15 +18,16 @@ This file records two exact finite computations for the construction of
     `chiSqOverlap α β λ λ' = 1 + (2 (α² + 2αβ + 3β²) / K) Σ_j signOf(λ j) signOf(λ' j)`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
 
 /-! # Base Chi-Squared Second-Moment Overlap
 
-This file computes the singleton probabilities and the single-observation chi-squared overlap
-for the base paired-cell perturbation family. The helper `obsLaw_real_singleton` identifies
-the real mass of a singleton observation, `chiSqOverlap` defines the one-observation
-second-moment overlap, and `obsReal_perturbed_eq` gives a denominator-free formula for each
-perturbed observed-data mass.
+This file supplies the common full-support absolute-continuity lemma and computes the singleton
+probabilities and single-observation chi-squared overlap for the base paired-cell perturbation
+family. The helper `obsLaw_real_singleton` identifies the real mass of a singleton observation,
+`chiSqOverlap` defines the one-observation second-moment overlap, and `obsReal_perturbed_eq` gives
+a denominator-free formula for each perturbed observed-data mass.
 
 The main theorem `chiSqOverlap_eq` proves the closed form used by the Ingster
 indistinguishability argument. "Overlap" here means the χ² second-moment overlap between two
@@ -32,10 +35,24 @@ perturbed observed-data laws relative to the null; it is not the causal positivi
 assumption.
 -/
 
+@[expose] public section
+
 namespace Causalean.Estimation.MinimaxATE
 
 open MeasureTheory
 open scoped BigOperators
+
+/-- **Absolute continuity from full support.** For [measures `μ` and `ν` on the same
+measurable space](hyp:μ,ν), if [`ν` charges every singleton](hyp:hν), then [`μ` is absolutely
+continuous with respect to `ν`](goal). -/
+theorem absolutelyContinuous_of_singleton_pos {Ω : Type*} [MeasurableSpace Ω]
+    (μ ν : Measure Ω) (hν : ∀ x, ν {x} ≠ 0) : μ ≪ ν := by
+  intro s hs
+  have hempty : s = ∅ := by
+    by_contra hne
+    obtain ⟨x, hx⟩ := Set.nonempty_iff_ne_empty.mpr hne
+    exact hν x (le_antisymm (hs ▸ measure_mono (Set.singleton_subset_iff.mpr hx)) zero_le)
+  rw [hempty]; exact measure_empty
 
 /-- The one-observation law assigns each observed point exactly its finite observed-data mass. -/
 theorem obsLaw_real_singleton {C : Type*} [Fintype C] [Nonempty C] [MeasurableSpace C]

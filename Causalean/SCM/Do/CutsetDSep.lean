@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.CutsetLatent
-import Causalean.SCM.Model.InterventionSet
-import Causalean.SCM.Do.GlobalMarkov
+module
+
+public import Causalean.Mathlib.Data.List.Append
+public import Causalean.SCM.Do.GlobalMarkov
+public import Causalean.SCM.Model.CutsetLatent
+public import Causalean.SCM.Model.InterventionSet
 
 /-! # Concatenation d-separation for the latent cutset
 
@@ -31,6 +34,13 @@ contradicting the assumed separation.
   edge-by-edge into `fixSet Z`; criterion (i) guarantees no treatment out-edge is
   needed.
 -/
+
+public section
+
+open Causalean.Graph
+
+open Causalean.Mathlib.Data.List
+
 
 namespace Causalean
 
@@ -84,10 +94,10 @@ theorem cutsetLatent_dSep_of_dSep (M : Causalean.SCM N Ω)
             M.fixed_are_roots _ (hF hmF)
           rw [hroot] at hpar
           exact absurd hpar (Finset.notMem_empty _)
-      have hq_act : M.dag.IsActivePath (W ∪ F) q :=
-        M.dag.isActivePath_of_directed hq_edge hq_intWF
+      have hq_act : M.dag.IsActiveWalk (W ∪ F) q :=
+        M.dag.isActiveWalk_of_directed hq_edge hq_intWF
       have hyReachZr : y ∈ M.dag.bbReachableVertices (W ∪ F) Zr := by
-        rw [M.dag.bbReachableVertices_iff_activePath]
+        rw [M.dag.bbReachableVertices_iff_activeWalk]
         exact ⟨c, hcZr, q, hq_len, hq_act, hq_head, hq_last⟩
       have hdSepZr : M.dag.dSep Zr Y (W ∪ F) := M.dag.dSep_symm _ _ _ hdSep
       exact Finset.disjoint_left.mp hdSepZr.2.2.2 hyReachZr hyY
@@ -108,7 +118,7 @@ theorem cutsetLatent_dSep_of_dSep (M : Causalean.SCM N Ω)
     -- Unpack the cutset membership: an avoiding arm to some `y ∈ Y`.
     rcases (M.mem_cutsetLatent.mp hcCut) with ⟨hc_lat, y, hyY, hcy⟩
     -- Active `Zr → c` path.
-    rw [M.dag.bbReachableVertices_iff_activePath] at hcReach
+    rw [M.dag.bbReachableVertices_iff_activeWalk] at hcReach
     obtain ⟨zr, hzrZr, pa, hpa_len, hpa_act, hpa_head, hpa_last⟩ := hcReach
     -- `c ∉ W ∪ F`: latent nodes are neither observed nor fixed.
     have hc_notWF : c ∉ W ∪ F := by
@@ -123,7 +133,7 @@ theorem cutsetLatent_dSep_of_dSep (M : Causalean.SCM N Ω)
     rcases hcy with hcEqy | hcAv
     · -- Degenerate: `c = y ∈ Y`, but `c` is reachable from `Zr`.
       refine Finset.disjoint_left.mp hdSepZr.2.2.2 ?_ (hcEqy ▸ hyY)
-      rw [M.dag.bbReachableVertices_iff_activePath]
+      rw [M.dag.bbReachableVertices_iff_activeWalk]
       exact ⟨zr, hzrZr, pa, hpa_len, hpa_act, hpa_head, hpa_last⟩
     · -- Build the directed arm `c → … → y` and concatenate.
       obtain ⟨q, hq_len, hq_head, hq_last, hq_edge, hq_int⟩ := hcAv.exists_path
@@ -291,19 +301,23 @@ lemma not_fixedTreatment_of_uadj
     have hmem : a ∈ M.dag.children (SWIGNode.fixed D) := M.dag.mem_children.mpr hva
     rw [hiso.2] at hmem; exact absurd hmem (Finset.notMem_empty _)
 
-/-- An active path in the original structural causal model remains active after
-    fixing the treatment set, when each of its directed edges has a non-treatment source. -/
+/-- Given [a finite structural causal model, treatment set, and conditioning set](hyp:N,Ω,M,Z,W),
+if [every treatment random copy is observed](hyp:hZ_obs), [no treatment fixed copy is already
+fixed](hyp:hZ_fixed), [no treatment random copy is an ancestor of a conditioning node](hyp:hWNonDescM1),
+[a path is active before intervention](hyp:P,hact), and [neither source of a directed edge along
+the path is a treatment random copy](hyp:hInEdge), then [the path remains active after fixing the
+treatment set and adding its fixed copies to the conditioning set](goal). -/
 lemma path_fixSet_active
     (W : Finset (SWIGNode N))
     (hWNonDescM1 : ∀ D ∈ Z, ∀ w ∈ W, ¬ M.dag.isAncestor (SWIGNode.random D) w)
     {P : List (SWIGNode N)}
-    (hact : M.dag.IsActivePath (W ∪ M.fixed) P)
+    (hact : M.dag.IsActiveWalk (W ∪ M.fixed) P)
     (hInEdge : ∀ (i : ℕ) (hi : i + 1 < P.length),
       (M.dag.edge (P.get ⟨i, by omega⟩) (P.get ⟨i + 1, hi⟩) →
         ∀ D ∈ Z, P.get ⟨i, by omega⟩ ≠ SWIGNode.random D) ∧
       (M.dag.edge (P.get ⟨i + 1, hi⟩) (P.get ⟨i, by omega⟩) →
         ∀ D ∈ Z, P.get ⟨i + 1, hi⟩ ≠ SWIGNode.random D)) :
-    (M.fixSet Z hZ_obs hZ_fixed).dag.IsActivePath
+    (M.fixSet Z hZ_obs hZ_fixed).dag.IsActiveWalk
       (W ∪ M.fixed ∪ Z.image SWIGNode.fixed) P := by
   obtain ⟨hadj, hcoll⟩ := hact
   set M2 := M.fixSet Z hZ_obs hZ_fixed with hM2
@@ -358,11 +372,11 @@ end SCM
     end at a root when that ancestor has no directed route to any activated
     conditioning ancestor.  The result rules out a forward run that must either
     enter a root or create an activated collider. -/
-lemma DAG.activePath_forwardRun_absurd {V : Type*} [DecidableEq V] [Fintype V]
+lemma Graph.DAG.activePath_forwardRun_absurd {V : Type*} [DecidableEq V] [Fintype V]
     (G : DAG V) {C : Finset V} {s : V}
     (hTreat : ∀ k, k ∈ G.bbZAncestors C → ¬ G.isAncestor s k) :
     ∀ (prev m : V) (rest : List V),
-      G.IsActivePath C (prev :: m :: rest) →
+      G.IsActiveWalk C (prev :: m :: rest) →
       G.edge prev m →
       (s = prev ∨ G.isAncestor s prev) →
       (∀ p, ¬ G.edge p ((prev :: m :: rest).getLast (by simp))) →
@@ -391,7 +405,7 @@ lemma DAG.activePath_forwardRun_absurd {V : Type*} [DecidableEq V] [Fintype V]
     rcases hmt with hmt | htm
     · -- Forward `m → t`: recurse with `prev := m`, dropping `prev`.
       -- The tail `m :: t :: rest` is active.
-      have hact_tail : G.IsActivePath C (m :: t :: rest) := by
+      have hact_tail : G.IsActiveWalk C (m :: t :: rest) := by
         refine ⟨fun i hi => ?_, fun i hi => ?_⟩
         · have h := hadj (i + 1) (by simpa [Nat.add_assoc] using Nat.succ_lt_succ hi)
           simpa using h
@@ -410,7 +424,7 @@ lemma DAG.activePath_forwardRun_absurd {V : Type*} [DecidableEq V] [Fintype V]
     still active under the same conditioning set. -/
 lemma DAG.isActivePath_drop {V : Type*} [DecidableEq V] [Fintype V]
     (G : DAG V) {C : Finset V} {p : List V} (j : ℕ)
-    (hact : G.IsActivePath C p) : G.IsActivePath C (p.drop j) := by
+    (hact : G.IsActiveWalk C p) : G.IsActiveWalk C (p.drop j) := by
   obtain ⟨hadj, hcoll⟩ := hact
   have hlen : (p.drop j).length = p.length - j := List.length_drop ..
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
@@ -443,34 +457,6 @@ variable (M : Causalean.SCM N Ω) (Z : Finset N)
   (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M.observed)
   (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M.fixed)
 
-/-- Appending the tail of one nonempty list to another nonempty list preserves the
-    first list's entries and then reads the remaining entries from the second list with a one-place shift. -/
-lemma get_appendTail {V : Type*} (pa q : List V)
-    (_hpa : pa ≠ []) (hq : q ≠ []) :
-    (pa ++ q.tail).length = pa.length + q.length - 1 ∧
-    (∀ (j : ℕ) (hj : j < pa.length),
-      (pa ++ q.tail).get ⟨j, by
-        rw [List.length_append]; have := List.length_tail (l := q); omega⟩ = pa.get ⟨j, hj⟩) ∧
-    (∀ (j : ℕ) (hjL : pa.length ≤ j) (hj : j < (pa ++ q.tail).length),
-      (pa ++ q.tail).get ⟨j, hj⟩ =
-        q.get ⟨j - pa.length + 1, by
-          rw [List.length_append, List.length_tail] at hj
-          have : 1 ≤ q.length := List.length_pos_iff.mpr hq
-          omega⟩) := by
-  have htail_len : q.tail.length = q.length - 1 := List.length_tail
-  have hqpos : 1 ≤ q.length := List.length_pos_iff.mpr hq
-  refine ⟨?_, ?_, ?_⟩
-  · rw [List.length_append, htail_len]; omega
-  · intro j hj
-    simp only [List.get_eq_getElem, List.getElem_append_left (h := hj)]
-  · intro j hjL hj
-    have hjr : j - pa.length < q.tail.length := by
-      rw [List.length_append] at hj; omega
-    have e1 : (pa ++ q.tail).get ⟨j, hj⟩ = q.tail[j - pa.length]'hjr := by
-      simp only [List.get_eq_getElem]
-      rw [List.getElem_append_right (by omega)]
-    rw [e1, List.getElem_tail]
-    simp [List.get_eq_getElem]
 
 include hZ_obs in
 /-- **Existence of an in-edge active path to `Y` from a reachable cutset node.**
@@ -502,7 +488,7 @@ private lemma exists_inEdge_activePath_to_Y
       (Z.image SWIGNode.random)) :
     ∃ P : List (SWIGNode N),
       P.length ≥ 2 ∧
-      M.dag.IsActivePath (W ∪ M.fixed) P ∧
+      M.dag.IsActiveWalk (W ∪ M.fixed) P ∧
       P.head? ∈ (Z.image SWIGNode.random).image some ∧
       P.getLast? ∈ Y.image some ∧
       (∀ (i : ℕ) (hi : i + 1 < P.length),
@@ -544,8 +530,8 @@ private lemma exists_inEdge_activePath_to_Y
     exact not_obs_of_unobs M.toSWIGGraph hc_lat (hDeq ▸ hZ_obs D hDZ)
   -- (3) Select a MINIMAL-length active `Zr ⤳ c` path given `C`.
   have hExists : ∃ n, ∃ p : List (SWIGNode N), p.length = n ∧ p.length ≥ 2 ∧
-      M.dag.IsActivePath C p ∧ (∃ zr ∈ Zr, p.head? = some zr) ∧ p.getLast? = some c := by
-    rw [M.dag.bbReachableVertices_iff_activePath] at hc_reach
+      M.dag.IsActiveWalk C p ∧ (∃ zr ∈ Zr, p.head? = some zr) ∧ p.getLast? = some c := by
+    rw [M.dag.bbReachableVertices_iff_activeWalk] at hc_reach
     obtain ⟨zr, hzrZr, p, hlen, hact, hhead, hlast⟩ := hc_reach
     exact ⟨p.length, p, rfl, hlen, hact, ⟨zr, hzrZr, hhead⟩, hlast⟩
   set n₀ := Nat.find hExists with hn₀
@@ -555,7 +541,7 @@ private lemma exists_inEdge_activePath_to_Y
   have hZrOnly0 : ∀ (j : ℕ) (hj : j < pa.length), 1 ≤ j → pa.get ⟨j, hj⟩ ∉ Zr := by
     intro j hj hj1 hjZr
     -- `pa.drop j` is a shorter active `Zr ⤳ c` path.
-    have hdrop_act : M.dag.IsActivePath C (pa.drop j) := DAG.isActivePath_drop M.dag j hpa_act
+    have hdrop_act : M.dag.IsActiveWalk C (pa.drop j) := DAG.isActivePath_drop M.dag j hpa_act
     have hdrop_len : (pa.drop j).length = pa.length - j := List.length_drop ..
     have hdrop_ge2 : (pa.drop j).length ≥ 2 := by
       rw [hdrop_len]
@@ -655,8 +641,8 @@ private lemma exists_inEdge_activePath_to_Y
       intro i hi hmem
       exact hq_int i hi (Finset.mem_union_left _ hmem)
     -- `q` is active given `C`.
-    have hq_act : M.dag.IsActivePath C q :=
-      M.dag.isActivePath_of_directed hq_edge hq_intC
+    have hq_act : M.dag.IsActiveWalk C q :=
+      M.dag.isActiveWalk_of_directed hq_edge hq_intC
     -- The join point: first edge of `q` points out of `c`.
     have hqne : q ≠ [] := by intro h; rw [h] at hq_len; simp at hq_len
     have hq_head_eq : q.get ⟨0, by omega⟩ = c := by
@@ -825,7 +811,7 @@ theorem cutsetLatent_dSep_of_fixSet_dSep
     obtain ⟨P, hPlen, hPact, hPhead, hPlast, hPin⟩ :=
       exists_inEdge_activePath_to_Y M Z hZ_obs Y W hW hWNonDescM1 hcCut hcReach
     -- Transport it to `M.fixSet Z`, given `C2`.
-    have hPact2 : (M.fixSet Z hZ_obs hZ_fixed).dag.IsActivePath
+    have hPact2 : (M.fixSet Z hZ_obs hZ_fixed).dag.IsActiveWalk
         (W ∪ M.fixed ∪ Z.image SWIGNode.fixed) P :=
       path_fixSet_active M Z hZ_obs hZ_fixed W hWNonDescM1 hPact hPin
     -- Recover head/last elements.
@@ -834,7 +820,7 @@ theorem cutsetLatent_dSep_of_fixSet_dSep
     -- `P` witnesses reachability of `y` from `Zr` in `M.fixSet Z` given `C2`.
     have hyReach2 : y ∈ (M.fixSet Z hZ_obs hZ_fixed).dag.bbReachableVertices
         (W ∪ M.fixed ∪ Z.image SWIGNode.fixed) (Z.image SWIGNode.random) :=
-      ((M.fixSet Z hZ_obs hZ_fixed).dag.bbReachableVertices_iff_activePath
+      ((M.fixSet Z hZ_obs hZ_fixed).dag.bbReachableVertices_iff_activeWalk
           (Z.image SWIGNode.random) (W ∪ M.fixed ∪ Z.image SWIGNode.fixed) y).mpr
         ⟨zr, hzrZr, P, hPlen, hPact2, hzr_head.symm, hy_last.symm⟩
     -- Contradiction with `hdSep2` (symmetrised: no node reachable from `Zr` is in `Y`).

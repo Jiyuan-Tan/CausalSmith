@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Mathlib.Probability.SignedTwoPoint
+
+module
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Mathlib.Probability.SignedTwoPoint
 
 /-!
 # Explicit chi-squared divergence for centered two-point laws
@@ -12,6 +14,8 @@ import Causalean.Mathlib.Probability.SignedTwoPoint
 This module evaluates chi-squared divergence for the Bernoulli perturbation around
 one half and for its equivalent signed two-point representation.
 -/
+
+public section
 
 namespace Causalean.Stat
 

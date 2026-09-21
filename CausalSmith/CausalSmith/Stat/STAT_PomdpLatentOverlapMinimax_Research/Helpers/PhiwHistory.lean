@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Weights
-import Mathlib.Probability.Moments.Variance
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Weights
+public import Mathlib.Probability.Moments.Variance
 
 set_option linter.style.longLine false
 
@@ -9,6 +10,8 @@ This file isolates the pathwise and measure-theoretic bookkeeping used by the PH
 variance calculation.  The chronological likelihood-ratio cancellation itself requires a
 history-marginal recursion; the lemmas below provide its measurable and integrable envelope.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
@@ -339,6 +342,5 @@ lemma integral_actionHistoryRatioBlock_eq_one {T nX nH : Nat}
               (measurable_histStateView (⟨n, hn⟩ : Fin T)).aemeasurable
           simp
   exact main t.val t.isLt
-
 
 end CausalSmith.Stat.PomdpLatentOverlapMinimax

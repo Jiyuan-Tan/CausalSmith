@@ -1,9 +1,12 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import Causalean.Experimentation.DesignBased.TwoStage
-import Causalean.Stat.FiniteRaoBlackwell.DesignPushforward
-import Mathlib.Algebra.Order.Group.CompleteLattice
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import Causalean.Experimentation.DesignBased.TwoStage
+public import Causalean.Stat.FiniteRaoBlackwell.DesignPushforward
+public import Mathlib.Algebra.Order.Group.CompleteLattice
 
 /-! Paper-local sign-group embedding for the unrestricted two-arm converse. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set
@@ -261,11 +264,11 @@ lemma inducedTwoArmProcedure_statewiseRisk (c : Contrast ℝ K) (p : Procedure K
 -- @node: inducedTwoArmProcedure_worstCaseRisk
 /-- [the induced two arm procedure worst case risk property holds](goal). -/
 lemma inducedTwoArmProcedure_worstCaseRisk (c : Contrast ℝ K) (p : Procedure K n c) :
-    Causalean.Stat.worstCaseRisk
+    Causalean.Stat.worstCaseRiskReal
         (fun (q : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
           labeledRisk twoArmContrast q z) (inducedTwoArmProcedure c p) ≤
       (signGroupScale c)⁻¹ ^ 2 *
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (fun (q : Procedure K n c) (z : Schedule K n) => labeledRisk c q z) p := by
   apply Causalean.Stat.worstCaseRisk_le
   intro z
@@ -274,7 +277,7 @@ lemma inducedTwoArmProcedure_worstCaseRisk (c : Contrast ℝ K) (p : Procedure K
         (signGroupScale c)⁻¹ ^ 2 * labeledRisk c p (embeddedSignSchedule c z) :=
       inducedTwoArmProcedure_statewiseRisk c p z
     _ ≤ (signGroupScale c)⁻¹ ^ 2 *
-        Causalean.Stat.worstCaseRisk
+        Causalean.Stat.worstCaseRiskReal
           (fun (q : Procedure K n c) (z : Schedule K n) => labeledRisk c q z) p := by
       gcongr
       exact Causalean.Stat.le_worstCaseRisk (Finite.bddAbove_range _) _
@@ -288,10 +291,10 @@ lemma embeddedTwoArmLowerBound (K n : ℕ) (c : Contrast ℝ K) :
   rw [← signGroupScale_sq c]
   apply Causalean.Stat.le_minimaxValue
   intro p
-  have hmin : Causalean.Stat.minimaxValue
+  have hmin : Causalean.Stat.minimaxValueReal
       (fun (q : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
         labeledRisk twoArmContrast q z) ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun (q : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
           labeledRisk twoArmContrast q z) (inducedTwoArmProcedure c p) :=
     Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg
@@ -299,14 +302,14 @@ lemma embeddedTwoArmLowerBound (K n : ℕ) (c : Contrast ℝ K) :
   have h := hmin.trans (inducedTwoArmProcedure_worstCaseRisk c p)
   have ha : signGroupScale c ≠ 0 := (signGroupScale_pos c).ne'
   calc
-    signGroupScale c ^ 2 * Causalean.Stat.minimaxValue
+    signGroupScale c ^ 2 * Causalean.Stat.minimaxValueReal
         (fun (q : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
           labeledRisk twoArmContrast q z) ≤
         signGroupScale c ^ 2 * ((signGroupScale c)⁻¹ ^ 2 *
-          Causalean.Stat.worstCaseRisk
+          Causalean.Stat.worstCaseRiskReal
             (fun (q : Procedure K n c) (z : Schedule K n) => labeledRisk c q z) p) :=
       mul_le_mul_of_nonneg_left h (sq_nonneg _)
-    _ = Causalean.Stat.worstCaseRisk
+    _ = Causalean.Stat.worstCaseRiskReal
           (fun (q : Procedure K n c) (z : Schedule K n) => labeledRisk c q z) p := by
       field_simp [ha]
 
@@ -549,13 +552,13 @@ lemma supportTwoUpperBound (K n : ℕ) (c : Contrast ℝ K)
   rw [← signGroupScale_sq c]
   let A : ℝ := signGroupScale c ^ 2
   have hA : 0 < A := by dsimp [A]; exact sq_pos_of_pos (signGroupScale_pos c)
-  have hscale : A * Causalean.Stat.minimaxValue
+  have hscale : A * Causalean.Stat.minimaxValueReal
       (fun (p : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
         labeledRisk twoArmContrast p z) =
-      Causalean.Stat.minimaxValue
+      Causalean.Stat.minimaxValueReal
         (fun (p : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
           A * labeledRisk twoArmContrast p z) := by
-    unfold Causalean.Stat.minimaxValue Causalean.Stat.worstCaseRisk
+    unfold Causalean.Stat.minimaxValueReal Causalean.Stat.worstCaseRiskReal
     have hbdd : BddBelow (Set.range (fun p : Procedure 2 n twoArmContrast =>
         ⨆ z : Schedule 2 n, labeledRisk twoArmContrast p z)) :=
       Causalean.Stat.bddBelow_range_worstCaseRisk
@@ -570,9 +573,9 @@ lemma supportTwoUpperBound (K n : ℕ) (c : Contrast ℝ K)
           ⨆ z : Schedule 2 n, A * labeledRisk twoArmContrast p z := by
         congr with p
         exact (OrderIso.mulLeft₀ A hA).map_ciSup (Finite.bddAbove_range _)
-  change Causalean.Stat.minimaxValue
+  change Causalean.Stat.minimaxValueReal
       (fun (p : Procedure K n c) (z : Schedule K n) => labeledRisk c p z) ≤
-    A * Causalean.Stat.minimaxValue
+    A * Causalean.Stat.minimaxValueReal
       (fun (p : Procedure 2 n twoArmContrast) (z : Schedule 2 n) =>
         labeledRisk twoArmContrast p z)
   rw [hscale]

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TPhaseDiagram
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TPhaseDiagram
 
 /-!
 # Open question: sharp confidence-length constant
@@ -13,6 +14,8 @@ The declaration is a never-proved proposition, not a theorem. It asks for one
 sharp constant over every threshold regime and attainment by intervals whose
 radius is built from the realized-design exact-modulus handle.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

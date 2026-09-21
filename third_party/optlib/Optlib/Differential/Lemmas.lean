@@ -3,12 +3,14 @@ Copyright (c) 2023 Chenyi Li. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chenyi Li
 -/
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
-import Mathlib.Analysis.Calculus.ContDiff.Defs
-import Mathlib.Topology.Semicontinuity.Basic
-import Mathlib.Analysis.Normed.Lp.ProdLp
-import Optlib.Differential.Calculation
+
+module
+public import Mathlib.Analysis.Calculus.MeanValue
+public import Mathlib.Analysis.Calculus.Deriv.MeanValue
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
+public import Mathlib.Topology.Semicontinuity.Basic
+public import Mathlib.Analysis.Normed.Lp.ProdLp
+public import Optlib.Differential.Calculation
 
 /-!
 # Lemmas
@@ -23,6 +25,9 @@ This file contains the following parts of basic properties of continuous and dif
 * the taylor expansion of a differentiable function locally
 * the langrange interpolation of a differentiable function
 -/
+
+@[expose] public section
+
 section continuous
 
 variable {E : Type*} [NormedAddCommGroup E] {f : E → ℝ} {x y x' : E}

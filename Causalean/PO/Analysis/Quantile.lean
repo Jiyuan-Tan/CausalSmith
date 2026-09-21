@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Core.Variable
-import Causalean.Stat.Quantile.Quantile
+module
+public import Causalean.PO.Core.Variable
+public import Causalean.Stat.Quantile.Quantile
 
 /-! # Laws and Quantiles of Real Potential Outcomes
 
@@ -16,6 +17,8 @@ distribution function, and the corresponding quantile.  The main definitions are
 specializations `POVar.cfUnderLaw` and `POVar.cfUnderQuantile` for treatment
 effects written as `Y(d)`.  The lemma `POVar.cfCDF_eq_measureReal` records the
 probability interpretation of the counterfactual cdf. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

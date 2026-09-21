@@ -23,19 +23,22 @@ without reference to any particular estimator sequence `θn`.
 Causal-agnostic; candidate for upstream contribution to Mathlib.
 -/
 
-import Causalean.Stat.Sample
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.InnerProductSpace.Basic
+module
+public import Causalean.Stat.Sample
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Analysis.InnerProductSpace.Basic
 
 /-! # Centered Empirical Process
 
 This file defines the vector-valued centered empirical process at the
-\(\sqrt n\) scale for a single function of an i.i.d. sample. The construction is
+root-sample-size scale for a single function of an i.i.d. sample. The construction is
 the empirical-process gap controlled by the stochastic-equicontinuity modules
 and used in parametric estimator expansions.  The definition
 `IIDSample.empProcVec` provides the reusable vector process, and
 `IIDSample.empProcVec_eq_stochEquicont_gap` identifies it with the gap appearing
 in `StochEquicontAt`. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -47,13 +50,10 @@ variable {Ω X E : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 namespace IIDSample
 
-/-- For [an independent and identically distributed sample](hyp:S), [a function from one
-observation to a real normed vector space](hyp:f), [a nonnegative integer sample size](hyp:n),
-and [the vector-valued centered empirical process](goal) is the function that assigns to each
-sample-space outcome the sum of the function over the first $n$ observations divided by
-$\sqrt n$, minus $\sqrt n$ times its population integral.
-
-**Vector-valued centered empirical process.**
+/-- The [vector-valued centered empirical process](goal) applies [a vector
+statistic](hyp:f) to the first [n observations](hyp:n) of [an i.i.d.
+sample](hyp:S), then subtracts its population mean at the root-sample-size
+scale.
 
 `Gₙ(f)(ω) = (√n)⁻¹ • Σ_{i<n} f(Zᵢ ω) − √n • ∫ f dP`, the `E`-valued analogue of
 `IIDSample.empiricalProcess` (which is the `ℝ`-valued version in
@@ -65,10 +65,10 @@ noncomputable def empProcVec (S : IIDSample Ω X μ P) (f : X → E) (n : ℕ) :
   fun ω => (Real.sqrt (n : ℝ))⁻¹ • (∑ i ∈ Finset.range n, f (S.Z i ω))
     - Real.sqrt (n : ℝ) • ∫ z, f z ∂P
 
-/-- [For an i.i.d. sample `S`, a score function `ψ`, candidate and true parameter values `θ`
-and `θ₀`, sample size `n`, and outcome `ω`](hyp:S,ψ,θ,θ₀,n,ω), [the centered
-empirical-process gap `R_n` of `StochEquicontAt`, evaluated at `θ`, equals `empProcVec` of
-the score difference `ψ(θ,·) − ψ(θ₀,·)`](goal).
+/-- [The empirical-process gap used by stochastic equicontinuity is exactly
+the vector empirical process of the score difference](goal).  This identity
+holds for [an i.i.d. sample, score family, candidate and reference parameters,
+sample size, and sample outcome](hyp:S,ψ,θ,θ₀,n,ω).
 
 This is a definitional unfolding; it is the bridge between the estimator-indexed
 `StochEquicontAt` and the class-level `AsymptoticEquicont`. -/

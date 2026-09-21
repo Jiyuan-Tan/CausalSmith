@@ -1,14 +1,17 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.BayesInformation
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothModel
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesModel
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesAssembly
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothKernel
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmFinitePosterior
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmPosteriorCompatibility
-import Causalean.Stat.Minimax.FinitePosteriorBayesRisk
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.BayesInformation
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothModel
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesModel
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesAssembly
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothKernel
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmFinitePosterior
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmPosteriorCompatibility
+public import Causalean.Stat.Minimax.FinitePosteriorBayesRisk
 
 /-! Fully internal smooth-prior two-arm minimax lower bound. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 
@@ -71,13 +74,13 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
     (a : ℝ) (ha : 0 < a) (ha1 : a ≤ 1 / 2)
     (T : (Unit n → Bool) → ℝ) :
     (1 - a) ^ 2 / ((n : ℝ) / (1 - a ^ 2 / 4) + 40 / a ^ 2) ≤
-      ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior 0 (a / 2))
+      ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior 0 (a / 2))
         twoArmRegularBernoulliLikelihood (twoArmPosteriorTarget a) T z
-        ∂((Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+        ∂((Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
           (-1 / 2) (1 / 2)).prod Measure.count) := by
   let M := twoArmFiniteVanTreesRegularity a ha T
-  open Causalean.Stat.Limit.ObservationDependentVanTrees in
+  open Causalean.Stat.Minimax.ObservationDependentVanTrees in
     apply finite_vanTrees_lower_bound (by norm_num) M
       (smoothPrior_contDiff (by positivity : 0 < a / 2))
       (support_smoothPrior_subset_Icc (ell := (-1 / 2 : ℝ)) (u := (1 / 2 : ℝ))
@@ -111,12 +114,12 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
         field_simp [ha.ne']
         norm_num)
       ?_
-  · let PM := Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+  · let PM := Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
         (-1 / 2) (1 / 2)
     letI : IsFiniteMeasure PM := by
-      dsimp [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure]
+      dsimp [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure]
       infer_instance
-    let w := Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior 0 (a / 2)
+    let w := Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior 0 (a / 2)
     let p := twoArmRegularBernoulliLikelihood (n := n)
     let dg := twoArmPosteriorTargetDeriv (n := n) a
     have hprod := (twoArmFiniteVanTreesRegularity a ha T).hsensitivityInt
@@ -124,23 +127,23 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
     calc
       1 - a = ∫ θ, w θ * (1 - a) ∂PM := by
         rw [MeasureTheory.integral_mul_const,
-          Causalean.Stat.Limit.ObservationDependentVanTrees.integral_smoothPrior_parameterMeasure
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.integral_smoothPrior_parameterMeasure
             (by positivity : 0 < a / 2) (by linarith) (by linarith), one_mul]
       _ ≤ _ := by
         apply MeasureTheory.integral_mono
-        · exact (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_integrable_parameterMeasure
+        · exact (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_integrable_parameterMeasure
             (by positivity : 0 < a / 2)).mul_const (1 - a)
         · exact hprod.integral_prod_left
         · intro θ
           dsimp [w, p, dg]
           rw [MeasureTheory.integral_count]
-          simp only [Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField,
-            Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+          simp only [Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField,
+            Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
           rw [show (∑ s : Unit n → Bool,
               twoArmPosteriorTargetDeriv a θ s *
-                (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior
+                (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior
                   0 (a / 2) θ * twoArmRegularBernoulliLikelihood θ s)) =
-              Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior
                 0 (a / 2) θ *
                 ∑ s : Unit n → Bool,
                   twoArmPosteriorTargetDeriv a θ s *
@@ -149,11 +152,11 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
             apply Finset.sum_congr rfl
             intro s _
             ring]
-          by_cases hw : 0 < Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior
+          by_cases hw : 0 < Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior
               0 (a / 2) θ
           · have hθ : |θ| < a / 2 := by
               simpa using
-                (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_pos_iff
+                (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_pos_iff
                   (by positivity : 0 < a / 2)).mp hw
             have hθone : |θ| ≤ 1 := hθ.le.trans (by linarith)
             simp_rw [twoArmRegularBernoulliLikelihood_eq hθone]
@@ -168,73 +171,73 @@ lemma twoArmSmoothVanTreesErrorLowerBound {n : ℕ} (hn : 0 < n)
               ring]
             exact mul_le_mul_of_nonneg_left
               (twoArmPosteriorTargetDeriv_mean_lower hn ha.le (by linarith) hθ.le) hw.le
-          · have hw0 : Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior
+          · have hw0 : Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior
                 0 (a / 2) θ = 0 := le_antisymm (le_of_not_gt hw)
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
                 (by positivity) θ)
             simp [hw0]
   · have hweighted := M.hfisherSqInt.integral_prod_left
     have hweighted' : MeasureTheory.Integrable
-        (fun θ => Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior
+        (fun θ => Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior
             0 (a / 2) θ *
-          Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
             (Measure.count : Measure (Unit n → Bool))
               (twoArmRegularBernoulliLikelihood (n := n))
               (twoArmBernoulliLikelihoodDeriv (n := n)) θ)
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
           (-1 / 2) (1 / 2)) := by
       apply hweighted.congr
       filter_upwards with θ
-      rw [Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation]
+      rw [Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation]
       simp_rw [MeasureTheory.integral_count]
       rw [Finset.mul_sum]
       apply Finset.sum_congr rfl
       intro s _
       ring
-    apply Causalean.Stat.Limit.ObservationDependentVanTrees.average_fisherInformation_le
+    apply Causalean.Stat.Minimax.ObservationDependentVanTrees.average_fisherInformation_le
       (ell := (-1 / 2 : ℝ)) (u := (1 / 2 : ℝ))
       (I := (n : ℝ) / (1 - a ^ 2 / 4))
-      (w := Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior 0 (a / 2))
+      (w := Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior 0 (a / 2))
       (p := twoArmRegularBernoulliLikelihood (n := n))
       (dp := twoArmBernoulliLikelihoodDeriv (n := n))
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
         (by positivity : 0 < a / 2))
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.integral_smoothPrior_parameterMeasure
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.integral_smoothPrior_parameterMeasure
         (by positivity : 0 < a / 2) (by linarith) (by linarith))
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_integrable_parameterMeasure
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_integrable_parameterMeasure
         (by positivity : 0 < a / 2)) hweighted'
     intro θ hw
     have hθ : |θ| < a / 2 := by
       simpa using
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_pos_iff
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_pos_iff
           (by positivity : 0 < a / 2)).mp hw
     have hθone : |θ| ≤ 1 := hθ.le.trans (by linarith)
     have hfi_eq :
-        Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
             (Measure.count : Measure (Unit n → Bool))
               (twoArmRegularBernoulliLikelihood (n := n))
               (twoArmBernoulliLikelihoodDeriv (n := n)) θ =
-          Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
             (Measure.count : Measure (Unit n → Bool))
               (twoArmBernoulliLikelihood (n := n))
               (twoArmBernoulliLikelihoodDeriv (n := n)) θ := by
-      unfold Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+      unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
       apply MeasureTheory.integral_congr_ae
       filter_upwards with s
-      unfold Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+      unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
       rw [twoArmRegularBernoulliLikelihood_eq hθone]
     rw [hfi_eq]
     exact twoArmBernoulli_fisherInformation_upper ha.le (by linarith) hθ.le
-  · have hp : 0 < Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation
+  · have hp : 0 < Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation
         (-1 / 2) (1 / 2)
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior 0 (a / 2))
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPriorDeriv 0 (a / 2)) := by
-      rw [Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation_smoothPrior
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior 0 (a / 2))
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPriorDeriv 0 (a / 2)) := by
+      rw [Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation_smoothPrior
         (by positivity : 0 < a / 2) (by linarith) (by linarith)]
       positivity
     exact add_pos_of_pos_of_nonneg hp (MeasureTheory.integral_nonneg fun θ =>
       mul_nonneg
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
           (by positivity) θ)
         (MeasureTheory.integral_nonneg fun _ => mul_nonneg
           (twoArmRegularBernoulliLikelihood_nonneg θ _)
@@ -342,9 +345,9 @@ lemma twoArmPosteriorCompat_fraction_le_mixedLoss {n : ℕ} (hn : 0 < n) (a : �
         (Causalean.Stat.statewiseSquaredLoss (twoArmCountKernel (twoArmPosteriorCompat_zeroAssignDesign n))
           (fun e _ => effectTarget e))
         (fun x => clip twoArmContrast (f x)) := by
-  let PM := Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+  let PM := Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     (-1 / 2) (1 / 2)
-  let w := Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior 0 (a / 2)
+  let w := Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior 0 (a / 2)
   let dens : ℝ → ENNReal := fun θ => ENNReal.ofReal (w θ)
   let π := twoArmPosteriorCompat_smoothPriorMeasure a
   let K := twoArmSmoothEffectKernel n a ha.le (by linarith)
@@ -353,13 +356,13 @@ lemma twoArmPosteriorCompat_fraction_le_mixedLoss {n : ℕ} (hn : 0 < n) (a : �
   let Tc : Fin (n + 1) → ℝ := fun x => clip twoArmContrast (f x)
   letI : IsProbabilityMeasure π := twoArmPosteriorCompat_smoothPriorMeasure_isProbability a ha (by linarith)
   letI : IsFiniteMeasure PM := by
-    dsimp [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure]
+    dsimp [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure]
     infer_instance
   have hv := twoArmSmoothVanTreesErrorLowerBound hn a ha ha1
     (fun s => Tc (scoreCount s))
   apply hv.trans
   have herr : Integrable
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField w
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField w
         twoArmRegularBernoulliLikelihood (twoArmPosteriorTarget a)
           (fun s => Tc (scoreCount s))) (PM.prod Measure.count) := by
     exact twoArmErrorSqField_integrable a ha _
@@ -367,7 +370,7 @@ lemma twoArmPosteriorCompat_fraction_le_mixedLoss {n : ℕ} (hn : 0 < n) (a : �
   simp_rw [MeasureTheory.integral_count]
   have hdens : Measurable dens := by
     exact ENNReal.measurable_ofReal.comp
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_contDiff
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_contDiff
         (by positivity : 0 < a / 2)).continuous.measurable
   have htop : ∀ᵐ θ ∂PM, dens θ < ⊤ := Filter.Eventually.of_forall fun θ => by
     simp [dens]
@@ -384,7 +387,7 @@ lemma twoArmPosteriorCompat_fraction_le_mixedLoss {n : ℕ} (hn : 0 < n) (a : �
     simp_rw [twoArmSmoothEffectKernel_singletonReal]
     unfold FiniteDesign.E
     rw [ENNReal.toReal_ofReal
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
         (by positivity : 0 < a / 2) θ)]
     dsimp only [w]
     ring
@@ -398,7 +401,7 @@ lemma twoArmPosteriorCompat_fraction_le_mixedLoss {n : ℕ} (hn : 0 < n) (a : �
     filter_upwards with θ
     simp only [smul_eq_mul]
     rw [ENNReal.toReal_ofReal
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
         (by positivity : 0 < a / 2) θ)]
     change w θ * Causalean.Stat.kernelAverageLoss K loss Tc θ = _
     rw [Causalean.Stat.kernelAverageLoss_eq_sum]
@@ -409,31 +412,31 @@ lemma twoArmPosteriorCompat_fraction_le_mixedLoss {n : ℕ} (hn : 0 < n) (a : �
   rw [hmixed]
   refine MeasureTheory.integral_mono_of_nonneg ?_ hg ?_
   · exact (show ∀ᵐ θ ∂PM, 0 ≤ ∑ s,
-        Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField w
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField w
           twoArmRegularBernoulliLikelihood (twoArmPosteriorTarget a)
             (fun s => Tc (scoreCount s)) (θ, s) from
       Filter.Eventually.of_forall fun θ => by
-        unfold Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField
-          Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity
+        unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity
         exact Finset.sum_nonneg fun s _ => mul_nonneg (sq_nonneg _)
           (mul_nonneg
-            (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+            (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
               (by positivity : 0 < a / 2) θ)
             (twoArmRegularBernoulliLikelihood_nonneg θ s)))
   · filter_upwards with θ
     by_cases hw : w θ = 0
-    · unfold Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField
-        Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity
+    · unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity
       simp [hw]
     · have hwpos : 0 < w θ := lt_of_le_of_ne
-          (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+          (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
             (by positivity : 0 < a / 2) θ) (Ne.symm hw)
       have hθ : |θ| < a / 2 := by
         simpa [w] using
-          (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_pos_iff
+          (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_pos_iff
             (by positivity : 0 < a / 2)).mp hwpos
-      unfold Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField
-        Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity
+      unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity
       rw [show (∑ s, (Tc (scoreCount s) - twoArmPosteriorTarget a θ s) ^ 2 *
           (w θ * twoArmRegularBernoulliLikelihood θ s)) =
           w θ * ∑ s, twoArmBernoulliLikelihood θ s *

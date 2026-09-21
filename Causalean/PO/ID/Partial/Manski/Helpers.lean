@@ -6,8 +6,8 @@ Authors: Jiyuan Tan
 # Manski bounds: shared helper lemmas
 
 Algebraic, measurability, integrability, and pointwise bound helpers
-reused by all variants (NonAsp, MTR, MTS, MIV) plus the conditional
-(pre-mean-indep) stratum bounds
+reused by all variants (NonAsp, MTR, MTS, MIV) plus normalized
+restricted-integral (pre-mean-independence) stratum bounds
 
     L_{1,z} ≤ E[Y(1) | Z=z] and symmetric versions,
 
@@ -15,15 +15,20 @@ stated parametrically in `d : Bool` via `boundArm`.  Mean independence
 is no longer consumed here.
 -/
 
-import Causalean.PO.ID.Partial.Manski.Assumptions
-import Causalean.PO.Conditioning.CondExpTooling
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Conditioning.CondExpTooling
+public import Causalean.PO.ID.Partial.Manski.Assumptions
 
 /-! # Shared helpers for Manski-style bounds
 
 This file collects algebraic, measurability, integrability, and pointwise bound
 lemmas reused by the baseline Manski, monotone-treatment-response,
 monotone-treatment-selection, and monotone-instrument variants. It also proves
-parametric conditional stratum bounds for each treatment arm.
+parametric normalized restricted-integral bounds for each treatment arm. On a
+null stratum these quantities use the library's zero convention rather than
+representing ordinary conditional means.
 
 The main public results are the arm-uniform bounds
 `boundArm_lo_le_cond_YofD` and `cond_YofD_le_boundArm_hi`, together with the
@@ -31,6 +36,10 @@ legacy names `lowerBound1_le_cond_Y1`, `cond_Y1_le_upperBound1`,
 `lowerBound0_le_cond_Y0`, and `cond_Y0_le_upperBound0` used by downstream
 Manski theorem files.
 -/
+
+public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -106,7 +115,7 @@ lemma YofD_le_YofD_indD_plus_hi (d : Bool) (hi : ℝ)
   refine hbound.mono (fun ω hhi => ?_)
   rcases S.dVar_inds_at_ω d ω with ⟨h₁, h₂⟩ | ⟨h₁, h₂⟩ <;> simp [h₁, h₂, hhi]
 
-/-! ### Conditional (pre-mean-indep) stratum bounds
+/-! ### Normalized restricted-integral (pre-mean-independence) stratum bounds
 
 Parametric forms on `d : Bool`.  The four legacy theorems
 `lowerBound1_le_cond_Y1`, `cond_Y1_le_upperBound1`,
@@ -114,11 +123,15 @@ Parametric forms on `d : Bool`.  The four legacy theorems
 one-line corollaries so downstream files (`NonAsp`, `MTR`, `MTS`, `MIV`,
 `Combined`) keep working unchanged. -/
 
-/-- Stratum-level lower bound on `eventCondExp μ (Z=z) (Y(d))` via the
-unified arm functional `boundArm d lo`. -/
+/-- Under [the baseline Manski assumptions](hyp:hA), for [a treatment arm](hyp:d)
+and [a singleton instrument stratum](hyp:z), [the normalized restricted integral
+is bounded below by the unified lower-envelope functional](goal).
+
+On a null stratum the normalized restricted integral is defined to be zero; it
+has conditional-mean semantics only on positive-mass strata. -/
 theorem boundArm_lo_le_cond_YofD [IsFiniteMeasure P.μ]
-    (hA : S.BaseAssumptions) (d : Bool) {z : α} (_hz : z ∈ S.support) :
-    S.boundArm d hA.lo z ≤ eventCondExp P.μ (S.zEvent z) (S.YofD d) := by
+    (hA : S.BaseAssumptions) (d : Bool) {z : α} :
+    S.boundArm d hA.lo z ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d) := by
   -- Rewrite `factualY · 1_{D=d}` as `Y(d) · 1_{D=d}` using consistency.
   have hcons : (fun ω => S.factualY ω * S.dVar.indicator d ω
                           + hA.lo * S.dVar.indicator (!d) ω)
@@ -141,27 +154,30 @@ theorem boundArm_lo_le_cond_YofD [IsFiniteMeasure P.μ]
   have hint_Yd : IntegrableOn (S.YofD d) (S.zEvent z) P.μ :=
     (hA.integrable_YofD d).integrableOn
   have hmono :
-      eventCondExp P.μ (S.zEvent z)
+      normalizedRestrictedIntegral P.μ (S.zEvent z)
           (fun ω => S.YofD d ω * S.dVar.indicator d ω
                      + hA.lo * S.dVar.indicator (!d) ω)
-        ≤ eventCondExp P.μ (S.zEvent z) (S.YofD d) := by
+        ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d) := by
     refine eventCondExp_mono_ae P.μ hint_sum hint_Yd ?_
     exact ae_restrict_of_ae hbound_ae
   calc
     S.boundArm d hA.lo z
-        = eventCondExp P.μ (S.zEvent z)
+        = normalizedRestrictedIntegral P.μ (S.zEvent z)
             (fun ω => S.YofD d ω * S.dVar.indicator d ω
                        + hA.lo * S.dVar.indicator (!d) ω) := by
           unfold boundArm; rw [hcons]
-    _ ≤ eventCondExp P.μ (S.zEvent z) (S.YofD d) := hmono
+    _ ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d) := hmono
 
-/-- Under [the baseline Manski assumptions](hyp:hA), for any treatment arm `d` and
-[any instrument value `z` in the support of the instrument](hyp:_hz), [the conditional mean of
-the potential outcome `Y(d)` given `Z = z` is bounded above by the unified upper-envelope
-functional `boundArm d hi` evaluated at `z`](goal). -/
+/-- Under [the baseline Manski assumptions](hyp:hA), for [a treatment arm](hyp:d)
+and [a singleton instrument stratum](hyp:z), [the normalized restricted integral
+of the arm's potential outcome is bounded above by the unified upper-envelope
+functional](goal).
+
+On a null stratum the normalized restricted integral is defined to be zero; it
+has conditional-mean semantics only on positive-mass strata. -/
 theorem cond_YofD_le_boundArm_hi [IsFiniteMeasure P.μ]
-    (hA : S.BaseAssumptions) (d : Bool) {z : α} (_hz : z ∈ S.support) :
-    eventCondExp P.μ (S.zEvent z) (S.YofD d) ≤ S.boundArm d hA.hi z := by
+    (hA : S.BaseAssumptions) (d : Bool) {z : α} :
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d) ≤ S.boundArm d hA.hi z := by
   have hcons : (fun ω => S.factualY ω * S.dVar.indicator d ω
                           + hA.hi * S.dVar.indicator (!d) ω)
               = (fun ω => S.YofD d ω * S.dVar.indicator d ω
@@ -183,15 +199,15 @@ theorem cond_YofD_le_boundArm_hi [IsFiniteMeasure P.μ]
   have hint_Yd : IntegrableOn (S.YofD d) (S.zEvent z) P.μ :=
     (hA.integrable_YofD d).integrableOn
   have hmono :
-      eventCondExp P.μ (S.zEvent z) (S.YofD d)
-        ≤ eventCondExp P.μ (S.zEvent z)
+      normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d)
+        ≤ normalizedRestrictedIntegral P.μ (S.zEvent z)
             (fun ω => S.YofD d ω * S.dVar.indicator d ω
                        + hA.hi * S.dVar.indicator (!d) ω) := by
     refine eventCondExp_mono_ae P.μ hint_Yd hint_sum ?_
     exact ae_restrict_of_ae hbound_ae
   calc
-    eventCondExp P.μ (S.zEvent z) (S.YofD d)
-        ≤ eventCondExp P.μ (S.zEvent z)
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d)
+        ≤ normalizedRestrictedIntegral P.μ (S.zEvent z)
             (fun ω => S.YofD d ω * S.dVar.indicator d ω
                        + hA.hi * S.dVar.indicator (!d) ω) := hmono
     _ = S.boundArm d hA.hi z := by unfold boundArm; rw [hcons]
@@ -201,29 +217,37 @@ theorem cond_YofD_le_boundArm_hi [IsFiniteMeasure P.μ]
 Preserved as thin wrappers so `NonAsp`, `MTR`, `MTS`, `MIV`, `Combined`
 compile unchanged. -/
 
-/-- Stratum-level lower bound on the *conditional expectation* of `Y(1)`. -/
+/-- Under [the baseline Manski assumptions](hyp:hA), within [an instrument
+stratum](hyp:z), [the treated-arm lower functional does not exceed
+the treated potential-outcome mean in that stratum](goal). -/
 theorem lowerBound1_le_cond_Y1 [IsFiniteMeasure P.μ]
-    (hA : S.BaseAssumptions) {z : α} (hz : z ∈ S.support) :
-    S.lowerBound1 hA.lo z ≤ eventCondExp P.μ (S.zEvent z) (S.YofD true) :=
-  S.boundArm_lo_le_cond_YofD hA true hz
+    (hA : S.BaseAssumptions) {z : α} :
+    S.lowerBound1 hA.lo z ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) :=
+  S.boundArm_lo_le_cond_YofD hA true
 
-/-- Stratum-level upper bound on the *conditional expectation* of `Y(1)`. -/
+/-- Under [the baseline Manski assumptions](hyp:hA), within [an instrument
+stratum](hyp:z), [the treated potential-outcome mean in that
+stratum does not exceed the treated-arm upper functional](goal). -/
 theorem cond_Y1_le_upperBound1 [IsFiniteMeasure P.μ]
-    (hA : S.BaseAssumptions) {z : α} (hz : z ∈ S.support) :
-    eventCondExp P.μ (S.zEvent z) (S.YofD true) ≤ S.upperBound1 hA.hi z :=
-  S.cond_YofD_le_boundArm_hi hA true hz
+    (hA : S.BaseAssumptions) {z : α} :
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) ≤ S.upperBound1 hA.hi z :=
+  S.cond_YofD_le_boundArm_hi hA true
 
-/-- Stratum-level lower bound on the *conditional expectation* of `Y(0)`. -/
+/-- Under [the baseline Manski assumptions](hyp:hA), within [an instrument
+stratum](hyp:z), [the control-arm lower functional does not exceed
+the control potential-outcome mean in that stratum](goal). -/
 theorem lowerBound0_le_cond_Y0 [IsFiniteMeasure P.μ]
-    (hA : S.BaseAssumptions) {z : α} (hz : z ∈ S.support) :
-    S.lowerBound0 hA.lo z ≤ eventCondExp P.μ (S.zEvent z) (S.YofD false) :=
-  S.boundArm_lo_le_cond_YofD hA false hz
+    (hA : S.BaseAssumptions) {z : α} :
+    S.lowerBound0 hA.lo z ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) :=
+  S.boundArm_lo_le_cond_YofD hA false
 
-/-- Stratum-level upper bound on the *conditional expectation* of `Y(0)`. -/
+/-- Under [the baseline Manski assumptions](hyp:hA), within [an instrument
+stratum](hyp:z), [the control potential-outcome mean in that
+stratum does not exceed the control-arm upper functional](goal). -/
 theorem cond_Y0_le_upperBound0 [IsFiniteMeasure P.μ]
-    (hA : S.BaseAssumptions) {z : α} (hz : z ∈ S.support) :
-    eventCondExp P.μ (S.zEvent z) (S.YofD false) ≤ S.upperBound0 hA.hi z :=
-  S.cond_YofD_le_boundArm_hi hA false hz
+    (hA : S.BaseAssumptions) {z : α} :
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) ≤ S.upperBound0 hA.hi z :=
+  S.cond_YofD_le_boundArm_hi hA false
 
 end POManskiIVSystem
 

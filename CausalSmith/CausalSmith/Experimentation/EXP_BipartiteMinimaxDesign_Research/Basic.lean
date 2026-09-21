@@ -2,7 +2,14 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
+-/
 
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Causalean.Experimentation.UnknownInterference.Bernoulli
+public import Mathlib.Order.Filter.AtTopBot.Basic
+
+/-!
 # Bipartite minimax design (heterogeneous Bernoulli Hájek): shared core
 
 Stage-2 scaffold for `exp_bipartite_minimax_design` (v1).
@@ -23,9 +30,7 @@ construction `def`s. Each emitted top-level declaration carries its own `@node` 
 | `Causalean.Experimentation.UnknownInterference` (one-mode interference) | bypass-justified | all interference substrate is one-mode; the bipartite graph layer (`I`,`O`,`N`,`M`,shared sets) has no analogue and is new local scaffolding sitting inside the S1 world. |
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
-import Causalean.Experimentation.UnknownInterference.Bernoulli
-import Mathlib.Order.Filter.AtTopBot.Basic
+@[expose] public section
 
 set_option linter.style.longLine false
 
@@ -196,7 +201,7 @@ def BipartiteInterference (E : BipartiteExperiment I O) : Prop :=
 `D = bernoulliDesign p` (each `Z_k` independent `Bernoulli(p_k)`). -/
 def IndepHeteroBernoulli (D : FiniteDesign (I → Bool)) (p : I → ℝ)
     (hp0 : ∀ k, 0 ≤ p k) (hp1 : ∀ k, p k ≤ 1) : Prop :=
-  D = bernoulliDesign p hp0 hp1
+  D = Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1
   -- @realizes Z_k(AUTHORITATIVE {0,1} assignment-coordinate + Bernoulli-law realization: each Z_k independent Bernoulli(p_k), coordinate space Bool = {0,1} via bernoulliDesign per-unit coin flip — this decl, NOT EpsilonAdmissible which only constrains ε, carries the Z_k space); @realizes Z(assignment vector Z = (Z_k)_{k∈I} over I→Bool = {0,1}^{m_n}, law bernoulliDesign p)
 
 /-- Admissible positivity-floor domain: the global side-condition `ε ∈ (0, 1/2)`

@@ -6,7 +6,7 @@ Authors: Jiyuan Tan
 # Balke-Pearl bounds: closed-interval (`Set.Icc`) form
 
 `Main.lean` proves necessity as a *set membership* `ATE ∈ BPIdentifiedInterval`,
-where `BPIdentifiedInterval = PartialID.IdentifiedInterval BPObjective (BPFeasible …)`
+where `BPIdentifiedInterval = Causalean.Stat.AttainableSet.IdentifiedSet BPObjective (BPFeasible …)`
 is the abstract range of the LP objective over feasible latent tables. This file
 restates necessity in the closed-interval vocabulary of the partial-identification
 engine: the true ATE lies between the infimum and supremum of that range,
@@ -29,8 +29,9 @@ so it always lies in `[-1, 1]`; this gives the required `BddBelow`/`BddAbove`.
 * `ATE_mem_Icc_csInf_csSup` — necessity in closed-interval form.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Main
-import Causalean.PO.ID.Partial.Basic
+module
+public import Causalean.PO.ID.Partial.BalkePearl.Main
+public import Causalean.PO.ID.Partial.Basic
 
 /-! # Balke-Pearl bounds in closed-interval form
 
@@ -40,6 +41,8 @@ boundedness of the linear-program objective and derives membership of the true
 ATE in the interval between the infimum and supremum of the feasible objective
 range.
 -/
+
+public section
 
 namespace Causalean
 namespace PO

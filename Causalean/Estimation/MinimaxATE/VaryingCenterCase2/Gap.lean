@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Structure-agnostic ATE lower bound: the exact ATE gap (second construction)
 
-The Case-2 analogue of `VaryingCenterCase1/Gap.lean`.  For the propensity-dominant construction
+The Case-2-shaped analogue of `VaryingCenterCase1/Gap.lean`. For the second construction,
 `gλ(1,x) = g₁ⱼ / D`, `D = 1 + (β/g₁ⱼ)·Δ − αβ`, the two positions of a pair carry
 `Δ = ±σ`, so summing the treated arm over the pair gives
 
@@ -17,19 +17,24 @@ straddle is the **nonnegative** quantity
 
   `ate gλ − ate ĝ = (1/2K)·2β·Σⱼ g₁ⱼ(α g₁ⱼ²(1 − αβ) + β)/Eⱼ ≥ 0`,
 
-whose leading order is `2αβ·(1/2K)Σⱼ g₁ⱼ`, i.e. `s ≍ αβ ≍ √(εg·εm)`.
+whose leading perturbation term is `2αβ·(1/2K)Σⱼ g₁ⱼ`. The exact formula,
+rather than a comparison with external nuisance budgets, is what later lower-bound
+files use.
 -/
 
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Construction
-import Mathlib.Tactic.LinearCombination
+module
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Construction
+public import Mathlib.Tactic.LinearCombination
 
-/-! # Propensity-Dominant ATE Gap
+/-! # Second Cell-Varying ATE Gap
 
 This file computes the exact average treatment effect gap for the second
 cell-varying perturbation family.  The calculation shows that the perturbed average
-treatment effect is independent of the Rademacher sign vector and has the product
-order required by the lower-bound construction.
+treatment effect is independent of the Rademacher sign vector and has the exact
+form used as the lower-bound construction's separation.
 -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

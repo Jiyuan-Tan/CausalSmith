@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxExperiment
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxExperiment
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
 
 /-!
 # Direct-product error and finite packing risk
@@ -8,6 +9,8 @@ This file converts the coordinatewise direct-product testing error into a
 finite-coordinate Poissonized loss and then back into the retained fixed-size
 sample loss.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set Filter Asymptotics
 open scoped ENNReal NNReal BigOperators

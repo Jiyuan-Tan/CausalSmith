@@ -4,9 +4,25 @@ import { promisify } from "node:util";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { findOrphanPaperModules } from "../src/presentation/paper_index_orphans.js";
+import { findOrphanPaperModules, hasPublicPaperDeclaration } from "../src/presentation/paper_index_orphans.js";
 
 describe("findOrphanPaperModules", () => {
+  it("recognizes bare declarations inside a module public section", () => {
+    expect(hasPublicPaperDeclaration(`module
+@[expose] public section
+def first : Nat := 1
+theorem second : True := by trivial
+lemma third : True := by trivial
+`)).toBe(true);
+  });
+
+  it("recognizes bare declarations inside a public noncomputable section", () => {
+    expect(hasPublicPaperDeclaration(`module
+@[expose] public noncomputable section
+theorem visible : True := by trivial
+`)).toBe(true);
+  });
+
   it("catches a public orphan and spares private-only and indexed modules", async () => {
     const runDir = await mkdtemp(path.join(tmpdir(), "paper-index-orphans-"));
     try {

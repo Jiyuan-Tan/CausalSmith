@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Coordinates
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Coordinates
 
 /-!
 # Finite recovery coefficient for the second moment
@@ -6,6 +7,8 @@ import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Co
 This module specializes the generic finite-coordinate inequality to the even
 Taylor moments and certifies the normalization-adjusted coefficient `5151`.
 -/
+
+@[expose] public section
 
 open MeasureTheory
 open scoped BigOperators

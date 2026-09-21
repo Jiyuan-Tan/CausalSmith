@@ -2,46 +2,46 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Product-KL tensorisation for Le Cam arguments
-
-Mathlib currently exposes `InformationTheory.klDiv`, but the finite-product
-tensorisation theorem needed by the Le Cam bridge is not part of the imported
-API. This file proves the finite-product identity on the finite-KL branch and
-packages it as the bounded interface used downstream.
 -/
 
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
-import Mathlib.MeasureTheory.Measure.WithDensity
-import Causalean.Stat.Minimax.ChiSquared
+module
+public import Causalean.Mathlib.Probability.ProductAbsolutelyContinuous
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+public import Mathlib.MeasureTheory.Measure.WithDensity
 
-/-! # Product KL Bounds for Le Cam Arguments
+/-! # Product KL bounds
 
 This file proves and packages tensorisation tools for Kullback--Leibler divergence over
 finite product laws.  The central proposition `ProductKLTensorizationBound` records the
 finite product KL, the finite one-observation KL, and the real-valued inequality
-`KL(μ^n, ν^n) ≤ n * KL(μ,ν)` so downstream Le Cam arguments cannot accidentally hide an
-infinite KL term behind `ENNReal.toReal`.
+`KL(μ^n, ν^n) ≤ n * KL(μ,ν)` while explicitly retaining the finiteness conditions needed
+to use `ENNReal.toReal` soundly.
 
 The main public results are:
 * `productKL_tensorization_of_finite`, the finite-branch equality for finite products;
 * `productKL_tensorization`, the packaged i.i.d. `ProductKLTensorizationBound` from
   one-sample absolute continuity and log-likelihood-ratio integrability;
-* `pi_iid_absolutelyContinuous` and `pi_iid_llr_integrable`, reusable finite-product
-  side conditions.
+* `pi_iid_llr_integrable`, the reusable finite-product integrability side condition.
+
+Finite-product absolute continuity is supplied by the imported
+`ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous` theorem.
 
 It is a Mathlib-adjacent information-theory layer rather than a causal model
 construction. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability.ProductAbsolutelyContinuous
 
 namespace Causalean.Mathlib.InformationTheory
 
 open MeasureTheory
 open scoped ENNReal
 
-namespace ProductKLPrivate
+namespace ProductKL
 
 open _root_.InformationTheory
 
@@ -87,7 +87,9 @@ lemma llr_prod_ae {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
     llr (μ₁.prod μ₂) (ν₁.prod ν₂)
       =ᵐ[μ₁.prod μ₂] fun z : α × β => llr μ₁ ν₁ z.1 + llr μ₂ ν₂ z.2 := by
   have hprod : μ₁.prod μ₂ ≪ ν₁.prod ν₂ := h₁.prod h₂
-  have hrn := hprod.ae_eq (Causalean.Stat.rnDeriv_prod_eq μ₁ ν₁ μ₂ ν₂ h₁ h₂).symm
+  have hrn := hprod.ae_eq
+    (Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.rnDeriv_prod_eq
+      μ₁ ν₁ μ₂ ν₂ h₁ h₂).symm
   have hpos₁ : ∀ᵐ x ∂μ₁, 0 < μ₁.rnDeriv ν₁ x := Measure.rnDeriv_pos h₁
   have hpos₂ : ∀ᵐ y ∂μ₂, 0 < μ₂.rnDeriv ν₂ y := Measure.rnDeriv_pos h₂
   have hfin₁ : ∀ᵐ x ∂μ₁, μ₁.rnDeriv ν₁ x ≠ ∞ :=
@@ -164,36 +166,6 @@ lemma llr_integrable_of_map_measurableEquiv {α β : Type*}
     simp [hx]
   exact (integrable_congr hllr).1 hcomp
 
-private lemma pi_absolutelyContinuous_iid {α : Type*} [MeasurableSpace α]
-    (μ ν : Measure α) [SigmaFinite μ] [SigmaFinite ν] (hμν : μ ≪ ν) :
-    ∀ k : ℕ, Measure.pi (fun _ : Fin k => μ) ≪ Measure.pi (fun _ : Fin k => ν) := by
-  intro k
-  induction k with
-  | zero =>
-      rw [Measure.pi_of_empty, Measure.pi_of_empty]
-  | succ k ih =>
-      let e : ((i : Fin (k + 1)) → α) ≃ᵐ α × ((j : Fin k) → α) :=
-        MeasurableEquiv.piFinSuccAbove (fun _ : Fin (k + 1) => α) 0
-      have hmapμ :
-          Measure.map e (Measure.pi (fun _ : Fin (k + 1) => μ))
-            = μ.prod (Measure.pi (fun _ : Fin k => μ)) := by
-        simpa [e] using
-          (measurePreserving_piFinSuccAbove
-            (μ := fun _ : Fin (k + 1) => μ) (0 : Fin (k + 1))).map_eq
-      have hmapν :
-          Measure.map e (Measure.pi (fun _ : Fin (k + 1) => ν))
-            = ν.prod (Measure.pi (fun _ : Fin k => ν)) := by
-        simpa [e] using
-          (measurePreserving_piFinSuccAbove
-            (μ := fun _ : Fin (k + 1) => ν) (0 : Fin (k + 1))).map_eq
-      have hmapac :
-          Measure.map e (Measure.pi (fun _ : Fin (k + 1) => μ))
-            ≪ Measure.map e (Measure.pi (fun _ : Fin (k + 1) => ν)) := by
-        rw [hmapμ, hmapν]
-        exact hμν.prod ih
-      have hback := hmapac.map e.symm.measurable
-      simpa [Measure.map_map, Function.comp_def] using hback
-
 private lemma pi_llr_integrable_iid {α : Type*} [MeasurableSpace α]
     (μ ν : Measure α) [IsProbabilityMeasure μ] [SigmaFinite ν]
     (hμν : μ ≪ ν) (hint : Integrable (llr μ ν) μ) :
@@ -221,7 +193,7 @@ private lemma pi_llr_integrable_iid {α : Type*} [MeasurableSpace α]
         simpa [e] using
           (measurePreserving_piFinSuccAbove
             (μ := fun _ : Fin (k + 1) => ν) (0 : Fin (k + 1))).map_eq
-      have hπac := pi_absolutelyContinuous_iid μ ν hμν k
+      have hπac := pi_iid_absolutelyContinuous μ ν hμν k
       have hprod_int :
           Integrable
             (llr
@@ -236,7 +208,7 @@ private lemma pi_llr_integrable_iid {α : Type*} [MeasurableSpace α]
       exact llr_integrable_of_map_measurableEquiv e
         (Measure.pi (fun _ : Fin (k + 1) => μ))
         (Measure.pi (fun _ : Fin (k + 1) => ν))
-        (pi_absolutelyContinuous_iid μ ν hμν (k + 1)) hprod_int
+        (pi_iid_absolutelyContinuous μ ν hμν (k + 1)) hprod_int
 
 /-- For product probability laws with integrable component log-likelihood ratios, the
 real-valued KL divergence of the product equals the sum of the component KL divergences. -/
@@ -286,7 +258,8 @@ lemma klDiv_prod_toReal_add {α β : Type*} [MeasurableSpace α] [MeasurableSpac
   · simp
 
 /-- Under absolute-continuity and integrability conditions for every finite product, the
-real-valued Kullback–Leibler divergence of two n-fold product laws is n times the one-law divergence. -/
+real-valued Kullback–Leibler divergence of two n-fold product laws is n times the
+one-law divergence. -/
 lemma productKL_tensorization_toReal_eq {α : Type*} [MeasurableSpace α]
     (n : ℕ) (μ ν : Measure α) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hac : μ ≪ ν) (hint : Integrable (llr μ ν) μ)
@@ -352,11 +325,17 @@ lemma productKL_tensorization_toReal_eq {α : Type*} [MeasurableSpace α]
               rw [ih]
               ring
 
-end ProductKLPrivate
+end ProductKL
 
-/-- For [a measurable observation space](hyp:α), [a sample size](hyp:n), and [two measures on that space](hyp:μ,ν), the [product-KL tensorisation bound](goal) asserts that [the Kullback--Leibler divergence between their $n$-fold product measures is finite](step:1), [their one-observation Kullback--Leibler divergence is finite](step:2), and [the real-valued product divergence is at most $n$ times the real-valued one-observation divergence](step:3).
+/-- For [a measurable observation space](hyp:α), [a sample size](hyp:n), and
+[two measures on that space](hyp:μ,ν), the [product-KL tensorisation bound](goal)
+asserts that [the Kullback--Leibler divergence between their n-fold product measures
+is finite](step:1), [their one-observation Kullback--Leibler divergence is
+finite](step:2), and [the real-valued product divergence is at most n times the
+real-valued one-observation divergence](step:3).
 
-The finiteness conjuncts prevent the Le Cam interface from silently turning an infinite KL divergence into zero via `ENNReal.toReal`. -/
+The finiteness conjuncts prevent conversion through `ENNReal.toReal` from silently
+turning an infinite KL divergence into zero. -/
 def ProductKLTensorizationBound {α : Type*} [MeasurableSpace α]
     (n : ℕ) (μ ν : Measure α) : Prop :=
   _root_.InformationTheory.klDiv
@@ -380,24 +359,23 @@ theorem productKL_tensorization_of_finite {α : Type*} [MeasurableSpace α]
         (Measure.pi (fun _ : Fin n => μ))
         (Measure.pi (fun _ : Fin n => ν))).toReal
       = (n : ℝ) * (_root_.InformationTheory.klDiv μ ν).toReal :=
-  ProductKLPrivate.productKL_tensorization_toReal_eq
+  ProductKL.productKL_tensorization_toReal_eq
     n μ ν hac hint
-    (ProductKLPrivate.pi_absolutelyContinuous_iid μ ν hac)
-    (ProductKLPrivate.pi_llr_integrable_iid μ ν hac hint)
+    (pi_iid_absolutelyContinuous μ ν hac)
+    (ProductKL.pi_llr_integrable_iid μ ν hac hint)
 
-/-- For a sample size `n` and probability measures `μ`, `ν` on a measurable space `α`, if
-    [`μ` is absolutely continuous with respect to `ν`](hyp:hac) and [the log-likelihood ratio of
-    `μ` against `ν` is `μ`-integrable](hyp:hint), then [both the KL divergence between the
-    `n`-fold product of `μ` and the `n`-fold product of `ν`, and the one-observation KL
-    divergence between `μ` and `ν`, are finite, and the real-valued product KL divergence is at
-    most `n` times the real-valued one-observation KL divergence](goal): this is product-KL
-    tensorisation packaged in the Le Cam interface. -/
+/-- For [a measurable observation space](hyp:α), [a sample size](hyp:n), and
+[two probability measures](hyp:μ,ν), if [the first measure is absolutely continuous
+with respect to the second](hyp:hac) and [their log-likelihood ratio is integrable under
+the first measure](hyp:hint), then [both the product and one-observation KL divergences
+are finite, and the real-valued product divergence is at most the sample size times the
+one-observation divergence](goal). -/
 theorem productKL_tensorization {α : Type*} [MeasurableSpace α]
     (n : ℕ) (μ ν : Measure α) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hac : μ ≪ ν) (hint : Integrable (llr μ ν) μ) :
     ProductKLTensorizationBound n μ ν := by
-  have hπac := ProductKLPrivate.pi_absolutelyContinuous_iid μ ν hac
-  have hπint := ProductKLPrivate.pi_llr_integrable_iid μ ν hac hint
+  have hπac := pi_iid_absolutelyContinuous μ ν hac
+  have hπint := ProductKL.pi_llr_integrable_iid μ ν hac hint
   have hleft_ne_top :
       _root_.InformationTheory.klDiv
         (Measure.pi (fun _ : Fin n => μ))
@@ -434,17 +412,21 @@ theorem ProductKLTensorizationBound.one_ne_top {α : Type*} [MeasurableSpace α]
     _root_.InformationTheory.klDiv μ ν ≠ ∞ :=
   h.2.1
 
-/-- Public: absolute continuity of i.i.d. finite products from the one-sample
-hypothesis `μ ≪ ν` for sigma-finite laws. (Thin wrapper over the private induction.) -/
+/-- Deprecated information-theory spelling of the probability-layer theorem
+`ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous`. -/
+@[deprecated Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous
+  (since := "2026-09-19")]
 theorem pi_iid_absolutelyContinuous {α : Type*} [MeasurableSpace α]
     (μ ν : Measure α) [SigmaFinite μ] [SigmaFinite ν]
     (hμν : μ ≪ ν) (n : ℕ) :
     Measure.pi (fun _ : Fin n => μ) ≪ Measure.pi (fun _ : Fin n => ν) :=
-  ProductKLPrivate.pi_absolutelyContinuous_iid μ ν hμν n
+  Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous
+    μ ν hμν n
 
 /-- Public: log-likelihood-ratio integrability for i.i.d. finite products from
 the one-sample hypotheses `μ ≪ ν` and `Integrable (llr μ ν) μ`.  Combined with
-`pi_iid_absolutelyContinuous` this certifies `klDiv (pi μ) (pi ν) ≠ ⊤`
+`ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous` this certifies
+`klDiv (pi μ) (pi ν) ≠ ⊤`
 (via `InformationTheory.klDiv_ne_top`). -/
 theorem pi_iid_llr_integrable {α : Type*} [MeasurableSpace α]
     (μ ν : Measure α) [IsProbabilityMeasure μ] [SigmaFinite ν]
@@ -452,6 +434,6 @@ theorem pi_iid_llr_integrable {α : Type*} [MeasurableSpace α]
     Integrable
       (llr (Measure.pi (fun _ : Fin n => μ)) (Measure.pi (fun _ : Fin n => ν)))
       (Measure.pi (fun _ : Fin n => μ)) :=
-  ProductKLPrivate.pi_llr_integrable_iid μ ν hμν hint n
+  ProductKL.pi_llr_integrable_iid μ ν hμν hint n
 
 end Causalean.Mathlib.InformationTheory

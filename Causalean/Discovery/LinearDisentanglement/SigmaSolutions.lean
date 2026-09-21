@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Model
+module
+public import Causalean.Discovery.LinearDisentanglement.Model
 
 /-!
 # Linear causal disentanglement: solution orbits under order-preserving permutations
@@ -17,10 +18,12 @@ order-preservation hypothesis `σ ∈ S(𝒢)` is exactly what keeps the transfo
 observational matrix triangular in the ambient node order.
 
 The theorem `sigma_solutions` then proves that this transformed solution has the
-same observable precision matrices `Θ₀` and `Θₖ`.  Together with
-`disentanglement_identifiability`, it gives the orbit characterization of all
-solutions.
+same observable precision matrices `Θ₀` and `Θₖ`. It constructs pure permutation
+ambiguities only; the separate unnormalized uniqueness theorem permits additional
+signed diagonal scalings, whose converse construction is not proved here.
 -/
+
+@[expose] public section
 
 namespace Causalean.Discovery.LinearDisentanglement
 
@@ -81,7 +84,11 @@ private theorem stdVec_perm_symm (σ : Equiv.Perm (Fin d)) (t i : Fin d) :
 
 namespace Solution
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S), [a permutation of its latent-node indices](hyp:σ), and [the condition that this permutation preserves the directed node order](hyp:hσ), the [permuted solution](goal) is a linear causal disentanglement solution obtained by relabeling every latent coordinate with that permutation.  Its mixing pseudoinverse is the row-permuted original, its observational structural matrix is the original conjugated by the permutation matrix, its interventional structural matrices are conjugated in the same way, and its intervention targets are relabeled by the permutation.
+/-- [The permuted solution](goal) relabels every latent coordinate without changing the modeled
+system: [permutation `σ`](hyp:σ) must [preserve the directed order](hyp:hσ) of [solution
+`S`](hyp:S), with [latent dimension `d`](hyp:d), [observed dimension `p`](hyp:p), and
+[intervention count `K`](hyp:K). Its mixing rows, structural matrices, and intervention targets
+are all transported consistently.
 
 The order-preservation assumption is what keeps the transformed observational structural matrix upper triangular in the ambient node order. -/
 def permute (S : Solution d p K) (σ : Equiv.Perm (Fin d)) (hσ : S.InSG σ) :
@@ -137,11 +144,10 @@ def permute (S : Solution d p K) (σ : Equiv.Perm (Fin d)) (hσ : S.InSG σ) :
 
 end Solution
 
-/-- For a solution `S` and a permutation `σ` of the latent coordinates such that
-[`σ` is order-preserving, i.e. lies in the paper's group `S(𝒢)`](hyp:hσ), [the
-relabeled solution obtained by applying `σ` to `S` produces exactly the same
-observational precision matrix `Θ₀`, and for every intervention `k` the same
-interventional precision matrix `Θₖ`, as `S` itself](goal).
+/-- [Order-preserving latent relabeling leaves every observable precision matrix unchanged](goal),
+so [solution `S`](hyp:S) and its relabeling by [permutation `σ`](hyp:σ) are observationally
+indistinguishable whenever [`σ` preserves the causal order](hyp:hσ). The result covers [latent
+dimension `d`](hyp:d), [observed dimension `p`](hyp:p), and [intervention count `K`](hyp:K).
 
 This is the solution-orbit direction: for any `σ ∈ S(𝒢)`, the permuted solution
 `S.permute σ hσ` produces exactly the original precision family `{Θ₀, Θₖ}`. -/

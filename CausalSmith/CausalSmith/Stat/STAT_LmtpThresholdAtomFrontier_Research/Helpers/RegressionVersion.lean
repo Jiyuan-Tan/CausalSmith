@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.EstimatorMeasurable
-import Causalean.Mathlib.MeasureTheory.CondExpPreimage
-import Causalean.Mathlib.MeasureTheory.PartitionIntegral
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.EstimatorMeasurable
+public import Causalean.Mathlib.MeasureTheory.CondExpPreimage
+public import Causalean.Mathlib.MeasureTheory.PartitionIntegral
 
 /-! # A measurable global version of the clamp regression -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

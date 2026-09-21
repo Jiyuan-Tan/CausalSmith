@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.BernoulliKernel
-import Causalean.Mathlib.Probability.Kernel.ProductCondDistrib
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.BernoulliKernel
+public import Causalean.Mathlib.Probability.Kernel.ProductCondDistrib
 
 /-!
 # Explicit potential-outcome laws for the causal angular family
@@ -9,6 +10,8 @@ score design into the `(Y(0),Y(1),X)` law carried by `A1A2Law`.  In particular,
 the selected kernels in the resulting decorated law are the same kernels used
 to build its joint measure, so the disintegration field is exact.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ProbabilityTheory

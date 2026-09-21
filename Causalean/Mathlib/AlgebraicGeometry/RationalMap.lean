@@ -1,7 +1,8 @@
-import Causalean.Mathlib.MeasureTheory.PolynomialZeroLocus
-import Mathlib.Algebra.MvPolynomial.PDeriv
-import Mathlib.LinearAlgebra.Matrix.MvPolynomial
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+module
+public import Causalean.Mathlib.AlgebraicGeometry.PolynomialZeroLocus
+public import Mathlib.Algebra.MvPolynomial.PDeriv
+public import Mathlib.LinearAlgebra.Matrix.MvPolynomial
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
 
 /-!
 # Rational maps and algebraic-locus compilers
@@ -11,6 +12,8 @@ polynomials (the locus compilers below assume finitely many output coordinates).
 and finite unions by products, and supplies polynomial-matrix and adjugate/determinant inverse
 specializations.
 -/
+
+@[expose] public section
 
 open Set
 open scoped BigOperators Matrix
@@ -134,7 +137,7 @@ theorem unionConjunctionPolynomial_ne_zero_of_witnesses [Fintype B] [Fintype T]
     (witness : B → S → ℝ) (coordinate : B → T)
     (h : ∀ b, MvPolynomial.eval (witness b) (p b (coordinate b)) ≠ 0) :
     unionConjunctionPolynomial p ≠ 0 := by
-  apply Causalean.Mathlib.MeasureTheory.mvPolynomial_fintype_prod_ne_zero
+  apply Causalean.Mathlib.AlgebraicGeometry.mvPolynomial_fintype_prod_ne_zero
   intro b
   exact conjunctionPolynomial_ne_zero_of_witness
     (p b) (witness b) (coordinate b) (h b)
@@ -147,11 +150,11 @@ theorem rationalMap_eq_locus [Fintype T]
     (f g : RationalMap S T) (D : Set (S → ℝ))
     (hf : f.DefinedOn D) (hg : g.DefinedOn D) :
     {x | x ∈ D ∧ f.eval x = g.eval x} =
-      D ∩ Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus
+      D ∩ Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus
         (conjunctionPolynomial (RationalMap.equalityPolynomial f g)) := by
   ext x
   simp only [Set.mem_ofPred_eq, Set.mem_inter_iff,
-    Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus]
+    Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus]
   apply and_congr_right
   intro hx
   rw [eval_conjunctionPolynomial_eq_zero_iff]
@@ -171,12 +174,12 @@ theorem rationalMap_eq_union_locus [Fintype B] [Fintype T]
     (f g : B → RationalMap S T) (D : Set (S → ℝ))
     (hf : ∀ b, (f b).DefinedOn D) (hg : ∀ b, (g b).DefinedOn D) :
     {x | x ∈ D ∧ ∃ b, (f b).eval x = (g b).eval x} =
-      D ∩ Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus
+      D ∩ Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus
         (unionConjunctionPolynomial
           (fun b => RationalMap.equalityPolynomial (f b) (g b))) := by
   ext x
   simp only [Set.mem_ofPred_eq, Set.mem_inter_iff,
-    Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus]
+    Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus]
   apply and_congr_right
   intro hx
   rw [eval_unionConjunctionPolynomial_eq_zero_iff]
@@ -301,7 +304,7 @@ theorem rationalMap_imageIntersection_locus [Fintype T]
     {z | z ∈ sumProductDomain D E ∧
       f.eval (z ∘ Sum.inl) = g.eval (z ∘ Sum.inr)} =
       sumProductDomain D E ∩
-        Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus
+        Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus
           (conjunctionPolynomial
             (RationalMap.equalityPolynomial f.leftLift g.rightLift)) := by
   have hleft : f.leftLift.DefinedOn (sumProductDomain D E) := by
@@ -329,7 +332,7 @@ theorem rationalMatrixMap_imageIntersection_locus [Fintype R] [Fintype C]
     {z | z ∈ sumProductDomain D E ∧
       f.evalMatrix (z ∘ Sum.inl) = g.evalMatrix (z ∘ Sum.inr)} =
       sumProductDomain D E ∩
-        Causalean.Mathlib.MeasureTheory.mvPolynomialZeroLocus
+        Causalean.Mathlib.AlgebraicGeometry.mvPolynomialZeroLocus
           (conjunctionPolynomial
             (RationalMap.equalityPolynomial f.leftLift g.rightLift)) := by
   rw [← rationalMap_imageIntersection_locus f g D E hf hg]
@@ -347,4 +350,3 @@ theorem rationalMatrixMap_imageIntersection_locus [Fintype R] [Fintype C]
 
 
 end Causalean.Mathlib.AlgebraicGeometry
-

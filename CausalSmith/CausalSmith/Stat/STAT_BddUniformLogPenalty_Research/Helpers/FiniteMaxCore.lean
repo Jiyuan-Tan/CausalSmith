@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPackingTheorem
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.DirectProduct
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Poissonization
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPackingTheorem
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.DirectProduct
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Poissonization
 
 /-!
 # Finite-packing Poisson experiment core
@@ -9,6 +10,8 @@ The angular packing, marked Poisson experiment, coordinatewise direct-product
 bound, midpoint decoding, and de-Poissonization are assembled once here for an
 arbitrary point-indexed rule.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

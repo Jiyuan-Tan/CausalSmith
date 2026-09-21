@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witnesses
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witnesses
 
 /-!
 # Explicit cancellation-to-sparse witness path
@@ -6,6 +7,8 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witne
 This file records the elementary one-dimensional facts about the child-mechanism
 coefficient along the path from the cancellation witness to the sparse witness.
 -/
+
+@[expose] public section
 
 open Set
 

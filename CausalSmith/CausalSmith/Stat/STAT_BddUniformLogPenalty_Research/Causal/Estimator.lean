@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.DecisionClass
-import Mathlib.Data.Matrix.Invertible
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.DecisionClass
+public import Mathlib.Data.Matrix.Invertible
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Winsorized stabilized signed-distance local polynomial estimator
@@ -9,6 +10,8 @@ This module defines the empirical Gram and score, the guarded inverse, the
 clipped contrast, the population coefficient used by the cited bias theorem,
 and the pointwise selected-kernel winsorization bias lemma.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

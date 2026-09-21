@@ -6,10 +6,13 @@ Authors: Jiyuan Tan
 # Irreducible subsets of recovered-slope fibers
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FixedLoadingFiberDimension
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.IrreducibleFiniteRange
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.DirectLatentSwaps
-import Mathlib.Logic.Equiv.Fin.Rotate
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FixedLoadingFiberDimension
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.IrreducibleFiniteRange
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.DirectLatentSwaps
+public import Mathlib.Logic.Equiv.Fin.Rotate
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

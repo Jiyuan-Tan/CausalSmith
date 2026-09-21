@@ -1,0 +1,580 @@
+%%% FIELD calibrated-estimator-definition
+Put \(A_\star=7056\) and \(c^\circ=1/256\).  Let \(j_\epsilon\) be the least integer \(j\ge1\) for which \(2^{-j}\le\epsilon\), and put \(\bar\epsilon=2^{-j_\epsilon}\); thus \(0<\bar\epsilon\le\epsilon<2\bar\epsilon\).  Define \(H_\epsilon\) to be the least positive integer \(H\) satisfying the finite list
+\[
+ H\ge4,\qquad \frac H4\ge15+\frac{24}{c^\circ},\qquad
+ Hc^\circ\bar\epsilon\ge672,
+ \qquad Hc^\circ\bar\epsilon\ge24.                                      \tag{C1}
+\]
+The set in this minimum is nonempty because \(c^\circ\bar\epsilon>0\), and all of its tests involve integers and dyadic rationals.
+
+For given \(n,m\), partition the labeled indices, in their original order, into blocks of sizes
+\[
+ M_0=\lfloor n/3\rfloor,\qquad
+ n_p=\left\lfloor\frac{n-M_0}{2}\right\rfloor,
+ \qquad n_f=n-M_0-n_p,
+\]
+and partition the auxiliary indices into blocks of sizes
+\(m_p=\lfloor m/2\rfloor\) and \(m_f=m-m_p\).  The outcome block is the first labeled block; the pilot and factorial pools have sizes
+\[
+ M_p=n_p+m_p,\qquad M_f=n_f+m_f,\qquad
+ u=M_0/8,\quad t_p=M_p/8,\quad t=M_f/8.                            \tag{C2}
+\]
+If \(n<24\), declare the calibration predicate \(\mathsf C_\epsilon(n,m)\) false.  If \(n\ge24\), put \(N=n+m\), \(\ell=\log(en)\), \(h_n=1+\lceil\log_2 n\rceil\),
+\[
+ L=\max\{2,\lfloor c^\circ h_n\rfloor\},\qquad
+ B=\frac{H_\epsilon L}{\min(t_p,t)},\qquad
+ k_0=\lfloor t_pB/4\rfloor,                                          \tag{C3}
+\]
+and let \(\mathsf C_\epsilon(n,m)\) be the conjunction of the following finite tests:
+\[
+ \frac1{32}\le\frac un\le\frac1{24},\qquad
+ \frac1{32}\le\frac{t_p}{N},\frac tN\le\frac3{32},\qquad
+ \frac13\le\frac t{t_p}\le3,\qquad L\ge\frac{c^\circ h_n}{2},   \tag{C4}
+\]
+\[
+ t_pB\ge8,\qquad tB\ge L,\qquad
+ L^4A_\star^{2L}\le n,\qquad L^6A_\star^{2L}\le n,               \tag{C5}
+\]
+\[
+ \frac{t_pB}{4}\ge15L+12h_n,\qquad
+ \left(1+\bar\epsilon\frac t{t_p}\right)^{k_0}\ge n^{12},
+ \qquad \bar\epsilon tB\ge12h_n.                                  \tag{C6}
+\]
+These comparisons are a finite decidable computation from \((n,m,\epsilon)\): \(h_n\) is the binary length of \(n\), \(\bar\epsilon\) is dyadic, and every remaining quantity and comparison is rational.
+
+If \(\mathsf C_\epsilon(n,m)\) is false, set \(\widehat\tau^{\mathrm{mix}}_{n,m,d}=0\).  If it is true, independently average over prefix lengths \(D_0\sim\operatorname{Poi}(u)\), \(D_p\sim\operatorname{Poi}(t_p)\), and \(D_f\sim\operatorname{Poi}(t)\), returning zero whenever a prefix exceeds its pool.  For a valid prefix, let \(J_x\) be the pilot count and call \(x\) light when \(J_x\le k_0\).  Define, with polynomial continuation at zero,
+\[
+ H_L(z)=\frac{1-T_L(1-2z)}{2L^2},\qquad
+ E_L(z)=\frac{H_L(z)}z,\qquad G_L(z)=\frac{1-E_L(z)}z,
+\]
+and expand
+\[
+ W_{a,L}(s_0,s_1)=\frac{s_0+s_1}{B}G_L(s_a/B)
+ =\sum_{r_0,r_1}c_{a,r_0,r_1}s_0^{r_0}s_1^{r_1}.
+\]
+For factorial-pool counts \(K_{ax}\), outcome-block success counts \(S_{ax}\), and falling factorials \((k)_r\), put
+\[
+ \widehat W_{a,L,x}=\sum_{r_0,r_1}c_{a,r_0,r_1}
+ \frac{(K_{0x})_{r_0}(K_{1x})_{r_1}}{t^{r_0+r_1}},
+ \qquad
+ \widehat W^H_{a,x}=\frac{K_{0x}+K_{1x}+1}{K_{ax}+1},
+\]
+\[
+ Z_x=\mathbf1\{J_x\le k_0\}
+ \left(\frac{S_{1x}}u\widehat W_{1,L,x}-\frac{S_{0x}}u\widehat W_{0,L,x}\right)
+ +\mathbf1\{J_x>k_0\}
+ \left(\frac{S_{1x}}u\widehat W^H_{1,x}-\frac{S_{0x}}u\widehat W^H_{0,x}\right).
+\]
+The valid-prefix output is \(\operatorname{clip}_{[-1,1]}(\sum_xZ_x)\).  Finally \(\widehat\tau^{\mathrm{mix}}_{n,m,d}\) is the conditional expectation of this output over the three prefix lengths given \((\mathcal L_n,\mathcal U_m)\).  It is a finite weighted sum of rationally generated polynomial coefficients, observed counts, and computable Poisson weights, and hence is a total computable measurable map.
+
+%%% FIELD explicit-chebyshev-statement
+Let \(T_j\) be the Chebyshev polynomials, put \(Q_j(z)=T_j(1-2z)\), and let \(\|\cdot\|_1\) denote coefficient \(\ell^1\)-norm.  For every integer \(L\ge2\), the polynomials
+\[
+ H_L(z)=\frac{1-Q_L(z)}{2L^2},\qquad E_L(z)=H_L(z)/z,
+ \qquad G_L(z)=\{1-E_L(z)\}/z
+\]
+are well defined by polynomial continuation and satisfy
+\[
+ \|Q_L\|_1\le7^L,\qquad
+ \|(z_0+z_1)G_L(z_a)\|_1\le14^L.                                   \tag{C7}
+\]
+Moreover, if \(K_b\sim\operatorname{Poi}(ts_b)\) independently, \(p=s_0+s_1\), and \(\widehat W_{a,L}\) is the factorial lift of \((z_0+z_1)G_L(z_a)\) with \(z_b=s_b/B\), then, whenever \(tB\ge L\), the explicit integer \(A_\star=7056\) satisfies
+\[
+ E\widehat W_{a,L}^{2}\le A_\star^L(1+p/B)^{2L},
+ \qquad
+ p\le B\Longrightarrow E\widehat W_{a,L}^{2}\le A_\star^L.       \tag{C8}
+\]
+On \(0\le z\le1\), one also has
+\[
+ 0\le E_L(z)\le\min\{1,(L^2z)^{-1}\},\qquad zG_L(z)+E_L(z)=1.     \tag{C9}
+\]
+
+%%% FIELD explicit-chebyshev-proof
+The recurrence \(T_{j+1}(w)=2wT_j(w)-T_{j-1}(w)\) gives
+\[
+ Q_{j+1}(z)=2(1-2z)Q_j(z)-Q_{j-1}(z).
+\]
+Since \(\|1-2z\|_1=3\), \(\|Q_0\|_1=1\), and \(\|Q_1\|_1=3\), induction yields
+\[
+ \|Q_{j+1}\|_1\le6\|Q_j\|_1+\|Q_{j-1}\|_1\le7^{j+1}.             \tag{C10}
+\]
+Because \(Q_L(0)=1\), division of \(1-Q_L\) by \(z\) only shifts its nonconstant coefficients.  Thus
+\[
+ \|E_L\|_1\le\frac{1+7^L}{2L^2}\le7^L.
+\]
+The identity \(T_L'(1)=L^2\) implies \(E_L(0)=1\), so the same shift argument gives \(\|G_L\|_1\le1+\|E_L\|_1\le2\cdot7^L\).  Multiplication by \(z_0+z_1\) multiplies coefficient norm by two, and \(4\cdot7^L\le14^L\) for \(L\ge2\).  This proves (C7), including the displayed explicit coefficient norm.
+
+Write
+\[
+ (z_0+z_1)G_L(z_a)=\sum_{r_0,r_1}b_{a,r_0,r_1}z_0^{r_0}z_1^{r_1}.
+\]
+Every total degree is at most \(L\), and the factorial lift is
+\[
+ \widehat W_{a,L}=\sum_{r_0,r_1}b_{a,r_0,r_1}
+ \frac{(K_0)_{r_0}(K_1)_{r_1}}{(tB)^{r_0+r_1}}.                    \tag{C11}
+\]
+For \(K\sim\operatorname{Poi}(\lambda)\), counting two ordered selections by their number \(h\) of common indices gives the exact identity
+\[
+ E[(K)_r(K)_v]=\sum_{h=0}^{\min(r,v)}\binom rh\binom vh h!\lambda^{r+v-h}. \tag{C12}
+\]
+Put \(D=tB\) and \(z=\lambda/D\).  After division by \(D^{r+v}\), the \(h\)-th summand is at most
+\[
+ \frac{(rv)^h}{h!D^h}(1+z)^{r+v},
+\]
+because \(\binom rh\binom vh h!\le(rv)^h/h!\) and \(z^{r+v-h}\le(1+z)^{r+v}\).  Since \(r,v\le L\) and \(D\ge L\), summation over \(h\) is bounded by \(e^L(1+z)^{r+v}\).  Applying this independently to the two Poisson counts, expanding the square in (C11), and using (C7) yields
+\[
+ E\widehat W_{a,L}^{2}
+ \le14^{2L}e^{2L}(1+z_0+z_1)^{2L}
+ <1764^L(1+p/B)^{2L}.                                               \tag{C13}
+\]
+Here \(e<3\), which follows from its power series and \(k!\ge2^{k-1}\) for \(k\ge1\).  Since \(7056=4\cdot1764\), (C13) proves both assertions in (C8), the second using \(1+p/B\le2\).
+
+Finally, for \(z\in[0,1]\), choose \(\vartheta\in[0,\pi]\) with \(1-2z=\cos\vartheta\).  Continuity at zero and elementary trigonometry give
+\[
+ E_L(z)=\frac{1-\cos(L\vartheta)}{L^2(1-\cos\vartheta)}
+ =\left\{\frac{\sin(L\vartheta/2)}{L\sin(\vartheta/2)}\right\}^{\!2}.
+\]
+The induction inequality \(|\sin(Lv)|\le L|\sin v|\) gives \(0\le E_L\le1\), while \(1-\cos(L\vartheta)\le2\) gives \(E_L(z)\le(L^2z)^{-1}\) for \(z>0\).  The last identity in (C9) is the definition of \(G_L\).  This completes the proof.
+
+%%% FIELD factorial-target-proof
+The polynomial continuation, degree, approximation, and factorial-moment claims follow from \(\mathrm{lem:explicit\mbox{-}chebyshev\mbox{-}calibration}\), equations (C7)--(C9).  In particular its explicit choice \(A_\star=7056\) is a universal \(A>1\) satisfying both moment inequalities in the present statement.  Thus the existential constant in this corollary has the displayed computable witness; it is not an input to the estimator calibration.
+
+%%% FIELD calibrated-hybrid-statement
+Use the split sizes, intensities, constants \(A_\star=7056\), \(c^\circ=1/256\), dyadic certificate \(\bar\epsilon\), integer \(H_\epsilon\), and finite predicate \(\mathsf C_\epsilon(n,m)\) in \(\mathrm{def:mixed\mbox{-}estimator\mbox{-}handle}\).  In the independent Poisson experiment with outcome intensity \(u\), pilot intensity \(t_p\), and factorial intensity \(t\), apply the displayed hybrid statistic when \(\mathsf C_\epsilon(n,m)\) holds and output zero otherwise.  There is a finite \(C_\epsilon\), depending only on \(\epsilon\), such that, uniformly over \(P\in\mathcal M_{d,\epsilon}\) and simultaneously for every \(n\ge1\), \(m\ge0\), and \(d\ge2\), its clipped output \(Z^{\mathrm{mix}}\) obeys
+\[
+ E_P[(Z^{\mathrm{mix}}-\tau(P))^2]
+ \le C_\epsilon\min\!\left\{1,\frac1n+\frac{d^2}{(n+m)^2\log^2(en)}\right\}. \tag{C14}
+\]
+The calibration and the statistic are finite and computable; only the risk constant \(C_\epsilon\) is existential.
+
+%%% FIELD calibrated-hybrid-proof
+Put \(N=n+m\) and \(\ell=\log(en)\).  We first prove (C14) when \(\mathsf C_\epsilon(n,m)\) holds.  All quantities below are then well defined, and (C4) gives the explicit ratios
+\[
+ \frac1{32}\le\frac un\le\frac1{24},\qquad
+ \frac1{32}\le\frac{t_p}N,\frac tN\le\frac3{32},
+ \qquad \frac13\le\frac t{t_p}\le3.                               \tag{C15}
+\]
+For cell \(x\), define \(\theta_x=p_x(\mu_{1x}-\mu_{0x})\), \(I_x=\mathbf1\{J_x\le k_0\}\), and let \(P_x\) and \(H_x\) denote respectively its polynomial and inverse-count statistics.  Poisson splitting and independence of the three pools imply that \(I_x\) is independent of \((P_x,H_x)\), and that the cell triples are independent across \(x\).
+
+Unbiasedness of Poisson factorial moments and (C9), with \(z_a=s_{ax}/B\), give
+\[
+ EP_x=\theta_x-p_x\{\mu_{1x}E_L(z_1)-\mu_{0x}E_L(z_0)\}.             \tag{C16}
+\]
+If \(p_x\le B\), then \(0\le z_a\le1\), and occupied-cell overlap gives \(s_{ax}\ge\epsilon p_x\).  Hence (C9) implies, also trivially on a null cell,
+\[
+ |EP_x-\theta_x|\le\frac{2B}{\epsilon L^2}.                         \tag{C17}
+\]
+The shifted Poisson series used in \(\mathrm{lem:poisson\mbox{-}inverse\mbox{-}count\mbox{-}risk}\) gives
+\[
+ |EH_x-\theta_x|\le2p_xe^{-\epsilon tp_x}.                         \tag{C18}
+\]
+
+We next control both wrong branches.  If \(p_x>B\), put \(y_x=p_x/B>1\) and \(\pi_x=P(I_x=1)\).  Since \(k_0\le t_pB/4<t_pp_x/4\), the multiplicative Poisson Chernoff bound yields
+\[
+ \pi_x\le e^{-t_pp_x/4}\le e^{-H_\epsilon Ly_x/4}.                 \tag{C19}
+\]
+The explicit coefficient bound (C7) gives directly for the deterministic mean
+\[
+ |EP_x|\le p_x14^L(1+y_x)^L,                                      \tag{C20}
+\]
+while independence of the outcome and factorial pools, (C8), \(q_{ax}\le p_x\), and \(\operatorname{Var}(U-V)\le2\operatorname{Var}(U)+2\operatorname{Var}(V)\) give
+\[
+ E(P_x^2)\le C(p_x/u+p_x^2)A_\star^L(1+y_x)^{2L}.                  \tag{C21}
+\]
+Because \(\log(1+y)\le y\log2\) and \(\log A_\star<13\), the second inequality in (C1) implies, uniformly for \(y\ge1\),
+\[
+ A_\star^L(1+y)^{2L}e^{-H_\epsilon Ly/4}
+ \le e^{-24Ly/c^\circ}.                                           \tag{C22}
+\]
+Since \(h_n\ge\ell\), the predicate's inequality \(L\ge c^\circ h_n/2\) implies \(L\ge c^\circ\ell/2\), so the right side of (C22) is at most \(n^{-12}\).  Equations (C19)--(C22), \(u\ge n/32\), \(p_x\le1\), and \(\sum_xp_x=1\) therefore give the mass-weighted bounds
+\[
+ \sum_{p_x>B}\pi_x|EP_x|\le n^{-12},
+ \qquad
+ \sum_{p_x>B}\pi_xE(P_x^2)\le Cn^{-12}.                          \tag{C23}
+\]
+There is no factor \(d\) or \(N/n\).
+
+For the other branch put \(\eta_x=P(I_x=0)\), \(\lambda=t_pp_x\), and \(r=\epsilon t/t_p\).  If \(\lambda<k_0\), exponential Markov optimization gives
+\[
+ \eta_xe^{-\epsilon tp_x}
+ \le\exp\{-k_0\log(k_0/\lambda)+k_0-(1+r)\lambda\}
+ \le(1+r)^{-k_0}.                                                    \tag{C24}
+\]
+If \(\lambda\ge k_0\), the trivial bound \(\eta_x\le1\) gives \(\eta_xe^{-\epsilon tp_x}\le e^{-rk_0}\le(1+r)^{-k_0}\).  Since \(r\ge\bar\epsilon t/t_p\), the middle rational inequality in (C6) yields
+\[
+ \eta_xe^{-\epsilon tp_x}\le n^{-12}.                             \tag{C25}
+\]
+The last inequality in (C6), \(e>2\), and \(2^{h_n}\ge n\) give \(e^{-\epsilon tB}\le e^{-\bar\epsilon tB}\le e^{-12h_n}\le n^{-12}\).  Combining (C17), (C18), (C23), and (C25), separately over \(p_x\le B\) and \(p_x>B\), proves for \(Z=\sum_x\{I_xP_x+(1-I_x)H_x\}\)
+\[
+ |EZ-\tau(P)|\le C_\epsilon\frac{dB}{L^2}+Cn^{-12}.                \tag{C26}
+\]
+At \(\epsilon=1/4\), the dyadic certificate is exactly \(\bar\epsilon=1/4\); (C23) controls both sides immediately above the pilot threshold and (C25) controls both sides immediately below it.  Thus the prescribed early-kill check passes uniformly at the boundary.
+
+For variance, exact conditioning on the Bernoulli pilot branch gives
+\[
+ \operatorname{Var}\{I_xP_x+(1-I_x)H_x\}
+ =\pi_x\operatorname{Var}(P_x)+(1-\pi_x)\operatorname{Var}(H_x)
+ +\pi_x(1-\pi_x)(EP_x-EH_x)^2.                                    \tag{C27}
+\]
+For \(p_x\le B\), independence of \(S_{ax}\) and \(\widehat W_{a,L,x}\) gives the exact product identity
+\[
+ \operatorname{Var}\{(S_{ax}/u)\widehat W_{a,L,x}\}
+ =\frac{q_{ax}}uE\widehat W_{a,L,x}^{2}
+ +q_{ax}^{2}\operatorname{Var}(\widehat W_{a,L,x}).                \tag{C28}
+\]
+The exponent on \(q_{ax}\) in (C28) is the ordinary square.  Using (C8), \(q_{ax}\le p_x\le B\), \(\sum_xp_x=1\), and at most \(d\) cells,
+\[
+ \sum_{p_x\le B}\operatorname{Var}(P_x)
+ \le C A_\star^L\left\{\frac{\min(1,dB)}u+dB^2\right\}.          \tag{C29}
+\]
+For \(p_x>B\), (C21)--(C23) imply \(\sum\pi_x\operatorname{Var}(P_x)\le Cn^{-12}\).  Since Poisson cells are independent, the all-heavy variance bound in \(\mathrm{lem:poisson\mbox{-}inverse\mbox{-}count\mbox{-}risk}\) gives
+\[
+ \sum_x(1-\pi_x)\operatorname{Var}(H_x)
+ \le C_\epsilon(u^{-1}+t^{-1}).                                   \tag{C30}
+\]
+For \(p_x\le B\), (C17)--(C18) and \(p^2e^{-2\epsilon tp}\le C_\epsilon p/t\) give
+\[
+ \sum_{p_x\le B}(EP_x-EH_x)^2
+ \le C_\epsilon\left(\frac{dB^2}{L^4}+\frac1t\right).             \tag{C31}
+\]
+For \(p_x>B\), (C23), \(|EH_x|\le3p_x\), and \(\pi_x\le n^{-12}\) after (C22) give a total branch-mean contribution at most \(Cn^{-12}\).  Summing (C27) over the independent cells and adding the squared bias (C26) yields
+\[
+ E[(Z-\tau(P))^2]\le C_\epsilon\left\{
+ \frac1u+\frac1t+\frac{d^2B^2}{L^4}
+ +\frac{A_\star^L\min(1,dB)}u+A_\star^LdB^2
+ +\frac{dB^2}{L^4}+n^{-11}\right\}.                               \tag{C32}
+\]
+
+It remains to absorb every remainder.  From (C15),
+\[
+ \frac{32H_\epsilon L}{3N}\le B\le\frac{32H_\epsilon L}{N}.       \tag{C33}
+\]
+Put \(\delta=d/(NL)\).  The two moment tests in (C5) imply
+\[
+ \frac{L^2A_\star^L}{\sqrt n}\le1,\qquad
+ \frac{L^3A_\star^L}{\sqrt n}\le1.                               \tag{C34}
+\]
+If \(dB\le1\), (C33), (C34), and \(2vw\le v^2+w^2\) give
+\[
+ \frac{A_\star^LdB}{u}\le C_\epsilon(\delta^2+n^{-1}).
+\]
+If \(dB>1\), the lower bound in (C33) gives \(\delta\ge3/(32H_\epsilon L^2)\), while \(L^4A_\star^{2L}\le n\) gives \(A_\star^L/n\le L^{-4}\); the same conclusion follows.  Also, using \(N\ge n\),
+\[
+ A_\star^LdB^2\le C_\epsilon\frac{\delta L^3A_\star^L}{N}
+ \le C_\epsilon(\delta^2+n^{-1}),
+ \qquad
+ \frac{dB^2}{L^4}\le C_\epsilon\frac\delta N
+ \le C_\epsilon(\delta^2+n^{-1}).                                 \tag{C35}
+\]
+The remaining terms in (C32) satisfy \(u^{-1}+t^{-1}\le64/n\) and \(d^2B^2/L^4\le C_\epsilon\delta^2\).  Therefore
+\[
+ E[(Z-\tau(P))^2]\le C_\epsilon\left\{n^{-1}+\frac{d^2}{N^2L^2}\right\}
+ \le C_\epsilon\left\{n^{-1}+\frac{d^2}{N^2\ell^2}\right\},      \tag{C36}
+\]
+where the last step uses \(L\ge c^\circ\ell/2\).  Projection onto \([-1,1]\) cannot increase loss because \(\tau(P)\in[-1,1]\), and its loss is at most four, proving the capped bound when the predicate holds.
+
+We finally prove that predicate failure costs only an \(\epsilon\)-dependent constant.  The deterministic split in (C2) satisfies (C15) for every \(n\ge24\) and every \(m\ge0\): \(M_0\in[n/4,n/3]\), \(M_p,M_f\in[N/4,3N/4]\), and their ratio lies in \([1/3,3]\).  For all sufficiently large \(n\), \(L\ge c^\circ h_n/2\) and \(L\le c^\circ h_n\).  Since \(A_\star<2^{13}\), \(2c^\circ\log_2 A_\star<26/256<1\); hence both moment tests in (C5) eventually hold.  In particular the requested inequalities \(2c^\circ\log A_\star<1\) and \(c^\circ\log A_\star<1/2\) also hold.  The first inequality in (C1) gives \(t_pB\ge H_\epsilon L\ge8\) and \(tB\ge H_\epsilon L\ge L\).  Its second inequality and \(L\ge c^\circ h_n/2\) imply \(t_pB/4\ge15L+12h_n\), the first tail test.  Moreover \(k_0\ge t_pB/8\ge H_\epsilon L/8\), \(t/t_p\ge1/3\), and
+\[
+ \log(1+\bar\epsilon/3)\ge\frac{\bar\epsilon/3}{1+\bar\epsilon/3}\ge\frac{2\bar\epsilon}{7}.
+\]
+Thus \(H_\epsilon c^\circ\bar\epsilon\ge672\) gives \(k_0\log(1+\bar\epsilon t/t_p)\ge12h_n\), which implies the second rational tail test, and \(H_\epsilon c^\circ\bar\epsilon\ge24\) gives the third.  Consequently there is a finite \(n_\epsilon^\dagger\), independent of \(m\), such that \(\mathsf C_\epsilon(n,m)\) holds for all \(n\ge n_\epsilon^\dagger\) and every \(m\).  When it fails, the rule outputs zero, whose risk is at most one; since the numerical rate is at least \(1/n\), this is at most \(n_\epsilon^\dagger\) times that rate.  Enlarging \(C_\epsilon\) completes the proof for every \(n,m,d\).  Only this risk constant is existential; the estimator calibration is completely specified.
+
+%%% FIELD fixed-hybrid-proof
+If \(\mathsf C_\epsilon(n,m)\) is false, both the fixed-sample rule and its independent-Poisson counterpart are zero, so the asserted transfer is immediate.  Suppose it is true.  The deterministic blocks and pools are then those in (C2), and the three sampling assumptions make them independent.  The first pool consists of iid complete records from \(P\); the other two consist of iid records from \(P_{XA}\).  Their Poisson prefix means satisfy the exact bounds (C15).
+
+For a pool of size \(M\), let \(D\sim\operatorname{Poi}(M/8)\), independently of the observations.  Conditional on an untruncated value of \(D\), the prefix is iid.  Substitution of the multinomial probability-generating function into the Poisson generating function shows that its cell counts are mutually independent Poisson variables with means \((M/8)\) times their cell probabilities.  Thus the three untruncated prefixes give exactly the Poisson experiment of \(\mathrm{lem:poisson\mbox{-}hybrid\mbox{-}risk}\), with intensities \(u,t_p,t\).
+
+Exponential Markov's inequality gives a numerical \(c_0>0\) such that
+\[
+ P\{\operatorname{Poi}(M/8)>M\}\le e^{-c_0M}.                     \tag{C37}
+\]
+Since every pool size is at least one quarter of its corresponding total and \(N\ge n\), a union bound makes the probability \(P(F)\) of any prefix overflow at most \(3e^{-c_0n/4}\).  Couple each finite pool to an infinite iid sequence.  Off \(F\), the truncated and untruncated clipped outputs agree.  Both outputs and \(\tau(P)\) lie in \([-1,1]\), so
+\[
+ E[(Z_{\mathrm{trunc}}-\tau(P))^2]
+ \le E[(Z_{\mathrm{Pois}}-\tau(P))^2]+4P(F)
+ \le2E[(Z_{\mathrm{Pois}}-\tau(P))^2]+C/n.                        \tag{C38}
+\]
+Finally, the reported estimator is \(E[Z_{\mathrm{trunc}}\mid\mathcal L_n,\mathcal U_m]\).  Only prefix lengths up to \(M_0,M_p,M_f\) contribute, so this conditional expectation is a finite sum.  Conditional Jensen's inequality bounds its risk by the left side of (C38).  This proves the transfer uniformly over the stated experiment, with the exact split ratios and with no assumption on \(d\) or \(m/n\).
+
+%%% FIELD parametric-floor-statement
+There is a positive numerical \(c\), independent of \(m,d\) and depending on \(\epsilon\) only through the requirement \(\epsilon<1/2\), such that for every \(n\ge1\), \(m\ge0\), and \(d\ge2\),
+\[
+ R_\epsilon(n,m,d)\ge c/n.                                        \tag{C39}
+\]
+The two hypotheses have the same treatment--covariate marginal, so the bound is entirely label-gated.
+
+%%% FIELD parametric-floor-proof
+Concentrate \(X\) on cell one, take \(e_1=1/2\), \(\mu_{01}=0\), and compare \(\mu_{11}=1/2-h\) with \(\mu_{11}=1/2+h\), where \(h=(16\sqrt n)^{-1}\).  Both laws satisfy occupied-cell overlap because \(\epsilon<1/2\), and all unused alphabet cells are null.  Their \(P_{XA}\) marginals coincide, whereas their ATEs differ by \(2h\).
+
+For one labeled record, direct summation over the two treated outcome atoms gives
+\[
+ \chi^2(P_1,P_0)=2h^2\left\{(1/2-h)^{-1}+(1/2+h)^{-1}\right\}
+ \le16h^2.                                                         \tag{C40}
+\]
+Product factorization and \(1+z\le e^z\) imply
+\[
+ \chi^2(P_1^{\otimes n},P_0^{\otimes n})
+ =(1+\chi^2(P_1,P_0))^n-1\le e^{16nh^2}-1<1/4.                    \tag{C41}
+\]
+The auxiliary product factors are identical.  Cauchy--Schwarz therefore gives total variation below \(1/4\).  Thresholding any estimator at the midpoint of the two ATEs turns it into a test; on a testing error its squared loss under one of the two laws is at least \(h^2\).  The sum of testing errors is at least one minus total variation.  Hence the larger of the two risks is at least \(3h^2/8\), which proves (C39).
+
+%%% FIELD scale-prior-statement
+There are positive constants \(b_\epsilon,\gamma_\epsilon,c_\epsilon,C_\epsilon\) and \(0<\rho_\epsilon<1\) with the following property.  Let \(L\ge2\), let \(u,v\ge0\), put \(M=u+v>0\), and choose \(B>0\), \(a=\gamma_\epsilon B/L^2\), and an integer \(k\le d-1\) such that
+\[
+ MB\le b_\epsilon L,\qquad ka\le c_\epsilon.                    \tag{C42}
+\]
+Apply the finite-atom recipe in \(\mathrm{def:common\mbox{-}marginal\mbox{-}prior\mbox{-}handle}\) to \(k\) rare cells at scale \((a,B,L)\).  The normalized laws lie in \(\mathcal M_{d,\epsilon}\), the two priors induce exactly the same distribution of the full random table \(P_{XA}\), their raw target centers are separated by at least \(c_\epsilon ka\), and their raw total-mass and target variances are at most \(C_\epsilon kBa\).  In the raw Poisson experiment of labeled intensity \(u\) and auxiliary intensity \(v\), the two mixture laws have total variation at most
+\[
+ C_\epsilon uka\rho_\epsilon^L.                                   \tag{C43}
+\]
+
+%%% FIELD scale-prior-proof
+Take the signed measure \(\sigma\) from \(\mathrm{lem:finite\mbox{-}alternation\mbox{-}duality}\), write \(h=d\sigma/d|\sigma|\), and define \(\nu\) as in the prior recipe.  The polar decomposition gives \(|h|=1\) almost everywhere under \(|\sigma|\), so \((1\pm h)/2\in[0,1]\) are legal Bernoulli means.  The atom of \(\nu\) at zero is nonnegative because \(a/(p+a)\le1\).  Since its nonzero support is contained in \([a/\kappa,B]\),
+\[
+ E_\nu p=a\int\frac p{p+a}\,d|\sigma|(p)\le a,
+ \qquad E_\nu p^2\le B E_\nu p\le Ba.                             \tag{C44}
+\]
+For \(p>0\), the treated raw mass is \(s=\epsilon(p+a)\).  With \(\kappa=(1-2\epsilon)/\epsilon\),
+\[
+ \epsilon\le\frac sp=\epsilon(1+a/p)
+ \le\epsilon(1+\kappa)=1-\epsilon.                                \tag{C45}
+\]
+Choose the constant in (C42) below \(1/2\).  Then the deterministic reservoir raw mass \(p_*=1-kE_\nu p\) is positive.  The random total \(S=p_*+\sum_{i=1}^kp_i\) is positive, and division of every raw mass by \(S\) gives a probability law without changing any propensity.  Equations (C44)--(C45), together with the legal reservoir and null-cell assignments, prove membership in \(\mathcal M_{d,\epsilon}\).
+
+The latent masses and propensities, the reservoir, and the normalizer \(S\) have exactly the same joint law under both priors; only the conditional treated outcome marks change.  Hence the entire normalized table \(P_{XA}\) has exactly the same random distribution under the two priors.  Let \(T_j=\sum_{i=1}^kp_i\mu_{1i,j}\) be the raw target under prior \(j\).  Since \(\mu_{1i,1}-\mu_{1i,0}=h(p_i)\), duality gives
+\[
+ E(T_1-T_0)=ka\int\frac p{p+a}\,d\sigma(p)\ge c_\epsilon ka.       \tag{C46}
+\]
+Independence, (C44), and \(0\le p_i\mu_{1i,j}\le p_i\) give
+\[
+ \operatorname{Var}(S)+\max_j\operatorname{Var}(T_j)
+ \le2kBa.                                                          \tag{C47}
+\]
+
+It remains to prove label gating in the joint likelihood.  In one rare cell, let \(R\) be the total labeled treated count, \(U\) the auxiliary treated count, and \(C\) the aggregate control count; parameter-free splittings may be discarded by data processing.  Because \(|h|=1\), conditional on the latent mass all \(R\) treated outcomes have the same mark.  If \(R=0\), the two mixture probabilities agree.  For \(r\ge1\) and \(j,k\ge0\), the signed difference for either of the two possible homogeneous labeled outcome marks is, up to its sign,
+\[
+ \int h(p)e^{-Mp}\frac{(us)^r(vs)^j\{M(p-s)\}^k}{r!j!k!}\,d\nu(p). \tag{C48}
+\]
+The two possible marks cancel the factor one half when total variation is summed.  Factoring one \(us\) and using
+\[
+ h(p)s\,d\nu(p)=\epsilon a\,d\sigma(p)                             \tag{C49}
+\]
+shows that every remaining term is an integral of \(e^{-Mp}\) times a polynomial in \(p\).  Expand the exponential in its absolutely convergent series.  Since \(p\le B\), Tonelli applies to the absolute majorant; all terms of total polynomial degree at most \(L\) vanish by the moment equations for \(\sigma\).  Summing the remaining exponential-series tail, using \(s\le p\), \(p-s\le p\), and \(u+v=M\), gives
+\[
+ \operatorname{TV}_{\mathrm{cell}}
+ \le u\epsilon a\sum_{r>L}\frac{(2MB)^r}{r!}.                     \tag{C50}
+\]
+Choose \(b_\epsilon>0\) so that \(2eb_\epsilon<1/2\).  Under (C42), the ratio bound for the exponential series makes (C50) at most \(C_\epsilon ua\rho_\epsilon^L\) for a fixed \(\rho_\epsilon<1\).  Rare cells are independent in the raw Poisson experiment and the reservoir law is common.  Replacing the product factors one at a time yields
+\[
+ \operatorname{TV}\!\left(\bigotimes_{i=1}^kQ_i,\bigotimes_{i=1}^kR_i\right)
+ \le\sum_{i=1}^k\operatorname{TV}(Q_i,R_i),
+\]
+which proves (C43).  Equations (C44)--(C50) prove all claims without a minimum-cell-mass condition.
+
+%%% FIELD common-prior-target-proof
+Apply \(\mathrm{lem:common\mbox{-}marginal\mbox{-}uniform\mbox{-}intensity}\) with \(B=b_\epsilon L/M\).  Then \(MB=b_\epsilon L\), so (C42) holds whenever \(ka\le c_\epsilon\).  Its membership, exact random-\(P_{XA}\) equality, center separation, variance, and total-variation conclusions are exactly those asserted here.  In particular the likelihood bound contains \(u\), because (C48) is identically zero until at least one labeled treated outcome mark occurs; the auxiliary intensity enters only through \(M=u+v\).
+
+%%% FIELD fixed-common-proof
+Let \(S\) and \(T_j\) be the raw total mass and raw target, and let \(\Delta=|ET_1-ET_0|\).  The normalized target is \(\tau_j=T_j/S\).  Since \(0\le T_j/S\le1\),
+\[
+ |\tau_j-ET_j|\le|T_j-ET_j|+|S-1|.                                \tag{C51}
+\]
+Chebyshev's inequality, the variance bound, and \(kBa\le c\Delta^2\) imply, after choosing the stipulated numerical \(c\) sufficiently small,
+\[
+ \Pi_j\{|\tau_j-ET_j|>\Delta/4\}\le1/16.                          \tag{C52}
+\]
+The two center intervals in (C52) are disjoint.  Thresholding any estimator halfway between the centers and charging either a target-concentration failure or squared loss at least \(\Delta^2/16\) shows that, when the two raw mixture laws have total variation at most \(1/8\), their raw-experiment Bayes squared risk is at least \(c_0\Delta^2\) for a numerical \(c_0>0\).
+
+We transfer this conclusion to fixed samples.  If \(\Delta^2\le c_1/n\), the label-gated parametric floor \(\mathrm{lem:parametric\mbox{-}label\mbox{-}floor}\) gives \(R_\epsilon(n,m,d)\ge c/n\ge(c/c_1)\Delta^2\), so suppose \(\Delta^2>c_1/n\).  Take raw intensities \(u=Cn\) and \(v=C(n+m)\), where \(C\) is a sufficiently large fixed numerical constant.  Conditional on the raw masses, the labeled total is \(K_L\sim\operatorname{Poi}(uS)\); conditional on \(K_L\), its ordered records are iid from the normalized law.  Independently, the auxiliary total is \(K_U\sim\operatorname{Poi}(vS)\), and its ordered records are iid from the normalized \(P_{XA}\) law.
+
+On \(S\ge3/4\), Poisson lower-tail bounds give
+\[
+ P(K_L<n)+P(K_U<m)\le e^{-c_2Cn}+e^{-c_2C(n+m)}.                   \tag{C53}
+\]
+On \(S<3/4\), (C47) and Chebyshev give \(P(S<3/4)\le16kBa\).  First choose the concentration constant in \(kBa\le c\Delta^2\), and then choose \(C\), so that (C53), using \(\Delta^2>c_1/n\), and the mass failure together have probability at most \(c_0\Delta^2/8\).
+
+Given any fixed-sample estimator clipped to \([-1,1]\), apply it to the first \(n\) and \(m\) ordered records on the success event and output zero otherwise.  The conditional success experiment is exactly \(P^{\otimes n}\otimes P_{XA}^{\otimes m}\).  Since loss is at most four, its raw Bayes risk is at most the fixed-sample worst-case risk plus \(c_0\Delta^2/2\).  Comparison with the raw lower bound and then infimization over fixed-sample estimators proves \(R_\epsilon(n,m,d)\ge c'\Delta^2\).  The normalized priors are unchanged throughout, so equality of their full random \(P_{XA}\) law is preserved.
+
+%%% FIELD converse-proof
+Put \(N=n+m\) and \(\ell=\log(en)\).  The parametric part
+\[
+ R_\epsilon(n,m,d)\ge c/n                                           \tag{C54}
+\]
+is \(\mathrm{lem:parametric\mbox{-}label\mbox{-}floor}\), whose hypotheses have identical auxiliary laws.
+
+For the dimension term, choose a sufficiently large constant \(C_0\), put \(L=\lceil C_0\ell\rceil\), and use the fixed-transfer intensities \(u=Cn\), \(v=CN\).  Then \(M=u+v=C(n+N)\le2CN\).  In the common-marginal prior handle choose its scale constant so that
+\[
+ B=b_0L/N,\qquad b_0=b_\epsilon/(2C),\qquad
+ a=\gamma_\epsilon B/L^2,\qquad
+ k=\min\{d-1,\lfloor c_0NL\rfloor\}.                              \tag{C55}
+\]
+Thus \(MB\le b_\epsilon L\).  Choosing \(c_0\) small enough gives \(ka\le c_\epsilon\), so \(\mathrm{lem:common\mbox{-}marginal\mbox{-}uniform\mbox{-}intensity}\) applies.  It proves membership, normalization, and exact equality of the entire random \(P_{XA}\) table under the two priors.  Its center separation satisfies
+\[
+ \Delta\ge c_\epsilon ka
+ \ge c_\epsilon\min\!\left\{1,\frac d{N\ell}\right\},             \tag{C56}
+\]
+after increasing a finite small-\(n\) threshold; replacing \(d-1\) by \(d\) costs at most a factor two because \(d\ge2\).
+
+The mixture discrepancy is at most \(C_\epsilon uka\rho_\epsilon^L\le C_\epsilon n\rho_\epsilon^L\).  Choose \(C_0\) so this is at most \(1/8\) for all sufficiently large \(n\).  Suppose first that the square of the right side of (C56) is at least \(C_1/n\).  Then \(k\ge c_\epsilon\sqrt n\,\ell\), whether or not the cap in (C56) is active.  Hence, for sufficiently large \(n\), \(k\ge C_2L^2\), and
+\[
+ \frac{kBa}{\Delta^2}\le C_\epsilon\frac{B}{ka}
+ =C_\epsilon\frac{L^2}{k}\le c,                                  \tag{C57}
+\]
+where \(c\) is the transfer constant.  The fixed-sample transfer lemma and (C56) give
+\[
+ R_\epsilon(n,m,d)\ge c_\epsilon
+ \min\!\left\{1,\frac{d^2}{N^2\ell^2}\right\}.                   \tag{C58}
+\]
+For the finitely many excluded \(n\), (C54) implies (C58) after reducing the constant whenever the dimension term is in this branch.  If the dimension term is smaller than \(C_1/n\), (C54) already dominates it.  Finally \(\max(r,s)\ge(r+s)/2\), followed by the outer cap at one, combines (C54) and (C58) into
+\[
+ R_\epsilon(n,m,d)\ge c_\epsilon
+ \min\!\left\{1,\frac1n+\frac{d^2}{N^2\ell^2}\right\}.            \tag{C59}
+\]
+All likelihood cancellation used in (C58) is label-gated by the factor \(u\) in (C43), while \(M\) contains both samples.  This proves the claimed converse in the original unequal-information experiment, including the constant-risk regime.
+
+%%% FIELD upper-proof
+The explicit split and prefix construction in the corrected \(\mathrm{def:mixed\mbox{-}estimator\mbox{-}handle}\) is legitimate under labeled iid sampling, auxiliary iid sampling, and independence of the two samples.  The finite predicate is computed before any division that could involve an empty pool, and its false branch is zero.  By \(\mathrm{lem:fixed\mbox{-}sample\mbox{-}hybrid\mbox{-}transfer}\), conditional Jensen and prefix coupling bound the estimator's risk by twice the corresponding independent-Poisson risk plus \(C/n\).  The explicitly calibrated \(\mathrm{lem:poisson\mbox{-}hybrid\mbox{-}risk}\) gives
+\[
+ \sup_{P\in\mathcal M_{d,\epsilon}}
+ E[\{\widehat\tau^{\mathrm{mix}}_{n,m,d}-\tau(P)\}^2]
+ \le C_\epsilon r_\epsilon(n,m,d)+C/n.                            \tag{C60}
+\]
+The frontier definition has \(r_\epsilon(n,m,d)\ge1/n\), so the last term is absorbed.  Every split, coefficient, threshold, predicate comparison, clipping map, and Poisson weight is determined by \((n,m,d,\epsilon)\), and the derandomization is a finite sum.  Thus the witness is a total computable measurable estimator rather than a law-dependent oracle.  Equation (C60) proves the theorem uniformly over \(\mathcal M_{d,\epsilon}\).
+
+%%% FIELD frontier-proof
+Because \(\widehat\tau^{\mathrm{mix}}_{n,m,d}\in\mathcal T_{n,m,d}\), the minimax-risk definition and \(\mathrm{thm:uniform\mbox{-}mixed\mbox{-}upper}\) give the upper inequality.  The lower inequality is \(\mathrm{thm:common\mbox{-}marginal\mbox{-}converse}\).  Both use the same class and observation experiment, so
+\[
+ R_\epsilon(n,m,d)\asymp_\epsilon
+ \min\!\left\{1,\frac1n+\frac{d^2}{(n+m)^2\log^2(en)}\right\}.      \tag{C61}
+\]
+Putting \(m=0\) gives the displayed supervised formula.  The foreign record \(\texttt{stat\_discrete\_ate\_minimax\_loggap/oeq:sharp\mbox{-}minimax}\) is used only for attribution, not as a logical premise.  The fixed-\((n,d)\) equality is \(\mathrm{thm:known\mbox{-}marginal\mbox{-}limit}\), and \(\mathrm{thm:known\mbox{-}marginal\mbox{-}boundary}\) identifies its order as \(n^{-1}\).
+
+For the sequence assertions put
+\[
+ N_n=n+m_n,\qquad \ell_n=\log(en),\qquad
+ a_n=\frac{d_n}{n\ell_n},\qquad b_n=\frac{d_n}{N_n\ell_n}.
+\]
+The semi-supervised and supervised numerical rates are
+\[
+ r_{mn}=\min\{1,n^{-1}+b_n^2\},\qquad
+ r_{0n}=\min\{1,n^{-1}+a_n^2\}.                                   \tag{C62}
+\]
+Because \(n^{-1}\to0\), (C62) gives \(r_{mn}\to0\) if and only if \(b_n\to0\).  The two-sided constants in (C61) transfer this equivalence to the minimax risk.  Likewise, \(r_{mn}=O(n^{-1})\) if and only if \(b_n^2=O(n^{-1})\), which is equivalent to
+\[
+ d_n=O\!\left(\frac{N_n\ell_n}{\sqrt n}\right).                   \tag{C63}
+\]
+
+Finally \(r_{mn}\ge n^{-1}\), so strict improvement requires \(n^{-1}=o(r_{0n})\).  By (C62), this is equivalent to
+\[
+ \frac{d_n}{\sqrt n\,\ell_n}\longrightarrow\infty.               \tag{C64}
+\]
+Under (C64), \(r_{0n}\asymp\min(1,a_n^2)\).  Since \(0\le b_n\le a_n\), equation (C62) then shows that \(r_{mn}=o(r_{0n})\) is equivalent to
+\[
+ \frac{b_n}{\min(1,a_n)}
+ =\frac{d_n/(N_n\ell_n)}{\min\{1,d_n/(n\ell_n)\}}\longrightarrow0. \tag{C65}
+\]
+Conversely, (C64)--(C65) make both \(n^{-1}/r_{0n}\) and \(b_n^2/r_{0n}\) tend to zero.  Applying the lower and upper constants in (C61) at \(m=m_n\) and at \(m=0\) transfers the if-and-only-if from the numerical rates to the ratio of minimax risks.  This proves every assertion.
+
+%%% FIELD prose-tldr
+With \(n\) chart-reviewed outcomes and \(m\) additional treatment--covariate records, the unrestricted discrete ATE has minimax mean squared error
+\[
+ R_\epsilon(n,m,d)\asymp_\epsilon
+ \min\!\left\{1,\frac1n+\frac{d^2}{(n+m)^2\log^2(en)}\right\}.
+\]
+The attaining estimator is now a completely specified finite algorithm: it uses the numerical Chebyshev moment constant \(A_\star=7056\), a dyadic lower certificate for overlap, exact deterministic split ratios, and a finite calibration predicate, reverting to zero only on a uniformly finite set of labeled sample sizes.  Its light branch uses one labeled outcome factor per polynomial monomial and obtains all remaining treatment--mass factors from the pooled records.  The common-marginal converse keeps the full random \(P_{XA}\) table identically distributed while changing conditional outcome marks, and therefore retains the \(n^{-1}\) label floor.
+
+%%% FIELD prose-gap
+Existing supervised discrete-ATE theory does not determine the unequal-information experiment in which outcome-bearing moments have \(n\) observations but treatment--mass moments have \(n+m\).  Regular semi-supervised causal theory instead uses nuisance consistency, working models, or fixed-complexity conditions.  Neither supplies a uniform finite-sample frontier with null cells and unrestricted outcome regressions, together with an evaluable estimator calibration.
+
+%%% FIELD prose-niche
+The missing object is the sharp annotation frontier.  Its upper proof must control false-light polynomial tails and random branch means by mass-weighted sums, without a hidden dimension factor or \(m/n\) leakage.  Its lower proof must preserve the entire random treatment--covariate law, rather than use a supervised prior detectable by the auxiliary sample.
+
+%%% FIELD prose-fill
+The note supplies the matched rate \(\min\{1,n^{-1}+[d/\{(n+m)\log(en)\}]^2\}\), an explicitly calibrated and finitely decidable derandomized hybrid estimator, and a normalized common-marginal fuzzy converse.  The calibration fixes \(A_\star=7056\), \(c^\circ=1/256\), computes a dyadic overlap certificate and the least integer \(H_\epsilon\) passing stated scalar inequalities, and tests all moment and tail requirements from \((n,m,\epsilon)\).  The note also retains the inverse-count baseline, the binary-alphabet parametric rate, the exact fixed-\((n,d)\) known-marginal limit, and necessary-and-sufficient growth conditions.
+
+%%% FIELD prose-related
+Zeng, Balakrishnan, Han, and Kennedy, \cite{ZengBalakrishnanHanKennedy2024}, analyze the supervised high-dimensional discrete-ATE obstruction; their observable class agrees with the present class modulo irrelevant null-cell propensities, while their stated Theorem 2 regime does not replace the internally catalogued all-regime supervised endpoint.  Cheng, Ananthakrishnan, and Cai, \cite{ChengAnanthakrishnanCai2021}, Sections 2.1 and 4, motivate random chart-review labeling and give robust locally efficient semi-supervised procedures using additional structure and outcome surrogates.  Chakrabortty and Dai, \cite{ChakraborttyDai2024}, and Kato, \cite{Kato2025}, give adjacent regular asymptotic theories under nuisance-rate conditions.  Jiao, Venkat, Han, and Weissman, \cite{JiaoVenkatHanWeissman2015}, and Wu and Yang, \cite{WuYang2016}, provide the classical polynomial-estimation context.  The present new steps are the unequal-sample factorial lift with explicit coefficient calibration, the mass-weighted false-branch analysis, and a normalized prior whose full random \(P_{XA}\) law agrees exactly.  The \(m=0\) expression is an attributed endpoint check rather than the new contribution.
+
+%%% FIELD prose-interpretation
+Consistency is equivalent to \(d=o\{(n+m)\log(en)\}\), while parametric mean squared error is equivalent to \(d=O\{(n+m)\log(en)/\sqrt n\}\).  Additional treatment--covariate records improve the minimax order precisely when the supervised rare-cell term dominates \(n^{-1}\) and the corresponding pooled term is asymptotically smaller.  The auxiliary sample changes the approximation term but cannot improve the outcome-information floor.
+
+%%% FIELD prose-limitation
+The estimator is completely evaluable but deliberately conservative: its fixed numerical coefficient bound and finite acceptance predicate are proof certificates, not a claim of computational optimality.  The risk constant remains existential and depends only on the fixed overlap level \(\epsilon\); predicate failure occurs only for finitely many \(n\), uniformly in \(m\), and is absorbed into that constant.  The fixed-\((n,d)\) limit is an equality of minimax risks, whereas the uniform finite-sample theorem determines their common order up to \(\epsilon\)-dependent constants.  No result is asserted for selected enrollment, covariate shift, post-treatment surrogates, continuous covariates, or overlap failure.
+
+%%% FIELD prose-scope
+The result applies to independent random outcome labeling from one shared population, binary treatment and outcome, a known finite covariate alphabet, occupied-cell overlap, and otherwise unrestricted cell masses, propensities, and outcome regressions.  It gives a baseline-only chart-review allocation benchmark for the Cheng--Ananthakrishnan--Cai setting.  It neither claims their surrogate-based efficiency gain nor asserts that their empirical data obey this unrestricted discrete model.
+
+%%% FIELD note-upper-justification
+This theorem closes the unequal-information upper bound with a total estimator whose numerical polynomial constant, split ratios, overlap certificate, and pass/fail calibration are all computable from the design inputs.
+
+%%% FIELD note-upper-gap
+The direct deterministic-mean calculation on false-light cells avoids the square-root leakage that would produce \(m/n\), while the separate second-moment and branch-mean calculations sum against cell mass and avoid a hidden \(d e^{-cL}\) term.  Explicit tail and coefficient tests certify every absorption used in the proof.
+
+%%% FIELD note-upper-consumer
+The estimator is a model-free discrete benchmark for allocating additional chart-reviewed outcomes versus treatment--covariate-only records, with no unknown-law tuning.
+
+%%% FIELD note-lower-justification
+The converse preserves the complete random \(P_{XA}\) table under both priors and makes every mixture-likelihood discrepancy contain at least one labeled outcome mark.
+
+%%% FIELD note-lower-gap
+The scale-robust Poisson prior permits the larger intensities required for fixed-sample transfer; normalization is controlled by raw mass variance, and the small-separation case is supplied by an independent label-gated two-point floor.
+
+%%% FIELD note-lower-consumer
+The lower bound prevents planning rules from counting treatment--covariate-only records as if they also supplied outcome-bearing observations.
+
+%%% FIELD note-frontier-justification
+The matched theorem combines the explicitly calibrated upper estimator and common-marginal converse to quantify exactly when auxiliary records change the minimax order while retaining both endpoint experiments.
+
+%%% FIELD note-frontier-gap
+The rate is not obtained by replacing \(n\) with \(n+m\): only the approximation term uses the pooled size, while the label-gated parametric term remains \(n^{-1}\).
+
+%%% FIELD note-frontier-consumer
+The explicit consistency, root-\(n\), and strict-improvement thresholds provide a baseline-only decision rule for chart-review allocation when working nuisance models are not trusted.
+
+%%% FIELD note-chebyshev-justification
+The displayed recurrence yields the coefficient certificate \(14^L\) and the explicit factorial second-moment constant \(A_\star=7056\), removing an existential calibration input from the estimator.
+
+%%% FIELD note-hybrid-justification
+The hybrid-risk lemma is stated for the exact deterministic intensities and finite predicate used by the estimator; it proves that predicate failure is confined to finitely many labeled sample sizes uniformly over the auxiliary size.
+
+%%% FIELD note-transfer-justification
+The transfer records the exact intensity ratios generated by the deterministic splits and derandomizes the three Poisson prefixes by a finite conditional expectation.
+
+%%% FIELD factorial-current-statement
+For every integer \(L\ge2\), the displayed polynomials \(H_L,E_L,G_L\) are well defined, \(G_L\) has degree at most \(L-2\), and on \(0\le z\le1\),
+\[
+ 0\le E_L(z)\le\min\{1,(L^2z)^{-1}\},\qquad zG_L(z)+E_L(z)=1.
+\]
+There is a universal \(A>1\) such that the factorial lift \(\widehat W_{a,L}\) of \(W_{a,L}\) satisfies, whenever \(tB\ge L\),
+\[
+ E\widehat W_{a,L}^{2}\le A^L\{1+p/B\}^{2L},
+\]
+and the right side can be replaced by \(A^L\) when \(p\le B\).
+
+%%% FIELD fixed-hybrid-current-statement
+The independent-Poisson hybrid statistic of \(\mathrm{lem:poisson\mbox{-}hybrid\mbox{-}risk}\) has a total deterministic implementation from exactly \(n\) labeled and \(m\) auxiliary observations.  Its risk is at most twice the Poisson risk plus \(C/n\), uniformly over the observation experiment.
+
+%%% FIELD common-prior-current-statement
+There are constants \(b_\epsilon,\gamma_\epsilon,c_\epsilon,C_\epsilon>0\) such that the finite-atom construction in \(\mathrm{def:common\mbox{-}marginal\mbox{-}prior\mbox{-}handle}\), with \(L\ge2\), \(B=b_\epsilon L/M\), \(a=\gamma_\epsilon B/L^2\), and \(k\) rare cells, has the following properties whenever \(ka\le c_\epsilon\): it lies in \(\mathcal M_{d,\epsilon}\), its two priors have exactly the same distribution of the full random table \(P_{XA}\), its raw target centers are separated by at least \(c_\epsilon ka\), its raw mass and target variances are at most \(C_\epsilon kBa\), and the total variation distance of the two mixture laws in a Poisson experiment of labeled intensity \(u\) and auxiliary intensity \(v\), \(M=u+v\), is at most
+\[
+ C_\epsilon uka\rho_\epsilon^L
+\]
+for a fixed \(0<\rho_\epsilon<1\).  The likelihood discrepancy is gated by the labeled intensity \(u\), although \(M\) includes all auxiliary observations.
+
+%%% FIELD fixed-common-current-statement
+Let the priors of \(\mathrm{lem:common\mbox{-}marginal\mbox{-}poisson\mbox{-}prior}\) have raw center separation \(\Delta\), mixture total variation at most \(1/8\), and satisfy \(kBa\le c\Delta^2\) for a sufficiently small numerical \(c\).  If their Poisson intensities obey \(u=Cn\) and \(v=C(n+m)\) for a sufficiently large fixed \(C\), then
+\[
+ R_\epsilon(n,m,d)\ge c'\Delta^2.
+\]
+The transfer preserves the identical random \(P_{XA}\) law and holds for the fixed, unequal sample sizes.
+
+%%% FIELD converse-current-statement
+For the explicit rate
+\[
+ r_\epsilon(n,m,d)=\min\!\left\{1,\frac1n+\frac{d^2}{(n+m)^2\log^2(en)}\right\},
+\]
+the regime-dependent priors \(\Pi_0,\Pi_1\) in \(\mathrm{def:common\mbox{-}marginal\mbox{-}prior\mbox{-}handle}\) induce exactly the same distribution of the entire random table \(P_{XA}\) and imply, for a constant depending only on \(\epsilon\),
+\[
+ R_\epsilon(n,m,d)\ge c_\epsilon r_\epsilon(n,m,d)
+\]
+for every \(n\ge1\), \(m\ge0\), and \(d\ge2\), including the constant-risk regime.

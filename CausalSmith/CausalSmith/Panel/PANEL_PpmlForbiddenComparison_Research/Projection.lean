@@ -1,7 +1,10 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
-import Causalean.Stat.MEstimation.FinitePoisson
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
+public import Causalean.Stat.MEstimation.FinitePoisson
 
 /-! Existence, uniqueness, and score characterization of the collapsed PPML projection. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Causalean.Stat

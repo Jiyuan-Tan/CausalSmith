@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Sample.PiTransport
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Integral.Pi
+module
+public import Causalean.Stat.Sample.PiTransport
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Integral.Pi
 
 /-!
 # Occupancy-weighted residual means: design statistics
@@ -16,6 +17,8 @@ finite product sample.  Every zero-count boundary is part of the definition,
 including the completely empty sample and an empty group type.  It also exposes
 the measurability API needed to integrate the statistics under a product law.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

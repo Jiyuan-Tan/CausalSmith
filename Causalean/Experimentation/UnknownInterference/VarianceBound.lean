@@ -2,45 +2,29 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Sävje–Aronow–Hudgens (2021): the Horvitz–Thompson variance bound under a Bernoulli design
-
-Under a Bernoulli design with regularity constant `k` (treatment probabilities in `[k⁻¹, 1−k⁻¹]`
-and second moments `E[Y_i²] ≤ k²`), the Horvitz–Thompson estimator's variance is controlled by the
-average interference dependence:
-
-    Var(ĤT) ≤ k⁴ · d̄ / n.
-
-This is the quantitative heart of the paper (the bound stated in the body just before §4): it makes
-the variance vanish, hence the estimator consistent, exactly when `d̄ = o(n)`.  The argument:
-
-1. `Var(ĤT) = n⁻² ∑ᵢ ∑ⱼ Cov(HTᵢ, HTⱼ)` (variance of a sum).
-2. `Cov(HTᵢ, HTⱼ) = 0` whenever `i` and `j` are **not** interference dependent: their HT summands
-   depend on the disjoint coordinate blocks `interferers i` and `interferers j`, so the
-   disjoint-block independence `Cov_prod_disjoint_zero` applies.
-3. Each surviving covariance is bounded by `k⁴` via `|Cov(X,Y)| ≤ (Var X + Var Y)/2` and the
-   per-summand variance bound `Var(HTᵢ) ≤ E[HTᵢ²] ≤ k²·E[Y_i²] ≤ k⁴` (using `|HTᵢ| ≤ k·|Y_i|`).
-4. The number of interference-dependent ordered pairs is `dbarCount = n·d̄`, giving the bound.
 -/
 
-import Causalean.Experimentation.UnknownInterference.Bernoulli
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import Causalean.Experimentation.DesignBased.EdgeVarianceBound
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Causalean.Experimentation.DesignBased.Risk
+public import Causalean.Experimentation.UnknownInterference.Bernoulli
 
 /-! # Variance bounds under unknown interference
 
-The Horvitz-Thompson variance is bounded by the average amount of interference dependence under
-Bernoulli assignment.
+Under Bernoulli assignment, overlap and second-moment control bound the Horvitz-Thompson variance
+by the average amount of interference dependence:
 
-This file proves the Sävje-Aronow-Hudgens finite-sample bound
-`Var(htEst) <= k^4 * dbar / n` under overlap and second-moment control.  The block
-`interferers y i` records the coordinate support of the `i`th HT summand;
-`htSummand_depends_on_interferers` and `disjoint_interferers_of_not_interfDep` connect the
-interference graph to product-design disjoint-block independence, and `cov_htSummand_zero`
-eliminates covariance terms off that graph.  The per-summand bound `var_htSummand_le` controls
-the remaining covariance terms by `k^4`, and the headline theorem `var_htEst_le` sums them over
-the `dbarCount = n * dbar` dependent ordered pairs.
+    Var(ĤT) ≤ k⁴ · d̄ / n.
+
+This file identifies the assignment-coordinate support of each unit's summand. Summands with
+disjoint supports have zero covariance by product-design independence; every remaining covariance
+is bounded by `k⁴`. Summing over the `n * dbar` interference-dependent ordered pairs gives the
+finite-sample bound used by the consistency development.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -54,8 +38,9 @@ open DesignBased
 variable {U : Type*} [Fintype U] [DecidableEq U]
 
 open Classical in
-/-- For every [finite population of units whose members can be compared for equality](hyp:U), every
-[schedule of potential outcomes indexed by a unit and a complete binary treatment assignment](hyp:y),
+/-- For every [finite population of units whose members can be compared for equality](hyp:U),
+every [schedule of potential outcomes indexed by a unit and a complete binary treatment
+assignment](hyp:y),
 and every [unit in that population](hyp:i), the [interferer set](goal) is the finite set consisting
 of that unit and every other unit whose treatment can affect that unit's potential outcome.
 
@@ -97,25 +82,15 @@ treatment affects both units' outcomes — then [their Horvitz–Thompson summan
 covariance under this design](goal). -/
 theorem cov_htSummand_zero (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) {i j : U} (h : ¬ InterfDep y i j) :
-    (bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j) = 0 := by
+    (DesignBased.bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j) = 0 := by
   letI : MeasurableSpace Bool := ⊤
   letI : MeasurableSingletonClass Bool := ⟨fun _ => trivial⟩
-  unfold bernoulliDesign
+  unfold DesignBased.bernoulliDesign
   exact FiniteDesign.Cov_prod_disjoint_zero (fun i => coinDesign (p i) (hp0 i) (hp1 i))
     (interferers y i) (interferers y j) (disjoint_interferers_of_not_interfDep y h)
     (htSummand p y i) (htSummand p y j)
     (fun z z' hzz => htSummand_depends_on_interferers p y i z z' hzz)
     (fun z z' hzz => htSummand_depends_on_interferers p y j z z' hzz)
-
-/-- Monotonicity of expectation: pointwise `≤` lifts to `E`. -/
-private lemma E_mono {Ω : Type*} [Fintype Ω] (D : FiniteDesign Ω) {X Y : Ω → ℝ}
-    (h : ∀ z, X z ≤ Y z) : D.E X ≤ D.E Y :=
-  Finset.sum_le_sum (fun z _ => mul_le_mul_of_nonneg_left (h z) (D.p_nonneg z))
-
-/-- Variance is nonnegative (it is the expectation of a square). -/
-private lemma Var_nonneg {Ω : Type*} [Fintype Ω] (D : FiniteDesign Ω) (X : Ω → ℝ) :
-    0 ≤ D.Var X :=
-  D.E_nonneg (fun _ => sq_nonneg _)
 
 /-- **Per-summand variance bound.** Fix [a regularity constant `k` at least 1](hyp:hk) and a
 Bernoulli design with per-unit treatment probabilities [lying in the unit
@@ -126,9 +101,9 @@ is at most `k⁴`](goal). -/
 theorem var_htSummand_le (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) (k : ℝ) (hk : 1 ≤ k)
     (hplo : ∀ i, k⁻¹ ≤ p i) (hphi : ∀ i, p i ≤ 1 - k⁻¹)
-    (hmom : ∀ i, (bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2) (i : U) :
-    (bernoulliDesign p hp0 hp1).Var (htSummand p y i) ≤ k ^ 4 := by
-  set D := bernoulliDesign p hp0 hp1 with hD
+    (hmom : ∀ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2) (i : U) :
+    (DesignBased.bernoulliDesign p hp0 hp1).Var (htSummand p y i) ≤ k ^ 4 := by
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   have hk0 : (0 : ℝ) < k := lt_of_lt_of_le zero_lt_one hk
   have hkinv0 : (0 : ℝ) < k⁻¹ := inv_pos.mpr hk0
   have hpi0 : (0 : ℝ) < p i := lt_of_lt_of_le hkinv0 (hplo i)
@@ -173,7 +148,7 @@ theorem var_htSummand_le (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, 
   calc D.Var (htSummand p y i)
       ≤ D.E (fun z => (htSummand p y i z) ^ 2) := by
         rw [D.Var_eq]; linarith [sq_nonneg (D.E (htSummand p y i))]
-    _ ≤ D.E (fun z => k ^ 2 * (y i z) ^ 2) := E_mono D hpt
+    _ ≤ D.E (fun z => k ^ 2 * (y i z) ^ 2) := D.E_mono hpt
     _ = k ^ 2 * D.E (fun z => (y i z) ^ 2) := D.E_const_mul _ _
     _ ≤ k ^ 2 * k ^ 2 := by
         apply mul_le_mul_of_nonneg_left (hmom i) (sq_nonneg k)
@@ -190,10 +165,10 @@ units](goal). -/
 theorem var_htEst_le (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) (k : ℝ) (hk : 1 ≤ k) (hcard : 1 ≤ Fintype.card U)
     (hplo : ∀ i, k⁻¹ ≤ p i) (hphi : ∀ i, p i ≤ 1 - k⁻¹)
-    (hmom : ∀ i, (bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2) :
-    (bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ k ^ 4 * dbar y / (Fintype.card U : ℝ) := by
+    (hmom : ∀ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2) :
+    (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ k ^ 4 * dbar y / (Fintype.card U : ℝ) := by
   classical
-  set D := bernoulliDesign p hp0 hp1 with hD
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   set n : ℝ := (Fintype.card U : ℝ) with hn
   have hn0 : (0 : ℝ) < n := by
     rw [hn]; exact_mod_cast lt_of_lt_of_le zero_lt_one hcard
@@ -206,7 +181,7 @@ theorem var_htEst_le (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i 
     · rw [if_pos hdep]
       -- `Var(X−Y) ≥ 0` gives `Cov ≤ (Var X + Var Y)/2 ≤ k⁴`.
       have hVsub : 0 ≤ D.Var (fun z => htSummand p y i z - htSummand p y j z) :=
-        Var_nonneg D _
+        D.Var_nonneg _
       rw [D.Var_sub] at hVsub
       have hVi : D.Var (htSummand p y i) ≤ k ^ 4 :=
         var_htSummand_le p hp0 hp1 y k hk hplo hphi hmom i

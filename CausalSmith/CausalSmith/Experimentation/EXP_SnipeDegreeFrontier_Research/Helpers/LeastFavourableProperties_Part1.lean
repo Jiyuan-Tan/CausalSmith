@@ -1,4 +1,5 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
 
 /-!
 # Arithmetic, graph, and mass facts for the block family
@@ -8,6 +9,8 @@ neighbourhood structure of the block graph, the support and low-order vanishing
 of the block schedule, and the representer-mass bounds that keep the tilt
 amplitude admissible.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

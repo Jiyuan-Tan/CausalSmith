@@ -1,8 +1,9 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessPathRegularity
-import Causalean.Mathlib.Topology.UniformConvergence.Affine
-import Mathlib.Analysis.Calculus.TangentCone.Pi
-import Mathlib.Analysis.Calculus.Deriv.Pi
-import Mathlib.Topology.MetricSpace.UniformConvergence
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessPathRegularity
+public import Causalean.Mathlib.Topology.UniformConvergence.Affine
+public import Mathlib.Analysis.Calculus.TangentCone.Pi
+public import Mathlib.Analysis.Calculus.Deriv.Pi
+public import Mathlib.Topology.MetricSpace.UniformConvergence
 
 /-!
 # Topology of the affine witness path
@@ -10,6 +11,11 @@ import Mathlib.Topology.MetricSpace.UniformConvergence
 This file records compact-uniform continuity of all six value and within-derivative coordinates of
 the affine mechanism path, and hence continuity in the induced relative product `C²` topology.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open Set Filter
 open scoped Topology UniformConvergence
@@ -41,7 +47,7 @@ lemma derivWithin_coordinateSection_eq_fderivWithin_apply
 /-- Given [the selected directed edge](hyp:hji), the [observational-factor value coordinate of the
 unrestricted affine path varies continuously in the compact-uniform topology](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension_p_values
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (l : Fin n) :
     Continuous (fun t : ℝ => UniformOnFun.ofFun {latentCube n}
       ((affinePathExtension s θ hji t).p l)) := by
@@ -55,7 +61,7 @@ unrestricted affine path varies continuously in the compact-uniform topology](go
 /-- Given [the selected directed edge](hyp:hji), the [intervention-factor value coordinate of the
 unrestricted affine path varies continuously in the compact-uniform topology](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension_q_values
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (l : Fin n) :
     Continuous (fun t : ℝ => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1}
       ((affinePathExtension s θ hji t).q l)) := by
@@ -67,7 +73,7 @@ unrestricted affine path varies continuously in the compact-uniform topology](go
 /-- Given [the selected directed edge](hyp:hji), the [observational-factor first within-derivative
 coordinate varies continuously along the unrestricted affine path](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension_p_fderivWithin
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (l : Fin n) :
     Continuous (fun t : ℝ => UniformOnFun.ofFun {latentCube n}
       (fderivWithin ℝ ((affinePathExtension s θ hji t).p l) (latentCube n))) := by
@@ -98,7 +104,7 @@ coordinate varies continuously along the unrestricted affine path](goal). -/
 /-- Given [the selected directed edge](hyp:hji), the [observational-factor second within-derivative
 coordinate varies continuously along the unrestricted affine path](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension_p_iteratedFDerivWithin_two
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (l : Fin n) :
     Continuous (fun t : ℝ => UniformOnFun.ofFun {latentCube n}
       (iteratedFDerivWithin ℝ 2 ((affinePathExtension s θ hji t).p l)
@@ -145,7 +151,7 @@ coordinate varies continuously along the unrestricted affine path](goal). -/
 /-- Given [the selected directed edge](hyp:hji), the [intervention-factor first within-derivative
 coordinate varies continuously along the unrestricted affine path](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension_q_fderivWithin
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (l : Fin n) :
     Continuous (fun t : ℝ => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1}
       (fderivWithin ℝ ((affinePathExtension s θ hji t).q l) (Set.Icc (0 : ℝ) 1))) := by
@@ -171,7 +177,7 @@ coordinate varies continuously along the unrestricted affine path](goal). -/
 /-- Given [the selected directed edge](hyp:hji), the [intervention-factor second within-derivative
 coordinate varies continuously along the unrestricted affine path](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension_q_iteratedFDerivWithin_two
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) (l : Fin n) :
     Continuous (fun t : ℝ => UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1}
       (iteratedFDerivWithin ℝ 2 ((affinePathExtension s θ hji t).q l)
@@ -211,7 +217,7 @@ coordinate varies continuously along the unrestricted affine path](goal). -/
 /-- Given [the selected directed edge](hyp:hji), the [unrestricted affine mechanism path is
 continuous in the induced relative product C² topology](goal). -/
 @[fun_prop] lemma continuous_affinePathExtension
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     Continuous (fun t : ℝ => affinePathExtension s θ hji t) := by
   rw [continuous_induced_rng]
@@ -220,7 +226,7 @@ continuous in the induced relative product C² topology](goal). -/
 
 /-- The unrestricted affine mechanism path tends to its initial stratum point at parameter zero.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma tendsto_affinePathExtension_zero
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i) :
     Tendsto (fun t : ℝ => affinePathExtension s θ hji t) (𝓝 0) (𝓝 θ.1) := by
   have hzero : affinePathExtension s θ hji 0 = θ.1 := by
@@ -234,7 +240,7 @@ lemma tendsto_affinePathExtension_zero
 /-- The observational factors of the affine path are uniformly close to their initial values for
 all nodes and cube points when the parameter is sufficiently small.  Given [the stated inputs and conditions](hyp:hji,hε), [the stated conclusion](goal) follows. -/
 lemma affinePathExtension_p_eventually_uniform_close
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (θ : StratumPoint G s) {j i : Fin n} (hji : G.edge j i)
     {ε : ℝ} (hε : 0 < ε) :
     ∃ δ > 0, ∀ t : ℝ, |t| < δ → ∀ l v, v ∈ latentCube n →

@@ -7,12 +7,17 @@ finite calculation is scoped to the injected support supplied by
 `RegularFiniteCellClass`.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import Causalean.Mathlib.MeasureTheory.FiniteAtomicMeasure
-import Causalean.Mathlib.Probability.IidMeanVariance
-import Causalean.Stat.Sample.EmpiricalMass
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import Causalean.Mathlib.MeasureTheory.FiniteAtomicMeasure
+public import Causalean.Mathlib.Probability.IidMeanVariance
+public import Causalean.Stat.Sample.EmpiricalMass
+
+/-! ## Statistics and deterministic constants -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -21,7 +26,6 @@ open scoped BigOperators ENNReal Topology
 
 variable {𝒳 : Type*} [MeasurableSpace 𝒳]
 
-/-! ## Statistics and deterministic constants -/
 /-- The constant in the regular-cell variance calculation. -/
 noncomputable def regularCellVarianceConstant (epsilon c : ℝ) : ℝ :=
   8 * (epsilon⁻¹ ^ 2 + c⁻¹)

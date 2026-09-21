@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Main
+module
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Main
 
 /-!
 # Positive-density intersection for finite coordinate blocks
@@ -9,10 +10,14 @@ the API cannot be applied to overlap degeneracies in which a conditioned coordin
 inside another block.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
 
 noncomputable section
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace CausalSmith.Substrate.PositiveDensityCondindepIntersection
 

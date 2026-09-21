@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Lee bounds: finite-support trim weights and trimmed means
 
-Implements def:po-lee-trim from `Basic Concepts.tex`:
+Defines the finite-support trimming functionals used by the Lee bounds:
 
 * selected-cell probabilities `p0`, `p1`, ratio `rho`;
 * observable selected-treated outcome density `f1 y`;
@@ -19,8 +19,11 @@ Implements def:po-lee-trim from `Basic Concepts.tex`:
 This file contains *only definitions* -- no theorems are proved here.
 -/
 
-import Causalean.PO.ID.Partial.Lee.Setup
-import Causalean.Tactic.Attr
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Lee.Setup
+public import Causalean.Tactic.Attr
 
 /-! # Lee Finite-Support Trim Functionals
 
@@ -33,6 +36,10 @@ mean `m0`.
 
 The constructed always-selected trim weight and its identification theorem live
 in `TrimWeight.lean` and `TrimMean.lean`. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -49,13 +56,13 @@ Conditional selection probability `p_a := P(Sel = true | A = a)`
 expressed via the event-conditional expectation of the selection
 indicator. -/
 noncomputable def pSelGivenA (a : Bool) : ℝ :=
-  eventCondExp P.μ (S.aEvent a) (S.selVar.indicator true)
+  normalizedRestrictedIntegral P.μ (S.aEvent a) (S.selVar.indicator true)
 
 /-- [The conditional selection probability given a treatment arm](hyp:a) [is the event-conditional
 expectation of the selection indicator on that arm's event](goal). -/
 @[causal_defs_simps]
 lemma pSelGivenA_eq (a : Bool) :
-    S.pSelGivenA a = eventCondExp P.μ (S.aEvent a) (S.selVar.indicator true) :=
+    S.pSelGivenA a = normalizedRestrictedIntegral P.μ (S.aEvent a) (S.selVar.indicator true) :=
   rfl
 
 /-- For [a Lee sample-selection system](hyp:S), the [control-arm selection probability](goal) is the conditional selection probability when treatment is zero. -/
@@ -72,10 +79,10 @@ noncomputable def rho : ℝ := S.p0 / S.p1
 Observable conditional density of the outcome at `y` among selected
 treated units: `f₁(y) := P(Y = y | A = true, Sel = true)`. -/
 noncomputable def f1 (y : ℝ) : ℝ :=
-  eventCondExp P.μ S.selectedTreated
+  normalizedRestrictedIntegral P.μ S.selectedTreated
     (fun ω => if S.factualY ω = y then (1 : ℝ) else 0)
 
-/-- A Lee trim weight on a finite outcome support 𝒴 -- def:po-lee-trim.
+/-- A Lee trim weight on a finite outcome support 𝒴.
 
 Encodes a sub-distribution of total mass `ρ` dominated by the selected-
 treated outcome density: a non-negative function `w : ℝ → ℝ`, bounded by
@@ -113,7 +120,7 @@ noncomputable def upperTrimMean (𝒴 : Finset ℝ) : ℝ :=
 Observable selected-control outcome mean
 `m₀ := E[Y | A = false, Sel = true]`. -/
 noncomputable def m0 : ℝ :=
-  eventCondExp P.μ S.selectedControl S.factualY
+  normalizedRestrictedIntegral P.μ S.selectedControl S.factualY
 
 end POLeeSystem
 

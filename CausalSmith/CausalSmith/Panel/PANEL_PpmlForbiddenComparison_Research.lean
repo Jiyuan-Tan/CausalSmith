@@ -4,25 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Collapse
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.ForbiddenSign
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.FourCohort
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FrontierSign
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.PoissonArgmaxDerivative
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWLContinuity
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Homogeneous
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.PrimitiveFrontier
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
-import Causalean.Stat.MEstimation.ArgmaxStability
-import Causalean.Stat.MEstimation.FinitePoisson
-import Causalean.Stat.MEstimation.FinitePoissonConsistency
-import Causalean.Stat.MEstimation.FinitePoissonDerivative
-import Causalean.Stat.MEstimation.FinitePoissonSign
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Collapse
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.ForbiddenSign
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.FourCohort
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FrontierSign
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.PoissonArgmaxDerivative
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWLContinuity
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Homogeneous
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.PrimitiveFrontier
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
+public import Causalean.Stat.MEstimation.ArgmaxStability
+public import Causalean.Stat.MEstimation.FinitePoisson
+public import Causalean.Stat.MEstimation.FinitePoissonConsistency
+public import Causalean.Stat.MEstimation.FinitePoissonDerivative
+public import Causalean.Stat.MEstimation.FinitePoissonSign
 
 /-! # Run barrel (auto-generated)
 

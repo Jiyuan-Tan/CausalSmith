@@ -11,8 +11,11 @@ same-arrow representation; no genericity assumption is imposed on the competing
 parameter.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.DirectLatentSwaps
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.SlopeUniqueness
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.DirectLatentSwaps
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.SlopeUniqueness
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -4,6 +4,7 @@ import { resolve, join } from "node:path";
 import { execSync } from "node:child_process";
 import { loadLibrary, isTier1, declArea, type LibDecl } from "../src/library/schema.js";
 import { runCodex } from "../src/shared/codex.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_DECL_KEYWORDS, LEAN_MODIFIERS_PREFIX_SRC } from "../src/shared/lean_syntax.js";
 
 /**
  * NL docstring sweep: dispatch codex (batched per source file, ≤ FILES_PER_CALL files
@@ -60,7 +61,7 @@ function missingModuleDoc(file: string): boolean {
     return false;
   }
   const firstDecl = src.search(
-    /^(?:@\[[^\]]*\]\s*)?(?:noncomputable\s+|private\s+|protected\s+|unsafe\s+)*(?:theorem|lemma|def|abbrev|structure|class|inductive|instance|opaque|axiom)\b/m,
+    new RegExp(String.raw`^${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:${LEAN_DECL_KEYWORDS})\b`, "m"),
   );
   const head = firstDecl >= 0 ? src.slice(0, firstDecl) : src;
   return !head.includes("/-!");
@@ -68,7 +69,7 @@ function missingModuleDoc(file: string): boolean {
 
 /** Compiler-generated companions and instances have nothing to annotate. */
 const isInstanceSource = (e: LibDecl) =>
-  /^\s*(?:@\[[^\]]*\]\s*)*(?:private\s+|protected\s+|noncomputable\s+|unsafe\s+)*instance\b/.test(
+  new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}instance\b`).test(
     (e.source ?? "").replace(/^\s*\/--[\s\S]*?-\/\s*/, ""),
   );
 const firstParaAnnotated = (e: LibDecl) =>
@@ -126,6 +127,13 @@ for (let i = 0; i < files.length; i += FILES_PER_CALL) {
   );
   const modDocLines = batch.filter((f) => noModDoc.has(f));
   const prompt = promptTpl
+    .replace(
+      "{{HEADER_CONTRACT}}",
+      [
+        "HEADER CONTRACT — Every generated Lean file begins, in order, with the optional copyright block, then `module`, contiguous imports written as `public import` (only a rare deliberate exception marked by a `-- private import` comment may use a private import), the `/-! ... -/` module docstring, and exactly one blanket section: `@[expose] public section` when the file defines a `def`, `abbrev`, `instance`, `structure`, `class`, or `inductive`, otherwise `public section`. Keep declarations bare: no per-declaration `public`, `private`, or `@[expose]`; helpers stay bare, and nothing is private unless it is truly file-local and never needed by a proof downstream. Run barrels and `Helpers.lean` are imports-only and use `public import` on every line.",
+        "MODULE-SYSTEM CONSEQUENCES — A `module` file cannot import a legacy non-`module` file: every imported file must itself be a module file, and the scaffold must never add `import all`. A `def` whose body a downstream `rfl`, `decide`, or `unfold` needs must live in a file with `@[expose] public section`. A certificate evaluated by the kernel (`decide +kernel`) must not pass through well-founded recursion such as `Array.ofFn` or `termination_by`, because importers cannot see termination proofs; use a structural construction.",
+      ].join("\n"),
+    )
     .replace("{{targets}}", lines.length ? lines.join("\n") : "(none in this batch)")
     .replace("{{module_doc_files}}", modDocLines.length ? modDocLines.join("\n") : "(none in this batch)");
   console.log(

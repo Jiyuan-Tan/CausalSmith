@@ -2,55 +2,16 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Example: Real-Valued Backdoor Adjustment Skeleton
-
-End-to-end typeclass and graph validation of the kernel-native backdoor pipeline
-on an SCM whose observed value spaces are all `ℝ`. The concrete structural
-functions below are deterministic constants, so the induced observed law is
-degenerate; the example does not prove overlap or positivity and supplies those
-analytic conditions as hypotheses in the identification theorem.
-
-## The SCM
-
-Three observed nodes indexed by `Fin 3`:
-
-* `0 ↦ Z` — the confounder (continuous, ℝ-valued)
-* `1 ↦ X` — the treatment (continuous, ℝ-valued)
-* `2 ↦ Y` — the outcome  (continuous, ℝ-valued)
-
-Edges: `Z → X`, `Z → Y`, `X → Y` — i.e. `Z` is a backdoor-admissible confounder.
-
-The structural functions are deterministic (latent set is empty) and constant
-`0`; the file uses this degenerate model to exercise the real-valued
-measurability and graphical bookkeeping with minimal analytic overhead.
-
-## What this validates
-
-* The SCM construction (`continuousBackdoorSCM`) type-checks on `ℝ`-valued
-  spaces.  The kernel-native backdoor pipeline does *not* require value-type
-  countability or finiteness.
-* `SWIGGraph.backdoorCriterion` discharges via `decide` on the
-  underlying DAG (`cb_backdoor_criterion`), witnessing that the continuous SCM
-  admits the backdoor adjustment set `{Z}`.
-* `cb_backdoor_identified` applies the general a.e. backdoor pipeline on this
-  concrete continuous-treatment graph once the overlap and positivity
-  hypotheses are supplied.
-
-## References
-
-* `Causalean/SCM/Examples/BackDoor.lean` — discrete-treatment analogue.
-* `Causalean/SCM/ID/Backdoor.lean` — `backdoor_completeness_ae` /
-  `backdoor_identifiable_ae` (the general continuous backdoor results).
 -/
 
-import Causalean.Graph.DAG
-import Causalean.Graph.SWIG
-import Causalean.Graph.SWIGSplitMono
-import Causalean.SCM.Model.SCM
-import Causalean.SCM.Model.Kernel
-import Causalean.SCM.ID.BackdoorCriterion
-import Causalean.SCM.ID.Toolkit.Derivation
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.SCM.Model.SCM
+public import Causalean.SCM.Model.Kernel
+public import Causalean.SCM.ID.BackdoorCriterion
+public import Causalean.SCM.ID.Toolkit.Derivation
 
 /-! # Real-Valued Backdoor Example
 
@@ -59,12 +20,20 @@ treatment, and outcome all take values in `ℝ`. The declarations `CBNode`,
 `CBΩ`, `cbDAG`, `cbSWIGGraph`, and `continuousBackdoorSCM` build a degenerate
 constant structural model whose purpose is to exercise the real-valued graph and
 kernel interfaces. The theorem `cb_backdoor_criterion` verifies the graphical
-backdoor criterion by computation, and `cb_backdoor_identified` applies the
-kernel-based backdoor pipeline once the required overlap and positivity
-conditions are supplied as hypotheses.
+backdoor criterion by computation. The theorem `cb_backdoor_rule2_ae` then
+specializes the conditional-kernel Rule-2 equality to this graph once overlap
+and positivity are supplied; it does not state the final adjustment formula or
+cross-model identification.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 set_option linter.style.nativeDecide false
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.Examples.ContinuousBackdoor
 
@@ -75,46 +44,58 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Vertex set and value spaces
 -- ============================================================
 
-/-- [The node set of the continuous-backdoor example](goal) consists of three positions representing, in order, the confounder, treatment, and outcome. -/
+/-- [The node set of the continuous-backdoor example](goal) consists of three positions
+representing, in order, the confounder, treatment, and outcome. -/
 abbrev CBNode : Type := Fin 3
 
-/-- [The value-space assignment for the continuous-backdoor example](goal) gives every node the real-valued state space. -/
+/-- [The value-space assignment for the continuous-backdoor example](goal) gives every node the
+real-valued state space. -/
 abbrev CBΩ : CBNode → Type := fun _ => ℝ
 
-/-- [The confounder node index](goal) is the first of the three node positions in the continuous-backdoor example. -/
+/-- [The confounder node index](goal) is the first of the three node positions in the
+continuous-backdoor example. -/
 @[reducible] def Zidx : CBNode := 0
-/-- [The treatment node index](goal) is the second of the three node positions in the continuous-backdoor example. -/
+/-- [The treatment node index](goal) is the second of the three node positions in the
+continuous-backdoor example. -/
 @[reducible] def Xidx : CBNode := 1
-/-- [The outcome node index](goal) is the third of the three node positions in the continuous-backdoor example. -/
+/-- [The outcome node index](goal) is the third of the three node positions in the
+continuous-backdoor example. -/
 @[reducible] def Yidx : CBNode := 2
 
 -- ============================================================
 -- § 2. Underlying DAG on `CBNode`
 -- ============================================================
 
-/-- [The Boolean edge indicator](goal) is true exactly for an arrow from confounder to treatment, from confounder to outcome, or from treatment to outcome.
+/-- [The Boolean edge indicator](goal) is true exactly for an arrow from confounder to treatment,
+from confounder to outcome, or from treatment to outcome.
 
 It is Boolean-valued so the graphical criterion can be discharged by computation. -/
 def cbEdgeBool : CBNode → CBNode → Bool := fun a b =>
   (a.val == 0 && b.val == 1) || (a.val == 0 && b.val == 2) ||
   (a.val == 1 && b.val == 2)
 
-/-- [The edge relation of the continuous-backdoor graph](goal) holds exactly when the Boolean edge indicator is true, namely for arrows from confounder to treatment or outcome and from treatment to outcome. -/
+/-- [The edge relation of the continuous-backdoor graph](goal) holds exactly when the Boolean edge
+indicator is true, namely for arrows from confounder to treatment or outcome and from treatment to
+outcome. -/
 def cbEdge : CBNode → CBNode → Prop := fun a b => cbEdgeBool a b = true
 
-/-- For every ordered pair of continuous-backdoor vertices, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
+/-- For every ordered pair of continuous-backdoor vertices,
+[a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance : DecidableRel cbEdge := by
   intro a b; unfold cbEdge; infer_instance
 
-/-- [The topological-order label of the continuous-backdoor graph](goal) is each node's position, so it places the confounder before treatment and treatment before outcome. -/
+/-- [The topological-order label of the continuous-backdoor graph](goal) is each node's position,
+so it places the confounder before treatment and treatment before outcome. -/
 def cbTopo : CBNode → ℕ := fun n => n.val
 
-/-- Every edge in the continuous-backdoor graph points from an earlier to a later node in the chosen topological order. -/
+/-- [Every edge in the continuous-backdoor graph points from an earlier to a later node in the
+chosen topological order](goal). -/
 theorem cbTopo_lt : ∀ u v, cbEdge u v → cbTopo u < cbTopo v := by
   intro u v h
   fin_cases u <;> fin_cases v <;> simp_all [cbEdge, cbEdgeBool, cbTopo]
 
-/-- [The directed acyclic graph of the continuous backdoor example](goal) has the stated three-node edge relation and topological ordering, and is acyclic. -/
+/-- [The directed acyclic graph of the continuous backdoor example](goal) has the stated three-node
+edge relation and topological ordering, and is acyclic. -/
 def cbDAG : DAG CBNode where
   edge := cbEdge
   decEdge := inferInstance
@@ -124,7 +105,8 @@ def cbDAG : DAG CBNode where
 -- § 3. The SWIGGraph (computable, used for `decide` proofs)
 -- ============================================================
 
-/-- [The pre-intervention SWIG graph for the continuous-backdoor example](goal) has no fixed or unobserved nodes and has the confounder, treatment, and outcome as observed random nodes.
+/-- [The pre-intervention SWIG graph for the continuous-backdoor example](goal) has no fixed or
+unobserved nodes and has the confounder, treatment, and outcome as observed random nodes.
 
 It is defined separately from the full structural model so the graphical
 backdoor criterion can be checked by computation. -/
@@ -155,7 +137,9 @@ def cbSWIGGraph : SWIGGraph CBNode where
 -- § 4. The SCM
 -- ============================================================
 
-/-- [The continuous-backdoor structural causal model](goal) has the specified real-valued pre-intervention graph, no latent variables, nonparametric edges, and constant-zero structural responses for every observed node.
+/-- [The continuous-backdoor structural causal model](goal) has the specified real-valued
+pre-intervention graph, no latent variables, nonparametric edges, and constant-zero structural
+responses for every observed node.
 
 The structural functions are all constant `0`, so the induced observed law is
 degenerate. The model is used as a minimal real-valued witness for the graph and
@@ -201,7 +185,8 @@ example : Xidx ∈ cbDAG.parents Yidx := by decide
 -- § 5. Backdoor criterion for `do(X)` with adjustment set `{Z}`
 -- ============================================================
 
-/-- The treatment's observed random node belongs to the computable continuous-backdoor SWIG graph.
+/-- [The treatment's observed random node belongs to the computable continuous-backdoor SWIG
+graph](goal).
 
 The witness is stated against the computable graph rather than the full structural
 model, whose observed set is definitionally the same. -/
@@ -214,7 +199,8 @@ theorem cb_Xrand_obs :
     SWIGNode.random Yidx} : Finset (SWIGNode CBNode))
   simp
 
-/-- The treatment's fixed node is not already fixed in the computable continuous-backdoor SWIG graph. -/
+/-- [The treatment's fixed node is not already fixed in the computable continuous-backdoor SWIG
+graph](goal). -/
 theorem cb_Xfixed :
     ∀ D ∈ ({Xidx} : Finset CBNode), SWIGNode.fixed D ∉ cbSWIGGraph.fixed := by
   intro D _ hmem
@@ -226,7 +212,7 @@ and outcome nodes in the continuous-backdoor example graph](goal).
 The statement is on the computable SWIG graph; the full structural model has the
 same graph by definition. -/
 theorem cb_backdoor_criterion :
-    cbSWIGGraph.backdoorCriterion
+    Causalean.SWIGGraph.backdoorCriterion cbSWIGGraph
       ({Xidx} : Finset CBNode) cb_Xrand_obs cb_Xfixed
       {SWIGNode.random Yidx} {SWIGNode.random Zidx} := by
   refine ⟨?_, ?_, ?_, ?_, ?_⟩
@@ -258,24 +244,24 @@ theorem cb_backdoor_criterion :
         ({SWIGNode.random Zidx} ∪ Finset.image SWIGNode.fixed ({Xidx} : Finset CBNode)))
 
 -- ============================================================
--- § 5. Identification via the toolkit (sanity check)
+-- § 5. Conditional Rule-2 identity via the toolkit (sanity check)
 -- ============================================================
 
-/-- `{random Y}` is an observed node set. -/
+/-- [The outcome node is observed in the continuous-backdoor model](goal). -/
 theorem cb_Yobs : ({SWIGNode.random Yidx} : Finset (SWIGNode CBNode)) ⊆
     continuousBackdoorSCM.observed := by
   intro v hv; rw [Finset.mem_singleton] at hv; subst hv
   change SWIGNode.random Yidx ∈ ({SWIGNode.random Zidx, SWIGNode.random Xidx,
     SWIGNode.random Yidx} : Finset (SWIGNode CBNode)); simp
 
-/-- `{random Z}` (the adjustment set) is an observed node set. -/
+/-- [The adjustment-set node is observed in the continuous-backdoor model](goal). -/
 theorem cb_Zobs : ({SWIGNode.random Zidx} : Finset (SWIGNode CBNode)) ⊆
     continuousBackdoorSCM.observed := by
   intro v hv; rw [Finset.mem_singleton] at hv; subst hv
   change SWIGNode.random Zidx ∈ ({SWIGNode.random Zidx, SWIGNode.random Xidx,
     SWIGNode.random Yidx} : Finset (SWIGNode CBNode)); simp
 
-/-- The treatment random-image is observed. -/
+/-- [The treatment's random-node image is observed in the continuous-backdoor model](goal). -/
 theorem cb_Xr_obs : (({Xidx} : Finset CBNode).image SWIGNode.random) ⊆
     continuousBackdoorSCM.observed := by
   rw [Finset.image_singleton]
@@ -283,49 +269,35 @@ theorem cb_Xr_obs : (({Xidx} : Finset CBNode).image SWIGNode.random) ⊆
   change SWIGNode.random Xidx ∈ ({SWIGNode.random Zidx, SWIGNode.random Xidx,
     SWIGNode.random Yidx} : Finset (SWIGNode CBNode)); simp
 
-/-- Treatment random-image together with the adjustment set is observed. -/
+/-- [The treatment's random-node image together with the adjustment set is observed](goal). -/
 theorem cb_XrZ_obs : (({Xidx} : Finset CBNode).image SWIGNode.random ∪
     {SWIGNode.random Zidx}) ⊆ continuousBackdoorSCM.observed :=
   Finset.union_subset cb_Xr_obs cb_Zobs
 
-/-- The outcome is disjoint from the treatment random-image. -/
+/-- [The outcome node is disjoint from the treatment's random-node image](goal). -/
 theorem cb_disj_YXr : Disjoint ({SWIGNode.random Yidx} : Finset (SWIGNode CBNode))
     (({Xidx} : Finset CBNode).image SWIGNode.random) := by
   rw [Finset.image_singleton]; decide
 
-/-- The treatment random-image is disjoint from the adjustment set. -/
+/-- [The treatment's random-node image is disjoint from the adjustment set](goal). -/
 theorem cb_disj_XrZ : Disjoint (({Xidx} : Finset CBNode).image SWIGNode.random)
     ({SWIGNode.random Zidx} : Finset (SWIGNode CBNode)) := by
   rw [Finset.image_singleton]; decide
 
-/-- **Backdoor adjustment identity on the continuous-backdoor example.** Fix
-    [an assignment `s0` of values to the model's fixed background
-    variables](hyp:s0). If [for every post-intervention background
-    assignment, the do(X)-intervened marginal law of `Z` is absolutely
-    continuous with respect to its purely observational marginal law — the
-    Rule-2 joint overlap condition](hyp:hOverlap), and [the product of the
-    observational marginal laws of the treatment's random image and of `Z`
-    is absolutely continuous with respect to their joint observational
-    law — the joint positivity condition](hyp:hPositivity_ae), then
-    [almost everywhere under that product measure, the conditional law of
-    the outcome `Y` given `Z` under the intervention that fixes the
-    treatment equals the purely observational conditional law of `Y` given
-    both the treatment and `Z` — the backdoor Rule-2 adjustment
-    identity](goal).
+/-- **Conditional Rule-2 identity on the continuous-backdoor example.** Given
+    [fixed background values](hyp:s0),
+    [observational joint positivity](hyp:hPositivity_ae),
+    [the two Rule-2 conditional kernels agree almost everywhere](goal).
 
     This is a sanity check confirming that the general toolkit lemma
     `SCM.backdoor_rule2_ae` applies to the graphical criterion
     `cb_backdoor_criterion` on this concrete real-valued, degenerate example
     SCM: it verifies that the toolkit correctly handles the graph,
     non-descendance, kernel disintegration, and typeclass bookkeeping for
-    this instance. It does not prove the overlap or positivity hypotheses
-    themselves from the model's constant structural equations. -/
-theorem cb_backdoor_identified
+    this instance. It does not prove the positivity hypothesis itself from the
+    model's constant structural equations. -/
+theorem cb_backdoor_rule2_ae
     (s0 : continuousBackdoorSCM.FixedValues)
-    (hOverlap : ∀ s : (continuousBackdoorSCM.fixSet ({Xidx} : Finset CBNode)
-        cb_Xrand_obs cb_Xfixed).FixedValues,
-      Causalean.SCM.ID.Rule2JointOverlap continuousBackdoorSCM ({Xidx} : Finset CBNode)
-        cb_Xrand_obs cb_Xfixed {SWIGNode.random Zidx} cb_XrZ_obs s)
     (hPositivity_ae :
       (((continuousBackdoorSCM.obsKernel s0).map (valuesProjection cb_Xr_obs) ⊗ₘ
           ProbabilityTheory.Kernel.const _
@@ -348,7 +320,10 @@ theorem cb_backdoor_identified
           cb_Yobs cb_XrZ_obs (s0, valuesUnionMk p.1 p.2) :=
   SCM.backdoor_rule2_ae continuousBackdoorSCM ({Xidx} : Finset CBNode)
     cb_Xrand_obs cb_Xfixed {SWIGNode.random Yidx} {SWIGNode.random Zidx}
-    cb_Yobs cb_Zobs cb_Xr_obs cb_XrZ_obs cb_disj_YXr cb_disj_XrZ
-    cb_backdoor_criterion s0 hOverlap hPositivity_ae
+    cb_Yobs cb_Zobs cb_Xr_obs cb_XrZ_obs cb_backdoor_criterion s0 hPositivity_ae
+
+/-- Deprecated former name of `cb_backdoor_rule2_ae`. -/
+@[deprecated cb_backdoor_rule2_ae (since := "2026-09-20")]
+alias cb_backdoor_identified := cb_backdoor_rule2_ae
 
 end Causalean.SCM.Examples.ContinuousBackdoor

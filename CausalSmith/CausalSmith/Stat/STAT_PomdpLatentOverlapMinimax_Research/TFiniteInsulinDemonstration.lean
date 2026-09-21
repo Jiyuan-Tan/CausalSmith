@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGrid
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGrid
 
 set_option linter.style.longLine false
 
 /-! # Certified finite insulin-policy demonstration -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

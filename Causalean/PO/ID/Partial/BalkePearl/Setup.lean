@@ -13,10 +13,11 @@ All three variables Z, D, Y are binary (Bool).  No assumption bundles live
 here — see `Assumptions.lean`.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Conditioning.EventCondExp
-import Causalean.PO.Assumptions.IndepCF
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Conditioning.EventCondExp
+public import Causalean.PO.Assumptions.IndepCF
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Balke-Pearl Setup
 
@@ -27,6 +28,8 @@ variables and their distinctness; its namespace supplies the factual variables
 `factualZ`, `factualD`, `factualY`, the counterfactuals `DofZ`, `YofD`, and
 `YofZD`, the real-valued Boolean embedding used for integration, the target
 estimand `ATE`, and the observable conditional cell probability `cellProb`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

@@ -2,36 +2,24 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Fixed-pair matched-pair estimator variance
-
-For a fixed matched-pair randomization design, the difference-in-means estimator is a sum of
-independent per-pair terms, so its randomization variance is the sum of the per-pair variances.  Each
-per-pair variance is the variance of a fair two-point random variable and works out to `¼` times the
-squared **within-pair imbalance** — the difference, across the two positions of the pair, of the unit
-totals `y1 + y0`.  Hence
-
-    Var(τ̂) = (1 / 4N²) ∑ₚ ((y1 p true + y0 p true) − (y1 p false + y0 p false))².
-
-The theorem in this file only computes that fixed-pairing randomization variance.  It does not
-compare alternative pairings and does not prove an optimal matching theorem.  The result is also the
-variance-side template: a design-based estimator's variance computed through the product design's
-cross-coordinate independence (`Var_prod_linear_comb`).
 -/
 
-import Causalean.Experimentation.MatchedPairDesign.Estimator
+module
+public import Causalean.Experimentation.MatchedPairDesign.Estimator
 
 /-! # Matched-pair estimator variance
 
-For a fixed set of pairs, the matched-pair estimator's randomization variance equals the sum of
-squared within-pair imbalances, scaled by `1/(4N²)`.
+For a fixed set of pairs, the matched-pair estimator's randomization variance is
 
-The main definition is `pairImbalance`, the difference across the two units in a pair of the unit
-totals `y1 + y0`.  The lemma `Var_pairContribution` computes the variance contribution of one
-pair, and `Var_matchedPairEstimator` sums these independent pair contributions using
-product-design independence.  The file does not compare alternative pairings or prove an optimal
-matching theorem.
+    Var(τ̂) = (1 / 4N²) ∑ₚ ((y1 p true + y0 p true) − (y1 p false + y0 p false))².
+
+The quantity inside each square is the within-pair imbalance in the units' treated-plus-control
+outcome totals. This file computes the fair-coin variance of one pair and sums the independent
+pair contributions through product-design independence. It treats the pairing as fixed and does
+not prove that one pairing is optimal among alternatives.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

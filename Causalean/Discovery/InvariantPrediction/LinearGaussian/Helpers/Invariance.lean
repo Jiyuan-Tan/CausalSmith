@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Residual
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Residual
 
 /-!
 # Invariant Causal Prediction — non-descendant invariance
@@ -25,6 +26,11 @@ satisfies the *same* structural equation in both worlds (`hDoStruct k` vs
 `hε k`, since `k ≠ k₀` so `k ∉ A`), and all its parents are also non-descendants
 of `k₀` with strictly smaller topological order, so they agree by induction.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 namespace Causalean.Discovery.InvariantPrediction.LinearGaussian
 
@@ -83,11 +89,11 @@ theorem nonDescendant_invariance (M : ObsSEM p) (e : Env M) (k₀ : Fin (p + 1))
         -- `j ≠ k₀`: else `edge k₀ k` ⟹ `isAncestor k₀ k`, contradiction.
         have hjk₀ : j ≠ k₀ := by
           rintro rfl
-          exact hnonanc (Causalean.DAG.isAncestor.edge hedge)
+          exact hnonanc (DAG.isAncestor.edge hedge)
         -- `¬ isAncestor k₀ j`: else `isAncestor k₀ j` + `edge j k` ⟹ `isAncestor k₀ k`.
         have hnonanc_j : ¬ M.dag.isAncestor k₀ j := by
           intro hanc
-          exact hnonanc (Causalean.DAG.isAncestor.trans hanc hedge)
+          exact hnonanc (DAG.isAncestor.trans hanc hedge)
         -- `topoOrder j < topoOrder k`, so IH applies.
         have hlt : M.dag.topoOrder j < M.dag.topoOrder k := M.dag.topoOrder_lt j k hedge
         rw [IH (M.dag.topoOrder j) hlt j rfl hjk₀ hnonanc_j]

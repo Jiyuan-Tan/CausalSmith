@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
+module
+public import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
 
 /-!
 # LiNGAM structural identifiability
@@ -27,6 +28,8 @@ The kurtosis route in `LiNGAMKurtosis.lean` supplies the generalized-permutation
 relation through column support, so this file isolates the deterministic
 acyclicity-and-unit-diagonal pinning step.
 -/
+
+public section
 
 namespace Causalean.Discovery.LiNGAM
 

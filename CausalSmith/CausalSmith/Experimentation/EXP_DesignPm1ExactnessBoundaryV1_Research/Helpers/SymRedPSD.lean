@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedMatrix
-import Mathlib.Data.Real.StarOrdered
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SymRedMatrix
+public import Mathlib.Data.Real.StarOrdered
 
 /-! # PSD of block-symmetric elliptope points
 
@@ -16,6 +18,8 @@ with `x = 1−u`, `y = 1+(m−1)u−mv`, `z = 1+(m−1)u+mv`, where `P₁ = J/2m
 onto `span 1`) and `P_s = s sᵀ/2m` (projection onto `span s`).  Each of `P₁`, `P_s`,
 `1 − P₁ − P_s` is PSD, so nonnegative spectral coordinates force `X(u,v)` PSD.  This
 supplies the inclusion `E_m^blk ⊆ {PSD, diag 1}` used by the `sInf` reductions. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

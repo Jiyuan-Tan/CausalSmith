@@ -1,17 +1,21 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Basic
-import Causalean.Stat.UStatistic.OrderM.Basic
-import Mathlib.Data.Nat.Choose.Sum
-import Mathlib.Probability.Distributions.SetBernoulli
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Basic
+public import Causalean.Stat.UStatistic.OrderM.Basic
+public import Mathlib.Data.Nat.Choose.Sum
+public import Mathlib.Probability.Distributions.SetBernoulli
+public import Mathlib.Tactic.Positivity.Finset
+
+/-! Probability and finite-sample algebra used by the ratio branch.  These
+lemmas are deliberately stated independently of the calibrated estimator, so
+that the handling of an empty empirical treatment arm can be reused. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 
 open MeasureTheory
 open ProbabilityTheory
 open scoped BigOperators ENNReal
-
-/-! Probability and finite-sample algebra used by the ratio branch.  These
-lemmas are deliberately stated independently of the calibrated estimator, so
-that the handling of an empty empirical treatment arm can be reused. -/
 
 /-- The elementary pointwise inequality behind the inverse-binomial bound.
 The indicator is written explicitly to match Lean's total division convention. -/

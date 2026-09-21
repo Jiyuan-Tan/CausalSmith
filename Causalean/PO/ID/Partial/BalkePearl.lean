@@ -21,15 +21,9 @@ Re-exports the full Balke-Pearl sub-library:
 - `ClosedFormAttainment` — assembles them into `sInf = bpLower`, `sSup = bpUpper`
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Setup
-import Causalean.PO.ID.Partial.BalkePearl.Assumptions
-import Causalean.PO.ID.Partial.BalkePearl.LatentTable
-import Causalean.PO.ID.Partial.BalkePearl.Main
-import Causalean.PO.ID.Partial.BalkePearl.Sharp
-import Causalean.PO.ID.Partial.BalkePearl.IntervalForm
-import Causalean.PO.ID.Partial.BalkePearl.ClosedForm
-import Causalean.PO.ID.Partial.BalkePearl.Attainment
-import Causalean.PO.ID.Partial.BalkePearl.ClosedFormAttainment
+module
+public import Causalean.PO.ID.Partial.BalkePearl.ClosedFormAttainment
+public import Causalean.PO.ID.Partial.BalkePearl.Sharp
 
 /-! # Balke-Pearl bounds for a binary instrument
 

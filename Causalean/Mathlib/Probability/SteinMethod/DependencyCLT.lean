@@ -17,13 +17,14 @@ first term (using `‖f'‖ ≤ 2L` and `E[∑ᵢXᵢTᵢ] = Var W = 1`), and a 
 the second term (using that `f'` is `2L`-Lipschitz).
 -/
 
-import Causalean.Mathlib.Probability.SteinMethod.Bounds
-import Mathlib.Probability.Moments.Variance
-import Mathlib.Probability.Moments.Covariance
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Independence.Integration
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.Mathlib.Probability.SteinMethod.Bounds
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.Probability.Moments.Covariance
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Independence.Integration
+public import Mathlib.Analysis.Calculus.MeanValue
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 # Local-dependence Stein bound
@@ -36,11 +37,12 @@ between expectations under the standardized sum and the standard normal by two
 local-dependence error terms.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory
 open scoped Real ENNReal
 
-namespace Causalean
-namespace SteinMethod
+namespace Causalean.Mathlib.Probability.SteinMethod
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
@@ -503,5 +505,4 @@ theorem stein_local_dependence_bound
     _ ≤ 2 * L * Real.sqrt (variance Y μ) + L * ∑ i, ∫ ω, |X i ω| * (T i ω) ^ 2 ∂μ :=
         add_le_add hfirst hsecond
 
-end SteinMethod
-end Causalean
+end Causalean.Mathlib.Probability.SteinMethod

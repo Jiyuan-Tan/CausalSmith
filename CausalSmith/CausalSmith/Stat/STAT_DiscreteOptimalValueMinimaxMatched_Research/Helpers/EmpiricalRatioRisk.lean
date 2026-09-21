@@ -1,9 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.UpperRiskCoupling
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TIdentificationAndExtension
-import Causalean.Stat.Sample.FiniteStratumMarkedRatioMse
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.UpperRiskCoupling
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TIdentificationAndExtension
+public import Causalean.Stat.Sample.Stratified
 
 set_option linter.style.longLine false
 /-! The bounded-alphabet empirical-ratio branch of the upper bound. -/
+
+@[expose] public section
+
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
 open MeasureTheory ProbabilityTheory

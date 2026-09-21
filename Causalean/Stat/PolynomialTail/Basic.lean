@@ -5,10 +5,9 @@ Authors: Jiyuan Tan
 
 # Polynomial lower-tail moments: setup, integrands, and basic facts
 
-Real-analysis infrastructure for the small-value (lower-tail) asymptotics of a
-bounded positive random variable.  Fix a probability measure `P` and a measurable
-`U : Ω → ℝ` with `0 < U ≤ 1` almost surely.  The polynomial lower-tail hypothesis
-`PolyTail P U κ t₀ cm cp` pins the lower CDF to a power law near zero:
+Real-analysis infrastructure for small-value (lower-tail) asymptotics.  The
+polynomial lower-tail hypothesis `PolyTail P U κ t₀ cm cp` pins the lower CDF of a
+real-valued function to a power law near zero:
 
     ∀ t ∈ (0, t₀],  cm · tᵏ ≤ P{U ≤ t} ≤ cp · tᵏ.
 
@@ -20,23 +19,26 @@ The two truncated inverse moments studied downstream are
 together with the leftover trimming weight `wλ = 1 − U/(max U λ) ∈ [0,1]`, supported
 on `{U < λ}`.
 
-This file provides the foundation: the `PolyTail` structure, the three definitions,
+The separate `TailSetup P U` structure records measurability and the almost-sure
+bounds `0 < U ≤ 1`; theorems that use probability normalization separately assume
+`IsProbabilityMeasure P`.  This file also provides the three definitions,
 measurability of the integrands, the elementary mass bound `P{U < λ} ≤ cp λᵏ`, and
 integrability of the bounded integrands.  The three-regime downstream bounds live in
 `Stat/PolynomialTail/TailIntegralBounds.lean`,
 `Stat/PolynomialTail/MomentJBounds.lean`, and `Stat/PolynomialTail/MomentIBounds.lean`.
 -/
 
-import Mathlib.MeasureTheory.Integral.Layercake
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import Mathlib.MeasureTheory.Integral.Layercake
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Polynomial lower-tail setup
 
 This module defines the reusable setup for polynomial lower-tail calculations.  The structure
-`PolyTail P U kappa t0 cm cp` states that the lower CDF of a positive `[0,1]`-valued variable
-`U` is squeezed between `cm * t ^ kappa` and `cp * t ^ kappa` on `(0, t0]`; `TailSetup P U`
-records the measurability and almost-sure bounds `0 < U <= 1`.
+`PolyTail P U kappa t0 cm cp` records only that the lower CDF of a real-valued function `U` is
+squeezed between `cm * t ^ kappa` and `cp * t ^ kappa` on `(0, t0]`.  The separate structure
+`TailSetup P U` records measurability and the almost-sure bounds `0 < U <= 1`.
 
 The main integrands are the truncated denominator `truncDen U lam`, the inverse second moment
 `invMomentI P U lam = int U / (max U lam)^2`, the inverse first moment
@@ -45,6 +47,8 @@ The main integrands are the truncated denominator `truncDen U lam`, the inverse 
 pointwise bounds, the open lower-level-set mass bound `measureReal_lt_le`, and bounded
 integrability lemmas used by the layer-cake and regime-bound modules.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.PolynomialTail
 
@@ -55,12 +59,11 @@ variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω}
 
 /-! ## The polynomial-tail hypothesis -/
 
-/-- **Polynomial lower tail.** For a measurable `[0,1]`-valued function `U`, says that [the lower
-CDF `t ↦ P{U ≤ t}` is squeezed between `cm·tᵏ` and `cp·tᵏ`](hyp:tail_lower,tail_upper) on the
-window `(0, t₀]`, with [a positive exponent `κ`](hyp:kappa_pos), [a window endpoint `t₀` strictly
-between `0` and `1`](hyp:t0_pos,t0_lt_one), and [constants with `0 < cm <
-cp`](hyp:cm_pos,cm_lt_cp). This is the sole distributional input to the inverse-moment
-asymptotics. -/
+/-- **Polynomial lower tail.** Says that [the lower CDF `t ↦ P{U ≤ t}` is squeezed between
+`cm·tᵏ` and `cp·tᵏ`](hyp:tail_lower,tail_upper) on the window `(0, t₀]`, with [a positive exponent
+`κ`](hyp:kappa_pos), [a window endpoint `t₀` strictly between `0` and
+`1`](hyp:t0_pos,t0_lt_one), and [constants with `0 < cm < cp`](hyp:cm_pos,cm_lt_cp). Measurability
+and almost-sure bounds on `U` are separate `TailSetup` assumptions. -/
 structure PolyTail (P : Measure Ω) (U : Ω → ℝ) (κ t₀ cm cp : ℝ) : Prop where
   /-- The tail exponent is positive. -/
   kappa_pos : 0 < κ

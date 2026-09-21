@@ -15,7 +15,7 @@ This file defines d-separation for DAGs and proves its key structural properties
 
 * `DAG.dSep_subset_left` — d-sep monotone in the source set
 * `DAG.bbZAncestors_union_eq` — ancestral set distributes over union
-* `DAG.activePath_transfer_cond_to_source` — path-level source-to-cond transfer
+* `DAG.activeWalk_transfer_cond_to_source` — walk-level source-to-cond transfer
 * `DAG.dSep_source_to_cond` — move sources into the conditioning set
 * `DAG.dSep_symm` — symmetry of d-separation
 
@@ -36,11 +36,11 @@ structural properties used by the global Markov and identification layers:
 monotonicity in source and target sets, the union rule for collider-activation
 ancestors (`bbZAncestors_union_eq`), directed-path extraction avoiding a
 conditioning set, source-to-conditioning transfer (`dSep_source_to_cond`),
-transfer to edge subgraphs (`dSep_mono_conditioningSet`), and symmetry. -/
+transfer to edge subgraphs (`dSep_of_edge_subgraph`), and symmetry. -/
 
 @[expose] public section
 
-namespace Causalean
+namespace Causalean.Graph
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -52,15 +52,23 @@ variable (G : DAG V)
 -- d-Separation
 -- ============================================================
 
-/-- For [a finite directed acyclic graph](hyp:G), [a source set](hyp:X), [a target set](hyp:Y), and [a conditioning set](hyp:Z), the [d-separation relation](goal) holds exactly when [the source and target sets are disjoint](step:1), [the source and conditioning sets are disjoint](step:2), [the target and conditioning sets are disjoint](step:3), and [no target vertex is Bayes-Ball reachable from the source set after conditioning on the conditioning set](step:4).
+/-- For [a finite directed acyclic graph](hyp:G), [a source set](hyp:X), [a target
+set](hyp:Y), and [a conditioning set](hyp:Z), the [d-separation relation](goal) holds
+exactly when [the source and target sets are disjoint](step:1), [the source and conditioning
+sets are disjoint](step:2), [the target and conditioning sets are disjoint](step:3), and
+[no target vertex is Bayes-Ball reachable from the source set after conditioning on the
+conditioning set](step:4).
 
     The query sets `X`, `Y`, and `Z` must be pairwise disjoint, and every
-    Bayes-Ball active path from `X` to `Y` must be blocked by `Z`. -/
+    Bayes-Ball active walk from `X` to `Y` must be blocked by `Z`. -/
 def dSep (X Y Z : Finset V) : Prop :=
   Disjoint X Y ∧ Disjoint X Z ∧ Disjoint Y Z ∧
     Disjoint (G.bbReachableVertices Z X) Y
 
-/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), [a source set, target set, and conditioning set](hyp:X,Y,Z), the [decision procedure for d-separation](goal) determines whether the source and target sets are d-separated conditional on the conditioning set. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic
+graph on that population](hyp:G), and [a source set, target set, and conditioning
+set](hyp:X,Y,Z), the [decision procedure for d-separation](goal) determines whether the
+source and target sets are d-separated conditional on the conditioning set. -/
 instance decDSep (X Y Z : Finset V) : Decidable (G.dSep X Y Z) :=
   by
     unfold dSep
@@ -70,21 +78,29 @@ instance decDSep (X Y Z : Finset V) : Decidable (G.dSep X Y Z) :=
 -- d-Separation monotonicity (graph-only)
 -- ============================================================
 
-/-- d-separation is monotone in `X`: smaller source sets preserve d-separation. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), for [two nested source sets, a
+target set, and a conditioning set](hyp:X,X',Y,Z), [containment of the smaller source
+set](hyp:hXX') and [d-separation of the larger source set](hyp:h) imply [d-separation of
+the smaller source set](goal). -/
 theorem dSep_subset_left {X X' Y Z : Finset V}
     (hXX' : X' ⊆ X) (h : G.dSep X Y Z) : G.dSep X' Y Z := by
   rcases h with ⟨hXY, hXZ, hYZ, hReach⟩
   exact ⟨Disjoint.mono_left hXX' hXY, Disjoint.mono_left hXX' hXZ, hYZ,
     Disjoint.mono_left (G.bbReachableVertices_mono_source hXX') hReach⟩
 
-/-- d-separation is monotone in `Y`: shrinking the target set preserves d-separation. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), for [a source set, two nested
+target sets, and a conditioning set](hyp:X,Y,Y',Z), [containment of the smaller target
+set](hyp:hYY') and [d-separation of the larger target set](hyp:h) imply [d-separation of
+the smaller target set](goal). -/
 theorem dSep_subset_right {X Y Y' Z : Finset V}
     (hYY' : Y' ⊆ Y) (h : G.dSep X Y Z) : G.dSep X Y' Z := by
   rcases h with ⟨hXY, hXZ, hYZ, hReach⟩
   exact ⟨Disjoint.mono_right hYY' hXY, hXZ, Disjoint.mono_left hYY' hYZ,
     Disjoint.mono_right hYY' hReach⟩
 
-/-- **Ancestral-set distributes over union.**
+/-- In [a finite directed acyclic graph](hyp:V,G), the [two conditioning
+sets](hyp:Z,S) have [an activated-collider set for their union equal to the union of their
+separate activated-collider sets](goal).
 
     `bbZAncestors (Z ∪ S) = bbZAncestors Z ∪ bbZAncestors S` as finsets.
     Used to split a collider-activation witness for `Z ∪ S` into a `Z`-side
@@ -108,8 +124,10 @@ theorem bbZAncestors_union_eq (Z S : Finset V) :
     · exact Or.inl (Or.inr hS)
     · exact Or.inr ⟨w, Or.inr hwS, haw⟩
 
-/-- If `u` is an ancestor of `v` and `u ∉ ancestralSet Z`, there is a list
-    `u = p₀, p₁, …, pₖ = v` (`k ≥ 1`) of directed edges all avoiding `Z`. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), if [one vertex is a proper
+ancestor of another](hyp:u,v,huv) and [the ancestor lies outside a conditioning set's
+ancestral closure](hyp:Z,huZ), then [a nontrivial directed walk between them avoids the
+conditioning set](goal). -/
 theorem exists_directedPath_avoiding
     {u v : V} (huv : G.isAncestor u v)
     {Z : Finset V} (huZ : u ∉ G.ancestralSet Z) :
@@ -213,11 +231,15 @@ theorem exists_directedPath_avoiding
         refine ⟨x, hvZ, ?_⟩
         exact G.isAncestor_trans h₁ (isAncestor.edge he')
 
-/-- An active path under an enlarged conditioning set can be replaced by an active path
-whose source may additionally come from the newly conditioned vertices.
+/-- In [a finite directed acyclic graph](hyp:V,G), consider [source and conditioning
+sets, a walk, and its endpoints](hyp:X,Z,S,p,x,w). If [the first endpoint belongs to the
+source set](hyp:hxX), [the walk is nontrivial](hyp:hlen), [is active under the enlarged
+conditioning set](hyp:hact), and [has the stated endpoints](hyp:hhead,hlast), then [there
+is an active walk under the original conditioning set whose source may also come from the
+newly conditioned vertices](goal).
 
-    Given an active path `p` from `x ∈ X` to `w` given `Z ∪ S`, there exists
-    an active path `p'` from some `x' ∈ X ∪ S` to `w` given `Z`.
+    Given an active walk `p` from `x ∈ X` to `w` given `Z ∪ S`, there exists
+    an active walk `p'` from some `x' ∈ X ∪ S` to `w` given `Z`.
 
     **Proof sketch.**
 
@@ -252,13 +274,13 @@ whose source may additionally come from the newly conditioned vertices.
     triples at the `m*` join, and `qTail` interior), using asymmetry of `G.edge`
     for the reversed-directed portion and maximality of `j_star` on the `qTail`
     side. -/
-theorem activePath_transfer_cond_to_source
+theorem activeWalk_transfer_cond_to_source
     {X Z S : Finset V} {p : List V} {x w : V}
     (hxX : x ∈ X) (hlen : p.length ≥ 2)
-    (hact : G.IsActivePath (Z ∪ S) p)
+    (hact : G.IsActiveWalk (Z ∪ S) p)
     (hhead : p.head? = some x) (hlast : p.getLast? = some w) :
     ∃ (x' : V) (p' : List V), x' ∈ X ∪ S ∧ p'.length ≥ 2 ∧
-      G.IsActivePath Z p' ∧ p'.head? = some x' ∧ p'.getLast? = some w := by
+      G.IsActiveWalk Z p' ∧ p'.head? = some x' ∧ p'.getLast? = some w := by
   classical
   -- Step A: Take suffix at last S-vertex. Strict interior of q has no S-vertex.
   obtain ⟨x₁, q, hx₁XS, hqlen, hqact, hqhead, hqlast, hqInterior⟩ :=
@@ -362,7 +384,7 @@ theorem activePath_transfer_cond_to_source
     -- Head s ∈ X ∪ S.
     have hs_XS : s ∈ X ∪ S := Finset.mem_union_right _ hsS
     refine ⟨s, qPrime, hs_XS, hqPrime_len, ?_, hqPrime_head, hqPrime_last⟩
-    -- The remaining goal: G.IsActivePath Z qPrime.
+    -- The remaining goal: G.IsActiveWalk Z qPrime.
     -- Structure (deferred — indices are finicky):
     --   (A) inside r.reverse (strict interior): edges are reversed-directed,
     --       so non-colliders; vertices avoid Z by hr_avoid.
@@ -383,7 +405,7 @@ theorem activePath_transfer_cond_to_source
     --   (C) inside qTail proper (indices ≥ r.length): translated triples from q at
     --       indices ≥ j_star + 2. By maximality of j_star, any collider there is
     --       in bbZAncestors Z already; non-colliders avoid Z ∪ S, hence avoid Z.
-    -- ACTIVE-PATH VERIFICATION for qPrime = r.reverse ++ q.drop (j_star + 2).
+    -- ACTIVE-WALK VERIFICATION for qPrime = r.reverse ++ q.drop (j_star + 2).
     -- Index layout: qPrime[k] = r[R-1-k] for k < R := r.length; qPrime[k] =
     -- q[j_star + 2 + (k - R)] for k ≥ R. Cases on (i vs R).
     obtain ⟨hqadj, hqcoll⟩ := hqact
@@ -650,7 +672,7 @@ theorem activePath_transfer_cond_to_source
   · -- Case A: no S-only-activated collider, q itself is active given Z.
     push_neg at hExists
     refine ⟨x₁, q, hx₁XS, hqlen, ?_, hqhead, hqlast⟩
-    apply G.isActivePath_Z_of_no_S_only_collider hqact
+    apply G.isActiveWalk_Z_of_no_S_only_collider hqact
     intro i hi hC
     exact hExists i hi hC
 
@@ -666,7 +688,7 @@ theorem activePath_transfer_cond_to_source
     a directed detour to an `S`-descendant, while blocked non-colliders
     through `S` don't arise because the suffix we keep has no `S`-interior.
 
-    Reduces to `activePath_transfer_cond_to_source` via the BFS↔active-path
+    Reduces to `activeWalk_transfer_cond_to_source` via the BFS↔active-walk
     equivalence. -/
 theorem dSep_source_to_cond {X Y Z S : Finset V}
     (hXS : Disjoint X S) (h : G.dSep (X ∪ S) Y Z) : G.dSep X Y (Z ∪ S) := by
@@ -685,15 +707,16 @@ theorem dSep_source_to_cond {X Y Z S : Finset V}
     · exact Finset.disjoint_left.mp hXUSY (Finset.mem_union_right X hvS) hvY
   · refine Disjoint.mono_left ?_ hReach
     intro w hw
-    rw [G.bbReachableVertices_iff_activePath] at hw ⊢
+    rw [G.bbReachableVertices_iff_activeWalk] at hw ⊢
     obtain ⟨x, hxX, p, hlen, hact, hhead, hlast⟩ := hw
     obtain ⟨x', p', hx'XS, hlen', hact', hhead', hlast'⟩ :=
-      G.activePath_transfer_cond_to_source (X := X) (S := S)
+      G.activeWalk_transfer_cond_to_source (X := X) (S := S)
         hxX hlen hact hhead hlast
     exact ⟨x', hx'XS, p', hlen', hact', hhead', hlast'⟩
 
-/-- If every directed edge of one graph is also an edge of another graph, every
-    ancestor relation in the first graph also holds in the second graph. -/
+/-- For [two finite directed acyclic graphs](hyp:V,G,G'), if [every edge of the first
+is an edge of the second](hyp:hEdge), then [an ancestor relation between two vertices in
+the first](hyp:u,v,h) [also holds in the second](goal). -/
 theorem isAncestor_mono_edge
     (G' : DAG V) (hEdge : ∀ u v : V, G'.edge u v → G.edge u v)
     {u v : V} (h : G'.isAncestor u v) : G.isAncestor u v := by
@@ -701,8 +724,9 @@ theorem isAncestor_mono_edge
   | edge he => exact isAncestor.edge (hEdge _ _ he)
   | trans h₁ he ih => exact isAncestor.trans ih (hEdge _ _ he)
 
-/-- Adding directed edges can only enlarge the set of vertices that are ancestors
-    of the conditioning set and can activate colliders. -/
+/-- For [two finite directed acyclic graphs](hyp:V,G,G'), if [every edge of the first
+is an edge of the second](hyp:hEdge), then for [any conditioning set](hyp:Z), [every
+collider activated in the first graph is activated in the second](goal). -/
 theorem bbZAncestors_mono_edge
     (G' : DAG V) (hEdge : ∀ u v : V, G'.edge u v → G.edge u v)
     (Z : Finset V) :
@@ -714,8 +738,9 @@ theorem bbZAncestors_mono_edge
   · exact Or.inl hvZ
   · exact Or.inr ⟨w, hwZ, G.isAncestor_mono_edge G' hEdge hvw⟩
 
-/-- If every directed edge of one graph is also an edge of another graph, vertices
-    adjacent in the first graph are also adjacent in the second graph. -/
+/-- For [two finite directed acyclic graphs](hyp:V,G,G'), if [every edge of the first
+is an edge of the second](hyp:hEdge), then [two vertices adjacent in the first
+graph](hyp:u,v,h) [are adjacent in the second graph](goal). -/
 theorem uAdj_mono_edge
     (G' : DAG V) (hEdge : ∀ u v : V, G'.edge u v → G.edge u v)
     {u v : V} (h : G'.UAdj u v) : G.UAdj u v := by
@@ -723,8 +748,10 @@ theorem uAdj_mono_edge
   · exact Or.inl (hEdge _ _ huv)
   · exact Or.inr (hEdge _ _ hvu)
 
-/-- If every edge of one graph is also an edge of another, a collider in the larger graph remains
-a collider in the smaller graph whenever its two adjacent pairs are present there. -/
+/-- For [two finite directed acyclic graphs](hyp:V,G,G'), if [every edge of the first
+is an edge of the second](hyp:hEdge), then [three vertices adjacent in consecutive pairs in
+the first graph](hyp:l,m,r,hadj_lm,hadj_mr) that [form a collider in the second](hyp:hcoll)
+[also form a collider in the first](goal). -/
 theorem isCollider_of_supergraph
     (G' : DAG V) (hEdge : ∀ u v : V, G'.edge u v → G.edge u v)
     {l m r : V} (hadj_lm : G'.UAdj l m) (hadj_mr : G'.UAdj m r)
@@ -739,12 +766,13 @@ theorem isCollider_of_supergraph
     · exact absurd (hEdge _ _ hmr') (G.asymm hrm)
     · exact hrm'
 
-/-- An active path in a graph with fewer edges remains active when those edges
-    are restored, so path witnesses transfer across graph transformations. -/
-theorem isActivePath_mono_edge
+/-- For [two finite directed acyclic graphs](hyp:V,G,G'), if [every edge of the first
+is an edge of the second](hyp:hEdge), then [a walk and conditioning set active in the first
+graph](hyp:p,Z,h) [remain active in the second graph](goal). -/
+theorem isActiveWalk_mono_edge
     (G' : DAG V) (hEdge : ∀ u v : V, G'.edge u v → G.edge u v)
     {Z : Finset V} {p : List V}
-    (h : G'.IsActivePath Z p) : G.IsActivePath Z p := by
+    (h : G'.IsActiveWalk Z p) : G.IsActiveWalk Z p := by
   obtain ⟨hadj, hcoll⟩ := h
   refine ⟨fun i hi => G.uAdj_mono_edge G' hEdge (hadj i hi), fun i hi => ?_⟩
   simp only
@@ -772,7 +800,7 @@ theorem isActivePath_mono_edge
     obtained from `G` by removing edges — and [`X` and `Y` are d-separated by `Z` in
     `G`](hyp:h), then [`X` and `Y` are also d-separated by `Z` in `G'`](goal).
 
-    **Direction.** Fewer edges can only destroy active paths, never create new
+    **Direction.** Fewer edges can only destroy active walks, never create new
     ones, so `G'`-BFS-reachability is a subset of `G`-BFS-reachability.
 
     **Usage in backdoor / Rule 3.** The split SWIG graph `G(x,z)` is a subgraph
@@ -781,11 +809,11 @@ theorem isActivePath_mono_edge
 
     **Proof.** Shows `G'.bbZAncestors Z ⊆ G.bbZAncestors Z`
     (monotonicity of `ancestorsSet` in the edge relation, i.e. fewer edges give
-    fewer ancestors) and then lifts via `bbReachableVertices_iff_activePath`:
-    any `G'`-active path is `G`-active since each `G'`-adjacency is a
+    fewer ancestors) and then lifts via `bbReachableVertices_iff_activeWalk`:
+    any `G'`-active walk is `G`-active since each `G'`-adjacency is a
     `G`-adjacency and collider activation only grows (collider activation
     requires ancestor witnesses, which are weaker in `G'`). -/
-theorem dSep_mono_conditioningSet {X Y Z : Finset V}
+theorem dSep_of_edge_subgraph {X Y Z : Finset V}
     (G' : DAG V)
     (hEdge : ∀ u v : V, G'.edge u v → G.edge u v)
     (h : G.dSep X Y Z) : G'.dSep X Y Z := by
@@ -793,19 +821,19 @@ theorem dSep_mono_conditioningSet {X Y Z : Finset V}
   refine ⟨hXY, hXZ, hYZ, ?_⟩
   refine Disjoint.mono_left ?_ hReach
   intro v hv
-  rw [G'.bbReachableVertices_iff_activePath] at hv
-  rw [G.bbReachableVertices_iff_activePath]
+  rw [G'.bbReachableVertices_iff_activeWalk] at hv
+  rw [G.bbReachableVertices_iff_activeWalk]
   obtain ⟨x, hxX, p, hlen, hact, hhead, hlast⟩ := hv
-  exact ⟨x, hxX, p, hlen, G.isActivePath_mono_edge G' hEdge hact, hhead, hlast⟩
+  exact ⟨x, hxX, p, hlen, G.isActiveWalk_mono_edge G' hEdge hact, hhead, hlast⟩
 
 /-- **d-separation is symmetric.** For [three finite vertex sets `X`, `Y`, `Z`](hyp:X,Y,Z), if
 [`X` is d-separated from `Y` given `Z`](hyp:h) then [`Y` is d-separated from `X` given
 `Z`](goal).
 
     Proof strategy: by contrapositive, using the equivalence between the BFS
-    computation and the existence of active paths. If `Y` is not d-separated
-    from `X`, there is an active path from `Y` to `X`, which reversed gives
-    an active path from `X` to `Y`, contradicting `dSep X Y Z`. -/
+    computation and the existence of active walks. If `Y` is not d-separated
+    from `X`, there is an active walk from `Y` to `X`, which reversed gives
+    an active walk from `X` to `Y`, contradicting `dSep X Y Z`. -/
 theorem dSep_symm (X Y Z : Finset V) (h : G.dSep X Y Z) :
     G.dSep Y X Z := by
   rcases h with ⟨hXY, hXZ, hYZ, hReach⟩
@@ -813,14 +841,14 @@ theorem dSep_symm (X Y Z : Finset V) (h : G.dSep X Y Z) :
   rw [Finset.disjoint_left] at hReach ⊢
   intro v hv hX
   -- v ∈ bbReachableVertices Z Y and v ∈ X
-  -- By BFS correctness, there is an active path from some y ∈ Y to v
-  rw [bbReachableVertices_iff_activePath] at hv
+  -- By BFS correctness, there is an active walk from some y ∈ Y to v
+  rw [bbReachableVertices_iff_activeWalk] at hv
   obtain ⟨y, hy, p, hlen, hact, hhead, hlast⟩ := hv
-  -- Reverse the path: active path from v to y
-  have hact' := G.isActivePath_reverse hact
-  -- y is reachable from v ∈ X via the reversed active path, so y ∈ bbReachableVertices Z X
+  -- Reverse the walk: active walk from v to y
+  have hact' := G.isActiveWalk_reverse hact
+  -- y is reachable from v ∈ X via the reversed active walk, so y ∈ bbReachableVertices Z X
   have hyReach : y ∈ G.bbReachableVertices Z X := by
-    rw [bbReachableVertices_iff_activePath]
+    rw [bbReachableVertices_iff_activeWalk]
     exact ⟨v, hX, p.reverse, by simp only [List.length_reverse]; exact hlen,
       hact', by rwa [List.head?_reverse], by rwa [List.getLast?_reverse]⟩
   -- But h says nothing in bbReachableVertices Z X is in Y, contradicting y ∈ Y
@@ -828,4 +856,4 @@ theorem dSep_symm (X Y Z : Finset V) (h : G.dSep X Y Z) :
 
 end DAG
 
-end Causalean
+end Causalean.Graph

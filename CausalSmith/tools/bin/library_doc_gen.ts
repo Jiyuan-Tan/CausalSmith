@@ -135,7 +135,28 @@ if (oneModule) {
 // the corresponding library page look complete even though it has no mathematical anchor. This
 // is deliberately a hard gate on the write/check paths used by promotion and documentation regen.
 const library = loadLibrary(root);
-const uncuratedTheoremFiles = theoremFilesWithoutCuratedAnchor(library);
+// `--blocking-paths <file>`: newline-separated repo-relative Lean paths. Files outside that set are
+// reported as advisory and do NOT fail. The study promotion gate passes the files its manifest
+// touched, so another session's uncurated file cannot fail an unrelated promotion; CI and the export
+// gate omit the flag and keep failing on every file.
+const blockingPathsFile = flag("--blocking-paths");
+const blockingPaths: Set<string> | null = blockingPathsFile
+  ? new Set(
+      readFileSync(resolve(blockingPathsFile), "utf8")
+        .split(/\r?\n/).map((line) => line.trim().replaceAll("\\", "/")).filter(Boolean),
+    )
+  : null;
+const inScope = (file: string): boolean =>
+  blockingPaths === null || blockingPaths.has(file.replaceAll("\\", "/"));
+const allUncurated = theoremFilesWithoutCuratedAnchor(library);
+const advisoryUncurated = allUncurated.filter((file) => !inScope(file));
+if (advisoryUncurated.length > 0) {
+  console.log(
+    `UNCURATED THEOREM FILES outside the scoped paths (${advisoryUncurated.length}, not blocking):\n  `
+      + advisoryUncurated.join("\n  "),
+  );
+}
+const uncuratedTheoremFiles = allUncurated.filter(inScope);
 if (uncuratedTheoremFiles.length > 0) {
   console.error(
     `UNCURATED THEOREM FILES (${uncuratedTheoremFiles.length}) — each file with public theorem/lemma declarations needs at least one matching headline_theorems entry before documentation can regenerate:\n  ` +

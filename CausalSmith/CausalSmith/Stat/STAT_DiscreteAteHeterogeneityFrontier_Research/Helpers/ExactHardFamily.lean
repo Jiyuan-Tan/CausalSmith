@@ -1,12 +1,13 @@
 /- Extracting an estimator-wise hard family from exact binary minimax risk. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ExactHomogeneityLower
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ExactHomogeneityLower
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory Set
-
-private abbrev BinObs := CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 /-- If [the sample is nonempty](hyp:_hn) and [the alphabet is nonempty](hyp:hd) and [the overlap
   constant is positive](hyp:he0) and [the overlap constant is below one half](hyp:he1) and [the

@@ -27,24 +27,27 @@ constants), the assumption-atom `def`s, the model-class structure
 No new typeclasses are introduced.
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
-import Causalean.Stat.Sample
-import Causalean.Stat.Sample.PiTransport
-import Causalean.Stat.Nonparametric.Approximation.HolderInterpolation.Defs
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Sample.PiTransport
+public import Causalean.Stat.Nonparametric.Approximation.Holder.Defs
+
+/-! ## Environment S1 — i.i.d. observational continuous-dose sampling world -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 
 open MeasureTheory
 open scoped BigOperators
-
-/-! ## Environment S1 — i.i.d. observational continuous-dose sampling world -/
 
 -- @env: S1
 /-- Observed unit `O = (Y, A, X)` with outcome `Y ∈ ℝ`, continuous treatment

@@ -44,22 +44,6 @@ function isFStage(stage: Stage): boolean {
   return STAGE_ORDER.indexOf(stage) >= STAGE_ORDER.indexOf("1");
 }
 
-function canonicalJson(value: unknown): string {
-  const sortKeys = (item: unknown): unknown => {
-    if (Array.isArray(item)) return item.map(sortKeys);
-    if (item !== null && typeof item === "object") {
-      return Object.fromEntries(
-        Object.entries(item as Record<string, unknown>)
-          .filter(([, child]) => child !== undefined)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([key, child]) => [key, sortKeys(child)]),
-      );
-    }
-    return item;
-  };
-  return JSON.stringify(sortKeys(value));
-}
-
 /** Fail closed at the discovery/formalization boundary.
  *
  * `--from-stage F1` used to override the stage cursor without proving that the

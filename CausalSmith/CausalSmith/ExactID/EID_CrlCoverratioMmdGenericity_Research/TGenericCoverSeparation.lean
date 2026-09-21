@@ -1,11 +1,12 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.AnalyticEdgePerturbation
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.GaussianRecoveryBridge
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.UniformSetIntegralContinuity
-import Mathlib.Topology.Baire.Lemmas
-import Mathlib.Topology.Neighborhoods
-import Mathlib.Topology.GDelta.Basic
-import Mathlib.Order.Cover
-import Mathlib.Topology.UniformSpace.CompactConvergence
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.AnalyticEdgePerturbation
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.GaussianRecoveryBridge
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.UniformSetIntegralContinuity
+public import Mathlib.Topology.Baire.Lemmas
+public import Mathlib.Topology.Neighborhoods
+public import Mathlib.Topology.GDelta.Basic
+public import Mathlib.Order.Cover
+public import Mathlib.Topology.UniformSpace.CompactConvergence
 
 /-!
 # Generic cover separation
@@ -13,6 +14,11 @@ import Mathlib.Topology.UniformSpace.CompactConvergence
 This file states the open-dense direct-edge result and its residual
 Gaussian-MMD ancestral-cover consequence, including the empty-graph case.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open Set MeasureTheory
 open scoped Topology
@@ -24,7 +30,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- Relabelling the canonical intervention environments does not change the latent direct-edge
 contrast after transporting the two environment indices back through the permutation.  [the stated conclusion](goal) follows. -/
 lemma canonical_secondMomentContrast_perm_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (theta : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (theta : Mechanism n G)
     (pi : Equiv.Perm (Fin n)) (j i : Fin n) :
     secondMomentContrast (canonicalObservedWorld G theta pi) (pi.symm j) (pi.symm i) =
       secondMomentContrast (canonicalObservedWorld G theta (Equiv.refl (Fin n))) j i := by
@@ -34,7 +40,7 @@ lemma canonical_secondMomentContrast_perm_eq
 /-- For each fixed direct edge, the corresponding canonical contrast-nonzero locus is dense in
 the mechanism stratum, independently of the target permutation.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma edgeContrastNonzeroSet_dense
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (pi : Equiv.Perm (Fin n)) {j i : Fin n} (hji : G.edge j i) :
     Dense {theta : StratumPoint G s |
       secondMomentContrast (canonicalObservedWorld G theta.1 pi)
@@ -65,7 +71,7 @@ lemma edgeContrastNonzeroSet_dense
 /-- The observational value coordinate is continuous on the mechanism stratum by construction of
 the induced product C² topology.  [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_p_valueCoordinate
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n} (i : Fin n) :
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n} (i : Fin n) :
     Continuous (fun theta : StratumPoint G s ↦
       UniformOnFun.ofFun {latentCube n} (theta.1.p i)) := by
   have hcoordinates : Continuous
@@ -77,7 +83,7 @@ lemma continuous_stratum_p_valueCoordinate
 /-- The intervention value coordinate is continuous on the mechanism stratum by construction of
 the induced product C² topology.  [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_q_valueCoordinate
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n} (i : Fin n) :
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n} (i : Fin n) :
     Continuous (fun theta : StratumPoint G s ↦
       UniformOnFun.ofFun {Set.Icc (0 : ℝ) 1} (theta.1.q i)) := by
   have hcoordinates : Continuous
@@ -105,7 +111,7 @@ lemma continuous_uniformFun_eval₂_of_continuous
 /-- Observational-factor evaluation is jointly continuous in a stratum mechanism and a compact
 latent state.  [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_p_eval
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n} (i : Fin n) :
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n} (i : Fin n) :
     Continuous (fun z : StratumPoint G s × {v : LatentState n // v ∈ latentCube n} ↦
       z.1.1.p i z.2.1) := by
   let F : StratumPoint G s →
@@ -123,7 +129,7 @@ lemma continuous_stratum_p_eval
 /-- Intervention-factor evaluation is jointly continuous in a stratum mechanism and a unit
 coordinate.  [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_q_eval
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n} (i : Fin n) :
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n} (i : Fin n) :
     Continuous (fun z : StratumPoint G s × {x : ℝ // x ∈ Set.Icc (0 : ℝ) 1} ↦
       z.1.1.q i z.2.1) := by
   let F : StratumPoint G s →
@@ -155,7 +161,7 @@ lemma compactCube_projection_mem (n : ℕ) (v : LatentState n) :
 /-- The compact-cube rational contrast integrand, continuously extended to the ambient latent
 space by coordinatewise projection, is jointly continuous in the mechanism and latent state.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_contrastIntegrand
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {j i : Fin n} (hji : G.edge j i) :
     Continuous (fun z : StratumPoint G s × LatentState n ↦
       let v := compactCubeInclude n (compactCubeRetract n z.2)
@@ -186,7 +192,7 @@ lemma continuous_stratum_contrastIntegrand
 /-- A canonical direct-edge second-moment contrast varies continuously with the mechanism in the
 induced relative product C² topology.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma continuous_canonical_secondMomentContrast
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (pi : Equiv.Perm (Fin n)) {j i : Fin n} (hji : G.edge j i) :
     Continuous (fun theta : StratumPoint G s ↦
       secondMomentContrast (canonicalObservedWorld G theta.1 pi)
@@ -281,7 +287,7 @@ lemma continuous_gaussianFeature : Continuous gaussianFeature := by
 /-- The observational Gaussian-embedding integrand is jointly continuous on the mechanism
 stratum and compact latent cube.  [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_observationalGaussianIntegrand
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n} (i : Fin n) :
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n} (i : Fin n) :
     Continuous (fun z : StratumPoint G s ×
         {v : LatentState n // v ∈ latentCube n} ↦
       observationalDensity z.1.1 z.2.1 •
@@ -313,7 +319,7 @@ lemma continuous_stratum_observationalGaussianIntegrand
 /-- The target-interventional Gaussian-embedding integrand is jointly continuous on the
 mechanism stratum and compact latent cube.  [the stated conclusion](goal) follows. -/
 lemma continuous_stratum_interventionalGaussianIntegrand
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n} (j i : Fin n) :
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n} (j i : Fin n) :
     Continuous (fun z : StratumPoint G s ×
         {v : LatentState n // v ∈ latentCube n} ↦
       interventionalDensity z.1.1 j z.2.1 •
@@ -344,7 +350,7 @@ lemma continuous_stratum_interventionalGaussianIntegrand
 
 /-- The canonical observational ratio-law embedding is the explicit weighted cube integral.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonical_observationalMeanEmbedding_eq_setIntegral
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (π : Equiv.Perm (Fin n)) (i : Fin n) :
     meanEmbedding gaussianFeatureMap
@@ -401,7 +407,7 @@ lemma canonical_observationalMeanEmbedding_eq_setIntegral
 
 /-- The canonical interventional ratio-law embedding is the explicit weighted cube integral.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonical_interventionalMeanEmbedding_eq_setIntegral
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (π : Equiv.Perm (Fin n)) (j i : Fin n) :
     meanEmbedding gaussianFeatureMap
@@ -472,7 +478,7 @@ lemma canonical_interventionalMeanEmbedding_eq_setIntegral
 
 /-- The canonical Gaussian population discrepancy varies continuously with the mechanism.  [the stated conclusion](goal) follows. -/
 lemma continuous_canonical_populationDiscrepancy
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     (π : Equiv.Perm (Fin n)) (j i : Fin n) :
     Continuous (fun θ : StratumPoint G s ↦
       populationDiscrepancy gaussianFeatureMap
@@ -572,7 +578,7 @@ lemma dense_biInter_finset_of_open
 
 /-- Direct-edge contrast separation is open in the stratum topology.  [the stated conclusion](goal) follows. -/
 lemma edgeSeparatedSet_isOpen
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (pi : Equiv.Perm (Fin n)) :
     IsOpen (edgeSeparatedSet (G := G) (s := s) pi) := by
   rw [isOpen_iff_mem_nhds]
@@ -605,7 +611,7 @@ lemma edgeSeparatedSet_isOpen
 
 /-- Direct-edge contrast separation is dense in the stratum topology.  [the stated conclusion](goal) follows. -/
 lemma edgeSeparatedSet_dense
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (pi : Equiv.Perm (Fin n)) :
     Dense (edgeSeparatedSet (G := G) (s := s) pi) := by
   let A : (Fin n × Fin n) → Set (StratumPoint G s) := fun ji ↦
@@ -636,7 +642,7 @@ lemma edgeSeparatedSet_dense
 
 /-- Ancestral-cover Gaussian-MMD separation is open in the mechanism stratum.  [the stated conclusion](goal) follows. -/
 lemma coverSeparatedSet_isOpen
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (π : Equiv.Perm (Fin n)) :
     IsOpen (coverSeparatedSet (G := G) (s := s) gaussianFeatureMap π) := by
   rw [isOpen_iff_mem_nhds]
@@ -665,18 +671,18 @@ lemma coverSeparatedSet_isOpen
 -- @node: ancestralCover_edge
 /-- An ancestral cover in a DAG is necessarily a direct edge.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
 lemma ancestralCover_edge
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {j i : Fin n}
+    {n : ℕ} {G : DAG (Fin n)} {j i : Fin n}
     (hji : ancestralCover G j i) : G.edge j i := by
   have hanc : G.isAncestor j i :=
     @CovBy.lt (Fin n) ⟨G.isAncestor⟩ j i hji
   rcases G.isAncestor_child hanc with hedge | ⟨k, hjk, hki⟩
   · exact hedge
-  · exact (hji.2 (Causalean.DAG.isAncestor.edge hjk) hki).elim
+  · exact (hji.2 (DAG.isAncestor.edge hjk) hki).elim
 
 -- @node: ancestralCover_false_of_no_edge
 /-- An edge-free DAG has no ancestral covers.  Given [the stated inputs and conditions](hyp:hG,hji), [the stated conclusion](goal) follows. -/
 lemma ancestralCover_false_of_no_edge
-    {n : ℕ} {G : Causalean.DAG (Fin n)}
+    {n : ℕ} {G : DAG (Fin n)}
     (hG : ∀ j i, ¬ G.edge j i) {j i : Fin n}
     (hji : ancestralCover G j i) : False := by
   exact hG j i (ancestralCover_edge hji)
@@ -684,7 +690,7 @@ lemma ancestralCover_false_of_no_edge
 -- @node: separatedSets_eq_univ_of_no_edge
 /-- Both separation conditions are vacuous for an edge-free DAG.  Given [the stated inputs and conditions](hyp:hG), [the stated conclusion](goal) follows. -/
 lemma separatedSets_eq_univ_of_no_edge
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (π : Equiv.Perm (Fin n)) (hG : ∀ j i, ¬ G.edge j i) :
     edgeSeparatedSet (G := G) (s := s) π = Set.univ ∧
       coverSeparatedSet (G := G) (s := s) gaussianFeatureMap π = Set.univ := by
@@ -713,7 +719,7 @@ lemma openDense_compl_topology
 /-- Direct-edge raw second-moment separation implies Gaussian-MMD separation on every
 ancestral cover.  [the stated conclusion](goal) follows. -/
 lemma edgeSeparated_subset_coverSeparated
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (π : Equiv.Perm (Fin n)) :
     edgeSeparatedSet (G := G) (s := s) π ⊆
       coverSeparatedSet (G := G) (s := s) gaussianFeatureMap π := by
@@ -726,7 +732,7 @@ lemma edgeSeparated_subset_coverSeparated
 /-- In every nonempty fixed-DAG sign stratum, direct-edge moment separation is open dense and
 implies an open dense residual ancestral-cover MMD region with closed nowhere-dense complement.  Given [the stated inputs and conditions](hyp:hne), [the stated conclusion](goal) follows. -/
 theorem generic_cover_separation
-    {n : ℕ} (G : Causalean.DAG (Fin n)) (s : SignVector n)
+    {n : ℕ} (G : DAG (Fin n)) (s : SignVector n)
     (π : Equiv.Perm (Fin n))
     (hne : (Set.univ : Set (StratumPoint G s)).Nonempty) :
     IsOpen (edgeSeparatedSet (G := G) (s := s) π) ∧

@@ -248,6 +248,102 @@ describe("vcs solve round", () => {
     expect(deps.calls.length).toBe(1);
   });
 
+  it("consumes a targeted directive when a landed additive corollary depends on the unchanged target", async () => {
+    await runVcsSolveRound({
+      ctx, state,
+      deps: scriptedSolver((targets) => ({ proofs: targets.map((id) => ({ id, proof_tex: "first proof" })) })),
+      round: 1,
+    });
+    const targetBefore = (await headGraph(VcsStore.at(ctx))).graph.tree["thm:main"].blob;
+    await appendEscalationLog(ctx, {
+      round: 1,
+      directive: "Add a class-transfer corollary of thm:main without rewriting thm:main.",
+      required_core_targets: ["thm:main"],
+    });
+    const deps = scriptedSolver(() => ({
+      added_lemmas: [{
+        id: "prop:class-transfer", kind: "proposition",
+        statement: "The impossibility in thm:main transfers to every class containing this model.",
+        free_symbols: [], depends_on: ["thm:main"], proof_tex: "Restrict the larger class to this model.",
+        status: "proved", justification: "Subclass counterexamples transfer upward.",
+        gap: "The broader-class consequence was unstated.", consumer: "Readers of the broader result.",
+      }],
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 2 });
+    expect(outcome.kind).toBe("clean");
+    expect(outcome.unaddressedTargets).toEqual([]);
+    expect(state.flags.d0_directives_consumed).toBe(1);
+    const { graph } = await headGraph(VcsStore.at(ctx));
+    expect(graph.tree["thm:main"].blob).toBe(targetBefore);
+    expect(deriveStatus(graph, "prop:class-transfer")).toBe("proved");
+    expect((await readCore()).statements.find((s) => s.id === "prop:class-transfer")?.depends_on).toEqual(["thm:main"]);
+  });
+
+  it("does not count an unproved dependent question as addressing a statement directive", async () => {
+    await appendEscalationLog(ctx, {
+      round: 1, directive: "Repair thm:main.", required_core_targets: ["thm:main"],
+    });
+    const deps = scriptedSolver(() => ({
+      added_lemmas: [{
+        id: "oeq:fake", kind: "openendedquestion", statement: "Can thm:main be repaired?",
+        free_symbols: [], depends_on: ["thm:main"], status: "to-prove",
+        justification: "Unknown.", gap: "The directive remains open.", consumer: "Future work.",
+      }],
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
+    expect(outcome.unaddressedTargets).toEqual(["thm:main"]);
+  });
+
+  it("does not count a proved dependent as addressing an open target", async () => {
+    await appendEscalationLog(ctx, {
+      round: 1, directive: "Prove thm:main.", required_core_targets: ["thm:main"],
+    });
+    const deps = scriptedSolver(() => ({
+      added_lemmas: [{
+        id: "lem:dependent", kind: "lemma", statement: "A consequence of thm:main.",
+        free_symbols: [], depends_on: ["thm:main"], proof_tex: "By thm:main.",
+        status: "proved", justification: "A consequence.", gap: "None.", consumer: "Readers.",
+      }],
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
+    expect(outcome.unaddressedTargets).toEqual(["thm:main"]);
+  });
+
+  it("does not count a deprecated conjecture as an additive directive receipt", async () => {
+    await runVcsSolveRound({
+      ctx, state,
+      deps: scriptedSolver((targets) => ({ proofs: targets.map((id) => ({ id, proof_tex: "first proof" })) })),
+      round: 1,
+    });
+    await appendEscalationLog(ctx, {
+      round: 1, directive: "Extend thm:main.", required_core_targets: ["thm:main"],
+    });
+    const deps = scriptedSolver(() => ({
+      added_lemmas: [{
+        id: "conj:legacy", kind: "conjecture", statement: "A conjectural extension of thm:main.",
+        free_symbols: [], depends_on: ["thm:main"], proof_tex: "A purported proof.",
+        status: "proved", justification: "Legacy only.", gap: "None.", consumer: "Readers.",
+      }],
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 2 });
+    expect(outcome.unaddressedTargets).toEqual(["thm:main"]);
+  });
+
+  it("does not let an added dependent statement substitute for a directed definition edit", async () => {
+    await appendEscalationLog(ctx, {
+      round: 1, directive: "Correct def:class.", required_core_targets: ["def:class"],
+    });
+    const deps = scriptedSolver(() => ({
+      added_lemmas: [{
+        id: "lem:class-fact", kind: "lemma", statement: "A fact about def:class.",
+        free_symbols: [], depends_on: ["def:class"], proof_tex: "Immediate from def:class.",
+        status: "proved", justification: "A consequence.", gap: "None.", consumer: "Readers.",
+      }],
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 1 });
+    expect(outcome.unaddressedTargets).toEqual(["def:class"]);
+  });
+
   it("recognizes a directed definition as an existing graph target", async () => {
     await appendEscalationLog(ctx, {
       round: 1, directive: "Correct the class definition.", required_core_targets: ["def:class"],
@@ -263,7 +359,33 @@ describe("vcs solve round", () => {
     expect(outcome.kind).toBe("pr-open");
     expect(outcome.message).not.toMatch(/not in the graph/);
     expect(outcome.unaddressedTargets).toEqual([]);
+    expect(deps.calls).toEqual([["def:class"]]);
     expect(outcome.pr?.approval.map((a) => a.id)).toContain("def:class");
+  });
+
+  it("dispatches a directed definition together with statement targets", async () => {
+    await runVcsSolveRound({
+      ctx, state,
+      deps: scriptedSolver((targets) => ({ proofs: targets.filter((id) => id.startsWith("lem:") || id.startsWith("thm:")).map((id) => ({ id, proof_tex: "first proof" })) })),
+      round: 1,
+    });
+    await appendEscalationLog(ctx, {
+      round: 1,
+      directive: "Correct the definition and revalidate its consumer.",
+      required_core_targets: ["def:class", "lem:helper"],
+    });
+    const deps = scriptedSolver((targets) => ({
+      proofs: targets.filter((id) => id === "lem:helper").map((id) => ({ id, proof_tex: "revalidated proof" })),
+      proposed_definition_changes: targets.includes("def:class") ? [{
+        id: "def:class", current: "$\\{P : \\text{ass:overlap holds}\\}$",
+        proposed: "$\\{P : \\text{ass:overlap holds uniformly}\\}$",
+        reason: "make the intended uniformity explicit", direction: "correct",
+      }] : [],
+    }));
+    const outcome = await runVcsSolveRound({ ctx, state, deps, round: 2 });
+    expect(deps.calls).toEqual([["lem:helper", "def:class"]]);
+    expect(outcome.unaddressedTargets).toEqual([]);
+    expect(outcome.pr?.approval.map((item) => item.id)).toContain("def:class");
   });
 
   it("recognizes metadata aliases and requires their exact typed output channel", async () => {

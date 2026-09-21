@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Measure.WithDensityFinite
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Function.AEEqOfIntegral
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.NormNum
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Ring
+module
+public import Mathlib.MeasureTheory.Measure.WithDensityFinite
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Function.AEEqOfIntegral
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.NormNum
+public import Mathlib.Tactic.Positivity
+public import Mathlib.Tactic.Ring
 
 /-!
 # Recovery from set integrals
@@ -18,6 +19,8 @@ import Mathlib.Tactic.Ring
 This file recovers either a weighted measure or an almost-everywhere pointwise bound from
 identities and inequalities known for every measurable set integral.
 -/
+
+public section
 
 open MeasureTheory
 open scoped ENNReal

@@ -4,16 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased
-import Causalean.Experimentation.Sequential
-import Causalean.Experimentation.ExposureMappingInterference
-import Causalean.Experimentation.TwoStageInterference
-import Causalean.Experimentation.UnknownInterference
-import Causalean.Experimentation.MatchedPairDesign
-import Causalean.Experimentation.BettingMean
-import Causalean.Experimentation.ClusterRandomizedHT
-import Causalean.Experimentation.FinitePopulationMoments
-import Causalean.Experimentation.SuperPopulation
+module
+public import Causalean.Experimentation.BettingMean
+public import Causalean.Experimentation.ClusterRandomizedHT
+public import Causalean.Experimentation.DesignBased
+public import Causalean.Experimentation.ExposureMappingInterference
+public import Causalean.Experimentation.FinitePopulationMoments
+public import Causalean.Experimentation.MatchedPairDesign
+public import Causalean.Experimentation.Sequential
+public import Causalean.Experimentation.SuperPopulation
+public import Causalean.Experimentation.TwoStageInterference
+public import Causalean.Experimentation.UnknownInterference
 
 /-!
 # Experimentation — randomization, sequential, and network inference
@@ -35,8 +36,8 @@ attribution in their own docstrings.
   formalizing Hudgens & Halloran (2008) and Liu & Hudgens (2014).
 * `UnknownInterference` — Bernoulli-design EATE estimation under unknown interference, formalizing
   the core of Sävje, Aronow & Hudgens (2021).
-* `MatchedPairDesign` — matched-pair randomized trials, formalizing the design-based optimality
-  results from Bai (2022).
+* `MatchedPairDesign` — a fixed-pair randomized design, its difference-in-means estimator,
+  unbiasedness, and an exact design-based variance formula, following the setup of Bai (2022).
 * `BettingMean` — betting confidence sequences for bounded means, after Waudby-Smith & Ramdas
   (2024), as a worked application of the anytime-valid substrate.
 * `ClusterRandomizedHT` — Horvitz–Thompson estimation for cluster-randomized experiments,

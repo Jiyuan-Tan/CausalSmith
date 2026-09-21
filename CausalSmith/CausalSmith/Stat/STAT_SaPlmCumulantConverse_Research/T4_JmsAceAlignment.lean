@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T3_AdaptiveRootNMinimax
-import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T3_AdaptiveRootNMinimax
+public import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
 
 /-!
 # Alignment with the published finite-order ACE class
 -/
+
+@[expose] public section
 
 noncomputable section
 

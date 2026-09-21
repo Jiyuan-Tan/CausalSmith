@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-! A reusable two-model testing lower bound for the observed minimax problem. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

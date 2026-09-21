@@ -1,4 +1,7 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TDenseProjectionLimit
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TDenseProjectionLimit
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter Finset

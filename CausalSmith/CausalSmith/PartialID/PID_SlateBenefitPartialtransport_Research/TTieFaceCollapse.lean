@@ -1,5 +1,6 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TCapacityIdentification
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TCapacityIdentification
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
 
 /-!
 # Observable tie-face collapse
@@ -7,6 +8,8 @@ import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.T
 At zero selected-complier selection gap, the exact-row, exact-column, and
 fixed-marginal transport faces coincide, together with all cut formulas.
 -/
+
+public section
 
 open Causalean PO MeasureTheory Set
 

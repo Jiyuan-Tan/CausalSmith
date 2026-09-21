@@ -9,10 +9,10 @@ Shared helpers for adoption paths encoded as `WithTop (Fin T)`, where `⊤`
 represents the never-treated path.
 -/
 
-import Mathlib.Data.Fin.Basic
-import Mathlib.Data.Real.Basic
-import Mathlib.Order.WithBot
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Causal
+module
+public import Mathlib.Data.Fin.Basic
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Order.WithBot
 
 /-! # Adoption Path Helpers
 
@@ -26,11 +26,11 @@ These paper-agnostic helpers are shared by staggered-adoption modules:
 Sun-Abraham path helpers wrap these declarations, and Goodman-Bacon uses the
 same raw infinite-date encoding for proof stability. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Panel
 namespace AdoptionPath
-
-open Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.CausalAssumptions
 
 /-- [For a panel with a finite horizon of $T$ periods](hyp:T) and [a finite adoption period $g$](hyp:g), [the finite adoption path](goal) is the path whose adoption date is $g$, rather than the never-treated date. -/
 def finite {T : ℕ} (g : Fin T) : WithTop (Fin T) :=
@@ -110,13 +110,16 @@ period, and zero otherwise](goal). -/
 
 /-- If `t < A`, then adoption has not occurred by `t`. -/
 theorem not_le_of_lt {T : ℕ} {a : WithTop (Fin T)} {t : Fin T}
-    (hlt : lt a t) : ¬ le a t :=
-  AdoptionDate.not_le_of_lt hlt
+    (hlt : lt a t) : ¬ le a t := by
+  cases a <;> simp [lt, le] at *
+  exact hlt
 
 /-- Never-treated paths are untreated in every finite period. -/
 theorem lt_of_isInfinite {T : ℕ} {a : WithTop (Fin T)} {t : Fin T}
-    (ha : isInfinite a) : lt a t :=
-  AdoptionDate.lt_of_isInf ha
+    (ha : isInfinite a) : lt a t := by
+  unfold isInfinite lt at *
+  rw [ha]
+  exact WithTop.coe_lt_top t
 
 end AdoptionPath
 end Panel

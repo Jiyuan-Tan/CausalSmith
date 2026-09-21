@@ -5,9 +5,9 @@ Authors: Jiyuan Tan
 
 # Monolithic Split operation on SWIG graphs (multi-target, one-shot)
 
-This file defines a *monolithic* multi-target split operation on SWIG graphs,
-realizing Definition 8 (multi-target generalized intervention) as a single
-one-shot graph construction rather than an iterated single-target split.
+This file defines a *monolithic* multi-target split operation on SWIG graphs as
+a single one-shot graph construction rather than an iterated single-target
+split.
 
 ## Motivation
 
@@ -32,12 +32,12 @@ that are not targeted, eliminating the list-induction cast threading.
 * `SWIGGraph.splitMono_parents_eq_of_no_fixed_parent` — key lemma:
   under "no `.fixed D` (D ∈ X) is a parent of v", parents collapse to `G.dag.parents v`.
 
-## References
-
-* Basic Concepts.tex, Definition 8 (multi-target generalized intervention).
+This is a library construction; the current Basic Concepts graphical-definitions
+note does not contain the previously cited multi-target split definition.
 -/
 
-import Causalean.Graph.SWIG
+module
+public import Causalean.Graph.SWIG
 
 /-! # Monolithic Multi-Target SWIG Split
 
@@ -62,7 +62,9 @@ The operation is monolithic rather than an iterated single-target split so that
 parents at unaffected vertices reduce definitionally in downstream SCM
 bookkeeping. -/
 
-namespace Causalean
+@[expose] public section
+
+namespace Causalean.Graph
 
 namespace SWIGGraph
 
@@ -81,7 +83,6 @@ its original outgoing edges](step:2).
 
     Edge relation after monolithically splitting every node `D ∈ X`.
 
-    From Definition 8 (multi-target generalized intervention):
     For every `D ∈ X`, each outgoing edge `(random D, w)` is replaced by
     `(fixed D, w)`; incoming edges to `random D` are retained; all other edges
     unchanged.
@@ -154,7 +155,7 @@ def splitMonoDAG (G : SWIGGraph N) (X : Finset N) :
     DAG (SWIGNode N) where
   edge := splitMonoEdgeRel G.dag.edge X
   decEdge := splitMonoEdgeRel_decidable G.dag.edge X
-  acyclic := DAG.acyclic_of_topoOrder (τ := splitMonoTopo G X) (by
+  acyclic := DAG.acyclic_of_topoOrder (r := (· < ·)) (τ := splitMonoTopo G X) (by
     intro u v h
     cases u with
     | random u =>
@@ -236,7 +237,7 @@ is obtained by rerouting every outgoing edge of each selected random copy to lea
 fixed copy, while adding those fixed copies to the fixed vertices and retaining the observed and
 unobserved vertices.
 
-    **Monolithic multi-target split.** (Definition 8, one-shot form.)
+    **Monolithic multi-target split.**
 
     Given `G : SWIGGraph N` and `X : Finset N` with
     - `hObs : ∀ D ∈ X, .random D ∈ G.observed`
@@ -677,4 +678,4 @@ theorem Equivalent.splitMono_congr
 
 end SWIGGraph
 
-end Causalean
+end Causalean.Graph

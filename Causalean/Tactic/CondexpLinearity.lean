@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Tactic.Attr
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.Tactic.FunProp
+
+module
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import Mathlib.Tactic.FunProp
 
 /-!
 # The `condexp_linearity` tactic
@@ -66,6 +68,8 @@ one the right-hand side states.
 There is deliberately no `condexp_linearity?` variant: the tactic performs no lemma search —
 the right-hand side determines the chain uniquely — so there is no choice to report.
 -/
+
+@[expose] public section
 
 open Lean Lean.Meta Lean.Elab Lean.Elab.Tactic
 open MeasureTheory Filter
@@ -138,33 +142,33 @@ private structure Ctx where
   /-- The measure. -/
   μ : Expr
 
-private def Ctx.condExpOf (ctx : Ctx) (f : Expr) : Expr := mkApp ctx.condExpFn f
+private meta def Ctx.condExpOf (ctx : Ctx) (f : Expr) : Expr := mkApp ctx.condExpFn f
 
-private def Ctx.eqOf (ctx : Ctx) (a b : Expr) : Expr := mkApp2 ctx.eqFn a b
+private meta def Ctx.eqOf (ctx : Ctx) (a b : Expr) : Expr := mkApp2 ctx.eqFn a b
 
 /-- Eta-expand a function-valued term to a one-binder lambda, so that pointwise-written and
 function-level-written expressions can be matched by the same code. -/
-private def etaExpand1 (e : Expr) : MetaM Expr := do
+private meta def etaExpand1 (e : Expr) : MetaM Expr := do
   if e.isLambda then return e
   match ← whnf (← inferType e) with
   | .forallE n d _ bi => withLocalDecl n bi d fun x => do mkLambdaFVars #[x] (mkApp e x)
   | _ => return e
 
 /-- The two operands of a head application of the binary operation `op`, if `e` is one. -/
-private def headBin (e₀ : Expr) (op : Name) : Option (Expr × Expr) :=
+private meta def headBin (e₀ : Expr) (op : Name) : Option (Expr × Expr) :=
   let e := e₀.consumeMData
   let args := e.getAppArgs
   if e.isAppOf op && args.size == 6 then some (args[4]!, args[5]!) else none
 
 /-- The operand of a head application of `Neg.neg`, if `e` is one. -/
-private def headNeg (e₀ : Expr) : Option Expr :=
+private meta def headNeg (e₀ : Expr) : Option Expr :=
   let e := e₀.consumeMData
   let args := e.getAppArgs
   if e.isAppOf ``Neg.neg && args.size == 3 then some args[2]! else none
 
 /-- Run `k` on `e`, and if it does not match, once more on `e`'s weak-head normal form. A
 `set`-introduced abbreviation for the integrand is thereby seen through. -/
-private def withDelta {β : Type} (e₀ : Expr) (k : Expr → MetaM (Option β)) :
+private meta def withDelta {β : Type} (e₀ : Expr) (k : Expr → MetaM (Option β)) :
     MetaM (Option β) := do
   let e := (← instantiateMVars e₀).consumeMData
   if let some r ← k e then return some r
@@ -173,7 +177,7 @@ private def withDelta {β : Type} (e₀ : Expr) (k : Expr → MetaM (Option β))
 
 /-- Split `e` as `f₁ op f₂` for `op` one of `HAdd.hAdd`/`HSub.hSub`, whether it is written at
 the function level (`f₁ + f₂`) or pointwise (`fun x => f₁ x + f₂ x`). -/
-private def splitBin (e : Expr) (op : Name) : MetaM (Option (Expr × Expr)) :=
+private meta def splitBin (e : Expr) (op : Name) : MetaM (Option (Expr × Expr)) :=
   withDelta e fun e => do
     if let some r := headBin e op then return some r
     let e' ← etaExpand1 e
@@ -184,7 +188,7 @@ private def splitBin (e : Expr) (op : Name) : MetaM (Option (Expr × Expr)) :=
       | none => return none
 
 /-- Split `e` as `-f`, written either at the function level or pointwise. -/
-private def splitNeg (e : Expr) : MetaM (Option Expr) :=
+private meta def splitNeg (e : Expr) : MetaM (Option Expr) :=
   withDelta e fun e => do
     if let some r := headNeg e then return some r
     let e' ← etaExpand1 e
@@ -196,7 +200,7 @@ private def splitNeg (e : Expr) : MetaM (Option Expr) :=
 
 /-- Split `e` as `c • f` with the scalar `c` independent of the point, written either at the
 function level or pointwise. -/
-private def splitSMul (e : Expr) : MetaM (Option (Expr × Expr)) :=
+private meta def splitSMul (e : Expr) : MetaM (Option (Expr × Expr)) :=
   withDelta e fun e => do
     if let some r := headBin e ``HSMul.hSMul then return some r
     let e' ← etaExpand1 e
@@ -209,7 +213,7 @@ private def splitSMul (e : Expr) : MetaM (Option (Expr × Expr)) :=
       | none => return none
 
 /-- The constant value of `e`, if `e` is a function that ignores its argument. -/
-private def constValue (e : Expr) : MetaM (Option Expr) := do
+private meta def constValue (e : Expr) : MetaM (Option Expr) := do
   let e' ← etaExpand1 (← instantiateMVars e).consumeMData
   unless e'.isLambda do return none
   lambdaBoundedTelescope e' 1 fun xs body => do
@@ -218,7 +222,7 @@ private def constValue (e : Expr) : MetaM (Option Expr) := do
 /-- Try to prove `goalType` with `tac`, returning the proof term on success and restoring the
 tactic state on failure. Used for the tactic's side conditions, which must never leak into
 the user's goal list. -/
-private def trySide (goalType : Expr) (tac : TSyntax `tactic) : TacticM (Option Expr) := do
+private meta def trySide (goalType : Expr) (tac : TSyntax `tactic) : TacticM (Option Expr) := do
   let mv ← mkFreshExprMVar goalType
   let s ← saveState
   try
@@ -231,7 +235,7 @@ private def trySide (goalType : Expr) (tac : TSyntax `tactic) : TacticM (Option 
   catch _ => s.restore; return none
 
 /-- Prove `Integrable f μ`, or fail with a message naming `f`. -/
-private def dischargeIntegrable (ctx : Ctx) (f : Expr) : TacticM Expr := do
+private meta def dischargeIntegrable (ctx : Ctx) (f : Expr) : TacticM Expr := do
   let ty ← mkAppM ``MeasureTheory.Integrable #[f, ctx.μ]
   match ← trySide ty (← `(tactic| first | assumption | fun_prop)) with
   | some pf => return pf
@@ -247,7 +251,7 @@ Each constructor of `rhs` (`+`, `-`, `-·`, `•`) consumes the matching constru
 integrand `f` through the corresponding Mathlib lemma and recurses; a leaf is discharged by
 reflexivity or, for a constant integrand, by `condExp_const`. Throws — never returns a
 partial result — when `f` does not have the shape `rhs` asks for. -/
-private partial def build (ctx : Ctx) (f rhs : Expr) : TacticM Expr := do
+private meta partial def build (ctx : Ctx) (f rhs : Expr) : TacticM Expr := do
   let rhs := (← instantiateMVars rhs).consumeMData
   let expected := ctx.eqOf (ctx.condExpOf f) rhs
   -- difference
@@ -314,7 +318,7 @@ where
 
 /-- Decompose an application of `MeasureTheory.condExp` into its ambient data and the
 integrand. -/
-private def asCondExp (eqFn l e₀ : Expr) : Option (Ctx × Expr) := do
+private meta def asCondExp (eqFn l e₀ : Expr) : Option (Ctx × Expr) := do
   let e := e₀.consumeMData
   let args := e.getAppArgs
   guard (e.isAppOf ``MeasureTheory.condExp && args.size == 8)

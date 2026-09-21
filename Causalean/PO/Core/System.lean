@@ -10,8 +10,9 @@ a graph-free tuple `(V, {X_v}, Ω, μ, {v(r)})` together with the derived
 world-eval map and the PO operator (pushforward).
 -/
 
-import Causalean.Tactic.Attr
-import Causalean.PO.Core.Regime
+module
+public import Causalean.Tactic.Attr
+public import Causalean.PO.Core.Regime
 
 /-! # Potential Outcome Systems
 
@@ -19,6 +20,10 @@ This file defines a graph-free potential-outcome system, its coordinate-level
 potential outcomes, subset-valued potential outcomes, and the induced
 pushforward law of a subset under a regime. These are the base objects used by
 the counterfactual and identification layers of the library. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 namespace PO

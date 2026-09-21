@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.ThreeBlockMarginals
+module
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.ThreeBlockMarginals
 
 /-!
 # Three-block conditional-density factorization
@@ -7,6 +8,8 @@ This module isolates the generic three-block bridge used by the four-block inter
 It separates the conditional-independence argument from the purely density-theoretic conversion
 between a cross-multiplication identity and a measurable product factorization.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

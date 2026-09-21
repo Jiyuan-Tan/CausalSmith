@@ -1,0 +1,95 @@
+%%% FIELD proof-qbf-compiler-audit
+Put \(F=\neg\Phi\), write \(N\) for the number of occurrences of existential literals in \(F\), and index these occurrences by \(o\).  By \(\textnormal{def:qbf-compiler}\), the budget is
+\[
+B=N,
+\]
+and occurrence \(o\) has two distinct eligible proxy vertices \(p_o^0,p_o^1\).  Before selector isolation, its pair-test module is the path
+\[
+T-p_o^0-p_o^1-Y. \tag{1}
+\]
+If \(o,o'\) are consecutive occurrences of the same existential variable, its two consistency modules are
+\[
+T-p_o^0-p_{o'}^1-Y
+\qquad\hbox{and}\qquad
+T-p_o^1-p_{o'}^0-Y. \tag{2}
+\]
+The formula module is the series composition of the clause blocks of the \(3\)-CNF \(F\), and each clause block is the parallel composition of its at most three literal branches.  The branch of a positive existential occurrence \(o\) contains \(p_o^1\), the branch of a negative existential occurrence contains \(p_o^0\), and a branch for a universal literal contains an edge guarded by precisely the value of the corresponding universal coordinate that makes that literal true.  These are exactly the occurrence-pair, consistency-test, and clause-chain objects named in \(\textnormal{def:qbf-compiler}\).
+
+We first verify selector isolation.  Let \(M\) be the number of pair-test, consistency, and formula modules.  There is one pair-test module per occurrence, at most two consistency modules per consecutive pair of copies, and one formula module, so
+\[
+M\le N+2N+1=O(L). \tag{3}
+\]
+Assign the modules distinct selector words \(\sigma(m)\in\mathbb B^q\), where \(q=\lceil\log_2\max\{M,2\}\rceil\).  As prescribed by \(\textnormal{def:qbf-compiler}\), replace each edge \(u-v\) of module \(m\) by a path whose internal vertices are private to that edge and whose successive edges include one edge guarded by
+\[
+h_{s_\ell}=\sigma(m)_\ell,
+\qquad 1\le \ell\le q. \tag{4}
+\]
+For a universal-literal edge, append the guard for the satisfying value of its universal coordinate.  Every guard in (4), and every appended literal guard, has the form \(\lambda(e)=(r,s)\); hence it is a permitted binary equality guard, while the opposite sign is its permitted complement copy.
+
+Fix a completion \(h\).  A replacement path belonging to \(m\) connects its two original endpoints only if every equality in (4) holds, that is, only if the selector part of \(h\) equals \(\sigma(m)\); for a universal branch, its additional literal guard must also hold.  If the selector word is not \(\sigma(m)\), at least one edge of every such replacement path is absent.  Each connected piece of that path then contains at most one original endpoint, because all its internal vertices are private.  Thus an inactive replacement path adds only components attached to at most one original endpoint and cannot create connectivity between distinct original vertices.  Different inactive paths meet only at original endpoints, so suppressing the active replacement paths and deleting these one-ended pieces leaves exactly the uniquely selected module, or leaves no module when the selector word is unused.  This proves both selector isolation and the absence of a path assembled from different inactive modules.  Notice also that the restriction of \(h\) to the universal coordinates is a unique assignment \(z\in\mathbb B^Z\).
+
+We next prove budget saturation.  Let \(K_0\subseteq W\) satisfy \(|K_0|\le B=N\) and disconnect \(T\) and \(Y\) for every completion.  For each occurrence \(o\), choose a completion whose selector word activates the pair-test module of \(o\).  After suppressing its active replacement paths, the residual graph contains (1).  Therefore \(K_0\) must contain at least one nonterminal vertex on the selector-expanded version of (1).  The nonterminal vertex sets of these \(N\) expanded pair tests are pairwise disjoint: the two occurrence endpoints are private to the occurrence pair, and every subdivision vertex is private to its original edge.  Consequently
+\[
+|K_0|\ge \sum_o 1=N. \tag{5}
+\]
+Together with \(|K_0|\le N\), equation (5) shows that \(|K_0|=N\), that \(K_0\) contains exactly one vertex from each expanded pair test, and that it contains no vertex outside those pair tests.  In particular, every auxiliary chosen by \(K_0\) is a private subdivision vertex of one pair-test path; clause, consistency, and other selector auxiliaries cannot be chosen by a budget-feasible robust cut.
+
+Suppose the unique vertex of \(K_0\) on the expanded pair test for \(o\) is a private subdivision vertex \(v\).  Restore \(v\) and delete either one of the two as-yet-undeleted endpoints \(p_o^0,p_o^1\).  In the completion selecting that pair test, deletion of this endpoint breaks (1).  In every other completion, the pair-test module is inactive.  Restoring \(v\) cannot then connect the two original endpoints of any replacement path, because at least one selector-guarded edge remains absent; it can only enlarge a one-ended private piece.  Deleting an occurrence endpoint only removes further paths.  Selector isolation therefore implies that this replacement cannot create a \(T\)-to-\(Y\) path in any completion.  Iterating in occurrence order is the map \(\rho\) of \(\textnormal{def:auxiliary-rounding-map}\), and yields
+\[
+|\rho(K_0)|=N=|K_0|, \qquad
+|\rho(K_0)|\le |K_0|, \tag{6}
+\]
+with exactly one occurrence endpoint deleted for each \(o\), no auxiliary deleted, and separation preserved completion by completion.  This proves the stated rounding property (including the weaker inequality needed when the map is applied after redundant vertices have first been discarded).
+
+For the rounded cut, define \(x_o\in\{0,1\}\) to be the label of the endpoint that remains: \(p_o^{x_o}\notin\rho(K_0)\).  For consecutive copies \(o,o'\), the first path in (2) survives exactly when
+\[
+(x_o,x_{o'})=(0,1), \tag{7}
+\]
+and the second survives exactly when
+\[
+(x_o,x_{o'})=(1,0). \tag{8}
+\]
+Because completions separately activate both consistency modules, robust separation forbids both (7) and (8).  Hence \(x_o=x_{o'}\).  Conversely, equality cuts both paths in (2).  Applying this argument along the chain of consecutive occurrences shows that all copies of each existential variable have one common value.  Thus a rounded robust cut determines an assignment \(x\in\mathbb B^X\), and every such assignment determines the occurrence-endpoint cut
+\[
+J_x=\{p_o^{,1-x_o}:o\text{ is an existential occurrence}\},
+\qquad |J_x|=N=B. \tag{9}
+\]
+
+Fix \(x\) and a universal assignment \(z\).  In the completion selecting the formula module and having universal coordinates \(z\), a positive existential branch for \(o\) survives precisely when \(x_o=1\), and a negative existential branch survives precisely when \(x_o=0\).  A universal branch survives precisely when its literal is true under \(z\), by its appended guard.  Therefore each literal branch survives exactly when that literal is true under \((x,z)\).  Parallel composition gives
+\[
+\text{clause block }C\text{ connects its boundaries}
+\quad\Longleftrightarrow\quad C(x,z)=1, \tag{10}
+\]
+and series composition of all clause blocks gives
+\[
+T\text{ and }Y\text{ are connected in the active formula module after deleting }J_x
+\quad\Longleftrightarrow\quad F(x,z)=1. \tag{11}
+\]
+The occurrence vertices used by different literal occurrences are distinct, so no identification of copies introduces a bypass in (10)--(11).
+
+If a robust cut exists, (5)--(9) produce an assignment \(x\).  Robust separation in every formula completion and (11) imply
+\[
+\forall z\in\mathbb B^Z,\quad F(x,z)=0.
+\]
+Since \(F=\neg\Phi\), this is \(\forall z\,\Phi(x,z)=1\), and hence \(\exists x\,\forall z\,\Phi(x,z)=1\).  Conversely, suppose \(\exists x\,\forall z\,\Phi(x,z)=1\) and take \(J_x\) from (9).  It cuts every pair-test module by construction; equality of all copies of a variable cuts both consistency modules by (7)--(8); and \(F(x,z)=0\) for every \(z\), so (11) cuts every formula completion.  Unused selector words activate no module.  Thus \(J_x\) disconnects \(T\) and \(Y\) for every \(h\).  By \(\textnormal{def:robust-design-language}\), this proves
+\[
+\exists X\,\forall Z\,\Phi(X,Z)
+\quad\Longleftrightarrow\quad
+\exists J\subseteq W\ \bigl[|J|\le B\ \wedge\ \forall h,\ T\not\sim_{H_h-J}Y\bigr]
+\quad\Longleftrightarrow\quad
+\mathcal C(\Phi)\in\mathsf{RSJID}. \tag{12}
+\]
+
+It remains to audit the encoding and degree promises.  The unexpanded construction has \(O(L)\) vertices and edges.  Equations (3)--(4) replace every edge by \(O(\log(L+2))\) edges and vertices, so the explicit vertex, edge, and guard tables have \(O(L\log(L+2))\) rows.  Each of the \(q=O(\log(L+2))\) selector coordinates is used on \(O(L)\) guarded edges.  If \(n_r\) is the number of guarded edges using universal coordinate \(r\), then \(\sum_r n_r=O(L)\), because there is only one appended universal guard per universal-literal branch; hence \(\sum_r n_r^2\le(\sum_r n_r)^2=O(L^2)\).  The selector coordinates contribute \(O(L^2\log(L+2))\) equal-or-complement pairs, and the universal coordinates contribute \(O(L^2)\).  Consequently the explicitly induced equality-or-complement pair table has
+\[
+O\bigl(L^2\log(L+2)\bigr) \tag{13}
+\]
+rows.  Every index and every row needs \(O(\log(L+2))\) bits.  Thus the canonical length-prefixed encoding in \(\textnormal{def:robust-design-language}\) has length
+\[
+O\bigl(L^2\log^2(L+2)\bigr). \tag{14}
+\]
+The occurrence lists, consecutive-copy lists, module tags, guard table, and induced relation table are generated by polynomially many indexed scans, so the compiler runs in polynomial time.  Degenerate constant formulas and variables having no occurrence may be removed, or mapped directly to the corresponding constant yes- or no-instance, in polynomial time without changing (12).
+
+All nonterminals are eligible binary proxies and have cost one; \(T\) and \(Y\) are the singleton terminals.  In the union graph, an occurrence endpoint has degree at most two in its pair test, at most four over the predecessor and successor consistency paths, and two in its literal branch, for total degree at most eight.  A clause junction has degree at most six, and a private subdivision vertex has degree two.  Replacing an edge by a path does not increase the degree of an original endpoint.  Deleting guarded edges in a completion cannot increase degree, so every nonterminal has completion-wise bidirected degree at most eight.  The terminals alone may have unbounded degree.  Every switch is binary and every guarded edge uses only an equality or complement copy.  The selector and universal coordinates can occur on \(O(L)\) guarded edges, so the construction correctly makes no encoding-independent guard-fanout claim.  Equations (12)--(14), the degree count, and the rounding argument establish every assertion of the lemma.
+%%% FIELD statement-qbf-compiler-audit
+For every \(\Phi\in\operatorname{3DNF}(X,Z)\), the compiler \(\mathcal C\) runs in polynomial time and emits a valid instance string \(\mathbf i=\mathcal C(\Phi)\) of length \(O(L^2\log^2(L+2))\) satisfying the encoded unit-cost, singleton-terminal, binary two-mode, equality-or-complement, and nonterminal-degree-eight restrictions; no bound is asserted on the number of guarded-edge copies using one switch coordinate. Its occurrence-pair tests force every budget-\(B\) robust cut to spend exactly one vertex per existential occurrence; its consecutive-copy consistency paths make these choices encode one assignment \(x\in\mathbb B^X\); its universal guards make every switch assignment encode one \(z\in\mathbb B^Z\); and selector isolation ensures that a residual \(T\)-to-\(Y\) path exists exactly when a clause chain for \(\neg\Phi(x,z)\) survives, with no inactive-module bypass. For every auxiliary-inclusive budget-feasible robust cut \(K\), \(\rho(K)\) is an occurrence-endpoint cut with \(|\rho(K)|\le |K|\) and no weaker completion-wise separation. Consequently, \(\exists X\,\forall Z\,\Phi(X,Z)\) holds if and only if some \(J\subseteq W\) with \(|J|\le B\) disconnects \(T\) and \(Y\) in every \(H_h-J\), equivalently if and only if \(\mathcal C(\Phi)\in\mathsf{RSJID}\).

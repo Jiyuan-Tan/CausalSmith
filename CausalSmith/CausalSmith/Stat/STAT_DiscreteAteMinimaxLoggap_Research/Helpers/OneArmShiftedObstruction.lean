@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmApproximation
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmApproximation
 
 /-!
 # Shifted-pole three-point obstruction
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmApp
 The rational pole may be a positive fraction `κ` of the smallest grid node.
 This is the version needed for every overlap level below one half.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

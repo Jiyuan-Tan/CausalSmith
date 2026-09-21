@@ -4,20 +4,21 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Algebra.Order.Field.Rat
-import Mathlib.Algebra.Order.Field.Basic
-import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Data.Fin.VecNotation
-import Mathlib.Data.Matrix.Mul
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.List.MinMax
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Ring
-import Aesop
-import Mathlib.Tactic.Positivity
+module
+public import Mathlib.Algebra.Order.Field.Rat
+public import Mathlib.Algebra.Order.Field.Basic
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Data.Fin.VecNotation
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.List.MinMax
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Ring
+public import Aesop
+public import Mathlib.Tactic.Positivity
 
 /-! # Exact certificates for rational linear programs
 
@@ -30,12 +31,14 @@ the resulting one-dimensional rational polyhedron is rational; elimination
 back-substitution gives a rational primal optimizer, while the recorded
 combination gives rational nonnegative dual multipliers of the same value.
 
-The standard form minimizes `c ⬝ᵥ x` subject to `A i ⬝ᵥ x ≤ b i`, where `⬝ᵥ` is Mathlib's
-`dotProduct`.  Variables are
-unrestricted in sign.  Equalities and nonnegative variables are represented by
-pairs of inequalities, so this form faithfully covers arbitrary finite
-rational LPs.
+The standard form minimizes `c ⬝ᵥ x` subject to `A i ⬝ᵥ x ≤ b i`, where `⬝ᵥ` is
+Mathlib's `dotProduct`. Variables are unrestricted in sign. Equalities are
+represented by pairs of opposite inequalities, while a nonnegativity
+restriction `0 ≤ x_j` is the single inequality `-x_j ≤ 0`. Thus this form
+faithfully covers arbitrary finite rational LPs.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 
@@ -81,8 +84,8 @@ the corresponding quantity of the first, plus the first coefficient of the first
 times the corresponding quantity of the second.
 
 The first ordinary-variable coefficients cancel for any two rows. The result is a valid
-consequence of the two inequalities when the first row has a positive and the second a negative first
-coefficient, which is how elimination uses it; no sign condition is imposed here. -/
+consequence of the two inequalities when the first row has a positive first coefficient and the
+second has a negative one, which is how elimination uses it; no sign condition is imposed here. -/
 def AugmentedIneq.cancel (p q : AugmentedIneq (n + 1)) : AugmentedIneq n where
   coeff j := (-q.coeff 0) * p.coeff j.succ + p.coeff 0 * q.coeff j.succ
   objCoeff := (-q.coeff 0) * p.objCoeff + p.coeff 0 * q.objCoeff
@@ -447,7 +450,7 @@ structure CertifiedIneq (base : κ → AugmentedIneq N)
     (project : (Fin N → ℚ) → (Fin n → ℚ)) where
   /-- The currently derived inequality. -/
   row : AugmentedIneq n
-  /-- Combination weights on the original rows (not required to be nonnegative by this structure). -/
+  /-- Combination weights on the original rows; this structure does not require nonnegativity. -/
   weight : κ → ℚ
   /-- The current coefficient row is the weighted original coefficient row. -/
   coeff_eq : ∀ x, dotProduct row.coeff (project x) = ∑ k, weight k * dotProduct (base k).coeff x

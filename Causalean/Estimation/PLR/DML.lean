@@ -3,39 +3,44 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Headline partially linear DML: asymptotic linearity and normality
+# Oracle one-step partially linear DML: asymptotic linearity and normality
 
-Assembles the two flagship results for the one-step double-machine-learning
-estimator of the structural slope `θ` in the partially linear model, directly
-mirroring the AIPW back-door development:
+Assembles two pointwise, one-shot/fold-B results for the partially linear
+estimator of the structural slope `θ`, directly mirroring the AIPW back-door
+development:
 
-* `plr_dml_isAsymLinear`  — the Robinson partialling-out DML estimator is
+* `plr_oneStepOracleDML_isAsymLinear`  — the Robinson partialling-out DML estimator is
   asymptotically linear at `θ` with influence function
   `−J₀⁻¹ · ψ(η₀, ·, θ)`, derived from the abstract Chernozhukov engine
-  `dml_chernozhukov_asymptoticLinear` fed with the three partially linear
+  `oneStepOracleDML_isAsymLinear_of_ae` fed with the three partially linear
   facts (`plr_meanZero`, `plr_finite_var`, `plr_remainder_bound`).
-* `plr_dml_tendstoNormal` — √|B(n)|-asymptotic normality of the rescaled
+* `plr_oneStepOracleDML_tendstoNormal` — √|B(n)|-asymptotic normality of the rescaled
   estimator, obtained from the generic CLT bridge
   `IsAsymLinear.tendsto_normal_foldB`.
 
-This is the partially linear analogue of `Estimation/OrthogonalMoments/
-AIPWInstance.lean` (`aipw_dml_isAsymLinear`) and `Estimation/ATE/DML.lean`
-(`dml_ATE_tendstoNormal`).
+These statements concern one model and one sample split, scale by the fold-B
+sample size, and use a population variance. They do not formalize the published
+K-fold DML1/DML2 theorem, its uniform-over-model-class conclusion, estimated
+variance, or confidence intervals.
 -/
 
-import Causalean.Estimation.PLR.MeanZero
-import Causalean.Estimation.PLR.RemainderBound
-import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
-import Causalean.Stat.SampleSplit.PartialFoldCLT
+module
+public import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
+public import Causalean.Estimation.PLR.MeanZero
+public import Causalean.Estimation.PLR.RemainderBound
+public import Causalean.Estimation.PLR.ScoreL2
+public import Causalean.Stat.SampleSplit.PartialFoldCLT
 
-/-! # Headline partially linear DML theorems
+/-! # Oracle one-step partially linear DML theorems
 
-This file delivers the asymptotic linearity and √n-asymptotic normality of the
-one-step double-machine-learning estimator of the structural slope in the
-partially linear model, by composing the abstract Chernozhukov-form engine with
-the three model-specific analytic facts (mean-zero, finite-variance,
-doubly-robust remainder) and the generic asymptotic-linearity ⇒ normality
-bridge. -/
+This file delivers pointwise asymptotic linearity and √|B|-asymptotic normality
+for a one-shot, fold-B estimator of the structural slope in the partially linear
+model. It composes the abstract one-shot engine with the three model-specific
+analytic facts (mean zero, finite variance, and a second-order remainder) and
+the generic asymptotic-linearity ⇒ normality bridge. It is not a K-fold DML1 or
+DML2 limit theorem. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -50,7 +55,7 @@ namespace PLRSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ] [IsProbabilityMeasure P.μ]
 
-/-- **Headline partially linear DML asymptotic-linearity theorem.**  Fix a
+/-- **Oracle one-step partially linear DML asymptotic-linearity theorem.**  Fix a
 partially linear estimation system, an i.i.d. sample of covariate-treatment-outcome
 triples, and a sample split whose evaluation-fold share [converges to a fixed
 positive limit](hyp:hc_pos,h_split_rate). If [the model's integrability and
@@ -63,8 +68,10 @@ square-integrable in the covariate law, with the resulting cross terms against t
 structural error and the treatment residual integrable](hyp:hΔl,hΔm,hUΔm,hΔlV,hVΔm);
 [the estimated score is jointly measurable, fold-A measurable, and
 integrable/square-integrable at every
-fold](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry,h_m_int,h_m_sq_int); [the L²(P_Z)
-distance between the estimated and true score is $o_p(1)$](hyp:h_score_diff_rate);
+fold](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry,h_m_int,h_m_sq_int); [the true residual
+factors have finite fourth moments, the nuisance errors have finite fourth moments bounded
+almost surely by a common nonnegative envelope, and both fourth-moment nuisance errors are
+$o_p(1)$](hyp:hA_memLp,hv_memLp,B,hB,hΔl4_memLp,hΔm4_memLp,hΔl4_bound,hΔm4_bound,h_l_rate,h_m_rate);
 and [the product of the two nuisance-error seminorms is
 $o_p(n^{-1/2})$](hyp:h_product_rate); then [the one-step double-machine-learning
 estimator of the structural slope is asymptotically linear at the true slope, with
@@ -73,11 +80,11 @@ inverse-Jacobian-scaled Robinson partialling-out score at the truth](goal).
 
 The result is obtained by feeding the abstract Chernozhukov double-machine-learning
 engine the three partially linear analytic facts — the score is mean-zero at the
-truth, has finite variance, and admits a doubly-robust product bound on its
+truth, has finite variance, and satisfies a second-order bound on its
 population bias at any estimated nuisance — together with the engine's
 measurability and rate bundle, all supplied by the caller exactly as in the
 AIPW development. -/
-theorem plr_dml_isAsymLinear
+theorem plr_oneStepOracleDML_isAsymLinear
     (S : PLRSystem P γ)
     (sample : IIDSample P.Ω (γ × ℝ × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
@@ -93,7 +100,7 @@ theorem plr_dml_isAsymLinear
     (hV : MemLp S.resid 2 P.μ)
     (hsq : Integrable
       (fun ω => (plrMomentFunctional S.η₀ (S.factualZ ω) S.θ₀) ^ 2) P.μ)
-    -- Per-`(n, ω)` remainder regularity, so `plr_remainder_bound` applies at
+    -- Per-`(n, ω)` second-order remainder regularity, so `plr_remainder_bound` applies at
     -- each estimated nuisance `η_hat n ω`.
     (hΔl : ∀ n ω, MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 2 S.P_X)
     (hΔm : ∀ n ω, MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 2 S.P_X)
@@ -107,7 +114,7 @@ theorem plr_dml_isAsymLinear
       (fun ω' => S.resid ω' *
         ((η_hat n ω).mFn (S.factualX ω') - S.mVal (S.factualX ω'))) P.μ)
     -- The abstract engine's measurability and rate bundle (copied verbatim from
-    -- `dml_chernozhukov_asymptoticLinear` with `M := S.plrGeneralMoment`).
+    -- `oneStepOracleDML_isAsymLinear_of_ae` with `M := S.plrGeneralMoment`).
     (h_m_meas :
       ∀ n, Measurable (fun (p : P.Ω × (γ × ℝ × ℝ)) =>
         S.plrGeneralMoment.m (η_hat n p.1) p.2 S.plrGeneralMoment.θ₀))
@@ -129,15 +136,26 @@ theorem plr_dml_isAsymLinear
     (h_m_sq_int : ∀ n ω,
       Integrable (fun z =>
         (S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀) ^ 2) S.P_Z)
-    (h_score_diff_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun z =>
-              S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀ -
-                S.plrGeneralMoment.m S.plrGeneralMoment.η₀ z S.plrGeneralMoment.θ₀)
-            2 S.P_Z).toReal)
-        (fun _ => (1 : ℝ)) P.μ)
+    (hA_memLp : MemLp
+      (fun z => z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)) 4 S.P_Z)
+    (hv_memLp : MemLp (fun z => z.2.1 - S.mVal z.1) 4 S.P_Z)
+    {B : ℝ} (hB : 0 ≤ B)
+    (hΔl4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X)
+    (hΔm4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X)
+    (hΔl4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal ≤ B)
+    (hΔm4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal ≤ B)
+    (h_l_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
+    (h_m_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
     (h_product_rate :
       IsLittleOp
         (fun n ω =>
@@ -145,10 +163,10 @@ theorem plr_dml_isAsymLinear
             ((S.plrGeneralMoment.ρ₂ (η_hat n ω) S.plrGeneralMoment.η₀ : NNReal) : ℝ))
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ) :
     IsAsymLinear
-      (Causalean.Estimation.OrthogonalMoments.dmlChernozhukovEstimator
+      (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML
         S.plrGeneralMoment sample split η_hat)
       S.θ₀
-      (fun z => -S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀)
+      (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀)
       sample
       split.foldB := by
   set Crem : ℝ := 1 + |S.θ₀| with hCrem_def
@@ -162,13 +180,19 @@ theorem plr_dml_isAsymLinear
     fun n ω =>
       S.plr_remainder_bound (η_hat n ω) hD hbX hU (hΔl n ω) (hΔm n ω) hV
         (hUΔm n ω) (hΔlV n ω) (hVΔm n ω) hUV
+  have h_score_diff_rate := S.plr_score_diff_isLittleOp_one η_hat
+    hA_memLp hv_memLp hB hΔl4_memLp hΔm4_memLp hΔl4_bound hΔm4_bound
+    h_l_rate h_m_rate
   simpa [plrGeneralMoment] using
-    (Causalean.Estimation.OrthogonalMoments.dml_chernozhukov_asymptoticLinear
+    (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML_isAsymLinear_of_ae
       S.plrGeneralMoment hMZ hFV sample split hc_pos h_split_rate η_hat
-      (Crem := Crem) hBR_at h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int
-      h_m_sq_int h_score_diff_rate h_product_rate)
+      (Crem := Crem) (fun n => Eventually.of_forall (hBR_at n))
+      h_m_meas h_m_foldA h_m_foldA_uncurry
+      (fun n => Eventually.of_forall (h_m_int n))
+      (fun n => Eventually.of_forall (h_m_sq_int n))
+      h_score_diff_rate h_product_rate)
 
-/-- **Headline partially linear DML asymptotic-normality theorem.**  Fix a partially linear
+/-- **Oracle one-step partially linear DML asymptotic-normality theorem.**  Fix a partially linear
 estimation system, an i.i.d. sample of covariate-treatment-outcome triples, and [a sample split
 whose evaluation-fold share converges to a fixed positive limit](hyp:hc_pos,h_split_rate).
 Suppose [the structural error, its product with the treatment residual, the baseline-covariate
@@ -179,20 +203,26 @@ covariate law at every fold and draw, with the resulting cross terms against the
 and the treatment residual integrable](hyp:hΔl,hΔm,hUΔm,hΔlV,hVΔm); [the estimated score is
 jointly measurable and measurable as a function of the nuisance-training fold alone and jointly
 with the observation](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry), and [integrable and
-square-integrable at every fold and draw](hyp:h_m_int,h_m_sq_int); [the estimated score converges
-to the true score in L²(P_Z) at rate $o_p(1)$, and the product of the two nuisance-error
-seminorms is $o_p(n^{-1/2})$](hyp:h_score_diff_rate,h_product_rate); and [the influence function,
+square-integrable at every fold and draw](hyp:h_m_int,h_m_sq_int);
+[the residual factors have finite fourth moments](hyp:hA_memLp,hv_memLp),
+[the nuisance errors have finite fourth moments](hyp:hΔl4_memLp,hΔm4_memLp),
+[a common envelope is nonnegative](hyp:B,hB),
+[that envelope bounds both fourth moments](hyp:hΔl4_bound,hΔm4_bound), and
+[both fourth-moment errors are $o_p(1)$](hyp:h_l_rate,h_m_rate), implying L² score convergence;
+[the product of the two nuisance-error
+seminorms is $o_p(n^{-1/2})$](hyp:h_product_rate); and [the influence function,
 the rescaled estimator at each `n`, and the normalized influence sum at each `n` are all
 measurable](hyp:hψ_meas,hθn_meas,hSum_meas). Then [the rescaled double-machine-learning estimator
 of the structural slope, recentered at the true slope and scaled by the square root of the fold-B
 sample size, converges in distribution to a centered Gaussian whose variance is the second moment
 of the inverse-Jacobian-scaled partialling-out score at the true regressions](goal).
 
-Combined with a fixed split ratio this yields the usual √n-rate normal limit
-with the sample-splitting variance inflation; that final Slutsky rescaling is
-left to the caller.  The proof composes the asymptotic-linearity theorem with
+This statement is pointwise in one model and one sample split, uses the fold-B
+scale and population variance, and does not assert the K-fold DML1/DML2,
+uniformity, estimated-variance, or confidence-interval conclusions of the
+published DML theorem. The proof composes the asymptotic-linearity theorem with
 the generic central-limit bridge for fold-B asymptotically linear estimators. -/
-theorem plr_dml_tendstoNormal
+theorem plr_oneStepOracleDML_tendstoNormal
     (S : PLRSystem P γ)
     (sample : IIDSample P.Ω (γ × ℝ × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
@@ -239,15 +269,26 @@ theorem plr_dml_tendstoNormal
     (h_m_sq_int : ∀ n ω,
       Integrable (fun z =>
         (S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀) ^ 2) S.P_Z)
-    (h_score_diff_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun z =>
-              S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀ -
-                S.plrGeneralMoment.m S.plrGeneralMoment.η₀ z S.plrGeneralMoment.θ₀)
-            2 S.P_Z).toReal)
-        (fun _ => (1 : ℝ)) P.μ)
+    (hA_memLp : MemLp
+      (fun z => z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)) 4 S.P_Z)
+    (hv_memLp : MemLp (fun z => z.2.1 - S.mVal z.1) 4 S.P_Z)
+    {B : ℝ} (hB : 0 ≤ B)
+    (hΔl4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X)
+    (hΔm4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X)
+    (hΔl4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal ≤ B)
+    (hΔm4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal ≤ B)
+    (h_l_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
+    (h_m_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
     (h_product_rate :
       IsLittleOp
         (fun n ω =>
@@ -256,29 +297,28 @@ theorem plr_dml_tendstoNormal
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ)
     (hψ_meas :
       Measurable
-        (fun z => -S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀))
+        (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀))
     (hθn_meas : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
-        (dmlChernozhukovEstimator S.plrGeneralMoment sample split η_hat)
+        (oneStepOracleDML S.plrGeneralMoment sample split η_hat)
         S.θ₀ split.foldB n) P.μ)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinear.normalizedSum sample
-        (fun z => -S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀)
+        (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀)
         split.foldB n) P.μ) :
-    Tendsto_dist
+    Modes.TendstoInLaw (fun _ => P.μ)
       (IsAsymLinear.rescaledEstimator
-        (dmlChernozhukovEstimator S.plrGeneralMoment sample split η_hat)
+        (oneStepOracleDML S.plrGeneralMoment sample split η_hat)
         S.θ₀ split.foldB)
-      (gaussianMeasure 0
-        (∫ z, (-S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀) ^ 2
-          ∂S.P_Z))
-      P.μ
-      hθn_meas := by
+      atTop (gaussianMeasure 0
+        (∫ z, (-S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀) ^ 2
+          ∂S.P_Z)) := by
   have hAL :=
-    S.plr_dml_isAsymLinear sample split hc_pos h_split_rate η_hat
+    S.plr_oneStepOracleDML_isAsymLinear sample split hc_pos h_split_rate η_hat
       hU hUV hbX hD hV hsq hΔl hΔm hUΔm hΔlV hVΔm
       h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
-      h_score_diff_rate h_product_rate
+      hA_memLp hv_memLp hB hΔl4_memLp hΔm4_memLp hΔl4_bound hΔm4_bound
+      h_l_rate h_m_rate h_product_rate
   exact hAL.tendsto_normal_foldB split hψ_meas hθn_meas hSum_meas
 
 end PLRSystem

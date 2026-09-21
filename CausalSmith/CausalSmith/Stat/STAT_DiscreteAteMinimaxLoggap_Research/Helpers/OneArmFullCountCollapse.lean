@@ -1,8 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonPredictive
-
-namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
-
-open scoped BigOperators
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonPredictive
 
 /-!
 # Full count-space collapse for one-arm Poisson mixtures
@@ -10,6 +7,12 @@ open scoped BigOperators
 This file combines the finite low-count Taylor bound with the high-count
 complement and collapses both pieces to one exponential-series tail.
 -/
+
+@[expose] public section
+
+namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
+
+open scoped BigOperators
 
 /-- Triple count vectors whose total count is at most `D`. -/
 noncomputable def tripleCountLow (D : ℕ) : Finset (Fin 3 → ℕ) :=

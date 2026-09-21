@@ -3,9 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Marginal Sensitivity Model — quantile balancing (Dorn–Guo sharp upper bound)
+# Marginal Sensitivity Model — quantile balancing (Dorn–Guo calibrated upper bound)
 
-The sharp (calibrated) upper bound `msmUpperCalib Λ` of `Bounds.lean`/`Sharp.lean` is attained by a
+The calibrated upper bound `msmUpperCalib Λ` of `Bounds.lean`/`Calibrated.lean` is attained by a
 **quantile-cutoff** complete propensity (Dorn–Guo 2022): the worst-case inverse-propensity weight is
 
     w_c(ω) = wMax(ω)   if  Y(ω) > c(X(ω)),     wMin(ω)   if  Y(ω) ≤ c(X(ω)),
@@ -19,7 +19,7 @@ the Neyman–Pearson / Dantzig–Wald exchange argument: for any calibrated feas
       = ∫ A·(Y − c)·(w_ẽ − w_c)        (the `c`-term cancels because both are calibrated)
       ≤ 0,                              (pointwise: `(Y − c)(w_ẽ − w_c) ≤ 0` by the box bound + cutoff sign)
 
-so `candMean(ẽ) ≤ candMean(1/w_c)`, and hence `msmUpperCalib Λ = candMean(1/w_c)` — the sharp bound has
+so `candMean(ẽ) ≤ candMean(1/w_c)`, and hence `msmUpperCalib Λ = candMean(1/w_c)` — the calibrated bound has
 the quantile-balancing closed form.
 
 **Scope.** This is the optimality / closed-form characterization given a calibrated cutoff. The
@@ -27,18 +27,21 @@ construction of `c` (the conditional quantile making `1/w_c` calibrated) is inte
 file and is discharged by the cutoff-selection and cutoff-construction modules.
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Bounds
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Sharp
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Bounds
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Calibrated
 
-/-! # Quantile balancing for sharp MSM upper bounds
+/-! # Quantile balancing for calibrated MSM upper bounds
 
-This file proves the Neyman-Pearson exchange argument behind the sharp treated
+This file proves the Neyman-Pearson exchange argument behind the calibrated treated
 upper bound in the marginal sensitivity model. It defines the quantile-cutoff
 complete propensity `cutoffProp`, proves the optimality theorem
 `cutoff_optimal`, and derives `msmUpperCalib_eq_cutoff`: once the cutoff
-candidate is calibrated and feasible, the sharp upper endpoint is exactly its
+candidate is calibrated and feasible, the calibrated upper endpoint is exactly its
 candidate mean.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -63,8 +66,7 @@ covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap).
 candidate is [feasible and calibrated](hyp:hcut_mem), and under [envelope-integrability
 conditions bounding the treated outcome, the treatment-weighted mass, and the cutoff-weighted mass
 by the upper marginal-sensitivity-model weight](hyp:henv,hweight_env,hc_env), then for [any other
-calibrated, box-feasible candidate complete propensity `ẽ` that is almost-everywhere
-measurable](hyp:hmem,hmeas), [`ẽ`'s candidate mean is at most the cutoff candidate mean — the
+calibrated, box-feasible candidate complete propensity `ẽ`](hyp:hmem), [`ẽ`'s candidate mean is at most the cutoff candidate mean — the
 cutoff weight maximizes the candidate mean among calibrated candidates](goal).
 
 The candidate `cutoffProp Λ c` being itself feasible and calibrated (`hcut_mem`) is where the
@@ -72,13 +74,12 @@ conditional-quantile construction enters. -/
 theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib Λ)
+    (hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ)
     (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
     (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
-    {etilde : P.Ω → ℝ} (hmem : etilde ∈ S.MSMSetCalib Λ)
-    (hmeas : AEMeasurable etilde P.μ) :
-    S.candMean etilde ≤ S.candMean (S.cutoffProp Λ c) := by
+    {etilde : P.Ω → ℝ} (hmem : etilde ∈ S.MSMSetCalib true Λ) :
+    S.candMean true etilde ≤ S.candMean true (S.cutoffProp Λ c) := by
   classical
   have _ : Integrable c P.μ := hc_int
   have hΛ0 : (0 : ℝ) < Λ := lt_of_lt_of_le one_pos hΛ
@@ -171,12 +172,19 @@ theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
       exact ⟨hminmax, le_rfl, lt_of_lt_of_le (by linarith) hminmax⟩
     · simp only [if_neg hcy]
       exact ⟨le_rfl, hminmax, by linarith⟩
+  have hXE_int : Integrable (fun ω => A ω / etilde ω) P.μ := by
+    simpa [hA_def] using S.calibrated_weight_integrable true etilde hmem.2
+  have hAwE_int : Integrable (fun ω => A ω * wE ω) P.μ := by
+    refine hXE_int.congr (Filter.Eventually.of_forall ?_)
+    intro ω
+    simp [hwE_def, div_eq_mul_inv]
   have hYE_int : Integrable (fun ω => A ω * Y ω * wE ω) P.μ := by
-    have hwE_aem : AEMeasurable wE P.μ := by
-      rw [hwE_def]
-      exact aemeasurable_const.div hmeas
-    refine Integrable.mono' henv
-      (((hAm.mul hYm).aemeasurable.mul hwE_aem).aestronglyMeasurable) ?_
+    have hmeas : AEStronglyMeasurable (fun ω => A ω * Y ω * wE ω) P.μ := by
+      refine (hYm.aestronglyMeasurable.mul hAwE_int.aestronglyMeasurable).congr ?_
+      filter_upwards [] with ω
+      simp only [Pi.mul_apply]
+      ring
+    refine Integrable.mono' henv hmeas ?_
     filter_upwards [hboxE, hmem.1.1] with ω hbox hint
     obtain ⟨_, hmax⟩ := hbox
     obtain ⟨het0, _⟩ := hint
@@ -193,15 +201,6 @@ theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
       abs_of_nonneg (le_of_lt hpos), mul_assoc, mul_assoc]
     apply mul_le_mul_of_nonneg_left _ (hA0 ω)
     exact mul_le_mul_of_nonneg_left hmax (abs_nonneg _)
-  have hXE_int : Integrable (fun ω => A ω / etilde ω) P.μ := by
-    refine Integrable.mono' hweight_env
-      ((hAm.aemeasurable.div hmeas).aestronglyMeasurable) ?_
-    filter_upwards [hboxE, hmem.1.1] with ω hbox hint
-    obtain ⟨_, hmax⟩ := hbox
-    obtain ⟨het0, _⟩ := hint
-    rw [Real.norm_eq_abs, abs_div, abs_of_nonneg (hA0 ω), abs_of_pos het0,
-      div_eq_mul_inv, ← one_div, hA_def]
-    simpa [hA_def, hwE_def] using mul_le_mul_of_nonneg_left hmax (hA0 ω)
   have hXC_int : Integrable (fun ω => A ω / S.cutoffProp Λ c ω) P.μ := by
     have hAwC_int : Integrable (fun ω => A ω * wC ω) P.μ := by
       refine Integrable.mono' hweight_env ((hAm.mul hwCm).aestronglyMeasurable) ?_
@@ -215,11 +214,13 @@ theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
       A ω / (1 / (if c ω < S.factualY ω then S.wMax Λ ω else S.wMin Λ ω))
     rw [hwC_def, hY_def, div_div_eq_mul_div, div_one]
   have hcE_int : Integrable (fun ω => c ω * A ω * wE ω) P.μ := by
-    have hwE_aem : AEMeasurable wE P.μ := by
-      rw [hwE_def]
-      exact aemeasurable_const.div hmeas
-    refine Integrable.mono' hc_env
-      (((hc_meas.mono S.sigmaX_le le_rfl).mul hAm).aemeasurable.mul hwE_aem).aestronglyMeasurable ?_
+    have hmeas : AEStronglyMeasurable (fun ω => c ω * A ω * wE ω) P.μ := by
+      refine ((hc_meas.mono S.sigmaX_le le_rfl).aestronglyMeasurable.mul
+        hAwE_int.aestronglyMeasurable).congr ?_
+      filter_upwards [] with ω
+      simp only [Pi.mul_apply]
+      ring
+    refine Integrable.mono' hc_env hmeas ?_
     filter_upwards [hboxE, hmem.1.1] with ω hbox hint
     obtain ⟨_, hmax⟩ := hbox
     obtain ⟨het0, _⟩ := hint
@@ -340,7 +341,7 @@ theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
         exact mul_nonpos_of_nonneg_of_nonpos (hA0 ω) (sub_nonpos.mpr (le_of_not_gt hcy))
       exact mul_le_mul_of_nonpos_left hminE hcoef_nonpos
   have hcandE :
-      S.candMean etilde =
+      S.candMean true etilde =
         ∫ ω, A ω * (Y ω - c ω) * wE ω ∂P.μ
           + ∫ ω, c ω * A ω * wE ω ∂P.μ := by
     unfold POBackdoorSystem.candMean
@@ -353,7 +354,7 @@ theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
     rw [div_eq_mul_inv, one_div]
     ring
   have hcandC :
-      S.candMean (S.cutoffProp Λ c) =
+      S.candMean true (S.cutoffProp Λ c) =
         ∫ ω, A ω * (Y ω - c ω) * wC ω ∂P.μ
           + ∫ ω, c ω * A ω * wC ω ∂P.μ := by
     unfold POBackdoorSystem.candMean
@@ -369,15 +370,13 @@ theorem cutoff_optimal (Λ : ℝ) (hΛ : 1 ≤ Λ)
   simpa [add_comm, add_left_comm, add_assoc] using
     add_le_add_right hfirst_le (∫ ω, c ω ∂P.μ)
 
-/-- **The sharp upper bound has the quantile-balancing closed form.** Fix [a sensitivity
+/-- **The calibrated upper bound has the quantile-balancing closed form.** Fix [a sensitivity
 parameter Λ at least 1](hyp:hΛ) and assume [the propensity score for treatment given the
 covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap). For [a
 σ(X)-measurable, integrable cutoff function `c`](hyp:hc_meas,hc_int) whose induced cutoff
 candidate is [feasible and calibrated](hyp:hcut_mem), under [envelope-integrability conditions
 bounding the treated outcome, the treatment-weighted mass, and the cutoff-weighted mass by the
-upper marginal-sensitivity-model weight](hyp:henv,hweight_env,hc_env), and assuming [every
-candidate complete propensity in the calibrated ambiguity set is almost-everywhere
-measurable](hyp:hmeas), then [the sharp upper bound on `E[Y(1)]` equals the candidate mean of the
+upper marginal-sensitivity-model weight](hyp:henv,hweight_env,hc_env), then [the calibrated upper bound on `E[Y(1)]` equals the candidate mean of the
 cutoff propensity built from `c`](goal).
 
 The cutoff candidate is feasible (so its mean is `≤` the sup) and optimal (so the sup is `≤` its
@@ -385,23 +384,22 @@ mean). -/
 theorem msmUpperCalib_eq_cutoff (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c) (hc_int : Integrable c P.μ)
-    (hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib Λ)
+    (hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ)
     (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
     (hweight_env : Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
-    (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
-    (hmeas : ∀ etilde ∈ S.MSMSetCalib Λ, AEMeasurable etilde P.μ) :
-    S.msmUpperCalib Λ = S.candMean (S.cutoffProp Λ c) := by
+    (hc_env : Integrable (fun ω => |c ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ) :
+    S.msmUpperCalib true Λ = S.candMean true (S.cutoffProp Λ c) := by
   classical
-  have hne : (S.candMean '' S.MSMSetCalib Λ).Nonempty :=
-    ⟨S.candMean (S.cutoffProp Λ c), Set.mem_image_of_mem _ hcut_mem⟩
+  have hne : (S.candMean true '' S.MSMSetCalib true Λ).Nonempty :=
+    ⟨S.candMean true (S.cutoffProp Λ c), Set.mem_image_of_mem _ hcut_mem⟩
   have hle_all :
-      ∀ x ∈ S.candMean '' S.MSMSetCalib Λ,
-        x ≤ S.candMean (S.cutoffProp Λ c) := by
+      ∀ x ∈ S.candMean true '' S.MSMSetCalib true Λ,
+        x ≤ S.candMean true (S.cutoffProp Λ c) := by
     rintro x ⟨etilde, hmem, rfl⟩
     exact S.cutoff_optimal Λ hΛ hoverlap c hc_meas hc_int hcut_mem henv hweight_env hc_env
-      hmem (hmeas etilde hmem)
-  have hbdd : BddAbove (S.candMean '' S.MSMSetCalib Λ) :=
-    ⟨S.candMean (S.cutoffProp Λ c), hle_all⟩
+      hmem
+  have hbdd : BddAbove (S.candMean true '' S.MSMSetCalib true Λ) :=
+    ⟨S.candMean true (S.cutoffProp Λ c), hle_all⟩
   refine le_antisymm ?_ ?_
   · unfold POBackdoorSystem.msmUpperCalib
     exact csSup_le hne hle_all

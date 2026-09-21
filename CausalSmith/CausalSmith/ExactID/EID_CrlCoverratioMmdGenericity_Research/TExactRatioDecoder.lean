@@ -1,22 +1,24 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CondIndepIntersection
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CitedGates
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.FiniteDensityBridge
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRank
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderPruning
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderTriangularInverse
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderConditionalKernel
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCompProd
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderContinuousVersion
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankAssembly
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRepresentation
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankCondIndep
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankPruning
-import Mathlib.MeasureTheory.Measure.Map
-import Mathlib.Analysis.Calculus.ContDiff.Defs
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CondIndepIntersection
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CitedGates
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.FiniteDensityBridge
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRank
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderPruning
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderTriangularInverse
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderConditionalKernel
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCompProd
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderContinuousVersion
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankAssembly
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRepresentation
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankCondIndep
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankPruning
+public import Mathlib.MeasureTheory.Measure.Map
+public import Mathlib.Analysis.Calculus.ContDiff.Defs
+public import Mathlib.Analysis.Calculus.ContDiff.Operations
 
 /-!
 # Exact ratio decoder
@@ -26,6 +28,11 @@ parent-pruning, ordering-independence, and representation-uniqueness conclusions
 Faithfulness is confined to a separate overlap corollary.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory Set
 
 noncomputable section
@@ -34,7 +41,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 /-- The componentwise `C²` ambiguity relating two compatible representations. -/
 def ComponentwiseC2Equivalent
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂) : Prop :=
   observedSupport G₁ W₁ = observedSupport G₂ W₂ ∧
@@ -55,7 +62,7 @@ def ComponentwiseC2Equivalent
 /-- Common law-selected scalar ranks and aligned edges assemble the componentwise `C²`
 equivalence, including explicit inverse charts on the closed latent interval.  Given [the stated inputs and conditions](hyp:hpos₁,hmix₁,hpos₂,hmix₂,hrank₁,hrank₂,hsupport,hedge), [the stated conclusion](goal) follows. -/
 lemma componentwiseC2Equivalent_of_common_rank_and_aligned_edges
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {s : SignVector n} {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hpos₁ : PositiveNormalizedSmoothMechanisms G₁ θ₁)
@@ -217,7 +224,7 @@ lemma componentwiseC2Equivalent_of_common_rank_and_aligned_edges
 graphs; their common selected rank coordinates then assemble the componentwise `C²` ambiguity.
 No cover-separation condition is imposed on the competitor.  Given [the stated inputs and conditions](hyp:hpos₁,hmix₁,hone₁,hsign₁,hpos₂,hmix₂,hone₂,hsign₂,hlaw,htc₁,hprune₁,hprune₂), [the stated conclusion](goal) follows. -/
 lemma componentwiseC2Equivalent_of_common_exactPruning
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)} (s : SignVector n)
     {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hpos₁ : PositiveNormalizedSmoothMechanisms G₁ θ₁)
@@ -288,14 +295,14 @@ lemma componentwiseC2Equivalent_of_common_exactPruning
 one unknown-target intervention per node, strictly fewer than the comparator's two interventions
 per node in arbitrary dimension, while retaining representation uniqueness. -/
 def VonKugelgenTwoVersusOneComparison
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (W : ObservedWorld G θ) : Prop :=
   vonKugelgenComparatorScope =
       "von Kugelgen et al. (2023), Nonparametric Identifiability of Causal Representations from Unknown Interventions, Theorems 3.2 and 3.4 and Section 7 (vonKugelgenEtAl2023UnknownInterventions; https://papers.nips.cc/paper_files/paper/2023/file/97fe251c25b6f99a2a23b330a75b11d4-Paper-Conference.pdf): Theorem 3.2 is bivariate with one unknown-target perfect intervention per node and a continuous witness genericity condition; Theorem 3.4 uses two paired perfect interventions per node in arbitrary dimension; the one-intervention extension for n greater than two is stated as a conjecture." ∧
   (Faithfulness G θ →
     (∀ i : Fin n, ∃! e : Fin n, W.targetPerm e = i) ∧
     (1 : ℕ) < 2 ∧
-    ∀ (G' : Causalean.DAG (Fin n)) (θ' : Mechanism n G')
+    ∀ (G' : DAG (Fin n)) (θ' : Mechanism n G')
       (W' : ObservedWorld G' θ'),
       PositiveNormalizedSmoothMechanisms G' θ' → CausalMinimality G' θ' →
       FixedOwnDerivativeSign G' s θ' → SharedDiffeomorphicMixing G' θ' W' →
@@ -307,7 +314,7 @@ result assumes positive `C³` densities on the compact latent cube and `C²` mix
 dimension that cube is strictly smaller than the full Euclidean latent space, and derivative
 order two is not the comparator's `C¹` order. -/
 def FullRnC1NoncoverageClause
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (W : ObservedWorld G θ) : Prop :=
   vonKugelgenComparatorScope =
       "von Kugelgen et al. (2023), Nonparametric Identifiability of Causal Representations from Unknown Interventions, Theorems 3.2 and 3.4 and Section 7 (vonKugelgenEtAl2023UnknownInterventions; https://papers.nips.cc/paper_files/paper/2023/file/97fe251c25b6f99a2a23b330a75b11d4-Paper-Conference.pdf): Theorem 3.2 is bivariate with one unknown-target perfect intervention per node and a continuous witness genericity condition; Theorem 3.4 uses two paired perfect interventions per node in arbitrary dimension; the one-intervention extension for n greater than two is stated as a conjecture." ∧
@@ -320,7 +327,7 @@ def FullRnC1NoncoverageClause
 environment-to-coordinate alignment are outputs computed from the observed laws, rather than
 supplied structural inputs. -/
 def WendongYaoSuppliedStructureComparison
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (W : ObservedWorld G θ) : Prop :=
   let laws := observedProbabilityLawFamily W.law
   caucaComparatorScope =
@@ -343,7 +350,7 @@ def WendongYaoSuppliedStructureComparison
 noncoverage clauses, recovery of the structure supplied by Wendong/Yao, and the bivariate MMD
 witness. -/
 def ExactRatioDecoderComparisonClauses
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
   (θ : Mechanism n G) (W : ObservedWorld G θ) : Prop :=
   VonKugelgenTwoVersusOneComparison s θ W ∧
   FullRnC1NoncoverageClause θ W ∧
@@ -354,7 +361,7 @@ def ExactRatioDecoderComparisonClauses
 
 /-- All mathematical conclusions of the exact population decoder theorem. -/
 def ExactRatioDecoderConclusion
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (W : ObservedWorld G θ) : Prop :=
   let laws := observedProbabilityLawFamily W.law
   Relation.TransGen (observedLawRatioGraph gaussianFeatureMap W.law) =
@@ -398,7 +405,7 @@ def ExactRatioDecoderConclusion
         A = environmentParentSet W i) ∧
   ObservedWorldLawCoherent W ∧
   (populationDecoder laws).2.2.edge = permutedGraph G W ∧
-  (∀ (G' : Causalean.DAG (Fin n)) (θ' : Mechanism n G')
+  (∀ (G' : DAG (Fin n)) (θ' : Mechanism n G')
       (W' : ObservedWorld G' θ'),
     PositiveNormalizedSmoothMechanisms G' θ' →
     CausalMinimality G' θ' →
@@ -415,13 +422,13 @@ def ExactRatioDecoderConclusion
 the bivariate edge witness, and predecessor containment; target uniqueness is supplied by the
 world's target permutation.  Given [the stated inputs and conditions](hyp:hpos,hmix,hgraph,hunique,hbiv,hpred,horder,hrank), [the stated conclusion](goal) follows. -/
 lemma exactRatioDecoderComparisonClauses_of_mainConclusions
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
     (hgraph : (populationDecoder (observedProbabilityLawFamily W.law)).2.2.edge =
       permutedGraph G W)
-    (hunique : ∀ (G' : Causalean.DAG (Fin n)) (θ' : Mechanism n G')
+    (hunique : ∀ (G' : DAG (Fin n)) (θ' : Mechanism n G')
         (W' : ObservedWorld G' θ'),
       PositiveNormalizedSmoothMechanisms G' θ' → CausalMinimality G' θ' →
       FixedOwnDerivativeSign G' s θ' → SharedDiffeomorphicMixing G' θ' W' →
@@ -466,7 +473,7 @@ lemma exactRatioDecoderComparisonClauses_of_mainConclusions
 /-- Cover-separated positive smooth causal-minimal mechanisms are decoded exactly from their
 observed environment laws, up to relabeling and componentwise `C²` diffeomorphisms.  Given [the stated inputs and conditions](hyp:hpos,hminimal,hmix,hone,hsign,hcover,world), [the stated conclusion](goal) follows. -/
 theorem exact_ratio_decoder
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (world : ∀ θ' : Mechanism n G, ObservedWorld G θ')
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hminimal : CausalMinimality G θ)
@@ -579,7 +586,7 @@ theorem exact_ratio_decoder
   have hselected : (populationDecoder laws).2.2.edge = permutedGraph G (world θ) :=
     selectedParentDAG_eq_permutedGraph_of_exactPruning (world θ) laws
       (hprune (selectedTopologicalOrder laws) hgraph.2.1)
-  have hunique : ∀ (G' : Causalean.DAG (Fin n)) (θ' : Mechanism n G')
+  have hunique : ∀ (G' : DAG (Fin n)) (θ' : Mechanism n G')
       (W' : ObservedWorld G' θ'),
       PositiveNormalizedSmoothMechanisms G' θ' →
       CausalMinimality G' θ' →
@@ -649,7 +656,7 @@ theorem exact_ratio_decoder
 /-- Faithful-overlap corollary; faithfulness is deliberately not a premise of the main theorem.  Given [the stated inputs and conditions](hyp:hpos,hminimal,hmix,hone,hsign,hfaith,hcover,world), [the stated conclusion](goal) follows. -/
 -- keep: explicit faithful-overlap corollary stated in the paper's scope comparison
 theorem exact_ratio_decoder_faithful
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (world : ∀ θ' : Mechanism n G, ObservedWorld G θ')
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hminimal : CausalMinimality G θ)

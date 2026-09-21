@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.CitedGates
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConditionalMomentAdapters
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedLawAdapters
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedMarginAssembly
-import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
-import Causalean.PO.Assumptions.ArmSupportTransfer
-import Causalean.Mathlib.Analysis.RectangularSignalSingularValues
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.CitedGates
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConditionalMomentAdapters
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedLawAdapters
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedMarginAssembly
+public import Causalean.Mathlib.Analysis.RectangularSignalSingularValues
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Stat.SupportTransfer
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -13,7 +16,7 @@ open ProbabilityTheory
 open scoped BigOperators
 open Causalean.Mathlib.Analysis
 open Causalean.Mathlib.Probability
-open Causalean.PO (armIndicator)
+open Causalean.Stat (eventIndicator)
 
 /-- For [Euclidean input and output dimensions](hyp:m,n), [the measurable-space structure on continuous linear maps](goal) is the Borel structure. -/
 noncomputable local instance {m n : ℕ} : MeasurableSpace (Euc n →L[ℝ] Euc m) := borel _
@@ -239,7 +242,7 @@ lemma ae_abs_le_of_indep_positive_event
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     {X : Ω → ℝ} (hX : Measurable X) {A : Set Ω} (hA : MeasurableSet A)
     (hApos : 0 < μ A)
-    (hInd : IndepFun X (armIndicator A) μ) {R : ℝ}
+    (hInd : IndepFun X (eventIndicator A) μ) {R : ℝ}
     (hBound : ∀ᵐ ω ∂μ, ω ∈ A → |X ω| ≤ R) :
     ∀ᵐ ω ∂μ, |X ω| ≤ R := by
   let B : Set Ω := {ω | R < |X ω|}
@@ -249,9 +252,9 @@ lemma ae_abs_le_of_indep_positive_event
     rw [measure_eq_zero_iff_ae_notMem]
     filter_upwards [hBound] with ω hω hmem
     exact (not_lt_of_ge (hω hmem.2)) hmem.1
-  have hArmPreimage : armIndicator A ⁻¹' ({1} : Set ℝ) = A := by
+  have hArmPreimage : eventIndicator A ⁻¹' ({1} : Set ℝ) = A := by
     ext ω
-    simp [armIndicator]
+    simp [eventIndicator]
   have hfactor : μ (B ∩ A) = μ B * μ A := by
     simpa [B, hArmPreimage] using
       hInd.measure_inter_preimage_eq_mul
@@ -445,11 +448,11 @@ lemma ae_abs_potential_le_on_latentClass
     indepFun_of_boundedTestFactorization (measurable_potential t) measurable_fullData_T hfac
   let q : Bool → ℝ := fun b => if b = t then 1 else 0
   have hq : Measurable q := by fun_prop
-  have hInd : IndepFun (potential t) (armIndicator A) μ := by
+  have hInd : IndepFun (potential t) (eventIndicator A) μ := by
     have hc := hIndT.comp measurable_id hq
-    have heq : (q ∘ fun w : FullData k dx dz => w.T) = armIndicator A := by
+    have heq : (q ∘ fun w : FullData k dx dz => w.T) = eventIndicator A := by
       funext w
-      by_cases hw : w.T = t <;> simp [q, A, armIndicator, hw]
+      by_cases hw : w.T = t <;> simp [q, A, eventIndicator, hw]
     rw [← heq]
     exact hc
   have hApos : 0 < μ A := by

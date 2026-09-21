@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionCompactness
-import Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine.Stability
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionCompactness
+public import Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence.Stability
 
 /-!
 # Confidence-union candidate witnesses
@@ -9,13 +10,15 @@ confidence union and records the elementary honest-region distance bound used by
 arguments.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open Set
 open scoped Matrix.Norms.L2Operator ENNReal
 
 open Causalean.Discovery.LinearDisentanglement.Quantitative
-open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 /-- The pre-weakening form of local pairwise-affine stability.  The reusable theorem deliberately
 weakens this coefficient to `16 K L³`; covariance-region errors are themselves amplified by

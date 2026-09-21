@@ -12,12 +12,16 @@ marginal because the arm law is supported on `[0,1]`, while making the score
 globally bounded for the reusable KL-density-tilt expansion.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ScoreProgram
-import Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.KLExpansion
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ScoreProgram
+public import Causalean.Mathlib.InformationTheory.KullbackLeibler.DensityTilt.KLExpansion
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 
 open MeasureTheory Asymptotics
+open Causalean.Mathlib.InformationTheory.KullbackLeibler.DensityTilt
 open scoped BigOperators Topology ENNReal
 
 -- @node: boundedArmScore
@@ -164,22 +168,22 @@ the linear density whenever the density is nonnegative. -/
 lemma integral_tiltMeasure_eq_integral_mul {μ : Measure ℝ} [IsProbabilityMeasure μ]
     {s g : ℝ → ℝ} {C h : ℝ}
     (hs_meas : Measurable s) (hsC : ∀ y, |s y| ≤ C) (hh : |h| * C ≤ 1) :
-    ∫ y, g y ∂(Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure μ s h)
+    ∫ y, g y ∂(tiltMeasure μ s h)
       = ∫ y, (1 + h * s y) * g y ∂μ := by
   have hf_meas : Measurable (fun y : ℝ => ENNReal.ofReal (1 + h * s y)) := by
     fun_prop
   have hf_lt_top : ∀ᵐ y ∂μ, ENNReal.ofReal (1 + h * s y) < ∞ := by
     simp
   calc
-    ∫ y, g y ∂(Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure μ s h)
+    ∫ y, g y ∂(tiltMeasure μ s h)
         = ∫ y, (ENNReal.ofReal (1 + h * s y)).toReal • g y ∂μ := by
-          simpa [Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure] using
+          simpa [tiltMeasure] using
             (integral_withDensity_eq_integral_toReal_smul hf_meas hf_lt_top g)
     _ = ∫ y, (1 + h * s y) * g y ∂μ := by
       apply integral_congr_ae
       filter_upwards with y
       simp [ENNReal.toReal_ofReal
-        (Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltDensity_nonneg hsC hh y),
+        (tiltDensity_nonneg hsC hh y),
         smul_eq_mul]
 
 -- @node: tiltMeasure_integral_preserve_of_orthogonal
@@ -189,7 +193,7 @@ lemma tiltMeasure_integral_preserve_of_orthogonal {μ : Measure ℝ}
     (hs_meas : Measurable s) (hsC : ∀ y, |s y| ≤ C) (hh : |h| * C ≤ 1)
     (hg_int : Integrable g μ) (hgs_int : Integrable (fun y => g y * s y) μ)
     (hgs_zero : ∫ y, g y * s y ∂μ = 0) :
-    ∫ y, g y ∂(Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure μ s h)
+    ∫ y, g y ∂(tiltMeasure μ s h)
       = ∫ y, g y ∂μ := by
   rw [integral_tiltMeasure_eq_integral_mul hs_meas hsC hh]
   calc
@@ -210,7 +214,7 @@ lemma tiltMeasure_integral_shift_of_score_moment {μ : Measure ℝ}
     (hs_meas : Measurable s) (hsC : ∀ y, |s y| ≤ C) (hh : |h| * C ≤ 1)
     (hg_int : Integrable g μ) (hgs_int : Integrable (fun y => g y * s y) μ)
     (hgs_eq : ∫ y, g y * s y ∂μ = x) :
-    ∫ y, g y ∂(Causalean.Mathlib.InformationTheory.KlDensityTiltExpansion.tiltMeasure μ s h)
+    ∫ y, g y ∂(tiltMeasure μ s h)
       = ∫ y, g y ∂μ + h * x := by
   rw [integral_tiltMeasure_eq_integral_mul hs_meas hsC hh]
   calc

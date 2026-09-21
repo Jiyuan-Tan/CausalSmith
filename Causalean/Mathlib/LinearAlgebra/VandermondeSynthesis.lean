@@ -6,18 +6,21 @@ Authors: Jiyuan Tan
 # Dimension of a Vandermonde synthesis kernel
 -/
 
-import Mathlib.LinearAlgebra.Dimension.Constructions
-import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
-import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
-import Mathlib.LinearAlgebra.Vandermonde
-import Mathlib.Analysis.Complex.Basic
+module
+public import Mathlib.LinearAlgebra.Dimension.Constructions
+public import Mathlib.LinearAlgebra.FiniteDimensional.Lemmas
+public import Mathlib.LinearAlgebra.Matrix.ToLinearEquiv
+public import Mathlib.LinearAlgebra.Vandermonde
+public import Mathlib.Analysis.Complex.Basic
 
 /-!
 # Vandermonde synthesis maps
 
-This file computes the kernel dimension of a finite moment-synthesis map with
-distinct complex nodes and one endpoint coordinate.
+This file computes the kernel dimension of a finite moment-synthesis map with distinct nodes over
+a field and one endpoint coordinate.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.LinearAlgebra
 
@@ -44,8 +47,8 @@ def endpointOrderSynthesis {n : ℕ} {K : Type*} [CommSemiring K] (s : Fin n →
     simp only [Pi.smul_apply, smul_eq_mul, RingHom.id_apply]
     split <;> (simp [← Finset.mul_sum, mul_assoc] <;> ring)
 
-/-- Applying the moment-synthesis map to the standard basis vector for a node
-produces the vector of that node's powers across the requested moment orders. -/
+/-- [The standard-basis vector for a selected node](hyp:j) is sent by the moment-synthesis map
+determined by [the nodes](hyp:s) to [the vector of that node's powers](goal). -/
 lemma endpointOrderSynthesis_single {n r : ℕ} {K : Type*} [CommSemiring K] (s : Fin n → K)
     (j : Fin n) :
     endpointOrderSynthesis s r (Pi.single j.castSucc 1) =
@@ -59,8 +62,9 @@ lemma endpointOrderSynthesis_single {n r : ℕ} {K : Type*} [CommSemiring K] (s 
     simp [Pi.single_eq_of_ne hcast]
   · simp
 
-/-- With distinct node values, the finite moment-synthesis map can reproduce every target
-vector of moments up through an order smaller than the number of nodes. -/
+/-- The moment-synthesis map for [the supplied nodes](hyp:s) [covers every target vector](goal)
+when the nodes are [pairwise distinct](hyp:hs) and [the requested order is below their
+number](hyp:hr). -/
 lemma endpointOrderSynthesis_surjective {n r : ℕ} {K : Type*} [Field K]
     (s : Fin n → K) (hs : Function.Injective s) (hr : r < n) :
     Function.Surjective (endpointOrderSynthesis s r) := by
@@ -101,8 +105,9 @@ lemma endpointOrderSynthesis_surjective {n r : ℕ} {K : Type*} [Field K]
         Matrix.vandermonde_apply, e, mul_comm]
     _ = y a := congrFun hEy a
 
-/-- With distinct node values, moments through an order at least as large as the number of
-nodes uniquely determine every coordinate supplied to the moment-synthesis map. -/
+/-- The moment-synthesis map for [the supplied nodes](hyp:s) [uniquely determines its input](goal)
+when the nodes are [pairwise distinct](hyp:hs) and [the requested order is at least their
+number](hyp:hr). -/
 lemma endpointOrderSynthesis_injective {n r : ℕ} {K : Type*} [CommRing K] [IsDomain K]
     (s : Fin n → K) (hs : Function.Injective s) (hr : n ≤ r) :
     Function.Injective (endpointOrderSynthesis s r) := by

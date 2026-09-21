@@ -11,7 +11,10 @@ separates those exact identities from the algebraic-geometric codimension
 argument.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Handles
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Handles
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

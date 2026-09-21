@@ -19,9 +19,10 @@ product `∏ j, cosh (n · d j)` over varying per-coordinate factors instead of
 before collapsing the product through `Real.exp_sum`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Series
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Series
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-! # Non-Uniform Ingster Bound
 
@@ -34,6 +35,8 @@ The public theorem `ingster_bound_general` bounds the doubly averaged Rademacher
 nonnegative, have total mass at most `1`, and satisfy the regularity budget
 `(n^2 / 2) * sum_j (d j)^2 <= log 2`.  This is the non-uniform chi-squared step used after
 `chiSqOverlap_eqV` rewrites the cell-varying overlap. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

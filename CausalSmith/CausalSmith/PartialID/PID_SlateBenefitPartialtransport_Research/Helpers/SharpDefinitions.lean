@@ -1,6 +1,9 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TTieFaceCollapse
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
-import Causalean.PO.ID.Partial.Basic
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TTieFaceCollapse
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
+public import Causalean.PO.ID.Partial.Basic
+
+@[expose] public section
 
 open scoped BigOperators
 open MeasureTheory Set Causalean PO

@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Distributional backdoor identification (Firpo 2007)
 
-The mean-level backdoor (`PO/ID/Exact/ATE.lean`, `cate_backdoor` /
+The mean-level backdoor (`PO/ID/Exact/ATE.lean`, `conditionalMeanOutcome_backdoor` /
 `ate_backdoor`) identifies `E[Y(d)]`.  This file identifies the *whole law* of
 the potential outcome `Y(d)` under the distributional backdoor assumption bundle:
 consistency, unconfoundedness, and two-sided common support `0 < e_d < 1`.
@@ -26,13 +26,14 @@ This is the engine behind the quantile treatment effect identification
   monotone-convergence argument (the delicate step under *bare*, non-strict
   overlap: there is no uniform lower bound on `e_d`, but `∫ 1_{D=d}/e_d = 1`).
 * `integral_comp_YofD_eq` — the core distributional identity, the `g`-transform of
-  `cate_backdoor`: `∫ g(Y(d)) = ∫ g(Y)·1_{D=d}/e_d` for bounded measurable `g`.
+  `conditionalMeanOutcome_backdoor`: `∫ g(Y(d)) = ∫ g(Y)·1_{D=d}/e_d` for bounded measurable `g`.
 * `cfUnderLaw_eq_ipwLaw` — assemble via `Measure.ext` with `g = 1_A`.
 -/
 
-import Causalean.PO.ID.Exact.ATE
-import Causalean.PO.Analysis.Quantile
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Exact.ATE
+public import Causalean.PO.Analysis.Quantile
+public import Causalean.Tactic.CondexpLinearity
 
 /-! # Distributional Backdoor Identification
 
@@ -49,6 +50,10 @@ and `integral_comp_YofD_eq`. The theorem `cfUnderLaw_eq_ipwLaw` identifies the
 law of `Y(d)` with the observable IPW law, providing the distributional input
 for quantile-treatment-effect identification. -/
 
+@[expose] public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
+
 namespace Causalean
 namespace PO
 
@@ -60,23 +65,29 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
 
-/-- For [a potential-outcome backdoor system](hyp:S) and [a treatment arm](hyp:d), the [observable inverse-probability-weighting density](goal) assigns to each sample point the indicator that its factual treatment equals that arm divided by the conditional probability of that arm given the covariates.
+/-- [The inverse-probability weight](goal) for [a backdoor system](hyp:S)
+[targets a selected treatment arm](hyp:d) by [dividing its observed-arm indicator by that
+arm's propensity score given covariates](step:1).
 
 In conventional notation, this is $1\{T=d\}/e_d(X)$. -/
 noncomputable def ipwDensity (d : Bool) : P.Ω → ℝ :=
   fun ω => S.dVar.indicator d ω / S.propScore d ω
 
-/-- For [a potential-outcome backdoor system](hyp:S), [a treatment arm](hyp:d), and [a measure on the sample space](hyp:μ), the [observable inverse-probability-weighted outcome law](goal) is the distribution of the factual outcome under the measure obtained by weighting each sample point by the nonnegative version of its inverse-probability-weighting density for that arm.
+/-- [The observable IPW outcome law](goal) for [a backdoor system](hyp:S) and
+[a selected treatment arm](hyp:d) [reweights the sampling measure](hyp:μ) by
+[the nonnegative inverse-probability weight and then takes the observed-outcome law](step:1).
 
-Under the distributional backdoor assumptions used below, this is the law of the potential outcome under that arm. -/
+Under the distributional backdoor assumptions used below, this is the law of the
+potential outcome under that arm. -/
 noncomputable def ipwLaw (d : Bool) (μ : Measure P.Ω) : Measure ℝ :=
   (μ.withDensity (fun ω => ENNReal.ofReal (S.ipwDensity d ω))).map S.factualY
 
-/-- **Distributional backdoor assumptions.**  Firpo's distributional
-identification of the potential-outcome law under arm `d` uses consistency,
-conditional ignorability of treatment given covariates, and common support.  It
-does not require the outcome-integrability assumptions bundled in the ATE
-backdoor theorem, because laws and quantiles are defined without first moments. -/
+/-- **Distributional backdoor assumptions.** For [a backdoor system](hyp:S), Firpo's
+distributional identification under its sampling law uses [consistency](hyp:consistency),
+[conditional ignorability of treatment given covariates](hyp:unconfoundedness), and
+[common support for both treatment arms](hyp:overlap). It does not require the
+outcome-integrability assumptions bundled in the ATE backdoor theorem, because laws and
+quantiles are defined without first moments. -/
 structure DistributionalAssumptions (S : POBackdoorSystem P γ)
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ] : Prop where
   /-- Consistency links the observed outcome to the potential outcome of the
@@ -99,15 +110,17 @@ lemma Assumptions.toDistributional [StandardBorelSpace P.Ω] [IsFiniteMeasure P.
   unconfoundedness := hA.unconfoundedness
   overlap := hA.overlap
 
-/-- `propScore d` is `σ(X)`-strongly-measurable (it is a conditional expectation). -/
+/-- [The propensity score for a treatment arm](hyp:S,d)
+[is strongly measurable with respect to covariate information](goal), as required for
+pulling inverse-probability factors through conditional expectations. -/
 @[fun_prop]
 lemma stronglyMeasurable_propScore [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (d : Bool) :
     StronglyMeasurable[S.sigmaX] (S.propScore d) :=
   S.xVar.stronglyMeasurable_condExpGiven_comap (S.dVar.indicator d)
 
-/-- The observable inverse-probability weight for a treatment arm is a measurable
-function of the unit. -/
+/-- [The observable inverse-probability weight for a treatment arm](hyp:S,d)
+[is measurable](goal), so it defines a valid density for reweighting observed outcomes. -/
 @[fun_prop]
 lemma measurable_ipwDensity (d : Bool) : Measurable (S.ipwDensity d) := by
   unfold POBackdoorSystem.ipwDensity
@@ -171,11 +184,16 @@ lemma integral_mul_indicator_eq_integral_mul_propScore
   rw [hint]
   exact MeasureTheory.integral_congr_ae key
 
-/-- The truncated IPW weight `1_{D=d} · min n (1/e_d)`, bounded by `n`. -/
+/-- [The truncated inverse-probability weight](goal) for [a backdoor system](hyp:S),
+[a treatment arm](hyp:d), and [a truncation level](hyp:n) [caps the reciprocal propensity
+at that level before multiplying by the observed-arm indicator](step:1), which supplies an
+integrable monotone approximation under bare overlap. -/
 private noncomputable def ipwTrunc (d : Bool) (n : ℕ) : P.Ω → ℝ :=
   fun ω => S.dVar.indicator d ω * min (n : ℝ) (1 / S.propScore d ω)
 
-/-- **Integrability of the IPW weight** under bare common support.
+/-- **Integrability of the IPW weight.** For [a backdoor system](hyp:S),
+[bare common support](hyp:hA) makes [the inverse-probability weight for either selected
+treatment arm](hyp:d) [integrable](goal), even without a uniform propensity lower bound.
 
 Bare overlap gives no uniform lower bound on `e_d`, so we truncate: the sequence
 `f n = 1_{D=d}·min n (1/e_d)` is bounded by `n` (hence integrable), monotone, and
@@ -305,8 +323,9 @@ lemma ipwDensity_integrable [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     exact ENNReal.ofReal_le_one.mpr (hf_bd n)
   exact lt_of_le_of_lt (le_of_tendsto' htends hbound) ENNReal.one_lt_top
 
-/-- **Core distributional backdoor identity.** Under [the distributional
-backdoor assumption bundle](hyp:hA), for every treatment arm `d` and every
+/-- **Core distributional backdoor identity.** For [a backdoor system](hyp:S), under
+[the distributional backdoor assumption bundle](hyp:hA), for [a selected treatment
+arm](hyp:d) and every
 [measurable](hyp:hg) real function `g` that is [bounded by a constant
 `C`](hyp:hg_bdd), [the mean of `g` applied to the potential outcome `Y(d)`
 equals the mean of `g` applied to the factual outcome, weighted by the
@@ -441,8 +460,8 @@ lemma integral_comp_YofD_eq [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
 /-- **Distributional backdoor identification.** Under [the distributional
 backdoor assumption bundle — consistency, unconfoundedness, and common
-support](hyp:hA), for each treatment arm `d`, [the law of the potential
-outcome `Y(d)` equals the observable inverse-probability-weighted outcome law
+support](hyp:hA), [a backdoor system](hyp:S), and [a selected treatment arm](hyp:d),
+[the law of the potential outcome `Y(d)` equals the observable inverse-probability-weighted law
 `ipwLaw d`](goal). -/
 theorem cfUnderLaw_eq_ipwLaw [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.DistributionalAssumptions) (d : Bool) :

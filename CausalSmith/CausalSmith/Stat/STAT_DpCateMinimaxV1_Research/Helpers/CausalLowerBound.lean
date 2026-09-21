@@ -21,14 +21,17 @@ release output laws via `Causalean.Stat.Minimax.TotalVariation.one_sub_tvDist_le
 `one_sub_tvDist_le_test`, and `chiSqDiv`/`tvDist_le_half_sqrt_chiSqDiv`.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContraction
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CausalNullLaw
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.BumpHolder
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DivergenceLocalized
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DivergenceProduct
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TVSharp
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.MinimaxReduction
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.Bandwidth
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContraction
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CausalNullLaw
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.BumpHolder
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DivergenceLocalized
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DivergenceProduct
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TVSharp
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.MinimaxReduction
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.Bandwidth
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

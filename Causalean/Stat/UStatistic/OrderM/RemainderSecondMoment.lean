@@ -1,43 +1,6 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Higher-order second-moment bound for the fixed-order U-statistic remainder
-
-This file proves the keystone estimate behind the negligibility of the order-`m`
-Hájek remainder: for a first-order degenerate kernel `g` there is a constant `C`
-with `E[(√n · Uₙ)²] ≤ C / n` for all `n ≥ m`.
-
-## Strategy
-
-Write `Sₙ = Σ_{t ∈ injectiveTuples m n} g(Z_t)` so `√n·Uₙ = √n·(n^{(m)})⁻¹·Sₙ`.
-Expand `E[Sₙ²] = Σ_{t,q} E[g(Z_t) g(Z_q)]`.
-
-* **Cross-term vanishing** (`crossterm_eq_zero_of_shared_le_one`): if the ordered
-  injective tuples `t, q` share `≤ 1` sample index then `E[g(Z_t) g(Z_q)] = 0`.
-  Zero shared ⇒ the two blocks are independent (distinct indices) and each factor
-  has mean `uMeanOrder g P = 0`.  Exactly one shared index `a` ⇒ condition on
-  `Z_a`: the two factors become conditionally independent, and each conditional
-  mean is a first Hoeffding projection of `g`, hence `0` by `firstDeg`.  Use the
-  product-law transport `IIDSample.map_fintype_tuple_eq` on the joined index set
-  and Fubini to reduce to the coordinate integral.
-* **Cauchy–Schwarz**: each surviving term satisfies
-  `|E[g(Z_t) g(Z_q)]| ≤ ζ_m = zetaOrder P g` (both terms are in `L²` with second
-  moment `ζ_m`, cf. `orderTerm_diag`).
-* **Counting**: the pairs `(t, q)` sharing `≥ 2` indices number `≤ C(m)·n^{2m-2}`
-  (choose `t`: `≤ nᵐ`; pick which `2` of `q`'s slots are shared and give them
-  values from `image t`: `≤ C(m,2)·m²`; fill the other `m−2` slots freely:
-  `≤ n^{m-2}`).  Bound the surviving part of `E[Sₙ²]` by `C(m)·n^{2m-2}·ζ_m`.
-* **Normalization**: with `n^{(m)} = injectiveTupleCount m n ≍ nᵐ`,
-  `E[(√n Uₙ)²] = n·(n^{(m)})⁻²·E[Sₙ²] ≤ C·ζ_m / n`.
-
-The counting is the fiddly part; phrase it as an injection of the surviving
-pair-set into an explicit product `Finset` of size `C(m)·n^{2m-2}` and bound the
-sum with `Finset.sum_le_card_nsmul` / a Cauchy–Schwarz per-term bound.
--/
-
-import Causalean.Stat.UStatistic.OrderM.FirstDegenKernel
+module
+public import Causalean.Stat.UStatistic.OrderM.FirstDegenKernel
+public import Mathlib.Probability.Independence.Integration
 
 /-!
 Proves the second-moment bound for first-order degenerate fixed-order
@@ -51,6 +14,14 @@ depending only on the order and `ζ_m = E[g²]` such that
 Cauchy-Schwarz, then counts the tuple pairs sharing at least two sample indices
 and normalizes by the falling factorial denominator.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -606,7 +577,8 @@ theorem integral_injectiveTuples_sum_sq_le_shared_count [IsFiniteMeasure P]
   simpa [SHARE, T, nsmul_eq_mul] using hsum
 
 /-- For a nonnegative second-moment bound and a sample size at least the kernel
-    order, the falling-factorial normalization term is bounded by a constant divided by the sample size. -/
+order, the falling-factorial normalization term is bounded by a constant divided by the
+sample size. -/
 theorem rescaled_order_normalization_le {n : ℕ} (hmn : m ≤ n) {ζ : ℝ}
     (hζ : 0 ≤ ζ) :
     (n : ℝ) * (injectiveTupleCount m n)⁻¹ ^ 2 *

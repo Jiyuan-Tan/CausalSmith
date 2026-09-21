@@ -4,6 +4,14 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import path from "node:path";
 import { maskLeanCommentsAndStrings } from "../graph/extractor.js";
+import {
+  isLeanModuleFile,
+  isPublicDecl,
+  LEAN_ATTRS_PREFIX_SRC,
+  LEAN_DECL_MODIFIERS,
+  parseLeanImport,
+  publicSectionAt,
+} from "../shared/lean_syntax.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -54,8 +62,9 @@ export async function externallyConsumedModules(
       continue;
     }
     for (const line of text.split("\n")) {
-      if (!line.startsWith("import ")) continue;
-      const mod = line.slice("import ".length).trim();
+      const imported = parseLeanImport(line);
+      if (!imported) continue;
+      const mod = imported.module;
       if (candidates.has(mod)) out.add(mod);
     }
   }
@@ -74,8 +83,8 @@ export async function externallyConsumedModules(
       mod,
       text
         .split("\n")
-        .filter((l) => l.startsWith("import "))
-        .map((l) => l.slice("import ".length).trim())
+        .map(parseLeanImport)
+        .flatMap((imp) => imp ? [imp.module] : [])
         .filter((m) => candidates.has(m)),
     );
   }
@@ -117,10 +126,11 @@ export interface OrphanPaperModule {
 export function hasPublicPaperDeclaration(source: string): boolean {
   const masked = maskLeanCommentsAndStrings(source);
   const declaration =
-    /^[ \t]*(?:@\[[^\]]*\][ \t\r\n]*)*((?:(?:noncomputable|private|protected|scoped|local|partial|unsafe|nonrec)\s+)*)(?:theorem|lemma|def)\b/gm;
+    new RegExp(String.raw`^[ \t]*${LEAN_ATTRS_PREFIX_SRC}((?:(?:${LEAN_DECL_MODIFIERS})\s+)*)(?:theorem|lemma|def)\b`, "gm");
+  const moduleFile = isLeanModuleFile(source);
   let match: RegExpExecArray | null;
   while ((match = declaration.exec(masked))) {
-    if (!/\bprivate\b/.test(match[1])) return true;
+    if (isPublicDecl(match[1], { moduleFile, inPublicSection: publicSectionAt(masked, match.index) })) return true;
   }
   return false;
 }
@@ -173,4 +183,4 @@ export async function findOrphanPaperModules(
  * 2026-08-26). Mirrors `isSyntheticCompanionLeaf` in `LibraryIndexCore.lean`;
  * keep the two in sync.
  */
-export const SYNTHETIC_COMPANION_RE = /\.(?:congr_simp|eq_def|eq_unfold|eq_\d+|proxyType|proxyTypeEquiv)$/;
+export const SYNTHETIC_COMPANION_RE = /\.(?:congr_simp|eq_def|eq_unfold|eq_\d+|proxyType|proxyTypeEquiv|induct|induct_unfolding|mutual_induct|fun_cases|fun_cases_unfolding)$/;

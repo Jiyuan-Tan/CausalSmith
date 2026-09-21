@@ -3,9 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Liu–Hudgens (2014), Proposition 5.1 under literally identical groups
+# Direct-effect CLT under literally identical groups
 
-This file discharges the analytic homogeneity hypothesis `hhom` of the treatment-minus-control
+This file discharges the analytic homogeneity hypothesis `hhom` of the control-minus-treatment
 direct-effect CLT bundle `Homogeneous` from a *concrete, checkable* condition: that the groups are
 literally identical.  In the identical-groups regime every group has the same size `K`, the same
 allocation strategies ψ/φ, the same potential outcomes, and the same unit counts, so the
@@ -22,18 +22,23 @@ supported selections give the same conditional CDF, which is exactly `hhom`.
 It provides: the identical-groups bundle `IdenticalRef` (reference data per `n` plus the common
 propensity hypotheses, assembling a constant `LHExperiment`); the selection-symmetry permutation
 existence lemma `exists_equiv_selection`; the derived hypothesis `hhom_of_identical`; the assembled
-`Homogeneous` bundle `homogeneous_of_identical`; and the headline `directEffect_clt_identical`, which
-rests on identical groups, bounded outcomes, and the many-groups rate — no `hhom` assumption.
+`Homogeneous` bundle `homogeneous_of_identical`; and `directEffect_clt_identical`, which
+rests on identical groups, a uniform bound on centered per-group contrast estimators, and the
+many-groups rates — no `hhom` assumption.
+The control-minus-treatment contrast is the negative of Liu–Hudgens' treatment-minus-control
+estimand. Literal identity makes this a strict special case, not their heterogeneous Proposition
+5.1.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLTDischargeMain
-import Causalean.Experimentation.DesignBased.ProductReindex
+module
+public import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLTDischargeMain
+public import Causalean.Experimentation.DesignBased.ProductReindex
 
 /-!
 # Identical-groups discharge for the direct-effect CLT
 
 This file turns literal group-level symmetry into the homogeneity hypothesis used by the
-Liu-Hudgens direct-effect CLT.
+special-case direct-effect CLT. Its control-minus-treatment contrast reverses the Liu–Hudgens sign.
 
 The reference bundle `IdenticalRef` stores one identical-groups experiment: a common group size,
 common within-group strategies, common potential outcomes, common treated/control counts, the
@@ -48,6 +53,8 @@ selected sets with `exists_equiv_selection` and `prodDesign_Pr_reindex`. The def
 `directEffect_clt_identical` derives asymptotic normality without assuming analytic homogeneity as a
 separate premise.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Finset Filter
@@ -165,8 +172,8 @@ namespace IdenticalRef
 
 variable (R : IdenticalRef)
 
-/-- Given [reference data for one identical-groups experiment](hyp:R), the [constant
-Liu--Hudgens experiment](goal) assigns every group the common size, two common within-group
+/-- Given [reference data for one identical-groups experiment](hyp:R), the [constant two-stage
+experiment](goal) assigns every group the common size, two common within-group
 randomization designs, common potential outcomes, and common treated and control counts in that
 reference data.  Thus its conditional within-group randomization is a product across groups.
 
@@ -193,12 +200,12 @@ noncomputable def toExp : LHExperiment where
   hstage1pair := R.hstage1pair
 
 /-- Given [reference data for one identical-groups experiment](hyp:R) and [a realized assignment
-within its common-size group](hyp:w), the [common per-group treatment-minus-control contrast
-estimator](goal) is the sum of potential outcomes for treated units divided by the common treated
-count minus the analogous sum for control units divided by the common control count. -/
+within its common-size group](hyp:w), the [common per-group control-minus-treatment contrast
+estimator](goal) is the control-outcome sum divided by the common control count minus the
+treatment-outcome sum divided by the common treated count. -/
 noncomputable def groupDiff₀ (w : Fin R.K → Bool) : ℝ :=
-  (∑ j, if w j = true then R.Y₀ j w else 0) / R.m1₀
-    - (∑ j, if w j = false then R.Y₀ j w else 0) / R.m0₀
+  (∑ j, if w j = false then R.Y₀ j w else 0) / R.m0₀
+    - (∑ j, if w j = true then R.Y₀ j w else 0) / R.m1₀
 
 /-- In the constant experiment, every group's contrast estimator equals the common `groupDiff₀`. -/
 lemma groupDiff_toExp (i : R.ι) : groupDiff R.toExp i = R.groupDiff₀ := by
@@ -211,7 +218,7 @@ lemma condDesign_toExp (s : StratAssign R.ι) :
 
 /-- Given [reference data for one identical-groups experiment](hyp:R) and [a realized first-stage
 strategy assignment together with a realized within-group assignment for every group](hyp:sw), the
-[studentized treatment-minus-control contrast statistic](goal) is the aggregate direct-effect
+[studentized control-minus-treatment contrast statistic](goal) is the aggregate direct-effect
 estimator minus its population direct effect, divided by the square root of its direct-effect
 variance. -/
 noncomputable def studId (sw : StratAssign R.ι × (R.ι → (Fin R.K → Bool))) : ℝ :=
@@ -285,7 +292,8 @@ lemma hhom_of_identical (t : ℝ) (s s' : StratAssign R.ι)
 
 /-! ### Reference group effect and variance -/
 
-/-- Given [reference data for one identical-groups experiment](hyp:R) and [a treatment status](hyp:z),
+/-- Given [reference data for one identical-groups experiment](hyp:R) and [a treatment
+status](hyp:z),
 the [common group-average potential outcome](goal) is the arithmetic mean over units in
 the common group of their expected potential outcomes under the reference allocation strategy,
 conditional on their own treatment having that status. -/
@@ -294,18 +302,18 @@ noncomputable def refGroupMean (z : Bool) : ℝ :=
     R.ψ₀.E (fun w => if w j = z then R.Y₀ j w else 0) / R.ψ₀.Pr (fun w => w j = z)) / (R.K : ℝ)
 
 /-- Given [reference data for one identical-groups experiment](hyp:R), the [common group-level
-direct-effect contrast](goal) is its common group-average potential outcome under treatment minus
-that under control. -/
-noncomputable def refDelta : ℝ := R.refGroupMean true - R.refGroupMean false
+direct-effect contrast](goal) is its common group-average potential outcome under control minus
+that under treatment. -/
+noncomputable def refDelta : ℝ := R.refGroupMean false - R.refGroupMean true
 
 /-- Given [reference data for one identical-groups experiment](hyp:R), the [common within-group
 contrast-estimator variance](goal) is the variance, under the reference first allocation strategy,
-of the common per-group treatment-minus-control contrast estimator. -/
+of the common per-group control-minus-treatment contrast estimator. -/
 noncomputable def refVar : ℝ := R.ψ₀.Var R.groupDiff₀
 
 /-- In the constant experiment every group's level contrast equals the common `refDelta`. -/
 lemma hδ_toExp (i : R.ι) :
-    groupMean R.toExp.ψ R.toExp.Y i true - groupMean R.toExp.ψ R.toExp.Y i false = R.refDelta := by
+    groupMean R.toExp.ψ R.toExp.Y i false - groupMean R.toExp.ψ R.toExp.Y i true = R.refDelta := by
   rfl
 
 /-- In the constant experiment every group's within-group variance equals the common `refVar`. -/
@@ -322,12 +330,14 @@ threshold](hyp:t), [a real common direct-effect contrast](hyp:δ), [a real unifo
 [the assumption that every reference direct-effect contrast equals that common contrast](hyp:hδ),
 [the assumption that every reference within-group contrast variance is positive](hyp:hvpos), [the
 assumption that, for every experiment, group, and within-group assignment, the absolute difference
-between the realized group contrast and the common contrast is at most the uniform bound](hyp:hMbound),
+between the realized group contrast and the common contrast is at most the uniform
+bound](hyp:hMbound),
 [the assumption that every first-stage assignment with positive probability selects exactly its
 prescribed number of groups](hyp:hcount), [the assumption that, as the sequence index grows,
 $M/\sqrt{C_n v_n}$ converges to zero, where $C_n$ is the prescribed selected-group count and $v_n$
 the reference within-group variance](hyp:hB0), and [the assumption that the number of groups times
-$(M/\sqrt{C_n v_n})^3$ converges to zero](hyp:hNB3), the [homogeneity bundle for this sequence](goal)
+`(M/√(C_n v_n))^3` converges to zero](hyp:hNB3), the [homogeneity bundle for this
+sequence](goal)
 has the stated threshold, studentized statistics, common contrast, bound, and reference
 within-group variances.  Its conditional-distribution homogeneity follows from literal identity of
 the groups.
@@ -356,15 +366,19 @@ noncomputable def homogeneous_of_identical (R : ℕ → IdenticalRef) (t δ M : 
 
 open DesignBased in
 open scoped Classical in
-/-- **Proposition 5.1 under literally identical groups.** Along a sequence of identical-groups
-experiments `R` — common size, allocation strategies, potential outcomes, and unit counts —
-[sharing one group-level treatment-minus-control direct-effect contrast `δ`](hyp:hδ) with [a
-positive common within-group variance](hyp:hvpos), [a uniform bound `M` on the centered per-group
-contrast estimator](hyp:hMbound), [every supported stage-1 selection flagging exactly `C`
-groups](hyp:hcount), and [the many-groups rate `M/√(C·v) → 0`](hyp:hB0) together with [its
-Lyapunov cube `card·(M/√(C·v))³ → 0`](hyp:hNB3) — [the studentized contrast statistic is
-asymptotically standard normal](goal).  No analytic homogeneity hypothesis is assumed: it is
-derived from the concrete identical-groups structure via `hhom_of_identical`. -/
+/-- **Direct-effect CLT under literally identical groups.** Along
+[identical-group experiments](hyp:R) at [a fixed threshold](hyp:t), suppose
+[all group-level control-minus-treatment contrasts equal δ](hyp:δ,hδ),
+[each common within-group variance is positive](hyp:hvpos),
+[centered per-group contrast estimators are uniformly bounded by M](hyp:M,hMbound),
+[supported first-stage selections have fixed size C](hyp:hcount),
+[the normalized bound vanishes](hyp:hB0), and
+[the Lyapunov cube rate vanishes](hyp:hNB3). Then
+[the studentized contrast is asymptotically standard normal](goal). No analytic homogeneity
+hypothesis is assumed: it is derived from the concrete identical-groups structure via
+`hhom_of_identical`. The contrast is the negative of Liu–Hudgens' treatment-minus-control
+estimand, and literal identity makes the theorem a strict special case of their heterogeneous
+Proposition 5.1. -/
 theorem directEffect_clt_identical (R : ℕ → IdenticalRef) (t δ M : ℝ)
     (hδ : ∀ n, (R n).refDelta = δ)
     (hvpos : ∀ n, 0 < (R n).refVar)

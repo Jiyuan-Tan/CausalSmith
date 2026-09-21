@@ -6,11 +6,14 @@ Authors: Jiyuan Tan
 # Linear-score dependency graph for the bipartite minimax design
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Linearization
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DependencyCLT
-import Causalean.Experimentation.DesignBased.ProductMeasure
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Mathlib.Algebra.Order.Floor.Semiring
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Linearization
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DependencyCLT
+public import Causalean.Stat.FiniteDesign.ProductMeasure
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Mathlib.Algebra.Order.Floor.Semiring
+
+@[expose] public section
 
 set_option linter.style.longLine false
 set_option linter.unusedVariables false
@@ -21,7 +24,7 @@ open scoped BigOperators Topology
 open Finset Filter MeasureTheory ProbabilityTheory
 open Causalean.Experimentation.DesignBased
 open Causalean.Experimentation.UnknownInterference
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace CausalSmith.Experimentation.BipartiteMinimaxDesign
 
@@ -102,7 +105,7 @@ noncomputable def linScoreDepGraph
   meas i := measurable_of_finite _
   indep A B hAB := by
     rw [hBern]
-    unfold bernoulliDesign
+    unfold Causalean.Experimentation.DesignBased.bernoulliDesign
     have hST : Disjoint (linScoreOutcomeBlock E A) (linScoreOutcomeBlock E B) :=
       disjoint_linScoreOutcomeBlock_of_no_overlap E hAB
     refine indepFun_prodDesign_of_depends_on_disjoint_blocks

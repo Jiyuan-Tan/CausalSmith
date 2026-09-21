@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.CellLaws
-import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Partition.CellLaws
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Markov
 
 /-!
 # Occupancy transport and monotone de-Poissonization
@@ -10,6 +11,8 @@ that determine usable occupancy.  It also supplies deterministic prefix
 monotonicity and a paper-independent transfer from an i.i.d. stream stopped at
 an independent Poisson count to a fixed prefix.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal BigOperators

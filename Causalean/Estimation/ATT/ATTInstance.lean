@@ -8,14 +8,14 @@ Authors: Jiyuan Tan
 Instantiates `Causalean/Estimation/OrthogonalMoments/MomentFunctional.lean` and friends
 with the AIPW back-door **ATT** moment, and rebuilds the ATT AIPW
 asymptotic-linearity theorem on top of the abstract
-`dml_chernozhukov_asymptoticLinear`.
+`oneStepOracleDML_isAsymLinear_of_everywhere`.
 
 * `attGeneralMoment S hη₀_mem hπ_pos` — `GeneralMoment` instance.
 * `att_meanZero`                            — `MeanZero` for ATT AIPW.
 * `att_bilinearRem`                         — `BilinearRemainder` for ATT AIPW.
-* `att_dml_isAsymLinear`                    — headline ATT AIPW asymptotic
+* `att_oneStepOracleDML_isAsymLinear`       — oracle ATT AIPW asymptotic
                                               linearity, via
-                                              `dml_chernozhukov_asymptoticLinear`.
+`oneStepOracleDML_isAsymLinear_of_everywhere`.
 
 Structural deviations from the ATE counterpart in
 `Estimation/OrthogonalMoments/AIPWInstance.lean`:
@@ -30,7 +30,8 @@ Structural deviations from the ATE counterpart in
 * `η₀_mem` records the a.e. one-sided-overlap and L²/L∞ gates in `H_ε`.
 
 Since `J₀ = −π_T`, the influence function in the abstract conclusion
-`fun z => −J₀_inv · m(η₀, z, θ₀)` is `(1/π_T) · aipwMomentATTFunctional S.η₀ z S.θ₀`,
+`fun z => −linScaleInv · m(η₀, z, θ₀)` is
+`(1/π_T) · aipwMomentATTFunctional S.η₀ z S.θ₀`,
 which equals `S.ψ_ATT z` modulo a constant `θ₀` shift on the `−A·θ` slot.
 
 References:
@@ -39,12 +40,13 @@ References:
 * Plan §11 (ATTInstance), §12 (DML), §13 (InfluenceFunction).
 -/
 
-import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
-import Causalean.Estimation.ATT.Remainder.Bound
-import Causalean.Estimation.ATT.Score.AIPWMoment
-import Causalean.Estimation.ATT.Score.FiniteVar
-import Causalean.Estimation.ATT.Score.AIPWScoreL2
-import Causalean.Estimation.ATT.Score.MeanZero
+module
+public import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
+public import Causalean.Estimation.ATT.Remainder.Bound
+public import Causalean.Estimation.ATT.Score.AIPWMoment
+public import Causalean.Estimation.ATT.Score.FiniteVar
+public import Causalean.Estimation.ATT.Score.AIPWScoreL2
+public import Causalean.Estimation.ATT.Score.MeanZero
 
 /-!
 Instantiates the abstract orthogonal-moment DML theorem for the average
@@ -54,10 +56,12 @@ asymptotic linearity.
 
 The main declarations are `attGeneralMoment`, the `MeanZero` bridge
 `att_meanZero`, the bilinear remainder bridge `att_bilinearRem`, and the
-headline abstract asymptotic-linearity theorem `att_dml_isAsymLinear`.  This
+headline abstract asymptotic-linearity theorem `att_oneStepOracleDML_isAsymLinear`. This
 file is the ATT specialization of the general orthogonal-moment interface; the
 user-facing estimator wrapper is in `Estimation/ATT/DML.lean`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -101,22 +105,23 @@ noncomputable def attGeneralMoment
   -- ATT AIPW is a linear-in-`θ` score `m_AIPW^ATT(η, z, θ) = ψ̃(η, z) − A·θ`,
   -- so the population Jacobian is
   -- `J₀ = ∂_θ ∫ m(η₀, z, θ) dP_Z |_{θ=θ₀} = −∫ A dP_Z = −π_T`.
-  J₀         := -S.π_val
-  J₀_ne_zero := by
+  linScale         := -S.π_val
+  linScale_ne_zero := by
     intro h
     have : S.π_val = 0 := by linarith [show -S.π_val = 0 from h]
     linarith
 
-/-- ATT AIPW satisfies `MeanZero`.  Direct repackaging of
-`aipw_mean_zero_ATT` from `Estimation/ATT/Score/MeanZero.lean`. -/
+/-- **ATT AIPW mean-zero packaging.** Given [membership of the true nuisance in the
+candidate set](hyp:hη₀_mem), [the one-sided ATT assumptions](hyp:hA), [positive marginal
+treatment probability](hyp:hπ_pos), and [integrability of the inverse-probability-weighted
+control residual](hyp:hIPW), [the ATT AIPW general moment has mean zero](goal). This is a
+direct repackaging of `aipw_mean_zero_ATT` from
+`Estimation/ATT/Score/MeanZero.lean`. -/
 theorem att_meanZero
     (S : TreatedEstimationSystem P γ) {ε : ℝ}
     (hη₀_mem : S.η₀ ∈ H_ε S ε)
-    (_h_overlap : S.OneSidedOverlap ε)
     (hA : S.toPOBackdoorSystem.ATTAssumptions)
     (hπ_pos : 0 < S.π_val)
-    (_h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)
-    (_h_y0_2 : Integrable (fun ω => (S.toPOBackdoorSystem.YofD false ω) ^ 2) P.μ)
     (hIPW : Integrable (fun ω =>
         (1 - S.toPOBackdoorSystem.dVar.indicator true ω)
           * (S.toPOBackdoorSystem.propScore true ω
@@ -166,7 +171,8 @@ theorem att_bilinearRem
   exact h
 
 /-- **Headline ATT AIPW DML asymptotic-linearity theorem**, derived from the abstract
-`dml_chernozhukov_asymptoticLinear` in `Estimation/OrthogonalMoments/DMLChernozhukov.lean`.
+`oneStepOracleDML_isAsymLinear_of_everywhere` in
+`Estimation/OrthogonalMoments/DMLChernozhukov.lean`.
 Fix an estimated-nuisance sequence `η_hat`, [an i.i.d. sample of the data
 triple](hyp:sample), and [a one-shot cross-fitting split of that sample](hyp:split).
 Under [membership of the truth nuisance in the overlap-bounded realization set
@@ -180,7 +186,7 @@ correction](hyp:hIPW), and [a limiting fold-size fraction `c` strictly between `
 `c`](hyp:h_split_rate): if [every candidate draw `η_hat n ω` lies in the overlap-bounded
 realization set `H_ε`](hyp:h_in_Hε), [every candidate propensity is
 nonnegative](hyp:h_e_lb_hat), [each candidate control-regression and propensity error
-admits an `L²(P_X)` witness](hyp:h_mu_diff_memLp,h_e_diff_memLp), [each candidate IPW
+has an `L²(P_X)` witness](hyp:h_mu_diff_memLp,h_e_diff_memLp), [each candidate IPW
 correction is integrable](hyp:h_IPW_at), [the AIPW moment functional is measurable jointly
 in the probability-space and data arguments, and on each cross-fitting fold, both singly
 and jointly](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry), [the moment at every candidate
@@ -196,19 +202,23 @@ nuisance sequence is asymptotically linear at the true ATT `θ₀`, with influen
 `θ̂_n = θ₀ − J₀⁻¹ · Pₙ m(η̂, ·, θ₀)` for `M = attGeneralMoment` is
 asymptotically linear at `S.θ₀` with influence function
 
-  `ψ(z) = −M.J₀_inv · M.m M.η₀ z M.θ₀
+  `ψ(z) = −M.linScaleInv · M.m M.η₀ z M.θ₀
         = (1/π_T) · aipwMomentATTFunctional S.η₀ z S.θ₀`
 
-(using `J₀ = −π_T`, so `J₀_inv = −1/π_T`).  Modulo the linear-in-`θ` shift on
+(using `linScale = −π_T`, so `linScaleInv = −1/π_T`). Modulo the linear-in-`θ` shift on
 the `−A·θ` slot of the ATT moment, this matches the standard ATT influence
 function `ψ_ATT` from `AIPWMoment.lean`.
+
+This theorem is oracle because `oneStepOracleDML` inserts the true `θ₀` and
+population Jacobian `J₀ = -π`. The feasible result that estimates the treated
+share is `dml_ATT_isAsymLinear` in `ATT/DML/Feasible.lean`.
 
 Composes the abstract theorem with `att_meanZero`, `aipw_finite_var_ATT`,
 and a per-η̂_n bilinear remainder bound built directly from
 `aipw_remainder_bound_ATT` (the ATT analogue of the per-η̂ route used in
 `aipw_dml_isAsymLinear`).  The score-difference rate is supplied by
 `aipw_score_diff_isLittleOp_one_ATT` from `Estimation/ATT/Score/AIPWScoreL2.lean`. -/
-theorem att_dml_isAsymLinear
+theorem att_oneStepOracleDML_isAsymLinear
     (S : TreatedEstimationSystem P γ) {ε : ℝ}
     (hη₀_mem : S.η₀ ∈ H_ε S ε)
     (h_e_lb : ∀ x, 0 ≤ S.e_val x)
@@ -288,14 +298,14 @@ theorem att_dml_isAsymLinear
                 (η_hat n ω) S.η₀ : NNReal) : ℝ))
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ) :
     IsAsymLinear
-      (Causalean.Estimation.OrthogonalMoments.dmlChernozhukovEstimator
+      (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML
         (attGeneralMoment S hη₀_mem hπ_pos) sample split η_hat)
       S.θ₀
-      (fun z => -(attGeneralMoment S hη₀_mem hπ_pos).J₀_inv *
+      (fun z => -(attGeneralMoment S hη₀_mem hπ_pos).linScaleInv *
                 aipwMomentATTFunctional S.η₀ z S.θ₀)
       sample
       split.foldB := by
-  have hMZ := att_meanZero S hη₀_mem h_overlap hA hπ_pos h_y2 h_y0_2 hIPW
+  have hMZ := att_meanZero S hη₀_mem hA hπ_pos hIPW
   have hFV :
       Integrable (fun z =>
         ((attGeneralMoment S hη₀_mem hπ_pos).m
@@ -350,7 +360,7 @@ theorem att_dml_isAsymLinear
         h_y2 h_y0_2 η_hat h_in_Hε h_e_lb_hat h_mu_diff_memLp h_e_diff_memLp
         h_mu_rate h_e_rate
   simpa [attGeneralMoment] using
-    (Causalean.Estimation.OrthogonalMoments.dml_chernozhukov_asymptoticLinear
+    (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML_isAsymLinear_of_everywhere
       (attGeneralMoment S hη₀_mem hπ_pos)
       hMZ hFV
       sample split hc_pos h_split_rate

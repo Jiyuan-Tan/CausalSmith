@@ -1,7 +1,8 @@
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.SingularValues
-import Mathlib.LinearAlgebra.Matrix.Rank
+module
+public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.InnerProductSpace.SingularValues
+public import Mathlib.LinearAlgebra.Matrix.Rank
 
 /-!
 # Common finite-dimensional notation for collision-safe spectral laws
@@ -10,6 +11,8 @@ This module fixes the Euclidean matrix carrier and its spectral operator norm.  
 modules use these definitions for rectangular Moore--Penrose inverses, nonnormal functional
 calculus, and finite atomic laws.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

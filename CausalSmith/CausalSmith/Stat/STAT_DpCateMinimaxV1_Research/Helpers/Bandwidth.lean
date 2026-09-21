@@ -1,6 +1,9 @@
 /- Copyright (c) 2026 Jiyuan Tan. All rights reserved. -/
 
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

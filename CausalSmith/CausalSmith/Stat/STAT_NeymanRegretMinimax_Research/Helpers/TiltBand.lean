@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Band continuity for bounded linear tilts
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.Tilt
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

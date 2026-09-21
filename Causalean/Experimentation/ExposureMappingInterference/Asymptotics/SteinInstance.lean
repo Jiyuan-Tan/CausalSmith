@@ -4,13 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinCLT
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Causalean.Experimentation.DesignBased.FiniteDesignMeasure
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Intervals
-import Causalean.Experimentation.DesignBased.HT.Unbiased
-import Causalean.Mathlib.Probability.SteinMethod.CLT
-import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
+module
+public import Causalean.Experimentation.DesignBased.EdgeVarianceBound
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Causalean.Experimentation.DesignBased.HT.Unbiased
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Intervals
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinCLT
+public import Causalean.Mathlib.Probability.SteinMethod.CLT
+public import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
 
 /-!
 # Discharging `LocalDependenceCLT` via the abstract Stein CLT
@@ -28,14 +30,21 @@ abstract dependency-graph CLT `stein_cdf_clt` yields `P[studentizedEffect ≤ t]
 
 The main public results are `localDependenceCLT_of_stein`, which assumes the Stein negligibility
 limits directly, `localDependenceCLT_of_conditions`, which derives those limits from a bounded
-dependency graph and uniformly negligible summands, and `localDependenceCLT_of_paper_conditions`,
-which packages the Aronow-Samii boundedness, positive-propensity, population-growth, and
-variance-growth conditions.  The corresponding `wald_coverage_of_*` theorems compose these CLT
+dependency graph and uniformly negligible summands, and
+`localDependenceCLT_of_bounded_degree_scaled_variance`,
+which packages bounded outcomes, positive propensities, population growth, a bounded-degree
+dependency graph, and an assumed positive scaled-variance limit. These are alternative sufficient
+conditions, not a derivation of Aronow–Samii's exact Conditions 3, 5, and 6. The corresponding
+`wald_coverage_of_*` theorems compose these CLT
 discharges with the oracle Wald-coverage theorem.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Filter
 open scoped Real Topology
+
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace Causalean
 namespace Experimentation
@@ -94,9 +103,9 @@ private lemma E_sum_effRaw (dk dl : E.Δ)
 target exposure propensities are nonzero for every unit. -/
 private lemma depSum_effSummand (dk dl : E.Δ)
     (hk : ∀ i, prop E.D E.f E.θ i dk ≠ 0) (hl : ∀ i, prop E.D E.f E.θ i dl ≠ 0) :
-    SteinMethod.depSum (fun i => E.effSummand dk dl i) = E.studentizedEffect dk dl := by
+    depSum (fun i => E.effSummand dk dl i) = E.studentizedEffect dk dl := by
   funext z
-  unfold SteinMethod.depSum effSummand studentizedEffect
+  unfold depSum effSummand studentizedEffect
   set N : ℝ := (Fintype.card E.ι : ℝ) with hNdef
   set σ : ℝ := Real.sqrt (E.D.Var (htEffect E.D E.y E.f E.θ dk dl)) with hσdef
   set he : ℝ := htEffect E.D E.y E.f E.θ dk dl z with hedef
@@ -222,22 +231,22 @@ theorem localDependenceCLT_of_stein (Exp : ℕ → Experiment) (dk dl : ∀ n, (
     intro n i
     rw [hμ, hX, FiniteDesign.integral_toMeasure, Experiment.E_effSummand]
   -- `depSum (Xₙ) = studentizedEffect`.
-  have hdep : ∀ n, SteinMethod.depSum (X n) = (Exp n).studentizedEffect (dk n) (dl n) :=
+  have hdep : ∀ n, depSum (X n) = (Exp n).studentizedEffect (dk n) (dl n) :=
     fun n => Experiment.depSum_effSummand _ _ _ (hposk n) (hposl n)
   -- Unit total variance: `∫ (depSum Xₙ)² ∂μₙ = 1`.
-  have hvar : ∀ n, ∫ z, (SteinMethod.depSum (X n) z) ^ 2 ∂(μ n) = 1 := by
+  have hvar : ∀ n, ∫ z, (depSum (X n) z) ^ 2 ∂(μ n) = 1 := by
     intro n
     rw [hdep n, hμ, FiniteDesign.integral_toMeasure,
       Experiment.E_studentizedEffect_sq _ _ _ (hVar n) (hposk n) (hposl n)]
   -- The two Stein error limits, transported through the measure bridge.
   have herr1' : Tendsto
       (fun n => variance
-        (fun z => ∑ i, X n i z * SteinMethod.nbhdSum (X n) (N n) i z) (μ n)) atTop (𝓝 0) := by
+        (fun z => ∑ i, X n i z * nbhdSum (X n) (N n) i z) (μ n)) atTop (𝓝 0) := by
     refine herr1.congr (fun n => ?_)
     rw [hμ, FiniteDesign.variance_toMeasure]
     rfl
   have herr2' : Tendsto
-      (fun n => ∑ i, ∫ z, |X n i z| * (SteinMethod.nbhdSum (X n) (N n) i z) ^ 2 ∂(μ n)) atTop
+      (fun n => ∑ i, ∫ z, |X n i z| * (nbhdSum (X n) (N n) i z) ^ 2 ∂(μ n)) atTop
       (𝓝 0) := by
     refine herr2.congr (fun n => ?_)
     refine Finset.sum_congr rfl (fun i _ => ?_)
@@ -245,33 +254,32 @@ theorem localDependenceCLT_of_stein (Exp : ℕ → Experiment) (dk dl : ∀ n, (
     rfl
   -- Assemble the abstract Stein CLT, evaluated at each threshold.
   refine ⟨fun t => ?_⟩
-  have hclt := SteinMethod.stein_cdf_clt μ X N hmeas B hB hbound hmean hindep hvar
+  have hclt := stein_cdf_clt μ X N hmeas B hB hbound hmean hindep hvar
     herr1' herr2' t
   -- Rewrite the limit point: `Φ(t) = (gaussianReal 0 1).real (Iic t)` by definition.
   rw [show stdNormalCdf t = (gaussianReal 0 1).real (Set.Iic t) from rfl]
   -- Match the prelimit sequences pointwise.
   refine hclt.congr (fun n => ?_)
   -- `D.Pr {studentized ≤ t} = (μₙ.map (depSum Xₙ)).real (Iic t)`.
-  have hWmeas : Measurable (SteinMethod.depSum (X n)) := by
+  have hWmeas : Measurable (depSum (X n)) := by
     rw [hdep n]; exact measurable_from_top
   have hset : {z | (Exp n).studentizedEffect (dk n) (dl n) z ≤ t}
-      = (SteinMethod.depSum (X n)) ⁻¹' Set.Iic t := by
+      = (depSum (X n)) ⁻¹' Set.Iic t := by
     rw [hdep n]; rfl
   rw [hμ] at *
   rw [← FiniteDesign.toMeasure_real_setOf, hset,
     MeasureTheory.map_measureReal_apply hWmeas measurableSet_Iic]
 
-/-- **Aronow–Samii oracle Wald coverage from primitive Stein-discharge conditions.** For [a pair of
-treatment sequences `dk`, `dl`](hyp:dk,dl) and [a choice of dependency neighbourhoods `N n
-i`](hyp:N), suppose [the design variance of the Horvitz–Thompson effect estimator is everywhere
-positive](hyp:hVar), [every unit has nonzero exposure probability under `dk`](hyp:hposk) and
-[under `dl`](hyp:hposl), and [the per-unit effect summands are pointwise bounded by a nonnegative
-sequence `B n`](hyp:hB,hbound). If [each summand is independent of the sum of summands outside its
-neighbourhood](hyp:hindep) and the two Stein negligibility limits hold — [the design variance of
-the neighbourhood cross-term sum tends to `0`](hyp:herr1) and [the summed third-moment-type error
-term tends to `0`](hyp:herr2) — and [`zq` is a nonnegative quantile](hyp:hzq0) [satisfying
-`Φ(zq) = 1 − α/2`](hyp:hzq), then [the oracle Wald interval `τ̂ ± zq·√Var[τ̂]` attains asymptotic
-(liminf) coverage at least `1 − α`](goal).
+/-- **Oracle Wald coverage from primitive Stein-discharge conditions.** For
+[a sequence of experiments and treatment contrasts](hyp:Exp,dk,dl), choose
+[dependency neighbourhoods](hyp:N). Suppose
+[the effect-estimator variance is everywhere positive](hyp:hVar),
+[both exposure propensities are nonzero](hyp:hposk,hposl), and
+[the summands have nonnegative pointwise bounds](hyp:B,hB,hbound). If
+[each summand is independent of the outside-neighbourhood sum](hyp:hindep),
+[both Stein error terms tend to zero](hyp:herr1,herr2), and
+[a nonnegative quantile has the required CDF value](hyp:α,zq,hzq0,hzq), then
+[the oracle Wald interval has liminf coverage at least `1 − α`](goal).
 
 This composes the discharged local-dependence central limit theorem with the existing Wald coverage
 theorem, so no separate central-limit premise remains. -/
@@ -306,19 +314,21 @@ theorem wald_coverage_of_stein (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n
       herr1 herr2)
     hVar zq hzq0 hzq
 
-/-- **Local-dependence CLT from a bounded-degree dependency graph.** For [a pair of treatment
-sequences `dk`, `dl`](hyp:dk,dl), suppose [the per-unit effect summands admit a dependency graph
-`Dg`](hyp:Dg) whose [neighbourhoods have cardinality at most `m`](hyp:hdeg), [the design variance
-of the Horvitz–Thompson effect estimator is everywhere positive](hyp:hVar), [every unit has
-nonzero exposure probability under `dk`](hyp:hposk) and [under `dl`](hyp:hposl), and [the summands
-are pointwise bounded by a nonnegative sequence `B n`](hyp:hB,hbound) with [`B n → 0`](hyp:hB0)
-and [population size times `B n` cubed tending to `0`](hyp:hNB3). Then [the studentized
-Horvitz–Thompson effect statistic satisfies the local-dependence central limit theorem](goal).
+/-- **Local-dependence CLT from a bounded-degree dependency graph.** For
+[a sequence of experiments and treatment contrasts](hyp:Exp,dk,dl), suppose
+[the effect summands have a dependency graph](hyp:Dg) with
+[neighbourhood cardinality at most `m`](hyp:m,hdeg),
+[the effect-estimator variance is everywhere positive](hyp:hVar),
+[both exposure propensities are nonzero](hyp:hposk,hposl), and
+[the summands have nonnegative pointwise bounds](hyp:B,hB,hbound) such that
+[the bounds tend to zero](hyp:hB0) and
+[population size times the cubed bounds tends to zero](hyp:hNB3). Then
+[the studentized effect statistic satisfies the local-dependence CLT](goal).
 
 The Stein negligibility limits are derived from the uniformly negligible bounded summands, rather
 than assumed separately. -/
 theorem localDependenceCLT_of_conditions (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ)
-    (Dg : ∀ n, SteinMethod.DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
+    (Dg : ∀ n, DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
       (Exp n).D.toMeasure)
     (m : ℕ) (hdeg : ∀ n i, ((Dg n).nbhd i).card ≤ m)
     (hVar : ∀ n, 0 < (Exp n).D.Var
@@ -342,45 +352,47 @@ theorem localDependenceCLT_of_conditions (Exp : ℕ → Experiment) (dk dl : ∀
     intro n i
     rw [hμ, hX, FiniteDesign.integral_toMeasure, Experiment.E_effSummand]
   -- `depSum (Xₙ) = studentizedEffect`.
-  have hdep : ∀ n, SteinMethod.depSum (X n) = (Exp n).studentizedEffect (dk n) (dl n) :=
+  have hdep : ∀ n, depSum (X n) = (Exp n).studentizedEffect (dk n) (dl n) :=
     fun n => Experiment.depSum_effSummand _ _ _ (hposk n) (hposl n)
   -- Unit total variance: `∫ (depSum Xₙ)² ∂μₙ = 1`.
-  have hvar : ∀ n, ∫ z, (SteinMethod.depSum (X n) z) ^ 2 ∂(μ n) = 1 := by
+  have hvar : ∀ n, ∫ z, (depSum (X n) z) ^ 2 ∂(μ n) = 1 := by
     intro n
     rw [hdep n, hμ, FiniteDesign.integral_toMeasure,
       Experiment.E_studentizedEffect_sq _ _ _ (hVar n) (hposk n) (hposl n)]
   -- Assemble the dependency-graph Stein CLT (negligibility derived internally), at each threshold.
   refine ⟨fun t => ?_⟩
-  have hclt := SteinMethod.stein_cdf_clt_of_depGraph μ X Dg m hdeg B hB hbound hB0 hNB3
+  have hclt := stein_cdf_clt_of_depGraph μ X Dg m hdeg B hB hbound hB0 hNB3
     hmean hvar t
   -- Rewrite the limit point: `Φ(t) = (gaussianReal 0 1).real (Iic t)` by definition.
   rw [show stdNormalCdf t = (gaussianReal 0 1).real (Set.Iic t) from rfl]
   -- Match the prelimit sequences pointwise.
   refine hclt.congr (fun n => ?_)
   -- `D.Pr {studentized ≤ t} = (μₙ.map (depSum Xₙ)).real (Iic t)`.
-  have hWmeas : Measurable (SteinMethod.depSum (X n)) := by
+  have hWmeas : Measurable (depSum (X n)) := by
     rw [hdep n]; exact measurable_from_top
   have hset : {z | (Exp n).studentizedEffect (dk n) (dl n) z ≤ t}
-      = (SteinMethod.depSum (X n)) ⁻¹' Set.Iic t := by
+      = (depSum (X n)) ⁻¹' Set.Iic t := by
     rw [hdep n]; rfl
   rw [hμ] at *
   rw [← FiniteDesign.toMeasure_real_setOf, hset,
     MeasureTheory.map_measureReal_apply hWmeas measurableSet_Iic]
 
-/-- **Aronow–Samii oracle Wald coverage from bounded-degree primitive conditions.** For [a pair of
-treatment sequences `dk`, `dl`](hyp:dk,dl), suppose [the per-unit effect summands admit a
-dependency graph `Dg`](hyp:Dg) whose [neighbourhoods have cardinality at most `m`](hyp:hdeg), [the
-design variance of the Horvitz–Thompson effect estimator is everywhere positive](hyp:hVar), and
-[every unit has nonzero exposure probability under `dk`](hyp:hposk) and [under `dl`](hyp:hposl).
-If [the summands are pointwise bounded by a nonnegative sequence `B n`](hyp:hB,hbound) with
-[`B n → 0`](hyp:hB0) and [population size times `B n` cubed tending to `0`](hyp:hNB3), and [`zq`
-is a nonnegative quantile](hyp:hzq0) [satisfying `Φ(zq) = 1 − α/2`](hyp:hzq), then [the oracle
-Wald interval `τ̂ ± zq·√Var[τ̂]` attains asymptotic (liminf) coverage at least `1 − α`](goal).
+/-- **Oracle Wald coverage from bounded-degree primitive conditions.** For
+[a sequence of experiments and treatment contrasts](hyp:Exp,dk,dl), suppose
+[the effect summands have a dependency graph](hyp:Dg) with
+[neighbourhood cardinality at most `m`](hyp:m,hdeg),
+[the effect-estimator variance is everywhere positive](hyp:hVar),
+[both exposure propensities are nonzero](hyp:hposk,hposl), and
+[the summands have nonnegative pointwise bounds](hyp:B,hB,hbound) such that
+[the bounds tend to zero](hyp:hB0) and
+[population size times the cubed bounds tends to zero](hyp:hNB3). If
+[a nonnegative quantile has the required CDF value](hyp:α,zq,hzq0,hzq), then
+[the oracle Wald interval has liminf coverage at least `1 − α`](goal).
 
 This combines the primitive local-dependence central limit theorem with the existing Wald coverage
 result, without assuming a separate central-limit theorem or Stein-negligibility limits. -/
 theorem wald_coverage_of_conditions (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ)
-    (Dg : ∀ n, SteinMethod.DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
+    (Dg : ∀ n, DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
       (Exp n).D.toMeasure)
     (m : ℕ) (hdeg : ∀ n i, ((Dg n).nbhd i).card ≤ m)
     (hVar : ∀ n, 0 < (Exp n).D.Var
@@ -402,18 +414,6 @@ theorem wald_coverage_of_conditions (Exp : ℕ → Experiment) (dk dl : ∀ n, (
   wald_coverage Exp dk dl
     (localDependenceCLT_of_conditions Exp dk dl Dg m hdeg hVar hposk hposl B hB hbound hB0 hNB3)
     hVar zq hzq0 hzq
-
-/-- Absolute value of a design expectation is bounded by a uniform pointwise bound on the
-random variable: `(∀ z, |g z| ≤ C) → |D.E g| ≤ C`. -/
-private lemma abs_E_le {Ω : Type} [Fintype Ω] (D : FiniteDesign Ω) {g : Ω → ℝ} {C : ℝ}
-    (h : ∀ z, |g z| ≤ C) : |D.E g| ≤ C := by
-  unfold FiniteDesign.E
-  calc |∑ z, D.p z * g z| ≤ ∑ z, |D.p z * g z| := Finset.abs_sum_le_sum_abs _ _
-    _ = ∑ z, D.p z * |g z| := by
-        apply Finset.sum_congr rfl; intro z _; rw [abs_mul, abs_of_nonneg (D.p_nonneg z)]
-    _ ≤ ∑ z, D.p z * C := by
-        apply Finset.sum_le_sum; intro z _; exact mul_le_mul_of_nonneg_left (h z) (D.p_nonneg z)
-    _ = C := by rw [← Finset.sum_mul, D.p_sum, one_mul]
 
 /-- Pointwise bound on a single inverse-propensity-weighted outcome term: under bounded outcomes
 (`|y i d| ≤ c₁`) and bounded inverse propensities (`1/c₂ ≤ π`, `π > 0`, `c₂ > 0`), the term
@@ -438,8 +438,10 @@ private lemma abs_effTerm_le (E : Experiment) (d : E.Δ) (i : E.ι) (z : E.Ω)
     _ ≤ 1 * c1 * c2 := by gcongr
     _ = c1 * c2 := by ring
 
-/-- Pointwise bound on a unit's raw HT contribution `effRaw`, the difference of two
-inverse-propensity-weighted outcome terms: under Condition 1 it is bounded by `2·c₁·c₂`. -/
+/-- For [an experiment](hyp:E), [two exposure levels](hyp:dk,dl), [a unit](hyp:i),
+[an assignment](hyp:z), [outcomes bounded by `c1`](hyp:c1,hyk,hyl), and
+[positive marginal-overlap bounds](hyp:c2,hc2,hπk,hπl),
+[the absolute raw HT effect contribution is bounded by `2·c1·c2`](goal). -/
 private lemma abs_effRaw_le (E : Experiment) (dk dl : E.Δ) (i : E.ι) (z : E.Ω)
     (c1 : ℝ) (hyk : |E.y i dk| ≤ c1) (hyl : |E.y i dl| ≤ c1)
     (c2 : ℝ) (hc2 : 0 < c2)
@@ -456,20 +458,25 @@ private lemma abs_effRaw_le (E : Experiment) (dk dl : E.Δ) (i : E.ι) (z : E.Ω
           (abs_effTerm_le E dl i z c1 hyl c2 hc2 hπl)
     _ = 2 * c1 * c2 := by ring
 
-/-- **Local-dependence CLT from the literal Aronow–Samii conditions.** For [a pair of treatment
-sequences `dk`, `dl`](hyp:dk,dl), suppose [the per-unit effect summands admit a bounded-degree
-dependency graph `Dg`](hyp:Dg,hdeg), [potential outcomes under `dk`](hyp:hyk) and [under
-`dl`](hyp:hyl) are uniformly bounded by a constant `c1`, and [the exposure propensities under
-`dk`](hyp:hπk) and [under `dl`](hyp:hπl) are bounded away from `0` by [a positive constant
-`c2`](hyp:hc2). If [the population size diverges](hyp:hN), [the design variance of the
-Horvitz–Thompson effect estimator is everywhere positive](hyp:hVar), and [population size times
-that variance converges to a positive limit `cVar`](hyp:hcVar,hCond4), then [the studentized
-Horvitz–Thompson effect statistic satisfies the local-dependence central limit theorem](goal).
+/-- **Local-dependence CLT from bounded degree and a positive scaled-variance limit.** For
+[a sequence of experiments and treatment contrasts](hyp:Exp,dk,dl), suppose
+[the effect summands have a dependency graph of degree at most `m`](hyp:Dg,m,hdeg),
+[the `dk` outcomes are uniformly bounded](hyp:c1,hyk) and
+[the `dl` outcomes are uniformly bounded](hyp:hyl), and
+[the `dk` exposure propensities](hyp:hπk) and
+[the `dl` exposure propensities](hyp:hπl) are bounded away from `0` by
+[a positive constant `c2`](hyp:c2,hc2). If [the population size diverges](hyp:hN),
+[the effect-estimator variance is everywhere positive](hyp:hVar), and
+[the scaled variance converges to positive `cVar`](hyp:cVar,hcVar,hScaledVar), then
+[the studentized effect statistic obeys the local-dependence CLT](goal).
 
 The summand-bound rates are derived from bounded outcomes, bounded inverse propensities, growing
-population size, and a positive limit for population size times effect-estimator variance. -/
-theorem localDependenceCLT_of_paper_conditions (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ)
-    (Dg : ∀ n, SteinMethod.DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
+population size, and a positive limit for population size times effect-estimator variance. They
+provide an explicit route related to Conditions 3, 5, and 6 of Aronow–Samii (2017), but do not
+claim to formalize those conditions exactly. -/
+theorem localDependenceCLT_of_bounded_degree_scaled_variance
+    (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ)
+    (Dg : ∀ n, DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
       (Exp n).D.toMeasure)
     (m : ℕ) (hdeg : ∀ n i, ((Dg n).nbhd i).card ≤ m)
     (c1 : ℝ) (hyk : ∀ n i, |(Exp n).y i (dk n)| ≤ c1) (hyl : ∀ n i, |(Exp n).y i (dl n)| ≤ c1)
@@ -480,7 +487,7 @@ theorem localDependenceCLT_of_paper_conditions (Exp : ℕ → Experiment) (dk dl
     (hVar : ∀ n, 0 < (Exp n).D.Var
       (htEffect (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (dk n) (dl n)))
     (cVar : ℝ) (hcVar : 0 < cVar)
-    (hCond4 : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ)
+    (hScaledVar : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ)
       * (Exp n).D.Var (htEffect (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (dk n) (dl n)))
       atTop (𝓝 cVar)) :
     LocalDependenceCLT Exp dk dl := by
@@ -519,7 +526,7 @@ theorem localDependenceCLT_of_paper_conditions (Exp : ℕ → Experiment) (dk dl
     have hraw : ∀ z', |(Exp n).effRaw (dk n) (dl n) i z'| ≤ 2 * c1 * c2 := fun z' =>
       abs_effRaw_le (Exp n) (dk n) (dl n) i z' c1 (hyk n i) (hyl n i) c2 hc2 (hπk n i) (hπl n i)
     have hEraw : |(Exp n).D.E ((Exp n).effRaw (dk n) (dl n) i)| ≤ 2 * c1 * c2 :=
-      abs_E_le (Exp n).D hraw
+      (Exp n).D.abs_E_le hraw
     have hnum : |(Exp n).effRaw (dk n) (dl n) i z
         - (Exp n).D.E ((Exp n).effRaw (dk n) (dl n) i)| ≤ 4 * c1 * c2 := by
       calc |(Exp n).effRaw (dk n) (dl n) i z
@@ -541,7 +548,7 @@ theorem localDependenceCLT_of_paper_conditions (Exp : ℕ → Experiment) (dk dl
     have heq : (fun n => card n ^ 2 * Var n) = fun n => card n * (card n * Var n) := by
       funext n; ring
     rw [heq]
-    exact hN.atTop_mul_pos hcVar hCond4
+    exact hN.atTop_mul_pos hcVar hScaledVar
   -- `card n * σ n → atTop`.
   have hdenom_atTop : Tendsto (fun n => card n * σ n) atTop atTop := by
     have : (fun n => card n * σ n) = fun n => Real.sqrt (card n ^ 2 * Var n) := funext hdenom_sqrt
@@ -577,7 +584,7 @@ theorem localDependenceCLT_of_paper_conditions (Exp : ℕ → Experiment) (dk dl
         = fun n => (Real.sqrt (card n * Var n)) ^ 3 * Real.sqrt (card n) := funext hpow_sqrt
     rw [heq]
     have hsqrtcardVar : Tendsto (fun n => Real.sqrt (card n * Var n)) atTop
-        (𝓝 (Real.sqrt cVar)) := (Real.continuous_sqrt.tendsto cVar).comp hCond4
+        (𝓝 (Real.sqrt cVar)) := (Real.continuous_sqrt.tendsto cVar).comp hScaledVar
     have hcube : Tendsto (fun n => (Real.sqrt (card n * Var n)) ^ 3) atTop
         (𝓝 ((Real.sqrt cVar) ^ 3)) := hsqrtcardVar.pow 3
     have hcubepos : 0 < (Real.sqrt cVar) ^ 3 := by positivity

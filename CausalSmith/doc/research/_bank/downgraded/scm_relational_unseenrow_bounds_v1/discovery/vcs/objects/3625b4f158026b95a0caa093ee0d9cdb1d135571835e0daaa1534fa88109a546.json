@@ -1,0 +1,45 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "thm:certificate-soundness",
+    "kind": "theorem",
+    "statement": "If \\(Check(S,G,Rsrc,Psrc,rho,a,B,Ictx,K,F,Z,Gamma)=1\\), then the digest binds \\(Gamma\\) to that complete fixed instance and those serialized groundings; \\(Ictx\\) is the exact source and target incidence table; \\(K\\) consists exactly of the target-relevant rows recovered from positive source parent contexts; \\(rstar\\) is the unique unsupported target-relevant row; and replay of the target factorization yields \\(F\\). The root records enumerate every point in \\(Ccrit\\), every candidate-to-value link is correct, \\(L=\\min_{q\\in[0,1]}F(q)\\), and \\(U=\\max_{q\\in[0,1]}F(q)\\). Decoding \\(Z\\) yields \\(Mminus,Mplus\\in Mone\\), exact reproduction of \\(Psrc\\), and \\(Q(Mminus)=L\\), \\(Q(Mplus)=U\\). These conclusions remain valid with repeated derivative roots, boundary critical points, equal candidate values, boundary ties, algebraic conjugates, and threshold coincidences.",
+    "free_symbols": [
+      "Check",
+      "F",
+      "K",
+      "Psrc",
+      "Gamma",
+      "Ccrit",
+      "L",
+      "U",
+      "q",
+      "Mminus",
+      "Mplus",
+      "S",
+      "G",
+      "Rsrc",
+      "rho",
+      "a",
+      "B",
+      "Ictx",
+      "Z",
+      "rstar",
+      "Mone",
+      "Q"
+    ],
+    "depends_on": [
+      "def:critical-candidates",
+      "def:model-class",
+      "def:certificate-grammar",
+      "def:checker",
+      "lem:sturm-root-count-correctness",
+      "thm:sharp-one-row",
+      "thm:endpoint-models"
+    ],
+    "justification": "Soundness turns an untrusted producer's output into an independently checkable causal claim.",
+    "gap": "Li, Passmore, and Paulson and Narkawicz, Mu\\~noz, and Dutle verify univariate formulas; neither composes those checks with relational factorization and source-compatible endpoint models.",
+    "consumer": "A rejected conjugate or omitted positive critical point cannot silently alter the reported N3 range.",
+    "proof_tex": "Assume\n\\[\n Check(S,G,Rsrc,Psrc,\\rho,a,B,Ictx,K,F,Z,\\Gamma)=1.\n\\]\nBy the definition of \\(Check\\), every guarded check in\n\\(\\texttt{def:checker}\\) has returned true.  We show successively what\nthose checks imply.\n\nFirst, the checker recomputes the injective, length-delimited canonical\ndigest from the supplied fixed instance and \\(Z\\).  Equality with the\ndigest stored in \\(\\Gamma\\) therefore gives equality of the entire encoded\ntuples, rather than merely equality of an ambiguous concatenation.  The\nschema-reference, edge-reference, lexicographic-index, and acyclicity\nchecks then show that the accepted \\(Ictx\\) has one and only one record\nfor every required source ground node and every event-consistent complete\ntarget-assignment term of the supplied groundings, with the recorded\ncontext, parent tuple, intervention status, and target-relevance flag.\nThus it is their exact incidence table.\n\nFor a row claimed to be supported, the checker recomputes its source\nparent-context probability and checks that this rational number is\nstrictly positive before division.  It then divides the corresponding\njoint cells by that positive number and compares every result with the\nrow recorded in \\(K\\).  Hence all such divisions are defined and \\(K\\)\ncontains exactly the recovered target-relevant positive-support rows.\nEquality checks between occurrences with the same type--context label\nenforce type sharing.  Exhaustiveness of the relevance records, followed\nby the source-support checks, leaves exactly the recorded key \\(rstar\\)\nunsupported.  Finally, each rational addition and multiplication in the\ntruncated-factorization replay is checked, and the terminal dense\ncoefficient list is compared coefficient by coefficient with \\(F\\).\nTherefore the supplied polynomial is exactly the causal replay polynomial.\n\nWe next analyze the algebraic portion.  The checker verifies an integer\nclearing of \\(F'\\), its gcd data, and its square-free part \\(g\\).  In the\nconstant and nonzero-constant-derivative cases it uses the designated\nboundary-only record.  Otherwise,\n\\(\\texttt{lem:sturm-root-count-correctness}\\) implies that an accepted\nrational interval of Sturm count one contains exactly one distinct real\nroot of \\(g\\), an interval of count zero contains none, and the checked\nvariation counts over the disjoint subdivision account for every root.\nThe feasibility signs retain exactly the roots in \\((0,1)\\), while the\nseparate boundary records account for \\(0\\) and \\(1\\).  Since a polynomial\nand its square-free part have the same distinct roots, repeated roots of\n\\(F'\\) are represented once.  Hence the accepted candidate list is\nexactly \\(Ccrit\\), including all boundary cases.\n\nFix a listed candidate \\(c\\).  For an interior candidate, \\(g(c)=0\\).\nIn the Sylvester determinant defining that resultant, specialization at\n\\(z=F(c)\\) makes the two input polynomials share the root \\(c\\), so the\ncorresponding evaluation matrix has a nonzero kernel and its determinant\nvanishes.  The checked resultant identity therefore implies that \\(F(c)\\)\nis a root of the associated value polynomial; for a boundary candidate, exact\nrational substitution gives the corresponding assertion.  A resultant\nalone could include conjugate or infeasible values, so the checker also\nverifies the candidate-specific Sturm--Tarski signs.  If\n\\(J=(\\ell,u)\\) is the one-root rational isolator carrying the proposed\nvalue label, those accepted signs give\n\\[\n \\ell<F(c)<u.\n\\]\nThe root-count check says that \\(J\\) contains exactly one root of the\nsquare-free value polynomial.  Thus the linked algebraic number is\nnecessarily \\(F(c)\\), not an unrelated conjugate root of the resultant.\n\nThe exact sign comparisons totally order distinct value labels.  The\nchecker assigns a common tie label precisely when the candidate-specific\nalgebraic equality test succeeds; otherwise disjoint one-root isolators\nand strict sign comparisons determine the order.  Therefore equal\ninterior values, boundary ties, and boundary--interior coincidences are\nhandled without an invalid numerical separation step.  The selected least\nand greatest labels satisfy\n\\[\n L=\\min_{c\\in Ccrit}F(c),\\qquad\n U=\\max_{c\\in Ccrit}F(c).\n\\]\nBy the critical-point argument in \\(\\texttt{thm:sharp-one-row}\\), these\nare also\n\\[\n L=\\min_{q\\in[0,1]}F(q),\\qquad\n U=\\max_{q\\in[0,1]}F(q).\n\\]\nAn algebraic root having no link from a feasible candidate cannot be\nselected.  The same exact sign mechanism checks all\nrational-versus-algebraic threshold comparisons, including equality.\n\nFinally, decode \\(Z\\).  The accepted nonnegativity signs and exact\nunit-sum identities make every listed finite-noise table a probability\nlaw.  Shared table labels give one mechanism per endogenous type, and the\nnode-copy records give mutually independent noise draws at distinct ground\nnodes.  The mechanism-output, graph-reference, and incidence checks place\neach output in the supplied context and grounding.  Summing the checked\natom masses over output labels recovers every conditional row.  The source\nevaluation records multiply these rows in a topological order and agree\ncell by cell with \\(Psrc\\); the positivity checks used above justify every\nconditional recovery.  The target records omit exactly the intervened\nfactors, sum every event-consistent term in \\(Ictx\\), and agree exactly\nwith \\(L\\) and \\(U\\).  Thus the two decoded models satisfy every clause of\n\\(\\texttt{def:model-class}\\), reproduce \\(Psrc\\), and obey\n\\[\n Mminus,Mplus\\in Mone,\\qquad\n Q(Mminus)=L,\\qquad Q(Mplus)=U.\n\\]\nAll implications used exact identities or certified signs, so repeated\nderivative roots, boundary critical points, equal values, algebraic\nconjugates, and threshold coincidences do not change the conclusion."
+  }
+}

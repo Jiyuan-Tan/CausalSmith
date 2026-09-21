@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelSpectralConstruction
-
-namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelSpectralConstruction
 
 /-! A concrete metric on finite-dimensional summary coordinates and comparison with `dS`. -/
+
+@[expose] public section
+
+namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
 -- @node: summaryMetric_toCoordinates_injective
 /-- To coordinates injective: under [the stated inputs and assumptions](hyp:dx,dz), [the stated conclusion](goal) holds. -/

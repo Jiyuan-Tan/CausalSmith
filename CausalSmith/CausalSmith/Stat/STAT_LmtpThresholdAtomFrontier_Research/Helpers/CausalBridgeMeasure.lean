@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.LocalWindowGram
-import Mathlib.Probability.Independence.Integration
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.LocalWindowGram
+public import Mathlib.Probability.Independence.Integration
 
 /-!
 # Conditional full-data stratum measure helpers
@@ -13,6 +14,8 @@ import Mathlib.Probability.Independence.Integration
 This module derives the normalized stratum product law and continuity of the
 full-data response mean used by the causal clamp bridge.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

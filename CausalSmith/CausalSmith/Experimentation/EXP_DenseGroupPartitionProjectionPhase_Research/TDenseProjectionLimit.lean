@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Asymptotics
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Asymptotics
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
 
 /-!
 # Dense projection expansion
@@ -7,6 +8,8 @@ import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Resear
 The deterministic group-scaled variance expansion is stated for bounded schedule
 arrays without a scaled-variance nondegeneracy premise.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter Finset

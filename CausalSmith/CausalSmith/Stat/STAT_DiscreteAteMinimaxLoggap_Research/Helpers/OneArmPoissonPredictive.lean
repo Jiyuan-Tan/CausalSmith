@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonTail
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmTensorization
-import Mathlib.Probability.Distributions.Poisson.Basic
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonTail
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmTensorization
+public import Mathlib.Probability.Distributions.Poisson.Basic
 
 /-!
 # Discrete Poisson predictive laws for the one-arm converse
@@ -8,6 +9,8 @@ import Mathlib.Probability.Distributions.Poisson.Basic
 This module realizes the three sufficient counts as an actual PMF and mixes
 that PMF over a finite parameter prior.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

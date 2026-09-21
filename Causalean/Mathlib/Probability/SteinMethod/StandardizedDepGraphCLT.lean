@@ -3,14 +3,17 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+
+module
+public import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-!
 # Standardized bounded-degree dependency-graph CLT
 
 A standardization wrapper around the abstract Stein dependency-graph CLT
-`Causalean.SteinMethod.stein_cdf_clt_of_depGraph`. The engine consumes an array that has *already*
+`Causalean.Mathlib.Probability.SteinMethod.stein_cdf_clt_of_depGraph`. The engine
+consumes an array that has *already*
 been standardized to unit variance with a summand bound tending to `0` and a Lyapunov limit
 `card · Bₙ³ → 0`. Real applications instead arrive with fixed bounded summands `|X| ≤ M`, a raw
 second moment `∫ (∑ᵢ Xᵢ)² = vₙ`, and a linear variance floor `c · card ιₙ ≤ vₙ` — so this file
@@ -20,11 +23,12 @@ prefix-shift plumbing for the eventual-hypothesis variants. Downstream a user ca
 mean-zero bounded summands and get CDF convergence of `(∑ᵢ Xᵢ)/√vₙ` to `N(0,1)` in one step.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Filter
 open scoped Topology BigOperators
 
-namespace Causalean
-namespace SteinMethod
+namespace Causalean.Mathlib.Probability.SteinMethod
 
 /-- For every measurable sample space, finite index set, measure, and real-valued random-variable
 family, [a dependency graph for that family](hyp:D), and [any real constant $s$](hyp:s), the
@@ -270,5 +274,4 @@ theorem bounded_degree_dependency_clt_eventually_bounded
       c hc hvc_tail hcard_tail s
   exact (tendsto_add_atTop_iff_nat Nb).1 htail
 
-end SteinMethod
-end Causalean
+end Causalean.Mathlib.Probability.SteinMethod

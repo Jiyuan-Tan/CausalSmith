@@ -3,32 +3,36 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Concentration.Matrix.DesignInverse
-import Causalean.Stat.Nonparametric.LocalPoly.Rate.Conjugation
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+
+module
+public import Causalean.Stat.Concentration.Matrix.DesignInverse
+public import Causalean.Stat.Nonparametric.LocalPoly.Rate.Conjugation
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-!
-# Explicit `Θ(Nh)` rate for the local-polynomial leverage `(M⁻¹)₀₀`
+# Explicit `O(1/(Nh))` upper bound for the local-polynomial leverage `(M⁻¹)₀₀`
 
-Explicit `Θ(Nh)` leverage-rate bounds for the local-polynomial design inverse, derived from
-entrywise design-matrix concentration and population scaling.
+One-sided leverage upper bounds for the local-polynomial design inverse, derived from deterministic
+entrywise perturbation and population scaling hypotheses.
 
 This module converts the entrywise design-matrix concentration of
 `Concentration.DesignInverse` into the **explicit interior local-polynomial leverage rate**:
 
 * `localPoly_inv00_rate` — on the good design event (empirical moment matrix `M` entrywise within
   `η` of the population matrix `S`), the leverage `(M⁻¹)₀₀ ≤ 2·cInv/(Nh)`, i.e. the variance
-  scale is `Θ(1/(Nh))`.
+  scale has the upper bound `O(1/(Nh))`.
 * `localPoly_leverage_bound` — the leverage product `√(M₀₀·(M⁻¹)₀₀) ≤ √(2·cInv·(cTop+1))`, a
   bandwidth-free constant, controlling the `ℓ¹` bias leverage.
 
-The population matrix is supplied with its `Θ(Nh)` scale via the diagonal-conjugation
+The population matrix is supplied with one-sided `Nh`-scale bounds via the diagonal-conjugation
 factorization `S = (Nh)·D·T·D` (`D = diagonal (h^j)`): `population_scaling_of_conj` turns a
 bandwidth-free shape matrix `T` (invertible with bounded `(T⁻¹)₀₀` and `T₀₀`, supplied by the
 integral-moment positive-definiteness of `LocalPoly.Rate.IntegralMoment`) into the leverage scaling
-hypotheses `(S⁻¹)₀₀ ≤ cInv/(Nh)` and `S₀₀ ≤ cTop·(Nh)`. The entrywise-closeness hypothesis is the
-good event whose probability is bounded by `designMatrix_inv_concentration`.
+hypotheses `(S⁻¹)₀₀ ≤ cInv/(Nh)` and `S₀₀ ≤ cTop·(Nh)`. The entrywise-closeness condition is a
+deterministic hypothesis here; this module does not instantiate it from a concentration event.
 -/
+
+public section
 
 namespace Causalean.Stat.Nonparametric
 
@@ -38,7 +42,8 @@ open Matrix
 
 variable {p : ℕ}
 
-/-- **`Θ(Nh)` leverage scaling from the change-of-variables factorization.** If the population
+/-- **One-sided population leverage bounds from the change-of-variables factorization.** If the
+population
 moment matrix factors as `S = (Nh)·D·T·D` with `D = diagonal (fun j => h^j)` (so `D₀₀ = 1`) and a
 bandwidth-free shape matrix `T` that is invertible with `(T⁻¹)₀₀ ≤ cInv` and `T₀₀ ≤ cTop`, then `S`
 is invertible and its intercept leverage scales as `(S⁻¹)₀₀ ≤ cInv/(Nh)` while its top weight
@@ -74,20 +79,18 @@ theorem population_scaling_of_conj {N : ℕ} {h cInv cTop : ℝ}
       _ = cTop * ((N : ℝ) * h) := by
         simp [κ, mul_comm]
 
-/-- **Explicit `Θ(1/(Nh))` rate for the local-polynomial leverage.** On [a good design event with
-positive scale `Nh`](hyp:_hNh) where [the population moment matrix `S` is invertible](hyp:hS),
-[its inverse row sums are bounded by a nonnegative constant `c`](hyp:_hc,hSrow), [the empirical
-moment matrix `M` lies entrywise within a nonnegative perturbation scale `η`](hyp:_hη,hclose) of
-`S`, [the perturbation is small relative to the dimension: `c·(p+1)·η ≤ 1/2`](hyp:hsmall), and [the
-population intercept leverage sits at the `Θ(Nh)` scale: `(S⁻¹)₀₀ ≤ cInv/(Nh)` and
+/-- **Explicit `O(1/(Nh))` upper bound for the local-polynomial leverage.** If [the population
+moment matrix `S` is invertible](hyp:hS), [its inverse row sums are bounded by `c`](hyp:hSrow),
+[the empirical moment matrix `M` lies entrywise within perturbation scale `η`](hyp:hclose) of `S`,
+[the perturbation is small relative to the dimension: `c·(p+1)·η ≤ 1/2`](hyp:hsmall), and [the
+population intercept leverage obeys the upper bounds `(S⁻¹)₀₀ ≤ cInv/(Nh)` and
 `2c²(p+1)η ≤ cInv/(Nh)`](hyp:hSinv00,hpert), then [the empirical moment matrix `M` is invertible
 and its intercept leverage obeys the explicit interior rate `(M⁻¹)₀₀ ≤ 2·cInv/(Nh)`](goal). This is
 the variance-rate capstone for the local-polynomial upper bound: combined with
 `localPoly_intercept_variance_le` it yields the `O((Nh)^{-1/2})` stochastic error. -/
 theorem localPoly_inv00_rate {N : ℕ} {h c cInv η : ℝ}
     {S M : Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ}
-    (_hNh : 0 < (N : ℝ) * h)
-    (hS : IsUnit S.det) (_hc : 0 ≤ c) (_hη : 0 ≤ η)
+    (hS : IsUnit S.det)
     (hSrow : ∀ i, (∑ j, |S⁻¹ i j|) ≤ c)
     (hclose : ∀ j k, |M j k - S j k| ≤ η)
     (hsmall : c * ((p + 1 : ℕ) * η) ≤ 1 / 2)
@@ -101,24 +104,23 @@ theorem localPoly_inv00_rate {N : ℕ} {h c cInv η : ℝ}
 
 /-- **Bandwidth-free bound on the local-polynomial leverage product.** On [the same good design
 event with positive scale `Nh`](hyp:hNh), where [the population moment matrix `S` is
-invertible](hyp:hS), [its inverse row sums are bounded by a nonnegative constant
-`c`](hyp:hc,hSrow), [the empirical moment matrix `M` lies entrywise within a nonnegative
-perturbation scale `η`](hyp:hη,hclose) that is [small relative to the dimension
-(`c·(p+1)·η ≤ 1/2`)](hyp:hsmall) and [at most `Nh`](hyp:hηle), with [nonnegative density constants
-`cInv` and `cTop`](hyp:_hcInv,_hcTop) such that [the population intercept leverage and
+invertible](hyp:hS), [its inverse row sums are bounded by `c`](hyp:hSrow), [the empirical moment
+matrix `M` lies entrywise within perturbation scale `η`](hyp:hclose) that is
+[small relative to the dimension (`c·(p+1)·η ≤ 1/2`)](hyp:hsmall) and [at most
+`Nh`](hyp:hηle), with a density constant `cTop` such that [the population intercept leverage and
 perturbation obey `(S⁻¹)₀₀ ≤ cInv/(Nh)` and `2c²(p+1)η ≤ cInv/(Nh)`](hyp:hSinv00,hpert), [the
 population top weight obeys `S₀₀ ≤ cTop·(Nh)`](hyp:hS00), and [the empirical top weight `M₀₀` and
 inverse leverage `(M⁻¹)₀₀` are both nonnegative](hyp:hM00,hMinv00), [the geometric mean of the
 total weight and the inverse leverage is bounded by the bandwidth-free constant
-`√(M₀₀·(M⁻¹)₀₀) ≤ √(2·cInv·(cTop+1))`](goal). The `Θ(Nh)` growth of `M₀₀ ≤ (cTop+1)·(Nh)` exactly
-cancels the `Θ(1/(Nh))` decay of `(M⁻¹)₀₀`. Via `equivKernelWeight_abs_sum_sq_le`
+`√(M₀₀·(M⁻¹)₀₀) ≤ √(2·cInv·(cTop+1))`](goal). The `Nh` factor in the upper bound
+`M₀₀ ≤ (cTop+1)·(Nh)` cancels the `1/(Nh)` factor in the upper bound for
+`(M⁻¹)₀₀`. Via `equivKernelWeight_abs_sum_sq_le`
 (`(∑ᵢ|Sᵢ|)² ≤ M₀₀·(M⁻¹)₀₀`) this controls the `ℓ¹` bias leverage `∑ᵢ|Sᵢ|` by a bandwidth-free
 constant, the second leverage capstone used by the upper-bound analysis. -/
 theorem localPoly_leverage_bound {N : ℕ} {h c cInv cTop η : ℝ}
     {S M : Matrix (Fin (p + 1)) (Fin (p + 1)) ℝ}
     (hNh : 0 < (N : ℝ) * h)
-    (hS : IsUnit S.det) (hc : 0 ≤ c) (hη : 0 ≤ η) (_hcInv : 0 ≤ cInv)
-    (_hcTop : 0 ≤ cTop)
+    (hS : IsUnit S.det)
     (hSrow : ∀ i, (∑ j, |S⁻¹ i j|) ≤ c)
     (hclose : ∀ j k, |M j k - S j k| ≤ η)
     (hsmall : c * ((p + 1 : ℕ) * η) ≤ 1 / 2)
@@ -129,12 +131,11 @@ theorem localPoly_leverage_bound {N : ℕ} {h c cInv cTop η : ℝ}
     (hM00 : 0 ≤ M 0 0) (hMinv00 : 0 ≤ M⁻¹ 0 0) :
     Real.sqrt (M 0 0 * M⁻¹ 0 0) ≤ Real.sqrt (2 * cInv * (cTop + 1)) := by
   obtain ⟨_, hrate⟩ :=
-    localPoly_inv00_rate hNh hS hc hη hSrow hclose hsmall hSinv00 hpert
+    localPoly_inv00_rate hS hSrow hclose hsmall hSinv00 hpert
   have hcl := (abs_le.mp (hclose 0 0)).2
   have hM00bd : M 0 0 ≤ (cTop + 1) * ((N : ℝ) * h) := by
     nlinarith [hS00, hcl, hηle]
-  have hb0 : 0 ≤ (cTop + 1) * ((N : ℝ) * h) := by
-    nlinarith [_hcTop, hNh.le]
+  have hb0 : 0 ≤ (cTop + 1) * ((N : ℝ) * h) := hM00.trans hM00bd
   have hprod : M 0 0 * M⁻¹ 0 0 ≤ 2 * cInv * (cTop + 1) := by
     have hmul := mul_le_mul hM00bd hrate hMinv00 hb0
     have hne : ((N : ℝ) * h) ≠ 0 := hNh.ne'

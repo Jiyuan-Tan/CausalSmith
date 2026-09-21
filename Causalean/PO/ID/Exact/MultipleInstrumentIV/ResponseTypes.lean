@@ -3,50 +3,62 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Mogstad-Torgovitsky-Walters response-type algebra
+# Finite centered-score IV response-type algebra
 
-Finite binary response-type weights for the MTW multiple-IV 2SLS
-characterization.  This file includes the saturated finite-support bridge from
-reduced-form and first-stage moments to the response-type ratio.  The observed
-measure-backed `E[h(Z)Y] / E[h(Z)D]` bridge lives in
+Finite binary response-type weights for a centered-score IV ratio.
+This file includes the finite-support bridge from reduced-form and first-stage
+moments to the response-type ratio. The positive-weight results assume an
+abstract sign-alignment condition; they do not derive that condition from the
+partial-monotonicity restrictions of Mogstad, Torgovitsky, and Walters. The
+observed measure-backed `E[h(Z)Y] / E[h(Z)D]` bridge lives in
 `MultipleInstrumentIV/Population.lean`.
 
-Source labels:
+Background labels. Their population-2SLS interpretation additionally requires
+the projected or saturated first stage specified in
+`def:po-estimand-mtw-population-2sls`; the generic score results below do not
+establish that condition:
 
 * `def:po-estimand-mtw-system`
+* `def:po-estimand-mtw-population-2sls`
 * `thm:po-estimand-mtw-signed-decomposition`
 * `prop:po-estimand-mtw-response-type-form`
 * `ass:po-estimand-mtw-partial-monotonicity`
 * `prop:po-estimand-mtw-positive-weights`
 -/
 
-import Causalean.PO.ID.Exact.MultipleInstrumentIV.FiniteIndex
-import Causalean.Panel.Weighted.NormalizedWeights
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Data.Fintype.Pi
+module
+public import Causalean.PO.ID.Exact.MultipleInstrumentIV.FiniteIndex
+public import Causalean.Stat.Weighted.NormalizedWeights
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Data.Fintype.Pi
+
 /-! # Multiple-Instrument IV Response Types
 
-This file formalizes the finite response-type algebra used in the
-Mogstad-Torgovitsky-Walters multiple-instrument IV decomposition. The basic
+This file formalizes finite response-type algebra for a centered-score IV
+decomposition. The basic
 objects are `ResponseType`, `typeStep`, `ResponseTypeStats`, the unnormalized
 and normalized weights `unnormTypeWeight` and `normalizedTypeWeight`, and the
-finite ratio `beta2SLSFiniteAlgebra`.
+finite ratio `centeredScoreIVFiniteAlgebra`.
 
-The nested `PopulationBridge` structure gives a saturated finite-support
+The nested `PopulationBridge` structure gives a finite-support
 bridge from support-point outcome and treatment expansions to the response-type
 ratio. Theorems `firstStageMoment_eq_typeWeightDenom`,
 `reducedFormMoment_eq_typeWeightNumerator`, and
-`beta2SLSPopulationBridge_eq_beta2SLSFiniteAlgebra` prove the algebraic
+`centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra` prove the algebraic
 identification step. The sign-alignment results
 `normalizedTypeWeight_nonneg_of_signAligned`,
 `normalizedTypeWeight_sum_eq_one_of_pos`, and
-`beta2SLSFiniteAlgebra_eq_positiveResponseTypeAverage` explain when the ratio
-is a convex response-type average, while `exists_negativeNormalizedTypeWeight`
+`centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned` explain
+when the ratio is a convex response-type average under an assumed abstract sign
+condition, while `exists_negativeNormalizedTypeWeight`
 gives a concrete two-support-point counterexample with a negative normalized
 weight.
 
-The `ComponentwiseMonotoneRestriction` structure is intentionally documented as
-an opaque interface, not a faithful formalization of MTW partial monotonicity. -/
+The `OpaqueAdjacentStepRestriction` structure is only an opaque interface. It
+is not a formalization of MTW partial monotonicity, and no result in this file
+derives sign alignment from a behavioral monotonicity condition. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO.ID.Exact
@@ -54,22 +66,24 @@ namespace MultipleInstrumentIV
 
 open Finset
 
-/-- For [a finite instrument support of size $K$](hyp:K), a [response type](goal) is a binary treatment response specified for every instrument support point. -/
+/-- [A treatment response type](goal) specifies binary uptake at every point of [a finite
+instrument support](hyp:K), capturing all first-stage heterogeneity relevant to the IV design. -/
 abbrev ResponseType (K : ℕ) := Fin K → Bool
 
-/-- For [a binary treatment indicator](hyp:b), the [real-valued treatment indicator](goal) equals one for treatment and zero otherwise. -/
+/-- [The real-valued treatment indicator](goal) converts [binary uptake](hyp:b) to one for
+treatment and zero for no treatment, so it can enter population moments. -/
 def boolToReal (b : Bool) : ℝ :=
   if b then 1 else 0
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a response type](hyp:g), and [an adjacent threshold](hyp:j), the [adjacent treatment-response increment](goal) is the real-valued treatment response at the upper support point minus that at the preceding point. -/
+/-- [An adjacent treatment-response increment](goal) measures how [a response type](hyp:g)
+changes across [one support threshold](hyp:j) in [a finite instrument support](hyp:K). -/
 def typeStep {K : ℕ} (g : ResponseType K) (j : Adj K) : ℝ :=
   boolToReal (g (Adj.upper j)) - boolToReal (g (Adj.lower j))
 
-/-- **Finite response-type statistics.** For a finite family of latent response types, this
-records [the probability mass of each type](hyp:mass) and [the type-specific average causal
-effect `Δ_g`](hyp:effect), subject to [every mass being nonnegative](hyp:mass_nonneg) and [the
-masses summing to one](hyp:mass_sum_one), so together they form a probability vector over
-response types. -/
+/-- Finite response-type statistics on [a finite instrument support](hyp:K) record [the
+probability mass of each latent type](hyp:mass) and [its average causal effect](hyp:effect),
+subject to [every mass being nonnegative](hyp:mass_nonneg) and [the masses summing to
+one](hyp:mass_sum_one), so the masses form a probability vector over response types. -/
 structure ResponseTypeStats (K : ℕ) where
   /-- Response-type mass `π_g = P(G = g)`. -/
   mass : ResponseType K → ℝ
@@ -85,34 +99,43 @@ namespace ResponseTypeStats
 
 variable {K : ℕ} (I : FiniteIndex K) (R : ResponseTypeStats K)
 
-/-- For [an ordered finite first-stage index](hyp:I), [finite response-type statistics](hyp:R), and [a response type](hyp:g), the [unnormalized MTW response-type weight](goal) is that type's mass times the sum of each tail coefficient times its adjacent treatment-response increment. -/
+/-- [The unnormalized weight on a response type](goal) is [that type's](hyp:g) population mass
+times its tail-coefficient-weighted treatment increments, using [an ordered score](hyp:I) and
+[finite response-type statistics](hyp:R). -/
 noncomputable def unnormTypeWeight (g : ResponseType K) : ℝ :=
   R.mass g * ∑ j : Adj K, I.tailCoeff j * typeStep g j
 
-/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [response-type weight denominator](goal) is the sum of the unnormalized weights over all response types. -/
+/-- [The response-type weight denominator](goal) aggregates the signed type weights generated by
+[an ordered score](hyp:I) and [finite response-type statistics](hyp:R); it is the finite first-stage
+moment. -/
 noncomputable def typeWeightDenom : ℝ :=
   ∑ g : ResponseType K, R.unnormTypeWeight I g
 
-/-- For [an ordered finite first-stage index](hyp:I), [finite response-type statistics](hyp:R), and [a response type](hyp:g), the [normalized response-type weight](goal) is that type's unnormalized weight divided by the sum of all unnormalized weights. -/
+/-- [The normalized weight on a response type](goal) divides [that type's](hyp:g) signed weight by
+the total generated from [an ordered score](hyp:I) and [finite response-type statistics](hyp:R). -/
 noncomputable def normalizedTypeWeight (g : ResponseType K) : ℝ :=
-  Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight (R.unnormTypeWeight I) g
+  Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight (R.unnormTypeWeight I) g
 
-/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [response-type estimand](goal) is the sum of each within-type causal effect weighted by its normalized response-type weight. -/
+/-- [The response-type estimand](goal) averages type-specific causal effects from [finite
+response-type statistics](hyp:R) using the normalized weights induced by [an ordered
+score](hyp:I). -/
 noncomputable def responseTypeEstimand : ℝ :=
   ∑ g : ResponseType K, R.normalizedTypeWeight I g * R.effect g
 
-/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), the [finite-algebra 2SLS estimand](goal) is the unnormalized response-type-weighted sum of causal effects divided by the sum of unnormalized response-type weights.
+/-- [The finite-algebra centered-score IV ratio](goal) divides the signed response-type-weighted
+effect sum from [finite response-type statistics](hyp:R) by the corresponding first-stage weight
+sum induced by [an ordered score](hyp:I).
 
-The saturated finite-support population bridge below proves when the population 2SLS moment ratio reduces to this finite algebraic ratio. -/
-noncomputable def beta2SLSFiniteAlgebra : ℝ :=
+The finite-support population bridge below proves when the corresponding centered-score moment
+ratio reduces to this finite algebraic ratio. -/
+noncomputable def centeredScoreIVFiniteAlgebra : ℝ :=
   (∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g) /
     R.typeWeightDenom I
 
-/-- **Saturated finite-support population bridge for the MTW identification step.** Bundles [a
-finite response-type statistics record supplying the type masses and type-specific
-effects](hyp:stats) together with [a response-type-specific baseline outcome
-mean](hyp:baseOutcome), the term the centered first-stage index cancels, leaving the telescoped
-adjacent treatment increments used by the finite algebra. -/
+/-- A finite-support response-type bridge on [a finite instrument support](hyp:K)
+combines [response-type masses and type-specific effects](hyp:stats) with [a baseline outcome
+mean for each response type](hyp:baseOutcome). The centered score cancels this baseline, leaving
+the adjacent treatment increments used by the finite algebra. -/
 structure PopulationBridge (K : ℕ) where
   /-- Response-type masses and type-specific treatment effects. -/
   stats : ResponseTypeStats K
@@ -124,34 +147,48 @@ namespace PopulationBridge
 
 variable {K : ℕ} (I : FiniteIndex K) (P : PopulationBridge K)
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a response type](hyp:g), and [a support point](hyp:k), the [telescoped adjacent treatment response](goal) is the sum of that type's adjacent treatment-response increments from the first support point through that point. -/
+/-- [A response type's cumulative treatment change at a support point](goal) sums [that
+type's](hyp:g) adjacent uptake changes through [the selected point](hyp:k) of [the finite
+instrument support](hyp:K). -/
 noncomputable def telescopedTypeStep (g : ResponseType K) (k : Fin K) : ℝ :=
   ∑ j : Adj K, if j.1.val ≤ k.val then typeStep g j else 0
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [a support point](hyp:k), the [response-type outcome expansion](goal) is the baseline outcome plus the response-type-mass-weighted sum of within-type effects times telescoped treatment responses. -/
+/-- [The outcome mean at an instrument support point](goal) expands into baseline outcomes plus
+type-mass-weighted causal effects times cumulative treatment changes under [the finite-support
+population bridge](hyp:P), at [that point](hyp:k) of [the support](hyp:K). -/
 noncomputable def outcomeAtSupport (P : PopulationBridge K) (k : Fin K) : ℝ :=
   ∑ g : ResponseType K,
     P.stats.mass g *
       (P.baseOutcome g + telescopedTypeStep g k * P.stats.effect g)
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [a support point](hyp:k), the [response-type treatment expansion](goal) is the response-type-mass-weighted sum of telescoped treatment responses at that point. -/
+/-- [The treatment-mean change from the reference support point](goal) is the
+type-mass-weighted cumulative uptake change under [the finite-support population
+bridge](hyp:P), at [the selected point](hyp:k) of [the support](hyp:K). -/
 noncomputable def treatmentAtSupport (P : PopulationBridge K) (k : Fin K) : ℝ :=
   ∑ g : ResponseType K, P.stats.mass g * telescopedTypeStep g k
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [an ordered finite first-stage index](hyp:I), the [population reduced-form moment](goal) is the support-mass-weighted sum of centered first-stage indices times response-type outcome expansions. -/
+/-- [The population centered-score outcome moment](goal) weights support-specific outcome
+expansions from [a finite-support bridge](hyp:P) by centered scores from [an ordered
+index](hyp:I) across [the finite support](hyp:K). -/
 noncomputable def reducedFormMoment (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
   ∑ k : Fin K, I.rho k * I.centeredIndex k * P.outcomeAtSupport k
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [an ordered finite first-stage index](hyp:I), the [population first-stage moment](goal) is the support-mass-weighted sum of centered first-stage indices times response-type treatment expansions. -/
+/-- [The population centered-score treatment moment](goal) weights support-specific treatment
+expansions from [a finite-support bridge](hyp:P) by centered scores from [an ordered
+index](hyp:I) across [the finite support](hyp:K). -/
 noncomputable def firstStageMoment (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
   ∑ k : Fin K, I.rho k * I.centeredIndex k * P.treatmentAtSupport k
 
-/-- For [a finite instrument support of size $K$](hyp:K), [a saturated finite-support population bridge](hyp:P), and [an ordered finite first-stage index](hyp:I), the [population multiple-IV 2SLS ratio](goal) is its reduced-form moment divided by its first-stage moment. -/
-noncomputable def beta2SLSPopulationBridge (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
+/-- [The population centered-score IV ratio](goal) divides the outcome moment by the treatment
+moment for [a finite-support population bridge](hyp:P) and [ordered score index](hyp:I) on [the
+finite support](hyp:K). -/
+noncomputable def centeredScoreIVPopulationBridge
+    (P : PopulationBridge K) (I : FiniteIndex K) : ℝ :=
   P.reducedFormMoment I / P.firstStageMoment I
 
-/-- The baseline outcome component vanishes because the first-stage index is
-centered. -/
+/-- [The centered-score moment of the response-type baseline outcome is zero](goal) for [an
+ordered score index](hyp:I) and [finite-support population bridge](hyp:P), so only causal-response
+increments remain in the reduced form. -/
 theorem baselineMoment_eq_zero :
     (∑ k : Fin K,
         I.rho k * I.centeredIndex k *
@@ -167,8 +204,9 @@ theorem baselineMoment_eq_zero :
       rw [I.centered_weight_sum_zero]
       simp
 
-/-- The finite-support first-stage moment is the response-type denominator.
-This is the denominator half of the MTW identification step. -/
+/-- [The finite-support first-stage moment equals the aggregate response-type weight](goal) for
+[an ordered score index](hyp:I) and [population bridge](hyp:P). This identifies the denominator of
+the response-type IV ratio. -/
 theorem firstStageMoment_eq_typeWeightDenom :
     P.firstStageMoment I = P.stats.typeWeightDenom I := by
   classical
@@ -209,8 +247,9 @@ theorem firstStageMoment_eq_typeWeightDenom :
       intro g _hg
       rw [I.tail_sum_interchange (fun j => typeStep g j)]
 
-/-- The finite-support reduced-form moment is the response-type numerator.
-This is the numerator half of the MTW identification step. -/
+/-- [The finite-support reduced-form moment equals the response-type-weighted causal-effect
+sum](goal) for [an ordered score index](hyp:I) and [population bridge](hyp:P). This identifies the
+numerator of the response-type IV ratio. -/
 theorem reducedFormMoment_eq_typeWeightNumerator :
     P.reducedFormMoment I =
       ∑ g : ResponseType K, P.stats.unnormTypeWeight I g * P.stats.effect g := by
@@ -274,49 +313,35 @@ theorem reducedFormMoment_eq_typeWeightNumerator :
       intro g _hg
       rw [I.tail_sum_interchange (fun j => typeStep g j)]
 
-/-- **Saturated finite-support MTW identification.** [The population 2SLS ratio
-`E[h(Z)Y] / E[h(Z)D]`, after consistency, exogeneity, exclusion, and telescoping,
-is exactly the finite response-type ratio](goal). -/
-theorem beta2SLSPopulationBridge_eq_beta2SLSFiniteAlgebra :
-    P.beta2SLSPopulationBridge I = P.stats.beta2SLSFiniteAlgebra I := by
-  unfold beta2SLSPopulationBridge ResponseTypeStats.beta2SLSFiniteAlgebra
+/-- [The population centered-score IV ratio equals the finite response-type ratio](goal) for [an
+ordered finite score index](hyp:I) and [a finite-support response-type bridge](hyp:P). This is the
+decomposition algebra; a 2SLS interpretation additionally requires a projected first-stage
+score. -/
+theorem centeredScoreIVPopulationBridge_eq_centeredScoreIVFiniteAlgebra :
+    P.centeredScoreIVPopulationBridge I = P.stats.centeredScoreIVFiniteAlgebra I := by
+  unfold centeredScoreIVPopulationBridge ResponseTypeStats.centeredScoreIVFiniteAlgebra
   rw [P.reducedFormMoment_eq_typeWeightNumerator I,
     P.firstStageMoment_eq_typeWeightDenom I]
 
 end PopulationBridge
 
-/-- For [an ordered finite first-stage index](hyp:I) and [finite response-type statistics](hyp:R), [sign alignment](goal) means that every response type with strictly positive mass has a nonnegative tail-coefficient-weighted sum of adjacent treatment-response increments. -/
+/-- [Sign alignment](goal) requires every positive-mass response type in [finite response-type
+statistics](hyp:R) to have a nonnegative tail-coefficient-weighted treatment response under [the
+ordered score](hyp:I). It is exactly the condition preventing negative type weights. -/
 def SignAligned : Prop :=
   ∀ g : ResponseType K, 0 < R.mass g →
     0 ≤ ∑ j : Adj K, I.tailCoeff j * typeStep g j
 
-/-- Opaque response-type restriction interface.
+/-- The opaque adjacent-step interface on [a finite instrument support](hyp:K) stores [an
+arbitrary response-type selection rule](hyp:allowed) together with [an assumed nonnegative-step
+certificate for selected types](hyp:step_nonneg_of_allowed). It does not itself encode an
+econometric monotonicity restriction.
 
-**Interface-only restriction, not a faithful formalization of MTW partial monotonicity.**
-
-This structure is an unconstrained interface: `allowed` is an arbitrary
-predicate and `step_nonneg_of_allowed` is an axiom field with no semantic
-grounding.  It encodes **neither**:
-
-- the paper's componentwise monotonicity condition `D(z_l', z_{-l}) ≥ D(z_l,
-  z_{-l})` a.s. for z_l' ≥ z_l (which would require rectangular
-  instrument-support modeling outside this interface), nor
-- the full MTW partial-monotonicity framework from `ass:po-estimand-mtw-partial-
-  monotonicity`.
-
-There is **no theorem** in the four MTW files connecting this structure to
-`SignAligned`.  The paper's key implication chain
-
-    componentwise monotonicity → sign alignment → nonneg weights → causal interpretation
-
-is entirely absent from the formalization (Gaps G3, G7 in
-`doc/basic_concepts/po/estimand_characterization/audit/mtw.md`).  Fixing this
-requires (H2) a `RectSupport` type, (H3) a `ComponentwiseMonotone_implies_SignAligned`
-theorem, and (H1) a `MultipleIVSystem` wrapper.
-
-This structure is **unused in every theorem** in the four MTW files.  Do not
-treat it as a faithful representation of any causal monotonicity condition. -/
-structure ComponentwiseMonotoneRestriction where
+It does not encode a rectangular instrument support or derive its step condition
+from potential-treatment monotonicity, and it has no theorem connecting it to
+`SignAligned`. It must therefore not be read as the componentwise or partial
+monotonicity condition of Mogstad, Torgovitsky, and Walters. -/
+structure OpaqueAdjacentStepRestriction where
   /-- Response types admitted by the restriction.  This predicate is
   unconstrained; nothing in Lean forces it to correspond to any geometric or
   probabilistic monotonicity condition. -/
@@ -326,8 +351,9 @@ structure ComponentwiseMonotoneRestriction where
   step_nonneg_of_allowed :
     ∀ g : ResponseType K, allowed g → ∀ j : Adj K, 0 ≤ typeStep g j
 
-/-- Sign alignment and nonnegative type masses imply nonnegative unnormalized
-response-type weights. -/
+/-- [Every unnormalized response-type weight is nonnegative](goal) when [an ordered score and
+finite response-type population](hyp:I,R) satisfy [sign alignment](hyp:hAlign), for [the selected
+response type](hyp:g). Nonnegative type masses then preserve the aligned sign. -/
 theorem unnormTypeWeight_nonneg_of_signAligned
     (hAlign : R.SignAligned I) (g : ResponseType K) :
     0 ≤ R.unnormTypeWeight I g := by
@@ -338,33 +364,37 @@ theorem unnormTypeWeight_nonneg_of_signAligned
     have hmass : R.mass g = 0 := le_antisymm hle (R.mass_nonneg g)
     simp [hmass]
 
-/-- Normalized response-type weights are nonnegative when sign alignment holds
-and the denominator is positive (`prop:po-estimand-mtw-positive-weights`). -/
+/-- [Each normalized response-type weight is nonnegative](goal) when [an ordered score and finite
+response-type population](hyp:I,R) satisfy [sign alignment](hyp:hAlign) and have [a positive
+score-weight denominator](hyp:hden), for [the selected response type](hyp:g). The paper-facing
+2SLS claim needs additional first-stage and behavioral conditions. -/
 theorem normalizedTypeWeight_nonneg_of_signAligned
     (hAlign : R.SignAligned I) (hden : 0 < R.typeWeightDenom I)
     (g : ResponseType K) :
     0 ≤ R.normalizedTypeWeight I g := by
-  exact Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight_nonneg
+  exact Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight_nonneg
     (R.unnormTypeWeight I) (R.unnormTypeWeight_nonneg_of_signAligned I hAlign) hden g
 
-/-- Normalized response-type weights sum to one when the first-stage
-denominator is positive. -/
+/-- [The normalized response-type weights sum to one](goal) for [an ordered score and finite
+response-type population](hyp:I,R) when [the first-stage weight denominator is
+positive](hyp:hden). -/
 theorem normalizedTypeWeight_sum_eq_one_of_pos
     (hden : 0 < R.typeWeightDenom I) :
     ∑ g : ResponseType K, R.normalizedTypeWeight I g = 1 := by
-  exact Causalean.Panel.Weighted.NormalizedWeights.sum_normalizedWeight_eq_one
+  exact Causalean.Stat.Weighted.NormalizedWeights.sum_normalizedWeight_eq_one
     (R.unnormTypeWeight I) hden.ne'
 
-/-- **Response-type form of the finite MTW ratio**
-(`prop:po-estimand-mtw-response-type-form`). Provided [the first-stage
-type-weight denominator is nonzero](hyp:hden), [the finite-algebra 2SLS
-estimand equals the response-type-weighted sum of within-type causal
-effects](goal). -/
-theorem beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum
+/-- [The finite-algebra centered-score IV ratio equals the response-type-weighted sum of
+within-type causal effects](goal) for [an ordered score](hyp:I) and [finite response-type
+statistics](hyp:R) when [the score-weight denominator is nonzero](hyp:hden). This is the
+normalization algebra appearing in
+`prop:po-estimand-mtw-response-type-form`, whose 2SLS interpretation additionally fixes the score
+to the fitted first stage. -/
+theorem centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum
     (hden : R.typeWeightDenom I ≠ 0) :
-    R.beta2SLSFiniteAlgebra I = R.responseTypeEstimand I := by
+    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I := by
   have _ : R.typeWeightDenom I ≠ 0 := hden
-  unfold beta2SLSFiniteAlgebra responseTypeEstimand normalizedTypeWeight
+  unfold centeredScoreIVFiniteAlgebra responseTypeEstimand normalizedTypeWeight
   calc
     (∑ g : ResponseType K, R.unnormTypeWeight I g * R.effect g) / R.typeWeightDenom I =
         ∑ g : ResponseType K, (R.unnormTypeWeight I g * R.effect g) / R.typeWeightDenom I := by
@@ -374,19 +404,17 @@ theorem beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum
       intro g _hg
       rw [div_mul_eq_mul_div]
 
-/-- **Positive-weight response-type characterization.** When [the response
-types are sign-aligned with the instrument order](hyp:hAlign) and [the
-first-stage type-weight denominator is strictly positive](hyp:hden), [the
-finite-algebra 2SLS estimand equals the response-type estimand, every
-normalized response-type weight is nonnegative, and the weights sum to
-one](goal). -/
-theorem beta2SLSFiniteAlgebra_eq_positiveResponseTypeAverage
+/-- [The centered-score IV ratio is a convex average of response-type causal effects](goal) for
+[an ordered score](hyp:I) and [finite response-type statistics](hyp:R) when [response types are
+sign-aligned](hyp:hAlign) and [the score-weight denominator is positive](hyp:hden): every weight is
+nonnegative and the weights sum to one. -/
+theorem centeredScoreIVFiniteAlgebra_eq_positiveResponseTypeAverage_of_signAligned
     (hAlign : R.SignAligned I) (hden : 0 < R.typeWeightDenom I) :
-    R.beta2SLSFiniteAlgebra I = R.responseTypeEstimand I ∧
+    R.centeredScoreIVFiniteAlgebra I = R.responseTypeEstimand I ∧
       (∀ g : ResponseType K, 0 ≤ R.normalizedTypeWeight I g) ∧
       (∑ g : ResponseType K, R.normalizedTypeWeight I g = 1) := by
   constructor
-  · exact R.beta2SLSFiniteAlgebra_eq_responseTypeWeightedSum I hden.ne'
+  · exact R.centeredScoreIVFiniteAlgebra_eq_responseTypeWeightedSum I hden.ne'
   constructor
   · intro g
     exact R.normalizedTypeWeight_nonneg_of_signAligned I hAlign hden g
@@ -396,14 +424,12 @@ end ResponseTypeStats
 
 /-! ### Negative-weights counterexample (G4)
 
-The paper's central message (Mogstad-Torgovitsky-Walters §3) is that 2SLS
-weights *can be negative* when sign alignment fails.  The next theorem
-captures this at the finite-algebra layer: with two instrument support points
+The finite algebra permits negative centered-score response-type weights when sign
+alignment fails. The next theorem gives a concrete example: with two instrument support points
 and a population consisting of 1/4 compliers and 3/4 defiers, the normalized
 response-type weight for the complier type is −1/2 < 0.
 
-Source: `prop:po-estimand-mtw-response-type-form`; negative-weights remark in
-MTW §3 / `rem:po-estimand-mtw-standard-monotonicity`. -/
+-/
 
 section NegWeightExample
 
@@ -584,8 +610,8 @@ index, a response-type population, and a response type such that, with two
 support points and a 3/4-defier population, that type has positive mass yet a
 negative normalized response-type weight (equal to −1/2)](goal).
 
-This formalizes the paper's central message (MTW §3): without sign alignment,
-2SLS is NOT a convex average of causal effects. -/
+This is a finite-algebra counterexample: without sign alignment, the displayed
+centered-score IV ratio need not be a convex average of causal effects. -/
 theorem exists_negativeNormalizedTypeWeight :
     ∃ (I : FiniteIndex 2) (R : ResponseTypeStats 2) (g : ResponseType 2),
       0 < R.mass g ∧ R.normalizedTypeWeight I g < 0 := by
@@ -594,7 +620,7 @@ theorem exists_negativeNormalizedTypeWeight :
     rw [exStats_mass, exMass_complier]; norm_num
   · -- normalized weight = (3/64) / (-3/32) = -1/2 < 0
     rw [ResponseTypeStats.normalizedTypeWeight,
-      Causalean.Panel.Weighted.NormalizedWeights.normalizedWeight]
+      Causalean.Stat.Weighted.NormalizedWeights.normalizedWeight]
     change exStats.unnormTypeWeight exIndex gComplier /
         (∑ k, exStats.unnormTypeWeight exIndex k) < 0
     rw [← ResponseTypeStats.typeWeightDenom, exStats_unnorm_complier, exStats_denom]

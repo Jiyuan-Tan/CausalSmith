@@ -11,11 +11,14 @@ opposite-arrow separation holds, but the same-arrow fiber is not a single
 low-order weight kernels give dimension `m(m-1)/2` when `m ≥ 2`.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.TApolar
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiberDimensionDefs
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FullFiberSlopeRecovery
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.GenericFiberDimension
-import Mathlib.Topology.Constructions
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.TApolar
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiberDimensionDefs
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FullFiberSlopeRecovery
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.GenericFiberDimension
+public import Mathlib.Topology.Constructions
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

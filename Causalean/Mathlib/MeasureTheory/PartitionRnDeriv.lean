@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
-import Mathlib.MeasureTheory.Integral.IntegrableOn
+
+module
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+public import Mathlib.MeasureTheory.Integral.IntegrableOn
 
 /-! # Radon–Nikodym derivative on a finite measurable partition
 
@@ -20,6 +22,8 @@ Both are the standard building blocks of a piecewise-constant least-favorable co
 two-point minimax lower bound: the per-cell density is the cell ratio, so the global density is
 the simple function `∑ i, r i · 1_{s i}`.
 -/
+
+public section
 
 namespace Causalean.Mathlib.MeasureTheory
 

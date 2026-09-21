@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.PartialID.CanonicalModel
+
+module
+public import Causalean.SCM.PartialID.CanonicalModel
 
 /-! # Sharpness certificates for graphical partial-identification bounds
 
@@ -20,23 +22,28 @@ the usual mixing-path input (a continuous family of compatible models interpolat
 value); it is left as a hypothesis so the certificate applies to any problem that supplies it.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 namespace Causalean.SCM.PartialID
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- For a finite node set with measurable node-value spaces, [a SWIG graph](hyp:G), [a class of
-structural causal models](hyp:As), [a baseline structural causal model](hyp:M₀), [a real-valued
-query of such models](hyp:obj), and [two real numbers $L$ and $U$](hyp:L,U), [the sharpness
-predicate](goal) holds exactly when the query's range over models compatible with the graph,
-class, and baseline model is the closed interval $[L,U]$.
+/-- For [a finite node set](hyp:N) with [measurable node-value spaces](hyp:Ω),
+[a SWIG graph](hyp:G), [a structural-assumption predicate](hyp:As),
+[a baseline structural causal model](hyp:M₀), [a real-valued query of such models](hyp:obj),
+and [lower and upper endpoints](hyp:L,U), [the sharpness predicate](goal) holds exactly when
+the query's range over compatible models is the closed interval with those endpoints.
 
 A bound `[L, U]` is **sharp** for the real-valued query `obj` over the compatible class of
 `(G, As, M₀)` when the identified set (the range of `obj` over the compatible class) is exactly
 the closed interval `[L, U]`. -/
 def IsSharp (G : SWIGGraph N) (As : Causalean.SCM N Ω → Prop) (M₀ : Causalean.SCM N Ω)
     (obj : Causalean.SCM N Ω → ℝ) (L U : ℝ) : Prop :=
-  compatibleInterval G As M₀ obj = Set.Icc L U
+  compatibleIdentifiedSet G As M₀ obj = Set.Icc L U
 
 /-- **Sharpness certificate.** For a real-valued query `obj` over the compatible class of
 `(G, As, M₀)`, if [the identified set is contained in the interval `[L, U]`](hyp:hsub)
@@ -45,16 +52,16 @@ the value `L`](hyp:hL), and [some compatible model attains the value `U`](hyp:hU
 identified set equals `[L, U]`, i.e. the bound is sharp](goal). -/
 theorem isSharp_of_attaining (G : SWIGGraph N) (As : Causalean.SCM N Ω → Prop)
     (M₀ : Causalean.SCM N Ω) (obj : Causalean.SCM N Ω → ℝ) (L U : ℝ)
-    (hsub : compatibleInterval G As M₀ obj ⊆ Set.Icc L U)
-    (hconn : (compatibleInterval G As M₀ obj).OrdConnected)
+    (hsub : compatibleIdentifiedSet G As M₀ obj ⊆ Set.Icc L U)
+    (hconn : (compatibleIdentifiedSet G As M₀ obj).OrdConnected)
     (hL : ∃ M, CompatibleSCM G As M₀ M ∧ obj M = L)
     (hU : ∃ M, CompatibleSCM G As M₀ M ∧ obj M = U) :
     IsSharp G As M₀ obj L U := by
   refine Set.Subset.antisymm hsub ?_
   obtain ⟨ML, hML, hobjL⟩ := hL
   obtain ⟨MU, hMU, hobjU⟩ := hU
-  have memL : L ∈ compatibleInterval G As M₀ obj := ⟨⟨ML, hML⟩, hobjL⟩
-  have memU : U ∈ compatibleInterval G As M₀ obj := ⟨⟨MU, hMU⟩, hobjU⟩
+  have memL : L ∈ compatibleIdentifiedSet G As M₀ obj := ⟨⟨ML, hML⟩, hobjL⟩
+  have memU : U ∈ compatibleIdentifiedSet G As M₀ obj := ⟨⟨MU, hMU⟩, hobjU⟩
   exact hconn.out memL memU
 
 end Causalean.SCM.PartialID

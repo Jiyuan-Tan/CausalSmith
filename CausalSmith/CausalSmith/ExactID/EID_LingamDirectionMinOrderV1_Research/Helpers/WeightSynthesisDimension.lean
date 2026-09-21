@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.LinearAlgebra.VandermondeSynthesis
+module
+public import Causalean.Mathlib.LinearAlgebra.VandermondeSynthesis
 
 /-!
 # Compatibility reexports for Vandermonde synthesis
 
 The reusable synthesis map and kernel-dimension computation live in Causalean.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

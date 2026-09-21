@@ -15,15 +15,16 @@ Share-weighted panel decompositions with non-uniform cell weights use the
 weighted panel substrate instead of this uniform algebra.
 -/
 
-import Causalean.Panel.Weighted.AdditiveSpan
-import Causalean.Panel.WeightedTwoWayPanel
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+module
+public import Causalean.Stat.Weighted.AdditiveSpan
+public import Causalean.Panel.WeightedTwoWayPanel
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Fintype.Prod
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
 
 /-! # Uniform Balanced Two-Way Panels
 
@@ -35,6 +36,8 @@ nuisance class. Its main results relate the uniform constructions to
 `WeightedTwoWayPanel`, prove the finite residualized-coefficient handoff, and
 show that double-demeaned arrays are orthogonal to unit-only, time-only, and
 unit/time additive functions. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel
@@ -77,8 +80,8 @@ noncomputable def uniformWeights (hU : 0 < Fintype.card Unit) :
 /-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
 unit-period array](hyp:V), and [a unit](hyp:i), the [unit mean](goal) is the arithmetic average
 of that unit's array values over all periods. -/
-noncomputable def unitMean (V : Unit → Time → ℝ) (i : Unit) : ℝ :=
-  (Fintype.card Time : ℝ)⁻¹ * ∑ t, V i t
+noncomputable abbrev unitMean (V : Unit → Time → ℝ) (i : Unit) : ℝ :=
+  WeightedTwoWayPanel.unitMean V i
 
 /-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
 unit-period array](hyp:V), and [a period](hyp:t), the [time mean](goal) is the arithmetic average
@@ -145,7 +148,6 @@ theorem ddot_eq_weighted
   have hU : 0 < Fintype.card Unit := Fintype.card_pos_iff.mpr ⟨i⟩
   unfold ddot WeightedTwoWayPanel.ddot
   rw [timeMean_eq_weighted hU V t, grandMean_eq_weighted hU V]
-  rfl
 
 /-- In a finite balanced panel, the unweighted sum across all unit-period cells
 equals the number of units times the corresponding sum under uniform unit weights. -/
@@ -300,7 +302,7 @@ unit-period pair](step:1).
 
 Compatibility alias for the shared additive-span predicate. -/
 abbrev IsUnitTimeAdditive (h : Unit → Time → ℝ) : Prop :=
-  Causalean.Panel.Weighted.IsUnitTimeAdditive h
+  Causalean.Stat.Weighted.IsUnitTimeAdditive h
 
 /-- For [a finite set of units](hyp:Unit), [a finite set of periods](hyp:Time), [a real-valued
 unit-period array](hyp:V), [a unit](hyp:i), and [a period](hyp:t), the [unit-time projection](goal)

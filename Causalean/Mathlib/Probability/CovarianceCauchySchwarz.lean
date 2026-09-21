@@ -12,7 +12,8 @@ argument: the variance of `X − t·Y` is a nonnegative quadratic in `t`, whose 
 the discriminant to be nonpositive.
 -/
 
-import Mathlib.Probability.Moments.Variance
+module
+public import Mathlib.Probability.Moments.Variance
 
 /-! # Cauchy–Schwarz for covariance
 
@@ -21,6 +22,8 @@ most the product of the variances (`covariance_sq_le_variance_mul`), equivalentl
 covariance is at most the product of the standard deviations (`abs_covariance_le_sqrt_mul`).  This
 is the covariance form of the Cauchy–Schwarz inequality, filling a gap in Mathlib's covariance API.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 

@@ -2,244 +2,36 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Event-level conditional expectation wrapper
-
-A thin wrapper around `∫ in A, g ∂μ / (μ A).toReal` suitable for the "conditioning
-on a positive-probability event" idiom that appears throughout the
-identification proofs (IV/LATE style).  Also provides a **drop-of-conditioning**
-lemma: when the event-defining variable is jointly independent of a
-counterfactual bundle `B`, conditioning on the event of the variable has no
-effect on `∫ h ∘ B.jointValue`.
-
-The drop-of-conditioning identity is stated in two forms:
-
-* A **multiplied form** that mirrors `IndepFun.integral_restrict_preimage_eq_mul`
-  and avoids division-by-zero edge cases.
-* A **quotient form** using `eventCondExp`, which holds whenever
-  `μ (rv.value ⁻¹' {x})` is neither `0` nor `∞`.
 -/
 
-import Causalean.PO.Core.Variable
-import Causalean.PO.Assumptions.IndepCF
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.Mathlib.IndepIntegral
-import Causalean.Tactic.Attr
-import Mathlib.MeasureTheory.Integral.Bochner.Set
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Mathlib.Probability.Independence.Integral
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Assumptions.IndepCF
+public import Causalean.PO.Core.Variable
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
 
 /-! # Event-Level Conditional Expectations
 
-This file provides event-level conditional expectations for real-valued
-sample-space quantities, together with finite-partition, algebraic, and
-independence-based conditioning identities.  It supplies the event-conditioning
-tools used by potential-outcome identification arguments elsewhere in the
-library. -/
+This file specializes normalized restricted integrals to potential-outcome variables. It provides
+multiplied and quotient drop-of-conditioning identities under independence, a consistency-on-event
+identity, and an eventwise relabeling workhorse. The general measure-theoretic definition and
+algebra live in `Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
 
+attribute [condexp_simps] Causalean.Mathlib.Probability.eventCondExp_eq
+
 open MeasureTheory ProbabilityTheory
+open Causalean.Mathlib.Probability
 
 noncomputable section
-
-variable {Ω : Type*} [MeasurableSpace Ω]
-
-/-- For [a measurable sample space](hyp:Ω), [a measure on that space](hyp:μ), [an event in the sample space](hyp:A), and [a real-valued sample-space function](hyp:g), [the event-level conditional expectation](goal) is the integral of the function over the event divided by the event's real-valued measure.
-
-The definition is totalized: if the event has zero mass, the denominator is
-`0` and identities such as `eventCondExp_mul_measure_toReal` keep track of the
-corresponding zero-mass behavior. -/
-def eventCondExp (μ : Measure Ω) (A : Set Ω) (g : Ω → ℝ) : ℝ :=
-  (∫ ω in A, g ω ∂μ) / (μ A).toReal
-
-/-- The average of a real-valued quantity over an event is its integral
-restricted to that event, divided by the event's real-valued mass.
-
-This is the simp-shaped form of the definition of the event-level conditional
-expectation: rewriting with it replaces the project wrapper by the underlying
-restricted integral and measure, after which the standard integral API
-applies. -/
-@[condexp_simps]
-lemma eventCondExp_eq (μ : Measure Ω) (A : Set Ω) (g : Ω → ℝ) :
-    eventCondExp μ A g = (∫ ω in A, g ω ∂μ) / (μ A).toReal :=
-  rfl
-
-/-! ### `eventCondExp` · measure identity and finite-partition total law
-
-These two facts are domain-agnostic — they use only the definition of
-`eventCondExp` and a finite-partition decomposition of the ambient space
-— and are packaged here so every theorem file can share them. -/
-
-/-- `eventCondExp μ A f · (μ A).toReal = ∫_A f`, including the zero-measure
-case where both sides collapse to `0`. -/
-lemma eventCondExp_mul_measure_toReal (μ : Measure Ω) (A : Set Ω)
-    (hA_fin : μ A ≠ ⊤) (f : Ω → ℝ) :
-    eventCondExp μ A f * (μ A).toReal = ∫ ω in A, f ω ∂μ := by
-  simp only [condexp_simps]
-  by_cases h0 : (μ A).toReal = 0
-  · rw [h0, mul_zero]
-    have hμ0 : μ A = 0 := by
-      rcases (ENNReal.toReal_eq_zero_iff _).mp h0 with h | h
-      · exact h
-      · exact absurd h hA_fin
-    exact (MeasureTheory.setIntegral_measure_zero f hμ0).symm
-  · field_simp
-
-/-- **Finite-partition total law.**  For any disjoint covering of `univ`
-by a `Fintype`-indexed family of measurable sets,
-`∫ f = ∑ i, (μ (A i)).toReal · eventCondExp μ (A i) f`.
-
-Instantiating `ι := Bool` recovers the binary decomposition used in the
-`Manski/{MTR,MTS}` proofs; instantiating `ι := α` for a discrete IV support
-gives the tower-of-conditioning identity that unblocks the integrated MIV
-bounds. -/
-lemma integral_eq_sum_measure_mul_eventCondExp
-    {ι : Type*} [Fintype ι] (μ : Measure Ω) [IsFiniteMeasure μ]
-    (A : ι → Set Ω) (hmeas : ∀ i, MeasurableSet (A i))
-    (hdisj : Pairwise (Function.onFun Disjoint A))
-    (hcov : (⋃ i, A i) = Set.univ)
-    (f : Ω → ℝ) (hf : Integrable f μ) :
-    ∫ ω, f ω ∂μ
-      = ∑ i, (μ (A i)).toReal * eventCondExp μ (A i) f := by
-  have hsplit : ∫ ω in (⋃ i, A i), f ω ∂μ = ∑ i, ∫ ω in A i, f ω ∂μ :=
-    MeasureTheory.integral_iUnion_fintype hmeas hdisj
-      (fun _ => hf.integrableOn)
-  have hcov' : ∫ ω, f ω ∂μ = ∑ i, ∫ ω in A i, f ω ∂μ := by
-    rw [← hsplit, hcov, setIntegral_univ]
-  rw [hcov']
-  refine Finset.sum_congr rfl (fun i _ => ?_)
-  rw [mul_comm, ← eventCondExp_mul_measure_toReal μ (A i) (measure_ne_top _ _) f]
-
-/-- **Totalized finite-partition identity for event-level averages.**
-Fix [a measurable event `A`](hyp:hAmeas) and [a finite family of pairwise
-disjoint](hyp:hdisj) [measurable sets `C i`](hyp:hCmeas) [covering the whole
-space](hyp:hcov), such that [each intersection `A ∩ C i` has finite
-measure](hyp:hAC_fin), and let [`f` be an integrable function](hyp:hf). Then
-[the event-level average of `f` on `A` equals the sum, over `i`, of the
-event-level average of `f` on `A ∩ C i` weighted by the ratio of the measure
-of `A ∩ C i` to the measure of `A`](goal):
-
-    event average on A =
-      ∑ i, ((μ(A ∩ C i)).toReal / (μ A).toReal)
-        · event average on A ∩ C i.
-
-When the conditioning event has positive finite mass, these ratios are the
-usual conditional cell probabilities. This is the measure-theoretic core of
-the finite→population bridge for cell-indexed estimands: when `A = {G = g}`,
-the `C i` partition the covariate space, and the event `A` has positive finite
-mass, the ratios become the usual conditional probabilities `P(C = c | G = g)`
-and the cell-level event averages become the corresponding within-cell
-conditional means. -/
-lemma eventCondExp_eq_sum_condProb_mul_eventCondExp
-    {ι : Type*} [Fintype ι] (μ : Measure Ω)
-    (A : Set Ω) (C : ι → Set Ω) (hAmeas : MeasurableSet A)
-    (hCmeas : ∀ i, MeasurableSet (C i))
-    (hdisj : Pairwise (Function.onFun Disjoint C))
-    (hcov : (⋃ i, C i) = Set.univ)
-    (hAC_fin : ∀ i, μ (A ∩ C i) ≠ ⊤)
-    (f : Ω → ℝ) (hf : Integrable f μ) :
-    eventCondExp μ A f
-      = ∑ i, (μ (A ∩ C i)).toReal / (μ A).toReal * eventCondExp μ (A ∩ C i) f := by
-  -- The cells `A ∩ C i` are measurable, pairwise disjoint, and cover `A`.
-  have hAC_meas : ∀ i, MeasurableSet (A ∩ C i) := fun i => hAmeas.inter (hCmeas i)
-  have hAC_disj : Pairwise (Function.onFun Disjoint (fun i => A ∩ C i)) := by
-    intro i j hij
-    exact (hdisj hij).mono Set.inter_subset_right Set.inter_subset_right
-  have hAC_cov : (⋃ i, A ∩ C i) = A := by
-    rw [← Set.inter_iUnion, hcov, Set.inter_univ]
-  -- Step 1: `∫_A f = ∑ i, ∫_{A ∩ C i} f`.
-  have hsplit : ∫ ω in A, f ω ∂μ = ∑ i, ∫ ω in A ∩ C i, f ω ∂μ := by
-    have h := MeasureTheory.integral_iUnion_fintype hAC_meas hAC_disj
-      (fun _ => hf.integrableOn)
-    rwa [hAC_cov] at h
-  -- Step 2: each restricted integral is `μ(cell) · E[f | cell]`.
-  have hcell : ∀ i, ∫ ω in A ∩ C i, f ω ∂μ
-      = (μ (A ∩ C i)).toReal * eventCondExp μ (A ∩ C i) f := by
-    intro i
-    rw [mul_comm, ← eventCondExp_mul_measure_toReal μ (A ∩ C i) (hAC_fin i) f]
-  -- Assemble and divide through by `(μ A).toReal`.
-  have hLHS : eventCondExp μ A f = (∫ ω in A, f ω ∂μ) / (μ A).toReal := rfl
-  rw [hLHS, hsplit, Finset.sum_div]
-  refine Finset.sum_congr rfl (fun i _ => ?_)
-  rw [hcell i, mul_div_right_comm]
-
-/-! ### Congruence and monotonicity of `eventCondExp` -/
-
-/-- a.e.-equal integrands have equal event-level conditional expectations. -/
-lemma eventCondExp_congr_ae (μ : Measure Ω) (A : Set Ω) {f g : Ω → ℝ}
-    (h : f =ᵐ[μ.restrict A] g) :
-    eventCondExp μ A f = eventCondExp μ A g := by
-  simp only [condexp_simps]
-  rw [MeasureTheory.integral_congr_ae h]
-
-/-- Equal-on-`A` integrands have equal event-level conditional expectations.
-This specialises `eventCondExp_congr_ae` to a pointwise identity on a measurable
-set `A`. -/
-lemma eventCondExp_congr_on (μ : Measure Ω) {A : Set Ω} (hA : MeasurableSet A)
-    {f g : Ω → ℝ} (h : ∀ ω ∈ A, f ω = g ω) :
-    eventCondExp μ A f = eventCondExp μ A g := by
-  simp only [condexp_simps]
-  congr 1
-  exact MeasureTheory.setIntegral_congr_fun hA h
-
-/-- Monotonicity of `eventCondExp` under an a.e. inequality of integrable
-functions. -/
-lemma eventCondExp_mono_ae (μ : Measure Ω) {A : Set Ω} {f g : Ω → ℝ}
-    (hf : IntegrableOn f A μ) (hg : IntegrableOn g A μ)
-    (hfg : f ≤ᵐ[μ.restrict A] g) :
-    eventCondExp μ A f ≤ eventCondExp μ A g := by
-  simp only [condexp_simps]
-  have hint_le : ∫ ω in A, f ω ∂μ ≤ ∫ ω in A, g ω ∂μ :=
-    MeasureTheory.setIntegral_mono_ae_restrict hf hg hfg
-  have hnn : (0 : ℝ) ≤ (μ A).toReal := ENNReal.toReal_nonneg
-  exact div_le_div_of_nonneg_right hint_le hnn
-
-/-! ### Basic algebra of `eventCondExp` -/
-
-/-- Event-level conditional expectation is additive for integrable summands on the event. -/
-lemma eventCondExp_add (μ : Measure Ω) (A : Set Ω)
-    {g₁ g₂ : Ω → ℝ}
-    (h₁ : IntegrableOn g₁ A μ) (h₂ : IntegrableOn g₂ A μ) :
-    eventCondExp μ A (g₁ + g₂) = eventCondExp μ A g₁ + eventCondExp μ A g₂ := by
-  simp only [condexp_simps, Pi.add_apply, integral_add h₁ h₂, add_div]
-
-/-- Event-level conditional expectation is additive over subtraction for
-integrable functions on the event. -/
-lemma eventCondExp_sub (μ : Measure Ω) (A : Set Ω)
-    {g₁ g₂ : Ω → ℝ}
-    (h₁ : IntegrableOn g₁ A μ) (h₂ : IntegrableOn g₂ A μ) :
-    eventCondExp μ A (g₁ - g₂) = eventCondExp μ A g₁ - eventCondExp μ A g₂ := by
-  simp only [condexp_simps, Pi.sub_apply, integral_sub h₁ h₂, sub_div]
-
-/-- Event-level conditional expectation is homogeneous with respect to real
-scalar multiplication. -/
-lemma eventCondExp_smul (μ : Measure Ω) (A : Set Ω) (c : ℝ) (g : Ω → ℝ) :
-    eventCondExp μ A (fun ω => c * g ω) = c * eventCondExp μ A g := by
-  simp only [condexp_simps, MeasureTheory.integral_const_mul, mul_div_assoc]
-
-/-! ### Generic drop-of-conditioning for `IndepFun` -/
-
-/-- **Consistency + drop-of-conditioning for plain `IndepFun`.**  If `z` is
-independent of a counterfactual bundle `B`, and a factual integrand agrees
-with a measurable projection `h ∘ B` a.e. on the cell `{z = x}`, then its
-event-level conditional expectation on that cell equals the unconditional
-integral of the projection. -/
-theorem eventCondExp_of_ae_eq_IndepFun
-    {α β : Type*} [MeasurableSpace α]
-    [MeasurableSpace β] {μ : Measure Ω}
-    {z : Ω → α} {B : Ω → β}
-    (hInd : IndepFun z B μ) (hz : Measurable z) (hB : Measurable B)
-    {factualF : Ω → ℝ}
-    {h : β → ℝ} (hh_meas : Measurable h) {x : α}
-    (hx : MeasurableSet ({x} : Set α))
-    (hF_eq : factualF =ᵐ[μ.restrict (z ⁻¹' {x})] fun ω => h (B ω))
-    (hμA_ne_zero : (μ (z ⁻¹' {x})).toReal ≠ 0) :
-    eventCondExp μ (z ⁻¹' {x}) factualF = ∫ ω, h (B ω) ∂μ := by
-  simp only [condexp_simps]
-  rw [MeasureTheory.integral_congr_ae hF_eq]
-  rw [hInd.integral_restrict_preimage_eq_mul hz.aemeasurable hB.aemeasurable
-    hx (hz hx) hh_meas.aestronglyMeasurable]
-  field_simp
 
 /-! ### Drop-of-conditioning for `IndepCF`
 
@@ -311,7 +103,7 @@ theorem POSystem.eventCondExp_eq_integral_of_IndepCF
     (hx : MeasurableSet ({x} : Set α))
     (hμA_ne_zero : μ (rv.value ⁻¹' {x}) ≠ 0)
     (hμA_ne_top : μ (rv.value ⁻¹' {x}) ≠ ⊤) :
-    eventCondExp μ (rv.value ⁻¹' {x}) (fun ω => h (B.jointValue ω))
+    normalizedRestrictedIntegral μ (rv.value ⁻¹' {x}) (fun ω => h (B.jointValue ω))
       = ∫ ω, h (B.jointValue ω) ∂μ := by
   simp only [condexp_simps]
   rw [POSystem.integral_restrict_value_eq_mul_of_IndepCF hInd hh_meas x hx]
@@ -332,19 +124,23 @@ theorem POSystem.eventCondExp_event_eq_integral_of_IndepCF
     (hx : MeasurableSet ({x} : Set α))
     (hμA_ne_zero : μ (a.event x) ≠ 0)
     (hμA_ne_top : μ (a.event x) ≠ ⊤) :
-    eventCondExp μ (a.event x) (fun ω => h (B.jointValue ω))
+    normalizedRestrictedIntegral μ (a.event x) (fun ω => h (B.jointValue ω))
       = ∫ ω, h (B.jointValue ω) ∂μ := by
   have hev : a.event x = (RegimedVar.ofFactual a).value ⁻¹' {x} := rfl
   rw [hev] at hμA_ne_zero hμA_ne_top ⊢
   exact POSystem.eventCondExp_eq_integral_of_IndepCF
     hInd hh_meas hx hμA_ne_zero hμA_ne_top
 
-/-- **Consistency-on-event for `eventCondExp`.**  Generic consumer of
-`POVar.cf_eq_factual_on_event`: on the event `{a = a₀}`, the counterfactual
-`y.cfUnder a a₀` agrees with `y.factual` pointwise, so their conditional
-means on that event coincide.  This is the shared rewrite underlying
-Manski `MTR`/`MTS` and (via the finite-partition total law) the
-integrated MIV bounds. -/
+/-- **Consistency on an event for `normalizedRestrictedIntegral`.** Given
+[a consistent potential-outcome system](hyp:hC), [an outcome variable `y`](hyp:y),
+[a conditioning variable `a`](hyp:a), [a level `a₀`](hyp:a₀), and [a measure `μ`](hyp:μ),
+if [the event `{a = a₀}` is measurable](hyp:ha₀) and
+[`y` and `a` have distinct variable labels](hyp:hvw), then
+[the normalized restricted integrals of the counterfactual and factual outcomes are equal](goal).
+These totalized quantities are conditional means only when the event has positive finite measure.
+
+This is the shared rewrite underlying Manski `MTR`/`MTS` and, via the finite-partition total law,
+the integrated MIV bounds. -/
 theorem POVar.eventCondExp_cfUnder_eq_factual_on_event
     {P : POSystem} {β : Type*}
     [MeasurableSpace β]
@@ -352,8 +148,8 @@ theorem POVar.eventCondExp_cfUnder_eq_factual_on_event
     (y : POVar P ℝ) (a : POVar P β) (a₀ : β)
     (ha₀ : MeasurableSet (a.event a₀)) (hvw : y.v ≠ a.v)
     (μ : Measure P.Ω) :
-    eventCondExp μ (a.event a₀) (y.cfUnder a a₀)
-      = eventCondExp μ (a.event a₀) y.factual := by
+    normalizedRestrictedIntegral μ (a.event a₀) (y.cfUnder a a₀)
+      = normalizedRestrictedIntegral μ (a.event a₀) y.factual := by
   simp only [condexp_simps]
   congr 1
   refine MeasureTheory.setIntegral_congr_fun ha₀ ?_
@@ -371,13 +167,11 @@ joint value](hyp:hF_eq), and that event has [positive](hyp:hμA_ne_zero) and
 expectation of `factualF` given `{a = x}` equals the unconditional integral of
 `h` composed with the bundle's joint value](goal).
 
-NOTE on the name: this lemma does NOT itself assume `P.Consistency`. The
-`_of_consistency_` records where `hF_eq` usually comes from at the call site —
-real consistency (`POVar.cf_eq_factual_on_event`) rewriting the factual into its
-counterfactual/bundle form — but that derivation is the caller's, supplied here
-purely as the premise `hF_eq`. The workhorse of LATE-style first-stage /
-reduced-form proofs. -/
-theorem POSystem.eventCondExp_of_consistency_IndepCF
+This is a generic probability lemma: it does not assume causal consistency.
+Callers may derive `hF_eq` from consistency, but this theorem uses only the
+supplied almost-everywhere equality. It is the workhorse of LATE-style
+first-stage and reduced-form proofs. -/
+theorem POSystem.eventCondExp_of_ae_eq_IndepCF
     {α : Type*} [MeasurableSpace α]
     {a : POVar P α} {B : POCFBundle P}
     {μ : Measure P.Ω}
@@ -389,7 +183,7 @@ theorem POSystem.eventCondExp_of_consistency_IndepCF
     (hF_eq : factualF =ᵐ[μ.restrict (a.event x)] fun ω => h (B.jointValue ω))
     (hμA_ne_zero : μ (a.event x) ≠ 0)
     (hμA_ne_top : μ (a.event x) ≠ ⊤) :
-    eventCondExp μ (a.event x) factualF = ∫ ω, h (B.jointValue ω) ∂μ := by
+    normalizedRestrictedIntegral μ (a.event x) factualF = ∫ ω, h (B.jointValue ω) ∂μ := by
   simp only [condexp_simps]
   rw [MeasureTheory.integral_congr_ae hF_eq]
   rw [POSystem.integral_event_eq_mul_of_IndepCF hInd hh_meas x hx]

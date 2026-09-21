@@ -8,14 +8,17 @@ Authors: Jiyuan Tan
 `thm:chebyshev-minimax`.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevEndpoint
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevExtremal
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EhlichZeller
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.MinimaxUpper
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Schedule
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevEndpoint
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevExtremal
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EhlichZeller
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.MinimaxUpper
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Schedule
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+
+public section
 
 open scoped BigOperators
 

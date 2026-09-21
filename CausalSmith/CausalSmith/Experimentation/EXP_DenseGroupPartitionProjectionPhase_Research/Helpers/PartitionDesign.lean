@@ -1,7 +1,8 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Kneser
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Experimentation.DesignBased.ProductVariance
-import Mathlib.Logic.Equiv.Fintype
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Kneser
+public import Causalean.Stat.FiniteDesign.Product
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Mathlib.Logic.Equiv.Fintype
 
 /-!
 # Uniform ordered partitions and the independent two-stage design
@@ -10,6 +11,8 @@ Only the uniform law on ordered disjoint group tuples is new.  The independent
 combination with complete treatment randomization uses the existing dependent
 product design and its pushforward operation.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

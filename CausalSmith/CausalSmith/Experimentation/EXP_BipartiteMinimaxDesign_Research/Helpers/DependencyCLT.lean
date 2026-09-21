@@ -8,14 +8,20 @@ Authors: Jiyuan Tan
 The standardization wrapper around the abstract Stein dependency-graph CLT
 (`depGraph_div_const`, `bounded_degree_dependency_clt`, `bounded_degree_dependency_clt_eventually_bounded`,
 `bounded_degree_dependency_clt_of_variance_floor_all`) was promoted to
-`Causalean.Mathlib.Probability.SteinMethod.StandardizedDepGraphCLT`. This file re-exports it so the
-bipartite experiment sees it under the `Causalean.SteinMethod` namespace it already opens.
+`StandardizedDepGraphCLT`. This file re-exports it so the
+bipartite experiment sees it under the
+`Causalean.Mathlib.Probability.SteinMethod` namespace it already opens.
 -/
 
-import Causalean.Mathlib.Probability.SteinMethod.StandardizedDepGraphCLT
+module
+public import Causalean.Mathlib.Probability.SteinMethod.StandardizedDepGraphCLT
+
+public section
 
 open MeasureTheory ProbabilityTheory Filter
 open scoped Topology BigOperators
+
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace CausalSmith.Experimentation.BipartiteMinimaxDesign
 
@@ -28,22 +34,22 @@ lemma bounded_degree_dependency_clt
     [∀ n, IsProbabilityMeasure (μ n)]
     {ι : ℕ → Type*} [∀ n, Fintype (ι n)] [∀ n, DecidableEq (ι n)]
     (X : ∀ n, ι n → Ω n → ℝ)
-    (Dep : ∀ n, Causalean.SteinMethod.DepGraph (X n) (μ n))
+    (Dep : ∀ n, DepGraph (X n) (μ n))
     (Dmax : ℕ) (hdeg : ∀ n i, ((Dep n).nbhd i).card ≤ Dmax)
     (M : ℝ) (hM : 0 ≤ M) (hbound : ∀ n i ω, |X n i ω| ≤ M)
     (hmean : ∀ n i, ∫ ω, X n i ω ∂(μ n) = 0)
     (v : ℕ → ℝ)
-    (hv : ∀ n, ∫ ω, (Causalean.SteinMethod.depSum (X n) ω) ^ 2 ∂(μ n) = v n)
+    (hv : ∀ n, ∫ ω, (depSum (X n) ω) ^ 2 ∂(μ n) = v n)
     (c : ℝ) (hc : 0 < c)
     (hcard : ∀ n, Fintype.card (ι n) = n)
     (hvc : ∀ᶠ n : ℕ in atTop, c * (n : ℝ) ≤ v n)
     (s : ℝ) :
     Tendsto (fun n =>
-        ((μ n).map (fun ω => Causalean.SteinMethod.depSum (X n) ω / Real.sqrt (v n))).real
+        ((μ n).map (fun ω => depSum (X n) ω / Real.sqrt (v n))).real
           (Set.Iic s))
       atTop (nhds ((gaussianReal 0 1).real (Set.Iic s))) := by
   classical
-  apply Causalean.SteinMethod.bounded_degree_dependency_clt
+  apply Causalean.Mathlib.Probability.SteinMethod.bounded_degree_dependency_clt
     μ X Dep Dmax hdeg M hM hbound hmean v hv c hc
   · simpa only [hcard] using hvc
   · simp only [hcard]

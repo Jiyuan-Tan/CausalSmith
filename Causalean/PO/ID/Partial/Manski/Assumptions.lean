@@ -4,19 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Manski.Setup
-import Causalean.PO.Conditioning.CondExpTooling
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Conditioning.CondExpTooling
+public import Causalean.PO.ID.Partial.Manski.Setup
 
 /-! # Manski Assumptions
 
-This file states the assumption bundles for Manski bounds with a discrete
-instrument. The baseline assumptions impose consistency, bounded potential
-outcomes, and integrability, while separate shape restrictions encode mean
-independence, monotone treatment response, monotone treatment selection, and
-monotone instrumental variables.
+This file states the assumption bundles for Manski bounds on measurable
+singleton instrument strata. The baseline assumptions impose consistency,
+bounded potential outcomes, and integrability, while separate shape
+restrictions encode mean independence, monotone treatment response, monotone
+treatment selection, and monotone instrumental variables.
 
 The assumptions are separated from the data layer so later bound theorems can
 combine them independently. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -28,8 +35,10 @@ namespace POManskiIVSystem
 variable {P : POSystem} {α : Type*}
   [MeasurableSpace α] [MeasurableSingletonClass α]
 
-/-- Discrete-IV ATE-bound baseline assumptions -- common part of
-def:po-iv-manski-assumptions.
+/-- For [a Manski singleton-stratum system](hyp:S), the baseline assumptions bundle records
+[consistency](hyp:consistency), [lower and upper outcome bounds](hyp:lo,hi), [their
+ordering](hyp:hle), [almost-sure boundedness of each arm](hyp:bounded_one,bounded_zero), and
+[integrability of each arm](hyp:integrable_Y1,integrable_Y0).
 
 `lo, hi` are the almost-sure outcome bounds (`a, b` in the tex).  Shape
 restrictions live in the `MeanIndep`, `MTR`, `MTS`, `MIV` structures. -/
@@ -100,27 +109,31 @@ lemma integrable_factualY (hA : S.BaseAssumptions) :
 
 end BaseAssumptions
 
-/-- Mean independence of the potential outcomes from the instrument.  Stated
-directly on `eventCondExp` — matches def:po-iv-manski-assumptions
-letter-for-letter and avoids the stronger joint independence used in LATE. -/
+/-- Mean independence requires [the treated potential-outcome mean on every
+positive-mass singleton stratum to equal its population mean](hyp:meanIndep_one)
+and [the analogous equality for the control potential outcome](hyp:meanIndep_zero).
+
+For a finite or countable instrument space this is the positive-cell form of
+`def:po-iv-manski-assumptions`. On a general measurable-singleton space it only
+constrains atomic singleton strata. -/
 structure MeanIndep (S : POManskiIVSystem P α) : Prop where
   meanIndep_one : ∀ z ∈ S.support,
-    eventCondExp P.μ (S.zEvent z) (S.YofD true) = ∫ ω, S.YofD true ω ∂P.μ
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) = ∫ ω, S.YofD true ω ∂P.μ
   meanIndep_zero : ∀ z ∈ S.support,
-    eventCondExp P.μ (S.zEvent z) (S.YofD false) = ∫ ω, S.YofD false ω ∂P.μ
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) = ∫ ω, S.YofD false ω ∂P.μ
 
 /-- Monotone treatment response -- prop:po-iv-mtr, item 1.
 `Y(0) ≤ Y(1)` almost surely. -/
 structure MTR (S : POManskiIVSystem P α) : Prop where
   monotone : ∀ᵐ ω ∂P.μ, S.YofD false ω ≤ S.YofD true ω
 
-/-- Monotone treatment selection -- prop:po-iv-mts.
-
-`mts_one` asserts `E[Y(d) | D=0] ≤ E[Y(d) | D=1]` for each `d`. -/
+/-- Monotone treatment selection requires [the mean of each potential outcome
+given control to be no larger than its mean given
+treatment](hyp:mts_one), as in `prop:po-iv-mts`. -/
 structure MTS (S : POManskiIVSystem P α) : Prop where
   mts_one : ∀ (d : Bool),
-    eventCondExp P.μ (S.dEvent false) (S.YofD d)
-      ≤ eventCondExp P.μ (S.dEvent true) (S.YofD d)
+    normalizedRestrictedIntegral P.μ (S.dEvent false) (S.YofD d)
+      ≤ normalizedRestrictedIntegral P.μ (S.dEvent true) (S.YofD d)
 
 /-- Monotone instrumental variable -- prop:po-iv-miv.
 
@@ -131,8 +144,8 @@ structure MIV (S : POManskiIVSystem P α) where
   inst : LinearOrder α
   monotone : ∀ (d : Bool) (z z' : α),
     z ∈ S.support → z' ∈ S.support → @LE.le α inst.toLE z z' →
-      eventCondExp P.μ (S.zEvent z) (S.YofD d)
-        ≤ eventCondExp P.μ (S.zEvent z') (S.YofD d)
+      normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d)
+        ≤ normalizedRestrictedIntegral P.μ (S.zEvent z') (S.YofD d)
 
 end POManskiIVSystem
 

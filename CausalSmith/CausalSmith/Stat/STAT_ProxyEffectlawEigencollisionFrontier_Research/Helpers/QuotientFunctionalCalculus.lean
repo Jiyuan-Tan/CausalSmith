@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.AtomicLaw
-import Mathlib.Data.Matrix.Basic
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.AtomicLaw
+public import Mathlib.Data.Matrix.Basic
 
 /-!
 Collision-stable finite functional calculus for quotient atomic laws.
@@ -8,6 +9,8 @@ The results deliberately use labelled diagonalizing coordinates only as a certif
 eigenvalues are allowed: the represented law is passed to `LawModulo`, so splitting, merging, or
 permuting equal-eigenvalue slots has no mathematical effect.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

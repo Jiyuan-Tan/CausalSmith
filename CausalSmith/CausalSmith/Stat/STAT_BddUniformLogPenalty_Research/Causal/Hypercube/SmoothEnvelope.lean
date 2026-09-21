@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Family
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularHolder
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaledDelta
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Family
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularHolder
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaledDelta
 
 /-!
 # Smooth extension leaf for the hard-square treatment profile
@@ -8,6 +9,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaled
 This module converts the normalized bump derivative bounds into the exact
 coordinate-partial extension envelope required by `A1A2Class`.
 -/
+
+public section
 
 open Set
 open scoped Topology

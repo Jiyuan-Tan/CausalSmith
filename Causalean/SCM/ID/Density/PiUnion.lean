@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.Helpers
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import Causalean.SCM.Do.Rule2Kernel.Helpers
+public import Mathlib.MeasureTheory.Constructions.Pi
 
 /-! # Product measure over a disjoint union of value coordinates
 
@@ -20,6 +21,13 @@ The proof routes the project's union equivalence through Mathlib's
 `sumPiEquivProdPi` (the value reindexing along the `Sum` decomposition of the
 union index) and `piCongrLeft` (the index reindexing), both measure-preserving.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 

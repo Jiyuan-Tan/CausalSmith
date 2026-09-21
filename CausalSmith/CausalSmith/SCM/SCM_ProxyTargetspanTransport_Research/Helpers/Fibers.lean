@@ -1,13 +1,16 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FiniteSCM
-import Mathlib.Data.Matrix.Mul
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FiniteSCM
+public import Mathlib.Data.Matrix.Mul
 
 set_option linter.unusedDecidableInType false
 set_option linter.unusedFintypeInType false
 
-/-! Compatible-model fibers, balancing systems, separators, and unconditional moments. -/
-
 open scoped BigOperators
 open Finset Matrix
+
+/-! Compatible-model fibers, balancing systems, separators, and unconditional moments. -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

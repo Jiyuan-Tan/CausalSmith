@@ -13,7 +13,7 @@ import type { Core } from "../core/schema.js";
 import type { PipelineContext } from "../../types.js";
 import { coreJsonPath } from "../stages/d0_core.js";
 import { checkGraph, formatViolations, type Violation } from "./checks.js";
-import { diffGraphs, isEmptyDiff, loadGraph, type Graph } from "./graph.js";
+import { diffGraphs, loadGraph, type Graph } from "./graph.js";
 import { readTypedCore } from "../core/core_io.js";
 import { graphFromCore, renderCore, normalizeGraph } from "./render.js";
 import { MAIN_REF, VcsStore, type CommitKind } from "./store.js";

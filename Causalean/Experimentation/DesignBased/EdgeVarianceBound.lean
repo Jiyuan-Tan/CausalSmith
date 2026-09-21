@@ -13,9 +13,10 @@ design-based central-limit / consistency arguments under local dependence, with 
 measure theory: everything is `Finset` algebra over the design weights.
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Positivity
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Positivity
 
 /-!
 # Edge-sum variance bound for finite designs
@@ -26,6 +27,8 @@ variance inequality `var_edge_sum_le`. The final theorem controls the variance o
 edge-indexed statistics by `8 * M ^ 2 * (m ^ 3 * N)` when the edge variables vanish off a symmetric
 bounded-degree graph and are uncorrelated across graph-separated edges.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset
@@ -58,6 +61,25 @@ lemma abs_E_le {X : Ω → ℝ} {M : ℝ} (h : ∀ z, |X z| ≤ M) : |D.E X| ≤
     have heq : D.E (fun z => M - X z) = M - D.E X := by
       rw [D.E_sub]; simp [D.E_const]
     rw [heq] at hpos; linarith
+
+/-- If [one statistic is pointwise no larger than another](hyp:h), then [its design expectation is
+no larger](goal). -/
+lemma E_mono {X Y : Ω → ℝ} (h : ∀ z, X z ≤ Y z) : D.E X ≤ D.E Y :=
+  Finset.sum_le_sum (fun z _ => mul_le_mul_of_nonneg_left (h z) (D.p_nonneg z))
+
+/-- The [absolute value of a finite-design expectation](goal) is at most the expectation of the
+statistic's absolute value. -/
+lemma abs_E_le_E_abs (X : Ω → ℝ) : |D.E X| ≤ D.E (fun z => |X z|) := by
+  rw [abs_le]
+  constructor
+  · have hpos : 0 ≤ D.E (fun z => |X z| + X z) :=
+      D.E_nonneg (fun z => by linarith [neg_abs_le (X z)])
+    rw [D.E_add] at hpos
+    linarith
+  · have hpos : 0 ≤ D.E (fun z => |X z| - X z) :=
+      D.E_nonneg (fun z => by linarith [le_abs_self (X z)])
+    rw [D.E_sub] at hpos
+    linarith
 
 /-- The design covariance of random variables bounded by `MX` and `MY` in absolute
 value pointwise is bounded by `2·MX·MY` in absolute value. -/

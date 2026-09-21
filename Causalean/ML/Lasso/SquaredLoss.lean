@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Lasso.Rate
-import Causalean.ML.Surrogate.ClampedSquare
+
+module
+public import Causalean.ML.Lasso.Rate
+public import Causalean.ML.Surrogate.ClampedSquare
 
 /-! # Lasso / L¹-ball linear predictors — squared-loss excess-risk rate
 
@@ -27,17 +29,22 @@ gives the `O(√(log d / n))` squared-loss excess-risk rate
 `lasso_erm_squaredLoss_excess_rate`.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open MeasureTheory ProbabilityTheory Real Causalean.Stat.Concentration
 
-/-- For [a dimension $d$](hyp:d), [a coordinate bound $X_{\infty}$](hyp:Xinf), and [a response bound $Y_b$](hyp:Yb), the [lasso feature--response space](goal) consists of pairs whose $d$ feature coordinates have absolute value at most $X_{\infty}$ and whose response lies in the closed interval $[-Y_b,Y_b]$.
+/-- [The bounded lasso feature--response space](goal) imposes
+[the stated coordinate and response bounds](step:1). Its [dimension](hyp:d),
+[coordinate bound](hyp:Xinf), and [response bound](hyp:Yb) specify the learning domain.
 
 This is the data domain used by the lasso squared-loss results. -/
 abbrev LassoFeat (d : ℕ) (Xinf Yb : ℝ) : Type :=
   LinftyBall (d := d) Xinf × Metric.closedBall (0 : ℝ) Yb
 
-/-- For [a dimension $d$](hyp:d) and [a radius $W$](hyp:W), the [lasso weight space](goal) is the set of $d$-dimensional real weight vectors whose coordinate $\ell^1$ norm is at most $W$.
+/-- [The lasso weight space](goal) contains [vectors whose L1 norm is within radius](step:1),
+in [the stated dimension](hyp:d) at [radius](hyp:W).
 
 This is the parameter domain for the lasso linear predictors. -/
 abbrev LassoWeight (d : ℕ) (W : ℝ) : Type :=

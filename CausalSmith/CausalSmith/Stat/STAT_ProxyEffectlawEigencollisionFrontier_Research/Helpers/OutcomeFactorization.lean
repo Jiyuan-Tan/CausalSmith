@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
-import Causalean.Mathlib.IndepIntegral
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
+public import Causalean.Mathlib.Probability.Independence.Integral
 
 /-!
 Paper-local conditional-moment identities used in the outcome-weighted proxy factorization.
 -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

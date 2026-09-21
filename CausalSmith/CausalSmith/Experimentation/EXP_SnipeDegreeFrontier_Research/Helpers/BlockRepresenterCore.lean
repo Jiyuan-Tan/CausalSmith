@@ -1,6 +1,7 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BernoulliFourier
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BernoulliFourier
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-!
 # Block representer identities
@@ -8,6 +9,8 @@ import Causalean.Experimentation.DesignBased.ProductVariance
 This file states the Bernoulli Riesz identities, the two unique minimizer
 claims, the binomial comparison, and the uniform raw-coefficient bound.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

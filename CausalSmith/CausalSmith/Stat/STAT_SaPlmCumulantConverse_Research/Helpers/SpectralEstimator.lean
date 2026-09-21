@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ContourBank
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.BoundedCertifiedComplex
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ContourBank
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.BoundedCertifiedComplex
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
 /-! # One bounded-domain certified spectral evaluator
 The ordinary and represented layers below are distinct wrappers around the
@@ -11,12 +12,15 @@ finite empirical transforms, forms the guarded quotient times the full circle
 tangent, applies endpoint-complete quadrature, and normalizes only afterwards.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open MeasureTheory Set intervalIntegral
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
+open Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
@@ -249,7 +253,7 @@ def spectralDiskBox (B : ContourBankData) : ComplexRatInterval := by
 `spectralDiskBox`.  The factor two safely converts the coordinate maximum
 used by `ComplexRatInterval.maxAbs` into a complex-norm bound. -/
 def spectralFullBoxRadius (B : ContourBankData) : ℚ :=
-  2 * (spectralDiskBox B).maxAbs
+  2 * ComplexRatInterval.maxAbs (spectralDiskBox B)
 
 /-- [The rational magnitude envelope of the fixed evaluation disk is never
 negative](goal). -/
@@ -354,8 +358,9 @@ lemma ratInterval_npow_width_propagation (I : RatInterval) (n : ℕ)
 magnitudes; this alias records the propagation step used by the spectral
 finite-sum proof. -/
 lemma complexRectangle_mul_width_propagation (I J : ComplexRatInterval) :
-    (I.mul J).width ≤
-      2 * (I.maxAbs * J.width + J.maxAbs * I.width) :=
+    ComplexRatInterval.width (ComplexRatInterval.mul I J) ≤
+      2 * (ComplexRatInterval.maxAbs I * ComplexRatInterval.width J +
+        ComplexRatInterval.maxAbs J * ComplexRatInterval.width I) :=
   ComplexRatInterval.mul_width I J
 
 private lemma ratInterval_mul_width_propagation (I J : RatInterval) :
@@ -398,36 +403,43 @@ lemma intervalSum_contains_sum (xs : List ComplexRatInterval) (zs : List ℂ)
 /-- Recursive rectangle addition accumulates no more than the sum of the
 individual coordinate widths. -/
 lemma intervalSum_width_propagation (xs : List ComplexRatInterval) :
-    (intervalSum xs).width ≤ (xs.map ComplexRatInterval.width).sum := by
+    ComplexRatInterval.width (intervalSum xs) ≤
+      (xs.map ComplexRatInterval.width).sum := by
   have hadd (I J : ComplexRatInterval) :
-      (I.add J).width ≤ I.width + J.width := by
+      ComplexRatInterval.width (I.add J) ≤
+        ComplexRatInterval.width I + ComplexRatInterval.width J := by
     rw [ComplexRatInterval.width_add]
     apply max_le
     · exact add_le_add (le_max_left _ _) (le_max_left _ _)
     · exact add_le_add (le_max_right _ _) (le_max_right _ _)
   have aux : ∀ (ys : List ComplexRatInterval) (A : ComplexRatInterval),
-      (ys.foldl ComplexRatInterval.add A).width ≤
-        A.width + (ys.map ComplexRatInterval.width).sum := by
+      ComplexRatInterval.width (ys.foldl ComplexRatInterval.add A) ≤
+        ComplexRatInterval.width A + (ys.map ComplexRatInterval.width).sum := by
     intro ys
     induction ys with
     | nil => intro A; simp
     | cons I ys ih =>
         intro A
         calc
-          ((I :: ys).foldl ComplexRatInterval.add A).width =
-              (ys.foldl ComplexRatInterval.add (A.add I)).width := rfl
-          _ ≤ (A.add I).width + (ys.map ComplexRatInterval.width).sum := ih _
-          _ ≤ A.width + I.width + (ys.map ComplexRatInterval.width).sum := by
+          ComplexRatInterval.width ((I :: ys).foldl ComplexRatInterval.add A) =
+              ComplexRatInterval.width
+                (ys.foldl ComplexRatInterval.add (A.add I)) := rfl
+          _ ≤ ComplexRatInterval.width (A.add I) +
+              (ys.map ComplexRatInterval.width).sum := ih _
+          _ ≤ ComplexRatInterval.width A + ComplexRatInterval.width I +
+              (ys.map ComplexRatInterval.width).sum := by
             gcongr
             exact hadd A I
-          _ = A.width + ((I :: ys).map ComplexRatInterval.width).sum := by simp [add_assoc]
+          _ = ComplexRatInterval.width A +
+              ((I :: ys).map ComplexRatInterval.width).sum := by simp [add_assoc]
   simpa [intervalSum, ComplexRatInterval.zero, ComplexRatInterval.width,
     RatInterval.point, RatInterval.width] using aux xs ComplexRatInterval.zero
 
 /-- Rational post-scaling propagates width linearly in the scalar magnitude. -/
 lemma complexRectangle_smulRat_width_propagation (q : ℚ)
     (I : ComplexRatInterval) :
-    (I.smulRat q).width ≤ |q| * I.width := by
+    ComplexRatInterval.width (I.smulRat q) ≤
+      |q| * ComplexRatInterval.width I := by
   have pointMulWidth_nonneg (r : ℚ) (hr : 0 ≤ r) (K : RatInterval) :
       ((RatInterval.point r).mul K).width = r * K.width := by
     have h := mul_le_mul_of_nonneg_left K.lo_le_hi hr
@@ -649,7 +661,8 @@ lemma canonicalOutcome_maxAbs_at_fuel
 /-- Recursive whole-rectangle tightening of a fuel-indexed raw evaluator. -/
 def tightenAcrossFuel (raw : ℕ → ComplexRatInterval) : ℕ → ComplexRatInterval
   | 0 => raw 0
-  | fuel + 1 => (tightenAcrossFuel raw fuel).tighten (raw (fuel + 1))
+  | fuel + 1 => ComplexRatInterval.tighten
+      (tightenAcrossFuel raw fuel) (raw (fuel + 1))
 
 /-- Sound raw enclosures remain sound after recursive tightening; consecutive
 fuel outputs are nested, and every tightened output lies inside the raw output
@@ -685,9 +698,9 @@ def spectralDenominatorRawEval (input : RepresentedSpectralInput p)
     (z : ComplexRatInterval) (fuel : ℕ) : ComplexRatInterval :=
   let terms := I.toList.map fun i ↦
     let residual := (representedResidual input i).approx fuel
-    let argument := z.mul (realRect residual)
+    let argument := ComplexRatInterval.mul z (realRect residual)
     let exponential := BoundedCertifiedComplex.centeredComplexExp argument fuel
-    (realRect (residual.npow derivative)).mul exponential
+    ComplexRatInterval.mul (realRect (residual.npow derivative)) exponential
   (intervalSum terms).smulRat ((max I.card 1 : ℚ)⁻¹)
 
 /-- The raw finite-sum interval program for the empirical G derivative. -/
@@ -697,9 +710,9 @@ def spectralNumeratorRawEval (input : RepresentedSpectralInput p)
   let terms := I.toList.map fun i ↦
     let residual := (representedResidual input i).approx fuel
     let weight := (input.observations i).yName.approx fuel
-    let argument := z.mul (realRect residual)
+    let argument := ComplexRatInterval.mul z (realRect residual)
     let exponential := BoundedCertifiedComplex.centeredComplexExp argument fuel
-    (realRect (weight.mul (residual.npow derivative))).mul exponential
+    ComplexRatInterval.mul (realRect (weight.mul (residual.npow derivative))) exponential
   (intervalSum terms).smulRat ((max I.card 1 : ℚ)⁻¹)
 
 /-- Cross-fuel-nested empirical F evaluation obtained by tightening the whole
@@ -754,29 +767,30 @@ def spectralNumeratorMap (input : RepresentedSpectralInput p)
 /-- If [one complex rectangle is contained in another](hyp:h), then [its coordinate
 diameter is no larger](goal). -/
 lemma complexRectangle_width_mono {I J : ComplexRatInterval}
-    (h : I.Subinterval J) : I.width ≤ J.width :=
+    (h : I.Subinterval J) : ComplexRatInterval.width I ≤
+      ComplexRatInterval.width J :=
   max_le_max (RatInterval.width_mono h.1) (RatInterval.width_mono h.2)
 
 /-- A rectangle's coordinate diameter is at most twice its endpoint-magnitude
 bound. -/
 private lemma complexRectangle_width_le_two_maxAbs (I : ComplexRatInterval) :
-    I.width ≤ 2 * I.maxAbs := by
+    ComplexRatInterval.width I ≤ 2 * ComplexRatInterval.maxAbs I := by
   rw [ComplexRatInterval.width]
   apply max_le
   · rw [RatInterval.width]
     have hlo : -I.re.lo ≤ |I.re.lo| := neg_le_abs _
     have hhi : I.re.hi ≤ |I.re.hi| := le_abs_self _
-    have hlo' : |I.re.lo| ≤ I.maxAbs :=
+    have hlo' : |I.re.lo| ≤ ComplexRatInterval.maxAbs I :=
       (le_max_left _ _).trans (le_max_left _ _)
-    have hhi' : |I.re.hi| ≤ I.maxAbs :=
+    have hhi' : |I.re.hi| ≤ ComplexRatInterval.maxAbs I :=
       (le_max_right _ _).trans (le_max_left _ _)
     linarith
   · rw [RatInterval.width]
     have hlo : -I.im.lo ≤ |I.im.lo| := neg_le_abs _
     have hhi : I.im.hi ≤ |I.im.hi| := le_abs_self _
-    have hlo' : |I.im.lo| ≤ I.maxAbs :=
+    have hlo' : |I.im.lo| ≤ ComplexRatInterval.maxAbs I :=
       (le_max_left _ _).trans (le_max_right _ _)
-    have hhi' : |I.im.hi| ≤ I.maxAbs :=
+    have hhi' : |I.im.hi| ≤ ComplexRatInterval.maxAbs I :=
       (le_max_right _ _).trans (le_max_right _ _)
     linarith
 
@@ -792,7 +806,7 @@ private lemma ratInterval_npow_maxAbs_le (I : RatInterval) (n : ℕ) :
           (pow_nonneg ((abs_nonneg I.lo).trans (le_max_left _ _)) n))
 
 @[simp] private lemma realRect_maxAbs (R : RatInterval) :
-    (realRect R).maxAbs = R.maxAbs := by
+    ComplexRatInterval.maxAbs (realRect R) = R.maxAbs := by
   simp [realRect, ComplexRatInterval.maxAbs, RatInterval.point,
     RatInterval.maxAbs, (abs_nonneg R.lo).trans (le_max_left _ _)]
 
@@ -804,23 +818,28 @@ private lemma spectralDenominatorTerm_width_coarse
     (hb : 1 ≤ b) (hη : 0 ≤ η)
     (hRmax : R.maxAbs ^ d ≤ b)
     (hPwidth : (R.npow d).width ≤ 2 * b ^ 2 * η)
-    (hXwidth : X.width ≤ 9 * b ^ 2 * η + 4 * b ^ 2 * K.width)
-    (hXmax : X.maxAbs ≤ 14 * b ^ 3) :
-    ((realRect (R.npow d)).mul X).width ≤
-      128 * b ^ 8 * (K.width + η) := by
+    (hXwidth : ComplexRatInterval.width X ≤
+      9 * b ^ 2 * η + 4 * b ^ 2 * ComplexRatInterval.width K)
+    (hXmax : ComplexRatInterval.maxAbs X ≤ 14 * b ^ 3) :
+    ComplexRatInterval.width
+      (ComplexRatInterval.mul (realRect (R.npow d)) X) ≤
+      128 * b ^ 8 * (ComplexRatInterval.width K + η) := by
   have hb0 : 0 ≤ b := zero_le_one.trans hb
-  have hkw0 : 0 ≤ K.width :=
+  have hkw0 : 0 ≤ ComplexRatInterval.width K :=
     (RatInterval.width_nonneg K.re).trans (le_max_left _ _)
-  have hPmax : (realRect (R.npow d)).maxAbs ≤ b := by
+  have hPmax : ComplexRatInterval.maxAbs (realRect (R.npow d)) ≤ b := by
     simpa [realRect, ComplexRatInterval.maxAbs, RatInterval.point,
       RatInterval.maxAbs] using (ratInterval_npow_maxAbs_le R d).trans hRmax
   have hmul := complexRectangle_mul_width_propagation (realRect (R.npow d)) X
   rw [realRect_width] at hmul
   calc
-    ((realRect (R.npow d)).mul X).width ≤
-        2 * ((realRect (R.npow d)).maxAbs * X.width +
-          X.maxAbs * (R.npow d).width) := hmul
-    _ ≤ 2 * (b * (9 * b ^ 2 * η + 4 * b ^ 2 * K.width) +
+    ComplexRatInterval.width
+      (ComplexRatInterval.mul (realRect (R.npow d)) X) ≤
+        2 * (ComplexRatInterval.maxAbs (realRect (R.npow d)) *
+            ComplexRatInterval.width X +
+          ComplexRatInterval.maxAbs X * (R.npow d).width) := hmul
+    _ ≤ 2 * (b * (9 * b ^ 2 * η +
+          4 * b ^ 2 * ComplexRatInterval.width K) +
           (14 * b ^ 3) * (2 * b ^ 2 * η)) := by
       apply mul_le_mul_of_nonneg_left _ (by norm_num)
       apply add_le_add
@@ -828,20 +847,20 @@ private lemma spectralDenominatorTerm_width_coarse
           ((RatInterval.width_nonneg X.re).trans (le_max_left _ _)) hb0
       · exact mul_le_mul hXmax hPwidth
           (RatInterval.width_nonneg (R.npow d)) (by positivity)
-    _ ≤ 128 * b ^ 8 * (K.width + η) := by
+    _ ≤ 128 * b ^ 8 * (ComplexRatInterval.width K + η) := by
       have h38 : b ^ 3 ≤ b ^ 8 := pow_le_pow_right₀ hb (by norm_num)
       have h58 : b ^ 5 ≤ b ^ 8 := pow_le_pow_right₀ hb (by norm_num)
       have hkw38 := mul_le_mul_of_nonneg_right h38 hkw0
       have hη38 := mul_le_mul_of_nonneg_right h38 hη
       have hη58 := mul_le_mul_of_nonneg_right h58 hη
       calc
-        2 * (b * (9 * b ^ 2 * η + 4 * b ^ 2 * K.width) +
+        2 * (b * (9 * b ^ 2 * η + 4 * b ^ 2 * ComplexRatInterval.width K) +
             14 * b ^ 3 * (2 * b ^ 2 * η)) =
-            8 * (b ^ 3 * K.width) + 18 * (b ^ 3 * η) +
+            8 * (b ^ 3 * ComplexRatInterval.width K) + 18 * (b ^ 3 * η) +
               56 * (b ^ 5 * η) := by ring
-        _ ≤ 8 * (b ^ 8 * K.width) + 18 * (b ^ 8 * η) +
+        _ ≤ 8 * (b ^ 8 * ComplexRatInterval.width K) + 18 * (b ^ 8 * η) +
               56 * (b ^ 8 * η) := by gcongr
-        _ ≤ 128 * b ^ 8 * (K.width + η) := by
+        _ ≤ 128 * b ^ 8 * (ComplexRatInterval.width K + η) := by
           nlinarith [mul_nonneg (pow_nonneg hb0 8) hkw0,
             mul_nonneg (pow_nonneg hb0 8) hη]
 
@@ -861,18 +880,22 @@ private lemma spectralNumeratorTerm_width_coarse
     (b η : ℚ) (hb : 1 ≤ b) (hη : 0 ≤ η)
     (hCmax : C.maxAbs ≤ b ^ 2)
     (hCwidth : C.width ≤ 6 * b ^ 3 * η)
-    (hXwidth : X.width ≤ 9 * b ^ 2 * η + 4 * b ^ 2 * K.width)
-    (hXmax : X.maxAbs ≤ 14 * b ^ 3) :
-    ((realRect C).mul X).width ≤ 256 * b ^ 8 * (K.width + η) := by
+    (hXwidth : ComplexRatInterval.width X ≤
+      9 * b ^ 2 * η + 4 * b ^ 2 * ComplexRatInterval.width K)
+    (hXmax : ComplexRatInterval.maxAbs X ≤ 14 * b ^ 3) :
+    ComplexRatInterval.width (ComplexRatInterval.mul (realRect C) X) ≤
+      256 * b ^ 8 * (ComplexRatInterval.width K + η) := by
   have hb0 : 0 ≤ b := zero_le_one.trans hb
-  have hw0 : 0 ≤ K.width :=
+  have hw0 : 0 ≤ ComplexRatInterval.width K :=
     (RatInterval.width_nonneg K.re).trans (le_max_left _ _)
   have h := complexRectangle_mul_width_propagation (realRect C) X
   rw [realRect_width, realRect_maxAbs] at h
   calc
-    ((realRect C).mul X).width ≤
-        2 * (C.maxAbs * X.width + X.maxAbs * C.width) := h
-    _ ≤ 2 * (b ^ 2 * (9 * b ^ 2 * η + 4 * b ^ 2 * K.width) +
+    ComplexRatInterval.width (ComplexRatInterval.mul (realRect C) X) ≤
+        2 * (C.maxAbs * ComplexRatInterval.width X +
+          ComplexRatInterval.maxAbs X * C.width) := h
+    _ ≤ 2 * (b ^ 2 * (9 * b ^ 2 * η +
+          4 * b ^ 2 * ComplexRatInterval.width K) +
           14 * b ^ 3 * (6 * b ^ 3 * η)) := by
       apply mul_le_mul_of_nonneg_left _ (by norm_num)
       apply add_le_add
@@ -880,7 +903,7 @@ private lemma spectralNumeratorTerm_width_coarse
           ((RatInterval.width_nonneg X.re).trans (le_max_left _ _))
           (pow_nonneg hb0 2)
       · exact mul_le_mul hXmax hCwidth (RatInterval.width_nonneg C) (by positivity)
-    _ ≤ 256 * b ^ 8 * (K.width + η) := by
+    _ ≤ 256 * b ^ 8 * (ComplexRatInterval.width K + η) := by
       have h48 : b ^ 4 ≤ b ^ 8 := pow_le_pow_right₀ hb (by norm_num)
       have h68 : b ^ 6 ≤ b ^ 8 := pow_le_pow_right₀ hb (by norm_num)
       have h48w := mul_le_mul_of_nonneg_right h48 hw0
@@ -892,9 +915,10 @@ private lemma spectralNumeratorTerm_width_coarse
 /-- A centered exponential rectangle is no larger in endpoint magnitude than
 its semantic exponential envelope plus its own coordinate width. -/
 private lemma centeredComplexExp_maxAbs_le (J : ComplexRatInterval) (fuel : ℕ) :
-    (BoundedCertifiedComplex.centeredComplexExp J fuel).maxAbs ≤
+    ComplexRatInterval.maxAbs (BoundedCertifiedComplex.centeredComplexExp J fuel) ≤
       BoundedCertifiedComplex.centeredExpEnvelope J +
-        (BoundedCertifiedComplex.centeredComplexExp J fuel).width := by
+        ComplexRatInterval.width
+          (BoundedCertifiedComplex.centeredComplexExp J fuel) := by
   let z : ℂ := (J.re.lo : ℝ) + (J.im.lo : ℝ) * Complex.I
   have hz : J.Contains z := by
     constructor
@@ -1002,8 +1026,8 @@ lemma spectralDenominatorRawEval_sound_of_canonical
   let input := canonicalRepresentedInput p pStar cStar gcode data
   let termInterval : Fin p.n → ComplexRatInterval := fun i ↦
     let residual := (representedResidual input i).approx fuel
-    let argument := K.mul (realRect residual)
-    (realRect (residual.npow derivative)).mul
+    let argument := ComplexRatInterval.mul K (realRect residual)
+    ComplexRatInterval.mul (realRect (residual.npow derivative))
       (BoundedCertifiedComplex.centeredComplexExp argument fuel)
   let termValue : Fin p.n → ℂ := fun i ↦
     (((representedResidual input i).value ^ derivative : ℝ) : ℂ) *
@@ -1011,12 +1035,13 @@ lemma spectralDenominatorRawEval_sound_of_canonical
   have hterm : ∀ i, (termInterval i).Contains (termValue i) := by
     intro i
     have hr := (representedResidual input i).contains fuel
-    have hargument : (K.mul
+    have hargument : (ComplexRatInterval.mul K
         (realRect ((representedResidual input i).approx fuel))).Contains
           (z * (representedResidual input i).value) :=
       ComplexRatInterval.mul_sound hz (realRect_sound hr)
     have hexponential := BoundedCertifiedComplex.centeredComplexExp_sound
-      (K.mul (realRect ((representedResidual input i).approx fuel))) fuel hargument
+      (ComplexRatInterval.mul K
+        (realRect ((representedResidual input i).approx fuel))) fuel hargument
     have hpower := realRect_sound (RatInterval.npow_sound hr derivative)
     exact ComplexRatInterval.mul_sound hpower hexponential
   have hterms : List.Forall₂ (fun J v ↦ J.Contains v)
@@ -1060,8 +1085,8 @@ lemma spectralNumeratorRawEval_sound_of_canonical
   let termInterval : Fin p.n → ComplexRatInterval := fun i ↦
     let residual := (representedResidual input i).approx fuel
     let weight := (input.observations i).yName.approx fuel
-    let argument := K.mul (realRect residual)
-    (realRect (weight.mul (residual.npow derivative))).mul
+    let argument := ComplexRatInterval.mul K (realRect residual)
+    ComplexRatInterval.mul (realRect (weight.mul (residual.npow derivative)))
       (BoundedCertifiedComplex.centeredComplexExp argument fuel)
   let termValue : Fin p.n → ℂ := fun i ↦
     (((input.observations i).yName.value *
@@ -1071,12 +1096,13 @@ lemma spectralNumeratorRawEval_sound_of_canonical
     intro i
     have hr := (representedResidual input i).contains fuel
     have hy := (input.observations i).yName.contains fuel
-    have hargument : (K.mul
+    have hargument : (ComplexRatInterval.mul K
         (realRect ((representedResidual input i).approx fuel))).Contains
           (z * (representedResidual input i).value) :=
       ComplexRatInterval.mul_sound hz (realRect_sound hr)
     have hexponential := BoundedCertifiedComplex.centeredComplexExp_sound
-      (K.mul (realRect ((representedResidual input i).approx fuel))) fuel hargument
+      (ComplexRatInterval.mul K
+        (realRect ((representedResidual input i).approx fuel))) fuel hargument
     have hcoefficient := realRect_sound
       (RatInterval.mul_sound hy (RatInterval.npow_sound hr derivative))
     exact ComplexRatInterval.mul_sound hcoefficient hexponential
@@ -1115,9 +1141,10 @@ lemma spectralDenominatorRawEval_width_of_canonical
       (gcode : ℕ → Xspace → ℝ) (data : Fin p.n → Obs Xspace),
       input = canonicalRepresentedInput p pStar cStar gcode data)
     (K : ComplexRatInterval) (hK : K.Subinterval (spectralDiskBox B)) (e : PosRat) :
-    (spectralDenominatorRawEval input I derivative K
-      ((spectralDenominatorMap input B I derivative).precision e)).width ≤
-      (spectralDenominatorMap input B I derivative).derivativeEnvelope * K.width + e.1 := by
+    ComplexRatInterval.width (spectralDenominatorRawEval input I derivative K
+      ((spectralDenominatorMap input B I derivative).precision e)) ≤
+      (spectralDenominatorMap input B I derivative).derivativeEnvelope *
+        ComplexRatInterval.width K + e.1 := by
   rcases hcanonical with ⟨pStar, cStar, gcode, data, rfl⟩
   let input := canonicalRepresentedInput p pStar cStar gcode data
   let ρ := spectralFullBoxRadius B
@@ -1137,35 +1164,36 @@ lemma spectralDenominatorRawEval_width_of_canonical
     dsimp [η]
     rw [div_le_one (by exact_mod_cast hF0 : (0 : ℚ) < F)]
     exact_mod_cast hF0
-  have hKbox : K.maxAbs ≤ (spectralDiskBox B).maxAbs :=
+  have hKbox : ComplexRatInterval.maxAbs K ≤
+      ComplexRatInterval.maxAbs (spectralDiskBox B) :=
     max_le_max (ComplexRatInterval.rat_maxAbs_mono hK.1)
       (ComplexRatInterval.rat_maxAbs_mono hK.2)
-  have hbox0 : 0 ≤ (spectralDiskBox B).maxAbs :=
+  have hbox0 : 0 ≤ ComplexRatInterval.maxAbs (spectralDiskBox B) :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
-  have hKmax : K.maxAbs ≤ ρ := hKbox.trans (by
+  have hKmax : ComplexRatInterval.maxAbs K ≤ ρ := hKbox.trans (by
     dsimp [ρ, spectralFullBoxRadius]
     nlinarith)
-  have hKwidth : K.width ≤ ρ :=
+  have hKwidth : ComplexRatInterval.width K ≤ ρ :=
     (complexRectangle_width_le_two_maxAbs K).trans (by
       dsimp [ρ, spectralFullBoxRadius]
       exact mul_le_mul_of_nonneg_left hKbox (by norm_num))
   let term : Fin p.n → ComplexRatInterval := fun i ↦
     let R := (representedResidual input i).approx F
-    let J := K.mul (realRect R)
-    (realRect (R.npow derivative)).mul
+    let J := ComplexRatInterval.mul K (realRect R)
+    ComplexRatInterval.mul (realRect (R.npow derivative))
       (BoundedCertifiedComplex.centeredComplexExp J F)
-  have hterm : ∀ i ∈ I, (term i).width ≤
+  have hterm : ∀ i ∈ I, ComplexRatInterval.width (term i) ≤
       128 * (((ρ + 1) * (derivative + 1) *
         (2 * max 1 (residualUpper input i)) ^ (derivative + 1) *
         rationalExpEnvelope ρ (residualUpper input i)) ^ 8) *
-        (K.width + η) := by
+        (ComplexRatInterval.width K + η) := by
     intro i hi
     let S := residualUpper input i
     let A := 2 * max 1 S
     let E := rationalExpEnvelope ρ S
     let b := (ρ + 1) * (derivative + 1) * A ^ (derivative + 1) * E
     let R := (representedResidual input i).approx F
-    let J := K.mul (realRect R)
+    let J := ComplexRatInterval.mul K (realRect R)
     let X := BoundedCertifiedComplex.centeredComplexExp J F
     have hS0 : 0 ≤ S := residualUpper_nonneg input i
     have hA2 : 2 ≤ A := by dsimp [A]; nlinarith [le_max_left (1 : ℚ) S]
@@ -1262,9 +1290,10 @@ lemma spectralDenominatorRawEval_width_of_canonical
         _ ≤ 2 * b ^ 2 * η := by
           have hbb : b ≤ b ^ 2 := by nlinarith [hb1]
           nlinarith [mul_le_mul_of_nonneg_right hbb hη0]
-    have hJw : J.width ≤ 4 * b * η + 2 * b * K.width := by
+    have hJw : ComplexRatInterval.width J ≤
+        4 * b * η + 2 * b * ComplexRatInterval.width K := by
       dsimp [J]
-      have hKb : K.maxAbs ≤ b := hKmax.trans (by
+      have hKb : ComplexRatInterval.maxAbs K ≤ b := hKmax.trans (by
         exact hρb)
       have hRb : R.maxAbs ≤ b := hRmax.trans (by
         calc S ≤ A := by dsimp [A]; nlinarith [le_max_right (1 : ℚ) S]
@@ -1277,10 +1306,11 @@ lemma spectralDenominatorRawEval_width_of_canonical
             calc A ^ (derivative + 1) = 1 * 1 * A ^ (derivative + 1) * 1 := by ring
               _ ≤ b := by dsimp [b]; gcongr)
       calc
-        (K.mul (realRect R)).width ≤
-            2 * (K.maxAbs * R.width + R.maxAbs * K.width) := by
+        ComplexRatInterval.width (ComplexRatInterval.mul K (realRect R)) ≤
+            2 * (ComplexRatInterval.maxAbs K * R.width +
+              R.maxAbs * ComplexRatInterval.width K) := by
           simpa using complexRectangle_mul_width_propagation K (realRect R)
-        _ ≤ 2 * (b * (2 * η) + b * K.width) := by
+        _ ≤ 2 * (b * (2 * η) + b * ComplexRatInterval.width K) := by
           apply mul_le_mul_of_nonneg_left _ (by norm_num)
           apply add_le_add
           · exact mul_le_mul hKb hRw (RatInterval.width_nonneg R)
@@ -1288,12 +1318,13 @@ lemma spectralDenominatorRawEval_width_of_canonical
           · exact mul_le_mul_of_nonneg_right hRb
               ((RatInterval.width_nonneg K.re).trans (le_max_left _ _))
         _ = _ := by ring
-    have hJmax : J.maxAbs ≤ ρ * S := by
+    have hJmax : ComplexRatInterval.maxAbs J ≤ ρ * S := by
       dsimp [J]
       calc
-        (K.mul (realRect R)).maxAbs ≤ 2 * K.maxAbs * R.maxAbs := by
+        ComplexRatInterval.maxAbs (ComplexRatInterval.mul K (realRect R)) ≤
+            2 * ComplexRatInterval.maxAbs K * R.maxAbs := by
           simpa using ComplexRatInterval.mul_maxAbs K (realRect R)
-        _ ≤ 2 * (spectralDiskBox B).maxAbs * S := by
+        _ ≤ 2 * ComplexRatInterval.maxAbs (spectralDiskBox B) * S := by
           exact mul_le_mul (mul_le_mul_of_nonneg_left hKbox (by norm_num)) hRmax
             hRmax0 (mul_nonneg (by norm_num) hbox0)
         _ = ρ * S := by simp [ρ, spectralFullBoxRadius]
@@ -1308,7 +1339,8 @@ lemma spectralDenominatorRawEval_width_of_canonical
       simp [Transcendental.complexExpPrecision, εF, hF0.ne']
     have hXw0 := BoundedCertifiedComplex.centeredComplexExp_width_at_precision J εF
     rw [hstage] at hXw0
-    have hXw : X.width ≤ 9 * b ^ 2 * η + 4 * b ^ 2 * K.width := by
+    have hXw : ComplexRatInterval.width X ≤
+        9 * b ^ 2 * η + 4 * b ^ 2 * ComplexRatInterval.width K := by
       dsimp [X, εF] at hXw0
       have hEb : E ≤ b := by
         have hρ1 : (1 : ℚ) ≤ ρ + 1 := by linarith
@@ -1318,15 +1350,16 @@ lemma spectralDenominatorRawEval_width_of_canonical
         calc E = 1 * 1 * 1 * E := by ring
           _ ≤ b := by dsimp [b]; gcongr
       calc
-        _ ≤ 2 * E * (4 * b * η + 2 * b * K.width) + η := by
+        _ ≤ 2 * E * (4 * b * η +
+            2 * b * ComplexRatInterval.width K) + η := by
           exact hXw0.trans (add_le_add
             (mul_le_mul (mul_le_mul_of_nonneg_left hEnv (by norm_num)) hJw
               ((RatInterval.width_nonneg J.re).trans (le_max_left _ _))
               (mul_nonneg (by norm_num) (by linarith [hE1]))) le_rfl)
         _ ≤ _ := by
-          exact spectralExpWidth_arith E b η K.width hEb hb1 hη0
+          exact spectralExpWidth_arith E b η (ComplexRatInterval.width K) hEb hb1 hη0
             ((RatInterval.width_nonneg K.re).trans (le_max_left _ _))
-    have hXmax : X.maxAbs ≤ 14 * b ^ 3 := by
+    have hXmax : ComplexRatInterval.maxAbs X ≤ 14 * b ^ 3 := by
       have hEb : E ≤ b := by
         have hρ1 : (1 : ℚ) ≤ ρ + 1 := by linarith
         have hd1 : (1 : ℚ) ≤ derivative + 1 := by norm_num
@@ -1335,9 +1368,12 @@ lemma spectralDenominatorRawEval_width_of_canonical
         calc E = 1 * 1 * 1 * E := by ring
           _ ≤ b := by dsimp [b]; gcongr
       calc
-        X.maxAbs ≤ BoundedCertifiedComplex.centeredExpEnvelope J + X.width :=
+        ComplexRatInterval.maxAbs X ≤
+            BoundedCertifiedComplex.centeredExpEnvelope J +
+              ComplexRatInterval.width X :=
           centeredComplexExp_maxAbs_le J F
-        _ ≤ E + (9 * b ^ 2 * η + 4 * b ^ 2 * K.width) :=
+        _ ≤ E + (9 * b ^ 2 * η +
+            4 * b ^ 2 * ComplexRatInterval.width K) :=
           add_le_add hEnv hXw
         _ ≤ 14 * b ^ 3 := by
           have hKwb := hKwidth.trans hρb
@@ -1349,18 +1385,19 @@ lemma spectralDenominatorRawEval_width_of_canonical
       spectralDenominatorTerm_width_coarse K R derivative X b η
         hb1 hη0 hSd hPw hXw hXmax
   have hlist : ((I.toList.map term).map ComplexRatInterval.width).sum ≤
-      128 * Q * (K.width + η) := by
+      128 * Q * (ComplexRatInterval.width K + η) := by
     calc
       ((I.toList.map term).map ComplexRatInterval.width).sum =
-          ∑ i ∈ I, (term i).width := by simp
+          ∑ i ∈ I, ComplexRatInterval.width (term i) := by simp
       _ ≤ ∑ i ∈ I, 128 * (((ρ + 1) * (derivative + 1) *
           (2 * max 1 (residualUpper input i)) ^ (derivative + 1) *
           rationalExpEnvelope ρ (residualUpper input i)) ^ 8) *
-          (K.width + η) := Finset.sum_le_sum fun i hi ↦ hterm i hi
+          (ComplexRatInterval.width K + η) :=
+            Finset.sum_le_sum fun i hi ↦ hterm i hi
       _ ≤ ∑ i, 128 * (((ρ + 1) * (derivative + 1) *
           (2 * max 1 (residualUpper input i)) ^ (derivative + 1) *
           rationalExpEnvelope ρ (residualUpper input i)) ^ 8) *
-          (K.width + η) := by
+          (ComplexRatInterval.width K + η) := by
         apply Finset.sum_le_univ_sum_of_nonneg
         intro i
         exact mul_nonneg
@@ -1368,11 +1405,12 @@ lemma spectralDenominatorRawEval_width_of_canonical
             ((show Even 8 by exact ⟨4, by norm_num⟩).pow_nonneg _))
           (add_nonneg
             ((RatInterval.width_nonneg K.re).trans (le_max_left _ _)) hη0)
-      _ = 128 * Q * (K.width + η) := by
+      _ = 128 * Q * (ComplexRatInterval.width K + η) := by
         dsimp [Q, empiricalFWidthBound]
         rw [Finset.mul_sum, Finset.sum_mul]
-  have hraw : (spectralDenominatorRawEval input I derivative K F).width ≤
-      128 * Q * (K.width + η) := by
+  have hraw : ComplexRatInterval.width
+      (spectralDenominatorRawEval input I derivative K F) ≤
+      128 * Q * (ComplexRatInterval.width K + η) := by
     have hs := intervalSum_width_propagation (I.toList.map term)
     have hscale := complexRectangle_smulRat_width_propagation
       ((max I.card 1 : ℚ)⁻¹) (intervalSum (I.toList.map term))
@@ -1381,17 +1419,17 @@ lemma spectralDenominatorRawEval_width_of_canonical
       apply (inv_le_one₀ (by positivity)).2
       exact_mod_cast Nat.le_max_right I.card 1
     calc
-      (spectralDenominatorRawEval input I derivative K F).width =
-          ((intervalSum (I.toList.map term)).smulRat
-            ((max I.card 1 : ℚ)⁻¹)).width := by rfl
+      ComplexRatInterval.width (spectralDenominatorRawEval input I derivative K F) =
+          ComplexRatInterval.width ((intervalSum (I.toList.map term)).smulRat
+            ((max I.card 1 : ℚ)⁻¹)) := by rfl
       _ ≤ |((max I.card 1 : ℚ)⁻¹)| *
-          (intervalSum (I.toList.map term)).width := hscale
-      _ ≤ 1 * (intervalSum (I.toList.map term)).width :=
+          ComplexRatInterval.width (intervalSum (I.toList.map term)) := hscale
+      _ ≤ 1 * ComplexRatInterval.width (intervalSum (I.toList.map term)) :=
         mul_le_mul_of_nonneg_right hinv
           ((RatInterval.width_nonneg (intervalSum (I.toList.map term)).re).trans
             (le_max_left _ _))
       _ ≤ ((I.toList.map term).map ComplexRatInterval.width).sum := by simpa using hs
-      _ ≤ 128 * Q * (K.width + η) := hlist
+      _ ≤ 128 * Q * (ComplexRatInterval.width K + η) := hlist
   let H : ℕ := 64 * (operations + 1) * (L.num.natAbs + 2) ^ 2
   have hηalloc : η ≤ e.1 / H := by
     have h := spectralEmpiricalMapFuel_inv_le e operations L
@@ -1436,10 +1474,11 @@ lemma spectralDenominatorRawEval_width_of_canonical
       _ = e.1 := by field_simp
   have hfinal := hraw.trans (by
       calc
-        128 * Q * (K.width + η) = 128 * Q * K.width + 128 * Q * η := by ring
-        _ ≤ 128 * Q * K.width + e.1 :=
+        128 * Q * (ComplexRatInterval.width K + η) =
+            128 * Q * ComplexRatInterval.width K + 128 * Q * η := by ring
+        _ ≤ 128 * Q * ComplexRatInterval.width K + e.1 :=
           by simpa [add_comm] using
-            (add_le_add_left herror (128 * Q * K.width)))
+            (add_le_add_left herror (128 * Q * ComplexRatInterval.width K)))
   have hFuel : (spectralDenominatorMap input B I derivative).precision e = F := rfl
   have hDerivative : (spectralDenominatorMap input B I derivative).derivativeEnvelope =
       128 * Q := rfl
@@ -1457,9 +1496,10 @@ lemma spectralNumeratorRawEval_width_of_canonical
       (gcode : ℕ → Xspace → ℝ) (data : Fin p.n → Obs Xspace),
       input = canonicalRepresentedInput p pStar cStar gcode data)
     (K : ComplexRatInterval) (hK : K.Subinterval (spectralDiskBox B)) (e : PosRat) :
-    (spectralNumeratorRawEval input I derivative K
-      ((spectralNumeratorMap input B I derivative).precision e)).width ≤
-      (spectralNumeratorMap input B I derivative).derivativeEnvelope * K.width + e.1 := by
+    ComplexRatInterval.width (spectralNumeratorRawEval input I derivative K
+      ((spectralNumeratorMap input B I derivative).precision e)) ≤
+      (spectralNumeratorMap input B I derivative).derivativeEnvelope *
+        ComplexRatInterval.width K + e.1 := by
   rcases hcanonical with ⟨pStar, cStar, gcode, data, rfl⟩
   let input := canonicalRepresentedInput p pStar cStar gcode data
   let ρ := spectralFullBoxRadius B
@@ -1479,29 +1519,30 @@ lemma spectralNumeratorRawEval_width_of_canonical
     dsimp [η]
     rw [div_le_one (by exact_mod_cast hF0 : (0 : ℚ) < F)]
     exact_mod_cast hF0
-  have hKbox : K.maxAbs ≤ (spectralDiskBox B).maxAbs :=
+  have hKbox : ComplexRatInterval.maxAbs K ≤
+      ComplexRatInterval.maxAbs (spectralDiskBox B) :=
     max_le_max (ComplexRatInterval.rat_maxAbs_mono hK.1)
       (ComplexRatInterval.rat_maxAbs_mono hK.2)
-  have hbox0 : 0 ≤ (spectralDiskBox B).maxAbs :=
+  have hbox0 : 0 ≤ ComplexRatInterval.maxAbs (spectralDiskBox B) :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
-  have hKmax : K.maxAbs ≤ ρ := hKbox.trans (by
+  have hKmax : ComplexRatInterval.maxAbs K ≤ ρ := hKbox.trans (by
     dsimp [ρ, spectralFullBoxRadius]
     nlinarith)
-  have hKwidth : K.width ≤ ρ :=
+  have hKwidth : ComplexRatInterval.width K ≤ ρ :=
     (complexRectangle_width_le_two_maxAbs K).trans (by
       dsimp [ρ, spectralFullBoxRadius]
       exact mul_le_mul_of_nonneg_left hKbox (by norm_num))
   let term : Fin p.n → ComplexRatInterval := fun i ↦
     let R := (representedResidual input i).approx F
     let W := (input.observations i).yName.approx F
-    let J := K.mul (realRect R)
-    (realRect (W.mul (R.npow derivative))).mul
+    let J := ComplexRatInterval.mul K (realRect R)
+    ComplexRatInterval.mul (realRect (W.mul (R.npow derivative)))
       (BoundedCertifiedComplex.centeredComplexExp J F)
-  have hterm : ∀ i ∈ I, (term i).width ≤
+  have hterm : ∀ i ∈ I, ComplexRatInterval.width (term i) ≤
       256 * ((max 1 (outcomeUpper input i) * (ρ + 1) * (derivative + 1) *
         (2 * max 1 (residualUpper input i)) ^ (derivative + 1) *
         rationalExpEnvelope ρ (residualUpper input i)) ^ 8) *
-        (K.width + η) := by
+        (ComplexRatInterval.width K + η) := by
     intro i hi
     let S := residualUpper input i
     let Y := outcomeUpper input i
@@ -1510,7 +1551,7 @@ lemma spectralNumeratorRawEval_width_of_canonical
     let b := max 1 Y * (ρ + 1) * (derivative + 1) * A ^ (derivative + 1) * E
     let R := (representedResidual input i).approx F
     let W := (input.observations i).yName.approx F
-    let J := K.mul (realRect R)
+    let J := ComplexRatInterval.mul K (realRect R)
     let X := BoundedCertifiedComplex.centeredComplexExp J F
     have hS0 : 0 ≤ S := residualUpper_nonneg input i
     have hY0 : 0 ≤ Y := outcomeUpper_nonneg input i
@@ -1634,9 +1675,10 @@ lemma spectralNumeratorRawEval_width_of_canonical
         _ ≤ 2 * b ^ 2 * η := by
           have hbb : b ≤ b ^ 2 := by nlinarith [hb1]
           nlinarith [mul_le_mul_of_nonneg_right hbb hη0]
-    have hJw : J.width ≤ 4 * b * η + 2 * b * K.width := by
+    have hJw : ComplexRatInterval.width J ≤
+        4 * b * η + 2 * b * ComplexRatInterval.width K := by
       dsimp [J]
-      have hKb : K.maxAbs ≤ b := hKmax.trans (by
+      have hKb : ComplexRatInterval.maxAbs K ≤ b := hKmax.trans (by
         exact hρb)
       have hRb : R.maxAbs ≤ b := hRmax.trans (by
         calc S ≤ A := by dsimp [A]; nlinarith [le_max_right (1 : ℚ) S]
@@ -1649,10 +1691,11 @@ lemma spectralNumeratorRawEval_width_of_canonical
             calc A ^ (derivative + 1) = 1 * 1 * A ^ (derivative + 1) * 1 := by ring
               _ ≤ b := by dsimp [b]; gcongr)
       calc
-        (K.mul (realRect R)).width ≤
-            2 * (K.maxAbs * R.width + R.maxAbs * K.width) := by
+        ComplexRatInterval.width (ComplexRatInterval.mul K (realRect R)) ≤
+            2 * (ComplexRatInterval.maxAbs K * R.width +
+              R.maxAbs * ComplexRatInterval.width K) := by
           simpa using complexRectangle_mul_width_propagation K (realRect R)
-        _ ≤ 2 * (b * (2 * η) + b * K.width) := by
+        _ ≤ 2 * (b * (2 * η) + b * ComplexRatInterval.width K) := by
           apply mul_le_mul_of_nonneg_left _ (by norm_num)
           apply add_le_add
           · exact mul_le_mul hKb hRw (RatInterval.width_nonneg R)
@@ -1660,12 +1703,13 @@ lemma spectralNumeratorRawEval_width_of_canonical
           · exact mul_le_mul_of_nonneg_right hRb
               ((RatInterval.width_nonneg K.re).trans (le_max_left _ _))
         _ = _ := by ring
-    have hJmax : J.maxAbs ≤ ρ * S := by
+    have hJmax : ComplexRatInterval.maxAbs J ≤ ρ * S := by
       dsimp [J]
       calc
-        (K.mul (realRect R)).maxAbs ≤ 2 * K.maxAbs * R.maxAbs := by
+        ComplexRatInterval.maxAbs (ComplexRatInterval.mul K (realRect R)) ≤
+            2 * ComplexRatInterval.maxAbs K * R.maxAbs := by
           simpa using ComplexRatInterval.mul_maxAbs K (realRect R)
-        _ ≤ 2 * (spectralDiskBox B).maxAbs * S := by
+        _ ≤ 2 * ComplexRatInterval.maxAbs (spectralDiskBox B) * S := by
           exact mul_le_mul (mul_le_mul_of_nonneg_left hKbox (by norm_num)) hRmax
             hRmax0 (mul_nonneg (by norm_num) hbox0)
         _ = ρ * S := by simp [ρ, spectralFullBoxRadius]
@@ -1680,7 +1724,8 @@ lemma spectralNumeratorRawEval_width_of_canonical
       simp [Transcendental.complexExpPrecision, εF, hF0.ne']
     have hXw0 := BoundedCertifiedComplex.centeredComplexExp_width_at_precision J εF
     rw [hstage] at hXw0
-    have hXw : X.width ≤ 9 * b ^ 2 * η + 4 * b ^ 2 * K.width := by
+    have hXw : ComplexRatInterval.width X ≤
+        9 * b ^ 2 * η + 4 * b ^ 2 * ComplexRatInterval.width K := by
       dsimp [X, εF] at hXw0
       have hEb : E ≤ b := by
         have hρ1 : (1 : ℚ) ≤ ρ + 1 := by linarith
@@ -1690,15 +1735,16 @@ lemma spectralNumeratorRawEval_width_of_canonical
         calc E = 1 * 1 * 1 * E := by ring
           _ ≤ b := by dsimp [b]; gcongr
       calc
-        _ ≤ 2 * E * (4 * b * η + 2 * b * K.width) + η := by
+        _ ≤ 2 * E * (4 * b * η +
+            2 * b * ComplexRatInterval.width K) + η := by
           exact hXw0.trans (add_le_add
             (mul_le_mul (mul_le_mul_of_nonneg_left hEnv (by norm_num)) hJw
               ((RatInterval.width_nonneg J.re).trans (le_max_left _ _))
               (mul_nonneg (by norm_num) (by linarith [hE1]))) le_rfl)
         _ ≤ _ := by
-          exact spectralExpWidth_arith E b η K.width hEb hb1 hη0
+          exact spectralExpWidth_arith E b η (ComplexRatInterval.width K) hEb hb1 hη0
             ((RatInterval.width_nonneg K.re).trans (le_max_left _ _))
-    have hXmax : X.maxAbs ≤ 14 * b ^ 3 := by
+    have hXmax : ComplexRatInterval.maxAbs X ≤ 14 * b ^ 3 := by
       have hEb : E ≤ b := by
         have hρ1 : (1 : ℚ) ≤ ρ + 1 := by linarith
         have hd1 : (1 : ℚ) ≤ derivative + 1 := by norm_num
@@ -1707,9 +1753,12 @@ lemma spectralNumeratorRawEval_width_of_canonical
         calc E = 1 * 1 * 1 * E := by ring
           _ ≤ b := by dsimp [b]; gcongr
       calc
-        X.maxAbs ≤ BoundedCertifiedComplex.centeredExpEnvelope J + X.width :=
+        ComplexRatInterval.maxAbs X ≤
+            BoundedCertifiedComplex.centeredExpEnvelope J +
+              ComplexRatInterval.width X :=
           centeredComplexExp_maxAbs_le J F
-        _ ≤ E + (9 * b ^ 2 * η + 4 * b ^ 2 * K.width) :=
+        _ ≤ E + (9 * b ^ 2 * η +
+            4 * b ^ 2 * ComplexRatInterval.width K) :=
           add_le_add hEnv hXw
         _ ≤ 14 * b ^ 3 := by
           have hKwb := hKwidth.trans hρb
@@ -1771,20 +1820,21 @@ lemma spectralNumeratorRawEval_width_of_canonical
       spectralNumeratorTerm_width_coarse K C X b η
         hb1 hη0 hCmax hCwidth hXw hXmax
   have hlist : ((I.toList.map term).map ComplexRatInterval.width).sum ≤
-      256 * Q * (K.width + η) := by
+      256 * Q * (ComplexRatInterval.width K + η) := by
     calc
       ((I.toList.map term).map ComplexRatInterval.width).sum =
-          ∑ i ∈ I, (term i).width := by simp
+          ∑ i ∈ I, ComplexRatInterval.width (term i) := by simp
       _ ≤ ∑ i ∈ I, 256 * ((max 1 (outcomeUpper input i) *
           (ρ + 1) * (derivative + 1) *
           (2 * max 1 (residualUpper input i)) ^ (derivative + 1) *
           rationalExpEnvelope ρ (residualUpper input i)) ^ 8) *
-          (K.width + η) := Finset.sum_le_sum fun i hi ↦ hterm i hi
+          (ComplexRatInterval.width K + η) :=
+            Finset.sum_le_sum fun i hi ↦ hterm i hi
       _ ≤ ∑ i, 256 * ((max 1 (outcomeUpper input i) *
           (ρ + 1) * (derivative + 1) *
           (2 * max 1 (residualUpper input i)) ^ (derivative + 1) *
           rationalExpEnvelope ρ (residualUpper input i)) ^ 8) *
-          (K.width + η) := by
+          (ComplexRatInterval.width K + η) := by
         apply Finset.sum_le_univ_sum_of_nonneg
         intro i
         exact mul_nonneg
@@ -1792,11 +1842,12 @@ lemma spectralNumeratorRawEval_width_of_canonical
             ((show Even 8 by exact ⟨4, by norm_num⟩).pow_nonneg _))
           (add_nonneg
             ((RatInterval.width_nonneg K.re).trans (le_max_left _ _)) hη0)
-      _ = 256 * Q * (K.width + η) := by
+      _ = 256 * Q * (ComplexRatInterval.width K + η) := by
         dsimp [Q, empiricalGWidthBound]
         rw [Finset.mul_sum, Finset.sum_mul]
-  have hraw : (spectralNumeratorRawEval input I derivative K F).width ≤
-      256 * Q * (K.width + η) := by
+  have hraw : ComplexRatInterval.width
+      (spectralNumeratorRawEval input I derivative K F) ≤
+      256 * Q * (ComplexRatInterval.width K + η) := by
     have hs := intervalSum_width_propagation (I.toList.map term)
     have hscale := complexRectangle_smulRat_width_propagation
       ((max I.card 1 : ℚ)⁻¹) (intervalSum (I.toList.map term))
@@ -1805,17 +1856,17 @@ lemma spectralNumeratorRawEval_width_of_canonical
       apply (inv_le_one₀ (by positivity)).2
       exact_mod_cast Nat.le_max_right I.card 1
     calc
-      (spectralNumeratorRawEval input I derivative K F).width =
-          ((intervalSum (I.toList.map term)).smulRat
-            ((max I.card 1 : ℚ)⁻¹)).width := by rfl
+      ComplexRatInterval.width (spectralNumeratorRawEval input I derivative K F) =
+          ComplexRatInterval.width ((intervalSum (I.toList.map term)).smulRat
+            ((max I.card 1 : ℚ)⁻¹)) := by rfl
       _ ≤ |((max I.card 1 : ℚ)⁻¹)| *
-          (intervalSum (I.toList.map term)).width := hscale
-      _ ≤ 1 * (intervalSum (I.toList.map term)).width :=
+          ComplexRatInterval.width (intervalSum (I.toList.map term)) := hscale
+      _ ≤ 1 * ComplexRatInterval.width (intervalSum (I.toList.map term)) :=
         mul_le_mul_of_nonneg_right hinv
           ((RatInterval.width_nonneg (intervalSum (I.toList.map term)).re).trans
             (le_max_left _ _))
       _ ≤ ((I.toList.map term).map ComplexRatInterval.width).sum := by simpa using hs
-      _ ≤ 256 * Q * (K.width + η) := hlist
+      _ ≤ 256 * Q * (ComplexRatInterval.width K + η) := hlist
   let H : ℕ := 64 * (operations + 1) * (L.num.natAbs + 2) ^ 2
   have hηalloc : η ≤ e.1 / H := by
     have h := spectralEmpiricalMapFuel_inv_le e operations L
@@ -1860,10 +1911,11 @@ lemma spectralNumeratorRawEval_width_of_canonical
       _ = e.1 := by field_simp
   have hfinal := hraw.trans (by
       calc
-        256 * Q * (K.width + η) = 256 * Q * K.width + 256 * Q * η := by ring
-        _ ≤ 256 * Q * K.width + e.1 :=
+        256 * Q * (ComplexRatInterval.width K + η) =
+            256 * Q * ComplexRatInterval.width K + 256 * Q * η := by ring
+        _ ≤ 256 * Q * ComplexRatInterval.width K + e.1 :=
           by simpa [add_comm] using
-            (add_le_add_left herror (256 * Q * K.width)))
+            (add_le_add_left herror (256 * Q * ComplexRatInterval.width K)))
   have hFuel : (spectralNumeratorMap input B I derivative).precision e = F := rfl
   have hDerivative : (spectralNumeratorMap input B I derivative).derivativeEnvelope =
       256 * Q := rfl
@@ -1962,8 +2014,9 @@ def radiusSlackUpper (B : ContourBankData) (j : Fin (B.JBase + 1)) : ℚ :=
 quadrature by division through the certified `N * 2πi` rectangle. -/
 def spectralNormalizationAmplification (count : ℕ) : ℚ :=
   let divisor := boundedContourDivisor count 0
-  1 + (max count 1 : ℚ) + divisor.maxAbs + |divisor.normSq.lo|⁻¹ +
-    |divisor.normSq.lo|⁻¹ ^ 2
+  1 + (max count 1 : ℚ) + ComplexRatInterval.maxAbs divisor +
+    |(ComplexRatInterval.normSq divisor).lo|⁻¹ +
+    |(ComplexRatInterval.normSq divisor).lo|⁻¹ ^ 2
 
 /-- Branch-wide scale for interval propagation.  It includes the certified
 radius multiplication, full-box empirical-map magnitude/derivative envelope,
@@ -2072,7 +2125,7 @@ lemma momentLipschitzBound_nonneg (input : RepresentedSpectralInput p)
 
 /-- Full-box interval amplification for the pilot empirical denominator map.
 The contour Lipschitz bound is intentionally absent: it is stored separately
-in `Schedule.magnitude` and controls only the mesh error. -/
+in `Schedule.lipschitzConstant` and controls only the mesh error. -/
 def pilotScheduleMagnitude (input : RepresentedSpectralInput p)
     (B : ContourBankData) (j : Fin (B.JBase + 1)) : ℚ :=
   let Q := empiricalFWidthBound input (spectralFullBoxRadius B) 0
@@ -2162,7 +2215,8 @@ def pilotModulus (input : RepresentedSpectralInput p) (B : ContourBankData)
   let map := spectralDenominatorMap input B (spectralFold p.n a) 0
   let schedule := pilotSchedule input B a j
   CircleMesh.infEnclosure
-    (fun k ↦ (map.eval (spectralRadiusNode B j schedule k) schedule.fuel).normInterval
+    (fun k ↦ ComplexRatInterval.normInterval
+      (map.eval (spectralRadiusNode B j schedule k) schedule.fuel)
       schedule.fuel) L hL schedule.mesh schedule.mesh_pos
 
 /-- The certified circle evaluator used to compute the winding number on bank circle j: its
@@ -2399,7 +2453,8 @@ def builtPilotBoundary (build : complexCertifiedIntervalArithmetic)
   let map := spectralDenominatorMap input B (spectralFold p.n a) 0
   let schedule := pilotSchedule input B a j
   build.operations.finiteInfimum
-    (fun k ↦ (map.eval (spectralRadiusNode B j schedule k) schedule.fuel).normInterval
+    (fun k ↦ ComplexRatInterval.normInterval
+      (map.eval (spectralRadiusNode B j schedule k) schedule.fuel)
       schedule.fuel) L hL schedule.mesh schedule.mesh_pos
 
 /-- Build-aware winding execution.  The build performs the trapezoidal
@@ -2618,7 +2673,7 @@ def empiricalFNodeTrace (input : RepresentedSpectralInput p) (I : Finset (Fin p.
     SpectralExecutionTrace :=
   I.toList.flatMap fun i ↦ residualEnvelopeTrace input i ++
     let residual := (representedResidual input i).approx fuel
-    let argument := z.mul (realRect residual)
+    let argument := ComplexRatInterval.mul z (realRect residual)
     [.approximationCall .residual i fuel,
       .complexExponential fold derivative circle node fuel,
       .taylorCutoff fold derivative circle node
@@ -2634,7 +2689,7 @@ def empiricalGNodeTrace (input : RepresentedSpectralInput p) (I : Finset (Fin p.
     SpectralExecutionTrace :=
   I.toList.flatMap fun i ↦ residualEnvelopeTrace input i ++
     let residual := (representedResidual input i).approx fuel
-    let argument := z.mul (realRect residual)
+    let argument := ComplexRatInterval.mul z (realRect residual)
     [.approximationCall .outcome i fuel,
       .approximationCall .residual i fuel,
       .complexExponential fold derivative circle node fuel,

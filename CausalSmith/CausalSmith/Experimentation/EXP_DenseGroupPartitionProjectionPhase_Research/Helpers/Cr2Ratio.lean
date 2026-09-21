@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Cr2Concentration
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Cr2Concentration
 
 /-!
 # CR2 ratio and convergence helpers
 -/
+
+public section
 
 open scoped Topology
 open Filter

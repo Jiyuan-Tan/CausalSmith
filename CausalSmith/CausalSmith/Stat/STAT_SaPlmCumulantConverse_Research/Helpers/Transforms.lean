@@ -1,11 +1,12 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import Mathlib.Analysis.Calculus.ParametricIntegral
-import Mathlib.MeasureTheory.Integral.CircleIntegral
-import Mathlib.Analysis.Complex.CauchyIntegral
-import Mathlib.Probability.Independence.Integration
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
-import Mathlib.MeasureTheory.Function.L2Space
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Basic
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import Mathlib.Analysis.Calculus.ParametricIntegral
+public import Mathlib.MeasureTheory.Integral.CircleIntegral
+public import Mathlib.Analysis.Complex.CauchyIntegral
+public import Mathlib.Probability.Independence.Integration
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.Basic
 
 /-!
 # Population and empirical analytic transforms
@@ -13,6 +14,8 @@ import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Basic
 The unweighted transforms use Mathlib's complex MGF.  The two genuinely
 weighted transforms are Bochner integrals with a separate weight.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -472,7 +475,7 @@ lemma contamination_weighted_factorization
       ring
     _ = _ := hind
 
-open Causalean.Mathlib.Analysis.ArgumentPrincipleCircle in
+open Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple in
 /-- The normalized logarithmic-derivative integral used as the contour count. -/
 def contourCount (F : ℂ → ℂ) (rho : ℝ) : ℂ :=
   normalizedLogDerivCircleIntegral F 0 rho
@@ -485,7 +488,7 @@ def contourFunctional (F G : ℂ → ℂ) (rho : ℝ)
     (_hEntire : AnalyticOnNhd ℂ F (closedBall (0 : ℂ) rho))
     (_hzero : ∀ z ∈ sphere (0 : ℂ) rho, F z ≠ 0)
     (_hcount : 1 ≤
-      Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount F 0 rho) : ℂ :=
+      Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount F 0 rho) : ℂ :=
   (contourCount F rho * (2 * (Real.pi : ℂ) * Complex.I))⁻¹ *
     circleIntegral (fun z ↦ G z / F z) 0 rho
   -- @realizes Cj(positively oriented circle centered at zero with radius rho)

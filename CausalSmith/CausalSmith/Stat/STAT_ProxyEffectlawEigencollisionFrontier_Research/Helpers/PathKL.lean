@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.PathCertificates
-import Causalean.Stat.Minimax.ChiSquaredFinite
-import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.PathCertificates
+public import Causalean.Stat.Minimax.ChiSquaredFinite
+public import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
 
 /-! Finite observed-carrier and chi-square certificates for the labelled path. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

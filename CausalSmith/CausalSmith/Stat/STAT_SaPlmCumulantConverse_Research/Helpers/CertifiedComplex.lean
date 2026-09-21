@@ -1,5 +1,6 @@
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.API
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Mesh
+module
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.API
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Mesh
 
 /-!
 # Certified complex rectangle arithmetic
@@ -9,10 +10,11 @@ certified interval API.  Every executable operation uses rational endpoints;
 exact complex values occur only in the semantic soundness contracts.
 -/
 
+@[expose] public section
+
 open scoped ComplexConjugate
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 /-- Coordinatewise complex rectangle subtraction. -/
@@ -35,7 +37,7 @@ def sqLo (I : RatInterval) : ℚ :=
 /-- Rational upper bound for the square of every point of an interval. -/
 def sqHi (I : RatInterval) : ℚ := max (I.lo ^ 2) (I.hi ^ 2)
 
-private lemma sqLo_le_sqHi (I : RatInterval) : sqLo I ≤ sqHi I := by
+lemma sqLo_le_sqHi (I : RatInterval) : sqLo I ≤ sqHi I := by
   unfold sqLo sqHi
   split_ifs
   · exact (sq_nonneg I.lo).trans (le_max_left _ _)
@@ -131,9 +133,13 @@ the corresponding imaginary part. -/
 lemma cxMul_sound {I J : ComplexRatInterval} {z w : ℂ}
     (hz : I.Contains z) (hw : J.Contains w) : (cxMul I J).Contains (z * w) := by
   constructor
-  · exact RatInterval.sub_sound
+  -- Complex multiplication is unexposed; use its public real-coordinate theorem.
+  · rw [Complex.mul_re]
+    exact RatInterval.sub_sound
       (RatInterval.mul_sound hz.1 hw.1) (RatInterval.mul_sound hz.2 hw.2)
-  · exact RatInterval.add_sound
+  -- Complex multiplication is unexposed; use its public imaginary-coordinate theorem.
+  · rw [Complex.mul_im]
+    exact RatInterval.add_sound
       (RatInterval.mul_sound hz.1 hw.2) (RatInterval.mul_sound hz.2 hw.1)
 
 /-- The rational square bounds are sound: if [a real number lies in a rational
@@ -301,10 +307,12 @@ lemma cxModulus_sound {I : ComplexRatInterval} {z : ℂ}
       (sqrtLoBisect (cxModulusSq I).lo fuel : ℝ)
           ≤ Real.sqrt (cxModulusSq I).lo := sqrtLoBisect_le_sqrt hSlo fuel
       _ ≤ Real.sqrt (Complex.normSq z) := Real.sqrt_le_sqrt (by exact_mod_cast hnormsq.1)
-      _ = ‖z‖ := by rfl
+      -- The complex norm is unexposed; use Mathlib's public characterization.
+      _ = ‖z‖ := (Complex.norm_def z).symm
   · apply le_max_of_le_right
     calc
-      ‖z‖ = Real.sqrt (Complex.normSq z) := by rfl
+      -- The complex norm is unexposed; use Mathlib's public characterization.
+      ‖z‖ = Real.sqrt (Complex.normSq z) := Complex.norm_def z
       _ ≤ Real.sqrt (cxModulusSq I).hi := Real.sqrt_le_sqrt (by exact_mod_cast hnormsq.2)
       _ ≤ (sqrtHiBisect (cxModulusSq I).hi fuel : ℝ) :=
         sqrt_le_sqrtHiBisect hShi fuel

@@ -13,10 +13,11 @@ Two theorems:
 - `ate_proximal`   : ATE = E[h(1,W,X)] - E[h(0,W,X)].
 -/
 
-import Causalean.PO.ID.Exact.Proximal.Helpers
-import Causalean.Tactic.CondexpLinearity
-import Mathlib.MeasureTheory.Function.FactorsThrough
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.PO.ID.Exact.Proximal.Helpers
+public import Causalean.Tactic.CondexpLinearity
+public import Mathlib.MeasureTheory.Function.FactorsThrough
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Proximal ATE Identification
 
@@ -31,6 +32,10 @@ then identifies the average treatment effect as
 The proof uses the helper reductions from `Proximal.Helpers`, a Doob-Dynkin
 factorization through `(U,X)`, treatment-arm completeness, and arm positivity
 to globalize the arm-wise bridge equality. -/
+
+public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
@@ -51,10 +56,10 @@ namespace Assumptions
 /-! ### Main theorem 1: E[Y(a)] = E[h(a,W,X)] -/
 
 /-- **Proximal ATE identification** (`prop:po-proximal-ate` step 1). Under
-[the proximal identifying assumption bundle, including completeness within
+[the proximal identifying assumption bundle, including global-domain completeness within
 treatment level and integrability of the potential outcomes and
 bridge-function values](hyp:HA), provided [the treatment and outcome are
-distinct nodes](hyp:hAY), [for each treatment level `a` the counterfactual
+distinct nodes](hyp:hAY), [for the selected treatment level](hyp:a), [the counterfactual
 mean outcome equals the mean of the proximal bridge function evaluated at
 that level: `E[Y(a)] = E[h(a,W,X)]`](goal).
 
@@ -133,6 +138,8 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
       have hUX : S.UX ω = (S.U ω, S.X ω) := rfl
       simp [hY, hh, g_a, hUX]
     exact hdiff_int.congr hae
+  have g_a_UX_int_global : Integrable (fun ω => g_a (S.UX ω)) μ :=
+    HA.integrable_global_of_integrable_arm a g_a g_a_meas g_a_UX_int
   -- ============================================================
   -- Step 2: μ[Y - h(a,W,X) | σ_AZUX] =ᵐ[μ.restrict s] g_a ∘ S.UX.
   -- ============================================================
@@ -233,21 +240,13 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
     -- which doesn't directly give condExp =ᵐ on restrict.
     -- We use: indicator s · μ[h'|σ_AZUX] =ᵐ[μ] indicator s · g_a∘UX.
     have hCEh'_AZUX_int : Integrable (μ[h' | S.σ_AZUX]) μ := by fun_prop
-    -- Case split: if g_a ∘ UX is not globally integrable, μ[g_a∘UX|σ_AZX] = 0
-    -- everywhere, so the goal is trivial. Otherwise, use original argument.
-    by_cases hg_a_int : Integrable (fun ω => g_a (S.UX ω)) μ
-    case neg =>
-      -- μ[g_a∘UX|σ_AZX] = 0 globally, so a.e. zero on restrict s.
-      have h0 : (μ[fun ω => g_a (S.UX ω) | S.σ_AZX]) = 0 :=
-        MeasureTheory.condExp_of_not_integrable hg_a_int
-      rw [h0]
-    -- pos branch: hg_a_int : Integrable (fun ω => g_a (S.UX ω)) μ holds.
     -- 1_s · μ[h'|σ_AZUX] =ᵐ[μ] 1_s · g_a∘UX (from step2 restricted to s).
     have hind_eq : s.indicator (μ[h' | S.σ_AZUX]) =ᵐ[μ] s.indicator (fun ω => g_a (S.UX ω)) := by
-      exact Causalean.indicator_aeEq_of_aeEq_restrict hs_meas step2
+      exact indicator_aeEq_of_aeEq_restrict hs_meas step2
     -- Apply condExp to both sides and use condExp_indicator.
     have hCE_ind_h' := MeasureTheory.condExp_indicator (m := S.σ_AZX) hCEh'_AZUX_int hs_in_AZX
-    have hCE_ind_g := MeasureTheory.condExp_indicator (m := S.σ_AZX) hg_a_int hs_in_AZX
+    have hCE_ind_g :=
+      MeasureTheory.condExp_indicator (m := S.σ_AZX) g_a_UX_int_global hs_in_AZX
     -- μ[1_s · μ[h'|σ_AZUX] | σ_AZX] =ᵐ μ[1_s · g_a∘UX | σ_AZX] (by hind_eq + condExp_congr).
     have hCE_eq : μ[s.indicator (μ[h' | S.σ_AZUX]) | S.σ_AZX]
         =ᵐ[μ] μ[s.indicator (fun ω => g_a (S.UX ω)) | S.σ_AZX] :=
@@ -263,7 +262,7 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
     -- Step (a): μ[h'|σ_AZX] =ᵐ[restrict s] 0.
     -- Use indicator technique: 1_s · h =ᵐ 1_s · h' globally (both pointwise on s).
     have hind_h_h' : s.indicator h =ᵐ[μ] s.indicator h' := by
-      exact Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hh_eq_on_s
+      exact indicator_aeEq_of_aeEq_restrict hs_meas hh_eq_on_s
     -- Apply condExp_indicator to both:
     have hCE_ind_h := MeasureTheory.condExp_indicator (m := S.σ_AZX) hint hs_in_AZX
     have hCE_ind_h'_AZX := MeasureTheory.condExp_indicator (m := S.σ_AZX) hint' hs_in_AZX
@@ -286,7 +285,7 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
       have hind_h'_zero' :
           s.indicator (μ[h' | S.σ_AZX]) =ᵐ[μ] s.indicator (0 : P.Ω → ℝ) := by
         simpa using hind_h'_zero
-      simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs_meas hind_h'_zero'
+      simpa using aeEq_restrict_of_indicator_aeEq hs_meas hind_h'_zero'
     -- Tower h_tower says μ[h'|σ_AZX] =ᵐ μ[μ[h'|σ_AZUX]|σ_AZX]. Restrict to s:
     have h_tower_s : μ[h' | S.σ_AZX] =ᵐ[μ.restrict s] μ[μ[h' | S.σ_AZUX] | S.σ_AZX] :=
       ae_restrict_of_ae h_tower
@@ -295,7 +294,7 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
       h_tower_s.symm.trans hh'_AZX_zero
     -- 1_s · μ[μ[h'|σ_AZUX]|σ_AZX] =ᵐ 0 globally.
     have hind_inner_zero : s.indicator (μ[μ[h' | S.σ_AZUX] | S.σ_AZX]) =ᵐ[μ] 0 := by
-      simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hinner_zero
+      simpa using indicator_aeEq_of_aeEq_restrict hs_meas hinner_zero
     -- So 1_s · μ[g_a∘UX | σ_AZX] =ᵐ 0, hence the goal.
     have hind_g_zero : s.indicator (μ[fun ω => g_a (S.UX ω) | S.σ_AZX]) =ᵐ[μ] 0 :=
       hind_CE.symm.trans hind_inner_zero
@@ -310,7 +309,7 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
   -- Step 4: Apply completeness → g_a ∘ S.UX =ᵐ[μ] 0.
   -- ============================================================
   have step4_r : (fun ω => g_a (S.UX ω)) =ᵐ[μ.restrict s] 0 :=
-    HA.completeness a g_a g_a_meas g_a_UX_int step3
+    HA.completeness_of_global_integrable a g_a g_a_meas g_a_UX_int_global step3
   -- ============================================================
   -- Step 5: μ[Y | σ_AUX] =ᵐ[restrict s] μ[h(a,W,X) | σ_AUX].
   -- ============================================================
@@ -435,25 +434,22 @@ theorem Eofyofa_eq_Eh (HA : Assumptions S μ) (a : Bool)
     exact this
   -- 1_s · (g_D ∘ UX) =ᵐ[μ] 0 (globally).
   have hind_g_D_zero : s.indicator (fun ω => g_D (S.UX ω)) =ᵐ[μ] 0 := by
-    simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hg_D_zero_on_s
+    simpa using indicator_aeEq_of_aeEq_restrict hs_meas hg_D_zero_on_s
   -- condExp_indicator with s ∈ σ_AZX:
   --   μ[1_s · (g_D ∘ UX) | σ_AZX] =ᵐ 1_s · μ[g_D ∘ UX | σ_AZX].
   -- So 1_s · μ[g_D ∘ UX | σ_AZX] =ᵐ 0.
   have hind_CE_zero : s.indicator (μ[fun ω => g_D (S.UX ω) | S.σ_AZX]) =ᵐ[μ] 0 :=
-    Causalean.condExp_indicator_aeEq_zero hs_in_AZX hg_D_int hind_g_D_zero
+    condExp_indicator_aeEq_zero hs_in_AZX hg_D_int hind_g_D_zero
   -- Hence μ[g_D ∘ UX | σ_AZX] =ᵐ[restrict s] 0.
   have hCE_g_D_zero : (μ[fun ω => g_D (S.UX ω) | S.σ_AZX]) =ᵐ[μ.restrict s] 0 := by
     have hind_CE_zero' :
         s.indicator (μ[fun ω => g_D (S.UX ω) | S.σ_AZX])
           =ᵐ[μ] s.indicator (0 : P.Ω → ℝ) := by
       simpa using hind_CE_zero
-    simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs_meas hind_CE_zero'
+    simpa using aeEq_restrict_of_indicator_aeEq hs_meas hind_CE_zero'
   -- Apply completeness: g_D ∘ UX =ᵐ[μ] 0 globally.
-  -- Completeness expects integrability on μ.restrict {A=a}; restrict the global one.
-  have hg_D_int_r : Integrable (fun ω => g_D (S.UX ω)) (μ.restrict {ω | S.A ω = a}) :=
-    hg_D_int.restrict
   have hg_D_zero_on_arm : (fun ω => g_D (S.UX ω)) =ᵐ[μ.restrict s] 0 :=
-    HA.completeness a g_D g_D_meas hg_D_int_r hCE_g_D_zero
+    HA.completeness_of_global_integrable a g_D g_D_meas hg_D_int hCE_g_D_zero
   have hg_D_meas_UX : Measurable[S.σ_UX] (fun ω => g_D (S.UX ω)) := by fun_prop
   have hg_D_zero : (fun ω => g_D (S.UX ω)) =ᵐ[μ] 0 :=
     eq_zero_globally_of_eq_zero_on_arm HA a hg_D_meas_UX hg_D_zero_on_arm

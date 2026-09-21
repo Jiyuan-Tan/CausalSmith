@@ -14,30 +14,32 @@ theorem.
 * `seqDR_meanZero`                      — `MeanZero` for sequential DR.
 * `seqDR_bilinearRem`                   — `BilinearRemainder` for sequential DR.
 * `seqDR_dml_isAsymLinear`              — headline DTR asymptotic linearity,
-                                          via `dml_chernozhukov_asymptoticLinear`.
+via `oneStepOracleDML_isAsymLinear_of_everywhere`.
 
 Stagewise version of `Estimation/OrthogonalMoments/AIPWInstance.lean`.  Key differences
 to the ATE instance:
 
 * The data tuple is `γ 0 × δ × γ 1 × δ × ℝ` (cf. `Setup.lean`), with the
   truth nuisance carrying four functions `(μ₀_val, e₀_val, μ₁_val, e₁_val)`.
-* The bilinear seminorms `ρ₁, ρ₂` aggregate the two stages of `μ`/`e`:
+* The first remainder gauge is the sum of the two same-stage products,
 
-  `ρ₁(η, η') := ‖Δμ₀‖_{L²(P_H₀)} + ‖Δμ₁‖_{L²(P_H₁)}`,
-  `ρ₂(η, η') := ‖Δe₀‖_{L²(P_H₀)} + ‖Δe₁‖_{L²(P_H₁)}`.
+  `ρ₁(η, η') := ‖Δμ₀‖_{L²(P_H₀)}‖Δe₀‖_{L²(P_H₀)}
+                   + ‖Δμ₁‖_{L²(P_H₁)}‖Δe₁‖_{L²(P_H₁)}`,
 
-  This matches the `(Σ ‖Δμ_k‖) · (Σ ‖Δe_k‖)` factor produced by
-  `seqDR_remainder_bound`.
+  and `ρ₂(η,η') := 1`. Thus `ρ₁ · ρ₂` is exactly the stage-matched remainder
+  bound from `seqDR_remainder_bound`. The product-valued `ρ₁` is an error gauge,
+  not a seminorm.
 * The Jacobian `J₀ = -1` because the score is linear: `m_seqDR(η, z, θ) =
   ψ_seqDR(η, z) − θ`.
 -/
 
-import Causalean.Estimation.DTR.MeanZero
-import Causalean.Estimation.DTR.FiniteVar
-import Causalean.Estimation.DTR.RemainderBound
-import Causalean.Estimation.DTR.ScoreL2
-import Causalean.Estimation.OrthogonalMoments.AIPWInstance
-import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
+module
+public import Causalean.Estimation.DTR.MeanZero
+public import Causalean.Estimation.DTR.FiniteVar
+public import Causalean.Estimation.DTR.RemainderBound
+public import Causalean.Estimation.DTR.ScoreL2
+public import Causalean.Estimation.OrthogonalMoments.AIPWInstance
+public import Causalean.Estimation.OrthogonalMoments.DMLChernozhukov
 
 /-! # Sequential Doubly Robust Moment Instance
 
@@ -45,6 +47,8 @@ This file instantiates the abstract orthogonal-moment framework with the
 two-period sequential doubly robust moment for a dynamic treatment regime. It
 records the mean-zero, bilinear-remainder, and asymptotic-linearity ingredients
 needed to reuse the general DML theorem. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -66,16 +70,14 @@ singleton is measurable](hyp:δ) and [measurable stage-specific covariate spaces
 stage-0 and stage-1 true propensity score lies between that number and one minus that
 number, inclusive](hyp:ε,h_e_pointwise), the [abstract general moment associated with
 the two-stage sequential doubly robust score](goal) has the system's true nuisance
-functions and target value, its two stagewise aggregate error seminorms, and that score
+functions and target value, its stage-matched product error gauge, and that score
 as its moment function.
 
 Sequential DR (DTR, n = 2) instance of the abstract `GeneralMoment`.
 
-The bilinear seminorms aggregate over the two stages: `ρ₁` sums the
-stagewise L²(P_H_k) norms of the outcome-regression differences, `ρ₂` the
-stagewise L²(P_H_k) norms of the propensity differences.  This matches the
-`(‖Δμ₀‖ + ‖Δμ₁‖) · (‖Δe₀‖ + ‖Δe₁‖)` shape from
-`seqDR_remainder_bound`. -/
+The first error gauge is the sum of the two same-stage L² products and the
+second is one, so their product is exactly the sequentially doubly robust
+remainder rate `Σₖ ‖Δμₖ‖₂ ‖Δeₖ‖₂` from `seqDR_remainder_bound`. -/
 noncomputable def seqDRGeneralMoment
     (S : DTREstimationSystem P δ γ) {ε : ℝ}
     (h_e_pointwise :
@@ -88,20 +90,19 @@ noncomputable def seqDRGeneralMoment
   θ₀      := S.θ₀
   H_ε     := DTREstimationSystem.H_ε ε
   ρ₁      := fun η η' =>
-    ⟨(eLpNorm (fun s₀ => η.μ₀_fn s₀ - η'.μ₀_fn s₀) 2 S.P_H₀).toReal +
-       (eLpNorm (fun h => η.μ₁_fn h - η'.μ₁_fn h) 2 S.P_H₁).toReal,
+    ⟨(eLpNorm (fun s₀ => η.μ₀_fn s₀ - η'.μ₀_fn s₀) 2 S.P_H₀).toReal *
+        (eLpNorm (fun s₀ => η.e₀_fn s₀ - η'.e₀_fn s₀) 2 S.P_H₀).toReal +
+      (eLpNorm (fun h => η.μ₁_fn h - η'.μ₁_fn h) 2 S.P_H₁).toReal *
+        (eLpNorm (fun h => η.e₁_fn h - η'.e₁_fn h) 2 S.P_H₁).toReal,
      by positivity⟩
-  ρ₂      := fun η η' =>
-    ⟨(eLpNorm (fun s₀ => η.e₀_fn s₀ - η'.e₀_fn s₀) 2 S.P_H₀).toReal +
-       (eLpNorm (fun h => η.e₁_fn h - η'.e₁_fn h) 2 S.P_H₁).toReal,
-     by positivity⟩
+  ρ₂      := fun _ _ => 1
   m_meas  := fun η θ => S.measurable_seqDRMomentFunctional η θ
   η₀_mem  := h_e_pointwise
   -- Sequential DR is a linear score `m_seqDR(η, z, θ) = ψ_seqDR(η, z) − θ`,
   -- so the population Jacobian
   -- `J₀ = ∂_θ ∫ m(η₀, z, θ) dP_Z |_{θ=θ₀} = −1`.
-  J₀         := -1
-  J₀_ne_zero := by norm_num
+  linScale         := -1
+  linScale_ne_zero := by norm_num
 
 /-- Sequential DR (DTR) satisfies `MeanZero`. -/
 theorem seqDR_meanZero
@@ -110,8 +111,8 @@ theorem seqDR_meanZero
       (∀ s₀, ε ≤ S.e₀_val s₀ ∧ S.e₀_val s₀ ≤ 1 - ε)
         ∧ (∀ h, ε ≤ S.e₁_val h ∧ S.e₁_val h ≤ 1 - ε))
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ) :
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ) :
     MeanZero (seqDRGeneralMoment S h_e_pointwise) := by
   unfold MeanZero seqDRGeneralMoment
   exact seqDR_mean_zero S h_overlap hA h_y2
@@ -124,10 +125,8 @@ theorem seqDR_bilinearRem
       (∀ s₀, ε ≤ S.e₀_val s₀ ∧ S.e₀_val s₀ ≤ 1 - ε)
         ∧ (∀ h, ε ≤ S.e₁_val h ∧ S.e₁_val h ≤ 1 - ε))
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
-    (h_yd2 : ∀ dbar : Fin 2 → δ,
-      Integrable (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (h_L2 : ∀ η ∈ DTREstimationSystem.H_ε (δ := δ) (γ := γ) ε,
       MemLp (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀ ∧
       MemLp (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁ ∧
@@ -137,23 +136,24 @@ theorem seqDR_bilinearRem
   refine ⟨seqDR_rem_const ε, ?_⟩
   intro η hη
   obtain ⟨hΔμ₀, hΔμ₁, hΔe₀, hΔe₁⟩ := h_L2 η hη
-  have h := seqDR_remainder_bound S h_overlap hA h_y2 h_yd2
+  have h := seqDR_remainder_bound S h_overlap hA h_y2
     η hη hΔμ₀ hΔμ₁ hΔe₀ hΔe₁
   change |∫ z, S.seqDRMomentFunctional η z S.θ₀ ∂(S.P_Z)| ≤
       seqDR_rem_const ε *
-        ((eLpNorm (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal +
-          (eLpNorm (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal) *
-        ((eLpNorm (fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
-          (eLpNorm (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
-  exact h
+        ((eLpNorm (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
+            (eLpNorm (fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
+          (eLpNorm (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
+            (eLpNorm (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal) * 1
+  simpa using h
 
 set_option maxHeartbeats 1200000 in
 -- The wrapper composes a long hypothesis list (rate translations, score
 -- measurability, integrability, two transport equalities) and applies the
--- abstract `dml_chernozhukov_asymptoticLinear`; the resulting elaboration
+-- abstract `oneStepOracleDML_isAsymLinear_of_everywhere`; the elaboration
 -- exceeds the default heartbeat budget.  Mirrors ATE/DML.lean.
 /-- **Headline sequential DR (DTR) DML asymptotic-linearity theorem**, derived from the abstract
-`dml_chernozhukov_asymptoticLinear` in `Estimation/OrthogonalMoments/DMLChernozhukov.lean`. Fix [a
+`oneStepOracleDML_isAsymLinear_of_everywhere` in
+`Estimation/OrthogonalMoments/DMLChernozhukov.lean`. Fix [a
 dynamic-treatment-regime estimation system with strict two-stage propensity overlap and satisfying
 the DTR identification assumptions](hyp:h_e_pointwise,h_overlap,hA), and suppose [the factual
 outcome and every counterfactual outcome under a fixed treatment history have finite second
@@ -166,8 +166,9 @@ square-integrable](hyp:h_in_Hε,h_mu0_diff_memLp,h_mu1_diff_memLp,h_e0_diff_memL
 such that [the resulting moment function is measurable against the sample and each cross-fitting
 fold, and is both integrable and
 square-integrable](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry,h_m_int,h_m_sq_int), and such that [the
-individual L² nuisance-error rates vanish while their product is
-$o_P(n^{-1/2})$](hyp:h_indiv_rate_ρ₁,h_indiv_rate_ρ₂,h_product_rate), then [the resulting
+four individual L² nuisance-error rates vanish](hyp:h_mu0_rate,h_mu1_rate,h_e0_rate,h_e1_rate)
+while [the sum of the two same-stage products is
+$o_P(n^{-1/2})$](hyp:h_product_rate), then [the resulting
 Chernozhukov one-step DML estimator is asymptotically linear at the true sequential-DR parameter,
 with influence function the sequential doubly-robust score evaluated at the truth](goal).
 
@@ -176,9 +177,9 @@ with influence function the sequential doubly-robust score evaluated at the trut
 last equality uses `J₀ = −1`, see `seqDRGeneralMoment`) is asymptotically
 linear at `S.θ₀` with influence function
 
-  `ψ(z) = −M.J₀_inv · M.m M.η₀ z M.θ₀ = S.seqDRMomentFunctional S.η₀ z S.θ₀`
+  `ψ(z) = −M.linScaleInv · M.m M.η₀ z M.θ₀ = S.seqDRMomentFunctional S.η₀ z S.θ₀`
 
-(again using `J₀_inv = −1`).  This is the standard sequential DR
+(again using `linScaleInv = −1`). This is the standard sequential DR
 influence function, mean-zero at the truth.
 
 Composes the abstract theorem with `seqDR_meanZero`, `seqDR_finite_var`,
@@ -195,10 +196,10 @@ theorem seqDR_dml_isAsymLinear
       (∀ s₀, ε ≤ S.e₀_val s₀ ∧ S.e₀_val s₀ ≤ 1 - ε)
         ∧ (∀ h, ε ≤ S.e₁_val h ∧ S.e₁_val h ≤ 1 - ε))
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (h_yd2 : ∀ dbar : Fin 2 → δ,
-      Integrable (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ)
+      Integrable (fun ω => (S.toPOLongitudinalPathSystem.Y_of dbar ω) ^ 2) P.μ)
     (sample : IIDSample P.Ω (γ 0 × δ × γ 1 × δ × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
     {c : ℝ} (hc_pos : 0 < c) (_hc_lt : c < 1)
@@ -234,17 +235,29 @@ theorem seqDR_dml_isAsymLinear
     (h_m_sq_int : ∀ n ω,
       Integrable
         (fun z => (S.seqDRMomentFunctional (η_hat n ω) z S.θ₀) ^ 2) S.P_Z)
-    (h_indiv_rate_ρ₁ :
+    (h_mu0_rate :
       IsLittleOp
         (fun n ω =>
-          (((seqDRGeneralMoment S h_e_pointwise).ρ₁
-              (η_hat n ω) S.η₀ : NNReal) : ℝ))
+          (eLpNorm
+            (fun s₀ => (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal)
         (fun _ => (1 : ℝ)) P.μ)
-    (h_indiv_rate_ρ₂ :
+    (h_mu1_rate :
       IsLittleOp
         (fun n ω =>
-          (((seqDRGeneralMoment S h_e_pointwise).ρ₂
-              (η_hat n ω) S.η₀ : NNReal) : ℝ))
+          (eLpNorm
+            (fun h => (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal)
+        (fun _ => (1 : ℝ)) P.μ)
+    (h_e0_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm
+            (fun s₀ => (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal)
+        (fun _ => (1 : ℝ)) P.μ)
+    (h_e1_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm
+            (fun h => (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
         (fun _ => (1 : ℝ)) P.μ)
     (h_product_rate :
       IsLittleOp
@@ -255,10 +268,10 @@ theorem seqDR_dml_isAsymLinear
                 (η_hat n ω) S.η₀ : NNReal) : ℝ))
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ) :
     IsAsymLinear
-      (Causalean.Estimation.OrthogonalMoments.dmlChernozhukovEstimator
+      (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML
         (seqDRGeneralMoment S h_e_pointwise) sample split η_hat)
       S.θ₀
-      (fun z => -(seqDRGeneralMoment S h_e_pointwise).J₀_inv *
+      (fun z => -(seqDRGeneralMoment S h_e_pointwise).linScaleInv *
                 S.seqDRMomentFunctional S.η₀ z S.θ₀)
       sample
       split.foldB := by
@@ -282,109 +295,17 @@ theorem seqDR_dml_isAsymLinear
             (((seqDRGeneralMoment S h_e_pointwise).ρ₂
                 (η_hat n ω) (seqDRGeneralMoment S h_e_pointwise).η₀ : NNReal) : ℝ) := by
     intro n ω
-    have h := seqDR_remainder_bound S h_overlap hA h_y2 h_yd2
+    have h := seqDR_remainder_bound S h_overlap hA h_y2
       (η_hat n ω) (h_in_Hε n ω)
       (h_mu0_diff_memLp n ω) (h_mu1_diff_memLp n ω)
       (h_e0_diff_memLp n ω) (h_e1_diff_memLp n ω)
     change |∫ z, S.seqDRMomentFunctional (η_hat n ω) z S.θ₀ ∂(S.P_Z)| ≤
         seqDR_rem_const ε *
-          ((eLpNorm (fun s₀ => (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal +
-            (eLpNorm (fun h => (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal) *
-          ((eLpNorm (fun s₀ => (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
-            (eLpNorm (fun h => (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
-    exact h
-  have h_mu0_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun s₀ => (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal)
-        (fun _ => (1 : ℝ)) P.μ := by
-    intro δ hδ
-    rw [ENNReal.tendsto_nhds_zero]
-    intro κ hκ
-    have hsum_event :=
-      (ENNReal.tendsto_nhds_zero.mp (h_indiv_rate_ρ₁ δ hδ)) κ hκ
-    filter_upwards [hsum_event] with n hn
-    refine (measure_mono ?_).trans hn
-    intro ω hω
-    have hcoord_le :
-        |(eLpNorm
-          (fun s₀ => (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal| ≤
-          |(((seqDRGeneralMoment S h_e_pointwise).ρ₁
-            (η_hat n ω) S.η₀ : NNReal) : ℝ)| := by
-      simp only [seqDRGeneralMoment, DTREstimationSystem.η₀]
-      rw [abs_of_nonneg ENNReal.toReal_nonneg]
-      exact (le_add_of_nonneg_right ENNReal.toReal_nonneg).trans (le_abs_self _)
-    exact lt_of_lt_of_le hω hcoord_le
-  have h_mu1_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun h => (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal)
-        (fun _ => (1 : ℝ)) P.μ := by
-    intro δ hδ
-    rw [ENNReal.tendsto_nhds_zero]
-    intro κ hκ
-    have hsum_event :=
-      (ENNReal.tendsto_nhds_zero.mp (h_indiv_rate_ρ₁ δ hδ)) κ hκ
-    filter_upwards [hsum_event] with n hn
-    refine (measure_mono ?_).trans hn
-    intro ω hω
-    have hcoord_le :
-        |(eLpNorm
-          (fun h => (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal| ≤
-          |(((seqDRGeneralMoment S h_e_pointwise).ρ₁
-            (η_hat n ω) S.η₀ : NNReal) : ℝ)| := by
-      simp only [seqDRGeneralMoment, DTREstimationSystem.η₀]
-      rw [abs_of_nonneg ENNReal.toReal_nonneg]
-      exact (le_add_of_nonneg_left ENNReal.toReal_nonneg).trans (le_abs_self _)
-    exact lt_of_lt_of_le hω hcoord_le
-  have h_e0_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun s₀ => (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal)
-        (fun _ => (1 : ℝ)) P.μ := by
-    intro δ hδ
-    rw [ENNReal.tendsto_nhds_zero]
-    intro κ hκ
-    have hsum_event :=
-      (ENNReal.tendsto_nhds_zero.mp (h_indiv_rate_ρ₂ δ hδ)) κ hκ
-    filter_upwards [hsum_event] with n hn
-    refine (measure_mono ?_).trans hn
-    intro ω hω
-    have hcoord_le :
-        |(eLpNorm
-          (fun s₀ => (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal| ≤
-          |(((seqDRGeneralMoment S h_e_pointwise).ρ₂
-            (η_hat n ω) S.η₀ : NNReal) : ℝ)| := by
-      simp only [seqDRGeneralMoment, DTREstimationSystem.η₀]
-      rw [abs_of_nonneg ENNReal.toReal_nonneg]
-      exact (le_add_of_nonneg_right ENNReal.toReal_nonneg).trans (le_abs_self _)
-    exact lt_of_lt_of_le hω hcoord_le
-  have h_e1_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun h => (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
-        (fun _ => (1 : ℝ)) P.μ := by
-    intro δ hδ
-    rw [ENNReal.tendsto_nhds_zero]
-    intro κ hκ
-    have hsum_event :=
-      (ENNReal.tendsto_nhds_zero.mp (h_indiv_rate_ρ₂ δ hδ)) κ hκ
-    filter_upwards [hsum_event] with n hn
-    refine (measure_mono ?_).trans hn
-    intro ω hω
-    have hcoord_le :
-        |(eLpNorm
-          (fun h => (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal| ≤
-          |(((seqDRGeneralMoment S h_e_pointwise).ρ₂
-            (η_hat n ω) S.η₀ : NNReal) : ℝ)| := by
-      simp only [seqDRGeneralMoment, DTREstimationSystem.η₀]
-      rw [abs_of_nonneg ENNReal.toReal_nonneg]
-      exact (le_add_of_nonneg_left ENNReal.toReal_nonneg).trans (le_abs_self _)
-    exact lt_of_lt_of_le hω hcoord_le
+          ((eLpNorm (fun s₀ => (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
+              (eLpNorm (fun s₀ => (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
+            (eLpNorm (fun h => (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
+              (eLpNorm (fun h => (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal) * 1
+    simpa using h
   have h_score_diff_rate :
       IsLittleOp
         (fun n ω =>
@@ -403,7 +324,7 @@ theorem seqDR_dml_isAsymLinear
         h_mu0_diff_memLp h_mu1_diff_memLp h_e0_diff_memLp h_e1_diff_memLp
         h_mu0_rate h_mu1_rate h_e0_rate h_e1_rate
   simpa [seqDRGeneralMoment] using
-    (Causalean.Estimation.OrthogonalMoments.dml_chernozhukov_asymptoticLinear
+    (Causalean.Estimation.OrthogonalMoments.oneStepOracleDML_isAsymLinear_of_everywhere
       (seqDRGeneralMoment S h_e_pointwise)
       hMZ hFV
       sample split hc_pos h_split_rate

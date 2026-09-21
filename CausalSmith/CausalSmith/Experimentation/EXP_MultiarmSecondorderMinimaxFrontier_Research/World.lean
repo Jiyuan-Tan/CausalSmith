@@ -1,7 +1,8 @@
-import Causalean.Experimentation.DesignBased.Risk
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Data.Finset.Card
-import Mathlib.Data.Rat.BigOperators
+module
+public import Causalean.Experimentation.DesignBased.Risk
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Data.Finset.Card
+public import Mathlib.Data.Rat.BigOperators
 
 /-!
 Shared finite-population objects for the multi-arm second-order minimax frontier.
@@ -10,6 +11,8 @@ The paper works with complete binary response schedules and arbitrary finite
 assignment designs.  This module contains only the common carriers and exact
 finite-sum constructions; theorem claims live in the planned theorem files.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

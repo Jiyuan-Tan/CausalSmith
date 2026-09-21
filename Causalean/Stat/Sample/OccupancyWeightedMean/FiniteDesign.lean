@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Sample.OccupancyWeightedMean.Basic
-import Causalean.Stat.Sample.OccupancyWeightedMean.BinomialDesign
+module
+public import Causalean.Stat.Sample.OccupancyWeightedMean.Basic
+public import Causalean.Stat.Sample.OccupancyWeightedMean.BinomialDesign
 
 /-!
 # Finite enumeration for occupancy-weighted design factors
@@ -15,6 +16,8 @@ between the expected occupancy design variance factor and reciprocal usable
 occupancy. Zero-mass group fibers vanish before any conditional arm probability
 is formed.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

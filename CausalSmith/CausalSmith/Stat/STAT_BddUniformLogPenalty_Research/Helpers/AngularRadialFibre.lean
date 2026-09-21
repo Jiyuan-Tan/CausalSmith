@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAlgebra
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAlgebra
 
 /-!
 # Radial fibre cancellation for adjacent angular packing laws
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
 This module assembles the pointwise product identity and polar cancellation
 leaves needed by the eventual equality of radial outcome fibres.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

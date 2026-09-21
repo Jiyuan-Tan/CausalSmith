@@ -10,8 +10,11 @@ benchmark `ρ_n` in the smooth-covariate (`s ≥ d/4`) and deficient (`0 < s < d
 regimes.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Basic
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Basic
 
 /-!
 # Collision-safe two-diagonalizer functional calculus
@@ -8,6 +9,8 @@ arbitrary eigenvalue multiplicities.  Equal eigenvalues are aggregated into cano
 projectors.  The cross-projector identity makes common-eigenvalue summands vanish before any
 divided difference is formed, yielding a gap-free two-diagonalizer bound.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

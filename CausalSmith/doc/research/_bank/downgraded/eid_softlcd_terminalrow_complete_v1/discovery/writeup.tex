@@ -1,0 +1,1617 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}softlcd\_\allowbreak{}terminalrow\_\allowbreak{}complete}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The headline is now exact and pointwise. Actual soft-intervention rows \(h_k^{\mathsf T}=\delta_k^{\mathsf T}(I_q-\Lambda^{(0)})^{-1}\) admit a sound-and-complete terminal-copy linkage and batched affine-support test in \(O(q^4)\) rational-function field operations. Definition 3.14 of Leyes Carreno, Meroni, and Seigal remains the published baseline-path class; the four-node determinant \(\gamma(\beta d-b\delta)\) shows that Theorem 3.15 incorrectly identifies it with actual-row compatibility. For every \(T>0\), \(T\ne1\), the worked \(p=2,q=4\) fork datum has a quotient-invariant pointwise covariance realization by \(G'_{\mathrm{fork}}\) but the actual-row obstruction \(-2\) excludes that graph from the pointwise soft set. This does not prove chamberwise density or \(\mathsf{Frontier}_2\) membership. The all-branch positive-real compiler remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Equation (20) of Leyes Carreno, Meroni, and Seigal uses the actual inverse-update rows, while Definition 3.14 deliberately records a baseline inverse-path class. The gap is in Theorem 3.15's identification of those two rank systems: specializing independent intervention changes to baseline coefficients can lower an augmented rank. Problem 5.2 poses a separate covariance-versus-higher-cumulant question, but neither the fork chamberwise density alternative nor a graph-specific non-quantifier-elimination criterion is established.
+
+\paragraph{Niche.} The contribution separates three levels that had been conflated: exact actual-row graph compatibility, quotient-invariant pointwise observable covariance separation, and robust chamberwise covariance density. Terminal-copy linkage plus one batched affine reduction per candidate column completely solves the first. The rational fork family and its \(-2\) affine inconsistency solve a concrete pointwise instance of the second. The third remains an explicitly delimited projection problem.
+
+\paragraph{Fill.} The paper delivers the corrected \(O(q^4)\) terminal algorithm, an exact finite comparison with the unchanged Definition 3.14 class, an anchor-domain counterexample to Theorem 3.15, and the pointwise fork covariance-minus-soft graph witness modulo common sign, scale, and permutation action. Covariance factor branches and the eight-system fork reduction remain secondary diagnostics. No chamberwise dense cover, full-dimensional separator, all-pair compiler, pathwidth guarantee, coefficient-height bound, or infinite generic-strictness family is claimed.
+
+\section{Related work}
+
+Leyes Carreno, Meroni, and Seigal (2025) provide the recovery anchor in Theorem 1.7, derive the actual intervention-row equations in Equation (20), define the baseline inverse-path class in Definition 3.14, identify those systems in Theorem 3.15, and pose compatible-graph and covariance-versus-higher-cumulant questions in Problems 5.1--5.2. The present correction preserves Definition 3.14 and refutes only the unsupported identification in Theorem 3.15. Squires, Seigal, Bhate, and Uhler (2023) recover transitive-closure information for injective soft-intervention models; that result does not decide the noninjective positive-real projection here. Half-trek, semidefinite realization, affine-birational, and tree-accelerated elimination results remain methodological context rather than claimed solutions to the open branch-union problem.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\bigl(\mathcal G_{\mathrm{soft}}(\mathcal R),\;\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\setminus\mathcal G_{\mathrm{soft}}(\mathcal R)\bigr)\) modulo the common monomial action \(\mathfrak M_q\)..
+Primary functional / estimator / diagnostic: \(\bigl(\mathcal R,\{\Sigma^{(k)}\}_{k\in K}\bigr)\longmapsto\bigl(\mathcal G_{\mathrm{soft}}(\mathcal R),\;\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\setminus\mathcal G_{\mathrm{soft}}(\mathcal R)\bigr)/\mathfrak M_q\), with the soft set evaluated by actual-row terminal and affine certificates and covariance membership evaluated pointwise by a legal positive-real realization..
+\begin{itemize}
+  \item \texttt{p} --- \texttt{integer}; \(\mathbb{Z}_{\ge 2}\); \texttt{number of observed coordinates}
+  \item \texttt{q} --- \texttt{integer}; \(\mathbb{Z}_{\ge 2}\); \texttt{number of latent nodes}
+  \item \texttt{V} --- \texttt{finite vertex set}
+  \par\smallskip\noindent\emph{Definition.} \(V=[q]\)
+  \item \texttt{K} --- \texttt{finite context set}
+  \par\smallskip\noindent\emph{Definition.} \(K=\{0\}\cup V\)
+  \item \texttt{G} --- \texttt{directed acyclic graph}; DAGs on \(V\); \texttt{true latent graph}
+  \item \texttt{Gprime} --- \texttt{directed acyclic graph}; DAGs on \(V\); \texttt{candidate latent graph}
+  \item \texttt{tc} --- \texttt{graph operator}; \(D\mapsto\overline D\)
+  \par\smallskip\noindent\emph{Definition.} \(\overline D\) contains \(i\to j\) exactly when \(D\) has a directed path from \(i\) to \(j\)
+  \item \texttt{pa} --- \texttt{graph set operator}; \((D,j)\mapsto\operatorname{pa}_{D}(j)\)
+  \item \texttt{ch} --- \texttt{graph set operator}; \((D,j)\mapsto\operatorname{ch}_{D}(j)\)
+  \item \texttt{de} --- \texttt{graph set operator}; \((D,j)\mapsto\operatorname{de}_{D}(j)\)
+  \item \texttt{an} --- \texttt{graph set operator}; \((D,j)\mapsto\operatorname{an}_{D}(j)\)
+  \item \texttt{F} --- \texttt{real matrix}; \(\mathbb{R}^{p\times q}\); \texttt{mixing matrix}
+  \item \texttt{Lambda0} --- \texttt{real matrix}; \(\mathbb{R}^{q\times q}\); \texttt{baseline structural coefficient matrix}
+  \item \texttt{P} --- \texttt{real matrix}; \texttt{baseline path matrix}
+  \par\smallskip\noindent\emph{Definition.} \(P=(I_q-\Lambda^{(0)})^{-1}\)
+  \item \texttt{v} --- \texttt{positive vector}; \(\mathbb{R}_{>0}^{q}\); \texttt{baseline error variances}
+  \item \texttt{S} --- \texttt{positive diagonal matrix}
+  \par\smallskip\noindent\emph{Definition.} \(S=\operatorname{diag}(v_1,\ldots,v_q)\)
+  \item \texttt{delta} --- \texttt{indexed family of row vectors}; \(k\mapsto\delta_k^{\mathsf T}\in\mathbb{R}^{1\times q}\); \texttt{incoming-\allowbreak{}edge changes}
+  \item \texttt{e} --- \texttt{indexed family of vectors}; \(k\mapsto e_k\in\mathbb R^q\)
+  \par\smallskip\noindent\emph{Definition.} \(e_k\) is the \(k\)-th standard basis vector
+  \item \texttt{Lambda} --- \texttt{indexed family of real matrices}
+  \par\smallskip\noindent\emph{Definition.} \(\Lambda^{(k)}=\Lambda^{(0)}+e_k\delta_k^{\mathsf T}\) for \(k\in V\), with \(\Lambda^{(0)}\) at context \(0\)
+  \item \texttt{t} --- \texttt{positive vector}; \(\mathbb{R}_{>0}^{q}\); \texttt{intervened-\allowbreak{}node error variances}
+  \item \texttt{Sk} --- \texttt{indexed family of positive diagonal matrices}
+  \par\smallskip\noindent\emph{Definition.} \(S^{(k)}=S+(t_k-v_k)e_ke_k^{\mathsf T}\) for \(k\in V\), and \(S^{(0)}=S\)
+  \item \texttt{epsilon} --- \texttt{indexed family of random vectors}; \(k\mapsto\varepsilon^{(k)}\in\mathbb{R}^{q}\); \texttt{context-\allowbreak{}specific structural errors}
+  \item \texttt{X} --- \texttt{indexed family of random vectors}; \texttt{observed context distributions}
+  \par\smallskip\noindent\emph{Definition.} \(X^{(k)}=F(I_q-\Lambda^{(k)})^{-1}\varepsilon^{(k)}\)
+  \item \texttt{A} --- \texttt{real matrix}; \texttt{baseline reduced mixing}
+  \par\smallskip\noindent\emph{Definition.} \(A=FP\)
+  \item \texttt{a} --- \texttt{indexed family of vectors}; \texttt{baseline loading columns}
+  \par\smallskip\noindent\emph{Definition.} \(a_k=Ae_k\)
+  \item \texttt{Ak} --- \texttt{indexed family of real matrices}; \texttt{context reduced mixing}
+  \par\smallskip\noindent\emph{Definition.} \(A^{(k)}=F(I_q-\Lambda^{(k)})^{-1}\)
+  \item \texttt{DeltaInv} --- \texttt{indexed family of real matrices}; \texttt{inverse-\allowbreak{}path update whose target row appears in Equation (20) of Leyes Carreno,\allowbreak{} Meroni,\allowbreak{} and Seigal}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta^{(k)}=(I_q-\Lambda^{(k)})^{-1}-(I_q-\Lambda^{(0)})^{-1}\)
+  \item \texttt{h} --- \texttt{indexed family of row vectors}; \texttt{actual intervention rows}
+  \par\smallskip\noindent\emph{Definition.} \(h_k^{\mathsf T}=\delta_k^{\mathsf T}P\)
+  \item \texttt{H} --- \texttt{real matrix}; \texttt{actual-\allowbreak{}row matrix}
+  \par\smallskip\noindent\emph{Definition.} \(H_{k,\cdot}=h_k^{\mathsf T}\)
+  \item \texttt{Sigma} --- \texttt{indexed family of positive-\allowbreak{}definite matrices}; \texttt{context covariance matrices}
+  \par\smallskip\noindent\emph{Definition.} \(\Sigma^{(k)}=F(I_q-\Lambda^{(k)})^{-1}S^{(k)}(I_q-\Lambda^{(k)})^{-\mathsf T}F^{\mathsf T}\)
+  \item \texttt{D} --- \texttt{indexed family of symmetric matrices}; \texttt{covariance differences}
+  \par\smallskip\noindent\emph{Definition.} \(D_k=\Sigma^{(k)}-\Sigma^{(0)}\)
+  \item \texttt{r} --- \texttt{integer}; \texttt{number of roots}
+  \par\smallskip\noindent\emph{Definition.} \(r=|\{k\in V:\operatorname{pa}_{G}(k)=\varnothing\}|\)
+  \item \texttt{U} --- \texttt{unit lower-\allowbreak{}triangular matrix}; \(\mathbb{R}^{q\times q}\); candidate structural inverse factor \(I_q-\Lambda'^{(0)}\)
+  \item \texttt{x} --- \texttt{indexed family of real vectors}; \(j\mapsto x_j\in\mathbb{R}^{|\operatorname{ch}_{G'}(j)|}\); \texttt{candidate baseline child coefficients}
+  \item \texttt{Cj} --- \texttt{indexed family of vertex sets}
+  \par\smallskip\noindent\emph{Definition.} \(C_j=\operatorname{ch}_{G'}(j)\)
+  \item \texttt{Rj} --- \texttt{indexed family of vertex sets}
+  \par\smallskip\noindent\emph{Definition.} \(R_j=\operatorname{de}_{G'}(j)\setminus\operatorname{ch}_{G'}(j)\)
+  \item \texttt{Mj} --- \texttt{indexed family of matrices}
+  \par\smallskip\noindent\emph{Definition.} \(M_j=H[R_j,C_j]\)
+  \item \texttt{bj} --- \texttt{indexed family of vectors}
+  \par\smallskip\noindent\emph{Definition.} \(b_j=H[R_j,j]\)
+  \item \texttt{Aj} --- \texttt{indexed family of affine spaces}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A_j=\{x_j:M_jx_j=b_j\}\)
+  \item \texttt{dform} --- \texttt{indexed family of affine forms}
+  \par\smallskip\noindent\emph{Definition.} \(d_{ji}(x_j)=H[i,j]-H[i,C_j]x_j\)
+  \item \texttt{Gterm} --- \texttt{directed acyclic graph}; \texttt{terminal-\allowbreak{}copy graph}
+  \item \texttt{Hobs} --- \texttt{set-\allowbreak{}valued graph functional}; \(G\mapsto\mathsf H_{\mathrm{obs}}(G)\); \texttt{published observational-\allowbreak{}path compatibility class}
+  \item \texttt{Hsoft} --- \texttt{set-\allowbreak{}valued graph functional}; \(G\mapsto\mathsf H_{\mathrm{soft}}(G)\); \texttt{corrected actual-\allowbreak{}row compatibility class}
+  \item \texttt{Mclass} --- \texttt{semialgebraic model class}; \((p,q,G)\mapsto\mathcal M_{p,q}(G)\); \texttt{semialgebraic positive-\allowbreak{}support ambient coefficient domain}
+  \item \texttt{theta} --- \texttt{coefficient parameter point}; \(\theta=(F,\Lambda^{(0)},\delta,v,t)\in\mathcal M_{p,q}(G)\)
+  \item \texttt{thetaprime} --- \texttt{candidate coefficient parameter point}; \(\theta'=(F',\Lambda'^{(0)},\delta',v',t')\in\mathcal M_{p,q}(G')\)
+  \item \texttt{Qexc} --- \texttt{theorem-\allowbreak{}indexed finite polynomial families}; \((s,p,G,G')\mapsto\mathcal Q_s(p,G,G')\); \texttt{explicit exceptional-\allowbreak{}polynomial lists for the terminal,\allowbreak{} covariance-\allowbreak{}branch,\allowbreak{} fork,\allowbreak{} and bounded-\allowbreak{}width results}
+  \item \texttt{Mgen} --- \texttt{theorem-\allowbreak{}specific Zariski-\allowbreak{}generic locus}; \((s,p,q,G,G')\mapsto\mathcal M^{\circ}_{s,p,q}(G,G')\); \texttt{relative Zariski-\allowbreak{}open subset of the semialgebraic ambient domain}
+  \item \texttt{E} --- \texttt{set-\allowbreak{}valued feasibility map}; \((p,G,G')\mapsto\mathcal E_p(G,G')\); \texttt{true parameter points admitting a legal covariance twin}
+  \item \texttt{soft2M} --- \texttt{set-\allowbreak{}valued graph functional}; \((p,G)\mapsto\mathsf{soft2M}_{2,p}(G)\); \texttt{matched-\allowbreak{}existential positive-\allowbreak{}real covariance class}
+  \item \texttt{Cov} --- \texttt{set-\allowbreak{}valued graph functional}; \((p,G)\mapsto\mathsf{Cov}_p(G)\); \texttt{generic positive-\allowbreak{}real covariance compatibility class}
+  \item \texttt{Mon} --- \texttt{latent relabeling and scaling group}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak M_q=\{\Pi C:\Pi\text{ is a permutation matrix and }C\text{ is nonsingular diagonal}\}\)
+  \item \texttt{Ralign} --- \texttt{aligned population factorization datum}; \texttt{explicit population input recovered before graph compatibility is evaluated}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R=[\{A^{(k)}\}_{k\in K},\{\mathcal L(\varepsilon^{(k)})\}_{k\in K}]_{\mathfrak M_q}\)
+  \item \texttt{HR} --- \texttt{quotient-\allowbreak{}invariant recovered actual-\allowbreak{}row support}; \(\mathcal R\mapsto H_{\mathcal R}\); \texttt{actual-\allowbreak{}row coordinates obtained from the aligned population factor updates}
+  \item \texttt{CR} --- \texttt{recovered transitive-\allowbreak{}closure relation}; \(\mathcal R\mapsto\mathcal C(\mathcal R)\)
+  \item \texttt{GHdata} --- \texttt{set-\allowbreak{}valued data functional}; \(\mathcal R\mapsto\mathcal G_{\mathrm{soft}}(\mathcal R)\); \texttt{DAGs compatible with the aligned population factorization datum}
+  \item \texttt{GCdata} --- \texttt{set-\allowbreak{}valued data functional}; \((\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\mapsto\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\); \texttt{DAGs with the factor-\allowbreak{}recovered closure that are compatible with the observed covariance tuple}
+  \item \texttt{ell} --- \texttt{indexed family of nonzero vectors}; \(k\mapsto\ell_k\in\mathbb{R}^{p}\); \texttt{chosen loading-\allowbreak{}line representatives}
+  \item \texttt{Lmat} --- \texttt{real matrix}; \texttt{candidate baseline loading matrix on a branch}
+  \par\smallskip\noindent\emph{Definition.} \(L=[\ell_1,\ldots,\ell_q]\)
+  \item \texttt{vprime} --- \texttt{positive vector}; \(\mathbb{R}_{>0}^{q}\); \texttt{candidate baseline error variances on a branch}
+  \item \texttt{m} --- \texttt{indexed family of vectors}; \(k\mapsto m_k\in\mathbb{R}^{p}\); cofactors satisfying \(D_k=\ell_km_k^{\mathsf T}+m_k\ell_k^{\mathsf T}\)
+  \item \texttt{z} --- \texttt{indexed family of vectors}; \(k\mapsto z_k\in\mathbb{R}^{q}\); \texttt{variance-\allowbreak{}weighted candidate intervention rows}
+  \item \texttt{rho} --- \texttt{indexed family of scalars}; \(k\mapsto\rho_k\in\mathbb{R}\); \texttt{loading-\allowbreak{}line residual coefficients}
+  \item \texttt{tprime} --- \texttt{indexed family of candidate variances}; \(k\mapsto t'_k\in\mathbb{R}\); \texttt{candidate intervened-\allowbreak{}node error variances}
+  \item \texttt{Bbranch} --- \texttt{finite family of semialgebraic systems}; \((p,G,G')\mapsto\mathfrak B_p(G,G')\); \texttt{complete generic covariance branch family}
+  \item \texttt{Bmom} --- \texttt{fork baseline moment matrix}
+  \par\smallskip\noindent\emph{Definition.} \(B_{\ell}=[(\ell_{k1}^2,\ell_{k1}\ell_{k2},\ell_{k2}^2)^{\mathsf T}]_{k=1}^{4}\)
+  \item \texttt{v0fork} --- \texttt{fork baseline particular solution}
+  \par\smallskip\noindent\emph{Definition.} \(v'_0\in\mathbb R^4\text{ satisfies }B_{\ell}v'_0=\operatorname{vech}(\Sigma^{(0)})\)
+  \item \texttt{nfork} --- \texttt{nonzero kernel vector}; \(n\in\ker B_{\ell}\setminus\{0\}\)
+  \item \texttt{sfork} --- \texttt{real scalar}; \(s\in\mathbb R\); \texttt{fork baseline covariance-\allowbreak{}fiber coordinate}
+  \item \texttt{xi} --- \texttt{real scalar}; \(x\in\mathbb R\); \texttt{candidate fork edge coordinate}
+  \item \texttt{zeta} --- \texttt{real scalar}
+  \par\smallskip\noindent\emph{Definition.} \(m_2=\zeta\ell_1+\rho_2\ell_2\)
+  \item \texttt{gvec} --- \texttt{fork branch vector}
+  \par\smallskip\noindent\emph{Definition.} \(g=v'_1x\ell_1+v'_2\ell_2\)
+  \item \texttt{betafork} --- \texttt{indexed fork branch scalars}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_k=\det[m_k,\ell_k]/\det[g,\ell_k]\) for \(k\in\{3,4\}\)
+  \item \texttt{Cert} --- \texttt{certificate compiler handle}; \((p,G,G')\mapsto\mathfrak C_p(G,G')\); \texttt{target graph-\allowbreak{}specific positive-\allowbreak{}real compiler}
+  \item \texttt{Gx} --- \texttt{four-\allowbreak{}node directed acyclic graph}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\times}=\{1\to2,2\to3,3\to4,1\to3\}\)
+  \item \texttt{Gc} --- \texttt{four-\allowbreak{}node directed acyclic graph}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\mathrm{ch}}=\{1\to2,2\to3,3\to4\}\)
+  \item \texttt{alphax} --- \texttt{nonzero real scalar}; baseline coefficient on \(1\to2\) in the four-node counterexample
+  \par\smallskip\noindent\emph{Definition.} \(\alpha=\Lambda^{(0)}_{21}\) for \(G_{\times}\)
+  \item \texttt{bx} --- \texttt{nonzero real scalar}; baseline coefficient on \(2\to3\) in the four-node counterexample
+  \par\smallskip\noindent\emph{Definition.} \(b=\Lambda^{(0)}_{32}\) for \(G_{\times}\)
+  \item \texttt{dx} --- \texttt{nonzero real scalar}; baseline coefficient on \(1\to3\) in the four-node counterexample
+  \par\smallskip\noindent\emph{Definition.} \(d=\Lambda^{(0)}_{31}\) for \(G_{\times}\)
+  \item \texttt{cx} --- \texttt{nonzero real scalar}; baseline coefficient on \(3\to4\) in the four-node counterexample
+  \par\smallskip\noindent\emph{Definition.} \(c=\Lambda^{(0)}_{43}\) for \(G_{\times}\)
+  \item \texttt{betax} --- \texttt{nonzero real scalar}; target \(3\) change on \(2\to3\)
+  \par\smallskip\noindent\emph{Definition.} \(\beta=\delta_{32}=\Lambda^{(3)}_{32}-\Lambda^{(0)}_{32}\)
+  \item \texttt{deltax} --- \texttt{nonzero real scalar}; target \(3\) change on \(1\to3\)
+  \par\smallskip\noindent\emph{Definition.} \(\delta=\delta_{31}=\Lambda^{(3)}_{31}-\Lambda^{(0)}_{31}\)
+  \item \texttt{gammax} --- \texttt{nonzero real scalar}; target \(4\) change on \(3\to4\)
+  \par\smallskip\noindent\emph{Definition.} \(\gamma=\delta_{43}=\Lambda^{(4)}_{43}-\Lambda^{(0)}_{43}\)
+  \item \texttt{Gfork} --- \texttt{four-\allowbreak{}node directed acyclic graph}
+  \par\smallskip\noindent\emph{Definition.} \(G_{\mathrm{fork}}=\{1\to2,2\to3,2\to4,1\to3\}\)
+  \item \texttt{Gforkprime} --- \texttt{four-\allowbreak{}node directed acyclic graph}
+  \par\smallskip\noindent\emph{Definition.} \(G'_{\mathrm{fork}}=\{1\to2,2\to3,2\to4\}\)
+  \item \texttt{T} --- \texttt{real scalar}; \(\mathbb R_{>0}\setminus\{1\}\); \texttt{free true intervention variance in the worked fork family}
+  \item \texttt{Fprime} --- \texttt{real matrix}; \(\mathbb R^{p\times q}\); \texttt{candidate structural mixing matrix}
+  \item \texttt{Lambda0prime} --- \texttt{real matrix}; \(\mathbb R^{q\times q}\); \texttt{candidate baseline structural coefficient matrix}
+  \item \texttt{hprime} --- \texttt{indexed family of row vectors}; \(k\mapsto h'_k{}^{\mathsf T}\in\mathbb R^{1\times q}\); \texttt{candidate actual intervention rows}
+  \item \texttt{Wfork} --- \texttt{one-\allowbreak{}parameter pair of soft-\allowbreak{}intervention parameter points}; \(T\mapsto\mathcal W_{\mathrm{fork}}(T)\); \texttt{worked positive-\allowbreak{}real covariance collision}
+  \item \texttt{Enc} --- \texttt{finite binary encoding}; \((p,G,G',\mathfrak B_p(G,G'))\mapsto\operatorname{Enc}(p,G,G')\); \texttt{compiler input and sparse branch-\allowbreak{}polynomial encoding}
+  \item \texttt{Bbits} --- \texttt{positive integer}; \texttt{total input bit length}
+  \par\smallskip\noindent\emph{Definition.} \(B=|\operatorname{Enc}(p,G,G')|_{\mathrm{bit}}\)
+  \item \texttt{w} --- \texttt{integer}; \(\mathbb Z_{\ge0}\); \texttt{covariance-\allowbreak{}terminal width bound}
+  \item \texttt{width} --- \texttt{graph-\allowbreak{}pair functional}; \((p,G,G')\mapsto\omega_p(G,G')\)
+  \par\smallskip\noindent\emph{Definition.} minimum active covariance-terminal frontier size over common topological elimination orders, with covariance moment accumulators counted as one fixed \(p(p+1)/2\)-dimensional state
+  \item \texttt{pw} --- \texttt{graph functional}; \(D\mapsto\operatorname{pw}(D)\)
+  \par\smallskip\noindent\emph{Definition.} \texttt{undirected pathwidth}
+  \item \texttt{Frontier} --- \texttt{graph-\allowbreak{}set functional}; \((p,G)\mapsto\mathsf{Frontier}_p(G)\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathsf{Frontier}_p(G)=\mathsf{Cov}_p(G)\setminus\mathsf H_{\mathrm{soft}}(G)\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-dimensions]\label{ass:finite-dimensions}
+\(2\le p<q\).
+\par\smallskip\noindent\emph{Novel.} This is the paper's deliberate noninjective measurement regime. It covers applications with more latent mechanisms than observed coordinates and isolates the positive-real projection problem that injective recovery theorems do not address.
+\end{assumption}
+
+\begin{assumption}[ass:dag]\label{ass:dag}
+\(G\) is acyclic.
+\par\smallskip\noindent\emph{Standard} (Acyclic linear structural equation model, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:topological-order]\label{ass:topological-order}
+The labels in \(V\) form a topological order of \(G\).
+\par\smallskip\noindent\emph{Standard} (Topologically ordered DAG coordinates, \cite{SquiresSeigalBhateUhler2023}).
+\end{assumption}
+
+\begin{assumption}[ass:candidate-dag]\label{ass:candidate-dag}
+\(G'\) is acyclic.
+\par\smallskip\noindent\emph{Standard} (Candidate DAG, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:candidate-closure]\label{ass:candidate-closure}
+\(\overline{G'}=\overline G\).
+\par\smallskip\noindent\emph{Standard} (Same-transitive-closure comparison, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:baseline-support]\label{ass:baseline-support}
+\(\Lambda^{(0)}_{ij}\ne0\) if and only if \(j\to i\) is an edge of \(G\).
+\par\smallskip\noindent\emph{Standard} (Exact nonzero DAG support, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:mixing-rank]\label{ass:mixing-rank}
+\(\operatorname{rank}(F)=p\).
+\par\smallskip\noindent\emph{Standard} (Full-row-rank linear mixing, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:mixing-nonzero]\label{ass:mixing-nonzero}
+Every column of \(F\) is nonzero.
+\par\smallskip\noindent\emph{Standard} (Nonzero LCD factors, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:mixing-columns]\label{ass:mixing-columns}
+No two columns of \(F\) are collinear.
+\par\smallskip\noindent\emph{Standard} (Noncollinear LCD factors, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:baseline-variance]\label{ass:baseline-variance}
+\(v_i>0\) for every \(i\in V\).
+\par\smallskip\noindent\emph{Standard} (Positive structural error variances, \cite{SquiresSeigalBhateUhler2023}).
+\end{assumption}
+
+\begin{assumption}[ass:change-support]\label{ass:change-support}
+\(\delta_{kj}\ne0\) if and only if \(j\in\operatorname{pa}_{G}(k)\).
+\par\smallskip\noindent\emph{Standard} (Single-node soft intervention changing every incoming edge, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:retained-edges]\label{ass:retained-edges}
+\(\Lambda^{(0)}_{kj}+\delta_{kj}\ne0\) for every \(j\in\operatorname{pa}_{G}(k)\).
+\par\smallskip\noindent\emph{Novel.} This retained-edge soft-intervention condition describes perturbations that modify rather than delete active regulatory inputs; any continuously distributed perturbation away from the finitely many deletion values satisfies it almost surely.
+\end{assumption}
+
+\begin{assumption}[ass:intervention-variance]\label{ass:intervention-variance}
+\(t_k>0\) for every \(k\in V\).
+\par\smallskip\noindent\emph{Standard} (Positive intervened error variance, \cite{SquiresSeigalBhateUhler2023}).
+\end{assumption}
+
+\begin{assumption}[ass:error-independence]\label{ass:error-independence}
+The coordinates of \(\varepsilon^{(k)}\) are mutually independent in every context \(k\in K\).
+\par\smallskip\noindent\emph{Standard} (Independent structural errors, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:error-centering]\label{ass:error-centering}
+\(\mathbb E[\varepsilon^{(k)}]=0\) for every \(k\in K\).
+\par\smallskip\noindent\emph{Standard} (Centered structural errors, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\begin{assumption}[ass:error-covariance]\label{ass:error-covariance}
+\(\operatorname{Cov}(\varepsilon^{(k)})=S^{(k)}\) for every \(k\in K\).
+\par\smallskip\noindent\emph{Standard} (Diagonal context error covariance, \cite{SquiresSeigalBhateUhler2023}).
+\end{assumption}
+
+\begin{assumption}[ass:non-gaussian]\label{ass:non-gaussian}
+Every coordinate \(\varepsilon_i^{(k)}\) is non-Gaussian.
+\par\smallskip\noindent\emph{Standard} (Non-Gaussian LCD errors, \cite{LeyesCarrenoMeroniSeigal2025}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal M_{p,q}(G)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{p,q}(G)=\{(F,\Lambda^{(0)},\delta,v,t)\in\mathbb R^{pq+2q^2+2q}:2\le p<q,\ G\text{ is a DAG on }V\text{ in the displayed topological order},\operatorname{rank}(F)=p,\ F\text{ has nonzero pairwise-noncollinear columns},\Lambda^{(0)}_{ij}\ne0\Longleftrightarrow j\to i\text{ is an edge of }G,\operatorname{supp}(\delta_k)=\operatorname{pa}_G(k),\Lambda^{(0)}_{kj}+\delta_{kj}\ne0,\ v_i>0,\ t_i>0\}\). This positive-support semialgebraic ambient domain includes the variance-neutral hyperplanes \(t_i=v_i\). All equalities, strict inequalities, closures, relative interiors, and chambers below use the Euclidean relative topology of this ambient set or of a stated semialgebraic subset.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}dimensions}; \texttt{ass:\allowbreak{}dag}; \texttt{ass:\allowbreak{}topological-\allowbreak{}order}; \texttt{ass:\allowbreak{}baseline-\allowbreak{}support}; \texttt{ass:\allowbreak{}mixing-\allowbreak{}rank}; \texttt{ass:\allowbreak{}mixing-\allowbreak{}nonzero}; \texttt{ass:\allowbreak{}mixing-\allowbreak{}columns}; \texttt{ass:\allowbreak{}baseline-\allowbreak{}variance}; \texttt{ass:\allowbreak{}change-\allowbreak{}support}; \texttt{ass:\allowbreak{}retained-\allowbreak{}edges}; \texttt{ass:\allowbreak{}intervention-\allowbreak{}variance}.
+\end{definition}
+
+\begin{definition}[def:exceptional-polynomials]\label{def:exceptional-polynomials}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite theorem-\allowbreak{}specific exceptional-\allowbreak{}polynomial families}
+\par\smallskip\noindent\emph{Construction.} For each theorem label \(s\), let \(\mathcal Q_s(p,G,G')\) be the finite list of graph-indexed polynomials explicitly named by that theorem. The family \(\mathcal Q_{\mathrm{term}}\) contains nonzero path minors and augmented affine-support minors. The family \(\mathcal Q_{\mathrm{branch}}\) contains nonzero rank minors, factor-line discriminants, denominator-cleared chart denominators, support residuals, and the theorem-specific variance-activity factor \(\prod_{k\in V}(t_k-v_k)\). For the fork pair, \(\mathcal Q_{\mathrm{fork}}\) adds every nonzero \(3\times3\) minor of \(B_{\ell}\), the displayed loading determinants, and maximal Jacobian minors of the denominator-cleared two-scalar systems. Each list is formed after deleting polynomials that vanish identically for the fixed graph pair. Variance neutrality is excluded only from covariance theorem loci, not from the ambient model or terminal theory.
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{G}; \texttt{Gprime}.
+\end{definition}
+
+\begin{definition}[def:generic-loci]\label{def:generic-loci}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Theorem-\allowbreak{}specific generic loci}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M^{\circ}_{s,p,q}(G,G')=\{\theta\in\mathcal M_{p,q}(G):\prod_{f\in\mathcal Q_s(p,G,G')}f(\theta)\ne0\}\) for \(s\in\{\mathrm{term},\mathrm{branch},\mathrm{fork},\mathrm{width}\}\), equipped with the relative Zariski topology inherited from the semialgebraic ambient domain. The factor \(\prod_{k\in V}(t_k-v_k)\) belongs only to the covariance families, so terminal compatibility is not restricted by variance activity.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Mclass}; \texttt{Qexc}.
+\end{definition}
+
+\begin{definition}[def:aligned-factor-input]\label{def:aligned-factor-input}
+\par\smallskip\noindent\emph{Defined object.} Aligned population factorization input \(\mathcal R\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R=[\{A^{(k)}\}_{k\in K},\{\mathcal L(\varepsilon^{(k)})\}_{k\in K}]_{\mathfrak M_q}\), where columns and independent non-Gaussian source laws are aligned across contexts. For \(M\in\mathfrak M_q\), the equivalence action is \(A^{(k)}\mapsto A^{(k)}M\) and \(\mathcal L(\varepsilon^{(k)})\mapsto\mathcal L(M^{-1}\varepsilon^{(k)})\) simultaneously for every \(k\in K\). Computation uses a rational projective gauge: after enumerating the common permutations compatible with the displayed topological order, scale each nonzero loading column so its least-index nonzero observed coordinate equals \(1\). Certificates are transported back over the simultaneous permutation orbit. This factorization datum is an explicit population input; its recovery from raw laws is not assumed inside the graph-compatibility map.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ak}; \texttt{epsilon}.
+\end{definition}
+
+\begin{definition}[def:recovered-closure]\label{def:recovered-closure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Factor-\allowbreak{}recovered actual-\allowbreak{}row support and closure}
+\par\smallskip\noindent\emph{Construction.} Choose any representative of \(\mathcal R\). For each aligned target \(k\), solve the rank-one update \(A^{(k)}=A^{(0)}+a_kh_{\mathcal R,k}^{\mathsf T}\) with \(h_{\mathcal R,kk}=0\), and form \(H_{\mathcal R}\) from these rows. Define \(\mathcal C(\mathcal R)\) by \(i\to k\in\mathcal C(\mathcal R)\Longleftrightarrow(H_{\mathcal R})_{ki}\ne0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ralign}.
+\end{definition}
+
+\begin{definition}[def:observable-classes]\label{def:observable-classes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observable-\allowbreak{}input graph classes}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal G_{\mathrm{soft}}(\mathcal R)=\{D:D\text{ is a DAG on }V,\ \overline D=\mathcal C(\mathcal R),\text{ and there exist }\theta\in\mathcal M_{p,q}(D)\text{ and independent centered non-Gaussian }\varepsilon^{(k)}\text{ with covariance }S^{(k)}\text{ whose aligned factorization represents }\mathcal R\}\). Also \(\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})=\{D:D\text{ is a DAG on }V,\ \overline D=\mathcal C(\mathcal R),\text{ and some }\theta\in\mathcal M_{p,q}(D)\text{ generates every }\Sigma^{(k)}\}\). Both sets are taken modulo the common relabeling induced by \(\mathfrak M_q\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ralign}; \texttt{CR}; \texttt{Sigma}.
+\end{definition}
+
+\begin{definition}[def:actual-rows]\label{def:actual-rows}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Actual intervention-\allowbreak{}row matrix}
+\par\smallskip\noindent\emph{Construction.} \(P=(I_q-\Lambda^{(0)})^{-1}\), \(h_k^{\mathsf T}=\delta_k^{\mathsf T}P\), and \(H=(h_1,\ldots,h_q)^{\mathsf T}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Lambda0}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:terminal-copy]\label{def:terminal-copy}
+\par\smallskip\noindent\emph{Defined object.} Terminal-copy graph \(G^{\mathrm{term}}\)
+\par\smallskip\noindent\emph{Construction.} Starting from \(G\), add a sink \(k^{\star}\) for each \(k\in V\); retain every baseline edge and add \(i\to k^{\star}\) with label \(\delta_{ki}\) for each \(i\in\operatorname{pa}_{G}(k)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{delta}.
+\end{definition}
+
+\begin{definition}[def:affine-block]\label{def:affine-block}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Columnwise affine compatibility block}
+\par\smallskip\noindent\emph{Construction.} For every \(j\in V\), set \(C_j=\operatorname{ch}_{G'}(j)\), \(R_j=\operatorname{de}_{G'}(j)\setminus C_j\), \(M_j=H[R_j,C_j]\), \(b_j=H[R_j,j]\), \(\mathcal A_j=\{x_j\in\mathbb R^{|C_j|}:M_jx_j=b_j\}\), and \(d_{ji}(x_j)=H[i,j]-H[i,C_j]x_j\) for \(i\in C_j\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H}; \texttt{Gprime}.
+\end{definition}
+
+\begin{definition}[def:published-class]\label{def:published-class}
+\par\smallskip\noindent\emph{Defined object.} Definition 3.14 baseline-path class \(\mathsf H_{\mathrm{obs}}(G)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathsf H_{\mathrm{obs}}(G)=\{G':\overline{G'}=\overline G,\ \operatorname{rank}P[R_j,C_j]=\operatorname{rank}P[R_j,C_j\cup\{j\}]\text{ for every }j\in V\text{ and every }\theta\in\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G')\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{P}.
+\end{definition}
+
+\begin{definition}[def:corrected-class]\label{def:corrected-class}
+\par\smallskip\noindent\emph{Defined object.} Corrected actual-row class \(\mathsf H_{\mathrm{soft}}(G)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathsf H_{\mathrm{soft}}(G)=\{G':\overline{G'}=\overline G,\text{ for every }\theta\in\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G')\text{ there exists }U=I_q-\Lambda'^{(0)}\text{ with exact support }G'\text{ such that }h_k^{\mathsf T}U\text{ has exact support }\operatorname{pa}_{G'}(k)\text{ and every candidate edge remains nonzero after its change for all }k\in V\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{H}.
+\end{definition}
+
+\begin{definition}[def:covariance-fiber]\label{def:covariance-fiber}
+\par\smallskip\noindent\emph{Defined object.} Positive-real covariance twin set \(\mathcal E_p(G,G')\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal E_p(G,G')=\{\theta\in\mathcal M_{p,q}(G):\exists\theta'\in\mathcal M_{p,q}(G')\text{ with }\Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}\text{ for every }k\in K\}\). Candidate baseline and intervention variances are positive but may satisfy \(t'_k=v'_k\); variance activity is imposed only on a true theorem-specific generic locus.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Mclass}; \texttt{Gprime}; \texttt{Sigma}.
+\end{definition}
+
+\begin{definition}[def:matched-existential-class]\label{def:matched-existential-class}
+\par\smallskip\noindent\emph{Defined object.} Matched-existential covariance class \(\mathsf{soft2M}_{2,p}(G)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{soft2M}_{2,p}(G)=\{G':G'\text{ is a DAG on }V,\ \overline{G'}=\overline G,\ \mathcal E_p(G,G')\ne\varnothing\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{E}; \texttt{G}; \texttt{p}.
+\end{definition}
+
+\begin{definition}[def:covariance-class]\label{def:covariance-class}
+\par\smallskip\noindent\emph{Defined object.} Generic positive-real covariance class \(\mathsf{Cov}_p(G)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{Cov}_p(G)=\{G':\overline{G'}=\overline G,\ C\setminus\operatorname{cl}_{C}(\mathcal E_p(G,G')\cap C)\text{ has empty }\operatorname{relint}_{C}\text{ for every full-dimensional connected semialgebraic chamber }C\text{ of }\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\}\), where the chambers fix the signs of the nonzero structural coefficients, changes, and \(t_k-v_k\), and closure and relative interior are taken in \(C\). This is a generic chamberwise functional and makes no pointwise assertion on the variance-neutral hyperplanes of the ambient model.
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{p}; \texttt{E}.
+\end{definition}
+
+\begin{definition}[def:fork-witness]\label{def:fork-witness}
+\par\smallskip\noindent\emph{Defined object.} Worked fork covariance collision \(\mathcal W_{\mathrm{fork}}(T)\)
+\par\smallskip\noindent\emph{Construction.} For \(p=2\), \(q=4\), and \(T>0\), \(T\ne1\), set the true baseline loading and variances to \(A=\begin{psmallmatrix}1&2&7&4\\2&3&11&7\end{psmallmatrix}\) and \(v=(1,1,1,1)\); set \(\Lambda^{(0)}_{21}=\Lambda^{(0)}_{31}=\Lambda^{(0)}_{32}=\Lambda^{(0)}_{42}=1\), \(h_1=0\), \(h_2=(1,0,0,0)\), \(h_3=(3,1,0,0)\), \(h_4=(1,1,0,0)\), and \(t=(4,4,T,4)\), with \(F=A(I_4-\Lambda^{(0)})\). For the candidate set \(\Lambda'^{(0)}_{21}=4\), \(\Lambda'^{(0)}_{32}=\Lambda'^{(0)}_{42}=1\), \(F'=\begin{psmallmatrix}-7&-9&7&4\\-10&-15&11&7\end{psmallmatrix}\), \(v'=(1,1,1,1)\), \(h'_1=0\), \(h'_2=(1,0,0,0)\), \(h'_3=(32/11,8/11,0,0)\), \(h'_4=(-2,-1/2,0,0)\), and \(t'=(4,4,T+144/121,19/4)\). In both models define each change row by \(\delta_k^{\mathsf T}=h_k^{\mathsf T}(I_4-\Lambda^{(0)})\) and its primed analogue, and use independent centered non-Gaussian errors with the displayed variances.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:factor-branches]\label{def:factor-branches}
+\par\smallskip\noindent\emph{Defined object.} Complete generic factor-line branch family \(\mathfrak B_p(G,G')\)
+\par\smallskip\noindent\emph{Construction.} For a same-transitive-closure pair of DAGs \(G,G'\) on \(V\) in their common topological order and \(\theta\in\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\), fix one common-permutation representative, factor each \(D_k\) as \(D_k=\ell_km_k^{\mathsf T}+m_k\ell_k^{\mathsf T}\), choose one of its two real factor lines for each nonroot and its unique line for each root, and put every chosen line in the rational projective gauge whose least-index nonzero observed coordinate is \(1\). For that choice impose \(L\operatorname{diag}(v')L^{\mathsf T}=\Sigma^{(0)}\), \(Lz_k+\rho_k\ell_k=m_k\), \(z_k\) supported on \(\operatorname{an}_{G'}(k)\), \(t'_k=v'_k+2\rho_k-\sum_i z_{ki}^2/v'_i>0\), \(\delta_k'{}^{\mathsf T}=z_k^{\mathsf T}\operatorname{diag}(v')^{-1}U\), and every exact-support, retained-edge, and mixing-column inequation; \(\mathfrak B_p(G,G')\) is the resulting family of at most \(2^{q-r}\) systems for that representative. Candidate variance-neutral branches remain legal.
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{Sigma}; \texttt{Gprime}; \texttt{Mgen}.
+\end{definition}
+
+\begin{definition}[def:fork-branch-systems]\label{def:fork-branch-systems}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Eight explicit bivariate fork systems}
+\par\smallskip\noindent\emph{Construction.} For each of the eight loading-line choices, form \(B_{\ell}=[(\ell_{k1}^2,\ell_{k1}\ell_{k2},\ell_{k2}^2)^{\mathsf T}]_{k=1}^{4}\), solve \(v'=v'_0+sn\) with \(n\in\ker B_{\ell}\setminus\{0\}\), write \(m_2=\zeta\ell_1+\rho_2\ell_2\), and set \(g=v'_1x\ell_1+v'_2\ell_2\). For \(k\in\{3,4\}\), impose \(\beta_k=\det[m_k,\ell_k]/\det[g,\ell_k]\), \(m_k-\beta_kg=\rho_k\ell_k\), \(h'_2=(\zeta/v'_1,0,0,0)\), \(h'_k=\beta_k(x,1,0,0)\), \(t'_2=v'_2+2\rho_2-\zeta^2/v'_1\), and \(t'_k=v'_k+2\rho_k-\beta_k^2(v'_1x^2+v'_2)\). The system includes \(v'_i>0\), \(t'_i>0\), \(x\ne0\), \(x+\zeta/v'_1\ne0\), \(\zeta\beta_3\beta_4\det[g,\ell_3]\det[g,\ell_4]\ne0\), the stated mixing noncollinearities, and finite hyperplane avoidance for the remaining coefficients \(\Lambda'^{(0)}_{32}\) and \(\Lambda'^{(0)}_{42}\). Candidate equalities \(t'_i=v'_i\) are not excluded. Thus each legal branch is a rational sign system only in \(s\) and \(x\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Bbranch}; \texttt{Gfork}; \texttt{Gforkprime}.
+\end{definition}
+
+\begin{definition}[def:compiler-encoding]\label{def:compiler-encoding}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Graph and sparse-\allowbreak{}polynomial bit model}
+\par\smallskip\noindent\emph{Construction.} Encode \(p\) and \(q\) in binary, encode \(G\) and \(G'\) by their \(q\times q\) adjacency bit matrices in the common topological order, and encode every denominator-cleared input branch polynomial sparsely by binary exponent vectors and signed binary integer coefficients. The encoding lists every chart denominator, denominator-clearing inequation, variance-positivity polynomial, covariance-cone minor, exact-support and retained-edge residual, mixing nonzero and noncollinearity factor, and theorem-specific exceptional factor, together with sparse degree and coefficient height. Let \(B=|\operatorname{Enc}(p,G,G')|_{\mathrm{bit}}\) be this pre-solution input length; certificate coefficient growth is part of the output complexity to be bounded.
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{G}; \texttt{Gprime}; \texttt{Bbranch}.
+\end{definition}
+
+\begin{definition}[def:certificate-handle]\label{def:certificate-handle}
+\par\smallskip\noindent\emph{Defined object.} Positive-real frontier compiler handle \(\mathfrak C_p(G,G')\)
+\par\smallskip\noindent\emph{Construction.} Build the target compiler from terminal-copy min-cut certificates, the sparse factor-line systems \(\mathfrak B_p(G,G')\), common-topological elimination, running \(p(p+1)/2\)-moment accumulators, recursive faces of the baseline covariance cone, Schur-complement sign cells, and branch-gluing certificates. For bounded \(\omega_p(G,G')\), use local subresultant and Thom-sign tables on the elimination bags. In each chamber, the output is either a relatively dense positive-real realization cover or a full-dimensional linkage, affine, covariance-cone-face, or positivity separator in the bit model \(\operatorname{Enc}(p,G,G')\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{Gprime}; \texttt{p}; \texttt{Enc}.
+\end{definition}
+
+\begin{definition}[def:bounded-width]\label{def:bounded-width}
+\par\smallskip\noindent\emph{Defined object.} Covariance-terminal elimination width \(\omega_p(G,G')\)
+\par\smallskip\noindent\emph{Construction.} For a common topological elimination order, expose the denominator-cleared factor-line constraints node by node; retain a latent node while it occurs in an unprocessed ancestor-support equation or terminal-copy linkage, and summarize processed baseline covariance terms by a running vector in \(\mathbb R^{p(p+1)/2}\). The active frontier is the retained latent set together with this fixed moment state. Define \(\omega_p(G,G')\) as the minimum, over common topological elimination orders and legal terminal-copy decompositions, of the largest active-frontier cardinality. A pair is \(w\)-tractable when \(\omega_p(G,G')\le w\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p}; \texttt{G}; \texttt{Gprime}; \texttt{Bbranch}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:terminal-certificate]\label{thm:terminal-certificate}
+For every \(G'\) with \(\overline{G'}=\overline G\) and every \(\theta\in\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G')\), \(G'\in\mathsf H_{\mathrm{soft}}(G)\) if and only if, for every \(j\in V\), the affine space \(\mathcal A_j\) is nonempty and none of \(x_{ji}\), \(d_{ji}(x_j)\), or \(x_{ji}+d_{ji}(x_j)\), for \(i\in C_j\), vanishes identically on \(\mathcal A_j\). For all \(R,C\subseteq V\), \(\operatorname{rank}H[R,C]\) equals the maximum number of vertex-disjoint paths from \(C\) to terminal copies \(R^{\star}\) in \(G^{\mathrm{term}}\). These conditions give sound and complete membership and nonmembership certificates in \(O(q^5)\) rational-function field operations. The baseline-path class in Definition 3.14 agrees with corrected actual-row compatibility exactly when these tests agree with its baseline inverse-path rank tests for every same-closure candidate \(G'\); this is an exact finite graph-input decision procedure, and the four-node counterexample below proves that the equivalence asserted by Theorem 3.15 is false without this agreement condition. This structural result holds throughout the positive-variance ambient model, including \(t_k=v_k\).
+\end{theorem}
+\begin{proof}
+Fix a candidate \(G'\) with \(\overline{G'}=\overline G\).  Work first over the rational-function field \(\mathbb K\) generated by the baseline edge coefficients and the intervention-change coefficients having the exact supports prescribed by \(G\).  Since \(G\) is acyclic, \(\Lambda^{(0)}\) is nilpotent in a topological order, and therefore
+\[
+ P=(I_q-\Lambda^{(0)})^{-1}
+   =I_q+\Lambda^{(0)}+\cdots+(\Lambda^{(0)})^{q-1}.
+\]
+For \(c,k\in V\), the definition of the actual intervention row gives
+\[
+ H_{kc}=h_{kc}
+ =\sum_{i\in\operatorname{pa}_{G}(k)}\delta_{ki}P_{ic}.
+\]
+Every entry \(P_{ic}\) is the sum of the weights of all directed baseline paths from \(c\) to \(i\).  Appending the edge \(i\to k^\star\), labelled \(\delta_{ki}\), is a bijection from the terms in the last display to directed paths from \(c\) to the terminal copy \(k^\star\) in \(G^{\mathrm{term}}\).  Thus \(H\) is the path matrix from original vertices to terminal copies.
+
+Let \(C_0\subseteq C\), \(R_0\subseteq R\), and \(|C_0|=|R_0|=m\).  Expand \(\det H[R_0,C_0]\), then expand every entry as its path sum.  If a path family has an intersecting pair, choose the first common original vertex of the lexicographically first such pair and exchange the two tails after that vertex.  The exchange preserves the edge monomial and reverses the endpoint permutation, so it is a sign-reversing involution on intersecting families.  Its survivors are precisely the vertex-disjoint path families.  A surviving edge union determines its constituent paths and endpoint permutation: every selected internal vertex has one selected entering and one selected leaving edge, every source in \(C_0\) begins one path, and every terminal copy in \(R_0^\star\) ends one path.  Hence two distinct surviving families cannot produce the same monomial with opposite signs.  Consequently,
+\[
+ \det H[R_0,C_0]\ne0
+ \quad\Longleftrightarrow\quad
+ \text{there are \(m\) vertex-disjoint paths from \(C_0\) to \(R_0^\star\)}.
+\]
+Taking the largest nonzero minor yields
+\[
+ \operatorname{rank}_{\mathbb K}H[R,C]
+ =\max\bigl\{m:\text{there are \(m\) vertex-disjoint paths from \(C\) to \(R^\star\)}\bigr\}.
+\]
+Vertex splitting with capacity one at every original vertex converts the maximum on the right into an integral maximum-flow problem; a linkage certifies the lower bound and a vertex cut certifies the upper bound.
+
+Every structurally nonzero path minor needed above is included in \(\mathcal Q_{\mathrm{term}}\).  Therefore no such minor vanishes at a point of \(\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G')\), while structurally zero minors remain zero under every specialization.  The displayed rank identity consequently holds at every stated parameter point, not merely over \(\mathbb K\).
+
+We next derive the affine conditions.  Write \(U=I_q-\Lambda'^{(0)}\), and for each edge \(j\to i\) of \(G'\) put \(x_{ji}=\Lambda'^{(0)}_{ij}\).  Direct multiplication gives
+\[
+ (HU)_{kj}=H_{kj}-\sum_{i\in C_j}H_{ki}x_{ji}.
+\]
+If \(k=j\), then \(H_{jj}=0\), and no child of \(j\) can be an ancestor of \(j\), so the displayed entry is zero.  If \(k\notin\operatorname{de}_{G'}(j)\), same closure implies that neither \(j\) nor a child of \(j\) is an ancestor of \(k\); every term is again zero.  For the remaining nonchildren \(k\in R_j\), the required zero is exactly
+\[
+ H[R_j,C_j]x_j=H[R_j,j],
+ \qquad\text{equivalently}\qquad M_jx_j=b_j.
+\]
+For a child \(i\in C_j\), the candidate baseline coefficient, the candidate intervention change, and the candidate post-change coefficient are respectively
+\[
+ x_{ji},\qquad
+ (HU)_{ij}=H[i,j]-H[i,C_j]x_j=d_{ji}(x_j),\qquad
+ x_{ji}+d_{ji}(x_j).
+\]
+Thus exact baseline support, exact change support, and edge retention are exactly the three asserted nonvanishing conditions.  No support condition has been omitted: all nonparent entries of \(HU\) are either among the equations indexed by \(R_j\) or are the automatic zeros just proved.
+
+By the batched affine-support lemma, one row reduction of each \((M_j\mid b_j)\) decides feasibility, and the products \(L_jx_j^0+c_j\) and \(L_jN_j\) decide all forbidden forms simultaneously.  If a system is inconsistent or a forbidden form is identically zero, every candidate \(U\) violates a required condition.  If all systems are feasible and no forbidden form vanishes identically, the finite-hyperplane argument in that lemma gives one \(x_j\in\mathcal A_j\) avoiding all forbidden forms for every \(j\).  The column blocks are independent, so these choices assemble into one matrix \(U=I_q-\Lambda'^{(0)}\) with exact support \(G'\), exact intervention-change support, and retained changed edges.  Conversely, any admissible \(U\) provides such a point in every affine block.  This proves the sound-and-complete equivalence with the corrected actual-row class \(\mathsf H_{\mathrm{soft}}(G)\).  The augmented affine-support minors in \(\mathcal Q_{\mathrm{term}}\) make feasibility and identical-vanishing decisions constant on the stated generic locus, so the pointwise test is equivalent to the universal generic quantifier in the definition of that class.
+
+Computing \(P\) and \(H\) costs at most \(O(q^3)\) field operations.  The batched lemma costs \(O(q^4)\) over all columns.  Hence the complete per-candidate test actually satisfies the sharper bound
+\[
+ O(q^4),
+\]
+which implies the printed \(O(q^5)\) bound.  An inconsistent reduced row or an identically-zero stacked row is a nonmembership certificate; a linkage or cut certifies each symbolic rank used, and points \(x_j\) avoiding all forbidden forms certify membership.  This is a rational-function field-operation count only; it asserts no expanded bit complexity or coefficient-height bound.
+
+Definition 3.14 of Leyes Carreno, Meroni, and Seigal defines the observational baseline-path class \(\mathsf H_{\mathrm{obs}}(G)\); it is not itself being redefined here.  The corrected object is \(\mathsf H_{\mathrm{soft}}(G)\), obtained from the actual rows in their Equation (20).  There are finitely many labelled DAGs on \(V\).  Enumerate the DAGs \(G'\) with closure \(\overline G\), run the actual-row test above, and run the baseline inverse-path rank tests of Definition 3.14.  The two classes agree if and only if the two Boolean outputs agree for every enumerated \(G'\).  This is an exact terminating graph-input procedure; the \(O(q^4)\) bound is per candidate and is not a claim that enumeration is polynomial in \(q\).
+
+The agreement condition cannot be omitted.  Let
+\[
+ G_\times=\{1\to2,2\to3,3\to4,1\to3\},
+ \qquad
+ G_{\mathrm{ch}}=\{1\to2,2\to3,3\to4\}.
+\]
+For the candidate column \(j=1\), put \(\alpha=\Lambda^{(0)}_{21}\), \(b=\Lambda^{(0)}_{32}\), \(c=\Lambda^{(0)}_{43}\), \(d=\Lambda^{(0)}_{31}\), \(\beta=\delta_{32}\), \(\delta=\delta_{31}\), and \(\gamma=\delta_{43}\).  Direct baseline path expansion gives
+\[
+ P[\{3,4\},\{2,1\}]
+ =\begin{pmatrix}
+ b&d+\alpha b\\
+ cb&c(d+\alpha b)
+ \end{pmatrix}.
+\]
+The second row is \(c\) times the first, and \(b,c\ne0\), so both \(P[\{3,4\},\{2\}]\) and its displayed augmentation have rank one.  For column \(j=2\), the baseline test compares \((P_{43})=(c)\) with \((P_{43},P_{42})=(c,cb)\), both of rank one.  For \(j=3\) and \(j=4\), the nonchild-descendant sets are empty.  Hence every test in Definition 3.14 passes and
+\[
+ G_{\mathrm{ch}}\in\mathsf H_{\mathrm{obs}}(G_\times).
+\]
+In contrast, direct expansion of the actual rows gives
+\[
+ H[\{3,4\},\{2,1\}]
+ =\begin{pmatrix}
+ \beta&\delta+\alpha\beta\\
+ \gamma b&\gamma(d+\alpha b)
+ \end{pmatrix},
+\]
+and therefore
+\[
+ \det H[\{3,4\},\{2,1\}]
+ =\gamma(\beta d-b\delta).
+\]
+This is not the zero polynomial.  For example, \(\alpha=b=c=d=\beta=\gamma=1\), \(\delta=2\), and \(\delta_{21}=1\) give determinant \(-1\).  The post-change coefficients are then \(2\) on \(1\to2\), \(2\) on \(2\to3\), \(3\) on \(1\to3\), and \(2\) on \(3\to4\), so every baseline edge, change, and post-change coefficient is nonzero.  On the relative Zariski-open set where \(\gamma(\beta d-b\delta)\ne0\), the unaugmented actual-row block has rank one and its augmentation has rank two.  Thus its affine system is inconsistent and
+\[
+ G_{\mathrm{ch}}\notin\mathsf H_{\mathrm{soft}}(G_\times).
+\]
+The resulting nonempty relative Zariski-open exact-change, retained-edge locus satisfies every baseline test and fails the actual-row affine-consistency test.  It refutes the generic equivalence asserted in Theorem 3.15; the correction is to that identification, not to the content of Definition 3.14.
+
+Finally, neither the path, affine, nor agreement calculation uses \(v\) or \(t\).  It remains valid for all positive variances, including \(t_k=v_k\).  The counterexample also lies within the noninjective anchor domain: choose \(p=2<4\) and
+\[
+ F_0=\begin{pmatrix}1&0&1&1\\0&1&1&2\end{pmatrix}.
+\]
+Its columns are nonzero and pairwise noncollinear and it has row rank two.  Independently across latent coordinates, take standardized Rademacher errors in the baseline context and, at each target context, replace the target coordinate by a centered unit-variance Laplace error while retaining independent non-Gaussian laws for the other coordinates.  The target standardized fourth cumulant changes from \(-2\) to \(3\).  Scaling these laws realizes any prescribed positive variances without changing the standardized cumulants.  Hence independence, centering, non-Gaussianity, positivity, and unequal scaled cumulants can be imposed without altering the coefficient determinant.  The exact-change retained-edge counterexample locus is therefore contained in the generic soft-intervention domain of Assumption 1.2 of Leyes Carreno, Meroni, and Seigal after this choice of source laws.  A counterexample on a subclass refutes a universal assertion on its superclass; conversely, a positive result proved only on the subclass does not transfer upward without a separate extension argument.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the paper's primary structural result: actual-row compatibility has exact combinatorial and affine certificates and a batched \(O(q^4)\) per-candidate algorithm. \textit{Gap.} The proof of Theorem 3.15 of Leyes Carreno, Meroni, and Seigal specializes independent intervention changes to baseline coefficients when passing from Equation (20) to the baseline-path class of Definition 3.14. The terminal and affine tests repair that identification without altering Definition 3.14. \textit{Consumer.} The companion LCD workflow returns the corrected compatible DAG set and auditable linkage, cut, affine, support, and retention certificates.
+
+\begin{proposition}[prop:published-mismatch]\label{prop:published-mismatch}
+Theorem 3.15 of Leyes Carreno, Meroni, and Seigal is false as written. Let \(G_{\times}=\{1\to2,2\to3,3\to4,1\to3\}\), let \(G_{\mathrm{ch}}=\{1\to2,2\to3,3\to4\}\), and consider \(j=1\), so \(C_1=\{2\}\) and \(R_1=\{3,4\}\). With \(\alpha=\Lambda^{(0)}_{21}\), \(b=\Lambda^{(0)}_{32}\), \(d=\Lambda^{(0)}_{31}\), \(\beta=\delta_{32}\), \(\delta=\delta_{31}\), and \(\gamma=\delta_{43}\), the two actual-row rank matrices derived from Equation (20) are \[M_{G_{\times},G_{\mathrm{ch}}}[1]=H[\{3,4\},\{2\}]=\begin{pmatrix}\beta\\ \gamma b\end{pmatrix},\qquad \bigl(M_{G_{\times},G_{\mathrm{ch}}}[1]\mid b_{G_{\times},G_{\mathrm{ch}}}[1]\bigr)=H[\{3,4\},\{2,1\}]=\begin{pmatrix}\beta&\delta+\alpha\beta\\ \gamma b&\gamma(d+\alpha b)\end{pmatrix}.\] The augmented determinant is \(\gamma(\beta d-b\delta)\). It is not the zero polynomial: \(\alpha=b=c=d=\beta=\gamma=1\), \(\delta=2\), and \(\delta_{21}=1\) give value \(-1\), while every true edge and every intervention change is nonzero and each changed coefficient is retained. Hence it is nonzero on a relative Zariski-open subset allowed by Assumption 1.2 and the exact-support and retained-edge conditions, where the two ranks are \(1\) and \(2\). The specialization \((\beta,\delta)=(b,d)\) used in the proof of Theorem 3.15 identifies independent parameter variables and changes the determinant to \(\gamma(bd-bd)=0\), dropping the augmented rank to \(1\). Thus \(G_{\mathrm{ch}}\in\mathsf H_{\mathrm{obs}}(G_{\times})\) but \(G_{\mathrm{ch}}\notin\mathsf H_{\mathrm{soft}}(G_{\times})\) on \(\mathcal M^{\circ}_{\mathrm{term},p,4}(G_{\times},G_{\mathrm{ch}})\), throughout the positive-variance ambient domain.
+\end{proposition}
+\begin{proof}
+Order the vertices as \(1<2<3<4\), which is a topological order for both displayed graphs.  Exact baseline support on \(G_{\times}\) gives
+\[
+\Lambda^{(0)}=
+\begin{pmatrix}
+0&0&0&0\\
+\alpha&0&0&0\\
+d&b&0&0\\
+0&0&c&0
+\end{pmatrix},
+\qquad \alpha b c d\ne0.
+\]
+Since this matrix is nilpotent, the finite geometric identity for \(P=(I_4-\Lambda^{(0)})^{-1}\) gives
+\[
+P=I_4+\Lambda^{(0)}+(\Lambda^{(0)})^2+(\Lambda^{(0)})^3
+=
+\begin{pmatrix}
+1&0&0&0\\
+\alpha&1&0&0\\
+d+\alpha b&b&1&0\\
+c(d+\alpha b)&cb&c&1
+\end{pmatrix}.
+\]
+Both \(G_{\times}\) and \(G_{\mathrm{ch}}\) have a directed path from \(i\) to \(j\) exactly when \(i<j\), so \(\overline{G_{\times}}=\overline{G_{\mathrm{ch}}}\).
+
+We first verify every rank test in the definition of \(\mathsf H_{\mathrm{obs}}\), rather than only the test that will fail for the actual rows.  For the candidate \(G_{\mathrm{ch}}\), at \(j=1\) one has \(C_1=\{2\}\) and \(R_1=\{3,4\}\), and hence
+\[
+P[R_1,C_1]=\begin{pmatrix}b\\cb\end{pmatrix},
+\qquad
+P[R_1,C_1\cup\{1\}]
+=\begin{pmatrix}
+b&d+\alpha b\\
+cb&c(d+\alpha b)
+\end{pmatrix}.
+\]
+The second row of the augmented matrix is \(c\) times its first row.  Because \(b\ne0\), both matrices have rank one.  At \(j=2\), \(C_2=\{3\}\) and \(R_2=\{4\}\), so
+\[
+P[R_2,C_2]=(c),
+\qquad
+P[R_2,C_2\cup\{2\}]=(c\;cb),
+\]
+and both ranks are one because \(c\ne0\).  At \(j=3\) and \(j=4\), the set \(R_j=\operatorname{de}_{G_{\mathrm{ch}}}(j)\setminus C_j\) is empty, so both sides of each rank equality are zero.  These calculations use only the exact nonzero baseline support and therefore hold for every parameter point in \(\mathcal M^{\circ}_{\mathrm{term},p,4}(G_{\times},G_{\mathrm{ch}})\).  The definition of the published class now yields
+\[
+G_{\mathrm{ch}}\in\mathsf H_{\mathrm{obs}}(G_{\times}).
+\]
+
+We next compute the rows that the soft interventions actually produce.  Acyclicity and the support of \(\delta_k\) imply \(\delta_k^{\mathsf T}Pe_k=0\): every coordinate in the support of \(\delta_k\) is a parent of \(k\), whereas \(P_{ik}=0\) for every such parent \(i\).  Consequently, direct multiplication shows
+\[
+\bigl(I_4-\Lambda^{(0)}-e_k\delta_k^{\mathsf T}\bigr)
+\bigl(P+Pe_k\delta_k^{\mathsf T}P\bigr)=I_4,
+\]
+and therefore
+\[
+\Delta^{(k)}=Pe_k\delta_k^{\mathsf T}P=Pe_kh_k^{\mathsf T}.
+\]
+Thus the row factor in the inverse-path update is precisely the actual row \(h_k^{\mathsf T}=\delta_k^{\mathsf T}P\).  Exact change support gives \(\delta_3^{\mathsf T}=(\delta,\beta,0,0)\) and \(\delta_4^{\mathsf T}=(0,0,\gamma,0)\), whence
+\[
+h_3^{\mathsf T}=(\delta+\alpha\beta,\beta,0,0),
+\qquad
+h_4^{\mathsf T}=\bigl(\gamma(d+\alpha b),\gamma b,\gamma,0\bigr).
+\]
+It follows from the definition of the affine block that
+\[
+M_1=H[\{3,4\},\{2\}]
+=\begin{pmatrix}\beta\\\gamma b\end{pmatrix},
+\qquad
+(M_1\mid b_1)=H[\{3,4\},\{2,1\}]
+=\begin{pmatrix}
+\beta&\delta+\alpha\beta\\
+\gamma b&\gamma(d+\alpha b)
+\end{pmatrix}.
+\]
+The determinant of the augmented matrix is
+\[
+\det(M_1\mid b_1)
+=\gamma\bigl(\beta(d+\alpha b)-b(\delta+\alpha\beta)\bigr)
+=\gamma(\beta d-b\delta).
+\]
+This is not the zero polynomial.  Indeed, at
+\[
+\alpha=b=c=d=\beta=\gamma=1,
+\qquad \delta=2,
+\qquad \delta_{21}=1,
+\]
+it equals \(-1\).  At the same point all four baseline edge coefficients and all four required changes are nonzero, and the post-change coefficients on \(1\to2\), \(2\to3\), \(1\to3\), and \(3\to4\) are respectively \(2,2,3,2\); hence the exact-support and retained-edge conditions hold.
+
+For completeness, this numerical point certifies a nonempty admissible generic set, not merely an isolated specialization.  Parameterize the structural-support stratum by its free edge and change coordinates.  The preceding strict nonzero conditions persist on a nonempty relatively Euclidean-open neighborhood \(\mathcal O\).  By the definition of \(\mathcal Q_{\mathrm{term}}\), after identically zero polynomials have been deleted, the product of its members with \(\gamma(\beta d-b\delta)\) is a nonzero polynomial in these free coordinates.  A nonzero real polynomial cannot vanish on a nonempty Euclidean-open set (an induction on the number of variables reduces this assertion to the fact that a nonzero univariate polynomial has finitely many roots).  Hence \(\mathcal O\) meets the simultaneous nonvanishing locus defining \(\mathcal M^{\circ}_{\mathrm{term},p,4}(G_{\times},G_{\mathrm{ch}})\).  The remaining model coordinates may be chosen admissibly: for \(p=2,3,4\), respectively, one may take loading columns \((1,r)^{\mathsf T}\) with four distinct \(r\)'s, the columns \(e_1,e_2,e_3,(1,1,1)^{\mathsf T}\), or the four standard basis vectors, and then perturb within the open full-row-rank and pairwise-noncollinearity conditions.  The variance vectors \(v,t\) may be any positive vectors, including choices with \(t_k=v_k\), because neither the displayed ranks nor the terminal exceptional conditions impose variance activity.
+
+At every point of this nonempty relative Zariski-open intersection where \(\gamma(\beta d-b\delta)\ne0\), exact change support gives \(\beta\ne0\), so \(\operatorname{rank}M_1=1\), while the nonzero determinant gives \(\operatorname{rank}(M_1\mid b_1)=2\).  Thus \(M_1x_1=b_1\) is inconsistent and \(\mathcal A_1=\varnothing\).  The sound-and-complete terminal certificate then implies
+\[
+G_{\mathrm{ch}}\notin\mathsf H_{\mathrm{soft}}(G_{\times}).
+\]
+
+Finally, under the observational-path specialization \((\beta,\delta)=(b,d)\), the actual augmented matrix becomes
+\[
+\begin{pmatrix}
+b&d+\alpha b\\
+\gamma b&\gamma(d+\alpha b)
+\end{pmatrix},
+\]
+whose second row is \(\gamma\) times its first; its rank is one because \(b\ne0\).  Equivalently, the determinant has been forced to \(\gamma(bd-bd)=0\).  The coordinates \((\beta,\delta)\) describe intervention changes, whereas \((b,d)\) describe baseline edges; exact support and retention require nonvanishing but do not impose either equality.  The substitution therefore restricts the model to a proper algebraic subset and is not a valid generic-rank argument.  We have exhibited a same-closure candidate that belongs to Definition 3.14's class but not to the corrected actual-row class on an admissible relative Zariski-open set.  This contradicts the asserted equivalence in Theorem 3.15 as written, and the calculation is unchanged over the entire positive-variance ambient domain.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit indexed matrices isolate the invalid generic-rank substitution and prove that the corrected graph class differs on an admissible open set. \textit{Gap.} The proof of Theorem 3.15 first uses the correct actual \(\Delta^{(k)}\) rows, then replaces each independent change \(\lambda^{(k)}_{ki}-\lambda^{(0)}_{ki}\) by \(\lambda^{(0)}_{ki}\) while claiming generic rank is preserved; the displayed minor proves that this nongeneric specialization can lower rank. \textit{Consumer.} This is a Problem 5.1 regression test preventing the LCD workflow from certifying a chain that violates the actual changed mechanism rows.
+
+\begin{lemma}[lem:covariance-branches]\label{lem:covariance-branches}
+For every \(\theta\in\mathcal M_{p,q}(G)\), \((I_q-\Lambda^{(k)})^{-1}=P+Pe_kh_k^{\mathsf T}\), \(\Delta^{(k)}=Pe_kh_k^{\mathsf T}\), \(\Delta^{(k)}_{k,\cdot}=h_k^{\mathsf T}\), \(A^{(k)}=A+a_kh_k^{\mathsf T}\), and \[D_k=a_k(ASh_k)^{\mathsf T}+(ASh_k)a_k^{\mathsf T}+(h_k^{\mathsf T}Sh_k+t_k-v_k)a_ka_k^{\mathsf T}.\] For every same-transitive-closure pair of DAGs \(G,G'\) on \(V\) in their common topological order and every \(\theta\in\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\), the systems in \(\mathfrak B_p(G,G')\) represent every legal positive-real covariance twin and no illegal twin, including candidate variance-neutral twins, every factor-line choice in the fixed rational projective gauge, all common latent permutations, support inequations, and all semialgebraic sign and variance chambers relative to \(\mathcal M_{p,q}(G)\). Exact structural-row change makes the two rank-one directions generically nonproportional at each non-source; at a source, \(h_k=0\), so \(t_k=v_k\) makes the entire intervention null. The factor \(\prod_{k\in V}(t_k-v_k)\) excludes only that nongeneric source-null locus, together with variance-neutral non-source hyperplanes, from the covariance statement. The exceptional product is nonzero on every full-dimensional ambient chamber, and both signs of each true variance change are covered; no pointwise assertion is made on the excluded hyperplanes.
+\end{lemma}
+\begin{proof}
+Put \(B=I_q-\Lambda^{(0)}\).  Since \(G\) is acyclic and \(\delta_k\) is supported on parents of \(k\),
+\[
+ h_{kk}=\delta_k^{\mathsf T}Pe_k=0.
+\]
+Multiplication, rather than an unverified division, now proves the inverse formula:
+\[
+ \begin{aligned}
+ (B-e_k\delta_k^{\mathsf T})(P+Pe_kh_k^{\mathsf T})
+ &=I_q+e_kh_k^{\mathsf T}-e_k\delta_k^{\mathsf T}P
+   -e_k(\delta_k^{\mathsf T}Pe_k)h_k^{\mathsf T}\\
+ &=I_q.
+ \end{aligned}
+\]
+Thus
+\[
+ (I_q-\Lambda^{(k)})^{-1}=P+Pe_kh_k^{\mathsf T},
+ \quad
+ \Delta^{(k)}=Pe_kh_k^{\mathsf T},
+ \quad
+ \Delta^{(k)}_{k,\cdot}=h_k^{\mathsf T},
+ \quad
+ A^{(k)}=A+a_kh_k^{\mathsf T},
+\]
+where the third identity uses \(P_{kk}=1\).  Also \(A^{(k)}e_k=a_k\).  Expanding the covariance and using \(S^{(k)}=S+(t_k-v_k)e_ke_k^{\mathsf T}\) therefore yields
+\[
+ \begin{aligned}
+ D_k
+ &=(A+a_kh_k^{\mathsf T})S(A+a_kh_k^{\mathsf T})^{\mathsf T}-ASA^{\mathsf T}
+ +(t_k-v_k)a_ka_k^{\mathsf T}\\
+ &=a_k(ASh_k)^{\mathsf T}+(ASh_k)a_k^{\mathsf T}
+ +(h_k^{\mathsf T}Sh_k+t_k-v_k)a_ka_k^{\mathsf T}.
+ \end{aligned}
+\]
+Equivalently, with
+\[
+ w_k=ASh_k+\frac{h_k^{\mathsf T}Sh_k+t_k-v_k}{2}a_k,
+\]
+one has \(D_k=a_kw_k^{\mathsf T}+w_ka_k^{\mathsf T}\).
+
+On the branch-generic locus, a root has \(h_k=0\) and \(t_k-v_k\ne0\), so \(D_k=(t_k-v_k)a_ka_k^{\mathsf T}\) has one factor line.  At a nonroot the exceptional discriminants exclude proportionality of \(a_k\) and \(w_k\); hence \(D_k\) has rank two and is indefinite.  To see that there are exactly two factor lines, suppose
+\[
+ a_kw_k^{\mathsf T}+w_ka_k^{\mathsf T}
+ =\ell m^{\mathsf T}+m\ell^{\mathsf T}.
+\]
+For every indeterminate vector \(y\), equality of quadratic forms gives
+\[
+ (y^{\mathsf T}a_k)(y^{\mathsf T}w_k)
+ =(y^{\mathsf T}\ell)(y^{\mathsf T}m).
+\]
+The ranges on both sides show that \(\ell,m\in\operatorname{span}(a_k,w_k)\).  In the ordered basis \((a_k,w_k)\), write \(\ell=(r,s)^{\mathsf T}\) and \(m=(u,v)^{\mathsf T}\).  Comparing the two diagonal coefficients and the cross coefficient gives
+\[
+ ru=0,\qquad sv=0,\qquad rv+su\ne0.
+\]
+The last inequality also says that \(\ell,m\) are independent.  Hence either \(r=v=0\) or \(s=u=0\), so the unordered pair of lines \(\{\mathbb Ra_k,\mathbb Rw_k\}\) equals \(\{\mathbb R\ell,\mathbb Rm\}\).  Thus each nonroot supplies two choices and each root one, for at most \(2^{q-r}\) choices per common-permutation representative.
+
+Fix one such choice and use the allowed nonzero diagonal source scaling to set the candidate baseline reduced mixing equal to \(L=[\ell_1,\ldots,\ell_q]\).  Equality of baseline covariances is exactly
+\[
+ L\operatorname{diag}(v')L^{\mathsf T}=\Sigma^{(0)}.
+\]
+For a genuine candidate define
+\[
+ z_k=\operatorname{diag}(v')h'_k,
+ \qquad
+ \rho_k=\frac{h_k'{}^{\mathsf T}\operatorname{diag}(v')h'_k+t'_k-v'_k}{2}.
+\]
+The covariance-difference identity already proved then gives
+\[
+ m_k=Lz_k+\rho_k\ell_k,
+ \qquad
+ t'_k=v'_k+2\rho_k-\sum_{i=1}^q\frac{z_{ki}^2}{v'_i}.
+\]
+Because \(h'_k=\delta'_k{}^{\mathsf T}U^{-1}\), it is supported on \(\operatorname{an}_{G'}(k)\).  Moreover,
+\[
+ \delta'_k{}^{\mathsf T}=h'_k{}^{\mathsf T}U
+ =z_k^{\mathsf T}\operatorname{diag}(v')^{-1}U.
+\]
+This proves that every legal twin enters one of the displayed systems, including a twin with \(t'_k=v'_k\).
+
+Conversely, suppose a branch system is feasible.  Positivity of every \(v'_i\) makes \(h'_k=\operatorname{diag}(v')^{-1}z_k\) well defined, and the asserted formula for \(t'_k\) makes its positivity inequality exactly the required candidate intervention-variance condition.  Set
+\[
+ \Lambda'^{(0)}=I_q-U,
+ \qquad F'=LU,
+ \qquad \delta'_k{}^{\mathsf T}=h'_k{}^{\mathsf T}U.
+\]
+The support and retained-edge inequations make this a member of \(\mathcal M_{p,q}(G')\).  The baseline moment equation and \(v'>0\) imply \(\operatorname{rank}L=p\), since \(\Sigma^{(0)}\) is positive definite; hence \(F'=LU\) has full row rank.  The remaining branch inequations give nonzero, pairwise-noncollinear columns of \(F'\).  Applying the covariance identity to the candidate and substituting \(m_k=Lz_k+\rho_k\ell_k\) reproduces every \(D_k\), and the baseline equation reproduces \(\Sigma^{(0)}\).  Thus no illegal solution is admitted and no legal twin is lost.
+
+All divisions used above are guarded by \(v'_i>0\) or by a chart-denominator inequation.  The finite common-permutation enumeration and rational projective gauges exhaust the permutation, sign, and scale indeterminacies.  Every polynomial retained in \(\mathcal Q_{\mathrm{branch}}\) is nonzero as a polynomial after graph-specific identically zero factors are removed.  A nonzero real polynomial cannot vanish on a relatively open chamber: restricting it successively to coordinate lines in an open box would otherwise make all its coefficients zero.  Hence its zero set has empty relative interior in every full-dimensional ambient chamber.  In particular, \(\prod_k(t_k-v_k)\) removes only the source-null and variance-neutral true hyperplanes, while the two signs of each variance change lie in adjacent covered chambers; no candidate variance-neutral hyperplane is removed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma is the lossless bridge from observed covariance differences to a finite collection of positive candidate mechanisms. \textit{Gap.} Leyes Carreno et al. give a special overcomplete perfect-intervention covariance nonidentifiability example, not a complete soft-intervention factor-line reduction with positivity. \textit{Consumer.} This is the exhaustive algebraic input for the robust covariance refinement motivated by Problem 5.2 and for the companion LCD workflow's covariance-alternative report.
+
+\begin{proposition}[prop:fork-rational-collision]\label{prop:fork-rational-collision}
+For every \(T>0\), \(T\ne1\), the two rational parameter points in \(\mathcal W_{\mathrm{fork}}(T)\) lie in the semialgebraic ambient domains for \(G_{\mathrm{fork}}\) and \(G'_{\mathrm{fork}}\), satisfy the required independent centered non-Gaussian distribution conditions, and obey \(\Sigma^{(k)}_{\mathrm{true}}=\Sigma^{(k)}_{\mathrm{candidate}}\) for all five contexts \(k\in K\). The candidate variances \(T+144/121\) and \(19/4\) are positive, all mixing columns are pairwise noncollinear, every changed edge is nonzero and retained, and the corresponding actual-row compatibility obstruction equals \(-2\), so \(G'_{\mathrm{fork}}\notin\mathsf H_{\mathrm{soft}}(G_{\mathrm{fork}})\). No algebraic-independence convention is imposed; membership in a theorem-specific generic locus is determined only by its finite exceptional-polynomial list. The displayed family lies off every true variance-neutral hyperplane because \(T\ne1\); the collision and actual-row obstruction do not rely on excluding candidate variance-neutral models.
+\end{proposition}
+\begin{proof}
+Let \(U=I_4-\Lambda^{(0)}\) and \(U'=I_4-\Lambda'^{(0)}\) for the two points in \(\mathcal W_{\mathrm{fork}}(T)\).  From the displayed construction,
+\[
+ F=AU=\begin{pmatrix}-8&-9&7&4\\-12&-15&11&7\end{pmatrix},
+ \qquad
+ F'=AU'=\begin{pmatrix}-7&-9&7&4\\-10&-15&11&7\end{pmatrix}.
+\]
+Thus both baseline reduced mixing matrices are exactly \(A\).  The six pairwise column determinants of \(F\) are
+\[
+ 12,-4,-8,6,-3,5,
+\]
+and those of \(F'\) are
+\[
+ 15,-7,-9,6,-3,5.
+\]
+They are all nonzero, proving full row rank, nonzero columns, and pairwise noncollinearity.
+
+Multiplication of the actual rows by the two structural factors gives
+\[
+ \begin{array}{c|cccc}
+ k&1&2&3&4\\ \hline
+ \delta_k^{\mathsf T}&0&(1,0,0,0)&(2,1,0,0)&(0,1,0,0)\\
+ \delta'_k{}^{\mathsf T}&0&(1,0,0,0)&(0,8/11,0,0)&(0,-1/2,0,0).
+ \end{array}
+\]
+These rows have exactly the parent supports of \(G_{\mathrm{fork}}\) and \(G'_{\mathrm{fork}}\).  Adding them to the corresponding baseline rows gives nonzero post-change coefficients: in the true model they are \(2\), \((3,2)\), and \(2\), and in the candidate they are \(5\), \(19/11\), and \(1/2\), for targets two, three, and four respectively.
+
+Using the covariance identity from \(\mathrm{lem:covariance\text{-}branches}\), or multiplying the displayed rational matrices directly, both models give the following five matrices:
+\[
+ \begin{aligned}
+ \Sigma^{(0)}&=\begin{pmatrix}70&113\\113&183\end{pmatrix},&
+ \Sigma^{(1)}&=\begin{pmatrix}73&119\\119&195\end{pmatrix},\\
+ \Sigma^{(2)}&=\begin{pmatrix}90&144\\144&231\end{pmatrix},&
+ \Sigma^{(3)}&=\begin{pmatrix}49T+581&77T+924\\77T+924&121T+1470\end{pmatrix},\\
+ \Sigma^{(4)}&=\begin{pmatrix}174&294\\294&498\end{pmatrix}.&&
+ \end{aligned}
+\]
+Their determinants are, in the same order,
+\[
+ 41,\quad 74,\quad 54,\quad 7(5T+42),\quad 216.
+\]
+Their leading entries are positive for \(T>0\), so all five are positive definite.  The candidate variances are positive because
+\[
+ T+\frac{144}{121}>0,
+ \qquad \frac{19}{4}>0.
+\]
+Relative to the unit baseline variances, the true variance changes are \(3,3,T-1,3\), all nonzero when \(T\ne1\), and the candidate changes are \(3,3,T+23/121,15/4\), all nonzero when \(T>0\).
+
+For existence of the required error laws, in each context take mutually independent Rademacher variables \(R_i^{(k)}\) and put \(\varepsilon_i^{(k)}=\sqrt{S^{(k)}_{ii}}R_i^{(k)}\), with the primed analogue for the candidate.  These coordinates are centered, independent, non-Gaussian, and have exactly the displayed positive diagonal covariance matrices.
+
+Finally, for the candidate deletion of \(1\to3\), the column-one affine consistency determinant formed from the true actual rows is
+\[
+ \det\begin{pmatrix}H_{32}&H_{31}\\H_{42}&H_{41}\end{pmatrix}
+ =\det\begin{pmatrix}1&3\\1&1\end{pmatrix}=-2.
+\]
+The terminal-certificate theorem therefore excludes \(G'_{\mathrm{fork}}\) from \(\mathsf H_{\mathrm{soft}}(G_{\mathrm{fork}})\).  All assertions are exact rational identities; no algebraic-independence assumption is used.  The finite exceptional-polynomial definition, rather than the existence of this one-dimensional family, separately determines whether a particular displayed point belongs to a theorem-specific generic locus.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit rational branch demonstrates that strict positivity is substantive and supplies a checkable worked instance for the compiler. \textit{Gap.} The anchor contains no positive overcomplete soft-intervention collision with all contexts, support constraints, and actual-row separation checked simultaneously. \textit{Consumer.} The five covariance identities and the \(-2\) obstruction are a regression fixture for the robust positive-real branch analysis motivated by Problem 5.2.
+
+\begin{theorem}[thm:fork-eight-branch-classification]\label{thm:fork-eight-branch-classification}
+For \(p=2\) and \((G_{\mathrm{fork}},G'_{\mathrm{fork}})\), the regular covariance-twin problem on \(\mathcal M^{\circ}_{\mathrm{fork},2,4}(G_{\mathrm{fork}},G'_{\mathrm{fork}})\) is exactly the union of eight rational systems in two candidate scalars \((s,x)\).  On each system, \(B_{\ell}v'=\operatorname{vech}(\Sigma^{(0)})\) has the form \(v'=v'_0+sn\), \(m_2=\zeta\ell_1+\rho_2\ell_2\), and \(g=v'_1x\ell_1+v'_2\ell_2\).  For \(k\in\{3,4\}\),
+\[
+ \beta_k=\frac{\det[m_k,\ell_k]}{\det[g,\ell_k]},\qquad
+ m_k-\beta_kg=\rho_k\ell_k,\qquad
+ h'_k=\beta_k(x,1,0,0),
+\]
+and
+\[
+ t'_k=v'_k+2\rho_k-\beta_k^2(v'_1x^2+v'_2),
+ \qquad
+ h'_2=(\zeta/v'_1,0,0,0),
+ \qquad
+ t'_2=v'_2+2\rho_2-\zeta^2/v'_1.
+\]
+Every legal covariance twin determines a solution of one of these eight systems, and every solution satisfying the displayed positivity, denominator, exact-support, retained-edge, and mixing inequations reconstructs a legal twin satisfying the original five covariance equations.  The remaining coefficients \(\Lambda'^{(0)}_{32}\) and \(\Lambda'^{(0)}_{42}\) can be chosen by avoiding finitely many proper affine hyperplanes.  Candidate equalities \(t'_k=v'_k\) remain legal.  For every \(T>0\), \(T\ne1\), the worked family \(\mathcal W_{\mathrm{fork}}(T)\) supplies a legal solution to this reduction.  This result is a sound-and-complete regular reduction; it makes no claim that the projection of the eight systems is dense, or has full-dimensional complement, in every full-dimensional true-parameter chamber.
+\end{theorem}
+\begin{proof}
+On the fork generic locus, vertex \(1\) is the only source. By the covariance-branch lemma, \(D_1\) has its unique regular factor line, whereas each of \(D_2,D_3,D_4\) has rank two and has exactly two real factor lines. Hence the regular factorization has exactly
+\[
+ 1\cdot 2^3=8
+\]
+line branches. The rational projective gauge in the factor-branch definition fixes the scale on every selected line, so no additional scaling branch remains.
+
+The exceptional polynomials used here are not identically zero. Indeed, substitution of the worked true point with \(T=2\) into the covariance-difference formula of \(\mathrm{lem:covariance\text{-}branches}\) gives the following unnormalized factor choices:
+\[
+ \ell_1=(1,2)^{\mathsf T},\qquad
+ \ell_2\in\{(2,3)^{\mathsf T},(5,8)^{\mathsf T}\},\qquad
+ \ell_3\in\{(7,11)^{\mathsf T},(87/2,139/2)^{\mathsf T}\},
+\]
+and
+\[
+ \ell_4\in\{(4,7)^{\mathsf T},(13,45/2)^{\mathsf T}\}.
+\]
+For the four choices of \((\ell_2,\ell_3)\), direct expansion of the determinant of the first three columns of \(B_{\ell}\) gives, respectively,
+\[
+ 3,\qquad \frac{595}{4},\qquad -6,\qquad -\frac{35}{2}.
+\]
+These values do not depend on the choice of \(\ell_4\). The endpoint determinants are
+\[
+ \det[\ell_1,\ell_2]\in\{-1,-2\},\qquad
+ \det[\ell_3,\ell_4]
+ \in\left\{5,\frac{29}{2},\frac{53}{2},\frac{301}{4}\right\}.
+\]
+Thus every displayed value is nonzero. Each relevant minor is therefore a nonzero polynomial in the true parameters. By the definitions of \(\mathcal Q_{\mathrm{fork}}\) and \(\mathcal M^{\circ}_{\mathrm{fork},2,4}\), the selected chart denominators and these rank minors do not vanish on the stated generic locus.
+
+Fix one of the eight branches. Because \(p=2\), equality of the three distinct entries of the baseline covariance is exactly
+\[
+ B_{\ell}v'=\operatorname{vech}(\Sigma^{(0)}),\qquad
+ B_{\ell}
+ =\left[
+   (\ell_{k1}^{2},\ell_{k1}\ell_{k2},\ell_{k2}^{2})^{\mathsf T}
+  \right]_{k=1}^{4}.
+\]
+The preceding nonvanishing minor and the fact that \(B_{\ell}\) has three rows imply
+\[
+ \operatorname{rank}B_{\ell}=3.
+\]
+Consequently the displayed linear map is onto \(\mathbb R^3\), and its complete solution set is the affine line
+\[
+ v'=v'_0+s n,\qquad n\in\ker B_{\ell}\setminus\{0\}.
+\]
+Candidate baseline positivity is exactly the four inequalities \(v'_i>0\). In particular, every division by a component of \(v'\) below is justified on the legal region.
+
+The nonzero determinant \(\det[\ell_1,\ell_2]\) makes \((\ell_1,\ell_2)\) a basis of \(\mathbb R^2\). There are therefore unique scalars \(\zeta,\rho_2\) satisfying
+\[
+ m_2=\zeta\ell_1+\rho_2\ell_2.
+\]
+For the candidate graph, vertex \(2\) has the sole ancestor and parent \(1\). Thus the branch equation \(Lz_2+\rho_2\ell_2=m_2\) forces
+\[
+ z_2=(\zeta,0,0,0)^{\mathsf T}.
+\]
+Since \(z_2=\operatorname{diag}(v')h'_2\), it follows that
+\[
+ h'_2=(\zeta/v'_1,0,0,0),\qquad
+ t'_2=v'_2+2\rho_2-\frac{\zeta^2}{v'_1}.
+\]
+The exact-change condition is \(\zeta\ne0\), intervention-variance positivity is \(t'_2>0\), and if \(x=\Lambda'^{(0)}_{21}\), retention of the edge \(1\to2\) is
+\[
+ x+\frac{\zeta}{v'_1}\ne0.
+\]
+
+For \(k\in\{3,4\}\), the candidate graph gives \(\operatorname{pa}_{G'_{\mathrm{fork}}}(k)=\{2\}\) and \(\operatorname{an}_{G'_{\mathrm{fork}}}(k)=\{1,2\}\). Write a possible actual row as \(h'_k=(r_1,r_2,0,0)\). Multiplication by \(U=I_4-\Lambda'^{(0)}\) gives
+\[
+ \delta'_{k1}=r_1-xr_2,\qquad \delta'_{k2}=r_2.
+\]
+Exact support \(\operatorname{supp}(\delta'_k)=\{2\}\) is therefore equivalent to
+\[
+ h'_k=\beta_k(x,1,0,0),\qquad \beta_k\ne0.
+\]
+It follows from \(z_k=\operatorname{diag}(v')h'_k\) that
+\[
+ z_k=\beta_k(v'_1x,v'_2,0,0)^{\mathsf T},\qquad
+ Lz_k=\beta_k g,\qquad
+ g=v'_1x\ell_1+v'_2\ell_2.
+\]
+The factor equation becomes
+\[
+ m_k-\beta_kg=\rho_k\ell_k.
+\]
+Taking determinants with \(\ell_k\) gives
+\[
+ \det[m_k,\ell_k]-\beta_k\det[g,\ell_k]=0.
+\]
+Since \(D_k=\ell_km_k^{\mathsf T}+m_k\ell_k^{\mathsf T}\) has rank two, the vectors \(\ell_k,m_k\) are independent, and hence \(\det[m_k,\ell_k]\ne0\). A feasible solution therefore cannot have \(\det[g,\ell_k]=0\), and division yields
+\[
+ \beta_k=\frac{\det[m_k,\ell_k]}{\det[g,\ell_k]}.
+\]
+Substitution in the variance identity from the complete covariance branch gives
+\[
+ t'_k
+ =v'_k+2\rho_k-\sum_{i=1}^{4}\frac{z_{ki}^{2}}{v'_i}
+ =v'_k+2\rho_k-\beta_k^2(v'_1x^2+v'_2),
+\]
+and legality is exactly \(t'_k>0\). No argument divides by \(t'_k-v'_k\), so the equality \(t'_k=v'_k\) remains admissible. At the source \(1\), one has \(h'_1=z_1=0\), \(m_1=\rho_1\ell_1\), and \(t'_1=v'_1+2\rho_1>0\), as required by the inherited branch constraints.
+
+It remains to recover the baseline structural mixing. Put
+\[
+ b=\Lambda'^{(0)}_{32},\qquad c=\Lambda'^{(0)}_{42}.
+\]
+Then
+\[
+ F'=LU
+ =\bigl[\ell_1-x\ell_2,\ \ell_2-b\ell_3-c\ell_4,\ \ell_3,\ \ell_4\bigr].
+\]
+The explicit branch inequations require the first, third, and fourth columns here to be nonzero and pairwise noncollinear. Because \(\det[\ell_3,\ell_4]\ne0\), the affine map
+\[
+ (b,c)\longmapsto\ell_2-b\ell_3-c\ell_4
+\]
+is onto \(\mathbb R^2\). Requiring its image to be nonzero and not collinear with any of the other three columns excludes only finitely many proper affine subsets of the \((b,c)\)-plane. The conditions
+\[
+ b\ne0,\qquad c\ne0,\qquad b+\beta_3\ne0,\qquad c+\beta_4\ne0
+\]
+exclude four additional proper affine lines and express exact baseline support and retained edges. A finite union of proper affine lines and points cannot cover \(\mathbb R^2\), so legal \(b,c\) exist.
+
+Necessity of all displayed equations and inequations follows from \(\mathrm{lem:covariance\text{-}branches}\). Conversely, start with a solution of one of the eight systems, choose \(b,c\) outside the preceding finite forbidden union, set \(F'=LU\), and set \(\delta'_k{}^{\mathsf T}=h'_k{}^{\mathsf T}U\). The baseline equation gives
+\[
+ \Sigma'^{(0)}=L\operatorname{diag}(v')L^{\mathsf T}=\Sigma^{(0)}.
+\]
+For every \(k\), write \(z_k=\operatorname{diag}(v')h'_k\). The constructed identities imply
+\[
+ m_k=Lz_k+\rho_k\ell_k,\qquad
+ h'_k{}^{\mathsf T}\operatorname{diag}(v')h'_k+t'_k-v'_k=2\rho_k.
+\]
+Applying the covariance-difference identity to the candidate therefore gives
+\[
+\begin{aligned}
+ D'_k
+ &=\ell_k(Lz_k)^{\mathsf T}+(Lz_k)\ell_k^{\mathsf T}
+   +2\rho_k\ell_k\ell_k^{\mathsf T}\\
+ &=\ell_km_k^{\mathsf T}+m_k\ell_k^{\mathsf T}
+ =D_k.
+\end{aligned}
+\]
+Together with the baseline equality, this proves \(\Sigma'^{(k)}=\Sigma^{(k)}\) for all five contexts \(k\in K\). Thus every legal twin enters one of the eight systems, and every legal solution reconstructs a twin satisfying the original covariance equations. Finally, \(\mathrm{prop:fork\text{-}rational\text{-}collision}\) supplies such a legal twin for every \(T>0\), \(T\ne1\), so completeness places each worked point on one of the eight systems. This proves exactly the asserted regular two-scalar reduction and no chamberwise density conclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem is the exact regular fiber reduction: it proves necessity and sufficiency of eight two-scalar systems and verifies reconstruction against all five original covariance equations. \textit{Gap.} It does not decide whether the union of the eight projected legal regions is relatively dense or has a full-dimensional complement in every true chamber. \textit{Consumer.} The LCD workflow obtains eight auditable covariance-twin systems and can verify any returned candidate, but receives no generic information-frontier verdict.
+
+\begin{proposition}[prop:information-nesting]\label{prop:information-nesting}
+For every \(2\le p<q\) and every DAG \(G\), \(\mathsf H_{\mathrm{soft}}(G)\subseteq\mathsf{Cov}_p(G)\) for the generic chamberwise covariance functional. The claim covers both signs of every true variance change, makes no pointwise assertion on \(t_k=v_k\), and allows candidate twins with \(t'_k=v'_k\).
+\end{proposition}
+\begin{proof}
+Fix \(G'\in\mathsf H_{\mathrm{soft}}(G)\), and let \(C\) be an arbitrary full-dimensional connected semialgebraic chamber of \(\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\).  We prove that \(\mathcal E_p(G,G')\cap C\) is relatively dense in \(C\), which is stronger than the condition required in the definition of \(\mathsf{Cov}_p(G)\).
+
+First, the terminal-generic locus is relatively dense in \(C\).  Indeed, by the definitions of the exceptional-polynomial families and generic loci, its complement in \(C\) is contained in the union of the zero sets of finitely many polynomials that are nonzero on the ambient coordinate space for the fixed graph pair.  A nonzero real polynomial cannot vanish on a nonempty Euclidean open set: this follows by induction on the number of variables from the fact that a nonzero univariate polynomial has only finitely many roots.  Since \(C\) is full-dimensional in the ambient semialgebraic model, each such zero set has empty relative interior in \(C\), as does their finite union.  Consequently,
+\[
+ C\cap\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G')
+ \quad\text{is relatively dense in }C.
+\]
+
+Let \(O\subseteq C\) be a nonempty relatively open set.  Choose
+\[
+ \theta_0=(F_0,\Lambda^{(0)}_0,\delta_0,v_0,t_0)
+ \in O\cap\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G').
+\]
+Write \(P_0=(I_q-\Lambda^{(0)}_0)^{-1}\), let \(H_0\) be its actual-row matrix, and abbreviate the structural coordinates other than the mixing matrix by
+\(
+ \eta_0=(\Lambda^{(0)}_0,\delta_0,v_0,t_0).
+\)
+Because \(G'\in\mathsf H_{\mathrm{soft}}(G)\), the corrected-class definition, equivalently the terminal certificate, supplies a unit lower-triangular matrix
+\[
+ U_0=I_q-\Lambda'^{(0)}
+\]
+with exact baseline support \(G'\) such that, for every \(k\in V\),
+\[
+ \delta'_k{}^{\mathsf T}:=h_{0k}^{\mathsf T}U_0
+\]
+has exact support \(\operatorname{pa}_{G'}(k)\), and
+\(
+ \Lambda'^{(0)}_{kj}+\delta'_{kj}\ne0
+\)
+for every \(j\in\operatorname{pa}_{G'}(k)\).  Thus all candidate structural support and retained-edge conditions already hold at the fixed structural coordinates.
+
+It remains to arrange the candidate mixing conditions without leaving \(O\).  Put \(B=P_0U_0\).  Both factors are invertible, so the columns \(b_1,\ldots,b_q\) of \(B\) are nonzero and every pair \(b_i,b_j\), \(i\ne j\), is linearly independent.  For a variable matrix \(\widetilde F\in\mathbb R^{p\times q}\), define the bad set
+\[
+ \mathcal Z_B=
+ \bigcup_{j=1}^q\{\widetilde F:\widetilde F b_j=0\}
+ \;\cup\!
+ \bigcup_{1\le i<j\le q}
+ \{\widetilde F:\operatorname{rank}[\widetilde F b_i\;\widetilde F b_j]<2\}.
+\]
+Every component in the first union is the zero set of the nonzero polynomial
+\(
+ \|\widetilde F b_j\|_2^2.
+\)
+Every component in the second union is the zero set of the sum of squares of the \(2\times2\) minors of
+\([
+\widetilde F b_i\;\widetilde F b_j
+]\).  That polynomial is nonzero: because \(b_i,b_j\) are linearly independent and \(p\ge2\), there is a linear map \(T:\mathbb R^q\to\mathbb R^p\) with \(Tb_i=e_1\) and \(Tb_j=e_2\).  Hence \(\mathcal Z_B\) is a finite union of proper real algebraic sets and has empty Euclidean interior by the polynomial argument above.
+
+Full row rank and the nonzero, pairwise-noncollinear-column conditions for \(\widetilde F\) are open and hold at \(F_0\).  Moreover, because \(O\) is relatively open and the structural coordinate \(\eta_0\) is fixed, every sufficiently small admissible perturbation of \(F_0\) remains in \(O\).  We may therefore choose \(\widetilde F\) arbitrarily close to \(F_0\) such that
+\[
+ \widetilde\theta=(\widetilde F,\eta_0)\in O,
+ \qquad \widetilde F\notin\mathcal Z_B.
+\]
+In particular, \(\widetilde F\) is a legal true mixing matrix, and \(\widetilde F B\) has nonzero pairwise-noncollinear columns.
+
+We now construct a covariance twin for \(\widetilde\theta\).  Let
+\[
+ P'=U_0^{-1},\qquad
+ F'=\widetilde F P_0U_0=\widetilde F B,
+ \qquad v'=v_0,\qquad t'=t_0,
+\]
+and use the candidate coefficients \(\Lambda'^{(0)}=I_q-U_0\) and \(\delta'_k{}^{\mathsf T}=h_{0k}^{\mathsf T}U_0\) fixed above.  Since right multiplication by the invertible matrix \(B\) preserves row rank,
+\(
+ \operatorname{rank}(F')=\operatorname{rank}(\widetilde F)=p.
+\)
+The choice \(\widetilde F\notin\mathcal Z_B\) gives the remaining candidate mixing conditions.  Positivity follows from \(v'=v_0>0\) and \(t'=t_0>0\).  Exact baseline support, exact intervention support, and retained edges were supplied by \(U_0\).  Finally, equality of transitive closures implies that the displayed topological order for \(G\) is also a topological order for \(G'\).  Hence the constructed parameter \(\theta'\) belongs to \(\mathcal M_{p,q}(G')\).
+
+Let \(\widetilde A=\widetilde F P_0\) and \(\widetilde a_k=\widetilde A e_k\).  The candidate baseline reduced mixing is
+\[
+ A'=F'P'=\widetilde F P_0U_0U_0^{-1}=\widetilde A,
+\]
+and its actual intervention row is
+\[
+ h'_k{}^{\mathsf T}
+ =\delta'_k{}^{\mathsf T}P'
+ =h_{0k}^{\mathsf T}U_0U_0^{-1}
+ =h_{0k}^{\mathsf T}.
+\]
+Applying the inverse-update identity proved in the covariance-branches lemma first to \(\widetilde\theta\) and then to \(\theta'\) gives, for every \(k\in V\),
+\[
+ F'(I_q-\Lambda'^{(k)})^{-1}
+ =A'+A'e_kh'_k{}^{\mathsf T}
+ =\widetilde A+\widetilde a_kh_{0k}^{\mathsf T}
+ =\widetilde F(I_q-\Lambda^{(k)}_0)^{-1}.
+\]
+The same equality holds at \(k=0\) by the displayed baseline calculation.  Since \(v'=v_0\) and \(t'=t_0\), the positive diagonal error-covariance matrices also agree context by context.  Substitution into the defining covariance formula therefore yields
+\[
+ \Sigma_{\theta'}^{(k)}=\Sigma_{\widetilde\theta}^{(k)}
+ \qquad\text{for every }k\in K.
+\]
+Thus \(\widetilde\theta\in\mathcal E_p(G,G')\cap O\).
+
+Because every nonempty relatively open \(O\subseteq C\) contains such a point,
+\[
+ \operatorname{cl}_{C}\bigl(\mathcal E_p(G,G')\cap C\bigr)=C,
+\]
+and hence
+\[
+ C\setminus\operatorname{cl}_{C}\bigl(\mathcal E_p(G,G')\cap C\bigr)=\varnothing.
+\]
+This holds for every full-dimensional chamber \(C\), so the definition of the generic positive-real covariance class gives \(G'\in\mathsf{Cov}_p(G)\).
+
+The argument is chamberwise for either sign of every nonzero true variance change.  It never divides by \(t_k-v_k\), and it makes no assertion on the true variance-neutral hyperplanes excluded from the covariance-generic locus.  The definition permits candidate variance neutrality; the particular dense witness above simply takes \(v'=v_0\) and \(t'=t_0\).  Since \(G'\in\mathsf H_{\mathrm{soft}}(G)\) was arbitrary, we conclude
+\[
+ \mathsf H_{\mathrm{soft}}(G)\subseteq\mathsf{Cov}_p(G).
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The nesting gives the information-order direction needed before equality or strict covariance surplus can be meaningful. \textit{Gap.} Problem 5.2 motivates an information comparison for the published classes. Corrected actual-row compatibility and the chamberwise robust covariance class change both objects, so their nesting requires a separate result and is not an asserted identification with the published covariance-compatible class. \textit{Consumer.} This fixes the information-order direction needed to interpret robust covariance-only alternatives in the companion LCD workflow.
+
+\begin{proposition}[prop:observable-quotient]\label{prop:observable-quotient}
+On \(\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G)\cap\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G)\), the relation recovered from the aligned factorization datum satisfies \(\mathcal C(\mathcal R)=\overline G\) up to the common latent permutation.  The maps \(\mathcal R\mapsto\mathcal G_{\mathrm{soft}}(\mathcal R)\) and \((\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\mapsto\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\) are invariant to the representative of \(\mathcal R\) under \(\mathfrak M_q\).  The rational projective gauge removes every nonzero diagonal scale, and enumeration of the remaining common permutation orbit preserves terminal ranks, exact-support conditions, covariance feasibility, realization witnesses, and separators.  Consequently, \(\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\setminus\mathcal G_{\mathrm{soft}}(\mathcal R)\) is a well-defined quotient-valued pointwise population functional.  Without an additional generic-to-pointwise constancy theorem, this proposition does not identify that pointwise difference with the chamberwise graph functional \(\mathsf{Cov}_p(G)\setminus\mathsf H_{\mathrm{soft}}(G)\).
+\end{proposition}
+\begin{proof}
+Fix \(\theta\in\mathcal M^{\circ}_{\mathrm{term},p,q}(G,G)\cap
+\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G)\), and first use the representative of
+\(\mathcal R\) generated by \(\theta\).  By \texttt{lem:covariance-branches}, for
+each \(k\in V\),
+\[
+ A^{(k)}-A^{(0)}=a_kh_k^{\mathsf T}.
+\]
+The nonzero rank minors and factor-line discriminants defining the branch-generic
+locus make \(D_k\) nonzero.  Indeed, at a source the displayed formula in
+\texttt{lem:covariance-branches} reduces to
+\(D_k=(t_k-v_k)a_ka_k^{\mathsf T}\), where \(t_k-v_k\ne0\) on that locus, and at
+a non-source the same lemma gives two nonproportional rank-one directions.  Since
+every term in the covariance-difference formula contains \(a_k\), in either case
+\(D_k\ne0\) implies \(a_k\ne0\).  Choose an observed coordinate \(r(k)\) with
+\((a_k)_{r(k)}\ne0\).  Then the preceding rank-one identity determines the row
+entry by entry:
+\[
+ h_{ki}=\frac{(A^{(k)}-A^{(0)})_{r(k),i}}{(a_k)_{r(k)}}
+ \qquad(i\in V).
+\]
+Thus the row recovered in \texttt{def:recovered-closure} is the actual row in
+\texttt{def:actual-rows}.  It also satisfies the imposed normalization
+\(h_{kk}=0\): by topological ordering, \(P_{jk}=0\) for
+\(j\in\operatorname{pa}_G(k)\), and hence
+\[
+ h_{kk}=\sum_{j\in\operatorname{pa}_G(k)}\delta_{kj}P_{jk}=0.
+\]
+
+It remains to determine the support of the recovered row without assuming away
+path cancellation.  Apply the terminal-linkage conclusion of
+\texttt{thm:terminal-certificate} with \(R=\{k\}\) and \(C=\{i\}\).  The
+one-by-one matrix \(H[R,C]\) has rank one exactly when there is a directed path
+from \(i\) to \(k^{\star}\) in \(G^{\mathrm{term}}\).  By
+\texttt{def:terminal-copy}, such a path exists exactly when there is a
+positive-length directed path from \(i\) to \(k\) in \(G\): a path to
+\(k^{\star}\) ends with \(j\to k^{\star}\) for a parent \(j\) of \(k\), and
+replacing that last edge by \(j\to k\) gives the path in \(G\), while the reverse
+replacement gives the converse.  Consequently,
+\[
+ (H_{\mathcal R})_{ki}\ne0
+ \quad\Longleftrightarrow\quad
+ i\to k\in\overline G.
+\]
+The definition of \(\mathcal C(\mathcal R)\) therefore yields
+\(\mathcal C(\mathcal R)=\overline G\) for this representative.
+
+We next prove representative invariance.  The monomial group is generated by
+nonsingular diagonal matrices and permutation matrices.  Let
+\(C=\operatorname{diag}(c_1,\ldots,c_q)\), with every \(c_i\ne0\).  Under the
+diagonal action in \texttt{def:aligned-factor-input},
+\[
+ A^{(k)}C-A^{(0)}C
+ =a_kh_k^{\mathsf T}C
+ =(c_ka_k)\bigl(c_k^{-1}h_k^{\mathsf T}C\bigr).
+\]
+Uniqueness of the row just proved shows that the recovered matrices before and
+after rescaling satisfy
+\[
+ \widetilde H=C^{-1}HC.
+\]
+It follows entrywise that \(\widetilde H_{ki}=c_k^{-1}H_{ki}c_i\), so the zero
+pattern is unchanged.  If \(U'=I_q-\Lambda'^{(0)}\) is a candidate structural
+witness, put \(\widetilde U=C^{-1}U'C\).  Then
+\[
+ (\widetilde H\widetilde U)_{ki}
+ =c_k^{-1}(HU')_{ki}c_i.
+\]
+Thus every exact-support and noncancellation condition is preserved.  Likewise,
+for all index sets \(R_0,C_0\subseteq V\),
+\[
+ \operatorname{rank}\widetilde H[R_0,C_0]
+ =\operatorname{rank}\bigl(C[R_0,R_0]^{-1}H[R_0,C_0]C[C_0,C_0]\bigr)
+ =\operatorname{rank}H[R_0,C_0],
+\]
+because both diagonal submatrices are invertible.  These equalities transport the
+terminal-rank, affine-feasibility, and exact-support certificates of
+\texttt{thm:terminal-certificate} in both directions.
+
+For completeness, consider any model witness
+\((F',\Lambda'^{(0)},\delta',v',t')\in\mathcal M_{p,q}(D)\) for a candidate DAG
+\(D\).  Define, in every context,
+\[
+ \widetilde F=F'C,
+ \qquad
+ \widetilde\Lambda^{(k)}=C^{-1}\Lambda'^{(k)}C,
+ \qquad
+ \widetilde\varepsilon^{(k)}=C^{-1}\varepsilon'^{(k)}.
+\]
+Since \(C^{-1}e_k=c_k^{-1}e_k\), the intervention remains a single-node
+intervention and its row, baseline variances, and target variances are
+\[
+ \widetilde\delta_k^{\mathsf T}=c_k^{-1}\delta_k'{}^{\mathsf T}C,
+ \qquad
+ \widetilde v_i=c_i^{-2}v'_i,
+ \qquad
+ \widetilde t_i=c_i^{-2}t'_i.
+\]
+Hence all variances remain strictly positive, and
+\[
+ \widetilde\Lambda^{(0)}_{ki}+\widetilde\delta_{ki}
+ =c_k^{-1}\bigl(\Lambda'^{(0)}_{ki}+\delta'_{ki}\bigr)c_i.
+\]
+The exact edge support and retained-edge inequalities are therefore preserved.
+Right multiplication of \(F'\) by an invertible diagonal matrix preserves its
+rank, its nonzero columns, and its pairwise noncollinear column lines.  Nonzero
+coordinatewise scaling also preserves centering, independence, and
+non-Gaussianity of the error coordinates.  Finally,
+\[
+ (I_q-\widetilde\Lambda^{(k)})^{-1}
+ =C^{-1}(I_q-\Lambda'^{(k)})^{-1}C,
+\]
+and therefore
+\[
+ \widetilde F(I_q-\widetilde\Lambda^{(k)})^{-1}
+ \widetilde\varepsilon^{(k)}
+ =F'(I_q-\Lambda'^{(k)})^{-1}\varepsilon'^{(k)}.
+\]
+In particular the full observed laws, and hence every observed covariance
+\(\Sigma^{(k)}\), are unchanged.  The construction with \(C^{-1}\) is its
+inverse, so this is a bijection of realization witnesses and of positive-real
+covariance-feasibility fibers.
+
+Now let \(\Pi\) be a permutation matrix and define \(\sigma\) by
+\(\Pi e_j=e_{\sigma(j)}\).  Keep the baseline label \(0\) fixed and relabel each
+target context \(j\in V\) as the old context \(\sigma(j)\).  Set
+\[
+ \widetilde\Lambda^{(0)}=\Pi^{\mathsf T}\Lambda'^{(0)}\Pi,
+ \qquad
+ \widetilde\Lambda^{(j)}=\Pi^{\mathsf T}\Lambda'^{(\sigma(j))}\Pi,
+ \qquad
+ \widetilde F=F'\Pi,
+\]
+and transform the corresponding errors to \(\Pi^{\mathsf T}\varepsilon'^{(0)}\)
+and \(\Pi^{\mathsf T}\varepsilon'^{(\sigma(j))}\), respectively.  Direct
+substitution gives the same observed law in the relabeled context and gives
+\[
+ \widetilde H=\Pi^{\mathsf T}H\Pi.
+\]
+Thus a common permutation merely relabels the graph, targets, supports, terminal
+paths, and all feasibility systems.  Combining this permutation transport with
+the diagonal transport proves invariance under every element of
+\(\mathfrak M_q\).  A realization witness is carried to the displayed witness;
+an infeasibility or separator certificate is carried back by the inverse
+bijective substitution.  Consequently feasibility and nonmembership, not merely
+their truth values, have representative-independent certificates.
+
+The projective gauge in \texttt{def:aligned-factor-input} removes exactly the
+diagonal part.  Indeed, for a nonzero loading column \(b_j\), let \(s(j)\) be its
+least-index nonzero observed coordinate and take
+\(c_j=b_{s(j),j}^{-1}\).  The \(s(j)\)-th coordinate of \(c_jb_j\) is then one.
+If another nonzero scalar gives the same normalization, comparison of that pivot
+coordinate shows that it equals \(c_j\).  Thus the scale is unique on each
+rational projective chart.  Only the finite common permutation orbit remains,
+and the preceding conjugation calculation proves that enumerating it preserves
+terminal ranks, supports, covariance feasibility, witnesses, and separators.
+
+By \texttt{def:observable-classes}, membership of a DAG in
+\(\mathcal G_{\mathrm{soft}}(\mathcal R)\) or in
+\(\mathcal G_{\mathrm{cov}}(\mathcal R,\{\Sigma^{(k)}\}_{k\in K})\) is an
+existential assertion about precisely the witnesses transported above.  The
+diagonal action leaves each labeled graph unchanged, and the permutation action
+relabels every graph simultaneously.  Hence both graph-set maps, and therefore
+their set difference, are independent of the representative and define the
+claimed quotient-valued pointwise population functional.
+
+Finally, this pointwise conclusion must not be identified with the generic graph
+classes.  By \texttt{def:observable-classes}, observable covariance membership
+asks for a witness at the single supplied covariance tuple.  In contrast, by
+\texttt{def:covariance-class}, \(G'\in\mathsf{Cov}_p(G)\) is a statement about
+the closure of \(\mathcal E_p(G,G')\) in every full-dimensional sign and variance
+chamber.  The quantifiers are inequivalent: if \(C_0\) is a positive-dimensional
+semialgebraic chamber and \(u\in C_0\), then
+\(C_0\setminus\{u\}\) is semialgebraic and dense in \(C_0\) but does not contain
+\(u\), whereas \(\{u\}\) contains the supplied point but is not dense in
+\(C_0\).  These are explicit witnesses that chamberwise genericity alone implies
+neither pointwise membership at every point nor its converse.  Similarly,
+\texttt{def:corrected-class} quantifies actual-row compatibility over every point
+of its stated generic locus, while \(\mathcal G_{\mathrm{soft}}(\mathcal R)\)
+asks only for a realization of the supplied \(\mathcal R\).  No assumption or
+established result in the dependency list asserts constancy of either feasibility
+property across those loci.  Therefore the proved quotient-valued pointwise
+difference is distinct from, and is not identified here with,
+\(\mathsf{Cov}_p(G)\setminus\mathsf H_{\mathrm{soft}}(G)\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition makes the population target invariant to the unavoidable latent permutation and scaling ambiguity. \textit{Gap.} The comparator results recover latent factors or graph classes only up to relabeling; they do not state this corrected covariance-versus-actual-row pair as one quotient-valued data functional. \textit{Consumer.} This supplies the companion LCD workflow with a quotient-valued graph-class target for the Problem 5.1 correction and the robust covariance refinement motivated by Problem 5.2.
+
+\begin{openendedquestion}[oeq:positive-real-compiler]\label{oeq:positive-real-compiler}
+Extend the bounded-width compiler to every \(2\le p<q\) and every same-transitive-closure pair \((G,G')\). Decide whether \(G'\in\mathsf{Cov}_p(G)\setminus\mathsf H_{\mathrm{soft}}(G)\) over every legal positive-real factor-line branch in each full-dimensional sign and variance chamber \(C\subset\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\). Prove soundness, completeness, and termination without unrestricted real quantifier elimination. On acceptance return a finite chamberwise dense positive-real realization cover; on rejection return a checkable full-dimensional linkage, affine, covariance-cone-face, or positivity separator. Give a closed-form bit-operation and coefficient-growth bound in \(p\), \(q\), \(B\), and the realized branch-interaction structure, and derive infinite equality and generic-strictness families. The theorem-specific locus may exclude \(\prod_{k\in V}(t_k-v_k)=0\); candidate twins may be variance-neutral, both signs of each true variance change must be covered, and no pointwise claim is made on the excluded hyperplanes.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the unresolved theorem-level frontier: a graph-specific positive-real decision principle for all noninjective soft-LCD systems. \textit{Gap.} Problem 5.2 motivates covariance-versus-higher-cumulant strictness for the published source model. The class \(\mathsf{Cov}_p(G)\) is instead a robust generic-chamber refinement internal to \(\mathcal M_{p,q}\); convex, birational, and half-trek results do not yield its all-graph projection completeness. \textit{Consumer.} The companion LCD workflow can use acceptance certificates to report genuine covariance alternatives and rejection certificates to justify when higher cumulants remove them.
+
+\begin{theorem}[thm:fork-all-chamber-projection]\label{thm:fork-all-chamber-projection}
+For \(p=2\) and the pair \((G_{\mathrm{fork}},G'_{\mathrm{fork}})\), index the eight systems of \(\mathfrak B_2(G_{\mathrm{fork}},G'_{\mathrm{fork}})\) by \(\eta\in\{0,1\}^3\). For every full-dimensional connected chamber \(C\) of \(\mathcal M^{\circ}_{\mathrm{fork},2,4}(G_{\mathrm{fork}},G'_{\mathrm{fork}})\), let \(\mathscr S_{\eta,C}\subseteq C\times\mathbb R^2\) consist of the triples \((\theta,s,x)\) satisfying all baseline-variance, intervention-variance, denominator, exact-support, retained-edge, mixing, and exceptional-polynomial equations and inequations of branch \(\eta\), with the reconstructed \(\theta'\in\mathcal M_{2,4}(G'_{\mathrm{fork}})\) required to satisfy \(\Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}\) for every \(k\in K\). If \(\pi_C(\theta,s,x)=\theta\), then
+\[
+ \mathcal E_2(G_{\mathrm{fork}},G'_{\mathrm{fork}})\cap C
+ =\bigcup_{\eta\in\{0,1\}^3}\pi_C(\mathscr S_{\eta,C}).
+\]
+Since \(G'_{\mathrm{fork}}\notin\mathsf H_{\mathrm{soft}}(G_{\mathrm{fork}})\), membership in \(\mathsf{Frontier}_2(G_{\mathrm{fork}})\) is equivalent to the condition that, for every such \(C\),
+\[
+ \operatorname{relint}_C\!\left(
+ C\setminus\operatorname{cl}_C
+ \left(\bigcup_{\eta\in\{0,1\}^3}\pi_C(\mathscr S_{\eta,C})\right)
+ \right)=\varnothing.
+\]
+Let \(\theta_{\mathrm{true}}(T)\) denote the true-coordinate projection of the pair \(\mathcal W_{\mathrm{fork}}(T)\). This one-parameter family, even together with regular open neighborhoods of all its audited points, is insufficient to decide the density condition: there are relatively semialgebraic subsets of a full-dimensional chamber containing the same true-coordinate family and neighborhoods but having opposite answers to the displayed density test. Thus the eight-branch reduction gives an exact projection problem, but neither a chamberwise dense cover nor a full-dimensional separator follows without an additional global projection argument.
+\end{theorem}
+\begin{proof}
+Fix a full-dimensional connected chamber \(C\) of
+\(\mathcal M^{\circ}_{\mathrm{fork},2,4}(G_{\mathrm{fork}},G'_{\mathrm{fork}})\).
+We first prove the asserted equality of sets.
+
+Let
+\(\theta\in\mathcal E_2(G_{\mathrm{fork}},G'_{\mathrm{fork}})\cap C\).
+By the definition of \(\mathcal E_2\), there is a legal point
+\(\theta'\in\mathcal M_{2,4}(G'_{\mathrm{fork}})\) such that
+\[
+ \Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}
+ \qquad\text{for every }k\in K.
+\]
+Because \(\theta\in C\) lies in the stated regular fork locus,
+\(\mathrm{thm:fork\text{-}eight\text{-}branch\text{-}classification}\) applies.  Its
+completeness direction selects one of the eight factor-line indices
+\(\eta\in\{0,1\}^3\) and returns scalars \((s,x)\in\mathbb R^2\) satisfying
+the branch's baseline-variance, intervention-variance, denominator,
+exact-support, retained-edge, mixing, and exceptional-polynomial conditions.
+The same result verifies the five displayed covariance equations.  Hence
+\((\theta,s,x)\in\mathscr S_{\eta,C}\), and therefore
+\[
+ \theta\in
+ \bigcup_{\eta\in\{0,1\}^3}\pi_C(\mathscr S_{\eta,C}).
+\]
+
+Conversely, suppose that
+\(\theta\in\pi_C(\mathscr S_{\eta,C})\) for some \(\eta\).  Then there are
+\((s,x)\in\mathbb R^2\) with \((\theta,s,x)\in\mathscr S_{\eta,C}\).
+By the soundness direction of
+\(\mathrm{thm:fork\text{-}eight\text{-}branch\text{-}classification}\), the
+branch solution reconstructs a point
+\(\theta'\in\mathcal M_{2,4}(G'_{\mathrm{fork}})\): all four baseline
+variances and all four intervention variances are positive, every required
+coefficient and change is nonzero, every changed edge is retained, and the
+mixing columns are nonzero and pairwise noncollinear.  That theorem's final
+calculation gives
+\[
+ \Sigma_{\theta'}^{(k)}-\Sigma_{\theta'}^{(0)}
+ =D_k
+ =\Sigma_{\theta}^{(k)}-\Sigma_{\theta}^{(0)}
+ \qquad(k\in V),
+\]
+while its baseline equation gives
+\(\Sigma_{\theta'}^{(0)}=\Sigma_{\theta}^{(0)}\).  Adding the baseline
+equality to each difference equality proves
+\[
+ \Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}
+ \qquad(k\in K).
+\]
+Thus \(\theta\in\mathcal E_2(G_{\mathrm{fork}},G'_{\mathrm{fork}})\cap C\).
+The two inclusions prove
+\[
+ \mathcal E_2(G_{\mathrm{fork}},G'_{\mathrm{fork}})\cap C
+ =\bigcup_{\eta\in\{0,1\}^3}\pi_C(\mathscr S_{\eta,C}).
+\]
+
+We next translate this equality into the information-frontier criterion.
+For an arbitrary subset \(A\subseteq C\), the complement
+\(C\setminus\operatorname{cl}_C(A)\) is relatively open in \(C\).  It is
+therefore nonempty if and only if its relative interior is nonempty.  Hence
+\[
+ \operatorname{relint}_C\bigl(C\setminus\operatorname{cl}_C(A)\bigr)
+ =\varnothing
+ \quad\Longleftrightarrow\quad
+ \operatorname{cl}_C(A)=C.
+\]
+In words, the displayed relative-interior condition is exactly density in
+\(C\).
+
+The fork locus is obtained from the branch locus by deleting the zero sets
+of the finitely many additional nonzero polynomials in
+\(\mathcal Q_{\mathrm{fork}}\).  For completeness, a nonzero real polynomial
+cannot vanish on a nonempty open set: induction on the number of variables
+reduces the assertion to the fact that a nonzero univariate polynomial has
+only finitely many roots, after viewing the polynomial as a univariate
+polynomial whose coefficients are polynomials in the remaining variables.
+Consequently each deleted zero set has empty relative interior in every
+full-dimensional branch chamber.  The fork locus is thus relatively open
+and dense there, and its full-dimensional connected chambers form an open
+dense refinement.
+
+If a set is dense in a branch chamber, its intersection with every member
+of this open refinement is dense in that member: every nonempty relatively
+open subset of the member is also relatively open in the branch chamber.
+Conversely, if the intersections are dense in all refining chambers, their
+closures contain their union, and the closure of that union is the whole
+branch chamber because the refinement is dense.  Therefore the density test
+in the definition of \(\mathsf{Cov}_2(G_{\mathrm{fork}})\) is equivalent to
+the same test on every chamber \(C\) appearing in the theorem.  By
+\(\mathrm{prop:fork\text{-}rational\text{-}collision}\),
+\[
+ G'_{\mathrm{fork}}\notin
+ \mathsf H_{\mathrm{soft}}(G_{\mathrm{fork}}).
+\]
+Using the definition
+\(\mathsf{Frontier}_2=\mathsf{Cov}_2\setminus\mathsf H_{\mathrm{soft}}\),
+the just-proved set equality, and the density equivalence yields
+\[
+ G'_{\mathrm{fork}}\in\mathsf{Frontier}_2(G_{\mathrm{fork}})
+ \quad\Longleftrightarrow\quad
+ \operatorname{relint}_C\!\left(
+ C\setminus\operatorname{cl}_C
+ \left(\bigcup_{\eta\in\{0,1\}^3}
+ \pi_C(\mathscr S_{\eta,C})\right)
+ \right)=\varnothing
+\]
+for every full-dimensional connected fork chamber \(C\).
+
+It remains to prove the stated limitation of the worked family.  Its true
+coordinates obey fixed affine equalities, including
+\[
+ v_1=v_2=v_3=v_4=1,
+\]
+and fixed equalities for the displayed baseline coefficient and loading
+coordinates.  Its image is consequently contained in a proper affine
+algebraic subset \(Z\) of the full-dimensional true-parameter domain.  Let
+\(C\) be a full-dimensional chamber meeting this family.  The relatively
+open semialgebraic set \(C\setminus Z\) is nonempty, so it contains a point
+\(\theta_0\) and a sufficiently small relative open ball \(B\) whose closure
+in \(C\) is disjoint from \(Z\).  Put
+\[
+ P_0=C\setminus\overline B,
+ \qquad
+ P_1=C.
+\]
+Both \(P_0\) and \(P_1\) are relatively semialgebraic.  Since
+\(Z\cap\overline B=\varnothing\), both contain the same worked true-coordinate
+family and a relative neighborhood of each of its points.  Nevertheless,
+\[
+ B\subseteq C\setminus\operatorname{cl}_C(P_0),
+ \qquad
+ C\setminus\operatorname{cl}_C(P_1)=\varnothing.
+\]
+Because \(B\) is nonempty and relatively open, it follows that
+\[
+ \operatorname{relint}_C
+ \bigl(C\setminus\operatorname{cl}_C(P_0)\bigr)\ne\varnothing,
+ \qquad
+ \operatorname{relint}_C
+ \bigl(C\setminus\operatorname{cl}_C(P_1)\bigr)=\varnothing.
+\]
+Thus the rational family, even with its audited regular neighborhoods, is
+consistent with relatively semialgebraic supersets having opposite density
+answers.  It cannot by itself determine the answer for the actual projected
+union.  Only a global argument applied to all eight projections can produce
+the chamberwise dense realization cover or a full-dimensional separator,
+which proves the final assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem proves the exact eight-branch projected-union identity, translates frontier membership into the required chamberwise density test, and proves that the rational family plus local regularity cannot decide that test. \textit{Gap.} The mandated all-true-parameter resultant/subresultant attempt emitted neither the projection family nor Thom-cell certificates, so no chamberwise dense cover or full-dimensional separator has been proved. \textit{Consumer.} The workflow is prevented from promoting a verified local fork collision into a claim of generic covariance surplus.
+
+\begin{lemma}[lem:batched-affine-support-test]\label{lem:batched-affine-support-test}
+For the affine blocks associated with a fixed candidate DAG \(G'\), feasibility of all \(q\) systems \(M_jx_j=b_j\) and identical-vanishing of all \(3|C_j|\) forbidden forms \(x_{ji}\), \(d_{ji}(x_j)\), and \(x_{ji}+d_{ji}(x_j)\) can be decided over any infinite coefficient field by row-reducing each augmented matrix \((M_j\mid b_j)\) once.  If a block is feasible, extracting one particular solution and one kernel basis and then performing two batched matrix products decides every forbidden form.  Over all columns this uses \(O(q^4)\) field operations and yields either an inconsistency or identically-zero-form certificate, or a point in every \(\mathcal A_j\) avoiding every forbidden hyperplane.
+\end{lemma}
+\begin{proof}
+Put \(n_j=|C_j|\), \(r_j=|R_j|\), and \(B_j=(M_j\mid b_j)\).  Gaussian elimination on \(B_j\) decides
+\[
+ \operatorname{rank}M_j=\operatorname{rank}B_j.
+\]
+If the ranks differ, a row of the reduced augmented matrix of the form \((0,\ldots,0\mid 1)\), after rescaling, certifies inconsistency.  Suppose that the ranks agree.  The same reduction, with no second elimination, returns a particular solution \(x_j^0\) and a matrix \(N_j\) whose columns form a basis of \(\ker M_j\).  Hence
+\[
+ \mathcal A_j=x_j^0+\operatorname{im}N_j.
+\]
+
+Stack the forbidden affine forms in the order
+\[
+ \bigl(x_{ji},\ d_{ji}(x_j),\ x_{ji}+d_{ji}(x_j)\bigr)_{i\in C_j}
+ =L_jx_j+c_j,
+\]
+where the three rows corresponding to \(i\in C_j\) have linear parts
+\[
+ e_i^{\mathsf T},\qquad -H[i,C_j],\qquad e_i^{\mathsf T}-H[i,C_j]
+\]
+and respective constants
+\[
+ 0,\qquad H[i,j],\qquad H[i,j].
+\]
+For a row \(\lambda^{\mathsf T}x+c\) of this stack and an arbitrary point \(x=x_j^0+N_jy\) of \(\mathcal A_j\),
+\[
+ \lambda^{\mathsf T}x+c
+ =\lambda^{\mathsf T}x_j^0+c+\lambda^{\mathsf T}N_jy.
+\]
+It follows directly that this form vanishes identically on \(\mathcal A_j\) if and only if its entry in \(L_jx_j^0+c_j\) is zero and its entire row in \(L_jN_j\) is zero.  Thus the two displayed batched products decide all \(3n_j\) forms.
+
+If no forbidden form is identically zero, each of its zero sets is a proper affine hyperplane of \(\mathcal A_j\).  Their finite union cannot cover \(\mathcal A_j\) over an infinite field.  Indeed, choose affine coordinates \(y\) on \(\mathcal A_j\), choose a direction successively outside the finitely many kernels of the nonconstant forms, and then choose the scalar coordinate outside the finitely many resulting roots; constant nonzero forms have no roots.  The resulting point avoids every forbidden hyperplane.  Conversely, any point avoiding the forbidden forms certifies feasibility and proves that no one of them vanishes identically.
+
+The matrix \(B_j\) has at most \(q\) rows and \(q+1\) columns, so its reduction costs \(O(q^3)\) field operations.  The matrices \(L_j\), \(N_j\) have sizes at most \(3q\times q\) and \(q\times q\), respectively; constructing the stack and computing \(L_jx_j^0+c_j\) and \(L_jN_j\) also costs \(O(q^3)\).  Summing over \(j\in V\) gives \(O(q^4)\).  This counts arithmetic in the coefficient field and makes no expanded bit-complexity or coefficient-height claim.
+\end{proof}
+
+\begin{proposition}[prop:anchor-domain-transfer]\label{prop:anchor-domain-transfer}
+For \(p=2<q=4\), the relative Zariski-open exact-change and retained-edge counterexample locus exhibited by the published-mismatch proposition can be equipped with a full-row-rank mixing matrix having nonzero pairwise noncollinear columns and with independent centered non-Gaussian source laws whose target standardized fourth cumulants differ between baseline and target contexts.  It is therefore contained in the generic soft-intervention domain of Assumption 1.2 of Leyes Carreno, Meroni, and Seigal.  Consequently the subclass counterexample refutes the universal identification in their Theorem 3.15 on the superclass, whereas a positive result proved only for the exact-change retained-edge subclass does not by inclusion alone extend to that superclass.
+\end{proposition}
+\begin{proof}
+The published-mismatch proposition supplies a nonempty relative Zariski-open coefficient locus on which all required baseline coefficients, all incoming-edge changes, and all post-change coefficients are nonzero, while \(G_{\mathrm{ch}}\in\mathsf H_{\mathrm{obs}}(G_\times)\) and \(G_{\mathrm{ch}}\notin\mathsf H_{\mathrm{soft}}(G_\times)\).  The determinant producing this separation depends only on \(\Lambda^{(0)}\) and \(\delta\), so mixing matrices and error laws may be selected independently of it.
+
+Take
+\[
+ F_0=\begin{pmatrix}1&0&1&1\\0&1&1&2\end{pmatrix}.
+\]
+The determinants of its six pairs of columns are \(1,1,2,-1,-1,1\).  Hence every column is nonzero, every two columns are noncollinear, and \(\operatorname{rank}F_0=2\).  Let \(R\) be a Rademacher random variable, and let \(L\) be a centered Laplace random variable scaled to have variance one.  Both are centered and non-Gaussian.  Their standardized fourth cumulants are, respectively,
+\[
+ \mathbb E[R^4]-3=-2,
+ \qquad
+ \mathbb E[L^4]-3=3.
+\]
+In the baseline context choose mutually independent copies of \(R\) for the four errors.  In target context \(k\), choose a copy of \(L\) for error \(k\) and mutually independent copies of \(R\) for the remaining errors.  Multiplication by the positive square roots of the desired variances preserves centering, independence, non-Gaussianity, and standardized fourth cumulants while producing the required positive diagonal covariance matrices.  Thus every target has unequal baseline and intervention scaled fourth cumulants.
+
+These choices meet the mixing and source-law clauses without changing the coefficient point or its nonzero determinant.  Together with the exact-change and retained-edge properties already proved, they place the counterexample inside the stated generic soft-intervention domain.  If \(\mathcal A\subseteq\mathcal B\), a point of \(\mathcal A\) violating a universally quantified assertion on \(\mathcal B\) refutes that assertion.  In the reverse direction, validity on \(\mathcal A\) alone gives no value on \(\mathcal B\setminus\mathcal A\).  Applying these elementary inclusion implications proves the two transfer claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This prevents the four-node mismatch from being dismissed as an artifact of a narrower source-law or mixing regime. \textit{Gap.} A subclass counterexample needs an explicit check that the published generic soft-intervention assumptions can be satisfied simultaneously. \textit{Consumer.} Readers can distinguish the valid upward transfer of a counterexample from the invalid upward transfer of a positive subclass theorem.
+
+\begin{proposition}[prop:terminal-o-q4]\label{prop:terminal-o-q4}
+The sound-and-complete membership and nonmembership algorithm of the terminal-certificate theorem can be implemented in \(O(q^4)\) rational-function field operations per same-closure candidate \(G'\): row-reduce each augmented block \((M_j\mid b_j)\) once, extract one particular solution and one kernel basis, stack all \(3|C_j|\) forbidden affine forms, and evaluate their values and kernel restrictions in two batched matrix products.  This is an arithmetic-field bound and is not an expanded bit-complexity or coefficient-height bound.
+\end{proposition}
+\begin{proof}
+The terminal-certificate theorem reduces candidate membership exactly to feasibility of the \(q\) affine systems and non-identical-vanishing of their forbidden forms.  Computing \(P=(I_q-\Lambda^{(0)})^{-1}\) and \(H\) takes \(O(q^3)\) field operations.  The batched affine-support lemma performs one elimination and two batched products for each column in \(O(q^3)\) operations, hence \(O(q^4)\) over all \(q\) columns.  The linkage or cut part is combinatorial and introduces no rational-function field operations.  Adding the costs proves the claimed \(O(q^4)\) bound.  The same lemma supplies the inconsistency, identical-form, or avoiding-point certificates, and the terminal-certificate theorem proves their soundness and completeness.
+\end{proof}
+
+\begin{proposition}[prop:fork-pointwise-separation]\label{prop:fork-pointwise-separation}
+For every \(T>0\) with \(T\ne1\), let \(\mathcal R\) and \(\{\Sigma^{(k)}\}_{k\in K}\) be the aligned factorization datum and the five covariance matrices generated by the true member of \(\mathcal W_{\mathrm{fork}}(T)\).  Then, modulo the common monomial action \(\mathfrak M_q\),
+\[
+ G'_{\mathrm{fork}}\in
+ \mathcal G_{\mathrm{cov}}\bigl(\mathcal R,\{\Sigma^{(k)}\}_{k\in K}\bigr)
+ \setminus
+ \mathcal G_{\mathrm{soft}}(\mathcal R).
+\]
+This is a pointwise observable separation.  It neither proves that the union of the eight legal positive-real fork branches is dense in every full-dimensional true chamber nor proves \(G'_{\mathrm{fork}}\in\mathsf{Frontier}_2(G_{\mathrm{fork}})\).
+\end{proposition}
+\begin{proof}
+Fix \(T>0\) with \(T\ne 1\).  Denote by \(\theta_T\) and \(\theta'_T\), respectively, the true and candidate parameter points specified by \(\mathcal W_{\mathrm{fork}}(T)\), and let \(\mathcal R_T\) and \(\{\Sigma_T^{(k)}\}_{k\in K}\) be the aligned factorization datum and covariance tuple generated by \(\theta_T\).
+
+First consider covariance compatibility.  By Proposition \(\mathrm{prop{:}fork\text{-}rational\text{-}collision}\), \(\theta'_T\in\mathcal M_{2,4}(G'_{\mathrm{fork}})\): in particular, its mixing matrix has full row rank and nonzero pairwise noncollinear columns, its baseline coefficients and change rows have the exact supports prescribed by \(G'_{\mathrm{fork}}\), every changed edge is retained, and all of its baseline and intervention variances are positive.  The same proposition gives, context by context,
+\[
+ \Sigma_{\theta'_T}^{(k)}=\Sigma_{  heta_T}^{(k)}=\Sigma_T^{(k)}
+ \qquad(k\in K).
+\]
+It remains to check the closure condition in the definition of \(\mathcal G_{\mathrm{cov}}\).  The true actual rows displayed in \(\mathcal W_{\mathrm{fork}}(T)\) are
+\[
+ h_1^{\mathsf T}=0,\qquad
+ h_2^{\mathsf T}=(1,0,0,0),\qquad
+ h_3^{\mathsf T}=(3,1,0,0),\qquad
+ h_4^{\mathsf T}=(1,1,0,0).
+\]
+Therefore Definition \(\mathrm{def{:}recovered\text{-}closure}\) gives
+\[
+ \mathcal C(\mathcal R_T)
+ =\{1\to2,\,1\to3,\,2\to3,\,1\to4,\,2\to4\}.
+\]
+Each displayed loading column \(a_k\) is nonzero.  Consequently the rank-one equation used in Definition \(\mathrm{def{:}recovered\text{-}closure}\) determines its row uniquely: if \(a_ku^{\mathsf T}=a_kw^{\mathsf T}\), then a nonzero coordinate of \(a_k\) gives \(u=w\).  Hence the displayed rows are indeed the rows recovered from \(\mathcal R_T\).  This relation is both \(\overline G_{\mathrm{fork}}\) and \(\overline {G'_{\mathrm{fork}}}\), by direct transitive closure of the two edge sets in Definition \(\mathrm{def{:}fork\text{-}witness}\).  Thus the legal witness \(\theta'_T\), the displayed covariance equalities, and Definition \(\mathrm{def{:}observable\text{-}classes}\) imply
+\[
+ G'_{\mathrm{fork}}\in
+ \mathcal G_{\mathrm{cov}}
+ \bigl(\mathcal R_T,\{\Sigma_T^{(k)}\}_{k\in K}\bigr).
+\]
+
+We next prove exclusion from the soft graph set.  Suppose, to the contrary, that
+\(G'_{\mathrm{fork}}\in\mathcal G_{\mathrm{soft}}(\mathcal R_T)\).  By Definition \(\mathrm{def{:}observable\text{-}classes}\), there would then be a legal parameter point for \(G'_{\mathrm{fork}}\) whose aligned population factorization represents \(\mathcal R_T\).  Proposition \(\mathrm{prop{:}observable\text{-}quotient}\) permits us to choose the common permutation and rational projective scaling representative in which the target labels and loading lines agree with the displayed true representative; it also guarantees that neither soft membership nor the support tests change under this choice.  The rank-one update equation in Definition \(\mathrm{def{:}recovered\text{-}closure}\) then recovers the displayed rows of \(H\).
+
+For column \(j=1\) of the candidate graph, one has
+\[
+ C_1=\operatorname{ch}_{G'_{\mathrm{fork}}}(1)=\{2\},
+ \qquad
+ R_1=\operatorname{de}_{G'_{\mathrm{fork}}}(1)\setminus C_1=\{3,4\}.
+\]
+Write \(x=\Lambda'^{(0)}_{21}\).  Since \(U=I_4-\Lambda'^{(0)}\), the first coordinate of the candidate change row at target \(k\) is
+\[
+ \delta'_{k1}=(h_k^{\mathsf T}U)_1=H_{k1}-xH_{k2}.
+\]
+In \(G'_{\mathrm{fork}}\), vertex \(1\) is not a parent of either \(3\) or \(4\).  Exact change support therefore requires \(\delta'_{31}=\delta'_{41}=0\).  Equivalently, the affine block of Definition \(\mathrm{def{:}affine\text{-}block}\) must satisfy
+\[
+ H[R_1,C_1]x=H[R_1,1],
+ \qquad\text{that is,}\qquad
+ \begin{pmatrix}1\\1\end{pmatrix}x
+ =\begin{pmatrix}3\\1\end{pmatrix}.
+\]
+No real \(x\) solves these two equations: the augmented minor is
+\[
+ \det\begin{pmatrix}1&3\\1&1\end{pmatrix}=-2\ne0.
+\]
+Hence no legal \(G'_{\mathrm{fork}}\)-parameter can represent \(\mathcal R_T\), contradicting the assumed soft membership.  Consequently,
+\[
+ G'_{\mathrm{fork}}\notin\mathcal G_{\mathrm{soft}}(\mathcal R_T).
+\]
+Proposition \(\mathrm{prop{:}observable\text{-}quotient}\) transports both the covariance witness and the nonzero augmented minor through the simultaneous monomial orbit.  Combining the two membership conclusions proves, modulo \(\mathfrak M_q\),
+\[
+ G'_{\mathrm{fork}}\in
+ \mathcal G_{\mathrm{cov}}
+ \bigl(\mathcal R_T,\{\Sigma_T^{(k)}\}_{k\in K}\bigr)
+ \setminus\mathcal G_{\mathrm{soft}}(\mathcal R_T).
+\]
+
+Finally, this conclusion is pointwise.  Proposition \(\mathrm{prop{:}observable\text{-}quotient}\) explicitly separates this quotient-valued pointwise functional from the chamberwise graph functional in the absence of a generic-to-pointwise constancy theorem.  The witness above supplies one covariance twin for each value of \(T\), and the affine determinant supplies soft exclusion at those data, but neither statement establishes relative density of the complete legal branch union in every full-dimensional true sign and variance chamber.  Thus the argument yields no membership assertion for \(G'_{\mathrm{fork}}\) in \(\mathsf{Cov}_2(G_{\mathrm{fork}})\), and hence none in \(\mathsf{Frontier}_2(G_{\mathrm{fork}})\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corollary turns the exact rational collision and actual-row obstruction into the paper's quotient-invariant observable covariance-versus-soft separation. \textit{Gap.} A covariance collision alone does not show exclusion from the pointwise soft graph set, and neither fact implies chamberwise density. \textit{Consumer.} The LCD workflow may report that high cumulants remove this specific covariance alternative, while explicitly withholding a generic frontier verdict.
+
+\begin{proposition}[prop:terminal-and-finite-branch-reduction]\label{prop:terminal-and-finite-branch-reduction}
+Let \(2\le p<q\), and let \(G,G'\) be directed acyclic graphs in a common topological order with \(\overline{G'}=\overline G\).  The following two reductions are sound and complete.  First, corrected actual-row membership \(G'\in\mathsf H_{\mathrm{soft}}(G)\) is decided from \(H\) by the terminal-copy linkage and batched affine-support certificates in \(O(q^4)\) rational-function field operations per candidate \(G'\).  Second, for every \(\theta\in\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\), the set of \(\theta'\in\mathcal M_{p,q}(G')\) satisfying \(\Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}\) for every \(k\in K\) is represented exactly by the candidate-parameter projections of at most \(2^{q-r}\) systems in \(\mathfrak B_p(G,G')\).  For \(p=2\) and \((G,G')=(G_{\mathrm{fork}},G'_{\mathrm{fork}})\), these are the eight rational systems in the two candidate scalars \((s,x)\), and on every full-dimensional connected true-parameter chamber their projected union equals \(\mathcal E_2(G_{\mathrm{fork}},G'_{\mathrm{fork}})\) intersected with that chamber.  These reductions do not decide chamberwise density of the projected union and do not supply a realization-or-separator compiler, a bit-operation or coefficient-height bound, or a pathwidth guarantee.
+\end{proposition}
+\begin{proof}
+Fix \(p,q,G,G'\) as in the statement.  By the proved batched terminal bound \(\mathrm{prop:terminal\text{-}o\text{-}q4}\), the terminal-certificate theorem is implemented by constructing \(H\), row-reducing each augmented affine block \((M_j\mid b_j)\) once, extracting a particular solution and a kernel basis, and evaluating all forbidden affine forms by two batched matrix products.  That proposition proves both soundness and completeness and gives
+\[
+ O(q^3)+\sum_{j\in V}O(q^3)=O(q^4)
+\]
+rational-function field operations.  This establishes the first reduction, including its stated arithmetic complexity.
+
+For the second reduction, fix \(\theta\in\mathcal M^{\circ}_{\mathrm{branch},p,q}(G,G')\).  Let \(\mathcal I\) index the factor-line choices in \(\mathfrak B_p(G,G')\).  The covariance-branch lemma states that a source contributes its unique real factor line, whereas each of the \(q-r\) nonsources contributes at most two real factor lines.  Hence
+\[
+ |\mathcal I|\le \prod_{k\,\mathrm{nonsource}}2=2^{q-r}.
+\]
+For \(\eta\in\mathcal I\), let \(\mathcal X_\eta(\theta)\) be the solution set of the corresponding branch system after the true parameter is fixed at \(\theta\), and let \(\operatorname{Rec}_\eta\mathcal X_\eta(\theta)\) denote the candidate parameter points reconstructed by that system.  The completeness direction of the covariance-branch lemma sends every legal covariance twin to one factor-line choice and a solution of its branch system.  Therefore
+\[
+ \left\{\theta'\in\mathcal M_{p,q}(G'):
+   \Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}\ \text{for all }k\in K\right\}
+ \subseteq
+ \bigcup_{\eta\in\mathcal I}\operatorname{Rec}_\eta\mathcal X_\eta(\theta).
+\]
+Conversely, the soundness direction of the same lemma reconstructs from every branch solution a candidate in \(\mathcal M_{p,q}(G')\) with positive baseline and intervention variances, exact structural and intervention support, retained changed edges, admissible mixing columns, and all context covariance equations.  Thus
+\[
+ \bigcup_{\eta\in\mathcal I}\operatorname{Rec}_\eta\mathcal X_\eta(\theta)
+ \subseteq
+ \left\{\theta'\in\mathcal M_{p,q}(G'):
+   \Sigma_{\theta'}^{(k)}=\Sigma_{\theta}^{(k)}\ \text{for all }k\in K\right\}.
+\]
+The two inclusions prove the exact finite representation.  In particular, positivity and every sign, denominator, exact-support, retained-edge, mixing, and candidate variance-neutral branch required by the model are retained rather than discarded.
+
+When \(p=2\) and the graph pair is \((G_{\mathrm{fork}},G'_{\mathrm{fork}})\), the fork eight-branch classification identifies \(\mathcal I\) with the eight rational systems in \((s,x)\).  The fork all-chamber projection theorem then gives, on each full-dimensional connected chamber, equality between the covariance fiber and the union of those eight projected solution sets, with the reconstructed points checked against the original five covariance equations.  That theorem expressly leaves the chamberwise density alternative undecided.  Since neither it nor either preceding reduction supplies projection-density certificates, elimination bit bounds, coefficient-height control, or a pathwidth guarantee, none of those stronger compiler conclusions follows.  This proves exactly the proposition.
+\end{proof}
+
+\section{Interpretation}
+
+At population level the companion LCD workflow can now return the corrected actual-row compatible DAG set and, for each accepted or rejected candidate, a terminal linkage or cut, an affine inconsistency, an identically-zero support form, or an avoiding-point certificate. For the worked fork datum it can additionally report a genuine pointwise covariance alternative: the candidate reproduces all five covariances but cannot reproduce the aligned soft-intervention factor datum, and this verdict is invariant to sign, scale, and permutation representatives. It must label that conclusion pointwise. Higher cumulants remove this displayed covariance alternative, but whether they remove covariance alternatives generically across each full-dimensional chamber remains unresolved.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The complete regular fork fiber is reduced to eight legal two-scalar positive systems, but their projected union has not been classified over the full true parameter domain. The prescribed fixed resultant and subresultant attempt retained all true coordinates as parameters and eliminated only the two candidate scalars; it failed before emitting projection polynomials, sign cells, or Thom-encoded sample certificates. The rational \(T\)-family, positive candidate variances \(T+144/121\) and \(19/4\), exact five-covariance verification, the obstruction \(-2\), and audited Jacobian regularity establish pointwise feasibility and local facts only. They cannot certify chamberwise density or a full-dimensional separator.
+
+\section{Honest scope}
+
+The corrected terminal theorem is exact on its declared generic coefficient locus, independent of variance activity, and has an \(O(q^4)\) arithmetic-field bound with no expanded bit-complexity claim. Its finite Definition 3.14 agreement procedure may enumerate same-closure DAGs, so no polynomial total graph-enumeration bound is asserted. The anchor transfer is one-way: the exact-change retained-edge counterexample lies inside the published generic soft domain and therefore refutes a superclass theorem, while positive subclass results do not automatically extend upward. The fork corollary is quotient-invariant and pointwise; it explicitly does not establish \(G'_{\mathrm{fork}}\in\mathsf{Frontier}_2(G_{\mathrm{fork}})\). The all-chamber fork density test, dense-cover or separator certificates, all-pair non-quantifier-elimination compiler, complexity and pathwidth bounds, and infinite equality or generic-strictness families remain open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LeyesCarrenoMeroniSeigal2025} P. Leyes Carreno, C. Meroni, and A. Seigal (2025), \textit{Linear Causal Disentanglement via Higher-Order Cumulants}, La Matematica 4, 885--924, doi:10.1007/s44007-025-00168-8.
+
+  \bibitem{SquiresSeigalBhateUhler2023} C. Squires, A. Seigal, S. S. Bhate, and C. Uhler (2023), \textit{Linear Causal Disentanglement via Interventions}, Proceedings of the 40th International Conference on Machine Learning, 32540--32560.
+
+  \bibitem{ZhangGreenewaldSquiresEtAl2023} J. Zhang, K. Greenewald, C. Squires, A. Srivastava, K. Shanmugam, and C. Uhler (2023), \textit{Identifiability Guarantees for Causal Disentanglement from Soft Interventions}, Advances in Neural Information Processing Systems 36.
+
+  \bibitem{SullivantTalaskaDraisma2010} S. Sullivant, K. Talaska, and J. Draisma (2010), \textit{Trek Separation for Gaussian Graphical Models}, Annals of Statistics 38, 1665--1685, doi:10.1214/09-AOS760.
+
+  \bibitem{FoygelDraismaDrton2012} R. Foygel, J. Draisma, and M. Drton (2012), \textit{Half-Trek Criterion for Generic Identifiability of Linear Structural Equation Models}, Annals of Statistics 40, 1682--1713.
+
+  \bibitem{FoygelBarberDrtonSturmaWeihs2022} R. Foygel Barber, M. Drton, N. Sturma, and L. Weihs (2022), \textit{Half-Trek Criterion for Identifiability of Latent Variable Models}, Annals of Statistics 50, 3174--3196, doi:10.1214/22-AOS2221.
+
+  \bibitem{KelaVonPrillwitzAbergChavesGross2020} A. Kela, K. von Prillwitz, J. \AA berg, R. Chaves, and D. Gross (2020), \textit{Semidefinite Tests for Latent Causal Structures}, IEEE Transactions on Information Theory 66, 339--357, doi:10.1109/TIT.2019.2935755.
+
+  \bibitem{BoegeSolus2024} T. Boege and L. Solus (2024), \textit{Real Birational Implicitization for Statistical Models}, arXiv:2410.23102v1.
+
+  \bibitem{WuZhuGoharshadyAnXiaZhan2026} H. Wu, J. Zhu, A. K. Goharshady, J. An, B. Xia, and N. Zhan (2026), \textit{Quantifier Elimination Meets Treewidth}, Tools and Algorithms for the Construction and Analysis of Systems, LNCS 16505, 353--373, doi:10.1007/978-3-032-22752-2\_19.
+
+\end{thebibliography}
+
+\end{document}

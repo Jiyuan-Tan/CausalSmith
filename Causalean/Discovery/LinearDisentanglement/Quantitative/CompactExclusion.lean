@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Quantitative.Definitions
-import Causalean.Mathlib.Topology.CompactExclusion
+module
+public import Causalean.Discovery.LinearDisentanglement.Quantitative.Definitions
+public import Causalean.Mathlib.Topology.CompactExclusion
 
 /-!
 # Compact exclusion for simultaneous congruence
@@ -19,6 +20,8 @@ compact-correspondence dichotomy and residual tolerance for parameter-matrix cor
 distance measured by the Euclidean operator norm.
 -/
 
+public section
+
 noncomputable section
 
 open scoped Matrix Matrix.Norms.L2Operator
@@ -27,9 +30,10 @@ namespace Causalean.Discovery.LinearDisentanglement.Quantitative
 
 open Causalean.Mathlib.Topology.CompactExclusion
 
-/-- For [a finite real matrix family](hyp:A) and [its prescribed diagonal shifts](hyp:s),
-[the simultaneous-congruence residual is continuous as a function of the candidate
-matrix](goal). -/
+/-- [The worst-environment congruence residual varies continuously with the candidate
+matrix](goal), so compact separation arguments apply to [observed matrices `A`](hyp:A) and
+[prescribed shifts `s`](hyp:s) over [finite environments `E`](hyp:E) in [dimension
+`d`](hyp:d). -/
 -- Proof route: matrix multiplication, transpose, subtraction, diagonal constants, and
 -- the norm are continuous in finite dimension; close under the finite nonempty `sup'`.
 theorem continuous_simultaneousCongruenceResidual {d : ℕ} {E : Type*}
@@ -55,13 +59,11 @@ theorem continuous_simultaneousCongruenceResidual {d : ℕ} {E : Type*}
       (fun e B => ‖congruenceDefect (A e) (s e) B‖) B).symm]
   exact h
 
-/-- For [a finite nonempty real matrix family](hyp:A), [its diagonal shifts](hyp:s), [a
-candidate set of matrices](hyp:K), [an open local chart](hyp:U), and [a reference matrix](hyp:B₀),
-if [the candidate set is compact](hyp:hK), [the chart is open](hyp:hU), [the reference is a
-candidate](hyp:hB₀K), [the reference lies in the chart](hyp:hB₀U), [the far candidates are
-nonempty](hyp:hfar), and [only the reference has zero residual among candidates](hyp:hzero),
-then [the far candidates have a strictly positive attained simultaneous-congruence residual
-minimum](goal). -/
+/-- [A unique exact diagonalizer is uniformly separated from all candidates outside its local
+chart](goal): for [observed matrices and shifts](hyp:A,s) over [finite environments](hyp:E) in
+[dimension `d`](hyp:d), [compact candidates](hyp:K,hK), [an open chart](hyp:U,hU), and [a
+reference candidate inside both](hyp:B₀,hB₀K,hB₀U) yield a positive attained residual whenever
+[far candidates exist](hyp:hfar) and [zero residual identifies the reference](hyp:hzero). -/
 theorem exists_simultaneousCongruence_exclusionRadius {d : ℕ} {E : Type*}
     [Fintype E] [Nonempty E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ)
@@ -77,14 +79,12 @@ theorem exists_simultaneousCongruence_exclusionRadius {d : ℕ} {E : Type*}
     (fun B _ => simultaneousCongruenceResidual_nonneg A s B)
     hzero
 
-/-- Given [a parameter-matrix correspondence](hyp:K), [a reference matrix section](hyp:B₀),
-[a residual](hyp:r), and [a radius function](hyp:ρ), if [the correspondence is compact](hyp:hK),
-[the reference matrix section is continuous](hyp:hB₀), [the residual is continuous](hyp:hr_cont),
-[the radius function is continuous](hyp:hρ_cont), [every radius is strictly positive](hyp:hρ_pos),
-[the residual is nonnegative on feasible pairs](hyp:hr_nonneg), and
-[only the reference matrix has zero residual among feasible pairs](hyp:hr_zero), then
-[either no operator-norm-far pair exists or one attains a strictly positive uniform residual
-minimum](goal). -/
+/-- [A compact feasible correspondence either has no far candidate or has a positive attained
+residual gap away from the reference](goal), uniformly over [parameter space `P`](hyp:P) and
+[matrix dimension `d`](hyp:d). For [correspondence `K`, reference section `B₀`, residual `r`, and
+radius `ρ`](hyp:K,B₀,r,ρ), this requires [compactness](hyp:hK), [continuity of the reference,
+residual, and radius](hyp:hB₀,hr_cont,hρ_cont), [positive radii](hyp:hρ_pos), [nonnegative
+feasible residuals](hyp:hr_nonneg), and [uniqueness at zero](hyp:hr_zero). -/
 theorem sqMatrix_uniformCompactCorrespondence_dichotomy
     {P : Type*} [TopologicalSpace P] [T2Space P] {d : ℕ}
     (K : Set (P × SqMatrix d)) (B₀ : P → SqMatrix d)
@@ -98,14 +98,12 @@ theorem sqMatrix_uniformCompactCorrespondence_dichotomy
   exact uniformCompactCorrespondence_dichotomy K B₀ r ρ hK hB₀ hr_cont hρ_cont hρ_pos
     hr_nonneg hr_zero
 
-/-- Given [a parameter-matrix correspondence](hyp:K), [a reference matrix section](hyp:B₀),
-[a residual](hyp:r), and [a radius function](hyp:ρ), if [the correspondence is compact](hyp:hK),
-[the reference matrix section is continuous](hyp:hB₀), [the residual is continuous](hyp:hr_cont),
-[the radius function is continuous](hyp:hρ_cont), [every radius is strictly positive](hyp:hρ_pos),
-[the residual is nonnegative on feasible pairs](hyp:hr_nonneg), and
-[only the reference matrix has zero residual among feasible pairs](hyp:hr_zero), then
-[one positive residual tolerance puts every feasible pair at or below it strictly inside its
-parameter-dependent Euclidean operator-norm reference ball](goal). -/
+/-- [One positive residual tolerance keeps every feasible matrix inside its parameter-specific
+reference neighborhood](goal), uniformly over [parameter space `P`](hyp:P) and [matrix dimension
+`d`](hyp:d). For [correspondence `K`, reference section `B₀`, residual `r`, and radius
+`ρ`](hyp:K,B₀,r,ρ), this requires [compactness](hyp:hK), [continuity of the reference, residual,
+and radius](hyp:hB₀,hr_cont,hρ_cont), [positive radii](hyp:hρ_pos), [nonnegative feasible
+residuals](hyp:hr_nonneg), and [uniqueness at zero](hyp:hr_zero). -/
 theorem exists_sqMatrix_uniformExclusionTolerance
     {P : Type*} [TopologicalSpace P] [T2Space P] {d : ℕ}
     (K : Set (P × SqMatrix d)) (B₀ : P → SqMatrix d)

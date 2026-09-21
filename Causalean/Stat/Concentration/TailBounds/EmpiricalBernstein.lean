@@ -50,7 +50,8 @@ data-driven interval explicit.
   half-width uses `√(V̂ₙ + τ)` in place of an oracle `σ`.
 -/
 
-import Causalean.Stat.Concentration.UniformDeviation.ConfidenceInterval
+module
+public import Causalean.Stat.Concentration.TailBounds.ConfidenceInterval
 
 /-! # Empirical Bernstein confidence intervals
 
@@ -63,6 +64,8 @@ variance plus slack; and proves `empirical_bernstein_ci_miss`, an empirical
 Bernstein miss-probability theorem whose half-width is
 `empiricalBernsteinCIHalfWidth`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

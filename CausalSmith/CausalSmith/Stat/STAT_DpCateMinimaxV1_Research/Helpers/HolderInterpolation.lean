@@ -15,10 +15,13 @@ construction. It is registered substrate debt and therefore exposed as a `Prop`
 definition to be supplied explicitly by each consumer.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Causalean.Stat.Nonparametric.Approximation.HolderInterpolation
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Causalean.Stat.Nonparametric.Approximation.Holder.Interpolation
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -130,7 +133,8 @@ theorem holder_point_l1_interpolation_holds {d : ℕ}
     intro P Q _ _
     have hball : supBall x0 (rStar r0 x0) = Set.univ := by
       ext x
-      simp [supBall, Causalean.Stat.Nonparametric.supBall]
+      simp [supBall, Causalean.Stat.Nonparametric.supBall,
+        Causalean.Mathlib.Analysis.supBall]
     rw [hball, setIntegral_univ, integral_unique]
     rw [Measure.volume_pi_eq_dirac (default : Fin 0 → ℝ)]
     simp [Real.rpow_one, Subsingleton.elim x0 default]

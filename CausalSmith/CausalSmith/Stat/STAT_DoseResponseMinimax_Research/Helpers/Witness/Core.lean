@@ -6,16 +6,19 @@ Authors: Jiyuan Tan
 # Dose-response minimax lower bound: genuine witness definitions
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Base
-import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
-import Mathlib.MeasureTheory.Measure.WithDensity
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Base
+public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
+public import Mathlib.MeasureTheory.Measure.WithDensity
+
+/-! ## Smooth treatment bump -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 
 open MeasureTheory
 open scoped ENNReal Topology
-
-/-! ## Smooth treatment bump -/
 
 -- @node: dose-bump
 /-- A fixed smooth bump supported in `(-1,1)` and equal to one near zero. -/

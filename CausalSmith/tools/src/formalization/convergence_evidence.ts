@@ -36,6 +36,12 @@ import { stripLeanComments } from "../graph/extractor.js";
 import { statementHash } from "../graph/hash.js";
 import { convergenceTargets } from "../graph/review_scope.js";
 import {
+  LEAN_ANON_INSTANCE_HEADER_RE,
+  LEAN_COMMAND_RE,
+  LEAN_DECL_HEADER_RE,
+  isLeanImportLine,
+} from "../shared/lean_syntax.js";
+import {
   CONVERGENCE_PEERS,
   isUndeliveredNode,
   type ConvergenceLedger,
@@ -78,13 +84,6 @@ export interface LeanEvidenceIndex {
 
 const STATEMENT_ONLY_KINDS = new Set(["theorem", "lemma"]);
 const IDENT_RE = /[\p{L}_][\p{L}\p{N}_'.]*/gu;
-const COMMAND_RE =
-  /^\s*(?:variable|open|universe|set_option|notation|infix[lr]?|prefix|postfix|local|scoped|attribute|namespace|section|end|omit|include|macro|macro_rules|syntax|elab|export|import|noncomputable\s+section)\b/;
-/** An `instance` header with NO name: invisible to `DECL_HEADER_SCAN_RE`, which requires one. */
-const ANON_INSTANCE_RE =
-  /^\s*(?:@\[[^\]]*\]\s*)*(?:noncomputable\s+|private\s+|protected\s+|scoped\s+|local\s+|partial\s+|unsafe\s+|nonrec\s+)*instance\s*(?:\{|\[|\(|:)/;
-const ANY_HEADER_RE =
-  /^\s*(?:@\[[^\]]*\]\s*)*(?:noncomputable\s+|private\s+|protected\s+|scoped\s+|local\s+|partial\s+|unsafe\s+|nonrec\s+)*(?:def|abbrev|structure|theorem|lemma|instance|class|inductive|opaque|axiom|constant)\b/;
 
 /** The command lines of a comment-stripped file plus its anonymous-instance spans — the text whose
  *  meaning every declaration in the run implicitly depends on. */
@@ -92,13 +91,13 @@ function fileCommandText(stripped: string): string {
   const lines = stripped.split(/\r?\n/);
   const out: string[] = [];
   for (let i = 0; i < lines.length; i++) {
-    if (COMMAND_RE.test(lines[i])) {
+    if (LEAN_COMMAND_RE.test(lines[i])) {
       out.push(lines[i]);
       continue;
     }
-    if (!ANON_INSTANCE_RE.test(lines[i])) continue;
+    if (!LEAN_ANON_INSTANCE_HEADER_RE.test(lines[i])) continue;
     let end = i + 1;
-    while (end < lines.length && !ANY_HEADER_RE.test(lines[end]) && !COMMAND_RE.test(lines[end])) end++;
+    while (end < lines.length && !LEAN_DECL_HEADER_RE.test(lines[end]) && !LEAN_COMMAND_RE.test(lines[end])) end++;
     out.push(lines.slice(i, end).join("\n"));
     i = end - 1;
   }
@@ -152,7 +151,7 @@ export async function buildLeanEvidenceIndex(leanDir: string): Promise<LeanEvide
     const text = fileCommandText(stripLeanComments(raw));
     commandTextByFile.set(file, text);
     codeHashByFile.set(file, createHash("sha1").update(commentInsensitiveLeanLayout(raw)).digest("hex"));
-    const followed = text.split(/\r?\n/).filter((ln) => !/^\s*import\b/.test(ln)).join("\n");
+    const followed = text.split(/\r?\n/).filter((ln) => !isLeanImportLine(ln)).join("\n");
     for (const id of followed.match(IDENT_RE) ?? []) commandRefs.add(lastSegment(id));
   }
   for (const d of decls) {

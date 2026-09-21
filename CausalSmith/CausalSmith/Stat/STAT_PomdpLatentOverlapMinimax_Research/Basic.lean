@@ -1,9 +1,10 @@
-import Causalean.Stat.Minimax.MinimaxValue
-import Causalean.Stat.Minimax.MinimaxRisk
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.MeasurableSpace.Instances
-import Mathlib.Probability.Kernel.Composition.MeasureCompProd
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
+module
+public import Causalean.Stat.Minimax.MinimaxValue
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.MeasurableSpace.Instances
+public import Mathlib.Probability.Kernel.Composition.MeasureCompProd
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 set_option linter.style.longLine false
 
@@ -16,6 +17,8 @@ estimators.  Causalean's generic real-valued minimax API is reused, while the
 dependent-trajectory model is defined locally because the substrate contains no
 POMDP experiment at this abstraction level.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
@@ -396,7 +399,7 @@ variable (est : ObservableEstimator T)
 -- @node: def:minimax-risk
 /-- The cardinality-uniform observable-data minimax mean-squared error. -/
 noncomputable def minimaxRisk : ℝ :=
-  Causalean.Stat.minimaxValue (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
+  Causalean.Stat.minimaxValueReal (observedRisk (T := T) (t0 := t0) (zeta := zeta) (C := C))
   -- @realizes \(R_T(t_0,\zeta,C)\)(bounded-carrier minimax squared risk)
 
 /-- The hidden-state minimax exponent. -/

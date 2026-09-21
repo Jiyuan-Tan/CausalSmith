@@ -1,0 +1,600 @@
+{
+  "qid": "stat_semisupervised_discrete_ate_annotation_frontier",
+  "specialization": "v1",
+  "cluster": "stat",
+  "feasibility": "formalizable-now",
+  "lean_namespace": "CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier",
+  "lean_target_subdirectory": "CausalSmith/Stat/STAT_SemisupervisedDiscreteAteAnnotationFrontier_Research",
+  "decisions": [
+    "D-plan-1 (assumption threading, REVISED to the canonical-risk redirect): the three sampling atoms remain named Prop defs over a supplied sample law (`LabeledIid P n mu`, `AuxiliaryIid P m nu`, `SampleIndependence mu`), but `minimaxRisk n m d eps` and `knownMarginalRisk n d eps` are CANONICAL and carry no `sampleLaw` / `labeledLaw` parameter (this is the redirect already applied at `def:minimax-risk` and `def:known-marginal-risk`, and it is what fixes the tagged headline object to be exactly `R_epsilon(n,m,d)`). The atoms are therefore realized STRUCTURALLY rather than as free binders: `def:annotation-experiment` is literally the conjunction `ModelClass /\\ LabeledIid /\\ AuxiliaryIid /\\ SampleIndependence`, and `annotationLaw_mem_annotationExperiment` certifies that the canonical `annotationLaw P n m = (labeledProductLaw P n).prod (auxProductLaw P m)` over which both risks are defined satisfies all three. Consequently no consumer statement carries `(sampleLaw) (hLab) (hAux) (hInd)` binders; the class atom `ass:overlap` enters through `ClassLaw d eps` / `ModelClass d eps P`. See D-plan-7 for how `hyps` records this.",
+    "D-plan-2 (model class): `ModelClass d eps P` is a one-field Prop structure whose single member is `Overlap eps P`, exactly matching the core's `by_member_properties`. The side conditions `0 < eps`, `eps < 1/2`, `1 <= n`, `2 <= d` are explicit scalar hypotheses of consumers, NOT extra structure fields (P2 forbids extra members).",
+    "D-plan-3 (rate subscript): `frontierRate n m d` carries no `eps` argument; the subscript in `r_eps(n,m,d)` is notational (the displayed rate is eps-free, only the two-sided constants `c_eps`, `C_eps` depend on eps). Recorded so F2 does not add a dead argument.",
+    "D-plan-4 (construction lemmas): for `lem:common-marginal-uniform-intensity` and `lem:common-marginal-poisson-prior` the overlap atom is threaded as the premise `0 < eps < 1/2` on the overlap constant, while occupied-cell overlap of the CONSTRUCTED laws is part of the conclusion (`ModelClass` membership). `def:model-class` is therefore deliberately NOT listed in their `hyps` (it is concluded, not assumed).",
+    "D-plan-5 (finite PO overlay): the potential-outcome overlay carrying `Y(a)`, `ass:consistency` and `ass:conditional-exchangeability` is a local finite `PotentialLaw` (a `PMF` on `Fin d x Bool^4`) rather than a `Causalean.PO` system — bypass-justified, see S2.",
+    "D-plan-6 (paper manifest): the brief carries no `state.theorems` / paper manifest for this run, so the paper-scoped preamble is inert and no `local_id` is set on statement nodes; the stdout `theorems` manifest is emitted empty.",
+    "D-plan-7 (hyps under the canonical-risk redirect): a statement's `hyps` lists exactly the assumption atoms and bundled classes from its core `depends_on` that the statement is stated under, INDEPENDENTLY of whether F2 realizes them as free binders or structurally. Under D-plan-1 the three sampling atoms are realized structurally (inside `annotationLaw` / `annotationExperiment`, discharged by `annotationLaw_mem_annotationExperiment`) and `ass:overlap` is realized through the bundled class `def:model-class` (`ClassLaw d eps`). Both realizations are genuine conditions of the statement, not vacuous decoration, so both are recorded in `hyps`; this is what makes P4's `hyps` subset-of-`depends_on` and full assumption coverage hold for every statement whose core `depends_on` names an atom. This decision supersedes the earlier reading (removed with the scheme parameter) under which `hyps` was left empty because the atoms were not literal binders."
+  ],
+  "env": [
+    {
+      "id": "S1",
+      "world": "A two-sample semi-supervised discrete causal experiment. A known covariate alphabet \\([d]=\\{1,\\ldots,d\\}\\) with \\(d\\ge2\\), binary treatment \\(A\\in\\{0,1\\}\\) and binary outcome \\(Y\\in\\{0,1\\}\\) give the complete record space \\([d]\\times\\{0,1\\}^2\\). A law \\(P\\in\\mathsf{Prob}([d]\\times\\{0,1\\}^2)\\) determines cell masses \\(p_x=P(X=x)\\), propensities \\(e_x=P(A=1\\mid X=x)\\) on occupied cells, outcome regressions \\(\\mu_{ax}=E_P[Y\\mid A=a,X=x]\\), treatment--covariate cell masses \\(s_{ax}=P(X=x,A=a)\\), outcome-marked masses \\(q_{ax}=s_{ax}\\mu_{ax}\\), and the target \\(\\tau(P)=\\sum_{x=1}^d p_x(\\mu_{1x}-\\mu_{0x})\\in[-1,1]\\). For a known overlap constant \\(0<\\epsilon<1/2\\), the unrestricted class \\(\\mathcal M_{d,\\epsilon}\\) collects the laws with \\(\\epsilon\\le e_x\\le1-\\epsilon\\) on every occupied cell; no minimum cell mass is imposed and null cells are permitted. The observation experiment \\(\\mathcal E_{n,m,d,\\epsilon}\\) supplies \\(n\\ge1\\) complete labeled records \\(\\mathcal L_n\\sim P^{\\otimes n}\\) together with \\(m\\ge0\\) outcome-unlabeled records \\(\\mathcal U_m\\sim P_{XA}^{\\otimes m}\\) from the same population, the two samples being independent, so that outcome-bearing information has size \\(n\\) while treatment--covariate information has size \\(N=n+m\\). Estimators \\(\\mathcal T_{n,m,d}\\) are the measurable real functions of \\((\\mathcal L_n,\\mathcal U_m)\\); the minimax risk is \\(R_\\epsilon(n,m,d)=\\inf_{T\\in\\mathcal T_{n,m,d}}\\sup_{P\\in\\mathcal M_{d,\\epsilon}}E[(T-\\tau(P))^2]\\), compared with the explicit annotation-frontier rate \\(r_\\epsilon(n,m,d)=\\min\\{1,n^{-1}+d^2/(N^2\\log^2(en))\\}\\) and attained by the mixed-information hybrid \\(\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}\\). Asymptotic statements run along arbitrary sequences \\((m_n)_{n\\ge1}\\) and \\((d_n)_{n\\ge1}\\); the two-sided constants \\(c_\\epsilon,C_\\epsilon\\in(0,\\infty)\\) depend only on \\(\\epsilon\\). Lower bounds are indexed by fuzzy hypotheses \\(\\Pi_0,\\Pi_1\\) on \\(\\mathcal M_{d,\\epsilon}\\) whose full random table \\(P_{XA}\\) has identical distribution, together with the finite illustrative pair \\(\\Pi_0^{\\mathrm{small}},\\Pi_1^{\\mathrm{small}}\\) and the finite calculation \\(\\mathfrak C_{\\mathrm{small}}\\) at \\(d=2\\), \\(\\epsilon=1/4\\).",
+      "binds_symbols": [
+        "\\(n\\)", "\\(m\\)", "\\(N\\)", "\\(d\\)", "\\((m_n)_{n\\ge1}\\)", "\\((d_n)_{n\\ge1}\\)",
+        "\\(\\epsilon\\)", "\\(x\\)", "\\(a\\)", "\\(X\\)", "\\(A\\)", "\\(Y\\)",
+        "\\(P\\)", "\\(P_{XA}\\)", "\\(p_x\\)", "\\(e_x\\)", "\\(\\mu_{ax}\\)", "\\(s_{ax}\\)", "\\(q_{ax}\\)",
+        "\\(\\tau(P)\\)", "\\(\\mathcal L_n\\)", "\\(\\mathcal U_m\\)", "\\(\\mathcal M_{d,\\epsilon}\\)",
+        "\\(\\mathcal E_{n,m,d,\\epsilon}\\)", "\\(\\mathcal T_{n,m,d}\\)", "\\(R_\\epsilon(n,m,d)\\)",
+        "\\(r_\\epsilon(n,m,d)\\)", "\\(\\widehat\\tau^{\\mathrm{mix}}_{n,m,d}\\)",
+        "\\(\\Pi_0\\)", "\\(\\Pi_1\\)", "\\(\\Pi_0^{\\mathrm{small}}\\)", "\\(\\Pi_1^{\\mathrm{small}}\\)",
+        "\\(\\mathfrak C_{\\mathrm{small}}\\)", "\\(c_\\epsilon\\)", "\\(C_\\epsilon\\)"
+      ],
+      "binds_sampling_model": true,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Sample",
+        "Causalean.Stat.Sample.PiTransport",
+        "Mathlib.Probability.ProbabilityMassFunction.Constructions",
+        "Mathlib.Probability.ProbabilityMassFunction.Integrals",
+        "Mathlib.Probability.ProductMeasure",
+        "Mathlib.MeasureTheory.Integral.Bochner.Basic"
+      ],
+      "notes": "Encoding: `abbrev Obs (d : Nat) := Fin d x Bool x Bool`, `abbrev AuxObs (d : Nat) := Fin d x Bool`, `structure DiscreteLaw (d : Nat) where pmf : PMF (Obs d)`, `Sample n m d := (Fin n -> Obs d) x (Fin m -> AuxObs d)`, with `jointMass`, `cellMass`, `armMass`, `propensity`, `outcomeMean`, `markedMass`, `auxMarginal : DiscreteLaw d -> PMF (AuxObs d)`, `labeledProductLaw`, `auxProductLaw`, `annotationLaw = (labeledProductLaw P n).prod (auxProductLaw P m)`. All in Basic.lean, namespace `CausalSmith.Stat.SemisupervisedDiscreteAteAnnotationFrontier`.\nSubstrate survey (bypass-justified, define-local): searched `../doc/API.md` sections `10z Reusable minimax and nonparametric reduction substrate`, `8h PO/`, `18 Experimentation/` and the cluster roots `Causalean/Stat/`, `Causalean/Estimation/`, `Causalean/Estimation/Efficiency/`, `Causalean/Estimation/MinimaxATE/`, `Causalean/PO/` for a two-sample labeled/unlabeled finite-alphabet discrete-ATE world; concept words grepped: `semisupervised`, `unlabeled`, `two-sample`, `annotation`, `auxiliary sample`, `discrete ATE`, `overlap cone`. Causalean carries the general measure-theoretic PO/ATE machinery and the experiment-level minimax tools but no finite-alphabet two-sample discrete-ATE world; every sibling Stat run (`CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean`, `CausalSmith/Stat/STAT_DiscreteAteHeterogeneityFrontier_Research/Basic.lean`) owns its own finite model layer over `Causalean.Stat.Sample` + Mathlib `PMF`, and `doc/API.md` `Workspace context` fixes the dependency direction `CausalSmith -> Causalean` only (no cross-run imports). BYPASS-JUSTIFIED: abstraction mismatch (measure-theoretic vs finite algebraic) plus the one-way package rule.\nAnalogous module F2 should mirror line-for-line: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean` (`DiscreteLaw`, `Obs`, `cellMass`, `propensity`, `outcomeMean`, `Overlap`, `ateFunctional`, `mse`, `worstCaseMSE`, `minimaxRisk`) - the one-sample (m = 0) version of this exact world; the gap to bridge is the second, outcome-free sample and the `n` vs `n+m` information split."
+    },
+    {
+      "id": "S2",
+      "world": "A finite potential-outcome overlay on the same discrete world. A full-data law on \\([d]\\times\\{0,1\\}^4\\) carries the record \\((X,A,Y,Y(0),Y(1))\\) with binary potential outcomes \\(Y(a)\\in\\{0,1\\}\\); consistency requires \\(Y=Y(A)\\) almost surely and conditional exchangeability requires \\((Y(0),Y(1))\\perp\\!\\!\\!\\perp A\\mid X\\). Together with occupied-cell overlap these identify the causal contrast \\(E[Y(1)-Y(0)]\\) as the observed-data functional \\(\\tau(P)\\) of the induced observed marginal.",
+      "binds_symbols": ["\\(Y(a)\\)"],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Constructions"],
+      "notes": "Encoding: `abbrev FullObs (d) := Fin d x Bool x Bool x Bool x Bool`, `structure PotentialLaw (d) where pmf : PMF (FullObs d)`, `fullMass`, `poAtom`, `observedMarginal : PotentialLaw d -> DiscreteLaw d`; `Consistency` and `ConditionalExchangeability` are finite-sum Props on `PotentialLaw`.\nSearch trace: grepped `Causalean/PO/` and `../doc/API.md` section `8h PO/` for `Consistency`, `conditional exchangeability`, `ignorability`, `PODataFrame`, `POSystem` (Causalean does carry `PO` systems, `Backdoor`, `POManskiIVSystem`); Mathlib-side check `lean_leansearch \"conditional independence of potential outcomes given covariates\"` returns only generic `ProbabilityTheory.CondIndep`. BYPASS-JUSTIFIED: the Causalean PO analogue is a measure-theoretic PO system with abstract outcome spaces, whereas this note needs a purely finite `PMF` overlay used only to certify identification of `tau` once; the sibling `STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean` (`PotentialLaw`, `Consistency`, `ConditionalExchangeability`, `observedMarginal`) is the exact analogous encoding to copy."
+    },
+    {
+      "id": "S3",
+      "world": "The known-treatment--covariate-marginal benchmark experiment. An estimator observes \\(n\\ge1\\) complete labeled records \\(\\mathcal L_n\\sim P^{\\otimes n}\\) together with the exact \\(2d\\)-cell table \\(P_{XA}\\) supplied as deterministic side information, so that the decision class \\(\\mathcal T^{\\mathrm{known}}_{n,d}\\) consists of the measurable functions of \\((\\mathcal L_n,P_{XA})\\) and the benchmark risk is \\(R_\\epsilon^{\\mathrm{known}}(n,d)=\\inf_{T\\in\\mathcal T^{\\mathrm{known}}_{n,d}}\\sup_{P\\in\\mathcal M_{d,\\epsilon}}E_{P^{\\otimes n}}[(T(\\mathcal L_n,P_{XA})-\\tau(P))^2]\\). This is the \\(m\\to\\infty\\) limit of the annotation experiment: all treatment--covariate information is revealed and no outcome information is added.",
+      "binds_symbols": [
+        "\\(\\mathcal E^{\\mathrm{known}}_{n,d,\\epsilon}\\)",
+        "\\(\\mathcal T^{\\mathrm{known}}_{n,d}\\)",
+        "\\(R_\\epsilon^{\\mathrm{known}}(n,d)\\)"
+      ],
+      "binds_sampling_model": false,
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample", "Mathlib.Probability.ProductMeasure"],
+      "notes": "Encoding: `AuxTable d := AuxObs d -> Real` (the exact 2d-cell table), `knownSample n d := (Fin n -> Obs d) x AuxTable d`, `knownMarginalExperiment`, `knownMarginalRisk` in Basic.lean.\nSearch trace: grepped `Causalean/Stat/Minimax/` + `Causalean/Estimation/MinimaxATE/` for `known marginal`, `side information`, `oracle nuisance`, `deterministic side information`, `ancillary` - the only relevant hit is `Causalean.Stat.chiSqDiv_prod_ancillary` (Causalean/Stat/Minimax/ChiSquared.lean:451), which is the information-theoretic tool for the converse, not the experiment object; Mathlib-side `lean_leansearch \"minimax risk with known nuisance side information\"` returns only `ProbabilityTheory.minimaxRisk` (Mathlib/Probability/Decision/Risk/Defs.lean), an abstract Bayes-risk shell over a kernel, which does not carry the finite table. BYPASS-JUSTIFIED for the experiment object; the abstract Mathlib/Causalean risk shells stay unused because this note's risk must be the same `inf-sup` shape as `minimaxRisk` for `thm:known-marginal-limit` to compare them."
+    }
+  ],
+  "nodes": {
+    "ass:overlap": {
+      "lean_kind": "assumption",
+      "lean_name": "Overlap",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Constructions"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sketch": "def Overlap {d : Nat} (eps : Real) (P : DiscreteLaw d) : Prop := forall x, 0 < cellMass P x -> eps <= propensity P x /\\ propensity P x <= 1 - eps",
+      "notes": "Modeling assumption (a restriction on the data law's design), kept as a threaded Prop hypothesis; never discharged. Search trace: `lean_local_search \"Overlap\"` + grep `Causalean/SCM/ID/Overlap.lean`, `Causalean/Estimation/MinimaxATE/`, `../doc/API.md` section `9a SCM/ID/Overlap.lean` for `overlap`, `positivity`, `propensity bounded away`; Causalean's `Overlap` is a Rule-2/backdoor kernel-level predicate on measure-theoretic propensities, not a finite occupied-cell band, so no exact fit. Mathlib-side check `lean_leansearch \"propensity score bounded away from zero and one\"`: nothing. Analogous decl to copy verbatim: `CausalSmith.Stat.DiscreteAteMinimaxLoggap.Overlap` (STAT_DiscreteAteMinimaxLoggap_Research/Basic.lean:196), identical predicate on the same finite alphabet."
+    },
+    "ass:labeled-iid": {
+      "lean_kind": "assumption",
+      "lean_name": "LabeledIid",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample", "Mathlib.Probability.ProductMeasure"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sketch": "def LabeledIid {d : Nat} (P : DiscreteLaw d) (n : Nat) (mu : Measure (Fin n -> Obs d)) : Prop := mu = labeledProductLaw P n",
+      "notes": "Modeling (design) assumption on the supplied labeled sample law; threaded, per D-plan-1. Search trace: grepped `Causalean/Stat/Sample.lean`, `Causalean/Stat/Sample/PiTransport.lean` and `../doc/API.md` for `IIDSample`, `iidSample_infinitePi`, `iid`, `product law`. Causalean's `Causalean.Stat.IIDSample` is a bundled sample structure over an abstract space (used downstream for Hoeffding/U-statistics) rather than a Prop pinning a supplied finite product law, so it is imported as machinery but is not the node. Mathlib-side check `lean_leansearch \"finite product of identical probability measures iid sample\"` -> `Measure.pi`, which is the body, not the predicate. Analogous decl: `CausalSmith.Stat.DiscreteAteMinimaxLoggap.IidSampling` (Basic.lean:190)."
+    },
+    "ass:auxiliary-iid": {
+      "lean_kind": "assumption",
+      "lean_name": "AuxiliaryIid",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample", "Mathlib.Probability.ProductMeasure"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sketch": "def AuxiliaryIid {d : Nat} (P : DiscreteLaw d) (m : Nat) (nu : Measure (Fin m -> AuxObs d)) : Prop := nu = auxProductLaw P m, where auxProductLaw uses auxMarginal P = the (X,A)-marginal PMF of P",
+      "notes": "Modeling (design) assumption: the auxiliary records are iid from the SAME population's (X,A)-marginal - the substance of the note (no covariate shift, no selected enrollment). Threaded; never discharged. Search trace: grepped `Causalean/Stat/`, `Causalean/Estimation/` for `unlabeled`, `auxiliary sample`, `semisupervised`, `surrogate`, `marginal sample`; nothing. Mathlib-side check `lean_leansearch \"marginal of a product measure iid unlabeled sample\"` -> only `Measure.map`/`Measure.fst`. No analogue anywhere: this atom is what makes the run new."
+    },
+    "ass:sample-independence": {
+      "lean_kind": "assumption",
+      "lean_name": "SampleIndependence",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProductMeasure"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sketch": "def SampleIndependence {n m d : Nat} (mu : Measure (Sample n m d)) : Prop := IsProbabilityMeasure mu /\\ mu = (mu.map Prod.fst).prod (mu.map Prod.snd)",
+      "notes": "Modeling (design) assumption: the two samples are independent. Stated as the product-factorization identity for the supplied joint law, so that `LabeledIid` + `AuxiliaryIid` + `SampleIndependence` jointly pin `mu = P^{(x)n} (x) P_XA^{(x)m}` (D-plan-1). Search trace: grepped `Causalean/Mathlib/IndepIntegral.lean`, `Causalean/Stat/SampleSplit/` and Mathlib `lean_loogle \"Measure.prod\"`, `lean_leansearch \"joint law factorizes as product of its marginals independence\"` -> `ProbabilityTheory.IndepFun`, `Measure.prod_eq`; those are the general notions, and the finite-sample-block form used here (equality with the product of the two pushforwards) is a one-line def, so build-inline is correct."
+    },
+    "ass:consistency": {
+      "lean_kind": "assumption",
+      "lean_name": "Consistency",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Constructions"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sketch": "def Consistency {d : Nat} (Q : PotentialLaw d) : Prop := forall z, z.observedY <> (if z.arm then z.y1 else z.y0) -> fullMass Q z = 0",
+      "notes": "Causal-structural modeling assumption on the finite PO overlay (S2); threaded into `def:ate-functional` only. Search trace: grepped `Causalean/PO/` + `../doc/API.md` section `8h PO/` for `Consistency`, `SUTVA`, `Y = Y(A)`; Causalean has the measure-theoretic PO-consistency bridge (`SCM/Model/CounterfactualLemmas.lean`, `PO/`), wrong abstraction for a finite PMF overlay. Mathlib-side: none (not a Mathlib notion). Analogous decl to copy: `CausalSmith.Stat.DiscreteAteMinimaxLoggap.Consistency` (Basic.lean:219)."
+    },
+    "ass:conditional-exchangeability": {
+      "lean_kind": "assumption",
+      "lean_name": "ConditionalExchangeability",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Constructions"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "classification": "modeling assumption",
+      "sketch": "def ConditionalExchangeability {d : Nat} (Q : PotentialLaw d) : Prop := the finite cross-multiplied conditional-independence identity for poAtom Q x a y0 y1",
+      "notes": "Causal-structural modeling assumption on the finite PO overlay; threaded into `def:ate-functional` only. Search trace: `lean_leansearch \"conditional independence as product identity finite\"` -> `ProbabilityTheory.CondIndepSets`, `iIndepFun` (kernel/sigma-algebra level, needs a.e. disintegration - wrong abstraction for a finite PMF); grepped `Causalean/SCM/Do/FullCondIndep.lean`, `Causalean/PO/` for `CondIndep`, `exchangeability`, `ignorability`. Analogous decl to copy: `CausalSmith.Stat.DiscreteAteMinimaxLoggap.ConditionalExchangeability` (Basic.lean:232), which uses exactly the cross-multiplied finite form (avoids division by zero on null cells)."
+    },
+
+    "def:model-class": {
+      "lean_kind": "structure",
+      "lean_name": "ModelClass",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Constructions"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "members": ["ass:overlap"],
+      "sketch": "structure ModelClass (d : Nat) (eps : Real) (P : DiscreteLaw d) : Prop where overlap : Overlap eps P   -- plus `abbrev ClassLaw d eps := {P : DiscreteLaw d // ModelClass d eps P}`",
+      "notes": "Redirect sync: `ModelClass` bundles `2 <= d`, `0 < eps`, `eps < 1/2`, and occupied-cell overlap, so membership is exactly the core class. Search trace: grepped `Causalean/Estimation/MinimaxATE/`, `Causalean/Stat/Minimax/MinimaxRisk.lean` and `../doc/API.md` `10z` for `model class`, `law class`, `nonparametric class`, `unrestricted class`; Causalean parameterizes minimax statements by an ambient kernel/parameter set rather than by a discrete-law overlap class, so no fit. Mathlib-side: none."
+    },
+    "def:ate-functional": {
+      "lean_kind": "def",
+      "lean_name": "ateFunctional",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Integrals"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": ["ass:consistency", "ass:conditional-exchangeability", "ass:overlap"],
+      "sketch": "noncomputable def ateFunctional {d : Nat} (P : DiscreteLaw d) : Real := sum over x of cellPhi (cellVector P x), with cellPhi the total (division-free at 0) four-cell contribution; supporting non-node lemmas in the same file: `ateFunctional_eq_weighted_regression` (under ass:overlap), `ateFunctional_mem_Icc_neg_one_one`, and `ateFunctional_observedMarginal_eq_po_contrast` (under ass:consistency + ass:conditional-exchangeability + ass:overlap) realizing the three declared inputs.",
+      "notes": "Construction; the three assumption inputs are realized by the identification bridge lemmas listed in `sketch` (F2 scaffolds them alongside the def - they are not core nodes). Search trace: `lean_local_search \"ateFunctional\"`, grepped `Causalean/Estimation/`, `Causalean/PO/ID/`, `../doc/API.md` sections `9d SCM/ID/Adjustment.lean`, `8h PO/` for `ATE`, `adjustment functional`, `backdoor functional`; Causalean's adjustment functionals are measure-theoretic integrals over abstract covariate spaces, not finite sums with total extension at null cells. Mathlib-side: none. Analogous decls to copy: `CausalSmith.Stat.DiscreteAteMinimaxLoggap.{cellPhi, ateFunctional, ateFunctional_eq_weighted_regression, ateFunctional_mem_interval}` (Basic.lean:274-350) - same alphabet, same null-cell convention; gap to bridge: none for the functional itself."
+    },
+    "def:annotation-experiment": {
+      "lean_kind": "def",
+      "lean_name": "annotationExperiment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample", "Mathlib.Probability.ProductMeasure"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": ["ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence", "def:model-class"],
+      "sketch": "def annotationExperiment (n m d : Nat) (eps : Real) : Set (Measure (Sample n m d)) := {mu | 1 <= n /\\ 2 <= d /\\ exists P, ModelClass d eps P /\\ LabeledIid P n (mu.map Prod.fst) /\\ AuxiliaryIid P m (mu.map Prod.snd) /\\ SampleIndependence mu}; companion `annotationLaw P n m := (labeledProductLaw P n).prod (auxProductLaw P m)` with `annotationLaw_mem_annotationExperiment (P) (hn : 1 <= n) (hP : ModelClass d eps P) : annotationLaw P n m in annotationExperiment n m d eps`. This membership lemma is the certificate that discharges the three sampling atoms for every consumer stated over the canonical law (D-plan-1, D-plan-7).",
+      "notes": "Construction whose body literally consumes all four declared inputs. Search trace: grepped `Causalean/Stat/Minimax/MinimaxRisk.lean`, `Causalean/Stat/Sample*.lean`, `../doc/API.md` `10z` for `experiment`, `two-sample experiment`, `product experiment`, `statistical experiment`; Causalean models experiments as `Kernel Theta X` (see `Causalean.Stat.Minimax.FuzzyHypotheses.minimaxSquaredRisk`), which is the right abstraction for the LOWER-bound machinery (and is reused there) but not for the finite two-block sample space this note's estimator is written over. Mathlib-side: `Measure.prod` / `Measure.pi` only. BYPASS-JUSTIFIED as in S1."
+    },
+    "def:minimax-risk": {
+      "lean_kind": "def",
+      "lean_name": "minimaxRisk",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample", "Mathlib.MeasureTheory.Integral.Bochner.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": ["def:model-class", "def:ate-functional", "def:annotation-experiment", "ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence"],
+      "sketch": "noncomputable def twoSampleMSE (mu : Measure (Sample n m d)) (est : Sample n m d -> Real) (target : Real) : Real := integral of (est z - target)^2; noncomputable def minimaxRisk (n m d : Nat) (eps : Real) : Real := iInf over est : {f : Sample n m d -> Real // Measurable f} of iSup over P : ClassLaw d eps of twoSampleMSE (annotationLaw P.1 n m) est.1 (ateFunctional P.1); plus `minimaxRisk_mem_Icc_zero_one` and `minimaxRisk_le_measurable_estimator`. The three sampling atoms are realized by `annotationLaw P.1 n m` and certified by `annotationLaw_mem_annotationExperiment` (D-plan-1).",
+      "notes": "Redirect sync: `minimaxRisk` fixes the canonical `annotationLaw P n m`; the scheme-parameterized form was removed so the tagged headline object is exactly `R_epsilon(n,m,d)`. Search trace: `lean_local_search \"minimaxRisk\"` -> `ProbabilityTheory.minimaxRisk` and `Causalean.Stat.Minimax.FuzzyHypotheses.minimaxSquaredRisk`; both use a different ENNReal/kernel abstraction, so the canonical finite inf-sup remains define-local."
+    },
+    "def:frontier-rate-handle": {
+      "lean_kind": "def",
+      "lean_name": "frontierRate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.SpecialFunctions.Log.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": ["def:annotation-experiment", "def:ate-functional"],
+      "sketch": "noncomputable def logEN (n : Nat) : Real := Real.log (Real.exp 1 * n); noncomputable def frontierRate (n m d : Nat) : Real := min 1 (1 / n + (d : Real)^2 / (((n + m : Nat) : Real)^2 * logEN n ^ 2)); plus `frontierRate_mem_Ioc_zero_one`, `inv_n_le_frontierRate`, `frontierRate_zero_aux (m = 0)`.",
+      "notes": "Construction; carries no `eps` argument (D-plan-3). Search trace: grepped `Causalean/Stat/Minimax/`, `Causalean/Estimation/MinimaxATE/` for `rate`, `logGap`, `frontierRate`, `log(en)`; nothing (rates are always paper-local handles). Mathlib-side `lean_loogle \"Real.log\"`, `lean_leansearch \"minimum of one and a sum of two rates\"`: `min`, `Real.log` are the only primitives needed - this is a two-line def, build-inline. Analogous decl: `CausalSmith.Stat.DiscreteAteHeterogeneityFrontier.{logEN, frontierRate}` (Basic.lean:318,329)."
+    },
+    "def:mixed-estimator-handle": {
+      "lean_kind": "def",
+      "lean_name": "mixedEstimator",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.Polynomial.Chebyshev",
+        "Mathlib.RingTheory.MvPolynomial.Basic",
+        "Mathlib.Probability.Distributions.Poisson.Basic",
+        "Causalean.Stat.UStatistic.OrderM.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/Estimator.lean",
+      "inputs": ["def:frontier-rate-handle", "def:annotation-experiment"],
+      "sketch": "Supporting defs in the same file: `starA : Nat := 7056`, `cCirc : Real := 1/256`, `dyadicIndex eps`, `barEps eps = 2^(-dyadicIndex eps)`, `Hconst eps` (least H satisfying (C1)), `blockSizes n m` (M0, np, nf, mp, mf, Mp, Mf, u, tp, t as in (C2)), `binLen n = 1 + Nat.clog 2 n`, `Ldeg n`, `Bscale n m eps`, `k0 n m eps` (C3), `calibrationPredicate n m eps : Prop` (decidable conjunction of (C4)-(C6)), `chebH/chebE/chebG (L)` polynomial continuations, `weightPoly a L : MvPolynomial (Fin 2) Real`, `factorialLift`, `heavyRatio`, `cellStatistic`, `prefixOutput` (clip to [-1,1]); NODE: `noncomputable def mixedEstimator (n m d : Nat) (eps : Real) : Sample n m d -> Real` = the finite Poisson-weighted conditional expectation of `prefixOutput` over the three prefix lengths, `0` when `calibrationPredicate` fails; plus `measurable_mixedEstimator`, `mixedEstimator_mem_Icc_neg_one_one`, `decidable_calibrationPredicate`.",
+      "notes": "Build-inline: this is the paper's own contribution (a completely specified finite algorithm) and the largest single definition of the run. Search trace: grepped `Causalean/Stat/`, `../doc/API.md` `10z` for `polynomial estimator`, `factorial moment estimator`, `Chebyshev estimator`, `plug-in bias correction`, `hybrid estimator`, `pilot split`, `derandomize`, `Poisson prefix`; Causalean supplies the ingredients (`Causalean.Stat.uStatisticOrder`, `Causalean.Stat.injectiveTupleCount_eq_descFactorial`, `Causalean.Stat.normalizedOrderedProductStatistic_eq_uStatisticOrder` for unbiased falling-factorial products; `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.*` for prefix/marked-Poisson plumbing) but not the estimator. Mathlib-side check: `lean_loogle \"Polynomial.Chebyshev.T\"` confirms `Polynomial.Chebyshev.T` exists (Mathlib/RingTheory/Polynomial/Chebyshev.lean) and is the shifted-Chebyshev base. Analogous modules F2/F3 should adapt: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{Estimator.lean, HybridProgram.lean, ShiftedChebyshev.lean, FactorialMoments.lean, PilotSandwich.lean}` - the same estimator at m = 0; gap to bridge: the outcome factor comes from the size-`M0` labeled block while ALL remaining treatment--mass factors come from the pooled `Mf = nf + mf` block (the unequal-information factorial lift), and the split ratios/predicate are the new (C2)-(C6)."
+    },
+    "def:common-marginal-prior-handle": {
+      "lean_kind": "def",
+      "lean_name": "commonMarginalPriorOf",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.Mixture",
+        "Causalean.Stat.Minimax.MomentMatchedMixture.SupportLocalized",
+        "Mathlib.MeasureTheory.Measure.WithDensity"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/CommonMarginalPrior.lean",
+      "inputs": ["def:model-class", "def:annotation-experiment", "def:frontier-rate-handle"],
+      "sketch": "`CommonMarginalCalibration eps` retains the C55 handle constant `bandwidthConstant = b0` and the uniform-intensity allowance `uniformBandwidthConstant = b_epsilon`, together with the epsilon-only scale and dimension constants. `CommonMarginalRecipe calibration n m d L B a k` remains the arbitrary-scale carrier. The paper-facing `CommonMarginalPriorHandle calibration n m d` packages one identical recipe together with the exact regime condition `finiteAtomConstruction <-> not commonMarginalParametricRegime calibration n m d` and exact scales `L = ceil(degreeConstant * logEN n)`, `B = bandwidthConstant * L / (n+m)`, `a = gamma * B / L^2`, and `k = min (d-1) floor(rareCountConstant * (n+m) * L)`. It has no `Cfixed` parameter: the fixed-sample multiplier is external to the prior handle. The companion `CommonMarginalCanonicalCertificate Cfixed cSmall cFloor CBound rho H`, declared with the exact witness in `Helpers/CommonMarginalPoissonPrior.lean`, is producer-side evidence for this same handle: `L>=2`, the explicit `2*Cfixed*b0 <= b_epsilon` calibration and resulting bandwidth closure for intensities `u=Cfixed*n`, `v=Cfixed*(n+m)`, C55 rare-shift bound, an exact `CommonMarginalExactPoissonPriorWitness b0 (n+m)` for `H.recipe`, same-recipe TV at most `1/8`, center separation and variance absorption, transferred nonparametric risk, the parametric floor, and the C56--C58 branch-indexed closure (dimension by squared separation on the finite-atom branch, and by the parametric floor on the false branch). NODE `commonMarginalPriorOf H branch` projects branch 0 or 1 from that same handle recipe. The arbitrary-scale internal projection is named `commonMarginalRecipePriorOf`; it cannot be confused with the regime-dependent public handle.",
+      "notes": "Build-inline construction. Search trace: grepped `Causalean/Stat/Minimax/MomentMatchedMixture/`, `Causalean/Mathlib/Analysis/AbsoluteValueMomentPriorDuality/` and `../doc/API.md` `10z`, `10a''''''''` for `moment matched prior`, `fuzzy prior`, `signed measure prior`, `rare cell`, `reservoir`, `normalized prior`. Causalean has `Causalean.Stat.Minimax.MomentMatchedMixture.productPrior` / `priorPredictive` (an iid product of a scalar prior over a kernel) and `Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality.AbsMomentMatchedPriors` (moment-matched probability pair supported on [-1,1] with an |x|-gap); neither carries the outcome-mark/propensity coupling `s = eps (p + a)`, the reservoir, or the random normalizer `S`, so no exact fit. Mathlib-side `lean_leansearch \"signed measure with vanishing moments dual to best polynomial approximation\"`: nothing usable. Analogous modules to adapt: `Causalean/Stat/Minimax/MomentMatchedMixture/SupportLocalized.lean` (`momentMatchedMixture_tv_le_sqrt_tail_of_supported`) and `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{OneArmSignedPrior.lean, OneArmShiftedPrior.lean, OneArmPriorLift.lean}`; gap to bridge: the prior must keep the ENTIRE random `(X,A)` table identically distributed across the two branches (only the conditional treated outcome marks move)."
+    },
+    "def:finite-small-instance": {
+      "lean_kind": "def",
+      "lean_name": "finiteSmallInstance",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Probability.ProbabilityMassFunction.Constructions"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/FiniteSmallInstance.lean",
+      "inputs": ["def:annotation-experiment", "def:ate-functional", "def:mixed-estimator-handle", "def:common-marginal-prior-handle"],
+      "sketch": "def smallLawZero / smallLawOne : DiscreteLaw 2 (eps = 1/4, p1 = p2 = 1/2, e1 = e2 = 1/2, mu_0x = 0, mu_11 in {0,1}); `Pi0Small`, `Pi1Small` the two Dirac priors on them; NODE: `def finiteSmallInstance : FiniteCalculationWitness` bundling (i) the n = m = 1 mixed-statistic expectation identity `= 2 q_11 p_1 = 1/4` against the treated-cell target `p_1 mu_11 = 1/2`, (ii) `auxMarginal` equal to the uniform 1/4 table under both priors for every m, (iii) `ateFunctional = 0` vs `1/2`, (iv) the labeled total-variation value `1 - (3/4)^n`.",
+      "notes": "Build-inline diagnostic construction; all four clauses are finite arithmetic over `Fin 2 x Bool x Bool`. Search trace: grepped `Causalean/Stat/`, `Causalean/Mathlib/Probability/` for `total variation of product of Bernoulli`, `two point instance`, `witness law`; Mathlib-side `lean_leansearch \"total variation distance between n-fold products of two Bernoulli laws\"` -> `Causalean.Stat.tvDist` machinery (Causalean/Stat/Minimax/TotalVariation.lean) which F3 should use for clause (iv), but the instance itself is bespoke. Analogous decl: `CausalSmith.Stat.DiscreteAteMinimaxLoggap.twoCategoryWitness` (Basic.lean:479) - a finite witness law with the same `norm_num`-discharged PMF obligations."
+    },
+    "def:known-marginal-experiment": {
+      "lean_kind": "def",
+      "lean_name": "knownMarginalExperiment",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample", "Mathlib.Probability.ProductMeasure"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": ["ass:labeled-iid", "def:model-class"],
+      "sketch": "abbrev AuxTable (d : Nat) := AuxObs d -> Real; abbrev KnownSample (n d : Nat) := (Fin n -> Obs d) x AuxTable d; def auxTableOf (P : DiscreteLaw d) : AuxTable d := fun z => armMass-style marked mass of (x,a); def knownMarginalExperiment (n d : Nat) (eps : Real) : Set (Measure (Fin n -> Obs d) x AuxTable d) := {(mu, Q) | exists P, ModelClass d eps P /\\ LabeledIid P n mu /\\ Q = auxTableOf P}.",
+      "notes": "Build-inline construction (S3). Search trace: as recorded in S3 `notes` (grep `known marginal`, `side information`, `oracle`, `ancillary` over `Causalean/Stat/Minimax/`, `Causalean/Estimation/MinimaxATE/`; Mathlib-side `lean_leansearch \"experiment with deterministic side information\"` -> nothing). No analogue in the m = 0 sibling either (its experiment has no side-information coordinate)."
+    },
+    "def:known-marginal-risk": {
+      "lean_kind": "def",
+      "lean_name": "knownMarginalRisk",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.MeasureTheory.Integral.Bochner.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Basic.lean",
+      "inputs": ["def:model-class", "def:ate-functional", "def:known-marginal-experiment", "ass:labeled-iid"],
+      "sketch": "noncomputable def knownMarginalRisk (n d : Nat) (eps : Real) : Real := iInf over measurable `T : KnownSample n d -> Real` valued in `[-1,1]`, of iSup over `ClassLaw d eps` of canonical-labeled-product MSE. Clipping is lossless because the target lies in `[-1,1]`; bounded rules prevent Real `iSup` from using its unbounded-set junk fallback. Companion: `knownMarginalRisk_mem_Icc_zero_one`.",
+      "notes": "Redirect sync: build-inline with the canonical labeled product law `labeledProductLaw P n`; no unconstrained `labeledLaw` parameter remains. Search trace: same abstraction mismatch as `def:minimax-risk`."
+    },
+
+    "lem:explicit-chebyshev-calibration": {
+      "lean_kind": "lemma",
+      "lean_name": "explicit_chebyshev_calibration",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.RingTheory.Polynomial.Chebyshev",
+        "Mathlib.RingTheory.MvPolynomial.Basic",
+        "Mathlib.Probability.Distributions.Poisson.Basic",
+        "Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic",
+        "Causalean.Stat.UStatistic.OrderM.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ChebyshevCalibration.lean",
+      "hyps": [],
+      "sketch": "lemma explicit_chebyshev_calibration (L : Nat) (hL : 2 <= L) : coefficient-l1 bounds (C7), factorial-lift second moments (C8) with explicit `Astar = 7056`, and on `[0,1]` the split certificate `0 <= E_L z`, `E_L z <= 1`, `0 < z -> E_L z <= (L^2*z)^{-1}`, and `z*G_L z + E_L z = 1`.",
+      "notes": "Build-inline (paper-owned, medium). Search trace: grepped `Causalean/Mathlib/Analysis/` (`JacksonApproximation/`, `AbsoluteValueMomentPriorDuality/`, `EhlichZellerMesh/`) and `../doc/API.md` `10a'''''''''` for `Chebyshev`, `coefficient norm`, `shifted Chebyshev`, `l1 coefficient bound`, `factorial lift`, `factorial moment second moment`; Causalean has Jackson/Ehlich-Zeller approximation substrate but no coefficient-l1 recurrence and no Poisson factorial-lift moment bound. Mathlib-side checks: `lean_loogle \"Polynomial.Chebyshev.T\"` -> `Polynomial.Chebyshev.T`, `T_mul`, `T_one` exist (recurrence available); `lean_leansearch \"expectation of falling factorial of Poisson random variable equals lambda to the power r\"` -> only `Nat.descFactorial`, `descPochhammer`, `ProbabilityTheory.poissonPMFReal` (no factorial-moment lemma), so `E[(K)_r] = lambda^r` and the paired identity (C12) are build-inline. Analogous modules to adapt: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{ShiftedChebyshev.lean, ChebyshevCertificate.lean, MvPolynomialEnvelope.lean, FactorialMoments.lean}` - same polynomials `H_L, E_L, G_L` and the same `A_star = 7056` certificate at m = 0; gap to bridge: essentially none (this lemma is alphabet- and sample-free), so it is the cheapest node of the run."
+    },
+    "lem:chebyshev-factorial-certificate": {
+      "lean_kind": "lemma",
+      "lean_name": "chebyshev_factorial_certificate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.RingTheory.Polynomial.Chebyshev", "Mathlib.Probability.Distributions.Poisson.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/FactorialCertificate.lean",
+      "hyps": [],
+      "sketch": "lemma chebyshev_factorial_certificate : exists one universal `A > 1`, forall `L >= 2`, the degree bound, the split interval certificate `E_L z <= 1` with reciprocal bound guarded by `0 < z`, the identity `z*G_L z + E_L z = 1`, and factorial-lift moment bounds with witness `A = 7056`.",
+      "notes": "Build-inline corollary of `lem:explicit-chebyshev-calibration` (small; the existential is discharged by the computable witness). Search trace: identical to `lem:explicit-chebyshev-calibration` (grep `Chebyshev`, `factorial lift`, `universal constant` over `Causalean/Mathlib/Analysis/` + `../doc/API.md` `10a'''''''''`; Mathlib check `lean_leansearch \"degree of Chebyshev polynomial quotient by z\"` -> nothing). Analogous decl: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/ChebyshevCertificate.lean`."
+    },
+    "lem:poisson-inverse-count-risk": {
+      "lean_kind": "lemma",
+      "lean_name": "poisson_inverse_count_risk",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Poisson.Basic",
+        "Causalean.Stat.Concentration.PoissonSelfNormalized.Chernoff",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.CellLaws"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/PoissonInverseCount.lean",
+      "hyps": ["ass:overlap", "def:model-class"],
+      "sketch": "lemma poisson_inverse_count_risk {d : Nat} {eps u t : Real} (heps : 0 < eps) (heps2 : eps < 1/2) (hu : 0 < u) (ht : 0 < t) (P : DiscreteLaw d) (hP : ModelClass d eps P) (hOv : Overlap eps P) : |E (inverseCountStatistic ..) - ateFunctional P| <= C eps * min 1 (d / t) /\\ Var (inverseCountStatistic ..) <= C eps * (u^{-1} + t^{-1}); supporting non-node lemmas: `poisson_expect_inv_succ` (E 1/(K+1) = (1 - e^{-lambda})/lambda), `poisson_expect_inv_succ_sq_le`, `poisson_expect_inv_succ_mul_succ_sq_le`, `poisson_var_add_one_step` (the add-one Doob/Poincare variance inequality).",
+      "notes": "Build-inline (paper-owned, medium). `ass:overlap` is threaded (modeling assumption; the statement is uniform over `P in M_{d,eps}`), `def:model-class` bundles it and is the domain of the `sup`. Search trace: grepped `Causalean/Stat/` for `inverse count`, `1/(K+1)`, `plug-in bias correction`, `Poisson variance inequality`, `add-one`, `Poincare`, `Chen-Stein`; found the closest analogue `Causalean.Stat.integral_fixedStratumMarkedRatio_error_sq_le` (Causalean/Stat/Sample/FiniteStratumMarkedRatioMse/Main.lean:670) - a finite-sample stratum-wise marked-ratio MSE bound with `missingArmCount` envelopes - plus `Causalean.Stat.Concentration.PoissonSelfNormalized.{poisson_upper_bernstein, poisson_lower_bernstein}` for the tails. Mathlib-side `lean_leansearch \"expectation of one over one plus Poisson\"`, `lean_loogle \"ProbabilityTheory.poissonPMFReal\"` -> only `poissonPMF`, `poissonPMFReal`, no reciprocal-moment or Poisson-Poincare lemma. Gap for F3 to bridge from the analogue: the counts here are Poisson (not multinomial), the denominator is `K_a + 1` with a numerator `K_0 + K_1 + 1`, and the two arms are differenced via `Var(U - V) <= 2 Var U + 2 Var V` so no arm independence is used."
+    },
+    "lem:poisson-hybrid-risk": {
+      "lean_kind": "lemma",
+      "lean_name": "poisson_hybrid_risk",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Mathlib.Probability.Distributions.Poisson.Basic",
+        "Causalean.Stat.Concentration.PoissonSelfNormalized.Chernoff",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting",
+        "Causalean.Stat.UStatistic.OrderM.Basic"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/PoissonHybridRisk.lean",
+      "hyps": ["ass:overlap", "def:model-class"],
+      "sketch": "lemma poisson_hybrid_risk {d : Nat} {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists C > 0, forall (n m d) (P : DiscreteLaw d), ModelClass d eps P -> Overlap eps P -> E ((clip (hybridPoissonStatistic n m d eps) - ateFunctional P)^2) <= C * frontierRate n m d, where the statistic uses the split intensities u, tp, t and the predicate of `def:mixed-estimator-handle` and outputs 0 when the predicate fails. Internal structure follows (C15)-(C36): pilot-branch independence, the two false-branch mass-weighted tails (C23)/(C25), the exact branch-variance decomposition (C27), the product identity (C28), and the absorption (C33)-(C35); plus the eventual-predicate lemma (finitely many failing n, uniformly in m).",
+      "notes": "Build-inline; the largest proof of the run (paper-owned; `defer_tier` stays false by the gate-consumer / paper-contribution rule). Search trace: grepped `Causalean/Stat/` + `../doc/API.md` `10z` for `hybrid risk`, `light cell`, `heavy cell`, `pilot threshold`, `branch variance`, `mass weighted`, `polynomial tail`; no Causalean decl. Mathlib-side `lean_leansearch \"variance of a mixture of two estimators selected by an independent indicator\"` -> nothing beyond `variance_add`. Analogous modules F3 must adapt: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{LightCell.lean, LightCellVariance.lean, LightCellRate*.lean, HeavyCell.lean, HeavyCellMoments.lean, PilotSandwich.lean, PilotConditioning.lean, CombinedEnvelope.lean, LightCellAssembly.lean}` - the same hybrid risk bound at m = 0. Gap to bridge (this is where the new content lives): the factorial pool has intensity `t ~ N = n + m` while the outcome pool has `u ~ n`, so (C23)/(C25) must be mass-weighted with NO hidden `d` or `N/n` factor, and the absorption must produce `d^2/(N^2 L^2)` next to `1/n` rather than a single-sample-size rate."
+    },
+    "lem:fixed-sample-hybrid-transfer": {
+      "lean_kind": "lemma",
+      "lean_name": "fixed_sample_hybrid_transfer",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram",
+        "Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.Risk",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization",
+        "Causalean.Stat.Concentration.PoissonSelfNormalized.Chernoff"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/FixedSampleHybridTransfer.lean",
+      "hyps": ["ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence"],
+      "sketch": "lemma fixed_sample_hybrid_transfer : exists C : Real, 0 < C /\\ forall (eps : Real), 0 < eps -> eps < 1/2 -> forall (n m d : Nat), 1 <= n -> 2 <= d -> forall (P : DiscreteLaw d), ModelClass d eps P -> Measurable (mixedEstimator n m d eps) /\\ twoSampleMSE (annotationLaw P n m) (mixedEstimator n m d eps) (ateFunctional P) <= 2 * poissonHybridMSE P n m eps + C / n. Redirect-closure sync: the supplied `mu` with its three atom binders is replaced by the canonical `annotationLaw P n m`, which `annotationLaw_mem_annotationExperiment` certifies satisfies all three atoms (D-plan-1, D-plan-7); `poissonHybridMSE P n m eps` names the independent-Poisson risk at the split intensities u, tp, t.",
+      "notes": "Build-inline (medium). Search trace: grepped `Causalean/Stat/FiniteRaoBlackwell/`, `Causalean/Mathlib/Probability/FiniteMarkedPoissonPartition/` and `../doc/API.md` `10z` (`Paired Poisson-histogram Rao-Blackwell transfer`) for `depoissonization`, `Poisson prefix`, `Rao-Blackwell`, `fixed to Poisson`, `overflow`. STRONG partial fits to reuse rather than rebuild: `Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.pairedPoissonHistogramRisk_le_fixedRisk_add_tails` and `pairedPoissonHistogramRisk_two_n_le` (TWO independent finite alphabets, zero fallback, risk <= fixed risk + fallback loss * lower-tail probabilities - exactly this note's two-block structure), `Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.map_pairRetainedArrays_prod_pi` (the iid pairing law), `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.poisson_two_n_lower_tail`, `Causalean.Stat.Concentration.PoissonSelfNormalized.poisson_quarter_overflow_le_inv` (the (C37) overflow bound in the C/n form) and `map_totalizedPrefix_restrict_nonoverflow`. NOT a full discharge: the Causalean transfer runs fixed-sample -> Poisson-histogram with intensities tied to a single `n`, whereas this note needs THREE pools at intensities `u = M0/8`, `tp = Mp/8`, `t = Mf/8` with `Mp, Mf` mixing labeled and auxiliary records, plus the conditional-Jensen derandomization; hence define-local with those decls as the proof spine. Mathlib-side check `lean_leansearch \"Poissonization of a multinomial sample independent cell counts\"` -> `Measure.pi`, `poissonMeasure` only. Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{OneArmDepoissonization.lean, OneArmRaoBlackwell.lean, OneArmCountSufficiency.lean}`."
+    },
+    "lem:finite-alternation-duality": {
+      "lean_kind": "lemma",
+      "lean_name": "finite_alternation_duality",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality.Duality",
+        "Mathlib.LinearAlgebra.Lagrange",
+        "Mathlib.Analysis.Calculus.Deriv.Polynomial",
+        "Mathlib.Topology.Algebra.Polynomial",
+        "Mathlib.MeasureTheory.Measure.FiniteMeasure"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/AlternationDuality.lean",
+      "hyps": [],
+      "sketch": "lemma finite_alternation_duality {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists gamma > 0, exists c > 0, forall (L : Nat) (hL : 2 <= L) (B : Real) (hB : 0 < B), with kappa = (1 - 2*eps)/eps and a = gamma * B / L^2, the interval I = [a/kappa, B] is nonempty and there is a finitely supported signed measure sigma on I with |sigma| I = 1, vanishing moments through degree L, and integral of p/(p+a) d sigma >= c. Internal steps: the degree-L derivative (Markov) inequality (15) on I, existence of a best approximation, the L+2-point alternation set, and the Lagrange-node dual measure.",
+      "notes": "Build-inline (medium). Search trace: grepped `Causalean/Mathlib/Analysis/AbsoluteValueMomentPriorDuality/{Basic,Duality,Fejer,Rate}.lean`, `Causalean/Mathlib/Analysis/{JacksonApproximation,EhlichZellerMesh}/` and `../doc/API.md` `10a''''''''` for `alternation`, `Chebyshev alternation`, `best uniform approximation`, `dual measure`, `moment matched`, `Markov derivative inequality`. Closest fits: `Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality.exists_absExtremalDecomposition` / `AbsMomentMatchedPriors` / `exists_symmetric_momentMatched_absGap` (Hahn-Banach + Riesz dual pair with vanishing moments through degree K and a prescribed gap) - the SAME proof pattern, but instantiated at `f = |x|` on `[-1,1]` with symmetry, whereas this note needs `f(p) = p/(p+a)` on the asymmetric interval `[a/kappa, B]` with an explicit `eps`-dependent gap `D_eps/4`; not a discharge. Mathlib-side `lean_leansearch \"best uniform polynomial approximation alternation Chebyshev equioscillation\"` and `lean_loogle \"Polynomial.eval, deriv, sSup\"` -> Mathlib has `polynomial_le_of...`/Bernstein-Markov nothing usable; `lean_local_search \"bestUniformApproxError\"` -> only the Causalean `bestUniformApproxErrorAbs`. Analogous modules also to adapt: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{FiniteGridBestApproximation.lean, FiniteGridSelection.lean, OneArmApproximation.lean}`."
+    },
+    "lem:common-marginal-uniform-intensity": {
+      "lean_kind": "lemma",
+      "lean_name": "common_marginal_uniform_intensity",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Minimax.MomentMatchedMixture.SupportLocalized",
+        "Causalean.Stat.Minimax.MomentMatchedMixture.Product",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.Splitting",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.CellLaws"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/CommonMarginalPrior.lean",
+      "hyps": ["ass:overlap"],
+      "sketch": "lemma common_marginal_uniform_intensity ... : for each fixed `eps` in `(0,1/2)`, choose one epsilon-only `calibration : CommonMarginalCalibration eps` and constants `C > 0`, `rho in (0,1)` outside every `n,m,L,u,v,B,a,k,d` binder. Realize every arbitrary scale satisfying `(u+v)*B <= calibration.uniformBandwidthConstant*L`, returning one exact `R` with its stored intensities, prior projections, and `CommonMarginalBounds`. The statement has no transfer constants, global parametric floor, or canonical-handle certificate.",
+      "notes": "Build-inline (large-but-in-scope; paper-owned). Per D-plan-4 the overlap atom enters as the premise `0 < eps < 1/2` and occupied-cell overlap of the CONSTRUCTED laws is part of the conclusion (`ModelClass` membership), so `def:model-class` is deliberately not a hyp. Search trace: grepped `Causalean/Stat/Minimax/MomentMatchedMixture/`, `Causalean/Mathlib/Probability/FiniteMarkedPoissonPartition/` and `../doc/API.md` `10z` for `moment matched mixture`, `total variation tail`, `exponential series tail`, `marked Poisson likelihood`, `label gated`, `data processing`. Partial fits to be used as the proof spine (NOT discharges): `Causalean.Stat.Minimax.MomentMatchedMixture.{momentMatchedMixture_tv_le_sqrt_tail_of_supported, momentMatchedProductMixture_tv_le_of_supported, exponentialSeriesTail, tvDist_prod_le_add, tvDist_pi_iid_le}` give exactly the `exp`-series-tail-after-moment-cancellation bound and the one-cell-at-a-time product replacement (C50), but for a scalar-parameter kernel with an EXPONENTIAL Gram inner product, whereas here the likelihood is a marked-Poisson cell likelihood with a treated/control/auxiliary count split and the cancellation must be gated by the labeled intensity `u` alone (C48)-(C49); `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.{Splitting, CellLaws}` supply Poisson splitting and independent cell laws. Mathlib-side `lean_leansearch \"total variation distance of Poisson mixtures with matching moments\"` -> nothing. Analogous modules: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{OneArmProductTV.lean, OneArmPoissonTaylor.lean, OneArmPoissonTail.lean, OneArmTensorization.lean, OneArmShiftedPredictiveTV.lean}`; gap to bridge: `M = u + v` includes the auxiliary intensity in the scale constraint `M*B <= b*L` while the discrepancy factor is `u` only - this is the note's label-gating claim."
+    },
+    "lem:common-marginal-poisson-prior": {
+      "lean_kind": "lemma",
+      "lean_name": "common_marginal_poisson_prior",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Minimax.MomentMatchedMixture.SupportLocalized"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/CommonMarginalPoissonPrior.lean",
+      "hyps": ["ass:overlap"],
+      "sketch": "lemma common_marginal_poisson_prior ... : specialize `common_marginal_uniform_intensity` to the exact paper bandwidth `B = calibration.uniformBandwidthConstant * L / (u+v)` and shift `a = calibration.gamma * B / L^2`. Return an exact-scale recipe witness with its stored labeled and auxiliary intensities and `CommonMarginalBounds`. The lemma exposes neither transfer constants nor the generalized all-bandwidth family nor a canonical minimax certificate.",
+      "notes": "Build-inline (small): a scale specialization `B = b_eps L / M` of `lem:common-marginal-uniform-intensity`, whose only content is `M*B = b_eps*L`. D-plan-4 applies (overlap concluded, not assumed). Search trace: same grep set as `lem:common-marginal-uniform-intensity` (`Causalean/Stat/Minimax/MomentMatchedMixture/`, `../doc/API.md` `10z`; Mathlib check `lean_leansearch \"specialize a mixture total variation bound to a scale choice\"` -> nothing); the node exists to isolate the scale calibration and has no library analogue."
+    },
+    "lem:parametric-label-floor": {
+      "lean_kind": "lemma",
+      "lean_name": "parametric_label_floor",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.ChiSquared",
+        "Causalean.Stat.Minimax.ChiSquaredTwoPoint",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "CausalSmith.Mathlib.InformationTheory.ProductChiSquared"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/ParametricLabelFloor.lean",
+      "hyps": ["ass:overlap", "ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence", "def:model-class"],
+      "sketch": "lemma parametric_label_floor : exists c : Real, 0 < c /\\ forall (eps : Real), 0 < eps -> eps < 1/2 -> forall (n m d : Nat), 1 <= n -> 2 <= d -> c / n <= minimaxRisk n m d eps. Redirect-closure sync: canonical `minimaxRisk`, no scheme parameter and no `hLab`/`hAux`/`hInd` binders (D-plan-1, D-plan-7); the numerical `c` is quantified OUTSIDE `eps`, matching the core's \"depends on eps only through eps < 1/2\". Two laws concentrated on cell 1 with e_1 = 1/2, mu_01 = 0, mu_11 = 1/2 -+ h, h = (16 sqrt n)^{-1}; identical auxiliary marginals.",
+      "notes": "Build-inline (small-to-medium). Search trace: grepped `Causalean/Stat/Minimax/{ChiSquared,ChiSquaredTwoPoint,TotalVariation,LeCamTwoPoint,Scheffe}.lean` and `../doc/API.md` `10z` for `two point`, `chi squared two point`, `testing error`, `ancillary`, `label gated`, `tensorization`. Reuse spine (partial fits, not discharges): `Causalean.Stat.chiSqDiv_bernoulliLaw_centerHalf` (chi^2 of a half-centered Bernoulli perturbation = 4u^2 - exactly (C40) up to the arm weighting), `CausalSmith.Mathlib.ProductChiSquared.one_add_chiSqDiv_pi_iid_general` (the n-fold tensorization (C41)) and `chiSqDiv_eq_sum_partition_of_restrict_eq_smul` (the per-atom chi^2 sum), `Causalean.Stat.chiSqDiv_prod_ancillary` (Causalean/Stat/Minimax/ChiSquared.lean:451 - the AUXILIARY sample is ancillary because the two laws share `P_XA`, which is precisely the label-gating step), `Causalean.Stat.tvDist_le_half_sqrt_chiSqDiv`, and `Causalean.Stat.le_cam_two_point_chisq` (uniform testing floor under a chi^2 budget). The residual work is assembling these into the squared-error floor over the canonical `minimaxRisk n m d eps`. Mathlib-side `lean_leansearch \"two point lower bound squared error from total variation\"` -> `ProbabilityTheory.bayesRiskIncrease` family only (abstract). Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{Endpoint.lean, OneArmParametric.lean, LowerBound.lean}`."
+    },
+    "lem:fixed-sample-common-marginal-transfer": {
+      "lean_kind": "lemma",
+      "lean_name": "fixed_sample_common_marginal_transfer",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.FuzzyHypotheses",
+        "Causalean.Stat.Minimax.Mixture",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "Causalean.Stat.Concentration.PoissonSelfNormalized.Chernoff",
+        "Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "Helpers/CommonMarginalTransfer.lean",
+      "hyps": ["ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence"],
+      "sketch": "lemma fixed_sample_common_marginal_transfer : choose fixed positive numerical constants `Cfixed` and `cRisk` before `eps`. For every fixed `eps`, calibration, and positive witness variance bound `CBound`, choose `cSmall > 0` depending on `eps`/`CBound` (not on the recipe). Then quantify universally over every `R : CommonMarginalRecipe ...` carrying a generic `CommonMarginalExactPoissonPriorWitness` from the uniform-intensity construction at `u = Cfixed*n`, `v = Cfixed*(n+m)`, with arbitrary named bandwidth scale/denominator satisfying the witness bandwidth inequality. This includes both the exact `b_epsilon*L/(u+v)` specialization and the distinct C55 `b0*L/(n+m)` scale. If that same recipe has raw-mixture TV at most `1/8` and `k*B*a <= cSmall*|rawPriorCenter R true - rawPriorCenter R false|^2`, conclude `cRisk*|rawPriorCenter R true - rawPriorCenter R false|^2 <= minimaxRisk`. The transfer never existentially selects a recipe. The separate untagged `common_marginal_canonical_certificate_family` constructs the C55 scheduled family and applies this universal rule.",
+      "notes": "Build-inline (medium). Search trace: grepped `Causalean/Stat/Minimax/{FuzzyHypotheses,Mixture,MinimaxRisk,FinitePosteriorBayesRisk,FiniteSquaredLoss}.lean` and `../doc/API.md` `10z` for `fuzzy hypotheses`, `two fuzzy`, `Bayes squared risk`, `prior predictive`, `transfer`, `depoissonization`. Reuse spine (strong partial fit): `Causalean.Stat.Minimax.FuzzyHypotheses.{twoFuzzyHypotheses_bayesRisk_lower, twoFuzzyHypotheses_worstCase_lower_standard, twoFuzzyHypotheses_minimax_lower_standard}` give EXACTLY the (C52)-plus-total-variation squared-error floor (`(Delta/2 - r)^2 (1 - beta - alpha0 - alpha1)/2`, and the `Delta/4, 1/8, 1/16` standard form) over a kernel experiment `Kernel Theta X`; `Causalean.Stat.Minimax.Mixture.priorPredictive` is the mixture law. NOT a discharge: the floor is stated for a kernel-indexed experiment and in `ENNReal`, whereas the node must land on this note's real-valued `minimaxRisk` for FIXED unequal sample sizes, which additionally needs the raw-Poisson-to-fixed coupling (`Causalean.Stat.Concentration.PoissonSelfNormalized.poisson_lower_bernstein` for (C53), `Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization.canonicalPrefixObservations` / `map_canonicalPrefixObservations_restrict_count_ge` for the ordered-record success event) and the random-normalizer control. Mathlib-side `lean_leansearch \"Bayes risk lower bound from total variation between mixtures\"` -> `ProbabilityTheory.bayesRiskIncrease` only. Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{OneArmFuzzyReduction.lean, OneArmGoodConditioning.lean, OneArmTripleLabelTransport.lean, OneArmRaoBlackwell.lean}`; gap: intensities `u = C n` and `v = C(n+m)` must be transferred to the two DIFFERENT fixed sizes simultaneously."
+    },
+
+    "thm:known-marginal-boundary": {
+      "lean_kind": "theorem",
+      "lean_name": "known_marginal_boundary",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Minimax.ChiSquared",
+        "Causalean.Stat.Minimax.ChiSquaredTwoPoint",
+        "Causalean.Stat.Minimax.TotalVariation",
+        "CausalSmith.Mathlib.InformationTheory.ProductChiSquared",
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_KnownMarginalBoundary.lean",
+      "hyps": ["ass:overlap", "ass:labeled-iid", "def:model-class"],
+      "sketch": "theorem known_marginal_boundary {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists c C : Real, 0 < c /\\ c <= C /\\ forall (n d : Nat), 1 <= n -> 2 <= d -> c / n <= knownMarginalRisk n d eps /\\ knownMarginalRisk n d eps <= C / n. Redirect-closure sync: the risk object is CANONICAL - no `labeledLaw` parameter and no `hLab` binder (D-plan-1). `ass:overlap` enters through the `ClassLaw d eps` domain of the inner `sup`, `ass:labeled-iid` through the canonical `labeledProductLaw P n` that `knownMarginalRisk` integrates against and through `knownMarginalExperiment`/`auxTableOf`. Upper: the exact-propensity IPW average with variance <= 2/(eps n); lower: the two-point family at delta ~ n^{-1/2} with identical supplied table.",
+      "notes": "Build-inline; `ass:overlap` and `ass:labeled-iid` are recorded in `hyps` per D-plan-7 and realized structurally inside the canonical risk (the overlap band is what makes the IPW denominators positive and the two-point pair admissible), `def:model-class` is the domain of the `sup`. Search trace: grepped `Causalean/Estimation/`, `Causalean/PO/ID/`, `../doc/API.md` `9d`, `10z` for `IPW`, `inverse propensity`, `Horvitz-Thompson`, `known propensity variance`; Causalean has measure-theoretic adjustment functionals but no finite known-table IPW variance bound. Reuse spine for the converse: `Causalean.Stat.chiSqDiv_bernoulliLaw_centerHalf`, `CausalSmith.Mathlib.ProductChiSquared.{one_add_chiSqDiv_pi_iid_general, chiSqDiv_eq_sum_partition_of_restrict_eq_smul}`, `Causalean.Stat.{tvDist_le_half_sqrt_chiSqDiv, chiSqDiv_prod_ancillary}`. Mathlib-side `lean_leansearch \"variance of inverse probability weighted mean bounded by overlap\"` -> nothing. Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/Endpoint.lean`; gap: the supplied deterministic table coordinate (identical under both laws) is handled by `chiSqDiv_prod_ancillary`."
+    },
+    "thm:uniform-mixed-upper": {
+      "lean_kind": "theorem",
+      "lean_name": "uniform_mixed_upper",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.Risk", "Causalean.Stat.Sample"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_UniformMixedUpper.lean",
+      "hyps": ["ass:overlap", "ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence", "def:model-class"],
+      "sketch": "theorem uniform_mixed_upper {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists C : Real, 0 < C /\\ forall (n m d : Nat), 1 <= n -> 2 <= d -> (iSup over P : ClassLaw d eps of twoSampleMSE (annotationLaw P.1 n m) (mixedEstimator n m d eps) (ateFunctional P.1)) <= C * frontierRate n m d. Redirect-closure sync: no `sampleLaw`/`hLab`/`hAux`/`hInd` binders - the three sampling atoms are realized by the canonical `annotationLaw P.1 n m` (D-plan-1, D-plan-7) and `ass:overlap` by the `ClassLaw d eps` index. Proof: `lem:fixed-sample-hybrid-transfer` then `lem:poisson-hybrid-risk`, absorbing C/n into `frontierRate` via `inv_n_le_frontierRate`.",
+      "notes": "Build-inline assembly (small once its two lemmas exist). Search trace: grepped `Causalean/Stat/`, `../doc/API.md` `10z` for `uniform upper bound`, `minimax upper`, `attaining estimator`; nothing (headline theorems are always paper-local). Mathlib-side: n/a (pure assembly). Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/T_OverlapAdaptiveUniversalHybrid.lean`."
+    },
+    "thm:common-marginal-converse": {
+      "lean_kind": "theorem",
+      "lean_name": "common_marginal_converse",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Minimax.TotalVariation", "Causalean.Stat.Minimax.FuzzyHypotheses"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_CommonMarginalConverse.lean",
+      "hyps": ["ass:overlap", "ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence", "def:model-class"],
+      "sketch": "theorem common_marginal_converse {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : expose only `exists c > 0`, an epsilon-only `calibration`, and, for every `n,m,d`, one regime-dependent `H : CommonMarginalPriorHandle calibration n m d`, equality of the random auxiliary-table laws projected from `H.recipe`, and `c * frontierRate n m d <= minimaxRisk n m d eps`. In the proof, obtain the outer `Cfixed,cSmall,cRisk`, the exact fixed-sample transfer rule, and the inhabited family from `common_marginal_canonical_certificate_family`; consume the resulting `CommonMarginalCanonicalCertificate Cfixed cSmall cFloor CBound rho H` internally. Apply the transfer rule to that certificate's C55-parameterized `CommonMarginalExactPoissonPriorWitness` for the identical `H.recipe`, calibration, CBound, rho, and fixed constants; never freeze or substitute a second recipe. The certificate and ancillary constants are proof-internal and are not conjuncts of the theorem conclusion.",
+      "notes": "Build-inline assembly (medium: the finitely-many-small-n absorption and the two regime branches are real work). Search trace: grepped `Causalean/Stat/Minimax/` and `../doc/API.md` `10z` for `converse`, `minimax lower bound assembly`, `regime split`; nothing at this granularity. Mathlib-side: n/a. Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/Helpers/{LowerBound.lean, OneArmHighDimensionalAssembly.lean, OneArmHeadlineAssembly.lean}`."
+    },
+    "thm:inverse-count-baseline": {
+      "lean_kind": "theorem",
+      "lean_name": "inverse_count_baseline",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.Risk",
+        "Causalean.Stat.Concentration.PoissonSelfNormalized.Chernoff"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_InverseCountBaseline.lean",
+      "hyps": ["ass:overlap", "ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence", "def:model-class"],
+      "sketch": "theorem inverse_count_baseline {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists C : Real, 0 < C /\\ forall (n m d : Nat), 1 <= n -> 2 <= d -> Measurable (inverseCountEstimator n m d) /\\ (iSup over P : ClassLaw d eps of twoSampleMSE (annotationLaw P.1 n m) (inverseCountEstimator n m d) (ateFunctional P.1)) <= C * min 1 (1/n + (d:Real)^2/((n+m:Nat):Real)^2) /\\ minimaxRisk n m d eps <= C * min 1 (1/n + (d:Real)^2/((n+m:Nat):Real)^2). Redirect-closure sync: canonical `minimaxRisk n m d eps` with no scheme parameter and no `hLab`/`hAux`/`hInd` binders (D-plan-1, D-plan-7). Witness: the clipped, derandomized Poisson-prefix all-heavy inverse-count statistic of `lem:poisson-inverse-count-risk` with u ~ n/8 and t ~ (n+m)/8, zero estimator for small n.",
+      "notes": "Build-inline (medium). Search trace and reuse spine as for `lem:fixed-sample-hybrid-transfer` (`Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.pairedPoissonHistogramRisk_le_fixedRisk_add_tails`, `Causalean.Stat.Concentration.PoissonSelfNormalized.poisson_quarter_overflow_le_inv` for `P{Poi(r/8) > r} <= (e/8)^r`); grepped `Causalean/Stat/` for `inverse count baseline`, `all heavy`, `clipped derandomized` - nothing. Mathlib-side `lean_leansearch \"clipping to an interval does not increase squared error\"` -> `abs_sub_le`, `Set.projIcc` family; the projection-contraction step is a two-line build-inline lemma."
+    },
+    "prop:binary-alphabet-parametric-rate": {
+      "lean_kind": "theorem",
+      "lean_name": "binary_alphabet_parametric_rate",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Causalean.Stat.Sample"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_BinaryAlphabetParametricRate.lean",
+      "hyps": [],
+      "sketch": "theorem binary_alphabet_parametric_rate {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists c C : Real, 0 < c /\\ c <= C /\\ forall (n m : Nat), 1 <= n -> c / n <= minimaxRisk n m 2 eps /\\ minimaxRisk n m 2 eps <= C / n. Redirect-closure sync: canonical `minimaxRisk n m 2 eps`, no scheme or `labeledLaw` binders (D-plan-1). Proof: the simulate-and-discard comparison `knownMarginalRisk n 2 eps <= minimaxRisk n m 2 eps` with `thm:known-marginal-boundary` for the floor (the delivered proof takes the equivalent shorter route through `lem:parametric-label-floor` at d = 2, which yields the same `c/n`), and `thm:inverse-count-baseline` with N = n + m >= n for the ceiling.",
+      "notes": "Build-inline (small assembly). `hyps` stays empty because the core `depends_on` of this node contains only statements and constructions - no assumption atom and no bundled class is a dependency of THIS statement, so P4 has nothing to cover here. Search trace: grepped `Causalean/Stat/Minimax/` for `simulate and discard`, `more informative experiment`, `data processing for risk`, `Blackwell order` and `../doc/API.md` `10z` (`Markov kernel transport`, `Causalean/Stat/Minimax/MarkovKernelTransport.lean`) - `MarkovKernelTransport` is the closest analogue (risk transport along a kernel) and F3 should adapt it for the simulate-the-auxiliary-sample step; not an exact fit because the target here is the finite two-block risk. Mathlib-side `lean_leansearch \"risk of a randomized experiment dominated by a more informative one\"` -> `ProbabilityTheory.bayesRiskIncrease` (abstract)."
+    },
+    "thm:known-marginal-limit": {
+      "lean_kind": "theorem",
+      "lean_name": "known_marginal_limit",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": [
+        "Causalean.Stat.Concentration.TailBounds.Hoeffding",
+        "Mathlib.Topology.Algebra.InfiniteSum.Basic",
+        "Mathlib.Topology.MetricSpace.Bounded",
+        "Causalean.Stat.Sample"
+      ],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_KnownMarginalLimit.lean",
+      "hyps": ["ass:overlap", "ass:labeled-iid", "ass:auxiliary-iid", "ass:sample-independence", "def:model-class"],
+      "sketch": "theorem known_marginal_limit {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) (n d : Nat) (hn : 1 <= n) (hd : 2 <= d) : Filter.Tendsto (fun m => minimaxRisk n m d eps) Filter.atTop (nhds (knownMarginalRisk n d eps)). Redirect-closure sync: both risk objects are canonical, so the limit is taken in `m` alone with no scheme or `labeledLaw` binders (D-plan-1, D-plan-7). Proof: compactness of the overlap-constrained simplex slice, continuity of `ateFunctional` and of bounded-rule risks, (27) the simulate-and-discard inequality, (28) the fibrewise local-minimax identity, and (29) a Hoeffding + union bound on the empirical auxiliary table.",
+      "notes": "Build-inline (medium-to-large). Search trace: grepped `Causalean/Stat/Concentration/TailBounds/`, `Causalean/Mathlib/Optimization/AffineSignCellClosure/` and `../doc/API.md` `10z` (`Reusable affine sign-cell closure`) for `Hoeffding`, `union bound`, `empirical distribution l1`, `compact simplex`, `continuity of risk`, `local minimax`. Reuse spine: `Causalean.Stat.hoeffding_abs_ge` (Causalean/Stat/Concentration/TailBounds/Hoeffding.lean:167) for (29); `Causalean.Mathlib.Optimization.AffineSignCellClosure.{isClosed_weakCell, convex_weakCell, closure_strictCell_eq_weakCell, sSup_image_strictCell_eq_weakCell}` for the overlap cell's closedness and for the strict/weak-overlap extremum identification the compactness step needs (the overlap constraints `s_{1x} >= eps p_x`, `s_{0x} >= eps p_x` are exactly a degree-one affine system). Mathlib-side `lean_leansearch \"empirical distribution converges in total variation finite alphabet\"` -> `MeasureTheory.tendsto_measure_...` generalities only; `lean_leansearch \"continuous function on compact set attains supremum\"` -> `IsCompact.exists_isMaxOn` (used directly). No analogue in the m = 0 sibling (it has no auxiliary sample to send to infinity), so this theorem is entirely new content."
+    },
+    "thm:sharp-annotation-frontier": {
+      "lean_kind": "theorem",
+      "lean_name": "sharp_annotation_frontier",
+      "disposition": "define-local",
+      "reuse": null,
+      "modules": ["Mathlib.Analysis.SpecialFunctions.Log.Basic", "Mathlib.Order.Filter.AtTopBot.Basic"],
+      "defer_tier": false,
+      "gate": false,
+      "target_file": "T_SharpAnnotationFrontier.lean",
+      "hyps": [],
+      "sketch": "Supporting def in the same file: `def AnnotationFrontierConsequences (eps c C : Real) : Prop` bundling the four delivered clauses over the CANONICAL risks - (i) `forall n m d, 1 <= n -> 2 <= d -> c * frontierRate n m d <= minimaxRisk n m d eps /\\ minimaxRisk n m d eps <= C * frontierRate n m d`; (ii) the `m = 0` endpoint identity `frontierRate n 0 d = min 1 (1/n + d^2/(n^2 * logEN n^2))`; (iii) `forall n d, 1 <= n -> 2 <= d -> Tendsto (fun m => minimaxRisk n m d eps) atTop (nhds (knownMarginalRisk n d eps))`; (iv) for arbitrary `mSeq dSeq : Nat -> Nat` with `2 <= dSeq n`, the three growth equivalences (C62)-(C65): consistency `<-> dSeq n / ((n + mSeq n) * logEN n) -> 0`, `=O[atTop] (1/n) <-> dSeq =O[atTop] ((n + mSeq n) * logEN n / sqrt n)`, and strict improvement `=o[atTop]` against the `m = 0` risk `<-> (dSeq n/(sqrt n * logEN n) -> atTop /\\ (dSeq n/((n+mSeq n)*logEN n)) / min 1 (dSeq n/(n*logEN n)) -> 0)`. NODE: `theorem sharp_annotation_frontier {eps : Real} (heps : 0 < eps) (heps2 : eps < 1/2) : exists c C : Real, 0 < c /\\ c <= C /\\ AnnotationFrontierConsequences eps c C`. Redirect-closure sync: every clause is over the canonical `minimaxRisk n m d eps` / `knownMarginalRisk n d eps`; no scheme, `labeledLaw`, or `hLab/hAux/hInd` binder appears.",
+      "notes": "Build-inline headline assembly. All four clauses (the two-sided bracket, the m = 0 endpoint formula, the fixed-(n,d) limit, and the three necessary-and-sufficient growth equivalences (C62)-(C65)) are delivered; the external record `stat_discrete_ate_minimax_loggap_polynomial_upper_match/thm:sharp-minimax-fixed-interior` is used for ATTRIBUTION ONLY (per the node's own proof text) and is therefore NOT a logical premise, NOT a hypothesis, and NOT a citation gate - nothing in the Lean statement refers to it. Search trace: grepped `Causalean/Stat/`, `CausalSmith/Stat/` and `../doc/API.md` for `sharp minimax`, `two sided rate`, `asymptotic equivalence of rates`, `consistency iff`; Mathlib-side `lean_leansearch \"big O and little o characterization of a sequence ratio tending to zero\"` -> `Asymptotics.isLittleO_iff`, `Asymptotics.isBigO_iff`, `Filter.Tendsto` API (used directly for (C62)-(C65)). Analogous module: `CausalSmith/Stat/STAT_DiscreteAteMinimaxLoggap_Research/T_SharpMinimaxFixedInterior.lean` (the accepted m = 0 fixed-interior benchmark) - F3 should mirror its bracket-assembly shape; gap to bridge: `1/n` does NOT become `1/N`, only the approximation term uses `N = n + m`."
+    }
+  },
+  "file_plan": [
+    {"file": "Basic.lean", "contents": "S1/S2/S3 model layer; ass:overlap, ass:labeled-iid, ass:auxiliary-iid, ass:sample-independence, ass:consistency, ass:conditional-exchangeability; def:model-class, def:ate-functional, def:annotation-experiment, def:minimax-risk, def:frontier-rate-handle, def:known-marginal-experiment, def:known-marginal-risk; supporting identification and range lemmas.", "projected_lines": 600, "bypass_justified": "Causalean's PO / adjustment / minimax-risk substrate is measure-theoretic and kernel-indexed; this note is a finite-alphabet PMF world (see S1/S2/S3 notes). Causalean.Stat.Sample + Mathlib PMF are imported."},
+    {"file": "Helpers/ChebyshevCalibration.lean", "contents": "lem:explicit-chebyshev-calibration (+ the H_L/E_L/G_L polynomials and Poisson factorial-moment identities).", "projected_lines": 550},
+    {"file": "Helpers/FactorialCertificate.lean", "contents": "lem:chebyshev-factorial-certificate.", "projected_lines": 200},
+    {"file": "Helpers/Estimator.lean", "contents": "def:mixed-estimator-handle plus its calibration constants, split sizes, decidable predicate, weight polynomials, factorial lift and measurability.", "projected_lines": 700},
+    {"file": "Helpers/PoissonInverseCount.lean", "contents": "lem:poisson-inverse-count-risk (+ Poisson reciprocal-moment and add-one variance lemmas).", "projected_lines": 600},
+    {"file": "Helpers/PoissonHybridRisk.lean", "contents": "lem:poisson-hybrid-risk. Split further by F2 into Helpers/PoissonHybridRisk/{Bias,FalseBranch,Variance,Absorption,Predicate}.lean if it exceeds ~900 lines.", "projected_lines": 900},
+    {"file": "Helpers/FixedSampleHybridTransfer.lean", "contents": "lem:fixed-sample-hybrid-transfer.", "projected_lines": 450},
+    {"file": "Helpers/AlternationDuality.lean", "contents": "lem:finite-alternation-duality.", "projected_lines": 550},
+    {"file": "Helpers/CommonMarginalPrior.lean", "contents": "def:common-marginal-prior-handle and lem:common-marginal-uniform-intensity.", "projected_lines": 850},
+    {"file": "Helpers/CommonMarginalPoissonPrior.lean", "contents": "lem:common-marginal-poisson-prior (exact scale specialization), CommonMarginalExactPoissonPriorWitness, and CommonMarginalCanonicalCertificate.", "projected_lines": 230},
+    {"file": "Helpers/ParametricLabelFloor.lean", "contents": "lem:parametric-label-floor.", "projected_lines": 400},
+    {"file": "Helpers/CommonMarginalTransfer.lean", "contents": "lem:fixed-sample-common-marginal-transfer.", "projected_lines": 500},
+    {"file": "Helpers/FiniteSmallInstance.lean", "contents": "def:finite-small-instance and its four finite identities.", "projected_lines": 250},
+    {"file": "Helpers.lean", "contents": "Aggregator importing every Helpers/* module (house convention, cf. the sibling run).", "projected_lines": 20},
+    {"file": "T_KnownMarginalBoundary.lean", "contents": "thm:known-marginal-boundary.", "projected_lines": 400},
+    {"file": "T_InverseCountBaseline.lean", "contents": "thm:inverse-count-baseline.", "projected_lines": 350},
+    {"file": "T_UniformMixedUpper.lean", "contents": "thm:uniform-mixed-upper.", "projected_lines": 200},
+    {"file": "T_CommonMarginalConverse.lean", "contents": "thm:common-marginal-converse.", "projected_lines": 450},
+    {"file": "T_KnownMarginalLimit.lean", "contents": "thm:known-marginal-limit.", "projected_lines": 500},
+    {"file": "T_BinaryAlphabetParametricRate.lean", "contents": "prop:binary-alphabet-parametric-rate.", "projected_lines": 180},
+    {"file": "T_SharpAnnotationFrontier.lean", "contents": "thm:sharp-annotation-frontier (headline assembly).", "projected_lines": 550},
+    {"file": "../STAT_SemisupervisedDiscreteAteAnnotationFrontier_Research.lean", "contents": "Run barrel importing every module of the run.", "projected_lines": 25}
+  ],
+  "infrastructure_needed": [],
+  "theorems": [],
+  "feasibility_notes": "REVISION SCOPE NOTE: this F1 run was dispatched in REVISE mode but the brief arrived with an empty CORRECTION / UPSTREAM DIRECTIVE block and no SUBSTRATE-BUILT block, and no F1.5 finding on disk requests a change (the recorded F1.5 verdicts are `pass`). The defect set was therefore derived directly, by diffing the plan against the core and against the delivered Lean under CausalSmith/Stat/STAT_SemisupervisedDiscreteAteAnnotationFrontier_Research/; the single coherent defect found is the under-propagated canonical-risk redirect described next. If the intended correction was something else, this revision is additive and does not block it. REVISION (canonical-risk redirect closure): the earlier redirect that made `def:minimax-risk` and `def:known-marginal-risk` canonical (dropping the `sampleLaw` / `labeledLaw` scheme parameter) had been applied only to those two defs and to `thm:common-marginal-converse`. This revision propagates it through the full dependency closure: `def:annotation-experiment` and `ass:sample-independence` now state the encoding actually in force, and the eight consumers `thm:known-marginal-boundary`, `thm:uniform-mixed-upper`, `thm:inverse-count-baseline`, `prop:binary-alphabet-parametric-rate`, `thm:known-marginal-limit`, `thm:sharp-annotation-frontier`, `lem:parametric-label-floor`, `lem:fixed-sample-hybrid-transfer` no longer describe the removed scheme parameter or the `hLab`/`hAux`/`hInd` binders. Because the sampling atoms are now realized structurally (inside `annotationLaw` / `annotationExperiment`, certified by `annotationLaw_mem_annotationExperiment`) rather than as free binders, D-plan-1 was rewritten and D-plan-7 added, and every statement whose core `depends_on` names an assumption atom or the bundled class `def:model-class` now records it in `hyps` (previously empty on eight statements, which left P4's assumption-coverage requirement unmet). No disposition, `defer_tier`, `gate`, `reuse`, module list, file plan entry, or node key changed; `infrastructure_needed` stays empty and the feasibility verdict is unchanged. Verdict formalizable-now: every one of the 33 core nodes is define-local with defer_tier false and gate false, and there is no cited, external, or otherwise deferred node in the core (all 17 statements carry status \"proved\" and are paper-owned), so infrastructure_needed is empty and no substrate debt is exposed. Confirmed-existing Causalean/CausalSmith decls that F3 should call directly (signatures checked): Causalean.Stat.Minimax.FuzzyHypotheses.{twoFuzzyHypotheses_bayesRisk_lower, twoFuzzyHypotheses_worstCase_lower_standard, twoFuzzyHypotheses_minimax_lower_standard} for the fuzzy squared-error floor; Causalean.Stat.{chiSqDiv_prod_ancillary, tvDist_le_half_sqrt_chiSqDiv, chiSqDiv_bernoulliLaw_centerHalf, le_cam_two_point_chisq} and CausalSmith.Mathlib.ProductChiSquared.{one_add_chiSqDiv_pi_iid_general, chiSqDiv_eq_sum_partition_of_restrict_eq_smul} for the label-gated two-point floors (chiSqDiv_prod_ancillary is the exact tool for \"the auxiliary sample is ancillary because the two hypotheses share P_XA\"); Causalean.Stat.Minimax.MomentMatchedMixture.{momentMatchedMixture_tv_le_sqrt_tail_of_supported, momentMatchedProductMixture_tv_le_of_supported, exponentialSeriesTail, tvDist_prod_le_add, tvDist_pi_iid_le} for the moment-cancellation mixture tail; Causalean.Stat.FiniteRaoBlackwell.PairedPoissonHistogram.{pairedPoissonHistogramRisk_le_fixedRisk_add_tails, pairedPoissonHistogramRisk_two_n_le, map_pairRetainedArrays_prod_pi} plus Causalean.Stat.Concentration.PoissonSelfNormalized.{poisson_quarter_overflow_le_inv, poisson_upper_bernstein, poisson_lower_bernstein} and Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.{Depoissonization.*, Partition.Splitting, Partition.CellLaws} for the two-sample fixed-to-Poisson transfer and prefix overflow; Causalean.Stat.hoeffding_abs_ge and Causalean.Mathlib.Optimization.AffineSignCellClosure.* for the known-marginal limit; Causalean.Stat.{uStatisticOrder, injectiveTupleCount_eq_descFactorial, normalizedOrderedProductStatistic_eq_uStatisticOrder} and Mathlib Polynomial.Chebyshev.T for the factorial lift; Causalean.Mathlib.Analysis.AbsoluteValueMomentPriorDuality.{exists_absExtremalDecomposition, AbsMomentMatchedPriors} as the same-technique reference for the alternation dual. None of these is a full discharge of a core node (each is either at the kernel/ENNReal abstraction, tied to a single sample size, or instantiated at a different objective function), which is why every node stays define-local rather than being marked reuse; the model layer is bypass-justified define-local because CausalSmith runs may not import one another and the Causalean PO/ATE/minimax analogues are measure-theoretic while this world is a finite PMF world. The heaviest build-inline work, in order, is lem:poisson-hybrid-risk (the unequal-information light/heavy branch analysis with no hidden d or N/n factor), lem:common-marginal-uniform-intensity (the label-gated marked-Poisson mixture TV bound at scale M = u + v), def:mixed-estimator-handle (the fully specified finite algorithm and its decidable predicate), lem:finite-alternation-duality, thm:known-marginal-limit, and the headline assembly thm:sharp-annotation-frontier; all six are paper contributions and stay in F2-F4 scope. No node needs machinery outside Lean/Mathlib reach."
+}

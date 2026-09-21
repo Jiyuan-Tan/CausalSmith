@@ -1,9 +1,10 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.OverlapCount
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
-import Mathlib.Algebra.Order.Chebyshev
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.OverlapCount
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Mathlib.Algebra.Order.Chebyshev
 
 /-!
 # SNIPE score moments, local energy, and unbiasedness
@@ -13,6 +14,8 @@ design, shows the score has mean zero, defines the local score energy and
 compares it with the block energy, and proves the estimator is unbiased in both
 the coefficient-mass and bounded-outcome model classes.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -404,9 +407,5 @@ lemma localEnergy_le_blockEnergy
         exact ⟨hr.1, le_trans hr.2 heff⟩
       · intro r _ _
         positivity
-
-/-- The independent Bernoulli design is unchanged when its unit-level assignment-probability
-function is replaced by an equal function and the associated bounds are transported accordingly. -/
-add_decl_doc bernoulliDesign.congr_simp
 
 end CausalSmith.Experimentation.SnipeDegreeFrontier

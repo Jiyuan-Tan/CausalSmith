@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenterCore
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenterCore
 
 /-!
 # Uniform block-energy and raw-coefficient bounds
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

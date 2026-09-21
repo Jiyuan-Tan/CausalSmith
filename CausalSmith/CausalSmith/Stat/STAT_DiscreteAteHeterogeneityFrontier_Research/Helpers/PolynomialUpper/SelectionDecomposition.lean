@@ -1,12 +1,15 @@
 /- Exact selected heavy/light error decomposition for the polynomial program. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.ClippingAssembly
-
-namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.ClippingAssembly
 
 /-! The pilot selector partitions the normalized pre-clipping error into a
 heavy marked-ratio error and a light polynomial error.  Keeping this identity
 separate lets the two fixed-set moment bounds be assembled independently. -/
+
+@[expose] public section
+
+namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 -- @node: polynomialHeavySelectedError
 /-- The normalized estimation error contributed by cells selected as heavy. -/

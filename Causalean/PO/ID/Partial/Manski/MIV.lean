@@ -18,25 +18,33 @@ and `L_{d,·}, U_{d,·}` are the Manski stratum bound functionals from
 `Setup.lean`.  The proof chains the stratum-level conditional bounds from
 `Helpers.lean` with the MIV monotonicity of `u ↦ E[Y(d) | Z=u]`.
 
-The integrated forms `E[mLower_d(Z)] ≤ E[Y(d)] ≤ E[mUpper_d(Z)]` yield the
-corresponding ATE bounds by applying the arm-wise envelope inequalities.
+For a finite instrument value space, the integrated forms
+`E[mLower_d(Z)] ≤ E[Y(d)] ≤ E[mUpper_d(Z)]` yield the corresponding ATE bounds
+by applying the arm-wise envelope inequalities.
 -/
 
-import Causalean.PO.ID.Partial.Manski.Helpers
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Manski.Helpers
 
 /-! # Manski bounds under monotone instrumental variables
 
 This file proves envelope bounds for treatment-arm conditional means under the
 monotone instrumental variable assumption. The stratum-level Manski bounds are
-combined with monotonicity in the instrument and then integrated to obtain the
-corresponding ATE bounds.
+combined with monotonicity in the instrument. For a finite instrument value
+space, they are then integrated to obtain the corresponding ATE bounds.
 
 It defines the lower and upper monotone-instrument envelopes `mLower1`,
 `mUpper1`, `mLower0`, and `mUpper0`, proves their conditional and integrated
 arm-wise bounds, and concludes with `miv_bounds_ATE`.
 -/
 
+@[expose] public section
+
 set_option linter.unusedFintypeInType false
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -114,19 +122,19 @@ Taking `sSup` over `u` gives the claim via `csSup_le`. -/
 theorem miv_mLower1_le_cond_Y1 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) {z : α} (hz : z ∈ S.support) :
     letI := hMIV.inst
-    S.mLower1 hA z ≤ eventCondExp P.μ (S.zEvent z) (S.YofD true) := by
+    S.mLower1 hA z ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) := by
   letI := hMIV.inst
   -- The set whose sSup we take.
   set T : Set ℝ :=
     {val : ℝ | ∃ u ∈ S.support, u ≤ z ∧ val = S.lowerBound1 hA.lo u} with hT
   -- Every element of `T` is ≤ the target.
-  have hle_all : ∀ v ∈ T, v ≤ eventCondExp P.μ (S.zEvent z) (S.YofD true) := by
+  have hle_all : ∀ v ∈ T, v ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) := by
     rintro v ⟨u, hu, hule, rfl⟩
     have h1 : S.lowerBound1 hA.lo u ≤
-        eventCondExp P.μ (S.zEvent u) (S.YofD true) :=
-      S.lowerBound1_le_cond_Y1 hA hu
-    have h2 : eventCondExp P.μ (S.zEvent u) (S.YofD true) ≤
-        eventCondExp P.μ (S.zEvent z) (S.YofD true) :=
+        normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD true) :=
+      S.lowerBound1_le_cond_Y1 hA
+    have h2 : normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD true) ≤
+        normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) :=
       hMIV.monotone true u z hu hz hule
     exact le_trans h1 h2
   -- Nonempty (take `u = z`).
@@ -138,18 +146,18 @@ theorem miv_mLower1_le_cond_Y1 [IsFiniteMeasure P.μ]
 theorem miv_cond_Y1_le_mUpper1 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) {z : α} (hz : z ∈ S.support) :
     letI := hMIV.inst
-    eventCondExp P.μ (S.zEvent z) (S.YofD true) ≤ S.mUpper1 hA z := by
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) ≤ S.mUpper1 hA z := by
   letI := hMIV.inst
   set T : Set ℝ :=
     {val : ℝ | ∃ u ∈ S.support, z ≤ u ∧ val = S.upperBound1 hA.hi u} with hT
-  have hge_all : ∀ v ∈ T, eventCondExp P.μ (S.zEvent z) (S.YofD true) ≤ v := by
+  have hge_all : ∀ v ∈ T, normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) ≤ v := by
     rintro v ⟨u, hu, hleu, rfl⟩
-    have h1 : eventCondExp P.μ (S.zEvent z) (S.YofD true) ≤
-        eventCondExp P.μ (S.zEvent u) (S.YofD true) :=
+    have h1 : normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true) ≤
+        normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD true) :=
       hMIV.monotone true z u hz hu hleu
-    have h2 : eventCondExp P.μ (S.zEvent u) (S.YofD true) ≤
+    have h2 : normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD true) ≤
         S.upperBound1 hA.hi u :=
-      S.cond_Y1_le_upperBound1 hA hu
+      S.cond_Y1_le_upperBound1 hA
     exact le_trans h1 h2
   have hne : T.Nonempty := ⟨S.upperBound1 hA.hi z, z, hz, le_refl z, rfl⟩
   change _ ≤ sInf T
@@ -159,17 +167,17 @@ theorem miv_cond_Y1_le_mUpper1 [IsFiniteMeasure P.μ]
 theorem miv_mLower0_le_cond_Y0 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) {z : α} (hz : z ∈ S.support) :
     letI := hMIV.inst
-    S.mLower0 hA z ≤ eventCondExp P.μ (S.zEvent z) (S.YofD false) := by
+    S.mLower0 hA z ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) := by
   letI := hMIV.inst
   set T : Set ℝ :=
     {val : ℝ | ∃ u ∈ S.support, u ≤ z ∧ val = S.lowerBound0 hA.lo u} with hT
-  have hle_all : ∀ v ∈ T, v ≤ eventCondExp P.μ (S.zEvent z) (S.YofD false) := by
+  have hle_all : ∀ v ∈ T, v ≤ normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) := by
     rintro v ⟨u, hu, hule, rfl⟩
     have h1 : S.lowerBound0 hA.lo u ≤
-        eventCondExp P.μ (S.zEvent u) (S.YofD false) :=
-      S.lowerBound0_le_cond_Y0 hA hu
-    have h2 : eventCondExp P.μ (S.zEvent u) (S.YofD false) ≤
-        eventCondExp P.μ (S.zEvent z) (S.YofD false) :=
+        normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD false) :=
+      S.lowerBound0_le_cond_Y0 hA
+    have h2 : normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD false) ≤
+        normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) :=
       hMIV.monotone false u z hu hz hule
     exact le_trans h1 h2
   have hne : T.Nonempty := ⟨S.lowerBound0 hA.lo z, z, hz, le_refl z, rfl⟩
@@ -180,18 +188,18 @@ theorem miv_mLower0_le_cond_Y0 [IsFiniteMeasure P.μ]
 theorem miv_cond_Y0_le_mUpper0 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) {z : α} (hz : z ∈ S.support) :
     letI := hMIV.inst
-    eventCondExp P.μ (S.zEvent z) (S.YofD false) ≤ S.mUpper0 hA z := by
+    normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) ≤ S.mUpper0 hA z := by
   letI := hMIV.inst
   set T : Set ℝ :=
     {val : ℝ | ∃ u ∈ S.support, z ≤ u ∧ val = S.upperBound0 hA.hi u} with hT
-  have hge_all : ∀ v ∈ T, eventCondExp P.μ (S.zEvent z) (S.YofD false) ≤ v := by
+  have hge_all : ∀ v ∈ T, normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) ≤ v := by
     rintro v ⟨u, hu, hleu, rfl⟩
-    have h1 : eventCondExp P.μ (S.zEvent z) (S.YofD false) ≤
-        eventCondExp P.μ (S.zEvent u) (S.YofD false) :=
+    have h1 : normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false) ≤
+        normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD false) :=
       hMIV.monotone false z u hz hu hleu
-    have h2 : eventCondExp P.μ (S.zEvent u) (S.YofD false) ≤
+    have h2 : normalizedRestrictedIntegral P.μ (S.zEvent u) (S.YofD false) ≤
         S.upperBound0 hA.hi u :=
-      S.cond_Y0_le_upperBound0 hA hu
+      S.cond_Y0_le_upperBound0 hA
     exact le_trans h1 h2
   have hne : T.Nonempty := ⟨S.upperBound0 hA.hi z, z, hz, le_refl z, rfl⟩
   change _ ≤ sInf T
@@ -221,14 +229,14 @@ private lemma pairwise_disjoint_zEvent :
   exact hne (h₁.symm.trans h₂)
 
 /-- Pointwise-on-stratum identity:
-`(μ(Z=z)).toReal * eventCondExp μ (Z=z) (g ∘ factualZ) = (μ(Z=z)).toReal * g z`.
+`(μ(Z=z)).toReal * normalizedRestrictedIntegral μ (Z=z) (g ∘ factualZ) = (μ(Z=z)).toReal * g z`.
 
 Works without any `Fintype`/discreteness hypothesis on `α`; the zero-
 measure case is handled uniformly by `eventCondExp_mul_measure_toReal`. -/
 private lemma measure_mul_eventCondExp_of_factualZ_const
     (g : α → ℝ) (z : α) :
     (P.μ (S.zEvent z)).toReal
-      * eventCondExp P.μ (S.zEvent z) (fun ω => g (S.factualZ ω))
+      * normalizedRestrictedIntegral P.μ (S.zEvent z) (fun ω => g (S.factualZ ω))
       = (P.μ (S.zEvent z)).toReal * g z := by
   rw [mul_comm, eventCondExp_mul_measure_toReal P.μ (S.zEvent z) (measure_ne_top _ _)]
   have hset : ∫ ω in S.zEvent z, g (S.factualZ ω) ∂P.μ
@@ -265,12 +273,12 @@ private lemma integral_comp_factualZ_eq_sum [Fintype α] [IsFiniteMeasure P.μ]
   exact S.measure_mul_eventCondExp_of_factualZ_const g z
 
 /-- Integral of `S.YofD d` decomposed via the `Fintype` total law:
-`∫ YofD d = ∑ z, (μ(Z=z)).toReal * eventCondExp μ (Z=z) (YofD d)`. -/
+`∫ YofD d = ∑ z, (μ(Z=z)).toReal * normalizedRestrictedIntegral μ (Z=z) (YofD d)`. -/
 private lemma integral_YofD_eq_sum_over_zEvent [Fintype α] [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (d : Bool) :
     ∫ ω, S.YofD d ω ∂P.μ
       = ∑ z : α, (P.μ (S.zEvent z)).toReal
-          * eventCondExp P.μ (S.zEvent z) (S.YofD d) := by
+          * normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD d) := by
   have hint : Integrable (S.YofD d) P.μ := by
     cases d
     · exact hA.integrable_Y0
@@ -293,8 +301,10 @@ private lemma mul_zEvent_measure_mono_of_stratum_le
       by_contra hne; exact hz hne
     simp [hμ]
 
-/-- Integrated envelope bound for arm `d = 1` (lower):
-`∫ mLower1(Z) ≤ ∫ Y(1)`. -/
+/-- For a finite instrument value space, under [the baseline Manski
+assumptions](hyp:hA) and [a monotone instrumental variable](hyp:hMIV), [the
+integrated lower envelope for arm `1` is no larger than the mean of
+`Y(1)`](goal). -/
 theorem miv_integral_mLower1_le_integral_Y1 [IsFiniteMeasure P.μ] [Fintype α]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) :
     letI := hMIV.inst
@@ -305,11 +315,13 @@ theorem miv_integral_mLower1_le_integral_Y1 [IsFiniteMeasure P.μ] [Fintype α]
   refine Finset.sum_le_sum (fun z _ => ?_)
   exact S.mul_zEvent_measure_mono_of_stratum_le
     (a := fun z => S.mLower1 hA z)
-    (b := fun z => eventCondExp P.μ (S.zEvent z) (S.YofD true))
+    (b := fun z => normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true))
     (fun {z} hz => S.miv_mLower1_le_cond_Y1 hA hMIV hz) z
 
-/-- Integrated envelope bound for arm `d = 1` (upper):
-`∫ Y(1) ≤ ∫ mUpper1(Z)`. -/
+/-- For a finite instrument value space, under [the baseline Manski
+assumptions](hyp:hA) and [a monotone instrumental variable](hyp:hMIV), [the
+mean of `Y(1)` is no larger than the integrated upper envelope for arm
+`1`](goal). -/
 theorem miv_integral_Y1_le_integral_mUpper1 [IsFiniteMeasure P.μ] [Fintype α]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) :
     letI := hMIV.inst
@@ -319,12 +331,14 @@ theorem miv_integral_Y1_le_integral_mUpper1 [IsFiniteMeasure P.μ] [Fintype α]
     S.integral_comp_factualZ_eq_sum (S.mUpper1 hA)]
   refine Finset.sum_le_sum (fun z _ => ?_)
   exact S.mul_zEvent_measure_mono_of_stratum_le
-    (a := fun z => eventCondExp P.μ (S.zEvent z) (S.YofD true))
+    (a := fun z => normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD true))
     (b := fun z => S.mUpper1 hA z)
     (fun {z} hz => S.miv_cond_Y1_le_mUpper1 hA hMIV hz) z
 
-/-- Integrated envelope bound for arm `d = 0` (lower):
-`∫ mLower0(Z) ≤ ∫ Y(0)`. -/
+/-- For a finite instrument value space, under [the baseline Manski
+assumptions](hyp:hA) and [a monotone instrumental variable](hyp:hMIV), [the
+integrated lower envelope for arm `0` is no larger than the mean of
+`Y(0)`](goal). -/
 theorem miv_integral_mLower0_le_integral_Y0 [IsFiniteMeasure P.μ] [Fintype α]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) :
     letI := hMIV.inst
@@ -335,11 +349,13 @@ theorem miv_integral_mLower0_le_integral_Y0 [IsFiniteMeasure P.μ] [Fintype α]
   refine Finset.sum_le_sum (fun z _ => ?_)
   exact S.mul_zEvent_measure_mono_of_stratum_le
     (a := fun z => S.mLower0 hA z)
-    (b := fun z => eventCondExp P.μ (S.zEvent z) (S.YofD false))
+    (b := fun z => normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false))
     (fun {z} hz => S.miv_mLower0_le_cond_Y0 hA hMIV hz) z
 
-/-- Integrated envelope bound for arm `d = 0` (upper):
-`∫ Y(0) ≤ ∫ mUpper0(Z)`. -/
+/-- For a finite instrument value space, under [the baseline Manski
+assumptions](hyp:hA) and [a monotone instrumental variable](hyp:hMIV), [the
+mean of `Y(0)` is no larger than the integrated upper envelope for arm
+`0`](goal). -/
 theorem miv_integral_Y0_le_integral_mUpper0 [IsFiniteMeasure P.μ] [Fintype α]
     (hA : S.BaseAssumptions) (hMIV : S.MIV) :
     letI := hMIV.inst
@@ -349,16 +365,15 @@ theorem miv_integral_Y0_le_integral_mUpper0 [IsFiniteMeasure P.μ] [Fintype α]
     S.integral_comp_factualZ_eq_sum (S.mUpper0 hA)]
   refine Finset.sum_le_sum (fun z _ => ?_)
   exact S.mul_zEvent_measure_mono_of_stratum_le
-    (a := fun z => eventCondExp P.μ (S.zEvent z) (S.YofD false))
+    (a := fun z => normalizedRestrictedIntegral P.μ (S.zEvent z) (S.YofD false))
     (b := fun z => S.mUpper0 hA z)
     (fun {z} hz => S.miv_cond_Y0_le_mUpper0 hA hMIV hz) z
 
-/-- **MIV ATE envelope bounds (prop:po-iv-miv, integrated form).** Under [the baseline Manski
-assumptions](hyp:hA) and [a monotone instrumental variable — the conditional mean of each
-potential outcome is nondecreasing in the instrument value across its support](hyp:hMIV),
-[the average treatment effect is sandwiched between the integrated lower-envelope contrast
-`∫ (mLower1(Z) − mUpper0(Z))` and the integrated upper-envelope contrast
-`∫ (mUpper1(Z) − mLower0(Z))`](goal).
+/-- **Finite-value-space specialization of the integrated MIV ATE bounds.** For
+a finite instrument value space, under [the baseline Manski assumptions](hyp:hA)
+and [a monotone instrumental variable](hyp:hMIV), [the average treatment effect
+is sandwiched between the integrated lower- and upper-envelope
+contrasts](goal).
 
 Follows from the four integrated envelope bounds above plus linearity. -/
 theorem miv_bounds_ATE [IsFiniteMeasure P.μ] [Fintype α]

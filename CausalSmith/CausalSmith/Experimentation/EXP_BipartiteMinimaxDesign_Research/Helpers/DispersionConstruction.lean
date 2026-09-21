@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # The clique-and-fillers graph for the unbounded dispersion certificate
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

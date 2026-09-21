@@ -1,9 +1,10 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.SharpDefinitions
-import Causalean.PO.Conditioning.CondExpTooling
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Fintype.OfMap
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-import Mathlib.MeasureTheory.Measure.Dirac
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.SharpDefinitions
+public import Causalean.Stat.FiniteFiberConditioning
+public import Mathlib.Data.Fintype.EquivFin
+public import Mathlib.Data.Fintype.OfMap
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+public import Mathlib.MeasureTheory.Measure.Dirac
 
 /-!
 # Finite full-law pasting substrate
@@ -11,6 +12,8 @@ import Mathlib.MeasureTheory.Measure.Dirac
 This module supplies a universe-polymorphic finite atom space and reuses the
 original slate's native node value spaces for the canonical structural law.
 -/
+
+@[expose] public section
 
 open MeasureTheory Causalean PO
 
@@ -37,10 +40,10 @@ structure ThresholdAtom (𝒳 : Type uCell) (K : ℕ) where
 /-- Threshold atoms have decidable equality. -/
 add_decl_doc instDecidableEqThresholdAtom
 
-private abbrev ThresholdAtomTuple (𝒳 : Type uCell) (K : ℕ) :=
+abbrev ThresholdAtomTuple (𝒳 : Type uCell) (K : ℕ) :=
   𝒳 × Bool × Bool × Bool × Bool × Bool × Fin K × Fin K
 
-private def thresholdAtomEquiv : ThresholdAtom 𝒳 K ≃ ThresholdAtomTuple 𝒳 K where
+def thresholdAtomEquiv : ThresholdAtom 𝒳 K ≃ ThresholdAtomTuple 𝒳 K where
   toFun a := (a.x, a.z, a.d0, a.d1, a.s0, a.s1, a.y0, a.y1)
   invFun a := ⟨a.1, a.2.1, a.2.2.1, a.2.2.2.1, a.2.2.2.2.1,
     a.2.2.2.2.2.1, a.2.2.2.2.2.2.1, a.2.2.2.2.2.2.2⟩
@@ -85,20 +88,20 @@ noncomputable def thresholdAtomAt (ω : ThresholdOmega.{uOmega} 𝒳 K) :
     ThresholdAtom 𝒳 K :=
   (Fintype.equivFin (ThresholdAtom 𝒳 K)).symm ω.down
 
-private def atomDArm (z : Bool) (a : ThresholdAtom 𝒳 K) : Bool :=
+def atomDArm (z : Bool) (a : ThresholdAtom 𝒳 K) : Bool :=
   if z then a.d1 else a.d0
 
-private def atomSArm (d : Bool) (a : ThresholdAtom 𝒳 K) : Bool :=
+def atomSArm (d : Bool) (a : ThresholdAtom 𝒳 K) : Bool :=
   if d then a.s1 else a.s0
 
-private def atomYArm (d : Bool) (a : ThresholdAtom 𝒳 K) : Fin K :=
+def atomYArm (d : Bool) (a : ThresholdAtom 𝒳 K) : Fin K :=
   if d then a.y1 else a.y0
 
-private def effectiveZ {P : POSystem.{uV, uVal, uOmega}}
+def effectiveZ {P : POSystem.{uV, uVal, uOmega}}
     (S : POSlateSystem P 𝒳 K) (r : Regime P.V P.X) (a : ThresholdAtom 𝒳 K) : Bool :=
   if h : S.zNode ∈ r.target then S.hZ (r.assign S.zNode h) else a.z
 
-private def effectiveD {P : POSystem.{uV, uVal, uOmega}}
+def effectiveD {P : POSystem.{uV, uVal, uOmega}}
     (S : POSlateSystem P 𝒳 K) (r : Regime P.V P.X) (a : ThresholdAtom 𝒳 K) : Bool :=
   if h : S.dNode ∈ r.target then S.hD (r.assign S.dNode h)
   else atomDArm (effectiveZ S r a) a
@@ -818,7 +821,7 @@ theorem canonicalThresholdCandidate_ivIndependence
     (MeasurableSpace.comap W.slate.factualX inferInstance)
     W.slate.xVar.measurable_factual.comap_le W.slate.factualZ
       (g ∘ latentW) W.system.μ
-  apply condIndepFun_finite_of_measureReal_fibers W.system.μ
+  apply Causalean.Stat.condIndepFun_finite_of_measureReal_fibers W.system.μ
     W.slate.factualX W.slate.xVar.measurable_factual
     W.slate.factualZ W.slate.zVar.measurable_factual
     (g ∘ latentW)

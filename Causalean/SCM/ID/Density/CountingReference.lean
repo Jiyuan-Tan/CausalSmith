@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.Density.FiniteReference
+
+module
+public import Causalean.SCM.ID.Density.FiniteReference
 
 /-! # The counting reference measure for finite discrete models
 
@@ -15,6 +17,11 @@ density-route identification theorem `id_sound`, whose model class is
 `DominatedObs · ref ∧ DiscretePositive`; the positivity half is supplied by the
 standard discrete positive model class.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.SCM
 

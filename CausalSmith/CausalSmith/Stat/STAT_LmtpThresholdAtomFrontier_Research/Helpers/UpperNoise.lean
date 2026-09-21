@@ -4,17 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.EstimatorMeasurable
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
-import Causalean.Mathlib.Probability.WeightedProduct
-import Causalean.Stat.Concentration.TailBounds.Bernstein
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.EstimatorMeasurable
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
+public import Causalean.Stat.Concentration.Hoeffding.RandomDesign.WeightedProduct
+public import Causalean.Stat.Concentration.TailBounds.Bernstein
 
 /-! # Design-measurable weights for the local-regression noise term -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
-open MeasureTheory Set
+open MeasureTheory Set Causalean.Stat.Concentration.RandomDesignWeightedHoeffding
 
 noncomputable section
 
@@ -124,12 +127,12 @@ lemma localRegressionDesignWeight_apply {J n ell : ℕ} (B : SplitBlocks n)
     (z : Fin n → ClampObs J) (x : Fin J) (kappa cminus cplus delta h : ℝ)
     (i : Fin n) :
     localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-      (Causalean.Mathlib.Probability.designVector (fun o : ClampObs J => (o.X, o.A)) z) i =
+      (designVector (fun o : ClampObs J => (o.X, o.A)) z) i =
       if i ∈ B.I2 then interceptWeight B z x ell kappa cminus cplus delta h i else 0 := by
   classical
   by_cases hi : i ∈ B.I2
   · simp only [localRegressionDesignWeight, hi, if_true,
-      Causalean.Mathlib.Probability.designVector]
+      designVector]
     unfold interceptWeight GoodGramEvent localCount localGram scaledDose
     rfl
   · simp [localRegressionDesignWeight, hi]
@@ -138,14 +141,14 @@ lemma localRegressionDesignWeight_apply {J n ell : ℕ} (B : SplitBlocks n)
 lemma weightedCenteredSum_localRegression {J n ell : ℕ} (B : SplitBlocks n)
     (P : ClampLaw J) (z : Fin n → ClampObs J) (x : Fin J)
     (kappa cminus cplus delta h : ℝ) :
-    Causalean.Mathlib.Probability.weightedCenteredSum
+    weightedCenteredSum
       (fun o : ClampObs J => (o.X, o.A)) (fun o => o.Y)
       (clampRegressionExtension P)
       (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h) z =
       ∑ i ∈ B.I2, interceptWeight B z x ell kappa cminus cplus delta h i *
         ((z i).Y - clampRegressionExtension P ((z i).X, (z i).A)) := by
   classical
-  unfold Causalean.Mathlib.Probability.weightedCenteredSum
+  unfold weightedCenteredSum
   simp_rw [localRegressionDesignWeight_apply (ell := ell)]
   simp only [ite_mul, zero_mul]
   rw [← Finset.sum_filter]
@@ -156,14 +159,14 @@ lemma weightedCenteredSum_localRegression {J n ell : ℕ} (B : SplitBlocks n)
 lemma weightedCenteredSum_localRegression_clamp {J n ell : ℕ} (B : SplitBlocks n)
     (P : ClampLaw J) (z : Fin n → ClampObs J) (x : Fin J)
     (kappa cminus cplus delta h : ℝ) :
-    Causalean.Mathlib.Probability.weightedCenteredSum
+    weightedCenteredSum
       (fun o : ClampObs J => (o.X, o.A)) (fun o => clampUnit o.Y)
       (clampRegressionExtension P)
       (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h) z =
       ∑ i ∈ B.I2, interceptWeight B z x ell kappa cminus cplus delta h i *
         (clampUnit (z i).Y - clampRegressionExtension P ((z i).X, (z i).A)) := by
   classical
-  unfold Causalean.Mathlib.Probability.weightedCenteredSum
+  unfold weightedCenteredSum
   simp_rw [localRegressionDesignWeight_apply (ell := ell)]
   simp only [ite_mul, zero_mul]
   rw [← Finset.sum_filter]
@@ -175,7 +178,7 @@ lemma localRegression_weight_energy_le {J n ell : ℕ} (B : SplitBlocks n)
     (z : Fin n → ClampObs J) (x : Fin J) (kappa cminus cplus delta h : ℝ)
     (hh : 0 < h) (hlambda : 0 < lambdaStar ell kappa cminus cplus) :
     ∑ i, (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-      (Causalean.Mathlib.Probability.designVector
+      (designVector
         (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2 ≤
       4 * (ell + 1 : ℝ) / lambdaStar ell kappa cminus cplus ^ 2 := by
   classical
@@ -205,18 +208,18 @@ lemma localRegression_weight_energy_integrable {J n ell : ℕ} (B : SplitBlocks 
     (hh : 0 < h) (hlambda : 0 < lambdaStar ell kappa cminus cplus) :
     Integrable (fun z : Fin n → ClampObs J =>
       ∑ i, (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2) (iidProduct P n) := by
   letI : IsProbabilityMeasure (iidProduct P n) := by
     unfold iidProduct
     infer_instance
   let w := localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
   have hmeas : Measurable (fun z : Fin n → ClampObs J =>
-      ∑ i, (w (Causalean.Mathlib.Probability.designVector
+      ∑ i, (w (designVector
         (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2) := by
     have hw : Measurable w := localRegressionDesignWeight_measurable B x
       kappa cminus cplus delta h
-    have hd := Causalean.Mathlib.Probability.measurable_designVector
+    have hd := measurable_designVector
       (N := n) (fun o : ClampObs J => (o.X, o.A)) clampDesign_measurable
     exact Finset.measurable_fun_sum _ fun i _ =>
       ((measurable_pi_apply i).comp (hw.comp hd)).pow_const 2
@@ -371,7 +374,7 @@ lemma localRegression_weight_energy_integral_le {J n ell : ℕ}
     (hmean : ∫ o, localWindowWeight x delta h o ∂P.dataMeasure = p) :
     (∫ z, ∑ i,
       (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2 ∂iidProduct P n) ≤
       2 * (4 * (ell + 1 : ℝ) / lambdaStar ell kappa cminus cplus ^ 2) /
           ((B.I2.card : ℝ) * p) +
@@ -385,7 +388,7 @@ lemma localRegression_weight_energy_integral_le {J n ell : ℕ}
   let mp := (B.I2.card : ℝ) * p
   let energy : (Fin n → ClampObs J) → ℝ := fun z => ∑ i,
     (localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-      (Causalean.Mathlib.Probability.designVector
+      (designVector
         (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2
   let low : Set (Fin n → ClampObs J) :=
     {z | (localCount B z x delta h : ℝ) ≤ mp / 2}
@@ -428,7 +431,7 @@ lemma localRegression_weight_energy_integral_le {J n ell : ℕ}
             nlinarith
       · have hwzero (i : Fin n) :
             localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-              (Causalean.Mathlib.Probability.designVector
+              (designVector
                 (fun o : ClampObs J => (o.X, o.A)) z) i = 0 := by
           rw [localRegressionDesignWeight_apply (ell := ell)]
           split_ifs
@@ -483,10 +486,10 @@ lemma localRegression_centered_l1_le {J n ell : ℕ}
   let design : ClampObs J → Fin J × ℝ := fun o => (o.X, o.A)
   let Y : ClampObs J → ℝ := fun o => clampUnit o.Y
   let w := localRegressionDesignWeight (ell := ell) B x kappa cminus cplus delta h
-  let S := Causalean.Mathlib.Probability.weightedCenteredSum design Y
+  let S := weightedCenteredSum design Y
     (clampRegressionExtension P) w
   let energy : (Fin n → ClampObs J) → ℝ := fun z => ∑ i,
-    (w (Causalean.Mathlib.Probability.designVector design z) i) ^ 2
+    (w (designVector design z) i) ^ 2
   have hw : Measurable w := localRegressionDesignWeight_measurable B x
     kappa cminus cplus delta h
   have hd : Measurable design := clampDesign_measurable
@@ -497,10 +500,10 @@ lemma localRegression_centered_l1_le {J n ell : ℕ}
       localRegression_weight_energy_integrable B P x kappa cminus cplus delta h hh hlambda
   have hSmeas : Measurable S := by
     dsimp [S]
-    unfold Causalean.Mathlib.Probability.weightedCenteredSum
+    unfold weightedCenteredSum
     exact Finset.measurable_fun_sum _ fun i _ =>
       ((measurable_pi_apply i).comp
-        (hw.comp (Causalean.Mathlib.Probability.measurable_designVector design hd))).mul
+        (hw.comp (measurable_designVector design hd))).mul
       ((hY.comp (measurable_pi_apply i)).sub
         (hmD.comp (hd.comp (measurable_pi_apply i))))
   have hSsq : Integrable (fun z => (S z) ^ 2) (iidProduct P n) := by
@@ -510,7 +513,7 @@ lemma localRegression_centered_l1_le {J n ell : ℕ}
     rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _), Real.norm_eq_abs,
       abs_of_nonneg (mul_nonneg (Nat.cast_nonneg _) (Finset.sum_nonneg fun _ _ => sq_nonneg _))]
     have hcs := Finset.sum_mul_sq_le_sq_mul_sq Finset.univ
-      (fun i => w (Causalean.Mathlib.Probability.designVector design z) i)
+      (fun i => w (designVector design z) i)
       (fun i => Y (z i) - clampRegressionExtension P (design (z i)))
     have hr : ∑ i, (Y (z i) - clampRegressionExtension P (design (z i))) ^ 2 ≤
         (n : ℝ) := by
@@ -536,7 +539,7 @@ lemma localRegression_centered_l1_le {J n ell : ℕ}
       _ ≤ energy z * n := mul_le_mul_of_nonneg_left hr
         (Finset.sum_nonneg fun _ _ => sq_nonneg _)
       _ = n * energy z := mul_comm _ _
-  have hbase := Causalean.Mathlib.Probability.product_weighted_centered_l1_le
+  have hbase := product_weighted_centered_l1_le
     P.dataMeasure design hd Y hY (fun o => (clampUnit_mem_Icc o.Y).1)
     (fun o => (clampUnit_mem_Icc o.Y).2) (clampRegressionExtension P) hmD
     (clampOutcome_condExp P hmodel x) w hw henergyInt hSsq

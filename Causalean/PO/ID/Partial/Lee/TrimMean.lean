@@ -7,12 +7,15 @@ Authors: Jiyuan Tan
 
 `Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS`: the trimmed mean
 `Mw witness` of the always-selected trim weight equals
-`eventCondExp μ alwaysSelected (YofA true)`.  The factor of `ρ⁻¹` in
+`normalizedRestrictedIntegral μ alwaysSelected (YofA true)`.  The factor of `ρ⁻¹` in
 `Mw` cancels exactly with the `ρ` numerator built into the witness,
 leaving the conditional expectation of `Y(1)` on `alwaysSelected`.
 -/
 
-import Causalean.PO.ID.Partial.Lee.TrimWeight
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Lee.TrimWeight
 
 /-! # Lee Trimmed Mean Identity
 
@@ -20,6 +23,10 @@ This file proves that the trimmed mean associated with the always-selected trim
 weight equals the conditional mean of the treated potential outcome on the
 always-selected latent stratum. The result connects the finite-support trim
 weight construction to the target latent mean used in Lee bounds. -/
+
+public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -41,11 +48,12 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
     (𝒴 : Finset ℝ)
     (hSupp : ∀ᵐ ω ∂(P.μ.restrict S.selectedTreated), S.factualY ω ∈ 𝒴) :
     S.Mw (S.alwaysSelectedTrimWeight hA hMono 𝒴 hSupp)
-      = eventCondExp P.μ S.alwaysSelected (S.YofA true) := by
+      = normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA true) := by
   classical
   have h_f1AS_nonneg : ∀ y, 0 ≤ S.f1AS y := by
     intro y
-    unfold f1AS eventCondExp
+    unfold f1AS
+    rw [eventCondExp_eq]
     exact div_nonneg
       (MeasureTheory.setIntegral_nonneg
         S.measurableSet_alwaysSelected
@@ -53,14 +61,16 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
       ENNReal.toReal_nonneg
   have h_rho_nonneg : 0 ≤ S.rho := by
     have hp0 : 0 ≤ S.p0 := by
-      unfold p0 pSelGivenA eventCondExp
+      unfold p0 pSelGivenA
+      rw [eventCondExp_eq]
       refine div_nonneg ?_ ENNReal.toReal_nonneg
       exact MeasureTheory.setIntegral_nonneg (S.measurableSet_aEvent false) (fun ω _ => by
         unfold POVar.indicator
         by_cases h : ω ∈ S.selVar.event true <;>
           simp [Set.indicator_of_mem, Set.indicator_of_notMem, h])
     have hp1 : 0 ≤ S.p1 := by
-      unfold p1 pSelGivenA eventCondExp
+      unfold p1 pSelGivenA
+      rw [eventCondExp_eq]
       refine div_nonneg ?_ ENNReal.toReal_nonneg
       exact MeasureTheory.setIntegral_nonneg (S.measurableSet_aEvent true) (fun ω _ => by
         unfold POVar.indicator
@@ -123,7 +133,8 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
       exact ⟨hA.posSelectedControl, hA.posSelCtFinite⟩
     exact hsel_ne hsel_zero
   have hp0_eq : S.p0 = (P.μ S.alwaysSelected).toReal := by
-    unfold p0 pSelGivenA eventCondExp
+    unfold p0 pSelGivenA
+    rw [eventCondExp_eq]
     rw [hIntControl, hSelFalseMass]
     field_simp [hAfalse_ne]
   have hp1_eq :
@@ -143,7 +154,8 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
     have hAtrue_ne : (P.μ (S.aEvent true)).toReal ≠ 0 := by
       rw [ENNReal.toReal_ne_zero]
       exact ⟨hA.posATrue, measure_ne_top _ _⟩
-    unfold p1 pSelGivenA eventCondExp
+    unfold p1 pSelGivenA
+    rw [eventCondExp_eq]
     rw [hInt, hsplit]
     field_simp [hAtrue_ne]
   have hdom : ∀ y, S.rho * S.f1AS y ≤ S.f1 y := by
@@ -166,7 +178,8 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
         have hden_ne : (P.μ S.selectedTreated).toReal ≠ 0 := by
           rw [ENNReal.toReal_ne_zero]
           exact ⟨hA.posSelectedTreated, hA.posSelTrFinite⟩
-        unfold f1 eventCondExp
+        unfold f1
+        rw [eventCondExp_eq]
         rw [S.selectedTreated_integral_split_indicator hA y]
         field_simp [hden_ne]
         simp [a, iH]
@@ -175,7 +188,8 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
             ∫ ω in S.alwaysSelected,
               (if S.YofA true ω = y then (1 : ℝ) else 0) ∂P.μ := by
         subst b
-        unfold f1AS eventCondExp
+        unfold f1AS
+        rw [eventCondExp_eq]
         field_simp [hAS_ne]
       rw [← hASrel] at hraw
       exact hraw
@@ -233,13 +247,14 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
     exact div_ne_zero (ne_of_gt hb_pos) (ne_of_gt hbc_pos)
   have hweighted_f1AS :
       ∑ y ∈ 𝒴, y * S.f1AS y
-        = eventCondExp P.μ S.alwaysSelected (S.YofA true) := by
+        = normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA true) := by
     have hASrel : ∀ y,
         S.f1AS y * (P.μ S.alwaysSelected).toReal =
           ∫ ω in S.alwaysSelected,
             (if S.YofA true ω = y then (1 : ℝ) else 0) ∂P.μ := by
       intro y
-      unfold f1AS eventCondExp
+      unfold f1AS
+      rw [eventCondExp_eq]
       field_simp [hAS_ne]
     have hweighted_mul :
         (∑ y ∈ 𝒴, y * S.f1AS y) * (P.μ S.alwaysSelected).toReal
@@ -309,7 +324,7 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
                 y * (if S.YofA true ω = y then (1 : ℝ) else 0)) ∂P.μ
             = ∫ ω in S.alwaysSelected, S.YofA true ω ∂P.μ at hIntCongr
       exact hIntCongr
-    unfold eventCondExp
+    rw [eventCondExp_eq]
     have h :
         (∑ y ∈ 𝒴, y * S.f1AS y) * (P.μ S.alwaysSelected).toReal
           = ∫ ω in S.alwaysSelected, S.YofA true ω ∂P.μ := by
@@ -349,7 +364,7 @@ lemma Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS
           ring
     _ = ∑ x ∈ 𝒴, x * S.f1AS x := by
           field_simp [hrho_ne]
-    _ = eventCondExp P.μ S.alwaysSelected (S.YofA true) := hweighted_f1AS
+    _ = normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA true) := hweighted_f1AS
 
 end POLeeSystem
 

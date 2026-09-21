@@ -1,5 +1,6 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TTieFaceCollapse
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CitedGates
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TTieFaceCollapse
 
 /-!
 # Reduction to fixed-marginal ordinal benefit bounds
@@ -7,6 +8,8 @@ import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TTieFaceC
 On the no-selection submodel, survivor-complier capacities are complete
 marginals and the threshold formulas reduce to the cited ordinal formulas.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set Causalean PO
 

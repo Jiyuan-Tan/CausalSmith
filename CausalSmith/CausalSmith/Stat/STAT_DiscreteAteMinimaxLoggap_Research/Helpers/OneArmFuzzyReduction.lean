@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
-import Causalean.Stat.Minimax.Mixture
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+public import Causalean.Stat.Minimax.Mixture
+public import Causalean.Stat.Minimax.MinimaxRisk
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

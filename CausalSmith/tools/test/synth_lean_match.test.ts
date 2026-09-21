@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { conceptKey, resolveSymbolHomes } from "../src/presentation/synth_lean_match.js";
+import { conceptKey, resolveSymbolHomes, synthInputsFingerprint } from "../src/presentation/synth_lean_match.js";
 import type { SymbolCluster } from "../src/formalization/crosswalk.js";
 
 const NS = "CausalSmith.Stat.Run";
@@ -99,5 +99,31 @@ describe("resolveSymbolHomes", () => {
   it("never homes a definition on a theorem, even when the key collides", () => {
     const { homes } = resolveSymbolHomes(["\\operatorname{summaryRadius}"], [], decls);
     expect(homes[0].decl).toBe(`${NS}.summaryRadius`);
+  });
+
+});
+
+describe("synthInputsFingerprint", () => {
+  const sym = String.raw`\mathcal T^{\mathrm{known}}_{n,d}`;
+  const at = (decl: string, line = 60): SymbolCluster[] => [{ symbol: sym, members: [{ decl, declKind: "def", file: "Basic.lean", line }] }];
+  const indexed = new Map([
+    ...decls,
+    [`${NS}.KnownSample`, { file: "Basic.lean", line: 50, kind: "structure" }],
+    [`${NS}.knownMarginalRisk`, { file: "Basic.lean", line: 60, kind: "def" }],
+  ]);
+  const fp = (clusters: SymbolCluster[], source?: string | null) => synthInputsFingerprint([sym], resolveSymbolHomes([sym], clusters, indexed), source);
+
+  it("is stable under unchanged inputs, a shifted line, and symbol order", () => {
+    expect(fp(at("KnownSample", 61), "src")).toBe(fp(at("KnownSample"), "src"));
+    const two = ["b", "a"];
+    expect(synthInputsFingerprint(two, { homes: [], presentedBy: new Map() })).toBe(synthInputsFingerprint([...two].reverse(), { homes: [], presentedBy: new Map() }));
+  });
+
+  it("changes when the @realizes tag moves, the declaration is edited or vanishes, or a prose symbol becomes Lean-defined", () => {
+    const base = fp(at("KnownSample"), "src");
+    expect(fp(at("knownMarginalRisk"), "src")).not.toBe(base);
+    expect(fp(at("KnownSample"), "src edited")).not.toBe(base);
+    expect(fp(at("KnownSample"), null)).not.toBe(base);
+    expect(fp([])).not.toBe(fp(at("KnownSample")));
   });
 });

@@ -1,10 +1,13 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.OverlapUniqueness
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.OverlapUniqueness
 
 /-!
 # The affine deletion threshold
 
 Finite-set lemmas identifying positive affine-minor separation with deletion distance.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

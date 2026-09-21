@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialOutcome
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialOutcome
 
 /-!
 # Pointwise algebra for angular radial fibres
@@ -7,6 +8,8 @@ This module isolates the pointwise product identity behind the radial-outcome
 cancellation.  It evaluates the regression and design density in the changed
 cell before the later integral argument discards the purely angular terms.
 -/
+
+public section
 
 open Set
 

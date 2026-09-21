@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelRealDiagonalization
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Enumeration
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.SummaryClosure
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ModelRealDiagonalization
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Enumeration
 
 /-!
 # Model certificates for collision-safe representative spectra
@@ -9,6 +10,8 @@ This file extracts from one model law a signal basis, its exact threshold rank, 
 diagonalization of the compressed operator, and the two anchor-coordinate identities required by
 the generic collision-safe spectral enumeration theorem.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

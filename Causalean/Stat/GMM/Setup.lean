@@ -10,9 +10,9 @@ The statistical layer over `Causalean/Stat/GMM/VarianceAlgebra.lean`.  A
 moment vector valued in `F`, `dim E ≤ dim F`) with the regularity needed for
 the GMM asymptotic theory: population identification `∫ g(θ₀) dP = 0`, a
 Jacobian `G = ∂_θ ∫ g(θ) dP |_{θ₀}`, the moment covariance `Cov` (the second
-moment of `g(θ₀)`), a symmetric weighting `W`, and the inverse witnesses making
-`Cov`, `GᵀWG`, `GᵀCov⁻¹G` invertible (full-rank / non-degeneracy assumptions,
-exactly analogous to `ZEstimatorRegularity.J₀_inv`).
+moment of `g(θ₀)`), a symmetric weighting `W`, and inverse witnesses for
+`GᵀWG`.  The stronger `EfficientGMMProblem` extension adds inverses for `Cov`
+and `GᵀCov⁻¹G`, only for efficiency comparisons and J tests.
 
 From this we read off:
 
@@ -20,30 +20,35 @@ From this we read off:
   empirical zero is the (linearized) GMM estimator;
 * `gmmIF` — the influence function `−(GᵀWG)⁻¹GᵀW g(θ₀,·)`;
 * `GMMProblem.asympVar` — the sandwich asymptotic variance `gmmSandwich`;
-* `GMMProblem.efficiency` — Hansen's optimal-weighting theorem in statistical
-  terms: the sandwich variance dominates the efficient variance `(GᵀCov⁻¹G)⁻¹`
-  in the Löwner order, with equality at `W = Cov⁻¹`.
+* `EfficientGMMProblem.efficiency` — the covariance lower-bound component of
+  Hansen's optimal-weighting result in statistical terms: the sandwich variance
+  dominates the efficient variance `(GᵀCov⁻¹G)⁻¹` in the Löwner order.
 
 Spec: Hansen (1982); Newey & McFadden (1994), §3.
 -/
 
-import Causalean.Stat.GMM.VarianceAlgebra
-import Causalean.Stat.CLT.SecondMomentOperator
-import Mathlib.Analysis.Calculus.FDeriv.Basic
+module
+public import Causalean.Stat.GMM.VarianceAlgebra
+public import Causalean.Stat.CLT.SecondMomentOperator
+public import Mathlib.Analysis.Calculus.FDeriv.Basic
 
 /-! # Generalized Method of Moments Setup
 
 This file packages the statistical data for generalized method of moments.  A
 `GMMProblem` records the moment function `g`, target `θ₀`, weighting operator
 `W`, Jacobian `G`, covariance operator `Cov`, and the two-sided inverse
-witnesses needed for `Cov`, `GᵀWG`, and `GᵀCov⁻¹G`.
+witnesses for `GᵀWG`. `EfficientGMMProblem` adds covariance and efficient-bread
+inverses.
 
 The public interface exposes `gmmScore`, `gmmIF`, and the bundled
 `GMMProblem.score`, `GMMProblem.influence`, `GMMProblem.asympVar`, and
-`GMMProblem.effVar`.  The main theorem `GMMProblem.efficiency` applies the
+`EfficientGMMProblem.effVar`.  The main theorem
+`EfficientGMMProblem.efficiency` applies the
 operator-algebra result from `Causalean.Stat.GMM.VarianceAlgebra` to show that
 the sandwich variance for an arbitrary symmetric weighting dominates the
 efficient inverse-covariance variance in the Loewner order. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -86,10 +91,8 @@ operator](hyp:W,hWsa) and [a Jacobian of the population moment at θ₀, verifie
 derivative](hyp:G,jac_spec). It asserts [the population moment vanishes at the
 truth](hyp:identification) and that [the moment function at the truth is measurable and
 square-integrable](hyp:g_meas,finite_var), and packages [a moment covariance
-operator](hyp:Cov) [defined as the second moment of the moment vector](hyp:hCov) together with
-two-sided inverse witnesses for [the covariance operator](hyp:CovInv,CovInv_left,CovInv_right),
-for [the GMM bread `GᵀWG`](hyp:breadInv,breadInv_left,breadInv_right), and for [the efficient
-bread `GᵀCov⁻¹G`](hyp:effInv,effInv_left,effInv_right). -/
+operator](hyp:Cov) [defined as the second moment of the moment vector](hyp:hCov), together with
+a two-sided inverse for [the GMM bread `GᵀWG`](hyp:breadInv,breadInv_left,breadInv_right). -/
 structure GMMProblem (P : Measure X) where
   /-- Moment function: `g θ x ∈ F`, with `θ` the parameter and `x` the datum. -/
   g : E → X → F
@@ -113,14 +116,19 @@ structure GMMProblem (P : Measure X) where
   Cov : F →L[ℝ] F
   /-- `Cov` is the second-moment (covariance) operator of the moment vector. -/
   hCov : ∀ t s : F, ⟪Cov t, s⟫ = ∫ x, ⟪t, g θ₀ x⟫ * ⟪s, g θ₀ x⟫ ∂P
-  /-- Inverse covariance `Cov⁻¹`. -/
-  CovInv : F →L[ℝ] F
-  CovInv_left : CovInv ∘L Cov = ContinuousLinearMap.id ℝ F
-  CovInv_right : Cov ∘L CovInv = ContinuousLinearMap.id ℝ F
   /-- Inverse bread `(GᵀWG)⁻¹` (full-rank `G`, non-degenerate `W`). -/
   breadInv : E →L[ℝ] E
   breadInv_left : breadInv ∘L gmmBread G W = ContinuousLinearMap.id ℝ E
   breadInv_right : gmmBread G W ∘L breadInv = ContinuousLinearMap.id ℝ E
+
+/-- An ordinary GMM problem equipped with [an inverse covariance
+operator](hyp:CovInv,CovInv_left,CovInv_right) and [an inverse efficient bread
+operator](hyp:effInv,effInv_left,effInv_right) supports efficiency comparisons and J tests. -/
+structure EfficientGMMProblem (P : Measure X) extends GMMProblem (E := E) (F := F) P where
+  /-- Inverse covariance `Cov⁻¹`. -/
+  CovInv : F →L[ℝ] F
+  CovInv_left : CovInv ∘L Cov = ContinuousLinearMap.id ℝ F
+  CovInv_right : Cov ∘L CovInv = ContinuousLinearMap.id ℝ F
   /-- Inverse efficient bread `(GᵀCov⁻¹G)⁻¹`. -/
   effInv : E →L[ℝ] E
   effInv_left : effInv ∘L gmmBread G CovInv = ContinuousLinearMap.id ℝ E
@@ -149,11 +157,6 @@ $(G^{\mathsf T}WG)^{-1}G^{\mathsf T}W\operatorname{Cov}WG(G^{\mathsf T}WG)^{-1}$
 noncomputable def asympVar : E →L[ℝ] E :=
   gmmSandwich prob.G prob.W prob.Cov prob.breadInv
 
-/-- For [finite-dimensional real inner-product parameter and moment spaces, a measurable data
-space, and a measure on that data space](hyp:E,F,X,P), [a bundled GMM problem](hyp:prob) determines the [efficient asymptotic variance operator](goal), which is
-$(G^{\mathsf T}\operatorname{Cov}^{-1}G)^{-1}$. -/
-noncomputable def effVar : E →L[ℝ] E := prob.effInv
-
 omit [BorelSpace F] in
 /-- The covariance operator is positive — it is a second moment. -/
 theorem cov_isPositive : prob.Cov.IsPositive := by
@@ -170,16 +173,47 @@ theorem cov_isPositive : prob.Cov.IsPositive := by
     rw [hre, prob.hCov t t]
     exact integral_nonneg fun x => mul_self_nonneg _
 
+end GMMProblem
+
+namespace EfficientGMMProblem
+
+variable {P : Measure X} (prob : EfficientGMMProblem (E := E) (F := F) P)
+
+/-- An [efficient GMM problem](hyp:prob), viewed with covariance-inverse weighting,
+is [an ordinary GMM problem whose weight is `CovInv` and whose inverse bread is
+`effInv`](goal). -/
+noncomputable def efficientProblem : GMMProblem (E := E) (F := F) P where
+  g := prob.g
+  θ₀ := prob.θ₀
+  W := prob.CovInv
+  hWsa := adjoint_inv_self prob.cov_isPositive.isSelfAdjoint prob.CovInv_right
+  G := prob.G
+  identification := prob.identification
+  g_meas := prob.g_meas
+  finite_var := prob.finite_var
+  jac_spec := prob.jac_spec
+  Cov := prob.Cov
+  hCov := prob.hCov
+  breadInv := prob.effInv
+  breadInv_left := prob.effInv_left
+  breadInv_right := prob.effInv_right
+
+/-- For [an efficient GMM problem](hyp:prob), the [efficient asymptotic variance operator](goal)
+is $(G^{\mathsf T}\operatorname{Cov}^{-1}G)^{-1}$. -/
+noncomputable def effVar : E →L[ℝ] E := prob.effInv
+
 omit [BorelSpace F] in
-/-- **GMM optimal-weighting theorem (Hansen 1982), statistical form.** [The sandwich
-asymptotic variance of a GMM problem with an arbitrary symmetric weighting dominates the
-efficient variance `(GᵀCov⁻¹G)⁻¹` in the Löwner order: `asympVar − effVar` is a positive
-operator](goal). -/
+/-- **GMM covariance lower bound (the lower-bound component of Hansen 1982,
+Theorem 3.2), statistical form.** For [an efficient GMM problem](hyp:prob),
+[its sandwich variance minus its efficient variance is positive semidefinite](goal).
+
+Equivalently, the arbitrary symmetric-weight sandwich variance dominates
+`(GᵀCov⁻¹G)⁻¹` in the Löwner order. -/
 theorem efficiency : (prob.asympVar - prob.effVar).IsPositive :=
   gmm_efficiency prob.G prob.W prob.Cov prob.CovInv prob.hWsa prob.cov_isPositive
     prob.CovInv_left prob.CovInv_right prob.breadInv prob.breadInv_left
     prob.breadInv_right prob.effInv prob.effInv_left prob.effInv_right
 
-end GMMProblem
+end EfficientGMMProblem
 
 end Causalean.Stat

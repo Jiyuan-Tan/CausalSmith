@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
 
 /-!
 Measurability and finite-partition adapters for transporting the full-data law to the observed
 law and decomposing treatment arms into latent cells.
 -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

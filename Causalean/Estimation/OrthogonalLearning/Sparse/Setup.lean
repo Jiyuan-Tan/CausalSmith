@@ -24,9 +24,10 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-sparse-plugin-erm`.
 -/
 
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
-import Mathlib.Analysis.MeanInequalities
+module
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+public import Mathlib.Analysis.MeanInequalities
 
 /-! # Sparse Plug-In Setup
 
@@ -40,6 +41,8 @@ The geometry is exposed through `l1Norm`, `l1Full`, `linftyDev`, and
 `RestrictedCone`, with `l1Full_eq` and `l1Norm_supp_le_card_sqrt_mul_l2norm`
 supplying the norm identities and bounds used in the sparse guarantee. The
 estimator predicate is `SparsePluginERM`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

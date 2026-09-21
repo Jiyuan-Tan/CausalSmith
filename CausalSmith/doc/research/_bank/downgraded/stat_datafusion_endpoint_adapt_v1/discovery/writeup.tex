@@ -1,0 +1,1529 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}datafusion\_\allowbreak{}endpoint\_\allowbreak{}adapt}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Sharp data-fusion sensitivity endpoints are averages of absolute paired-cell gaps, so exact and near ties create a confidence problem that fixed smoothing does not resolve. The exact-tie and low-information frontiers are proved, and a capped-cell coordinate rectangle now gives a finite-sample globally honest endpoint pair with expected summed length of order \(k\min\{a_m,\sqrt{m\log(6m/\delta_0)/n}\}\). Combined with oracle positivity, it yields the global adaptation upper envelope \(C_0\min\{\max(1,a_m\sqrt n),\sqrt{m\log(6m/\delta_0)}\}\). No matching higher-information lower bound, globally optimal family, or resolution of the logarithmic factor is claimed. Causally, the experiment is a faithful finite paired-cell specialized subclass of the Lanners--Rudin--Volfovsky--Parikh sensitivity model, not the actual Project STAR sampling law or the unrestricted nonparametric model.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published data-fusion work identifies the max/min endpoints and uses fixed smoothing, while existing confidence-adaptation and absolute-functional theories do not evaluate the full heterogeneous paired-binomial connected-interval oracle or its simultaneous adaptation cost. The capped-cell rectangle proves a global \(\sqrt{m\log m/n}\)-type honest upper envelope, but no matching higher-information lower bound establishes whether the \(\sqrt{m\log m}\) adaptation ceiling is sharp or whether the logarithm can be removed.
+
+\paragraph{Niche.} The fixed learnable experiment is a faithful finite paired-cell specialized subclass, or fiber, of the Lanners--Rudin--Volfovsky--Parikh model: treatment and study propensities are fixed at \(1/2\), the covariate law and outcome regressions are specialized, and \(\rho=\gamma=1/5\). This isolates tie uncertainty for both causal endpoints under joint coverage without claiming unrestricted nonparametric data-fusion inference.
+
+\paragraph{Fill.} The proved results combine paired-binomial testing with exact-tie and low-information lower bounds, a capped quadratic construction, a full-range low-information rule, and a capped-cell coordinate rectangle. The latter is uniformly finite-sample honest and has expected summed length at most \(C_0k\min\{a_m,\sqrt{m\log(6m/\delta_0)/n}\}\), yielding an explicit global adaptation upper envelope and an elbow at \(na_m^2/m\asymp\log m\). The higher-information profile, the matching adaptation lower bound, logarithmic necessity, one globally optimal family, and the Bernstein-degree certificate remain open.
+
+\section{Related work}
+
+ColnetMayerEtAl2024 surveys broader trial--observational fusion without a tie-adaptive endpoint-confidence result. LannersRudinVolfovskyParikh2025 supplies the general sensitivity-bound algebra and motivates the applied endpoint question; the present paired-cell law is a controlled specialized subclass with propensities fixed at \(1/2\), not an analysis of the actual Project STAR sampling law. CaiLowXia2013 supplies the closest local expected-length criterion, but its ordered shape-constrained Gaussian geometry does not cover this nonlinear absolute average. CaiLow2011 supplies composite-prior and polynomial tools for the absolute-value cusp, but only for minimax point estimation. CaiLow2004 and Low1997 organize honest adaptation for linear functionals and coverage-to-testing logic. LevisBonviniZengKeeleKennedy2025 leaves shortest-interval smoothing selection open, while BenMichael2025 handles deterministic growing regularization under margin conditions. JiaoVenkatHanWeissman2015 motivates factorial moments for sparse cells, and BatllePatilStanleyOwhadiKuusela2024 motivates finite-sample test inversion in constrained linear Gaussian inverse problems.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \((L_m(h),U_m(h))\).
+Primary functional / estimator / diagnostic: \((L_m(h),U_m(h))=(-49/495+(11/(80m))\sum_{j=1}^{m}|h_{0,j}|,\ 49/495-(11/(80m))\sum_{j=1}^{m}|h_{1,j}|)\).
+\begin{itemize}
+  \item \(n\) --- \texttt{sample size}; \(\mathbb N\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of independent observed units.}
+  \item \(m\) --- \texttt{paired-\allowbreak{}cell dimension}; \(\mathbb N\); \texttt{regime parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Observed dimension label,\allowbreak{} constant within a law.}
+  \item \(i\) --- \texttt{unit index}; \(\{1,\ldots,n\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic sample index.}
+  \item \(v\) --- \texttt{endpoint-\allowbreak{}stratum index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Index selecting the lower-\allowbreak{} or upper-\allowbreak{}endpoint gap profile.}
+  \item \(j\) --- \texttt{cell index}; \(\{1,\ldots,m\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic paired cell.}
+  \item \(r\) --- \texttt{number of tied coordinates}; \(\{0,\ldots,m\}\); \texttt{slice index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Number of exact-\allowbreak{}tie cells in the explicit high-\allowbreak{}information profile slice.}
+  \item \(t\) --- \texttt{treatment index}; \(\{0,1\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic binary treatment value.}
+  \item \(\delta_0\) --- \texttt{miscoverage level}; \((0,1/2)\); \texttt{fixed constant}
+  \par\smallskip\noindent\emph{Definition.} \(\delta_0=0.05\).
+  \item \(c_0\) --- \texttt{cube-\allowbreak{}radius constant}; \((0,1)\); \texttt{fixed constant}
+  \par\smallskip\noindent\emph{Definition.} \(c_0=1/32\).
+  \item \(a_m\) --- \texttt{coordinate radius}; \((0,1/32]\); \texttt{regime scale}
+  \par\smallskip\noindent\emph{Definition.} \(a_m=c_0/m\).
+  \item \(p_0\) --- \texttt{informative Bernoulli baseline}; \((0,1)\); \texttt{fixed constant}
+  \par\smallskip\noindent\emph{Definition.} \(p_0=13/22\).
+  \item \(k\) --- \texttt{endpoint coefficient}; \((0,1)\); \texttt{fixed constant}
+  \par\smallskip\noindent\emph{Definition.} \(k=11/80\).
+  \item \(b\) --- \texttt{endpoint center}; \((0,1)\); \texttt{fixed constant}
+  \par\smallskip\noindent\emph{Definition.} \(b=49/495\).
+  \item \(d\) --- \texttt{external outcome scaling factor}; \((0,\infty)\); \texttt{external scale input}
+  \par\smallskip\noindent\emph{Definition.} Positive factor used only by the pushforward family in \(\mathrm{def:scaled-pushforward-experiment}\); it does not change \(H_m\), \(a_m\), \(b\), or \(k\).
+  \item \(c\) --- \texttt{lower comparison constant}; \((0,\infty)\); \texttt{comparison constant}
+  \par\smallskip\noindent\emph{Definition.} A universal lower constant that may depend only on \(\delta_0\) and \(c_0\).
+  \item \(C_0\) --- \texttt{upper comparison constant}; \((0,\infty)\); \texttt{comparison constant}
+  \par\smallskip\noindent\emph{Definition.} A universal upper constant that may depend only on \(\delta_0\) and \(c_0\).
+  \item \(\xi\) --- \texttt{separation constant}; \((0,\infty)\); \texttt{special-\allowbreak{}case constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A fixed lower bound on absolute gaps in the regular separated-\allowbreak{}profile reduction.}
+  \item \(V\) --- \texttt{observed endpoint stratum}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Bernoulli stratum label.}
+  \item \(J\) --- \texttt{observed cell label}; \(\{1,\ldots,m\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform paired-\allowbreak{}cell label.}
+  \item \(Z\) --- \texttt{observed pairing sign}; \(\{-1,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Random sign that cancels linear shifts after averaging.}
+  \item \(S\) --- \texttt{observed source indicator}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(S=1\) denotes the experimental source and \(S=0\) the observational source.
+  \item \(T\) --- \texttt{observed treatment}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Binary treatment assignment.}
+  \item \(B\) --- \texttt{observed Bernoulli component}; \(\{0,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Binary component of the normalized outcome.}
+  \item \(Y\) --- \texttt{observed normalized outcome}; \(\{1/2,3/2\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(Y=1/2+B\).
+  \item \(X\) --- \texttt{observed covariate}; \(\mathbb N\times\{0,1\}\times\mathbb N\times\{-1,1\}\); \texttt{data}
+  \par\smallskip\noindent\emph{Definition.} \(X=(m,V,J,Z)\).
+  \item \(x\) --- \texttt{covariate value}; support of \(X\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic value of the observed covariate.}
+  \item \(O_i\) --- \texttt{observed unit}; \texttt{finite sample space}; \texttt{sample}
+  \par\smallskip\noindent\emph{Definition.} \(O_i=(X_i,S_i,T_i,Y_i)\).
+  \item \(R_i\) --- \texttt{informative signed response}; \([-1,1]\); \texttt{estimation primitive}
+  \par\smallskip\noindent\emph{Definition.} \(R_i=Z_i(B_i-p_0)\).
+  \item \(h\) --- \texttt{two-\allowbreak{}profile gap vector}; \(\mathbb R^{2m}\); \texttt{parameter}
+  \par\smallskip\noindent\emph{Definition.} \(h=(h_{0,1},\ldots,h_{0,m},h_{1,1},\ldots,h_{1,m})\).
+  \item \(H_m\) --- \texttt{gap cube}; subsets of \(\mathbb R^{2m}\); \texttt{parameter space}
+  \par\smallskip\noindent\emph{Definition.} \(H_m=[-a_m,a_m]^{2m}\).
+  \item \(g\) --- \texttt{generic alternative gap profile}; \(H_m\); \texttt{parameter index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic parameter used in honesty and composite-\allowbreak{}test constraints.}
+  \item \(H_m(\xi)\) --- \texttt{uniformly separated profile set}; subsets of \(H_m\); \texttt{regular special-\allowbreak{}case domain}
+  \par\smallskip\noindent\emph{Definition.} \(H_m(\xi)=\{h\in H_m:\min_{v\in\{0,1\},1\le j\le m}|h_{v,j}|\ge\xi\}\).
+  \item \(h^{(r)}\) --- \texttt{high-\allowbreak{}information mixed tie profile}; \(H_m\); \texttt{falsifiable profile slice}
+  \par\smallskip\noindent\emph{Definition.} \(h^{(r)}_{0,j}=0\) for \(j\le r\), \(h^{(r)}_{0,j}=a_m\) for \(j>r\), and \(h^{(r)}_{1,j}=a_m\) for every \(j\).
+  \item \(\zeta\) --- \texttt{orthant magnitude coordinate}; \([0,a_m]^{2m}\); \texttt{polynomial-\allowbreak{}certificate coordinate}
+  \par\smallskip\noindent\emph{Definition.} Nonnegative coordinate vector used to parameterize one sign orthant of \(H_m\).
+  \item \(P_{m,h}\) --- \texttt{observed-\allowbreak{}data law}; probability laws on the sample space of \(O_i\); \texttt{experiment}
+  \par\smallskip\noindent\emph{Definition.} Observed law constructed in \(\mathrm{def:observed-law}\).
+  \item \(P_{m,h}^{n}\) --- \texttt{sample law}; \texttt{product probability laws}; \texttt{sampling distribution}
+  \par\smallskip\noindent\emph{Definition.} \(P_{m,h}^{n}=\bigotimes_{i=1}^{n}P_{m,h}\).
+  \item \(Y(t)\) --- \texttt{potential outcome}; \([0,2]\); \texttt{causal primitive}
+  \par\smallskip\noindent\emph{Definition.} Normalized potential outcome under treatment \(t\).
+  \item \(Q\) --- \texttt{full-\allowbreak{}data law}; laws of \(X,S,T,Y(0),Y(1),Y\); \texttt{model}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic causal completion of an observed law.}
+  \item \(\operatorname{Obs}(Q)\) --- \texttt{observed margin map}; \texttt{full-\allowbreak{}data laws to observed-\allowbreak{}data laws}; \texttt{causal observation map}
+  \par\smallskip\noindent\emph{Definition.} Marginal law of \(O_i\) induced by \(Q\).
+  \item \(\rho\) --- \texttt{observational confounding sensitivity cap}; \([0,1)\); \texttt{sensitivity parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\rho=1/5\).
+  \item \(\gamma\) --- \texttt{study-\allowbreak{}exchangeability sensitivity cap}; \([0,1)\); \texttt{sensitivity parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma=1/5\).
+  \item \(\mathcal M_{m,h}\) --- \texttt{compatible causal-\allowbreak{}completion class}; \texttt{sets of full-\allowbreak{}data laws}; \texttt{causal model}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def:compatible-completions}\).
+  \item \(T_v(h)\) --- \texttt{profile magnitude functional}; \(H_m\to[0,a_m]\); \texttt{identified nonsmooth functional}
+  \par\smallskip\noindent\emph{Definition.} \(T_v(h)=m^{-1}\sum_{j=1}^{m}|h_{v,j}|\).
+  \item \(L_m(h)\) --- \texttt{sharp lower ATE endpoint}; \(\mathbb R\); \texttt{target endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L_m(h)=-b+kT_0(h)\).
+  \item \(U_m(h)\) --- \texttt{sharp upper ATE endpoint}; \(\mathbb R\); \texttt{target endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U_m(h)=b-kT_1(h)\).
+  \item \(\mathfrak C\) --- \texttt{closed-\allowbreak{}subinterval operator}; \texttt{closed real intervals to sets of closed real intervals}; \texttt{decision-\allowbreak{}space primitive}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak C(I)\) is the set of closed subintervals of \(I\).
+  \item \(C_L\) --- \texttt{lower-\allowbreak{}endpoint confidence interval}; \texttt{closed real intervals}; \texttt{decision output}
+  \par\smallskip\noindent\emph{Definition.} \texttt{First component of the endpoint confidence procedure.}
+  \item \(C_U\) --- \texttt{upper-\allowbreak{}endpoint confidence interval}; \texttt{closed real intervals}; \texttt{decision output}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Second component of the endpoint confidence procedure.}
+  \item \(C\) --- \texttt{pair of closed intervals}; \texttt{measurable maps from the sample space to pairs of closed real intervals}; \texttt{decision rule}
+  \par\smallskip\noindent\emph{Definition.} \(C=(C_L,C_U)\).
+  \item \(\mathcal I_{n,m}\) --- \texttt{honest interval-\allowbreak{}pair class}; \texttt{sets of decision rules}; \texttt{decision class}
+  \par\smallskip\noindent\emph{Definition.} Class constructed in \(\mathrm{def:honest-class}\).
+  \item \(R_{n,m}(C,h)\) --- \texttt{expected summed endpoint length}; \([0,\infty)\); \texttt{loss}
+  \par\smallskip\noindent\emph{Definition.} Risk constructed in \(\mathrm{def:length-risk}\).
+  \item \(\ell_{n,m}(h)\) --- \texttt{local honest oracle length}; \([0,\infty)\); \texttt{focal object}
+  \par\smallskip\noindent\emph{Definition.} Decision benchmark constructed in \(\mathrm{def:local-oracle}\).
+  \item \(\mathfrak A_{n,m}\) --- \texttt{simultaneous adaptation factor}; \([1,\infty]\); \texttt{focal object}
+  \par\smallskip\noindent\emph{Definition.} Decision benchmark constructed in \(\mathrm{def:adaptation-factor}\).
+  \item \(N_{v,j}\) --- \texttt{informative cell count}; \(\mathbb N_0\); \texttt{sufficient statistic}
+  \par\smallskip\noindent\emph{Definition.} \(N_{v,j}=\sum_{i=1}^{n}\mathbf 1\{V_i=v,J_i=j,S_i=0,T_i=v\}\).
+  \item \(\widehat h_{v,j}\) --- \texttt{capped cell-\allowbreak{}mean estimator}; \([-a_m,a_m]\); \texttt{nuisance estimator}
+  \par\smallskip\noindent\emph{Definition.} Estimator constructed in \(\mathrm{def:capped-estimator}\).
+  \item \(\overline h_{v,j}\) --- \texttt{uncapped informative-\allowbreak{}cell mean}; \(\mathbb R\); \texttt{regular endpoint estimator}
+  \par\smallskip\noindent\emph{Definition.} Raw cell mean constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\widehat s_{v,j}\) --- \texttt{estimated cell sign}; \(\{-1,1\}\); \texttt{regular endpoint estimator}
+  \par\smallskip\noindent\emph{Definition.} Sign estimate constructed from \(\overline h_{v,j}\) in \(\mathrm{def:signed-cell-mean-interval}\), with ties assigned sign \(1\).
+  \item \(\overline L_{n,m}\) --- \texttt{signed-\allowbreak{}cell lower-\allowbreak{}endpoint center}; \(\mathbb R\); \texttt{regular benchmark center}
+  \par\smallskip\noindent\emph{Definition.} Center constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\overline U_{n,m}\) --- \texttt{signed-\allowbreak{}cell upper-\allowbreak{}endpoint center}; \(\mathbb R\); \texttt{regular benchmark center}
+  \par\smallskip\noindent\emph{Definition.} Center constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\widehat\psi_{L,i}\) --- \texttt{estimated lower-\allowbreak{}endpoint influence score}; \(\mathbb R\); \texttt{regular variance primitive}
+  \par\smallskip\noindent\emph{Definition.} Score constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\widehat\psi_{U,i}\) --- \texttt{estimated upper-\allowbreak{}endpoint influence score}; \(\mathbb R\); \texttt{regular variance primitive}
+  \par\smallskip\noindent\emph{Definition.} Score constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\widehat\sigma_L\) --- \texttt{lower-\allowbreak{}endpoint standard-\allowbreak{}deviation estimate}; \([0,\infty)\); \texttt{regular critical-\allowbreak{}radius input}
+  \par\smallskip\noindent\emph{Definition.} Empirical influence-score standard deviation constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\widehat\sigma_U\) --- \texttt{upper-\allowbreak{}endpoint standard-\allowbreak{}deviation estimate}; \([0,\infty)\); \texttt{regular critical-\allowbreak{}radius input}
+  \par\smallskip\noindent\emph{Definition.} Empirical influence-score standard deviation constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\Phi_{\mathrm N}\) --- \texttt{standard normal distribution function}; \(\mathbb R\to(0,1)\); \texttt{critical-\allowbreak{}value primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Cumulative distribution function of a standard normal random variable.}
+  \item \(\kappa_{\delta_0}\) --- \texttt{joint two-\allowbreak{}endpoint Gaussian critical value}; \((0,\infty)\); \texttt{joint critical value}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_{\delta_0}=\Phi_{\mathrm N}^{-1}((1+\sqrt{1-\delta_0})/2)\), so \((2\Phi_{\mathrm N}(\kappa_{\delta_0})-1)^2=1-\delta_0\).
+  \item \(C^{\mathrm{sign}}_{n,m}\) --- \texttt{jointly calibrated signed-\allowbreak{}cell-\allowbreak{}mean interval pair}; \texttt{pairs of closed real intervals}; \texttt{regular special-\allowbreak{}case procedure}
+  \par\smallskip\noindent\emph{Definition.} Regular benchmark constructed in \(\mathrm{def:signed-cell-mean-interval}\).
+  \item \(\eta\) --- \texttt{tail probability}; \((0,1)\); \texttt{probability index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic confidence parameter for nuisance tail bounds.}
+  \item \(\Omega_{n,m}\) --- \texttt{finite sufficient count space}; \texttt{finite sets}; \texttt{computational domain}
+  \par\smallskip\noindent\emph{Definition.} Count space constructed in \(\mathrm{def:count-space}\).
+  \item \(\omega\) --- \texttt{sufficient count vector}; \(\Omega_{n,m}\); \texttt{optimization index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Generic count vector in the exact multinomial experiment.}
+  \item \(B_0\) --- \texttt{connected target slice}; closed subintervals of \([0,a_m]\); \texttt{optimization input}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Candidate magnitude slice used in composite-\allowbreak{}test inversion.}
+  \item \(D\) --- \texttt{Bernstein certificate degree}; \(\{n,n+1,\ldots\}\); \texttt{computational tuning index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Degree of the finite polynomial nonnegativity certificate used in composite-\allowbreak{}test inversion.}
+  \item \(u_{\omega}\) --- \texttt{randomized acceptance coordinate}; \([0,1]\); \texttt{optimization variable}
+  \par\smallskip\noindent\emph{Definition.} Acceptance probability assigned to count vector \(\omega\).
+  \item \(f_g(\omega)\) --- \texttt{count likelihood}; \(H_m\times\Omega_{n,m}\to[0,1]\); \texttt{testing primitive}
+  \par\smallskip\noindent\emph{Definition.} Probability mass of sufficient count vector \(\omega\) under \(P_{m,g}^{n}\).
+  \item \(\mathfrak H_{n,m}\) --- \texttt{composite-\allowbreak{}test inversion handle}; \texttt{finite-\allowbreak{}dimensional testing programs}; \texttt{solver handle}
+  \par\smallskip\noindent\emph{Definition.} Handle constructed in \(\mathrm{def:testing-handle}\).
+  \item \(\Phi_{n,m}(h)\) --- \texttt{explicit local-\allowbreak{}oracle profile}; \([0,\infty)\); \texttt{open focal object}
+  \par\smallskip\noindent\emph{Definition.} Constant-equivalent profile derived by \(\mathrm{oeq:full-profile-frontier}\).
+  \item \(q_{n,m}\) --- \texttt{sharp adaptation order}; \([1,\infty]\); \texttt{open focal object}
+  \par\smallskip\noindent\emph{Definition.} Order, including necessary logarithmic factors, derived by \(\mathrm{oeq:full-profile-frontier}\).
+  \item \(C_{n,m}^{\star}\) --- \texttt{profile-\allowbreak{}independent endpoint interval family}; \texttt{candidate measurable endpoint-\allowbreak{}pair procedures}; \texttt{open construction}
+  \par\smallskip\noindent\emph{Definition.} Interval family derived from the test-inversion handle in \(\mathrm{def:adaptive-family-handle}\).
+  \item \(C_{\mathrm{ATE}}\) --- \texttt{outer ATE interval}; \texttt{closed real intervals}; \texttt{implementation-\allowbreak{}only corollary}
+  \par\smallskip\noindent\emph{Definition.} Corollary construction in \(\mathrm{def:outer-ate-interval}\).
+  \item \(\mathsf S_d\) --- \texttt{outcome-\allowbreak{}coordinate scaling map}; \texttt{normalized observed or full-\allowbreak{}data records to scaled records}; \texttt{implementation-\allowbreak{}only external-\allowbreak{}unit transformation}
+  \par\smallskip\noindent\emph{Definition.} Map constructed in \(\mathrm{def:scaled-pushforward-experiment}\).
+  \item \(P^{(d)}_{m,h}\) --- \texttt{scaled observed-\allowbreak{}data law}; \texttt{pushforward probability laws}; \texttt{external-\allowbreak{}scale experiment}
+  \par\smallskip\noindent\emph{Definition.} Observed pushforward law constructed in \(\mathrm{def:scaled-pushforward-experiment}\).
+  \item \(\mathcal M^{(d)}_{m,h}\) --- \texttt{scaled causal-\allowbreak{}completion family}; \texttt{sets of pushforward full-\allowbreak{}data laws}; \texttt{external-\allowbreak{}scale causal model}
+  \par\smallskip\noindent\emph{Definition.} Full-data pushforward family constructed in \(\mathrm{def:scaled-pushforward-experiment}\).
+  \item \(C^{(d)}\) --- \texttt{scaled endpoint interval pair}; \texttt{measurable pairs of closed intervals on scaled samples}; \texttt{external-\allowbreak{}scale decision rule}
+  \par\smallskip\noindent\emph{Definition.} Image decision rule constructed in \(\mathrm{def:scaled-interval-family}\).
+  \item \(\mathcal I^{(d)}_{n,m}\) --- \texttt{scaled honest interval-\allowbreak{}pair class}; \texttt{sets of scaled decision rules}; \texttt{external-\allowbreak{}scale decision class}
+  \par\smallskip\noindent\emph{Definition.} Image class constructed in \(\mathrm{def:scaled-interval-family}\).
+  \item \(R^{(d)}_{n,m}(C^{(d)},h)\) --- \texttt{scaled expected summed length}; \([0,\infty)\); \texttt{external-\allowbreak{}scale loss}
+  \par\smallskip\noindent\emph{Definition.} Expected summed length under \(P^{(d)}_{m,h}\), constructed in \(\mathrm{def:scaled-interval-family}\).
+  \item \(\ell^{(d)}_{n,m}(h)\) --- \texttt{scaled local honest oracle length}; \([0,\infty)\); \texttt{external-\allowbreak{}scale benchmark}
+  \par\smallskip\noindent\emph{Definition.} Infimum of scaled expected length over \(\mathcal I^{(d)}_{n,m}\).
+  \item \(\mathfrak A^{(d)}_{n,m}\) --- \texttt{scaled simultaneous adaptation factor}; \([1,\infty]\); \texttt{external-\allowbreak{}scale benchmark}
+  \par\smallskip\noindent\emph{Definition.} Oracle ratio over \(\mathcal I^{(d)}_{n,m}\), constructed in \(\mathrm{def:scaled-interval-family}\).
+  \item \(r^{\mathrm{cap}}_{n,m}\) --- \texttt{capped-\allowbreak{}cell simultaneous coordinate radius}; \((0,2a_m]\); \texttt{confidence radius}
+  \par\smallskip\noindent\emph{Definition.} \(r^{\mathrm{cap}}_{n,m}=\min\{2a_m,\sqrt{32m\log(6m/\delta_0)/n}\}\).
+  \item \(r_{n,m}\) --- \texttt{simultaneous coordinate radius}; \((0,2a_m]\); \texttt{compatibility alias}
+  \par\smallskip\noindent\emph{Definition.} \(r_{n,m}=r^{\mathrm{cap}}_{n,m}\).
+  \item \(I^{\mathrm{cap}}_{v,j}\) --- \texttt{capped-\allowbreak{}cell coordinate confidence interval}; closed subintervals of \([-a_m,a_m]\); \texttt{confidence output}
+  \par\smallskip\noindent\emph{Definition.} The radius-\(r^{\mathrm{cap}}_{n,m}\) interval centered at \(\widehat h_{v,j}\), truncated to \([-a_m,a_m]\).
+  \item \(I_{v,j}\) --- \texttt{coordinate confidence interval}; closed subintervals of \([-a_m,a_m]\); \texttt{compatibility alias}
+  \par\smallskip\noindent\emph{Definition.} \(I_{v,j}=I^{\mathrm{cap}}_{v,j}\).
+  \item \(D^{\mathrm{cap}}_v\) --- \texttt{capped profile-\allowbreak{}magnitude confidence interval}; closed subintervals of \([0,a_m]\); \texttt{confidence output}
+  \par\smallskip\noindent\emph{Definition.} Exact image of \(\prod_j I^{\mathrm{cap}}_{v,j}\) under the average absolute-value map.
+  \item \(D_v\) --- \texttt{profile-\allowbreak{}magnitude confidence interval}; closed subintervals of \([0,a_m]\); \texttt{compatibility alias}
+  \par\smallskip\noindent\emph{Definition.} \(D_v=D^{\mathrm{cap}}_v\).
+  \item \(C^{\mathrm{caprect}}_{n,m}\) --- \texttt{finite-\allowbreak{}sample capped-\allowbreak{}cell coordinate-\allowbreak{}rectangle endpoint interval pair}; \texttt{pairs of closed real intervals}; \texttt{honest benchmark procedure}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Endpoint images of the simultaneous capped-\allowbreak{}cell coordinate rectangle.}
+  \item \(C^{\mathrm{rect}}_{n,m}\) --- \texttt{finite-\allowbreak{}sample coordinate-\allowbreak{}rectangle endpoint interval pair}; \texttt{pairs of closed real intervals}; \texttt{compatibility alias}
+  \par\smallskip\noindent\emph{Definition.} \(C^{\mathrm{rect}}_{n,m}=C^{\mathrm{caprect}}_{n,m}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:observed-margin]\label{ass:observed-margin}
+\(\operatorname{Obs}(Q)=P_{m,h}\).
+\par\smallskip\noindent\emph{Novel.} Finite stratified Bernoulli source-fusion experiments with randomized source and treatment allocation are standard learnable subexperiments; the paired sign is implemented by two centered subcells within each observed stratum.
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Y=TY(1)+(1-T)Y(0)\), \(Q\)-almost surely.
+\par\smallskip\noindent\emph{Standard} (Consistency, \cite{LannersRudinVolfovskyParikh2025}).
+\end{assumption}
+
+\begin{assumption}[ass:experimental-randomization]\label{ass:experimental-randomization}
+\((Y(0),Y(1))\perp T\mid X,S=1\) under \(Q\).
+\par\smallskip\noindent\emph{Standard} (Internal validity of the experiment, \cite{LannersRudinVolfovskyParikh2025}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-outcomes]\label{ass:bounded-outcomes}
+\(0\le Y(t)\le2\), \(Q\)-almost surely, for each \(t\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (Known bounded outcome support, \cite{LannersRudinVolfovskyParikh2025}).
+\end{assumption}
+
+\begin{assumption}[ass:confounding-cap]\label{ass:confounding-cap}
+\(\sup_{x,t}\left|1-\mathbb E_Q\{Y(t)\mid X=x,S=0,T=1-t\}/\mathbb E_Q\{Y(t)\mid X=x,S=0,T=t\}\right|\le\rho=1/5\).
+\par\smallskip\noindent\emph{Standard} (Relative no-unobserved-confounding sensitivity cap, \cite{LannersRudinVolfovskyParikh2025}).
+\end{assumption}
+
+\begin{assumption}[ass:selection-cap]\label{ass:selection-cap}
+\(\sup_{x,t}\left|1-\mathbb E_Q\{Y(t)\mid X=x,S=0\}/\mathbb E_Q\{Y(t)\mid X=x,S=1\}\right|\le\gamma=1/5\).
+\par\smallskip\noindent\emph{Standard} (Relative study-exchangeability sensitivity cap, \cite{LannersRudinVolfovskyParikh2025}).
+\end{assumption}
+
+\begin{assumption}[ass:interval-map]\label{ass:interval-map}
+\(C\) is a measurable, optionally independently randomized map into pairs of closed intervals.
+\par\smallskip\noindent\emph{Standard} (Randomized confidence-interval decision rule, \cite{Low1997}).
+\end{assumption}
+
+\begin{assumption}[ass:range-projection]\label{ass:range-projection}
+\((C_L,C_U)\in\mathfrak C([-b,-b+ka_m])\times\mathfrak C([b-ka_m,b])\).
+\par\smallskip\noindent\emph{Standard} (Projection of confidence intervals onto the parameter range, \cite{CaiLowXia2013}).
+\end{assumption}
+
+\begin{assumption}[ass:joint-honesty]\label{ass:joint-honesty}
+\(\inf_{g\in H_m}P_{m,g}^{n}\{L_m(g)\in C_L,\ U_m(g)\in C_U\}\ge1-\delta_0\).
+\par\smallskip\noindent\emph{Standard} (Uniform confidence coverage, \cite{Low1997}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:observed-law]\label{def:observed-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Paired-\allowbreak{}cell observed experiment}
+\par\smallskip\noindent\emph{Construction.} For \(h\in H_m\), under \(P_{m,h}\), \(V\sim\operatorname{Bernoulli}(1/2)\), \(J\sim\operatorname{Unif}\{1,\ldots,m\}\), and \(Z\sim\operatorname{Unif}\{-1,1\}\) are mutually independent; conditionally on \(X\), \(S\) and \(T\) are independent \(\operatorname{Bernoulli}(1/2)\); and \(B\mid X,S,T\sim\operatorname{Bernoulli}(p)\), where \(p=1/2\) if \(S=1\), \(p=p_0+Zh_{V,J}\) if \(S=0,T=V\), and \(p=7/18\) if \(S=0,T=1-V\). Set \(Y=1/2+B\) and \(P_{m,h}^{n}=\bigotimes_{i=1}^{n}P_{m,h}\).
+\par\smallskip\noindent\emph{Inputs.} \(m\); \(h\).
+\end{definition}
+
+\begin{definition}[def:compatible-completions]\label{def:compatible-completions}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible bounded causal completions}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{m,h}=\{Q: \operatorname{Obs}(Q)=P_{m,h},\;Q\text{ satisfies }\mathrm{ass:consistency},\mathrm{ass:experimental-randomization},\mathrm{ass:bounded-outcomes},\mathrm{ass:confounding-cap},\mathrm{ass:selection-cap}\}\) for every \(m\ge1\) and \(h\in H_m\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}observed-\allowbreak{}margin}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}experimental-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}outcomes}; \texttt{ass:\allowbreak{}confounding-\allowbreak{}cap}; \texttt{ass:\allowbreak{}selection-\allowbreak{}cap}.
+\end{definition}
+
+\begin{definition}[def:profile-magnitudes]\label{def:profile-magnitudes}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Endpoint gap magnitudes}
+\par\smallskip\noindent\emph{Construction.} \(T_v(h)=m^{-1}\sum_{j=1}^{m}|h_{v,j}|\), for \(v\in\{0,1\}\).
+\end{definition}
+
+\begin{definition}[def:endpoints]\label{def:endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp endpoint pair}
+\par\smallskip\noindent\emph{Construction.} \((L_m(h),U_m(h))=(-b+kT_0(h),\ b-kT_1(h))\).
+\end{definition}
+
+\begin{definition}[def:honest-class]\label{def:honest-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Jointly honest normalized interval pairs}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_{n,m}=\{C=(C_L,C_U): C\text{ satisfies }\mathrm{ass:interval-map},\mathrm{ass:range-projection},\mathrm{ass:joint-honesty}\}\) for every \(n,m\ge1\) in the normalized experiment.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}interval-\allowbreak{}map}; \texttt{ass:\allowbreak{}range-\allowbreak{}projection}; \texttt{ass:\allowbreak{}joint-\allowbreak{}honesty}.
+\end{definition}
+
+\begin{definition}[def:length-risk]\label{def:length-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Expected summed length}
+\par\smallskip\noindent\emph{Construction.} \(R_{n,m}(C,h)=\mathbb E_{P_{m,h}^{n}}[\operatorname{length}(C_L)+\operatorname{length}(C_U)]\).
+\end{definition}
+
+\begin{definition}[def:local-oracle]\label{def:local-oracle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Local honest endpoint oracle}
+\par\smallskip\noindent\emph{Construction.} \(\ell_{n,m}(h)=\inf_{C\in\mathcal I_{n,m}}R_{n,m}(C,h)\).
+\end{definition}
+
+\begin{definition}[def:adaptation-factor]\label{def:adaptation-factor}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Smallest simultaneous adaptation factor}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak A_{n,m}=\inf_{C\in\mathcal I_{n,m}}\sup_{h\in H_m}R_{n,m}(C,h)/\ell_{n,m}(h)\).
+\end{definition}
+
+\begin{definition}[def:capped-estimator]\label{def:capped-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Capped informative-\allowbreak{}cell mean}
+\par\smallskip\noindent\emph{Construction.} If \(N_{v,j}>0\), set \(\widehat h_{v,j}=\Pi_{[-a_m,a_m]}\left[N_{v,j}^{-1}\sum_{i=1}^{n}\mathbf1\{V_i=v,J_i=j,S_i=0,T_i=v\}R_i\right]\); if \(N_{v,j}=0\), set \(\widehat h_{v,j}=0\).
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(m\).
+\end{definition}
+
+\begin{definition}[def:signed-cell-mean-interval]\label{def:signed-cell-mean-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Jointly calibrated signed-\allowbreak{}cell-\allowbreak{}mean interval benchmark}
+\par\smallskip\noindent\emph{Construction.} Set \(\overline h_{v,j}=N_{v,j}^{-1}\sum_{i=1}^{n}\mathbf1\{V_i=v,J_i=j,S_i=0,T_i=v\}R_i\) when \(N_{v,j}>0\), set \(\overline h_{v,j}=0\) otherwise, and set \(\widehat s_{v,j}=1\) when \(\overline h_{v,j}\ge0\) and \(\widehat s_{v,j}=-1\) otherwise. Define the unprojected endpoint centers \(\overline L_{n,m}=-b+(k/m)\sum_{j=1}^{m}\widehat s_{0,j}\overline h_{0,j}\) and \(\overline U_{n,m}=b-(k/m)\sum_{j=1}^{m}\widehat s_{1,j}\overline h_{1,j}\). Define \(\widehat\psi_{L,i}=8k\sum_{j=1}^{m}\widehat s_{0,j}\mathbf1\{V_i=0,J_i=j,S_i=0,T_i=0\}(R_i-\overline h_{0,j})\), \(\widehat\psi_{U,i}=-8k\sum_{j=1}^{m}\widehat s_{1,j}\mathbf1\{V_i=1,J_i=j,S_i=0,T_i=1\}(R_i-\overline h_{1,j})\), \(\widehat\sigma_L^2=n^{-1}\sum_{i=1}^{n}\widehat\psi_{L,i}^2\), and \(\widehat\sigma_U^2=n^{-1}\sum_{i=1}^{n}\widehat\psi_{U,i}^2\). Let \(\kappa_{\delta_0}=\Phi_{\mathrm N}^{-1}((1+\sqrt{1-\delta_0})/2)\). The named procedure is \[C^{\mathrm{sign}}_{n,m}=\left(\Pi_{[-b,-b+ka_m]}\left[\overline L_{n,m}\mathbin{-}\frac{\kappa_{\delta_0}\widehat\sigma_L}{\sqrt n},\overline L_{n,m}\mathbin{+}\frac{\kappa_{\delta_0}\widehat\sigma_L}{\sqrt n}\right],\;\Pi_{[b-ka_m,b]}\left[\overline U_{n,m}\mathbin{-}\frac{\kappa_{\delta_0}\widehat\sigma_U}{\sqrt n},\overline U_{n,m}\mathbin{+}\frac{\kappa_{\delta_0}\widehat\sigma_U}{\sqrt n}\right]\right),\] where \(\Pi_I[A]\) is the image of interval \(A\) under scalar projection onto \(I\).
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(m\).
+\end{definition}
+
+\begin{definition}[def:count-space]\label{def:count-space}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact sufficient-\allowbreak{}count space}
+\par\smallskip\noindent\emph{Construction.} \(\Omega_{n,m}=\{\omega\in\mathbb N_0^{32m}:\sum_{r=1}^{32m}\omega_r=n\}\), where coordinates index \((v,j,z,s,t,B)\in\{0,1\}\times\{1,\ldots,m\}\times\{-1,1\}\times\{0,1\}^3\).
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\).
+\end{definition}
+
+\begin{definition}[def:high-information-slice]\label{def:high-information-slice}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mixed tie-\allowbreak{}-\allowbreak{}boundary profile slice}
+\par\smallskip\noindent\emph{Construction.} For each \(r\in\{0,\ldots,m\}\), define \(h^{(r)}\in H_m\) by \(h^{(r)}_{0,j}=0\) for \(j\le r\), \(h^{(r)}_{0,j}=a_m\) for \(j>r\), and \(h^{(r)}_{1,j}=a_m\) for every \(j\). Thus \(T_0(h^{(r)})=(m-r)a_m/m\) and \(T_1(h^{(r)})=a_m\).
+\end{definition}
+
+\begin{definition}[def:testing-handle]\label{def:testing-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Profile-\allowbreak{}slice composite-\allowbreak{}test inversion handle}
+\par\smallskip\noindent\emph{Construction.} For a reference \(h\in H_m\), endpoint index \(v\), connected target slice \(B_0\subseteq[0,a_m]\), and degree \(D\ge n\), begin with \[\min_{0\le u_{\omega}\le1}\sum_{\omega\in\Omega_{n,m}}f_h(\omega)u_{\omega}\quad\text{subject to}\quad\sum_{\omega\in\Omega_{n,m}}f_g(\omega)u_{\omega}\ge1-\delta_0/4\quad\forall g\in H_m\text{ with }T_v(g)\in B_0.\] On each of the \(2^{2m}\) sign orthants, write \(g\) as the signed version of \(\zeta\in[0,a_m]^{2m}\), triangulate the cube intersected with the two linear slice inequalities, elevate the degree \(n\) count-likelihood polynomial to Bernstein degree \(D\), and impose nonnegativity of every Bernstein coefficient of \(\sum_{\omega}f_g(\omega)u_{\omega}-(1-\delta_0/4)\) on every simplex. This is a conservative linear program with \(\binom{n+32m-1}{32m-1}\) acceptance variables and at most \(2^{2m}\binom{\binom{4m+2}{2m}}{2m+1}\binom{D+2m}{2m}\) coefficient inequalities per target slice, using the vertex bound for a \(2m\)-polytope with \(4m+2\) facet inequalities. Invert nested accepted slices and coordinate the two endpoint tests within the joint level budget. The resulting degree-indexed family is \(\mathfrak H_{n,m}\); the open task includes proving an explicit sufficient degree or a sharper orbit-reduced complexity bound.
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\); \(O_i\).
+\end{definition}
+
+\begin{definition}[def:adaptive-family-handle]\label{def:adaptive-family-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Adaptive honest-\allowbreak{}family handle}
+\par\smallskip\noindent\emph{Construction.} Design \(C_{n,m}^{\star}\) by applying \(\mathfrak H_{n,m}\) on a dimensionless finite grid of likelihood or factorial-polynomial certificates, retaining only candidates whose connected acceptance regions pass simultaneous gap and remainder tests, and taking nested endpoint hulls with the selection error included in the level budget.
+\par\smallskip\noindent\emph{Inputs.} \(n\); \(m\); \(O_i\).
+\end{definition}
+
+\begin{definition}[def:outer-ate-interval]\label{def:outer-ate-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Implementation-\allowbreak{}only outer ATE interval}
+\par\smallskip\noindent\emph{Construction.} Definitional corollary with no theorem-level credit: set \(C_{\mathrm{ATE}}=[\inf C_L,\sup C_U]\). On the joint endpoint-coverage event, this interval contains the entire sharp set \([L_m(h),U_m(h)]\), so joint endpoint honesty supplies the usual outer-set coverage as an implementation consequence.
+\end{definition}
+
+\begin{definition}[def:scaled-pushforward-experiment]\label{def:scaled-pushforward-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Implementation-\allowbreak{}only outcome-\allowbreak{}scaled pushforward experiment}
+\par\smallskip\noindent\emph{Construction.} Implementation-only pushforward with no theorem-level credit: for each \(d>0\), define \(\mathsf S_d(X,S,T,Y(0),Y(1),Y)=(X,S,T,dY(0),dY(1),dY)\), with the analogous restriction to observed records. Set \(P^{(d)}_{m,h}=(\mathsf S_d)_{\#}P_{m,h}\) and \(\mathcal M^{(d)}_{m,h}=\{(\mathsf S_d)_{\#}Q:Q\in\mathcal M_{m,h}\}\). The observed support is \(\{d/2,3d/2\}\), the potential-outcome support is \([0,2d]\), and the endpoint map is \((dL_m(h),dU_m(h))\). The pushforward leaves \(h\), \(H_m\), \(a_m\), \(b\), \(k\), \(\rho\), and \(\gamma\) unchanged.
+\par\smallskip\noindent\emph{Inputs.} \(d\); \(P_{m,h}\); \(\mathcal M_{m,h}\).
+\end{definition}
+
+\begin{definition}[def:scaled-interval-family]\label{def:scaled-interval-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Implementation-\allowbreak{}only pushforward interval decision family}
+\par\smallskip\noindent\emph{Construction.} Implementation-only transformation with no theorem-level credit: for \(C\in\mathcal I_{n,m}\), define \(C^{(d)}(\mathsf S_d(O_1),\ldots,\mathsf S_d(O_n))=dC(O_1,\ldots,O_n)\), where multiplication by \(d\) scales both endpoints of both component intervals. Set \(\mathcal I^{(d)}_{n,m}=\{C^{(d)}:C\in\mathcal I_{n,m}\}\), \(R^{(d)}_{n,m}(C^{(d)},h)=\mathbb E_{(P^{(d)}_{m,h})^n}[\operatorname{length}_{\Sigma}(C^{(d)})]\), \(\ell^{(d)}_{n,m}(h)=\inf_{C^{(d)}\in\mathcal I^{(d)}_{n,m}}R^{(d)}_{n,m}(C^{(d)},h)\), and \(\mathfrak A^{(d)}_{n,m}=\inf_{C^{(d)}\in\mathcal I^{(d)}_{n,m}}\sup_{h\in H_m}R^{(d)}_{n,m}(C^{(d)},h)/\ell^{(d)}_{n,m}(h)\), where \(\operatorname{length}_{\Sigma}\) sums component lengths. By the definitions, \(C\mapsto C^{(d)}\) is a bijection onto the displayed image class, joint coverage is unchanged, \(R^{(d)}_{n,m}(C^{(d)},h)=dR_{n,m}(C,h)\), \(\ell^{(d)}_{n,m}(h)=d\ell_{n,m}(h)\), and \(\mathfrak A^{(d)}_{n,m}=\mathfrak A_{n,m}\).
+\par\smallskip\noindent\emph{Inputs.} \(d\); \(C\).
+\end{definition}
+
+\begin{definition}[def:coordinate-rectangle-interval]\label{def:coordinate-rectangle-interval}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}sample honest capped-\allowbreak{}cell coordinate-\allowbreak{}rectangle endpoint rule}
+\par\smallskip\noindent\emph{Construction.} For \(v\in\{0,1\}\) and \(j\in\{1,\ldots,m\}\), let \(\widehat h_{v,j}\) be the capped informative-cell mean in \(\mathrm{def:capped-estimator}\), and set
+\[
+ r^{\mathrm{cap}}_{n,m}
+ =\min\left\{2a_m,\sqrt{\frac{32m\log(6m/\delta_0)}{n}}\right\},
+\]
+\[
+ I^{\mathrm{cap}}_{v,j}
+ =\left[
+ \max\{-a_m,\widehat h_{v,j}-r^{\mathrm{cap}}_{n,m}\},
+ \ \min\{a_m,\widehat h_{v,j}+r^{\mathrm{cap}}_{n,m}\}
+ \right].
+\]
+Define the exact image of the product rectangle under the average absolute-value map by
+\[
+ D^{\mathrm{cap}}_v
+ =\left[
+ \frac1m\sum_{j=1}^{m}\min_{x\in I^{\mathrm{cap}}_{v,j}}|x|,
+ \ \frac1m\sum_{j=1}^{m}\max_{x\in I^{\mathrm{cap}}_{v,j}}|x|
+ \right].
+\]
+The capped-cell coordinate-rectangle endpoint rule is
+\[
+ C^{\mathrm{caprect}}_{n,m}
+ =\left(-b+kD^{\mathrm{cap}}_0,\ b-kD^{\mathrm{cap}}_1\right),
+\]
+where affine operations on an interval denote its exact set image. For compatibility with the existing regular-reduction notation, set
+\[
+ r_{n,m}=r^{\mathrm{cap}}_{n,m},\qquad
+ I_{v,j}=I^{\mathrm{cap}}_{v,j},\qquad
+ D_v=D^{\mathrm{cap}}_v,\qquad
+ C^{\mathrm{rect}}_{n,m}=C^{\mathrm{caprect}}_{n,m}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \(O_i\); \(m\).
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:causal-specialization]\label{thm:causal-specialization}
+For every \(m\ge1\) and \(h\in H_m\), the class \(\mathcal M_{m,h}\) is nonempty. Over this class, the sharp identified set for \(\mathbb E_Q[Y(1)-Y(0)]\) is exactly \([L_m(h),U_m(h)]\), with \(L_m(h)=-49/495+(11/(80m))\sum_{j=1}^{m}|h_{0,j}|\) and \(U_m(h)=49/495-(11/(80m))\sum_{j=1}^{m}|h_{1,j}|\). Each endpoint is attained by a completion whose missing potential-outcome means lie strictly inside \((0,2)\) in the normalized experiment. The displayed pair is equivalent to the specialization of Lemma 1 and Theorem 1 of LannersRudinVolfovskyParikh2025 to \(P_{m,h}\), \(\rho=\gamma=1/5\), and support \([0,2]\).
+\end{theorem}
+\begin{proof}
+\noindent\textit{Proof.}
+Fix \(m\geq 1\) and \(h\in H_m\).  Under
+\texttt{def:observed-law}, every covariate value
+\(x=(m,v,j,z)\) in the support of \(X\) has probability
+\(1/(4m)>0\), and, conditionally on \(X=x\), every source--treatment
+event has probability \(1/4>0\).  Thus the conditional means below
+are defined.  The observed-margin requirement
+\texttt{ass:observed-margin}, the identity \(Y=1/2+B\) in
+\texttt{def:observed-law}, and the numerical values of the Bernoulli
+probabilities give
+\[
+ \mu_v(x):=\mathbb E_Q[Y\mid X=x,S=0,T=v]
+     =\frac{12}{11}+z h_{v,j},
+ \qquad
+ \mu_{1-v}(x):=\mathbb E_Q[Y\mid X=x,S=0,T=1-v]
+     =\frac89,
+ \tag{1}
+\]
+and
+\[
+ \mathbb E_Q[Y\mid X=x,S=1,T=t]=1
+ \quad\text{for each }t\in\{0,1\}.
+ \tag{2}
+\]
+Indeed, \(1/2+p_0=1/2+13/22=12/11\) and
+\(1/2+7/18=8/9\).  Since \(h\in H_m\) and
+\(a_m=c_0/m\leq1/32\),
+\[
+ 0<\frac{197}{352}
+   =\frac{13}{22}-\frac1{32}
+ \leq p_0+z h_{v,j}
+ \leq\frac{13}{22}+\frac1{32}
+   =\frac{219}{352}<1.
+ \tag{3}
+\]
+Thus the observed Bernoulli probabilities are uniformly interior; in
+particular every observational factual mean in (1) is strictly
+positive, so the ratios used below have nonzero denominators.
+
+We first determine exactly the restrictions imposed on the unobserved
+potential-outcome means.  For \(t\in\{0,1\}\), write
+\[
+ \mu_t(x)=\mathbb E_Q[Y\mid X=x,S=0,T=t],\qquad
+ r_t(x)=\mathbb E_Q[Y(t)\mid X=x,S=0,T=1-t],
+ \tag{4}
+\]
+and
+\[
+ q_t(x)=\mathbb E_Q[Y(t)\mid X=x,S=0].
+ \tag{5}
+\]
+By consistency, \texttt{ass:consistency}, the factual mean of
+\(Y(t)\) in the event \(T=t\) is \(\mu_t(x)\).  Treatment has
+conditional probability \(1/2\) in the observational source by
+\texttt{def:observed-law}; hence the law of total expectation yields
+\[
+ q_t(x)=\frac{\mu_t(x)+r_t(x)}2.
+ \tag{6}
+\]
+The confounding cap \texttt{ass:confounding-cap}, together with the
+strict positivity following from (1)--(3), is equivalent to
+\[
+ \frac45\mu_t(x)\leq r_t(x)\leq\frac65\mu_t(x).
+ \tag{7}
+\]
+Combining (6) and (7) gives
+\[
+ \frac9{10}\mu_t(x)\leq q_t(x)
+     \leq\frac{11}{10}\mu_t(x).
+ \tag{8}
+\]
+On the experimental source, randomization
+\texttt{ass:experimental-randomization}, consistency, experimental
+treatment positivity, and (2) imply
+\[
+ \mathbb E_Q[Y(t)\mid X=x,S=1]
+ =\mathbb E_Q[Y\mid X=x,S=1,T=t]=1.
+ \tag{9}
+\]
+The selection cap \texttt{ass:selection-cap} and (9) therefore give
+\[
+ \frac45\leq q_t(x)\leq\frac65.
+ \tag{10}
+\]
+Consequently every \(Q\in\mathcal M_{m,h}\) must satisfy
+\[
+ q_t(x)\in I\{\mu_t(x)\}:=
+ \left[
+  \max\left\{\frac45,\frac9{10}\mu_t(x)\right\},
+  \min\left\{\frac65,\frac{11}{10}\mu_t(x)\right\}
+ \right].
+ \tag{11}
+\]
+
+We next prove that every simultaneous selection from (11), including
+its boundary, is feasible under the bounded-support condition.  For the
+low observational mean \(\mu_{\ell}=8/9\), (11) becomes
+\[
+ I(\mu_{\ell})=\left[\frac45,\frac{44}{45}\right],
+ \qquad
+ 2q-\mu_{\ell}\in
+ \left[\frac{32}{45},\frac{16}{15}\right]\subset(0,2).
+ \tag{12}
+\]
+For a high observational mean
+\(\mu_H(s)=12/11+s\), where \(s=z h_{v,j}\) and
+\(|s|\leq1/32\), one has
+\((9/10)\mu_H(s)>4/5\).  Moreover,
+\((11/10)\mu_H(s)\leq6/5\) exactly when \(s\leq0\).
+Thus
+\[
+ I\{\mu_H(s)\}
+ =\left[
+    \frac9{10}\mu_H(s),
+    \min\left\{\frac65,\frac{11}{10}\mu_H(s)\right\}
+   \right].
+ \tag{13}
+\]
+For every \(q\) in (13), the corresponding missing mean obeys
+\[
+ \frac{373}{440}
+ =\frac45\left(\frac{12}{11}-\frac1{32}\right)
+ \leq 2q-\mu_H(s)\leq\frac{72}{55}<2.
+ \tag{14}
+\]
+The lower inequality follows from the lower endpoint of (13).  For the
+upper inequality, if \(s\leq0\), then the upper endpoint gives
+\(2q-\mu_H(s)\leq(6/5)\mu_H(s)\leq72/55\); if
+\(s\geq0\), it gives
+\(2q-\mu_H(s)\leq12/5-\mu_H(s)\leq72/55\).
+Equations (12)--(14) show uniformly over the closed cube that support
+truncation is inactive and every implied missing mean is strictly in
+\((0,2)\).
+
+To establish sufficiency of (11), choose arbitrarily and independently
+for every \((x,t)\) a value \(q_t(x)\in I\{\mu_t(x)\}\), and set
+\[
+ r_t(x)=2q_t(x)-\mu_t(x).
+ \tag{15}
+\]
+Draw \((X,S,T)\) according to its margin under
+\texttt{def:observed-law}.  Given \(X=x,S=1\), draw independent
+\(W_0,W_1\sim\operatorname{Bernoulli}(1/2)\), independently of
+\(T\), and set \(Y(t)=1/2+W_t\).  Given
+\(X=x,S=0,T=t\), draw
+\[
+ W_t\sim\operatorname{Bernoulli}\{\mu_t(x)-1/2\},
+ \qquad
+ Y(t)=\frac12+W_t,
+ \qquad
+ Y(1-t)=r_{1-t}(x),
+ \tag{16}
+\]
+and set \(Y=Y(T)\).  The Bernoulli probability in (16) lies in
+\((0,1)\) by (1)--(3).  The factual potential outcomes lie in
+\(\{1/2,3/2\}\), while (12)--(15) place every missing potential
+outcome strictly in \((0,2)\); hence
+\texttt{ass:bounded-outcomes} holds.  The construction has observed
+margin \(P_{m,h}\), satisfies consistency, and makes
+\((Y(0),Y(1))\) independent of \(T\) given \(X,S=1\), as required
+by \texttt{ass:experimental-randomization}.  Equation (6) holds by
+construction.  Membership in (11) is equivalent, through (6) and
+(15), to the pair of restrictions (7) and (10), so both sensitivity
+caps hold.  This constructs a member of \(\mathcal M_{m,h}\), proves
+that this class is nonempty, and proves that (11) is the exact feasible
+set of observational source-marginal potential-outcome means.
+
+It remains to optimize the causal contrast.  Source has conditional
+probability \(1/2\) given \(X\) under
+\texttt{def:observed-law}.  Therefore (5), (9), and the law of total
+expectation give
+\[
+ M_t(x):=\mathbb E_Q[Y(t)\mid X=x]=\frac{1+q_t(x)}2.
+ \tag{17}
+\]
+For the low arm, (12) and (17) imply
+\[
+ \underline M_{\ell}=\frac9{10},
+ \qquad
+ \overline M_{\ell}=\frac{89}{90}.
+ \tag{18}
+\]
+For the high arm, (13) and (17) imply
+\[
+ \underline M_H(s)=\frac{109}{110}+\frac9{20}s,
+ \qquad
+ \overline M_H(s)=\frac{11}{10}
+      +\frac{11}{40}(s-|s|).
+ \tag{19}
+\]
+Because the construction (15)--(16) permits the choices for the two
+treatments and all covariate cells to vary independently, these bounds
+are variation-independent.  If \(v=0\), the high arm is treatment
+zero, so the sharp conditional lower and upper contrasts are
+\[
+ \begin{aligned}
+ \underline\Delta_0(s)
+   &=\underline M_{\ell}-\overline M_H(s)
+     =-\frac15-\frac{11}{40}s+\frac{11}{40}|s|,\\
+ \overline\Delta_0(s)
+   &=\overline M_{\ell}-\underline M_H(s)
+     =-\frac1{495}-\frac9{20}s.
+ \end{aligned}
+ \tag{20}
+\]
+If \(v=1\), the high arm is treatment one, so they are
+\[
+ \begin{aligned}
+ \underline\Delta_1(s)
+   &=\underline M_H(s)-\overline M_{\ell}
+     =\frac1{495}+\frac9{20}s,\\
+ \overline\Delta_1(s)
+   &=\overline M_H(s)-\underline M_{\ell}
+     =\frac15+\frac{11}{40}s-\frac{11}{40}|s|.
+ \end{aligned}
+ \tag{21}
+\]
+The identity \(109/110-89/90=1/495\) verifies the constants in
+(20)--(21).
+
+Under \texttt{def:observed-law}, \(Z\) is symmetric and independent
+of \((V,J)\).  With \(s=Zh_{v,j}\), therefore,
+\[
+ \mathbb E_Z[s]=0,
+ \qquad
+ \mathbb E_Z[|s|]=|h_{v,j}|.
+ \tag{22}
+\]
+The law of \(J\) is uniform and the two values of \(V\) are
+equiprobable.  Averaging (20)--(21) using (22), and using the
+variation-independence just proved, yields
+\[
+ \begin{aligned}
+ \inf_{Q\in\mathcal M_{m,h}}\mathbb E_Q[Y(1)-Y(0)]
+ &=\frac12\left\{-\frac15+
+       \frac{11}{40m}\sum_{j=1}^m|h_{0,j}|+\frac1{495}\right\}\\
+ &=-\frac{49}{495}+\frac{11}{80m}
+       \sum_{j=1}^m|h_{0,j}|=L_m(h),
+ \end{aligned}
+ \tag{23}
+\]
+and
+\[
+ \begin{aligned}
+ \sup_{Q\in\mathcal M_{m,h}}\mathbb E_Q[Y(1)-Y(0)]
+ &=\frac12\left\{-\frac1{495}+\frac15-
+       \frac{11}{40m}\sum_{j=1}^m|h_{1,j}|\right\}\\
+ &=\frac{49}{495}-\frac{11}{80m}
+       \sum_{j=1}^m|h_{1,j}|=U_m(h).
+ \end{aligned}
+ \tag{24}
+\]
+The final equalities in (23)--(24) are precisely
+\texttt{def:profile-magnitudes} and \texttt{def:endpoints}.
+
+Choosing in every cell the appropriate endpoint of (11) attains (23)
+and (24) through (15)--(16), and (12)--(14) show that all missing
+potential-outcome means in both endpoint-attaining completions are
+strictly inside \((0,2)\).  Conversely, necessity of (11) proves that
+no compatible completion can lie outside the two extrema.  Finally,
+coordinatewise convex interpolation between the lower- and
+upper-attaining selections remains in (11); equations (15)--(17) make
+the resulting average causal contrast affine in the interpolation
+parameter.  Every value between the extrema is therefore attained.
+This proves that the sharp identified set is exactly
+\([L_m(h),U_m(h)]\).
+
+For comparison with the cited general data-fusion formulas, the present
+experiment has observational and experimental treatment propensities
+and the study propensity all fixed at \(1/2\), experimental conditional
+means fixed at one, and \(\rho=\gamma=1/5\).  The compatibility
+inequalities required for the max--min formulas are verified here by
+\(4/5\leq(11/10)\mu_t(x)\) and
+\((9/10)\mu_t(x)\leq6/5\), uniformly over both means in (1) and the
+whole cube.  Hence the observational operations of
+\cite[Lemma~1 and Theorem~1]{LannersRudinVolfovskyParikh2025}
+specialize to \((9/10)\mu_t(x)\) and
+\((11/10)\mu_t(x)\), while the experimental operations specialize to
+\(4/5\) and \(6/5\).  Their pointwise maxima and minima reproduce
+(11), and their treatment contrast and covariate average reproduce
+(23)--(24).  Thus \(\mathcal M_{m,h}\) is a finite paired-cell
+specialized subclass of that sensitivity model, and the direct
+construction above independently verifies nonemptiness, sharpness, and
+interior endpoint attainment on the entire subclass. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This embeds the statistical experiment in the published data-fusion sensitivity model and verifies that the hard endpoints are causal rather than synthetic functionals. \textit{Gap.} LannersRudinVolfovskyParikh2025 proves the general max/min formulas; this theorem specializes them and adds uniform interior endpoint-attaining completions for the paired cube. \textit{Consumer.} It makes every interval theorem directly interpretable for the Project STAR sensitivity endpoints and the associated implementation.
+
+\begin{theorem}[thm:oracle-positivity]\label{thm:oracle-positivity}
+There are constants \(0<c<C_0<\infty\), depending only on \(\delta_0\) and \(c_0\), such that for every \(n,m\ge1\) and \(h\in H_m\), \[ck\min\{a_m,n^{-1/2}\}\le\ell_{n,m}(h)\le2ka_m.\] In particular, the denominator in \(\mathfrak A_{n,m}\) is strictly positive at every cube face and corner.
+\end{theorem}
+\begin{proof}
+Put \(a=a_m\) and \(s_{n,m}=\min\{a,n^{-1/2}\}\).  The deterministic pair
+\[
+ C_L=[-b,-b+ka],\qquad C_U=[b-ka,b]
+\]
+obeys the range restriction and covers every value of the two endpoint
+functionals.  Hence it belongs to \(\mathcal I_{n,m}\) by
+\texttt{ass:interval-map}, \texttt{ass:range-projection}, and
+\texttt{ass:joint-honesty}.  By \texttt{def:length-risk} and
+\texttt{def:local-oracle},
+\[
+ \ell_{n,m}(h)\le 2ka.                                                    \tag{1}
+\]
+
+We next derive a testing lower bound at an arbitrary \(h\in H_m\), including
+faces and corners.  Set \(r=s_{n,m}/20\), and alter only profile \(v=0\).
+If \(T_0(h)\ge a/2\), define
+\[
+ g_{0,j}=(1-2r/a)h_{0,j}.
+\]
+Since \(0<2r/a\le 1/10\), this vector is in the cube, every coordinate moves
+by at most \(2r\), and
+\[
+ T_0(h)-T_0(g)=\frac{2r}{a}T_0(h)\ge r.                                  \tag{2}
+\]
+If \(T_0(h)<a/2\), choose \(s_j=\operatorname{sign}(h_{0,j})\), assigning
+\(s_j=1\) at zero, and set
+\[
+ g_{0,j}=s_j\bigl(|h_{0,j}|+\min\{2r,a-|h_{0,j}|\}\bigr).
+\]
+Again \(g\in H_m\) and \(|g_{0,j}-h_{0,j}|\le2r\).  Because
+\(\min\{2r,u\}\ge(2r/a)u\) for \(0\le u\le a\),
+\[
+ T_0(g)-T_0(h)
+ =\frac1m\sum_j\min\{2r,a-|h_{0,j}|\}
+ \ge\frac{2r}{a}\{a-T_0(h)\}>r.                                        \tag{3}
+\]
+Set \(g_{1,j}=h_{1,j}\) in both cases.
+
+It remains to show that this perturbation is statistically close.  Under
+\texttt{def:observed-law}, only observations with
+\(V=0,J=j,S=0,T=0\) change law.  Conditional on their pairing sign \(z\),
+the two Bernoulli probabilities are \(p_0+zh_{0,j}\) and \(p_0+zg_{0,j}\).
+All such probabilities lie in \([1/2,2/3]\), since
+\(p_0=13/22\) and \(a\le1/32\), and therefore \(p(1-p)\ge2/9\).
+For Bernoulli probabilities \(p,q\), direct expansion of the likelihood
+ratio gives
+\[
+ \mathbb E_p\left[\left(\frac{d\operatorname{Bern}(q)}
+ {d\operatorname{Bern}(p)}-1\right)^2\right]
+ =\frac{(q-p)^2}{p(1-p)}.
+\]
+The probability of a fixed \((v,j,z,S,T)\) informative design cell is
+\(1/(16m)\).  Consequently,
+\[
+ \chi^2(P_{m,g},P_{m,h})
+ \le \frac{9}{16m}\sum_{j=1}^m(g_{0,j}-h_{0,j})^2
+ \le\frac94r^2.                                                         \tag{4}
+\]
+Independence in \texttt{def:observed-law} yields
+\[
+ 1+\chi^2(P_{m,g}^n,P_{m,h}^n)
+ =\{1+\chi^2(P_{m,g},P_{m,h})\}^n
+ \le \exp(9nr^2/4)\le \exp(9/1600).                                    \tag{5}
+\]
+For any two dominated laws, Cauchy--Schwarz applied to their likelihood
+ratio proves
+\(\|P-Q\|_{\mathrm{TV}}\le\frac12\sqrt{\chi^2(P,Q)}\).  Thus (5) gives
+\[
+ \|P_{m,g}^n-P_{m,h}^n\|_{\mathrm{TV}}
+ \le\tau_0:=\tfrac12\sqrt{e^{9/1600}-1}<0.04.                           \tag{6}
+\]
+
+Let \(C\in\mathcal I_{n,m}\), allowing the independent randomization in
+\texttt{ass:interval-map} to be appended identically under both laws.
+Honesty at \(h\), honesty at \(g\), and (6) imply that, under
+\(P_{m,h}^n\), the interval \(C_L\) contains both \(L_m(h)\) and
+\(L_m(g)\) with probability at least
+\(1-2\delta_0-\tau_0\).  Equations (2)--(3) and
+\texttt{def:profile-magnitudes} give
+\[
+ \mathbb E_{P_{m,h}^n}\operatorname{length}(C_L)
+ \ge kr(1-2\delta_0-\tau_0).
+\]
+Taking the infimum specified in \texttt{def:local-oracle} gives
+\[
+ \ell_{n,m}(h)\ge
+ \frac{1-2\delta_0-\tau_0}{20}\,k\min\{a_m,n^{-1/2}\}.                \tag{7}
+\]
+The coefficient is positive because \(\delta_0=0.05\).  Combining (1) and
+(7) proves the stated inequalities with constants depending only on the
+fixed \(\delta_0,c_0\).  In particular (7) is valid on every face and corner,
+so the ratio in \texttt{def:adaptation-factor} has a strictly positive
+denominator.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Positivity is required before an oracle ratio can be a well-defined decision criterion. \textit{Gap.} Low1997 provides general coverage-to-length logic, but not the explicit perturbation within this bounded paired Bernoulli cube. \textit{Consumer.} It validates the simultaneous adaptation factor used to compare implementable endpoint procedures.
+
+\begin{theorem}[thm:nuisance-learnability]\label{thm:nuisance-learnability}
+The capped cell estimator satisfies, uniformly over every \(m\ge1\) and \(h\in H_m\), \[\frac1{2m}\sum_{v=0}^{1}\sum_{j=1}^{m}\mathbb E_{P_{m,h}^{n}}[(\widehat h_{v,j}-h_{v,j})^2]\le C_0\min\{a_m^2,m/(n+1)\}\le C_0n^{-2/3}.\] Moreover, with probability at least \(1-\eta\), \[\max_{v,j}|\widehat h_{v,j}-h_{v,j}|\le C_0\min\left\{a_m,\sqrt{m\log(6m/\eta)/n}\right\}.\] Both bounds include empty cells and follow from the displayed experiment rather than a maintained nuisance-rate assumption.
+\end{theorem}
+\begin{proof}
+Fix \((v,j)\), write \(N=N_{v,j}\), \(q=1/(8m)\), and let
+\(\widetilde h\) be the uncapped retained-cell average when \(N>0\).
+By \texttt{def:observed-law}, \(N\sim\operatorname{Binomial}(n,q)\).
+Conditional on retention, the variables \(R_i=Z_i(B_i-p_0)\) are independent,
+have mean
+\[
+ \mathbb E_{P_{m,h}}[R_i\mid V_i=v,J_i=j,S_i=0,T_i=v]
+ =\frac12\sum_{z\in\{-1,1\}}z\{p_0+zh_{v,j}-p_0\}=h_{v,j},             \tag{8}
+\]
+and have variance at most one.  Since \(h_{v,j}\in[-a_m,a_m]\), scalar
+projection in \texttt{def:capped-estimator} cannot increase the error.
+It follows that
+\[
+ \mathbb E[(\widehat h_{v,j}-h_{v,j})^2\mid N]
+ \le \mathbf1\{N=0\}a_m^2+\mathbf1\{N>0\}N^{-1}.                      \tag{9}
+\]
+For integer \(N\ge1\), \(N^{-1}\le2/(N+1)\), and
+\[
+ \mathbb E\frac1{N+1}
+ =\int_0^1(1-q+qt)^n\,dt
+ =\frac{1-(1-q)^{n+1}}{(n+1)q}
+ \le\frac{8m}{n+1}.                                                     \tag{10}
+\]
+The event \(N=0\) contributes to the expectation in (10), and
+\(a_m^2\le1\).  Hence (9)--(10) imply
+\[
+ \mathbb E_{P_{m,h}^n}(\widehat h_{v,j}-h_{v,j})^2
+ \le\frac{24m}{n+1}.                                                     \tag{11}
+\]
+Both the estimate and the parameter lie in \([-a_m,a_m]\), so the same
+expectation is at most \(4a_m^2\).  Averaging over the \(2m\) coordinates
+therefore gives
+\[
+ \frac1{2m}\sum_{v=0}^1\sum_{j=1}^m
+ \mathbb E_{P_{m,h}^n}(\widehat h_{v,j}-h_{v,j})^2
+ \le24\min\{a_m^2,m/(n+1)\}.                                          \tag{12}
+\]
+For positive \(x,y\), \(\min(x,y)\le x^{1/3}y^{2/3}\).  Applying this
+with \(x=c_0^2/m^2\) and \(y=m/(n+1)\), and using \(a_m=c_0/m\), proves
+\[
+ \min\{a_m^2,m/(n+1)\}
+ \le c_0^{2/3}(n+1)^{-2/3}\le c_0^{2/3}n^{-2/3}.                        \tag{13}
+\]
+
+We finally prove the asserted uniform tail bound, including empty cells.
+The retained response has range length at most two.  For a centered variable
+in an interval of length two, convexity of the exponential and optimization
+of the resulting two-point bound give
+\(\mathbb E e^{\lambda(X-\mathbb EX)}\le e^{\lambda^2/2}\).
+Exponential Markov applied at \(\lambda=Nt/2\) and at its negative therefore
+gives, for \(0<t\le1\),
+\[
+ \Pr\{|\widetilde h-h_{v,j}|>t\mid N\}\mathbf1\{N>0\}
+ \le2e^{-Nt^2/2}\mathbf1\{N>0\}.
+\]
+Adding the empty-cell event and using the binomial probability generating
+function yields
+\[
+ \Pr\{|\widehat h_{v,j}-h_{v,j}|>t\}
+ \le3\mathbb E e^{-Nt^2/2}
+ =3\{1-q(1-e^{-t^2/2})\}^n
+ \le3\exp\{-nt^2/(32m)\},                                               \tag{14}
+\]
+where \(1-e^{-t^2/2}\ge t^2/4\) for \(0<t\le1\), and projection again
+cannot increase error.  A union bound over \(2m\) coordinates changes the
+leading constant in (14) to \(6m\).
+
+Let \(x=\sqrt{m\log(6m/\eta)/n}\).  If \(x<a_m\), then
+\(t=\sqrt{32}\,x<1\), and (14) gives simultaneous error at most \(t\)
+with probability at least \(1-\eta\).  If \(x\ge a_m\), the deterministic
+bound \(|\widehat h_{v,j}-h_{v,j}|\le2a_m\) applies.  Thus, for a numerical
+constant \(C_0\ge\max\{24,\sqrt{32},2,24c_0^{2/3}\}\), both (12)--(13) and
+\[
+ \max_{v,j}|\widehat h_{v,j}-h_{v,j}|
+ \le C_0\min\left\{a_m,
+       \sqrt{\frac{m\log(6m/\eta)}n}\right\}
+\]
+hold as claimed.  Every calculation used the sampling law in
+\texttt{def:observed-law}; no nuisance-rate premise was introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fixed union must be shown learnable without importing an oracle nuisance rate. \textit{Gap.} The data-fusion papers allow flexible nuisance estimation but do not derive a uniform finite-union empty-cell bound for this experiment. \textit{Consumer.} It supplies explicit remainder inputs for any smooth or factorial candidate inside the honest adaptive family.
+
+\begin{theorem}[thm:exact-tie-oracle]\label{thm:exact-tie-oracle}
+At the exact tie \(h=0\), uniformly for every \(n,m\ge1\), \[\ell_{n,m}(0)\asymp k\min\{a_m,m^{1/4}/\sqrt n\},\] with constants depending only on \(\delta_0\) and \(c_0\). The lower bound is obtained from a balanced-sign composite mixture and the upper bound from an explicit capped quadratic \(U\)-statistic interval that remains valid with empty cells.
+\end{theorem}
+\begin{proof}
+Write \(a=a_m\) and first prove the lower bound.  At the reference \(h=0\),
+fix \(0<d\le a\), draw independent Rademacher signs \(\varepsilon_j\), and
+set \(G_{0,j}=d\varepsilon_j\), \(G_{1,j}=0\).  Let \(M_{0,d}\) be the
+mixture of \(P_{m,G}^n\) over these signs.  For two independent prior draws
+\(G,G'\), direct multiplication of the Bernoulli likelihood ratios under
+\texttt{def:observed-law} gives
+\[
+ \mathbb E_{P_{m,0}}
+ \left[\frac{dP_{m,G}}{dP_{m,0}}
+       \frac{dP_{m,G'}}{dP_{m,0}}\right]
+ =1+\frac{A}{m}\sum_{j=1}^mG_{0,j}G'_{0,j},
+ \qquad A=\frac1{8p_0(1-p_0)}=\frac{121}{234}.                           \tag{15}
+\]
+The product experiment, \(1+x\le e^x\), independence of the signs, and
+the elementary inequality \(\cosh x\le e^{x^2/2}\) imply
+\[
+ 1+\chi^2(M_{0,d},P_{m,0}^n)
+ \le\left\{\cosh\left(\frac{nAd^2}{m}\right)\right\}^{m}
+ \le\exp\left(\frac{A^2n^2d^4}{2m}\right).                              \tag{16}
+\]
+Choose a numerical \(\kappa>0\), depending only on \(\delta_0\), so small
+that
+\[
+ \tau_1:=\frac12\sqrt{\exp(A^2\kappa^4/2)-1}
+ \le\frac{1-2\delta_0}{2},
+\]
+and put \(d=\min\{a,\kappa m^{1/4}/\sqrt n\}\).  Cauchy--Schwarz and (16)
+then give \(\|M_{0,d}-P_{m,0}^n\|_{\mathrm{TV}}\le\tau_1\).
+Every prior realization has \(T_0(G)=d\) and \(T_1(G)=0\).  Hence joint
+honesty from \texttt{def:honest-class}, transferred from the mixture to the
+null, forces \(C_L\) to contain both \(-b\) and \(-b+kd\), under the null,
+with probability at least \(1-2\delta_0-\tau_1\).  Thus
+\[
+ \mathbb E_{P_{m,0}^n}\operatorname{length}(C_L)
+ \ge kd(1-2\delta_0-\tau_1).                                             \tag{17}
+\]
+Repeating (15)--(17) with independent signs in profile \(v=1\) gives the
+same lower bound for \(C_U\).  Infimizing over the class in
+\texttt{def:local-oracle} proves
+\[
+ \ell_{n,m}(0)\ge c k\min\{a,m^{1/4}/\sqrt n\}.                           \tag{18}
+\]
+
+For the matching upper bound, suppose first that \(n\ge2\).  For
+\(v\in\{0,1\}\), define the proof-intermediate vector
+\[
+ W_{i,v,j}=8m\mathbf1\{V_i=v,J_i=j,S_i=0,T_i=v\}R_i,
+ \qquad q_v=\frac1m\sum_{j=1}^mh_{v,j}^2,
+\]
+and the order-two statistic
+\[
+ Q_v=\frac1{mn(n-1)}\sum_{i\ne l}\sum_{j=1}^mW_{i,v,j}W_{l,v,j}.          \tag{19}
+\]
+Equation (8) and the informative-cell probability \(1/(8m)\) show
+\(\mathbb EW_{i,v,j}=h_{v,j}\), \(\mathbb EW_{i,v,j}^2\le8m\), and
+\(\mathbb EQ_v=q_v\).  Distinct coordinates of \(W_{i,v}\) cannot be
+nonzero simultaneously.  For \(H(W,W')=m^{-1}\langle W,W'\rangle\), this
+gives
+\[
+ \mathbb EH(W,W')^2\le64m,
+ \qquad
+ \operatorname{Var}\{\mathbb E[H(W,W')\mid W]\}
+ \le\mathbb E\frac{\langle W,h_v\rangle^2}{m^2}\le8q_v.                 \tag{20}
+\]
+Writing the centered order-two kernel as the sum of its two first-order
+projections and its degenerate remainder makes these three terms orthogonal.
+Counting diagonal and off-diagonal covariances therefore yields directly
+\[
+ \operatorname{Var}(Q_v)
+ \le\frac{4}{n}(8q_v)+\frac{2}{n(n-1)}(64m)
+ \le\frac{32q_v}{n}+\frac{256m}{n^2}.                                   \tag{21}
+\]
+
+Let \(\alpha=\delta_0/2\) and
+\[
+ \Delta_n=\frac{32}{\alpha n}+\frac{32\sqrt{m/\alpha}}n,
+ \qquad
+ H_v=\min\{a^2,\max(0,2Q_v+\Delta_n)\},
+ \qquad D_v=[0,\sqrt{H_v}].                                             \tag{22}
+\]
+From (21) and the inequality
+\(\Pr(|X-\mathbb EX|>t)\le\operatorname{Var}(X)/t^2\), which follows by
+integrating \((X-\mathbb EX)^2\) over that event, we have with probability
+at least \(1-\alpha\)
+\[
+ |Q_v-q_v|\le
+ \sqrt{\frac{32q_v}{\alpha n}+\frac{256m}{\alpha n^2}}
+ \le\sqrt{\frac{32q_v}{\alpha n}}+\frac{16\sqrt{m/\alpha}}n.            \tag{23}
+\]
+Since \(2\sqrt{32q_v/(\alpha n)}\le q_v+32/(\alpha n)\), (23) implies
+\(2Q_v+\Delta_n\ge q_v\).  Also \(q_v\le a^2\), so \(H_v\ge q_v\).
+By Cauchy--Schwarz,
+\[
+ T_v(h)=\frac1m\sum_j|h_{v,j}|\le\sqrt{q_v}\le\sqrt{H_v}.               \tag{24}
+\]
+The union bound over \(v=0,1\) makes (24) simultaneous with probability at
+least \(1-\delta_0\).  Therefore the endpoint images
+\[
+ C_L=-b+kD_0,\qquad C_U=b-kD_1
+\]
+form a measurable range-projected member of \(\mathcal I_{n,m}\).  This is
+an explicit finite-sample honest rule and (19) has no empty-cell division.
+
+At \(h=0\), (21) gives \(\mathbb E|Q_v|\le16\sqrt m/n\), while (22) gives
+\(H_v\le\min\{a^2,2|Q_v|+\Delta_n\}\).  Jensen's inequality follows here
+from the concavity identity for the square root, and yields
+\[
+ \mathbb E_0\sqrt{H_v}
+ \le\min\left\{a,\sqrt{2\mathbb E_0|Q_v|+\Delta_n}\right\}
+ \le C_0\min\{a,m^{1/4}/\sqrt n\}.                                      \tag{25}
+\]
+The summed endpoint length is \(k\sum_v\sqrt{H_v}\).  For \(n=1\), use
+the two full endpoint ranges; because \(a\le1/32\) and \(m^{1/4}\ge1\),
+their summed length \(2ka\) has the order on the right side of (25).
+Equations (18) and (25) prove the theorem uniformly in \(n,m\).  In
+particular, the upper rule is honest on the whole cube, not merely at the
+tie where its expected length is evaluated.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The tie is the main nonregular benchmark and shows why zero smoothing bias does not imply zero statistical uncertainty. \textit{Gap.} CaiLow2011 gives an absolute-functional point-risk lower bound, not a finite-sample honest connected-interval oracle under binomial occupancy. \textit{Consumer.} It quantifies the uncertainty hidden by fixed-temperature standard errors at crossover cells.
+
+\begin{theorem}[thm:low-information-profile]\label{thm:low-information-profile}
+There exist constants \(0<c<C_0<\infty\), depending only on \(\delta_0\) and \(c_0\), such that whenever \(n\le\sqrt m/(20a_m^2)\), uniformly for all \(h\in H_m\), \[ck\{2a_m-T_0(h)-T_1(h)+\min(a_m,n^{-1/2})\}\le\ell_{n,m}(h)\le C_0k\{2a_m-T_0(h)-T_1(h)+\min(a_m,n^{-1/2})\}.\] The lower bound uses a mean-preserving corner mixture at the reference profile, and the upper bound uses a fixed-sign honest interval admissible in the pointwise oracle.
+\end{theorem}
+\begin{proof}
+Write \(a=a_m\), and assume
+\[
+ n\le\frac{\sqrt m}{20a^2}.                                               \tag{26}
+\]
+Fix an arbitrary reference \(h\in H_m\).  Independently over all
+\((v,j)\), draw \(G_{v,j}\in\{-a,a\}\) with
+\[
+ \Pr(G_{v,j}=a)=\frac{1+h_{v,j}/a}{2}.
+\]
+Thus \(\mathbb EG_{v,j}=h_{v,j}\), including degenerate probabilities at
+cube faces, while every realization satisfies \(T_0(G)=T_1(G)=a\).  Let
+\(M_h\) denote the resulting mixture of \(P_{m,G}^n\).
+
+For independent prior draws \(G,G'\), put \(U=G-h\), \(U'=G'-h\), and
+\[
+ A_{v,j}(h)=\frac1{16}\sum_{z\in\{-1,1\}}
+ \frac1{(p_0+zh_{v,j})(1-p_0-zh_{v,j})}.
+\]
+The likelihood multiplication used in (15), now at the arbitrary reference,
+is exactly
+\[
+ \mathbb E_{P_{m,h}}
+ \left[\frac{dP_{m,G}}{dP_{m,h}}
+       \frac{dP_{m,G'}}{dP_{m,h}}\right]
+ =1+\frac1m\sum_{v=0}^1\sum_{j=1}^m
+ A_{v,j}(h)U_{v,j}U'_{v,j}.                                               \tag{27}
+\]
+The probability bounds used in the positivity proof give
+\(A_{v,j}(h)\le9/16<1\).  Moreover \(U_{v,j}U'_{v,j}\) is centered; its
+possible values are \((a-h_{v,j})^2\), \((a+h_{v,j})^2\), and
+\(h_{v,j}^2-a^2\), whose range has length at most \(4a^2\).
+
+For completeness, if a centered random variable \(X\) lies in an interval
+of length \(L\), convexity bounds its exponential by the chord joining the
+two endpoint exponentials; maximizing the resulting Bernoulli expression
+over its mean location gives
+\(\mathbb Ee^{tX}\le e^{t^2L^2/8}\).  Apply this proved bound coordinatewise
+to (27), after \((1+x)^n\le e^{nx}\).  Independence of all prior coordinates
+then yields
+\[
+ 1+\chi^2(M_h,P_{m,h}^n)
+ \le\exp\left(\frac{4n^2a^4}{m}\right)\le e^{1/100}.                     \tag{28}
+\]
+Consequently, by the Cauchy--Schwarz total-variation inequality already
+derived in the proof of \texttt{thm:oracle-positivity},
+\[
+ \|M_h-P_{m,h}^n\|_{\mathrm{TV}}
+ \le\tau_2:=\tfrac12\sqrt{e^{1/100}-1}<0.051.                            \tag{29}
+\]
+
+For any \(C\in\mathcal I_{n,m}\), honesty under every prior realization
+implies that the common corner endpoint pair \((-b+ka,b-ka)\) is covered
+under \(M_h\) with probability at least \(1-\delta_0\).  Honesty at \(h\)
+and (29) imply that, under \(P_{m,h}^n\), both the reference and corner pairs
+are contained in their respective intervals with probability at least
+\(1-2\delta_0-\tau_2\).  On this event the summed length is at least
+\[
+ k\{a-T_0(h)+a-T_1(h)\}.                                                  \tag{30}
+\]
+Combining (30) with the lower bound of
+\texttt{thm:oracle-positivity}, and using
+\(\max(x,y)\ge(x+y)/2\), proves
+\[
+ \ell_{n,m}(h)\ge
+ ck\{2a-T_0(h)-T_1(h)+\min(a,n^{-1/2})\}.                                \tag{31}
+\]
+
+We construct the pointwise-oracle upper rule without relaxing honesty.
+For a fixed sign array \(s_{v,j}\in\{-1,1\}\), define
+\[
+ A_{i,v}^{s}=8\mathbf1\{V_i=v,S_i=0,T_i=v\}s_{v,J_i}R_i,
+ \quad
+ \widehat S_v^{s}=\frac1n\sum_{i=1}^nA_{i,v}^{s},
+ \quad
+ S_v^{s}(g)=\frac1m\sum_{j=1}^ms_{v,j}g_{v,j}.                           \tag{32}
+\]
+The sampling probabilities in \texttt{def:observed-law} and (8) give
+\[
+ \mathbb E_gA_{i,v}^{s}=S_v^{s}(g),\qquad
+ \operatorname{Var}_g(A_{i,v}^{s})\le\mathbb E_g(A_{i,v}^{s})^2\le8.    \tag{33}
+\]
+For \(\alpha=\delta_0/2\), put \(r_\alpha=\sqrt{8/(\alpha n)}\) and
+\[
+ D_v^s=\left[
+ \Pi_{[0,a]}(\widehat S_v^s-r_\alpha),\ a\right].                       \tag{34}
+\]
+For every \(g\in H_m\), \(S_v^s(g)\le T_v(g)\).  Equations (33) and the
+second-moment tail argument used in (23) show that, except on an event of
+probability \(\alpha\),
+\(\widehat S_v^s-r_\alpha\le S_v^s(g)\le T_v(g)\).  Projection onto
+\([0,a]\) preserves the last inequality.  A union bound makes both intervals
+in (34) cover \((T_0(g),T_1(g))\) with probability at least
+\(1-\delta_0\), for every \(g\).  Their endpoint images therefore define a
+member of \(\mathcal I_{n,m}\) for every fixed array \(s\).
+
+At the reference \(h\), choose the fixed constants
+\(s_{v,j}=\operatorname{sign}(h_{v,j})\), assigning sign one at zero.  This
+choice defines a different globally honest competitor for each point in the
+pointwise infimum; it does not give the executed rule knowledge of an unknown
+parameter.  Now \(S_v^s(h)=T_v(h)\).  Since scalar projection is
+one-Lipschitz and \(T_v(h)\in[0,a]\), (33)--(34) give
+\[
+ \begin{split}
+ \mathbb E_h\operatorname{length}(D_v^s)
+ &\le\min\left\{a,
+ a-T_v(h)+r_\alpha+\mathbb E_h|\widehat S_v^s-T_v(h)|\right\}\\
+ &\le\min\left\{a,a-T_v(h)+
+ \left(\sqrt{8/\alpha}+\sqrt8\right)n^{-1/2}\right\}.                  \tag{35}
+ \end{split}
+\]
+If \(n^{-1/2}\ge a\), the sum of (35) is at most \(2a\); if
+\(n^{-1/2}<a\), it is at most the sum of the two deficits plus a constant
+times \(n^{-1/2}\).  After multiplication by \(k\), both cases give
+\[
+ \ell_{n,m}(h)\le
+ C_0k\{2a-T_0(h)-T_1(h)+\min(a,n^{-1/2})\}.                              \tag{36}
+\]
+Together, (31) and (36) prove the uniform claim under (26), including exact
+ties, heterogeneous coordinates, and cube boundaries.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supplies a verified full-profile base regime and isolates the exact boundary where corner mixtures cease to be informative. \textit{Gap.} Neither local-modulus theory for linear functionals nor absolute-functional point estimation yields this reference-specific deficit formula. \textit{Consumer.} It calibrates how endpoint precision changes from ties to full-corner separation in small stratified fusion samples.
+
+\begin{theorem}[thm:low-information-adaptation]\label{thm:low-information-adaptation}
+Whenever \(n\le\sqrt m/(20a_m^2)\), \[\mathfrak A_{n,m}\asymp\max\{1,a_m\sqrt n\}.\] A single full-range interval pair attains the upper bound, and a mean-preserving full-corner mixture gives the matching lower bound over all measurable, optionally randomized members of \(\mathcal I_{n,m}\). At the upper boundary of this regime the factor has order \(m^{1/4}\).
+\end{theorem}
+\begin{proof}
+Let \(s_{n,m}=\min\{a_m,n^{-1/2}\}\), and retain the low-information
+condition of \texttt{thm:low-information-profile}.  The deterministic
+full-range pair used in the proof of \texttt{thm:oracle-positivity} belongs
+to \(\mathcal I_{n,m}\) and has risk \(2ka_m\) at every \(h\).  The lower
+bound in \texttt{thm:oracle-positivity} therefore gives
+\[
+ \mathfrak A_{n,m}
+ \le C_0\frac{a_m}{s_{n,m}}
+ =C_0\max\{1,a_m\sqrt n\}.                                               \tag{37}
+\]
+
+For the converse, use the corner prior in the proof of
+\texttt{thm:low-information-profile} at reference \(h=0\), now drawing all
+\(2m\) coordinates independently and symmetrically from
+\(\{-a_m,a_m\}\).  Equations (28)--(29) give total variation at most
+\(\tau_2<0.051\) between its mixture \(M_0\) and \(P_{m,0}^n\).  For an
+arbitrary \(C\in\mathcal I_{n,m}\), the common corner endpoint pair is
+covered under \(M_0\) with probability at least \(1-\delta_0\).  The null
+endpoint pair is covered under \(M_0\) with probability at least
+\(1-\delta_0-\tau_2\).  On the intersection, the summed interval length is
+at least \(2ka_m\).  Hence, writing \(\Pi\) for this corner prior,
+\[
+ \int R_{n,m}(C,G)\,d\Pi(G)
+ =\mathbb E_{M_0}\{\operatorname{length}(C_L)+
+                    \operatorname{length}(C_U)\}
+ \ge2ka_m(1-2\delta_0-\tau_2).                                          \tag{38}
+\]
+Every corner \(G\) has \(T_0(G)=T_1(G)=a_m\).  The upper half of
+\texttt{thm:low-information-profile} therefore gives
+\[
+ \ell_{n,m}(G)\le C_0k s_{n,m}.                                         \tag{39}
+\]
+If
+\(Q_C=\sup_{h\in H_m}R_{n,m}(C,h)/\ell_{n,m}(h)\), positivity from
+\texttt{thm:oracle-positivity} makes this ratio well defined.  Equations
+(38)--(39) imply
+\[
+ 2ka_m(1-2\delta_0-\tau_2)
+ \le\int Q_C\ell_{n,m}(G)\,d\Pi(G)
+ \le Q_CC_0ks_{n,m}.
+\]
+Thus \(Q_C\ge c a_m/s_{n,m}\) for every honest, possibly randomized rule.
+Infimizing according to \texttt{def:adaptation-factor} and combining with
+(37) proves
+\[
+ \mathfrak A_{n,m}\asymp\max\{1,a_m\sqrt n\}.
+\]
+At a sample size within fixed factors of
+\(\sqrt m/(20a_m^2)\), one has
+\(a_m\sqrt n\asymp m^{1/4}\); hence the factor reaches order
+\(m^{1/4}\) at the upper boundary of the regime.  The same corner mixture
+establishes the lower bound for the entire decision class, while the single
+full-range pair establishes the upper bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result proves that simultaneous adaptation can be polynomially costly even though every fixed profile has an honest oracle procedure. \textit{Gap.} CaiLow2004 organizes adaptation across linear-functional classes; it does not establish this nonlinear full-profile oracle ratio or the \(m^{1/4}\) obstruction. \textit{Consumer.} It warns applied users that one fixed smooth-bound interval cannot be judged by pointwise approximation error alone.
+
+\begin{openendedquestion}[oeq:full-profile-frontier]\label{oeq:full-profile-frontier}
+Using \(\mathfrak H_{n,m}\), determine an explicit expression or certified finite-dimensional computation \(\Phi_{n,m}(h)\) and an explicit order \(q_{n,m}\), including every necessary logarithmic factor, such that uniformly over all \(n,m\ge1\) and \(h\in H_m\), \[c\Phi_{n,m}(h)\le\ell_{n,m}(h)\le C_0\Phi_{n,m}(h),\qquad c q_{n,m}\le\mathfrak A_{n,m}\le C_0 q_{n,m}.\] Derive one implementable family \(C_{n,m}^{\star}\in\mathcal I_{n,m}\), depending on the data and \(m\) but not on \(h\), with \[\sup_{h\in H_m}R_{n,m}(C_{n,m}^{\star},h)/\ell_{n,m}(h)\le C_0q_{n,m},\] and prove the matching lower bound over every \(C\in\mathcal I_{n,m}\). The characterization must remain valid at exact ties, heterogeneous near ties, cube boundaries, and separated profiles, and it must specialize to \(\mathrm{thm:exact-tie-oracle}\) and \(\mathrm{thm:low-information-profile}\). As an explicit high-information falsification slice, whenever \(na_m^2/m\ge C_0\log(2m)\), determine whether the mixed profiles in \(\mathrm{def:high-information-slice}\) satisfy, uniformly in \(0\le r\le m\), \[\Phi_{n,m}(h^{(r)})\asymp k\left\{\min\left(\frac{ra_m}{m},\frac{r^{3/4}}{\sqrt{mn}}\right)+\sqrt{\frac{m-r}{mn}}+\frac1{\sqrt n}\right\}.\] A valid solution must either prove this display or replace it with a contradicted profile and the correct constant-order expression. It must also evaluate the Bernstein-certified likelihood program in \(\mathrm{def:testing-handle}\): prove that the explicit choice \(D=\lceil n+C_0m\log(2m)\rceil\) attains the slice profile up to constants, or give a counterexample and an explicit sufficient degree or orbit-reduced complexity bound.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This remains the unique construct-and-determine kernel: it must sharpen the capped-cell global upper envelope into the full local oracle, exact adaptation price, one attaining finite-sample family, and an all-procedure converse. \textit{Gap.} The exact-tie and low-information regimes and a global \(\sqrt{m\log m}\)-ceiling upper bound are closed. Higher-information matching lower bounds, logarithmic necessity or removal, interpolation across \(na_m^2/m\asymp\log m\), the mixed tie--boundary slice, and an explicit sufficient Bernstein degree remain open. \textit{Consumer.} Resolving the question would calibrate when the two sharp sensitivity endpoints can be reported precisely under heterogeneous ties. It would inform the same endpoint algebra used by the Project STAR application without claiming that the actual Project STAR sampling law is the paired-cell experiment.
+
+\begin{proposition}[prop:separated-reduction]\label{prop:separated-reduction}
+Fix \(m\geq 1\) and \(0<\xi\leq a_m\), and let \(n\to\infty\). There exist constants \(0<c<C_0<\infty\), depending only on \(\delta_0\) and \(c_0\), such that
+\[
+ \sup_{h\in H_m(\xi)}P_{m,h}^{n}\!\left\{\exists (v,j):N_{v,j}=0\ \text{or}\ \widehat s_{v,j}\neq\operatorname{sign}(h_{v,j})\right\}
+ \leq C_0m\exp\!\left(-\frac{cn\xi^2}{m}\right).
+\]
+Uniformly over \(h\in H_m(\xi)\),
+\[
+ \sqrt n
+ \binom{\overline L_{n,m}-L_m(h)}{\overline U_{n,m}-U_m(h)}
+ =\frac1{\sqrt n}\sum_{i=1}^{n}
+ \binom{8k\sum_{j=1}^{m}\operatorname{sign}(h_{0,j})\mathbf 1\{V_i=0,J_i=j,S_i=0,T_i=0\}(R_i-h_{0,j})}
+ {-8k\sum_{j=1}^{m}\operatorname{sign}(h_{1,j})\mathbf 1\{V_i=1,J_i=j,S_i=0,T_i=1\}(R_i-h_{1,j})}
+ +o_{P_{m,h}^{n}}(1),
+\]
+where the remainder is uniform in probability. The empirical variances are uniformly consistent in the sense that, for every \(\varepsilon>0\),
+\[
+ \sup_{h\in H_m(\xi)}P_{m,h}^{n}\!\left\{
+ \left|\widehat\sigma_L^2-\frac{8k^2}{m}\sum_{j=1}^{m}\{p_0(1-p_0)-h_{0,j}^2\}\right|
+ +\left|\widehat\sigma_U^2-\frac{8k^2}{m}\sum_{j=1}^{m}\{p_0(1-p_0)-h_{1,j}^2\}\right|>\varepsilon\right\}\longrightarrow0.
+\]
+After division by the respective square roots of the two displayed limiting variances, the endpoint-center vector converges uniformly to \(\mathcal N_2(0,I_2)\); in particular, its two coordinates are asymptotically independent. Consequently the signed-cell benchmark satisfies
+\[
+ \liminf_{n\to\infty}\inf_{h\in H_m(\xi)}P_{m,h}^{n}\{L_m(h)\in(C^{\mathrm{sign}}_{n,m})_L,\ U_m(h)\in(C^{\mathrm{sign}}_{n,m})_U\}\geq1-\delta_0.
+\]
+The coordinate-rectangle rule \(C^{\mathrm{rect}}_{n,m}\) in \(\mathrm{def:coordinate-rectangle-interval}\) is a finite-sample member of \(\mathcal I_{n,m}\) and obeys, for every \(h\in H_m\),
+\[
+ R_{n,m}(C^{\mathrm{rect}}_{n,m},h)\leq4kr_{n,m}.
+\]
+It follows, uniformly over \(h\in H_m(\xi)\) (indeed uniformly over \(H_m\)), that
+\[
+ \ell_{n,m}(h)\asymp_{m,\xi,\delta_0}n^{-1/2},
+ \qquad
+ \sup_{h\in H_m(\xi)}\frac{R_{n,m}(C^{\mathrm{rect}}_{n,m},h)}{\ell_{n,m}(h)}=O_{m,\xi,\delta_0}(1).
+\]
+The rule \(C^{\mathrm{sign}}_{n,m}\) is asserted here only to be an asymptotically valid regular benchmark, not a member of the finite-sample globally honest class.
+\end{proposition}
+\begin{proof}
+The compatibility equalities in \(\mathrm{def:coordinate-rectangle-interval}\) identify \(C^{\mathrm{rect}}_{n,m}\) with \(C^{\mathrm{caprect}}_{n,m}\) and \(r_{n,m}\) with \(r^{\mathrm{cap}}_{n,m}\). Hence \(\mathrm{thm:global-adaptation-upper-envelope}\) proves, for every \(h\in H_m\),
+\[
+ C^{\mathrm{rect}}_{n,m}\in\mathcal I_{n,m},
+ \qquad
+ R_{n,m}(C^{\mathrm{rect}}_{n,m},h)\leq4kr_{n,m}.                       \tag{1}
+\]
+Since \(\ell_{n,m}(h)\) is the infimum of this risk over \(\mathcal I_{n,m}\), (1) and \(\mathrm{thm:oracle-positivity}\) give
+\[
+ ck\min\{a_m,n^{-1/2}\}
+ \leq\ell_{n,m}(h)
+ \leq C_0k\min\left\{a_m,\sqrt{\frac{m\log(6m/\delta_0)}{n}}\right\} \tag{2}
+\]
+uniformly over \(H_m\). For fixed \(m\), \(a_m=c_0/m>0\), so for all sufficiently large \(n\) the left side of (2) is \(ckn^{-1/2}\), while the right side is at most \(C_0k\sqrt{m\log(6m/\delta_0)}n^{-1/2}\). This proves \(\ell_{n,m}(h)\asymp_{m,\xi,\delta_0}n^{-1/2}\), uniformly even over \(H_m\). Dividing (1), with \(r_{n,m}=O_{m,\delta_0}(n^{-1/2})\), by the lower bound in (2) proves the displayed fixed-dimensional oracle-ratio assertion.
+
+It remains to prove the separated-profile assertions. Put
+\[
+ A_{i,v,j}=\mathbf1\{V_i=v,J_i=j,S_i=0,T_i=v\}.
+\]
+Definition \(\mathrm{def:observed-law}\) and independence of \(V_i,J_i,S_i,T_i\) give
+\[
+ P_{m,h}(A_{i,v,j}=1)=\frac12\frac1m\frac12\frac12=\frac1{8m}.          \tag{3}
+\]
+Conditional on \(A_{i,v,j}=1\) and \(Z_i=z\), the Bernoulli success probability is \(p_0+zh_{v,j}\). Thus, from \(R_i=Z_i(B_i-p_0)\),
+\[
+ \mathbb E_{P_{m,h}}[R_i\mid A_{i,v,j}=1,Z_i=z]
+ =z\{p_0+zh_{v,j}-p_0\}=h_{v,j}.                                      \tag{4}
+\]
+After averaging over \(Z_i\), the retained responses therefore have mean \(h_{v,j}\). Their support is contained in \([-p_0,p_0]=[-13/22,13/22]\), an interval of length \(d=13/11\).
+
+We first derive the concentration inequality used below. If a centered variable \(X\) is supported on an interval of length \(d\), then the second derivative of its log moment-generating function is the variance under an exponential tilt. Every distribution on such an interval has variance at most \(d^2/4\), because its squared distance from the interval midpoint is at most \(d^2/4\). Integrating the second-derivative bound twice from zero gives
+\[
+ \mathbb E e^{tX}\leq e^{t^2d^2/8}.
+\]
+Exponential Markov, applied at the optimizing positive and negative values of \(t\), consequently yields for independent retained responses
+\[
+ P\!\left(\left|q^{-1}\sum_{l=1}^{q}(R_l-h_{v,j})\right|\geq x\right)
+ \leq2\exp\left(-\frac{2qx^2}{d^2}\right).                             \tag{5}
+\]
+Here and below, conditioning on a retained index set makes those responses independent, and integrating over the index set preserves the bounds.
+
+For \(h\in H_m(\xi)\), a sign error in a nonempty cell implies an estimation error of at least \(\xi\). Conditional on \(N_{v,j}=q>0\), (5) therefore gives
+\[
+ P_{m,h}^{n}\!\left\{\widehat s_{v,j}\neq\operatorname{sign}(h_{v,j})\mid N_{v,j}=q\right\}
+ \leq2e^{-\lambda q},
+ \qquad \lambda=2(11/13)^2\xi^2.                                      \tag{6}
+\]
+By (3), \(N_{v,j}\sim\operatorname{Binomial}(n,1/(8m))\), independently of \(h\). Since \(e^{-\lambda N_{v,j}}=1\) on the empty-cell event, (6) implies
+\[
+ \begin{split}
+ &P_{m,h}^{n}\!\left\{N_{v,j}=0\ \text{or}\ \widehat s_{v,j}\neq\operatorname{sign}(h_{v,j})\right\}\\
+ &\qquad\leq3\mathbb E e^{-\lambda N_{v,j}}
+ =3\left(1-\frac{1-e^{-\lambda}}{8m}\right)^n
+ \leq3\exp\left(-\frac{n(1-e^{-\lambda})}{8m}\right).                 \tag{7}
+ \end{split}
+\]
+Because \(0<\xi\leq a_m\leq1/32\), we have \(0<\lambda<1\) and \(1-e^{-\lambda}\geq\lambda/2\). A union bound over the \(2m\) cells in (7), followed by enlargement of \(C_0\) and reduction of \(c\), proves
+\[
+ \sup_{h\in H_m(\xi)}P_{m,h}^{n}\!\left\{\exists(v,j):N_{v,j}=0\ \text{or}\ \widehat s_{v,j}\neq\operatorname{sign}(h_{v,j})\right\}
+ \leq C_0m\exp\left(-\frac{cn\xi^2}{m}\right).                        \tag{8}
+\]
+
+For the linear expansion, define the proof intermediates
+\[
+ S_{v,j}=\sum_{i=1}^{n}A_{i,v,j}(R_i-h_{v,j}),
+ \qquad q_n=\frac{n}{8m}.
+\]
+For fixed \(m\), the bounded-variable exponential inequality just derived, applied to the counts and to the centered cell sums, gives uniformly over \(h\in H_m(\xi)\)
+\[
+ \max_{v,j}|N_{v,j}-q_n|=O_{P_{m,h}^{n}}(\sqrt n),
+ \qquad
+ \max_{v,j}|S_{v,j}|=O_{P_{m,h}^{n}}(\sqrt n),                           \tag{9}
+\]
+and \(P_{m,h}^{n}\{\min_{v,j}N_{v,j}<q_n/2\}\) tends to zero exponentially and uniformly. On its complement,
+\[
+ \left|N_{v,j}^{-1}-q_n^{-1}\right|
+ =\frac{|N_{v,j}-q_n|}{N_{v,j}q_n}
+ \leq\frac{2|N_{v,j}-q_n|}{q_n^2}
+ =O_{P_{m,h}^{n}}(n^{-3/2})                                             \tag{10}
+\]
+uniformly. On the event in (8), \(\widehat s_{v,j}=\operatorname{sign}(h_{v,j})\) and
+\[
+ \overline h_{v,j}-h_{v,j}=S_{v,j}/N_{v,j}.
+\]
+Equations (8)--(10), summed over the fixed number of cells, show that replacing \(N_{v,j}^{-1}\) by \(q_n^{-1}=8m/n\) changes either endpoint center by \(o_{P_{m,h}^{n}}(n^{-1/2})\), uniformly over \(H_m(\xi)\). Substitution into the centers in \(\mathrm{def:signed-cell-mean-interval}\), followed by the endpoint identities in \(\mathrm{def:endpoints}\), gives exactly
+\[
+ \sqrt n
+ \binom{\overline L_{n,m}-L_m(h)}{\overline U_{n,m}-U_m(h)}
+ =\frac1{\sqrt n}\sum_{i=1}^{n}
+ \binom{8k\sum_{j=1}^{m}\operatorname{sign}(h_{0,j})A_{i,0,j}(R_i-h_{0,j})}
+ {-8k\sum_{j=1}^{m}\operatorname{sign}(h_{1,j})A_{i,1,j}(R_i-h_{1,j})}
+ +o_{P_{m,h}^{n}}(1).                                                    \tag{11}
+\]
+
+We compute the covariance in (11). Conditional on \(A_{i,v,j}=1\), averaging over \(Z_i\) gives
+\[
+ \begin{split}
+ \mathbb E_{P_{m,h}}R_i^2
+ &=\frac12\sum_{z\in\{-1,1\}}
+ \left[(p_0+zh_{v,j})(1-p_0)^2+(1-p_0-zh_{v,j})p_0^2\right]\\
+ &=p_0(1-p_0).
+ \end{split}                                                            \tag{12}
+\]
+Together with (4), this yields
+\[
+ \operatorname{Var}_{P_{m,h}}(R_i\mid A_{i,v,j}=1)
+ =p_0(1-p_0)-h_{v,j}^2.                                                  \tag{13}
+\]
+The cell indicators are disjoint. Thus the two leading coordinates in (11) have variances
+\[
+ \sigma_L^2(h)=\frac{8k^2}{m}\sum_{j=1}^{m}\{p_0(1-p_0)-h_{0,j}^2\},
+ \qquad
+ \sigma_U^2(h)=\frac{8k^2}{m}\sum_{j=1}^{m}\{p_0(1-p_0)-h_{1,j}^2\},    \tag{14}
+\]
+and cross-covariance zero, because a summand with \(V_i=0\) and one with \(V_i=1\) have product zero. Since \(p_0=13/22\) and \(|h_{v,j}|\leq a_m\leq1/32\), both variances in (14) are bounded above and bounded away from zero uniformly over \(H_m(\xi)\).
+
+Disjointness of the cell indicators and \(\widehat s_{v,j}^2=1\) give, for example,
+\[
+ \widehat\sigma_L^2
+ =\frac{64k^2}{n}\sum_{j=1}^{m}\sum_{i=1}^{n}
+ A_{i,0,j}(R_i-\overline h_{0,j})^2.                                    \tag{15}
+\]
+Whenever a cell is nonempty, the exact within-cell identity
+\[
+ \sum_iA_{i,v,j}(R_i-\overline h_{v,j})^2
+ =\sum_iA_{i,v,j}(R_i-h_{v,j})^2
+ -N_{v,j}(\overline h_{v,j}-h_{v,j})^2                                  \tag{16}
+\]
+holds. Equations (8)--(10) make the last term in (16), after division by \(n\), uniformly \(o_{P_{m,h}^{n}}(1)\); indeed it is \(O_{P_{m,h}^{n}}(n^{-1})\) for fixed \(m\). The bounded-variable inequality applied to each of the finitely many empirical second moments gives, uniformly in \(h\),
+\[
+ \frac1n\sum_{i=1}^{n}A_{i,v,j}(R_i-h_{v,j})^2
+ -\frac1{8m}\{p_0(1-p_0)-h_{v,j}^2\}
+ \longrightarrow0
+\]
+in probability. Combining this display with (13), (15), and (16) proves the asserted uniform consistency of \(\widehat\sigma_L^2\); the calculation for \(\widehat\sigma_U^2\) is identical.
+
+Let \(X_i(h)\) be the two-dimensional leading summand in (11), standardized coordinatewise by \(\sigma_L(h)\) and \(\sigma_U(h)\). Equations (13)--(14) give
+\[
+ \mathbb E X_i(h)=0,
+ \qquad \mathbb E\{X_i(h)X_i(h)^{\mathsf T}\}=I_2.
+\]
+The bounded support of \(R_i\), together with the uniform positive lower bounds in (14), gives \(\sup_{h\in H_m(\xi)}\mathbb E\|X_i(h)\|_2^3<\infty\). Hence, for each fixed \(t\in\mathbb R^2\), the third-order Taylor remainder for the complex exponential gives uniformly in \(h\)
+\[
+ \mathbb E_{P_{m,h}}\exp\left(\frac{\mathrm i\,t^{\mathsf T}X_i(h)}{\sqrt n}\right)
+ =1-\frac{\|t\|_2^2}{2n}+O(n^{-3/2}).                                  \tag{17}
+\]
+Independence over \(i\) and exponentiation of (17) show that the characteristic functions of \(n^{-1/2}\sum_iX_i(h)\) converge, uniformly in \(h\), to \(\exp(-\|t\|_2^2/2)\).
+
+For completeness, the needed passage from characteristic functions to the coverage rectangle can be made without an additional regularity premise. Add an independent \(\mathcal N_2(0,\tau^2I_2)\) vector. For fixed \(\tau>0\), multiplication of (17) by \(e^{-\tau^2\|t\|_2^2/2}\) makes the Fourier transforms integrable; Fourier inversion, a compact--tail split, and dominated convergence therefore give uniform convergence of the smoothed rectangle probabilities. A rectangle is sandwiched between its \(\epsilon\)-contraction and \(\epsilon\)-expansion whenever the added Gaussian has norm at most \(\epsilon\). First let \(n\to\infty\), then let \(\tau\downarrow0\) with \(\epsilon=\sqrt\tau\). The added-noise tail vanishes, and the limiting Gaussian assigns zero probability to every rectangle boundary. Thus the unsmoothed rectangle probabilities converge uniformly as well. This proves
+\[
+ \frac1{\sqrt n}\sum_{i=1}^{n}X_i(h)\ \Longrightarrow\ \mathcal N_2(0,I_2)
+\]
+uniformly over \(H_m(\xi)\). Equation (11), variance consistency, and the positive lower bounds in (14) preserve this limit after replacing the true variances by \(\widehat\sigma_L^2,\widehat\sigma_U^2\).
+
+For the unprojected signed-cell intervals, joint containment is therefore asymptotically equivalent, uniformly in \(h\), to a standard bivariate normal vector belonging to \([-\kappa_{\delta_0},\kappa_{\delta_0}]^2\). Its coordinates are independent because its covariance is \(I_2\), and the definition of \(\kappa_{\delta_0}\) gives
+\[
+ P\{\mathcal N_2(0,I_2)\in[-\kappa_{\delta_0},\kappa_{\delta_0}]^2\}
+ =\{2\Phi_{\mathrm N}(\kappa_{\delta_0})-1\}^2=1-\delta_0.             \tag{18}
+\]
+Finally, \(L_m(h)\in[-b,-b+ka_m]\) and \(U_m(h)\in[b-ka_m,b]\) by \(T_v(h)\in[0,a_m]\). Projection of an interval onto a range containing the true value preserves containment of that value. Applying the projections in \(\mathrm{def:signed-cell-mean-interval}\) to (18) proves the claimed limiting joint coverage. This last conclusion is only an asymptotic separated-profile statement; it does not place \(C^{\mathrm{sign}}_{n,m}\) in the finite-sample globally honest class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proposition is the proved regular fixed-dimensional reduction: it combines a globally honest coordinate-rectangle oracle witness with the separated-profile asymptotic analysis of the signed-cell benchmark. \textit{Gap.} The fixed-dimensional regular oracle and limiting benchmark are now closed. The sharp profile, sharp adaptation factor, and globally attaining family when the dimension varies remain exclusively in the full-profile open question. \textit{Consumer.} It certifies conventional jointly calibrated endpoint inference when every active max/min comparison is separated, and supplies a finite-sample honest fallback whose fixed-dimensional length is oracle-order.
+
+\begin{theorem}[thm:global-adaptation-upper-envelope]\label{thm:global-adaptation-upper-envelope}
+For every \(n,m\geq1\), the capped-cell coordinate-rectangle rule satisfies \(C^{\mathrm{caprect}}_{n,m}\in\mathcal I_{n,m}\) and
+\[
+ \sup_{h\in H_m}R_{n,m}(C^{\mathrm{caprect}}_{n,m},h)
+ \leq \min\{2ka_m,4kr^{\mathrm{cap}}_{n,m}\}
+ \leq C_0k\min\left\{a_m,\sqrt{\frac{m\log(6m/\delta_0)}{n}}\right\}.
+\]
+Consequently,
+\[
+ \mathfrak A_{n,m}
+ \leq C_0\frac{\min\{a_m,\sqrt{m\log(6m/\delta_0)/n}\}}
+ {\min\{a_m,n^{-1/2}\}}
+ \leq C_0\min\left\{\max\{1,a_m\sqrt n\},\sqrt{m\log(6m/\delta_0)}\right\}.
+\]
+This is a global upper envelope, not a claim that the displayed order is sharp. When \(a_m\sqrt n\geq1\), its two ceilings cross at \(na_m^2/m=\log(6m/\delta_0)\), hence at \(na_m^2/m\asymp\log m\) for fixed \(\delta_0\).
+\end{theorem}
+\begin{proof}
+Write
+\[
+ s_{n,m}=\sqrt{\frac{32m\log(6m/\delta_0)}{n}},
+ \qquad r^{\mathrm{cap}}_{n,m}=\min\{2a_m,s_{n,m}\}.
+\]
+Both \(h_{v,j}\) and \(\widehat h_{v,j}\) belong to \([-a_m,a_m]\), by \(h\in H_m\) and \(\mathrm{def:capped-estimator}\). If \(s_{n,m}\geq2a_m\), then \(r^{\mathrm{cap}}_{n,m}=2a_m\) and every interval \(I^{\mathrm{cap}}_{v,j}\) equals \([-a_m,a_m]\); thus it contains \(h_{v,j}\) deterministically.
+
+Suppose instead that \(s_{n,m}<2a_m\). Since \(a_m\leq1/32\), we have \(0<s_{n,m}<1\). Equation (14) in the proof of \(\mathrm{thm:nuisance-learnability}\), applied with \(t=s_{n,m}\), gives for every coordinate
+\[
+ P_{m,h}^{n}\!\left\{|\widehat h_{v,j}-h_{v,j}|>s_{n,m}\right\}
+ \leq3\exp\!\left(-\frac{ns_{n,m}^2}{32m}\right)
+ =\frac{\delta_0}{2m}.
+\]
+A union bound over the \(2m\) coordinates therefore yields, in both cases,
+\[
+ P_{m,h}^{n}(E_h)\geq1-\delta_0,
+ \qquad
+ E_h:=\{h_{v,j}\in I^{\mathrm{cap}}_{v,j}\text{ for every }v,j\}.       \tag{1}
+\]
+The calculation is uniform over \(h\in H_m\), including all cube faces and corners; empty informative cells were included in equation (14).
+
+For a fixed \(v\), the domain \(\prod_{j=1}^{m}I^{\mathrm{cap}}_{v,j}\) is compact and connected, and the map
+\[
+ (g_{v,1},\ldots,g_{v,m})\longmapsto \frac1m\sum_{j=1}^{m}|g_{v,j}|
+\]
+is continuous. Its image is therefore a compact interval. Separability of the displayed sum gives exactly the two endpoints in the definition of \(D^{\mathrm{cap}}_v\). On \(E_h\), Definition \(\mathrm{def:profile-magnitudes}\) gives \(T_v(h)\in D^{\mathrm{cap}}_v\) for \(v=0,1\); hence Definition \(\mathrm{def:endpoints}\) gives simultaneously
+\[
+ L_m(h)=-b+kT_0(h)\in-b+kD^{\mathrm{cap}}_0,
+ \qquad
+ U_m(h)=b-kT_1(h)\in b-kD^{\mathrm{cap}}_1.                              \tag{2}
+\]
+The rule is a measurable pair of closed intervals because its endpoints are finite minima, maxima, sums, and affine transformations of the sufficient statistics. Moreover, \(D^{\mathrm{cap}}_v\subseteq[0,a_m]\), so its endpoint images satisfy the range restriction in \(\mathrm{ass:range-projection}\). Equations (1)--(2) prove joint honesty. Thus \(C^{\mathrm{caprect}}_{n,m}\in\mathcal I_{n,m}\) by \(\mathrm{def:honest-class}\).
+
+The absolute-value map is one-Lipschitz. Consequently,
+\[
+ \operatorname{length}(D^{\mathrm{cap}}_v)
+ \leq\frac1m\sum_{j=1}^{m}\operatorname{length}(I^{\mathrm{cap}}_{v,j})
+ \leq2r^{\mathrm{cap}}_{n,m}.                                           \tag{3}
+\]
+Also \(D^{\mathrm{cap}}_v\subseteq[0,a_m]\), so \(\operatorname{length}(D^{\mathrm{cap}}_v)\leq a_m\). The two deterministic bounds and \(\mathrm{def:length-risk}\) imply
+\[
+ \sup_{h\in H_m}R_{n,m}(C^{\mathrm{caprect}}_{n,m},h)
+ \leq\min\{2ka_m,4kr^{\mathrm{cap}}_{n,m}\}.                            \tag{4}
+\]
+Put \(x_{n,m}=\sqrt{m\log(6m/\delta_0)/n}\), so that \(s_{n,m}=\sqrt{32}\,x_{n,m}\). If \(x_{n,m}\geq a_m\), (4) is at most \(2ka_m\); if \(x_{n,m}<a_m\), it is at most \(4\sqrt{32}\,k x_{n,m}\). Enlarging \(C_0\), which is allowed to depend only on \(\delta_0\) and \(c_0\), proves
+\[
+ \sup_{h\in H_m}R_{n,m}(C^{\mathrm{caprect}}_{n,m},h)
+ \leq C_0k\min\{a_m,x_{n,m}\}.                                        \tag{5}
+\]
+
+For this one data-driven rule, Definition \(\mathrm{def:adaptation-factor}\), (5), and the lower bound in \(\mathrm{thm:oracle-positivity}\) give
+\[
+ \mathfrak A_{n,m}
+ \leq\sup_{h\in H_m}\frac{R_{n,m}(C^{\mathrm{caprect}}_{n,m},h)}{\ell_{n,m}(h)}
+ \leq C_0\frac{\min\{a_m,x_{n,m}\}}{\min\{a_m,n^{-1/2}\}}.          \tag{6}
+\]
+The ratio in (6) is at most \(a_m/\min\{a_m,n^{-1/2}\}=\max\{1,a_m\sqrt n\}\). It is also at most \(\sqrt{m\log(6m/\delta_0)}\): if \(a_m\geq n^{-1/2}\), use \(\min\{a_m,x_{n,m}\}\leq x_{n,m}\); if \(a_m<n^{-1/2}\), the ratio is at most one, while \(\sqrt{m\log(6m/\delta_0)}>1\) because \(m\geq1\) and \(\delta_0=0.05\). Taking the smaller of these two bounds proves the second display. In the nonconstant branch \(a_m\sqrt n\geq1\), equality of the two ceilings is equivalent to \(na_m^2=m\log(6m/\delta_0)\), proving the stated crossover.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact-tie oracle is characterized for every \(n,m\), and the full heterogeneous oracle and sharp adaptation factor are characterized only in the stated low-information regime. The capped-cell rectangle improves the former inverse-probability rectangle to expected summed length \(C_0k\min\{a_m,\sqrt{m\log(6m/\delta_0)/n}\}\) and yields a global adaptation upper envelope with ceiling \(\sqrt{m\log m}\), but it does not establish sharpness, logarithmic necessity, or a globally oracle-optimal family. Beyond the low-information regime, the mixed tie--boundary slice, connected-hull length after selection, and a sufficient Bernstein certificate degree remain unresolved.
+
+\section{Honest scope}
+
+The causal completion class \(\mathcal M_{m,h}\) is a faithful finite paired-cell specialized subclass, or fiber, of the Lanners--Rudin--Volfovsky--Parikh sensitivity model. Its treatment and study propensities are fixed at \(1/2\), its covariate distribution and outcome regressions are specialized, and \(\rho=\gamma=1/5\). Positivity, experimental internal validity, the relative-mean sensitivity restrictions, compatibility, and uniformly interior endpoint-attaining completions are verified. Raw expected-length lower bounds on this embedded experiment obstruct any procedure required to be honest over a supermodel containing it, but submodel oracle upper bounds and adaptation-factor rates do not automatically transfer to the unrestricted published class. The capped-cell rectangle is finite-sample jointly honest on the displayed experiment and yields a global upper envelope; it is not asserted to be globally oracle-optimal. The construction reproduces the same sensitivity-bound algebra used in the Project STAR analysis in a controlled subexperiment, but it does not analyze the actual Project STAR sampling law.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LannersRudinVolfovskyParikh2025} Q. Lanners, C. Rudin, A. Volfovsky, and H. Parikh (2025), Data Fusion for Partial Identification of Causal Effects, NeurIPS, arXiv:2505.24296.
+
+  \bibitem{CaiLowXia2013} T. T. Cai, M. G. Low, and Y. Xia (2013), Adaptive confidence intervals for regression functions under shape constraints, Annals of Statistics 41, 722--750.
+
+  \bibitem{CaiLow2011} T. T. Cai and M. G. Low (2011), Testing composite hypotheses, Hermite polynomials and optimal estimation of a nonsmooth functional, Annals of Statistics 39, 1012--1041.
+
+  \bibitem{CaiLow2004} T. T. Cai and M. G. Low (2004), An adaptation theory for nonparametric confidence intervals, Annals of Statistics 32, 1805--1840.
+
+  \bibitem{Low1997} M. G. Low (1997), On nonparametric confidence intervals, Annals of Statistics 25, 2547--2554.
+
+  \bibitem{LevisBonviniZengKeeleKennedy2025} A. W. Levis, M. Bonvini, Z. Zeng, L. Keele, and E. H. Kennedy (2025), Covariate-assisted bounds on causal effects with instrumental variables, Journal of the Royal Statistical Society Series B.
+
+  \bibitem{BenMichael2025} E. Ben-Michael (2025), Partial identification via conditional linear programs: estimation and policy learning, arXiv:2506.12215v2.
+
+  \bibitem{JiaoVenkatHanWeissman2015} J. Jiao, K. Venkat, Y. Han, and T. Weissman (2015), Minimax estimation of functionals of discrete distributions, IEEE Transactions on Information Theory 61, 2835--2885.
+
+  \bibitem{BatllePatilStanleyOwhadiKuusela2024} P. Batlle, P. Patil, M. Stanley, H. Owhadi, and M. Kuusela (2024), Optimization-based frequentist confidence intervals for functionals in constrained inverse problems: Resolving the Burrus conjecture, arXiv:2310.02461v3.
+
+  \bibitem{ArmstrongKolesar2020} T. B. Armstrong and M. Kolesar (2020), Simple and honest confidence intervals in nonparametric regression, Quantitative Economics 11, 1--39.
+
+  \bibitem{LuedtkeVanderLaan2016} A. R. Luedtke and M. J. van der Laan (2016), Statistical inference for the mean outcome under a possibly non-unique optimal treatment strategy, Annals of Statistics 44, 713--742.
+
+  \bibitem{ColnetMayerEtAl2024} B. Colnet, I. Mayer, G. Chen, A. Dieng, R. Li, G. Varoquaux, J.-P. Vert, J. Josse, and S. Yang (2024), Causal inference methods for combining randomized trials and observational studies: A review, Statistical Science 39, 165--191.
+
+\end{thebibliography}
+
+\end{document}

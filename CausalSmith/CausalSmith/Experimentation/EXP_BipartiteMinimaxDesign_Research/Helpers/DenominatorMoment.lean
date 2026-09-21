@@ -6,9 +6,12 @@ Authors: Jiyuan Tan
 # Denominator moment bounds for the bipartite minimax design
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Kernel
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Surrogate
-import Causalean.Experimentation.DesignBased.InProb
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Kernel
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Surrogate
+public import Causalean.Experimentation.DesignBased.InProb
+
+@[expose] public section
 
 set_option linter.style.longLine false
 set_option linter.unusedSimpArgs false
@@ -153,11 +156,11 @@ lemma r0_le_denominatorKernelBound (E : BipartiteExperiment I O)
 /-- The expected treated Hájek denominator equals the number of outcomes. -/
 lemma treatDenominator_mean (E : BipartiteExperiment I O) (q : I → ℝ)
     (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1) (hpos : ∀ k, 0 < q k) :
-    (bernoulliDesign q hq0 hq1).E
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E
         (fun z => ∑ i, E.expT z i / E.piT q i)
       = (Fintype.card O : ℝ) := by
   classical
-  rw [(bernoulliDesign q hq0 hq1).E_sum Finset.univ
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_sum Finset.univ
     (fun i z => E.expT z i / E.piT q i)]
   trans ∑ _i : O, (1 : ℝ)
   · apply Finset.sum_congr rfl
@@ -165,13 +168,13 @@ lemma treatDenominator_mean (E : BipartiteExperiment I O) (q : I → ℝ)
     have hpi_pos : 0 < E.piT q i := by
       unfold BipartiteExperiment.piT
       exact Finset.prod_pos (fun k _ => hpos k)
-    have hE : (bernoulliDesign q hq0 hq1).E (fun z => E.expT z i) = E.piT q i := by
+    have hE : (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E (fun z => E.expT z i) = E.piT q i := by
       unfold BipartiteExperiment.expT BipartiteExperiment.piT
       exact bernoulli_E_treat_prod q hq0 hq1 (E.N i)
     rw [show (fun z => E.expT z i / E.piT q i) =
         fun z => (E.piT q i)⁻¹ * E.expT z i by
           funext z; ring]
-    rw [(bernoulliDesign q hq0 hq1).E_const_mul, hE]
+    rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_const_mul, hE]
     field_simp [(ne_of_gt hpi_pos)]
   · simp
 
@@ -179,11 +182,11 @@ lemma treatDenominator_mean (E : BipartiteExperiment I O) (q : I → ℝ)
 /-- The expected control Hájek denominator equals the number of outcomes. -/
 lemma ctrlDenominator_mean (E : BipartiteExperiment I O) (q : I → ℝ)
     (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1) (hlt : ∀ k, q k < 1) :
-    (bernoulliDesign q hq0 hq1).E
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E
         (fun z => ∑ i, E.expC z i / E.piC q i)
       = (Fintype.card O : ℝ) := by
   classical
-  rw [(bernoulliDesign q hq0 hq1).E_sum Finset.univ
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_sum Finset.univ
     (fun i z => E.expC z i / E.piC q i)]
   trans ∑ _i : O, (1 : ℝ)
   · apply Finset.sum_congr rfl
@@ -191,13 +194,13 @@ lemma ctrlDenominator_mean (E : BipartiteExperiment I O) (q : I → ℝ)
     have hpi_pos : 0 < E.piC q i := by
       unfold BipartiteExperiment.piC
       exact Finset.prod_pos (fun k _ => sub_pos.mpr (hlt k))
-    have hE : (bernoulliDesign q hq0 hq1).E (fun z => E.expC z i) = E.piC q i := by
+    have hE : (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E (fun z => E.expC z i) = E.piC q i := by
       unfold BipartiteExperiment.expC BipartiteExperiment.piC
       exact bernoulli_E_ctrl_prod q hq0 hq1 (E.N i)
     rw [show (fun z => E.expC z i / E.piC q i) =
         fun z => (E.piC q i)⁻¹ * E.expC z i by
           funext z; ring]
-    rw [(bernoulliDesign q hq0 hq1).E_const_mul, hE]
+    rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_const_mul, hE]
     field_simp [(ne_of_gt hpi_pos)]
   · simp
 
@@ -208,11 +211,11 @@ lemma treatDenominator_var_le (E : BipartiteExperiment I O)
     (hdeg : BoundedOutcomeDegree E dbar) (hdep : BoundedOverlapDependency E Dbar)
     (q : I → ℝ) (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1)
     (hq : FeasibleDesign ε B q) :
-    (bernoulliDesign q hq0 hq1).Var
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var
         (fun z => ∑ i, E.expT z i / E.piT q i)
       ≤ (Fintype.card O : ℝ) * (Dbar * denominatorKernelBound ε dbar) := by
   classical
-  let D := bernoulliDesign q hq0 hq1
+  let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
   let X : O → (I → Bool) → ℝ := fun i z => E.expT z i / E.piT q i
   have hpos : ∀ k, 0 < q k := fun k => lt_of_lt_of_le hε0 (hq.floor k).1
   have hmeanX : ∀ i, D.E (X i) = 1 := by
@@ -269,7 +272,7 @@ lemma treatDenominator_var_le (E : BipartiteExperiment I O)
       _ ≤ Dbar * denominatorKernelBound ε dbar :=
             mul_le_mul_of_nonneg_right (hdep.2 i) hK_nonneg
   calc
-    (bernoulliDesign q hq0 hq1).Var (fun z => ∑ i, E.expT z i / E.piT q i)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var (fun z => ∑ i, E.expT z i / E.piT q i)
         = D.Var (fun z => ∑ i, X i z) := rfl
     _ = ∑ i : O, ∑ j : O, E.r1 q i j := hvar_eq
     _ ≤ ∑ _i : O, Dbar * denominatorKernelBound ε dbar :=

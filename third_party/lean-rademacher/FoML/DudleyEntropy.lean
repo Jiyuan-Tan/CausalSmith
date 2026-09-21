@@ -1,12 +1,15 @@
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import FoML.Defs
-import FoML.PseudoMetric
-import FoML.Massart
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Algebra.Order.Group.CompleteLattice
-import Mathlib.Data.Set.Finite.Basic
-import Mathlib.Analysis.SumIntegralComparisons
-import Mathlib.Analysis.SpecialFunctions.Log.Base
+module
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import FoML.Defs
+public import FoML.PseudoMetric
+public import FoML.Massart
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Algebra.Order.Group.CompleteLattice
+public import Mathlib.Data.Set.Finite.Basic
+public import Mathlib.Analysis.SumIntegralComparisons
+public import Mathlib.Analysis.SpecialFunctions.Log.Base
+
+@[expose] public section
 
 universe v u
 open scoped BigOperators
@@ -40,15 +43,15 @@ theorem term_le_total_sum_of_nonneg (m : ℕ) (j : Fin m) (f : Fin m → ℝ) (h
 
 variable {c : ℝ}
   -- Dyadic radius sequence, associated cover, and cover cardinality.
-private noncomputable abbrev ej (c : ℝ) : ℕ → ℝ := fun j ↦ c/(2^j : ℝ)
+noncomputable abbrev ej (c : ℝ) : ℕ → ℝ := fun j ↦ c/(2^j : ℝ)
 
-private lemma ej_pos (c_pos : 0 < c) : ∀ j, (ej c j > 0) := by
+lemma ej_pos (c_pos : 0 < c) : ∀ j, (ej c j > 0) := by
   intro j
   dsimp [ej]
   simp only [gt_iff_lt, Nat.ofNat_pos, pow_pos, div_pos_iff_of_pos_right]
   exact c_pos
 
-private noncomputable abbrev cj (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (j : ℕ)
+noncomputable abbrev cj (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (j : ℕ)
   := coveringFinset h (ej_pos c_pos j)
   -- Factor out commonly used expressions
 private noncomputable abbrev signs_card_inv (m : ℕ) : ℝ := (Fintype.card (Signs m) : ℝ)⁻¹
@@ -61,7 +64,7 @@ private lemma e_nonempty :
   exact ⟨⟨i⟩, by simp⟩
 
 omit [Nonempty ι] in
-private lemma exists_cover_approximation (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
+lemma exists_cover_approximation (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
   (fh : ι) (j : ℕ) :
   ∃ f_j : EmpiricalFunctionSpace F S, f_j ∈ cj c_pos h j ∧ empiricalDist S (F fh) f_j ≤ ej c j := by
   have : ⟨fh⟩ ∈ ⋃ y ∈ coveringFinset h (ej_pos c_pos j), Metric.ball y (ej c j)
@@ -73,7 +76,7 @@ private lemma exists_cover_approximation (c_pos : 0 < c) (h : TotallyBounded (Se
   · exact hy'
   · exact le_of_lt hy''
 
-private noncomputable def coverApprox (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) : ι → ℕ → EmpiricalFunctionSpace F S :=
+noncomputable def coverApprox (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) : ι → ℕ → EmpiricalFunctionSpace F S :=
     fun fh j => Classical.choose (exists_cover_approximation c_pos h fh j)
 
 omit [Nonempty ι] in
@@ -90,7 +93,7 @@ private lemma empiricalDist_coverApprox_le_radius (c_pos : 0 < c)
   classical
   exact (Classical.choose_spec (exists_cover_approximation c_pos h fh j)).2
 
-private noncomputable def chainApprox (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) : ι → ℕ → Z → ℝ :=
+noncomputable def chainApprox (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) : ι → ℕ → Z → ℝ :=
     fun fh j => if j = 0 then 0 else (coverApprox c_pos h fh j : Z → ℝ)
 
 omit [Nonempty ι] in
@@ -461,7 +464,7 @@ private lemma partA_sup_bound (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Se
 private noncomputable def incrementSet (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
   := {chainApprox c_pos h fh (j + 1) - chainApprox c_pos h fh j | fh : ι}
 
-private noncomputable def incrementPairSet (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
+noncomputable def incrementPairSet (c_pos : 0 < c) (h : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
   := {(chainApprox c_pos h fh (j + 1), chainApprox c_pos h fh j) | fh : ι}
 
 private lemma finite_chainApprox_image (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n) :
@@ -512,7 +515,7 @@ private lemma incrementPairSet_subset_approxPairSet (c_pos : 0 < c) (h' : Totall
   rw [<- hg]
   refine Set.mk_mem_prod (by use f0) (by use f0)
 
-private lemma finite_incrementPairSet (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n) :
+lemma finite_incrementPairSet (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n) :
   (incrementPairSet c_pos h' n j).Finite := by
   unfold incrementPairSet
   refine (finite_approxPairSet c_pos h' n j).subset ?_
@@ -542,7 +545,7 @@ private noncomputable def currApproxFinset (c_pos : 0 < c) (h' : TotallyBounded 
 private noncomputable def incrementFinset (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
   := Set.Finite.toFinset (finite_incrementSet c_pos h' n j)
 
-private noncomputable def incrementPairFinset (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
+noncomputable def incrementPairFinset (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)
   := Set.Finite.toFinset (finite_incrementPairSet c_pos h' n j)
 
 private noncomputable def approxPairFinset (c_pos : 0 < c) (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S))) (n : ℕ) (j : Fin n)

@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonKernel
-import Mathlib.Data.Fintype.Order
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.JacksonKernel
+public import Mathlib.Data.Fintype.Order
 
 /-! Simultaneous pointwise and coefficient control for the tensor Jackson approximant. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

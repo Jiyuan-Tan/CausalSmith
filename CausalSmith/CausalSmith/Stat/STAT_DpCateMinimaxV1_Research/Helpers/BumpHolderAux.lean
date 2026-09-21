@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
-import Mathlib.Analysis.Calculus.MeanValue
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
+public import Mathlib.Analysis.Calculus.MeanValue
 
 /-! # Uniform Hölder control of the localized CATE bump -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

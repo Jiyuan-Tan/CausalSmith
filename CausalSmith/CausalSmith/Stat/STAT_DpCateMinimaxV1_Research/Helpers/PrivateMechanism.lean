@@ -10,11 +10,16 @@ flattened empirical Gram/moment query, and clipped projected release used by the
 central-DP CATE upper-bound witness.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateUpperBound
-import Causalean.Stat.Privacy.LaplaceMechanism
-import Causalean.Mathlib.Analysis.ConvexProjection
-import Causalean.Mathlib.Analysis.MonomialGram
-import Mathlib.Data.Fintype.EquivFin
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateUpperBound
+public import Causalean.Stat.Privacy.LaplaceMechanism
+public import Causalean.Mathlib.Analysis.ConvexProjection
+public import Causalean.Mathlib.Analysis.MonomialGram
+public import Mathlib.Data.Fintype.EquivFin
+
+/-! ## The finite monomial basis -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -22,8 +27,6 @@ open MeasureTheory
 open scoped BigOperators ENNReal
 open Causalean.Mathlib.Analysis
 open Causalean.Stat.Privacy
-
-/-! ## The finite monomial basis -/
 
 /-- The multi-indices in `d` variables having total degree at most `m`. -/
 def degExpo (d m : ℕ) : Finset (Fin d → ℕ) :=
@@ -692,7 +695,7 @@ theorem mechOf_isArmwise {d n : ℕ} (beta r0 epsN h cstar Cstar : ℝ)
 
 /-! ## Flattened query and data-independent post-processing -/
 
-private def queryCoordOf (d m : ℕ) :
+def queryCoordOf (d m : ℕ) :
     (Fin 2 × Fin (pDim d m) × Fin (pDim d m)) ⊕ (Fin 2 × Fin (pDim d m)) →
       Fin (Nq d m)
   | Sum.inl q => gramIdxOf d m q.1 q.2.1 q.2.2
@@ -711,7 +714,7 @@ private theorem queryCoordOf_injective (d m : ℕ) :
       | inl q' => exact False.elim (gramIdxOf_ne_momIdxOf d m _ _ _ _ _ h.symm)
       | inr q' => exact congrArg Sum.inr (momIdxOf_injective d m h)
 
-private theorem queryCoordOf_bijective (d m : ℕ) :
+theorem queryCoordOf_bijective (d m : ℕ) :
     Function.Bijective (queryCoordOf d m) := by
   apply (Fintype.bijective_iff_injective_and_card _).mpr
   constructor
@@ -720,7 +723,7 @@ private theorem queryCoordOf_bijective (d m : ℕ) :
     simp [Nq]
     ring
 
-private noncomputable def queryCoordEquiv (d m : ℕ) :
+noncomputable def queryCoordEquiv (d m : ℕ) :
     (Fin 2 × Fin (pDim d m) × Fin (pDim d m)) ⊕ (Fin 2 × Fin (pDim d m)) ≃
       Fin (Nq d m) :=
   Equiv.ofBijective (queryCoordOf d m) (queryCoordOf_bijective d m)

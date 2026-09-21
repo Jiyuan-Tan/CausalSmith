@@ -1,0 +1,5 @@
+import CausalSmith.Substrate.MeasurePreservingCondindepDomainTransport.CondIndep
+import CausalSmith.Substrate.MeasurePreservingCondindepDomainTransport.WithDensity
+
+#print axioms CausalSmith.Substrate.MeasurePreservingCondindepDomainTransport.condIndepFun_comp_measurableEquiv_iff
+#print axioms CausalSmith.Substrate.MeasurePreservingCondindepDomainTransport.map_withDensity_comp_measurableEquiv

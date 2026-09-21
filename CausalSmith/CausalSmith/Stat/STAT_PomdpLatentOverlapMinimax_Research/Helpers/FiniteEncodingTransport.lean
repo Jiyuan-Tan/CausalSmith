@@ -1,4 +1,7 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteHistoryFactorization
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.FiniteHistoryFactorization
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 

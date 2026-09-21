@@ -4,24 +4,31 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Concentration.Covering.VCLocalizedRegime
+module
+public import Causalean.Stat.Concentration.Covering.VCLocalizedRegime
+public import Causalean.Stat.Concentration.Localization.PeelingRates
 
 /-!
-Finite-VC localized uniform-deviation bounds derived from the sharp localized empirical-process
+Finite-VC localized uniform-deviation bounds under a universal samplewise
+empirical-radius assumption, derived from the sharp localized empirical-process
 theorem.
 
 For a finite-VC binary-indexed function class, with high probability the localized empirical
-process deviates from its mean by at most 8ρ * ‖f‖ + 5ρ² uniformly over the class, with
-critical radius ρ of order sqrt(d * log n / n) -- derived by instantiating
+process deviates from its mean by at most 10ρ * ‖f‖ + 5ρ² uniformly over members satisfying
+`0 ≤ norm f ≤ b`, with critical radius ρ of order sqrt(d * log n / n) -- derived, under that
+stronger samplewise assumption, by instantiating
 `localized_uniform_deviation_sharp` with the finite-VC localized envelope.
 
-This file is the finite-VC specialization layer for the sharp localized uniform deviation
-theorem.  The empirical-process content is supplied by `VCLocalizedRegime.lean`; the only
-application-specific arithmetic left to callers is the peeling/log domination condition.
+This file is the samplewise-radius finite-VC specialization layer for the sharp
+localized uniform-deviation theorem. The empirical-process content is supplied
+by finite-pattern Massart bounds; the only rate arithmetic is supplied by
+`vcLocalizedSlope_peelingCondition_eventually`.
 It exports the VC-dimension event `vc_localized_deviation_event`, the direct
 growth-cardinality variant `vc_localized_deviation_event_of_card`, and the
 measurability/integrability bridges needed to instantiate the sharp theorem.
 -/
+
+public section
 
 namespace Causalean
 namespace Stat
@@ -132,7 +139,7 @@ localized star hull.
       (hF_meas : ∀ i, Measurable (F i))
       (μ : Measure 𝒳)
       (b r : ℝ) (hb : 0 ≤ b) (hbound : ∀ i x, |F i x| ≤ b)
-      (n : ℕ) (hn : 0 < n) :
+      (n : ℕ) :
         AEMeasurable
           (fun ω : Fin n → 𝒳 =>
             empiricalRademacherComplexity n (starHullZeroOut F norm r) (id ∘ ω))
@@ -202,7 +209,7 @@ measurability bridge above is available. -/
       (b : ℝ) (hb : 0 ≤ b) (hbound : ∀ i x, |F i x| ≤ b)
       (K : ℝ) (d n : ℕ) (hK : (1 : ℝ) ≤ K) (hn : 0 < n)
       (Hvc : BinaryFactoredVCClass F d)
-      (Hloc : LocalizedVCDudleyHypotheses F norm) :
+      (Hloc : SamplewiseLocalizedVCDudleyHypotheses F norm) :
     ∀ r : ℝ, vcLocalizedSlope K d n ≤ r →
       Integrable
         (fun ω : Fin n → 𝒳 =>
@@ -217,7 +224,7 @@ measurability bridge above is available. -/
       AEMeasurable g (Measure.pi (fun _ : Fin n => μ)) := by
       simpa [g] using
         vc_starHullZeroOut_empirical_rademacher_aemeasurable
-          F norm hF_meas μ b r hb hbound n hn
+          F norm hF_meas μ b r hb hbound n
   have hg_nonneg : ∀ᵐ ω : Fin n → 𝒳 ∂(Measure.pi (fun _ : Fin n => μ)),
       0 ≤ g ω := by
     exact Filter.Eventually.of_forall fun ω => by
@@ -257,7 +264,7 @@ star-hull empirical Rademacher process. -/
       (K : ℝ) (dPi n : ℕ) (hK : (1 : ℝ) ≤ K) (hn : 0 < n)
       (hcard : ∀ (m : ℕ) (S : Fin m → 𝒳),
         (growthFamily π S).card ≤ (m + 1) ^ dPi)
-    (Hloc : LocalizedVCDudleyHypotheses F norm) :
+    (Hloc : SamplewiseLocalizedVCDudleyHypotheses F norm) :
     ∀ r : ℝ, vcLocalizedSlope K dPi n ≤ r →
       Integrable
         (fun ω : Fin n → 𝒳 =>
@@ -272,7 +279,7 @@ star-hull empirical Rademacher process. -/
       AEMeasurable g (Measure.pi (fun _ : Fin n => μ)) := by
       simpa [g] using
         vc_starHullZeroOut_empirical_rademacher_aemeasurable
-          F norm hF_meas μ b r hb hbound n hn
+          F norm hF_meas μ b r hb hbound n
   have hg_nonneg : ∀ᵐ ω : Fin n → 𝒳 ∂(Measure.pi (fun _ : Fin n => μ)),
       0 ≤ g ω := by
     exact Filter.Eventually.of_forall fun ω => by
@@ -308,16 +315,17 @@ variable [Nonempty 𝒳] [Nonempty ι] [Countable ι]
 /-- **Finite-VC localized uniform deviation event.** For [a class of
 measurable real-valued functions](hyp:hF_meas) [uniformly bounded in
 absolute value by a nonnegative constant b](hyp:hb,hbound), with [a
-localization constant K at least 1](hyp:hK) and [a positive sample size
-n](hyp:hn), suppose [the class factors through a binary Boolean family of
-VC dimension at most d](hyp:Hvc) and [satisfies the localized Dudley
-hypotheses relative to the given seminorm](hyp:Hloc). For [a failure
+nonnegative localization norm](hyp:hnorm_nonneg), [variance controlled by its
+square](hyp:hvariance), [a localization constant K at least 1](hyp:hK) and [a
+positive sample size n](hyp:hn), suppose [the class factors through a binary
+Boolean family of VC dimension at most d](hyp:Hvc) and [has the samplewise
+localization certificate](hyp:Hloc). For [a failure
 probability δ in `(0,1]`](hyp:hδ,hδ'), writing ρ for the localized slope
 `vcLocalizedSlope K d n`, if [ρ is at most b](hyp:hρ_le_b) and [the
-peeling/log-domination side condition holds at every dyadic scale](hyp:hδ_dom),
+peeling/log-domination side condition holds at one dyadic depth covering the class](hyp:hδ_dom),
 then [there is a measurable event of probability at least `1 - δ` on which
 every class member i with `0 ≤ norm (F i) ≤ b` satisfies the sharp
-localized deviation bound `|n⁻¹ ∑ₖ F i(ωₖ) − 𝔼[F i]| ≤ 8ρ·norm(F i) +
+localized deviation bound `|n⁻¹ ∑ₖ F i(ωₖ) − 𝔼[F i]| ≤ 10ρ·norm(F i) +
 5ρ²`](goal).
 
 The arithmetic side condition `hδ_dom` is the peeling/log domination condition
@@ -327,16 +335,14 @@ theorem vc_localized_deviation_event
     (μ : Measure 𝒳) [IsProbabilityMeasure μ]
     (hF_meas : ∀ i, Measurable (F i))
     (b : ℝ) (hb : 0 ≤ b) (hbound : ∀ i x, |F i x| ≤ b)
+    (hnorm_nonneg : ∀ i, 0 ≤ norm (F i))
+    (hvariance : ∀ i, variance (F i) μ ≤ norm (F i) ^ 2)
     (K : ℝ) (d n : ℕ) (hK : (1 : ℝ) ≤ K) (hn : 0 < n)
     (Hvc : BinaryFactoredVCClass F d)
-    (Hloc : LocalizedVCDudleyHypotheses F norm)
+    (Hloc : SamplewiseLocalizedVCDudleyHypotheses F norm)
     {δ : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ 1)
     (hρ_le_b : vcLocalizedSlope K d n ≤ b)
-    (hδ_dom : ∀ L : ℕ,
-      b ≤ vcLocalizedSlope K d n * (2 : ℝ) ^ L →
-      b * Real.sqrt
-          (2 * Real.log (2 * ((L : ℝ) + 1) / δ) / n)
-        ≤ (vcLocalizedSlope K d n) ^ 2) :
+    (hδ_dom : PeelingCondition b δ (vcLocalizedSlope K d n) n) :
     ∃ E : Set (Fin n → 𝒳), MeasurableSet E ∧
       Measure.pi (fun _ => μ) E ≥ 1 - ENNReal.ofReal δ ∧
       ∀ ω ∈ E, ∀ i : ι,
@@ -344,12 +350,13 @@ theorem vc_localized_deviation_event
         norm (F i) ≤ b →
         |(n : ℝ)⁻¹ * (Finset.univ.sum fun k : Fin n => F i (ω k))
             - μ[fun x => F i x]|
-          ≤ 8 * vcLocalizedSlope K d n * norm (F i)
+          ≤ 10 * vcLocalizedSlope K d n * norm (F i)
             + 5 * (vcLocalizedSlope K d n) ^ 2 := by
   classical
   have hK0 : 0 ≤ K := le_trans zero_le_one hK
   let R : LocalizedRegime 𝒳 ι 𝒳 F norm μ id :=
-    vcLocalizedRegime F norm μ id b hb (by simpa using hbound) K d hK Hvc Hloc
+    vcLocalizedRegime F norm μ id b hb (by simpa using hbound)
+      (by simpa using hvariance) K d hK Hvc Hloc
   let ρ : ℝ := vcLocalizedSlope K d n
   have hρ_pos : 0 < ρ := vcLocalizedSlope_pos hK0 hn
   have hcrit_eq : criticalRadius (R.ψ n) = ρ := by
@@ -360,10 +367,6 @@ theorem vc_localized_deviation_event
   have hcrit_pos : 0 < criticalRadius (R.ψ n) := by
     rw [hcrit_eq]
     exact hρ_pos
-  have hcrit_fp : R.ψ n (criticalRadius (R.ψ n)) ≤
-      (criticalRadius (R.ψ n)) ^ 2 := by
-    dsimp [R, vcLocalizedRegime]
-    exact vcLocalizedPsi_criticalRadius_fp hK0 hn
   have hrad_bdd : ∀ r : ℝ, ρ ≤ r →
       ∀ S : Fin n → 𝒳, ∀ σ : Signs n,
         BddAbove (Set.range fun p : starHullParam ι =>
@@ -381,28 +384,33 @@ theorem vc_localized_deviation_event
     exact vc_starHullZeroOut_empirical_rademacher_integrable
       F norm μ hF_meas b hb hbound K d n hK hn Hvc Hloc r hr
   rcases localized_uniform_deviation_sharp
-      F norm μ id measurable_id hF_meas R hδ hδ' n hn
+      F norm μ id measurable_id hF_meas hnorm_nonneg R hδ hδ' n hn
       (ρ := ρ) (Rmax := b)
-      hcrit_le_ρ hρ_pos hcrit_pos hcrit_fp hrad_bdd hrad_int
-      hδ_dom with
+      hcrit_le_ρ hρ_pos hcrit_pos hrad_bdd hrad_int
+      (by simpa [PeelingCondition, R, ρ, vcLocalizedRegime] using hδ_dom) with
     ⟨E, hE_meas, hE_prob, hE_bound⟩
   refine ⟨E, hE_meas, hE_prob, ?_⟩
   intro ω hω i hi_nonneg hi_b
   simpa [R, ρ] using hE_bound ω hω i hi_nonneg hi_b
 
 /-- **Growth-cardinality localized uniform deviation event.** For [a class of measurable
-real-valued functions](hyp:hF_meas) [uniformly bounded in absolute value by a nonnegative constant
-b](hyp:hb,hbound) that [factors through a Boolean classifier π at every finite sample, for a
-coordinate transform φ with `F i (S j) = φ j (π i (S j))`](hyp:hfactor), with [a localization
-constant K at least 1](hyp:hK) and [a positive sample size n](hyp:hn), suppose [the induced Boolean
-growth family satisfies the direct cardinality bound `#growthFamily π S ≤ (m+1)^dPi` on every
-finite sample of size m](hyp:hcard) and [the class satisfies the localized Dudley hypotheses
-relative to the given seminorm](hyp:Hloc). For [a failure probability δ in `(0,1]`](hyp:hδ,hδ'),
-writing ρ for the localized slope `vcLocalizedSlope K dPi n`, if [ρ is at most b](hyp:hρ_le_b) and
-[the peeling/log-domination side condition holds at every dyadic scale](hyp:hδ_dom), then [there is
-a measurable event of probability at least `1 - δ` on which every class member i with `0 ≤ norm (F
-i) ≤ b` satisfies the sharp localized deviation bound `|n⁻¹ ∑ₖ F i(ωₖ) − 𝔼[F i]| ≤ 8ρ·norm(F i) +
-5ρ²`](goal).
+real-valued functions](hyp:hF_meas) [uniformly bounded in absolute value by a
+nonnegative constant b](hyp:hb,hbound), with [a nonnegative localization
+norm](hyp:hnorm_nonneg) and [variance controlled by its square](hyp:hvariance),
+that [factors through a Boolean classifier π at every finite sample, for a
+coordinate transform φ with `F i (S j) = φ j (π i (S j))`](hyp:hfactor), with
+[a localization constant K at least 1](hyp:hK) and [a positive sample size
+n](hyp:hn), suppose [the induced Boolean growth family satisfies the direct
+cardinality bound `#growthFamily π S ≤ (m+1)^dPi` on every finite sample of size
+m](hyp:hcard) and [the class has the samplewise localization
+certificate](hyp:Hloc). For [a failure probability δ in
+`(0,1]`](hyp:hδ,hδ'), writing ρ for the localized slope
+`vcLocalizedSlope K dPi n`, if [ρ is at most b](hyp:hρ_le_b) and [the
+peeling/log-domination side condition holds at one dyadic depth covering the
+class](hyp:hδ_dom), then [there is a measurable event of probability at least
+`1 - δ` on which every class member i with `0 ≤ norm (F i) ≤ b` satisfies the
+sharp localized deviation bound
+`|n⁻¹ ∑ₖ F i(ωₖ) − 𝔼[F i]| ≤ 10ρ·norm(F i) + 5ρ²`](goal).
 
 This variant takes a direct cardinality bound on the binary trace family,
 `#growthFamily π S ≤ (m + 1)^dPi`, matching finite policy trace bounds that
@@ -414,19 +422,17 @@ theorem vc_localized_deviation_event_of_card
     (μ : Measure 𝒳) [IsProbabilityMeasure μ]
     (hF_meas : ∀ i, Measurable (F i))
     (b : ℝ) (hb : 0 ≤ b) (hbound : ∀ i x, |F i x| ≤ b)
+    (hnorm_nonneg : ∀ i, 0 ≤ norm (F i))
+    (hvariance : ∀ i, variance (F i) μ ≤ norm (F i) ^ 2)
     (hfactor : ∀ {m : ℕ} (S : Fin m → 𝒳), ∃ φ : Fin m → Bool → ℝ,
       ∀ i j, F i (S j) = φ j (π i (S j)))
     (K : ℝ) (dPi n : ℕ) (hK : (1 : ℝ) ≤ K) (hn : 0 < n)
     (hcard : ∀ (m : ℕ) (S : Fin m → 𝒳),
       (growthFamily π S).card ≤ (m + 1) ^ dPi)
-    (Hloc : LocalizedVCDudleyHypotheses F norm)
+    (Hloc : SamplewiseLocalizedVCDudleyHypotheses F norm)
     {δ : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ 1)
     (hρ_le_b : vcLocalizedSlope K dPi n ≤ b)
-    (hδ_dom : ∀ L : ℕ,
-      b ≤ vcLocalizedSlope K dPi n * (2 : ℝ) ^ L →
-      b * Real.sqrt
-          (2 * Real.log (2 * ((L : ℝ) + 1) / δ) / n)
-        ≤ (vcLocalizedSlope K dPi n) ^ 2) :
+    (hδ_dom : PeelingCondition b δ (vcLocalizedSlope K dPi n) n) :
     ∃ E : Set (Fin n → 𝒳), MeasurableSet E ∧
       Measure.pi (fun _ => μ) E ≥ 1 - ENNReal.ofReal δ ∧
       ∀ ω ∈ E, ∀ i : ι,
@@ -434,13 +440,13 @@ theorem vc_localized_deviation_event_of_card
         norm (F i) ≤ b →
         |(n : ℝ)⁻¹ * (Finset.univ.sum fun k : Fin n => F i (ω k))
             - μ[fun x => F i x]|
-          ≤ 8 * vcLocalizedSlope K dPi n * norm (F i)
+          ≤ 10 * vcLocalizedSlope K dPi n * norm (F i)
             + 5 * (vcLocalizedSlope K dPi n) ^ 2 := by
   classical
   have hK0 : 0 ≤ K := le_trans zero_le_one hK
   let R : LocalizedRegime 𝒳 ι 𝒳 F norm μ id :=
     vcLocalizedRegime_of_card
-      F norm π μ id b hb (by simpa using hbound)
+      F norm π μ id b hb (by simpa using hbound) (by simpa using hvariance)
       hfactor K dPi hK hcard Hloc
   let ρ : ℝ := vcLocalizedSlope K dPi n
   have hρ_pos : 0 < ρ := vcLocalizedSlope_pos hK0 hn
@@ -452,10 +458,6 @@ theorem vc_localized_deviation_event_of_card
   have hcrit_pos : 0 < criticalRadius (R.ψ n) := by
     rw [hcrit_eq]
     exact hρ_pos
-  have hcrit_fp : R.ψ n (criticalRadius (R.ψ n)) ≤
-      (criticalRadius (R.ψ n)) ^ 2 := by
-    dsimp [R, vcLocalizedRegime_of_card]
-    exact vcLocalizedPsi_criticalRadius_fp hK0 hn
   have hrad_bdd : ∀ r : ℝ, ρ ≤ r →
       ∀ S : Fin n → 𝒳, ∀ σ : Signs n,
         BddAbove (Set.range fun p : starHullParam ι =>
@@ -473,14 +475,57 @@ theorem vc_localized_deviation_event_of_card
     exact vc_starHullZeroOut_empirical_rademacher_integrable_of_card
       F norm π μ hF_meas b hb hbound hfactor K dPi n hK hn hcard Hloc r hr
   rcases localized_uniform_deviation_sharp
-      F norm μ id measurable_id hF_meas R hδ hδ' n hn
+      F norm μ id measurable_id hF_meas hnorm_nonneg R hδ hδ' n hn
       (ρ := ρ) (Rmax := b)
-      hcrit_le_ρ hρ_pos hcrit_pos hcrit_fp hrad_bdd hrad_int
-      hδ_dom with
+      hcrit_le_ρ hρ_pos hcrit_pos hrad_bdd hrad_int
+      (by
+        simpa [PeelingCondition, R, ρ, vcLocalizedRegime_of_card] using hδ_dom) with
     ⟨E, hE_meas, hE_prob, hE_bound⟩
   refine ⟨E, hE_meas, hE_prob, ?_⟩
   intro ω hω i hi_nonneg hi_b
   simpa [R, ρ] using hE_bound ω hω i hi_nonneg hi_b
+
+/-- For [a measurable finite-VC function class](hyp:F,hF_meas,Hvc), [a nonnegative
+localization norm](hyp:norm,hnorm_nonneg), [a probability law](hyp:μ), [a nonnegative
+envelope and its uniform bound](hyp:b,hb,hbound), [the variance control](hyp:hvariance),
+[a VC tuning constant](hyp:K,hK), [a positive VC dimension](hyp:d,hd), [the
+samplewise localization certificate](hyp:Hloc), and [a confidence level in
+`(0,1]`](hyp:δ,hδ,hδ'),
+[eventually every logarithmic peeling depth covering the envelope yields the finite-VC
+localized deviation event without a separate peeling-arithmetic hypothesis](goal). -/
+theorem vc_localized_deviation_event_eventually
+    (F : ι → 𝒳 → ℝ) (norm : (𝒳 → ℝ) → ℝ)
+    (μ : Measure 𝒳) [IsProbabilityMeasure μ]
+    (hF_meas : ∀ i, Measurable (F i))
+    (b : ℝ) (hb : 0 ≤ b) (hbound : ∀ i x, |F i x| ≤ b)
+    (hnorm_nonneg : ∀ i, 0 ≤ norm (F i))
+    (hvariance : ∀ i, variance (F i) μ ≤ norm (F i) ^ 2)
+    (K : ℝ) (d : ℕ) (hK : (1 : ℝ) ≤ K) (hd : 0 < d)
+    (Hvc : BinaryFactoredVCClass F d)
+    (Hloc : SamplewiseLocalizedVCDudleyHypotheses F norm)
+    {δ : ℝ} (hδ : 0 < δ) (hδ' : δ ≤ 1) :
+    ∃ n₀ : ℕ, ∀ n ≥ n₀, ∀ L : ℕ,
+      (L : ℝ) ≤ Real.log ((n : ℝ) + 1) →
+      b ≤ vcLocalizedSlope K d n * (2 : ℝ) ^ L →
+      vcLocalizedSlope K d n ≤ b →
+      ∃ E : Set (Fin n → 𝒳), MeasurableSet E ∧
+        Measure.pi (fun _ => μ) E ≥ 1 - ENNReal.ofReal δ ∧
+        ∀ ω ∈ E, ∀ i : ι,
+          0 ≤ norm (F i) →
+          norm (F i) ≤ b →
+          |(n : ℝ)⁻¹ * (Finset.univ.sum fun k : Fin n => F i (ω k))
+              - μ[fun x => F i x]|
+            ≤ 10 * vcLocalizedSlope K d n * norm (F i)
+              + 5 * (vcLocalizedSlope K d n) ^ 2 := by
+  obtain ⟨n₀, hn₀⟩ := vcLocalizedSlope_peelingCondition_eventually hb hδ hδ' hK hd
+  refine ⟨max n₀ 1, ?_⟩
+  intro n hn L hL hcover hρ_le_b
+  have hn₀n : n₀ ≤ n := (Nat.le_max_left n₀ 1).trans hn
+  have hnpos : 0 < n :=
+    Nat.zero_lt_one.trans_le ((Nat.le_max_right n₀ 1).trans hn)
+  exact vc_localized_deviation_event F norm μ hF_meas b hb hbound
+    hnorm_nonneg hvariance K d n hK hnpos Hvc Hloc hδ hδ' hρ_le_b
+    (hn₀ n hn₀n L hL hcover)
 
 end Main
 

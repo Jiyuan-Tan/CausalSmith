@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
-import Mathlib.Data.Fintype.BigOperators
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Mathlib.Data.Fintype.BigOperators
 
 /-!
 # Sävje–Aronow–Hudgens (2021): EATE estimand and the Horvitz–Thompson estimator
@@ -33,6 +34,8 @@ only on the treatments of the units that interfere with it — the bridge that t
 "`InterfDep` fails" into "the two HT summands depend on disjoint coordinate blocks", which the
 disjoint-block independence lemma then turns into a vanishing covariance.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -75,6 +78,30 @@ interference and the population size when every ordered pair is interference dep
 interference is the condition that it is of smaller order than the population size. -/
 noncomputable def dbar (y : U → (U → Bool) → ℝ) : ℝ :=
   dbarCount y / (Fintype.card U : ℝ)
+
+/-- For [a nonempty finite population](hyp:hcard), [average interference dependence is at least
+one](goal), because every unit is interference-dependent with itself. -/
+theorem one_le_dbar (y : U → (U → Bool) → ℝ) (hcard : 1 ≤ Fintype.card U) :
+    (1 : ℝ) ≤ dbar y := by
+  classical
+  have hn0 : (0 : ℝ) < (Fintype.card U : ℝ) := by
+    exact_mod_cast lt_of_lt_of_le zero_lt_one hcard
+  have hdiag : ∀ i : U, InterfDep y i i := fun i => ⟨i, Or.inl rfl, Or.inl rfl⟩
+  have hcount : (Fintype.card U : ℝ) ≤ dbarCount y := by
+    rw [dbarCount]
+    calc
+      (Fintype.card U : ℝ) = ∑ _i : U, (1 : ℝ) := by
+        rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, mul_one]
+      _ = ∑ i : U, (if InterfDep y i i then (1 : ℝ) else 0) := by
+        refine Finset.sum_congr rfl (fun i _ => ?_)
+        rw [if_pos (hdiag i)]
+      _ ≤ ∑ i : U, ∑ j : U, (if InterfDep y i j then (1 : ℝ) else 0) := by
+        refine Finset.sum_le_sum (fun i _ => ?_)
+        refine Finset.single_le_sum (f := fun j => if InterfDep y i j then (1 : ℝ) else 0)
+          (fun j _ => ?_) (Finset.mem_univ i)
+        by_cases h : InterfDep y i j <;> simp [h]
+  rw [dbar, le_div_iff₀ hn0, one_mul]
+  exact hcount
 
 /-! ### Estimand: EATE -/
 

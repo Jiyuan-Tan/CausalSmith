@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseConstruction
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseConstruction
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TEqualPropensityL1Reduction
 
 /-! Exact prefix-law substrate for the dense fixed/Poisson risk transfer. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -274,12 +277,12 @@ lemma minimaxRisk_ge_poissonOptimalValueRisk_sub_lowerTail
     unfold poissonObservedRisk Causalean.Stat.sqRisk
     positivity
   have hupper : poissonOptimalValueRisk (2 * n) d epsilon ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) pest :=
     Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg hpois_nonneg pest
-  have hworst : Causalean.Stat.worstCaseRisk
+  have hworst : Causalean.Stat.worstCaseRiskReal
         (poissonObservedRisk (2 * n) (d := d) (epsilon := epsilon)) pest ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
           (observedRisk n (d := d) (epsilon := epsilon)) est + tail := by
     apply Causalean.Stat.worstCaseRisk_le
     intro P

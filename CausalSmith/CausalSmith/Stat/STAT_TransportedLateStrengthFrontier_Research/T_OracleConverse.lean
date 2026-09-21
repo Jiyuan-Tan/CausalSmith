@@ -2,7 +2,10 @@
 # Global and finite-cell oracle converse
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_NoShiftReduction
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_NoShiftReduction
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

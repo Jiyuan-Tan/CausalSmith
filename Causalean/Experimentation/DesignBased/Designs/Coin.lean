@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 /-! # Single-coin randomization design
 
@@ -13,8 +14,11 @@ Product Bernoulli designs and paper-specific experimentation developments reuse 
 one-coordinate layer.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
+
 
 namespace Causalean
 namespace Experimentation

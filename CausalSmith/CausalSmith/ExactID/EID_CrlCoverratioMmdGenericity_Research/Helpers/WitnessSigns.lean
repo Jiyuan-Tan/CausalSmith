@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witnesses
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witnesses
 
 /-!
 # Derivative signs for the explicit witnesses
@@ -6,6 +7,8 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witne
 This file proves the elementary logarithmic-derivative bounds that give the
 sparse witness its prescribed own-coordinate signs after reflection.
 -/
+
+public section
 
 open Set
 noncomputable section

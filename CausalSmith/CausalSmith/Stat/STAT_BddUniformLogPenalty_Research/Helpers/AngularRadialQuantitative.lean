@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAssembly
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAssembly
 
 /-!
 # Quantitative angular radial cancellation
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
 This module strengthens the exact active-tail cancellation with the localized
 absolute bound needed for the one-point KL estimate.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

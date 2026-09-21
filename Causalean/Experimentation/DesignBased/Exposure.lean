@@ -17,7 +17,8 @@ and `j` in exposure `d`) and `propPairCross` (`i` in `d`, `j` in `d'`), which dr
 Horvitz–Thompson variance formulas downstream.
 -/
 
-import Causalean.Experimentation.DesignBased.DesignCore
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 /-! # Exposure mappings and generalized exposure probabilities
 
@@ -32,8 +33,11 @@ distinct exposures in the same assignment. For finite exposure spaces, `sum_prop
 each unit's exposure probabilities sum to one.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
+
 
 namespace Causalean
 namespace Experimentation

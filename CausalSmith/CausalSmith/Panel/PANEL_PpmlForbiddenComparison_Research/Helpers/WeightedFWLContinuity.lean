@@ -1,16 +1,19 @@
-import Causalean.Stat.MEstimation.FinitePoissonConsistency
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.Topology.Instances.Matrix
+module
+public import Causalean.Stat.MEstimation.FinitePoissonConsistency
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
+public import Mathlib.Analysis.Matrix.PosDef
+public import Mathlib.Topology.Instances.Matrix
 
 /-! Continuity of the effect-dependent mean-weighted FWL residual. -/
+
+@[expose] public section
 
 namespace CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research
 
 open scoped BigOperators
-open Causalean.Panel.Weighted
-open Causalean.Panel.Weighted.WeightedSupport
+open Causalean.Stat.Weighted
+open Causalean.Stat.Weighted.WeightedSupport
 open Causalean.Stat
 
 /-- The collapsed population parameter varies continuously with the full
@@ -318,7 +321,7 @@ lemma weightedFWLResidual_eq_continuousNuisanceCoefficient
             (div_pos (pi y.1.1).property.1 (by exact_mod_cast hT)) (Real.exp_pos _))
           Finset.univ_nonempty)
       simp [c, meanWeightedSupport, normalizedPositiveSupport,
-        Causalean.Panel.Weighted.WeightedSupport.ip, Pi.sub_apply, Z]
+        Causalean.Stat.Weighted.WeightedSupport.ip, Pi.sub_apply, Z]
       calc
         _ = (∑ y : SupportedCell T C,
             meanFWLWeight T C pi barB gamma delta (y.1.1, y.2) *
@@ -328,7 +331,7 @@ lemma weightedFWLResidual_eq_continuousNuisanceCoefficient
           intro y hy
           ring
         _ = 0 := by rw [hnormal j, zero_div]
-    · simp [Causalean.Panel.Weighted.WeightedSupport.ip]
+    · simp [Causalean.Stat.Weighted.WeightedSupport.ip]
     · intro x y _ _ hx hy
       rw [c.ip_add_right, hx, hy, add_zero]
     · intro s x _ hx

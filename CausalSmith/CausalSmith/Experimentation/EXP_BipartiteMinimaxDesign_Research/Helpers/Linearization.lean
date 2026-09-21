@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Linearization moment identities for the bipartite minimax design
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Kernel
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Kernel
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.style.whitespace false
@@ -41,18 +44,19 @@ lemma linScore_mean_zero
   have hpiC_pos : 0 < E.piC p i := by
     unfold BipartiteExperiment.piC
     exact Finset.prod_pos (fun k _ => sub_pos.mpr (hlt k))
-  have hET : (bernoulliDesign p hp0 hp1).E (fun z => E.expT z i) = E.piT p i := by
+  have hET : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => E.expT z i) = E.piT p i := by
     unfold BipartiteExperiment.expT BipartiteExperiment.piT
     exact bernoulli_E_treat_prod p hp0 hp1 (E.N i)
-  have hEC : (bernoulliDesign p hp0 hp1).E (fun z => E.expC z i) = E.piC p i := by
+  have hEC : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => E.expC z i) = E.piC p i := by
     unfold BipartiteExperiment.expC BipartiteExperiment.piC
     exact bernoulli_E_ctrl_prod p hp0 hp1 (E.N i)
-  have hA : (bernoulliDesign p hp0 hp1).E (fun z => E.expT z i / E.piT p i - 1) = 0 :=
+  have hA : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => E.expT z i / E.piT p i - 1) = 0 :=
     E_centered_ratio _ _ _ (ne_of_gt hpiT_pos) hET
-  have hB : (bernoulliDesign p hp0 hp1).E (fun z => E.expC z i / E.piC p i - 1) = 0 :=
+  have hB : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => E.expC z i / E.piC p i - 1) = 0 :=
     E_centered_ratio _ _ _ (ne_of_gt hpiC_pos) hEC
-  rw [(bernoulliDesign p hp0 hp1).E_sub]
-  rw [(bernoulliDesign p hp0 hp1).E_mul_const, (bernoulliDesign p hp0 hp1).E_mul_const]
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E_sub]
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E_mul_const,
+    (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E_mul_const]
   rw [hA, hB]
   ring
 
@@ -111,19 +115,19 @@ lemma linScore_pair_moment
   let B_i : (I → Bool) → ℝ := fun z => E.expC z i / E.piC p i - 1
   let A_j : (I → Bool) → ℝ := fun z => E.expT z j / E.piT p j - 1
   let B_j : (I → Bool) → ℝ := fun z => E.expC z j / E.piC p j - 1
-  have hAA : (bernoulliDesign p hp0 hp1).E (fun z => A_i z * A_j z) = E.r1 p i j :=
+  have hAA : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => A_i z * A_j z) = E.r1 p i j :=
     centered_treat_treat_moment E p hp0 hp1 hpos i j
-  have hBB : (bernoulliDesign p hp0 hp1).E (fun z => B_i z * B_j z) = E.r0 p i j :=
+  have hBB : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => B_i z * B_j z) = E.r0 p i j :=
     centered_ctrl_ctrl_moment E p hp0 hp1 hlt i j
-  have hAB : (bernoulliDesign p hp0 hp1).E (fun z => A_i z * B_j z) = -E.r10 i j :=
+  have hAB : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => A_i z * B_j z) = -E.r10 i j :=
     centered_treat_ctrl_moment E p hp0 hp1 hpos hlt i j
-  have hBA : (bernoulliDesign p hp0 hp1).E (fun z => B_i z * A_j z) = -E.r10 i j := by
-    calc (bernoulliDesign p hp0 hp1).E (fun z => B_i z * A_j z)
-        = (bernoulliDesign p hp0 hp1).E (fun z => A_j z * B_i z) := by
-            exact (bernoulliDesign p hp0 hp1).E_congr (fun z => by ring)
+  have hBA : (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => B_i z * A_j z) = -E.r10 i j := by
+    calc (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => B_i z * A_j z)
+        = (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E (fun z => A_j z * B_i z) := by
+            exact (Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1).E_congr (fun z => by ring)
       _ = -E.r10 j i := centered_treat_ctrl_moment E p hp0 hp1 hpos hlt j i
       _ = -E.r10 i j := by rw [r10_comm E i j]
-  rw [E_lin_expand (D := bernoulliDesign p hp0 hp1)
+  rw [E_lin_expand (D := Causalean.Experimentation.DesignBased.bernoulliDesign p hp0 hp1)
     (A := A_i) (B := B_i) (C := A_j) (F := B_j)
     (ai := E.Y1 i - E.mu1) (bi := E.Y0 i - E.mu0)
     (aj := E.Y1 j - E.mu1) (bj := E.Y0 j - E.mu0)

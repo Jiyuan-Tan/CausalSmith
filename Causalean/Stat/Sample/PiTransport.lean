@@ -20,10 +20,11 @@ under the IID sample.
 Pattern mirrors `FoldBEmpiricalProcess.oneShot_iid` (lines 301–314).
 -/
 
-import Causalean.Stat.Sample
-import Mathlib.Probability.Independence.InfinitePi
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Prod
+module
+public import Causalean.Stat.Sample
+public import Mathlib.Probability.Independence.InfinitePi
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Integral.Prod
 
 /-! # Transport to Product Samples
 
@@ -39,6 +40,8 @@ over the sub-index, so integrals and pushforwards transport verbatim.  Second,
 the *existence* of an i.i.d. sample with a prescribed marginal, which is shown
 to be equivalent to that marginal being a probability measure — i.e. to carry no
 information at all. -/
+
+@[expose] public section
 
 universe u
 

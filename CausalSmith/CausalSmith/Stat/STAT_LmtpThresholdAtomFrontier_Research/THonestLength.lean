@@ -4,19 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.WeightedConcentration
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityCriteriaLift
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityRates
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityRiskLower
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityLengthLower
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityProcedureBounds
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityExpectedLength
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestCoverage
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthLower
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthUpper
-import Causalean.Stat.Minimax.HonestConfidenceSet
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.WeightedConcentration
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityCriteriaLift
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityRates
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityRiskLower
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityLengthLower
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityProcedureBounds
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityExpectedLength
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestCoverage
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthLower
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestLengthUpper
+public import Causalean.Stat.Minimax.HonestConfidenceSet
 
 /-!
 # Uniformly honest confidence length frontier
@@ -25,6 +26,8 @@ The statement gives finite-sample eventual uniform coverage, expected-length
 control for the concrete atom-fallback interval, and a converse for every
 uniformly honest confidence procedure.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

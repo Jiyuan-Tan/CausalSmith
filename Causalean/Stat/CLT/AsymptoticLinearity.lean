@@ -18,10 +18,11 @@ packages it as convergence in distribution for the project's normalized
 i.i.d. sums.
 -/
 
-import Mathlib.Probability.CentralLimitTheorem
-import Causalean.Stat.Sample
-import Causalean.Stat.Limit.Convergence
-import Causalean.Tactic.Attr
+module
+public import Mathlib.Probability.CentralLimitTheorem
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Tactic.Attr
 
 /-! # Scalar Asymptotic Linearity
 
@@ -37,6 +38,8 @@ The namespace also exposes `IsAsymLinear.normalizedSum` and
 sums, `Tendsto_dist.add_isLittleOp_one` and related Slutsky/congruence
 wrappers, and `IsAsymLinear.tendsto_normal`, which turns full-sample scalar
 asymptotic linearity into asymptotic normality. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -246,20 +249,7 @@ theorem Tendsto_dist.add_isLittleOp_one
   have hXY : TendstoInMeasure μ (fun n ω => Yn n ω - Xn n ω) atTop (0 : Ω → ℝ) := by
     rw [tendstoInMeasure_iff_norm]
     intro ε hε
-    have hhalf : 0 < ε / 2 := by positivity
-    have hrem : Tendsto (fun n => μ {ω | ε / 2 < |Yn n ω - Xn n ω|}) atTop (𝓝 0) := by
-      simpa using hRem (ε / 2) hhalf
-    rw [ENNReal.tendsto_nhds_zero] at hrem ⊢
-    intro δ hδ
-    filter_upwards [hrem δ hδ] with n hn
-    have hsubset :
-        {x | ε ≤ ‖Yn n x - Xn n x - (0 : Ω → ℝ) x‖}
-          ⊆ {ω | ε / 2 < |Yn n ω - Xn n ω|} := by
-      intro ω hω
-      have hω' : ε ≤ |Yn n ω - Xn n ω| := by
-        simpa [Real.norm_eq_abs] using hω
-      exact lt_of_lt_of_le (by linarith) hω'
-    exact le_trans (measure_mono hsubset) hn
+    simpa [Real.norm_eq_abs] using hRem ε hε
   simp only [causal_defs_simps] at hX ⊢
   suffices ∀ (F : ℝ → ℝ) (hF_bounded : ∃ (C : ℝ), ∀ x y, dist (F x) (F y) ≤ C)
       (hF_lip : ∃ L, LipschitzWith L F),
@@ -380,7 +370,8 @@ theorem Tendsto_dist.const_mul_tendsto_gaussian
   have hscaled_dist :
       Tendsto_dist (fun n ω => a n * Xn n ω)
         ((gaussianMeasure 0 v).map (fun x : ℝ => a₀ * x)) μ hScaled :=
-    Tendsto_dist.const_mul_tendsto hXn hX ha
+    (Tendsto_dist_iff _ _ _ hScaled).2
+      (Tendsto_dist.const_mul_tendsto hXn hX ha)
   have hmap :
       (gaussianMeasure 0 v).map (fun x : ℝ => a₀ * x)
         = gaussianMeasure 0 (a₀ ^ 2 * v) := by

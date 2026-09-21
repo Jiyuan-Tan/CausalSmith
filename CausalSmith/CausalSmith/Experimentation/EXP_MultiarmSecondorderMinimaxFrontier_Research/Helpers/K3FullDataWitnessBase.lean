@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.K3Numerics
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.K3Numerics
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-! Definitions for the exact finite full-data three-arm witness. -/
+
+@[expose] public section
 
 open scoped BigOperators
 

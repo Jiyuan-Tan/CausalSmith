@@ -1,8 +1,9 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
-import Causalean.Panel.Weighted.FWL
-import Causalean.Panel.Weighted.ScalarFWL
-import Mathlib.Algebra.BigOperators.Field
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
+public import Causalean.Stat.Weighted.FWL
+public import Causalean.Stat.Weighted.ScalarFWL
+public import Mathlib.Algebra.BigOperators.Field
 
 /-!
 # Mean-weighted FWL residuals
@@ -12,12 +13,14 @@ shared `WeightedSupport`, and applies its nuisance-space residual maker to the
 treatment regressor.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 
 namespace CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research
 
-open Causalean.Panel.Weighted
-open Causalean.Panel.Weighted.WeightedSupport
+open Causalean.Stat.Weighted
+open Causalean.Stat.Weighted.WeightedSupport
 
 /-- Normalize positive weights on a nonempty finite support. -/
 noncomputable def normalizedPositiveSupport {R : Type*} [Fintype R] [DecidableEq R]
@@ -210,7 +213,7 @@ lemma linearizedScore_snd_eq_weightedFWL (T : ℕ) (C : Finset (Cohort T))
           limitingCellMass T pi z.1.1 * collapsedDesignMap T C d z *
             (source z - mu z * collapsedDesignMap T C v z)) / Z by
       simp [c, meanWeightedSupport, normalizedPositiveSupport, meanFWLWeight,
-        Causalean.Panel.Weighted.WeightedSupport.ip, hres, Pi.sub_apply, Pi.smul_apply,
+        Causalean.Stat.Weighted.WeightedSupport.ip, hres, Pi.sub_apply, Pi.smul_apply,
         smul_eq_mul, Z]
       rw [Finset.sum_div]
       apply Finset.sum_congr rfl
@@ -246,7 +249,7 @@ lemma linearizedScore_snd_eq_weightedFWL (T : ℕ) (C : Finset (Cohort T))
       (∑ z : SupportedCell T C,
         meanFWLWeight T C pi barB gamma delta (z.1.1, z.2) * (W z) ^ 2) / Z by
       simp [c, meanWeightedSupport, normalizedPositiveSupport,
-        Causalean.Panel.Weighted.WeightedSupport.ip, Z, pow_two]
+        Causalean.Stat.Weighted.WeightedSupport.ip, Z, pow_two]
       rw [Finset.sum_div]
       apply Finset.sum_congr rfl
       intro z hz
@@ -261,7 +264,7 @@ lemma linearizedScore_snd_eq_weightedFWL (T : ℕ) (C : Finset (Cohort T))
       (limitingCellMass T pi k * untreatedMean T barB gamma k s *
         Real.exp (delta (k, s)) * W (⟨k, hk⟩, s)) / Z by
     simp [c, meanWeightedSupport, normalizedPositiveSupport,
-      Causalean.Panel.Weighted.WeightedSupport.ip, Y, source, mu, Z,
+      Causalean.Stat.Weighted.WeightedSupport.ip, Y, source, mu, Z,
       meanFWLWeight, fittedMean]
     rw [Fintype.sum_eq_single (⟨k, hk⟩, s)]
     · simp
@@ -273,7 +276,7 @@ lemma linearizedScore_snd_eq_weightedFWL (T : ℕ) (C : Finset (Cohort T))
       (∑ z : SupportedCell T C,
         meanFWLWeight T C pi barB gamma delta (z.1.1, z.2) * (W z) ^ 2) / Z by
     simp [c, meanWeightedSupport, normalizedPositiveSupport,
-      Causalean.Panel.Weighted.WeightedSupport.ip, Z, pow_two]
+      Causalean.Stat.Weighted.WeightedSupport.ip, Z, pow_two]
     rw [Finset.sum_div]
     apply Finset.sum_congr rfl
     intro z hz

@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.PhaseRates
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.PhaseRates
 
 /-!
 # Fixed-positive-threshold frontier
 
 This module closes the fixed-threshold branch from the moving-threshold rate lemmas.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

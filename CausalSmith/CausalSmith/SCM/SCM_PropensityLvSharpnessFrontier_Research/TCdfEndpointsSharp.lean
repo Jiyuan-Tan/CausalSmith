@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TSupportRegimeCdfEndpointsSharp
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TSupportRegimeCdfEndpointsSharp
 
 /-! # Sharp mutual-support CDF endpoints -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

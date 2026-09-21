@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.Kernel
-import Causalean.SCM.Model.InterventionSet
-import Causalean.Graph.DAG
-import Mathlib.Probability.Independence.Basic
+module
+public import Causalean.SCM.Model.Kernel
+public import Causalean.SCM.Model.InterventionSet
+public import Causalean.Graph.DAG
+public import Mathlib.Probability.Independence.Basic
 
 /-!
 # Invariant Causal Prediction: environment-family model layer
@@ -26,9 +27,18 @@ because an intervention `do(X = x)` fixes those coordinates to `x`.
 
 The only observable content per environment is the conditional law of the target
 `Y` given a set of predictors `X_S`, read off from `(M i).obsCondKernel {Y} S`
-evaluated at `s i`.  Invariant Causal Prediction asks which predictor sets `S`
-make this conditional law the *same* across all environments.
+evaluated at `s i`.  Here invariance asks which predictor sets `S` make these
+laws instances of one conditional rule with the target's fixed-parent values as
+explicit inputs.  Evaluating that rule at different fixed-parent values may
+produce different laws across environments.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.Discovery.InvariantPrediction
 
@@ -113,15 +123,14 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι] (F : EnvFamily N Ω ι)
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), and [an invariant-prediction environment family](hyp:F), [the
-target node](goal) is the random-form node associated with the family's target variable. -/
+/-- [The target node](goal) is the random-form outcome whose conditional law is compared across
+[family `F`](hyp:F), over [finite nodes](hyp:N), [finite environments](hyp:ι), and [measurable
+coordinate outcomes](hyp:Ω). -/
 abbrev yNode : SWIGNode N := SWIGNode.random F.Y
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
-environment](hyp:i), [the observed-parent set of the target](goal) is the set of target parents
-that are observed in that environment.
+/-- [The target's observed-parent set](goal) is the causally sufficient conditioning candidate
+available in [environment `i`](hyp:i) of [family `F`](hyp:F), over [finite nodes](hyp:N), [finite
+environments](hyp:ι), and [measurable coordinate outcomes](hyp:Ω).
 
 The observed parents of the target in environment `i` — the conditioning
 candidates ICP ranges over. Index-independent by `hParents` and `hObs`
@@ -134,10 +143,10 @@ theorem paObs_eq (i j : ι) : F.paObs i = F.paObs j := by
   unfold paObs
   rw [F.hParents i j, F.hObs i j]
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
-environment](hyp:i), [the fixed-parent set of the target](goal) is the set of target parents that
-are fixed by intervention in that environment.
+/-- [The target's fixed-parent set](goal) records which direct causes are assigned rather than
+random in [environment `i`](hyp:i) of [family `F`](hyp:F); their values must remain arguments of
+the invariant mechanism. The setup uses [finite nodes](hyp:N), [finite environments](hyp:ι), and
+[measurable coordinate outcomes](hyp:Ω).
 
 The **fixed parents** of the target in environment `i` — the parents of `Y`
 that are intervened on (fixed) in that environment.  These are the coordinates of
@@ -173,8 +182,9 @@ theorem fixed_parent_mem_fixed_of_mem {i j : ι} {d : SWIGNode N}
   · rcases (F.M j).unobserved_is_random (SWIGNode.fixed n) hunobs with ⟨m, hm⟩
     cases hm
 
-/-- For [any two environments i and j](hyp:i,j), [the fixed parents of the target coincide
-between environment i and environment j](goal).
+/-- [The target has the same fixed-parent set in any two environments](goal), namely
+[environments `i` and `j`](hyp:i,j) of [family `F`](hyp:F) over [finite nodes](hyp:N), [finite
+environments](hyp:ι), and [measurable coordinate outcomes](hyp:Ω).
 
 Unlike `paObs`/`paLat`, this is *not* immediate from a shared-set field — `EnvFamily` does not
 share the `fixed` set — but follows from `fixed_parent_mem_fixed_of_mem` together with the
@@ -197,10 +207,9 @@ off the environment's intervention assignment `s i`. -/
 theorem paFix_subset_fixed (i : ι) : F.paFix i ⊆ (F.M i).fixed :=
   Finset.inter_subset_right
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [an
-environment](hyp:i), [the fixed-parent values](goal) are the values assigned by that environment's
-intervention, restricted to the target's fixed parents.
+/-- [The fixed-parent values](goal) expose the intervention assignments that the target mechanism
+must condition on in [environment `i`](hyp:i) of [family `F`](hyp:F), over [finite nodes](hyp:N),
+[finite environments](hyp:ι), and [measurable coordinate outcomes](hyp:Ω).
 
 The fixed-parent values assigned by environment `i`'s intervention,
 projected from `s i`. -/

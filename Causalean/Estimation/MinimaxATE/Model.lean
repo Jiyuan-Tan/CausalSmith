@@ -42,10 +42,11 @@ Main definitions:
   worst-case-over-class probability that an estimator misses the true ATE by `s`.
 -/
 
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Real
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Real
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Finite observed-data model for ATE estimation
 
@@ -53,6 +54,8 @@ This file supplies the finite observed-data experiment used for structure-agnost
 the average treatment effect: a finite covariate, binary treatment, and binary outcome. It defines
 the data laws, nuisance class, sample risks, and minimax miss probability used by the lower-bound
 construction. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

@@ -24,20 +24,23 @@ This Lean layer flattens that family to two maps:
 - `Y0 : 𝒢 → Fin T → ℝ` representing `Y(∞)` (the never-treated path), and
 - `Y1 : 𝒢 → Fin T → ℝ` representing `Y(A_g)` (each cohort's own adoption-date path).
 
-This simplification is **sufficient** for the three corollaries proved here
-(`Δ_TN_eq_ATT`, `Δ_EL_eq_ATT`, `Δ_LE_eq_bad_comparison`), because Cor 5 of the
-paper only ever references `Y_{gt}(A_g)` (own adoption date) or `Y_{gt}(∞)` (the
-never-treated state).  The full adoption-date-indexed family `Y_{gt}(a)` is needed
-only for more general heterogeneous-treatment comparisons across cohorts with
-different adoption dates, which are outside the scope of Cor 5.
+This simplification is **sufficient** for the three causal corollaries proved
+here (`Δ_TN_eq_ATT`, `Δ_EL_eq_ATT`, `Δ_LE_eq_bad_comparison`). The TN and EL
+identification results require a nonempty pre-treatment window; separate
+`_totalized` lemmas retain the algebraic equalities used by the decomposition
+when a zero-weight comparison has an empty baseline. The full
+adoption-date-indexed family `Y_{gt}(a)` is needed only for more general
+heterogeneous-treatment comparisons across cohorts with different adoption
+dates, which are outside the scope of Cor 5.
 
 In particular, the LE bad-comparison result — showing that `Δ_LE` is contaminated
 by `ATT_e(S1_LE) − ATT_e(S0_LE)` when early-treated cohorts serve as controls — is
 fully captured by the two-state simplification.  To lift this to the paper's general
 `Y_{gt}(a)` family one would introduce a type
 `Y_full : 𝒢 → Fin T → WithTop (Fin T) → ℝ` and derive `Y0 g t = Y_full g t ⊤`
-and `Y1 g t = Y_full g t (P.A g)` as special slices; this is deferred to a future
-`AdoptionPath` module (see audit SH-3).
+and `Y1 g t = Y_full g t (P.A g)` as special slices. The shared
+`Causalean.Panel.AdoptionPath` module supplies the date predicates, but not this
+potential-outcome family.
 
 `Y0` denotes the never-treated path `Y(∞)`, while `Y1` denotes each cohort's
 own adoption-date path `Y(A_g)`. This is sufficient for the LE bad-comparison
@@ -59,10 +62,11 @@ The three corollaries (NL doc A6 / LaTeX
                       − ATT_window Y0 Y1 e (S0_LE P e ℓ))`.
 
 Pure cell-level algebra: window means commute with sums, parallel trends
-cancels untreated trends, and consistency + no-anticipation reduce factual
-window means to potential-outcome window means. **No** dependence on
-`prop:po-did-att`; the proofs are stated directly in terms of the window
-mean operator `Ybar0` (the never-treated potential-outcome window mean).
+cancels untreated trends, and consistency reduces factual window means to
+potential-outcome window means. No anticipation records the intended two-path
+causal model but is not used by these proofs. **No** dependence on
+`prop:po-did-att`; the proofs are stated directly in terms of the window mean
+operator `Ybar0` (the never-treated potential-outcome window mean).
 
 NL artifact:
 `doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.md`.
@@ -70,11 +74,12 @@ Source LaTeX:
 `doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.tex`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.FinitePanel
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.FinitePanel
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
 
 /-! # Goodman-Bacon Causal Characterization
 
@@ -85,6 +90,8 @@ treated-versus-never and early-versus-late contrasts with window-specific
 average treatment effects and expresses the late-versus-early contrast with its
 bad-comparison adjustment. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace StaggeredTWFEDecomposition
@@ -93,26 +100,29 @@ open Finset
 
 variable {𝒢 : Type*} [Fintype 𝒢] [DecidableEq 𝒢] {T : ℕ}
 
-/-- For [a never-treated potential-outcome schedule](hyp:Y0), [a cohort](hyp:g), and [a set of periods](hyp:S), [the never-treated potential-outcome window mean](goal) is the average of that cohort's never-treated potential outcomes over the specified periods; it is defined as zero when the set is empty. -/
+/-- The [never-treated mean outcome over a period window](goal) averages
+[a cohort's](hyp:g) [never-treated potential outcomes](hyp:Y0) across
+[the selected periods](hyp:S) and is zero for an empty window. -/
 noncomputable def Ybar0 (Y0 : 𝒢 → Fin T → ℝ) (g : 𝒢) (S : Finset (Fin T)) : ℝ :=
   (S.card : ℝ)⁻¹ * ∑ t ∈ S, Y0 g t
 
-/-- For [the never-treated potential-outcome schedule](hyp:Y0), [the own-adoption potential-outcome schedule](hyp:Y1), [a cohort](hyp:g), and [a set of periods](hyp:S), [the window-specific average treatment effect on the treated](goal) is the average over the specified periods of the own-adoption potential outcome minus the never-treated potential outcome for that cohort; it is defined as zero when the set is empty. -/
+/-- The [window-specific average treatment effect on the treated](goal) averages the difference
+between [own-adoption potential outcomes](hyp:Y1) and
+[never-treated potential outcomes](hyp:Y0) for [a cohort](hyp:g) across
+[the selected periods](hyp:S), and is zero for an empty window. -/
 noncomputable def ATT_window (Y0 Y1 : 𝒢 → Fin T → ℝ) (g : 𝒢)
     (S : Finset (Fin T)) : ℝ :=
   (S.card : ℝ)⁻¹ * ∑ t ∈ S, (Y1 g t - Y0 g t)
 
-/-- Causal-side assumptions for the Goodman-Bacon decomposition (LaTeX
-`ass:po-estimand-goodman-bacon-causal`), given a cohort panel `P` and potential-outcome maps
-`Y0` (the never-treated path) and `Y1` (each cohort's own adoption-date path). It packages
-[consistency on treated cells — the factual outcome equals the post-adoption potential outcome
-once the cohort has adopted](hyp:consistencyTreated), [consistency on untreated cells — the
-factual outcome equals the never-treated potential outcome before
-adoption](hyp:consistencyUntreated), [no anticipation — the pre-adoption potential outcomes
-under the two paths coincide](hyp:noAnticipation), and pairwise untreated parallel trends for
-[the treated-versus-never comparison](hyp:parallelTrends_TN), [the
-early-versus-late-before-late comparison](hyp:parallelTrends_EL), and [the
-late-versus-early-after-early comparison](hyp:parallelTrends_LE).
+/-- The causal model for [a cohort panel](hyp:P),
+[never-treated potential outcomes](hyp:Y0), and
+[own-adoption potential outcomes](hyp:Y1) combines
+[consistency after adoption](hyp:consistencyTreated),
+[consistency with never treatment before adoption](hyp:consistencyUntreated),
+[no anticipation across the two potential-outcome paths](hyp:noAnticipation), and untreated
+parallel trends for [treated-versus-never comparisons](hyp:parallelTrends_TN),
+[early-versus-late comparisons](hyp:parallelTrends_EL), and
+[late-versus-early comparisons](hyp:parallelTrends_LE).
 
 **Two-state simplification (gap G2).** The paper uses a full adoption-date-indexed
 family `Y_{gt}(a)`.  Here we use only two maps `Y0 = Y(∞)` and `Y1 = Y(A_g)`,
@@ -121,36 +131,37 @@ corollary).  See the file header for a full discussion.
 
 **Redundancy note.** `consistencyTreated` and `consistencyUntreated` together
 with `noAnticipation` are slightly over-strong relative to the paper's single
-consistency axiom `Y_{gt} = Y_{gt}(A_g)`: on pre-adoption cells, `consistencyUntreated`
-gives `Y_{gt} = Y0 g t`, while `noAnticipation` gives `Y1 g t = Y0 g t`, so
-together they imply `Y_{gt} = Y1 g t` on pre-adoption cells too.  The split is
-kept because each field is used directly in downstream proofs. -/
+consistency axiom `Y_{gt} = Y_{gt}(A_g)`: on pre-adoption cells,
+`consistencyUntreated` gives `Y_{gt} = Y0 g t`, while `noAnticipation` gives
+`Y1 g t = Y0 g t`. The current corollaries use `consistencyUntreated` directly
+and do not consume `noAnticipation`; that field remains part of the assumption
+package to record the intended two-path causal model. -/
 structure CausalAssumptions (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ) :
     Prop where
   /-- Consistency on treated cells: when `A_g ≤ t`, the factual outcome
   equals the post-adoption potential outcome. -/
   consistencyTreated :
-    ∀ g t, AdoptionDate.le (P.A g) t → P.Y g t = Y1 g t
+    ∀ g t, AdoptionPath.le (P.A g) t → P.Y g t = Y1 g t
   /-- Consistency on untreated cells: when `t < A_g`, the factual outcome
   equals the never-treated potential outcome. -/
   consistencyUntreated :
-    ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t
+    ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t
   /-- No anticipation: pre-adoption potential outcomes coincide. -/
   noAnticipation :
-    ∀ g t, AdoptionDate.lt (P.A g) t → Y1 g t = Y0 g t
+    ∀ g t, AdoptionPath.lt (P.A g) t → Y1 g t = Y0 g t
   /-- Pairwise untreated parallel trends for treated-vs-never (TN). -/
   parallelTrends_TN :
-    ∀ g u, AdoptionDate.isFin (P.A g) → AdoptionDate.isInf (P.A u) →
+    ∀ g u, AdoptionPath.isFinite (P.A g) → AdoptionPath.isInfinite (P.A u) →
       Ybar0 Y0 g (S1_TN P g) - Ybar0 Y0 g (S0_TN P g)
         = Ybar0 Y0 u (S1_TN P g) - Ybar0 Y0 u (S0_TN P g)
   /-- Pairwise untreated parallel trends for early-vs-late before late (EL). -/
   parallelTrends_EL :
-    ∀ e ℓ, P.A e < P.A ℓ → AdoptionDate.isFin (P.A ℓ) →
+    ∀ e ℓ, P.A e < P.A ℓ → AdoptionPath.isFinite (P.A ℓ) →
       Ybar0 Y0 e (S1_EL P e ℓ) - Ybar0 Y0 e (S0_EL P e)
         = Ybar0 Y0 ℓ (S1_EL P e ℓ) - Ybar0 Y0 ℓ (S0_EL P e)
   /-- Pairwise untreated parallel trends for late-vs-early after early (LE). -/
   parallelTrends_LE :
-    ∀ e ℓ, P.A e < P.A ℓ → AdoptionDate.isFin (P.A ℓ) →
+    ∀ e ℓ, P.A e < P.A ℓ → AdoptionPath.isFinite (P.A ℓ) →
       Ybar0 Y0 e (S1_LE P ℓ) - Ybar0 Y0 e (S0_LE P e ℓ)
         = Ybar0 Y0 ℓ (S1_LE P ℓ) - Ybar0 Y0 ℓ (S0_LE P e ℓ)
 
@@ -158,42 +169,30 @@ namespace CausalAssumptions
 
 variable {P : CohortPanel 𝒢 T} {Y0 Y1 : 𝒢 → Fin T → ℝ}
 
-/-- Helper: `AdoptionDate.lt (P.A g) t` rules out `AdoptionDate.le (P.A g) t`. -/
-theorem AdoptionDate.not_le_of_lt {a : WithTop (Fin T)} {t : Fin T}
-    (h : AdoptionDate.lt a t) : ¬ AdoptionDate.le a t := by
-  intro hle
-  exact lt_irrefl _ (lt_of_lt_of_le h hle)
-
-/-- Helper: every period is strictly less than `⊤` in `WithTop (Fin T)`. -/
-theorem AdoptionDate.lt_of_isInf {a : WithTop (Fin T)} {t : Fin T}
-    (h : AdoptionDate.isInf a) : AdoptionDate.lt a t := by
-  unfold AdoptionDate.lt AdoptionDate.isInf at *
-  rw [h]
-  exact (WithTop.coe_lt_top _ : (t : WithTop (Fin T)) < ⊤)
-
 omit [DecidableEq 𝒢] in
 /-- On the untreated window `S0_TN P g = {t : t < A_g}`, the factual `Ybar`
 of cohort `g` equals the never-treated `Ybar0`: by `consistencyUntreated`
 on each cell. -/
 theorem Ybar_eq_Ybar0_on_S0_TN
-    (hConsistency : ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t) (g : 𝒢) :
+    (hConsistency : ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t) (g : 𝒢) :
     Ybar P g (S0_TN P g) = Ybar0 Y0 g (S0_TN P g) := by
   classical
   unfold Ybar Ybar0
   congr 1
   refine Finset.sum_congr rfl ?_
   intro t ht
-  have htlt : AdoptionDate.lt (P.A g) t := by
-    simpa [S0_TN, Finset.mem_filter] using ht
+  have htlt : AdoptionPath.lt (P.A g) t := by
+    simpa only [S0_TN, Finset.mem_filter, Finset.mem_univ, true_and,
+      Set.mem_ofPred_eq] using ht
   exact hConsistency g t htlt
 
 omit [DecidableEq 𝒢] in
 /-- On any window `S` where every period is untreated for cohort `u`, the
 factual `Ybar` equals the never-treated `Ybar0`. -/
 theorem Ybar_eq_Ybar0_of_inf
-    (hConsistency : ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t)
+    (hConsistency : ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t)
     {u : 𝒢} (S : Finset (Fin T))
-    (hS : ∀ t ∈ S, AdoptionDate.lt (P.A u) t) :
+    (hS : ∀ t ∈ S, AdoptionPath.lt (P.A u) t) :
     Ybar P u S = Ybar0 Y0 u S := by
   classical
   unfold Ybar Ybar0
@@ -206,9 +205,9 @@ omit [DecidableEq 𝒢] in
 /-- On a window where every cell is treated for cohort `g`, the factual
 `Ybar` decomposes as the never-treated mean plus the window ATT. -/
 theorem Ybar_eq_Ybar0_add_ATT_of_treated
-    (hConsistency : ∀ g t, AdoptionDate.le (P.A g) t → P.Y g t = Y1 g t)
+    (hConsistency : ∀ g t, AdoptionPath.le (P.A g) t → P.Y g t = Y1 g t)
     (g : 𝒢) (S : Finset (Fin T))
-    (hS : ∀ t ∈ S, AdoptionDate.le (P.A g) t) :
+    (hS : ∀ t ∈ S, AdoptionPath.le (P.A g) t) :
     Ybar P g S = Ybar0 Y0 g S + ATT_window Y0 Y1 g S := by
   classical
   unfold Ybar Ybar0 ATT_window
@@ -230,37 +229,39 @@ omit [DecidableEq 𝒢] in
 /-- On the early-cohort untreated window `S0_EL P e = {t : t < A_e}`, the
 factual `Ybar` of cohort `e` equals the never-treated `Ybar0`. -/
 theorem Ybar_eq_Ybar0_on_S0_EL
-    (hConsistency : ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t) (e : 𝒢) :
+    (hConsistency : ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t) (e : 𝒢) :
     Ybar P e (S0_EL P e) = Ybar0 Y0 e (S0_EL P e) := by
   classical
   unfold Ybar Ybar0
   congr 1
   refine Finset.sum_congr rfl ?_
   intro t ht
-  have htlt : AdoptionDate.lt (P.A e) t := by
-    simpa [S0_EL, Finset.mem_filter] using ht
+  have htlt : AdoptionPath.lt (P.A e) t := by
+    simpa only [S0_EL, Finset.mem_filter, Finset.mem_univ, true_and,
+      Set.mem_ofPred_eq] using ht
   exact hConsistency e t htlt
 
 omit [DecidableEq 𝒢] in
 /-- The late-cohort factual `Ybar` on `S1_EL P e ℓ = {A_e ≤ t < A_ℓ}` equals
 the never-treated `Ybar0`: each cell satisfies `t < A_ℓ`. -/
 theorem Ybar_eq_Ybar0_late_on_S1_EL
-    (hConsistency : ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t) (e ℓ : 𝒢) :
+    (hConsistency : ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t) (e ℓ : 𝒢) :
     Ybar P ℓ (S1_EL P e ℓ) = Ybar0 Y0 ℓ (S1_EL P e ℓ) := by
   classical
   unfold Ybar Ybar0
   congr 1
   refine Finset.sum_congr rfl ?_
   intro t ht
-  have htmem : AdoptionDate.le (P.A e) t ∧ AdoptionDate.lt (P.A ℓ) t := by
-    simpa [S1_EL, Finset.mem_filter] using ht
+  have htmem : AdoptionPath.le (P.A e) t ∧ AdoptionPath.lt (P.A ℓ) t := by
+    simpa only [S1_EL, Finset.mem_filter, Finset.mem_univ, true_and,
+      Set.mem_ofPred_eq] using ht
   exact hConsistency ℓ t htmem.2
 
 omit [DecidableEq 𝒢] in
 /-- The late-cohort factual `Ybar` on `S0_EL P e = {t : t < A_e}` equals
 the never-treated `Ybar0` when `A_e < A_ℓ`. -/
 theorem Ybar_eq_Ybar0_late_on_S0_EL
-    (hConsistency : ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t)
+    (hConsistency : ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t)
     (e ℓ : 𝒢) (h_lt : P.A e < P.A ℓ) :
     Ybar P ℓ (S0_EL P e) = Ybar0 Y0 ℓ (S0_EL P e) := by
   classical
@@ -269,38 +270,41 @@ theorem Ybar_eq_Ybar0_late_on_S0_EL
   refine Finset.sum_congr rfl ?_
   intro t ht
   have htlt : (t : WithTop (Fin T)) < P.A e := by
-    have h0 : AdoptionDate.lt (P.A e) t := by
-      simpa [S0_EL, Finset.mem_filter] using ht
+    have h0 : AdoptionPath.lt (P.A e) t := by
+      simpa only [S0_EL, Finset.mem_filter, Finset.mem_univ, true_and,
+        Set.mem_ofPred_eq] using ht
     exact h0
   exact hConsistency ℓ t (by
-    simpa [AdoptionDate.lt] using lt_trans htlt h_lt)
+    simpa [AdoptionPath.lt] using lt_trans htlt h_lt)
 
 omit [DecidableEq 𝒢] in
 /-- The late-cohort factual `Ybar` on `S0_LE P e ℓ = {A_e ≤ t < A_ℓ}` equals
 the never-treated `Ybar0`. -/
 theorem Ybar_eq_Ybar0_late_on_S0_LE
-    (hConsistency : ∀ g t, AdoptionDate.lt (P.A g) t → P.Y g t = Y0 g t) (e ℓ : 𝒢) :
+    (hConsistency : ∀ g t, AdoptionPath.lt (P.A g) t → P.Y g t = Y0 g t) (e ℓ : 𝒢) :
     Ybar P ℓ (S0_LE P e ℓ) = Ybar0 Y0 ℓ (S0_LE P e ℓ) := by
   classical
   unfold Ybar Ybar0
   congr 1
   refine Finset.sum_congr rfl ?_
   intro t ht
-  have htmem : AdoptionDate.le (P.A e) t ∧ AdoptionDate.lt (P.A ℓ) t := by
-    simpa [S0_LE, S1_EL, Finset.mem_filter] using ht
+  have htmem : AdoptionPath.le (P.A e) t ∧ AdoptionPath.lt (P.A ℓ) t := by
+    simpa only [S0_LE, S1_EL, Finset.mem_filter, Finset.mem_univ, true_and,
+      Set.mem_ofPred_eq] using ht
   exact hConsistency ℓ t htmem.2
 
 end CausalAssumptions
 
 omit [DecidableEq 𝒢] in
-/-- **Layer C corollary 1 — TN identifies ATT.** Fix a cohort panel `P` and potential-outcome
-maps `Y0` (never-treated path) and `Y1` (own-adoption-date path), and assume [consistency on
-treated and untreated cells, no anticipation, and pairwise untreated parallel trends across the
-three comparison types](hyp:hA). For [a treated cohort `g` whose adoption date is
-finite](hyp:h_g_fin) compared against [a never-treated cohort `u` whose adoption date is
-infinite](hyp:h_u_inf), [the treated-versus-never 2x2 difference-in-differences contrast `Δ_TN`
-equals `g`'s window-specific average treatment effect on the treated over its post-adoption
-window](goal):
+/-- Under [the packaged causal assumptions](hyp:hA) linking [a cohort panel](hyp:P) to
+[never-treated and own-adoption potential-outcome paths](hyp:Y0,Y1), the totalized comparison
+of [a treated and a never-treated cohort](hyp:g,u) [equals the treated cohort's totalized
+post-adoption window effect](goal) when their adoption dates are respectively
+[finite](hyp:h_g_fin) and [infinite](hyp:h_u_inf).
+
+This equality also covers an empty pre-treatment window because `Ybar` is defined as zero
+there. In that case it is an algebraic bookkeeping identity, not a standalone DID
+identification claim.
 
     Δ_TN P g u = ATT_window Y0 Y1 g (S1_TN P g).
 
@@ -308,16 +312,16 @@ Proof outline:
 1. Replace `Ybar P u (S1_TN P g)` and `Ybar P u (S0_TN P g)` by `Ybar0 Y0 u …`
    via `Ybar_eq_Ybar0_of_inf` (cohort `u` is never treated).
 2. Replace `Ybar P g (S0_TN P g)` by `Ybar0 Y0 g (S0_TN P g)` via
-   `Ybar_eq_Ybar0_on_S0_TN` (pre-adoption + no anticipation).
+   `Ybar_eq_Ybar0_on_S0_TN` (untreated-cell consistency).
 3. Apply `parallelTrends_TN` to cancel `(Ybar0 Y0 g S1) - (Ybar0 Y0 g S0)`
    against `(Ybar0 Y0 u S1) - (Ybar0 Y0 u S0)`.
 4. The remainder reduces to `Ybar P g (S1_TN P g) - Ybar0 Y0 g (S1_TN P g)`,
    which by consistency on `S1_TN` (treated cells) and the `ATT_window`
    definition equals `ATT_window Y0 Y1 g (S1_TN P g)`. -/
-theorem Δ_TN_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
+theorem Δ_TN_eq_ATT_totalized (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
     (hA : CausalAssumptions P Y0 Y1) (g u : 𝒢)
-    (h_g_fin : AdoptionDate.isFin (P.A g))
-    (h_u_inf : AdoptionDate.isInf (P.A u)) :
+    (h_g_fin : AdoptionPath.isFinite (P.A g))
+    (h_u_inf : AdoptionPath.isInfinite (P.A u)) :
     Δ_TN P g u = ATT_window Y0 Y1 g (S1_TN P g) := by
   classical
   have h_treated :
@@ -325,25 +329,46 @@ theorem Δ_TN_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
         Ybar0 Y0 g (S1_TN P g) + ATT_window Y0 Y1 g (S1_TN P g) := by
     exact CausalAssumptions.Ybar_eq_Ybar0_add_ATT_of_treated hA.consistencyTreated g (S1_TN P g) (by
       intro t ht
-      simpa [S1_TN, Finset.mem_filter] using ht)
+      simpa only [S1_TN, Finset.mem_filter, Finset.mem_univ, true_and,
+        Set.mem_ofPred_eq] using ht)
   have h_g0 := CausalAssumptions.Ybar_eq_Ybar0_on_S0_TN hA.consistencyUntreated g
   have h_u1 := CausalAssumptions.Ybar_eq_Ybar0_of_inf hA.consistencyUntreated
-    (S1_TN P g) (fun _ _ => CausalAssumptions.AdoptionDate.lt_of_isInf h_u_inf)
+    (S1_TN P g) (fun _ _ => AdoptionPath.lt_of_isInfinite h_u_inf)
   have h_u0 := CausalAssumptions.Ybar_eq_Ybar0_of_inf hA.consistencyUntreated
-    (S0_TN P g) (fun _ _ => CausalAssumptions.AdoptionDate.lt_of_isInf h_u_inf)
+    (S0_TN P g) (fun _ _ => AdoptionPath.lt_of_isInfinite h_u_inf)
   have hPT := hA.parallelTrends_TN g u h_g_fin h_u_inf
   unfold Δ_TN
   rw [h_treated, h_g0, h_u1, h_u0]
   linarith
 
 omit [DecidableEq 𝒢] in
-/-- **Layer C corollary 2 — EL identifies the early cohort's ATT.** Fix a cohort panel `P` and
-potential-outcome maps `Y0`, `Y1`, and assume [consistency on treated and untreated cells, no
-anticipation, and pairwise untreated parallel trends across the three comparison
-types](hyp:hA). For [an early cohort `e` whose adoption date strictly precedes that of a late
-cohort `ℓ`](hyp:h_lt), with [`ℓ`'s adoption date finite](hyp:h_ℓ_fin), [the early-versus-late
-contrast `Δ_EL` equals `e`'s window-specific average treatment effect on the treated over the
-window running from `e`'s own adoption date up to `ℓ`'s adoption date](goal):
+/-- Under [the packaged causal assumptions](hyp:hA) linking [a cohort panel](hyp:P) to
+[never-treated and own-adoption potential-outcome paths](hyp:Y0,Y1), the DID comparison of
+[a treated and a never-treated cohort](hyp:g,u) [identifies the treated cohort's post-adoption
+window effect](goal) when their adoption dates are respectively [finite](hyp:h_g_fin) and
+[infinite](hyp:h_u_inf), and [the treated cohort has a pre-treatment period](hyp:h_pre).
+
+The nonempty baseline rules out the first-period-adoption case, where the totalized equality
+above remains valid but does not represent a before/after DID design. -/
+theorem Δ_TN_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
+    (hA : CausalAssumptions P Y0 Y1) (g u : 𝒢)
+    (h_g_fin : AdoptionPath.isFinite (P.A g))
+    (h_u_inf : AdoptionPath.isInfinite (P.A u))
+    (h_pre : (S0_TN P g).Nonempty) :
+    Δ_TN P g u = ATT_window Y0 Y1 g (S1_TN P g) := by
+  exact (fun _ : (S0_TN P g).Nonempty =>
+    Δ_TN_eq_ATT_totalized P Y0 Y1 hA g u h_g_fin h_u_inf) h_pre
+
+omit [DecidableEq 𝒢] in
+/-- Under [the packaged causal assumptions](hyp:hA) linking [a cohort panel](hyp:P) to
+[never-treated and own-adoption potential-outcome paths](hyp:Y0,Y1), the totalized comparison
+of [an early and a late cohort](hyp:e,ℓ) [equals the early cohort's totalized effect over the
+between-adoption window](goal) when [the early cohort adopts first](hyp:h_lt) and
+[the late cohort eventually adopts](hyp:h_ℓ_fin).
+
+This equality also covers an empty pre-treatment window because `Ybar` is defined as zero
+there. In that case it is an algebraic bookkeeping identity, not a standalone DID
+identification claim.
 
     Δ_EL P e ℓ = ATT_window Y0 Y1 e (S1_EL P e ℓ).
 
@@ -356,9 +381,9 @@ Proof outline:
 3. Apply `parallelTrends_EL` to cancel the late-cohort contribution.
 4. The remainder is `Ybar P e (S1_EL P e ℓ) - Ybar0 Y0 e (S1_EL P e ℓ) =
    ATT_window Y0 Y1 e (S1_EL P e ℓ)` by consistency on the treated window. -/
-theorem Δ_EL_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
+theorem Δ_EL_eq_ATT_totalized (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
     (hA : CausalAssumptions P Y0 Y1) (e ℓ : 𝒢)
-    (h_lt : P.A e < P.A ℓ) (h_ℓ_fin : AdoptionDate.isFin (P.A ℓ)) :
+    (h_lt : P.A e < P.A ℓ) (h_ℓ_fin : AdoptionPath.isFinite (P.A ℓ)) :
     Δ_EL P e ℓ = ATT_window Y0 Y1 e (S1_EL P e ℓ) := by
   classical
   have h_e1 :
@@ -368,8 +393,9 @@ theorem Δ_EL_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
       (S1_EL P e ℓ) (by
       intro t ht
       have htmem :
-          AdoptionDate.le (P.A e) t ∧ AdoptionDate.lt (P.A ℓ) t := by
-        simpa [S1_EL, Finset.mem_filter] using ht
+          AdoptionPath.le (P.A e) t ∧ AdoptionPath.lt (P.A ℓ) t := by
+        simpa only [S1_EL, Finset.mem_filter, Finset.mem_univ, true_and,
+          Set.mem_ofPred_eq] using ht
       exact htmem.1)
   have h_e0 := CausalAssumptions.Ybar_eq_Ybar0_on_S0_EL hA.consistencyUntreated e
   have h_l1 := CausalAssumptions.Ybar_eq_Ybar0_late_on_S1_EL hA.consistencyUntreated e ℓ
@@ -378,6 +404,23 @@ theorem Δ_EL_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
   unfold Δ_EL
   rw [h_e1, h_e0, h_l1, h_l0]
   linarith
+
+omit [DecidableEq 𝒢] in
+/-- Under [the packaged causal assumptions](hyp:hA) linking [a cohort panel](hyp:P) to
+[never-treated and own-adoption potential-outcome paths](hyp:Y0,Y1), the DID comparison of
+[an early and a late cohort](hyp:e,ℓ) [identifies the early cohort's effect over the
+between-adoption window](goal) when [the early cohort adopts first](hyp:h_lt),
+[the late cohort eventually adopts](hyp:h_ℓ_fin), and
+[the early cohort has a pre-treatment period](hyp:h_pre).
+
+The nonempty baseline rules out first-period adoption by the early cohort. -/
+theorem Δ_EL_eq_ATT (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
+    (hA : CausalAssumptions P Y0 Y1) (e ℓ : 𝒢)
+    (h_lt : P.A e < P.A ℓ) (h_ℓ_fin : AdoptionPath.isFinite (P.A ℓ))
+    (h_pre : (S0_EL P e).Nonempty) :
+    Δ_EL P e ℓ = ATT_window Y0 Y1 e (S1_EL P e ℓ) := by
+  exact (fun _ : (S0_EL P e).Nonempty =>
+    Δ_EL_eq_ATT_totalized P Y0 Y1 hA e ℓ h_lt h_ℓ_fin) h_pre
 
 omit [DecidableEq 𝒢] in
 /-- **Layer C corollary 3 — LE has a bad-comparison term.** Fix a cohort panel `P` and
@@ -407,7 +450,7 @@ Proof outline:
    bad-comparison expression. -/
 theorem Δ_LE_eq_bad_comparison (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
     (hA : CausalAssumptions P Y0 Y1) (e ℓ : 𝒢)
-    (h_lt : P.A e < P.A ℓ) (h_ℓ_fin : AdoptionDate.isFin (P.A ℓ)) :
+    (h_lt : P.A e < P.A ℓ) (h_ℓ_fin : AdoptionPath.isFinite (P.A ℓ)) :
     Δ_LE P e ℓ
       = ATT_window Y0 Y1 ℓ (S1_LE P ℓ)
         - (ATT_window Y0 Y1 e (S1_LE P ℓ)
@@ -418,7 +461,8 @@ theorem Δ_LE_eq_bad_comparison (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T
         Ybar0 Y0 ℓ (S1_LE P ℓ) + ATT_window Y0 Y1 ℓ (S1_LE P ℓ) := by
     exact CausalAssumptions.Ybar_eq_Ybar0_add_ATT_of_treated hA.consistencyTreated ℓ (S1_LE P ℓ) (by
       intro t ht
-      simpa [S1_LE, Finset.mem_filter] using ht)
+      simpa only [S1_LE, Finset.mem_filter, Finset.mem_univ, true_and,
+        Set.mem_ofPred_eq] using ht)
   have h_l0 := CausalAssumptions.Ybar_eq_Ybar0_late_on_S0_LE hA.consistencyUntreated e ℓ
   have h_e0 :
       Ybar P e (S0_LE P e ℓ) =
@@ -427,16 +471,18 @@ theorem Δ_LE_eq_bad_comparison (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T
       (S0_LE P e ℓ) (by
       intro t ht
       have htmem :
-          AdoptionDate.le (P.A e) t ∧ AdoptionDate.lt (P.A ℓ) t := by
-        simpa [S0_LE, S1_EL, Finset.mem_filter] using ht
+          AdoptionPath.le (P.A e) t ∧ AdoptionPath.lt (P.A ℓ) t := by
+        simpa only [S0_LE, S1_EL, Finset.mem_filter, Finset.mem_univ, true_and,
+          Set.mem_ofPred_eq] using ht
       exact htmem.1)
   have h_e1 :
       Ybar P e (S1_LE P ℓ) =
         Ybar0 Y0 e (S1_LE P ℓ) + ATT_window Y0 Y1 e (S1_LE P ℓ) := by
     exact CausalAssumptions.Ybar_eq_Ybar0_add_ATT_of_treated hA.consistencyTreated e (S1_LE P ℓ) (by
       intro t ht
-      have hle : AdoptionDate.le (P.A ℓ) t := by
-        simpa [S1_LE, Finset.mem_filter] using ht
+      have hle : AdoptionPath.le (P.A ℓ) t := by
+        simpa only [S1_LE, Finset.mem_filter, Finset.mem_univ, true_and,
+          Set.mem_ofPred_eq] using ht
       exact le_of_lt (lt_of_lt_of_le h_lt hle))
   have hPT := hA.parallelTrends_LE e ℓ h_lt h_ℓ_fin
   unfold Δ_LE

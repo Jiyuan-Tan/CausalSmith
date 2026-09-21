@@ -1,6 +1,7 @@
-import Mathlib.Analysis.SpecialFunctions.PolarCoord
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.MeasureTheory.Integral.Prod
+module
+public import Mathlib.Analysis.SpecialFunctions.PolarCoord
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+public import Mathlib.MeasureTheory.Integral.Prod
 
 /-!
 # Polar integration and cancellation on half-discs
@@ -9,6 +10,8 @@ This module derives weighted polar-integration formulas on upper half-discs,
 including radial mass identities, odd-angular cancellation, quadratic angular
 moments, and translation-invariant variants.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped Interval

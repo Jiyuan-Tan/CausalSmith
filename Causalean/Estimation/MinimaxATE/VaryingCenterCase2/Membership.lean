@@ -5,31 +5,32 @@ Authors: Jiyuan Tan
 
 # Structure-agnostic ATE lower bound: class membership (second construction)
 
-The Case-2 analogue of `VaryingCenterCase1/Membership.lean`, with the two nuisance roles
-**swapped**.  Here the *propensity* deviation is the large one and the *outcome*
-deviation is the small one:
+The Case-2-shaped analogue of `VaryingCenterCase1/Membership.lean`, with the nuisance roles
+**swapped** in the perturbation formulas:
 
 * `mλ − m̂ = m₀ⱼ·κⱼ·Δ` is **exact** (`Δ² = 1`), so the propensity squared `L²` error
   is exactly `(m₀ⱼ·κⱼ)²`, controlled by the budget `(m₀ⱼ·κⱼ)² ≤ εm`, where
-  `κⱼ = β/g₁ⱼ + α·g₁ⱼ − α²·β·g₁ⱼ = O(α + β)` carries the `√εm` weight;
+  `κⱼ = β/g₁ⱼ + α·g₁ⱼ − α²·β·g₁ⱼ`;
 * `gλ(1) − ĝ(1) = β·(α g₁ⱼ − Δ)/D` is `O(β)`, controlled by the worst-case (`Δ = −1`)
-  budget `β²·(α g₁ⱼ + 1)²/(1 − β/g₁ⱼ − αβ)² ≤ εg`, carrying the `√εg` weight.
+  budget `β²·(α g₁ⱼ + 1)²/(1 − β/g₁ⱼ − αβ)² ≤ εg`.
 
-This is exactly the regime `εm > εg`: the propensity budget dominates.  Each
-per-pair bound is *sufficient* (an average of terms `≤ ε` is `≤ ε`), so the
-construction lands in `ℱ(εg, εm)`.
+Each per-pair bound is *sufficient* (an average of terms `≤ ε` is `≤ ε`), so the
+construction lands in `ℱ(εg, εm)`. The interface imposes no ordering between
+`εg` and `εm`.
 -/
 
-import Causalean.Estimation.MinimaxATE.Reduction.Bump
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Gap
+module
+public import Causalean.Estimation.MinimaxATE.Reduction.Bump
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Gap
 
-/-! # Propensity-Dominant Class Membership
+/-! # Second Cell-Varying Class Membership
 
 This file proves that the second cell-varying perturbation family belongs to the
 finite structure-agnostic nuisance class when the propensity and outcome-regression
-budgets hold.  The estimates cover the regime in which the propensity perturbation
-is the larger error component.
+budgets hold. No ordering between those budgets is assumed.
 -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

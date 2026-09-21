@@ -3,45 +3,33 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Second-order nuisance bias for a `LearningSystem`
+# Integrated target-derivative difference for a `LearningSystem`
 
-`Bias_n` packages the loss-gradient nuisance bias from
-`def:est-osl-second-order-bias`:
-
-  `Bias_n(g) := D_θL(θ₀, g₀)[θ̂ - θ₀]  -  D_θL(θ₀, g)[θ̂ - θ₀]`.
-
-Note on bookkeeping.  The natural-language definition refers to the
-directional derivative of the *population risk* `L` at `(θ₀, g)` in the
-direction `θ̂ - θ₀`.  In our formalisation, this quantity is captured by
-`HasDirDerivTheta S g`'s integrated derivative
-`∫ z, (Dθ_at_g).dℓ_θ θ̂ z ∂P_Z`: by construction of `HasDirDerivTheta`,
-`(Dθ_at_g).dℓ_θ θ z` is the value of the dir derivative at `(θ₀, g)` in
-the direction `θ - θ₀`, so evaluating at `θ = θ̂` gives the desired
-quantity (this is what "directional derivative along `θ₀ → θ̂`" means).
-
-The optional theorem `Bias_taylor_form` records the second-order Taylor
-identity from the note as an existential witness.  A later, more quantitative
-API can refine this with a concrete `(1/2) D_g² D_θ L` representation once a
-`SecondOrderDirDeriv` bundle is available.
+`Bias_n` packages the difference between two population integrals of bundled
+pointwise target-direction derivatives: one at the true nuisance and one at a
+plug-in nuisance. It does not identify either integral with a directional
+derivative of the population risk. Such an identification requires a separate
+limit--integral interchange theorem.
 
 See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-second-order-bias`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Population.DirectionalDeriv
+module
+public import Causalean.Estimation.OrthogonalLearning.Population.DirectionalDeriv
 
-/-! # Second-Order Bias in Orthogonal Statistical Learning
+/-! # Integrated Target-Derivative Difference in Orthogonal Statistical Learning
 
 This file defines the nuisance-induced bias term for a sample-split
 orthogonal statistical learning system. The term compares the integrated
 target-direction derivative at the true nuisance with the corresponding
-derivative at a plug-in nuisance, and the file records the intended
-second-order Taylor representation.
+integrated pointwise derivative at a plug-in nuisance.
 
-The exported definition is `Bias_n`, the difference between the target-gradient
-population-risk derivative at the true nuisance and at the plug-in nuisance,
-evaluated in the estimator direction. The quantitative Taylor expansion is
-documented as a later API extension rather than exported here. -/
+The exported definition is `Bias_n`. Relating it to a population-risk
+derivative or to a quantitative Taylor expansion requires additional analytic
+bridges that are not exported here. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -54,9 +42,13 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Θ : Type*} [NormedAddCommGroup Θ] [InnerProductSpace ℝ Θ]
          {G : Type*} [AddCommGroup G] [Module ℝ G]
 
-/-- For [an orthogonal statistical-learning system](hyp:S), [a target-direction derivative bundle at its true nuisance function](hyp:Dθ_truth), [a target-direction derivative bundle at a nuisance function](hyp:Dθ_at_ghat), and [a target estimate](hyp:θhat), the [loss-gradient nuisance bias](goal) is the population integral of the first bundle evaluated at the target estimate minus the corresponding population integral of the second bundle.
+/-- The [integrated pointwise target-derivative difference](goal) measures, in
+[an orthogonal statistical-learning system](hyp:S), how the integrated derivative data at
+[the true nuisance](hyp:Dθ_truth) changes when replaced by [derivative data at a plug-in
+nuisance](hyp:Dθ_at_ghat), evaluated at [a target estimate](hyp:θhat). It is the first population
+integral minus the corresponding plug-in integral.
 
-Loss-gradient nuisance bias for a sample-split plug-in ERM.
+Integrated pointwise target-derivative difference for a sample-split plug-in ERM.
 
 Given:
 * `S`            — orthogonal statistical-learning system,
@@ -69,8 +61,8 @@ Given:
 `Bias_n` returns
 `(∫ z, Dθ_truth.dℓ_θ θhat z ∂P_Z) - (∫ z, Dθ_at_ghat.dℓ_θ θhat z ∂P_Z)`.
 
-By construction (see file-header note), this equals
-`D_θL(θ₀, g₀)[θhat - θ₀] - D_θL(θ₀, g)[θhat - θ₀]`. -/
+No equality with a directional derivative of the integrated population risk is asserted
+without a separate limit--integral interchange theorem. -/
 noncomputable def Bias_n
     (S : LearningSystem Ω μ Z P_Z Θ G)
     (Dθ_truth : HasDirDerivTheta S S.g₀)
@@ -80,14 +72,14 @@ noncomputable def Bias_n
     - (∫ z, Dθ_at_ghat.dℓ_θ θhat z ∂P_Z)
 
 /-
-The note's `def:est-osl-second-order-bias` further records the second-order
-Taylor identity
+The note's `def:est-osl-second-order-bias` records the second-order Taylor identity
   `Bias_n(g) = -(1/2) D_g² D_θ L(θ₀, ḡ)[θhat - θ₀, g - g₀, g - g₀]`
-for some path point `ḡ` between `g₀` and `g`.  Formalising it requires a
-second-order DD bundle `D²_g` and a one-dimensional Taylor formula on the
-integrated risk; both are deferred to a later API extension.  No vacuous
-existential Taylor-form witness is exported here — the concrete quantitative
-double-robustness content lives in `Estimation/CATE/SecondOrderBias.lean`.
+for some path point `ḡ` between `g₀` and `g`. Relating the formal `Bias_n` to that
+identity first requires a limit--integral bridge; formalising the expansion also requires a
+second-order DD bundle `D²_g` and a one-dimensional Taylor formula on the integrated risk.
+These are deferred. No vacuous existential Taylor-form witness is exported here; the concrete
+integral product bound lives in
+`Estimation/CATE/OrthogonalLearning/SecondOrderBias.lean`.
 -/
 
 end OrthogonalLearning

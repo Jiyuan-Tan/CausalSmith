@@ -1,15 +1,13 @@
 /- Zero-mass padding of finite binary observation laws. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.AffineMembership
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.AffineMembership
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory
-
-private abbrev BinLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-private abbrev BinObs :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @node: half_le_natFloor_of_one_le
 /-- If [the scalar satisfies the stated range condition](hyp:hx), [above one, the natural floor

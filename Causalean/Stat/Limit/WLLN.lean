@@ -7,20 +7,19 @@ Authors: Jiyuan Tan
 
 Generic weak law of large numbers (WLLN) for `Causalean.Stat.IIDSample`: under
 plain integrability, the sample mean of a real-valued statistic converges in
-probability to its population integral.  This generalizes the Panel-specific
-a.s. convergence lemma `iidPanel_sampleMean_ae` (which required boundedness) to
-arbitrary integrable statistics and converts almost-everywhere convergence to
-convergence in probability via `tendstoInMeasure_of_tendsto_ae` on the finite
-(probability) space `μ`.
+probability to its population integral. The proof converts almost-everywhere
+convergence from the strong law to convergence in probability via
+`tendstoInMeasure_of_tendsto_ae` on the finite probability space `μ`.
 
 A second-moment corollary specializes the WLLN to `ψ²` for a known influence
 function `ψ`, giving consistency of the empirical second moment.
 -/
 
-import Causalean.Stat.Sample
-import Causalean.Stat.Limit.Convergence
-import Mathlib.Probability.StrongLaw
-import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
+module
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.Probability.StrongLaw
+public import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
 
 /-! # Weak laws for sample means
 
@@ -30,6 +29,8 @@ sample means of measurable functions, `IIDSample.sampleMean_tendsto_inProb`
 converts the strong law into convergence in probability for any integrable
 statistic, and `IIDSample.sampleSecondMoment_tendsto_inProb` records the
 second-moment specialization used by variance-estimation arguments. -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -49,15 +50,13 @@ theorem measurable_sampleMean (S : IIDSample Ω X μ P) {g : X → ℝ}
   unfold IIDSample.sampleMean
   exact (Finset.measurable_sum _ (fun i _hi => hg_meas.comp (S.meas i))).const_mul _
 
-/-- **Generic weak law of large numbers.**  For an i.i.d. sample `S`, suppose a real-valued
-statistic `g` is [measurable](hyp:hg_meas) and [integrable under the population law
+/-- **Generic weak law of large numbers.** For [an i.i.d. sample](hyp:S), suppose a
+real-valued statistic `g` is [measurable](hyp:hg_meas) and [integrable under the population law
 `P`](hyp:hg_int). Then [the sample mean `S.sampleMean g N` converges in probability to the
 population integral `∫ x, g x ∂P` as `N → ∞`](goal).
 
-This weakens the boundedness hypothesis of the Panel a.s. lemma
-`iidPanel_sampleMean_ae` to plain integrability (all the strong law needs) and
-converts almost-everywhere convergence to convergence in probability on the
-finite probability space `μ`. -/
+The proof applies the strong law under plain integrability and then converts
+almost-everywhere convergence to convergence in probability. -/
 theorem sampleMean_tendsto_inProb
     (S : IIDSample Ω X μ P) {g : X → ℝ}
     (hg_meas : Measurable g)
@@ -98,8 +97,8 @@ theorem sampleMean_tendsto_inProb
   intro N
   exact (S.measurable_sampleMean hg_meas N).aestronglyMeasurable
 
-/-- **Second-moment consistency.**  For an i.i.d. sample `S`, suppose a known influence function
-`ψ` is [measurable](hyp:hψ_meas) and [has square-integrable values under the population law
+/-- **Second-moment consistency.** For [an i.i.d. sample](hyp:S), suppose a known influence
+function `ψ` is [measurable](hyp:hψ_meas) and [has square-integrable values under the population law
 `P`](hyp:hψ_sq_int). Then [the empirical second moment `S.sampleMean (ψ²) N` converges in
 probability to `∫ x, (ψ x)² ∂P`](goal).  Direct application of the WLLN to `g := ψ²`. -/
 theorem sampleSecondMoment_tendsto_inProb

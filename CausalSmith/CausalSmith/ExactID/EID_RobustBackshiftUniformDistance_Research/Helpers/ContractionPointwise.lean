@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionWitness
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionWitness
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.DeterminantEnvelope
 
 /-!
 # Pointwise quantitative contraction bridges
@@ -9,13 +10,15 @@ inputs of pairwise-affine local stability.  The separate compact-exclusion modul
 only for placing candidates in the required local chart.
 -/
 
+public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open Set
 open scoped Matrix.Norms.L2Operator ENNReal
 
 open Causalean.Discovery.LinearDisentanglement.Quantitative
-open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 /-- The paper's scale envelope bounds every honest shift coordinate. [Under the stated hypotheses](hyp:hscale,he) [this conclusion](goal) applies. -/
 lemma abs_shift_le_of_matrixScaleBound {p m : ℕ}

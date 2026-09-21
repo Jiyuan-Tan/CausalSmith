@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.CitedGates
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.CitedGates
 
 /-!
 # Fixed/Poisson transfer for the paired L1 experiment
@@ -7,6 +8,8 @@ import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers
 This file specializes the reusable paired-histogram Rao--Blackwell theorem to
 the two simplex laws used by the paper.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -106,14 +109,14 @@ lemma fixedL1MinimaxRisk_ge_poisson_sub_expTail {n d : ℕ}
               (add_le_add_right (hM ⟨PQ, rfl⟩)
                 (8 * Real.exp (-(n : ℝ) * (1 - Real.log 2)))))⟩
   have hpmin : poissonL1FiniteRiskMinimaxRisk n d ≤
-      Causalean.Stat.worstCaseRisk
+      Causalean.Stat.worstCaseRiskReal
         (fun est : FiniteRiskL1Estimator n d => poissonL1Risk n est.1) poisEst := by
     unfold poissonL1FiniteRiskMinimaxRisk
     exact Causalean.Stat.minimaxValue_le_worstCaseRisk_of_nonneg
       (fun _ _ => by unfold poissonL1Risk Causalean.Stat.sqRisk; positivity) poisEst
-  have hpwc : Causalean.Stat.worstCaseRisk
+  have hpwc : Causalean.Stat.worstCaseRiskReal
       (fun est : FiniteRiskL1Estimator n d => poissonL1Risk n est.1) poisEst ≤
-      Causalean.Stat.worstCaseRisk (fixedL1Risk (d := d) n) est +
+      Causalean.Stat.worstCaseRiskReal (fixedL1Risk (d := d) n) est +
         8 * Real.exp (-(n : ℝ) * (1 - Real.log 2)) := by
     apply Causalean.Stat.worstCaseRisk_le
     intro PQ
@@ -121,7 +124,7 @@ lemma fixedL1MinimaxRisk_ge_poisson_sub_expTail {n d : ℕ}
       poissonL1Risk n poisEst.1 PQ ≤ fixedL1Risk n est PQ +
           8 * Real.exp (-(n : ℝ) * (1 - Real.log 2)) :=
         poissonL1Risk_pairedHistogram_le est PQ
-      _ ≤ Causalean.Stat.worstCaseRisk (fixedL1Risk (d := d) n) est +
+      _ ≤ Causalean.Stat.worstCaseRiskReal (fixedL1Risk (d := d) n) est +
           8 * Real.exp (-(n : ℝ) * (1 - Real.log 2)) := by
         gcongr
         exact Causalean.Stat.le_worstCaseRisk (fixedL1Risk_bddAbove est) PQ

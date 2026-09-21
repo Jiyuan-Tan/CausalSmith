@@ -4,22 +4,26 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlQuantileBalance
-import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct
-import Causalean.Tactic.Attr
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlQuantileBalance
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct
+public import Causalean.Tactic.Attr
 
 /-! # Marginal Sensitivity Model -- constructing the calibrating control cutoff
 
 This file is the control-arm mirror of `CutoffConstruct`: it constructs a `σ(X)`-measurable
 cutoff solving the control conditional-survival calibration equation and uses it to discharge the
-membership hypothesis in the calibrated control sharp upper bound.
+membership hypothesis in the calibrated control calibrated upper bound.
 
 The file defines `controlSet`, `controlXYLaw`, `controlCondCDF`, and
 `calibLevel0`; proves the constant and functional survival bridges
 `controlSurv_const_eq` and `controlSurv_eq`; constructs a measurable cutoff in
-`exists_calibrating_cutoff0`; and packages the unconditional sharp upper
-endpoint as `msmUpperCalib0_eq_cutoff_unconditional`.
+`exists_calibrating_cutoff0`; and packages the calibrated upper endpoint under universal cutoff
+integrability as
+`msmUpperCalib0_eq_cutoff_of_universal_cutoff_integrability`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -654,11 +658,12 @@ theorem controlSurv_eq (c : P.Ω → ℝ) (hc : Measurable[S.sigmaX] c) :
   rw [hleω]
   ring
 
-/-- Existence of a calibrating cutoff. Under overlap, `1 < Λ`, an atomless control
-conditional outcome law (`condCDF` of the control push-forward continuous), and a strictly-interior
-calibration level, there is a `σ(X)`-measurable cutoff `c` solving the survival equation
-`controlSurv c =ᵐ survTarget0 Λ`. The cutoff is the conditional quantile `Q_{calibLevel0}(X)`. -/
-theorem exists_calibrating_cutoff0 (Λ : ℝ) (_hΛ : 1 < Λ)
+/-- **Existence of a calibrating control cutoff.** Fix [a sensitivity parameter](hyp:Λ). Under
+[control-arm overlap](hyp:hoverlap), [continuity of each control
+conditional CDF](hyp:hatomless), and [an interior calibration level](hyp:hlevel), [there is a
+σ(X)-measurable cutoff `c` solving `controlSurv c =ᵐ survTarget0 Λ`](goal). The cutoff is the
+conditional quantile at `calibLevel0`. -/
+theorem exists_calibrating_cutoff0 (Λ : ℝ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (hatomless : ∀ a : γ, Continuous (condCDF S.controlXYLaw a))
     (hlevel : ∀ᵐ ω ∂P.μ, 0 < S.calibLevel0 Λ ω ∧ S.calibLevel0 Λ ω < 1) :
@@ -733,28 +738,25 @@ theorem exists_calibrating_cutoff0 (Λ : ℝ) (_hΛ : 1 < Λ)
   field_simp [hpos]
   ring
 
-/-- **The sharp control upper bound has a quantile-balancing closed form, unconditionally.**
+/-- **The calibrated control upper bound under universal cutoff integrability.**
 Fix [a sensitivity parameter Λ strictly greater than 1](hyp:Λ,hΛ). If [the control propensity
 `P[D=0∣X]` lies strictly between 0 and 1 almost everywhere (overlap)](hyp:hoverlap), [the control
 outcome's conditional law given the covariates is atomless (its conditional CDF is
 continuous)](hyp:hatomless), [the calibration level lies strictly between 0 and 1 almost
-everywhere](hyp:hlevel), [every candidate propensity in the calibrated control ambiguity set is
-almost-everywhere measurable](hyp:hmeas), and [every covariate-measurable cutoff function
+everywhere](hyp:hlevel), and suppose [every covariate-measurable cutoff function
 satisfies the integrability conditions needed to evaluate the calibration and candidate-mean
 functionals at it](hyp:hreg), then [there exists a covariate-measurable cutoff c such that the
 cutoff-calibration propensity `cutoffProp0 Λ c` lies in the calibrated control MSM set and the
-sharp control upper bound equals the candidate mean at that cutoff, `msmUpperCalib0 Λ = candMean0
+calibrated control upper bound equals the candidate mean at that cutoff, `msmUpperCalib0 Λ = candMean0
 (cutoffProp0 Λ c)`](goal).
 
-Combining the constructed calibrating cutoff with `msmUpperCalib0_eq_cutoff`, the Dorn–Guo sharp
-upper bound has the quantile-balancing closed form for the conditional-quantile cutoff `c` -- with
-no `hcut_mem` hypothesis, the membership now discharged by `exists_calibrating_cutoff0`. -/
-theorem msmUpperCalib0_eq_cutoff_unconditional (Λ : ℝ) (hΛ : 1 < Λ)
+Combining the constructed calibrating cutoff with `msmUpperCalib0_eq_cutoff` gives a
+quantile-balancing closed form under the stated universal integrability assumption. The
+membership hypothesis is discharged by `exists_calibrating_cutoff0`. -/
+theorem msmUpperCalib0_eq_cutoff_of_universal_cutoff_integrability (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
     (hatomless : ∀ a : γ, Continuous (condCDF S.controlXYLaw a))
     (hlevel : ∀ᵐ ω ∂P.μ, 0 < S.calibLevel0 Λ ω ∧ S.calibLevel0 Λ ω < 1)
-    (_hbdd : BddAbove (S.candMean0 '' S.MSMSetCalib0 Λ))
-    (hmeas : ∀ etilde ∈ S.MSMSetCalib0 Λ, AEMeasurable etilde P.μ)
     (hreg : ∀ c : P.Ω → ℝ, Measurable[S.sigmaX] c →
       Integrable c P.μ ∧
       Integrable (fun ω => S.dVar.indicator false ω / S.cutoffProp0 Λ c ω) P.μ ∧
@@ -770,15 +772,15 @@ theorem msmUpperCalib0_eq_cutoff_unconditional (Λ : ℝ) (hΛ : 1 < Λ)
       S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ ∧
       S.msmUpperCalib0 Λ = S.candMean0 (S.cutoffProp0 Λ c) := by
   obtain ⟨c, hc_meas, hsurv⟩ :=
-    S.exists_calibrating_cutoff0 Λ hΛ hoverlap hatomless hlevel
-  obtain ⟨hc_int, hint, hint1, hmin_int, hdiff_int,
+    S.exists_calibrating_cutoff0 Λ hoverlap hatomless hlevel
+  obtain ⟨hc_int, _hint, hint1, hmin_int, hdiff_int,
     henv, hweight_env, hc_env⟩ := hreg c hc_meas
   have hcut_mem : S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ :=
-    S.cutoffProp0_mem_MSMSetCalib0_of_survival Λ hΛ hoverlap c hc_meas
-      hint hint1 hmin_int hdiff_int hsurv
+    S.cutoffProp0_mem_MSMSetCalib0_of_survival Λ hΛ hoverlap c
+      hint1 hmin_int hdiff_int hsurv
   have heq : S.msmUpperCalib0 Λ = S.candMean0 (S.cutoffProp0 Λ c) :=
     S.msmUpperCalib0_eq_cutoff Λ (le_of_lt hΛ) hoverlap c hc_meas
-      hc_int hcut_mem henv hweight_env hc_env hmeas
+      hc_int hcut_mem henv hweight_env hc_env
   exact ⟨c, hc_meas, hcut_mem, heq⟩
 
 end POBackdoorSystem

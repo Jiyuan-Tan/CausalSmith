@@ -1,9 +1,10 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EuclideanBallsVC
-import Causalean.Stat.Nonparametric.LocalPolynomial.CoordinateDerivative
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
-import Mathlib.Data.Matrix.Basic
-import Mathlib.MeasureTheory.Measure.Hausdorff
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EuclideanBallsVC
+public import Causalean.Stat.Nonparametric.LocalPoly.CoordinateDerivative
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
+public import Mathlib.Analysis.Calculus.IteratedDeriv.Defs
+public import Mathlib.Data.Matrix.Basic
+public import Mathlib.MeasureTheory.Measure.Hausdorff
 
 /-!
 # The exact uniformized CTY Assumptions 1--2 class
@@ -12,6 +13,8 @@ The ten conjuncts below retain the Euclidean carrier, selected conditional
 kernel, open-neighborhood smooth extension, uniform-kernel VC condition, Gram
 floor, local mass, and Hausdorff slice requirements of the paper.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal NNReal Topology

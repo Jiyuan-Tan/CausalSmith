@@ -1,7 +1,10 @@
-import Mathlib.RingTheory.Polynomial.Chebyshev
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.RootsExtrema
-import Mathlib.Algebra.Polynomial.Taylor
-import Mathlib.Data.Nat.Choose.Cast
+module
+public import Mathlib.RingTheory.Polynomial.Chebyshev
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Chebyshev.RootsExtrema
+public import Mathlib.Algebra.Polynomial.Taylor
+public import Mathlib.Data.Nat.Choose.Cast
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

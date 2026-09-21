@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.K3FullDataWitness
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.K3FullDataWitness
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-! Exact early diagnostic showing scalar sign-score compression loses information. -/
+
+@[expose] public section
 
 open scoped BigOperators
 

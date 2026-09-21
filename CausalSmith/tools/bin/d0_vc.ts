@@ -12,6 +12,7 @@
  *   d0_vc.ts <qid> <spec> show <commit> [--core <out>]     one commit (or write its rendered core)
  *   d0_vc.ts <qid> <spec> diff <a> <b>                     node-level diff between two commits
  *   d0_vc.ts <qid> <spec> reset <commit> --note "<why>"    make main render that commit's tree
+ *   d0_vc.ts <qid> <spec> resolve-oeq <id> --by <theorem> [--from-pr <accepted-pr>] --note "<why>" [--check]
  *   d0_vc.ts <qid> <spec> render                           rewrite core.json from main (drops edits)
  *   d0_vc.ts <qid> <spec> fsck                             verify every object, commit and ref
  *
@@ -35,7 +36,7 @@ import { withRunHeartbeat } from "../src/shared/run_heartbeat.js";
 import { readTypedCore } from "../src/discovery/core/core_io.js";
 import { coreJsonPath } from "../src/discovery/stages/d0_core.js";
 import { formatViolations } from "../src/discovery/vcs/checks.js";
-import { assertCoreRendersMain, commitGraph, coreMatchesGraph, headGraph, publishCore } from "../src/discovery/vcs/commit.js";
+import { assertCoreRendersMain, assertNoUncommittedEdits, commitGraph, coreMatchesGraph, headGraph, publishCore } from "../src/discovery/vcs/commit.js";
 import { initStoreFromRun } from "../src/discovery/vcs/convert.js";
 import { ensureStore } from "../src/discovery/vcs/round.js";
 import { loadState, saveState } from "../src/state.js";
@@ -43,10 +44,11 @@ import { diffGraphs, isEmptyDiff, loadGraph, type GraphDiff } from "../src/disco
 import { graphFromCore, renderCore } from "../src/discovery/vcs/render.js";
 import { MAIN_REF, VcsStore, type Commit } from "../src/discovery/vcs/store.js";
 import { staleProofs, openStatements } from "../src/discovery/vcs/validity.js";
-import { closePr, describePr, listPrs, mergePr, readPr, reapplyPr } from "../src/discovery/vcs/pr.js";
+import { closePr, describePr, listPrs, mergePr, openPr, readPr, reapplyPr } from "../src/discovery/vcs/pr.js";
+import { assertPreparedOeqResolutionPr, prepareOeqResolutionToExisting, resolveOeqToExisting } from "../src/discovery/vcs/resolve.js";
 import { writeJsonAtomic } from "../src/shared/json_atomic.js";
 
-const USAGE = "usage: d0_vc.ts <qid> <spec> <migrate|init|status|commit|log|show|diff|reset|render|fsck|pr list|pr show|pr merge|pr reapply|pr close> [...]";
+const USAGE = "usage: d0_vc.ts <qid> <spec> <migrate|init|status|commit|log|show|diff|reset|resolve-oeq|render|fsck|pr list|pr show|pr merge|pr reapply|pr close> [...]";
 
 export function formatDiff(d: GraphDiff): string {
   const lines: string[] = [];
@@ -81,6 +83,8 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
   };
   const note = take("--note");
   const fromCore = take("--from-core");
+  const fromPr = take("--from-pr");
+  const byTheorem = take("--by");
   const coreOut = take("--core");
   const limit = take("-n");
   const accept = take("--accept");
@@ -222,6 +226,61 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<void
         await publishCore(ctx, store);
         out(`main = ${result.id} (tree of ${target.slice(0, 12)}); core.json re-rendered`);
       });
+      return;
+    }
+    case "resolve-oeq": {
+      const [sourceId] = rest;
+      if (!sourceId) throw new Error("resolve-oeq needs an OEQ id");
+      if (byTheorem === undefined) throw new Error("resolve-oeq needs --by <existing-theorem-id>");
+      if (note === undefined) throw new Error('resolve-oeq needs --note "<what and why>"');
+      const run = async (): Promise<void> => {
+        await assertNoUncommittedEdits(ctx, store);
+        const { head, graph } = await headGraph(store);
+        if (fromPr === undefined) {
+          const prepared = prepareOeqResolutionToExisting(graph, sourceId, byTheorem);
+          if (checkOnly) {
+            out(`check passed; would open review for ${prepared.witnessId}; main unchanged`);
+            return;
+          }
+          const opened = await openPr({ store, base: head, round: 0, submissions: [prepared.submission] });
+          assertPreparedOeqResolutionPr(opened.pr, sourceId, prepared);
+          out(`opened resolution review PR ${opened.pr.id}\nwitness: ${prepared.witnessId}\nreview: d0_vc.ts ${qid} ${spec} pr show ${opened.pr.id}\naccept: d0_vc.ts ${qid} ${spec} pr merge ${opened.pr.id} --accept all --note "<adjudication>"\nfinalize: d0_vc.ts ${qid} ${spec} resolve-oeq ${sourceId} --by ${byTheorem} --from-pr ${opened.pr.id} --note "${note}"`);
+          return;
+        }
+        const pr = await readPr(store, fromPr);
+        if (pr.merge_commit === undefined) throw new Error(`resolve-oeq: PR ${pr.id.slice(0, 12)} has no merge commit`);
+        const mergeCommit = await store.readCommit(pr.merge_commit);
+        const acceptedHeadId = mergeCommit.parents[1];
+        if (acceptedHeadId === undefined) throw new Error(`resolve-oeq: PR ${pr.id.slice(0, 12)} merge has no accepted-head parent`);
+        const acceptedHeadCommit = await store.readCommit(acceptedHeadId);
+        const candidate = resolveOeqToExisting({
+          current: graph,
+          currentId: head,
+          prBase: await loadGraph(store, pr.base),
+          prHead: await loadGraph(store, pr.id),
+          acceptedHead: await loadGraph(store, acceptedHeadId),
+          pr,
+          mergeCommit,
+          acceptedHeadCommit,
+          sourceId,
+          theoremId: byTheorem,
+        });
+        const diff = diffGraphs(graph, candidate);
+        out(`changes:\n${formatDiff(diff)}`);
+        if (checkOnly) { out("check passed; main unchanged"); return; }
+        const result = await commitGraph({
+          store, graph: candidate, parents: [head], author: "adjudicator", kind: "direct", message: note,
+          expectedHead: head,
+        });
+        if (!result.ok) {
+          out(`REFUSED (nothing written):\n${formatViolations(result.violations)}`);
+          process.exitCode = 1;
+          return;
+        }
+        await publishCore(ctx, store);
+        out(`committed ${result.id}\ncore.json re-rendered`);
+      };
+      if (checkOnly) await run(); else await withRunHeartbeat(repoRoot, qid, spec, run);
       return;
     }
     case "render": {

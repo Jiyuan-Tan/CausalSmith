@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import Causalean.Mathlib.Probability.SignedTwoPoint
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Mathlib.Probability.ConditionalExpectation
-import Mathlib.Probability.Independence.InfinitePi
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Mathlib.Probability.ConditionalExpectation
+public import Mathlib.Probability.Independence.InfinitePi
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 /-! # Latent two-point witnesses for the private CATE converse
 
@@ -20,6 +21,8 @@ with probability `e0`.  The observed record is the consistency image `Y = Y(A)`.
 Thus the counterfactual remains latent and the arm regressions are `mu0 = 0` and
 `mu1 = b`, with contrast exactly `b`.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

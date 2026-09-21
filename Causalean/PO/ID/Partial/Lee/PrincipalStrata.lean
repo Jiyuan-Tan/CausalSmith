@@ -16,7 +16,8 @@ This file proves the two key event-equality lemmas via leaf-level
 measure-theoretic rewrites.
 -/
 
-import Causalean.PO.ID.Partial.Lee.Setup
+module
+public import Causalean.PO.ID.Partial.Lee.Setup
 
 /-! # Lee Principal Strata
 
@@ -24,6 +25,8 @@ This file defines the latent principal strata for Lee sample-selection bounds.
 It proves measurability and the monotone-selection event identities that relate
 the always-selected and treatment-induced-selected strata to observed and
 counterfactual selected sets. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

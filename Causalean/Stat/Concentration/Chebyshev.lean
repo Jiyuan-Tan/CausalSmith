@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Probability.Moments.Variance
+
+module
+public import Mathlib.Probability.Moments.Variance
 
 /-!
 # Chebyshev bounds with a supplied variance envelope
@@ -14,6 +16,8 @@ supplied upper bound. This differs from `iid_sum_chebyshev`, which specializes
 to an i.i.d. sum with its exact variance and states the result as an `ENNReal`
 measure bound.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

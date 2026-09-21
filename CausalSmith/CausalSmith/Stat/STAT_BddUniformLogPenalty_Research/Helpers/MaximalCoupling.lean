@@ -1,14 +1,17 @@
-import Causalean.Stat.Minimax.MaximalCoupling
+module
+public import Causalean.Stat.Minimax.OverlapCoupling
 
 /-!
-# Re-exported maximal-coupling substrate
+# Re-exported overlap-coupling substrate
 
-The reusable result now lives in Causalean; this module keeps the accepted run’s
-original unqualified names as aliases.
+The reusable result now lives in Causalean; this module keeps a local unqualified
+re-export surface for the accepted run.
 -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 
-export Causalean.Stat (measurableEqOfStandardBorel tvDist_eq_half_integral_abs_rnDeriv_sub rnCommonPart rnCommonPart_le_left rnCommonPart_le_right rnCommonPart_mass_eq_one_sub_tvDist measure_eq_of_tvDist_eq_zero maximalCoupling maximalCoupling_map_fst maximalCoupling_map_snd maximalCoupling_eq_mass_ge compressionCoupling compressionCoupling_map_fst compressionCoupling_map_snd compressionCoupling_map_compress_pair compressionCoupling_equal_compression_mass_ge)
+export Causalean.Stat (measurableEqOfStandardBorel tvDist_eq_half_integral_abs_rnDeriv_sub rnCommonPart rnCommonPart_le_left rnCommonPart_le_right rnCommonPart_mass_eq_one_sub_tvDist measure_eq_of_tvDist_eq_zero overlapCoupling overlapCoupling_map_fst overlapCoupling_map_snd overlapCoupling_eq_mass_ge compressionCoupling compressionCoupling_map_fst compressionCoupling_map_snd compressionCoupling_map_compress_pair compressionCoupling_equal_compression_mass_ge)
 
 end CausalSmith.Stat.BddUniformLogPenalty

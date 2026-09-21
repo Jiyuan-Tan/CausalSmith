@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.TotalGram
-import Causalean.Mathlib.Analysis.ConvexProjection
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.TotalGram
+public import Causalean.Mathlib.Analysis.ConvexProjection
 
 /-! # Measurability of the realized total-Gram estimator -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

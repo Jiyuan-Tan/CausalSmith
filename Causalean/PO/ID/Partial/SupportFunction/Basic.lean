@@ -18,7 +18,7 @@ This file is the abstract spine: the definition over a real inner-product space
 and the two monotone "sandwich" facts (`le_supportFn`, `supportFn_le`) that every
 downstream sharpness proof consumes.  The support-function *calculus* lives in
 `Calculus.lean`; the identified-interval characterisation `[-h(-d), h(d)]` and the
-bridge to the scalar `IdentifiedInterval` engine live in `Interval.lean`.
+bridge to the scalar `IdentifiedSet` engine live in `Interval.lean`.
 
 Endpoints are reported through `sSup` (matching the `SandwichInterval` /
 `RandomSet` convention), so boundedness hypotheses are carried explicitly rather
@@ -34,8 +34,9 @@ than baked into the type — the same discipline as the scalar engine.
 * `supportFn_le` — a uniform upper bound on the functional bounds the support value.
 -/
 
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
+module
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 /-! # Support functions for partial identification
 
@@ -44,6 +45,8 @@ It supplies the basic lower and upper comparison principles used to turn convex
 feasible sets into sharp bounds for linear causal targets. Boundedness and
 nonemptiness side conditions are carried explicitly, matching the scalar
 partial-identification convention. -/
+
+@[expose] public section
 
 open scoped RealInnerProductSpace
 

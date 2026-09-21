@@ -9,11 +9,13 @@ Extends the scalar `twfe_twm_equivalence` to the K-vector regressor case: the
 matrix Frisch-Waugh-Lovell handoff `matrix_fwl_eq_of_normalEqs` (generalizing
 `UniformTwoWayPanel.finite_residualized_coefficient_eq_of_normalEqs`), the
 vector two-way Mundlak nuisance span, the coding-free vector Mundlak fit, and
-the equivalence theorem `vec_twfe_twm_equivalence` (Wooldridge 2021, Theorem A,
-full K-vector form). The full-rank side condition is `IsUnit (gram X).det`.
+the equivalence theorem `vec_twfe_twm_equivalence` (Wooldridge 2025,
+Theorem 3.1, full K-vector form). The full-rank side condition is
+`IsUnit (gram X).det`. Reference: <https://doi.org/10.1007/s00181-025-02807-z>.
 -/
 
-import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.VectorTWFE
+module
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.VectorTWFE
 
 /-! # Wooldridge Vector Mundlak Equivalence
 
@@ -23,6 +25,8 @@ regressor to a finite vector of regressors.  It defines the generic residualized
 `matrix_fwl_eq_of_normalEqs`, introduces the vector two-way Mundlak nuisance span
 and fit, and proves `vec_twfe_twm_equivalence` together with the optional-control
 invariance theorem `vec_twfe_twm_optional_controls_invariant`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -49,17 +53,25 @@ noncomputable def numerOf (Dt : Unit → Time → K → ℝ) (Yt : Unit → Time
   fun k => ∑ i, ∑ t, Dt i t k * Yt i t
 
 omit [Fintype K] [DecidableEq K] in
-/-- `gram` is the residualized instance of the generic version. -/
+/-- For [a vector regressor array](hyp:X) over [finite unit and period sets and a
+regressor-coordinate set](hyp:Unit,Time,K), [the specialized residualized Gram
+matrix equals the generic Gram matrix applied to the double-demeaned
+regressors](goal). -/
 theorem gram_eq_gramOf (X : Unit → Time → K → ℝ) : gram X = gramOf (ddotVec X) := rfl
 
 omit [Fintype K] [DecidableEq K] in
-/-- `numer` is the residualized instance of the generic version. -/
+/-- For [a vector regressor array and an outcome array](hyp:X,Y) over [finite unit
+and period sets and a regressor-coordinate set](hyp:Unit,Time,K), [the specialized
+residualized numerator equals the generic numerator applied to the double-demeaned
+arrays](goal). -/
 theorem numer_eq_numerOf (X : Unit → Time → K → ℝ) (Y : Unit → Time → ℝ) :
     numer X Y = numerOf (ddotVec X) (ddot Y) := rfl
 
 omit [DecidableEq K] in
-/-- Reshuffle: a residualized regressor against a `β`-combination of regressors
-factors through the cross-Gram. -/
+/-- For [two vector regressor arrays](hyp:Dt,D), [a coefficient vector](hyp:β),
+and [a selected coordinate](hyp:k) over [finite unit, period, and coordinate
+sets](hyp:Unit,Time,K), [the summed product of that coordinate with the fitted
+regressor combination factors through the cross-Gram sums](goal). -/
 theorem sum_dotRegressor (Dt D : Unit → Time → K → ℝ) (β : K → ℝ) (k : K) :
     (∑ i, ∑ t, Dt i t k * (∑ j, D i t j * β j))
       = ∑ j, (∑ i, ∑ t, Dt i t k * D i t j) * β j := by
@@ -80,11 +92,14 @@ theorem sum_dotRegressor (Dt D : Unit → Time → K → ℝ) (β : K → ℝ) (
         refine Finset.sum_congr rfl (fun i _ => ?_)
         rw [Finset.sum_mul]
 
-/-- Matrix Frisch-Waugh-Lovell handoff. If a coefficient vector `β` and nuisance
-term `Hβ` satisfy the finite normal equations against the raw vector regressor
-`D` and a nuisance class `H`, while each coordinate of the residualized regressor
-`Dtilde` is orthogonal to `H` and the residualized Gram matrix is nonsingular,
-then `β` is the residualized matrix coefficient. -/
+/-- The [candidate coefficient equals the residualized matrix coefficient](goal)
+over [finite unit, period, and regressor-coordinate sets](hyp:Unit,Time,K) when
+[the outcome and regressors split into projected and residual parts](hyp:hY,hD),
+[the projected regressors and fitted nuisance belong to a specified nuisance
+class](hyp:H,hDproj_mem,hHβ_mem), [the residualized regressors satisfy the required
+orthogonality conditions](hyp:hDtilde_orth,hYproj_orth), [their Gram matrix is
+nonsingular](hyp:hgram_unit), and [the raw residual satisfies the regressor and
+nuisance normal equations](hyp:h_normal_D,h_normal_H). -/
 theorem matrix_fwl_eq_of_normalEqs
     (H : (Unit → Time → ℝ) → Prop)
     {Y Yproj Ytilde : Unit → Time → ℝ}
@@ -196,8 +211,10 @@ def IsVectorTwoWayMundlakNuisance (X : Unit → Time → K → ℝ)
       + (∑ z, ζ z * Zvar z i) + (∑ m, μ m * Mvar m t)
 
 omit [DecidableEq K] in
-/-- Vector two-way Mundlak nuisance terms are unit/time additive, so the optional
-controls lie inside the same orthogonality class as for the scalar case. -/
+/-- Every [function satisfying the vector two-way Mundlak nuisance
+representation](hyp:hh) is [additive in a unit component and a period
+component](goal) for [a vector regressor and two control families](hyp:X,Zvar,Mvar)
+over [finite unit, period, coordinate, and control sets](hyp:Unit,Time,K,Z,M). -/
 theorem vector_mundlak_nuisance_unit_time
     (X : Unit → Time → K → ℝ) (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
     {h : Unit → Time → ℝ}
@@ -211,8 +228,9 @@ theorem vector_mundlak_nuisance_unit_time
   intro i t
   rw [hrep i t]; ring
 
-/-- Selecting a single coordinate via a `0/1` indicator collapses the coordinate
-sum to that coordinate's value. -/
+/-- For [a selected coordinate](hyp:k) and [a coordinate-indexed function](hyp:f)
+on [a finite coordinate set](hyp:K), [summing after multiplication by the selected
+coordinate's zero-one indicator returns that coordinate's value](goal). -/
 theorem sum_ite_one_mul (k : K) (f : K → ℝ) :
     (∑ k', (if k' = k then (1 : ℝ) else 0) * f k') = f k := by
   rw [Finset.sum_eq_single k]
@@ -240,14 +258,17 @@ structure VectorTWMFit (P : VectorTWFEProblem Unit Time K)
       (∑ i, ∑ t, h i t *
         (P.Y i t - (∑ j, P.X i t j * beta j) - nuisance i t)) = 0
 
-/-- **Wooldridge finite-panel K-vector TWFE-two-way-Mundlak equivalence (Theorem A).**
+/-- **Wooldridge finite-panel K-vector TWFE–two-way-Mundlak equivalence
+(2025, Theorem 3.1).**
 [For a K-vector two-way-fixed-effects panel regression problem `P` with optional
 time-constant controls `Zvar` and time-only controls `Mvar`](hyp:P,Zvar,Mvar), [given any
 pooled two-way Mundlak regression fit stated by its normal equations](hyp:fit), [that fit's
 coefficient vector on the regressors equals the K-vector two-way-fixed-effects coefficient
 vector](goal).
 
-This holds under the residualized-Gram nonsingularity `P.gram_unit`. -/
+This holds under the residualized-Gram nonsingularity `P.gram_unit`. Reference:
+Wooldridge (2025), Theorem 3.1,
+<https://doi.org/10.1007/s00181-025-02807-z>. -/
 theorem vec_twfe_twm_equivalence (P : VectorTWFEProblem Unit Time K)
     (Zvar : Z → Unit → ℝ) (Mvar : M → Time → ℝ)
     (fit : VectorTWMFit P Zvar Mvar) :
@@ -309,9 +330,10 @@ theorem vec_twfe_twm_equivalence (P : VectorTWFEProblem Unit Time K)
   rw [hfwl]
   rfl
 
-/-- Adding or removing optional time-constant or time-only controls does not
-change the K-vector Mundlak coefficient, since both fits equal the vector TWFE
-coefficient. -/
+/-- [Two vector two-way Mundlak fits](hyp:fit₁,fit₂) using [possibly different
+unit-only and period-only controls](hyp:Zvar₁,Mvar₁,Zvar₂,Mvar₂) [have the same
+regressor coefficient vector](goal) for [one vector finite-panel problem](hyp:P)
+over [finite index sets](hyp:Unit,Time,K,Z₁,M₁,Z₂,M₂). -/
 theorem vec_twfe_twm_optional_controls_invariant
     {Z₁ M₁ Z₂ M₂ : Type*} [Fintype Z₁] [Fintype M₁] [Fintype Z₂] [Fintype M₂]
     (P : VectorTWFEProblem Unit Time K)

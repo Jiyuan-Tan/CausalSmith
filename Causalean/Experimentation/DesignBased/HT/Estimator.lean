@@ -18,7 +18,8 @@ Dividing by `N` gives the mean estimator `htMean`, and differencing two exposure
 average-effect estimator `htEffect dk dl`, which targets `τ(dk,dl) = μ(dk) − μ(dl)`.
 -/
 
-import Causalean.Experimentation.DesignBased.PotentialOutcome
+module
+public import Causalean.Experimentation.DesignBased.PotentialOutcome
 
 /-! # Horvitz-Thompson estimators
 
@@ -31,6 +32,8 @@ The main estimator is `htTotal`, the totalized inverse-probability-weighted esti
 estimator using the exposure-specific potential outcome `y i d`, a form used by the unbiasedness
 and variance proofs.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

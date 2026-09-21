@@ -6,8 +6,13 @@ Authors: Jiyuan Tan
 # Admissible source swaps preserve causal direction
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AdmissibleSwaps
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AdmissibleSwaps
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
+
+/-! Public admissible-swap preservation results for this module. -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

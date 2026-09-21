@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceVertices
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceParity
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceVertices
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceParity
 
 /-! # ±1 reduced-slice characterization: the backward (sufficiency) direction
 
@@ -13,6 +15,8 @@ block-exchangeable `±1` design.  For even `m` the point is the barycentric mixt
 `(y/2m)·cut + (z/2m)·all + (x·(m−1)/m)·spread` of the three triangle vertices; for
 odd `m` the origin is unavailable and the region is a quadrilateral cut off at
 `y+z = 2/m`, handled by `pm_slice_backward_odd`. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

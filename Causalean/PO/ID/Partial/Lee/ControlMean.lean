@@ -18,9 +18,12 @@ conditioning; monotone selection collapses `{Sel(0)=true}` to
 `alwaysSelected`.
 -/
 
-import Causalean.PO.ID.Partial.Lee.Assumptions
-import Causalean.PO.ID.Partial.Lee.PrincipalStrata
-import Causalean.PO.ID.Partial.Lee.Trim
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Lee.Assumptions
+public import Causalean.PO.ID.Partial.Lee.PrincipalStrata
+public import Causalean.PO.ID.Partial.Lee.Trim
 
 /-! # Lee bounds control-arm mean identity
 
@@ -29,12 +32,16 @@ consistency, random assignment, and monotone selection, the observable selected
 control mean equals the latent mean of `Y(0)` among always-selected units.
 
 The public lemma `m0_eq_eventCondExp_Y0_alwaysSelected` rewrites the observable
-selected-control mean `m0` as `eventCondExp P.μ alwaysSelected (YofA false)`.
+selected-control mean `m0` as `normalizedRestrictedIntegral P.μ alwaysSelected (YofA false)`.
 The proof first uses consistency to replace factual outcomes and selection on
 the selected-control cell, then uses pair-level random assignment to drop the
 conditioning on treatment assignment, and finally uses monotone selection to
 identify control selection with the always-selected stratum.
 -/
+
+public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -55,7 +62,7 @@ of the control potential outcome among units who would be selected under either 
 arm](goal). -/
 lemma m0_eq_eventCondExp_Y0_alwaysSelected
     (hA : S.BaseAssumptions) (hMono : S.MonotoneSelection) :
-    S.m0 = eventCondExp P.μ S.alwaysSelected (S.YofA false) := by
+    S.m0 = normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA false) := by
   have hy_on_selectedControl :
       ∀ ω ∈ S.selectedControl, S.factualY ω = S.YofA false ω := by
     intro ω hω
@@ -64,8 +71,8 @@ lemma m0_eq_eventCondExp_Y0_alwaysSelected
         S.yVar S.aVar false S.hAY.symm hω.1
     exact hcf.symm
   have hY :
-      eventCondExp P.μ S.selectedControl S.factualY
-        = eventCondExp P.μ S.selectedControl (S.YofA false) :=
+      normalizedRestrictedIntegral P.μ S.selectedControl S.factualY
+        = normalizedRestrictedIntegral P.μ S.selectedControl (S.YofA false) :=
     eventCondExp_congr_on P.μ S.measurableSet_selectedControl hy_on_selectedControl
   have hSelectedControl :
       S.selectedControl = S.aEvent false ∩ S.selOfAFalseSet := by
@@ -84,8 +91,8 @@ lemma m0_eq_eventCondExp_Y0_alwaysSelected
       exact ⟨hω.1, by
         simpa [selOfAFalseSet, selEvent, POVar.event, factualSel, hsel_cf] using hω.2⟩
   have hdrop :
-      eventCondExp P.μ (S.aEvent false ∩ S.selOfAFalseSet) (S.YofA false)
-        = eventCondExp P.μ S.selOfAFalseSet (S.YofA false) := by
+      normalizedRestrictedIntegral P.μ (S.aEvent false ∩ S.selOfAFalseSet) (S.YofA false)
+        = normalizedRestrictedIntegral P.μ S.selOfAFalseSet (S.YofA false) := by
     have hpair_meas :
         Measurable (fun ω => (S.YofA false ω, S.SelOfA false ω)) :=
       Measurable.prodMk (S.measurable_YofA false) (S.measurable_SelOfA false)
@@ -137,13 +144,13 @@ lemma m0_eq_eventCondExp_Y0_alwaysSelected
     have hAfalse_ne_zero : (P.μ (S.aEvent false)).toReal ≠ 0 := by
       rw [ENNReal.toReal_ne_zero]
       exact ⟨hA.posAFalse, measure_ne_top _ _⟩
-    unfold eventCondExp
+    rw [eventCondExp_eq, eventCondExp_eq]
     rw [hnum, hden]
     exact mul_div_mul_left _ _ hAfalse_ne_zero
   have hAS :
-      eventCondExp P.μ S.selOfAFalseSet (S.YofA false)
-        = eventCondExp P.μ S.alwaysSelected (S.YofA false) := by
-    unfold eventCondExp
+      normalizedRestrictedIntegral P.μ S.selOfAFalseSet (S.YofA false)
+        = normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA false) := by
+    rw [eventCondExp_eq, eventCondExp_eq]
     have hset := S.selOfAFalseSet_ae_eq_alwaysSelected hMono.monotone
     rw [MeasureTheory.setIntegral_congr_set hset, measure_congr hset]
   unfold m0

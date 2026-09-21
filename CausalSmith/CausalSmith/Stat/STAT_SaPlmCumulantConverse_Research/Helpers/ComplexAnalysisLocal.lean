@@ -1,12 +1,13 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import Mathlib.Analysis.Analytic.Constructions
-import Mathlib.Analysis.Analytic.Order
-import Mathlib.Analysis.Complex.Schwarz
-import Mathlib.Analysis.Complex.BorelCaratheodory
-import Mathlib.LinearAlgebra.Complex.FiniteDimensional
-import Mathlib.Analysis.Complex.Harmonic.Analytic
-import Mathlib.Analysis.Complex.Harmonic.MeanValue
-import Mathlib.Analysis.InnerProductSpace.Harmonic.Constructions
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import Mathlib.Analysis.Analytic.Constructions
+public import Mathlib.Analysis.Analytic.Order
+public import Mathlib.Analysis.Complex.Schwarz
+public import Mathlib.Analysis.Complex.BorelCaratheodory
+public import Mathlib.LinearAlgebra.Complex.FiniteDimensional
+public import Mathlib.Analysis.Complex.Harmonic.Analytic
+public import Mathlib.Analysis.Complex.Harmonic.MeanValue
+public import Mathlib.Analysis.InnerProductSpace.Harmonic.Constructions
 
 /-!
 # Local finite-product and disk estimates
@@ -14,6 +15,8 @@ import Mathlib.Analysis.InnerProductSpace.Harmonic.Constructions
 These are the two bounded local complex-analysis builds used by the contour
 bank. They are not external interfaces.
 -/
+
+@[expose] public section
 
 noncomputable section
 

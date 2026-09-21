@@ -4,11 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Minimax.Pinsker
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.BretagnolleHuber
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Causalean.Stat.Minimax.BretagnolleHuber
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.Pinsker
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 # Le Cam two-point lower bound for finite L¹ risk
@@ -17,17 +19,18 @@ This file packages two reusable finite-sample Le Cam risk lower bounds for
 estimating a real-valued functional from independent product observations.
 
 The L¹ theorem `leCam_two_point_L1_lower` converts a two-point separation
-`δ ≤ |θP - θQ|`, an `n`-sample KL budget, a supplied product-KL comparison, and a
-supplied product Pinsker bridge into a positive lower bound on the worst-case
+`δ ≤ |θP - θQ|` and an `n`-sample KL budget into a positive lower bound on the worst-case
 Bochner L¹ risk of any measurable estimator.  The MSE theorem
 `le_cam_two_point_mse` uses the Bretagnolle-Huber testing floor instead of
 Pinsker, so every finite KL budget `K` yields a positive constant
-`exp(-K) / 32` for the corresponding worst-case squared-error risk.
+`exp(-max K 0) / 32` for the corresponding worst-case squared-error risk.
 
 The private helper `event_mul_measureReal_le_integral` is the Markov-type
 event-to-integral step used by the L¹ theorem; the MSE theorem uses the
 project-wide squared-loss event bound.
 -/
+
+public section
 
 namespace Causalean.Stat.Minimax
 
@@ -64,44 +67,41 @@ private lemma event_mul_measureReal_le_integral
     ring
   simpa [hleft] using hle
 
-/-- **Le Cam two-point lower bound on finite Bochner `L¹` risk.**  Fix [a strictly positive KL
-budget `C`](hyp:_hC_pos) with [`C` at most `1/2`](hyp:hC_small). Then [there is a universal
-positive constant `c₀` such that, for every sample size, every pair of single-observation laws
-whose scaled KL divergence is bounded by `C` and whose `n`-fold product KL divergence is
-controlled by a supplied product-KL comparison and a supplied product-form Pinsker bound, every
+/-- **Le Cam two-point lower bound on finite Bochner `L¹` risk.**  Fix [a KL
+budget `C` at most `1/2`](hyp:C,hC_small). Then for every sample size and
+every pair of single-observation laws
+such that the first is absolutely continuous with respect to the second,
+their log-likelihood ratio is integrable, and their scaled KL divergence is
+bounded by `C`, every
 pair of separated real targets, and every measurable estimator with integrable absolute loss
-under both `n`-fold product laws, the worst-case Bochner `L¹` risk is at least `c₀` times the
+under both `n`-fold product laws, [the worst-case Bochner `L¹` risk is at least `1/8` times the
 target separation](goal).
 
-The product-law Pinsker and product-KL facts are explicit hypotheses of the inner
-universally-quantified statement. -/
+The product-law Pinsker and product-KL facts are derived from those one-observation
+regularity assumptions. -/
 theorem leCam_two_point_L1_lower
     {Ω : Type*} [MeasurableSpace Ω]
-    (C : ℝ) (_hC_pos : 0 < C) (hC_small : C ≤ 1 / 2) :
-    ∃ c₀ : ℝ, 0 < c₀ ∧
-      ∀ (n : ℕ), 1 ≤ n →
-        ∀ (P Q : Measure Ω) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
-          (θP θQ δ : ℝ),
-          (n : ℝ) * (_root_.InformationTheory.klDiv P Q).toReal ≤ C →
-          (_root_.InformationTheory.klDiv
-              (Measure.pi (fun _ : Fin n => P))
-              (Measure.pi (fun _ : Fin n => Q))).toReal
-            ≤ (n : ℝ) * (_root_.InformationTheory.klDiv P Q).toReal →
-          Causalean.Stat.PinskerBound
-            (Measure.pi (fun _ : Fin n => P))
+    (C : ℝ) (hC_small : C ≤ 1 / 2) :
+    ∀ (n : ℕ),
+      ∀ (P Q : Measure Ω) [IsProbabilityMeasure P] [IsProbabilityMeasure Q]
+        (θP θQ δ : ℝ),
+        P ≪ Q →
+        Integrable (llr P Q) P →
+        (n : ℝ) * (_root_.InformationTheory.klDiv P Q).toReal ≤ C →
+        0 ≤ δ → δ ≤ |θP - θQ| →
+        ∀ (T : (Fin n → Ω) → ℝ), Measurable T →
+          Integrable (fun ω : Fin n → Ω => |T ω - θP|)
+            (Measure.pi (fun _ : Fin n => P)) →
+          Integrable (fun ω : Fin n → Ω => |T ω - θQ|)
             (Measure.pi (fun _ : Fin n => Q)) →
-          0 ≤ δ → δ ≤ |θP - θQ| →
-          ∀ (T : (Fin n → Ω) → ℝ), Measurable T →
-            Integrable (fun ω : Fin n → Ω => |T ω - θP|)
-              (Measure.pi (fun _ : Fin n => P)) →
-            Integrable (fun ω : Fin n → Ω => |T ω - θQ|)
-              (Measure.pi (fun _ : Fin n => Q)) →
-            c₀ * δ ≤ max
-              (∫ ω, |T ω - θP| ∂Measure.pi (fun _ : Fin n => P))
-              (∫ ω, |T ω - θQ| ∂Measure.pi (fun _ : Fin n => Q)) := by
-  refine ⟨(1 / 8 : ℝ), by norm_num, ?_⟩
-  intro n _hn P Q _ _ θP θQ δ hKLbound hKLprod hPinsker hδnonneg hδsep
+          (1 / 8 : ℝ) * δ ≤ max
+            (∫ ω, |T ω - θP| ∂Measure.pi (fun _ : Fin n => P))
+            (∫ ω, |T ω - θQ| ∂Measure.pi (fun _ : Fin n => Q)) := by
+  intro n P Q _ _ θP θQ δ hPQ hllr hKLbound hδnonneg hδsep
     T hT hIntp hIntq
+  have hKLprod :=
+    (Causalean.Mathlib.InformationTheory.productKL_tensorization n P Q hPQ hllr).apply
+  have hPinsker := Causalean.Stat.pinskerBound_pi_iid P Q hPQ hllr n
   have hsep : 2 * (δ / 2) ≤ dist θP θQ := by
     rw [Real.dist_eq]
     linarith
@@ -212,7 +212,7 @@ theorem leCam_two_point_L1_lower
 
 /-- **Le Cam two-point reduction in mean-squared-error form, uniform over a finite KL
 budget.** [For every Kullback–Leibler budget `K`](hyp:K), [there is a single positive
-constant `c_K` (here `exp(−K)/32`), chosen before the laws, such that for every pair of
+constant `c_K` (here `exp(−max K 0)/32`), chosen before the laws, such that for every pair of
 probability laws `Q₀, Q₁` whose divergence obeys `KL(Q₀, Q₁) ≤ K`, any measurable
 estimator with integrable squared loss under both laws has worst-case mean-squared error
 at least `c_K` times the squared separation of the two candidate parameter values](goal).
@@ -225,6 +225,7 @@ is positive for every finite KL budget, because the testing floor is supplied by
 Bretagnolle–Huber inequality (`Causalean.Stat.bretagnolle_huber_affinity`).  The estimation→testing
 step uses the `(θ₁ − θ₀)/2` separation via `Causalean.Stat.half_one_sub_tvDist_le_max_error` and a
 Markov/Chebyshev bound on the squared loss. -/
+@[deprecated (since := "2026-09-17")]
 lemma le_cam_two_point_mse (K : ℝ) :
     ∃ cK : ℝ, 0 < cK ∧
       ∀ {S : Type*} [MeasurableSpace S]

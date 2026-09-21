@@ -1,19 +1,22 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TriangularArray
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.RegularBenchmark
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FixedWaldLocalization
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.SetGeometry
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TFiniteSampleProjectionCoverage
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.PO.ID.Partial.RandomSet.Hausdorff
-import Mathlib.Order.LiminfLimsup
-import Mathlib.Topology.Algebra.Order.LiminfLimsup
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TriangularArray
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.RegularBenchmark
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FixedWaldLocalization
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.SetGeometry
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TFiniteSampleProjectionCoverage
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.PO.ID.Partial.RandomSet.Hausdorff
+public import Mathlib.Order.LiminfLimsup
+public import Mathlib.Topology.Algebra.Order.LiminfLimsup
 
 set_option linter.style.longLine false
+
+open MeasureTheory
 
 /-! Impossibility of uniform studentized Wald adaptation, together with the attainable
 concentration-projection coverage half. -/
 
-open MeasureTheory
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

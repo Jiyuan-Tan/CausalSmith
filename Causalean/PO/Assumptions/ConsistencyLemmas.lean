@@ -11,9 +11,10 @@ Generalises the two pointwise consistency specialisations used in LATE.lean
 can be recovered as instances of these.
 -/
 
-import Causalean.PO.Assumptions.Consistency
-import Causalean.PO.Core.Regime
-import Causalean.PO.Core.Variable
+module
+public import Causalean.PO.Assumptions.Consistency
+public import Causalean.PO.Core.Regime
+public import Causalean.PO.Core.Variable
 
 /-! # Pointwise consistency lemmas for potential-outcome variables
 
@@ -27,6 +28,8 @@ identification files.  Important results include `POSystem.factualAgrees_empty`,
 `POVar.factual_mul_indicator_eq_cfUnder_mul_indicator` and
 `POVar.factual_mul_indicator_eq_cf_mul_indicator`.
 -/
+
+public section
 
 namespace Causalean
 namespace PO

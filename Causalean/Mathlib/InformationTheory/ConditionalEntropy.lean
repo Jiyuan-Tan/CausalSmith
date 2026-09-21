@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.InformationTheory.Entropy
-import Mathlib.Analysis.SpecialFunctions.BinaryEntropy
+
+module
+public import Causalean.Mathlib.InformationTheory.Entropy
+public import Mathlib.Analysis.SpecialFunctions.BinaryEntropy
 
 /-!
 # Conditional Shannon entropy and the Gibbs (cross-entropy) inequality
@@ -36,6 +38,8 @@ Main results:
 
 Reference: Cover & Thomas, *Elements of Information Theory* (2e), §2.10, Thm 2.10.1.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.InformationTheory
 

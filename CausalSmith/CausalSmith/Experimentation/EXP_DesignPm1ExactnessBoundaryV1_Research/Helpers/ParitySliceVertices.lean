@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceMixture
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceMixture
 
 set_option linter.style.longLine false
 set_option linter.flexible false
@@ -21,6 +23,8 @@ Explicit block-exchangeable designs realizing the triangle vertices:
 
 The block-sum transport lemmas (`blockSumA` under negation and block automorphism)
 supply the support-invariance the class membership needs. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

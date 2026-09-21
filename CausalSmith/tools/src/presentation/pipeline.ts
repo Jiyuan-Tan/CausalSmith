@@ -14,7 +14,6 @@ import { stageP4 } from "./stages/p4_emit.js";
 import { stageP5 } from "./stages/p5_review.js";
 import { loadPriorReview } from "./revision_brief.js";
 import { PROMOTION_ESCALATION_MARKER, PROOF_AUDIT_FAILURE_MARKER, runPromotionRound } from "./promotion.js";
-import { renderRoutingPlan } from "./revision_routing.js";
 import { withPresentationTokenUsage } from "./token_usage.js";
 import type { ModelTokenUsage } from "../token_usage.js";
 

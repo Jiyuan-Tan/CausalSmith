@@ -1,7 +1,8 @@
-import Causalean.Mathlib.CondIndep.CondExp
-import Causalean.Mathlib.MeasureTheory.FinsetValues
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.WithDensityFinite
+module
+public import Causalean.Mathlib.Probability.Independence.Conditional.CondExp
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.WithDensityFinite
 
 /-!
 # Product coordinates and density factorizations
@@ -12,10 +13,14 @@ predicates which express the two premises and the desired conclusion.  The defin
 measure-theoretic and contain no graph- or paper-specific assumptions.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal
 
 noncomputable section
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace CausalSmith.Substrate.PositiveDensityCondindepIntersection
 
@@ -188,7 +193,7 @@ union of four finite coordinate blocks. -/
 def finiteBlockReference {M : Type uM} [DecidableEq M]
     {Ω : M → Type uΩ} [∀ i, MeasurableSpace (Ω i)]
     (I J K L : Finset M) (μ : ∀ i, Measure (Ω i)) :
-    Measure (Causalean.ValuesOn (fourBlockIndices I J K L) Ω) :=
+    Measure (ValuesOn (fourBlockIndices I J K L) Ω) :=
   Measure.pi fun i => μ i
 
 end CausalSmith.Substrate.PositiveDensityCondindepIntersection

@@ -1,8 +1,9 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherMoments
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherDegreeOne
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherScaledVariance
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
-import Causalean.Experimentation.FinitePopulationMoments
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherMoments
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherDegreeOne
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherScaledVariance
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TExactPameVariance
+public import Causalean.Experimentation.FinitePopulationMoments
 
 /-!
 # Rademacher mixture separation
@@ -10,6 +11,8 @@ import Causalean.Experimentation.FinitePopulationMoments
 The two product priors induce the same one-realization observation law while
 their group-scaled exact variances separate at positive sampling density.
 -/
+
+@[expose] public section
 
 open scoped Topology
 open Filter

@@ -14,9 +14,10 @@ such a bundle, replacing bespoke product-tuple encodings in identification
 proofs.
 -/
 
-import Causalean.PO.Core.Variable
-import Causalean.Mathlib.Indep
-import Causalean.Mathlib.CondIndep
+module
+public import Causalean.PO.Core.Variable
+public import Causalean.Mathlib.Probability.Independence.Basic
+public import Causalean.Mathlib.Probability.Independence.Conditional
 
 /-! # Independence of Counterfactual Bundles
 
@@ -30,6 +31,8 @@ dependent tuple of regimed potential outcomes into one measurable conditioning
 object.  `POSystem.IndepCF` and `POSystem.CondIndepCF` unfold to `IndepFun` and
 `CondIndepFun`, and the projection lemmas let downstream files extract
 independence for a measurable function or a single coordinate of the bundle. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

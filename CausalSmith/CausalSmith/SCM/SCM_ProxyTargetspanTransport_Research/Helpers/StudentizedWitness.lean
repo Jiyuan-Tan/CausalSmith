@@ -1,20 +1,23 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TriangularArray
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.RegularBenchmark
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TwoSampleProductTV
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmTensorization
-import Mathlib.Tactic.FinCases
-import Mathlib.Tactic.NormNum
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TriangularArray
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.RegularBenchmark
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.TwoSampleProductTV
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmTensorization
+public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.NormNum
 
 /-! Explicit binary models used by the studentized-Wald nonadaptation argument. -/
+
+@[expose] public section
 
 open scoped BigOperators Matrix Matrix.Norms.Elementwise
 open Finset Matrix MeasureTheory ProbabilityTheory
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
-private noncomputable def fair : Fin 2 → ℝ := ![1 / 2, 1 / 2]
+noncomputable def fair : Fin 2 → ℝ := ![1 / 2, 1 / 2]
 
-private noncomputable def baselineProxy : Matrix (Fin 2) (Fin 2) ℝ :=
+noncomputable def baselineProxy : Matrix (Fin 2) (Fin 2) ℝ :=
   !![3 / 4, 1 / 4; 1 / 4, 3 / 4]
 
 /-- The fixed binary rank-one baseline has uniform observed cells and a fair target proxy law. -/
@@ -522,10 +525,10 @@ private theorem weakRadius_le_quarter {n : ℕ} (hn : 2 ≤ n) : weakRadius n �
   rw [weakRadius]
   nlinarith [sq_nonneg ((n : ℝ)⁻¹), sq_nonneg ((n : ℝ)⁻¹ - 1 / 2)]
 
-private noncomputable def weakKernel (d : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
+noncomputable def weakKernel (d : ℝ) : Matrix (Fin 2) (Fin 2) ℝ :=
   !![1 / 2 + d, 1 / 2 - d; 1 / 2 - d, 1 / 2 + d]
 
-private noncomputable def weakOutcome (y u : Fin 2) : ℝ :=
+noncomputable def weakOutcome (y u : Fin 2) : ℝ :=
   if y = 1 then (if u = 1 then 3 / 4 else 1 / 4)
   else (if u = 1 then 1 / 4 else 3 / 4)
 

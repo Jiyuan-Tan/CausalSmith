@@ -2,39 +2,29 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Example: Instrumental Variable DAG
-
-This file constructs the standard IV DAG and uses it to exercise
-the DAG, d-separation, C-component, edge type, and SWIG graph APIs.
-
-## The DAG
-
-```
-    U
-   ↙ ↘
-  Z → D → Y
-```
-
-- Observed: Z (instrument, binary), D (treatment, binary), Y (outcome, continuous)
-- Unobserved: U (confounder)
-- Edges: Z → D (monotonic increasing), D → Y, U → D, U → Y
-- Z is a valid instrument: it affects Y only through D, and is independent of U.
 -/
 
-import Causalean.Graph.DAG
-import Causalean.Graph.DSep.Separation
-import Causalean.Graph.SWIG
-import Causalean.Graph.CComponents
-import Causalean.SCM.Model.EdgeType
-import Causalean.SCM.Model.SCM
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.DSep.Separation
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.CComponents
+public import Causalean.SCM.Model.EdgeType
+public import Causalean.SCM.Model.SCM
 
 /-! # Instrumental Variable Example
 
-This file constructs the standard instrumental-variable graph with an instrument, a treatment, an
-outcome, and an unobserved confounder of the treatment-outcome relationship. It exercises the
-graphical, component, edge-type, and structural-model interfaces used by instrumental-variable
-examples elsewhere in the library. -/
+This file constructs the familiar instrumental-variable graph shape with an instrument, a
+treatment, an outcome, and an unobserved confounder of the treatment-outcome relationship. It
+checks graph and component operations, separately demonstrates metadata that labels the
+instrument-to-treatment edge as increasing, and constructs a one-point, all-nonparametric toy
+SCM. The file does not establish instrument relevance or semantic monotonicity of a structural
+function. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 set_option linter.style.nativeDecide false
 
@@ -44,11 +34,13 @@ namespace Causalean.SCM.Examples.IV
 -- Vertex type
 -- ============================================================
 
-/-- For the instrumental-variable example, [the set of node categories](goal) consists of [an instrument](hyp:Z), [a treatment](hyp:D), [an outcome](hyp:Y), and [an unobserved confounder](hyp:U). -/
+/-- For the instrumental-variable example, [the set of node categories](goal) consists of
+[an instrument](hyp:Z), [a treatment](hyp:D), [an outcome](hyp:Y), and
+[an unobserved confounder](hyp:U). -/
 inductive IVNode
-  | Z  -- instrument (binary)
-  | D  -- treatment (binary)
-  | Y  -- outcome (continuous)
+  | Z  -- instrument
+  | D  -- treatment
+  | Y  -- outcome
   | U  -- unobserved confounder
   deriving DecidableEq
 
@@ -58,8 +50,8 @@ namespace instReprIVNode
 
 /--
 For each vertex of the instrumental-variable DAG and each natural-number precedence level, this
-method returns a formatted textual rendering of that vertex. There are no additional hypotheses
-or side conditions.
+method returns [a formatted textual rendering of that vertex](goal). There are no additional
+hypotheses or side conditions.
 
 This helper is the explicit form of the representation method that `deriving Repr` would generate.
 -/
@@ -71,11 +63,14 @@ protected def repr : IVNode → Nat → Std.Format
 
 end instReprIVNode
 
-/-- [A textual rendering of an instrumental-variable node](goal) assigns to each of the four nodes its fully qualified constructor name [by the stated rendering rule](step:1). -/
+/-- [A textual rendering of an instrumental-variable node](goal) assigns to each node its
+fully qualified constructor name [by the stated rendering rule](step:1). -/
 instance instReprIVNode : Repr IVNode where
   reprPrec := instReprIVNode.repr
 
-/-- [The finite enumeration of instrumental-variable nodes](goal) [lists the instrument, treatment, outcome, and unobserved confounder](step:1), and [establishes that every such node occurs in that list](step:2). -/
+/-- [The finite enumeration of instrumental-variable nodes](goal)
+[lists the instrument, treatment, outcome, and unobserved confounder](step:1), and
+[establishes that every such node occurs in that list](step:2). -/
 instance : Fintype IVNode where
   elems := {Z, D, Y, U}
   complete := by intro x; cases x <;> simp
@@ -84,7 +79,12 @@ instance : Fintype IVNode where
 -- Edge relation
 -- ============================================================
 
-/-- [The instrumental-variable edge relation](goal) contains exactly [the arrow from instrument to treatment](step:1), [the arrow from treatment to outcome](step:2), [the arrow from the latent confounder to treatment](step:3), and [the arrow from the latent confounder to outcome](step:4); [all other ordered pairs have no edge](step:5). -/
+/-- [The instrumental-variable edge relation](goal) contains exactly
+[the arrow from instrument to treatment](step:1),
+[the arrow from treatment to outcome](step:2),
+[the arrow from the latent confounder to treatment](step:3), and
+[the arrow from the latent confounder to outcome](step:4);
+[all other ordered pairs have no edge](step:5). -/
 def ivEdge : IVNode → IVNode → Prop
   | Z, D => True
   | D, Y => True
@@ -92,7 +92,8 @@ def ivEdge : IVNode → IVNode → Prop
   | U, Y => True
   | _, _ => False
 
-/-- [Decidability of the instrumental-variable edge relation](goal) determines, for every ordered pair of instrumental-variable nodes, whether that pair is an edge. -/
+/-- [Decidability of the instrumental-variable edge relation](goal) determines whether each
+ordered pair of instrumental-variable nodes is an edge. -/
 instance : DecidableRel ivEdge := by
   intro a b
   cases a <;> cases b <;>
@@ -102,7 +103,10 @@ instance : DecidableRel ivEdge := by
 -- Topological order
 -- ============================================================
 
-/-- [The topological-order label for the instrumental-variable graph](goal) [assigns label 0 to the latent confounder](step:1), [label 1 to the instrument](step:2), [label 2 to treatment](step:3), and [label 3 to outcome](step:4). -/
+/-- [The topological-order label for the instrumental-variable graph](goal)
+[assigns label 0 to the latent confounder](step:1),
+[label 1 to the instrument](step:2), [label 2 to treatment](step:3), and
+[label 3 to outcome](step:4). -/
 def ivTopo : IVNode → ℕ
   | U => 0
   | Z => 1
@@ -119,7 +123,8 @@ theorem ivTopo_lt : ∀ u v, ivEdge u v → ivTopo u < ivTopo v := by
 -- The DAG
 -- ============================================================
 
-/-- [The instrumental-variable directed acyclic graph](goal) has the stated instrumental-variable edge relation and topological ordering, and is acyclic. -/
+/-- [The instrumental-variable directed acyclic graph](goal) has the stated edge relation and
+topological ordering, and is acyclic. -/
 def ivDAG : DAG IVNode where
   edge := ivEdge
   decEdge := inferInstance
@@ -215,7 +220,7 @@ example : ¬ivDAG.dSep {Z} {Y} {D} := by decide
 -- Z and Y ARE d-separated by {D, U}
 example : ivDAG.dSep {Z} {Y} {D, U} := by decide
 
--- Instrument validity: Z ⊥ U | ∅ (no path between Z and U)
+-- Graphical separation check: Z and U are d-separated without conditioning.
 example : ivDAG.dSep {Z} {U} ∅ := by decide
 
 -- D and U are NOT d-separated by ∅ (direct edge U → D)
@@ -225,7 +230,9 @@ example : ¬ivDAG.dSep {D} {U} ∅ := by decide
 -- Testing Graph/SWIG.lean and Graph/CComponents.lean: C-components
 -- ============================================================
 
-/-- [The pre-intervention SWIG graph for the instrumental-variable example](goal) has the instrumental-variable directed acyclic graph, no fixed nodes, instrument, treatment, and outcome as observed random nodes, and the latent confounder as an unobserved random node.
+/-- [The pre-intervention SWIG graph for the instrumental-variable example](goal) has the
+instrumental-variable directed acyclic graph, no fixed nodes, instrument, treatment, and
+outcome as observed random nodes, and the latent confounder as an unobserved random node.
 
 The instrument, treatment, and outcome are observed random nodes, while the
 unobserved confounder is the sole unobserved random node. -/
@@ -278,13 +285,18 @@ example : ivSWIGGraph.cComponentOf (SWIGNode.random Z) = {SWIGNode.random Z} := 
 -- Testing EdgeType.lean: edge type assignment
 -- ============================================================
 
-/-- [The edge-type assignment for the instrumental-variable graph](goal) [classifies the instrument-to-treatment edge as strictly increasing](step:1) and classifies every other ordered pair as nonparametric. -/
-def ivEdgeTypes : EdgeTypeAssignment ivDAG where
+/-- [The edge-type assignment for the instrumental-variable graph](goal)
+[labels the instrument-to-treatment edge as strictly increasing](step:1) and labels every other
+ordered pair as nonparametric.
+
+This metadata is separate from the toy model below, which uses an all-nonparametric assignment;
+the label does not itself prove monotonicity of any structural function. -/
+def ivEdgeTypes : Causalean.SCM.Model.EdgeTypeAssignment ivDAG where
   edgeType
     | Z, D => .monotonic .strictlyIncreasing
     | _, _ => .nonparametric
 
--- The Z → D edge is monotonic
+-- The Z → D edge receives the strictly-increasing metadata label.
 example : ivEdgeTypes.edgeType Z D = .monotonic .strictlyIncreasing := rfl
 
 -- The D → Y edge is nonparametric
@@ -297,18 +309,20 @@ example : ivEdgeTypes.edgeType U D = .nonparametric := rfl
 example : ivEdgeTypes.edgeType U Y = .nonparametric := rfl
 
 -- The assignment is NOT fully nonparametric (Z → D is monotonic)
-example : ¬ivEdgeTypes.isFullyNonparametric := by
+example : ¬EdgeTypeAssignment.isFullyNonparametric ivEdgeTypes := by
   intro h
   have := h Z D (show ivEdge Z D from trivial)
   simp [ivEdgeTypes] at this
 
 -- The default all-nonparametric assignment IS fully nonparametric
-example : (EdgeTypeAssignment.allNonparametric ivDAG).isFullyNonparametric := by
+example : EdgeTypeAssignment.isFullyNonparametric
+    (EdgeTypeAssignment.allNonparametric ivDAG) := by
   intro u v _
   rfl
 
--- The monotonic Z → D edge refines nonparametric (weaker assumption)
-example : (EdgeType.monotonic .strictlyIncreasing).refines .nonparametric :=
+-- The monotonicity label refines the nonparametric label (a weaker assumption).
+example : Causalean.EdgeType.refines
+    (.monotonic .strictlyIncreasing : Causalean.SCM.Model.EdgeType) .nonparametric :=
   EdgeType.refines_nonparametric _
 
 -- ============================================================
@@ -317,16 +331,20 @@ example : (EdgeType.monotonic .strictlyIncreasing).refines .nonparametric :=
 
 section ExplicitModel
 
-/-- [The value-space assignment for the toy instrumental-variable model](goal) gives every node a one-point state space.
+/-- [The value-space assignment for the toy instrumental-variable model](goal) gives every
+node a one-point state space.
 
 In a substantive application, the instrument and treatment could be Boolean and
 the outcome real-valued. -/
 def ivΩ : IVNode → Type := fun _ => Unit
 
-/-- For [each node of the toy instrumental-variable model](hyp:n), [the measurable structure on its one-point value space](goal) is the trivial measurable structure. -/
+/-- For [each node of the toy instrumental-variable model](hyp:n),
+[the measurable structure on its one-point value space](goal) is trivial. -/
 instance ivΩ_measurable : ∀ n, MeasurableSpace (ivΩ n) := fun _ => ⊤
 
-/-- [The toy instrumental-variable structural causal model](goal) has the stated instrumental-variable graph, one-point node value spaces, constant structural functions, and a point-mass distribution for the latent root.
+/-- [The toy instrumental-variable structural causal model](goal) has the stated graph,
+one-point node value spaces, constant structural functions, and a point-mass distribution
+for the latent root.
 
 It demonstrates the full construction pattern: provide the SWIG graph, structural
 functions for observed nodes, and a probability law for the latent root. With
@@ -388,7 +406,9 @@ end ExplicitModel
 
 section InterventionGraph
 
-/-- [The intervention graph for treatment in the instrumental-variable example](goal) is the single-world intervention graph obtained by fixing treatment in the instrumental-variable directed acyclic graph. -/
+/-- [The intervention graph for treatment in the instrumental-variable example](goal) is the
+single-world intervention graph obtained by fixing treatment in the instrumental-variable
+directed acyclic graph. -/
 def ivDoDGraph : DAG (SWIGNode IVNode) :=
   swigDAG ivDAG {D}
 

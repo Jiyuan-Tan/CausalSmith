@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.Kernel
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+module
+public import Causalean.SCM.Model.Kernel
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
 
 /-! # Reference measure and joint observational density
 
@@ -24,6 +25,13 @@ factors, which has no kernel-composition analogue.  The downstream ID theorems i
 this slice specialize these reference-measure definitions to finite node value
 spaces with measurable singleton sets and faithful finite-product references.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 

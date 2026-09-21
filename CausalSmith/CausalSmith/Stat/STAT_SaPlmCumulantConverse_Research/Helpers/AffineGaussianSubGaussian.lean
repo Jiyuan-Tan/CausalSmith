@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
-import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
+public import Mathlib.Analysis.SpecialFunctions.Gaussian.GaussianIntegral
 
 /-!
 # Luxemburg control for the affine Gaussian outcome path
@@ -8,6 +9,8 @@ This file supplies the explicit exponential-square calculation needed to put
 the fresh Gaussian outcome residual in the paper's conditional sub-Gaussian
 class.
 -/
+
+public section
 
 noncomputable section
 

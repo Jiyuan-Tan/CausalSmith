@@ -12,8 +12,11 @@ supplies the open/dense clauses of `TApolar.generic_apolar_arrow_recovery` for
 the recovery loci `U^right`, `U^left`, each cut out by a nonzero polynomial.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PinSubst
-import Mathlib.Algebra.MvPolynomial.Funext
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PinSubst
+public import Mathlib.Algebra.MvPolynomial.Funext
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

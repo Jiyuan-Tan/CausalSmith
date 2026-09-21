@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
 
 /-! # Conditional reverse-support intersections -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -1,0 +1,1246 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}selectionminority\_\allowbreak{}benefit\_\allowbreak{}breakdown}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} With randomized binary assignment, endogenous receipt, and an ordinal outcome observed only after post-treatment selection, positive defier and selection-minority budgets yield an exact finite union of orientation-specific rational threshold-cut polytopes, and every reduced point lifts to a compatible full law. Each branch, not the full disjunction, has \(O(mK)\) size. The sharp scalar set is an attained interval, and finite exact charts distinguish model infeasibility, target emptiness, and target-nonempty endpoint formulas without extending through \(H=0\). The conclusion boundary is the pointwise relative boundary inside the target-existence domain; \(L=t\) plateaus remain equality loci but are not automatically boundaries. Radial reports distinguish model entry, target entry, and genuine conclusion failure. At zero budgets the construction recovers the accepted \(\texttt{pid\_slate\_benefit\_partialtransport\_v1}\) boundary result. Output-sensitive chart enumeration remains open.
+
+\section{Project justification}
+
+\paragraph{Gap.} The accepted CausalSmith paper \(\texttt{pid\_slate\_benefit\_partialtransport\_v1}\) already closes the no-defier, covariate-wise one-sided-selection boundary with a branch-free partial-transport projection, ordinal threshold cuts, full-law lifting, sharp attained endpoints, and sparse threshold flow. Published selected-complier and ordinal-benefit analyses do not supply the positive-budget combination of treatment defiers, within-cell opposing selection responses, an aggregate minority-selection budget, and a survivor denominator that may be absent.
+
+\paragraph{Niche.} The remaining mathematical niche is the joint-violation surface at positive \(\delta_D\) and \(\delta_S\): diagonal residuals and defier margins are unknown, both selection directions may coexist in each covariate cell, and survivor mass is coupled across cells by the minority budget. Model entry, target entry, equality loci, and the pointwise relative conclusion boundary must be kept distinct.
+
+\paragraph{Fill.} The projection and reverse lift reduce compatible full laws exactly to a finite orientation-indexed union whose individual branches have \(O(mK)\) extended size. Attained endpoints, sparse full-law certificates, finite rational charts, pointwise relative-boundary labels, and exact radial critical-budget reports follow. At zero budgets the formulas specialize to, and explicitly credit, the accepted branch-free boundary result; no new zero-budget or scalable positive-budget algorithm is claimed.
+
+\section{Related work}
+
+The accepted CausalSmith paper \(\texttt{pid\_slate\_benefit\_partialtransport\_v1}\), through \(\texttt{pid\_slate\_benefit\_partialtransport/thm:sharp-exact-mass-threshold-interval}\), \(\texttt{pid\_slate\_benefit\_partialtransport/thm:full-law-endpoint-attainment}\), and \(\texttt{pid\_slate\_benefit\_partialtransport/thm:linear-sparse-threshold-flow}\), already establishes the branch-free survivor-complier partial-transport projection, ordinal threshold cuts, full-law lifting, sharp attained endpoints, and sparse \(O(|\mathcal X|K)\) computation on the no-defier, covariate-wise one-sided-selection boundary. That boundary is the finite-ordinal Dong--Heiler anchor under their conditional-first-stage and assignment-overlap support convention. The present result recovers it at zero budgets and extends only the positive-budget problem, where defier residuals are unknown, opposing selection responses coexist within cells, survivor mass is coupled by an aggregate budget, and an orientation disjunction is unavoidable. Masten and Poirier motivate two-assumption conclusion frontiers, but the present target additionally requires separate model-entry and target-entry sets and a relative-boundary test that does not mislabel interior equality plateaus. Existing multiparametric-optimization work motivates symbolic decomposition but does not deliver the unresolved degeneracy-safe output-sensitive enumerator for this disjunctive rational chart.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=\Pr\{Y_1>Y_0\mid D_0=0,D_1=1,S_0=S_1=1\}\).
+Primary functional / estimator / diagnostic: \(\Theta_I(q;\delta_D,\delta_S)=[L(q;\delta_D,\delta_S),U(q;\delta_D,\delta_S)]=\{N/H:(d,u,v,r,s,(c_x)_x,(f_x)_x,(h_x)_x,(n_x)_x)\in\bigcup_{o\in\mathcal O}Q_o(q,\delta_D,\delta_S),\ H>0\}\).
+\begin{itemize}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite set}; \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} The support of the baseline covariate \(X\).
+  \item \texttt{m} --- \texttt{positive integer}; \texttt{number of covariate cells}
+  \par\smallskip\noindent\emph{Definition.} \(m=|\mathcal X|\).
+  \item \texttt{K} --- \texttt{integer}; \texttt{\textbackslash{}\allowbreak{}\{2,\allowbreak{}3,\allowbreak{}\textbackslash{}\allowbreak{}ldots\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{number of ordered outcome levels}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Y} --- \texttt{finite ordered set}; \texttt{outcome support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{0,\ldots,K-1\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}bot} --- \texttt{symbol}; \texttt{unselected state}
+  \par\smallskip\noindent\emph{Definition.} A missing-outcome category distinct from every element of \(\mathcal Y\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal V} --- \texttt{finite set}; \texttt{observed outcome-\allowbreak{}or-\allowbreak{}missing support}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal V=\mathcal Y\cup\{\bot\}\).
+  \item \texttt{X} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal X}; \texttt{baseline covariate}
+  \item \texttt{Z} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{randomized assignment or instrument}
+  \item \texttt{D} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{received treatment}
+  \item \texttt{S} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{outcome-\allowbreak{}selection indicator}
+  \item \texttt{Y} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal Y}; \texttt{ordinal outcome when selected}
+  \item \texttt{D\_\allowbreak{}0} --- \texttt{potential-\allowbreak{}treatment random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; receipt under \(Z=0\)
+  \par\smallskip\noindent\emph{Definition.} \(D_0=D(0)\).
+  \item \texttt{D\_\allowbreak{}1} --- \texttt{potential-\allowbreak{}treatment random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; receipt under \(Z=1\)
+  \par\smallskip\noindent\emph{Definition.} \(D_1=D(1)\).
+  \item \texttt{S\_\allowbreak{}0} --- \texttt{potential-\allowbreak{}selection random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{selection under received treatment zero}
+  \par\smallskip\noindent\emph{Definition.} \(S_0=S(0)\).
+  \item \texttt{S\_\allowbreak{}1} --- \texttt{potential-\allowbreak{}selection random variable}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{selection under received treatment one}
+  \par\smallskip\noindent\emph{Definition.} \(S_1=S(1)\).
+  \item \texttt{Y\_\allowbreak{}0} --- \texttt{potential-\allowbreak{}outcome random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal Y}; \texttt{ordinal outcome under received treatment zero}
+  \par\smallskip\noindent\emph{Definition.} \(Y_0=Y(0)\).
+  \item \texttt{Y\_\allowbreak{}1} --- \texttt{potential-\allowbreak{}outcome random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal Y}; \texttt{ordinal outcome under received treatment one}
+  \par\smallskip\noindent\emph{Definition.} \(Y_1=Y(1)\).
+  \item \texttt{R} --- \texttt{random vector}; \texttt{full response vector}
+  \par\smallskip\noindent\emph{Definition.} \(R=(D_0,D_1,S_0,S_1,Y_0,Y_1)\).
+  \item \texttt{P} --- \texttt{probability law}; \texttt{\textbackslash{}\allowbreak{}mathcal P(\textbackslash{}\allowbreak{}mathcal X\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}operatorname\{supp\}\allowbreak{}(R))}; \texttt{full response law}
+  \item \texttt{p\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{covariate mass}
+  \par\smallskip\noindent\emph{Definition.} \(p_x=P(X=x)\).
+  \item \texttt{V} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal V}; \texttt{observed outcome-\allowbreak{}or-\allowbreak{}missing state}
+  \par\smallskip\noindent\emph{Definition.} \(V=Y\) if \(S=1\) and \(V=\bot\) if \(S=0\).
+  \item \texttt{W} --- \texttt{random vector}; \texttt{observed treatment-\allowbreak{}state pair}
+  \par\smallskip\noindent\emph{Definition.} \(W=(D,V)\).
+  \item \texttt{q} --- \texttt{array of probabilities}; \texttt{\textbackslash{}\allowbreak{}mathbb R\_\allowbreak{}+\allowbreak{}\textasciicircum{}\{2m\textbackslash{}\allowbreak{},\allowbreak{}2(K+\allowbreak{}1)\}\allowbreak{}}; \texttt{observed arm-\allowbreak{}by-\allowbreak{}state masses}
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}D} --- \texttt{scalar}; \texttt{[0,\allowbreak{}1]}; \texttt{upper budget on total treatment-\allowbreak{}defier mass}
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}S} --- \texttt{scalar}; \texttt{[0,\allowbreak{}1/\allowbreak{}2]}; \texttt{upper budget on the complier minority selection-\allowbreak{}response share}
+  \item \texttt{C} --- \texttt{event}; \texttt{treatment-\allowbreak{}complier stratum}
+  \par\smallskip\noindent\emph{Definition.} \(C=\{D_0=0,D_1=1\}\).
+  \item \texttt{F} --- \texttt{event}; \texttt{treatment-\allowbreak{}defier stratum}
+  \par\smallskip\noindent\emph{Definition.} \(F=\{D_0=1,D_1=0\}\).
+  \item \texttt{c\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{complier mass}
+  \par\smallskip\noindent\emph{Definition.} \(c_x=P(X=x,C)\).
+  \item \texttt{f\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{defier mass}
+  \par\smallskip\noindent\emph{Definition.} \(f_x=P(X=x,F)\).
+  \item \texttt{a\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{treatment-\allowbreak{}de-\allowbreak{}selected complier mass}
+  \par\smallskip\noindent\emph{Definition.} \(a_x=P(X=x,C,S_0=1,S_1=0)\).
+  \item \texttt{b\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{treatment-\allowbreak{}selected complier mass}
+  \par\smallskip\noindent\emph{Definition.} \(b_x=P(X=x,C,S_0=0,S_1=1)\).
+  \item \texttt{h\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{always-\allowbreak{}selected complier mass}
+  \par\smallskip\noindent\emph{Definition.} \(h_x=P(X=x,C,S_0=S_1=1)\).
+  \item \texttt{n\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{strict-\allowbreak{}benefit mass}
+  \par\smallskip\noindent\emph{Definition.} \(n_x=P(X=x,C,S_0=S_1=1,Y_1>Y_0)\).
+  \item \texttt{H} --- \texttt{nonnegative scalar}; \texttt{target-\allowbreak{}stratum denominator}
+  \par\smallskip\noindent\emph{Definition.} \(H=\sum_{x\in\mathcal X}h_x\).
+  \item \texttt{N} --- \texttt{nonnegative scalar}; \texttt{strict-\allowbreak{}benefit numerator}
+  \par\smallskip\noindent\emph{Definition.} \(N=\sum_{x\in\mathcal X}n_x\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{scalar}; \texttt{[0,\allowbreak{}1]}; \texttt{survivor-\allowbreak{}complier strict-\allowbreak{}benefit probability}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=N/H\) on laws with \(H>0\).
+  \item \texttt{d} --- \texttt{array of nonnegative scalars}; \texttt{\textbackslash{}\allowbreak{}mathbb R\_\allowbreak{}+\allowbreak{}\textasciicircum{}\{2m(K+\allowbreak{}1)\}\allowbreak{}}; \texttt{same-\allowbreak{}treatment diagonal arc masses}
+  \item \texttt{u} --- \texttt{array of nonnegative scalars}; \texttt{complier residual margin under treatment zero}
+  \item \texttt{v} --- \texttt{array of nonnegative scalars}; \texttt{complier residual margin under treatment one}
+  \item \texttt{r} --- \texttt{array of nonnegative scalars}; \texttt{defier residual margin under treatment zero}
+  \item \texttt{s} --- \texttt{array of nonnegative scalars}; \texttt{defier residual margin under treatment one}
+  \item \texttt{U\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{selected control complier margin}
+  \item \texttt{V\_\allowbreak{}x} --- nonnegative scalar indexed by \(x\in\mathcal X\); \texttt{selected treated complier margin}
+  \item \texttt{B\_\allowbreak{}\{xk\}\allowbreak{}} --- nonnegative scalar indexed by \(x\in\mathcal X\) and \(k=-1,\ldots,K-1\); \texttt{maximum nonbenefit partial-\allowbreak{}matching cut}
+  \item \texttt{G\_\allowbreak{}\{xk\}\allowbreak{}} --- nonnegative scalar indexed by \(x\in\mathcal X\) and \(k=0,\ldots,K\); \texttt{maximum benefit partial-\allowbreak{}matching cut}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal O} --- \texttt{finite set}; \texttt{selection-\allowbreak{}orientation index set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O=\{0,1\}^{\mathcal X}\).
+  \item \texttt{o} --- \texttt{element}; \texttt{\textbackslash{}\allowbreak{}mathcal O}; \texttt{orientation vector}
+  \item \texttt{Q\_\allowbreak{}o} --- \texttt{rational polytope}; \texttt{orientation-\allowbreak{}specific reduced feasible set}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M} --- \texttt{class of probability laws}; \texttt{maintained full-\allowbreak{}law sensitivity class}
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}I} --- subset of \([0,1]\); \texttt{sharp identified set}
+  \item \texttt{L} --- \texttt{extended-\allowbreak{}real-\allowbreak{}valued function}; \texttt{sharp lower endpoint}
+  \item \texttt{U} --- \texttt{extended-\allowbreak{}real-\allowbreak{}valued function}; \texttt{sharp upper endpoint}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B} --- \texttt{rectangle}; \texttt{two-\allowbreak{}budget domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B=[0,1]\times[0,1/2]\).
+  \item \texttt{t} --- \texttt{scalar}; \texttt{[0,\allowbreak{}1]}; \texttt{benefit conclusion threshold}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}t} --- subset of \(\mathcal B\); robust region for the conclusion \(\theta\ge t\)
+  \item \texttt{r\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm amb\}\allowbreak{}} --- \texttt{integer}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}\textbackslash{}\allowbreak{}ldots,\allowbreak{}m\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{number of cells not removed by the observable orientation screen}
+  \item \texttt{n\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm samp\}\allowbreak{}} --- \texttt{positive integer}; \texttt{sample size}
+  \item \texttt{\textbackslash{}\allowbreak{}pi} --- \texttt{probability vector}; \texttt{\textbackslash{}\allowbreak{}Delta\textasciicircum{}\{4m(K+\allowbreak{}1)-\allowbreak{}1\}\allowbreak{}}; \texttt{joint observed multinomial law}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}pi} --- \texttt{probability vector}; \texttt{\textbackslash{}\allowbreak{}Delta\textasciicircum{}\{4m(K+\allowbreak{}1)-\allowbreak{}1\}\allowbreak{}}; \texttt{empirical multinomial frequencies}
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{scalar}; \texttt{(0,\allowbreak{}1)}; \texttt{miscoverage probability}
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon\_\allowbreak{}n} --- \texttt{positive scalar}; \texttt{simultaneous multinomial radius}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal P\_\allowbreak{}n} --- \texttt{subset of the observed probability simplex}; \texttt{finite-\allowbreak{}sample primitive confidence region}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n} --- set-valued function on \(\mathcal B\); \texttt{projected confidence surface}
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm in\}\allowbreak{}} --- \texttt{nonnegative integer}; \texttt{rational input bit length}
+  \item \texttt{M\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm out\}\allowbreak{}} --- \texttt{nonnegative integer}; \texttt{total encoded size of emitted charts and certificates}
+  \item \texttt{\textbackslash{}\allowbreak{}mathsf A\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm chart\}\allowbreak{}} --- \texttt{algorithmic handle}; \texttt{exact symbolic endpoint-\allowbreak{}chart enumerator}
+  \item \texttt{\textbackslash{}\allowbreak{}bar\{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}delta\}\allowbreak{}} --- \texttt{nonzero budget-\allowbreak{}direction vector}; \texttt{\textbackslash{}\allowbreak{}mathcal B\textbackslash{}\allowbreak{}setminus\textbackslash{}\allowbreak{}\{\textbackslash{}\allowbreak{}boldsymbol0\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{endpoint of a radial sensitivity path}
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}\{\textbackslash{}\allowbreak{}bar\{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}delta\}\allowbreak{}\}\allowbreak{}} --- \texttt{map}; \texttt{[0,\allowbreak{}1]\textbackslash{}\allowbreak{}to\textbackslash{}\allowbreak{}mathcal B}; \texttt{radial sensitivity path}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_{\bar{\boldsymbol\delta}}(\lambda)=\lambda\bar{\boldsymbol\delta}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal F\_\allowbreak{}\textbackslash{}\allowbreak{}gamma} --- subset of \( [0,1] \); \texttt{radial model-\allowbreak{}feasibility set}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E\_\allowbreak{}\textbackslash{}\allowbreak{}gamma} --- subset of \( [0,1] \); \texttt{radial positive-\allowbreak{}denominator target-\allowbreak{}existence set}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}\{\textbackslash{}\allowbreak{}gamma,\allowbreak{}t\}\allowbreak{}} --- subset of \( [0,1] \); \texttt{radial conclusion-\allowbreak{}failure set}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm feas\}\allowbreak{}} --- \texttt{extended scalar}; \texttt{[0,\allowbreak{}1]\textbackslash{}\allowbreak{}cup\textbackslash{}\allowbreak{}\{+\allowbreak{}\textbackslash{}\allowbreak{}infty\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{radial model-\allowbreak{}entry index}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_{\rm feas}=\inf\mathcal F_\gamma\), with \(\inf\varnothing=+\infty\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm tar\}\allowbreak{}} --- \texttt{extended scalar}; \texttt{[0,\allowbreak{}1]\textbackslash{}\allowbreak{}cup\textbackslash{}\allowbreak{}\{+\allowbreak{}\textbackslash{}\allowbreak{}infty\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{radial target-\allowbreak{}entry index}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_{\rm tar}=\inf\mathcal E_\gamma\), with \(\inf\varnothing=+\infty\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm crit\}\allowbreak{}} --- \texttt{extended scalar}; \texttt{[0,\allowbreak{}1]\textbackslash{}\allowbreak{}cup\textbackslash{}\allowbreak{}\{+\allowbreak{}\textbackslash{}\allowbreak{}infty\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{radial conclusion-\allowbreak{}failure index}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda_{\rm crit}=\inf\mathcal B_{\gamma,t}\), with \(\inf\varnothing=+\infty\).
+  \item \texttt{\textbackslash{}\allowbreak{}iota\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm crit\}\allowbreak{}} --- \texttt{binary scalar}; \texttt{\textbackslash{}\allowbreak{}\{0,\allowbreak{}1\textbackslash{}\allowbreak{}\}\allowbreak{}}; \texttt{critical-\allowbreak{}index attainment indicator}
+  \par\smallskip\noindent\emph{Definition.} \(\iota_{\rm crit}=\mathbf 1\{\lambda_{\rm crit}\in\mathcal B_{\gamma,t}\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}\{\textbackslash{}\allowbreak{}rm crit\}\allowbreak{}} --- \texttt{budget pair,\allowbreak{} when defined}; \texttt{\textbackslash{}\allowbreak{}mathcal B}; \texttt{critical radial budget pair}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{\rm crit}=\gamma_{\bar{\boldsymbol\delta}}(\lambda_{\rm crit})\) when \(\lambda_{\rm crit}\leq1\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:finite-covariates]\label{ass:finite-covariates}
+The support \(\mathcal X\) is finite.
+\par\smallskip\noindent\emph{Standard} (finite-support covariate stratification, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-covariate-cells]\label{ass:positive-covariate-cells}
+\(p_x>0\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (positive covariate-cell mass, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-randomization]\label{ass:conditional-randomization}
+\(Z\perp R\mid X\).
+\par\smallskip\noindent\emph{Standard} (conditionally randomized binary instrument, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:assignment-overlap]\label{ass:assignment-overlap}
+\(0<P(Z=1\mid X=x)<1\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (binary-instrument overlap, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:selection-exclusion]\label{ass:selection-exclusion}
+The selection response depends on assignment \(Z\) only through received treatment \(D\), with potential responses \(S_0\) and \(S_1\).
+\par\smallskip\noindent\emph{Standard} (instrument exclusion for selection, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-exclusion]\label{ass:outcome-exclusion}
+The ordinal outcome response depends on assignment \(Z\) only through received treatment \(D\), with potential responses \(Y_0\) and \(Y_1\).
+\par\smallskip\noindent\emph{Standard} (instrument exclusion for the selected outcome, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:receipt-consistency]\label{ass:receipt-consistency}
+\(D=(1-Z)D_0+ZD_1\).
+\par\smallskip\noindent\emph{Standard} (treatment-receipt consistency, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:selection-consistency]\label{ass:selection-consistency}
+\(S=(1-D)S_0+DS_1\).
+\par\smallskip\noindent\emph{Standard} (selection consistency under received treatment, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:outcome-consistency]\label{ass:outcome-consistency}
+On \(S=1\), \(Y=(1-D)Y_0+DY_1\).
+\par\smallskip\noindent\emph{Standard} (selected-outcome consistency under received treatment, \cite{DongHeiler2026}).
+\end{assumption}
+
+\begin{assumption}[ass:defier-budget]\label{ass:defier-budget}
+\(\sum_{x\in\mathcal X}f_x\le\delta_D\).
+\par\smallskip\noindent\emph{Standard} (bounded treatment-defier share, \cite{Picchetti2026}).
+\end{assumption}
+
+\begin{assumption}[ass:selection-minority-budget]\label{ass:selection-minority-budget}
+\(\sum_{x\in\mathcal X}\min\{a_x,b_x\}\le\delta_S\sum_{x\in\mathcal X}c_x\).
+\par\smallskip\noindent\emph{Novel.} The restriction permits both entry and exit responses within every covariate cell while limiting only the less prevalent direction after aggregation. It is interpretable in programs where employment or utilization can rise for most compliers but fall for a smaller subgroup, and it nests covariate-dependent one-sided selection at \(\delta_S=0\).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:full-law-class]\label{def:full-law-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint-\allowbreak{}violation response-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M(\delta_D,\delta_S)=\{P:\ P\text{ satisfies }\text{ass:finite-covariates},\text{ass:positive-covariate-cells},\text{ass:conditional-randomization},\text{ass:assignment-overlap},\text{ass:selection-exclusion},\text{ass:outcome-exclusion},\text{ass:receipt-consistency},\text{ass:selection-consistency},\text{ass:outcome-consistency},\text{ass:defier-budget},\text{ and }\text{ass:selection-minority-budget}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}finite-\allowbreak{}covariates}; \texttt{ass:\allowbreak{}positive-\allowbreak{}covariate-\allowbreak{}cells}; \texttt{ass:\allowbreak{}conditional-\allowbreak{}randomization}; \texttt{ass:\allowbreak{}assignment-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}selection-\allowbreak{}exclusion}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}exclusion}; \texttt{ass:\allowbreak{}receipt-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}selection-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}outcome-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}defier-\allowbreak{}budget}; \texttt{ass:\allowbreak{}selection-\allowbreak{}minority-\allowbreak{}budget}.
+\end{definition}
+
+\begin{definition}[def:observed-masses]\label{def:observed-masses}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed arm-\allowbreak{}state masses}
+\par\smallskip\noindent\emph{Construction.} For \(x\in\mathcal X\), \(z,d\in\{0,1\}\), and \(w\in\mathcal V\), set \(q^z_{xdw}=p_xP(D=d,V=w\mid X=x,Z=z)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}.
+\end{definition}
+
+\begin{definition}[def:diagonal-residuals]\label{def:diagonal-residuals}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Diagonal residual margins}
+\par\smallskip\noindent\emph{Construction.} For every \(x\in\mathcal X\) and \(w\in\mathcal V\), choose \(0\le d_{xdw}\le\min\{q^0_{xdw},q^1_{xdw}\}\) and set \(u_{xw}=q^0_{x0w}-d_{x0w}\), \(r_{xw}=q^1_{x0w}-d_{x0w}\), \(v_{xw}=q^1_{x1w}-d_{x1w}\), and \(s_{xw}=q^0_{x1w}-d_{x1w}\). Impose \(\sum_{w\in\mathcal V}u_{xw}=\sum_{w\in\mathcal V}v_{xw}=c_x\) and \(\sum_{w\in\mathcal V}r_{xw}=\sum_{w\in\mathcal V}s_{xw}=f_x\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{d}.
+\end{definition}
+
+\begin{definition}[def:selected-complier-margins]\label{def:selected-complier-margins}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Selected complier margins}
+\par\smallskip\noindent\emph{Construction.} For every \(x\in\mathcal X\), set \(U_x=\sum_{i=0}^{K-1}u_{xi}\) and \(V_x=\sum_{j=0}^{K-1}v_{xj}\); then the selection-response masses associated with survivor mass \(h_x\) are \(a_x=U_x-h_x\) and \(b_x=V_x-h_x\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{u}; \texttt{v}; \texttt{h\_\allowbreak{}x}.
+\end{definition}
+
+\begin{definition}[def:ordinal-threshold-cuts]\label{def:ordinal-threshold-cuts}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Variable-\allowbreak{}mass ordinal threshold cuts}
+\par\smallskip\noindent\emph{Construction.} For every \(x\in\mathcal X\), define \(B_{xk}=\sum_{i>k}u_{xi}+\sum_{j\le k}v_{xj}\) for \(k=-1,\ldots,K-1\), and \(G_{xk}=\sum_{i<k}u_{xi}+\sum_{j>k}v_{xj}\) for \(k=0,\ldots,K\), with all sums restricted to \(i,j\in\mathcal Y\) and empty sums equal to zero.
+\par\smallskip\noindent\emph{Inputs.} \texttt{u}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:orientation-polytope]\label{def:orientation-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Orientation-\allowbreak{}specific threshold-\allowbreak{}cut polytope}
+\par\smallskip\noindent\emph{Construction.} For \(o\in\mathcal O\), let \(Q_o(q,\delta_D,\delta_S)\) contain exactly the arrays \((d,u,v,r,s,(c_x)_x,(f_x)_x,(h_x)_x,(n_x)_x)\) satisfying \(\text{def:diagonal-residuals}\), \(\max\{0,U_x+V_x-c_x\}\le h_x\le\min\{U_x,V_x\}\), \(0\le n_x\le h_x\), \(n_x\ge h_x-B_{xk}\) for every \(k=-1,\ldots,K-1\), \(n_x\le G_{xk}\) for every \(k=0,\ldots,K\), \(\sum_x f_x\le\delta_D\), and \(\sum_x\{o_xU_x+(1-o_x)V_x-h_x\}\le\delta_S\sum_x c_x\). Prefix-sum recurrences for \(u\) and \(v\) give an equivalent rational extended formulation with \(O(mK)\) variables, constraints, and nonzero coefficients.
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}D}; \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}S}; \texttt{o}.
+\end{definition}
+
+\begin{definition}[def:identified-set]\label{def:identified-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Survivor-\allowbreak{}complier benefit identified set}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_I(q;\delta_D,\delta_S)=\{N/H:\ (d,u,v,r,s,(c_x)_x,(f_x)_x,(h_x)_x,(n_x)_x)\in Q_o(q,\delta_D,\delta_S)\text{ for some }o\in\mathcal O,\ H>0\}\).
+\end{definition}
+
+\begin{definition}[def:endpoints]\label{def:endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sharp endpoint functions}
+\par\smallskip\noindent\emph{Construction.} Whenever \(\Theta_I(q;\delta_D,\delta_S)\ne\varnothing\), set \(L(q;\delta_D,\delta_S)=\min\Theta_I(q;\delta_D,\delta_S)\) and \(U(q;\delta_D,\delta_S)=\max\Theta_I(q;\delta_D,\delta_S)\).
+\end{definition}
+
+\begin{definition}[def:normalized-endpoint-program]\label{def:normalized-endpoint-program}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Denominator-\allowbreak{}safe endpoint linear programs}
+\par\smallskip\noindent\emph{Construction.} For a matrix representation \(Q_o=\{z:Az\le b,Ez=e,z\ge0\}\) with \(H=\eta z\) and \(N=\nu z\), minimize or maximize \(\nu y\) subject to \(Ay\le b\lambda\), \(Ey=e\lambda\), \(y\ge0\), \(\lambda\ge0\), and \(\eta y=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Q\_\allowbreak{}o}.
+\end{definition}
+
+\begin{definition}[def:robust-region]\label{def:robust-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Benefit breakdown region and radial critical budgets}
+\par\smallskip\noindent\emph{Construction.} For \(t\in[0,1]\), define
+\[
+ \mathcal R_t=
+ \left\{(\delta_D,\delta_S)\in\mathcal B:
+ \Theta_I(q;\delta_D,\delta_S)\neq\varnothing
+ \text{ and }L(q;\delta_D,\delta_S)\geq t\right\}.
+\]
+For every declared \(\bar{\boldsymbol\delta}\in\mathcal B\setminus\{\boldsymbol0\}\), define the radial path
+\[
+ \gamma_{\bar{\boldsymbol\delta}}(\lambda)
+ =\lambda\bar{\boldsymbol\delta},
+ \qquad 0\leq\lambda\leq1,
+\]
+and the three subsets of \([0,1]\)
+\[
+ \begin{aligned}
+ \mathcal F_\gamma
+ &=\left\{\lambda:\bigcup_{o\in\mathcal O}
+ Q_o\bigl(q,\gamma_{\bar{\boldsymbol\delta}}(\lambda)\bigr)
+ \neq\varnothing\right\},\\
+ \mathcal E_\gamma
+ &=\left\{\lambda:
+ \Theta_I\bigl(q;\gamma_{\bar{\boldsymbol\delta}}(\lambda)\bigr)
+ \neq\varnothing\right\},\\
+ \mathcal B_{\gamma,t}
+ &=\left\{\lambda\in\mathcal E_\gamma:
+ L\bigl(q;\gamma_{\bar{\boldsymbol\delta}}(\lambda)\bigr)<t\right\}.
+ \end{aligned}
+\]
+With the convention \(\inf\varnothing=+\infty\), report
+\[
+ \lambda_{\rm feas}=\inf\mathcal F_\gamma,
+ \qquad
+ \lambda_{\rm tar}=\inf\mathcal E_\gamma,
+ \qquad
+ \lambda_{\rm crit}=\inf\mathcal B_{\gamma,t},
+ \qquad
+ \iota_{\rm crit}=\mathbf 1\{\lambda_{\rm crit}\in\mathcal B_{\gamma,t}\}.
+\]
+When \(\lambda_{\rm crit}\leq1\), also report
+\[
+ \Delta_{\rm crit}
+ =\gamma_{\bar{\boldsymbol\delta}}(\lambda_{\rm crit}).
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{t}; \texttt{\textbackslash{}\allowbreak{}bar\{\textbackslash{}\allowbreak{}boldsymbol\textbackslash{}\allowbreak{}delta\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:primitive-region]\label{def:primitive-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}sample multinomial primitive region}
+\par\smallskip\noindent\emph{Construction.} Let \(M_0=4m(K+1)\), set \(\varepsilon_n=\sqrt{\log(2M_0/\alpha)/(2n_{\rm samp})}\), and define \(\mathcal P_n=\{\pi'\in\Delta^{M_0-1}:|\pi'_j-\widehat\pi_j|\le\varepsilon_n\text{ for all }j\}\).
+\end{definition}
+
+\begin{definition}[def:confidence-surface]\label{def:confidence-surface}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Projected outer confidence surface}
+\par\smallskip\noindent\emph{Construction.} For every \((\delta_D,\delta_S)\in\mathcal B\), let \(\mathcal C_n(\delta_D,\delta_S)=\bigcup_{\pi'\in\mathcal P_n}\Theta_I(q(\pi');\delta_D,\delta_S)\), where candidates with zero conditioning mass are omitted and \(q(\pi')\) is obtained by the arm-conditioning map in \(\text{def:observed-masses}\).
+\end{definition}
+
+\begin{definition}[def:chart-enumerator-handle]\label{def:chart-enumerator-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Canonical adjacency-\allowbreak{}and-\allowbreak{}stratification handle}
+\par\smallskip\noindent\emph{Construction.} Construct \(\mathsf A_{\rm chart}\) by starting from an exact optimal basis at an algebraic sample budget, traversing adjacent canonical optimality regions with lexicographic primal--dual tie breaking, quotienting bases that induce the same unperturbed rational endpoint, and recursing on determinant-zero, feasibility-boundary, orientation-tie, and denominator-zero strata while retaining dual and full-law lift certificates.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:ordinal-cuts]\label{lem:ordinal-cuts}
+Fix \(x\in\mathcal X\), nonnegative selected complier margins \((u_{xi})_{i\in\mathcal Y}\) and \((v_{xj})_{j\in\mathcal Y}\), and \(h_x\) satisfying \(\max\{0,U_x+V_x-c_x\}\le h_x\le\min\{U_x,V_x\}\). The attainable strict-benefit masses are exactly \([\max\{0,h_x-\min_kB_{xk}\},\min\{h_x,\min_kG_{xk}\}]\), equivalently exactly the values satisfying all inequalities in \(\text{def:orientation-polytope}\). Every such value is attained by a selected-selected coupling that can be completed with missing categories to the prescribed complier margins.
+\end{lemma}
+\begin{proof}
+Fix \(x\in\mathcal X\) and suppress the subscript \(x\).  Write
+\[
+ U=\sum_{i\in\mathcal Y}u_i,
+ \qquad
+ V=\sum_{j\in\mathcal Y}v_j,
+ \qquad
+ h=h_x.
+\]
+A selected--selected coupling is an array \(\gamma=(\gamma_{ij})_{i,j\in\mathcal Y}\) satisfying
+\[
+ \gamma_{ij}\geq0,
+ \qquad
+ \sum_j\gamma_{ij}\leq u_i,
+ \qquad
+ \sum_i\gamma_{ij}\leq v_j,
+ \qquad
+ \sum_{i,j}\gamma_{ij}=h.
+\]
+Its strict-benefit mass is \(n(\gamma)=\sum_{j>i}\gamma_{ij}\).
+
+We first compute the largest mass that can be carried entirely on benefit pairs.  Construct a finite network with a source, one row vertex for each \(i\in\mathcal Y\), one column vertex for each \(j\in\mathcal Y\), and a sink.  Give the source--row arc capacity \(u_i\), the column--sink arc capacity \(v_j\), and include a row--column arc precisely when \(j>i\).  Give each row--column arc the same finite capacity \(M\), where
+\[
+ M>U+V.
+\]
+The set of feasible flows is a nonempty compact polytope, so a maximum flow exists.  Its residual network has no source-to-sink path, since augmenting by the minimum positive residual capacity along such a path would increase the flow.  Let \(A\) be the vertices reachable from the source in the residual network.  Every forward arc leaving \(A\) is saturated and every forward arc entering \(A\) carries zero flow.  Summing flow conservation over the vertices in \(A\) other than the source therefore shows that the capacity of the cut \((A,A^c)\) equals the value of the maximum flow.  Since every flow is bounded above by every cut, this reachable-vertex cut is a minimum cut.
+
+The source-only cut has value \(U\).  Hence the reachable-vertex minimum cut has value at most \(U\).  Because
+\[
+ M>U+V\geq U,
+\]
+no row--column arc can cross that minimum cut: one such arc would by itself give cut capacity strictly larger than the source-only cut, contradicting minimum-cut optimality.  If \(R\) and \(C\) are respectively the source-side row and column sets, the absence of a crossed benefit arc gives the adjacency implication
+\[
+ i\in R\quad\Longrightarrow\quad \{j\in\mathcal Y:j>i\}\subseteq C.
+\]
+If \(R=\varnothing\), deleting every source-side column cannot increase capacity and gives the source-only threshold cut of value
+\[
+ U=G_K.
+\]
+If \(R\neq\varnothing\), let \(k=\min R\).  The adjacency implication gives \(j\in C\) for every \(j>k\).  Add to \(R\) every row \(i\geq k\).  This creates no crossed benefit arc because each new row \(i\) is adjacent only to columns \(j>i\), all of which satisfy \(j>k\) and already belong to \(C\); it weakly decreases the cut by removing source--row capacities.  Next delete from \(C\) every column \(j\leq k\).  This creates no crossed benefit arc from the enlarged row set \(\{i:i\geq k\}\), because \(j\leq k\leq i\) contradicts \(j>i\); it weakly decreases the cut by removing column--sink capacities.  The resulting threshold cut has value
+\[
+ \sum_{i<k}u_i+\sum_{j>k}v_j=G_k.
+\]
+Conversely, each displayed threshold partition is a cut of that value.  Thus the maximum benefit-only partial-matching mass is
+\[
+ G^\star=\min_{0\leq k\leq K}G_k.
+\]
+
+Repeat the argument for the nonbenefit graph, whose row--column arcs are exactly the pairs \(j\leq i\), again assigning each such arc the same finite capacity \(M>U+V\).  The source-only cut again has value \(U\), so a reachable-vertex minimum cut has value at most \(U\).  Since \(M>U+V\geq U\), no row--column arc crosses this minimum cut.  Its source-side row and column sets therefore satisfy the nonbenefit adjacency implication
+\[
+ i\in R\quad\Longrightarrow\quad \{j\in\mathcal Y:j\leq i\}\subseteq C.
+\]
+If \(R=\varnothing\), the source-only threshold cut has value \(U=B_{-1}\).  If \(R\neq\varnothing\), let \(k=\max R\).  Then every \(j\leq k\) belongs to \(C\).  Adding all rows \(i\leq k\) creates no crossed nonbenefit arc, because their neighbors satisfy \(j\leq i\leq k\) and are already in \(C\).  Deleting every column \(j>k\) creates no crossed nonbenefit arc from a row \(i\leq k\).  Both operations weakly decrease cut capacity, and the resulting threshold cut has value
+\[
+ \sum_{i>k}u_i+\sum_{j\leq k}v_j=B_k.
+\]
+Conversely these threshold partitions are valid cuts.  Therefore the maximum nonbenefit-only partial-matching mass is
+\[
+ B^\star=\min_{-1\leq k\leq K-1}B_k.
+\]
+This is the finite capacitated-cut technique; in both graphs the comparison with the source-only cut, rather than mere finiteness of \(M\), is what excludes crossed row--column arcs.
+
+We now impose total selected--selected mass \(h\).  Any coupling of mass \(h\) carries at most \(B^\star\) on nonbenefit pairs, so
+\[
+ n(\gamma)\geq h-B^\star,
+ \qquad
+ n(\gamma)\geq0.
+\]
+If \(h\leq B^\star\), scale a maximum nonbenefit matching by \(h/B^\star\); when \(h=B^\star=0\), use the zero coupling.  This attains benefit mass zero.  If \(h>B^\star\), take a maximum nonbenefit matching of mass \(B^\star\).  No residual positive-capacity row and residual positive-capacity column can form a nonbenefit pair, because otherwise the matching could be increased along that single edge.  Hence every pair in the product of the positive residual row and column supports is a benefit pair.  The residual row and column totals are \(U-B^\star\) and \(V-B^\star\), and
+\[
+ U-B^\star\geq h-B^\star,
+ \qquad
+ V-B^\star\geq h-B^\star
+\]
+by \(h\leq\min\{U,V\}\).  A greedy allocation between these residual margins therefore adds exactly \(h-B^\star\) units, all on benefit pairs.  Consequently
+\[
+ n_{\min}=\max\{0,h-B^\star\}.
+\]
+
+The same residual-capacity argument with benefit and nonbenefit interchanged shows that a maximum benefit matching can be scaled when \(h\leq G^\star\), while, when \(h>G^\star\), its residual positive row and column supports contain only nonbenefit pairs and can carry the remaining \(h-G^\star\) mass.  Thus
+\[
+ n_{\max}=\min\{h,G^\star\}.
+\]
+Convex combinations of lower- and upper-attaining couplings preserve nonnegativity, all row and column capacity inequalities, and total mass \(h\).  Their benefit masses fill the entire interval \([n_{\min},n_{\max}]\).  Substituting the formulas for \(B^\star\) and \(G^\star\), this interval is equivalently characterized by
+\[
+ 0\leq n\leq h,
+ \qquad
+ n\geq h-B_k\quad(-1\leq k\leq K-1),
+ \qquad
+ n\leq G_k\quad(0\leq k\leq K).
+\]
+
+It remains to complete a selected--selected coupling to the prescribed complier margins over \(\mathcal V\).  Put the unused selected row mass
+\[
+ u_i-\sum_j\gamma_{ij}
+\]
+in cell \((i,\bot)\), put the unused selected column mass
+\[
+ v_j-\sum_i\gamma_{ij}
+\]
+in cell \((\bot,j)\), and put
+\[
+ c_x-U-V+h
+\]
+in cell \((\bot,\bot)\).  The assumed lower bound \(h\geq\max\{0,U+V-c_x\}\) makes the last mass nonnegative, and the row and column capacity inequalities make all other added masses nonnegative.  Because \(\sum_{w\in\mathcal V}u_{xw}=\sum_{w\in\mathcal V}v_{xw}=c_x\) in \(\mathrm{def:diagonal\text{-}residuals}\), the missing row total is \(c_x-U=u_{x\bot}\) and the missing column total is \(c_x-V=v_{x\bot}\).  Hence the completed table has exactly the prescribed margins.  This proves necessity, sufficiency, interval attainability, and missing-category completion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Threshold cuts replace \(K^2\) selected-selected coupling arcs by \(O(K)\) inequalities while retaining exact attainability for variable survivor mass. \textit{Gap.} Gabriel, Sachs, and Jensen derive symbolic ordinal-benefit bounds without a latent selection-defined denominator; the variable-mass partial matching and missing-category completion are absent there. \textit{Consumer.} The lemma supplies the compact ordinal component required to compute Job Corps wage-bin and Oregon utilization-bin benefit bounds.
+
+\begin{theorem}[thm:projection-lifting]\label{thm:projection-lifting}
+For every observed mass array \(q\) and budget pair \((\delta_D,\delta_S)\in\mathcal B\), the projection onto \((d,(h_x)_x,(n_x)_x)\) of all laws \(P\in\mathcal M(\delta_D,\delta_S)\) inducing \(q\) is exactly the corresponding projection of \(\bigcup_{o\in\mathcal O}Q_o(q,\delta_D,\delta_S)\). Every full reduced array in every branch \(Q_o\) lifts to a full response law inducing the same \(q\), with the displayed \(h_x\) and \(n_x\). Each fixed branch admits a linear extended formulation with \(O(mK)\) variables, constraints, and nonzero coefficients; its numerical coefficients are rational whenever \(q\), \(\delta_D\), and \(\delta_S\) are rational. At \((\delta_D,\delta_S)=(0,0)\), this result recovers the accepted-bank result \(\texttt{pid\_slate\_benefit\_partialtransport/thm:sharp-exact-mass-threshold-interval}\) on the no-defier, covariate-wise one-sided-selection boundary. Beyond that accepted boundary result, the present extension is the positive-budget regime with unknown diagonal residuals and defiers, within-cell coexistence of opposing selection responses, budget-coupled survivor mass, and exact orientation-indexed disjunctive branches; no branch-free scalable positive-budget algorithm is asserted.
+\end{theorem}
+\begin{proof}
+For \(d\in\{0,1\}\), introduce the treatment-specific observed-or-missing response
+\[
+ \widetilde V_d=
+ \begin{cases}
+ Y_d,&S_d=1,\\
+ \bot,&S_d=0.
+ \end{cases}
+\]
+Because \(q\) is an observed mass array in the sense of \(\mathrm{def:observed\text{-}masses}\), its entries are nonnegative and, for each \(x\in\mathcal X\) and \(z\in\{0,1\}\),
+\[
+ \sum_{d=0}^1\sum_{w\in\mathcal V}q^z_{xdw}=p_x,
+ \qquad
+ \sum_{x\in\mathcal X}p_x=1.
+\]
+The finite support and positivity conditions needed for cellwise conditioning are part of \(\mathrm{def:full\text{-}law\text{-}class}\), and \(p_x>0\) in every cell.  By \(\mathrm{ass:receipt\text{-}consistency}\), \(\mathrm{ass:selection\text{-}consistency}\), \(\mathrm{ass:outcome\text{-}consistency}\), \(\mathrm{ass:selection\text{-}exclusion}\), and \(\mathrm{ass:outcome\text{-}exclusion}\), a unit with response vector \(R\) produces
+\[
+ (D_0,\widetilde V_{D_0})\quad\text{under }Z=0,
+ \qquad
+ (D_1,\widetilde V_{D_1})\quad\text{under }Z=1.
+\]
+Conditional randomization in \(\mathrm{ass:conditional\text{-}randomization}\) and the strictly positive arm probabilities in \(\mathrm{ass:assignment\text{-}overlap}\) therefore make the two response-state margins in cell \(x\) equal to \((q^0_{xdw})_{d,w}\) and \((q^1_{xdw})_{d,w}\).
+
+We first prove the forward projection by the finite transport-table technique.  Give each response type in cell \(x\) an arc from its state under \(Z=0\) to its state under \(Z=1\), of mass \(P(X=x,R=r)\).  When \(D_0=D_1=d\), exclusion makes the two endpoint states identical to \((d,\widetilde V_d)\).  If \(d_{xdw}\) denotes the total mass of these diagonal arcs at state \((d,w)\), the two margin equations and nonnegativity imply
+\[
+ 0\leq d_{xdw}\leq q^0_{xdw},
+ \qquad
+ 0\leq d_{xdw}\leq q^1_{xdw},
+\]
+and hence \(0\leq d_{xdw}\leq\min\{q^0_{xdw},q^1_{xdw}\}\).  The arcs from treatment zero to treatment one are exactly the complier types.  Their left and right margins are
+\[
+ u_{xw}=q^0_{x0w}-d_{x0w},
+ \qquad
+ v_{xw}=q^1_{x1w}-d_{x1w}.
+\]
+The reverse arcs are exactly the defier types, and their treatment-zero and treatment-one margins are
+\[
+ r_{xw}=q^1_{x0w}-d_{x0w},
+ \qquad
+ s_{xw}=q^0_{x1w}-d_{x1w}.
+\]
+All four residual vectors are nonnegative.  Taking the totals of the complier and defier tables gives
+\[
+ \sum_{w\in\mathcal V}u_{xw}
+ =\sum_{w\in\mathcal V}v_{xw}=c_x,
+ \qquad
+ \sum_{w\in\mathcal V}r_{xw}
+ =\sum_{w\in\mathcal V}s_{xw}=f_x,
+\]
+which are precisely the relations in \(\mathrm{def:diagonal\text{-}residuals}\).
+
+Inside the complier table, let \(h_x\) be the selected--selected mass.  By \(\mathrm{def:selected\text{-}complier\text{-}margins}\), the selected row and selected column totals are \(U_x\) and \(V_x\).  The four selection-response masses, in the order \((S_0,S_1)=(1,1),(1,0),(0,1),(0,0)\), are therefore
+\[
+ h_x,
+ \qquad U_x-h_x,
+ \qquad V_x-h_x,
+ \qquad c_x-U_x-V_x+h_x.
+\]
+Their nonnegativity is equivalent to
+\[
+ \max\{0,U_x+V_x-c_x\}
+ \leq h_x\leq\min\{U_x,V_x\}.
+\]
+The already established \(\mathrm{lem:ordinal\text{-}cuts}\), applied to the selected margins in this table, gives the exact conditions for its strict-benefit mass:
+\[
+ 0\leq n_x\leq h_x,
+ \qquad
+ n_x\geq h_x-B_{xk}\quad(-1\leq k\leq K-1),
+ \qquad
+ n_x\leq G_{xk}\quad(0\leq k\leq K).
+\]
+Moreover,
+\[
+ a_x=U_x-h_x,
+ \qquad
+ b_x=V_x-h_x,
+ \qquad
+ \min\{a_x,b_x\}=\min\{U_x,V_x\}-h_x.
+\]
+Choose \(o_x=1\) when \(U_x\leq V_x\), and choose \(o_x=0\) otherwise.  Then
+\[
+ o_xU_x+(1-o_x)V_x-h_x=\min\{a_x,b_x\}.
+\]
+Consequently, \(\mathrm{ass:selection\text{-}minority\text{-}budget}\) is exactly the budget row of this branch, while \(\mathrm{ass:defier\text{-}budget}\) gives \(\sum_x f_x\leq\delta_D\).  Every compatible full law thus projects into at least one \(Q_o(q,\delta_D,\delta_S)\).
+
+We next prove the reverse projection and every-point lifting constructively.  Fix a complete reduced array in one branch \(Q_o(q,\delta_D,\delta_S)\).  For each \(x\), \(\mathrm{lem:ordinal\text{-}cuts}\) supplies a selected--selected complier coupling of mass \(h_x\) whose strict-benefit mass is \(n_x\), and supplies a completion through the category \(\bot\) having full margins \(u_x\) and \(v_x\).  This constructs the entire complier arc table.
+
+The defier margins have the same total \(f_x\).  If \(f_x>0\), define a defier table by
+\[
+ \rho_x(w_1,w_0)=\frac{s_{xw_1}r_{xw_0}}{f_x},
+ \qquad w_0,w_1\in\mathcal V.
+\]
+The division is valid under the stated case condition.  Direct summation and the residual-total equalities yield
+\[
+ \sum_{w_0\in\mathcal V}\rho_x(w_1,w_0)=s_{xw_1},
+ \qquad
+ \sum_{w_1\in\mathcal V}\rho_x(w_1,w_0)=r_{xw_0}.
+\]
+If \(f_x=0\), nonnegativity and the same total equalities force \(r_{xw}=s_{xw}=0\) for every \(w\), so the zero table is the required coupling.  Adjoin the diagonal arcs with masses \(d_{xdw}\).
+
+Each resulting arc is lifted to a response type as follows.  A complier or defier arc exposes one treatment-zero endpoint and one treatment-one endpoint and therefore specifies both \((S_0,Y_0)\) and \((S_1,Y_1)\): an endpoint in \(\mathcal Y\) sets the corresponding selection response to one and the potential outcome to that endpoint, while an endpoint \(\bot\) sets selection to zero and assigns the then-unobserved potential outcome the fixed admissible value \(0\in\mathcal Y\).  A treatment-\(d\) diagonal arc sets \(D_0=D_1=d\), uses its endpoint to specify \((S_d,Y_d)\), and fills the never-exposed treatment-\((1-d)\) response in the same arbitrary admissible way.  Thus all response coordinates are well typed because \(K\geq2\) and \(0\in\mathcal Y\).
+
+The arc masses are nonnegative and have arm margins exactly \(q^0\) and \(q^1\).  In cell \(x\), their total is
+\[
+ \sum_{d=0}^1\sum_{w\in\mathcal V}q^z_{xdw}=p_x,
+\]
+independently of \(z\), so the constructed masses over \((X,R)\) total one.  Choose, in each positive-mass cell, any assignment propensity strictly between zero and one and draw \(Z\) independently of \(R\) conditional on \(X\).  This enforces \(\mathrm{ass:conditional\text{-}randomization}\) and \(\mathrm{ass:assignment\text{-}overlap}\) without altering either conditional arm margin.  The definitions of the response coordinates enforce receipt, selection, and outcome consistency and both exclusion assumptions.
+
+The constructed law has defier mass satisfying the branch inequality \(\sum_xf_x\leq\delta_D\).  Its actual minority selection mass obeys, cell by cell,
+\[
+ \min\{a_x,b_x\}
+ =\min\{U_x,V_x\}-h_x
+ \leq o_xU_x+(1-o_x)V_x-h_x.
+\]
+Summing this inequality and applying the branch budget gives
+\[
+ \sum_{x\in\mathcal X}\min\{a_x,b_x\}
+ \leq
+ \sum_{x\in\mathcal X}\{o_xU_x+(1-o_x)V_x-h_x\}
+ \leq\delta_S\sum_{x\in\mathcal X}c_x.
+\]
+Thus the lift belongs to \(\mathcal M(\delta_D,\delta_S)\), induces \(q\), and has the prescribed \(d\), \((h_x)_x\), and \((n_x)_x\).  Together with the forward argument, this proves equality of the two projections.
+
+For clarity, the causal target is not created by a reduced optimization functional.  Define the proof-intermediate causal identified set
+\[
+ \Theta_I^{\mathrm{causal}}(q;\delta_D,\delta_S)
+ =\left\{
+ \Pr_P(Y_1>Y_0\mid C,S_0=S_1=1):
+ \begin{array}{l}
+ P\in\mathcal M(\delta_D,\delta_S),\ P\text{ induces }q,\\
+ P(C,S_0=S_1=1)>0
+ \end{array}
+ \right\}.
+\]
+For every law in this set, the definitions of \(N\) and \(H\), together with \(H>0\), give
+\[
+ \Pr_P(Y_1>Y_0\mid C,S_0=S_1=1)=\frac{N}{H}.
+\]
+The two projection directions just proved, rather than a definition of the causal probability, then imply the explicit identifying equality
+\[
+ \Theta_I^{\mathrm{causal}}(q;\delta_D,\delta_S)
+ =\left\{\frac NH:
+ \begin{array}{l}
+ (d,u,v,r,s,(c_x)_x,(f_x)_x,(h_x)_x,(n_x)_x)
+ \in Q_o(q,\delta_D,\delta_S)\\
+ \text{for some }o\in\mathcal O,\ H>0
+ \end{array}
+ \right\}.
+\]
+The left side is the set of causal target values over compatible full laws; the right side is a functional of the observed masses and the two sensitivity budgets.  Surjectivity of the lift is what proves their equality.
+
+It remains to verify the per-branch size and rationality assertion.  Introduce, for every cell, prefix variables
+\[
+ P^u_{x0}=P^v_{x0}=0,
+ \qquad
+ P^u_{x,k+1}=P^u_{xk}+u_{xk},
+ \qquad
+ P^v_{x,k+1}=P^v_{xk}+v_{xk}
+ \quad(0\leq k\leq K-1).
+\]
+Then \(U_x=P^u_{xK}\), \(V_x=P^v_{xK}\), and the definitions in \(\mathrm{def:ordinal\text{-}threshold\text{-}cuts}\) become
+\[
+ B_{xk}=U_x-P^u_{x,k+1}+P^v_{x,k+1}
+ \quad(-1\leq k\leq K-1),
+\]
+where \(P^u_{x0}=P^v_{x0}=0\) is used for \(k=-1\), and
+\[
+ G_{xk}=P^u_{xk}+V_x-P^v_{x,k+1}
+ \quad(0\leq k\leq K-1),
+ \qquad
+ G_{xK}=U_x.
+\]
+Thus each cut row and each prefix recurrence has constant support.  There are \(O(K)\) diagonal, residual, prefix, survivor, and benefit variables and \(O(K)\) constant-support rows per cell, plus two global budget rows.  Hence a fixed orientation branch has \(O(mK)\) variables, constraints, and nonzero coefficients.  Writing each diagonal upper bound as \(d_{xdw}\leq q^0_{xdw}\) and \(d_{xdw}\leq q^1_{xdw}\), all numerical coefficients are integers or entries of \(q\), \(\delta_D\), and \(\delta_S\).  They are therefore rational whenever these inputs are rational.  This count is per branch; the union can contain \(2^m\) branches and yields no branch-free scalable positive-budget algorithm.
+
+Finally set \((\delta_D,\delta_S)=(0,0)\).  Nonnegativity and the defier budget force \(f_x=0\) in every cell, whence the residual total equalities force \(r_x=s_x=0\).  The residual identities then give
+\[
+ d_{x0w}=q^1_{x0w},
+ \qquad
+ d_{x1w}=q^0_{x1w},
+\]
+so \(u_x\), \(v_x\), \(U_x\), and \(V_x\) are observable.  In the full law, the zero minority budget and nonnegativity imply \(\min\{a_x,b_x\}=0\) for every \(x\), equivalently
+\[
+ h_x=\min\{U_x,V_x\}.
+\]
+In a reduced branch, every budget summand is nonnegative; its zero sum likewise forces the chosen margin to equal \(h_x\), and the survivor upper bound then forces that margin to be \(\min\{U_x,V_x\}\), up to orientation ties.  The disjunction therefore collapses to the no-defier, covariate-wise one-sided-selection exact-mass partial-transport system.  The ordinal cuts and the constructive lift above are exactly its sharp threshold interval and full-law completion.  This proves the claimed recovery of the accepted-bank boundary result.  The features not present in that boundary argument are precisely those retained when a budget is positive: unknown diagonal residuals and defiers, coexistence of the two opposing complier selection responses within a cell, aggregate-budget coupling of survivor mass, and an exact orientation-indexed disjunctive union.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the positive-budget extension kernel: it converts unknown diagonal residuals, treatment defiers, and budget-coupled opposing selection responses into exact orientation-specific branches and proves every reduced point lifts. \textit{Gap.} The accepted \(\texttt{pid\_slate\_benefit\_partialtransport\_v1}\) paper already proves the branch-free no-defier, covariate-wise one-sided-selection boundary, including ordinal cuts, full-law lifting, sharp endpoints, and sparse threshold flow. The new result is the positive \(\delta_D\), positive \(\delta_S\) disjunctive projection with within-cell opposing responses and unknown defier residuals. \textit{Consumer.} It makes the positive-budget survivor-complier ordinal-benefit surface exactly computable, branch by branch, for Job Corps and Oregon encouragement designs.
+
+\begin{theorem}[thm:attained-connected-endpoints]\label{thm:attained-connected-endpoints}
+If \(\Theta_I(q;\delta_D,\delta_S)\) is nonempty, then it is the attained closed interval \([L(q;\delta_D,\delta_S),U(q;\delta_D,\delta_S)]\), even when the infimum of \(H\) over compatible positive-denominator laws is zero.  For each unscreened orientation having a positive-\(H\) feasible point, the two branch endpoints are obtained by the normalized programs in \(\mathrm{def:normalized\text{-}endpoint\text{-}program}\), and the same programs certify absence of a positive-\(H\) point otherwise.  After the observable residual-capacity direction screen, at most \(2^{r_{\rm amb}+1}\) linear programs are required.  These programs have rational data whenever \(q\), \(\delta_D\), and \(\delta_S\) are rational.
+\end{theorem}
+\begin{proof}
+Fix an orientation \(o\) and abbreviate \(Q_o(q,\delta_D,\delta_S)\) by \(Q_o\). This set is bounded: each diagonal coordinate is bounded by an entry of \(q\); the residual equations then bound \(u,v,r,s,c_x,f_x\); and
+\[
+ 0\leq n_x\leq h_x\leq\min\{U_x,V_x\}
+\]
+bounds \(h_x,n_x\). It is closed because it is defined by finitely many weak linear inequalities and equalities. Thus every nonempty \(Q_o\) is compact.
+
+We first establish endpoint attainment without a positive lower bound on \(H\). A bounded polyhedron is the convex hull of finitely many vertices: finiteness follows because a vertex is determined by a full-rank subset of the finite constraint list, and the convex-hull assertion follows by induction on the dimension of the minimal face containing a point, extending a line through a nonvertex point to two boundary points of that face. Write
+\[
+ z=\sum_{j=1}^J\alpha_jz^j,
+ \qquad \alpha_j\geq0,
+ \qquad \sum_{j=1}^J\alpha_j=1,
+\]
+where the \(z^j\) are vertices of \(Q_o\). The branch restrictions imply \(0\leq N(z^j)\leq H(z^j)\), so \(H(z^j)=0\) implies \(N(z^j)=0\). If \(H(z)>0\), linearity gives
+\[
+ \frac{N(z)}{H(z)}
+ =\sum_{j:H(z^j)>0}
+ \frac{\alpha_jH(z^j)}{H(z)}
+ \frac{N(z^j)}{H(z^j)},
+ \qquad
+ \sum_{j:H(z^j)>0}\frac{\alpha_jH(z^j)}{H(z)}=1.
+\]
+Thus every branch ratio is a convex combination of ratios at positive-denominator vertices. If a branch has any point with \(H>0\), it has such a vertex, and its minimum and maximum ratios are attained at such vertices. If two positive-denominator endpoint vertices have ratios \(a\leq b\) and denominators \(H_a,H_b>0\), each \(c\in(a,b)\) is obtained by placing weight
+\[
+ t=\frac{H_a(c-a)}{H_a(c-a)+H_b(b-c)}
+\]
+on the ratio-\(b\) vertex and weight \(1-t\) on the ratio-\(a\) vertex. The denominator is positive because \(H_a,H_b>0\) and \(a<c<b\), and direct substitution gives ratio \(c\). The endpoints use weights zero and one. Hence the branch image is its attained closed endpoint interval even if \(\inf\{H(z):z\in Q_o,H(z)>0\}=0\).
+
+Write
+\[
+ Q_o=\{z:Az\leq b,\ Ez=e,\ z\geq0\},
+ \qquad H(z)=\eta z,
+ \qquad N(z)=\nu z.
+\]
+For \(z\in Q_o\) with \(H(z)>0\), the change of variables
+\[
+ y=\frac{z}{H(z)},
+ \qquad \lambda=\frac{1}{H(z)}
+\]
+is well defined and satisfies the normalized program, with objective \(\nu y=N(z)/H(z)\). Conversely, let \((y,\lambda)\) satisfy the normalized constraints. If \(\lambda=0\), the homogenized residual equations give
+\[
+ u_{xw}=-d_{x0w},\quad r_{xw}=-d_{x0w},\quad
+ v_{xw}=-d_{x1w},\quad s_{xw}=-d_{x1w}.
+\]
+Nonnegativity forces all these coordinates to zero. Hence \(U_x=V_x=0\), and \(0\leq h_x\leq\min\{U_x,V_x\}\) forces every \(h_x=0\), contradicting \(\eta y=1\). Therefore \(\lambda>0\), division is valid, and
+\[
+ z=\frac{y}{\lambda}\in Q_o,
+ \qquad H(z)=\frac1\lambda>0,
+ \qquad \nu y=\frac{N(z)}{H(z)}.
+\]
+The normalized feasible objective set is exactly the branch ratio set. Positive-denominator endpoint vertices map to normalized optima, so possible unboundedness of \(\lambda\) along sequences with \(H\downarrow0\) does not impair objective attainment. The normalized program is infeasible exactly when the branch has no positive-\(H\) point.
+
+It remains to prove that the finite union of branch intervals has no scalar gap. Let \(\mathcal D\) be the set of diagonal arrays satisfying the diagonal bounds, residual balance equations, nonnegativity, and \(\sum_xf_x\leq\delta_D\), before imposing the minority restriction. These are linear restrictions, so \(\mathcal D\) is convex. Define
+\[
+ h_x^*(d)=\min\{U_x(d),V_x(d)\},
+ \qquad H^*(d)=\sum_xh_x^*(d),
+ \qquad B_x^*(d)=\min_{-1\leq k\leq K-1}B_{xk}(d).
+\]
+Because \(0\leq U_x,V_x\leq c_x\),
+\[
+ \max\{0,U_x+V_x-c_x\}\leq h_x^*(d)
+ \leq\min\{U_x,V_x\}.
+\]
+Thus \(h^*(d)\) is selection-feasible and has zero minority mass. Each minimum of two affine functions is concave, so \(H^*\) is concave. Therefore
+\[
+ \mathcal D_+=\{d\in\mathcal D:H^*(d)>0\}
+\]
+is convex, because for \(d^0,d^1\in\mathcal D_+\) and \(t\in[0,1]\),
+\[
+ H^*((1-t)d^0+td^1)
+ \geq(1-t)H^*(d^0)+tH^*(d^1)>0.
+\]
+
+Take any reduced feasible point in the union with \(H>0\). Replace any recorded orientation coordinate by one selecting the smaller of \(U_x,V_x\); this weakly decreases the branch budget and changes no continuous coordinate. With \(d,h\) fixed, define
+\[
+ \ell_x(d,h)=\max\{0,h_x-B_x^*(d)\}.
+\]
+By \(\mathrm{lem:ordinal\text{-}cuts}\), both the original \(n_x\) and \(\ell_x(d,h)\) lie in the same closed cut interval. Linear interpolation from the former to the latter remains feasible and leaves \(H\) and both budgets unchanged. Next put
+\[
+ h_x(t)=(1-t)h_x+t h_x^*(d),
+ \qquad n_x(t)=\ell_x(d,h(t)),
+ \qquad 0\leq t\leq1.
+\]
+Since \(h_x\leq h_x^*(d)\), this path stays in the survivor interval and keeps \(H(t)\geq H(0)>0\). The ordinal-cuts lemma makes \(n_x(t)\) feasible. Its actual minority mass
+\[
+ \sum_x\{\min(U_x,V_x)-h_x(t)\}
+\]
+is nonincreasing, while the defier budget is unchanged. The path ends at the canonical point \((d,h^*(d),\ell(d,h^*(d)))\).
+
+For two canonical points, join their diagonals by \(d(t)=(1-t)d^0+td^1\). This segment lies in \(\mathcal D_+\). Along it use
+\[
+ h(t)=h^*(d(t)),
+ \qquad n(t)=\ell(d(t),h^*(d(t))).
+\]
+Finite minima and maxima of affine functions are continuous, so this is a continuous feasible path with zero minority mass, the defier budget satisfied, and \(H>0\). At each \(t\), an orientation selecting a smaller margin witnesses membership in the union; the discrete orientation need not itself vary continuously because it is not a projected continuous coordinate. Hence the positive-denominator reduced feasible set is path connected. By \(\mathrm{thm:projection\text{-}lifting}\), its ratio image is the causal identified set, and \(z\mapsto N(z)/H(z)\) is continuous on it. If a path has endpoint ratios \(a<c<b\), the intermediate value follows directly: for \(\phi(t)=N(\gamma(t))/H(\gamma(t))\), the nonempty closed set \(A_c=\{t:\phi(t)\leq c\}\) has supremum below one, and continuity forces \(\phi(\sup A_c)=c\). There are finitely many orientations and every branch endpoint is attained, so the global minimum and maximum are attained. Consequently
+\[
+ \Theta_I(q;\delta_D,\delta_S)
+ =[L(q;\delta_D,\delta_S),U(q;\delta_D,\delta_S)].
+\]
+
+Finally construct the observable direction screen. Write \((a)_+=\max\{a,0\}\) and define
+\[
+ \underline f_x=
+ \max\left\{
+ \sum_{w\in\mathcal V}(q^1_{x0w}-q^0_{x0w})_+,
+ \sum_{w\in\mathcal V}(q^0_{x1w}-q^1_{x1w})_+
+ \right\},
+\]
+\[
+ \overline f_x=
+ \min\left\{
+ \sum_{w\in\mathcal V}q^1_{x0w},
+ \sum_{w\in\mathcal V}q^0_{x1w}
+ \right\}.
+\]
+The diagonal bounds and residual equations give
+\[
+ r_{xw}\in[(q^1_{x0w}-q^0_{x0w})_+,q^1_{x0w}],
+ \qquad
+ s_{xw}\in[(q^0_{x1w}-q^1_{x1w})_+,q^0_{x1w}].
+\]
+The sum of a coordinate box is the interval between the sums of its lower and upper endpoints. Requiring the two totals to equal the common \(f_x\) therefore gives exactly \(f_x\in[\underline f_x,\overline f_x]\). The observed normalization implies
+\[
+ \sum_w(q^0_{x0w}-q^1_{x0w})
+ =\sum_w(q^1_{x1w}-q^0_{x1w}),
+\]
+so equality of the two defier totals also makes the two complier totals equal.
+
+Nonemptiness entails \(\sum_x\underline f_x\leq\delta_D\). Every feasible point obeys
+\[
+ f_x\leq \operatorname{cap}_x
+ :=\min\left\{\overline f_x,
+ \delta_D-\sum_{y\ne x}\underline f_y\right\}.
+\]
+Define
+\[
+ g_x=
+ \sum_{i\in\mathcal Y}(q^0_{x0i}-q^1_{x0i})
+ -\sum_{j\in\mathcal Y}(q^1_{x1j}-q^0_{x1j}).
+\]
+Substitution yields
+\[
+ U_x-V_x
+ =g_x+\sum_{i\in\mathcal Y}r_{xi}
+       -\sum_{j\in\mathcal Y}s_{xj},
+\]
+and each selected defier sum lies in \([0,f_x]\). Hence
+\[
+ |U_x-V_x-g_x|\leq f_x\leq\operatorname{cap}_x.
+\]
+Thus \(g_x\geq\operatorname{cap}_x\) guarantees \(V_x\leq U_x\) and permits fixing \(o_x=0\); similarly \(g_x\leq-\operatorname{cap}_x\) guarantees \(U_x\leq V_x\) and permits fixing \(o_x=1\). Replacing a discarded orientation by the uniformly smaller margin weakly decreases that budget term, so the screen loses no projected feasible point.
+
+If \(r_{\rm amb}\) cells remain, at most \(2^{r_{\rm amb}}\) orientations remain. Minimizing and maximizing the normalized program for each requires at most \(2^{r_{\rm amb}+1}\) linear programs. Their feasible objective sets are exactly the branch ratio sets, so the smallest and largest objectives are the exact pointwise endpoints. By \(\mathrm{thm:projection\text{-}lifting}\), each branch has an \(O(mK)\) rational formulation for rational \(q,\delta_D,\delta_S\); homogenization adds only \(\lambda\), so the normalized programs also have rational data.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result handles vanishing denominators without trimming the model and turns an exponential branch count into a data-adaptive exact count. \textit{Gap.} Linear-fractional response-law formulations are known, but no adjacent result proves endpoint attainment and scalar connectedness for this disjunctive minority-budget class. \textit{Consumer.} Applied researchers obtain one interpretable sharp interval at every sensitivity pair, with no arbitrary lower cutoff on the always-selected-complier share.
+
+\begin{proposition}[prop:sparse-endpoint-laws]\label{prop:sparse-endpoint-laws}
+Every finite sharp endpoint in \(\{L(q;\delta_D,\delta_S),U(q;\delta_D,\delta_S)\}\) is attained by a compatible full response law whose legal observational-arc representation has at most \(m\{4(K+1)-1\}+2\) positive arcs. Such a law can be extracted from a reduced optimum by exposing the endpoint face, maximizing \(H\) on that face, and selecting a vertex.
+\end{proposition}
+\begin{proof}
+Use the full legal-arc representation constructed in \(\mathrm{thm:projection\text{-}lifting}\) for one fixed orientation. In each covariate cell it has \(2(K+1)\) left vertices and \(2(K+1)\) right vertices. The row and column marginal equations have rank at most \(4(K+1)-1\), because equality of the two total masses makes one equation redundant. Across cells their rank is at most
+\[
+ R_0=m\{4(K+1)-1\}.
+\]
+Apart from nonnegativity, this full-arc polytope adds only the defier-budget row and the orientation-specific minority-budget row.
+
+Let a vertex have more than \(R_0+2\) positive arcs. Restrict the marginal-equation matrix and the two budget rows to those positive columns. There is a nonzero vector \(\xi\) in their common nullspace. For sufficiently small \(\epsilon>0\), both arc arrays \(a+\epsilon\xi\) and \(a-\epsilon\xi\) remain nonnegative, retain every marginal exactly, and retain both budget left sides exactly. They are distinct feasible points with midpoint \(a\), contradicting extremality. Every vertex therefore has at most
+\[
+ m\{4(K+1)-1\}+2
+\]
+positive arcs.
+
+The denominator-weighted vertex argument in \(\mathrm{thm:attained\text{-}connected\text{-}endpoints}\) applies to this compact full-arc polytope: every positive-denominator point is a denominator-weighted convex combination of its positive-denominator vertices. Hence every finite lower or upper endpoint is attained at a positive-denominator full-arc vertex. Completing one response vector for each legal arc exactly as in the lifting proof gives a compatible full response law with no more support points than positive arcs.
+
+For the stated extraction procedure, let \(t\) be an attained reduced optimum and lift it to the corresponding full-arc branch. At a lower endpoint, \(N-tH\geq0\) throughout that branch, including at \(H=0\) because \(0\leq N\leq H\); hence \(N-tH=0\) exposes a face containing the lifted positive-\(H\) point. At an upper endpoint the exposing inequality is \(tH-N\geq0\). Maximize \(H\) over the relevant face and select a vertex of the maximizing face. Its \(H\) is positive because the original lifted point is feasible for that maximization. A vertex of a face is a vertex of the original polytope, so the rank argument gives the promised sparse law and the displayed finite linear-program extraction route.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Sharpness is empirically auditable only when endpoint allocations can be reported as finite latent-law certificates. \textit{Gap.} Generic bound solvers certify an objective value but need not return a sparse, positive-denominator full-law lift for the selected principal stratum. \textit{Consumer.} Endpoint certificates let analysts diagnose which compliance, selection, and outcome types drive robustness conclusions in Job Corps and Oregon.
+
+\begin{theorem}[thm:finite-rational-charts]\label{thm:finite-rational-charts}
+For rational \(q\), the budget domain \(\mathcal B\) has a finite semialgebraic stratification, including its singular and lower-dimensional strata, in which every stratum is labeled exactly one of model-infeasible, model-feasible/target-empty, or target-nonempty.  On each target-nonempty stratum, \(L(q;\delta_D,\delta_S)\) and \(U(q;\delta_D,\delta_S)\) equal specified rational functions of \((\delta_D,\delta_S)\).  Every label, every endpoint formula where defined, and every endpoint full-law lift has an exact finite certificate.
+\end{theorem}
+\begin{proof}
+Fix rational \(q\). There are finitely many orientations because \(\mathcal O=\{0,1\}^{\mathcal X}\) and \(\mathcal X\) is finite. For fixed \(o\), eliminate a maximal independent set of equality rows from the formulation of \(Q_o\). The branch is compact: each diagonal mass is bounded by an observed mass, the residual margins are affine differences of bounded masses, and \(c_x,f_x,h_x,n_x\) are nonnegative and bounded by those margins. Thus every nonempty branch has a vertex.
+
+Enumerate every subset of the remaining inequality rows that can supply enough active normals to determine a vertex in the reduced affine space. The entries of each resulting square system are polynomials with rational coefficients in \((\delta_D,\delta_S)\): \(\delta_D\) occurs only in the right side of the defier-budget row, \(\delta_S\) only as the coefficient multiplying \(\sum_xc_x\) in the minority-budget row, and every other coefficient is rational. For an active set \(I\), let \(D_I(\delta_D,\delta_S)\) be its determinant. On \(D_I\neq0\), Cramer's rule gives every coordinate of its candidate \(z_I\), and hence \(N_I\) and \(H_I\), as rational functions of the budgets.
+
+These candidates cover every vertex at every budget pair, including degenerate and lower-dimensional parameter values. At a vertex, the active inequality normals together with the fixed equality normals span the reduced ambient space. An independent spanning subcollection therefore has nonzero determinant at that parameter value and occurs in the enumeration. If one determinant vanishes on a singular stratum, some other nonvanishing active subset represents every vertex that actually exists there.
+
+The constraints \(0\leq n_x\leq h_x\) imply \(0\leq N\leq H\). If \(z=\sum_v\alpha_vz_v\) is a vertex decomposition of a feasible point with \(H(z)>0\), then \(H(z_v)=0\) implies \(N(z_v)=0\), and
+\[
+ \frac{N(z)}{H(z)}
+ =\sum_{v:H(z_v)>0}
+ \frac{\alpha_vH(z_v)}{H(z)}
+ \frac{N(z_v)}{H(z_v)}.
+\]
+Thus branch endpoint ratios occur at positive-\(H\) vertices. Taking minima and maxima over the finite orientations gives the global endpoints by \(\mathrm{def:identified\text{-}set}\), \(\mathrm{def:endpoints}\), and \(\mathrm{thm:attained\text{-}connected\text{-}endpoints}\).
+
+Clear denominators in every candidate coordinate and slack test. Form a finite list \(\mathscr P\) of rational polynomials containing every candidate determinant, every numerator needed to test nonnegativity and branch inequalities, every numerator needed to test \(H_I>0\), every cross-product needed to compare two candidate ratios after recording their positive denominators, and the four affine polynomials defining \(\mathcal B\). Partition \(\mathcal B\) by complete sign vectors in \(\{-1,0,1\}^{\mathscr P}\) and discard empty sign classes. The remaining classes form a finite semialgebraic stratification. Zero signs retain determinant-zero, equality, singular, and lower-dimensional pieces rather than filling them by limits.
+
+On each stratum, every determinant, feasibility test, and sign of \(H_I\) is fixed. Assign exactly one of the mutually exclusive labels
+\[
+ \begin{array}{ll}
+ \text{model-infeasible},
+   &\text{if no branch has a feasible candidate vertex};\\
+ \text{model-feasible/target-empty},
+   &\text{if a feasible candidate exists but every feasible candidate has }H_I=0;\\
+ \text{target-nonempty},
+   &\text{if some feasible candidate has }H_I>0.
+ \end{array}
+\]
+The cases are exhaustive. If no feasible candidate vertex exists, no compact branch is nonempty. If feasible vertices exist but all have \(H=0\), every feasible point has \(H=0\) by convexity and linearity. Conversely, a feasible point with \(H>0\) has a positive-\(H\) vertex in a vertex decomposition.
+
+On a target-nonempty stratum, recorded cross-product signs fix the weak ordering of all feasible positive-\(H\) candidate ratios. Selecting a least and greatest candidate supplies specified rational formulas for \(L\) and \(U\); ties give the same value. On model-infeasible and target-empty strata no endpoint is asserted or supplied by continuation.
+
+The finite active-basis table is an exact certificate. A feasible vertex is certified by its active set, nonzero determinant, coordinate formula, and slack signs. Model infeasibility is certified by the exhaustive table showing that every potential basis has zero determinant or violates a constraint. Target emptiness is certified by one feasible vertex and the exhaustive \(H_I=0\) signs for all feasible vertices. On target-nonempty strata, active bases and cross-product signs certify endpoint values, while \(\mathrm{prop:sparse\text{-}endpoint\text{-}laws}\) and \(\mathrm{thm:projection\text{-}lifting}\) supply attained sparse full-law certificates. This proves the finite rational chart on regular, singular, and lower-dimensional strata.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The chart gives exact formulas only where the survivor-complier target exists and exact certificates distinguishing model falsification from a zero-denominator target. \textit{Gap.} Columbano, Fukuda, and Jones \cite{ColumbanoFukudaJones2009} give an output-sensitive decomposition for multiparametric linear complementarity problems under sufficient-matrix assumptions, with work charged to perturbed critical domains. Jones, Kerrigan, and Maciejowski \cite{JonesKerriganMaciejowski2007} use lexicographic perturbation in multiparametric linear programming to obtain a unique continuous optimizer over nonoverlapping regions. Neither result covers the present unperturbed orientation-disjunctive linear-fractional endpoint stratification, whose minority-budget constraint row varies with \(\delta_S\), nor does either simultaneously retain determinant-zero and lower-dimensional strata, three-way model/target labels, and liftable endpoint full-law certificates. This theorem proves a finite exact semialgebraic stratification by exhaustive all-bases enumeration; it does not prove output-sensitive or scalable complexity. \textit{Consumer.} The chart supports exact comparative statics and radial breakdown reporting without grid interpolation or artificial continuation through \(H=0\).
+
+\begin{proposition}[prop:breakdown-frontier]\label{prop:breakdown-frontier}
+Fix \(t\in[0,1]\) and let
+\[
+ E=\{(\delta_D,\delta_S)\in\mathcal B:\Theta_I(q;\delta_D,\delta_S)\neq\varnothing\}.
+\]
+The robust region \(\mathcal R_t\) is relatively downward closed on \(E\): if two budget pairs are coordinatewise ordered, the larger lies in \(\mathcal R_t\), and the smaller belongs to \(E\), then the smaller lies in \(\mathcal R_t\). If \(q\) is rational, a finite semialgebraic refinement of the rational endpoint chart separately labels model-infeasible, model-feasible/target-empty, and target-nonempty pieces, the falsification boundary, the positive-\(H\) target-existence boundary, the equality locus \(L=t\), and the actual relative conclusion boundary
+\[
+ \partial_E\mathcal R_t
+ =\overline{\mathcal R_t}^{E}
+  \cap\overline{E\setminus\mathcal R_t}^{E}.
+\]
+A refined piece receives the conclusion-boundary label only when it is contained in \(\partial_E\mathcal R_t\), equivalently when every relative \(E\)-neighborhood of every retained point meets both \(\mathcal R_t\) and \(E\setminus\mathcal R_t\). An \(L=t\) plateau is retained in the equality locus but is not a conclusion-boundary piece unless this pointwise condition holds; coincident lower-dimensional pieces may carry every valid label. Along every declared radial path, \(\mathcal F_\gamma\), \(\mathcal E_\gamma\), and \(\mathcal B_{\gamma,t}\) are upward closed. If \(\mathcal E_\gamma=\varnothing\), the target never exists and breakdown is inapplicable; if \(\mathcal B_{\gamma,t}=\varnothing\), no breakdown occurs on the path; and \(\lambda_{\rm crit}=\lambda_{\rm tar}\) with \(\iota_{\rm crit}=0\) means failure occurs immediately after, but not at, target entry. When \(q\), \(\bar{\boldsymbol\delta}\), and \(t\) are rational, intersecting the finite chart with \(\gamma_{\bar{\boldsymbol\delta}}\) and applying rational univariate root isolation gives exact finite values of \(\lambda_{\rm feas}\), \(\lambda_{\rm tar}\), \(\lambda_{\rm crit}\), \(\iota_{\rm crit}\), and \(\Delta_{\rm crit}\) when the latter is defined; no scalable or output-sensitive complexity claim is made.
+\end{proposition}
+\begin{proof}
+Fix \(q\) and \(t\in[0,1]\), and write \(\boldsymbol\delta=(\delta_D,\delta_S)\).  By \(\mathrm{thm:projection\text{-}lifting}\), \(\Theta_I(q;\boldsymbol\delta)\) is the observed-law identifying functional whose elements are exactly the causal values
+\[
+ \Pr_P(Y_1>Y_0\mid C,S_0=S_1=1)=\frac{N(P)}{H(P)}
+\]
+over compatible full laws with \(H(P)>0\).  By \(\mathrm{def:endpoints}\) and \(\mathrm{thm:attained\text{-}connected\text{-}endpoints}\), on
+\[
+ E=\{\boldsymbol\delta\in\mathcal B:\Theta_I(q;\boldsymbol\delta)\neq\varnothing\}
+\]
+this set is the attained interval \([L(q;\boldsymbol\delta),U(q;\boldsymbol\delta)]\).  Thus \(L\geq t\) is an observed-law certificate that every compatible causal target is at least \(t\); it is not a definition of any unit-level or full-law causal parameter.
+
+We first use feasible-set inclusion to prove relative downward closure.  Let \(\boldsymbol\delta^-\leq\boldsymbol\delta^+\) coordinatewise.  If \(z\in Q_o(q,\boldsymbol\delta^-)\), every nonbudget constraint is unchanged at \(\boldsymbol\delta^+\).  The first budget satisfies
+\[
+ \sum_{x\in\mathcal X}f_x
+ \leq\delta_D^-
+ \leq\delta_D^+.
+\]
+Since each \(c_x\geq0\), the second satisfies
+\[
+ \sum_{x\in\mathcal X}\{o_xU_x+(1-o_x)V_x-h_x\}
+ \leq\delta_S^-\sum_{x\in\mathcal X}c_x
+ \leq\delta_S^+\sum_{x\in\mathcal X}c_x.
+\]
+Therefore, branch by branch and then after taking the union,
+\[
+ Q_o(q,\boldsymbol\delta^-)
+ \subseteq Q_o(q,\boldsymbol\delta^+),
+ \qquad
+ \Theta_I(q;\boldsymbol\delta^-)
+ \subseteq\Theta_I(q;\boldsymbol\delta^+).
+\]
+If \(\boldsymbol\delta^-\in E\) and \(\boldsymbol\delta^+\in\mathcal R_t\), attained minima give
+\[
+ L(q;\boldsymbol\delta^-)
+ \geq L(q;\boldsymbol\delta^+)
+ \geq t.
+\]
+Hence \(\boldsymbol\delta^-\in\mathcal R_t\), proving that \(\mathcal R_t\) is relatively downward closed on \(E\).  The premise \(\boldsymbol\delta^-\in E\) is essential: model infeasibility and a zero-denominator target are not classified as robustness by \(\mathrm{def:robust\text{-}region}\).
+
+Assume next that \(q\) is rational.  By \(\mathrm{thm:finite\text{-}rational\text{-}charts}\), the rectangle \(\mathcal B\) has a finite semialgebraic stratification whose members are separately labeled model-infeasible, model-feasible/target-empty, or target-nonempty.  On a target-nonempty stratum \(\mathcal S_j\), write the chart formula as
+\[
+ L(q;\delta_D,\delta_S)
+ =\frac{A_j(\delta_D,\delta_S)}{B_j(\delta_D,\delta_S)},
+ \qquad B_j\neq0\quad\text{on }\mathcal S_j,
+\]
+where \(A_j\) and \(B_j\) have rational coefficients.  Refine \(\mathcal S_j\) by the sign \(\sigma_j\in\{-1,1\}\) of \(B_j\).  On each refined member,
+\[
+ L\geq t
+ \quad\Longleftrightarrow\quad
+ \sigma_j(A_j-tB_j)\geq0,
+ \qquad
+ L=t
+ \quad\Longleftrightarrow\quad
+ A_j-tB_j=0.
+\]
+Thus \(E\), \(\mathcal R_t\), \(E\setminus\mathcal R_t\), and the equality locus are finite unions of semialgebraic sign pieces.
+
+For precise labels, introduce the proof-intermediate model-feasibility region
+\[
+ \mathfrak M
+ =\left\{\boldsymbol\delta\in\mathcal B:
+ \bigcup_{o\in\mathcal O}Q_o(q,\boldsymbol\delta)\neq\varnothing\right\}.
+\]
+Its falsification boundary and the positive-\(H\) target-existence boundary are, respectively,
+\[
+ \partial_{\mathcal B}\mathfrak M
+ =\overline{\mathfrak M}^{\mathcal B}
+  \cap\overline{\mathcal B\setminus\mathfrak M}^{\mathcal B},
+ \qquad
+ \partial_{\mathfrak M}E
+ =\overline E^{\mathfrak M}
+  \cap\overline{\mathfrak M\setminus E}^{\mathfrak M}.
+\]
+Apply \(\mathrm{lem:finite\text{-}frontier\text{-}compatible\text{-}sign\text{-}refinement}\) to the finitely many polynomials describing the chart strata, their denominator signs, the conclusion polynomials \(A_j-tB_j\), and the facets of \(\mathcal B\).  Apply its closure-refinement conclusion finitely many times to the pairs defining the two displayed frontiers and
+\[
+ \partial_E\mathcal R_t
+ =\overline{\mathcal R_t}^{E}
+  \cap\overline{E\setminus\mathcal R_t}^{E}.
+\]
+The result is a finite semialgebraic refinement carrying all three feasibility/target labels, both entry-frontier labels, the equality-locus label, and the relative conclusion-boundary label.  Intersections are retained, so a lower-dimensional member may carry several of the latter labels when every corresponding condition holds.
+
+A refined member \(C\) receives the conclusion-boundary label exactly when
+\[
+ C\subseteq\partial_E\mathcal R_t.
+\]
+By the definition of relative closure, this containment is equivalent to the pointwise condition that, for every \(\boldsymbol\delta\in C\) and every relative \(E\)-neighborhood \(G\) of \(\boldsymbol\delta\),
+\[
+ G\cap\mathcal R_t\neq\varnothing
+ \qquad\text{and}\qquad
+ G\cap(E\setminus\mathcal R_t)\neq\varnothing.
+\]
+This is stronger than requiring merely that \(\overline C^{E}\) meet both sides.  The equation \(A_j-tB_j=0\) only certifies \(L=t\).  If that equation holds on a plateau contained in the relative interior of \(\mathcal R_t\), every point of the plateau has a relative neighborhood contained in \(\mathcal R_t\), so the plateau is in the equality locus but is not a conclusion-boundary piece.  This also handles boundary and tie strata without filling them by continuity.
+
+Now fix a declared \(\bar{\boldsymbol\delta}\in\mathcal B\setminus\{\boldsymbol0\}\).  If \(0\leq\lambda_0\leq\lambda_1\leq1\), the nonnegative coordinates of \(\bar{\boldsymbol\delta}\) give
+\[
+ \gamma_{\bar{\boldsymbol\delta}}(\lambda_0)
+ \leq
+ \gamma_{\bar{\boldsymbol\delta}}(\lambda_1)
+\]
+coordinatewise.  The branch inclusion proved above makes \(\mathcal F_\gamma\) upward closed.  The same inclusion restricted to feasible points with \(H>0\) makes \(\mathcal E_\gamma\) upward closed.  Finally, if \(\lambda_0\in\mathcal B_{\gamma,t}\), target existence persists at \(\lambda_1\), and identified-set inclusion plus attained endpoints gives
+\[
+ L\bigl(q;\gamma_{\bar{\boldsymbol\delta}}(\lambda_1)\bigr)
+ \leq
+ L\bigl(q;\gamma_{\bar{\boldsymbol\delta}}(\lambda_0)\bigr)
+ <t.
+\]
+Hence \(\mathcal B_{\gamma,t}\) is upward closed as well.
+
+The diagnostic cases follow directly, with the exceptional cases considered first.  If \(\mathcal E_\gamma=\varnothing\), no point on the path supports a positive-denominator causal target, so breakdown is inapplicable.  If \(\mathcal B_{\gamma,t}=\varnothing\), no target-existing point on the path violates the conclusion.  In the remaining case let
+\[
+ a=\lambda_{\rm crit}=\lambda_{\rm tar}
+\]
+and suppose \(\iota_{\rm crit}=0\).  Then \(a\notin\mathcal B_{\gamma,t}\).  Because the upward-closed failure set is nonempty, this also implies \(a<1\).  For every \(\lambda\in(a,1]\), the definition of the infimum supplies \(b\in\mathcal B_{\gamma,t}\) with \(a<b<\lambda\); upward closure then gives \(\lambda\in\mathcal B_{\gamma,t}\).  Since \(a=\inf\mathcal E_\gamma\), no smaller index admits the target, while failure does not hold at \(a\).  Thus failure occurs at every index immediately above, but not at, the target-entry index.  When \(a\leq1\), \(\Delta_{\rm crit}=\gamma_{\bar{\boldsymbol\delta}}(a)\), and \(\iota_{\rm crit}\) records whether that budget pair itself belongs to the failure set.
+
+Finally assume that \(q\), \(\bar{\boldsymbol\delta}\), and \(t\) are rational.  Substitute
+\[
+ (\delta_D,\delta_S)
+ =\gamma_{\bar{\boldsymbol\delta}}(\lambda)
+\]
+into the finite chart-defining, denominator, feasibility, target-existence, and conclusion-sign polynomials.  This produces a finite family of univariate polynomials with rational coefficients.  The rational univariate root-isolation and polynomial-remainder-sign certificates supplied by \(\mathrm{lem:finite\text{-}frontier\text{-}compatible\text{-}sign\text{-}refinement}\) partition \([0,1]\) into isolated algebraic points and open intervals on which every sign and label is constant.  Exact testing of one algebraic sample per interval and of the isolated points therefore determines \(\mathcal F_\gamma\), \(\mathcal E_\gamma\), and \(\mathcal B_{\gamma,t}\), including all endpoint-inclusion decisions.  Their infima (with \(+\infty\) for an empty set), \(\iota_{\rm crit}\), and \(\Delta_{\rm crit}\) when defined are consequently exact finite outputs.  The construction proves finite computability only; it neither uses nor implies a scalable or output-sensitive complexity bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result separates model entry, target entry, equality loci, and genuine conclusion failure, and reports the first failure along a declared joint-relaxation path. \textit{Gap.} A survivor-complier denominator creates a separate target-entry frontier. Moreover, \(L=t\) alone identifies an equality locus, not a conclusion boundary: every retained boundary point must have robust and target-existing nonrobust points in every relative neighborhood. \textit{Consumer.} A Job Corps or Oregon analyst can report model-entry, target-entry, critical-budget, and attainment diagnostics without treating an empty target or an interior equality plateau as evidence of robustness.
+
+\begin{theorem}[thm:finite-sample-surface-coverage]\label{thm:finite-sample-surface-coverage}
+Under \(n_{\rm samp}\) independent draws of \((X,Z,D,V)\) with joint multinomial law \(\pi\), the primitive region \(\mathcal P_n\) satisfies \(P_{\pi}(\pi\in\mathcal P_n)\ge1-\alpha\). Consequently, with probability at least \(1-\alpha\), \(\Theta_I(q;\delta_D,\delta_S)\subseteq\mathcal C_n(\delta_D,\delta_S)\) simultaneously for every \((\delta_D,\delta_S)\in\mathcal B\) at which the population target exists.
+\end{theorem}
+\begin{proof}
+Put \(M_0=4m(K+1)\). For observation \(i\) and category \(j\), let \(I_{ij}\) be its category indicator. Then \(I_{1j},\ldots,I_{n_{\rm samp}j}\) are independent Bernoulli variables of mean \(\pi_j\), and
+\[
+ \widehat\pi_j=\frac1{n_{\rm samp}}\sum_{i=1}^{n_{\rm samp}}I_{ij}.
+\]
+We derive the needed tail inequality. If \(a>p\), exponential Markov inequality and independence give, for every \(\lambda>0\),
+\[
+ \Pr_p(\widehat p\geq a)
+ \leq e^{-\lambda n_{\rm samp}a}
+      \mathbb E_p\exp\left(\lambda\sum_i I_i\right)
+ =\left[e^{-\lambda a}(1-p+pe^\lambda)\right]^{n_{\rm samp}}.
+\]
+For \(p<a<1\), differentiation gives the minimizing value \(e^\lambda=a(1-p)/(p(1-a))\), and substitution gives
+\[
+ \Pr_p(\widehat p\geq a)
+ \leq \exp\{-n_{\rm samp}D(a\Vert p)\},
+ \qquad
+ D(a\Vert p)=a\log\frac ap+(1-a)\log\frac{1-a}{1-p}.
+\]
+Boundary cases follow by limits. Moreover,
+\[
+ \frac{\partial^2}{\partial a^2}D(a\Vert p)
+ =\frac1{a(1-a)}\geq4,
+ \qquad D(p\Vert p)=0,
+ \qquad \left.\frac{\partial}{\partial a}D(a\Vert p)\right|_{a=p}=0.
+\]
+Twice integrating gives \(D(a\Vert p)\geq2(a-p)^2\). The lower-tail calculation is identical. Hence
+\[
+ P_\pi\bigl(|\widehat\pi_j-\pi_j|>\varepsilon_n\bigr)
+ \leq2\exp(-2n_{\rm samp}\varepsilon_n^2)
+ =\frac{\alpha}{M_0}.
+\]
+No independence among distinct category counts is used. The union bound gives
+\[
+ P_\pi\left(\max_{1\leq j\leq M_0}
+ |\widehat\pi_j-\pi_j|\leq\varepsilon_n\right)\geq1-\alpha.
+\]
+Since \(\pi\) is itself in the simplex, the event in parentheses implies \(\pi\in\mathcal P_n\).
+
+On this single event, the true arm-conditioning map \(q=q(\pi)\) is defined on the population domain under consideration, and the candidate \(\pi'=\pi\) is not omitted from \(\mathrm{def:confidence\text{-}surface}\). Deterministically, for every budget pair,
+\[
+ \Theta_I(q(\pi);\delta_D,\delta_S)
+ \subseteq
+ \bigcup_{\pi'\in\mathcal P_n}
+ \Theta_I(q(\pi');\delta_D,\delta_S)
+ =\mathcal C_n(\delta_D,\delta_S).
+\]
+The projection--lifting theorem identifies the set on the left with the causal values among compatible full response laws. The same primitive event is used for every budget pair, so the inclusion holds simultaneously on \(\mathcal B\), without gridwise multiplicity. Restricting to points where the population target exists merely excludes empty target sets and does not alter the probability bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} One primitive coverage event protects every budget, orientation tie, and endpoint switch without gridwise multiplicity corrections. \textit{Gap.} Huang et al. give pointwise asymptotic inference for complete outcomes, while Kaido et al. and Cho--Russell give asymptotic projection methods; none gives this finite-sample whole-surface outer guarantee. \textit{Consumer.} The theorem provides an honest default uncertainty display for sensitivity surfaces before design-specific refinements for the Job Corps and Oregon samples.
+
+\begin{proposition}[prop:standard-reductions]\label{prop:standard-reductions}
+If \(\delta_D=\delta_S=0\), the branches reduce to no-defier covariate-dependent one-sided selection. If additionally \(S_0=S_1=1\) almost surely among compliers, then \(H=\sum_xc_x\) and \(\Theta_I\) reduces to the standard sharp ordinal strict-benefit interval obtained from the complier marginal distributions; for \(K=2\), its cellwise numerator inequalities reduce to \(\max\{0,h_x-u_{x1}-v_{x0}\}\le n_x\le\min\{h_x,u_{x0},v_{x1}\}\).
+\end{proposition}
+\begin{proof}
+Fix an observed array \(q\) and a reduced feasible point in some branch. Suppose first that \(\delta_D=0\). The defier-budget constraint and \(f_x\geq0\) give
+\[
+ 0\leq\sum_{x\in\mathcal X}f_x\leq0.
+\]
+Finiteness of \(\mathcal X\) implies \(f_x=0\) in every cell. By \(\mathrm{def:diagonal\text{-}residuals}\), nonnegativity and the zero totals force \(r_{xw}=s_{xw}=0\), and therefore
+\[
+ d_{x0w}=q^1_{x0w},
+ \qquad d_{x1w}=q^0_{x1w},
+\]
+\[
+ u_{xw}=q^0_{x0w}-q^1_{x0w},
+ \qquad v_{xw}=q^1_{x1w}-q^0_{x1w}.
+\]
+Thus \(d,u,v,c_x,U_x,V_x\) are fixed by \(q\), with nonnegativity supplied by feasibility.
+
+If also \(\delta_S=0\), then \(a_x=U_x-h_x\), \(b_x=V_x-h_x\), and the survivor constraints make both nonnegative. Hence
+\[
+ 0\leq\sum_x\min\{a_x,b_x\}\leq0,
+\]
+so in every cell
+\[
+ h_x=\min\{U_x,V_x\}.
+\]
+The branch minority term can vanish only by choosing the smaller margin, with either orientation allowed at a tie. Conversely, no defiers and a one-sided selection response in each complier cell give \(f_x=0\) and either \(a_x=0\) or \(b_x=0\); selecting the corresponding orientation makes both budgets zero. Thus the zero-budget union is exactly the no-defier, covariate-dependent one-sided-selection class.
+
+Define
+\[
+ \ell_x=\max\left\{0,h_x-min_{-1\leq k\leq K-1}B_{xk}\right\},
+ \qquad
+ \overline n_x=\min\left\{h_x,\min_{0\leq k\leq K}G_{xk}\right\}.
+\]
+At zero budgets, \(u,v,h\) are fixed by \(q\). By \(\mathrm{lem:ordinal\text{-}cuts}\), the feasible values are exactly \(n_x\in[\ell_x,\overline n_x]\), and its completion clause with \(\mathrm{thm:projection\text{-}lifting}\) makes all cellwise choices jointly liftable. Finite Minkowski addition gives
+\[
+ N\in\left[\sum_x\ell_x,\sum_x\overline n_x\right].
+\]
+If \(H=\sum_xh_x>0\), division is valid and the sharp endpoint formulas are
+\[
+ L(q;0,0)=\frac{\sum_x\ell_x}{H},
+ \qquad
+ U(q;0,0)=\frac{\sum_x\overline n_x}{H}.
+\]
+If \(H=0\), nonnegativity forces every \(h_x=0\), and the positive-denominator restriction labels the target empty; no division is made. Prefix and suffix sums compute all cuts in \(O(K)\) operations per cell and hence \(O(mK)\) operations overall.
+
+Suppose in addition that \(S_0=S_1=1\) almost surely among compliers. Then
+\[
+ U_x=V_x=h_x=c_x,
+ \qquad H=\sum_xc_x.
+\]
+When this denominator is positive, the preceding formulas are exactly the sharp finite-ordinal strict-benefit interval from the two complier outcome margins. Sharpness, rather than only outer validity, follows from \(\mathrm{lem:ordinal\text{-}cuts}\) and the reverse lift in \(\mathrm{thm:projection\text{-}lifting}\).
+
+For \(K=2\), direct substitution gives
+\[
+ B_{x,-1}=U_x,
+ \qquad B_{x,0}=u_{x1}+v_{x0},
+ \qquad B_{x,1}=V_x,
+\]
+and
+\[
+ G_{x,0}=v_{x1},
+ \qquad G_{x,1}=u_{x0},
+ \qquad G_{x,2}=U_x.
+\]
+Since \(h_x\leq U_x,V_x\), the cellwise interval reduces to
+\[
+ \max\{0,h_x-u_{x1}-v_{x0}\}
+ \leq n_x\leq
+ \min\{h_x,u_{x0},v_{x1}\},
+\]
+as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact zero-budget elbow fixes the latent residual margins and survivor mass from observables, supplies a closed-form sharp benchmark, and provides an auditable implementation test. \textit{Gap.} Dong--Heiler supplies the no-defier, covariate-dependent one-sided-selection structural anchor for an intensive-margin mean; equivalence here is limited to its finite-ordinal zero-budget subclass and does not cover the positive-budget joint-violation model or this strict-benefit target. \textit{Consumer.} The closed-form zero-budget endpoints give Job Corps and Oregon analysts a no-linear-program baseline against which every positive-budget sensitivity chart can be checked.
+
+\begin{openendedquestion}[oeq:output-sensitive-enumerator]\label{oeq:output-sensitive-enumerator}
+Can the handle \(\mathsf A_{\rm chart}\) be completed into a degeneracy-safe exact algorithm that emits all feasible full-dimensional rational endpoint charts, all singular and lower-dimensional strata, all model-infeasible and target-empty labels, and sparse liftable endpoint certificates, with total bit complexity bounded by \(\operatorname{poly}(\ell_{\rm in},m,K)(M_{\rm out}+1)\) and with no uncharged exponential enumeration of rejected bases?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} A finite all-bases construction does not certify scalable symbolic sensitivity analysis; the open theorem asks for complexity charged to the actual econometric output. \textit{Gap.} Columbano, Fukuda, and Jones charge work to perturbed sufficient-matrix critical domains, and Jones, Kerrigan, and Maciejowski output a nonoverlapping perturbed optimizer; neither guarantee matches the unperturbed stratified ratio-chart output. \textit{Consumer.} A positive answer would make exact whole-surface reporting practical when many covariate cells remain orientation-ambiguous.
+
+\begin{lemma}[lem:finite-frontier-compatible-sign-refinement]\label{lem:finite-frontier-compatible-sign-refinement}
+Let \(\mathscr P\) be a finite family of real polynomials in two real variables and let \(B\) be a closed rectangle. There is a finite semialgebraic partition \(\mathscr C\) of \(B\) such that every polynomial in \(\mathscr P\) has constant sign on each member, every member is relatively connected, and for every \(C,D\in\mathscr C\) either \(D\subseteq\overline C^{B}\) or \(D\cap\overline C^{B}=\varnothing\). Consequently, for any two unions \(A_0,A_1\) of members of \(\mathscr C\), the set \(\overline{A_0}^{B}\cap\overline{A_1}^{B}\) is a union of members of a finite refinement, and a retained member is contained in that intersection if and only if every relative neighborhood of each of its points meets both \(A_0\) and \(A_1\). If the coefficients and rectangle vertices are rational, the partition, all frontier incidences, and all nonemptiness and sign claims admit exact finite certificates based on rational univariate root isolation and polynomial remainder signs.
+\end{lemma}
+\begin{proof}
+Write the two coordinates as \(x\) and \(y\), and write
+\[
+B=[\alpha,\beta]\times[\gamma,\eta],
+\qquad \alpha\leq\beta,\quad \gamma\leq\eta.
+\]
+If either interval is a singleton, ordinary univariate sign decomposition at the finitely many real roots of the nonzero restrictions of the members of \(\mathscr P\) gives the asserted partition and incidence relation.  We therefore assume below that \(\alpha<\beta\) and \(\gamma<\eta\).  A member of \(\mathscr P\) which is zero in \(\mathbb R[x,y]\) is discarded: it has sign zero on every cell and has no zero-set frontier that needs to be located.  This leaves a finite family \(\mathscr P^{*}\) of nonzero polynomials.
+
+We first construct a cylindrical sign decomposition away from finitely many vertical fibers.  Adjoin the two boundary polynomials \(y-\gamma\) and \(y-\eta\) to \(\mathscr P^{*}\), and regard the resulting polynomials as elements of the Euclidean polynomial ring \(\mathbb R(x)[y]\).  Repeated square-free decomposition, greatest-common-divisor computation, and pairwise greatest-common-divisor refinement produce finitely many monic, square-free, pairwise coprime polynomials \(g_1,\ldots,g_J\in\mathbb R(x)[y]\) such that every polynomial in the enlarged family is, in \(\mathbb R(x)[y]\), a nonzero rational function of \(x\) times a product of powers of the \(g_j\)'s.  This assertion is just the terminating Euclidean algorithm in the single variable \(y\): at each nontrivial refinement a positive \(y\)-degree is strictly reduced.  Clear denominators in the \(g_j\)'s.
+
+Form a finite projection family \(\Pi\subset\mathbb R[x]\) containing the following nonzero polynomials: all denominators just cleared; all nonzero coefficients in \(y\) of the original polynomials; the leading \(y\)-coefficients of the \(g_j\)'s; the discriminants of the \(g_j\)'s; the pairwise resultants of distinct \(g_j\)'s; and the principal signed subresultant coefficients obtained from every \(g_j\) and each of its \(y\)-derivatives.  All these objects are determinants or Euclidean remainders of finite polynomial arrays, so \(\Pi\) is finite.  Split \([\alpha,\beta]\) at every real zero of every member of \(\Pi\).  The resulting base cells are finitely many points and open intervals.
+
+Fix an open base interval \(I\).  No member of \(\Pi\) vanishes on \(I\), and hence each has constant sign there.  The leading-coefficient condition fixes every \(y\)-degree.  The nonvanishing discriminants make the roots of each \(g_j(x,\cdot)\) simple, and the nonvanishing pairwise resultants prevent roots belonging to distinct \(g_j\)'s from meeting.  At a simple root the elementary implicit argument applies: continuity and the intermediate-value theorem give a unique nearby root, while subtraction of the two root equations and division by the coordinate increment give continuity of that root.  A root cannot be created, destroyed, or exchange order with another root inside \(I\), since any such event would force a leading coefficient, discriminant, or pairwise resultant in \(\Pi\) to vanish.  The inclusion of \(y-\gamma\) and \(y-\eta\) gives the same conclusion at the horizontal sides of \(B\).  Thus the roots in the vertical slice of \(B\) are finitely many ordered continuous sections
+\[
+\gamma=\rho_0(x)<\rho_1(x)<\cdots<\rho_{J_I}(x)<\rho_{J_I+1}(x)=\eta,
+\qquad x\in I,
+\]
+after coincident boundary sections are identified.  The signed subresultant signs give a fixed Thom sign vector for each section.  Consequently each section is described by one polynomial equality together with finitely many polynomial sign conditions, and is semialgebraic.  The graphs of the \(\rho_j\)'s and the open sectors between consecutive graphs form a finite semialgebraic decomposition of \(I\times[\gamma,\eta]\).  Each graph is connected.  Each sector is connected as well, because linear interpolation between its two continuous boundary functions maps the connected strip \(I\times(0,1)\) continuously onto it.
+
+Every \(p\in\mathscr P^{*}\) has constant sign on each such graph or sector.  Indeed, the simultaneous coprime factorization shows that on a root graph either the corresponding factor divides \(p\), in which case \(p\) is identically zero there, or no factor of \(p\) vanishes there, in which case continuity gives a constant nonzero sign.  On an open sector no factor vanishes, so continuity again gives a constant nonzero sign.  This is the sign-invariant cylindrical step.
+
+It remains to treat a point base cell \(x=a\), including the possibility that specialization makes an entire input polynomial vanish.  For each \(p\in\mathscr P^{*}\) there are two cases.  If \(p(a,\cdot)\) is not the zero polynomial, isolate the roots in \([\gamma,\eta]\) of its square-free part.  If \(p(a,\cdot)\equiv0\), define
+\[
+k_a(p)=\min\bigl\{k\geq 1:\partial_x^k p(a,\cdot)\not\equiv0\bigr\},
+\qquad
+p_a^{\mathrm{tr}}(y)=\frac{1}{k_a(p)!}\partial_x^{k_a(p)}p(a,y).
+\]
+The minimum exists because \(p\) is not globally zero and its Taylor expansion in \(x-a\) is finite.  In this second case record that \(p\) has sign zero on the entire fiber, but also isolate all roots of the nonzero transverse polynomial \(p_a^{\mathrm{tr}}\).  Split the point fiber at \(\gamma\), \(\eta\), every root of every nonzero specialization, and every root of every transverse polynomial.  The resulting point and open-interval fiber cells are semialgebraic and connected.  Every member of \(\mathscr P\) has constant sign on them: this follows from ordinary univariate sign constancy in the first case and from the identically zero specialization in the second case.
+
+We next prove that this extra transverse split contains every possible landing ordinate of a neighboring root section.  Let \((x_n,y_n)\) lie on a section on one side of \(a\), suppose \(x_n\to a\) and \(y_n\to b\), and choose \(p\in\mathscr P^{*}\) which vanishes on that section.  If \(p(a,\cdot)\not\equiv0\), continuity gives
+\[
+p(a,b)=\lim_{n\to\infty}p(x_n,y_n)=0,
+\]
+so \(b\) is one of the roots of the nonzero specialization.  If \(p(a,\cdot)\equiv0\), exact finite Taylor expansion gives
+\[
+p(x,y)=\sum_{j=k_a(p)}^{\deg_x p}(x-a)^j p_{a,j}(y),
+\qquad
+p_{a,j}(y)=\frac{1}{j!}\partial_x^j p(a,y),
+\]
+with \(p_{a,k_a(p)}=p_a^{\mathrm{tr}}\).  Since \(x_n\neq a\), division of \(p(x_n,y_n)=0\) by \((x_n-a)^{k_a(p)}\) yields
+\[
+0=p_a^{\mathrm{tr}}(y_n)
+  +\sum_{j>k_a(p)}(x_n-a)^{j-k_a(p)}p_{a,j}(y_n).
+\]
+Every \(p_{a,j}\) is continuous and \((y_n)_n\) remains in the compact interval \([\gamma,\eta]\); passing to the limit therefore gives \(p_a^{\mathrm{tr}}(b)=0\).  This is the required local \((x-a)\)-adic argument.  It also explains why transverse roots are candidates rather than automatic incidences: for \(p(x,y)=x-a\), one has \(p_a^{\mathrm{tr}}=1\), so no ordinate is inserted, whereas for \(p(x,y)=(x-a)y\), one has \(p_a^{\mathrm{tr}}=y\), so the possible landing ordinate \(y=0\) is retained.
+
+Every section over an interval adjacent to \(a\) has a unique landing ordinate.  To see this without assuming it, take closures in the compact rectangle of the restrictions of its graph to successively shorter one-sided intervals ending at \(a\).  These are nested nonempty compact connected sets.  Their intersection with the fiber over \(a\) is therefore nonempty and connected.  The preceding argument places that intersection inside the finite set of specialization and transverse roots.  A connected subset of a finite subset of the line is a singleton, proving uniqueness.
+
+Fixed root ordering on each neighboring open base interval now determines the complete fiber trace.  A section has the singleton trace consisting of its actual landing root.  A sector bounded by sections whose landing ordinates are \(b_-\leq b_+\) has trace exactly \(\{a\}\times[b_-,b_+]\): containment follows from the inequalities defining the sector, and every intermediate ordinate is approached by choosing points between the two boundary values.  The same statement holds for a sector adjacent to \(\gamma\) or \(\eta\).  Importantly, one first compares the fixed Thom label of a neighboring section with the Thom labels of the candidate roots on the point fiber; a transverse root which matches no neighboring section is not declared incident.  Thus the transverse construction creates no false frontier incidence.
+
+Let \(\mathscr C\) consist of all graph and sector cells over open base intervals and all split cells over point bases.  If desired, split a point-fiber cell once more at the finitely many actual landing ordinates; those ordinates are already among its endpoints by the preceding construction.  Consider cells \(C,D\in\mathscr C\).  If their base cells are neither equal nor incident in the one-dimensional base decomposition, then \(D\cap\overline C^{B}=\varnothing\).  Over the same open base interval, the ordered graph-sector decomposition shows directly that a cell is either wholly in the relative closure of another cell or disjoint from it.  If \(D\) lies over an endpoint of the base interval of \(C\), the just-computed trace of \(C\) is a union of complete point-fiber cells, so again either \(D\subseteq\overline C^{B}\) or \(D\cap\overline C^{B}=\varnothing\).  The analogous assertion within a single point fiber is the elementary endpoint incidence of a finite interval partition.  These cases exhaust all pairs and prove
+\[
+D\subseteq\overline C^{B}
+\quad\text{or}\quad
+D\cap\overline C^{B}=\varnothing.
+\]
+This closure-compatible refinement remains finite, semialgebraic, sign invariant, and relatively connected.
+
+We verify the exact-certification clause.  Suppose the input coefficients and the four vertices of \(B\) are rational.  All coefficient, derivative, resultant, discriminant, and signed-subresultant computations above then take place over \(\mathbb Q\), so every member of \(\Pi\) is rational.  Replace each projection polynomial by its square-free part.  A real point base \(a\) is represented by a square-free polynomial in \(\mathbb Q[T]\), a rational isolating interval, and a Thom sign encoding; equivalently, after selecting the irreducible factor meeting that interval, arithmetic at \(a\) takes place in the explicitly represented ordered field \(\mathbb Q(a)\).
+
+For clarity, the required root isolation itself has a finite remainder certificate.  Given a square-free univariate polynomial \(A\), set \(A_0=A\), \(A_1=A'\), and let \(A_{i+1}\) be the negative Euclidean remainder of \(A_{i-1}\) upon division by \(A_i\).  Degrees strictly decrease.  At a zero of an intermediate remainder the recurrence gives \(A_{i-1}=-A_{i+1}\), so the number of sign variations does not change there; at a root of \(A_0\), square-freeness gives \(A_1\neq0\), and the variation count drops by one when the root is crossed from left to right.  Splitting an interval at the finitely many roots of the remainder sequence therefore shows that the difference of endpoint variation counts is exactly the number of roots of \(A\) in that interval.  Rational bisection supplies disjoint rational isolating intervals.  The sign of another polynomial at an isolated root is decided by its signed remainder sequence with \(A\), and equality to zero is decided by their greatest common divisor.  Hence base cells and all projection signs have finite rational certificates.
+
+At a point base \(a\), reduce every coefficient of \(p(a,y)\) modulo the defining polynomial of \(a\).  This decides exactly whether \(p(a,\cdot)\) is zero in \(\mathbb Q(a)[y]\).  In the zero case, successively differentiate in \(x\) and perform the same reductions; finiteness of the Taylor expansion finds \(k_a(p)\) exactly.  The roots of every nonzero specialization and every \(p_a^{\mathrm{tr}}\) are then isolated and ordered in \(\mathbb Q(a)[y]\) by the same signed-remainder and subresultant computations.  Signs in \(\mathbb Q(a)\), greatest-common-divisor claims, and comparisons of Thom encodings reduce to signs of rational polynomial remainders at the encoded root \(a\), and hence to the preceding rational isolation certificates.
+
+Finally, actual rather than merely candidate incidences are certified as follows.  Label each section on an adjacent open base interval by its fixed signed-subresultant Thom vector and order index.  Give the finitely many candidate roots on the fiber disjoint rational isolating intervals.  For each candidate interval, signed remainders count the roots with the prescribed Thom vector in a nearby rational slice.  Isolating the finitely many zeros of the corresponding boundary-evaluation resultants gives a rational slice sufficiently close to \(a\) that this count and the root order cannot change before reaching \(a\).  Exactly one candidate interval then contains the labeled section; uniqueness of the landing ordinate proved above certifies the match.  Sector incidences follow from the two matched boundary sections and their certified order.  Thus unused transverse candidates are rejected rather than labeled incident.  This supplies finite rational certificates for every sign, nonemptiness claim, root ordering, and frontier incidence, using only univariate root isolation, polynomial remainders, resultants, and Thom comparisons.
+
+It remains to prove the consequence for two unions of cells.  Because \(\mathscr C\) is finite, if \(A_i\) is a union of its members then
+\[
+\overline{A_i}^{B}
+=\bigcup_{C\subseteq A_i,\ C\in\mathscr C}\overline C^{B}.
+\]
+If a cell \(D\) meets the right-hand side, it meets \(\overline C^{B}\) for some \(C\subseteq A_i\); the incidence alternative then gives \(D\subseteq\overline C^{B}\subseteq\overline{A_i}^{B}\).  Hence each \(\overline{A_i}^{B}\), and therefore \(\overline{A_0}^{B}\cap\overline{A_1}^{B}\), is a union of cells of the finite closure-compatible refinement.  By the definition of relative closure, a point \(z\in B\) belongs to \(\overline{A_i}^{B}\) if and only if every relative neighborhood of \(z\) in \(B\) meets \(A_i\).  Applying this equivalence for \(i=0,1\) shows that a retained cell is contained in the intersection exactly when every relative neighborhood of each of its points meets both \(A_0\) and \(A_1\), as claimed.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The proved symbolic construction is finite all-bases enumeration with a frontier-compatible algebraic refinement, including singular and lower-dimensional strata; it is not output-sensitive. Positive-budget \(O(mK)\) size holds per orientation branch only, and as many as \(2^m\) branches may remain. Exact radial root isolation is asserted for rational \(q\), \(\bar{\boldsymbol\delta}\), and \(t\). The early kill test must still reproduce the explicit binary surface, the opposite-orientation witness, and the vanishing-denominator example with exact equality and empty-target strata, endpoint full-law certificates, and an audit excluding hidden exponential rejected-basis work.
+
+\section{Honest scope}
+
+The note proves the ordinal-cut characterization, exact positive-budget full-law projection and lift, attained connected endpoints, endpoint laws with bounded support, a finite exact semialgebraic stratification obtained by exhaustive all-bases enumeration with rational endpoint formulas only on target-nonempty strata, pointwise relative conclusion-boundary labels, exact radial entry and critical-budget reports, simultaneous finite-sample outer coverage, and the zero-budget reduction. The branch-free zero-budget projection, lifting, sharp endpoints, and bounded-support threshold-flow algorithm are credited to the accepted \(\texttt{pid\_slate\_benefit\_partialtransport\_v1}\) result and are recovered rather than claimed as new. The \(O(mK)\) bound is per branch; no branch-free, polynomial, scalable, or output-sensitive positive-budget algorithm is claimed. Equality loci \(L=t\) are conclusion boundaries only at points whose every relative target-existence neighborhood meets both robust and nonrobust sets. Pre-feasibility and pre-target portions of a radial path are not robustness. The output-sensitive degeneracy-safe enumerator, regular endpoint inference at ties, and empirical reanalysis remain outside scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{DongHeiler2026} Yingying Dong and Phillip Heiler (2026). Sharp Bounds and Inference in Sample Selection Models with Treatment Endogeneity. arXiv:2606.09223.
+
+  \bibitem{GabrielSachsJensen2024} Erin E. Gabriel, Michael C. Sachs, and Andreas Kryger Jensen (2024). Sharp symbolic nonparametric bounds for measures of benefit in observational and imperfect randomized studies with ordinal outcomes. Biometrika, 111(4), 1259--1274.
+
+  \bibitem{BartalottiKedagniPossebom2023} Otávio Bartalotti, Désiré Kédagni, and Vitor Possebom (2023). Identifying Marginal Treatment Effects in the Presence of Sample Selection. Journal of Econometrics, 234(2), 565--584.
+
+  \bibitem{ChenFlores2015} Xuan Chen and Carlos A. Flores (2015). Bounds on Treatment Effects in the Presence of Sample Selection and Noncompliance: The Wage Effects of Job Corps. Journal of Business \& Economic Statistics, 33(4), 523--540.
+
+  \bibitem{MastenPoirier2020} Matthew A. Masten and Alexandre Poirier (2020). Inference on Breakdown Frontiers. Quantitative Economics, 11(1), 41--111.
+
+  \bibitem{Picchetti2026} Pedro Picchetti (2026). Sensitivity Analysis for Instrumental Variables Under Joint Relaxations of Monotonicity and Independence. arXiv:2603.25529.
+
+  \bibitem{ColumbanoFukudaJones2009} Sebastiano Columbano, Komei Fukuda, and Colin N. Jones (2009). An output-sensitive algorithm for multi-parametric LCPs with sufficient matrices. In Polyhedral Computation.
+
+  \bibitem{JonesKerriganMaciejowski2007} Colin N. Jones, Eric C. Kerrigan, and Jan M. Maciejowski (2007). Lexicographic perturbation for multiparametric linear programming with applications to control. Automatica, 43(10), 1808--1816.
+
+  \bibitem{HuangFangHanleyRosenblum2019} Emily J. Huang, Ethan X. Fang, Daniel F. Hanley, and Michael Rosenblum (2019). Constructing a Confidence Interval for the Fraction who Benefit From Treatment, Using Randomized Trial Data. Biometrics, 75(4), 1228--1239.
+
+  \bibitem{KaidoMolinariStoye2019} Hiroaki Kaido, Francesca Molinari, and Jörg Stoye (2019). Confidence Intervals for Projections of Partially Identified Parameters. Econometrica, 87(4), 1397--1432.
+
+  \bibitem{ChoRussell2024} JoonHwan Cho and Thomas M. Russell (2024). Simple Inference on Functionals of Set-Identified Parameters Defined by Linear Moments. Journal of Business \& Economic Statistics, 42(2), 563--578.
+
+\end{thebibliography}
+
+\end{document}

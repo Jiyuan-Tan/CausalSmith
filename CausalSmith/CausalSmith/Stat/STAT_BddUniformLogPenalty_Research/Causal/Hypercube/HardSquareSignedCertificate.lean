@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedKL
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedKL
 
 /-!
 # Quantitative signed-observation certificate for the hard square
@@ -7,6 +8,8 @@ This file specializes the common-statistic Bernoulli comparison to the
 normalized hard-cell laws.  The first step identifies the signed-radius
 marginal by angular cancellation on every measurable fibre.
 -/
+
+public section
 
 open MeasureTheory Set
 open scoped ENNReal

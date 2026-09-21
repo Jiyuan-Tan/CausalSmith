@@ -1,9 +1,12 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
-import Causalean.Stat.Inference.HadamardDeriv
-import Mathlib.MeasureTheory.MeasurableSpace.Constructions
-import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
+public import Causalean.Stat.Inference.HadamardDeriv
+public import Mathlib.MeasureTheory.MeasurableSpace.Constructions
+public import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
 
 /-! # Directional calculus for the fixed-support endpoint -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Filter Topology

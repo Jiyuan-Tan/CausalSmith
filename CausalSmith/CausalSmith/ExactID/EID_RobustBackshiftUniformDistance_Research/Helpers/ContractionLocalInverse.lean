@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionCompactness
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionCompactness
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Local affine-minor inversion constants
@@ -7,6 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 The explicit dimension, conditioning, separation, and scale constants used after the global
 compactness argument enters the identity chart.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

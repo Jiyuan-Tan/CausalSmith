@@ -3,12 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Data.Real.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
-import Mathlib.Algebra.Order.BigOperators.Ring.Finset
-import Causalean.Stat.Nonparametric.LeastSquares.NormalEquations
+
+module
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.NNReal
+public import Mathlib.Algebra.Order.BigOperators.Ring.Finset
+public import Causalean.Mathlib.LinearAlgebra.NormalEquations
 
 /-!
 # Polynomial reproduction of the local-polynomial equivalent kernel
@@ -30,6 +32,10 @@ abstract bias bound into the concrete local-polynomial bias estimate. The reprod
 pure linear algebra: `∑ᵢ Sᵢ xᵢᵐ = ∑ₖ (M⁻¹)₀ₖ M_{km} = (M⁻¹ M)₀ₘ = I₀ₘ` (Fan–Gijbels 1996
 §3.1).
 -/
+
+@[expose] public section
+
+open Causalean.Mathlib.LinearAlgebra.NormalEquations
 
 namespace Causalean.Stat.Nonparametric
 
@@ -93,6 +99,26 @@ theorem equivKernelWeight_reproduces {N p : ℕ} {x w : Fin N → ℝ}
             apply hm0
             have hval := congrArg Fin.val h
             simpa only [Fin.val_zero, m', Fin.val_mk] using hval.symm
+
+/-- **Normal equations for weighted polynomial least squares** (the Vandermonde design
+`Φᵢⱼ = xᵢʲ`). The weighted least-squares minimizer of `∑ᵢ wᵢ (Yᵢ − ∑ⱼ cⱼ xᵢʲ)²` has
+residual orthogonal to every design monomial: `∑ᵢ wᵢ (Yᵢ − ∑ⱼ cⱼ xᵢʲ) xᵢᵏ = 0`. -/
+theorem wls_normal_equations {N p : ℕ} {x w Y : Fin N → ℝ} {c : Fin (p + 1) → ℝ}
+    (hw : ∀ i, 0 ≤ w i)
+    (hmin : ∀ c' : Fin (p + 1) → ℝ,
+        (∑ i, w i * (Y i - ∑ j, c j * x i ^ (j : ℕ)) ^ 2)
+          ≤ ∑ i, w i * (Y i - ∑ j, c' j * x i ^ (j : ℕ)) ^ 2) :
+    ∀ k : Fin (p + 1),
+      ∑ i, w i * (Y i - ∑ j, c j * x i ^ (j : ℕ)) * x i ^ (k : ℕ) = 0 := by
+  have hmin' : ∀ c' : Fin (p + 1) → ℝ,
+      lstsqObjective (fun (i : Fin N) (j : Fin (p + 1)) => x i ^ (j : ℕ)) w Y c
+        ≤ lstsqObjective (fun (i : Fin N) (j : Fin (p + 1)) => x i ^ (j : ℕ)) w Y c' := by
+    intro c'
+    simpa [lstsqObjective, lstsqResidual] using hmin c'
+  intro k
+  have hk := lstsq_normal_equations
+    (Φ := fun (i : Fin N) (j : Fin (p + 1)) => x i ^ (j : ℕ)) hw hmin' k
+  simpa [lstsqResidual] using hk
 
 /-- **The local-polynomial WLS intercept is the equivalent-kernel linear smoother.** If the
 weighted design moment matrix is invertible and `c` minimizes the weighted sum of squares,

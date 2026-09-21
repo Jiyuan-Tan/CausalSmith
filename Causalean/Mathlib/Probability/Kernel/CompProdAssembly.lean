@@ -3,9 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Probability.Kernel.Composition.Lemmas
-import Mathlib.Probability.Kernel.Disintegration.Basic
-import Mathlib.Probability.Kernel.CompProdEqIff
+
+module
+
+public import Mathlib.Probability.Kernel.CompProdEqIff
+public import Mathlib.Probability.Kernel.Composition.Lemmas
+public import Mathlib.Probability.Kernel.Disintegration.Basic
 
 /-!
 # Composition-product assembly lemmas
@@ -24,6 +27,8 @@ These results isolate the Fubini-style steps that otherwise require repeating
 `Measure.ext_prod`, `compProd_apply_prod`, `ae_ae_of_ae_compProd`, and
 `lintegral_congr_ae`.
 -/
+
+public section
 
 namespace Causalean.Mathlib.CompProdAssembly
 
@@ -113,3 +118,35 @@ theorem compProd_map_snd_apply
       ← Measure.snd, Measure.snd_compProd]
 
 end Causalean.Mathlib.CompProdAssembly
+
+namespace Causalean.Mathlib.Probability.Kernel
+
+open scoped MeasureTheory ProbabilityTheory
+
+/-- For [measurable spaces](hyp:α,β,γ), [an s-finite kernel `κ`](hyp:κ),
+[a function `f`](hyp:f), [its measurability](hyp:hf), and [a base point `a`](hyp:a),
+[composition with the deterministic kernel equals the paired pushforward](goal). -/
+lemma compProd_deterministic_apply
+    {α β γ : Type*} [MeasurableSpace α] [MeasurableSpace β] [MeasurableSpace γ]
+    (κ : ProbabilityTheory.Kernel α β) [ProbabilityTheory.IsSFiniteKernel κ]
+    {f : α × β → γ} (hf : Measurable f) (a : α) :
+    (κ ⊗ₖ ProbabilityTheory.Kernel.deterministic f hf) a =
+      (κ a).map (fun b => (b, f (a, b))) := by
+  have hpair : Measurable (fun b : β => (b, f (a, b))) :=
+    Measurable.prodMk measurable_id
+      (hf.comp (Measurable.prodMk measurable_const measurable_id))
+  refine MeasureTheory.Measure.ext fun A hA => ?_
+  rw [ProbabilityTheory.Kernel.compProd_apply hA,
+      MeasureTheory.Measure.map_apply hpair hA]
+  simp only [ProbabilityTheory.Kernel.deterministic_apply]
+  trans (∫⁻ b, Set.indicator
+            ((fun b => (b, f (a, b))) ⁻¹' A) (fun _ => (1 : ENNReal)) b ∂(κ a))
+  · apply MeasureTheory.lintegral_congr
+    intro b
+    have hSlice : MeasurableSet (Prod.mk b ⁻¹' A) := measurable_prodMk_left hA
+    rw [MeasureTheory.Measure.dirac_apply' _ hSlice]
+    simp only [Set.indicator, Set.mem_preimage, Pi.one_apply]
+    rfl
+  · exact MeasureTheory.lintegral_indicator_one (hpair hA)
+
+end Causalean.Mathlib.Probability.Kernel

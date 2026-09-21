@@ -1,9 +1,10 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
-import Causalean.Experimentation.DesignBased.Designs.Bernoulli
-import Mathlib.LinearAlgebra.Span.Basic
-import Mathlib.LinearAlgebra.Pi
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Mathlib.LinearAlgebra.Span.Basic
+public import Mathlib.LinearAlgebra.Pi
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 /-!
 # Bernoulli block score and the two Riesz programs
@@ -12,6 +13,8 @@ All objects here live on the finite assignment space `Fin d → Bool`.  The
 bilinear form is the expectation of Causalean's finite Bernoulli design, so no
 measure-theoretic `L²` wrapper is needed.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

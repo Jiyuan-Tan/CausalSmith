@@ -3,18 +3,21 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.Probability.IidMeanVariance
-import Causalean.Stat.Concentration.Chebyshev
+
+module
+public import Causalean.Mathlib.Probability.IidMeanVariance
+public import Causalean.Stat.Concentration.Chebyshev
 
 /-!
-# Kish dispersion and effective sample size
+# Empirical weight second moments and Kish effective sample size
 
-This module develops the empirical second-moment statistic used for weighted
-i.i.d. samples. When weights have population mean one, their second moment is
-the Kish design effect; dividing the nominal sample size by this design effect
-gives the effective sample size. The results below establish its mean, a
-variance bound under a fourth-moment envelope, and a lower-tail bound.
+This module distinguishes the sample average of squared weights from the scale-invariant Kish
+design effect and effective sample size. It proves agreement under realized mean-one
+normalization, then gives mean, variance, and product-law lower-tail results for the empirical
+weight second moment.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -23,15 +26,54 @@ open scoped BigOperators ENNReal
 
 noncomputable section
 
-/-- Given [an observation space](hyp:Ω), [a real-valued weight function on that space](hyp:g), [a nonnegative sample size](hyp:n), and [a sample indexed by the integers from zero through one less than that size](hyp:sample), [the empirical Kish dispersion](goal) is the reciprocal of the sample size multiplied by the sum of the squared weights of the sampled observations.
-
-Empirical Kish dispersion is the sample average of the squared observation-level weights. -/
-def empiricalKishDispersion {Ω : Type*} (g : Ω → ℝ) (n : ℕ)
+/-- Given [a real-valued weight function](hyp:g), [a sample size](hyp:n), and
+[an indexed sample](hyp:sample), [the empirical weight second moment](goal) is the sample average
+of the squared weights. -/
+def empiricalWeightSecondMoment {Ω : Type*} (g : Ω → ℝ) (n : ℕ)
     (sample : Fin n → Ω) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, g (sample i) ^ 2
 
-/-- A mean-one square-integrable weight has second moment at least one, so its Kish design effect
-cannot improve on an equally weighted sample. -/
+/-- Given [a real-valued weight function](hyp:g), [a sample size](hyp:n), and
+[an indexed sample](hyp:sample), [this legacy compatibility name](goal) denotes the empirical
+weight second moment, not a scale-invariant finite-sample Kish design effect. -/
+abbrev empiricalKishDispersion {Ω : Type*} (g : Ω → ℝ) (n : ℕ)
+    (sample : Fin n → Ω) : ℝ :=
+  empiricalWeightSecondMoment g n sample
+
+/-- Given [a finite vector of realized weights](hyp:w), [the Kish design effect](goal) is zero
+when their sum is zero, and otherwise uses the normalized formula.
+-/
+def kishDesignEffect {n : ℕ} (w : Fin n → ℝ) : ℝ :=
+  if ∑ i, w i = 0 then 0
+  else ((n : ℝ) * ∑ i, w i ^ 2) / (∑ i, w i) ^ 2
+
+/-- Given [a finite vector of realized weights](hyp:w), [the Kish effective sample size](goal) is
+zero when their squared-weight sum is zero, and otherwise uses squared total weight divided by
+the squared-weight sum. -/
+def kishEffectiveSampleSize {n : ℕ} (w : Fin n → ℝ) : ℝ :=
+  if ∑ i, w i ^ 2 = 0 then 0
+  else (∑ i, w i) ^ 2 / ∑ i, w i ^ 2
+
+/-- Given [realized weights](hyp:w), [a positive sample size](hyp:hn), and
+[realized mean-one normalization](hyp:hsum), [the two quantities agree](goal). -/
+lemma kishDesignEffect_eq_empiricalWeightSecondMoment_of_sum_eq
+    {n : ℕ} (w : Fin n → ℝ) (hn : 0 < n)
+    (hsum : ∑ i, w i = (n : ℝ)) :
+    kishDesignEffect w = empiricalWeightSecondMoment id n w := by
+  have hnR : (n : ℝ) ≠ 0 := by exact_mod_cast hn.ne'
+  rw [kishDesignEffect, if_neg]
+  · simp only [empiricalWeightSecondMoment, id_eq, hsum, inv_eq_one_div]
+    calc
+      (n : ℝ) * (∑ x, w x ^ 2) / (n : ℝ) ^ 2 =
+          ((n : ℝ) / (n : ℝ) ^ 2) * ∑ x, w x ^ 2 := by ring
+      _ = 1 / (n : ℝ) * ∑ x, w x ^ 2 := by
+        congr 1
+        field_simp [hnR]
+  · simpa [hsum] using hnR
+
+/-- For [a probability measure](hyp:μ), [a real-valued weight](hyp:w),
+[square-integrability of the weight](hyp:hw), and [population mean one](hyp:hmean),
+[the weight's population second moment is at least one](goal). -/
 lemma one_le_secondMoment_of_mean_one
     {𝒳 : Type*} [MeasurableSpace 𝒳]
     (μ : Measure 𝒳) [IsProbabilityMeasure μ] (w : 𝒳 → ℝ)
@@ -42,11 +84,26 @@ lemma one_le_secondMoment_of_mean_one
   norm_num at hv ⊢
   linarith
 
-/-- **Expected empirical Kish dispersion.** Given [a positive sample size $n$](hyp:hn) and [an
-integrable squared weight statistic $g^2$ under the population measure](hyp:hF), [the expectation
-of the empirical Kish dispersion — the sample average of the squared observation-level weights —
-under the $n$-fold product sampling measure equals the population second moment $\int
-g^2\,d\mu$](goal). -/
+/-- For [a probability measure](hyp:μ), [a weight function](hyp:g),
+[a sample size](hyp:n), [positivity of that size](hyp:hn), and
+[integrability of the squared weight](hyp:hF),
+[the expected empirical weight second moment equals its population counterpart](goal). -/
+lemma empiricalWeightSecondMoment_mean
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) [IsProbabilityMeasure μ]
+    (g : Ω → ℝ) (n : ℕ) (hn : 0 < n)
+    (hF : Integrable (fun o => g o ^ 2) μ) :
+    (∫ sample : Fin n → Ω, empiricalWeightSecondMoment g n sample
+        ∂Measure.pi (fun _ : Fin n => μ)) =
+      ∫ o, g o ^ 2 ∂μ := by
+  simpa [empiricalWeightSecondMoment] using
+    Causalean.Mathlib.Probability.iid_average_integral μ n hn
+      (fun o => g o ^ 2) hF
+
+/-- For [a probability measure](hyp:μ), [a weight function](hyp:g),
+[a sample size](hyp:n), [positivity of that size](hyp:hn), and
+[integrability of the squared weight](hyp:hF), [this legacy compatibility theorem](goal) gives the
+mean of the empirical weight second moment. -/
 lemma empiricalKishDispersion_mean
     {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsProbabilityMeasure μ]
@@ -55,14 +112,15 @@ lemma empiricalKishDispersion_mean
     (∫ sample : Fin n → Ω, empiricalKishDispersion g n sample
         ∂Measure.pi (fun _ : Fin n => μ)) =
       ∫ o, g o ^ 2 ∂μ := by
-  simpa [empiricalKishDispersion] using
-    Causalean.Mathlib.Probability.iid_average_integral μ n hn
-      (fun o => g o ^ 2) hF
+  exact empiricalWeightSecondMoment_mean μ g n hn hF
 
-/-- If the fourth power of a weight is bounded by four times a squared envelope times its second
-power, empirical Kish dispersion has variance at most four times the squared envelope and the
-population second moment, divided by sample size. -/
-lemma empiricalKishDispersion_variance_le
+/-- For [a probability measure](hyp:μ), [a weight function](hyp:g),
+[a sample size](hyp:n), [a weight envelope](hyp:k),
+[a population second-moment value](hyp:kappa), [positivity of the sample size](hyp:hn),
+[square-integrability of the squared weight](hyp:hF),
+[the population second-moment identity](hyp:hkappa), and
+[the fourth-moment envelope](hyp:hfourth), [the stated variance bound holds](goal). -/
+lemma empiricalWeightSecondMoment_variance_le
     {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsProbabilityMeasure μ]
     (g : Ω → ℝ) (n : ℕ) (k kappa : ℝ) (hn : 0 < n)
@@ -70,7 +128,7 @@ lemma empiricalKishDispersion_variance_le
     (hkappa : (∫ o, g o ^ 2 ∂μ) = kappa)
     (hfourth : ∀ᵐ o ∂μ, g o ^ 4 ≤ 4 * k ^ 2 * g o ^ 2) :
     variance
-        (fun sample : Fin n → Ω => empiricalKishDispersion g n sample)
+        (fun sample : Fin n → Ω => empiricalWeightSecondMoment g n sample)
         (Measure.pi (fun _ : Fin n => μ)) ≤
       4 * k ^ 2 * kappa / n := by
   have hvar := Causalean.Mathlib.Probability.iid_average_variance μ n
@@ -107,12 +165,74 @@ lemma empiricalKishDispersion_variance_le
       gcongr
     _ = 4 * k ^ 2 * kappa / n := by ring
 
-/-- **Lower-tail bound for empirical Kish dispersion.** Given [a positive sample size
-$n$](hyp:hn), [a positive population Kish dispersion $\kappa$](hyp:hkappa), [the empirical Kish
-dispersion is square-integrable under the sampling measure `Q`](hyp:hF), [its expectation under `Q`
-equals $\kappa$](hyp:hmean), and [its variance under `Q` is at most $4k^2\kappa/n$ for a weight
-envelope $k$](hyp:hvar), then [the probability that the empirical Kish dispersion falls below half
-its mean $\kappa/2$ is at most $16k^2/(n\kappa)$](goal). -/
+/-- For [a probability measure](hyp:μ), [a weight function](hyp:g),
+[a sample size](hyp:n), [a weight envelope](hyp:k),
+[a population second-moment value](hyp:kappa), [positivity of the sample size](hyp:hn),
+[square-integrability of the squared weight](hyp:hF),
+[the population second-moment identity](hyp:hkappa), and
+[the fourth-moment envelope](hyp:hfourth), [this legacy compatibility theorem](goal) gives the
+variance bound for the empirical weight second moment. -/
+lemma empiricalKishDispersion_variance_le
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) [IsProbabilityMeasure μ]
+    (g : Ω → ℝ) (n : ℕ) (k kappa : ℝ) (hn : 0 < n)
+    (hF : MemLp (fun o => g o ^ 2) 2 μ)
+    (hkappa : (∫ o, g o ^ 2 ∂μ) = kappa)
+    (hfourth : ∀ᵐ o ∂μ, g o ^ 4 ≤ 4 * k ^ 2 * g o ^ 2) :
+    variance
+        (fun sample : Fin n → Ω => empiricalKishDispersion g n sample)
+        (Measure.pi (fun _ : Fin n => μ)) ≤
+      4 * k ^ 2 * kappa / n := by
+  exact empiricalWeightSecondMoment_variance_le μ g n k kappa hn hF hkappa hfourth
+
+/-- Given [a sample size](hyp:n), [a sampling probability measure](hyp:Q),
+[a weight function](hyp:g), [a weight envelope](hyp:k),
+[a positive reference mean](hyp:kappa), [positivity of the sample size](hyp:hn),
+[positivity of the reference mean](hyp:hkappa),
+[square-integrability of the empirical second moment](hyp:hF),
+[its assumed exact mean](hyp:hmean), and [its assumed variance bound](hyp:hvar),
+[Chebyshev's inequality bounds the probability of falling below half the reference mean](goal). -/
+lemma empiricalWeightSecondMoment_lower_tail_le_of_mean_variance
+    {Ω : Type*} [MeasurableSpace Ω]
+    (n : ℕ) (Q : Measure (Fin n → Ω)) [IsProbabilityMeasure Q]
+    (g : Ω → ℝ) (k kappa : ℝ)
+    (hn : 0 < n) (hkappa : 0 < kappa)
+    (hF : MemLp (empiricalWeightSecondMoment g n) 2 Q)
+    (hmean : (∫ sample, empiricalWeightSecondMoment g n sample ∂Q) = kappa)
+    (hvar : variance (empiricalWeightSecondMoment g n) Q ≤
+      4 * k ^ 2 * kappa / n) :
+    (Q {sample | empiricalWeightSecondMoment g n sample < kappa / 2}).toReal ≤
+      16 * k ^ 2 / ((n : ℝ) * kappa) := by
+  have hcheb := Causalean.Stat.Concentration.probability_abs_sub_mean_gt_le Q
+    (empiricalWeightSecondMoment g n) kappa (4 * k ^ 2 * kappa / n)
+      (kappa / 2) hF (half_pos hkappa) hmean hvar
+  have hsub :
+      {sample | empiricalWeightSecondMoment g n sample < kappa / 2} ⊆
+        {sample | kappa / 2 <
+          |empiricalWeightSecondMoment g n sample - kappa|} := by
+    intro sample hs
+    simp only [Set.mem_ofPred_eq] at hs ⊢
+    rw [abs_of_neg (by linarith)]
+    linarith
+  calc
+    (Q {sample | empiricalWeightSecondMoment g n sample < kappa / 2}).toReal ≤
+        (Q {sample | kappa / 2 <
+          |empiricalWeightSecondMoment g n sample - kappa|}).toReal :=
+      measureReal_mono hsub
+    _ ≤ (4 * k ^ 2 * kappa / n) / (kappa / 2) ^ 2 := hcheb
+    _ = 16 * k ^ 2 / ((n : ℝ) * kappa) := by
+      have hnR : (0 : ℝ) < n := by exact_mod_cast hn
+      field_simp [hnR.ne', hkappa.ne']
+      ring
+
+/-- Given [a sample size](hyp:n), [a sampling probability measure](hyp:Q),
+[a weight function](hyp:g), [a weight envelope](hyp:k),
+[a positive reference mean](hyp:kappa), [positivity of the sample size](hyp:hn),
+[positivity of the reference mean](hyp:hkappa),
+[square-integrability of the empirical second moment](hyp:hF),
+[its assumed exact mean](hyp:hmean), and [its assumed variance bound](hyp:hvar),
+[this legacy compatibility theorem](goal) is the Chebyshev specialization now named
+`empiricalWeightSecondMoment_lower_tail_le_of_mean_variance`. -/
 lemma empiricalKishDispersion_lower_tail_le
     {Ω : Type*} [MeasurableSpace Ω]
     (n : ℕ) (Q : Measure (Fin n → Ω)) [IsProbabilityMeasure Q]
@@ -124,27 +244,40 @@ lemma empiricalKishDispersion_lower_tail_le
       4 * k ^ 2 * kappa / n) :
     (Q {sample | empiricalKishDispersion g n sample < kappa / 2}).toReal ≤
       16 * k ^ 2 / ((n : ℝ) * kappa) := by
-  have hcheb := Causalean.Stat.Concentration.probability_abs_sub_mean_gt_le Q
-    (empiricalKishDispersion g n) kappa (4 * k ^ 2 * kappa / n)
-      (kappa / 2) hF (half_pos hkappa) hmean hvar
-  have hsub :
-      {sample | empiricalKishDispersion g n sample < kappa / 2} ⊆
-        {sample | kappa / 2 <
-          |empiricalKishDispersion g n sample - kappa|} := by
-    intro sample hs
-    simp only [Set.mem_setOf_eq] at hs ⊢
-    rw [abs_of_neg (by linarith)]
-    linarith
-  calc
-    (Q {sample | empiricalKishDispersion g n sample < kappa / 2}).toReal ≤
-        (Q {sample | kappa / 2 <
-          |empiricalKishDispersion g n sample - kappa|}).toReal :=
-      measureReal_mono hsub
-    _ ≤ (4 * k ^ 2 * kappa / n) / (kappa / 2) ^ 2 := hcheb
-    _ = 16 * k ^ 2 / ((n : ℝ) * kappa) := by
-      have hnR : (0 : ℝ) < n := by exact_mod_cast hn
-      field_simp [hnR.ne', hkappa.ne']
-      ring
+  exact empiricalWeightSecondMoment_lower_tail_le_of_mean_variance
+    n Q g k kappa hn hkappa hF hmean hvar
+
+/-- For [a population probability measure](hyp:μ), [a weight function](hyp:g),
+[a sample size](hyp:n), [a weight envelope](hyp:k),
+[a positive population second-moment value](hyp:kappa),
+[positivity of the sample size](hyp:hn), [positivity of that moment](hyp:hkappa),
+[square-integrability of the squared weight](hyp:hF),
+[the population second-moment identity](hyp:hmoment), and
+[the fourth-moment envelope](hyp:hfourth), [the stated product-law lower-tail bound holds](goal). -/
+lemma empiricalWeightSecondMoment_lower_tail_le
+    {Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) [IsProbabilityMeasure μ]
+    (g : Ω → ℝ) (n : ℕ) (k kappa : ℝ)
+    (hn : 0 < n) (hkappa : 0 < kappa)
+    (hF : MemLp (fun o => g o ^ 2) 2 μ)
+    (hmoment : (∫ o, g o ^ 2 ∂μ) = kappa)
+    (hfourth : ∀ᵐ o ∂μ, g o ^ 4 ≤ 4 * k ^ 2 * g o ^ 2) :
+    ((Measure.pi (fun _ : Fin n => μ))
+      {sample | empiricalWeightSecondMoment g n sample < kappa / 2}).toReal ≤
+      16 * k ^ 2 / ((n : ℝ) * kappa) := by
+  have hsample :
+      MemLp (empiricalWeightSecondMoment g n) 2
+        (Measure.pi (fun _ : Fin n => μ)) := by
+    unfold empiricalWeightSecondMoment
+    apply MemLp.const_mul
+    simpa using memLp_finsetSum Finset.univ fun i _ =>
+      hF.comp_measurePreserving
+        (measurePreserving_eval (fun _ : Fin n => μ) i)
+  exact empiricalWeightSecondMoment_lower_tail_le_of_mean_variance
+    n (Measure.pi (fun _ : Fin n => μ)) g k kappa hn hkappa hsample
+    ((empiricalWeightSecondMoment_mean μ g n hn
+      (hF.integrable (by norm_num))).trans hmoment)
+    (empiricalWeightSecondMoment_variance_le μ g n k kappa hn hF hmoment hfourth)
 
 end
 

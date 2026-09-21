@@ -3,58 +3,70 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.CausalApplication.RegressionBridge
-import Causalean.Estimation.ATE.Score.AIPWMoment
 
-/-! # ML learners as causal nuisance estimators
+module
+public import Causalean.ML.CausalApplication.RegressionBridge
+public import Causalean.Estimation.ATE.Score.AIPWMoment
 
-Using the conditional-expectation bridge (`RegressionBridge`), the population
-targets of the `Causalean.ML` learners are exactly the causal nuisance functions
-that the AIPW / DML machinery consumes: the squared-loss target on a treatment arm
-is the outcome regression `μ(d, x) = E[Y ∣ X, D=d]`, and the squared-loss target
-on the treatment indicator is the propensity `e(x) = P(D=1 ∣ X)`.
-`mlNuisanceVec` packages two such targets into the `Estimation.ATE.NuisanceVec`
-the AIPW moment expects.
+/-! # Conditional-mean candidates for causal nuisance workflows
+
+Using the conditional-expectation bridge (`RegressionBridge`), this file gives generic
+aliases showing that a candidate satisfying `IsResidualOrthogonal` agrees almost everywhere
+with the conditional expectation of an arbitrary real response. These aliases acquire an
+outcome-regression or propensity interpretation only after the supplied law is separately
+shown to be an arm-specific outcome law or a covariate--treatment-indicator law. No concrete
+learner is shown here to satisfy `IsResidualOrthogonal`. `mlNuisanceVec` packages candidates
+into the `Estimation.ATE.NuisanceVec` expected by the AIPW moment.
 -/
 
-namespace Causalean.ML.Causal
+@[expose] public section
+
+namespace Causalean.ML.CausalApplication
 
 open MeasureTheory
 
 variable {γ : Type*} [MeasurableSpace γ]
 
-/-- **Outcome-regression recovery.** On a finite covariate–outcome law `Pd`, if
-[the candidate regression function `m` is measurable](hyp:hm), [the outcome coordinate
-is integrable](hyp:hY), [the composed function `z ↦ m(z.1)` is integrable](hyp:hmint),
-and [`m` is the squared-loss population target — its residual `Y − m(X)` is uncorrelated
-with every measurable, integrable function of the covariate](hyp:hproj), then [`m` agrees
-`Pd`-almost everywhere with the conditional expectation of the outcome given the
-covariate σ-algebra, i.e. `m` is the outcome regression `μ(d, x) = E[Y ∣ X = x,
-D = d]`](goal). -/
-theorem mlOutcomeRegression_ae_eq
+/-- **Generic conditional-mean identification.** [A measurable candidate](hyp:m,hm)
+[equals almost everywhere the response conditional mean given covariates](goal) under
+[a finite covariate--real-response law](hyp:Pd) on [the measurable covariate space](hyp:γ),
+provided [the response is integrable](hyp:hY),
+[the candidate evaluated at the covariates is integrable](hyp:hmint), and
+[every admissible covariate function is orthogonal to the residual](hyp:hproj).
+
+This statement does not show that `Pd` is an arm-specific outcome law. -/
+theorem response_condExp_ae_eq_of_isResidualOrthogonal
     (Pd : Measure (γ × ℝ)) [IsFiniteMeasure Pd] {m : γ → ℝ} (hm : Measurable m)
     (hY : Integrable (fun z => z.2) Pd) (hmint : Integrable (fun z => m z.1) Pd)
-    (hproj : Causalean.ML.IsL2Projection Pd m) :
+    (hproj : Causalean.ML.IsResidualOrthogonal Pd m) :
     (fun z => m z.1) =ᵐ[Pd] (Pd[fun z => z.2 | covarSigma (X := γ)]) :=
-  condExp_of_isL2Projection Pd hm hY hmint hproj
+  condExp_of_isResidualOrthogonal Pd hm hY hmint hproj
 
-/-- **Propensity recovery.** On a finite covariate–treatment-indicator law `Pe`, if
-[the candidate propensity function `e` is measurable](hyp:he), [the treatment indicator
-is integrable](hyp:hD), [the composed function `z ↦ e(z.1)` is integrable](hyp:heint),
-and [`e` is the squared-loss population target — its residual is uncorrelated with every
-measurable, integrable function of the covariate](hyp:hproj), then [`e` agrees
-`Pe`-almost everywhere with the conditional expectation of the treatment indicator given
-the covariate σ-algebra, i.e. `e` is the propensity `P(D = 1 ∣ X)`](goal). -/
-theorem mlPropensity_ae_eq
+/-- **Generic auxiliary-response identification.** [A measurable candidate](hyp:e,he)
+[equals almost everywhere the auxiliary response conditional mean given covariates](goal)
+under [a finite covariate--real-response law](hyp:Pe) on
+[the measurable covariate space](hyp:γ), provided [the response is integrable](hyp:hD),
+[the candidate evaluated at the covariates is integrable](hyp:heint), and
+[every admissible covariate function is orthogonal to the residual](hyp:hproj).
+
+This becomes a propensity statement only when `Pe` is separately shown to be the law of a
+covariate and a treatment indicator. -/
+theorem auxiliaryResponse_condExp_ae_eq_of_isResidualOrthogonal
     (Pe : Measure (γ × ℝ)) [IsFiniteMeasure Pe] {e : γ → ℝ} (he : Measurable e)
     (hD : Integrable (fun z => z.2) Pe) (heint : Integrable (fun z => e z.1) Pe)
-    (hproj : Causalean.ML.IsL2Projection Pe e) :
+    (hproj : Causalean.ML.IsResidualOrthogonal Pe e) :
     (fun z => e z.1) =ᵐ[Pe] (Pe[fun z => z.2 | covarSigma (X := γ)]) :=
-  condExp_of_isL2Projection Pe he hD heint hproj
+  condExp_of_isResidualOrthogonal Pe he hD heint hproj
 
-/-- For [a measurable covariate space](hyp:γ), [two outcome-regression functions indexed by a Boolean treatment level](hyp:μ_fn), [a propensity function](hyp:e_fn), [the hypothesis that each outcome-regression function is measurable](hyp:hμ), and [the hypothesis that the propensity function is measurable](hyp:he), [the machine-learning nuisance vector](goal) consists of [the supplied outcome-regression functions](step:1), the supplied propensity function, their outcome-regression measurability certificates, and the propensity measurability certificate.
+/-- [The machine-learning nuisance vector](goal) packages supplied estimates for AIPW: it stores
+[the treatment-indexed outcome regressions](hyp:μ_fn) [as its outcome component](step:1),
+[the propensity function](hyp:e_fn) [as its propensity component](step:2),
+[the outcome measurability certificates](hyp:hμ) [in their evidence field](step:3), and
+[the propensity measurability certificate](hyp:he) [in its evidence field](step:4), all on
+[the measurable covariate space](hyp:γ).
 
-This packages the nuisance functions consumed by the augmented inverse-probability-weighted estimator. -/
+This packages the nuisance functions consumed by the augmented inverse-probability-weighted
+estimator. -/
 noncomputable def mlNuisanceVec
     (μ_fn : Bool → γ → ℝ) (e_fn : γ → ℝ)
     (hμ : ∀ b, Measurable (μ_fn b)) (he : Measurable e_fn) :
@@ -64,4 +76,4 @@ noncomputable def mlNuisanceVec
   μ_meas := hμ
   e_meas := he
 
-end Causalean.ML.Causal
+end Causalean.ML.CausalApplication

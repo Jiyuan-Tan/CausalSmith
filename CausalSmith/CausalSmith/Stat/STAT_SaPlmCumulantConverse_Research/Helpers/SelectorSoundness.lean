@@ -1,16 +1,34 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralMeasurability
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ProjectedOutputCertification
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Basic
-import Mathlib.MeasureTheory.Function.Floor
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralMeasurability
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ProjectedOutputCertification
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.Basic
+public import Mathlib.MeasureTheory.Function.Floor
 
 /-! # Soundness of the one bounded-domain option-A selector -/
+
+@[expose] public section
 
 noncomputable section
 
 open MeasureTheory Set
-open Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex
+open Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
+
+/- `ComplexRatInterval` remains the rectangle type's namespace, while its
+operations now live under `Contour.ComplexRatInterval`.  These paper-local
+aliases keep the selector's pervasive field notation tied to the current API. -/
+namespace Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval
+
+abbrev width := Contour.ComplexRatInterval.width
+abbrev maxAbs := Contour.ComplexRatInterval.maxAbs
+abbrev normSq := Contour.ComplexRatInterval.normSq
+abbrev normInterval := Contour.ComplexRatInterval.normInterval
+abbrev mul := Contour.ComplexRatInterval.mul
+abbrev conj := Contour.ComplexRatInterval.conj
+abbrev div := Contour.ComplexRatInterval.div
+
+end Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
@@ -36,7 +54,7 @@ private lemma measurable_ratCast_real : Measurable (fun q : ℚ ↦ (q : ℝ)) :
 /-- Every mesh endpoint consumed by trapezoidal quadrature is evaluated by
 the bounded adapter. -/
 def EndpointComplete (schedule :
-    Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex.Schedule) : Prop :=
+    Schedule) : Prop :=
   ∀ k, k ∈ List.range (schedule.mesh + 1) ↔ k ≤ schedule.mesh
 
 /-- [Every quadrature schedule enumerates exactly the mesh endpoints it needs:
@@ -44,14 +62,14 @@ an index appears in the enumerated list of nodes precisely when it does not
 exceed the schedule's mesh count](goal), so the bounded adapter evaluates the
 integrand at all of them and at nothing else. -/
 lemma endpointComplete (schedule :
-    Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.Complex.Schedule) :
+    Schedule) :
     EndpointComplete schedule := by
   intro k
   simp
 
 /-- Exact precision and fuel facts required by every schedule actually used
 by the bounded program.  `amplification` is the interval-map envelope; it is
-separate from `schedule.magnitude`, which remains the contour Lipschitz
+separate from `schedule.lipschitzConstant`, which remains the contour Lipschitz
 constant used only by the mesh bound. -/
 def ExactSpectralSchedule (schedule : Schedule) (amplification : ℚ) : Prop :=
   schedule.inputPrecision =
@@ -446,8 +464,8 @@ private lemma normInterval_width_of_width_maxAbs
   have himw : K.im.width ≤ ε.1 ^ 2 / (16 * (M + 1)) :=
     (le_max_right _ _).trans hKw
   have hDw : D.width ≤ 4 * M * (ε.1 ^ 2 / (16 * (M + 1))) := by
-    rw [show D.width = K.re.sq.width + K.im.sq.width by
-      simp [D, ComplexRatInterval.normSq, RatInterval.width_add]]
+    rw [show D.width = (RatInterval.sq K.re).width + (RatInterval.sq K.im).width by
+      simp [D, Contour.ComplexRatInterval.normSq, RatInterval.width_add]]
     have hre := ComplexRatInterval.rat_sq_width_le K.re
     have him := ComplexRatInterval.rat_sq_width_le K.im
     have hre0 : 0 ≤ K.re.maxAbs := (abs_nonneg K.re.lo).trans (le_max_left _ _)
@@ -465,7 +483,7 @@ private lemma normInterval_width_of_width_maxAbs
     apply (div_le_iff₀ (by positivity : (0 : ℚ) < 4 * (M + 1))).2
     nlinarith [sq_nonneg ε.1]
   have hDhi : D.hi ≤ 2 * M ^ 2 := by
-    change K.re.sq.hi + K.im.sq.hi ≤ 2 * M ^ 2
+    change (RatInterval.sq K.re).hi + (RatInterval.sq K.im).hi ≤ 2 * M ^ 2
     have hrehi := ComplexRatInterval.rat_sq_hi_le K.re
     have himhi := ComplexRatInterval.rat_sq_hi_le K.im
     have hre0 : 0 ≤ K.re.maxAbs := (abs_nonneg K.re.lo).trans (le_max_left _ _)
@@ -551,7 +569,8 @@ private lemma normInterval_width_of_width_maxAbs
           (Real.sqrt_nonneg (D.hi : ℝ))]
       _ ≤ (ε.1 : ℝ) ^ 2 / 4 := hw
       _ = ((ε.1 : ℝ) / 2) ^ 2 := by ring
-  rw [ComplexRatInterval.normInterval, RatInterval.sqrtInterval_width]
+  unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.normInterval
+  rw [Contour.ComplexRatInterval.normInterval, RatInterval.sqrtInterval_width]
   have hblo := RatInterval.sqrt_iterates_sound D.lo
     (ComplexRatInterval.normSq_lo_nonneg K) k
   have hbhi := RatInterval.sqrt_iterates_sound D.hi
@@ -1013,11 +1032,11 @@ private lemma circleMap_sub_norm_le (r : ℝ) (hr : 0 ≤ r) (s t : ℝ) :
     ‖CircleMesh.circleMap 0 r s - CircleMesh.circleMap 0 r t‖ ≤
       8 * r * |s - t| := by
   have hexp := norm_exp_real_mul_I_sub_le (2 * Real.pi * s) (2 * Real.pi * t)
-  simp only [CircleMesh.circleMap, zero_add, ← mul_sub, norm_mul]
+  simp only [CircleMesh.circleMap, circleMap_zero, ← mul_sub, norm_mul]
   rw [Complex.norm_real, Real.norm_eq_abs, abs_of_nonneg hr]
   calc
-    r * ‖Complex.exp ((2 * Real.pi * s) * Complex.I) -
-        Complex.exp ((2 * Real.pi * t) * Complex.I)‖
+    r * ‖Complex.exp ((2 * Real.pi * s : ℝ) * Complex.I) -
+        Complex.exp ((2 * Real.pi * t : ℝ) * Complex.I)‖
         ≤ r * |2 * Real.pi * s - 2 * Real.pi * t| :=
           mul_le_mul_of_nonneg_left (by
             convert hexp using 1 <;> push_cast <;> rfl) hr
@@ -1978,7 +1997,7 @@ private lemma contourBank_UR_le_spectralFullBoxRadius (B : ContourBankData) :
     (B.UR : ℚ) ≤ spectralFullBoxRadius B := by
   have hU : (0 : ℚ) ≤ (B.UR : ℚ) + 2 := by positivity
   dsimp [spectralFullBoxRadius, spectralDiskBox,
-    ComplexRatInterval.maxAbs, RatInterval.maxAbs]
+    Contour.ComplexRatInterval.maxAbs, RatInterval.maxAbs]
   rw [abs_of_nonpos (neg_nonpos.mpr hU), abs_of_nonneg hU]
   norm_num
   linarith
@@ -2302,7 +2321,7 @@ private lemma twoPiIRect_maxAbs_le_nine (precision : ℕ) :
     (twoPiIRect precision).maxAbs =
         ((RatInterval.point 2).mul
           (Transcendental.piInterval precision)).maxAbs := by
-      simp [twoPiIRect, ComplexRatInterval.maxAbs, RatInterval.point,
+      simp [twoPiIRect, Contour.ComplexRatInterval.maxAbs, RatInterval.point,
         RatInterval.maxAbs]
     _ ≤ ((RatInterval.point 2).mul
           (Transcendental.piInterval 0)).maxAbs := hmax
@@ -2327,7 +2346,8 @@ private lemma twoPiIRect_width_le_two_pi_width (precision : ℕ) :
         CertifiedReal.approx_mono Transcendental.piName (Nat.zero_le precision)
     exact hzero.trans_le hsub.1
   have hlohi := (Transcendental.piInterval precision).lo_le_hi
-  unfold twoPiIRect ComplexRatInterval.width RatInterval.width RatInterval.mul
+  unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.width
+  unfold twoPiIRect Contour.ComplexRatInterval.width RatInterval.width RatInterval.mul
   simp [RatInterval.point, hlo0.le, hlohi]
   linarith
 
@@ -2388,7 +2408,8 @@ private lemma pilotScheduleWitness (input : RepresentedSpectralInput p)
       let amplification := pilotScheduleMagnitude input B j
       let unitWidth := (spectralNodeTarget schedule.tolerance).1
       let radiusPrecision := bankRadiusPrecision schedule.tolerance unitWidth
-      ExactSpectralSchedule schedule amplification ∧ schedule.magnitude = L ∧ map.Valid ∧
+      ExactSpectralSchedule schedule amplification ∧ schedule.lipschitzConstant = L ∧
+        map.Valid ∧
         map.precision (spectralNodeTarget schedule.tolerance) ≤ schedule.fuel ∧
         radiusPrecision.1 ≤ 1 ∧
         ∀ k ≤ schedule.mesh,
@@ -2809,7 +2830,8 @@ private lemma winding_node_specification
       linarith [lower.2]
     by_contra hnot
     have hzero : J.normSq.lo = 0 := le_antisymm (not_lt.mp hnot) hJnonneg
-    rw [ComplexRatInterval.normInterval, RatInterval.sqrtInterval] at hnormLoPos
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.normInterval at hnormLoPos
+    rw [Contour.ComplexRatInterval.normInterval, RatInterval.sqrtInterval] at hnormLoPos
     change 0 < RatInterval.sqrtLower J.normSq.lo ev.mapFuel at hnormLoPos
     simp [RatInterval.sqrtLower, hzero] at hnormLoPos
   have hgeom := scheduledRadiusNode_data B j requested lower 1 operations L A
@@ -2999,7 +3021,8 @@ private lemma evaluation_node_specification
       linarith [lower.2]
     by_contra hnot
     have hzero : J.normSq.lo = 0 := le_antisymm (not_lt.mp hnot) hJnonneg
-    rw [ComplexRatInterval.normInterval, RatInterval.sqrtInterval] at hnormLoPos
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.normInterval at hnormLoPos
+    rw [Contour.ComplexRatInterval.normInterval, RatInterval.sqrtInterval] at hnormLoPos
     change 0 < RatInterval.sqrtLower J.normSq.lo ev.mapFuel at hnormLoPos
     simp [RatInterval.sqrtLower, hzero] at hnormLoPos
   have hgeom := scheduledRadiusNode_data B j requested lower (max N 1) operations L A
@@ -3305,13 +3328,13 @@ private lemma postNormalizationWidthContract_of_bounds
       simp [RatInterval.point, RatInterval.mul, min_eq_left, max_eq_right,
         hpile, hpilo.le, hcount.le]
       positivity
-    have hre : 0 ≤ D.re.sq.lo := by
+    have hre : 0 ≤ (RatInterval.sq D.re).lo := by
       unfold RatInterval.sq
       split_ifs <;> dsimp <;> positivity
-    have him : 0 < D.im.sq.lo := by
+    have him : 0 < (RatInterval.sq D.im).lo := by
       have hhi : 0 ≤ D.im.hi := hDim.le.trans D.im.lo_le_hi
       simp [RatInterval.sq, not_lt_of_ge hhi, hDim]
-    simpa [ComplexRatInterval.normSq, RatInterval.add] using
+    simpa [Contour.ComplexRatInterval.normSq, RatInterval.add] using
       add_pos_of_nonneg_of_pos hre him
   have hDA0 : 0 ≤ D.maxAbs :=
     (abs_nonneg _).trans ((le_max_left _ _).trans (le_max_left _ _))
@@ -3342,6 +3365,10 @@ private lemma postNormalizationWidthContract_of_bounds
     have hcw : D.conj.width = D.width := by
       change max D.re.width D.im.neg.width = max D.re.width D.im.width
       rw [RatInterval.width_neg]
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.maxAbs
+      Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.conj at hcA
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.width
+      Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.conj at hcw
     have hraw := ComplexRatInterval.mul_width I D.conj
     rw [hcA, hcw] at hraw
     exact hraw.trans (mul_le_mul_of_nonneg_left (add_le_add
@@ -3371,8 +3398,9 @@ private lemma quotientTangentNode_width_bound
       2 * ((2 * M ^ 2 / δ) * tw +
         T * (8 * M ^ 3 * w / δ ^ 2 + 4 * M * w / δ)) := by
   have hdenNormWidth : den.normSq.width ≤ 4 * M * w := by
-    rw [show den.normSq.width = den.re.sq.width + den.im.sq.width by
-      simp [ComplexRatInterval.normSq, RatInterval.width_add]]
+    rw [show den.normSq.width = (RatInterval.sq den.re).width +
+        (RatInterval.sq den.im).width by
+      simp [Contour.ComplexRatInterval.normSq, RatInterval.width_add]]
     have hre := ComplexRatInterval.rat_sq_width_le den.re
     have him := ComplexRatInterval.rat_sq_width_le den.im
     have hreA : den.re.maxAbs ≤ M := (le_max_left _ _).trans hdenA
@@ -3402,6 +3430,10 @@ private lemma quotientTangentNode_width_bound
     have hcw : den.conj.width = den.width := by
       change max den.re.width den.im.neg.width = max den.re.width den.im.width
       rw [RatInterval.width_neg]
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.maxAbs
+      Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.conj at hcA
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.width
+      Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.conj at hcw
     have hraw := ComplexRatInterval.mul_width num den.conj
     rw [hcA, hcw] at hraw
     have hdenWidth0 : 0 ≤ den.width :=
@@ -4139,7 +4171,8 @@ private lemma boundedContourDivisor_precision_bounds (count precision : ℕ) :
   have hnot_imhi_neg : ¬ q * (2 * P.hi) < 0 := not_lt_of_ge himhi_nonneg
   have hnot_imhi0_neg : ¬ q * (2 * P0.hi) < 0 := not_lt_of_ge himhi0_nonneg
   constructor
-  · rw [ComplexRatInterval.maxAbs, ComplexRatInterval.maxAbs, hre, hre0]
+  · unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.maxAbs
+    rw [Contour.ComplexRatInterval.maxAbs, Contour.ComplexRatInterval.maxAbs, hre, hre0]
     simp [RatInterval.point, RatInterval.maxAbs, himlo, himhi, himlo0, himhi0,
       abs_of_nonneg himlo_nonneg, abs_of_nonneg himhi_nonneg,
       abs_of_nonneg himlo0_nonneg, abs_of_nonneg himhi0_nonneg]
@@ -4149,14 +4182,16 @@ private lemma boundedContourDivisor_precision_bounds (count precision : ℕ) :
       mul_le_mul_of_nonneg_left
         (mul_le_mul_of_nonneg_left hP.2 htwo) hq.le⟩)
   constructor
-  · rw [ComplexRatInterval.normSq, ComplexRatInterval.normSq, hre, hre0]
+  · unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.normSq
+    rw [Contour.ComplexRatInterval.normSq, Contour.ComplexRatInterval.normSq, hre, hre0]
     simp [RatInterval.point, RatInterval.sq, RatInterval.add, himlo, himhi,
       himlo0, himhi0, himlo_pos, himlo0_pos, hnot_imhi_neg, hnot_imhi0_neg]
     nlinarith [mul_self_le_mul_self
       (mul_nonneg hq.le (mul_nonneg htwo hP0lo.le))
       (mul_le_mul_of_nonneg_left
         (mul_le_mul_of_nonneg_left hP.1 htwo) hq.le)]
-  · rw [ComplexRatInterval.width, hre]
+  · unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.width
+    rw [Contour.ComplexRatInterval.width, hre]
     simp [RatInterval.point, RatInterval.width, himlo, himhi]
     constructor
     · simpa [P] using P.lo_le_hi
@@ -4686,7 +4721,7 @@ private lemma winding_post_normalization_contract
   have hDmax : D.maxAbs ≤ 9 := by
     exact hdiv.1.trans (by
       norm_num [D, boundedContourDivisor, twoPiIRect,
-        ComplexRatInterval.smulRat, ComplexRatInterval.maxAbs,
+        ComplexRatInterval.smulRat, Contour.ComplexRatInterval.maxAbs,
         RatInterval.maxAbs, RatInterval.point, RatInterval.mul,
         Transcendental.piInterval, Transcendental.piRaw,
         Transcendental.atanRaw, Transcendental.atanPartial,
@@ -4695,7 +4730,7 @@ private lemma winding_post_normalization_contract
   have hDlo : 1 ≤ D.normSq.lo := by
     exact (by
       norm_num [D, boundedContourDivisor, twoPiIRect,
-        ComplexRatInterval.smulRat, ComplexRatInterval.normSq,
+        ComplexRatInterval.smulRat, Contour.ComplexRatInterval.normSq,
         RatInterval.sq, RatInterval.add, RatInterval.point, RatInterval.mul,
         Transcendental.piInterval, Transcendental.piRaw,
         Transcendental.atanRaw, Transcendental.atanPartial,
@@ -4740,8 +4775,9 @@ private lemma winding_post_normalization_contract
   have hDw : D.width ≤ 2 * t := hdiv.2.2.trans (by
     simpa [D] using hpi2)
   have hDnw : D.normSq.width ≤ 72 * t := by
-    rw [show D.normSq.width = D.re.sq.width + D.im.sq.width by
-      simp [ComplexRatInterval.normSq, RatInterval.width_add]]
+    rw [show D.normSq.width = (RatInterval.sq D.re).width +
+        (RatInterval.sq D.im).width by
+      simp [Contour.ComplexRatInterval.normSq, RatInterval.width_add]]
     have hre := ComplexRatInterval.rat_sq_width_le D.re
     have him := ComplexRatInterval.rat_sq_width_le D.im
     have hreA : D.re.maxAbs ≤ 9 := (le_max_left _ _).trans hDmax
@@ -4782,7 +4818,8 @@ private lemma winding_post_normalization_contract
     hIA hIw
   dsimp only
   have hIwidth0 : 0 ≤ Irect.width := by
-    unfold ComplexRatInterval.width
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.width
+    unfold Contour.ComplexRatInterval.width
     exact (RatInterval.width_nonneg Irect.re).trans (le_max_left _ _)
   have hMI0 : 0 ≤ MI := by
     have hWI0 := hIwidth0.trans hIw
@@ -4885,7 +4922,7 @@ private lemma evaluation_post_normalization_contract
   have hDmax : D.maxAbs ≤ 9 * q := by
     exact hdiv.1.trans (by
       norm_num [boundedContourDivisor, twoPiIRect,
-        ComplexRatInterval.smulRat, ComplexRatInterval.maxAbs,
+        ComplexRatInterval.smulRat, Contour.ComplexRatInterval.maxAbs,
         RatInterval.maxAbs, RatInterval.point, RatInterval.mul,
         Transcendental.piInterval, Transcendental.piRaw,
         Transcendental.atanRaw, Transcendental.atanPartial,
@@ -4925,7 +4962,8 @@ private lemma evaluation_post_normalization_contract
       not_lt_of_ge (mul_nonneg hq0 (mul_nonneg (by norm_num) hP0hi))
     have hformula : (boundedContourDivisor (max N 1) 0).normSq.lo =
         (q * (2 * P0.lo)) ^ 2 := by
-      rw [ComplexRatInterval.normSq, hre0]
+      unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.normSq
+      rw [Contour.ComplexRatInterval.normSq, hre0]
       simp [RatInterval.point, RatInterval.sq, RatInterval.add, himlo0, himhi0,
         himlo0_pos, hnot_imhi0_neg, pow_two]
     have hpunit : 1 ≤ 2 * P0.lo := by
@@ -4978,8 +5016,9 @@ private lemma evaluation_post_normalization_contract
       (mul_nonneg (by norm_num : (0 : ℚ) ≤ 2) hq0)
     simpa [D, q, mul_assoc] using hmul)
   have hDnw : D.normSq.width ≤ 72 * q ^ 2 * t := by
-    rw [show D.normSq.width = D.re.sq.width + D.im.sq.width by
-      simp [ComplexRatInterval.normSq, RatInterval.width_add]]
+    rw [show D.normSq.width = (RatInterval.sq D.re).width +
+        (RatInterval.sq D.im).width by
+      simp [Contour.ComplexRatInterval.normSq, RatInterval.width_add]]
     have hre := ComplexRatInterval.rat_sq_width_le D.re
     have him := ComplexRatInterval.rat_sq_width_le D.im
     have hreA : D.re.maxAbs ≤ 9 * q := (le_max_left _ _).trans hDmax
@@ -5023,7 +5062,8 @@ private lemma evaluation_post_normalization_contract
     hIA hIw
   dsimp only
   have hIwidth0 : 0 ≤ Irect.width := by
-    unfold ComplexRatInterval.width
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.ComplexRatInterval.width
+    unfold Contour.ComplexRatInterval.width
     exact (RatInterval.width_nonneg Irect.re).trans (le_max_left _ _)
   have hMI0 : 0 ≤ MI := by
     have hWI0 := hIwidth0.trans hIw
@@ -5105,7 +5145,8 @@ def SpectralScheduleWitness (input : RepresentedSpectralInput p)
     let amplification := pilotScheduleMagnitude input B j
     let unitWidth := (spectralNodeTarget schedule.tolerance).1
     let radiusPrecision := bankRadiusPrecision schedule.tolerance unitWidth
-    ExactSpectralSchedule schedule amplification ∧ schedule.magnitude = L ∧ map.Valid ∧
+    ExactSpectralSchedule schedule amplification ∧
+      schedule.lipschitzConstant = L ∧ map.Valid ∧
       map.precision (spectralNodeTarget schedule.tolerance) ≤ schedule.fuel ∧
       radiusPrecision.1 ≤ 1 ∧
       ∀ k ≤ schedule.mesh,
@@ -5129,7 +5170,7 @@ def SpectralScheduleWitness (input : RepresentedSpectralInput p)
       let ev := spectralWindingEvaluator input B j lower
       let amplification := windingScheduleMagnitude input B j lower
       ExactSpectralSchedule ev.schedule amplification ∧
-        ev.schedule.magnitude =
+        ev.schedule.lipschitzConstant =
           windingLipschitzBound input (radiusUpper B j) lower.1 ∧ ev.Valid ∧
         ev.numerator.precision (spectralNodeTarget ev.schedule.tolerance) ≤ ev.mapFuel ∧
         ev.denominator.precision (spectralNodeTarget ev.schedule.tolerance) ≤ ev.mapFuel ∧
@@ -5166,7 +5207,7 @@ def SpectralScheduleWitness (input : RepresentedSpectralInput p)
       let ev := spectralEvaluationEvaluator input B j N lower
       let amplification := evaluationScheduleMagnitude input B j N lower
       ExactSpectralSchedule ev.schedule amplification ∧
-        ev.schedule.magnitude =
+        ev.schedule.lipschitzConstant =
           momentLipschitzBound input (radiusUpper B j) lower.1 N ∧ ev.Valid ∧
         ev.numerator.precision (spectralNodeTarget ev.schedule.tolerance) ≤ ev.mapFuel ∧
         ev.denominator.precision (spectralNodeTarget ev.schedule.tolerance) ≤ ev.mapFuel ∧
@@ -5400,7 +5441,7 @@ private lemma pilotModulusSpecification_of_schedule
     nlinarith [(pilotNodeTolerance B).2.le]
   have hmesh : L / schedule.mesh ≤ (pilotNodeTolerance B).1 := by
     calc
-      L / schedule.mesh = schedule.magnitude / schedule.mesh := by rw [hs.2.1]
+      L / schedule.mesh = schedule.lipschitzConstant / schedule.mesh := by rw [hs.2.1]
       _ ≤ schedule.meshBudget := schedule.mesh_error_le
       _ = schedule.tolerance.1 / 3 := rfl
       _ ≤ (pilotNodeTolerance B).1 := by nlinarith [(pilotNodeTolerance B).2]
@@ -5491,7 +5532,7 @@ private lemma evaluationEnclosureSpecification_of_schedule
     dsimp only [EvaluationEnclosureSpecification]
     rw [hzero]
     refine ⟨?_, ?_, endpointComplete _⟩
-    · simp only [ComplexRatInterval.width, ComplexRatInterval.zero,
+    · simp only [Contour.ComplexRatInterval.width, ComplexRatInterval.zero,
         RatInterval.width, RatInterval.point, sub_self, max_self]
       positivity
     intro h'

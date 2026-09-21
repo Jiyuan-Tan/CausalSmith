@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureEndpoint
-import Mathlib.Probability.Moments.Variance
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureEndpoint
+public import Mathlib.Probability.Moments.Variance
 
 set_option linter.style.longLine false
 
 /-! # Finite covariance sum for partial-history weighting -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

@@ -23,13 +23,16 @@ Mirrors `def:est-cate-system` and the conclusion of
 `doc/basic_concepts/po/estimation/dr_learner_cate.tex`.
 -/
 
-import Causalean.Estimation.ATE.Setup
+module
+public import Causalean.Estimation.ATE.Setup
 
 /-!
 Defines the CATE estimation system as a function-valued version of the
 back-door ATE setup. It exposes the conditional treatment-effect target and
 the nuisance representatives needed by CATE pseudo-outcomes.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

@@ -1,14 +1,17 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeModulusBridge
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OutcomeFactorization
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TObservedVMWMarginInclusion
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.GapFreeModulusBridge
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OutcomeFactorization
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
 
 /-!
 Paper-local perturbation bounds for the ambient outcome-weighted Moore--Penrose contrast.
 The bounds allow both row and column spaces to move and therefore remain valid across
 unrelated choices of signal coordinates.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -603,12 +606,14 @@ theorem modelLaw_wass1_le_dS_of_certificates
     (hkP : DP.conditionNumber ≤ kappa) (hkQ : DQ.conditionNumber ≤ kappa)
     (hRP : DP.SpectrumBound (effectRadius dz L sigma0))
     (hRQ : DQ.SpectrumBound (effectRadius dz L sigma0)) :
-    AtomicLaw.LawModulo.wass1 (by
+    AtomicLaw.LawModulo.wass1 (k := k) (radius := effectRadius dz L sigma0) (by
         letI := P.prob
-        exact quotientLaw P.P P.model)
+        exact quotientLaw (k := k) (dx := dx) (dz := dz) (L := L)
+          (pi0 := pi0) (sigma0 := sigma0) P.P P.model)
       (by
         letI := Q.prob
-        exact quotientLaw Q.P Q.model) ≤
+        exact quotientLaw (k := k) (dx := dx) (dz := dz) (L := L)
+          (pi0 := pi0) (sigma0 := sigma0) Q.P Q.model) ≤
       (kappa * effectRadius dz L sigma0 +
         L * ((dx : ℝ) ^ 2 * kappa ^ 2) *
           (3 * (pi0 * sigma0 ^ 2)⁻¹ ^ 2 * L +

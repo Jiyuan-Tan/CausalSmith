@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularMeasure
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularMeasure
 
 /-!
 # Angular packing design measure
@@ -8,6 +9,8 @@ on the fixed square.  It records the measurable-density, continuity, envelope,
 positivity, and absolute-continuity facts needed by the eventual `CtyLaw`
 constructor.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 

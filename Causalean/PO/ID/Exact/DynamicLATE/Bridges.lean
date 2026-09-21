@@ -18,7 +18,7 @@ The four bridge identities decompose into:
 
 * **Two `S₀`-conditional bridges** (`cOutcome_bridge`, `cCompliance_bridge`):
   the meat — each is a *two-stage* application of the bundle workhorse
-  `POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle`
+  `POCFBundle.condExpRatio_of_indicator_ae_eq_CondIndepCFBundle`
   (in `PO/Conditioning/EventCondExpBundle.lean`), once at stage 2 (peeling the inner
   ratio with `ignorability2`), once at stage 1 (peeling the outer ratio
   with `ignorability1`), interleaved with consistency-on-event rewrites
@@ -27,21 +27,24 @@ The four bridge identities decompose into:
   short corollaries obtained by integrating the conditional versions and
   using the property `∫ B.condExpGiven f dμ = ∫ f dμ`.
 
-The structural shape mirrors the DTR `cdtr_step` induction (in
+The structural shape mirrors the DTR `conditionalPath_step` induction (in
 `PO/ID/Exact/DTR/Induction.lean`), but adapted to *nested
 event-conditioning* rather than nested bundle-conditioning: the inner ratio
 at stage 2 is cancelled with the indicator of `Z₁ = z₁`, the outer ratio at
 stage 1 with the unconditional indicator.
 -/
 
-import Causalean.PO.ID.Exact.DynamicLATE.Consistency
-import Causalean.PO.Conditioning.EventCondExpBundle
+module
+public import Causalean.PO.ID.Exact.DynamicLATE.Consistency
+public import Causalean.PO.Conditioning.EventCondExpBundle
 
 /-! # Dynamic LATE Counterfactual Bridges
 
 This file proves the counterfactual-to-observable bridge identities for the
 two-period dynamic LATE setup. Conditional bridges given the baseline state are
 the workhorses, and the unconditional bridges follow by integration. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -59,11 +62,13 @@ variable {S : PODynLATESystem P γ₀ γ₁}
 /-! ### One-sided noncompliance corollary
 
 Under the noncompliance assumption, `D(z)` lies in `{d | d ≼ z}` almost
-surely, so the probability of `{D(z) = d}` for `¬ d ≼ z` is zero.  This is
-used by `WhenToTreat.lean` to identify the denominator of the mixture
-ratio, namely `1 - obsProb(z, 0)`. -/
+surely, so the probability of `{D(z) = d}` for `¬ d ≼ z` is zero. This
+standalone corollary records the zero-probability consequence for treatment
+paths that violate coordinatewise dominance. -/
 
-/-- Under one-sided noncompliance, a treatment path not below the encouragement path has zero probability. -/
+/-- [A treatment path that exceeds its encouragement path has zero probability](goal) under [the
+dynamic LATE assumptions](hyp:As), for [the encouragement and treatment paths](hyp:z,d) whenever
+[coordinatewise dominance fails](hyp:h). -/
 theorem probDofZ_eq_zero_of_not_preceq (As : S.Assumptions)
     (z d : Fin 2 → Bool) (h : ¬ Preceq d z) :
     P.μ (S.DofZEq z d) = 0 := by
@@ -88,11 +93,14 @@ These are obtained by applying the bundle workhorse with `a := S.z2Var`,
 `B := S.cfBundle2 (z 1)`, `C := S.historyBundle2`, then pulling out the
 `historyBundle2`-measurable `1_{Z₁=z₁}` factor and cancelling on the ratio.
 
-Each bridge uses `condExpRatio_of_consistency_CondIndepCFBundle`, together
+Each bridge uses `condExpRatio_of_indicator_ae_eq_CondIndepCFBundle`, together
 with `condExpGiven`-pullout for the bundle2-measurable indicators
 `1_{Z₁=z 0}`, `1_{D₁=d 0}` and the consistency rewrite at `Z₂`. -/
 
-/-- The stage-2 outcome ratio bridge identifies the inner outcome regression on a first-encouragement cell.
+/-- [The inner observed outcome regression, restricted to the first-encouragement cell, equals the
+history-conditional potential outcome under the second encouragement](goal) under [the dynamic
+LATE assumptions](hyp:As) for [the selected encouragement path](hyp:z). This is the inner layer of
+the sequential g-formula bridge.
 
 On the event `{Z₁ = z₁}`,
 
@@ -138,7 +146,7 @@ theorem innerCondY_mul_z1_indicator (As : S.Assumptions) (z : Fin 2 → Bool) :
         (S.z2Var.indicator (z 1)) P.μ
         =ᵐ[P.μ]
       S.historyBundle2.condExpGiven (S.YofZ2 (z 1)) P.μ := by
-    have h := POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle
+    have h := POCFBundle.condExpRatio_of_indicator_ae_eq_CondIndepCFBundle
       (B := S.cfBundle2 (z 1)) (C := S.historyBundle2)
       (a := S.z2Var) (x := z 1)
       (As.ignorability2 (z 1)) hψ_meas hψ_int
@@ -212,8 +220,10 @@ theorem innerCondY_mul_z1_indicator (As : S.Assumptions) (z : Fin 2 → Bool) :
     simpa [POCFBundle.condExpRatio] using hR
   · simp [q, hz1]
 
-/-- Real-valued indicator of `{D₂(Z₁, z₂) = b}`. -/
-private noncomputable def d2ofZ2EqIndicator (S : PODynLATESystem P γ₀ γ₁)
+/-- [The late-treatment response-cell indicator](goal) marks units in [a dynamic LATE
+system](hyp:S) whose second-period treatment under [a fixed late encouragement](hyp:z₂) equals
+[the selected treatment value](hyp:b). -/
+noncomputable def d2ofZ2EqIndicator (S : PODynLATESystem P γ₀ γ₁)
     (z₂ b : Bool) : P.Ω → ℝ :=
   (S.D2ofZ2 z₂ ⁻¹' {b}).indicator (fun _ => (1 : ℝ))
 
@@ -224,8 +234,10 @@ private lemma measurable_d2ofZ2EqIndicator (S : PODynLATESystem P γ₀ γ₁)
   exact (measurable_const).indicator
     (S.measurable_D2ofZ2 z₂ (MeasurableSet.singleton b))
 
-/-- **Stage-2 compliance ratio bridge** (multiplied by `1_{Z₁=z₁}`).
-On the event `{Z₁ = z₁}`,
+/-- [The inner observed treatment-path regression, restricted to the first-encouragement cell,
+equals the first-treatment indicator times the history-conditional late-treatment response
+probability](goal) under [the dynamic LATE assumptions](hyp:As), for [the selected encouragement
+and treatment paths](hyp:z,d). This identifies the inner compliance regression.
 
 `innerCondD(z, d) =ᵐ 1_{D₁ = d 0} · historyBundle2.condExpGiven 1_{D₂(Z₁,z 1) = d 1}`. -/
 theorem innerCondD_mul_z1_indicator (As : S.Assumptions) (z d : Fin 2 → Bool) :
@@ -290,7 +302,7 @@ theorem innerCondD_mul_z1_indicator (As : S.Assumptions) (z d : Fin 2 → Bool) 
         (S.z2Var.indicator (z 1)) P.μ
         =ᵐ[P.μ]
       S.historyBundle2.condExpGiven (S.d2ofZ2EqIndicator (z 1) (d 1)) P.μ := by
-    have h := POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle
+    have h := POCFBundle.condExpRatio_of_indicator_ae_eq_CondIndepCFBundle
       (B := S.cfBundle2 (z 1)) (C := S.historyBundle2)
       (a := S.z2Var) (x := z 1)
       (As.ignorability2 (z 1)) hψ_meas hψ_int
@@ -414,8 +426,7 @@ outcome `Y(D(z))` for an encouragement vector `z`](hyp:z) [agrees almost surely 
 the inner-outer observable regression `cObsMean z`](goal).
 
 `E[Y(D(z)) | S₀] =ᵐ cObsMean(z; S₀)`. -/
-theorem cOutcome_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
-    (_hd : Preceq d z) :
+theorem cOutcome_bridge (As : S.Assumptions) (z : Fin 2 → Bool) :
     S.historyBundle1.condExpGiven (S.YofDofZ z) P.μ =ᵐ[P.μ] S.cObsMean z := by
   have hYofZ2_int : Integrable (S.YofZ2 (z 1)) P.μ :=
     As.integrable_YofZ2 (z 1)
@@ -438,7 +449,7 @@ theorem cOutcome_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
           S.z1Var.indicator (z 0) ω := by
     refine Filter.Eventually.of_forall (fun ω => ?_)
     simp [congrFun hψ_eq ω]
-  have hStage1 := POCFBundle.condExpGiven_mul_of_consistency_CondIndepCFBundle
+  have hStage1 := POCFBundle.condExpGiven_mul_of_indicator_ae_eq_CondIndepCFBundle
     (B := S.cfBundle1 z) (C := S.historyBundle1)
     (a := S.z1Var) (x := z 0)
     (As.ignorability1 z) hψ_meas hψ_int (measurableSet_singleton (z 0)) hF_eq
@@ -545,15 +556,13 @@ theorem cOutcome_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
   unfold cObsMean
   exact hratio.symm
 
-/-- **Compliance bridge** (`S₀`-conditional). Under [the dynamic LATE identifying
-assumptions](hyp:As), for [an encouragement vector `z` and a treatment path
-`d`](hyp:z,d) with [`d` weakly dominated coordinatewise by `z`](hyp:_hd), [the
-baseline-conditional probability of the dynamic complier event `D(z) = d` agrees
-almost surely with the inner-outer observable regression `cObsProb z d`](goal).
+/-- **Compliance bridge** (baseline-conditional). Under [the dynamic LATE identifying
+assumptions](hyp:As), for [a selected encouragement path and target treatment
+path](hyp:z,d), [the baseline-conditional probability that the induced treatment path matches
+the target agrees almost surely with its observable two-stage nested regression](goal).
 
 `P{D(z) = d | S₀} =ᵐ cObsProb(z, d; S₀)`. -/
-theorem cCompliance_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
-    (_hd : Preceq d z) :
+theorem cCompliance_bridge (As : S.Assumptions) (z d : Fin 2 → Bool) :
     S.historyBundle1.condExpGiven
         ((S.DofZEq z d).indicator (fun _ => (1 : ℝ))) P.μ
       =ᵐ[P.μ] S.cObsProb z d := by
@@ -592,7 +601,7 @@ theorem cCompliance_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
           S.z1Var.indicator (z 0) ω := by
     refine Filter.Eventually.of_forall (fun ω => ?_)
     simp [congrFun hψ_eq ω]
-  have hStage1 := POCFBundle.condExpGiven_mul_of_consistency_CondIndepCFBundle
+  have hStage1 := POCFBundle.condExpGiven_mul_of_indicator_ae_eq_CondIndepCFBundle
     (B := S.cfBundle1 z) (C := S.historyBundle1)
     (a := S.z1Var) (x := z 0)
     (As.ignorability1 z) hψ_meas hψ_int (measurableSet_singleton (z 0)) hF_eq
@@ -802,27 +811,23 @@ Derived from `cOutcome_bridge` by integrating both sides and using
 `∫ B.condExpGiven f dμ = ∫ f dμ`. -/
 theorem outcome_bridge (As : S.Assumptions) (z : Fin 2 → Bool) :
     ∫ ω, S.YofDofZ z ω ∂P.μ = S.obsMean z := by
-  have hz_pre : Preceq z z := by
-    refine ⟨?_, ?_⟩ <;> simp
   calc
     ∫ ω, S.YofDofZ z ω ∂P.μ
         = ∫ ω, S.historyBundle1.condExpGiven (S.YofDofZ z) P.μ ω ∂P.μ := by
           exact (MeasureTheory.integral_condExp S.historyBundle1.sigma_le).symm
     _ = ∫ ω, S.cObsMean z ω ∂P.μ := by
-          exact integral_congr_ae (cOutcome_bridge (S := S) As z z hz_pre)
+          exact integral_congr_ae (cOutcome_bridge (S := S) As z)
     _ = S.obsMean z := rfl
 
-/-- **Compliance bridge** (unconditional). Given [a treatment path `d` that is
-coordinatewise no greater than the instrument path `z`](hyp:hd), [the
-probability of the counterfactual dynamic complier event that the treatment
-path realized under instrument assignment `z` equals `d` coincides with the
-observable nested regression `obsProb z d`](goal).
+/-- **Compliance bridge** (unconditional). Under [the dynamic LATE identifying
+assumptions](hyp:As), for [a selected encouragement path and target treatment
+path](hyp:z,d), [the population share whose induced treatment path matches the target equals
+the observable g-formula path probability](goal).
 
 `P{D(z) = d} = E[ E[ P(D = d | S, D₁, Z = z) | S₀, Z₁ = z₁ ] ]`.
 
 Derived from `cCompliance_bridge` by integrating the indicator. -/
-theorem compliance_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
-    (hd : Preceq d z) :
+theorem compliance_bridge (As : S.Assumptions) (z d : Fin 2 → Bool) :
     (P.μ (S.DofZEq z d)).toReal = S.obsProb z d := by
   calc
     (P.μ (S.DofZEq z d)).toReal
@@ -832,7 +837,7 @@ theorem compliance_bridge (As : S.Assumptions) (z d : Fin 2 → Bool)
           ((S.DofZEq z d).indicator (fun _ => (1 : ℝ))) P.μ ω ∂P.μ := by
           exact (MeasureTheory.integral_condExp S.historyBundle1.sigma_le).symm
     _ = ∫ ω, S.cObsProb z d ω ∂P.μ := by
-          exact integral_congr_ae (cCompliance_bridge (S := S) As z d hd)
+          exact integral_congr_ae (cCompliance_bridge (S := S) As z d)
     _ = S.obsProb z d := rfl
 
 end PODynLATESystem

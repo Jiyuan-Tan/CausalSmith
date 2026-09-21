@@ -1,7 +1,8 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.GaussianFeature
-import Mathlib.Analysis.SpecialFunctions.Gaussian.PoissonSummation
-import Mathlib.MeasureTheory.Integral.BoundedContinuousFunction
-import Mathlib.Topology.ContinuousMap.Weierstrass
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingBoundedMomentRecovery.GaussianFeature
+public import Mathlib.Analysis.SpecialFunctions.Gaussian.PoissonSummation
+public import Mathlib.MeasureTheory.Integral.BoundedContinuousFunction
+public import Mathlib.Topology.ContinuousMap.Weierstrass
 
 /-!
 # Gaussian-weighted polynomial moments
@@ -9,6 +10,8 @@ import Mathlib.Topology.ContinuousMap.Weierstrass
 This module develops the finite algebraic layer between coordinate integrals
 of the explicit Gaussian feature map and polynomial test functions.
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter
 open scoped Polynomial

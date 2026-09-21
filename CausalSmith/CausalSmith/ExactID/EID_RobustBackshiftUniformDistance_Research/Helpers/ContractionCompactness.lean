@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.CitedGates
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ConfidenceUnion
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.OverlapUniqueness
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.CitedGates
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ConfidenceUnion
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.OverlapUniqueness
 
 /-!
 # Compactness and the global residual gap
@@ -8,6 +9,8 @@ import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.O
 The non-effective contraction proof packages candidate feasibility, compactifies the finite union
 of constraint families, and obtains a positive minimum residual on its far subfamily.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

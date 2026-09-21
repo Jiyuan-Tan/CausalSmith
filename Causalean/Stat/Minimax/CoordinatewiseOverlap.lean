@@ -1,11 +1,12 @@
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Stat.Minimax.Assouad
-import Causalean.Stat.Minimax.BretagnolleHuber
-import Causalean.Stat.Minimax.HellingerAffinity
-import Causalean.Mathlib.InformationTheory.KLBind
-import Mathlib.Probability.Kernel.Disintegration.StandardBorel
-import Mathlib.MeasureTheory.Constructions.Pi
-import Causalean.Stat.Minimax.MaximalCoupling
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Stat.Minimax.Assouad
+public import Causalean.Stat.Minimax.BretagnolleHuber
+public import Causalean.Stat.Minimax.HellingerAffinity
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Mathlib.Probability.Kernel.Disintegration.StandardBorel
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Causalean.Stat.Minimax.OverlapCoupling
 
 /-!
 # Coordinatewise overlap direct-product bound
@@ -14,6 +15,8 @@ This file states a world-independent decentralized testing bound. Each decoder
 may inspect its compressed local coordinate, all other coordinates, and a
 common ancillary variable.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Filter
 open scoped BigOperators ENNReal Topology
@@ -196,7 +199,7 @@ lemma coupledDecoderGood_count_le_half
 /-- For two probability measures dominated by a common finite measure, half the
 `L¹` distance between their Radon--Nikodym densities is bounded by total
 variation. This is the reverse Scheffé inequality needed to construct the
-common submeasure in the maximal-coupling argument. -/
+common submeasure in the overlap-coupling argument. -/
 lemma half_integral_abs_rnDeriv_sub_le_tvDist
     {Ω : Type*} [MeasurableSpace Ω]
     (μ ν ξ : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]

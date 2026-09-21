@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
-import Causalean.Graph.FiniteDensity.Cube
-import Causalean.Graph.FiniteDensity.OrderedLocalMarkov.Main
-import Causalean.Mathlib.MeasureTheory.SupportRnDerivTransport
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
+public import Causalean.Graph.Density.FiniteDAG.Cube
+public import Causalean.Graph.Density.FiniteDAG.LocalMarkov.Main
+public import Causalean.Mathlib.MeasureTheory.SupportRnDerivTransport
 
 /-!
 # Finite-density bridge for observed ratio laws
@@ -10,11 +11,15 @@ This file records the model-specific identification needed to instantiate the
 general finite-DAG nonancestor marginal theorem with the paper's observed laws.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory
 open scoped ENNReal
 open Causalean.Graph.FiniteDensity
 open Causalean.Mathlib.MeasureTheory
-
 noncomputable section
 
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
@@ -23,7 +28,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 factorization, including identification of the canonical observed ratio pushforwards. -/
 -- @node: FiniteDensityObservedWorldBridge
 structure FiniteDensityObservedWorldBridge
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) where
   factorization : Causalean.Graph.FiniteDensity.UnitCubeFactorization (Fin n) G
   intervention : ∀ e : Fin n,
@@ -52,7 +57,7 @@ structure FiniteDensityObservedWorldBridge
 /-- A [positive normalized smooth latent mechanism](hyp:hpos) determines [the reusable
 unit-cube factorization of its observational conditional densities](goal). -/
 def mechanismUnitCubeFactorization
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) :
     Causalean.Graph.FiniteDensity.UnitCubeFactorization (Fin n) G := by
   apply unitCubeFactorizationOfRealCubeFactors θ.p
@@ -72,7 +77,7 @@ def mechanismUnitCubeFactorization
 permutation](hyp:W) determine [the reusable unit-cube intervention density for an
 environment](goal). -/
 def mechanismInterventionDensity
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
     Causalean.Graph.FiniteDensity.InterventionDensity (W.targetPerm e)
       (fun _ : Fin n => ℝ)
@@ -86,7 +91,7 @@ def mechanismInterventionDensity
 /-- A [positive normalized smooth mechanism](hyp:hpos) has [the same observational law as
 the observational measure of its clamped unit-cube factorization](goal). -/
 theorem mechanismUnitCubeFactorization_observationalMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) :
     (mechanismUnitCubeFactorization hpos).observationalMeasure = observationalLaw θ := by
   -- Unfold the paper law after applying the substrate's real cube-product identification.
@@ -105,7 +110,7 @@ theorem mechanismUnitCubeFactorization_observationalMeasure
 /-- A [positive normalized smooth mechanism](hyp:hpos) has [the same target-intervention law
 as the intervention measure of its clamped unit-cube factorization](goal). -/
 theorem mechanismUnitCubeFactorization_interventionMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
     (mechanismUnitCubeFactorization hpos).interventionMeasure (W.targetPerm e)
         (mechanismInterventionDensity W hpos e) =
@@ -130,7 +135,7 @@ theorem mechanismUnitCubeFactorization_interventionMeasure
 /-- The [positive normalized smooth mechanism](hyp:hpos) and [environment target](hyp:W)
 determine [the globally measurable clamped numerator used in the canonical target ratio](goal). -/
 def mechanismRatioNumerator
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (e : Fin n) : ℝ → ℝ≥0∞ :=
   (mechanismInterventionDensity W hpos e).density
@@ -138,7 +143,7 @@ def mechanismRatioNumerator
 /-- On [the latent unit cube](hyp:hv), the [real value of the clamped factor ratio](goal) is
 the paper's ordinary replacement-to-observational density ratio.  With [the stated inputs and conditions](hyp:hpos), the documented conclusion follows. -/
 theorem mechanismTargetRatio_toReal_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (e : Fin n) {v : LatentState n} (hv : v ∈ latentCube n) :
     (mechanismRatioNumerator W hpos e (v (W.targetPerm e)) /
@@ -168,7 +173,7 @@ theorem mechanismTargetRatio_toReal_eq
 
 /-- The [clamped target ratio](hyp:W,hpos) is [globally measurable](goal). -/
 theorem measurable_mechanismTargetRatio
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
     Measurable (fun v : LatentState n =>
       mechanismRatioNumerator W hpos e (v (W.targetPerm e)) /
@@ -180,7 +185,7 @@ theorem measurable_mechanismTargetRatio
 /-- Every positive single-target latent intervention law is absolutely continuous with respect
 to the corresponding observational latent law.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma interventionalLaw_absolutelyContinuous_observational
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ) (e : Fin n) :
     interventionalLaw θ (W.targetPerm e) ≪ observationalLaw θ := by
   letI : SigmaFinite Causalean.Graph.FiniteDensity.unitIntervalReference := by
@@ -213,7 +218,7 @@ lemma interventionalLaw_absolutelyContinuous_observational
 [the supplied pushforward laws](hyp:hone), [every observed single-target intervention law is
 absolutely continuous with respect to the observed observational law](goal). -/
 theorem observedInterventional_absolutelyContinuous_observational
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -281,7 +286,7 @@ theorem observedInterventional_absolutelyContinuous_observational
 /-- The [primitive smooth-mechanism, support-local mixing, and observed-law hypotheses]
 (hyp:hpos,hmix,hone) [construct the paper's finite-density observed-world bridge](goal). -/
 def finiteDensityObservedWorldBridge_of_assumptions
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -422,7 +427,7 @@ def finiteDensityObservedWorldBridge_of_assumptions
 real-valued ratio laws.  Given [the stated inputs and conditions](hyp:hji,hna), [the stated conclusion](goal) follows. -/
 -- @node: FiniteDensityObservedWorldBridge.ratioLaw_eq_of_nonancestor
 lemma FiniteDensityObservedWorldBridge.ratioLaw_eq_of_nonancestor
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {W : ObservedWorld G θ} (B : FiniteDensityObservedWorldBridge W)
     {j i : Fin n} (hji : j ≠ i)
     (hna : ¬ G.isAncestor (W.targetPerm j) (W.targetPerm i)) :
@@ -460,7 +465,7 @@ lemma FiniteDensityObservedWorldBridge.ratioLaw_eq_of_nonancestor
 /-- The observational law of a positive normalized mechanism satisfies the ordered local
 Markov property for every topological ranking of its latent DAG.  Given [the stated inputs and conditions](hyp:hpos,hA,hpa), [the stated conclusion](goal) follows. -/
 lemma mechanism_orderedLocalMarkov
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (τ : Causalean.Graph.FiniteDensity.TopologicalRanking G)
     (i : Fin n) (A : Finset (Fin n))

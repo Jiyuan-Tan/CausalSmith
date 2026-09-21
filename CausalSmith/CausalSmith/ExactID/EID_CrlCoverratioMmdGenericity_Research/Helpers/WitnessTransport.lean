@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessQuantitative
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessQuantitative
 
 /-!
 # Exponential-tilt transport identities
@@ -6,6 +7,8 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witne
 This file records the distribution-function and first-moment calculations used
 to transport the sparse witness's derivative bound along the exponential tilt.
 -/
+
+public section
 
 open MeasureTheory Set
 

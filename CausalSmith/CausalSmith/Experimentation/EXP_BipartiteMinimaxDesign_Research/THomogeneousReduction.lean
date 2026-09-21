@@ -10,7 +10,10 @@ common scalar `p` recovers the published homogeneous Bernoulli Hájek overlap
 variance formula of Lu–Shi–Fang–Zhang–Ding (2025).
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Linearization
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Linearization
+
+public section
 
 set_option linter.style.longLine false
 

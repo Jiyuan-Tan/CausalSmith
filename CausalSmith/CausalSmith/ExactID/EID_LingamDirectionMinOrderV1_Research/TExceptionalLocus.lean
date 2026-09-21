@@ -10,7 +10,10 @@ image varieties, not `m` for `m ≥ 2`; the parameter preimages and the two work
 incidence projections retain their exact full-fiber meanings.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalJacobianMinor
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalJacobianMinor
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

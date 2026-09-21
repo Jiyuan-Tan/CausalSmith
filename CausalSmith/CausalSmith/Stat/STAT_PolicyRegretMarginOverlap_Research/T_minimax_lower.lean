@@ -10,17 +10,20 @@ Stage-2 scaffold. The explicit two-point witness, its class membership and
 `thm:minimax-lower`, and the headline corollary `thm:rate-characterization`.
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
-import CausalSmith.Mathlib.InformationTheory.ProductChiSquared
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Causalean.Mathlib.MeasureTheory.PartitionRnDeriv
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Mathlib.Probability.SignedTwoPoint
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Measure.GiryMonad
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
+public import CausalSmith.Mathlib.InformationTheory.ProductChiSquared
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Causalean.Mathlib.MeasureTheory.PartitionRnDeriv
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.MeasureTheory.Measure.GiryMonad
+public import Mathlib.MeasureTheory.Constructions.Pi
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 
@@ -2192,7 +2195,7 @@ lemma two_point_divergence (α γ u0 cB : ℝ) (hwin : MarginWindow u0)
   let Qprod : Measure (Fin n → Observation ℝ) := Measure.pi fun _ : Fin n => Pm
   have hac_prod : Pprod ≪ Qprod := by
     dsimp [Pprod, Qprod]
-    exact Causalean.Stat.pi_iid_absolutelyContinuous Pp Pm hac n
+    exact Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous Pp Pm hac n
   have hint_prod :
       Integrable (fun x => ((Pprod.rnDeriv Qprod x).toReal - 1) ^ 2) Qprod := by
     dsimp [Pprod, Qprod]

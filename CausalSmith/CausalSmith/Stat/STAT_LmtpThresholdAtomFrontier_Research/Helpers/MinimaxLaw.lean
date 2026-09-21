@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxWitness
-import Causalean.Mathlib.Probability.SignedTwoPoint
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxWitness
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 
 /-!
 # Bernoulli laws over the canonical minimax design
@@ -15,6 +16,8 @@ The centered two-point law on `{-1/2,1/2}` is translated to a genuine
 Bernoulli outcome on `{0,1}`.  Keeping this construction as an iterated kernel
 makes the common design marginal and regression identities transparent.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

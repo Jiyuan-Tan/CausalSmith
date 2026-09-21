@@ -1,10 +1,11 @@
-import Mathlib.MeasureTheory.Measure.MeasureSpace
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Moments.ComplexMGF
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Causalean.Stat.Quantile.Quantile
+module
+public import Mathlib.MeasureTheory.Measure.MeasureSpace
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import Mathlib.MeasureTheory.Function.LpSeminorm.CompareExp
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Moments.ComplexMGF
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Causalean.Stat.Quantile.Quantile
 
 /-!
 # Spectral annihilation for partially linear models: common setup
@@ -14,6 +15,8 @@ classes, and decision-theoretic losses shared by the paper's statements.
 The PO substrate is deliberately bypassed: this paper ranges over triangular
 classes of observed-data laws rather than one fixed potential-outcome system.
 -/
+
+@[expose] public section
 
 noncomputable section
 

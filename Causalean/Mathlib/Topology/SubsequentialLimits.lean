@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Topology.Sequences
+module
+public import Mathlib.Topology.Sequences
 
 /-!
 # Subsequential limits
@@ -13,6 +14,8 @@ This module relates limits along strictly increasing subsequences to mapped
 cluster points and proves compactness of the subsequential-limit set when a
 sequence is eventually contained in a compact set.
 -/
+
+public section
 
 open Filter Topology
 
@@ -33,7 +36,8 @@ theorem isSubsequentialLimit_iff_mapClusterPt (x : ℕ → X) (a : X) :
 
 variable [T2Space X]
 
-/-- If [a sequence is eventually contained in a compact set](hyp:hs,hx), then
+/-- If [a sequence](hyp:x) is [eventually contained](hyp:hx) in a [compact
+set](hyp:hs), then
 [its set of limits along strictly increasing subsequences is nonempty and
 compact](goal). -/
 theorem subsequentialLimitSet_nonempty_compact_of_eventually_mem_compact

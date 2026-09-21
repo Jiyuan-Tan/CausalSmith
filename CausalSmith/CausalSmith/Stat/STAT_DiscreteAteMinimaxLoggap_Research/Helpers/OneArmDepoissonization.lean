@@ -1,4 +1,5 @@
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
+module
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
 
 /-!
 # Fixed-prefix de-Poissonization for the one-arm lower bound
@@ -7,6 +8,8 @@ This file isolates the sample-size transfer used in Appendix D.2.  A loss on a
 canonical marked-Poisson sample is compared with the same loss on a retained
 fixed-size prefix, with the failed-count event paid separately.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

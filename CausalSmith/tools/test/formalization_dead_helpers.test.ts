@@ -123,4 +123,37 @@ lemma cross_run_helper : True := by trivial
       await rm(dir, { recursive: true, force: true });
     }
   });
+
+  it("flags a bare helper published by a module public section", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "dead-helpers-module-"));
+    try {
+      await writeFile(path.join(dir, "Helpers.lean"), [
+        "module",
+        "@[expose] public section",
+        "lemma dead_module_helper : True := by trivial",
+        "lemma second_module_helper : True := by trivial",
+        "theorem module_headline : True := by trivial",
+      ].join("\n"));
+      const dead = await sweepDeadHelpers(dir, new Set(["module_headline", "second_module_helper"]));
+      expect(dead).toEqual([{ decl: "dead_module_helper", file: "Helpers.lean", line: 3 }]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("flags a bare helper in a public noncomputable section", async () => {
+    const dir = await mkdtemp(path.join(tmpdir(), "dead-helpers-noncomputable-"));
+    try {
+      await writeFile(path.join(dir, "Helpers.lean"), [
+        "module",
+        "@[expose] public noncomputable section",
+        "lemma dead_noncomputable_helper : True := by trivial",
+        "theorem module_headline : True := by trivial",
+      ].join("\n"));
+      const dead = await sweepDeadHelpers(dir, new Set(["module_headline"]));
+      expect(dead).toEqual([{ decl: "dead_noncomputable_helper", file: "Helpers.lean", line: 3 }]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });

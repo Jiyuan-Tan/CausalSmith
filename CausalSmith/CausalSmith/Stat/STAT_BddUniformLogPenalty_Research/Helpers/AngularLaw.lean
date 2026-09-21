@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPacking
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolderScaling
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPacking
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolderScaling
 
 /-!
 # Faithful Bernoulli--Gaussian regression laws
@@ -10,6 +11,8 @@ support and a bounded measurable regression, it constructs a `CtyLaw` whose
 declared density, regression, and conditional variance are the corresponding
 functionals of the joint Bernoulli-plus-Gaussian law.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 

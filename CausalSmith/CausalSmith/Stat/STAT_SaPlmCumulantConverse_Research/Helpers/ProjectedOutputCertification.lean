@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralEstimator
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SpectralEstimator
 
 /-! # Certification of the clipped represented output -/
 
+public section
+
 noncomputable section
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 /-- The interval name obtained from the absolute-value clipping formula is

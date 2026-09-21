@@ -17,7 +17,10 @@ extension, NOT certified.  The CERTIFIED core is the gate-free machinery; see
 IS certified (derived in `band_continuity_for_linear_tilts`).
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.TInstanceLocalMinimax
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.TInstanceLocalMinimax
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

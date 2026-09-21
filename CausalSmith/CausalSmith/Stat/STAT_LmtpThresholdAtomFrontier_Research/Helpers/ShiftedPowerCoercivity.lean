@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Design
-import Causalean.Stat.Nonparametric.LocalPolynomial.GramCoercivity
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Design
+public import Causalean.Stat.Nonparametric.LocalPoly.GramCoercivity
 
 /-!
 # Uniform coercivity for shifted-power moment matrices
@@ -13,6 +14,8 @@ import Causalean.Stat.Nonparametric.LocalPolynomial.GramCoercivity
 This module isolates the reusable compactification step behind the population
 Gram lower bound for polynomially thinned local designs.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

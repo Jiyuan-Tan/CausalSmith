@@ -28,13 +28,13 @@ bound; the maximum over the eight is the exact LP optimum.
 
 ## Scope
 
-Only *validity* of the closed form is proved here. Attainment of the two
-endpoints — which upgrades the containment to an equality, and is what makes the
-Balke-Pearl bounds sharp — is not yet formalized; see the note at the end of the
-file.
+Only *validity* of the closed form is proved in this file. The sibling module
+`ClosedFormAttainment.lean` imports the explicit lower- and upper-attainment
+constructions and proves that these formulas are the exact identified-set endpoints.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Main
+module
+public import Causalean.PO.ID.Partial.BalkePearl.Main
 
 /-! # Balke-Pearl bounds in closed form
 
@@ -43,6 +43,8 @@ identified interval for the average treatment effect under a binary instrument,
 as a maximum and a minimum of eight affine functions of the observed cell
 probabilities, and proves that they bound the true effect.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -220,13 +222,11 @@ theorem ATE_mem_Icc_bpLower_bpUpper (hA : S.BaseAssumptions) :
 
 /-! ### Sharpness
 
-The containment above is an equality: the eight expressions are the dual vertices
-of the LP, so the maximum of `bpLowerTerm` is attained by some feasible table,
-and likewise for `bpUpper`. Proving this requires exhibiting, for each vertex, a
-feasible table attaining it, then combining with
-`PartialID.identifiedInterval_eq_Icc` (which additionally needs order-connectedness
-of the identified interval, available from convexity of the feasible set).
-That attainment argument is not yet formalized. -/
+This file proves validity only. The explicit endpoint witnesses are constructed in
+`Attainment/Lower.lean` and `Attainment/Upper.lean`; `ClosedFormAttainment.lean`
+assembles them to prove `csInf_BPIdentifiedInterval_eq_bpLower`,
+`csSup_BPIdentifiedInterval_eq_bpUpper`, and
+`bpLower_bpUpper_eq_csInf_csSup`. -/
 
 end POBalkePearlSystem
 

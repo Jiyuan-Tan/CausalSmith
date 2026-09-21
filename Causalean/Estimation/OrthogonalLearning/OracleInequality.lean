@@ -35,11 +35,12 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `thm:est-osl-plugin-erm-oracle`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.PluginERM
-import Causalean.Estimation.OrthogonalLearning.Population.DirectionalDeriv
-import Causalean.Estimation.OrthogonalLearning.Population.NeymanOrthogonal
-import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Local
-import Causalean.Estimation.OrthogonalLearning.Population.SecondOrderBias
+module
+public import Causalean.Estimation.OrthogonalLearning.PluginERM
+public import Causalean.Estimation.OrthogonalLearning.Population.DirectionalDeriv
+public import Causalean.Estimation.OrthogonalLearning.Population.NeymanOrthogonal
+public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.Local
+public import Causalean.Estimation.OrthogonalLearning.Population.SecondOrderBias
 
 /-! # Orthogonal Statistical Learning Oracle Inequality
 
@@ -54,6 +55,8 @@ The deterministic theorem `oracle_inequality_plugin_ERM` consumes a realized
 modulus inequality at one sample point. The high-probability theorem
 `oracle_inequality_plugin_ERM_highProb` packages the same bound on the event
 provided by `LocalEmpProcessModulus` for a fixed plug-in nuisance. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -197,11 +200,10 @@ This is the version downstream callers actually want once `LocalEmpProcessModulu
 has been discharged from concentration assumptions (e.g. by the global
 Rademacher bridge in `LocalEmpProcess.Rademacher`).
 
-Because the current bridge delivers `LocalEmpProcessModulus` at a single fixed
-`g`, this theorem also pins the plug-in nuisance to a fixed `g`
-(`ghat ≡ g`) — the realistic fold-A randomisation of the nuisance is handled
-by a future fold-A/fold-B independence layer; threading it here would only
-add quantifiers, not new mathematics, so we record it as a TODO. -/
+This theorem pins the plug-in nuisance to a fixed `g` (`ghat ≡ g`). The sibling
+`LocalEmpProcess.RandomNuisance` module already proves a fold-A/fold-B concentration
+result with conclusion `LocalEmpProcessModulusRandom`; this theorem does not consume that
+random-nuisance predicate. A final random-nuisance oracle composition is not exported. -/
 theorem oracle_inequality_plugin_ERM_highProb
     (S : LearningSystem Ω μ Z P_Z Θ G)
     (S_iid : IIDSample Ω Z μ P_Z)

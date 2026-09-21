@@ -11,7 +11,9 @@ per-axis orthogonality (`Support/Orthogonality.lean`) with the
 `integral_mul_panelClass_eq_zero_of_axes` lemma in `Support/Integrals.lean`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Orthogonality
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Orthogonality
+
 /-! # Goodman-Bacon Residualization Witnesses
 
 This file constructs the residualization witnesses for treatment and outcome
@@ -19,6 +21,8 @@ after projecting on cohort and period cells in a balanced panel. These
 witnesses package the fitted component, the residual component, square
 integrability, decomposition, and orthogonality conditions used by the
 Goodman-Bacon bridge. -/
+
+@[expose] public section
 
 namespace Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition
 

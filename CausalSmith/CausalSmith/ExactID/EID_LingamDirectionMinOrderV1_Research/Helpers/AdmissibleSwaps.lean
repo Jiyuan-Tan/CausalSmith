@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Source-swap reindexing helpers
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic.Swaps
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic.Swaps
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

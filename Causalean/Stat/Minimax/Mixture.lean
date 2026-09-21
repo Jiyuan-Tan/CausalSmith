@@ -13,17 +13,19 @@ is the **domination** lemma `mixtureReal_le`: a uniform `.real`-mass bound `B` o
 every part transfers to the mixture.
 -/
 
-import Mathlib.MeasureTheory.Measure.Real
-import Mathlib.MeasureTheory.Measure.MeasureSpace
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Mathlib.Probability.Kernel.Composition.Comp
-
+module
+public import Mathlib.MeasureTheory.Measure.Real
+public import Mathlib.MeasureTheory.Measure.MeasureSpace
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Mathlib.Probability.Kernel.Composition.Comp
 
 /-! # Finite Mixtures of Measures
 
 This file defines finite mixtures of measures with nonnegative extended-real
 weights. It proves evaluation, probability-measure, and domination facts used to
 transfer componentwise bounds to mixtures in minimax arguments. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -151,5 +153,26 @@ theorem integral_priorPredictive (π : Measure Θ) (K : Kernel Θ X) (f : X → 
     (hf : Integrable f (priorPredictive π K)) :
     ∫ x, f x ∂priorPredictive π K = ∫ θ, ∫ x, f x ∂K θ ∂π := by
   exact Causalean.Mathlib.MeasureTheory.integral_bind K.measurable hf
+
+end Causalean.Stat.Minimax.MomentMatchedMixture
+
+
+namespace Causalean.Stat.Minimax.MomentMatchedMixture
+
+open MeasureTheory ProbabilityTheory
+open scoped ProbabilityTheory
+
+/-- Given [a probability prior](hyp:pi), [an experiment Markov kernel](hyp:K),
+and [a common post-processing Markov kernel](hyp:R), mixing the composed
+experiment [equals post-processing the prior-predictive mixture](goal). -/
+theorem kernel_comp_priorPredictive
+    {Theta A B : Type*} [MeasurableSpace Theta]
+    [MeasurableSpace A] [MeasurableSpace B]
+    (pi : Measure Theta) [IsProbabilityMeasure pi]
+    (K : Kernel Theta A) [IsMarkovKernel K]
+    (R : Kernel A B) [IsMarkovKernel R] :
+    priorPredictive pi (R ∘ₖ K) = R ∘ₘ priorPredictive pi K := by
+  unfold priorPredictive
+  exact Measure.comp_assoc.symm
 
 end Causalean.Stat.Minimax.MomentMatchedMixture

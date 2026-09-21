@@ -6,8 +6,9 @@ Authors: Jiyuan Tan
 # Schedule helpers barrel
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EqualSpacing
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.NoExtrapolation
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevSchedule
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EqualSpacing
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.NoExtrapolation
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevSchedule
 
 /-! Re-exports the split schedule helper modules. -/

@@ -1,6 +1,7 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
-import Causalean.Stat.MEstimation.FinitePoissonConsistency
-import Mathlib.Algebra.BigOperators.Field
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Projection
+public import Causalean.Stat.MEstimation.FinitePoissonConsistency
+public import Mathlib.Algebra.BigOperators.Field
 
 /-!
 # Finite unit fixed-effect collapse
@@ -8,6 +9,8 @@ import Mathlib.Algebra.BigOperators.Field
 This module contains the panel-specific algebra for collapsing a finite unit
 fixed-effect Poisson criterion to supported cohort-time cells.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter

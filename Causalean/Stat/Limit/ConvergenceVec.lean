@@ -23,10 +23,11 @@ verbatim using `tendsto_iff_forall_lipschitz_integral_tendsto`
 convergence in measure).
 -/
 
-import Causalean.Stat.Limit.Convergence
-import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
-import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+module
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.MeasureTheory.Function.ConvergenceInMeasure
+public import Mathlib.MeasureTheory.Function.ConvergenceInDistribution
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
 
 /-!
 # Vector convergence in distribution
@@ -40,6 +41,8 @@ and continuous-mapping rules used by multivariate CLT and delta-method
 arguments.
 -/
 
+@[expose] public section
+
 namespace Causalean.Stat
 
 open MeasureTheory Filter Topology
@@ -48,22 +51,40 @@ open MeasureTheory Filter Topology
 
 /-- For [a measurable sample space](hyp:Ω) and [a pseudo-metric outcome space whose open sets
 are measurable](hyp:E), [a sequence of random elements in the outcome space](hyp:Xn), [a
-probability measure on that outcome space](hyp:Q), [a probability measure on the sample space](hyp:μ), and
-[almost-everywhere measurability of every random element in the sequence](hyp:hXn), [convergence
+probability measure on that outcome space](hyp:Q), [a probability measure on the sample
+space](hyp:μ), and
+[a measurability argument that the definition no longer uses](hyp:_hXn), [convergence
 in distribution of the sequence to the outcome-space probability measure](goal) means weak
 convergence of its induced distributions.
 
 Vector analogue of `Causalean.Stat.Tendsto_dist`; works for any pseudo-metric
-space `E` carrying a `BorelSpace` instance. -/
-def Tendsto_dist_vec {Ω E : Type*} [MeasurableSpace Ω] [PseudoMetricSpace E]
+space `E` whose open sets are measurable. -/
+@[deprecated "Use Causalean.Stat.Modes.TendstoInLaw." (since := "2026-09-18")]
+abbrev Tendsto_dist_vec {Ω E : Type*} [MeasurableSpace Ω] [PseudoMetricSpace E]
     [MeasurableSpace E] [OpensMeasurableSpace E]
     (Xn : ℕ → Ω → E) (Q : Measure E) (μ : Measure Ω)
     [IsProbabilityMeasure μ] [IsProbabilityMeasure Q]
-    (hXn : ∀ n, AEMeasurable (Xn n) μ) : Prop :=
-  Tendsto (β := ProbabilityMeasure E)
-    (fun n =>
-      ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
-    (𝓝 ⟨Q, ‹IsProbabilityMeasure Q›⟩)
+    (_hXn : ∀ n, AEMeasurable (Xn n) μ) : Prop :=
+  Modes.TendstoInLaw (fun _ => μ) Xn atTop Q
+
+/-- For [measurable row variables](hyp:Xn,hXn), [a target probability law](hyp:Q), and [a
+fixed probability measure](hyp:μ), [vector convergence in distribution is equivalent to weak
+convergence of the pushforward probability measures](goal). -/
+lemma Tendsto_dist_vec_iff {Ω E : Type*} [MeasurableSpace Ω] [PseudoMetricSpace E]
+    [MeasurableSpace E] [OpensMeasurableSpace E]
+    (Xn : ℕ → Ω → E) (Q : Measure E) (μ : Measure Ω)
+    [IsProbabilityMeasure μ] [IsProbabilityMeasure Q]
+    (hXn : ∀ n, AEMeasurable (Xn n) μ) :
+    Tendsto_dist_vec Xn Q μ hXn ↔
+      Tendsto (β := ProbabilityMeasure E)
+        (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
+        (𝓝 ⟨Q, ‹IsProbabilityMeasure Q›⟩) := by
+  constructor
+  · intro h
+    simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using h.tendsto
+  · intro h
+    refine ⟨hXn, by fun_prop, ?_⟩
+    simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using h
 
 /-! ## Vector Slutsky absorption
 
@@ -73,14 +94,14 @@ This is the vector analogue of `Tendsto_dist.add_isLittleOp_one` in
 `tendstoInMeasure_iff_norm` and the metric-space portmanteau
 characterization. -/
 
-/-- **Vector Slutsky absorption.** Suppose [`Xn` and `Yn` are `E`-valued sequences that are each
+/-- **Vector Slutsky absorption.** Suppose [`Xn` and `Yn` are `E`-valued sequences that are
 measurable at every sample size](hyp:hXn,hYn), [`Xn` converges in distribution to a probability
 measure `Q` on `E`](hyp:hX), and [the norm of the perturbation `‖Yn − Xn‖` is `o_p(1)`](hyp:hRem).
 Then [`Yn` also converges in distribution to `Q`](goal).
 
 Vector analogue of `Causalean.Stat.Tendsto_dist.add_isLittleOp_one` (file
-`Causalean/Stat/AsymptoticLinearity.lean`).  Used by the multivariate Δ-method
-and by `IsAsymLinearVec.tendsto_normal_vec`. -/
+`Causalean/Stat/CLT/AsymptoticLinearity.lean`). Used by the multivariate Δ-method
+and by `IsAsymLinearVec.tendsto_dist_vec_of_normalizedSum`. -/
 theorem Tendsto_dist_vec.add_isLittleOp_one
     {Ω E : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
     [NormedAddCommGroup E] [MeasurableSpace E] [OpensMeasurableSpace E]
@@ -90,28 +111,21 @@ theorem Tendsto_dist_vec.add_isLittleOp_one
     (hX : Tendsto_dist_vec Xn Q μ hXn)
     (hRem : IsLittleOp (fun n ω => ‖Yn n ω - Xn n ω‖) (fun _ => (1 : ℝ)) μ) :
     Tendsto_dist_vec Yn Q μ hYn := by
+  refine ⟨hYn, by fun_prop, ?_⟩
+  have hX_tendsto :
+      Tendsto (β := ProbabilityMeasure E)
+        (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
+        (𝓝 ⟨Q, ‹IsProbabilityMeasure Q›⟩) := by
+    simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using hX.tendsto
   have hXY : TendstoInMeasure μ (fun n ω => Yn n ω - Xn n ω) atTop (0 : Ω → E) := by
     rw [tendstoInMeasure_iff_norm]
     intro ε hε
-    have hhalf : 0 < ε / 2 := by positivity
-    have hrem : Tendsto (fun n => μ {ω | ε / 2 < ‖Yn n ω - Xn n ω‖}) atTop (𝓝 0) := by
-      have hrem' := hRem (ε / 2) hhalf
-      simpa [abs_of_nonneg] using hrem'
-    rw [ENNReal.tendsto_nhds_zero] at hrem ⊢
-    intro δ hδ
-    filter_upwards [hrem δ hδ] with n hn
-    have hsubset :
-        {x | ε ≤ ‖Yn n x - Xn n x - (0 : Ω → E) x‖}
-          ⊆ {ω | ε / 2 < ‖Yn n ω - Xn n ω‖} := by
-      intro ω hω
-      have hω' : ε ≤ ‖Yn n ω - Xn n ω‖ := by
-        simpa using hω
-      exact lt_of_lt_of_le (by linarith) hω'
-    exact le_trans (measure_mono hsubset) hn
+    simpa [abs_of_nonneg] using hRem ε hε
   suffices ∀ (F : E → ℝ) (hF_bounded : ∃ (C : ℝ), ∀ x y, dist (F x) (F y) ≤ C)
       (hF_lip : ∃ L, LipschitzWith L F),
       Tendsto (fun n ↦ ∫ y, F y ∂(μ.map (Yn n))) atTop (𝓝 (∫ y, F y ∂Q)) by
-    exact tendsto_iff_forall_lipschitz_integral_tendsto.mpr this
+    simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using
+      (tendsto_iff_forall_lipschitz_integral_tendsto.mpr this)
   rintro F ⟨M, hF_bounded⟩ ⟨L, hF_lip⟩
   have hF_cont : Continuous F := hF_lip.continuous
   have hM_nonneg : 0 ≤ M := by
@@ -210,7 +224,8 @@ theorem Tendsto_dist_vec.add_isLittleOp_one
     · simp only [tendstoInMeasure_iff_measureReal_norm, Pi.zero_apply, sub_zero] at hXY
       exact hXY (ε / 2) (by positivity)
     · have hXF : Tendsto (fun n ↦ ∫ y, F y ∂(μ.map (Xn n))) atTop (𝓝 (∫ y, F y ∂Q)) :=
-        tendsto_iff_forall_lipschitz_integral_tendsto.mp hX F ⟨M, hF_bounded⟩ ⟨L, hF_lip⟩
+        tendsto_iff_forall_lipschitz_integral_tendsto.mp hX_tendsto F
+          ⟨M, hF_bounded⟩ ⟨L, hF_lip⟩
       rw [tendsto_iff_dist_tendsto_zero] at hXF
       simpa only [Real.dist_eq] using hXF
   have h_lt : L * ε / 2 < L * ε := half_lt_self (by positivity)
@@ -228,8 +243,7 @@ theorem Tendsto_dist_vec.congr_ae
     (hX : Tendsto_dist_vec Xn Q μ hXn)
     (hXY : ∀ᶠ n in atTop, Xn n =ᵐ[μ] Yn n) :
     Tendsto_dist_vec Yn Q μ hYn := by
-  unfold Tendsto_dist_vec at hX ⊢
-  refine hX.congr' ?_
+  refine ⟨hYn, by fun_prop, hX.tendsto.congr' ?_⟩
   filter_upwards [hXY] with n hn
   apply Subtype.ext
   exact Measure.map_congr hn
@@ -261,16 +275,92 @@ theorem Tendsto_dist_vec.map_continuous
     hg.measurable.aemeasurable.comp_aemeasurable (hXn n)
   letI : IsProbabilityMeasure (Q.map g) :=
     Measure.isProbabilityMeasure_map hg.measurable.aemeasurable
-  change Tendsto_dist_vec (fun n ω => g (Xn n ω)) (Q.map g) μ hgXn
-  unfold Tendsto_dist_vec at hX ⊢
+  have hX_tendsto :
+      Tendsto (β := ProbabilityMeasure E)
+        (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
+        (𝓝 ⟨Q, ‹IsProbabilityMeasure Q›⟩) := by
+    simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using hX.tendsto
   have hpm := MeasureTheory.ProbabilityMeasure.tendsto_map_of_tendsto_of_continuous
     (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩)
-    ⟨Q, ‹IsProbabilityMeasure Q›⟩ hX hg
+    ⟨Q, ‹IsProbabilityMeasure Q›⟩ hX_tendsto hg
   refine hpm.congr' ?_
   filter_upwards with n
   apply Subtype.ext
   change Measure.map g (μ.map (Xn n)) = μ.map (fun ω => g (Xn n ω))
   rw [AEMeasurable.map_map_of_aemeasurable hg.measurable.aemeasurable (hXn n)]
   rfl
+
+/-- **Continuous mapping at limit-almost-everywhere continuity points.** Suppose [`Xn` is
+measurable at every sample size](hyp:hXn), [`Xn` converges in distribution to `Q`](hyp:hX),
+[`g` is measurable](hyp:hgmeas), and [`g` is continuous at `Q`-almost every point](hyp:hg).
+Then [the composed sequence `g ∘ Xn`
+converges in distribution to the pushforward law `Q.map g`](goal).
+
+This is the almost-everywhere-continuity form of the continuous mapping theorem (van der
+Vaart, Theorem 2.3). -/
+theorem Tendsto_dist_vec.map_continuous_ae
+    {Ω E F : Type*} [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ]
+    [PseudoMetricSpace E] [MeasurableSpace E] [OpensMeasurableSpace E]
+    [PseudoMetricSpace F] [MeasurableSpace F] [BorelSpace F]
+    {Xn : ℕ → Ω → E} {Q : Measure E} [IsProbabilityMeasure Q]
+    {g : E → F} (hgmeas : Measurable g) (hg : ∀ᵐ x ∂Q, ContinuousAt g x)
+    (hXn : ∀ n, AEMeasurable (Xn n) μ)
+    (hX : Tendsto_dist_vec Xn Q μ hXn) :
+    Tendsto (β := ProbabilityMeasure F)
+      (fun n =>
+        ⟨μ.map (fun ω => g (Xn n ω)),
+          Measure.isProbabilityMeasure_map
+            (hgmeas.aemeasurable.comp_aemeasurable (hXn n))⟩)
+      atTop
+      (𝓝 ⟨Q.map g, Measure.isProbabilityMeasure_map hgmeas.aemeasurable⟩) := by
+  have hX_tendsto :
+      Tendsto (β := ProbabilityMeasure E)
+        (fun n => ⟨μ.map (Xn n), Measure.isProbabilityMeasure_map (hXn n)⟩) atTop
+        (𝓝 ⟨Q, ‹IsProbabilityMeasure Q›⟩) := by
+    simpa only [ProbabilityMeasure.coe_mk, Measure.map_id] using hX.tendsto
+  apply MeasureTheory.tendsto_of_forall_isClosed_limsup_le'
+  intro C hC
+  let A : Set E := g ⁻¹' C
+  have hAmeas : MeasurableSet A := hC.measurableSet.preimage hgmeas
+  have hnull : Q (closure A \ A) = 0 := by
+    apply measure_mono_null _ (MeasureTheory.ae_iff.mp hg)
+    intro x hx hcont
+    apply hx.2
+    change g x ∈ C
+    exact by
+      have hmem : g x ∈ closure C :=
+        hcont.continuousWithinAt.mem_closure hx.1 (Set.mapsTo_preimage g C)
+      simpa [hC.closure_eq] using hmem
+  have hQA : Q (closure A) = Q A :=
+    (measure_eq_measure_of_null_sdiff subset_closure hnull).symm
+  have hclosed := ProbabilityMeasure.limsup_measure_closed_le_of_tendsto
+    (F := closure A) hX_tendsto isClosed_closure
+  change Filter.limsup (fun n => (μ.map fun ω => g (Xn n ω)) C) atTop ≤ (Q.map g) C
+  calc
+    Filter.limsup
+        (fun n => (μ.map fun ω => g (Xn n ω)) C) atTop ≤
+        Filter.limsup (fun n => μ.map (Xn n) (closure A)) atTop := by
+      apply Filter.limsup_le_limsup
+      · filter_upwards with n
+        change (μ.map (g ∘ Xn n)) C ≤ (μ.map (Xn n)) (closure A)
+        rw [Measure.map_apply_of_aemeasurable
+          (hgmeas.aemeasurable.comp_aemeasurable (hXn n)) hC.measurableSet]
+        rw [Measure.map_apply_of_aemeasurable (hXn n) isClosed_closure.measurableSet]
+        apply measure_mono
+        intro ω hω
+        exact subset_closure hω
+      · exact isCoboundedUnder_le_of_le atTop fun _ => bot_le
+      · apply isBoundedUnder_of
+        refine ⟨1, fun n : ℕ => ?_⟩
+        calc
+          (μ.map (Xn n)) (closure A) ≤ (μ.map (Xn n)) Set.univ :=
+            measure_mono (Set.subset_univ _)
+          _ = 1 := by
+            rw [Measure.map_apply_of_aemeasurable (hXn n) MeasurableSet.univ]
+            simp
+    _ ≤ Q (closure A) := by simpa [A] using hclosed
+    _ = Q A := hQA
+    _ = (Q.map g) C := by
+      rw [Measure.map_apply hgmeas hC.measurableSet]
 
 end Causalean.Stat

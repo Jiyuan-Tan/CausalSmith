@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.CrossfitProcess
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.CrossfitProcess
 
 /-! Provides clipped AIPW drift and clip-bias helper lemmas. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 
@@ -35,7 +38,7 @@ noncomputable def clippedPolicyIncrement {K : ℕ} (P : ObservedLaw 𝒳) (q : �
   (boolIndicator (π O.X) - boolIndicator (lawOptimalPolicy P O.X)) *
     clippedAIPWScore q (muHat0 k) (muHat1 k) (eHat k) O
 
-private noncomputable def clipReal (B z : ℝ) : ℝ :=
+noncomputable def clipReal (B z : ℝ) : ℝ :=
   max (-B) (min B z)
 
 -- @node: clippedScoreTrunc

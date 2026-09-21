@@ -1,0 +1,1717 @@
+{
+  "qid": "panel_rarelink_cancellation",
+  "specialization": "v1",
+  "cluster": "panel",
+  "symbols": [
+    {
+      "name": "L",
+      "type": "positive integer",
+      "space": "\\mathbb N",
+      "def": "\\(L=15\\) is the fixed number of pre/post comparisons.",
+      "role": "fixed dimension"
+    },
+    {
+      "name": "J",
+      "type": "finite index set",
+      "space": "\\(\\{1,2,3,4\\}\\)",
+      "def": "\\(J=\\{1,2,3,4\\}\\) indexes treated-pre, control-post, control-pre, and treated-post roles.",
+      "role": "role index"
+    },
+    {
+      "name": "alpha",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\alpha\\) is the simultaneous noncoverage level.",
+      "role": "inference constant"
+    },
+    {
+      "name": "beta",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\beta\\) is a pairwise noncoverage budget, set to \\(\\alpha/L\\) for aggregation.",
+      "role": "inference constant",
+      "refs": [
+        "alpha",
+        "L"
+      ]
+    },
+    {
+      "name": "eta",
+      "type": "positive rational scalar",
+      "space": "\\(\\mathbb Q_{>0}\\)",
+      "def": "\\(\\eta\\) is the requested rational numerical enclosure tolerance.",
+      "role": "algorithmic tolerance"
+    },
+    {
+      "name": "n",
+      "type": "positive integer sequence",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(n\\) is the common asymptotic scale for all role samples.",
+      "role": "sample-size scale"
+    },
+    {
+      "name": "nrole",
+      "type": "array of positive integers",
+      "space": "\\(\\mathbb N^{L\\times4}\\)",
+      "def": "\\(n_{\\ell j}\\) is the number of predeclared blocks assigned to pair \\(\\ell\\) and role \\(j\\).",
+      "role": "role sample sizes",
+      "refs": [
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "pi_lower",
+      "type": "positive scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\underline\\pi\\) is the fixed lower role-share bound.",
+      "role": "sampling constant"
+    },
+    {
+      "name": "pi_upper",
+      "type": "positive scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\overline\\pi\\) is the fixed upper role-share bound.",
+      "role": "sampling constant"
+    },
+    {
+      "name": "pi",
+      "type": "positive array",
+      "space": "\\((0,\\infty)^{L\\times4}\\)",
+      "def": "\\(\\pi_{\\ell j}\\) is the candidate limiting share for pair \\(\\ell\\) and role \\(j\\).",
+      "role": "asymptotic sampling shares",
+      "refs": [
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "Pairs",
+      "type": "fixed ordered collection",
+      "def": "\\(\\mathcal P=\\{(g_{\\ell},h_{\\ell},s_{\\ell},t_{\\ell}):1\\le\\ell\\le L\\}\\) is the predeclared list of treated groups, comparison groups, pre-periods, and post-periods.",
+      "role": "panel comparison design",
+      "refs": [
+        "L"
+      ]
+    },
+    {
+      "name": "Y",
+      "type": "potential-outcome array",
+      "def": "\\(Y_{i\\nu}(d)\\) is unit \\(i\\)'s outcome at time \\(\\nu\\) under treatment state \\(d\\in\\{0,1\\}\\).",
+      "role": "causal primitive"
+    },
+    {
+      "name": "Ggrp",
+      "type": "group label",
+      "def": "\\(G_i\\) is unit \\(i\\)'s treatment-cohort or comparison-group label.",
+      "role": "causal primitive"
+    },
+    {
+      "name": "y0",
+      "type": "outcome threshold",
+      "def": "\\(y_0=0\\) is the fixed crime-free threshold.",
+      "role": "target index"
+    },
+    {
+      "name": "Phi",
+      "type": "function",
+      "space": "\\(\\mathbb R\\to(0,1)\\)",
+      "sig": "\\(\\Phi(v)=\\int_{-\\infty}^{v}(2\\pi)^{-1/2}e^{-w^2/2}\\,dw\\)",
+      "def": "\\(\\Phi\\) is the standard-normal distribution function.",
+      "role": "working link"
+    },
+    {
+      "name": "phi",
+      "type": "function",
+      "space": "\\(\\mathbb R\\to\\mathbb R_{>0}\\)",
+      "sig": "\\(\\phi(v)=(2\\pi)^{-1/2}e^{-v^2/2}\\)",
+      "def": "\\(\\phi\\) is the standard-normal density.",
+      "role": "tail derivative"
+    },
+    {
+      "name": "q",
+      "type": "function",
+      "space": "\\((0,1)\\to\\mathbb R\\)",
+      "sig": "\\(q=\\Phi^{-1}\\)",
+      "def": "\\(q\\) is the standard-normal quantile function.",
+      "role": "inverse link",
+      "refs": [
+        "Phi"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "positive scalar sequence",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\rho=\\rho_n\\) is the common exceedance-rarity scale.",
+      "role": "structural regime parameter",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "c",
+      "type": "positive coefficient array",
+      "space": "\\((0,\\infty)^{L\\times4}\\)",
+      "def": "\\(c=(c_{\\ell j,n})\\) contains the relative exceedance coefficients.",
+      "role": "primitive cell coefficients",
+      "refs": [
+        "L",
+        "J",
+        "n"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "probability array",
+      "space": "\\((0,1)^{L\\times4}\\)",
+      "def": "For \\(\\mathcal P_\\ell=(g_\\ell,h_\\ell,s_\\ell,t_\\ell)\\), \\(r_{\\ell1}=\\Pr(Y_{s_\\ell}(1)>y_0\\mid G=g_\\ell)\\), \\(r_{\\ell2}=\\Pr(Y_{t_\\ell}(0)>y_0\\mid G=h_\\ell)\\), \\(r_{\\ell3}=\\Pr(Y_{s_\\ell}(0)>y_0\\mid G=h_\\ell)\\), and \\(r_{\\ell4}=\\Pr(Y_{t_\\ell}(1)>y_0\\mid G=g_\\ell)\\).",
+      "role": "observed-data primitive",
+      "refs": [
+        "Pairs",
+        "Y",
+        "y0",
+        "Ggrp",
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "Erole",
+      "type": "binary triangular array",
+      "space": "\\(\\{0,1\\}^{L\\times4\\times\\mathbb N}\\)",
+      "def": "\\(E_{\\ell j a,n}\\) is the threshold-exceedance indicator for observation \\(a\\) in the predeclared sample for pair \\(\\ell\\) and role \\(j\\).",
+      "role": "role-level observation",
+      "refs": [
+        "L",
+        "J",
+        "n"
+      ]
+    },
+    {
+      "name": "K",
+      "type": "count array",
+      "space": "\\(\\prod_{\\ell,j}\\{0,\\ldots,n_{\\ell j}\\}\\)",
+      "def": "\\(K_{\\ell j,n}=\\sum_{a=1}^{n_{\\ell j}}E_{\\ell j a,n}\\) counts threshold exceedances in pair \\(\\ell\\), role \\(j\\).",
+      "role": "observed statistic",
+      "refs": [
+        "Erole",
+        "nrole",
+        "L",
+        "J",
+        "n"
+      ]
+    },
+    {
+      "name": "H",
+      "type": "function",
+      "space": "\\((0,1)^3\\to(0,1)\\)",
+      "sig": "\\(H(a,b,d)=\\Phi(q(a)+q(b)-q(d))\\)",
+      "def": "\\(H\\) is the exact normal-link counterfactual exceedance map.",
+      "role": "identified counterfactual",
+      "refs": [
+        "Phi",
+        "q"
+      ]
+    },
+    {
+      "name": "Pmap",
+      "type": "function",
+      "space": "\\((0,1)^3\\to\\mathbb R_{>0}\\)",
+      "sig": "\\(P^{\\rm P}(a,b,d)=ab/d\\)",
+      "def": "\\(P^{\\rm P}\\) is the Poisson-ratio counterfactual map.",
+      "role": "rare-event comparator"
+    },
+    {
+      "name": "Q",
+      "type": "positive array",
+      "def": "\\(Q_{\\ell}=c_{\\ell1}c_{\\ell2}/c_{\\ell3}\\).",
+      "role": "Poisson coefficient",
+      "refs": [
+        "c",
+        "L"
+      ]
+    },
+    {
+      "name": "x",
+      "type": "real array",
+      "def": "\\(x_{\\ell}=\\log(c_{\\ell1}/c_{\\ell3})\\).",
+      "role": "first cancellation coordinate",
+      "refs": [
+        "c",
+        "L"
+      ]
+    },
+    {
+      "name": "z",
+      "type": "real array",
+      "def": "\\(z_{\\ell}=\\log(c_{\\ell2}/c_{\\ell3})\\).",
+      "role": "second cancellation coordinate",
+      "refs": [
+        "c",
+        "L"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "real array",
+      "def": "\\(A_{\\ell}=x_{\\ell}z_{\\ell}\\).",
+      "role": "cancellation product",
+      "refs": [
+        "x",
+        "z",
+        "L"
+      ]
+    },
+    {
+      "name": "u",
+      "type": "positive scalar",
+      "def": "\\(u=-q(\\rho)\\).",
+      "role": "common inverse-tail cutoff",
+      "refs": [
+        "q",
+        "rho"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "function",
+      "space": "\\(\\mathbb R\\to\\mathbb R_{>0}\\)",
+      "sig": "\\(m(v)=\\phi(v)/\\Phi(v)\\)",
+      "def": "\\(m\\) is the left-tail inverse Mills ratio.",
+      "role": "analytic coefficient",
+      "refs": [
+        "phi",
+        "Phi"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "real array",
+      "def": "\\(B_{\\rho,\\ell}\\) is the common-cutoff mixed-derivative average defined by the mixed log-error construction below.",
+      "role": "mixed log-error coefficient",
+      "refs": [
+        "rho",
+        "L"
+      ]
+    },
+    {
+      "name": "psi",
+      "type": "function",
+      "space": "\\(\\mathbb R\\to\\mathbb R_{>0}\\)",
+      "sig": "\\(\\psi(w)=\\int_0^1e^{tw}\\,dt\\)",
+      "def": "\\(\\psi(0)=1\\) and \\(\\psi(w)=(e^w-1)/w\\) for \\(w\\ne0\\).",
+      "role": "cancellation-safe exponential quotient"
+    },
+    {
+      "name": "Ccoef",
+      "type": "real array",
+      "def": "\\(C_{\\rho,\\ell}=B_{\\rho,\\ell}\\psi(A_{\\ell}B_{\\rho,\\ell})\\).",
+      "role": "complete-error coefficient",
+      "refs": [
+        "B",
+        "psi",
+        "A",
+        "rho",
+        "L"
+      ]
+    },
+    {
+      "name": "Delta",
+      "type": "real array",
+      "def": "\\(\\Delta_{\\ell}=\\Pr(Y_{t_{\\ell}}(1)\\le y_0\\mid G=g_{\\ell})-\\Pr(Y_{t_{\\ell}}(0)\\le y_0\\mid G=g_{\\ell})\\) is the pairwise crime-free DTT.",
+      "role": "pairwise causal DTT",
+      "refs": [
+        "Y",
+        "y0",
+        "Ggrp",
+        "Pairs",
+        "L"
+      ]
+    },
+    {
+      "name": "DeltaP",
+      "type": "real array",
+      "def": "\\(\\Delta^P_{\\ell}=P^{\\rm P}(r_{\\ell1},r_{\\ell2},r_{\\ell3})-r_{\\ell4}=\\rho(Q_{\\ell}-c_{\\ell4})\\).",
+      "role": "Poisson approximation target",
+      "refs": [
+        "Pmap",
+        "r",
+        "rho",
+        "Q",
+        "c",
+        "L"
+      ]
+    },
+    {
+      "name": "barDelta",
+      "type": "real scalar",
+      "def": "\\(\\overline\\Delta=L^{-1}\\sum_{\\ell=1}^{L}\\Delta_{\\ell}\\).",
+      "role": "aggregate causal estimand",
+      "refs": [
+        "L",
+        "Delta"
+      ]
+    },
+    {
+      "name": "rtilde",
+      "type": "probability array",
+      "def": "\\(\\widetilde r_{\\ell j}=(K_{\\ell j}+1/2)/(n_{\\ell j}+1)\\).",
+      "role": "zero-safe cell estimator",
+      "refs": [
+        "K",
+        "nrole",
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "hatDeltaE",
+      "type": "real array",
+      "def": "\\(\\widehat\\Delta^E_{\\ell}=H(\\widetilde r_{\\ell1},\\widetilde r_{\\ell2},\\widetilde r_{\\ell3})-\\widetilde r_{\\ell4}\\).",
+      "role": "exact-link estimator",
+      "refs": [
+        "H",
+        "rtilde",
+        "L"
+      ]
+    },
+    {
+      "name": "hatDeltaP",
+      "type": "real array",
+      "def": "\\(\\widehat\\Delta^P_{\\ell}=P^{\\rm P}(\\widetilde r_{\\ell1},\\widetilde r_{\\ell2},\\widetilde r_{\\ell3})-\\widetilde r_{\\ell4}\\).",
+      "role": "Poisson-ratio estimator",
+      "refs": [
+        "Pmap",
+        "rtilde",
+        "L"
+      ]
+    },
+    {
+      "name": "V",
+      "type": "positive array",
+      "def": "\\(V_{\\ell}=c_{\\ell4}/\\pi_{\\ell4}+Q_{\\ell}^{2}\\sum_{j=1}^{3}(\\pi_{\\ell j}c_{\\ell j})^{-1}\\).",
+      "role": "pairwise rare Gaussian variance",
+      "refs": [
+        "c",
+        "pi",
+        "Q",
+        "L"
+      ]
+    },
+    {
+      "name": "barV",
+      "type": "positive scalar",
+      "def": "\\(\\overline V=L^{-2}\\sum_{\\ell=1}^{L}V_{\\ell}\\).",
+      "role": "aggregate rare Gaussian variance",
+      "refs": [
+        "L",
+        "V"
+      ]
+    },
+    {
+      "name": "tau",
+      "type": "nonnegative scalar sequence",
+      "def": "\\(\\tau_n=n\\rho_n\\) is the expected-count scale.",
+      "role": "experiment frontier parameter",
+      "refs": [
+        "n",
+        "rho"
+      ]
+    },
+    {
+      "name": "Lambda",
+      "type": "real array",
+      "def": "\\(\\Lambda_{\\ell n}=A_{\\ell n}\\sqrt{\\tau_n}/u_n^2\\).",
+      "role": "pairwise drifting-cancellation index",
+      "refs": [
+        "A",
+        "tau",
+        "u",
+        "L",
+        "n"
+      ]
+    },
+    {
+      "name": "bshift",
+      "type": "real scalar sequence",
+      "def": "\\(b_n=\\sqrt{n/\\rho_n}\\{L\\sqrt{\\overline V}\\}^{-1}\\sum_{\\ell=1}^{L}(\\Delta^P_{\\ell n}-\\Delta_{\\ell n})\\).",
+      "role": "exact aggregate approximation shift",
+      "refs": [
+        "n",
+        "rho",
+        "L",
+        "barV",
+        "DeltaP",
+        "Delta"
+      ]
+    },
+    {
+      "name": "Z",
+      "type": "Poisson array",
+      "def": "\\(Z_{\\ell j}\\sim\\operatorname{Poisson}(\\pi_{\\ell j}\\tau c_{\\ell j})\\) independently in the bounded-count limit.",
+      "role": "limit experiment",
+      "refs": [
+        "pi",
+        "tau",
+        "c",
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "W",
+      "type": "positive array",
+      "def": "\\(W_{\\ell j}=(Z_{\\ell j}+1/2)/\\pi_{\\ell j}\\).",
+      "role": "smoothed Poisson cell limit",
+      "refs": [
+        "Z",
+        "pi",
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "real array",
+      "def": "\\(T_{\\ell}=W_{\\ell1}W_{\\ell2}/W_{\\ell3}-W_{\\ell4}\\).",
+      "role": "product-Poisson ratio limit",
+      "refs": [
+        "W",
+        "L"
+      ]
+    },
+    {
+      "name": "Pcone",
+      "type": "compact subset",
+      "space": "\\([0,1/4]^4\\)",
+      "def": "\\(\\mathcal P_0=\\{p\\in[0,1/4]^4:p_i\\le8p_j\\text{ for every }i,j\\}\\).",
+      "role": "finite-sample comparable-rarity closure"
+    },
+    {
+      "name": "Gmap",
+      "type": "function",
+      "space": "\\(\\mathcal P_0\\to\\mathbb R\\)",
+      "sig": "\\(G(p)=H(p_1,p_2,p_3)-p_4\\) for positive \\(p\\) and \\(G(0)=0\\)",
+      "def": "\\(G\\) is the rare-link DTT map on the closed cone.",
+      "role": "confidence target",
+      "refs": [
+        "Pcone",
+        "H"
+      ]
+    },
+    {
+      "name": "Llip",
+      "type": "positive integer",
+      "def": "\\(L_{\\rm lip}=2^{258}\\).",
+      "role": "global max-norm Lipschitz certificate"
+    },
+    {
+      "name": "Ddev",
+      "type": "extended-real function",
+      "def": "\\(D_p(k)=2\\sum_{j=1}^{4}n_j\\operatorname{KL}(\\operatorname{Bern}(k_j/n_j),\\operatorname{Bern}(p_j))\\), with endpoint conventions.",
+      "role": "finite-sample deviance",
+      "refs": [
+        "nrole"
+      ]
+    },
+    {
+      "name": "Rregion",
+      "type": "set-valued function",
+      "def": "\\(\\mathcal R_{\\beta}(k)=\\{p\\in\\mathcal P_0:D_p(k)\\le8/\\beta\\}\\).",
+      "role": "outer probability region",
+      "refs": [
+        "Pcone",
+        "Ddev",
+        "beta"
+      ]
+    },
+    {
+      "name": "Alg",
+      "type": "deterministic algorithm",
+      "def": "\\(\\mathsf{Outer}_{\\beta,\\eta}\\) is the finite rational-grid construction defined below.",
+      "role": "certified interval map",
+      "refs": [
+        "beta",
+        "eta"
+      ]
+    },
+    {
+      "name": "Iinterval",
+      "type": "rational closed interval",
+      "def": "\\(I_{\\ell}(K)=\\mathsf{Outer}_{\\beta,\\eta}(K_{\\ell1},\\ldots,K_{\\ell4})\\).",
+      "role": "pairwise confidence interval",
+      "refs": [
+        "Alg",
+        "K",
+        "L"
+      ]
+    },
+    {
+      "name": "barI",
+      "type": "rational closed interval",
+      "def": "If \\(I_{\\ell}=[L_{\\ell},U_{\\ell}]\\), then \\(\\overline I=[L^{-1}\\sum_{\\ell}L_{\\ell},L^{-1}\\sum_{\\ell}U_{\\ell}]\\).",
+      "role": "aggregate confidence interval",
+      "refs": [
+        "Iinterval",
+        "L"
+      ]
+    },
+    {
+      "name": "epsilon_int",
+      "type": "positive scalar",
+      "space": "\\((0,1/2)\\)",
+      "def": "\\(\\varepsilon_{\\rm int}\\) is the fixed interior-probability margin used only for the published-theorem reduction.",
+      "role": "interior benchmark constant"
+    },
+    {
+      "name": "pint",
+      "type": "probability array",
+      "space": "\\((0,1)^{L\\times4}\\)",
+      "def": "\\(p^{\\circ}_{\\ell j}\\) is the fixed role probability in the interior benchmark experiment.",
+      "role": "interior benchmark probability",
+      "refs": [
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "gamma_int",
+      "type": "real array",
+      "def": "Writing \\(v^{\\circ}_{\\ell}=q(p^{\\circ}_{\\ell1})+q(p^{\\circ}_{\\ell2})-q(p^{\\circ}_{\\ell3})\\), define \\(\\gamma^{\\circ}_{\\ell1}=\\phi(v^{\\circ}_{\\ell})/\\phi(q(p^{\\circ}_{\\ell1}))\\), \\(\\gamma^{\\circ}_{\\ell2}=\\phi(v^{\\circ}_{\\ell})/\\phi(q(p^{\\circ}_{\\ell2}))\\), \\(\\gamma^{\\circ}_{\\ell3}=-\\phi(v^{\\circ}_{\\ell})/\\phi(q(p^{\\circ}_{\\ell3}))\\), and \\(\\gamma^{\\circ}_{\\ell4}=-1\\).",
+      "role": "interior exact-link gradient",
+      "refs": [
+        "pint",
+        "q",
+        "phi",
+        "L"
+      ]
+    },
+    {
+      "name": "IFint",
+      "type": "role-indexed function array",
+      "def": "\\(\\iota^{\\circ}_{\\ell j}(e)=\\gamma^{\\circ}_{\\ell j}(e-p^{\\circ}_{\\ell j})/\\pi_{\\ell j}\\) for \\(e\\in\\{0,1\\}\\).",
+      "role": "interior split-role influence function",
+      "refs": [
+        "gamma_int",
+        "pint",
+        "pi",
+        "L",
+        "J"
+      ]
+    },
+    {
+      "name": "Omega_int",
+      "type": "positive array",
+      "def": "\\(\\Omega^{\\circ}_{\\ell}=\\sum_{j=1}^{4}(\\gamma^{\\circ}_{\\ell j})^2p^{\\circ}_{\\ell j}(1-p^{\\circ}_{\\ell j})/\\pi_{\\ell j}\\).",
+      "role": "interior split-role asymptotic variance",
+      "refs": [
+        "gamma_int",
+        "pint",
+        "pi",
+        "L",
+        "J"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:normal-link-parallel-trends",
+      "kind": "identification",
+      "condition": "For every \\(\\ell\\), \\(q(\\Pr(Y_{t_{\\ell}}(0)>y_0\\mid G=g_{\\ell}))-q(\\Pr(Y_{s_{\\ell}}(0)>y_0\\mid G=g_{\\ell}))=q(\\Pr(Y_{t_{\\ell}}(0)>y_0\\mid G=h_{\\ell}))-q(\\Pr(Y_{s_{\\ell}}(0)>y_0\\mid G=h_{\\ell}))\\).",
+      "free_symbols": [
+        "q",
+        "Y",
+        "y0",
+        "Ggrp",
+        "Pairs",
+        "L"
+      ],
+      "standard": {
+        "name": "Normal-link distributional parallel trends",
+        "cite": "DjuazonTsyawo2026"
+      },
+      "used_by": [
+        "prop:published-identification-baseline"
+      ]
+    },
+    {
+      "id": "ass:no-anticipation",
+      "kind": "identification",
+      "condition": "For every \\(\\ell\\), \\(\\Pr(Y_{s_{\\ell}}(1)>y_0\\mid G=g_{\\ell})=\\Pr(Y_{s_{\\ell}}(0)>y_0\\mid G=g_{\\ell})\\).",
+      "free_symbols": [
+        "Y",
+        "y0",
+        "Ggrp",
+        "Pairs",
+        "L"
+      ],
+      "standard": {
+        "name": "Distributional no anticipation",
+        "cite": "DjuazonTsyawo2026"
+      },
+      "used_by": [
+        "prop:published-identification-baseline"
+      ]
+    },
+    {
+      "id": "ass:coefficient-box",
+      "kind": "model",
+      "condition": "For every \\(\\ell,j,n\\), \\(c_{\\ell j,n}\\in[1/2,4]\\).",
+      "free_symbols": [
+        "c",
+        "L",
+        "J",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Comparable rarity allows persistent group and period heterogeneity by a factor of eight and is realistic for threshold exceedances across a fixed collection of nearby blocks and months."
+      },
+      "used_by": [
+        "thm:exact-factorization",
+        "oeq:uniform-common-cutoff",
+        "prop:assumption5-exclusion"
+      ]
+    },
+    {
+      "id": "ass:rarity-scale",
+      "kind": "model",
+      "condition": "For every \\(n\\), \\(0<\\rho_n\\le1/16\\).",
+      "free_symbols": [
+        "rho",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The condition describes a sparse-event sequence while keeping every cell probability in the proper normal-link domain; crime incidence and other fixed-threshold count events provide concrete examples."
+      },
+      "used_by": [
+        "thm:exact-factorization",
+        "oeq:uniform-common-cutoff"
+      ]
+    },
+    {
+      "id": "ass:common-rarity",
+      "kind": "model",
+      "condition": "For every \\(\\ell,j,n\\), \\(r_{\\ell j,n}=\\rho_n c_{\\ell j,n}\\).",
+      "free_symbols": [
+        "r",
+        "rho",
+        "c",
+        "L",
+        "J",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "A common exposure intensity with bounded cell-specific multipliers is natural when rare exceedances share a citywide or periodwide baseline hazard."
+      },
+      "used_by": [
+        "thm:exact-factorization",
+        "thm:pairwise-gaussian-frontier",
+        "thm:product-poisson-transition",
+        "prop:assumption5-exclusion"
+      ]
+    },
+    {
+      "id": "ass:bernoulli-role-sampling",
+      "kind": "sampling",
+      "condition": "For every \\(\\ell,j,n\\) and \\(1\\le a\\le n_{\\ell j}\\), \\(E_{\\ell j a,n}\\sim\\operatorname{Bernoulli}(r_{\\ell j,n})\\).",
+      "free_symbols": [
+        "Erole",
+        "nrole",
+        "r",
+        "L",
+        "J",
+        "n"
+      ],
+      "standard": {
+        "name": "Bernoulli sampling of threshold indicators",
+        "cite": "BrownCaiDasGupta2001"
+      },
+      "used_by": [
+        "thm:pairwise-gaussian-frontier",
+        "thm:product-poisson-transition",
+        "thm:rational-outer-interval",
+        "prop:interior-reduction"
+      ]
+    },
+    {
+      "id": "ass:disjoint-role-independence",
+      "kind": "sampling",
+      "condition": "The collection \\(\\{E_{\\ell j a,n}:1\\le\\ell\\le L, j\\in J,1\\le a\\le n_{\\ell j}\\}\\) is mutually independent for every \\(n\\).",
+      "free_symbols": [
+        "Erole",
+        "nrole",
+        "L",
+        "J",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Outcome-independent splitting of independent complete blocks into predeclared pair--role samples realizes this condition while preserving each role's marginal event probability."
+      },
+      "used_by": [
+        "thm:pairwise-gaussian-frontier",
+        "thm:aggregate-gaussian-frontier",
+        "thm:product-poisson-transition",
+        "prop:interior-reduction"
+      ]
+    },
+    {
+      "id": "ass:role-share-bounds",
+      "kind": "sampling",
+      "condition": "For every \\(\\ell,j,n\\), \\(\\underline\\pi\\le n_{\\ell j}/n\\le\\overline\\pi\\).",
+      "free_symbols": [
+        "pi_lower",
+        "pi_upper",
+        "nrole",
+        "n",
+        "L",
+        "J"
+      ],
+      "standard": {
+        "name": "Positive sampling proportions",
+        "cite": "DjuazonTsyawo2026"
+      },
+      "used_by": [
+        "thm:pairwise-gaussian-frontier",
+        "thm:product-poisson-transition",
+        "thm:rational-outer-interval"
+      ]
+    },
+    {
+      "id": "ass:role-share-limits",
+      "kind": "asymptotic",
+      "condition": "For every \\(\\ell,j\\), \\(n_{\\ell j}/n\\to\\pi_{\\ell j}\\).",
+      "free_symbols": [
+        "nrole",
+        "n",
+        "pi",
+        "L",
+        "J"
+      ],
+      "standard": {
+        "name": "Convergent sampling proportions",
+        "cite": "DjuazonTsyawo2026"
+      },
+      "used_by": [
+        "thm:pairwise-gaussian-frontier",
+        "thm:product-poisson-transition",
+        "prop:interior-reduction"
+      ]
+    },
+    {
+      "id": "ass:coefficient-limits",
+      "kind": "asymptotic",
+      "condition": "For every \\(\\ell,j\\), \\(c_{\\ell j,n}\\to c_{\\ell j}\\).",
+      "free_symbols": [
+        "c",
+        "L",
+        "J",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Stable relative rare-event risks across a fixed set of cells are compatible with triangular arrays generated by a shrinking common exposure intensity."
+      },
+      "used_by": [
+        "thm:pairwise-gaussian-frontier",
+        "thm:product-poisson-transition"
+      ]
+    },
+    {
+      "id": "ass:rare-limit",
+      "kind": "asymptotic",
+      "condition": "\\(\\rho_n\\to0\\).",
+      "free_symbols": [
+        "rho",
+        "n"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The sequence formalizes increasingly rare fixed-threshold events and is the boundary excluded by interior normal-link inference."
+      },
+      "used_by": [
+        "oeq:uniform-common-cutoff",
+        "thm:pairwise-gaussian-frontier",
+        "thm:product-poisson-transition",
+        "prop:assumption5-exclusion"
+      ]
+    },
+    {
+      "id": "ass:interior-fixed-probabilities",
+      "kind": "benchmark",
+      "condition": "For every \\(\\ell,j,n\\), \\(r_{\\ell j,n}=p^{\\circ}_{\\ell j}\\).",
+      "free_symbols": [
+        "r",
+        "pint",
+        "L",
+        "J",
+        "n"
+      ],
+      "standard": {
+        "name": "Fixed interior probability experiment",
+        "cite": "DjuazonTsyawo2026"
+      },
+      "used_by": [
+        "prop:interior-reduction"
+      ]
+    },
+    {
+      "id": "ass:interior-probability-margin",
+      "kind": "benchmark",
+      "condition": "For every \\(\\ell,j\\), \\(\\varepsilon_{\\rm int}\\le p^{\\circ}_{\\ell j}\\le1-\\varepsilon_{\\rm int}\\).",
+      "free_symbols": [
+        "epsilon_int",
+        "pint",
+        "L",
+        "J"
+      ],
+      "standard": {
+        "name": "Djuazon--Tsyawo Assumption 5 specialized to a finite threshold and standard-normal link",
+        "cite": "DjuazonTsyawo2026"
+      },
+      "used_by": [
+        "prop:interior-reduction"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:rare-panel-class",
+      "name": "Comparable-rarity split-panel class",
+      "construction": "\\(\\mathcal M_n=\\{(Y,G,\\mathcal P,\\rho_n,c_n,n_{\\ell j},E_n,K_n):\\text{the member satisfies assumptions }\\mathrm{ass:normal\\mbox{-}link\\mbox{-}parallel\\mbox{-}trends},\\mathrm{ass:no\\mbox{-}anticipation},\\mathrm{ass:coefficient\\mbox{-}box},\\mathrm{ass:rarity\\mbox{-}scale},\\mathrm{ass:common\\mbox{-}rarity},\\mathrm{ass:bernoulli\\mbox{-}role\\mbox{-}sampling},\\mathrm{ass:disjoint\\mbox{-}role\\mbox{-}independence},\\mathrm{ass:role\\mbox{-}share\\mbox{-}bounds}\\}\\).",
+      "free_symbols": [
+        "Y",
+        "Ggrp",
+        "Pairs",
+        "rho",
+        "c",
+        "nrole",
+        "Erole",
+        "K",
+        "n",
+        "L",
+        "J"
+      ],
+      "by_member_properties": [
+        "ass:normal-link-parallel-trends",
+        "ass:no-anticipation",
+        "ass:coefficient-box",
+        "ass:rarity-scale",
+        "ass:common-rarity",
+        "ass:bernoulli-role-sampling",
+        "ass:disjoint-role-independence",
+        "ass:role-share-bounds"
+      ]
+    },
+    {
+      "id": "def:mixed-coefficient",
+      "name": "Mixed log-error coefficient",
+      "construction": "For \\(b_{\\ell}=\\rho c_{\\ell3}\\), \\(B_{\\rho,\\ell}=\\int_0^1\\!\\int_0^1 \\frac{m'(q(b_{\\ell}e^{s x_{\\ell}})+q(b_{\\ell}e^{t z_{\\ell}})-q(b_{\\ell}))}{m(q(b_{\\ell}e^{s x_{\\ell}}))m(q(b_{\\ell}e^{t z_{\\ell}}))}\\,dt\\,ds\\) and \\(C_{\\rho,\\ell}=B_{\\rho,\\ell}\\psi(A_{\\ell}B_{\\rho,\\ell})\\).",
+      "free_symbols": [
+        "B",
+        "Ccoef",
+        "rho",
+        "c",
+        "m",
+        "q",
+        "x",
+        "z",
+        "psi",
+        "A",
+        "L"
+      ],
+      "inputs": [
+        "rho",
+        "c",
+        "m",
+        "q",
+        "x",
+        "z",
+        "psi",
+        "A"
+      ]
+    },
+    {
+      "id": "def:frontier-indices",
+      "name": "Drifting-cancellation indices",
+      "construction": "The pairwise index is \\(\\Lambda_{\\ell n}=A_{\\ell n}\\sqrt{n\\rho_n}/u_n^2\\); the aggregate index is \\(b_n=\\sqrt{n/\\rho_n}\\{L\\sqrt{\\overline V}\\}^{-1}\\sum_{\\ell=1}^{L}(\\Delta^P_{\\ell n}-\\Delta_{\\ell n})\\).",
+      "free_symbols": [
+        "Lambda",
+        "A",
+        "n",
+        "rho",
+        "u",
+        "bshift",
+        "L",
+        "barV",
+        "DeltaP",
+        "Delta"
+      ],
+      "inputs": [
+        "A",
+        "n",
+        "rho",
+        "u",
+        "L",
+        "barV",
+        "DeltaP",
+        "Delta"
+      ]
+    },
+    {
+      "id": "def:bounded-count-limit",
+      "name": "Product-Poisson limit statistic",
+      "construction": "For independent \\(Z_{\\ell j}\\sim\\operatorname{Poisson}(\\pi_{\\ell j}\\tau c_{\\ell j})\\), set \\(W_{\\ell j}=(Z_{\\ell j}+1/2)/\\pi_{\\ell j}\\) and \\(T_{\\ell}=W_{\\ell1}W_{\\ell2}/W_{\\ell3}-W_{\\ell4}\\).",
+      "free_symbols": [
+        "Z",
+        "pi",
+        "tau",
+        "c",
+        "W",
+        "T",
+        "L",
+        "J"
+      ],
+      "inputs": [
+        "pi",
+        "tau",
+        "c"
+      ]
+    },
+    {
+      "id": "def:uniform-proof-handle",
+      "name": "Common-cutoff inverse-tail handle",
+      "construction": "Start from \\(\\Phi(-v)/\\phi(v)=v^{-1}\\int_0^{\\infty}e^{-s}e^{-s^2/(2v^2)}\\,ds\\), retain the signed-rectangle representation for \\(B_{\\rho,\\ell}\\), and seek one common cutoff and remainder ledger valid for all \\((c_{\\ell1},c_{\\ell2},c_{\\ell3})\\in[1/2,4]^3\\).",
+      "free_symbols": [
+        "Phi",
+        "phi",
+        "B",
+        "Ccoef",
+        "c",
+        "L"
+      ],
+      "inputs": [
+        "Phi",
+        "phi",
+        "B",
+        "Ccoef",
+        "c"
+      ]
+    },
+    {
+      "id": "def:rational-algorithm",
+      "name": "Finite rational outer-interval algorithm",
+      "construction": "Given counts \\(k\\), compute \\(D_p(k)\\), \\(\\mathcal R_{\\beta}(k)\\), and the saturated likelihood \\(L_{\\rm sat}\\); choose a positive rational \\(t_{\\rm lo}\\) with \\(L_{\\rm sat}e^{-4/\\beta}/2\\le t_{\\rm lo}\\le L_{\\rm sat}e^{-4/\\beta}\\), partition \\([0,1/4]^4\\) into rational boxes of max-diameter \\(h\\) with \\(L_{\\rm lip}h\\le\\eta/8\\) and \\(\\sum_j n_jh\\le t_{\\rm lo}/4\\), retain every box whose rational likelihood upper enclosure meets \\(t_{\\rm lo}\\) and whose intersection with \\(\\mathcal P_0\\) is nonempty, enclose \\(G\\) at a rational feasible point of each retained box, enlarge by \\(L_{\\rm lip}h\\), and return the rational hull; return \\([0,0]\\) when the retained list is empty.",
+      "free_symbols": [
+        "Ddev",
+        "Rregion",
+        "beta",
+        "Llip",
+        "eta",
+        "Pcone",
+        "Gmap",
+        "Alg",
+        "K",
+        "nrole"
+      ],
+      "inputs": [
+        "K",
+        "nrole",
+        "beta",
+        "eta",
+        "Llip",
+        "Pcone",
+        "Gmap"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:published-identification-baseline",
+      "kind": "proposition",
+      "statement": "Djuazon and Tsyawo's Theorem 1, specialized to the standard-normal working distribution, threshold \\(y_0=0\\), and the fixed pairs \\(\\mathcal P\\), identifies \\(\\Delta_{\\ell}=H(r_{\\ell1},r_{\\ell2},r_{\\ell3})-r_{\\ell4}\\) for every \\(\\ell\\), and hence identifies \\(\\overline\\Delta=L^{-1}\\sum_{\\ell=1}^{L}\\Delta_{\\ell}\\). Outcome-independent splitting changes only the samples used to estimate the four observed marginals and does not alter this population identity.",
+      "free_symbols": [
+        "L",
+        "Pairs",
+        "y0",
+        "Delta",
+        "H",
+        "r",
+        "barDelta"
+      ],
+      "depends_on": [
+        "ass:normal-link-parallel-trends",
+        "ass:no-anticipation"
+      ],
+      "status": "to-prove",
+      "justification": "This published baseline fixes the causal estimand and prevents the rare-boundary analysis from being mistaken for a new identification claim.",
+      "gap": "There is no novelty claim: this is exactly the standard-normal, threshold-zero specialization of Djuazon and Tsyawo's published identification formula.",
+      "consumer": "Every boundary approximation and confidence set inherits the causal probability interpretation of the published DTT functional."
+    },
+    {
+      "id": "thm:exact-factorization",
+      "kind": "theorem",
+      "statement": "For every \\(\\ell\\) and every admissible \\(\\rho,c\\), \\(\\log H(r_{\\ell1},r_{\\ell2},r_{\\ell3})-\\log(\\rho Q_{\\ell})=A_{\\ell}B_{\\rho,\\ell}\\), \\(B_{\\rho,\\ell}<0\\), and \\(\\Delta_{\\ell}-\\Delta^P_{\\ell}=\\rho Q_{\\ell}A_{\\ell}C_{\\rho,\\ell}\\) with \\(C_{\\rho,\\ell}<0\\). Consequently, \\(\\Delta_{\\ell}=\\Delta^P_{\\ell}\\) if and only if \\(c_{\\ell1}=c_{\\ell3}\\) or \\(c_{\\ell2}=c_{\\ell3}\\).",
+      "free_symbols": [
+        "L",
+        "rho",
+        "c",
+        "H",
+        "r",
+        "Q",
+        "A",
+        "B",
+        "Delta",
+        "DeltaP",
+        "Ccoef"
+      ],
+      "depends_on": [
+        "ass:coefficient-box",
+        "ass:rarity-scale",
+        "ass:common-rarity",
+        "def:mixed-coefficient",
+        "prop:published-identification-baseline"
+      ],
+      "status": "to-prove",
+      "justification": "The factorization exposes the entire cancellation geometry and leaves no additive remainder on either plane.",
+      "gap": "Pinelis and Baricz control one-dimensional Mills objects; neither derives this mixed DiD identity or its exact two-plane zero set.",
+      "consumer": "Researchers comparing normal-link and proportional-effect DTTs obtain an observable coefficient geometry that tells when link choice is exactly immaterial."
+    },
+    {
+      "id": "oeq:uniform-common-cutoff",
+      "kind": "openendedquestion",
+      "statement": "Do there exist universal finite constants \\(M>0\\) and \\(\\rho_0>0\\) such that, simultaneously for all \\(1\\le\\ell\\le L\\), \\(0<\\rho\\le\\rho_0\\), and \\((c_{\\ell1},c_{\\ell2},c_{\\ell3})\\in[1/2,4]^3\\), one has \\(\\left|u^2C_{\\rho,\\ell}+1\\right|\\le M/u^2\\), with the same certificate when \\(x_{\\ell}=0\\) or \\(z_{\\ell}=0\\)?",
+      "free_symbols": [
+        "L",
+        "rho",
+        "c",
+        "u",
+        "Ccoef",
+        "x",
+        "z"
+      ],
+      "depends_on": [
+        "ass:coefficient-box",
+        "ass:rarity-scale",
+        "ass:rare-limit",
+        "def:mixed-coefficient",
+        "def:uniform-proof-handle",
+        "thm:exact-factorization"
+      ],
+      "status": "to-prove",
+      "justification": "This is the unresolved analytic bottleneck: it upgrades exact cancellation to a uniform leading coefficient without dividing by the cancellation product.",
+      "gap": "Existing inverse-Mills bounds do not provide the required common-cutoff mixed derivative over a full coefficient box including both axes.",
+      "consumer": "The answer determines whether the Gaussian bias frontier and its aggregate signed cancellation criterion are uniformly valid for near-plane empirical designs."
+    },
+    {
+      "id": "thm:pairwise-gaussian-frontier",
+      "kind": "theorem",
+      "statement": "If \\(\\tau_n=n\\rho_n\\to\\infty\\) and \\(\\Lambda_{\\ell n}\\to\\lambda_{\\ell}\\in\\mathbb R\\), then jointly over \\(1\\le\\ell\\le L\\), \\((\\widehat\\Delta^E_{\\ell}-\\Delta_{\\ell})/\\sqrt{\\rho_nV_{\\ell}/n}\\Rightarrow N(0,1)\\) and \\((\\widehat\\Delta^P_{\\ell}-\\Delta_{\\ell})/\\sqrt{\\rho_nV_{\\ell}/n}\\Rightarrow N(Q_{\\ell}\\lambda_{\\ell}/\\sqrt{V_{\\ell}},1)\\), with independent coordinates. Moreover, the exact-link and Poisson-ratio estimators are first-order equivalent for pair \\(\\ell\\) if and only if \\(\\Lambda_{\\ell n}\\to0\\).",
+      "free_symbols": [
+        "tau",
+        "n",
+        "rho",
+        "Lambda",
+        "L",
+        "hatDeltaE",
+        "Delta",
+        "V",
+        "hatDeltaP",
+        "Q"
+      ],
+      "depends_on": [
+        "ass:common-rarity",
+        "ass:bernoulli-role-sampling",
+        "ass:disjoint-role-independence",
+        "ass:role-share-bounds",
+        "ass:role-share-limits",
+        "ass:coefficient-limits",
+        "ass:rare-limit",
+        "def:frontier-indices",
+        "oeq:uniform-common-cutoff"
+      ],
+      "status": "to-prove",
+      "justification": "The result turns link disagreement into a drifting noncentrality parameter rather than an informal approximation error.",
+      "gap": "Djuazon and Tsyawo give only interior Gaussian weak convergence, while Chen and Fang do not allow the base cell probabilities to vanish.",
+      "consumer": "A distributional-DiD analyst can determine whether a Poisson shortcut changes first-order inference for each pre/post comparison."
+    },
+    {
+      "id": "thm:aggregate-gaussian-frontier",
+      "kind": "theorem",
+      "statement": "If \\(\\tau_n\\to\\infty\\) and \\(b_n\\to b\\in\\mathbb R\\), then \\(\\{L^{-1}\\sum_{\\ell=1}^{L}\\widehat\\Delta^P_{\\ell}-\\overline\\Delta\\}/\\sqrt{\\rho_n\\overline V/n}\\Rightarrow N(b,1)\\), while replacing \\(\\widehat\\Delta^P_{\\ell}\\) by \\(\\widehat\\Delta^E_{\\ell}\\) gives \\(N(0,1)\\). Aggregate first-order equivalence holds if and only if \\(b_n\\to0\\), even when individual pairwise shifts do not vanish.",
+      "free_symbols": [
+        "tau",
+        "bshift",
+        "L",
+        "hatDeltaP",
+        "barDelta",
+        "rho",
+        "barV",
+        "n",
+        "hatDeltaE"
+      ],
+      "depends_on": [
+        "ass:disjoint-role-independence",
+        "def:frontier-indices",
+        "thm:pairwise-gaussian-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The exact signed aggregate criterion preserves cross-pair cancellation that a maximum pairwise bound would erase.",
+      "gap": "The published fifteen-pair aggregation assumes interior regularity and has no rare-link noncentrality frontier.",
+      "consumer": "The fixed fifteen-comparison crime aggregate can be assessed without requiring every individual comparison to be safely away from link disagreement."
+    },
+    {
+      "id": "thm:product-poisson-transition",
+      "kind": "theorem",
+      "statement": "If \\(\\tau_n=n\\rho_n\\to\\tau\\in[0,\\infty)\\), then the sixty-vector \\(K\\Rightarrow Z\\), and jointly \\(n\\widehat\\Delta^P_{\\ell}\\Rightarrow T_{\\ell}\\), \\(n\\widehat\\Delta^E_{\\ell}\\Rightarrow T_{\\ell}\\), and \\(n\\Delta_{\\ell}\\to\\tau(Q_{\\ell}-c_{\\ell4})\\). Hence \\(nL^{-1}\\sum_{\\ell=1}^{L}\\widehat\\Delta^E_{\\ell}\\Rightarrow L^{-1}\\sum_{\\ell=1}^{L}T_{\\ell}\\); at \\(\\tau=0\\), this limit equals \\(L^{-1}\\sum_{\\ell=1}^{L}\\{\\pi_{\\ell3}/(2\\pi_{\\ell1}\\pi_{\\ell2})-1/(2\\pi_{\\ell4})\\}\\), which need not vanish under unequal shares.",
+      "free_symbols": [
+        "tau",
+        "n",
+        "rho",
+        "K",
+        "Z",
+        "hatDeltaP",
+        "T",
+        "hatDeltaE",
+        "Delta",
+        "Q",
+        "c",
+        "L",
+        "pi"
+      ],
+      "depends_on": [
+        "ass:common-rarity",
+        "ass:bernoulli-role-sampling",
+        "ass:disjoint-role-independence",
+        "ass:role-share-bounds",
+        "ass:role-share-limits",
+        "ass:coefficient-limits",
+        "ass:rare-limit",
+        "def:bounded-count-limit",
+        "oeq:uniform-common-cutoff"
+      ],
+      "status": "to-prove",
+      "justification": "Bounded expected counts change the experiment itself, so a Gaussian correction cannot describe the sampling law.",
+      "gap": "Marohn supplies general Gaussian--Poisson experiment transitions but not the smoothed nonlinear DiD statistic or its unequal-share zero-intensity limit.",
+      "consumer": "Sparse panels with zero cells obtain a defined non-Gaussian reference law rather than an invalid Wald approximation."
+    },
+    {
+      "id": "lem:global-lipschitz",
+      "kind": "lemma",
+      "statement": "For every \\(p,p'\\in\\mathcal P_0\\), \\(|G(p)-G(p')|\\le L_{\\rm lip}\\lVert p-p'\\rVert_{\\infty}\\).",
+      "free_symbols": [
+        "Pcone",
+        "Gmap",
+        "Llip"
+      ],
+      "depends_on": [],
+      "status": "to-prove",
+      "justification": "A global certificate transfers continuum coverage through a finite rational grid, including the origin.",
+      "gap": "General exact multinomial-function inversion assumes continuity but does not give a usable global constant for this inverse-normal composition.",
+      "consumer": "Auditable software can bound off-grid error without floating-point sampling of derivatives near zero."
+    },
+    {
+      "id": "thm:rational-outer-interval",
+      "kind": "theorem",
+      "statement": "For rational \\(\\beta\\in(0,1)\\) and \\(0<\\eta\\le1/n\\), \\(\\mathsf{Outer}_{\\beta,\\eta}\\) terminates after finitely many rational operations and certified normal-CDF enclosures, returns a rational interval containing \\(G(\\mathcal R_{\\beta}(K))\\), and satisfies \\(\\inf_{p\\in\\mathcal P_0}\\Pr_p\\{G(p)\\in\\mathsf{Outer}_{\\beta,\\eta}(K)\\}\\ge1-\\beta\\). There exists a finite constant \\(C_{\\beta}\\), depending only on the fixed role-share bounds, such that \\(\\sup_{p=\\rho c}\\mathbb E_p[\\operatorname{diam}\\mathsf{Outer}_{\\beta,\\eta}(K)]\\le C_{\\beta}\\{\\max(1,\\sqrt{n\\rho})/n+\\eta\\}\\). The all-zero table retains the origin. The all-full table produces an empty retained list whenever \\(2\\sum_{j=1}^{4}n_j\\log4>8/\\beta+2\\log4\\).",
+      "free_symbols": [
+        "beta",
+        "eta",
+        "n",
+        "Alg",
+        "Gmap",
+        "Rregion",
+        "K",
+        "Pcone",
+        "rho",
+        "c",
+        "nrole",
+        "pi_lower",
+        "pi_upper"
+      ],
+      "depends_on": [
+        "ass:coefficient-box",
+        "ass:rarity-scale",
+        "ass:common-rarity",
+        "ass:bernoulli-role-sampling",
+        "ass:role-share-bounds",
+        "def:rational-algorithm",
+        "lem:global-lipschitz"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem gives boundary-valid coverage on every count table together with a finite certificate and a rare-regime length guarantee.",
+      "gap": "Sachs, Gabriel, and Fay provide valid continuum inversion and a stochastic approximation, not a deterministic outer certificate with this diameter order.",
+      "consumer": "Small-block distributional-DiD studies can report intervals that remain defined at zero counts and can be independently audited."
+    },
+    {
+      "id": "prop:simultaneous-aggregate-interval",
+      "kind": "proposition",
+      "statement": "With \\(\\beta=\\alpha/L\\), \\(\\Pr\\{\\Delta_{\\ell}\\in I_{\\ell}\\text{ for every }1\\le\\ell\\le L\\}\\ge1-\\alpha\\) and \\(\\Pr(\\overline\\Delta\\in\\overline I)\\ge1-\\alpha\\). There exists a finite constant \\(C_{\\alpha}\\), depending only on \\(\\alpha\\) and the fixed role-share bounds, such that \\(\\mathbb E[\\operatorname{diam}(\\overline I)]\\le C_{\\alpha}\\{\\max(1,\\sqrt{n\\rho})/n+\\eta\\}\\).",
+      "free_symbols": [
+        "beta",
+        "alpha",
+        "L",
+        "Delta",
+        "Iinterval",
+        "barDelta",
+        "barI",
+        "n",
+        "rho",
+        "eta",
+        "pi_lower",
+        "pi_upper"
+      ],
+      "depends_on": [
+        "prop:published-identification-baseline",
+        "thm:rational-outer-interval"
+      ],
+      "status": "to-prove",
+      "justification": "The fixed fifteen-pair target needs simultaneous rather than pointwise validity before interval averaging.",
+      "gap": "The published block bootstrap aggregates interior influence functions and does not guarantee finite-sample coverage at zero counts.",
+      "consumer": "The Buenos Aires-style fifteen-comparison DTT aggregate receives one causal-scale interval with a transparent multiplicity correction."
+    },
+    {
+      "id": "prop:assumption5-exclusion",
+      "kind": "proposition",
+      "statement": "For the standard-normal link, every comparable-rarity triangular array satisfying \\(r_{\\ell j,n}=\\rho_n c_{\\ell j,n}\\), \\(c_{\\ell j,n}\\in[1/2,4]\\), and \\(\\rho_n\\to0\\) obeys \\(\\max_{1\\le\\ell\\le L,\\,j\\in J}\\phi(q(r_{\\ell j,n}))\\to0\\). Hence no constant \\(C<\\infty\\) can make \\(\\inf_{\\ell,j,n}\\phi(q(r_{\\ell j,n}))\\ge1/C\\), so Djuazon and Tsyawo's Assumption 5 excludes the entire comparable-rarity sequence rather than merely failing at an exact zero cell.",
+      "free_symbols": [
+        "Phi",
+        "phi",
+        "q",
+        "r",
+        "rho",
+        "c",
+        "L",
+        "J",
+        "n"
+      ],
+      "depends_on": [
+        "ass:coefficient-box",
+        "ass:common-rarity",
+        "ass:rare-limit"
+      ],
+      "status": "to-prove",
+      "justification": "This locates the rare experiment outside the published interior theorem by the exact regularity inequality used in that theorem.",
+      "gap": "Djuazon and Tsyawo's Assumption 5 states the positive link-density lower bound; this proposition records its direct implication for the comparable-rarity array and carries no independent novelty claim.",
+      "consumer": "The Gaussian and product-Poisson frontier statements can be read as boundary results on a domain that the published weak-convergence theorem does not cover."
+    },
+    {
+      "id": "prop:interior-reduction",
+      "kind": "proposition",
+      "statement": "Under the fixed interior probabilities \\(r_{\\ell j,n}=p^{\\circ}_{\\ell j}\\in[\\varepsilon_{\\rm int},1-\\varepsilon_{\\rm int}]\\), mutually independent Bernoulli role observations, and \\(n_{\\ell j}/n\\to\\pi_{\\ell j}>0\\), the outcome-independent sixty-role split satisfies, jointly over \\(1\\le\\ell\\le L\\), \\[\\sqrt n(\\widehat\\Delta^E_{\\ell}-\\Delta_{\\ell})=\\frac1{\\sqrt n}\\sum_{j=1}^{4}\\sum_{a=1}^{n_{\\ell j}}\\iota^{\\circ}_{\\ell j}(E_{\\ell j a,n})+o_{P}(1)\\;\\Rightarrow\\;N(0,\\Omega^{\\circ}_{\\ell}),\\] with independent coordinates, where \\(\\iota^{\\circ}_{\\ell j}(e)=\\gamma^{\\circ}_{\\ell j}(e-p^{\\circ}_{\\ell j})/\\pi_{\\ell j}\\), \\(\\gamma^{\\circ}_{\\ell1}=\\phi(v^{\\circ}_{\\ell})/\\phi(q(p^{\\circ}_{\\ell1}))\\), \\(\\gamma^{\\circ}_{\\ell2}=\\phi(v^{\\circ}_{\\ell})/\\phi(q(p^{\\circ}_{\\ell2}))\\), \\(\\gamma^{\\circ}_{\\ell3}=-\\phi(v^{\\circ}_{\\ell})/\\phi(q(p^{\\circ}_{\\ell3}))\\), \\(\\gamma^{\\circ}_{\\ell4}=-1\\), \\(v^{\\circ}_{\\ell}=q(p^{\\circ}_{\\ell1})+q(p^{\\circ}_{\\ell2})-q(p^{\\circ}_{\\ell3})\\), and \\(\\Omega^{\\circ}_{\\ell}=\\sum_{j=1}^{4}(\\gamma^{\\circ}_{\\ell j})^2p^{\\circ}_{\\ell j}(1-p^{\\circ}_{\\ell j})/\\pi_{\\ell j}\\). Consequently, \\(\\sqrt n\\{L^{-1}\\sum_{\\ell=1}^{L}\\widehat\\Delta^E_{\\ell}-\\overline\\Delta\\}\\Rightarrow N(0,L^{-2}\\sum_{\\ell=1}^{L}\\Omega^{\\circ}_{\\ell})\\). The interior margin is exactly the finite-threshold standard-normal specialization of Djuazon and Tsyawo's Assumption 5; the independent blocks and positive role shares specialize their sampling and dominance conditions; and \\(\\gamma^{\\circ}\\) is the gradient in their proof equation (S.3), with the treated-post term added as in Theorem 2(c). Thus this split-sample result is a direct fixed-threshold specialization of their Theorem 2, not a novelty-bearing extension.",
+      "free_symbols": [
+        "r",
+        "pint",
+        "epsilon_int",
+        "Erole",
+        "nrole",
+        "n",
+        "pi",
+        "hatDeltaE",
+        "Delta",
+        "barDelta",
+        "IFint",
+        "gamma_int",
+        "Omega_int",
+        "phi",
+        "q",
+        "L",
+        "J"
+      ],
+      "depends_on": [
+        "ass:interior-fixed-probabilities",
+        "ass:interior-probability-margin",
+        "ass:bernoulli-role-sampling",
+        "ass:disjoint-role-independence",
+        "ass:role-share-limits",
+        "prop:published-identification-baseline"
+      ],
+      "status": "to-prove",
+      "justification": "The explicit normalization and influence function show exactly how the outcome-independent role split changes information while preserving the published interior DTT limit.",
+      "gap": "Djuazon and Tsyawo's Theorem 2 already supplies the general interior Gaussian result; this proposition is its finite-threshold, disjoint-role specialization and asserts no tightening.",
+      "consumer": "Practitioners can switch to the published interior Gaussian interpretation when all sixty role probabilities remain uniformly away from zero."
+    }
+  ],
+  "sampling_model": {
+    "design": "The fifteen pre/post pairs and four roles are fixed before outcomes; independent complete blocks are split by an outcome-independent rule into sixty disjoint role samples.",
+    "units": "For pair \\(\\ell\\) and role \\(j\\), \\(n_{\\ell j}\\) block-level threshold indicators are observed, with \\(n_{\\ell j}/n\\to\\pi_{\\ell j}>0\\).",
+    "treatment": "Roles are treated-pre, control-post, control-pre, and treated-post; normal-link distributional parallel trends and no anticipation identify the untreated treated-post distribution.",
+    "overlap": "All role counts are independent by construction; inference for overlapping original blocks is outside this version.",
+    "nuisance_estimation": "Cell probabilities use the add-half estimator \\(\\widetilde r_{\\ell j}=(K_{\\ell j}+1/2)/(n_{\\ell j}+1)\\); no known nuisance probability is assumed."
+  },
+  "estimand_functional": "\\(\\overline\\Delta=15^{-1}\\sum_{\\ell=1}^{15}\\{\\Phi[\\Phi^{-1}(\\rho c_{\\ell1})+\\Phi^{-1}(\\rho c_{\\ell2})-\\Phi^{-1}(\\rho c_{\\ell3})]-\\rho c_{\\ell4}\\}\\)",
+  "target_estimand": "\\(\\overline\\Delta=15^{-1}\\sum_{\\ell=1}^{15}\\{\\Pr(Y_{t_{\\ell}}(1)\\le0\\mid G=g_{\\ell})-\\Pr(Y_{t_{\\ell}}(0)\\le0\\mid G=g_{\\ell})\\}\\)",
+  "bibliography": [
+    {
+      "key": "DjuazonTsyawo2026",
+      "citation": "Nelly K. Djuazon and Emmanuel Selorm Tsyawo (2026), ``Quantile and Distribution Treatment Effects on the Treated with Possibly Non-Continuous Outcomes,'' arXiv:2408.07842v2."
+    },
+    {
+      "key": "Pinelis2019InverseMills",
+      "citation": "Iosif Pinelis (2019), ``Exact Bounds on the Inverse Mills Ratio and Its Derivatives,'' Complex Analysis and Operator Theory 13, 1643--1651; arXiv:1512.00120."
+    },
+    {
+      "key": "Baricz2008Mills",
+      "citation": "Árpád Baricz (2008), ``Mills' Ratio: Monotonicity Patterns and Functional Inequalities,'' Journal of Mathematical Analysis and Applications 340, 1362--1370."
+    },
+    {
+      "key": "ChenFang2019",
+      "citation": "Qihui Chen and Zheng Fang (2019), ``Inference on Functionals under First Order Degeneracy,'' Journal of Econometrics 210, 459--481; arXiv:1901.04861."
+    },
+    {
+      "key": "Marohn2001",
+      "citation": "Frank Marohn (2001), ``Limits of Truncation Experiments,'' Probability and Mathematical Statistics 21, 71--88."
+    },
+    {
+      "key": "SachsGabrielFay2026",
+      "citation": "Michael C. Sachs, Erin E. Gabriel, and Michael P. Fay (2026), ``Exact Confidence Intervals for Functions of Parameters in the \\(k\\)-Sample Multinomial Problem,'' arXiv:2406.19141."
+    },
+    {
+      "key": "BrownCaiDasGupta2001",
+      "citation": "Lawrence D. Brown, T. Tony Cai, and Anirban DasGupta (2001), ``Interval Estimation for a Binomial Proportion,'' Statistical Science 16, 101--133."
+    },
+    {
+      "key": "FernandezValEtAl2024",
+      "citation": "Iván Fernández-Val, Jonas Meier, Aico van Vuuren, and Francis Vella (2024), ``Distribution Regression Difference-in-Differences,'' arXiv:2409.02311."
+    },
+    {
+      "key": "RothSantAnna2023",
+      "citation": "Jonathan Roth and Pedro H. C. Sant'Anna (2023), ``When Is Parallel Trends Sensitive to Functional Form?'' Econometrica 91, 737--747."
+    },
+    {
+      "key": "Wooldridge2023",
+      "citation": "Jeffrey M. Wooldridge (2023), ``Simple Approaches to Nonlinear Difference-in-Differences with Panel Data,'' The Econometrics Journal 26, C31--C66."
+    },
+    {
+      "key": "SchaferStark2009",
+      "citation": "Chad M. Schafer and Philip B. Stark (2009), ``Constructing Confidence Regions of Optimal Expected Size,'' Journal of the American Statistical Association 104, 1080--1089."
+    },
+    {
+      "key": "ArratiaGoldsteinGordon1989",
+      "citation": "Richard Arratia, Larry Goldstein, and Louis Gordon (1989), ``Two Moments Suffice for Poisson Approximations: The Chen--Stein Method,'' Annals of Probability 17, 9--25."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "DjuazonTsyawo2026",
+      "comparator_claim": "Theorem 1 identifies the transformed-CDF counterfactual, while Assumption 5 requires a uniform positive transformed-density lower bound and Theorem 2 gives \\(\\sqrt N\\) Gaussian weak convergence for DTT under that interior regularity.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Pinelis2019InverseMills",
+      "comparator_claim": "The main theorem bounds the inverse Mills ratio on a half-plane, and its corollary bounds derivatives.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Baricz2008Mills",
+      "comparator_claim": "The paper proves monotonicity, complete monotonicity, and Turán-type inequalities for the Gaussian Mills ratio.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ChenFang2019",
+      "comparator_claim": "The paper derives second-order limits and characterizes standard-bootstrap failure for functionals with a zero first derivative.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Marohn2001",
+      "comparator_claim": "Rare truncation experiments admit Gaussian or Poisson limits under different retained-count regimes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SachsGabrielFay2026",
+      "comparator_claim": "Exact inversion gives finite-sample-valid intervals for continuous real functions of multinomial probability vectors, with a Monte Carlo computational approximation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "The published normal-link distributional-DiD identity and its Poisson rare-event shortcut agree on exactly two cancellation planes, but their complete discrepancy off those planes is governed by a new mixed inverse-Mills coefficient that ordinary interior delta methods do not control. The kernel is the cancellation-safe factorization and the open uniform common-cutoff coefficient question; resolving it yields pairwise and fifteen-pair Gaussian drift frontiers, while the bounded-count branch has a product-Poisson limit and finite-sample inference uses a finitely terminating rational outer interval with simultaneous coverage and rare-regime expected-diameter control.",
+  "project_justification": {
+    "gap": "The normal-link DTT identity is Djuazon and Tsyawo's published baseline. Their Assumption 5 requires a fixed positive lower bound on \\(\\phi(\\Phi^{-1}(F_{gt}(y)))\\), which is impossible on comparable-rarity arrays because \\(\\phi(q(\\rho_n c_{\\ell j,n}))\\to0\\). One-dimensional Mills bounds, Gaussian second-order delta methods, and generic multinomial inversion do not settle the mixed cancellation coefficient or its two exact planes.",
+    "niche": "A fixed collection of sparse panel event probabilities creates a regime in which functional-form error, cancellation distance, and sampling experiment type move jointly.",
+    "fill": "The project derives the exact factorization first, isolates the common-cutoff uniform bound as the open analytic kernel, and carries it through Gaussian and product-Poisson limits and certified finite-sample outer inference."
+  },
+  "related_work": "Djuazon and Tsyawo (2026) supply the causal counterfactual map as the published identification baseline, not as a novelty target. Their Assumption 5 requires \\(\\inf_{g,t,y}\\phi(\\Phi^{-1}(F_{gt}(y)))\\ge1/C\\), so it excludes every comparable-rarity sequence \\(F=\\rho_n c\\to0\\); their Theorem 2(c) gives the interior \\(\\sqrt N\\) DTT limit whose fixed-threshold gradient is reproduced by the split-role influence function. Pinelis (2019) and Baricz (2008) supply inverse-Mills integral and sign tools that inform the mixed-coefficient argument. Chen and Fang (2019) explain why first-order degeneracy requires higher-order analysis in Gaussian experiments, while Marohn (2001) shows why bounded rare counts lead to a different Poisson experiment. Sachs, Gabriel, and Fay (2026) motivate exact inversion for nonlinear functions of discrete probabilities; the present rational outer construction is informed by that framework but makes no optimality comparison. Fernández-Val, Meier, van Vuuren, and Vella (2024) and Wooldridge (2023) establish that nonlinear link choice is substantive in DiD, and Roth and Sant'Anna (2023) place functional-form sensitivity within identification rather than presentation.",
+  "technical_internal_limitation": "The literal statement that every all-full table with all \\(n_j\\le6\\) must yield an empty retained list is false without a calibration restriction: for example, with \\(n_j=1\\) and \\(\\beta=1/2\\), the admissible point \\(p_j=1/4\\) has deviance \\(8\\log4<16=8/\\beta\\). The formal theorem therefore states the exact sufficient inequality for empty-list behavior. This diagnostic does not affect all-zero retention or coverage. The global Lipschitz constant is deliberately enormous, so finite termination is a mathematical certificate rather than a practical runtime guarantee.",
+  "honest_scope": "The causal identification identity is wholly published baseline. The exact signed-rectangle identity and its pointwise sign argument have a concrete proof architecture. The first-class open content is a single common-cutoff inverse-tail remainder with explicit constants over the whole coefficient box, including both cancellation planes; the Gaussian frontier depends on that result. The product-Poisson and rational-interval statements remain theorem tasks, not verified results. The design uses sixty disjoint outcome-independent block-role samples and does not establish validity for overlapping original blocks. The prescribed conservative aggregate interval must include zero in the published 37-treated-block application, so no finite-sample power claim is made. Fixed interior probabilities satisfy the finite-threshold version of Djuazon and Tsyawo's Assumption 5 and reduce, with the displayed split-role influence function, to their Theorem 2(c); comparable-rarity arrays violate that assumption because their normal-link densities vanish. Exact cancellation reduces to equality of the normal and Poisson maps for every admitted rarity level.",
+  "seeds": [
+    "seed:exact-cancellation-coefficient",
+    "seed:gaussian-poisson-frontier",
+    "seed:rational-outer-interval",
+    "seed:overlapping-blocks",
+    "seed:unknown-rarity-intensity",
+    "seed:unequal-rarity-exponents",
+    "seed:working-link-classification",
+    "seed:post-selection-honesty"
+  ],
+  "seed_details": [
+    {
+      "id": "seed:exact-cancellation-coefficient",
+      "rank": 1,
+      "anchor": "DjuazonTsyawo2026",
+      "anchor_receipt": "The anchor was read at its Introduction, Theorem 1 and equation (5), the proof of Theorem 1 in Section S.6.1, Assumption 5, Theorem 2 and its proof in Section S.6.3 including equation (S.3), the crime application, and the Conclusion. The identification identity is used only as baseline; the first changed proof step is to replace the interior Hadamard derivative by a signed-rectangle mixed derivative of the inverse-normal tail at one common cutoff.",
+      "opportunity": "Characterize the exact normal-link error relative to the Poisson ratio map on the comparable-rarity cone, including both cancellation planes, and derive its uniform coefficient.",
+      "motif": "M2+M11(c)",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Differentiate the log counterfactual map in both log-ratio directions and integrate the mixed derivative without dividing by either direction.",
+      "destination_search": "Searches for normal-link distributional DiD tail cancellation, probit--Poisson DiD equivalence, and inverse-normal mixed finite differences returned no theorem for this target--method pair.",
+      "red_team": "Immediate from Djuazon and Tsyawo because their functional delta method already differentiates the same map.",
+      "rebuttal": "Their Assumption 5 requires the link density at inverse cell probabilities to stay bounded away from zero, whereas the proposed coefficient is uniform precisely where that density vanishes and either log ratio is zero.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 23
+      },
+      "disposition": "selected"
+    },
+    {
+      "id": "seed:gaussian-poisson-frontier",
+      "rank": 2,
+      "anchor": "DjuazonTsyawo2026",
+      "anchor_receipt": "The anchor's Theorem 2, its proof's functional-delta step, and its fifteen-comparison aggregation were read together with Chen and Fang's second-order delta theorem and bootstrap impossibility theorem and Marohn's truncation-experiment abstract.",
+      "opportunity": "Derive a joint experiment indexed by expected exceedance count and drifting cancellation, with Gaussian, cancellation-shifted Gaussian, and product-Poisson branches for every pair and their fixed aggregate.",
+      "motif": "M11(c)+M2",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the fixed interior empirical-process limit by a sixty-cell Bernoulli triangular array before applying the nonlinear map.",
+      "destination_search": "Searches combining rare experiments, first-order degeneracy, and distributional DiD found separate Gaussian-degeneracy and Poisson-experiment results but no joint frontier for this functional.",
+      "red_team": "Immediate by combining Chen and Fang's second-order delta method with a standard Poisson approximation.",
+      "rebuttal": "That method retains a Gaussian base experiment and does not cover bounded expected counts, while the present frontier must also preserve exact cancellation and cross-pair signed shifts.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "disposition": "supporting-survivor"
+    },
+    {
+      "id": "seed:rational-outer-interval",
+      "rank": 3,
+      "anchor": "SachsGabrielFay2026",
+      "anchor_receipt": "The anchor's Introduction, exact null-inversion definition, Monte Carlo approximation lemma and algorithm, simulations, and Discussion were read. Its exact continuum supremum is valid but computationally infeasible, and its implemented approximation converges from below.",
+      "opportunity": "Replace stochastic nuisance search by a deterministic rational outer approximation for the rare-link aggregate, with finite termination, simultaneous coverage, and a rare-regime expected-diameter order.",
+      "motif": "M2+M8",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Enclose the continuum likelihood region by rational boxes using a global Lipschitz certificate for the normal-link map at the origin.",
+      "destination_search": "Searches for exact multinomial-function intervals, optimal expected-size regions, and boundary binomial intervals found no deterministic rational certificate carrying a rare-link diameter theorem.",
+      "red_team": "Immediate specialization of Sachs, Gabriel, and Fay because their method covers every continuous multinomial functional.",
+      "rebuttal": "Their exact supremum is declared infeasible and their Monte Carlo value is a lower approximation; neither supplies a finite rational outer certificate or the proposed expected-diameter order.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "disposition": "supporting-survivor"
+    },
+    {
+      "id": "seed:overlapping-blocks",
+      "rank": 4,
+      "anchor": "DjuazonTsyawo2026",
+      "anchor_receipt": "The anchor's sampling section and Assumption 3 were read: units are independent across the cross section, time dependence within a block is retained, and the application resamples blocks. The first changed step would be a marked incidence representation for repeated blocks across pairwise roles.",
+      "opportunity": "Derive a multivariate or compound-Poisson limit for the unsplit fifteen-comparison panel with overlapping block roles.",
+      "motif": "M15",
+      "target_tier": "field",
+      "first_changed_proof_step": "Build a dependency graph on block--time exceedances before any delta expansion.",
+      "destination_search": "A destination search for dependent rare Bernoulli sums and overlapping DiD found Arratia, Goldstein, and Gordon's process approximation but no propagation through this counterfactual map.",
+      "red_team": "Immediate from Chen--Stein dependency-graph bounds.",
+      "rebuttal": "The missing result is the induced marked multivariate law and its propagation through cancellation-degenerate pair and aggregate maps, not the scalar Poisson approximation alone.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "disposition": "deferred-after-ranking"
+    },
+    {
+      "id": "seed:unknown-rarity-intensity",
+      "rank": 5,
+      "anchor": "panel\\_ppml\\_ptt\\_weakcount\\_uniform",
+      "anchor_receipt": "The gap receipt records that the banked construction conditions on a known intensity and that its reviewer requested an estimated-intensity extension. This seed is anchored to that prior-proposal theorem boundary.",
+      "opportunity": "Construct an honest interval when the common rarity intensity is estimated jointly or from an auxiliary sample.",
+      "motif": "M11(c)+M8",
+      "target_tier": "field",
+      "first_changed_proof_step": "Augment each drifting subsequence by the limit of the intensity estimator before calibrating the count inversion.",
+      "destination_search": "The supplied prior-proposal map and searches for exact Poisson inference with estimated exposure did not reveal a four-cell causal-link result with cancellation drift.",
+      "red_team": "Immediate by Bonferroni-combining an interval for the common intensity with the existing cell interval.",
+      "rebuttal": "Such rectangular projection may preserve coverage but need not retain the diameter order when intensity fluctuation is first-order relative to the cancellation signal.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "disposition": "deferred-after-ranking"
+    },
+    {
+      "id": "seed:unequal-rarity-exponents",
+      "rank": 6,
+      "anchor": "Pinelis2019InverseMills",
+      "anchor_receipt": "The anchor's Introduction, main theorem, derivative corollary, and stationary-phase proof construction were read. Its one-cutoff derivative control does not classify a nonlinear DiD composition evaluated at four cutoffs diverging at different speeds.",
+      "opportunity": "Derive a phase diagram for probabilities of the form \\(p_j=\\rho^{\\alpha_j}c_j\\), including leading powers, signs, and cancellation hypersurfaces.",
+      "motif": "M2+M7",
+      "target_tier": "field",
+      "first_changed_proof_step": "Order the four inverse-normal cutoffs by their rarity exponents before composing the counterfactual index.",
+      "destination_search": "Searches for unequal-rarity probit--Poisson link equivalence and normal-quantile expansions found tail approximations but no distributional-DiD phase diagram.",
+      "red_team": "Immediate by applying the normal quantile expansion separately to four probabilities.",
+      "rebuttal": "Separate marginal expansions do not determine which diverging indices cancel after addition and subtraction or the resulting piecewise sign geometry.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 3,
+        "total": 18
+      },
+      "disposition": "deferred-after-ranking"
+    },
+    {
+      "id": "seed:working-link-classification",
+      "rank": 7,
+      "anchor": "DjuazonTsyawo2026",
+      "anchor_receipt": "The anchor's Introduction, normal and logistic working-link setup, Theorem 1, proof construction, crime application, and Conclusion were read. Roth and Sant'Anna's necessity-and-sufficiency argument for transformation invariance was also read from its arXiv source.",
+      "opportunity": "Give a necessary-and-sufficient tail-score condition under which a proper working link agrees with the Poisson map through the first nonvanishing cancellation order.",
+      "motif": "M6+M2",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace the Gaussian inverse-Mills identity by a regular-variation classification of the inverse link's logarithmic derivative.",
+      "destination_search": "Searches for tail classifications of probit, logit, and complementary-log-log DiD maps found binary-link prediction comparisons but no causal counterfactual equivalence theorem.",
+      "red_team": "A routine regular-variation exercise once the inverse link is specified.",
+      "rebuttal": "The necessity direction must recover the tail-score class from uniform two-direction cancellation behavior and is not supplied by pointwise link expansions.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "disposition": "deferred-after-ranking"
+    },
+    {
+      "id": "seed:post-selection-honesty",
+      "rank": 8,
+      "anchor": "stat\\_pn\\_weak\\_event\\_honest\\_inference",
+      "anchor_receipt": "The supplied prior-proposal receipt explicitly leaves honesty after threshold or projection selection open. The present destination adds pair selection and cancellation-distance instability.",
+      "opportunity": "Construct simultaneous inference after selecting a threshold, pair, or aggregate projection to maximize apparent normal--Poisson disagreement.",
+      "motif": "M11(c)+M8",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace pointwise cell inversion by a complexity-controlled joint likelihood region before selection.",
+      "destination_search": "Searches for selected rare-event DiD thresholds and simultaneous link-disagreement inference found no occupied target--method pair.",
+      "red_team": "Immediate from a union bound over a finite family.",
+      "rebuttal": "A union bound preserves coverage but does not establish the requested diameter order when the selection index jointly changes rarity and cancellation distance.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 17
+      },
+      "disposition": "deferred-after-ranking"
+    }
+  ],
+  "literature_map": "Djuazon and Tsyawo (2026), at Theorem 1 and equation (5), identify the three-input transformed-CDF counterfactual; the proof of that baseline identity is in Section S.6.1. Their Assumption 5 requires \\(\\inf_{g,t,y}\\phi(\\Phi^{-1}(F_{gt}(y)))\\ge1/C\\), which excludes comparable-rarity triangular arrays because \\(\\phi(q(\\rho_n c_{\\ell j,n}))\\to0\\). Their Theorem 2(c) and proof equation (S.3) in Section S.6.3 give the interior \\(\\sqrt N\\) DTT expansion. At fixed threshold \\(y_0=0\\), the displayed role gradient and \\(\\sqrt n\\) normalization map that result directly to the outcome-independent sixty-role split; this reduction is not claimed as novel. Their Section 4 averages fifteen admissible comparisons and uses a block bootstrap for the crime application, whose treated arm contains 37 blocks. Pinelis (2019), at the main theorem and derivative corollary, obtains exact inverse-Mills bounds through non-asymptotic stationary-phase integral representations, but does not study a mixed distributional-DiD finite difference. Baricz (2008), in Sections 2--3, proves monotonicity, complete monotonicity, and Turán inequalities for the Gaussian Mills ratio; these results motivate a sign certificate but do not yield the proposed two-direction factorization. Chen and Fang (2019), at their second-order delta theorem and bootstrap iff theorem, treat zero first derivatives in a Gaussian base experiment; bounded rare counts lie outside that experiment. Marohn (2001) separates Gaussian and Poisson limits for truncation experiments, without a causal DiD map or cancellation drift. Sachs, Gabriel, and Fay (2026), in their exact null inversion and Monte Carlo algorithm, cover arbitrary continuous multinomial functionals at finite samples, but the exact continuum computation is infeasible and their implementation approaches the exact p-value from below. Fernández-Val, Meier, van Vuuren, and Vella (2024) use nonlinear distribution regression and explicit tail restrictions, but do not state a common-rarity normal-versus-Poisson coefficient. Roth and Sant'Anna (2023) show that functional-form sensitivity is identifying content, not cosmetic specification choice. Bounded searches through these cited and citing threads found no closer result subsuming the exact coefficient, its two cancellation planes, both rare-count limit branches, and a deterministic rational outer interval.",
+  "literature_checklist": [
+    {
+      "author": "Djuazon and Tsyawo",
+      "year": 2026,
+      "venue": "arXiv econ.EM",
+      "bibkey": "DjuazonTsyawo2026",
+      "one_line": "Theorem 1 supplies the published identification baseline; Assumption 5 imposes a positive transformed-density lower bound; and Theorem 2(c) proves interior Gaussian weak convergence for DTT.",
+      "relevant_to": "prop:assumption5-exclusion"
+    },
+    {
+      "author": "Pinelis",
+      "year": 2019,
+      "venue": "Complex Analysis and Operator Theory",
+      "bibkey": "Pinelis2019InverseMills",
+      "one_line": "The main theorem and derivative corollary provide exact inverse-Mills bounds through integral representations.",
+      "relevant_to": "oeq:uniform-common-cutoff"
+    },
+    {
+      "author": "Baricz",
+      "year": 2008,
+      "venue": "Journal of Mathematical Analysis and Applications",
+      "bibkey": "Baricz2008Mills",
+      "one_line": "Sections 2--3 establish monotonicity, complete monotonicity, and Turán inequalities for the Gaussian Mills ratio.",
+      "relevant_to": "thm:exact-factorization"
+    },
+    {
+      "author": "Chen and Fang",
+      "year": 2019,
+      "venue": "Journal of Econometrics",
+      "bibkey": "ChenFang2019",
+      "one_line": "The second-order delta theorem and bootstrap iff theorem analyze functionals with zero first derivative in Gaussian experiments.",
+      "relevant_to": "thm:pairwise-gaussian-frontier"
+    },
+    {
+      "author": "Marohn",
+      "year": 2001,
+      "venue": "Probability and Mathematical Statistics",
+      "bibkey": "Marohn2001",
+      "one_line": "The paper derives Gaussian or Poisson limits for rare truncation experiments according to retained-count scaling.",
+      "relevant_to": "thm:product-poisson-transition"
+    },
+    {
+      "author": "Sachs, Gabriel, and Fay",
+      "year": 2026,
+      "venue": "arXiv stat.CO",
+      "bibkey": "SachsGabrielFay2026",
+      "one_line": "The exact null inversion covers continuous functions of multinomial probabilities, while the practical algorithm is Monte Carlo.",
+      "relevant_to": "thm:rational-outer-interval"
+    },
+    {
+      "author": "Brown, Cai, and DasGupta",
+      "year": 2001,
+      "venue": "Statistical Science",
+      "bibkey": "BrownCaiDasGupta2001",
+      "one_line": "Boundary coverage failures of the Wald binomial interval motivate zero-safe primitive probability regions.",
+      "relevant_to": "thm:rational-outer-interval"
+    },
+    {
+      "author": "Fernández-Val, Meier, van Vuuren, and Vella",
+      "year": 2024,
+      "venue": "arXiv econ.EM",
+      "bibkey": "FernandezValEtAl2024",
+      "one_line": "Distribution-regression DiD uses nonlinear links and separate tail restrictions but not the rare-link cancellation coefficient.",
+      "relevant_to": "prop:published-identification-baseline"
+    },
+    {
+      "author": "Roth and Sant'Anna",
+      "year": 2023,
+      "venue": "Econometrica",
+      "bibkey": "RothSantAnna2023",
+      "one_line": "Parallel-trends invariance to monotone outcome transformations is characterized by a distributional condition.",
+      "relevant_to": "thm:exact-factorization"
+    },
+    {
+      "author": "Wooldridge",
+      "year": 2023,
+      "venue": "The Econometrics Journal",
+      "bibkey": "Wooldridge2023",
+      "one_line": "Nonlinear DiD makes the working transformation a substantive identifying choice.",
+      "relevant_to": "thm:exact-factorization"
+    }
+  ],
+  "novelty_justification": "Djuazon and Tsyawo's normal-link counterfactual identity is treated only as the published causal baseline, and the displayed interior influence-function result is only a split-role specialization of their Theorem 2(c). Their Assumption 5 requires \\(\\inf_{g,t,y}\\phi(\\Phi^{-1}(F_{gt}(y)))\\ge1/C\\); under \\(F=\\rho_n c\\) with \\(\\rho_n\\to0\\), this density converges to zero, so the comparable-rarity arrays are outside their theorem. The closest analytic result is Pinelis's inverse-Mills derivative control. Neither comparator gives the mixed coefficient \\(C_{\\rho,\\ell}\\), the exact factorization \\(\\Delta_{\\ell}-\\Delta^P_{\\ell}=\\rho Q_{\\ell}A_{\\ell}C_{\\rho,\\ell}\\), uniformity on the two cancellation planes, the associated Gaussian and product-Poisson frontier, or the rational outer-inference result."
+}

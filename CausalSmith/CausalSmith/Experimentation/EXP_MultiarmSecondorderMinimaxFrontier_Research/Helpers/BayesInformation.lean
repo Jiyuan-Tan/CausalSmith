@@ -1,4 +1,5 @@
-import Causalean.Stat.Limit.ObservationDependentVanTrees.Main
+module
+public import Causalean.Stat.Minimax.VanTrees.ObservationDependent.Main
 
 /-!
 Bayesian information inequality over a general σ-finite observation measure.
@@ -7,6 +8,8 @@ differentiation-under-the-integral, finite-information, and joint-integrability
 premises without replacing them by everywhere differentiability or an
 unweighted `T²` assumption.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set Filter
 open scoped Interval
@@ -83,31 +86,31 @@ structure BayesianInformationRegularity {Ω : Type*} [MeasurableSpace Ω]
     w ell * p ell x * (T x - g ell x) = 0 ∧
     w u * p u x * (T x - g u x) = 0
   derivative_balance_joint_integrable : Integrable
-    (Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+    (Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
       w dw p dp g dg T) ((volume.restrict (Icc ell u)).prod μ)
   error_score_joint_integrable : Integrable
-    (Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField w dw p dp g T)
+    (Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField w dw p dp g T)
     ((volume.restrict (Icc ell u)).prod μ)
   joint_score_sq_integrable : Integrable
-    (Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField w dw p dp)
+    (Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField w dw p dp)
     ((volume.restrict (Icc ell u)).prod μ)
   prior_score_sq_integrable : Integrable
     (fun θ => w θ *
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw θ) ^ 2)
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw θ) ^ 2)
     (volume.restrict (Icc ell u))
   prior_score_joint_sq_integrable : Integrable
     (fun z : ℝ × Ω => w z.1 * p z.1 z.2 *
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2)
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2)
     ((volume.restrict (Icc ell u)).prod μ)
   fisher_score_joint_sq_integrable : Integrable
     (fun z : ℝ × Ω => w z.1 * p z.1 z.2 *
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
         p dp z.1 z.2) ^ 2)
     ((volume.restrict (Icc ell u)).prod μ)
   score_cross_joint_integrable : Integrable
     (fun z : ℝ × Ω => w z.1 * p z.1 z.2 *
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-        Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
           p dp z.1 z.2))
     ((volume.restrict (Icc ell u)).prod μ)
 
@@ -154,7 +157,7 @@ lemma bayesianInformationInequality
       bayesJointIntegral μ ell u w p dg ^ 2 /
         (priorInformation ell u w dw +
           ∫ θ in ell..u, fisherInformation μ p dp θ * w θ) := by
-  let PM := Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+  let PM := Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
   have hsupport : Function.support w ⊆ Icc ell u := by
     intro θ hθ
     exact ⟨le_of_lt (h.prior_compact_support.2 (subset_tsupport w hθ)).1,
@@ -165,7 +168,7 @@ lemma bayesianInformationInequality
     exact (h.prior_C1.differentiable (by norm_num)).differentiableAt.hasDerivAt
   have hwnorm : ∫ θ, w θ ∂PM ell u = 1 := by
     rw [← h.prior_probability, intervalIntegral.integral_of_le h.interval_nonempty.le]
-    unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     rw [restrict_Ioc_eq_restrict_Icc]
   have hboundary : ∀ᵐ x ∂μ,
       w u * p u x * (T x - g u x) = 0 ∧
@@ -173,37 +176,37 @@ lemma bayesianInformationInequality
     filter_upwards [h.boundary_vanishes_ae] with x hx
     exact ⟨hx.2, hx.1⟩
   have hsensitivityInt : Integrable
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField w p dg)
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField w p dg)
       ((PM ell u).prod μ) := by
     change Integrable
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField w p dg)
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField w p dg)
       ((volume.restrict (Icc ell u)).prod μ)
     convert h.derivative_joint_integrable using 1
     ext z
-    simp [Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField,
-      Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+    simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField,
+      Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
     ring
   have herrorSqInt : Integrable
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField w p g T)
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField w p g T)
       ((PM ell u).prod μ) := by
     change Integrable
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField w p g T)
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField w p g T)
       ((volume.restrict (Icc ell u)).prod μ)
     convert h.risk_joint_integrable using 1
     ext z
-    simp [Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField,
-      Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+    simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField,
+      Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
     ring
   letI : IsFiniteMeasure (PM ell u) := by
-    unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     infer_instance
   have hrisk : bayesJointIntegral μ ell u w p (fun θ x => (T x - g θ x) ^ 2) =
-      ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField w p g T z
+      ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField w p g T z
         ∂((PM ell u).prod μ) := by
     calc
       _ = ∫ θ, ∫ x, (T x - g θ x) ^ 2 * p θ x * w θ ∂μ ∂PM ell u := by
         rw [bayesJointIntegral, intervalIntegral.integral_of_le h.interval_nonempty.le]
-        unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+        unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
         rw [restrict_Ioc_eq_restrict_Icc]
       _ = _ := by
         rw [MeasureTheory.integral_prod _ herrorSqInt]
@@ -211,16 +214,16 @@ lemma bayesianInformationInequality
         filter_upwards with θ
         apply MeasureTheory.integral_congr_ae
         filter_upwards with x
-        simp [Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField,
-          Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+        simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField,
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
         ring
   have hsensitivity : bayesJointIntegral μ ell u w p dg =
-      ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField w p dg z
+      ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField w p dg z
         ∂((PM ell u).prod μ) := by
     calc
       _ = ∫ θ, ∫ x, dg θ x * p θ x * w θ ∂μ ∂PM ell u := by
         rw [bayesJointIntegral, intervalIntegral.integral_of_le h.interval_nonempty.le]
-        unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+        unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
         rw [restrict_Ioc_eq_restrict_Icc]
       _ = _ := by
         rw [MeasureTheory.integral_prod _ hsensitivityInt]
@@ -228,69 +231,69 @@ lemma bayesianInformationInequality
         filter_upwards with θ
         apply MeasureTheory.integral_congr_ae
         filter_upwards with x
-        simp [Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField,
-          Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+        simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField,
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
         ring
   have hprior : priorInformation ell u w dw =
-      Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation ell u w dw := by
+      Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation ell u w dw := by
     rw [priorInformation,
-      Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation,
+      Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation,
       intervalIntegral.integral_of_le h.interval_nonempty.le]
-    rw [Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure,
+    rw [Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure,
       ← restrict_Ioc_eq_restrict_Icc]
     apply MeasureTheory.integral_congr_ae
     filter_upwards with θ
-    simp [Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore]
+    simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore]
     split_ifs with hθ
     · field_simp
     · ring
   have hfisher : (∫ θ in ell..u, fisherInformation μ p dp θ * w θ) =
       ∫ θ, w θ *
-        Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation μ p dp θ
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation μ p dp θ
         ∂PM ell u := by
     rw [intervalIntegral.integral_of_le h.interval_nonempty.le]
-    unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+    unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     rw [restrict_Ioc_eq_restrict_Icc]
     apply MeasureTheory.integral_congr_ae
     filter_upwards with θ
     have hFI : fisherInformation μ p dp θ =
-        Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation μ p dp θ := by
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation μ p dp θ := by
       rw [fisherInformation,
-        Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation]
+        Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation]
       apply MeasureTheory.integral_congr_ae
       filter_upwards with x
-      simp [Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore]
+      simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore]
       split_ifs with hx
       · field_simp
       · ring
     rw [hFI, mul_comm]
   have hinfoPos : 0 <
-      Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation ell u w dw +
+      Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation ell u w dw +
         ∫ θ, w θ *
-          Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation μ p dp θ
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation μ p dp θ
           ∂PM ell u := by
     rw [← hprior, ← hfisher]
     exact h.total_information_positive
   have hvt :
-      (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField
+      (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField
           w p dg z ∂((PM ell u).prod μ)) ^ 2 /
-          (Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation ell u w dw +
+          (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation ell u w dw +
             ∫ θ, w θ *
-              Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation μ p dp θ
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation μ p dp θ
               ∂PM ell u) ≤
-        ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField w p g T z
+        ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField w p g T z
           ∂((PM ell u).prod μ) := by
     letI : IsFiniteMeasure (PM ell u) := by
-      unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+      unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       infer_instance
     have hmemIcc : ∀ᵐ θ ∂PM ell u, θ ∈ Icc ell u := by
-      unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+      unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
       exact ae_restrict_mem measurableSet_Icc
     have hmemIoo : ∀ᵐ θ ∂PM ell u, θ ∈ Ioo ell u := by
       filter_upwards [hmemIcc,
-        (by unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+        (by unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
             exact ae_restrict_of_ae (volume.ae_ne ell)),
-        (by unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+        (by unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
             exact ae_restrict_of_ae (volume.ae_ne u))] with θ hθ hθell hθu
       exact ⟨lt_of_le_of_ne hθ.1 (Ne.symm hθell), lt_of_le_of_ne hθ.2 hθu⟩
     have hpSections : ∀ᵐ x ∂μ, ∀ θ, θ ∈ Ioo ell u → 0 ≤ p θ x :=
@@ -305,7 +308,7 @@ lemma bayesianInformationInequality
       exact hxz z.1 hθz
     have hwzero : ∀ θ, w θ = 0 → dw θ = 0 := by
       intro θ hzero
-      exact Causalean.Stat.Limit.ObservationDependentVanTrees.derivative_eq_zero_of_nonnegative_of_eq_zero
+      exact Causalean.Stat.Minimax.ObservationDependentVanTrees.derivative_eq_zero_of_nonnegative_of_eq_zero
         h.prior_nonnegative (hwderiv θ) hzero
     have hpzero : ∀ᵐ z ∂((PM ell u).prod μ),
         p z.1 z.2 = 0 → dp z.1 z.2 = 0 := by
@@ -316,7 +319,7 @@ lemma bayesianInformationInequality
         Measure.quasiMeasurePreserving_fst.tendsto_ae.eventually hmemIoo
       have hderiv : ∀ᵐ z ∂((PM ell u).prod μ),
           HasDerivAt (fun t => p t z.2) (dp z.1 z.2) z.1 := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure,
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure,
           restrict_Ioo_eq_restrict_Icc] using h.likelihood_hasDerivAt_ae
       filter_upwards [hderiv, hx, hθ] with z hder hxz hθz
       intro hz
@@ -329,7 +332,7 @@ lemma bayesianInformationInequality
         HasDerivAt (fun t => p t z.1) (dp z.2 z.1) z.2 := by
       have hderiv : ∀ᵐ z ∂((PM ell u).prod μ),
           HasDerivAt (fun t => p t z.2) (dp z.1 z.2) z.1 := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure,
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure,
           restrict_Ioo_eq_restrict_Icc] using h.likelihood_hasDerivAt_ae
       have hz := Measure.measurePreserving_swap.quasiMeasurePreserving.tendsto_ae.eventually hderiv
       simpa [Prod.swap] using hz
@@ -337,7 +340,7 @@ lemma bayesianInformationInequality
         HasDerivAt (fun t => g t z.1) (dg z.2 z.1) z.2 := by
       have hderiv : ∀ᵐ z ∂((PM ell u).prod μ),
           HasDerivAt (fun t => g t z.2) (dg z.1 z.2) z.1 := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure,
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure,
           restrict_Ioo_eq_restrict_Icc] using h.target_hasDerivAt_ae
       have hz := Measure.measurePreserving_swap.quasiMeasurePreserving.tendsto_ae.eventually hderiv
       simpa [Prod.swap] using hz
@@ -348,12 +351,12 @@ lemma bayesianInformationInequality
         HasDerivAt (fun t => g t x) (dg θ x) θ := by
       simpa using Measure.ae_ae_of_ae_prod hdgSwap
     have hbalanceZero :
-        ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+        ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
           w dw p dp g dg T z ∂((PM ell u).prod μ) = 0 := by
       have hbalanceInt : Integrable
-          (Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+          (Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
             w dw p dp g dg T) ((PM ell u).prod μ) := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure] using
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure] using
           h.derivative_balance_joint_integrable
       rw [integral_prod_symm _ hbalanceInt]
       apply integral_eq_zero_of_ae
@@ -363,7 +366,7 @@ lemma bayesianInformationInequality
       let q : ℝ → ℝ := fun θ => w θ * p θ x * (T x - g θ x)
       have hqderiv : ∀ᵐ θ ∂PM ell u,
           HasDerivAt q
-            (Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+            (Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
               w dw p dp g dg T (θ, x)) θ := by
         filter_upwards [hdpx, hdgx] with θ hdpθ hdgθ
         have hm := ((hwderiv θ).mul hdpθ).mul (hdgθ.const_sub (T x))
@@ -372,54 +375,54 @@ lemma bayesianInformationInequality
           funext t
           rfl
         have hcoef :
-            Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+            Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
                 w dw p dp g dg T (θ, x) =
               (dw θ * p θ x + w θ * dp θ x) * (T x - g θ x) +
                 w θ * p θ x * -dg θ x := by
-          simp [Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField,
-            Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+          simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField,
+            Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
           ring
         rw [hfun, hcoef]
         exact hm
       calc
-        (∫ θ, Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+        (∫ θ, Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
             w dw p dp g dg T (θ, x) ∂PM ell u) =
             ∫ θ, deriv q θ ∂PM ell u := by
           apply integral_congr_ae
           filter_upwards [hqderiv] with θ hθ
           exact hθ.deriv.symm
         _ = ∫ θ in ell..u, deriv q θ := by
-          unfold PM Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+          unfold PM Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
           rw [intervalIntegral.integral_of_le h.interval_nonempty.le,
             restrict_Ioc_eq_restrict_Icc]
         _ = q u - q ell := hacx.integral_deriv_eq_sub
         _ = 0 := by simp [q, hboundaryx.1, hboundaryx.2]
     have herrorSensitivity :
-        (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField
+        (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField
           w dw p dp g T z ∂((PM ell u).prod μ)) =
-          ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField
+          ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField
             w p dg z ∂((PM ell u).prod μ) := by
       have hre :
-          (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField
+          (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField
             w dw p dp g dg T z ∂((PM ell u).prod μ)) =
-          (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField
+          (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField
             w dw p dp g T z ∂((PM ell u).prod μ)) -
-          ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField
+          ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField
             w p dg z ∂((PM ell u).prod μ) := by
         calc
           _ = ∫ z,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField
                 w dw p dp g T z -
-              Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField
                 w p dg z ∂((PM ell u).prod μ) := by
             apply integral_congr_ae
             filter_upwards [hpNonneg, hpzero] with z hpz hpzeroz
-            rw [Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField_eq_numerator
+            rw [Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField_eq_numerator
               (h.prior_nonnegative z.1) hpz
                 (hwzero z.1) hpzeroz]
-            simp [Causalean.Stat.Limit.ObservationDependentVanTrees.derivativeBalanceField,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.sensitivityField,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity]
+            simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.derivativeBalanceField,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.sensitivityField,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity]
             ring
           _ = _ := integral_sub h.error_score_joint_integrable hsensitivityInt
       rw [hbalanceZero] at hre
@@ -432,107 +435,107 @@ lemma bayesianInformationInequality
       filter_upwards [hmemIoo] with θ hθ
       exact h.density_probability θ hθ
     have hcenter : ∀ᵐ θ ∂PM ell u,
-        ∫ x, Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+        ∫ x, Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
           p dp θ x * p θ x ∂μ = 0 := by
       filter_upwards [hmemIoo, hpzeroSections, hpNonnegSections] with θ hθ hz hn
       calc
         _ = ∫ x, dp θ x ∂μ := by
           apply integral_congr_ae
           filter_upwards [hz, hn] with x hzx hnx
-          exact Causalean.Stat.Limit.ObservationDependentVanTrees.guarded_score_mul_density
+          exact Causalean.Stat.Minimax.ObservationDependentVanTrees.guarded_score_mul_density
             hnx hzx
         _ = 0 := h.differentiation_under_integral θ hθ
     have hinformation :
-        (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField
+        (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField
           w dw p dp z ∂((PM ell u).prod μ)) =
-          Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation ell u w dw +
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation ell u w dw +
             ∫ θ, w θ *
-              Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation μ p dp θ
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation μ p dp θ
               ∂PM ell u := by
       have hpriorJointInt : Integrable
           (fun z : ℝ × Ω => w z.1 * p z.1 z.2 *
-            (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2)
+            (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2)
           ((PM ell u).prod μ) := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure] using
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure] using
           h.prior_score_joint_sq_integrable
       have hfisherJointInt : Integrable
           (fun z : ℝ × Ω => w z.1 * p z.1 z.2 *
-            (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+            (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
               p dp z.1 z.2) ^ 2) ((PM ell u).prod μ) := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure] using
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure] using
           h.fisher_score_joint_sq_integrable
       have hcrossInt : Integrable
           (fun z : ℝ × Ω => w z.1 * p z.1 z.2 *
-            (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-              Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+            (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                 p dp z.1 z.2)) ((PM ell u).prod μ) := by
-        simpa [PM, Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure] using
+        simpa [PM, Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure] using
           h.score_cross_joint_integrable
       have hexpand : ∀ᵐ z ∂((PM ell u).prod μ),
-          Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField w dw p dp z =
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField w dw p dp z =
             w z.1 * p z.1 z.2 *
-                (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2 +
+                (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2 +
               (w z.1 * p z.1 z.2 *
-                  (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+                  (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                     p dp z.1 z.2) ^ 2 +
                 2 * (w z.1 * p z.1 z.2 *
-                  (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-                    Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+                  (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+                    Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                       p dp z.1 z.2))) := by
         filter_upwards [hpNonneg] with z hpz
         by_cases hwpos : 0 < w z.1
         · by_cases hppos : 0 < p z.1 z.2
-          · simp [Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.jointScore,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore,
+          · simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.jointScore,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore,
               hwpos, hppos, mul_pos]
             field_simp
             ring
           · have hpz : p z.1 z.2 = 0 := le_antisymm (le_of_not_gt hppos) hpz
-            simp [Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.jointScore,
-              Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity, hpz]
+            simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.jointScore,
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity, hpz]
         · have hwz : w z.1 = 0 :=
             le_antisymm (le_of_not_gt hwpos) (h.prior_nonnegative z.1)
-          simp [Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField,
-            Causalean.Stat.Limit.ObservationDependentVanTrees.jointScore,
-            Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity, hwz]
+          simp [Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField,
+            Causalean.Stat.Minimax.ObservationDependentVanTrees.jointScore,
+            Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity, hwz]
       have hsplit :
-          (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField
+          (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField
             w dw p dp z ∂((PM ell u).prod μ)) =
             (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2
               ∂((PM ell u).prod μ)) +
             (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                 p dp z.1 z.2) ^ 2 ∂((PM ell u).prod μ)) +
             2 * (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-                Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+                Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                   p dp z.1 z.2) ∂((PM ell u).prod μ)) := by
         calc
           _ = ∫ z : ℝ × Ω,
               (w z.1 * p z.1 z.2 *
-                (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2) +
+                (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2) +
               ((w z.1 * p z.1 z.2 *
-                (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+                (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                   p dp z.1 z.2) ^ 2) +
                 2 * (w z.1 * p z.1 z.2 *
-                  (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-                    Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+                  (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+                    Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                       p dp z.1 z.2))) ∂((PM ell u).prod μ) := integral_congr_ae hexpand
           _ = (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-                (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2
+                (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2
                 ∂((PM ell u).prod μ)) +
               ∫ z : ℝ × Ω,
                 (w z.1 * p z.1 z.2 *
-                  (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+                  (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                     p dp z.1 z.2) ^ 2) +
                 2 * (w z.1 * p z.1 z.2 *
-                  (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-                    Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+                  (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+                    Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                       p dp z.1 z.2)) ∂((PM ell u).prod μ) :=
             integral_add hpriorJointInt
               (hfisherJointInt.add (hcrossInt.const_mul 2))
@@ -541,16 +544,16 @@ lemma bayesianInformationInequality
             ring
       have hpriorEval :
           (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1) ^ 2
               ∂((PM ell u).prod μ)) =
-            Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation ell u w dw := by
+            Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation ell u w dw := by
         rw [integral_prod _ hpriorJointInt]
-        unfold Causalean.Stat.Limit.ObservationDependentVanTrees.priorInformation
+        unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.priorInformation
         apply integral_congr_ae
         filter_upwards [hnormAE] with θ hnormθ
         calc
           _ = (w θ *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw θ) ^ 2) *
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw θ) ^ 2) *
                 ∫ x, p θ x ∂μ := by
             rw [← integral_const_mul]
             apply integral_congr_ae
@@ -559,31 +562,31 @@ lemma bayesianInformationInequality
           _ = _ := by rw [hnormθ]; ring
       have hfisherEval :
           (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                 p dp z.1 z.2) ^ 2 ∂((PM ell u).prod μ)) =
             ∫ θ, w θ *
-              Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation μ p dp θ
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation μ p dp θ
               ∂PM ell u := by
         rw [integral_prod _ hfisherJointInt]
         apply integral_congr_ae
         filter_upwards with θ
-        unfold Causalean.Stat.Limit.ObservationDependentVanTrees.fisherInformation
+        unfold Causalean.Stat.Minimax.ObservationDependentVanTrees.fisherInformation
         rw [← integral_const_mul]
         apply integral_congr_ae
         filter_upwards with x
         ring
       have hcrossEval :
           (∫ z : ℝ × Ω, w z.1 * p z.1 z.2 *
-              (Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw z.1 *
-                Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+              (Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw z.1 *
+                Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                   p dp z.1 z.2) ∂((PM ell u).prod μ)) = 0 := by
         rw [integral_prod _ hcrossInt]
         apply integral_eq_zero_of_ae
         filter_upwards [hcenter] with θ hcenterθ
         calc
           _ = (w θ *
-              Causalean.Stat.Limit.ObservationDependentVanTrees.priorScore w dw θ) *
-                ∫ x, Causalean.Stat.Limit.ObservationDependentVanTrees.likelihoodScore
+              Causalean.Stat.Minimax.ObservationDependentVanTrees.priorScore w dw θ) *
+                ∫ x, Causalean.Stat.Minimax.ObservationDependentVanTrees.likelihoodScore
                   p dp θ x * p θ x ∂μ := by
             rw [← integral_const_mul]
             apply integral_congr_ae
@@ -593,20 +596,20 @@ lemma bayesianInformationInequality
       rw [hsplit, hpriorEval, hfisherEval, hcrossEval]
       ring
     have hcs :
-        (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField
+        (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField
           w dw p dp g T z ∂((PM ell u).prod μ)) ^ 2 ≤
-          (∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField
+          (∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField
             w p g T z ∂((PM ell u).prod μ)) *
-          ∫ z, Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField
+          ∫ z, Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField
             w dw p dp z ∂((PM ell u).prod μ) := by
-      simpa only [Causalean.Stat.Limit.ObservationDependentVanTrees.errorScoreField,
-          Causalean.Stat.Limit.ObservationDependentVanTrees.errorSqField,
-          Causalean.Stat.Limit.ObservationDependentVanTrees.scoreSqField] using
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.weighted_integral_mul_sq_le
+      simpa only [Causalean.Stat.Minimax.ObservationDependentVanTrees.errorScoreField,
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.errorSqField,
+          Causalean.Stat.Minimax.ObservationDependentVanTrees.scoreSqField] using
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.weighted_integral_mul_sq_le
           (μ := (PM ell u).prod μ)
-          (q := Causalean.Stat.Limit.ObservationDependentVanTrees.jointDensity w p)
+          (q := Causalean.Stat.Minimax.ObservationDependentVanTrees.jointDensity w p)
           (f := fun z : ℝ × Ω => T z.2 - g z.1 z.2)
-          (s := Causalean.Stat.Limit.ObservationDependentVanTrees.jointScore w dw p dp)
+          (s := Causalean.Stat.Minimax.ObservationDependentVanTrees.jointScore w dw p dp)
           (by filter_upwards [hpNonneg] with z hpz
               exact mul_nonneg (h.prior_nonnegative z.1) hpz)
           herrorSqInt.aestronglyMeasurable h.joint_score_sq_integrable.aestronglyMeasurable

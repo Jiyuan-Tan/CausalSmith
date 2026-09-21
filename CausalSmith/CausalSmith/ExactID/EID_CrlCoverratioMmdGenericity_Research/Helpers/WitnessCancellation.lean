@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessQuantitative
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.GaussianRecoveryBridge
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
-import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessQuantitative
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.GaussianRecoveryBridge
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.FundThmCalculus
+public import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
 
 /-!
 # Cancellation-witness calculus
@@ -9,6 +10,11 @@ import Mathlib.MeasureTheory.Measure.HasOuterApproxClosed
 This file isolates the fundamental-theorem-of-calculus identity behind equality
 of the cancellation witness's observational and parent-interventional ratio laws.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -20,7 +26,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- In the canonical world, the law-defined Radon--Nikodym ratio agrees almost everywhere
 under the observational law with the explicit mechanism ratio.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonicalObservedWorld_observedLawRatio_ae_eq_mechanismRatio
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n))
     (i : Fin n) :
     observedLawRatio (canonicalObservedWorld G θ π).law i =ᵐ[observationalLaw θ]
@@ -40,7 +46,7 @@ lemma canonicalObservedWorld_observedLawRatio_ae_eq_mechanismRatio
 /-- The canonical observational ratio law is the pushforward of the observational latent
 law by the explicit mechanism ratio.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonical_observationalRatioLaw_eq_mechanismRatio_map
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n))
     (i : Fin n) :
     observationalRatioLaw (canonicalObservedWorld G θ π) i =
@@ -54,7 +60,7 @@ lemma canonical_observationalRatioLaw_eq_mechanismRatio_map
 /-- The canonical interventional ratio law is the pushforward of the corresponding latent
 interventional law by the same explicit mechanism ratio.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonical_interventionalRatioLaw_eq_mechanismRatio_map
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n))
     (j i : Fin n) :
     interventionalRatioLaw (canonicalObservedWorld G θ π) j i =
@@ -74,7 +80,7 @@ lemma canonical_interventionalRatioLaw_eq_mechanismRatio_map
 /-- The second moment of the canonical observational ratio law is the latent observational
 integral of the square of the explicit mechanism ratio.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonical_observationalRatioLaw_secondMoment_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n))
     (i : Fin n) :
     (∫ r, r ^ 2 ∂observationalRatioLaw (canonicalObservedWorld G θ π) i) =
@@ -92,7 +98,7 @@ lemma canonical_observationalRatioLaw_secondMoment_eq
 /-- The second moment of a canonical interventional ratio law is the corresponding latent
 interventional integral of the square of the explicit mechanism ratio.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma canonical_interventionalRatioLaw_secondMoment_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (π : Equiv.Perm (Fin n))
     (j i : Fin n) :
     (∫ r, r ^ 2 ∂interventionalRatioLaw (canonicalObservedWorld G θ π) j i) =
@@ -257,7 +263,7 @@ lemma cancellation_iterated_test_integral_zero (ψ : ℝ → ℝ) (hψ : Continu
 /-- Two finite ratio laws coincide when every bounded continuous real test
 function has the same integral under both laws.  Given [the stated inputs and conditions](hyp:h), [the stated conclusion](goal) follows. -/
 lemma ratioLaws_eq_of_boundedContinuous_integrals_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (j i : Fin n)
     [IsFiniteMeasure (W.law 0)] [IsFiniteMeasure (W.law j.succ)]
     (h : ∀ ψ : BoundedContinuousFunction ℝ ℝ,
@@ -276,7 +282,7 @@ lemma ratioLaws_eq_of_boundedContinuous_integrals_eq
 /-- Equality of the observational and interventional ratio laws forces their
 kernel mean discrepancy to vanish.  Given [the stated inputs and conditions](hyp:h), [the stated conclusion](goal) follows. -/
 lemma populationDiscrepancy_eq_zero_of_ratioLaws_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
     (U : UnitNormFeatureMap H) (W : ObservedWorld G θ) (j i : Fin n)
     (h : observationalRatioLaw W i = interventionalRatioLaw W j i) :

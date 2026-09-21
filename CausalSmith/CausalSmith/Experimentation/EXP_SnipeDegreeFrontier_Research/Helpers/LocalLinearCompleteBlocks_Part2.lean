@@ -1,8 +1,9 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearClass
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import Mathlib.Algebra.Order.Chebyshev
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearCompleteBlocks_Part1
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearClass
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import Mathlib.Algebra.Order.Chebyshev
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearCompleteBlocks_Part1
 
 /-!
 # The complete-block extremal value: lower and upper bounds
@@ -11,6 +12,8 @@ Identifies the units of a complete block with a graph neighbourhood and pins the
 blockwise extremal value from both sides, the upper bound being attained by the
 canonical weights.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

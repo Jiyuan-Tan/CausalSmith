@@ -122,9 +122,16 @@ def isSyntheticCompanionLeaf (s : String) : Bool :=
   -- strict paper-index lint (line-zero / null-source) on a correct bundle
   -- (2026-08-26).  Mirrored in `SYNTHETIC_COMPANION_RE` (paper_index_orphans.ts).
   s == "proxyType" || s == "proxyTypeEquiv" ||
+  -- functional induction / cases principles that Lean 4.33 realizes for recursive
+  -- definitions (`<f>.induct`, `<f>.induct_unfolding`, `<f>.mutual_induct`, `<f>.fun_cases`):
+  -- no declaration range or source; surfaced by the module-system migration (2026-09-15).
+  s == "induct" || s == "induct_unfolding" || s == "mutual_induct" ||
+  s == "fun_cases" || s == "fun_cases_unfolding" ||
   (s.startsWith "eq_" && !(s.drop 3).isEmpty && (s.drop 3).all Char.isDigit)
 
 def shouldSkipDecl (env : Environment) (n : Name) : Bool :=
+  -- Private declarations are mangled as `_private.<Module>.0.<Name>` and must never be indexed.
+  Lean.isPrivateName n ||
   shouldSkipDeclOther env n ||
   isSyntheticCompanionLeaf (declarationLeaf n)
 
@@ -455,7 +462,7 @@ unsafe def runIndex (importRoot pfx : Name) (srcRoot outPath : String)
       else none
   let json := Json.mkObj [
     ("commit", toJson (← gitCommitIn ".")),
-    ("toolchain", toJson "leanprover/lean4:v4.29.0-rc3"),
+    ("toolchain", toJson s!"leanprover/lean4:v{Lean.versionString}"),
     ("modules", Json.mkObj moduleDocs),
     ("entries", toJson entries)
   ]

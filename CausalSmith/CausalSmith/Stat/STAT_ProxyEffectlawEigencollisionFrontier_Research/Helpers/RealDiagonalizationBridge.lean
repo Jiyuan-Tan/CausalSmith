@@ -1,10 +1,13 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
 
 /-!
 Paper-local conversion of a real eigenbasis into the matrix certificate used by the
 collision-safe functional-calculus substrate.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

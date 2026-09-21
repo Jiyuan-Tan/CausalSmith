@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TAllEstimatorLower
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TJacksonFactorialUpper
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TCausalOptimalValueCorollary
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TAllEstimatorLower
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TJacksonFactorialUpper
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.TCausalOptimalValueCorollary
 
 set_option linter.style.longLine false
 
 /-! Matched minimax frontier and its causal transfer. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -57,7 +60,7 @@ theorem matched_minimax_frontier
       (by intro est P; unfold observedRisk Causalean.Stat.sqRisk; positivity)
       jf
   · unfold jacksonWorstCaseRisk
-    change Causalean.Stat.worstCaseRisk
+    change Causalean.Stat.worstCaseRiskReal
       (observedRisk n (d := d) (epsilon := epsilon))
       jf ≤ _
     cases isEmpty_or_nonempty (ModelLaw d epsilon) with
@@ -77,7 +80,7 @@ theorem matched_minimax_frontier
             C * min 1 (d / (n * logAlphabet d)) := hupper n d hn hd P.1 P.2
         _ ≤ (C + c) * min 1 (d / (n * logAlphabet d)) := by
           nlinarith
-  · unfold causalMinimaxRisk minimaxRisk Causalean.Stat.minimaxValue
+  · unfold causalMinimaxRisk minimaxRisk Causalean.Stat.minimaxValueReal
     congr 1
     funext est
     rw [Causalean.Stat.worstCaseRisk_eq_sSup_range,

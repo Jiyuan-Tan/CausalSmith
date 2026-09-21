@@ -18,9 +18,11 @@ weak convergence of the laws to the standard Gaussian; and the portmanteau theor
 CDF has no atoms) yields pointwise CDF convergence.
 -/
 
-import Causalean.Mathlib.Probability.SteinMethod.DependencyCLT
-import Mathlib.Probability.Distributions.Gaussian.CharFun
-import Mathlib.MeasureTheory.Measure.LevyConvergence
+module
+public import Causalean.Mathlib.Probability.SteinMethod.DependencyCLT
+public import Mathlib.MeasureTheory.Measure.LevyConvergence
+public import Mathlib.MeasureTheory.Measure.Portmanteau
+public import Mathlib.Probability.Distributions.Gaussian.CharFun
 
 /-!
 # Local-dependence central limit theorem via Stein bounds
@@ -33,11 +35,12 @@ to cosine and sine test functions in the bounded local-dependence central limit
 theorem `stein_cdf_clt`.
 -/
 
+public section
+
 open MeasureTheory ProbabilityTheory Filter
 open scoped Real Topology
 
-namespace Causalean
-namespace SteinMethod
+namespace Causalean.Mathlib.Probability.SteinMethod
 
 /-- **CDF convergence from characteristic-function convergence.** A sequence of real probability
 laws whose characteristic functions converge to those of an atomless target law has convergent
@@ -261,5 +264,4 @@ theorem stein_cdf_clt
   · exact (Complex.continuous_ofReal.tendsto _).comp hcos_tendsto
   · exact (Complex.continuous_ofReal.tendsto _).comp hsin_tendsto
 
-end SteinMethod
-end Causalean
+end Causalean.Mathlib.Probability.SteinMethod

@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmRaoBlackwell
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Partition.CellLaws
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmRaoBlackwell
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Partition.CellLaws
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
 
 /-!
 # Independent Poisson law of a finite-sample histogram
@@ -8,6 +9,8 @@ import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonizati
 The histogram of a finite Poisson sample on a finite alphabet consists of
 independent Poisson cell counts.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 
@@ -89,7 +92,7 @@ private lemma map_finitePoissonSampleLaw_finiteSampleMap
   funext n
   exact hrest n
 
-private noncomputable def singletonPartition
+noncomputable def singletonPartition
     (X : Type*) [Fintype X] [MeasurableSpace X]
     [MeasurableSingletonClass X] : FiniteMeasurablePartition X X where
   cell := id

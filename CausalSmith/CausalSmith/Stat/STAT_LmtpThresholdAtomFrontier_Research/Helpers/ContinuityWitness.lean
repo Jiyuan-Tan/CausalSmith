@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxMembership
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxMembership
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
 
 /-!
 # Continuity-only canonical witnesses
@@ -13,6 +14,8 @@ import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Core
 This file places the canonical Bernoulli regression laws in the qualitative
 continuity model without imposing a common modulus of continuity.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

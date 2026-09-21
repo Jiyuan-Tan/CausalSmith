@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
 
 /-! # Uniform population numerator envelope
 
 This file isolates the population `G` bound used by the adaptive contour risk proof.
 -/
+
+@[expose] public section
 
 noncomputable section
 

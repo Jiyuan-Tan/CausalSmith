@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticePopulation
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.SharpComposition
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticePopulation
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.SharpComposition
 
 /-! # Collision-safe functional calculus for selected structured-lattice tuples -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

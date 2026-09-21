@@ -1,8 +1,11 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Frontier
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryWitness
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TSupportRegimeOpenIllegalDichotomy
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Frontier
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BinaryWitness
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TSupportRegimeOpenIllegalDichotomy
 
 /-! # Mutual-support generator exactness frontier -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

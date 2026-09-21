@@ -1,12 +1,13 @@
 /- Extracting an estimator-wise hard family from the one-arm source risk. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.LowerTransfer
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory Set
-
-private abbrev BinObs := CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @node: oneArmMinimaxRisk_hard_family_of_lt
 /-- If [the alphabet is nonempty](hyp:hd) and [the overlap constant is positive](hyp:he0) and [the

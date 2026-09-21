@@ -6,10 +6,15 @@ Authors: Jiyuan Tan
 # Irreducibility of the common-axis polynomial-image closure
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisTwin
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.BandParameterCoordinates
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PolynomialRetractDimension
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.DenseImage
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisTwin
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.BandParameterCoordinates
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PolynomialRetractDimension
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.DenseImage
+
+/-! Public common-axis image geometry for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -86,7 +91,7 @@ lemma eval_commonAxisPolynomial {m L : ℕ} (hm : 1 ≤ m)
   by_cases h : c = Sum.inr (Sum.inl (⟨0, hm⟩ : Fin m)) <;>
     simp [commonAxisBandInsert, h]
 
-private def commonAxisParamPolynomial {m L : ℕ} (hm : 1 ≤ m)
+def commonAxisParamPolynomial {m L : ℕ} (hm : 1 ≤ m)
     (P : MvPolynomial (ParamCoord m) ℂ) :
     MvPolynomial (CommonAxisBandCoord m L hm) ℂ :=
   commonAxisPolynomial hm (restrictParamPolynomial P)
@@ -168,7 +173,7 @@ private lemma commonAxisGenericWitness_supported {m L : ℕ} (hm : 1 ≤ m) :
     commonAxisGenericWitness m L ∈ bandSupportedParams m L :=
   genericParameterLocus_bandSupported (commonAxisGenericWitness_mem hm)
 
-private def commonAxisGenericPolynomial (m L : ℕ) (hm : 1 ≤ m) :
+def commonAxisGenericPolynomial (m L : ℕ) (hm : 1 ≤ m) :
     MvPolynomial (CommonAxisBandCoord m L hm) ℂ :=
   commonAxisParamPolynomial hm (genericParameterPolynomial m L)
 

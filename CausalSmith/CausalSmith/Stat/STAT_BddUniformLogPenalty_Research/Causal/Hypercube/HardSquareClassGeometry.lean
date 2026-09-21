@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGeometry
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.LawClass
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.SquareBoundary
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGeometry
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.LawClass
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.SquareBoundary
 
 /-!
 # Class-level geometry of the fixed assignment rectangle
@@ -9,6 +10,8 @@ This module transports the existing explicit square-frontier traversal to the
 fixed arm-one rectangle.  It supplies the rectifiability leaf needed by the
 hard-square class certificate.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

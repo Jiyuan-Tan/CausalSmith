@@ -1,6 +1,9 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
 
 /-! # Sharp collision-safe two-diagonalizer functional calculus -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

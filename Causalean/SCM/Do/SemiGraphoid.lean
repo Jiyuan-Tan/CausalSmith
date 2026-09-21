@@ -4,10 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.SCM
-import Causalean.SCM.Model.Kernel
-import Causalean.SCM.Do.ValuesProjectionCI
-import Mathlib.Probability.Independence.Conditional
+module
+
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.Mathlib.Probability.Independence.Conditional.CondExp_Part2
+public import Causalean.SCM.Do.ValuesProjectionCI
+public import Causalean.SCM.Model.Kernel
+public import Causalean.SCM.Model.SCM
+public import Mathlib.Probability.Independence.Conditional
 
 /-! # Observational Conditional Independence
 
@@ -20,6 +24,14 @@ and do-calculus layers: `obsCondIndep_symm`, `obsCondIndep_subset_right`,
 theorems expose the same coordinate-projection facts directly for finite product
 spaces.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 

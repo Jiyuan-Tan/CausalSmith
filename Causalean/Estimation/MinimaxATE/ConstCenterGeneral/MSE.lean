@@ -7,8 +7,9 @@ Authors: Jiyuan Tan
 
 The general-constant-center analogue of `MSE.lean`.  The quantile bound
 `minimax_lower_bound_gen` (`1/4 ≤ minimaxMiss …`, the paper's `γ = 3/4`
-case) implies the weaker expected-risk floor: every measurable estimator has
-mean-squared error at least `s²/4` (with `s = g₁β(α+β)/(2(g₁²−β²)) ≍ √(εg·εm)`) on
+case) implies the weaker expected-risk lower bound: every measurable estimator has
+mean-squared error at least `s²/4` (with the perturbation-dependent separation
+`s = g₁β(α+β)/(2(g₁²−β²))`) on
 **some** DGP in the class, around any constant bounded-away center `(m₀, g₀, g₁)`.
 
 The witness DGP is extracted from the two-point bound `1/4 ≤ max(…)` (Chebyshev
@@ -17,7 +18,8 @@ single Rademacher-perturbed DGP pulled out of the uniform mixture `QtrueG` by
 `exists_real_ge_mixture`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.LowerBound
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.LowerBound
 
 /-! # General-Center MSE Bound
 
@@ -28,7 +30,11 @@ in-class data-generating process on which any measurable estimator has squared-e
 least one quarter of the squared general-center separation.
 
 The proof keeps the two possible witnesses explicit: the null law `QfalseG` with ATE `g₁ - g₀`,
-or one perturbed law `QpertG` selected from the uniform mixture `QtrueG`. -/
+or one perturbed law `QpertG` selected from the uniform mixture `QtrueG`. The construction's
+separation may be zero, and the theorem does not lower-bound it in terms of the nuisance
+budgets. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -46,7 +52,7 @@ nonnegative](hyp:hεg,hεm), [the per-cell overlap coefficient `Γ` at most `1`]
 [the sample size in the regime `2n²(Γ/2)² ≤ K·log 2`](hyp:hreg) — [every measurable
 estimator](hyp:hest) has [the weaker expected-risk consequence: there is a data-generating
 process in the class on which the estimator's mean-squared error is at least `s²/4`, where
-`s = g₁β(α+β)/(2(g₁²−β²)) ≍ √(εg·εm)`, obtained from the quantile bound by a Chebyshev
+`s = g₁β(α+β)/(2(g₁²−β²))`, obtained from the quantile bound by a Chebyshev
 `(1−γ)`-factor conversion at `γ = 3/4`](goal). -/
 theorem minimax_lower_bound_mse_gen (P : GenConstr) {K n : ℕ} [NeZero K]
     {εg εm : ℝ}

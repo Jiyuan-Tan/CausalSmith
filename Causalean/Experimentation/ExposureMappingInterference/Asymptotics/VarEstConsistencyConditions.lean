@@ -4,10 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarEstQuadBound
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarianceConsistency
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinInstance
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import Causalean.Experimentation.DesignBased.Risk
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinInstance
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarEstQuadBound
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarianceConsistency
+public import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
 # Variance-estimator consistency from boundedness and dependency-graph conditions
@@ -23,9 +25,12 @@ boundedness, overlap, dependency-graph, and variance-growth conditions.
 `N²·Var[V̂_n] = N⁻²·Var[V̂_raw,n] ≤ N⁻²·(8·M²·m³·N) = 8·M²·m³/N → 0` as `N → ∞`.
 -/
 
+public section
 
 open scoped BigOperators Topology
 open Filter
+
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace Causalean
 namespace Experimentation
@@ -35,10 +40,6 @@ open Causalean.Experimentation.DesignBased
 
 variable {Ω : Type*} [Fintype Ω]
 variable {ι Θ Δ : Type*} [Fintype ι] [DecidableEq ι] [DecidableEq Δ]
-
-/-- The finite-design variance is nonnegative. -/
-private lemma Var_nonneg (D : FiniteDesign Ω) (X : Ω → ℝ) : 0 ≤ D.Var X :=
-  D.E_nonneg (fun _ => sq_nonneg _)
 
 /-- **Per-population scaled-variance bound.** Under the stated boundedness, overlap, dependency,
 and covariance-vanishing hypotheses, `N²·Var[V̂] ≤ 8·M²·m³·N⁻¹`, where `M = vbBound`.
@@ -91,19 +92,21 @@ private lemma NsqVar_htEffectVarEst_le (D : FiniteDesign Ω) (y : ι → Δ → 
           exact mul_le_mul_of_nonneg_left hVle (by positivity)
       _ = C * N⁻¹ := by field_simp
 
-/-- **Scaled variance-estimator variance vanishes (Aronow–Samii Prop 6.6 core).** Along a sequence
-of experiments with [distinct treatment arms `dk ≠ dl`](hyp:dk,dl,hne) whose [outcomes are
-uniformly bounded by a nonnegative constant `c₁`](hyp:hc₁,hy) (Condition 1), suppose [the
-marginal exposure propensities under `dk` and `dl` are positive](hyp:hπk,hπl) with [inverses
-uniformly bounded by a nonnegative constant `c₂`](hyp:hc₂,hπinvk,hπinvl), and [the same-arm and
-cross-arm pairwise joint exposure propensities have inverses uniformly bounded by a nonnegative
-constant `c₃`](hyp:hc₃,hjk,hjl,hjc) (Condition 1'). Suppose further a [symmetric, reflexive
-dependency relation `G`](hyp:G,decG,hrefl,hsymm) [of degree at most `m`](hyp:hdeg) such that
-[every non-adjacent pair's joint exposure propensities factor as if independent](hyp:hGindep)
-and [every quadruple with no adjacent index pair has zero covariance between the corresponding
-variance-estimator kernel terms](hyp:hcov0) (Condition 3), and [the population size
-diverges](hyp:hN). Then [the scaled variance of the conservative variance estimator vanishes:
-`N²·Var[V̂_n] → 0`](goal). -/
+/-- **Finite-grid scaled variance-estimator variance vanishes.** Along
+[a sequence of experiments](hyp:Exp) with [distinct treatment arms](hyp:dk,dl,hne) whose
+[outcomes are uniformly bounded by `c₁`](hyp:c₁,hc₁,hy), suppose
+[the marginal exposure propensities are positive](hyp:hπk,hπl) with
+[inverse propensities bounded by `c₂`](hyp:c₂,hc₂,hπinvk,hπinvl), and
+[joint inverse propensities bounded by `c₃`](hyp:c₃,hc₃,hjk,hjl,hjc). Suppose further
+[a symmetric, reflexive dependency relation](hyp:G,decG,hrefl,hsymm)
+[of degree at most `m`](hyp:m,hdeg) such that
+[off-edge joint propensities factor](hyp:hGindep),
+[graph-unlinked kernel terms have zero covariance](hyp:hcov0), and
+[the population size diverges](hyp:hN). Then
+[`N²·Var[V̂_n]` tends to zero](goal).
+
+This is a finite-grid variance-consistency ingredient toward Aronow–Samii (2017), Proposition 6.2,
+under explicit assumptions stronger than the paper's stated conditions. -/
 theorem var_NsqVhat_tendsto_zero_of_conditions
     (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ) (hne : ∀ n, dk n ≠ dl n)
     {c₁ c₂ c₃ : ℝ} (hc₁ : 0 ≤ c₁) (hc₂ : 0 ≤ c₂) (hc₃ : 0 ≤ c₃)
@@ -138,7 +141,7 @@ theorem var_NsqVhat_tendsto_zero_of_conditions
   set C : ℝ := 8 * vbBound c₁ c₂ c₃ ^ 2 * (m : ℝ) ^ 3 with hCdef
   refine squeeze_zero (g := fun n => C * (Fintype.card (Exp n).ι : ℝ)⁻¹)
     (fun n => ?_) (fun n => ?_) ?_
-  · exact mul_nonneg (sq_nonneg _) (Var_nonneg _ _)
+  · exact mul_nonneg (sq_nonneg _) ((Exp n).D.Var_nonneg _)
   · letI := decG n
     exact NsqVar_htEffectVarEst_le (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (dk n) (dl n)
       (hne n) hc₁ hc₂ hc₃ (hy n) (hπk n) (hπl n) (hπinvk n) (hπinvl n)
@@ -148,29 +151,32 @@ theorem var_NsqVhat_tendsto_zero_of_conditions
     have := tendsto_const_nhds (x := C) |>.mul hinv
     simpa using this
 
-/-- **Feasible Wald coverage from primitive boundedness, overlap, dependency-graph, and
-variance-growth conditions.** Along a sequence of experiments with [distinct treatment arms
-`dk ≠ dl`](hyp:dk,dl,hne) whose [outcomes are uniformly bounded by a nonnegative constant
-`c₁`](hyp:hc₁,hy), suppose [the marginal exposure propensities under `dk` and `dl` are
-positive](hyp:hπk,hπl) with [inverses uniformly bounded by a nonnegative constant
-`c₂`](hyp:hc₂,hπinvk,hπinvl) — [taken strictly positive](hyp:hc₂pos) — and [the same-arm and
-cross-arm pairwise joint exposure propensities have inverses uniformly bounded by a nonnegative
-constant `c₃`](hyp:hc₃,hjk,hjl,hjc), with [all off-diagonal joint propensities strictly
-positive](hyp:hjointk,hjointl,hjointc). Suppose a [symmetric, reflexive dependency relation
-`G`](hyp:G,decG,hrefl,hsymm) [of degree at most `m`](hyp:hdeg) makes [every non-adjacent pair's
-joint exposure propensities factor as if independent](hyp:hGindep) and gives [every quadruple
-with no adjacent index pair zero covariance between the variance-estimator kernel
-terms](hyp:hcov0); suppose also [the per-unit effect summands admit a Stein dependency graph
-`Dg`](hyp:Dg) [of degree at most `m`](hyp:hSteinDeg), that [the population size
-diverges](hyp:hN) while [population size times the true effect-estimator variance converges to a
-positive constant `cVar`](hyp:hcVar,hCond4) and [that variance is everywhere
-positive](hyp:hVar), and that [`zq` is a nonnegative quantile](hyp:hzq0) [satisfying
-`Φ(zq) = 1 − α/2`](hyp:hzq). Then [the feasible Wald interval `τ̂ ± zq·√V̂` attains asymptotic
-(liminf) coverage at least `1 − α`](goal). -/
-theorem wald_coverage_feasible_of_conditions
+/-- **Feasible Wald coverage from bounded-degree, factorization, and covariance conditions.**
+Along [a sequence of experiments](hyp:Exp) with [distinct treatment arms](hyp:dk,dl,hne) whose
+[outcomes are uniformly bounded by `c₁`](hyp:c₁,hc₁,hy), suppose
+[the marginal exposure propensities under `dk` and `dl` are positive](hyp:hπk,hπl) with
+[inverse propensities bounded by `c₂`](hyp:c₂,hc₂,hπinvk,hπinvl) —
+[taken strictly positive](hyp:hc₂pos) — and
+[the joint-propensity inverses are bounded by a nonnegative `c₃`](hyp:c₃,hc₃,hjk,hjl,hjc), with
+[all off-diagonal joint propensities strictly positive](hyp:hjointk,hjointl,hjointc). Suppose
+[a symmetric, reflexive dependency relation `G`](hyp:G,decG,hrefl,hsymm)
+[of degree at most `m`](hyp:hdeg) makes
+[off-edge joint propensities factor](hyp:hGindep) and gives
+[graph-unlinked kernel pairs zero covariance](hyp:hcov0); suppose also
+[the per-unit effect summands have a Stein dependency graph `Dg`](hyp:Dg)
+[of degree at most `m`](hyp:m,hSteinDeg), that [the population size diverges](hyp:hN) while
+[the scaled true variance tends to positive `cVar`](hyp:cVar,hcVar,hScaledVar) and
+[that variance is everywhere positive](hyp:hVar), and that
+[`zq` is a nonnegative quantile](hyp:α,zq,hzq0) [satisfying `Φ(zq) = 1 − α/2`](hyp:hzq). Then
+[the feasible Wald interval has liminf coverage at least `1 − α`](goal).
+
+This is a finite-grid sufficient-condition specialization of the coverage conclusion in
+Aronow–Samii (2017), Proposition 6.2. Its explicit joint-overlap, factorization, and
+covariance-vanishing assumptions are not claimed to be the paper's exact Conditions 3, 5, and 6. -/
+theorem wald_coverage_feasible_of_bounded_degree_factorization_covariance
     (Exp : ℕ → Experiment) (dk dl : ∀ n, (Exp n).Δ)
     {m : ℕ}
-    (Dg : ∀ n, SteinMethod.DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
+    (Dg : ∀ n, DepGraph (fun i => (Exp n).effSummand (dk n) (dl n) i)
       (Exp n).D.toMeasure)
     (hSteinDeg : ∀ n i, ((Dg n).nbhd i).card ≤ m)
     (hne : ∀ n, dk n ≠ dl n)
@@ -208,7 +214,7 @@ theorem wald_coverage_feasible_of_conditions
     (hjointc : ∀ n i j, i ≠ j →
       0 < propPairCross (Exp n).D (Exp n).f (Exp n).θ i j (dk n) (dl n))
     {cVar : ℝ} (hcVar : 0 < cVar)
-    (hCond4 : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ)
+    (hScaledVar : Tendsto (fun n => (Fintype.card (Exp n).ι : ℝ)
         * (Exp n).D.Var (htEffect (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (dk n) (dl n)))
       atTop (𝓝 cVar))
     (hVar : ∀ n, 0 < (Exp n).D.Var
@@ -222,7 +228,7 @@ theorem wald_coverage_feasible_of_conditions
               (htEffectVarEst (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (dk n) (dl n) z)))
       Filter.atTop := by
   have hclt : LocalDependenceCLT Exp dk dl :=
-    localDependenceCLT_of_paper_conditions Exp dk dl Dg m hSteinDeg c₁
+    localDependenceCLT_of_bounded_degree_scaled_variance Exp dk dl Dg m hSteinDeg c₁
       (fun n i => hy n i (dk n)) (fun n i => hy n i (dl n)) c₂ hc₂pos
       (fun n i => by
         have hπinv := hπinvk n i
@@ -234,10 +240,10 @@ theorem wald_coverage_feasible_of_conditions
         rw [one_div] at hπinv
         rw [one_div]
         exact (inv_le_comm₀ hc₂pos (hπl n i)).mpr hπinv)
-      hN hVar cVar hcVar hCond4
+      hN hVar cVar hcVar hScaledVar
   have hVN := var_NsqVhat_tendsto_zero_of_conditions Exp dk dl hne hc₁ hc₂ hc₃ hy hπk hπl
     hπinvk hπinvl hjk hjl hjc G decG hrefl hsymm hdeg hGindep hcov0 hN
-  have hrel := relVar_of_NsqVar_tendsto Exp dk dl hcVar hCond4 hVN
+  have hrel := relVar_of_NsqVar_tendsto Exp dk dl hcVar hScaledVar hVN
   exact wald_coverage_feasible_of_relVar Exp dk dl hclt hne
     (fun n i => (hπk n i).ne') (fun n i => (hπl n i).ne')
     (fun n i j hij => (hjointk n i j hij).ne')

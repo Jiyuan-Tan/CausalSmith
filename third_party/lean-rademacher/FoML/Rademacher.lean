@@ -1,11 +1,15 @@
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Measure.Prod
-import Mathlib.Probability.Notation
-import Mathlib.Algebra.Order.Group.CompleteLattice
-import Mathlib.MeasureTheory.Order.Group.Lattice
-import FoML.Symmetrization
-import FoML.MeasurePiLemmas
+module
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.MeasureTheory.Measure.Prod
+public import Mathlib.Probability.Notation
+public import Mathlib.Algebra.Order.Group.CompleteLattice
+public import Mathlib.Algebra.Order.Group.Pointwise.Bounds
+public import Mathlib.MeasureTheory.Order.Group.Lattice
+public import FoML.Symmetrization
+public import FoML.MeasurePiLemmas
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Real
 open scoped ENNReal

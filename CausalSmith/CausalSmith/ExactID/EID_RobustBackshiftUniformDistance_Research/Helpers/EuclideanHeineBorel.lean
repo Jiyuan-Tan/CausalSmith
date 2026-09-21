@@ -1,4 +1,5 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
+module
+public import Mathlib.Analysis.InnerProductSpace.PiL2
 
 /-!
 # Euclidean Heine–Borel helper
@@ -6,6 +7,8 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 This module supplies the paper-local compactness bridge from closedness and boundedness for
 finite-dimensional Euclidean spaces.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

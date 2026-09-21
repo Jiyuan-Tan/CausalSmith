@@ -9,7 +9,10 @@ This file carries the arm score cost `J_{a,nu}`, the aggregate local information
 objects built from it, and the closed-form score-program solution.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ArmScoreSubstrate
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ArmScoreSubstrate
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

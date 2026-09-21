@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ConcreteRadialHandle
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.ConcreteRadialHandle
 
 /-! # Concrete least-favorable handle certificates
 
 This module packages ambient membership and coupling certificates for handles
 whose fields are the canonical padded binary constructions.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

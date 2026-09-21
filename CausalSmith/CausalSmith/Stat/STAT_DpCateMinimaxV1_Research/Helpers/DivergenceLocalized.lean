@@ -1,7 +1,10 @@
 /- Copyright (c) 2026 Jiyuan Tan. All rights reserved. -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.BumpHolder
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TwoPointDivergence
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.BumpHolder
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TwoPointDivergence
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwMoments
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PolicyKernelContraction
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwMoments
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PolicyKernelContraction
 
 set_option linter.style.longLine false
 
@@ -15,6 +16,8 @@ For disjoint windows, conditioning after the earlier reward leaves
 For example, iid hidden signs with reward `(H_t + H_{t+1}) / 2` have a zero-contraction
 state kernel but nonzero adjacent reward covariance.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

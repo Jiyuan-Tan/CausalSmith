@@ -1,12 +1,15 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.EndpointDirectional
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TCapacityIdentification
-import Causalean.Stat.EmpiricalProcess.CrossFitRate
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.EndpointDirectional
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TCapacityIdentification
+public import Causalean.Stat.EmpiricalProcess.CrossFitRate
 
 /-!
 # Deterministic and concentration bounds for the uniform guard
 
 Paper-local analytic lemmas used by the alpha-indexed deterministic guard.
 -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open MeasureTheory Filter Topology
@@ -18,7 +21,7 @@ variable {𝒳 Ω : Type*} [Fintype 𝒳] [DecidableEq 𝒳] [Nonempty 𝒳]
   [MeasurableSpace 𝒳] [MeasurableSingletonClass 𝒳] [MeasurableSpace Ω]
 variable {K : ℕ} {μ : Measure Ω}
 
-private abbrev GuardMeasure (𝒳 : Type*) (K : ℕ) :=
+abbrev GuardMeasure (𝒳 : Type*) (K : ℕ) :=
   @Measure (ObservedDatum 𝒳 K) instMeasurableSpaceObservedDatum
 
 variable {Pobs : GuardMeasure 𝒳 K}

@@ -1,8 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmCountSufficiency
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmDepoissonization
-import Mathlib.MeasureTheory.Integral.Pi
-import Mathlib.Algebra.Order.Chebyshev
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmCountSufficiency
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmDepoissonization
+public import Mathlib.MeasureTheory.Integral.Pi
+public import Mathlib.Algebra.Order.Chebyshev
 
 /-!
 # Finite permutation Rao--Blackwellization
@@ -12,6 +13,8 @@ permutations.  Convexity decreases squared risk, while every iid product law
 is invariant under those permutations.  This is the finite symmetrization
 step used by the count-level D.2 reduction.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

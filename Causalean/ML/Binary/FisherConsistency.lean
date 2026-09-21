@@ -3,28 +3,33 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
+
+module
+public import Causalean.ML.Core
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-! # Fisher consistency of the logistic cross-entropy loss
 
-The Bernoulli cross-entropy `bernoulliCE η q = −η log q − (1−η) log(1−q)` is
-minimized over `q ∈ [0,1]` exactly at `q = η`.  This is the pointwise heart of
-Fisher consistency: the population log-loss minimizer recovers the true
-conditional probability `η(x) = P(Y = 1 ∣ X = x)`.
+For a true probability strictly between zero and one, reporting that probability
+minimizes Bernoulli cross-entropy over the open unit interval. This is the
+pointwise optimality direction behind Fisher consistency. The theorem here does
+not assert uniqueness, and the open interval avoids the ambient convention that
+assigns a finite real value to the logarithm at zero.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 
-/-- For [a true success probability $\eta$](hyp:η) and [a predicted success probability $q$](hyp:q), the [Bernoulli cross-entropy](goal) is $-\eta\log q-(1-\eta)\log(1-q)$.
+/-- [Bernoulli cross-entropy](goal) scores [a predicted success probability](hyp:q) against
+[the true success probability](hyp:η) by [weighting the success and failure log losses](step:1).
 
 This pointwise loss underlies binary logistic prediction. -/
 noncomputable def bernoulliCE (η q : ℝ) : ℝ :=
   -η * Real.log q - (1 - η) * Real.log (1 - q)
 
-/-- For [a true probability `η` strictly between `0` and `1`](hyp:hη), [the Bernoulli
-cross-entropy `q ↦ bernoulliCE η q` attains its minimum over the open interval `(0,1)` exactly at
-the truth `q = η`](goal).
+/-- [Truth minimizes cross-entropy on the open unit interval](goal) when
+[the true probability is strictly between zero and one](hyp:hη).
 
 The interior is essential: Mathlib's junk convention `Real.log 0 = 0` makes the closed-interval
 version false at the boundary, where the genuine cross-entropy is `+∞`. -/

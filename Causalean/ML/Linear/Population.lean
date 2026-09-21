@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+module
+public import Causalean.ML.Core
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Linear least squares — population target
 
@@ -13,8 +15,10 @@ with every feature (the population normal equations) minimizes squared populatio
 risk over the linear-in-features class. This file formalizes the condition as
 `IsPopulationOLS` and proves `bestLinearPredictor_minimizes_populationRisk`;
 global optimality under correct specification is supplied by the spine theorem
-`square_loss_population_target_of_isL2Projection`.
+`square_loss_population_target_of_isResidualOrthogonal`.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 
@@ -22,19 +26,18 @@ open MeasureTheory BigOperators
 
 variable {X' K : Type*} [MeasurableSpace X'] [Fintype K]
 
-/-- For [a measurable covariate space](hyp:X'), [a finite feature index set](hyp:K),
-[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), and [a coefficient vector](hyp:βstar),
-the [population ordinary-least-squares condition](goal) holds exactly when the integral of the product
-of the corresponding linear-predictor residual and each feature coordinate is zero. -/
+/-- [The population ordinary-least-squares condition](goal) requires
+[residual orthogonality to every feature](step:1). It evaluates
+[a coefficient vector](hyp:βstar) and [finite feature map](hyp:K,φ) under
+[a joint covariate--response law](hyp:P,X'). -/
 def IsPopulationOLS (P : Measure (X' × ℝ)) (φ : FeatureMap X' K) (βstar : K → ℝ) : Prop :=
   ∀ k, ∫ z, (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k ∂P = 0
 
-/-- For a probability measure `P` on features and outcome and a finite feature map `φ`, if
-[the residual of the linear predictor with coefficients `βstar` is uncorrelated in expectation
-with every feature](hyp:hortho), [the population squared-loss risks of the `βstar`- and
-`β`-predictors are both finite](hyp:hint_star,hint_β), and [each feature is integrable against
-that residual](hyp:hcross), then [the population squared risk of the `βstar`-predictor is at
-most that of any other linear-in-features predictor with coefficients `β`](goal). -/
+/-- [Residual orthogonality makes a linear predictor population-risk optimal](goal). The
+comparison uses [the law, feature map, and comparator](hyp:P,φ,β) on
+[the covariate and feature spaces](hyp:X',K), assuming [residual orthogonality](hyp:hortho),
+[finite risks for both predictors](hyp:hint_star,hint_β), and
+[integrable residual--feature products](hyp:hcross). -/
 theorem bestLinearPredictor_minimizes_populationRisk
     (P : Measure (X' × ℝ)) (φ : FeatureMap X' K) {βstar : K → ℝ}
     (hortho : IsPopulationOLS P φ βstar) (β : K → ℝ)

@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData
-import Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.Stationary
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData
+public import Causalean.Mathlib.Probability.Certified.Stationary
+
+@[expose] public section
 
 set_option linter.style.longLine false
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 /-- For [the i input](hyp:i), [this defines the insulin False Certified Initial Value object](goal). -/

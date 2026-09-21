@@ -10,7 +10,8 @@ obtained by combining the conditional stratum bounds from `Helpers.lean`
 with mean-independence (`MeanIndep`).
 -/
 
-import Causalean.PO.ID.Partial.Manski.Helpers
+module
+public import Causalean.PO.ID.Partial.Manski.Helpers
 
 /-! # Baseline non-asymptotic Manski bounds
 
@@ -23,6 +24,8 @@ The file exposes per-stratum integral bounds for `Y(1)` and `Y(0)`, the
 two-stratum ATE sandwich `manski_bounds_ATE`, and the support-aggregated
 supremum/infimum statement `manski_bounds_ATE_ciSup`.
 -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -44,25 +47,25 @@ stratum bounds collapse to bounds on the unconditional integral. -/
 theorem lowerBound1_le_integral_Y1 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMI : S.MeanIndep) {z : α} (hz : z ∈ S.support) :
     S.lowerBound1 hA.lo z ≤ ∫ ω, S.YofD true ω ∂P.μ :=
-  (S.lowerBound1_le_cond_Y1 hA hz).trans_eq (hMI.meanIndep_one z hz)
+  (S.lowerBound1_le_cond_Y1 hA).trans_eq (hMI.meanIndep_one z hz)
 
 /-- Stratum-level upper bound on `E[Y(1)]`. -/
 theorem integral_Y1_le_upperBound1 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMI : S.MeanIndep) {z : α} (hz : z ∈ S.support) :
     ∫ ω, S.YofD true ω ∂P.μ ≤ S.upperBound1 hA.hi z :=
-  (hMI.meanIndep_one z hz).symm.trans_le (S.cond_Y1_le_upperBound1 hA hz)
+  (hMI.meanIndep_one z hz).symm.trans_le (S.cond_Y1_le_upperBound1 hA)
 
 /-- Stratum-level lower bound on `E[Y(0)]`. -/
 theorem lowerBound0_le_integral_Y0 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMI : S.MeanIndep) {z : α} (hz : z ∈ S.support) :
     S.lowerBound0 hA.lo z ≤ ∫ ω, S.YofD false ω ∂P.μ :=
-  (S.lowerBound0_le_cond_Y0 hA hz).trans_eq (hMI.meanIndep_zero z hz)
+  (S.lowerBound0_le_cond_Y0 hA).trans_eq (hMI.meanIndep_zero z hz)
 
 /-- Stratum-level upper bound on `E[Y(0)]`. -/
 theorem integral_Y0_le_upperBound0 [IsFiniteMeasure P.μ]
     (hA : S.BaseAssumptions) (hMI : S.MeanIndep) {z : α} (hz : z ∈ S.support) :
     ∫ ω, S.YofD false ω ∂P.μ ≤ S.upperBound0 hA.hi z :=
-  (hMI.meanIndep_zero z hz).symm.trans_le (S.cond_Y0_le_upperBound0 hA hz)
+  (hMI.meanIndep_zero z hz).symm.trans_le (S.cond_Y0_le_upperBound0 hA)
 
 /-! ### Per-stratum-pair ATE sandwich
 

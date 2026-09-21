@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.THonestRootNConfidence
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ClusterBounds
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.THonestRootNConfidence
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ClusterBounds
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

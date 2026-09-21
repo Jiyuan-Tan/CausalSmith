@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureCarrier
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.PhiwFutureCarrier
 
 set_option linter.style.longLine false
 
 /-! # Iterated peeling of future PHIW scores -/
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

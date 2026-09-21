@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Asymptotics
-import Mathlib.Analysis.Matrix.Order
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Asymptotics
+public import Mathlib.Analysis.Matrix.Order
 
 /-!
 # Versioned software contracts
@@ -8,6 +9,8 @@ The declarations in this file are cited logical gates.  They expose only the
 mathematical claims attributed to the pinned `clubSandwich` and `sandwich`
 sources; no Lean proof of package semantics is asserted.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Matrix
 

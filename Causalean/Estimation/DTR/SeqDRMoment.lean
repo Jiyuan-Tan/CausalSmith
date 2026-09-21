@@ -25,7 +25,8 @@ The data tuple is `(s₀, d₀, s₁, d₁, y) : γ 0 × δ × γ 1 × δ × ℝ
 Mirrors the structure of `Estimation/ATE/AIPWMoment.lean`.
 -/
 
-import Causalean.Estimation.DTR.Setup
+module
+public import Causalean.Estimation.DTR.Setup
 
 /-!
 # Sequential DR Moment for Two-Stage Regimes
@@ -40,6 +41,8 @@ The development is intentionally specialized to horizon two; the treatment space
 is discrete enough to support equality indicators.  The stage-1 history is stored
 in cons order as the current state, previous treatment, and previous state.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

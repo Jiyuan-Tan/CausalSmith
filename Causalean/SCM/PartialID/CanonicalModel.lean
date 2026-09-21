@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.Identifiable
-import Causalean.PO.ID.Partial.Basic
+
+module
+public import Causalean.SCM.ID.Identifiable
+public import Causalean.Stat.AttainableSet
 
 /-! # Compatible structural causal models for graphical partial identification
 
@@ -17,35 +19,37 @@ set is the range of the query over the class.
 Concretely, fixing a SWIG graph `G`, a structural-assumption predicate `As`, and a reference
 model `M₀`, the **compatible class** collects the models `M` that (i) have diagram `G`, (ii)
 satisfy `As`, and (iii) are observationally equivalent to `M₀` (same derived observational
-kernel). The **compatible interval** of a real-valued query is the range of that query over
-the compatible class — an instance of the abstract `IdentifiedInterval` from the
-potential-outcomes partial-identification layer, so the existing sharpness / order-convexity
-lemmas apply.
+kernel). The **compatible identified set** of a real-valued query is the range of that query
+over the compatible class — an instance of the shared abstract `IdentifiedSet`.
 
 ## Finite response-function reduction
 
-The finite canonical response-function *reduction* says that every measure-theoretic model in
-the compatible class is behaviourally matched by a model over a finite exogenous domain
-(Zhang–Tian–Bareinboim). It is not included here: the Causalean SCM layer is
-measure-theoretic (`Causalean.SCM` carries `MeasureTheory.Measure` latents), so this reduction
-is a genuine theorem, not a definitional unfolding. It is needed only when a *sharpness* claim
-must be discharged by enumerating finitely many realising models; soundness of a bound does not
-require it. The only finite realisation currently in the library is the Balke–Pearl construction
-in the potential-outcomes framework
-(`Causalean/PO/ID/Partial/BalkePearl/`).
+For finite observed-variable domains, Theorem 1 of Zhang, Tian, and Bareinboim (2022),
+*Partial Counterfactual Identification from Observational and Experimental Data*, gives a
+canonical representation with finite exogenous domains that preserves counterfactual
+distributions. That result does not justify a finite reduction for the arbitrary measurable
+value spaces admitted here, and no such reduction is formalized in this file. Soundness of a
+bound uses only the compatible class. The library's finite Balke–Pearl realization instead
+lives in the potential-outcomes framework (`Causalean/PO/ID/Partial/BalkePearl/`).
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.SCM.PartialID
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 variable {Ω : N → Type*} [∀ n, MeasurableSpace (Ω n)]
 
-/-- For [a finite collection of distinguishable node labels with measurable
-value spaces](hyp:N), [a SWIG graph](hyp:G), [a predicate specifying structural assumptions](hyp:As),
-and [a reference structural causal model](hyp:M₀), the [compatible-model class](goal)
+/-- For [a finite collection of distinguishable node labels](hyp:N) with
+[measurable value spaces](hyp:Ω), [a SWIG graph](hyp:G),
+[a predicate specifying structural assumptions](hyp:As), and
+[a reference structural causal model](hyp:M₀), the [compatible-model class](goal)
 is the collection of structural causal models that [have the given graph](step:1),
-satisfy the given assumptions, and are observationally equivalent to
-the reference model.
+satisfy the given assumptions, and
+are observationally equivalent to the reference model.
 
 The **compatible class** for a graphical partial-identification problem: the structural
 causal models `M` that share the SWIG graph `G`, satisfy the structural assumptions `As`, and
@@ -72,19 +76,23 @@ theorem compatibleSCM_mono {G : SWIGGraph N} {As As' : Causalean.SCM N Ω → Pr
     ∀ M, CompatibleSCM G As' M₀ M → CompatibleSCM G As M₀ M :=
   fun _ hM => ⟨hM.1, h _ hM.2.1, hM.2.2⟩
 
-/-- For [a finite collection of distinguishable node labels with measurable
-value spaces](hyp:N), [a SWIG graph](hyp:G), [a predicate specifying structural assumptions](hyp:As),
+/-- For [a finite collection of distinguishable node labels](hyp:N) with
+[measurable value spaces](hyp:Ω), [a SWIG graph](hyp:G),
+[a predicate specifying structural assumptions](hyp:As),
 [a reference structural causal model](hyp:M₀), and [a real-valued causal query](hyp:obj),
-the [compatible interval](goal) is the set of all query values attained by
+the [compatible identified set](goal) is the set of all query values attained by
 structural causal models compatible with that graph, assumptions, and reference model.
 
-The **compatible interval** of a real-valued causal query: its range over the compatible
-class. This is the graphical identified set; a partial-identification bound `[L, U]` is *sound*
+The defined range need not be an interval. A partial-identification bound `[L, U]` is *sound*
 exactly when this set is contained in `Set.Icc L U`, and *sharp* when they are equal. Built on
-the abstract `IdentifiedInterval`, so the order-convexity / sharpness lemmas of the
-partial-identification layer apply. -/
-noncomputable def compatibleInterval (G : SWIGGraph N) (As : Causalean.SCM N Ω → Prop)
+the abstract `IdentifiedSet`. -/
+noncomputable def compatibleIdentifiedSet (G : SWIGGraph N)
+    (As : Causalean.SCM N Ω → Prop)
     (M₀ : Causalean.SCM N Ω) (obj : Causalean.SCM N Ω → ℝ) : Set ℝ :=
-  Causalean.PartialID.IdentifiedInterval obj (CompatibleSCM G As M₀)
+  Causalean.Stat.AttainableSet.IdentifiedSet obj (CompatibleSCM G As M₀)
+
+/-- Deprecated former name of `compatibleIdentifiedSet`. -/
+@[deprecated compatibleIdentifiedSet (since := "2026-09-20")]
+alias compatibleInterval := compatibleIdentifiedSet
 
 end Causalean.SCM.PartialID

@@ -9,8 +9,11 @@ Real-power identities and monotonicity bounds used by the private-regression
 calibration algebra.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

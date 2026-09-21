@@ -179,7 +179,13 @@ export async function runFiller(args: {
   // frozen-statement contract; degrading it to "" would still dispatch a write-capable agent,
   // just one that was never told the rules.
   if (!existsSync(promptFile)) throw new Error(`proof-filler prompt missing: ${promptFile}`);
-  const basePrompt = await readFile(promptFile, "utf8");
+  const basePrompt = (await readFile(promptFile, "utf8")).replaceAll(
+    "{{HEADER_CONTRACT}}",
+    [
+      "HEADER CONTRACT — Every generated Lean file begins, in order, with the optional copyright block, then `module`, contiguous imports written as `public import` (only a rare deliberate exception marked by a `-- private import` comment may use a private import), the `/-! ... -/` module docstring, and exactly one blanket section: `@[expose] public section` when the file defines a `def`, `abbrev`, `instance`, `structure`, `class`, or `inductive`, otherwise `public section`. Keep declarations bare: no per-declaration `public`, `private`, or `@[expose]`; helpers stay bare, and nothing is private unless it is truly file-local and never needed by a proof downstream. Run barrels and `Helpers.lean` are imports-only and use `public import` on every line.",
+      "MODULE-SYSTEM CONSEQUENCES — A `module` file cannot import a legacy non-`module` file: every imported file must itself be a module file, and the scaffold must never add `import all`. A `def` whose body a downstream `rfl`, `decide`, or `unfold` needs must live in a file with `@[expose] public section`. A certificate evaluated by the kernel (`decide +kernel`) must not pass through well-founded recursion such as `Array.ofFn` or `termination_by`, because importers cannot see termination proofs; use a structural construction.",
+    ].join("\n"),
+  );
   if (!basePrompt.trim()) throw new Error(`proof-filler prompt is empty: ${promptFile}`);
   const directiveBlock =
     args.directive && args.directive.trim().length > 0

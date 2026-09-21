@@ -4,14 +4,19 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Tactic.Attr
-import Causalean.PO.Core.System
+module
+public import Causalean.Tactic.Attr
+public import Causalean.PO.Core.System
 
 /-! # Cross-World Counterfactual Distributions
 
 This file constructs finite joint distributions of potential outcomes evaluated
 under possibly different intervention regimes.  It supplies the cross-world
 evaluation map, its pushforward law, and the basic marginal reading of that law. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 namespace PO

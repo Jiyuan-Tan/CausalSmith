@@ -97,6 +97,9 @@ export function localConfig(): LocalConfig {
   try {
     if (fs.existsSync(LOCAL_JSON)) {
       file = JSON.parse(fs.readFileSync(LOCAL_JSON, "utf8")) as Partial<LocalConfig>;
+      if (Object.prototype.hasOwnProperty.call(file, ["module", "System"].join(""))) {
+        console.warn('[local_config] ignoring obsolete "moduleSystem" key; the module system is always enabled.');
+      }
     }
   } catch (err) {
     // Malformed local.json → fall back to env + defaults. Do NOT swallow

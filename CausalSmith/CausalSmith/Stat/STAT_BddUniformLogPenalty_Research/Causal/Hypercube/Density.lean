@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Design
-import Mathlib.Analysis.SpecialFunctions.PolarCoord
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Design
+public import Mathlib.Analysis.SpecialFunctions.PolarCoord
 
 /-! # Density and angular cancellation certificates for the hard family -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 

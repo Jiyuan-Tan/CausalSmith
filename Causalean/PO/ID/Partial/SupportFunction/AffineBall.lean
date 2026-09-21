@@ -30,9 +30,10 @@ i.e. `c ⊥ ker A` (equivalently `c` lies in the closed row space of `A`).
 * `affineBall_point_identified_iff` — point identification `⇔ P c = 0`.
 -/
 
-import Causalean.PO.ID.Partial.SupportFunction.Interval
-import Mathlib.Analysis.InnerProductSpace.Projection.Basic
-import Mathlib.Analysis.InnerProductSpace.Adjoint
+module
+public import Causalean.PO.ID.Partial.SupportFunction.Interval
+public import Mathlib.Analysis.InnerProductSpace.Projection.Basic
+public import Mathlib.Analysis.InnerProductSpace.Adjoint
 
 /-! # Support bounds for an affine ball
 
@@ -43,6 +44,8 @@ closed-form endpoint `supportFn_affineBall_eq`, derives the width formula
 `width_affineBall_eq`, and characterizes point identification by
 `affineBall_point_identified_iff`.
 -/
+
+@[expose] public section
 
 open scoped RealInnerProductSpace
 

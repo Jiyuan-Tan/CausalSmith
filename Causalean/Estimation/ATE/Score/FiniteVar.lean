@@ -9,9 +9,10 @@ Authors: Jiyuan Tan
 direct square-integrability gates for the outcome-regression components.
 -/
 
-import Causalean.Estimation.ATE.Score.AIPWMoment
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
+module
+public import Causalean.Estimation.ATE.Score.AIPWMoment
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 /-! # Finite Variance for AIPW
 
@@ -24,6 +25,8 @@ The headline theorem `aipw_finite_var` assumes direct L² gates for
 `μ_val(d, X)`, while `aipw_finite_var_of_counterfactual_sq` derives those gates
 from counterfactual second moments under the back-door assumptions.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation

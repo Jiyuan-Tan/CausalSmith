@@ -10,7 +10,10 @@ not uniformly control the observable approximation ratio.  This file records the
 resolved negative answer as a theorem scaffold.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionAsymptotics
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionAsymptotics
+
+public section
 
 set_option linter.style.longLine false
 

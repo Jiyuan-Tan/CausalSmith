@@ -1,5 +1,6 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
-import Mathlib.Tactic.NormNum
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Basic
+public import Mathlib.Tactic.NormNum
 
 /-!
 # Primitive sign-frontier constructions
@@ -7,6 +8,8 @@ import Mathlib.Tactic.NormNum
 This file defines the all-positive sign-reversal region, the concrete
 four-cohort fixture, and the row/column-margin elimination polynomial `Phi`.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Causalean.Stat

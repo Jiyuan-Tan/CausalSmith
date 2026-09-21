@@ -1,5 +1,6 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Coefficient
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Coefficient
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Certified finite Taylor approximation for Gaussian moment recovery
@@ -7,6 +8,8 @@ import Mathlib.Analysis.SpecialFunctions.Pow.Real
 This module defines the polynomial truncation of `r² exp (r²)`, proves its
 degree, and bounds its factorial-series remainder uniformly on `[0,5]`.
 -/
+
+@[expose] public section
 
 open Set
 open scoped BigOperators Polynomial
@@ -46,8 +49,8 @@ theorem secondMomentTaylorPolynomial_natDegree_oneHundred :
       omega
   · set_option maxRecDepth 10000 in
     rw [secondMomentTaylorPolynomial]
-    change (∑ k ∈ Finset.range 101,
-      (Polynomial.monomial (2 * k + 2) (1 / (k.factorial : ℝ))).coeff 202) ≠ 0
+    -- The public coefficient API avoids unfolding Mathlib's opaque polynomial addition instance.
+    rw [Polynomial.finsetSum_coeff]
     simp only [Polynomial.coeff_monomial]
     rw [Finset.sum_eq_single 100]
     · norm_num

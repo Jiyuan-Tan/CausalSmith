@@ -1,13 +1,16 @@
-import Mathlib.Analysis.Calculus.ContDiff.Basic
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import Mathlib.Analysis.Calculus.ContDiff.Basic
+public import Mathlib.Analysis.Matrix.Normed
+public import Mathlib.Analysis.Matrix.Spectrum
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 /-!
 # Ordered roots of a real two-by-two matrix
 
 This module supplies explicit ordered roots, their spectral interpretation for symmetric matrices, and their local continuous differentiability away from a repeated root.  The formulas are defined on all real two-by-two matrices, so the strict-gap region is open without choosing an eigenvector.
 -/
+
+@[expose] public section
 
 open Matrix
 open scoped Matrix.Norms.Elementwise

@@ -11,7 +11,8 @@ linearity `sampleQuantile_isAsymLinear` and the generic
 `sampleQuantile_quantileRegularity` bundle. Builds on the root-n rate layer.
 -/
 
-import Causalean.Stat.Quantile.SampleQuantileBahadur.Rate
+module
+public import Causalean.Stat.Quantile.SampleQuantileBahadur.Rate
 
 /-! # Bahadur Linearity and Assembly
 
@@ -28,6 +29,8 @@ derived remainder into the reusable `QuantileRegularity` structure from
 to assume a Bahadur expansion separately for the ordinary sample quantile.
 -/
 
+public section
+
 namespace Causalean.Stat
 
 open MeasureTheory ProbabilityTheory Filter Topology
@@ -43,7 +46,7 @@ then `Xn + Yn →ₚ 0`.  Union bound: `{ε ≤ |Xn+Yn|} ⊆ {ε/2 ≤ |Xn|} ∪
 lemma Tendsto_inProb.add_zero_zero {Xn Yn : ℕ → Ω → ℝ}
     (hX : Tendsto_inProb Xn (fun _ => 0) μ) (hY : Tendsto_inProb Yn (fun _ => 0) μ) :
     Tendsto_inProb (fun n ω => Xn n ω + Yn n ω) (fun _ => 0) μ := by
-  unfold Tendsto_inProb at hX hY ⊢
+  rw [Tendsto_inProb_iff] at hX hY ⊢
   rw [tendstoInMeasure_iff_norm] at hX hY ⊢
   intro ε hε
   have hX2 := hX (ε / 2) (by linarith)
@@ -73,7 +76,7 @@ harmless `<`/`≤` slack (handled with `ε/2`). -/
 lemma Tendsto_inProb.of_isLittleOp_one {Xn : ℕ → Ω → ℝ}
     (h : IsLittleOp Xn (fun _ => (1 : ℝ)) μ) :
     Tendsto_inProb Xn (fun _ => 0) μ := by
-  unfold Tendsto_inProb
+  rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_norm]
   intro ε hε
   have h2 := h (ε / 2) (by linarith)
@@ -85,62 +88,90 @@ lemma Tendsto_inProb.of_isLittleOp_one {Xn : ℕ → Ω → ℝ}
   linarith
 
 omit [IsProbabilityMeasure P] in
-/-- **The sample-quantile atom term vanishes.**
-`√n (F̂ₙ(q̂ₙ) − τ) →ₚ 0`.  The switching
-atom bound `|F̂ₙ(q̂ₙ) − τ| ≤ 1/n` (a.e.) gives `|√n(F̂ₙ(q̂ₙ) − τ)| ≤ 1/√n → 0`,
-so the term converges to `0` even a.e.-deterministically. -/
+/-- **The sample-quantile atom term vanishes.** For [an iid sample](hyp:S) satisfying
+[local quantile regularity](hyp:hreg), [the scaled empirical-cdf overshoot at the sample quantile,
+`√n (F̂ₙ(q̂ₙ) − τ)`, converges to zero in probability](goal).
+
+Inside the regularity neighborhood the atom bound is at most `1/n`; root-`n` tightness makes the
+probability that the sample quantile leaves that neighborhood vanish. -/
 lemma IIDSample.sampleQuantile_atom_term_tendsto_zero (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (hreg : SampleQuantileReg P τ q₀ f₀) :
     Tendsto_inProb
       (fun n ω => Real.sqrt (n : ℝ) * (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ))
       (fun _ => 0) μ := by
-  unfold Tendsto_inProb
+  rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_norm]
   intro ε hε
+  obtain ⟨ρ, hρ, hcont⟩ := hreg.cont
   -- `1/√n → 0`, so eventually `1/√n < ε`; combine with the a.e. atom bound.
   have hInvSqrt : Tendsto (fun n : ℕ => (Real.sqrt (n : ℝ))⁻¹) atTop (𝓝 0) := by
     have hsqrt_atTop : Tendsto (fun n : ℕ => Real.sqrt (n : ℝ)) atTop atTop :=
       Real.tendsto_sqrt_atTop.comp tendsto_natCast_atTop_atTop
     exact tendsto_inv_atTop_zero.comp hsqrt_atTop
+  set Un : ℕ → Ω → ℝ :=
+    fun n ω => Real.sqrt (n : ℝ) * (S.sampleQuantile τ n ω - q₀) with hUn
+  letI : IsProbabilityMeasure P := by
+    rw [← S.law]
+    exact Measure.isProbabilityMeasure_map (S.meas 0).aemeasurable
+  have hUnBig : IsBigOp Un (fun _ => (1 : ℝ)) μ := by
+    simpa [Un] using S.sampleQuantile_rate hreg
+  have hscaled : Tendsto_inProb
+      (fun n ω => (Real.sqrt (n : ℝ))⁻¹ * Un n ω) (fun _ => 0) μ :=
+    Tendsto_inProb.of_isLittleOp_one (hUnBig.const_mul_tendsto_zero hInvSqrt)
+  have hlocalTail : Tendsto
+      (fun n : ℕ => μ {ω | ρ ≤ ‖(Real.sqrt (n : ℝ))⁻¹ * Un n ω - 0‖})
+      atTop (nhds 0) :=
+    (tendstoInMeasure_iff_norm.mp hscaled) ρ hρ
   have hev : ∀ᶠ n : ℕ in atTop, (Real.sqrt (n : ℝ))⁻¹ < ε := by
     have := (Metric.tendsto_nhds.mp hInvSqrt) ε hε
     filter_upwards [this] with n hn
     have hnn : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ := by positivity
     rw [Real.dist_eq, sub_zero, abs_of_nonneg hnn] at hn
     exact hn
-  -- For `n ≥ 1` with `1/√n < ε`, the measure of the exceptional set is 0.
-  apply Filter.Tendsto.congr' (f₁ := fun _ : ℕ => (0 : ENNReal))
-  · symm
-    filter_upwards [hev, eventually_ge_atTop 1] with n hnε hn1
-    have hnpos : 0 < n := hn1
-    have hnR : 0 < (n : ℝ) := by exact_mod_cast hnpos
-    have hsq : 0 < Real.sqrt (n : ℝ) := Real.sqrt_pos.mpr hnR
-    -- a.e. the empirical-process atom term is ≤ 1/√n < ε.
-    have hatom := S.sampleQuantile_atom_bound hreg.cont hnpos hreg.tau_pos hreg.tau_lt_one
-    have hae : ∀ᵐ ω ∂μ, ‖Real.sqrt (n : ℝ) *
-        (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ) - 0‖ < ε := by
-      filter_upwards [hatom] with ω hω
-      simp only [sub_zero, Real.norm_eq_abs]
-      -- `|√n·(F̂ₙ(q̂ₙ)−τ)| = √n·|F̂ₙ(q̂ₙ)−τ| ≤ √n·(1/n) = 1/√n < ε`.
-      have hbound : |Real.sqrt (n : ℝ) * (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ)|
-          ≤ (Real.sqrt (n : ℝ))⁻¹ := by
-        rw [abs_mul, abs_of_nonneg hsq.le]
-        calc Real.sqrt (n : ℝ) * |S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ|
-            ≤ Real.sqrt (n : ℝ) * (n : ℝ)⁻¹ := by
-              exact mul_le_mul_of_nonneg_left hω hsq.le
-          _ = (Real.sqrt (n : ℝ))⁻¹ := by
-              have h := Real.mul_self_sqrt hnR.le; field_simp; nlinarith [h]
-      exact lt_of_le_of_lt hbound hnε
-    -- The bad set is null: it is `{ω | ¬ ‖·‖ < ε}`, which `ae_iff` sends to 0.
-    have hnull : μ {ω | ¬ ‖Real.sqrt (n : ℝ) *
-        (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ) - 0‖ < ε} = 0 := ae_iff.mp hae
-    rw [show {ω | ε ≤ ‖Real.sqrt (n : ℝ) *
-        (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ) - 0‖}
-        = {ω | ¬ ‖Real.sqrt (n : ℝ) *
-          (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ) - 0‖ < ε} from
-        Set.ext fun ω => by simp [not_lt]]
-    exact hnull
-  · exact tendsto_const_nhds
+  refine tendsto_of_tendsto_of_tendsto_of_le_of_le' tendsto_const_nhds hlocalTail
+    (Eventually.of_forall fun _ => bot_le) ?_
+  filter_upwards [hev, (eventually_ge_atTop 1 : ∀ᶠ n : ℕ in atTop, 1 ≤ n)] with n hnε hn1
+  have hnpos : 0 < n := hn1
+  have hnR : 0 < (n : ℝ) := by exact_mod_cast hnpos
+  have hsq : 0 < Real.sqrt (n : ℝ) := Real.sqrt_pos.mpr hnR
+  have hatom := S.sampleQuantile_atom_bound hρ hcont hnpos
+    hreg.tau_pos hreg.tau_lt_one
+  apply measure_mono_ae
+  filter_upwards [hatom] with ω hω
+  intro hbad
+  simp only [Set.mem_setOf_eq, sub_zero, Real.norm_eq_abs] at hbad ⊢
+  have hnotlocal : ¬ S.sampleQuantile τ n ω ∈
+      Set.Ioo (q₀ - ρ) (q₀ + ρ) := by
+    intro hlocal
+    have hatomω := hω hlocal
+    have hbound : |Real.sqrt (n : ℝ) *
+        (S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ)|
+        ≤ (Real.sqrt (n : ℝ))⁻¹ := by
+      rw [abs_mul, abs_of_nonneg hsq.le]
+      calc
+        Real.sqrt (n : ℝ) *
+              |S.empiricalCDF (S.sampleQuantile τ n ω) n ω - τ|
+            ≤ Real.sqrt (n : ℝ) * (n : ℝ)⁻¹ :=
+          mul_le_mul_of_nonneg_left hatomω hsq.le
+        _ = (Real.sqrt (n : ℝ))⁻¹ := by
+          have h := Real.mul_self_sqrt hnR.le
+          field_simp
+          nlinarith [h]
+    exact (not_lt_of_ge hbad) (lt_of_le_of_lt hbound hnε)
+  have hrad : ρ ≤ |S.sampleQuantile τ n ω - q₀| := by
+    simp only [Set.mem_Ioo, not_and_or, not_lt] at hnotlocal
+    rcases hnotlocal with hlo | hhi
+    · rw [le_abs]
+      exact Or.inr (by linarith)
+    · rw [le_abs]
+      exact Or.inl (by linarith)
+  have hsqrtinv : (Real.sqrt (n : ℝ))⁻¹ * Real.sqrt (n : ℝ) = 1 :=
+    inv_mul_cancel₀ hsq.ne'
+  have hgoal : ρ ≤ |(Real.sqrt (n : ℝ))⁻¹ * Un n ω| := by
+    simp only [Un, abs_mul, abs_inv, abs_of_pos hsq]
+    rw [← mul_assoc, hsqrtinv, one_mul]
+    exact hrad
+  exact hgoal
 
 /-- **The Taylor remainder vanishes at the sample quantile.**
 Writing `R(y) = F(y) − F(q₀) −
@@ -180,7 +211,7 @@ lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω �
     simp only [hUn]
     rw [← mul_assoc, inv_mul_cancel₀ hsqrt_ne, one_mul]
   have hDeltaProb : ∀ ρ : ℝ, 0 < ρ →
-      Tendsto (fun n => μ {ω | ρ < |S.sampleQuantile τ n ω - q₀|}) atTop (𝓝 0) := by
+      Tendsto (fun n => μ {ω | ρ ≤ |S.sampleQuantile τ n ω - q₀|}) atTop (𝓝 0) := by
     intro ρ hρ
     have h := hDeltaScaled ρ hρ
     refine h.congr' ?_
@@ -189,10 +220,12 @@ lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω �
     ext ω
     have heq : (Real.sqrt (n : ℝ))⁻¹ * Un n ω =
         S.sampleQuantile τ n ω - q₀ := congr_fun hn ω
-    simp only [Set.mem_setOf_eq, mul_one]
+    simp only [Set.mem_setOf_eq, mul_one, Real.norm_eq_abs]
     rw [heq]
   -- Now produce `IsLittleOp (√n·R(q̂ₙ)) 1`, copying `deltaMethod_scalar`'s hRn.
   apply Tendsto_inProb.of_isLittleOp_one
+  apply (Modes.isLittleOpF_iff_strict _ _ _ _
+    (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
   rw [ENNReal.tendsto_nhds_zero]
   intro δ hδ
@@ -201,7 +234,8 @@ lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω �
   have hδpos : 0 < δ.toReal := ENNReal.toReal_pos (ne_of_gt hδ) hδtop
   set α : ℝ := δ.toReal / 8 with hα
   have hαpos : 0 < α := by rw [hα]; linarith
-  rcases hUnBig α hαpos with ⟨M0, hM0⟩
+  rcases hUnBig (ENNReal.ofReal α) (ENNReal.ofReal_pos.mpr hαpos) with
+    ⟨M0, hM0pos, hM0⟩
   set M : ℝ := max M0 1 with hMdef
   have hMpos : 0 < M := lt_of_lt_of_le zero_lt_one (le_max_right M0 1)
   have hM0le : M0 ≤ M := le_max_left M0 1
@@ -210,10 +244,11 @@ lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω �
     (cdf P (S.sampleQuantile τ n ω) - cdf P q₀ - f₀ * (S.sampleQuantile τ n ω - q₀))|}
     with hCdef
   have hlimA : Filter.limsup (fun n => μ (A n)) atTop ≤ ENNReal.ofReal α := by
-    refine le_trans (Filter.limsup_le_limsup (Eventually.of_forall ?_)) hM0
+    refine le_trans (Filter.limsup_le_limsup (Eventually.of_forall ?_))
+      (Filter.limsup_le_of_le (h := hM0))
     intro n
     refine measure_mono fun ω hω => ?_
-    simp only [hAdef, Set.mem_setOf_eq, mul_one] at hω ⊢
+    simp only [hAdef, Set.mem_setOf_eq, mul_one, Real.norm_eq_abs] at hω ⊢
     nlinarith
   have halpha_two : ENNReal.ofReal α < ENNReal.ofReal (2 * α) := by
     rw [ENNReal.ofReal_lt_ofReal_iff (by linarith)]; linarith
@@ -285,8 +320,9 @@ lemma IIDSample.sampleQuantile_taylor_remainder_tendsto_zero (S : IIDSample Ω �
 
 /-- **Sample-quantile inversion identity.** Given [a `SampleQuantileReg` regularity bundle
 `hreg`](hyp:hreg) — interior quantile level, positive density $f_0$ at the population quantile
-$q_0$, cdf identification, differentiability of the population cdf at $q_0$, and an atomless
-population — [the empirical process $G_n$ evaluated at the sample quantile $\hat q_n(\tau)$, plus
+$q_0$, cdf identification, differentiability of the population cdf at $q_0$, and cdf continuity
+on a positive-radius neighborhood of $q_0$ — [the empirical process $G_n$ evaluated at the
+sample quantile $\hat q_n(\tau)$, plus
 $f_0$ times the rescaled deviation $\sqrt n(\hat q_n(\tau)-q_0)$, converges to zero in
 probability](goal); equivalently $G_n(\hat q_n(\tau)) = -f_0\sqrt n(\hat q_n(\tau)-q_0) + o_p(1)$.
 
@@ -307,7 +343,7 @@ lemma IIDSample.sampleQuantile_inversion (S : IIDSample Ω ℝ μ P)
       (fun n ω => -(Real.sqrt (n : ℝ) *
         (cdf P (S.sampleQuantile τ n ω) - cdf P q₀
           - f₀ * (S.sampleQuantile τ n ω - q₀)))) (fun _ => 0) μ := by
-    unfold Tendsto_inProb at hRem ⊢
+    rw [Tendsto_inProb_iff] at hRem ⊢
     rw [tendstoInMeasure_iff_norm] at hRem ⊢
     intro ε hε
     refine (hRem ε hε).congr fun n => ?_
@@ -316,7 +352,7 @@ lemma IIDSample.sampleQuantile_inversion (S : IIDSample Ω ℝ μ P)
   -- Sum of the two in-probability limits.
   have hsum := hAtom.add_zero_zero hRemNeg
   -- The target equals `Aₙ + (−√n·R(q̂ₙ))` pointwise (ring identity, using `τ = F(q₀)`).
-  unfold Tendsto_inProb at hsum ⊢
+  rw [Tendsto_inProb_iff] at hsum ⊢
   refine TendstoInMeasure.congr' (Eventually.of_forall fun n => ?_) EventuallyEq.rfl hsum
   refine Eventually.of_forall fun ω => ?_
   simp only [IIDSample.empProcess, hreg.cdf_eq]
@@ -325,9 +361,14 @@ lemma IIDSample.sampleQuantile_inversion (S : IIDSample Ω ℝ μ P)
 /-! ## Normalized-sum identity -/
 
 omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
-/-- The normalized influence-function sum equals `−Gₙ(q₀)/f₀`:
+/-- The empirical-process fluctuation at the population quantile is exactly the
+negative normalized influence-function sum: for [an i.i.d. real sample](hyp:S),
+[a nonzero density value](hyp:_hf0), [identification of the population CDF at
+the quantile](hyp:hcdf), [a sample size](hyp:n), and [an outcome](hyp:ω),
+[the normalized sum equals `−Gₙ(q₀)/f₀`](goal).
 
-    (1/√n) Σ ψ_τ(Zᵢ)  =  −Gₙ(q₀) / f₀. -/
+The algebraic identity is total when the density value is zero; the nonzero
+premise is retained by this interface. -/
 lemma IIDSample.normalizedSum_quantileIF_eq (S : IIDSample Ω ℝ μ P)
     {τ q₀ f₀ : ℝ} (_hf0 : f₀ ≠ 0) (hcdf : cdf P q₀ = τ) (n : ℕ) (ω : Ω) :
     (Real.sqrt (n : ℝ))⁻¹ * ∑ i ∈ Finset.range n, quantileIF τ q₀ f₀ (S.Z i ω)
@@ -354,7 +395,7 @@ lemma Tendsto_inProb.const_mul_zero {Xn : ℕ → Ω → ℝ} (c : ℝ)
     Tendsto_inProb (fun n ω => c * Xn n ω) (fun _ => 0) μ := by
   rcases eq_or_ne c 0 with hc | hc
   · subst hc
-    unfold Tendsto_inProb
+    rw [Tendsto_inProb_iff]
     rw [tendstoInMeasure_iff_norm]
     intro ε hε
     have hempty : ∀ n, {ω : Ω | ε ≤ ‖(0 : ℝ) * Xn n ω - 0‖} = (∅ : Set Ω) := by
@@ -364,7 +405,7 @@ lemma Tendsto_inProb.const_mul_zero {Xn : ℕ → Ω → ℝ} (c : ℝ)
       exact hε
     simp_rw [hempty, measure_empty]
     exact tendsto_const_nhds
-  · unfold Tendsto_inProb at h ⊢
+  · rw [Tendsto_inProb_iff] at h ⊢
     rw [tendstoInMeasure_iff_norm] at h ⊢
     intro ε hε
     have hcpos : 0 < |c| := abs_pos.mpr hc

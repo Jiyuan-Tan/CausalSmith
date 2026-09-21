@@ -25,7 +25,7 @@ Source labels from
 ## Scope notes
 
 **Two-way fixed-effect nuisance class.** `IsGTFE` is a local abbreviation for
-`Causalean.Panel.Weighted.IsUnitTimeAdditive`, which itself unfolds to
+`Causalean.Stat.Weighted.IsUnitTimeAdditive`, which itself unfolds to
 `∃ a b, ∀ i t, h i t = a i + b t`.
 
 **Residualized treatment.** The paper motivates D̃ as the FWL
@@ -40,7 +40,7 @@ Here `tau` is a raw field; the only connection to outcomes is the consistency
 axiom `Y = Y0 + D * tau`.  The population origin of this field is supplied in the
 companion file `Causalean/Panel/EstimandCharacterization/HeterogeneousTWFE/PopulationBridge.lean`:
 `cellMean_consistency` shows that for cell-conditional means
-(`eventCondExp` on a cell event with constant `D ≡ d`), pointwise PO consistency
+(`normalizedRestrictedIntegral` on a cell event with constant `D ≡ d`), pointwise PO consistency
 `Y = Y0 + d·(Y1 − Y0)` yields the consistency identity `Ȳ = Ȳ(0) + d·τ̄` with
 `τ̄ = E[Y(1)|A] − E[Y(0)|A]` a genuine potential-outcome contrast.  That file
 also provides the full `DCDHPanel.ofPopulation` constructor, which builds a
@@ -52,20 +52,27 @@ the uniform case is `ofTwoWayPanel`).  This finite-algebra file itself stays
 measure-free.
 -/
 
-import Causalean.Panel.Weighted.AdditiveSpan
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Algebra.BigOperators.Group.Finset.Basic
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Fintype.Prod
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.FieldSimp
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Positivity
-import Mathlib.Tactic.Ring
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Stat.Weighted.AdditiveSpan
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Algebra.BigOperators.Group.Finset.Basic
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Fintype.Prod
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.FieldSimp
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Positivity
+public import Mathlib.Tactic.Ring
 
 /-! # Heterogeneous-effects finite-panel algebra
 
 This file develops finite group-by-period algebra for the two-way fixed-effects estimand with heterogeneous treatment effects. It defines weighted binary-treatment panels, their residualized-treatment coefficient, bias, and effect components, and establishes the decomposition, weight, and sign-reversal results; a companion module supplies their probability-model interpretation. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -82,7 +89,7 @@ components.
 
 Compatibility alias for the shared additive-span predicate. -/
 abbrev IsGTFE {G T : Type*} (h : G → T → ℝ) : Prop :=
-  Causalean.Panel.Weighted.IsUnitTimeAdditive h
+  Causalean.Stat.Weighted.IsUnitTimeAdditive h
 
 /-- A finite de Chaisemartin-D'Haultfoeuille group-time panel: it bundles [group-time cell
 weights](hyp:pi), [a binary treatment indicator](hyp:D), [the observed outcome](hyp:Y), [the

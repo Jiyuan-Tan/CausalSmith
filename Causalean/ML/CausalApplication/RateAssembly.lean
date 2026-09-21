@@ -3,29 +3,37 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core.Rate
 
-/-! # Assembly: per-method rates ⇒ DML nuisance-rate conditions
+module
+public import Causalean.ML.Core.Rate
 
-The mechanism that consumes per-method L²-estimation rates (proven in the method
-folders, expressed via `ML/Core/Rate`) and discharges the three nuisance-rate
-hypotheses of `Estimation.ATE.dml_ATE_tendstoNormal`.
+/-! # Abstract quarter-rate assembly for DML nuisance conditions
 
-It is method-agnostic: ridge, OLS, logistic — once each proves an `o_p(n^{-1/4})`
-L²-rate toward its population target (which the Step-1/2 bridge identifies with the
-causal nuisance) — plug their error sequences in as `μErr` / `eErr`.  Instantiating
+This file consumes abstract error sequences already assumed to have
+`o_p(n^{-1/4})` rates and derives the three corresponding nuisance-rate conditions
+used by DML. It does not connect those sequences to a concrete learner or invoke a
+method-specific `AchievesL2Rate` theorem.
+
+It is method-agnostic: once a learner proves an `o_p(n^{-1/4})` L²-rate toward a target
+that a separate identification argument equates almost everywhere with the causal
+nuisance, plug its error sequence in as `μErr` / `eErr`. Fixed-penalty ridge and logistic
+rates target penalized pseudo-true predictors; they do not by themselves provide this
+identification. Instantiating
 `μErr a n ω := (eLpNorm (fun x => μ̂ n ω a x − μ_val a x) 2 P_X).toReal` (and `eErr`
 analogously) makes the three outputs *literally* DML's `h_mu_rate` / `h_e_rate` /
 `h_product_rate`.
 -/
 
-namespace Causalean.ML.Causal
+public section
+
+namespace Causalean.ML.CausalApplication
 
 open MeasureTheory Causalean.Stat Causalean.ML
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
-/-- The `n^{-1/4}` rate is bounded by `1` (so it weakens to the `o_p(1)` rate). -/
+/-- For [a sample size](hyp:n), [the `n^{-1/4}` rate is bounded by `1`](goal), so it
+weakens to the `o_p(1)` rate. -/
 theorem rpow_quarter_le_one (n : ℕ) : (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ 1 := by
   rcases Nat.eq_zero_or_pos n with hn | hn
   · subst hn
@@ -33,9 +41,11 @@ theorem rpow_quarter_le_one (n : ℕ) : (n : ℝ) ^ (-(1 / 4 : ℝ)) ≤ 1 := by
   · have h1 : (1 : ℝ) ≤ (n : ℝ) := by exact_mod_cast hn
     exact Real.rpow_le_one_of_one_le_of_nonpos h1 (by norm_num)
 
-/-- **Assembly.** If, for every treatment arm, [the outcome-regression estimation error
-is `o_p(n^{-1/4})`](hyp:hμ), and [the propensity estimation error is
-`o_p(n^{-1/4})`](hyp:he), then [each error is separately `o_p(1)`, and for every arm the
+/-- **Assembly.** On [a measurable sample space with sampling law](hyp:Ω,μ), for [outcome
+and propensity error sequences](hyp:μErr,eErr), if, for every treatment arm, [the
+outcome-regression estimation error is `o_p(n^{-1/4})`](hyp:hμ), and [the propensity
+estimation error is `o_p(n^{-1/4})`](hyp:he), then [each error is separately `o_p(1)`, and
+for every arm the
 pointwise product of the outcome and propensity errors is `o_p(n^{-1/2})`](goal) —
 together these are DML's three nuisance-rate conditions. -/
 theorem dml_rate_conditions_of_quarter_rates
@@ -50,4 +60,4 @@ theorem dml_rate_conditions_of_quarter_rates
    isLittleOp_one_of_le_one rpow_quarter_le_one he,
    fun a => isLittleOp_mul_quarter (hμ a) he⟩
 
-end Causalean.ML.Causal
+end Causalean.ML.CausalApplication

@@ -1,6 +1,9 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import FoML.Massart
-import FoML.RademacherVariableProperty
+module
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import FoML.Massart
+public import FoML.RademacherVariableProperty
+
+@[expose] public section
 
 universe v
 

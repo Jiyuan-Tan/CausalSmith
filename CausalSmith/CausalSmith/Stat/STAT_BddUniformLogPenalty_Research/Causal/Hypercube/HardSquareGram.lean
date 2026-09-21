@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareAnalytic
-import Causalean.Stat.Nonparametric.LocalPolynomial.GramCoercivity
-import Mathlib.Algebra.Polynomial.Roots
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareAnalytic
+public import Causalean.Stat.Nonparametric.LocalPoly.GramCoercivity
+public import Mathlib.Algebra.Polynomial.Roots
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
 
 /-!
 # Polynomial coercivity for the hard-square Gram certificate
@@ -10,6 +11,8 @@ This module isolates the finite-dimensional compactness argument behind the
 population-Gram floor.  Its radial energy is the polar-coordinate integral
 of the squared degree-`p` local polynomial on a fixed nondegenerate interval.
 -/
+
+public section
 
 open MeasureTheory Set
 open scoped BigOperators Interval Polynomial

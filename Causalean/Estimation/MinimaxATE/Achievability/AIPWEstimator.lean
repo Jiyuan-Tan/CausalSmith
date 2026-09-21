@@ -5,10 +5,6 @@ Authors: Jiyuan Tan
 
 # Structure-agnostic ATE: finite AIPW score, bias, and variance ingredients
 
-The converse half of the structure-agnostic optimality story lives in
-`LowerBound*.lean` (`minimax_lower_bound{,_gen,_var}`): around a fixed nuisance
-center `(mhat, ghat)`, no estimator beats the doubly-robust product rate `√(εg·εm)`.
-
 This file supplies the finite AIPW ingredients used by the achievability result:
 the fixed-center score and sample-average estimator, the finite doubly-robust bias
 identity and product-error bound, the center-overlap and score-bound lemmas, and the
@@ -22,17 +18,19 @@ the **fixed-center AIPW sample average**
 Its plug-in bias is the doubly-robust remainder `≤ (1/ε)·2√εg·√εm` (finite Cauchy–Schwarz),
 and its variance is `≤ B²/n` (the score is bounded because the *center* `m̂` is bounded
 off `{0,1}`).  `Optimality.lean` turns these ingredients into the Chebyshev
-`aipw_nMiss_le` bound, the uniform `aipw_minimaxMiss_le` bound, and the capstone
-constant-factor optimality statement.
+`aipw_nMiss_le` bound, the uniform `aipw_minimaxMiss_le` bound, and a combined
+finite-sample statement that records the achievability and construction-dependent
+lower thresholds separately.
 
 This is the finite specialization of the general AIPW DML asymptotic-normality theorem
 `Estimation/ATE/DML.lean` (`dml_ATE_tendstoNormal`); the finite form is what pairs cleanly with
 the finite converse.
 -/
 
-import Causalean.Estimation.MinimaxATE.Model
-import Mathlib.Probability.Moments.Variance
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
+module
+public import Causalean.Estimation.MinimaxATE.Model
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 /-! # Fixed-Center AIPW Achievability
 
@@ -47,6 +45,8 @@ calculation; `exists_center_overlap`, which extracts a finite positive overlap
 constant for the fixed center; and `aipwScore_bound`/`aipw_var_bound`, the score
 and sample-average variance bounds used by `Optimality.lean` to prove the
 miss-probability achievability theorem. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

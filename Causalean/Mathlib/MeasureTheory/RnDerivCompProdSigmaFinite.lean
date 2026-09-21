@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Kernel.Composition.AbsolutelyContinuous
-import Mathlib.Probability.Kernel.Composition.RadonNikodym
-import Mathlib.Probability.Kernel.RadonNikodym
+module
+public import Mathlib.Probability.Kernel.Composition.AbsolutelyContinuous
+public import Mathlib.Probability.Kernel.Composition.RadonNikodym
+public import Mathlib.Probability.Kernel.RadonNikodym
 
 /-!
 # Radon–Nikodym derivative of a composition-product against a σ-finite fibre reference
@@ -36,6 +37,7 @@ from a stepwise fibre Radon–Nikodym assumption) obtain the full σ-finite form
 here.
 -/
 
+public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

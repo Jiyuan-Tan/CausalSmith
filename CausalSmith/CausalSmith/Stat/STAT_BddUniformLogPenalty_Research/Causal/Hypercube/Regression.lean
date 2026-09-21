@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Density
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Density
 
 /-! # Regression, selected-kernel moment, and Gram certificates -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 

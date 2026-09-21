@@ -4,10 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxLaw
-import Causalean.Mathlib.MeasureTheory.IntegralBind
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxLaw
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
 
 /-! # Regression identities for the canonical Bernoulli witnesses -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

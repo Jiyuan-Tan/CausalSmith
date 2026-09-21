@@ -29,7 +29,8 @@ All statements carry the `Nonempty`/`BddAbove` side conditions that the real
 * `supportFn_minkowski` — additive over Minkowski sums.
 -/
 
-import Causalean.PO.ID.Partial.SupportFunction.Basic
+module
+public import Causalean.PO.ID.Partial.SupportFunction.Basic
 
 /-! # Support-function calculus
 
@@ -39,6 +40,8 @@ intersections, translations, scaling, and Minkowski sums. These rules let
 downstream partial-identification proofs compute robust interval endpoints
 compositionally.
 -/
+
+public section
 
 open scoped RealInnerProductSpace Pointwise
 

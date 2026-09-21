@@ -117,7 +117,7 @@ describe("D0 structural gate — A6-class breakage is rejected", () => {
     expect(res.ok).toBe(true);
   });
 
-  it.each(["\\]", "\\)", "\\end{equation}", "\\end{aligned}\n\\]"])(
+  it.each(["\\]", "\\)", "\\end{equation}", "\\end{aligned}\n\\]", "$", "$$", "\n$"])(
     "G2: a single displayed relation may end with a period before terminal TeX closer %s",
     (closer) => {
       const core = clone();
@@ -134,6 +134,7 @@ describe("D0 structural gate — A6-class breakage is rejected", () => {
     "First condition.\\] Second condition.\n\\]",
     "First condition.” Second condition.\n\\]",
     "First relation is $X=0.$ Second relation is\n\\[\nY=0.\n\\]",
+    "First relation is $X=0.$ Second relation is\n$\nY=0.\n$",
   ])(
     "G2: a terminal TeX closer does not hide an earlier sentence boundary: %s",
     (condition) => {

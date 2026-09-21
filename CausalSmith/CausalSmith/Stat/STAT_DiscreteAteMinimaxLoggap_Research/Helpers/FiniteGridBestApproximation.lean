@@ -1,5 +1,6 @@
-import Causalean.Mathlib.Analysis.FiniteDimL1LinfDuality.NonemptyDuality
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmSignedPrior
+module
+public import Causalean.Mathlib.Analysis.NormedSpace.Duality.L1Linf.NonemptyDuality
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmSignedPrior
 
 /-!
 # Finite-grid best-approximation dual certificates
@@ -10,6 +11,8 @@ The approximation space is the range of an arbitrary linear map, so its basis
 may contain polynomial evaluations, inverse evaluations, or any other finite
 family of test functions.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

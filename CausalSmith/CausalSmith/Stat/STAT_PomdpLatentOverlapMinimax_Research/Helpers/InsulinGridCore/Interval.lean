@@ -1,4 +1,8 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGridCore.Model
+module
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinGridCore.Model
+
+@[expose] public section
 
 set_option linter.style.longLine false
 
@@ -7,7 +11,8 @@ namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation.CertifiedNormalCDFEnclosure
 
@@ -18,15 +23,15 @@ def insulinNormalizationCertificate : NormalizationCertificate where
 
 /-- [the insulin Pi Interval lo pos assertion holds](goal). -/
 lemma insulinPiInterval_lo_pos (n : ℕ) :
-    0 < (Complex.Transcendental.piInterval n).lo := by
+    0 < (Transcendental.piInterval n).lo := by
   induction n with
-  | zero => norm_num [Complex.Transcendental.piInterval,
-      Complex.Transcendental.piRaw, Complex.Transcendental.atanRaw,
-      Complex.Transcendental.atanPartial,
-      Complex.Transcendental.atanError, Finset.sum_range_succ, RatInterval.point,
+  | zero => norm_num [Transcendental.piInterval,
+      Transcendental.piRaw, Transcendental.atanRaw,
+      Transcendental.atanPartial,
+      Transcendental.atanError, Finset.sum_range_succ, RatInterval.point,
       RatInterval.mul, RatInterval.sub, RatInterval.neg, RatInterval.add]
   | succ n ih =>
-      rw [Complex.Transcendental.piInterval]
+      rw [Transcendental.piInterval]
       unfold RatInterval.tighten
       split
       · exact ih.trans_le (le_max_left _ _)
@@ -50,7 +55,7 @@ lemma insulinNormalizationCertificate_checked :
     have hpi := insulinPiInterval_lo_pos 10
     simp only [twoPiInterval, RatInterval.point, RatInterval.mul]
     rw [min_eq_left (mul_le_mul_of_nonneg_left
-      (Complex.Transcendental.piInterval 10).lo_le_hi (by norm_num))]
+      (Transcendental.piInterval 10).lo_le_hi (by norm_num))]
     simp only [min_self]
     positivity
   have hroot : 0 < (RatInterval.sqrtInterval (twoPiInterval 10) htwo.le 10).lo := by
@@ -254,14 +259,17 @@ def InsulinCDFTable.get (r : InsulinCDFTable) (s : Fin 360) : InsulinCDFActionRo
 
 /-- [this defines the insulin CDFTable object](goal). [defining clause 1](step:1); and [defining clause 2](step:2). -/
 def insulinCDFTable : InsulinCDFTable where
-  data := Array.ofFn fun i : Fin 360 =>
-    { data := Array.ofFn fun a : Fin 2 =>
-        { data := Array.ofFn fun k : Fin 4 =>
+  -- `List.ofFn … |>.toArray` rather than `Array.ofFn`: the latter is well-founded recursion,
+  -- whose termination proofs are invisible to module importers, so the kernel could not
+  -- evaluate the table in the `decide +kernel` chunk certificates.
+  data := (List.ofFn fun i : Fin 360 =>
+    { data := (List.ofFn fun a : Fin 2 =>
+        { data := (List.ofFn fun k : Fin 4 =>
             insulinCDFInterval (insulinCDFArgument (insulinJointEquiv.symm i)
-              (insulinBoolEquivFin.symm a) k)
-          size_eq := by simp }
-      size_eq := by simp }
-  size_eq := by simp
+              (insulinBoolEquivFin.symm a) k)).toArray
+          size_eq := by rw [List.size_toArray, List.length_ofFn] }).toArray
+      size_eq := by rw [List.size_toArray, List.length_ofFn] }).toArray
+  size_eq := by rw [List.size_toArray, List.length_ofFn]
 
 /-- For [the table input](hyp:table), [the s input](hyp:s), [the a input](hyp:a), [the k input](hyp:k), [this defines the insulin CDFEntry With Table object](goal). -/
 def insulinCDFEntryWithTable (table : InsulinCDFTable)
@@ -279,8 +287,9 @@ lemma insulinCDFEntryWithTable_eq (s : JointState 90 4) (a : Bool) (k : Fin 4) :
 /-- [the insulin CDFEntry eq assertion holds](goal). -/
 lemma insulinCDFEntry_eq (s : JointState 90 4) (a : Bool) (k : Fin 4) :
     insulinCDFEntry s a k = insulinCDFInterval (insulinCDFArgument s a k) := by
-  simp [insulinCDFEntry, insulinCDFEntryWithTable, insulinCDFTable, InsulinCDFTable.get,
-    InsulinCDFActionRow.get, InsulinCDFCutoffRow.get]
+  simp only [insulinCDFEntry, insulinCDFEntryWithTable, insulinCDFTable, InsulinCDFTable.get,
+    InsulinCDFActionRow.get, InsulinCDFCutoffRow.get, List.getElem_toArray, List.getElem_ofFn,
+    Fin.eta, Equiv.symm_apply_apply]
 
 /-- [the insulin CDFEntry sound assertion holds](goal). -/
 lemma insulinCDFEntry_sound (s : JointState 90 4) (a : Bool) (k : Fin 4) :

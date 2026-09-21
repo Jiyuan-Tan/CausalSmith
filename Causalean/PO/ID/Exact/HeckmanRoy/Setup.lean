@@ -20,12 +20,14 @@ Generalises `PO/ID/Exact/LATE.lean` to:
 No proof of the Wald identity lives here — see `Wald.lean`.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Assumptions.IndepCF
-import Causalean.PO.Conditioning.EventCondExp
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Probability.Independence.Basic
-import Causalean.Tactic.Attr
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Assumptions.IndepCF
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Probability.Independence.Basic
 
 /-! # Heckman-Roy IV Setup
 
@@ -34,6 +36,10 @@ Heckman-Vytlacil generalized Roy instrumental-variables model. It packages the
 instrument, treatment, outcome, latent selection rank, threshold-crossing
 assumptions, interval-complier event, and latent interval average treatment
 effect used by the Wald identification proof. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -80,84 +86,110 @@ variable {P : POSystem} {α : Type*}
 
 /-! ### POVar wrappers -/
 
-/-- For [a Heckman--Roy system](hyp:S), the [instrument potential-outcome variable](goal) is its instrument node with its instrument-value representation. -/
+/-- [The instrument variable](goal) in [a Heckman--Roy model](hyp:S)
+[represents the model's instrument node on its observable value space](step:1). -/
 def zVar : POVar P α := ⟨S.Z, S.hZ⟩
 
-/-- For [a Heckman--Roy system](hyp:S), the [binary treatment potential-outcome variable](goal) is its treatment node with its binary representation. -/
+/-- [The treatment variable](goal) in [a Heckman--Roy model](hyp:S)
+[represents participation as a binary decision](step:1). -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- For [a Heckman--Roy system](hyp:S), the [real-valued outcome potential-outcome variable](goal) is its outcome node with its real-valued representation. -/
+/-- [The outcome variable](goal) in [a Heckman--Roy model](hyp:S)
+[represents the model's outcome node on the real line](step:1). -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
 
-/-- For [a Heckman--Roy system](hyp:S), the [latent-rank potential-outcome variable](goal) is its latent selection-rank node with its real-valued representation. -/
+/-- [The latent selection-rank variable](goal) in [a Heckman--Roy model](hyp:S)
+[represents the unobserved participation rank on the real line](step:1). -/
 def uVar : POVar P ℝ := ⟨S.U, S.hUreal⟩
 
 /-! ### Regimes and counterfactual variables -/
 
-/-- For [a Heckman--Roy system](hyp:S) and [an instrument value](hyp:z), the [instrument intervention regime](goal) fixes the instrument to that value. -/
+/-- [The instrument intervention](goal) for [a Heckman--Roy model](hyp:S)
+[sets the instrument to the selected value](hyp:z) [and leaves all other nodes free](step:1). -/
 noncomputable def instrumentRegime (z : α) : Regime P.V P.X :=
   Regime.single S.Z (S.hZ.symm z)
 
-/-- For [a Heckman--Roy system](hyp:S) and [a treatment value](hyp:d), the [treatment intervention regime](goal) fixes treatment to that value. -/
+/-- [The treatment intervention](goal) for [a Heckman--Roy model](hyp:S)
+[sets participation to the selected treatment state](hyp:d)
+[and leaves all other nodes free](step:1). -/
 noncomputable def treatmentRegime (d : Bool) : Regime P.V P.X :=
   Regime.single S.D (S.hDbool.symm d)
 
-/-- For [a Heckman--Roy system](hyp:S) and [an instrument value](hyp:z), the [potential treatment](goal) assigns each unit the treatment it would take under that instrument value. -/
+/-- [The instrument-specific potential treatment](goal) in [a Heckman--Roy model](hyp:S)
+[records whether each unit would participate at the selected instrument value](hyp:z)
+[under the corresponding instrument intervention](step:1). -/
 noncomputable def DofZ (z : α) : P.Ω → Bool := S.dVar.cfUnder S.zVar z
 
-/-- For [a Heckman--Roy system](hyp:S) and [a treatment value](hyp:d), the [potential outcome](goal) assigns each unit the outcome it would have under that treatment value. -/
+/-- [The treatment-specific potential outcome](goal) in [a Heckman--Roy model](hyp:S)
+[records each unit's outcome at the selected participation state](hyp:d)
+[under a treatment intervention](step:1). -/
 noncomputable def YofD (d : Bool) : P.Ω → ℝ := S.yVar.cfUnder S.dVar d
 
-/-- For [a Heckman--Roy system](hyp:S), the [factual instrument](goal) assigns each unit its observed instrument value. -/
+/-- [The factual instrument](goal) [records each unit's observed instrument value](step:1)
+in [the Heckman--Roy model](hyp:S). -/
 noncomputable def factualZ : P.Ω → α := S.zVar.factual
 
-/-- For [a Heckman--Roy system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
+/-- [The factual treatment](goal) [records each unit's observed participation decision](step:1)
+in [the Heckman--Roy model](hyp:S). -/
 noncomputable def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- For [a Heckman--Roy system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
+/-- [The factual outcome](goal) [records each unit's observed real response](step:1)
+in [the Heckman--Roy model](hyp:S). -/
 noncomputable def factualY : P.Ω → ℝ := S.yVar.factual
 
-/-- For [a Heckman--Roy system](hyp:S), the [factual latent selection rank](goal) assigns each unit its latent real-valued rank. -/
+/-- [The factual latent rank](goal) [records each unit's unobserved participation rank](step:1)
+in [the Heckman--Roy model](hyp:S). -/
 noncomputable def factualU : P.Ω → ℝ := S.uVar.factual
 
-/-- For [a Heckman--Roy system](hyp:S) and [an instrument value](hyp:z), the [instrument event](goal) is the set of units whose observed instrument equals that value. -/
+/-- [The instrument cell](goal) in [a Heckman--Roy model](hyp:S)
+[uses the selected instrument value](hyp:z) and
+[contains exactly the units observed at that value](step:1). -/
 def zEvent (z : α) : Set P.Ω := S.zVar.event z
 
-/-- For [a Heckman--Roy system](hyp:S) and [two instrument values](hyp:z₀,z₁), the [interval-complier event](goal) is the set of units whose latent rank is strictly above the first propensity threshold and no greater than the second. -/
+/-- [The interval-complier population](goal) for [a Heckman--Roy model](hyp:S)
+[is indexed by two instrument values](hyp:z₀,z₁) and [consists of units whose latent rank
+lies above the first threshold and at or below the second](step:1). -/
 def intervalComplierEvent (z₀ z₁ : α) : Set P.Ω :=
   { ω | S.p z₀ < S.factualU ω ∧ S.factualU ω ≤ S.p z₁ }
 
 /-! ### Measurability -/
 
-/-- For [a fixed instrument value `z`](hyp:z), [the potential treatment `D(z)` is
-measurable](goal). -/
+/-- [The potential treatment at an instrument value](hyp:S,z) [is measurable](goal), so
+its participation event can enter probability and conditional-mean calculations. -/
 @[fun_prop]
 lemma measurable_DofZ (z : α) : Measurable (S.DofZ z) :=
   S.dVar.measurable_cfUnder S.zVar z
 
-/-- The potential outcome under a fixed treatment value is measurable. -/
+/-- [The potential outcome at a treatment state](hyp:S,d) [is measurable](goal), so its
+population and complier means are well defined. -/
 @[fun_prop]
 lemma measurable_YofD (d : Bool) : Measurable (S.YofD d) :=
   S.yVar.measurable_cfUnder S.dVar d
 
-/-- The factual instrument is measurable. -/
+/-- [The observed instrument in the Heckman--Roy model](hyp:S) [is measurable](goal),
+making instrument cells observable events. -/
 @[fun_prop]
 lemma measurable_factualZ : Measurable S.factualZ := S.zVar.measurable_factual
-/-- The factual treatment is measurable. -/
+/-- [The observed participation decision in the Heckman--Roy model](hyp:S)
+[is measurable](goal), so first-stage moments are defined. -/
 @[fun_prop]
 lemma measurable_factualD : Measurable S.factualD := S.dVar.measurable_factual
-/-- The factual outcome is measurable. -/
+/-- [The observed outcome in the Heckman--Roy model](hyp:S) [is measurable](goal), so
+reduced-form moments are defined. -/
 @[fun_prop]
 lemma measurable_factualY : Measurable S.factualY := S.yVar.measurable_factual
-/-- The factual latent rank is measurable. -/
+/-- [The latent selection rank in the Heckman--Roy model](hyp:S) [is measurable](goal),
+making threshold and interval-complier events measurable. -/
 @[fun_prop]
 lemma measurable_factualU : Measurable S.factualU := S.uVar.measurable_factual
 
-/-- The factual instrument event is measurable. -/
+/-- [The cell for an observed instrument value](hyp:S,z) [is measurable](goal), which is
+needed to condition outcome and treatment means on that cell. -/
 lemma measurableSet_zEvent (z : α) : MeasurableSet (S.zEvent z) :=
   S.zVar.measurableSet_event _ (measurableSet_singleton _)
 
-/-- The latent interval complier event is measurable. -/
+/-- [The interval-complier population between two instrument thresholds](hyp:S,z₀,z₁)
+[is measurable](goal), so its probability and average treatment effect are defined. -/
 lemma measurableSet_intervalComplierEvent (z₀ z₁ : α) :
     MeasurableSet (S.intervalComplierEvent z₀ z₁) := by
   unfold intervalComplierEvent
@@ -166,7 +198,9 @@ lemma measurableSet_intervalComplierEvent (z₀ z₁ : α) :
 
 /-! ### `Y` composed with `D(z)` and event-conditional means -/
 
-/-- For [a Heckman--Roy system](hyp:S) and [an instrument value](hyp:z), the [outcome under the instrument-induced treatment](goal) assigns each unit its treated potential outcome if that instrument induces treatment and its untreated potential outcome otherwise. -/
+/-- [The outcome induced by an instrument value](goal) in [a Heckman--Roy model](hyp:S)
+[uses the selected instrument value](hyp:z) and [chooses each unit's treated or untreated
+potential outcome according to the treatment that value would induce](step:1). -/
 noncomputable def YofDofZ (z : α) : P.Ω → ℝ :=
   fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω
 
@@ -178,34 +212,43 @@ lemma YofDofZ_def (z : α) :
     S.YofDofZ z = fun ω => if S.DofZ z ω then S.YofD true ω else S.YofD false ω :=
   rfl
 
-/-- The outcome composed with the instrument-induced treatment is measurable. -/
+/-- [The outcome induced by an instrument value](hyp:S,z) [is measurable](goal), allowing
+its population mean to represent the reduced form. -/
 @[fun_prop]
 lemma measurable_YofDofZ (z : α) : Measurable (S.YofDofZ z) := by
   unfold YofDofZ
   exact Measurable.ite (S.measurable_DofZ z (MeasurableSet.singleton true))
     (S.measurable_YofD true) (S.measurable_YofD false)
 
-/-- For [a Heckman--Roy system](hyp:S) and [an instrument value](hyp:z), the [conditional treatment mean](goal) is the event-conditional mean of observed treatment among units with that instrument value.
+/-- [The instrument-cell treatment mean](goal) for [a Heckman--Roy model](hyp:S)
+[uses the selected instrument value](hyp:z) and
+[averages observed participation within that cell](step:1).
 
 `E[D | Z = z]`, the treated share among units with instrument value `z`,
-as the PO event-conditional expectation `eventCondExp` over the event `{Z = z}`. -/
+as the PO event-conditional expectation `normalizedRestrictedIntegral` over the event `{Z = z}`. -/
 noncomputable def condExpDZ (z : α) : ℝ :=
-  eventCondExp P.μ (S.zEvent z) (fun ω => ((S.factualD ω).toNat : ℝ))
+  normalizedRestrictedIntegral P.μ (S.zEvent z) (fun ω => ((S.factualD ω).toNat : ℝ))
 
-/-- For [a Heckman--Roy system](hyp:S) and [an instrument value](hyp:z), the [conditional outcome mean](goal) is the event-conditional mean of the observed outcome among units with that instrument value.
+/-- [The instrument-cell outcome mean](goal) for [a Heckman--Roy model](hyp:S)
+[uses the selected instrument value](hyp:z) and
+[averages observed outcomes within that cell](step:1).
 
 `E[Y | Z = z]`, the mean outcome among units with instrument value `z`,
-as the PO event-conditional expectation `eventCondExp` over the event `{Z = z}`. -/
+as the PO event-conditional expectation `normalizedRestrictedIntegral` over the event `{Z = z}`. -/
 noncomputable def condExpYZ (z : α) : ℝ :=
-  eventCondExp P.μ (S.zEvent z) S.factualY
+  normalizedRestrictedIntegral P.μ (S.zEvent z) S.factualY
 
 /-! ### Counterfactual bundle for `Z ⟂ (U, Y(1), Y(0))` -/
 
-/-- For [a Heckman--Roy system](hyp:S) and [a treatment value](hyp:d), the [outcome under the treatment regime](goal) is the potential outcome represented together with the intervention fixing treatment to that value. -/
+/-- [The regime-indexed outcome](goal) in [a Heckman--Roy model](hyp:S)
+[uses the selected treatment state](hyp:d) and
+[pairs the outcome variable with the intervention fixing that state](step:1). -/
 def yUnderD (d : Bool) : RegimedVar P ℝ :=
   ⟨S.yVar, Regime.single S.D (S.hDbool.symm d)⟩
 
-/-- For [a Heckman--Roy system](hyp:S), the [counterfactual bundle](goal) contains the latent rank and the potential outcomes under treatment and control.
+/-- [The counterfactual vector used for instrument exogeneity](goal) in
+[a Heckman--Roy model](hyp:S) [collects the latent rank and both treatment-state potential
+outcomes](step:1).
 
 Counterfactual bundle `(U, Y(1), Y(0))` -- target of the instrument-
 independence assumption.
@@ -221,7 +264,8 @@ noncomputable def cfBundle : POCFBundle P :=
 
 /-! ### Assumptions -- def:po-iv-heckman-roy-assumptions -/
 
-/-- **Heckman–Roy IV identifying assumptions** (`def:po-iv-heckman-roy-assumptions`). Bundles
+/-- **Heckman–Roy IV identifying assumptions** (`def:po-iv-heckman-roy-assumptions`). For
+[a Heckman--Roy model](hyp:S), these bundle
 [consistency of the underlying potential-outcome system](hyp:consistency), [exogeneity of the
 instrument, independent of the latent selection rank and the two potential
 outcomes](hyp:instrumentIndep), [threshold-crossing selection: the potential treatment under
@@ -249,7 +293,10 @@ structure Assumptions (S : POHeckmanRoySystem P α) : Prop where
 
 /-! ### Latent interval average treatment effect -/
 
-/-- For [a Heckman--Roy system](hyp:S) and [two instrument values](hyp:z₀,z₁), the [latent interval average treatment effect](goal) is the mean difference between treated and untreated potential outcomes among units whose latent ranks lie strictly above the first propensity threshold and no greater than the second, with value zero when that event has zero probability.
+/-- [The latent interval average treatment effect](goal) in [a Heckman--Roy model](hyp:S)
+[is indexed by a pair of instrument values](hyp:z₀,z₁) and [averages the
+treated-minus-untreated potential outcome among units between their propensity thresholds,
+returning zero for an empty cell](step:1).
 
 Latent interval average treatment effect at `(z₀, z₁)` --
 def:po-iv-heckman-roy-late.

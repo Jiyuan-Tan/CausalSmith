@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Quantitative.Definitions
+module
+public import Causalean.Discovery.LinearDisentanglement.Quantitative.Definitions
 
 /-!
 # Explicit quantitative simultaneous-congruence stability
@@ -14,6 +15,8 @@ separation first controls coordinatewise products of the transition matrix.  Uni
 normalization and the explicit small-residual threshold select the reference branch, after
 which coordinate bounds convert to a Euclidean operator-norm bound.
 -/
+
+public section
 
 noncomputable section
 
@@ -140,8 +143,9 @@ private theorem offDiagonal_difference_mulVec {d : ℕ} (M : SqMatrix d)
   intro a ha
   ring
 
-/-- For [a real square matrix](hyp:M) and [a selected row and column](hyp:i,j), [the
-absolute value of that entry is bounded by the Euclidean operator norm](goal). -/
+/-- [Every matrix entry is bounded by the Euclidean operator norm](goal), allowing a global
+residual bound to control [entry `i,j`](hyp:i,j) of [matrix `M`](hyp:M) in [dimension
+`d`](hyp:d). -/
 theorem abs_entry_le_opNorm {d : ℕ} (M : SqMatrix d) (i j : Fin d) :
     |M i j| ≤ ‖M‖ := by
   classical
@@ -158,9 +162,9 @@ theorem abs_entry_le_opNorm {d : ℕ} (M : SqMatrix d) (i j : Fin d) :
     _ ≤ ‖M‖ * ‖e‖ := Matrix.l2_opNorm_mulVec M e
     _ = ‖M‖ := by rw [he, mul_one]
 
-/-- For [a real square matrix](hyp:M), if [the proposed entry bound is nonnegative](hyp:hc)
-and [every entry obeys that bound](hyp:hM), [its Euclidean operator norm is at most the
-dimension times the bound](goal). -/
+/-- [Uniform entrywise control implies an operator-norm bound scaled by dimension](goal): [matrix
+`M`](hyp:M) in [dimension `d`](hyp:d) needs [a nonnegative entry cap `c`](hyp:c,hc) that [every
+entry obeys](hyp:hM). -/
 theorem opNorm_le_dimension_mul_of_entry_bound {d : ℕ} (M : SqMatrix d) {c : ℝ}
     (hc : 0 ≤ c) (hM : ∀ i j, |M i j| ≤ c) :
     ‖M‖ ≤ (d : ℝ) * c := by
@@ -184,11 +188,11 @@ theorem opNorm_le_dimension_mul_of_entry_bound {d : ℕ} (M : SqMatrix d) {c : �
             simp [Finset.sum_const, nsmul_eq_mul]
             ring
 
-/-- For [a real square coefficient matrix](hyp:V) and [a solution vector](hyp:x), if [the
-determinant margin is positive](hyp:hδ), [the scale bound is nonnegative](hyp:hL), [every
-coefficient is bounded](hyp:hV), [the determinant has the stated margin](hyp:hdet), and
-[the linear-system residual is uniformly bounded](hyp:hres), [every solution coordinate is
-bounded by the explicit Cramer's-rule factor times the residual bound](goal). -/
+/-- [A separated, bounded linear system converts uniform residual error into the explicit
+Cramer's-rule coordinate bound](goal). For [coefficient matrix `V` and solution `x`](hyp:V,x) in
+[dimension `d`](hyp:d), this uses [scale `L`, determinant margin `δ`, and residual cap
+`η`](hyp:L,δ,η), with [positive margin](hyp:hδ), [nonnegative scale](hyp:hL), [bounded
+coefficients](hyp:hV), [determinant separation](hyp:hdet), and [bounded residual](hyp:hres). -/
 -- Proof route: use `V⁻¹ *ᵥ (V *ᵥ x) = x`, expand `V⁻¹` through the adjugate (or use
 -- `Matrix.det_smul_inv_mulVec_eq_cramer`), expand each `(d-1)`-minor determinant, and
 -- bound its `factorial (d-1)` Leibniz terms by `(2L)^(d-1)`.
@@ -237,10 +241,11 @@ theorem coordinate_le_affineSolveFactor {d : ℕ} (V : SqMatrix d) (x : Fin d �
       rw [← hfac]
       ring
 
-/-- For [a real matrix family](hyp:A), [its diagonal shifts](hyp:s), [an exact reference
-matrix](hyp:B₀), [a candidate matrix](hyp:B), if [the reference is invertible](hyp:hunit)
-and [it exactly realizes every prescribed congruence](hyp:hexact), then [the transition
-matrix conjugates each reference diagonal into the candidate congruence](goal). -/
+/-- [Relative coordinates transport each exact reference diagonal into the candidate
+congruence](goal), linking observable and latent representations for [matrix family `A`](hyp:A),
+[shifts `s`](hyp:s), [reference and candidate matrices](hyp:B₀,B), and [environment
+`e`](hyp:e) over [environment type `E`](hyp:E) in [dimension `d`](hyp:d), provided [the reference
+is invertible](hyp:hunit) and [exactly diagonalizes the family](hyp:hexact). -/
 theorem transition_diagonal_congruence {d : ℕ} {E : Type*} [Fintype E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ) (B₀ B : SqMatrix d)
     (hunit : IsUnit B₀.det) (hexact : ExactCongruence A s B₀) (e : E) :
@@ -259,13 +264,13 @@ theorem transition_diagonal_congruence {d : ℕ} {E : Type*} [Fintype E]
         Matrix.mul_nonsing_inv B₀.transpose hut]
       simp
 
-/-- For [a finite real matrix family](hyp:A), [its prescribed diagonal shifts](hyp:s), [an
-exact reference](hyp:B₀), and [a candidate](hyp:B), if [the shift scale is nonnegative](hyp:hL),
-[the affine separation margin is positive](hyp:hδ), [the shifts obey their scale bound](hyp:hscale),
-[a separated affine minor exists](hyp:hsep), [the reference is invertible](hyp:hunit), [the
-reference realizes the congruences exactly](hyp:hexact), and [the candidate has the stated
-approximate residual](hyp:happrox), then [squared transition entries and cross-row products
-have the explicit coordinatewise residual bounds](goal). -/
+/-- [Approximate simultaneous diagonalization controls every squared transition entry and
+cross-row product](goal), the coordinate estimates needed for stable recovery. For [matrix family
+`A`, shifts `s`, reference `B₀`, and candidate `B`](hyp:A,s,B₀,B) over [environments `E`](hyp:E)
+in [dimension `d`](hyp:d), the constants are [shift scale `L`, separation `δ`, and residual
+`ε`](hyp:L,δ,ε); assumptions require [nonnegative scale](hyp:hL), [positive
+separation](hyp:hδ), [bounded shifts](hyp:hscale), [an affine minor](hyp:hsep), [an invertible
+exact reference](hyp:hunit,hexact), and [an approximately congruent candidate](hyp:happrox). -/
 -- Proof route: choose `base,pick` from `hsep`, subtract each picked congruence equation
 -- from the base equation, and apply `coordinate_le_affineSolveFactor`.  On diagonal
 -- matrix entries solve for `M i a ^ 2 - 1_{i=a}`; off the diagonal solve for
@@ -355,40 +360,38 @@ theorem transition_coordinate_product_control {d : ℕ} {E : Type*}
     unfold productControlFactor
     nlinarith
 
-/-- For [positive matrix dimension](hyp:hd), [positive shift scale](hyp:hL), [positive
-affine separation](hyp:hδ), and [positive matrix scale](hyp:hR), if [the shifts have the
-declared scale](hyp:hscale), [their affine minor is separated](hyp:hsep), [the reference is
-unit-diagonal](hyp:hnorm₀), [the candidate is unit-diagonal](hyp:hnorm), [both matrices
-obey the scale bound](hyp:hmatrixScale), [both matrices obey the condition bound](hyp:hcond),
-[the reference congruences are exact](hyp:hexact), [the residual tolerance is nonnegative](hyp:hε),
-[it is below the admissible radius](hyp:hsmall), and [the candidate is approximately
-congruent](hyp:happrox), then [every transition diagonal entry is at least one half](goal). -/
+/-- [Small residuals keep every transition diagonal on the positive identity branch](goal), ruling
+out sign flips by forcing it above one half. This applies to [matrix family, shifts, reference,
+and candidate](hyp:A,s,B₀,B) over [environments `E`](hyp:E) in [dimension `d`](hyp:d), with
+[scales and tolerance](hyp:L,δ,R,ε), [positive dimension and scales](hyp:hd,hL,hδ,hR),
+[bounded and separated shifts](hyp:hscale,hsep), [unit-diagonal matrices](hyp:hnorm₀,hnorm),
+[scale control](hyp:hmatrixScale), [an invertible reference](hyp:hB₀unit), [exact reference
+congruences](hyp:hexact), [an admissibly small tolerance](hyp:hsmall), and [a candidate
+achieving that tolerance](hyp:happrox). -/
 -- Proof route: square control first gives `|M i a| ≤ sqrt(qε)` for `a ≠ i`.  From
 -- `B = M B₀` and both unit diagonals, bound `|M i i - 1|` by the off-diagonal terms
 -- times entries of `B₀`, hence by `d R sqrt(qε)`.  The second threshold makes this ≤ 1/2.
 theorem transition_diagonal_ge_half {d : ℕ} {E : Type*}
     [Fintype E] [Nonempty E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ) (B₀ B : SqMatrix d)
-    {L δ R κ ε : ℝ}
+    {L δ R ε : ℝ}
     (hd : 0 < d) (hL : 0 < L) (hδ : 0 < δ) (hR : 0 < R)
     (hscale : ShiftScaleBound s L) (hsep : AffineMinorSeparated s δ)
     (hnorm₀ : UnitDiagonal B₀) (hnorm : UnitDiagonal B)
     (hmatrixScale : PairMatrixScaleBound R B₀ B)
-    (hcond : PairConditionBound κ B₀ B)
+    (hB₀unit : IsUnit B₀.det)
     (hexact : ExactCongruence A s B₀)
-    (hε : 0 ≤ ε) (hsmall : ε ≤ admissibleRadius d L δ R κ)
+    (hsmall : ε ≤ admissibleRadius d L δ R)
     (happrox : ApproximateCongruence A s B ε) :
     ∀ i, (1 : ℝ) / 2 ≤ transition B₀ B i i := by
   classical
   let q := productControlFactor d L δ
-  let K := R * max 1 κ
+  let K := R
   let M := transition B₀ B
   have hq : 0 < q := productControlFactor_pos hd hL hδ
-  have hmax : 0 < max 1 κ := lt_of_lt_of_le zero_lt_one (le_max_left _ _)
-  have hK : 0 < K := mul_pos hR hmax
-  have hunit : IsUnit B₀.det := hcond.1.1
+  have hK : 0 < K := by simpa [K] using hR
   have hcontrol := transition_coordinate_product_control A s B₀ B hL.le hδ hscale hsep
-    hunit hexact happrox
+    hB₀unit hexact happrox
   have heps : ε ≤ 1 / (4 * (d : ℝ) ^ 2 * K ^ 2 * q) := by
     exact hsmall.trans (min_le_right _ _)
   have hqeps : q * ε ≤ (1 / (2 * (d : ℝ) * K)) ^ 2 := by
@@ -412,7 +415,7 @@ theorem transition_diagonal_ge_half {d : ℕ} {E : Type*}
   have hMB : M * B₀ = B := by
     dsimp [M, transition]
     simpa only [Matrix.mul_assoc] using
-      Matrix.nonsing_inv_mul_cancel_right B₀ B hunit
+      Matrix.nonsing_inv_mul_cancel_right B₀ B hB₀unit
   intro i
   have hentry := congrArg (fun N : SqMatrix d => N i i) hMB
   simp only [Matrix.mul_apply] at hentry
@@ -436,12 +439,10 @@ theorem transition_diagonal_ge_half {d : ℕ} {E : Type*}
           calc
             |M i a| * |B₀ a i| ≤ (1 / (2 * (d : ℝ) * K)) * R := by
               gcongr
-              exact hoff i a hia
-              exact hB₀entry a i
+              · exact hoff i a hia
+              · exact hB₀entry a i
             _ ≤ 1 / (2 * (d : ℝ)) := by
-              have hRK : R ≤ K := by
-                dsimp [K]
-                nlinarith [le_max_left (1 : ℝ) κ]
+              have hRK : R ≤ K := by simp [K]
               field_simp [Nat.cast_ne_zero.mpr (Nat.ne_of_gt hd), ne_of_gt hK]
               nlinarith
         _ ≤ ∑ _a ∈ Finset.univ, 1 / (2 * (d : ℝ)) := by
@@ -455,43 +456,44 @@ theorem transition_diagonal_ge_half {d : ℕ} {E : Type*}
   have := (abs_le.mp habs).1
   linarith
 
-/-- **Explicit simultaneous-congruence stability.** For [positive matrix dimension](hyp:hd),
-[positive shift scale](hyp:hL), [positive affine separation](hyp:hδ), and [positive matrix
-scale](hyp:hR), if [the diagonal shifts obey their scale bound](hyp:hscale), [the shift
-family has a separated affine minor](hyp:hsep), [the reference is unit-diagonal](hyp:hnorm₀),
-[the candidate is unit-diagonal](hyp:hnorm), [the pair obeys the matrix scale bound](hyp:hmatrixScale),
-[the pair obeys the condition-number bound](hyp:hcond), [the reference realizes every
-congruence exactly](hyp:hexact), [the residual tolerance is nonnegative](hyp:hε), [the
-tolerance is admissibly small](hyp:hsmall), and [the candidate realizes the congruences up
-to that tolerance](hyp:happrox), then [the candidate is within the explicit linear modulus
-times the tolerance of the reference in Euclidean operator norm](goal). -/
+/-- **Explicit simultaneous-congruence stability.** For [a matrix family, prescribed shifts,
+reference coordinates, and candidate coordinates](hyp:A,s,B₀,B), [positive matrix
+dimension](hyp:hd), [positive shift scale](hyp:hL), [positive affine separation](hyp:hδ),
+and [positive matrix scale](hyp:hR), if [the diagonal shifts obey their scale
+bound](hyp:hscale), [the shift family has a separated affine minor](hyp:hsep), [the
+reference is unit-diagonal](hyp:hnorm₀),
+[the candidate is unit-diagonal](hyp:hnorm), [the pair obeys the matrix scale
+bound](hyp:hmatrixScale),
+[the reference is invertible](hyp:hB₀unit), [the reference realizes every congruence
+exactly](hyp:hexact), [the residual tolerance is nonnegative](hyp:hε), [the tolerance is
+admissibly small](hyp:hsmall), and [the candidate realizes the congruences up to that
+tolerance](hyp:happrox), then [the candidate is within the explicit linear modulus times the
+tolerance of the reference in Euclidean operator norm](goal). -/
 -- Proof route: the preceding half-bound and cross-product control give
 -- `|M i a| ≤ 2qε` for `i ≠ a`; square control bounds `|M i i - 1|`.  Convert this to
--- `‖M-I‖ ≤ 2d qε`, write `B-B₀ = (M-I)B₀`, use `‖B₀‖ ≤ R`, and weaken by
--- `1 ≤ max 1 κ`.
+-- `‖M-I‖ ≤ 2d qε`, write `B-B₀ = (M-I)B₀`, and use `‖B₀‖ ≤ R`.
 theorem opNorm_sub_le_of_approximate_simultaneous_congruence {d : ℕ} {E : Type*}
     [Fintype E] [Nonempty E]
     (A : E → SqMatrix d) (s : E → Fin d → ℝ) (B₀ B : SqMatrix d)
-    {L δ R κ ε : ℝ}
+    {L δ R ε : ℝ}
     (hd : 0 < d) (hL : 0 < L) (hδ : 0 < δ) (hR : 0 < R)
     (hscale : ShiftScaleBound s L) (hsep : AffineMinorSeparated s δ)
     (hnorm₀ : UnitDiagonal B₀) (hnorm : UnitDiagonal B)
     (hmatrixScale : PairMatrixScaleBound R B₀ B)
-    (hcond : PairConditionBound κ B₀ B)
+    (hB₀unit : IsUnit B₀.det)
     (hexact : ExactCongruence A s B₀)
-    (hε : 0 ≤ ε) (hsmall : ε ≤ admissibleRadius d L δ R κ)
+    (hε : 0 ≤ ε) (hsmall : ε ≤ admissibleRadius d L δ R)
     (happrox : ApproximateCongruence A s B ε) :
-    ‖B - B₀‖ ≤ stabilityConstant d L δ R κ * ε := by
+    ‖B - B₀‖ ≤ stabilityConstant d L δ R * ε := by
   classical
   let q := productControlFactor d L δ
   let M := transition B₀ B
   have hq : 0 < q := productControlFactor_pos hd hL hδ
   have hqε : 0 ≤ q * ε := mul_nonneg hq.le hε
-  have hunit : IsUnit B₀.det := hcond.1.1
   have hcontrol := transition_coordinate_product_control A s B₀ B hL.le hδ hscale hsep
-    hunit hexact happrox
+    hB₀unit hexact happrox
   have hhalf := transition_diagonal_ge_half A s B₀ B hd hL hδ hR hscale hsep
-    hnorm₀ hnorm hmatrixScale hcond hexact hε hsmall happrox
+    hnorm₀ hnorm hmatrixScale hB₀unit hexact hsmall happrox
   have hoff : ∀ i a, i ≠ a → |M i a| ≤ 2 * q * ε := by
     intro i a hia
     have hp := hcontrol.2 i a a hia
@@ -505,7 +507,7 @@ theorem opNorm_sub_le_of_approximate_simultaneous_congruence {d : ℕ} {E : Type
   have hdiag : ∀ i, |M i i - 1| ≤ 2 * q * ε := by
     intro i
     have hsquare := hcontrol.1 i i
-    simp only [if_pos rfl] at hsquare
+    rw [if_pos rfl] at hsquare
     change |M i i ^ 2 - 1| ≤ q * ε at hsquare
     have hi : (1 : ℝ) / 2 ≤ M i i := hhalf i
     have hplus : 1 ≤ |M i i + 1| := by
@@ -533,7 +535,7 @@ theorem opNorm_sub_le_of_approximate_simultaneous_congruence {d : ℕ} {E : Type
   have hMB : M * B₀ = B := by
     dsimp [M, transition]
     simpa only [Matrix.mul_assoc] using
-      Matrix.nonsing_inv_mul_cancel_right B₀ B hunit
+      Matrix.nonsing_inv_mul_cancel_right B₀ B hB₀unit
   have hfactor : B - B₀ = (M - 1) * B₀ := by
     rw [Matrix.sub_mul, Matrix.one_mul, hMB]
   rw [hfactor]
@@ -542,14 +544,7 @@ theorem opNorm_sub_le_of_approximate_simultaneous_congruence {d : ℕ} {E : Type
     _ ≤ ((d : ℝ) * (2 * q * ε)) * R := by
       exact mul_le_mul hMnorm hmatrixScale.1 (norm_nonneg _) (by positivity)
     _ = 2 * (d : ℝ) * R * q * ε := by ring
-    _ ≤ 2 * (d : ℝ) * R * max 1 κ * q * ε := by
-      have hm := mul_le_mul_of_nonneg_left (le_max_left (1 : ℝ) κ)
-        (show 0 ≤ 2 * (d : ℝ) * R * q * ε by positivity)
-      calc
-        2 * (d : ℝ) * R * q * ε = (2 * (d : ℝ) * R * q * ε) * 1 := by ring
-        _ ≤ (2 * (d : ℝ) * R * q * ε) * max 1 κ := hm
-        _ = 2 * (d : ℝ) * R * max 1 κ * q * ε := by ring
-    _ = stabilityConstant d L δ R κ * ε := by
+    _ = stabilityConstant d L δ R * ε := by
       dsimp [q]
       unfold stabilityConstant
       ring

@@ -3,12 +3,13 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Liu–Hudgens (2014), Proposition 5.1: asymptotic normality of the direct-effect contrast
+# Mixture transfer for a two-stage direct-effect CDF
 
 Along a sequence of two-stage Hudgens–Halloran experiments (groups → ∞), the studentized
-treatment-minus-control direct-effect contrast estimator is asymptotically standard normal: its
-joint-design CDF converges
-pointwise to the standard normal CDF `Φ`.  The argument here is the *mixture-lifting* step.
+control-minus-treatment direct-effect contrast estimator has an unconditional Gaussian CDF limit
+whenever the same limit holds uniformly for its conditional CDFs. This contrast is the negative of
+the treatment-minus-control estimand used by Liu–Hudgens (2014). The argument here is only the
+*mixture-lifting* step.
 By the tower property of expectation, the joint (unconditional) law of any statistic is the
 stage-1 average of its conditional law given the first-stage strategy selection `s`.  So the
 unconditional studentized CDF equals the stage-1 expectation of the *conditional* studentized
@@ -19,38 +20,43 @@ the unconditional `Φ(t)`.  That averaging is the entire content of this file.
 The file provides two unconditional, reusable tools — the mixture-lifting lemma
 `tendsto_E_of_uniformBound` (a uniformly-convergent family of design-functions has convergent
 expectation) and the tower bridge `Pr_compound_eq_E_condPr` (a compound-design probability is the
-stage-1 average of the stage-2 conditional probability) — and the headline result
-`directEffect_clt`, Proposition 5.1, stated *conditional on* the uniform conditional-CLT
-regularity hypothesis `hcond`.
+stage-1 average of the stage-2 conditional probability) — and the direct-effect specialization
+`directEffect_cdf_tendsto_of_uniform_conditional`, stated conditional on the uniform conditional-CDF
+limit hypothesis `hcond`. It is not a formalization of Liu–Hudgens Proposition 5.1, because it
+assumes rather than derives the conditional Gaussian limit.
 
 `hcond` — the uniform conditional convergence of the within-selection studentized CDFs to `Φ` — is
 now **discharged** in `CLTDischarge.lean` / `CLTDischargeMain.lean` from the independent-summands
-Stein CLT of the design-based substrate (`prodDesign_clt`) together with the paper's homogeneity +
-many-groups rate conditions, yielding the fully-primitive `directEffect_clt_homogeneous`.  This
+Stein CLT of the design-based substrate (`prodDesign_clt`) together with strong homogeneity and
+many-groups rate conditions, yielding the special-case `directEffect_clt_homogeneous`. This
 mirrors how the Aronow–Samii layer first took `LocalDependenceCLT` as a premise before discharging
 it; the lifting lemma and tower bridge below remain unconditional and reusable.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Asymptotic.Setup
-import Causalean.Experimentation.DesignBased.CompoundVariance
-import Causalean.Experimentation.DesignBased.EdgeVarianceBound
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import Causalean.Experimentation.TwoStageInterference.Asymptotic.Setup
+public import Causalean.Experimentation.DesignBased.CompoundVariance
+public import Causalean.Experimentation.DesignBased.EdgeVarianceBound
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Mathlib.Analysis.SpecificLimits.Basic
 
-/-! # Direct-contrast central limit theorem
+/-! # Direct-contrast conditional-to-unconditional CDF transfer
 
-The unconditional CLT for the treatment-minus-control direct-effect contrast is obtained by
-averaging uniformly convergent conditional laws across the first-stage strategy assignment.
+An unconditional CDF limit for the control-minus-treatment direct-effect contrast is obtained by
+averaging uniformly convergent conditional laws across the first-stage strategy assignment. The
+contrast is the negative of Liu–Hudgens' treatment-minus-control estimand.
 
 The design-level lemmas are `FiniteDesign.tendsto_E_of_uniformBound`, which says expectations
 preserve a uniform limit over finite assignment spaces, and `FiniteDesign.Pr_compound_eq_E_condPr`,
 the tower bridge rewriting a compound-design probability as the stage-1 average of stage-2
 conditional probabilities.
 
-The headline theorem `directEffect_clt` proves Liu-Hudgens Proposition 5.1 conditional on the
-uniform conditional studentized CDF hypothesis `hcond`: the joint-design CDF of the studentized
-direct-effect contrast converges to `stdNormalCdf t`.
+The theorem `directEffect_cdf_tendsto_of_uniform_conditional` is a mixture-transfer result: given
+the uniform conditional studentized-CDF limit `hcond`, the joint-design CDF converges to
+`stdNormalCdf t`. It does not derive the conditional limit required in Liu–Hudgens Proposition 5.1.
 -/
+
+public section
 
 open scoped BigOperators Topology
 open Finset Filter
@@ -115,15 +121,15 @@ namespace TwoStageInterference
 open DesignBased
 
 open Classical in
-/-- **Proposition 5.1 (Liu–Hudgens 2014), asymptotic normality of the treatment-minus-control
-direct-effect contrast — conditional on the uniform conditional CLT.** Along a sequence of
-two-stage Hudgens–Halloran experiments `Exp : ℕ → LHExperiment`, let [`stud n` be the studentized
-statistic `(D̂E − DE̅)/√directVar` for the treatment-minus-control direct-effect
-contrast](hyp:stud,_hstud) and [`cond n s` the within-selection (stage-2 product) design when
-stage 1 selects the strategy assignment `s`](hyp:cond,hcondDef). Assume [the conditional
-studentized CDFs at `t` converge to the standard normal CDF `Φ(t)` uniformly over selections `s`,
-with a vanishing uniform bound](hyp:hcond). Then [the unconditional (joint-design) studentized CDF
-at `t` converges to `Φ(t)`](goal):
+/-- **Conditional-to-unconditional CDF transfer for the direct-effect statistic.** Along [a
+sequence of two-stage Hudgens–Halloran experiments](hyp:Exp), at [a fixed threshold `t`](hyp:t),
+let [`stud n` be the studentized statistic `(D̂E − DE̅)/√directVar` for the
+control-minus-treatment direct-effect contrast](hyp:stud,_hstud), and let [`cond n s` be the
+within-selection stage-two product design](hyp:cond,hcondDef). If [the conditional studentized CDFs
+at `t` approach `Φ(t)` uniformly over selections, with a vanishing uniform bound](hyp:hcond), then
+[the unconditional joint-design studentized CDF at `t` approaches `Φ(t)`](goal). The contrast is
+the negative of Liu–Hudgens' treatment-minus-control estimand, and the conditional Gaussian limit
+is an assumption rather than a conclusion.
 
     (Exp n).jointD.Pr (fun sw => stud n sw ≤ t) → Φ(t).
 
@@ -132,10 +138,9 @@ as the stage-1 average of the conditional probabilities `(cond n s).Pr (fun w =>
 t)`; the mixture-lifting lemma `tendsto_E_of_uniformBound` then lifts the uniform conditional limit
 `hcond` to the average.
 
-The hypothesis `hcond` encapsulates the paper's Lindeberg + homogeneity conditions. The
-Stein-based discharge is provided by the companion `CLTDischarge.lean` and
-`CLTDischargeMain.lean` layers. -/
-theorem directEffect_clt (Exp : ℕ → LHExperiment) (t : ℝ)
+The companion `CLTDischarge.lean` and `CLTDischargeMain.lean` files derive `hcond` only in a strong
+homogeneous special case. -/
+theorem directEffect_cdf_tendsto_of_uniform_conditional (Exp : ℕ → LHExperiment) (t : ℝ)
     (stud : ∀ n, (StratAssign (Exp n).ι × ∀ i, Fin ((Exp n).gsize i) → Bool) → ℝ)
     (_hstud : ∀ n sw,
       stud n sw = ((Exp n).estD sw - (Exp n).DEbar) / Real.sqrt ((Exp n).directVar))

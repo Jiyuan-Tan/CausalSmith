@@ -1,14 +1,15 @@
 /- Model-class membership for the canonical binary-to-real affine law. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.AffineRealLaw
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.AffineRealLaw
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped BigOperators ENNReal
 noncomputable section
-
-private abbrev BinLaw := CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
 
 -- @node: affineBinaryRealLaw_overlap
 /-- If [the source law satisfies the stated model condition](hyp:hP), [affine outcome scaling

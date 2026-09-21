@@ -23,8 +23,9 @@ export type NodeId = string;
 export type NodeType = "meta" | "symbol" | "assumption" | "definition" | "statement" | "bib";
 
 /** A statement as stored: `status` is DERIVED (never stored), `proof_basis` records the
- *  content keys the proof was written against, `resolved_by` tombstones an answered
- *  open question (the node stays addressable; the render omits it). */
+ *  content keys the proof was written against; on a resolved OEQ it is instead
+ *  the singleton content-key pin for `resolved_by`. `resolved_by` tombstones an
+ *  answered open question (the node stays addressable; the render omits it). */
 export type StatementBody = Omit<CoreStatement, "status"> & {
   proof_basis?: Record<NodeId, string>;
   resolved_by?: string;

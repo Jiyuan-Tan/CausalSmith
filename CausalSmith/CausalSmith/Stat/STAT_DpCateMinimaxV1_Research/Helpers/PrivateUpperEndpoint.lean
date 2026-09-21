@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateWitness
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateWitness
 
 /-!
 # Private local-polynomial upper endpoint
@@ -12,6 +13,8 @@ import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateWitness
 This file turns the explicit private local-polynomial witness into the certified
 upper endpoint while avoiding the `PrivateUpperBound`/`PrivateMechanism` import cycle.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

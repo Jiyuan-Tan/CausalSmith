@@ -15,14 +15,17 @@ two-point MSE reduction at the `Θ(1)` KL budget `K = 16 λ² (M−η_0)/B²` wi
 `h_n = n^{-1/(2α+1)}`.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Membership
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.KL
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.BumpHolder
-import Causalean.Stat.Minimax.MinimaxRisk
-import Causalean.Stat.Minimax.LeCamTwoPoint
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Membership
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.KL
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.BumpHolder
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import Causalean.Stat.Minimax.LeCamTwoPoint
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.SpecialFunctions.Pow.Asymptotics
+public import Mathlib.MeasureTheory.Constructions.Pi
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Sample.OccupancyWeightedMean.FiniteDesign
-import Causalean.Mathlib.Probability.VarianceProd
+module
+public import Causalean.Stat.Sample.OccupancyWeightedMean.FiniteDesign
+public import Causalean.Mathlib.Probability.VarianceProd
 
 /-!
 # Product-moment bounds for occupancy-weighted residual means
@@ -15,6 +16,8 @@ comparison, and the design-only reciprocal-count estimate for
 occupancy-weighted differences of within-group residual means. Outcomes are
 real-valued and need only the stated supported second-moment bounds.
 -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -463,7 +466,7 @@ lemma integral_occupancyDesignVarianceFactor_le_reciprocal
           ∂(Measure.pi (fun _ : Fin n => mu)) := by
   -- Push the sample to its finite `(group,arm)` design.  Enumerate group
   -- assignments and then arm subsets within each group.  Conditional on a
-  -- group count `m`, use `binomial_inverse_two_arms_interior_le`; compare the
+  -- group count `m`, use `binomial_inverse_complementary_counts_interior_le`; compare the
   -- change in the global usable denominator at the two endpoint designs and
   -- sum over groups.  Zero-mass fibers contribute zero before division.
   classical

@@ -4,11 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
-import Causalean.Stat.Sample.PiTransport
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
+module
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
+public import Causalean.Stat.Sample.PiTransport
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
 
 /-! Provides centered empirical-process and cross-fit process helpers. -/
+
+@[expose] public section
+
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

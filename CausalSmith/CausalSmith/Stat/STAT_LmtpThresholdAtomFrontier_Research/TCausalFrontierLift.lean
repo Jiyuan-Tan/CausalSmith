@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TCausalBridge
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.THonestLength
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SurjectivityLift
-import Causalean.Mathlib.Probability.Kernel.ParameterizedKernelQuantileRealization
-import Mathlib.Probability.Kernel.Disintegration.Integral
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TCausalBridge
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.THonestLength
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SurjectivityLift
+public import Causalean.Mathlib.Probability.Kernel.ParameterizedKernelQuantileRealization
+public import Mathlib.Probability.Kernel.Disintegration.Integral
 
 /-!
 # Lift of the observed frontier to the full-data causal class
@@ -17,6 +18,8 @@ All procedures remain functions only of the observed sample. The quantified
 class is the full-data class, and the criteria are the two components of
 `causalFrontierCriteria`.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

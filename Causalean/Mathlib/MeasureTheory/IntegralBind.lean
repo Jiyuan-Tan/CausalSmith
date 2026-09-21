@@ -14,10 +14,11 @@ This is a purely measure-theoretic statement over generic types and a generic
 normed space, with the standard measurability and integrability side-conditions.
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.GiryMonad
-import Mathlib.Probability.Kernel.Composition.IntegralCompProd
-import Mathlib.Probability.Kernel.Invariance
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.GiryMonad
+public import Mathlib.Probability.Kernel.Composition.IntegralCompProd
+public import Mathlib.Probability.Kernel.Invariance
 
 /-! # Bochner Integrals Against Measure Binds
 
@@ -31,6 +32,8 @@ The main public results are `integral_bind`, `integral_bind_map`,
 `integral_bind_bind_map_proj`. Together they cover one-level binds, bind-then-map
 integrals, doubly nested bind-then-map integrals, fibrewise constant collapses, and
 projection back to a reattached base coordinate. -/
+
+public section
 
 open MeasureTheory ProbabilityTheory
 

@@ -1,0 +1,267 @@
+{
+  "units": [
+    {
+      "unit": "thm:counting-separation",
+      "targets": [
+        "thm:counting-separation"
+      ],
+      "proseRole": "owner",
+      "output": {
+        "proofs": [
+          {
+            "id": "thm:counting-separation",
+            "proof_tex": "We first give a polynomial-time exact verifier for the stability-filtered count.  To place the promised problem in \\(\\#\\mathrm P\\), extend it to all binary strings by returning zero unless the string encodes a square rational matrix in \\(\\mathcal R_q\\).  Rationality and the unit-diagonal condition are immediate exact checks, and invertibility is decided by an exact determinant computation.  It remains to justify that both reference stability and candidate stability are decidable in polynomial time.\n\nLet \\(C\\in\\mathbb Q^{q\\times q}\\).  Consider the \\(q^2\\)-variable rational linear system\n\\[\n H-C^{\\mathsf T}HC=I_q. \\tag{1}\n\\]\nWe claim that \\(\\rho(C)<1\\) if and only if (1) has a positive-definite solution, and in the stable case that solution is unique.  Indeed, if \\(\\rho(C)<1\\), put \\(C\\) into complex Jordan form.  For every number \\(a\\) with \\(\\rho(C)<a<1\\), the binomial expansion of each Jordan block gives a constant \\(K_a<\\infty\\) such that \\(\\|C^k\\|_2\\leq K_a a^k\\) for all sufficiently large \\(k\\); the polynomial factors \\(\\binom{k}{j}\\), with \\(j<q\\), are absorbed by replacing each eigenvalue modulus by the strictly larger number \\(a\\).  Consequently the series\n\\[\n H_C:=\\sum_{k=0}^{\\infty}(C^k)^{\\mathsf T}C^k \\tag{2}\n\\]\nconverges absolutely in operator norm.  Its zeroth summand is \\(I_q\\), so \\(H_C\\succ0\\).  Shifting the index in (2) proves\n\\[\n C^{\\mathsf T}H_CC\n =\\sum_{k=1}^{\\infty}(C^k)^{\\mathsf T}C^k\n =H_C-I_q,\n\\]\nwhich is (1).  If \\(K-C^{\\mathsf T}KC=0\\), iteration yields\n\\[\n K=(C^k)^{\\mathsf T}KC^k,\n \\qquad\n \\|K\\|_2\\leq \\|C^k\\|_2^2\\|K\\|_2\\longrightarrow0,\n\\]\nand hence \\(K=0\\); thus the solution is unique.  Conversely, suppose (1) has a real symmetric solution \\(H\\succ0\\).  For any nonzero complex eigenvector \\(v\\) satisfying \\(Cv=\\lambda v\\), complexification of (1) gives\n\\[\n (1-|\\lambda|^2)v^*Hv=v^*v>0.\n\\]\nBecause \\(v^*Hv>0\\), division is valid and implies \\(|\\lambda|<1\\).  This holds for every eigenvalue, so \\(\\rho(C)<1\\).  In particular, if the coefficient operator in (1) is singular then \\(C\\) is not stable, since stability would have implied uniqueness.\n\nThis characterization is an exact polynomial-time test over \\(\\mathbb Q\\).  After denominators are cleared, (1) is an integer linear system of dimension \\(d=q^2\\), with coefficient bit length bounded by a polynomial in the bit length of \\(C\\) and in \\(q\\).  If the absolute value of every integer coefficient is at most \\(2^K\\), the Leibniz formula bounds every \\(d\\)-dimensional determinant used by fraction-free elimination by\n\\[\n d!\\,2^{dK},\n\\]\nwhose binary length is at most \\(dK+\\lceil\\log_2(d!)\\rceil+1\\).  The same bound applies to the minors and Cramer numerators that occur during fraction-free elimination.  Thus singularity and the unique rational solution, when it exists, are obtained with polynomially many integer operations on polynomial-bit integers.  Transposition equality is checked exactly.  For a symmetric solution, positive definiteness is equivalent to positivity of all leading principal minors; these determinants obey the same bit bound and are computed exactly.  Applying this procedure to \\(I_q-W\\) also makes the stable-reference promise defining \\(\\mathcal R_q\\) polynomial-time decidable.\n\nNow let \\(W\\in\\mathcal R_q\\).  A nondeterministic branch guesses the canonical list encoding of one permutation \\(\\pi\\in\\mathfrak S_q\\), checks that the list is a bijection, and checks the \\(q\\) denominators\n\\[\n d_{\\pi,i}=W_{\\pi(i),i}\\neq0,\n \\qquad 1\\leq i\\leq q.\n\\]\nOnly after these nonzero checks does it form, by exact rational arithmetic,\n\\[\n B_\\pi\n =I_q-\\operatorname{diag}\\bigl(d_{\\pi,1}^{-1},\\ldots,d_{\\pi,q}^{-1}\\bigr)P_\\pi W. \\tag{3}\n\\]\nInverting a checked nonzero rational and multiplying two input rationals increases numerator and denominator lengths by at most an additive polynomial amount.  Hence every entry of (3) has bit length polynomial in \\(q+L\\), and the preceding Lyapunov test runs in polynomial time.  The branch accepts exactly when \\(\\rho(B_\\pi)<1\\).  Canonical list encoding gives exactly one accepting branch for each \\(\\pi\\in\\mathcal P_{\\mathrm{stab}}(W)\\) and none for any other list.  Therefore the total extension, and hence the promised restriction \\(W\\mapsto N_{\\mathrm{stab}}(W)\\) on \\(\\mathcal R_q\\), belongs to \\(\\#\\mathrm P\\).\n\nFor hardness, take a simple graph \\(G\\) on \\(n\\) vertices and compute the frozen rational gadget \\(W_G\\).  The stable-orbit realization theorem gives \\(\\rho(B_G)<1\\), rational entries with \\(O(\\log(n+1))\\) bits per nonzero entry, and\n\\[\n N_{\\mathrm{stab}}(W_G)=|\\mathcal I(G)|. \\tag{4}\n\\]\nThe diagonal of \\(B_G\\) is zero because \\(G\\) is simple, so \\(W_G\\) has unit diagonal.  If \\(W_Gx=0\\) for a nonzero complex vector \\(x\\), then \\(B_Gx=x\\), contradicting \\(\\rho(B_G)<1\\); hence \\(W_G\\) is invertible.  Thus \\(W_G\\in\\mathcal R_{3n}\\), and its full rational encoding has polynomial length.  Exact independent-set counting is \\(\\#\\mathrm P\\)-complete under polynomial-time Turing reductions.  Equation (4) therefore gives a deterministic, one-query, count-preserving Turing reduction to stable-orbit counting.  Together with membership, this proves \\(\\#\\mathrm P\\)-completeness on \\(\\mathcal R_q\\).\n\nIf an FPRAS for \\(N_{\\mathrm{stab}}\\) existed on gadget images of graphs of maximum degree at most six, then, for any such graph \\(G\\), we could construct \\(W_G\\), invoke that scheme once, and return its output.  The exact positive equality (4) preserves the relative-error event and its success probability without subtraction or interpolation.  This would be an FPRAS for independent-set counting on maximum-degree-six graphs, contrary to the cited bounded-degree inapproximability theorem unless \\(\\mathrm{RP}=\\mathrm{NP}\\).\n\nFinally, define the observable zero--one support matrix\n\\[\n A(W)_{ri}:=\\mathbf 1\\{W_{ri}\\neq0\\}.\n\\]\nThe admissible-orbit definition gives, for each \\(\\pi\\in\\mathfrak S_q\\),\n\\[\n \\pi\\in\\mathcal P_{\\mathrm{adm}}(W)\n \\quad\\Longleftrightarrow\\quad\n \\prod_{i=1}^q A(W)_{\\pi(i),i}=1.\n\\]\nWriting \\(\\sigma=\\pi^{-1}\\), which bijects \\(\\mathfrak S_q\\) with itself, therefore yields\n\\[\n\\begin{aligned}\n N_{\\mathrm{adm}}(W)\n &=\\sum_{\\pi\\in\\mathfrak S_q}\\prod_{i=1}^q A(W)_{\\pi(i),i}\\\\\n &=\\sum_{\\sigma\\in\\mathfrak S_q}\\prod_{r=1}^q A(W)_{r,\\sigma(r)}\n =\\operatorname{per}(A(W)).\n\\end{aligned}\\tag{5}\n\\]\nThe support matrix is nonnegative, so the cited nonnegative-permanent theorem supplies an FPRAS for (5).  Equations (4) and (5) establish the asserted exact and approximate separation between the Schur-stable orbit count and the unfiltered normalized-assignment count."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:degree-three-independent-set-counting-complete",
+            "kind": "lemma",
+            "statement": "The problem of exactly counting independent sets of a finite simple \\(3\\)-regular graph is \\(\\#\\mathrm P\\)-complete under polynomial-time Turing reductions.",
+            "free_symbols": [],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "Greenhill2000",
+              "locator": "Section 3.2, Theorem 3.1, journal pages 62--63 (author-hosted PDF pages 10--12)",
+              "carrier": "logical-claim",
+              "verbatim_statement": "Theorem 3.1 Let \\(\\#\\mathrm{REGULAR\\mbox{-}IND\\mbox{-}SETS}(3)\\) denote the following counting problem. An instance is a 3-regular graph and the problem is to calculate the number of independent sets in that graph. Then \\(\\#\\mathrm{REGULAR\\mbox{-}IND\\mbox{-}SETS}(3)\\) is \\(\\#\\mathrm P\\)-complete.",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Transcribed from Theorem 3.1 of the author-hosted journal-paper PDF; the proof is an interpolation reduction and therefore supports the stated polynomial-time Turing-reduction convention."
+              }
+            }
+          },
+          {
+            "id": "lem:weitz-hard-core-fptas",
+            "kind": "lemma",
+            "statement": "Fix an integer \\(b\\geq2\\) and an activity \\(0<\\lambda<b^b/(b-1)^{b+1}\\).  For \\(Z_G(\\lambda)=\\sum_{I\\in\\mathcal I(G)}\\lambda^{|I|}\\), there is a deterministic fully polynomial-time approximation scheme on finite graphs \\(G\\) of maximum degree at most \\(b+1\\): on input \\(G\\) and \\(0<\\eta<1\\), it returns bounds \\(Z_1\\leq Z_G(\\lambda)\\leq Z_2\\leq(1+\\eta)Z_1\\) in time polynomial in \\(|V|\\) and \\(\\eta^{-1}\\), with the polynomial exponent allowed to depend on the fixed \\(b\\) and \\(\\lambda\\).",
+            "free_symbols": [
+              "G",
+              "V",
+              "IG"
+            ],
+            "depends_on": [
+              "def:independent-switch-family"
+            ],
+            "status": "cited",
+            "source": {
+              "cite": "Weitz2006",
+              "locator": "Corollary 2.8, proceedings page 144 (author manuscript page 5)",
+              "carrier": "logical-claim",
+              "verbatim_statement": "Corollary 2.8 There exists a deterministic algorithm such that for every positive integer \\(b\\) and any \\(\\lambda<\\lambda_c(b)\\), on input of any graph \\(G\\) of maximum degree \\(b+1\\), the algorithm approximates the partition function \\(Z_G^\\lambda\\) to within a factor \\((1+\\epsilon)\\) in time polynomial in \\((1+\\epsilon)n/\\epsilon\\), where the exponent depends on \\(b\\) and \\(\\lambda\\).",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Transcribed from Corollary 2.8 of Dror Weitz's author-hosted March 16, 2006 manuscript, matching the STOC 2006 paper; the immediately preceding definitions identify \\(Z_G^\\lambda=\\sum_I\\lambda^{|I|}\\), and the corollary states the deterministic approximation guarantee used here."
+              }
+            }
+          },
+          {
+            "id": "thm:bounded-degree-phase-diagram",
+            "kind": "theorem",
+            "statement": "For every integer \\(\\Delta\\geq0\\), let\n\\[\n \\mathcal W_\\Delta\n :=\\{W_G:G\\text{ is a finite simple graph and }\\max_{v\\in V}\\deg_G(v)\\leq\\Delta\\}.\n\\]\nOn the promised rational encodings in this fixed-labelled gadget image, the following sharp bounded-degree phase diagram holds.  Exact computation of \\(N_{\\mathrm{stab}}\\) is in \\(\\mathrm{FP}\\) on \\(\\mathcal W_\\Delta\\) for \\(\\Delta\\leq2\\), and is \\(\\#\\mathrm P\\)-complete under polynomial-time Turing reductions already on \\(\\mathcal W_3\\).  There is a deterministic \\(\\mathrm{FPTAS}\\) for \\(N_{\\mathrm{stab}}\\) on \\(\\mathcal W_\\Delta\\) for \\(\\Delta\\leq5\\), whereas no \\(\\mathrm{FPRAS}\\) exists on \\(\\mathcal W_6\\) unless \\(\\mathrm{RP}=\\mathrm{NP}\\).  The labelled matrix \\(W_G\\) determines \\(G\\) in polynomial time, and every transfer is count preserving through \\(N_{\\mathrm{stab}}(W_G)=|\\mathcal I(G)|\\).  Define the rationally encoded square cyclic-LiNG input class\n\\[\n \\mathcal C_{\\mathrm{rat}}\n :=\\bigcup_{q\\geq1}\n \\left\\{W\\in\\mathbb Q^{q\\times q}:\n \\exists P_X,e\\ \\text{such that }(P_X,W,e)\\in\\mathcal M_q\\right\\}.\n\\]\nIts admissible normalized row assignments are represented by perfect matchings in the support matrix.  The lower-bound gadget images form a strict subclass of \\(\\mathcal C_{\\mathrm{rat}}\\): they have a stable reference and admit independent centered variance-one continuous non-Gaussian errors.  Thus the lower bounds transfer by subclass inclusion to this rationally encoded published cyclic-LiNG/perfect-matching class; stability is an additional restriction imposed on the counted subfamily.",
+            "free_symbols": [
+              "WG",
+              "G",
+              "V",
+              "Nstab",
+              "IG",
+              "W",
+              "q",
+              "PX",
+              "e",
+              "Mling"
+            ],
+            "depends_on": [
+              "def:ling-model-class",
+              "def:admissible-orbit",
+              "def:graph-gadget",
+              "def:independent-switch-family",
+              "def:orbit-counts",
+              "def:rational-input-class",
+              "prop:gadget-law-validity",
+              "thm:stable-orbit-realization",
+              "thm:counting-separation",
+              "lem:degree-three-independent-set-counting-complete",
+              "lem:weitz-hard-core-fptas",
+              "lem:degree-six-independent-set-no-fpras"
+            ],
+            "proof_tex": "Fix \\(\\Delta\\geq0\\).  We first verify that the graph can be recovered from the promised matrix input.  If \\(W=W_G\\in\\mathcal W_\\Delta\\), its dimension is \\(q=3n\\), and the fixed coordinate labels identify \\(u_i,v_i,w_i\\) for \\(i\\in[n]\\).  The frozen construction has, for \\(i\\neq j\\),\n\\[\n (W_G)_{u_i u_j}=-(B_G)_{u_i u_j}=-g(A_G)_{ij},\n \\qquad\n g=\\bigl[2^{40}(n+1)^4\\bigr]^{-2}>0. \\tag{6}\n\\]\nThus\n\\[\n (A_G)_{ij}=-\\frac{(W_G)_{u_i u_j}}{g}\\quad(i\\neq j),\n \\qquad (A_G)_{ii}=0. \\tag{7}\n\\]\nThe division in (7) is licensed by \\(g>0\\).  Computing \\(n=q/3\\), \\(g\\), and all entries in (7) uses polynomially many exact rational operations on polynomial-bit numbers.  Hence the fixed-labelled encoding permits polynomial-time recovery of \\(G\\).  Conversely, the graph-gadget definition and its bit bound compute \\(W_G\\) from \\(G\\) in polynomial time.  The stable-orbit realization theorem supplies the exact equality\n\\[\n N_{\\mathrm{stab}}(W_G)=|\\mathcal I(G)|. \\tag{8}\n\\]\n\nSuppose first that \\(\\Delta\\leq2\\).  Every connected component of \\(G\\) is a path or a cycle: if a component is acyclic and has maximum degree at most two, following its unique possible continuation from an endpoint lists a path; if it contains a cycle, every vertex on that cycle already has degree two, so connectedness leaves no vertex outside the cycle.  Let \\(P_k\\) be the path on \\(k\\) vertices, including \\(P_0\\), and define Fibonacci numbers by \\(F_0=0\\), \\(F_1=1\\), and \\(F_{k+1}=F_k+F_{k-1}\\) for \\(k\\geq1\\).  Splitting independent sets of \\(P_k\\) according as the first vertex is excluded or included gives\n\\[\n |\\mathcal I(P_0)|=1,\\qquad |\\mathcal I(P_1)|=2,\\qquad\n |\\mathcal I(P_k)|=|\\mathcal I(P_{k-1})|+|\\mathcal I(P_{k-2})|=F_{k+2},\n \\qquad k\\geq2. \\tag{9}\n\\]\nFor a cycle \\(C_k\\), \\(k\\geq3\\), split on a fixed vertex.  Excluding it leaves \\(P_{k-1}\\); including it forces its two neighbors out and leaves \\(P_{k-3}\\).  Hence\n\\[\n |\\mathcal I(C_k)|=F_{k+1}+F_{k-1}. \\tag{10}\n\\]\nIndependent choices on distinct connected components are in Cartesian product, so \\(|\\mathcal I(G)|\\) is the product of the quantities in (9)--(10).  Component discovery and all recurrences use \\(O(n)\\) graph operations and \\(O(n)\\) integer additions or multiplications.  Every intermediate count is at most \\(2^n\\), hence has at most \\(n+1\\) bits.  This is a deterministic polynomial-time exact algorithm.  Graph recovery and (8) therefore put exact \\(N_{\\mathrm{stab}}\\) computation in \\(\\mathrm{FP}\\) on \\(\\mathcal W_\\Delta\\) for \\(\\Delta\\leq2\\).\n\nFor the next regime, the cited Greenhill theorem states that exact independent-set counting is \\(\\#\\mathrm P\\)-complete even on \\(3\\)-regular graphs.  Such graphs have maximum degree three.  The forward map \\(G\\mapsto W_G\\), followed by the one equality (8), is therefore a polynomial-time, count-preserving, one-query reduction to exact stable-orbit counting on \\(\\mathcal W_3\\).  The counting-separation theorem already supplies \\(\\#\\mathrm P\\) membership for these rational stable-reference inputs.  Thus the restriction to \\(\\mathcal W_3\\) is \\(\\#\\mathrm P\\)-complete under polynomial-time Turing reductions.\n\nFor approximation, take any graph of maximum degree at most five.  In the cited Weitz theorem set \\(b=4\\) and \\(\\lambda=1\\).  Its strict threshold premise holds because\n\\[\n 1<\\frac{4^4}{3^5}=\\frac{256}{243}. \\tag{11}\n\\]\nAt activity one the hard-core partition function is exactly\n\\[\n Z_G(1)=\\sum_{I\\in\\mathcal I(G)}1^{|I|}=|\\mathcal I(G)|. \\tag{12}\n\\]\nThe deterministic scheme from that theorem, applied after the recovery (7), is therefore a deterministic \\(\\mathrm{FPTAS}\\) for \\(|\\mathcal I(G)|\\), and (8) transfers the same relative bounds without any postprocessing loss to \\(N_{\\mathrm{stab}}(W_G)\\).  This proves the claim for every \\(\\Delta\\leq5\\).\n\nConversely, suppose an \\(\\mathrm{FPRAS}\\) existed on \\(\\mathcal W_6\\).  Given a maximum-degree-six graph \\(G\\), compute \\(W_G\\), invoke that scheme once with the desired accuracy and failure probability, and return the result.  By (8), the returned relative-error event and success probability are exactly those for \\(|\\mathcal I(G)|\\).  The cited Sly theorem rules out such an \\(\\mathrm{FPRAS}\\) unless \\(\\mathrm{RP}=\\mathrm{NP}\\).  This proves the approximation elbow between degrees five and six.\n\nIt remains to record the class transfer.  The stable-orbit realization proof shows that each \\(W_G\\) is rational, unit diagonal, invertible, and has stable reference \\(B_G\\); the gadget-law proposition supplies independent centered variance-one continuous non-Gaussian errors and legal same-law normalized assignments.  Hence every hard image belongs to the explicitly defined class \\(\\mathcal C_{\\mathrm{rat}}\\).  For any \\(W\\in\\mathcal C_{\\mathrm{rat}}\\), the support matrix has an edge from row \\(r\\) to column \\(i\\) exactly when \\(W_{ri}\\neq0\\).  By the admissible-orbit definition, selecting one incident edge at each row and column is equivalent to selecting a permutation \\(\\pi\\) for which all \\(W_{\\pi(i),i}\\neq0\\); hence admissible normalized assignments are exactly support perfect matchings.  The gadget subclass is strict: for example, \\(W=I_{3n}\\) with the same type of independent errors belongs to \\(\\mathcal C_{\\mathrm{rat}}\\) but cannot equal any \\(W_G\\), since every gadget has the nonzero local entry \\((W_G)_{u_i v_i}=-1\\).  Any exact or approximate algorithm valid on the larger published input class would restrict to the gadget images, so both lower bounds transfer by subclass inclusion.  This uses stability only as the additional filter defining the counted subfamily; it does not attribute a stability assumption to the unfiltered matching formulation.",
+            "status": "proved",
+            "justification": "The corollary exposes the sharp bounded-degree elbows hidden by the unrestricted hardness statement: exact complexity changes between degrees two and three, while approximation changes between degrees five and six.",
+            "gap": "Greenhill, Weitz, and Sly establish the donor-graph regimes, but none gives a coefficient-valid, fixed-labelled cyclic-LiNG realization or proves that all four regimes transfer without loss to the Schur-stable normalized-assignment count.",
+            "consumer": "It tells a stability-conditioned matching-frequency or adaptive-intervention procedure exactly when the gadget subproblem is polynomially countable, deterministically approximable, or provably resistant to an FPRAS."
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "bibliography-replace",
+            "key": "Weitz2006",
+            "proposed": {
+              "key": "Weitz2006",
+              "citation": "Dror Weitz. Counting Independent Sets up to the Tree Threshold. Proceedings of the Thirty-Eighth Annual ACM Symposium on Theory of Computing, 140--149. ACM, 2006. doi:10.1145/1132516.1132538."
+            },
+            "reason": "The bounded-degree approximation corollary invokes and directly attests Weitz's deterministic hard-core approximation theorem at activity one and maximum degree five.",
+            "direction": "correct"
+          },
+          {
+            "kind": "comparator-promise-table-replace",
+            "id": "metadata:comparator-promise-table",
+            "proposed": [
+              {
+                "comparator_bibkey": "LacerdaSpirtesRamseyHoyer2008",
+                "comparator_claim": "LiNG-D outputs the complete distribution-entailment equivalence class and stability selects at most one candidate when the true graph has disjoint cycles.",
+                "matched_by": "Theorem 1",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "SharifianSalehkaleybarKiyavash2025",
+                "comparator_claim": "Distribution-equivalent cyclic LiNG graphs correspond to perfect matchings, their SCCs are invariant, and unfiltered matching samples estimate intervention reward.",
+                "matched_by": "Theorem 3",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "JerrumSinclairVigoda2004",
+                "comparator_claim": "The permanent of every nonnegative matrix has a fully polynomial randomized approximation scheme.",
+                "matched_by": "Theorem 2",
+                "match_kind": "non_representability"
+              },
+              {
+                "comparator_bibkey": "Greenhill2000",
+                "comparator_claim": "Counting independent sets is \\(\\#\\mathrm P\\)-complete even for graphs of maximum degree three.",
+                "matched_by": "Bounded-degree phase-diagram corollary",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "Weitz2006",
+                "comparator_claim": "At hard-core activity one, independent-set counting on graphs of maximum degree at most five has a deterministic fully polynomial-time approximation scheme.",
+                "matched_by": "Bounded-degree phase-diagram corollary",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "Sly2010",
+                "comparator_claim": "Unless \\(\\mathrm{NP}=\\mathrm{RP}\\), no FPRAS counts independent sets on graphs of maximum degree six.",
+                "matched_by": "Theorem 2 and bounded-degree phase-diagram corollary",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "Uno1997",
+                "comparator_claim": "All perfect matchings of a bipartite graph can be enumerated in output-sensitive total time with linear work per matching after preprocessing.",
+                "matched_by": "unmatched",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "MiettinenTaskinenNordhausenOja2015",
+                "comparator_claim": "Under bounded eighth moments and distinct kurtoses, the FOBI unmixing estimator has an explicit joint root-sample-size expansion.",
+                "matched_by": "Theorem 4",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "ChernozhukovHongTamer2007",
+                "comparator_claim": "Inversion of a sample criterion yields confidence regions for an identified parameter set with consistency and coverage theory.",
+                "matched_by": "Theorem 4",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "Pfanzagl1998",
+                "comparator_claim": "Discontinuity of a functional prevents nontrivial locally uniform confidence procedures in general.",
+                "matched_by": "Theorem 4",
+                "match_kind": "downgraded_to_informed_by"
+              },
+              {
+                "comparator_bibkey": "MisiakosPuschel2026",
+                "comparator_claim": "StableSpIn learns cyclic linear models under the absolute spectral-radius restriction \\(\\rho(|B|)<1\\).",
+                "matched_by": "unmatched",
+                "match_kind": "dropped_from_abstract"
+              }
+            ],
+            "reason": "The headline comparator map must now record Weitz's degree-five deterministic approximation result and route the Greenhill--Weitz--Sly donor claims to the new bounded-degree phase diagram.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [],
+        "prose_updates": {
+          "tldr": "A fully observed cyclic LiNG law identifies a finite monomial row-assignment orbit, while additionally imposed equilibrium stability applies a global spectral filter. The explicit rational \\(3n\\)-variable construction \\(W_G\\) has complete stable orbit \\(\\{\\pi_S:S\\in\\mathcal I(G)\\}\\). On its fixed-labelled bounded-degree images, exact stable counting is in \\(\\mathrm{FP}\\) through degree two and \\(\\#\\mathrm P\\)-complete already at degree three; approximation has a deterministic \\(\\mathrm{FPTAS}\\) through degree five and no \\(\\mathrm{FPRAS}\\) at degree six unless \\(\\mathrm{RP}=\\mathrm{NP}\\). The unfiltered orbit remains a permanent with an FPRAS. Algebraic SCC factorization holds for arbitrary real equation matrices, while the exact output-sensitive local enumerator and all bit-complexity guarantees remain restricted to rational stable-reference inputs. Symmetrized FOBI-region inversion gives pointwise orbit-honest count coverage without a uniform graph-support or stability-boundary claim.",
+          "project_justification": {
+            "gap": "Published cyclic-LiNG methods identify, enumerate, or sample the full normalized perfect-matching fiber and may screen candidates by stability, but they do not classify the stability-filtered count, its sharp bounded-degree exact and approximation transitions, or the validity of transferring permanent-based guarantees after the spectral filter is imposed.",
+            "niche": "The missing bridge was a coefficient-valid rational realization controlling normalization, every unintended assignment, analytic multiplicity, absence of Schur-complement poles, and polynomial-bit stability margins, together with a lossless recovery map that imports the degree-two/three exact and degree-five/six approximation thresholds.",
+            "fill": "The graph gadget identifies its complete stable assignment orbit with independent sets and transfers the sharp bounded-degree phase diagram: exact \\(\\mathrm{FP}\\) for degree at most two, exact \\(\\#\\mathrm P\\)-completeness at degree three, a deterministic \\(\\mathrm{FPTAS}\\) through degree five, and no \\(\\mathrm{FPRAS}\\) at degree six unless \\(\\mathrm{RP}=\\mathrm{NP}\\). The note also proves admissible and stable SCC product decompositions for arbitrary real equation matrices, retains an exact local enumerator that is output-sensitive in local admissible matching fibers only on rational stable-reference inputs, and gives pointwise symmetrized FOBI confidence-image coverage."
+          },
+          "sampling_model": {
+            "treatment": "There is no treatment variable in the core identification theorem. In the downstream Sharifian--Salehkaleybar--Kiyavash design problem, an atomic intervention reveals a matching edge; their unfiltered matching formulation does not assume stability, which is additionally imposed only for the counted equilibrium-stable subfamily considered here."
+          },
+          "related_work": "Lacerda, Spirtes, Ramsey, and Hoyer characterize the cyclic-LiNG row-permutation fiber and use Schur stability to screen candidates, but do not realize arbitrary independent-set systems. Sharifian, Salehkaleybar, and Kiyavash represent distribution-equivalent cyclic LiNG graphs by perfect matchings, establish SCC invariance, and estimate intervention rewards from unfiltered matching samples; they do not assume equilibrium stability, so the stable orbit here is an additionally restricted consumer subfamily. Jerrum, Sinclair, and Vigoda give the permanent FPRAS for that unfiltered benchmark. Greenhill proves exact independent-set counting \\(\\#\\mathrm P\\)-complete already for degree-three regular graphs; Weitz gives a deterministic hard-core \\(\\mathrm{FPTAS}\\) at activity one through maximum degree five; and Sly rules out an FPRAS at maximum degree six unless \\(\\mathrm{RP}=\\mathrm{NP}\\). Those sources provide the donor thresholds, while the present fixed-labelled coefficient construction and recovery map prove their lossless transfer to stable cyclic-LiNG orbit counting. The FOBI limit uses distinct centered standardized fourth cumulants and covariance convergence only modulo signed-row conjugacy.",
+          "interpretation": "The causal object is the number of Schur-stable mechanisms in the population-identified normalized ICA row orbit, not an arbitrary count attached to one ICA labeling and not an effect estimand. On the gadget image, theorem rather than definition proves \\(N_{\\mathrm{stab}}(W_G)=|\\mathcal I(G)|\\), and the labelled coefficients recover \\(G\\) in polynomial time. The resulting degree-two/three exact elbow and degree-five/six approximation elbow therefore transfer without loss. Matching frequencies and adaptive intervention scores in the downstream cyclic-LiNG design problem must be conditioned on the stable orbit whenever equilibrium stability is additionally imposed; the permanent FPRAS for all admissible assignments does not itself approximate those stability-conditioned quantities.",
+          "technical_internal_limitation": "The graph-uniform analytic proof uses deliberately conservative contour and resolvent constants; finite complete-orbit checks are sanity checks rather than substitutes for that proof. All counting lower-bound inputs are explicit rational matrices with polynomial total encoding length and a stable reference. SCC product factorization is purely algebraic and applies to arbitrary real equation matrices, but the local enumeration runtime, Lyapunov certificates, and bit-complexity statements remain confined to rational stable-reference inputs and are output-sensitive in local admissible matching fibers, not stable outputs alone. The phase diagram is for the fixed-labelled gadget images, and it asserts neither an almost-uniform stable sampler nor stability-conditioned adaptive submodularity. FOBI count-region coverage remains pointwise, with no uniformity at graph-support, eigengap, normalization, or unit-circle boundaries.",
+          "honest_scope": "The proved contribution is the explicit rational stable-orbit realization, its one-call counting separation, and the sharp bounded-degree phase diagram on recoverable gadget images. The lower bounds hold on a strict safe subclass with a stable reference and independent centered variance-one continuous non-Gaussian errors, so they transfer upward to the rationally encoded published cyclic-LiNG/perfect-matching class; this does not attribute stability to the unfiltered matching model. Admissible and stable orbit factorization holds for arbitrary real equation matrices, whereas exact certification and output-sensitive local enumeration remain restricted to rational stable-reference inputs. No almost-uniform stable generator, certificate-hardness theorem, uniform graph-support recovery theorem, or stability-conditioned adaptive-submodularity result is claimed. FOBI inference is pointwise and orbit-honest only.",
+          "statement_notes": [
+            {
+              "id": "thm:counting-separation",
+              "justification": "The theorem proves that the causally relevant stability filter changes the computational character of the same normalized-assignment representation whose unfiltered size is a permanent; the bounded-degree corollary sharpens this to the exact degree-two/three and approximation degree-five/six elbows.",
+              "gap": "Independent-set hardness, Weitz's approximation theorem, and the permanent FPRAS do not themselves provide a legal cyclic-LiNG coefficient map, exclude unintended normalized assignments, or prove a count-preserving transfer through Schur stability.",
+              "consumer": "A matching-frequency sampler or adaptive intervention rule may use the unfiltered permanent machinery only before stability is imposed; on an equilibrium-stable subfamily it must condition on the stable orbit and respect the bounded-degree phase diagram."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "unit": "thm:scc-factorization",
+      "targets": [
+        "thm:scc-factorization"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "thm:scc-factorization-real",
+            "kind": "theorem",
+            "statement": "For every positive integer \\(q\\) and every real matrix \\(W\\in\\mathbb R^{q\\times q}\\), put \\(B=I_q-W\\). Restriction to the strongly connected components of the directed support graph of \\(B\\) gives bijections\n\\[\n \\mathcal P_{\\mathrm{adm}}(W)\n \\xrightarrow{\\ \\sim\\ }\n \\prod_{C\\in\\operatorname{SCC}(B)}\n \\mathcal P_{\\mathrm{adm}}(W_C)\n \\quad\\text{and}\\quad\n \\mathcal P_{\\mathrm{stab}}(W)\n \\xrightarrow{\\ \\sim\\ }\n \\prod_{C\\in\\operatorname{SCC}(B)}\n \\mathcal P_{\\mathrm{stab}}(W_C).\n\\]\nThe inverse maps concatenate the local permutations in any fixed topological order of the condensation graph. Consequently,\n\\[\n N_{\\mathrm{adm}}(W)\n =\\prod_{C\\in\\operatorname{SCC}(B)}N_{\\mathrm{adm}}(W_C)\n \\quad\\text{and}\\quad\n N_{\\mathrm{stab}}(W)\n =\\prod_{C\\in\\operatorname{SCC}(B)}N_C.\n\\]\nNo rationality, invertibility, unit-diagonal, or reference-stability condition on \\(W\\) is required.",
+            "free_symbols": [
+              "q",
+              "W",
+              "B",
+              "Iq",
+              "Padm",
+              "SCCB",
+              "C",
+              "WC",
+              "Nadm",
+              "Pstab",
+              "Nstab",
+              "NC"
+            ],
+            "depends_on": [
+              "def:normalized-candidate",
+              "def:admissible-orbit",
+              "def:stable-orbit",
+              "def:orbit-counts",
+              "def:scc-local-objects"
+            ],
+            "proof_tex": "Fix a positive integer \\(q\\) and a matrix \\(W\\in\\mathbb R^{q\\times q}\\), and set \\(B=I_q-W\\). Let \\(D(B)\\) be the directed support graph with an arrow \\(j\\to i\\) exactly when \\(B_{ij}\\neq0\\). For distinct indices \\(i,r\\in[q]\\), the off-diagonal entries of the identity matrix vanish, and hence\n\\[\n B_{ri}=(I_q)_{ri}-W_{ri}=-W_{ri}.\n\\]\nIt follows directly from the definition of \\(D(B)\\) that\n\\[\n W_{ri}\\neq0\n \\quad\\Longleftrightarrow\\quad\n B_{ri}\\neq0\n \\quad\\Longleftrightarrow\\quad\n i\\to r\\text{ is an arrow of }D(B)\n \\qquad(i\\neq r). \\tag{1}\n\\]\n\nWe first prove the admissible product decomposition. Take \\(\\pi\\in\\mathcal P_{\\mathrm{adm}}(W)\\). By the definition of the admissible orbit,\n\\[\n W_{\\pi(i),i}\\neq0\\qquad\\text{for every }i\\in[q]. \\tag{2}\n\\]\nConsider a nontrivial cycle of \\(\\pi\\), written with distinct vertices as\n\\[\n i_0\\mapsto i_1\\mapsto\\cdots\\mapsto i_{s-1}\\mapsto i_0,\n \\qquad s\\ge2,\n\\]\nwhere indices on the \\(i_t\\)'s are read modulo \\(s\\). Equations (1) and (2), applied to \\(\\pi(i_t)=i_{t+1}\\), give the directed cycle\n\\[\n i_0\\to i_1\\to\\cdots\\to i_{s-1}\\to i_0\n\\]\nin \\(D(B)\\). Every two vertices on this cycle are mutually reachable, so the entire permutation cycle is contained in one strongly connected component of \\(D(B)\\). A fixed point of \\(\\pi\\) is contained in its own strongly connected component without requiring any self-loop. Since the cycles partition \\([q]\\), we have\n\\[\n \\pi(C)=C\n \\qquad\\text{for every }C\\in\\operatorname{SCC}(B). \\tag{3}\n\\]\n\nIdentify each component with its inherited increasing ordering. By (3), the restriction \\(\\pi_C:=\\pi|_C\\) is a permutation of \\(C\\). For \\(i\\in C\\), principality of \\(W_C=W[C,C]\\) and (2) yield\n\\[\n (W_C)_{\\pi_C(i),i}=W_{\\pi(i),i}\\neq0. \\tag{4}\n\\]\nThus \\(\\pi_C\\in\\mathcal P_{\\mathrm{adm}}(W_C)\\), and restriction defines a map\n\\[\n R_{\\mathrm{adm}}:\\mathcal P_{\\mathrm{adm}}(W)\n \\longrightarrow\n \\prod_{C\\in\\operatorname{SCC}(B)}\\mathcal P_{\\mathrm{adm}}(W_C),\n \\qquad\n R_{\\mathrm{adm}}(\\pi)=(\\pi_C)_C. \\tag{5}\n\\]\nConversely, let \\((\\sigma_C)_C\\) belong to the product on the right of (5). Define \\(\\sigma\\) on the disjoint union \\([q]=\\bigsqcup_C C\\) by \\(\\sigma(i)=\\sigma_C(i)\\) for \\(i\\in C\\), concatenating blocks in a fixed topological order. Since every \\(\\sigma_C\\) is a bijection of \\(C\\), \\(\\sigma\\) is a permutation of \\([q]\\). Local admissibility gives, for every \\(i\\in C\\),\n\\[\n W_{\\sigma(i),i}=(W_C)_{\\sigma_C(i),i}\\neq0. \\tag{6}\n\\]\nHence \\(\\sigma\\in\\mathcal P_{\\mathrm{adm}}(W)\\). The constructions in (5) and (6) are inverse because restriction followed by disjoint-union concatenation, and concatenation followed by restriction, preserve every coordinate. Therefore\n\\[\n \\mathcal P_{\\mathrm{adm}}(W)\n \\cong\n \\prod_{C\\in\\operatorname{SCC}(B)}\\mathcal P_{\\mathrm{adm}}(W_C). \\tag{7}\n\\]\nAll sets in (7) are finite. Taking cardinalities and applying the definition of \\(N_{\\mathrm{adm}}\\) proves\n\\[\n N_{\\mathrm{adm}}(W)\n =\\prod_{C\\in\\operatorname{SCC}(B)}N_{\\mathrm{adm}}(W_C). \\tag{8}\n\\]\n\nWe now prove that the same bijection factors the stability filter. Put the strongly connected components in the same topological order. If a block of \\(B\\) strictly violates the corresponding triangular pattern, one of its nonzero entries would give an arrow in the condensation graph directed opposite to that topological order. Therefore \\(B\\) is block triangular in this ordering. Since \\(W=I_q-B\\), the matrix \\(W\\) has the same block-triangular pattern and diagonal blocks \\(W_C\\).\n\nLet \\(\\pi\\in\\mathcal P_{\\mathrm{adm}}(W)\\). Equation (3) says that \\(P_\\pi\\) is block diagonal. The normalization matrix\n\\[\n D_\\pi^{-1}:=\\operatorname{diag}\\bigl(W_{\\pi(1),1}^{-1},\\ldots,W_{\\pi(q),q}^{-1}\\bigr)\n\\]\nexists by (2) and is also block diagonal. Thus \\(T_\\pi=D_\\pi^{-1}P_\\pi\\) is block diagonal, so \\(W_\\pi=T_\\pi W\\) is block triangular. For every component \\(C\\), equation (4) shows that the global and local diagonal normalizers agree on \\(C\\), and consequently\n\\[\n (W_\\pi)[C,C]\n =T_{\\pi_C}W_C. \\tag{9}\n\\]\nSubtracting (9) from the corresponding identity block shows that \\(B_\\pi=I_q-W_\\pi\\) is block triangular with diagonal block\n\\[\n (B_\\pi)[C,C]\n =I_{|C|}-T_{\\pi_C}W_C\n =:B^C_{\\pi_C}, \\tag{10}\n\\]\nwhere the last matrix is exactly the normalized coefficient candidate constructed from \\(W_C\\) and \\(\\pi_C\\).\n\nApplying the determinant expansion successively to the leading diagonal blocks of the block-triangular matrix in (10) gives, for every \\(z\\in\\mathbb C\\),\n\\[\n \\det(zI_q-B_\\pi)\n =\\prod_{C\\in\\operatorname{SCC}(B)}\n   \\det\\bigl(zI_{|C|}-B^C_{\\pi_C}\\bigr). \\tag{11}\n\\]\nIndeed, for two diagonal blocks the only nonzero terms in the Leibniz expansion pair rows and columns within the same diagonal block, yielding the product of the two block determinants; induction gives (11). Hence the roots of the characteristic polynomial of \\(B_\\pi\\), counted with algebraic multiplicity, are the multiset union of the roots of the characteristic polynomials of the matrices \\(B^C_{\\pi_C}\\). By the definition of spectral radius,\n\\[\n \\rho(B_\\pi)\n =\\max_{C\\in\\operatorname{SCC}(B)}\\rho(B^C_{\\pi_C}), \\tag{12}\n\\]\nand therefore\n\\[\n \\rho(B_\\pi)<1\n \\quad\\Longleftrightarrow\\quad\n \\rho(B^C_{\\pi_C})<1\n \\text{ for every }C\\in\\operatorname{SCC}(B). \\tag{13}\n\\]\nBy the definitions of the local normalized candidate and stable orbit, the right-hand side of (13) is equivalent to\n\\[\n \\pi_C\\in\\mathcal P_{\\mathrm{stab}}(W_C)\n \\qquad\\text{for every }C\\in\\operatorname{SCC}(B). \\tag{14}\n\\]\nThus the admissible bijection (7) restricts, in both directions, to the bijection\n\\[\n \\mathcal P_{\\mathrm{stab}}(W)\n \\cong\n \\prod_{C\\in\\operatorname{SCC}(B)}\\mathcal P_{\\mathrm{stab}}(W_C). \\tag{15}\n\\]\nTaking cardinalities in (15), then using the definitions \\(N_{\\mathrm{stab}}(W)=|\\mathcal P_{\\mathrm{stab}}(W)|\\) and \\(N_C=N_{\\mathrm{stab}}(W_C)\\), gives\n\\[\n N_{\\mathrm{stab}}(W)\n =\\prod_{C\\in\\operatorname{SCC}(B)}N_{\\mathrm{stab}}(W_C)\n =\\prod_{C\\in\\operatorname{SCC}(B)}N_C. \\tag{16}\n\\]\nThe argument used only the displayed real-matrix identities and the orbit definitions. In particular, it did not invoke rationality, invertibility of \\(W\\), unit diagonal, or stability of the reference matrix \\(B\\), which proves the asserted scope.",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-delete",
+            "id": "thm:scc-factorization",
+            "replacement_id": "thm:scc-factorization-real",
+            "reason": "The restricted theorem is obsolete because the factorization is algebraic for every real equation matrix. Replacing it preserves the stronger result and mechanically migrates the local enumerator dependency without enlarging that proposition's rational stable-reference input scope.",
+            "direction": "delete-obsolete"
+          }
+        ],
+        "open_obligations": []
+      }
+    }
+  ]
+}

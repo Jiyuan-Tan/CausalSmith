@@ -4,16 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Core.System
+module
+public import Causalean.PO.Core.System
 
 /-! # Consistency for Potential Outcomes
 
-This file defines the pathwise agreement predicates and the two-clause consistency
-assumption for potential-outcome systems.  These notions connect factual agreement,
-sequential interventions, and equality of potential outcomes outside the intervened
-coordinates.  The public API consists of `POSystem.FactualAgrees`,
-`POSystem.IntermediateAgrees`, and the `POSystem.Consistency` structure with its
-factual-consistency and composition-consistency fields. -/
+This file defines pathwise agreement predicates and separates textbook factual
+consistency from the stronger composition property for nested interventions.
+The public API consists of `POSystem.FactualAgrees`,
+`POSystem.IntermediateAgrees`, `POSystem.Consistency`, and
+`POSystem.CompositionConsistency`. Textbook consistency is the factual clause;
+composition consistency is a separate modelling assumption used for nested or
+sequential regimes. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -44,16 +48,16 @@ Pathwise predicate: post-`r₁` value of `r₂.target` equals `r₂.assign` at `
 def IntermediateAgrees (r₁ r₂ : Regime P.V P.X) (ω : P.Ω) : Prop :=
   ∀ v (hv : v ∈ r₂.target), P.eval r₁ ω v = r₂.assign v hv
 
-/-- A potential-outcome system is consistent when two conditions hold. First,
-[for every intervention regime and every finite set of variables disjoint from the
-regime's target, a unit's potential outcomes for that set under the regime equal its
-factual potential outcomes whenever it factually agrees with the regime](hyp:factual).
-Second, [for every pair of disjoint regimes and every finite set of variables disjoint
-from the union of their targets, a unit's potential outcomes for that set under the
-composed regime equal its potential outcomes under the first regime alone, whenever it
-agrees with the second regime after the first has been applied](hyp:composition).
+/-- For [a potential-outcome system](hyp:P), [consistency](hyp:factual) says
+that whenever a unit factually receives an intervention regime, every non-target
+potential outcome under that regime equals its observed factual outcome.
 
-Consistency assumption -- def:po-consistency. -/
+This is the observed/counterfactual linkage component of consistency in Hernán
+and Robins (2020, §3.5). Their §3.4 separately discusses the requirement that
+counterfactual outcomes be sufficiently well-defined, which this structure does
+not encode. See also Cole and Frangakis (2009). A researcher studying a one-shot
+treatment can assume this linkage without also imposing a recursive composition
+law. -/
 structure Consistency (P : POSystem) : Prop where
   /-- Factual consistency. -/
   factual :
@@ -61,6 +65,20 @@ structure Consistency (P : POSystem) : Prop where
       _root_.Disjoint Y r.target →
       ∀ ω : P.Ω, P.FactualAgrees r ω →
         P.poVariable r Y ω = P.poVariable Regime.empty Y ω
+
+/-- For [a potential-outcome system](hyp:P), [composition consistency for nested
+or sequential interventions](hyp:composition) says that an intervention which
+assigns variables their values after a first disjoint intervention can be
+removed from the composed regime.
+
+This is the nested-regime form of composition in Pearl (2009, §7.3,
+Property 1, eq. 7.19) and recursive substitution in Robins (1986). It is a separate
+modelling assumption: automatic for a potential-outcome system induced by an
+SCM, but genuinely additional for a bare potential-outcome system. It is needed
+for sequential or nested-regime arguments such as the g-formula, front-door
+identification, and dynamic treatment regimes, rather than for ordinary
+single-treatment consistency. -/
+structure CompositionConsistency (P : POSystem) : Prop where
   /-- Composition / nested consistency. -/
   composition :
     ∀ (r₁ r₂ : Regime P.V P.X) (h : r₁.Disjoint r₂) (Y : Finset P.V),

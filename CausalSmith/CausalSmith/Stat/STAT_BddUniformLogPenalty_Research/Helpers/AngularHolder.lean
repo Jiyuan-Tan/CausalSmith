@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolderScaling
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolderScaling
 
 /-!
 # Hölder assembly for separated packing bumps
@@ -7,6 +8,8 @@ This module records the support fact that turns the pointwise derivative
 scaling estimates into bounds independent of the number of packing cells.
 It is the first step in the Hölder-ball certificate for the angular family.
 -/
+
+public section
 
 open Set
 open scoped Topology

@@ -1,0 +1,1419 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}nested\_\allowbreak{}tvsace\_\allowbreak{}capacity}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Death truncates readmission, so the two-index TV-SACE and RM-SACE surfaces depend on an unidentified cross-world assignment of treated readmission times to control death times. After the proved full-horizon IPCW recovery lemma identifies the complete within-arm laws, and under the additional maintained order \(D(0)\le D(1)\), the note characterizes the complete sharp monotonicity-restricted surface by a necessary-and-sufficient marked-capacity lift, proves common fixed-cohort extremizers and exact RM integration, and gives a certified three-horizon law whose joint cross-cohort support is strictly narrower than its coordinate rectangle. Quadratic chain flows, qualitative continuous-grid convergence, and deterministic-grid finite-sample outer containment make the population characterization computable. A joint marked-product-limit/IPCW functional limit, root-\(n\) grid-bias control, and simultaneous multiplier bands remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} Comment et al. define clinically meaningful TV-SACE and RM-SACE surfaces but leave their cross-world law to a parametric illness--death shared-frailty model and do not impose terminal monotonicity.  The closest accepted-bank comparison, \texttt{pid\_slate\_benefit\_partialtransport\_v1/thm:sharp-exact-mass-threshold-interval} together with \texttt{pid\_slate\_benefit\_partialtransport\_v1/thm:full-law-endpoint-attainment}, identifies unequal survivor-complier outcome submeasures from finite-IV contrasts, solves a fixed-stratum scalar benefit partial transport, and lifts endpoint couplings to full IV-selection laws.  It does not establish the Borel readmission-marked deadline fiber, four-event-time semicompeting-risk lift, or jointly sharp changing-cohort TV/RM surface image proved here.
+
+\paragraph{Niche.} After separately auditing the additional restriction \(D(0)\le D(1)\), each always-survivor cohort becomes a nested marked-resource selection problem.  The contribution is the marked continuous-time fiber and its simultaneous changing-cohort surface image, not capacity projection or full-law lifting in generic terms.  This monotonicity-restricted nonparametric class is a subclass of the unrestricted causal model but is generally incomparable with Comment et al.'s fitted shared-frailty family.
+
+\paragraph{Fill.} The note proves the monotonicity-restricted if-and-only-if marked-capacity image, a measurable four-event-time full-law lift, common fixed-cohort extremizers on \(S(t)\geq\eta\), exact RM integration, an atomic strict cross-cohort support certificate, quadratic computation with a dual infimum, qualitative continuous approximation under the bounded finite-part coordinate-density envelope alone, and deterministic-grid finite-sample outer containment with \(D=\tau\) retained in the last bin. The continuous approximation needs no Lipschitz-density restriction. The separated-bump extension and smooth nonidentification transfer hold on every explicit envelope regime \(M\geq M_\delta\), \(L_{\mathrm{Lip}}\geq L_\delta\); no claim is made for arbitrary smaller fixed envelopes or for enlarged-class capacity sharpness.
+
+\section{Related work}
+
+Comment, Mealli, Haneuse, and Zigler (2025) define the TV-SACE and RM-SACE estimands and estimate them with a Bayesian illness--death shared-frailty model.  The present equality is instead a sharp nonparametric characterization after adding the audited restriction \(D(0)\le D(1)\); it is not an equality result for their unrestricted nonmonotone causal class, and their fitted shared-frailty family is generally incomparable with this class.  The closest in-repository result is the accepted \texttt{pid\_slate\_benefit\_partialtransport\_v1}: its \texttt{thm:sharp-exact-mass-threshold-interval} uses finite-IV contrasts to identify unequal survivor-complier outcome submeasures and solves a fixed-stratum scalar benefit partial transport, while \texttt{thm:full-law-endpoint-attainment} lifts endpoint couplings to full IV-selection laws.  The present theorem does not claim novelty for capacity projection or full-law lifting generically; it adds the Borel marked \( (D(0),R(1)) \) fiber under every deadline/mark capacity, a measurable lift to four semicompeting-risk event times, and the jointly sharp changing-cohort TV/RM surface image.  Yang and Ding (2018) use detailed survival histories and copula sensitivity for scalar SACE bounds.  Nevo and Gorfine (2022) study semi-competing-risk bounds under one population stratification.  Chen, Cui, and Yang (2024) integrate scalar fixed-time bounds but do not prove common readmission-threshold extremizers.  Strassen (1965) supplies the closed-relation coupling criterion; the marked cut reduction and its four-time adaptation are proved here.  Russell (2021), Ober-Reynolds (2023), and Gao, Ge, and Qian (2024) provide generic latent-law and transport programs, whereas the quadratic nested chain is specific to the terminal order.  Goldberg (2019) supplies IPCW concentration tools.  Cho and Russell (2024), Bluhmki et al. (2019), Fang and Santos (2019), and Firpo, Galvao, and Parker (2023) inform the still-open simultaneous-inference route.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \((\theta(r,t),\rho(a,t))=(\Pr\{R(1)\le r\mid D(0)>t,D(1)>t\}-\Pr\{R(0)\le r\mid D(0)>t,D(1)>t\},\ E[\min\{R(1),a\}-\min\{R(0),a\}\mid D(0)>t,D(1)>t])\).
+Primary functional / estimator / diagnostic: Under the maintained restriction \(D(0)\le D(1)\), \(\Theta_I(P)=\{(\theta_\nu,\rho_\nu):\nu_x\in\mathcal N_x\ \forall x,\ \theta_\nu(r,t)=S(t)^{-1}\sum_xp_x[\nu_x((t,\infty]\times[0,r])-b_x(r,t)],\ \rho_\nu(a,t)=-\int_0^a\theta_\nu(r,t)\,dr\}\)..
+\begin{itemize}
+  \item \texttt{\textbackslash{}\allowbreak{}tau} --- \texttt{positive real}; \(0<\tau<\infty\); \texttt{analysis horizon}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal E} --- \texttt{compact ordered time space}; \texttt{event-\allowbreak{}time carrier}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E=[0,\tau]\sqcup\{\infty\}\), with \(\infty\) isolated and maximal
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite set}; \texttt{covariate support}
+  \item \texttt{X} --- \texttt{random variable}; \(\mathcal X\); \texttt{baseline covariate}
+  \item \texttt{p\_\allowbreak{}x} --- \texttt{probability mass}; \texttt{standardization weight}
+  \par\smallskip\noindent\emph{Definition.} \(p_x=\Pr(X=x)\)
+  \item \texttt{Z} --- \texttt{binary random variable}; \(\{0,1\}\); \texttt{treatment}
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{positive real}; \((0,1/2)\); \texttt{treatment-\allowbreak{}overlap floor}
+  \item \texttt{e} --- \texttt{function}; \(e:\mathcal X\to(0,1)\); \texttt{propensity score}
+  \par\smallskip\noindent\emph{Definition.} \(e(x)=\Pr(Z=1\mid X=x)\)
+  \item \texttt{D(z)} --- \texttt{potential random variable}; \(\mathcal E\); terminal-event time under arm \(z\)
+  \item \texttt{R(z)} --- \texttt{potential random variable}; \(\mathcal E\); first nonterminal-event time under arm \(z\)
+  \item \texttt{D} --- \texttt{observed random variable}; \(\mathcal E\); \texttt{factual terminal-\allowbreak{}event time}
+  \item \texttt{R} --- \texttt{observed random variable}; \(\mathcal E\); \texttt{factual first nonterminal-\allowbreak{}event time}
+  \item \texttt{C} --- \texttt{random variable}; \([0,\tau]\); \texttt{administrative censoring time}
+  \item \texttt{O} --- \texttt{random element}; \texttt{one observed unit}
+  \par\smallskip\noindent\emph{Definition.} the observed treatment, covariate, at-risk, terminal-event, and readmission-history path through \(\tau\)
+  \item \texttt{P} --- \texttt{probability law}; \texttt{observed-\allowbreak{}data law}
+  \par\smallskip\noindent\emph{Definition.} \(P=\mathcal L(O)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}\{zx\}\allowbreak{}} --- \texttt{probability measure}; \(\mathcal P(\mathcal E^2)\); \texttt{complete within-\allowbreak{}arm event law}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{zx}=\mathcal L(D(z),R(z)\mid X=x)\)
+  \item \texttt{d\_\allowbreak{}x} --- \texttt{probability measure}; \(\mathcal P(\mathcal E)\); \texttt{control death margin}
+  \par\smallskip\noindent\emph{Definition.} \(d_x=\mathcal L(D(0)\mid X=x)\)
+  \item \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}x} --- \texttt{probability measure}; \(\mathcal P(\mathcal E)\); \texttt{treated readmission margin}
+  \par\smallskip\noindent\emph{Definition.} \(\zeta_x=\mathcal L(R(1)\mid X=x)\)
+  \item \texttt{G\_\allowbreak{}\{zx\}\allowbreak{}} --- \texttt{function}; \(G_{zx}:[0,\tau]\to[0,1]\); \texttt{censoring survival}
+  \par\smallskip\noindent\emph{Definition.} \(G_{zx}(u)=\Pr(C\ge u\mid Z=z,X=x)\)
+  \item \texttt{L} --- \texttt{random variable}; \texttt{terminal completion time}
+  \par\smallskip\noindent\emph{Definition.} \(L=\min\{D,\tau\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}Delta} --- \texttt{binary random variable}; \texttt{complete-\allowbreak{}path indicator}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta=\mathbf 1\{C\ge L\}\)
+  \item \texttt{s\_\allowbreak{}x} --- \texttt{function}; \(s_x:[0,\tau]\to[0,1]\); \texttt{control survivor mass}
+  \par\smallskip\noindent\emph{Definition.} \(s_x(t)=\mu_{0x}(D(0)>t)\)
+  \item \texttt{S} --- \texttt{function}; \(S:[0,\tau]\to[0,1]\); \texttt{standardized always-\allowbreak{}survivor mass}
+  \par\smallskip\noindent\emph{Definition.} \(S(t)=\sum_{x\in\mathcal X}p_xs_x(t)\)
+  \item \texttt{b\_\allowbreak{}x} --- \texttt{function}; \texttt{identified control numerator}
+  \par\smallskip\noindent\emph{Definition.} \(b_x(r,t)=\mu_{0x}(R(0)\le r,D(0)>t)\)
+  \item \texttt{K\_\allowbreak{}x} --- \texttt{kernel}; \texttt{treated marked-\allowbreak{}survivor measure}
+  \par\smallskip\noindent\emph{Definition.} \(K_x(u,B)=\mu_{1x}(D(1)>u,R(1)\in B)\)
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{positive real}; \((0,1)\); \texttt{survivor-\allowbreak{}mass floor}
+  \item \texttt{\textbackslash{}\allowbreak{}gamma} --- \texttt{positive real}; \((0,1)\); \texttt{censoring-\allowbreak{}support floor}
+  \item \texttt{M} --- \texttt{positive real}; \texttt{finite-\allowbreak{}density envelope}
+  \item \texttt{L\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{Lip\}\allowbreak{}\}\allowbreak{}} --- \texttt{positive real}; \texttt{Lipschitz envelope}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}\textbackslash{}\allowbreak{}eta} --- \texttt{index set}; \(\{(r,t):0\le r\le t\le\tau\}\); \texttt{identified surface domain}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal T} --- \texttt{compact set}; \(\mathcal H_\eta\); \texttt{regular inference region}
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma(d\_\allowbreak{}x,\allowbreak{}\textbackslash{}\allowbreak{}zeta\_\allowbreak{}x)} --- \texttt{set of probability measures}; \texttt{two-\allowbreak{}margin Fr\textbackslash{}\allowbreak{}'echet class}
+  \par\smallskip\noindent\emph{Definition.} the couplings on \(\mathcal E^2\) with first margin \(d_x\) and second margin \(\zeta_x\)
+  \item \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}x} --- \texttt{probability measure}; \(\Gamma(d_x,\zeta_x)\); \texttt{projected cross-\allowbreak{}world coupling}
+  \par\smallskip\noindent\emph{Definition.} \(\nu_x=\mathcal L(D(0),R(1)\mid X=x)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal N\_\allowbreak{}x} --- \texttt{set of probability measures}; \texttt{survivor-\allowbreak{}capacity feasible couplings}
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\textbackslash{}\allowbreak{}nu} --- \texttt{function}; \(\theta_\nu:\mathcal H_\eta\to[-1,1]\); TV-SACE surface generated by \(\nu\)
+  \item \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\textbackslash{}\allowbreak{}nu} --- \texttt{function}; \(\rho_\nu:\mathcal H_\eta\to[-\tau,\tau]\); RM-SACE surface generated by \(\nu\)
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}I(P)} --- \texttt{subset of a function space}; \(C(\mathcal H_\eta)^2\); \texttt{joint identified surface set}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}m} --- \texttt{finite ordered grid}; \(\mathcal E\); \texttt{death and readmission discretization}
+  \item \texttt{f\textasciicircum{}x\_\allowbreak{}\{ij\}\allowbreak{}} --- \texttt{nonnegative array}; \texttt{projected grid coupling}
+  \par\smallskip\noindent\emph{Definition.} \(f^x_{ij}=\nu_x(D(0)=i,R(1)=j)\) on \(\mathcal G_m\)
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\textasciicircum{}x\_\allowbreak{}\{kj\}\allowbreak{}} --- \texttt{nonnegative array}; \texttt{chain capacity}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa^x_{kj}=\mu_{1x}(D(1)>k,R(1)=j)\)
+  \item \texttt{c\textasciicircum{}x\_\allowbreak{}\{ij\}\allowbreak{}} --- \texttt{real array}; \texttt{support-\allowbreak{}function cost on grid cells}
+  \item \texttt{h\_\allowbreak{}m(c)} --- \texttt{real number}; \texttt{computational support functional}
+  \par\smallskip\noindent\emph{Definition.} the support value of the finite-grid surface in direction \(c\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak E\_\allowbreak{}3} --- \texttt{finite-\allowbreak{}grid data-\allowbreak{}generating exhibit}; \texttt{primitive three-\allowbreak{}horizon marked-\allowbreak{}capacity witness}
+  \item \texttt{d\_\allowbreak{}i\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{ordered category}; \texttt{exhibit death support}
+  \par\smallskip\noindent\emph{Definition.} the \(i\)-th control and treated death category in \(\mathfrak E_3\)
+  \item \texttt{r\_\allowbreak{}j\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{ordered category}; \texttt{exhibit readmission support}
+  \par\smallskip\noindent\emph{Definition.} the \(j\)-th treated readmission category in \(\mathfrak E_3\)
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}0\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{probability table}; \texttt{control margin of the exhibit}
+  \par\smallskip\noindent\emph{Definition.} the control within-arm table in \(\mathfrak E_3\)
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}1\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{probability table}; \texttt{treated marked-\allowbreak{}death margin of the exhibit}
+  \par\smallskip\noindent\emph{Definition.} the treated within-arm table in \(\mathfrak E_3\)
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\textasciicircum{}\textbackslash{}\allowbreak{}star\_\allowbreak{}\{kj\}\allowbreak{}} --- \texttt{nonnegative array}; \texttt{exhibit chain capacities}
+  \par\smallskip\noindent\emph{Definition.} the complete marked survivor-capacity array induced by \(\mu_1^\star\)
+  \item \texttt{f\textasciicircum{}-\allowbreak{}} --- \texttt{nonnegative array}; \texttt{lower endpoint chain flow}
+  \par\smallskip\noindent\emph{Definition.} the lower-support projected coupling in \(\mathfrak E_3\)
+  \item \texttt{f\textasciicircum{}+\allowbreak{}} --- \texttt{nonnegative array}; \texttt{upper endpoint chain flow}
+  \par\smallskip\noindent\emph{Definition.} the upper-support projected coupling in \(\mathfrak E_3\)
+  \item \texttt{f\_\allowbreak{}\{ij\}\allowbreak{}} --- \texttt{nonnegative array}; \texttt{generic exhibit chain flow}
+  \par\smallskip\noindent\emph{Definition.} an arbitrary feasible projected coupling in \(\mathfrak E_3\)
+  \item \texttt{q\textasciicircum{}-\allowbreak{}\_\allowbreak{}\{ihj\}\allowbreak{}} --- \texttt{nonnegative array}; \texttt{explicit lower endpoint full-\allowbreak{}law lift}
+  \par\smallskip\noindent\emph{Definition.} the lower-support full lift mass \(\Pr(D(0)=i,D(1)=h,R(1)=j)\) in \(\mathfrak E_3\)
+  \item \texttt{q\textasciicircum{}+\allowbreak{}\_\allowbreak{}\{ihj\}\allowbreak{}} --- \texttt{nonnegative array}; \texttt{explicit upper endpoint full-\allowbreak{}law lift}
+  \par\smallskip\noindent\emph{Definition.} the upper-support full lift mass \(\Pr(D(0)=i,D(1)=h,R(1)=j)\) in \(\mathfrak E_3\)
+  \item \texttt{A\textasciicircum{}U\_\allowbreak{}x} --- \texttt{function}; \texttt{upper deadline rank}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the upper selected treated-\allowbreak{}readmission mass at a fixed survivor cohort}
+  \item \texttt{A\textasciicircum{}L\_\allowbreak{}x} --- \texttt{function}; \texttt{lower deadline rank}
+  \par\smallskip\noindent\emph{Definition.} \texttt{the lower selected treated-\allowbreak{}readmission mass at a fixed survivor cohort}
+  \item \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{finite signed measure}; \(\mathcal M(\mathcal H_\eta)\); \texttt{cross-\allowbreak{}cohort support direction}
+  \item \texttt{\textbackslash{}\allowbreak{}ell\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{real-\allowbreak{}valued functional}; \texttt{signed cross-\allowbreak{}cohort support functional}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_\star(\nu)=\int\theta_\nu\,d\lambda_\star\)
+  \item \texttt{F\_\allowbreak{}x} --- \texttt{function}; \texttt{deadline-\allowbreak{}cut objective}
+  \par\smallskip\noindent\emph{Definition.} \(F_x(u;r,t,B)=s_x(t)-s_x(u)+K_x(u,B)\)
+  \item \texttt{u\_\allowbreak{}x\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{function}; \texttt{active deadline cut}
+  \par\smallskip\noindent\emph{Definition.} the unique minimizer of \(u\mapsto F_x(u;r,t,B)\) on the regular region
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{probability level}; \((0,1)\); \texttt{coverage error probability}
+  \item \texttt{J} --- \texttt{positive integer}; \texttt{total number of simultaneous primitive intervals,\allowbreak{} including the covariate-\allowbreak{}mass intervals}
+  \item \texttt{n} --- \texttt{positive integer}; \texttt{sample size}
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{random element}; \texttt{sample observation}
+  \par\smallskip\noindent\emph{Definition.} the \(i\)-th copy of \(O\)
+  \item \texttt{N\_\allowbreak{}\{zx\}\allowbreak{}} --- \texttt{nonnegative integer}; \texttt{treatment-\allowbreak{}-\allowbreak{}covariate cell count}
+  \par\smallskip\noindent\emph{Definition.} \(N_{zx}=\sum_{i=1}^n\mathbf 1\{Z_i=z,X_i=x\}\)
+  \item \texttt{a\_\allowbreak{}i} --- \texttt{deterministic grid endpoint}; \texttt{death and censoring bin endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(0=a_0<a_1<\cdots<a_m=\tau\)
+  \item \texttt{I\_\allowbreak{}i} --- \texttt{time bin}; \texttt{finite death bin,\allowbreak{} including the closed terminal bin}
+  \par\smallskip\noindent\emph{Definition.} \(I_i=[a_i,a_{i+1})\) for \(0\leq i<m-1\), while \(I_{m-1}=[a_{m-1},\tau]\).
+  \item \texttt{B\_\allowbreak{}j} --- \texttt{Borel set}; a deterministic finite partition of \(\mathcal E\); \texttt{readmission mark bin}
+  \item \texttt{\textbackslash{}\allowbreak{}pi\textasciicircum{}\{zx\}\allowbreak{}\_\allowbreak{}\{ij\}\allowbreak{}} --- \texttt{probability mass}; \texttt{finite-\allowbreak{}death primitive arm mass}
+  \par\smallskip\noindent\emph{Definition.} \(\pi^{zx}_{ij}=\Pr(D(z)\in I_i,R(z)\in B_j\mid X=x)\)
+  \item \texttt{\textbackslash{}\allowbreak{}pi\textasciicircum{}\{zx\}\allowbreak{}\_\allowbreak{}\{\textbackslash{}\allowbreak{}infty j\}\allowbreak{}} --- \texttt{probability mass}; \texttt{horizon-\allowbreak{}survivor primitive arm mass}
+  \par\smallskip\noindent\emph{Definition.} \(\pi^{zx}_{\infty j}=\Pr(D(z)>\tau,R(z)\in B_j\mid X=x)\)
+  \item \texttt{A\textasciicircum{}\{zx\}\allowbreak{}\_\allowbreak{}\{ij\}\allowbreak{}} --- \texttt{observable probability}; \texttt{observed marked-\allowbreak{}death moment}
+  \par\smallskip\noindent\emph{Definition.} \(A^{zx}_{ij}=\Pr(C\geq D,\ D\in I_i,\ R\in B_j\mid Z=z,X=x)\).
+  \item \texttt{Y\textasciicircum{}\{zx\}\allowbreak{}\_\allowbreak{}i} --- \texttt{observable probability}; \texttt{observable left-\allowbreak{}limit at-\allowbreak{}risk moment}
+  \par\smallskip\noindent\emph{Definition.} \(Y^{zx}_i=\Pr(C\geq a_i,\ D\geq a_i\mid Z=z,X=x)\) for \(0\leq i<m\).
+  \item \texttt{V\textasciicircum{}\{zx\}\allowbreak{}\_\allowbreak{}j} --- \texttt{observable probability}; \texttt{horizon-\allowbreak{}survivor completion moment}
+  \par\smallskip\noindent\emph{Definition.} \(V^{zx}_j=\Pr(C\geq\tau,\ D>\tau,\ R\in B_j\mid Z=z,X=x)\).
+  \item \texttt{g\textasciicircum{}\{zx\}\allowbreak{}\_\allowbreak{}i} --- \texttt{probability}; \texttt{grid censoring survival}
+  \par\smallskip\noindent\emph{Definition.} \(g^{zx}_i=G_{zx}(a_i)\)
+  \item \texttt{\textbackslash{}\allowbreak{}widehat p\_\allowbreak{}x} --- \texttt{empirical probability}; \texttt{empirical covariate mass}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat p_x=n^{-1}\sum_{i=1}^n\mathbf 1\{X_i=x\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr E\_\allowbreak{}n} --- \texttt{random event}; \texttt{simultaneous primitive concentration event}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal B\_\allowbreak{}n} --- \texttt{random compact set}; \texttt{observable censoring-\allowbreak{}moment region}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}n} --- \texttt{random set of grid surfaces}; \texttt{finite-\allowbreak{}sample outer set}
+  \item \texttt{\textbackslash{}\allowbreak{}mathscr H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{MB\}\allowbreak{}\}\allowbreak{}} --- \texttt{method handle}; \texttt{marked-\allowbreak{}process multiplier-\allowbreak{}band construction}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:positive-covariate-cells]\label{ass:positive-covariate-cells}
+\(p_x>0\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (positive finite-cell support, \cite{comment2025survivor}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\((D,R)=(D(Z),R(Z))\) almost surely.
+\par\smallskip\noindent\emph{Standard} (consistency, \cite{comment2025survivor}).
+\end{assumption}
+
+\begin{assumption}[ass:conditional-exchangeability]\label{ass:conditional-exchangeability}
+\((D(0),R(0),D(1),R(1))\perp Z\mid X\).
+\par\smallskip\noindent\emph{Standard} (conditional exchangeability, \cite{comment2025survivor}).
+\end{assumption}
+
+\begin{assumption}[ass:treatment-overlap]\label{ass:treatment-overlap}
+\(\varepsilon\le e(x)\le1-\varepsilon\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (strong treatment overlap, \cite{comment2025survivor}).
+\end{assumption}
+
+\begin{assumption}[ass:arm-specific-independent-censoring]\label{ass:arm-specific-independent-censoring}
+For each \(z\in\{0,1\}\), \(C\perp(D(z),R(z))\mid(Z=z,X)\).
+\par\smallskip\noindent\emph{Standard} (arm-specific conditional independent administrative censoring, \cite{goldberg2019hoeffding}).
+\end{assumption}
+
+\begin{assumption}[ass:full-horizon-censoring-support]\label{ass:full-horizon-censoring-support}
+\(\inf_{z,x,u\in[0,\tau]}G_{zx}(u)\ge\gamma\).
+\par\smallskip\noindent\emph{Standard} (right-censoring positivity through the analysis horizon, \cite{goldberg2019hoeffding}).
+\end{assumption}
+
+\begin{assumption}[ass:semicompeting-order]\label{ass:semicompeting-order}
+\(R(z)<D(z)\) whenever \(R(z)<\infty\), for \(z\in\{0,1\}\).
+\par\smallskip\noindent\emph{Standard} (semicompeting-risk event order, \cite{comment2025survivor}).
+\end{assumption}
+
+\begin{assumption}[ass:terminal-monotonicity]\label{ass:terminal-monotonicity}
+\(D(0)\le D(1)\) almost surely.
+\par\smallskip\noindent\emph{Standard} (terminal-survival monotonicity, \cite{yangDing2018survival}).
+\end{assumption}
+
+\begin{assumption}[ass:density-envelope]\label{ass:density-envelope}
+Every finite-part coordinate density of \(\mu_{zx}\) is bounded above by \(M\).
+\par\smallskip\noindent\emph{Standard} (bounded density envelope, \cite{tsybakov2009nonparametric}).
+\end{assumption}
+
+\begin{assumption}[ass:lipschitz-density]\label{ass:lipschitz-density}
+Every finite-part coordinate density of \(\mu_{zx}\) is \(L_{\mathrm{Lip}}\)-Lipschitz.
+\par\smallskip\noindent\emph{Standard} (Lipschitz, or Hölder-one, density regularity, \cite{tsybakov2009nonparametric}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-target-survival]\label{ass:positive-target-survival}
+\(\mathcal T\subseteq\mathcal H_\eta\).
+\par\smallskip\noindent\emph{Standard} (positive principal-stratum mass on the target set, \cite{comment2025survivor}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are independent and identically distributed with law \(P\).
+\par\smallskip\noindent\emph{Standard} (independent superpopulation sampling, \cite{vanderVaart1998asymptotic}).
+\end{assumption}
+
+\begin{assumption}[ass:unique-deadline-cuts]\label{ass:unique-deadline-cuts}
+For every \(x\in\mathcal X\), \((r,t)\in\mathcal T\), and \(B\in\{[0,r],(r,\infty]\}\), the set \(\arg\min_{u\in[t,\tau]\cup\{\infty\}}F_x(u;r,t,B)\) is a singleton.
+\par\smallskip\noindent\emph{Standard} (unique optimizer on a regular value-function region, \cite{firpoGalvaoParker2023uniform}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:event-time-space]\label{def:event-time-space}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Truncated event-\allowbreak{}time carrier}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal E=[0,\tau]\sqcup\{\infty\}\), where \(\infty\) is isolated and maximal.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:target-domain]\label{def:target-domain}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Positive-\allowbreak{}mass TV-\allowbreak{}SACE domain}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_\eta=\{(r,t):0\leq r\leq t\leq\tau,\ S(t)\geq\eta\}\).  In particular, every \((r,t)\in\mathcal H_\eta\) satisfies \(S(t)\geq\eta>0\), which is the domain condition for every division by \(S(t)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{S}; \texttt{\textbackslash{}\allowbreak{}eta}; \texttt{\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:survivor-capacity-fiber]\label{def:survivor-capacity-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Conditional survivor-\allowbreak{}capacity fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal N_x=\{\nu_x\in\Gamma(d_x,\zeta_x):\nu_x((u,\infty]\times B)\le K_x(u,B)\text{ for every }u\in[0,\tau]\text{ and every Borel }B\subseteq\mathcal E\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}x}; \texttt{K\_\allowbreak{}x}.
+\end{definition}
+
+\begin{definition}[def:tv-sace-surface]\label{def:tv-sace-surface}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Standardized TV-\allowbreak{}SACE surface}
+\par\smallskip\noindent\emph{Construction.} \(\theta_\nu(r,t)=S(t)^{-1}\sum_{x\in\mathcal X}p_x\{\nu_x((t,\infty]\times[0,r])-b_x(r,t)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}nu\_\allowbreak{}x}; \texttt{S}; \texttt{p\_\allowbreak{}x}; \texttt{b\_\allowbreak{}x}.
+\end{definition}
+
+\begin{definition}[def:rm-sace-surface]\label{def:rm-sace-surface}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Standardized RM-\allowbreak{}SACE surface}
+\par\smallskip\noindent\emph{Construction.} \(\rho_\nu(a,t)=-\int_0^a\theta_\nu(r,t)\,dr\), for \(0\le a\le t\le\tau\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\textbackslash{}\allowbreak{}nu}.
+\end{definition}
+
+\begin{definition}[def:identified-surface-set]\label{def:identified-surface-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint TV-\allowbreak{}SACE and RM-\allowbreak{}SACE identified set}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_I(P)=\{(\theta_\nu,\rho_\nu):\nu_x\in\mathcal N_x\text{ for every }x\in\mathcal X\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{\textbackslash{}\allowbreak{}mathcal N\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\textbackslash{}\allowbreak{}nu}; \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\textbackslash{}\allowbreak{}nu}.
+\end{definition}
+
+\begin{definition}[def:chain-flow]\label{def:chain-flow}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Nested-\allowbreak{}survivor chain flow}
+\par\smallskip\noindent\emph{Construction.} On \(\mathcal G_m\), inject each treated-readmission mass at a chain source indexed by \(j\); send chain flow across death cut \(k\) with capacity \(\kappa^x_{kj}\); allow exit \(f^x_{ij}\) to control-death demand \(i\); impose \(\sum_j f^x_{ij}=d_x(i)\) and \(\sum_i f^x_{ij}=\zeta_x(j)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}m}; \texttt{d\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}kappa\textasciicircum{}x\_\allowbreak{}\{kj\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:grid-support-dual]\label{def:grid-support-dual}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}grid support program}
+\par\smallskip\noindent\emph{Construction.} \(h_m(c)=\sum_{x\in\mathcal X}\max_f\sum_{i,j}c^x_{ij}f^x_{ij}\), where each maximization is over the corresponding chain-flow polytope.  Its value equivalently equals the sum over \(x\) of
+\[
+\inf_{\alpha,\beta,\lambda}
+\left\{\sum_i\alpha_i d_x(i)+\sum_j\beta_j\zeta_x(j)+\sum_{k,j}\lambda_{kj}\kappa^x_{kj}:
+\alpha_i+\beta_j+\sum_{k<i}\lambda_{kj}\geq c^x_{ij},\ \lambda_{kj}\geq0\right\},
+\]
+where \(\alpha_i\) and \(\beta_j\) are free.  The primal maximum is attained; the displayed dual is defined by its infimum, without asserting dual attainment.
+\par\smallskip\noindent\emph{Inputs.} \texttt{c\textasciicircum{}x\_\allowbreak{}\{ij\}\allowbreak{}}; \texttt{d\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}zeta\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}kappa\textasciicircum{}x\_\allowbreak{}\{kj\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:primitive-three-horizon-exhibit]\label{def:primitive-three-horizon-exhibit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Primitive three-\allowbreak{}horizon marked-\allowbreak{}capacity exhibit}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathfrak E_3\) have \(\tau=3\), degenerate \(X\), \(Z\sim\operatorname{Bernoulli}(1/2)\) independent of all potential times, \(C=3\), death categories \((d_i^\star)_{i=0}^3=(1/2,3/2,5/2,\infty)\), treated-readmission categories \((r_j^\star)_{j=0}^3=(1/4,5/4,9/4,\infty)\), and \(R(0)=\infty\). With death rows and readmission columns, the within-arm tables are \(100\mu_0^\star=\begin{pmatrix}0&0&0&25\\0&0&0&25\\0&0&0&25\\0&0&0&25\end{pmatrix}\) and \(100\mu_1^\star=\begin{pmatrix}5&0&0&5\\5&10&0&5\\5&5&10&10\\10&5&5&20\end{pmatrix}\). Every marked survivor capacity after death cuts \(k=0,1,2\) is displayed by \(100\kappa^\star=\begin{pmatrix}20&20&15&35\\15&10&15&30\\10&5&5&20\end{pmatrix}\); the capacity for any readmission-mark set is the sum of its displayed columns. Define \(100f^-=\begin{pmatrix}10&0&10&5\\0&10&5&10\\15&5&0&5\\0&5&0&20\end{pmatrix}\) and \(100f^+=\begin{pmatrix}5&0&10&10\\10&15&0&0\\0&0&0&25\\10&5&5&5\end{pmatrix}\). Both have row sums \((25,25,25,25)\) and column sums \((25,20,15,40)\). Their complete chain-arc loads \(100(\sum_{i>k}f^-_{ij})_{kj}=\begin{pmatrix}15&20&5&35\\15&10&0&25\\0&5&0&20\end{pmatrix}\) and \(100(\sum_{i>k}f^+_{ij})_{kj}=\begin{pmatrix}20&20&5&30\\10&5&5&30\\10&5&5&5\end{pmatrix}\) are entrywise bounded by \(100\kappa^\star\). Explicit full lifts, with all unlisted entries zero, are \(100(q^-_{000},q^-_{003},q^-_{010},q^-_{022},q^-_{111},q^-_{113},q^-_{123},q^-_{132},q^-_{220},q^-_{221},q^-_{223},q^-_{230},q^-_{331},q^-_{333})=(5,5,5,10,10,5,5,5,5,5,5,10,5,20)\) and \(100(q^+_{000},q^+_{003},q^+_{013},q^+_{022},q^+_{110},q^+_{111},q^+_{120},q^+_{121},q^+_{223},q^+_{233},q^+_{330},q^+_{331},q^+_{332},q^+_{333})=(5,5,5,10,5,10,5,5,10,15,10,5,5,5)\), where \(q^\pm_{ihj}=\Pr(D(0)=d_i^\star,D(1)=d_h^\star,R(1)=r_j^\star)\); attach \(R(0)=\infty\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{X}; \texttt{Z}; \texttt{C}; \texttt{D(z)}; \texttt{R(z)}.
+\end{definition}
+
+\begin{definition}[def:deadline-ranks]\label{def:deadline-ranks}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fixed-\allowbreak{}cohort deadline ranks}
+\par\smallskip\noindent\emph{Construction.} For every Borel \(B\subseteq\mathcal E\), extend the boundary notation by \(s_x(\infty)=0\) and \(K_x(\infty,B)=0\).  Then \(A^U_x(r,t)=\inf_{u\in[t,\tau]\cup\{\infty\}}\{s_x(t)-s_x(u)+K_x(u,[0,r])\}\) and \(A^L_x(r,t)=\sup_{u\in[t,\tau]\cup\{\infty\}}\{s_x(u)-K_x(u,(r,\infty])\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{s\_\allowbreak{}x}; \texttt{K\_\allowbreak{}x}; \texttt{\textbackslash{}\allowbreak{}tau}.
+\end{definition}
+
+\begin{definition}[def:cross-cohort-direction]\label{def:cross-cohort-direction}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Signed cross-\allowbreak{}cohort diagnostic}
+\par\smallskip\noindent\emph{Construction.} For the three-horizon witness, \(\ell_\star(\nu)=\int\theta_\nu\,d\lambda_\star=\tfrac34\theta_\nu(1,1)-\tfrac12\theta_\nu(2,2)+\tfrac14\theta_\nu(3,3)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}lambda\_\allowbreak{}\textbackslash{}\allowbreak{}star}; \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\textbackslash{}\allowbreak{}nu}.
+\end{definition}
+
+\begin{definition}[def:observable-moment-outer-set]\label{def:observable-moment-outer-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Censoring-\allowbreak{}aware finite-\allowbreak{}sample outer set}
+\par\smallskip\noindent\emph{Construction.} Fix \(0=a_0<\cdots<a_m=\tau\), let \(I_i=[a_i,a_{i+1})\) for \(0\leq i<m-1\), let \(I_{m-1}=[a_{m-1},\tau]\), and let the residual death cell be \(D(z)>\tau\); fix also readmission bins \(B_j\).  In cell \((z,x)\), give every observable moment \(A^{zx}_{ij}\), \(Y^{zx}_i\), and \(V^{zx}_j\) an interval centered at its empirical proportion, clipped to \([0,1]\), with radius \(\sqrt{\log(2J/\alpha)/(2N_{zx})}\) when \(N_{zx}>0\), and use \([0,1]\) when \(N_{zx}=0\).  Give \(p_x\) the interval centered at \(\widehat p_x\), clipped to \([0,1]\), with radius \(\sqrt{\log(2J/\alpha)/(2n)}\).  Define \(\mathscr E_n\) as the event on which all these primitive intervals cover simultaneously.  Define \(\mathcal B_n\) as all tuples of probability tables \(\pi^{zx}_{ij},\pi^{zx}_{\infty j}\), covariate masses \(p_x\), censoring vectors \(g^{zx}_i\), and candidate observable moments \(A^{zx}_{ij},Y^{zx}_i,V^{zx}_j\) such that every candidate lies in its corresponding interval; for every \((z,x)\), \(\sum_{i=0}^{m-1}\sum_j\pi^{zx}_{ij}+\sum_j\pi^{zx}_{\infty j}=1\), all table entries are nonnegative, and the table obeys the event-order restrictions; and, for \(0\leq i<m\),
+\[
+g^{zx}_{i+1}\pi^{zx}_{ij}\leq A^{zx}_{ij}\leq g^{zx}_i\pi^{zx}_{ij},
+\qquad
+Y^{zx}_i=g^{zx}_i\left\{\sum_{h\geq i,j}\pi^{zx}_{hj}+\sum_j\pi^{zx}_{\infty j}\right\},
+\]
+while \(V^{zx}_j=g^{zx}_m\pi^{zx}_{\infty j}\) and \(1\geq g^{zx}_0\geq\cdots\geq g^{zx}_m\geq\gamma\).  In the last finite bin the lower bracket is \(g^{zx}_m\pi^{zx}_{m-1,j}\), so death mass at \(\tau\) is retained and is weighted at \(G_{zx}(\tau)=g^{zx}_m\).  Define \(\mathcal C_n\) as the union of the exact chain-flow surface images over \(\mathcal B_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\_\allowbreak{}i}; \texttt{n}; \texttt{\textbackslash{}\allowbreak{}mathcal G\_\allowbreak{}m}; \texttt{a\_\allowbreak{}i}; \texttt{I\_\allowbreak{}i}; \texttt{B\_\allowbreak{}j}; \texttt{D(z)}; \texttt{\textbackslash{}\allowbreak{}tau}; \texttt{J}; \texttt{\textbackslash{}\allowbreak{}alpha}; \texttt{\textbackslash{}\allowbreak{}gamma}.
+\end{definition}
+
+\begin{definition}[def:multiplier-band-handle]\label{def:multiplier-band-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Marked-\allowbreak{}process multiplier-\allowbreak{}band handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathscr H_{\mathrm{MB}}\) starts from one joint counting-process martingale representation for the marked readmission, death, and estimated-censoring primitive vector through \(\tau\); it then composes increment-level multipliers with the active deadline cut \(u_x^\star\) and the quotient map defining \(\theta_\nu\), and integrates the resulting TV process for \(\rho_\nu\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{O\_\allowbreak{}i}; \texttt{u\_\allowbreak{}x\textasciicircum{}\textbackslash{}\allowbreak{}star}; \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}\textbackslash{}\allowbreak{}nu}; \texttt{\textbackslash{}\allowbreak{}rho\_\allowbreak{}\textbackslash{}\allowbreak{}nu}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:standard-ipcw-recovery]\label{lem:standard-ipcw-recovery}
+For every bounded measurable \(g:\mathcal E^2\to\mathbb R\), \(\int g\,d\mu_{zx}=E_P[\Delta g(D,R)/G_{zx}(L)\mid Z=z,X=x]\). Hence the complete truncated within-arm laws \(\mu_{zx}\), including the horizon atom, are functionals of \(P\).
+\end{lemma}
+\begin{proof}
+The proof uses inverse-probability cancellation.  Fix \(z\in\{0,1\}\), \(x\in\mathcal X\), and a bounded measurable \(g\).  Positivity of the covariate cell and treatment overlap make conditioning on \((Z=z,X=x)\) well defined.  Consistency and conditional exchangeability give
+\[
+ \mathcal L(D,R\mid Z=z,X=x)=\mathcal L(D(z),R(z)\mid X=x)=\mu_{zx}.
+\]
+Since \(L=\min\{D,\tau\}\) is measurable with respect to \((D,R)\), arm-specific independent censoring gives
+\[
+ E_P(\Delta\mid D,R,Z=z,X=x)
+ =\Pr(C\ge L\mid D,R,Z=z,X=x)=G_{zx}(L).
+\]
+The full-horizon support assumption gives \(G_{zx}(L)\ge\gamma>0\), so division is legitimate.  Applying iterated expectation, first for nonnegative \(g\) and then to the positive and negative parts, yields
+\[
+ \begin{aligned}
+ E_P\!\left[\left.\frac{\Delta g(D,R)}{G_{zx}(L)}\right|Z=z,X=x\right]
+ &=E_P\!\left[\left.
+   \frac{g(D,R)}{G_{zx}(L)}E_P(\Delta\mid D,R,Z=z,X=x)
+   \right|Z=z,X=x\right]\\
+ &=E_P\{g(D,R)\mid Z=z,X=x\}\\
+ &=\int_{\mathcal E^2}g\,d\mu_{zx}.
+ \end{aligned}
+\]
+On \(\Delta=1\), the observed history determines the truncated pair: if death occurs by \(\tau\), the history ends at that death and records whether and when readmission occurred; if death does not occur by \(\tau\), completion through \(\tau\) records the horizon-survivor atom and the readmission history.  The administrative at-risk path in \(O\) determines \(G_{zx}\), and its lower bound makes the displayed inverse weight unique on the whole relevant support.  Indicator choices for \(g\), followed by a monotone-class argument, therefore recover every Borel cell of \(\mu_{zx}\), including \(D(z)=\infty\).  Thus \(\mu_{zx}\) is a functional of \(P=\mathcal L(O)\), rather than an additional observed-law definition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This standard IPCW recovery lemma records why every future-death resource in the marked capacity is an observed-law functional under full-horizon follow-up. \textit{Gap.} This is a cited standard right-censoring identity anchored to Goldberg (2019), not a novelty claim; its marked complete-path specialization fixes the primitive input to the capacity theorem. \textit{Consumer.} It makes the sharp capacity operational after the pancreatic-cancer application passes its arm-specific follow-up audit through \(\tau\).
+
+\begin{theorem}[thm:iff-capacity-projection]\label{thm:iff-capacity-projection}
+For the TV-SACE and RM-SACE estimands of Comment et al., among all nonparametric full laws that reproduce \(P\) and satisfy the maintained restrictions, including the additional audited restriction \(D(0)\leq D(1)\), the set of resulting standardized surface pairs is exactly \(\Theta_I(P)\).  Necessity follows from the readmission-specific survivor-capacity inequalities, and every measurable family \(\nu_x\in\mathcal N_x\) admits a measurable full-law lift of \((D(0),R(0),D(1),R(1))\) that preserves \(\mu_{0x}\) and \(\mu_{1x}\), satisfies \(D(0)\leq D(1)\), and reproduces \(P\).  Thus \(\Theta_I(P)\) is sharp for the monotonicity-restricted nonparametric class.  No equality with \(\Theta_I(P)\) is asserted for a larger class that drops terminal monotonicity.
+\end{theorem}
+\begin{proof}
+The proof uses a closed-relation coupling and coordinate gluing.  Define the latent compatibility class before invoking the observed-law image.  For each \(x\in\mathcal X\), let \(\mathcal Q_x\) be the set of laws on \(\mathcal E^4\) whose \((D(0),R(0))\)-margin is \(\mu_{0x}\), whose \((D(1),R(1))\)-margin is \(\mu_{1x}\), and which assign probability one to \(D(0)\leq D(1)\).  The fixed within-arm margins obey the semicompeting-risk order by assumption.  The causal identified set is the set of target surfaces induced by measurable families \((Q_x:x\in\mathcal X)\) with \(Q_x\in\mathcal Q_x\) that reproduce \(P\) under the observed treatment and censoring mechanisms.  This defines the causal target independently of \(\Theta_I(P)\).
+
+Positive covariate-cell support and treatment overlap give \(\Pr_P(Z=z,X=x)>0\).  Full-horizon censoring support gives \(G_{zx}(L)\geq\gamma>0\).  Thus every conditioning operation and inverse weight in the established IPCW-recovery lemma is well defined.  That lemma, using consistency, conditional exchangeability, arm-specific independent censoring, and the support premises, identifies \(\mu_{zx}\), including its horizon atom.  Marginalization then identifies \(d_x\), \(\zeta_x\), \(b_x\), \(K_x\), \(s_x\), and \(S\) as functionals of \(P\).
+
+For necessity, fix \(Q_x\in\mathcal Q_x\), and let \(\nu_x\) be its \((D(0),R(1))\)-margin.  Its margins are \(d_x\) and \(\zeta_x\).  For every \(u\in[0,\tau]\) and Borel \(B\subseteq\mathcal E\), terminal monotonicity gives
+\[
+\{D(0)>u,R(1)\in B\}
+\subseteq
+\{D(1)>u,R(1)\in B\}.
+\]
+Taking probabilities yields
+\[
+\nu_x((u,\infty]\times B)
+\leq\mu_{1x}(D(1)>u,R(1)\in B)=K_x(u,B).
+\]
+Together with the two margins, these inequalities are exactly \(\nu_x\in\mathcal N_x\).
+
+For sufficiency, fix \(x\) and \(\nu_x\in\mathcal N_x\).  Regard \(\alpha=\nu_x\) and \(\beta=\mu_{1x}\) as laws on two copies of \(\mathcal E^2\).  Their mark margins both equal \(\zeta_x\).  Introduce the closed relation
+\[
+\mathcal R=\{((d_0,v),(d_1,v')):v=v',\ d_0\leq d_1\}.
+\]
+The diagonal and the order graph are closed on the compact metric carrier, so \(\mathcal R\) is closed.
+
+The capacity inequalities imply
+\[
+\alpha([u,\infty]\times B)\leq\beta([u,\infty]\times B)
+\qquad(u\in\mathcal E,\ B\in\mathscr B(\mathcal E)).                \tag{1}
+\]
+For \(0<u\leq\tau\), obtain (1) by taking \(u_k\uparrow u\) in the defining strict-tail inequalities and using continuity from above.  At \(u=0\), (1) is equality of the mark margins.  At \(u=\infty\), it is the defining cut \((\tau,\infty]=\{\infty\}\).
+
+Let \(A\subseteq\mathcal E^2\) be compact and put \(U=\mathcal R(A)\).  The compact-product projection theorem makes \(U\) compact.  For each mark \(v\), its nonempty section is a closed upper interval \([h(v),\infty]\).  For finite \(a\),
+\[
+\{v:h(v)\leq a\}
+=\operatorname{proj}_v\!\left(A\cap([0,a]\times\mathcal E)\right),
+\]
+which is compact; hence \(h\) is Borel measurable on its domain.  Round finite \(h(v)\) downward on nested grids, retaining empty and \(\infty\) sections.  The resulting sets \(U_n\) decrease to \(U\), and each \(U_n\) is a finite disjoint union of \([q,\infty]\times B_{nq}\) with Borel, pairwise disjoint mark sets.  Summing (1) over those pieces and passing to the decreasing limit gives
+\[
+\alpha(A)\leq\alpha(U)\leq\beta(U)=\beta(\mathcal R(A)).             \tag{2}
+\]
+The frozen Strassen closed-relation lemma applied to (2) supplies a coupling of \((D(0),R(1))\sim\nu_x\) and \((D(1),R'(1))\sim\mu_{1x}\) supported on \(R(1)=R'(1)\) and \(D(0)\leq D(1)\).  Identifying the equal marks gives a law \(\pi_x\) of \((D(0),D(1),R(1))\).
+
+Reorder \(\mu_{0x}\) as the law of \((R(0),D(0))\).  It and \(\pi_x\) have the same \(D(0)\)-margin \(d_x\).  The established compact-coordinate gluing lemma gives a law \(Q_x\) of \((R(0),D(0),D(1),R(1))\) satisfying
+\[
+\mathcal L_{Q_x}(D(0),R(0))=\mu_{0x},\qquad
+\mathcal L_{Q_x}(D(1),R(1))=\mu_{1x},\qquad
+Q_x\{D(0)\leq D(1)\}=1.                                            \tag{3}
+\]
+The strict within-arm event orders are inherited from the fixed margins.  No density or rank premise is used in this lift.
+
+Because \(\mathcal X\) is finite, \(x\mapsto Q_x\) is automatically a measurable probability kernel.  Draw \(X\) with masses \(p_x\); conditionally on \(X=x\), draw the potential path from \(Q_x\), draw \(Z\) independently of that path with probability \(e(x)\), and draw \(C\) from its observed conditional law given \((Z,X)\), independently of the potential path.  Form the factual event history by consistency.  Equation (3) reproduces \(\mu_{zx}\) in every arm and cell, and the construction preserves the observed laws of \((X,Z,C)\).  Conditional independent censoring gives the same observed-history factorization as \(P\); because \(O\) is a measurable function of these variables, the lift reproduces \(P\).
+
+It remains to identify the causal target with the image, rather than doing so by definition.  Terminal monotonicity gives
+\[
+\{D(0)>t,D(1)>t\}=\{D(0)>t\}.                                      \tag{4}
+\]
+For \((r,t)\in\mathcal H_\eta\), the target-domain definition gives \(S(t)\geq\eta>0\).  Conditioning on \(X\) and using (4) yields
+\[
+\begin{aligned}
+&\Pr\{R(1)\leq r\mid D(0)>t,D(1)>t\}
+-\Pr\{R(0)\leq r\mid D(0)>t,D(1)>t\}\\
+&\quad=\frac{\sum_{x\in\mathcal X}p_x
+\{\nu_x((t,\infty]\times[0,r])-b_x(r,t)\}}{S(t)}
+=\theta_\nu(r,t).                                                    \tag{5}
+\end{aligned}
+\]
+For every \(q\in\mathcal E\) and \(0\leq a\leq t\), including \(q=\infty\),
+\[
+\min\{q,a\}=a-\int_0^a\mathbf 1\{q\leq r\}\,dr.
+\]
+Integrating this bounded identity under the two conditional laws, subtracting, and using (5) gives
+\[
+E[\min\{R(1),a\}-\min\{R(0),a\}\mid D(0)>t,D(1)>t]
+=-\int_0^a\theta_\nu(r,t)\,dr
+=\rho_\nu(a,t).                                                       \tag{6}
+\]
+
+Necessity puts every compatible causal surface in \(\Theta_I(P)\).  The measurable construction attains every member of that image while preserving all maintained restrictions and \(P\).  Equations (5)--(6) prove the equality with the causal target.  Thus \(\Theta_I(P)\) is sharp for the nonparametric class with \(D(0)\leq D(1)\).  If terminal monotonicity is dropped, both the necessity inclusion and (4) can fail, so this proof gives no equality for the larger class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: it gives the exact marked continuous-time surface image under the separately audited terminal-monotonicity restriction, rather than claiming generic novelty for capacity projection or lifting. \textit{Gap.} Comment et al. do not prove the readmission-specific capacity equivalence.  The accepted-bank results \texttt{pid\_slate\_benefit\_partialtransport\_v1/thm:sharp-exact-mass-threshold-interval} and \texttt{pid\_slate\_benefit\_partialtransport\_v1/thm:full-law-endpoint-attainment} already give an exact capacity projection and endpoint-attaining lift, but for finite-IV contrasts, unequal survivor-complier outcome submeasures, and a fixed-stratum scalar benefit target.  The present theorem instead proves a Borel marked \( (D(0),R(1)) \) fiber under all deadline/mark capacities, a measurable four-event-time semicompeting-risk lift, and its jointly sharp changing-cohort TV/RM surface image. \textit{Consumer.} Clinicians obtain every TV-SACE/RM-SACE conclusion implied by the observed law and maintained terminal monotonicity; if that order is not credible, the witness propositions certify nonidentification but the capacity equality is not claimed.
+
+\begin{theorem}[thm:quadratic-chain-flow]\label{thm:quadratic-chain-flow}
+On any ordered grid \(\mathcal G_m\), \(f^x\) belongs to \(\mathcal N_x\) if and only if it is feasible for the nested-survivor chain flow, equivalently if \(\sum_{i>k}f^x_{ij}\le\kappa^x_{kj}\) for every \(k,j\) together with its two margins. The network has \(O(m^2)\) nodes and arcs when both time axes have \(m\) levels, every feasible flow lifts to a full law, and \(h_m(c)\) equals the stated node-potential dual for every signed cost \(c\).
+\end{theorem}
+\begin{proof}
+The proof is a conservation reduction followed by finite linear-program value duality.  Fix \(x\) and suppress it.  Index the ordered death categories by \(i=0,\ldots,m\), with the last category representing \(\infty\).  A projected table has the required margins exactly when
+\[
+\sum_j f_{ij}=d_x(i),
+\qquad
+\sum_i f_{ij}=\zeta_x(j).                                           \tag{7}
+\]
+On the finite carrier, the survivor-capacity inequality for the singleton mark \(\{j\}\) is
+\[
+\sum_{i>k}f_{ij}\leq
+\mu_{1x}(D(1)>k,R(1)=j)=\kappa^x_{kj}.                              \tag{8}
+\]
+Summing (8) over the singleton columns in an arbitrary mark set proves every marked-capacity inequality; conversely, singleton mark sets recover (8).  Thus nonnegativity, (7), and (8) are equivalent to \(f^x\in\mathcal N_x\).
+
+For each mark \(j\), create chain nodes \(v_{0j},\ldots,v_{mj}\), inject \(\zeta_x(j)\) at \(v_{0j}\), put an exit of size \(f_{ij}\) from \(v_{ij}\) to death-demand node \(i\), and give the arc \(v_{kj}\to v_{k+1,j}\) capacity \(\kappa^x_{kj}\).  Conservation through the first \(k+1\) nodes forces the chain-arc load to be
+\[
+q_{kj}=\zeta_x(j)-\sum_{i\leq k}f_{ij}
+=\sum_{i>k}f_{ij}.                                                    \tag{9}
+\]
+Equations (7)--(8) therefore map every feasible table to a feasible chain flow.  Conversely, the exit flows of a feasible network obey (7), and (9) with the arc capacities gives (8).  When both axes have \(m\) levels, there are \(O(m^2)\) chain nodes, exits, and capacity arcs.  Every feasible table has a full-law lift by the finite specialization of the capacity-projection theorem, whose support hypotheses are terminal monotonicity and the within-arm semicompeting order.
+
+For one covariate cell, the support primal is
+\[
+\max_{f\geq0}\ \sum_{i,j}c^x_{ij}f_{ij}
+\]
+subject to (7)--(8).  It is nonempty for compatible identified margins.  Its feasible set is a closed subset of the finite probability simplex and hence compact.  To prove primal attainment without importing any dual-attainment claim, take a maximizing sequence.  Compactness gives a convergent subsequence, feasibility is closed, and continuity of the linear objective makes the subsequential limit attain the supremum.
+
+Put free multipliers \(\alpha_i,\beta_j\) on the two margin equalities and nonnegative multipliers \(\lambda_{kj}\) on (8).  If
+\[
+\alpha_i+\beta_j+\sum_{k<i}\lambda_{kj}\geq c^x_{ij},
+\qquad \lambda_{kj}\geq0,                                          \tag{10}
+\]
+then every primal-feasible \(f\) satisfies
+\[
+\begin{aligned}
+\sum_{i,j}c^x_{ij}f_{ij}
+&\leq\sum_{i,j}\left(\alpha_i+\beta_j+
+\sum_{k<i}\lambda_{kj}\right)f_{ij}\\
+&=\sum_i\alpha_i d_x(i)+\sum_j\beta_j\zeta_x(j)
++\sum_{k,j}\lambda_{kj}\sum_{i>k}f_{ij}\\
+&\leq\sum_i\alpha_i d_x(i)+\sum_j\beta_j\zeta_x(j)
++\sum_{k,j}\lambda_{kj}\kappa^x_{kj}.                              \tag{11}
+\end{aligned}
+\]
+This is weak duality for the node-potential program.  The repaired finite-LP lemma, whose cited content is only equality of finite primal and dual values, makes the attained primal maximum equal to the displayed dual infimum.  No dual minimizer is asserted or used.  Constraints do not share unknowns across \(x\), so the support of the product fiber is the sum of the cellwise support values.  This is exactly \(h_m(c)\) under the repaired grid-support definition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The quadratic reduction makes exact joint-surface support computation possible, while the corrected node-potential program records a dual infimum and does not promise an unused dual optimizer. \textit{Gap.} Generic latent-law programs and duals do not supply this nested chain, its complete suffix cuts, or its reconstruction of full semicompeting-risk laws. \textit{Consumer.} It gives an exact auditable finite-grid algorithm and a primal endpoint certificate; dual value equality remains available without a dual-attainment claim.
+
+\begin{theorem}[thm:fixed-cohort-common-extremizers]\label{thm:fixed-cohort-common-extremizers}
+For every fixed \(t\in[0,\tau]\), every cell \(x\), and every \(0\leq r\leq t\), the sharp extrema of \(\nu_x(D(0)>t,R(1)\leq r)\) are \(A^L_x(r,t)\) and \(A^U_x(r,t)\).  One coupling attains \(A^U_x(r,t)\) simultaneously for every \(r\leq t\), and another coupling attains \(A^L_x(r,t)\) simultaneously for every \(r\leq t\).  For a fixed \(t\) satisfying \(S(t)\geq\eta\), and hence for the coordinates \((r,t)\in\mathcal H_\eta\), the standardized sharp TV-SACE bounds follow by summing the cellwise extrema with weights \(p_x/S(t)\), and the sharp RM-SACE interval is obtained by integrating the opposite common TV-SACE envelopes along that fixed cohort.  No standardized conclusion is asserted at a cohort with \(S(t)=0\).
+\end{theorem}
+\begin{proof}
+The proof uses nested-deadline matching, suffix cuts, compact limiting, and a finite-intersection argument.  Fix \(x\in\mathcal X\) and \(t\in[0,\tau]\), and put \(s=s_x(t)\).  The boundary convention in the deadline-rank definition is
+\[
+s_x(\infty)=0,\qquad K_x(\infty,B)=0. \tag{1}
+\]
+If \(s=0\), monotonicity of the survival function gives \(s_x(u)=0\) for every \(u\geq t\).  All terms in the infimum defining \(A_x^U(r,t)\) are nonnegative, and its \(u=\infty\) term is zero.  All terms in the supremum defining \(A_x^L(r,t)\) are nonpositive, and its \(u=\infty\) term is zero.  Hence
+\[
+A_x^L(r,t)=A_x^U(r,t)=0
+=\nu_x((t,\infty]\times[0,r]) \tag{2}
+\]
+for every compatible coupling.  Thus the unstandardized assertion holds when \(s=0\).  In the remainder of the cellwise argument suppose \(s>0\).
+
+Let \(Q_x\) be any compatible full law supplied by the capacity-projection theorem, and let \(w\) be the subprobability measure of treated records selected by the control-survivor event:
+\[
+w(H)=Q_x\bigl((D(1),R(1))\in H,\ D(0)>t\bigr),
+\qquad H\in\mathcal B(\mathcal E^2). \tag{3}
+\]
+Its total mass is \(s\), it is dominated by \(\mu_{1x}\), and terminal monotonicity implies that it is supported on \(D(1)>t\).  More generally, for every \(u\geq t\),
+\[
+\begin{aligned}
+w(D(1)>u)
+&=Q_x(D(1)>u,D(0)>t)\\
+&\geq Q_x(D(0)>u)
+=s_x(u),
+\end{aligned} \tag{4}
+\]
+because \(\{D(0)>u\}\subseteq\{D(1)>u,D(0)>t\}\).  For every Borel set \(B\subseteq\mathcal E\), split the selected \(B\)-marked records at \(u\).  Domination by \(\mu_{1x}\) and (4) give
+\[
+\begin{aligned}
+w(R(1)\in B)
+&=w(D(1)\leq u,R(1)\in B)+w(D(1)>u,R(1)\in B)\\
+&\leq s-w(D(1)>u)+K_x(u,B)\\
+&\leq s-s_x(u)+K_x(u,B). 
+\end{aligned} \tag{5}
+\]
+Equation (5) also holds for \(u=\infty\) by (1).  Therefore
+\[
+w(R(1)\in B)
+\leq \inf_{u\in[t,\tau]\cup\{\infty\}}
+\{s-s_x(u)+K_x(u,B)\}. \tag{6}
+\]
+
+We next show that the cut bound (6) is attainable and that its prefix instances have a common optimizer.  First suppose the two within-arm laws are supported on a finite ordered grid and have rational masses.  Multiply all masses by a common positive denominator.  Create one demand copy for each resulting unit with \(D(0)>t\), and one resource copy for each unit with \(D(1)>t\), retaining each resource's readmission mark.  Join a resource of death level \(h\) to a demand of death level \(i\) exactly when \(i\leq h\).  The full-mark capacity inequalities in the capacity fiber say, at every grid deadline \(u\geq t\),
+\[
+\#\{\hbox{resources with }h>u\}
+\geq \#\{\hbox{demands with }i>u\}. \tag{7}
+\]
+Sort demands from the latest death level to the earliest.  When the next demand has level \(i\), failure to find an unused adjacent resource would mean that the number of resources with \(h\geq i\) is smaller than the number of demands with level at least \(i\), contrary to the corresponding suffix inequality (7), evaluated immediately below \(i\).  Induction therefore constructs a matching covering all \(s\) demand units.
+
+Call a set of resources independent if it can be matched injectively into the demands.  These independent sets satisfy augmentation.  Indeed, superpose matchings of independent sets \(I\) and \(J\) with \(|I|<|J|\).  In the graph formed by the two matchings, components are alternating paths or cycles.  If no path beginning at a resource of \(J\setminus I\) ended at a demand unmatched by the \(I\)-matching, the alternating components would inject every \(J\)-matched demand into an \(I\)-matched demand, contradicting \(|J|>|I|\).  Switching along such a path matches \(I\cup\{j\}\) for some \(j\in J\setminus I\).  Thus every independent resource set extends, by repeated augmentation and the full matching above, to a basis of \(s\) resources.
+
+Fix a collection \(B\) of resource marks.  Its maximum independent cardinality is
+\[
+\min_{u\in[t,\tau]\cup\{\infty\}}
+\left[
+\#\{t<i\leq u:\hbox{ demand at }i\}
++\#\{h>u:\hbox{ \(B\)-resource at }h\}
+\right]. \tag{8}
+\]
+To verify (8) without an additional theorem, process the \(B\)-resources in increasing order of their death deadline, matching a resource whenever an eligible unmatched demand exists.  At a deadline \(u\), at most the demands with \(i\leq u\) can absorb the processed resources; consequently the number discarded by that point is the positive part of the excess of processed \(B\)-resources over those demands.  Induction over successive deadlines shows that the greedy rule discards exactly the running maximum of these excesses.  Subtracting that maximum from the total number of \(B\)-resources yields
+\[
+\#B-\max_u
+\bigl(\#\{B:h\leq u\}-\#\{t<i\leq u\}\bigr)
+=\min_u
+\bigl(\#\{t<i\leq u\}+\#\{B:h>u\}\bigr),
+\]
+which is (8); the endpoints \(u=t\) and \(u=\infty\) respectively include the bounds \(\#B\) and \(s\).  After rescaling, (8) is exactly
+\[
+\max w(R(1)\in B)
+=\min_u\{s-s_x(u)+K_x(u,B)\}. \tag{9}
+\]
+An independent set realizing (9) extends to a basis, so this maximum is attained by a matching of every survivor demand, not merely by a partial matching.
+
+Order all resource copies by increasing readmission category and scan them in that order, retaining a resource precisely when the retained set remains independent.  After any readmission prefix, the retained resources form a maximal independent subset of that prefix.  Augmentation implies that a maximal independent subset has maximum cardinality: otherwise a larger independent subset would augment it.  Continuing the scan retains earlier resources and ends in a basis because the total resource rank is \(s\).  Hence one basis realizes (9) for every readmission prefix \(B=[0,r]\) simultaneously.  Scanning resources in decreasing readmission order similarly produces one basis maximizing every complementary suffix \(B=(r,\infty]\), and therefore minimizing every prefix simultaneously.
+
+It remains to check that a survivor matching extends to all control records.  Write
+\[
+T_x(u)=\Pr_{\mu_{1x}}(D(1)>u).
+\]
+For \(u\leq t\), every selected resource has \(D(1)>t\), so the residual treated and control tail masses are, respectively, \(T_x(u)-s\) and \(s_x(u)-s\).  The full-mark capacity inequality, or equivalently terminal stochastic dominance furnished by compatibility, gives \(T_x(u)\geq s_x(u)\); hence
+\[
+T_x(u)-s\geq s_x(u)-s. \tag{10}
+\]
+For \(u>t\), the residual control tail is zero.  The same latest-to-earliest induction used for (7) therefore matches all residual control deaths without altering the selected basis.  The finite-grid lifting conclusion of the quadratic chain-flow theorem then supplies a full law with the required within-arm margins and terminal order.
+
+For real masses on a finite grid, start from one compatible finite full table, approximate its finitely many nonnegative cells on the same allowed support by rational tables, and use their induced margins.  The rational constructions lie in a fixed finite simplex.  A convergent subsequence preserves nonnegativity, total mass, the two limiting within-arm margins, and the closed condition \(D(0)\leq D(1)\).  The finitely many cut expressions and objectives are continuous in the table entries, so (9) and the simultaneous-prefix conclusion pass to the limit.
+
+For continuous time, take nested finite partitions containing \(t\), every threshold in an arbitrary finite set \(F\subseteq[0,t]\), and the isolated point \(\infty\).  Coarsen the fixed within-arm margins while retaining, as a finite cell mark, the order of two within-arm events that fall in the same bin.  Apply the finite result and use the quadratic chain-flow theorem to lift the resulting grid coupling to a grid full law.  Embed grid categories at representatives within their cells; the retained mark permits representatives satisfying the strict within-arm order, and the embedded cross-arm deaths satisfy \(D(0)\leq D(1)+\delta_m\), where \(\delta_m\) is the mesh.  By the frozen weak-compactness lemma, a subsequence converges weakly.  Its within-arm margins are \(\mu_{0x}\) and \(\mu_{1x}\).  For every \(\epsilon>0\), the embedded laws eventually assign zero mass to the open set \(\{D(0)>D(1)+\epsilon\}\); the open-set portmanteau inequality therefore shows that the limit assigns that set zero mass.  Taking the union over positive rational \(\epsilon\) proves \(D(0)\leq D(1)\) almost surely in the limit.
+
+The density envelope supplies, for finite \(u,v\),
+\[
+|s_x(u)-s_x(v)|\leq M|u-v|,
+\qquad
+|K_x(u,B)-K_x(v,B)|
+\leq M|u-v|. \tag{11}
+\]
+The second inequality follows by bounding the difference by the \(D(1)\)-marginal mass between \(u\) and \(v\); it is valid for every Borel \(B\).  Thus the discrete minima in (9) converge to the continuum infimum in (6), including the separately retained point \(u=\infty\).  For \(B=[0,r]\) or \(B=(r,\infty]\) with \(r\in F\), the objective boundary is contained in \(\{D(0)=t\}\cup\{R(1)=r\}\).  Both sets have probability zero because the corresponding fixed finite-part margins possess densities.  Weak convergence therefore preserves the objectives.  We have proved that, for each finite \(F\), a continuous full law attains all upper prefix endpoints indexed by \(F\), and another attains all lower prefix endpoints indexed by \(F\).
+
+Let \(\mathcal Q_x\) be the fixed-margin compatible full-law fiber.  It is a closed subset of the compact space of probability measures on \(\mathcal E^4\): its margin constraints are closed and \(D(0)\leq D(1)\) is a closed support relation.  Hence \(\mathcal Q_x\) is compact.  For each \(r\leq t\), the set of laws attaining the upper value at \(r\) is closed in \(\mathcal Q_x\), because the objective event has the null boundary just identified; the same holds for the lower value.  The finite-threshold construction gives each collection of these closed sets the finite-intersection property.  Compactness therefore yields one upper law and one lower law attaining their respective endpoints for every \(r\in[0,t]\) simultaneously.
+
+Taking \(B=[0,r]\) in (9) and recalling \(s=s_x(t)\) gives
+\[
+\max_{\nu_x\in\mathcal N_x}
+\nu_x((t,\infty]\times[0,r])
+=\inf_u\{s_x(t)-s_x(u)+K_x(u,[0,r])\}
+=A_x^U(r,t). \tag{12}
+\]
+Applying (9) to the complementary mark set and subtracting from the fixed selected mass gives
+\[
+\begin{aligned}
+\min_{\nu_x\in\mathcal N_x}
+\nu_x((t,\infty]\times[0,r])
+&=s-\inf_u\{s-s_x(u)+K_x(u,(r,\infty])\}\\
+&=\sup_u\{s_x(u)-K_x(u,(r,\infty])\}\\
+&=A_x^L(r,t).
+\end{aligned} \tag{13}
+\]
+Equations (12)--(13) prove the cellwise unstandardized claim for every \(t\), without division by a survivor probability.
+
+Now impose the stated standardized-domain condition \(S(t)\geq\eta>0\).  Equivalently, each coordinate \((r,t)\) under discussion belongs to \(\mathcal H_\eta\) by the target-domain definition.  Since \(\mathcal X\) is finite, choose the common upper or common lower coupling separately in every covariate cell and define
+\[
+\theta^U(r,t)=\frac{1}{S(t)}
+\sum_{x\in\mathcal X}p_x\{A_x^U(r,t)-b_x(r,t)\},
+\qquad
+\theta^L(r,t)=\frac{1}{S(t)}
+\sum_{x\in\mathcal X}p_x\{A_x^L(r,t)-b_x(r,t)\}. \tag{14}
+\]
+The coefficients \(p_x/S(t)\) are nonnegative and the denominator is strictly positive, so (12)--(13) imply
+\[
+\theta^L(r,t)\leq\theta_\nu(r,t)\leq\theta^U(r,t). \tag{15}
+\]
+The cellwise common couplings show that each entire envelope in (15), for all \(r\leq t\), is attainable by one compatible family.  Hence these are sharp standardized TV--SACE envelopes on the stated positive-mass cohort.
+
+Finally, for \(0\leq a\leq t\), the RM--SACE definition and (15) give
+\[
+-\int_0^a\theta^U(r,t)\,dr
+\leq \rho_\nu(a,t)
+\leq -\int_0^a\theta^L(r,t)\,dr. \tag{16}
+\]
+The common upper coupling attains the left endpoint of (16), and the common lower coupling attains the right endpoint.  Thus the integrated interval is sharp.  When \(S(t)=0\), only the unstandardized conclusion (2), (12), and (13) is asserted; neither the conditional standardized target nor division by \(S(t)\) is used.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Coordinatewise sharpness does not justify integration; common extremizers make fixed-cohort RM-SACE envelope integration exact on the positive-survivor domain. \textit{Gap.} Existing scalar integrations do not prove one coupling jointly attains all readmission thresholds for a nested survivor cohort. \textit{Consumer.} It yields closed-form TV-SACE and RM-SACE sensitivity regions for cohorts satisfying \(S(t)\geq\eta\), with no division at a zero-mass cohort.
+
+\begin{proposition}[prop:strict-cross-cohort-support]\label{prop:strict-cross-cohort-support}
+Suppose \(0<\eta\leq1/4\).  In \(\mathfrak E_3\), the two arrays \(q^-_{ihj}\) and \(q^+_{ihj}\) are nonnegative, have \((D(0),R(1))\) margins \(f^-\) and \(f^+\), have \((D(1),R(1))\) margin \(\mu_1^\star\), and put mass only on \(D(0)\leq D(1)\); with \(R(0)=\infty\), each is therefore a feasible full-law lift preserving both displayed within-arm tables.  The displayed row sums, column sums, and complete chain-load matrices certify every marked-capacity constraint.  The exact coordinate intervals are \(\theta_\nu(1,1)\in[1/15,4/15]\), \(\theta_\nu(2,2)\in[1/10,1/2]\), and \(\theta_\nu(3,3)\in[1/5,4/5]\).  For an arbitrary feasible \(f_{ij}\), \(\ell_\star(\nu)=f_{10}-f_{21}+f_{30}+f_{32}\), \(\ell_\star(\nu)\leq f_{10}+f_{30}+f_{32}\leq\kappa^\star_{00}+\kappa^\star_{22}=1/4\), while \(f_{21}+f_{31}\leq1/10\) and \(f_{30}+f_{31}+f_{32}=1/4-f_{33}\geq1/20\) imply \(\ell_\star(\nu)\geq-1/20\).  The arrays \(q^-_{ihj}\) and \(q^+_{ihj}\) attain these endpoints, so the sharp interval is \([-1/20,1/4]\), strictly inside the coordinate rectangle \([-3/20,7/20]\).  More precisely, fix a nonnegative symmetric \(C^1\) density \(\varphi\) supported on \((-1,1)\), let \(0<\delta<1/8\), and set \(\varphi_\delta(u)=\delta^{-1}\varphi(u/\delta)\), \(b_\delta=\|\varphi_\delta\|_\infty\), \(l_\delta=\|\varphi_\delta'\|_\infty\), \(M_\delta=\max\{b_\delta,b_\delta^2\}\), and \(L_\delta=\max\{l_\delta,2b_\delta l_\delta\}\).  Replacing the finite atoms by these separated bumps, and using a common death-bump draw when the two death categories agree, gives two full laws with the same strict support separation.  These laws belong to every declared envelope class satisfying \(M\geq M_\delta\) and \(L_{\mathrm{Lip}}\geq L_\delta\); hence there is a nonempty bounded-Lipschitz envelope regime, and within each such fixed regime the separation persists on a relatively open neighborhood of the displayed mixture weights.  No smooth-witness claim is made for arbitrary smaller fixed envelopes.
+\end{proposition}
+\begin{proof}
+All probabilities in this proof are conditional on the sole value of \(X\).  By the construction in \(\mathfrak E_3\), \(R(0)=\infty\), so the control numerator \(b_x(r,t)\) in the definition of \(\theta_\nu\) is zero at every finite \(r\).  The four control-death rows each have mass \(1/4\); hence, by the definitions of \(s_x\) and \(S\),
+\[
+ S(1)=\frac34,\qquad S(2)=\frac12,\qquad S(3)=\frac14. \tag{1}
+\]
+The premise \(0<\eta\leq 1/4\), (1), and the definition of \(\mathcal H_\eta\) therefore imply that \((1,1),(2,2),(3,3)\in\mathcal H_\eta\).  In particular, every division below is by a strictly positive survivor mass.
+
+For a feasible projected table \(f=(f_{ij})\), set
+\[
+ A_1=\sum_{i>0}f_{i0},\qquad
+ A_2=\sum_{\substack{i>1\\ j\leq1}}f_{ij},\qquad
+ A_3=\sum_{j\leq2}f_{3j}. \tag{2}
+\]
+The quadratic chain-flow theorem identifies feasibility with the two margin equations and the singleton inequalities
+\[
+ \sum_{i>k}f_{ij}\leq\kappa^\star_{kj}\quad(k=0,1,2;\ j=0,1,2,3). \tag{3}
+\]
+At the first cut, the row demands put total mass \(3/4\) beyond the cut.  The capacities of columns \(1,2,3\) there sum to \(20/100+15/100+35/100=7/10\), whereas the column-\(0\) capacity is \(20/100=1/5\).  Thus (3) gives
+\[
+ \frac1{20}=\frac34-\frac7{10}\leq A_1\leq\kappa^\star_{00}=\frac15. \tag{4}
+\]
+At the second cut, total mass beyond the cut is \(1/2\).  The capacities in columns \(2,3\) sum to \(15/100+30/100=9/20\), while those in columns \(0,1\) sum to \(15/100+10/100=1/4\).  Hence
+\[
+ \frac1{20}=\frac12-\frac9{20}\leq A_2
+ \leq\kappa^\star_{10}+\kappa^\star_{11}=\frac14. \tag{5}
+\]
+Finally the last row has mass \(1/4\).  Since \(f_{33}\leq\kappa^\star_{23}=1/5\), and since the capacities in columns \(0,1,2\) at the third cut sum to \(10/100+5/100+5/100=1/5\),
+\[
+ \frac1{20}=\frac14-\frac15\leq A_3
+ \leq\sum_{j=0}^2\kappa^\star_{2j}=\frac15. \tag{6}
+\]
+
+These endpoints are attainable.  The displayed table \(f^+\) attains the upper endpoints in (4) and (6), \(f^-\) attains the upper endpoint in (5) and the lower endpoint in (6), and the remaining two lower endpoints are attained by
+\[
+100g^{(1)}=
+\begin{pmatrix}
+20&0&0&5\\
+0&15&5&5\\
+0&0&5&20\\
+5&5&5&10
+\end{pmatrix},
+\qquad
+100g^{(2)}=
+\begin{pmatrix}
+20&0&0&5\\
+0&20&0&5\\
+0&0&10&15\\
+5&0&5&15
+\end{pmatrix}. \tag{7}
+\]
+Both tables in (7) have row sums \((25,25,25,25)/100\) and column sums \((25,20,15,40)/100\).  Their complete singleton chain loads are, respectively,
+\[
+\frac1{100}
+\begin{pmatrix}
+5&20&15&35\\
+5&5&10&30\\
+5&5&5&10
+\end{pmatrix},
+\qquad
+\frac1{100}
+\begin{pmatrix}
+5&20&15&35\\
+5&0&15&30\\
+5&0&5&15
+\end{pmatrix}. \tag{8}
+\]
+Every entry in (8) is bounded by the corresponding entry of \(\kappa^\star\).  The quadratic chain-flow theorem therefore proves feasibility; direct substitution gives \(A_1(g^{(1)})=1/20\) and \(A_2(g^{(2)})=1/20\).  The feasible flow polytope is convex, and each \(A_j\) is linear, so its image is an interval.  Consequently (4)--(6) are the exact coordinate ranges.
+
+By the definition of \(\theta_\nu\), the vanishing control numerator, (1), and (2),
+\[
+ \theta_\nu(1,1)=\frac{A_1}{3/4},\qquad
+ \theta_\nu(2,2)=\frac{A_2}{1/2},\qquad
+ \theta_\nu(3,3)=\frac{A_3}{1/4}. \tag{9}
+\]
+Combining (4)--(6) with (9) proves
+\[
+ \theta_\nu(1,1)\in\left[\frac1{15},\frac4{15}\right],\qquad
+ \theta_\nu(2,2)\in\left[\frac1{10},\frac12\right],\qquad
+ \theta_\nu(3,3)\in\left[\frac15,\frac45\right]. \tag{10}
+\]
+
+We next verify the two full-law certificates.  Summing the explicitly listed entries of \(q^-\) and \(q^+\) over the treated-death index gives
+\[
+100\left(\sum_hq^-_{ihj}\right)_{ij}
+=
+\begin{pmatrix}
+10&0&10&5\\
+0&10&5&10\\
+15&5&0&5\\
+0&5&0&20
+\end{pmatrix}
+=100f^-,
+\tag{11}
+\]
+\[
+100\left(\sum_hq^+_{ihj}\right)_{ij}
+=
+\begin{pmatrix}
+5&0&10&10\\
+10&15&0&0\\
+0&0&0&25\\
+10&5&5&5
+\end{pmatrix}
+=100f^+.
+\tag{12}
+\]
+Summing instead over the control-death index gives, for both signs,
+\[
+100\left(\sum_iq^\pm_{ihj}\right)_{hj}
+=
+\begin{pmatrix}
+5&0&0&5\\
+5&10&0&5\\
+5&5&10&10\\
+10&5&5&20
+\end{pmatrix}
+=100\mu_1^\star. \tag{13}
+\]
+All listed entries are nonnegative.  Equations (11)--(13) prove the asserted \((D(0),R(1))\) and \((D(1),R(1))\) margins.  The row sums in (11)--(12) are \((1/4,1/4,1/4,1/4)\); after attaching \(R(0)=\infty\), they give exactly \(\mu_0^\star\).  Every positive listed triple satisfies \(i\leq h\), and the death categories are ordered, so both laws put probability one on \(D(0)\leq D(1)\).  Moreover every positive cell with finite treated readmission has \(r_j^\star<d_h^\star\), while the control readmission is infinite; hence the semicompeting-order restriction also holds.
+
+For completeness, the complete singleton chain loads of the two projected margins are
+\[
+100\left(\sum_{i>k}f^-_{ij}\right)_{kj}
+=
+\begin{pmatrix}
+15&20&5&35\\
+15&10&0&25\\
+0&5&0&20
+\end{pmatrix},
+\qquad
+100\left(\sum_{i>k}f^+_{ij}\right)_{kj}
+=
+\begin{pmatrix}
+20&20&5&30\\
+10&5&5&30\\
+10&5&5&5
+\end{pmatrix}. \tag{14}
+\]
+Comparison with the displayed matrix \(100\kappa^\star\) proves every singleton inequality in (3).  Any mark set on this finite carrier is a union of singleton columns, so summing the corresponding inequalities in (14) proves every readmission-mark capacity constraint.
+
+Using (1), (2), and the definition of \(\ell_\star\) yields
+\[
+ \ell_\star(\nu)=A_1-A_2+A_3
+ =f_{10}-f_{21}+f_{30}+f_{32}. \tag{15}
+\]
+By nonnegativity and (3),
+\[
+ \ell_\star(\nu)
+ \leq f_{10}+f_{30}+f_{32}
+ \leq\kappa^\star_{00}+\kappa^\star_{22}
+ =\frac14. \tag{16}
+\]
+Indeed, \(f_{10}+f_{30}\leq\sum_{i>0}f_{i0}\leq\kappa^\star_{00}\) and \(f_{32}\leq\kappa^\star_{22}\).  At the second cut in column \(1\), and at the third cut in column \(3\), (3) and the last-row margin give
+\[
+ f_{21}+f_{31}\leq\frac1{10},\qquad
+ f_{30}+f_{31}+f_{32}
+ =\frac14-f_{33}\geq\frac14-\frac15=\frac1{20}. \tag{17}
+\]
+Therefore
+\[
+ \ell_\star(\nu)
+ =f_{10}-(f_{21}+f_{31})+(f_{30}+f_{31}+f_{32})
+ \geq-\frac1{20}. \tag{18}
+\]
+Direct substitution into (15) gives \(\ell_\star(f^-)=-1/20\) and \(\ell_\star(f^+)=1/4\).  The lifts (11)--(13) attain those endpoints, and every mixture of the two lifts preserves both within-arm margins and all support restrictions.  Thus the sharp signed interval is
+\[
+ \left[-\frac1{20},\frac14\right]. \tag{19}
+\]
+In contrast, optimizing the signed direction over the product of the three coordinate intervals in (10) gives
+\[
+ \frac34\frac1{15}-\frac12\frac12+\frac14\frac15=-\frac3{20},
+ \qquad
+ \frac34\frac4{15}-\frac12\frac1{10}+\frac14\frac45=\frac7{20}. \tag{20}
+\]
+Hence the coordinate rectangle gives \([-3/20,7/20]\), which strictly contains (19), with a gap \(1/10\) at each endpoint.  This establishes strict cross-cohort support rather than merely coordinatewise nonidentification.
+
+It remains to verify the bounded-Lipschitz version and its exact regime.  Fix the density and bandwidth in the statement and define
+\[
+ \varphi_\delta(u)=\delta^{-1}\varphi(u/\delta),\qquad
+ b_\delta=\|\varphi_\delta\|_\infty,\qquad
+ l_\delta=\|\varphi_\delta'\|_\infty,
+\tag{21}
+\]
+\[
+ M_\delta=\max\{b_\delta,b_\delta^2\},\qquad
+ L_\delta=\max\{l_\delta,2b_\delta l_\delta\}. \tag{22}
+\]
+Because \(\varphi\) is \(C^1\) with compact support, all four quantities in (21)--(22) are finite.  Replace each finite death or readmission category by the translate of \(\varphi_\delta\) centered at that category, retaining the atom at \(\infty\).  Conditional on a positive triple \((i,h,j)\), use independent death-bump draws if \(i<h\), use one common death-bump draw if \(i=h\), and use an independent readmission-bump draw; retain \(R(0)=\infty\).
+
+Distinct finite death centers differ by at least one, so \(2\delta<1\) preserves \(D(0)<D(1)\) in every cell with \(i<h\), while the common draw preserves equality in cells with \(i=h\).  The smallest finite treated readmission--death center gap in a positive cell is \(1/4\); since \(2\delta<1/4\), every such smoothed cell satisfies \(R(1)<D(1)\).  Thus both smoothed laws preserve terminal monotonicity and the semicompeting order pointwise.
+
+Every finite-part within-arm density is a convex mixture of translates of \(\varphi_\delta\) or of \(\varphi_\delta\otimes\varphi_\delta\).  The one-dimensional densities have sup-norm at most \(b_\delta\) and Lipschitz constant at most \(l_\delta\).  For a product density \(p(u,v)=\varphi_\delta(u-a)\varphi_\delta(v-b)\), the product rule and the mean-value inequality give
+\[
+ \|p\|_\infty\leq b_\delta^2,\qquad
+ |p(u,v)-p(u',v')|
+ \leq b_\delta l_\delta\bigl(|u-u'|+|v-v'|\bigr)
+ \leq2b_\delta l_\delta\|(u,v)-(u',v')\|_\infty. \tag{23}
+\]
+Convex mixtures do not increase these bounds.  Equations (22)--(23) prove membership in every declared envelope class satisfying
+\[
+ M\geq M_\delta,\qquad L_{\mathrm{Lip}}\geq L_\delta. \tag{24}
+\]
+This is a nonempty bounded-Lipschitz regime; the argument makes no assertion when either inequality in (24) fails.
+
+No bump support crosses any of the thresholds \(1,2,3\).  Consequently, binning \(D(0)\) and \(R(1)\) by their separated bump supports sends every compatible smoothed coupling to a categorical table with the same margins and all inequalities (3), and every surface numerator and denominator used in (4)--(20) equals its binned categorical counterpart.  Conversely, smoothing either endpoint lift by the just-described kernels preserves its margins and order restrictions.  Thus the exact signed interval (19), the coordinate rectangle (20), and their strict gaps survive smoothing throughout (24).
+
+Finally fix \(\varphi\), \(\delta\), and the structurally permitted incidence pattern.  The relevant lower and upper support problems are finite linear programs whose constraint matrix is fixed and whose right-hand sides depend linearly on the mixture weights.  At the displayed law every structurally permitted within-arm cell has positive weight, so its right-hand side is in the relative interior of the corresponding feasible polyhedral domain.  Eliminating equality variables and enumerating the finitely many bases shows that, on a relative-interior neighborhood, each finite optimal value is a finite piecewise-affine, hence continuous, function of those weights.  The survivor denominators in (1) remain positive on a sufficiently small neighborhood, so the standardized coordinate endpoints are continuous there as well.  Each of the two strict gaps equals \(1/10\) at the displayed law by (19)--(20); continuity therefore leaves both gaps positive on some relatively open neighborhood.  The kernels remain fixed and the weights remain nonnegative and sum to one, so (23)--(24) continue to hold throughout that neighborhood.  This proves every assertion of the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact atomic certificate proves strict joint support, and explicit kernel norms identify a nonempty bounded-Lipschitz regime where the separation persists. \textit{Gap.} A smooth bump construction does not satisfy arbitrary preassigned density and Lipschitz envelopes; the corrected result exposes the required constants instead of silently strengthening the class. \textit{Consumer.} Users can check whether their envelope audit contains the smooth witness and can still use the unconditional atomic support certificate when it does not.
+
+\begin{theorem}[thm:continuous-grid-convergence]\label{thm:continuous-grid-convergence}
+For fixed identified within-arm margins, \(\Theta_I(P)\) is compact and convex in the uniform norm on \(\mathcal H_\eta\), every continuous signed support functional is attained, and the interpolated exact grid surface sets from nested meshes converge to \(\Theta_I(P)\) in Hausdorff distance. Consequently their support values and sharp fixed-cohort RM integrals converge to the continuous-support values.
+\end{theorem}
+\begin{proof}
+Fix the identified within-arm margins.  By the proved recovery lemma, these margins are functionals of \(P\).  The argument below uses the bounded finite-part coordinate-density envelope \(M\), but nowhere uses continuity or Lipschitz regularity of a density.
+
+For each \(x\in\mathcal X\), let \(\mathcal Q_x\) be the set of probability laws \(Q\) on \(\mathcal E^4\) such that
+\[
+ Q_{(D(0),R(0))}=\mu_{0x},\qquad
+ Q_{(D(1),R(1))}=\mu_{1x},\qquad
+ Q\{D(0)\leq D(1)\}=1. \tag{1}
+\]
+The maintained full law shows that \(\mathcal Q_x\) is nonempty.  The compact-carrier lemma makes \(\mathcal P(\mathcal E^4)\) weakly compact.  The two marginal equalities in (1) define weakly closed sets, because they are equivalent to equality of integrals of every continuous function on \(\mathcal E^2\).  The order restriction is weakly closed as well.  Indeed, the relation
+\[
+ \mathcal R_D=\{(d_0,r_0,d_1,r_1):d_0\leq d_1\}
+\]
+is closed.  If \(Q_n(\mathcal R_D)=1\) and \(Q_n\Rightarrow Q\), then, for every positive integer \(k\), the continuous function
+\[
+ g_k(y)=\min\{1,k\,\operatorname{dist}(y,\mathcal R_D)\}
+\]
+has \(\int g_k\,dQ=\lim_n\int g_k\,dQ_n=0\).  Since \(g_k\) increases pointwise to \(\mathbf 1_{\mathcal R_D^c}\), it follows that \(Q(\mathcal R_D)=1\).  Thus \(\mathcal Q_x\) is compact.  The fixed within-arm margins in (1) already assign probability one to \(R(z)<D(z)\) whenever \(R(z)<\infty\), so the strict within-arm order creates no additional closure issue.
+
+Projection of a law in \(\mathcal Q_x\) onto \((D(0),R(1))\) is weakly continuous.  The proved capacity-projection theorem says that the image of this projection is exactly \(\mathcal N_x\).  Hence \(\mathcal N_x\) is compact.  It is convex because its two marginal equalities and all its marked-capacity inequalities are linear in \(\nu_x\).  Since \(\mathcal X\) is finite, \(\prod_{x\in\mathcal X}\mathcal N_x\) is compact and convex.
+
+We next prove a modulus uniform over this product.  Put
+\[
+ U_\nu(r,t)=\sum_{x\in\mathcal X}p_x
+ \left\{\nu_x((t,\infty]\times[0,r])-b_x(r,t)\right\},
+ \qquad
+ \theta_\nu(r,t)=\frac{U_\nu(r,t)}{S(t)}. \tag{2}
+\]
+The density-envelope assumption implies that, for every finite interval \(I\subseteq[0,\tau]\),
+\[
+ d_x(I)\leq M\,\operatorname{Leb}(I),
+ \qquad
+ \zeta_x(I)\leq M\,\operatorname{Leb}(I), \tag{3}
+\]
+and the same bound holds for the finite-part \(D(0)\)- and \(R(0)\)-coordinate margins of \(\mu_{0x}\).  Atoms at \(\infty\) do not enter any interval in (3).  For two indices \((r,t),(r',t')\in\mathcal H_\eta\), a symmetric-difference decomposition into one death strip and one readmission strip gives
+\[
+\begin{aligned}
+ &\left|\nu_x((t,\infty]\times[0,r])
+ -\nu_x((t',\infty]\times[0,r'])\right|\\
+ &\quad\leq d_x((t\wedge t',t\vee t'])
+       +\zeta_x((r\wedge r',r\vee r'])\\
+ &\quad\leq M\{|t-t'|+|r-r'|\}. 
+\end{aligned} \tag{4}
+\]
+Applying the same decomposition to \(b_x(r,t)=\mu_{0x}\{R(0)\leq r,D(0)>t\}\), then summing with \(\sum_xp_x=1\), yields
+\[
+ |U_\nu(r,t)-U_\nu(r',t')|
+ \leq 2M\{|t-t'|+|r-r'|\}. \tag{5}
+\]
+Likewise,
+\[
+ |S(t)-S(t')|\leq M|t-t'|. \tag{6}
+\]
+For each \(x\), both probabilities whose difference appears in (2) lie in \([0,s_x(t)]\).  Therefore
+\[
+ |U_\nu(r,t)|\leq S(t)\leq1. \tag{7}
+\]
+By the definition of \(\mathcal H_\eta\), both denominators below are at least \(\eta>0\).  Equations (5)--(7) and quotient algebra give
+\[
+\begin{aligned}
+ |\theta_\nu(r,t)-\theta_\nu(r',t')|
+ &\leq \frac{|U_\nu(r,t)-U_\nu(r',t')|}{S(t)}
+ +\frac{|U_\nu(r',t')|\,|S(t)-S(t')|}{S(t)S(t')}\\
+ &\leq \frac{2M}{\eta}|r-r'|+\frac{3M}{\eta}|t-t'|\\
+ &\leq C_\theta\{|r-r'|+|t-t'|\},
+ \qquad C_\theta=\frac{3M}{\eta}. 
+\end{aligned} \tag{8}
+\]
+In particular, only the envelope \(M\), not \(L_{\mathrm{Lip}}\), appears in the modulus.
+
+Equation (6) makes \(S\) continuous.  Because \(S\) is nonincreasing, \(\mathcal H_\eta\) is either empty or a closed triangle of the form
+\[
+ \{(r,t):0\leq r\leq t\leq T_\eta\}
+\]
+for some \(T_\eta\in[0,\tau]\); hence it is compact.  If it is empty, its continuous-function space contains a unique function and all the conclusions are immediate, so assume it is nonempty.  Since \(|\theta_\nu|\leq1\), the RM definition and (8) imply, for \((a,t),(a',t')\in\mathcal H_\eta\),
+\[
+\begin{aligned}
+ |\rho_\nu(a,t)-\rho_\nu(a',t')|
+ &\leq |a-a'|
+ +\int_0^{a\wedge a'}|\theta_\nu(r,t)-\theta_\nu(r,t')|\,dr\\
+ &\leq |a-a'|+\tau C_\theta|t-t'|. 
+\end{aligned} \tag{9}
+\]
+Thus all surface pairs have a common modulus depending only on \((M,\eta,\tau)\).
+
+Let \(\nu_x^{(n)}\Rightarrow\nu_x\) for every \(x\).  For fixed finite \((r,t)\), the boundary of \((t,\infty]\times[0,r]\) is contained in
+\[
+ \{D(0)=t\}\cup\{R(1)=r\}. \tag{10}
+\]
+Both sets in (10) have probability zero by (3).  For completeness, rectangle convergence follows directly from weak convergence: choose continuous lower and upper piecewise-linear ramps for the two threshold indicators whose products bracket the rectangle indicator and differ only when \(D(0)\in[t-\delta,t+\delta]\) or \(R(1)\in[r-\delta,r+\delta]\), with intervals truncated to \([0,\tau]\) and the isolated point \(\infty\) assigned its exact indicator value.  Their integral gap is at most \(4M\delta\) by (3).  Weak convergence passes the two continuous ramp integrals to the limit, and letting \(\delta\downarrow0\) proves
+\[
+ \nu_x^{(n)}((t,\infty]\times[0,r])
+ \longrightarrow \nu_x((t,\infty]\times[0,r]). \tag{11}
+\]
+Consequently \(\theta_{\nu^{(n)}}\) converges pointwise to \(\theta_\nu\).  A finite net of the compact domain, together with the common modulus (8), upgrades this convergence to uniform convergence.  The integral definition gives
+\[
+ \|\rho_{\nu^{(n)}}-\rho_\nu\|_\infty
+ \leq \tau\|\theta_{\nu^{(n)}}-\theta_\nu\|_\infty\longrightarrow0. \tag{12}
+\]
+The surface map from \(\prod_x\mathcal N_x\) to \(C(\mathcal H_\eta)^2\) is therefore continuous.  Its image \(\Theta_I(P)\) is compact.  It is convex because (2) and the RM integral are affine in \((\nu_x)_x\).  Every continuous signed linear functional has a compact real image of \(\Theta_I(P)\), so its upper and lower support values are attained.
+
+It remains to compare the continuous fiber with exact finite grids.  Choose nested partitions \(\Pi_m\) of \([0,\tau]\), containing \(T_\eta\), whose maximum cell width \(\delta_m\) tends to zero, and retain \(\infty\) as an isolated category.  For finite \(u\), let \(\pi_m(u)\) be the least grid knot not smaller than \(u\), and set \(\pi_m(\infty)=\infty\).  At every grid knot \(v\),
+\[
+ \{\pi_m(D)>v\}=\{D>v\},
+ \qquad
+ \{\pi_m(R)\leq v\}=\{R\leq v\}. \tag{13}
+\]
+Push the fixed within-arm laws forward by \(\pi_m\).  When two within-arm event coordinates enter the same cell, retain their finite order mark; this keeps the strict semicompeting-risk order available to the full-law lift but does not change either event in (13).  Use the proved chain-flow theorem for these coarsened margins, interpolate every exact knotwise TV surface piecewise affinely over \(\mathcal H_\eta\), and define the corresponding RM coordinate by exact integration of that interpolant.  Denote the resulting surface set by \(K_m\), and put \(K=\Theta_I(P)\).  Each \(K_m\) is compact because the chain-flow feasible set is a closed bounded finite-dimensional polytope and interpolation is continuous.  The chain-flow theorem identifies every exact signed knot support with the primal support value \(h_m(c)\) and its stated dual infimum.
+
+For the first directed approximation, take \(q=(\theta_\nu,\rho_\nu)\in K\) and use the capacity-projection theorem to choose a compatible full-law lift.  Applying \(\pi_m\) to all four event coordinates preserves \(D(0)\leq D(1)\), because \(\pi_m\) is nondecreasing, and the retained within-cell marks preserve the strict within-arm order.  The resulting finite law is feasible for the exact chain flow.  By (13), its TV value at every knot is exactly the continuous TV value there.  Every point and the vertices used to interpolate it are at coordinate distance at most \(\delta_m\).  Thus (8), followed by the integral bound in (12), gives a constant \(C_1=C_1(M,\eta,\tau)<\infty\), independent of \(q\) and \(m\), such that
+\[
+ \sup_{q\in K}\inf_{q_m\in K_m}
+ \|q-q_m\|_\infty
+ \leq C_1\delta_m\longrightarrow0. \tag{14}
+\]
+
+For the reverse direction, choose an arbitrary sequence \(q_m\in K_m\).  The chain-flow theorem supplies, for every \(x\), a finite-grid full-law lift.  Embed every finite category at a representative in its source cell, choosing representatives according to the retained order mark so that \(R(z)<D(z)\) whenever \(R(z)<\infty\).  Call the embedded law \(Q_{mx}\).  Every representative is within \(\delta_m\) of its cell, and grid death order implies
+\[
+ Q_{mx}\{D(0)\leq D(1)+\delta_m\}=1. \tag{15}
+\]
+Weak compactness and finiteness of \(\mathcal X\) give a common subsequence such that
+\[
+ Q_{mx}\Rightarrow Q_x\qquad\text{for every }x. \tag{16}
+\]
+Uniform continuity of a continuous test function shows that each within-arm margin of \(Q_{mx}\) differs from the corresponding original margin by at most the test function's modulus at \(\delta_m\).  Hence the within-arm margins of \(Q_x\) are \(\mu_{0x}\) and \(\mu_{1x}\).
+
+To pass (15) to the limit without a boundary assumption, use the closed relation \(\mathcal R_D\) from (1).  The support in (15) lies within distance \(\delta_m\) of \(\mathcal R_D\).  Therefore, for the functions \(g_k\) used above,
+\[
+ \int g_k\,dQ_{mx}\leq k\delta_m.
+\]
+Weak convergence first gives \(\int g_k\,dQ_x=0\) for every \(k\), and then \(Q_x(\mathcal R_D)=1\).  Thus \(Q_x\in\mathcal Q_x\), and the surface \(q\) induced by its \((D(0),R(1))\)-projection belongs to \(K\).
+
+It remains to identify the surface limit.  Across adjacent knots, a grid rectangle changes by no more than one death-bin mass plus one readmission-bin mass.  Each such mass is the mass of the corresponding original marginal interval and is at most \(M\) times that interval's width by (3).  The identical assertion holds for \(b_x\) and \(S\).  Since every interpolation vertex belongs to the domain where \(S\geq\eta\), the quotient calculation (8) gives all interpolated grid TV surfaces a common modulus depending only on \((M,\eta)\); (9) gives the corresponding RM modulus.  This establishes equicontinuity using only \(M\).
+
+For any fixed \((r,t)\in\mathcal H_\eta\), choose interpolation knots \((r_m,t_m)\to(r,t)\).  Replacing the moving thresholds by \((r,t)\) changes the associated grid rectangle probability by at most the mass of the death and readmission marginal cells meeting the two intervening threshold intervals.  Their total source-interval width is at most \(|r_m-r|+|t_m-t|+4\delta_m\), so (3) bounds the probability change by \(M\{|r_m-r|+|t_m-t|+4\delta_m\}\).  The fixed-threshold rectangle has the null boundary (10), so the continuous-ramp argument used for (11), now applied to (16), gives convergence to its probability under \(Q_x\).  The known terms \(b_x(r_m,t_m)\) and \(S(t_m)\) converge by (3) and (6), and their denominators remain at least \(\eta\).  Therefore the knotwise TV values converge to \(\theta_q(r,t)\); interpolation changes them by a quantity tending to zero.  Exact integration then gives pointwise RM convergence.  A finite-net argument with the common moduli yields
+\[
+ \|q_m-q\|_\infty\longrightarrow0. \tag{17}
+\]
+If the reverse directed distance failed to converge to zero, some subsequence would satisfy \(\inf_{q\in K}\|q_m-q\|_\infty\geq\epsilon\) for a fixed \(\epsilon>0\).  Applying (16)--(17) to that subsequence would produce a limit in \(K\), a contradiction.  Hence
+\[
+ \sup_{q_m\in K_m}\inf_{q\in K}\|q_m-q\|_\infty\longrightarrow0. \tag{18}
+\]
+Combining (14) and (18) proves
+\[
+ d_H(K_m,\Theta_I(P))\longrightarrow0. \tag{19}
+\]
+
+Finally, for every continuous signed linear functional \(\Lambda\),
+\[
+ \left|\sup_{q_m\in K_m}\Lambda(q_m)
+       -\sup_{q\in K}\Lambda(q)\right|
+ \leq \|\Lambda\|\,d_H(K_m,K)\longrightarrow0, \tag{20}
+\]
+and the same argument applies to lower supports.  When the restriction of \(\Lambda\) to the grid is represented by cell costs \(c\), the chain-flow theorem makes \(h_m(c)\) the unknown-coupling part of this exact grid support, with the identified affine terms added separately; thus these support certificates converge as asserted.  Evaluation of \(\rho_\nu(a,t)\) at a fixed positive-mass cohort is continuous in the uniform norm.  The proved common-extremizer theorem identifies its two sharp endpoints with the integrals of the opposite common TV envelopes, both on each exact grid and in the continuous model.  Equation (19) therefore implies convergence of the sharp fixed-cohort RM integrals.  Every modulus, boundary-null argument, compactness step, and directed grid approximation above uses only the bounded-density constant \(M\); no step uses \(L_{\mathrm{Lip}}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Continuous-time conclusions require more than solving unrelated finite grids; compactness and Hausdorff convergence transfer exact support certificates to the scientific time scale, and bounded finite-part coordinate densities alone supply every required modulus and null-boundary property. \textit{Gap.} Generic optimal-transport consistency does not address strict within-arm event order, a nested survivor denominator, or uniform convergence of a two-index surface image; Lipschitz density regularity is not needed for this qualitative convergence result. \textit{Consumer.} It justifies refining the clinical horizon grid without changing the estimand or losing sharpness under the bounded-density class.
+
+\begin{theorem}[thm:finite-sample-outer-set]\label{thm:finite-sample-outer-set}
+For every deterministic finite grid and \(0<\alpha<1\), conditional Hoeffding inequalities within each nonempty treatment--covariate cell and the unconditional Hoeffding inequalities for \(\widehat p_x\) give \(\inf_P\Pr_P(\mathscr E_n)\ge1-\alpha\). On the single simultaneous event \(\mathscr E_n\), arm-specific independent censoring implies that the true coarsened primitive vector satisfies \(g^{zx}_{i+1}\pi^{zx}_{ij}\le A^{zx}_{ij}\le g^{zx}_i\pi^{zx}_{ij}\), \(Y^{zx}_i=g^{zx}_i\{\sum_{h\ge i,j}\pi^{zx}_{hj}+\sum_j\pi^{zx}_{\infty j}\}\), \(V^{zx}_j=g^{zx}_m\pi^{zx}_{\infty j}\), and \(1\ge g^{zx}_0\ge\cdots\ge g^{zx}_m\ge\gamma\); hence it belongs to \(\mathcal B_n\) and deterministically \(\Theta_I(P)|_{\mathcal G_m}\subseteq\mathcal C_n\). Therefore \(\inf_P\Pr_P\{\Theta_I(P)|_{\mathcal G_m}\subseteq\mathcal C_n\}\ge1-\alpha\). The result uses sample size \(n\) for \(p_x\), assigns \([0,1]\) to every primitive interval in a zero-count cell, and remains valid at every change of the active flow face.
+\end{theorem}
+\begin{proof}
+The proof combines a conditional exponential-moment bound with deterministic propagation through the corrected observable moment region.  If \(B\in\{0,1\}\) has mean \(q\), put \(\psi(\lambda)=\log E\exp\{\lambda(B-q)\}\).  Exponential tilting preserves a Bernoulli law, so \(\psi(0)=\psi'(0)=0\) and
+\[
+\psi''(\lambda)=q_\lambda(1-q_\lambda)\leq\frac14.
+\]
+Taylor's formula with integral remainder therefore gives
+\[
+E\exp\{\lambda(B-q)\}\leq\exp(\lambda^2/8).
+\]
+For \(N>0\) independent copies, Markov's inequality applied separately to the two tails and optimized at \(|\lambda|=4r\) yields
+\[
+\Pr(|\bar B_N-q|>r)\leq2e^{-2Nr^2}.                                  \tag{31}
+\]
+
+Conditional on \(N_{zx}=N>0\), the observations selected into cell \((z,x)\) are independent draws from the conditional law given \((Z=z,X=x)\).  Hence, with
+\[
+r_{zx}=\sqrt{\frac{\log(2J/\alpha)}{2N_{zx}}},
+\]
+equation (31) bounds the unconditional failure probability of each cellwise primitive interval by \(\alpha/J\), after averaging over \(N_{zx}>0\).  If \(N_{zx}=0\), the interval is \([0,1]\) and cannot fail.  Applying (31) with \(N=n\) gives the same bound for each interval covering \(p_x\) around \(\widehat p_x\).  Since \(J\) counts all cellwise primitive intervals and all covariate-mass intervals, the unconditional union bound gives, uniformly over the maintained laws,
+\[
+\inf_P\Pr_P(\mathscr E_n)\geq1-\alpha.                               \tag{32}
+\]
+The positive-cell support and treatment-overlap premises used by the established IPCW-recovery lemma imply \(\Pr(Z=z,X=x)>0\), so every population conditional moment is defined.  No positive lower bound on a realized \(N_{zx}\) is used.
+
+Fix \((z,x)\).  The corrected finite cells
+\[
+I_i=[a_i,a_{i+1})\quad(0\leq i<m-1),
+\qquad I_{m-1}=[a_{m-1},\tau],
+\]
+together with \(D(z)>\tau\), are disjoint and exhaustive for the death coordinate.  Thus the true nonnegative table satisfies
+\[
+\sum_{i=0}^{m-1}\sum_j\pi^{zx}_{ij}+\sum_j\pi^{zx}_{\infty j}=1,       \tag{33}
+\]
+including every allowed atom at \(D(z)=\tau\).  By arm-specific independent censoring,
+\[
+A^{zx}_{ij}=\int_{I_i\times B_j}G_{zx}(d)\,\mu_{zx}(d d,d r).
+\]
+For \(i<m-1\), \(a_i\leq d<a_{i+1}\) on \(I_i\); for \(i=m-1\), \(a_{m-1}\leq d\leq a_m=\tau\).  Since \(G_{zx}\) is nonincreasing, in both cases
+\[
+g^{zx}_{i+1}\pi^{zx}_{ij}
+\leq A^{zx}_{ij}
+\leq g^{zx}_i\pi^{zx}_{ij}.                                         \tag{34}
+\]
+In particular, the contribution of \(D(z)=\tau\) in the last bin is multiplied by \(G_{zx}(\tau)=g^{zx}_m\); it is neither discarded nor assigned the left-endpoint censoring probability.  No exact-bin equality is used.
+
+At deterministic \(a_i\), for \(0\leq i<m\), conditional censoring independence and the left-closed bin convention give
+\[
+Y^{zx}_i=g^{zx}_i\left\{\sum_{h\geq i,j}\pi^{zx}_{hj}
+ +\sum_j\pi^{zx}_{\infty j}\right\}.
+\]
+Likewise, horizon completion requires \(D(z)>\tau\), and hence
+\[
+V^{zx}_j=g^{zx}_m\pi^{zx}_{\infty j}.                               \tag{35}
+\]
+By the survival-function definition and full-horizon censoring support,
+\[
+1\geq g^{zx}_0\geq\cdots\geq g^{zx}_m\geq\gamma>0.                  \tag{36}
+\]
+The semicompeting order inherited from \(\mu_{zx}\) supplies the table's event-order restrictions.  On \(\mathscr E_n\), every true observable moment and every \(p_x\) lies in its stipulated interval.  Equations (33)--(36) therefore put the true coarsened primitive and censoring vectors in \(\mathcal B_n\).
+
+Now take a surface in \(\Theta_I(P)\), represented by \((\nu_x:x\in\mathcal X)\), and coarsen \(D(0)\), \(D(1)\), and the readmission mark with the same ordered cells.  Write \(c_m(d)\) for the resulting ordered death category, including the residual category \(D>\tau\).  Its projected table has the true coarsened margins.  Terminal monotonicity implies
+\[
+\{c_m(D(0))>k,R(1)\in B_j\}
+\subseteq
+\{c_m(D(1))>k,R(1)\in B_j\},
+\]
+because the corrected cells are ordered and \(D(0)\leq D(1)\).  Consequently, for every chain cut \(k\) and mark bin \(j\),
+\[
+\sum_{i>k}f^x_{ij}
+=\Pr\{c_m(D(0))>k,R(1)\in B_j\mid X=x\}
+\leq\Pr\{c_m(D(1))>k,R(1)\in B_j\mid X=x\}
+=\kappa^x_{kj}.                                                       \tag{37}
+\]
+The quadratic chain-flow theorem makes these inequalities and the two margins an exact feasible grid image.  Because the true primitive vector is in \(\mathcal B_n\) on \(\mathscr E_n\), the union defining \(\mathcal C_n\) yields
+\[
+\Theta_I(P)|_{\mathcal G_m}\subseteq\mathcal C_n
+\qquad\text{on }\mathscr E_n.                                      \tag{38}
+\]
+Combining (32) and (38) proves
+\[
+\inf_P\Pr_P\{\Theta_I(P)|_{\mathcal G_m}\subseteq\mathcal C_n\}
+\geq1-\alpha.
+\]
+The argument propagates one simultaneous primitive event and does not differentiate the optimized flow value.  It therefore remains valid when several cuts tie or the active flow face changes.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A single simultaneous moment event gives face-robust finite-grid containment, with the last closed bin retaining every allowed terminal atom. \textit{Gap.} Existing IPCW concentration and perturbed-LP results do not propagate one censoring-moment event through every nested-survivor face while accounting explicitly for \(D=\tau\). \textit{Consumer.} It provides conservative, auditable finite-grid uncertainty sets even when active cuts tie.
+
+\begin{proposition}[prop:no-terminal-effect-reduction]\label{prop:no-terminal-effect-reduction}
+If \(D(0)=D(1)\) almost surely, then every \(\nu_x\in\mathcal N_x\) satisfies \(\nu_x(D(0)>t,R(1)\le r)=\mu_{1x}(D(1)>t,R(1)\le r)\), so \(\Theta_I(P)\) is a singleton equal to the ordinary standardized difference of within-arm cumulative incidences among the common survivor cohort.
+\end{proposition}
+\begin{proof}
+Assume the antecedent \(D(0)=D(1)\) almost surely in the compatible full-law class.  This submodel satisfies the maintained monotonicity restriction \(D(0)\leq D(1)\).  Fix \(x\in\mathcal X\), \(t\in[0,\tau]\), and \(\nu_x\in\mathcal N_x\).  For every Borel set \(B\subseteq\mathcal E\), define the finite measures
+\[
+q_{x,t}(B)=\nu_x\bigl((t,\infty]\times B\bigr),
+\qquad
+k_{x,t}(B)=K_x(t,B)
+=\mu_{1x}\{D(1)>t,\ R(1)\in B\}.
+\]
+By the survivor-capacity restriction in \(\mathcal N_x\), applied at the deadline \(u=t\),
+\[
+q_{x,t}(B)\leq k_{x,t}(B)
+\quad\text{for every Borel }B\subseteq\mathcal E. \tag{1}
+\]
+The first marginal of \(\nu_x\) is \(d_x\), so
+\[
+q_{x,t}(\mathcal E)
+=\nu_x\bigl((t,\infty]\times\mathcal E\bigr)
+=d_x((t,\infty])
+=\Pr\{D(0)>t\mid X=x\}. \tag{2}
+\]
+The definition of \(K_x\) gives
+\[
+k_{x,t}(\mathcal E)
+=K_x(t,\mathcal E)
+=\Pr\{D(1)>t\mid X=x\}. \tag{3}
+\]
+Because \(D(0)=D(1)\) almost surely, their conditional survivor probabilities agree in every positive-probability covariate cell.  Equations (2)--(3) therefore imply
+\[
+q_{x,t}(\mathcal E)=k_{x,t}(\mathcal E). \tag{4}
+\]
+The finite-measure domination in (1) makes \(k_{x,t}-q_{x,t}\) a nonnegative finite measure.  Its total mass is zero by (4); hence, for every Borel \(B\),
+\[
+0\leq (k_{x,t}-q_{x,t})(B)
+\leq (k_{x,t}-q_{x,t})(\mathcal E)=0.
+\]
+Thus \(q_{x,t}=k_{x,t}\).  Taking \(B=[0,r]\) proves, for every \(0\leq r\leq t\leq\tau\),
+\[
+\nu_x\{D(0)>t,\ R(1)\leq r\}
+=\mu_{1x}\{D(1)>t,\ R(1)\leq r\}. \tag{5}
+\]
+
+Now let \((r,t)\in\mathcal H_\eta\).  The target-domain definition gives \(S(t)\geq\eta>0\), so division by \(S(t)\) is valid.  Substituting (5) and the definition
+\(b_x(r,t)=\mu_{0x}\{D(0)>t,R(0)\leq r\}\) into the TV-SACE functional yields
+\[
+\theta_\nu(r,t)
+=\frac{1}{S(t)}\sum_{x\in\mathcal X}p_x
+\left[
+\mu_{1x}\{D(1)>t,R(1)\leq r\}
+-\mu_{0x}\{D(0)>t,R(0)\leq r\}
+\right]
+=:\bar\theta(r,t). \tag{6}
+\]
+The right-hand side contains no coupling \(\nu_x\).  Moreover, the within-arm laws in (6) are functionals of \(P\) by the IPCW-recovery result used in the capacity-projection theorem; \(p_x\) and \(S(t)\) are also functionals of \(P\).  Thus \(\bar\theta\) is an observed-law identifying functional on \(\mathcal H_\eta\), rather than a definition of the causal target.
+
+The connection to the causal target follows from the no-terminal-effect premise.  Indeed,
+\[
+\{D(0)>t,D(1)>t\}=\{D(0)>t\}=\{D(1)>t\}
+\quad\text{almost surely}, \tag{7}
+\]
+and standardization over the finite covariate support gives
+\[
+S(t)=\Pr\{D(0)>t,D(1)>t\}. \tag{8}
+\]
+Applying (7)--(8) to the two standardized numerators in (6) proves
+\[
+\bar\theta(r,t)
+=\Pr\{R(1)\leq r\mid D(0)>t,D(1)>t\}
+-\Pr\{R(0)\leq r\mid D(0)>t,D(1)>t\}. \tag{9}
+\]
+Hence (6) is precisely the ordinary standardized within-arm cumulative-incidence contrast in the common survivor cohort.
+
+For \(0\leq a\leq t\leq\tau\) with \(S(t)\geq\eta\), every \((r,t)\) with \(0\leq r\leq a\) belongs to \(\mathcal H_\eta\).  The RM-SACE definition and (6) consequently give
+\[
+\rho_\nu(a,t)
+=-\int_0^a\theta_\nu(r,t)\,dr
+=-\int_0^a\bar\theta(r,t)\,dr
+=:\bar\rho(a,t), \tag{10}
+\]
+which also contains no coupling.  To verify its causal interpretation rather than infer it from the notation, use the pointwise identity, with \(\min\{\infty,a\}=a\),
+\[
+\min\{u,a\}=a-\int_0^a\mathbf 1\{u\leq r\}\,dr,
+\qquad u\in\mathcal E. \tag{11}
+\]
+Integrating the bounded nonnegative indicator in (11) over each conditional event-time law and subtracting the two arms shows from (9)--(10) that
+\[
+\bar\rho(a,t)
+=E\!\left[\min\{R(1),a\}-\min\{R(0),a\}
+\mid D(0)>t,D(1)>t\right]. \tag{12}
+\]
+
+Finally, the sharp capacity-projection theorem states that every compatible causal surface pair is represented by a family \(\nu_x\in\mathcal N_x\), and every such family has a compatible full-law lift.  Equations (6) and (10) show that every represented pair equals \((\bar\theta,\bar\rho)\).  The compatible full law posited in the antecedent supplies at least one represented family, so the image is nonempty.  Therefore
+\[
+\Theta_I(P)=\{(\bar\theta,\bar\rho)\},
+\]
+and (9) and (12) identify this singleton with the ordinary standardized TV-SACE and RM-SACE contrasts in the common survivor cohort.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction checks that the capacity theorem collapses to the familiar identified survivor contrast when treatment has no terminal effect. \textit{Gap.} This is a required sanity reduction rather than a novelty claim. \textit{Consumer.} It supplies a diagnostic implementation test and interpretable benchmark for applied users.
+
+\begin{openendedquestion}[oeq:simultaneous-multiplier-bands]\label{oeq:simultaneous-multiplier-bands}
+Can the handle \(\mathscr H_{\mathrm{MB}}\) be completed to prove a joint asymptotic-linear expansion and functional central limit theorem for the estimated marked arm laws and censoring survival through \(\tau\), such that the unique-cut derivative and a mesh \(o(n^{-1/2})\) condition yield conditionally consistent simultaneous multiplier bands for every lower and upper TV-SACE and RM-SACE endpoint on \(\mathcal T\)?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the first-class unresolved content: it turns sharp population surfaces into simultaneous frequentist statements while exposing the full-horizon censoring and grid-bias bottlenecks. \textit{Gap.} Bluhmki et al. handle smooth multivariate Nelson--Aalen processes, and Fang--Santos, Firpo--Galvao--Parker, and Cho--Russell handle nonsmooth optimized maps after a primitive limit; no opened result supplies their required composition here. \textit{Consumer.} It would deliver simultaneous coverage for the clinically interpreted curves in Comment et al. on regions where the active survivor deadline is stable.
+
+\begin{lemma}[lem:finite-lp-strong-duality]\label{lem:finite-lp-strong-duality}
+\texttt{Let a finite linear program have a nonempty feasible set and an objective bounded above.  Then its Lagrange dual is feasible and bounded below,\allowbreak{} and the primal supremum equals the dual infimum as a finite value.}
+\end{lemma}
+
+\begin{lemma}[lem:weak-compactness-on-compact-carrier]\label{lem:weak-compactness-on-compact-carrier}
+For every positive integer \(k\), the space of Borel probability measures on the compact metric space \(\mathcal E^k\) is compact for weak convergence.
+\end{lemma}
+
+\begin{lemma}[lem:strassen-closed-relation-coupling]\label{lem:strassen-closed-relation-coupling}
+Let \(\mathsf A\) and \(\mathsf B\) be compact metric spaces, let \(\alpha\in\mathcal P(\mathsf A)\) and \(\beta\in\mathcal P(\mathsf B)\), and let \(\mathcal R\subseteq\mathsf A\times\mathsf B\) be closed.  There exists a coupling \(\pi\in\Gamma(\alpha,\beta)\) with \(\pi(\mathcal R)=1\) if and only if \(\alpha(A)\leq\beta(\mathcal R(A))\) for every compact \(A\subseteq\mathsf A\), where \(\mathcal R(A)=\{b\in\mathsf B:(a,b)\in\mathcal R\text{ for some }a\in A\}\).
+\end{lemma}
+
+\begin{lemma}[lem:compact-coordinate-gluing]\label{lem:compact-coordinate-gluing}
+Let \(\alpha\in\mathcal P(\mathcal E^2)\) be the law of \((A,B)\), and let \(\beta\in\mathcal P(\mathcal E^3)\) be the law of \((B',C_1,C_2)\).  If the \(B\)-margin of \(\alpha\) equals the \(B'\)-margin of \(\beta\), then there is \(\gamma\in\mathcal P(\mathcal E^4)\) whose \((A,B)\)-margin is \(\alpha\) and whose \((B,C_1,C_2)\)-margin is \(\beta\).
+\end{lemma}
+\begin{proof}
+Equip the compact metric carrier \(\mathcal E\) with a bounded compatible metric \(d\).  For every \(n\), choose a finite Borel partition \(\mathcal P_n\) that isolates \(\{\infty\}\), whose other cells have \(d\)-diameter at most \(1/n\).  Write \(\zeta\) for the common \(B\)-margin.  On \(\mathcal E^2\times\mathcal E^3\), define
+\[
+ \widetilde\gamma_n
+ =\sum_{H\in\mathcal P_n:\,\zeta(H)>0}
+ \frac{\alpha\vert_{\{B\in H\}}\otimes
+       \beta\vert_{\{B'\in H\}}}{\zeta(H)}.
+\]
+The total mass of the summand indexed by \(H\) is \(\zeta(H)\), so \(\widetilde\gamma_n\) is a probability measure.  For every bounded measurable \(g\) on \(\mathcal E^2\),
+\[
+ \int g(A,B)\,d\widetilde\gamma_n
+ =\sum_{H:\,\zeta(H)>0}
+   \frac{\int_{\{B\in H\}}g(A,B)\,d\alpha}{\zeta(H)}
+   \beta(B'\in H)
+ =\int g\,d\alpha.
+\]
+The analogous calculation shows that the \((B',C_1,C_2)\)-margin is exactly \(\beta\).  Moreover,
+\[
+ d(B,B')\leq 1/n
+ \quad\widetilde\gamma_n\text{-almost surely},
+\]
+because both coordinates lie in the same partition cell, including the isolated cell \(\{\infty\}\).
+
+By compactness of \(\mathcal P(\mathcal E^5)\), supplied by the cited weak-compactness lemma, a subsequence converges weakly to some \(\widetilde\gamma\).  Coordinate projections are continuous, so their pushforward laws converge; since the two relevant margins are constant along the sequence, the corresponding margins of \(\widetilde\gamma\) remain \(\alpha\) and \(\beta\).  The function \((b,b')\mapsto d(b,b')\) is bounded and continuous, and hence
+\[
+ \int d(B,B')\,d\widetilde\gamma
+ =\lim_{n\to\infty}\int d(B,B')\,d\widetilde\gamma_n=0.
+\]
+Thus \(B=B'\) \(\widetilde\gamma\)-almost surely.  Identifying the two equal coordinates and pushing \(\widetilde\gamma\) forward to \((A,B,C_1,C_2)\) gives the asserted \(\gamma\).  This argument uses only compactness and a vanishing-mesh finite-partition limit; it invokes neither densities nor positivity.
+\end{proof}
+
+\begin{proposition}[prop:three-horizon-nonidentification-transfer]\label{prop:three-horizon-nonidentification-transfer}
+Suppose \(0<\eta\leq1/4\).  In the certified three-horizon construction \(\mathfrak E_3\), the full laws represented by \(q^-_{ihj}\) and \(q^+_{ihj}\) are distinct, satisfy \(D(0)\leq D(1)\), and induce the same observable distribution because both have within-arm laws \(\mu_0^\star\) and \(\mu_1^\star\) and the same treatment and censoring mechanisms.  Their projected couplings are \(f^-\) and \(f^+\), with \(\ell_\star(f^-)=-1/20\) and \(\ell_\star(f^+)=1/4\).  Hence every nonparametric causal model class containing both atomic laws is non-point-identified for \(\ell_\star\) at that common observed distribution.  This upward transfer is a nonidentification statement only; it does not assert that the marked-capacity image remains sharp after terminal monotonicity is removed.
+\end{proposition}
+\begin{proof}
+Assume \(0<\eta\leq1/4\), and let \(\mathbb P_-\) and \(\mathbb P_+\) denote the full laws represented by \(q^-_{ihj}\) and \(q^+_{ihj}\), respectively.  The strict cross-cohort support proposition proves the finite-table identities
+\[
+ \left(\sum_hq^-_{ihj}\right)_{ij}=f^-_{ij},\qquad
+ \left(\sum_hq^+_{ihj}\right)_{ij}=f^+_{ij}. \tag{1}
+\]
+It also proves
+\[
+ \left(\sum_iq^-_{ihj}\right)_{hj}
+ =\left(\sum_iq^+_{ihj}\right)_{hj}
+ =\mu_{1,hj}^\star. \tag{2}
+\]
+Thus (1) gives the two distinct \((D(0),R(1))\) margins, while (2) proves that both laws have treated within-arm margin \(\mu_1^\star\).  The row sums of both tables in (1) are \((1/4,1/4,1/4,1/4)\).  Attaching \(R(0)=\infty\), as required by the definition of \(\mathfrak E_3\), therefore makes the control within-arm margin under both signs equal to \(\mu_0^\star\).
+
+Every positive listed triple has \(i\leq h\).  Since \(d_0^\star<d_1^\star<d_2^\star<d_3^\star=\infty\),
+\[
+ \mathbb P_\pm\{D(0)\leq D(1)\}=1. \tag{3}
+\]
+The laws are distinct because (1) and the displayed projected arrays give
+\[
+ \mathbb P_-\{D(0)=d_0^\star,R(1)=r_0^\star\}
+ =f^-_{00}=\frac1{10}
+ \neq\frac1{20}=f^+_{00}
+ =\mathbb P_+\{D(0)=d_0^\star,R(1)=r_0^\star\}. \tag{4}
+\]
+
+We now prove observational equivalence rather than infer it from the projected margins.  In both constructions \(X\) is degenerate, \(Z\) is Bernoulli with probability \(1/2\) and independent of all potential times, and \(C=3=\tau\).  Let \(\mathcal O(z,d,r,3)\) denote the deterministic observed history through \(\tau\) generated by treatment \(z\), factual terminal time \(d\), factual readmission time \(r\), and censoring time \(3\).  By consistency, arm \(z\) reveals \((D(z),R(z))\).  Hence, for every measurable observed-path set \(A\) and each \(\sigma\in\{-,+\}\),
+\[
+ \mathbb P_\sigma(O\in A)
+ =\frac12\sum_{z=0}^1
+ \int\mathbf 1\{\mathcal O(z,d,r,3)\in A\}\,
+ d\mu_z^\star(d,r). \tag{5}
+\]
+The right side of (5) does not depend on \(\sigma\), because (1)--(2) give the same two factual within-arm laws and the treatment and censoring mechanisms are common.  Therefore
+\[
+ \mathcal L_{\mathbb P_-}(O)=\mathcal L_{\mathbb P_+}(O). \tag{6}
+\]
+
+The exhibit has survivor masses
+\[
+ S(1)=\frac34,\qquad S(2)=\frac12,\qquad S(3)=\frac14. \tag{7}
+\]
+The premise on \(\eta\), (7), and the definition of \(\mathcal H_\eta\) show that all three coordinates in \(\ell_\star\) are well defined.  The strict cross-cohort support proposition then gives
+\[
+ \ell_\star(f^-)=-\frac1{20},\qquad
+ \ell_\star(f^+)=\frac14. \tag{8}
+\]
+
+Let \(\mathfrak C\) be any nonparametric causal model class containing both atomic laws.  At the common observed distribution in (6), its identified set for \(\ell_\star\) contains both values in (8), whose separation is
+\[
+ \frac14-\left(-\frac1{20}\right)=\frac3{10}>0. \tag{9}
+\]
+Thus \(\ell_\star\), and hence the joint surface from which it is computed, is not point identified in \(\mathfrak C\).  This conclusion uses only inclusion of the two observationally equivalent witnesses.  It does not say that every law added by enlarging the class is represented by the marked-capacity fiber and therefore does not assert sharpness after terminal monotonicity is removed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The retained two-law certificate transfers atomic nonidentification, but not sharpness, to every larger class containing the two certified atomic laws. \textit{Gap.} The strict-support calculation alone does not prove equality of the induced observed laws; the common within-arm mixture calculation supplies that step. \textit{Consumer.} Users rejecting terminal monotonicity retain an atomic nonidentification certificate, with the required domain condition \(0<\eta\leq1/4\).
+
+\begin{proposition}[prop:three-horizon-smooth-nonidentification-transfer]\label{prop:three-horizon-smooth-nonidentification-transfer}
+Suppose \(0<\eta\leq1/4\).  Fix a nonnegative symmetric \(C^1\) density \(\varphi\) supported on \((-1,1)\) and \(0<\delta<1/8\), and put \(\varphi_\delta(u)=\delta^{-1}\varphi(u/\delta)\), \(b_\delta=\|\varphi_\delta\|_\infty\), \(l_\delta=\|\varphi_\delta'\|_\infty\), \(M_\delta=\max\{b_\delta,b_\delta^2\}\), and \(L_\delta=\max\{l_\delta,2b_\delta l_\delta\}\).  Suppose the declared envelopes satisfy \(M\geq M_\delta\) and \(L_{\mathrm{Lip}}\geq L_\delta\).  Applying the same separated bump kernels to the two full laws \(q^-_{ihj}\) and \(q^+_{ihj}\) in \(\mathfrak E_3\) gives two laws in that bounded-Lipschitz envelope class.  They satisfy the maintained event-order and terminal-monotonicity restrictions, have identical smoothed control and treated within-arm laws, and induce the same observable distribution under the common randomized treatment and full-horizon censoring mechanisms.  Their values of \(\ell_\star\) remain \(-1/20\) and \(1/4\).  Hence every causal class with such envelope constants that contains both smoothed laws is non-point-identified for \(\ell_\star\), without any implication that the marked-capacity image is sharp in a larger nonmonotone class.  No conclusion is asserted for fixed envelope constants below \(M_\delta\) or \(L_\delta\).
+\end{proposition}
+\begin{proof}
+Fix the density \(\varphi\), a bandwidth \(0<\delta<1/8\), and the constants \(M_\delta\) and \(L_\delta\) in the statement, and assume
+\[
+ M\geq M_\delta,\qquad L_{\mathrm{Lip}}\geq L_\delta. \tag{1}
+\]
+Use the same smoothing kernels under both signs.  Write \(H_{i,\delta}\) for the death-bump law centered at \(d_i^\star\), \(J_{j,\delta}\) for the readmission-bump law centered at \(r_j^\star\), and retain point masses for the \(\infty\) categories.
+
+Under either sign, the smoothed control within-arm law is
+\[
+ \mu_{0,\delta}^{\pm}
+ =\sum_i\left(\sum_{h,j}q^\pm_{ihj}\right)
+ \bigl(H_{i,\delta}\otimes\delta_\infty\bigr)
+ =\sum_i\frac14\bigl(H_{i,\delta}\otimes\delta_\infty\bigr). \tag{2}
+\]
+Thus the smoothed control law is common.  For the treated arm, conditional on the categorical pair \((h,j)\), the marginal law of \((D(1),R(1))\) is \(H_{h,\delta}\otimes J_{j,\delta}\).  This remains true in an equal-death cell, where sharing the two cross-world death draws changes their joint law but not the treated marginal.  The marginal identity for the atomic lifts therefore gives
+\[
+ \mu_{1,\delta}^{\pm}
+ =\sum_{h,j}\left(\sum_iq^\pm_{ihj}\right)
+ \bigl(H_{h,\delta}\otimes J_{j,\delta}\bigr)
+ =\sum_{h,j}\mu_{1,hj}^\star
+ \bigl(H_{h,\delta}\otimes J_{j,\delta}\bigr). \tag{3}
+\]
+Thus the complete treated within-arm law is also common.
+
+The strict cross-cohort support proposition proves, from separation of the bump supports, that both smoothed laws satisfy \(D(0)\leq D(1)\) and \(R(z)<D(z)\) whenever \(R(z)<\infty\).  It also proves that their finite-part within-arm densities are bounded by \(M_\delta\) and are \(L_\delta\)-Lipschitz.  The two inequalities in (1) therefore put both witnesses in the declared bounded-Lipschitz envelope class.
+
+Give the two laws the same degenerate covariate, independent Bernoulli treatment with probability \(1/2\), and deterministic censoring \(C=\tau=3\).  Let \(\mathcal O(z,d,r,3)\) be the deterministic observed history through \(\tau\).  By consistency, for every measurable observed-path set \(A\),
+\[
+ \Pr_{\pm,\delta}(O\in A)
+ =\frac12\sum_{z=0}^1
+ \int\mathbf 1\{\mathcal O(z,d,r,3)\in A\}\,
+ d\mu_{z,\delta}^{\star}(d,r), \tag{4}
+\]
+where the common laws on the right are those in (2)--(3).  Hence the right side of (4) is independent of the sign, and the two smoothed full laws are observationally equivalent.
+
+No bump support crosses a threshold \(1,2,\) or \(3\).  The survivor denominators and the three threshold numerators entering \(\ell_\star\) consequently retain their categorical values.  Since \(0<\eta\leq1/4\), the three coordinates lie in \(\mathcal H_\eta\), and the strict-support calculation gives
+\[
+ \ell_\star(\mathbb P_{-,\delta})=-\frac1{20},\qquad
+ \ell_\star(\mathbb P_{+,\delta})=\frac14. \tag{5}
+\]
+Every causal class satisfying (1) and containing both smoothed laws therefore has, at their common observed distribution, an identified set for \(\ell_\star\) containing the two values in (5).  They differ by \(3/10\), proving non-point-identification.  The argument establishes neither envelope membership below the explicit bounds in (1) nor sharpness of the marked-capacity image in a larger class without terminal monotonicity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The common-kernel calculation proves observational equivalence inside each envelope class large enough to contain the fixed kernels. \textit{Gap.} Equality of smoothed within-arm laws and kernel-dependent envelope membership both require proof; neither follows from the atomic witness alone. \textit{Consumer.} Users may invoke the smooth nonidentification pair exactly when \(M\geq M_\delta\) and \(L_{\mathrm{Lip}}\geq L_\delta\), without inferring enlarged-class sharpness.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The finite-sample outer set contains the truth on a deterministic grid, including allowed death mass at \(D=\tau\), but a quantitative shrinking rate under simultaneous grid refinement is not yet proved.  At tied deadline cuts the sharp endpoint map is only directionally differentiable, so ordinary centered multiplier validity is not asserted.  The smooth strict-support witness applies only when the declared density and Lipschitz envelopes dominate the explicit fixed-kernel constants.  Full-horizon censoring support remains essential because an endpoint for an early survivor cohort can depend on treated death information later than that cohort horizon.
+
+\section{Honest scope}
+
+The marked-capacity image is sharp only over nonparametric full laws satisfying the maintained terminal-monotonicity restriction \(D(0)\le D(1)\), in addition to the stated exchangeability, event-order, overlap, and full-horizon censoring conditions.  It is not asserted to equal the identified set in Comment et al.'s unrestricted nonmonotone class.  Standardized fixed-cohort bounds and RM integration are asserted only where \(S(t)\geq\eta>0\).  When \(0<\eta\leq1/4\), the atomic lifts transfer nonidentification to every larger class containing them.  For a fixed separated kernel, the smoothed pair belongs to, and transfers nonidentification within, every envelope class satisfying \(M\geq M_\delta\) and \(L_{\mathrm{Lip}}\geq L_\delta\); no smooth-witness claim is made for arbitrary smaller fixed envelopes.  Neither witness transfers capacity sharpness.  The joint marked-process functional central limit theorem, estimated-censoring expansion, root-\(n\)-negligible grid bias, and simultaneous multiplier validity remain open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{comment2025survivor} Comment, L., Mealli, F., Haneuse, S., and Zigler, C. M. (2025). Survivor average causal effects for continuous time: a principal stratification approach to causal inference with semicompeting risks. Biometrical Journal, article 70041. doi:10.1002/bimj.70041.
+
+  \bibitem{strassen1965existence} Strassen, V. (1965). The existence of probability measures with given marginals. Annals of Mathematical Statistics 36, 423--439. doi:10.1214/aoms/1177700153.
+
+  \bibitem{russell2021sharp} Russell, T. M. (2021). Sharp bounds on functionals of the joint distribution in the analysis of treatment effects. Journal of Business and Economic Statistics 39, 532--546. doi:10.1080/07350015.2019.1684300.
+
+  \bibitem{chenCuiYang2024unified} Chen, A., Cui, X., and Yang, G. (2024). A unified framework for bounding causal effects on the always-survivor and other populations. arXiv:2403.13398, version 2.
+
+  \bibitem{gaoGeQian2024bridging} Gao, Z., Ge, S., and Qian, J. (2024). Bridging multiple worlds: multi-marginal optimal transport for causal partial-identification problems. arXiv:2406.07868, version 2.
+
+  \bibitem{yangDing2018survival} Yang, F. and Ding, P. (2018). Using survival information in truncation by death problems without the monotonicity assumption. Biometrics 74, 1232--1239. doi:10.1111/biom.12883.
+
+  \bibitem{nevoGorfine2022causal} Nevo, D. and Gorfine, M. (2022). Causal inference for semi-competing risks data. Biostatistics 23, 1115--1132. doi:10.1093/biostatistics/kxab049.
+
+  \bibitem{oberReynolds2023optimaltransport} Ober-Reynolds, S. (2023). Estimating functionals of the joint distribution of potential outcomes with optimal transport. arXiv:2311.09435.
+
+  \bibitem{choRussell2024simple} Cho, J. and Russell, T. M. (2024). Simple inference on functionals of set-identified parameters defined by linear moments. Journal of Business and Economic Statistics. doi:10.1080/07350015.2023.2203768.
+
+  \bibitem{bluhmki2019wild} Bluhmki, T., Dobler, D., Beyersmann, J., and Pauly, M. (2019). The wild bootstrap for multivariate Nelson--Aalen estimators. Lifetime Data Analysis 25, 97--127. doi:10.1007/s10985-018-9423-x.
+
+  \bibitem{fangSantos2019inference} Fang, Z. and Santos, A. (2019). Inference on directionally differentiable functions. Review of Economic Studies 86, 377--412. doi:10.1093/restud/rdy049.
+
+  \bibitem{firpoGalvaoParker2023uniform} Firpo, S., Galvao, A. F., and Parker, T. (2023). Uniform inference for value functions. Journal of Econometrics 235, 2404--2426. doi:10.1016/j.jeconom.2022.11.009.
+
+  \bibitem{goldberg2019hoeffding} Goldberg, Y. (2019). Hoeffding-type and Bernstein-type inequalities for right-censored data. arXiv:1903.01991.
+
+  \bibitem{bitouze1999dkw} Bitouz\'e, D., Laurent, B., and Massart, P. (1999). A Dvoretzky--Kiefer--Wolfowitz type inequality for the Kaplan--Meier estimator. Annales de l'Institut Henri Poincar\'e, Probabilit\'es et Statistiques 35, 735--763. doi:10.1016/S0246-0203(99)00112-0.
+
+  \bibitem{lyu2023bayesian} Lyu, T., Bornkamp, B., Mueller-Velten, G., and Schmidli, H. (2023). Bayesian inference for a principal stratum estimand on recurrent events truncated by death. Biometrics 79, 3792--3802. doi:10.1111/biom.13831.
+
+  \bibitem{janvin2024recurrent} Janvin, M., Young, J. G., Ryalen, P. C., and Stensrud, M. J. (2024). Causal inference with recurrent and competing events. Lifetime Data Analysis 30, 3--32. doi:10.1007/s10985-023-09594-8.
+
+  \bibitem{tsybakov2009nonparametric} Tsybakov, A. B. (2009). Introduction to Nonparametric Estimation. Springer.
+
+  \bibitem{vanderVaart1998asymptotic} van der Vaart, A. W. (1998). Asymptotic Statistics. Cambridge University Press.
+
+  \bibitem{bertsekas2009convex} Bertsekas, D. P. (2009). Convex Optimization Theory. Athena Scientific.
+
+\end{thebibliography}
+
+\end{document}

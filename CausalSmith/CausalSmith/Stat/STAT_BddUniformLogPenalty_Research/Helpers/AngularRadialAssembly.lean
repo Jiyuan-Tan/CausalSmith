@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialFibre
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialFibre
 
 /-!
 # Assembly of angular radial-fibre cancellation
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
 This module turns the polar cancellation identity for the changed half-disc
 into equality of the complete radius--outcome laws beyond an active cutoff.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 

@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.CitedGates
-import Causalean.Stat.Minimax.MomentMatchedMixture
-import Causalean.Stat.Minimax.MomentMatchedMixture.SupportLocalized
-import Causalean.Stat.Minimax.FuzzyHypotheses
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Stat.Concentration.Matrix.IidSums
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.CitedGates
+public import Causalean.Stat.Minimax.Mixture.MomentMatched
+public import Causalean.Stat.Minimax.Mixture.MomentMatched.SupportLocalized
+public import Causalean.Stat.Minimax.FuzzyHypotheses
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Stat.Concentration.Matrix.IidSums
 
 /-! Conditional dense moment-matching lower bound. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

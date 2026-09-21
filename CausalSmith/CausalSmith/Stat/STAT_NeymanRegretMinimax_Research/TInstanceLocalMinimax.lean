@@ -20,7 +20,10 @@ the gate-free machinery (`neyman_gap_identity`, `cumulative_risk_engine_uniform_
 `doc/research/SUBSTRATE_DEBT.md` and the writeup's Honest-scope section.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

@@ -31,9 +31,11 @@ Key declarations:
 * `Tendsto_dist.wald_coverage_chiSq` — the WaldVec ellipsoid-coverage theorem with
   the limit law pinned to `chiSqDist d` (atomless for `d ≥ 1`).
 -/
-import Causalean.Stat.CLT.GaussianLimit
-import Causalean.Stat.CLT.ChiSquared
-import Causalean.Stat.Inference.WaldVec
+
+module
+public import Causalean.Stat.CLT.GaussianLimit
+public import Causalean.Stat.CLT.ChiSquared
+public import Causalean.Stat.Inference.WaldVec
 
 /-!
 This file identifies the Gaussian Wald quadratic form with a chi-squared law and
@@ -50,6 +52,8 @@ limit into the generic ellipsoid-coverage theorem from
 `Causalean.Stat.Inference.WaldVec`.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Filter Topology
 open scoped RealInnerProductSpace
 
@@ -64,7 +68,7 @@ variable {X : Type*} [MeasurableSpace X] {P : Measure X}
 
 /-- If the second-moment operator `Σ` is injective, so is its square root `√Σ`
 (`Σ = √Σ ∘ √Σ`, so `√Σ x = 0 ⇒ Σ x = 0`). -/
-private theorem posSqrt_injective
+theorem posSqrt_injective
     (hinj : Function.Injective (secondMomentLM hψ hvar)) :
     Function.Injective (secondMomentLM_isPositive hψ hvar).posSqrt := by
   intro x y hxy
@@ -74,7 +78,7 @@ private theorem posSqrt_injective
     (secondMomentLM_isPositive hψ hvar).posSqrt_mul_self] at h
 
 /-- `√Σ` as a linear equivalence (injective + finite-dimensional ⇒ bijective). -/
-private noncomputable def posSqrtEquiv
+noncomputable def posSqrtEquiv
     (hinj : Function.Injective (secondMomentLM hψ hvar)) : E ≃ₗ[ℝ] E :=
   LinearEquiv.ofBijective (secondMomentLM_isPositive hψ hvar).posSqrt
     ⟨posSqrt_injective hψ hvar hinj,

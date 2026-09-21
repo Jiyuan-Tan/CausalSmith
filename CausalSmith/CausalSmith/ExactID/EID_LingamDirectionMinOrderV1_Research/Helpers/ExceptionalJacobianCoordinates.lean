@@ -6,14 +6,19 @@ Authors: Jiyuan Tan
 # Explicit coordinate polynomials for the exceptional-locus Jacobian
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ConfluentVandermonde
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalImageDimension
-import Mathlib.Algebra.Group.Pi.Units
-import Mathlib.Data.Matrix.Block
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Vandermonde
-import Mathlib.LinearAlgebra.Matrix.Block
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ConfluentVandermonde
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalImageDimension
+public import Mathlib.Algebra.Group.Pi.Units
+public import Mathlib.Data.Matrix.Block
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Vandermonde
+public import Mathlib.LinearAlgebra.Matrix.Block
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+
+/-! Public exceptional-Jacobian coordinate constructions for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -21,19 +26,19 @@ open scoped BigOperators
 
 noncomputable section
 
-private def bandDirectPolynomial (m L : ℕ) :
+def bandDirectPolynomial (m L : ℕ) :
     MvPolynomial (BandParamCoord m L) ℂ :=
   MvPolynomial.X (Sum.inl ())
 
-private def bandLatentPolynomial (m L : ℕ) (i : Fin m) :
+def bandLatentPolynomial (m L : ℕ) (i : Fin m) :
     MvPolynomial (BandParamCoord m L) ℂ :=
   MvPolynomial.X (Sum.inr (Sum.inl i))
 
-private def bandWeightPolynomial (m L : ℕ) (j : Fin (m + 2))
+def bandWeightPolynomial (m L : ℕ) (j : Fin (m + 2))
     (k : Fin (L - 1)) : MvPolynomial (BandParamCoord m L) ℂ :=
   MvPolynomial.X (Sum.inr (Sum.inr (j, k)))
 
-private def forwardBandLoadingPolynomial (m L : ℕ) (j : Fin (m + 2)) :
+def forwardBandLoadingPolynomial (m L : ℕ) (j : Fin (m + 2)) :
     MvPolynomial (BandParamCoord m L) ℂ ×
       MvPolynomial (BandParamCoord m L) ℂ :=
   if h0 : j.val = 0 then (1, bandDirectPolynomial m L)
@@ -631,7 +636,7 @@ def canonicalForwardTopAugmentedJacobianAtWitness (m : ℕ) :
         (forwardBandCoordinatePolynomial m (2 * m + 2) (by omega)
           (forwardTopAugmentedRow m a)))
 
-private def forwardTopAugmentedLowerLeft (m : ℕ) :
+def forwardTopAugmentedLowerLeft (m : ℕ) :
     Matrix Unit (Fin (m + 1) ⊕ Fin (m + 1)) ℂ :=
   fun u b => canonicalForwardTopAugmentedJacobianAtWitness m (Sum.inr u) (Sum.inl b)
 
@@ -721,7 +726,7 @@ def canonicalForwardLowWeightJacobianAtWitness (m : ℕ) :
         (forwardBandCoordinatePolynomial m (2 * m + 2) (by omega)
           (forwardLowWeightRow m a)))
 
-private def forwardLowVandermondeBlock (m : ℕ) (k : Fin (m - 1)) :
+def forwardLowVandermondeBlock (m : ℕ) (k : Fin (m - 1)) :
     Matrix (Fin (k.val + 3)) (Fin (k.val + 3)) ℂ :=
   (Matrix.vandermonde (fun j => ((j.val + 1 : ℕ) : ℂ))).transpose
 
@@ -791,7 +796,7 @@ abbrev ForwardHighWeightNode (m : ℕ) := Fin (m + 1) ⊕ Unit
 abbrev ForwardHighWeightIndex (m : ℕ) :=
   ForwardHighWeightNode m × Fin (m + 1)
 
-private def forwardHighOrder (m : ℕ) (k : Fin (m + 1)) : ℕ :=
+def forwardHighOrder (m : ℕ) (k : Fin (m + 1)) : ℕ :=
   m + 1 + k.val
 
 /-- Defines the mathematical object called the forward High Weight Row. -/
@@ -850,7 +855,7 @@ def canonicalForwardHighWeightJacobianAtWitness (m : ℕ) (hm : 1 ≤ m) :
         (forwardBandCoordinatePolynomial m (2 * m + 2) (by omega)
           (forwardHighWeightRow m hm a)))
 
-private def forwardHighWeightBlock (m : ℕ) (k : Fin (m + 1)) :
+def forwardHighWeightBlock (m : ℕ) (k : Fin (m + 1)) :
     Matrix (ForwardHighWeightNode m) (ForwardHighWeightNode m) ℂ :=
   Matrix.fromBlocks
     (Matrix.vandermonde
@@ -861,7 +866,7 @@ private def forwardHighWeightBlock (m : ℕ) (k : Fin (m + 1)) :
 
 /-- The high-weight block, restated with its lower-left entry presented through
 `Matrix.of` so that the `Matrix.fromBlocks` API lemmas apply. -/
-private theorem forwardHighWeightBlock_eq (m : ℕ) (k : Fin (m + 1)) :
+theorem forwardHighWeightBlock_eq (m : ℕ) (k : Fin (m + 1)) :
     forwardHighWeightBlock m k =
       Matrix.fromBlocks
         (Matrix.vandermonde
@@ -871,7 +876,7 @@ private theorem forwardHighWeightBlock_eq (m : ℕ) (k : Fin (m + 1)) :
         1 :=
   rfl
 
-private theorem det_forwardHighWeightBlock_ne_zero (m : ℕ)
+theorem det_forwardHighWeightBlock_ne_zero (m : ℕ)
     (k : Fin (m + 1)) : (forwardHighWeightBlock m k).det ≠ 0 := by
   rw [forwardHighWeightBlock_eq, Matrix.det_fromBlocks_zero₁₂,
     Matrix.det_transpose, Matrix.det_one, mul_one]

@@ -5,15 +5,14 @@ Authors: Jiyuan Tan
 
 # Lee bounds: assumption bundles
 
-`BaseAssumptions` collects the common data needed by prop:po-lee-bounds:
+`BaseAssumptions` collects the common data needed by the finite-support Lee
+bounds in `Causalean.PO.ID.Partial.Lee.Main`:
 
 * `consistency` -- the standard PO consistency axiom;
 * `randAssign` -- pair-level random assignment
   `A ⫫ (Y(a), Sel(a))` for each `a ∈ {0,1}`.
-  This is the minimal shape that still carries the *distributional*
-  information Lee trimming consumes (mean independence is **not**
-  enough -- see the discussion in the plan file).  The doc's full
-  4-tuple joint independence implies this pair form by `IndepFun.comp`;
+  This carries the *distributional* information Lee trimming consumes;
+  mean independence is not enough;
 * positivity of the two selected cells `selectedTreated`,
   `selectedControl` (and finiteness, used in arithmetic on `.toReal`);
 * integrability of `Y(0)`, `Y(1)`, and the factual outcome.
@@ -23,8 +22,9 @@ Authors: Jiyuan Tan
 hypothesis, and pairs with `BaseAssumptions` in the main theorem.
 -/
 
-import Causalean.PO.ID.Partial.Lee.Setup
-import Causalean.PO.Conditioning.CondExpTooling
+module
+public import Causalean.PO.ID.Partial.Lee.Setup
+public import Causalean.PO.Conditioning.CondExpTooling
 
 /-! # Lee Bounds Assumptions
 
@@ -41,6 +41,8 @@ recover binary-indexed arm integrability and factual-outcome integrability. The
 structure `MonotoneSelection` records the Lee monotonicity condition
 `Sel(0) <= Sel(1)` almost surely. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace PO
 
@@ -50,14 +52,13 @@ namespace POLeeSystem
 
 variable {P : POSystem}
 
-/-- Lee sample-selection baseline assumptions -- def:po-lee-assumptions. -/
+/-- Baseline assumptions for the finite-support Lee sample-selection bounds. -/
 structure BaseAssumptions (S : POLeeSystem P) where
   /-- The PO system satisfies the consistency axiom. -/
   consistency : P.Consistency
   /-- Pair-level random assignment: for each `a : Bool`, the factual
   treatment `A` is independent of the pair `(Y(a), Sel(a))`. This is
-  weaker than the doc's 4-tuple joint indep but strictly stronger than
-  mean independence; it carries the full conditional distribution of
+  stronger than mean independence; it carries the full conditional distribution of
   `(Y(a), Sel(a))` given `A`, which Lee trimming requires. -/
   randAssign : ∀ a : Bool,
     IndepFun S.factualA (fun ω => (S.YofA a ω, S.SelOfA a ω)) P.μ
@@ -127,7 +128,7 @@ lemma integrableY (hA : S.BaseAssumptions) :
 
 end BaseAssumptions
 
-/-- Monotone sample selection -- def:po-lee-assumptions, item 3.
+/-- Monotone sample selection.
 `Sel(0) ≤ Sel(1)` almost surely (with `≤` interpreted on `Bool` via the
 canonical `false ≤ true` order). -/
 structure MonotoneSelection (S : POLeeSystem P) : Prop where

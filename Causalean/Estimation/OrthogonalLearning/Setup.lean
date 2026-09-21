@@ -18,9 +18,10 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-system`.
 -/
 
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.Convex.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Analysis.Convex.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Orthogonal Statistical Learning Setup
 
@@ -34,17 +35,19 @@ risk `LearningSystem.L`, and the file also exposes the segment-closure predicate
 `Θ_PerturbClosed` and `G_PerturbClosed` used by later directional-derivative
 modules. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Estimation
 namespace OrthogonalLearning
 
 open MeasureTheory
 
-/-- **Orthogonal statistical-learning system.** Bundles [a convex target class `Θ_set` containing
-a distinguished target `θ₀`](hyp:Θ_set,Θ_convex,θ₀,θ₀_mem), [a nuisance class `G_set` containing
-a distinguished nuisance `g₀`](hyp:G_set,g₀,g₀_mem), [a jointly measurable loss
-`ℓ`](hyp:ℓ,ℓ_meas), and the condition that [`θ₀` minimizes the population risk over the target
-class at the true nuisance `g₀`](hyp:θ₀_minimizes).
+/-- **Orthogonal statistical-learning system.** Bundles
+[a convex target class containing a distinguished target](hyp:Θ_set,Θ_convex,θ₀,θ₀_mem),
+[a nuisance class containing a distinguished nuisance](hyp:G_set,g₀,g₀_mem),
+[a loss measurable in the observation at each fixed parameter pair](hyp:ℓ,ℓ_meas), and
+[population-risk minimization by the target at the true nuisance](hyp:θ₀_minimizes).
 
 This structure bundles the population law, a convex target class, a nuisance
 class, distinguished target and nuisance elements, a measurable loss, and the
@@ -58,7 +61,7 @@ true nuisance over the target class.
 * `ℓ z θ g`     — loss evaluated at observation `z`, target `θ`,
                   nuisance `g` (note `Z` first, matching the `.tex` file's
                   `ℓ(z; θ, g)`).
-* `ℓ_meas`      — joint measurability of `ℓ · θ g` in `z`.
+* `ℓ_meas`      — measurability of `ℓ · θ g` in `z` for every fixed `θ` and `g`.
 * `θ₀_minimizes` — population-risk minimization of `θ₀` over `Θ_set` at
                    the true nuisance `g₀`. -/
 structure LearningSystem

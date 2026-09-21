@@ -1,0 +1,1755 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{eid\_\allowbreak{}mixednoise\_\allowbreak{}cholesky\_\allowbreak{}effect}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Under mutually independent, unit-variance, nonconstant Gaussian-indecomposable latent sources, a full-column-rank identified loading convention, and an explicit greatest-Gaussian-divisor condition, a known partial order leaves a finite Cholesky-effect fiber. The note represents that fiber by treatment-predecessor ideals and maps a measurable finite-sample characteristic-function covariance region into simultaneous coverage of every compatible effect, including exact collisions. Expected covariance and Hausdorff errors are of order \(1/\log N\) on the fixed ordinary-smooth Fourier class. An explicit positive smooth Laplace--Student splice attains matching covariance, singleton-effect, and honest-diameter lower bounds there; because this fixed class is contained in the Sanjaroonpouri--Ramazi Assumptions 2--4 class, the three lower bounds also transfer to that published class and to every superclass containing the fixed splice class. No logarithmic upper bound is claimed for the broader published class. Literal standardized-Laplace sources form a root-\(N\) fourth-cumulant boundary.
+
+\section{Project justification}
+
+\paragraph{Gap.} Sanjaroonpouri--Ramazi give finite population identification for mixed-noise models under their Assumptions 2--4, while Belomestny--Trabs--Tsybakov treat Fourier covariance recovery and Wang--Kolar--Drton propagate order uncertainty to one effect in a causally sufficient additive-error setting. These results do not provide a finite-sample event covering every partial-order-compatible Cholesky effect after greatest-Gaussian-divisor recovery, nor the exact-collision confidence-diameter lower bound proved here.
+
+\paragraph{Niche.} The upper and lower questions require different scopes. Honest finite-sample regions and upper rates are established on a fixed-dimensional class with known ordinary-smooth ray envelopes and compact spectral and moment bounds, without a global loading cap. The matching lower construction uses an explicit three-variable subclass that separately localizes \(\|A\|_{\mathrm{op}}\le3\) and whose witnesses also satisfy the broader Sanjaroonpouri--Ramazi published source hypotheses.
+
+\paragraph{Fill.} The note supplies the predecessor-ideal functional, an explicit centered ray region with polarization, spectral clipping, and bounded fallback, finite-sample simultaneous whole-fiber coverage, a verified smooth splice with vanishing product total variation, matching logarithmic upper and lower rates on the fixed Fourier class, and lower-only covariance, causal-fiber, and honest-diameter transfer to the published class and every superclass containing the fixed splice class.
+
+\section{Related work}
+
+Sanjaroonpouri and Ramazi are the population-identification anchor. Their Assumptions 2--4 use mutually independent nonconstant non-Gaussian sources with no Gaussian component, \(1\le k\le p\), unit covariance normalization, lexicographically ordered reduced-loading columns, and full column rank. The general Fourier class used for uniform inference adds known Fourier envelopes and compact spectral and moment restrictions, but no loading cap. The fixed exponent-two lower subclass separately imposes \(\|A\|_{\mathrm{op}}\le3\), and its explicit splice witnesses satisfy the published hypotheses, so the logarithmic lower bounds transfer to the published class. No upper rate over the full published class is asserted. The greatest-Gaussian-divisor condition remains explicit in the Fourier model and is verified directly for the witnesses. Belomestny, Trabs, and Tsybakov supply the multivariate characteristic-function polarization precedent, and Meister supplies the scalar fixed-envelope centering and compensated lower-pair architecture; the present proof verifies the six-degree positivity, uniform derivatives, weighted Parseval bound, and causal collision embedding. Wang, Kolar, and Drton study recursive causally sufficient additive-error models and asymptotic coverage of one effect after order and adjustment-set inference; no blanket inclusion relation between their full model and the present one is used. Perkovi\'c, Kalisch, and Maathuis connect background knowledge to IDA effect multisets, while the CRAN \(\texttt{pcalg::ida}\) and Maathuis et al. yeast intervention-ranking workflow motivate reporting an honest compatible-effect set under an audited mixed-noise/Fourier model rather than a selected Gaussian-causal-sufficiency list. Miettinen, Taskinen, Nordhausen, and Oja provide the fourth-cumulant estimating-equation precedent for the literal-Laplace boundary.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Theta_{TY}(\Gamma,\preceq)=\{(L_\pi)_{YT}:\pi\in\Pi_{\preceq}\}\).
+Primary functional / estimator / diagnostic: \(\Theta_{TY}(\Gamma,\preceq)=\{\gamma_{YT\cdot(D\cup J)}(\Gamma)/\gamma_{TT\cdot(D\cup J)}(\Gamma):J\in\mathcal J\}\), estimated by the simultaneous interval union \(C_N\).
+\begin{itemize}
+  \item \texttt{p} --- \texttt{fixed positive integer}; \(\mathbb N\); \texttt{observed dimension}
+  \item \texttt{N} --- \texttt{sample size}; \(\mathbb N\); \texttt{number of independent observations}
+  \item \texttt{V} --- \texttt{index set}; \texttt{observed-\allowbreak{}variable labels}
+  \par\smallskip\noindent\emph{Definition.} \(V=\{1,\ldots,p\}\)
+  \item \texttt{T} --- \texttt{index}; \(V\); \texttt{treatment}
+  \item \texttt{Y} --- \texttt{index}; \(V\setminus\{T\}\); \texttt{outcome}
+  \item \texttt{ord} --- \texttt{strict partial order}; \(V\times V\); \texttt{known background order}
+  \item \texttt{alpha} --- \texttt{confidence error}; \((0,1/2)\); \texttt{nominal noncoverage}
+  \item \texttt{lambda} --- \texttt{spectral lower bound}; \((0,\infty)\); \texttt{uniform positive-\allowbreak{}definiteness constant}
+  \item \texttt{Lambda} --- \texttt{spectral upper bound}; \((\lambda,\infty)\); \texttt{uniform covariance bound}
+  \item \texttt{c} --- \texttt{Fourier-\allowbreak{}envelope lower constant}; \((0,\infty)\); \texttt{ordinary-\allowbreak{}smooth lower envelope}
+  \item \texttt{C} --- \texttt{Fourier-\allowbreak{}envelope upper constant}; \((c,\infty)\); \texttt{ordinary-\allowbreak{}smooth upper envelope}
+  \item \texttt{Q} --- \texttt{exponent upper bound}; \([0,\infty)\); \texttt{uniform ray-\allowbreak{}smoothness bound}
+  \item \texttt{M8} --- \texttt{moment bound}; \((0,\infty)\); \texttt{eighth-\allowbreak{}moment envelope}
+  \item \texttt{Rays} --- \texttt{finite ray set}; \texttt{polarization directions}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R=\{e_i:i\in V\}\cup\{e_i+e_j:i<j\}\)
+  \item \texttt{qray} --- \texttt{known exponent map}; \(q:\mathcal R\to[0,Q]\); \texttt{raywise ordinary-\allowbreak{}smooth exponent}
+  \item \texttt{ksrc} --- \texttt{fixed positive integer}; \(\mathbb N\); \texttt{number of latent sources}
+  \item \texttt{Hsrc} --- \texttt{latent random vector}; \(\mathbb R^{k}\); \texttt{vector of scalar independent sources}
+  \item \texttt{Aload} --- \texttt{loading matrix}; \(\mathbb R^{p\times k}\); \texttt{reduced-\allowbreak{}form source loading}
+  \item \texttt{U} --- \texttt{centered random vector}; \(\mathbb R^p\); \texttt{Gaussian-\allowbreak{}indecomposable source mixture}
+  \item \texttt{Gamma} --- \texttt{symmetric positive-\allowbreak{}definite matrix}; \(\mathbb S_{++}^p\); \texttt{greatest Gaussian-\allowbreak{}divisor covariance}
+  \item \texttt{G} --- \texttt{Gaussian random vector}; \texttt{independent Gaussian component}
+  \par\smallskip\noindent\emph{Definition.} \(G_\Gamma\sim N(0,\Gamma)\)
+  \item \texttt{X} --- \texttt{observed centered random vector}; \texttt{one observation}
+  \par\smallskip\noindent\emph{Definition.} \(X=U+G_\Gamma\)
+  \item \texttt{PX} --- \texttt{probability law}; \texttt{observed-\allowbreak{}data law}
+  \par\smallskip\noindent\emph{Definition.} \(P_X=\mathcal L(X)\)
+  \item \texttt{Xsample} --- \texttt{random sample}; \texttt{observations}
+  \par\smallskip\noindent\emph{Definition.} \(X_1,\ldots,X_N\)
+  \item \texttt{Model} --- \texttt{probability-\allowbreak{}law class}; \texttt{Fourier-\allowbreak{}separated mixed-\allowbreak{}noise model}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M=\mathcal M(p,\lambda,\Lambda,c,C,Q,M_8,q,\preceq)\)
+  \item \texttt{phiU} --- \texttt{characteristic function}; \(\phi_U:\mathbb R^p\to\mathbb C\)
+  \par\smallskip\noindent\emph{Definition.} \(\phi_U(t)=\mathbb E[\exp(i t^\top U)]\)
+  \item \texttt{phiX} --- \texttt{characteristic function}; \(\phi_X:\mathbb R^p\to\mathbb C\)
+  \par\smallskip\noindent\emph{Definition.} \(\phi_X(t)=\phi_U(t)\exp(-t^\top\Gamma t/2)\)
+  \item \texttt{WKDClass} --- \texttt{published comparator probability-\allowbreak{}law class}; \texttt{additive-\allowbreak{}error order-\allowbreak{}confidence comparator}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal W_{\mathrm{WKD}}\) is the class of laws generated by recursive additive-error structural equations \(Z_v=f_v(Z_{\operatorname{pa}(v)})+\epsilon_v\) with mutually independent centered coordinate errors, with order identifiability supplied by nonlinear structural functions or by linear non-Gaussian errors, as in Wang--Kolar--Drton
+  \item \texttt{GammaOf} --- \texttt{law-\allowbreak{}to-\allowbreak{}covariance functional}; \(\Gamma(\cdot):\mathcal M\to\mathbb S_{++}^p\); \texttt{law-\allowbreak{}indexed causal covariance parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma(P)\) is the unique greatest Gaussian-divisor covariance attached to \(P\in\mathcal M\)
+  \item \texttt{Pi} --- \texttt{finite order set}; \texttt{compatible causal orders}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_{\preceq}=\{\pi:\pi\text{ is a linear extension of }\preceq\}\)
+  \item \texttt{Dpi} --- \texttt{order-\allowbreak{}indexed positive diagonal matrix}
+  \par\smallskip\noindent\emph{Definition.} \(D_\pi\) is the innovation-scale factor in the modified Cholesky decomposition in order \(\pi\)
+  \item \texttt{Lpi} --- \texttt{order-\allowbreak{}indexed matrix}
+  \par\smallskip\noindent\emph{Definition.} \(L_\pi\) is the unit-lower-triangular factor in the modified Cholesky decomposition \(\Gamma=L_\pi D_\pi^2L_\pi^\top\) in order \(\pi\)
+  \item \texttt{thetaPi} --- \texttt{order-\allowbreak{}indexed scalar}; total effect under order \(\pi\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_\pi=(L_\pi)_{YT}\)
+  \item \texttt{Dset} --- \texttt{index set}
+  \par\smallskip\noindent\emph{Definition.} \(D=\{v\in V:v\prec T\}\)
+  \item \texttt{Aset} --- \texttt{index set}; \texttt{variables incomparable with treatment}
+  \par\smallskip\noindent\emph{Definition.} \(A=V\setminus(D\cup\{T\}\cup\{v\in V:T\prec v\})\)
+  \item \texttt{W} --- \texttt{index}; \(A\); \texttt{one addable element on an ideal edge}
+  \item \texttt{Ideals} --- \texttt{finite family of sets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal J=\{J\subseteq A:J\text{ is an ideal of }\preceq|_A\}\)
+  \item \texttt{gammaCond} --- \texttt{partial-\allowbreak{}covariance functional}
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_{ij\cdot S}(H)=H_{ij}-H_{iS}H_{SS}^{-1}H_{Sj}\), with the empty-set convention
+  \item \texttt{betaJ} --- \texttt{scalar functional}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_J(H)=\gamma_{YT\cdot(D\cup J)}(H)/\gamma_{TT\cdot(D\cup J)}(H)\)
+  \item \texttt{Theta} --- finite compact subset of \(\mathbb R\); \texttt{compatible total-\allowbreak{}effect fiber}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta_{TY}(\Gamma,\preceq)=\{\theta_\pi:\pi\in\Pi_{\preceq}\}\)
+  \item \texttt{hatPhi} --- \texttt{empirical characteristic function}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\phi_N(t)=N^{-1}\sum_{k=1}^N\exp(i t^\top X_k)\)
+  \item \texttt{alphaN} --- \texttt{deterministic scalar}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha_N=\min\{\alpha,(N+1)^{-2}\}\)
+  \item \texttt{tN} --- \texttt{deterministic cutoff}
+  \par\smallskip\noindent\emph{Definition.} \(t_N^2=(4\Lambda)^{-1}\log N\) on the active branch
+  \item \texttt{epsN} --- \texttt{deterministic stochastic radius}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_N=2\sqrt{\log(4|\mathcal R|/\alpha_N)/N}\)
+  \item \texttt{mN} --- \texttt{deterministic modulus floor}
+  \par\smallskip\noindent\emph{Definition.} \(m_N=c(1+t_N)^{-Q}\exp(-\Lambda t_N^2)\)
+  \item \texttt{zu} --- \texttt{ray statistic}
+  \par\smallskip\noindent\emph{Definition.} \(z_u=-2t_N^{-2}\{\log(\max(|\widehat\phi_N(t_Nu)|,m_N/2))+q_u\log(1+t_N)-(\log c+\log C)/2\}\)
+  \item \texttt{wN} --- \texttt{deterministic ray radius}
+  \par\smallskip\noindent\emph{Definition.} \(w_N=t_N^{-2}\{\log(C/c)+4\varepsilon_N/m_N\}\)
+  \item \texttt{ZN} --- \texttt{symmetric matrix statistic}
+  \par\smallskip\noindent\emph{Definition.} \((Z_N)_{ii}=z_{e_i}\) and \((Z_N)_{ij}=(z_{e_i+e_j}-z_{e_i}-z_{e_j})/2\)
+  \item \texttt{DeltaN} --- \texttt{deterministic matrix radius}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_N=3pw_N/2\)
+  \item \texttt{hatGamma} --- \texttt{measurable matrix estimator}; \(\widehat\Gamma_N:(\mathbb R^p)^N\to\mathbb S_{++}^p\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Gamma_N=\operatorname{clip}_{[\lambda,\Lambda]}(Z_N)\)
+  \item \texttt{KN} --- \texttt{measurable random compact covariance set}; \(K_N:(\mathbb R^p)^N\to\mathcal K(\mathbb S_{++}^p)\)
+  \par\smallskip\noindent\emph{Definition.} \(K_N=\{H\in\mathbb S_{++}^p:\lambda I\preceq H\preceq\Lambda I,\ \|H-\widehat\Gamma_N\|_{\mathrm{op}}\le2\Delta_N\}\) on the active branch
+  \item \texttt{Lbeta} --- \texttt{deterministic scalar}
+  \par\smallskip\noindent\emph{Definition.} \(L_\beta=\lambda^{-1}+\Lambda\lambda^{-2}\)
+  \item \texttt{CN} --- measurable random compact subset of \(\mathbb R\); \(C_N:(\mathbb R^p)^N\to\mathcal K(\mathbb R)\); \texttt{whole-\allowbreak{}fiber confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(C_N=\bigcup_{J\in\mathcal J}[\beta_J(\widehat\Gamma_N)-2L_\beta\Delta_N,\beta_J(\widehat\Gamma_N)+2L_\beta\Delta_N]\cap[-\Lambda/\lambda,\Lambda/\lambda]\) on the active branch
+  \item \texttt{dH} --- \texttt{set metric}; \texttt{Hausdorff loss}
+  \par\smallskip\noindent\emph{Definition.} \(d_H(A,B)=\max\{\sup_{a\in A}\inf_{b\in B}|a-b|,\sup_{b\in B}\inf_{a\in A}|a-b|\}\)
+  \item \texttt{excess} --- \texttt{directed set loss}; \texttt{confidence-\allowbreak{}set excess radius}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{ex}(A,B)=\sup_{a\in A}\inf_{b\in B}|a-b|\)
+  \item \texttt{Mstar} --- \texttt{probability-\allowbreak{}law subclass}; \texttt{fixed exponent-\allowbreak{}two least-\allowbreak{}favorable class}
+  \item \texttt{GammaStar} --- \texttt{positive-\allowbreak{}definite matrix}; \texttt{collision-\allowbreak{}stratum base covariance}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_\star=\begin{pmatrix}1&2/5&3/5\\2/5&1&6/25\\3/5&6/25&1\end{pmatrix}\) in coordinates \((T,W,Y)\)
+  \item \texttt{avec} --- \texttt{vector}; \texttt{least-\allowbreak{}favorable covariance direction}
+  \par\smallskip\noindent\emph{Definition.} \(a=(1,2/5,1)^\top\)
+  \item \texttt{GammaPath} --- \texttt{matrix path}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma(s)=\Gamma_\star+saa^\top\), \(0\le s\le1\)
+  \item \texttt{bpath} --- \texttt{scalar path}; \texttt{singleton causal effect along the least-\allowbreak{}favorable path}
+  \par\smallskip\noindent\emph{Definition.} \(b(s)=(3/5+s)/(1+s)\)
+  \item \texttt{spliceHandle} --- \texttt{construction handle}; \texttt{route for the lower experiment}
+  \par\smallskip\noindent\emph{Definition.} Smooth low-frequency Gaussian compensation of a Laplace--Student characteristic function, with a flat cutoff at frequency proportional to \(\sqrt{\log N}\), followed by a common Gaussian convolution kernel
+  \item \texttt{HLap} --- \texttt{random variable}; \texttt{parametric source}
+  \par\smallskip\noindent\emph{Definition.} \(H_{\mathrm{Lap}}\) has the centered standardized Laplace law
+  \item \texttt{aLap} --- \texttt{loading vector}; \(\mathbb R^p\); \texttt{unknown literal-\allowbreak{}Laplace source loading}
+  \item \texttt{amin} --- \texttt{fixed positive scalar}; \((0,\infty)\); \texttt{lower bound for the treatment loading}
+  \item \texttt{kappa4} --- \texttt{fourth joint cumulant functional}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_{iTTT}(X)=\operatorname{cum}(X_i,X_T,X_T,X_T)\)
+  \item \texttt{d4} --- \texttt{fixed positive integer}; \texttt{number of raw moments of total degree one through four}
+  \par\smallskip\noindent\emph{Definition.} \(d_4=\binom{p+4}{4}-1\)
+  \item \texttt{V8} --- \texttt{fixed positive scalar}; \texttt{uniform raw-\allowbreak{}moment variance bound}
+  \par\smallskip\noindent\emph{Definition.} \(V_8=1+M_8\)
+  \item \texttt{rLap} --- \texttt{deterministic radius}; \texttt{simultaneous clipped-\allowbreak{}moment radius}
+  \par\smallskip\noindent\emph{Definition.} \(r_N^{\mathrm{Lap}}=\sqrt{d_4V_8/(N\alpha)}\)
+  \item \texttt{FLap} --- \texttt{moment-\allowbreak{}to-\allowbreak{}covariance map}; \texttt{clipped cumulant reconstruction map}
+  \par\smallskip\noindent\emph{Definition.} \(F_{p,M_8,a_{\min}}(\mu)=\operatorname{clip}_{[\lambda,\Lambda]}(\operatorname{Cov}(\mu)-a(\mu)a(\mu)^\top)\), where \(a_T(\mu)=(\max\{\kappa_{TTTT}(\mu),(3/2)a_{\min}^4\}/3)^{1/4}\) and \(a_i(\mu)=\kappa_{iTTT}(\mu)/(3a_T(\mu)^3)\)
+  \item \texttt{CLap} --- \texttt{global Lipschitz modulus}; \texttt{global propagation modulus across the cumulant floor and spectral-\allowbreak{}clipping kinks}
+  \par\smallskip\noindent\emph{Definition.} \(C_{\mathrm{Lap}}=\sup_{\mu\ne\nu\in[-\sqrt{V_8},\sqrt{V_8}]^{d_4}}\|F_{p,M_8,a_{\min}}(\mu)-F_{p,M_8,a_{\min}}(\nu)\|_{\mathrm{op}}/\|\mu-\nu\|_2\)
+  \item \texttt{hatGammaLap} --- \texttt{measurable matrix estimator}; \(\widehat\Gamma_N^{\mathrm{Lap}}:(\mathbb R^p)^N\to\mathbb S_{++}^p\)
+  \par\smallskip\noindent\emph{Definition.} Recover \(a_T=(\kappa_{TTTT}/3)^{1/4}\), \(a_i=\kappa_{iTTT}/(3a_T^3)\), and set \(\widehat\Gamma_N^{\mathrm{Lap}}=\operatorname{clip}_{[\lambda,\Lambda]}(\widehat{\operatorname{Cov}}(X)-\widehat a\widehat a^\top)\), using clipped empirical moments and a positive cumulant floor
+  \item \texttt{CNlap} --- measurable random compact subset of \(\mathbb R\); \(C_N^{\mathrm{Lap}}:(\mathbb R^p)^N\to\mathcal K(\mathbb R)\)
+  \par\smallskip\noindent\emph{Definition.} \(C_N^{\mathrm{Lap}}=\bigcup_{J\in\mathcal J}[\beta_J(\widehat\Gamma_N^{\mathrm{Lap}})-L_\beta C_{\mathrm{Lap}}r_N^{\mathrm{Lap}},\beta_J(\widehat\Gamma_N^{\mathrm{Lap}})+L_\beta C_{\mathrm{Lap}}r_N^{\mathrm{Lap}}]\cap[-\Lambda/\lambda,\Lambda/\lambda]\)
+  \item \texttt{KReal} --- \texttt{hyperspace}; \texttt{codomain for fiber estimators and confidence sets}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal K(\mathbb R)\) is the space of nonempty compact subsets of \(\mathbb R\) with its Hausdorff Borel sigma-field
+  \item \texttt{EstGamma} --- \texttt{estimator class}; \texttt{domain of covariance estimators}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak E_{\Gamma,N}=\{\widetilde\Gamma_N:(\mathbb R^p)^N\to\mathbb S^p:\widetilde\Gamma_N\text{ is Borel measurable}\}\)
+  \item \texttt{EstTheta} --- \texttt{estimator class}; \texttt{domain of compact-\allowbreak{}set estimators}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak E_{\Theta,N}=\{\widetilde\Theta_N:(\mathbb R^p)^N\to\mathcal K(\mathbb R):\widetilde\Theta_N\text{ is Borel measurable}\}\)
+  \item \texttt{diam} --- \texttt{set-\allowbreak{}diameter functional}; \texttt{size of a confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{diam}(A)=\sup\{|x-y|:x,y\in A\}\), with \(\operatorname{diam}(\varnothing)=0\)
+  \item \texttt{HonestSets} --- \texttt{confidence-\allowbreak{}set sequence class}; \texttt{uniformly honest whole-\allowbreak{}fiber confidence procedures}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak C_\alpha(\mathcal M_\star)=\{(S_N)_{N\ge1}:S_N:(\mathbb R^p)^N\to\mathcal K(\mathbb R)\text{ is Borel measurable and }\liminf_{N\to\infty}\inf_{P\in\mathcal M_\star}P^{\otimes N}\{\Theta_{TY}(\Gamma(P),\preceq)\subseteq S_N\}\ge1-\alpha\}\)
+  \item \texttt{CollisionModel} --- \texttt{derived probability-\allowbreak{}law index set}; \texttt{exact effect-\allowbreak{}collision submodel}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{col}}=\{P\in\mathcal M_\star:\text{for some }s\in[0,1],\ \Gamma(P)=\Gamma(s)\text{ and }\Theta_{TY}(\Gamma(P),\preceq)=\{b(s)\}\}\)
+  \item \texttt{P0N} --- \texttt{sequence of probability laws}; \texttt{base collision experiment}
+  \par\smallskip\noindent\emph{Definition.} \((P_{0,N})_{N\ge1}\subset\mathcal M_{\mathrm{col}}\) is the base collision-law sequence constructed in \(\mathrm{thm:smooth\text{-}splice\text{-}pair}\)
+  \item \texttt{ModelLap} --- \texttt{probability-\allowbreak{}law subclass}; \texttt{literal standardized-\allowbreak{}Laplace boundary class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{Lap}}=\{P_X\in\mathcal M(p,\lambda,\Lambda,c,C,Q,M_8,q,\preceq):U=a^{\mathrm{Lap}}H_{\mathrm{Lap}},\ |a_T^{\mathrm{Lap}}|\ge a_{\min}\}\)
+  \item \texttt{P1N} --- \texttt{sequence of probability laws}; \texttt{perturbed collision experiment}
+  \par\smallskip\noindent\emph{Definition.} \((P_{1,N})_{N\ge1}\subset\mathcal M_{\mathrm{col}}\) is the perturbed collision-law sequence constructed in \(\mathrm{thm:smooth\text{-}splice\text{-}pair}\)
+  \item \texttt{sLower} --- \texttt{positive deterministic sequence}; \texttt{lower-\allowbreak{}experiment separation}
+  \par\smallskip\noindent\emph{Definition.} \(s_N=1/(600\log N)\in(0,1]\) is the covariance separation constructed in \(\mathrm{thm:smooth\text{-}splice\text{-}pair}\) for all sufficiently large \(N\)
+  \item \texttt{SRClass} --- \texttt{probability-\allowbreak{}law class}; \texttt{published mixed-\allowbreak{}noise identification class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{\mathrm{SR}}\) is the observational mixed-noise class satisfying Sanjaroonpouri--Ramazi Assumptions 2--4.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:distinct-targets]\label{ass:distinct-targets}
+\(T\ne Y\).
+\par\smallskip\noindent\emph{Standard} (Distinct treatment and outcome coordinates, \cite{PerkovicKalischMaathuis2017}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-dimension]\label{ass:fixed-dimension}
+\(p\) is fixed as \(N\to\infty\).
+\par\smallskip\noindent\emph{Standard} (Fixed-dimensional asymptotics, \cite{BelomestnyTrabsTsybakov2019}).
+\end{assumption}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+\(X_1,\ldots,X_N\) are independent with common law \(P_X\).
+\par\smallskip\noindent\emph{Standard} (Independent sampling, \cite{BelomestnyTrabsTsybakov2019}).
+\end{assumption}
+
+\begin{assumption}[ass:order]\label{ass:order}
+\(\preceq\) is a known strict partial order on \(V\).
+\par\smallskip\noindent\emph{Standard} (Partial causal order, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:additive-decomposition]\label{ass:additive-decomposition}
+\(X=U+G_\Gamma\) with \(U\perp G_\Gamma\).
+\par\smallskip\noindent\emph{Standard} (Independent additive contamination, \cite{BelomestnyTrabsTsybakov2019}).
+\end{assumption}
+
+\begin{assumption}[ass:spectral-lower]\label{ass:spectral-lower}
+\(\Gamma\succeq\lambda I\).
+\par\smallskip\noindent\emph{Standard} (Uniform eigenvalue lower bound, \cite{BelomestnyTrabsTsybakov2019}).
+\end{assumption}
+
+\begin{assumption}[ass:spectral-upper]\label{ass:spectral-upper}
+\(\Gamma\preceq\Lambda I\).
+\par\smallskip\noindent\emph{Standard} (Compact covariance bound, \cite{Meister2006}).
+\end{assumption}
+
+\begin{assumption}[ass:greatest-divisor]\label{ass:greatest-divisor}
+\(\Gamma\) is the greatest covariance in Loewner order among Gaussian convolution divisors of \(P_X\).
+\par\smallskip\noindent\emph{Novel.} This explicit model condition aligns the causal innovation covariance with the maximal Gaussian convolution component of the observed law. It holds for the stated Laplace-factor examples and for residual laws whose directional log characteristic-function modulus is subquadratic in every direction; it is not inferred from the finite-ray envelopes or attributed to the source-identification theorem.
+\end{assumption}
+
+\begin{assumption}[ass:source-linear]\label{ass:source-linear}
+\(U=A H\).
+\par\smallskip\noindent\emph{Standard} (Linear independent-component representation, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:source-count]\label{ass:source-count}
+\(1\le k\le p\).
+\par\smallskip\noindent\emph{Standard} (Undercomplete source dimension, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:source-independence]\label{ass:source-independence}
+The coordinates of \(H\) are mutually independent.
+\par\smallskip\noindent\emph{Standard} (Independent latent components, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:source-scale]\label{ass:source-scale}
+\(\operatorname{Var}(H_j)=1\) for every \(j\in\{1,\ldots,k\}\).
+\par\smallskip\noindent\emph{Standard} (Unit-variance independent-component normalization, \cite{MiettinenTaskinenNordhausenOja2015}).
+\end{assumption}
+
+\begin{assumption}[ass:source-sign]\label{ass:source-sign}
+The first nonzero entry of each column of \(A\) is positive.
+\par\smallskip\noindent\emph{Standard} (Independent-component sign convention, \cite{MiettinenTaskinenNordhausenOja2015}).
+\end{assumption}
+
+\begin{assumption}[ass:loading-order]\label{ass:loading-order}
+The columns of \(A\) are sorted in ascending lexicographic order.
+\par\smallskip\noindent\emph{Standard} (Identified loading-column order, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:loading-rank]\label{ass:loading-rank}
+\(\operatorname{rank}(A)=k\).
+\par\smallskip\noindent\emph{Standard} (Full-column-rank confounder loading, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:nonconstant-sources]\label{ass:nonconstant-sources}
+Every coordinate of \(H\) is nonconstant.
+\par\smallskip\noindent\emph{Standard} (Nondegenerate independent components, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:indecomposable-sources]\label{ass:indecomposable-sources}
+No coordinate of \(H\) has a nondegenerate Gaussian convolution divisor.
+\par\smallskip\noindent\emph{Standard} (Gaussian-indecomposable confounders, \cite{SanjaroonpouriRamazi2025}).
+\end{assumption}
+
+\begin{assumption}[ass:ray-lower-envelope]\label{ass:ray-lower-envelope}
+For every \(u\in\mathcal R\) and \(|t|\ge1\), \(|\phi_U(tu)|\ge c(1+|t|)^{-q_u}\).
+\par\smallskip\noindent\emph{Standard} (Ordinary-smooth lower characteristic-function envelope, \cite{Meister2006}).
+\end{assumption}
+
+\begin{assumption}[ass:ray-upper-envelope]\label{ass:ray-upper-envelope}
+For every \(u\in\mathcal R\) and \(|t|\ge1\), \(|\phi_U(tu)|\le C(1+|t|)^{-q_u}\).
+\par\smallskip\noindent\emph{Standard} (Ordinary-smooth upper characteristic-function envelope, \cite{Meister2006}).
+\end{assumption}
+
+\begin{assumption}[ass:eighth-moment]\label{ass:eighth-moment}
+\(\mathbb E\|X\|^8\le M_8\).
+\par\smallskip\noindent\emph{Standard} (Uniform eighth-moment bound, \cite{MiettinenTaskinenNordhausenOja2015}).
+\end{assumption}
+
+\begin{assumption}[ass:lower-dimension]\label{ass:lower-dimension}
+\(p=3\).
+\par\smallskip\noindent\emph{Novel.} Three variables are the smallest dimension supporting a treatment, an outcome, and a nontrivial order-swap collision.
+\end{assumption}
+
+\begin{assumption}[ass:lower-order]\label{ass:lower-order}
+\(\preceq\) is the strict partial order whose only ordered pair is \(T\prec Y\).
+\par\smallskip\noindent\emph{Novel.} A known temporal relation from treatment to outcome with one unordered intermediate variable is the minimal partial-order setting in which effect collisions arise.
+\end{assumption}
+
+\begin{assumption}[ass:lower-spectral-floor]\label{ass:lower-spectral-floor}
+\(\lambda=1/10\).
+\par\smallskip\noindent\emph{Novel.} The explicit covariance path remains uniformly above this fixed positive spectral floor.
+\end{assumption}
+
+\begin{assumption}[ass:lower-spectral-ceiling]\label{ass:lower-spectral-ceiling}
+\(\Lambda=4\).
+\par\smallskip\noindent\emph{Novel.} The explicit covariance path remains uniformly below this fixed finite ceiling.
+\end{assumption}
+
+\begin{assumption}[ass:lower-envelope-floor]\label{ass:lower-envelope-floor}
+\(c=2/5\).
+\par\smallskip\noindent\emph{Novel.} The smooth Laplace--Student family has a common polynomial characteristic-function lower envelope at this fixed value.
+\end{assumption}
+
+\begin{assumption}[ass:lower-envelope-ceiling]\label{ass:lower-envelope-ceiling}
+\(C=60\).
+\par\smallskip\noindent\emph{Novel.} The smooth Laplace--Student family has a common polynomial characteristic-function upper envelope below this fixed value.
+\end{assumption}
+
+\begin{assumption}[ass:lower-exponents]\label{ass:lower-exponents}
+\(q_u=Q=2\) for every \(u\in\mathcal R\).
+\par\smallskip\noindent\emph{Novel.} Exponent two is realized by Laplace tails on every named ray because all loadings on those rays are nonzero.
+\end{assumption}
+
+\begin{assumption}[ass:lower-moment]\label{ass:lower-moment}
+\(M_8=50000000\).
+\par\smallskip\noindent\emph{Novel.} This fixed value contains the exact eighth moments of the proposed smooth splice and its Gaussian convolution.
+\end{assumption}
+
+\begin{assumption}[ass:lower-loading]\label{ass:lower-loading}
+\(\|A\|_{\mathrm{op}}\le3\).
+\par\smallskip\noindent\emph{Novel.} The standardized rank-one loading path has operator norm strictly below this fixed subclass cap.
+\end{assumption}
+
+\begin{assumption}[ass:laplace-source]\label{ass:laplace-source}
+\(U=a^{\mathrm{Lap}}H_{\mathrm{Lap}}\).
+\par\smallskip\noindent\emph{Novel.} A literal standardized-Laplace factor is an auditable heavy-tailed parametric specification with a nonzero fourth cumulant.
+\end{assumption}
+
+\begin{assumption}[ass:treatment-loading]\label{ass:treatment-loading}
+\(|a_T^{\mathrm{Lap}}|\ge a_{\min}>0\).
+\par\smallskip\noindent\emph{Novel.} A source that loads nontrivially on treatment is empirically meaningful for treatment confounding, and a fixed lower bound prevents the cumulant inversion from becoming singular.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:fourier-model]\label{def:fourier-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fourier-\allowbreak{}separated mixed-\allowbreak{}noise class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M(p,\lambda,\Lambda,c,C,Q,M_8,q,\preceq)=\{P_X:X=U+G_\Gamma,\ U=AH,\ U\perp G_\Gamma,\ \lambda I\preceq\Gamma\preceq\Lambda I,\ \Gamma\text{ is the greatest Gaussian divisor of }P_X,\ 1\le k\le p,\ H_1,\ldots,H_k\text{ are mutually independent, nonconstant, Gaussian-indecomposable, and unit variance},\ \operatorname{rank}(A)=k,\text{ the first nonzero entry of each column of }A\text{ is positive, the columns are in ascending lexicographic order},\ c(1+|t|)^{-q_u}\le|\phi_U(tu)|\le C(1+|t|)^{-q_u}\text{ for every }u\in\mathcal R\text{ and }|t|\ge1,\ \mathbb E\|X\|^8\le M_8,\ \preceq\text{ is a known strict partial order}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}additive-\allowbreak{}decomposition}; \texttt{ass:\allowbreak{}spectral-\allowbreak{}lower}; \texttt{ass:\allowbreak{}spectral-\allowbreak{}upper}; \texttt{ass:\allowbreak{}greatest-\allowbreak{}divisor}; \texttt{ass:\allowbreak{}source-\allowbreak{}linear}; \texttt{ass:\allowbreak{}source-\allowbreak{}count}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}source-\allowbreak{}scale}; \texttt{ass:\allowbreak{}source-\allowbreak{}sign}; \texttt{ass:\allowbreak{}loading-\allowbreak{}order}; \texttt{ass:\allowbreak{}loading-\allowbreak{}rank}; \texttt{ass:\allowbreak{}nonconstant-\allowbreak{}sources}; \texttt{ass:\allowbreak{}indecomposable-\allowbreak{}sources}; \texttt{ass:\allowbreak{}ray-\allowbreak{}lower-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}ray-\allowbreak{}upper-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}eighth-\allowbreak{}moment}; \texttt{ass:\allowbreak{}order}.
+\end{definition}
+
+\begin{definition}[def:lower-class]\label{def:lower-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exponent-\allowbreak{}two collision subclass}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_\star=\{P_X\in\mathcal M(3,1/10,4,2/5,60,2,50000000,q,\preceq):\preceq\text{ has only }T\prec Y,\ q_u=2\text{ for every }u\in\mathcal R,\ \|A\|_{\mathrm{op}}\le3\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}source-\allowbreak{}scale}; \texttt{ass:\allowbreak{}loading-\allowbreak{}rank}; \texttt{ass:\allowbreak{}lower-\allowbreak{}dimension}; \texttt{ass:\allowbreak{}lower-\allowbreak{}order}; \texttt{ass:\allowbreak{}lower-\allowbreak{}spectral-\allowbreak{}floor}; \texttt{ass:\allowbreak{}lower-\allowbreak{}spectral-\allowbreak{}ceiling}; \texttt{ass:\allowbreak{}lower-\allowbreak{}envelope-\allowbreak{}floor}; \texttt{ass:\allowbreak{}lower-\allowbreak{}envelope-\allowbreak{}ceiling}; \texttt{ass:\allowbreak{}lower-\allowbreak{}exponents}; \texttt{ass:\allowbreak{}lower-\allowbreak{}moment}; \texttt{ass:\allowbreak{}lower-\allowbreak{}loading}.
+\end{definition}
+
+\begin{definition}[def:effect-fiber]\label{def:effect-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Partial-\allowbreak{}order Cholesky effect fiber}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_{TY}(H,\preceq)=\{(L_\pi(H))_{YT}:\pi\in\Pi_{\preceq}\}\)
+\par\smallskip\noindent\emph{Inputs.} a positive-definite covariance matrix \(H\); the order \(\preceq\).
+\end{definition}
+
+\begin{definition}[def:ray-region]\label{def:ray-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Centered Fourier covariance region}
+\par\smallskip\noindent\emph{Construction.} If \(t_N\ge1\) and \(m_N\ge2\varepsilon_N\), set \(z_u=-2t_N^{-2}\{\log(\max(|\widehat\phi_N(t_Nu)|,m_N/2))+q_u\log(1+t_N)-(\log c+\log C)/2\}\), \(w_N=t_N^{-2}\{\log(C/c)+4\varepsilon_N/m_N\}\), polarize by \((Z_N)_{ii}=z_{e_i}\) and \((Z_N)_{ij}=(z_{e_i+e_j}-z_{e_i}-z_{e_j})/2\), set \(\Delta_N=3pw_N/2\), set \(\widehat\Gamma_N=\operatorname{clip}_{[\lambda,\Lambda]}(Z_N)\), and set \(K_N=\{H:\lambda I\preceq H\preceq\Lambda I,\ \|H-\widehat\Gamma_N\|_{\mathrm{op}}\le2\Delta_N\}\). Otherwise set \(\widehat\Gamma_N=((\lambda+\Lambda)/2)I\) and \(K_N=\{H:\lambda I\preceq H\preceq\Lambda I\}\).
+\par\smallskip\noindent\emph{Inputs.} the sample \(X_1,\ldots,X_N\); \texttt{known class constants}.
+\end{definition}
+
+\begin{definition}[def:fiber-region]\label{def:fiber-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Whole-\allowbreak{}fiber confidence region}
+\par\smallskip\noindent\emph{Construction.} On the active branch set \(C_N=\bigcup_{J\in\mathcal J}[\beta_J(\widehat\Gamma_N)-2L_\beta\Delta_N,\beta_J(\widehat\Gamma_N)+2L_\beta\Delta_N]\cap[-\Lambda/\lambda,\Lambda/\lambda]\). On the fallback branch set \(C_N=[-\Lambda/\lambda,\Lambda/\lambda]\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{the covariance region construction}; the predecessor ideals \(\mathcal J\).
+\end{definition}
+
+\begin{definition}[def:lower-handle]\label{def:lower-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Smooth-\allowbreak{}splice lower-\allowbreak{}experiment handle}
+\par\smallskip\noindent\emph{Construction.} Smooth low-frequency Gaussian compensation of a Laplace--Student characteristic function with six Student degrees in the polynomial tail, a cutoff proportional to \(\sqrt{\log N}\), and a common Gaussian convolution kernel along \(\Gamma(s)=\Gamma_\star+saa^\top\).
+\par\smallskip\noindent\emph{Inputs.} the fixed class \(\mathcal M_\star\); the collision path \(\Gamma(s)\).
+\end{definition}
+
+\begin{definition}[def:covariance-estimators]\label{def:covariance-estimators}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Measurable covariance-\allowbreak{}estimator domain}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak E_{\Gamma,N}=\{\widetilde\Gamma_N:(\mathbb R^p)^N\to\mathbb S^p:\widetilde\Gamma_N\text{ is Borel measurable}\}\).
+\par\smallskip\noindent\emph{Inputs.} the sample size \(N\); the fixed dimension \(p\).
+\end{definition}
+
+\begin{definition}[def:fiber-estimators]\label{def:fiber-estimators}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Measurable fiber-\allowbreak{}estimator domain}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak E_{\Theta,N}=\{\widetilde\Theta_N:(\mathbb R^p)^N\to\mathcal K(\mathbb R):\widetilde\Theta_N\text{ is Borel measurable}\}\).
+\par\smallskip\noindent\emph{Inputs.} the sample size \(N\); the fixed dimension \(p\).
+\end{definition}
+
+\begin{definition}[def:uniform-honesty]\label{def:uniform-honesty}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Uniform whole-\allowbreak{}fiber honesty}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak C_\alpha(\mathcal M_\star)=\{(S_N)_{N\ge1}:S_N:(\mathbb R^p)^N\to\mathcal K(\mathbb R)\text{ is Borel measurable and }\liminf_{N\to\infty}\inf_{P\in\mathcal M_\star}P^{\otimes N}\{\Theta_{TY}(\Gamma(P),\preceq)\subseteq S_N\}\ge1-\alpha\}\).
+\par\smallskip\noindent\emph{Inputs.} the lower class \(\mathcal M_\star\); the confidence level \(1-\alpha\).
+\end{definition}
+
+\begin{definition}[def:collision-submodel]\label{def:collision-submodel}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Exact-\allowbreak{}collision law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{col}}=\{P\in\mathcal M_\star:\exists s\in[0,1]\text{ such that }\Gamma(P)=\Gamma(s)\text{ and }\Theta_{TY}(\Gamma(P),\preceq)=\{b(s)\}\}\).
+\par\smallskip\noindent\emph{Inputs.} the exponent-two class \(\mathcal M_\star\); the covariance path \(\Gamma(s)\); the exact fiber functional \(\Theta_{TY}\).
+\end{definition}
+
+\begin{definition}[def:laplace-region]\label{def:laplace-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fourth-\allowbreak{}cumulant fiber region}
+\par\smallskip\noindent\emph{Construction.} Clip every empirical raw moment of total degree one through four to \([-\sqrt{V_8},\sqrt{V_8}]\); compute \(\widehat\kappa_{iTTT}\), replace \(\widehat\kappa_{TTTT}\) by its maximum with \((3/2)a_{\min}^4\), set \(\widehat a_T=(\widehat\kappa_{TTTT}/3)^{1/4}\), \(\widehat a_i=\widehat\kappa_{iTTT}/(3\widehat a_T^3)\), form \(\widehat\Gamma_N^{\mathrm{Lap}}\), and return the declared union \(C_N^{\mathrm{Lap}}\) with radius \(L_\beta C_{\mathrm{Lap}}r_N^{\mathrm{Lap}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a known literal standardized-\allowbreak{}Laplace source law}; the confidence level \(1-\alpha\).
+\end{definition}
+
+\begin{definition}[def:laplace-model]\label{def:laplace-model}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Literal standardized-\allowbreak{}Laplace boundary class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{Lap}}=\{P_X\in\mathcal M(p,\lambda,\Lambda,c,C,Q,M_8,q,\preceq):U=a^{\mathrm{Lap}}H_{\mathrm{Lap}},\ |a_T^{\mathrm{Lap}}|\ge a_{\min}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}laplace-\allowbreak{}source}; \texttt{ass:\allowbreak{}treatment-\allowbreak{}loading}.
+\end{definition}
+
+\begin{definition}[def:sr-published-class]\label{def:sr-published-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sanjaroonpouri-\allowbreak{}-\allowbreak{}Ramazi observational class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{SR}}\) is the class of centered observational laws \(P_X\) admitting a representation
+\[
+ X=AH+G_\Gamma,\qquad H\perp G_\Gamma,
+\]
+with \(1\le k\le p\), mutually independent coordinates \(H_1,\ldots,H_k\), \(\operatorname{Cov}(H)=I_k\), every \(H_j\) nonconstant and non-Gaussian and having no nondegenerate Gaussian convolution component, \(\operatorname{rank}(A)=k\), and the columns of \(A\) in ascending lexicographic order.  These are the observational restrictions in Sanjaroonpouri--Ramazi Assumptions 2--4; no uniform Fourier envelope, spectral compactness, or eighth-moment bound is included in \(\mathcal M_{\mathrm{SR}}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}additive-\allowbreak{}decomposition}; \texttt{ass:\allowbreak{}source-\allowbreak{}linear}; \texttt{ass:\allowbreak{}source-\allowbreak{}count}; \texttt{ass:\allowbreak{}source-\allowbreak{}independence}; \texttt{ass:\allowbreak{}source-\allowbreak{}scale}; \texttt{ass:\allowbreak{}loading-\allowbreak{}order}; \texttt{ass:\allowbreak{}loading-\allowbreak{}rank}; \texttt{ass:\allowbreak{}nonconstant-\allowbreak{}sources}; \texttt{ass:\allowbreak{}indecomposable-\allowbreak{}sources}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:divisor-identification]\label{prop:divisor-identification}
+For each \(u\in\mathcal R\), \(-2t^{-2}\log|\phi_X(tu)|\to u^\top\Gamma u\) as \(|t|\to\infty\); coordinate and pair-sum polarization therefore identify every entry of \(\Gamma\) from \(P_X\).
+\end{proposition}
+\begin{proof}
+Fix \(u\in\mathcal R\).  By Assumption \(\mathrm{ass{:}additive\mbox{-}decomposition}\), the independence of \(U\) and \(G_\Gamma\), and the defining characteristic function of the centered Gaussian \(G_\Gamma\), for every \(t\in\mathbb R\) we have
+\[
+\begin{aligned}
+\phi_X(tu)
+&=\mathbb E\!\left[\exp\!\left\{it u^\top(U+G_\Gamma)\right\}\right]\\
+&=\mathbb E\!\left[\exp\!\left\{it u^\top U\right\}\right]
+  \mathbb E\!\left[\exp\!\left\{it u^\top G_\Gamma\right\}\right]\\
+&=\phi_U(tu)\exp\!\left\{-\frac{t^2}{2}u^\top\Gamma u\right\}.
+\end{aligned}
+\]
+For \(|t|\geq 1\), Assumption \(\mathrm{ass{:}ray\mbox{-}lower\mbox{-}envelope}\) gives \(|\phi_U(tu)|>0\).  Thus the logarithms below are finite.  Assumptions \(\mathrm{ass{:}ray\mbox{-}lower\mbox{-}envelope}\) and \(\mathrm{ass{:}ray\mbox{-}upper\mbox{-}envelope}\) give, respectively,
+\[
+\log c-q_u\log(1+|t|)
+\leq \log|\phi_U(tu)|
+\leq \log C-q_u\log(1+|t|).
+\]
+Define the proof intermediate
+\[
+r_u(t):=-\frac{2}{t^2}\log|\phi_U(tu)|.
+\]
+Multiplication of the preceding inequalities by the negative number \(-2/t^2\) yields
+\[
+-\frac{2\log C}{t^2}
++\frac{2q_u\log(1+|t|)}{t^2}
+\leq r_u(t)
+\leq
+-\frac{2\log c}{t^2}
++\frac{2q_u\log(1+|t|)}{t^2}.
+\]
+By the definition of the exponent map, \(0\leq q_u\leq Q<\infty\).  Since \(t^{-2}\to0\) and \(t^{-2}\log(1+|t|)\to0\) as \(|t|\to\infty\), both endpoints in this display converge to zero.  The squeeze theorem therefore gives
+\[
+r_u(t)\longrightarrow0.
+\]
+Taking moduli and logarithms in the characteristic-function factorization, which is legitimate because its two factors are nonzero for \(|t|\geq1\), now gives the exact identity
+\[
+-\frac{2}{t^2}\log|\phi_X(tu)|
+=u^\top\Gamma u+r_u(t).
+\]
+Consequently,
+\[
+-\frac{2}{t^2}\log|\phi_X(tu)|
+\longrightarrow u^\top\Gamma u
+\qquad (|t|\to\infty).
+\]
+
+It remains to exhibit the recovery map.  The observed law \(P_X\) determines \(\phi_X(s)=\int_{\mathbb R^p}e^{is^\top x}\,dP_X(x)\).  For each \(u\in\mathcal R\), define the observable limit
+\[
+\ell_u(P_X):=\lim_{|t|\to\infty}
+\left\{-\frac{2}{t^2}\log|\phi_X(tu)|\right\}.
+\]
+The preceding argument proves that this limit exists and equals \(u^\top\Gamma u\).  Hence coordinate rays give
+\[
+\Gamma_{ii}=\ell_{e_i}(P_X),
+\]
+and, for \(i<j\), pair-sum rays and polarization give
+\[
+\Gamma_{ij}=\Gamma_{ji}
+=\frac{1}{2}\left\{
+\ell_{e_i+e_j}(P_X)-\ell_{e_i}(P_X)-\ell_{e_j}(P_X)
+\right\}.
+\]
+These displayed formulas are an explicit functional of \(P_X\) and recover every entry of the symmetric matrix \(\Gamma\).  In particular, any two admissible covariance matrices producing the same observed law under the stated ray envelopes have identical coordinate and pair-sum quadratic forms and therefore identical entries.  Finally, Assumption \(\mathrm{ass{:}greatest\mbox{-}divisor}\) specifies that this recovered \(\Gamma\), rather than an arbitrary covariance from another convolution representation, is the greatest Gaussian-divisor covariance that is the causal covariance target.  This proves both the asserted limit and identification from \(P_X\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the population bridge from the observed law to the causal covariance. \textit{Gap.} Sanjaroonpouri--Ramazi's Theorems 2--3 identify a finite SCM class under mutually independent nonconstant Gaussian-indecomposable sources, \(1\le k\le p\), lexicographically ordered loading columns, and full column rank; they do not state this greatest-divisor ray functional or a sampling region for it. \textit{Consumer.} It lets an analyst audit covariance identification without estimating latent source labels.
+
+\begin{proposition}[prop:ideal-fiber]\label{prop:ideal-fiber}
+The full compatible effect fiber has the exact representation \(\Theta_{TY}(\Gamma,\preceq)=\{\beta_J(\Gamma):J\in\mathcal J\}\). Moreover, it is a singleton if and only if \(\gamma_{TW\cdot(D\cup J)}(\Gamma)\gamma_{YW\cdot(D\cup J\cup\{T\})}(\Gamma)=0\) for every ideal edge \(J\to J\cup\{W\}\).
+\end{proposition}
+\begin{proof}
+Fix a linear extension \(\pi\in\Pi_{\preceq}\), and write
+\[
+ S=\operatorname{Pred}_{\pi}(T).
+\]
+Because \(\Gamma\in\mathbb S_{++}^{p}\), its modified Cholesky factorization in the order \(\pi\) exists uniquely:
+\[
+ \Gamma=L_{\pi}D_{\pi}^{2}L_{\pi}^{\top},
+\]
+where \(L_{\pi}\) is unit lower triangular in that order and \(D_{\pi}\) has strictly positive diagonal.  Let \(Z\sim N(0,I_p)\) and realize the Gaussian divisor as \(G_{\Gamma}=L_{\pi}D_{\pi}Z\).  If \(Y\notin S\), the residual of \((G_{\Gamma})_T\) after linear projection on \((G_{\Gamma})_S\) is \((D_{\pi})_{TT}Z_T\).  Therefore
+\[
+ \begin{aligned}
+ \frac{\gamma_{YT\cdot S}(\Gamma)}{\gamma_{TT\cdot S}(\Gamma)}
+ &=\frac{\operatorname{Cov}\!\left((G_{\Gamma})_Y,(D_{\pi})_{TT}Z_T\right)}
+         {\operatorname{Var}\!\left((D_{\pi})_{TT}Z_T\right)}\\
+ &=\frac{(L_{\pi})_{YT}(D_{\pi})_{TT}^{2}}
+         {(D_{\pi})_{TT}^{2}}
+ =(L_{\pi})_{YT}.
+ \end{aligned}
+\]
+The division is legitimate because
+\(\gamma_{TT\cdot S}(\Gamma)>0\): it is the Schur complement of the positive-definite principal block \(\Gamma_{SS}\), with the stated empty-set convention when \(S=\varnothing\).  If \(Y\in S\), conditioning on \(S\) makes \(\gamma_{YT\cdot S}(\Gamma)=0\), and triangularity gives \((L_{\pi})_{YT}=0\), so the same identity remains valid.
+
+This identity proves the relation between the causal target and the observable covariance functional; it does not define that relation.  Indeed, by \(U=AH\), the full-column-rank condition on \(A\) gives a deterministic left inverse of \(A\), hence \(H\) is a measurable linear function of \(U\).  Thus \(U\perp G_{\Gamma}\) implies \(H\perp Z\).  Multiplying the equality \(X=AH+L_{\pi}D_{\pi}Z\) by \(L_{\pi}^{-1}\) gives the acyclic structural system
+\[
+ X=(I-L_{\pi}^{-1})X+L_{\pi}^{-1}AH+D_{\pi}Z.
+\]
+Its coefficient matrix is strictly lower triangular in the order \(\pi\), and its total directed-effect matrix is
+\[
+ \{I-(I-L_{\pi}^{-1})\}^{-1}=L_{\pi}.
+\]
+Consequently, surgical intervention on coordinate \(T\) changes the mean of coordinate \(Y\) at derivative \((L_{\pi})_{YT}\).  Premultiplication by the invertible matrix \(L_{\pi}^{-1}\) preserves the rank of the source loading, and the source independence and nonconstancy conditions are unchanged.  The greatest-divisor assumption makes the \(\Gamma\) used in this construction the stipulated law-indexed causal Gaussian covariance.
+
+It remains to determine all possible sets \(S\).  Every predecessor set of \(T\) contains
+\(D=\{v:v\prec T\}\), contains no strict successor of \(T\), and hence has the form \(D\cup J\) for some \(J\subseteq A\).  If \(w\in J\) and \(v\in A\) satisfies \(v\prec w\), then \(v\) precedes \(T\) in \(\pi\), so \(v\in J\).  Thus \(J\) is an ideal of \(\preceq|_A\).  Conversely, take \(J\in\mathcal J\).  The sets \(D\cup J\) and \(D\cup J\cup\{T\}\) are ideals of the full partial order: a predecessor of an element of \(D\) lies in \(D\); a predecessor of an element of \(J\) lies in \(D\cup J\); and every predecessor of \(T\) lies in \(D\).  Hence one may take a linear extension of \(D\cup J\), then place \(T\), and then take a linear extension of the complement.  This realizes \(D\cup J\) as exactly \(\operatorname{Pred}_{\pi}(T)\).  Substitution into the regression identity proves
+\[
+ \Theta_{TY}(\Gamma,\preceq)
+ =\{\beta_J(\Gamma):J\in\mathcal J\}.
+\]
+
+For the singleton characterization, let \(J\to J\cup\{W\}\) be an ideal edge, set \(S=D\cup J\), and abbreviate
+\[
+ u=\gamma_{TT\cdot S},\qquad
+ v=\gamma_{WW\cdot S},\qquad
+ r=\gamma_{TW\cdot S},\qquad
+ d=\gamma_{YT\cdot S},\qquad
+ e=\gamma_{YW\cdot S},
+\]
+where every quantity is evaluated at \(\Gamma\).  Positive definiteness gives
+\[
+ u>0,\qquad v>0,\qquad uv-r^2>0.
+\]
+Schur complementation on \(W\) yields
+\[
+ \gamma_{YT\cdot(S\cup\{W\})}=d-\frac{re}{v},
+ \qquad
+ \gamma_{TT\cdot(S\cup\{W\})}=u-\frac{r^2}{v}.
+\]
+Therefore
+\[
+ \begin{aligned}
+ \beta_J-\beta_{J\cup\{W\}}
+ &=\frac d u-\frac{d-re/v}{u-r^2/v}\\
+ &=\frac{r(ue-dr)}{u(uv-r^2)}\\
+ &=\frac{r\{e-dr/u\}}{uv-r^2}\\
+ &=\frac{\gamma_{TW\cdot S}(\Gamma)
+          \gamma_{YW\cdot(S\cup\{T\})}(\Gamma)}
+         {uv-r^2}.
+ \end{aligned}
+\]
+The positive denominator shows that adjacent ideal values agree if and only if the product in the proposition vanishes.  The undirected graph of ideals is connected: from any nonempty ideal, deleting a maximal element leaves an ideal, and repeated deletion reaches \(\varnothing\).  Hence vanishing of every edge product makes all \(\beta_J\) equal.  Conversely, if the fiber is a singleton, every adjacent pair is equal, so every edge product vanishes.  If \(W=Y\), the second factor is the strictly positive conditional variance \(\gamma_{YY\cdot(S\cup\{T\})}\); if \(Y\in S\), both adjacent coefficients and the relevant conditional covariance are zero.  Thus no overlap, swap-margin, or genericity condition is being used at collision or boundary strata.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The proposition replaces a factorial order list by the exact treatment-predecessor lattice and exposes all effect-collision strata. \textit{Gap.} Sanjaroonpouri--Ramazi bounds the number of equivalent SCMs and Perkovi\'c--Kalisch--Maathuis enumerates possible effects, but neither inspected source gives this ideal-indexed equality or local singleton certificate. \textit{Consumer.} The representation is the population specification needed by an IDA-style effect report under a known partial order.
+
+\begin{lemma}[lem:fiber-lipschitz]\label{lem:fiber-lipschitz}
+For positive-definite \(H,H'\) with spectra in \([\lambda,\Lambda]\), \(d_H(\Theta_{TY}(H,\preceq),\Theta_{TY}(H',\preceq))\le L_\beta\|H-H'\|_{\mathrm{op}}\), including points at which distinct ideal branches coincide.
+\end{lemma}
+\begin{proof}
+By \(\mathrm{prop:ideal\text{-}fiber}\), both fibers are indexed by the same finite family \(\mathcal J\).  Fix \(J\), put \(S=D\cup J\) and \(B=S\cup\{T\}\).  If \(Y\in B\), then \(Y\ne T\) and \(\beta_J(H)=\beta_J(H')=0\).  Otherwise block regression gives
+\[
+ \beta_J(H)=e_T^{\top}H_{BB}^{-1}H_{BY},\qquad
+ \beta_J(H')=e_T^{\top}(H'_{BB})^{-1}H'_{BY}.
+\]
+Principal compression does not increase operator norm, the spectral lower bound gives \(\|H_{BB}^{-1}\|_{\mathrm{op}},\|(H'_{BB})^{-1}\|_{\mathrm{op}}\le\lambda^{-1}\), and the spectral upper bound gives \(\|H'_{BY}\|_2\le\Lambda\).  The inverse identity
+\[
+ H_{BB}^{-1}-(H'_{BB})^{-1}
+ =H_{BB}^{-1}(H'_{BB}-H_{BB})(H'_{BB})^{-1}
+\]
+therefore yields, with \(\delta=\|H-H'\|_{\mathrm{op}}\),
+\[
+ \begin{aligned}
+ |\beta_J(H)-\beta_J(H')|
+ &\le \|H_{BB}^{-1}\|_{\mathrm{op}}\|H_{BY}-H'_{BY}\|_2
+ +\|H_{BB}^{-1}-(H'_{BB})^{-1}\|_{\mathrm{op}}\|H'_{BY}\|_2\\
+ &\le (\lambda^{-1}+\Lambda\lambda^{-2})\delta=L_\beta\delta.
+ \end{aligned}
+\]
+Matching the point indexed by \(J\) in one finite set to the point with the same index in the other gives both directed Hausdorff bounds, hence
+\[
+ d_H(\Theta_{TY}(H,\preceq),\Theta_{TY}(H',\preceq))
+ \le L_\beta\|H-H'\|_{\mathrm{op}}.
+\]
+No step divides by a difference between two branch effects, so the inequality remains valid when branches collide.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Hausdorff stability is the margin-free transfer principle from covariance uncertainty to set-valued causal uncertainty. \textit{Gap.} Structure-uncertainty papers emphasize nonsmoothness of selected effects; the set-valued map admits a uniform bound without a swap margin. \textit{Consumer.} Any valid covariance region can be converted into a whole-fiber region without testing which effects collide.
+
+\begin{theorem}[thm:fourier-region]\label{thm:fourier-region}
+The construction in \(\mathrm{def:ray\text{-}region}\) is measurable and satisfies \(\inf_{P_X\in\mathcal M}P_X^N\{\Gamma\in K_N\}\ge1-\alpha_N\) for every \(N\). On the active branch, simultaneously \(|z_u-u^\top\Gamma u|\le w_N\) for all \(u\in\mathcal R\) and \(\|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}\le2\Delta_N\).
+\end{theorem}
+\begin{proof}
+Put \(d=|\mathcal R|\).  On the fallback branch, \(\widehat\Gamma_N=((\lambda+\Lambda)/2)I\) is deterministic and
+\[
+ K_N=\{H:\lambda I\preceq H\preceq\Lambda I\}.
+\]
+Membership of \(P_X\) in \(\mathcal M\), through the spectral assumptions in \(\mathrm{def:fourier\text{-}model}\), then gives \(\Gamma\in K_N\) surely.  It therefore remains to consider the active branch, on which \(t_N\ge1\) and \(m_N\ge2\varepsilon_N\).
+
+We first construct one simultaneous event.  If \(R\in[-1,1]\) and \(s\in\mathbb R\), convexity of the exponential on \([-1,1]\) gives
+\[
+ e^{sR}\le {1+R\over2}e^s+{1-R\over2}e^{-s}.
+\]
+After taking expectations and centering, the second derivative of the logarithm of the right-hand side is the variance of a random variable supported on \([-1,1]\), hence is at most one.  The logarithm and its first derivative vanish at zero after centering, so two integrations yield
+\[
+ \mathbb E e^{s(R-\mathbb ER)}\le e^{s^2/2}.
+\]
+Apply this bound to the real and imaginary parts of \(e^{it_Nu^\top X_k}\), which lie in \([-1,1]\).  Exponential Markov optimization and \(\mathrm{ass:iid}\) give
+\[
+ P_X^N\!\left(\left|\widehat\phi_N(t_Nu)-\phi_X(t_Nu)\right|>\varepsilon_N\right)
+ \le4\exp\!\left(-{N\varepsilon_N^2\over4}\right)
+ ={\alpha_N\over d}.
+\]
+Indeed, if a complex number has modulus greater than \(\varepsilon_N\), one of its real and imaginary parts has absolute value greater than \(\varepsilon_N/\sqrt2\).  A union bound over the finite set \(\mathcal R\) therefore gives an event
+\[
+ E_N=\bigcap_{u\in\mathcal R}
+ \left\{\left|\widehat\phi_N(t_Nu)-\phi_X(t_Nu)\right|\le\varepsilon_N\right\}
+\]
+such that, uniformly over \(P_X\in\mathcal M\),
+\[
+ P_X^N(E_N)\ge1-\alpha_N. \tag{1}
+\]
+
+By \(\mathrm{ass:additive\text{-}decomposition}\) and independence,
+\[
+ |\phi_X(t_Nu)|=|\phi_U(t_Nu)|
+ \exp\!\left(-{t_N^2\over2}u^\top\Gamma u\right). \tag{2}
+\]
+For \(u\in\mathcal R\), \(\|u\|_2^2\le2\).  The ray lower envelope, \(q_u\le Q\), and \(\Gamma\preceq\Lambda I\) consequently imply
+\[
+ |\phi_X(t_Nu)|
+ \ge c(1+t_N)^{-q_u}e^{-\Lambda t_N^2}
+ \ge c(1+t_N)^{-Q}e^{-\Lambda t_N^2}=m_N. \tag{3}
+\]
+On \(E_N\), equations (3) and \(m_N\ge2\varepsilon_N\) give
+\[
+ |\widehat\phi_N(t_Nu)|\ge m_N/2.
+\]
+Thus the modulus floor in \(z_u\) is inactive.  Both moduli belong to \([m_N/2,1]\), and the mean-value theorem for the real logarithm gives
+\[
+ \left|\log|\widehat\phi_N(t_Nu)|-\log|\phi_X(t_Nu)|\right|
+ \le {2\varepsilon_N\over m_N}. \tag{4}
+\]
+Define
+\[
+ \ell_u=\log|\phi_U(t_Nu)|+q_u\log(1+t_N).
+\]
+The two ray-envelope assumptions give \(\log c\le\ell_u\le\log C\).  Taking logarithms in (2) gives
+\[
+ \log|\phi_X(t_Nu)|+q_u\log(1+t_N)
+ =-{t_N^2\over2}u^\top\Gamma u+\ell_u. \tag{5}
+\]
+Substitution of (5) into the definition of \(z_u\), centering \(\ell_u\) at \((\log c+\log C)/2\), and using (4) prove simultaneously on \(E_N\) that
+\[
+ |z_u-u^\top\Gamma u|
+ \le t_N^{-2}\left\{\log(C/c)+{4\varepsilon_N\over m_N}\right\}
+ =w_N,
+ \qquad u\in\mathcal R. \tag{6}
+\]
+
+Polarization of (6) yields
+\[
+ |(Z_N)_{ii}-\Gamma_{ii}|\le w_N,
+ \qquad
+ |(Z_N)_{ij}-\Gamma_{ij}|\le{3w_N\over2}\quad(i\ne j).
+\]
+For every symmetric matrix \(B\), \(\|B\|_{\mathrm{op}}\le\max_i\sum_j|B_{ij}|\).  Hence
+\[
+ \|Z_N-\Gamma\|_{\mathrm{op}}
+ \le {3p\over2}w_N=\Delta_N. \tag{7}
+\]
+For completeness, let \(\zeta\) be an eigenvalue of \(Z_N\).  The variational formulas for the smallest and largest quadratic forms imply that its distance from \([\lambda,\Lambda]\) is at most \(\|Z_N-\Gamma\|_{\mathrm{op}}\), because every eigenvalue of \(\Gamma\) lies in that interval.  Eigenvalue clipping preserves the eigenvectors of \(Z_N\), and therefore (7) gives
+\[
+ \|\widehat\Gamma_N-Z_N\|_{\mathrm{op}}\le\Delta_N,
+ \qquad
+ \|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}\le2\Delta_N. \tag{8}
+\]
+The spectral assumptions and (8) show that \(\Gamma\in K_N\) on \(E_N\).  Combining this fact with (1), and with sure inclusion on the fallback branch, proves
+\[
+ \inf_{P_X\in\mathcal M}P_X^N\{\Gamma\in K_N\}\ge1-\alpha_N
+\]
+for every \(N\), as well as all active-branch inequalities in the theorem.
+
+It remains only to verify measurability.  The empirical characteristic function is continuous in the sample; modulus, maximum with the positive floor, logarithm, polarization, and eigenvalue clipping are Borel operations.  Thus \(Z_N\) and \(\widehat\Gamma_N\) are Borel measurable.  Let
+\[
+ \mathcal S=\{H:\lambda I\preceq H\preceq\Lambda I\}.
+\]
+This is compact and convex, and \(\widehat\Gamma_N\in\mathcal S\).  For fixed \(r=2\Delta_N\), define \(K(x)=\mathcal S\cap\{H:\|H-x\|_{\mathrm{op}}\le r\}\).  If \(x,x'\in\mathcal S\) and \(H\in K(x)\) is not in \(K(x')\), the point on the segment from \(x'\) to \(H\) at distance \(r\) from \(x'\) lies in \(K(x')\) and is at distance at most \(\|x-x'\|_{\mathrm{op}}\) from \(H\).  Interchanging \(x,x'\) proves
+\[
+ d_H(K(x),K(x'))\le\|x-x'\|_{\mathrm{op}}.
+\]
+Thus the active-branch compact-valued map is continuous in its center and hence measurable.  The branch conditions are deterministic, and the fallback map is constant.  This proves the asserted measurability.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A finite-sample simultaneous event, not a pointwise asymptotic estimator, is needed for honest propagation through all order branches. \textit{Gap.} Belomestny--Trabs--Tsybakov supplies characteristic-function concentration and polarization for covariance estimation; the explicit centered fixed-envelope region and bounded fallback are specialized here for honest causal projection. \textit{Consumer.} It gives an auditable covariance uncertainty object before causal enumeration begins.
+
+\begin{theorem}[thm:whole-fiber-coverage]\label{thm:whole-fiber-coverage}
+For every \(N\), \(\inf_{P_X\in\mathcal M}P_X^N\{\Theta_{TY}(\Gamma,\preceq)\subseteq C_N\}\ge1-\alpha\). On the simultaneous covariance event, \(\operatorname{ex}(C_N,\Theta_{TY}(\Gamma,\preceq))\le4L_\beta\Delta_N\).
+\end{theorem}
+\begin{proof}
+Fix \(P_X\in\mathcal M\).  For \(J\in\mathcal J\), put \(S_J=D\cup J\).  We first establish the label-preserving bounds used by the intervals.  Let \(H,H'\) be positive-definite matrices whose spectra lie in \([\lambda,\Lambda]\), and write \(\delta=\|H-H'\|_{\mathrm{op}}\).
+
+If \(Y\in S_J\), then
+\[
+ \gamma_{YT\cdot S_J}(H)
+ =H_{YT}-H_{YS_J}H_{S_JS_J}^{-1}H_{S_JT}=0,
+\]
+because \(H_{YS_J}H_{S_JS_J}^{-1}\) is the row that selects coordinate \(Y\) from \(S_J\).  Also \(T\notin S_J\): every member of \(D\) strictly precedes \(T\), whereas every member of \(J\subseteq A\) is incomparable with \(T\).  Positive definiteness makes \(\gamma_{TT\cdot S_J}(H)>0\), since it is the Schur complement of \(H_{S_JS_J}\).  Thus the defining division is valid and \(\beta_J(H)=0\); the same argument applies to \(H'\).
+
+Suppose now that \(Y\notin S_J\), and set \(B_J=S_J\cup\{T\}\).  By \(\mathrm{ass:distinct\text{-}targets}\), \(Y\notin B_J\).  Eliminating the coordinates in \(S_J\) from the block normal equations for regression of coordinate \(Y\) on \(B_J\) gives
+\[
+ \beta_J(H)=e_T^\top H_{B_JB_J}^{-1}H_{B_JY}. \tag{1}
+\]
+The Schur-complement argument above again proves that the denominator in the defining ratio is strictly positive.  Principal-submatrix eigenvalues are at least \(\lambda\), and coordinate restriction cannot increase operator norm.  Hence
+\[
+ |\beta_J(H)|
+ \le \|H_{B_JB_J}^{-1}\|_{\mathrm{op}}\|H_{B_JY}\|_2
+ \le {\Lambda\over\lambda}. \tag{2}
+\]
+Using the resolvent identity
+\[
+ H_{B_JB_J}^{-1}-(H'_{B_JB_J})^{-1}
+ =H_{B_JB_J}^{-1}(H'_{B_JB_J}-H_{B_JB_J})(H'_{B_JB_J})^{-1}
+\]
+in (1), together with \(\|H_{B_JY}-H'_{B_JY}\|_2\le\delta\), yields
+\[
+ \begin{aligned}
+ |\beta_J(H)-\beta_J(H')|
+ &\le \lambda^{-1}\delta+\lambda^{-2}\delta\,\Lambda\\
+ &=\bigl(\lambda^{-1}+\Lambda\lambda^{-2}\bigr)\delta
+ =L_\beta\delta. 
+ \end{aligned} \tag{3}
+\]
+Equations (2)--(3) also hold when \(Y\in S_J\), because both coefficients then vanish.
+
+On the fallback branch, (2), \(\mathrm{prop:ideal\text{-}fiber}\), and \(\mathrm{def:fiber\text{-}region}\) give
+\[
+ \Theta_{TY}(\Gamma,\preceq)
+ =\{\beta_J(\Gamma):J\in\mathcal J\}
+ \subseteq[-\Lambda/\lambda,\Lambda/\lambda]=C_N. \tag{4}
+\]
+Thus coverage is certain on that branch.
+
+On the active branch, let \(E_N\) be the simultaneous covariance event from \(\mathrm{thm:fourier\text{-}region}\).  Uniformly over \(P_X\in\mathcal M\),
+\[
+ P_X^N(E_N)\ge1-\alpha_N,
+ \qquad
+ \|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}\le2\Delta_N
+ \quad\text{on }E_N. \tag{5}
+\]
+Spectral clipping puts \(\widehat\Gamma_N\) in the same spectral interval as \(\Gamma\).  Applying (3) to (5) gives, for every \(J\in\mathcal J\),
+\[
+ |\beta_J(\widehat\Gamma_N)-\beta_J(\Gamma)|
+ \le2L_\beta\Delta_N. \tag{6}
+\]
+Equation (2) places \(\beta_J(\Gamma)\) in the fixed clipping interval.  Therefore (6) places it in the clipped interval carrying the same label \(J\) in \(C_N\).  The ideal-fiber representation implies
+\[
+ \Theta_{TY}(\Gamma,\preceq)\subseteq C_N
+ \quad\text{on }E_N. \tag{7}
+\]
+Because \(\alpha_N\le\alpha\), equations (4)--(7) prove, for every \(N\),
+\[
+ \inf_{P_X\in\mathcal M}P_X^N
+ \{\Theta_{TY}(\Gamma,\preceq)\subseteq C_N\}
+ \ge1-\alpha_N\ge1-\alpha. \tag{8}
+\]
+
+For nonempty sets \(A_0,B_0\subseteq\mathbb R\), write
+\[
+ \operatorname{ex}(A_0,B_0)
+ =\sup_{a_0\in A_0}\inf_{b_0\in B_0}|a_0-b_0|.
+\]
+For the asserted excess bound, let \(x\in C_N\) on \(E_N\).  For some \(J\in\mathcal J\),
+\[
+ |x-\beta_J(\widehat\Gamma_N)|\le2L_\beta\Delta_N.
+\]
+Since \(\beta_J(\Gamma)\in\Theta_{TY}(\Gamma,\preceq)\), equation (6) and the triangle inequality give
+\[
+ \inf_{\theta\in\Theta_{TY}(\Gamma,\preceq)}|x-\theta|
+ \le |x-\beta_J(\Gamma)|\le4L_\beta\Delta_N.
+\]
+Taking the supremum over \(x\) proves
+\[
+ \operatorname{ex}(C_N,\Theta_{TY}(\Gamma,\preceq))
+ \le4L_\beta\Delta_N. \tag{9}
+\]
+The argument matches branches by their ideal labels and nowhere divides by a difference of effect values.  It consequently remains valid on exact collision strata; its only division is by the positive Schur complement protected by the spectral floor.
+
+It remains to record measurability.  Equation (1) and continuity of inversion on matrices bounded below by \(\lambda I\) show that every map \(H\mapsto\beta_J(H)\) is continuous on the spectral set.  On the active branch, the endpoints for label \(J\) are
+\[
+ \max\{-\Lambda/\lambda,\beta_J(\widehat\Gamma_N)-2L_\beta\Delta_N\},
+ \qquad
+ \min\{\Lambda/\lambda,\beta_J(\widehat\Gamma_N)+2L_\beta\Delta_N\}.
+\]
+They are measurable and correctly ordered by (2).  Since \(\mathcal J\) is finite and contains the empty ideal, their union is a measurable nonempty compact random set in the Hausdorff Borel sigma-field.  The fallback set is deterministic.  Thus the coverage events and losses used above are measurable, completing the proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem supplies finite-sample simultaneous coverage of the complete mixed-noise effect fiber, rather than asymptotic coverage of one effect after order-confidence and adjustment-set steps. \textit{Gap.} Wang--Kolar--Drton's Algorithm 3 and Lemma 1 work in a causally sufficient recursive additive-error model with mutually independent centered coordinate errors and order identifiability from nonlinear functions or linear non-Gaussian errors; their effect interval is asymptotically valid for one total effect conditional on order-set and adjustment-interval validity. The present model instead permits latent common sources, identifies a greatest Gaussian divisor by Fourier tails, and gives finite-sample simultaneous inclusion of every partial-order-compatible Cholesky effect; no blanket inclusion relation between the two full model classes is asserted. \textit{Consumer.} The \(\texttt{pcalg::ida}\) workflow can report a confidence-enlarged set of all compatible effects rather than a selected list.
+
+\begin{theorem}[thm:expected-log-rate]\label{thm:expected-log-rate}
+If \(c<C\), then uniformly over \(\mathcal M\), \(\mathbb E\|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}=O((\log N)^{-1})\), \(\mathbb E d_H(\Theta_{TY}(\widehat\Gamma_N,\preceq),\Theta_{TY}(\Gamma,\preceq))=O((\log N)^{-1})\), and \(\mathbb E d_H(C_N,\Theta_{TY}(\Gamma,\preceq))=O((\log N)^{-1})\).
+\end{theorem}
+\begin{proof}
+Let \(d=|\mathcal R|=p(p+1)/2\).  By \(\mathrm{ass:fixed\text{-}dimension}\), \(d\) is fixed as \(N\to\infty\).  For all sufficiently large \(N\), \(\alpha_N=(N+1)^{-2}\), and \(\mathrm{def:ray\text{-}region}\) gives
+\[
+ t_N^2={\log N\over4\Lambda},\qquad
+ m_N=c(1+t_N)^{-Q}N^{-1/4},\qquad
+ \varepsilon_N=2\sqrt{{\log(4d(N+1)^2)\over N}}. \tag{1}
+\]
+Because \(c>0\), \(Q<\infty\), and \(\Lambda<\infty\) are fixed,
+\[
+ {\varepsilon_N\over m_N}
+ ={2\over c}N^{-1/4}(1+t_N)^Q
+ \sqrt{\log(4d(N+1)^2)}=o(1), \tag{2}
+\]
+since every fixed power of \(\log N\) is \(o(N^{1/4})\).  Consequently \(t_N\ge1\) and \(m_N\ge2\varepsilon_N\) eventually.  This branch choice is deterministic and uniform over \(\mathcal M\).  Since \(c<C\),
+\[
+ w_N=t_N^{-2}\left\{\log(C/c)+{4\varepsilon_N\over m_N}\right\}
+ =O((\log N)^{-1}),
+ \qquad
+ \Delta_N={3p\over2}w_N=O((\log N)^{-1}). \tag{3}
+\]
+All implied constants depend only on the declared fixed class constants.
+
+Let \(E_N\) be the event in \(\mathrm{thm:fourier\text{-}region}\).  On \(E_N\),
+\[
+ \|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}\le2\Delta_N,
+\]
+whereas, uniformly in \(P_X\in\mathcal M\),
+\[
+ P_X^N(E_N^c)\le\alpha_N=(N+1)^{-2}. \tag{4}
+\]
+On the complement, spectral clipping and \(\Gamma\preceq\Lambda I\) give
+\[
+ \|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}
+ \le\|\widehat\Gamma_N\|_{\mathrm{op}}+\|\Gamma\|_{\mathrm{op}}
+ \le2\Lambda. \tag{5}
+\]
+Splitting the expectation over \(E_N\) and \(E_N^c\), then using (3)--(5), yields
+\[
+ \sup_{P_X\in\mathcal M}
+ \mathbb E_{P_X^N}\|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}
+ \le2\Delta_N+2\Lambda\alpha_N
+ =O((\log N)^{-1}). \tag{6}
+\]
+
+The deterministic inequality \(\mathrm{lem:fiber\text{-}lipschitz}\) applies on every sample outcome, including exact branch collisions, because both covariance matrices have spectra in \([\lambda,\Lambda]\).  Hence (6) implies
+\[
+ \begin{aligned}
+ &\sup_{P_X\in\mathcal M}\mathbb E_{P_X^N}
+ d_H\!\left(\Theta_{TY}(\widehat\Gamma_N,\preceq),
+              \Theta_{TY}(\Gamma,\preceq)\right)\\
+ &\qquad\le L_\beta\sup_{P_X\in\mathcal M}
+ \mathbb E_{P_X^N}\|\widehat\Gamma_N-\Gamma\|_{\mathrm{op}}
+ =O((\log N)^{-1}).
+ \end{aligned} \tag{7}
+\]
+
+On \(E_N\), \(\mathrm{thm:whole\text{-}fiber\text{-}coverage}\) gives inclusion of the true fiber in \(C_N\) and the directed-excess bound.  The reverse directed excess is therefore zero, and
+\[
+ d_H(C_N,\Theta_{TY}(\Gamma,\preceq))
+ \le4L_\beta\Delta_N
+ \quad\text{on }E_N. \tag{8}
+\]
+On \(E_N^c\), both sets are nonempty compact subsets of \([ -\Lambda/\lambda,\Lambda/\lambda]\).  For the true fiber this follows from \(\mathrm{prop:ideal\text{-}fiber}\) and the bound \(|\beta_J(\Gamma)|\le\Lambda/\lambda\) established in \(\mathrm{thm:whole\text{-}fiber\text{-}coverage}\).  For \(C_N\) it follows from \(\mathrm{def:fiber\text{-}region}\); nonemptiness follows because \(\mathcal J\) contains the empty ideal and each interval center is itself in the clipping interval.  Thus
+\[
+ d_H(C_N,\Theta_{TY}(\Gamma,\preceq))
+ \le{2\Lambda\over\lambda}
+ \quad\text{on }E_N^c. \tag{9}
+\]
+Equations (3), (4), (8), and (9) give
+\[
+ \sup_{P_X\in\mathcal M}\mathbb E_{P_X^N}
+ d_H(C_N,\Theta_{TY}(\Gamma,\preceq))
+ \le4L_\beta\Delta_N+{2\Lambda\over\lambda}\alpha_N
+ =O((\log N)^{-1}). \tag{10}
+\]
+Equations (6), (7), and (10) are the three asserted uniform expectation bounds.  The finitely many sample sizes before the deterministic active branch begins do not affect these asymptotic statements.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem quantifies both estimation loss and the excess size of an honest set. \textit{Gap.} The logarithmic covariance rate is known from Belomestny--Trabs--Tsybakov; uniform expected Hausdorff control for the entire causal fiber is not stated there. \textit{Consumer.} It supplies a rate for the minimum absolute compatible effect, a one-Lipschitz IDA ranking summary.
+
+\begin{theorem}[thm:minimax-lower]\label{thm:minimax-lower}
+The explicit construction in \(\mathrm{thm:smooth\text{-}splice\text{-}pair}\) yields \(\inf_{\widetilde\Gamma_N\in\mathfrak E_{\Gamma,N}}\sup_{P\in\mathcal M_\star}\mathbb E_{P^{\otimes N}}\|\widetilde\Gamma_N-\Gamma(P)\|_{\mathrm{op}}\asymp(\log N)^{-1}\) and \(\inf_{\widetilde\Theta_N\in\mathfrak E_{\Theta,N}}\sup_{P\in\mathcal M_\star}\mathbb E_{P^{\otimes N}}d_H(\widetilde\Theta_N,\Theta_{TY}(\Gamma(P),\preceq))\asymp(\log N)^{-1}\). Moreover, for every \((S_N)\in\mathfrak C_\alpha(\mathcal M_\star)\), the constructed collision laws satisfy \(\liminf_{N\to\infty}P_{0,N}^{\otimes N}\{\operatorname{diam}(S_N)\ge|b(s_N)-b(0)|\}\ge1-2\alpha\), where \(P_{0,N},P_{1,N}\in\mathcal M_{\mathrm{col}}\) and \(|b(s_N)-b(0)|\asymp(\log N)^{-1}\).
+\end{theorem}
+\begin{proof}
+Apply \(\mathrm{thm:splice\text{-}two\text{-}point\text{-}transfer}\) with \(\mathcal A=\mathcal M_\star\).  Since \(s_N=(600\log N)^{-1}\), that theorem provides constants \(c_\Gamma,c_\Theta>0\) such that, for all sufficiently large \(N\),
+\[
+ \inf_{\widetilde\Gamma_N\in\mathfrak E_{\Gamma,N}}
+ \sup_{P\in\mathcal M_\star}
+ \mathbb E_{P^{\otimes N}}\|\widetilde\Gamma_N-\Gamma(P)\|_{\mathrm{op}}
+ \ge {c_\Gamma\over\log N} \tag{1}
+\]
+and
+\[
+ \inf_{\widetilde\Theta_N\in\mathfrak E_{\Theta,N}}
+ \sup_{P\in\mathcal M_\star}
+ \mathbb E_{P^{\otimes N}}
+ d_H\!\left(\widetilde\Theta_N,
+ \Theta_{TY}(\Gamma(P),\preceq)\right)
+ \ge {c_\Theta\over\log N}. \tag{2}
+\]
+The second inequality uses the separation of the two singleton causal targets proved by \(\mathrm{thm:smooth\text{-}splice\text{-}pair}\); it does not define effect loss in terms of covariance loss.
+
+On \(\mathcal M_\star\), \(p=3\) and \(c=2/5<60=C\).  Restricting \(\mathrm{thm:expected\text{-}log\text{-}rate}\) from \(\mathcal M\) to \(\mathcal M_\star\) gives finite constants \(K_\Gamma,K_\Theta\) such that
+\[
+ \sup_{P\in\mathcal M_\star}
+ \mathbb E_{P^{\otimes N}}\|\widehat\Gamma_N-\Gamma(P)\|_{\mathrm{op}}
+ \le {K_\Gamma\over\log N}, \tag{3}
+\]
+\[
+ \sup_{P\in\mathcal M_\star}
+ \mathbb E_{P^{\otimes N}}
+ d_H(C_N,\Theta_{TY}(\Gamma(P),\preceq))
+ \le {K_\Theta\over\log N}. \tag{4}
+\]
+The measurability conclusions of \(\mathrm{thm:fourier\text{-}region}\) and \(\mathrm{thm:whole\text{-}fiber\text{-}coverage}\) show that \(\widehat\Gamma_N\in\mathfrak E_{\Gamma,N}\) and \(C_N\in\mathfrak E_{\Theta,N}\).  These are single data-driven procedures, not law-dependent oracles.  Using them as witnesses in the respective infima turns (3)--(4) into upper bounds.  Combining those bounds with (1)--(2) proves both \(\asymp(\log N)^{-1}\) assertions.
+
+Now let \((S_N)\in\mathfrak C_\alpha(\mathcal M_\star)\).  The honest-confidence conclusion of \(\mathrm{thm:splice\text{-}two\text{-}point\text{-}transfer}\) gives
+\[
+ \liminf_{N\to\infty}P_{0,N}^{\otimes N}
+ \{\operatorname{diam}(S_N)\ge|b(s_N)-b(0)|\}
+ \ge1-2\alpha. \tag{5}
+\]
+Direct calculation from \(b(s)=(3/5+s)/(1+s)\) gives
+\[
+ |b(s_N)-b(0)|={2s_N\over5(1+s_N)},
+ \qquad s_N={1\over600\log N}. \tag{6}
+\]
+Since \(0<s_N\le1\) eventually, the quantity in (6) lies between \(s_N/5\) and \(2s_N/5\), and is therefore \(\asymp(\log N)^{-1}\).  Equations (1)--(6) prove every assertion.  The superclass lower conclusions, including those over \(\mathcal M_{\mathrm{SR}}\), are separately stated in \(\mathrm{thm:splice\text{-}two\text{-}point\text{-}transfer}\); no upper rate over that larger class is used here.  The upper construction here uses the uniform Fourier envelopes and compact spectral bounds of \(\mathcal M\), not a global loading cap.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The verified positive smooth splice supplies logarithmic covariance and singleton causal-target separations with vanishing product total variation. It matches the fixed Fourier-class upper bounds and forces an honest confidence set to contain both collision effects with limiting probability at least \(1-2\alpha\). \textit{Gap.} Belomestny--Trabs--Tsybakov provide a covariance minimax precedent. This theorem adds an explicit moment-compatible three-variable lower pair, a distinct Hausdorff lower bound for the singleton causal-effect target, and a quantified honest-diameter event on an exact collision stratum. The lower construction also lies in the Sanjaroonpouri--Ramazi published class, so the lower conclusions transfer there without asserting a corresponding upper rate. \textit{Consumer.} For the \(\texttt{pcalg::ida}\) and yeast intervention-ranking workflow, the result rules out uniformly faster audited mixed-noise effect precision through order selection or collision testing; an honest procedure must retain the logarithmic-scale compatible-effect uncertainty.
+
+\begin{lemma}[lem:laplace-global-lipschitz]\label{lem:laplace-global-lipschitz}
+The map \(F_{p,M_8,a_{\min}}\) is globally Lipschitz on \([-\sqrt{V_8},\sqrt{V_8}]^{d_4}\), and the quotient modulus \(C_{\mathrm{Lap}}\) is finite. This bound holds across the maximum-floor kink and the spectral-clipping eigenvalue kinks because the maximum is Lipschitz, the fourth-root and reciprocal powers are Lipschitz above the positive floor, the intervening moment maps are polynomials on a compact cube, and spectral projection is nonexpansive in Frobenius norm.
+\end{lemma}
+\begin{proof}
+Let \(K=[-\sqrt{V_8},\sqrt{V_8}]^{d_4}\).  Centered covariances and fourth cumulants are polynomials in the raw moments of total degree at most four.  Their gradients are continuous and therefore bounded on the compact cube \(K\); the mean-value formula makes the combined moment-to-covariance-and-cumulant map Lipschitz on \(K\).
+
+The scalar maximum map \(x\mapsto\max\{x,(3/2)a_{\min}^4\}\) is one-Lipschitz.  Its range is bounded below by the positive number \((3/2)a_{\min}^4\).  Hence the functions
+\[
+ x\longmapsto (x/3)^{1/4},\qquad x\longmapsto3^{-1}(x/3)^{-3/4}
+\]
+have bounded derivatives on the relevant compact range.  The reconstructed loading coordinates, and then the polynomial map \((\Sigma,a)\mapsto\Sigma-aa^\top\), are consequently Lipschitz on the image of \(K\).  Finally, eigenvalue clipping to \([\lambda,\Lambda]\) is the metric projection, in Frobenius norm, onto the closed convex set \(\{H:\lambda I\preceq H\preceq\Lambda I\}\), and metric projection onto a closed convex subset of a finite-dimensional Hilbert space is nonexpansive: expanding the two projection variational inequalities and adding them proves this directly.  Since operator norm is bounded by Frobenius norm, the complete map \(F_{p,M_8,a_{\min}}\) is globally Lipschitz from Euclidean norm on \(K\) to operator norm.  Therefore the quotient defining \(C_{\mathrm{Lap}}\) is bounded, and \(C_{\mathrm{Lap}}<\infty\).  The argument explicitly includes both the maximum-floor kink and all eigenvalue-clipping kinks.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A global modulus is required because derivative suprema do not control the nonsmooth floor and spectral projection at their kinks. \textit{Gap.} Fourth-moment ICA limit theory is local; this lemma supplies the finite-sample global propagation bound needed by the bounded construction. \textit{Consumer.} It validates a single finite-sample radius for every law in the literal-Laplace class.
+
+\begin{theorem}[thm:laplace-boundary]\label{thm:laplace-boundary}
+Uniformly over \(P\in\mathcal M_{\mathrm{Lap}}\), the fourth-cumulant construction satisfies \(\sup_{P\in\mathcal M_{\mathrm{Lap}}}\mathbb E_{P^{\otimes N}}\|\widehat\Gamma_N^{\mathrm{Lap}}-\Gamma(P)\|_{\mathrm{op}}=O(N^{-1/2})\), \(\sup_{P\in\mathcal M_{\mathrm{Lap}}}\mathbb E_{P^{\otimes N}}d_H(\Theta_{TY}(\widehat\Gamma_N^{\mathrm{Lap}},\preceq),\Theta_{TY}(\Gamma(P),\preceq))=O(N^{-1/2})\), and \(\inf_{P\in\mathcal M_{\mathrm{Lap}}}P^{\otimes N}\{\Theta_{TY}(\Gamma(P),\preceq)\subseteq C_N^{\mathrm{Lap}}\}\ge1-\alpha\) for every \(N\).
+\end{theorem}
+\begin{proof}
+Fix \(P\in\mathcal M_{\mathrm{Lap}}\).  Let
+\[
+ \mathcal I_4=\left\{r=(r_1,\ldots,r_p)\in\mathbb N_0^p:
+ 1\le |r|:=\sum_{i=1}^p r_i\le 4\right\}.
+\]
+Stars and bars gives
+\(\lvert\mathcal I_4\rvert=\binom{p+4}{4}-1=d_4\), in agreement with
+the definition of \(d_4\).  For \(r\in\mathcal I_4\), define
+\[
+ Z_r=\prod_{i=1}^p X_i^{r_i},\qquad
+ \mu_r=\mathbb E_P Z_r,\qquad
+ \overline Z_r=\frac1N\sum_{n=1}^N\prod_{i=1}^p X_{ni}^{r_i}.
+\]
+Put \(B=\sqrt{V_8}\), and let
+\(\widehat\mu_r=\operatorname{clip}_{[-B,B]}(\overline Z_r)\), as
+prescribed by \texttt{def:laplace-region}.  Since
+\(\lvert Z_r\rvert\leq\lVert X\rVert^{|r|}\), the elementary inequality
+\(z^{2|r|}\leq 1+z^8\) for \(z\geq0\) and \(1\leq |r|\leq4\), the
+eighth-moment assumption \texttt{ass:eighth-moment}, and the definition
+\(V_8=1+M_8\) imply
+\[
+ \mathbb E_P Z_r^2
+ \leq \mathbb E_P\lVert X\rVert^{2|r|}
+ \leq 1+\mathbb E_P\lVert X\rVert^8
+ \leq 1+M_8=V_8.                                      \tag{1}
+\]
+By Cauchy--Schwarz, \(\lvert\mu_r\rvert\leq
+(\mathbb E_PZ_r^2)^{1/2}\leq B\).  Projection onto the interval
+\([-B,B]\) cannot increase distance from \(\mu_r\in[-B,B]\), and hence
+\[
+ \lvert\widehat\mu_r-\mu_r\rvert
+ \leq\lvert\overline Z_r-\mu_r\rvert.                 \tag{2}
+\]
+The independent-sampling assumption \texttt{ass:iid} gives
+\[
+ \mathbb E_{P^{\otimes N}}(\overline Z_r-\mu_r)^2
+ =\frac{\operatorname{Var}_P(Z_r)}{N}
+ \leq\frac{V_8}{N}.                                    \tag{3}
+\]
+Summing (2)--(3) over the \(d_4\) indices yields
+\[
+ \mathbb E_{P^{\otimes N}}\lVert\widehat\mu-\mu\rVert_2^2
+ \leq\frac{d_4V_8}{N}.                                 \tag{4}
+\]
+Consequently, Jensen's inequality and Markov's inequality applied to the
+nonnegative random variable
+\(\lVert\widehat\mu-\mu\rVert_2^2\), respectively, give
+\[
+ \mathbb E_{P^{\otimes N}}\lVert\widehat\mu-\mu\rVert_2
+ \leq\sqrt{\frac{d_4V_8}{N}},                           \tag{5}
+\]
+and, using the declared definition
+\(r_N^{\mathrm{Lap}}=\sqrt{d_4V_8/(N\alpha)}\),
+\[
+ P^{\otimes N}\!\left\{
+ \lVert\widehat\mu-\mu\rVert_2>r_N^{\mathrm{Lap}}
+ \right\}
+ \leq
+ \frac{d_4V_8/N}{(r_N^{\mathrm{Lap}})^2}
+ =\alpha.                                               \tag{6}
+\]
+
+We next identify the population value of the reconstruction map.  The
+centered standardized Laplace variable \(H_{\mathrm{Lap}}\) has density
+\(h\mapsto 2^{-1/2}\exp(-\sqrt2\lvert h\rvert)\).  Symmetry gives
+\(\mathbb EH_{\mathrm{Lap}}=0\), while direct integration using
+\(\int_0^\infty h^m e^{-ah}\,dh=m!a^{-(m+1)}\) gives
+\[
+ \mathbb EH_{\mathrm{Lap}}^2
+ =\sqrt2\frac{2!}{(\sqrt2)^3}=1,
+ \qquad
+ \mathbb EH_{\mathrm{Lap}}^4
+ =\sqrt2\frac{4!}{(\sqrt2)^5}=6.                       \tag{7}
+\]
+Thus its fourth cumulant is \(6-3(1)^2=3\).
+By \texttt{ass:laplace-source},
+\(U=a^{\mathrm{Lap}}H_{\mathrm{Lap}}\).  Membership in the model in
+\texttt{def:laplace-model} also retains the declared additive decomposition
+\(X=U+G_{\Gamma(P)}\), in which \(U\) and the centered Gaussian vector are
+independent.  Expanding the fourth joint cumulant by multilinearity, every
+mixed term between the two independent summands is zero, and the fourth
+joint cumulant of the Gaussian summand is zero.  Therefore (7) implies, for
+every \(i\in V\),
+\[
+ \kappa_{TTTT}(X)=3(a_T^{\mathrm{Lap}})^4,
+ \qquad
+ \kappa_{iTTT}(X)=3a_i^{\mathrm{Lap}}(a_T^{\mathrm{Lap}})^3. \tag{8}
+\]
+The treatment-loading assumption \texttt{ass:treatment-loading} states
+\(\lvert a_T^{\mathrm{Lap}}\rvert\geq a_{\min}>0\).  Hence
+\(\kappa_{TTTT}(X)\geq3a_{\min}^4>(3/2)a_{\min}^4\), so the positive
+floor in \(F_{p,M_8,a_{\min}}\) is inactive at \(\mu\) and every division
+below has a strictly positive denominator.  The definitions of the
+coordinates of \(a(\mu)\), followed by (8), give
+\[
+ a_T(\mu)=\lvert a_T^{\mathrm{Lap}}\rvert,
+ \qquad
+ a_i(\mu)
+ =\frac{3a_i^{\mathrm{Lap}}(a_T^{\mathrm{Lap}})^3}
+ {3\lvert a_T^{\mathrm{Lap}}\rvert^3}
+ =\operatorname{sgn}(a_T^{\mathrm{Lap}})a_i^{\mathrm{Lap}}. \tag{9}
+\]
+In particular,
+\[
+ a(\mu)a(\mu)^\top
+ =a^{\mathrm{Lap}}(a^{\mathrm{Lap}})^\top.              \tag{10}
+\]
+Independence in the additive model, centering, and the unit variance in (7)
+also give
+\[
+ \operatorname{Cov}_P(X)
+ =a^{\mathrm{Lap}}(a^{\mathrm{Lap}})^\top+\Gamma(P).    \tag{11}
+\]
+By (10)--(11), the matrix before spectral clipping in
+\(F_{p,M_8,a_{\min}}(\mu)\) is \(\Gamma(P)\).  Assumptions
+\texttt{ass:spectral-lower} and \texttt{ass:spectral-upper} put its spectrum
+in \([\lambda,\Lambda]\), so clipping fixes it and
+\[
+ F_{p,M_8,a_{\min}}(\mu)=\Gamma(P).                     \tag{12}
+\]
+
+The construction in \texttt{def:laplace-region} is precisely
+\(\widehat\Gamma_N^{\mathrm{Lap}}
+=F_{p,M_8,a_{\min}}(\widehat\mu)\).  Both \(\mu\) and
+\(\widehat\mu\) lie in
+\([-\sqrt{V_8},\sqrt{V_8}]^{d_4}\).  The already established global
+Lipschitz result \texttt{lem:laplace-global-lipschitz} and (12) thus imply,
+pointwise in the sample,
+\[
+ \lVert\widehat\Gamma_N^{\mathrm{Lap}}-\Gamma(P)\rVert_{\mathrm{op}}
+ \leq C_{\mathrm{Lap}}\lVert\widehat\mu-\mu\rVert_2.   \tag{13}
+\]
+Combining (5) and (13), and then taking the supremum over the model, proves
+the explicit uniform bound
+\[
+ \sup_{P\in\mathcal M_{\mathrm{Lap}}}
+ \mathbb E_{P^{\otimes N}}
+ \lVert\widehat\Gamma_N^{\mathrm{Lap}}-\Gamma(P)\rVert_{\mathrm{op}}
+ \leq C_{\mathrm{Lap}}\sqrt{\frac{d_4V_8}{N}}.          \tag{14}
+\]
+All quantities on the right are fixed model constants apart from \(N\), so
+(14) is the first asserted uniform \(O(N^{-1/2})\) conclusion.  Notice that
+no loading-norm bound has been used.
+
+Spectral clipping puts \(\widehat\Gamma_N^{\mathrm{Lap}}\) in the same
+spectral interval \([\lambda,\Lambda]\) as \(\Gamma(P)\).  Applying the
+already established result \texttt{lem:fiber-lipschitz} to (13), followed by
+(5), gives
+\[
+ \begin{aligned}
+ &\sup_{P\in\mathcal M_{\mathrm{Lap}}}
+ \mathbb E_{P^{\otimes N}}
+ d_H\!\left(
+ \Theta_{TY}(\widehat\Gamma_N^{\mathrm{Lap}},\preceq),
+ \Theta_{TY}(\Gamma(P),\preceq)
+ \right)\\
+ &\hspace{18mm}\leq
+ L_\beta C_{\mathrm{Lap}}\sqrt{\frac{d_4V_8}{N}}.
+                                                               \tag{15}
+ \end{aligned}
+\]
+This proves the second asserted uniform \(O(N^{-1/2})\) conclusion.
+
+It remains to establish finite-sample whole-fiber coverage.  Define
+\[
+ \mathcal E_N=
+ \left\{\lVert\widehat\mu-\mu\rVert_2
+ \leq r_N^{\mathrm{Lap}}\right\},
+ \qquad
+ R_N=L_\beta C_{\mathrm{Lap}}r_N^{\mathrm{Lap}}.
+\]
+On \(\mathcal E_N\), (13) and \texttt{lem:fiber-lipschitz} imply
+\[
+ d_H\!\left(
+ \Theta_{TY}(\widehat\Gamma_N^{\mathrm{Lap}},\preceq),
+ \Theta_{TY}(\Gamma(P),\preceq)
+ \right)\leq R_N.                                      \tag{16}
+\]
+The exact representation in \texttt{prop:ideal-fiber}, applied once to each
+of the two positive-definite matrices in (16), is
+\[
+ \Theta_{TY}(H,\preceq)=\{\beta_J(H):J\in\mathcal J\}. \tag{17}
+\]
+For any \(\theta\in\Theta_{TY}(\Gamma(P),\preceq)\), the directed
+true-to-estimated term in the Hausdorff bound (16), together with (17),
+therefore supplies some \(J\in\mathcal J\) such that
+\[
+ \left\lvert
+ \theta-\beta_J(\widehat\Gamma_N^{\mathrm{Lap}})
+ \right\rvert\leq R_N.                                 \tag{18}
+\]
+This argument uses distance to the entire finite set and neither labels nor
+matches its branches.  Thus (18) remains valid on exact effect-collision
+strata, without any swap margin.
+
+We verify that the terminal intersection with
+\([-\Lambda/\lambda,\Lambda/\lambda]\) in
+\(C_N^{\mathrm{Lap}}\) cannot remove a true effect.  Fix
+\(J\in\mathcal J\) and put \(S=D\cup J\); by the definitions of \(D\),
+\(A\), and \(\mathcal J\), one has \(T\notin S\).  If \(Y\in S\), the
+definition of partial covariance gives
+\(\gamma_{YT\mathbin{\cdot}S}(\Gamma(P))=0\).  If \(Y\notin S\), the
+Schur complement of \(\Gamma(P)_{SS}\) is positive definite.  Cauchy--Schwarz
+for that conditional covariance matrix gives
+\[
+ \left\lvert\gamma_{YT\mathbin{\cdot}S}(\Gamma(P))\right\rvert
+ \leq
+ \sqrt{
+ \gamma_{YY\mathbin{\cdot}S}(\Gamma(P))
+ \gamma_{TT\mathbin{\cdot}S}(\Gamma(P))}.
+                                                               \tag{19}
+\]
+For any coefficient vector \(b\in\mathbb R^S\), let \(b_S\in\mathbb R^p\)
+denote its extension by zero outside \(S\).  Because \(T\notin S\), the
+spectral lower bound yields
+\[
+ \operatorname{Var}_P\!\left(X_T-b^\top X_S\right)
+ \geq\lambda\lVert e_T-b_S\rVert_2^2
+ \geq\lambda.
+\]
+Minimizing the left side over \(b\) is the Schur-complement variational
+formula, and hence
+\[
+ \gamma_{TT\mathbin{\cdot}S}(\Gamma(P))\geq\lambda.     \tag{20}
+\]
+Choosing the zero predictor and using the spectral upper bound similarly
+gives
+\[
+ \gamma_{YY\mathbin{\cdot}S}(\Gamma(P))
+ \leq\Gamma(P)_{YY}\leq\Lambda.                         \tag{21}
+\]
+Equations (19)--(21), and the zero numerator in the case \(Y\in S\), imply
+in all cases
+\[
+ \lvert\beta_J(\Gamma(P))\rvert
+ \leq\sqrt{\frac{\Lambda}{\lambda}}
+ \leq\frac{\Lambda}{\lambda},                          \tag{22}
+\]
+where the last inequality uses the declared strict bounds
+\(0<\lambda<\Lambda\).  Thus every true element represented in (17) lies
+inside the terminal clipping interval.  Combining (18), (22), and the
+definition of \(C_N^{\mathrm{Lap}}\) in
+\texttt{def:laplace-region} proves, on \(\mathcal E_N\),
+\[
+ \Theta_{TY}(\Gamma(P),\preceq)\subseteq C_N^{\mathrm{Lap}}. \tag{23}
+\]
+By (6), \(P^{\otimes N}(\mathcal E_N)\geq1-\alpha\) for every
+\(P\in\mathcal M_{\mathrm{Lap}}\).  Taking the infimum in (23) therefore
+gives
+\[
+ \inf_{P\in\mathcal M_{\mathrm{Lap}}}
+ P^{\otimes N}\!\left\{
+ \Theta_{TY}(\Gamma(P),\preceq)\subseteq C_N^{\mathrm{Lap}}
+ \right\}\geq1-\alpha                                  \tag{24}
+\]
+for every positive integer \(N\), which is the third assertion.
+
+Finally, the construction is measurable.  Empirical raw moments are Borel
+functions; coordinatewise interval projection, cumulant polynomials, the
+maximum with a positive constant, the fourth root, and reciprocal powers on
+the positive-floor domain are continuous.  Spectral projection is
+continuous, and inversion is continuous on matrices bounded below by
+\(\lambda I\).  The family \(\mathcal J\) is finite, so a finite union of
+closed intervals with Borel endpoints, followed by intersection with a
+fixed closed interval, is a measurable random compact set.  The same bound
+as (22), applied to the spectrally clipped estimate, also shows that its
+centers lie in the fixed interval, so this compact set is nonempty.  Hence
+all estimators, events, and probabilities used above are well defined.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem locates a transparent parametric boundary of the severely ill-posed Fourier class. \textit{Gap.} Miettinen--Taskinen--Nordhausen--Oja derives fourth-moment ICA limits, but not finite-sample whole-fiber coverage for a greatest Gaussian divisor. \textit{Consumer.} Audited literal-Laplace applications can use root-\(N\) uncertainty rather than the conservative logarithmic region.
+
+\begin{theorem}[thm:smooth-splice-pair]\label{thm:smooth-splice-pair}
+For every sufficiently large \(N\), there are Borel laws \(P_{0,N},P_{1,N}\in\mathcal M_{\mathrm{col}}\subseteq\mathcal M_\star\) and \(s_N=1/(600\log N)\) such that \(\Gamma(P_{0,N})=\Gamma(0)\), \(\Gamma(P_{1,N})=\Gamma(s_N)\), and \(\|P_{0,N}^{\otimes N}-P_{1,N}^{\otimes N}\|_{\mathrm{TV}}\to0\).  Both laws have a one-dimensional, unit-variance, Gaussian-indecomposable source representation with \(\operatorname{rank}(A)=1\) and \(\|A\|_{\mathrm{op}}<3\), obey \(q_u=2\) on every \(u\in\mathcal R\) with common lower envelope constant \(2/5\) and upper envelope constant \(60\), satisfy \(\mathbb E\|X\|^8\le M_8=50000000\), and have the displayed covariance as their greatest Gaussian-divisor covariance.  Moreover,
+\[
+ \Theta_{TY}(\Gamma(P_{0,N}),\preceq)=\{b(0)\},\qquad
+ \Theta_{TY}(\Gamma(P_{1,N}),\preceq)=\{b(s_N)\}.
+\]
+\end{theorem}
+\begin{proof}
+We construct the two laws and verify every class condition.  Fix
+\[
+ m=6,\qquad \eta={1\over10},\qquad \kappa={1\over20},
+\]
+and define
+\[
+ f_0(x)=(1-\eta){e^{-\sqrt2|x|}\over\sqrt2}
+       +\eta c_6(1+x^2)^{-6},
+ \qquad c_6={256\over63\pi}.
+\]
+The beta integral gives
+\[
+ \int_{\mathbb R}(1+x^2)^{-6}\,dx
+ ={\sqrt\pi\,\Gamma(11/2)\over\Gamma(6)}={63\pi\over256},
+\]
+whereas the first summand is the standardized-Laplace density.  Thus \(f_0\) is an even probability density.  Using
+\[
+ (1+x^2)^{-6}={1\over\Gamma(6)}
+ \int_0^\infty r^5e^{-r(1+x^2)}\,dr
+\]
+and \(\int_{\mathbb R}e^{itx-rx^2}\,dx=\sqrt{\pi/r}\,e^{-t^2/(4r)}\), followed by the half-integer gamma recursion, yields
+\[
+ \phi_0(t)={1-\eta\over1+t^2/2}+\eta e^{-|t|}P_5(|t|), \tag{1}
+\]
+where
+\[
+ P_5(z)=1+z+{4z^2\over9}+{z^3\over9}
+       +{z^4\over63}+{z^5\over945}.
+\]
+Every coefficient is positive, so \(\phi_0(t)>0\).
+
+Choose an even \(C^\infty\) function \(\chi:\mathbb R\to[0,1]\), equal to one on \([-1,1]\) and zero outside \([-2,2]\).  For \(M\ge1\), set
+\[
+ \delta=\kappa M^{-2},\qquad
+ \phi_{1,M}(t)=\phi_0(t)
+ \left[1+\chi(t/M)\{e^{-\delta t^2/2}-1\}\right]. \tag{2}
+\]
+Let \(\varphi_\delta\) be the centered Gaussian density of variance \(\delta\).  Define \(h_M\) by the inverse Fourier transform of the first expression below, and then define \(f_{1,M}\) by
+\[
+ \widehat h_M(t)=\phi_0(t)\{1-\chi(t/M)\}
+                 \{1-e^{-\delta t^2/2}\},
+ \qquad f_{1,M}=f_0*\varphi_\delta+h_M. \tag{3}
+\]
+Equations (2)--(3) show algebraically that the Fourier transform of \(f_{1,M}\) is \(\phi_{1,M}\).
+
+We prove positivity rather than presupposing that (2) is a characteristic function.  Put
+\[
+ b_M(z)=M^2\phi_0(Mz)\{1-\chi(z)\}
+             \{1-e^{-\kappa z^2/2}\}.
+\]
+Fourier inversion and the substitution \(t=Mz\) give
+\[
+ h_M(x)={1\over2\pi M}
+ \int_{\mathbb R}e^{-iMxz}b_M(z)\,dz. \tag{4}
+\]
+For every integer \(0\le j\le12\), there is \(B_j<\infty\), independent of \(M\ge1\), such that
+\[
+ \|b_M^{(j)}\|_1\le B_j. \tag{5}
+\]
+Indeed, \(1-\chi\) vanishes for \(|z|\le1\).  On \(|z|\ge1\), for \(0\le\ell\le12\),
+\[
+ \left|\partial_z^\ell{M^2\over1+M^2z^2/2}\right|
+ =\left|\partial_z^\ell{2\over z^2+2M^{-2}}\right|
+ \le C_\ell |z|^{-2-\ell}. \tag{6}
+\]
+By (1), every derivative of the Student term \(M^2e^{-M|z|}P_5(M|z|)\), away from zero, is a finite sum bounded by terms of the form
+\[
+ M^{2+\ell+r}|z|^re^{-M|z|}
+ =|z|^{-2-\ell}(M|z|)^{2+\ell+r}e^{-M|z|}.
+\]
+Since \(M|z|\ge1\) and \(\sup_{y\ge1}y^ae^{-y}<\infty\) for every fixed \(a\), these terms have uniform integrable bounds after the product rule is applied.  Derivatives of \(1-\chi\) are supported on \(1\le|z|\le2\), and positive-order derivatives of \(1-e^{-\kappa z^2/2}\) are polynomial multiples of a Gaussian.  The zeroth-order factor is bounded by one.  These facts prove (5).
+
+Using \(j=0\) in (5), and integrating (4) by parts twelve times using \(j=12\), gives a constant \(A_{12}\), independent of \(M\), such that
+\[
+ |h_M(x)|\le A_{12}M^{-1}(1+M|x|)^{-12}. \tag{7}
+\]
+For \(\delta\le1\), retain the Student component in the convolution and restrict the Gaussian variable to \([-1,1]\).  Since \(1+(x-z)^2\le3(1+x^2)\) there and \(\Pr\{|N(0,\delta)|\le1\}>1/3\),
+\[
+ (f_0*\varphi_\delta)(x)
+ \ge a_6(1+x^2)^{-6},
+ \qquad a_6=\eta c_6 3^{-7}>0. \tag{8}
+\]
+For \(M\ge1\), \((1+x^2)^6\le(1+M|x|)^{12}\).  Equations (7)--(8) imply
+\[
+ |h_M(x)|\le {A_{12}\over a_6M}(f_0*\varphi_\delta)(x).
+\]
+Thus \(f_{1,M}\ge0\) for \(M\ge2A_{12}/a_6\).  Also \(\widehat h_M(0)=0\), so \(f_{1,M}\) integrates to one; it is even and hence centered.
+
+Equation (7) makes \(\int |x|^j|h_M(x)|\,dx\) finite for \(0\le j\le8\).  Since \(\widehat h_M\) vanishes on a neighborhood of zero, differentiating its Fourier transform at zero gives
+\[
+ \int_{\mathbb R}x^jh_M(x)\,dx=0,
+ \qquad 0\le j\le8. \tag{9}
+\]
+If \(S_6\) has density \(c_6(1+x^2)^{-6}\), beta integration gives
+\[
+ \mathbb ES_6^{2j}
+ ={\Gamma(j+1/2)\Gamma(11/2-j)\over
+   \sqrt\pi\,\Gamma(11/2)},
+ \qquad0\le j\le5.
+\]
+Combining this identity with the standardized-Laplace moments \((2j)!/2^j\) yields
+\[
+ \mu_2={41\over45},\qquad
+ \mu_4={227\over42},\qquad
+ \mu_6={17011\over210},\qquad
+ \mu_8={204121\over90}. \tag{10}
+\]
+Let \(H_0\) have density \(f_0\), and let \(H_{1,M}\) have density \(f_{1,M}\).  By (9), the moments of \(H_{1,M}\) through order eight equal those of \(H_0+N(0,\delta)\).  Therefore, for \(0\le\delta\le1\),
+\[
+ \begin{aligned}
+ \mathbb EH_{1,M}^8
+ &=\mu_8+28\delta\mu_6+210\delta^2\mu_4
+   +420\delta^3\mu_2+105\delta^4\\
+ &\le {554293\over90}. 
+ \end{aligned} \tag{11}
+\]
+
+The bracketed multiplier in (2) lies in \([e^{-2\kappa},1]\).  Indeed, on the support of \(\chi(t/M)\), \(|t|\le2M\), whence \(e^{-\delta t^2/2}\ge e^{-2\kappa}\), and off that support the multiplier is one.  The positive rational summand in (1) therefore gives two-sided polynomial bounds of order \(|t|^{-2}\), with constants independent of sufficiently large \(M\), for both \(\phi_0\) and \(\phi_{1,M}\).  If either scalar law had a Gaussian divisor of variance \(r>0\), the residual characteristic-function modulus would be \(e^{rt^2/2}|\phi(t)|\), which diverges by the polynomial lower bound but must be at most one.  Both scalar sources are consequently Gaussian-indecomposable.
+
+We next prove vanishing product divergence.  Fix \(v=1/10\), and let
+\[
+ q_{0,M}=f_0*\varphi_{v+\delta},\qquad
+ q_{1,M}=f_{1,M}*\varphi_v,
+ \qquad D_M=q_{1,M}-q_{0,M}.
+\]
+Their Fourier difference is
+\[
+ \widehat D_M(t)=e^{-vt^2/2}\phi_0(t)
+ \{1-\chi(t/M)\}\{1-e^{-\delta t^2/2}\}, \tag{12}
+\]
+which vanishes on \([-M,M]\).  Retaining the Student component in \(q_{0,M}\) and restricting the Gaussian convolution variable to \([-1,1]\) gives a constant \(a_v>0\), uniform in \(0\le\delta\le\kappa\), such that
+\[
+ q_{0,M}(x)\ge a_v(1+x^2)^{-6}. \tag{13}
+\]
+
+The density \(f_0\) has a finite sixth absolute moment, so differentiation under its Fourier integral gives
+\[
+ \sup_t|\phi_0^{(\ell)}(t)|
+ \le\mathbb E|H_0|^\ell<\infty,
+ \qquad0\le\ell\le6. \tag{14}
+\]
+For \(r\ge1\), derivatives of \(1-\chi(t/M)\) are bounded by constants times \(M^{-r}\) and supported on \(M\le|t|\le2M\); its zeroth derivative vanishes on \(|t|\le M\).  Moreover,
+\[
+ \sup_{M\ge1,t\in\mathbb R}
+ \left|\partial_t^r\{1-e^{-\kappa t^2/(2M^2)}\}\right|<\infty,
+ \qquad0\le r\le6, \tag{15}
+\]
+because for \(r\ge1\) the derivative is \(M^{-r}\) times a fixed polynomial in \(t/M\) times a Gaussian, and the zeroth derivative is at most one.  Each derivative of \(e^{-vt^2/2}\) is a polynomial of degree at most its order times that Gaussian.  The product rule in (12), with (14)--(15), therefore supplies constants \(C_j\), independent of \(M\), for which
+\[
+ |\widehat D_M^{(j)}(t)|
+ \le C_j(1+|t|)^je^{-vt^2/2}\mathbf 1\{|t|\ge M\},
+ \qquad0\le j\le6. \tag{16}
+\]
+In particular, all displayed derivatives belong to \(L^2(\mathbb R)\).
+
+To justify the weighted Fourier identity, multiply \(\widehat D_M\) by smooth compactly supported cutoffs converging to one.  For each cutoff, differentiation under Fourier inversion gives \(\widehat{x^jD}=i^{-j}\widehat D^{(j)}\).  The Parseval identity in \(\mathrm{lem:parseval\text{-}identity}\), together with (16), makes the functions and derivatives Cauchy in \(L^2\).  Their limits agree with \(D_M\) and \(x^jD_M\) as distributions, hence almost everywhere.  Thus
+\[
+ \|x^jD_M\|_2^2={1\over2\pi}\|\widehat D_M^{(j)}\|_2^2,
+ \qquad0\le j\le6. \tag{17}
+\]
+Expanding \((1+x^2)^6\) and using (17) gives the exact identity
+\[
+ \int_{\mathbb R}(1+x^2)^6|D_M(x)|^2\,dx
+ ={1\over2\pi}\sum_{j=0}^6{6\choose j}
+ \|\widehat D_M^{(j)}\|_2^2. \tag{18}
+\]
+Repeated integration by parts in the one-dimensional Gaussian tail gives, uniformly for \(0\le j\le6\) and \(M\ge1\),
+\[
+ \int_{|t|\ge M}(1+|t|)^{2j}e^{-vt^2}\,dt
+ \le C'_j(1+M)^{12}e^{-vM^2}. \tag{19}
+\]
+Equations (13), (16), (18), and (19) imply, for a constant \(A<\infty\) independent of \(M\),
+\[
+ \chi^2(q_{1,M},q_{0,M})
+ =\int {D_M(x)^2\over q_{0,M}(x)}\,dx
+ \le A(1+M)^{12}e^{-vM^2}. \tag{20}
+\]
+For product densities, multiplication of likelihood ratios and Fubini's theorem give
+\[
+ 1+\chi^2(q_{1,M}^{\otimes N},q_{0,M}^{\otimes N})
+ =\{1+\chi^2(q_{1,M},q_{0,M})\}^{N}. \tag{21}
+\]
+Choose \(M^2=30\log N\).  Since \(vM^2=3\log N\), (20) gives
+\[
+ N\chi^2(q_{1,M},q_{0,M})
+ \le A N^{-2}(1+\sqrt{30\log N})^{12}\longrightarrow0.
+\]
+Equation (21) then implies that the product chi-square divergence tends to zero.  Cauchy--Schwarz applied to the likelihood-ratio difference yields
+\[
+ \|q_{1,M}^{\otimes N}-q_{0,M}^{\otimes N}\|_{\mathrm{TV}}
+ \le{1\over2}\sqrt{\chi^2(q_{1,M}^{\otimes N},q_{0,M}^{\otimes N})}
+ \longrightarrow0. \tag{22}
+\]
+
+Embed this scalar experiment in three dimensions.  Set
+\[
+ a=(1,2/5,1)^\top,\qquad
+ \overline\Gamma=\Gamma_\star-vaa^\top.
+\]
+The successive leading principal minors of \(\overline\Gamma\) are
+\[
+ {9\over10},\qquad {189\over250},\qquad {294\over625},
+\]
+which are positive.  Gaussian elimination without row exchanges factors \(\overline\Gamma\) as \(R\operatorname{diag}(d_1,d_2/d_1,d_3/d_2)R^\top\), where \(R\) is nonsingular unit lower triangular and \(d_j\) is the \(j\)-th displayed leading principal minor.  All three diagonal entries are positive, so \(x^\top\overline\Gamma x>0\) for every nonzero \(x\), proving \(\overline\Gamma\succ0\).  Apply to both scalar experiments the same Markov kernel \(z\mapsto az+G_{\overline\Gamma}\), independently across observations.  Total variation contracts under a Markov kernel because integration of the image of a signed measure against a function bounded by one is bounded by the original total-variation norm.  The image laws, with labels matching the theorem, are
+\[
+ P_{0,N}=\mathcal L(aH_{1,M}+G_{\Gamma_\star}),
+ \qquad
+ P_{1,N}=\mathcal L(aH_0+G_{\Gamma_\star+\delta aa^\top}). \tag{23}
+\]
+They possess convolution densities and are Borel laws.  Equations (22)--(23) imply
+\[
+ \|P_{0,N}^{\otimes N}-P_{1,N}^{\otimes N}\|_{\mathrm{TV}}
+ \longrightarrow0,
+ \qquad
+ s_N=\delta={\kappa\over M^2}={1\over600\log N}. \tag{24}
+\]
+
+We verify membership in the fixed class.  The successive leading principal minors of \(\Gamma_\star-I/10\) are
+\[
+ {9\over10},\qquad {13\over20},\qquad {8109\over25000},
+\]
+and those of \(4I-\Gamma(1)\) are
+\[
+ 2,\qquad {126\over25},\qquad {44\over125}.
+\]
+The same elimination factorization has positive pivots for both matrices.  Hence \(\Gamma_\star-I/10\succ0\) and \(4I-\Gamma(1)\succ0\).  Since \(s\mapsto\Gamma(s)\) is nondecreasing in Loewner order, it follows that
+\[
+ {1\over10}I\prec\Gamma(s)\prec4I,
+ \qquad0\le s\le1. \tag{25}
+\]
+
+For a coordinate or pair-sum ray \(u\in\mathcal R\),
+\[
+ r:=|a^\top u|\in\left\{{2\over5},1,{7\over5},2\right\}.
+\]
+Elementary differentiation of the rational function, with the extrema attained among these endpoint values, gives, for \(t\ge1\),
+\[
+ {1\over2}\le{(1+t)^2\over1+r^2t^2/2}\le{27\over2}. \tag{26}
+\]
+The rational component of (1) and the lower bound on the splice multiplier therefore imply
+\[
+ (1+t)^2|\phi_U(tu)|
+ \ge{9\over10}{1\over2}e^{-2\kappa}
+ ={9\over20}e^{-1/10}>{2\over5}. \tag{27}
+\]
+For the upper bound, expand \((1+z)^2P_5(z)=\sum_kd_kz^k\).  Direct summation gives
+\[
+ \sum_kd_kk!={4714\over63}.
+\]
+Since \(e^{-z}z^k\le k!\) for \(z\ge0\), and \((1+t)^2\le(25/4)(1+rt)^2\) for \(r\ge2/5\), equations (1) and (26) yield
+\[
+ \begin{aligned}
+ (1+t)^2|\phi_U(tu)|
+ &\le {9\over10}{27\over2}
+ +{1\over10}{25\over4}{4714\over63}\\
+ &={37117\over630}<60.
+ \end{aligned} \tag{28}
+\]
+The splice multiplier is at most one, so (28) applies to both source laws; evenness handles \(t\le-1\).  Thus all named rays obey the common exponent-two envelopes with lower constant \(2/5\) and upper constant \(60\).
+
+By (10)--(11), either scalar source used in (23) has eighth moment at most \(554293/90\).  If \(Z_3\sim N(0,I_3)\), then \(\mathbb E\|Z_3\|^8=3\cdot5\cdot7\cdot9\).  Since \(\|a\|_2^2=54/25\), \(\|\Gamma^{1/2}\|_{\mathrm{op}}\le2\) by (25), and \((x+y)^8\le2^7(x^8+y^8)\),
+\[
+ \begin{aligned}
+ \mathbb E\|aH+G_\Gamma\|^8
+ &\le2^7\left\{
+ \left({54\over25}\right)^4{554293\over90}
+ +4^4(3\cdot5\cdot7\cdot9)\right\}\\
+ &<50000000. 
+ \end{aligned} \tag{29}
+\]
+Normalize each scalar source by its positive standard deviation and multiply its loading by the same standard deviation.  This leaves \(U=aH\), all ray characteristic functions, and both observed laws unchanged, while producing a unit-variance source.  Its variance is at most \(41/45+1=86/45\), so the resulting one-column loading obeys
+\[
+ \|A\|_{\mathrm{op}}^2
+ \le{54\over25}{86\over45}={516\over125}<9. \tag{30}
+\]
+It therefore has norm less than three and rank one.  Its first entry is positive, and the column-order condition is vacuous.  Unit variance gives nonconstancy; nonzero rescaling preserves Gaussian indecomposability, which also implies non-Gaussianity for this nonconstant source.
+
+For arbitrary \(u\in\mathbb R^3\), the source characteristic function is \(\phi_H(ta^\top u)\).  If \(a^\top u\ne0\), the two-sided polynomial bounds imply \(\log|\phi_H(ta^\top u)|=O(\log|t|)\); if \(a^\top u=0\), it equals one.  Therefore each constructed law satisfies
+\[
+ -2t^{-2}\log|\phi_X(tu)|\longrightarrow u^\top\Gamma u. \tag{31}
+\]
+Let \(\Delta\) be the covariance of any Gaussian convolution divisor of that law.  Its residual characteristic function has modulus at most one, so
+\[
+ e^{t^2u^\top\Delta u/2}|\phi_X(tu)|\le1.
+\]
+Taking logarithms, dividing by \(t^2/2\), and using (31) gives \(u^\top\Delta u\le u^\top\Gamma u\) for every \(u\), hence \(\Delta\preceq\Gamma\).  The displayed \(\Gamma\) in (23) is itself a Gaussian divisor by the independent additive construction, so it is the greatest Gaussian-divisor covariance.
+
+Finally, direct substitution into \(\Gamma(s)=\Gamma_\star+saa^\top\) gives
+\[
+ \Gamma_{WY}(s)-{\Gamma_{WT}(s)\Gamma_{TY}(s)\over\Gamma_{TT}(s)}=0,
+ \qquad
+ {\Gamma_{TY}(s)\over\Gamma_{TT}(s)}
+ ={3/5+s\over1+s}=b(s). \tag{32}
+\]
+Under the partial order whose only relation is \(T\prec Y\), one has \(D=\varnothing\), \(A=\{W\}\), and ideals \(\varnothing\) and \(\{W\}\).  The first equality in (32) makes the sole ideal-edge collision product in \(\mathrm{prop:ideal\text{-}fiber}\) vanish, while the second gives the empty-ideal value.  Hence
+\[
+ \Theta_{TY}(\Gamma(s),\preceq)=\{b(s)\},
+ \qquad0\le s\le1. \tag{33}
+\]
+Equations (24)--(33), together with (23), verify all spectral, envelope, moment, loading, rank, normalization, sign, order, greatest-divisor, and collision conditions.  Thus, for all sufficiently large \(N\),
+\[
+ P_{0,N},P_{1,N}\in\mathcal M_{\mathrm{col}}\subseteq\mathcal M_\star.
+\]
+Finally, \(\mathrm{prop:lower\text{-}class\text{-}sr\text{-}inclusion}\) places both witnesses in \(\mathcal M_{\mathrm{SR}}\).  This completes the construction.
+\end{proof}
+
+\begin{lemma}[lem:parseval-identity]\label{lem:parseval-identity}
+Under the Fourier convention \(\widehat g(t)=\int_{\mathbb R}e^{itx}g(x)\,dx\) on \(L^1(\mathbb R)\cap L^2(\mathbb R)\), extended continuously to \(L^2(\mathbb R)\), every square-integrable \(g\) satisfies \(\|g\|_2^2=(2\pi)^{-1}\|\widehat g\|_2^2\).
+\end{lemma}
+
+\begin{proposition}[prop:lower-class-sr-inclusion]\label{prop:lower-class-sr-inclusion}
+The fixed exponent-two class is contained in the Sanjaroonpouri--Ramazi observational class:
+\[
+ \mathcal M_\star\subseteq\mathcal M_{\mathrm{SR}}.
+\]
+\end{proposition}
+\begin{proof}
+Take \(P_X\in\mathcal M_\star\).  By \(\mathrm{def:lower\text{-}class}\), \(P_X\in\mathcal M\).  The representation in \(\mathrm{def:fourier\text{-}model}\) supplies
+\[
+ X=AH+G_\Gamma,qquad U=AH,qquad U\perp G_\Gamma,
+\]
+with \(1\le k\le p\), mutually independent nonconstant coordinates \(H_j\), \(\operatorname{Var}(H_j)=1\), \(\operatorname{rank}(A)=k\), lexicographically sorted loading columns, and no nondegenerate Gaussian convolution divisor for any \(H_j\).
+
+Full column rank makes \(A^\top A\) invertible and provides the deterministic left inverse
+\[
+ L=(A^\top A)^{-1}A^\top,qquad H=LU.
+\]
+Thus \(H\) is a measurable function of \(U\), and \(U\perp G_\Gamma\) implies \(H\perp G_\Gamma\).  Mutual independence and unit marginal variances give
+\[
+ \operatorname{Cov}(H)=I_k.
+\]
+Finally, a nonconstant Gaussian coordinate has positive variance and can be expressed as the convolution of two centered Gaussians with positive variances summing to that variance.  It would therefore possess a nondegenerate Gaussian convolution divisor, contrary to the source assumption.  Hence every \(H_j\) is non-Gaussian.  These are exactly the defining observational conditions in \(\mathrm{def:sr\text{-}published\text{-}class}\).  Therefore \(P_X\in\mathcal M_{\mathrm{SR}}\), proving
+\[
+ \mathcal M_\star\subseteq\mathcal M_{\mathrm{SR}}.
+\]
+\end{proof}
+
+\begin{theorem}[thm:splice-two-point-transfer]\label{thm:splice-two-point-transfer}
+Let \(P_{0,N},P_{1,N}\) and \(s_N\) be the splice witnesses.  For each \(\mathcal A\in\{\mathcal M_\star,\mathcal M_{\mathrm{SR}}\}\), equip \(\mathcal A\) with covariance and compatible-effect target maps that agree with \(\Gamma(P)\) and \(\Theta_{TY}(\Gamma(P),\preceq)\) on \(\mathcal M_\star\); their values off \(\mathcal M_\star\) are unrestricted.  Then
+\[
+ \inf_{\widetilde\Gamma_N\in\mathfrak E_{\Gamma,N}}
+ \sup_{P\in\mathcal A}
+ \mathbb E_{P^{\otimes N}}\|\widetilde\Gamma_N-\Gamma(P)\|_{\mathrm{op}}
+ =\Omega((\log N)^{-1})
+\]
+and
+\[
+ \inf_{\widetilde\Theta_N\in\mathfrak E_{\Theta,N}}
+ \sup_{P\in\mathcal A}
+ \mathbb E_{P^{\otimes N}}
+ d_H\!\left(\widetilde\Theta_N,\Theta_{TY}(\Gamma(P),\preceq)\right)
+ =\Omega((\log N)^{-1}).
+\]
+If a Borel compact-valued sequence \((S_N)\) is uniformly honest over \(\mathcal A\), meaning
+\[
+ \liminf_{N\to\infty}\inf_{P\in\mathcal A}P^{\otimes N}
+ \{\Theta_{TY}(\Gamma(P),\preceq)\subseteq S_N\}\ge1-\alpha,
+\]
+then
+\[
+ \liminf_{N\to\infty}P_{0,N}^{\otimes N}
+ \{\operatorname{diam}(S_N)\ge |b(s_N)-b(0)|\}\ge1-2\alpha,
+ \qquad |b(s_N)-b(0)|\asymp(\log N)^{-1}.
+\]
+The same three lower conclusions hold for every statistical superclass containing \(\mathcal M_\star\), provided its covariance and compatible-effect target maps agree with \(\Gamma(P)\) and \(\Theta_{TY}(\Gamma(P),\preceq)\) on \(\mathcal M_\star\).  No upper rate over \(\mathcal M_{\mathrm{SR}}\) is asserted.
+\end{theorem}
+\begin{proof}
+By \(\mathrm{thm:smooth\text{-}splice\text{-}pair}\), for all sufficiently large \(N\), both witnesses lie in \(\mathcal M_\star\),
+\[
+ \tau_N:=\|P_{0,N}^{\otimes N}-P_{1,N}^{\otimes N}\|_{\mathrm{TV}}
+ \longrightarrow0,
+\]
+and their target values are
+\[
+ \Gamma_{0,N}=\Gamma(0),\quad \Gamma_{1,N}=\Gamma(s_N),
+ \qquad
+ \mathcal T_{0,N}=\{b(0)\},\quad \mathcal T_{1,N}=\{b(s_N)\}.
+\]
+By \(\mathrm{prop:lower\text{-}class\text{-}sr\text{-}inclusion}\), the witnesses also lie in \(\mathcal M_{\mathrm{SR}}\), and they lie in every stipulated superclass containing \(\mathcal M_\star\).  The required agreement of target maps makes the displayed target values unchanged in each such class.
+
+Since \(\Gamma(s)=\Gamma_\star+saa^\top\) and \(\|aa^\top\|_{\mathrm{op}}=\|a\|_2^2=54/25\),
+\[
+ \delta_{\Gamma,N}:=\|\Gamma_{1,N}-\Gamma_{0,N}\|_{\mathrm{op}}
+ ={54\over25}s_N. \tag{1}
+\]
+For any \(\widetilde\Gamma_N\in\mathfrak E_{\Gamma,N}\), define the measurable event
+\[
+ E_N=\left\{\|\widetilde\Gamma_N-\Gamma_{0,N}\|_{\mathrm{op}}
+ <{\delta_{\Gamma,N}\over2}\right\}.
+\]
+On \(E_N^c\), the loss under \(P_{0,N}\) is at least \(\delta_{\Gamma,N}/2\).  On \(E_N\), the triangle inequality makes the loss under \(P_{1,N}\) greater than \(\delta_{\Gamma,N}/2\).  By the definition of total variation,
+\[
+ P_{1,N}^{\otimes N}(E_N)
+ \ge P_{0,N}^{\otimes N}(E_N)-\tau_N.
+\]
+Consequently
+\[
+ \begin{aligned}
+ &\mathbb E_{P_{0,N}^{\otimes N}}
+   \|\widetilde\Gamma_N-\Gamma_{0,N}\|_{\mathrm{op}}
+ +\mathbb E_{P_{1,N}^{\otimes N}}
+   \|\widetilde\Gamma_N-\Gamma_{1,N}\|_{\mathrm{op}}\\
+ &\qquad\ge{\delta_{\Gamma,N}\over2}(1-\tau_N).
+ \end{aligned}
+\]
+The larger of the two risks is at least half their sum.  Thus every class \(\mathcal A\) containing the witnesses satisfies
+\[
+ \inf_{\widetilde\Gamma_N\in\mathfrak E_{\Gamma,N}}
+ \sup_{P\in\mathcal A}
+ \mathbb E_{P^{\otimes N}}\|\widetilde\Gamma_N-\Gamma(P)\|_{\mathrm{op}}
+ \ge {\delta_{\Gamma,N}\over4}(1-\tau_N)
+ ={27\over50}s_N(1-\tau_N). \tag{2}
+\]
+Because \(s_N=(600\log N)^{-1}\), this is the asserted covariance lower bound.
+
+For the distinct causal target,
+\[
+ \delta_{\Theta,N}:=d_H(\mathcal T_{0,N},\mathcal T_{1,N})
+ =|b(s_N)-b(0)|={2s_N\over5(1+s_N)}. \tag{3}
+\]
+For \(0<s_N\le1\),
+\[
+ {s_N\over5}\le\delta_{\Theta,N}\le{2s_N\over5}. \tag{4}
+\]
+Repeat the preceding event argument in the metric space \((\mathcal K(\mathbb R),d_H)\), using the open ball of radius \(\delta_{\Theta,N}/2\) around \(\mathcal T_{0,N}\).  Borel measurability of the estimator makes this event measurable.  The triangle inequality for \(d_H\) gives
+\[
+ \inf_{\widetilde\Theta_N\in\mathfrak E_{\Theta,N}}
+ \sup_{P\in\mathcal A}
+ \mathbb E_{P^{\otimes N}}
+ d_H\!\left(\widetilde\Theta_N,
+ \Theta_{TY}(\Gamma(P),\preceq)\right)
+ \ge {\delta_{\Theta,N}\over4}(1-\tau_N)
+ =\Omega((\log N)^{-1}). \tag{5}
+\]
+Thus covariance and compatible-effect losses are treated as different target metrics.
+
+Finally, let \((S_N)\) be uniformly honest over such a class \(\mathcal A\), and put
+\[
+ h_N=\inf_{P\in\mathcal A}P^{\otimes N}
+ \{\Theta_{TY}(\Gamma(P),\preceq)\subseteq S_N\}.
+\]
+The honesty assumption says \(\liminf_Nh_N\ge1-\alpha\).  Define
+\[
+ r_N=\left[(1-\alpha)-\inf_{m\ge N}h_m\right]_++N^{-1}.
+\]
+Then \(r_N\to0\) and \(h_N\ge1-\alpha-r_N\).  Let
+\[
+ F_{0,N}=\{b(0)\in S_N\},\qquad
+ F_{1,N}=\{b(s_N)\in S_N\}.
+\]
+These events are measurable because, for fixed \(x\), the map \(K\mapsto\inf_{y\in K}|x-y|\) is one-Lipschitz in Hausdorff distance, and \(\{K:x\in K\}\) is its zero set.  Honesty at the two singleton targets gives
+\[
+ P_{0,N}^{\otimes N}(F_{0,N})\ge1-\alpha-r_N,
+ \qquad
+ P_{1,N}^{\otimes N}(F_{1,N})\ge1-\alpha-r_N.
+\]
+Transferring the second event by total variation and applying the union bound under \(P_{0,N}^{\otimes N}\) yields
+\[
+ P_{0,N}^{\otimes N}(F_{0,N}\cap F_{1,N})
+ \ge1-2\alpha-2r_N-\tau_N. \tag{6}
+\]
+On this intersection, \(S_N\) contains both points, and therefore
+\[
+ \operatorname{diam}(S_N)\ge|b(s_N)-b(0)|.
+\]
+Taking the lower limit in (6), and using \(r_N,\tau_N\to0\), proves the honest-diameter assertion.  Equations (3)--(4) prove its logarithmic order.  The proof used only membership of the two witnesses and agreement of the target maps on them, so it applies to \(\mathcal M_\star\), \(\mathcal M_{\mathrm{SR}}\), and every superclass specified in the statement.  No upper bound over \(\mathcal M_{\mathrm{SR}}\) has been asserted.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The logarithmic upper guarantee is uniform only with fixed dimension and known ray exponents, Fourier envelopes, spectral bounds, and an eighth-moment bound; it does not require a global loading cap. The lower splice uses a fixed three-variable exponent-two class with the separate localization \(\|A\|_{\mathrm{op}}\le3\) and conservative numerical constants. Its derivative and weighted-Parseval estimates establish product indistinguishability but do not provide adaptation to unknown smoothness or a matching upper theorem over the unrestricted Sanjaroonpouri--Ramazi class.
+
+\section{Honest scope}
+
+The theorem-level deliverables are the exact ideal representation, collision-stable Lipschitz transfer, measurable finite-sample covariance and whole-fiber regions, \(O((\log N)^{-1})\) expected error on the cap-free Fourier class, the explicit positive smooth-splice pair, matching fixed-subclass minimax and honest-diameter results, lower-only transfer to the Sanjaroonpouri--Ramazi class and every superclass containing the fixed splice class, and the uniformly quantified literal-Laplace boundary. The general Fourier and literal-Laplace upper results use no loading compactness; only \(\mathcal M_\star\) carries the direct bound \(\|A\|_{\mathrm{op}}\le3\). No blanket nonnestedness theorem is claimed. The broader published class receives no upper-rate claim because it does not impose the uniform Fourier envelopes or compact spectral and moment bounds used by the estimator analysis. The proposal also does not claim adaptation to unknown exponents, growing-dimension guarantees, polynomial-delay ideal enumeration, correct singleton selection, or minimax sharpness for every exponent profile. When the partial order is total, the ideal family has one treatment-predecessor set and the fiber reduces to the usual singleton regression effect.
+
+\begin{thebibliography}{99}
+
+  \bibitem{SanjaroonpouriRamazi2025} V. Sanjaroonpouri and P. Ramazi. Linear SCM Identification in the Presence of Confounders and Gaussian Noise. International Conference on Learning Representations, 2025.
+
+  \bibitem{BelomestnyTrabsTsybakov2019} D. Belomestny, M. Trabs, and A. B. Tsybakov. Sparse Covariance Matrix Estimation in High-Dimensional Deconvolution. Bernoulli 25, 1901--1938, 2019.
+
+  \bibitem{Meister2006} A. Meister. Density Estimation with Normal Measurement Error with Unknown Variance. Statistica Sinica 16, 195--211, 2006.
+
+  \bibitem{StriederDrton2023} D. Strieder and M. Drton. Confidence in Causal Inference under Structure Uncertainty in Linear Causal Models with Equal Variances. Journal of Causal Inference 11, 20230030, 2023.
+
+  \bibitem{StriederDrton2024PH} D. Strieder and M. Drton. Identifying Total Causal Effects in Linear Models under Partial Homoscedasticity. Proceedings of Machine Learning Research 246, 213--230, 2024.
+
+  \bibitem{WangKolarDrton2024} Y. S. Wang, M. Kolar, and M. Drton. Confidence Sets for Causal Orderings. arXiv:2305.14506v2, 2024; see Algorithm 3 and Lemma 1 on post-processing order confidence sets into total-effect intervals.
+
+  \bibitem{PerkovicKalischMaathuis2017} E. Perkovi\'c, M. Kalisch, and M. H. Maathuis. Interpreting and Using CPDAGs with Background Knowledge. Uncertainty in Artificial Intelligence, 2017.
+
+  \bibitem{MiettinenTaskinenNordhausenOja2015} J. Miettinen, S. Taskinen, K. Nordhausen, and H. Oja. Fourth Moments and Independent Component Analysis. Statistical Science 30, 372--390, 2015.
+
+  \bibitem{KatoSasaki2018} K. Kato and Y. Sasaki. Uniform Confidence Bands in Deconvolution with Unknown Error Distribution. Journal of Econometrics 207, 129--161, 2018.
+
+\end{thebibliography}
+
+\end{document}

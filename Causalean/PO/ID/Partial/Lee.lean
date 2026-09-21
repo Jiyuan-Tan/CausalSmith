@@ -39,17 +39,8 @@ The submodules provide:
 Quantile form (rem:po-lee-quantile) is deferred to a follow-on file.
 -/
 
-import Causalean.PO.ID.Partial.Lee.Setup
-import Causalean.PO.ID.Partial.Lee.Assumptions
-import Causalean.PO.ID.Partial.Lee.Trim
-import Causalean.PO.ID.Partial.Lee.PrincipalStrata
-import Causalean.PO.ID.Partial.Lee.ControlMean
-import Causalean.PO.ID.Partial.Lee.MixtureIdentity
-import Causalean.PO.ID.Partial.Lee.LatentSupport
-import Causalean.PO.ID.Partial.Lee.TrimWeight
-import Causalean.PO.ID.Partial.Lee.TrimMean
-import Causalean.PO.ID.Partial.Lee.TrimBound
-import Causalean.PO.ID.Partial.Lee.Main
+module
+public import Causalean.PO.ID.Partial.Lee.Main
 
 /-! # Lee Bounds
 

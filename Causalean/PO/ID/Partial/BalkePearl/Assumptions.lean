@@ -11,7 +11,8 @@ instrument exogeneity (Z ⊥ (D(0),D(1),Y(0),Y(1))), and positive instrument
 probability.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Setup
+module
+public import Causalean.PO.ID.Partial.BalkePearl.Setup
 
 /-! # Balke-Pearl Assumptions
 
@@ -19,6 +20,8 @@ This file collects the structural assumptions for Balke-Pearl partial
 identification with a binary instrument, including the IV-specific consistency
 equalities, exclusion, instrument exogeneity, and positive instrument probabilities.
 It also packages the counterfactual variables used by the exogeneity condition. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

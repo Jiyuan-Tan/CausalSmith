@@ -3,7 +3,7 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Feasible (solved) partially linear DML estimator and its asymptotic normality
+# Feasible one-shot partially linear estimator and its fold-B asymptotic normality
 
 The headline file `Estimation/PLR/DML.lean` proves √|B|-asymptotic normality
 for the **one-step** Chernozhukov estimator
@@ -15,9 +15,10 @@ affine in `θ` — has the closed Robinson partialling-out form
 
     θ̂_feas = Pₙ[(Y − ℓ̂)(D − m̂)] / Pₙ[(D − m̂)²].
 
-This file defines that *feasible* estimator and proves it has the same Gaussian
-limit as the one-step estimator, by the standard "one-step ≈ solved estimator"
-asymptotic-equivalence argument:
+This file defines that *feasible* estimator and proves, pointwise for one model
+and one sample split, that it has the same fold-B Gaussian limit as the one-step
+estimator, by the standard "one-step ≈ solved estimator" asymptotic-equivalence
+argument:
 
 * the two rescaled recentered estimators differ by
   `(J₀⁻¹ − (Pₙmₐ)⁻¹) · ((√|B|)⁻¹ Σ ψ)`, an exact algebraic identity off the
@@ -32,15 +33,19 @@ asymptotic-equivalence argument:
   absorption (`Tendsto_dist.add_isLittleOp_one`) transports the one-step
   Gaussian limit to the feasible estimator.
 
-This mirrors the analogous one-step ⇒ solved reductions for the AIPW and ATE
-DML estimators; only one new probabilistic input is required, the in-probability
-consistency of the empirical partialling-out Jacobian over fold B.
+This one-shot result does not state the published K-fold DML1/DML2 theorem,
+uniformity over a model class, variance estimation, or confidence validity. The
+conditional transfer uses consistency of the empirical partialling-out Jacobian
+over fold B; the final theorem derives that consistency from explicit nuisance
+and Jacobian-increment rate assumptions.
 -/
 
-import Causalean.Estimation.PLR.DML
-import Causalean.Stat.Limit.ContinuousMapping
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Causalean.Stat.EmpiricalProcess.CrossFitRate
+module
+public import Causalean.Estimation.PLR.DML
+public import Causalean.Estimation.PLR.JacobianConsistency
+public import Causalean.Stat.EmpiricalProcess.CrossFitRate
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
 
 /-! # Feasible partially linear DML
 
@@ -48,10 +53,16 @@ This file treats the one-dimensional partially linear regression model, so the
 orthogonal score is affine in a single scalar treatment-effect parameter. It
 defines the solved Robinson ratio estimator `plrFeasibleEstimator`, whose
 numerator is the empirical covariance of residualized outcome and treatment and
-whose denominator is the empirical treatment residual variance. The theorem
-`plr_dml_feasible_tendstoNormal` reduces its √|B|-asymptotic normality to the
-one-step normality theorem `plr_dml_tendstoNormal` by the standard
-asymptotic-equivalence argument. -/
+whose denominator is the empirical treatment residual variance. The lemma
+`plr_dml_feasible_tendstoNormal_of_jacobianConsistency` reduces its pointwise
+√|B|-asymptotic normality, conditional on empirical Jacobian consistency, to
+the one-step normality theorem `plr_oneStepOracleDML_tendstoNormal` by the
+standard asymptotic-equivalence argument. The final theorem
+`plr_dml_feasible_tendstoNormal_of_rates` derives that consistency from
+explicit nuisance-rate, Jacobian-increment-rate, moment, and fold-measurability
+conditions. Neither theorem is a K-fold DML1/DML2 result. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -69,10 +80,12 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 /-- For [a partially linear potential-outcomes system with a finite population measure and a
 measurable covariate space](hyp:P,γ), [a partially linear estimation system built on it](hyp:S),
 [an independent and identically distributed sample from its joint observed-data law](hyp:sample),
-[a one-shot evaluation-fold split of that sample](hyp:split), [a sequence of estimated outcome-and-treatment
-regression pairs](hyp:η_hat), and [a sample-size index](hyp:n), the [feasible partially linear
-double-machine-learning estimator](goal) maps each population state to the ratio of the evaluation-fold
-sum of residualized-outcome times residualized-treatment to the evaluation-fold sum of squared residualized-treatment.
+[a one-shot evaluation-fold split of that sample](hyp:split), [a sequence of
+estimated outcome-and-treatment regression pairs](hyp:η_hat), and [a sample-size
+index](hyp:n), the [feasible partially linear double-machine-learning
+estimator](goal) maps each population state to the ratio of the evaluation-fold
+sum of residualized-outcome times residualized-treatment to the evaluation-fold
+sum of squared residualized-treatment.
 
 Solving the empirical
 Robinson partialling-out moment equation `Pₙ ψ(η̂, ·, θ) = 0` for `θ` — which,
@@ -94,20 +107,26 @@ noncomputable def plrFeasibleEstimator (S : PLRSystem P γ)
   fun ω => (∑ i ∈ split.foldB n, plrMomentB (η_hat n ω) (sample.Z i ω))
             / (∑ i ∈ split.foldB n, (plrResidual (η_hat n ω) (sample.Z i ω)) ^ 2)
 
-/-- **Feasible partially linear DML asymptotic-normality theorem.**  Fix a partially linear
-estimation system, an i.i.d. sample of covariate-treatment-outcome triples, and [a sample split
-whose evaluation-fold share converges to a fixed positive limit](hyp:hc_pos,h_split_rate).
+/-- **Conditional feasible partially linear DML asymptotic-normality lemma.**
+For [a partially linear estimation system on a finite probability space with measurable
+covariates](hyp:P,γ,S), [an i.i.d. sample of covariate-treatment-outcome
+triples](hyp:sample), and [a sample split whose evaluation-fold share converges to a fixed
+positive limit `c`](hyp:split,c,hc_pos,h_split_rate),
 Suppose [the structural error, its product with the treatment residual, the baseline-covariate
 term, and the treatment are integrable, the true treatment residual is square-integrable, and the
 true score has finite second moment](hyp:hU,hUV,hbX,hD,hV,hsq); for the estimated nuisance
-sequence `η_hat`, [the outcome- and treatment-regression errors are square-integrable in the
+sequence [`η_hat`](hyp:η_hat), [the outcome- and treatment-regression errors are
+square-integrable in the
 covariate law at every fold and draw, with the resulting cross terms against the structural error
 and the treatment residual integrable](hyp:hΔl,hΔm,hUΔm,hΔlV,hVΔm); [the estimated score is
 jointly measurable and measurable as a function of the nuisance-training fold alone and jointly
 with the observation](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry), and [integrable and
-square-integrable at every fold and draw](hyp:h_m_int,h_m_sq_int); [the estimated score converges
-to the true score in L²(P_Z) at rate $o_p(1)$, and the product of the two nuisance-error
-seminorms is $o_p(n^{-1/2})$](hyp:h_score_diff_rate,h_product_rate); and [the influence function,
+square-integrable at every fold and draw](hyp:h_m_int,h_m_sq_int); [the true residual factors
+and nuisance errors satisfy the fourth-moment, almost-sure envelope, and individual
+$o_p(1)$ conditions that imply L² score
+convergence](hyp:hA_memLp,hv_memLp,B,hB,hΔl4_memLp,hΔm4_memLp,hΔl4_bound,hΔm4_bound,h_l_rate,h_m_rate),
+[the product of the two nuisance-error
+seminorms is $o_p(n^{-1/2})$](hyp:h_product_rate); and [the influence function,
 the one-step rescaled estimator at each `n`, and the normalized influence sum at each `n` are all
 measurable](hyp:hψ_meas,hθn_meas,hSum_meas). Suppose in addition [the empirical partialling-out
 Jacobian over fold B converges in probability to its population value `J₀`](hyp:hJ_consist), and
@@ -123,7 +142,7 @@ argument: the two rescaled estimators differ by the product of a factor that is
 continuous-mapping theorem) and the normalized influence sum that is `O_p(1)`
 (tightness of the one-step limit), so the difference is `o_p(1)` and Slutsky
 absorption carries the one-step Gaussian limit over. -/
-theorem plr_dml_feasible_tendstoNormal
+theorem plr_dml_feasible_tendstoNormal_of_jacobianConsistency
     (S : PLRSystem P γ)
     (sample : IIDSample P.Ω (γ × ℝ × ℝ) P.μ S.P_Z)
     (split : OneShotSplit sample)
@@ -170,15 +189,26 @@ theorem plr_dml_feasible_tendstoNormal
     (h_m_sq_int : ∀ n ω,
       Integrable (fun z =>
         (S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀) ^ 2) S.P_Z)
-    (h_score_diff_rate :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm
-            (fun z =>
-              S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀ -
-                S.plrGeneralMoment.m S.plrGeneralMoment.η₀ z S.plrGeneralMoment.θ₀)
-            2 S.P_Z).toReal)
-        (fun _ => (1 : ℝ)) P.μ)
+    (hA_memLp : MemLp
+      (fun z => z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)) 4 S.P_Z)
+    (hv_memLp : MemLp (fun z => z.2.1 - S.mVal z.1) 4 S.P_Z)
+    {B : ℝ} (hB : 0 ≤ B)
+    (hΔl4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X)
+    (hΔm4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X)
+    (hΔl4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal ≤ B)
+    (hΔm4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal ≤ B)
+    (h_l_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
+    (h_m_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
     (h_product_rate :
       IsLittleOp
         (fun n ω =>
@@ -187,42 +217,41 @@ theorem plr_dml_feasible_tendstoNormal
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ)
     (hψ_meas :
       Measurable
-        (fun z => -S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀))
+        (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀))
     (hθn_meas : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
-        (dmlChernozhukovEstimator S.plrGeneralMoment sample split η_hat)
+        (oneStepOracleDML S.plrGeneralMoment sample split η_hat)
         S.θ₀ split.foldB n) P.μ)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinear.normalizedSum sample
-        (fun z => -S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀)
+        (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀)
         split.foldB n) P.μ)
     -- The single new probabilistic hypothesis: in-probability consistency of the
     -- empirical partialling-out Jacobian over fold B to its population value.
     (hJ_consist :
-      Tendsto_inProb
+      Modes.TendstoInProbability (fun _ => P.μ)
         (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
           ∑ i ∈ split.foldB n, plrMomentA (η_hat n ω) (sample.Z i ω))
-        (fun _ => S.plrGeneralMoment.J₀) P.μ)
+        atTop (fun _ _ => S.plrGeneralMoment.linScale))
     (hθn_feas : ∀ n, AEMeasurable
       (IsAsymLinear.rescaledEstimator
         (plrFeasibleEstimator S sample split η_hat) S.θ₀ split.foldB n) P.μ) :
-    Tendsto_dist
+    Modes.TendstoInLaw (fun _ => P.μ)
       (IsAsymLinear.rescaledEstimator
         (plrFeasibleEstimator S sample split η_hat) S.θ₀ split.foldB)
-      (gaussianMeasure 0
-        (∫ z, (-S.plrGeneralMoment.J₀_inv * plrMomentFunctional S.η₀ z S.θ₀) ^ 2
-          ∂S.P_Z))
-      P.μ
-      hθn_feas := by
+      atTop (gaussianMeasure 0
+        (∫ z, (-S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀) ^ 2
+          ∂S.P_Z)) := by
   -- Step 1: the one-step rescaled estimator converges to the Gaussian target.
   have hOS :=
-    S.plr_dml_tendstoNormal sample split hc_pos h_split_rate η_hat
+    S.plr_oneStepOracleDML_tendstoNormal sample split hc_pos h_split_rate η_hat
       hU hUV hbX hD hV hsq hΔl hΔm hUΔm hΔlV hVΔm
       h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
-      h_score_diff_rate h_product_rate hψ_meas hθn_meas hSum_meas
+      hA_memLp hv_memLp hB hΔl4_memLp hΔm4_memLp hΔl4_bound hΔm4_bound
+      h_l_rate h_m_rate h_product_rate hψ_meas hθn_meas hSum_meas
   -- Abbreviations.
-  set J₀ : ℝ := S.plrGeneralMoment.J₀ with hJ₀_def
-  have hJ₀_ne : J₀ ≠ 0 := S.plrGeneralMoment.J₀_ne_zero
+  set J₀ : ℝ := S.plrGeneralMoment.linScale with hJ₀_def
+  have hJ₀_ne : J₀ ≠ 0 := S.plrGeneralMoment.linScale_ne_zero
   -- The empirical partialling-out Jacobian `Pₙ mₐ = |B|⁻¹ Σ mₐ`.
   set Pmₐ : ℕ → P.Ω → ℝ :=
     fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
@@ -235,7 +264,7 @@ theorem plr_dml_feasible_tendstoNormal
   -- The one-step rescaled estimator (the `Xn` of the Slutsky step).
   set Xn : ℕ → P.Ω → ℝ :=
     IsAsymLinear.rescaledEstimator
-      (dmlChernozhukovEstimator S.plrGeneralMoment sample split η_hat)
+      (oneStepOracleDML S.plrGeneralMoment sample split η_hat)
       S.θ₀ split.foldB with hXn_def
   -- The feasible rescaled estimator (the `Yn`).
   set Yn : ℕ → P.Ω → ℝ :=
@@ -243,7 +272,7 @@ theorem plr_dml_feasible_tendstoNormal
       (plrFeasibleEstimator S sample split η_hat) S.θ₀ split.foldB with hYn_def
   -- The factor that turns out to be `o_p(1)`: `J₀⁻¹ − (Pₙmₐ)⁻¹`.
   set Fn : ℕ → P.Ω → ℝ :=
-    fun n ω => S.plrGeneralMoment.J₀_inv - (Pmₐ n ω)⁻¹ with hFn_def
+    fun n ω => S.plrGeneralMoment.linScaleInv - (Pmₐ n ω)⁻¹ with hFn_def
   -- Step 4: `(√|B|)⁻¹ Σ ψ = −J₀ · (one-step rescaled estimator)` pointwise,
   -- hence `O_p(1)` by tightness of the one-step Gaussian limit.
   have hSψ_eq : Sψ = fun n ω => (-J₀) * Xn n ω := by
@@ -260,8 +289,8 @@ theorem plr_dml_feasible_tendstoNormal
       rfl
     have hXn_val : Xn n ω = Real.sqrt ((split.foldB n).card : ℝ) *
         (-(J₀⁻¹ * (((split.foldB n).card : ℝ)⁻¹ * Sumψ))) := by
-      simp only [hXn_def, IsAsymLinear.rescaledEstimator, dmlChernozhukovEstimator,
-        GeneralMoment.J₀_inv, hJ₀_def, hθ₀_proj, hsum_m]
+      simp only [hXn_def, IsAsymLinear.rescaledEstimator, oneStepOracleDML,
+        GeneralMoment.linScaleInv, hJ₀_def, hθ₀_proj, hsum_m]
       ring
     have hSψ_val : Sψ n ω = (Real.sqrt ((split.foldB n).card : ℝ))⁻¹ * Sumψ := rfl
     rw [hSψ_val, hXn_val]
@@ -290,29 +319,33 @@ theorem plr_dml_feasible_tendstoNormal
     rw [hSψ_eq]
     exact Causalean.Stat.IsBigOp.const_mul (-J₀) (Tendsto_dist.tightness hθn_meas hOS)
   -- Step 3: `(Pₙmₐ)⁻¹ →ₚ J₀⁻¹`, hence `Fn = J₀⁻¹ − (Pₙmₐ)⁻¹ →ₚ 0`, i.e. `o_p(1)`.
-  have hPmₐ_inv : Tendsto_inProb (fun n ω => 1 / Pmₐ n ω) (fun _ => 1 / J₀) P.μ := by
-    have := (hJ_consist).inv hJ₀_ne
+  have hPmₐ_inv : Modes.TendstoInProbability (fun _ => P.μ)
+      (fun n ω => 1 / Pmₐ n ω) atTop (fun _ _ => 1 / J₀) := by
+    have := Causalean.Stat.Tendsto_inProb.inv hJ_consist hJ₀_ne
     simpa [hPmₐ_def, hJ₀_def] using this
-  have hFn_inProb : Tendsto_inProb Fn (fun _ => 0) P.μ := by
+  have hFn_inProb : Modes.TendstoInProbability (fun _ => P.μ) Fn atTop
+      (fun _ _ => 0) := by
     -- `Fn = J₀⁻¹ − (Pₙmₐ)⁻¹ = (1/J₀) − (1/Pₙmₐ)`; it converges to `0`.
     have hconv :
-        Tendsto_inProb (fun n ω => (fun n ω => 1 / Pmₐ n ω) n ω - 1 / J₀)
-          (fun _ => 0) P.μ := hPmₐ_inv.sub_const
+        Modes.TendstoInProbability (fun _ => P.μ)
+          (fun n ω => (fun n ω => 1 / Pmₐ n ω) n ω - 1 / J₀)
+          atTop (fun _ _ => 0) := Causalean.Stat.Tendsto_inProb.sub_const hPmₐ_inv
     -- Rewrite `1/x = x⁻¹` and flip the sign to match `Fn`.
     have hneg :
-        Tendsto_inProb (fun n ω => -(fun n ω => 1 / Pmₐ n ω - 1 / J₀) n ω)
-          (fun _ => 0) P.μ := by
+        Modes.TendstoInProbability (fun _ => P.μ)
+          (fun n ω => -(fun n ω => 1 / Pmₐ n ω - 1 / J₀) n ω)
+          atTop (fun _ _ => 0) := by
       have hcont : ContinuousAt (fun x : ℝ => -x) (0 : ℝ) := (continuous_neg).continuousAt
-      have := hconv.comp_continuousAt (g := fun x : ℝ => -x) hcont
+      have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hconv
       simpa using this
     have hFn_eq : Fn = fun n ω => -((fun n ω => 1 / Pmₐ n ω) n ω - 1 / J₀) := by
       funext n ω
-      simp only [hFn_def, GeneralMoment.J₀_inv, hJ₀_def, one_div]
+      simp only [hFn_def, GeneralMoment.linScaleInv, hJ₀_def, one_div]
       ring
     rw [hFn_eq]
     exact hneg
   have hFn_littleO : IsLittleOp Fn (fun _ => (1 : ℝ)) P.μ :=
-    hFn_inProb.isLittleOp_one
+    Causalean.Stat.Tendsto_inProb.isLittleOp_one hFn_inProb
   -- Step 5: the product `Fn · Sψ = o_p(1)`.
   have hprod_littleO :
       IsLittleOp (fun n ω => Sψ n ω * Fn n ω) (fun _ => (1 : ℝ)) P.μ :=
@@ -377,7 +410,7 @@ theorem plr_dml_feasible_tendstoNormal
       simp only [plrFeasibleEstimator, hSb_def, hD_def]
     -- Now expand `Yn − Xn` and `Sψ · Fn`, and check the algebraic identity.
     simp only [hYn_def, hXn_def, hSψ_def, hFn_def, IsAsymLinear.rescaledEstimator,
-      dmlChernozhukovEstimator, GeneralMoment.J₀_inv, hfeas_val, hsum_psi,
+      oneStepOracleDML, GeneralMoment.linScaleInv, hfeas_val, hsum_psi,
       hPmₐ_val]
     -- `m(η̂, z, θ₀) = plrMomentFunctional η̂ z θ₀` definitionally; rewrite its sum.
     rw [show (∑ i ∈ split.foldB n,
@@ -385,7 +418,8 @@ theorem plr_dml_feasible_tendstoNormal
         = (-D) * S.θ₀ + Sb from hsum_psi]
     -- Everything is now a rational identity in `√|B|, |B|, D, Sb, θ₀, J₀`.
     -- Canonicalize the moment projections (`θ₀ = S.θ₀`, `J₀⁻¹` from `J₀`).
-    have hJ₀'_ne : S.plrGeneralMoment.J₀ ≠ 0 := S.plrGeneralMoment.J₀_ne_zero
+    have hJ₀'_ne : S.plrGeneralMoment.linScale ≠ 0 :=
+      S.plrGeneralMoment.linScale_ne_zero
     have hθ₀_proj : S.plrGeneralMoment.θ₀ = S.θ₀ := rfl
     have hPmₐ_term_ne : ((split.foldB n).card : ℝ)⁻¹ * (-D) ≠ 0 := by
       rw [← hPmₐ_val]; exact hPne
@@ -414,10 +448,11 @@ theorem plr_dml_feasible_tendstoNormal
       exact hω (hdiff_eq n ω hne)
     -- Measure of `{|Pₙmₐ − J₀| ≥ |J₀|}` → 0 from `Pₙmₐ →ₚ J₀` and `J₀ ≠ 0`.
     have hJabs_pos : 0 < |J₀| := abs_pos.mpr hJ₀_ne
-    have hconsist : Tendsto_inProb Pmₐ (fun _ => J₀) P.μ := by
+    have hconsist : Modes.TendstoInProbability (fun _ => P.μ) Pmₐ atTop
+        (fun _ _ => J₀) := by
       simpa [hPmₐ_def, hJ₀_def] using hJ_consist
     have hconsist_norm := hconsist
-    unfold Tendsto_inProb at hconsist_norm
+    rw [Modes.tendstoInProbability_const_space] at hconsist_norm
     rw [tendstoInMeasure_iff_norm] at hconsist_norm
     have htail := hconsist_norm |J₀| hJabs_pos
     refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds htail
@@ -432,6 +467,177 @@ theorem plr_dml_feasible_tendstoNormal
     IsLittleOp.of_eq_on_asymptotic hbad_to_zero hprod_littleO
   -- Step 7: Slutsky absorption transports the one-step Gaussian limit.
   exact Tendsto_dist.add_isLittleOp_one hθn_meas hθn_feas hOS hrem_littleO
+
+/-- **Feasible one-shot partially linear asymptotic normality from nuisance and
+Jacobian-increment rates.**
+For [a partially linear system on a finite probability space with measurable covariates](hyp:P,γ,S),
+[an i.i.d. observed-data sample](hyp:sample), [an evaluation split whose limiting share `c` is
+positive](hyp:split,c,hc_pos,h_split_rate), and [training-fold outcome- and treatment-regression
+estimates](hyp:η_hat), suppose [the structural variables, true score, nuisance errors, and their
+orthogonality cross-products satisfy the required moment
+conditions](hyp:hU,hUV,hbX,hD,hV,hsq,hΔl,hΔm,hUΔm,hΔlV,hVΔm),
+[the estimated score has the required joint and training-fold measurability and first two
+moments](hyp:h_m_meas,h_m_foldA,h_m_foldA_uncurry,h_m_int,h_m_sq_int), [the residual factors and
+nuisance errors satisfy the fourth-moment, almost-sure envelope, and individual rates that imply
+vanishing L² score
+error](hyp:hA_memLp,hv_memLp,B,hB,hΔl4_memLp,hΔm4_memLp,hΔl4_bound,hΔm4_bound,h_l_rate,h_m4_rate),
+[the product of the two nuisance errors is smaller than the inverse square-root sample
+rate](hyp:h_product_rate), [the influence function, oracle rescaling, normalized
+influence sum, and feasible rescaling are measurable](hyp:hψ_meas,hθn_meas,hSum_meas,hθn_feas),
+[the true Jacobian score and the treatment-residual quantities satisfy the moment conditions needed
+for its empirical law of large numbers and bias
+expansion](hyp:hg0_memLp,hresid_sq,hΔm_sq,hcross,hΔm_memLp),
+[the treatment-regression L² error vanishes](hyp:h_m_rate), and [the Jacobian-score increment is
+jointly measurable, training-fold measurable, square-integrable, and vanishes in
+L²](hyp:hΔa_meas,hΔa_foldA,hΔa_uncurry_foldA,hΔa_memLp,hΔa_rate), then [the solved Robinson
+partialling-out estimator, centered at the true slope and scaled by the square root of the
+evaluation-fold size, converges in distribution to the centered Gaussian with variance equal to
+the second moment of the inverse-Jacobian-scaled true orthogonal score](goal).
+
+This is a pointwise, one-shot fold-B limit theorem. Empirical Jacobian
+consistency is derived rather than assumed, but its derivation still requires
+the explicit L² rate of the Jacobian-score increment `hΔa_rate`; the theorem
+does not derive that rate from the fourth-moment treatment-regression rate. It
+does not state a K-fold DML1/DML2 result. -/
+theorem plr_dml_feasible_tendstoNormal_of_rates
+    (S : PLRSystem P γ)
+    (sample : IIDSample P.Ω (γ × ℝ × ℝ) P.μ S.P_Z)
+    (split : OneShotSplit sample)
+    {c : ℝ} (hc_pos : 0 < c)
+    (h_split_rate :
+      Tendsto (fun n => ((split.foldB n).card : ℝ) / n) atTop (𝓝 c))
+    (η_hat : ℕ → P.Ω → PLRNuisance γ)
+    (hU : Integrable S.U P.μ)
+    (hUV : Integrable (fun ω => S.U ω * S.toPOPartialLinearModel.resid ω) P.μ)
+    (hbX : Integrable (fun ω => S.b (S.factualX ω)) P.μ)
+    (hD : Integrable S.factualD P.μ)
+    (hV : MemLp S.resid 2 P.μ)
+    (hsq : Integrable
+      (fun ω => (plrMomentFunctional S.η₀ (S.factualZ ω) S.θ₀) ^ 2) P.μ)
+    (hΔl : ∀ n ω, MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 2 S.P_X)
+    (hΔm : ∀ n ω, MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 2 S.P_X)
+    (hUΔm : ∀ n ω, Integrable
+      (fun ω' => S.U ω' *
+        ((η_hat n ω).mFn (S.factualX ω') - S.mVal (S.factualX ω'))) P.μ)
+    (hΔlV : ∀ n ω, Integrable
+      (fun ω' => ((η_hat n ω).lFn (S.factualX ω') - S.lVal (S.factualX ω'))
+        * S.resid ω') P.μ)
+    (hVΔm : ∀ n ω, Integrable
+      (fun ω' => S.resid ω' *
+        ((η_hat n ω).mFn (S.factualX ω') - S.mVal (S.factualX ω'))) P.μ)
+    (h_m_meas :
+      ∀ n, Measurable (fun (p : P.Ω × (γ × ℝ × ℝ)) =>
+        S.plrGeneralMoment.m (η_hat n p.1) p.2 S.plrGeneralMoment.θ₀))
+    (h_m_foldA :
+      ∀ n,
+        Measurable[MeasurableSpace.comap
+          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
+          (fun ω z => S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀))
+    (h_m_foldA_uncurry :
+      ∀ n,
+        Measurable[(MeasurableSpace.comap
+            (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
+          (inferInstance : MeasurableSpace (γ × ℝ × ℝ))]
+          (fun (p : P.Ω × (γ × ℝ × ℝ)) =>
+            S.plrGeneralMoment.m (η_hat n p.1) p.2 S.plrGeneralMoment.θ₀))
+    (h_m_int : ∀ n ω,
+      Integrable (fun z =>
+        S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀) S.P_Z)
+    (h_m_sq_int : ∀ n ω,
+      Integrable (fun z =>
+        (S.plrGeneralMoment.m (η_hat n ω) z S.plrGeneralMoment.θ₀) ^ 2) S.P_Z)
+    (hA_memLp : MemLp
+      (fun z => z.2.2 - S.lVal z.1 - S.θ₀ * (z.2.1 - S.mVal z.1)) 4 S.P_Z)
+    (hv_memLp : MemLp (fun z => z.2.1 - S.mVal z.1) 4 S.P_Z)
+    {B : ℝ} (hB : 0 ≤ B)
+    (hΔl4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X)
+    (hΔm4_memLp : ∀ n ω,
+      MemLp (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X)
+    (hΔl4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal ≤ B)
+    (hΔm4_bound : ∀ n, ∀ᵐ ω ∂P.μ,
+      (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal ≤ B)
+    (h_l_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).lFn x - S.lVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
+    (h_m4_rate : IsLittleOp
+      (fun n ω =>
+        (eLpNorm (fun x => (η_hat n ω).mFn x - S.mVal x) 4 S.P_X).toReal)
+      (fun _ => (1 : ℝ)) P.μ)
+    (h_product_rate :
+      IsLittleOp
+        (fun n ω =>
+          ((S.plrGeneralMoment.ρ₁ (η_hat n ω) S.plrGeneralMoment.η₀ : NNReal) : ℝ) *
+            ((S.plrGeneralMoment.ρ₂ (η_hat n ω) S.plrGeneralMoment.η₀ : NNReal) : ℝ))
+        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ)
+    (hψ_meas :
+      Measurable
+        (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀))
+    (hθn_meas : ∀ n, AEMeasurable
+      (IsAsymLinear.rescaledEstimator
+        (oneStepOracleDML S.plrGeneralMoment sample split η_hat)
+        S.θ₀ split.foldB n) P.μ)
+    (hSum_meas : ∀ n, AEMeasurable
+      (IsAsymLinear.normalizedSum sample
+        (fun z => -S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀)
+        split.foldB n) P.μ)
+    (hθn_feas : ∀ n, AEMeasurable
+      (IsAsymLinear.rescaledEstimator
+        (plrFeasibleEstimator S sample split η_hat) S.θ₀ split.foldB n) P.μ)
+    (hg0_memLp : MemLp (plrMomentA S.η₀) 2 S.P_Z)
+    (hresid_sq : Integrable
+      (fun ω => (S.factualD ω - S.mVal (S.factualX ω)) ^ 2) P.μ)
+    (hΔm_sq : ∀ n ω, Integrable
+      (fun ω' => (S.mVal (S.factualX ω') - (η_hat n ω).mFn (S.factualX ω')) ^ 2) P.μ)
+    (hcross : ∀ n ω, Integrable
+      (fun ω' => (S.factualD ω' - S.mVal (S.factualX ω'))
+        * (S.mVal (S.factualX ω') - (η_hat n ω).mFn (S.factualX ω'))) P.μ)
+    (hΔm_memLp : ∀ n ω,
+      MemLp (fun x => S.mVal x - (η_hat n ω).mFn x) 2 S.P_X)
+    (h_m_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm (fun x => S.mVal x - (η_hat n ω).mFn x) 2 S.P_X).toReal)
+        (fun _ => (1 : ℝ)) P.μ)
+    (hΔa_meas :
+      ∀ n, Measurable (Function.uncurry
+        (fun ω z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z)))
+    (hΔa_foldA :
+      ∀ n,
+        Measurable[MeasurableSpace.comap
+          (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance]
+          (fun ω z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z))
+    (hΔa_uncurry_foldA :
+      ∀ n,
+        Measurable[(MeasurableSpace.comap
+            (fun ω (i : split.foldA n) => sample.Z i ω) inferInstance).prod
+          (inferInstance : MeasurableSpace (γ × ℝ × ℝ))]
+          (Function.uncurry
+            (fun ω z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z)))
+    (hΔa_memLp : ∀ n ω,
+      MemLp (fun z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z) 2 S.P_Z)
+    (hΔa_rate :
+      IsLittleOp
+        (fun n ω =>
+          (eLpNorm (fun z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z)
+            2 S.P_Z).toReal)
+        (fun _ => (1 : ℝ)) P.μ) :
+    Modes.TendstoInLaw (fun _ => P.μ)
+      (IsAsymLinear.rescaledEstimator
+        (plrFeasibleEstimator S sample split η_hat) S.θ₀ split.foldB)
+      atTop (gaussianMeasure 0
+        (∫ z, (-S.plrGeneralMoment.linScaleInv * plrMomentFunctional S.η₀ z S.θ₀) ^ 2
+          ∂S.P_Z)) := by
+  have hJ_consist := S.plr_jacobian_consistency sample split η_hat hD
+    hg0_memLp hresid_sq hΔm_sq hcross hΔm_memLp h_m_rate
+    hΔa_meas hΔa_foldA hΔa_uncurry_foldA hΔa_memLp hΔa_rate
+  exact S.plr_dml_feasible_tendstoNormal_of_jacobianConsistency sample split
+    hc_pos h_split_rate η_hat hU hUV hbX hD hV hsq hΔl hΔm hUΔm hΔlV hVΔm
+    h_m_meas h_m_foldA h_m_foldA_uncurry h_m_int h_m_sq_int
+    hA_memLp hv_memLp hB hΔl4_memLp hΔm4_memLp hΔl4_bound hΔm4_bound
+    h_l_rate h_m4_rate h_product_rate hψ_meas hθn_meas hSum_meas hJ_consist hθn_feas
 
 end PLRSystem
 

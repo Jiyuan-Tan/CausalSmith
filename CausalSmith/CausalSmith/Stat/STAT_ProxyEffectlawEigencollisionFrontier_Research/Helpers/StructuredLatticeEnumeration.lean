@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeAnalysis
-import Mathlib.Data.Finset.Sort
-import Mathlib.Data.List.Lex
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeAnalysis
+public import Mathlib.Data.Finset.Sort
+public import Mathlib.Data.List.Lex
 
 /-!
 # Finite enumeration of the prescribed structured lattice
@@ -9,6 +10,8 @@ The lattice is encoded by its bounded integer grid coordinates and simplex numer
 gives the finite coordinate-key set used by exhaustive minimization without introducing a
 precomputed library of model summaries.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

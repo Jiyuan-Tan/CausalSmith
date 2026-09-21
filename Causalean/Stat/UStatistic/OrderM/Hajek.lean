@@ -1,24 +1,16 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Hájek projection for fixed-order U-statistics
-
-This file gives the first-order Hájek expansion and central-limit contact point
-for fixed-order U-statistics.  For an ordered kernel the influence function is
-the sum of the coordinatewise first Hoeffding projections; for symmetric kernels
-this is the standard `m` times the first projection.  The remainder is the
-U-statistic formed from the higher-order residual kernel.
--/
-
-import Causalean.Stat.UStatistic.Hajek
-import Causalean.Stat.UStatistic.OrderM.Basic
-import Causalean.Stat.CLT.AsymptoticLinearity
+module
+public import Causalean.Stat.UStatistic.Hajek
+public import Causalean.Stat.UStatistic.OrderM.Basic
+public import Causalean.Stat.CLT.AsymptoticLinearity
 
 /-!
 Develops the fixed-order Hájek decomposition for U-statistics indexed by
 injective ordered `m`-tuples.
+
+For an ordered kernel, the influence function is the sum of its coordinatewise
+first projections; for a symmetric kernel, this is `m` times any one of those
+projections. The remainder is the U-statistic formed from the residual after
+subtracting the mean and all first projections.
 
 The main objects are `uInfluenceOrder`, the sum of the coordinatewise first
 Hoeffding projections; `uRemainderOrder`, the U-statistic formed from the
@@ -28,6 +20,14 @@ negligibility hypothesis consumed by the fixed-order CLT.  The theorem
 `uStatisticOrder_isAsymLinear` packages it as asymptotic linearity once the
 residual term is negligible.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -229,7 +229,7 @@ theorem uStatisticOrder_sub_uMean_eq (S : IIDSample Ω X μ P)
         = uMeanOrder h P
           + (∑ j : Fin m, uProjOrderAt j h P (S.Z (t j : ℕ) ω))
           + uDegenOrder h P (fun j => S.Z (t j : ℕ) ω) :=
-    fun t _ => hoeffding_decomp_order h P _
+    fun t _ => hajek_decomp_order h P _
   have hproj :
       (∑ t ∈ injectiveTuples m n,
         ∑ j : Fin m, uProjOrderAt j h P (S.Z (t j : ℕ) ω))
@@ -292,8 +292,9 @@ theorem uStatisticOrder_remainder_eq
 /-! ## Asymptotic linearity
 
 The central-limit contact point: negligibility of the higher-order remainder makes
-the U-statistic asymptotically linear.  The CLT itself (`uStatisticOrder_clt` and
-the end-to-end `uStatisticOrder_clt_of_regular`) is assembled in `OrderM.CLT`. -/
+the U-statistic asymptotically linear. The CLT itself (`uStatisticOrder_clt` and
+the explicit-conditions wrapper `uStatisticOrder_clt_of_explicit_conditions`) is assembled
+in `OrderM.CLT`. -/
 
 /-- **Fixed-order U-statistic asymptotic linearity.** For an i.i.d. sample `S` and an
 order-`m` kernel `h`, write `ψ` for the summed coordinatewise first Hoeffding

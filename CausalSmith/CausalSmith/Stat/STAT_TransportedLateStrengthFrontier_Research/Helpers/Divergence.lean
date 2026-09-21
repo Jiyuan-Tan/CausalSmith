@@ -5,10 +5,13 @@ Local bridge lemmas connect the explicit source law to Causalean's general-space
 chi-square tensorization and ancillary-product cancellation.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Stat.Minimax.Scheffe
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.Witness
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Stat.Minimax.Scheffe
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

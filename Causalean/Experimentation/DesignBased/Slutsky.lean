@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Experimentation.DesignBased.InProb
+
+module
+public import Causalean.Experimentation.DesignBased.InProb
 
 /-!
 # Design-based converging-together (CDF-level Slutsky)
@@ -16,6 +18,8 @@ in-probability-negligible perturbation — the exact step a studentized design-b
 to pass from an oracle statistic to its feasible (plug-in standard error) version — without leaving
 the finite-design layer for the measure-theoretic weak-convergence API.
 -/
+
+public section
 
 open scoped Topology
 open Filter

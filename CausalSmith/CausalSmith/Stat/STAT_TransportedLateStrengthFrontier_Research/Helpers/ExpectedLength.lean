@@ -5,8 +5,11 @@ Paper-local specializations of the finite-volume honest-confidence-set
 machinery in Causalean.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Frontier
-import Causalean.Stat.Minimax.HonestConfidenceSet
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Frontier
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

@@ -1,7 +1,8 @@
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
-import Mathlib.Probability.Kernel.CondDistrib
-import Causalean.Stat.Sample
+module
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+public import Mathlib.Probability.Kernel.CondDistrib
+public import Causalean.Stat.Sample
 
 /-!
 # Propensity sharpness frontier: ambient models
@@ -9,6 +10,8 @@ import Causalean.Stat.Sample
 This file gives the fixed-stratum and covariate-conditional bow-model carriers
 and the paper's explicitly threaded assumptions.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

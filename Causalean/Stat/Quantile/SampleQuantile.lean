@@ -7,7 +7,7 @@ Authors: Jiyuan Tan
 
 Causal-agnostic inference layer for the `τ`-quantile of an i.i.d. real sample.
 For a sequence of quantile estimators `q̂ₙ` (e.g. the empirical-cdf generalized
-inverse of `Stat/Quantile.lean`, or an IPW-reweighted variant for the QTE) the
+inverse from `Stat/Quantile/Quantile.lean`, or an IPW-reweighted variant for the QTE) the
 **Bahadur representation** says
 
     q̂ₙ − q₀  =  (1/n) Σ ψ_τ(Z_i)  +  o_p(n^{-1/2}),
@@ -29,7 +29,7 @@ The genuinely hard analytic content — the empirical-process oscillation
 (Donsker / asymptotic-equicontinuity) step that produces the `o_p(n^{-1/2})`
 Bahadur remainder — is **exposed as a hypothesis** (`QuantileRegularity.bahadur`),
 exactly mirroring the established `StochEquicontAt` pattern of
-`Stat/EmpiricalExpansion.lean`.
+`Stat/MEstimation/EmpiricalExpansion.lean`.
 Everything downstream — the influence function, its mean and variance, and the
 resulting `√n`-asymptotic normality — is proved.  This makes the layer reusable
 by *any* quantile estimator satisfying the expansion (plain sample quantile,
@@ -51,7 +51,8 @@ been proved.
 References: Bahadur (1966); van der Vaart (1998) §21; Koenker (2005) §4.
 -/
 
-import Causalean.Stat.Quantile.EmpiricalCDF
+module
+public import Causalean.Stat.Quantile.EmpiricalCDF
 
 /-! # Sample Quantile Asymptotics
 
@@ -59,6 +60,8 @@ This file develops the influence-function and asymptotic-normality layer for
 sample quantiles of an i.i.d. real sample. It assumes the Bahadur representation
 as the regularity input and then derives the classical variance and Gaussian
 limit for the quantile estimator. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -188,8 +191,10 @@ normalized influence-function sum is almost-everywhere measurable at each sample
 size](hyp:_hSum_meas), then [$\sqrt n\,(\hat q_n-q_0)$ converges in distribution to the centered
 Gaussian law with variance $\tau(1-\tau)/f_0^2$](goal).
 
-Measurability obligations on the rescaled estimator and the normalized sum are
-imposed at the call site, matching `IsAsymLinear.tendsto_normal`. -/
+The normalized-sum measurability premise remains part of this interface but does
+not enter the conclusion or proof; the generic limit theorem uses the rescaled
+estimator measurability premise together with measurability of the influence
+function. -/
 theorem QuantileRegularity.tendsto_normal {S : IIDSample Ω ℝ μ P} {qn : ℕ → Ω → ℝ}
     {τ q₀ f₀ : ℝ} (h : QuantileRegularity S qn τ q₀ f₀)
     (hθn_meas : ∀ n : ℕ, AEMeasurable

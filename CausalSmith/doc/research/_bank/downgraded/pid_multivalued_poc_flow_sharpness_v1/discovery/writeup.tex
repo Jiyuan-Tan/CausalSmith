@@ -1,0 +1,1002 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}multivalued\_\allowbreak{}poc\_\allowbreak{}flow\_\allowbreak{}sharpness}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Common-population observational and single-treatment intervention margins determine the exact identified interval for every finite-alphabet scalar conjunction probability of causation.  The Shu--Wang--Li endpoints are attained for every compatible real input by indicator coarsening, upper intersection packing, and a deleted-diagonal lower flow with a residual-failure invariant.  For rational inputs, sorting evaluates the endpoints and explicit laws of support at most \(N_\star\) preserve the relevant input denominator grid.  A separate exact margin-kernel step preserves the active-affine or minimum-cut certificate while constructively compressing either endpoint law to at most \(2mr-m\) atoms of polynomial encoding length; no denominator-divisibility claim is made after compression.  Thus \(mr\leq s_\star(m,r,k)\leq2mr-m\), and block-multinomial confidence-region inversion supplies uniform finite-sample coverage while Cheng--Mao--Pearl--Li retain credit for directional inference.
+
+\section{Project justification}
+
+\paragraph{Gap.} Shu--Wang--Li prove the scalar formulas but leave all-dimensional pointwise tightness open; Xie--Li's constructive proof is binary; and generic response-signature programs hide the scalar geometry in exponentially many columns while supplying neither the sorted endpoint evaluator nor a certificate-preserving linear-support construction.
+
+\paragraph{Niche.} The common-population scalar conjunction problem has two complementary finite structures: factual failures delete diagonal flow edges, and every endpoint-optimal response law is flat along any feasible kernel direction of the \(2mr-m\) retained margin rows.
+
+\paragraph{Fill.} The paper derives exact categorical lifting, packing and flow endpoint laws, sorted and min-cut dual certificates, grid-preserving polynomial witnesses of support at most \(N_\star\), constructive certificate-preserving compression to at most \(2mr-m\) atoms, a matching \(mr\) support lower family, and boundary-safe finite-sample inversion.
+
+\section{Related work}
+
+Shu--Wang--Li Theorem 2 supplies the scalar affine formulas and leaves their general-dimensional tightness unresolved.  Xie--Li Theorem 3.2 is the closest constructive precedent, solving the binary eight-cell system.  Koperberg Proposition 6 supplies a finite Hall--Strassen coupling principle adapted to the deleted-diagonal lower network.  Tian--Pearl supplies the binary PNS interval used only as an algebraic sanity check, and Li--Pearl gives earlier recursive multivalued bounds.  Rossetto--Antonucci provides a generic sharp response-signature linear program and SCM realization; the present scalar geometry instead yields sorted endpoint evaluation, explicit active-affine or minimum-cut certificates, grid-preserving witnesses, and constructive certificate-preserving \(O(mr)\)-support compression.  Cheng--Mao--Pearl--Li provides active-set directional limit theory and is credited rather than relabeled.  Horowitz--Lee, Stoye, and Kaido--Molinari--Stoye motivate confidence-region and projection inference, while the finite-sample result here is specialized to the block-multinomial margin polytope.  Harinen and coauthors provide the hypothetical common-population customer-journey setting in which a prespecified multichannel response-pattern probability is a concrete scalar consumer.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=\Pr(Y_j=s_j^\star\text{ for every }j\in\mathcal J)\).
+Primary functional / estimator / diagnostic: \(\theta\in[L(o,e),U(o,e)]\), with \(L=\max\{0,\sum_j a_j-k+1,\max_i(b_i-\sum_{j\neq i}h_j)\}\) and \(U=\min\{g,\min_j a_j,\min_{|S|\geq2}\sum_{j\in S}c_j/(|S|-1)\}\).
+\begin{itemize}
+  \item \texttt{m} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{number of factual treatment levels}
+  \item \texttt{r} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{number of potential-\allowbreak{}outcome labels}
+  \item \texttt{k} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{conjunction length}
+  \par\smallskip\noindent\emph{Definition.} \texttt{number of distinct queried treatment levels}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite set}; \texttt{treatment alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal X=\{1,\ldots,m\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Y} --- \texttt{finite set}; \texttt{outcome alphabet}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Y=\{1,\ldots,r\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal J} --- \texttt{finite set}; \texttt{queried treatment indices after relabeling}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal J=\{1,\ldots,k\}\)
+  \item \texttt{s\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{map}; \texttt{\textbackslash{}\allowbreak{}mathcal Y\textasciicircum{}\{\textbackslash{}\allowbreak{}mathcal J\}\allowbreak{}}; \texttt{queried outcome label for each queried treatment;\allowbreak{} repetitions are allowed}
+  \item \texttt{X} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal X}; \texttt{factual treatment}
+  \item \texttt{\textbackslash{}\allowbreak{}mathbf Y} --- \texttt{random vector}; \texttt{\textbackslash{}\allowbreak{}mathcal Y\textasciicircum{}m}; \texttt{complete vector of potential outcomes}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf Y=(Y_1,\ldots,Y_m)\)
+  \item \texttt{Y} --- \texttt{random variable}; \texttt{\textbackslash{}\allowbreak{}mathcal Y}; \texttt{factual outcome}
+  \par\smallskip\noindent\emph{Definition.} \(Y=Y_X\)
+  \item \texttt{o} --- \texttt{array of real numbers}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{m\textbackslash{}\allowbreak{}times r\}\allowbreak{}}; \texttt{common-\allowbreak{}population observational table}
+  \par\smallskip\noindent\emph{Definition.} \(o_{is}=\Pr(X=i,Y=s)\)
+  \item \texttt{e} --- \texttt{array of real numbers}; \texttt{\textbackslash{}\allowbreak{}mathbb R\textasciicircum{}\{m\textbackslash{}\allowbreak{}times r\}\allowbreak{}}; \texttt{single-\allowbreak{}treatment intervention margins}
+  \par\smallskip\noindent\emph{Definition.} \(e_{js}=\Pr(Y_j=s)\)
+  \item \texttt{q} --- \texttt{probability law}; \texttt{\textbackslash{}\allowbreak{}Delta(\textbackslash{}\allowbreak{}mathcal X\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}mathcal Y\textasciicircum{}m)}; generic finite response law for \(X,\mathbf Y\)
+  \item \texttt{Q} --- \texttt{probability law}; \texttt{\textbackslash{}\allowbreak{}Delta(\textbackslash{}\allowbreak{}mathcal X\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}mathcal Y\textasciicircum{}m)}; \texttt{generic endpoint-\allowbreak{}attaining response law used in the support frontier}
+  \item \texttt{A} --- \texttt{family of events}; \texttt{queried success indicators}
+  \par\smallskip\noindent\emph{Definition.} \(A_j=\{Y_j=s_j^\star\}\), \(j\in\mathcal J\)
+  \item \texttt{p} --- \texttt{vector}; \texttt{[0,\allowbreak{}1]\textasciicircum{}m}; \texttt{factual treatment shares}
+  \par\smallskip\noindent\emph{Definition.} \(p_i=\sum_{s\in\mathcal Y}o_{is}\)
+  \item \texttt{a} --- \texttt{vector}; \texttt{[0,\allowbreak{}1]\textasciicircum{}k}; \texttt{queried intervention success margins}
+  \par\smallskip\noindent\emph{Definition.} \(a_j=e_{j,s_j^\star}\)
+  \item \texttt{b} --- \texttt{vector}; \texttt{[0,\allowbreak{}1]\textasciicircum{}k}; \texttt{queried factual success masses}
+  \par\smallskip\noindent\emph{Definition.} \(b_j=o_{j,s_j^\star}\)
+  \item \texttt{c} --- \texttt{vector}; \texttt{[0,\allowbreak{}1]\textasciicircum{}k}; \texttt{off-\allowbreak{}own-\allowbreak{}stratum success masses}
+  \par\smallskip\noindent\emph{Definition.} \(c_j=a_j-b_j\)
+  \item \texttt{d} --- \texttt{vector}; \texttt{[0,\allowbreak{}1]\textasciicircum{}k}; \texttt{own-\allowbreak{}stratum failure masses}
+  \par\smallskip\noindent\emph{Definition.} \(d_j=p_j-b_j\)
+  \item \texttt{h} --- \texttt{vector}; \texttt{[0,\allowbreak{}1]\textasciicircum{}k}; \texttt{off-\allowbreak{}own-\allowbreak{}stratum failure demands}
+  \par\smallskip\noindent\emph{Definition.} \(h_j=1-p_j-c_j\)
+  \item \texttt{p\_\allowbreak{}0} --- \texttt{real number}; \texttt{[0,\allowbreak{}1]}; \texttt{mass of unqueried factual treatments}
+  \par\smallskip\noindent\emph{Definition.} \(p_0=1-\sum_{j\in\mathcal J}p_j\)
+  \item \texttt{g} --- \texttt{real number}; \texttt{[0,\allowbreak{}1]}; \texttt{mass not forced to fail by factual consistency}
+  \par\smallskip\noindent\emph{Definition.} \(g=p_0+\sum_{j\in\mathcal J}b_j\)
+  \item \texttt{H} --- \texttt{real number}; \texttt{total off-\allowbreak{}diagonal failure demand}
+  \par\smallskip\noindent\emph{Definition.} \(H=\sum_{j\in\mathcal J}h_j\)
+  \item \texttt{\textbackslash{}\allowbreak{}theta} --- \texttt{causal scalar}; \texttt{[0,\allowbreak{}1]}; \texttt{conjunction probability of causation}
+  \par\smallskip\noindent\emph{Definition.} \(\theta=\Pr(\bigcap_{j\in\mathcal J}A_j)\)
+  \item \texttt{L} --- \texttt{real-\allowbreak{}valued functional}; \texttt{candidate lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L(o,e)=\max\{0,\sum_{j\in\mathcal J}a_j-k+1,\max_{i\in\mathcal J}[b_i-\sum_{j\in\mathcal J\setminus\{i\}}h_j]\}\)
+  \item \texttt{U} --- \texttt{real-\allowbreak{}valued functional}; \texttt{candidate upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U(o,e)=\min\{g,\min_{j\in\mathcal J}a_j,\min_{S\subseteq\mathcal J,\ |S|\geq2}(\sum_{j\in S}c_j)/(|S|-1)\}\)
+  \item \texttt{W} --- \texttt{real-\allowbreak{}valued functional}; \texttt{maximum value of the deleted-\allowbreak{}diagonal failure flow}
+  \par\smallskip\noindent\emph{Definition.} \(W(o,e)=\min\{H,g,\min_{i\in\mathcal J}(H-h_i+g-b_i)\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal Q} --- \texttt{class of probability laws}; \texttt{compatible common-\allowbreak{}population response laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q(o,e)\subseteq\Delta(\mathcal X\times\mathcal Y^m)\)
+  \item \texttt{c\_\allowbreak{}\{(\textbackslash{}\allowbreak{}cdot)\}\allowbreak{}} --- \texttt{ordered vector}; \texttt{sorted off-\allowbreak{}stratum success masses}
+  \par\smallskip\noindent\emph{Definition.} \(c_{(1)}\leq\cdots\leq c_{(k)}\) is the nondecreasing rearrangement of \(c_1,\ldots,c_k\)
+  \item \texttt{B} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{input bit length}
+  \par\smallskip\noindent\emph{Definition.} total binary encoding length of rational \(o\) and \(e\)
+  \item \texttt{D} --- \texttt{positive integer}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{common input grid denominator}
+  \par\smallskip\noindent\emph{Definition.} least common multiple of denominators of rational \(o\) and \(e\)
+  \item \texttt{N\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{positive integer}; \texttt{conservative endpoint-\allowbreak{}witness support bound}
+  \par\smallskip\noindent\emph{Definition.} \(N_\star=m+2m(r-1)+k^2+3k+1\)
+  \item \texttt{\textbackslash{}\allowbreak{}operatorname\{TAKE\}\allowbreak{}} --- \texttt{finite partition-\allowbreak{}refinement algorithm}; \(\operatorname{TAKE}(E,w)\); selects mass \(w\) from a finite eligible union \(E\) while introducing at most one new cell boundary
+  \item \texttt{n} --- \texttt{vector of positive integers}; \texttt{\textbackslash{}\allowbreak{}mathbb N\textasciicircum{}\{m+\allowbreak{}1\}\allowbreak{}}; \texttt{source sample sizes}
+  \par\smallskip\noindent\emph{Definition.} \(n=(n_0,n_1,\ldots,n_m)\)
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{real number}; \texttt{(0,\allowbreak{}1)}; \texttt{miscoverage level}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat o} --- \texttt{empirical probability table}; \texttt{\textbackslash{}\allowbreak{}Delta(\textbackslash{}\allowbreak{}mathcal X\textbackslash{}\allowbreak{}times\textbackslash{}\allowbreak{}mathcal Y)}; \texttt{observational empirical table}
+  \item \texttt{\textbackslash{}\allowbreak{}widehat e} --- \texttt{array of empirical probability vectors}; \texttt{\textbackslash{}\allowbreak{}Delta(\textbackslash{}\allowbreak{}mathcal Y)\textasciicircum{}m}; \texttt{intervention empirical margins}
+  \item \texttt{\textbackslash{}\allowbreak{}varepsilon} --- \texttt{vector of radii}; \texttt{[0,\allowbreak{}1]\textasciicircum{}\{m+\allowbreak{}1\}\allowbreak{}}; \texttt{blockwise simultaneous cell radii}
+  \par\smallskip\noindent\emph{Definition.} \(\varepsilon_b=\min\{1,\sqrt{\log(4mr/\alpha)/(2n_b)}\}\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}N} --- \texttt{random polytope}; \texttt{finite-\allowbreak{}sample confidence region for the margins}
+  \par\smallskip\noindent\emph{Definition.} compatible probability tables within the blockwise \(\varepsilon\)-boxes around \(\widehat o,\widehat e\)
+  \item \texttt{I\_\allowbreak{}N} --- \texttt{random closed interval}; \texttt{confidence-\allowbreak{}region inversion}
+  \par\smallskip\noindent\emph{Definition.} \(I_N=[\min_{(o',e')\in\mathcal C_N}L(o',e'),\max_{(o',e')\in\mathcal C_N}U(o',e')]\) when \(\mathcal C_N\neq\varnothing\), and \(I_N=[0,1]\) otherwise
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}\{m,\allowbreak{}r,\allowbreak{}k\}\allowbreak{}} --- \texttt{set of compatible margin pairs}; the paper's exact \((m,r,k)\) compatibility domain
+  \par\smallskip\noindent\emph{Definition.} For \(2\leq k\leq m\), \(\mathcal C_{m,r,k}=\{(o,e)\in\Delta(\mathcal X\times\mathcal Y)\times\Delta(\mathcal Y)^m:e_{is}\geq o_{is}\text{ for every }i\in\mathcal X,s\in\mathcal Y\}=\{(o,e):\mathcal Q(o,e)\neq\varnothing\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma} --- \texttt{support-\allowbreak{}size functional}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{number of positive-\allowbreak{}mass response atoms}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma(Q)=|\{(i,y_1,\ldots,y_m)\in\mathcal X\times\mathcal Y^m:Q(i,y_1,\ldots,y_m)>0\}|\).
+  \item \texttt{s\_\allowbreak{}L} --- \texttt{integer-\allowbreak{}valued endpoint support minimum}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{minimum support size among lower-\allowbreak{}endpoint laws}
+  \par\smallskip\noindent\emph{Definition.} \(s_L(o,e)=\min\{\sigma(Q):Q\in\mathcal Q(o,e),\ Q(\bigcap_{j\in\mathcal J}A_j)=L(o,e)\}\).
+  \item \texttt{s\_\allowbreak{}U} --- \texttt{integer-\allowbreak{}valued endpoint support minimum}; \texttt{\textbackslash{}\allowbreak{}mathbb N}; \texttt{minimum support size among upper-\allowbreak{}endpoint laws}
+  \par\smallskip\noindent\emph{Definition.} \(s_U(o,e)=\min\{\sigma(Q):Q\in\mathcal Q(o,e),\ Q(\bigcap_{j\in\mathcal J}A_j)=U(o,e)\}\).
+  \item \texttt{s\_\allowbreak{}\textbackslash{}\allowbreak{}star} --- \texttt{extended nonnegative integer-\allowbreak{}valued functional}; \texttt{\textbackslash{}\allowbreak{}overline\{\textbackslash{}\allowbreak{}mathbb N\}\allowbreak{}}; \texttt{worst-\allowbreak{}case frontier of the two separate endpoint support minima}
+  \par\smallskip\noindent\emph{Definition.} \(s_\star(m,r,k)=\sup_{(o,e)\in\mathcal C_{m,r,k}}\max\{s_L(o,e),s_U(o,e)\}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:query-range]\label{ass:query-range}
+\(2\leq k\leq m\).
+\par\smallskip\noindent\emph{Standard} (Distinct-treatment conjunction indexing, \cite{ShuWangLi2026ClosedForm}).
+\end{assumption}
+
+\begin{assumption}[ass:observational-simplex]\label{ass:observational-simplex}
+\(o\in\Delta(\mathcal X\times\mathcal Y)\).
+\par\smallskip\noindent\emph{Standard} (Finite observational probability table, \cite{ShuWangLi2026ClosedForm}).
+\end{assumption}
+
+\begin{assumption}[ass:intervention-simplex]\label{ass:intervention-simplex}
+\(e_{j,\cdot}\in\Delta(\mathcal Y)\) for every \(j\in\mathcal X\).
+\par\smallskip\noindent\emph{Standard} (Finite single-treatment intervention margins, \cite{ShuWangLi2026ClosedForm}).
+\end{assumption}
+
+\begin{assumption}[ass:cell-compatibility]\label{ass:cell-compatibility}
+\(e_{is}\geq o_{is}\) for every \(i\in\mathcal X\) and \(s\in\mathcal Y\).
+\par\smallskip\noindent\emph{Standard} (Consistency-implied cell compatibility, \cite{ShuWangLi2026ClosedForm}).
+\end{assumption}
+
+\begin{assumption}[ass:member-consistency]\label{ass:member-consistency}
+Under \(q\), \(Y=Y_X\) almost surely.
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{Pearl2009Causality}).
+\end{assumption}
+
+\begin{assumption}[ass:member-observational-margins]\label{ass:member-observational-margins}
+Under \(q\), \(\Pr_q(X=i,Y_i=s)=o_{is}\) for every \(i\in\mathcal X\) and \(s\in\mathcal Y\).
+\par\smallskip\noindent\emph{Standard} (Common-population observational margin restriction, \cite{ShuWangLi2026ClosedForm}).
+\end{assumption}
+
+\begin{assumption}[ass:member-intervention-margins]\label{ass:member-intervention-margins}
+Under \(q\), \(\Pr_q(Y_j=s)=e_{js}\) for every \(j\in\mathcal X\) and \(s\in\mathcal Y\).
+\par\smallskip\noindent\emph{Standard} (Common-population single-treatment intervention restriction, \cite{ShuWangLi2026ClosedForm}).
+\end{assumption}
+
+\begin{assumption}[ass:observational-sampling]\label{ass:observational-sampling}
+The observational block contains \(n_0\) independent draws from the categorical law \(o\).
+\par\smallskip\noindent\emph{Standard} (Independent multinomial sampling, \cite{ChengMaoPearlLi2026DeltaPoC}).
+\end{assumption}
+
+\begin{assumption}[ass:intervention-sampling]\label{ass:intervention-sampling}
+For each \(j\in\mathcal X\), intervention block \(j\) contains \(n_j\) independent draws from the categorical law \(e_{j,\cdot}\).
+\par\smallskip\noindent\emph{Standard} (Block-multinomial intervention sampling, \cite{ChengMaoPearlLi2026DeltaPoC}).
+\end{assumption}
+
+\begin{assumption}[ass:confidence-level]\label{ass:confidence-level}
+\(0<\alpha<1\).
+\par\smallskip\noindent\emph{Standard} (Nominal confidence level, \cite{HorowitzLee2023OptimizationInference}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible response-\allowbreak{}law class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal Q(o,e)=\{q\in\Delta(\mathcal X\times\mathcal Y^m):Y=Y_X\ q\text{-a.s.},\ \Pr_q(X=i,Y_i=s)=o_{is},\ \Pr_q(Y_j=s)=e_{js}\text{ for all }i,j\in\mathcal X,s\in\mathcal Y\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}member-\allowbreak{}consistency}; \texttt{ass:\allowbreak{}member-\allowbreak{}observational-\allowbreak{}margins}; \texttt{ass:\allowbreak{}member-\allowbreak{}intervention-\allowbreak{}margins}.
+\end{definition}
+
+\begin{definition}[def:reduced-coordinates]\label{def:reduced-coordinates}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Indicator-\allowbreak{}coarsened margins}
+\par\smallskip\noindent\emph{Construction.} For \(j\in\mathcal J\), set \(A_j=\{Y_j=s_j^\star\}\), \(p_i=\sum_{s\in\mathcal Y}o_{is}\), \(a_j=e_{j,s_j^\star}\), \(b_j=o_{j,s_j^\star}\), \(c_j=a_j-b_j\), \(d_j=p_j-b_j\), \(h_j=1-p_j-c_j\), \(p_0=1-\sum_{j\in\mathcal J}p_j\), \(g=p_0+\sum_{j\in\mathcal J}b_j\), and \(H=\sum_{j\in\mathcal J}h_j\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{o}; \texttt{e}; \texttt{s\textasciicircum{}\textbackslash{}\allowbreak{}star}.
+\end{definition}
+
+\begin{definition}[def:sharp-endpoints]\label{def:sharp-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Closed scalar endpoint maps}
+\par\smallskip\noindent\emph{Construction.} \(L(o,e)=\max\{0,\sum_{j\in\mathcal J}a_j-k+1,\max_{i\in\mathcal J}(b_i-\sum_{j\in\mathcal J\setminus\{i\}}h_j)\}\) and \(U(o,e)=\min\{g,\min_{j\in\mathcal J}a_j,\min_{S\subseteq\mathcal J,|S|\geq2}(\sum_{j\in S}c_j)/(|S|-1)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{o}; \texttt{e}.
+\end{definition}
+
+\begin{definition}[def:take-refinement]\label{def:take-refinement}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite-\allowbreak{}cell TAKE refinement}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{TAKE}(E,w)\) traverses a finite ordered partition of an eligible set \(E\), consumes whole cells until mass \(w\) is reached, and splits at most the final consumed cell; \(w=0\) returns the empty selection and no split.
+\end{definition}
+
+\begin{definition}[def:upper-packing]\label{def:upper-packing}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Intersection-\allowbreak{}packing construction}
+\par\smallskip\noindent\emph{Construction.} At \(t=U(o,e)\), initialize \(t_i=(t-c_i)_+\), enlarge \(t_i\leq b_i\) and \(t_0\leq p_0\) until \(t_0+\sum_{i\in\mathcal J}t_i=t\), place a common event of mass \(t_i\) in each factual-success block and mass \(t_0\) in the unqueried block, then fill coordinate \(i\)'s remaining success demand outside its own stratum by \(\operatorname{TAKE}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{o}; \texttt{e}; \texttt{def:\allowbreak{}take-\allowbreak{}refinement}.
+\end{definition}
+
+\begin{definition}[def:lower-flow-network]\label{def:lower-flow-network}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Deleted-\allowbreak{}diagonal failure flow}
+\par\smallskip\noindent\emph{Construction.} Build a network with source arcs of capacity \(h_j\) to left nodes \(j\in\mathcal J\), middle arcs of capacity \(2\) from \(j\) to right nodes \(i\in\{0\}\cup\mathcal J\) only when \(i\neq j\), right capacities \(p_0\) at node \(0\) and \(b_i\) at node \(i\in\mathcal J\), and use \(\operatorname{TAKE}\) to realize a maximum flow as disjoint failure pieces before filling every residual row demand inside the already covered failure union.
+\par\smallskip\noindent\emph{Inputs.} \texttt{h}; \texttt{p\_\allowbreak{}0}; \texttt{b}; \texttt{def:\allowbreak{}take-\allowbreak{}refinement}.
+\end{definition}
+
+\begin{definition}[def:confidence-region]\label{def:confidence-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Block-\allowbreak{}multinomial confidence polytope}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_N\) is the set of \(o',e'\) satisfying the probability-simplex and cell-compatibility restrictions together with \(|o'_{is}-\widehat o_{is}|\leq\varepsilon_0\) and \(|e'_{js}-\widehat e_{js}|\leq\varepsilon_j\) for all cells.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat o}; \texttt{\textbackslash{}\allowbreak{}widehat e}; \texttt{\textbackslash{}\allowbreak{}varepsilon}.
+\end{definition}
+
+\begin{definition}[def:confidence-inversion]\label{def:confidence-inversion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Endpoint confidence-\allowbreak{}region inversion}
+\par\smallskip\noindent\emph{Construction.} If \(\mathcal C_N\neq\varnothing\), set \(I_N=[\min_{(o',e')\in\mathcal C_N}L(o',e'),\max_{(o',e')\in\mathcal C_N}U(o',e')]\); otherwise set \(I_N=[0,1]\). Represent the lower optimization with one epigraph variable and the upper optimization with variables \(z_j\geq0\), \(z_j\geq t-c_j\), and \(\sum_jz_j\leq t\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal C\_\allowbreak{}N}; \texttt{L}; \texttt{U}.
+\end{definition}
+
+\begin{definition}[def:support-compression-handle]\label{def:support-compression-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Certificate-\allowbreak{}preserving margin-\allowbreak{}kernel compression handle}
+\par\smallskip\noindent\emph{Construction.} Given a finite law \(Q\in\mathcal Q(o,e)\) attaining either \(L(o,e)\) or \(U(o,e)\), form the zero-one margin matrix whose \(mr\) observational rows are indexed by \(\mathcal X\times\mathcal Y\), whose \(m(r-1)\) intervention rows omit label \(r\) for each treatment coordinate, and whose columns are indexed by the positive response atoms of \(Q\). While the active columns are linearly dependent, choose an exact nonzero kernel vector, move maximally in either nonnegative direction, delete newly zero atoms, and retain the original active-affine or minimum-cut certificate. Apply this compression separately to the lower- and upper-endpoint laws. For the matching support lower direction, retain the forced-positive-cell family used to lower-bound \(\max\{s_L(o,e),s_U(o,e)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}model-\allowbreak{}class}; \texttt{def:\allowbreak{}sharp-\allowbreak{}endpoints}; \texttt{def:\allowbreak{}upper-\allowbreak{}packing}; \texttt{def:\allowbreak{}lower-\allowbreak{}flow-\allowbreak{}network}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:compatibility]\label{thm:compatibility}
+Under the two simplex restrictions, \(\mathcal Q(o,e)\neq\varnothing\) if and only if \(e_{is}\geq o_{is}\) for every \(i\in\mathcal X\) and \(s\in\mathcal Y\).
+\end{theorem}
+\begin{proof}
+Necessity follows from consistency and event inclusion.  If \(q\in\mathcal Q(o,e)\), then for every \(i\in\mathcal X\) and \(s\in\mathcal Y\),
+\[
+ e_{is}-o_{is}
+ =\Pr_q(Y_i=s)-\Pr_q(X=i,Y_i=s)
+ =\Pr_q(X\ne i,Y_i=s)\geq0.
+\]
+
+For sufficiency, put \(p_i=\sum_s o_{is}\) and partition a unit-mass interval into finitely many factual blocks \(I_i\) of masses \(p_i\).  Fix a coordinate \(j\).  Inside \(I_j\), allocate the labels \(s\in\mathcal Y\) in masses \(o_{js}\); these numbers are nonnegative and sum to \(p_j\) by the observational-simplex assumption.  Outside \(I_j\), allocate the same labels in masses \(e_{js}-o_{js}\).  Cell compatibility makes these masses nonnegative, and the two simplex restrictions give
+\[
+ \sum_{s\in\mathcal Y}(e_{js}-o_{js})=1-p_j,
+\]
+which is exactly the mass outside \(I_j\).  Make these allocations one coordinate at a time, refining the current finite partition whenever an allocation ends inside a current cell.  Each coordinate and label set is finite, so the final common refinement is finite.  No conditional probability or division is used; if a domain has mass zero, every nonnegative demand summing to its mass is zero.
+
+On every final cell, let \(X\) be its factual-block label and let \((Y_1,\ldots,Y_m)\) be its vector of allocated outcome labels.  The resulting finite law \(q\) satisfies
+\[
+ \Pr_q(X=i,Y_i=s)=o_{is},\qquad
+ \Pr_q(Y_j=s)=o_{js}+(e_{js}-o_{js})=e_{js}.
+\]
+Defining the factual outcome by \(Y=Y_X\) gives consistency, hence \(q\in\mathcal Q(o,e)\).  This proves sufficiency and therefore the equivalence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates the complete observable feasibility condition and rules out hidden cross-coordinate restrictions before sharpness is studied. \textit{Gap.} Shu--Wang--Li use the same consistency-implied cell inequalities, but the categorical sufficiency construction is not their all-dimensional sharpness theorem. \textit{Consumer.} A researcher can reject incoherent observational and intervention margins before evaluating any conjunction bound.
+
+\begin{lemma}[lem:categorical-lifting]\label{lem:categorical-lifting}
+Every finite law of \(X\) and \((\mathbf 1\{A_j\})_{j\in\mathcal J}\) satisfying \(\Pr(X=i)=p_i\), \(\Pr(A_j)=a_j\), and \(\Pr(X=j,A_j)=b_j\) admits a finite refinement in \(\mathcal Q(o,e)\) that preserves all indicator atoms and hence preserves \(\theta\). The refinement uses \(\operatorname{TAKE}\) separately inside and outside each factual stratum, including zero-mass domains, and the refined law is realized by an SCM with one finite exogenous variable.
+\end{lemma}
+\begin{proof}
+Let the supplied finite indicator law be carried by a finite weighted set \(\Omega\).  Refinement below means splitting its atoms while retaining their values of \(X\) and of every indicator \(\mathbf 1\{A_j\}\); thus every original indicator atom keeps exactly the same total mass.
+
+Fix a queried coordinate \(j\in\mathcal J\).  Put \(Y_j=s_j^\star\) on \(A_j\).  On \(\{X=j\}\cap A_j^c\), allocate the labels \(s\ne s_j^\star\) in masses \(o_{js}\).  This is feasible because
+\[
+ \Pr(X=j,A_j^c)=p_j-b_j
+ =\sum_{s\ne s_j^\star}o_{js}.
+\]
+On \(\{X\ne j\}\cap A_j^c\), allocate those labels in masses \(e_{js}-o_{js}\).  These demands are nonnegative by cell compatibility, and
+\[
+ \begin{aligned}
+ \Pr(X\ne j,A_j^c)
+ &=1-a_j-p_j+b_j=h_j,\\
+ \sum_{s\ne s_j^\star}(e_{js}-o_{js})
+ &=1-a_j-p_j+b_j=h_j.
+ \end{aligned}
+\]
+Apply the proved \(\operatorname{TAKE}\) refinement successively to the first \(r-1\) labels in each domain and give the remainder to the last label.  If either domain has zero mass, nonnegativity and the displayed equality force all of its demands to be zero, so \(\operatorname{TAKE}\) makes no split.  The target label then has observational mass \(b_j=o_{j,s_j^\star}\) and intervention mass \(a_j=e_{j,s_j^\star}\), while every other label has the prescribed two component masses.
+
+For an unqueried coordinate \(j\in\mathcal X\setminus\mathcal J\), allocate label \(s\) in mass \(o_{js}\) on \(\{X=j\}\) and in mass \(e_{js}-o_{js}\) on \(\{X\ne j\}\).  The corresponding sums are \(p_j\) and \(1-p_j\), and cell compatibility again gives nonnegativity.  Refining coordinates sequentially never changes \(X\), previously assigned outcomes, or any queried indicator.  At termination the law satisfies, for all \(i,j,s\),
+\[
+ \Pr(X=i,Y_i=s)=o_{is},\qquad \Pr(Y_j=s)=e_{js},
+\]
+and it preserves \(\theta=\Pr(\bigcap_{j\in\mathcal J}A_j)\).
+
+For the SCM realization, let one finite exogenous variable \(V\) index the final refined atoms with their constructed masses.  Set \(X=f_X(V)\) equal to the atom's treatment and define \(f_Y(j,V)\) equal to its assigned \(Y_j\).  Then \(Y=f_Y(X,V)=Y_X\), and intervention at treatment \(j\) returns the constructed \(Y_j\).  The shared \(V\) permits the required confounding and cross-coordinate dependence.  Hence the refinement belongs to \(\mathcal Q(o,e)\) and has all claimed properties.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact coarsening converse is what transfers a binary indicator completion back to every categorical observational and interventional cell. \textit{Gap.} Neither the scalar validity proof of Shu--Wang--Li nor the binary response-table construction of Xie--Li establishes this all-alphabet refinement lemma. \textit{Consumer.} Any future sharp binary-event coupling result can be lifted to multivalued PoC margins without enumerating categorical response signatures.
+
+\begin{lemma}[lem:upper-packing-attainment]\label{lem:upper-packing-attainment}
+The intersection-packing construction returns a member of \(\mathcal Q(o,e)\) with \(\theta=U(o,e)\). Moreover, \(\sum_{j\in\mathcal J}(t-c_j)_+\leq t\) is equivalent to \((|S|-1)t\leq\sum_{j\in S}c_j\) for every \(S\subseteq\mathcal J\) with \(|S|\geq2\), so an active subset is a dual certificate.
+\end{lemma}
+\begin{proof}
+Compatibility first implies
+\[
+ b_i,d_i,c_i,h_i,p_0\geq0,
+ \qquad c_i\leq1-p_i,
+ \qquad g=1-\sum_{i\in\mathcal J}d_i.
+\]
+Indeed, the first four quantities are masses of the corresponding own- or off-stratum success or failure events, and \(h_i=\sum_{s\ne s_i^\star}(e_{is}-o_{is})\).
+
+We begin with the universal upper inequalities.  For any compatible indicator law, write \(T=\bigcap_jA_j\) and \(t=\Pr(T)\).  Since \(T\subseteq A_j\), \(t\leq a_j\).  Also \(T\) avoids every disjoint own-failure event \(\{X=i,A_i^c\}\), whose total mass is \(1-g\), so \(t\leq g\).  For \(S\subseteq\mathcal J\),
+\[
+ \begin{aligned}
+ \sum_{j\in S}c_j
+ &\geq\sum_{j\in S}\Pr(T,X\ne j)\\
+ &=(|S|-1)\Pr(T,X\in S)+|S|\Pr(T,X\notin S)\\
+ &\geq(|S|-1)t.
+ \end{aligned}
+\]
+Thus \(t\leq U(o,e)\).
+
+Now set \(t=U(o,e)\).  The elementary positive-part identity
+\[
+ \sum_{j\in\mathcal J}(t-c_j)_+
+ =\max_{S\subseteq\mathcal J}
+ \left\{|S|t-\sum_{j\in S}c_j\right\}
+\]
+holds because each summand independently chooses between \(0\) and \(t-c_j\).  Since \(t,c_j\geq0\), the empty- and singleton-set inequalities in
+\[
+ \sum_j(t-c_j)_+\leq t
+ \quad\Longleftrightarrow\quad
+ (|S|-1)t\leq\sum_{j\in S}c_j\quad(S\subseteq\mathcal J)
+\]
+are automatic; the remaining inequalities are precisely those in the definition of \(U\).  Hence the equivalence in the statement holds and the left side is at most \(t\).
+
+Partition a unit-mass space into factual blocks.  For queried \(i\), split its block into \(B_i\) of mass \(b_i\) and \(D_i\) of mass \(d_i\); let \(B_0\) be the union of the unqueried factual blocks, of mass \(p_0\).  Put
+\[
+ t_i^{(0)}=(t-c_i)_+.
+\]
+Because \(t\leq a_i=b_i+c_i\), \(0\leq t_i^{(0)}\leq b_i\), and the preceding identity gives \(\sum_i t_i^{(0)}\leq t\).  The unused capacities satisfy
+\[
+ p_0+\sum_i(b_i-t_i^{(0)})
+ =g-\sum_i t_i^{(0)}
+ \geq t-\sum_i t_i^{(0)}.
+\]
+Therefore enlarge the \(t_i^{(0)}\)'s within \([0,b_i]\), and choose \(t_0\in[0,p_0]\), so that \(t_0+\sum_i t_i=t\).  The \(\operatorname{TAKE}\) lemma supplies sets \(K_i\subseteq B_i\) and \(K_0\subseteq B_0\) of these masses.  Let \(K=K_0\cup\bigcup_iK_i\), so \(\Pr(K)=t\).
+
+For coordinate \(i\), the preliminary success set \(B_i\cup K\) has off-own success mass \(t-t_i\).  Its remaining demand is
+\[
+ R_i=c_i-(t-t_i)\geq0,
+\]
+where nonnegativity follows from \(t_i\geq(t-c_i)_+\).  The available region outside both the own stratum and \(K\) has mass
+\[
+ 1-p_i-(t-t_i)\geq c_i-(t-t_i)=R_i,
+\]
+using \(c_i\leq1-p_i\).  Choose by \(\operatorname{TAKE}\) a set \(S_i\) of mass \(R_i\) in that region and set
+\[
+ A_i=B_i\cup K\cup S_i.
+\]
+Then \(\Pr(X=i,A_i)=b_i\) and \(\Pr(A_i)=b_i+c_i=a_i\).  Different \(S_i\)'s may overlap; there is no cross-coordinate margin restricting them.  The common set \(K\) is contained in every \(A_i\), so the constructed conjunction has mass at least \(t\).  The already proved universal upper inequality gives mass at most \(U=t\), hence it has mass exactly \(t\).  Categorical lifting now yields a finite member of \(\mathcal Q(o,e)\) with \(\theta=U(o,e)\).
+
+Finally, equality for an active subset \(S\) is exactly the displayed valid inequality \((|S|-1)t\leq\sum_{j\in S}c_j\).  Together with the constructed primal law of value \(t\), it certifies optimality without enumerating response types.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This proves universal attainability of every possible active upper affine piece without enumerating subsets or response types. \textit{Gap.} Shu--Wang--Li prove upper validity and selected equality regimes; their paper leaves the every-input all-dimensional construction open. \textit{Consumer.} A PoC analyst receives an explicit witness law and a short active-affine certificate for the largest feasible conjunction probability.
+
+\begin{lemma}[lem:lower-flow-attainment]\label{lem:lower-flow-attainment}
+The deleted-diagonal network has maximum value \(W(o,e)=\min\{H,g,\min_{i\in\mathcal J}(H-h_i+g-b_i)\}\). Its realized flow and residual-failure filling return a member of \(\mathcal Q(o,e)\) with \(\theta=g-W(o,e)=L(o,e)\); whenever a left row has positive unused capacity, every adjacent right block is saturated, so its remaining demand can be filled inside the existing failure union.
+\end{lemma}
+\begin{proof}
+Use the same disjoint blocks \(B_0,B_i,D_i\) as in the upper construction, and put \(G=B_0\cup\bigcup_iB_i\), so \(\Pr(G)=g\).  Let \(F_j=A_j^c\).  Its own-stratum part must be \(D_j\), while its required off-own mass is
+\[
+ \Pr(F_j,X\ne j)=1-p_j-c_j=h_j.
+\]
+
+Consider the network in the definition.  We first prove its max-flow value, including the finite max-flow/min-cut step rather than assuming it.  The feasible-flow set is a nonempty compact polytope, so a maximizing flow exists.  In the residual graph of a maximizing flow there is no source-to-sink path, since augmenting by the minimum positive residual capacity along such a path would increase its value.  Let \(R\) be the residual-reachable vertices.  Every original arc from \(R\) to \(R^c\) is saturated, and every original arc from \(R^c\) to \(R\) carries zero flow, since otherwise its reverse residual arc would make its head reachable.  Summing flow conservation over \(R\) therefore shows that the flow value equals the capacity of the cut \((R,R^c)\).  Conversely, conservation shows that every flow value is at most every cut capacity.  This is the finite max-flow/min-cut argument; its matching/coupling use is also described by Koperberg (2024).
+
+There is a cut of capacity \(g\leq1\).  Consequently no minimum cut crosses a middle arc of capacity \(2\).  If \(T\subseteq\mathcal J\) is the set of left vertices kept with the source, a minimum cut for that \(T\) keeps precisely their right neighbors with the source and has capacity
+\[
+ H-\sum_{j\in T}h_j+\sum_{i\in N(T)}u_i,
+ \qquad u_0=p_0,\quad u_i=b_i.
+\]
+If \(T=\varnothing\), this is \(H\).  If \(T=\{i\}\), its neighborhood is every right vertex except \(i\), and the value is \(H-h_i+g-b_i\).  If \(|T|\geq2\), every right vertex has a neighbor in \(T\), so the value is at least \(g\), with equality when \(T=\mathcal J\).  Hence
+\[
+ W(o,e)=\min\left\{H,g,\min_{i\in\mathcal J}(H-h_i+g-b_i)\right\}.
+\]
+
+This value also proves the universal lower bound.  Given any feasible indicator law, partition \(G\cap\bigcup_jF_j\) by assigning each point to one failed coordinate.  A point in \(B_i\) cannot be assigned to \(i\), because \(B_i\subseteq A_i\).  The pieces therefore define a feasible deleted-diagonal flow: row \(j\) has mass at most \(h_j\), and each right block receives at most its mass.  Thus
+\[
+ \Pr\left(G\cap\bigcup_jF_j\right)\leq W.
+\]
+Since \(G^c=\bigcup_iD_i\subseteq\bigcup_jF_j\),
+\[
+ \theta=1-\Pr\left(\bigcup_jF_j\right)\geq g-W.
+\]
+Algebra using \(h_j=1-p_j-c_j\), \(c_j=a_j-b_j\), and \(g=p_0+\sum_jb_j\) gives
+\[
+ \begin{aligned}
+ g-H&=\sum_ja_j-k+1,\\
+ g-(H-h_i+g-b_i)&=b_i-\sum_{j\ne i}h_j,
+ \end{aligned}
+\]
+and therefore \(g-W=L(o,e)\).
+
+For attainment, take a maximum flow \(f\).  Within each right block \(B_i\), use \(\operatorname{TAKE}\) to realize its incoming flows as globally disjoint pieces \(E_{j,i}\) of masses \(f_{j,i}\).  Let \(E_j=\bigcup_iE_{j,i}\), \(E=\bigcup_jE_j\), and start with \(F_j=D_j\cup E_j\).  The remaining row demand is
+\[
+ \rho_j=h_j-\sum_i f_{j,i}\geq0.
+\]
+If \(\rho_j>0\), then every right block adjacent to \(j\) is saturated.  Indeed, otherwise the source arc into \(j\), the middle arc from \(j\) to that block, and the block's sink arc all have positive forward residual capacity: the middle one does because its flow is at most \(W\leq g\leq1<2\).  Their three-edge path would augment \(f\), contradicting maximality.
+
+This proves the residual-failure invariant.  Saturation means that every adjacent good block is contained in \(E\) up to null endpoints.  Hence, when \(\rho_j>0\), all of \(\Omega\setminus\{X=j\}\) is contained in
+\[
+ C=\left(\bigcup_iD_i\right)\cup E,
+\]
+because its good blocks are adjacent to \(j\) and its own-failure blocks are among the \(D_i\)'s.  Moreover,
+\[
+ \Pr((\Omega\setminus\{X=j\})\setminus E_j)
+ =1-p_j-\sum_i f_{j,i}
+ \geq h_j-\sum_i f_{j,i}=\rho_j,
+\]
+where \(h_j\leq1-p_j\) follows from compatibility.  Use \(\operatorname{TAKE}\) to choose a piece \(R_j\) of mass \(\rho_j\) there; when \(\rho_j=0\), take \(R_j=\varnothing\).  In the positive branch the invariant gives \(R_j\subseteq C\).  Set \(F_j=D_j\cup E_j\cup R_j\).  The sets \(R_j\) may overlap, and every addition remains inside \(C\), so
+\[
+ \bigcup_jF_j=C,
+ \qquad \Pr(C)=\sum_jd_j+W=1-g+W.
+\]
+Each \(F_j\) has own mass \(d_j\) and off-own mass \(h_j\); hence its complement \(A_j\) has \(\Pr(X=j,A_j)=b_j\) and \(\Pr(A_j)=a_j\).  The conjunction has probability \(1-\Pr(C)=g-W=L\).  Categorical lifting produces the required finite member of \(\mathcal Q(o,e)\).  The argument includes zero capacities: their requested pieces are empty and no division occurs.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The saturation implication is the nonnegative residual invariant that closes the lower endpoint for every compatible margin vector. \textit{Gap.} Xie--Li solve the binary response system by finite active regions; Koperberg supplies Hall machinery but not this PoC-specific diagonal deletion and residual categorical completion. \textit{Consumer.} The min-cut identity provides a checkable explanation of which factual stratum or total failure capacity determines the sharp lower probability.
+
+\begin{theorem}[thm:sharp-interval]\label{thm:sharp-interval}
+For every compatible real input with arbitrary finite \(m\) and \(r\), distinct queried treatments \(2\leq k\leq m\), and arbitrary possibly repeated labels \(s^\star\), the identified set \(\{\theta(q):q\in\mathcal Q(o,e)\}\) equals the full interval \([L(o,e),U(o,e)]\). Both endpoints are attained by finite SCM laws, and convex mixtures of two endpoint laws attain every interior value. These endpoints are exactly the Shu--Wang--Li Theorem 2 scalar formulas after unequal-alphabet padding and label replaceability.
+\end{theorem}
+\begin{proof}
+Define the causal identified set, rather than an observed-law functional, by
+\[
+ \Theta_I(o,e)=\{\Pr_q(\bigcap_{j\in\mathcal J}A_j):q\in\mathcal Q(o,e)\}.
+\]
+Compatibility makes this set nonempty by the compatibility theorem.  For any \(q\in\mathcal Q(o,e)\), indicator coarsening gives \(\Pr(X=i)=p_i\), \(\Pr(A_j)=a_j\), and \(\Pr(X=j,A_j)=b_j\).  The event-counting argument in the upper-attainment proof yields \(\theta(q)\leq U(o,e)\), and the deleted-diagonal coverage argument in the lower-attainment proof yields \(\theta(q)\geq L(o,e)\).  Thus
+\[
+ \Theta_I(o,e)\subseteq[L(o,e),U(o,e)].
+\]
+
+The upper-packing lemma supplies a finite \(q_U\in\mathcal Q(o,e)\) with \(\theta(q_U)=U(o,e)\), and the lower-flow lemma supplies a finite \(q_L\in\mathcal Q(o,e)\) with \(\theta(q_L)=L(o,e)\).  For \(\lambda\in[0,1]\), the response law
+\[
+ q_\lambda=(1-\lambda)q_L+\lambda q_U
+\]
+preserves every observational and intervention equality and consistency, because these are linear restrictions on the finite response-law probabilities.  Hence \(q_\lambda\in\mathcal Q(o,e)\), and
+\[
+ \theta(q_\lambda)=(1-\lambda)L(o,e)+\lambda U(o,e).
+\]
+Every point of the interval is attained, including the collapsed case \(L=U\), so the preceding outer inclusion is sharp:
+\[
+ \Theta_I(o,e)=[L(o,e),U(o,e)].
+\]
+Each endpoint law has the one-finite-exogenous-variable SCM realization supplied by categorical lifting; a mixture is realized by adjoining a finite mixture indicator to that variable.
+
+It remains only to verify the bibliographic formula correspondence.  The cited Shu--Wang--Li lower singleton piece equals
+\[
+ b_i+\sum_{j\ne i}(a_j+p_j-b_j)-k+1
+ =b_i-\sum_{j\ne i}(1-p_j-a_j+b_j)
+ =b_i-\sum_{j\ne i}h_j.
+\]
+Their first upper piece is \(\sum_{j\leq k}b_j+\sum_{j>k}p_j=g\), and their subset pieces are \(\sum_{j\in S}c_j/(|S|-1)\).  The remaining pieces are \(0\), \(\sum_ja_j-k+1\), and the margins \(a_j\), exactly those defining \(L\) and \(U\).  Zero-probability padding changes none of these quantities, and coordinatewise label replacement merely changes which cell is denoted by \(s_j^\star\); repeated labels across distinct potential-outcome coordinates create no identification constraint.  Thus the endpoint formulas have precisely the claimed published correspondence while the all-input attainment proved above is new mathematical content, not imported from that citation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the missing all-dimensional pointwise sharpness theorem for the published scalar conjunction bounds. \textit{Gap.} Shu--Wang--Li prove soundness and low-dimensional computational tightness, while Xie--Li prove every-input attainment only for binary PNS. \textit{Consumer.} A customer-journey analyst with common-population observational choices and arm-specific intervention outcomes can interpret the scalar interval as the exact range for a prespecified cross-channel response pattern.
+
+\begin{theorem}[thm:algorithmic-certificates]\label{thm:algorithmic-certificates}
+For \(2\leq k\leq m\) and rational \(o,e\) of total encoding length \(B\), compatibility and the endpoints are evaluable in \(O(mr+k\log k)\) arithmetic and comparison operations using \(c_{(\cdot)}\).  Whenever the input is compatible, two distinct polynomial-time constructible and verifiable guarantees hold.  First, each endpoint has a grid-preserving law with support at most \(N_\star\): every lower-witness atom has weight in \(D^{-1}\mathbb Z\); an upper-witness atom has weight in \(D^{-1}\mathbb Z\) when the selected active certificate is \(g\) or a margin \(a_j\), and has weight in \([D(\ell-1)]^{-1}\mathbb Z\) when the selected certificate is an active subset \(S\subseteq\mathcal J\) of size \(\ell\geq2\).  Second, each endpoint has a certificate-preserving compressed law with support at most \(2mr-m\) and polynomial encoding length.  Active-affine or minimum-cut certificates accompany both guarantees.  No denominator-divisibility guarantee is asserted for the compressed weights, and zero cells cause no division.
+\end{theorem}
+\begin{proof}
+Assume the rational input format in the statement and \(2\leq k\leq m\).  We first establish the operation count for evaluating compatibility and the two endpoints.  Scan the \(mr\) entries of each table, checking nonnegativity, the observational simplex equality, the \(m\) intervention-row simplex equalities, and the \(mr\) inequalities
+\[
+e_{is}\geq o_{is}
+\qquad(i\in\mathcal X,\ s\in\mathcal Y).
+\]
+By the compatibility theorem, after the two simplex checks these cell inequalities are necessary and sufficient for \(\mathcal Q(o,e)\neq\varnothing\).  The same scan computes every \(p_i\).  The definitions of the reduced coordinates then compute \(a_j,b_j,c_j,d_j,h_j,p_0,g,H\) in \(O(mr+k)\) arithmetic operations.  Since
+\[
+b_i-\sum_{j\in\mathcal J\setminus\{i\}}h_j=b_i-H+h_i,
+\]
+the definition of \(L\) evaluates the lower endpoint from \(H\), \(\sum_j a_j\), and the \(k\) displayed singleton values in a further \(O(k)\) operations.
+
+For the upper endpoint, let
+\[
+c_{(1)}\leq\cdots\leq c_{(k)}
+\]
+be the nondecreasing rearrangement.  For each \(\ell\in\{2,\ldots,k\}\),
+\[
+\min_{\substack{S\subseteq\mathcal J\\ |S|=\ell}}
+\sum_{j\in S}c_j
+=\sum_{u=1}^{\ell}c_{(u)}.
+\]
+Indeed, if a cardinality-\(\ell\) set omits an entry no larger than one of its selected entries, exchanging those entries does not increase the sum.  Repeating this finite exchange gives the \(\ell\) smallest entries and proves the equality.  Therefore the definition of \(U\) is equivalently
+\[
+U(o,e)=\min\left\{g,\ \min_{j\in\mathcal J}a_j,\
+\ \min_{2\leq\ell\leq k}
+\frac{\sum_{u=1}^{\ell}c_{(u)}}{\ell-1}\right\}.
+\]
+Sorting once and scanning the prefix sums costs \(O(k\log k)\) arithmetic and comparison operations.  Along with the table scan, this proves the claimed \(O(mr+k\log k)\) evaluation bound and returns an active upper affine piece.
+
+We next count the support of the uncompressed constructions.  Start the indicator construction with the factual-treatment partition; after omitting zero-mass strata, it has at most \(m\) positive cells.  Splitting each queried own stratum into factual success and factual failure introduces at most \(k\) further positive cells by the finite-cell TAKE lemma.
+
+For the upper construction, the common intersection is selected once in each of the \(k\) queried factual-success blocks and once in the unqueried block.  Each TAKE operation introduces at most one positive cell, so these selections add at most \(k+1\) cells.  Each of the \(k\) residual coordinate-success fillings introduces at most one more cell.  Thus the upper indicator law has at most
+\[
+m+k+(k+1)+k=m+3k+1
+\]
+positive cells.  The upper-packing attainment lemma proves that this construction attains \(U(o,e)\).
+
+For the lower construction, a left vertex \(j\) can send flow to right block \(0\) and to each queried right block other than \(j\).  Hence there are
+\[
+k\bigl(1+(k-1)\bigr)=k^2
+\]
+possible middle edges.  Realizing every positive edge-flow as a disjoint failure piece uses at most one TAKE split per middle edge, and filling the residual demand of each of the \(k\) left rows uses at most one further split.  Including the queried own-stratum cuts, the lower indicator law therefore has at most
+\[
+m+k+k^2+k=m+k^2+2k
+\]
+positive cells.  The lower-flow attainment lemma supplies the required residual invariant: if a left row retains positive unused capacity, every adjacent right block is saturated, so the remaining row demand can be placed inside the existing failure union and cannot change the conjunction event.  That lemma proves that the construction attains \(L(o,e)\).
+
+It remains to refine either indicator law to all \(r\) categorical labels.  Fix a coordinate \(i\).  Inside its own factual stratum, the required label masses are \(o_{is}\), \(s\in\mathcal Y\); outside that stratum they are
+\[
+e_{is}-o_{is}\geq0,
+\]
+where nonnegativity is cell compatibility.  The simplex restrictions give
+\[
+\sum_{s\in\mathcal Y}o_{is}=p_i,
+\qquad
+\sum_{s\in\mathcal Y}(e_{is}-o_{is})=1-p_i.
+\]
+Thus, in each of the two domains, successively assigning at most the first \(r-1\) labels by TAKE leaves exactly the last label mass as the remainder.  For a queried coordinate the pre-existing success indicator already fixes the queried label, and the same argument is applied on indicator-compatible eligible unions; it can only reduce the number of required splits.  Consequently coordinate \(i\) introduces at most \(2(r-1)\) cells.  Over all \(m\) coordinates, categorical lifting adds at most \(2m(r-1)\) cells and preserves all earlier indicator labels.  The categorical-lifting lemma then places the refined law in \(\mathcal Q(o,e)\) without changing the conjunction probability.  The TAKE lemma makes no split when the requested mass or the eligible domain has mass zero.  Hence either endpoint construction has support no larger than
+\[
+\max\{m+3k+1,\ m+k^2+2k\}+2m(r-1)
+\leq m+2m(r-1)+k^2+3k+1=N_\star.
+\]
+
+We now prove the grid claims and audit bit complexity.  Let \(D\) be the least common multiple of the positive denominators of the rational input entries.  Every input mass and every reduced coordinate is in \(D^{-1}\mathbb Z\), and
+\[
+\log_2D
+\leq\sum_{v}\log_2 d_v
+\leq B,
+\]
+where \(d_v\) ranges over the input denominators.  Repeated Euclidean greatest-common-divisor computations together with
+\[
+\operatorname{lcm}(u,v)=\frac{uv}{\gcd(u,v)}
+\]
+compute \(D\) in polynomial bit time.  To see the iteration bound directly, let \(a\geq b>0\) be consecutive positive Euclidean arguments and let \(q\) be the remainder of dividing \(a\) by \(b\).  If \(q\leq b/2\), the smaller argument has halved after that step.  If \(q>b/2\), the next remainder is \(b-q<b/2\), so it has halved after two steps.  Hence the number of divisions is linear in the bit length, and schoolbook integer division has polynomial bit cost.  The displayed least-common-multiple division is exact and its divisor is positive.
+
+For the lower network, multiply all capacities by \(D\).  The source, right-block, and middle-edge capacities are then integers.  Starting from zero, augment a residual path by its least residual capacity.  Inductively every scaled flow remains integral, so after scaling back every edge-flow piece and every residual failure demand belongs to \(D^{-1}\mathbb Z\).  The categorical demands \(o_{is}\) and \(e_{is}-o_{is}\) lie on the same grid.  Applying the grid-preservation clause of the TAKE lemma at every refinement therefore shows that every atom of the uncompressed lower witness has weight in \(D^{-1}\mathbb Z\).
+
+For the upper endpoint, suppose first that the selected active certificate is \(g\) or a margin \(a_j\).  Then
+\[
+U(o,e)\in D^{-1}\mathbb Z.
+\]
+If instead the selected certificate is a subset \(S\subseteq\mathcal J\) of size \(\ell\geq2\), then
+\[
+U(o,e)=\frac{\sum_{j\in S}c_j}{\ell-1}
+\in [D(\ell-1)]^{-1}\mathbb Z.
+\]
+Use the applicable grid \(\delta\mathbb Z\), with \(\delta=D^{-1}\) in the first case and \(\delta=[D(\ell-1)]^{-1}\) in the second.  Every input mass is a multiple of \(\delta\).  The initial common-piece masses \((U-c_i)_+\), each sequential enlargement by the lesser of the remaining demand and remaining capacity, and every residual coordinate-success demand are therefore multiples of \(\delta\).  The categorical demands are also multiples of \(\delta\).  The TAKE lemma consequently keeps every atom of the uncompressed upper witness on the applicable grid.  These are exactly the denominator assertions for the witnesses supported on at most \(N_\star\).  All construction steps use addition, subtraction, comparison, and selection of a requested mass; no conditional probability is formed and no cell mass is used as a divisor.  If an eligible domain has zero mass, its compatible demand is zero and TAKE makes no split.
+
+The lower flow can be found in polynomially many exact operations independently of the numerical value of \(D\).  Its network has \(V=2k+3\) vertices and \(E=k^2+2k+1\) forward arcs.  At every iteration, choose a residual source-to-sink path having the fewest arcs and augment it by its least residual capacity.  Residual shortest-path distances from the source never decrease: a newly created residual arc is the reverse of an arc on the preceding shortest path, and using that new arc cannot create a shorter route than the distances that defined that path.  Charge an augmentation to one directed residual arc \((u,v)\) that it saturates.  At that saturation, the shortest-path labels obey \(d(v)=d(u)+1\).  Before the same directed arc can be saturated again, its reverse \((v,u)\) must occur on a later shortest path, where \(d'(u)=d'(v)+1\).  Distance monotonicity then gives
+\[
+d'(u)=d'(v)+1\geq d(v)+1=d(u)+2.
+\]
+Because a finite distance is at most \(V-1\), each directed arc can receive only \(O(V)\) charges.  There are at most \(2E\) directed residual arcs, so there are \(O(VE)=O(k^3)\) augmentations.  A breadth-first scan costs \(O(E)=O(k^2)\), giving the conservative bound \(O(k^5)\) exact arithmetic operations.  All scaled capacities are at most \(2D\), so its additions, subtractions, and comparisons use integers of \(O(B+1)\) bits.  The upper construction uses only the sorted scan and the finite TAKE refinements already described.
+
+There are \(O(mr+k^2+k)\) TAKE calls.  A direct implementation scans at most \(N_\star\) current cells per call, and splitting one cell copies a response record containing one treatment label and \(m\) outcome labels.  Since \(N_\star\) is polynomial in \(m,r,k\), this gives polynomial running time.  Every uncompressed atom has an \(O(B+\log k)\)-bit rational weight, one treatment label, and \(m\) outcome labels, so each sparse endpoint law has encoding length polynomial in \(m,r,k,B\).  Zero-mass cells are omitted.
+
+Apply the certificate-preserving support-compression lemma separately to these rational lower- and upper-endpoint laws.  It returns, in polynomial time using exact rational arithmetic, one law for each endpoint with the same margins, the same conjunction value, the same active-affine or minimum-cut certificate, support at most
+\[
+mr+m(r-1)=2mr-m,
+\]
+and polynomial encoding length.  This is a second witness guarantee, distinct from the grid-preserving \(N_\star\) guarantee.  Exact kernel cancellation can introduce additional rational denominators; accordingly, no \(D^{-1}\mathbb Z\) or \([D(\ell-1)]^{-1}\mathbb Z\) divisibility assertion is made for the compressed weights.
+
+Each sparse response law is also an exact finite SCM law.  Namely, let one finite exogenous variable take values \(\omega=(x,y_1,\ldots,y_m)\) with the displayed atom weights, define \(X(\omega)=x\) and \(Y_i(\omega)=y_i\), and set the observed outcome to \(Y=Y_X\).  This realization reproduces the response law exactly and does not enlarge its support.
+
+Finally, both types of sparse witness are polynomial-time verifiable.  A verifier sums the atom weights over the \(mr\) observational cells, the \(mr\) intervention cells, and the conjunction event.  For an upper witness, the certificate names \(g\), a margin \(a_j\), or an active subset \(S\).  On the conjunction event, factual consistency implies that a queried factual stratum \(X=j\) lies in its factual-success cell of mass \(b_j\); the remaining possible factual strata have total mass \(p_0\).  Thus \(\theta\leq p_0+\sum_jb_j=g\), while event inclusion gives \(\theta\leq\Pr(A_j)=a_j\).  Together with the packing inequality, the certificate inequalities are
+\[
+\theta\leq g,
+\qquad
+\theta\leq a_j,
+\qquad
+(|S|-1)\theta\leq\sum_{j\in S}c_j
+\]
+are respectively the factual-consistency, marginal, and upper-packing inequalities; the last equivalence and its active-subset certificate are proved by the upper-packing attainment lemma.  For a lower witness, a minimum cut attains one of the pieces in
+\[
+W(o,e)=\min\{H,g,\min_i(H-h_i+g-b_i)\},
+\]
+and the lower-flow attainment lemma proves both the cut value and \(L(o,e)=g-W(o,e)\).  Equality between the verified primal objective and the named affine or cut value certifies endpoint optimality.  In a tie, any one active certificate suffices.  This establishes every evaluation, construction, support, grid, certification, zero-boundary, running-time, and bit-complexity assertion in the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact grid-preserving primal laws and short dual cuts give a directly auditable endpoint computation, while certificate-preserving compression supplies constructive linear support. \textit{Gap.} Generic response-signature linear programs can have exponentially many columns and do not provide this sorted endpoint evaluator, explicit grid witness, or certificate-preserving linear-support compression. \textit{Consumer.} A regulator or replication archive can verify every categorical margin and endpoint using exact arithmetic, retain an at-most-\(N_\star\) input-grid witness when desired, or audit a separately compressed witness with at most \(2mr-m\) atoms and polynomial encoding length.
+
+\begin{theorem}[thm:uniform-inversion]\label{thm:uniform-inversion}
+Under block-multinomial sampling, \(\inf_{(o,e)}\Pr_{o,e}([L(o,e),U(o,e)]\subseteq I_N)\geq1-\alpha\), uniformly over all compatible margins, including zero cells, interval collapse, and arbitrary active-term ties. Both endpoints of \(I_N\) are solutions of rational linear programs with \(O(mr+k)\) variables and constraints when the radii are rationally rounded outward.
+\end{theorem}
+\begin{proof}
+There are \(2mr\) reported categorical cells: \(mr\) observational cells and \(mr\) intervention cells.  We first derive the cellwise concentration bound used below.  If \(R\geq0\), then \(\mathbb E[R]\geq u\Pr(R\geq u)\), and hence \(\Pr(R\geq u)\leq\mathbb E[R]/u\).  Let \(Z_1,\ldots,Z_N\) be independent Bernoulli variables of mean \(p\), and define \(\overline Z=N^{-1}\sum_{v=1}^N Z_v\).  Applying the preceding elementary inequality to the exponential of their sum gives, for \(q>p\),
+\[
+ \Pr(\overline Z\geq q)
+ \leq\inf_{\lambda>0}
+ \exp\{-N[\lambda q-\log(1-p+pe^\lambda)]\}
+ =\exp\{-N D_{\mathrm{KL}}(q\Vert p)\}.
+\]
+Here
+\[
+ D_{\mathrm{KL}}(q\Vert p)
+ =q\log\frac{q}{p}+(1-q)\log\frac{1-q}{1-p}.
+\]
+The equality follows by substituting \(e^\lambda=q(1-p)/(p(1-q))\); boundary values follow by limits or are impossible events.  For fixed \(p\), the function \(\phi(q)=D_{\mathrm{KL}}(q\Vert p)\) satisfies
+\[
+ \phi(p)=\phi'(p)=0,
+ \qquad \phi''(q)=\frac{1}{q(1-q)}\geq4.
+\]
+Twice integrating this inequality gives \(D_{\mathrm{KL}}(q\Vert p)\geq2(q-p)^2\).  The lower tail is identical after replacing \(Z\) by \(1-Z\).  Hence
+\[
+ \Pr(|\overline Z-p|>u)\leq2e^{-2Nu^2}
+\]
+whenever \(0<u\leq1\); if \(u=1\), the strict error event is empty.
+
+Apply this result to each cell indicator in its stated sampling block.  If the untruncated radius is at most one, the definition of \(\varepsilon_b\) gives
+\[
+ 2\exp(-2n_b\varepsilon_b^2)
+ =2\exp\{-\log(4mr/\alpha)\}
+ =\frac{\alpha}{2mr}.
+\]
+If it is truncated, the error event is empty.  A union bound, which does not require independence across blocks, yields the simultaneous event
+\[
+ \mathcal E=\left\{|\widehat o_{is}-o_{is}|\leq\varepsilon_0,
+ \ |\widehat e_{js}-e_{js}|\leq\varepsilon_j
+ \text{ for all cells}\right\},
+ \qquad \inf_{(o,e)}\Pr_{o,e}(\mathcal E)\geq1-\alpha.
+\]
+On \(\mathcal E\), the true compatible pair \((o,e)\) belongs to \(\mathcal C_N\), so this polytope is nonempty.  By its definition,
+\[
+ \min_{(o',e')\in\mathcal C_N}L(o',e')\leq L(o,e),
+ \qquad
+ \max_{(o',e')\in\mathcal C_N}U(o',e')\geq U(o,e).
+\]
+Therefore \([L(o,e),U(o,e)]\subseteq I_N\) on \(\mathcal E\).  The empty-polytope convention \(I_N=[0,1]\) cannot occur on \(\mathcal E\) and is conservative off that event.  Taking probabilities and then the infimum over compatible margins proves the claimed uniform coverage.  Zero cells, endpoint collapse, and active-piece ties do not enter the argument.
+
+It remains to expose the two finite programs.  For the lower endpoint, minimize \(v\) over \((o',e')\in\mathcal C_N\) subject to
+\[
+ v\geq0,
+ \qquad v\geq\sum_ja'_j-k+1,
+ \qquad v\geq b'_i-\sum_{j\ne i}h'_j\quad(i\in\mathcal J).
+\]
+For fixed \((o',e')\), the least feasible \(v\) is exactly \(L(o',e')\), so this program equals \(\min_{\mathcal C_N}L\).  For the upper endpoint, maximize \(t\) over \((o',e')\in\mathcal C_N\) and \(z_j\) subject to
+\[
+ 0\leq t\leq1,
+ \quad t\leq g',
+ \quad t\leq a'_j,
+ \quad z_j\geq0,
+ \quad z_j\geq t-c'_j,
+ \quad \sum_jz_j\leq t.
+\]
+For fixed margins, such \(z\) exists if and only if \(\sum_j(t-c'_j)_+\leq t\), because the componentwise smallest feasible choice is \(z_j=(t-c'_j)_+\).  The positive-part identity proved equation-by-equation in the upper argument makes this equivalent to all subset inequalities defining \(U\).  Hence this program equals \(\max_{\mathcal C_N}U\).
+
+The probability-simplex, compatibility, and confidence-box systems use \(O(mr)\) variables and constraints; the displays add only \(O(k)\).  If each radius is replaced by a rational outward rounding \(\bar\varepsilon_b\geq\varepsilon_b\), the resulting confidence polytope contains the original one and therefore retains the coverage proof, while all program coefficients are rational.  Compactness of the simplex-box intersection gives attainment of both optima.  Thus both reported endpoints are solutions of rational linear programs of the claimed size.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Confidence-region containment avoids differentiability and singular-covariance failures at active-set ties and simplex faces. \textit{Gap.} Cheng--Mao--Pearl--Li derive asymptotic regular and directional limits; generic partial-identification inference does not state this exact polynomial block-multinomial inversion. \textit{Consumer.} An applied analyst can report a finite-sample outer confidence interval for the entire sharp PoC interval even with rare or unobserved categorical cells.
+
+\begin{theorem}[thm:optimal-support-frontier-order]\label{thm:optimal-support-frontier-order}
+For every \(2\leq k\leq m\) and \(r\geq1\),
+\[
+ mr\leq s_\star(m,r,k)\leq 2mr-m.
+\]
+Consequently \(s_\star(m,r,k)=\Theta(mr)\) uniformly in \(k\).  The upper bound simultaneously controls the two separately minimized endpoint supports \(s_L(o,e)\) and \(s_U(o,e)\) for every \((o,e)\in\mathcal C_{m,r,k}\).  The lower bound is witnessed by the compatible family \(o_{is}=1/(mr)\), \(e_{js}=1/r\), for which both endpoint support minima are at least \(mr\).  Hence the quadratic \(k^2\) term in \(N_\star\) is not intrinsic to exact endpoint witnesses.
+\end{theorem}
+\begin{proof}
+Fix \(2\leq k\leq m\) and \(r\geq1\).  We prove the upper and lower bounds separately.
+
+For the upper bound, let \((o,e)\in\mathcal C_{m,r,k}\).  By the definition of \(\mathcal C_{m,r,k}\), this pair is compatible, and by Theorem~\(\mathrm{thm{:}sharp\mbox{-}interval}\) there are finite laws \(Q_L,Q_U\in\mathcal Q(o,e)\) such that
+\[
+ Q_L\!\left(\bigcap_{j\in\mathcal J}A_j\right)=L(o,e),
+ \qquad
+ Q_U\!\left(\bigcap_{j\in\mathcal J}A_j\right)=U(o,e).
+\]
+Apply Lemma~\(\mathrm{lem{:}certificate\mbox{-}preserving\mbox{-}endpoint\mbox{-}compression}\) first with \(t=L(o,e)\) and \(Q_0=Q_L\), and then with \(t=U(o,e)\) and \(Q_0=Q_U\).  Its hypotheses hold because the two displayed laws belong to \(\mathcal Q(o,e)\) and attain the respective endpoints.  It produces laws \(Q_L^{\mathrm c},Q_U^{\mathrm c}\in\mathcal Q(o,e)\) attaining those same endpoints and satisfying
+\[
+ \sigma(Q_L^{\mathrm c})\leq mr+m(r-1)=2mr-m,
+ \qquad
+ \sigma(Q_U^{\mathrm c})\leq mr+m(r-1)=2mr-m.
+\]
+The sets minimized over in the definitions of \(s_L(o,e)\) and \(s_U(o,e)\) are therefore nonempty.  Using \(Q_L^{\mathrm c}\) and \(Q_U^{\mathrm c}\) as feasible points in the respective minima gives
+\[
+ s_L(o,e)leq2mr-m,
+ \qquad
+ s_U(o,e)leq2mr-m.
+\]
+Consequently,
+\[
+ \max\{s_L(o,e),s_U(o,e)\}\leq2mr-m.
+\]
+Because this holds for every \((o,e)\in\mathcal C_{m,r,k}\), the definition of \(s_\star\) yields
+\[
+ s_\star(m,r,k)
+ =\sup_{(o,e)\in\mathcal C_{m,r,k}}
+   \max\{s_L(o,e),s_U(o,e)\}
+ \leq2mr-m.
+\]
+
+For the lower bound, define a particular pair of tables by
+\[
+ o_{is}=\frac{1}{mr}
+ \quad(i\in\mathcal X,\ s\in\mathcal Y),
+ \qquad
+ e_{js}=\frac{1}{r}
+ \quad(j\in\mathcal X,\ s\in\mathcal Y).
+\]
+Here \(m\geq k\geq2\) and \(r\geq1\), so all denominators are positive.  There are \(mr\) observational cells, whence
+\[
+ \sum_{i\in\mathcal X}\sum_{s\in\mathcal Y}o_{is}
+ =mr\frac{1}{mr}=1,
+\]
+and, for every \(j\in\mathcal X\),
+\[
+ \sum_{s\in\mathcal Y}e_{js}=r\frac{1}{r}=1.
+\]
+Thus \(o\in\Delta(\mathcal X\times\mathcal Y)\) and every row \(e_{j,\cdot}\in\Delta(\mathcal Y)\).  Moreover, since \(m\geq1\),
+\[
+ e_{is}=\frac1r\geq\frac1{mr}=o_{is}
+ \qquad(i\in\mathcal X,\ s\in\mathcal Y).
+\]
+The compatibility theorem, applied under these two verified simplex restrictions, therefore gives \(\mathcal Q(o,e)\neq\varnothing\); equivalently, the displayed pair belongs to \(\mathcal C_{m,r,k}\).
+
+Now let \(Q\in\mathcal Q(o,e)\) be arbitrary.  For each \((i,s)\in\mathcal X\times\mathcal Y\), define the observational cell
+\[
+ C_{is}
+ =\{(x,y_1,\ldots,y_m)\in\mathcal X\times\mathcal Y^m:
+       x=i,\ y_i=s\}.
+\]
+The \(mr\) sets \(C_{is}\) are pairwise disjoint: equality of two factual coordinates forces equality of their indices, and within a fixed factual coordinate two distinct outcome labels cannot both occur.  They also cover \(\mathcal X\times\mathcal Y^m\), because every response atom has one factual treatment \(i=x\) and one corresponding label \(s=y_i\).  By the observational-margin restriction in the definition of \(\mathcal Q(o,e)\),
+\[
+ Q(C_{is})
+ =\Pr_Q(X=i,Y_i=s)
+ =o_{is}
+ =\frac1{mr}>0
+ \qquad(i\in\mathcal X,\ s\in\mathcal Y).
+\]
+The response space \(\mathcal X\times\mathcal Y^m\) is finite.  Hence positive mass of \(C_{is}\) implies that \(C_{is}\) contains at least one atom having strictly positive \(Q\)-mass.  Because the cells are pairwise disjoint, these choices are distinct across all \(mr\) pairs \((i,s)\).  Therefore
+\[
+ \sigma(Q)\geq mr
+ \qquad\text{for every }Q\in\mathcal Q(o,e).
+\]
+
+The sharp-interval theorem supplies at least one member of \(\mathcal Q(o,e)\) on each endpoint face.  Since the preceding support inequality holds for every member of the model class, it holds in particular on both endpoint faces.  Taking the two defining minima gives
+\[
+ s_L(o,e)\geq mr,
+ \qquad
+ s_U(o,e)\geq mr.
+\]
+Because this compatible pair is one of the pairs over which \(s_\star(m,r,k)\) takes its supremum,
+\[
+ s_\star(m,r,k)
+ \geq\max\{s_L(o,e),s_U(o,e)\}
+ \geq mr.
+\]
+Combining the two directions proves
+\[
+ mr\leq s_\star(m,r,k)\leq2mr-m.
+\]
+Since \(m\geq1\), one also has \(2mr-m\leq2mr\).  Thus
+\[
+ mr\leq s_\star(m,r,k)\leq2mr,
+\]
+with constants independent of \(k\), which is precisely \(s_\star(m,r,k)=\Theta(mr)\) uniformly in \(k\).
+
+Finally, the definition of \(N_\star\) gives the exact decomposition
+\[
+ N_\star
+ =m+2m(r-1)+k^2+3k+1
+ =(2mr-m)+k^2+3k+1.
+\]
+Yet the upper-bound argument constructs, for every compatible pair, a separate exact lower-endpoint witness and exact upper-endpoint witness, each having support at most \(2mr-m\).  Therefore the \(k^2\) term in \(N_\star\) is not intrinsic to the existence of exact endpoint witnesses.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A finite-rank endpoint-face compression and a forced-positive-cell witness give matching linear order in the number of observational cells. \textit{Gap.} This closes the former support-frontier question and separates intrinsic support from the quadratic overhead of the explicit flow realization. \textit{Consumer.} An audit standard may require only order \(mr\) response atoms for exact endpoint existence, although the direct constructive certificate retains its larger explicit bound.
+
+\begin{lemma}[lem:take-refinement-valid]\label{lem:take-refinement-valid}
+For any finite weighted partition, any eligible union \(E\) of current cells, and any \(w\) with \(0\leq w\leq\Pr(E)\), \(\operatorname{TAKE}(E,w)\) selects a measurable union of whole current cells and at most one part of one further cell having mass exactly \(w\).  Recording membership in the selected set refines the partition by at most one positive-mass cell and preserves all previous cell labels.  If \(w=0\), or if \(\Pr(E)=0\), no split is made.  If every current cell mass and \(w\) is an integer multiple of \(\delta>0\), every refined cell mass remains an integer multiple of \(\delta\).
+\end{lemma}
+\begin{proof}
+Order the eligible cells as \(C_1,\ldots,C_v\), with masses \(u_1,\ldots,u_v\).  If \(w=0\), select the empty set.  Otherwise let \(t\) be the least index for which \(\sum_{a=1}^t u_a\geq w\); it exists because \(w\leq\sum_a u_a\).  Select all of \(C_1,\ldots,C_{t-1}\) and select from \(C_t\) a part of mass
+\[
+ w-\sum_{a=1}^{t-1}u_a\in[0,u_t].
+\]
+Only \(C_t\) can be split, so all old labels persist and at most one positive-mass cell is added.  If \(\Pr(E)=0\), the premise forces \(w=0\), which is the preceding branch.  Finally, if \(u_a,w\in\delta\mathbb Z\), then the displayed residual and its complement in \(C_t\) also belong to \(\delta\mathbb Z\).  This proves every assertion, including the boundary cases.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the finite-cell allocation invariant needed for zero-mass safety, support accounting, and denominator preservation. \textit{Gap.} The construction definition names the traversal but does not itself prove the refinement and grid properties. \textit{Consumer.} Every endpoint witness and categorical lift can be checked as a finite sequence of at-most-one-cell splits.
+
+\begin{lemma}[lem:shu-wang-li-scalar-formulas]\label{lem:shu-wang-li-scalar-formulas}
+Shu--Wang--Li, Theorem 2, gives for their scalar \(\operatorname{PNS}(k)\) the lower pieces \(0\), \(\sum_ja_j-k+1\), and \(b_i+\sum_{j\ne i}(a_j+p_j-b_j)-k+1\), and the upper pieces \(\sum_{j\leq k}b_j+\sum_{j>k}p_j\), the margins \(a_j\), and \(\sum_{j\in S}(a_j-b_j)/(|S|-1)\) for \(|S|\geq2\).  Their Theorems 6 and 7 respectively give zero-probability padding for unequal finite alphabets and replacement of queried outcome labels.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This cited leaf carries only the published formula and relabeling attribution used by the sharpness theorem. \textit{Gap.} The cited paper proves soundness but states that general-dimensional tightness remains open; attainment is proved separately here. \textit{Consumer.} The algebraic comparison identifies the newly attained interval with the published scalar bounds.
+
+\begin{lemma}[lem:certificate-preserving-support-compression]\label{lem:certificate-preserving-support-compression}
+Let \(Q\in\mathcal Q(o,e)\) have finite support and satisfy
+\[
+ Q\!\left(\bigcap_{j\in\mathcal J}A_j\right)\in\{L(o,e),U(o,e)\}.
+\]
+The support-compression construction produces a law \(\widetilde Q\in\mathcal Q(o,e)\) with the same conjunction probability, at most \(2mr-m\) positive response atoms, and the same active-affine or minimum-cut endpoint certificate. If \(o,e,Q\) are rational and the encoding length of \(Q\) is polynomial in \(m,r,k,B\), the compression is computable by exact rational arithmetic in polynomial time and the encoding length of \(\widetilde Q\) is polynomial in \(m,r,k,B\).
+\end{lemma}
+\begin{proof}
+Put \(\Omega=\mathcal X\times\mathcal Y^m\), and write an atom as \(z=(x,y_1,\ldots,y_m)\). For each \(z\in\Omega\), define the column
+\[
+ \Phi(z)=\left(
+   \bigl(\mathbf 1\{x=i,y_i=s\}\bigr)_{(i,s)\in\mathcal X\times\mathcal Y},
+   \bigl(\mathbf 1\{y_j=s\}\bigr)_{j\in\mathcal X,\ 1\leq s<r}
+ \right).
+\]
+There are exactly
+\[
+ R=mr+m(r-1)=2mr-m
+\]
+coordinates. The first \(mr\) coordinates record every observational cell, and the remaining \(m(r-1)\) coordinates record all but label \(r\) of every intervention margin. Let \(S=\{z:Q(z)>0\}\), let \(M_S\) be the matrix with columns \(\Phi(z)\), \(z\in S\), and let \(q_S=(Q(z))_{z\in S}\). Then
+\[
+ M_Sq_S=\beta,
+\]
+where \(\beta\) consists of the entries \(o_{is}\) and \(e_{js}\) with \(s<r\).
+
+Suppose the active columns are linearly dependent. Choose \(0\neq v\in\ker M_S\). Summing all observational coordinates of \(M_Sv=0\) gives
+\[
+ \sum_{z\in S}v_z=0,
+\]
+because every column has exactly one observational coordinate equal to one. Hence \(v\) has both a positive and a negative component. If
+\[
+ 0<\varepsilon<\min_{z:v_z\neq0}\frac{Q(z)}{|v_z|},
+\]
+then both \(q_S+\varepsilon v\) and \(q_S-\varepsilon v\) are nonnegative and preserve \(M_Sq_S=\beta\). They preserve total mass because \(\sum_zv_z=0\). For an omitted intervention cell, preservation follows from
+\[
+ \sum_z(q_{S,z}\pm\varepsilon v_z)\mathbf 1\{y_j=r\}
+ =1-\sum_{s<r}\sum_z(q_{S,z}\pm\varepsilon v_z)\mathbf 1\{y_j=s\}
+ =1-\sum_{s<r}e_{js}=e_{jr},
+\]
+where the last equality also follows by applying the same identity to the original member \(Q\in\mathcal Q(o,e)\). Thus both perturbed vectors define members of \(\mathcal Q(o,e)\); consistency is retained because their atoms remain in the same response space \(\Omega\).
+
+Let
+\[
+ \psi(z)=\mathbf 1\{y_j=s_j^\star\text{ for every }j\in\mathcal J\},
+ \qquad \delta=\sum_{z\in S}\psi(z)v_z.
+\]
+If \(Q\) is a lower-endpoint law and \(\delta\neq0\), one of the two feasible perturbations has conjunction probability strictly below \(L(o,e)\). If \(Q\) is an upper-endpoint law and \(\delta\neq0\), one of them has conjunction probability strictly above \(U(o,e)\). Either conclusion contradicts the sharp-interval theorem. Therefore
+\[
+ \delta=0.
+\]
+This is the certificate-preserving kernel identity: every feasible two-sided support direction at a globally optimal endpoint has zero query derivative.
+
+Because \(v\) has a positive component, the maximal boundary step
+\[
+ \eta=\min_{z:v_z>0}\frac{Q(z)}{v_z},
+ \qquad q'_S=q_S-\eta v
+\]
+is well defined. It is nonnegative, satisfies \(M_Sq'_S=\beta\), preserves the conjunction probability because \(\delta=0\), and makes at least one formerly positive coordinate zero. Delete all zero coordinates and repeat whenever the remaining active columns are dependent. Support strictly decreases at every iteration, so the procedure terminates after at most \(|S|-1\) iterations. At termination the active columns are linearly independent, and hence their number is at most the number \(R=2mr-m\) of rows. This proves the asserted support bound over real inputs.
+
+The active upper certificate is one of the affine pieces attaining \(U(o,e)\), and the active lower certificate is a cut attaining the deleted-diagonal maximum-flow value. Compression changes neither \((o,e)\) nor the attained conjunction probability. Consequently equality of the compressed primal value with the same displayed affine value or cut value remains a valid endpoint certificate.
+
+For the bit audit, assume rational input and start from a rational \(Q\). The matrix \(M_S\) is a zero-one matrix. Exact Gaussian elimination finds a dependent set and a nonzero rational kernel vector in polynomial time; clearing denominators gives an integer vector. One may choose a minimally dependent set, in which case cofactor expansion gives a circuit vector whose components are signed minors of a zero-one matrix with at most \(R\) rows. The Leibniz determinant expansion has at most \(R!\) nonzero signed products, each of absolute value at most one, so every component has bit length \(O(R\log R)\). If the current masses share a denominator \(E\), a boundary update using a circuit component \(v_z\) can be represented over the common denominator \(E|v_z|\). Thus each iteration adds only \(O(R\log R)\) denominator bits, and there are no more than the polynomially many atoms in the supplied law.
+
+There is also a direct final-output bound. If the terminal support has \(p\leq R\) atoms, select \(p\) linearly independent rows to obtain an invertible zero-one matrix \(C\). The terminal positive weights \(x\) uniquely satisfy
+\[
+ Cx=\beta_C.
+\]
+All entries of \(\beta_C\) have denominators dividing \(D\). Cofactor expansion of \(C\operatorname{adj}(C)\) gives \(C^{-1}=\operatorname{adj}(C)/\det C\), and hence
+\[
+ x_u=\frac{\det C_u}{\det C},
+ \qquad 1\leq |\det C|\leq p!,
+\]
+and each numerator has bit length \(O(B+p\log p)\). Hence every terminal weight has bit length \(O(B+R\log R)\). Polynomially many exact eliminations, ratio comparisons, and updates on numbers of polynomial bit length give a polynomial-time algorithm. This establishes the rational complexity assertion. Notice that this argument proves polynomial bit length, not preservation of the special input grid; the latter remains a property of the uncompressed endpoint constructions.
+\end{proof}
+
+\begin{lemma}[lem:certificate-preserving-endpoint-compression]\label{lem:certificate-preserving-endpoint-compression}
+For every \((o,e)\in\mathcal C_{m,r,k}\), every \(t\in\{L(o,e),U(o,e)\}\), and every \(Q_0\in\mathcal Q(o,e)\) satisfying
+\[
+ Q_0\!\left(\bigcap_{j\in\mathcal J}A_j\right)=t,
+\]
+finite margin-kernel boundary cancellation produces a law \(Q_{\mathrm c}\in\mathcal Q(o,e)\) with the same endpoint value and
+\[
+ \sigma(Q_{\mathrm c})\leq mr+m(r-1)=2mr-m.
+\]
+The cancellation preserves any active-affine upper certificate or deleted-diagonal minimum-cut lower certificate attached to \(Q_0\).  Given \(Q_0\) as a rational sparse list, the cancellation is computable in time polynomial in the list's encoding length, \(m\), and \(r\), and the output weights have polynomial bit length.  This polynomial-bit assertion does not assert preservation of any denominator-divisibility grid enjoyed by \(Q_0\).
+\end{lemma}
+\begin{proof}
+Put \(\Omega=\mathcal X\times\mathcal Y^m\).  Because \(\mathcal X\) and \(\mathcal Y\) are finite, every law on \(\Omega\) has finite support.  We use finite-dimensional kernel cancellation.  For \(\omega=(x,y_1,\ldots,y_m)\in\Omega\), define the zero-one margin matrix \(M\) by the \(mr\) observational rows
+\[
+ M^{\mathrm{obs}}_{is}(\omega)=\mathbf 1\{x=i,\ y_i=s\},
+ \qquad i\in\mathcal X,\ s\in\mathcal Y,
+\]
+and the \(m(r-1)\) intervention rows
+\[
+ M^{\mathrm{int}}_{js}(\omega)=\mathbf 1\{y_j=s\},
+ \qquad j\in\mathcal X,\ s\in\{1,\ldots,r-1\}.
+\]
+When \(r=1\), the second family is empty.  Thus \(M\) has
+\[
+ R=mr+m(r-1)=2mr-m
+\]
+rows.  The observational rows satisfy, column by column,
+\[
+ \sum_{i\in\mathcal X}\sum_{s\in\mathcal Y}
+ M^{\mathrm{obs}}_{is}(\omega)=1.
+\]
+It follows that \(Mv=0\) implies \(\sum_{\omega\in\Omega}v_\omega=0\).  Hence preserving \(MQ\) preserves total mass, all observational cells, and all intervention cells with labels \(1,\ldots,r-1\).  It also preserves the omitted intervention cell for every \(j\), because
+\[
+ \Pr_Q(Y_j=r)=1-\sum_{s=1}^{r-1}\Pr_Q(Y_j=s).
+\]
+Consequently, by the definition of \(\mathcal Q(o,e)\), every nonnegative vector with the same image under \(M\) as a member of \(\mathcal Q(o,e)\) is another member of \(\mathcal Q(o,e)\).  Potential-outcome consistency is unchanged because each column remains an atom \((x,y_1,\ldots,y_m)\) with factual outcome \(y_x\).
+
+Define the query row
+\[
+ z(\omega)=\mathbf 1\{y_j=s_j^\star\text{ for every }j\in\mathcal J\}.
+\]
+Then the conjunction probability under \(Q\) is \(z^\top Q\).  Fix \(t\in\{L(o,e),U(o,e)\}\) and an endpoint law \(Q_0\in\mathcal Q(o,e)\) with \(z^\top Q_0=t\).  At any stage let \(Q\) be the current endpoint law and let
+\[
+ S=\{\omega\in\Omega:Q_\omega>0\}.
+\]
+If \(|S|>R\), the columns of the \(R\)-row matrix \(M_S\) are linearly dependent.  Choose a nonzero vector \(v\), supported on \(S\), such that \(Mv=0\).  Since every \(Q_\omega\) with \(\omega\in S\) is strictly positive, there is \(\varepsilon>0\) such that both \(Q+\varepsilon v\) and \(Q-\varepsilon v\) are nonnegative.  Both perturbations have total mass one and the same required margins, so both belong to \(\mathcal Q(o,e)\).
+
+We now use endpoint optimality supplied by the sharp-interval theorem.  If \(t=L(o,e)\) and \(z^\top v\neq0\), one of the two feasible perturbations has conjunction probability
+\[
+ t-\varepsilon|z^\top v|<L(o,e),
+\]
+contradicting that \(L(o,e)\) is the minimum over \(\mathcal Q(o,e)\).  If \(t=U(o,e)\), the opposite choice of sign has conjunction probability
+\[
+ t+\varepsilon|z^\top v|>U(o,e),
+\]
+contradicting maximality.  Therefore
+\[
+ z^\top v=0
+\]
+at either endpoint.  This is the step that avoids adding the query row to the rank count.
+
+Because \(Mv=0\) gives \(\sum_\omega v_\omega=0\), the nonzero vector \(v\) has both a positive and a negative coordinate.  Define
+\[
+ \lambda=\min_{\omega\in S:\,v_\omega>0}\frac{Q_\omega}{v_\omega}>0,
+ \qquad Q'=Q-\lambda v.
+\]
+The minimum is taken only over strictly positive coordinates of \(v\), so no division by zero occurs.  Its indexed weights \(Q_\omega\) are also strictly positive by the definition of \(S\).  The choice of \(\lambda\) gives \(Q'\geq0\), makes at least one formerly positive weight zero, and creates no positive weight outside \(S\).  Moreover,
+\[
+ MQ'=MQ-\lambda Mv=MQ,
+ \qquad
+ z^\top Q'=z^\top Q-\lambda z^\top v=t.
+\]
+Thus \(Q'\) is another endpoint-attaining member of \(\mathcal Q(o,e)\) with strictly smaller support.  Iteration terminates after at most \(\sigma(Q_0)-R\) cancellations and returns \(Q_{\mathrm c}\) satisfying
+\[
+ \sigma(Q_{\mathrm c})\leq R=2mr-m.
+\]
+If the initial support is already at most \(R\), no cancellation is needed.  Zero-mass atoms never enter \(S\), so all zero-cell boundary cases are covered.
+
+An active-affine upper certificate is an inequality determined by the fixed margins whose value equals \(U(o,e)\), and a deleted-diagonal minimum-cut certificate is likewise determined by the fixed capacities and has value \(L(o,e)\) after the identity \(L=g-W\).  Kernel cancellation changes neither the margins nor the attained value \(t\).  The same active subset or minimum cut therefore remains a valid equality certificate for \(Q_{\mathrm c}\).
+
+Finally suppose that \(Q_0\) is supplied as a rational sparse list.  At a stage with more than \(R\) active atoms, rational Gaussian elimination on the zero-one matrix \(M_S\) finds a dependent column and a maximal independent subfamily expressing it.  The resulting kernel vector is supported on at most \(R+1\) columns.  Clearing denominators by the signed-minor construction gives a nonzero integer vector \(v\).  To bound it without an external theorem, expand any \(q\)-by-\(q\) zero-one minor by the Leibniz formula.  It is a sum of \(q!\) terms, each belonging to \(\{-1,0,1\}\), and hence its absolute value is at most \(q!\).  Since \(q\leq R\), every coordinate of \(v\) therefore has bit length at most \(1+\lceil\log_2(R!)\rceil=O(R\log(R+1))\).
+
+If the current weights have common positive denominator \(D_0\), and \(\omega_0\) realizes the minimum in the definition of \(\lambda\), then, writing \(Q_{\omega}=n_\omega/D_0\),
+\[
+ Q'_\omega
+ =\frac{n_\omega v_{\omega_0}-n_{\omega_0}v_\omega}
+ {D_0v_{\omega_0}}.
+\]
+Thus one cancellation increases the common-denominator bit length by at most \(O(R\log(R+1))\); since all weights remain in \([0,1]\), the numerator bit lengths satisfy the same polynomial bound.  There are at most \(\sigma(Q_0)-R\) iterations.  Gaussian elimination, exact ratio comparison, and each vector update are polynomial in the current sparse-list length and bit length.  Hence the entire cancellation procedure has running time and output encoding length polynomial in the encoding length of \(Q_0\), \(m\), and \(r\).  The extra factors \(|v_{\omega_0}|\) in successive denominators show why this argument asserts polynomial bit length but makes no denominator-divisibility claim for the compressed weights.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Scalar sharpness does not imply simultaneous sharpness for several response patterns, so separately summing scalar endpoint values can yield an unattainable policy utility.  The confidence interval is a conservative outer inversion and has no optimal-width claim.  The endpoint-support frontier satisfies \(mr\leq s_\star(m,r,k)\leq2mr-m\), hence has exact order \(mr\), but the exact worst-case constant remains open.  Divisibility by \(D\) or \(D(\ell-1)\) belongs only to the original grid-preserving witnesses of support at most \(N_\star\); the compressed witnesses have polynomial-bit rational weights with no asserted denominator divisor.
+
+\section{Honest scope}
+
+The finite max-flow/min-cut theorem, multinomial concentration, and exact rational linear algebra are standard inputs.  The proved contribution is all-alphabet categorical lifting, upper and lower endpoint attainment, the residual-failure invariant, exact interval equality, the grid and bit audit, and constructive certificate-preserving compression.  Unequal alphabets and repeated queried labels are covered, but factual-conditioned representative probabilities of causation, incomplete subpopulations, mediator restrictions, population mismatch, and simultaneous vectors of conjunctions are outside the theorem.  The Tian--Pearl binary reduction is an unnumbered sanity corollary, not a research-target theorem.  For \(k=1\), the target is the known margin \(a_1\); for \(r=1\), the identified interval is \([1,1]\).  The support frontier has proved order \(mr\), with lower bound \(mr\) and constructive upper bound \(2mr-m\); only the exact constant remains unresolved.  The larger \(N_\star\) support guarantee is retained solely for its stronger denominator-grid property.
+
+\begin{thebibliography}{99}
+
+  \bibitem{ShuWangLi2026ClosedForm} Xin Shu, Shuai Wang, and Ang Li. Identification of Probabilities of Causation: from Recursive to Closed-Form Bounds. IJCAI 2026, arXiv:2505.15274v4.
+
+  \bibitem{XieLi2026Tightness} Yuxuan Xie and Ang Li. On the Tightness of Bounds for Probabilities of Causation. Causality for Decision Making Workshop at UAI 2026, Technical Report R-28.
+
+  \bibitem{Koperberg2024Couplings} Twan Koperberg. Couplings and Matchings: Combinatorial Notes on Strassen's Theorem. Statistics \& Probability Letters 209 (2024), 110089. doi:10.1016/j.spl.2024.110089.
+
+  \bibitem{RossettoAntonucci2026CausalOrders} Eric Rossetto and Alessandro Antonucci. Partial Identification under Causal Orders by Linear Programming. arXiv:2608.24427, 2026.
+
+  \bibitem{TianPearl2000PoC} Jin Tian and Judea Pearl. Probabilities of Causation: Bounds and Identification. Annals of Mathematics and Artificial Intelligence 28 (2000), 287--313.
+
+  \bibitem{LiPearl2024NonbinaryPoC} Ang Li and Judea Pearl. Probabilities of Causation with Nonbinary Treatment and Effect. Proceedings of AAAI 38 (2024), 20465--20472. doi:10.1609/aaai.v38i18.30030.
+
+  \bibitem{ChengMaoPearlLi2026DeltaPoC} Tianyuan Cheng, Ruirui Mao, Judea Pearl, and Ang Li. General Sample Size Analysis for Probabilities of Causation: a Delta Method Approach. arXiv:2602.17070, 2026.
+
+  \bibitem{HorowitzLee2023OptimizationInference} Joel L. Horowitz and Sokbae Lee. Inference in a Class of Optimization Problems: Confidence Regions and Finite Sample Bounds on Errors in Coverage Probabilities. Journal of Business \& Economic Statistics 41 (2023), 927--938.
+
+  \bibitem{Stoye2009PartialIDCI} Jorg Stoye. More on Confidence Intervals for Partially Identified Parameters. Econometrica 77 (2009), 1299--1315. doi:10.3982/ECTA7347.
+
+  \bibitem{KaidoMolinariStoye2019Projection} Hiroaki Kaido, Francesca Molinari, and Jorg Stoye. Confidence Intervals for Projections of Partially Identified Parameters. Econometrica 87 (2019), 1397--1432. doi:10.3982/ECTA14075.
+
+  \bibitem{Pearl2009Causality} Judea Pearl. Causality: Models, Reasoning, and Inference. Second edition, Cambridge University Press, 2009.
+
+  \bibitem{HarinenEtAl2022CustomerJourney} Timo Harinen, Rumen Iliev, Ang Li, Scott Mueller, and Hanyi Zhang. Combining Experimental and Observational Studies to Estimate Individual Treatment Effects: Applications to Customer Journey Optimization. KDD Customer Journey Optimization Workshop, 2022.
+
+  \bibitem{XieLi2026IncompleteSubpopulation} Yuxuan Xie and Ang Li. Probabilities of Causation: Bounds from Incomplete and Subpopulation Data. Technical Report R-29, 2026.
+
+  \bibitem{XieLi2026PartialDiagrams} Yuxuan Xie and Ang Li. Bounding Probabilities of Causation with Partial Causal Diagrams. arXiv:2602.14503, 2026.
+
+\end{thebibliography}
+
+\end{document}

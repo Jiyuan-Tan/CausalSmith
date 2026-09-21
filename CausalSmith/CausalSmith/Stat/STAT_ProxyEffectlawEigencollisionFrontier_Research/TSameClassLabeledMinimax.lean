@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TLabeledWeightUpper
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TMatchingLocalLowerBounds
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TLabeledWeightUpper
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TMatchingLocalLowerBounds
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

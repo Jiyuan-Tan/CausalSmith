@@ -1,9 +1,10 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Basic
-import Mathlib.Analysis.InnerProductSpace.l2Space
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.SpecialFunctions.Exponential
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Order.Cover
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Basic
+public import Mathlib.Analysis.InnerProductSpace.l2Space
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Analysis.SpecialFunctions.Exponential
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Order.Cover
 
 /-!
 # Gaussian feature embeddings and cover separation
@@ -11,6 +12,11 @@ import Mathlib.Order.Cover
 This file defines the paper's explicit square-summable Gaussian feature map,
 kernel mean embeddings, population discrepancies, and the two genericity sets.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal InnerProductSpace lp
@@ -20,7 +26,7 @@ noncomputable section
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 -- @env: S3
-variable {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+variable {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
 
 /-- The Gaussian kernel `exp (-(a-b)²)`. -/
 def gaussianKernel (a b : ℝ) : ℝ :=

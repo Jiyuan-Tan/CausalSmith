@@ -1,10 +1,11 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPackingTheorem
-import Causalean.Stat.Nonparametric.Approximation.HolderInterpolation
-import Causalean.Mathlib.CondDistrib
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.Probability.Kernel.Disintegration.Unique
-import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPackingTheorem
+public import Causalean.Stat.Nonparametric.Approximation.Holder.Interpolation
+public import Causalean.Mathlib.Probability.Kernel.CondDistrib
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Probability.Kernel.Disintegration.Unique
+public import Mathlib.MeasureTheory.Measure.Haar.InnerProductSpace
 
 /-!
 # Strict inclusion of distance decision classes
@@ -13,6 +14,8 @@ The common-map class embeds in the point-indexed class by taking every section
 equal to the common map. Strictness is witnessed by a coordinate-valued rule on
 the square-support product law.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 

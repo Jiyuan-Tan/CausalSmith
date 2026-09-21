@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Stat.Minimax.Pinsker
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Stat.Minimax.Pinsker
 
 /-!
 # Two-sided Bernoulli divergence bridges
@@ -15,6 +16,8 @@ The upper inequality uses the Causalean quarter-band lemma. The lower inequality
 is the missing direction needed by the one-cell calibration and follows from
 the exact Bernoulli formula (or Pinsker with the exact two-atom variation).
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

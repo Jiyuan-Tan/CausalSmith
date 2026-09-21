@@ -3,23 +3,20 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Integral.IntegrableOn
+
+module
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Integral.IntegrableOn
 
 /-!
 # Integrability of suprema over a countable-dense-skeletoned index class
 
-A recurring pattern in localized empirical-process arguments is the need to show that a
-supremum `ω ↦ sSup { F ω π : π ∈ S }` of a real process over an index class `S` is
-measurable and integrable, when `S` carries a *countable dense skeleton* `D ⊆ S` (every
-point of `S` is approached by a `D`-valued sequence along which the process converges) and
-the process is uniformly bounded.
+This file proves measurability and integrability of pointwise suprema over arbitrary index sets by
+reducing them to uniformly bounded families on countable dense skeletons.
 
-This file packages that pattern into a small, paper-agnostic API on an arbitrary measurable
-space, so that individual empirical-process developments (policy-regret ERM suprema,
-orthogonal-learning localized processes, set-valued support processes, …) reduce their
-Bochner side conditions to a single invocation.
+The API works on an arbitrary measurable space and reduces measurability and
+Bochner-integrability side conditions to countable suprema.
 
 Main results:
 * `sSup_image_eq_of_dense_tendsto` — for a real functional `F` bounded above on `S`, if
@@ -33,16 +30,17 @@ Main results:
   `bddAbove_image_of_bound` supplies the pointwise `BddAbove` fact for free.
 -/
 
+public section
+
 open MeasureTheory
 open scoped BigOperators
 
 namespace Causalean.Mathlib.MeasureTheory
 
-/-- If `F` is bounded above on `S`, `D ⊆ S`, and every `x ∈ S` is the limit along a
-`D`-valued sequence of `F`-values (`F (seq j) → F x`), then the supremum of `F` over `S`
-coincides with the supremum over the countable skeleton `D`.  This is the density-side
-input that turns a supremum over an uncountable class into a supremum over a countable
-skeleton (used both for measurability and for evaluating the supremum). -/
+/-- [A supremum over an index set equals the supremum over a dense skeleton](goal) when [the
+real functional](hyp:F) is [bounded above on the full set](hyp:S,hbdd), [the skeleton lies
+inside that set](hyp:D,hDS), and [every full-set value is approached along a skeleton-valued
+sequence](hyp:hdense). -/
 theorem sSup_image_eq_of_dense_tendsto {ι : Type*} (F : ι → ℝ) (S D : Set ι)
     (hDS : D ⊆ S) (hbdd : BddAbove (F '' S))
     (hdense : ∀ x ∈ S, ∃ seq : ℕ → ι, (∀ j, seq j ∈ D) ∧
@@ -65,10 +63,10 @@ theorem sSup_image_eq_of_dense_tendsto {ι : Type*} (F : ι → ℝ) (S D : Set 
       exact le_csSup hbddD ⟨seq j, hseqD j, rfl⟩
     · exact csSup_le_csSup hbdd himageDne (Set.image_mono hDS)
 
-/-- The pointwise supremum `ω ↦ sSup ((F ω) '' S)` of a real process over an index class
-`S` is measurable, provided `S` has a countable skeleton `D` on which the process is
-measurable in `ω`, and the supremum over `S` agrees pointwise with the supremum over `D`.
-Paper-agnostic generalization of the policy-class skeleton measurability step. -/
+/-- [The pointwise supremum of a real-valued family over an index set is measurable](goal) when
+[the family and its full and skeleton index sets](hyp:F,S,D) satisfy [countability of the
+skeleton](hyp:hD), [measurability at each skeleton index](hyp:hF), and [pointwise equality of
+the full and skeleton suprema](hyp:heq). -/
 theorem measurable_sSup_image_of_countable_dense {Ω ι : Type*} [MeasurableSpace Ω]
     (S D : Set ι) (F : Ω → ι → ℝ)
     (hD : D.Countable)
@@ -113,13 +111,12 @@ theorem bddAbove_image_of_bound {Ω ι : Type*} (S : Set ι) (F : Ω → ι → 
     rintro _ ⟨π, hπ, rfl⟩
     exact hbound ω π hπ⟩
 
-/-- On a finite measure `μ`, if [the bound `C` is nonnegative](hyp:hC), [the skeleton index set
-`D` is countable](hyp:hD), [each coordinate map `ω ↦ F ω π` is measurable for `π` in the
-skeleton `D`](hyp:hF), [the pointwise supremum of `F ω` over the index class `S` equals its
-supremum over the countable skeleton `D`, for every `ω`](hyp:heq), and [`F ω π` is bounded in
-absolute value by `C` uniformly over `π ∈ S`](hyp:hbound), then [the pointwise supremum
-`ω ↦ sSup ((F ω) '' S)` is integrable against `μ`](goal). This is the entry point that
-discharges the Bochner side conditions of a localized empirical-process supremum in one call. -/
+/-- [The pointwise supremum of a real-valued family is integrable under a finite
+measure](goal) when [the family and its full and skeleton index sets](hyp:F,S,D) have [a
+nonnegative uniform bound](hyp:C,hC), [the skeleton is countable](hyp:hD), [each skeleton
+coordinate is measurable](hyp:hF), [the full and skeleton suprema agree pointwise](hyp:heq),
+and [the family is uniformly bounded in absolute value](hyp:hbound), with integration against
+[the given measure](hyp:μ). -/
 theorem integrable_sSup_image_of_countable_dense {Ω ι : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) [IsFiniteMeasure μ]
     (S D : Set ι) (F : Ω → ι → ℝ) (C : ℝ) (hC : 0 ≤ C)

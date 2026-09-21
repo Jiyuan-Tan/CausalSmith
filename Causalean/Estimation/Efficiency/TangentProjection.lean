@@ -3,21 +3,22 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Abstract semiparametric-efficiency Hilbert-projection machine
+# Abstract tangent-space Hilbert projections
 
 This file is **Layer A** of the Hahn (1998) semiparametric-efficiency
 formalization: pure Hilbert-space geometry, no measure theory and no causal
-content. It is the reusable abstraction that every estimator-efficiency
-theorem will cite.
+content. It supplies the geometry that a statistical efficiency theorem can
+use after separately identifying a pathwise derivative and regular influence
+functions.
 
 Fix a real Hilbert space `H` and a *tangent subspace* `T : Submodule ℝ H`
 (in applications, the closure of the set of scores of regular parametric
-submodels). A reference influence function `g : H` is a *gradient* if its
-inner product against every tangent direction is matched. The **efficient
-influence function** `efficientIF T g` is the orthogonal projection of `g`
-onto `T`, and the **efficiency bound** `effBound T g` is its squared norm.
-Pythagoras gives the efficiency lower bound: every gradient `ψ` satisfies
-`effBound T g ≤ ‖ψ‖²`, with equality iff `ψ = efficientIF T g`.
+submodels). The predicate `IsGradient T g ψ` says only that `g` and `ψ` have
+the same inner products against `T`. The projection `efficientIF T g` and its
+squared norm `effBound T g` are geometric objects; they acquire their usual
+semiparametric interpretation only when `g` represents a functional's pathwise
+derivative. Pythagoras gives the corresponding squared-norm inequality for every
+`IsGradient` vector.
 
 The closing section records the *tangent-shrinking corollary* (the abstract
 "role of the propensity score"): if the reference influence function already
@@ -25,15 +26,17 @@ lies in the smaller tangent space, shrinking the tangent space leaves the
 efficiency bound unchanged.
 -/
 
-import Mathlib.Analysis.InnerProductSpace.Projection.Basic
+module
+public import Mathlib.Analysis.InnerProductSpace.Projection.Basic
 
-/-! # Tangent-Space Projection for Efficiency
+/-! # Tangent-space projection geometry
 
-This file develops the Hilbert-space geometry behind semiparametric efficiency:
-gradients are compared along a tangent subspace, the efficient influence
-function is the orthogonal projection onto that subspace, and the efficiency
-bound is its squared norm. It also proves the abstract tangent-shrinking
-principle used in the Hahn efficiency formalization. -/
+This file defines equality of directional inner products along a tangent
+subspace, the orthogonal projection of a reference vector, and the projection's
+squared norm. It proves the associated minimum-norm and tangent-shrinking
+identities used after a statistical model supplies the pathwise-gradient bridge. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.Efficiency
 
@@ -49,28 +52,27 @@ product with the candidate equals its inner product with the reference.
 
 `ψ` is a *gradient* of `g` relative to the tangent space `T` when its inner
 product against every tangent direction matches that of `g`. In semiparametric
-models `g` is a reference influence function and the gradients are exactly the
-influence functions of regular asymptotically linear estimators. -/
+models this relation can compare influence functions once a separate theorem
+identifies `g` with the functional's pathwise derivative. -/
 def IsGradient (T : Submodule ℝ H) (g ψ : H) : Prop :=
   ∀ s ∈ T, ⟪ψ, s⟫_ℝ = ⟪g, s⟫_ℝ
 
 /-- Given [a real normed inner-product space](hyp:H), [a tangent subspace admitting an orthogonal
-projection](hyp:T), and [a reference influence function](hyp:g), the [efficient
-influence function](goal) is the orthogonal projection of the reference influence
-function onto that tangent subspace.
+projection](hyp:T), and [a reference vector](hyp:g), the [projected reference
+vector](goal) is the orthogonal projection of `g` onto that tangent subspace.
 
-The **efficient influence function**: the orthogonal projection of the
-reference gradient `g` onto the tangent space `T`, coerced back into `H`. -/
+When `g` represents a functional's pathwise derivative, this projection is the
+usual canonical gradient. -/
 noncomputable def efficientIF (T : Submodule ℝ H) [T.HasOrthogonalProjection]
     (g : H) : H :=
   (T.orthogonalProjection g : H)
 
 /-- Given [a real normed inner-product space](hyp:H), [a tangent subspace admitting an orthogonal
-projection](hyp:T), and [a reference influence function](hyp:g), the [semiparametric
-efficiency bound](goal) is the squared norm of its efficient influence function.
+projection](hyp:T), and [a reference vector](hyp:g), the [projection-norm
+functional](goal) is the squared norm of the projected reference vector.
 
-The **semiparametric efficiency bound**: the squared norm of the efficient
-influence function. -/
+It is a semiparametric efficiency bound only after `g` has been connected to a
+functional's pathwise derivative in a statistical model. -/
 noncomputable def effBound (T : Submodule ℝ H) [T.HasOrthogonalProjection]
     (g : H) : ℝ :=
   ‖efficientIF T g‖ ^ 2

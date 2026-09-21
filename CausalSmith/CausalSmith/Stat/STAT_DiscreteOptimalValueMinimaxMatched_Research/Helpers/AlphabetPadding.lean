@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Depoissonization
-import Mathlib.MeasureTheory.Measure.Prod
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Depoissonization
+public import Mathlib.MeasureTheory.Measure.Prod
 
 /-! Zero-mass alphabet padding for the paired fixed-sample L1 experiment. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

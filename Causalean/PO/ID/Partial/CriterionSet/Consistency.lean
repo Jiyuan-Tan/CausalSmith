@@ -3,13 +3,13 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Hausdorff consistency of criterion-function set estimators (Chernozhukov–Hong–Tamer 2007)
+# Hausdorff consistency of normalized criterion-function set estimators
 
 Companion to `CriterionSet/Basic.lean`.  Given a population criterion `Q` with
-identified set `Θ_I = {Q = 0}` and a sample criterion `Qn` close to `Q` in the
-sup-norm (the uniform-convergence input supplied by a ULLN / Glivenko–Cantelli
-argument), the level-set estimator `Θ̂ₙ = {Qn ≤ cₙ}` converges to `Θ_I` in
-Hausdorff distance.
+nonempty identified set `Θ_I = {Q = 0}` and a sample criterion `Qn` close to
+`Q` in the sup-norm (the uniform-convergence input supplied by a ULLN /
+Glivenko–Cantelli argument), the level-set estimator `Θ̂ₙ = {Qn ≤ cₙ}` converges
+to `Θ_I` in Hausdorff distance.
 
 The mathematical core is the **deterministic rate bound**: under a *linear
 minorant* `δ · d(θ, Θ_I) ≤ Q θ` (the CHT polynomial-minorant identifiability
@@ -21,10 +21,8 @@ Both directions are elementary: points of `Θ̂ₙ` cannot be far from `Θ_I` (t
 minorant forces `d(θ, Θ_I) ≤ (c+ε)/δ`), and `Θ_I ⊆ Θ̂ₙ` outright (`Q = 0 ⇒
 Qn ≤ ε ≤ c`).  Consistency `H(Θ̂ₙ, Θ_I) → 0` is then a squeeze from `cₙ, εₙ → 0`.
 
-This reuses the metric Hausdorff distance of `RandomSet/Hausdorff.lean` (the same
-`directedHausdorff` / `hausdorffDist` that drives the Beresteanu–Molinari
-support-function program), tying the two partial-ID inference pillars to one
-geometry.
+This uses the symmetric and one-sided distances from `RandomSet/Hausdorff.lean`,
+tying the two partial-ID inference pillars to one geometry.
 
 ## Main definitions
 
@@ -38,14 +36,15 @@ geometry.
 * `tendsto_hausdorffDist_levelSet` — Hausdorff consistency `H(Θ̂ₙ, Θ_I) → 0`.
 -/
 
-import Causalean.PO.ID.Partial.CriterionSet.Basic
-import Causalean.PO.ID.Partial.RandomSet.Hausdorff
+module
+public import Causalean.PO.ID.Partial.CriterionSet.Basic
+public import Causalean.PO.ID.Partial.RandomSet.Hausdorff
 
 /-! # Hausdorff consistency for criterion-set estimators
 
 This file proves deterministic Hausdorff-distance bounds for level sets of
-sample criterion functions, following the Chernozhukov-Hong-Tamer
-criterion-set consistency argument. The population identified set is
+sample criterion functions, as a normalized zero-set specialization of the
+Chernozhukov-Hong-Tamer criterion-set consistency argument. The population identified set is
 `identifiedSet Q = {theta | Q theta = 0}`, the sample estimator is
 `levelSet Qn c = {theta | Qn theta <= c}`, and the key identifiability
 condition is `LinearMinorant Q delta`, a linear lower bound on criterion values
@@ -61,6 +60,8 @@ vanish. The file also supplies reusable helpers for nonnegativity and subset
 control of `directedHausdorff` and `hausdorffDist`.
 -/
 
+@[expose] public section
+
 open Filter Topology
 
 namespace Causalean.PartialID.CriterionSet
@@ -69,7 +70,7 @@ open Causalean.PartialID.RandomSet
 
 variable {Θ : Type*} [PseudoMetricSpace Θ]
 
-/-! ## Metric Hausdorff helpers -/
+/-! ## Local Hausdorff helpers -/
 
 /-- The directed Hausdorff distance is nonnegative (a sup of nonnegative
 point-to-set distances). -/
@@ -96,9 +97,11 @@ lemma directedHausdorff_eq_zero_of_subset {A B : Set Θ} (h : A ⊆ B) :
 
 /-! ## The CHT criterion-set consistency results -/
 
-/-- For [a parameter space with a pseudometric](hyp:Θ), [a criterion function](hyp:Q), and [a real modulus](hyp:δ), the [linear-minorant
-condition](goal) holds precisely when, for every parameter value, [the modulus times its
-distance from the criterion's zero set is no greater than its criterion value](step:1).
+/-- For [a parameter space with a pseudometric](hyp:Θ), [a criterion
+function](hyp:Q), and [a real modulus](hyp:δ), the [linear-minorant
+condition](goal) holds precisely when, for every parameter value, [the modulus
+times its distance from the criterion's zero set is no greater than its
+criterion value](step:1).
 
 A criterion `Q` satisfies a **linear minorant** with modulus `δ` relative to
 its identified set: `δ · d(θ, Θ_I) ≤ Q θ` for all `θ`.  This is the
@@ -108,15 +111,20 @@ small criterion value pins `θ` near the identified set. -/
 def LinearMinorant (Q : Θ → ℝ) (δ : ℝ) : Prop :=
   ∀ θ, δ * Metric.infDist θ (identifiedSet Q) ≤ Q θ
 
-/-- **Deterministic CHT rate bound.** Fix [a positive linear-minorant modulus
-`δ`](hyp:hδ), [a nonnegative sup-norm error bound `ε`](hyp:hε), and [a cutoff `c` at least
-`ε`](hyp:hc). If [the population criterion `Q` satisfies a linear minorant of modulus
-`δ` relative to its identified set — `δ` times the distance to the identified set never
-exceeds `Q`](hyp:hmin), and [the sample criterion `Qn` is within `ε` of `Q` in sup norm at
-every point](hyp:hunif), then [the level-set estimator `{Qn ≤ c}` is within Hausdorff
-distance `(c + ε) / δ` of the population identified set `{Q = 0}`](goal):
+/-- **Deterministic normalized-criterion rate bound.** Fix [a positive
+linear-minorant modulus `δ`](hyp:hδ), [a nonnegative sup-norm error bound
+`ε`](hyp:hε), and [a cutoff `c` at least `ε`](hyp:hc). If [the population
+criterion `Q` satisfies a linear minorant of modulus `δ` relative to its
+identified set — `δ` times the distance to the identified set never exceeds
+`Q`](hyp:hmin), and [the sample criterion `Qn` is within `ε` of `Q` in sup norm at every
+point](hyp:hunif), then [the level-set estimator `{Qn ≤ c}` is within
+Hausdorff distance `(c + ε) / δ` of the population identified set
+`{Q = 0}`](goal):
 
-    H(levelSet Qn c, identifiedSet Q) ≤ (c + ε) / δ. -/
+    H(levelSet Qn c, identifiedSet Q) ≤ (c + ε) / δ.
+
+The positive linear minorant makes `Q` nonnegative, so any attained zero is a
+population minimizer and the zero set is the argmin set. -/
 theorem hausdorffDist_levelSet_le
     {Q Qn : Θ → ℝ} {δ c ε : ℝ}
     (hδ : 0 < δ) (hε : 0 ≤ ε) (hc : ε ≤ c)
@@ -145,14 +153,15 @@ theorem hausdorffDist_levelSet_le
     exact hbound
 
 /-- **Hausdorff consistency of the criterion-set estimator.** Fix [a positive
-linear-minorant modulus `δ`](hyp:hδ) such that [the population criterion `Q` satisfies a
-linear minorant of modulus `δ`](hyp:hmin). Suppose [each sup-norm error tolerance is
-nonnegative](hyp:hε), [each cutoff is at least the corresponding error
-tolerance](hyp:hc), [the sample criterion `Qn n` is within tolerance `ε n` of `Q` in sup
-norm at every sample size `n`](hyp:hunif), [the cutoffs tend to zero](hyp:hc0), and [the
-error tolerances tend to zero](hyp:hε0). Then [the Hausdorff distance between the
-level-set estimator `{Qn n ≤ c n}` and the population identified set `{Q = 0}` tends to
-zero as the sample size grows](goal): `H(levelSet Qnₙ cₙ, identifiedSet Q) → 0`. -/
+linear-minorant modulus `δ`](hyp:hδ) such that [the population criterion `Q`
+satisfies a linear minorant of modulus `δ`](hyp:hmin). Suppose [each sup-norm
+error tolerance is nonnegative](hyp:hε), [each cutoff is at least the corresponding
+error tolerance](hyp:hc), [the sample criterion `Qn n` is within tolerance `ε n`
+of `Q` in sup norm at every sample size `n`](hyp:hunif), [the cutoffs tend to
+zero](hyp:hc0), and [the error tolerances tend to zero](hyp:hε0). Then [the
+Hausdorff distance between the level-set estimator `{Qn n ≤ c n}` and the
+population identified set `{Q = 0}` tends to zero as the sample size
+grows](goal): `H(levelSet Qnₙ cₙ, identifiedSet Q) → 0`. -/
 theorem tendsto_hausdorffDist_levelSet
     {Q : Θ → ℝ} {Qn : ℕ → Θ → ℝ} {δ : ℝ} {c ε : ℕ → ℝ}
     (hδ : 0 < δ) (hmin : LinearMinorant Q δ)

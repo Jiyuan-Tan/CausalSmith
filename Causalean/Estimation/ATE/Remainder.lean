@@ -10,8 +10,8 @@ population remainder identity sits in `Remainder/Identity.lean`, and the
 rate/big-O corollary sits in `Remainder/Bound.lean`.
 -/
 
-import Causalean.Estimation.ATE.Remainder.Identity
-import Causalean.Estimation.ATE.Remainder.Bound
+module
+public import Causalean.Estimation.ATE.Remainder.Bound
 
 /-!
 Public entry point for the AIPW second-order remainder theory for back-door
@@ -22,6 +22,8 @@ plug-in bias bound `plugin_bias_le_eLpNorm`, the quantitative L² product bound
 `aipw_remainder_bound`, and the stochastic product-rate corollary
 `aipw_remainder_op` used in double machine learning.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation

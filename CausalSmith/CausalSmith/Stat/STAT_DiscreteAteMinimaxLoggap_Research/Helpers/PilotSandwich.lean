@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
-import Causalean.Stat.Concentration.TailBounds.Bernstein
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
-import Causalean.Stat.Sample.PiTransport
-import Causalean.Stat.Concentration.TailBounds.BinomialCount
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
+public import Causalean.Stat.Concentration.TailBounds.Bernstein
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
+public import Causalean.Stat.Sample.PiTransport
+public import Causalean.Stat.Concentration.TailBounds.BinomialCount
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

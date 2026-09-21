@@ -23,7 +23,7 @@ This manual is the user-facing entry point. For per-declaration documentation se
 ```
 CausalSmith/
   lakefile.toml             # name = "CausalSmith"; defaultTargets = ["CausalSmith"]
-  CausalSmith.lean          # umbrella import; pulled in by `lake -d CausalSmith build`
+  CausalSmith.lean          # light default target (Causalean + shared helpers); papers build via run barrels
   CausalSmith/              # Lean source root (namespace CausalSmith.*)
     Panel/                  # panel / linear-projection theorems (panel_* runs)
     ExactID/                # exact-identification outputs (populated by /causalsmith research eid_*)
@@ -85,10 +85,12 @@ cd CausalSmith/tools && npm install
 
 ```bash
 lake build Causalean                # build the foundational library
-lake -d CausalSmith build        # build the CausalSmith catalogue
+lake -d CausalSmith build        # light default target: Causalean + shared helpers
 ```
 
-A full first build pulls down Mathlib + dependent packages and takes several minutes. Incremental builds are fast. For iteration during proof work, prefer the `lean-lsp` MCP (`lean_diagnostic_messages`, `lean_goal`, `lean_multi_attempt`) over `lake build`.
+The Lean code of existing papers is opt-in. Build one paper with its run barrel (`lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research`; a few early runs have no barrel, so name their module files instead), every module with `npm run build:full-tree`, or fetch prebuilt oleans with `scripts/fetch_build_cache.sh --causalsmith` (see [`SETUP.md`](SETUP.md)). A research run never needs them up front: the pipeline builds each run through its own run barrel, and importing one earlier paper compiles only that paper. Fetch Mathlib's cache for the CausalSmith project from inside it: `(cd CausalSmith && lake exe cache get)`.
+
+With the Mathlib and Causalean caches fetched, a first build takes minutes; from source it takes hours. Incremental builds are fast. For iteration during proof work, prefer the `lean-lsp` MCP (`lean_diagnostic_messages`, `lean_goal`, `lean_multi_attempt`) over `lake build`.
 
 **Warm the build cache before F1/F2/F3.** Those stages query Lean live via the `lean-lsp` MCP (see below). The first such call on a cold `.olean` cache triggers a dependency compile that can stall the stage; run `lake -d CausalSmith build` once first so the cache is warm.
 
@@ -220,6 +222,20 @@ CausalSmith/doc/research/MISSING_ARCHITECTURE.md   # deferred-infra ledger acros
 ```
 
 The Lean output directory is computed by `canonicalLeanSubdir(qid)` in `tools/src/paths.ts`.
+
+### Module system
+
+Emitted run files place `module` after the optional copyright block, use `public import`, add the
+`/-! ... -/` module docstring, and open one blanket
+`@[expose] public section` for def-bearing files or `public section` for theorem-only files.
+Declarations remain bare; run barrels and `Helpers.lean` are imports-only.
+
+From `CausalSmith/tools`, validate headers and repository placement with:
+
+```sh
+npm run lint:module-headers
+npm run lint:layout
+```
 
 ### Stage discipline notes
 

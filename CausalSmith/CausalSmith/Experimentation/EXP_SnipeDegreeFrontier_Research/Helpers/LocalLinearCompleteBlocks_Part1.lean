@@ -1,7 +1,8 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearClass
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import Mathlib.Algebra.Order.Chebyshev
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearClass
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import Mathlib.Algebra.Order.Chebyshev
 
 /-!
 # Canonical local-linear weights and the estimator error expansion
@@ -11,6 +12,8 @@ unit sets, and the per-unit estimation error, then develops the error
 expansion, unbiasedness, and the global second-moment identity for the SNIPE
 score together with the weight-energy and centred-moment lemmas.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

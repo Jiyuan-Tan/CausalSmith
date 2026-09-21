@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TTargetSpanIff
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FiniteSampleCoverage
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TTargetSpanIff
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.FiniteSampleCoverage
 
 /-! Finite-sample uniform coverage of the concentration projection set under finite block laws. -/
+
+public section
 
 open MeasureTheory
 

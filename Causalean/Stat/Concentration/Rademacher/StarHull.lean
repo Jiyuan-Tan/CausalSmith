@@ -9,15 +9,19 @@ The star hull of a function class `F : ι → 𝒳 → ℝ` around the origin is
 set of all rescalings `α • F i` with `α ∈ [0, 1]`. It is the standard
 substrate for localized empirical-process arguments: the local Rademacher
 complexity of `F` at radius `r` is dominated (up to a universal constant)
-by the Rademacher complexity of `starHull F ∩ ball(0, r)`, which is
-sub-root in `r`.
+by the Rademacher complexity of `starHull F ∩ ball(0, r)`. In the radius
+parameterization used by this library, the resulting complexity is a
+star-shaped envelope: its ratio to `r` is nonincreasing. This is distinct from
+the Bartlett--Bousquet--Mendelson sub-root convention in the squared-radius
+variable.
 
 Reference:
 * Bartlett, Bousquet, Mendelson, *Local Rademacher complexities*,
   Ann. Statist. 33 (2005) 1497–1537, Section 3.
 -/
 
-import Causalean.Stat.Concentration.Rademacher.Rademacher
+module
+public import Causalean.Stat.Concentration.Rademacher.Rademacher
 
 /-! # Star Hulls of Function Classes
 
@@ -34,6 +38,8 @@ coefficient together with the original index, and `starHullEval F` evaluates
 the associated function. The lemmas `starHullEval_mem_starHull`,
 `starHullEval_one`, and `starHullEval_zero` connect this parameterized view
 back to the set-level star hull. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Stat

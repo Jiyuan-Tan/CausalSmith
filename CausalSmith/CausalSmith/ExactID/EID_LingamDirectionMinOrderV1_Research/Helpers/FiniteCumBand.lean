@@ -12,10 +12,13 @@ agree there.  It is the bridge needed before applying Noetherian dimension
 theorems.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AlgebraicSetChains
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalGeometryBasic
-import Mathlib.Algebra.MvPolynomial.Funext
-import Mathlib.Algebra.MvPolynomial.Monad
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AlgebraicSetChains
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalGeometryBasic
+public import Mathlib.Algebra.MvPolynomial.Funext
+public import Mathlib.Algebra.MvPolynomial.Monad
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -124,7 +127,7 @@ lemma extend_restrictCumBand {L : ℕ} {t : CumVec ℂ}
   · simp [extendCumBand, restrictCumBand, h]
   · rw [extendCumBand, dif_neg h, ht r a h]
 
-private def retainedIndex? (L : ℕ) (p : ℕ × ℕ) : Option (RetainedCumCoord L) :=
+def retainedIndex? (L : ℕ) (p : ℕ × ℕ) : Option (RetainedCumCoord L) :=
   if h : 2 ≤ p.1 ∧ p.1 ≤ L ∧ p.2 ≤ p.1 then
     some ⟨(⟨p.1, by omega⟩, ⟨p.2, by omega⟩), h.1, h.2.2⟩
   else none

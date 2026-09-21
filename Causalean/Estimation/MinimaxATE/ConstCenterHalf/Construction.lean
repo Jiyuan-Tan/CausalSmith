@@ -29,7 +29,8 @@ membership, the ATE gap, and the χ² indistinguishability live in the sibling
 files.
 -/
 
-import Causalean.Estimation.MinimaxATE.Model
+module
+public import Causalean.Estimation.MinimaxATE.Model
 
 /-! # Base Perturbation Construction
 
@@ -43,6 +44,8 @@ The centered nuisance functions are `mhat` and `ghat`, and the perturbed nuisanc
 `validDGP_perturbed` show that the null and perturbed nuisances define finite observed-data
 models in the stated parameter regime.
 -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

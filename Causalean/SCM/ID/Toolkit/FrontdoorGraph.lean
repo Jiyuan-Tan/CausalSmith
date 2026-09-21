@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.Toolkit.Derivation
-import Causalean.SCM.Do.Rule2Kernel.Structural.StructPointwise
-import Causalean.Graph.DSep.OrderedLocalSG
+
+module
+public import Causalean.SCM.ID.Toolkit.Derivation
+public import Causalean.SCM.Do.Rule2Kernel.Structural.StructPointwise
+public import Causalean.Graph.DSep.OrderedLocalSG
 
 /-!
 # Frontdoor double-intervention graph lemmas
@@ -20,6 +22,11 @@ identification derivation after the first intervention has already been applied.
 * `frontdoor_fd3_rule2_dSep` is the Rule-2 d-separation premise in the
   double-intervention graph, transported from the FD3 backdoor d-separation.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 namespace Causalean
 
@@ -99,6 +106,9 @@ lemma double_edge_to_doX_of_not_fixedW
         · exact (huW d hdW rfl).elim
         · simpa only [SWIGGraph.splitMonoEdgeRel, if_neg hdW] using he
 
+/-- In [a finite directed acyclic graph](hyp:G), if [every vertex of a designated set is a
+sink](hyp:C,hSink), then [every ancestral path witnessed between two vertices](hyp:h)
+[can be chosen with all internal vertices outside that set](goal). -/
 lemma isAncestorAvoiding_of_sinks {V : Type*} [DecidableEq V] [Fintype V]
     (G : DAG V) (C : Finset V)
     (hSink : ∀ c ∈ C, ∀ v, ¬ G.edge c v)
@@ -214,12 +224,12 @@ lemma double_edge_to_doW_of_not_fixedX
 
 end Helpers
 
-/-- **G2: corrected-FD1 Rule-3 non-ancestry premise.**
-
-    If the corrected FD1 clause d-separates `Y` from the intervention copies
-    `X.image .fixed` in the `do(X)` graph given the mediator random nodes
-    `W.image .random`, then after additionally intervening on the mediator block
-    no treatment intervention copy is an ancestor of any outcome node. -/
+/-- Given [a finite structural causal model, treatment and mediator sets with valid intervention
+copies, and an outcome set](hyp:N,Ω,M,X,Wbase,hX_obs,hX_fixed,hW_obs,hW_fixed,Y), if [the outcome is
+d-separated from the fixed treatment copies after intervening on treatment and conditioning on the
+random mediator copies](hyp:hFD1), and [the random mediator and treatment copies are disjoint](hyp:hDisj_WX),
+then for [any outcome node and treatment node](hyp:v,d), [the fixed treatment copy is not an ancestor
+of the outcome after the two interventions](goal). -/
 theorem frontdoor_fd1_rule3_nonDesc
     (M : Causalean.SCM N Ω) (X Wbase : Finset N)
     (hX_obs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
@@ -300,13 +310,13 @@ theorem frontdoor_fd1_rule3_nonDesc
           _ hfixedW_double
       rw [hEq, hroot] at hmem
       exact (Finset.notMem_empty _) hmem
-  have hpact : (M.fixSet X hX_obs hX_fixed).dag.IsActivePath
+  have hpact : (M.fixSet X hX_obs hX_fixed).dag.IsActiveWalk
       (Wbase.image SWIGNode.random) p :=
-    (M.fixSet X hX_obs hX_fixed).dag.isActivePath_of_directed
+    (M.fixSet X hX_obs hX_fixed).dag.isActiveWalk_of_directed
       hpedge_doX hpintW
   have hvReach : v ∈ (M.fixSet X hX_obs hX_fixed).dag.bbReachableVertices
       (Wbase.image SWIGNode.random) (X.image SWIGNode.fixed) := by
-    rw [(M.fixSet X hX_obs hX_fixed).dag.bbReachableVertices_iff_activePath]
+    rw [(M.fixSet X hX_obs hX_fixed).dag.bbReachableVertices_iff_activeWalk]
     refine ⟨SWIGNode.fixed d, Finset.mem_image.mpr ⟨d, hd, rfl⟩, p, hplen, hpact, ?_, ?_⟩
     · exact hphead
     · exact hplast
@@ -324,7 +334,8 @@ theorem frontdoor_fd1_rule3_nonDesc
     randomized image of `Wbase` given exactly that double-intervention graph's fixed node
     set](goal).
 
-    This is the exact d-separation shape consumed by `do_rule2_kernel` when
+    This is the exact d-separation shape consumed by
+    `do_rule2_kernel_of_nondescendant_product_ae` when
     `M' := M.fixSet X`, treatment `:= Wbase`, and adjustment set `:= ∅`. -/
 theorem frontdoor_fd3_rule2_dSep
     (M : Causalean.SCM N Ω) (X Wbase : Finset N)
@@ -334,7 +345,7 @@ theorem frontdoor_fd3_rule2_dSep
     (hW_fixed : ∀ D ∈ Wbase, SWIGNode.fixed D ∉ M.fixed)
     (Y : Finset (SWIGNode N))
     (hY : Y ⊆ M.observed)
-    (hFD3 : M.toSWIGGraph.backdoorCriterion Wbase hW_obs hW_fixed Y
+    (hFD3 : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph Wbase hW_obs hW_fixed Y
       (X.image SWIGNode.random))
     (hDisj_WX : Disjoint (Wbase.image SWIGNode.random) (X.image SWIGNode.random)) :
     ((M.fixSet X hX_obs hX_fixed).fixSet Wbase
@@ -384,11 +395,11 @@ theorem frontdoor_fd3_rule2_dSep
       (hW_double hvW)) hvC
   · rw [Finset.disjoint_left]
     intro v hvReach hvW
-    rw [((M.fixSet X hX_obs hX_fixed).fixSet Wbase hW_obs_X hW_fixed_X).dag.bbReachableVertices_iff_activePath] at hvReach
+    rw [((M.fixSet X hX_obs hX_fixed).fixSet Wbase hW_obs_X hW_fixed_X).dag.bbReachableVertices_iff_activeWalk] at hvReach
     obtain ⟨y, hyY, p, hlen, hact, hhead, hlast⟩ := hvReach
     have hReach_doW : v ∈ (M.fixSet Wbase hW_obs hW_fixed).dag.bbReachableVertices
         (X.image SWIGNode.random ∪ Wbase.image SWIGNode.fixed) Y := by
-      rw [(M.fixSet Wbase hW_obs hW_fixed).dag.bbReachableVertices_iff_activePath]
+      rw [(M.fixSet Wbase hW_obs hW_fixed).dag.bbReachableVertices_iff_activeWalk]
       refine ⟨y, hyY, p, hlen, ?_, hhead, hlast⟩
       obtain ⟨hadjD, hcollD⟩ := hact
       have hNoFixedInterior : ∀ (i : ℕ) (hi : i + 2 < p.length),

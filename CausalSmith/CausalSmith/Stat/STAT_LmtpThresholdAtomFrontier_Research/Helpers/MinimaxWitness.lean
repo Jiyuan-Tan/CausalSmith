@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Stat.PolynomialTail.PowerIntegral
-import Mathlib.Probability.UniformOn
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Mathlib.Analysis.SpecialFunctions.PowerIntegral
+public import Mathlib.Probability.UniformOn
 
 /-!
 # Canonical design for the clamp minimax witnesses
@@ -15,6 +16,8 @@ import Mathlib.Probability.UniformOn
 The witness design uses uniform finite strata and the normalized polynomial
 density `(κ + 1) a^κ` on `[0,1]`.  Outcome tilts are added in later lemmas.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

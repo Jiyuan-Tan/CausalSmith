@@ -14,7 +14,8 @@ diagonal of the cross-exposure covariance produces the famously unidentified `âˆ
 term, since a unit cannot be in two exposures at once.
 -/
 
-import Causalean.Experimentation.DesignBased.HT.Estimator
+module
+public import Causalean.Experimentation.DesignBased.HT.Estimator
 
 /-! # Horvitz-Thompson variance identities
 
@@ -27,6 +28,8 @@ probabilities. The companion theorems `Cov_htTotal_cov` and `Cov_htTotal` give t
 covariance formulas for two exposure totals, including the diagonal cross-exposure term that
 appears when one unit cannot occupy two distinct exposures at once.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

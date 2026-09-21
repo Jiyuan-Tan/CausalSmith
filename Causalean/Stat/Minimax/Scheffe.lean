@@ -29,9 +29,10 @@ integrable `f` with `∫ f = 0` satisfies `|∫_A f| ≤ ½∫|f|`) is project-a
 and a candidate for upstream contribution.
 -/
 
-import Causalean.Stat.Minimax.TotalVariation
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
-import Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+public import Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv
 
 /-! # Scheffe Bound for Total Variation
 
@@ -39,6 +40,8 @@ This file proves the one-sided Scheffe inequality relating total variation
 distance to the integral absolute deviation of a Radon-Nikodym density from one.
 It supplies the analytic bridge used to convert density-based divergence bounds
 into minimax testing bounds. -/
+
+public section
 
 namespace Causalean.Stat
 

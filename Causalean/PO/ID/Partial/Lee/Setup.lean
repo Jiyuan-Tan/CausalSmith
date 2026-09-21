@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Lee bounds: data layer
 
-The `POLeeSystem` structure (def:po-lee-system) plus the basic accessors,
+The `POLeeSystem` structure plus the basic accessors,
 factual / counterfactual variables, factual events
 (`aEvent`, `selEvent`, `selectedTreated`, `selectedControl`),
 and measurability lemmas.
@@ -14,9 +14,10 @@ No assumption bundles and no principal-stratum events live here — see
 `Assumptions.lean` and `PrincipalStrata.lean`.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Conditioning.EventCondExp
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Conditioning.EventCondExp
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Lee Bounds Setup
 
@@ -24,6 +25,8 @@ This file defines the potential-outcome data layer for Lee sample-selection
 bounds. It provides the treatment, selection, and outcome variables, their
 factual and counterfactual versions, the observed selected cells, and basic
 measurability facts. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -38,12 +41,11 @@ effect on `Y` among the always-selected subpopulation is only partially
 identified — the object the Lee bounds bracket.  Formally this packages, inside
 an ambient PO system `P`, the three nodes `A`, `Sel`, `Y`, the measurable
 identifications of their value spaces with `Bool`/`Bool`/`ℝ`, and the fact that
-the three nodes are distinct (def:po-lee-system).
+the three nodes are distinct.
 
 * `A` is the binary treatment.
-* `Sel` is the binary sample-selection indicator
-  (denoted `S` in the doc; renamed to `Sel` so that the conventional
-  bound variable `S : POLeeSystem P` does not shadow it).
+* `Sel` is the binary sample-selection indicator, named to distinguish it
+  from a `POLeeSystem` value.
 * `Y` is the real-valued outcome (only meaningful on `{Sel = true}`). -/
 structure POLeeSystem (P : POSystem) where
   /-- The binary treatment node (an index into the ambient system's variables). -/

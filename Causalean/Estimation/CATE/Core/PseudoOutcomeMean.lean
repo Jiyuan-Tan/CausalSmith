@@ -23,16 +23,17 @@ decomposition
 after pulling each `1 / e_val(X)` and `1 / (1 − e_val(X))` factor out of the
 σ(X)-conditional via `condExp_mul_of_stronglyMeasurable_left` and applying
 `cond_exp_residual_zero` to each residual term.  Mirrors the structure of
-`weighted_residual_integral_zero` (lines 266–358 of
-`Estimation/ATE/MeanZero.lean`) but stops *before* integrating.
+`weighted_residual_integral_zero` from `Estimation/ATE/Score/MeanZero.lean`
+but stops *before* integrating.
 
-The value-space `P_X`-a.e. form (`phi_eta_cond_exp_eq_tau`) records the
+The value-space `P_X`-a.e. form (`phi₀_cond_exp_eq_tau`) records the
 corresponding value-space statement consumed by downstream DR-learner code.
 -/
 
-import Causalean.Estimation.CATE.Core.PseudoOutcome
-import Causalean.Estimation.ATE.Score.MeanZero
-import Causalean.Estimation.ATE.Score.ScorePullout
+module
+public import Causalean.Estimation.CATE.Core.PseudoOutcome
+public import Causalean.Estimation.ATE.Score.MeanZero
+public import Causalean.Estimation.ATE.Score.ScorePullout
 
 /-! # Mean of the CATE Pseudo-Outcome
 
@@ -42,8 +43,10 @@ identity shows that, under the back-door assumptions and strict overlap, the
 conditional expectation of the true pseudo-outcome given covariates equals the
 target conditional treatment effect. The theorem `phi₀_factualZ_cond_exp`
 proves the σ(X)-conditional statement on the source probability space, while
-`phi_eta_cond_exp_eq_tau` transports it to the value-space law `P_X` using
+`phi₀_cond_exp_eq_tau` transports it to the value-space law `P_X` using
 conditional distributions. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -71,8 +74,8 @@ private lemma residual_integrable
       hA.integrable_factualY
   have hμx_int :
       Integrable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE d) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ_compat hA d)
   have hμx_meas :
@@ -147,8 +150,8 @@ surely](goal).
 -- `cond_exp_residual_zero S hA d` after pulling `1/e_val(X)`
 -- (resp. `1/(1-e_val(X))`) out via
 -- `condExp_mul_of_stronglyMeasurable_left`.
--- Mirror the structure of `weighted_residual_integral_zero` in
--- `Estimation/ATE/MeanZero.lean` lines 266–358 but stop *before* integrating.
+-- Mirror `weighted_residual_integral_zero` from
+-- `Estimation/ATE/Score/MeanZero.lean` but stop *before* integrating.
 -- The σ(X)-measurable representative of the constant-in-A piece is exactly
 -- `S.τ_val ∘ factualX`. -/
 theorem phi₀_factualZ_cond_exp
@@ -220,8 +223,8 @@ theorem phi₀_factualZ_cond_exp
   have hμx_int : ∀ d : Bool,
       Integrable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
     intro d
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE d) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ_compat hA d)
   have hbase_int : Integrable base P.μ := by
@@ -361,7 +364,7 @@ Proof outline:
    on (Ω, P.μ).
 4. Transport to (γ, P_X) via `MeasureTheory.ae_map_iff` (set is measurable
    because both sides are measurable in `x`). -/
-theorem phi_eta_cond_exp_eq_tau [StandardBorelSpace γ] [Nonempty γ]
+theorem phi₀_cond_exp_eq_tau [StandardBorelSpace γ] [Nonempty γ]
     (S : CATEEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions)
     {ε : ℝ}

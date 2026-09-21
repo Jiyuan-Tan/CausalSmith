@@ -13,10 +13,16 @@ finite loading slopes.  They sit at the base of the import DAG so that both the
 apolar helper lemmas and the headline theorem in `TApolar.lean` can use them.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
-import Mathlib.Algebra.MvPolynomial.PDeriv
-import Mathlib.RingTheory.MvPolynomial.Homogeneous
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Varieties
+public import Mathlib.Algebra.MvPolynomial.PDeriv
+public import Mathlib.RingTheory.MvPolynomial.Homogeneous
+
+/-! Public apolar definitions for this module. -/
+
+@[expose] public section
+
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

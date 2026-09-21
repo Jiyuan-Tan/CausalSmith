@@ -1,9 +1,18 @@
 name: build-cache
 
-# Publishes the prebuilt Causalean oleans as release assets on the rolling tag
-# `build-cache`, so a clone can run `scripts/fetch_build_cache.sh` instead of a
-# multi-hour cold build. Incremental: the previous asset seeds .lake/build and
-# lake rebuilds only the delta, so this stays well inside the job limit.
+# Publishes prebuilt oleans as release assets on the rolling tag `build-cache`, so a
+# clone can run `scripts/fetch_build_cache.sh` instead of a multi-hour cold build.
+#
+#   publish      Causalean oleans            causalean-build-{<sha>,latest}.tar.zst
+#   causalsmith  every CausalSmith module    causalsmith-build-{<sha>,latest}.tar.zst
+#                (the Lean code of all existing papers, the same module list as
+#                CausalSmith/tools/scripts/full_tree_build.sh; opt-in for users via
+#                `fetch_build_cache.sh --causalsmith`)
+#
+# Both are incremental: the previous asset seeds the build directory and lake rebuilds
+# only the delta. The corpus build is capped below the job limit; when the cap is hit
+# the partial build is still published as `latest` (marked "complete": false) so the
+# next run continues from it instead of starting cold.
 on:
   push:
     branches: [main]
@@ -14,6 +23,12 @@ on:
       - "lakefile.toml"
       - "lake-manifest.json"
       - "lean-toolchain"
+      - ".cache-epoch"
+      - "CausalSmith/CausalSmith/**"
+      - "CausalSmith/CausalSmith.lean"
+      - "CausalSmith/lakefile.toml"
+      - "CausalSmith/lake-manifest.json"
+      - "CausalSmith/lean-toolchain"
   workflow_dispatch:
 
 permissions:
@@ -44,12 +59,26 @@ jobs:
         run: |
           set -e
           mkdir -p .lake
-          if gh release download "$TAG" -p causalean-build-latest.tar.zst -O prev.tar.zst 2>/dev/null; then
+          lean="$(tr -d '[:space:]' < lean-toolchain)"
+          cache_key="${lean}-$(sha256sum .cache-epoch | cut -d' ' -f1)"
+          if gh release download "$TAG" -p causalean-build-latest.json -O prev.json 2>/dev/null \
+            && [ "$(sed -n 's/.*"cache_key": *"\([^"]*\)".*/\1/p' prev.json)" = "$cache_key" ] \
+            && gh release download "$TAG" -p causalean-build-latest.tar.zst -O prev.tar.zst 2>/dev/null; then
             tar --use-compress-program=unzstd -xf prev.tar.zst -C .lake && rm prev.tar.zst
+            # Vendored packages keep their outputs in their own .lake (see Package below).
+            for v in .lake/vendored/*/build; do
+              [ -d "$v" ] || continue
+              pkg="$(basename "$(dirname "$v")")"
+              [ -d "third_party/$pkg" ] || continue
+              mkdir -p "third_party/$pkg/.lake" && rm -rf "third_party/$pkg/.lake/build"
+              mv "$v" "third_party/$pkg/.lake/build"
+            done
+            rm -rf .lake/vendored
             echo "seeded from previous build-cache asset"
           else
-            echo "no previous asset: cold build"
+            echo "no matching previous build-cache asset: cold build"
           fi
+          rm -f prev.json
       - name: lake build
         run: lake build
       - name: Package
@@ -57,19 +86,145 @@ jobs:
           set -e
           sha="$(git rev-parse HEAD)"
           lean="$(tr -d '[:space:]' < lean-toolchain)"
+          cache_key="${lean}-$(sha256sum .cache-epoch | cut -d' ' -f1)"
           mathlib="$(git -C .lake/packages/mathlib rev-parse HEAD)"
-          tar -C .lake -cf - build | zstd -T0 -3 -q -o "causalean-build-$sha.tar.zst"
+          # One archive: .lake/build as build/, and each vendored path dependency's outputs
+          # (third_party/<pkg>/.lake/build, where Lake puts them) as vendored/<pkg>/build.
+          # Without the latter every fetch recompiles the vendored code and all of Causalean
+          # above it. An older fetch script extracts vendored/ harmlessly and ignores it.
+          tar -cf - \
+              --transform 's|^\.lake/build|build|' \
+              --transform 's|^third_party/\([^/]*\)/\.lake/build|vendored/\1/build|' \
+              .lake/build third_party/*/.lake/build \
+            | zstd -T0 -3 -q -o "causalean-build-$sha.tar.zst"
           cp "causalean-build-$sha.tar.zst" causalean-build-latest.tar.zst
-          printf '{"sha": "%s", "lean": "%s", "mathlib": "%s", "built_at": "%s"}\n' \
-            "$sha" "$lean" "$mathlib" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > causalean-build-latest.json
+          printf '{"sha": "%s", "lean": "%s", "cache_key": "%s", "mathlib": "%s", "built_at": "%s"}\n' \
+            "$sha" "$lean" "$cache_key" "$mathlib" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > causalean-build-latest.json
           ls -la causalean-build-*
       - name: Upload to the build-cache release
         run: |
           set -e
           sha="$(git rev-parse HEAD)"
           gh release view "$TAG" >/dev/null 2>&1 || gh release create "$TAG" --title "Build cache" \
-            --notes "Prebuilt Causalean oleans and the retrieval models. Fetch with scripts/fetch_build_cache.sh and scripts/fetch_retrieval_models.sh; see README."
+            --notes "Prebuilt Causalean and CausalSmith oleans and the retrieval models. Fetch with scripts/fetch_build_cache.sh [--causalsmith] and scripts/fetch_retrieval_models.sh; see README."
           gh release upload "$TAG" --clobber "causalean-build-$sha.tar.zst" causalean-build-latest.tar.zst causalean-build-latest.json
           # Keep the three newest per-commit archives; `latest` and the models stay.
           gh release view "$TAG" --json assets -q '.assets[].name' | grep -E '^causalean-build-[0-9a-f]{40}\.tar\.zst$' \
             | grep -v "causalean-build-$sha.tar.zst" | head -n -2 | while read -r old; do gh release delete-asset "$TAG" "$old" -y; done
+
+  causalsmith:
+    # Runs after `publish`, so the exact-commit Causalean archive it fetches already exists.
+    needs: publish
+    if: github.repository == 'Jiyuan-Tan/CausalSmith'
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: build-cache
+      # Wall-clock cap for the corpus build; leaves room to package and upload.
+      BUILD_CAP_MINUTES: "290"
+    steps:
+      - name: Free disk space
+        # Headroom for CausalSmith's own Mathlib copy and cache plus both build trees.
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: CausalSmith
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+          use-github-cache: false
+      - name: Fetch Causalean oleans
+        run: scripts/fetch_build_cache.sh
+      - name: Seed CausalSmith/.lake/build from the previous asset
+        run: |
+          set -e
+          mkdir -p CausalSmith/.lake
+          lean="$(tr -d '[:space:]' < lean-toolchain)"
+          cache_key="${lean}-$(sha256sum .cache-epoch | cut -d' ' -f1)"
+          if gh release download "$TAG" -p causalsmith-build-latest.json -O prev.json 2>/dev/null \
+            && [ "$(sed -n 's/.*"cache_key": *"\([^"]*\)".*/\1/p' prev.json)" = "$cache_key" ] \
+            && gh release download "$TAG" -p causalsmith-build-latest.tar.zst -O prev.tar.zst 2>/dev/null; then
+            tar --use-compress-program=unzstd -xf prev.tar.zst -C CausalSmith/.lake && rm prev.tar.zst
+            echo "seeded from previous causalsmith build-cache asset"
+          else
+            echo "no matching previous causalsmith build-cache asset: cold build"
+          fi
+          rm -f prev.json
+      - name: lake build (every CausalSmith module)
+        id: build
+        run: |
+          # Same module list as CausalSmith/tools/scripts/full_tree_build.sh (scratch
+          # probes under **/tmp/** excluded), inlined so the build log streams live.
+          # The root `CausalSmith` umbrella is added explicitly (find walks only the subdirectory).
+          mods="CausalSmith $(cd CausalSmith && find CausalSmith -name '*.lean' -not -path '*/tmp/*' | sed 's/\.lean$//; s|/|.|g')"
+          echo "building $(echo $mods | wc -w) CausalSmith modules"
+          set +e
+          timeout --signal=INT --kill-after=5m "${BUILD_CAP_MINUTES}m" \
+            lake -d CausalSmith build $mods
+          status=$?
+          set -e
+          if [ "$status" -eq 0 ]; then
+            echo "complete=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "complete=false" >> "$GITHUB_OUTPUT"
+            if [ "$status" -eq 124 ] || [ "$status" -eq 137 ]; then
+              echo "::warning::CausalSmith build hit the ${BUILD_CAP_MINUTES}-minute cap; publishing the finished modules so the next run continues from them"
+            else
+              echo "::error::CausalSmith build failed (lake exit $status); publishing the finished modules, then failing this job"
+            fi
+          fi
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+      - name: Strip unfinished and deleted modules
+        run: |
+          # Lake clears a module's outputs before compiling it and writes its .trace
+          # last. A module that was mid-compile when the build stopped therefore has
+          # missing, partial, or trace-less outputs (or an OLD trace next to new ones).
+          # Extracted over a user's own consistent build, such files would overwrite good
+          # outputs while the user's trace still vouches for them, so every file of such
+          # a module is removed. Modules whose source is gone are removed too, so the
+          # archive does not grow forever. Kept: trace present, olean present and not
+          # newer than the trace, source present.
+          cd CausalSmith/.lake/build
+          [ -d lib/lean ] || exit 0
+          find lib/lean ir -type f 2>/dev/null \
+            | sed -E 's#^(lib/lean|ir)/##; s#^((.*/)?[^/.]+)\..*$#\1#' | sort -u \
+            | while read -r rel; do
+                t="lib/lean/$rel.trace"; o="lib/lean/$rel.olean"
+                if [ -f "$t" ] && [ -f "$o" ] && ! [ "$o" -nt "$t" ] && [ -f "$GITHUB_WORKSPACE/CausalSmith/$rel.lean" ]; then
+                  continue
+                fi
+                echo "stripping $rel"
+                rm -f "lib/lean/$rel".* "ir/$rel".*
+              done
+      - name: Package
+        run: |
+          set -e
+          sha="$(git rev-parse HEAD)"
+          lean="$(tr -d '[:space:]' < lean-toolchain)"
+          cache_key="${lean}-$(sha256sum .cache-epoch | cut -d' ' -f1)"
+          mathlib="$(git -C CausalSmith/.lake/packages/mathlib rev-parse HEAD)"
+          complete="${{ steps.build.outputs.complete }}"
+          tar -C CausalSmith/.lake -cf - build | zstd -T0 -3 -q -o causalsmith-build-latest.tar.zst
+          printf '{"sha": "%s", "lean": "%s", "cache_key": "%s", "mathlib": "%s", "complete": %s, "built_at": "%s"}\n' \
+            "$sha" "$lean" "$cache_key" "$mathlib" "$complete" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > causalsmith-build-latest.json
+          # The exact-commit asset is fetched without a completeness check, so only a
+          # complete build is published under the commit's sha.
+          if [ "$complete" = "true" ]; then cp causalsmith-build-latest.tar.zst "causalsmith-build-$sha.tar.zst"; fi
+          ls -la causalsmith-build-*
+      - name: Upload to the build-cache release
+        run: |
+          set -e
+          sha="$(git rev-parse HEAD)"
+          gh release upload "$TAG" --clobber causalsmith-build-latest.tar.zst causalsmith-build-latest.json
+          if [ -f "causalsmith-build-$sha.tar.zst" ]; then
+            gh release upload "$TAG" --clobber "causalsmith-build-$sha.tar.zst"
+          fi
+          # Keep the three newest per-commit archives; `latest` stays.
+          gh release view "$TAG" --json assets -q '.assets[].name' | grep -E '^causalsmith-build-[0-9a-f]{40}\.tar\.zst$' \
+            | grep -v "causalsmith-build-$sha.tar.zst" | head -n -2 | while read -r old; do gh release delete-asset "$TAG" "$old" -y; done
+      - name: Fail on a real build error
+        if: steps.build.outputs.status != '0' && steps.build.outputs.status != '124' && steps.build.outputs.status != '137'
+        run: exit 1

@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherPriors
-import Causalean.Experimentation.FinitePopulationMoments
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.RademacherPriors
+public import Causalean.Experimentation.FinitePopulationMoments
 
 /-!
 # Finite-product Rademacher moments
@@ -7,6 +8,8 @@ import Causalean.Experimentation.FinitePopulationMoments
 Exact slice-variance formulas and the basic product-design law of large numbers
 used by the Rademacher mixture separation argument.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter Finset

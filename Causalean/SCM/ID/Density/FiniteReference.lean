@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Density.ReferenceMeasure
-import Mathlib.Probability.Kernel.RadonNikodym
+module
+public import Causalean.SCM.ID.Density.ReferenceMeasure
+public import Mathlib.Probability.Kernel.RadonNikodym
 
 /-! # Finite reference measures for discrete ID densities
 
@@ -15,6 +16,13 @@ finite products `jointRef ref I` are finite as well.  This file packages those
 instances and the simple measurability fact used by the finite/discrete
 chain-rule density proof.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 

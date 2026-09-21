@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.MEstimation.FinitePoisson
-import Mathlib.Analysis.Calculus.ImplicitContDiff
-import Mathlib.LinearAlgebra.Basis.VectorSpace
+module
+public import Causalean.Stat.MEstimation.FinitePoisson
+public import Mathlib.Analysis.Calculus.ImplicitContDiff
+public import Mathlib.LinearAlgebra.Basis.VectorSpace
 
 /-!
 # One-cell derivatives of finite Poisson projections
@@ -14,6 +15,8 @@ import Mathlib.LinearAlgebra.Basis.VectorSpace
 This module differentiates the unique maximizer of a full-rank finite Poisson
 criterion when one cell mean follows a positive exponential path.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Module Filter Topology

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Kernel.Disintegration.CondCDF
+module
+public import Mathlib.Probability.Kernel.Disintegration.CondCDF
 
 /-!
 # Measurable conditional quantile selection
@@ -21,6 +22,8 @@ right-continuity, and the `atBot`/`atTop` limits of `condCDF`.  The theorem
 when every conditional CDF is continuous at its selected quantile, attains the requested level:
 `condCDF ρ a (condQuantile ρ τ a) = τ a`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib
 

@@ -6,7 +6,8 @@ Authors: Jiyuan Tan
 # Sun-Abraham (2021): interaction-weighted event-study characterization
 -/
 
-import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Setup
+module
+public import Causalean.Panel.EstimandCharacterization.EventStudyContamination.Setup
 
 /-! # Sun-Abraham Interaction-Weighted Event Study
 
@@ -15,6 +16,8 @@ the Sun-Abraham framework. It records the comparison-group contrasts and
 aggregation weights that make the interaction-weighted coefficient a convex
 average of target cohort-specific effects, proving `IW_Delta_eq_CATT` and
 `IW_convex_characterization`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -51,7 +54,7 @@ variable {T : ℕ}
 
 /-- Interaction-weighted finite DID design for a fixed event time. -/
 structure IWDesign (P : EventStudySystem T) where
-  /-- Fixed event time `l`, intended to be nonnegative in the theorem. -/
+  /-- Fixed event time `l`; the characterization permits any supported event time. -/
   eventTime : ℤ
   /-- Eligible IW cohorts `G_l^IW`. -/
   cohortsIW : Finset (Fin T)
@@ -317,8 +320,9 @@ weights are genuinely consumed (via `sum_convex_mem_Icc`) to certify that
 per-cohort `CATT(g,l)` are bounded by `lo`/`hi`. Taking `lo := ⨅ g, CATT(g,l)`
 and `hi := ⨆ g, CATT(g,l)` recovers `min_g CATT ≤ nuIW ≤ max_g CATT`; we state
 the bound parametrically in `lo`/`hi` to avoid `Finset.min'`/`max'`
-nonemptiness side goals. The explicit `0 ≤ I.eventTime` hypothesis matches the
-source restriction for the interaction-weighted event-study estimand. -/
+nonemptiness side goals. The formal statement applies to any event time meeting
+the stated support and causal conditions; it does not impose a separate
+nonnegativity restriction on `I.eventTime`. -/
 theorem IW_convex_characterization (P : EventStudySystem T) (I : P.IWDesign)
     (hConsistency : P.Consistency)
     (hNoAnticipation : P.NoAnticipation)

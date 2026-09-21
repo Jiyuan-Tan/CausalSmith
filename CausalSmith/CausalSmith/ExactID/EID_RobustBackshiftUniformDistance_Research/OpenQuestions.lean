@@ -1,9 +1,13 @@
+module
+
 /-!
 # Unresolved certified uniform-inference program
 
 A non-assertive record of the executable, effective, chart-automation, and software questions left
 open by the paper.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

@@ -49,7 +49,6 @@ import {
   normalizeReviewerObjId,
   parseJsonObject,
   resolveVerdictIds,
-  symbolInScope,
   toVerdictArray,
   type ReviewerOutput,
   type ReviewerResult,

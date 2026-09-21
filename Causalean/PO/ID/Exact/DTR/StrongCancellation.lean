@@ -3,7 +3,7 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Dynamic Treatment Regime: strengthened cancellation identity
+# Fixed Longitudinal Treatment Path: strengthened cancellation identity
 
 Under the **pointwise** overlap assumption (no uniform constant `c > 0`),
 the proof of integrability of `innerReg dbar j` is interlocked with the
@@ -14,7 +14,7 @@ proves a **single** unified inductive predicate
                                   · μ[Y_of dbar | σ(historyBundle (n-1-j))] ω)
           ∧ Integrable (innerReg dbar j) μ
 
-(`cdtr_strong`).  From the a.e. identity, integrability of `innerReg j`
+(`conditionalPath_strong`).  From the a.e. identity, integrability of `innerReg j`
 follows because the RHS is the pointwise product of an indicator (bounded
 by `1`) and an integrable conditional expectation.
 
@@ -24,34 +24,37 @@ overlap, which no longer applies.
 Downstream:
 
 * `innerReg_integrable` is re-derived here
-  from `cdtr_strong`.
-* `cdtr_strong` directly implies the weaker product-form identity used by
-  `cdtr_iter` in `Main.lean`.
+  from `conditionalPath_strong`.
+* `conditionalPath_strong` directly implies the weaker product-form identity used by
+  `conditionalPath_iter` in `Main.lean`.
 -/
 
-import Causalean.PO.ID.Exact.DTR.Induction
+module
+public import Causalean.PO.ID.Exact.DTR.Induction
 
-/-! # Dynamic Treatment Regime Strong Cancellation
+/-! # Fixed Longitudinal Treatment Path Strong Cancellation
 
 This file proves the strengthened cancellation identity needed for
-finite-horizon dynamic-treatment-regime identification under pointwise overlap.
-The main theorem `PODTRSystem.cdtr_strong` carries two facts through the same
-backward induction: `innerReg dbar j` is almost surely the product of the
+finite-horizon fixed-treatment-path identification under pointwise overlap.
+The main theorem `POLongitudinalPathSystem.conditionalPath_strong` carries two
+facts through the same backward induction: `innerReg dbar j` is almost surely the product of the
 partial treatment-regime indicator `indD dbar (n - 1 - j)` and the conditional
 expectation of `Y_of dbar` given the corresponding history bundle, and
 `innerReg dbar j` is integrable.
 
-The derived lemma `PODTRSystem.innerReg_integrable` recovers the public
+The derived lemma `POLongitudinalPathSystem.innerReg_integrable` recovers the public
 integrability statement from this stronger a.e. identity. This avoids any
 uniform-overlap bound: after cancellation, integrability follows from a bounded
 indicator multiplying an integrable conditional expectation. -/
+
+public section
 
 namespace Causalean
 namespace PO
 
 open MeasureTheory ProbabilityTheory
 
-namespace PODTRSystem
+namespace POLongitudinalPathSystem
 
 variable {P : POSystem} {n : ℕ} {δ : Type} {γ : Fin n → Type}
 variable [MeasurableSpace δ] [MeasurableSingletonClass δ]
@@ -63,7 +66,7 @@ The conditional expectation is integrable for free; multiplying by the
 bounded indicator `indD k` (∈ {0,1}) preserves integrability. -/
 private lemma indD_mul_condExpY_integrable
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (S : PODTRSystem P n δ γ) (dbar : Fin n → δ)
+    (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ)
     (k : ℕ) (hk : k < n) :
     Integrable (fun ω => S.indD dbar k ω *
       (S.historyBundle k hk).condExpGiven (S.Y_of dbar) P.μ ω) P.μ := by
@@ -81,16 +84,16 @@ private lemma indD_mul_condExpY_integrable
 
 The strong identity says `innerReg j` literally equals (a.e.) the product
 of the partial indicator and the conditional expectation, _without_ the
-extra `· indD` factor on the LHS that was used in `cdtr_step`.  This form
+extra `· indD` factor on the LHS that was used in `conditionalPath_step`.  This form
 already encodes vanishing of `innerReg j` on `{indD = 0}`.
 
 Both the identity and the integrability of `innerReg j` are proved
 together by induction on `j`. -/
 
-/-- **Joint inductive invariant for the strengthened cancellation.** Consider a
-dynamic-treatment-regime system for which [the identifying assumption bundle
-holds](hyp:hA), fix [a positive number of decision stages](hyp:hn), and fix a
-treatment history `dbar`. Then for every stage index `j` below the horizon,
+/-- **Joint inductive invariant for the strengthened cancellation.**
+[A fixed-treatment-path system](hyp:S) following [a fixed treatment path](hyp:dbar),
+when [the identifying assumption bundle holds](hyp:hA) and
+[the horizon is positive](hyp:hn), satisfies at every stage index `j` below the horizon
 [the partial regression term `innerReg dbar j` agrees almost surely with the
 product of the treatment-regime indicator at the mirrored stage `n - 1 - j`
 and the conditional expectation of the outcome given the history up to that
@@ -98,8 +101,8 @@ stage, and this term is integrable](goal).
 
 * (strong identity) `innerReg dbar j =ᵐ indD (n-1-j) · μ[Y_of dbar | σ_{n-1-j}]`;
 * (integrability)  `Integrable (innerReg dbar j) P.μ`. -/
-theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (S : PODTRSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
+theorem conditionalPath_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    (S : POLongitudinalPathSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
     (hn : 0 < n) :
     ∀ j : ℕ, j < n →
       ((S.innerReg dbar j) =ᵐ[P.μ]
@@ -111,7 +114,7 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
   induction j with
   | zero =>
     -- ============================================================
-    -- Base case (j = 0).  Strengthen `cdtr_base` via vanishing.
+    -- Base case (j = 0).  Strengthen `conditionalPath_base` via vanishing.
     -- ============================================================
     set m : ℕ := n - 1 with hm_def
     have hm_lt : m < n := Nat.sub_lt hn Nat.one_pos
@@ -236,12 +239,12 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
       rw [heqfun]
       filter_upwards [hpull] with ω hω
       exact hω
-    -- The strong identity at j = 0 (independent of cdtr_base).
+    -- The strong identity at j = 0 (independent of conditionalPath_base).
     have hStrong0 :
         (S.innerReg dbar 0) =ᵐ[P.μ]
           (fun ω => S.indD dbar m ω *
             (S.historyBundle m hm_lt).condExpGiven (S.Y_of dbar) P.μ ω) := by
-      have hCE_base := S.cdtr_base hA dbar hn
+      have hCE_base := S.conditionalPath_base hA dbar hn
       filter_upwards [hCE_base, hN_pull, hD_pull, hA.overlap dbar kLast]
         with ω hCE hNω hDω hov
       -- innerReg 0 ω = N(ω)/D(ω) (definitionally).
@@ -257,7 +260,7 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
       · -- indD m ω = 0: both N and D vanish.
         rw [h_inner, hNω, hDω, h0]
         simp
-      · -- indD m ω = 1: cdtr_base provides the equality directly.
+      · -- indD m ω = 1: conditionalPath_base provides the equality directly.
         -- hCE : innerReg 0 ω · indD m ω = indD m ω · μ[Y_of|σ_m] ω
         -- with indD m ω = 1, both sides simplify.
         rw [show S.indD dbar m ω = (1 : ℝ) from h1] at hCE
@@ -286,7 +289,7 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
       exact hRHS.congr hStrong0.symm
   | succ j ih =>
     -- ============================================================
-    -- Step (j → j + 1).  We use `cdtr_step` for the weak form, then
+    -- Step (j → j + 1).  We use `conditionalPath_step` for the weak form, then
     -- strengthen via vanishing of `innerReg (j+1)` on `{indD k = 0}`.
     -- ============================================================
     have hj' : j < n := Nat.lt_of_succ_lt hj
@@ -334,7 +337,7 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
             (S.historyBundle (k+1) hk1).condExpGiven (S.Y_of dbar) P.μ ω) := by
       filter_upwards [ihStrong] with ω hω
       rw [hω, ← hbridge_kp1, hindD_eq_old]
-    -- Recover the weak IH (for `cdtr_step`).
+    -- Recover the weak IH (for `conditionalPath_step`).
     have ihWeak :
         (fun ω => S.innerReg dbar j ω * S.indD dbar (n - j - 1) ω)
           =ᵐ[P.μ]
@@ -348,9 +351,9 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
       rcases S.indD_eq_zero_or_one dbar (k + 1) ω with h | h
       · rw [h]; ring
       · rw [h]; ring
-    -- Apply cdtr_step to get the weak form at j+1.
+    -- Apply conditionalPath_step to get the weak form at j+1.
     have hk2 : n - j - 2 < n := hk_lt
-    have hWeak := S.cdtr_step hA dbar j hj hk2 ihInt ihWeak
+    have hWeak := S.conditionalPath_step hA dbar j hj hk2 ihInt ihWeak
     -- Strong-meas of indD k on σ_k.
     have hindDk_sm :
         StronglyMeasurable[(S.historyBundle k hk_lt).sigma] (S.indD dbar k) :=
@@ -490,20 +493,20 @@ theorem cdtr_strong [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 /-! ### Derived: integrability of `innerReg`
 
 Replaces the earlier helper statement from `Helpers.lean`,
-now derived from `cdtr_strong`. -/
+now derived from `conditionalPath_strong`. -/
 
 /-- `innerReg dbar j` is integrable for every `j < n`.
 
 Proof: `innerReg j` is a.e. equal to the bounded indicator times the
 integrable conditional expectation `μ[Y_of dbar | σ_{n-1-j}]`.  See
-`cdtr_strong`. -/
+`conditionalPath_strong`. -/
 lemma innerReg_integrable [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (S : PODTRSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
+    (S : POLongitudinalPathSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
     (j : ℕ) (hj : j < n) : Integrable (S.innerReg dbar j) P.μ := by
   have hn : 0 < n := lt_of_le_of_lt (Nat.zero_le _) hj
-  exact (S.cdtr_strong hA dbar hn j hj).2
+  exact (S.conditionalPath_strong hA dbar hn j hj).2
 
-end PODTRSystem
+end POLongitudinalPathSystem
 
 end PO
 end Causalean

@@ -1,11 +1,12 @@
-import Causalean.Experimentation.DesignBased.DesignCore
-import Causalean.Panel.PO.Mobius
-import Mathlib.Data.Finset.Powerset
-import Mathlib.LinearAlgebra.Span.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
-import Mathlib.Data.Fintype.Order
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.LinearAlgebra.Matrix.BilinearForm
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Causalean.Mathlib.Combinatorics.BooleanCubeMobius
+public import Mathlib.Data.Finset.Powerset
+public import Mathlib.LinearAlgebra.Span.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Mathlib.Data.Fintype.Order
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.LinearAlgebra.Matrix.BilinearForm
 
 /-!
 # Binary observable-margin variance bounds
@@ -13,6 +14,8 @@ import Mathlib.LinearAlgebra.Matrix.BilinearForm
 Shared finite-design objects for the binary truth-table characterization, optimization programs,
 and comparison classes.  The schedule is fixed and all randomness comes from `FiniteDesign`.
 -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open Finset Set Filter Topology

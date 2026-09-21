@@ -1,5 +1,6 @@
-import Causalean.Stat.Minimax.TotalVariation
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
 
 /-!
 # Total-variation tools for discrete predictive laws
@@ -9,6 +10,8 @@ contracts under measurable maps, is dominated by the full `ℓ¹` distance betwe
 probability masses, and that `ℓ¹` distance splits into a finite region plus the
 leftover mass on its complement.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

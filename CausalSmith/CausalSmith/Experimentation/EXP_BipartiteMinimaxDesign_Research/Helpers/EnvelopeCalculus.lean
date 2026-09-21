@@ -2,7 +2,13 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
+-/
 
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TConvexDesign
+public import Causalean.Mathlib.Analysis.LineSecondDeriv
+
+/-!
 # Bipartite minimax design: second-order calculus of the variance envelope
 
 Substrate for discharging the `EnvelopeLineC2Data` gate of `thm:heterogeneity-separation`.
@@ -24,8 +30,7 @@ Those three facts are exactly the `ContDiffOn` / `deriv`-identity / `le_ciSup` c
 `EnvelopeLineC2Data`.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TConvexDesign
-import Causalean.Mathlib.Analysis.LineSecondDeriv
+@[expose] public section
 
 set_option linter.style.longLine false
 

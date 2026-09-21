@@ -1,11 +1,12 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.MeasureTheory.Integral.Pi
-import Mathlib.MeasureTheory.Group.Integral
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+public import Mathlib.MeasureTheory.Integral.Pi
+public import Mathlib.MeasureTheory.Group.Integral
 
 /-!
 # Continuous-baseline least-favourable block family
@@ -16,6 +17,8 @@ finite-dimensional Lebesgue measure.  The paper's full observed-data law on
 `(Z,(Y_i^{obs}))` is its pushforward under repetition of each active block
 outcome and zero extension to the inactive units.
 -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open Finset MeasureTheory

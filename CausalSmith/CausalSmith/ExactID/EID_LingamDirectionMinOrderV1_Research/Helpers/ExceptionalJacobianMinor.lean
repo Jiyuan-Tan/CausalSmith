@@ -6,12 +6,17 @@ Authors: Jiyuan Tan
 # Full Jacobian minor for the forward exceptional-locus image
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalImageDimensionUpper
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalJacobianCoordinates
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalCommonAxisOrdinary
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Matrix.Block
-import Mathlib.LinearAlgebra.Matrix.Reindex
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalImageDimensionUpper
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalJacobianCoordinates
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalCommonAxisOrdinary
+public import Mathlib.Data.Fintype.EquivFin
+public import Mathlib.Data.Matrix.Block
+public import Mathlib.LinearAlgebra.Matrix.Reindex
+
+/-! Public exceptional-Jacobian minor constructions for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -74,7 +79,7 @@ def canonicalForwardOrdinaryJacobianAtWitness (m : ℕ) (hm : 1 ≤ m) :
         (forwardBandCoordinatePolynomial m (2 * m + 2) (by omega)
           (forwardOrdinaryJacobianRow m hm a)))
 
-private def forwardOrdinaryUpperRight (m : ℕ) (hm : 1 ≤ m) :
+def forwardOrdinaryUpperRight (m : ℕ) (hm : 1 ≤ m) :
     Matrix (ForwardLowWeightIndex m) (ForwardHighWeightIndex m) ℂ :=
   fun a b => canonicalForwardOrdinaryJacobianAtWitness m hm
     (Sum.inl a) (Sum.inr b)
@@ -147,7 +152,7 @@ def canonicalForwardFullJacobianAtWitness (m : ℕ) (hm : 1 ≤ m) :
         (forwardBandCoordinatePolynomial m (2 * m + 2) (by omega)
           (forwardFullJacobianRow m hm a)))
 
-private def forwardFullUpperRight (m : ℕ) (hm : 1 ≤ m) :
+def forwardFullUpperRight (m : ℕ) (hm : 1 ≤ m) :
     Matrix (ForwardOrdinaryJacobianIndex m) (ForwardTopAugmentedIndex m) ℂ :=
   fun a b => canonicalForwardFullJacobianAtWitness m hm
     (Sum.inl a) (Sum.inr b)
@@ -272,7 +277,7 @@ theorem restrict_forwardCumulantImageVariety_dimension_expected
 
 /-! ### The pinned common-axis minor -/
 
-private def selectedCommonAxisLowWeightColumn (m : ℕ) (hm : 1 ≤ m) :
+def selectedCommonAxisLowWeightColumn (m : ℕ) (hm : 1 ≤ m) :
     ForwardLowWeightIndex m → CommonAxisBandCoord m (2 * m + 2) hm
   | ⟨k, j⟩ =>
       ⟨Sum.inr (Sum.inr
@@ -281,7 +286,7 @@ private def selectedCommonAxisLowWeightColumn (m : ℕ) (hm : 1 ≤ m) :
         intro h
         cases Sum.inr.inj h⟩
 
-private def selectedCommonAxisHighWeightColumn (m : ℕ) (hm : 1 ≤ m) :
+def selectedCommonAxisHighWeightColumn (m : ℕ) (hm : 1 ≤ m) :
     ForwardHighWeightIndex m → CommonAxisBandCoord m (2 * m + 2) hm
   | (Sum.inl j, k) =>
       ⟨Sum.inr (Sum.inr
@@ -318,18 +323,18 @@ private lemma eval_selected_commonAxis_weight_otherOrder
 abbrev CommonAxisOrdinaryJacobianIndex (m : ℕ) :=
   ForwardLowWeightIndex m ⊕ ForwardHighWeightIndex m
 
-private def commonAxisOrdinaryJacobianRow (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisOrdinaryJacobianRow (m : ℕ) (hm : 1 ≤ m) :
     CommonAxisOrdinaryJacobianIndex m → RetainedCumCoord (2 * m + 2)
   | Sum.inl a => forwardLowWeightRow m a
   | Sum.inr a => forwardHighWeightRow m hm a
 
-private def commonAxisOrdinaryJacobianColumn (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisOrdinaryJacobianColumn (m : ℕ) (hm : 1 ≤ m) :
     CommonAxisOrdinaryJacobianIndex m →
       CommonAxisBandCoord m (2 * m + 2) hm
   | Sum.inl b => selectedCommonAxisLowWeightColumn m hm b
   | Sum.inr b => selectedCommonAxisHighWeightColumn m hm b
 
-private def canonicalCommonAxisOrdinaryJacobianAtWitness
+def canonicalCommonAxisOrdinaryJacobianAtWitness
     (m : ℕ) (hm : 1 ≤ m) :
     Matrix (CommonAxisOrdinaryJacobianIndex m)
       (CommonAxisOrdinaryJacobianIndex m) ℂ :=
@@ -339,12 +344,12 @@ private def canonicalCommonAxisOrdinaryJacobianAtWitness
         (forwardCommonAxisCoordinatePolynomial m (2 * m + 2) hm
           (by omega) (commonAxisOrdinaryJacobianRow m hm a)))
 
-private def commonAxisOrdinaryUpperRight (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisOrdinaryUpperRight (m : ℕ) (hm : 1 ≤ m) :
     Matrix (ForwardLowWeightIndex m) (ForwardHighWeightIndex m) ℂ :=
   fun a b => canonicalCommonAxisOrdinaryJacobianAtWitness m hm
     (Sum.inl a) (Sum.inr b)
 
-private theorem canonicalCommonAxisOrdinaryJacobianAtWitness_eq
+theorem canonicalCommonAxisOrdinaryJacobianAtWitness_eq
     (m : ℕ) (hm : 1 ≤ m) :
     canonicalCommonAxisOrdinaryJacobianAtWitness m hm =
       Matrix.fromBlocks (canonicalCommonAxisLowWeightJacobianAtWitness m hm)
@@ -372,7 +377,7 @@ private theorem canonicalCommonAxisOrdinaryJacobianAtWitness_eq
         omega
   · rfl
 
-private theorem det_canonicalCommonAxisOrdinaryJacobianAtWitness_ne_zero
+theorem det_canonicalCommonAxisOrdinaryJacobianAtWitness_ne_zero
     (m : ℕ) (hm : 1 ≤ m) :
     (canonicalCommonAxisOrdinaryJacobianAtWitness m hm).det ≠ 0 := by
   rw [canonicalCommonAxisOrdinaryJacobianAtWitness_eq,
@@ -408,7 +413,7 @@ def canonicalCommonAxisFullJacobianAtWitness (m : ℕ) (hm : 1 ≤ m) :
         (forwardCommonAxisCoordinatePolynomial m (2 * m + 2) hm
           (by omega) (commonAxisFullJacobianRow m hm a)))
 
-private def commonAxisFullUpperRight (m : ℕ) (hm : 1 ≤ m) :
+def commonAxisFullUpperRight (m : ℕ) (hm : 1 ≤ m) :
     Matrix (CommonAxisOrdinaryJacobianIndex m)
       (CommonAxisTopAugmentedIndex m) ℂ :=
   fun a b => canonicalCommonAxisFullJacobianAtWitness m hm

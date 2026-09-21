@@ -1,8 +1,9 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.InnerProductSpace.Rayleigh
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Topology.EMetricSpace.Diam
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Basic.Occupancy
+public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import Mathlib.Analysis.InnerProductSpace.Rayleigh
+public import Mathlib.Analysis.Matrix.Spectrum
+public import Mathlib.Topology.EMetricSpace.Diam
 
 /-!
 # Operator-norm margins and set radii
@@ -10,6 +11,8 @@ import Mathlib.Topology.EMetricSpace.Diam
 Conditioning, normalization slack, scale, and the extended-valued outer-radius functional used by
 the contraction theorem.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

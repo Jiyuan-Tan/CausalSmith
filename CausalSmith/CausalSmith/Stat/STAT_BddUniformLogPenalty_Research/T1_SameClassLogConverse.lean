@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.T2_PointIndexedLogConverse
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AnalyticMeasurability
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxLowerBound
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.T2_PointIndexedLogConverse
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AnalyticMeasurability
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxLowerBound
 
 /-!
 # CTY common-map same-class logarithmic converse
@@ -9,6 +10,8 @@ The inherited common-map result uses the same finite-packing maximum as the
 point-indexed theorem. Its identification of completed expectation with outer
 expectation uses Causalean's universal measurability of analytic sets.
 -/
+
+public section
 
 open Filter
 open scoped ENNReal Topology

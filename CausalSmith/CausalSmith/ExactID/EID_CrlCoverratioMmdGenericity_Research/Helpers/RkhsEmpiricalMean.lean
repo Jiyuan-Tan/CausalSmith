@@ -1,12 +1,13 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Inference
-import Causalean.Stat.Concentration.TailBounds.McDiarmid
-import FoML.McDiarmid
-import Causalean.Mathlib.Indep
-import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.RandomParam
-import Causalean.Stat.Concentration.HilbertEmpiricalMean
-import Mathlib.Analysis.Convex.Integral
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.Probability.Independence.Integration
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Inference
+public import Causalean.Stat.Concentration.TailBounds.McDiarmid
+public import FoML.McDiarmid
+public import Causalean.Mathlib.Probability.Independence.Basic
+public import Causalean.Estimation.OrthogonalLearning.LocalEmpProcess.RandomParam
+public import Causalean.Stat.Concentration.Hilbert.EmpiricalMean
+public import Mathlib.Analysis.Convex.Integral
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.Probability.Independence.Integration
 
 /-!
 # Uniform Hilbert-valued empirical-mean deviation
@@ -14,6 +15,11 @@ import Mathlib.Probability.Independence.Integration
 The statement is made against the local unit-norm feature-map interface and is
 designed for the reused scalar McDiarmid concentration engine.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory ProbabilityTheory Set Filter
 open scoped BigOperators ENNReal Topology
@@ -174,7 +180,7 @@ lemma meanEmbedding_map_sub_le_l1
 
 /-- Conditional population embedding of the fitted ratio under environment `e`. -/
 def fittedMeanEmbedding
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {W : ObservedWorld G θ} {Ω H : Type*} [mΩ : MeasurableSpace Ω]
     [NormedAddCommGroup H] [InnerProductSpace ℝ H]
     [CompleteSpace H]
@@ -187,7 +193,7 @@ set_option maxHeartbeats 2000000 in
 /-- Conditional on training, all environment/ratio empirical feature means obey the stated
 unit-norm Hilbert-space deviation bound with probability at least `1-α`.  Given [the stated inputs and conditions](hyp:hSampling,hn,hN,hα), [the stated conclusion](goal) follows. -/
 lemma bounded_rkhs_empirical_mean
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {W : ObservedWorld G θ} {Ω H : Type*} [mΩ : MeasurableSpace Ω]
     [NormedAddCommGroup H] [InnerProductSpace ℝ H]
     [CompleteSpace H] [MeasurableSpace H] [BorelSpace H]

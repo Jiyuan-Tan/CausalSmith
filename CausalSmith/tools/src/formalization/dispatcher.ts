@@ -263,7 +263,10 @@ async function runProofReviewLoopStage(args: {
   // Research modules are unreachable from the top-level CausalSmith.lean barrel, so the DEFAULT
   // lake target skips them and reports green on stale oleans. Best-effort — never sink a run.
   try {
-    const barrel = await writeRunBarrel(args.ctx.repoRoot, paths.leanDir);
+    const barrel = await writeRunBarrel(
+      args.ctx.repoRoot,
+      paths.leanDir,
+    );
     if (barrel) console.warn(`[F] run barrel refreshed: ${barrel}`);
   } catch (e) {
     console.warn(`[F] run-barrel refresh failed (non-fatal): ${e instanceof Error ? e.message : String(e)}`);

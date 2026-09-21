@@ -3,37 +3,46 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Basic
-import Causalean.Mathlib.Probability.Kernel.GraphMapProd
 
-
-import Causalean.Stat.Minimax.MinimaxRisk
-import Mathlib.Analysis.Convex.Integral
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Probability.Kernel.Composition.Lemmas
-import Mathlib.Probability.Kernel.Composition.MeasureComp
-import Mathlib.Probability.Kernel.Composition.ParallelComp
-import Mathlib.Probability.Kernel.MeasurableIntegral
+module
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Basic
+public import Causalean.Mathlib.Probability.Kernel.GraphMapProd
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import Mathlib.Analysis.Convex.Integral
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Probability.Kernel.Composition.Lemmas
+public import Mathlib.Probability.Kernel.Composition.MeasureComp
+public import Mathlib.Probability.Kernel.Composition.ParallelComp
+public import Mathlib.Probability.Kernel.MeasurableIntegral
 
 /-!
 # Squared-risk transport through Markov kernels
 
-This module packages the Blackwell comparison for squared loss: randomizing an experiment
-through a Markov kernel cannot improve the best attainable squared-error risk. It constructs
-the Rao--Blackwell pullback of a bounded estimator, proves its risk comparison under an affine
-change of target, and exports the resulting minimax-hardness transport for both one observation
-and finite independent samples, including the empty sample.
+This module packages squared-risk transport through Markov kernels and its capped-Poisson
+specialization. Among uniformly bounded measurable estimators, randomizing an experiment cannot
+improve the best attainable squared-error risk: the file constructs a Rao--Blackwell pullback,
+proves its affine-target risk comparison, and transports minimax lower bounds within that class
+for one or finitely many independent observations. It then uses the same machinery to compare a
+finite-Poisson experiment with a fixed-size experiment by capping the auxiliary Poisson count,
+including explicit control of overflow risk.
 
 ## Main results
 
 * `forall_estimator_exists_sqRisk_ge_of_kernel_affine_transport` transfers a quantified
-  squared-risk lower bound through a randomized experiment and an affine target change.
+  squared-risk lower bound for uniformly bounded measurable estimators through a randomized
+  experiment and an affine target change.
 * `finProductKernel_comp_pi` identifies the image of an independent product experiment under
   the coordinatewise product kernel.
 * `forall_estimator_exists_sqRisk_ge_of_kernel_affine_transport_pi` gives the finite-product
-  form of the randomized transport theorem.
+  form of the randomized transport theorem for uniformly bounded measurable estimators.
+* `sqRisk_raoBlackwellStatistic_le` bounds the fixed-size Rao--Blackwell risk by the
+  nonoverflow finite-Poisson risk plus an overflow penalty.
+* `sqRisk_raoBlackwellStatistic_unitInterval_le` specializes that bound to unit-interval
+  statistics.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ProbabilityTheory
@@ -47,9 +56,9 @@ variable {X : Type uX} {Y : Type uY} {Iota : Type uI}
 
 /-! ## Kernel means and affine pullbacks -/
 
-/-- For [an arbitrary domain](hyp:A) and [a real-valued function on that domain](hyp:f), the [uniform boundedness
-property](goal) holds exactly when there exists [a nonnegative real constant](step:1) that
-bounds the function's absolute value at every input. -/
+/-- For [an arbitrary domain](hyp:A) and [a real-valued function on that domain](hyp:f), the
+[uniform boundedness property](goal) holds exactly when there exists
+[a nonnegative real constant](step:1) that bounds the function's absolute value at every input. -/
 def UniformlyBounded {A : Type*} (f : A → ℝ) : Prop :=
   ∃ M : ℝ, 0 ≤ M ∧ ∀ x, |f x| ≤ M
 

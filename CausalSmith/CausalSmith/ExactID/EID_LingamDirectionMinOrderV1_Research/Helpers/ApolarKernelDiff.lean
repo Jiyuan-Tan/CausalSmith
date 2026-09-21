@@ -10,7 +10,12 @@ Authors: Jiyuan Tan
 These feed the common-contraction-kernel identity of the arrow-recovery flagship.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernel
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ApolarKernel
+
+/-! Public apolar-kernel differentiation results for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

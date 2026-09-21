@@ -14,8 +14,9 @@ and two units in *distinct* strata are jointly treated with probability the prod
 rates.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-!
 # Stratified randomization designs
@@ -26,6 +27,8 @@ second-order inclusion probability `stratifiedDesign_incl_pair_within`, and the 
 factorization `stratifiedDesign_incl_pair_across`. These lemmas expose the design facts needed by
 estimators whose bias or variance depends on stratified treatment inclusion probabilities.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

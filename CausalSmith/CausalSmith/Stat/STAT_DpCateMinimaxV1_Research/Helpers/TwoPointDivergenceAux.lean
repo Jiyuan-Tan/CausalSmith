@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CateWitness
-import Causalean.Mathlib.InformationTheory.KLBind
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CateWitness
+public import Causalean.Mathlib.InformationTheory.KLBind
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

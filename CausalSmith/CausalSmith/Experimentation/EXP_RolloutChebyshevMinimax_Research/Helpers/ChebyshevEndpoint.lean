@@ -9,7 +9,11 @@ Authors: Jiyuan Tan
 alternation proof and the endpoint-growth algebra remain separately checkable.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevExtremal
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.ChebyshevExtremal
+public import Mathlib.Analysis.SpecialFunctions.Arcosh
+
+public section
 
 open scoped BigOperators
 

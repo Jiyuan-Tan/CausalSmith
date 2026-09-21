@@ -3,11 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Hudgens–Halloran (2008), Theorem 4: two-stage variance decomposition of `Ŷ(z;ψ)`
+# Hudgens–Halloran (2008), Equation (A.2) in Appendix A.4: variance decomposition of `Ŷ(z;ψ)`
 
 The randomization variance of the population mean estimator under two-stage sampling splits into
 a between-group simple-random-sampling term with finite-population correction `(1−C/N)/C` and a
-within-group term averaging the per-group conditional variances — Hudgens–Halloran Theorem 4.
+within-group term averaging the per-group conditional variances. The calculation is
+Equation (A.2) in Appendix A.4, not the statement of Theorem 4, which concerns a variance estimator.
 
 Concretely, the joint two-stage design `jointDesign D₁ ψ φ` selects which of the `N := card ι`
 groups receive allocation strategy ψ (a simple random sample of `C` groups), then randomizes each
@@ -26,11 +27,12 @@ shape, with the between term over the conditional means `(ψ i).E (g i)` and the
 the conditional variances `(ψ i).Var (g i)`.  `Var_popEst` is the special case `g i = Ŷ_i(z)`.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.StageOne
-import Causalean.Experimentation.TwoStageInterference.Unbiased
-import Causalean.Experimentation.TwoStageInterference.CompleteRandomization
-import Causalean.Experimentation.DesignBased.CompoundVariance
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import Causalean.Experimentation.TwoStageInterference.StageOne
+public import Causalean.Experimentation.TwoStageInterference.Unbiased
+public import Causalean.Experimentation.TwoStageInterference.CompleteRandomization
+public import Causalean.Experimentation.DesignBased.CompoundVariance
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-! # Two-stage between-group variance
 
@@ -42,6 +44,8 @@ between-group term over conditional means plus an averaged within-group conditio
 specializes the result to the completely randomized mixed two-stage design, using the CRD
 inclusion and propensity lemmas rather than leaving those moments as assumptions.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -154,7 +158,8 @@ between-group SRS term with finite-population correction `(1 − C/N)/C` applied
 sample variance of the conditional means `(ψ i).E (g i)`, plus a within-group term `(1/(C·N))`
 times the sum of the conditional variances `(ψ i).Var (g i)`](goal).
 
-This is `Var_popEst` (Theorem 4) and `Var_estDirect` (Theorem 6) with `g` instantiated. -/
+This yields `Var_popEst` and `Var_estDirect` by instantiating `g`; these are true-variance
+decompositions used as ingredients in the paper's variance-estimator results. -/
 theorem Var_groupAgg (D₁ : FiniteDesign (StratAssign ι)) (ψ φ : ∀ i, FiniteDesign (WAssign n i))
     (g : ∀ i, WAssign n i → ℝ) (C : ℝ)
     (hC : C ≠ 0) (hN : (Fintype.card ι : ℝ) ≠ 0) (hN1 : (Fintype.card ι : ℝ) - 1 ≠ 0)
@@ -184,7 +189,8 @@ theorem Var_groupAgg (D₁ : FiniteDesign (StratAssign ι)) (ψ φ : ∀ i, Fini
     exact within_term_agg D₁ ψ φ g C hC hN hstage1
 
 set_option linter.unusedDecidableInType false in
-/-- **Hudgens–Halloran (2008), Theorem 4 (two-stage variance decomposition of `Ŷ(z;ψ)`).** For
+/-- **Hudgens–Halloran (2008), Equation (A.2) in Appendix A.4: variance decomposition of
+`Ŷ(z;ψ)`.** For
 [arbitrary within-group allocation designs `ψ` and comparison designs `φ`](hyp:ψ,φ) and [potential
 outcomes `Y`](hyp:Y), assume [the treated/control unit counts `m i` are nonzero](hyp:hm), [the
 group sizes `n i` are nonzero](hyp:hn), [the population has nonzero size](hyp:hN) and [at least
@@ -222,7 +228,7 @@ theorem Var_popEst (D₁ : FiniteDesign (StratAssign ι)) (ψ φ : ∀ i, Finite
   rw [hmean]
 
 set_option linter.unusedDecidableInType false in
-/-- **Hudgens–Halloran (2008), Theorem 4, for the mixed two-stage design.** For [arbitrary
+/-- **Equation (A.2) in Appendix A.4 for the mixed two-stage design.** For [arbitrary
 potential outcomes `Y`](hyp:Y), assume [the selected-group count `C` is positive](hyp:hC0) and
 [strictly less than the number of groups](hyp:hCN), and that [every group's treated-unit count
 `K i` is positive](hyp:hK0) and [strictly less than the group's size `n i`](hyp:hKn). Then, under

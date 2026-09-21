@@ -44,7 +44,7 @@ and roots.
 
 @[expose] public section
 
-namespace Causalean
+namespace Causalean.Graph
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -350,7 +350,7 @@ def nonDescendants (v : V) : Finset V :=
   Finset.univ.filter (fun w => ¬G.isAncestor v w ∧ w ≠ v)
 
 -- ============================================================
--- Canonical topological order (derived)
+-- Choice-dependent derived topological order
 -- ============================================================
 
 /-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [a vertex](hyp:v), [its ancestor rank](goal) is the number of that vertex’s strict ancestors. -/
@@ -380,8 +380,8 @@ independently via `ancClosure`. -/
 noncomputable def topoOrder (v : V) : ℕ :=
   G.ancestorRank v * Fintype.card V + (Fintype.equivFin V v).val
 
-/-- The derived topological order is injective, so it provides a canonical total
-order on the finite vertex type. -/
+/-- The derived topological order is injective, so it provides a choice-dependent
+total order on the finite vertex type. -/
 theorem topoOrder_injective : Function.Injective G.topoOrder := by
   intro u v huv
   unfold topoOrder at huv
@@ -452,7 +452,8 @@ in hand (concrete examples, SWIG parity orders, a parent graph's order).
 The numbering appears only inside this (proof-level) lemma, so a `DAG` whose
 `acyclic` field is `DAG.acyclic_of_topoOrder hτ` stays computable even when the
 witnessing `τ` is `noncomputable` — the witness certifies acyclicity but is erased,
-and the resulting DAG's own `topoOrder` is the canonical derived rank, not `τ`. -/
+and the resulting DAG's own `topoOrder` is the choice-dependent derived numbering,
+not `τ`. -/
 theorem acyclic_of_topoOrder {W : Type*} {r : W → W → Prop} [IsTrans W r] [Std.Irrefl r]
     {e : V → V → Prop} {τ : V → W}
     (hτ : ∀ u v, e u v → r (τ u) (τ v)) : ∀ v, ¬ Relation.TransGen e v v := by
@@ -477,4 +478,4 @@ theorem isAncestor_has_parent (G : DAG V) {u v : V}
 
 end DAG
 
-end Causalean
+end Causalean.Graph

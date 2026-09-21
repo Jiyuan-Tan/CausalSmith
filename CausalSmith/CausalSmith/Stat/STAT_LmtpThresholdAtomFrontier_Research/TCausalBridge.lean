@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.CausalBridgeIdentification
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
-import Mathlib.MeasureTheory.Measure.OpenPos
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.CausalBridgeIdentification
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
+public import Mathlib.MeasureTheory.Measure.OpenPos
 
 /-!
 # Full-data to observed-data clamp bridge
@@ -14,6 +15,8 @@ import Mathlib.MeasureTheory.Measure.OpenPos
 The theorem includes the stratumwise product identity, pointwise identification,
 support, simultaneous pathwise clamp decomposition, and target equality.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

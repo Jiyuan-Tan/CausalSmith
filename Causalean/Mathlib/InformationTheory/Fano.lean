@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.InformationTheory.ConditionalEntropy
+
+module
+public import Causalean.Mathlib.InformationTheory.ConditionalEntropy
 
 /-!
 # Fano's inequality
@@ -31,6 +33,8 @@ Main results:
 Reference: Cover & Thomas, *Elements of Information Theory* (2e), §2.10, Thm 2.10.1.
 -/
 
+@[expose] public section
+
 namespace Causalean.Mathlib.InformationTheory
 
 open scoped BigOperators
@@ -46,6 +50,8 @@ noncomputable def fanoRef (p : α × β → ℝ) (decode : β → α) (xy : α �
     (if xy.1 = decode xy.2 then 1 - errorProb p decode
       else errorProb p decode / ((Fintype.card α : ℝ) - 1))
 
+/-- The Fano reference mass unfolds to the observation marginal times the
+decoder-dependent correct-or-error weight used in its definition. -/
 @[simp] lemma fanoRef_def (p : α × β → ℝ) (decode : β → α) (xy : α × β) :
     fanoRef p decode xy =
       yMarginal p xy.2 *

@@ -1,5 +1,8 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.ContinuousPriorConverse
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearCompleteBlocks
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.ContinuousPriorConverse
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LocalLinearCompleteBlocks
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

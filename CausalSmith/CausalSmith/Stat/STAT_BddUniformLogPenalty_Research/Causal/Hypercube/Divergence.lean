@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Regression
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Regression
 
 /-! # Adjacent signed-radius locality and divergence certificates -/
+
+public section
 
 open scoped ENNReal
 open MeasureTheory

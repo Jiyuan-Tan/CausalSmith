@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.MarkovEquiv.Defs
-import Causalean.Graph.DSep.Ancestral
+module
+public import Causalean.Graph.MarkovEquiv.Defs
+public import Causalean.Graph.DSep.Ancestral
 
 /-! # Markov equivalence — the moralization criterion
 
@@ -29,7 +30,11 @@ The main Verma–Pearl hard direction used by the public umbrella theorem is ass
 the covered-edge route in `Transfer.lean` and `Decompose.lean`.
 -/
 
-namespace Causalean
+@[expose] public section
+
+namespace Causalean.Graph
+
+open Causalean.Graph.MarkovEquiv
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -37,21 +42,35 @@ namespace DAG
 
 variable (G : DAG V)
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a ground set of vertices](hyp:S), and [two vertices](hyp:u,v), [moral adjacency](goal) holds exactly when the vertices are distinct members of the ground set and either a directed edge joins them in one direction or the other, or they have a common child in the ground set.
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G),
+[a ground set of vertices](hyp:S), and [two vertices](hyp:u,v), [moral adjacency](goal) holds
+exactly when the vertices are distinct members of the ground set and either a directed edge joins
+them in one direction or the other, or they have a common child in the ground set.
 
 This is the undirected edge relation of the moral graph restricted to the ground set. -/
 def MoralAdj (S : Finset V) (u v : V) : Prop :=
   u ≠ v ∧ u ∈ S ∧ v ∈ S ∧ (G.UAdj u v ∨ ∃ c ∈ S, G.edge u c ∧ G.edge v c)
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a ground set](hyp:S), [a conditioning set](hyp:Z), and [two vertices](hyp:u,v), [a moral step](goal) holds exactly when the vertices are morally adjacent in the ground set and neither belongs to the conditioning set. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G),
+[a ground set](hyp:S), [a conditioning set](hyp:Z), and [two vertices](hyp:u,v),
+[a moral step](goal) holds exactly when the vertices are morally adjacent in the ground set and
+neither belongs to the conditioning set. -/
 def MoralStep (S Z : Finset V) (u v : V) : Prop :=
   G.MoralAdj S u v ∧ u ∉ Z ∧ v ∉ Z
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a ground set](hyp:S), [a conditioning set](hyp:Z), and [two vertices](hyp:u,v), [moral connectivity](goal) holds exactly when the first vertex reaches the second by a possibly empty sequence of moral-adjacent steps within the ground set, each of whose endpoints lies outside the conditioning set. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G),
+[a ground set](hyp:S), [a conditioning set](hyp:Z), and [two vertices](hyp:u,v),
+[moral connectivity](goal) holds exactly when the first vertex reaches the second by a possibly
+empty sequence of moral-adjacent steps within the ground set, each of whose endpoints lies outside
+the conditioning set. -/
 def MoralConn (S Z : Finset V) (u v : V) : Prop :=
   Relation.ReflTransGen (G.MoralStep S Z) u v
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a first vertex set](hyp:X), [a second vertex set](hyp:Y), and [a conditioning set](hyp:Z), [moral separation](goal) holds exactly when no member of the first set is morally connected to any member of the second within the ancestral closure of the union of all three sets, while avoiding the conditioning set. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G),
+[a first vertex set](hyp:X), [a second vertex set](hyp:Y), and
+[a conditioning set](hyp:Z), [moral separation](goal) holds exactly when no member of the first
+set is morally connected to any member of the second within the ancestral closure of the union
+of all three sets, while avoiding the conditioning set. -/
 def MoralSep (X Y Z : Finset V) : Prop :=
   ∀ x ∈ X, ∀ y ∈ Y, ¬ G.MoralConn (G.ancestralSet (X ∪ Y ∪ Z)) Z x y
 
@@ -94,39 +113,39 @@ theorem moralStep_of_married {S Z : Finset V} {u v c : V}
   ⟨⟨hne, hu, hv, Or.inr ⟨c, hc, huc, hvc⟩⟩, huZ, hvZ⟩
 
 -- ============================================================
--- Active-path cons destructors (local copies, the originals are file-private)
+-- Active-walk cons destructors (local copies, the originals are file-private)
 -- ============================================================
 
-/-- In an active path whose first two vertices are `a` and `b`, those vertices are adjacent in
+/-- In an active walk whose first two vertices are `a` and `b`, those vertices are adjacent in
 the underlying undirected graph. -/
-theorem activePath_head_uAdj {Z : Finset V} {a b : V} {r : List V}
-    (h : G.IsActivePath Z (a :: b :: r)) : G.UAdj a b := by
+theorem activeWalk_head_uAdj {Z : Finset V} {a b : V} {r : List V}
+    (h : G.IsActiveWalk Z (a :: b :: r)) : G.UAdj a b := by
   have := h.1 0 (by simp)
   simpa using this
 
-/-- In an active path whose first three vertices are `a`, `b`, and `c`, the middle vertex obeys
-the active-path condition: a collider belongs to the ancestral closure of the conditioning set,
+/-- In an active walk whose first three vertices are `a`, `b`, and `c`, the middle vertex obeys
+the active-walk condition: a collider belongs to the ancestral closure of the conditioning set,
 and a non-collider is not conditioned on. -/
-theorem activePath_head_triple {Z : Finset V} {a b c : V} {r : List V}
-    (h : G.IsActivePath Z (a :: b :: c :: r)) :
+theorem activeWalk_head_triple {Z : Finset V} {a b c : V} {r : List V}
+    (h : G.IsActiveWalk Z (a :: b :: c :: r)) :
     if G.IsCollider a b c then b ∈ G.bbZAncestors Z else b ∉ Z := by
   have := h.2 0 (by simp)
   simpa using this
 
-/-- Removing the first two vertices of an active path with at least three vertices leaves an
-active path. -/
-theorem activePath_drop2 {Z : Finset V} {a b c : V} {r : List V}
-    (h : G.IsActivePath Z (a :: b :: c :: r)) : G.IsActivePath Z (c :: r) :=
-  G.isActivePath_cons_tail (G.isActivePath_cons_tail h)
+/-- Removing the first two vertices of an active walk with at least three vertices leaves an
+active walk. -/
+theorem activeWalk_drop2 {Z : Finset V} {a b c : V} {r : List V}
+    (h : G.IsActiveWalk Z (a :: b :: c :: r)) : G.IsActiveWalk Z (c :: r) :=
+  G.isActiveWalk_cons_tail (G.isActiveWalk_cons_tail h)
 
 -- ============================================================
--- Direction 1: an active path induces a moral path (active ⇒ moral)
+-- Direction 1: an active walk induces a moral path (active ⇒ moral)
 -- ============================================================
 
-/-- An active path inside a ground set, with endpoints outside the conditioning set,
+/-- An active walk inside a ground set, with endpoints outside the conditioning set,
 induces a connection in the corresponding moral graph.
 
-If `p` is an active path given `Z`
+If `p` is an active walk given `Z`
 of length ≥ 2, all of whose nodes lie in the ground set `S`, and both endpoints avoid
 `Z`, then the head and last of `p` are moral-connected inside `S` avoiding `Z`.
 
@@ -134,10 +153,10 @@ The moral path threads the *non-collider* vertices of `p`: consecutive non-colli
 skeleton-adjacent, and across a collider apex `b` (skipped) the two flanking parents are
 married through `b ∈ S`. The proof is strong induction on `p.length`, peeling one vertex
 (skeleton step) or two vertices (across a collider) from the front. -/
-theorem moralConn_of_activePath
+theorem moralConn_of_activeWalk
     {S Z : Finset V} :
     ∀ (n : ℕ) {x y : V} {p : List V}, p.length ≤ n →
-    G.IsActivePath Z p → p.length ≥ 2 →
+    G.IsActiveWalk Z p → p.length ≥ 2 →
     (∀ v ∈ p, v ∈ S) →
     p.head? = some x → p.getLast? = some y →
     x ∉ Z → y ∉ Z →
@@ -156,7 +175,7 @@ theorem moralConn_of_activePath
     clear hhead
     have haS : a ∈ S := hnodes a (by simp)
     have hbS : b ∈ S := hnodes b (by simp)
-    have hadj_ab : G.UAdj a b := G.activePath_head_uAdj hp
+    have hadj_ab : G.UAdj a b := G.activeWalk_head_uAdj hp
     -- Branch on the remainder.
     match r, hp, hn, hnodes, hlast with
     | [], hp, hn, hnodes, hlast =>
@@ -169,7 +188,7 @@ theorem moralConn_of_activePath
         exact G.moralConn_of_step (G.moralStep_of_uAdj hne haS hbS hadj_ab hxZ hyZ)
     | c :: r', hp, hn, hnodes, hlast =>
         have hcS : c ∈ S := hnodes c (by simp)
-        have htri := G.activePath_head_triple hp
+        have htri := G.activeWalk_head_triple hp
         by_cases hcoll : G.IsCollider a b c
         · -- Married step `a — c` across the collider apex `b`.
           rw [if_pos hcoll] at htri
@@ -189,14 +208,14 @@ theorem moralConn_of_activePath
               exact hstep hyZ
           | d :: r'', hp, hn, hnodes, hlast =>
               -- triple `(b, c, d)`; `c` cannot be a collider (would clash with `b`).
-              have htri2 := G.activePath_head_triple (G.isActivePath_cons_tail hp)
+              have htri2 := G.activeWalk_head_triple (G.isActiveWalk_cons_tail hp)
               have hncoll2 : ¬ G.IsCollider b c d := by
                 rintro ⟨hbc, _⟩
                 exact G.asymm hcb_edge hbc
               rw [if_neg hncoll2] at htri2
               have hcZ : c ∉ Z := htri2
               have hrest : G.MoralConn S Z c y := by
-                refine ih (p := c :: d :: r'') ?_ (G.activePath_drop2 hp) (by simp)
+                refine ih (p := c :: d :: r'') ?_ (G.activeWalk_drop2 hp) (by simp)
                   (fun v hv => hnodes v (by simp [hv])) rfl (by simpa using hlast) hcZ hyZ
                 simp only [List.length_cons] at hn ⊢; omega
               exact G.moralConn_trans (hstep hcZ) hrest
@@ -209,12 +228,12 @@ theorem moralConn_of_activePath
           have hstep : G.MoralConn S Z a b :=
             G.moralConn_of_step (G.moralStep_of_uAdj hne haS hbS hadj_ab hxZ hbZ)
           have hrest : G.MoralConn S Z b y := by
-            apply ih (p := b :: c :: r') (by simp at hn ⊢; omega) (G.isActivePath_cons_tail hp)
+            apply ih (p := b :: c :: r') (by simp at hn ⊢; omega) (G.isActiveWalk_cons_tail hp)
               (by simp) (fun v hv => hnodes v (by simp [hv])) rfl (by simpa using hlast) hbZ hyZ
           exact G.moralConn_trans hstep hrest
 
 -- ============================================================
--- Direction 2: a moral path induces a Bayes-Ball trail (moral ⇒ active)
+-- Direction 2: a moral path induces a Bayes-Ball walk (moral ⇒ active)
 --
 -- We track a Bayes-Ball *state* `(t, d) ∈ bbReachable Z X` (or the source case
 -- `t ∈ X`) as we walk the moral path, using the step semantics of `bbStep`.
@@ -474,13 +493,13 @@ private theorem dconn_of_moralConn {X Y Z : Finset V}
           · exact Or.inr hdone
 
 /-- **Direction 1 (`¬ dSep → ¬ MoralSep`).** If `X` and `Y` are *not* d-separated by `Z`,
-then they are not moral-separated: a `G`-active path witnessing d-connection threads a moral
+then they are not moral-separated: a `G`-active walk witnessing d-connection threads a moral
 path inside `An(X ∪ Y ∪ Z)` avoiding `Z`. -/
 private theorem not_moralSep_of_not_dSep {X Y Z : Finset V}
     (hXY : Disjoint X Y) (hXZ : Disjoint X Z) (hYZ : Disjoint Y Z)
     (h : ¬ G.dSep X Y Z) :
     ¬ G.MoralSep X Y Z := by
-  -- Extract a `bbReachable` witness in `Y`, then an active path.
+  -- Extract a `bbReachable` witness in `Y`, then an active walk.
   have hReach : ¬ Disjoint (G.bbReachableVertices Z X) Y := by
     intro hReach
     exact h ⟨hXY, hXZ, hYZ, hReach⟩
@@ -488,21 +507,23 @@ private theorem not_moralSep_of_not_dSep {X Y Z : Finset V}
   push_neg at hReach
   obtain ⟨y, hyReach, hyY⟩ := hReach
   obtain ⟨x, hxX, p, hlen, hact, hhead, hlast⟩ :=
-    (G.bbReachableVertices_iff_activePath X Z y).mp hyReach
+    (G.bbReachableVertices_iff_activeWalk X Z y).mp hyReach
   -- Every node of `p` is in the ancestral set `S := An(X ∪ Y ∪ Z)`.
-  have hnodes := G.activePath_nodes_are_ancestors hxX hyY hact hhead hlast
+  have hnodes := G.activeWalk_nodes_are_ancestors hxX hyY hact hhead hlast
   -- Endpoints avoid `Z`.
   have hxZ : x ∉ Z := Finset.disjoint_left.mp hXZ hxX
   have hyZ : y ∉ Z := Finset.disjoint_left.mp hYZ hyY
   -- Build the moral connection and contradict separation.
   have hconn : G.MoralConn (G.ancestralSet (X ∪ Y ∪ Z)) Z x y :=
-    G.moralConn_of_activePath p.length le_rfl hact hlen hnodes hhead hlast hxZ hyZ
+    G.moralConn_of_activeWalk p.length le_rfl hact hlen hnodes hhead hlast hxZ hyZ
   exact fun hsep => hsep x hxX y hyY hconn
 
 /-- **The moralization criterion.** For [pairwise-disjoint `X`, `Y`, `Z`](hyp:hXY,hXZ,hYZ),
-[`X` and `Y` are d-separated by `Z` exactly when they are moral-separated: no moral path inside
-the ancestral set `An(X ∪ Y ∪ Z)` connects them while avoiding `Z`](goal).
-(Lauritzen–Dawid–Larsen–Speed.) -/
+[`X` and `Y` are d-separated by `Z` exactly when they are moral-separated](goal): no moral path
+inside the ancestral set `An(X ∪ Y ∪ Z)` connects them while avoiding `Z`.
+
+Lauritzen, Dawid, Larsen, and Leimer, *Independence properties of directed Markov fields*
+(1990), DOI 10.1002/net.3230200503. -/
 theorem dSep_iff_moralSep {X Y Z : Finset V}
     (hXY : Disjoint X Y) (hXZ : Disjoint X Z) (hYZ : Disjoint Y Z) :
     G.dSep X Y Z ↔ G.MoralSep X Y Z := by
@@ -519,6 +540,8 @@ theorem dSep_iff_moralSep {X Y Z : Finset V}
     exact G.not_moralSep_of_not_dSep hXY hXZ hYZ hdSep hsep
 
 end DAG
+
+namespace MarkovEquiv
 
 /-- **Moral adjacency is a skeleton + v-structure invariant.** Two DAGs with the same
 skeleton and the same v-structures induce the same moral adjacency on any ground set: a
@@ -558,9 +581,13 @@ theorem moralStep_congr {G₁ G₂ : DAG V} (hskel : SameSkeleton G₁ G₂)
   unfold DAG.MoralStep
   rw [moralAdj_congr hskel himm]
 
-/-- Moral connectivity agrees across DAGs with the same skeleton and v-structures, **for a
-fixed ground set** `S`. (The ancestral sets used by `MoralSep` still differ between the
-graphs; that reconciliation is `moralSep_congr`.) -/
+/-- For [two DAGs on a finite vertex population](hyp:V,G₁,G₂) that have
+[the same skeleton](hyp:hskel) and [the same v-structures](hyp:himm), and for
+[fixed ground and conditioning sets and two vertices](hyp:S,Z,u,v),
+[moral connectivity in one DAG holds exactly when it holds in the other](goal).
+
+This does not identify the graph-dependent ancestral sets used by `MoralSep`; the
+fixed-ground-set qualification is therefore essential. -/
 theorem moralConn_congr {G₁ G₂ : DAG V} (hskel : SameSkeleton G₁ G₂)
     (himm : SameImmoralities G₁ G₂) (S Z : Finset V) (u v : V) :
     G₁.MoralConn S Z u v ↔ G₂.MoralConn S Z u v := by
@@ -570,4 +597,6 @@ theorem moralConn_congr {G₁ G₂ : DAG V} (hskel : SameSkeleton G₁ G₂)
   · exact (moralStep_congr hskel himm S Z a b).mp hab
   · exact (moralStep_congr hskel himm S Z a b).mpr hab
 
-end Causalean
+end MarkovEquiv
+
+end Causalean.Graph

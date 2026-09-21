@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxCore
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxCore
 
 /-!
 # The finite angular marked-Poisson experiment
@@ -7,6 +8,8 @@ This file identifies the hard-family marked Poisson law with the common
 complement block and independent coordinate-cell blocks used by the
 coordinatewise direct-product theorem.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

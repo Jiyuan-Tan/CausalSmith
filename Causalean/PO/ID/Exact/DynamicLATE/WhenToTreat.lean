@@ -22,8 +22,9 @@ which are assembled from those helpers plus the bridge identities in
 `Bridges.lean`.
 -/
 
-import Causalean.PO.ID.Exact.DynamicLATE.Bridges
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Exact.DynamicLATE.Bridges
+public import Causalean.Tactic.CondexpLinearity
 
 /-! # Two-period dynamic LATE when-to-treat ratios
 
@@ -32,6 +33,8 @@ when-to-treat and mixture LATE parameters. The arguments combine bridge
 identities for two-period encouragement regimes with one-sided noncompliance and
 composition-consistency rewrites on the observed encouragement event.
 -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -78,8 +81,9 @@ private lemma treatmentRegime_assign_D2 (S : PODynLATESystem P γ₀ γ₁)
   rw [Regime.listLookup_cons_of_ne S.D1_ne_D2.symm hv']
   exact Regime.listLookup_cons_self
 
-/-- On the event `{D(z) = d}`, the encouragement-regime outcome `Y(D(z))`
-agrees pointwise with the treatment-regime outcome `Y(d)`.
+/-- [Outcome under encouragement equals outcome under the treatment path it induces](goal) under
+[the dynamic LATE assumptions](hyp:As), for [an encouragement path and realized treatment
+path](hyp:z,d). This composition bridge turns encouragement effects into treatment effects.
 
 Proof: combine PO composition consistency (which gives `Y under (r_z ⊔ r_d)
 = Y under r_z = YofDofZ z` on the event `{D(z) = d}`) with the exclusion
@@ -131,7 +135,7 @@ theorem YofDofZ_eq_YofD_on_DofZEq (As : S.Assumptions) (z d : Fin 2 → Bool) :
       have := congrArg S.hD2bool.symm this
       simpa using this
   -- Apply composition consistency: poVariable (r_z ⊔ r_d) {Y} = poVariable r_z {Y}.
-  have hComp := As.consistency.composition
+  have hComp := As.compositionConsistency.composition
     (S.encouragementRegime z) (S.treatmentRegime d)
     (S.encouragementRegime_disjoint_treatmentRegime z d) {S.Y} hYdisj ω hIA
   -- Extract pointwise eval at S.Y.
@@ -150,8 +154,9 @@ theorem YofDofZ_eq_YofD_on_DofZEq (As : S.Assumptions) (z d : Fin 2 → Bool) :
   rw [hYofDofZ, hExcl]
 
 omit [MeasurableSingletonClass γ₀] [MeasurableSingletonClass γ₁] in
-/-- Under one-sided noncompliance, the zero-encouragement counterfactual
-treatment is identically zero a.s.: `D(0) = 0` a.s. -/
+/-- [Zero encouragement induces the all-zero treatment path almost surely](goal) under [the
+dynamic LATE assumptions](hyp:As). One-sided noncompliance rules out treatment without
+encouragement. -/
 theorem DofZ_zero_eq_zero (As : S.Assumptions) :
     ∀ᵐ ω ∂P.μ, S.DofZ ![false, false] ω = ![false, false] := by
   filter_upwards [As.oneSidedNoncompliance ![false, false]] with ω hω
@@ -171,7 +176,8 @@ theorem DofZ_zero_eq_zero (As : S.Assumptions) :
   · simp [DofZ, hD1]
   · intro _; simp [DofZ, hD2]
 
-/-- A.s. `Y(D(0)) = Y(0)`, the zero-encouragement composition collapse. -/
+/-- [Outcome under zero encouragement equals outcome under no treatment almost surely](goal)
+under [the dynamic LATE assumptions](hyp:As), providing the baseline term for Wald contrasts. -/
 theorem YofDofZ_zero_ae_eq_YofD_zero (As : S.Assumptions) :
     S.YofDofZ ![false, false] =ᵐ[P.μ] S.YofD ![false, false] := by
   have hcomp := YofDofZ_eq_YofD_on_DofZEq As ![false, false] ![false, false]
@@ -179,12 +185,10 @@ theorem YofDofZ_zero_ae_eq_YofD_zero (As : S.Assumptions) :
   exact hcomp hzero
 
 omit [MeasurableSingletonClass γ₀] [MeasurableSingletonClass γ₁] in
-/-- For `d ≼ z` and one-sided noncompliance, `D(z) ∈ {d, 0}` a.s. when
-`d` is one of the two single-period treatment vectors `(1,0)` or `(0,1)`,
-because the only `d' ≼ z` with `d' ≠ d` and `d' ≠ 0` would have to flip a
-coordinate that one-sided rules out.  Used to decompose `Y(D(z))` on
-the encouragement event into the two-piece sum
-`Y(d)·1_{D(z)=d} + Y(0)·1_{D(z)=0}`. -/
+/-- [A one-period treatment-timing encouragement induces either its matching treatment path or no
+treatment, almost surely](goal) under [the dynamic LATE assumptions](hyp:As), when [the selected
+path](hyp:d) [starts treatment in exactly one of the two periods](hyp:hd). One-sided
+noncompliance eliminates every other response path. -/
 theorem DofZ_in_two_values (As : S.Assumptions) (d : Fin 2 → Bool)
     (hd : d = ![true, false] ∨ d = ![false, true]) :
     ∀ᵐ ω ∂P.μ,
@@ -237,9 +241,10 @@ Compose the outcome bridge with the structural helpers above to identify
 the *difference* `obsMean(d) - obsMean(0)` with the conditional outcome
 contrast `∫_{D(d)=d} (Y(d) - Y(0)) dμ`. -/
 
-/-- Under one-sided noncompliance, the encouragement-regime outcome under
-encouragement `d ∈ {(1,0), (0,1)}` decomposes pointwise as
-`Y(d)·1_{D(d)=d} + Y(0)·1_{D(d)=0}` a.s. -/
+/-- [Outcome under a one-period treatment-timing encouragement decomposes into the target-path
+outcome on compliers and the no-treatment outcome otherwise, almost surely](goal) under [the
+dynamic LATE assumptions](hyp:As), for [the selected path](hyp:d) when [it treats in exactly one
+period](hyp:hd). -/
 theorem YofDofZ_decomposition (As : S.Assumptions) (d : Fin 2 → Bool)
     (hd : d = ![true, false] ∨ d = ![false, true]) :
     S.YofDofZ d =ᵐ[P.μ]
@@ -274,8 +279,10 @@ theorem YofDofZ_decomposition (As : S.Assumptions) (d : Fin 2 → Bool)
     ring_nf
     exact hd0 h
 
-/-- The numerator identity: the difference of the encouragement-regime
-outcome integrals collapses to the conditional contrast on `{D(d) = d}`.
+/-- [The mean outcome contrast between a one-period timing encouragement and zero encouragement
+equals the treatment-effect contrast restricted to units induced into that timing](goal) under
+[the dynamic LATE assumptions](hyp:As), for [the selected timing path](hyp:d) when [it treats in
+exactly one period](hyp:hd). This supplies the Wald numerator.
 
 `∫ Y(D(d)) - ∫ Y(D(0)) = ∫_{D(d)=d} (Y(d) - Y(0)) dμ`. -/
 theorem int_outcome_difference_identity (As : S.Assumptions) (d : Fin 2 → Bool)
@@ -328,12 +335,10 @@ theorem int_outcome_difference_identity (As : S.Assumptions) (d : Fin 2 → Bool
 
 /-! ### Main when-to-treat identification (prop:po-dynamic-late-when-to-treat) -/
 
-/-- **When-to-treat dynamic LATE Wald identity** (unconditional). For
-[a treatment path `d` equal to `(1,0)` or `(0,1)` — treatment started in
-period 1 and stopped, or delayed to period 2](hyp:hd), [the when-to-treat
-local average treatment effect `τ_d` equals the Wald ratio of the observable
-mean contrast `obsMean(d) − obsMean(0,0)` to the observable compliance
-probability `obsProb(d,d)`](goal). -/
+/-- **When-to-treat dynamic LATE Wald identity** (unconditional). Under [the dynamic LATE
+identifying assumptions](hyp:As), for [a path that treats in period one only or period two
+only](hyp:d,hd), [the timing-specific local average treatment effect equals the observable mean
+contrast against zero encouragement divided by the observable compliance probability](goal). -/
 theorem whenToTreat_wald (As : S.Assumptions) (d : Fin 2 → Bool)
     (hd : d = ![true, false] ∨ d = ![false, true]) :
     S.whenToTreatLATE d
@@ -355,22 +360,14 @@ theorem whenToTreat_wald (As : S.Assumptions) (d : Fin 2 → Bool)
     linarith [hdiff]
   -- Denominator: compliance bridge.
   have hDen : (P.μ (S.DofZEq d d)).toReal = S.obsProb d d := by
-    have hd_pre : Preceq d d := by
-      rcases hd with h | h <;>
-        (subst h; refine ⟨?_, ?_⟩ <;> simp)
-    exact compliance_bridge As d d hd_pre
+    exact compliance_bridge As d d
   -- Combine.
   unfold whenToTreatLATE LATE
   rw [hNum, hDen]
 
-/-- **Mixture dynamic LATE Wald identity** (unconditional). Under [the dynamic
-LATE identifying assumptions](hyp:As), for [an encouragement vector `z`](hyp:z),
-[the mixture dynamic local average treatment effect `mixtureLATE z` equals the
-Wald ratio of the observable mean contrast `obsMean z − obsMean(0,0)` to the
-observable noncompliance probability `1 − obsProb(z, 0,0)`](goal).
-
-For every `z` (totalized at `z = 0`),
-`β_z = (obsMean(z) - obsMean(0)) / (1 - obsProb(z, 0))`.
+/-- **Mixture dynamic LATE Wald identity** (unconditional). Under
+[the dynamic LATE assumptions](hyp:As), for [an encouragement path](hyp:z),
+[the mixture LATE equals the observable Wald ratio](goal).
 
 The denominator `1 - obsProb(z, 0)` is `P{D(z) ≠ 0}` by the compliance
 bridge applied at `(z, 0)`. -/
@@ -381,10 +378,6 @@ theorem mixtureLATE_wald (As : S.Assumptions) (z : Fin 2 → Bool) :
   have hset : {ω | S.DofZ z ω ≠ z0} = (S.DofZEq z z0)ᶜ := by
     ext ω
     rfl
-  have hpre_z0 : Preceq z0 z := by
-    refine ⟨?_, ?_⟩ <;> simp [z0]
-  have hpre_00 : Preceq z0 z0 := by
-    refine ⟨?_, ?_⟩ <;> simp [z0]
   have hbr_z : ∫ ω, S.YofDofZ z ω ∂P.μ = S.obsMean z := by
     exact outcome_bridge As z
   have hbr_0 : ∫ ω, S.YofDofZ z0 ω ∂P.μ = S.obsMean z0 := by
@@ -430,7 +423,7 @@ theorem mixtureLATE_wald (As : S.Assumptions) (z : Fin 2 → Bool) :
               (MeasureTheory.probReal_compl_eq_one_sub
                 (μ := P.μ) (s := S.DofZEq z z0) (S.measurableSet_DofZEq z z0))
       _ = 1 - S.obsProb z z0 := by
-            rw [compliance_bridge As z z0 hpre_z0]
+            rw [compliance_bridge As z z0]
   unfold mixtureLATE
   rw [hNum, hDen]
 
@@ -440,22 +433,15 @@ Both ratio identifications carry over to the bundle conditional form via
 `historyBundle1.condExpRatio`, using `cOutcome_bridge` / `cCompliance_bridge`
 in place of the unconditional bridges. -/
 
-/-- **When-to-treat dynamic LATE Wald identity** (heterogeneous in `S₀`). For
-[a treatment path `d` equal to `(1,0)` or `(0,1)`](hyp:hd), [the
-baseline-covariate-conditional when-to-treat effect `τ_d(S₀)` agrees almost
-surely with the ratio of the conditional observable-mean contrast
-`cObsMean(d;S₀) − cObsMean(0;S₀)` to the conditional observable compliance
-probability `cObsProb(d,d;S₀)`](goal). -/
+/-- **Baseline-conditional when-to-treat Wald identity.** Under [the dynamic LATE identifying
+assumptions](hyp:As), for [a path that treats in period one only or period two only](hyp:d,hd),
+[the timing-specific conditional effect equals almost surely the conditional observable-mean
+contrast against zero encouragement divided by the conditional compliance probability](goal). -/
 theorem cWhenToTreat_wald (As : S.Assumptions) (d : Fin 2 → Bool)
     (hd : d = ![true, false] ∨ d = ![false, true]) :
     S.cWhenToTreatLATE d =ᵐ[P.μ]
       fun ω => (S.cObsMean d ω - S.cObsMean ![false, false] ω) / S.cObsProb d d ω := by
   let z0 : Fin 2 → Bool := ![false, false]
-  have hd_pre : Preceq d d := by
-    rcases hd with h | h <;>
-      (subst h; refine ⟨?_, ?_⟩ <;> simp)
-  have hpre_00 : Preceq z0 z0 := by
-    refine ⟨?_, ?_⟩ <;> simp [z0]
   have hpoint :
       (fun ω => S.YofDofZ d ω - S.YofDofZ z0 ω) =ᵐ[P.μ]
         fun ω => (S.YofD d ω - S.YofD z0 ω) *
@@ -502,8 +488,8 @@ theorem cWhenToTreat_wald (As : S.Assumptions) (d : Fin 2 → Bool)
       fun ω => S.historyBundle1.condExpGiven (S.YofDofZ d) P.μ ω -
         S.historyBundle1.condExpGiven (S.YofDofZ z0) P.μ ω := by
     condexp_linearity [As.integrable_YofDofZ d, As.integrable_YofDofZ z0]
-  have hbr_d := cOutcome_bridge As d d hd_pre
-  have hbr_0 := cOutcome_bridge As z0 z0 hpre_00
+  have hbr_d := cOutcome_bridge As d
+  have hbr_0 := cOutcome_bridge As z0
   have hNum :
       S.historyBundle1.condExpGiven
           (fun ω => (S.YofD d ω - S.YofD z0 ω) *
@@ -512,26 +498,19 @@ theorem cWhenToTreat_wald (As : S.Assumptions) (d : Fin 2 → Bool)
       fun ω => S.cObsMean d ω - S.cObsMean z0 ω := by
     filter_upwards [hce_congr, hsub, hbr_d, hbr_0] with ω hcg hs hbd hb0
     rw [← hcg, hs, hbd, hb0]
-  have hDen := cCompliance_bridge As d d hd_pre
+  have hDen := cCompliance_bridge As d d
   unfold cWhenToTreatLATE cLATE POCFBundle.condExpRatio
   filter_upwards [hNum, hDen] with ω hN hD
   rw [hN, hD]
 
-/-- **Mixture dynamic LATE Wald identity** (heterogeneous in `S₀`). Under [the
-dynamic LATE identifying assumptions](hyp:As), for [an encouragement vector
-`z`](hyp:z), [the baseline-conditional mixture dynamic LATE `cMixtureLATE z` agrees
-almost surely with the ratio of the baseline-conditional mean contrast
-`cObsMean z − cObsMean(0,0)` to the baseline-conditional noncompliance probability
-`1 − cObsProb(z, 0,0)`](goal). -/
+/-- **Mixture dynamic LATE Wald identity** (heterogeneous in `S₀`). Under
+[the dynamic LATE assumptions](hyp:As), for [an encouragement path](hyp:z),
+[the conditional mixture LATE equals its observable Wald ratio almost surely](goal). -/
 theorem cMixtureLATE_wald (As : S.Assumptions) (z : Fin 2 → Bool) :
     (S.cMixtureLATE z =ᵐ[P.μ]
       fun ω => (S.cObsMean z ω - S.cObsMean ![false, false] ω) /
                (1 - S.cObsProb z ![false, false] ω)) := by
   let z0 : Fin 2 → Bool := ![false, false]
-  have hpre_z0 : Preceq z0 z := by
-    refine ⟨?_, ?_⟩ <;> simp [z0]
-  have hpre_00 : Preceq z0 z0 := by
-    refine ⟨?_, ?_⟩ <;> simp [z0]
   have hpoint :
       (fun ω => S.YofDofZ z ω - S.YofDofZ z0 ω) =ᵐ[P.μ]
         fun ω => (S.YofDofZ z ω - S.YofD z0 ω) *
@@ -566,8 +545,8 @@ theorem cMixtureLATE_wald (As : S.Assumptions) (z : Fin 2 → Bool) :
       fun ω => S.historyBundle1.condExpGiven (S.YofDofZ z) P.μ ω -
         S.historyBundle1.condExpGiven (S.YofDofZ z0) P.μ ω := by
     condexp_linearity [As.integrable_YofDofZ z, As.integrable_YofDofZ z0]
-  have hbr_z := cOutcome_bridge As z z0 hpre_z0
-  have hbr_0 := cOutcome_bridge As z0 z0 hpre_00
+  have hbr_z := cOutcome_bridge As z
+  have hbr_0 := cOutcome_bridge As z0
   have hNum :
       S.historyBundle1.condExpGiven
           (fun ω => (S.YofDofZ z ω - S.YofD z0 ω) *
@@ -618,7 +597,7 @@ theorem cMixtureLATE_wald (As : S.Assumptions) (z : Fin 2 → Bool) :
       condexp_linearity
     filter_upwards [hsub'] with ω hω
     rw [hω, hconst]
-  have hDen_bridge := cCompliance_bridge As z z0 hpre_z0
+  have hDen_bridge := cCompliance_bridge As z z0
   have hDen :
       S.historyBundle1.condExpGiven
           (({ω | S.DofZ z ω ≠ z0}).indicator (fun _ => (1 : ℝ))) P.μ

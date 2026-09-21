@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Linear.Finite
+
+module
+public import Causalean.ML.Linear.Finite
 
 /-! # Ridge regression — finite design-matrix layer
 
@@ -14,24 +16,27 @@ vector satisfying the ridge normal equations `(XᵀX + λI) β̂ = Xᵀy` with `
 minimizes this penalized objective.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param] [DecidableEq Param]
 
-/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
-[a design matrix](hyp:X), [an outcome vector](hyp:y), [a ridge penalty weight](hyp:lam), and
-[a coefficient vector](hyp:β), the [ridge objective](goal) is the sum of squared residuals
-plus the penalty weight times the sum of squared coefficients. -/
+/-- [The ridge objective](goal) trades [residual squares against coefficient shrinkage](step:1).
+It evaluates [a coefficient vector](hyp:β) at [penalty weight](hyp:lam) using
+[a design matrix and outcome vector](hyp:X,y) over
+[finite observation and coefficient indices](hyp:Obs,Param). -/
 noncomputable def ridgeObjective
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (lam : ℝ) (β : Param → ℝ) : ℝ :=
   olsObjective X y β + lam * (β ⬝ᵥ β)
 
-/-- With [a nonnegative ridge penalty `λ`](hyp:hlam), for [any coefficient vector `β̂` satisfying
-the ridge normal equations `(XᵀX + λI)β̂ = Xᵀy`](hyp:hNE) built from a finite design matrix `X`
-and outcome vector `y`, [that vector minimizes the ridge objective — the sum of squared
-residuals plus `λ‖β‖²` — over every coefficient vector `β`](goal). -/
+/-- [A ridge normal-equation solution globally minimizes the objective](goal). This holds for
+[a candidate coefficient vector](hyp:βhat) under
+[the normal equations](hyp:hNE) with [a nonnegative penalty](hyp:hlam), using
+[the design and outcome vectors](hyp:X,y) over
+[finite observation and coefficient indices](hyp:Obs,Param). -/
 theorem ridge_is_regularized_squaredLoss_ERM_of_normalEq
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) {lam : ℝ} (hlam : 0 ≤ lam)
     (βhat : Param → ℝ)

@@ -16,7 +16,7 @@ import { coreJsonPath } from "../stages/d0_core.js";
 import type { PipelineContext } from "../../types.js";
 import { commitGraph, commitOrThrow, headGraph, publishCore } from "./commit.js";
 import { blobId as nodeBlobId } from "./node.js";
-import { listPrs, mergePr, openPr } from "./pr.js";
+import { mergePr, openPr } from "./pr.js";
 import { SolveUnitOutputSchema } from "../solve/schemas.js";
 import { writeJsonAtomic, writeTextAtomic } from "../../shared/json_atomic.js";
 import { readFile } from "node:fs/promises";
@@ -25,7 +25,6 @@ import type { StateJson } from "../../types.js";
 import { proposalRevision } from "../proposal_revision.js";
 import type { Graph } from "./graph.js";
 import { blobId, type NodeBlob, type NodeId } from "./node.js";
-import { nodesOfType } from "./graph.js";
 import { graphFromCore, normalizeGraph } from "./render.js";
 import { MAIN_REF, VcsStore } from "./store.js";
 

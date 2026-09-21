@@ -1,0 +1,111 @@
+%%% FIELD proof-local-enumerator
+Let \(W\in\mathcal R_q\).  By \(\mathrm{def:rational\mbox{-}input\mbox{-}class}\), assumptions \(\mathrm{ass:unit\mbox{-}diagonal}\), \(\mathrm{ass:invertible\mbox{-}equations}\), \(\mathrm{ass:stable\mbox{-}reference}\), and \(\mathrm{ass:rational\mbox{-}input}\) hold.  In particular, \(B=I_q-W\) has rational entries.  Equality of a rational entry to zero is decidable by inspecting its reduced numerator, so the directed support graph of \(B\) is computed exactly in time polynomial in \(q\) and \(L\).  Graph searches compute reachability, and mutual reachability is an equivalence relation whose classes are precisely \(\operatorname{SCC}(B)\).  Hence the first step of \(\mathsf{Enum}(W)\), as specified by \(\mathrm{def:local\mbox{-}enumerator}\), is exact and has polynomial bit complexity.
+
+Fix a topological order of the condensation graph.  For \(C\in\operatorname{SCC}(B)\), write \(c=|C|\) and \(B_C=B[C,C]\).  In this order, \(B\), and therefore \(W=I_q-B\), is block triangular with diagonal blocks \(B_C\) and \(W_C=I_c-B_C\).  Consequently,
+\[
+ \det(tI_q-B)=\prod_{D\in\operatorname{SCC}(B)}
+ \det(tI_{|D|}-B_D),
+ \qquad
+ \det(W)=\prod_{D\in\operatorname{SCC}(B)}\det(W_D).
+\]
+Assumption \(\mathrm{ass:stable\mbox{-}reference}\) and the first identity give \(\rho(B_C)<1\).  Assumption \(\mathrm{ass:invertible\mbox{-}equations}\) and the second identity give \(\det(W_C)\ne0\).  Assumption \(\mathrm{ass:rational\mbox{-}input}\) passes rationality and an encoding-length bound no larger than \(L\) to \(W_C\), while \(\mathrm{ass:unit\mbox{-}diagonal}\) gives \((W_C)_{ii}=1\).  Thus \(W_C\in\mathcal R_c\).  The same unit-diagonal condition also implies that the admissibility graph below has at least \(c\) edges.
+
+Let \(H_C\) be the bipartite graph with a column copy and a row copy of \(C\), and put an edge between column \(i\) and row \(r\) exactly when \((W_C)_{ri}\ne0\).  Let \(e_C\) be its number of edges.  A perfect matching of \(H_C\) is a bijection \(i\mapsto\pi_C(i)\) such that
+\[
+ (W_C)_{\pi_C(i),i}\ne0\qquad(i\in C).
+\]
+By \(\mathrm{def:admissible\mbox{-}orbit}\), these bijections are exactly the elements of \(\mathcal P_{\mathrm{adm}}(W_C)\).
+
+We next give the exact recursion used in \(\mathsf{Enum}(W)\).  Order the columns and the incident rows of every column.  At a prefix that injectively assigns the first \(k\) columns, inspect every available incident row in order and recurse precisely when the resulting residual bipartite graph has a perfect matching.  Residual feasibility is decided by augmenting paths.  Starting with any matching, an alternating-path search from the unmatched columns either reaches an unmatched row, in which case flipping the path increases the matching size by one, or reaches no unmatched row.  In the latter case let \(D\) be the reached columns and \(R\) the reached rows.  Every neighbor of \(D\) lies in \(R\); every row of \(R\) is matched, for otherwise an augmenting path would have been found; and following the matching edge from \(R\) injects \(R\) into \(D\) while omitting every initially unmatched column.  Therefore
+\[
+ |N(D)|=|R|<|D|.
+\]
+No matching can cover \(D\), since its distinct columns would need distinct representatives in \(N(D)\).  Conversely, if augmentation matches every residual column, the resulting edges are a perfect matching.  Hence the feasibility test is exact.  It uses at most \(c\) augmentations, each scanning at most \(e_C\) edges, and therefore costs \(O(ce_C)\) graph operations.
+
+Every perfect matching determines one and only one root-to-leaf sequence of ordered prefix choices, and every reached leaf is a perfect matching because every prefix passed the exact residual-feasibility test.  Thus the recursion emits every element of \(\mathcal P_{\mathrm{adm}}(W_C)\) exactly once.  It is an alternating-cycle recursion in the sense used in \(\mathrm{def:local\mbox{-}enumerator}\): the symmetric difference of two perfect matchings has degree zero or two at each vertex, hence is a disjoint union of even cycles alternating between the two matchings, and ordered branching selects the first edge on which the corresponding extensions differ.
+
+Put \(N_C^{\mathrm{adm}}=N_{\mathrm{adm}}(W_C)\).  Associate with every feasible prefix its lexicographically least perfect-matching extension.  For a fixed perfect matching and a fixed depth, at most one prefix has that matching as its extension, because a matching has exactly one prefix at that depth.  Since there are \(c+1\) depths, the number of feasible prefixes is at most
+\[
+ (c+1)N_C^{\mathrm{adm}}.
+\]
+Each feasible prefix examines at most \(c\) candidate children.  If the root is infeasible, only the root feasibility test is performed.  Since \(c\le e_C\le c^2\), construction of \(H_C\), the root test, all child tests, and the elementary rational zero tests together take
+\[
+ O\!\left(\bigl(c^{1/2}e_C+cN_{\mathrm{adm}}(W_C)\bigr)
+          \operatorname{poly}(c,L)\right)
+\]
+bit operations.  Here the displayed polynomial absorbs the polynomial factors in \(c\) and \(e_C\) from the augmenting-path tests; it is independent of the number of emitted matchings.
+
+It remains to prove that the Schur screening is exact and polynomial per admissible matching.  Fix \(\pi_C\in\mathcal P_{\mathrm{adm}}(W_C)\).  By \(\mathrm{def:normalized\mbox{-}candidate}\), its assigned coefficient matrix is the rational matrix
+\[
+ A=B_{\pi_C}
+ =I_c-
+   \operatorname{diag}\!\left(
+   (W_C)_{\pi_C(i),i}^{-1}:i\in C\right)P_{\pi_C}W_C.
+\]
+Every denominator displayed here is nonzero by admissibility, and the entries of \(A\) have binary length polynomial in \(c\) and \(L\).  Consider the \(c^2\)-variable rational linear system
+\[
+ P-A^{\mathsf T}PA=I_c. \tag{1}
+\]
+If \(\rho(A)<1\), complex Jordan form implies \(A^k\to0\) geometrically up to a polynomial factor in \(k\).  Hence the series
+\[
+ P_\star=\sum_{k=0}^{\infty}(A^k)^{\mathsf T}A^k
+\]
+converges entrywise.  Shifting its index gives
+\[
+ P_\star-A^{\mathsf T}P_\star A=I_c.
+\]
+For every nonzero \(x\in\mathbb R^c\),
+\[
+ x^{\mathsf T}P_\star x
+ =\sum_{k=0}^{\infty}\lVert A^kx\rVert_2^2
+ \ge \lVert x\rVert_2^2>0,
+\]
+so \(P_\star\) is positive definite.  This solution is unique: if \(H=A^{\mathsf T}HA\), then iteration yields
+\[
+ H=(A^k)^{\mathsf T}HA^k\longrightarrow0,
+\]
+and hence \(H=0\).
+
+Conversely, suppose a real symmetric positive-definite matrix \(P\) solves (1).  For any complex eigenpair \(Av=\lambda v\), with \(v\ne0\), sesquilinear extension of the real quadratic form gives
+\[
+ (1-|\lambda|^2)v^*Pv
+ =v^*(P-A^{\mathsf T}PA)v
+ =v^*v>0.
+\]
+Since \(v^*Pv>0\), it follows that \(|\lambda|<1\).  This holds for every eigenvalue, and therefore \(\rho(A)<1\).  We have proved the boundary-sensitive equivalence
+\[
+ \rho(A)<1
+ \quad\Longleftrightarrow\quad
+ \text{(1) has a positive-definite solution}. \tag{2}
+\]
+In particular, (2) rejects every boundary case \(\rho(A)=1\).
+
+Fraction-free rational elimination decides whether (1) has a unique solution and computes it when it does.  If its coefficient system is singular, the candidate may be rejected without losing a stable assignment, because stability implies uniqueness by the homogeneous argument above.  If the solution is unique, transposing (1) shows that \(P^{\mathsf T}\) is another solution, so uniqueness gives \(P=P^{\mathsf T}\).  Positive definiteness is then decided by exact rational Schur complements.  Indeed, for
+\[
+ P=\begin{pmatrix}a&b^{\mathsf T}\\ b&D\end{pmatrix}
+ \quad\text{with }a>0,
+\]
+completion of the square gives
+\[
+ \begin{pmatrix}s\\y\end{pmatrix}^{\!\mathsf T}
+ P
+ \begin{pmatrix}s\\y\end{pmatrix}
+ =a\left(s+a^{-1}b^{\mathsf T}y\right)^2
+  +y^{\mathsf T}\left(D-a^{-1}bb^{\mathsf T}\right)y.
+\]
+Thus \(P\) is positive definite exactly when \(a>0\) and \(D-a^{-1}bb^{\mathsf T}\) is positive definite; if \(a\le0\), the first coordinate vector already rules out positive definiteness.  Induction therefore reduces the decision to exact signs of rational pivots.
+
+For completeness, the bit complexity of these exact operations is polynomial.  After clearing row denominators, (1) is a linear system of dimension \(c^2\) whose integer coefficients have bit length polynomial in \(c\) and \(L\).  Every minor arising in fraction-free elimination is a sum of at most \((c^2)!\) products of at most \(c^2\) such integers.  Its bit length is bounded by the sum of \(c^2\) times the coefficient bit bound and \(\log((c^2)!)\), hence is polynomial in \(c\) and \(L\).  The same holds for every rational pivot and Schur complement.  Since the number of arithmetic operations is polynomial in \(c\), normalization, solution of (1), and all sign tests take \(\operatorname{poly}(c,L)\) bit operations per admissible matching.  Combining this with the exact-once matching recursion yields total local screening time
+\[
+ \sum_{C\in\operatorname{SCC}(B)}
+ O\!\left(\bigl(c^{1/2}e_C+cN_{\mathrm{adm}}(W_C)\bigr)
+          \operatorname{poly}(c,L)\right).
+\]
+
+For every component, the preceding construction retains every member of \(\mathcal P_{\mathrm{stab}}(W_C)\) exactly once by (2).  The already established \(\mathrm{thm:scc\mbox{-}factorization\mbox{-}real}\), and hence its specialization \(\mathrm{thm:scc\mbox{-}factorization}\) to \(\mathcal R_q\), states that restriction and concatenation in the fixed topological component order give a bijection
+\[
+ \prod_{C\in\operatorname{SCC}(B)}\mathcal P_{\mathrm{stab}}(W_C)
+ \xrightarrow{\ \sim\ }
+ \mathcal P_{\mathrm{stab}}(W).
+\]
+A lexicographic mixed-radix counter visits every tuple in this product exactly once.  Advancing it touches at most the number of components, and materializing the concatenated permutation writes exactly \(q\) entries, so the delay after local screening is \(O(q)\) per stable global assignment.  The screening bound depends on \(N_{\mathrm{adm}}(W_C)\), including admissible local matchings rejected by (2).  It therefore makes no polynomial-delay assertion in \(N_{\mathrm{stab}}(W)\) alone, exactly as claimed.

@@ -18,7 +18,10 @@ the pushforward bridge `condIndepFun_of_map`.
   set by absorbing them into the full-level conditioning shadow
 -/
 
-import Causalean.SCM.Do.GlobalMarkov
+module
+
+public import Causalean.Mathlib.Probability.Independence.Conditional.Transport
+public import Causalean.SCM.Do.GlobalMarkov
 
 /-! # Observational Markov Property
 
@@ -26,6 +29,15 @@ This file transfers conditional independence from the full distribution over
 random and latent coordinates to the observational distribution over observed
 coordinates. It then packages graphical separation hypotheses as observational
 conditional independences for use in do-calculus arguments. -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 
@@ -136,7 +148,7 @@ theorem globalMarkov (M : Causalean.SCM N Ω)
     include fixed nodes alongside observed ones.
 
     This is the form consumed by split-language do-calculus: `do_rule1` /
-    `do_rule2_kernel` need the post-intervention fixed set (`M'.fixed` or
+    `do_rule2_kernel_of_nondescendant_product_ae` need the post-intervention fixed set (`M'.fixed` or
     `(M'.fixSet Z).fixed`) in the d-sep conditioning set so that paths
     through the new fixed nodes added by `fixSet` are blocked as
     non-colliders.

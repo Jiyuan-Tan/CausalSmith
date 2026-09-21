@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderConditionalKernel
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderConditionalKernel
 
 /-!
 # Product-law assembly for decoder coordinates
@@ -6,6 +7,11 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decod
 This file separates one distinguished coordinate from a finite product-density measure.
 It supplies the measure-product step needed to assemble the equation-(11) conditional kernel.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal
@@ -169,7 +175,7 @@ lemma weightedCoordinate_independence
 /-- Equation (10) as a product law: under intervention `i`, the target coordinate has its
 replacement-density law and is independent of all latent coordinates preceding `i`.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationTen_predecessorCoordinates_independent_target
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -304,7 +310,7 @@ lemma map_prod_compProd_of_fiber
 -- @node: retainedProjectionToPredecessorCube
 /-- Reindex and clamp retained latent predecessor coordinates into the compact decoder cube. -/
 def retainedProjectionToPredecessorCube
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (y : (k : (decoderRetainedLatentSet W order i).erase (W.targetPerm i)) → ℝ) :
     PredecessorLatentCube order i := fun j =>
@@ -322,7 +328,7 @@ def retainedProjectionToPredecessorCube
 -- @node: measurable_retainedProjectionToPredecessorCube
 /-- [Reindexing and clamping the retained predecessor projection is measurable](goal). -/
 @[fun_prop] lemma measurable_retainedProjectionToPredecessorCube
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n) :
     Measurable (retainedProjectionToPredecessorCube W order i) := by
   apply measurable_pi_lambda
@@ -333,7 +339,7 @@ def retainedProjectionToPredecessorCube
 -- @node: retainedProjectionToPredecessorCube_coordinateProjection
 /-- On the latent cube, the clamped retained projection is the actual predecessor restriction.  Given [the stated inputs and conditions](hyp:hv), [the stated conclusion](goal) follows. -/
 lemma retainedProjectionToPredecessorCube_coordinateProjection
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (v : LatentState n) (hv : v ∈ latentCube n) :
     retainedProjectionToPredecessorCube W order i
@@ -351,7 +357,7 @@ lemma retainedProjectionToPredecessorCube_coordinateProjection
 -- @node: clampedPredecessorCoordinates
 /-- The globally measurable clamped predecessor restriction of an ambient latent state. -/
 def clampedPredecessorCoordinates
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n) (v : LatentState n) :
     PredecessorLatentCube order i :=
   retainedProjectionToPredecessorCube W order i
@@ -361,7 +367,7 @@ def clampedPredecessorCoordinates
 -- @node: measurable_clampedPredecessorCoordinates
 /-- The [clamped predecessor-coordinate restriction is measurable](goal). -/
 @[fun_prop] lemma measurable_clampedPredecessorCoordinates
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n) :
     Measurable (clampedPredecessorCoordinates W order i) := by
   exact (measurable_retainedProjectionToPredecessorCube W order i).comp
@@ -370,7 +376,7 @@ def clampedPredecessorCoordinates
 -- @node: clampedPredecessorCoordinates_of_mem
 /-- On the latent cube, clamped predecessor coordinates equal the genuine restriction.  Given [the stated inputs and conditions](hyp:hv), [the stated conclusion](goal) follows. -/
 lemma clampedPredecessorCoordinates_of_mem
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (v : LatentState n) (hv : v ∈ latentCube n) :
     clampedPredecessorCoordinates W order i v =
@@ -381,7 +387,7 @@ lemma clampedPredecessorCoordinates_of_mem
 /-- Equation (10) transported to the compact predecessor cube: under intervention `i`,
 clamped predecessor coordinates and the target coordinate have a product law.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma predecessorCoordinates_independent_target
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -426,7 +432,7 @@ lemma predecessorCoordinates_independent_target
 /-- On a triangular predecessor score, the ambient equation-(11) kernel is precisely the
 pushforward of the replacement coordinate law along the corresponding own-score fiber.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationElevenAmbientKernel_apply_scoreMap
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -467,7 +473,7 @@ lemma equationElevenAmbientKernel_apply_scoreMap
 /-- On a latent cube point, the clamped equation-(11) fiber score equals the observed target
 log-ratio, because every target parent occurs among the reconstructed predecessors.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,horder,hgraphOrder,hv), [the stated conclusion](goal) follows. -/
 lemma equationElevenClampedScore_of_latentState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -494,7 +500,7 @@ lemma equationElevenClampedScore_of_latentState
     · intro a ha
       let j := W.targetPerm.symm a
       have hjparent : j ∈ environmentParentSet W i := by
-        simpa [j, environmentParentSet, Causalean.DAG.parents] using ha
+        simpa [j, environmentParentSet, DAG.parents] using ha
       have hjpred := environmentParentSet_subset_predecessorSet_of_transitiveClosure
         W horder hgraphOrder i hjparent
       have hbase := predecessorCubeLatentState_ofState_apply W order i v hv j hjpred
@@ -510,7 +516,7 @@ lemma equationElevenClampedScore_of_latentState
 /-- Under intervention `i`, the observed predecessor-score and target-score law is the
 predecessor marginal composed with the ambient equation-(11) Markov kernel.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma observedRatioPredecessor_compProd
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

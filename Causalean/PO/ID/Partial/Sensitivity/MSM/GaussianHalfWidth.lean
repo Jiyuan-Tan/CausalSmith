@@ -3,10 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Marginal Sensitivity Model — the Gaussian sharp half-width (Dorn–Guo corollary, closed form)
+# Marginal Sensitivity Model — the Gaussian calibrated half-width (Dorn–Guo corollary, closed form)
 
 The headline Dorn–Guo Gaussian number. Under a conditional-Gaussian treated outcome law `Y | X ~
-N(m(X), σ(X)²)`, the sharp upper bound on `E[Y(1)]` evaluates in closed form:
+N(m(X), σ(X)²)`, the calibrated upper bound on `E[Y(1)]` evaluates in closed form:
 
     msmUpperCalib Λ = ∫ m(X) dμ  +  (Λ²−1)/Λ · φ(Φ⁻¹(Λ/(Λ+1))) · ∫ (1 − e(X))·σ(X) dμ,
 
@@ -20,9 +20,10 @@ in the form of `GaussianMoments.integral_Ioi_id_gaussianReal`) — and the per-s
 `wMin·e + (wMax−wMin)·e/(Λ+1) = 1`, `(wMax−wMin)·e = (1−e)(Λ²−1)/Λ`, at the cutoff where
 `(c−m)/σ = Φ⁻¹(Λ/(Λ+1))`. -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Gaussian
-import Causalean.Mathlib.Probability.GaussianMoments
-import Causalean.Tactic.IntegralLinearity
+module
+public import Causalean.Mathlib.Probability.GaussianMoments
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Gaussian
+public import Causalean.Tactic.IntegralLinearity
 
 /-! # Gaussian MSM half-width formula
 
@@ -30,9 +31,11 @@ This file evaluates the calibrated Gaussian MSM upper endpoint in closed form.
 It defines the scalar `gaussianMSMHalfWidthFactor`, strengthens the CDF-only
 Gaussian cutoff model to `GaussianOutcomeModel` with conditional mean and
 truncated-mean identities, and proves `msmUpperCalib_gaussian_halfWidth`: the
-sharp upper bound is the point-identified conditional mean plus the Dorn-Guo
+calibrated upper bound is the point-identified conditional mean plus the Dorn-Guo
 half-width contribution.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -46,7 +49,7 @@ variable (S : POBackdoorSystem P γ)
 
 /-- For [a real sensitivity parameter](hyp:Λ), the [Dorn–Guo Gaussian half-width factor](goal) is $(\Lambda^2-1)/\Lambda\,\phi(\Phi^{-1}(\Lambda/(\Lambda+1)))$, where $\Phi$ and $\phi$ are the standard normal distribution and density functions, respectively.
 
-For $\Lambda\geq1$, this is the per-stratum factor in the Gaussian MSM sharp half-width and packages the scalar in the Gaussian ATE interval $[\psi\pm(\Lambda^2-1)\phi(\Phi^{-1}(\Lambda/(\Lambda+1)))E[\sigma(X)]/\Lambda]$. -/
+For $\Lambda\geq1$, this is the per-stratum factor in the Gaussian MSM calibrated half-width and packages the scalar in the Gaussian ATE interval $[\psi\pm(\Lambda^2-1)\phi(\Phi^{-1}(\Lambda/(\Lambda+1)))E[\sigma(X)]/\Lambda]$. -/
 noncomputable def gaussianMSMHalfWidthFactor (Λ : ℝ) : ℝ :=
   (Λ ^ 2 - 1) / Λ * Causalean.Mathlib.stdNormalPDF
     (Causalean.Mathlib.probit (Λ / (Λ + 1)))
@@ -188,23 +191,21 @@ structure GaussianOutcomeModel (m σ : γ → ℝ) : Prop extends S.GaussianTrea
           + σ (S.factualX ω) *
             Causalean.Mathlib.stdNormalPDF ((c ω - m (S.factualX ω)) / σ (S.factualX ω)))
 
-/-- **The Dorn–Guo Gaussian sharp upper bound, closed form.** Fix [a sensitivity parameter Λ
+/-- **The Dorn–Guo Gaussian calibrated upper bound, closed form.** Fix [a sensitivity parameter Λ
 strictly greater than 1](hyp:hΛ) and assume [the propensity score for treatment given the
 covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap). Under [the
 conditional-Gaussian treated-outcome model with conditional mean `m` and conditional standard
 deviation `σ`, strengthened with the implied treated conditional mean and truncated-mean
-identities](hyp:hmodel), assuming [every candidate complete propensity in the calibrated ambiguity
-set is almost-everywhere measurable](hyp:hmeas), [the conditional mean `m(X)` is
+identities](hyp:hmodel), assuming [the conditional mean `m(X)` is
 integrable](hyp:hint_m), [`(1 − e(X))·σ(X)` is integrable](hyp:hint_σ), [the regularity conditions
 making the Gaussian-cutoff candidate mean and survival decomposition well defined](hyp:hreg), and
 [the candidate-mean integrability at the lower weight and at the truncated
-difference](hyp:hint_candMin,hint_candTrunc), then [the sharp upper bound on `E[Y(1)]` equals the
+difference](hyp:hint_candMin,hint_candTrunc), then [the calibrated upper bound on `E[Y(1)]` equals the
 point-identified mean `∫ m(X)` plus the half-width `(Λ²−1)/Λ · φ(Φ⁻¹(Λ/(Λ+1))) · ∫ (1 −
 e(X))·σ(X)`](goal). -/
 theorem msmUpperCalib_gaussian_halfWidth (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     {m σ : γ → ℝ} (hmodel : S.GaussianOutcomeModel m σ)
-    (hmeas : ∀ etilde ∈ S.MSMSetCalib Λ, AEMeasurable etilde P.μ)
     (hint_m : Integrable (fun ω => m (S.factualX ω)) P.μ)
     (hint_σ : Integrable (fun ω => (1 - S.propScore true ω) * σ (S.factualX ω)) P.μ)
     (hreg : Integrable (S.gaussianCutoff m σ Λ) P.μ ∧
@@ -223,7 +224,7 @@ theorem msmUpperCalib_gaussian_halfWidth (Λ : ℝ) (hΛ : 1 < Λ)
     (hint_candTrunc : Integrable (fun ω => (S.wMax Λ ω - S.wMin Λ ω) *
       (S.dVar.indicator true ω * S.factualY ω *
         (if S.gaussianCutoff m σ Λ ω < S.factualY ω then (1 : ℝ) else 0))) P.μ) :
-    S.msmUpperCalib Λ
+    S.msmUpperCalib true Λ
       = (∫ ω, m (S.factualX ω) ∂P.μ)
         + gaussianMSMHalfWidthFactor Λ
           * ∫ ω, (1 - S.propScore true ω) * σ (S.factualX ω) ∂P.μ := by
@@ -265,11 +266,11 @@ theorem msmUpperCalib_gaussian_halfWidth (Λ : ℝ) (hΛ : 1 < Λ)
       StronglyMeasurable[S.sigmaX] (fun ω => S.wMax Λ ω - S.wMin Λ ω) :=
     (hwMax_smeas.measurable.sub hwMin_smeas.measurable).stronglyMeasurable
   have hmain :
-      S.msmUpperCalib Λ = S.candMean (S.cutoffProp Λ c) := by
+      S.msmUpperCalib true Λ = S.candMean true (S.cutoffProp Λ c) := by
     simpa [c] using
-      S.msmUpperCalib_gaussian Λ hΛ hoverlap hmodel.toGaussianTreatedModel hmeas hreg_all
+      S.msmUpperCalib_gaussian Λ hΛ hoverlap hmodel.toGaussianTreatedModel hreg_all
   have hcand_split :
-      S.candMean (S.cutoffProp Λ c) =
+      S.candMean true (S.cutoffProp Λ c) =
         ∫ ω, S.wMin Λ ω * (A ω * Y ω) ∂P.μ +
           ∫ ω, (S.wMax Λ ω - S.wMin Λ ω) *
             (A ω * Y ω * (if c ω < Y ω then (1 : ℝ) else 0)) ∂P.μ := by
@@ -428,7 +429,7 @@ theorem msmUpperCalib_gaussian_halfWidth (Λ : ℝ) (hΛ : 1 < Λ)
         (∫ ω, M ω ∂P.μ) + K * ∫ ω, (1 - e ω) * sig ω ∂P.μ := by
     integral_linearity
   calc
-    S.msmUpperCalib Λ = S.candMean (S.cutoffProp Λ c) := hmain
+    S.msmUpperCalib true Λ = S.candMean true (S.cutoffProp Λ c) := hmain
     _ = (∫ ω, S.wMin Λ ω * (A ω * Y ω) ∂P.μ) +
           ∫ ω, (S.wMax Λ ω - S.wMin Λ ω) *
             (A ω * Y ω * (if c ω < Y ω then (1 : ℝ) else 0)) ∂P.μ := hcand_split

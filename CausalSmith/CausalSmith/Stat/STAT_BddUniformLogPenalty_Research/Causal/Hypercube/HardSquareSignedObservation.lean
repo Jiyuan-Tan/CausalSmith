@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Family
-import Causalean.Mathlib.InformationTheory.KLBind
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Family
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
 
 /-!
 # Normalized signed-observation laws on hard cells
@@ -11,6 +12,8 @@ hypercube.  The quantitative KL comparison can therefore work directly with
 probability laws, while the final constructor recovers the original
 restricted law by multiplying by the exact cell mass.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal NNReal

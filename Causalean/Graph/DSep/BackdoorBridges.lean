@@ -13,18 +13,21 @@ Graph-theoretic bridge lemmas used by `SCM/ID/Backdoor.lean`.
   set preserves d-separation.
 -/
 
-import Causalean.Graph.DSep.Separation
+module
+public import Causalean.Graph.DSep.Separation
 
 /-! # Backdoor Graph Bridges
 
 This file contains graph-level lemmas for backdoor identification arguments. The
 main theorem `DAG.dSep_union_roots_right` shows that adding root vertices
 disjoint from the query variables to the conditioning set preserves
-d-separation. The proof uses active-path semantics: a conditioned root can only
-appear as a non-collider fork on an interior path, so it blocks rather than opens
-paths. -/
+d-separation. The proof uses active-walk semantics: a conditioned root can only
+appear as a non-collider fork on an interior walk, so it blocks rather than opens
+walks. -/
 
-namespace Causalean
+public section
+
+namespace Causalean.Graph
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -36,7 +39,8 @@ variable (G : DAG V)
 -- A root has no ancestors
 -- ============================================================
 
-/-- A vertex with no incoming edges has no proper ancestors. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), if [a vertex has no incoming
+edges](hyp:r,hr), then [a selected vertex](hyp:u) [is not its proper ancestor](goal). -/
 lemma not_isAncestor_of_root' {r : V}
     (hr : ∀ u, ¬ G.edge u r) (u : V) : ¬ G.isAncestor u r := by
   intro h
@@ -55,12 +59,12 @@ lemma not_isAncestor_of_root' {r : V}
     [`X` and `Y` remain d-separated once the root vertices `R` are added to the conditioning
     set: `G.dSep X Y (Z ∪ R)`](goal).
 
-    **Proof idea.** On any undirected path from `X` to `Y`, an interior vertex
+    **Proof idea.** On any active walk from `X` to `Y`, an interior vertex
     `r ∈ R` can only participate as a "fork" `· ← r → ·` (both incident edges
     outgoing, since `r` has no incoming edges). A fork is a non-collider, and
-    non-colliders in the conditioning set block the path. Hence no `r ∈ R`
-    can appear on an active path (endpoints are in `X, Y`, disjoint from `R`),
-    so any path active given `Z ∪ R` is also active given `Z`. -/
+    non-colliders in the conditioning set block the walk. Hence no `r ∈ R`
+    can appear on an active walk (endpoints are in `X, Y`, disjoint from `R`),
+    so any walk active given `Z ∪ R` is also active given `Z`. -/
 theorem dSep_union_roots_right {X Y Z R : Finset V}
     (hXY_sep : G.dSep X Y Z)
     (hRoots : ∀ r ∈ R, ∀ u, ¬ G.edge u r)
@@ -80,7 +84,7 @@ theorem dSep_union_roots_right {X Y Z R : Finset V}
     · exact Finset.disjoint_left.mp hRY hvR hvY
   rw [Finset.disjoint_left] at hReach ⊢
   intro v hv_ZR hvY
-  rw [G.bbReachableVertices_iff_activePath] at hv_ZR
+  rw [G.bbReachableVertices_iff_activeWalk] at hv_ZR
   obtain ⟨x, hxX, p, hlen, hact, hhead, hlast⟩ := hv_ZR
   obtain ⟨hadj, hcoll⟩ := hact
   -- Helper: the interior vertex condition, parametrized by the triple's left index.
@@ -97,8 +101,8 @@ theorem dSep_union_roots_right {X Y Z R : Finset V}
     have hnc : ¬ G.IsCollider l m r := fun h => hnoInL h.1
     simp only [hnc, if_false] at hc
     exact hc (Finset.mem_union_right _ hmem)
-  -- Rebuild active path given Z.
-  have hact_Z : G.IsActivePath Z p := by
+  -- Rebuild active walk given Z.
+  have hact_Z : G.IsActiveWalk Z p := by
     refine ⟨hadj, ?_⟩
     intro i hi
     have hc := hcoll i hi
@@ -129,12 +133,12 @@ theorem dSep_union_roots_right {X Y Z R : Finset V}
       simp only [hColl, if_false] at hc
       simp only [hColl, if_false]
       exact fun hmZ => hc (Finset.mem_union_left _ hmZ)
-  -- Close: active path given Z witnesses bbReachable Z X, contradicting hXY_sep.
+  -- Close: active walk given Z witnesses bbReachable Z X, contradicting hXY_sep.
   have hvReachZ : v ∈ G.bbReachableVertices Z X := by
-    rw [G.bbReachableVertices_iff_activePath]
+    rw [G.bbReachableVertices_iff_activeWalk]
     exact ⟨x, hxX, p, hlen, hact_Z, hhead, hlast⟩
   exact hReach hvReachZ hvY
 
 end DAG
 
-end Causalean
+end Causalean.Graph

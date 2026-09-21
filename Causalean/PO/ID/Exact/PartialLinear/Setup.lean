@@ -21,9 +21,10 @@ treatment** `D ∈ ℝ`.  It parallels `POBackdoorSystem` (binary treatment) in
 * `causal_homogeneity` — the causal reading `Y(d) − Y(d') = θ·(d − d')`.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Probability.ConditionalExpectation
+module
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Probability.ConditionalExpectation
 
 /-! # Partially Linear Model Setup
 
@@ -39,6 +40,8 @@ by the identification proof.
 consistency. Its two exported consequences are `factualY_eq`, the observed-data
 regression form, and `causal_homogeneity`, the constant per-unit causal effect
 identity. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -74,114 +77,120 @@ namespace POPartialLinearSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POPartialLinearSystem P γ)
 
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the treatment
-variable](goal) is its treatment represented as a real-valued potential-outcome
-variable. -/
+/-- The [continuous treatment variable](goal) in [a partially linear potential-outcome
+system](hyp:S) [represents dose on the real line](step:1), within [the ambient
+potential-outcome population](hyp:P) and [covariate space](hyp:γ). -/
 def dVar : POVar P ℝ := ⟨S.D, S.hDreal⟩
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the outcome
-variable](goal) is its outcome represented as a real-valued potential-outcome
-variable. -/
+/-- The [real-valued outcome variable](goal) in [a partially linear potential-outcome
+system](hyp:S) [is the response modeled as baseline plus a linear dose effect and
+error](step:1), within [the ambient population](hyp:P) and [covariate space](hyp:γ). -/
 def yVar : POVar P ℝ := ⟨S.Y, S.hYreal⟩
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the covariate
-variable](goal) is its covariate represented as a potential-outcome variable. -/
+/-- The [adjustment covariate variable](goal) in [a partially linear
+potential-outcome system](hyp:S) [retains its original measurable value space](step:1)
+inside [the ambient population](hyp:P) and [covariate space](hyp:γ). -/
 def xVar : POVar P γ := S.Xvar
 
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-[a partially linear potential-outcome system based on them](hyp:S), and [a real-valued
-treatment dose](hyp:d), [the potential outcome at that dose](goal) assigns each
-unit the outcome it would have if treatment were set to that dose. -/
+/-- The [dose-response potential outcome](goal) in [a partially linear
+system](hyp:S) [records each unit's response if treatment were set to the selected
+dose](step:1); [the real-valued dose](hyp:d) varies continuously in [the ambient
+population](hyp:P) with [covariates](hyp:γ). -/
 noncomputable def YofD (d : ℝ) : P.Ω → ℝ := S.yVar.cfUnder S.dVar d
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the observed
-treatment level](goal) assigns each unit its realized real-valued treatment. -/
+/-- The [observed treatment dose](goal) in [a partially linear system](hyp:S)
+[records each unit's realized continuous treatment](step:1) in [the ambient
+population](hyp:P) with [covariates](hyp:γ). -/
 noncomputable def factualD : P.Ω → ℝ := S.dVar.factual
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the observed
-outcome](goal) assigns each unit its realized outcome. -/
+/-- The [observed outcome](goal) in [a partially linear system](hyp:S) [records each
+unit's realized response](step:1) in [the ambient population](hyp:P) with
+[covariates](hyp:γ). -/
 noncomputable def factualY : P.Ω → ℝ := S.yVar.factual
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the observed
-covariate](goal) assigns each unit its realized covariate value. -/
+/-- The [observed covariate](goal) in [a partially linear system](hyp:S) [records each
+unit's realized adjustment value](step:1) in [the ambient population](hyp:P) and
+[covariate space](hyp:γ). -/
 noncomputable def factualX : P.Ω → γ := S.xVar.factual
 
-/-- The potential outcome under a fixed dose is measurable. -/
+/-- In [a partially linear system](hyp:S), [the potential outcome at a fixed
+dose](hyp:d) is [measurable, so dose-specific means and conditional means are
+well-defined](goal). -/
 @[fun_prop]
 lemma measurable_YofD (d : ℝ) : Measurable (S.YofD d) :=
   S.yVar.measurable_cfUnder S.dVar d
-/-- The factual treatment level is measurable. -/
+/-- [The realized dose in a partially linear system](hyp:S) is [measurable, so it can
+enter the observed treatment–covariate information set](goal). -/
 @[fun_prop]
 lemma measurable_factualD : Measurable S.factualD := S.dVar.measurable_factual
-/-- The factual outcome is measurable. -/
+/-- [The observed response in a partially linear system](hyp:S) is [measurable, so its
+conditional regression is well-defined](goal). -/
 @[fun_prop]
 lemma measurable_factualY : Measurable S.factualY := S.yVar.measurable_factual
-/-- The factual covariate is measurable. -/
+/-- [The observed covariate in a partially linear system](hyp:S) is [measurable, so it
+can generate the adjustment information set](goal). -/
 @[fun_prop]
 lemma measurable_factualX : Measurable S.factualX := S.xVar.measurable_factual
 
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the covariate
-σ-algebra](goal) is the σ-algebra on the sample space generated by the observed
-covariate. -/
+/-- The [covariate information set](goal) in [a partially linear system](hyp:S) [is
+generated by the observed adjustment covariate](step:1) in [the ambient
+population](hyp:P) with [covariate space](hyp:γ). -/
 noncomputable def sigmaX : MeasurableSpace P.Ω :=
   MeasurableSpace.comap S.factualX inferInstance
 
-/-- The covariate-generated sigma-algebra is a sub-sigma-algebra of the ambient space. -/
+/-- [The covariate information set in a partially linear system](hyp:S) is [contained in
+the full observable σ-algebra](goal), so covariate-measurable quantities are also valid
+random variables on the population. -/
 lemma sigmaX_le : S.sigmaX ≤ (inferInstance : MeasurableSpace P.Ω) :=
   S.measurable_factualX.comap_le
 
-/-- The observed covariate is measurable for the covariate sigma-algebra it
-generates. -/
+/-- [The observed covariate in a partially linear system](hyp:S) is [measurable using
+only the information it generates](goal), which licenses conditioning on covariates. -/
 @[fun_prop]
 lemma measurable_factualX_sigmaX : Measurable[S.sigmaX] S.factualX :=
   comap_measurable S.factualX
 
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the joint observed
-covariate-and-treatment map](goal) assigns each unit the pair consisting of its
-observed covariate and observed treatment level. -/
+/-- The [observed covariate–dose state](goal) in [a partially linear system](hyp:S)
+[pairs each unit's covariate with its realized treatment dose](step:1) in [the ambient
+population](hyp:P) and [covariate space](hyp:γ). -/
 noncomputable def factualXD : P.Ω → γ × ℝ :=
   fun ω => (S.factualX ω, S.factualD ω)
 
-/-- The joint observed covariate-and-treatment map is measurable. -/
+/-- [The observed covariate–dose state in a partially linear system](hyp:S) is
+[measurable, so it can index the backdoor conditional mean](goal). -/
 @[fun_prop]
 lemma measurable_factualXD : Measurable S.factualXD :=
   S.measurable_factualX.prodMk S.measurable_factualD
 
-/-- For [a potential-outcome system](hyp:P), [a measurable covariate space](hyp:γ),
-and [a partially linear potential-outcome system based on them](hyp:S), [the joint
-covariate-treatment σ-algebra](goal) is the σ-algebra on the sample space
-generated jointly by the observed covariate and treatment. -/
+/-- The [joint covariate–treatment information set](goal) in [a partially linear
+system](hyp:S) [is generated by observed covariates and the realized dose](step:1), in
+[the ambient population](hyp:P) with [covariate space](hyp:γ); this is the information
+set on which the structural error must have mean zero. -/
 noncomputable def sigmaXD : MeasurableSpace P.Ω :=
   MeasurableSpace.comap S.factualXD inferInstance
 
-/-- The joint covariate-treatment sigma-algebra is a sub-sigma-algebra of the
-ambient space. -/
+/-- [The covariate–treatment information set in a partially linear system](hyp:S) is
+[contained in the full observable σ-algebra](goal), so conditioning on both variables is
+well-defined. -/
 lemma sigmaXD_le : S.sigmaXD ≤ (inferInstance : MeasurableSpace P.Ω) :=
   S.measurable_factualXD.comap_le
 
-/-- The observed covariate-treatment pair is measurable for the joint
-sigma-algebra it generates. -/
+/-- [The observed covariate–dose state in a partially linear system](hyp:S) is
+[measurable using only its jointly generated information](goal). -/
 @[fun_prop]
 lemma measurable_factualXD_sigmaXD : Measurable[S.sigmaXD] S.factualXD :=
   comap_measurable S.factualXD
 
-/-- The observed covariate is measurable for the joint covariate-treatment
-sigma-algebra. -/
+/-- [The observed covariate in a partially linear system](hyp:S) is [available in the
+joint covariate–treatment information set](goal). -/
 @[fun_prop]
 lemma measurable_factualX_sigmaXD : Measurable[S.sigmaXD] S.factualX :=
   measurable_fst.comp (comap_measurable S.factualXD)
 
-/-- The observed treatment is measurable for the joint covariate-treatment
-sigma-algebra. -/
+/-- [The realized dose in a partially linear system](hyp:S) is [available in the joint
+covariate–treatment information set](goal). -/
 @[fun_prop]
 lemma measurable_factualD_sigmaXD : Measurable[S.sigmaXD] S.factualD :=
   measurable_snd.comp (comap_measurable S.factualXD)
 
-/-- The covariate σ-algebra is contained in the joint covariate-treatment
-σ-algebra. -/
+/-- [The covariate information set in a partially linear system](hyp:S) is [coarser
+than the joint covariate–treatment information set](goal), enabling the conditional-
+expectation tower used for partialling out. -/
 lemma sigmaX_le_sigmaXD : S.sigmaX ≤ S.sigmaXD := by
   have h : S.factualX = Prod.fst ∘ S.factualXD := rfl
   unfold sigmaX sigmaXD

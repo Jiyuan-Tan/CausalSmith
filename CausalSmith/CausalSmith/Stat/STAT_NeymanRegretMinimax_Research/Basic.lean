@@ -25,25 +25,28 @@ regret construction `def`s.  Every declaration carries its own `-- @node:` tag.
 No new typeclasses are introduced.
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.GiryMonad
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Measure.Real
-import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Analysis.Asymptotics.Defs
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
-import Causalean.Stat.Sample
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Experimentation.DesignBased.Optimality.Neyman
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.GiryMonad
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Measure.Real
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Analysis.Asymptotics.Defs
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Causalean.Stat.Sample
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Experimentation.DesignBased.Optimality.Neyman
+
+/-! ## Environment S1 — superpopulation bounded-outcome potential-outcome law -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 
 open MeasureTheory
 open scoped BigOperators Topology
-
-/-! ## Environment S1 — superpopulation bounded-outcome potential-outcome law -/
 
 -- @env: S1
 variable {Ω : Type*} [MeasurableSpace Ω]

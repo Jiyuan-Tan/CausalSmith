@@ -3,24 +3,29 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Słoczyński (2022): cell integral helpers
+# Finite-cell integral helpers
 
 Integral identities for finite cells used by the saturated bridge.
 -/
 
-import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Basic
-/-! # Słoczyński cell integral identities
+module
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Basic
+
+/-! # Finite-Cell Integral Identities
 
 This file proves reusable integral identities for finite covariate cells in
-the Słoczyński bridge. The results convert indicator-weighted integrals into
+the saturated-control bridge. The results convert indicator-weighted integrals
+into
 cell masses and cell means, provide integrability facts for products with
 treatment and cell indicators, and reduce saturated linear-combination
 orthogonality to per-cell orthogonality. The central declarations are
-`indicator_cell_memLp`, `integral_cell_indicator_one_eq_cellMass`,
-`cell_integral_div_mul_cellMass`, `cellTau_mul_cellMass`,
+`cellTau_mul_cellMass`,
 `integrable_mul_indicator_D_G`, `propensity_eq_cellShare_of_mem`,
 `meanReg_eq_cellMean_of_mem`, `integral_mul_saturated_eq_zero_of_cell`, and
-`integral_eq_sum_cell`. -/
+the cell-sum identities. Four old names are retained only as deprecated
+compatibility wrappers around the corresponding `CellBridge` theorems. -/
+
+public section
 
 namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 
@@ -33,6 +38,7 @@ section CellHelpers
 finite measure (it is bounded by `1` and finite measure ⇒ MemLp `p`
 for every `p`). Stated as a separate lemma because it appears repeatedly
 in orthogonality and per-cell calculations. -/
+@[deprecated CellBridge.indicator_cell_memLp (since := "2026-09-19")]
 theorem indicator_cell_memLp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
     (μ : Measure Ω) [IsFiniteMeasure μ]
@@ -41,6 +47,7 @@ theorem indicator_cell_memLp {Ω 𝒢 : Type*} [MeasurableSpace Ω]
   exact CellBridge.indicator_cell_memLp μ G G_meas g
 
 /-- Cell indicators integrate to the corresponding real cell mass. -/
+@[deprecated CellBridge.integral_cell_indicator_one_eq_cellMass (since := "2026-09-19")]
 theorem integral_cell_indicator_one_eq_cellMass {Ω 𝒢 : Type*}
     [MeasurableSpace Ω] [MeasurableSpace 𝒢] [MeasurableSingletonClass 𝒢]
     (μ : Measure Ω) (G : Ω → 𝒢) (G_meas : Measurable G) (g : 𝒢) :
@@ -52,6 +59,7 @@ theorem integral_cell_indicator_one_eq_cellMass {Ω 𝒢 : Type*}
 /-- Dividing an indicator-weighted cell integral by a nonzero cell mass and
 multiplying back recovers the numerator; on zero-mass cells the numerator is
 zero because the indicator is a.e. zero. -/
+@[deprecated CellBridge.cell_integral_div_mul_cellMass (since := "2026-09-19")]
 theorem cell_integral_div_mul_cellMass {Ω 𝒢 : Type*}
     [MeasurableSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ]
     (F : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) :
@@ -67,10 +75,10 @@ the raw effect numerator. -/
 theorem cellTau_mul_cellMass {Ω 𝒢 : Type*}
     [MeasurableSpace Ω] (μ : Measure Ω) [IsFiniteMeasure μ]
     (Y0 Y1 : Ω → ℝ) (G : Ω → 𝒢) (g : 𝒢) :
-    cellTau μ Y0 Y1 G g * cellMass μ G g =
+    cellTau μ Y0 Y1 G g * CellBridge.cellMass μ G g =
       ∫ ω, (Y1 ω - Y0 ω)
         * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ := by
-  simpa [cellTau, cellMass] using
+  simpa [cellTau, CellBridge.cellMass] using
     (CellBridge.cellMean_mul_cellMass μ (fun ω => Y1 ω - Y0 ω) G g)
 
 /-- Product of two singleton indicators against an `L²` function is
@@ -132,7 +140,7 @@ theorem meanReg_eq_cellMean_of_mem {Ω 𝒢 : Type*}
     meanReg μ Y G ω =
       (∫ ω', Y ω'
         * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω' ∂μ)
-        / cellMass μ G g := by
+        / CellBridge.cellMass μ G g := by
   classical
   unfold meanReg
   rw [Finset.sum_eq_single g]
@@ -164,6 +172,7 @@ theorem integral_mul_saturated_eq_zero_of_cell {Ω 𝒢 : Type*}
 `μ`](hyp:μ), [a measurable covariate map `G`](hyp:G,G_meas), and [an integrable function
 `F`](hyp:F,F_int), [the integral of `F` against `μ` equals the sum, over covariate cells `g`, of
 the integral of `F` restricted to the cell `{G = g}`](goal). -/
+@[deprecated CellBridge.integral_eq_sum_cell (since := "2026-09-19")]
 theorem integral_eq_sum_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     [Fintype 𝒢] [MeasurableSpace 𝒢]
     [MeasurableSingletonClass 𝒢]

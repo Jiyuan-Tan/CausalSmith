@@ -1,8 +1,11 @@
 /- One-cell real-outcome construction and Le Cam transfer for the parametric lower bound. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmParametric
-import Causalean.Mathlib.Probability.SignedTwoPoint
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmParametric
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

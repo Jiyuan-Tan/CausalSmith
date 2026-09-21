@@ -3,10 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# DR-Learner end-to-end high-probability oracle inequality
+# Fixed-nuisance DR-Learner high-probability oracle inequality
 
 This file chains `OrthogonalLearning.OracleInequality.oracle_inequality_plugin_ERM_highProb`
-with `OrthogonalLearning.LocalEmpProcess.localEmpProcessModulus_drLearner` to derive an
+with `CATE.OrthogonalLearning.localEmpProcessModulus_drLearner` to derive an
 explicit high-probability rate
 
   `‖τ̂_n − τ₀‖² ≤ (4(1+σ)/σ²) · ρ²_{n,δ}
@@ -24,29 +24,35 @@ The result composes the generic high-probability oracle inequality with the
 DR-Learner empirical-process modulus realization.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.OracleInequality
-import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
-import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.DRLearner
+module
+public import Causalean.Estimation.OrthogonalLearning.OracleInequality
+public import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
+public import Causalean.Estimation.CATE.OrthogonalLearning.LocalEmpProcess.DRLearner
 
 /-! # DR-Learner Oracle Chain
 
 This file composes the generic plug-in oracle inequality with the global
-Rademacher modulus for the doubly robust learner for conditional treatment
-effects. It yields a high-probability squared-error bound whose leading term is
-the empirical-process modulus and whose remaining terms are nuisance bias and
-optimization slack. -/
+Rademacher modulus at a fixed nuisance for the doubly robust learner for
+conditional treatment effects. It yields a high-probability squared-error bound
+whose leading term is the empirical-process modulus and whose remaining terms
+are nuisance bias and optimization slack. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology TopologicalSpace
   Causalean.PO Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
   Causalean.Stat Causalean.Stat.Concentration
 
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 
-/-- **DR-Learner end-to-end high-probability oracle inequality.** Consider the same doubly robust
+/-- **Fixed-nuisance DR-Learner high-probability oracle inequality.** Consider the same doubly
+robust
 orthogonal-learning system, one-shot sample split, and boundedness / overlap / continuity /
 Rademacher package as in `localEmpProcessModulus_drLearner` — [truth-identifying admissibility and
 evaluation correctness](hyp:θ₀_mem,eval_meas,eval_θ₀), [uniform bounds on the candidate
@@ -54,8 +60,8 @@ evaluations, the outcome, and the realised nuisance regression together with pro
 overlap](hyp:hM_Θ,hM_Y,hM_μ,hOverlap), and [loss continuity, a Rademacher bound `R n`, the
 clamped-loss minimizer property, and a confidence level `δ` in `(0, 1]`
 ](hyp:hLoss_cont,hR,hclamp_minimizes,hδ,hδ'). Assume in addition that [a plug-in
-empirical-risk-minimisation estimator sequence `τhat`, evaluated against the same realised
-nuisance on every cross-fitting fold, attains the empirical risk up to an optimization slack
+empirical-risk-minimisation estimator sequence `τhat`, evaluated on the held-out fold against
+the fixed nuisance `h`, attains the empirical risk up to an optimization slack
 `r_opt n`](hyp:hPluginERM), that [the population risk is strongly convex at the realised nuisance
 with modulus `σ > 0`](hyp:hσ,hSC), and that [the truth-identifying candidate satisfies the
 first-order optimality inequality for the population risk's directional derivative at the
@@ -66,7 +72,7 @@ the modulus rate realised by `localEmpProcessModulus_drLearner`](goal).
 
 The proof invokes `localEmpProcessModulus_drLearner` to get the `LocalEmpProcessModulus` event,
 then applies `oracle_inequality_plugin_ERM_highProb` against that event. -/
-theorem oracle_inequality_drLearner_highProb
+theorem oracle_inequality_drLearner_fixed_nuisance_highProb
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     [IsProbabilityMeasure P.μ]
     (S : CATEEstimationSystem P γ)
@@ -153,5 +159,6 @@ theorem oracle_inequality_drLearner_highProb
     (δ := δ) hMod
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

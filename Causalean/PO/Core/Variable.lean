@@ -4,22 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Tactic.Attr
-import Causalean.PO.Core.System
-import Causalean.PO.Core.Regime
-import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
-import Mathlib.MeasureTheory.Integral.IntegrableOn
+module
+public import Causalean.Tactic.Attr
+public import Causalean.PO.Core.System
+public import Causalean.PO.Core.Regime
+public import Mathlib.MeasureTheory.Function.StronglyMeasurable.Basic
+public import Mathlib.MeasureTheory.Integral.IntegrableOn
 
 /-! # Potential-Outcome Variables
 
 This file packages a variable of a potential-outcome system together with a
 common measurable value space, so that factual and counterfactual realizations
-can be handled uniformly.  It also provides event indicators and variables
-paired with intervention regimes for counterfactual independence statements.
+can be handled uniformly. It also provides event indicators and variables
+paired with intervention regimes for reusable counterfactual transformations.
 
 The main public objects are `POVar`, its factual and counterfactual value maps
 `factual`, `cf`, and `cfUnder`, the factual-event indicator API, and
 `RegimedVar` for bundling a variable with the regime under which it is evaluated. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -286,12 +289,13 @@ lemma indicator_add_indicator_not (a : POVar P Bool) (ω : P.Ω) :
 
 end POVar
 
-/-- A regimed variable pairs [a potential-outcome variable](hyp:var) with [the intervention
-regime under which it should be evaluated](hyp:regime).
+/-- A regime-indexed potential-outcome variable in
+[a potential-outcome system](hyp:P) on [a measurable analysis scale](hyp:α) pairs
+[a variable on that scale](hyp:var) with
+[the intervention regime under which it is evaluated](hyp:regime).
 
-A PO variable equipped with an intervention regime.  Used to state
-independence hypotheses uniformly via `jointValue` / `IndepCF` (see
-`IndepCF.lean`). -/
+These pairs can serve as coordinates in joint laws, conditioning arguments,
+estimands, and assumption-specific counterfactual bundles. -/
 structure RegimedVar (P : POSystem) (α : Type*) [MeasurableSpace α] where
   var : POVar P α
   regime : Regime P.V P.X

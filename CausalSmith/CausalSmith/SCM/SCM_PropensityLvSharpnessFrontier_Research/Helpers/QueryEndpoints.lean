@@ -1,7 +1,11 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Legality
-import Mathlib.Probability.ConditionalProbability
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Legality
+public import Mathlib.Algebra.Order.Group.Pointwise.Bounds
+public import Mathlib.Probability.ConditionalProbability
 
 /-! # Expectation endpoints over dominated residual mixtures -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 
@@ -212,7 +216,8 @@ lemma sSup_affine_image (T : Set ℝ) (a b : ℝ) (hTne : T.Nonempty)
     sSup ((fun t => a + b * t) '' T) = a + b * sSup T := by
   let N : Set ℝ := -T
   have hNne : N.Nonempty := hTne.neg
-  have hNbdd : BddBelow N := hTbdd.neg
+  -- Use Mathlib's public boundedness API instead of unfolding pointwise set negation.
+  have hNbdd : BddBelow N := by simpa [N] using (bddBelow_neg.mpr hTbdd)
   have h := sInf_affine_image N (-a) b hNne hNbdd hb
   have hset : (fun t => -a + b * t) '' N = -((fun t => a + b * t) '' T) := by
     ext z

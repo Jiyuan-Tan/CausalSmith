@@ -11,7 +11,8 @@ only for observed cells `r ∈ R`, the support on which the panel records
 outcomes and weights.
 -/
 
-import Causalean.Panel.PO.CellPO
+module
+public import Causalean.Panel.PO.CellPO
 
 /-! # Panel Consistency
 
@@ -20,6 +21,8 @@ predicate `PanelPOSystem.observedY_eq_potentialOutcome` is the pointwise
 observed-cell equality, while `PanelConsistency` requires it for every observed
 cell and sample point. The lemma `panelConsistency_holds` exposes the equality
 directly from the assumption. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel

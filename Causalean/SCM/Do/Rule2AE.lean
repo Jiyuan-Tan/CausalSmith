@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.Do.Rule2
-import Causalean.SCM.Do.Rule2Kernel.Helpers
-import Causalean.SCM.Do.Rule2Kernel.DiscreteZHelpers
-import Causalean.SCM.Do.Rule2Kernel.WitnessBridge
+
+module
+public import Causalean.SCM.Do.Rule2
+public import Causalean.SCM.Do.Rule2Kernel.Helpers
+public import Causalean.SCM.Do.Rule2Kernel.DiscreteZHelpers
+public import Causalean.SCM.Do.Rule2Kernel.WitnessBridge
 
 /-!
 # Rule 2, a.e. in the treatment value (product form + positivity)
@@ -23,7 +25,7 @@ treatment marginal `νZ := (M'.obsKernel s0).map π_{Zr}` and conditioning margi
 Both regimes are covered: atomic `νZ` makes "a.e." pointwise on the support.
 
 Why the product (not the joint `μ_C`): the do-side `(M'.fixSet Z).obsCondKernel Y W` is pinned only
-under the do-model `W`-marginal (`= μW` via Rule 3), i.e. under the product; the obs-side
+under the do-model `W`-marginal (`= μW` via Rule 3*), i.e. under the product; the obs-side
 `M'.obsCondKernel` is pinned under `μ_C`. Positivity (`product ≪ μ_C`) lifts the
 obs-side onto the product, where the do-side is natively pinned. The proof lifts
 the discrete d-sep collapse and cross-SCM
@@ -31,6 +33,13 @@ bridge (`obsCondKernel_dSep_collapse_ae`, `obsCondKernel_cross_SCM_ae_eq_on_fill
 `obsKernel_fixSet_W_marginal_eq_M1_marginal`) from the per-treatment slice to
 the product via Fubini over the treatment + the product↔joint AC transfer.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 variable {N : Type*} [DecidableEq N] [Fintype N]
@@ -44,7 +53,7 @@ open scoped MeasureTheory ProbabilityTheory
     intervened at `t` (evaluated at `w`) equals the original model's `(Z.random ∪ W)`-conditional
     (evaluated at the filled point `fill(t, w)`).  This is the `condDistrib`-level analogue of the
     theorem below; reducing the `obsCondKernel` statement to this lemma is the easy assembly
-    (Rule 3 + Fubini + obs-side AC transport, done in `obsCondKernel_fixSet_eq_ae_witness`). -/
+    (Rule 3* + Fubini + obs-side AC transport, done in `obsCondKernel_fixSet_eq_ae_witness`). -/
 theorem condDistrib_fixSet_cross_SCM_bridge
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
@@ -122,7 +131,7 @@ theorem condDistrib_fixSet_cross_SCM_bridge
   -- `obsCondKernel_fixSet_M1_eq_ae_product`:
   -- both sides equal the posterior witness kernel
   -- `(condDistrib C_W (π_W∘E) latentProduct).map (h t w)` (`obsSide_eq_witness` + its
-  -- do-side M2 mirror), lifted to the product via Rule 3 (`ν_W = μW`) + positivity.
+  -- do-side M2 mirror), lifted to the product via Rule 3* (`ν_W = μW`) + positivity.
   have h_doSide :
       ∀ᵐ p ∂lam,
         (M'.fixSet Z hZ_obs hZ_fixed).obsCondKernel Y W

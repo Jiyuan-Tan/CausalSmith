@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding
-import CausalSmith.Mathlib.Probability.ParameterizedFinitePoissonSample
-import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
-import Mathlib.Probability.Kernel.Composition.CompNotation
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.L1Embedding
+public import CausalSmith.Mathlib.Probability.ParameterizedFinitePoissonSample
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Basic
+public import Mathlib.Probability.Kernel.Composition.CompNotation
 
 set_option linter.style.longLine false
 
 /-! Dense sign submodel and the quantities used in its fuzzy-hypothesis lower bound. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 
@@ -345,7 +348,7 @@ noncomputable def poissonObservedRisk (mean : ℕ) {d : ℕ} {epsilon : ℝ}
 /-- Minimax squared risk in the genuine experiment with an independent Poisson
 sample size having the displayed mean. -/
 noncomputable def poissonOptimalValueRisk (mean d : ℕ) (epsilon : ℝ) : ℝ :=
-  Causalean.Stat.minimaxValue (poissonObservedRisk mean (d := d) (epsilon := epsilon))
+  Causalean.Stat.minimaxValueReal (poissonObservedRisk mean (d := d) (epsilon := epsilon))
   -- @realizes \(\mathfrak R^{\mathrm{Pois}}_{2n,d,\epsilon}\)(genuine Poissonized comparison risk)
 
 /-- If [the alphabet size satisfies its stated restriction](hyp:hd), then [the stated dense observation kernel exists relation holds](goal). -/

@@ -10,7 +10,8 @@ indicators inside integrals. These are used by both the mean-zero proof
 (`MeanZero.lean`) and the remainder expansion (`Remainder*.lean`).
 -/
 
-import Causalean.Estimation.ATE.Score.AIPWMoment
+module
+public import Causalean.Estimation.ATE.Score.AIPWMoment
 
 /-! # AIPW Score Pull-Out Lemmas
 
@@ -25,6 +26,8 @@ The main declarations define the label-specific value-space propensity
 helpers `weighted_residual_integral_zero` and
 `indicator_to_propScore_integral`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -50,11 +53,10 @@ lemma measurable_e_val_label (S : BackdoorEstimationSystem P γ) (d : Bool) :
   · exact measurable_const.sub S.e_meas
   · exact S.e_meas
 
-/-- `propScore false =ᵐ 1 - propScore true` under back-door assumptions.
-The indicator-pair sums to one pointwise, conditional expectation is linear,
-and preserves constants. -/
-lemma propScore_false_ae (S : BackdoorEstimationSystem P γ)
-    (_hA : S.toPOBackdoorSystem.Assumptions) :
+/-- [The control-arm propensity equals one minus the treated-arm propensity almost
+surely](goal), by the pointwise indicator sum and linearity of conditional
+expectation. -/
+lemma propScore_false_ae (S : BackdoorEstimationSystem P γ) :
     S.toPOBackdoorSystem.propScore false
       =ᵐ[P.μ]
         (fun ω => 1 - S.toPOBackdoorSystem.propScore true ω) := by
@@ -96,16 +98,17 @@ lemma propScore_false_ae (S : BackdoorEstimationSystem P γ)
   unfold POBackdoorSystem.propScore
   linarith
 
-/-- The σ(X)-conditional expectation of `1_{D=d}` is `e_val_label d (X)` a.s. -/
+/-- [The σ(X)-conditional expectation of the treatment-label indicator equals the
+corresponding value-space propensity almost surely](goal). -/
 lemma propScore_eq_e_val_label_ae
     (S : BackdoorEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.Assumptions) (d : Bool) :
+    (d : Bool) :
     S.toPOBackdoorSystem.propScore d
       =ᵐ[P.μ]
         (fun ω => S.e_val_label d (S.toPOBackdoorSystem.factualX ω)) := by
   cases d
   · -- `d = false`
-    filter_upwards [propScore_false_ae S hA, S.e_compat] with ω hf hc
+    filter_upwards [propScore_false_ae S, S.e_compat] with ω hf hc
     simp [e_val_label, hf, hc]
   · -- `d = true`
     filter_upwards [S.e_compat] with ω hc
@@ -154,8 +157,8 @@ lemma weighted_residual_integral_zero
       hA.integrable_factualY
   have hμx_int :
       Integrable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE d) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ_compat hA d)
   have hμx_meas :
@@ -222,9 +225,9 @@ lemma weighted_residual_integral_zero
           MeasureTheory.integral_congr_ae hgresid_ce_zero
     _ = 0 := MeasureTheory.integral_zero _ _
 
-/-- **Propensity-score pull-out for the treatment indicator.** Fix a treatment label $d$,
-under [the back-door identification assumptions](hyp:hA). If [`f : γ → ℝ` is
-measurable](hyp:hf_meas) and [the product `f(X) · 1{D=d}` is integrable](hyp:hf_ind_int),
+/-- **Propensity-score pull-out for the treatment indicator.** Fix a treatment label $d$.
+If [`f : γ → ℝ` is measurable](hyp:hf_meas) and [the product `f(X) · 1{D=d}`
+is integrable](hyp:hf_ind_int),
 then [replacing the treatment indicator `1{D=d}` by the value-space propensity
 `e_val_label d` inside the integral leaves the integral unchanged: `∫ f(X) · 1{D=d} dμ =
 ∫ f(X) · e_val_label d(X) dμ`](goal).
@@ -232,7 +235,7 @@ then [replacing the treatment indicator `1{D=d}` by the value-space propensity
 Companion to `weighted_residual_integral_zero`. -/
 lemma indicator_to_propScore_integral
     (S : BackdoorEstimationSystem P γ)
-    (hA : S.toPOBackdoorSystem.Assumptions) (d : Bool)
+    (d : Bool)
     (f : γ → ℝ) (hf_meas : Measurable f)
     (hf_ind_int : Integrable
       (fun ω => f (S.toPOBackdoorSystem.factualX ω) *
@@ -260,7 +263,7 @@ lemma indicator_to_propScore_integral
           (fun ω => f (S.toPOBackdoorSystem.factualX ω) *
             S.e_val_label d (S.toPOBackdoorSystem.factualX ω)) := by
     refine hCE_pull.trans ?_
-    filter_upwards [propScore_eq_e_val_label_ae S hA d] with ω hω
+    filter_upwards [propScore_eq_e_val_label_ae S d] with ω hω
     have hω' :
         P.μ[S.toPOBackdoorSystem.dVar.indicator d |
             S.toPOBackdoorSystem.sigmaX] ω

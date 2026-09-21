@@ -636,7 +636,7 @@ export function isDefinitionLike(statement: string): boolean {
     .replace(/^(?:\s*--[^\n]*\n)+/, "")
     .replace(/@\[[^\]]*\]/g, " ")
     .trimStart();
-  return /^(private\s+|protected\s+|nonrec\s+|noncomputable\s+|unsafe\s+)*(def|abbrev)\b/.test(head);
+  return /^(public\s+|private\s+|protected\s+|meta\s+|nonrec\s+|noncomputable\s+|unsafe\s+)*(def|abbrev)\b/.test(head);
 }
 
 /** Explicit binder names of a telescope, in order (`(x y : T)` → x, y). */
@@ -755,7 +755,7 @@ export function isRecordLike(statement: string): boolean {
     .replace(/^(?:\s*--[^\n]*\n)+/, "")
     .replace(/@\[[^\]]*\]/g, " ")
     .trimStart();
-  return /^(private\s+|protected\s+)*(structure|class)\b/.test(head);
+  return /^(public\s+|private\s+|protected\s+|meta\s+)*(structure|class)\b/.test(head);
 }
 
 // ---------------------------------------------------------------------------
@@ -769,7 +769,7 @@ export function isInstanceLike(statement: string): boolean {
     .replace(/^(?:\s*--[^\n]*\n)+/, "")
     .replace(/@\[[^\]]*\]/g, " ")
     .trimStart();
-  return /^(private\s+|protected\s+|noncomputable\s+|scoped\s+|local\s+)*instance\b/.test(head);
+  return /^(public\s+|private\s+|protected\s+|meta\s+|noncomputable\s+|scoped\s+|local\s+)*instance\b/.test(head);
 }
 
 /** An `inductive` head (past docstring/attributes/modifiers). */
@@ -779,7 +779,7 @@ export function isInductiveLike(statement: string): boolean {
     .replace(/^(?:\s*--[^\n]*\n)+/, "")
     .replace(/@\[[^\]]*\]/g, " ")
     .trimStart();
-  return /^(private\s+|protected\s+)*inductive\b/.test(head);
+  return /^(public\s+|private\s+|protected\s+|meta\s+)*inductive\b/.test(head);
 }
 
 /** The given-by clauses of a value: `let` steps + leaf, equation alternatives,

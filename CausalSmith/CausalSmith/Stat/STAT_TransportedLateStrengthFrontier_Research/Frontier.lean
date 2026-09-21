@@ -15,13 +15,18 @@ infimum/supremum order.
 modules, but their estimands and risks differ, so this layer is local.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
-import Mathlib.Topology.Order.LiminfLimsup
-import Mathlib.Order.ConditionallyCompleteLattice.Indexed
-import Causalean.Estimation.MinimaxATE.Model
-import Causalean.PO.ID.Partial.Inference.Basic
-import Causalean.Stat.Minimax.HonestConfidenceSet
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Basic
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+public import Mathlib.Topology.Order.LiminfLimsup
+public import Mathlib.Order.ConditionallyCompleteLattice.Indexed
+public import Causalean.Estimation.MinimaxATE.Model
+public import Causalean.PO.ID.Partial.Inference.Basic
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+
+/-! ## Procedure objects -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 
@@ -30,8 +35,6 @@ open scoped ENNReal Topology
 
 variable {𝒳 : Type*} [MeasurableSpace 𝒳]
 variable {N k : ℕ → ℕ} {c epsilon cminus cplus : ℝ}
-
-/-! ## Procedure objects -/
 
 /-- Oracle weight inputs use a carrier whose elements are nonnegative
 pointwise, matching the density-ratio space. -/

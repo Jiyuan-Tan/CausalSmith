@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.BinaryPadding
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialContractedBinary
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.BinaryPadding
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialContractedBinary
 
 /-!
 # Target scaling under the radial Bernoulli channel
@@ -8,14 +9,13 @@ This file proves the exact conditional-mean and ATE scaling identities used by
 the concrete least-favorable radial handle.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
 
-private abbrev BinLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-
-private abbrev ControlZeroLaw :=
+abbrev ControlZeroLaw :=
   CausalSmith.Stat.DiscreteAteMinimaxLoggap.ControlZeroLaw
 
 -- @node: radialContractedBinaryLaw_outcomeMean

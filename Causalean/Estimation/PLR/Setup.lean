@@ -23,14 +23,15 @@ the Robinson partialling-out score.
 
 The three analytic facts that feed the DML engine live in sibling files:
 `MeanZero.lean` (`plr_meanZero`, `plr_finite_var`) and `RemainderBound.lean`
-(`plr_remainder_bound`, the doubly-robust product-rate bound).
+(`plr_remainder_bound`, the Neyman-orthogonal second-order bound).
 -/
 
-import Causalean.PO.ID.Exact.PartialLinear.Identification
-import Causalean.Estimation.PLR.Moment
-import Causalean.Estimation.OrthogonalMoments.MomentFunctional
-import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
-import Causalean.Tactic.Attr
+module
+public import Causalean.PO.ID.Exact.PartialLinear.Identification
+public import Causalean.Estimation.PLR.Moment
+public import Causalean.Estimation.OrthogonalMoments.MomentFunctional
+public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
+public import Causalean.Tactic.Attr
 
 /-! # Partially linear DML estimation system
 
@@ -42,7 +43,10 @@ the abstract DML framework. The main declarations are `PLRSystem`,
 the change-of-variables helper `PLRSystem.integral_P_Z`. The resulting partially
 linear moment has a DGP-dependent Jacobian equal to minus the residual treatment
 variance; sibling files prove the mean-zero, finite-variance, score-L², and
-doubly-robust remainder facts used for structural-slope DML normality. -/
+Neyman-orthogonal second-order remainder facts used for structural-slope DML
+normality. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -161,7 +165,8 @@ noncomputable def θ₀ : ℝ := S.θ
 /-- For [a partially linear potential-outcomes system with a finite population measure and a
 measurable covariate space](hyp:P,γ) and [a partially linear estimation system built on it](hyp:S),
 the [residual treatment second moment](goal) is the population integral of the squared difference
-between factual treatment and its value-space treatment regression evaluated at the factual covariate.
+between factual treatment and its value-space treatment regression evaluated at
+the factual covariate.
 
 The residual second moment measures treatment variation left after
 partialling out the covariate.
@@ -180,8 +185,9 @@ The partially linear moment instance plugs the Robinson partialling-out
 score into the abstract double-machine-learning framework.
 
 It uses the true regression pair as nuisance, the structural slope as target,
-covariate-law L² seminorms for nuisance errors, and a Jacobian equal to minus
-the residual treatment variance. -/
+the treatment-regression error `ρ₁ = ‖Δm‖₂`, the combined regression error
+`ρ₂ = ‖Δℓ‖₂ + ‖Δm‖₂`, and a Jacobian equal to minus the residual treatment
+variance. -/
 noncomputable def plrGeneralMoment :
     GeneralMoment P.Ω P.μ (γ × ℝ × ℝ) S.P_Z (PLRNuisance γ) where
   m := plrMomentFunctional
@@ -189,17 +195,16 @@ noncomputable def plrGeneralMoment :
   θ₀ := S.θ₀
   H_ε := Set.univ
   ρ₁ := fun η η' =>
-    ⟨max ((eLpNorm (fun x => η.lFn x - η'.lFn x) 2 S.P_X).toReal)
-         ((eLpNorm (fun x => η.mFn x - η'.mFn x) 2 S.P_X).toReal),
-     le_max_of_le_left ENNReal.toReal_nonneg⟩
+    ⟨(eLpNorm (fun x => η.mFn x - η'.mFn x) 2 S.P_X).toReal,
+      ENNReal.toReal_nonneg⟩
   ρ₂ := fun η η' =>
-    ⟨max ((eLpNorm (fun x => η.lFn x - η'.lFn x) 2 S.P_X).toReal)
-         ((eLpNorm (fun x => η.mFn x - η'.mFn x) 2 S.P_X).toReal),
-     le_max_of_le_left ENNReal.toReal_nonneg⟩
+    ⟨(eLpNorm (fun x => η.lFn x - η'.lFn x) 2 S.P_X).toReal +
+        (eLpNorm (fun x => η.mFn x - η'.mFn x) 2 S.P_X).toReal,
+      add_nonneg ENNReal.toReal_nonneg ENNReal.toReal_nonneg⟩
   m_meas := fun η θ => measurable_plrMomentFunctional η θ
   η₀_mem := Set.mem_univ _
-  J₀ := -S.residSecondMoment
-  J₀_ne_zero := neg_ne_zero.mpr S.nondegenerate
+  linScale := -S.residSecondMoment
+  linScale_ne_zero := neg_ne_zero.mpr S.nondegenerate
 
 /-- Integrating a measurable function under the joint observed-data law equals
 integrating its pullback under the population measure.

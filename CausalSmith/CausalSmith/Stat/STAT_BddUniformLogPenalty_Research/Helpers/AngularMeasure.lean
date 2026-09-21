@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolder
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularCoordinates
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolder
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularCoordinates
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # Angular density profile for the square packing
@@ -12,6 +13,8 @@ uniform tilt envelope, and the zero-mass polar cancellation.  The denominator
 is clipped below by the cutoff scale; on the region where the cutoff is one it
 is exactly the paper's `b r` denominator.
 -/
+
+@[expose] public section
 
 open Set MeasureTheory
 

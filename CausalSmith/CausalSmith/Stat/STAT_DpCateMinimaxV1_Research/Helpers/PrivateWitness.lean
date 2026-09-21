@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateRiskBound
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionCalibrationBounds
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateRiskBound
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionCalibrationBounds
 
 /-!
 # Explicit private local-polynomial witness
@@ -13,6 +14,8 @@ import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionCalibrat
 This file assembles the uniform population bounds, the clipped bandwidth choice, and the
 private local-polynomial mechanism into the achievability witness for the central-DP CATE rate.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -83,7 +86,7 @@ private lemma witness_abs_integral_le_ball_mass {d : ℕ} (P : CateLaw d)
   have hball : MeasurableSet (supBall x0 h) := by
     rw [show supBall x0 h = ⋂ i : Fin d, {x | |x i - x0 i| ≤ h} by
       ext x
-      simp [supBall, Causalean.Stat.Nonparametric.supBall]]
+      simp [supBall, Causalean.Mathlib.Analysis.supBall, Set.mem_ofPred_eq]]
     apply MeasurableSet.iInter
     intro i
     exact measurableSet_le

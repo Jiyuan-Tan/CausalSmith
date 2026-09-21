@@ -1,0 +1,1814 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}ppml\_\allowbreak{}ptt\_\allowbreak{}weakcount\_\allowbreak{}uniform}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A staggered multiplicative panel with rare Poisson totals turns the Moreau--Kastler equation (3.14) proportional-effect setup into a discrete minimax confidence problem. The contribution derives the exact low-intensity deterministic value and all optimizers, proves a strict first-order gain from randomized interval kernels, prices the stronger all-untreated-zero fallback separately, and relates both procedures to the efficient high-intensity Gaussian limit. At every fixed algebraic observed design, stratum-closure continuations reduce strict coverage and risk comparisons, including one-sided membership-switch limits, to finitely many critical-component values. The mandatory \(T=3\), \(\alpha=1/20\), \(\kappa=1/100\), \(K=2\), \(h=1/100\) test is discharged by a globally share-uniform all-\(\Theta\) primal and a complete finite integer lower tree, with a stored integral incumbent and certified gap \(1/20\). The remaining open question is total finite synthesis over arbitrary compact intensity ranges at zero-margin coverage and target-endpoint contacts.
+
+\section{Project justification}
+
+\paragraph{Gap.} Regular staggered-PPML work supplies the proportional target and high-information inference, while exact discrete interval work treats scalar families or finite-prior Monte Carlo approximations. Schafer and Stark (2009), Theorem 2, gives Monte Carlo risk convergence and their Theorem 6 gives an off-support density-ratio risk bound; neither it nor qualitative drifting-subsequence asymptotics converts fixed-design strict comparisons into a terminating rational-polyhedral cover valid at all exact contacts.
+
+\paragraph{Niche.} The proved nonregular results determine the low-intensity deterministic and randomized frontier, the separate all-untreated-zero penalty, fixed-algebraic-design strict-comparison reductions, and the high-intensity Gaussian bridge under maintained aggregate-exposure boxes and calibrated known intensity. The paper also gives an exact observed-share-uniform certificate for the mandated sparse \(T=3\) instance. Uniform finite synthesis for arbitrary compact intensity ranges remains open.
+
+\paragraph{Fill.} The paper joins exact low-count values and a high-count efficiency bridge to a rigorous fixed-algebraic-design reduction in which stratum-closure continuations capture attained extrema and unattained membership-switch limits. For the mandatory early-kill instance it explicitly supplies a constant all-\(\Theta\) primal, a two-point endpoint nuisance witness, a stored integral incumbent, a fully indexed multiway integer branch on the zero table, and a rational outward error ledger. The certificate format extends to general ranges, but termination over curved zero-margin contact regions remains the stated open question.
+
+\section{Related work}
+
+Moreau-Kastler (2025), equation (3.14), supplies the imputed counterfactual-share proportional target; that algebraic specialization is setup rather than a novel theorem here, and no inclusion of the present aggregate-Poisson class in theirs is claimed. Wooldridge (2023) identifies staggered nonlinear cohort-time effects and makes pooled Poisson quasi-likelihood operational under fixed \(T\), while Martin (2017), Theorems 1--2, establishes regular fixed-\(T\) asymptotics for multiplicative-panel averages; both inform the high-information endpoint. Evans, Hansen, and Stark (2005), Theorem 1, supplies Bayes--minimax duality but does not calculate this multivariate connected-interval game. Kabaila and Byrne (2001) supply the ordered scalar exact-Poisson benchmark, Kabaila (2013) supplies auxiliary-uniform atom splitting, and Habiger, McCann, and Tebbs (2013) studies integrated one-parameter discrete optimality. Bochnak, Coste, and Roy (1998) supply the semialgebraic projection, compatible-stratification, finite-component, and path facts used by the fixed-design reduction; the Poisson critical-equation cancellation and discontinuous membership-boundary treatment are derived here. Schafer and Stark (2009), Theorem 2, proves convergence of their Monte Carlo risk calculation, while Theorem 6 bounds off-support risk under a density-ratio condition. Their method does not itself provide the exact specialized early-kill certificate proved here or a terminating continuum-honesty synthesis theorem. Andrews, Cheng, and Guggenberger (2020), Section 2, gives qualitative drifting-subsequence uniformity rather than finite rational cells and machine-checkable enclosures. These comparisons concern different model and action classes, so no strict-strengthening relation is asserted. Brown, Carter, Low, and Zhang (2004), Theorems 1 and 3, informs the Poisson--Gaussian comparison, but no inclusion of the maintained aggregate-Poisson panel class in their experiment is claimed.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta=\dfrac{\sum_{(g,t)\in\mathcal D}s_gA_gb_tv_{gt}}{\sum_{(g,t)\in\mathcal D}s_gA_gb_t}-1\).
+Primary functional / estimator / diagnostic: \(\theta=H/B-1=\sum_{(g,t)\in\mathcal D}(w^0_{gt}/B)(v_{gt}-1)\), with exact honest inference defined by \(D_{\mathrm{det}}(\kappa)\) and \(D_{\mathrm{rand}}(\kappa)\).
+\begin{itemize}
+  \item \texttt{T} --- \texttt{integer}; \(\{3,4,\ldots\}\); \texttt{number of calendar periods}
+  \item \texttt{alpha} --- \texttt{real}; \((0,1/10)\); \texttt{noncoverage level}
+  \item \texttt{G} --- \texttt{finite index set}; \texttt{adoption cohorts}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G=\{2,\ldots,T,\infty\}\), with \(\infty\) represented by \(T+1\) in sums
+  \item \texttt{U} --- \texttt{finite index set}; \texttt{untreated cohort-\allowbreak{}-\allowbreak{}time cells}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal U=\{(g,t)\in\mathcal G\times\{1,\ldots,T\}:t<g\}\)
+  \item \texttt{D} --- \texttt{finite index set}; \texttt{treated cohort-\allowbreak{}-\allowbreak{}time cells}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D=(\mathcal G\times\{1,\ldots,T\})\setminus\mathcal U\)
+  \item \texttt{S} --- \texttt{compact simplex}; \texttt{observable cohort-\allowbreak{}share domain}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal S_T=\{s\in\mathbb R^{\mathcal G}:s_g\ge 1/(2T),\ \sum_{g\in\mathcal G}s_g=1\}\)
+  \item \texttt{s} --- \texttt{vector}; \(\mathcal S_T\); \texttt{observed cohort shares}
+  \item \texttt{A} --- \texttt{vector}; \((0,\infty)^{\mathcal G}\); \texttt{cohort exposure masses}
+  \item \texttt{b} --- \texttt{vector}; \((0,\infty)^T\); \texttt{multiplicative time effects}
+  \item \texttt{v} --- \texttt{vector}; \((0,\infty)^{\mathcal D}\); \texttt{treated mean multipliers}
+  \item \texttt{kappa} --- \texttt{positive real}; \((0,\infty)\); \texttt{known Poisson intensity}
+  \item \texttt{kappaMinus} --- \texttt{positive real}; \texttt{lower endpoint of a certification range}
+  \item \texttt{kappaPlus} --- \texttt{positive real}; \texttt{upper endpoint of a certification range}
+  \item \texttt{Kappa} --- \texttt{compact interval}; \texttt{intensity range for finite certification}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal K=[\kappa_-,\kappa_+]\) with \(0<\kappa_-\le\kappa_+<\infty\)
+  \item \texttt{w0} --- \texttt{positive vector}; \(\mathcal G\times\{1,\ldots,T\}\to(0,\infty)\); \texttt{counterfactual untreated exposure mass}
+  \par\smallskip\noindent\emph{Definition.} \(w^0_{gt}=s_gA_gb_t\)
+  \item \texttt{w} --- \texttt{positive vector}; \(\mathcal G\times\{1,\ldots,T\}\to(0,\infty)\); \texttt{observed exposure mass}
+  \par\smallskip\noindent\emph{Definition.} \(w_{gt}=w^0_{gt}\) on \(\mathcal U\) and \(w_{gt}=w^0_{gt}v_{gt}\) on \(\mathcal D\)
+  \item \texttt{eta} --- \texttt{parameter tuple}; \texttt{design and nuisance parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\eta=(s,A,b,v)\)
+  \item \texttt{X} --- \texttt{random count array}; \(\mathbb N_0^{\mathcal G\times\{1,\ldots,T\}}\); \texttt{observed cohort-\allowbreak{}-\allowbreak{}time totals}
+  \item \texttt{P} --- \texttt{probability law}; \texttt{exact sampling law}
+  \par\smallskip\noindent\emph{Definition.} \(P_{\eta,\kappa}=\bigotimes_{g\in\mathcal G,\,t\le T}\operatorname{Pois}(\kappa w_{gt})\)
+  \item \texttt{B} --- \texttt{positive real functional}; \texttt{treated-\allowbreak{}cell counterfactual mass}
+  \par\smallskip\noindent\emph{Definition.} \(B(\eta)=\sum_{(g,t)\in\mathcal D}w^0_{gt}\)
+  \item \texttt{H} --- \texttt{positive real functional}; \texttt{treated-\allowbreak{}cell observed mean mass}
+  \par\smallskip\noindent\emph{Definition.} \(H(\eta)=\sum_{(g,t)\in\mathcal D}w_{gt}\)
+  \item \texttt{theta} --- \texttt{real functional}; \texttt{counterfactual-\allowbreak{}share-\allowbreak{}weighted proportional treatment effect}
+  \par\smallskip\noindent\emph{Definition.} \(\theta(\eta)=H(\eta)/B(\eta)-1\)
+  \item \texttt{Theta} --- \texttt{compact interval}; \texttt{target range}
+  \par\smallskip\noindent\emph{Definition.} \(\Theta=[-1/2,2]\)
+  \item \texttt{ell} --- \texttt{measure}; \texttt{interval length}
+  \par\smallskip\noindent\emph{Definition.} \(\ell(I)=\sup I-\inf I\) for nonempty closed \(I\subseteq\Theta\)
+  \item \texttt{L} --- \texttt{positive real}; \texttt{full target-\allowbreak{}range length}
+  \par\smallskip\noindent\emph{Definition.} \(L=\ell(\Theta)=5/2\)
+  \item \texttt{M} --- \texttt{positive real functional}; \texttt{total observed mean mass}
+  \par\smallskip\noindent\emph{Definition.} \(M(\eta)=\sum_{g\in\mathcal G,\,t\le T}w_{gt}\)
+  \item \texttt{pa} --- \texttt{polynomial functional}; \texttt{profile-\allowbreak{}specific polynomial factor}
+  \par\smallskip\noindent\emph{Definition.} \(p_a(\eta)\) denotes the finite in-box coverage or saved-length Poisson polynomial induced by an action profile \(a\) on a fixed target-membership stratum
+  \item \texttt{U0} --- \texttt{positive real functional}; \texttt{total untreated mean mass}
+  \par\smallskip\noindent\emph{Definition.} \(U_0(\eta)=\sum_{(g,t)\in\mathcal U}w_{gt}\)
+  \item \texttt{I} --- \texttt{action space}; \texttt{nonempty closed connected intervals}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak I=\{[a,c]:-1/2\le a\le c\le2\}\)
+  \item \texttt{Cdet} --- \texttt{Borel map}; \(C:\mathcal S_T\times\mathbb N_0^{\mathcal G\times\{1,\ldots,T\}}\to\mathfrak I\); \texttt{deterministic interval policy}
+  \item \texttt{Krand} --- \texttt{Markov kernel}; \(K:\mathcal S_T\times\mathbb N_0^{\mathcal G\times\{1,\ldots,T\}}\rightsquigarrow\mathfrak I\); \texttt{randomized interval policy}
+  \item \texttt{Ddet} --- \texttt{real-\allowbreak{}valued function}; \((0,\infty)\to[0,L]\); \texttt{deterministic minimax expected-\allowbreak{}length value}
+  \item \texttt{DdetRange} --- \texttt{real-\allowbreak{}valued functional}; \(\{\text{compact intervals in }(0,\infty)\}\to[0,L]\); \texttt{worst-\allowbreak{}intensity deterministic minimax value on a compact range}
+  \item \texttt{Drand} --- \texttt{real-\allowbreak{}valued function}; \((0,\infty)\to[0,L]\); \texttt{randomized minimax expected-\allowbreak{}length value}
+  \item \texttt{DU} --- \texttt{real-\allowbreak{}valued function}; \((0,\infty)\to[0,L]\); \texttt{minimax value under the all-\allowbreak{}untreated-\allowbreak{}zero full-\allowbreak{}interval restriction}
+  \item \texttt{m} --- \texttt{real functional}; \texttt{minimum total exposure at a fixed share}
+  \par\smallskip\noindent\emph{Definition.} \(m(s)=\sum_{g\in\mathcal G}s_g(T+g+1)/8\), with \(g=\infty\) read as \(T+1\)
+  \item \texttt{mBar} --- \texttt{real functional}; \texttt{maximum total exposure at a fixed share}
+  \par\smallskip\noindent\emph{Definition.} \(\overline m(s)=\sum_{g\in\mathcal G}s_g(12T-8g+6)\), with \(g=\infty\) read as \(T+1\)
+  \item \texttt{u} --- \texttt{real functional}; \texttt{minimum untreated exposure at a fixed share}
+  \par\smallskip\noindent\emph{Definition.} \(u(s)=\sum_{g\in\mathcal G}s_gg/4\), with \(g=\infty\) read as \(T+1\)
+  \item \texttt{sStar} --- \texttt{vector}; \texttt{least-\allowbreak{}favorable observed-\allowbreak{}share vector}
+  \par\smallskip\noindent\emph{Definition.} \(s^*_2=(T+1)/(2T)\) and \(s^*_g=1/(2T)\) for \(g>2\)
+  \item \texttt{mStar} --- \texttt{positive real}; \texttt{global minimum total exposure}
+  \par\smallskip\noindent\emph{Definition.} \(m_*=(5T+11)/32\)
+  \item \texttt{mBarStar} --- \texttt{positive real}; \texttt{global maximum total exposure}
+  \par\smallskip\noindent\emph{Definition.} \(\overline m_*=10T-8\)
+  \item \texttt{uStar} --- \texttt{positive real}; \texttt{global minimum untreated exposure}
+  \par\smallskip\noindent\emph{Definition.} \(u_*=(T+7)/16\)
+  \item \texttt{bZero} --- \texttt{positive real functional}; \texttt{minimum treated counterfactual mass at a fixed share}
+  \par\smallskip\noindent\emph{Definition.} \(b_0(s)=(T+1)/4-u(s)\)
+  \item \texttt{ellZero} --- \texttt{nonnegative real functional}; \texttt{zero-\allowbreak{}table target-\allowbreak{}span lower bound}
+  \par\smallskip\noindent\emph{Definition.} \(\ell_0(s,\kappa)=\min\{L,\max\{0,[\log(1/\alpha)/\kappa-u(s)]/b_0(s)-1/2\}\}\)
+  \item \texttt{Kcount} --- \texttt{nonnegative integer}; \texttt{count-\allowbreak{}box cutoff}
+  \item \texttt{BK} --- \texttt{finite set}; \texttt{truncated count box}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_K=\{x:\max_{g,t}x_{gt}\le K\}\)
+  \item \texttt{hMesh} --- \texttt{positive real}; \texttt{maximum endpoint-\allowbreak{}grid mesh}
+  \item \texttt{Gh} --- \texttt{finite subset}; \texttt{endpoint grid}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal G_h\subset[-1/2,2]\) contains both target endpoints and has maximum adjacent spacing at most \(h\)
+  \item \texttt{tauK} --- \texttt{probability bound}; \texttt{uniform count-\allowbreak{}tail bound}
+  \par\smallskip\noindent\emph{Definition.} \(\tau_K=\min\{1,T^2\Pr[\operatorname{Pois}(12\kappa_+)>K]\}\)
+  \item \texttt{DKh} --- \texttt{real-\allowbreak{}valued function}; \(\mathcal K\times\mathbb N_0\times(0,\infty)\to[0,L]\); \texttt{finite count-\allowbreak{}box and endpoint-\allowbreak{}grid deterministic minimax value}
+  \item \texttt{epsilon} --- \texttt{positive rational}; \texttt{requested total certification tolerance}
+  \item \texttt{Ucert} --- \texttt{real algorithm output}; \texttt{outward-\allowbreak{}certified feasible risk bound}
+  \item \texttt{bcert} --- \texttt{real algorithm output}; \texttt{integrality-\allowbreak{}preserving lower certificate}
+  \item \texttt{z} --- \texttt{incidence vector}; \texttt{untreated row-\allowbreak{}plus-\allowbreak{}time score loading}
+  \par\smallskip\noindent\emph{Definition.} \(z_{gt}\) contains the cohort coordinate for \(g\) and the time coordinate for \(t>1\)
+  \item \texttt{IU} --- \texttt{positive-\allowbreak{}definite matrix functional}; \texttt{untreated nuisance information}
+  \par\smallskip\noindent\emph{Definition.} \(I_{\mathcal U}(\eta)=\sum_{(g,t)\in\mathcal U}w^0_{gt}z_{gt}z_{gt}^{\prime}\)
+  \item \texttt{hU} --- \texttt{vector functional}; \texttt{target loading on untreated nuisance}
+  \par\smallskip\noindent\emph{Definition.} \(h_{\mathcal U}(\eta)=\sum_{(g,t)\in\mathcal D}w^0_{gt}z_{gt}\)
+  \item \texttt{Veff} --- \texttt{positive real functional}; \texttt{efficient variance coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(V_{\mathrm{eff}}(\eta)=\{H(\eta)+(1+\theta(\eta))^2h_{\mathcal U}(\eta)^{\prime}I_{\mathcal U}(\eta)^{-1}h_{\mathcal U}(\eta)\}/B(\eta)^2\)
+  \item \texttt{zAlpha} --- \texttt{positive real}; \texttt{two-\allowbreak{}sided standard-\allowbreak{}normal critical value}
+  \par\smallskip\noindent\emph{Definition.} \(z_{1-\alpha/2}=\Phi^{-1}(1-\alpha/2)\)
+  \item \texttt{CG} --- \texttt{positive real}; \texttt{efficient bounded-\allowbreak{}Gaussian minimax width coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(C_G=2z_{1-\alpha/2}\max_{\eta}\sqrt{V_{\mathrm{eff}}(\eta)}\), where the maximum is over the displayed compact share and nuisance boxes
+  \item \texttt{CertInput} --- \texttt{finite exact rational record}; \texttt{machine input encoding for continuum certification}
+  \item \texttt{ParamCells} --- \texttt{finite rational polyhedral complex}; \texttt{joint observed-\allowbreak{}design and nuisance cover used by the verifier}
+  \item \texttt{PolicyTables} --- \texttt{finite table family}; \texttt{endpoint-\allowbreak{}grid interval actions indexed by observable cells and count tables}
+  \item \texttt{EnclosureData} --- \texttt{finite rational interval data}; \texttt{outward-\allowbreak{}rounded Poisson probability,\allowbreak{} tail,\allowbreak{} coverage,\allowbreak{} and risk bounds}
+  \item \texttt{LowerWitness} --- \texttt{finite exact mixed-\allowbreak{}integer proof object}; \texttt{integrality-\allowbreak{}preserving lower-\allowbreak{}bound witness}
+  \item \texttt{Certificate} --- \texttt{finite machine object}; \texttt{complete primal,\allowbreak{} enclosure,\allowbreak{} and lower-\allowbreak{}witness package}
+  \item \texttt{Verify} --- \texttt{total Boolean procedure}; \(\operatorname{Verify}:\mathrm{CertInput}\times\mathrm{Certificate}\to\{0,1\}\); \texttt{terminating certificate acceptance predicate}
+  \item \texttt{deltaEnc} --- \texttt{nonnegative rational}; \texttt{declared outward-\allowbreak{}enclosure contribution to the error budget}
+  \item \texttt{killInput} --- \texttt{finite exact rational record}; \texttt{mandatory early-\allowbreak{}kill certification instance}
+  \par\smallskip\noindent\emph{Definition.} \(\iota_{\mathrm{kill}}=(T,\alpha,\mathcal K,K,h,\varepsilon)=(3,1/20,[1/100,1/100],2,1/100,1/20)\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:observed-share-overlap]\label{ass:observed-share-overlap}
+\(s\in\mathcal S_T\).
+\par\smallskip\noindent\emph{Standard} (cohort overlap specialized to a known lower share bound, \cite{CallawaySantAnna2021}).
+\end{assumption}
+
+\begin{assumption}[ass:exposure-box]\label{ass:exposure-box}
+\(A\in[1/2,2]^{\mathcal G}\).
+\par\smallskip\noindent\emph{Novel.} This is a maintained scale restriction for aggregate exposure masses, appropriate when cohort exposures have been normalized to a prespecified audited range; it is not presented as a consequence of PPML theory.
+\end{assumption}
+
+\begin{assumption}[ass:time-normalization]\label{ass:time-normalization}
+\(b_1=1\).
+\par\smallskip\noindent\emph{Standard} (reference-period normalization for multiplicative time effects, \cite{Wooldridge2023NonlinearDiD}).
+\end{assumption}
+
+\begin{assumption}[ass:time-box]\label{ass:time-box}
+\(b_t\in[1/2,2]\) for every \(t>1\).
+\par\smallskip\noindent\emph{Novel.} This is a maintained stability restriction on calendar multipliers, satisfied in applications whose normalized aggregate exposure index is prospectively restricted to vary by at most a factor of two; it is not implied by fixed-\(T\) asymptotics.
+\end{assumption}
+
+\begin{assumption}[ass:treated-multiplier-box]\label{ass:treated-multiplier-box}
+\(v_{gt}\in[1/2,3]\) for every \((g,t)\in\mathcal D\).
+\par\smallskip\noindent\emph{Novel.} This maintained effect-range restriction defines the application class of bounded proportional changes, covering decreases up to one half and increases up to two hundred percent without claiming that the restriction follows from the sampling model.
+\end{assumption}
+
+\begin{assumption}[ass:known-intensity]\label{ass:known-intensity}
+The positive intensity \(\kappa\) is known.
+\par\smallskip\noindent\emph{Novel.} Known \(\kappa\) is a maintained design condition for aggregate-Poisson experiments in which the observation-window intensity or exposure offset is calibrated and audited before outcomes are observed; an estimated-intensity experiment is a distinct unsolved extension.
+\end{assumption}
+
+\begin{assumption}[ass:exact-product-poisson]\label{ass:exact-product-poisson}
+\(\mathcal L(X\mid\eta,\kappa)=P_{\eta,\kappa}\).
+\par\smallskip\noindent\emph{Standard} (finite independent-increment product-Poisson sampling condition, \cite{BrownCarterLowZhang2004}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:experiment-class]\label{def:experiment-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{staggered Poisson experiment class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_T=\{(s,A,b,v,\kappa):\text{assumptions }\mathrm{ass{:}observed\text{-}share\text{-}overlap},\mathrm{ass{:}exposure\text{-}box},\mathrm{ass{:}time\text{-}normalization},\mathrm{ass{:}time\text{-}box},\mathrm{ass{:}treated\text{-}multiplier\text{-}box},\mathrm{ass{:}known\text{-}intensity},\mathrm{ass{:}exact\text{-}product\text{-}poisson}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}observed-\allowbreak{}share-\allowbreak{}overlap}; \texttt{ass:\allowbreak{}exposure-\allowbreak{}box}; \texttt{ass:\allowbreak{}time-\allowbreak{}normalization}; \texttt{ass:\allowbreak{}time-\allowbreak{}box}; \texttt{ass:\allowbreak{}treated-\allowbreak{}multiplier-\allowbreak{}box}; \texttt{ass:\allowbreak{}known-\allowbreak{}intensity}; \texttt{ass:\allowbreak{}exact-\allowbreak{}product-\allowbreak{}poisson}.
+\end{definition}
+
+\begin{definition}[def:deterministic-value]\label{def:deterministic-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{deterministic minimax expected length}
+\par\smallskip\noindent\emph{Construction.} \(D_{\mathrm{det}}(\kappa)=\inf_{C:\,\inf_{\eta}P_{\eta,\kappa}[\theta(\eta)\in C(s,X)]\ge1-\alpha}\sup_{\eta}\mathbb E_{P_{\eta,\kappa}}[\ell(C(s,X))]\) over Borel deterministic interval policies \(C\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}experiment-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:deterministic-range-value]\label{def:deterministic-range-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{worst-\allowbreak{}intensity deterministic minimax value}
+\par\smallskip\noindent\emph{Construction.} \(\overline D_{\mathrm{det}}(\mathcal K)=\sup_{\kappa\in\mathcal K}D_{\mathrm{det}}(\kappa)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}deterministic-\allowbreak{}value}.
+\end{definition}
+
+\begin{definition}[def:randomized-value]\label{def:randomized-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{randomized minimax expected length}
+\par\smallskip\noindent\emph{Construction.} \(D_{\mathrm{rand}}(\kappa)=\inf_{K:\,\inf_{\eta}\mathbb E_{P_{\eta,\kappa}}K(s,X,\{J:\theta(\eta)\in J\})\ge1-\alpha}\sup_{\eta}\mathbb E_{P_{\eta,\kappa}}\int_{\mathfrak I}\ell(J)K(s,X,dJ)\) over Markov kernels \(K\) on \(\mathfrak I\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}experiment-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:untreated-zero-value]\label{def:untreated-zero-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{all-\allowbreak{}untreated-\allowbreak{}zero restricted minimax value}
+\par\smallskip\noindent\emph{Construction.} \(D_{\mathcal U}(\kappa)=\inf_{C:\,\inf_{\eta}P_{\eta,\kappa}[\theta(\eta)\in C(s,X)]\ge1-\alpha,\ C(s,x)=\Theta\ \mathrm{if}\ \sum_{(g,t)\in\mathcal U}x_{gt}=0}\sup_{\eta}\mathbb E_{P_{\eta,\kappa}}[\ell(C(s,X))]\) over Borel deterministic interval policies \(C\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}experiment-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:finite-grid-value]\label{def:finite-grid-value}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite count-\allowbreak{}box and endpoint-\allowbreak{}grid value}
+\par\smallskip\noindent\emph{Construction.} \(D_{K,h}(\mathcal K)\) is the supremum over \(\kappa\in\mathcal K\) of the deterministic minimax value over policies that report \(\Theta\) outside \(\mathcal B_K\) and use endpoints in \(\mathcal G_h\) inside \(\mathcal B_K\), with honesty required at every observed share and nuisance value.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}deterministic-\allowbreak{}range-\allowbreak{}value}.
+\end{definition}
+
+\begin{definition}[def:causal-functional-setup]\label{def:causal-functional-setup}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Moreau-\allowbreak{}-\allowbreak{}Kastler proportional-\allowbreak{}target specialization}
+\par\smallskip\noindent\emph{Construction.} \(\theta(\eta)=\{\sum_{(g,t)\in\mathcal D}w^0_{gt}v_{gt}\}/\{\sum_{(g,t)\in\mathcal D}w^0_{gt}\}-1=\sum_{(g,t)\in\mathcal D}\{w^0_{gt}/B(\eta)\}(v_{gt}-1)\), the aggregate product-Poisson specialization of Moreau--Kastler (2025), equation (3.14).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}experiment-\allowbreak{}class}.
+\end{definition}
+
+\begin{definition}[def:homogeneous-known-mass-sanity]\label{def:homogeneous-known-mass-sanity}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Kabaila-\allowbreak{}-\allowbreak{}Byrne scalar-\allowbreak{}Poisson sanity reduction}
+\par\smallskip\noindent\emph{Construction.} Under the setup restriction \(v_{gt}=q\in[1/2,3]\) on \(\mathcal D\) with \(s,A,b\) known, \(\theta=q-1\) and \(\sum_{(g,t)\in\mathcal D}X_{gt}\sim\operatorname{Pois}(\kappa qB(\eta))\); rescaling by known \(\kappa B(\eta)\) gives the ordered one-parameter Poisson-mean problem studied by Kabaila and Byrne (2001).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ass:\allowbreak{}exact-\allowbreak{}product-\allowbreak{}poisson}; \texttt{def:\allowbreak{}causal-\allowbreak{}functional-\allowbreak{}setup}.
+\end{definition}
+
+\begin{definition}[def:rational-certificate-input]\label{def:rational-certificate-input}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact rational certificate input}
+\par\smallskip\noindent\emph{Construction.} \(\iota=(T,\alpha,\kappa_-,\kappa_+,\varepsilon)\), together with any mandated \(K\) and \(h\), is encoded by binary integers and signed numerator--denominator pairs in lowest terms; validity requires \(T\ge3\), \(0<\alpha<1/10\), \(0<\kappa_-\le\kappa_+\), \(\varepsilon>0\), and, when supplied, \(K\in\mathbb N_0\) and \(h>0\).
+\end{definition}
+
+\begin{definition}[def:finite-machine-certificate]\label{def:finite-machine-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite continuum-\allowbreak{}certificate representation}
+\par\smallskip\noindent\emph{Construction.} A certificate is the finite tuple \(\Gamma=(K,h,\{Q_j,A_j\}_{j=1}^J,\{R_r\}_{r=1}^R,E,W,U_\varepsilon,b_\varepsilon,\delta_{\mathrm{enc}})\). Each \(Q_j\) is a rational polyhedron in the observable coordinates \(s\) and known \(\kappa\), the closed cells have disjoint interiors and cover \(\mathcal S_T\times\mathcal K\), and \(A_j:\mathcal B_K\to\{[a,c]:a,c\in\mathcal G_h,\ a\le c\}\) is a total endpoint-grid policy table, with \(\Theta\) reported outside \(\mathcal B_K\). The rational polyhedra \(R_r\) cover every \(Q_j\) crossed with the maintained \(A,b,v\) boxes. The finite record \(E\) contains outward-rounded rational enclosures for Poisson recurrences, exponential factors, cellwise target membership, coverage, risk, and the uniform count tail. The witness \(W\) contains a rational finite nuisance support, the induced integer policy program, an integral incumbent, and a complete exact branch-and-bound tree whose every leaf is either integral or carries a checkable rational dual bound; no root-relaxation value is accepted as \(b_\varepsilon\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}rational-\allowbreak{}certificate-\allowbreak{}input}; \texttt{def:\allowbreak{}finite-\allowbreak{}grid-\allowbreak{}value}.
+\end{definition}
+
+\begin{definition}[def:verifier-acceptance]\label{def:verifier-acceptance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{terminating verifier acceptance predicate}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Verify}(\iota,\Gamma)=1\) exactly when a terminating exact-rational checker verifies: the input and every table are well formed; the \(Q_j\) cells cover all of \(\mathcal S_T\times\mathcal K\); the \(R_r\) cells cover every maintained nuisance value above those observable cells; the tables define one measurable deterministic connected-interval policy family; outward Poisson and target-membership enclosures prove cellwise coverage at least \(1-\alpha\) and worst risk at most \(U_\varepsilon\); the count-tail, endpoint, and enclosure contributions obey the declared bound \(L\tau_K+2h+\delta_{\mathrm{enc}}\); the complete integer branch-and-bound witness proves \(b_\varepsilon\le\overline D_{\mathrm{det}}(\mathcal K)\); and the final inequalities \(b_\varepsilon\le\overline D_{\mathrm{det}}(\mathcal K)\le U_\varepsilon\) and \(0\le U_\varepsilon-b_\varepsilon\le\varepsilon\) follow from those checked records. Acceptance is therefore a sufficient, not sampled, proof of uniform honesty and of the stated upper--lower error budget.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}finite-\allowbreak{}machine-\allowbreak{}certificate}.
+\end{definition}
+
+\begin{definition}[def:early-kill-instance]\label{def:early-kill-instance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{mandatory early-\allowbreak{}kill instance}
+\par\smallskip\noindent\emph{Construction.} For \(\iota_{\mathrm{kill}}=(3,1/20,[1/100,1/100],2,1/100,1/20)\), an admissible output must keep \(K=2\) and \(h=1/100\), give a deterministic primal policy valid for every \(s\in\mathcal S_3\), and give a complete integrality-preserving lower witness with \(0\le U_\varepsilon-b_\varepsilon\le1/20\). A sampled-share check, a fixed-share certificate, or an unresolved linear-programming relaxation is not an admissible output.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}verifier-\allowbreak{}acceptance}.
+\end{definition}
+
+\begin{definition}[def:certificate-handle]\label{def:certificate-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{finite contact-\allowbreak{}stratified certificate handle}
+\par\smallskip\noindent\emph{Construction.} Start with exact rational input encoding and construct finitely many rational polyhedral cells in observable share--intensity coordinates and maintained nuisance coordinates. Attach a total endpoint-grid policy table to each observable cell and outward-rounded rational Poisson tail, exponential, target-membership, coverage, and risk enclosures to every verification cell. Resolve nominal-coverage and target-endpoint contacts by the fixed-profile equations \(dp_a-\kappa p_a\,dM=0\), refine undecided cells, and record a complete exact mixed-integer branch-and-bound tree with integral incumbents or rational dual bounds at every leaf. The target object is a finite certificate accepted by \(\operatorname{Verify}\), including the mandated early-kill input.
+\par\smallskip\noindent\emph{Inputs.} \texttt{def:\allowbreak{}finite-\allowbreak{}grid-\allowbreak{}value}; \texttt{def:\allowbreak{}rational-\allowbreak{}certificate-\allowbreak{}input}; \texttt{def:\allowbreak{}finite-\allowbreak{}machine-\allowbreak{}certificate}; \texttt{def:\allowbreak{}verifier-\allowbreak{}acceptance}; \texttt{def:\allowbreak{}early-\allowbreak{}kill-\allowbreak{}instance}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:low-intensity-frontier]\label{thm:low-intensity-frontier}
+If \(0<\kappa\le-\log(1-\alpha)/\overline m_*\), then \(D_{\mathrm{det}}(\kappa)=L\exp(-\kappa m_*)\). At each fixed \(s\), the conditional value is \(L\exp\{-\kappa m(s)\}\). Every fixed-share optimizer reports \(\Theta\) at the zero table and a singleton at every nonzero table. A globally optimal observed-share policy is characterized exactly by \(C(s,0)=\Theta\) and \(\sum_{x\ne0}P_{\eta,\kappa}(x)\ell(C(s,x))\le L\exp(-\kappa m_*)-L\exp\{-\kappa M(\eta)\}\) for every \(\eta\). The share \(s^*\) is the unique minimizer of \(m(s)\), the associated lower-endpoint nuisance is least favorable for every optimizer, and additional least-favorable configurations occur exactly when the displayed allowance binds.
+\end{theorem}
+\begin{proof}
+Put \(\bar g=T+1\) for the never-treated cohort.  First, \(B(\eta)>0\): the set \(\mathcal D\) is nonempty because \((2,2)\in\mathcal D\), and every summand \(s_gA_gb_t\) in \(B(\eta)\) is positive by \(\mathrm{ass{:}observed\text{-}share\text{-}overlap}\), \(\mathrm{ass{:}exposure\text{-}box}\), and \(\mathrm{ass{:}time\text{-}box}\).  Hence
+\[
+ \theta(\eta)
+ =\frac{\sum_{(g,t)\in\mathcal D}w^0_{gt}v_{gt}}
+         {B(\eta)}-1
+ =\sum_{(g,t)\in\mathcal D}
+   \frac{w^0_{gt}}{B(\eta)}(v_{gt}-1).
+\]
+The coefficients in the last sum are positive and sum to one.  Thus \(\theta(\eta)\in[-1/2,2]=\Theta\) under \(\mathrm{ass{:}treated\text{-}multiplier\text{-}box}\).  Conversely, for every fixed \(s\in\mathcal S_T\) and every \(r\in\Theta\), the admissible choice \(A_g=1\), \(b_t=1\), and \(v_{gt}=1+r\) has \(\theta(\eta)=r\).  This establishes target attainability at each observed share rather than defining it by the observed law.
+
+We next calculate the exposure extrema.  For a finite adoption cohort \(g\le T\), its contribution to \(M(\eta)\) is
+\[
+ M_g=s_gA_g\left(\sum_{t<g}b_t+
+                         \sum_{t\ge g}b_tv_{gt}\right),
+\]
+whereas for \(g=\bar g\) the second sum is absent.  Every factor multiplying a free coordinate is strictly positive.  Therefore the simultaneous minimum permitted by \(\mathrm{ass{:}exposure\text{-}box}\), \(\mathrm{ass{:}time\text{-}normalization}\), \(\mathrm{ass{:}time\text{-}box}\), and \(\mathrm{ass{:}treated\text{-}multiplier\text{-}box}\) has
+\[
+ A_g=\frac12,\qquad b_1=1,\qquad b_t=\frac12\ (t>1),
+ \qquad v_{gt}=\frac12\ ((g,t)\in\mathcal D).
+\]
+For \(g\le T\), this makes the cohort contribution
+\[
+ s_g\frac12\left{1+\frac{g-2}{2}
+              +\frac{T-g+1}{4}\right}
+ =s_g\frac{T+g+1}{8}.
+\]
+For \(g=\bar g\), the contribution is
+\(s_{\bar g}(T+1)/4=s_{\bar g}(T+\bar g+1)/8\).  Consequently
+\[
+ \min_{A,b,v}M(s,A,b,v)
+ =m(s)=\sum_{g=2}^{T+1}s_g\frac{T+g+1}{8}.
+\tag{1}
+\]
+The same strict monotonicity shows that this minimizing nuisance is unique at each fixed \(s\).
+
+At the simultaneous upper endpoints \(A_g=2\), \(b_1=1\), \(b_t=2\) for \(t>1\), and \(v_{gt}=3\), the contribution of cohort \(g\le T\) is
+\[
+ 2s_g\{1+2(g-2)+6(T-g+1)\}
+ =s_g(12T-8g+6).
+\]
+The same expression at \(g=T+1\) equals \(s_g(4T-2)\), which is the never-treated contribution.  Hence
+\[
+ \max_{A,b,v}M(s,A,b,v)
+ =\overline m(s):=\sum_{g=2}^{T+1}s_g(12T-8g+6).
+\tag{2}
+\]
+
+There are \(T\) cohorts.  Write \(s_g=(2T)^{-1}+r_g\), where \(r_g\ge0\) and \(\sum_gr_g=1/2\).  The coefficient in (1) is strictly increasing in \(g\), while that in (2) is strictly decreasing in \(g\).  Thus both the minimum of \(m(s)\) and the maximum of \(\overline m(s)\) uniquely put all excess mass on \(g=2\), giving \(s=s^*\).  Direct summation yields
+\[
+ \min_{s\in\mathcal S_T}m(s)
+ =\frac{1}{2T}\sum_{g=2}^{T+1}\frac{T+g+1}{8}
+   +\frac12\frac{T+3}{8}
+ =\frac{5T+11}{32}=m_*,
+\tag{3}
+\]
+and
+\[
+ \max_{s\in\mathcal S_T}\overline m(s)
+ =\frac{1}{2T}\sum_{g=2}^{T+1}(12T-8g+6)
+   +\frac12(12T-10)
+ =10T-8=\overline m_*.
+\tag{4}
+\]
+
+Fix \(0<\kappa\le-\log(1-\alpha)/\overline m_*\).  By \(\mathrm{ass{:}exact\text{-}product\text{-}poisson}\), independence and the Poisson zero probabilities give
+\[
+ p_{\eta,0}:=P_{\eta,\kappa}(X=0)
+ =\prod_{g,t}\exp(-\kappa w_{gt})
+ =\exp\{-\kappa M(\eta)\}.
+\tag{5}
+\]
+Equations (2)--(4) imply, uniformly over the experiment class,
+\[
+ p_{\eta,0}\ge \exp(-\kappa\overline m_*)\ge1-\alpha,
+ \qquad P_{\eta,\kappa}(X\ne0)\le\alpha.
+\tag{6}
+\]
+
+Let \(C\) be any honest deterministic interval policy and fix \(s\).  If some \(r\in\Theta\) were absent from \(C(s,0)\), choose the admissible nuisance constructed above with \(\theta(\eta)=r\).  Then (6) would give
+\[
+ P_{\eta,\kappa}\{r\in C(s,X)\}
+ \le P_{\eta,\kappa}(X\ne0)
+ \le\alpha<1-\alpha,
+\]
+contradicting honesty.  Hence \(C(s,0)\) contains every point of \(\Theta\).  Since its action is a subinterval of \(\Theta\), necessarily
+\[
+ C(s,0)=\Theta.
+\tag{7}
+\]
+
+Let \(d_s(\kappa)\) denote the fixed-share version of the minimax problem, with only \((A,b,v)\) varying.  At the nuisance attaining (1), (5) and (7) imply
+\[
+ \sup_{A,b,v}E_{\eta,\kappa}\ell(C(s,X))
+ \ge L\exp\{-\kappa m(s)\}.
+\tag{8}
+\]
+For the reverse inequality, use the Borel rule \(C^\circ(s,0)=\Theta\) and \(C^\circ(s,x)=\{-1/2\}\) for \(x\ne0\).  By (6) its zero-table action alone gives coverage at least \(1-\alpha\), and
+\[
+ E_{\eta,\kappa}\ell(C^\circ(s,X))
+ =L\exp\{-\kappa M(\eta)\}.
+\]
+Taking the nuisance supremum and using (1) proves
+\[
+ d_s(\kappa)=L\exp\{-\kappa m(s)\}.
+\tag{9}
+\]
+Moreover, at the minimizing nuisance every count array has strictly positive probability because all cell means are positive.  For any fixed-share optimizer, (7) gives
+\[
+ E_{\eta_s^-,\kappa}\ell(C(s,X))
+ =L e^{-\kappa m(s)}+
+   \sum_{x\ne0}P_{\eta_s^-,\kappa}(x)\ell(C(s,x)),
+\tag{10}
+\]
+where \(\eta_s^-\) denotes that minimizing nuisance.  Equality with (9) forces every nonnegative summand in (10) to vanish.  Full support then implies \(\ell(C(s,x))=0\) for every \(x\ne0\), so every such action is a singleton.  Conversely, (7) together with arbitrary singleton actions off zero gives exactly the risk in (9), so these and only these are the fixed-share optimizers.
+
+Any globally honest rule is honest after fixing a share, so (9) gives a global lower bound \(\sup_s d_s(\kappa)\).  The single jointly Borel rule \(C^\circ\) above attains that bound.  Equation (3) therefore proves
+\[
+ D_{\mathrm{det}}(\kappa)
+ =\sup_{s\in\mathcal S_T}L e^{-\kappa m(s)}
+ =L e^{-\kappa m_*}=:R_*.
+\tag{11}
+\]
+
+It remains to verify the claimed complete global characterization.  By (7), every honest global policy has zero-table risk contribution \(L e^{-\kappa M(\eta)}\).  Therefore its risk at \(\eta\) is at most \(R_*\) if and only if
+\[
+ \sum_{x\ne0}P_{\eta,\kappa}(x)\ell(C(s,x))
+ \le R_*-L e^{-\kappa M(\eta)}.
+\tag{12}
+\]
+Thus every globally optimal Borel policy must satisfy (7) and (12).  Conversely, (7) gives honesty by (6), while (12) bounds every nuisance risk by \(R_*\); the lower bound (11) then makes the policy optimal.  This proves the asserted if-and-only-if description.
+
+Finally, (1)--(3) show that the configuration \(\eta_*^-\) consisting of \(s^*\) and all the stated lower-endpoint nuisance coordinates is the unique global minimizer of \(M\).  At that configuration the right side of (12) is zero, so every optimizer has risk \(R_*\); hence \(\eta_*^-\) is least favorable for every optimizer.  At an arbitrary configuration, its risk equals \(R_*\) if and only if (12) binds.  Consequently all additional least-favorable configurations, and only those configurations, are exactly the equality cases in the displayed allowance.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem gives an exact minimax value and a complete optimizer description in the sparse phase where regular PPML intervals fail most severely. \textit{Gap.} Evans, Hansen, and Stark (2005) provide duality but no multivariate-Poisson value or optimizer characterization; Kabaila and Byrne (2001) treat one scalar Poisson mean. \textit{Consumer.} Researchers with rare cohort-time outcomes can report the shortest uniformly honest deterministic connected interval policy and know precisely when nonzero tables permit extra length.
+
+\begin{theorem}[thm:randomized-gap]\label{thm:randomized-gap}
+Throughout the low-intensity regime, \(\exp(-\kappa m_*)L\{1-\alpha\exp(\kappa\overline m_*)\}\le D_{\mathrm{rand}}(\kappa)\le(1-\alpha)L<D_{\mathrm{det}}(\kappa)\), with the left side truncated below at zero. Moreover, as \(\kappa\downarrow0\), \(D_{\mathrm{rand}}(\kappa)\to(1-\alpha)L\), \(D_{\mathrm{det}}(\kappa)\to L\), and \(D_{\mathrm{det}}(\kappa)-D_{\mathrm{rand}}(\kappa)\to\alpha L\).
+\end{theorem}
+\begin{proof}
+Retain the low-intensity condition.  The coordinatewise upper bounds on \(A\), \(b\), and \(v\) give
+\[
+ M(\eta)\le\sum_{g=2}^{T+1}s_g(12T-8g+6)
+ \le10T-8=\overline m_*;
+\tag{13}
+\]
+the first inequality follows by summing \(2\{1+2(g-2)+6(T-g+1)\}=12T-8g+6\) for \(g\le T\), with the same formula giving \(4T-2\) at \(g=T+1\), and the second follows by assigning the overlap simplex's excess mass to the largest coefficient, at \(g=2\).  Also, for every fixed \(s\) and every \(r\in\Theta\), the admissible choice \(A_g=1\), \(b_t=1\), and \(v_{gt}=1+r\) attains \(\theta(\eta)=r\).
+
+A data-independent Markov kernel that reports \(\Theta\) with probability \(1-\alpha\) and the fixed singleton \(\{-1/2\}\) with probability \(\alpha\) covers every \(r\in\Theta\) with probability at least \(1-\alpha\).  Its expected length is \((1-\alpha)L\), and hence
+\[
+ D_{\mathrm{rand}}(\kappa)\le(1-\alpha)L.
+\tag{14}
+\]
+
+For the lower bound, fix an arbitrary honest kernel \(K\) and define its inclusion probability at a table \(x\) by
+\[
+ q_{s,x}(r):=K(s,x,\{J\in\mathfrak I:r\in J\}),
+ \qquad r\in\Theta.
+\]
+For every \(s\) and \(r\), use the admissible target-attaining nuisance just constructed.  Writing \(p_{\eta,0}=e^{-\kappa M(\eta)}\), honesty and \(0\le q_{s,x}(r)\le1\) give
+\[
+ 1-\alpha
+ \le \sum_xP_{\eta,\kappa}(x)q_{s,x}(r)
+ \le p_{\eta,0}q_{s,0}(r)+1-p_{\eta,0}.
+\]
+Rearranging, and using \(M(\eta)\le\overline m_*\), yields
+\[
+ q_{s,0}(r)\ge1-\alpha e^{\kappa M(\eta)}
+ \ge1-\alpha e^{\kappa\overline m_*}.
+\tag{15}
+\]
+Together with the trivial lower bound zero, (15) holds with its right side replaced by
+\(c_\kappa:=[1-\alpha e^{\kappa\overline m_*}]_+\), where \([a]_+=\max\{a,0\}\).
+
+For every closed interval \(J\subseteq\Theta\), its length is its Lebesgue measure, so
+\[
+ \ell(J)=\int_\Theta \mathbf 1\{r\in J\}\,dr.
+\]
+Integrating this nonnegative identity first with respect to \(K(s,0,dJ)\) and then over \(r\) gives
+\[
+ \int_{\mathfrak I}\ell(J)K(s,0,dJ)
+ =\int_\Theta q_{s,0}(r)\,dr
+ \ge Lc_\kappa.
+\tag{16}
+\]
+Evaluate the risk of \(K\) at the lower-endpoint configuration \(\eta_*^-\) from \(\mathrm{thm{:}low\text{-}intensity\text{-}frontier}\), for which \(s=s^*\), \(M(\eta_*^-)=m_*\), and \(P_{\eta_*^-,\kappa}(X=0)=e^{-\kappa m_*}\).  Dropping the nonnegative risk from nonzero tables and applying (16) gives
+\[
+ \sup_\eta E_{P_{\eta,\kappa}}
+       \int_{\mathfrak I}\ell(J)K(s,X,dJ)
+ \ge e^{-\kappa m_*}Lc_\kappa.
+\]
+Taking the infimum over honest kernels proves
+\[
+ e^{-\kappa m_*}L[1-\alpha e^{\kappa\overline m_*}]_+
+ \le D_{\mathrm{rand}}(\kappa)\le(1-\alpha)L.
+\tag{17}
+\]
+
+The low-intensity restriction implies
+\(e^{-\kappa m_*}>1-\alpha\): indeed \(m_*<\overline m_*\) for \(T\ge3\), and
+\[
+ \kappa m_*\le-\log(1-\alpha)\frac{m_*}{\overline m_*}
+ <-\log(1-\alpha).
+\]
+Using the exact deterministic value from \(\mathrm{thm{:}low\text{-}intensity\text{-}frontier}\), (14) is consequently strict relative to it:
+\[
+ D_{\mathrm{rand}}(\kappa)\le(1-\alpha)L
+ <Le^{-\kappa m_*}=D_{\mathrm{det}}(\kappa).
+\]
+Finally, as \(\kappa\downarrow0\), the lower and upper bounds in (17) both converge to \((1-\alpha)L\).  Hence
+\[
+ D_{\mathrm{rand}}(\kappa)\longrightarrow(1-\alpha)L,
+ \qquad
+ D_{\mathrm{det}}(\kappa)=Le^{-\kappa m_*}\longrightarrow L,
+\]
+and subtraction gives
+\(D_{\mathrm{det}}(\kappa)-D_{\mathrm{rand}}(\kappa)\to\alpha L\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates randomization as a first-order decision resource at the zero-information boundary rather than as a numerical convenience. \textit{Gap.} Kabaila (2013) shows atom splitting for scalar binomial tails; no located result proves strict minimax improvement in this staggered multivariate Poisson nuisance game. \textit{Consumer.} Regulators and analysts can quantify the exact price of forbidding auxiliary randomization when sparse counts make one table dominate coverage.
+
+\begin{theorem}[thm:untreated-zero-penalty]\label{thm:untreated-zero-penalty}
+In the same low-intensity regime, \(D_{\mathcal U}(\kappa)=L\exp(-\kappa u_*)\) and \(D_{\mathcal U}(\kappa)>D_{\mathrm{det}}(\kappa)\) for every \(\kappa>0\). The least-favorable share is \(s^*\); the minimizing untreated nuisance has lower-bound cohort and time masses while treated multipliers remain unrestricted.
+\end{theorem}
+\begin{proof}
+Let
+\[
+ Z_{\mathcal U}:=\left\{x:\sum_{(g,t)\in\mathcal U}x_{gt}=0\right\},
+ \qquad
+ U_0(\eta):=\sum_{(g,t)\in\mathcal U}w_{gt}.
+\]
+Because untreated cells have \(w_{gt}=s_gA_gb_t\), the contribution of cohort \(g\le T\) to \(U_0\) is \(s_gA_g\sum_{t<g}b_t\), and the same formula includes all \(T\) periods when \(g=T+1\).  Every coefficient is positive.  The exposure and time restrictions therefore imply that the simultaneous minimum has
+\[
+ A_g=\frac12\quad(g\in\mathcal G),
+ \qquad b_1=1,
+ \qquad b_t=\frac12\quad(t>1),
+\]
+and its cohort contribution is
+\[
+ s_g\frac12\left\{1+\frac{g-2}{2}\right\}
+ =s_g\frac g4.
+\]
+Thus
+\[
+ \min_{A,b,v}U_0(s,A,b,v)
+ =u(s)=\sum_{g=2}^{T+1}s_g\frac g4.
+\tag{17}
+\]
+The multipliers \(v_{gt}\) do not occur in \(U_0\) and are unrestricted within their maintained box.  Since the coefficients \(g/4\) are strictly increasing, the overlap-simplex calculation used in \(\mathrm{thm{:}low\text{-}intensity\text{-}frontier}\) uniquely selects \(s^*\), and
+\[
+ \min_{s\in\mathcal S_T}u(s)
+ =\frac{1}{2T}\sum_{g=2}^{T+1}\frac g4
+  +\frac12\frac24
+ =\frac{T+7}{16}=u_*.
+\tag{18}
+\]
+
+Under the exact product-Poisson law, summing the untreated zero-count exponents gives
+\[
+ P_{\eta,\kappa}(X\in Z_{\mathcal U})
+ =e^{-\kappa U_0(\eta)}.
+\tag{19}
+\]
+Every policy admitted by \(D_{\mathcal U}\) has length \(L\) throughout \(Z_{\mathcal U}\).  Evaluating at a nuisance attaining (17)--(18) therefore gives the lower bound
+\[
+ D_{\mathcal U}(\kappa)\ge Le^{-\kappa u_*}.
+\tag{20}
+\]
+
+For the reverse bound, take the Borel policy that reports \(\Theta\) on \(Z_{\mathcal U}\) and \(\{-1/2\}\) otherwise.  The coordinatewise upper bounds give
+\[
+ M(\eta)\le\sum_{g=2}^{T+1}s_g(12T-8g+6)
+ \le10T-8=\overline m_*.
+\]
+Since \(U_0(\eta)\le M(\eta)\), the low-intensity restriction yields
+\[
+ P_{\eta,\kappa}(X\in Z_{\mathcal U})
+ =e^{-\kappa U_0(\eta)}
+ \ge e^{-\kappa\overline m_*}
+ \ge1-\alpha.
+\]
+Thus the policy is uniformly honest, and its risk is \(Le^{-\kappa U_0(\eta)}\).  Equations (17)--(18) show that its nuisance supremum is \(Le^{-\kappa u_*}\), which with (20) proves
+\[
+ D_{\mathcal U}(\kappa)=Le^{-\kappa u_*}.
+\tag{21}
+\]
+
+The extremal formulas give
+\[
+ m_*-u_*=\frac{5T+11}{32}-\frac{T+7}{16}
+ =\frac{3(T-1)}{32}>0.
+\]
+Therefore, for every \(\kappa>0\) in the stated regime,
+\[
+ D_{\mathcal U}(\kappa)=Le^{-\kappa u_*}
+ >Le^{-\kappa m_*}=D_{\mathrm{det}}(\kappa).
+\]
+Finally, (17) is minimized uniquely in \(A\) and in every free time coordinate \(b_t\), because each appears with a strictly positive coefficient; \(b_1=1\) remains fixed by normalization.  Equation (18) makes \(s^*\) the unique least-favorable share, while all treated multipliers remain free.  Indeed, at any such minimizing configuration the forced event in (19) already contributes the value in (21); any optimal restricted policy can add no positive expected length off that event.  Hence precisely these lower-exposure configurations, with arbitrary admissible treated multipliers, are least favorable.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result distinguishes a defensible denominator-failure fallback from the smaller all-counts-zero event and prices its conservatism exactly. \textit{Gap.} Moreau-Kastler (2025) notes denominator positivity in the regular imputation workflow but does not analyze exact zero events or their minimax cost. \textit{Consumer.} Implementers of imputed proportional effects can decide whether forcing the full range after an untreated-zero event is worth its exact expected-length penalty.
+
+\begin{theorem}[thm:zero-atom-lower-bound]\label{thm:zero-atom-lower-bound}
+For every \(\kappa>0\), honesty forces the zero-table interval at share \(s\) to have length at least \(\ell_0(s,\kappa)\), and \(D_{\mathrm{det}}(\kappa)\ge\sup_{s\in\mathcal S_T}\exp\{-\kappa m(s)\}\ell_0(s,\kappa)\). This follows from the exact constrained minimum \(\min_{\eta:\,\theta=q-1}M(\eta)=u(s)+qb_0(s)\) for \(q\in[1/2,3]\).
+\end{theorem}
+\begin{proof}
+Fix \(\kappa>0\), a share vector \(s\in\mathcal S_T\), and a deterministic policy \(C\) satisfying the honesty constraint in \(\mathrm{def{:}deterministic\text{-}value}\).  All minimizations in the first part hold \(s\) fixed and range over \(A,b,v\) satisfying \(\mathrm{def{:}experiment\text{-}class}\).
+
+We first establish the constrained minimum stated in the theorem.  Put
+\[
+ U^{\circ}(s,A,b)=\sum_{(g,t)\in\mathcal U}s_gA_gb_t,
+ \qquad
+ B(s,A,b)=\sum_{(g,t)\in\mathcal D}s_gA_gb_t.
+\]
+The overlap and positivity restrictions imply \(B(s,A,b)>0\): for example, the cell \((2,2)\) belongs to \(\mathcal D\), and its summand is strictly positive.  If \(q\in[1/2,3]\) and \(\theta(\eta)=q-1\), then \(\mathrm{def{:}causal\text{-}functional\text{-}setup}\) gives \(H(\eta)=qB(\eta)\).  Consequently,
+\[
+ M(\eta)
+ =\sum_{(g,t)\in\mathcal U}w^0_{gt}+H(\eta)
+ =U^{\circ}(s,A,b)+qB(s,A,b)
+ =\sum_{g\in\mathcal G}\sum_{t=1}^T
+ s_gA_gb_t c_{gt}(q),
+ \]
+where \(c_{gt}(q)=1\) on \(\mathcal U\) and \(c_{gt}(q)=q\) on \(\mathcal D\).  Every coefficient in the last display is positive.  The exposure-box assumption therefore makes the expression coordinatewise increasing in each \(A_g\), so its minimum has \(A_g=1/2\) for every \(g\).  The time-normalization and time-box assumptions similarly give \(b_1=1\) and \(b_t=1/2\) for every \(t>1\).  These lower endpoints are jointly attainable, and the treated-multiplier-box assumption permits \(v_{gt}=q\) in every treated cell, which makes \(H=qB\).  Thus the lower bound is feasible under the target constraint and is the exact minimum.
+
+At these lower endpoints, a cohort represented by \(g\in\{2,\ldots,T+1\}\) has \(g-1\) untreated periods, including period one.  Hence
+\[
+ U^{\circ}_{\min}(s)
+ =\sum_{g\in\mathcal G}s_g\frac12
+ \left(1+\frac{g-2}{2}\right)
+ =\sum_{g\in\mathcal G}s_g\frac g4
+ =u(s).
+\]
+For \(g\le T\), there are \(T-g+1\) treated periods, all later than period one, while the never-treated cohort has none.  It follows that
+\[
+ B_{\min}(s)
+ =\sum_{g=2}^{T}s_g\frac{T-g+1}{4}
+ =\sum_{g\in\mathcal G}s_g\frac{T+1-g}{4}
+ =\frac{T+1}{4}-u(s)
+ =b_0(s).
+\]
+Moreover, \(b_0(s)>0\), because the displayed sum contains, in particular, the positive term \(s_T/4\).  We have therefore proved, for every \(q\in[1/2,3]\),
+\[
+ \min_{A,b,v:\,\theta(s,A,b,v)=q-1}M(s,A,b,v)
+ =u(s)+q b_0(s).
+ \tag{1}
+\]
+
+Let \(\mathbf 0\) denote the all-zero count table and set \(I_0(s)=C(s,\mathbf 0)\).  Under the exact product-Poisson assumption, independence and the Poisson probability of zero give
+\[
+ P_{\eta,\kappa}(X=\mathbf 0)
+ =\prod_{g,t}\exp\{-\kappa w_{gt}\}
+ =\exp\{-\kappa M(\eta)\}.
+ \tag{2}
+\]
+For each \(q\in[1/2,3]\), let \(\eta_q\) be the minimizer constructed above.  If \(q-1\notin I_0(s)\), then the event \(\{X=\mathbf 0\}\) is contained in the noncoverage event under \(\eta_q\).  Honesty and (1)--(2) would then imply
+\[
+ \exp\{-\kappa[u(s)+qb_0(s)]\}
+ \le P_{\eta_q,\kappa}\{\theta(\eta_q)\notin C(s,X)\}
+ \le\alpha.
+ \tag{3}
+\]
+Taking the contrapositive of (3), with
+\[
+ c(s,\kappa)=
+ \frac{\log(1/\alpha)/\kappa-u(s)}{b_0(s)},
+\]
+shows that
+\[
+ \{q-1:q\in[1/2,3],\ q<c(s,\kappa)\}\subseteq I_0(s).
+ \tag{4}
+\]
+The interval \(I_0(s)\) is closed by the definition of the action space.  If \(c(s,\kappa)\le1/2\), nonnegativity of interval length gives the claimed bound.  If \(1/2<c(s,\kappa)<3\), (4) and closedness force \([-1/2,c(s,\kappa)-1]\subseteq I_0(s)\).  If \(c(s,\kappa)\ge3\), the same argument, including closure when equality holds, forces \(\Theta\subseteq I_0(s)\).  In all cases,
+\[
+ \ell(I_0(s))
+ \ge
+ \min\!\left\{L,
+ \max\!\left\{0,
+ \frac{\log(1/\alpha)/\kappa-u(s)}{b_0(s)}-\frac12
+ \right\}\right\}
+ =\ell_0(s,\kappa).
+ \tag{5}
+\]
+
+It remains to convert this pointwise restriction on the zero-table action into expected length.  For every \(s\in\mathcal S_T\), define \(\eta_s^{\star}\) by
+\[
+ A_g^{\star}=\frac12\quad(g\in\mathcal G),\qquad
+ b_1^{\star}=1,\qquad b_t^{\star}=\frac12\quad(t>1),\qquad
+ v_{gt}^{\star}=\frac12\quad((g,t)\in\mathcal D).
+\]
+This parameter satisfies every restriction in \(\mathrm{def{:}experiment\text{-}class}\), has \(\theta(\eta_s^{\star})=-1/2\), and, by (1) with \(q=1/2\),
+\[
+ M(\eta_s^{\star})
+ =u(s)+\frac12b_0(s)
+ =\frac{T+1}{8}+\frac12u(s)
+ =\sum_{g\in\mathcal G}s_g\frac{T+g+1}{8}
+ =m(s).
+ \tag{6}
+\]
+Because interval length is nonnegative, (2), (5), and (6) imply
+\[
+ \mathbb E_{P_{\eta_s^{\star},\kappa}}\!\left[\ell\{C(s,X)\}\right]
+ \ge P_{\eta_s^{\star},\kappa}(X=\mathbf 0)\ell(I_0(s))
+ \ge \exp\{-\kappa m(s)\}\ell_0(s,\kappa).
+\]
+Writing \(s(\eta)\) for the share component of \(\eta\), every honest \(C\) therefore obeys
+\[
+ \sup_{\eta}\mathbb E_{P_{\eta,\kappa}}\!\left[\ell\{C(s(\eta),X)\}\right]
+ \ge
+ \sup_{s\in\mathcal S_T}
+ \mathbb E_{P_{\eta_s^{\star},\kappa}}\!\left[\ell\{C(s,X)\}\right]
+ \ge
+ \sup_{s\in\mathcal S_T}\exp\{-\kappa m(s)\}\ell_0(s,\kappa).
+\]
+Taking the infimum over all honest deterministic interval policies in \(\mathrm{def{:}deterministic\text{-}value}\) proves
+\[
+ D_{\mathrm{det}}(\kappa)
+ \ge\sup_{s\in\mathcal S_T}\exp\{-\kappa m(s)\}\ell_0(s,\kappa),
+\]
+as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The bound extends the exact zero-atom obstruction beyond the small-intensity phase without claiming sharpness where nonzero tables matter. \textit{Gap.} Scalar exact-Poisson intervals exploit a single ordered count; no located bound maps the zero atom into a continuum of feasible causal ratio targets under staggered nuisance. \textit{Consumer.} The bound gives every numerical certificate an analytic all-intensity lower benchmark and detects implausibly short candidate policies.
+
+\begin{theorem}[thm:finite-reduction]\label{thm:finite-reduction}
+For every compact \(\mathcal K=[\kappa_-,\kappa_+]\), count cutoff \(K\), and endpoint mesh \(h\), \(\overline D_{\mathrm{det}}(\mathcal K)\le D_{K,h}(\mathcal K)\le\overline D_{\mathrm{det}}(\mathcal K)+L\tau_K+2h\). At every fixed observed share, the finite-grid semi-infinite mixed-integer program admits a finite nuisance witness set whose integer optimum equals its continuum-nuisance optimum. Complete branch-and-bound with outward arithmetic therefore supplies a valid integer lower witness; a root linear-programming relaxation alone need not do so.
+\end{theorem}
+\begin{proof}
+Fix \(\kappa\in\mathcal K\).  There are \(|\mathcal G|T=T^2\) count cells.  The overlap and box assumptions imply \(s_g\le 1\), \(A_g\le2\), \(b_t\le2\), and the observed multiplier is at most \(3\).  Consequently
+\[
+  0<w_{gt}\le 12,
+  \qquad
+  0<\kappa w_{gt}\le12\kappa_+
+  \quad(g\in\mathcal G,\ t\le T).
+\]
+If \(0\le\lambda\le\mu\), a \(\operatorname{Pois}(\mu)\) variable can be written as the sum of independent \(\operatorname{Pois}(\lambda)\) and \(\operatorname{Pois}(\mu-\lambda)\) variables.  Thus its upper tail is nondecreasing in its mean.  The exact product-Poisson assumption and the union bound therefore give, uniformly in the nuisance parameter and in \(\kappa\in\mathcal K\),
+\[
+ \begin{split}
+ P_{\eta,\kappa}(\mathcal B_K^c)
+ &\le \sum_{g,t}P_{\eta,\kappa}(X_{gt}>K)\\
+ &\le T^2\Pr\{\operatorname{Pois}(12\kappa_+)>K\}
+ \le \tau_K .
+ \end{split}
+\]
+The last inequality also covers a union bound larger than one because \(\tau_K\) is truncated at one.
+
+Let \(C\) be any honest deterministic policy at this \(\kappa\), and define
+\[
+ C^K(s,x)=
+ \begin{cases}
+ C(s,x),&x\in\mathcal B_K,\\
+ \Theta,&x\notin\mathcal B_K.
+ \end{cases}
+\]
+Because \(C^K(s,x)\supseteq C(s,x)\), its coverage is no smaller.  Since every reported interval is contained in \(\Theta\) and hence has length between zero and \(L\),
+\[
+ \mathbb E_{\eta,\kappa}\ell(C^K(s,X))
+ \le
+ \mathbb E_{\eta,\kappa}\ell(C(s,X))
+   +L P_{\eta,\kappa}(\mathcal B_K^c)
+ \le
+ \mathbb E_{\eta,\kappa}\ell(C(s,X))+L\tau_K .
+\]
+
+For an in-box action \(C^K(s,x)=[a,c]\), let
+\[
+ a_h=\max\{q\in\mathcal G_h:q\le a\},
+ \qquad
+ c_h=\min\{q\in\mathcal G_h:q\ge c\}.
+\]
+These quantities exist because the grid contains both endpoints of \(\Theta\).  The maximum-spacing condition yields
+\[
+ 0\le a-a_h\le h,
+ \qquad
+ 0\le c_h-c\le h.
+\]
+Define \(C^{K,h}(s,x)=[a_h,c_h]\) in the box and retain \(\Theta\) outside it.  Then
+\[
+ C^{K,h}(s,x)\supseteq C^K(s,x),
+ \qquad
+ \ell(C^{K,h}(s,x))\le\ell(C^K(s,x))+2h.
+\]
+The rounding maps are finite-valued Borel maps, so \(C^{K,h}\) is an admissible Borel policy.  It preserves honesty and satisfies
+\[
+ \sup_\eta\mathbb E_{\eta,\kappa}\ell(C^{K,h}(s,X))
+ \le
+ \sup_\eta\mathbb E_{\eta,\kappa}\ell(C(s,X))+L\tau_K+2h.
+\]
+Write \(d_{K,h}(\kappa)\) for the restricted value at fixed \(\kappa\).  Restricting the action class can only increase an infimum, whereas applying the preceding construction to a policy within \(\delta>0\) of \(D_{\mathrm{det}}(\kappa)\) gives
+\[
+ D_{\mathrm{det}}(\kappa)
+ \le d_{K,h}(\kappa)
+ \le D_{\mathrm{det}}(\kappa)+\delta+L\tau_K+2h.
+\]
+Letting \(\delta\downarrow0\) and taking the supremum over \(\kappa\in\mathcal K\) proves
+\[
+ \overline D_{\mathrm{det}}(\mathcal K)
+ \le D_{K,h}(\mathcal K)
+ \le \overline D_{\mathrm{det}}(\mathcal K)+L\tau_K+2h.
+\]
+
+It remains to prove the finite-witness assertion.  Fix an observed share \(s\) and an intensity \(\kappa\).  The nuisance set
+\[
+ \mathcal N_s=[1/2,2]^{\mathcal G}
+ \times\bigl(\{1\}\times[1/2,2]^{T-1}\bigr)
+ \times[1/2,3]^{\mathcal D}
+\]
+is compact.  Moreover, because the \((2,t)\) cells with \(2\le t\le T\) are treated,
+\[
+ B(\eta)\ge \sum_{t=2}^T
+ \frac1{2T}\frac12\frac12
+ =\frac{T-1}{8T}>0.
+\]
+Thus \(\theta=H/B-1\) is continuous on \(\mathcal N_s\).  Let \(\mathcal J_h\) be the finite set of grid intervals and let
+\[
+ \mathcal A=\mathcal J_h^{\mathcal B_K}
+\]
+be the finite set of complete in-box action profiles.  For \(a\in\mathcal A\), denote its coverage and expected length at nuisance value \(\nu=(A,b,v)\) by \(q_a(\nu)\) and \(r_a(\nu)\), respectively, with \(\Theta\) used outside the box.
+
+Every finite-box Poisson probability is continuous in \(\nu\).  The indicator of the closed condition \(\theta(\nu)\in I\) is upper semicontinuous, so \(q_a\) is upper semicontinuous.  The function \(r_a\) is a finite linear combination of continuous probabilities, plus the continuous out-of-box probability, and is therefore continuous.  If \(a\) is dishonest, by definition there is \(\nu_a^{\mathrm{bad}}\in\mathcal N_s\) such that
+\[
+ q_a(\nu_a^{\mathrm{bad}})<1-\alpha.
+\]
+If \(a\) is honest, compactness and continuity give \(\nu_a^{\mathrm{risk}}\in\mathcal N_s\) such that
+\[
+ r_a(\nu_a^{\mathrm{risk}})=\max_{\nu\in\mathcal N_s}r_a(\nu).
+\]
+Let \(W\) be the union of these selected points over the finite set \(\mathcal A\).  In the program retaining only nuisance constraints indexed by \(W\), every dishonest profile is still excluded by its own strict coverage witness, every honest profile remains feasible, and for every honest profile
+\[
+ \max_{\nu\in W}r_a(\nu)
+ =\max_{\nu\in\mathcal N_s}r_a(\nu),
+\]
+because \(W\subseteq\mathcal N_s\) and \(W\) contains \(\nu_a^{\mathrm{risk}}\).  Hence the finite-witness integer optimum equals the continuum-nuisance integer optimum exactly.
+
+Explicitly, introduce binary variables \(z_{xI}\) for \(x\in\mathcal B_K\), \(I\in\mathcal J_h\), impose
+\[
+ z_{xI}\in\{0,1\},
+ \qquad
+ \sum_{I\in\mathcal J_h}z_{xI}=1,
+\]
+and impose the coverage and risk inequalities at every \(\nu\in W\).  Those inequalities are linear in \(z\) and in the risk epigraph variable.  Branching on every unresolved binary variable terminates after finitely many branches and covers every integer action profile.  At each leaf, an integral incumbent or a valid dual lower bound computed with directed outward rounding yields a lower bound for that entire leaf; taking the least surviving leaf bound is therefore a lower bound for the integer optimum.  Directed rounding must enlarge feasible relaxations and underestimate their minimized objectives, which preserves the lower-bound direction.  A root relaxation does not enumerate the integer profiles and can have an integrality gap, so it cannot by itself certify equality with the integer optimum.  Finally, if \(b\) is any such lower bound for the fixed-design grid value \(d_{K,h}(s,\kappa)\), let \(d_{\mathrm{det}}(s,\kappa)\) denote the analogous unrestricted value at that observed share.  Restricting any globally honest policy to the fixed share shows \(D_{\mathrm{det}}(\kappa)\ge d_{\mathrm{det}}(s,\kappa)\), and the preceding truncation-and-rounding construction applied at that fixed share gives \(d_{K,h}(s,\kappa)\le d_{\mathrm{det}}(s,\kappa)+L\tau_K+2h\).  Hence the outward correction is
+\[
+ D_{\mathrm{det}}(\kappa)\ge b-L\tau_K-2h.
+\]
+This proves the asserted integrality-preserving lower-witness conclusion and displays its full truncation and endpoint error budget.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This separates unconditional truncation and integrality control from the genuinely hard uniform-share covering step. \textit{Gap.} Kabaila and Byrne (2001) give scalar exact enumeration and Schafer and Stark (2009) give convergent finite games; neither yields matching integer witnesses with an explicit outward error budget. \textit{Consumer.} Auditors obtain finite, reproducible lower bounds and conservative upper policies rather than sampled-grid evidence or an unreported integrality gap.
+
+\begin{lemma}[lem:fixed-design-separation]\label{lem:fixed-design-separation}
+Fix \(s\in\mathcal S_T\) with real-algebraic coordinates, a positive real-algebraic \(\kappa\), an integer \(K\in\mathbb N_0\), and a finite endpoint grid \(\mathcal G_h\subset\Theta\) consisting of real-algebraic points. Let \(a\) be a complete profile assigning a closed endpoint-grid interval to every \(x\in\mathcal B_K\) and assigning \(\Theta\) outside \(\mathcal B_K\). Put \(Q_a(\eta)=P_{\eta,\kappa}\{\theta(\eta)\in a(X)\}\) and \(R_a(\eta)=\mathbb E_{P_{\eta,\kappa}}[\ell(a(X))]\). There is a finite smooth semialgebraic stratification \(\{S_j\}\) of the compact nuisance box, compatible with its boundary and all target-membership relations, such that on every \(S_j\)
+\[
+Q_a(\eta)=1-\exp\{-\kappa M(\eta)\}p^{\mathrm{fail}}_{a,j}(\eta),
+\qquad
+L-R_a(\eta)=\exp\{-\kappa M(\eta)\}p^{\mathrm{save}}_{a,j}(\eta),
+\]
+where the two \(p\)'s are polynomials over the real algebraic numbers. Each displayed exponential--polynomial has a continuous extension to \(\overline S_j\). For finite compatible smooth semialgebraic stratifications of all the closures \(\overline S_j\), every minimum or maximum of every continuation is the value on a connected component of the tangential critical locus
+\[
+dp-\kappa p\,dM=0.
+\]
+There are finitely many such components, the continuation is constant on each component, and every component contains a real-algebraic representative. The global infimum and supremum of each original, possibly discontinuous, piecewise function \(Q_a\) and \(R_a\) are affine transforms of extrema of these closure continuations. Thus the finite candidate set includes any unattained one-sided boundary limit caused by a table switching between failure and coverage. Convergent rational outward algebraic--exponential enclosures decide every strict rational comparison with these global extrema; no decision claim is made for equality contacts.
+\end{lemma}
+\begin{proof}
+Fix the algebraic observed share \(s\in\mathcal S_T\), the positive algebraic intensity \(\kappa\), the integer cutoff \(K\), the algebraic endpoint grid, and the complete profile \(a\) in the statement.  Write
+\[
+ \nu=\bigl(A,(b_t)_{t=2}^T,v\bigr),
+ \qquad
+ \mathcal N=[1/2,2]^{\mathcal G}\times[1/2,2]^{T-1}
+                    \times[1/2,3]^{\mathcal D},
+\]
+and set \(b_1=1\).  The exposure-box, time-normalization, time-box, and treated-multiplier-box assumptions say exactly that \(\nu\in\mathcal N\).  Thus \(\mathcal N\) is a compact semialgebraic nuisance set, and each \(\nu\in\mathcal N\), together with the fixed \(s\), determines \(\eta=(s,A,b,v)\).
+
+We first verify that the target and all membership predicates used below are well defined.  Since \((2,t)\in\mathcal D\) for \(t=2,\ldots,T\), observed-share overlap and the exposure and time boxes give
+\[
+\begin{aligned}
+B(\eta)
+ &=\sum_{(g,t)\in\mathcal D}s_gA_gb_t
+ \ge \sum_{t=2}^T s_2A_2b_t                                      \\
+ &\ge (T-1)\frac{1}{2T}\frac12\frac12
+ =\frac{T-1}{8T}>0.
+\end{aligned}
+\]
+Here the last inequality uses \(T\ge3\).  Moreover, the definitions of \(H\), \(B\), and \(\theta\) imply
+\[
+ \theta(\eta)
+ =\frac{H(\eta)}{B(\eta)}-1
+ =\sum_{(g,t)\in\mathcal D}
+   \frac{w^0_{gt}}{B(\eta)}(v_{gt}-1).
+\]
+The displayed weights are positive and sum to one.  The treated-multiplier box gives \(-1/2\le v_{gt}-1\le2\), and hence \(\theta(\eta)\in[-1/2,2]=\Theta\).  Therefore the stipulated report \(\Theta\) outside \(\mathcal B_K\) always covers the target and has saved length zero there.
+
+Let \(|x|=\sum_{g,t}x_{gt}\).  By exact product-Poisson sampling, for each \(x\in\mathcal B_K\),
+\[
+\begin{aligned}
+P_{\eta,\kappa}(X=x)
+ &=\prod_{g\in\mathcal G,\,t\le T}
+   \exp\{-\kappa w_{gt}(\eta)\}
+   \frac{\{\kappa w_{gt}(\eta)\}^{x_{gt}}}{x_{gt}!}             \\
+ &=\exp\{-\kappa M(\eta)\}
+   \frac{\kappa^{|x|}}{\prod_{g,t}x_{gt}!}
+   \prod_{g,t}w_{gt}(\eta)^{x_{gt}}.
+\end{aligned}
+\]
+At fixed algebraic \(s\), every \(w_{gt}\), and therefore \(M=\sum_{g,t}w_{gt}\), is a polynomial in \(\nu\) with coefficients in the field \(\mathbb R_{\mathrm{alg}}\) of real algebraic numbers.  Because \(\kappa\) is algebraic, the factor following the exponential is likewise such a polynomial.
+
+For \(x\in\mathcal B_K\), write \(a(x)=[r_x,q_x]\).  The endpoint-grid hypothesis gives \(r_x,q_x\in\mathbb R_{\mathrm{alg}}\).  Positivity of \(B\) proves the equivalence
+\[
+ \theta(\eta)\in a(x)
+ \quad\Longleftrightarrow\quad
+ (1+r_x)B(\eta)\le H(\eta)
+ \quad\hbox{and}\quad
+ H(\eta)\le(1+q_x)B(\eta).
+\]
+Both conditions on the right are polynomial inequalities over \(\mathbb R_{\mathrm{alg}}\).  The box \(\mathcal B_K\) is finite because the cell index set and \(K\) are finite.  Apply \(\mathrm{lem{:}semialgebraic\text{-}stratification\text{-}finiteness}\) to the resulting finite family of membership sets together with the faces of \(\mathcal N\), splitting into connected components if necessary.  We obtain a finite compatible smooth semialgebraic stratification \(\{S_j\}_{j=1}^J\) of \(\mathcal N\), over \(\mathbb R_{\mathrm{alg}}\), on each member of which every membership truth value is fixed.
+
+For a stratum \(S_j\), define
+\[
+ \mathcal F_j=\{x\in\mathcal B_K:
+       \theta(\eta)\notin a(x)\text{ for }\eta\in S_j\}.
+\]
+Compatibility makes this definition independent of the chosen point of \(S_j\).  The preceding point-mass formula and certain coverage outside \(\mathcal B_K\) yield, for \(\eta\in S_j\),
+\[
+\begin{aligned}
+Q_a(\eta)
+ &=1-\exp\{-\kappa M(\eta)\}p^{\mathrm{fail}}_{a,j}(\eta),\\
+p^{\mathrm{fail}}_{a,j}(\eta)
+ &=\sum_{x\in\mathcal F_j}
+   \frac{\kappa^{|x|}}{\prod_{g,t}x_{gt}!}
+   \prod_{g,t}w_{gt}(\eta)^{x_{gt}}.
+\end{aligned}
+\]
+Likewise, the definition of expected interval length and the fact that the saved length is zero outside the count box give
+\[
+\begin{aligned}
+L-R_a(\eta)
+ &=\exp\{-\kappa M(\eta)\}p^{\mathrm{save}}_{a,j}(\eta),\\
+p^{\mathrm{save}}_{a,j}(\eta)
+ &=\sum_{x\in\mathcal B_K}
+   \bigl[L-\ell(a(x))\bigr]
+   \frac{\kappa^{|x|}}{\prod_{g,t}x_{gt}!}
+   \prod_{g,t}w_{gt}(\eta)^{x_{gt}}.
+\end{aligned}
+\]
+Both \(p\)'s are polynomials over \(\mathbb R_{\mathrm{alg}}\); the saved-length polynomial happens not to depend on \(j\), but the index is harmless.  For \(\bullet\in\{\mathrm{fail},\mathrm{save}\}\), define on all of \(\mathcal N\)
+\[
+ F_j^{\bullet}(\eta)
+ =\exp\{-\kappa M(\eta)\}p^{\bullet}_{a,j}(\eta).
+\]
+This function is continuous, so its restriction to the compact set \(\overline S_j\) is a continuous extension of the fixed-stratum formula.  The extension remains tied to the profile on \(S_j\): when target membership switches at a boundary, it need not equal the formula assigned to the boundary stratum.
+
+Apply the same cited stratification result to the finite family of compact semialgebraic sets \(\overline S_j\), obtaining compatible smooth strata \(R_{jr}\subseteq\overline S_j\), again over \(\mathbb R_{\mathrm{alg}}\).  Fix one closure continuation
+\[
+ F=\exp\{-\kappa M\}p
+\]
+on such a stratum.  For \(\eta\in R_{jr}\) and \(u\in T_\eta R_{jr}\), the chain and product rules give
+\[
+ dF_\eta(u)=\exp\{-\kappa M(\eta)\}
+ \bigl(dp_\eta(u)-\kappa p(\eta)dM_\eta(u)\bigr).
+\]
+The exponential factor is strictly positive.  Thus every relative local extremum belongs to the tangential critical locus
+\[
+ \mathcal C_{jr}(p)=
+ \left\{\eta\in R_{jr}:
+ (dp-\kappa p\,dM)_\eta(u)=0
+ \text{ for every }u\in T_\eta R_{jr}\right\}.
+\]
+For a zero-dimensional stratum the condition is vacuous, as required.
+
+We next establish the asserted finiteness and constancy properties.  On each rank-constant chart of the smooth semialgebraic stratum \(R_{jr}\), the tangent bundle is specified by polynomial Jacobian equations.  Partitioning according to the finitely many relevant nonzero minors makes its tangent bundle semialgebraic over \(\mathbb R_{\mathrm{alg}}\).  The covector \(dp-\kappa p\,dM\) has polynomial coefficients over the same field.  Hence \(\mathcal C_{jr}(p)\) is semialgebraic over \(\mathbb R_{\mathrm{alg}}\): its complement in \(R_{jr}\) is the coordinate projection of the semialgebraic set of pairs \((\eta,u)\) for which \(u\in T_\eta R_{jr}\) and the covector is nonzero on \(u\).  Projection and complementation preserve semialgebraicity by \(\mathrm{lem{:}semialgebraic\text{-}stratification\text{-}finiteness}\).  That lemma also gives only finitely many connected components of \(\mathcal C_{jr}(p)\).
+
+The function \(F\) is constant on each such component.  Indeed, the path assertion in \(\mathrm{lem{:}semialgebraic\text{-}stratification\text{-}finiteness}\) joins any two points of a component by a semialgebraic path \(\gamma\) that is continuously differentiable on finitely many pieces.  On every differentiable piece,
+\[
+ \frac{d}{dt}F(\gamma(t))
+ =\exp\{-\kappa M(\gamma(t))\}
+ (dp-\kappa p\,dM)_{\gamma(t)}(\dot\gamma(t))=0.
+\]
+The fundamental theorem of calculus on each piece, followed by continuity at the finitely many joins, proves constancy.
+
+Each continuation attains its minimum and maximum on \(\overline S_j\), by compactness and continuity.  If \(\eta_\star\) is such an extremizer and belongs to \(R_{jr}\), then it is a relative local extremum on \(R_{jr}\), so \(\eta_\star\in\mathcal C_{jr}(p)\).  Every closure-extremum value is therefore the constant value on one of the finitely many critical components.
+
+Each critical component contains a real-algebraic representative.  To see this without imposing an attainment claim on the original piecewise function, first observe that every nonempty semialgebraic subset of \(\mathbb R^d\) defined over \(\mathbb R_{\mathrm{alg}}\) contains a point of \(\mathbb R_{\mathrm{alg}}^d\).  For \(d=1\), a quantifier-free description involves finitely many polynomials over \(\mathbb R_{\mathrm{alg}}\); all of their roots are algebraic, and every nonempty complementary sign interval contains a rational point.  For \(d>1\), coordinate projection is semialgebraic over \(\mathbb R_{\mathrm{alg}}\) by the cited lemma.  The one-dimensional case supplies an algebraic first coordinate in the projection, and induction applied to its nonempty fiber supplies all remaining coordinates.
+
+Now let \(C\) be a connected component of \(\mathcal C_{jr}(p)\).  Components are relatively closed, and there are finitely many of them, so \(C\) is also relatively open in \(\mathcal C_{jr}(p)\).  Given \(z\in C\), choose a rational open box \(V\) containing \(z\) such that
+\[
+ \varnothing\ne V\cap\mathcal C_{jr}(p)\subseteq C.
+\]
+The intersection is semialgebraic over \(\mathbb R_{\mathrm{alg}}\), and the preceding paragraph gives a point \(\eta_C\in V\cap\mathcal C_{jr}(p)\cap\mathbb R_{\mathrm{alg}}^d\).  Thus \(\eta_C\) is the required representative of \(C\).
+
+It remains to connect the closure extrema to the possibly discontinuous original functions.  Since \(S_j\) is dense in \(\overline S_j\) and \(F_j^\bullet\) is continuous,
+\[
+ \inf_{\eta\in S_j}F_j^\bullet(\eta)
+ =\min_{\eta\in\overline S_j}F_j^\bullet(\eta),
+ \qquad
+ \sup_{\eta\in S_j}F_j^\bullet(\eta)
+ =\max_{\eta\in\overline S_j}F_j^\bullet(\eta).
+\]
+Because the finitely many \(S_j\) partition \(\mathcal N\), the coverage extrema satisfy
+\[
+\begin{aligned}
+\inf_{\eta\in\mathcal N}Q_a(\eta)
+ &=\min_j\left\{1-
+       \max_{\eta\in\overline S_j}F_j^{\mathrm{fail}}(\eta)\right\},\\
+\sup_{\eta\in\mathcal N}Q_a(\eta)
+ &=\max_j\left\{1-
+       \min_{\eta\in\overline S_j}F_j^{\mathrm{fail}}(\eta)\right\}.
+\end{aligned}
+\]
+Similarly, the risk extrema satisfy
+\[
+\begin{aligned}
+\inf_{\eta\in\mathcal N}R_a(\eta)
+ &=\min_j\left\{L-
+       \max_{\eta\in\overline S_j}F_j^{\mathrm{save}}(\eta)\right\},\\
+\sup_{\eta\in\mathcal N}R_a(\eta)
+ &=\max_j\left\{L-
+       \min_{\eta\in\overline S_j}F_j^{\mathrm{save}}(\eta)\right\}.
+\end{aligned}
+\]
+These are equalities of infima and suprema, not assertions that the original piecewise functions attain them.  In particular, if an adjacent target-membership table switches from failure to coverage at a boundary, the relevant value of \(F_j^{\mathrm{fail}}\) on \(\overline S_j\setminus S_j\) is precisely the possibly unattained one-sided limit; the finite list above still contains it.
+
+Finally, at every algebraic representative \(\eta_C\), both \(M(\eta_C)\) and \(p(\eta_C)\) are algebraic and hence admit arbitrarily narrow rational isolating intervals with directed rounding.  Put \(z=-\kappa M(\eta_C)\), choose a rational \(Q>|z|\), and choose an integer \(m\ge Q\).  Taylor's formula gives
+\[
+ \exp(z)=\sum_{q=0}^{n}\frac{z^q}{q!}+R_{n+1}(z),
+ \qquad
+ |R_{n+1}(z)|
+ \le 3^m\frac{Q^{n+1}}{(n+1)!},
+\]
+because \(\exp(|z|)\le\exp(Q)\le\exp(m)<3^m\).  The rational remainder bound tends to zero, since the ratio of successive terms is \(Q/(n+2)\).  Combining it with the shrinking algebraic isolating intervals gives convergent rational outward enclosures for every value
+\[
+ \exp\{-\kappa M(\eta_C)\}p(\eta_C).
+\]
+There are only finitely many component values.  If a global coverage or risk extremum is strictly on one side of a rational threshold, the finite candidate set has a positive separation from that threshold on the required side.  Sufficiently refined outward enclosures then certify the strict comparison.  At an equality contact the intervals need not separate, so this argument makes no decision or termination claim there.  This proves every assertion of the lemma, including the one-sided boundary-limit qualification.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} At each algebraic observed design this gives a finite, rigorous nuisance-optimization reduction while retaining discontinuous membership-switch limits. \textit{Gap.} The exponential cancels from tangential critical equations, but outward intervals decide only strict comparisons; equality contacts and their uniform share--intensity parameterization remain outside the lemma. \textit{Consumer.} Verified fixed-design solvers can enclose finitely many algebraically represented component values and certify strict global coverage or risk comparisons without nuisance sampling or a false attainment claim.
+
+\begin{openendedquestion}[oeq:uniform-certificate]\label{oeq:uniform-certificate}
+Does there exist a total synthesis algorithm which, for every exactly encoded rational \(T\), \(\alpha\), compact \(\mathcal K\), and \(\varepsilon>0\), chooses finite \(K\) and rational \(h\) and returns a finite certificate \(\Gamma\) with \(\operatorname{Verify}(\iota,\Gamma)=1\)? Every accepted output must consist of finitely many rational polyhedral observable and nuisance cells, total endpoint-grid policy tables, and outward-rounded Poisson tail and enclosure data; acceptance must imply a measurable deterministic connected-interval family honest for every \(s\in\mathcal S_T\), every \(\kappa\in\mathcal K\), and every maintained nuisance value, together with
+\[
+ b_\varepsilon\le\overline D_{\mathrm{det}}(\mathcal K)\le U_\varepsilon,
+ \qquad 0\le U_\varepsilon-b_\varepsilon\le\varepsilon.
+\]
+The lower object must be a finite-support integer program accompanied by a complete exact branch-and-bound proof, not an unresolved linear relaxation. This specialized exact-certificate question is not answered by Schafer and Stark (2009): their Theorem 2 concerns Monte Carlo risk convergence, whereas their Theorem 6 gives an off-support density-ratio risk bound. Andrews, Cheng, and Guggenberger (2020), Section 2, gives qualitative drifting-subsequence criteria rather than a finite cover, computable enclosures, or a machine-checkable acceptance predicate. Because those papers use different models and action classes, no strict-strengthening or class-inclusion claim is made.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The residual theorem-level question is whether exact fixed-design certificates can be synthesized uniformly over every observed share and every intensity in an arbitrary compact range, including zero-margin contacts. \textit{Gap.} Schafer and Stark (2009), Theorem 2, proves Monte Carlo risk convergence, and their Theorem 6 gives an off-support density-ratio risk bound; neither yields a terminating continuum-honesty verifier or complete integer lower proof. Andrews, Cheng, and Guggenberger (2020), Section 2, gives qualitative drifting-subsequence criteria rather than a finite rational-polyhedral certificate. \textit{Consumer.} A positive answer would let auditors synthesize and replay exact-rational sparse-count confidence certificates simultaneously over the full observed-share simplex and any declared compact intensity range.
+
+\begin{theorem}[thm:efficient-variance]\label{thm:efficient-variance}
+At every interior parameter, \(I_{\mathcal U}(\eta)\) is positive definite and \(V_{\mathrm{eff}}(\eta)\) is the semiparametric efficiency bound coefficient for estimating \(\theta(\eta)\) in the product-Poisson experiment as \(\kappa\to\infty\). The least-favorable local direction is the efficient target score obtained by projecting the treated-total score onto the orthocomplement of the untreated row-plus-time nuisance score space.
+\end{theorem}
+\begin{proof}
+Fix the observed share vector \(s\).  Write \(c_g=s_gA_g\), put
+\[
+ \beta=\bigl((\log c_g)_{g\in\mathcal G},(\log b_t)_{2\leq t\leq T}\bigr),
+ \qquad \rho_{gt}=\log w_{gt}\quad ((g,t)\in\mathcal D),
+\]
+and retain the normalization \(b_1=1\) from
+\(\mathrm{ass{:}time\text{-}normalization}\).  Thus
+\(w^0_{gt}=\exp(z_{gt}^{\prime}\beta)\).  The overlap and exposure-box
+assumptions imply \(c_g>0\), and the time-box assumption implicit in the
+experiment class implies \(b_t>0\).  Hence every summand defining
+\(I_{\mathcal U}(\eta)\) is well defined and has a strictly positive weight.
+
+We first prove rank.  If a vector
+\(a=((a_g)_{g\in\mathcal G},(d_t)_{2\leq t\leq T})\) satisfies
+\(a^{\prime}I_{\mathcal U}(\eta)a=0\), then
+\[
+ 0=\sum_{(g,t)\in\mathcal U}w^0_{gt}
+       \bigl(a_g+\mathbf 1\{t>1\}d_t\bigr)^2.
+\]
+Positivity of every \(w^0_{gt}\) makes every square zero.  Since
+\((g,1)\in\mathcal U\) for every \(g\in\mathcal G\), one obtains
+\(a_g=0\) for every cohort.  Since the never-treated cohort
+\(g=\infty\) obeys \((\infty,t)\in\mathcal U\) for every \(t\), the
+remaining equations give \(d_t=0\) for \(t>1\).  Thus \(a=0\), proving
+that \(I_{\mathcal U}(\eta)\) is positive definite.  The same argument
+works on the boundary of the displayed boxes.  Moreover, continuity and
+compactness of the share and nuisance boxes give
+\[
+ inf_{\eta}\lambda_{\min}\bigl(I_{\mathcal U}(\eta)\bigr)>0.
+\]
+
+We next compute the information bound.  At an interior point the change of
+coordinates
+\[
+  (\beta,(\log v_{gt})_{\mathcal D})
+    \longmapsto (\beta,(\rho_{gt})_{\mathcal D}),
+ \qquad
+  \rho_{gt}=z_{gt}^{\prime}\beta+\log v_{gt},
+\]
+has an invertible triangular derivative.  It therefore preserves the local
+tangent space and the efficiency bound.  Under
+\(\mathrm{ass{:}exact\text{-}product\text{-}poisson}\), define
+\[
+ Z_{gt,\kappa}=\frac{X_{gt}-\kappa w_{gt}}{\sqrt\kappa}.
+\]
+In the coordinates \((\rho,\beta)\), the normalized score and its covariance
+coefficient are
+\[
+ \Delta_{\rho}= (Z_{gt,\kappa})_{(g,t)\in\mathcal D},
+ \qquad
+ \Delta_{\beta}=\sum_{(g,t)\in\mathcal U}z_{gt}Z_{gt,\kappa},
+\]
+\[
+ \mathcal I(\eta)=
+ \operatorname{diag}\!\left(
+   \operatorname{diag}_{(g,t)\in\mathcal D}(w_{gt}),
+   I_{\mathcal U}(\eta)
+ \right).
+\]
+Independence of disjoint Poisson cells justifies the zero off-diagonal
+block, and \(\operatorname{Var}(Z_{gt,\kappa})=w_{gt}\) justifies both
+diagonal blocks.
+
+Let \(q=1+\theta=H/B\).  From the causal functional in
+\(\mathrm{def{:}causal\text{-}functional\text{-}setup}\), direct
+differentiation gives
+\[
+ \frac{\partial\theta}{\partial\rho_{gt}}=\frac{w_{gt}}{B},
+ \qquad
+ \nabla_{\beta}\theta
+   =-\frac{H}{B^2}\sum_{(g,t)\in\mathcal D}w^0_{gt}z_{gt}
+   =-\frac{q}{B}h_{\mathcal U}.
+\]
+No division is problematic because \(B\) is a finite sum of strictly
+positive treated-cell baseline masses and \(\mathcal D\) is nonempty when
+\(T\geq3\).  Consequently the Riesz representer of the target derivative in
+the score Hilbert space is
+\[
+ \varphi_{\eta,\kappa}
+ =\frac{1}{B}\left\{
+      \sum_{(g,t)\in\mathcal D}Z_{gt,\kappa}
+      -q h_{\mathcal U}^{\prime}I_{\mathcal U}^{-1}
+          \sum_{(g,t)\in\mathcal U}z_{gt}Z_{gt,\kappa}
+   \right\}.
+\]
+Indeed, for every tangent \(a=(a_{\rho},a_{\beta})\), independence and the
+two covariance calculations above yield
+\[
+ \operatorname{Cov}_{\eta}\!\left(
+   \varphi_{\eta,\kappa},
+   a_{\rho}^{\prime}\Delta_{\rho}+a_{\beta}^{\prime}\Delta_{\beta}
+ \right)
+ =\frac{1}{B}\left\{
+    \sum_{(g,t)\in\mathcal D}w_{gt}a_{\rho,gt}
+       -q h_{\mathcal U}^{\prime}a_{\beta}
+  \right\}
+ =\dot\theta_{\eta}(a).
+\]
+It follows in particular that \(\varphi_{\eta,\kappa}\) is orthogonal to
+every nuisance tangent satisfying \(\dot\theta_{\eta}(a)=0\).  Its variance
+is
+\[
+ \operatorname{Var}_{\eta}(\varphi_{\eta,\kappa})
+ =\frac{1}{B^2}\left\{
+      H+q^2h_{\mathcal U}^{\prime}I_{\mathcal U}^{-1}h_{\mathcal U}
+   \right\}
+ =V_{\mathrm{eff}}(\eta).
+\]
+Thus the information for the scalar target is
+\(V_{\mathrm{eff}}(\eta)^{-1}\), and the convolution/Cauchy--Schwarz
+argument is immediate: if \(R\) is the influence function of any regular
+estimator, then
+\(\operatorname{Cov}(R,S_a)=\dot\theta_{\eta}(a)\) for every score
+\(S_a\); taking the Riesz direction represented by \(\varphi\) gives
+\[
+ \operatorname{Var}(R)\geq
+ \frac{\operatorname{Cov}(R,\varphi/V_{\mathrm{eff}})^2}
+      {\operatorname{Var}(\varphi/V_{\mathrm{eff}})}
+ =V_{\mathrm{eff}},
+\]
+with equality for \(R=\varphi\).  This proves the asserted efficiency
+bound coefficient without identifying it with the causal target by
+definition.
+
+For completeness, the advertised projection can be seen directly after
+profiling the treated-cell composition.  Parameterize the treated total by
+\(H=qB\), retain \(\beta\), and hold the treated composition fixed.  The
+score for \(\theta\) is \(q^{-1}\sum_{\mathcal D}Z_{gt,\kappa}\), whereas
+the nuisance score for \(\beta\) is
+\[
+ \sum_{\mathcal U}z_{gt}Z_{gt,\kappa}
+   +\frac{h_{\mathcal U}}{B}\sum_{\mathcal D}Z_{gt,\kappa}.
+\]
+Their information blocks are
+\[
+ I_{\theta\theta}=\frac{B}{q},
+ \qquad I_{\theta\beta}=h_{\mathcal U}^{\prime},
+ \qquad I_{\beta\beta}=I_{\mathcal U}+\frac{q}{B}h_{\mathcal U}h_{\mathcal U}^{\prime}.
+\]
+The Schur complement, using the rank-one inverse identity, is
+\[
+ I_{\theta\theta\cdot\beta}
+ =\frac{B}{q}
+   -h_{\mathcal U}^{\prime}
+      \left(I_{\mathcal U}+\frac{q}{B}h_{\mathcal U}h_{\mathcal U}^{\prime}\right)^{-1}
+      h_{\mathcal U}
+ =\frac{B^2}{qB+q^2h_{\mathcal U}^{\prime}I_{\mathcal U}^{-1}h_{\mathcal U}}
+ =V_{\mathrm{eff}}^{-1}.
+\]
+Hence orthogonally projecting the treated-total target score off the
+untreated row-plus-time nuisance score space gives the efficient score
+\(\varphi/V_{\mathrm{eff}}\).  Under the information isometry, its
+corresponding least-favorable unit-target tangent is
+\[
+ a^*=\frac{\mathcal I(\eta)^{-1}\nabla\theta(\eta)}{V_{\mathrm{eff}}(\eta)},
+ \qquad
+ \dot\theta_{\eta}(a^*)=1,
+ \qquad
+ (a^*)^{\prime}\mathcal I(\eta)a^*=V_{\mathrm{eff}}(\eta)^{-1}.
+\]
+This proves all parts of the theorem.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The explicit nuisance projection identifies the regular benchmark that exact sparse-count procedures must approach. \textit{Gap.} Martin (2017), Theorem 2, and Wooldridge (2023) provide regular fixed-\(T\) inference for different panel targets; neither derives this counterfactual-share ratio's exact aggregate-Poisson efficiency bound. \textit{Consumer.} High-volume staggered-PPML applications obtain a principled variance formula and a least-favorable direction for calibration and power analysis.
+
+\begin{theorem}[thm:gaussian-bridge]\label{thm:gaussian-bridge}
+As \(\kappa\to\infty\), \(\sqrt\kappa D_{\mathrm{det}}(\kappa)\to C_G\) and \(\sqrt\kappa D_{\mathrm{rand}}(\kappa)\to C_G\). The upper bound is attained by a deterministically calibrated, clipped efficient interval with full-range output on exponentially rare fit failures; the lower bound holds along interior local submodels approaching a maximizer of \(V_{\mathrm{eff}}\).
+\end{theorem}
+\begin{proof}
+Let \(\mathcal E\) denote the compact set of \(\eta=(s,A,b,v)\) specified
+by the experiment class, at fixed \(T\).  All cell masses are bounded
+uniformly away from zero and infinity: there are constants
+\(0<\underline w<\overline w<\infty\), depending only on \(T\) and the
+displayed boxes, such that
+\[
+ \underline w\leq w_{gt}(\eta)\leq\overline w
+ \quad\text{for every cell and every }\eta\in\mathcal E.
+\]
+The preceding theorem and compactness also give constants
+\(0<\underline V<\overline V<\infty\) for which
+\[
+ \underline V\leq V_{\mathrm{eff}}(\eta)\leq\overline V
+ \quad (\eta\in\mathcal E).
+\]
+Continuity follows because all defining sums are finite, \(B>0\), and the
+smallest eigenvalue of \(I_{\mathcal U}\) is uniformly positive.  Therefore
+\(V_{\max}=\max_{\eta\in\mathcal E}V_{\mathrm{eff}}(\eta)\) exists and
+\(C_G=2z_{1-\alpha/2}\sqrt{V_{\max}}\).
+
+We first construct an exactly honest deterministic upper-bound procedure.
+Use an ambient compact fitting box whose interior contains every possible
+\(\beta\) from the original class with a fixed positive margin.  On the
+untreated cells let \(\widehat\beta\) maximize
+\[
+ \sum_{(g,t)\in\mathcal U}
+ \left\{X_{gt}z_{gt}^{\prime}\beta
+             -\kappa\exp(z_{gt}^{\prime}\beta)\right\},
+\]
+and put
+\[
+ \widehat H=\sum_{(g,t)\in\mathcal D}\frac{X_{gt}}{\kappa},
+ \qquad
+ \widehat B=\sum_{(g,t)\in\mathcal D}
+                   \exp(z_{gt}^{\prime}\widehat\beta),
+ \qquad
+ \widetilde\theta=\frac{\widehat H}{\widehat B}-1.
+\]
+Define \(G_\kappa\) to be the data-measurable event on which all empirical
+cell masses lie in \([\underline w/2,2\overline w]\), the displayed
+maximizer is unique and lies in the interior of the ambient box, and the
+plug-in quantities \(\widehat B\), \(\widehat I_{\mathcal U}\), and
+\(\widehat V\) lie in fixed positive enlarged bounds.  Here
+\(\widehat V\) is obtained from the formula for \(V_{\mathrm{eff}}\) by
+using \(\widehat H\), \(\widehat B\), \(\widehat\beta\), and
+\(\widehat q=\widehat H/\widehat B\).  Chernoff's elementary bound for a
+Poisson variable, obtained by minimizing
+\(\exp\{\lambda X-\kappa w(e^\lambda-1)\}\) over \(\lambda\), and the
+strict concavity supplied by the positive-definite untreated design imply
+that constants \(c,C>0\) satisfy
+\[
+ \sup_{\eta\in\mathcal E}P_{\eta,\kappa}(G_\kappa^c)
+ \leq Ce^{-c\kappa}.
+\]
+
+The untreated likelihood equation and a mean-value expansion give,
+uniformly over \(\mathcal E\),
+\[
+ \sqrt\kappa(\widehat\beta-\beta)
+ =I_{\mathcal U}(\eta)^{-1}
+    \sum_{(g,t)\in\mathcal U}
+       z_{gt}\frac{X_{gt}-\kappa w^0_{gt}}{\sqrt\kappa}
+   +o_{P_{\eta,\kappa}}(1).
+\]
+Taylor expansion of \(\widehat H/\widehat B-1\), with the derivative
+computed in the preceding theorem, consequently yields
+\[
+ \sqrt\kappa(\widetilde\theta-\theta)
+ =\frac{1}{B}\left\{
+    \sum_{(g,t)\in\mathcal D}
+       \frac{X_{gt}-\kappa w_{gt}}{\sqrt\kappa}
+    -q h_{\mathcal U}^{\prime}I_{\mathcal U}^{-1}
+       \sum_{(g,t)\in\mathcal U}
+          z_{gt}\frac{X_{gt}-\kappa w^0_{gt}}{\sqrt\kappa}
+  \right\}+o_{P_{\eta,\kappa}}(1).
+\]
+All remainders here are uniform because there are finitely many cells, the
+third derivatives are bounded on the ambient box, and the relevant Hessian
+eigenvalues are bounded away from zero.  Also
+\[
+ \sup_{\eta\in\mathcal E}
+ P_{\eta,\kappa}\bigl(|\widehat V-V_{\mathrm{eff}}(\eta)|>\varepsilon,
+ G_\kappa\bigr)\longrightarrow0
+ \quad\text{for every }\varepsilon>0.
+\]
+
+The standardized leading sum is uniformly asymptotically standard normal.
+To verify uniformity rather than assume a pointwise central limit theorem,
+take any sequence \(\eta_\kappa\in\mathcal E\).  Compactness gives a
+convergent subsequence.  For the finite vector
+\(Z_\kappa=((X_{gt}-\kappa w_{gt})/\sqrt\kappa)_{g,t}\), its log
+characteristic function is
+\[
+ \sum_{g,t}\kappa w_{gt}
+ \left\{
+   \exp\left(\frac{i u_{gt}}{\sqrt\kappa}\right)
+       -1-\frac{i u_{gt}}{\sqrt\kappa}
+ \right\}
+ =-\frac12\sum_{g,t}w_{gt}u_{gt}^2+O(\kappa^{-1/2}),
+\]
+uniformly for \(u\) in compact sets and \(w_{gt}\in[\underline w,\overline w]\).
+Thus every subsequence has the asserted Gaussian sublimit; the expansion
+and variance consistency then imply
+\[
+ \sup_{\eta\in\mathcal E}\sup_{x\in\mathbb R}
+ \left|
+ P_{\eta,\kappa}\left[
+  \frac{\sqrt\kappa(\widetilde\theta-\theta)}{\sqrt{\widehat V}}
+       \leq x,\ G_\kappa
+ \right]-\Phi(x)
+ \right|\longrightarrow0,
+\]
+where deleting \(G_\kappa^c\) changes probabilities by at most
+\(Ce^{-c\kappa}\).
+
+Set
+\[
+ c_\kappa=\inf\left\{c\geq0:
+  \inf_{\eta\in\mathcal E}P_{\eta,\kappa}\left[
+   G_\kappa^c\ \text{or}\
+   \frac{\sqrt\kappa|\widetilde\theta-\theta(\eta)|}{\sqrt{\widehat V}}
+       \leq c
+  \right]\geq1-\alpha
+ \right\}.
+\]
+On \(G_\kappa\) only finitely many count tables occur, so the infimum can
+be taken at a right-continuity point; choosing the smallest admissible
+value makes the calibration deterministic.  The uniform convergence just
+proved and \(0<\alpha<1/10\) imply
+\[
+ c_\kappa\longrightarrow z_{1-\alpha/2}.
+\]
+Report \(\Theta\) on \(G_\kappa^c\).  On \(G_\kappa\), report the
+intersection of \(\Theta\) with
+\[
+ \left[\widetilde\theta-\frac{c_\kappa\sqrt{\widehat V}}{\sqrt\kappa},
+       \widetilde\theta+\frac{c_\kappa\sqrt{\widehat V}}{\sqrt\kappa}
+ \right];
+\]
+if that intersection is empty, report the nearest endpoint singleton.
+This is a Borel deterministic connected-interval policy.  Whenever the
+calibration event occurs, the untruncated interval contains
+\(\theta(\eta)\in\Theta\), so its intersection is nonempty and still
+contains the target.  Hence the policy is exactly uniformly
+\((1-\alpha)\)-honest for every \(\kappa\).  Clipping cannot increase
+length, and therefore
+\[
+ \begin{split}
+ \sqrt\kappa\sup_{\eta\in\mathcal E}
+ E_{\eta,\kappa}\ell(C_\kappa)
+ &\leq
+ 2c_\kappa\sup_{\eta\in\mathcal E}
+ E_{\eta,\kappa}\left[\sqrt{\widehat V}\,\mathbf 1_{G_\kappa}\right]
+ +L\sqrt\kappa\sup_{\eta\in\mathcal E}P_{\eta,\kappa}(G_\kappa^c)\\
+ &\longrightarrow 2z_{1-\alpha/2}\sqrt{V_{\max}}=C_G.
+ \end{split}
+\]
+The expectation converges uniformly because \(\widehat V\) is bounded on
+\(G_\kappa\) and uniformly consistent there.  This proves
+\[
+ \limsup_{\kappa\to\infty}\sqrt\kappa D_{\mathrm{det}}(\kappa)\leq C_G.
+\]
+Since a deterministic policy is a degenerate Markov kernel,
+\(D_{\mathrm{rand}}(\kappa)\leq D_{\mathrm{det}}(\kappa)\).
+
+We now prove the matching lower bound, including randomization.  We first
+record the required Gaussian calculation.  In the location experiment
+\(Z\sim N(h,\sigma^2)\), translation averaging cannot increase the maximum
+expected length or decrease minimum coverage.  Indeed, translating a
+kernel by \(u\) changes its coverage and risk at \(h\) into those of the
+original kernel at \(h+u\); averaging over \([-r,r]\) and taking a diagonal
+weak limit as \(r\to\infty\) produces a translation-equivariant kernel with
+the same inequalities.  Lower semicontinuity of interval length preserves
+the risk inequality.  Such a kernel has the form
+\([Z-A,Z+B]\), where the possibly randomized pair \((A,B)\) is independent
+of \(Z\) and satisfies \(A+B\geq0\).  Conditional on
+\(R=A+B\), centeredness and unimodality of the normal density give
+\[
+ P_h\{h\in[Z-A,Z+B]\mid A,B\}
+ =\Phi(A/\sigma)-\Phi(-B/\sigma)
+ \leq 2\Phi\left(\frac{R}{2\sigma}\right)-1.
+\]
+The function \(r\mapsto2\Phi(r/(2\sigma))-1\) is increasing and concave
+for \(r\geq0\).  Jensen's inequality therefore shows that coverage at
+least \(1-\alpha\) forces
+\[
+ 1-\alpha
+ \leq2\Phi\left(\frac{E R}{2\sigma}\right)-1,
+ \qquad
+ E R\geq2z_{1-\alpha/2}\sigma.
+\]
+The nonrandomized interval
+\([Z-z_{1-\alpha/2}\sigma,Z+z_{1-\alpha/2}\sigma]\) attains equality.
+The same averaging over an interval strictly inside \([-r,r]\), followed
+by \(r\to\infty\), shows that the minimax values for bounded location
+sets increase to this whole-line value.  This argument already permits
+randomized interval kernels.
+
+Fix now an interior nuisance point \(\eta_0\) with
+\(\theta(\eta_0)\) in the interior of \(\Theta\), and put
+\(V_0=V_{\mathrm{eff}}(\eta_0)\).  In the regular coordinates
+\((\rho,\beta)\) from the preceding proof, let
+\[
+ a^*=\frac{\mathcal I(\eta_0)^{-1}\nabla\theta(\eta_0)}{V_0}.
+\]
+Then \(\dot\theta_{\eta_0}(a^*)=1\) and the information of this direction
+is \(1/V_0\).  The inverse-function theorem allows a smooth reparameterized
+path \(u\mapsto\eta(u)\) through \(\eta_0\), tangent to \(a^*\), for which
+\(\theta(\eta(u))=\theta(\eta_0)+u\) exactly for all sufficiently small
+\(u\).  For every fixed \(r<\infty\), the alternatives
+\(\eta_{\kappa,h}=\eta(h/\sqrt\kappa)\), \(|h|\leq r\), remain in the
+original model for large \(\kappa\).  Direct Taylor expansion of the
+product-Poisson log likelihood gives, uniformly on bounded \(h\),
+\[
+ \log\frac{dP_{\eta_{\kappa,h},\kappa}}
+              {dP_{\eta_0,\kappa}}
+ =h\Delta_\kappa-\frac{h^2}{2V_0}+o_{P_{\eta_0,\kappa}}(1),
+ \qquad
+ \Delta_\kappa\ \Longrightarrow\ N(0,V_0^{-1}).
+\]
+This follows from the same finite Poisson characteristic-function expansion
+used above; the third-order likelihood remainder is
+\(O(\kappa^{-1/2})\) uniformly for bounded \(h\).  Thus the local
+experiment converges to observing \(Z\sim N(h,V_0)\).
+
+Here is the decision transfer needed for expected length.  Given any
+sequence of honest randomized interval kernels, rescale its endpoints by
+\(\sqrt\kappa\) about \(\theta(\eta_0)\).  If their maximum local expected
+length is unbounded, the desired lower bound is automatic.  Otherwise
+Markov's inequality gives tightness of their lengths.  Joint subsequential
+weak limits with \(\Delta_\kappa\), followed by the displayed likelihood
+ratio identity, define a randomized interval kernel in the Gaussian shift
+experiment.  Exact honesty at every \(\eta_{\kappa,h}\) passes to coverage
+at least \(1-\alpha\) at every continuity value of \(h\), hence at every
+\(h\) by closure of intervals.  Truncating lengths and then using monotone
+convergence shows that expected length is lower semicontinuous.  Therefore,
+if \(R_r(V_0)\) is the Gaussian randomized minimax value on
+\([-r,r]\),
+\[
+ \liminf_{\kappa\to\infty}
+ \sqrt\kappa\,D_{\mathrm{rand}}(\kappa)\geq R_r(V_0).
+\]
+Letting \(r\to\infty\) and applying the preceding Gaussian calculation
+gives
+\[
+ \liminf_{\kappa\to\infty}
+ \sqrt\kappa\,D_{\mathrm{rand}}(\kappa)
+ \geq2z_{1-\alpha/2}\sqrt{V_0}.
+\]
+
+Finally, continuity of \(V_{\mathrm{eff}}\) and density of the relative
+interior of every share and nuisance box allow a sequence of such interior
+points \(\eta_m\) to approach a maximizer of \(V_{\mathrm{eff}}\), while
+keeping \(\theta(\eta_m)\) strictly inside \(\Theta\).  In particular,
+if the maximum occurs at \(v_{gt}=3\), take multipliers increasing to
+three from below; analogous inward perturbations handle all other boundary
+coordinates.  Applying the last inequality at each \(\eta_m\) and then
+letting \(m\to\infty\) yields
+\[
+ \liminf_{\kappa\to\infty}
+ \sqrt\kappa\,D_{\mathrm{rand}}(\kappa)
+ \geq2z_{1-\alpha/2}\sqrt{V_{\max}}=C_G.
+\]
+Combining this with
+\(D_{\mathrm{rand}}\leq D_{\mathrm{det}}\) and the deterministic upper
+bound proves
+\[
+ \sqrt\kappa D_{\mathrm{rand}}(\kappa)\longrightarrow C_G,
+ \qquad
+ \sqrt\kappa D_{\mathrm{det}}(\kappa)\longrightarrow C_G.
+\]
+The construction uses full-range output only on an exponentially rare fit
+failure, and the lower bound uses interior local submodels approaching a
+variance maximizer, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem connects exact sparse-count honesty to regular fixed-\(T\) PPML inference and shows that randomization has no first-order high-information advantage. \textit{Gap.} Brown, Carter, Low, and Zhang (2004) transfer bounded decision risks between different Poisson and Gaussian experiments; the present bridge profiles the causal nuisance and transfers connected-interval minimax length with target boundaries. \textit{Consumer.} Practitioners obtain a regime check showing when exact certification may be replaced, to first order, by an efficient Gaussian interval.
+
+\begin{lemma}[lem:semialgebraic-stratification-finiteness]\label{lem:semialgebraic-stratification-finiteness}
+The coordinate projection of a semialgebraic set defined over the real algebraic numbers is semialgebraic over the real algebraic numbers.  Every finite family of semialgebraic subsets of \(\mathbb R^d\) admits a finite compatible smooth semialgebraic stratification.  Every semialgebraic set has finitely many connected components, and each connected component can be joined by a semialgebraic path that is piecewise continuously differentiable.
+\end{lemma}
+
+\begin{theorem}[thm:early-kill-certificate]\label{thm:early-kill-certificate}
+For \(\iota_{\mathrm{kill}}\), take
+\[
+ \mathcal G_{1/100}=\{-1/2+j/100:j=0,\ldots,250\}.
+\]
+There is a finite certificate \(\Gamma_{\mathrm{kill}}\) with \(K=2\), \(h=1/100\), \(U_\varepsilon=5/2\), \(b_\varepsilon=49/20\), and \(\delta_{\mathrm{enc}}=0\) such that
+\[
+ \operatorname{Verify}(\iota_{\mathrm{kill}},\Gamma_{\mathrm{kill}})=1.
+\]
+Its primal table is the globally share-uniform policy \(C(s,x)=\Theta\). Its lower-witness record \(W\) is supported at \(s^*=(2/3,1/6,1/6)\), \(A_g=1/2\), \(b=(1,1/2,1/2)\), and the two treated-multiplier vectors \(v^-_{gt}=1/2\) and \(v^+_{gt}=3\) for \((g,t)\in\mathcal D\), for which
+\[
+ (\theta(\eta_-),M(\eta_-))=(-1/2,13/16),\qquad
+ (\theta(\eta_+),M(\eta_+))=(2,7/4).
+\]
+The record \(W\) stores the all-\(\Theta\) endpoint-grid profile as an integral incumbent with support-objective value \(5/2\). It also stores an explicitly indexed \(31626\)-leaf multiway branch on the zero-table interval: every proper-interval leaf carries a rational endpoint-coverage infeasibility certificate from \(\eta_-\) or \(\eta_+\), while the unique \(\Theta\) leaf carries the rational dual certificate \(r\ge7935/3200\); nonzero-table action variables are relaxed only on that last leaf, where their objective coefficients are nonnegative. Consequently,
+\[
+ D_{2,1/100}(\{1/100\})>\frac{7935}{3200},
+ \qquad
+ D_{\mathrm{det}}(1/100)>\frac{39259}{16000}>\frac{49}{20},
+ \qquad
+ U_\varepsilon-b_\varepsilon=\frac1{20}.
+\]
+\end{theorem}
+\begin{proof}
+We construct the certificate and verify each inequality used by its deterministic primal and integer lower witness.
+
+The input is well formed under \(\mathrm{def{:}rational\text{-}certificate\text{-}input}\): \(T=3\), \(0<1/20<1/10\), \(\kappa_-=\kappa_+=1/100>0\), \(\varepsilon=1/20>0\), \(K=2\in\mathbb N_0\), and \(h=1/100>0\). The grid \(\mathcal G_{1/100}\) in the statement contains \(-1/2\) and \(2\), and every adjacent spacing equals \(1/100\).
+
+For \(T=3\), the cohort set is \(\{2,3,\infty\}\), and the treated cells are
+\[
+ \mathcal D=\{(2,2),(2,3),(3,3)\}.
+\tag{1}
+\]
+The declared least-favorable share specializes to
+\[
+ s^*=\left(\frac23,\frac16,\frac16\right),
+\tag{2}
+\]
+where the coordinates are ordered as \(2,3,\infty\). Thus \(s^*\in\mathcal S_3\): every coordinate is at least \(1/6\), and their sum is one. Set
+\[
+ A_g=\frac12\quad(g\in\mathcal G),\qquad
+ b_1=1,\quad b_2=b_3=\frac12.
+\tag{3}
+\]
+For \(q\in\{1/2,3\}\), set \(v_{gt}=q\) on every cell in \(\mathcal D\), and call the resulting parameter \(\eta_q\). Equations (2)--(3) satisfy \(\mathrm{ass{:}observed\text{-}share\text{-}overlap}\), \(\mathrm{ass{:}exposure\text{-}box}\), \(\mathrm{ass{:}time\text{-}normalization}\), and \(\mathrm{ass{:}time\text{-}box}\), while both values of \(q\) satisfy \(\mathrm{ass{:}treated\text{-}multiplier\text{-}box}\).
+
+The treated counterfactual mass \(B(\eta_q)\) is positive because (1) is nonempty and every summand \(s_gA_gb_t\) is positive. Since \(v_{gt}=q\) on every treated cell, \(\mathrm{def{:}causal\text{-}functional\text{-}setup}\) gives
+\[
+ H(\eta_q)=qB(\eta_q),\qquad
+ \theta(\eta_q)=\frac{H(\eta_q)}{B(\eta_q)}-1=q-1.
+\tag{4}
+\]
+Thus \(\eta_-:=\eta_{1/2}\) and \(\eta_+:=\eta_3\) have targets \(-1/2\) and \(2\), respectively. More generally, the same positive-weight identity and \(\mathrm{ass{:}treated\text{-}multiplier\text{-}box}\) show that every maintained nuisance has
+\[
+ \theta(\eta)=\sum_{(g,t)\in\mathcal D}
+ \frac{w^0_{gt}}{B(\eta)}(v_{gt}-1)\in[-1/2,2]=\Theta,
+\tag{5}
+\]
+because the weights are strictly positive and sum to one.
+
+At the values in (2)--(3), the total observed mass when all treated multipliers equal \(q\) is
+\[
+ \begin{aligned}
+ M(\eta_q)
+ &=s^*_2\left(\frac12+\frac q4+\frac q4\right)
+   +s^*_3\left(\frac12+\frac14+\frac q4\right)
+   +s^*_{\infty}\left(\frac12+\frac14+\frac14\right).
+ \end{aligned}
+\tag{6}
+\]
+Substitution of \(q=1/2\) and \(q=3\) gives, equation by equation,
+\[
+ \begin{aligned}
+ M(\eta_-)
+ &=\frac23\frac34+\frac16\frac78+\frac16
+ =\frac12+\frac7{48}+\frac8{48}=\frac{13}{16},\\
+ M(\eta_+)
+ &=\frac23\,2+\frac16\frac32+\frac16
+ =\frac43+\frac14+\frac16=\frac74.
+ \end{aligned}
+\tag{7}
+\]
+
+Under \(\mathrm{ass{:}exact\text{-}product\text{-}poisson}\), independence and multiplication of the cellwise zero probabilities imply
+\[
+ P_{\eta,\kappa}(X=0)
+ =\prod_{g,t}\exp(-\kappa w_{gt})
+ =\exp\{-\kappa M(\eta)\}.
+\tag{8}
+\]
+For \(x>0\), direct integration gives
+\[
+ e^{-x}-1+x=\int_0^x(1-e^{-t})\,dt>0,
+\]
+and hence \(e^{-x}>1-x\). With \(\kappa=1/100\), (7)--(8) therefore yield the conservative exact rational bounds
+\[
+ \begin{aligned}
+ P_{\eta_-,1/100}(X=0)
+ &=e^{-13/1600}>1-\frac{13}{1600}
+ =\frac{1587}{1600}>\frac{19}{20},\\
+ P_{\eta_+,1/100}(X=0)
+ &=e^{-7/400}>1-\frac7{400}
+ =\frac{393}{400}>\frac{19}{20}.
+ \end{aligned}
+\tag{9}
+\]
+
+Consider even the restricted honesty problem containing only these two nuisance points at the common observed share \(s^*\), and let \(I_0=C(s^*,0)\). If \(-1/2\notin I_0\), then under \(\eta_-\),
+\[
+ P_{\eta_-,1/100}\{-1/2\in C(s^*,X)\}
+ \le 1-P_{\eta_-,1/100}(X=0)
+ <\frac{13}{1600}<\frac{19}{20},
+\tag{10}
+\]
+contradicting the required coverage \(19/20\). If \(2\notin I_0\), the same argument with \(\eta_+\) gives
+\[
+ P_{\eta_+,1/100}\{2\in C(s^*,X)\}
+ <\frac7{400}<\frac{19}{20}.
+\tag{11}
+\]
+Hence \(I_0\) contains both endpoints of \(\Theta\). Since every action is a connected closed subinterval of \(\Theta\),
+\[
+ I_0=\Theta,
+ \qquad \ell(I_0)=\frac52.
+\tag{12}
+\]
+The two-point problem is a restriction of the full maintained nuisance class: every policy honest on the full class is feasible for the two-point restrictions, so the infimum over the full feasible set is at least the infimum over the enlarged two-point feasible set. Thus every lower bound below transfers to the full problem.
+
+We now define the lower witness as a finite, expandable verifier object. Write
+\[
+ I_{jk}=\left[-\frac12+\frac j{100},-\frac12+\frac k{100}\right],
+ \qquad
+ \mathscr J=\{(j,k)\in\mathbb Z^2:0\le j\le k\le250\}.
+\tag{13}
+\]
+Then
+\[
+ |\mathscr J|=\sum_{j=0}^{250}(251-j)
+ =\frac{251\cdot252}{2}=31626.
+\tag{14}
+\]
+The finite-support integer program has binary variables \(z_{x,jk}\) for \(x\in\mathcal B_2\) and \((j,k)\in\mathscr J\), with
+\[
+ z_{x,jk}\in\{0,1\},
+ \qquad
+ \sum_{(j,k)\in\mathscr J}z_{x,jk}=1,
+\tag{15}
+\]
+the two support-point coverage rows, and the two support-point risk rows with epigraph variable \(r\). Its root record has one child \(L_{jk}\) for each \((j,k)\in\mathscr J\), obtained by imposing \(z_{0,jk}=1\) in (15). This is an actual finite multiway branch, and the following data are stored leaf by leaf.
+
+If \(j>0\), then \(-1/2\notin I_{jk}\). Leaf \(L_{jk}\) stores the \(\eta_-\) coverage row together with the rational enclosure in (9). Whatever actions are assigned at nonzero tables, its coverage is bounded by
+\[
+ 1-P_{\eta_-,1/100}(X=0)<\frac{13}{1600}<\frac{19}{20}.
+\tag{16}
+\]
+Thus the leaf's rational infeasibility certificate is the contradictory pair ``coverage at most \(13/1600\)'' and ``coverage at least \(19/20\),'' whose rational gap is
+\[
+ \frac{19}{20}-\frac{13}{1600}=\frac{1507}{1600}>0.
+\tag{17}
+\]
+If \(j=0\) and \(k<250\), then \(2\notin I_{0k}\). Leaf \(L_{0k}\) instead stores the \(\eta_+\) coverage row and the rational enclosure in (9), giving
+\[
+ 1-P_{\eta_+,1/100}(X=0)<\frac7{400}<\frac{19}{20},
+ \qquad
+ \frac{19}{20}-\frac7{400}=\frac{373}{400}>0.
+\tag{18}
+\]
+Equations (16)--(18) are explicit rational endpoint-coverage infeasibility certificates for every proper-interval leaf. The only remaining leaf is \(L_{0,250}\), which fixes \(I_{0,250}=\Theta\) at zero. On that leaf, assign dual multiplier one to the \(\eta_-\) risk row, use the conservative coefficient bound \(P_{\eta_-,1/100}(X=0)\ge1587/1600\), and use only the constraints that every nonzero-table interval length is nonnegative. This rational dual certificate gives
+\[
+ \begin{aligned}
+ r
+ &\ge \sum_{x\in\mathcal B_2}
+ P_{\eta_-,1/100}(X=x)\ell(C(s^*,x))\\
+ &\ge \frac52 P_{\eta_-,1/100}(X=0)
+ \ge\frac52\frac{1587}{1600}
+ =\frac{7935}{3200}.
+\end{aligned}
+\tag{19}
+\]
+Concretely, the serialized leaf-certificate map in \(W\) is
+\[
+ \mathfrak c(j,k)=
+ \begin{cases}
+ \bigl(\mathsf{endpoint\text{-}minus},\,13/1600,\,19/20,\,1507/1600\bigr),
+   &j>0,\\
+ \bigl(\mathsf{endpoint\text{-}plus},\,7/400,\,19/20,\,373/400\bigr),
+   &j=0,\ k<250,\\
+ \bigl(\mathsf{risk\text{-}dual},\,1,\,1587/1600,\,5/2,\,7935/3200\bigr),
+   &(j,k)=(0,250).
+ \end{cases}
+\tag{20}
+\]
+The first coordinate is a verifier tag, and every remaining coordinate is rational. The complete tree record is the finite table
+\[
+ \mathsf{Tree}
+ =\left\{\bigl((j,k),\,z_{0,jk}=1,\,\mathfrak c(j,k)\bigr):
+ (j,k)\in\mathscr J\right\}.
+\tag{21}
+\]
+Thus expansion of (21) produces exactly \(31626\) leaf records, and (17)--(19) verify the certificate selected by each tag without an omitted leaf.
+
+All action variables at nonzero tables may remain relaxed on \(L_{0,250}\), because their coefficients in the minimized risk and their interval lengths are nonnegative, so deleting those nonnegative contributions can only lower the objective. The root together with the indexed family \(\{L_{jk}:(j,k)\in\mathscr J\}\), the rational certificates (16)--(18), and the dual certificate (19) is therefore a complete finite branch-and-bound tree under \(\mathrm{def{:}finite\text{-}machine\text{-}certificate}\), not an unresolved root relaxation.
+
+The record \(W\) also contains an integral incumbent, as required by that definition: set
+\[
+ z_{x,0,250}=1
+ \quad\text{and}\quad
+ z_{x,jk}=0\ \text{for }(j,k)\ne(0,250),
+ \qquad x\in\mathcal B_2.
+\tag{22}
+\]
+This is the total all-\(\Theta\) endpoint-grid profile. It has coverage one at both support points and support risk exactly \(5/2\), so \(W\) stores its support-objective value \(5/2\). Hence the witness contains both an integral incumbent and a complete lower tree.
+
+Let \(d_W\) be the optimum of this two-support-point integer program. Every endpoint-grid policy honest over all observed shares and all maintained nuisances restricts at \(s^*\) to a feasible policy for this program, and its global worst risk is at least its worst risk over \(\{\eta_-,\eta_+\}\). Therefore \(D_{2,1/100}(\{1/100\})\ge d_W\). Equations (9) and (12) show that every feasible support profile has zero-table action \(\Theta\) and hence has risk under \(\eta_-\) strictly larger than \((5/2)(1587/1600)\). Consequently,
+\[
+ D_{2,1/100}(\{1/100\})\ge d_W
+ >\frac52\frac{1587}{1600}
+ =\frac{7935}{3200}.
+\tag{23}
+\]
+
+It remains to budget count truncation and endpoint rounding. Here the union-bound Poisson mean in \(\tau_2\) is
+\[
+ \lambda=12\kappa_+=\frac3{25}.
+\]
+Let
+\[
+ S_5:=1-\lambda+\frac{\lambda^2}{2}-\frac{\lambda^3}{6}
+       +\frac{\lambda^4}{24}-\frac{\lambda^5}{120}
+ =\frac{173226647}{195312500}.
+\tag{24}
+\]
+Repeated integration of the sixth derivative, with the first five derivatives matched at zero, gives the exact identity
+\[
+ e^{-\lambda}-S_5
+ =\frac1{5!}\int_0^\lambda e^{-t}(\lambda-t)^5\,dt>0.
+\]
+Since \(1+\lambda+\lambda^2/2=1409/1250\), (24) gives the conservative exact rational tail proof
+\[
+ \begin{aligned}
+ \Pr\{\operatorname{Pois}(3/25)>2\}
+ &=1-e^{-3/25}\left(1+\frac3{25}+\frac12\left(\frac3{25}\right)^2\right)\\
+ &<1-\frac{173226647}{195312500}\frac{1409}{1250}
+ =\frac{64279377}{244140625000}.
+\end{aligned}
+\tag{25}
+\]
+Using the definition of \(\tau_2\), (25), \(L=5/2\), and \(2h=1/50\), we obtain
+\[
+ \begin{aligned}
+ L\tau_2+2h
+ &\le \frac52\,9\Pr\{\operatorname{Pois}(3/25)>2\}+\frac1{50}\\
+ &<\frac{2531639393}{97656250000}
+ <\frac{13}{500};
+\end{aligned}
+\tag{26}
+\]
+the last difference is \(7423107/97656250000>0\).
+
+For the singleton intensity range, \(\overline D_{\mathrm{det}}(\{1/100\})=D_{\mathrm{det}}(1/100)\). The lower direction of \(\mathrm{thm{:}finite\text{-}reduction}\), (23), and (26) imply
+\[
+ \begin{aligned}
+ D_{\mathrm{det}}(1/100)
+ &\ge D_{2,1/100}(\{1/100\})-(L\tau_2+2h)\\
+ &>\frac{7935}{3200}-\frac{13}{500}
+ =\frac{39259}{16000}
+ >\frac{39200}{16000}=\frac{49}{20}.
+\end{aligned}
+\tag{27}
+\]
+
+Finally, we specify the primal and the remainder of the finite machine record. Let the sole observable cell be the rational polyhedron
+\[
+ Q_1=\mathcal S_3\times\{1/100\},
+\]
+and set \(A_1(x)=\Theta\) for every \(x\in\mathcal B_2\), with the required value \(\Theta\) also used outside \(\mathcal B_2\). The nuisance cover is the single rational box \(R_1\) obtained by crossing \(Q_1\) with \(A_g\in[1/2,2]\), \(b_1=1\), \(b_t\in[1/2,2]\) for \(t>1\), and \(v_{gt}\in[1/2,3]\). By (5), the table covers the target for every point of this cell, so its coverage is exactly one and its risk is exactly \(5/2\). It is constant and therefore Borel measurable and globally uniform in the observed share.
+
+The enclosure record \(E\) stores the rational proofs (9), (16)--(19), and (24)--(26), exact endpoint membership from (5), and exact primal coverage and risk. Every inequality used by the verifier is thus a conservative exact rational proof, not a floating-point approximation. Any unused finite-box Poisson recurrence entry is stored as the outward interval \([0,1]\) and is not invoked by any coverage, risk, infeasibility, or dual check. Consequently there is no enclosure loss beyond the explicitly proved truncation and rounding ledger, and we set
+\[
+ \delta_{\mathrm{enc}}=0.
+\tag{28}
+\]
+The lower-witness record \(W\) stores the two rational support points \(\eta_-\) and \(\eta_+\), the finite integer program (15), the integral incumbent (22) with support objective \(5/2\), and the complete explicitly indexed tree (13)--(21). All tables and tree records are finite because \(|\mathcal B_2|=3^9\) and \(|\mathscr J|=31626\).
+
+Choose
+\[
+ U_\varepsilon=\frac52,\qquad b_\varepsilon=\frac{49}{20},
+ \qquad \delta_{\mathrm{enc}}=0.
+\tag{29}
+\]
+The all-\(\Theta\) primal gives \(D_{\mathrm{det}}(1/100)\le U_\varepsilon\), while (27) gives \(b_\varepsilon<D_{\mathrm{det}}(1/100)\). Moreover,
+\[
+ U_\varepsilon-b_\varepsilon=\frac52-\frac{49}{20}=\frac1{20}=\varepsilon.
+\tag{30}
+\]
+The rational cells cover the full declared domain, the table is total, (26) is the required outward error ledger, and \(W\) contains both the integral incumbent and the integrality-preserving complete lower tree. Therefore every clause in \(\mathrm{def{:}verifier\text{-}acceptance}\) is satisfied, so
+\[
+ \operatorname{Verify}(\iota_{\mathrm{kill}},\Gamma_{\mathrm{kill}})=1.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem discharges the mandatory sparse-count early-kill test with a globally share-uniform deterministic primal, a stored integral incumbent, and an explicitly indexed integrality-preserving finite lower proof. \textit{Gap.} The general continuum synthesis problem remains open, but this exact specialized certificate is absent from Monte Carlo finite-prior methods and qualitative drifting-subsequence asymptotics. \textit{Consumer.} An auditor can expand the constant finite policy table and every leaf of the finite zero-action branch tree, replay only conservative exact rational inequalities, and certify the required one-twentieth gap.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The fixed-design result does not claim that total coverage is one exponential--polynomial, that the discontinuous piecewise coverage function attains its extrema, or that equality contacts are decidable. It instead optimizes continuous fixed-profile extensions on compact stratum closures and includes unattained one-sided membership-switch limits; outward enclosures terminate only for strict rational comparisons. The mandated \(T=3\), \(\alpha=1/20\), \(\kappa=1/100\), \(K=2\), \(h=1/100\) instance is no longer open: the exact certificate uses the constant all-\(\Theta\) primal and a complete two-point integer lower tree with an integral incumbent. That special proof does not show that arbitrary compact intensity ranges admit a finite rational-polyhedral policy refinement across curved zero-margin contact regions, which is the sole residual certificate obstruction.
+
+\section{Honest scope}
+
+The causal-functional identity is setup credited to Moreau-Kastler (2025), equation (3.14), and the homogeneous known-mass scalar reduction is a sanity check credited to Kabaila and Byrne (2001). The independent Poisson total law and share lower bound define the experiment; the exposure, time-effect, treatment-effect, and calibrated known-intensity restrictions are maintained rather than consequences of PPML theory. The fixed-algebraic-design separation result covers strict comparisons of closure-continuation extrema and one-sided limits, not exact equality contacts or a uniform finite cover. The early-kill certificate is an exact specialization within this maintained class; it does not establish class inclusion in Moreau--Kastler (2025) or Brown, Carter, Low, and Zhang (2004), nor does it settle total synthesis over arbitrary compact ranges. An unknown or estimated intensity, noninteger outcomes, arbitrary overdispersion, individual-data sufficiency, and software-default intervals remain outside scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{MoreauKastler2025} Ninon Moreau-Kastler (2025), Proportional Treatment Effects in Staggered Settings: An Approach for Poisson Pseudo-Maximum Likelihood, EU Tax Observatory Working Paper 31, DOI 10.2139/ssrn.5247936.
+
+  \bibitem{Wooldridge2023NonlinearDiD} Jeffrey M. Wooldridge (2023), Simple Approaches to Nonlinear Difference-in-Differences with Panel Data, The Econometrics Journal 26, C31--C66, DOI 10.1093/ectj/utad016.
+
+  \bibitem{Martin2017} Robert S. Martin (2017), Estimation of Average Marginal Effects in Multiplicative Unobserved Effects Panel Models, Economics Letters 160, 16--19, DOI 10.1016/j.econlet.2017.08.020.
+
+  \bibitem{EvansHansenStark2005} Steven N. Evans, Bendek B. Hansen, and Philip B. Stark (2005), Minimax Expected Measure Confidence Sets for Restricted Location Parameters, Bernoulli 11, 571--590, DOI 10.3150/bj/1126126761.
+
+  \bibitem{SchaferStark2009} Chad M. Schafer and Philip B. Stark (2009), Constructing Confidence Regions of Optimal Expected Size, Journal of the American Statistical Association 104, 1080--1089, DOI 10.1198/jasa.2009.tm07420.
+
+  \bibitem{KabailaByrne2001} Paul Kabaila and John Byrne (2001), Exact Short Poisson Confidence Intervals, Canadian Journal of Statistics 29, 99--106, DOI 10.2307/3316053.
+
+  \bibitem{Kabaila2013Randomized} Paul Kabaila (2013), On Randomized Confidence Intervals for the Binomial Probability, arXiv:1302.6659.
+
+  \bibitem{HabigerMcCannTebbs2013} Joshua D. Habiger, Melinda H. McCann, and Joshua M. Tebbs (2013), On Optimal Confidence Sets for Parameters in Discrete Distributions, Statistics and Probability Letters 83, 297--303, DOI 10.1016/j.spl.2012.09.018.
+
+  \bibitem{AndrewsChengGuggenberger2020} Donald W. K. Andrews, Xu Cheng, and Patrik Guggenberger (2020), Generic Results for Establishing the Asymptotic Size of Confidence Sets and Tests, Journal of Econometrics 218, 496--531, DOI 10.1016/j.jeconom.2020.04.027.
+
+  \bibitem{BrownCarterLowZhang2004} Lawrence D. Brown, Andrew V. Carter, Mark G. Low, and Cun-Hui Zhang (2004), Equivalence Theory for Density Estimation, Poisson Processes and Gaussian White Noise with Drift, Annals of Statistics 32, 2074--2097, DOI 10.1214/009053604000000012.
+
+  \bibitem{CallawaySantAnna2021} Brantly Callaway and Pedro H. C. Sant'Anna (2021), Difference-in-Differences with Multiple Time Periods, Journal of Econometrics 225, 200--230, DOI 10.1016/j.jeconom.2020.12.001.
+
+  \bibitem{Porter2026PoissonReview} Frank C. Porter (2026), Confidence Intervals for the Poisson Distribution, arXiv:2509.02852, version dated March 22, 2026.
+
+  \bibitem{BochnakCosteRoy1998} Jacek Bochnak, Michel Coste, and Marie-Francoise Roy. Real Algebraic Geometry. Springer, 1998. DOI 10.1007/978-3-662-03718-8.
+
+\end{thebibliography}
+
+\end{document}

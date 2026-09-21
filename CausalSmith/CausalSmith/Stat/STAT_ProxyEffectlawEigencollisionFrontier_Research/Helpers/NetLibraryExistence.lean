@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.NetLibraryCertificates
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeRounding
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TSummaryClosureCompact
-import Mathlib.Data.List.Lex
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.NetLibraryCertificates
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeRounding
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TSummaryClosureCompact
+public import Mathlib.Data.List.Lex
 
 /-! Construction of the advised finite summary grid. -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

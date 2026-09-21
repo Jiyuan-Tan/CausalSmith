@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Kernel.SquaredLoss
+
+module
+public import Causalean.ML.Linear.L2BallSquaredLoss
 
 /-! # Margin-based classification — Lipschitz surrogate excess-risk rate
 
@@ -20,6 +22,8 @@ linear class over the rescaled features `y·x` (bound `Yb·Xb`), and the centere
 comparison and the excess risk.  Combined with the separable ERM oracle inequality this gives
 `margin_erm_surrogate_excess_rate`, a tail bound at threshold `8·L·Yb·Xb·W/√n + 2ε`.
 -/
+
+public section
 
 namespace Causalean.ML
 
@@ -38,9 +42,9 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
     {μ : Measure Ω} [IsProbabilityMeasure μ] {Xb Yb W L : ℝ}
     (hXb : 0 ≤ Xb) (hYb : 0 ≤ Yb) (hW : 0 ≤ W) (hL : 0 ≤ L)
     (φ : ℝ → ℝ) (hLip : ∀ s t, |φ s - φ t| ≤ L * |s - t|)
-    (X : Ω → KFeat d Xb Yb) (hX : Measurable X)
+    (X : Ω → L2BallFeat d Xb Yb) (hX : Measurable X)
     {t : ℝ} (ht' : t * (L * (Yb * Xb * W)) ^ 2 ≤ 1 / 2) {ε : ℝ} (hε : 0 ≤ ε)
-    (ŵ : (Fin n → Ω) → KWeight d W) (wstar : KWeight d W)
+    (ŵ : (Fin n → Ω) → L2BallWeight d W) (wstar : L2BallWeight d W)
     (hERM : ∀ ω : Fin n → Ω,
       (n : ℝ)⁻¹ * ∑ k, φ (((X (ω k)).2 : ℝ) *
             inner ℝ ((ŵ ω) : EuclideanSpace ℝ (Fin d)) ((X (ω k)).1 : EuclideanSpace ℝ (Fin d)))
@@ -55,14 +59,14 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
                 ((X ω').1 : EuclideanSpace ℝ (Fin d)))])).toReal
       ≤ (- ε ^ 2 * t * n).exp := by
   classical
-  haveI : Nonempty (KFeat d Xb Yb) := ⟨(⟨0, by simpa using hXb⟩, ⟨0, by simpa using hYb⟩)⟩
-  haveI : Nonempty (KWeight d W) := ⟨⟨0, by simpa using hW⟩⟩
+  haveI : Nonempty (L2BallFeat d Xb Yb) := ⟨(⟨0, by simpa using hXb⟩, ⟨0, by simpa using hYb⟩)⟩
+  haveI : Nonempty (L2BallWeight d W) := ⟨⟨0, by simpa using hW⟩⟩
   -- the margin `g w a = y·⟪w,x⟩`, the centered surrogate `f`, and the genuine surrogate
-  set p : KWeight d W → KFeat d Xb Yb → ℝ :=
+  set p : L2BallWeight d W → L2BallFeat d Xb Yb → ℝ :=
     fun w a => ((a.2 : ℝ)) * inner ℝ (w : EuclideanSpace ℝ (Fin d))
       (a.1 : EuclideanSpace ℝ (Fin d)) with hp
-  set f : KWeight d W → KFeat d Xb Yb → ℝ := fun w a => φ (p w a) - φ 0 with hf
-  set surr : KWeight d W → KFeat d Xb Yb → ℝ := fun w a => φ (p w a) with hsurr
+  set f : L2BallWeight d W → L2BallFeat d Xb Yb → ℝ := fun w a => φ (p w a) - φ 0 with hf
+  set surr : L2BallWeight d W → L2BallFeat d Xb Yb → ℝ := fun w a => φ (p w a) with hsurr
   -- Lipschitz surrogate facts
   have hφlipWith : LipschitzWith (Real.toNNReal L) φ := by
     rw [lipschitzWith_iff_dist_le_mul]
@@ -76,7 +80,7 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
     simpa [hrw] using hLip x y
   have hYbXbW : 0 ≤ Yb * Xb * W := by positivity
   -- pointwise bound on the margin
-  have hpbound : ∀ (w : KWeight d W) (a : KFeat d Xb Yb), |p w a| ≤ Yb * Xb * W := by
+  have hpbound : ∀ (w : L2BallWeight d W) (a : L2BallFeat d Xb Yb), |p w a| ≤ Yb * Xb * W := by
     intro w a
     have hw : ‖(w : EuclideanSpace ℝ (Fin d))‖ ≤ W := by
       simpa using (mem_closedBall_zero_iff.mp w.2)
@@ -96,7 +100,7 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
       hYb, hXb, hW]
   -- `f` uniform bound `b = L·Yb·Xb·W`
   have hb0 : (0 : ℝ) ≤ L * (Yb * Xb * W) := by positivity
-  have hfbound : ∀ (w : KWeight d W) (a : KFeat d Xb Yb), |f w a| ≤ L * (Yb * Xb * W) := by
+  have hfbound : ∀ (w : L2BallWeight d W) (a : L2BallFeat d Xb Yb), |f w a| ≤ L * (Yb * Xb * W) := by
     intro w a
     have h := hφtilde.2 (p w a) 0
     rw [hφtilde.1, sub_zero, sub_zero] at h
@@ -104,32 +108,32 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
       _ ≤ L * |p w a| := h
       _ ≤ L * (Yb * Xb * W) := mul_le_mul_of_nonneg_left (hpbound w a) hL
   -- continuity of margin and surrogate
-  have hcont_x1 : Continuous (fun a : KFeat d Xb Yb => (a.1 : EuclideanSpace ℝ (Fin d))) :=
+  have hcont_x1 : Continuous (fun a : L2BallFeat d Xb Yb => (a.1 : EuclideanSpace ℝ (Fin d))) :=
     continuous_subtype_val.comp continuous_fst
-  have hcont_x2 : Continuous (fun a : KFeat d Xb Yb => (a.2 : ℝ)) :=
+  have hcont_x2 : Continuous (fun a : L2BallFeat d Xb Yb => (a.2 : ℝ)) :=
     continuous_subtype_val.comp continuous_snd
-  have hpcont_a : ∀ w : KWeight d W, Continuous (fun a : KFeat d Xb Yb => p w a) := by
+  have hpcont_a : ∀ w : L2BallWeight d W, Continuous (fun a : L2BallFeat d Xb Yb => p w a) := by
     intro w
     exact hcont_x2.mul (continuous_const.inner hcont_x1)
-  have hpcont_w : ∀ a : KFeat d Xb Yb, Continuous (fun w : KWeight d W => p w a) := by
+  have hpcont_w : ∀ a : L2BallFeat d Xb Yb, Continuous (fun w : L2BallWeight d W => p w a) := by
     intro a
     exact continuous_const.mul (continuous_subtype_val.inner continuous_const)
-  have hfcont_a : ∀ w : KWeight d W, Continuous (fun a : KFeat d Xb Yb => f w a) := by
+  have hfcont_a : ∀ w : L2BallWeight d W, Continuous (fun a : L2BallFeat d Xb Yb => f w a) := by
     intro w
     exact (hφcont.comp (hpcont_a w)).sub continuous_const
-  have hfcont_w : ∀ a : KFeat d Xb Yb, Continuous (fun w : KWeight d W => f w a) := by
+  have hfcont_w : ∀ a : L2BallFeat d Xb Yb, Continuous (fun w : L2BallWeight d W => f w a) := by
     intro a
     exact (hφcont.comp (hpcont_w a)).sub continuous_const
-  have hfmeas : ∀ w : KWeight d W, Measurable (f w) := fun w => (hfcont_a w).measurable
+  have hfmeas : ∀ w : L2BallWeight d W, Measurable (f w) := fun w => (hfcont_a w).measurable
   -- Rademacher complexity of the centered surrogate class via contraction
   have hRC : rademacherComplexity n f μ X ≤ 2 * L * (Yb * Xb * W) / Real.sqrt (n : ℝ) := by
-    have hemp : ∀ S : Fin n → KFeat d Xb Yb,
+    have hemp : ∀ S : Fin n → L2BallFeat d Xb Yb,
         empiricalRademacherComplexity n f S ≤ 2 * L * (Yb * Xb * W) / Real.sqrt (n : ℝ) := by
       intro S
       -- margin complexity from the linear L²-ball bound over features `y·x`
-      set featM : KFeat d Xb Yb → EuclideanSpace ℝ (Fin d) :=
+      set featM : L2BallFeat d Xb Yb → EuclideanSpace ℝ (Fin d) :=
         fun a => (a.2 : ℝ) • (a.1 : EuclideanSpace ℝ (Fin d)) with hfeatM
-      have hmem : ∀ a : KFeat d Xb Yb,
+      have hmem : ∀ a : L2BallFeat d Xb Yb,
           featM a ∈ Metric.closedBall (0 : EuclideanSpace ℝ (Fin d)) (Yb * Xb) := by
         intro a
         rw [mem_closedBall_zero_iff, hfeatM, norm_smul, Real.norm_eq_abs]
@@ -139,26 +143,26 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
         nlinarith [hy, hx, abs_nonneg ((a.2 : ℝ)),
           norm_nonneg (a.1 : EuclideanSpace ℝ (Fin d)), hYb, hXb]
       have hpfun : p
-          = (fun (w : KWeight d W) (a : KFeat d Xb Yb) =>
+          = (fun (w : L2BallWeight d W) (a : L2BallFeat d Xb Yb) =>
               inner ℝ (w : EuclideanSpace ℝ (Fin d)) (featM a)) := by
         funext w a
         rw [hp, hfeatM, real_inner_smul_right]
       have hpS : empiricalRademacherComplexity n p S ≤ Yb * Xb * W / Real.sqrt (n : ℝ) := by
         rw [hpfun]
-        have h := linear_predictor_l2_bound' (d := d) (n := n) (ι := KWeight d W)
+        have h := linear_predictor_l2_bound' (d := d) (n := n) (ι := L2BallWeight d W)
           (W := W) (X := Yb * Xb) (by positivity) hW
           (fun k => ⟨featM (S k), hmem (S k)⟩) (fun w => w)
         exact h
       have hcontr := empiricalRademacherComplexity_contraction_abs_of_bddAbove
-        (ι := KWeight d W) (fun s => φ s - φ 0) (L := L) hφtilde p
+        (ι := L2BallWeight d W) (fun s => φ s - φ 0) (L := L) hφtilde p
         (M := Yb * Xb * W) hYbXbW hpbound n S
       have hfeq : empiricalRademacherComplexity n f S
           = empiricalRademacherComplexity n
-              (fun (w : KWeight d W) (a : KFeat d Xb Yb) => (fun s => φ s - φ 0) (p w a)) S :=
+              (fun (w : L2BallWeight d W) (a : L2BallFeat d Xb Yb) => (fun s => φ s - φ 0) (p w a)) S :=
         rfl
       rw [hfeq]
       calc empiricalRademacherComplexity n
-            (fun (w : KWeight d W) (a : KFeat d Xb Yb) => (fun s => φ s - φ 0) (p w a)) S
+            (fun (w : L2BallWeight d W) (a : L2BallFeat d Xb Yb) => (fun s => φ s - φ 0) (p w a)) S
             ≤ 2 * L * empiricalRademacherComplexity n p S := hcontr
         _ ≤ 2 * L * (Yb * Xb * W / Real.sqrt (n : ℝ)) :=
               mul_le_mul_of_nonneg_left hpS (by positivity)
@@ -178,7 +182,7 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
   have hERMf : ∀ ω : Fin n → Ω,
       (n : ℝ)⁻¹ * ∑ k, f (ŵ ω) (X (ω k)) ≤ (n : ℝ)⁻¹ * ∑ k, f wstar (X (ω k)) := by
     intro ω
-    have hrw : ∀ w : KWeight d W, (n : ℝ)⁻¹ * ∑ k, f w (X (ω k))
+    have hrw : ∀ w : L2BallWeight d W, (n : ℝ)⁻¹ * ∑ k, f w (X (ω k))
         = (n : ℝ)⁻¹ * ∑ k, surr w (X (ω k)) - (n : ℝ)⁻¹ * ∑ _k : Fin n, φ 0 := by
       intro w
       rw [← mul_sub, ← Finset.sum_sub_distrib]
@@ -193,7 +197,7 @@ theorem margin_erm_surrogate_excess_rate {d n : ℕ} {Ω : Type*} [MeasurableSpa
   apply measure_mono
   intro ω hω
   -- population split: `∫ f w = ∫ surr w − φ 0`
-  have hpop : ∀ w : KWeight d W, μ[fun ω' => f w (X ω')]
+  have hpop : ∀ w : L2BallWeight d W, μ[fun ω' => f w (X ω')]
       = μ[fun ω' => surr w (X ω')] - φ 0 := by
     intro w
     have hInt_surr : Integrable (fun ω' => surr w (X ω')) μ := by

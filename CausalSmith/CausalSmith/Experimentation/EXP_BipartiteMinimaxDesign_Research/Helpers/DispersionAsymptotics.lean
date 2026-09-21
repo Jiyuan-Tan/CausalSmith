@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Asymptotics for the unbounded dispersion certificate
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionEnvelope
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionEnvelope
+public import Mathlib.Analysis.SpecificLimits.Basic
+
+public section
 
 set_option linter.style.longLine false
 

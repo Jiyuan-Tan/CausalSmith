@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
-import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
-import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
+public import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
+public import Mathlib.Analysis.Calculus.BumpFunction.InnerProduct
 
 /-!
 # Smooth radial bumps for the angular packing
@@ -9,6 +10,8 @@ This file isolates the compactly supported Euclidean bump used in the packing
 regressions.  It records its range, support, smoothness, and the corresponding
 facts after translation and rescaling.
 -/
+
+@[expose] public section
 
 open Set
 open scoped Topology

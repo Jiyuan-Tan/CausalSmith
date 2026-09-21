@@ -15,8 +15,9 @@ monotonicity and the `atBot`/`atTop` limits come from the `StieltjesFunction`
 API. The file also proves CDF symmetry, continuity, strict monotonicity, the
 open range `(0,1)`, and exact inversion for `probit`. -/
 
-import Mathlib.Probability.CDF
-import Mathlib.Probability.Distributions.Gaussian.Real
+module
+public import Mathlib.Probability.CDF
+public import Mathlib.Probability.Distributions.Gaussian.Real
 
 /-!
 # Standard normal CDF and probit
@@ -28,6 +29,8 @@ limits, continuity, strict monotonicity, positivity, the strict upper bound by
 one, and the two exact inversion identities `stdNormalCDF_probit` and
 `probit_stdNormalCDF`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib
 
@@ -58,7 +61,7 @@ lemma stdNormalCDF_monotone : Monotone stdNormalCDF := by
   intro a b hab
   exact (monotone_cdf (gaussianReal 0 1)) hab
 
-/-- `Φ(x) ∈ [0,1]`. -/
+/-- For [each real point](hyp:x), [the standard-normal CDF is nonnegative](goal). -/
 lemma stdNormalCDF_nonneg (x : ℝ) : 0 ≤ stdNormalCDF x := cdf_nonneg _ x
 
 /-- The standard-normal CDF is at most one at every real point. -/

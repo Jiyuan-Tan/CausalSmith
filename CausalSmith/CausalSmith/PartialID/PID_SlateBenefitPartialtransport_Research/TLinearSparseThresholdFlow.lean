@@ -1,4 +1,5 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Transport
 
 /-!
 # Linear sparse threshold-flow complexity
@@ -6,6 +7,8 @@ import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.T
 The implicit sparse endpoint couplings use linearly many arithmetic/comparison
 steps and positive entries; dense materialization is quadratic.
 -/
+
+public section
 
 namespace CausalSmith.PartialID.SlateBenefitPartialTransport
 

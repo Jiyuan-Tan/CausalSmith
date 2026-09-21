@@ -27,14 +27,17 @@ the continuous, full-support case.  These are exactly the degenerate quantiles.
 File is project-agnostic and a candidate for upstream contribution to Mathlib.
 -/
 
-import Mathlib.Probability.CDF
+module
+public import Mathlib.Probability.CDF
 
 /-! # Quantile Function
 
-This file defines the lower quantile function of a real probability measure as
-the generalized inverse of its cumulative distribution function. It proves the
+This file defines the lower quantile function of a real measure as the
+generalized inverse of its cumulative distribution function. It proves the
 basic order characterization that connects cumulative distribution functions and
 their quantiles away from the degenerate endpoints. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -43,40 +46,59 @@ open MeasureTheory ProbabilityTheory Set Filter Topology
 variable (μ : Measure ℝ)
 
 /-- Given a [measure on the real line](hyp:μ) and a [real level](hyp:τ), the
-[quantile super-level set](goal) is the set of all real numbers at which the measure's
-cumulative distribution function is at least that level. -/
+[super-level set of Mathlib's totalized cumulative-distribution function](goal)
+contains the real points where that function is at least the level.
+
+For an arbitrary measure this is a generalized-inverse construction for Mathlib's
+totalized `cdf`; it has the usual measure-CDF interpretation under
+`IsProbabilityMeasure μ`. -/
 def quantileSet (τ : ℝ) : Set ℝ := {x : ℝ | τ ≤ cdf μ x}
 
 /-- Given a [measure on the real line](hyp:μ) and a [real level](hyp:τ), the
-[lower quantile](goal) is the infimum of all real numbers at which the measure's cumulative
-distribution function is at least that level. -/
+[lower generalized inverse of Mathlib's totalized `cdf`](goal) is the infimum of
+its super-level set at that level.
+
+For an arbitrary measure this definition is totalized; it is the usual lower
+measure quantile when `μ` is a probability measure. -/
 noncomputable def quantile (τ : ℝ) : ℝ := sInf (quantileSet μ τ)
 
 variable {μ}
 
-/-- The super-level set is up-closed (monotonicity of the cdf). -/
-lemma quantileSet_up_closed {τ x x' : ℝ} (hx : x ∈ quantileSet μ τ) (hxx' : x ≤ x') :
+/-- If [a point belongs to a quantile super-level set](hyp:hx) and [a second point
+is no smaller](hyp:hxx'), then [the second point also belongs to that set](goal). -/
+lemma quantileSet_up_closed {τ x x' : ℝ}
+    (hx : x ∈ quantileSet μ τ) (hxx' : x ≤ x') :
     x' ∈ quantileSet μ τ :=
   le_trans hx (monotone_cdf μ hxx')
 
-/-- For `0 < τ`, the super-level set is bounded below: since `cdf μ → 0` at
-`-∞`, any point where the cdf already drops below `τ` is a lower bound. -/
-lemma bddBelow_quantileSet {τ : ℝ} (hτ : 0 < τ) : BddBelow (quantileSet μ τ) := by
+/-- At [a strictly positive level](hyp:hτ), [the quantile super-level set of a
+real measure is bounded below](goal).
+
+The CDF tends to zero at negative infinity, so a point where it is below the
+level supplies a lower bound. -/
+lemma bddBelow_quantileSet {τ : ℝ}
+    (hτ : 0 < τ) : BddBelow (quantileSet μ τ) := by
   obtain ⟨N, hN⟩ := Filter.eventually_atBot.mp ((tendsto_cdf_atBot μ).eventually_lt_const hτ)
   refine ⟨N, fun s hs => ?_⟩
   by_contra hlt
-  push_neg at hlt
+  push Not at hlt
   exact absurd hs (not_le.mpr (hN s hlt.le))
 
-/-- For `τ < 1`, the super-level set is nonempty: since `cdf μ → 1` at `+∞`,
-some point has cdf above `τ`. -/
-lemma nonempty_quantileSet {τ : ℝ} (hτ : τ < 1) : (quantileSet μ τ).Nonempty := by
+/-- At [a level strictly below one](hyp:hτ), [the quantile super-level set of a
+real measure is nonempty](goal).
+
+The CDF tends to one at positive infinity, so some point has CDF at least the
+given level. -/
+lemma nonempty_quantileSet {τ : ℝ}
+    (hτ : τ < 1) : (quantileSet μ τ).Nonempty := by
   obtain ⟨N, hN⟩ := Filter.eventually_atTop.mp ((tendsto_cdf_atTop μ).eventually_const_lt hτ)
   exact ⟨N, (hN N le_rfl).le⟩
 
-/-- **Key membership lemma.**  For interior `τ ∈ (0,1)`, the quantile lands in
-the super-level set: `τ ≤ cdf μ (quantile μ τ)`.  This is where
-right-continuity of the cdf is used. -/
+/-- **Key membership lemma.** At [a level strictly below one](hyp:hτ1), [the CDF
+of a real measure at its lower quantile reaches that level](goal).
+
+Only the upper endpoint condition is needed. The proof uses right-continuity of
+the CDF. -/
 lemma le_cdf_quantile {τ : ℝ} (hτ1 : τ < 1) :
     τ ≤ cdf μ (quantile μ τ) := by
   set a := quantile μ τ with ha
@@ -94,27 +116,34 @@ lemma le_cdf_quantile {τ : ℝ} (hτ1 : τ < 1) :
     filter_upwards [self_mem_nhdsWithin] with x hx using hgt x hx
   exact ge_of_tendsto htends hev
 
-/-- **Galois connection (one direction).** If the quantile lies at or below
-`x`, then the cdf has already reached level `τ` at `x`. -/
+/-- **Galois connection (one direction).** If [the level is below one](hyp:hτ1)
+and [its quantile is at most a point](hyp:hx), then [the CDF at that point has
+reached the level](goal). -/
 lemma le_cdf_of_quantile_le {τ x : ℝ} (hτ1 : τ < 1)
     (hx : quantile μ τ ≤ x) : τ ≤ cdf μ x :=
   le_trans (le_cdf_quantile hτ1) (monotone_cdf μ hx)
 
-/-- **Galois connection (other direction).**  If the cdf reaches `τ` at `x`,
-then the quantile is at or below `x`. -/
-lemma quantile_le_of_le_cdf {τ x : ℝ} (hτ0 : 0 < τ) (hx : τ ≤ cdf μ x) :
+/-- **Galois connection (other direction).** If [the level is positive](hyp:hτ0)
+and [the CDF at a point reaches that level](hyp:hx), then [the quantile is at
+most that point](goal). -/
+lemma quantile_le_of_le_cdf {τ x : ℝ}
+    (hτ0 : 0 < τ) (hx : τ ≤ cdf μ x) :
     quantile μ τ ≤ x :=
   csInf_le (bddBelow_quantileSet hτ0) hx
 
-/-- **Quantile / cdf Galois connection.** For [an interior probability level
-$\tau\in(0,1)$](hyp:hτ0,hτ1), [the quantile of a real measure at level $\tau$ is at most a point
-`x` exactly when $\tau$ is at most the cdf of that measure at `x`](goal). -/
-theorem quantile_le_iff {τ x : ℝ} (hτ0 : 0 < τ) (hτ1 : τ < 1) :
+/-- **Quantile / CDF Galois connection.** For [an interior probability level
+$\tau\in(0,1)$](hyp:hτ0,hτ1), [the quantile of a real measure at
+level $\tau$ is at most a point exactly when the CDF has reached $\tau$ there](goal). -/
+theorem quantile_le_iff {τ x : ℝ}
+    (hτ0 : 0 < τ) (hτ1 : τ < 1) :
     quantile μ τ ≤ x ↔ τ ≤ cdf μ x :=
   ⟨le_cdf_of_quantile_le hτ1, quantile_le_of_le_cdf hτ0⟩
 
-/-- The quantile function is monotone in the probability level `τ` on `(0,1)`. -/
-lemma quantile_mono {τ τ' : ℝ} (hτ0 : 0 < τ) (hτ'1 : τ' < 1) (hττ' : τ ≤ τ') :
+/-- If [the lower level is positive](hyp:hτ0), [the upper level is below
+one](hyp:hτ'1), and [the lower level is at most the upper](hyp:hττ'), then [the
+corresponding quantiles of a real measure are ordered](goal). -/
+lemma quantile_mono {τ τ' : ℝ}
+    (hτ0 : 0 < τ) (hτ'1 : τ' < 1) (hττ' : τ ≤ τ') :
     quantile μ τ ≤ quantile μ τ' :=
   quantile_le_of_le_cdf hτ0 (le_trans hττ' (le_cdf_quantile hτ'1))
 

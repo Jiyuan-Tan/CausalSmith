@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxLowerBound
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxLowerBound
 
 /-!
 # Point-indexed converse on the causal A1/A2 class
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxLower
 The proof uses the fixed-geometry hypercube, binomial good-count conditioning,
 the decentralized direct-product certificate, and outer-integral packaging.
 -/
+
+@[expose] public section
 
 open Filter MeasureTheory ProbabilityTheory
 open scoped ENNReal Topology

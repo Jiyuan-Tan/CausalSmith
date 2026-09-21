@@ -8,19 +8,22 @@ Authors: Jiyuan Tan
 
 Thin re-export of `FoML.SeparableSpaceSup`. Original lived under
 `auto-res/lean-rademacher`, MIT License — see the FoML package
-(`/<home>/lean-rademacher/`) for full provenance and `LICENSE`.
+(`third_party/lean-rademacher/`) for full provenance and `LICENSE`.
 
 The FoML symbols (`separableSpaceSup_eq`, `separableSpaceSup_eq_real`)
 live in the root namespace; downstream code accesses them unqualified.
 -/
 
-import FoML.SeparableSpaceSup
+module
+public import FoML.SeparableSpaceSup
 
 /-!
 This file exposes countable-dense reductions for suprema over separable
 function classes, letting empirical-process bounds stated on countable
 subclasses apply to the full class of candidate estimators.
 -/
+
+public section
 
 namespace Causalean
 namespace Stat

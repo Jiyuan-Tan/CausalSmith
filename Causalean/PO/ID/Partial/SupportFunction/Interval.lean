@@ -17,7 +17,7 @@ nuisance set `C`.  Sharpness — that *every* intermediate value is attained —
 exactly order-connectedness of the image, which holds because the linear image of
 a convex set is convex (hence an interval) in `ℝ`.
 
-This generalises the one-dimensional `IdentifiedInterval` engine of
+This generalises the one-dimensional `IdentifiedSet` engine of
 `PartialID/Basic.lean`: `identifiedInterval_eq_image` shows the scalar engine's
 identified set *is* this linear image, so concrete theorems may consume either
 vocabulary.
@@ -33,14 +33,15 @@ vocabulary.
 * `width` / `width_nonneg` — the width `h(d) + h(-d) ≥ 0` of the identified set.
 * `width_eq_zero_iff` — **point identification**: zero width iff the target is
   constant on `C`.
-* `identifiedInterval_eq_image` — bridge to the scalar `IdentifiedInterval` engine.
+* `identifiedInterval_eq_image` — bridge to the scalar `IdentifiedSet` engine.
 -/
 
-import Causalean.PO.ID.Partial.SupportFunction.Basic
-import Causalean.PO.ID.Partial.Basic
-import Mathlib.Analysis.Convex.Topology
-import Mathlib.Analysis.InnerProductSpace.Continuous
-import Mathlib.Topology.Order.Compact
+module
+public import Causalean.PO.ID.Partial.SupportFunction.Basic
+public import Causalean.PO.ID.Partial.Basic
+public import Mathlib.Analysis.Convex.Topology
+public import Mathlib.Analysis.InnerProductSpace.Continuous
+public import Mathlib.Topology.Order.Compact
 
 /-! # Support-Function Identified Intervals
 
@@ -49,7 +50,11 @@ convex feasible set. It connects the support-function description of the lower a
 endpoints to the scalar identified-interval machinery used elsewhere in the
 partial-identification library. -/
 
+@[expose] public section
+
 open scoped RealInnerProductSpace
+
+open Causalean.Stat.AttainableSet
 
 namespace Causalean
 namespace PartialID
@@ -173,9 +178,9 @@ to membership in `C` equals exactly the image of `obj` on `C`](goal). Specialise
 to `obj = ⟪d, ·⟫`, this identifies the scalar engine's output with the linear
 image studied here. -/
 theorem identifiedInterval_eq_image {α : Type*} (obj : α → ℝ) (C : Set α) :
-    IdentifiedInterval obj (· ∈ C) = obj '' C := by
+    IdentifiedSet obj (· ∈ C) = obj '' C := by
   ext y
-  simp only [IdentifiedInterval, Set.mem_range, Set.mem_image, Subtype.exists]
+  simp only [IdentifiedSet, Set.mem_range, Set.mem_image, Subtype.exists]
   constructor
   · rintro ⟨x, hx, rfl⟩; exact ⟨x, hx, rfl⟩
   · rintro ⟨x, hx, rfl⟩; exact ⟨x, hx, rfl⟩

@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.Backdoor
+
+module
+public import Causalean.SCM.ID.Backdoor
 
 /-! # Structural transport of the do-observational law to `doKernelY`
 
@@ -26,6 +28,13 @@ content is discharged elsewhere (the Tian g-formula in
 is graph/measure bookkeeping only and makes no appeal to `idSucceeds` or any
 reference measure.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.ID
 

@@ -3,49 +3,51 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Active Paths
+# Active Walks
 
-This file defines active paths (trails) in DAGs and proves path surgery lemmas
+This file defines active walks in DAGs and proves walk surgery lemmas
 needed for the source-to-conditioning transfer in d-separation.
 
 ## Main definitions
 
 * `DAG.UAdj` — undirected adjacency
 * `DAG.IsCollider` — collider at a triple
-* `DAG.IsActivePath` — active (unblocked) path given a conditioning set
-* `DAG.HasActivePath` — existence of an active path between two vertex sets
+* `DAG.IsActiveWalk` — active (unblocked) walk given a conditioning set
+* `DAG.HasActiveWalk` — existence of an active walk between two vertex sets
 
 ## Main results
 
-* `DAG.isActivePath_reverse` — reversing an active path gives an active path
-* `DAG.hasActivePath_symm` — active-path existence is symmetric
-* `DAG.bbReachableVertices_iff_activePath` — BFS ↔ active-path equivalence
+* `DAG.isActiveWalk_reverse` — reversing an active walk gives an active walk
+* `DAG.hasActiveWalk_symm` — active-walk existence is symmetric
+* `DAG.bbReachableVertices_iff_activeWalk` — BFS ↔ active-walk equivalence
 
 ## References
 
-* Basic Concepts.tex, Definitions 2-3 (Blocked path, d-separation)
-* Shachter (1998), Bayes Ball algorithm
+* Basic Concepts.tex, “Blocked path” and `def:dsep` (the notes use simple paths;
+  the internal witnesses here are walks)
+* Shachter (1998), Bayes Ball algorithm (algorithmic reachability only)
 -/
 
 module
 public import Causalean.Graph.DSep.BayesBall
 
-/-! # Active Paths
+/-! # Active Walks
 
-This file defines active paths in directed acyclic graphs relative to a
-conditioning set. It records undirected adjacency (`UAdj`), collider triples
-(`IsCollider`), path activity (`IsActivePath`), and active-path existence between
-sets (`HasActivePath`).
+This file defines active walks in directed acyclic graphs relative to a
+conditioning set. Unlike the textbook simple paths in Basic Concepts.tex, these
+finite vertex sequences may repeat vertices. It records undirected adjacency
+(`UAdj`), collider triples (`IsCollider`), walk activity (`IsActiveWalk`), and
+active-walk existence between sets (`HasActiveWalk`).
 
-The main path lemmas prove reversal symmetry (`isActivePath_reverse`,
-`hasActivePath_symm`), directed-path activity helpers, suffix extraction for
+The main walk lemmas prove reversal symmetry (`isActiveWalk_reverse`,
+`hasActiveWalk_symm`), directed-walk activity helpers, suffix extraction for
 source-to-conditioning transfer, and the Bayes Ball correctness theorem
-`bbReachableVertices_iff_activePath`, which identifies computed reachability
-with existence of an active path. -/
+`bbReachableVertices_iff_activeWalk`, which identifies computed reachability
+with existence of an active walk. -/
 
 @[expose] public section
 
-namespace Causalean
+namespace Causalean.Graph
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -54,33 +56,52 @@ namespace DAG
 variable (G : DAG V)
 
 -- ============================================================
--- Active trail (path-based d-separation)
+-- Active walks used by the Bayes Ball correctness proof
 -- ============================================================
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [two vertices](hyp:u,v), [undirected adjacency](goal) holds exactly when a directed edge joins the two vertices in either direction. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and
+[two vertices](hyp:u,v), [undirected adjacency](goal) holds exactly when a directed edge
+joins the two vertices in either direction. -/
 def UAdj (u v : V) : Prop := G.edge u v ∨ G.edge v u
 
-/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [two vertices](hyp:u,v), the [decision procedure for undirected adjacency](goal) determines whether a directed edge joins the vertices in either direction. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic
+graph on that population](hyp:G), and [two vertices](hyp:u,v), the [decision procedure
+for undirected adjacency](goal) determines whether a directed edge joins the vertices in
+either direction. -/
 instance decUAdj (u v : V) : Decidable (G.UAdj u v) :=
   inferInstanceAs (Decidable (_ ∨ _))
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and [three ordered vertices](hyp:l,m,r), [the collider condition](goal) holds exactly when both outer vertices have directed edges into the middle vertex. -/
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G) and
+[three ordered vertices](hyp:l,m,r), [the collider condition](goal) holds exactly when both
+outer vertices have directed edges into the middle vertex.
+
+The outer vertices need not be distinct, matching the walk-occurrence semantics
+used by `IsActiveWalk`. -/
 def IsCollider (l m r : V) : Prop := G.edge l m ∧ G.edge r m
 
-/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic graph on that population](hyp:G), and [three ordered vertices](hyp:l,m,r), the [decision procedure for the collider condition](goal) determines whether each outer vertex has a directed edge into the middle vertex. -/
+/-- For [a finite vertex population with decidable equality](hyp:V), [a directed acyclic
+graph on that population](hyp:G), and [three ordered vertices](hyp:l,m,r), the [decision
+procedure for the collider condition](goal) determines whether each outer vertex has a
+directed edge into the middle vertex. -/
 instance decIsCollider (l m r : V) : Decidable (G.IsCollider l m r) :=
   inferInstanceAs (Decidable (_ ∧ _))
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a conditioning set](hyp:Z), and [a finite vertex sequence](hyp:p), [the active-path condition](goal) holds exactly when [each consecutive pair is joined by a directed edge in one direction or the other](step:1), and [at every consecutive triple, its middle vertex is a collider that is either conditioned on or has a conditioned descendant, or else is a non-collider outside the conditioning set](step:2).
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G),
+[a conditioning set](hyp:Z), and [a finite vertex sequence](hyp:p), [the active-walk
+condition](goal) holds exactly when [each consecutive pair is joined by a directed edge in
+one direction or the other](step:1), and [at every consecutive triple, its middle vertex is
+a collider that is either conditioned on or has a conditioned descendant, or else is a
+non-collider outside the conditioning set](step:2).
 
-    A path (list of vertices) is **active** (unblocked) given conditioning set `Z` if:
+    A walk (list of vertices, with repetitions permitted) is **active**
+    (unblocked) given conditioning set `Z` if:
     - consecutive vertices are undirected-adjacent
     - for every intermediate triple `(pᵢ, pᵢ₊₁, pᵢ₊₂)`:
       - if `pᵢ₊₁` is a collider: `pᵢ₊₁ ∈ G.bbZAncestors Z`
       - if `pᵢ₊₁` is not a collider: `pᵢ₊₁ ∉ Z`
 
     Defined index-wise to make reversal straightforward. -/
-def IsActivePath (Z : Finset V) (p : List V) : Prop :=
+def IsActiveWalk (Z : Finset V) (p : List V) : Prop :=
   -- All consecutive pairs are adjacent
   (∀ (i : ℕ) (hi : i + 1 < p.length),
     G.UAdj (p.get ⟨i, by omega⟩) (p.get ⟨i + 1, hi⟩)) ∧
@@ -91,17 +112,24 @@ def IsActivePath (Z : Finset V) (p : List V) : Prop :=
     let r := p.get ⟨i + 2, hi⟩
     if G.IsCollider l m r then m ∈ G.bbZAncestors Z else m ∉ Z)
 
-/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G), [a source set](hyp:X), [a target set](hyp:Y), and [a conditioning set](hyp:Z), [the active-path existence condition](goal) holds exactly when there is a [vertex sequence with at least two vertices](step:1)
+/-- For [a finite directed acyclic graph on a vertex population](hyp:V,G),
+[a source set](hyp:X), [a target set](hyp:Y), and [a conditioning set](hyp:Z), the
+[active-walk existence condition](goal) holds exactly when there is a [vertex sequence with
+at least two vertices](step:1)
     that is [active relative to the conditioning set](step:2), whose [first vertex belongs to the
-    source set](step:3), and whose [last vertex belongs to the target set](step:4). -/
-def HasActivePath (X Y Z : Finset V) : Prop :=
+    source set](step:3), and whose [last vertex belongs to the target set](step:4).
+
+    Repeated vertices are permitted. The length-at-least-two convention records
+    only nontrivial reachability, which is the case used for pairwise-disjoint
+    d-separation query sets. -/
+def HasActiveWalk (X Y Z : Finset V) : Prop :=
   ∃ (p : List V), p.length ≥ 2 ∧
-    G.IsActivePath Z p ∧
+    G.IsActiveWalk Z p ∧
     p.head? ∈ (X.image some) ∧
     p.getLast? ∈ (Y.image some)
 
-/-- Undirected adjacency is symmetric: if two vertices are adjacent, they remain adjacent in the
-opposite order. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [adjacency of two vertices](hyp:u,v,h)
+implies that [the vertices are adjacent in the opposite order](goal). -/
 theorem UAdj_symm {u v : V} (h : G.UAdj u v) : G.UAdj v u := Or.comm.mp h
 
 omit [DecidableEq V] [Fintype V] in
@@ -111,14 +139,15 @@ private theorem get_rev (p : List V) (i : ℕ) (hi : i < p.reverse.length) :
     p.get ⟨p.length - 1 - i, by rw [List.length_reverse] at hi; omega⟩ :=
   List.get_reverse' p ⟨i, hi⟩ _
 
-/-- Active paths are symmetric: reversing an active path is also active.
+/-- In [a finite directed acyclic graph](hyp:V,G), [a walk and conditioning
+set](hyp:p,Z) with [an active-walk certificate](hyp:h) yield [an active reversed walk](goal).
 
     The proof uses the index-based definition: index `i` in the reversed list
     corresponds to index `p.length - 1 - i` in the original list. Adjacency
     is symmetric (`UAdj_symm`) and collider status swaps the outer vertices
     (`And.comm`). -/
-theorem isActivePath_reverse {Z : Finset V} {p : List V}
-    (h : G.IsActivePath Z p) : G.IsActivePath Z p.reverse := by
+theorem isActiveWalk_reverse {Z : Finset V} {p : List V}
+    (h : G.IsActiveWalk Z p) : G.IsActiveWalk Z p.reverse := by
   obtain ⟨hadj, hcoll⟩ := h
   set n := p.length
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
@@ -169,18 +198,20 @@ theorem isActivePath_reverse {Z : Finset V} {p : List V}
       simp only [this, ite_false]
       exact horig
 
-/-- A backward-directed path whose interior vertices avoid the conditioning set is active.
+/-- In [a finite directed acyclic graph](hyp:V,G), [a walk and conditioning
+set](hyp:p,Z) whose [edges all point backward](hyp:hdir) and whose [interior vertices avoid
+the conditioning set](hyp:hZ) form [an active walk](goal).
 
     "Reversed directed" means each edge points from the *later* index to the
-    *earlier* index (i.e., the list enumerates the path in the direction opposite
+    *earlier* index (i.e., the list enumerates the walk in the direction opposite
     to the edges). Every interior vertex is then a non-collider, and by the
     avoidance hypothesis none is in `Z`. -/
-theorem isActivePath_of_reversed_directed
+theorem isActiveWalk_of_reversed_directed
     {Z : Finset V} {p : List V}
     (hdir : ∀ (i : ℕ) (hi : i + 1 < p.length),
         G.edge (p.get ⟨i + 1, hi⟩) (p.get ⟨i, by omega⟩))
     (hZ : ∀ (i : ℕ) (hi : i + 2 < p.length), p.get ⟨i + 1, by omega⟩ ∉ Z) :
-    G.IsActivePath Z p := by
+    G.IsActiveWalk Z p := by
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
   · -- Adjacency: hdir says G.edge p[i+1] p[i], so p[i] and p[i+1] are UAdj
     exact Or.inr (hdir i hi)
@@ -201,12 +232,14 @@ theorem isActivePath_of_reversed_directed
     exact hZ i hi
 
 -- ============================================================
--- Active path surgery helpers
+-- Active walk surgery helpers
 -- ============================================================
 
 section SurgeryHelpers
 
-/-- For [a nonnegative integer bound](hyp:n) and [a predicate on nonnegative integers whose truth can be checked at every index](hyp:P), the [optional last qualifying index](goal) is the
+/-- For [a nonnegative integer bound](hyp:n) and [a predicate on nonnegative integers
+whose truth can be checked at every index](hyp:P), the [optional last qualifying
+index](goal) is the
     largest index strictly below the bound that satisfies the predicate, if such an index exists,
     and is absent otherwise. -/
 noncomputable def lastIdxLt (n : ℕ) (P : ℕ → Prop) [DecidablePred P] :
@@ -215,8 +248,9 @@ noncomputable def lastIdxLt (n : ℕ) (P : ℕ → Prop) [DecidablePred P] :
     some (((Finset.range n).filter P).max' h)
   else none
 
-/-- If the last index below a bound exists, it is below the bound, satisfies the predicate, and no
-larger index below the bound satisfies it. -/
+/-- For [a bound and decidable predicate](hyp:n,P), if [an index is returned as the final
+qualifying one](hyp:i,h), then [it is below the bound, satisfies the predicate, and no larger
+index below the bound satisfies the predicate](goal). -/
 theorem lastIdxLt_eq_some {n : ℕ} {P : ℕ → Prop} [DecidablePred P] {i : ℕ}
     (h : lastIdxLt n P = some i) :
     i < n ∧ P i ∧ ∀ j, i < j → j < n → ¬ P j := by
@@ -234,8 +268,8 @@ theorem lastIdxLt_eq_some {n : ℕ} {P : ℕ → Prop} [DecidablePred P] {i : �
     have := Finset.le_max' _ j hjmem
     omega
 
-/-- If there is no last index below a bound satisfying a predicate, then no index below the bound
-satisfies the predicate. -/
+/-- For [a bound and decidable predicate](hyp:n,P), if [no final qualifying index
+exists](hyp:h), then [no index below the bound satisfies the predicate](goal). -/
 theorem lastIdxLt_eq_none {n : ℕ} {P : ℕ → Prop} [DecidablePred P]
     (h : lastIdxLt n P = none) :
     ∀ i, i < n → ¬ P i := by
@@ -247,19 +281,20 @@ theorem lastIdxLt_eq_none {n : ℕ} {P : ℕ → Prop} [DecidablePred P]
 
 end SurgeryHelpers
 
-/-- **Suffix-step for source-to-cond transfer.**
-
-    Given an active path `p` from `x ∈ X` to `w` given `Z ∪ S` of length ≥ 2,
-    produce a suffix `q` (possibly the whole path) such that:
-    * `q` is still an active path from some `x' ∈ X ∪ S` to `w` given `Z ∪ S`,
-    * every strictly interior vertex of `q` lies outside `S`. -/
+/-- Given [a directed acyclic graph, endpoint and conditioning sets, a walk, and its stated
+endpoints](hyp:V,G,X,Z,S,p,x,w), if [the first endpoint belongs to the source set](hyp:hxX),
+[the walk has at least two vertices](hyp:hlen), [is active under the combined conditioning
+set](hyp:hact), [begins at the stated source](hyp:hhead), and [ends at the stated
+target](hyp:hlast),
+then [some suffix remains active from the source-or-secondary-conditioning set to the same target
+and has no strictly interior vertex in the secondary conditioning set](goal). -/
 theorem take_suffix_at_last_S
     {X Z S : Finset V} {p : List V} {x w : V}
     (hxX : x ∈ X) (hlen : p.length ≥ 2)
-    (hact : G.IsActivePath (Z ∪ S) p)
+    (hact : G.IsActiveWalk (Z ∪ S) p)
     (hhead : p.head? = some x) (hlast : p.getLast? = some w) :
     ∃ (x' : V) (q : List V), x' ∈ X ∪ S ∧ q.length ≥ 2 ∧
-      G.IsActivePath (Z ∪ S) q ∧ q.head? = some x' ∧ q.getLast? = some w ∧
+      G.IsActiveWalk (Z ∪ S) q ∧ q.head? = some x' ∧ q.getLast? = some w ∧
       (∀ (k : ℕ) (_hk1 : 0 < k) (hk2 : k + 1 < q.length),
           q.get ⟨k, by omega⟩ ∉ S) := by
   -- Interior-S-index set: i : Fin p.length with i+1 < p.length and p.get i ∈ S.
@@ -279,7 +314,7 @@ theorem take_suffix_at_last_S
     · show q.length ≥ 2
       simp only [q, List.length_drop]
       omega
-    · -- G.IsActivePath (Z ∪ S) q — shift indices
+    · -- G.IsActiveWalk (Z ∪ S) q — shift indices
       obtain ⟨hadj, hcoll⟩ := hact
       refine ⟨fun i hi => ?_, fun i hi => ?_⟩
       · have hq_len : q.length = p.length - i₀.val := by
@@ -350,16 +385,16 @@ theorem take_suffix_at_last_S
     simp only [IS, Finset.mem_filter, Finset.mem_univ, true_and]
     exact ⟨hk2, hkS⟩
 
-/-- If `q` is active given `Z ∪ S` and every interior collider of `q` is
-    `Z`-activated (not merely `S`-activated),
-    then `q` is active given `Z` alone. -/
-theorem isActivePath_Z_of_no_S_only_collider
+/-- In [a finite directed acyclic graph](hyp:V,G), [a walk and two conditioning
+sets](hyp:q,Z,S) that is [active under their union](hyp:hact) and whose [interior colliders
+are activated by the first set alone](hyp:hNoSOnly) is [active under the first set](goal). -/
+theorem isActiveWalk_Z_of_no_S_only_collider
     {Z S : Finset V} {q : List V}
-    (hact : G.IsActivePath (Z ∪ S) q)
+    (hact : G.IsActiveWalk (Z ∪ S) q)
     (hNoSOnly : ∀ (i : ℕ) (hi : i + 2 < q.length),
         G.IsCollider (q.get ⟨i, by omega⟩) (q.get ⟨i + 1, by omega⟩) (q.get ⟨i + 2, hi⟩) →
         q.get ⟨i + 1, by omega⟩ ∈ G.bbZAncestors Z) :
-    G.IsActivePath Z q := by
+    G.IsActiveWalk Z q := by
   obtain ⟨hadj, hcoll⟩ := hact
   refine ⟨hadj, fun i hi => ?_⟩
   -- Let m := q.get ⟨i+1, _⟩. Two cases: collider or not.
@@ -377,20 +412,22 @@ theorem isActivePath_Z_of_no_S_only_collider
     intro hZ
     exact this (Finset.mem_union_left _ hZ)
 
-/-- `HasActivePath` is symmetric in `X` and `Y`. -/
-theorem hasActivePath_symm (X Y Z : Finset V) :
-    G.HasActivePath X Y Z → G.HasActivePath Y X Z := by
+/-- In [a finite directed acyclic graph](hyp:V,G), [two endpoint sets and a conditioning
+set](hyp:X,Y,Z) satisfy [active-walk existence in one direction only if it also holds in the
+opposite direction](goal). -/
+theorem hasActiveWalk_symm (X Y Z : Finset V) :
+    G.HasActiveWalk X Y Z → G.HasActiveWalk Y X Z := by
   rintro ⟨p, hlen, hact, hhead, hlast⟩
-  refine ⟨p.reverse, ?_, G.isActivePath_reverse hact, ?_, ?_⟩
+  refine ⟨p.reverse, ?_, G.isActiveWalk_reverse hact, ?_, ?_⟩
   · simp only [List.length_reverse]; exact hlen
   · rwa [List.head?_reverse]
   · rwa [List.getLast?_reverse]
 
 -- ============================================================
--- Connection between BFS and active paths (the key equivalence)
+-- Connection between BFS and active walks (the key equivalence)
 -- ============================================================
 
-/-- A Bayes-Ball direction matches the orientation of the last edge of a path:
+/-- A Bayes-Ball direction matches the orientation of the last edge of a walk:
 `fromParent` means the previous vertex is a parent of the current one, while
 `fromChild` means the previous vertex is a child of the current one. -/
 private def StateMatchesEdge (u w : V) : BBDir → Prop
@@ -519,13 +556,16 @@ private theorem active_triple_of_bbStep
       exact G.asymm hin hC.1
     exact ⟨hout, by simp [hnotcoll, hwZ]⟩
 
-/-- Prepending an active triple to an active path keeps the path active. -/
-theorem isActivePath_cons_of_active_triple
+/-- In [a finite directed acyclic graph](hyp:V,G), [a conditioning set, three leading
+vertices, and a remaining suffix](hyp:Z,z,w,u,r), [adjacency of the new first pair](hyp:hadj),
+[activity of the new first triple](hyp:htri), and [activity of the original walk](hyp:hact)
+ensure that [prepending the new vertex preserves activity](goal). -/
+theorem isActiveWalk_cons_of_active_triple
     {Z : Finset V} {z w u : V} {r : List V}
     (hadj : G.UAdj z w)
     (htri : if G.IsCollider z w u then w ∈ G.bbZAncestors Z else w ∉ Z)
-    (hact : G.IsActivePath Z (w :: u :: r)) :
-    G.IsActivePath Z (z :: w :: u :: r) := by
+    (hact : G.IsActiveWalk Z (w :: u :: r)) :
+    G.IsActiveWalk Z (z :: w :: u :: r) := by
   obtain ⟨hadj_old, hcoll_old⟩ := hact
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
   · cases i with
@@ -543,8 +583,9 @@ theorem isActivePath_cons_of_active_triple
           simpa [Nat.add_assoc] using hi)
         simpa [Nat.add_assoc] using h
 
-/-- The active-path condition at a three-vertex segment is unchanged when its two outer
-vertices are swapped. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [a conditioning set and three
+vertices](hyp:Z,u,w,z) with [an active triple](hyp:h) retain [the active-triple condition when
+the outer vertices are exchanged](goal). -/
 theorem active_triple_swap_outer
     {Z : Finset V} {u w z : V}
     (h : if G.IsCollider u w z then w ∈ G.bbZAncestors Z else w ∉ Z) :
@@ -563,27 +604,28 @@ private theorem uAdj_reverse_of_stateMatchesEdge
   · exact Or.inr h
   · exact Or.inl h
 
-/-- Any two adjacent vertices form an active path of length one for every conditioning set. -/
-theorem isActivePath_pair
+/-- In [a finite directed acyclic graph](hyp:V,G), [a conditioning set and two
+vertices](hyp:Z,a,b) whose [vertices are adjacent](hyp:h) form [an active two-vertex walk](goal). -/
+theorem isActiveWalk_pair
     {Z : Finset V} {a b : V} (h : G.UAdj a b) :
-    G.IsActivePath Z [a, b] := by
+    G.IsActiveWalk Z [a, b] := by
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
   · match i, hi with
     | 0, _ => simpa using h
   · have hlt : i + 2 < 2 := by simpa using hi
     omega
 
-/-- A reachable Bayes-Ball state carries an active path back to some source.
-The path is stored in reverse order because `bbStep` prepends naturally. -/
-private def StateHasReverseActivePath (X Z : Finset V) (s : BBState V) : Prop :=
+/-- A reachable Bayes-Ball state carries an active walk back to some source.
+The walk is stored in reverse order because `bbStep` prepends naturally. -/
+private def StateHasReverseActiveWalk (X Z : Finset V) (s : BBState V) : Prop :=
   ∃ (x : V), x ∈ X ∧ ∃ (u : V) (r : List V),
     G.StateMatchesEdge u s.1 s.2 ∧
-    G.IsActivePath Z (s.1 :: u :: r) ∧
+    G.IsActiveWalk Z (s.1 :: u :: r) ∧
     (s.1 :: u :: r).getLast? = some x
 
-private theorem bbReachable_state_has_reverse_activePath
+private theorem bbReachable_state_has_reverse_activeWalk
     (X Z : Finset V) {s : BBState V} (hs : s ∈ G.bbReachable Z X) :
-    G.StateHasReverseActivePath X Z s := by
+    G.StateHasReverseActiveWalk X Z s := by
   classical
   -- `Function.Embedding.coeFn_mk` no longer fires as a `simp` rewrite, so `simp`
   -- stalls on `⟨(·, d), _⟩ a = (w, d')` inside the `Finset.map` membership
@@ -592,7 +634,7 @@ private theorem bbReachable_state_has_reverse_activePath
   have hcoe : ∀ (d : BBDir) (hinj : ∀ ⦃a b : V⦄, (a, d) = (b, d) → a = b) (x : V),
       (⟨(·, d), hinj⟩ : V ↪ BBState V) x = (x, d) := fun _ _ _ => rfl
   let S : Finset (BBState V) :=
-    Finset.univ.filter (fun s => G.StateHasReverseActivePath X Z s)
+    Finset.univ.filter (fun s => G.StateHasReverseActiveWalk X Z s)
   have hinit : G.bbInit X ⊆ S := by
     intro s hs
     rcases s with ⟨w, d⟩
@@ -606,7 +648,7 @@ private theorem bbReachable_state_has_reverse_activePath
         subst w
         have hxw_edge : G.edge x a := G.mem_children.mp ha
         refine ⟨x, hxX, x, [], hxw_edge, ?_, rfl⟩
-        exact G.isActivePath_pair (Or.inr hxw_edge)
+        exact G.isActiveWalk_pair (Or.inr hxw_edge)
       · obtain ⟨a, _ha, _haw, hbad⟩ := hparent
         cases hbad
     · simp only [bbInit, Finset.mem_biUnion, Finset.mem_union, Finset.mem_map,
@@ -619,7 +661,7 @@ private theorem bbReachable_state_has_reverse_activePath
         subst w
         have hwx_edge : G.edge a x := G.mem_parents.mp ha
         refine ⟨x, hxX, x, [], hwx_edge, ?_, rfl⟩
-        exact G.isActivePath_pair (Or.inl hwx_edge)
+        exact G.isActiveWalk_pair (Or.inl hwx_edge)
   have hstep : ∀ s ∈ S, G.bbStep Z s ⊆ S := by
     intro s hs t ht
     rcases s with ⟨w, d⟩
@@ -631,18 +673,20 @@ private theorem bbReachable_state_has_reverse_activePath
     have htri : (if G.IsCollider z w u then w ∈ G.bbZAncestors Z else w ∉ Z) :=
       G.active_triple_swap_outer hdata.2
     refine ⟨x, hxX, w, u :: r, hdata.1, ?_, ?_⟩
-    · exact G.isActivePath_cons_of_active_triple hadj htri hact
+    · exact G.isActiveWalk_cons_of_active_triple hadj htri hact
     · simpa using hlast
   have hsub : G.bbReachable Z X ⊆ S :=
     G.bbReachable_minimal Z X S hinit hstep
   have hsS := hsub hs
   simpa [S] using hsS
 
-/-- Removing the first vertex from an active path leaves an active path. -/
-theorem isActivePath_cons_tail
+/-- In [a finite directed acyclic graph](hyp:V,G), [a conditioning set, two leading
+vertices, and a suffix](hyp:Z,u,w,r) with [an active full walk](hyp:h) retain [an active walk
+after the first vertex is removed](goal). -/
+theorem isActiveWalk_cons_tail
     {Z : Finset V} {u w : V} {r : List V}
-    (h : G.IsActivePath Z (u :: w :: r)) :
-    G.IsActivePath Z (w :: r) := by
+    (h : G.IsActiveWalk Z (u :: w :: r)) :
+    G.IsActiveWalk Z (w :: r) := by
   obtain ⟨hadj, hcoll⟩ := h
   refine ⟨fun i hi => ?_, fun i hi => ?_⟩
   · have h' := hadj (i + 1) (by
@@ -652,11 +696,11 @@ theorem isActivePath_cons_tail
       simpa [Nat.add_assoc] using Nat.succ_lt_succ hi)
     simpa [Nat.add_assoc] using h'
 
-private theorem bbReachableVertices_of_activePath_walk
+private theorem bbReachableVertices_of_activeWalk_walk
     {X Z : Finset V} {u w : V} {r : List V} {d : BBDir}
     (hs : (w, d) ∈ G.bbReachable Z X)
     (hdir : G.StateMatchesEdge u w d)
-    (hact : G.IsActivePath Z (u :: w :: r)) :
+    (hact : G.IsActiveWalk Z (u :: w :: r)) :
     ∀ {v : V}, (w :: r).getLast? = some v → v ∈ G.bbReachableVertices Z X := by
   induction r generalizing u w d with
   | nil =>
@@ -673,8 +717,8 @@ private theorem bbReachableVertices_of_activePath_walk
       have htri : (if G.IsCollider u w z then w ∈ G.bbZAncestors Z else w ∉ Z) := by
         have h := hact.2 0 (by simp)
         simpa using h
-      have htail : G.IsActivePath Z (w :: z :: r) :=
-        G.isActivePath_cons_tail hact
+      have htail : G.IsActiveWalk Z (w :: z :: r) :=
+        G.isActiveWalk_cons_tail hact
       rcases hadj_wz with hwz | hzw
       · have hstep : (z, BBDir.fromParent) ∈ G.bbStep Z (w, d) :=
           G.bbStep_of_active_triple hdir hwz htri
@@ -687,9 +731,9 @@ private theorem bbReachableVertices_of_activePath_walk
           (G.bbReachable_bbStep_subset Z X hs) hstep
         exact ih hs' hzw htail (by simpa using hlast)
 
-private theorem bbReachableVertices_of_activePath_cons
+private theorem bbReachableVertices_of_activeWalk_cons
     {X Z : Finset V} {x w : V} {r : List V} {v : V}
-    (hxX : x ∈ X) (hact : G.IsActivePath Z (x :: w :: r))
+    (hxX : x ∈ X) (hact : G.IsActiveWalk Z (x :: w :: r))
     (hlast : (x :: w :: r).getLast? = some v) :
     v ∈ G.bbReachableVertices Z X := by
   have hadj_xw : G.UAdj x w := by
@@ -698,25 +742,25 @@ private theorem bbReachableVertices_of_activePath_cons
   rcases hadj_xw with hxw | hwx
   · have hs0 : (w, BBDir.fromParent) ∈ G.bbReachable Z X :=
       G.bbReachable_init_subset Z X (G.bbInit_of_stateMatchesEdge hxX hxw)
-    exact G.bbReachableVertices_of_activePath_walk hs0 hxw hact (by simpa using hlast)
+    exact G.bbReachableVertices_of_activeWalk_walk hs0 hxw hact (by simpa using hlast)
   · have hs0 : (w, BBDir.fromChild) ∈ G.bbReachable Z X :=
       G.bbReachable_init_subset Z X (G.bbInit_of_stateMatchesEdge hxX hwx)
-    exact G.bbReachableVertices_of_activePath_walk hs0 hwx hact (by simpa using hlast)
+    exact G.bbReachableVertices_of_activeWalk_walk hs0 hwx hact (by simpa using hlast)
 
 /-- **Bayes Ball correctness.** For [a source vertex set `X` and a conditioning vertex set
 `Z`](hyp:X,Z) and [a vertex `v`](hyp:v), [`v` lies in the breadth-first-search reachable set
-`bbReachableVertices Z X` if and only if there is an active path, given `Z`, from some vertex
+`bbReachableVertices Z X` if and only if there is an active walk, given `Z`, from some vertex
 of `X` to `v`](goal).
 
     This is the Bayes Ball correctness theorem. The proof requires showing that
-    the BFS fixed point captures exactly the vertices reachable via active trails.
+    the BFS fixed point captures exactly the vertices reachable via active walks.
 
-    Forward direction (soundness): every BFS-reachable vertex has an active path.
-    Backward direction (completeness): every vertex with an active path is BFS-reachable. -/
-theorem bbReachableVertices_iff_activePath (X Z : Finset V) (v : V) :
+    Forward direction (soundness): every BFS-reachable vertex has an active walk.
+    Backward direction (completeness): every vertex with an active walk is BFS-reachable. -/
+theorem bbReachableVertices_iff_activeWalk (X Z : Finset V) (v : V) :
     v ∈ G.bbReachableVertices Z X ↔
     ∃ (x : V), x ∈ X ∧ ∃ (p : List V), p.length ≥ 2 ∧
-      G.IsActivePath Z p ∧ p.head? = some x ∧ p.getLast? = some v := by
+      G.IsActiveWalk Z p ∧ p.head? = some x ∧ p.getLast? = some v := by
   constructor
   · intro hv
     rw [bbReachableVertices] at hv
@@ -725,10 +769,10 @@ theorem bbReachableVertices_iff_activePath (X Z : Finset V) (v : V) :
     change w = v at hsv
     subst w
     obtain ⟨x, hxX, u, r, _hdir, hact, hlast⟩ :=
-      G.bbReachable_state_has_reverse_activePath X Z hs
+      G.bbReachable_state_has_reverse_activeWalk X Z hs
     refine ⟨x, hxX, (v :: u :: r).reverse, ?_, ?_, ?_, ?_⟩
     · simp
-    · exact G.isActivePath_reverse hact
+    · exact G.isActiveWalk_reverse hact
     · rwa [List.head?_reverse]
     · rw [List.getLast?_reverse]
       rfl
@@ -744,8 +788,8 @@ theorem bbReachableVertices_iff_activePath (X Z : Finset V) (v : V) :
             simp only [List.head?_cons] at hhead
             injection hhead with ha
             subst a
-            exact G.bbReachableVertices_of_activePath_cons hxX hact hlast
+            exact G.bbReachableVertices_of_activeWalk_cons hxX hact hlast
 
 end DAG
 
-end Causalean
+end Causalean.Graph

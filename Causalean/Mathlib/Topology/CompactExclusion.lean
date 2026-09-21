@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Topology.Instances.Real.Lemmas
-import Mathlib.Topology.Order.Compact
-import Mathlib.Topology.MetricSpace.Pseudo.Constructions
-import Mathlib.Topology.Separation.Hausdorff
+module
+public import Mathlib.Topology.Instances.Real.Lemmas
+public import Mathlib.Topology.Order.Compact
+public import Mathlib.Topology.MetricSpace.Pseudo.Constructions
+public import Mathlib.Topology.Separation.Hausdorff
 
 /-!
 # Compact exclusion away from an isolated zero
@@ -26,10 +27,11 @@ residual is the reference point" into a positive residual margin away from that 
   `UniformPositiveExclusionRadius`, `uniformCompactCorrespondence_dichotomy`,
   `exists_uniformExclusionTolerance_lt`, `exists_uniformExclusionTolerance_le`).
 
-The statements quantify over arbitrary topological parameter spaces and (pseudo)metric candidate
-spaces; matrix specializations live in
-`Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion`.
+The statements quantify over arbitrary topological parameter spaces and
+(pseudo)metric candidate spaces.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -51,7 +53,8 @@ structure PositiveExclusionRadius {X : Type*} (K U : Set X) (r : X → ℝ) wher
 residual](hyp:r), and [a reference point](hyp:x₀), if [the candidate set is compact](hyp:hK),
 [the neighborhood is open](hyp:hU), [the reference belongs to the candidate set](hyp:hxK),
 [the reference belongs to the neighborhood](hyp:hxU), [the far set is nonempty](hyp:hfar),
-[the residual is continuous](hyp:hr_cont), [the residual is nonnegative on candidates](hyp:hr_nonneg),
+[the residual is continuous](hyp:hr_cont),
+[the residual is nonnegative on candidates](hyp:hr_nonneg),
 and [its only zero among candidates is the reference](hyp:hr_zero), then [the far set has a
 strictly positive attained residual minimum](goal). -/
 -- Proof route: `K \ U = K ∩ Uᶜ` is compact.  Apply `IsCompact.exists_isMinOn` to `r`
@@ -92,7 +95,12 @@ tolerance must keep every feasible parameter-candidate pair inside its own refer
 neighborhood.
 -/
 
-/-- For [a parameter space](hyp:P), [a candidate pseudometric space](hyp:X), [a set of feasible parameter--candidate pairs](hyp:K), [a reference candidate assigned to each parameter](hyp:x₀), and [a real-valued radius assigned to each parameter](hyp:ρ), the [far feasible set](goal) consists exactly of the feasible pairs whose candidate is at least that parameter's assigned radius from its reference candidate. -/
+/-- For [a parameter space](hyp:P), [a candidate pseudometric space](hyp:X),
+[a set of feasible parameter--candidate pairs](hyp:K), [a reference candidate
+assigned to each parameter](hyp:x₀), and [a real-valued radius assigned to each
+parameter](hyp:ρ), the [far feasible set](goal) consists exactly of the feasible
+pairs whose candidate is at least that parameter's assigned radius from its
+reference candidate. -/
 def farFeasibleSet {P X : Type*} [TopologicalSpace P] [PseudoMetricSpace X]
     (K : Set (P × X)) (x₀ : P → X) (ρ : P → ℝ) : Set (P × X) :=
   {z | z ∈ K ∧ ρ z.1 ≤ dist z.2 (x₀ z.1)}

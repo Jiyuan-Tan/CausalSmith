@@ -1,0 +1,2081 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{stat\_\allowbreak{}hir\_\allowbreak{}policy\_\allowbreak{}dimension\_\allowbreak{}phase}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} In the binary Gaussian randomized-trial calibration, population regret is exactly a strictly increasing function of the selected policy norm, while only the marginal true-propensity objective law is independent of \(\gamma\). The established proportional result is the exact pooled-target entropy-balance feasibility threshold \(\kappa_{\mathrm{bal}}=0.3043687064\ldots\), which exceeds the fixed-zero-target orthant threshold \(1/4\). The entropy strong-penalty quadratic has an explicit positive conditional-energy floor throughout the feasible region and a two-sided order bracket with leverage concentration only at sufficiently small aspect ratio. In fixed policy dimension, all three global estimators are localized at zero and have explicit normal and quadratic-regret limits; their marginal regret limits are strictly ordered in increasing-loss stochastic order as oracle DR, entropy-balanced IPW, and true-propensity IPW. This comparison-coupling result is not joint convergence, finite-sample ordering, or a proportional-dimensional ranking. A proportional same-sample deterministic norm system, regret ranking, radius cells, and unconditional phase inference remain open.
+
+\section{Project justification}
+
+\paragraph{Gap.} FangRidderXie2026 proves its benchmark-lottery result under fixed rule dimension, compact covariate support, uniform smoothness controls, and a rich low-dimensional balancing sieve. Those conditions do not contain the present unbounded Gaussian design, proportional dimension, and exact balance only on \((1,q^\top)^\top\). Existing proportional logistic and convex Gaussian results do not handle two endogenous same-sample entropy tilts followed by a nonconcave global policy selector.
+
+\paragraph{Niche.} The proved package isolates what survives without the missing joint system: a deformed-orthant pooled-target feasibility threshold, a global feasible-side conditional-energy floor, a small-aspect order bracket for the original entropy weights, and a complete fixed-dimensional Gaussian M-estimation limit. In that fixed-dimensional limit, the strict Loewner score-covariance order induces a strict stochastic order of the three marginal regret laws, with oracle DR smallest, entropy-balanced IPW intermediate, and true-propensity IPW largest. It does not infer a proportional regret sign from numerical fits or from the fixed-dimensional order.
+
+\paragraph{Fill.} The note currently delivers the exact threshold comparison \(1/4\) versus \(0.3043687064\ldots\), fixed-dimensional normal and quadratic-regret limit laws, their strict marginal stochastic ranking, and rigorous entropy-quadratic bounds. Only the binary benchmark-one-half rule and estimand form specialize Fang--Ridder--Xie; the Gaussian theorem is proved independently outside their compact-support class, so there is no inclusion transfer. The remaining research target is an explicitly open proportional-Gaussian analogue that must retain same-row tilt-policy Jacobians and certify the selected global branches before any HIR cells or plug-in phase labels are asserted.
+
+\section{Related work}
+
+FangRidderXie2026 supplies the benchmark-lottery motivation and a fixed-rule-dimensional regret theorem under compact support, uniform smoothness, and balancing-sieve conditions. Only the rule and estimand form used here are a binary benchmark-one-half specialization of that setup. The present fixed-dimensional Gaussian limit theorem and its strict marginal regret-law ordering are independently proved for unbounded Gaussian features, which lie outside their compact-support class; no theorem-class inclusion or transfer is claimed. The separate proportional target is likewise an open Gaussian analogue, not a strict extension. HiranoImbensRidder2003 supplies the rich estimated-propensity score-projection mechanism, whereas the exact covariance calculation here shows that balancing only the same linear coordinates is strictly between true IPW and oracle DR in the fixed-dimensional marginal regret order. SurCandes2019 treats one proportional logistic likelihood, and ThrampoulidisAbbasiHassibi2018 treats convex Gaussian estimators; neither certifies two endogenous entropy tilts followed by this nonconcave global selector. CandesSur2020 and AmelunxenLotzMcCoyTropp2014 provide separation and conic tools for the pooled-target threshold. Hainmueller2012 and ZhaoPercival2017 concern entropy duality and fixed-dimensional efficiency, while DaiYan2024 studies high-dimensional balance feasibility. LuYangWang2025 motivates leverage-aware proportional adjustments but does not cover these endogenous exponential tilts. AtheyWager2021 supplies the oracle-DR policy-score comparator. AshrafKarlanYin2006 is the motivating application, not a claim that its data satisfy this binary Gaussian calibration model.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mathcal R_{jn}=J_n(0)-J_n(\widehat\beta_{jn})\).
+Primary functional / estimator / diagnostic: \((r_T,r_E,r_D,\Delta_{\mathrm{HIR}})=\{\lambda g(\rho_T),\lambda g(\rho_E),\lambda g(\rho_D),\lambda[g(\rho_T)-g(\rho_E)]\}\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{sample-\allowbreak{}size index}
+  \item \texttt{armset} --- \texttt{finite set}; \texttt{treatment arms}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal A=\{0,1\}\)
+  \item \texttt{methodset} --- \texttt{finite set}; \texttt{true-\allowbreak{}propensity IPW,\allowbreak{} entropy-\allowbreak{}balanced IPW,\allowbreak{} and oracle DR labels}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal J=\{T,E,D\}\)
+  \item \texttt{pseq} --- \texttt{integer sequence}; \(\mathbb N^{\mathbb N}\); \texttt{policy dimension}
+  \par\smallskip\noindent\emph{Definition.} \(p_n\in\mathbb N\)
+  \item \texttt{kappa} --- \texttt{scalar}; \((0,1/2)\); \texttt{proportional dimension}
+  \item \texttt{gammalow} --- \texttt{scalar constant}; \((0,\infty)\); \texttt{lower signal bound}
+  \par\smallskip\noindent\emph{Definition.} \(\underline\gamma>0\)
+  \item \texttt{gammahigh} --- \texttt{scalar constant}; \((0,\infty)\); \texttt{upper signal bound}
+  \par\smallskip\noindent\emph{Definition.} \(\overline\gamma>\underline\gamma\)
+  \item \texttt{gamma} --- \texttt{scalar}; \([\underline\gamma,\overline\gamma]\subset(0,\infty)\); \texttt{outcome-\allowbreak{}signal strength}
+  \item \texttt{lambda} --- \texttt{scalar}; \((0,\infty)\); \texttt{fixed KL penalty}
+  \item \texttt{radius} --- \texttt{scalar}; \((0,\infty)\); \texttt{policy-\allowbreak{}radius bound}
+  \item \texttt{Zstd} --- \texttt{random variable}; \(\mathbb R\); \texttt{scalar Gaussian reference}
+  \par\smallskip\noindent\emph{Definition.} \(Z\sim\mathcal N(0,1)\)
+  \item \texttt{phistd} --- \texttt{function}; \(\phi:\mathbb R\to(0,\infty)\); \texttt{standard-\allowbreak{}normal density}
+  \par\smallskip\noindent\emph{Definition.} \(\phi(z)=(2\pi)^{-1/2}\exp(-z^2/2)\)
+  \item \texttt{Phistd} --- \texttt{function}; \(\Phi:\mathbb R\to(0,1)\); \texttt{standard-\allowbreak{}normal distribution function}
+  \par\smallskip\noindent\emph{Definition.} \(\Phi(t)=\int_{-\infty}^{t}\phi(z)\,dz\)
+  \item \texttt{sigmoid} --- \texttt{function}; \(\sigma:\mathbb R\to(0,1)\); \texttt{logistic link}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma(z)=\{1+\exp(-z)\}^{-1}\)
+  \item \texttt{qseq} --- \texttt{triangular array of random vectors}; \(q_{ni}\in\mathbb R^{p_n}\); \texttt{Gaussian policy features}
+  \item \texttt{Aseq} --- \texttt{triangular array of binary random variables}; \(A_{ni}\in\mathcal A\); \texttt{randomized treatment}
+  \item \texttt{Sseq} --- \texttt{triangular array of signs}; \(S_{ni}\in\{-1,1\}\); \texttt{centered treatment sign}
+  \par\smallskip\noindent\emph{Definition.} \(S_{ni}=2A_{ni}-1\)
+  \item \texttt{Xseq} --- \texttt{triangular array of random vectors}; \(X_{ni}\in\mathbb R^{p_n}\); \texttt{row-\allowbreak{}sign-\allowbreak{}symmetrized Gaussian feature used only for the marginal true-\allowbreak{}propensity IPW invariance}
+  \par\smallskip\noindent\emph{Definition.} \(X_{ni}=S_{ni}q_{ni}\)
+  \item \texttt{mseq} --- \texttt{triangular array of conditional means}; \((0,1)\); \texttt{arm-\allowbreak{}invariant outcome regression}
+  \par\smallskip\noindent\emph{Definition.} \(m_{ni}=\sigma(\gamma q_{ni,1})\)
+  \item \texttt{Yseq} --- \texttt{triangular array of binary random variables}; \(Y_{ni}\in\{0,1\}\); \texttt{observed outcome}
+  \item \texttt{vgamma} --- \texttt{scalar function}; \(v:(0,\infty)\to(0,1/4)\); \texttt{oracle residual-\allowbreak{}variance summary}
+  \par\smallskip\noindent\emph{Definition.} \(v_\gamma=\mathbb E[\sigma(\gamma Z)\{1-\sigma(\gamma Z)\}]\)
+  \item \texttt{qbar} --- \texttt{triangular array of vectors}; \(\mathbb R^{p_n}\); \texttt{pooled empirical balance target}
+  \par\smallskip\noindent\emph{Definition.} \(\bar q_n=n^{-1}\sum_{i=1}^{n}q_{ni}\)
+  \item \texttt{narm} --- \texttt{triangular array of counts}; \texttt{arm sizes}
+  \par\smallskip\noindent\emph{Definition.} \(n_{an}=\sum_{i=1}^{n}\mathbf 1\{A_{ni}=a\}\), \(a\in\mathcal A\)
+  \item \texttt{betaball} --- \texttt{triangular array of compact sets}; \(\mathcal B_n\subset\mathbb R^{p_n}\); \texttt{rescaled logistic-\allowbreak{}policy parameter space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal B_n=\{\beta\in\mathbb R^{p_n}:\|\beta\|_2\le R\}\)
+  \item \texttt{policy} --- \texttt{policy family}; \(\pi_\beta:\mathbb R^{p_n}\to(0,1)\); \texttt{benchmark-\allowbreak{}centered logistic assignment rule}
+  \par\smallskip\noindent\emph{Definition.} \(\pi_\beta(q)=\sigma(q^\top\beta)\), \(\beta\in\mathcal B_n\)
+  \item \texttt{hfun} --- \texttt{function}; \(h:\mathbb R\to[0,\log 2)\); \texttt{Bernoulli KL divergence from one half}
+  \par\smallskip\noindent\emph{Definition.} \(h(z)=z\sigma(z)-\log\{1+\exp(z)\}+\log 2\)
+  \item \texttt{gfun} --- \texttt{function}; \(g:[0,\infty)\to[0,\log 2)\); \texttt{radial population KL loss}
+  \par\smallskip\noindent\emph{Definition.} \(g(r)=\mathbb E[h(rZ)]\)
+  \item \texttt{popcriterion} --- \texttt{triangular array of functions}; \(J_n:\mathcal B_n\to\mathbb R\); \texttt{population penalized welfare}
+  \par\smallskip\noindent\emph{Definition.} \(J_n(\beta)=1/2-\lambda g(\|\beta\|_2)\)
+  \item \texttt{feasevent} --- \texttt{triangular array of events}; \texttt{certified strict pooled-\allowbreak{}target feasibility event for the unique entropy-\allowbreak{}weight solution}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal E_{an}=\{n_{an}>0\}\cap\{\bar q_n\in\operatorname{relint}\operatorname{conv}(q_{ni}:A_{ni}=a)\}\)
+  \item \texttt{ebweights} --- \texttt{triangular array of positive weights}; \(w_{ian}>0\); \texttt{total arm-\allowbreak{}specific weights,\allowbreak{} equal to entropy-\allowbreak{}balancing weights on certified feasibility and to uniform arm weights otherwise}
+  \item \texttt{etatilt} --- \texttt{triangular array of dual vectors}; \(\eta_{an}\in\mathbb R^{p_n}\); \texttt{total arm-\allowbreak{}specific entropy tilt with a deterministic complement-\allowbreak{}event default}
+  \par\smallskip\noindent\emph{Definition.} On \(\mathcal E_{an}\), \(\eta_{an}\) is the minimum-Euclidean-norm entropy-dual coefficient associated with the unique exact-balancing weights; on \(\mathcal E_{an}^{c}\), \(\eta_{an}=0\)
+  \item \texttt{dseq} --- \texttt{triangular array of signed weights}; total method-\(E\) score multiplier, induced by exact entropy weights on feasibility and by the uniform default otherwise
+  \par\smallskip\noindent\emph{Definition.} \(d_{ni}=nS_{ni}w_{iA_{ni}n}\)
+  \item \texttt{scorecoef} --- \texttt{triangular array indexed by method}; \texttt{three empirical policy-\allowbreak{}score coefficients}
+  \par\smallskip\noindent\emph{Definition.} \(c_{T,ni}=2S_{ni}Y_{ni}\), \(c_{E,ni}=d_{ni}Y_{ni}\), and \(c_{D,ni}=2S_{ni}(Y_{ni}-m_{ni})\)
+  \item \texttt{empobjective} --- \texttt{triangular array of random functions}; \(F_{jn}:\mathcal B_n\to\mathbb R\); \texttt{centered empirical policy criteria}
+  \item \texttt{selectedbeta} --- \texttt{triangular array of random vectors}; \(\widehat\beta_{jn}\in\mathcal B_n\); \texttt{globally selected policy parameters}
+  \item \texttt{regret} --- \texttt{triangular array of nonnegative random variables}; \texttt{population penalized-\allowbreak{}welfare regret}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_{jn}=J_n(0)-J_n(\widehat\beta_{jn})\)
+  \item \texttt{tbal} --- \texttt{scalar}; \((0,\infty)\); \texttt{deformed-\allowbreak{}orthant root}
+  \par\smallskip\noindent\emph{Definition.} \(t_{\mathrm{bal}}\) is the unique nonnegative root of \(t=\{\phi(t)+t\Phi(t)\}/2\)
+  \item \texttt{kappabal} --- \texttt{scalar}; \((0,1/2)\); \texttt{pooled-\allowbreak{}target exact-\allowbreak{}balance threshold}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_{\mathrm{bal}}=\Phi(t_{\mathrm{bal}})/2\)
+  \item \texttt{Qmat} --- \texttt{triangular array of matrices}; \(\mathbb R^{n\times p_n}\); \texttt{Gaussian design matrix}
+  \par\smallskip\noindent\emph{Definition.} \(Q_n\) has row \(i\) equal to \(q_{ni}^\top\)
+  \item \texttt{Lmat} --- \texttt{triangular array of matrices}; \texttt{total full-\allowbreak{}sample least-\allowbreak{}squares resolvent}
+  \par\smallskip\noindent\emph{Definition.} \(L_n=(Q_n^\top Q_n)^{+}Q_n^\top\), where \({}^{+}\) denotes the Moore--Penrose pseudoinverse
+  \item \texttt{rankevent} --- \texttt{triangular array of events}; \texttt{full-\allowbreak{}column-\allowbreak{}rank event on which the pseudoinverse equals the ordinary least-\allowbreak{}squares inverse}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal Q_n=\{\operatorname{rank}(Q_n)=p_n\}\)
+  \item \texttt{Dmat} --- \texttt{triangular array of diagonal matrices}; total diagonal method-\(E\) score-weight matrix
+  \par\smallskip\noindent\emph{Definition.} \(D_n=\operatorname{diag}(d_{n1},\ldots,d_{nn})\)
+  \item \texttt{uvec} --- \texttt{triangular array of vectors}; \(\mathbb R^n\); \texttt{centered outcome-\allowbreak{}signal vector}
+  \par\smallskip\noindent\emph{Definition.} \(u_n=(m_{n1}-1/2,\ldots,m_{nn}-1/2)^\top\)
+  \item \texttt{Vmat} --- \texttt{triangular array of diagonal matrices}; \texttt{conditional outcome-\allowbreak{}variance matrix}
+  \par\smallskip\noindent\emph{Definition.} \(V_n=\operatorname{diag}(m_{n1}(1-m_{n1}),\ldots,m_{nn}(1-m_{nn}))\)
+  \item \texttt{onesvec} --- \texttt{triangular array of deterministic vectors}; \(\mathbb R^n\); \texttt{all-\allowbreak{}ones vector}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbf 1_n=(1,\ldots,1)^\top\)
+  \item \texttt{bEB} --- \texttt{triangular array of random vectors}; total strong-penalty method-\(E\) diagnostic, interpreted as entropy-balanced on the certified event
+  \par\smallskip\noindent\emph{Definition.} \(b_{E,n}=L_nD_n(Y_n-\mathbf 1_n/2)\)
+  \item \texttt{rho} --- \texttt{method-\allowbreak{}indexed deterministic scalar}; \(\rho_j\in[0,R]\); \texttt{candidate deterministic limit of the selected norm}
+  \item \texttt{rlimit} --- \texttt{method-\allowbreak{}indexed deterministic scalar}; \texttt{limiting population regret}
+  \par\smallskip\noindent\emph{Definition.} \(r_j=\lambda g(\rho_j)\)
+  \item \texttt{dividend} --- \texttt{scalar function}; \texttt{HIR regret dividend}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{\mathrm{HIR}}(\kappa,\gamma,\lambda,R)=r_T-r_E\)
+  \item \texttt{phasecells} --- \texttt{three subsets of the parameter space}; \texttt{negative,\allowbreak{} zero,\allowbreak{} and positive dividend cells}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_s=\{(\kappa,\gamma,\lambda,R):\operatorname{sgn}(\Delta_{\mathrm{HIR}})=s\}\) for \(s\in\{-,0,+\}\)
+  \item \texttt{jointstate} --- \texttt{finite-\allowbreak{}dimensional deterministic state to be constructed}; \texttt{joint tilt-\allowbreak{}policy state and global selection certificate}
+  \item \texttt{gammahat} --- \texttt{scalar estimator}; \texttt{one-\allowbreak{}dimensional signal estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\gamma_n\in\operatorname*{arg\,max}_{g\in[\underline\gamma,\overline\gamma]}\sum_{i=1}^{n}\{Y_{ni}\log\sigma(gq_{ni,1})+(1-Y_{ni})\log(1-\sigma(gq_{ni,1}))\}\)
+  \item \texttt{phaseparam} --- \texttt{four-\allowbreak{}dimensional parameter vector}; \(\Xi=(0,1/2)\times[\underline\gamma,\overline\gamma]\times(0,\infty)^2\); \texttt{phase-\allowbreak{}diagram argument}
+  \par\smallskip\noindent\emph{Definition.} \(\xi=(\kappa,\gamma,\lambda,R)\in\Xi\)
+  \item \texttt{abstainsym} --- \texttt{decision symbol}; \texttt{reported when a certified phase sign is unavailable}
+  \par\smallskip\noindent\emph{Definition.} \(\bot\notin\{-,0,+\}\)
+  \item \texttt{certbranches} --- \texttt{finite set-\allowbreak{}valued map}; \texttt{certified candidate branches supplied by the joint system}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak B(\xi)\) is the finite set of real joint-state branches satisfying the state equations and all feasibility and radius KKT inequalities; every \(b=(b_T,b_E,b_D)\in\mathfrak B(\xi)\) records method norms \(\rho_j(b;\xi)\) and limiting objective values \(V_j(b;\xi)\)
+  \item \texttt{branchgap} --- \texttt{branch-\allowbreak{}selection slack}; \texttt{minimum global-\allowbreak{}objective separation from every competing branch}
+  \par\smallskip\noindent\emph{Definition.} \(G_b(\xi)=\min_{j\in\mathcal J}\inf_{c\in\mathfrak B(\xi):c_j\ne b_j}\{V_j(b;\xi)-V_j(c;\xi)\}\), with a method having no competing branch assigned gap one before taking the minimum
+  \item \texttt{branchmap} --- \texttt{total selected-\allowbreak{}branch map}; \texttt{certified deterministic selector with total tie handling}
+  \par\smallskip\noindent\emph{Definition.} \(b^\star(\xi)=b\) if exactly one \(b\in\mathfrak B(\xi)\) has \(G_b(\xi)>0\), and \(b^\star(\xi)=\bot\) otherwise; thus an empty certificate set or any unresolved global tie is handled deterministically by abstention
+  \item \texttt{dbal} --- \texttt{nonnegative scalar function}; \texttt{distance to loss of pooled-\allowbreak{}target balance feasibility}
+  \par\smallskip\noindent\emph{Definition.} \(d_{\mathrm{bal}}(\xi)=(\kappa_{\mathrm{bal}}-\kappa)_+\)
+  \item \texttt{drad} --- \texttt{nonnegative scalar function}; \texttt{distance to the nearest selected-\allowbreak{}policy radius contact}
+  \par\smallskip\noindent\emph{Definition.} \(d_{\mathrm{rad}}(\xi)=\min_{j\in\mathcal J}\{R-\rho_j(b^\star(\xi);\xi)\}\) when \(b^\star(\xi)\ne\bot\), and \(d_{\mathrm{rad}}(\xi)=0\) otherwise
+  \item \texttt{dcoll} --- \texttt{nonnegative scalar function}; \texttt{global-\allowbreak{}optimizer branch-\allowbreak{}separation distance}
+  \par\smallskip\noindent\emph{Definition.} \(d_{\mathrm{col}}(\xi)=G_{b^\star(\xi)}(\xi)\) when \(b^\star(\xi)\ne\bot\), and \(d_{\mathrm{col}}(\xi)=0\) otherwise
+  \item \texttt{dzero} --- \texttt{nonnegative scalar function}; \texttt{distance to the zero HIR-\allowbreak{}dividend boundary}
+  \par\smallskip\noindent\emph{Definition.} \(d_0(\xi)=|\lambda\{g(\rho_T(b^\star(\xi);\xi))-g(\rho_E(b^\star(\xi);\xi))\}|\) when \(b^\star(\xi)\ne\bot\), and \(d_0(\xi)=0\) otherwise
+  \item \texttt{distvec} --- \texttt{four-\allowbreak{}dimensional function}; \texttt{vector of the four separately defined boundary distances}
+  \par\smallskip\noindent\emph{Definition.} \(d(\xi)=\{d_{\mathrm{bal}}(\xi),d_{\mathrm{rad}}(\xi),d_{\mathrm{col}}(\xi),d_0(\xi)\}^\top\)
+  \item \texttt{phasealpha} --- \texttt{scalar}; \((0,1)\); \texttt{simultaneous phase-\allowbreak{}inference error level}
+  \par\smallskip\noindent\emph{Definition.} \(\alpha\in(0,1)\)
+  \item \texttt{infohat} --- \texttt{positive scalar estimator}; \texttt{estimated Fisher information for the scalar signal}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat I_{\gamma,n}=n^{-1}\sum_{i=1}^{n}q_{ni,1}^2\sigma(\widehat\gamma_nq_{ni,1})\{1-\sigma(\widehat\gamma_nq_{ni,1})\}\)
+  \item \texttt{phaseparamhat} --- \texttt{four-\allowbreak{}dimensional plug-\allowbreak{}in estimator}; estimated phase-diagram argument; only \(\gamma\) is statistically estimated and \(p_n/n\), \(\lambda\), and \(R\) are observed or fixed
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\xi_n=(p_n/n,\widehat\gamma_n,\lambda,R)\)
+  \item \texttt{Omegahat} --- \texttt{four-\allowbreak{}by-\allowbreak{}four covariance estimator}; \texttt{estimated covariance in the joint boundary-\allowbreak{}distance limit}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\Omega_n=\partial_\gamma d(\widehat\xi_n)\partial_\gamma d(\widehat\xi_n)^\top/\widehat I_{\gamma,n}\), with the derivative taken on the certified branch and \(\widehat\Omega_n=0_{4\times4}\) when that derivative is unavailable
+  \item \texttt{simradius} --- \texttt{nonnegative random radius}; \texttt{estimable simultaneous uncertainty radius with explicit Gaussian-\allowbreak{}max quantile}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat u_{n,1-\alpha}=n^{-1/2}q_{1-\alpha}(\widehat\Omega_n)\), where \(q_{1-\alpha}(\Omega)=\inf\{t:\mathbb P(\max_{1\le\ell\le4}|W_\ell|\le t)\ge1-\alpha,\ W\sim\mathcal N_4(0,\Omega)\}\)
+  \item \texttt{phaseplug} --- \texttt{total abstaining phase classifier}; \texttt{feasible phase-\allowbreak{}inference output}
+  \item \texttt{pfixed} --- \texttt{positive integer}; \(\mathbb N\); \texttt{fixed policy dimension in the classical asymptotic reduction}
+  \par\smallskip\noindent\emph{Definition.} \(p\in\mathbb N\)
+  \item \texttt{mugamma} --- \texttt{scalar function}; \(\mu:(0,\infty)\to(0,\infty)\); \texttt{signal-\allowbreak{}coordinate mean removed by exact linear entropy balance}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_\gamma=\mathbb E[Z\{\sigma(\gamma Z)-1/2\}]=\gamma v_\gamma\)
+  \item \texttt{Igamma} --- \texttt{scalar function}; \(I:(0,\infty)\to(0,\infty)\); \texttt{oracle residual score variance in the signal coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(I_\gamma=\mathbb E[Z^2\sigma'(\gamma Z)]\)
+  \item \texttt{eone} --- \texttt{deterministic vector}; \(\mathbb R^p\); \texttt{first coordinate direction in the fixed-\allowbreak{}dimensional reduction}
+  \par\smallskip\noindent\emph{Definition.} \(e_1=(1,0,\ldots,0)^\top\)
+  \item \texttt{Sigmascore} --- \texttt{method-\allowbreak{}indexed positive-\allowbreak{}definite matrix}; \(\Sigma_j\in\mathbb R^{p\times p},\ j\in\mathcal J\); \texttt{fixed-\allowbreak{}dimensional empirical-\allowbreak{}gradient covariance}
+  \item \texttt{Zscore} --- \texttt{method-\allowbreak{}indexed Gaussian vector}; \(Z_j\in\mathbb R^p\); \texttt{fixed-\allowbreak{}dimensional score limit entering the regret law}
+  \par\smallskip\noindent\emph{Definition.} \(Z_j\sim\mathcal N_p(0,\Sigma_j)\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:aspect-ratio]\label{ass:aspect-ratio}
+\(p_n/n\to\kappa\)
+\par\smallskip\noindent\emph{Standard} (Proportional-dimensional asymptotics, \cite{SurCandes2019}).
+\end{assumption}
+
+\begin{assumption}[ass:gaussian-features]\label{ass:gaussian-features}
+\((q_{ni})_{i=1}^{n}\) are independent with \(q_{ni}\sim\mathcal N(0,I_{p_n})\)
+\par\smallskip\noindent\emph{Standard} (Isotropic Gaussian proportional design, \cite{SurCandes2019}).
+\end{assumption}
+
+\begin{assumption}[ass:randomization]\label{ass:randomization}
+\((A_{ni})_{i=1}^{n}\) are independent Bernoulli variables with \(\mathbb P(A_{ni}=1)=1/2\) and are independent of \((q_{ni})_{i=1}^{n}\)
+\par\smallskip\noindent\emph{Standard} (Known Bernoulli randomized assignment, \cite{FangRidderXie2026}).
+\end{assumption}
+
+\begin{assumption}[ass:binary-logistic-outcome]\label{ass:binary-logistic-outcome}
+\((Y_{ni})_{i=1}^{n}\) are conditionally independent given \((q_{ni},A_{ni})_{i=1}^{n}\) and \(Y_{ni}\mid(q_{ni},A_{ni})\sim\operatorname{Bernoulli}(m_{ni})\)
+\par\smallskip\noindent\emph{Standard} (Correct logistic binary-response model, \cite{SurCandes2019}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:entropy-weights]\label{def:entropy-weights}
+\par\smallskip\noindent\emph{Defined object.} \texttt{ebweights}
+\par\smallskip\noindent\emph{Construction.} For every sample and arm \(a\), define the within-arm weight family as follows. On \(\mathcal E_{an}\), use the unique minimizer of \(\sum_{i:A_{ni}=a}w_i\log(n_{an}w_i)\) subject to \(w_i>0\), \(\sum_{i:A_{ni}=a}w_i=1\), and \(\sum_{i:A_{ni}=a}w_iq_{ni}=\bar q_n\); equivalently, \(w_{ian}=\exp(q_{ni}^{\top}\eta_{an})/\sum_{k:A_{nk}=a}\exp(q_{nk}^{\top}\eta_{an})\), with \(\eta_{an}\) chosen as the minimum-Euclidean-norm dual solution. On \(\{n_{an}>0\}\cap\mathcal E_{an}^{c}\), set \(w_{ian}=1/n_{an}\) for every \(i\) with \(A_{ni}=a\) and set \(\eta_{an}=0\). When \(n_{an}=0\), set the within-arm weight family to the empty vector and \(\eta_{an}=0\). These complement rules are only totality conventions and do not assert exact balance or entropy balancing
+\par\smallskip\noindent\emph{Inputs.} \texttt{qseq}; \texttt{Aseq}; \texttt{qbar}; \texttt{feasevent}.
+\end{definition}
+
+\begin{definition}[def:empirical-objectives]\label{def:empirical-objectives}
+\par\smallskip\noindent\emph{Defined object.} \texttt{empobjective}
+\par\smallskip\noindent\emph{Construction.} Using the total coefficients induced by \(w_{iA_{ni}n}\), for every sample, \(j\in\mathcal J\), and \(\beta\in\mathcal B_n\), set \(F_{jn}(\beta)=n^{-1}\sum_{i=1}^{n}[c_{j,ni}\{\sigma(q_{ni}^{\top}\beta)-1/2\}-\lambda h(q_{ni}^{\top}\beta)]\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{scorecoef}; \texttt{ebweights}; \texttt{qseq}; \texttt{lambda}; \texttt{hfun}; \texttt{betaball}.
+\end{definition}
+
+\begin{definition}[def:global-selector]\label{def:global-selector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{selectedbeta}
+\par\smallskip\noindent\emph{Construction.} For every sample and \(j\in\mathcal J\), continuity of the total objective on the compact ball makes \(\operatorname*{arg\,max}_{\beta\in\mathcal B_n}F_{jn}(\beta)\) nonempty and compact. Define \(\widehat\beta_{jn}\) by first minimizing \(\|\beta\|_2\) over that set and then successively minimizing coordinates \(1,\ldots,p_n\); this deterministic lexicographic rule returns exactly one global maximizer
+\par\smallskip\noindent\emph{Inputs.} \texttt{empobjective}; \texttt{betaball}; \texttt{pseq}.
+\end{definition}
+
+\begin{definition}[def:joint-resolvent-handle]\label{def:joint-resolvent-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{jointstate}
+\par\smallskip\noindent\emph{Construction.} On \(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\), apply Gaussian leave-one-observation regression jointly to the two exact entropy-tilt equations and the policy first-order equations, retain the overlaps \(\eta_{0n}^{\top}\eta_{1n}\), \(\eta_{an}^{\top}\widehat\beta_{jn}\), \(\|\eta_{an}\|_2^2\), and \(\|\widehat\beta_{jn}\|_2^2\), and close their response terms with the block Jacobian; append a global objective-value comparison and the radius KKT multiplier as the selection certificate. No state-equation conclusion is attributed to the uniform fallback outside this event
+\par\smallskip\noindent\emph{Inputs.} \texttt{ebweights}; \texttt{empobjective}; \texttt{selectedbeta}; \texttt{qseq}; \texttt{Aseq}; \texttt{Yseq}; \texttt{radius}; \texttt{feasevent}; \texttt{rankevent}.
+\end{definition}
+
+\begin{definition}[def:certified-branch-selector]\label{def:certified-branch-selector}
+\par\smallskip\noindent\emph{Defined object.} \texttt{branchmap}
+\par\smallskip\noindent\emph{Construction.} For every \(\xi\in\Xi\), compute \(\mathfrak B(\xi)\) and every certificate slack \(G_b(\xi)\); return the unique \(b\) with \(G_b(\xi)>0\) when it exists, and return \(\bot\) when the certified set is empty, more than one branch passes, or a global-objective tie has zero slack
+\par\smallskip\noindent\emph{Inputs.} \texttt{phaseparam}; \texttt{certbranches}; \texttt{branchgap}.
+\end{definition}
+
+\begin{definition}[def:balance-boundary-distance]\label{def:balance-boundary-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{dbal}
+\par\smallskip\noindent\emph{Construction.} Set \(d_{\mathrm{bal}}(\xi)=(\kappa_{\mathrm{bal}}-\kappa)_+\); it is positive exactly on the strict-feasibility side and is zero on or beyond the feasibility boundary
+\par\smallskip\noindent\emph{Inputs.} \texttt{phaseparam}; \texttt{kappabal}.
+\end{definition}
+
+\begin{definition}[def:radius-boundary-distance]\label{def:radius-boundary-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{drad}
+\par\smallskip\noindent\emph{Construction.} Set \(d_{\mathrm{rad}}(\xi)=\min_{j\in\mathcal J}\{R-\rho_j(b^\star(\xi);\xi)\}\) when \(b^\star(\xi)\ne\bot\), and set it to zero otherwise
+\par\smallskip\noindent\emph{Inputs.} \texttt{phaseparam}; \texttt{branchmap}; \texttt{rho}; \texttt{radius}.
+\end{definition}
+
+\begin{definition}[def:collision-boundary-distance]\label{def:collision-boundary-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{dcoll}
+\par\smallskip\noindent\emph{Construction.} Set \(d_{\mathrm{col}}(\xi)=G_{b^\star(\xi)}(\xi)\) when \(b^\star(\xi)\ne\bot\), and set it to zero otherwise
+\par\smallskip\noindent\emph{Inputs.} \texttt{phaseparam}; \texttt{branchgap}; \texttt{branchmap}.
+\end{definition}
+
+\begin{definition}[def:zero-dividend-boundary-distance]\label{def:zero-dividend-boundary-distance}
+\par\smallskip\noindent\emph{Defined object.} \texttt{dzero}
+\par\smallskip\noindent\emph{Construction.} Set \(d_0(\xi)=|\lambda\{g(\rho_T(b^\star(\xi);\xi))-g(\rho_E(b^\star(\xi);\xi))\}|\) when \(b^\star(\xi)\ne\bot\), and set it to zero otherwise
+\par\smallskip\noindent\emph{Inputs.} \texttt{phaseparam}; \texttt{branchmap}; \texttt{rho}; \texttt{lambda}; \texttt{gfun}.
+\end{definition}
+
+\begin{definition}[def:simultaneous-radius]\label{def:simultaneous-radius}
+\par\smallskip\noindent\emph{Defined object.} \texttt{simradius}
+\par\smallskip\noindent\emph{Construction.} Evaluate \(\widehat d_n=d(\widehat\xi_n)\), \(\widehat I_{\gamma,n}\), and \(\widehat\Omega_n=\partial_\gamma d(\widehat\xi_n)\partial_\gamma d(\widehat\xi_n)^\top/\widehat I_{\gamma,n}\) on the certified branch; then set \(\widehat u_{n,1-\alpha}=n^{-1/2}q_{1-\alpha}(\widehat\Omega_n)\), where \(q_{1-\alpha}(\Omega)=\inf\{t:\mathbb P(\max_{1\le\ell\le4}|W_\ell|\le t)\ge1-\alpha,\ W\sim\mathcal N_4(0,\Omega)\}\); if the branch or derivative is uncertified, set \(\widehat u_{n,1-\alpha}=+\infty\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{distvec}; \texttt{phaseparamhat}; \texttt{infohat}; \texttt{Omegahat}; \texttt{phasealpha}.
+\end{definition}
+
+\begin{definition}[def:phase-plugin]\label{def:phase-plugin}
+\par\smallskip\noindent\emph{Defined object.} \texttt{phaseplug}
+\par\smallskip\noindent\emph{Construction.} Estimate only \(\gamma\) by \(\widehat\gamma_n\), use the observed aspect ratio \(p_n/n\), and treat \(\lambda\) and \(R\) as fixed; compute \(\widehat\xi_n=(p_n/n,\widehat\gamma_n,\lambda,R)\), \(\widehat b_n=b^\star(\widehat\xi_n)\), and the four coordinates \(\widehat d_{\ell n}=d_\ell(\widehat\xi_n)\) for \(\ell\in\{\mathrm{bal},\mathrm{rad},\mathrm{col},0\}\); set \(\widehat\Delta_n=\lambda\{g(\rho_T(\widehat b_n;\widehat\xi_n))-g(\rho_E(\widehat b_n;\widehat\xi_n))\}\) when \(\widehat b_n\ne\bot\) and set \(\widehat\Delta_n=0\) otherwise; define the total output by \(\widehat s_{n,\alpha}=\operatorname{sgn}(\widehat\Delta_n)\) if \(\widehat b_n\ne\bot\) and \(\min_\ell\widehat d_{\ell n}>\widehat u_{n,1-\alpha}\), and \(\widehat s_{n,\alpha}=\bot\) otherwise
+\par\smallskip\noindent\emph{Inputs.} \texttt{phaseparamhat}; \texttt{branchmap}; \texttt{distvec}; \texttt{simradius}.
+\end{definition}
+
+\section{Main results}
+
+\begin{proposition}[prop:radial-invariance]\label{prop:radial-invariance}
+For every \(n\) and \(j\in\mathcal J\), \(\mathcal R_{jn}=\lambda g(\|\widehat\beta_{jn}\|_2)\), where \(g'(r)=r\,\mathbb E[Z^2\sigma'(rZ)]>0\) for \(r>0\). For method \(T\), set \(X_{ni}=S_{ni}q_{ni}\). Oddness of \(\sigma(z)-1/2\) and evenness of \(h(z)\) give, simultaneously for every \(\beta\in\mathcal B_n\), \[F_{Tn}(\beta)=n^{-1}\sum_{i=1}^{n}\left[2Y_{ni}\{\sigma(X_{ni}^{\top}\beta)-1/2\}-\lambda h(X_{ni}^{\top}\beta)\right].\] Under Gaussian central symmetry and \(\sigma(t)+\sigma(-t)=1\), the pairs \((X_{ni},Y_{ni})\) are independent across \(i\), with \(X_{ni}\sim\mathcal N(0,I_{p_n})\), \(Y_{ni}\sim\operatorname{Bernoulli}(1/2)\), and \(X_{ni}\perp Y_{ni}\). Hence the unconditional law of \(F_{Tn}\) as a random function on \(\mathcal B_n\), and therefore the marginal law of \(\|\widehat\beta_{Tn}\|_2\) and \(\mathcal R_{Tn}\), is independent of \(\gamma\). This invariance is not conditional on the original \(Q_n\) or \(A_n\), and it does not assert gamma-invariance of their joint law with \(F_{Tn}\), of the entropy tilts, of methods \(E\) or \(D\), of cross-method overlaps or branch and collision quantities, or of the full phase vector.
+\end{proposition}
+\begin{proof}
+By the definition of \(h\), \(h(0)=0\), so \(g(0)=0\).  The definition of \(J_n\) therefore gives, for every realized selected vector,
+\[
+ \mathcal R_{jn}=J_n(0)-J_n(\widehat\beta_{jn})
+ =\lambda\{g(\|\widehat\beta_{jn}\|_2)-g(0)\}
+ =\lambda g(\|\widehat\beta_{jn}\|_2).
+\]
+Differentiating the displayed definition of \(h\) gives
+\[
+ h'(z)=\sigma(z)+z\sigma'(z)-\sigma(z)=z\sigma'(z).
+\]
+For \(r\) in a bounded interval, \(|Z h'(rZ)|\le rZ^2/4\), which is integrable under the Gaussian-feature assumption.  Dominated differentiation thus yields
+\[
+ g'(r)=\mathbb E\{Zh'(rZ)\}
+       =r\mathbb E\{Z^2\sigma'(rZ)\}.
+\]
+Since \(\sigma'(z)=\sigma(z)\{1-\sigma(z)\}>0\) and \(\mathbb P(Z\ne0)=1\), this derivative is strictly positive for every \(r>0\).
+
+It remains to prove the distributional assertion for method \(T\).  The logistic identity \(\sigma(-z)=1-\sigma(z)\) implies that \(\sigma(z)-1/2\) is odd.  Direct substitution in the definition of \(h\) also gives \(h(-z)=h(z)\).  Since \(q_{ni}=S_{ni}X_{ni}\), for every \(\beta\in\mathcal B_n\), simultaneously,
+\[
+ \begin{aligned}
+ F_{Tn}(\beta)
+ &=\frac1n\sum_{i=1}^n
+ \left[2S_{ni}Y_{ni}\{\sigma(S_{ni}X_{ni}^{\top}\beta)-1/2\}
+       -\lambda h(S_{ni}X_{ni}^{\top}\beta)\right]\\
+ &=\frac1n\sum_{i=1}^n
+ \left[2Y_{ni}\{\sigma(X_{ni}^{\top}\beta)-1/2\}
+       -\lambda h(X_{ni}^{\top}\beta)\right].
+ \end{aligned}
+\]
+By randomization and central symmetry of the Gaussian law, for every Borel set \(B\subset\mathbb R^{p_n}\) and \(s\in\{-1,1\}\),
+\[
+ \mathbb P(X_{ni}\in B,S_{ni}=s)
+ =\tfrac12\mathbb P(sq_{ni}\in B)
+ =\tfrac12\mathbb P(q_{ni}\in B).
+\]
+Hence \(X_{ni}\sim\mathcal N(0,I_{p_n})\) and \(X_{ni}\) is independent of \(S_{ni}\).  Conditional on \(X_{ni}=x\), the outcome assumption and the preceding independence give
+\[
+ \mathbb P(Y_{ni}=1\mid X_{ni}=x)
+ =\tfrac12\sigma(\gamma x_1)+\tfrac12\sigma(-\gamma x_1)=\tfrac12.
+\]
+Thus \(Y_{ni}\sim\operatorname{Bernoulli}(1/2)\) and \(Y_{ni}\) is independent of \(X_{ni}\).  Independence across observations follows from the row independence and conditional outcome independence assumptions.  Consequently the entire random function in the last display has the law generated by independent \(X_{ni}\sim\mathcal N(0,I_{p_n})\) and \(Y_{ni}\sim\operatorname{Bernoulli}(1/2)\), a law containing no \(\gamma\).  The global selector is a deterministic function of this random function, so its selected norm and the radial regret have gamma-free marginal laws.  This argument conditions neither on the original \(Q_n\) nor on the assignments and makes no assertion about any joint law involving entropy tilts, method \(E\), method \(D\), or cross-method branch quantities.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The radial identity converts every method's regret into a selected-norm comparison, while the unconditional row-sign representation supplies an exact gamma-free marginal benchmark only for the true-propensity objective. \textit{Gap.} FangRidderXie2026 obtains a local quadratic regret law in fixed dimension; the exact radial identity and the finite-sample unconditional true-IPW random-function invariance are specific to the Gaussian arm-invariant null-effect calibration and do not remove gamma from the coupled entropy or DR phase system. \textit{Consumer.} A commitment-savings targeting analyst can compare overfitting costs through fitted norms without estimating a separate value functional in this calibration model.
+
+\begin{theorem}[thm:balance-threshold]\label{thm:balance-threshold}
+Let \(t_{\mathrm{bal}}\) solve \(t=\{\phi(t)+t\Phi(t)\}/2\) and let \(\kappa_{\mathrm{bal}}=\Phi(t_{\mathrm{bal}})/2=0.3043687064\ldots\). Then \(\mathbb P(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n)\to1\) when \(\kappa<\kappa_{\mathrm{bal}}\), while \(\mathbb P(\mathcal E_{0n}\cap\mathcal E_{1n})\to0\) when \(\kappa>\kappa_{\mathrm{bal}}\). In the interior regime, \(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\) is therefore the certified event on which both arms use their unique exact-balancing entropy solutions and the ordinary full-rank leverage identities apply.
+\end{theorem}
+\begin{proof}
+Fix an arm \(a\), condition on its index set \(I_{an}=\{i:A_{ni}=a\}\), and write \(m=|I_{an}|\) and \(\alpha_m=m/n\).  The cases \(m\in\{0,n\}\) have probability tending to zero by Assumption \(\mathrm{ass{:}randomization}\).  For one feature coordinate, the vector of centered arm rows
+\[
+ C^{(\ell)}=(q_{ni,\ell}-\bar q_{n,\ell}:i\in I_{an})^\top
+\]
+is Gaussian with covariance
+\[
+ \operatorname{Cov}(C^{(\ell)}_i,C^{(\ell)}_k)
+ =\mathbf1\{i=k\}-\frac1n.
+ \tag{1}
+\]
+Different feature coordinates are independent by Assumption \(\mathrm{ass{:}gaussian\mbox{-}features}\).  With \(u=m^{-1/2}\mathbf1_m\), define
+\[
+ \Sigma_m=I_m-\alpha_muu^\top,
+ \qquad
+ A_m=\Sigma_m^{1/2}=I_m-c_muu^\top,
+ \qquad
+ c_m=1-\sqrt{1-\alpha_m}.
+\]
+When \(0<m<n\), \(A_m\) is invertible, and (1) gives the distributional identity
+\[
+ C_m=A_mG_m,
+ \qquad G_m\in\mathbb R^{m\times p_n}
+ \text{ has independent }\mathcal N(0,1)\text{ entries}.
+ \tag{2}
+\]
+
+A point belongs to the relative interior of a finite convex hull if and only if it has a convex representation with all coefficients strictly positive.  The forward direction follows by moving a small distance from the point opposite the average of all vertices; the reverse direction follows because a strictly positive combination cannot lie in a proper supporting face.  Applying this fact to \(\bar q_n\), and then using (2), gives
+\[
+ \mathcal E_{an}
+ \quad\Longleftrightarrow\quad
+ \ker(G_m^\top)\cap\operatorname{int}(K_m)\ne\varnothing,
+ \qquad K_m=A_m\mathbb R_+^m.
+ \tag{3}
+\]
+The nullspace of \(G_m^\top\) is Haar distributed on the Grassmannian.  Almost surely, intersection with \(K_m\setminus\{0\}\) is equivalent to intersection with its interior.  Indeed, every column submatrix of \(G_m^\top A_m\) has rank equal to the smaller of its two dimensions: its rows have a nonsingular Gaussian covariance, and there are finitely many column sets.  If a nonzero kernel vector has nonnegative support \(I\), then \(|I|>p_n\); full row rank on those columns allows each missing coordinate to be added with a sufficiently small positive coefficient while correcting on \(I\).  The resulting kernel vector is strictly positive.  Thus (3) agrees almost surely with
+\[
+ \ker(G_m^\top)\cap K_m\ne\{0\}.
+ \tag{4}
+\]
+
+We next compute \(\delta(K_m)\).  For \(G=(G_1,\ldots,G_m)^\top\sim\mathcal N(0,I_m)\), Lemma \(\mathrm{lem{:}statistical\mbox{-}dimension\mbox{-}projection}\) reduces projection onto \(K_m\) to minimizing \(\|G-A_mw\|_2^2\) over \(w\ge0\).  Since \(A_m^\top A_m=\Sigma_m\), the coordinate KKT conditions, sufficient by strict convexity, are
+\[
+ w_i=(G_i-c_m\bar G+t_m)_+,
+ \qquad
+ t_m=\alpha_m\bar w
+ =\alpha_m\frac1m\sum_{i=1}^m(G_i-c_m\bar G+t_m)_+.
+ \tag{5}
+\]
+The right side of (5) is Lipschitz in \(t_m\) with constant at most \(\alpha_m<1\), so the solution is unique.  If \(\alpha_m\to\alpha\in(0,1)\), the law of large numbers, \(\bar G\to0\), and the contraction bound imply
+\[
+ t_m\longrightarrow t_\alpha,
+ \qquad
+ t_\alpha=\alpha H(t_\alpha),
+ \qquad H(t)=\mathbb E(G_1+t)_+=\phi(t)+t\Phi(t).
+ \tag{6}
+\]
+The root is unique and positive: \(\alpha H(t)-t\) is positive at zero, has derivative \(\alpha\Phi(t)-1<0\), and tends to minus infinity.
+
+At the minimizing \(w\),
+\[
+ \frac1m\|\Pi_{K_m}(G)\|_2^2
+ =\frac1m\sum_{i=1}^mw_i^2-\alpha_m\bar w^{,2}.
+\]
+Using (5)--(6), the right side converges in probability to
+\[
+ \begin{aligned}
+ \mathbb E(G_1+t_\alpha)_+^2-\alpha H(t_\alpha)^2
+ &=(1+t_\alpha^2)\Phi(t_\alpha)+t_\alpha\phi(t_\alpha)
+   -t_\alpha H(t_\alpha)\\
+ &=\Phi(t_\alpha).
+ \end{aligned}
+ \tag{7}
+\]
+Projection contraction bounds its square by \(\|G\|_2^2/m\), whose second moments are bounded.  Uniform integrability and Lemma \(\mathrm{lem{:}statistical\mbox{-}dimension\mbox{-}projection}\) therefore give
+\[
+ \frac{\delta(K_m)}m\longrightarrow\Phi(t_\alpha).
+ \tag{8}
+\]
+
+The random subspace in (4) has dimension \(m-p_n\), hence statistical dimension \(m-p_n\).  If \(p_n/m\to\kappa/\alpha\), then
+\[
+ \delta(K_m)+(m-p_n)-m
+ =m\left\{\Phi(t_\alpha)-\frac\kappa\alpha\right\}+o(m).
+ \tag{9}
+\]
+Away from equality, the magnitude in (9) is order \(m\) and therefore dominates the square-root transition width in Lemma \(\mathrm{lem{:}approximate\mbox{-}conic\mbox{-}kinematics}\).  Letting its error tolerance decrease after taking the limit shows that conditional feasibility tends to one for \(\kappa<\alpha\Phi(t_\alpha)\) and to zero for \(\kappa>\alpha\Phi(t_\alpha)\).
+
+Chebyshev's inequality for the independent treatment indicators gives \(n_{an}/n\to1/2\) for both arms.  The preceding conclusion is uniform for deterministic count sequences in a sufficiently small neighborhood of \(n/2\): otherwise a countersequence would contradict (6)--(9).  Removing the conditioning and applying a union bound yields
+\[
+ \mathbb P(\mathcal E_{0n}\cap\mathcal E_{1n})\to1
+ \quad\text{if }\kappa<\frac12\Phi(t_{1/2}),
+\]
+whereas each arm's feasibility probability, and hence the probability of their intersection, tends to zero when \(\kappa>\frac12\Phi(t_{1/2})\).  Since \(\kappa<1/2\), eventually \(p_n<n\); Gaussian absolute continuity gives \(\operatorname{rank}(Q_n)=p_n\) almost surely, so adjoining \(\mathcal Q_n\) does not change the first limit.
+
+At \(\alpha=1/2\), (6) is the defining equation
+\[
+ t_{\mathrm{bal}}
+ =\frac{\phi(t_{\mathrm{bal}})+t_{\mathrm{bal}}\Phi(t_{\mathrm{bal}})}2,
+ \qquad
+ \kappa_{\mathrm{bal}}=\frac12\Phi(t_{\mathrm{bal}}).
+\]
+Elementary interval evaluation gives
+\[
+ 0.2760298047<t_{\mathrm{bal}}<0.2760298049,
+ \qquad
+ 0.304368706413<\kappa_{\mathrm{bal}}<0.304368706453,
+\]
+which proves the displayed decimal.  On the joint event, extend \(w\log(n_{an}w)\) continuously at zero.  The feasible simplex is compact, so a minimizer exists, and strict convexity makes it unique.  A zero coordinate is impossible: moving toward the strictly positive feasible vector from (3) has directional derivative minus infinity because \(t\log t\) does at zero.  The equality-constrained Lagrange equations therefore give the positive exponential-tilt form, with the stipulated minimum-norm convention resolving dual nonuniqueness.  Thus both arms use their unique exact-balancing entropy solutions, and \(\mathcal Q_n\) gives the ordinary inverse formula for \(L_n\).
+
+The fixed-zero-target comparison is Proposition \(\mathrm{prop{:}fixed\mbox{-}zero\mbox{-}versus\mbox{-}pooled\mbox{-}balance\mbox{-}threshold}\): an arm of size \(m\sim n/2\) balanced to the nonrandom population target zero has threshold \(p/m=1/2\), equivalently \(\kappa=1/4\).  Here the target is instead the endogenous pooled empirical mean and the covariance deformation in (1) gives \(\kappa_{\mathrm{bal}}>1/4\).  The two numbers therefore use the same full-sample normalization \(p/n\to\kappa\) but different balance targets.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies the exact pooled-target feasibility domain and separates it from the ordinary fixed-zero-target orthant calculation. \textit{Gap.} The endogenous pooled target deforms the arm-row cone, raising the full-sample threshold from \(1/4\) to \(0.3043687064\ldots\); prior fixed-dimensional interiority and approximate-balance work does not give this comparison. \textit{Consumer.} The two normalizations tell analysts when exact same-coordinate balancing is unavailable before any policy comparison is attempted.
+
+\begin{proposition}[prop:quadratic-identity]\label{prop:quadratic-identity}
+Write \(\mathcal G_n=\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\) and \(A_n=(A_{n1},\ldots,A_{nn})^\top\).  On \(\mathcal G_n\), the unique exact-balancing weights imply
+\[
+ Q_n^\top d_n=0,
+ \qquad
+ \mathbb E[\|b_{E,n}\|_2^2\mid Q_n,A_n]
+ =\|L_nD_nu_n\|_2^2+
+ \operatorname{tr}(L_nD_nV_nD_nL_n^\top),
+\]
+and \(L_n=(Q_n^\top Q_n)^{-1}Q_n^\top\).  At \(\gamma=1\), there are constants \(\kappa_0\in(0,\kappa_{\mathrm{bal}})\) and \(0<c<C<\infty\), independent of \(\kappa\), such that, for every fixed \(0<\kappa<\kappa_0\) with \(p_n/n\to\kappa\),
+\[
+ \mathbb P\!\left(
+ \mathcal G_n\cap
+ \left\{c\kappa\le
+ \|L_nD_nu_n\|_2^2+
+ \operatorname{tr}(L_nD_nV_nD_nL_n^\top)
+ \le C\kappa\right\}\right)\longrightarrow1,
+\]
+\[
+ \|H_nu_n\|_2^2+\|H_n\|_{\mathrm F}^2
+ \longrightarrow_{\mathbb P}0,
+ \qquad H_n=(L_nD_n)^\top(L_nD_n),
+\]
+and consequently, after changing \(c,C\) by fixed factors if necessary,
+\[
+ \mathbb P\{c\kappa\le\|b_{E,n}\|_2^2\le C\kappa\}
+ \longrightarrow1.
+\]
+Thus the proportional-then-small-\(\kappa\) quadratic diagnostic has a two-sided order bracket with fixed positive finite constants.  This statement does not assert a deterministic equivalent, does not identify the coefficient of \(\kappa\), and does not imply the fixed-\(\lambda\) regret expansion \(r_E=\kappa/(8\lambda)+o(\kappa)\).
+\end{proposition}
+\begin{proof}
+Put \(\mathcal G_n=\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\), \(B_n=L_nD_n\), and
+\[
+ M_{E,n}=\|B_nu_n\|_2^2+\operatorname{tr}(B_nV_nB_n^\top).
+\]
+On \(\mathcal G_n\), Lemma \(\mathrm{lem{:}exact\mbox{-}eb\mbox{-}quadratic\mbox{-}identity}\), using the binary-outcome assumption and the exact entropy-weight construction, gives
+\[
+ Q_n^\top d_n=0,
+ \qquad
+ \mathbb E\!\left[\|b_{E,n}\|_2^2\mid Q_n,A_n\right]=M_{E,n}.
+\]
+The same lemma gives \(L_n=(Q_n^\top Q_n)^{-1}Q_n^\top\), because \(\mathcal Q_n\) is the event \(\operatorname{rank}(Q_n)=p_n\).  This proves all of the asserted finite-sample identities on \(\mathcal G_n\).
+
+We next specialize to \(\gamma=1\).  Lemma \(\mathrm{lem{:}small\mbox{-}aspect\mbox{-}entropy\mbox{-}upper\mbox{-}leverage}\) supplies numbers \(\kappa_*\in(0,\kappa_{\mathrm{bal}})\) and \(C_0<\infty\), independent of \(\kappa\), such that, for every fixed \(\kappa\in(0,\kappa_*)\) and every sequence satisfying \(p_n/n\to\kappa\),
+\[
+ \mathbb P\{\mathcal G_n\cap(M_{E,n}\le C_0\kappa)\}\longrightarrow1
+ \tag{1}
+\]
+and, with \(H_n=B_n^\top B_n\),
+\[
+ X_n:=2\|H_nu_n\|_2^2+\tfrac12\|H_n\|_{\mathrm F}^2
+ \longrightarrow_{\mathbb P}0.
+ \tag{2}
+\]
+In particular, (2) also proves separately that \(\|H_nu_n\|_2^2\to_{\mathbb P}0\) and \(\|H_n\|_{\mathrm F}^2\to_{\mathbb P}0\), since both summands are nonnegative.
+
+It remains to obtain a lower bound whose constant is independent of the fixed \(\kappa\).  Define
+\[
+ a(x)=\frac{4}{(2+2e^{1/2})(1+\sqrt{x})^4},
+ \qquad
+ c_0=\frac{a(\kappa_*)}{2}>0.
+\]
+The function \(a\) is decreasing on \((0,\infty)\).  Lemma \(\mathrm{lem{:}global\mbox{-}feasible\mbox{-}entropy\mbox{-}energy\mbox{-}floor}\), applied at \(\gamma=1\) with \(\varepsilon=c_0\), therefore yields, for each fixed \(0<\kappa<\kappa_*\),
+\[
+ \mathbb P\!\left[
+  \mathcal G_n\cap
+  \left\{
+   \frac{\operatorname{tr}(B_nV_nB_n^\top)}{\kappa}
+   \ge a(\kappa)-c_0
+  \right\}
+ \right]\longrightarrow1.
+ \tag{3}
+\]
+Because \(a(\kappa)\ge a(\kappa_*)=2c_0\), the event in (3) implies
+\[
+ \operatorname{tr}(B_nV_nB_n^\top)\ge c_0\kappa.
+\]
+The other term in \(M_{E,n}\) is a squared norm and hence nonnegative.  Intersecting (1) and (3), and using the union bound for their complements, gives
+\[
+ \mathbb P\{\mathcal G_n\cap(c_0\kappa\le M_{E,n}\le C_0\kappa)\}
+ \longrightarrow1.
+ \tag{4}
+\]
+Thus the first asserted two-sided bracket holds with \(\kappa_0=\kappa_*\), \(c=c_0\), and \(C=C_0\); these constants do not depend on \(\kappa\).
+
+Finally, set
+\[
+ C_n=\|b_{E,n}\|_2^2-M_{E,n}.
+\]
+Lemma \(\mathrm{lem{:}entropy\mbox{-}weighted\mbox{-}quadratic\mbox{-}fluctuations}\) gives, conditionally on \((Q_n,A_n)\),
+\[
+ \mathbb E[C_n\mid Q_n,A_n]=0,
+ \qquad
+ \mathbb P(|C_n|>t\mid Q_n,A_n)\le \frac{X_n}{t^2}
+ \quad(t>0).
+ \tag{5}
+\]
+Since a conditional probability is at most one, taking expectations in (5) gives
+\[
+ \mathbb P(|C_n|>t)
+ \le \mathbb E\!\left[\min\left\{1,\frac{X_n}{t^2}\right\}\right].
+ \tag{6}
+\]
+For fixed \(t>0\), (2) implies that the bounded random variable inside the expectation in (6) converges to zero in probability.  For any \(\delta>0\),
+\[
+ \mathbb E\!\left[\min\left\{1,\frac{X_n}{t^2}\right\}\right]
+ \le \delta+
+ \mathbb P\!\left(\min\left\{1,\frac{X_n}{t^2}\right\}>\delta\right),
+\]
+so first letting \(n\to\infty\) and then \(\delta\downarrow0\) proves \(C_n\to_{\mathbb P}0\).
+
+For the fixed \(\kappa\in(0,\kappa_0)\), take \(t=c_0\kappa/2>0\).  On the intersection of the event in (4) and \(\{|C_n|\le c_0\kappa/2\}\),
+\[
+ \frac{c_0}{2}\kappa
+ \le \|b_{E,n}\|_2^2
+ \le \left(C_0+\frac{c_0}{2}\right)\kappa.
+\]
+Both events have probability tending to one, so another union-bound argument proves
+\[
+ \mathbb P\!\left\{
+  \frac{c_0}{2}\kappa\le\|b_{E,n}\|_2^2
+  \le\left(C_0+\frac{c_0}{2}\right)\kappa
+ \right\}\longrightarrow1.
+\]
+Renaming \(c_0/2\) and \(C_0+c_0/2\) as \(c\) and \(C\) proves the final assertion.  The argument supplies only a two-sided order bracket: neither (1) nor (3) establishes convergence of \(M_{E,n}/\kappa\), and no invoked result connects this strong-penalty diagnostic to the fixed-\(\lambda\) global selector.  Consequently no deterministic coefficient, expansion for \(r_E\), or phase-cell conclusion follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The original same-sample entropy quadratic has an explicit conditional-energy floor throughout the feasible region and a concentrated two-sided order bracket at sufficiently small aspect ratio. \textit{Gap.} The upper and leverage arguments remain small-aspect, and no deterministic coefficient or link to the fixed-penalty global policy optimizer is proved. \textit{Consumer.} The result validates the scale of a strong-penalty diagnostic but supplies no regret ranking or phase label.
+
+\begin{openendedquestion}[oeq:joint-phase-system]\label{oeq:joint-phase-system}
+Can the joint-resolvent handle be turned into a finite, explicit deterministic system that outputs \(\mathfrak B(\xi)\), the norms \(\rho_j(b;\xi)\), limiting objective values, global-selection slacks \(G_b(\xi)\), and the branch derivatives needed for conditional plug-in inference, such that, uniformly on compact subsets of \(\{0<\kappa<\kappa_{\mathrm{bal}}\}\) with \(d_{\mathrm{col}}(\xi)>0\), the certified event has probability tending to one, \(b^\star(\xi)\ne\bot\), and for every \(\varepsilon>0\),
+\[
+ \mathbb P\!\left[
+ \mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\cap
+ \left\{\max_{j\in\mathcal J}
+ \left|\|\widehat\beta_{jn}\|_2-
+ \rho_j\{b^\star(\xi);\xi\}\right|>\varepsilon\right\}
+ \right]\longrightarrow0?
+\]
+Can the same certified-event system then compute the exact positive, zero, and negative HIR-dividend cells, every radius-saturation boundary, and the ordering relative to \(r_D\)?  Its method-\(E\) components must use the original unique same-sample entropy weights on \(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\); the uniform complement-event default is not part of the entropy-balance asymptotics.  In addition, can one prove the boundary-uniform localization and interchange needed to recover, only as \(\kappa\downarrow0\) after the proportional limits,
+\[
+ r_T=\frac{\kappa}{4\lambda}+o(\kappa),
+ \qquad
+ r_E=\frac{\kappa}{8\lambda}+o(\kappa),
+ \qquad
+ r_D=\frac{v_\gamma\kappa}{2\lambda}+o(\kappa)?
+\]
+The requested result is a proportional-Gaussian analogue, for the binary benchmark-one-half logistic specialization, of the fixed-policy-dimensional result in Theorem 4 of FangRidderXie2026.  It is not an inclusion-based extension: that theorem assumes fixed rule dimension, compact covariate support, bounded rule derivatives, and a low-dimensional or sufficiently rich balancing sieve, whereas the present model has unbounded Gaussian features, \(p_n/n\to\kappa>0\), and exact balance only on the coordinates \((1,q^\top)^\top\).
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This is the unresolved proportional-Gaussian analogue needed before any deterministic HIR ranking or phase classification can be claimed. \textit{Gap.} FangRidderXie2026 assumes fixed rule dimension, compact covariate support, bounded rule derivatives, and a low-dimensional or rich balancing sieve; there is no inclusion-based transfer to unbounded Gaussian features, positive aspect ratio, exact linear balance, and the same-sample nonconcave selector. \textit{Consumer.} A solution would determine method rankings for expanded-feature trial targeting; the present note does not yet provide that ranking.
+
+\begin{theorem}[thm:phase-inference]\label{thm:phase-inference}
+Let \(\xi_n^0=(p_n/n,\gamma,\lambda,R)\), and write \(\mathbb P_{\xi_n^0}\) for the sampling law at that parameter.  Let
+\[
+ U\subset (0,\kappa_{\mathrm{bal}})\times
+ (\underline\gamma,\overline\gamma)\times(0,\infty)^2
+\]
+be open, and let \(K\subset U\) be compact.  Suppose that on \(U\) the certified selector \(b^\star\) has already been constructed and is nonabstaining, that the four-distance map \(d\) is continuously differentiable, and that the signed certified-branch dividend
+\[
+ \Delta(\xi)=\lambda\bigl[g\{\rho_T(b^\star(\xi);\xi)\}
+                    -g\{\rho_E(b^\star(\xi);\xi)\}\bigr]
+\]
+is continuous.  Suppose further that
+\[
+ m_K:=\inf_{\xi\in K}
+ \min\{d_{\mathrm{bal}}(\xi),d_{\mathrm{rad}}(\xi),
+        d_{\mathrm{col}}(\xi),d_0(\xi)\}>0,
+ \qquad
+ a_K:=\inf_{\xi\in K}\|\partial_\gamma d(\xi)\|_\infty>0.
+\]
+Define
+\[
+ I_\gamma=\mathbb E\!\left[Z^2\sigma(\gamma Z)
+                       \{1-\sigma(\gamma Z)\}\right],
+ \qquad
+ \Omega(\xi)=
+ \frac{\partial_\gamma d(\xi)\partial_\gamma d(\xi)^\top}{I_\gamma}.
+\]
+Then, uniformly over admissible parameter sequences for which \(\xi_n^0\in K\),
+\[
+ \sqrt n\{d(\widehat\xi_n)-d(\xi_n^0)\}
+ \ \Rightarrow\ \mathcal N_4\{0,\Omega(\xi_n^0)\},
+ \qquad
+ \widehat\Omega_n-\Omega(\xi_n^0)\to_{\mathbb P}0.
+\]
+Here uniform weak convergence means convergence to zero in the bounded--Lipschitz distance, uniformly over the indicated sequences.  Moreover, with \(z_{1-\alpha/2}=\Phi^{-1}(1-\alpha/2)\),
+\[
+ q_{1-\alpha}\{\Omega(\xi)\}
+ =z_{1-\alpha/2}\frac{\|\partial_\gamma d(\xi)\|_\infty}{\sqrt{I_\gamma}},
+\]
+and the simultaneous intervals
+\[
+ [\widehat d_{\ell n}-\widehat u_{n,1-\alpha},
+   \widehat d_{\ell n}+\widehat u_{n,1-\alpha}],
+ \qquad \ell\in\{\mathrm{bal},\mathrm{rad},\mathrm{col},0\},
+\]
+have joint coverage \(1-\alpha+o(1)\), uniformly on \(K\).  Finally,
+\[
+ \sup_{\xi_n^0\in K}
+ \mathbb P_{\xi_n^0}\!\left\{
+   \widehat s_{n,\alpha}\ne\operatorname{sgn}\Delta(\xi_n^0)
+ \right\}\longrightarrow0,
+\]
+where abstention counts as an error.  Thus, conditional on an already constructed certified branch neighborhood, the plug-in procedure is uniformly nonabstaining and sign-consistent away from the balance, radius, collision, and zero-dividend boundaries.  This theorem does not assert that such a neighborhood exists for the original same-sample entropy-weighted optimization problem.
+\end{theorem}
+\begin{proof}
+Put \\|\_\\infty/\\sqrt(a(\xi)=\partial\_\gamma d(\xi)\).  All probability statements below are uniform over admissible sequences with \(\xi_n^0\in K\).  Because \(K\) is a compact subset of the open set \(U\), there is \(\delta>0\) such that the closed \(\delta\)-neighborhood of \(K\) is contained in \(U\).  By \(\text{lem:gamma-mle-limit}\),
+\[
+ X_n:=\sqrt n(\widehat\gamma_n-\gamma)
+ \ \Rightarrow\ \mathcal N(0,I_\gamma^{-1})
+\]
+uniformly on \(K\), and therefore \(X_n=O_{\mathbb P}(1)\) and \(\widehat\gamma_n-\gamma=o_{\mathbb P}(1)\), both uniformly.  Since
+\[
+ \widehat\xi_n-\xi_n^0=(0,\widehat\gamma_n-\gamma,0,0)^\top,
+\]
+it follows that \(\mathbb P(\widehat\xi_n\in U)\to1\) uniformly.
+
+On the event that the line segment from \(\xi_n^0\) to \(\widehat\xi_n\) lies in \(U\), the fundamental theorem of calculus gives the exact expansion
+\[
+ \sqrt n\{d(\widehat\xi_n)-d(\xi_n^0)\}
+ =a(\xi_n^0)X_n+r_n,
+\]
+where
+\[
+ r_n=X_n\int_0^1
+ \bigl[a\{\xi_n^0+t(\widehat\xi_n-\xi_n^0)\}-a(\xi_n^0)\bigr],dt.
+\]
+Choose a compact neighborhood \(K_\delta\) of \(K\) contained in \(U\).  Continuous differentiability of \(d\) makes \(a\) uniformly continuous and bounded on \(K_\delta\).  Hence
+\[
+ \|r_n\|_\infty
+ \le |X_n|\sup_{0\le t\le1}
+ \left\|a\{\xi_n^0+t(\widehat\xi_n-\xi_n^0)\}-a(\xi_n^0)\right\|_\infty
+ =o_{\mathbb P}(1)
+\]
+uniformly, using respectively the uniform tightness of \(X_n\), the uniform consistency of \(\widehat\gamma_n\), and uniform continuity of \(a\).
+
+For completeness, the vector weak limit follows directly in the bounded--Lipschitz metric.  If \(f:\mathbb R^4\to\mathbb R\) is bounded by one and has Lipschitz constant at most one, then truncation of \(r_n\) and the last display show
+\[
+ \left|\mathbb E f\{a(\xi_n^0)X_n+r_n\}
+       -\mathbb E f\{a(\xi_n^0)X_n\}\right|=o(1)
+\]
+uniformly.  The vectors \(a(\xi_n^0)\) are uniformly bounded, so the scalar uniform convergence in \(\text{lem:gamma-mle-limit}\), applied to the uniformly Lipschitz maps \(x\mapsto f\{a(\xi_n^0)x\}\), gives
+\[
+ a(\xi_n^0)X_n\ \Rightarrow\
+ \mathcal N_4\!\left(0,
+   \frac{a(\xi_n^0)a(\xi_n^0)^\top}{I_\gamma}\right)
+\]
+uniformly.  Combining the preceding two displays proves the asserted joint limit.
+
+The information is strictly positive because \(Z^2\sigma(\gamma Z)\{1-\sigma(\gamma Z)\}>0\) almost surely.  It is continuous in \(\gamma\): the integrand is continuous and is bounded by \(Z^2/4\), whose expectation is finite.  Compactness of the \(\gamma\)-projection of \(K\) therefore yields constants \(0<I_-\le I_\gamma\le I_+<\infty\).  By \(\text{lem:gamma-mle-limit}\), \(\widehat I_{\gamma,n}-I_\gamma=o_{\mathbb P}(1)\) uniformly.  Uniform continuity of \(a\) and consistency of \(\widehat\xi_n\) also give
+\[
+ a(\widehat\xi_n)-a(\xi_n^0)=o_{\mathbb P}(1)
+\]
+uniformly.  On \(U\) the branch and derivative are available, so the defining complement convention for \(\widehat\Omega_n\) is not invoked with probability tending to one.  Consequently,
+\[
+ \widehat\Omega_n
+ =\frac{a(\widehat\xi_n)a(\widehat\xi_n)^\top}
+        {\widehat I_{\gamma,n}}
+ =\frac{a(\xi_n^0)a(\xi_n^0)^\top}{I_\gamma}
+   +o_{\mathbb P}(1)
+ =\Omega(\xi_n^0)+o_{\mathbb P}(1)
+\]
+uniformly, proving covariance consistency.
+
+Let \(G\sim\mathcal N(0,1)\).  If \(W\sim\mathcal N_4\{0,\Omega(\xi)\}\), then
+\[
+ W\ \stackrel{d}{=}\ \frac{a(\xi)}{\sqrt{I_\gamma}}G,
+ \qquad
+ \max_{1\le\ell\le4}|W_\ell|
+ \ \stackrel{d}{=}\ c(\xi)|G|,
+ \qquad
+ c(\xi):=\frac{\|a(\xi)\|_\infty}{\sqrt{I_\gamma}}.
+\]
+The assumption \(a_K>0\), the information bounds, and compactness imply
+\(0<c_-\le c(\xi)\le c_+<\infty\) on \(K\).  The distribution of \(|G|\) is continuous and its \((1-\alpha)\)-quantile is \(z_{1-\alpha/2}=\Phi^{-1}(1-\alpha/2)\).  Thus, directly from the definition of the Gaussian-max quantile,
+\[
+ q_{1-\alpha}\{\Omega(\xi)\}=c(\xi)z_{1-\alpha/2}.
+\]
+The covariance consistency just proved, together with the displayed rank-one representation and the lower bound on \(c\), yields
+\[
+ \sqrt n\,\widehat u_{n,1-\alpha}
+ =q_{1-\alpha}(\widehat\Omega_n)
+ =c(\xi_n^0)z_{1-\alpha/2}+o_{\mathbb P}(1)
+\]
+uniformly.  Indeed, on the certified neighborhood \(\widehat\Omega_n\) is itself rank one with scale
+\(\|a(\widehat\xi_n)\|_\infty/\sqrt{\widehat I_{\gamma,n}}\), which converges uniformly to \(c(\xi_n^0)\).
+
+Write
+\[
+ M_n=\max_{1\le\ell\le4}
+ \left|\sqrt n\{\widehat d_{\ell n}-d_\ell(\xi_n^0)\}\right|.
+\]
+The Taylor expansion gives
+\[
+ M_n=\|a(\xi_n^0)\|_\infty|X_n|+o_{\mathbb P}(1)
+     =c(\xi_n^0)|\sqrt{I_\gamma}X_n|+o_{\mathbb P}(1)
+\]
+uniformly.  For each fixed \(\varepsilon>0\), the event
+\(M_n\le\sqrt n\widehat u_{n,1-\alpha}\) is therefore sandwiched, up to an event whose probability tends uniformly to zero, between the events
+\[
+ |\sqrt{I_\gamma}X_n|\le z_{1-\alpha/2}-\varepsilon
+ \quad\hbox{and}\quad
+ |\sqrt{I_\gamma}X_n|\le z_{1-\alpha/2}+\varepsilon.
+\]
+The scalar uniform limit in \(\text{lem:gamma-mle-limit}\), followed by \(\varepsilon\downarrow0\), shows that the coverage probability converges uniformly to
+\[
+ \mathbb P\{|G|\le z_{1-\alpha/2}\}=1-\alpha.
+\]
+This is exactly the asserted joint coverage of the four intervals.
+
+It remains to verify the operational phase label.  By the definition of \(m_K\), every true distance on \(K\) is at least \(m_K\).  The same Taylor expansion gives
+\[
+ \max_\ell|\widehat d_{\ell n}-d_\ell(\xi_n^0)|=O_{\mathbb P}(n^{-1/2}),
+ \qquad
+ \widehat u_{n,1-\alpha}=O_{\mathbb P}(n^{-1/2})
+\]
+uniformly.  Hence
+\[
+ \mathbb P\!\left\{
+   \min_\ell\widehat d_{\ell n}>\widehat u_{n,1-\alpha}
+ \right\}\longrightarrow1
+\]
+uniformly.  Also \(\widehat\xi_n\in U\) with probability tending to one, and the hypothesis on \(U\) then gives \(b^\star(\widehat\xi_n)\ne\bot\).  Thus the definition of the phase plug-in reports \(\operatorname{sgn}\Delta(\widehat\xi_n)\) with probability tending to one.
+
+Finally, the definition of the zero-dividend distance gives
+\[
+ |\Delta(\xi)|=d_0(\xi)\ge m_K,
+ \qquad \xi\in K.
+\]
+Choose a compact neighborhood of \(K\) contained in \(U\).  Continuity of the signed function \(\Delta\) makes it uniformly continuous there.  Uniform consistency of \(\widehat\xi_n\) therefore implies
+\[
+ |\Delta(\widehat\xi_n)-\Delta(\xi_n^0)|<m_K/2
+\]
+with probability tending uniformly to one.  The two dividends then have the same sign.  Combining this fact with nonabstention proves
+\[
+ \sup_{\xi_n^0\in K}\mathbb P_{\xi_n^0}\!\left\{
+   \widehat s_{n,\alpha}\ne\operatorname{sgn}\Delta(\xi_n^0)
+ \right\}\to0.
+\]
+On the certified branch, the definitions of \(r_T\), \(r_E\), and \(\Delta_{\mathrm{HIR}}\) identify this \(\Delta\) with the limiting HIR regret dividend.  No step constructs \(U\), the branch, or its derivatives; those objects are hypotheses of this conditional inference result, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A deterministic diagram is operational only if its phase label can be learned from a trial away from nonregular boundaries. \textit{Gap.} SurCandes2019 estimates scalar states for one logistic MLE and LuYangWang2025 estimates quadratic variance components; neither gives joint inference for a contrast of dependent optimized policy criteria. \textit{Consumer.} The theorem supplies an uncertainty-aware label for whether entropy balancing improves or worsens targeting regret in a feature-expanded trial reanalysis.
+
+\begin{proposition}[prop:fixed-dimensional-reduction]\label{prop:fixed-dimensional-reduction}
+Suppose that \(p_n=p\) is fixed before \(n\to\infty\).  Define
+\[
+ \mu_\gamma=\mathbb E\!\left[Z\{\sigma(\gamma Z)-1/2\}\right]
+ =\gamma v_\gamma,
+ \qquad
+ I_\gamma=\mathbb E\!\left[Z^2\sigma'(\gamma Z)\right],
+\]
+let \(e_1\) be the first coordinate vector in \(\mathbb R^p\), and set
+\[
+ \Sigma_T=\frac18 I_p,
+ \qquad
+ \Sigma_E=\frac1{16}I_p-\frac14\mu_\gamma^2e_1e_1^\top,
+ \qquad
+ \Sigma_D=\frac14\operatorname{diag}(I_\gamma,v_\gamma,\ldots,v_\gamma).
+\]
+For each \(j\in\mathcal J\), the globally selected estimator satisfies
+\[
+ \widehat\beta_{jn}\longrightarrow_{\mathbb P}0,
+ \qquad
+ \sqrt n\,\widehat\beta_{jn}\Rightarrow
+ \mathcal N_p\!\left(0,\frac{16}{\lambda^2}\Sigma_j\right).
+\]
+If \(Z_j\sim\mathcal N_p(0,\Sigma_j)\), then
+\[
+ n\mathcal R_{jn}\Rightarrow \frac2\lambda Z_j^\top Z_j.
+\]
+Moreover,
+\[
+ \Sigma_D\prec\Sigma_E\prec\Sigma_T.
+\]
+In particular, the signal-coordinate gap has the exact identity
+\[
+ (\Sigma_E-\Sigma_D)_{11}
+ =\frac14\operatorname{Var}\!\left[Z\{\sigma(\gamma Z)-1/2\}\right]>0.
+\]
+Finally, \(\mathbb P(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n)\to1\) in this fixed-dimensional regime, so the method-\(E\) conclusion concerns the unique exact-balancing weights with probability tending to one and uses no entropy-balancing property of the complement-event default.
+\end{proposition}
+\begin{proof}
+Fix \(p_n=p\) before sending \(n\) to infinity, and write
+\[
+ f_\beta(q)=\sigma(q^\top\beta)-\frac12,
+ \qquad
+ G_{jn}=\nabla F_{jn}(0).
+\]
+All limits below are under Assumptions
+\(\mathrm{ass{:}gaussian\mbox{-}features}\),
+\(\mathrm{ass{:}randomization}\), and
+\(\mathrm{ass{:}binary\mbox{-}logistic\mbox{-}outcome}\).  We first
+localize the global maximizers, because a local score expansion alone would
+not justify the assertion for the selector in
+\(\mathrm{def{:}global\mbox{-}selector}\).
+
+For \(a\in\{0,1\}\), on \(n_{an}>0\) put
+\[
+ \bar q_{an}=\frac1{n_{an}}\sum_{i:A_{ni}=a}q_{ni},
+ \qquad
+ M_{an}(\eta)=
+ \frac{\sum_{i:A_{ni}=a}q_{ni}\exp(q_{ni}^{\top}\eta)}
+      {\sum_{i:A_{ni}=a}\exp(q_{ni}^{\top}\eta)} .
+\]
+Randomization and the coordinatewise second-moment calculation, with fixed
+\(p\), give
+\[
+ \frac{n_{an}}n\longrightarrow_{\mathbb P}\frac12,
+ \qquad
+ \bar q_{an}=O_{\mathbb P}(n^{-1/2}),
+ \qquad
+ \bar q_n=O_{\mathbb P}(n^{-1/2}).
+ \tag{1}
+\]
+Indeed, each coordinate of the relevant numerator has mean zero and variance
+of order \(n\), while \(n_{an}/n\to_{\mathbb P}1/2\); Chebyshev's inequality
+and a union bound over the fixed number of coordinates prove (1).
+
+We next verify localization of the entropy duals.  Define
+\[
+ \phi_{an}(\eta)=
+ \log\!\left\{\frac1{n_{an}}\sum_{i:A_{ni}=a}
+        \exp(q_{ni}^{\top}\eta)\right\}-\bar q_n^\top\eta .
+\]
+On each fixed compact subset of \(\mathbb R^p\), a finite-net argument,
+using the integrable Gaussian envelope
+\(\exp(C\|q\|_2)(1+\|q\|_2)\), truncation, and Chebyshev's inequality,
+yields
+\[
+ \phi_{an}(\eta)\longrightarrow_{\mathbb P}
+ \phi(\eta):=\log\mathbb E\exp(q^\top\eta)
+ =\frac12\|\eta\|_2^2
+ \quad\text{locally uniformly in }\eta .
+ \tag{2}
+\]
+The minimizers are tight.  Choose finitely many open Gaussian balls whose
+centers have convex hull containing a Euclidean ball \(2cB_p\), for some
+\(c>0\), and take their radii small enough that, for every unit vector
+\(u\), one of the balls is contained in \(\{q:u^\top q\ge c\}\).  Every
+such ball has positive Gaussian probability.  The fixed-dimensional
+coordinatewise law proved by the same truncation and variance argument shows
+that, with probability tending to one, each arm places at least a fixed
+fraction \(\delta>0\) of its observations in every one of these balls.
+Consequently, simultaneously for every unit \(u\) and every \(r\ge0\),
+\[
+ \phi_{an}(ru)
+ \ge \log\delta+r\{c-\|\bar q_n\|_2\}.
+ \tag{3}
+\]
+By (1), the coefficient in braces is at least \(c/2\) with probability
+tending to one.  Since \(\phi_{an}(0)=0\), (3) confines every minimizer to a
+fixed compact ball with probability tending to one.  The locally uniform
+convergence (2), together with the unique minimizer \(0\) of \(\phi\), then
+implies
+\[
+ \eta_{an}\longrightarrow_{\mathbb P}0
+ \quad\text{on }\mathcal E_{an}.
+ \tag{4}
+\]
+The already-established Lemma
+\(\mathrm{lem{:}fixed\mbox{-}dimensional\mbox{-}joint\mbox{-}score\mbox{-}covariances}\)
+states that
+\[
+ \mathbb P(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n)
+ \longrightarrow1.
+ \tag{5}
+\]
+Thus (4) applies to both exact-balance duals with probability tending to one;
+the complement-event default has no role in the limiting calculation.
+
+Differentiating \(M_{an}\) shows that its Jacobian is the softmax-weighted
+covariance matrix.  At zero it is the within-arm empirical covariance, which
+converges in probability to \(I_p\) by the Gaussian coordinatewise
+second-moment calculation.  Equations (1), (4), and a Taylor expansion of
+\(M_{an}(\eta_{an})=\bar q_n\), uniform on a neighborhood of zero, therefore
+give
+\[
+ \eta_{an}=O_{\mathbb P}(n^{-1/2}).
+ \tag{6}
+\]
+This argument uses fixed \(p\) and makes no proportional-dimensional claim.
+
+We now prove a uniform limit for each empirical objective.  For method
+\(T\), randomization and the arm-invariant outcome mean imply, for every
+\(q\),
+\[
+ \mathbb E[2S Y f_\beta(q)\mid q]
+ =2m(q)f_\beta(q)\mathbb E(S\mid q)=0.
+ \tag{7}
+\]
+For method \(D\), conditional centering of the Bernoulli residual gives
+\[
+ \mathbb E[2S\{Y-m(q)\}f_\beta(q)\mid q,A]=0.
+ \tag{8}
+\]
+For method \(E\), the reward term is exactly
+\[
+ \sum_{i:A_{ni}=1}w_{i1n}Y_{ni}f_\beta(q_{ni})
+ -\sum_{i:A_{ni}=0}w_{i0n}Y_{ni}f_\beta(q_{ni}).
+ \tag{9}
+\]
+On the event in (5), each term in (9) is a ratio of within-arm empirical
+averages with numerator
+\(\exp(q^\top\eta_{an})Yf_\beta(q)\) and denominator
+\(\exp(q^\top\eta_{an})\).  The logistic Lipschitz bound gives
+\[
+ |f_\beta(q)-f_{\widetilde\beta}(q)|
+ \le\frac14\|q\|_2\|\beta-\widetilde\beta\|_2.
+ \tag{10}
+\]
+Finite nets over the compact ball \(RB_p\), (4), and the integrable envelopes
+\(\exp(\epsilon\|q\|_2)(1+\|q\|_2^k)\), available for every fixed
+\(\epsilon>0\) and integer \(k\), show uniformly in \(\beta\) that each
+weighted arm average in (9) converges in probability to
+\[
+ \mathbb E[m(q)f_\beta(q)].
+ \tag{11}
+\]
+The limits in (11) agree across the two randomized arms, so (9) converges
+uniformly to zero.  The same net and envelope argument applies directly to
+(7) and (8).  Finally, \(0\le h\le\log2\), and Gaussian rotational
+invariance gives
+\[
+ \mathbb E[h(q^\top\beta)]=g(\|\beta\|_2).
+\]
+It follows for every \(j\in\mathcal J\) that
+\[
+ \sup_{\beta\in\mathcal B_n}
+ \left|F_{jn}(\beta)+\lambda g(\|\beta\|_2)\right|
+ \longrightarrow_{\mathbb P}0.
+ \tag{12}
+\]
+
+Proposition \(\mathrm{prop{:}radial\mbox{-}invariance}\) gives \(g(0)=0\)
+and
+\[
+ g'(r)=r\,\mathbb E[Z^2\sigma'(rZ)]>0
+ \qquad(r>0).
+ \tag{13}
+\]
+Thus \(-\lambda g(\|\beta\|_2)\) has the unique maximizer zero.  For every
+\(\varepsilon\in(0,R)\), continuity and (13) give
+\[
+ c_\varepsilon
+ :=\lambda\inf_{\varepsilon\le r\le R}g(r)>0.
+\]
+On the event that the supremum in (12) is less than
+\(c_\varepsilon/3\), no global maximizer can have norm at least
+\(\varepsilon\).  Therefore the particular global maximizer selected by
+\(\mathrm{def{:}global\mbox{-}selector}\) satisfies
+\[
+ \widehat\beta_{jn}\longrightarrow_{\mathbb P}0.
+ \tag{14}
+\]
+Because \(R>0\), (14) also makes the radius constraint inactive with
+probability tending to one.
+
+Direct differentiation of the definitions yields
+\[
+ \sigma'(0)=\frac14,
+ \qquad \sigma''(0)=0,
+ \qquad h'(z)=z\sigma'(z),
+ \qquad h''(0)=\frac14.
+\]
+Consequently, for every sample and every method,
+\[
+ \nabla^2F_{jn}(0)
+ =-\frac{\lambda}{4}\frac{Q_n^\top Q_n}{n}.
+ \tag{15}
+\]
+The Gaussian coordinatewise second-moment calculation gives
+\[
+ \frac{Q_n^\top Q_n}{n}\longrightarrow_{\mathbb P}I_p.
+ \tag{16}
+\]
+We also need Hessian stability along the random segment from zero to the
+selected maximizer.  The third derivatives of \(\sigma\) and \(h\) are
+bounded.  For \(T\) and \(D\), the score coefficients are bounded in
+absolute value by two, so the reward-Hessian difference between \(\beta\)
+and zero is bounded in operator norm by a constant times
+\[
+ \|\beta\|_2\,\frac1n\sum_{i=1}^n\|q_{ni}\|_2^3.
+\]
+For \(E\), the analogous bound is a constant times
+\[
+ \|\beta\|_2
+ \sum_{a=0}^1\sum_{i:A_{ni}=a}w_{ian}\|q_{ni}\|_2^3,
+\]
+and this weighted third moment is \(O_{\mathbb P}(1)\) by (4) and the same
+exponential-envelope argument used for (11).  The penalty-Hessian difference
+has the first displayed bound without a score coefficient.  Combining these
+bounds with (14)--(16) gives
+\[
+ H_{jn}:=\int_0^1\nabla^2F_{jn}(t\widehat\beta_{jn})\,dt
+ \longrightarrow_{\mathbb P}-\frac{\lambda}{4}I_p.
+ \tag{17}
+\]
+The limit is invertible because \(\lambda>0\).
+
+By Lemma
+\(\mathrm{lem{:}fixed\mbox{-}dimensional\mbox{-}joint\mbox{-}score\mbox{-}covariances}\),
+\[
+ \sqrt n\,G_{jn}\Rightarrow Z_j,
+ \qquad Z_j\sim\mathcal N_p(0,\Sigma_j).
+ \tag{18}
+\]
+On the event that the selected global maximizer is interior, Fermat's rule
+and the fundamental theorem of calculus give
+\[
+ 0=G_{jn}+H_{jn}\widehat\beta_{jn}.
+\]
+Equations (14), (17), and (18) yield
+\[
+ \sqrt n\,\widehat\beta_{jn}
+ =-H_{jn}^{-1}\sqrt n\,G_{jn}
+ =\frac4\lambda\sqrt n\,G_{jn}+o_{\mathbb P}(1)
+ \Rightarrow
+ \mathcal N_p\!\left(0,\frac{16}{\lambda^2}\Sigma_j\right).
+ \tag{19}
+\]
+
+It remains to transform estimation error into regret.  From (13) and
+\(0<\sigma'(x)\le1/4\), dominated convergence yields
+\[
+ \frac{g'(r)}r\longrightarrow\frac14
+ \quad\text{as }r\downarrow0,
+ \qquad
+ g(r)=\frac{r^2}{8}+o(r^2).
+ \tag{20}
+\]
+The exact regret identity in
+\(\mathrm{prop{:}radial\mbox{-}invariance}\), followed by (14), (19), and
+(20), gives
+\[
+ \begin{aligned}
+ n\mathcal R_{jn}
+ &=n\lambda g(\|\widehat\beta_{jn}\|_2)\\
+ &=\frac{\lambda}{8}\|\sqrt n\,\widehat\beta_{jn}\|_2^2
+   +o_{\mathbb P}(1)\\
+ &\Rightarrow \frac2\lambda Z_j^\top Z_j.
+ \end{aligned}
+ \tag{21}
+\]
+
+The same established score lemma supplies
+\[
+ \mu_\gamma=\gamma v_\gamma,
+ \qquad
+ \Sigma_T=\frac18I_p,
+ \qquad
+ \Sigma_E=\frac1{16}I_p-\frac14\mu_\gamma^2e_1e_1^\top,
+ \qquad
+ \Sigma_D=\frac14\operatorname{diag}
+ (I_\gamma,v_\gamma,\ldots,v_\gamma),
+\]
+the strict Loewner inequalities
+\[
+ \Sigma_D\prec\Sigma_E\prec\Sigma_T,
+ \tag{22}
+\]
+and the exact identity
+\[
+ (\Sigma_E-\Sigma_D)_{11}
+ =\frac14\operatorname{Var}
+ \!\left[Z\{\sigma(\gamma Z)-1/2\}\right]>0.
+ \tag{23}
+\]
+Equation (5) proves the asserted feasibility conclusion.
+
+We finally derive the directed strict ordering of the marginal limit laws.
+On an auxiliary comparison probability space let
+\(U\sim\mathcal N_p(0,I_p)\), and define
+\[
+ L_j=\frac2\lambda U^\top\Sigma_jU,
+ \qquad j\in\{T,E,D\}.
+ \tag{24}
+\]
+Because \(\Sigma_j^{1/2}U\sim\mathcal N_p(0,\Sigma_j)\), (24) has the same
+marginal distribution as the limit in (21).  By (22), for every
+\(u\ne0\),
+\[
+ u^\top\Sigma_Du<u^\top\Sigma_Eu<u^\top\Sigma_Tu.
+\]
+Since \(\mathbb P(U=0)=0\), this proves
+\[
+ L_D<L_E<L_T\quad\text{almost surely under the comparison coupling}.
+ \tag{25}
+\]
+Almost-sure comparison by itself gives weak tail inequalities; we verify
+strictness at every positive threshold.  Let \(A\prec B\) be either adjacent
+pair in (22), fix \(x>0\), and choose any nonzero \(u\).  Put
+\(a=u^\top Au\), \(b=u^\top Bu\), and \(y=\lambda x/2\).  Positive
+definiteness and strict Loewner order give \(0<a<b\), so the interval
+\((y/b,y/a)\) is nonempty.  Choose \(t>0\) with
+\(t^2\in(y/b,y/a)\).  Then
+\[
+ \frac2\lambda (tu)^\top A(tu)<x<
+ \frac2\lambda (tu)^\top B(tu).
+\]
+Both quadratic forms are continuous, so this pair of strict inequalities
+holds on a nonempty open neighborhood of \(tu\).  The standard Gaussian
+density is strictly positive on \(\mathbb R^p\), hence that neighborhood has
+positive probability.  Since
+\(U^\top AU<U^\top BU\) almost surely, it follows that
+\[
+ \mathbb P\!\left(\frac2\lambda U^\top BU>x\right)
+ -\mathbb P\!\left(\frac2\lambda U^\top AU>x\right)
+ =\mathbb P\!\left(
+   \frac2\lambda U^\top AU\le x<\frac2\lambda U^\top BU
+  \right)>0.
+\]
+Applying this argument to \((\Sigma_D,\Sigma_E)\) and
+\((\Sigma_E,\Sigma_T)\) proves, for every \(x>0\),
+\[
+ \mathbb P(L_D>x)<\mathbb P(L_E>x)<\mathbb P(L_T>x).
+ \tag{26}
+\]
+Thus oracle DR has the smallest, entropy balancing the intermediate, and
+true-propensity IPW the largest marginal fixed-dimensional limiting regret in
+strict increasing-loss stochastic order.  The common \(U\) in (24) is only a
+comparison coupling of the three marginal laws.  Neither (25) nor (26)
+asserts joint convergence of the three sample estimators, a finite-sample
+ordering, or any proportional-dimensional ranking.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The fixed-dimensional proposition supplies a complete global-estimator normal limit and quadratic-regret limit without conditioning on the open proportional system; its proved strict Loewner order also yields a strict stochastic order of the three marginal limiting regret laws through an explicit common-Gaussian comparison coupling. \textit{Gap.} Exact same-coordinate linear balance has covariance strictly between true-propensity IPW and oracle DR; proportional small-aspect constants require a separate boundary-uniform theorem. \textit{Consumer.} This is a low-dimensional calibration showing that exact same-coordinate entropy balance strictly improves the marginal limiting regret law over true-propensity IPW but remains strictly worse than oracle DR. It does not rank the three fitted policies jointly, at finite sample size, or in proportional dimension.
+
+\begin{lemma}[lem:approximate-conic-kinematics]\label{lem:approximate-conic-kinematics}
+Fix \(\eta\in(0,1)\), and put \(a_\eta=\sqrt{8\log(4/\eta)}\).  If \(C,K\subset\mathbb R^d\) are closed convex cones, \(U\) is Haar orthogonal, and \(\delta(\cdot)\) denotes statistical dimension, then
+\[
+ \delta(C)+\delta(K)\le d-a_\eta\sqrt d
+ \quad\Longrightarrow\quad
+ \mathbb P\{C\cap UK\ne\{0\}\}\le\eta,
+\]
+whereas
+\[
+ \delta(C)+\delta(K)\ge d+a_\eta\sqrt d
+ \quad\Longrightarrow\quad
+ \mathbb P\{C\cap UK\ne\{0\}\}\ge1-\eta.
+\]
+\end{lemma}
+
+\begin{lemma}[lem:statistical-dimension-projection]\label{lem:statistical-dimension-projection}
+For every closed convex cone \(C\subset\mathbb R^d\), its statistical dimension satisfies
+\[
+ \delta(C)=\mathbb E\|\Pi_C(G)\|_2^2,
+ \qquad G\sim\mathcal N(0,I_d),
+\]
+where \(\Pi_C\) is Euclidean projection onto \(C\).
+\end{lemma}
+
+\begin{lemma}[lem:exact-eb-quadratic-identity]\label{lem:exact-eb-quadratic-identity}
+On \(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\), exact pooled-target balance implies
+\[
+ Q_n^{\top}d_n=0
+\]
+and, conditionally on \(Q_n\) and \((A_{ni})_{i=1}^n\),
+\[
+ \mathbb E\!\left[\|b_{E,n}\|_2^2\mid Q_n,(A_{ni})_{i=1}^n\right]
+ =\|L_nD_nu_n\|_2^2+
+   \operatorname{tr}(L_nD_nV_nD_nL_n^{\top}).
+\]
+On this event \(L_n=(Q_n^{\top}Q_n)^{-1}Q_n^{\top}\).
+\end{lemma}
+\begin{proof}
+Write \(A_n=(A_{n1},\ldots,A_{nn})^{\top}\) and \(Y_n=(Y_{n1},\ldots,Y_{nn})^{\top}\).  On \(\mathcal E_{0n}\cap\mathcal E_{1n}\), the two arm weight vectors each sum to one and each balance to \(\bar q_n\).  Since \(S_{ni}=1\) in arm one and \(S_{ni}=-1\) in arm zero, the definition \(d_{ni}=nS_{ni}w_{iA_{ni}n}\) gives
+\[
+ Q_n^{\top}d_n
+ =n\left\{\sum_{i:A_{ni}=1}w_{i1n}q_{ni}
+           -\sum_{i:A_{ni}=0}w_{i0n}q_{ni}\right\}
+ =n(\bar q_n-\bar q_n)=0.
+\]
+Conditionally on \(Q_n\) and the assignments, the weights and hence \(D_n\) are fixed.  Put \(\varepsilon_n=Y_n-m_n\), where \(m_n=(m_{n1},\ldots,m_{nn})^{\top}\).  The binary-outcome assumption gives
+\[
+ \mathbb E(\varepsilon_n\mid Q_n,A_n)=0,
+ \qquad
+ \mathbb E(\varepsilon_n\varepsilon_n^{\top}\mid Q_n,A_n)=V_n,
+\]
+because the outcomes are conditionally independent.  Since \(Y_n-\mathbf1_n/2=u_n+\varepsilon_n\),
+\[
+ b_{E,n}=L_nD_nu_n+L_nD_n\varepsilon_n.
+\]
+Expanding its squared norm, the cross term has conditional expectation zero, and the quadratic term satisfies \(\mathbb E(\varepsilon_n^{\top}B\varepsilon_n\mid Q_n,A_n)=\operatorname{tr}(BV_n)\) with \(B=D_nL_n^{\top}L_nD_n\).  Cyclicity of trace proves the claimed identity.  Finally, on \(\mathcal Q_n\), \(Q_n^{\top}Q_n\) is invertible, so the Moore--Penrose expression in the definition of \(L_n\) equals \((Q_n^{\top}Q_n)^{-1}Q_n^{\top}\).
+\end{proof}
+
+\begin{lemma}[lem:gamma-mle-limit]\label{lem:gamma-mle-limit}
+Uniformly for \(\gamma\) in compact subsets of \((\underline\gamma,\overline\gamma)\),
+\[
+ \sqrt n(\widehat\gamma_n-\gamma)\ \Rightarrow\ 
+ \mathcal N(0,I_\gamma^{-1}),
+ \qquad
+ I_\gamma=\mathbb E[Z^2\sigma(\gamma Z)\{1-\sigma(\gamma Z)\}]>0,
+\]
+and \(\widehat I_{\gamma,n}\to_{\mathbb P}I_\gamma\).
+\end{lemma}
+\begin{proof}
+For one observation, apart from terms not depending on \(g\), the log likelihood is
+\[
+ \ell_i(g)=Y_{ni}gq_{ni,1}-\log\{1+\exp(gq_{ni,1})\}.
+\]
+Its first two derivatives are
+\[
+ \dot\ell_i(g)=q_{ni,1}\{Y_{ni}-\sigma(gq_{ni,1})\},
+ \qquad
+ \ddot\ell_i(g)=-q_{ni,1}^2\sigma(gq_{ni,1})\{1-\sigma(gq_{ni,1})\}.
+\]
+At the true \(\gamma\), the score has conditional mean zero and variance \(I_\gamma\).  The information is strictly positive because its integrand is positive whenever \(Z\ne0\).  The expected log likelihood is uniquely maximized at \(\gamma\): equivalently, its difference from the value at \(\gamma\) is the negative expectation of the Bernoulli Kullback--Leibler divergence, with equality only when \(\sigma(gZ)=\sigma(\gamma Z)\) almost surely, hence only when \(g=\gamma\).  Gaussian moments dominate the likelihood derivatives uniformly on the compact parameter interval.  Uniform laws of large numbers therefore give consistency of every maximizer and uniform convergence of the empirical negative Hessian near \(\gamma\) to \(I_\gamma\).  The mean-value expansion of the score equation, together with the ordinary central limit theorem, yields
+\[
+ \sqrt n(\widehat\gamma_n-\gamma)
+ =I_\gamma^{-1}\frac1{\sqrt n}\sum_{i=1}^n
+ q_{ni,1}\{Y_{ni}-m_{ni}\}+o_{\mathbb P}(1)
+ \Rightarrow\mathcal N(0,I_\gamma^{-1}).
+\]
+The same envelope argument, consistency, and a uniform law of large numbers applied to the displayed definition of \(\widehat I_{\gamma,n}\) prove information consistency.  All bounds are uniform when \(\gamma\) ranges over a compact subset of the interior.
+\end{proof}
+
+\begin{lemma}[lem:entropy-weighted-quadratic-fluctuations]\label{lem:entropy-weighted-quadratic-fluctuations}
+Conditionally on \(Q_n\) and \(A_n=(A_{n1},\ldots,A_{nn})^{\top}\), put
+\[
+ \epsilon_{ni}=Y_{ni}-m_{ni},\qquad
+ B_n=L_nD_n,\qquad H_n=B_n^{\top}B_n,\qquad
+ a_n=H_nu_n,
+\]
+write \(h_{ik,n}\) for entry \((i,k)\) of \(H_n\), and put
+\(v_{ni}=m_{ni}(1-m_{ni})\).  Define the centered quadratic fluctuation
+\[
+ C_n=\|b_{E,n}\|_2^2-
+ \left\{\|B_nu_n\|_2^2+\operatorname{tr}(B_nV_nB_n^{\top})\right\}.
+\]
+Then \(\mathbb E[C_n\mid Q_n,A_n]=0\) and
+\[
+\begin{aligned}
+ \operatorname{Var}(C_n\mid Q_n,A_n)
+ ={}&4\sum_{i=1}^n a_{ni}^2v_{ni}
+ +\sum_{i=1}^n h_{ii,n}^2v_{ni}(1-4v_{ni})\\
+ &+4\sum_{1\le i<k\le n}h_{ik,n}^2v_{ni}v_{nk}
+ +4\sum_{i=1}^n a_{ni}h_{ii,n}v_{ni}(1-2m_{ni}).
+\end{aligned}
+\]
+In particular, for every \(t>0\),
+\[
+ \mathbb P\!\left(|C_n|>t\mid Q_n,A_n\right)
+ \le
+ \frac{2\|H_nu_n\|_2^2+\tfrac12\|H_n\|_{\mathrm F}^2}{t^2}.
+\]
+This identity and bound hold for the total entropy-weight construction, including its deterministic complement-event convention; exact-balance consequences are not asserted off the certified event.
+\end{lemma}
+\begin{proof}
+Given \(Q_n\) and \(A_n\), the matrices \(D_n\), \(L_n\), \(B_n\), and \(H_n\), as well as \(u_n\) and \(V_n\), are fixed by the entropy-weight definition.  The binary-outcome assumption gives conditionally independent coordinates \(\epsilon_{ni}\) satisfying
+\[
+ \mathbb E[\epsilon_{ni}\mid Q_n,A_n]=0,
+ \qquad
+ \mathbb E[\epsilon_{ni}^2\mid Q_n,A_n]=v_{ni}.
+\]
+Since \(Y_n-\mathbf 1_n/2=u_n+\epsilon_n\), the definition of \(b_{E,n}\) yields
+\[
+ \|b_{E,n}\|_2^2
+ =(u_n+\epsilon_n)^{\top}H_n(u_n+\epsilon_n).
+\]
+Conditional independence and centering therefore imply
+\[
+ \mathbb E[\|b_{E,n}\|_2^2\mid Q_n,A_n]
+ =u_n^{\top}H_nu_n+\operatorname{tr}(H_nV_n)
+ =\|B_nu_n\|_2^2+\operatorname{tr}(B_nV_nB_n^{\top}),
+\]
+where the last equality uses \(H_n=B_n^{\top}B_n\) and cyclicity of the trace.  Thus
+\[
+ C_n=2a_n^{\top}\epsilon_n+
+ \left\{\epsilon_n^{\top}H_n\epsilon_n-\operatorname{tr}(H_nV_n)\right\}.
+\]
+
+For a Bernoulli variable of mean \(m_{ni}\), direct evaluation at its two support points gives
+\[
+ \mathbb E[\epsilon_{ni}^3\mid Q_n,A_n]
+ =v_{ni}(1-2m_{ni}),
+ \qquad
+ \mathbb E[\epsilon_{ni}^4\mid Q_n,A_n]
+ =v_{ni}(1-3v_{ni}),
+\]
+and hence
+\[
+ \operatorname{Var}(\epsilon_{ni}^2\mid Q_n,A_n)
+ =v_{ni}(1-4v_{ni}).
+\]
+Expanding the centered quadratic part gives
+\[
+ \epsilon_n^{\top}H_n\epsilon_n-\operatorname{tr}(H_nV_n)
+ =\sum_{i=1}^nh_{ii,n}(\epsilon_{ni}^2-v_{ni})
+ +2\sum_{1\le i<k\le n}h_{ik,n}\epsilon_{ni}\epsilon_{nk}.
+\]
+Conditional independence and centering make distinct summands in the last display uncorrelated except when their unordered index sets coincide.  They also show that the off-diagonal quadratic part is uncorrelated with \(2a_n^{\top}\epsilon_n\).  Consequently,
+\[
+ \operatorname{Var}(2a_n^{\top}\epsilon_n\mid Q_n,A_n)
+ =4\sum_{i=1}^na_{ni}^2v_{ni},
+\]
+\[
+ \operatorname{Var}\!\left(
+ \epsilon_n^{\top}H_n\epsilon_n-\operatorname{tr}(H_nV_n)
+ \mathrel{\big|}Q_n,A_n\right)
+ =\sum_{i=1}^nh_{ii,n}^2v_{ni}(1-4v_{ni})
+ +4\sum_{1\le i<k\le n}h_{ik,n}^2v_{ni}v_{nk},
+\]
+and
+\[
+ 2\operatorname{Cov}\!\left(
+ 2a_n^{\top}\epsilon_n,
+ \epsilon_n^{\top}H_n\epsilon_n-\operatorname{tr}(H_nV_n)
+ \mathrel{\big|}Q_n,A_n\right)
+ =4\sum_{i=1}^na_{ni}h_{ii,n}v_{ni}(1-2m_{ni}).
+\]
+Adding these three displays proves the exact variance formula, including the coherent linear--diagonal covariance term.
+
+For the bound, write the two centered terms in \(C_n\) as \(U_n\) and \(W_n\).  The inequality \(\operatorname{Var}(U_n+W_n)\le2\operatorname{Var}(U_n)+2\operatorname{Var}(W_n)\), together with \(0<v_{ni}\le1/4\), gives
+\[
+ \operatorname{Var}(U_n\mid Q_n,A_n)\le\|H_nu_n\|_2^2
+\]
+and
+\[
+ \operatorname{Var}(W_n\mid Q_n,A_n)
+ \le\frac14\sum_{i=1}^nh_{ii,n}^2
+    +\frac14\sum_{1\le i<k\le n}h_{ik,n}^2
+ \le\frac14\|H_n\|_{\mathrm F}^2.
+\]
+Finally, \(t^2\mathbf 1\{|C_n|>t\}\le C_n^2\).  Taking the conditional expectation, using \(\mathbb E[C_n\mid Q_n,A_n]=0\), and substituting the preceding variance bound proves the displayed probability inequality.
+\end{proof}
+
+\begin{lemma}[lem:small-aspect-entropy-cavity-bounds]\label{lem:small-aspect-entropy-cavity-bounds}
+Put \(\mathcal G_n=\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\), and, on \(\mathcal G_n\), write \(W_{ai}=nw_{ian}\), \(B_n=L_nD_n\), \(H_n=B_n^{\top}B_n\), and
+\[
+ M_{E,n}=\|B_nu_n\|_2^2+\operatorname{tr}(B_nV_nB_n^{\top}).
+\]
+At \(\gamma=1\), there are constants \(\kappa_0\in(0,\kappa_{\mathrm{bal}})\) and \(0<c_0<C_0<\infty\), none depending on \(\kappa\), such that, for every fixed \(0<\kappa<\kappa_0\) and every sequence \(p_n/n\to\kappa\),
+\[
+ \mathbb P\!\left(\mathcal G_n\cap
+ \{c_0\kappa\le M_{E,n}\le C_0\kappa\}\right)\longrightarrow1,
+\]
+and
+\[
+ \|H_nu_n\|_2^2\longrightarrow_{\mathbb P}0,
+ \qquad
+ \|H_n\|_{\mathrm F}^2\longrightarrow_{\mathbb P}0.
+\]
+The constants may be chosen uniformly for \(\kappa\) in compact subsets of \((0,\kappa_0)\).  The conclusion is an order bracket; it does not assert convergence of \(M_{E,n}/\kappa\) to a constant.
+\end{lemma}
+\begin{proof}
+Set \(I_{ai}=\mathbf 1\{A_{ni}=a\}\), \(s_a=2a-1\), and \(x_i=(1,q_{ni}^{\top})^{\top}\).  On \(\mathcal G_n\), the normalization and balance constraints in \(\mathrm{def{:}entropy\mbox{-}weights}\) are exactly
+\[
+ \mathbb P_n[I_aW_a]=1,
+ \qquad
+ \mathbb P_n[I_aW_aq]=\bar q_n,
+\]
+or, equivalently,
+\[
+ r_a(\vartheta_a):=
+ \mathbb P_n[(I_a\exp(x^{\top}\vartheta_a)-1)x]=0,
+ \qquad
+ \vartheta_a=(\alpha_a,\eta_a^{\top})^{\top}.
+ \tag{1}
+\]
+In particular, no arm-size factor is missing from (1): since \(W_{ai}=nw_{ian}\), each arm satisfies \(\sum_i I_{ai}W_{ai}=n\).  The Jacobian of (1) is
+\[
+ J_a(\vartheta)=\mathbb P_n[I_a\exp(x^{\top}\vartheta)xx^{\top}].
+ \tag{2}
+\]
+
+We first record the elementary Gaussian event used below.  There are numerical constants \(c_Q,C_Q,c_J>0\) and a sufficiently small \(\kappa_0>0\) such that, uniformly for \(0<\kappa<\kappa_0\), an event \(\mathcal A_n\) has probability tending to one and has all of the following properties: both arm counts lie between \(n/3\) and \(2n/3\); every full-sample and one-row-deleted Gaussian Gram matrix used below has its nonzero eigenvalues between \(c_Qn\) and \(C_Qn\); the solutions of (1) and of every one-row-deleted version satisfy
+\[
+ |\alpha_a-\log 2|+\|\eta_a\|_2\le C_J\sqrt\kappa;
+ \tag{3}
+\]
+and every Jacobian on a line segment joining a full and a deleted solution has smallest eigenvalue at least \(c_J\).  At the roots, the weighted second moments appearing below are bounded in probability by fixed constants after their natural powers of \(p_n\) are removed.
+
+Here is a derivation, included to make clear that (3) is not an extra assumption.  For a standard Gaussian matrix \(G\) with \(m\) rows and \(d\) columns, the identity
+\[
+ \mathbb E\exp\{t(Z^2-1)\}=e^{-t}(1-2t)^{-1/2},
+ \qquad 0<t<1/2,
+\]
+and the same identity with negative \(t\) give exponential upper and lower tails for \(m^{-1}\|Gv\|_2^2\) at each fixed unit vector \(v\).  A \(1/4\)-net of the unit sphere has at most \(9^d\) points.  Taking a union bound and using the deterministic net inequality for a quadratic form shows that, whenever \(d/m\) is sufficiently small, all of its eigenvalues lie in a fixed interval \([c,C]\) with probability at least \(1-2e^{-c'm}\).  The same calculation applied to the upper order statistics of \((G_iv)^2\), followed by the same net argument, shows that deleting any \(\varepsilon m\) rows, for a fixed sufficiently small \(\varepsilon\), leaves a Gram matrix bounded below by a positive multiple of \(mI_d\).  The binomial moment-generating function gives the asserted arm-count bound.  These estimates remain true after one deletion because there are only \(n\) deleted samples and their failure probabilities are exponential in \(n\).
+
+Consider the convex potential
+\[
+ \ell_a(\alpha,\eta)=
+ \mathbb P_n[I_a\exp(\alpha+q^{\top}\eta)]-\alpha-\bar q_n^{\top}\eta,
+\]
+whose gradient is (1).  At \(\vartheta^\circ=(\log2,0)\),
+\[
+ \nabla\ell_a(\vartheta^\circ)
+ =\mathbb P_n[(2I_a-1)x],
+ \qquad
+ \|\nabla\ell_a(\vartheta^\circ)\|_2=O_{\mathbb P}(\sqrt\kappa).
+ \tag{4}
+\]
+The last assertion follows by summing the coordinate variances: the intercept contributes \(O(n^{-1})\), while the \(p_n\) Gaussian coordinates contribute \(p_n/n\to\kappa\).  To bound the Hessian uniformly near \(\vartheta^\circ\), fix a small deterministic radius \(r_0\).  For \(\|\eta\|_2\le r_0\), the empirical second-moment bound implies that at most \(C r_0^2n\) rows have \(|q_i^{\top}\eta|>1\).  On the remaining rows, and for \(|\alpha-\log2|\le r_0\), the multiplier \(I_a\exp(\alpha+q_i^{\top}\eta)\) is bounded below by a positive constant.  The deletion-stable Gram bound from the preceding paragraph therefore gives
+\[
+ \nabla^2\ell_a(\vartheta)\succeq c_JI_{p_n+1}
+ \tag{5}
+\]
+throughout this ball, after decreasing \(r_0\) and \(\kappa_0\) if necessary.  This argument is uniform in the direction of \(\eta\), because the deletion bound was uniform over both the direction and the deleted set.  Convexity, (4), and (5) imply
+\[
+ \|\vartheta_a-\vartheta^\circ\|_2
+ \le c_J^{-1}\|\nabla\ell_a(\vartheta^\circ)\|_2
+ =O_{\mathbb P}(\sqrt\kappa).
+\]
+The same calculation applies simultaneously to all deleted samples.  Strict feasibility gives existence, and (5) gives uniqueness, so this proves (3) and the stated lower Jacobian bounds on \(\mathcal A_n\).  The root-level upper moment bounds are obtained from the deleted-row comparison in (9)--(10) below, rather than from a uniform exponential-moment bound over every direction in a Euclidean ball.
+
+We next expose the same-row response rather than replacing the weights by independent lognormal variables.  Let \(\vartheta_a^{(-i)}\) solve the version of (1) based on the \(n-1\) rows other than \(i\), with their own pooled target, and put \(Z_{ai}=x_i^{\top}\vartheta_a^{(-i)}\).  This deleted solution is independent of \((q_{ni},A_{ni})\).  If \(A_{ni}=a\), the mean-value identity between the full and deleted score equations gives exactly
+\[
+ \vartheta_a-\vartheta_a^{(-i)}
+ =-\frac1n\overline J_{ai}^{-1}x_i\{\exp(T_{ai})-1\},
+ \qquad T_{ai}=x_i^{\top}\vartheta_a,
+ \tag{6}
+\]
+where \(\overline J_{ai}\) is \((n-1)/n\) times the integral of the deleted-sample Jacobian along the joining segment.  Indeed, the full score is \((n-1)/n\) times the deleted score plus the displayed row residual, so no target or normalization term is omitted.  Hence
+\[
+ T_{ai}=Z_{ai}-\overline K_{ai}\{\exp(T_{ai})-1\},
+ \qquad
+ \overline K_{ai}=n^{-1}x_i^{\top}\overline J_{ai}^{-1}x_i\ge0.
+ \tag{7}
+\]
+Moreover, (2)--(3), the Gaussian row-norm bound, and one further mean-value expansion yield, for a uniformly selected row,
+\[
+ T_{ai}=Z_{ai}-K_{ai}\{\exp(T_{ai})-1\}+o_{\mathbb P}(1),
+ \qquad
+ K_{ai}=n^{-1}x_i^{\top}
+ J_a^{(-i)}(\vartheta_a^{(-i)})^{-1}x_i.
+ \tag{8}
+\]
+Thus (8) is the required susceptibility equation.  The sign in (7) is important: if \(T_{ai}\ge0\), then \(T_{ai}\le Z_{ai}\), whereas if \(T_{ai}<0\), then \(e^{2T_{ai}}\le1\).  Consequently
+\[
+ W_{ai}^2\le 1+e^{2Z_{ai}}
+ \qquad(A_{ni}=a).
+ \tag{9}
+\]
+Conditionally on the deleted sample, \(q_{ni}^{\top}\eta_a^{(-i)}\) is Gaussian with variance \(\|\eta_a^{(-i)}\|_2^2\le C_J^2\kappa\).  The Gaussian exponential-moment identities therefore give
+\[
+ \mathbb E_i[e^{2Z_{ai}}]\le C,
+ \qquad
+ \mathbb E_i[e^{2Z_{ai}}\|q_{ni}\|_2^2]\le Cp_n.
+ \tag{10}
+\]
+Exchangeability and (10) first give the corresponding expectation bounds.  If
+\[
+ G_n=\mathbb P_n\sum_{a=0}^1 I_aW_a^2\|q\|_2^2
+\]
+and \(G_n^{(i)}\) denotes its value after replacing row \(i\), then (6), the lower bound (5), and the fourth Gaussian exponential moments give
+\[
+ \mathbb E(G_n-G_n^{(i)})^2\le C\frac{p_n^2}{n^2}.
+\]
+The martingale replacement calculation written explicitly in (16) below consequently gives \(\operatorname{Var}(G_n/p_n)\le C/n\).  Chebyshev's inequality and truncation on \(\mathcal A_n\) therefore imply, for a fixed constant \(C_W<\infty\),
+\[
+ \mathbb P\!\left\{
+ \mathbb P_n\sum_{a=0}^1 I_aW_a^2\|q\|_2^2\le C_Wp_n
+ \right\}\longrightarrow1,
+ \qquad
+ \max_{i}W_{A_{ni}i}=n^{o_{\mathbb P}(1)}.
+ \tag{11}
+\]
+For the maximum, apply the Gaussian tail bound conditionally in (10), take a union bound over \(i\), and use \(\exp\{C\sqrt{\log n}\}=n^{o(1)}\).
+
+The coherent signal term requires the tilt response as well.  Introduce an independent \(\zeta\sim\mathcal N(0,I_n)\) and the four residual fields
+\[
+ \begin{aligned}
+ r_0(\vartheta_0)&=\mathbb P_n[(I_0e^{x^{\top}\vartheta_0}-1)x],
+ &r_1(\vartheta_1)&=\mathbb P_n[(I_1e^{x^{\top}\vartheta_1}-1)x],\\
+ r_u(\vartheta_0,\vartheta_1)&=
+ \mathbb P_n\!\left[q u\sum_{a=0}^1s_aI_ae^{x^{\top}\vartheta_a}\right],
+ &r_v(\vartheta_0,\vartheta_1)&=
+ \mathbb P_n\!\left[q v^{1/2}\zeta\sum_{a=0}^1s_aI_ae^{x^{\top}\vartheta_a}\right].
+ \end{aligned}
+ \tag{12}
+\]
+At the entropy roots, \(r_u=n^{-1}Q_n^{\top}D_nu_n\), \(r_v=n^{-1}Q_n^{\top}D_nV_n^{1/2}\zeta\), and
+\[
+ b_u=L_nD_nu_n,
+ \qquad
+ b_v=L_nD_nV_n^{1/2}\zeta,
+ \qquad
+ \mathbb E_\zeta\|b_v\|_2^2=
+ \operatorname{tr}(L_nD_nV_nD_nL_n^{\top}).
+ \tag{13}
+\]
+Writing
+\[
+ U_a=s_a\mathbb P_n[I_aW_auq x^{\top}],
+ \qquad
+ V_a^{\zeta}=s_a\mathbb P_n[I_aW_av^{1/2}\zeta qx^{\top}],
+\]
+the Jacobian of the augmented equations \((r_0,r_1,z_u-r_u,z_v-r_v)=0\) is the lower-triangular matrix
+\[
+ \mathcal J_{mathrm{aug}}=
+ \begin{pmatrix}
+ J_0&0&0&0\\
+ 0&J_1&0&0\\
+ -U_0&-U_1&I_{p_n}&0\\
+ -V_0^{\zeta}&-V_1^{\zeta}&0&I_{p_n}
+ \end{pmatrix}.
+ \tag{14}
+\]
+Thus the tilt-to-\(u\) and tilt-to-replica entries are nonzero and are retained.  Combining (6) with the last two rows of (14), a one-row replacement changes \(r_u\) by its direct row contribution plus
+\[
+ -\sum_{a=0}^1U_aJ_a^{-1}
+ \frac{(I_{ai}e^{Z_{ai}}-1)x_i}{n}
+ \tag{15}
+\]
+up to a remainder whose squared expectation is \(o(p_n/n^2)\); the analogous formula for \(r_v\) contains \(V_a^{\zeta}\).  To see the stated remainder order, (6) and (10) give \(\mathbb E\|\vartheta_a-\vartheta_a^{(-i)}\|_2^4\le Cp_n^2/n^4\).  Taylor's formula with integral remainder, followed by the fourth exponential-moment version of (10), leaves the empirical second-derivative average bounded by a fixed constant in fourth mean.  The squared remainder is therefore \(O(p_n^2/n^4)=o(p_n/n^2)\).  Equation (15) is exactly the coherent Jacobian correction that a marginal-weight calculation would discard.
+
+For completeness, (15) gives the order control needed here without claiming a deterministic cavity law.  The bounds (3), (5), and (10) imply that the expected squared norm of the direct term plus (15) is at most \(Cp_n/n^2\).  To sum these changes, let \(F_i=\mathbb E(r_u\mid X_1,\ldots,X_i)\), where \(X_i=(q_{ni},A_{ni})\).  Orthogonality of the martingale differences gives
+\[
+ \mathbb E\|r_u-\mathbb Er_u\|_2^2
+ =\sum_{i=1}^n\mathbb E\|F_i-F_{i-1}\|_2^2
+ \le \frac12\sum_{i=1}^n
+ \mathbb E\|r_u-r_u^{(i)}\|_2^2
+ \le C\frac{p_n}{n}.
+ \tag{16}
+\]
+The middle inequality follows by conditioning on all rows other than \(i\) and introducing an independent replacement.  Interchanging the two treatment labels maps \(D_n\) to \(-D_n\) while leaving \(Q_n\) and \(u_n\) fixed, so \(\mathbb E(r_u\mid Q_n)=0\).  The exponentially unlikely complement of the deletion-stable event may be truncated in (16); (9)--(10) make its contribution vanish.  Applying the same martingale decomposition to the scalar \(\|r_u\|_2^2\), now using the fourth Gaussian exponential moments in place of (10), gives
+\[
+ \operatorname{Var}(\|r_u\|_2^2)\le C\frac{p_n}{n^2}=o(1).
+\]
+Together with (16) and label-swap centering, this yields a fixed \(C_u<\infty\) for which
+\[
+ \mathbb P\!\left\{
+ \left\|n^{-1}Q_n^{\top}D_nu_n\right\|_2^2\le C_u\kappa
+ \right\}\longrightarrow1.
+ \tag{17}
+\]
+
+We now bound the two terms in \(M_{E,n}\).  Put \(S_n=Q_n^{\top}Q_n\).  On \(\mathcal A_n\cap\mathcal G_n\),
+\[
+ c_QnI_{p_n}\preceq S_n\preceq C_QnI_{p_n}.
+ \tag{18}
+\]
+Equations (17)--(18) give
+\[
+ \|L_nD_nu_n\|_2^2
+ =\|S_n^{-1}Q_n^{\top}D_nu_n\|_2^2
+ \le c_Q^{-2}\left\|n^{-1}Q_n^{\top}D_nu_n\right\|_2^2
+ \le c_Q^{-2}C_u\kappa
+ \tag{19}
+\]
+with probability tending to one.  Since \(0<v_{ni}\le1/4\), (11) and (18) imply, on another event whose probability tends to one,
+\[
+ \operatorname{tr}(L_nD_nV_nD_nL_n^{\top})
+ \le \frac{1}{c_Q^2n^2}
+ \sum_{i=1}^nd_{ni}^2v_{ni}\|q_{ni}\|_2^2
+ \le C\kappa.
+ \tag{20}
+\]
+
+There is also a weight-free lower bound.  At \(\gamma=1\),
+\[
+ v_{ni}^{-1}=2+2\cosh(q_{ni,1}).
+\]
+Because \(\sum_{j=2}^{p_n}q_{ni,j}^2\) is independent of \(q_{ni,1}\), direct integration of the chi-square density gives
+\[
+ \mathbb E\!\left[\frac1{v_{ni}\|q_{ni}\|_2^2}\right]
+ \le \frac{2+2e^{1/2}}{p_n-3},
+ \qquad p_n>3.
+ \tag{21}
+\]
+The same calculation with squares gives variance of order \(p_n^{-2}\).  Chebyshev's inequality therefore yields, for a fixed \(C_v<\infty\),
+\[
+ \mathbb P\!\left\{
+ \sum_{i=1}^n\frac1{v_{ni}\|q_{ni}\|_2^2}
+ \le C_v\frac{n}{p_n}
+ \right\}\longrightarrow1.
+ \tag{22}
+\]
+On \(\mathcal G_n\), normalization in both arms gives \(\sum_i|d_{ni}|=2n\).  Cauchy--Schwarz and (22) imply
+\[
+ \sum_{i=1}^nd_{ni}^2v_{ni}\|q_{ni}\|_2^2
+ \ge
+ \frac{(2n)^2}{\sum_i\{v_{ni}\|q_{ni}\|_2^2\}^{-1}}
+ \ge cnp_n
+ \tag{23}
+\]
+with probability tending to one.  Since \(S_n^{-2}\succeq(C_Qn)^{-2}I_{p_n}\),
+\[
+ \operatorname{tr}(L_nD_nV_nD_nL_n^{\top})
+ =\operatorname{tr}\!\left(S_n^{-1}Q_n^{\top}D_nV_nD_nQ_nS_n^{-1}\right)
+ \ge c\frac{p_n}{n}.
+ \tag{24}
+\]
+Combining (19), (20), and (24), and using \(p_n/n\to\kappa\), proves the asserted two-sided bound for \(M_{E,n}\).
+
+It remains to verify the fluctuation criterion.  From (11) and (18),
+\[
+ \|B_n\|_{\mathrm F}^2
+ \le \frac1{c_Q^2n^2}\sum_i d_{ni}^2\|q_{ni}\|_2^2
+ =O_{\mathbb P}(\kappa),
+ \qquad
+ \|B_n\|_{\mathrm{op}}^2
+ \le \frac{\max_i d_{ni}^2}{c_Qn}=n^{-1+o_{\mathbb P}(1)}.
+\]
+Therefore
+\[
+ \|H_n\|_{\mathrm F}^2
+ \le\|B_n\|_{\mathrm{op}}^2\|B_n\|_{\mathrm F}^2
+ \longrightarrow_{\mathbb P}0.
+\]
+Finally \(\|u_n\|_2^2\le n/4\), so
+\[
+ \|H_nu_n\|_2^2
+ \le\|B_n\|_{\mathrm{op}}^4\|u_n\|_2^2
+ =n^{-1+o_{\mathbb P}(1)}\longrightarrow_{\mathbb P}0.
+\]
+This proves the lemma.  Notice that (14) supplies only bounds on the augmented response; it does not make the random matrices \(U_aJ_a^{-1}\) and \(V_a^{\zeta}J_a^{-1}\) converge to a finite deterministic state.  No such convergence has been used.
+\end{proof}
+
+\begin{lemma}[lem:fixed-dimensional-joint-score-covariances]\label{lem:fixed-dimensional-joint-score-covariances}
+Suppose \(p_n=p\) is fixed before \(n\to\infty\), and put \(G_{jn}=\nabla F_{jn}(0)\).  Define
+\[
+ \mu_\gamma=\mathbb E\!\left[Z\{\sigma(\gamma Z)-1/2\}\right],
+ \qquad
+ I_\gamma=\mathbb E[Z^2\sigma'(\gamma Z)],
+ \qquad e_1=(1,0,\ldots,0)^\top.
+\]
+There are mean-zero one-observation influences
+\[
+ \psi_T=\frac12SYq,
+ \qquad
+ \psi_E=\frac12S\left[\{Y-1/2\}q-\mu_\gamma e_1\right],
+ \qquad
+ \psi_D=\frac12S\{Y-m(q)\}q
+\]
+such that
+\[
+ \sqrt n\,G_{jn}=\frac1{\sqrt n}\sum_{i=1}^n\psi_{j,ni}+o_{\mathbb P}(1)
+ \Rightarrow Z_j,
+ \qquad Z_j\sim\mathcal N_p(0,\Sigma_j),
+\]
+where the remainder is identically zero for \(j=T,D\), and
+\[
+ \Sigma_T=\frac18I_p,
+ \qquad
+ \Sigma_E=\frac1{16}I_p-\frac14\mu_\gamma^2e_1e_1^\top,
+ \qquad
+ \Sigma_D=\frac14\operatorname{diag}(I_\gamma,v_\gamma,\ldots,v_\gamma).
+\]
+Moreover,
+\[
+ \mu_\gamma=\gamma v_\gamma,
+ \qquad
+ \Sigma_D\prec\Sigma_E\prec\Sigma_T,
+ \qquad
+ (\Sigma_E-\Sigma_D)_{11}
+ =\frac14\operatorname{Var}\!\left[Z\{\sigma(\gamma Z)-1/2\}\right]>0.
+\]
+The certified exact-balance and rank event has probability tending to one in this fixed-dimensional regime.
+\end{lemma}
+\begin{proof}
+At \(\beta=0\), \(\sigma'(0)=1/4\) and \(h'(0)=0\).  Definition \(\mathrm{def{:}empirical\mbox{-}objectives}\) therefore gives exactly
+\[
+ G_{Tn}=\mathbb P_n\!\left(\frac12SYq\right),
+ \qquad
+ G_{Dn}=\mathbb P_n\!\left(\frac12S(Y-m)q\right).
+ \tag{1}
+\]
+For method \(E\), write \(\bar q_a\) for the unweighted arm mean and
+\[
+ M_{an}=\sum_{i:A_{ni}=a}w_{ian}Y_{ni}q_{ni},
+ \qquad \mu=\mathbb E\{(Y-1/2)q\}.
+\]
+Fixed-dimensional strict feasibility holds with probability tending to one.  Indeed, choose \(p+1\) deterministic vertices whose simplex contains a neighborhood of zero.  Small open neighborhoods of these vertices retain that property and have positive Gaussian probability in each randomized arm.  With probability tending to one both arms contain a point in every neighborhood and \(\bar q_n\to0\), so \(\bar q_n\) is in the relative interior of both arm hulls.  Gaussian absolute continuity also gives \(\operatorname{rank}(Q_n)=p\) almost surely once \(n\ge p\).
+
+On this event, the derivative at zero tilt of the tilted arm mean of \(q\) is the sample covariance, which converges to \(I_p\).  Taylor expansion of the exact balance equation consequently gives
+\[
+ \eta_{an}=\bar q_n-\bar q_a+o_{\mathbb P}(n^{-1/2}).
+ \tag{2}
+\]
+The derivative at zero tilt of the tilted mean of \(Yq\) is
+\[
+ \operatorname{Cov}(Yq,q)=\mathbb E\{m(q)qq^\top\}=\frac12I_p.
+ \tag{3}
+\]
+For (3), pair \(q\) with \(-q\); the matrix \(qq^\top\) is even and \(m(q)+m(-q)=1\).  Equations (2)--(3) imply
+\[
+ M_{an}-\mathbb E(Yq)
+ =\overline{Yq}_a-\mathbb E(Yq)
+  +\frac12(\bar q_n-\bar q_a)+o_{\mathbb P}(n^{-1/2}).
+ \tag{4}
+\]
+For any square-integrable vector \(f\) with mean \(\nu\), expansion of the arm ratio around \(\mathbb P(A=a)=1/2\) gives
+\[
+ \frac{\mathbb P_n\{\mathbf1(A=a)f\}}
+      {\mathbb P_n\{\mathbf1(A=a)\}}-\nu
+ =2\mathbb P_n[\mathbf1(A=a)(f-\nu)]+o_{\mathbb P}(n^{-1/2}).
+ \tag{5}
+\]
+Applying (5) to both means in (4) shows that the one-observation influence of \(M_{an}\) is
+\[
+ 2\mathbf1\{A=a\}\{Yq-\mathbb E(Yq)\}
+ +\frac12\{q-2\mathbf1\{A=a\}q\}.
+\]
+Because \(G_{En}=(M_{1n}-M_{0n})/4\), subtraction of the two arm influences yields
+\[
+ \psi_E=\frac12S\left[\{Y-1/2\}q-\mu\right].
+ \tag{6}
+\]
+Symmetry makes \(\mu=\mu_\gamma e_1\), proving the three asserted linear representations.
+
+We calculate their covariance matrices.  Randomization makes \(S\) independent of \((q,Y)\), with mean zero and square one.  Also
+\[
+ \mathbb E\{m(q)qq^\top\}=\frac12I_p,
+ \qquad
+ (Y-1/2)^2=\frac14,
+\]
+so
+\[
+ \operatorname{Cov}(\psi_T)=\frac18I_p,
+ \qquad
+ \operatorname{Cov}(\psi_E)
+ =\frac14\left(\frac14I_p-\mu_\gamma^2e_1e_1^\top\right).
+ \tag{7}
+\]
+Conditional outcome variance gives
+\[
+ \operatorname{Cov}(\psi_D)
+ =\frac14\mathbb E\!\left[m(q)\{1-m(q)\}qq^\top\right]
+ =\frac14\operatorname{diag}(I_\gamma,v_\gamma,\ldots,v_\gamma),
+ \tag{8}
+\]
+because the bulk coordinates are independent of \(q_1\) and every cross term is odd in at least one Gaussian coordinate.
+
+The asserted Gaussian limits follow without an additional estimator-side hypothesis.  For any fixed \(t\in\mathbb R^p\), square integrability and Taylor expansion of the characteristic function at zero give
+\[
+ \mathbb E\exp\!\left(\frac{\mathrm i}{\sqrt n}t^\top\psi_j\right)
+ =1-\frac1{2n}t^\top\Sigma_jt+o(n^{-1}).
+\]
+Independence across observations makes the characteristic function of the normalized sum the \(n\)-th power of this expression, which converges to \(\exp(-t^\top\Sigma_jt/2)\).  Thus the normalized sums in (1) and (6) converge to the stated centered Gaussian vectors.
+
+Gaussian integration by parts is elementary here: with \(f(z)=\sigma(\gamma z)-1/2\), integration of \(-f(z)\phi'(z)\) has zero boundary term and gives
+\[
+ \mu_\gamma=\mathbb E\{Zf(Z)\}=\mathbb E f'(Z)
+ =\gamma\mathbb E\sigma'(\gamma Z)=\gamma v_\gamma.
+ \tag{9}
+\]
+Since \(\gamma>0\), \(v_\gamma<1/4\): the pointwise bound \(\sigma'(x)\le1/4\) is strict whenever \(x\ne0\), and \(\mathbb P(Z\ne0)=1\).  Hence all bulk eigenvalues of \(\Sigma_E-\Sigma_D\) equal \((1/4)(1/4-v_\gamma)>0\).  For the signal coordinate put \(T=Z(Y-1/2)\).  The conditional variance identity gives
+\[
+ \begin{aligned}
+ \frac14-\mu_\gamma^2
+ &=\operatorname{Var}(T)\\
+ &=\mathbb E\!\left[Z^2m(Z)\{1-m(Z)\}\right]
+   +\operatorname{Var}\!\left[Z\{m(Z)-1/2\}\right]\\
+ &=I_\gamma+\operatorname{Var}\!\left[Z\{\sigma(\gamma Z)-1/2\}\right].
+ \end{aligned}
+ \tag{10}
+\]
+The last variance is positive because its argument is a nonconstant continuous function of a full-support Gaussian variable.  Equations (7)--(10) prove \(\Sigma_D\prec\Sigma_E\).  Finally,
+\[
+ \Sigma_T-\Sigma_E=\frac1{16}I_p+\frac14\mu_\gamma^2e_1e_1^\top\succ0,
+\]
+which proves the second strict ordering and completes the proof.
+\end{proof}
+
+\begin{proposition}[prop:fixed-zero-versus-pooled-balance-threshold]\label{prop:fixed-zero-versus-pooled-balance-threshold}
+Let
+\[
+ \mathcal Z_{an}=\left\{0\in\operatorname{relint}
+ \operatorname{conv}(q_{ni}:A_{ni}=a)\right\}.
+\]
+For an arm with \(n_{an}/n\to1/2\), balancing to the fixed population target zero has the ordinary orthant threshold
+\[
+ \frac{p_n}{n_{an}}=\frac12,
+ \qquad\text{equivalently}\qquad \frac{p_n}{n}=\frac14:
+\]
+\(\mathbb P(\mathcal Z_{an})\to1\) when \(\kappa<1/4\), and \(\mathbb P(\mathcal Z_{an})\to0\) when \(\kappa>1/4\).  In contrast, balancing the same arm to the endogenous pooled empirical target \(\bar q_n\) has threshold
+\[
+ \kappa_{\mathrm{bal}}=\frac12\Phi(t_{\mathrm{bal}})
+ =0.3043687064\ldots>\frac14.
+\]
+Thus the Wendel or undeformed-orthant value \(1/4\) and the pooled-target value \(\kappa_{\mathrm{bal}}\) concern different targets; both are expressed in the full-sample normalization \(p_n/n\).
+\end{proposition}
+\begin{proof}
+Condition on an arm containing \(m\) observations.  For the fixed target zero, relative-interior feasibility is equivalent, by the same positive-coefficient argument used in Theorem \(\mathrm{thm{:}balance\mbox{-}threshold}\), to
+\[
+ \ker(G_m^\top)\cap\operatorname{int}(\mathbb R_+^m)\ne\varnothing,
+\]
+where \(G_m\) has independent standard Gaussian entries.  Gaussian general position makes this event almost surely equivalent to a nonzero intersection with the closed orthant.  Lemma \(\mathrm{lem{:}statistical\mbox{-}dimension\mbox{-}projection}\) gives
+\[
+ \delta(\mathbb R_+^m)
+ =\mathbb E\sum_{i=1}^m(G_i)_+^2
+ =\frac m2.
+\]
+The nullspace has dimension and statistical dimension \(m-p_n\).  Therefore the excess statistical dimension in Lemma \(\mathrm{lem{:}approximate\mbox{-}conic\mbox{-}kinematics}\) is
+\[
+ \frac m2+(m-p_n)-m=\frac m2-p_n.
+\]
+When \(p_n/m\) is separated below or above \(1/2\), this quantity dominates the square-root transition width with the corresponding sign.  Thus conditional feasibility tends to one below \(p_n/m=1/2\) and to zero above it.  Since randomization gives \(m/n\to1/2\), one has \(p_n/m\to2\kappa\), proving the full-sample threshold \(\kappa=1/4\).  Theorem \(\mathrm{thm{:}balance\mbox{-}threshold}\) gives the pooled-target threshold \(\kappa_{\mathrm{bal}}=\Phi(t_{\mathrm{bal}})/2\).  Its root is positive, so \(\Phi(t_{\mathrm{bal}})>1/2\) and hence \(\kappa_{\mathrm{bal}}>1/4\), proving the comparison.
+\end{proof}
+
+\begin{lemma}[lem:gaussian-top-eigenvalue-limit]\label{lem:gaussian-top-eigenvalue-limit}
+Under \(p_n/n\to\kappa\in(0,1)\) and independent standard Gaussian rows,
+\[
+ \frac{\lambda_{\max}(Q_n^\top Q_n)}n
+ \longrightarrow_{\mathbb P}(1+\sqrt\kappa)^2.
+\]
+\end{lemma}
+
+\begin{lemma}[lem:global-feasible-entropy-energy-floor]\label{lem:global-feasible-entropy-energy-floor}
+Put \(\mathcal G_n=\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\).  On \(\mathcal G_n\), for every \(\gamma\in[\underline\gamma,\overline\gamma]\),
+\[
+ \operatorname{tr}(L_nD_nV_nD_nL_n^\top)
+ \ge
+ \frac{4n^2}
+ {\lambda_{\max}(Q_n^\top Q_n)^2
+  \displaystyle\sum_{i=1}^n
+  \{m_{ni}(1-m_{ni})\|q_{ni}\|_2^2\}^{-1}}.
+\]
+For every fixed \(0<\kappa<\kappa_{\mathrm{bal}}\),
+\[
+ \frac{p_n}{n}\sum_{i=1}^n
+ \{m_{ni}(1-m_{ni})\|q_{ni}\|_2^2\}^{-1}
+ \longrightarrow_{\mathbb P}2+2\exp(\gamma^2/2),
+\]
+and
+\[
+ \frac{\lambda_{\max}(Q_n^\top Q_n)}n
+ \longrightarrow_{\mathbb P}(1+\sqrt\kappa)^2.
+\]
+Consequently, for every \(\varepsilon>0\),
+\[
+ \mathbb P\!\left[
+ \mathcal G_n\cap
+ \left\{
+ \frac{\operatorname{tr}(L_nD_nV_nD_nL_n^\top)}\kappa
+ \ge
+ \frac4{\{2+2\exp(\gamma^2/2)\}(1+\sqrt\kappa)^4}-\varepsilon
+ \right\}
+ \right]\longrightarrow1.
+\]
+\end{lemma}
+\begin{proof}
+On \(\mathcal G_n\), put \(S_n=Q_n^\top Q_n\), which is positive definite, and write \(v_{ni}=m_{ni}(1-m_{ni})>0\).  Cyclicity of trace gives
+\[
+ \operatorname{tr}(L_nD_nV_nD_nL_n^\top)
+ =\operatorname{tr}\!\left(
+ S_n^{-1}Q_n^\top D_nV_nD_nQ_nS_n^{-1}\right).
+ \tag{1}
+\]
+Since \(S_n^{-2}\succeq\lambda_{\max}(S_n)^{-2}I_{p_n}\), (1) implies
+\[
+ \operatorname{tr}(L_nD_nV_nD_nL_n^\top)
+ \ge \lambda_{\max}(S_n)^{-2}
+ \sum_{i=1}^nd_{ni}^2v_{ni}\|q_{ni}\|_2^2.
+ \tag{2}
+\]
+Exact normalization of the positive weights in each arm gives
+\[
+ \sum_{i=1}^n|d_{ni}|
+ =n\sum_{a=0}^1\sum_{i:A_{ni}=a}w_{ian}=2n.
+ \tag{3}
+\]
+All factors divided by below are strictly positive: \(v_{ni}>0\) by the logistic model, and \(\|q_{ni}\|_2>0\) almost surely by Gaussian absolute continuity.  Cauchy--Schwarz and (3) therefore give
+\[
+ (2n)^2
+ \le
+ \left\{\sum_{i=1}^nd_{ni}^2v_{ni}\|q_{ni}\|_2^2\right\}
+ \left\{\sum_{i=1}^n(v_{ni}\|q_{ni}\|_2^2)^{-1}\right\}.
+ \tag{4}
+\]
+Combining (2) and (4) proves the finite-sample inequality.
+
+It remains to evaluate its two design factors.  Write \(q_{ni}=(Z_i,\widetilde q_i^\top)^\top\), where \(Z_i\sim\mathcal N(0,1)\), \(\|\widetilde q_i\|_2^2\sim\chi^2_{p_n-1}\), and the two are independent.  The logistic identity
+\[
+ v_{ni}^{-1}=2+2\cosh(\gamma Z_i)
+ \tag{5}
+\]
+gives
+\[
+ \mathbb E(v_{ni}^{-1})=2+2\exp(\gamma^2/2)=:a_\gamma.
+ \tag{6}
+\]
+Moreover,
+\[
+ 0\le \frac{p_n}{v_{ni}\|q_{ni}\|_2^2}
+ \le \frac{p_n}{\|\widetilde q_i\|_2^2}
+       \{2+2\cosh(\gamma Z_i)\}.
+\]
+For \(p_n>5\), the first factor on the right has bounded second moment by the inverse moments of a \(\chi^2_{p_n-1}\) variable, and the second has bounded second moment uniformly for \(\gamma\in[\underline\gamma,\overline\gamma]\) by Gaussian exponential moments.  Also \(p_n/\|q_{ni}\|_2^2\to1\) in probability.  Uniform integrability and (6) therefore yield
+\[
+ \mathbb E\!\left[\frac{p_n}{v_{ni}\|q_{ni}\|_2^2}\right]\to a_\gamma,
+ \qquad
+ \sup_n\mathbb E\!\left[\frac{p_n}{v_{ni}\|q_{ni}\|_2^2}\right]^2<\infty.
+\]
+Independence across rows and Chebyshev's inequality now give
+\[
+ \frac{p_n}{n}\sum_{i=1}^n(v_{ni}\|q_{ni}\|_2^2)^{-1}
+ \longrightarrow_{\mathbb P}a_\gamma.
+ \tag{7}
+\]
+Lemma \(\mathrm{lem{:}gaussian\mbox{-}top\mbox{-}eigenvalue\mbox{-}limit}\) gives
+\[
+ \frac{\lambda_{\max}(S_n)}n
+ \longrightarrow_{\mathbb P}(1+\sqrt\kappa)^2.
+ \tag{8}
+\]
+Substitute (7)--(8) into the finite-sample bound and use \(p_n/n\to\kappa>0\).  Theorem \(\mathrm{thm{:}balance\mbox{-}threshold}\) gives \(\mathbb P(\mathcal G_n)\to1\) for \(\kappa<\kappa_{\mathrm{bal}}\), proving the asserted probability lower limit.
+\end{proof}
+
+\begin{lemma}[lem:small-aspect-entropy-upper-leverage]\label{lem:small-aspect-entropy-upper-leverage}
+Put \(\mathcal G_n=\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\), \(B_n=L_nD_n\), \(H_n=B_n^\top B_n\), and
+\[
+ M_{E,n}=\|B_nu_n\|_2^2+
+ \operatorname{tr}(B_nV_nB_n^\top).
+\]
+At \(\gamma=1\), there are \(\kappa_0\in(0,\kappa_{\mathrm{bal}})\) and \(C_0<\infty\), neither depending on \(\kappa\), such that for each fixed \(0<\kappa<\kappa_0\),
+\[
+ \mathbb P\{\mathcal G_n\cap(M_{E,n}\le C_0\kappa)\}\to1,
+ \qquad
+ \|H_nu_n\|_2^2+\|H_n\|_{\mathrm F}^2
+ \longrightarrow_{\mathbb P}0.
+\]
+No lower bound is attributed to the small-aspect cavity argument in this statement; the global lower floor is supplied separately by Lemma \(\mathrm{lem{:}global\mbox{-}feasible\mbox{-}entropy\mbox{-}energy\mbox{-}floor}\).
+\end{lemma}
+\begin{proof}
+The upper event and the two leverage convergences are the corresponding conclusions of the already established Lemma \(\mathrm{lem{:}small\mbox{-}aspect\mbox{-}entropy\mbox{-}cavity\mbox{-}bounds}\), after discarding its lower inequality.  This is a logical consequence with the same \(\kappa_0\) and \(C_0\).  The final sentence only records that the all-feasible-aspect lower bound used downstream is instead the independently proved Cauchy--Schwarz and Gram inequality in Lemma \(\mathrm{lem{:}global\mbox{-}feasible\mbox{-}entropy\mbox{-}energy\mbox{-}floor}\).
+\end{proof}
+
+\begin{proposition}[prop:fixed-dimensional-regret-stochastic-order]\label{prop:fixed-dimensional-regret-stochastic-order}
+Under the fixed-dimensional conditions and notation of
+\(\mathrm{prop{:}fixed\mbox{-}dimensional\mbox{-}reduction}\), let
+\(U\sim\mathcal N_p(0,I_p)\) and define on one comparison probability space
+\[
+ L_j=\frac2\lambda U^\top\Sigma_jU,
+ \qquad j\in\{T,E,D\}.
+\]
+Each \(L_j\) has the marginal law of the corresponding limit of
+\(n\mathcal R_{jn}\), and
+\[
+ L_D<L_E<L_T\quad\text{almost surely}.
+\]
+Moreover, for every \(x>0\),
+\[
+ \mathbb P(L_D>x)<\mathbb P(L_E>x)<\mathbb P(L_T>x).
+\]
+This is strict stochastic ordering of the three marginal fixed-dimensional
+limiting regret laws under a comparison coupling.  It is not a joint
+convergence assertion for the three estimators, a finite-sample ordering, or
+a proportional-dimensional ranking.
+\end{proposition}
+\begin{proof}
+By \(\mathrm{prop{:}fixed\mbox{-}dimensional\mbox{-}reduction}\), the
+marginal limit for method \(j\) is
+\((2/\lambda)Z_j^\top Z_j\), where
+\(Z_j\sim\mathcal N_p(0,\Sigma_j)\).  Since
+\(\Sigma_j^{1/2}U\sim\mathcal N_p(0,\Sigma_j)\),
+\[
+ \frac2\lambda Z_j^\top Z_j
+ \ \overset{d}=\ 
+ \frac2\lambda U^\top\Sigma_jU=L_j.
+ \tag{1}
+\]
+The same proposition gives
+\(\Sigma_D\prec\Sigma_E\prec\Sigma_T\).  Therefore, for every nonzero
+\(u\in\mathbb R^p\),
+\[
+ u^\top\Sigma_Du<u^\top\Sigma_Eu<u^\top\Sigma_Tu.
+\]
+Because \(\mathbb P(U=0)=0\) and \(\lambda>0\), this proves
+\(L_D<L_E<L_T\) almost surely under the stated comparison coupling.
+
+It remains to prove that every positive-threshold tail inequality is strict.
+Take either adjacent pair \(A\prec B\), fix \(x>0\), and choose a nonzero
+\(u\).  With
+\(a=u^\top Au\), \(b=u^\top Bu\), and \(y=\lambda x/2\), positive
+definiteness and strict Loewner order give \(0<a<b\).  Hence there is a
+\(t>0\) satisfying \(y/b<t^2<y/a\), and consequently
+\[
+ \frac2\lambda (tu)^\top A(tu)<x<
+ \frac2\lambda (tu)^\top B(tu).
+ \tag{2}
+\]
+By continuity, (2) persists on a nonempty open neighborhood of \(tu\).  That
+neighborhood has positive probability under the everywhere-positive standard
+Gaussian density.  The almost-sure inequality between the two quadratic
+forms then gives
+\[
+ \begin{aligned}
+ &\mathbb P\!\left(\frac2\lambda U^\top BU>x\right)
+ -\mathbb P\!\left(\frac2\lambda U^\top AU>x\right)\\
+ &\qquad=
+ \mathbb P\!\left(
+  \frac2\lambda U^\top AU\le x<\frac2\lambda U^\top BU
+ \right)>0.
+ \end{aligned}
+\]
+Apply this once to \((\Sigma_D,\Sigma_E)\) and once to
+\((\Sigma_E,\Sigma_T)\).  Together with (1), this proves the claimed strict
+stochastic ordering of the marginal limit laws and no stronger joint or
+finite-sample assertion.
+\end{proof}
+
+\section{Interpretation}
+
+Balancing an arm of asymptotic size \(n/2\) to a fixed zero target has the ordinary threshold \(p/n=1/4\); balancing it to the pooled empirical mean correlates the target with the arm rows and raises the exact threshold to \(0.3043687064\ldots\). Below that boundary, exact weights exist with high probability, but existence alone does not determine their proportional-dimensional downstream policy regret. When policy dimension is instead fixed before \(n\) grows, the marginal limiting regret laws satisfy strict increasing-loss stochastic order: oracle DR is smallest, exact same-coordinate entropy balance is intermediate, and true-propensity IPW is largest. The common Gaussian vector used to prove this order is a comparison coupling only; it gives neither joint convergence of the fitted policies nor finite-sample or proportional-dimensional ranking.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The all-feasible-aspect lower floor follows from an exact Gram and Cauchy--Schwarz inequality plus the Gaussian spectral edge, but the matching upper bound and leverage concentration are proved only when \(\kappa\) lies below a fixed small threshold. Neither result identifies a deterministic coefficient. More importantly, the joint same-row response matrices for the entropy tilts and policy scores have no proved finite deterministic closure, and the empirical logistic-policy criterion need not be globally concave. Stationary roots therefore cannot certify the lexicographically selected global optimizer, radius transitions, or collision gaps. The fixed-dimensional normal law does not supply the boundary-uniform localization or limit interchange needed for proportional small-aspect regret constants.
+
+\section{Honest scope}
+
+Established results are the radial regret identity, marginal true-IPW \(\gamma\)-invariance, the exact pooled-target feasibility threshold and its fixed-zero-target \(1/4\) comparison, a complete fixed-dimensional global M-estimator and quadratic-regret limit law, the induced strict stochastic ordering of the three marginal fixed-dimensional regret limits, the exact entropy conditional quadratic identity, its Bernoulli fluctuation bound, the global feasible-side conditional-energy floor, and a small-aspect order bracket with vanishing leverage criterion. The fixed-dimensional ordering uses an auxiliary common-Gaussian comparison coupling and does not assert joint convergence, finite-sample ordering, or any proportional-dimensional ranking. Exact-balance conclusions remain restricted to \(\mathcal E_{0n}\cap\mathcal E_{1n}\cap\mathcal Q_n\); the uniform complement rule only totalizes finite-sample outputs. No proportional deterministic regret limit, leading small-aspect regret coefficient, positive, zero, or negative HIR cell, ranking reversal, radius boundary, or nonempty certified inference stratum is proved. Conditional phase inference remains valid only if a nonabstaining differentiable certified branch neighborhood is constructed independently. Learned outcome regression, non-Gaussian covariates, heterogeneous effects, multiple arms, and a literal model of the commitment-savings outcomes remain outside scope.
+
+\begin{thebibliography}{99}
+
+  \bibitem{FangRidderXie2026} Yue Fang, Geert Ridder, and Haitian Xie. Improving on a Lottery: Efficient Estimation of Optimal Assignment Rules. arXiv:2512.19230, version 3, 2026.
+
+  \bibitem{HiranoImbensRidder2003} Keisuke Hirano, Guido W. Imbens, and Geert Ridder. Efficient Estimation of Average Treatment Effects Using the Estimated Propensity Score. Econometrica 71, 1161--1189, 2003.
+
+  \bibitem{SurCandes2019} Pragya Sur and Emmanuel J. Candès. A Modern Maximum-Likelihood Theory for High-Dimensional Logistic Regression. Proceedings of the National Academy of Sciences 116, 14516--14525, 2019.
+
+  \bibitem{CandesSur2020} Emmanuel J. Candès and Pragya Sur. The Phase Transition for the Existence of the Maximum Likelihood Estimate in High-Dimensional Logistic Regression. Annals of Statistics 48, 27--42, 2020.
+
+  \bibitem{ThrampoulidisAbbasiHassibi2018} Christos Thrampoulidis, Ehsan Abbasi, and Babak Hassibi. Precise Error Analysis of Regularized \(M\)-Estimators in High Dimensions. IEEE Transactions on Information Theory 64, 5592--5628, 2018.
+
+  \bibitem{AmelunxenLotzMcCoyTropp2014} Dennis Amelunxen, Martin Lotz, Michael B. McCoy, and Joel A. Tropp. Living on the Edge: Phase Transitions in Convex Programs with Random Data. Information and Inference 3, 224--294, 2014.
+
+  \bibitem{Hainmueller2012} Jens Hainmueller. Entropy Balancing for Causal Effects: A Multivariate Reweighting Method to Produce Balanced Samples in Observational Studies. Political Analysis 20, 25--46, 2012.
+
+  \bibitem{ZhaoPercival2017} Qingyuan Zhao and Daniel Percival. Entropy Balancing Is Doubly Robust. Journal of Causal Inference 5, article 20160010, 2017.
+
+  \bibitem{DaiYan2024} Yimin Dai and Ying Yan. Mahalanobis Balancing: A Multivariate Perspective on Approximate Covariate Balancing. Scandinavian Journal of Statistics 51, 963--989, 2024.
+
+  \bibitem{LuYangWang2025} Xin Lu, Fan Yang, and Yuhao Wang. Debiased Regression Adjustment in Completely Randomized Experiments with Moderately High-Dimensional Covariates. arXiv:2309.02073, version 3, 2025.
+
+  \bibitem{AtheyWager2021} Susan Athey and Stefan Wager. Policy Learning with Observational Data. Econometrica 89, 133--161, 2021.
+
+  \bibitem{WangZubizarreta2020} Yixin Wang and José R. Zubizarreta. Minimal Dispersion Approximately Balancing Weights: Asymptotic Properties and Practical Considerations. Biometrika 107, 93--105, 2020.
+
+  \bibitem{ChernozhukovEtAl2018DML} Victor Chernozhukov and coauthors. Double or Debiased Machine Learning for Treatment and Structural Parameters. Econometrics Journal 21, C1--C68, 2018.
+
+  \bibitem{AshrafKarlanYin2006} Nava Ashraf, Dean Karlan, and Wesley Yin. Tying Odysseus to the Mast: Evidence from a Commitment Savings Product in the Philippines. Quarterly Journal of Economics 121, 635--672, 2006.
+
+  \bibitem{YinBaiKrishnaiah1988} Y. Q. Yin, Z. D. Bai, and P. R. Krishnaiah. On the limit of the largest eigenvalue of the large dimensional sample covariance matrix. Probability Theory and Related Fields 78, 509--521, 1988. doi:10.1007/BF00353874.
+
+\end{thebibliography}
+
+\end{document}

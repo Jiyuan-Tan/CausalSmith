@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.GaussianRademacherBenchmark
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.GaussianRademacherBenchmark
 
 /-!
 # Symmetric Gaussian-mixture reduction
 -/
+
+@[expose] public section
 
 noncomputable section
 

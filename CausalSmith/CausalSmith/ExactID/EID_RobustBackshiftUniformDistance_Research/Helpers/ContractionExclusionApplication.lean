@@ -1,8 +1,9 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionPointwise
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionFeasible
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionLocalInverse
-import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
-import Causalean.Mathlib.Topology.CompactExclusion
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionPointwise
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionFeasible
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionLocalInverse
+public import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
+public import Causalean.Mathlib.Topology.CompactExclusion
 
 /-!
 # Uniform exclusion for compactified BACKSHIFT witnesses
@@ -11,12 +12,14 @@ This module applies the reusable compact-correspondence exclusion principle to o
 environment set.  Its zero-residual argument uses weak-boundary overlap uniqueness.
 -/
 
+public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open Set
 open scoped Matrix.Norms.L2Operator ENNReal BigOperators
 open Causalean.Discovery.LinearDisentanglement.Quantitative
-open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 open Causalean.Mathlib.Topology.CompactExclusion
 
 /-- A feasible compactified witness with zero covariance residual has the reference structural
@@ -94,7 +97,7 @@ lemma candidate_eq_structural_of_uniformContractionResidual_eq_zero
   exact (weak_boundary_overlap_uniqueness hp htwoc z.trueCovariance
     (fun e ↦ (hz.2.2.2.2.2.2.2.2.2.2.2.2.1 e).out) first second hstrict).2 hnc |>.symm
 
-private lemma retainedSet_nonempty {m n : ℕ} (hn : 0 < n)
+lemma retainedSet_nonempty {m n : ℕ} (hn : 0 < n)
     (S : Finset (Environment m))
     (hS : S ∈ (Finset.univ : Finset (Environment m)).powersetCard n) :
     Nonempty {e // e ∈ S} := by

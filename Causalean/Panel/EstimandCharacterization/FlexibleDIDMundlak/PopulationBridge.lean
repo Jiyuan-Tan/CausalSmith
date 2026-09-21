@@ -6,9 +6,10 @@ Authors: Jiyuan Tan
 # Wooldridge finite imputation estimand to population conditional expectation
 
 Bridges the finite-cell imputation residual mean `imputationTheta` to the
-population conditional expectation `eventCondExp μ cohortEvent Δ`, via the law of iterated expectations
-over the finite covariate partition
-(`Causalean.PO.eventCondExp_eq_sum_condProb_mul_eventCondExp`).
+population conditional expectation
+`normalizedRestrictedIntegral μ cohortEvent Δ`, via the law of iterated
+expectations over the finite covariate partition
+(`Causalean.Mathlib.Probability.eventCondExp_eq_sum_condProb_mul_eventCondExp`).
 
 The bridge is *hypothesis-driven*: it takes a probability model `(μ, cohortEvent,
 covarCell, Δ)` together with two identification hypotheses that connect the
@@ -20,8 +21,10 @@ finite cell-average representation; the bridge is the total-expectation identity
 connecting them.  No paper assumption is strengthened.
 -/
 
-import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.DID
-import Causalean.PO.Conditioning.EventCondExp
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.DID
 
 /-! # Wooldridge Population Bridge
 
@@ -34,17 +37,28 @@ lemmas `m0_eq_eventCondExp_treated` and `m0_eq_eventCondExp_untreated` state the
 population conditional-expectation origin of the saturated untreated fit on
 treated and untreated cells. -/
 
+public section
+
+open Causalean.Mathlib.Probability
+
 namespace Causalean
 namespace Panel.EstimandCharacterization
 namespace FlexibleDIDMundlak
 
-open MeasureTheory Causalean.PO
+open MeasureTheory
 
 variable {Cohort Time Covar : Type*}
   [Fintype Cohort] [Fintype Time] [Fintype Covar]
 
-/-- The finite imputation residual mean equals a population conditional
-expectation.
+/-- The [finite imputation residual mean equals the population conditional mean
+of an integrable effect](goal) for [a cell system and untreated fit](hyp:P,S) at
+[a selected cohort and period](hyp:g,t) over [finite cohort, period, and covariate
+sets](hyp:Cohort,Time,Covar). This holds in [a finite-measure model](hyp:Ω,μ) for
+[an integrable effect](hyp:Δ,hΔ) on [a measurable cohort event](hyp:cohortEvent,hG)
+when [measurable, pairwise-disjoint covariate cells partition the sample
+space](hyp:covarCell,hC,hdisj,hcov), [the supplied weights are the corresponding
+conditional probabilities](hyp:hweight), and [the finite residuals are the
+within-cell conditional means](hyp:hcell).
 
 `imputationTheta P S g t = ∑_c covarWeight(g,c)·(observedMean − m0)` equals the
 population conditional expectation `E[Δ | G = g]` of the treatment-effect
@@ -54,7 +68,8 @@ hypotheses:
 * `hweight`: each covariate weight is the conditional cell probability
   `P(C = c | G = g) = μ(cohortEvent ∩ covarCell c) / μ(cohortEvent)`;
 * `hcell`: each finite cell residual `observedMean − m0` is the within-cell
-  conditional mean `E[Δ | G = g, C = c] = eventCondExp μ (cohortEvent ∩ covarCell c) Δ`.
+  conditional mean, represented by `normalizedRestrictedIntegral` on the
+  intersection of the cohort event and that covariate cell.
 
 This is a direct application of the conditional finite-partition total law
 (law of iterated expectations) to the covariate partition `covarCell`. -/
@@ -71,8 +86,8 @@ theorem imputationTheta_eq_eventCondExp
     (hweight : ∀ c, P.covarWeight g c
         = (μ (cohortEvent ∩ covarCell c)).toReal / (μ cohortEvent).toReal)
     (hcell : ∀ c, P.observedMean g t c - S.m0 g t c
-        = eventCondExp μ (cohortEvent ∩ covarCell c) Δ) :
-    imputationTheta P S g t = eventCondExp μ cohortEvent Δ := by
+        = normalizedRestrictedIntegral μ (cohortEvent ∩ covarCell c) Δ) :
+    imputationTheta P S g t = normalizedRestrictedIntegral μ cohortEvent Δ := by
   unfold imputationTheta
   rw [eventCondExp_eq_sum_condProb_mul_eventCondExp μ cohortEvent covarCell hG hC
     hdisj hcov (fun c => measure_ne_top μ (cohortEvent ∩ covarCell c)) Δ hΔ]
@@ -108,8 +123,8 @@ theorem thetaImp_eq_eventCondExp
     (hweight : ∀ c, P.covarWeight g c
         = (μ (cohortEvent ∩ covarCell c)).toReal / (μ cohortEvent).toReal)
     (hcell : ∀ c, P.observedMean g t c - S.m0 g t c
-        = eventCondExp μ (cohortEvent ∩ covarCell c) Δ) :
-    E.thetaImp g t = eventCondExp μ cohortEvent Δ := by
+        = normalizedRestrictedIntegral μ (cohortEvent ∩ covarCell c) Δ) :
+    E.thetaImp g t = normalizedRestrictedIntegral μ cohortEvent Δ := by
   rw [E.thetaImp_eq_imputation hgt]
   exact imputationTheta_eq_eventCondExp μ P S g t cohortEvent covarCell Δ
     hG hC hdisj hcov hΔ hweight hcell
@@ -127,13 +142,20 @@ identification hypothesis `hY0` is exactly the statement that the finite
 primitive `Y0Mean` *is* that conditional mean — it is definitional, not a
 strengthening; all causal content lives in `recovers_target_Y0` / `untreatedFit`. -/
 
-/-- On a treated cell, the fitted untreated mean equals the population
-conditional mean of the untreated potential outcome.
+/-- Under [no anticipation and additive conditional parallel trends](hyp:hNA,hCPT),
+the [fitted untreated mean equals the population conditional mean of the untreated
+outcome](goal) for [a cell system and saturated untreated regression](hyp:P,S) at
+[a treated cell and covariate value](hyp:hgt,c) over [finite cohort, period, and
+covariate sets](hyp:Cohort,Time,Covar). The population quantity is supplied by [a
+measure model](hyp:Ω,μ), [cell events and an untreated outcome](hyp:cellEvent,Y0pop),
+and [the identification of the primitive cell mean with that conditional
+mean](hyp:hY0).
 
 The saturated untreated regression's fitted value equals the population
 conditional expectation of the untreated potential outcome
 `E[Y_t(∞) | G = g, t, C = c]`,
-given the identification `hY0 : Y0Mean g t c = eventCondExp μ (cellEvent g t c) Y0pop`.
+given the identification of the primitive cell mean with
+`normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop`.
 The causal content (additive extrapolation from untreated to treated cells via
 conditional parallel trends) is carried by `recovers_target_Y0`. -/
 theorem m0_eq_eventCondExp_treated
@@ -142,12 +164,18 @@ theorem m0_eq_eventCondExp_treated
     (hNA : NoAnticipation P) (hCPT : ConditionalParallelTrendsAdditive P)
     {g : Cohort} {t : Time} (hgt : P.treatedCell g t) (c : Covar)
     (cellEvent : Cohort → Time → Covar → Set Ω) (Y0pop : Ω → ℝ)
-    (hY0 : P.Y0Mean g t c = eventCondExp μ (cellEvent g t c) Y0pop) :
-    S.m0 g t c = eventCondExp μ (cellEvent g t c) Y0pop := by
+    (hY0 : P.Y0Mean g t c = normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop) :
+    S.m0 g t c = normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop := by
   rw [S.recovers_target_Y0 hNA hCPT hgt c, hY0]
 
-/-- On an untreated cell, the fitted untreated mean equals the population
-conditional mean of the untreated potential outcome.
+/-- Under [no anticipation and additive conditional parallel trends](hyp:hNA,hCPT),
+the [fitted untreated mean equals the population conditional mean of the untreated
+outcome](goal) for [a cell system and saturated untreated regression](hyp:P,S) at
+[an untreated cell and covariate value](hyp:hut,c) over [finite cohort, period, and
+covariate sets](hyp:Cohort,Time,Covar). The population quantity is supplied by [a
+measure model](hyp:Ω,μ), [cell events and an untreated outcome](hyp:cellEvent,Y0pop),
+and [the identification of the primitive cell mean with that conditional
+mean](hyp:hY0).
 
 On an untreated cell, the fitted value likewise equals
 `E[Y_t(∞) | G = g, t, C = c]`: `untreatedFit`
@@ -159,8 +187,8 @@ theorem m0_eq_eventCondExp_untreated
     (hNA : NoAnticipation P) (hCPT : ConditionalParallelTrendsAdditive P)
     {g : Cohort} {t : Time} (hut : P.untreatedCell g t) (c : Covar)
     (cellEvent : Cohort → Time → Covar → Set Ω) (Y0pop : Ω → ℝ)
-    (hY0 : P.Y0Mean g t c = eventCondExp μ (cellEvent g t c) Y0pop) :
-    S.m0 g t c = eventCondExp μ (cellEvent g t c) Y0pop := by
+    (hY0 : P.Y0Mean g t c = normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop) :
+    S.m0 g t c = normalizedRestrictedIntegral μ (cellEvent g t c) Y0pop := by
   have hfit := SaturatedUntreatedRegression.untreatedFit
     S.toUntreatedFitWitness hNA hCPT hut c
   rw [show S.m0 g t c = P.YgMean g t c by

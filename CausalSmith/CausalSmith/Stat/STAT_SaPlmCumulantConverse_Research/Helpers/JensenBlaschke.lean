@@ -1,10 +1,11 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ComplexAnalysisLocal
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Basic
-import Mathlib.Analysis.Complex.ValueDistribution.LogCounting.Basic
-import Mathlib.Analysis.Meromorphic.FactorizedRational
-import Mathlib.Analysis.Meromorphic.Divisor
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Fintype.BigOperators
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ComplexAnalysisLocal
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.Basic
+public import Mathlib.Analysis.Complex.ValueDistribution.LogCounting.Basic
+public import Mathlib.Analysis.Meromorphic.FactorizedRational
+public import Mathlib.Analysis.Meromorphic.Divisor
+public import Mathlib.Data.Fintype.EquivFin
+public import Mathlib.Data.Fintype.BigOperators
 
 /-!
 # Quantitative Jensen bridges
@@ -14,10 +15,12 @@ library to Mathlib's logarithmic divisor count.  The resulting Jensen bound
 does not require the outer circle to be zero-free.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open Filter Function Metric Real Set
-open Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
+open Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple
 open scoped Topology
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse

@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.EPMasterEvent
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.EPMasterEvent
 
 /-! # Per-Sample Empirical-Process Bound
 
 This file states the per-sample-size empirical-process control used by the
 primal NPIV rate theorem. It packages the master localized event into the
 form consumed by the estimator analysis at a fixed sample size. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -106,6 +109,9 @@ lemma ep_pop_inner_at_closedness_witness
   have h_qL2_self :
       inner ℝ (S.qL2 (TC.F_subset hf)) (S.qL2 (TC.F_subset hf))
         = ∫ ω, (f (S.zOf (S.W ω))) ^ 2 ∂μ := by
+    change inner ℝ
+      ((S.qL2 (TC.F_subset hf) : S.InstrumentL2) : Lp ℝ 2 μ)
+      ((S.qL2 (TC.F_subset hf) : S.InstrumentL2) : Lp ℝ 2 μ) = _
     rw [MeasureTheory.L2.inner_def]
     refine integral_congr_ae ?_
     filter_upwards [(S.toQbarL2 f (TC.F_subset hf)).coeFn_toLp]
@@ -143,11 +149,9 @@ lemma ep_pop_inner_at_closedness_witness
   rw [h_weak_eq_intf]
   linarith [h_diff_eq_int_fsq]
 
-/-- **EP per-`n` inequality from an objective-level localized modulus (Helper B).** Pure
-analytic per-`n` step, with no probability statement. Given [a sample size `n` with
-`1 ≤ split.n₁ n`](hyp:_hn), [a localized-regime bundle at that fold-A sample
-size](hyp:regimes), [a confidence level `ζ` strictly between `0` and `1`](hyp:_hζ_pos,_hζ_lt), and
-[the pointwise objective-level inequality, at sample point `ω`, bounding the population
+/-- **EP per-`n` inequality from an objective-level localized modulus (Helper B).** This
+pure analytic step uses [a localized-regime bundle at the fold-A sample size](hyp:regimes)
+and [the pointwise objective-level inequality, at sample point `ω`, bounding the population
 weak-objective-plus-regularizer excess by the empirical sup-objective excess plus the localized
 envelope](hyp:objective_gap), [the weak-norm estimation excess is bounded by the empirical
 regularizer gap plus the same localized envelope](goal), the empirical sup-objective excess
@@ -163,11 +167,10 @@ lemma ep_per_n_inequality_from_deviations
     {h_hat : ℕ → Ω → S.𝒳 → ℝ}
     (is_estimator : IsTRAEPrimalEstimator S TC sample split lambda h_hat)
     (sc : SourceCondition S β)
-    (tb : TikhonovBiasBound S β lambda sc)
+    (tb : TikhonovBiasBoundAt S β lambda sc)
     [IsProbabilityMeasure μ]
     (regimes : ∀ n, LocalizedRegimes S TC sample sc tb (split.n₁ n) (delta n))
-    {ζ : ℝ} (_hζ_pos : 0 < ζ) (_hζ_lt : ζ < 1)
-    (n : ℕ) (_hn : 1 ≤ split.n₁ n) (ω : Ω)
+    {ζ : ℝ} (n : ℕ) (ω : Ω)
     (objective_gap :
       ((S.weakNorm
           (S.hL2 (TC.H_subset (is_estimator.mem_H n ω))
@@ -189,12 +192,15 @@ lemma ep_per_n_inequality_from_deviations
                 criticalRadius ((regimes n).bundle_mF.regime.ψ (split.n₁ n))
               + 8 * delta n *
                 criticalRadius ((regimes n).bundle_F.regime.ψ (split.n₁ n))
-              + (4 * (regimes n).bundle_HF.regime.b
-                  + 4 * (regimes n).bundle_mF.regime.b
-                  + 2 * (regimes n).bundle_F.regime.b) *
-                  Real.sqrt
-                    (2 * Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)
-                      / (split.n₁ n)))) :
+              + 4 * npivBousquetSlack (regimes n).bundle_HF.regime.b (delta n)
+                  (criticalRadius ((regimes n).bundle_HF.regime.ψ (split.n₁ n)))
+                  (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)
+              + 4 * npivBousquetSlack (regimes n).bundle_mF.regime.b (delta n)
+                  (criticalRadius ((regimes n).bundle_mF.regime.ψ (split.n₁ n)))
+                  (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)
+              + 2 * npivBousquetSlack (regimes n).bundle_F.regime.b (delta n)
+                  (criticalRadius ((regimes n).bundle_F.regime.ψ (split.n₁ n)))
+                  (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n))) :
     (S.weakNorm
         (S.hL2 (TC.H_subset (is_estimator.mem_H n ω))
           - S.hL2 S.h₀_mem)) ^ 2
@@ -212,12 +218,15 @@ lemma ep_per_n_inequality_from_deviations
                 criticalRadius ((regimes n).bundle_mF.regime.ψ (split.n₁ n))
               + 8 * delta n *
                 criticalRadius ((regimes n).bundle_F.regime.ψ (split.n₁ n))
-              + (4 * (regimes n).bundle_HF.regime.b
-                  + 4 * (regimes n).bundle_mF.regime.b
-                  + 2 * (regimes n).bundle_F.regime.b) *
-                  Real.sqrt
-                    (2 * Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)
-                      / (split.n₁ n))) := by
+              + 4 * npivBousquetSlack (regimes n).bundle_HF.regime.b (delta n)
+                  (criticalRadius ((regimes n).bundle_HF.regime.ψ (split.n₁ n)))
+                  (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)
+              + 4 * npivBousquetSlack (regimes n).bundle_mF.regime.b (delta n)
+                  (criticalRadius ((regimes n).bundle_mF.regime.ψ (split.n₁ n)))
+                  (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)
+              + 2 * npivBousquetSlack (regimes n).bundle_F.regime.b (delta n)
+                  (criticalRadius ((regimes n).bundle_F.regime.ψ (split.n₁ n)))
+                  (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)) := by
   have hopt :
       supObjective S TC sample split lambda (h_hat n ω) n ω
         ≤ supObjective S TC sample split lambda tb.h_lambda_star_fun n ω :=
@@ -235,7 +244,10 @@ radii scaled by `δ_n` and a `√(log(1/ζ)/n)` deviation term](goal), where `�
 (split.n₁ n)⁻¹ ∑_{k < split.n₁ n} h(X_k)²` is the fold-A empirical second moment.
 
 This is the per-sample-size inequality that converts the localized concentration event into
-the weak-norm estimation bound for the chosen estimator `ĥ_n`. -/
+the weak-norm estimation bound for the chosen estimator `ĥ_n`.  It is the
+endpoint of the earlier all-`n` master-event route;
+`per_sample_empirical_process_event` supersedes that route for the current
+fixed-sample rate. -/
 theorem ep_inequality_from_localized
     {S : OperatorSystem Ω μ} {TC : TRAEClasses S}
     {P_W : Measure S.𝒲}
@@ -245,7 +257,7 @@ theorem ep_inequality_from_localized
     {h_hat : ℕ → Ω → S.𝒳 → ℝ}
     {is_estimator : IsTRAEPrimalEstimator S TC sample split lambda h_hat}
     (sc : SourceCondition S β)
-    (tb : TikhonovBiasBound S β lambda sc)
+    (tb : TikhonovBiasBoundAt S β lambda sc)
     [IsProbabilityMeasure μ]
     (regimes : ∀ n, LocalizedRegimes S TC sample sc tb (split.n₁ n) (delta n))
     {ζ : ℝ} (hζ_pos : 0 < ζ) (hζ_lt : ζ < 1) :
@@ -269,12 +281,15 @@ theorem ep_inequality_from_localized
                   criticalRadius ((regimes n).bundle_mF.regime.ψ (split.n₁ n))
                 + 8 * delta n *
                   criticalRadius ((regimes n).bundle_F.regime.ψ (split.n₁ n))
-                + (4 * (regimes n).bundle_HF.regime.b
-                    + 4 * (regimes n).bundle_mF.regime.b
-                    + 2 * (regimes n).bundle_F.regime.b) *
-                    Real.sqrt
-                      (2 * Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)
-                        / (split.n₁ n))) := by
+                + 4 * npivBousquetSlack (regimes n).bundle_HF.regime.b (delta n)
+                    (criticalRadius ((regimes n).bundle_HF.regime.ψ (split.n₁ n)))
+                    (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)
+                + 4 * npivBousquetSlack (regimes n).bundle_mF.regime.b (delta n)
+                    (criticalRadius ((regimes n).bundle_mF.regime.ψ (split.n₁ n)))
+                    (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)
+                + 2 * npivBousquetSlack (regimes n).bundle_F.regime.b (delta n)
+                    (criticalRadius ((regimes n).bundle_F.regime.ψ (split.n₁ n)))
+                    (Real.log (4 * (2 : ℝ) ^ (n + 1) / ζ)) (split.n₁ n)) := by
   -- The master event provides the objective-level explicit modulus; the
   -- per-`n` lemma removes the remaining empirical sup-objective excess
   -- using `is_estimator.opt`.
@@ -284,7 +299,7 @@ theorem ep_inequality_from_localized
   refine ⟨Aζ_master, hAζ_meas, hAζ_mass, ?_⟩
   intro ω hω n hn
   exact ep_per_n_inequality_from_deviations is_estimator sc tb regimes
-    hζ_pos hζ_lt n hn ω (hAζ_payload ω hω n hn)
+    n ω (hAζ_payload ω hω n hn)
 
 
 

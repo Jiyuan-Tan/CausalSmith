@@ -19,9 +19,10 @@ Re-uses the data-projection helpers `projX`, `projA`, `projY`, `indA` from the
 ATE version to avoid duplication.
 -/
 
-import Causalean.Estimation.ATT.Setup
-import Causalean.Estimation.ATE.Score.AIPWMoment
-import Causalean.Tactic.Attr
+module
+public import Causalean.Estimation.ATT.Setup
+public import Causalean.Estimation.ATE.Score.AIPWMoment
+public import Causalean.Tactic.Attr
 
 /-!
 Defines the value-space ingredients for ATT augmented inverse-probability
@@ -35,6 +36,8 @@ It also provides measurability and law-transport helpers, including
 `measurable_aipwMomentATTFunctional`, used by the mean-zero, finite-variance,
 remainder, and score-continuity modules.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

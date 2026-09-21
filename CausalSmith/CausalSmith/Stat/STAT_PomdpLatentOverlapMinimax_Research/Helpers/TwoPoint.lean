@@ -1,16 +1,19 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepth
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
-import Causalean.Stat.Minimax.BretagnolleHuber
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
-import Causalean.Mathlib.Probability.SignedTwoPoint
-import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
-import Mathlib.InformationTheory.KullbackLeibler.ChainRule
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.SignedDepth
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
+public import Causalean.Stat.Minimax.BretagnolleHuber
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+public import Mathlib.InformationTheory.KullbackLeibler.DataProcessing
+public import Mathlib.InformationTheory.KullbackLeibler.ChainRule
 
 set_option linter.style.longLine false
 
 /-! # Explicit and existential two-point lower-bound wrappers -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

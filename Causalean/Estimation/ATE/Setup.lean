@@ -19,10 +19,10 @@ file collects:
   regression and propensity lifts under overlap and integrability.
 -/
 
-import Causalean.PO.ID.Exact.ATE
-import Causalean.Stat.Orthogonality.Orthogonality
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Causalean.Tactic.Attr
+module
+public import Causalean.PO.ID.Exact.ATE
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 Defines the estimation-layer structure used by back-door ATE estimators.
@@ -35,6 +35,8 @@ under the back-door assumptions, derives counterfactual compatibility as
 that the added value-space compatibility and positivity fields are obtainable
 from observable lifts rather than extra causal assumptions.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -81,7 +83,7 @@ structure BackdoorEstimationSystem (P : POSystem) (γ : Type*)
   `regression_adjustment`). The counterfactual reading
   `μ[Y(d)|σX] =ᵐ μ_val d ∘ factualX` is NOT assumed here — it is the *derived*
   lemma `μ_compat` below, which additionally requires `Assumptions` via
-  back-door identification (`cate_backdoor`). -/
+  back-door identification (`conditionalMeanOutcome_backdoor`). -/
   μ_reg_compat : ∀ d : Bool,
     (fun ω => μ_val d (toPOBackdoorSystem.factualX ω))
       =ᵐ[P.μ] toPOBackdoorSystem.adjustedCE d
@@ -102,7 +104,8 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 former `μ_compat` field — the *counterfactual* reading
 `μ[Y(d) | σ(X)] =ᵐ μ_val d ∘ factualX` — now as a theorem rather than an
 assumption. It is the observable `μ_reg_compat` (`μ_val d ∘ factualX =ᵐ adjustedCE d`)
-composed with back-door identification (`cate_backdoor : μ[Y(d)|σX] =ᵐ adjustedCE d`),
+composed with back-door identification
+(`conditionalMeanOutcome_backdoor : μ[Y(d)|σX] =ᵐ adjustedCE d`),
 so the counterfactual binding is NOT part of the estimation system's data: it holds
 only under `Assumptions`. Every downstream proof that used the old field calls this
 with the ambient `hA`. -/
@@ -110,7 +113,7 @@ lemma μ_compat (S : BackdoorEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions) (d : Bool) :
     P.μ[S.toPOBackdoorSystem.YofD d | S.toPOBackdoorSystem.sigmaX]
       =ᵐ[P.μ] (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) :=
-  (S.toPOBackdoorSystem.cate_backdoor hA d).trans (S.μ_reg_compat d).symm
+  (S.toPOBackdoorSystem.conditionalMeanOutcome_backdoor hA d).trans (S.μ_reg_compat d).symm
 
 /-- For a [potential-outcome system](hyp:P) with a standard-Borel sample space and finite probability measure, a [measurable covariate space](hyp:γ), [a back-door estimation system](hyp:S), and [a real overlap level](hyp:ε), the [strict-overlap condition](goal) holds precisely when [$ε>0$](step:1), [$ε\leq 1/2$](step:2), and [almost surely under the population measure, the probability of treatment is between $ε$ and $1-ε$](step:3).
 

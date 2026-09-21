@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
 
 /-! Exact design-estimability criterion for the true variance. -/
+
+public section
 
 open scoped BigOperators
 open Finset Set

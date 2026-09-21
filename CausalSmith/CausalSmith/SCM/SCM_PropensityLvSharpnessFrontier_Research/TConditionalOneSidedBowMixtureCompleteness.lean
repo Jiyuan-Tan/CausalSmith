@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.ConditionalConstruction
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.ConditionalConstruction
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
 
 /-! # Conditional one-sided bow-mixture completeness -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

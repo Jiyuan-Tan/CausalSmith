@@ -16,11 +16,12 @@ its truth specialization `phi_0`, as in
 
 Algebraically `φ_η(z) = aipwMoment z η.μ_fn η.e_fn 0`, i.e. the AIPW moment
 with the centering parameter `θ` set to zero.  We re-use the existing
-`NuisanceVec γ` substrate from `Estimation/ATE/AIPWMoment.lean`.
+`NuisanceVec γ` substrate from `Estimation/ATE/Score/AIPWMoment.lean`.
 -/
 
-import Causalean.Estimation.CATE.Setup
-import Causalean.Estimation.ATE.Score.AIPWMoment
+module
+public import Causalean.Estimation.CATE.Setup
+public import Causalean.Estimation.ATE.Score.AIPWMoment
 
 /-!
 Defines doubly robust pseudo-outcomes for conditional average treatment effect
@@ -30,6 +31,8 @@ to the truth nuisance carried by a `CATEEstimationSystem`. The lemmas
 `measurable_phi_eta` and `measurable_phi₀` provide the measurability facts used
 by the conditional-mean, bias, and orthogonal-learning developments.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -72,7 +75,7 @@ noncomputable def phi₀ (S : CATEEstimationSystem P γ) (z : γ × Bool × ℝ)
 /-- The uncentered AIPW pseudo-outcome is measurable in the data argument.
 
 Proof outline: mirror the proof of `measurable_ψ_AIPW` in
-`Estimation/ATE/MeanZero.lean` lines 36–54, replacing `S.μ_val` with
+`Estimation/ATE/Score/MeanZero.lean`, replacing `S.μ_val` with
 `η.μ_fn` and `S.e_val` with `η.e_fn`, and noting that `aipwMoment` with
 `θ = 0` differs from `ψ_AIPW` only by a constant subtraction that has
 already been cleared. -/

@@ -1,10 +1,11 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
-import Causalean.Mathlib.Analysis.SingularValueWeyl
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.Topology.Instances.Matrix
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+public import Causalean.Mathlib.Analysis.SingularValueWeyl
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Topology.Instances.Matrix
 
 /-!
 # Borel prerequisites for finite-dimensional spectral algorithms
@@ -12,6 +13,8 @@ import Mathlib.Topology.Instances.Matrix
 This module contains topology and measurability facts that do not depend on the proxy model or
 on a particular statistical construction.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

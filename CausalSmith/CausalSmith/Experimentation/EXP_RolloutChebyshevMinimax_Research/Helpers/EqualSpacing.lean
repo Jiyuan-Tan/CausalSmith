@@ -6,9 +6,12 @@ Authors: Jiyuan Tan
 # Equal-spacing benchmark and no-extrapolation boundary
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EqualSpacingArithmetic
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
-import Mathlib.LinearAlgebra.Lagrange
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.EqualSpacingArithmetic
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
+public import Mathlib.LinearAlgebra.Lagrange
+
+public section
 
 open scoped BigOperators
 

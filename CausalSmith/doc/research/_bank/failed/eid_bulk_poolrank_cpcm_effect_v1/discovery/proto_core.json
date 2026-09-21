@@ -1,0 +1,2551 @@
+{
+  "qid": "eid_bulk_poolrank_cpcm_effect",
+  "specialization": "v1",
+  "cluster": "exactid",
+  "symbols": [
+    {
+      "name": "dimension-types",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(K\\geq 1\\)",
+      "role": "Number of labeled cell types."
+    },
+    {
+      "name": "dimension-genes",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(p\\geq 1\\)",
+      "role": "Dimension of each cellular count vector."
+    },
+    {
+      "name": "dimension-rows",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(J\\geq 1\\)",
+      "role": "Number of designed composition rows."
+    },
+    {
+      "name": "dimension-grid",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(L\\geq 1\\)",
+      "role": "Number of prespecified PGF evaluations."
+    },
+    {
+      "name": "designated-coordinate-embedding",
+      "type": "ordered injective coordinate embedding",
+      "space": "\\(\\{\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\}\\}\\)",
+      "sig": "\\(\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\},\\quad (i_X,i_Y,i_Z)=(\\iota(X),\\iota(Y),\\iota(Z))\\)",
+      "role": "Ordered embedding of the exposure and two response labels into three pairwise-distinct ambient count coordinates.",
+      "refs": [
+        "dimension-genes"
+      ]
+    },
+    {
+      "name": "composition",
+      "type": "matrix",
+      "space": "\\(\\mathbb N_0^{J\\times K}\\)",
+      "sig": "\\(M=(M_{jr})\\)",
+      "role": "Known integer composition matrix."
+    },
+    {
+      "name": "pseudoinverse",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{K\\times J}\\)",
+      "sig": "\\(M^{+}\\)",
+      "role": "Moore--Penrose pseudoinverse of the composition matrix."
+    },
+    {
+      "name": "component-law",
+      "type": "probability law",
+      "space": "\\(\\mathcal P(\\mathbb N_0^p)\\)",
+      "sig": "\\(P_r\\)",
+      "role": "Invariant joint count law of type \\(r\\)."
+    },
+    {
+      "name": "cell-count",
+      "type": "random vector",
+      "space": "\\(\\mathbb N_0^p\\)",
+      "sig": "\\(V_{jirc}\\sim P_r\\)",
+      "role": "Cellular count vector."
+    },
+    {
+      "name": "pooled-count",
+      "type": "random vector",
+      "space": "\\(\\mathbb N_0^p\\)",
+      "sig": "\\(B_{ji}\\)",
+      "role": "Observed raw-count pool."
+    },
+    {
+      "name": "component-pgf",
+      "type": "function",
+      "space": "\\((0,1]^p\\to(0,1]\\)",
+      "sig": "\\(G_r(z)=\\mathbb E_{P_r}[z^V]\\)",
+      "role": "Component probability generating function."
+    },
+    {
+      "name": "pooled-pgf",
+      "type": "function",
+      "space": "\\((0,1]^p\\to(0,1]\\)",
+      "sig": "\\(H_j(z)=\\mathbb E[z^{B_{ji}}]\\)",
+      "role": "Row probability generating function."
+    },
+    {
+      "name": "pooling-map",
+      "type": "map",
+      "sig": "\\(\\mathscr A_M:(P_r)_{r=1}^K\\mapsto(\\mathcal L(B_{ji}))_{j=1}^J\\)",
+      "role": "Population pooling map."
+    },
+    {
+      "name": "recovery-map",
+      "type": "map",
+      "sig": "\\(\\mathscr R_M(H)(z)=\\exp\\{M^{+}\\log H(z)\\}\\)",
+      "role": "Log-transform recovery map."
+    },
+    {
+      "name": "eta",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "sig": "\\(\\eta\\)",
+      "role": "Interior-domain endpoint."
+    },
+    {
+      "name": "evaluation-domain",
+      "type": "compact set",
+      "space": "\\((0,1]^p\\)",
+      "sig": "\\(\\mathcal Z_\\eta=[\\eta,1]^p\\)",
+      "role": "Domain for perturbation bounds."
+    },
+    {
+      "name": "component-envelope",
+      "type": "positive vector",
+      "space": "\\((0,1]^K\\)",
+      "sig": "\\(\\gamma=(\\gamma_r)_{r=1}^K\\)",
+      "role": "Component-PGF lower envelope."
+    },
+    {
+      "name": "pool-envelope",
+      "type": "positive scalar",
+      "space": "\\((0,1]\\)",
+      "sig": "\\(\\beta\\)",
+      "role": "Row-PGF lower envelope."
+    },
+    {
+      "name": "perturbed-pgf",
+      "type": "positive function vector",
+      "space": "\\(\\mathcal Z_\\eta\\to(0,\\infty)^J\\)",
+      "sig": "\\(\\widetilde H\\)",
+      "role": "Perturbed pooled PGF."
+    },
+    {
+      "name": "perturbation-radius",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(\\delta\\)",
+      "role": "Uniform pooled-PGF perturbation."
+    },
+    {
+      "name": "stability-index",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(E_M\\)",
+      "role": "Log-inversion amplification index."
+    },
+    {
+      "name": "graph-set",
+      "type": "finite set",
+      "sig": "\\(\\mathfrak D_p\\)",
+      "role": "Labeled DAGs on \\(p\\) vertices."
+    },
+    {
+      "name": "candidate-graph-tuples",
+      "type": "finite set",
+      "space": "\\((\\mathfrak D_p)^K\\)",
+      "sig": "\\(\\mathfrak G\\)",
+      "role": "Declared candidate type-graph tuples."
+    },
+    {
+      "name": "graph-count",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(G_{\\#}=|\\mathfrak G|\\)",
+      "role": "Number of candidate graph tuples."
+    },
+    {
+      "name": "cpcm-graph",
+      "type": "DAG tuple",
+      "space": "\\(\\mathfrak G\\)",
+      "sig": "\\(\\boldsymbol d=(d_1,\\ldots,d_K)\\)",
+      "role": "Candidate type graphs."
+    },
+    {
+      "name": "true-graph",
+      "type": "DAG tuple",
+      "space": "\\(\\mathfrak G\\)",
+      "sig": "\\(\\boldsymbol D_0\\)",
+      "role": "Population graph tuple."
+    },
+    {
+      "name": "exponent-map",
+      "type": "integer array",
+      "space": "\\(\\mathbb N^{p\\times p}\\)",
+      "sig": "\\(q=(q_{sk}:s\\neq k)\\)",
+      "role": "Declared polynomial exponents."
+    },
+    {
+      "name": "max-exponent",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(q_\\star=\\max_{s\\neq k}q_{sk}\\)",
+      "role": "Largest declared polynomial exponent."
+    },
+    {
+      "name": "graph-parameter-space",
+      "type": "compact rational box",
+      "sig": "\\(\\Theta_{\\boldsymbol d}\\subset(0,\\infty)^{d_{\\boldsymbol d}}\\)",
+      "role": "Graph-specific coefficient box."
+    },
+    {
+      "name": "max-parameter-dimension",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(d_\\star=\\max_{\\boldsymbol d\\in\\mathfrak G}d_{\\boldsymbol d}\\)",
+      "role": "Largest candidate parameter dimension."
+    },
+    {
+      "name": "graph-parameter",
+      "type": "parameter vector",
+      "space": "\\(\\Theta_{\\boldsymbol d}\\)",
+      "sig": "\\(\\theta=(\\theta_1,\\ldots,\\theta_K)\\)",
+      "role": "Root and edge coefficients."
+    },
+    {
+      "name": "true-parameter",
+      "type": "parameter vector",
+      "space": "\\(\\Theta^{\\mathrm{in}}_{\\boldsymbol D_0}\\)",
+      "sig": "\\(\\theta_0\\)",
+      "role": "Population parameter lying in the prespecified interior inference box."
+    },
+    {
+      "name": "node-rate",
+      "type": "positive function",
+      "sig": "\\(\\lambda_{rs,\\theta}\\)",
+      "role": "Conditional Poisson rate."
+    },
+    {
+      "name": "conditional-kernel",
+      "type": "probability mass function",
+      "sig": "\\(p_{rs,\\theta}(v_s\\mid v_{\\operatorname{pa}_{d_r}(s)})\\)",
+      "role": "Observational conditional kernel."
+    },
+    {
+      "name": "intervention-law",
+      "type": "probability law",
+      "sig": "\\(P_{r,\\theta}^{\\operatorname{do}(V_{i_X}=x)}\\)",
+      "role": "For \\(p\\geq3\\), truncated-factorization intervention law at the exposure coordinate fixed by \\(\\iota\\)."
+    },
+    {
+      "name": "effect-vector",
+      "type": "causal contrast vector",
+      "space": "\\(\\mathbb R^{2K}\\)",
+      "sig": "\\(\\boldsymbol\\tau=((\\tau_{i_Y,r},\\tau_{i_Z,r}))_{r=1}^K\\)",
+      "role": "For \\(p\\geq3\\), type-specific contrasts for the two response coordinates fixed by \\(\\iota\\)."
+    },
+    {
+      "name": "unrestricted-pool-class",
+      "type": "model class",
+      "sig": "\\(\\mathcal M_{\\mathrm{pool}}\\)",
+      "role": "Unrestricted designed-pool models."
+    },
+    {
+      "name": "cpcm-class",
+      "type": "model class",
+      "sig": "\\(\\mathcal M_{\\mathrm{CPCM}}\\)",
+      "role": "This paper's pairwise-identifiable Poisson-root positive-polynomial Poisson-DAG subclass."
+    },
+    {
+      "name": "polynomial-cpcm-class",
+      "type": "model class",
+      "sig": "\\(\\mathcal M_{\\mathrm{poly}}(\\mathfrak G,\\Theta,q)\\)",
+      "role": "Compact positive-polynomial Poisson CPCM benchmark family."
+    },
+    {
+      "name": "alias-family",
+      "type": "constructed family",
+      "sig": "\\(\\mathfrak A(M,a,\\Lambda,u,\\epsilon)\\)",
+      "role": "Positive independent-Poisson nullspace aliases."
+    },
+    {
+      "name": "moment-grid",
+      "type": "finite set",
+      "space": "\\((0,1)^p\\)",
+      "sig": "\\(\\mathcal T=\\{z_1,\\ldots,z_L\\}\\)",
+      "role": "Prespecified rational PGF grid."
+    },
+    {
+      "name": "moment-map",
+      "type": "function",
+      "sig": "\\(m_{\\boldsymbol d,\\mathcal T}:\\Theta_{\\boldsymbol d}\\to(0,1]^{KL}\\)",
+      "role": "Component-PGF moment map."
+    },
+    {
+      "name": "weight",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_{++}^{KL}\\)",
+      "sig": "\\(W\\)",
+      "role": "Fixed minimum-distance weight."
+    },
+    {
+      "name": "score",
+      "type": "nonnegative function",
+      "sig": "\\(Q_{\\boldsymbol d,\\mathcal T}(\\vartheta;g_0)\\)",
+      "role": "Finite-grid minimum-distance criterion."
+    },
+    {
+      "name": "graph-gap",
+      "type": "extended nonnegative scalar",
+      "space": "\\([0,\\infty]\\)",
+      "sig": "\\(\\Gamma_{\\mathcal T}\\)",
+      "role": "Uniform wrong-graph score separation, with value \\(+\\infty\\) for a singleton candidate class."
+    },
+    {
+      "name": "moment-jacobian",
+      "type": "matrix-valued map",
+      "sig": "\\(J_{\\boldsymbol d,\\mathcal T}(\\theta)\\)",
+      "role": "Within-graph moment Jacobian."
+    },
+    {
+      "name": "jacobian-margin",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(\\kappa_{\\mathcal T}\\)",
+      "role": "Uniform within-graph singular-value margin."
+    },
+    {
+      "name": "replicate-count",
+      "type": "positive integer array",
+      "space": "\\(\\mathbb N^{2\\times J}\\)",
+      "sig": "\\(n=(n_{Sj}:S\\in\\{A,B\\},1\\leq j\\leq J)\\)",
+      "role": "Replicate counts by sample split and composition row.",
+      "refs": [
+        "dimension-rows"
+      ]
+    },
+    {
+      "name": "allocation",
+      "type": "nonnegative rational probability vector",
+      "space": "\\(\\Delta_J^{\\mathbb Q}=\\{r\\in\\mathbb Q_+^J:\\sum_{j=1}^{J}r_j=1\\}\\)",
+      "sig": "\\(\\rho=(\\rho_1,\\ldots,\\rho_J)\\in\\Delta_J^{\\mathbb Q}\\)",
+      "role": "Normalized limiting row fractions; strict positivity is imposed in the inference layer because every declared row enters its sampling limit."
+    },
+    {
+      "name": "empirical-pooled-pgf",
+      "type": "random vector",
+      "space": "\\((0,1]^{JL}\\)",
+      "sig": "\\(\\widehat h\\)",
+      "role": "Empirical row PGFs."
+    },
+    {
+      "name": "pooled-moment-vector",
+      "type": "positive vector",
+      "space": "\\((0,1]^{JL}\\)",
+      "sig": "\\(h\\)",
+      "role": "Population row moments."
+    },
+    {
+      "name": "component-moment-vector",
+      "type": "positive vector",
+      "space": "\\((0,1]^{KL}\\)",
+      "sig": "\\(g\\)",
+      "role": "Population component moments."
+    },
+    {
+      "name": "unpooling-matrix",
+      "type": "matrix",
+      "space": "\\(\\mathbb R^{KL\\times JL}\\)",
+      "sig": "\\(A_{\\mathcal T}=M^{+}\\otimes I_L\\)",
+      "role": "Gridwise log-PGF inverse."
+    },
+    {
+      "name": "row-covariance",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_+^L\\)",
+      "sig": "\\(\\Omega_j\\)",
+      "role": "Same-well cross-grid covariance."
+    },
+    {
+      "name": "pooled-covariance",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_+^{JL}\\)",
+      "sig": "\\(\\Sigma_h\\)",
+      "role": "Pooled-moment asymptotic covariance."
+    },
+    {
+      "name": "component-covariance",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_+^{KL}\\)",
+      "sig": "\\(\\Sigma_g\\)",
+      "role": "Unpooled-moment asymptotic covariance."
+    },
+    {
+      "name": "graph-estimate",
+      "type": "random DAG tuple",
+      "space": "\\(\\mathfrak G\\)",
+      "sig": "\\(\\widehat{\\boldsymbol D}\\)",
+      "role": "Training-sample graph selector."
+    },
+    {
+      "name": "parameter-estimate",
+      "type": "random parameter vector",
+      "sig": "\\(\\widehat\\theta\\)",
+      "role": "Inference-sample parameter estimator."
+    },
+    {
+      "name": "effect-estimate",
+      "type": "random causal contrast vector",
+      "space": "\\(\\mathbb R^{2K}\\)",
+      "sig": "\\(\\widehat{\\boldsymbol\\tau}\\)",
+      "role": "Plug-in effect estimator."
+    },
+    {
+      "name": "contrast-gradient",
+      "type": "matrix",
+      "sig": "\\(C_\\tau(\\boldsymbol d,\\theta;\\iota)=\\partial\\boldsymbol\\tau(\\boldsymbol d,\\theta;\\iota)/\\partial\\theta^{\\mathsf T}\\)",
+      "role": "Jacobian of the \\(\\iota\\)-indexed effect vector for \\(p\\geq3\\)."
+    },
+    {
+      "name": "sandwich",
+      "type": "matrix",
+      "sig": "\\(V_\\theta(\\boldsymbol d,\\theta)\\)",
+      "role": "Parameter sandwich covariance."
+    },
+    {
+      "name": "effect-covariance",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_+^{2K}\\)",
+      "sig": "\\(V_\\tau(\\boldsymbol d,\\theta;\\iota)\\)",
+      "role": "Asymptotic covariance of the \\(\\iota\\)-indexed intervention contrasts for \\(p\\geq3\\)."
+    },
+    {
+      "name": "training-size",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(N_A=\\sum_{j=1}^{J}n_{Aj}\\)",
+      "role": "Total graph-selection training wells.",
+      "refs": [
+        "replicate-count",
+        "dimension-rows"
+      ]
+    },
+    {
+      "name": "inference-size",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(N_B=\\sum_{j=1}^{J}n_{Bj}\\)",
+      "role": "Total inference-split wells.",
+      "refs": [
+        "replicate-count",
+        "dimension-rows"
+      ]
+    },
+    {
+      "name": "confidence-level",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "sig": "\\(\\alpha\\)",
+      "role": "Two-sided Wald error probability."
+    },
+    {
+      "name": "precision-budget",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(N_{\\max}\\)",
+      "role": "Maximum acceptable inference-well count."
+    },
+    {
+      "name": "confidence-halfwidth",
+      "type": "positive scalar",
+      "space": "\\((0,\\infty)\\)",
+      "sig": "\\(w_{\\max}\\)",
+      "role": "Maximum acceptable scalar Wald half-width."
+    },
+    {
+      "name": "truncation-vector",
+      "type": "positive integer vector",
+      "space": "\\(\\mathbb N^p\\)",
+      "sig": "\\(R=(R_1,\\ldots,R_p)\\)",
+      "role": "Count-state truncation cutoffs."
+    },
+    {
+      "name": "tail-moment-order",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(s_{\\mathrm{tail}}\\)",
+      "role": "Moment order used for analytic tail majorants."
+    },
+    {
+      "name": "tail-algebra-bound",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(U_{\\mathrm{tail}}=[(pq_\\star^p\\{s_{\\mathrm{tail}}+(a_{\\mathrm{TM}}+3)(q_\\star+1)+2\\}+1)^p(d_\\star+1)^{a_{\\mathrm{TM}}+3}+1]^2\\)",
+      "role": "Coarse finite bound for memoized ancestor-moment and derivative-majorant table work."
+    },
+    {
+      "name": "taylor-order",
+      "type": "nonnegative integer",
+      "space": "\\(\\mathbb N_0\\)",
+      "sig": "\\(a_{\\mathrm{TM}}\\)",
+      "role": "Taylor-model order for exponential factors."
+    },
+    {
+      "name": "taylor-coefficient-bound",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(U_{\\mathrm{TM}}=\\binom{2d_\\star+a_{\\mathrm{TM}}+3}{a_{\\mathrm{TM}}+3}^2\\)",
+      "role": "Coarse finite bound for dense retained-state Taylor and complete-Bell coefficient arithmetic."
+    },
+    {
+      "name": "subdivision-budget",
+      "type": "nonnegative integer",
+      "space": "\\(\\mathbb N_0\\)",
+      "sig": "\\(b_{\\max}\\)",
+      "role": "Maximum binary subdivision depth per parameter box."
+    },
+    {
+      "name": "truncated-state-count",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(S_R=\\prod_{s=1}^{p}(R_s+1)\\)",
+      "role": "Number of retained count states per type."
+    },
+    {
+      "name": "tail-error",
+      "type": "nonnegative vector",
+      "space": "\\([0,\\infty)^3\\)",
+      "sig": "\\(\\varepsilon_{\\mathrm{tail}}=(\\varepsilon_0,\\varepsilon_1,\\varepsilon_2)\\)",
+      "role": "Certified uniform errors for PGFs, first derivatives, and second-derivative, covariance, or contrast ingredients."
+    },
+    {
+      "name": "certified-graph-bound",
+      "type": "extended nonnegative scalar",
+      "space": "\\([0,\\infty]\\)",
+      "sig": "\\(\\underline\\Gamma_{\\mathcal T}\\)",
+      "role": "Tail-adjusted certified lower bound for graph separation, equal to \\( +\\infty\\) when there is no wrong candidate graph tuple."
+    },
+    {
+      "name": "certified-jacobian-bound",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(\\underline\\kappa_{\\mathcal T}\\)",
+      "role": "Tail-adjusted certified lower bound for all graph-box Jacobians."
+    },
+    {
+      "name": "certified-effect-variance",
+      "type": "nonnegative vector",
+      "space": "\\([0,\\infty)^{2K}\\)",
+      "sig": "\\(\\overline v_\\tau\\)",
+      "role": "Certified componentwise upper bounds for asymptotic contrast variances."
+    },
+    {
+      "name": "required-wells",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(N_{\\mathrm{req}}=z_{1-\\alpha/2}^2\\max_q(\\overline v_\\tau)_q/w_{\\max}^2\\)",
+      "role": "Certified worst-contrast inference-well requirement."
+    },
+    {
+      "name": "chart-subdivision-budget",
+      "type": "nonnegative integer",
+      "space": "\\(\\mathbb N_0\\)",
+      "sig": "\\(c_{\\max}\\)",
+      "role": "Maximum total binary subdivision depth for each graph's deterministic chart tree."
+    },
+    {
+      "name": "arithmetic-precision-policy",
+      "type": "finite deterministic policy",
+      "sig": "\\(\\pi_{\\mathrm{ar}}=(b_0,\\Delta b,b_{\\mathrm{cap}},\\mathtt{out})\\)",
+      "role": "Starting mantissa bits, bit increment, bit cap, and outward-rounding rule for every validated arithmetic operation."
+    },
+    {
+      "name": "chart-projection-cover",
+      "type": "finite graph-indexed family",
+      "sig": "\\(\\mathscr C=\\{(C_{\\boldsymbol d c},P_{\\boldsymbol d c}):\\boldsymbol d\\in\\mathfrak G,1\\leq c\\leq C_{\\boldsymbol d}\\}\\)",
+      "role": "Rational chart boxes and rational left projections constructed deterministically by the certificate procedure.",
+      "refs": [
+        "candidate-graph-tuples",
+        "dimension-types",
+        "dimension-grid",
+        "max-parameter-dimension"
+      ]
+    },
+    {
+      "name": "projected-moment-map",
+      "type": "chart-indexed function",
+      "sig": "\\(\\phi_{\\boldsymbol d c}(\\vartheta)=P_{\\boldsymbol d c}m_{\\boldsymbol d,\\mathcal T}(\\vartheta)\\)",
+      "role": "Square rationally preconditioned moment map used for local strong-monotonicity certification.",
+      "refs": [
+        "chart-projection-cover",
+        "moment-map"
+      ]
+    },
+    {
+      "name": "certificate-input",
+      "type": "finite input tuple",
+      "sig": "\\(\\Xi=(M,\\iota,\\mathcal T,\\mathfrak G,\\preceq_{\\mathfrak G},(\\Theta_{\\boldsymbol d},\\Theta^{\\mathrm{in}}_{\\boldsymbol d}),q,W,\\rho,r_{\\mathrm{id}},R,s_{\\mathrm{tail}},a_{\\mathrm{TM}},b_{\\max},c_{\\max},\\pi_{\\mathrm{ar}},\\alpha,w_{\\max},N_{\\max})\\)",
+      "role": "Complete input to the reusable validated decision procedure."
+    },
+    {
+      "name": "certificate-status",
+      "type": "finite label",
+      "space": "\\(\\{\\mathtt{CERTIFIED},\\mathtt{REFUTED},\\mathtt{UNDECIDED}\\}\\)",
+      "sig": "\\(S_{\\mathrm{cert}}\\)",
+      "role": "Sound tri-valued termination status."
+    },
+    {
+      "name": "proof-object",
+      "type": "finite certificate record",
+      "sig": "\\(\\Pi_{\\mathrm{cert}}\\)",
+      "role": "Directed-rounding boxes, constructed chart projections, coverage checks, tail bounds, and verified linear-algebra receipts."
+    },
+    {
+      "name": "certificate-output",
+      "type": "finite output tuple",
+      "sig": "\\(\\mathfrak C(\\Xi)=(S_{\\mathrm{cert}},\\underline\\Gamma_{\\mathcal T},\\underline\\kappa_{\\mathcal T},\\underline\\Lambda_{\\mathcal T},\\underline\\mu_{\\mathcal T},b_{\\mathrm{in}},\\varepsilon_{\\mathrm{tail}},\\overline v_\\tau,N_{\\mathrm{req}},w_{\\mathrm{cert}},\\Pi_{\\mathrm{cert}})\\)",
+      "role": "Output of the reusable certificate procedure."
+    },
+    {
+      "name": "arithmetic-bound",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "sig": "\\(\\mathfrak B(\\Xi)\\)",
+      "role": "Explicit upper bound on outward-rounded arithmetic operations."
+    },
+    {
+      "name": "fixed-composition",
+      "type": "matrix",
+      "space": "\\(\\mathbb N_0^{2\\times2}\\)",
+      "sig": "\\(M_0=\\begin{pmatrix}1&1\\\\1&2\\end{pmatrix}\\)",
+      "role": "Synthetic two-type benchmark composition."
+    },
+    {
+      "name": "fixed-grid",
+      "type": "finite set",
+      "space": "\\((0,1)^3\\)",
+      "sig": "\\(\\mathcal T_0=\\{4/5,9/10,97/100\\}^3\\)",
+      "role": "Synthetic benchmark grid."
+    },
+    {
+      "name": "benchmark-input",
+      "type": "finite rational certificate input",
+      "sig": "\\(\\Xi_0\\)",
+      "role": "Complete determinate input for the synthetic three-node benchmark.",
+      "refs": [
+        "certificate-input"
+      ]
+    },
+    {
+      "name": "refined-benchmark-input",
+      "type": "finite rational certificate input",
+      "sig": "\\(\\Xi_1\\)",
+      "role": "Unique prespecified replacement input used only after an undecided base run.",
+      "refs": [
+        "certificate-input"
+      ]
+    },
+    {
+      "name": "benchmark-allocation-set",
+      "type": "finite rational set",
+      "sig": "\\(\\mathcal R_0=\\{(1/2,1/2)\\}\\)",
+      "role": "Singleton allocation set for the determinate synthetic benchmark."
+    },
+    {
+      "name": "benchmark-refinement-rule",
+      "type": "partial deterministic map",
+      "sig": "\\(\\mathfrak F_0(\\Xi_0)=\\Xi_1\\)",
+      "role": "Exactly one prespecified refinement, invoked only when the base certificate is undecided.",
+      "refs": [
+        "benchmark-input",
+        "refined-benchmark-input"
+      ]
+    },
+    {
+      "name": "witness-parameters",
+      "type": "parameter pair",
+      "sig": "\\((\\theta_1^\\star,\\theta_2^\\star)\\)",
+      "role": "Two interior benchmark parameters."
+    },
+    {
+      "name": "certificate-handle",
+      "type": "construction handle",
+      "sig": "\\(\\mathfrak H_{\\mathrm{cert}}\\)",
+      "role": "Validated tail, subdivision, graph-exclusion, and precision route."
+    },
+    {
+      "name": "graph-order",
+      "type": "total order",
+      "sig": "\\(\\preceq_{\\mathfrak G}\\)",
+      "role": "Fixed deterministic total order on the candidate graph tuples."
+    },
+    {
+      "name": "inference-parameter-space",
+      "type": "compact rational box",
+      "sig": "\\(\\Theta^{\\mathrm{in}}_{\\boldsymbol d}\\subset\\operatorname{int}(\\Theta_{\\boldsymbol d})\\)",
+      "role": "Prespecified interior box allowed to contain the true parameter."
+    },
+    {
+      "name": "interiority-margin",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(b_{\\mathrm{in}}=\\min_{\\boldsymbol d}\\operatorname{dist}(\\Theta^{\\mathrm{in}}_{\\boldsymbol d},\\partial\\Theta_{\\boldsymbol d})\\)",
+      "role": "Verified clearance of the inference boxes from estimation-box boundaries."
+    },
+    {
+      "name": "injectivity-radius",
+      "type": "positive rational scalar",
+      "sig": "\\(r_{\\mathrm{id}}>0\\)",
+      "role": "Radius separating local and remote within-graph parameter pairs."
+    },
+    {
+      "name": "remote-identification-gap",
+      "type": "extended nonnegative scalar",
+      "space": "\\([0,\\infty]\\)",
+      "sig": "\\(\\Lambda_{\\mathcal T}(r_{\\mathrm{id}})\\)",
+      "role": "Minimum same-graph moment separation for parameter pairs at least \\(r_{\\mathrm{id}}\\) apart."
+    },
+    {
+      "name": "local-injectivity-margin",
+      "type": "real scalar",
+      "space": "\\(\\mathbb R\\)",
+      "sig": "\\(\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)\\)",
+      "role": "Exact local chart strong-monotonicity margin for a valid chart-projection cover, distinct from the Jacobian margin.",
+      "refs": [
+        "chart-projection-cover"
+      ]
+    },
+    {
+      "name": "certified-remote-bound",
+      "type": "extended nonnegative scalar",
+      "space": "\\([0,\\infty]\\)",
+      "sig": "\\(\\underline\\Lambda_{\\mathcal T}(r_{\\mathrm{id}})\\)",
+      "role": "Certified remote same-graph separation."
+    },
+    {
+      "name": "certified-local-injectivity-bound",
+      "type": "nonnegative scalar",
+      "space": "\\([0,\\infty)\\)",
+      "sig": "\\(\\underline\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)\\)",
+      "role": "Certified local injectivity bound.",
+      "refs": [
+        "chart-projection-cover"
+      ]
+    },
+    {
+      "name": "deterministic-selector",
+      "type": "measurable map",
+      "sig": "\\(\\operatorname{Sel}_{\\boldsymbol d}(g)=\\operatorname{lexmin}\\arg\\min_{\\vartheta\\in\\Theta_{\\boldsymbol d}}Q_{\\boldsymbol d,\\mathcal T}(\\vartheta;g)\\)",
+      "role": "Exact lexicographic selector from each compact global argminimum set."
+    },
+    {
+      "name": "certified-halfwidth",
+      "type": "nonnegative scalar",
+      "sig": "\\(w_{\\mathrm{cert}}=z_{1-\\alpha/2}\\sqrt{\\max_q(\\overline v_\\tau)_q/N_{\\max}}\\)",
+      "role": "Worst certified contrast half-width at the well cap."
+    },
+    {
+      "name": "design-caps",
+      "type": "finite integer vector",
+      "sig": "\\(\\mathfrak b=(J_{\\max},m_{\\max},L_{\\max},R_{\\max},s_{\\max},a_{\\max},b_{\\max}^{\\mathrm{adm}},c_{\\max}^{\\mathrm{adm}},B_{\\max})\\)",
+      "role": "Declared finite design and computational caps."
+    },
+    {
+      "name": "grid-candidate-set",
+      "type": "finite rational set",
+      "sig": "\\(\\mathcal Z_{\\mathrm{cand}}\\subset\\mathbb Q^p\\cap(0,1)^p\\)",
+      "role": "Allowed PGF evaluation points."
+    },
+    {
+      "name": "allocation-candidate-set",
+      "type": "finite rational set",
+      "sig": "\\(\\mathcal R_{\\mathrm{adm}}\\subset\\Delta_J^{\\mathbb Q}\\)",
+      "role": "Allowed normalized nonnegative replicate allocations."
+    },
+    {
+      "name": "well-budget-set",
+      "type": "finite set",
+      "sig": "\\(\\mathcal N_{\\mathrm{adm}}\\subset\\mathbb N\\)",
+      "role": "Allowed well caps."
+    },
+    {
+      "name": "admissible-design-class",
+      "type": "finite set",
+      "sig": "\\(\\mathfrak X_{\\mathrm{adm}}\\)",
+      "role": "Explicit finite class of candidate certificate inputs."
+    },
+    {
+      "name": "pareto-frontier",
+      "type": "finite set",
+      "sig": "\\(\\mathfrak P_{\\mathrm{adm}}\\)",
+      "role": "Nondominated certified designs."
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:known-composition",
+      "kind": "measurement",
+      "condition": "The integer composition matrix \\(M\\) is fixed and known before replicate wells are observed.",
+      "free_symbols": [
+        "composition"
+      ],
+      "standard": {
+        "name": "Known routing or mixing operator",
+        "cite": "ShihHero2001Unicast"
+      },
+      "used_by": [
+        "def:unrestricted-pool-class",
+        "thm:rank-frontier",
+        "thm:stability",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:exact-additive-pools",
+      "kind": "measurement",
+      "condition": "Each observed well is the coordinatewise raw-count sum \\(B_{ji}=\\sum_{r=1}^{K}\\sum_{c=1}^{M_{jr}}V_{jirc}\\).",
+      "free_symbols": [
+        "pooled-count",
+        "cell-count",
+        "composition",
+        "dimension-types"
+      ],
+      "standard": {
+        "name": "Exact additive aggregate measurement",
+        "cite": "ShihHero2001Unicast"
+      },
+      "used_by": [
+        "def:unrestricted-pool-class",
+        "thm:rank-frontier",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:cell-independence",
+      "kind": "stochastic",
+      "condition": "Within each pooled well, the cellular count vectors \\(V_{jirc}\\) are mutually independent.",
+      "free_symbols": [
+        "cell-count"
+      ],
+      "standard": {
+        "name": "Spatial independence of additive components",
+        "cite": "ShihHero2001Unicast"
+      },
+      "used_by": [
+        "def:unrestricted-pool-class",
+        "thm:rank-frontier",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:type-invariance",
+      "kind": "stochastic",
+      "condition": "For every type \\(r\\), each \\(V_{jirc}\\) has law \\(P_r\\) across composition rows and replicates.",
+      "free_symbols": [
+        "cell-count",
+        "component-law",
+        "dimension-types"
+      ],
+      "standard": {
+        "name": "Invariance of component laws",
+        "cite": "ShihHero2001Unicast"
+      },
+      "used_by": [
+        "def:unrestricted-pool-class",
+        "thm:rank-frontier",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:replicate-independence",
+      "kind": "sampling",
+      "condition": "The pooled count vectors \\(B_{ji}\\) are independent across distinct replicate wells.",
+      "free_symbols": [
+        "pooled-count"
+      ],
+      "standard": {
+        "name": "Independent repeated aggregate probes",
+        "cite": "ShihHero2001Unicast"
+      },
+      "used_by": [
+        "def:unrestricted-pool-class",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:three-designated-coordinates",
+      "kind": "domain",
+      "condition": "The ambient count dimension satisfies \\(p\\geq3\\).",
+      "free_symbols": [
+        "dimension-genes"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Any assay measuring at least three coordinates admits a prespecified exposure coordinate and two distinct response coordinates; this domain restriction belongs only to the causal-certificate layer and leaves unrestricted law recovery unchanged."
+      },
+      "used_by": [
+        "def:truncated-factorization-effect",
+        "def:sample-split-estimator",
+        "def:sandwich-covariance",
+        "def:certificate-input",
+        "def:certificate-procedure",
+        "def:certificate-handle",
+        "def:fixed-protocol",
+        "prop:three-node-contrast",
+        "thm:causal-transfer",
+        "thm:certificate-soundness-complexity",
+        "thm:pooled-wald-certified",
+        "oeq:certifiable-design-frontier",
+        "oeq:three-node-benchmark"
+      ]
+    },
+    {
+      "id": "ass:causal-sufficiency",
+      "kind": "causal",
+      "condition": "For each type \\(r\\), the exogenous variables in the structural representation associated with \\(d_r\\) are jointly independent.",
+      "free_symbols": [
+        "cpcm-graph",
+        "dimension-types"
+      ],
+      "standard": {
+        "name": "Causal sufficiency in a CPCM",
+        "cite": "Pearl2009Causality"
+      },
+      "used_by": [
+        "def:cpcm-class",
+        "prop:polynomial-class-inclusion",
+        "thm:causal-transfer"
+      ]
+    },
+    {
+      "id": "ass:poisson-root-positive-polynomial-dag",
+      "kind": "structural",
+      "condition": "For every type \\(r\\), every root \\(s\\) in \\(d_r\\) has law \\(\\operatorname{Pois}(\\alpha_{rs})\\) with \\(\\alpha_{rs}>0\\), while every non-root \\(s\\) has conditional kernel \\(\\operatorname{Pois}(\\lambda_{rs,\\theta})\\) with \\(\\lambda_{rs,\\theta}(v)=\\alpha_{rs}+\\sum_{k\\in\\operatorname{pa}_{d_r}(s)}b_{rsk}v_k^{q_{sk}}\\) and strictly positive root and declared-edge coefficients.",
+      "free_symbols": [
+        "dimension-types",
+        "cpcm-graph",
+        "conditional-kernel",
+        "node-rate",
+        "graph-parameter",
+        "exponent-map"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "This paper maintains a stricter Poisson-root positive-polynomial Poisson-DAG subclass as a transparent synthetic and prospective-design benchmark. Source-node Poissonity is imposed here; the broader CPCM framework permits arbitrary source-node laws."
+      },
+      "used_by": [
+        "def:cpcm-class",
+        "def:polynomial-cpcm-class",
+        "prop:polynomial-class-inclusion",
+        "thm:causal-transfer",
+        "thm:finite-grid-existence",
+        "def:certificate-procedure"
+      ]
+    },
+    {
+      "id": "ass:pairwise-identifiability",
+      "kind": "causal",
+      "condition": "Every directed parent--child pair and every admissible nondescendant conditioning set satisfy pairwise identifiability in the sense of Definition 10 of Bodik--Chavez-Demoulin.",
+      "free_symbols": [
+        "component-law",
+        "cpcm-graph",
+        "conditional-kernel"
+      ],
+      "standard": {
+        "name": "Pairwise identifiable CPCM",
+        "cite": "BodikChavezDemoulin2025CPCM"
+      },
+      "used_by": [
+        "def:cpcm-class",
+        "prop:polynomial-class-inclusion",
+        "thm:causal-transfer"
+      ]
+    },
+    {
+      "id": "ass:compact-rational-boxes",
+      "kind": "parameter",
+      "condition": "Each \\(\\Theta_{\\boldsymbol d}\\) and \\(\\Theta^{\\mathrm{in}}_{\\boldsymbol d}\\) is a prespecified compact rational rectangle, with \\(\\Theta^{\\mathrm{in}}_{\\boldsymbol d}\\subset\\operatorname{int}(\\Theta_{\\boldsymbol d})\\), and with strictly positive root and declared-edge coefficient lower endpoints.",
+      "free_symbols": [
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "cpcm-graph"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "A finite box is a prospective design input that can be calibrated from independent pilot assays; positive lower endpoints describe modules screened to exclude silent roots and vanishing candidate edges. The numerical box used below is only synthetic and is not asserted to be biologically calibrated."
+      },
+      "used_by": [
+        "def:polynomial-cpcm-class",
+        "thm:finite-grid-existence",
+        "def:certificate-input",
+        "def:certificate-procedure"
+      ]
+    },
+    {
+      "id": "ass:fixed-positive-exponents",
+      "kind": "structural",
+      "condition": "The exponent array \\(q\\) is fixed before observing wells and has positive integer entries for every possible ordered edge.",
+      "free_symbols": [
+        "exponent-map"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Fixed low-order exponents encode a prespecified nonlinear benchmark and make finite validation possible. They can be chosen from external mechanistic restrictions, but the three-node exponent pattern below is explicitly synthetic."
+      },
+      "used_by": [
+        "def:polynomial-cpcm-class",
+        "thm:finite-grid-existence",
+        "def:certificate-input",
+        "def:certificate-procedure"
+      ]
+    },
+    {
+      "id": "ass:row-allocation",
+      "kind": "sampling",
+      "condition": "The allocation satisfies \\(\\rho\\in\\Delta_J^{\\mathbb Q}\\) with \\(\\rho_j>0\\) for every row, and for each split \\(S\\in\\{A,B\\}\\), \\(n_{Sj}/N_S\\to\\rho_j\\) for every composition row \\(j\\).",
+      "free_symbols": [
+        "replicate-count",
+        "allocation",
+        "dimension-rows",
+        "training-size",
+        "inference-size"
+      ],
+      "standard": {
+        "name": "Stable stratified sampling fractions",
+        "cite": "CarrascoFlorens2000ContinuumGMM"
+      },
+      "used_by": [
+        "def:replicate-pgf-covariance",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:split-growth",
+      "kind": "sampling",
+      "condition": "Along the sampling sequence, \\(\\min(N_A,N_B)\\to\\infty\\).",
+      "free_symbols": [
+        "training-size",
+        "inference-size"
+      ],
+      "standard": {
+        "name": "Diverging sample-split sizes",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:sample-split-estimator",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:positive-weight",
+      "kind": "estimation",
+      "condition": "The finite-grid weight \\(W\\) is fixed and positive definite.",
+      "free_symbols": [
+        "weight"
+      ],
+      "standard": {
+        "name": "Positive-definite GMM weighting",
+        "cite": "CarrascoFlorens2000ContinuumGMM"
+      },
+      "used_by": [
+        "def:grid-criterion",
+        "def:sample-split-estimator",
+        "def:certificate-procedure",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:true-parameter-interior",
+      "kind": "parameter",
+      "condition": "The true parameter satisfies \\(\\theta_0\\in\\Theta^{\\mathrm{in}}_{\\boldsymbol D_0}\\).",
+      "free_symbols": [
+        "true-parameter",
+        "inference-parameter-space",
+        "true-graph"
+      ],
+      "standard": {
+        "name": "Interior-point regularity for minimum distance",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "def:sample-split-estimator",
+        "thm:pooled-wald-certified"
+      ]
+    },
+    {
+      "id": "ass:contrast-nondegeneracy",
+      "kind": "inference",
+      "condition": "When \\(p\\geq3\\) and the ordered embedding \\(\\iota\\) is fixed, every reported scalar component \\(\\tau_{i_Y,r}\\) and \\(\\tau_{i_Z,r}\\) has strictly positive asymptotic variance at \\(\\boldsymbol D_0,\\theta_0\\).",
+      "free_symbols": [
+        "effect-vector",
+        "true-graph",
+        "true-parameter",
+        "effect-covariance",
+        "designated-coordinate-embedding",
+        "dimension-genes",
+        "dimension-types"
+      ],
+      "standard": {
+        "name": "Nondegenerate delta-method contrast",
+        "cite": "NeweyMcFadden1994LargeSample"
+      },
+      "used_by": [
+        "thm:pooled-wald-certified"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:unrestricted-pool-class",
+      "name": "\\(\\mathcal M_{\\mathrm{pool}}\\)",
+      "construction": "\\(\\mathcal M_{\\mathrm{pool}}=\\{(M,(P_r)_{r=1}^{K},(B_{ji})_{1\\leq j\\leq J,\\,i\\geq1}):\\text{ assumptions }\\mathrm{ass{:}known\\text{-}composition},\\mathrm{ass{:}exact\\text{-}additive\\text{-}pools},\\mathrm{ass{:}cell\\text{-}independence},\\mathrm{ass{:}type\\text{-}invariance},\\mathrm{ass{:}replicate\\text{-}independence}\\text{ hold}\\}\\).",
+      "free_symbols": [
+        "unrestricted-pool-class",
+        "composition",
+        "component-law",
+        "pooled-count",
+        "dimension-types",
+        "dimension-rows"
+      ],
+      "by_member_properties": [
+        "ass:known-composition",
+        "ass:exact-additive-pools",
+        "ass:cell-independence",
+        "ass:type-invariance",
+        "ass:replicate-independence"
+      ]
+    },
+    {
+      "id": "def:recovery-map",
+      "name": "\\(\\mathscr R_M\\)",
+      "construction": "For \\(H(z)=(H_1(z),\\ldots,H_J(z))^{\\mathsf T}\\), set \\(\\mathscr R_M(H)(z)=\\exp\\{M^{+}\\log H(z)\\}\\), with logarithm and exponential taken coordinatewise.",
+      "free_symbols": [
+        "recovery-map",
+        "pooled-pgf",
+        "dimension-rows",
+        "pseudoinverse"
+      ],
+      "inputs": [
+        "pooled-pgf",
+        "pseudoinverse"
+      ]
+    },
+    {
+      "id": "def:positive-poisson-alias",
+      "name": "\\(\\mathfrak A(M,a,\\Lambda,u,\\epsilon)\\)",
+      "construction": "Given \\(0\\neq a\\in\\ker(M)\\), positive intensities \\(\\Lambda=(\\lambda_{rd})\\), and \\(0\\neq u\\in[0,\\infty)^p\\), let type \\(r\\) have independent Poisson coordinates with intensities \\(\\lambda_{rd}(\\epsilon)=\\lambda_{rd}+\\epsilon a_ru_d\\), where \\(0<|\\epsilon|<\\min_{a_ru_d\\neq0}\\lambda_{rd}/(2|a_ru_d|)\\).",
+      "free_symbols": [
+        "alias-family",
+        "composition",
+        "dimension-genes",
+        "dimension-types"
+      ],
+      "inputs": [
+        "composition"
+      ]
+    },
+    {
+      "id": "def:stability-quantities",
+      "name": "\\((\\gamma,\\beta,\\delta,E_M)\\)",
+      "construction": "Set \\(\\gamma_r=\\inf_{z\\in\\mathcal Z_\\eta}G_r(z)=G_r(\\eta,\\ldots,\\eta)\\), \\(\\beta=\\min_{1\\leq j\\leq J}\\prod_{r=1}^{K}\\gamma_r^{M_{jr}}\\), \\(\\delta=\\sup_{z\\in\\mathcal Z_\\eta}\\lVert\\widetilde H(z)-H(z)\\rVert_2\\), and \\(E_M=\\lVert M^{+}\\rVert_2\\delta/(\\beta-\\delta)\\) when \\(\\delta<\\beta\\).",
+      "free_symbols": [
+        "component-envelope",
+        "pool-envelope",
+        "perturbation-radius",
+        "stability-index",
+        "evaluation-domain",
+        "component-pgf",
+        "eta",
+        "dimension-rows",
+        "dimension-types",
+        "composition",
+        "perturbed-pgf",
+        "pooled-pgf",
+        "pseudoinverse"
+      ],
+      "inputs": [
+        "component-pgf",
+        "pooled-pgf",
+        "perturbed-pgf",
+        "composition",
+        "eta"
+      ]
+    },
+    {
+      "id": "def:cpcm-class",
+      "name": "\\(\\mathcal M_{\\mathrm{CPCM}}\\)",
+      "construction": "\\(\\mathcal M_{\\mathrm{CPCM}}=\\{((P_r,d_r))_{r=1}^{K}:\\text{ assumptions }\\mathrm{ass{:}causal\\text{-}sufficiency},\\mathrm{ass{:}poisson\\text{-}root\\text{-}positive\\text{-}polynomial\\text{-}dag},\\mathrm{ass{:}pairwise\\text{-}identifiability}\\text{ hold for every }r\\}\\).",
+      "free_symbols": [
+        "cpcm-class",
+        "component-law",
+        "cpcm-graph",
+        "dimension-types"
+      ],
+      "by_member_properties": [
+        "ass:causal-sufficiency",
+        "ass:poisson-root-positive-polynomial-dag",
+        "ass:pairwise-identifiability"
+      ]
+    },
+    {
+      "id": "def:polynomial-cpcm-class",
+      "name": "\\(\\mathcal M_{\\mathrm{poly}}(\\mathfrak G,\\Theta,q)\\)",
+      "construction": "\\(\\mathcal M_{\\mathrm{poly}}(\\mathfrak G,\\Theta,q)=\\{((P_{r,\\theta_r},d_r,\\theta_r))_{r=1}^{K}:\\boldsymbol d\\in\\mathfrak G,\\ \\theta\\in\\Theta_{\\boldsymbol d},\\text{ and assumptions }\\mathrm{ass{:}poisson\\text{-}root\\text{-}positive\\text{-}polynomial\\text{-}dag},\\mathrm{ass{:}compact\\text{-}rational\\text{-}boxes},\\mathrm{ass{:}fixed\\text{-}positive\\text{-}exponents}\\text{ hold for every displayed type and node}\\}\\).",
+      "free_symbols": [
+        "polynomial-cpcm-class",
+        "component-law",
+        "dimension-types",
+        "candidate-graph-tuples",
+        "graph-parameter",
+        "graph-parameter-space",
+        "cpcm-graph",
+        "exponent-map"
+      ],
+      "by_member_properties": [
+        "ass:poisson-root-positive-polynomial-dag",
+        "ass:compact-rational-boxes",
+        "ass:fixed-positive-exponents"
+      ]
+    },
+    {
+      "id": "def:truncated-factorization-effect",
+      "name": "\\(\\boldsymbol\\tau\\)",
+      "construction": "For \\(p\\geq3\\), fix the ordered injection \\(\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\}\\) and write \\(i_A=\\iota(A)\\) for \\(A\\in\\{X,Y,Z\\}\\). For \\(x\\in\\{1,2\\}\\), define \\(P_{r,\\theta}^{\\operatorname{do}(V_{i_X}=x)}(v_{-i_X})=\\prod_{s\\neq i_X}p_{rs,\\theta}(v_s\\mid v_{\\operatorname{pa}_{d_r}(s)})\\big|_{v_{i_X}=x}\\). Set \\(\\tau_{i_Y,r}=\\mathbb E_{P_{r,\\theta}^{\\operatorname{do}(V_{i_X}=2)}}[V_{i_Y}]-\\mathbb E_{P_{r,\\theta}^{\\operatorname{do}(V_{i_X}=1)}}[V_{i_Y}]\\), \\(\\tau_{i_Z,r}=\\mathbb E_{P_{r,\\theta}^{\\operatorname{do}(V_{i_X}=2)}}[V_{i_Z}]-\\mathbb E_{P_{r,\\theta}^{\\operatorname{do}(V_{i_X}=1)}}[V_{i_Z}]\\), and \\(\\boldsymbol\\tau=((\\tau_{i_Y,r},\\tau_{i_Z,r}))_{r=1}^{K}\\).",
+      "free_symbols": [
+        "effect-vector",
+        "intervention-law",
+        "conditional-kernel",
+        "cpcm-graph",
+        "graph-parameter",
+        "dimension-types",
+        "dimension-genes",
+        "designated-coordinate-embedding"
+      ],
+      "inputs": [
+        "conditional-kernel",
+        "cpcm-graph",
+        "designated-coordinate-embedding"
+      ]
+    },
+    {
+      "id": "def:grid-criterion",
+      "name": "\\((m,Q,\\Gamma,\\kappa,\\Lambda,\\mu)\\)",
+      "construction": "For nonempty \\(\\mathfrak G\\), let \\(m_{\\boldsymbol d,\\mathcal T}(\\vartheta)=(G_{r,\\vartheta_r}(z_\\ell))_{r,\\ell}\\), \\(J_{\\boldsymbol d,\\mathcal T}=\\partial m_{\\boldsymbol d,\\mathcal T}/\\partial\\vartheta^{\\mathsf T}\\), and \\(Q_{\\boldsymbol d,\\mathcal T}(\\vartheta;g)=\\lVert m_{\\boldsymbol d,\\mathcal T}(\\vartheta)-g\\rVert_W^2\\), where \\(\\lVert u\\rVert_W^2=u^{\\mathsf T}Wu\\). If \\(|\\mathfrak G|\\geq2\\), set \\(\\Gamma_{\\mathcal T}=\\min_{\\boldsymbol d\\neq\\boldsymbol d'}\\inf_{\\vartheta\\in\\Theta_{\\boldsymbol d},\\,\\vartheta'\\in\\Theta_{\\boldsymbol d'}}\\lVert m_{\\boldsymbol d,\\mathcal T}(\\vartheta)-m_{\\boldsymbol d',\\mathcal T}(\\vartheta')\\rVert_W^2\\); if \\(|\\mathfrak G|=1\\), set \\(\\Gamma_{\\mathcal T}=+\\infty\\). Set \\(\\kappa_{\\mathcal T}=\\min_{\\boldsymbol d\\in\\mathfrak G}\\inf_{\\vartheta\\in\\Theta_{\\boldsymbol d}}\\sigma_{\\min}(J_{\\boldsymbol d,\\mathcal T}(\\vartheta))\\). For \\(r_{\\mathrm{id}}>0\\), let \\(\\Lambda_{\\mathcal T}(r_{\\mathrm{id}})\\) be the minimum squared \\(W\\)-distance between \\(m_{\\boldsymbol d,\\mathcal T}(\\vartheta)\\) and \\(m_{\\boldsymbol d,\\mathcal T}(\\vartheta')\\) over \\(\\boldsymbol d\\in\\mathfrak G\\), \\(\\vartheta,\\vartheta'\\in\\Theta_{\\boldsymbol d}\\), and \\(\\lVert\\vartheta-\\vartheta'\\rVert_2\\geq r_{\\mathrm{id}}\\), with value \\(+\\infty\\) when this feasible pair set is empty. A valid chart-projection cover \\(\\mathscr C\\) has nonempty rational boxes \\(C_{\\boldsymbol d c}\\subseteq\\Theta_{\\boldsymbol d}\\) and rational matrices \\(P_{\\boldsymbol d c}\\in\\mathbb Q^{d_{\\boldsymbol d}\\times KL}\\), covers each \\(\\Theta_{\\boldsymbol d}\\), and jointly contains every pair \\(\\vartheta,\\vartheta'\\in\\Theta_{\\boldsymbol d}\\) with \\(\\lVert\\vartheta-\\vartheta'\\rVert_2<r_{\\mathrm{id}}\\) in at least one chart. Write \\(\\phi_{\\boldsymbol d c}=P_{\\boldsymbol d c}m_{\\boldsymbol d,\\mathcal T}:C_{\\boldsymbol d c}\\to\\mathbb R^{d_{\\boldsymbol d}}\\) and define \\(\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)=\\min_{\\boldsymbol d,c}\\inf_{\\vartheta\\neq\\vartheta'\\in C_{\\boldsymbol d c}}\\langle\\phi_{\\boldsymbol d c}(\\vartheta)-\\phi_{\\boldsymbol d c}(\\vartheta'),\\vartheta-\\vartheta'\\rangle/\\lVert\\vartheta-\\vartheta'\\rVert_2^2\\). On overlapping charts the same moment map is used, and equality of its values implies equality under every associated projection; hence one co-containing chart with positive margin separates each local pair.",
+      "free_symbols": [
+        "moment-map",
+        "score",
+        "graph-gap",
+        "jacobian-margin",
+        "moment-jacobian",
+        "injectivity-radius",
+        "remote-identification-gap",
+        "local-injectivity-margin",
+        "chart-projection-cover",
+        "projected-moment-map",
+        "moment-grid",
+        "component-pgf",
+        "weight",
+        "graph-parameter",
+        "graph-parameter-space",
+        "candidate-graph-tuples",
+        "cpcm-graph"
+      ],
+      "inputs": [
+        "moment-grid",
+        "component-pgf",
+        "weight",
+        "graph-parameter-space",
+        "candidate-graph-tuples",
+        "injectivity-radius",
+        "chart-projection-cover"
+      ]
+    },
+    {
+      "id": "def:replicate-pgf-covariance",
+      "name": "\\((\\Omega_j,\\Sigma_h,\\Sigma_g)\\)",
+      "construction": "For a normalized allocation \\(\\rho\\in\\Delta_J^{\\mathbb Q}\\) with \\(\\rho_j>0\\) for every declared row, and for \\(z_\\ell,z_{\\ell'}\\in\\mathcal T\\), set \\((\\Omega_j)_{\\ell\\ell'}=H_j(z_\\ell\\odot z_{\\ell'})-H_j(z_\\ell)H_j(z_{\\ell'})\\), \\(\\Sigma_h=\\operatorname{blockdiag}(\\Omega_j/\\rho_j)_{j=1}^{J}\\), \\(A_{\\mathcal T}=M^{+}\\otimes I_L\\), \\(g=\\exp(A_{\\mathcal T}\\log h)\\), and \\(\\Sigma_g=D_gA_{\\mathcal T}D_h^{-1}\\Sigma_hD_h^{-1}A_{\\mathcal T}^{\\mathsf T}D_g\\), where \\(D_h=\\operatorname{diag}(h)\\) and \\(D_g=\\operatorname{diag}(g)\\).",
+      "free_symbols": [
+        "row-covariance",
+        "pooled-covariance",
+        "component-covariance",
+        "moment-grid",
+        "pooled-pgf",
+        "allocation",
+        "dimension-rows",
+        "unpooling-matrix",
+        "pseudoinverse",
+        "dimension-grid",
+        "component-moment-vector",
+        "pooled-moment-vector"
+      ],
+      "inputs": [
+        "pooled-pgf",
+        "moment-grid",
+        "allocation",
+        "pseudoinverse"
+      ]
+    },
+    {
+      "id": "def:sample-split-estimator",
+      "name": "\\((\\widehat{\\boldsymbol D},\\widehat\\theta,\\widehat{\\boldsymbol\\tau})\\)",
+      "construction": "For \\(p\\geq3\\) and fixed \\(\\iota\\), split wells independently within rows into \\(N_A\\) training and \\(N_B\\) inference wells and fix \\(\\preceq_{\\mathfrak G}\\). For each graph and data vector, obtain \\(\\operatorname{Sel}_{\\boldsymbol d}(g)\\) by successively taking the smallest coordinate among the compact set of global minimizers of \\(Q_{\\boldsymbol d,\\mathcal T}(\\cdot;g)\\). On training data choose the \\(\\preceq_{\\mathfrak G}\\)-least graph attaining the smallest selected objective. On inference data set \\(\\widehat\\theta=\\operatorname{Sel}_{\\widehat{\\boldsymbol D}}(\\widehat g_B)\\) and \\(\\widehat{\\boldsymbol\\tau}=\\boldsymbol\\tau(\\widehat{\\boldsymbol D},\\widehat\\theta;\\iota)\\). This exact lexicographic convention is deterministic and Borel measurable.",
+      "free_symbols": [
+        "deterministic-selector",
+        "graph-order",
+        "graph-estimate",
+        "parameter-estimate",
+        "effect-estimate",
+        "component-moment-vector",
+        "unpooling-matrix",
+        "empirical-pooled-pgf",
+        "score",
+        "candidate-graph-tuples",
+        "moment-grid",
+        "graph-parameter-space",
+        "effect-vector",
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "training-size",
+        "inference-size"
+      ],
+      "inputs": [
+        "empirical-pooled-pgf",
+        "unpooling-matrix",
+        "score",
+        "effect-vector",
+        "designated-coordinate-embedding",
+        "graph-order"
+      ]
+    },
+    {
+      "id": "def:sandwich-covariance",
+      "name": "\\((V_\\theta,V_\\tau)\\)",
+      "construction": "For \\(p\\geq3\\), the fixed ordered embedding \\(\\iota\\), and \\(J=J_{\\boldsymbol d,\\mathcal T}(\\theta)\\), define \\(V_\\theta(\\boldsymbol d,\\theta)=(J^{\\mathsf T}WJ)^{-1}J^{\\mathsf T}W\\Sigma_gWJ(J^{\\mathsf T}WJ)^{-1}\\) and \\(V_\\tau(\\boldsymbol d,\\theta;\\iota)=C_\\tau(\\boldsymbol d,\\theta;\\iota)V_\\theta(\\boldsymbol d,\\theta)C_\\tau(\\boldsymbol d,\\theta;\\iota)^{\\mathsf T}\\).",
+      "free_symbols": [
+        "sandwich",
+        "effect-covariance",
+        "moment-jacobian",
+        "cpcm-graph",
+        "graph-parameter",
+        "moment-grid",
+        "weight",
+        "component-covariance",
+        "contrast-gradient",
+        "dimension-genes",
+        "designated-coordinate-embedding"
+      ],
+      "inputs": [
+        "moment-jacobian",
+        "weight",
+        "component-covariance",
+        "contrast-gradient",
+        "designated-coordinate-embedding"
+      ]
+    },
+    {
+      "id": "def:certificate-input",
+      "name": "\\(\\Xi\\)",
+      "construction": "For \\(p\\geq3\\), let \\(\\Xi=(M,\\iota,\\mathcal T,\\mathfrak G,\\preceq_{\\mathfrak G},(\\Theta_{\\boldsymbol d},\\Theta^{\\mathrm{in}}_{\\boldsymbol d})_{\\boldsymbol d\\in\\mathfrak G},q,W,\\rho,r_{\\mathrm{id}},R,s_{\\mathrm{tail}},a_{\\mathrm{TM}},b_{\\max},c_{\\max},\\pi_{\\mathrm{ar}},\\alpha,w_{\\max},N_{\\max})\\), where \\(\\mathfrak G\\neq\\varnothing\\), every parameter and inference box is nonempty, every displayed numerical entry is rational, \\(W\\) is rational positive definite, \\(\\rho\\in\\Delta_J^{\\mathbb Q}=\\{r\\in\\mathbb Q_+^J:\\sum_{j=1}^{J}r_j=1\\}\\), and \\(\\pi_{\\mathrm{ar}}=(b_0,\\Delta b,b_{\\mathrm{cap}},\\mathtt{out})\\) has \\(b_0,\\Delta b\\in\\mathbb N\\), \\(b_{\\mathrm{cap}}\\geq b_0\\), and fixes binary precision escalation with downward and upward directed rounding.",
+      "free_symbols": [
+        "certificate-input",
+        "composition",
+        "moment-grid",
+        "moment-map",
+        "graph-gap",
+        "jacobian-margin",
+        "remote-identification-gap",
+        "local-injectivity-margin",
+        "designated-coordinate-embedding",
+        "moment-grid",
+        "candidate-graph-tuples",
+        "graph-order",
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "exponent-map",
+        "weight",
+        "allocation",
+        "injectivity-radius",
+        "truncation-vector",
+        "tail-moment-order",
+        "taylor-order",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "confidence-level",
+        "confidence-halfwidth",
+        "precision-budget",
+        "dimension-genes"
+      ],
+      "inputs": [
+        "composition",
+        "designated-coordinate-embedding",
+        "moment-grid",
+        "candidate-graph-tuples",
+        "graph-order",
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "exponent-map",
+        "weight",
+        "allocation",
+        "injectivity-radius",
+        "truncation-vector",
+        "tail-moment-order",
+        "taylor-order",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "confidence-level",
+        "confidence-halfwidth",
+        "precision-budget"
+      ]
+    },
+    {
+      "id": "def:certificate-procedure",
+      "name": "\\(\\mathfrak C(\\Xi)\\)",
+      "construction": "For \\(p\\geq3\\) and the ordered embedding in \\(\\Xi\\), \\(\\mathfrak C\\) is the following literal finite map. First check rational syntax, nonempty ordered boxes, \\(W\\succ0\\) by exact rational \\(LDL^{\\mathsf T}\\), \\(\\rho\\in\\mathbb Q_+^J\\), and \\(\\sum_j\\rho_j=1\\); an allocation outside that simplex is \\(\\mathtt{REFUTED}\\) before covariance or well calculations. Compute \\(\\operatorname{rank}(M)\\) by fraction-free elimination. For each graph, type, and node in lexicographically least topological order, let \\(\\bar\\alpha_{rs}\\) and \\(\\bar b_{rsk}\\) be coefficient-box upper endpoints, let \\(T_m(x)=\\sum_{k=0}^m\\left\\{\\begin{smallmatrix}m\\\\k\\end{smallmatrix}\\right\\}x^k\\), and define rational raw-moment majorants by \\(U_{\\boldsymbol d rs}(0)=1\\), \\(U_{\\boldsymbol d rs}(m)=T_m(\\bar\\alpha_{rs})\\) at a root, and, for \\(m\\geq1\\), \\(U_{\\boldsymbol d rs}(m)=\\sum_{k=1}^m\\left\\{\\begin{smallmatrix}m\\\\k\\end{smallmatrix}\\right\\}h_s^{k-1}\\{\\bar\\alpha_{rs}^k+\\sum_{u\\in\\operatorname{pa}(s)}\\bar b_{rsu}^kU_{\\boldsymbol d ru}(q_{su}k)\\}\\), where \\(h_s=1+|\\operatorname{pa}(s)|\\); recursive calls go only to ancestors and are memoized. The intervention recurrence deletes the \\(i_X\\) kernel and substitutes \\(V_{i_X}=x\\in\\{1,2\\}\\). If \\(A(v)=\\sum_ac_av^a\\) has nonnegative rational coefficients, set \\(\\mathcal U_{\\boldsymbol d r}(A)=\\sum_ac_a h_a^{-1}\\sum_{s:a_s>0}U_{\\boldsymbol d rs}(h_aa_s)\\), with \\(h_a=|\\{s:a_s>0\\}|\\), and use the constant coefficient unchanged. For a local affine rate, write \\(a_{rst}(v)\\in\\{0,1,v_u^{q_{su}}\\}\\) for the derivative of node \\(s\\)'s rate in parameter coordinate \\(t\\), \\(\\lambda^-_{rs}=\\underline\\alpha_{rs}>0\\), \\(L_{e_t}=\\sum_s(v_s/\\lambda^-_{rs}+1)a_{rst}(v)\\), and \\(L_\\nu=\\sum_s(|\\nu|-1)!v_s\\prod_ta_{rst}(v)^{\\nu_t}/(\\lambda^-_{rs})^{|\\nu|}\\) for \\(|\\nu|\\geq2\\). Define the nonnegative derivative polynomial \\(D_0=1\\) and the multivariate complete-Bell majorants \\(D_{\\nu+e_t}=\\sum_{\\omega\\leq\\nu}\\binom{\\nu}{\\omega}D_{\\nu-\\omega}L_{\\omega+e_t}\\). For every \\(|\\nu|\\leq a_{\\mathrm{TM}}+1\\), the observational tail recurrence is \\(E_{\\boldsymbol d r,\\nu}=\\sum_{s=1}^p\\mathcal U_{\\boldsymbol d r}(D_\\nu V_s^{s_{\\mathrm{tail}}})/(R_s+1)^{s_{\\mathrm{tail}}}\\); the intervention-and-contrast recurrence \\(E^{x,\\tau}_{\\boldsymbol d r,\\nu}\\) is identical with intervention moments and polynomial \\((V_{i_Y}+V_{i_Z})D_\\nu\\). Set \\(\\varepsilon_0=\\max_{\\boldsymbol d,r}E_{\\boldsymbol d r,0}\\), \\(\\varepsilon_1=\\max_{\\boldsymbol d,r,|\\nu|=1}\\{E_{\\boldsymbol d r,\\nu},E^{1,\\tau}_{\\boldsymbol d r,\\nu},E^{2,\\tau}_{\\boldsymbol d r,\\nu}\\}\\), and \\(\\varepsilon_2\\) to the maximum over \\(\\boldsymbol d,r,|\\nu|=2\\) of the same three quantities and \\(2\\varepsilon_0+\\varepsilon_0^2\\), the latter bounding covariance-product truncation; all higher \\(E_{\\boldsymbol d r,\\nu}\\) are retained internally for Taylor remainders. On retained states, for a rate interval \\(X\\subset[0,\\infty)\\), initialize the conditional Poisson recurrence with \\(\\operatorname{Exp}_{a}(-X)=\\sum_{k=0}^{a}(-X)^k/k!+[-1,1](\\sup X)^{a+1}/(a+1)!\\), set \\(P_X(0)=\\operatorname{Exp}_{a_{\\mathrm{TM}}}(-X)\\), and set \\(P_X(k+1)=P_X(k)X/(k+1)\\); every parameter derivative is generated, without symbolic choices, by the multivariate Leibniz recurrence \\(\\partial^\\nu P_X(k+1)=(k+1)^{-1}\\sum_{\\omega\\leq\\nu}\\binom{\\nu}{\\omega}\\partial^\\omega P_X(k)\\partial^{\\nu-\\omega}X\\), with the initial derivatives obtained by the same complete-Bell recurrence, and joint or intervened masses by the same Leibniz rule along the fixed topological order. For a rational box \\(B\\) with midpoint \\(c\\), every retained smooth scalar \\(f\\) is enclosed by the fixed Taylor formula \\(\\sum_{|\\nu|\\leq a_{\\mathrm{TM}}}\\partial^\\nu f(c)(B-c)^\\nu/\\nu!+[-1,1]\\sum_{|\\nu|=a_{\\mathrm{TM}}+1}\\sup_B|\\partial^\\nu f|\\,\\operatorname{rad}(B)^\\nu/\\nu!\\), enlarged by the appropriate \\(E_{\\boldsymbol d r,\\nu}\\) or \\(E^{x,\\tau}_{\\boldsymbol d r,\\nu}\\). Thus each moment or derivative coordinate is the retained Taylor interval plus \\([-E,E]\\); graph and remote objective intervals, pooled products, covariance entries, and contrasts are obtained by the displayed rational interval operations on those enlarged coordinate intervals. At precision \\(b\\), each exact rational \\(+,-,\\times,\\div\\) endpoint is immediately replaced by \\(\\lfloor2^bx\\rfloor2^{-b}\\) on a lower endpoint and \\(\\lceil2^bx\\rceil2^{-b}\\) on an upper endpoint; division by an interval containing zero fails that box. Precisions are tried as \\(b_t=\\min\\{b_0+t\\Delta b,b_{\\mathrm{cap}}\\}\\) for \\(0\\leq t\\leq\\lceil(b_{\\mathrm{cap}}-b_0)/\\Delta b\\rceil\\), in increasing \\(t\\). Tasks are processed breadth first in this order: unordered wrong-graph pairs under \\(\\preceq_{\\mathfrak G}\\), same-graph remote pairs, single-graph chart cells, covariance, and precision. A nonterminal box is bisected at its rational midpoint in the coordinate maximizing width divided by original-box width, with the smallest parameter coordinate breaking ties; children are processed lower half first. On a product box the same normalized-width rule is applied to the concatenated coordinates, with the first coordinate in graph-order and parameter-order breaking ties. Objective trees stop at depth \\(b_{\\max}\\), and chart trees at depth \\(c_{\\max}\\). A wrong-graph leaf passes exactly when its tail-enlarged interval for \\(\\lVert m_{\\boldsymbol d,\\mathcal T}-m_{\\boldsymbol d',\\mathcal T}\\rVert_W^2\\) has positive lower endpoint. A same-graph product leaf is discarded if the interval upper bound for \\(\\lVert\\vartheta-\\vartheta'\\rVert_2^2-r_{\\mathrm{id}}^2\\) is negative, passes if its corresponding moment-distance lower endpoint is positive and the distance-constraint lower endpoint is nonnegative, and otherwise is subdivided. For chart construction, inflate each terminal cell \\(H\\) to \\(C=\\Theta_{\\boldsymbol d}\\cap(H+[-r_{\\mathrm{id}},r_{\\mathrm{id}}]^{d_{\\boldsymbol d}})\\); sorted rational endpoints must cover \\(\\Theta_{\\boldsymbol d}\\), and every pair of base cells whose coordinatewise distance can be below \\(r_{\\mathrm{id}}\\) must have its two cells contained in a common inflated chart. At the chart center, take the outward interval midpoint matrix of \\(J\\), choose the lexicographically first \\(d_{\\boldsymbol d}\\)-row submatrix with nonzero exact rational determinant, and set \\(P\\) to its rational inverse times that row selector. Put \\(S=(PJ+J^{\\mathsf T}P^{\\mathsf T})/2\\). Fixed-order interval \\(LDL^{\\mathsf T}\\), with no pivoting, must certify \\(S\\succ0\\); among the mesh \\(\\{k2^{-b}:0\\leq k\\leq2^b\\}\\), fixed binary search on \\([0,1]\\) returns the largest \\(u\\) for which \\(S-uI\\) has a positive interval \\(LDL^{\\mathsf T}\\), and this is the chart's rational \\(\\underline\\mu\\). Independently, search the same dyadic mesh for the largest rational \\(u\\) for which \\(J^{\\mathsf T}J-u^2I\\) passes the identical test, and set \\(\\underline\\kappa=u\\). Covariance and sandwich denominators must exclude zero, their fixed-order \\(LDL^{\\mathsf T}\\) solves must succeed, and outward evaluation gives \\(\\overline v_\\tau\\), \\(N_{\\mathrm{req}}\\), and \\(w_{\\mathrm{cert}}\\). If \\(|\\mathfrak G|=1\\), set \\(\\Gamma_{\\mathcal T}=\\underline\\Gamma_{\\mathcal T}=+\\infty\\); if the remote feasible set is empty, set \\(\\Lambda_{\\mathcal T}=\\underline\\Lambda_{\\mathcal T}=+\\infty\\). A valid simplex allocation with some row entering \\(A_{\\mathcal T}\\) assigned zero mass is \\(\\mathtt{UNDECIDED}\\). Return \\(\\mathtt{CERTIFIED}\\) exactly when rank is full, all required leaves pass, chart coverage passes, every \\(\\underline\\mu,\\underline\\kappa\\), and \\(b_{\\mathrm{in}}\\) is positive, all covariance tests pass, and \\(N_{\\mathrm{req}}\\leq N_{\\max}\\). Return \\(\\mathtt{REFUTED}\\) for exact rank defect, simplex failure, invalid boxes, or a collision only as follows. On a graph-pair product box \\(X\\) with rational midpoint \\(x\\), if one exists, choose the lexicographically first square row projection \\(F\\) of the moment difference whose midpoint Jacobian is nonsingular, put \\(C=\\operatorname{mid}(J_F(X))^{-1}\\), and form \\(K(x,X)=x-CF(x)+(I-CJ_F(X))(X-x)\\) by the same interval operations. A collision is refuted only when \\(K(x,X)\\subset\\operatorname{int}(X)\\), the two parameter factors are disjoint, and every moment coordinate omitted from \\(F\\) is certified to the singleton interval \\([0,0]\\) on \\(K(x,X)\\). At exhausted depth or precision, failed coverage, a nonpositive or zero-containing required interval, or an upper well bound above \\(N_{\\max}\\), return \\(\\mathtt{UNDECIDED}\\). The output bounds are minima or maxima of the stated rational terminal bounds, and \\(\\Pi_{\\mathrm{cert}}\\) records every recurrence table, box, projection, \\(LDL^{\\mathsf T}\\) factor, rounding endpoint, and terminal test; hence no heuristic or unspecified choice affects \\(\\mathfrak C(\\Xi)\\).",
+      "free_symbols": [
+        "certificate-output",
+        "certificate-input",
+        "certificate-status",
+        "proof-object",
+        "dimension-types",
+        "dimension-rows",
+        "composition",
+        "allocation",
+        "unpooling-matrix",
+        "candidate-graph-tuples",
+        "graph-order",
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "node-rate",
+        "exponent-map",
+        "component-pgf",
+        "moment-map",
+        "interiority-margin",
+        "truncation-vector",
+        "tail-moment-order",
+        "taylor-order",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "chart-projection-cover",
+        "projected-moment-map",
+        "tail-error",
+        "weight",
+        "certified-graph-bound",
+        "certified-jacobian-bound",
+        "certified-remote-bound",
+        "certified-local-injectivity-bound",
+        "injectivity-radius",
+        "moment-jacobian",
+        "effect-covariance",
+        "certified-effect-variance",
+        "required-wells",
+        "certified-halfwidth",
+        "precision-budget",
+        "dimension-genes",
+        "designated-coordinate-embedding"
+      ],
+      "inputs": [
+        "certificate-input"
+      ]
+    },
+    {
+      "id": "def:arithmetic-complexity",
+      "name": "\\(\\mathfrak B(\\Xi)\\)",
+      "construction": "Count one primitive operation for each exact rational addition, subtraction, multiplication, division, comparison, dyadic floor or ceiling, and integer-table update; an interval operation counts all of its endpoint primitives, and fixed-order fraction-free elimination, \\(LDL^{\\mathsf T}\\), and matrix solves are expanded into these primitives. Put \\(h_\\star=a_{\\mathrm{TM}}+3\\), \\(m_\\star=pq_\\star^p\\{s_{\\mathrm{tail}}+h_\\star(q_\\star+1)+2\\}\\), \\(A_\\star=\\binom{d_\\star+h_\\star}{h_\\star}\\), \\(C_{\\mathrm{rec}}=4096(J+K)(L^2+L)S_R(d_\\star+1)^2A_\\star^2(m_\\star+1)^{2p}\\), \\(N_{\\mathrm{leaf}}=G_{\\#}2^{c_{\\max}}+G_{\\#}2^{b_{\\max}}+(G_{\\#}+\\binom{G_{\\#}}2)4^{b_{\\max}}+1\\), and \\(P_{\\mathrm{ar}}=1+\\lceil(b_{\\mathrm{cap}}-b_0)/\\Delta b\\rceil\\). The moment calls in the tail recursion have order at most \\(m_\\star\\); their ancestor trees, Bell tables, retained-state Poisson recurrences through order \\(a_{\\mathrm{TM}}+1\\), Taylor coefficients, grid products, and first two contrast derivatives use at most \\(C_{\\mathrm{rec}}\\) primitives per leaf. The deterministic rank, chart, Krawczyk, \\(LDL^{\\mathsf T}\\), covariance, and sandwich routines use at most \\(256(J+K+d_\\star+KL)^3\\) further primitives per leaf. Define \\(\\mathfrak B(\\Xi)=P_{\\mathrm{ar}}N_{\\mathrm{leaf}}\\{C_{\\mathrm{rec}}+256(J+K+d_\\star+KL)^3\\}\\). The displayed loop bounds and the fixed recurrence orders therefore give this literal finite ceiling on every counted operation, including unsuccessful precision passes; the bound is deliberately coarse and makes no polynomial-time claim.",
+      "free_symbols": [
+        "arithmetic-bound",
+        "certificate-input",
+        "dimension-types",
+        "dimension-genes",
+        "dimension-rows",
+        "dimension-grid",
+        "truncated-state-count",
+        "max-parameter-dimension",
+        "max-exponent",
+        "tail-moment-order",
+        "taylor-order",
+        "graph-count",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy"
+      ],
+      "inputs": [
+        "certificate-input"
+      ]
+    },
+    {
+      "id": "def:certificate-handle",
+      "name": "\\(\\mathfrak H_{\\mathrm{cert}}\\)",
+      "construction": "For \\(p\\geq3\\) and fixed \\(\\iota\\), enumerate the finite admissible input class; propagate directed-rounding Taylor models and recursive Poisson tails through wrong-graph exclusion, local chart injectivity, remote within-graph separation, Jacobian nonsingularity, covariance inversion, and designated-contrast precision; retain the nondominated proof objects.",
+      "free_symbols": [
+        "certificate-handle",
+        "admissible-design-class",
+        "pareto-frontier",
+        "tail-error",
+        "certified-graph-bound",
+        "certified-jacobian-bound",
+        "certified-remote-bound",
+        "certified-local-injectivity-bound",
+        "certified-effect-variance",
+        "dimension-genes",
+        "designated-coordinate-embedding"
+      ],
+      "inputs": [
+        "admissible-design-class",
+        "certificate-output"
+      ]
+    },
+    {
+      "id": "def:fixed-protocol",
+      "name": "\\((\\Xi_0,\\mathfrak F_0,\\theta_1^\\star,\\theta_2^\\star)\\)",
+      "construction": "Set \\(K=2\\), \\(p=3\\), \\(J=2\\), fix \\(\\iota(X)=i_X=1\\), \\(\\iota(Y)=i_Y=2\\), and \\(\\iota(Z)=i_Z=3\\), and set \\(M_0=\\begin{pmatrix}1&1\\\\1&2\\end{pmatrix}\\), \\(\\mathcal T_0=\\{4/5,9/10,97/100\\}^3\\), \\(\\mathfrak G=\\mathfrak D_3^2\\), and \\(\\preceq_{\\mathfrak G}\\) to lexicographic order of the two row-major binary adjacency codes. For every \\(\\boldsymbol d=(d_1,d_2)\\), put \\(d_{\\boldsymbol d}=6+|E(d_1)|+|E(d_2)|\\), \\(\\Theta_{\\boldsymbol d}=[1/2,3]^{d_{\\boldsymbol d}}\\), and \\(\\Theta^{\\mathrm{in}}_{\\boldsymbol d}=[3/4,5/2]^{d_{\\boldsymbol d}}\\), with coordinates ordered by type, then roots by node, then edges by child-parent lexicographic order. Set \\(q_{31}=1\\) and \\(q_{sk}=2\\) for every other \\(s\\neq k\\), \\(W=I_{54}\\), \\(\\mathcal R_0=\\{(1/2,1/2)\\}\\), \\(\\rho=(1/2,1/2)\\), \\(r_{\\mathrm{id}}=1/32\\), \\(R=(12,28,80)\\), \\(s_{\\mathrm{tail}}=10\\), \\(a_{\\mathrm{TM}}=8\\), \\(b_{\\max}=20\\), \\(c_{\\max}=8\\), \\(\\pi_{\\mathrm{ar}}=(128,64,512,\\mathtt{out})\\), \\(\\alpha=1/20\\), \\(w_{\\max}=1\\), and \\(N_{\\max}=200000\\); these values define the complete rational input \\(\\Xi_0\\). Let \\(D^\\star=\\{1\\to2,1\\to3,2\\to3\\}\\), \\(\\boldsymbol D_0=(D^\\star,D^\\star)\\), and let the two witness parameters have \\(\\mu_1=1\\), \\(\\mu_2=2\\), and every other root or present-edge coefficient equal to \\(1\\), giving \\(V_1\\sim\\operatorname{Pois}(\\mu_r)\\), \\(V_2\\mid V_1=x\\sim\\operatorname{Pois}(1+x^2)\\), and \\(V_3\\mid V_1=x,V_2=y\\sim\\operatorname{Pois}(1+x+y^2)\\). The sole refinement \\(\\mathfrak F_0\\), used only if \\(\\mathfrak C(\\Xi_0)\\) is \\(\\mathtt{UNDECIDED}\\), replaces \\(\\mathcal T_0\\) by \\(\\mathcal T_1=\\mathcal T_0\\cup\\{3/4,17/20,19/20\\}^3\\), \\(W\\) by \\(I_{108}\\), \\(R\\) by \\((16,36,96)\\), \\(s_{\\mathrm{tail}}\\) by \\(12\\), \\(a_{\\mathrm{TM}}\\) by \\(10\\), \\(b_{\\max}\\) by \\(24\\), \\(c_{\\max}\\) by \\(10\\), and \\(\\pi_{\\mathrm{ar}}\\) by \\((192,64,768,\\mathtt{out})\\), leaving every other entry fixed; the result is \\(\\Xi_1\\), and no second refinement is admissible. The coefficient and exponent boxes are a synthetic prospective-design benchmark, not an assay-calibrated biological model.",
+      "free_symbols": [
+        "benchmark-input",
+        "refined-benchmark-input",
+        "benchmark-allocation-set",
+        "benchmark-refinement-rule",
+        "certificate-input",
+        "certificate-output",
+        "certificate-status",
+        "fixed-composition",
+        "fixed-grid",
+        "witness-parameters",
+        "true-graph",
+        "dimension-types",
+        "dimension-genes",
+        "dimension-rows",
+        "dimension-grid",
+        "designated-coordinate-embedding",
+        "graph-set",
+        "cell-count",
+        "exponent-map",
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "candidate-graph-tuples",
+        "graph-order",
+        "weight",
+        "allocation",
+        "injectivity-radius",
+        "truncation-vector",
+        "tail-moment-order",
+        "taylor-order",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "confidence-level",
+        "confidence-halfwidth",
+        "precision-budget"
+      ],
+      "inputs": [
+        "certificate-input",
+        "fixed-composition",
+        "fixed-grid",
+        "designated-coordinate-embedding"
+      ]
+    },
+    {
+      "id": "def:admissible-design-class",
+      "name": "\\(\\mathfrak X_{\\mathrm{adm}}\\)",
+      "construction": "Fix \\(K,p,\\iota,\\mathfrak G,(\\Theta_{\\boldsymbol d},\\Theta^{\\mathrm{in}}_{\\boldsymbol d}),q,W,\\pi_{\\mathrm{ar}},\\alpha,w_{\\max}\\), finite \\(\\mathcal Z_{\\mathrm{cand}}\\), \\(\\mathcal R_{\\mathrm{adm}}\\subset\\Delta_J^{\\mathbb Q}=\\{r\\in\\mathbb Q_+^J:\\sum_{j=1}^{J}r_j=1\\}\\), and \\(\\mathcal N_{\\mathrm{adm}}\\), and caps \\(\\mathfrak b\\). Let \\(\\mathfrak X_{\\mathrm{adm}}\\) contain exactly inputs with \\(1\\leq J\\leq J_{\\max}\\), \\(M\\in\\{0,\\ldots,m_{\\max}\\}^{J\\times K}\\), \\(\\mathcal T\\subseteq\\mathcal Z_{\\mathrm{cand}}\\) and \\(1\\leq|\\mathcal T|\\leq L_{\\max}\\), \\(\\rho\\in\\mathcal R_{\\mathrm{adm}}\\), \\(1\\leq R_s\\leq R_{\\max}\\), \\(1\\leq s_{\\mathrm{tail}}\\leq s_{\\max}\\), \\(0\\leq a_{\\mathrm{TM}}\\leq a_{\\max}\\), \\(0\\leq b_{\\max}\\leq b_{\\max}^{\\mathrm{adm}}\\), \\(0\\leq c_{\\max}\\leq c_{\\max}^{\\mathrm{adm}}\\), \\(N_{\\max}\\in\\mathcal N_{\\mathrm{adm}}\\), and \\(\\mathfrak B(\\Xi)\\leq B_{\\max}\\). All quantities held fixed have finite representations, so the displayed choices form a finite class.",
+      "free_symbols": [
+        "admissible-design-class",
+        "dimension-types",
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "candidate-graph-tuples",
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "exponent-map",
+        "weight",
+        "confidence-level",
+        "confidence-halfwidth",
+        "grid-candidate-set",
+        "allocation-candidate-set",
+        "well-budget-set",
+        "design-caps",
+        "certificate-input",
+        "composition",
+        "moment-grid",
+        "allocation",
+        "truncation-vector",
+        "tail-moment-order",
+        "taylor-order",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "precision-budget",
+        "arithmetic-bound"
+      ],
+      "inputs": [
+        "design-caps",
+        "grid-candidate-set",
+        "allocation-candidate-set",
+        "well-budget-set"
+      ]
+    },
+    {
+      "id": "def:certified-pareto-frontier",
+      "name": "\\(\\mathfrak P_{\\mathrm{adm}}\\)",
+      "construction": "Let \\(\\mathfrak P_{\\mathrm{adm}}\\) be the certified members of \\(\\mathfrak X_{\\mathrm{adm}}\\) not weakly dominated with one strict inequality in \\((\\underline\\Gamma_{\\mathcal T},\\underline\\kappa_{\\mathcal T},\\underline\\Lambda_{\\mathcal T},\\underline\\mu_{\\mathcal T},-N_{\\mathrm{req}},-w_{\\mathrm{cert}},-\\mathfrak B(\\Xi))\\).",
+      "free_symbols": [
+        "pareto-frontier",
+        "admissible-design-class",
+        "certificate-input",
+        "certificate-status",
+        "certified-graph-bound",
+        "certified-jacobian-bound",
+        "certified-remote-bound",
+        "certified-local-injectivity-bound",
+        "required-wells",
+        "certified-halfwidth",
+        "arithmetic-bound"
+      ],
+      "inputs": [
+        "admissible-design-class",
+        "certificate-output"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "lem:positive-poisson-alias",
+      "kind": "lemma",
+      "statement": "If \\(\\operatorname{rank}(M)<K\\), every choice in \\(\\mathfrak A(M,a,\\Lambda,u,\\epsilon)\\) produces two distinct labeled collections of full-support component laws whose row-wise pooled laws are identical.",
+      "free_symbols": [
+        "composition",
+        "dimension-types",
+        "alias-family",
+        "component-law",
+        "pooled-count"
+      ],
+      "depends_on": [
+        "def:positive-poisson-alias",
+        "def:unrestricted-pool-class"
+      ],
+      "status": "to-prove",
+      "justification": "This supplies a nonboundary necessity witness for the exact rank frontier.",
+      "gap": "Shih--Hero provides the high-level additive transform-inversion precedent but does not state this positive nullspace alias for arbitrary rank-deficient integer compositions.",
+      "consumer": "It shows that replication at unchanged composition rows cannot repair a rank-deficient prospective design."
+    },
+    {
+      "id": "thm:rank-frontier",
+      "kind": "theorem",
+      "statement": "On \\(\\mathcal M_{\\mathrm{pool}}\\), the pooling map \\(\\mathscr A_M\\) is injective for every labeled \\(K\\)-tuple \\((P_1,\\ldots,P_K)\\in\\mathcal P(\\mathbb N_0^p)^K\\) if and only if \\(\\operatorname{rank}(M)=K\\). Under full column rank, \\((G_1(z),\\ldots,G_K(z))^{\\mathsf T}=\\mathscr R_M(H)(z)\\) for every \\(z\\in(0,1]^p\\), and PGF coefficient uniqueness recovers every \\(P_r\\).",
+      "free_symbols": [
+        "unrestricted-pool-class",
+        "pooling-map",
+        "composition",
+        "dimension-types",
+        "component-law",
+        "dimension-genes",
+        "component-pgf",
+        "recovery-map",
+        "pooled-pgf"
+      ],
+      "depends_on": [
+        "def:unrestricted-pool-class",
+        "def:recovery-map",
+        "lem:positive-poisson-alias"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem gives the exact acquisition boundary before causal restrictions or finite-grid estimation are imposed.",
+      "gap": "Shih--Hero supplies the source-verified high-level idea of transform inversion for independent additive link delays; this theorem credits that idea, derives the displayed count-PGF recovery map, and adds the unrestricted multivariate count-law if-and-only-if frontier with a positive converse family.",
+      "consumer": "A prospective bulk-mixture study can determine whether its chosen composition rows identify labeled type laws before collecting replicates."
+    },
+    {
+      "id": "prop:polynomial-class-inclusion",
+      "kind": "proposition",
+      "statement": "Every member of \\(\\mathcal M_{\\mathrm{poly}}(\\mathfrak G,\\Theta,q)\\) has full support on \\(\\mathbb N_0^p\\), is causally sufficient, and is pairwise identifiable in the sense of Bodik--Chavez-Demoulin; hence it belongs to \\(\\mathcal M_{\\mathrm{CPCM}}\\).",
+      "free_symbols": [
+        "polynomial-cpcm-class",
+        "candidate-graph-tuples",
+        "graph-parameter-space",
+        "exponent-map",
+        "cpcm-class",
+        "dimension-types",
+        "dimension-genes"
+      ],
+      "depends_on": [
+        "def:cpcm-class",
+        "def:polynomial-cpcm-class"
+      ],
+      "status": "to-prove",
+      "justification": "The proposition proves that the nonlinear certificate family lies inside the direct-law identifiable CPCM class.",
+      "gap": "Bodik--Chavez-Demoulin defines pairwise identifiability and recovers a CPCM DAG from its direct law but does not verify those conditions for this paper's stricter Poisson-root positive-polynomial benchmark family.",
+      "consumer": "It validates the causal model class searched by the reusable certificate."
+    },
+    {
+      "id": "prop:three-node-contrast",
+      "kind": "proposition",
+      "statement": "Set \\(p=3\\) and fix the ordered embedding \\(\\iota(X)=i_X=1\\), \\(\\iota(Y)=i_Y=2\\), and \\(\\iota(Z)=i_Z=3\\). For each type \\(r\\) in the fixed synthetic protocol, the truncated-factorization contrasts satisfy \\(\\tau_{i_Y,r}=3\\) and \\(\\tau_{i_Z,r}=25\\).",
+      "free_symbols": [
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "effect-vector",
+        "witness-parameters",
+        "dimension-types"
+      ],
+      "depends_on": [
+        "ass:three-designated-coordinates",
+        "def:truncated-factorization-effect",
+        "def:fixed-protocol"
+      ],
+      "status": "to-prove",
+      "justification": "This checks the designated-coordinate intervention arithmetic in the synthetic three-node application.",
+      "gap": "The calculation is an application check and is not presented as a theorem-level novelty claim.",
+      "consumer": "It supplies auditable contrast targets for the finite-input certificate without treating the synthetic box as biological calibration."
+    },
+    {
+      "id": "thm:causal-transfer",
+      "kind": "theorem",
+      "statement": "Assume \\(p\\geq3\\) and fix the ordered injection \\(\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\}\\). If \\(\\operatorname{rank}(M)=K\\) and every recovered component law belongs to \\(\\mathcal M_{\\mathrm{CPCM}}\\), then the pooled-law tuple identifies each labeled type graph \\(D_r\\). If the recovered law belongs to \\(\\mathcal M_{\\mathrm{poly}}(\\mathfrak G,\\Theta,q)\\), it also identifies the \\(\\iota\\)-indexed contrast vector \\(\\boldsymbol\\tau=((\\tau_{i_Y,r},\\tau_{i_Z,r}))_{r=1}^{K}\\) through the displayed truncated factorization at \\(V_{i_X}\\).",
+      "free_symbols": [
+        "composition",
+        "dimension-types",
+        "component-law",
+        "pooling-map",
+        "cpcm-class",
+        "cpcm-graph",
+        "polynomial-cpcm-class",
+        "candidate-graph-tuples",
+        "graph-parameter-space",
+        "exponent-map",
+        "effect-vector",
+        "dimension-genes",
+        "designated-coordinate-embedding"
+      ],
+      "depends_on": [
+        "ass:three-designated-coordinates",
+        "thm:rank-frontier",
+        "prop:polynomial-class-inclusion",
+        "def:truncated-factorization-effect"
+      ],
+      "status": "to-prove",
+      "justification": "This transfers the acquisition certificate to causal structure and supported intervention quantities.",
+      "gap": "Bodik--Chavez-Demoulin identifies CPCM graphs from direct laws, Gao--Cai--Hara identifies PT-SEM DAGs and thinning parameters from direct count vectors, and Luo--Sun--Zhang Section 4.2 studies functional consistency under linear aggregation and gives affine ANM/PNL consequences; Section 4.3 concerns conditional-independence consistency. Known labeled multi-composition pools remain outside its target, and none of these results recovers labeled causal laws through several independent known-composition mixtures.",
+      "consumer": "It defines what a successful known-composition prospective bulk assay identifies at the cellular causal level."
+    },
+    {
+      "id": "thm:stability",
+      "kind": "theorem",
+      "statement": "If \\(\\operatorname{rank}(M)=K\\) and \\(\\delta<\\beta\\), then \\(\\sup_{z\\in\\mathcal Z_\\eta}\\lVert M^{+}\\log\\widetilde H(z)-\\log G(z)\\rVert_2\\leq E_M\\), \\(\\sup_{z\\in\\mathcal Z_\\eta}\\lVert\\mathscr R_M(\\widetilde H)(z)-G(z)\\rVert_2\\leq e^{E_M}E_M\\), and \\(\\sup_{z\\in\\mathcal Z_\\eta}\\max_r|\\mathscr R_M(\\widetilde H)_r(z)/G_r(z)-1|\\leq e^{E_M}-1\\).",
+      "free_symbols": [
+        "composition",
+        "dimension-types",
+        "stability-index",
+        "perturbation-radius",
+        "pool-envelope",
+        "evaluation-domain",
+        "pseudoinverse",
+        "perturbed-pgf",
+        "component-pgf",
+        "recovery-map"
+      ],
+      "depends_on": [
+        "def:recovery-map",
+        "def:stability-quantities",
+        "thm:rank-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "The result separates qualitative rank from operational amplification through both \\(\\lVert M^{+}\\rVert_2\\) and pooled-PGF attenuation.",
+      "gap": "Shih--Hero provides the high-level independent-additive transform-inversion precedent but does not supply this multivariate lower-envelope perturbation bound for designed count pools.",
+      "consumer": "It screens compositions and grid locations before running the more expensive validated certificate."
+    },
+    {
+      "id": "thm:finite-grid-existence",
+      "kind": "theorem",
+      "statement": "For any fixed nonempty finite \\(\\mathfrak G\\), nonempty compact boxes, exponent array, and nonempty open \\(\\mathcal O\\subset(0,1)^p\\), there are a finite rational \\(\\mathcal T\\subset\\mathcal O\\), a rational \\(r_{\\mathrm{id}}>0\\), and a valid finite rational chart-projection cover \\(\\mathscr C\\) such that \\(\\Gamma_{\\mathcal T}>0\\), \\(\\kappa_{\\mathcal T}>0\\), \\(\\Lambda_{\\mathcal T}(r_{\\mathrm{id}})>0\\), and \\(\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)>0\\). Here \\(\\Gamma_{\\mathcal T}=+\\infty\\) when \\(|\\mathfrak G|=1\\), and \\(\\Lambda_{\\mathcal T}=+\\infty\\) when its remote pair set is empty. Consequently each within-graph moment map is globally injective; this uses local chart strong monotonicity and remote separation, not the Jacobian margin alone.",
+      "free_symbols": [
+        "candidate-graph-tuples",
+        "graph-parameter-space",
+        "exponent-map",
+        "polynomial-cpcm-class",
+        "moment-grid",
+        "moment-map",
+        "graph-gap",
+        "jacobian-margin",
+        "injectivity-radius",
+        "remote-identification-gap",
+        "local-injectivity-margin",
+        "chart-projection-cover",
+        "dimension-genes"
+      ],
+      "depends_on": [
+        "def:polynomial-cpcm-class",
+        "def:grid-criterion",
+        "prop:polynomial-class-inclusion"
+      ],
+      "status": "to-prove",
+      "justification": "This establishes existence of a finite transform design with distinct global and local certificates.",
+      "gap": "Bodik--Chavez-Demoulin supplies neither a finite PGF grid nor quantitative global-injectivity and Jacobian margins over compact boxes.",
+      "consumer": "It supplies the consistency check that the reusable certificate is searching for a nonvacuous finite-input object."
+    },
+    {
+      "id": "thm:certificate-soundness-complexity",
+      "kind": "theorem",
+      "statement": "For \\(p\\geq3\\), fixed \\(\\iota\\), and finite \\(\\Xi\\), the procedure terminates after at most \\(G_{\\#}2^{c_{\\max}}+G_{\\#}2^{b_{\\max}}+(G_{\\#}+\\binom{G_{\\#}}{2})4^{b_{\\max}}\\) chart or objective leaves and \\(\\mathfrak B(\\Xi)\\) outward-rounded operations. It rejects \\(\\rho\\notin\\Delta_J^{\\mathbb Q}\\) before covariance or required-well evaluation. A \\(\\mathtt{CERTIFIED}\\) output proves full rank; normalized allocation with \\(\\rho_j>0\\) for every composition row entering the unpooling map; valid chart coverage; positive exact untruncated bounds \\(\\Gamma_{\\mathcal T}\\geq\\underline\\Gamma_{\\mathcal T}\\), \\(\\kappa_{\\mathcal T}\\geq\\underline\\kappa_{\\mathcal T}\\), \\(\\Lambda_{\\mathcal T}(r_{\\mathrm{id}})\\geq\\underline\\Lambda_{\\mathcal T}(r_{\\mathrm{id}})\\), and \\(\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)\\geq\\underline\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)\\); positive interiority; the recorded tail and variance bounds; and \\(N_{\\mathrm{req}}\\leq N_{\\max}\\). For an empty wrong-graph comparison or remote-pair set, the corresponding exact and certified bounds are \\(+\\infty\\) and impose no numerical check. A \\(\\mathtt{REFUTED}\\) output proves its named obstruction; \\(\\mathtt{UNDECIDED}\\) makes no substantive claim. If all nonvacuous exact inequalities have strict slack and the deterministic chart construction admits strict strong-monotonicity bounds, sufficiently large finite truncation, subdivision, Taylor, and precision controls produce \\(\\mathtt{CERTIFIED}\\).",
+      "free_symbols": [
+        "certificate-input",
+        "certificate-output",
+        "certificate-status",
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "allocation",
+        "dimension-rows",
+        "graph-count",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "chart-projection-cover",
+        "arithmetic-bound",
+        "certified-graph-bound",
+        "certified-jacobian-bound",
+        "certified-remote-bound",
+        "certified-local-injectivity-bound",
+        "graph-gap",
+        "jacobian-margin",
+        "remote-identification-gap",
+        "local-injectivity-margin",
+        "interiority-margin",
+        "tail-error",
+        "certified-effect-variance",
+        "required-wells",
+        "precision-budget"
+      ],
+      "depends_on": [
+        "ass:three-designated-coordinates",
+        "def:certificate-input",
+        "def:certificate-procedure",
+        "def:arithmetic-complexity",
+        "def:grid-criterion",
+        "def:replicate-pgf-covariance",
+        "def:sandwich-covariance",
+        "thm:finite-grid-existence",
+        "lem:certified-global-identification"
+      ],
+      "status": "to-prove",
+      "justification": "This is the proof-producing kernel with distinct global identification, local regularity, and precision outputs.",
+      "gap": "Rump, Kearfott, and Berz--Makino do not jointly propagate Poisson-PGF tails through graph exclusion, global within-graph identification, singular values, covariance, and intervention precision.",
+      "consumer": "It turns a prospective choice of composition, grid, model boxes, and computational budget into an auditable go, stop, or undecided decision."
+    },
+    {
+      "id": "thm:pooled-wald-certified",
+      "kind": "theorem",
+      "statement": "Assume \\(p\\geq3\\), fix \\(\\iota\\), and let \\(\\mathfrak C(\\Xi)=\\mathtt{CERTIFIED}\\). Suppose the true pooled model has \\(\\boldsymbol D_0\\in\\mathfrak G\\) and \\(\\theta_0\\in\\Theta^{\\mathrm{in}}_{\\boldsymbol D_0}\\), the normalized allocation obeys \\(\\rho\\in\\Delta_J^{\\mathbb Q}\\) with \\(\\rho_j>0\\) for every row and \\(n_{Sj}/N_S\\to\\rho_j\\) for \\(S\\in\\{A,B\\}\\), and the weighting and nondegeneracy conditions hold. As \\(\\min(N_A,N_B)\\to\\infty\\), the declared lexicographic selector satisfies \\(\\Pr(\\widehat{\\boldsymbol D}=\\boldsymbol D_0)\\to1\\), while \\(\\sqrt{N_B}(\\widehat{\\boldsymbol\\tau}-\\boldsymbol\\tau)\\Rightarrow\\mathcal N(0,V_\\tau(\\boldsymbol D_0,\\theta_0;\\iota))\\). Plug-in covariance is consistent and scalar Wald intervals have pointwise coverage \\(1-\\alpha\\). The conclusion separately uses certified wrong-graph separation, certified global within-graph uniqueness, certified local nonsingularity, certified positive inference-box clearance, the normalized row allocation, and the deterministic selector. Moreover \\(\\lVert\\Sigma_g\\rVert_2\\leq\\lVert\\operatorname{diag}(g)\\rVert_2^2\\lVert M^+\\rVert_2^2\\lVert\\operatorname{diag}(h)^{-1}\\rVert_2^2\\lVert\\Sigma_h\\rVert_2\\).",
+      "free_symbols": [
+        "certificate-input",
+        "certificate-output",
+        "certificate-status",
+        "polynomial-cpcm-class",
+        "candidate-graph-tuples",
+        "graph-parameter-space",
+        "inference-parameter-space",
+        "composition",
+        "dimension-types",
+        "graph-estimate",
+        "true-graph",
+        "true-parameter",
+        "deterministic-selector",
+        "effect-estimate",
+        "effect-vector",
+        "training-size",
+        "inference-size",
+        "effect-covariance",
+        "row-covariance",
+        "pooled-covariance",
+        "component-covariance",
+        "confidence-level",
+        "certified-effect-variance",
+        "pseudoinverse",
+        "pooled-moment-vector",
+        "component-moment-vector",
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "interiority-margin",
+        "allocation",
+        "replicate-count",
+        "dimension-rows"
+      ],
+      "depends_on": [
+        "ass:three-designated-coordinates",
+        "thm:rank-frontier",
+        "thm:certificate-soundness-complexity",
+        "lem:certified-global-identification",
+        "def:polynomial-cpcm-class",
+        "ass:row-allocation",
+        "ass:split-growth",
+        "ass:positive-weight",
+        "ass:true-parameter-interior",
+        "ass:contrast-nondegeneracy",
+        "def:replicate-pgf-covariance",
+        "def:sample-split-estimator",
+        "def:sandwich-covariance"
+      ],
+      "status": "to-prove",
+      "justification": "The inference layer uses exactly the global, local, interior, selector, and covariance objects certified by the decision layer.",
+      "gap": "Chen--Cao--Bu and Carrasco--Florens provide transform-moment ingredients, but neither conditions graph-selected intervention inference on a matching validated global certificate with propagated precision bounds.",
+      "consumer": "A certified prospective benchmark obtains uncertainty from replicate wells without manufacturing pseudo-single-cell observations."
+    },
+    {
+      "id": "prop:two-by-two-reduction",
+      "kind": "proposition",
+      "statement": "For \\(M=M_0\\), \\(M_0^{+}=\\begin{pmatrix}2&-1\\\\-1&1\\end{pmatrix}\\), so \\(G_1=H_1^2/H_2\\) and \\(G_2=H_2/H_1\\) on \\((0,1]^p\\).",
+      "free_symbols": [
+        "composition",
+        "fixed-composition",
+        "pseudoinverse",
+        "component-pgf",
+        "pooled-pgf",
+        "dimension-genes"
+      ],
+      "depends_on": [
+        "def:recovery-map",
+        "thm:rank-frontier",
+        "def:fixed-protocol"
+      ],
+      "status": "to-prove",
+      "justification": "This checks the general inverse against the smallest genuinely mixed full-rank design.",
+      "gap": "The calculation is a sanity reduction and is not presented as a novelty claim.",
+      "consumer": "It provides an auditable population inverse for the synthetic two-type application."
+    },
+    {
+      "id": "oeq:certifiable-design-frontier",
+      "kind": "openendedquestion",
+      "statement": "For \\(p\\geq3\\) and fixed \\(\\iota\\), determine the finite Pareto set \\(\\mathfrak P_{\\mathrm{adm}}\\) over \\(\\mathfrak X_{\\mathrm{adm}}\\): integer matrices have \\(J\\leq J_{\\max}\\) and entries at most \\(m_{\\max}\\); grids are subsets of the fixed finite rational set \\(\\mathcal Z_{\\mathrm{cand}}\\) with cardinality at most \\(L_{\\max}\\); normalized nonnegative rational allocations and well caps lie in \\(\\mathcal R_{\\mathrm{adm}}\\subset\\Delta_J^{\\mathbb Q}\\) and \\(\\mathcal N_{\\mathrm{adm}}\\); and truncation, moment, Taylor, objective-subdivision, chart-subdivision, precision, and arithmetic work obey the fixed policy and \\(\\mathfrak b\\). Can certified dominance and infeasibility rules characterize the finite frontier in graph gap, Jacobian margin, global-identification margins, required wells, contrast half-width, and arithmetic cost without evaluating every admissible input?",
+      "free_symbols": [
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "pareto-frontier",
+        "admissible-design-class",
+        "design-caps",
+        "composition",
+        "dimension-rows",
+        "grid-candidate-set",
+        "moment-grid",
+        "dimension-grid",
+        "allocation-candidate-set",
+        "well-budget-set",
+        "truncation-vector",
+        "tail-moment-order",
+        "taylor-order",
+        "subdivision-budget",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "arithmetic-bound",
+        "certified-graph-bound",
+        "certified-jacobian-bound",
+        "certified-remote-bound",
+        "certified-local-injectivity-bound",
+        "required-wells",
+        "certified-halfwidth"
+      ],
+      "depends_on": [
+        "ass:three-designated-coordinates",
+        "def:admissible-design-class",
+        "def:certified-pareto-frontier",
+        "def:certificate-handle",
+        "thm:certificate-soundness-complexity",
+        "thm:stability"
+      ],
+      "status": "to-prove",
+      "justification": "The question poses a finite auditable design frontier under declared statistical and computational budgets.",
+      "gap": "Validated global optimization certifies numerical ranges, and tomography design optimizes information, but no result characterizes a joint certified region for Poisson-PGF graph exclusion, immersion, and causal-contrast precision.",
+      "consumer": "It yields a reusable finite menu of nondominated prospective designs."
+    },
+    {
+      "id": "oeq:three-node-benchmark",
+      "kind": "openendedquestion",
+      "statement": "Run \\(\\mathfrak C\\) on the complete rational input \\(\\Xi_0\\) in \\(\\mathrm{def{:}fixed\\text{-}protocol}\\). If and only if its status is \\(\\mathtt{UNDECIDED}\\), run it once more on the uniquely prescribed replacement \\(\\Xi_1=\\mathfrak F_0(\\Xi_0)\\); do not refine after \\(\\mathtt{CERTIFIED}\\) or \\(\\mathtt{REFUTED}\\). Does one of these two runs return \\(\\mathtt{CERTIFIED}\\), thereby proving positive nonvacuous wrong-graph, Jacobian, remote-identification, and local-injectivity bounds, valid tails, and \\(N_{\\mathrm{req}}\\leq200000\\) for the synthetic \\(p=3\\), \\((i_X,i_Y,i_Z)=(1,2,3)\\) benchmark?",
+      "free_symbols": [
+        "fixed-composition",
+        "fixed-grid",
+        "candidate-graph-tuples",
+        "graph-parameter-space",
+        "exponent-map",
+        "certificate-output",
+        "certificate-input",
+        "certificate-status",
+        "certified-graph-bound",
+        "certified-jacobian-bound",
+        "certified-remote-bound",
+        "certified-local-injectivity-bound",
+        "tail-error",
+        "required-wells",
+        "precision-budget",
+        "benchmark-input",
+        "refined-benchmark-input",
+        "benchmark-refinement-rule",
+        "benchmark-allocation-set",
+        "chart-subdivision-budget",
+        "arithmetic-precision-policy",
+        "dimension-genes",
+        "designated-coordinate-embedding",
+        "effect-vector",
+        "dimension-types"
+      ],
+      "depends_on": [
+        "ass:three-designated-coordinates",
+        "prop:three-node-contrast",
+        "def:fixed-protocol",
+        "def:certificate-handle",
+        "thm:certificate-soundness-complexity",
+        "oeq:certifiable-design-frontier"
+      ],
+      "status": "to-prove",
+      "justification": "This is a falsifiable application of the reusable procedure, not the headline theorem and not evidence for an existing biological assay.",
+      "gap": "The floating-point pilot checks only two local witness Jacobians and no wrong-graph boxes; it does not establish any uniform premise used by the inference theorem.",
+      "consumer": "A certified answer licenses only the stated synthetic prospective benchmark; a collision, singularity, or precision obstruction stops that protocol without affecting the rank frontier."
+    },
+    {
+      "id": "lem:certified-global-identification",
+      "kind": "lemma",
+      "statement": "If \\(\\mathfrak C(\\Xi)\\) returns \\(\\mathtt{CERTIFIED}\\), its recorded valid cover \\(\\mathscr C\\) satisfies \\(\\mu_{\\mathcal T}(r_{\\mathrm{id}};\\mathscr C)\\geq\\underline\\mu_{\\mathcal T}>0\\), so every same-graph pair closer than \\(r_{\\mathrm{id}}\\) is separated in a co-containing chart. Every feasible pair at least \\(r_{\\mathrm{id}}\\) apart has squared \\(W\\)-distance at least \\(\\underline\\Lambda_{\\mathcal T}>0\\), with the remote claim vacuous when that pair set is empty. Therefore every \\(m_{\\boldsymbol d,\\mathcal T}\\) is globally injective on \\(\\Theta_{\\boldsymbol d}\\), and \\(Q_{\\boldsymbol d,\\mathcal T}(\\cdot;m_{\\boldsymbol d,\\mathcal T}(\\theta_0))\\) has unique minimum \\(\\theta_0\\) with the certified remote separation outside its local neighborhood.",
+      "free_symbols": [
+        "certificate-output",
+        "certificate-status",
+        "moment-map",
+        "graph-parameter-space",
+        "injectivity-radius",
+        "certified-local-injectivity-bound",
+        "chart-projection-cover",
+        "projected-moment-map",
+        "certified-remote-bound",
+        "weight",
+        "score",
+        "true-parameter",
+        "cpcm-graph",
+        "moment-grid"
+      ],
+      "depends_on": [
+        "def:certificate-procedure",
+        "def:grid-criterion"
+      ],
+      "status": "to-prove",
+      "justification": "This prevents local Jacobian rank from substituting for global uniqueness.",
+      "gap": "A local inverse theorem alone does not certify a unique compact-box population minimum.",
+      "consumer": "It supplies the global identification premise for the deterministic minimum-distance estimator."
+    }
+  ],
+  "sampling_model": {
+    "design": "Independent replicate wells are collected at fixed, known integer composition rows of \\(M\\). The two-row matrix \\(M_0\\) is a synthetic prospective-design application.",
+    "units": "A unit is one replicate well containing exactly the declared number of independent cells of each labeled type; rowwise random splitting produces \\(N_A\\) training wells and \\(N_B\\) inference wells, both split sizes diverge, and the row fractions converge to a normalized rational probability vector \\(\\rho\\) that is strictly positive for every sampled composition row.",
+    "treatment": "For \\(p\\geq3\\), the ordered embedding \\(\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\}\\) is fixed before analysis. The interventions \\(\\operatorname{do}(V_{i_X}=1)\\) and \\(\\operatorname{do}(V_{i_X}=2)\\) are counterfactual count interventions, and responses are the coordinates \\(V_{i_Y}\\) and \\(V_{i_Z}\\), evaluated by truncated factorization after type-law and graph recovery.",
+    "overlap": "Positive Poisson roots and rates give full support on \\(\\mathbb N_0^p\\), so the fixed parent configurations at the designated coordinates \\(i_X,i_Y,i_Z\\) are observationally supported within the benchmark family.",
+    "nuisance_estimation": "Pooled PGFs are empirical replicate-well averages; component PGFs use log inversion; graph and parameter estimates use the deterministic lexicographic sample-split selector; the certifier validates allocation normalization before covariance calculations, and inference is activated only by a certificate of positive sampled-row fractions, wrong-graph separation, global within-graph injectivity, local nonsingularity, positive interiority clearance, and precision."
+  },
+  "estimand_functional": "\\(\\text{for }p\\geq3\\text{ and }\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\},\\quad \\boldsymbol\\tau=\\left(\\sum_{v_{-i_X}}(v_{i_Y},v_{i_Z})\\left[\\prod_{s\\neq i_X}p_{rs}(v_s\\mid v_{\\operatorname{pa}_{D_r}(s)})\\big|_{v_{i_X}=2}-\\prod_{s\\neq i_X}p_{rs}(v_s\\mid v_{\\operatorname{pa}_{D_r}(s)})\\big|_{v_{i_X}=1}\\right]\\right)_{r=1}^{K}\\)",
+  "target_estimand": "\\(\\text{for }p\\geq3\\text{ and }\\iota:\\{X,Y,Z\\}\\hookrightarrow\\{1,\\ldots,p\\},\\quad \\boldsymbol\\tau=((\\mathbb E[V_{i_Y}\\mid\\operatorname{do}(V_{i_X}=2)]-\\mathbb E[V_{i_Y}\\mid\\operatorname{do}(V_{i_X}=1)],\\mathbb E[V_{i_Z}\\mid\\operatorname{do}(V_{i_X}=2)]-\\mathbb E[V_{i_Z}\\mid\\operatorname{do}(V_{i_X}=1)]))_{r=1}^{K}\\)",
+  "bibliography": [
+    {
+      "key": "ShihHero2001Unicast",
+      "citation": "M.-F. Shih and A. O. Hero III (2001), 'Unicast Inference of Network Link Delay Distributions from Edge Measurements,' Proceedings of IEEE ICASSP, volume 6, pages 3421--3424, doi:10.1109/ICASSP.2001.940576."
+    },
+    {
+      "key": "ChenCaoBu2010NetworkTomography",
+      "citation": "A. Chen, J. Cao, and T. Bu (2010), 'Network Tomography: Identifiability and Fourier Domain Estimation,' IEEE Transactions on Signal Processing 58(12), pages 6029--6039, doi:10.1109/TSP.2010.2068294."
+    },
+    {
+      "key": "Thoppe2013GeneralizedTomography",
+      "citation": "G. Thoppe (2013), 'Generalized Network Tomography,' Journal of Global Optimization 57, pages 13--33, arXiv:1207.2530."
+    },
+    {
+      "key": "BodikChavezDemoulin2025CPCM",
+      "citation": "J. Bodik and V. Chavez-Demoulin (2025), 'Identifiability of Causal Graphs under Non-Additive Conditionally Parametric Causal Models,' Journal of Machine Learning Research 26(264), pages 1--55, arXiv:2303.15376."
+    },
+    {
+      "key": "Pearl2009Causality",
+      "citation": "J. Pearl (2009), 'Causality: Models, Reasoning, and Inference,' second edition, Cambridge University Press."
+    },
+    {
+      "key": "LuoSunZhang2026BulkRecoverability",
+      "citation": "G. Luo, B. Sun, and K. Zhang (2026), 'On the Recoverability of Causal Relations from Bulk Gene Expression Data,' arXiv:2606.00568."
+    },
+    {
+      "key": "CarrascoFlorens2000ContinuumGMM",
+      "citation": "M. Carrasco and J.-P. Florens (2000), 'Generalization of GMM to a Continuum of Moment Conditions,' Econometric Theory 16(6), pages 797--834, doi:10.1017/S0266466600166010."
+    },
+    {
+      "key": "NeweyMcFadden1994LargeSample",
+      "citation": "W. K. Newey and D. McFadden (1994), 'Large Sample Estimation and Hypothesis Testing,' Handbook of Econometrics, volume 4, chapter 36, pages 2111--2245."
+    },
+    {
+      "key": "GaoCaiHara2026PTSEM",
+      "citation": "P. Gao, M. Cai, and H. Hara (2026), 'Causal DAG Identification for Count Data via Poisson Thinning Structural Equation Models,' arXiv:2609.06098v1."
+    },
+    {
+      "key": "Rump2010Verification",
+      "citation": "S. M. Rump (2010), 'Verification Methods: Rigorous Results Using Floating-Point Arithmetic,' Acta Numerica 19, pages 287--449, doi:10.1017/S096249291000005X."
+    },
+    {
+      "key": "Kearfott2011RigourGlobal",
+      "citation": "R. B. Kearfott (2011), 'Interval Computations, Rigour and Non-Rigour in Deterministic Continuous Global Optimization,' Optimization Methods and Software 26(2), pages 259--279, doi:10.1080/10556781003636851."
+    },
+    {
+      "key": "BerzMakino2009TaylorModels",
+      "citation": "M. Berz and K. Makino (2009), 'Rigorous Global Search Using Taylor Models,' Proceedings of the 2009 Conference on Symbolic Numeric Computation, pages 11--20, doi:10.1145/1577190.1577198."
+    },
+    {
+      "key": "Jansson2001Quasiconvex",
+      "citation": "C. Jansson (2001), 'Quasiconvex Relaxations Based on Interval Arithmetic,' Linear Algebra and its Applications 324(1--3), pages 27--53, doi:10.1016/S0024-3795(00)00295-0."
+    },
+    {
+      "key": "HauensteinSottile2012AlphaCertified",
+      "citation": "J. D. Hauenstein and F. Sottile (2012), 'alphaCertified: Certifying Solutions to Polynomial Systems,' ACM Transactions on Mathematical Software 38(4), article 28, arXiv:1011.1091."
+    },
+    {
+      "key": "HeEtAl2015FisherTomography",
+      "citation": "T. He, C. Liu, A. Swami, D. Towsley, T. Salonidis, A. I. Bejan, and P. Yu (2015), 'Fisher Information-Based Experiment Design for Network Tomography,' Proceedings of ACM SIGMETRICS, doi:10.1145/2796314.2745862."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "ShihHero2001Unicast",
+      "comparator_claim": "The paper uses cumulant or transform inversion to recover independent additive link-delay components from aggregate path measurements.",
+      "matched_by": "Theorem 1",
+      "match_kind": "iff_frontier"
+    },
+    {
+      "comparator_bibkey": "ChenCaoBu2010NetworkTomography",
+      "comparator_claim": "Theorems 1--2 identify component distributions up to shifts, and Section 4 estimates transform mixtures by GMM.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Thoppe2013GeneralizedTomography",
+      "comparator_claim": "Theorem 2 obtains component recovery under pairwise column independence for a generalized-hyperexponential approximation class.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BodikChavezDemoulin2025CPCM",
+      "comparator_claim": "The paper uses causal minimality and pairwise identifiability to recover a CPCM DAG from its direct observational law while permitting arbitrary source-node laws.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "GaoCaiHara2026PTSEM",
+      "comparator_claim": "Definition 3 specifies PT-SEM from direct observational count vectors; Theorem 12 identifies its DAG, thinning matrix, and node-wise exogenous distributions under (A1)--(A3), and Theorem 18 proves plug-in BIC selection consistency under (A1)--(A5).",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LuoSunZhang2026BulkRecoverability",
+      "comparator_claim": "Section 4.2 studies functional consistency under linear aggregation and gives affine ANM/PNL consequences; Section 4.3 concerns conditional-independence consistency.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CarrascoFlorens2000ContinuumGMM",
+      "comparator_claim": "The paper establishes consistency, asymptotic normality, and covariance weighting for finite or continuum moments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Rump2010Verification",
+      "comparator_claim": "The article develops mathematically rigorous verification methods based on directed floating-point and interval arithmetic.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Kearfott2011RigourGlobal",
+      "comparator_claim": "The article distinguishes rigorous from non-rigorous deterministic branch-and-bound and reviews sound interval relaxations and termination claims.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BerzMakino2009TaylorModels",
+      "comparator_claim": "The paper combines Taylor-model enclosures with branch-and-bound for rigorous global search.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Jansson2001Quasiconvex",
+      "comparator_claim": "The paper constructs rigorous interval quasiconvex relaxations for self-validating constrained global optimization.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HauensteinSottile2012AlphaCertified",
+      "comparator_claim": "Theorems 2 and 4 certify approximate polynomial roots and common associated roots.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HeEtAl2015FisherTomography",
+      "comparator_claim": "The paper optimizes network-tomography probe allocation using Fisher information.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    }
+  ],
+  "tldr": "Known linearly independent raw-count compositions recover unrestricted labeled type laws for arbitrary \\(p\\geq1\\) by a logarithmic count-PGF inverse that draws on Shih--Hero's independent-additive transform-inversion idea, with positive Poisson aliases proving necessity. For \\(p\\geq3\\), a fixed ordered embedding defines one exposure and two responses. The headline finite-input certifier constructs and verifies a rational chart-projection cover and separately proves wrong-graph separation, global within-graph injectivity, local Jacobian nonsingularity, interiority clearance, PGF-tail control, and designated-contrast precision. Its deterministic selector supports pointwise sample-split Wald inference. The design frontier is finite under explicit caps, and the fully specified three-node input is a synthetic prospective benchmark with exactly one allowed refinement.",
+  "project_justification": {
+    "gap": "Transform inversion, direct-law CPCM and Poisson-thinning DAG identification, and validated numerics are established separately, but no result recovers labeled type laws through known multi-composition pools and propagates infinite-support PGF tails through distinct wrong-graph, global within-graph, local-regularity, and causal-precision certificates.",
+    "niche": "Prospective known-composition designs need a proof-producing decision rule whose global identification, local inference, and measurable selection premises are exactly declared.",
+    "fill": "The project combines the arbitrary-dimensional rank frontier with a finite \\(p\\geq3\\) certifier that constructs and verifies a rational chart-projection cover, a deterministic estimator, an arithmetic ceiling, and a finite Pareto design class."
+  },
+  "related_work": "Shih--Hero is credited at the source-verified level for transform inversion of independent additive link delays; no unavailable primary-source equation or rank premise is attributed to it. The displayed count-PGF inverse and the positive unrestricted converse are derived in the rank theorem. Chen--Cao--Bu and Thoppe inform transform estimation and restricted tomography identification. Bodik--Chavez-Demoulin, Definition 10 and Lemma 11, supplies pairwise identifiability and recovery of a causally minimal CPCM DAG from its direct law. Its CPCM framework permits arbitrary source-node laws; Poisson roots and positive-polynomial non-root kernels are stricter conditions maintained by this paper. Gao--Cai--Hara, Definition 3, Proposition 10, Theorem 12, and Theorem 18, identifies a Poisson-thinning DAG, thinning coefficients, and exogenous laws from the direct observational count law and gives consistent plug-in BIC selection; its input is not a collection of known multi-composition pools, and it supplies neither labeled type-law unpooling nor a joint PGF-tail, graph-gap, global-injectivity, and causal-precision certificate. Luo--Sun--Zhang Section 4.2 studies functional consistency under linear aggregation and gives affine ANM/PNL consequences; Section 4.3 concerns conditional-independence consistency. Known labeled multi-composition pools remain outside its target. These results motivate prospective auxiliary composition information rather than a claim that all recoverability is restricted to linear aggregation or a claim about normalized legacy bulk data. Carrasco--Florens and Newey--McFadden inform minimum distance, global extremum identification, measurable selection, and delta inference. Rump, Sections 2--4 and 10, supplies directed rounding and verified linear algebra; Kearfott supplies rigorous global-optimization semantics; Berz--Makino and Jansson supply validated Taylor and interval relaxations. Hauenstein--Sottile informs local root checks but not compact analytic image exclusion. The new ingredient is joint propagation of analytic Poisson-PGF tails through wrong-graph exclusion, a verified chart-projection cover, remote within-graph separation, local singular values, pooled covariance, and designated causal precision.",
+  "technical_internal_limitation": "The \\(27\\)-point floating-point pilot is not a certificate. Its two local Jacobian singular values are approximately \\(0.00326480\\) and \\(0.00262027\\), but it checks neither global within-graph uniqueness nor every wrong-graph box, tail error, or rigorous precision. The reusable procedure may return \\(\\mathtt{UNDECIDED}\\) or certify an obstruction.",
+  "honest_scope": "Unrestricted rank recovery and stability apply for arbitrary \\(p\\geq1\\). Causal transfer, certification, benchmark contrasts, precision, and Wald inference require \\(p\\geq3\\) and the same explicit ordered embedding \\(\\iota\\); covariance and Wald claims additionally use a normalized allocation with strictly positive fractions for every sampled composition row. Global injectivity is certified by local chart monotonicity plus remote pair separation, never inferred from a positive Jacobian singular value; singleton candidate classes and empty remote-pair sets use the explicit \\(+\\infty\\) convention. The synthetic coefficient box has no assay calibration, and the benchmark has only the displayed base input and one displayed refinement. No claim covers unknown thinning, normalization, composition error, shared well noise, hidden types, high-dimensional growth, or uniform post-selection coverage. Under \\(M=M_0\\), \\(G_1=H_1^2/H_2\\) and \\(G_2=H_2/H_1\\).",
+  "seeds": [
+    "validated-certificate-procedure",
+    "rank-frontier",
+    "certified-pooled-wald",
+    "causal-transfer",
+    "finite-grid-existence",
+    "certifiable-design-frontier",
+    "three-node-benchmark"
+  ],
+  "seed_details": [
+    {
+      "seed_id": "validated-certificate-procedure",
+      "rank": 1,
+      "status": "selected",
+      "anchor": "Rump2010Verification",
+      "anchor_location": "Acta Numerica, pages 287--449, especially Sections 2--4 and 10; paired with Kearfott (2011), pages 259--279, and Berz--Makino (2009), Sections 1--3",
+      "motif": "M18+M7",
+      "target_tier": "subfield",
+      "kernel": "For \\(p\\geq3\\) and a fixed ordered embedding \\(\\iota\\) of one exposure and two response coordinates, construct a reusable finite-input tri-valued certifier that builds a rational chart-projection cover and jointly encloses Poisson-PGF tails, wrong-graph distances, global within-graph identification, all within-graph Jacobians, and propagated \\(\\iota\\)-indexed intervention-contrast variances, with sound termination and an explicit arithmetic ceiling.",
+      "first_changed_proof_step": "Construct inflated rational chart cells by a deterministic finite subdivision, certify projected strong monotonicity on each cell, and combine it with remote same-graph pair separation instead of inferring uniqueness from Jacobian rank.",
+      "destination_search": "Validated numerics covers directed rounding, interval global optimization, and Taylor models separately; no located result specializes them to infinite-support Poisson causal PGFs with a joint statistical precision output.",
+      "red_team_objection": "This is only an application of interval branch-and-bound.",
+      "rebuttal": "The proof must construct uniform topological tail majorants for PGFs and derivatives, preserve strict graph and Jacobian inequalities after those tails, verify covariance inverses, and terminate with a causal precision statement under one coherent certificate.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 22
+      },
+      "anti_pattern_check": "Global injectivity, local Jacobian rank, graph separation, and precision are distinct certificate outputs."
+    },
+    {
+      "seed_id": "rank-frontier",
+      "rank": 2,
+      "status": "survived-as-enabling-theorem",
+      "anchor": "ShihHero2001Unicast",
+      "anchor_location": "Source-verified high-level description of independent additive link-delay cumulant or transform inversion; no exact primary-source equation locator is claimed",
+      "motif": "M6",
+      "target_tier": "subfield",
+      "kernel": "Full column rank of the known composition matrix is necessary and sufficient for uniform recovery of every labeled collection of unrestricted multivariate count laws.",
+      "first_changed_proof_step": "Adapt and credit Shih--Hero's high-level independent-additive transform-inversion idea, derive the displayed count-PGF inverse, and prove necessity with positive independent-Poisson aliases indexed by \\(\\ker(M)\\).",
+      "destination_search": "Shih--Hero supplies the high-level transform-inversion precedent, while adjacent tomography results use richer experiments or restricted component classes.",
+      "red_team_objection": "The sufficiency direction follows a known additive transform-inversion idea.",
+      "rebuttal": "That idea is fully attributed; the displayed count-PGF derivation, positive unrestricted necessity, and its role as an acquisition boundary remain the added enabling result.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 2,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "anti_pattern_check": "The proposal does not market logarithmic inversion as original."
+    },
+    {
+      "seed_id": "certified-pooled-wald",
+      "rank": 3,
+      "status": "survived-as-supporting-theorem",
+      "anchor": "CarrascoFlorens2000ContinuumGMM",
+      "anchor_location": "Consistency, asymptotic-normality, and covariance-weighting results",
+      "motif": "M11(c)+M18",
+      "target_tier": "subfield",
+      "kernel": "For \\(p\\geq3\\) with the fixed ordered embedding \\(\\iota\\), derive the full replicate-well PGF covariance and pointwise sample-split Wald law for \\(\\tau_{i_Y,r}\\) and \\(\\tau_{i_Z,r}\\) only when the reusable procedure has certified the same graph and parameter boxes.",
+      "first_changed_proof_step": "Form the same-well cross-grid covariance before log inversion and require the uniform certified graph and Jacobian margins rather than treating them as established premises.",
+      "destination_search": "Transform GMM and direct-sample CPCM estimation are occupied separately, but their results do not include this validated pooled causal layer.",
+      "red_team_objection": "The final limit law is a routine delta method.",
+      "rebuttal": "It remains a supporting theorem; the novel load-bearing part is the certificate that supplies exactly its global premises and precision envelope.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "anti_pattern_check": "No conditional separation or Jacobian premise is described as already established."
+    },
+    {
+      "seed_id": "causal-transfer",
+      "rank": 4,
+      "status": "folded-into-selected-kernel",
+      "anchor": "BodikChavezDemoulin2025CPCM",
+      "anchor_location": "Definition 10, Lemma 11, and Appendix C.5",
+      "motif": "M18+M6",
+      "target_tier": "subfield",
+      "kernel": "For \\(p\\geq3\\) and a fixed ordered embedding \\(\\iota\\), transfer recovered labeled type laws to labeled type DAGs and the supported truncated-factorization effects at \\(V_{i_X}\\) on responses \\(V_{i_Y}\\) and \\(V_{i_Z}\\).",
+      "first_changed_proof_step": "Recover each type law from several designed independent mixtures before invoking direct-law CPCM identification.",
+      "destination_search": "Known-composition law recovery and direct-law CPCM identification appear separately.",
+      "red_team_objection": "This is a composition corollary.",
+      "rebuttal": "It is retained as a consumer-facing corollary and not presented as the standalone novelty kernel.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 2,
+        "novelty": 3,
+        "feasibility": 5,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "anti_pattern_check": "The imported causal theorem is named and credited."
+    },
+    {
+      "seed_id": "finite-grid-existence",
+      "rank": 5,
+      "status": "survived-as-qualitative-bridge",
+      "anchor": "BodikChavezDemoulin2025CPCM",
+      "anchor_location": "Definition 10 and Lemma 11",
+      "motif": "M18+M7",
+      "target_tier": "subfield",
+      "kernel": "Show that some finite rational PGF grid separates compact positive-polynomial Poisson DAG images and admits both a rational projected-chart global-identification certificate and a uniform within-graph Jacobian margin.",
+      "first_changed_proof_step": "Combine signed-PGF uniqueness, score-information positivity, and compact subcovers over graph pairs, parameters, and unit tangent directions.",
+      "destination_search": "No finite-evaluation theorem was located in CPCM work.",
+      "red_team_objection": "Compactness makes the result routine.",
+      "rebuttal": "Graph separation follows from compactness after law disjointness, while uniform immersion additionally requires injectivity of every distributional derivative; the result remains only a qualitative bridge.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "anti_pattern_check": "Existence is not confused with a usable certified grid."
+    },
+    {
+      "seed_id": "certifiable-design-frontier",
+      "rank": 6,
+      "status": "first-class-open-question",
+      "anchor": "HeEtAl2015FisherTomography",
+      "anchor_location": "Main Fisher-information design result and square-path allocation case",
+      "motif": "M13+M7",
+      "target_tier": "field",
+      "kernel": "Compute a finite Pareto frontier over bounded integer matrices, a fixed rational grid pool, finite allocations, and explicit truncation, subdivision, arithmetic, and well caps.",
+      "first_changed_proof_step": "Search over design inputs subject to proof-producing graph-separation and Jacobian constraints rather than optimize Fisher information alone.",
+      "destination_search": "Tomography design does not include causal graph exclusion or analytic-tail certification.",
+      "red_team_objection": "The discrete design layer may be computationally intractable.",
+      "rebuttal": "The question asks for a certified feasible frontier and permits a finite undecided outcome; it does not assert polynomial-time global design optimization.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "anti_pattern_check": "Every admissible choice and resource cap is explicit and finite."
+    },
+    {
+      "seed_id": "three-node-benchmark",
+      "rank": 7,
+      "status": "application",
+      "anchor": "BodikChavezDemoulin2025CPCM",
+      "anchor_location": "Definition 10 and Lemma 11",
+      "motif": "M18+M7",
+      "target_tier": "application",
+      "kernel": "Run the generic certificate on the complete rational input \\(\\Xi_0\\) for the synthetic two-type, three-node model with \\(\\iota(X)=1\\), \\(\\iota(Y)=2\\), and \\(\\iota(Z)=3\\), using only the single fully specified replacement \\(\\Xi_1\\) after an undecided base run.",
+      "first_changed_proof_step": "Cover every declared DAG box and propagate tail error and variance rather than report two floating-point witness Jacobians.",
+      "destination_search": "No public theorem certifies this numerical input.",
+      "red_team_objection": "The box is not biologically calibrated.",
+      "rebuttal": "It is explicitly a synthetic prospective-design benchmark and is not the headline or an empirical claim.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 2,
+        "feasibility": 3,
+        "consumer_value": 3,
+        "total": 15
+      },
+      "anti_pattern_check": "A floating-point pilot is not described as a certificate."
+    }
+  ],
+  "literature_map": [
+    {
+      "bibkey": "ShihHero2001Unicast",
+      "thread": "Transform inversion",
+      "verified_location": "Source-verified high-level description of independent additive link-delay cumulant or transform inversion; the exact ICASSP formula was not available for verification",
+      "settled": "Independent additive link-delay components can be recovered from aggregate path measurements by cumulant or transform inversion.",
+      "open_boundary": "The paper does not state the unrestricted multivariate count-law if-and-only-if rank boundary with a positive necessity family.",
+      "used_as": "The recovery map is adapted and fully credited."
+    },
+    {
+      "bibkey": "BodikChavezDemoulin2025CPCM",
+      "thread": "Causal identification",
+      "verified_location": "Definition 10, Lemma 11, Appendix C.5, and Section 7",
+      "settled": "Causal minimality and pairwise identifiability support recovery of a CPCM DAG from its complete direct law; source-node laws may be arbitrary in that framework.",
+      "open_boundary": "No finite PGF grid, uniform numerical graph gap, Jacobian margin, or propagated causal precision is supplied.",
+      "used_as": "The direct-law causal-minimality, pairwise-identifiability, and graph-recovery results define what the finite certificate must preserve; source Poissonity is maintained only by this paper."
+    },
+    {
+      "bibkey": "GaoCaiHara2026PTSEM",
+      "thread": "Direct count-DAG identification",
+      "verified_location": "arXiv:2609.06098v1, Definition 3, assumptions (A1)--(A3), Proposition 10, Theorem 12, and Theorem 18",
+      "settled": "For directly observed PT-SEM count vectors, the joint law identifies the DAG, thinning coefficient matrix, and node-wise exogenous distributions; Theorem 18 proves consistency of plug-in BIC DAG and exogenous-family selection under (A1)--(A5).",
+      "open_boundary": "The paper neither inverts known multi-composition pools into labeled type laws nor validates finite PGF tails, graph-image separation, within-graph injectivity, and causal-contrast precision in one certificate.",
+      "used_as": "It is a direct-law thinning comparator and is explicitly downgraded to informed-by positioning."
+    },
+    {
+      "bibkey": "LuoSunZhang2026BulkRecoverability",
+      "thread": "Prospective consumer motivation",
+      "verified_location": "Section 4.2 for functional consistency under linear aggregation and its affine ANM/PNL consequences; Section 4.3 for conditional-independence consistency",
+      "settled": "Section 4.2 studies functional consistency under linear aggregation and gives affine ANM/PNL consequences; Section 4.3 concerns conditional-independence consistency.",
+      "open_boundary": "Known labeled multi-composition raw-count pools remain outside the paper's target, and it does not certify finite-grid inference.",
+      "used_as": "It motivates a prospective design benchmark, not a claim about reanalyzing normalized legacy cohorts."
+    },
+    {
+      "bibkey": "Rump2010Verification",
+      "thread": "Validated arithmetic",
+      "verified_location": "Acta Numerica 19, pages 287--449, especially Sections 2--4 on interval arithmetic and Section 10 on verified numerical methods",
+      "settled": "Directed floating-point and interval computations can produce mathematically rigorous enclosures and verified linear-algebra conclusions.",
+      "open_boundary": "The review does not construct tail bounds or a joint certificate for infinite-support causal PGF models.",
+      "used_as": "It supplies the arithmetic soundness framework."
+    },
+    {
+      "bibkey": "Kearfott2011RigourGlobal",
+      "thread": "Validated global optimization",
+      "verified_location": "Optimization Methods and Software 26(2), pages 259--279, especially the taxonomy of claimed answers, branch-and-bound review, and rigor pitfalls",
+      "settled": "Rigorous deterministic global optimization requires valid relaxations, roundoff control, and carefully delimited termination claims.",
+      "open_boundary": "The review does not address Poisson-PGF truncation or causal-contrast propagation.",
+      "used_as": "It motivates the certified, refuted, and undecided output semantics."
+    },
+    {
+      "bibkey": "BerzMakino2009TaylorModels",
+      "thread": "Taylor-model global search",
+      "verified_location": "Proceedings pages 11--20, Sections 1--3",
+      "settled": "Taylor polynomials with rigorous remainder intervals can drive branch-and-bound global search for smooth factorable functions.",
+      "open_boundary": "The paper does not provide topological count-tail majorants or statistical precision outputs.",
+      "used_as": "It informs retained-state analytic enclosures."
+    },
+    {
+      "bibkey": "Jansson2001Quasiconvex",
+      "thread": "Interval relaxations",
+      "verified_location": "Linear Algebra and its Applications 324, pages 27--53",
+      "settled": "Rigorous quasiconvex lower and upper relaxations can be embedded in self-validating branch-and-bound.",
+      "open_boundary": "The method does not specialize to graph-image separation with infinite-support moment tails.",
+      "used_as": "It anchors rigorous lower-bounding of graph-pair objectives."
+    },
+    {
+      "bibkey": "CarrascoFlorens2000ContinuumGMM",
+      "thread": "Inference",
+      "verified_location": "Consistency, asymptotic-normality, and covariance-weighting results",
+      "settled": "Finite and continuum moment estimators are consistent and asymptotically normal under stated regularity.",
+      "open_boundary": "No known-composition PGF unpooling, graph selection, or certified intervention-precision envelope is given.",
+      "used_as": "Its moment linearization informs the supporting inference theorem."
+    },
+    {
+      "bibkey": "HauensteinSottile2012AlphaCertified",
+      "thread": "Local root certification",
+      "verified_location": "Theorems 2 and 4, Proposition 5, Sections 2--3, and Section 6",
+      "settled": "Smale-alpha inequalities certify approximate polynomial roots, distinctness, and reality using exact or arbitrary-precision arithmetic.",
+      "open_boundary": "Local polynomial-root validation does not exclude all compact boxes for an analytic PGF criterion with truncation error.",
+      "used_as": "It may validate isolated KKT candidates but is not the global certificate."
+    },
+    {
+      "bibkey": "HeEtAl2015FisherTomography",
+      "thread": "Design frontier",
+      "verified_location": "Main Fisher-information design result and square-path allocation case",
+      "settled": "Probe allocations can be optimized for network-tomography Fisher information.",
+      "open_boundary": "Integer mixture rows, CPCM graph gaps, analytic tails, and intervention objectives are absent.",
+      "used_as": "It anchors the open certified-design frontier."
+    },
+    {
+      "bibkey": "NeweyMcFadden1994LargeSample",
+      "thread": "Global extremum inference",
+      "verified_location": "Handbook chapter on consistency, identification, and asymptotic normality",
+      "settled": "Global identification, measurable extremum selection, interiority, and local rank support asymptotic laws.",
+      "open_boundary": "The chapter does not certify these premises for analytic PGF boxes.",
+      "used_as": "It supplies the inference logic without conflating global and local conditions."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Meng-Fu Shih and Alfred O. Hero III",
+      "year": 2001,
+      "venue": "IEEE ICASSP",
+      "bibkey": "ShihHero2001Unicast",
+      "one_line": "The source-verified high-level result uses cumulant or transform inversion for independent additive link delays; no exact primary-source equation or rank premise is asserted here.",
+      "relevant_to": "thm:rank-frontier"
+    },
+    {
+      "author": "Juraj Bodik and Valérie Chavez-Demoulin",
+      "year": 2025,
+      "venue": "Journal of Machine Learning Research",
+      "bibkey": "BodikChavezDemoulin2025CPCM",
+      "one_line": "Definition 10 and Lemma 11 provide pairwise identifiability and recovery of a causally minimal CPCM DAG from complete direct laws while allowing arbitrary source-node laws.",
+      "relevant_to": "thm:causal-transfer"
+    },
+    {
+      "author": "Penggang Gao, Ming Cai, and Hisayuki Hara",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "GaoCaiHara2026PTSEM",
+      "one_line": "Definition 3 and Theorem 12 identify the PT-SEM DAG, thinning matrix, and exogenous laws from directly observed count vectors under conditions (A1)--(A3).",
+      "relevant_to": "thm:causal-transfer"
+    },
+    {
+      "author": "Gongxu Luo, Boyang Sun, and Kun Zhang",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "LuoSunZhang2026BulkRecoverability",
+      "one_line": "Section 4.2 studies functional consistency under linear aggregation and gives affine ANM/PNL consequences; Section 4.3 concerns conditional-independence consistency. Known labeled multi-composition pools remain outside its target.",
+      "relevant_to": "thm:causal-transfer"
+    },
+    {
+      "author": "Marine Carrasco and Jean-Pierre Florens",
+      "year": 2000,
+      "venue": "Econometric Theory",
+      "bibkey": "CarrascoFlorens2000ContinuumGMM",
+      "one_line": "The paper establishes consistency, asymptotic normality, and covariance weighting for finite or continuum moments.",
+      "relevant_to": "thm:pooled-wald-certified"
+    },
+    {
+      "author": "Siegfried M. Rump",
+      "year": 2010,
+      "venue": "Acta Numerica",
+      "bibkey": "Rump2010Verification",
+      "one_line": "Sections 2--4 and 10 develop rigorous interval, directed-rounding, and verified numerical methods.",
+      "relevant_to": "thm:certificate-soundness-complexity"
+    },
+    {
+      "author": "Ralph Baker Kearfott",
+      "year": 2011,
+      "venue": "Optimization Methods and Software",
+      "bibkey": "Kearfott2011RigourGlobal",
+      "one_line": "The review distinguishes rigorous global-optimization outputs and identifies roundoff and termination pitfalls in branch-and-bound.",
+      "relevant_to": "thm:certificate-soundness-complexity"
+    },
+    {
+      "author": "Martin Berz and Kyoko Makino",
+      "year": 2009,
+      "venue": "Symbolic Numeric Computation",
+      "bibkey": "BerzMakino2009TaylorModels",
+      "one_line": "Sections 1--3 combine Taylor models with rigorous branch-and-bound global search.",
+      "relevant_to": "thm:certificate-soundness-complexity"
+    },
+    {
+      "author": "Christian Jansson",
+      "year": 2001,
+      "venue": "Linear Algebra and its Applications",
+      "bibkey": "Jansson2001Quasiconvex",
+      "one_line": "The paper constructs interval quasiconvex relaxations for self-validating constrained global optimization.",
+      "relevant_to": "thm:certificate-soundness-complexity"
+    },
+    {
+      "author": "Whitney K. Newey and Daniel McFadden",
+      "year": 1994,
+      "venue": "Handbook of Econometrics",
+      "bibkey": "NeweyMcFadden1994LargeSample",
+      "one_line": "The chapter supplies global identification, extremum consistency, asymptotic normality, and delta-method conditions.",
+      "relevant_to": "thm:pooled-wald-certified"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":[\"Rump (2010), Sections 2--4 and 10, with Kearfott (2011): rigorous interval arithmetic and global-optimization semantics.\",\"Bodik--Chavez-Demoulin (2025), Definition 10 and Lemma 11, together with Gao--Cai--Hara (2026), Definition 3 and Theorem 12: count-DAG identification from direct observational laws.\"],\"scope_of_originality\":\"The logarithmic inverse, moment asymptotics, interval methods, direct-law CPCM theorem, and direct-law Poisson-thinning theorem are attributed. Originality is sought in the positive unrestricted rank converse and centrally in a finite-input certificate that constructs a rational chart-projection cover and separately validates wrong-graph separation, global within-graph injectivity, local rank, analytic tails, and designated causal precision after known-composition unpooling.\",\"strict_gap\":\"No comparator recovers labeled type laws through known multi-composition pools and provides a tri-valued finite certifier with an explicit arithmetic ceiling and a proof object for all of these distinct exact untruncated quantities.\",\"why_not_relabeling\":\"Global uniqueness is not inferred from a Jacobian margin: chart coverage, local strong monotonicity, and remote same-graph separation are independently certified and threaded through a deterministic extremum estimator.\"}"
+}

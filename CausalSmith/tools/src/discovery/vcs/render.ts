@@ -26,6 +26,7 @@ import {
   META_ID,
   bibNodeId,
   blobId,
+  contentKey,
   symbolNodeId,
   type MetaBody,
   type NodeBlob,
@@ -143,23 +144,42 @@ export function graphFromCore(coreInput: Core, previous?: Graph): Graph {
 
 // -- normalization ----------------------------------------------------------------
 
-/** Wire literal citations into `depends_on` and remap edges to resolved questions.
- *  Idempotent; returns a new graph (inputs untouched). */
+/** Wire literal citations, remap resolved-question edges, and backfill missing
+ *  resolution pins. Idempotent; returns a new graph (inputs untouched). */
 export function normalizeGraph(g: Graph): Graph {
+  const nodes = new Map(g.nodes);
+  const tree: Tree = { ...g.tree };
   const resolved = new Map<NodeId, NodeId>();
   const questionDeps = new Map<NodeId, string[]>();
   for (const { id, blob } of nodesOfType(g, "statement")) {
-    if (blob.body.resolved_by !== undefined) resolved.set(id, blob.body.resolved_by);
+    if (blob.body.resolved_by !== undefined) {
+      resolved.set(id, blob.body.resolved_by);
+      const answer = g.nodes.get(blob.body.resolved_by);
+      // Backfill legacy tombstones once.  Never refresh an existing pin: if the
+      // answer's mathematical content changes, V2 must expose that stale identity.
+      if (answer !== undefined && blob.body.proof_basis === undefined) {
+        const expected = { [blob.body.resolved_by]: contentKey(answer) };
+        const pinned: NodeBlob = { node_type: "statement", body: { ...blob.body, proof_basis: expected } };
+        nodes.set(id, pinned);
+        tree[id] = { ...tree[id], blob: blobId(pinned) };
+      }
+    } else if (blob.body.kind === "openendedquestion" &&
+               (blob.body.proof_tex ?? "").trim().length === 0 && blob.body.proof_basis !== undefined) {
+      // Reopening a legacy tombstone removes its resolution pin.  The question has
+      // no proof whose basis could otherwise be meaningful.
+      const { proof_basis: _resolutionPin, ...body } = blob.body;
+      const reopened: NodeBlob = { node_type: "statement", body };
+      nodes.set(id, reopened);
+      tree[id] = { ...tree[id], blob: blobId(reopened) };
+    }
     questionDeps.set(id, blob.body.depends_on ?? []);
   }
   // Wiring reuses the core-level pass over a rendering of the live statements.
-  const view: Core = renderCore(g);
+  const view: Core = renderCore({ tree, nodes });
   wireStatementProofDependencies(view);
   const wired = new Map(view.statements.map((s) => [s.id, s.depends_on] as const));
 
-  const nodes = new Map(g.nodes);
-  const tree: Tree = { ...g.tree };
-  for (const { id, blob } of nodesOfType(g, "statement")) {
+  for (const { id, blob } of nodesOfType({ tree, nodes }, "statement")) {
     if (blob.body.resolved_by !== undefined) continue;
     let deps = wired.get(id) ?? blob.body.depends_on ?? [];
     if (resolved.size > 0) deps = remapResolvedDependencies(id, deps, resolved, (q) => questionDeps.get(q));

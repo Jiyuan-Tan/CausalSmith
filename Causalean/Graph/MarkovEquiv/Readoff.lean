@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.MarkovEquiv.Defs
-import Causalean.Graph.DSep.Ancestral
+module
+public import Causalean.Graph.MarkovEquiv.Defs
+public import Causalean.Graph.DSep.Ancestral
 
 /-! # Markov equivalence — the easy direction (reading skeleton and v-structures off d-sep)
 
@@ -14,7 +15,7 @@ skeleton and the same v-structures. The point is that both the skeleton and the
 v-structures are *determined* by the d-separation relation:
 
 * **Skeleton.** Two distinct vertices are adjacent iff they cannot be d-separated by any set
-  (`adjacent_iff_not_dSeparable`): an edge is an always-active path, and conversely two
+  (`adjacent_iff_not_dSeparable`): an edge is an always-active walk, and conversely two
   non-adjacent vertices are separated by the parents of the topologically later one.
 * **V-structures.** For an unshielded triple `a — b — c` (with `a, c` non-adjacent), the
   middle vertex `b` is a collider `a → b ← c` iff `b` lies in *no* separating set of `a`
@@ -26,7 +27,11 @@ transports them, giving `sameSkeleton_of_markovEquiv` and `sameImmoralities_of_m
 hence the easy direction `sameSkeleton_sameImmoralities_of_markovEquiv`.
 -/
 
-namespace Causalean
+public section
+
+namespace Causalean.Graph
+
+open Causalean.Graph.MarkovEquiv
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
@@ -35,13 +40,13 @@ namespace DAG
 variable (G : DAG V)
 
 /-- An edge makes its endpoints inseparable: if `a` and `b` are adjacent then no
-conditioning set d-separates them, because the single edge `[a, b]` is an active path
+conditioning set d-separates them, because the single edge `[a, b]` is an active walk
 regardless of the conditioning set. -/
 theorem not_dSeparable_of_uAdj {a b : V} (h : G.UAdj a b) (Z : Finset V) :
     ¬ G.dSep {a} {b} Z := by
   intro hsep
   have hb : b ∈ G.bbReachableVertices Z {a} := by
-    rw [G.bbReachableVertices_iff_activePath]
+    rw [G.bbReachableVertices_iff_activeWalk]
     refine ⟨a, Finset.mem_singleton_self a, [a, b], ?_, ⟨?_, ?_⟩, rfl, rfl⟩
     · simp
     · intro i hi
@@ -59,9 +64,9 @@ the later endpoint's parents d-separates the pair.
 
 If `x` is topologically *before* `y` and the two
 are non-adjacent, then conditioning on the parents of `y` d-separates `x` from `y`. Every
-active path from `x` to `y` ends with an edge incident to `y`; that edge cannot point *into*
+active walk from `x` to `y` ends with an edge incident to `y`; that edge cannot point *into*
 `y` (the second-to-last vertex would then be a conditioned non-collider) nor *out of* `y` (the
-second-to-last vertex would be a topological descendant of `y`, contradicting that all path
+second-to-last vertex would be a topological descendant of `y`, contradicting that all walk
 nodes are ancestors of `{x} ∪ {y} ∪ parents y`, all of which are `≤ y` in topological order). -/
 theorem dSep_parents_of_topoOrder_lt {x y : V}
     (hlt : G.topoOrder x < G.topoOrder y) (hxy : ¬ G.UAdj x y) :
@@ -81,12 +86,12 @@ theorem dSep_parents_of_topoOrder_lt {x y : V}
   intro t hv hvy
   rw [Finset.mem_singleton] at hvy
   subst hvy
-  -- Extract an active path `p` from `s₀` to `t` given `Z := parents t`.
-  rw [G.bbReachableVertices_iff_activePath] at hv
+  -- Extract an active walk `p` from `s₀` to `t` given `Z := parents t`.
+  rw [G.bbReachableVertices_iff_activeWalk] at hv
   obtain ⟨s₀, hx', p, hlen, hact, hhead, hlast⟩ := hv
   rw [Finset.mem_singleton] at hx'
   subst hx'
-  -- The path has length ≥ 3: a length-2 path `[s₀, t]` would force `UAdj s₀ t`.
+  -- The walk has length ≥ 3: a length-2 walk `[s₀, t]` would force `UAdj s₀ t`.
   have hp_ne : p ≠ [] := by intro hnil; rw [hnil] at hlen; simp at hlen
   have hlast_get : p.get ⟨p.length - 1, by omega⟩ = t := by
     have h := List.getLast?_eq_some_getLast hp_ne
@@ -118,7 +123,7 @@ theorem dSep_parents_of_topoOrder_lt {x y : V}
   set m := p.get ⟨p.length - 2, by omega⟩ with hm_def
   -- `hadj_my : G.UAdj m t`. Split on the orientation of that last edge.
   rcases hadj_my with hmy | hym
-  · -- Case `edge m t`: then `m ∈ parents t = Z`, but the active-path non-collider
+  · -- Case `edge m t`: then `m ∈ parents t = Z`, but the active-walk non-collider
     -- condition at the triple `(m', m, t)` forces `m ∉ Z`.
     have htri : p.length - 3 + 2 < p.length := by omega
     have hcoll := hact.2 (p.length - 3) htri
@@ -137,9 +142,9 @@ theorem dSep_parents_of_topoOrder_lt {x y : V}
     exact hcoll (G.mem_parents.mpr hmy)
   · -- Case `edge t m`: then `m` is a child of `t`, hence `topoOrder m > topoOrder t`.
     have htop_m : G.topoOrder t < G.topoOrder m := G.topoOrder_lt t m hym
-    -- But `m` lies on the active path, hence in `ancestralSet ({s₀} ∪ {t} ∪ parents t)`.
+    -- But `m` lies on the active walk, hence in `ancestralSet ({s₀} ∪ {t} ∪ parents t)`.
     have hm_mem : m ∈ p := by rw [hm_def]; exact List.get_mem _ _
-    have hm_anc := G.activePath_nodes_are_ancestors
+    have hm_anc := G.activeWalk_nodes_are_ancestors
       (Finset.mem_singleton_self s₀) (Finset.mem_singleton_self t) hact hhead hlast m hm_mem
     -- Every member of `{s₀} ∪ {t} ∪ parents t` has `topoOrder ≤ topoOrder t`.
     have hS_le : ∀ s ∈ ({s₀} ∪ {t} ∪ G.parents t : Finset V),
@@ -162,7 +167,7 @@ theorem dSep_parents_of_topoOrder_lt {x y : V}
       omega
 
 /-- Two distinct non-adjacent vertices can always be d-separated: conditioning on the
-parents of the topologically later vertex blocks every path between them. -/
+parents of the topologically later vertex blocks every active walk between them. -/
 theorem dSeparable_of_not_uAdj {a b : V} (hne : a ≠ b) (h : ¬ G.UAdj a b) :
     ∃ Z : Finset V, G.dSep {a} {b} Z := by
   -- Pick the topologically later endpoint; condition on its parents. The helper only needs
@@ -218,13 +223,13 @@ theorem immorality_iff_colliderSep {a b c : V}
     (hab : G.UAdj a b) (hcb : G.UAdj c b) (hac : ¬ G.UAdj a c) (hne : a ≠ c) :
     G.IsImmorality a b c ↔ ∀ Z : Finset V, b ∈ Z → ¬ G.dSep {a} {c} Z := by
   constructor
-  · -- Forward. From the immorality, `(a, b, c)` is a collider; the length-3 path `[a, b, c]`
+  · -- Forward. From the immorality, `(a, b, c)` is a collider; the length-3 walk `[a, b, c]`
     -- is active given any `Z ∋ b` (the collider `b` is activated since `b ∈ Z ⊆ ancestralSet Z`),
     -- so `c` is reachable from `{a}`, contradicting d-separation.
     rintro ⟨heab, hecb, _, _⟩ Z hbZ hsep
     have hcoll : G.IsCollider a b c := ⟨heab, hecb⟩
     have hcReach : c ∈ G.bbReachableVertices Z {a} := by
-      rw [G.bbReachableVertices_iff_activePath]
+      rw [G.bbReachableVertices_iff_activeWalk]
       refine ⟨a, Finset.mem_singleton_self a, [a, b, c], by simp, ⟨?_, ?_⟩, rfl, rfl⟩
       · -- Adjacency along `[a, b, c]`.
         intro i hi
@@ -275,13 +280,9 @@ theorem immorality_iff_colliderSep {a b c : V}
           G.dSep_symm _ _ _ (G.dSep_parents_of_topoOrder_lt hlt hac')
         exact H (G.parents a) (G.mem_parents.mpr heby) hsep
 
-/-- No self-loops in a DAG. -/
-theorem not_edge_self (a : V) : ¬ G.edge a a :=
-  fun he => G.isAncestor_irrefl a (DAG.isAncestor.edge he)
-
 /-- No self-adjacency in a DAG. -/
 theorem not_uAdj_self (a : V) : ¬ G.UAdj a a :=
-  fun h => h.elim (G.not_edge_self a) (G.not_edge_self a)
+  fun h => h.elim (G.irrefl a) (G.irrefl a)
 
 /-- **Disjoint skeleton read-off witness.** Two distinct non-adjacent vertices are
 d-separated by a conditioning set disjoint from both endpoints (the parents of the
@@ -291,10 +292,10 @@ theorem dSeparable_disjoint_of_not_uAdj {a b : V} (hne : a ≠ b) (h : ¬ G.UAdj
   have htop_ne : G.topoOrder a ≠ G.topoOrder b := fun htop => hne (G.topoOrder_injective htop)
   rcases lt_or_gt_of_ne htop_ne with hlt | hlt
   · refine ⟨G.parents b, fun hmem => h (Or.inl (G.mem_parents.mp hmem)),
-      fun hmem => G.not_edge_self b (G.mem_parents.mp hmem),
+      fun hmem => G.irrefl b (G.mem_parents.mp hmem),
       G.dSep_parents_of_topoOrder_lt hlt h⟩
   · have hba : ¬ G.UAdj b a := fun h' => h (G.UAdj_symm h')
-    refine ⟨G.parents a, fun hmem => G.not_edge_self a (G.mem_parents.mp hmem),
+    refine ⟨G.parents a, fun hmem => G.irrefl a (G.mem_parents.mp hmem),
       fun hmem => h (Or.inr (G.mem_parents.mp hmem)),
       G.dSep_symm _ _ _ (G.dSep_parents_of_topoOrder_lt hlt hba)⟩
 
@@ -319,17 +320,19 @@ theorem immorality_iff_colliderSep_disjoint {a b c : V}
       · have heby : G.edge b c := G.edge_to_later_of_nonCollider (le_of_lt hlt) hab hcb hnc
         exact H (G.parents c) (G.mem_parents.mpr heby)
           (fun hmem => hac (Or.inl (G.mem_parents.mp hmem)))
-          (fun hmem => G.not_edge_self c (G.mem_parents.mp hmem))
+          (fun hmem => G.irrefl c (G.mem_parents.mp hmem))
           (G.dSep_parents_of_topoOrder_lt hlt hac)
       · have hac' : ¬ G.UAdj c a := fun h' => hac (G.UAdj_symm h')
         have hnc' : ¬ G.IsCollider c b a := by rintro ⟨h1, h2⟩; exact hnc ⟨h2, h1⟩
         have heby : G.edge b a := G.edge_to_later_of_nonCollider (le_of_lt hlt) hcb hab hnc'
         exact H (G.parents a) (G.mem_parents.mpr heby)
-          (fun hmem => G.not_edge_self a (G.mem_parents.mp hmem))
+          (fun hmem => G.irrefl a (G.mem_parents.mp hmem))
           (fun hmem => hac (Or.inr (G.mem_parents.mp hmem)))
           (G.dSep_symm _ _ _ (G.dSep_parents_of_topoOrder_lt hlt hac'))
 
 end DAG
+
+namespace MarkovEquiv
 
 /-- **Markov equivalence ⇒ same skeleton.** -/
 theorem sameSkeleton_of_markovEquiv {G₁ G₂ : DAG V} (h : MarkovEquiv G₁ G₂) :
@@ -388,4 +391,6 @@ theorem sameSkeleton_sameImmoralities_of_markovEquiv {G₁ G₂ : DAG V}
     (h : MarkovEquiv G₁ G₂) : SameSkeleton G₁ G₂ ∧ SameImmoralities G₁ G₂ :=
   ⟨sameSkeleton_of_markovEquiv h, sameImmoralities_of_markovEquiv h⟩
 
-end Causalean
+end MarkovEquiv
+
+end Causalean.Graph

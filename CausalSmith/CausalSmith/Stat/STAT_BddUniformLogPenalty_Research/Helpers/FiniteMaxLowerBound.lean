@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxDepoisson
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxDepoisson
 
 /-!
 # Shared finite-packing maximum lower bound
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxDepo
 This module assembles the angular packing, marked Poisson direct-product
 experiment, midpoint loss conversion, and de-Poissonization.
 -/
+
+public section
 
 open MeasureTheory Set Filter Asymptotics
 open scoped ENNReal NNReal

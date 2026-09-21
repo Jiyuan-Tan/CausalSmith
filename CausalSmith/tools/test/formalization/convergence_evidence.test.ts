@@ -125,6 +125,34 @@ describe("node convergence evidence", () => {
     expect(await evidenceOf("thm:main")).not.toBe(before);
   });
 
+  it("hashes module and public-section commands", async () => {
+    const bareSection = `module\npublic import Mathlib.Data.Real.Basic\n\npublic section\n\ntheorem t : True := by trivial\n`;
+    await writeFile(join(dir, "Main.lean"), bareSection);
+    const bareHash = (await buildLeanEvidenceIndex(dir)).commandsHash;
+    await writeFile(join(dir, "Main.lean"), bareSection.replace("public section", "@[expose] public section"));
+    expect((await buildLeanEvidenceIndex(dir)).commandsHash).not.toBe(bareHash);
+
+    await writeFile(join(dir, "Main.lean"), bareSection.replace("module\n", ""));
+    expect((await buildLeanEvidenceIndex(dir)).commandsHash).not.toBe(bareHash);
+  });
+
+  it("treats public theorem headers as anonymous-instance boundaries", async () => {
+    await writeFile(join(dir, "Main.lean"), [
+      "module",
+      "public section",
+      "instance : Inhabited Nat := ⟨0⟩",
+      "public theorem boundary : True := by trivial",
+    ].join("\n"));
+    const before = (await buildLeanEvidenceIndex(dir)).commandsHash;
+    await writeFile(join(dir, "Main.lean"), [
+      "module",
+      "public section",
+      "instance : Inhabited Nat := ⟨0⟩",
+      "public theorem boundary : False := by contradiction",
+    ].join("\n"));
+    expect((await buildLeanEvidenceIndex(dir)).commandsHash).toBe(before);
+  });
+
   it("follows section `variable` binders, `notation` right-hand sides, and anonymous instances", async () => {
     const SECTIONED = [
       "structure Cls where",

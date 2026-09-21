@@ -1,4 +1,5 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.DiagonalSupport
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.DiagonalSupport
 
 /-!
 # Diagonal lower-bound assembly helpers
@@ -6,6 +7,8 @@ import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Resear
 Finite-design conditioning and deterministic-array membership facts used by the
 one-realization impossibility argument.
 -/
+
+@[expose] public section
 
 open scoped Topology
 open Filter

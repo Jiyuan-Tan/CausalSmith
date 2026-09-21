@@ -15,11 +15,16 @@ atomic-witness ↔ real-source-realizability equivalence rests on the external
 truncated Hamburger interface `I-4`.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic.Swaps
-import Mathlib.Data.ENat.Basic
-import Mathlib.Algebra.MvPolynomial.Eval
-import Mathlib.Algebra.MvPolynomial.PDeriv
-import Mathlib.RingTheory.MvPolynomial.Homogeneous
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Basic.Swaps
+public import Mathlib.Data.ENat.Basic
+public import Mathlib.Algebra.MvPolynomial.Eval
+public import Mathlib.Algebra.MvPolynomial.PDeriv
+public import Mathlib.RingTheory.MvPolynomial.Homogeneous
+
+/-! Public selector constructions for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

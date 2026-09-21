@@ -1,10 +1,11 @@
-import Causalean.Panel.AdoptionPath
-import Causalean.Panel.PO.TreatmentPath
-import Causalean.Stat.MEstimation.FinitePoisson
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Data.Finset.Card
-import Mathlib.Order.Filter.AtTopBot.CountablyGenerated
-import Mathlib.Topology.Order.OrderClosed
+module
+public import Causalean.Panel.AdoptionPath
+public import Causalean.Panel.PO.TreatmentPath
+public import Causalean.Stat.MEstimation.FinitePoisson
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Data.Finset.Card
+public import Mathlib.Order.Filter.AtTopBot.CountablyGenerated
+public import Mathlib.Topology.Order.OrderClosed
 
 /-!
 # PPML forbidden comparisons: finite collapsed worlds
@@ -14,6 +15,8 @@ objects used by the paper. Calendar time is zero-indexed in Lean, so Lean
 period `0` represents paper period 1. Adoption dates use the shared
 `WithTop (Fin T)` convention, with `⊤` denoting never treated.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter

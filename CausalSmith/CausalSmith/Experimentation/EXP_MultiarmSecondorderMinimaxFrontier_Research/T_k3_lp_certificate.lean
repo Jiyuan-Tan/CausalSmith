@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.GridApprox
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_exact_response_type_game
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_rational_contrast_grid_certificate_sandwich
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.GridApprox
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_exact_response_type_game
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_rational_contrast_grid_certificate_sandwich
 
 /-! Finite exact-rational three-arm LP certificate. -/
+
+public section
 
 open scoped BigOperators
 

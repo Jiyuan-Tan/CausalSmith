@@ -1,0 +1,4 @@
+import Causalean.Mathlib.CondIndep.DomainTransport
+
+#print axioms Causalean.condIndepFun_comp_measurableEquiv_iff
+#print axioms Causalean.map_withDensity_comp_measurableEquiv

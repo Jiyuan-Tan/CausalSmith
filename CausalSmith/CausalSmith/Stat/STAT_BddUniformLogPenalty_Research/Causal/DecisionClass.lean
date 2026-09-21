@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.LawClass
-import Causalean.Mathlib.MeasureTheory.AnalyticSetUniversalMeasurability
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.LawClass
+public import Causalean.Mathlib.MeasureTheory.Function.Analytic.UniversalMeasurability
 
 /-!
 # Known-geometry point-indexed causal decision class and outer risk
@@ -7,6 +8,8 @@ import Causalean.Mathlib.MeasureTheory.AnalyticSetUniversalMeasurability
 Only fixed `(geometry, point)` sections are measurable.  No joint regularity in
 the interface point is imposed, so the risk uses outer expectation.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseMomentMatchingLower
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Depoissonization
-import Mathlib.Analysis.SpecialFunctions.Stirling
-import Mathlib.Analysis.Complex.ExponentialBounds
-import Mathlib.Analysis.Real.Pi.Bounds
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.DenseMomentMatchingLower
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Depoissonization
+public import Mathlib.Analysis.SpecialFunctions.Stirling
+public import Mathlib.Analysis.Complex.ExponentialBounds
+public import Mathlib.Analysis.Real.Pi.Bounds
 
 /-! Numerical exponential-tail estimates for the dense moment-matching lower bound. -/
+
+public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

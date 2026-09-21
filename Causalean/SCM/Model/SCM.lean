@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.SWIG
-import Causalean.SCM.Model.EdgeType
-import Causalean.Mathlib.MeasureTheory.FinsetValues
-import Mathlib.Data.Finset.Sort
-import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Probability.Notation
+module
+public import Causalean.Graph.SWIG
+public import Causalean.SCM.Model.EdgeType
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Mathlib.Data.Finset.Sort
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Probability.Notation
 
 /-! # Structural causal models
 
@@ -27,6 +28,13 @@ functions for observed variables, edge labels, and one probability measure for e
 root. Later evaluation and kernel files build the joint and observational laws from these
 primitive ingredients.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -68,7 +76,7 @@ probability law on each latent root node](hyp:latentDist,isProbability_latent).
 structure SCM (N : Type*) [DecidableEq N] [Fintype N]
     (Ω : N → Type*) [∀ n, MeasurableSpace (Ω n)] extends SWIGGraph N where
   /-- Edge type assignment for the DAG. -/
-  edgeTypes : EdgeTypeAssignment dag
+  edgeTypes : _root_.Causalean.SCM.Model.EdgeTypeAssignment dag
   /-- Fixed parameter and its random counterpart share the same value space:
       `X_d = X_{ι(d)}` for each `d ∈ S`. -/
   iota_valueSpace :
@@ -88,14 +96,14 @@ structure SCM (N : Type*) [DecidableEq N] [Fintype N]
   isProbability_latent :
     ∀ u : {u // u ∈ unobserved}, MeasureTheory.IsProbabilityMeasure (latentDist u)
 
-namespace SWIGGraph
+namespace Graph.SWIGGraph
 
 /-- For [a single-world intervention graph](hyp:G), [its random-node set](goal) is the union of
 its observed nodes and its unobserved latent nodes. -/
 def randomVars (G : SWIGGraph N) : Finset (SWIGNode N) :=
   G.observed ∪ G.unobserved
 
-end SWIGGraph
+end Graph.SWIGGraph
 
 -- The structural functions are the leaf atoms every SCM measurability argument bottoms out
 -- in; registering the field lets `fun_prop` reach them without naming the projection.
@@ -199,7 +207,7 @@ model](hyp:M), [the probability-measure structure for the model's latent product
 asserts that this measure assigns total mass one to the joint space of latent-root values. -/
 instance instProbabilityLatentProduct (M : Causalean.SCM N Ω) :
     MeasureTheory.IsProbabilityMeasure (M.latentProduct) := by
-  letI := M.isProbability_latent
+  let := M.isProbability_latent
   change MeasureTheory.IsProbabilityMeasure
       (MeasureTheory.Measure.pi (fun u => M.latentDist u))
   infer_instance
@@ -211,6 +219,7 @@ instance instProbabilityLatentProduct (M : Causalean.SCM N Ω) :
 /-- For [a finite node population with measurable value spaces](hyp:N,Ω) and [a structural causal
 model](hyp:M), [the canonical linear order on graph nodes](goal) ranks nodes by the model graph's
 topological ordering. -/
+@[instance_reducible]
 noncomputable def topoLinearOrder (M : Causalean.SCM N Ω) : LinearOrder (SWIGNode N) :=
   LinearOrder.lift' M.dag.topoOrder M.dag.topoOrder_injective
 
@@ -237,7 +246,7 @@ noncomputable def observedIndex (M : Causalean.SCM N Ω) (v : {v // v ∈ M.obse
 theorem observedAt_observedIndex (M : Causalean.SCM N Ω) (v : {v // v ∈ M.observed}) :
     (M.observedAt (M.observedIndex v)).val = v.val := by
   classical
-  letI := M.topoLinearOrder
+  let := M.topoLinearOrder
   simp [SCM.observedAt, SCM.observedIndex]
 
 /-- Looking up the canonical index of the observed node at a position recovers that position.
@@ -248,7 +257,7 @@ theorem observedAt_observedIndex (M : Causalean.SCM N Ω) (v : {v // v ∈ M.obs
 theorem observedIndex_observedAt (M : Causalean.SCM N Ω) (k : Fin M.observed.card) :
     M.observedIndex (M.observedAt k) = k := by
   classical
-  letI := M.topoLinearOrder
+  let := M.topoLinearOrder
   simp [SCM.observedAt, SCM.observedIndex]
 
 /-- For a structural causal model `M`, fix [a valid position `n` among the observed
@@ -262,7 +271,7 @@ theorem observed_parent_index_lt (M : Causalean.SCM N Ω) {n : ℕ}
     (hobs : p ∈ M.observed) :
     M.observedIndex ⟨p, hobs⟩ < ⟨n, hn⟩ := by
   classical
-  letI := M.topoLinearOrder
+  let := M.topoLinearOrder
   have hp_lt : (⟨p, hobs⟩ : {v // v ∈ M.observed}) < M.observedAt ⟨n, hn⟩ := by
     change p < (M.observedAt ⟨n, hn⟩).val
     exact M.dag.topoOrder_lt p _ hparent
@@ -286,7 +295,7 @@ structural functions and latent-root probability laws agree.
     the same primitive structural data (`structFun` and `latentDist`).  Proof fields
     (`structFun_measurable`, `isProbability_latent`) are ignored. -/
 def Equiv (M₁ M₂ : Causalean.SCM N Ω) : Prop :=
-  Causalean.SWIGGraph.Equivalent M₁.toSWIGGraph M₂.toSWIGGraph ∧
+  SWIGGraph.Equivalent M₁.toSWIGGraph M₂.toSWIGGraph ∧
   (∀ u v, M₁.dag.edge u v →
     M₁.edgeTypes.edgeType u v = M₂.edgeTypes.edgeType u v) ∧
   HEq M₁.structFun M₂.structFun ∧
@@ -294,7 +303,7 @@ def Equiv (M₁ M₂ : Causalean.SCM N Ω) : Prop :=
 
 /-- Structural equivalence is reflexive. -/
 lemma Equiv.refl (M : Causalean.SCM N Ω) : Equiv M M := by
-  refine And.intro (Causalean.SWIGGraph.Equivalent.refl _) ?_
+  refine And.intro (SWIGGraph.Equivalent.refl _) ?_
   refine And.intro ?_ ?_
   · intro u v _
     rfl
@@ -317,7 +326,7 @@ lemma Equiv.trans {M₁ M₂ M₃ : Causalean.SCM N Ω}
     (h₁ : Equiv M₁ M₂) (h₂ : Equiv M₂ M₃) : Equiv M₁ M₃ := by
   rcases h₁ with ⟨hG₁, hE₁, hF₁, hL₁⟩
   rcases h₂ with ⟨hG₂, hE₂, hF₂, hL₂⟩
-  refine And.intro (Causalean.SWIGGraph.Equivalent.trans hG₁ hG₂) ?_
+  refine And.intro (SWIGGraph.Equivalent.trans hG₁ hG₂) ?_
   refine And.intro ?_ ?_
   · intro u v hu
     have hM₂_edge : M₂.dag.edge u v := (hG₁.1 u v).1 hu

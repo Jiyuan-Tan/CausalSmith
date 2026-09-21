@@ -1,4 +1,5 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TRademacherMixtureSeparation
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TRademacherMixtureSeparation
 
 /-!
 # High-probability diagonal supports
@@ -6,6 +7,8 @@ import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Resear
 This file turns finite-design convergence in probability into finite supports
 whose probability tends to one and on which the error vanishes uniformly.
 -/
+
+public section
 
 open scoped Topology
 open Filter

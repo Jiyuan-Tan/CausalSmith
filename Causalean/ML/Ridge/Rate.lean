@@ -3,23 +3,27 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core.Rate
-import Causalean.ML.Ridge.Population
-import Causalean.Stat.Sample
-import Causalean.Stat.Limit.WLLN
-import Causalean.Stat.EmpiricalProcess.CrossFitRate
-import Causalean.Stat.Limit.ContinuousMapping
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.Topology.MetricSpace.Pseudo.Pi
-import Mathlib.Topology.Instances.Matrix
+
+module
+public import Causalean.ML.Core.Rate
+public import Causalean.ML.Ridge.Population
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Limit.WLLN
+public import Causalean.Stat.EmpiricalProcess.CrossFitRate
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Mathlib.Analysis.Matrix.PosDef
+public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Topology.MetricSpace.Pseudo.Pi
+public import Mathlib.Topology.Instances.Matrix
 
 /-! # Ridge regression — estimation rate (root-n)
 
 This file builds the sample ridge estimator from the first `n` points of an
-i.i.d. sample and proves a root-n L²-estimation rate toward the population ridge
-minimizer.  It defines the empirical Gram `empiricalGram`, empirical cross
+i.i.d. sample and proves a root-n L²-estimation rate toward the fixed-penalty population
+ridge minimizer. This is a penalized pseudo-true linear predictor, not in general the
+conditional mean `E[Y|X]`; identifying the two requires additional assumptions or a
+vanishing-penalty argument. It defines the empirical Gram `empiricalGram`, empirical cross
 moment `empiricalCross`, sample coefficient `sampleRidgeCoef`, sample predictor
 `sampleRidgePredictor`, and population feature Gram `populationGram`.
 
@@ -32,6 +36,8 @@ regularized Gram inverse.  The final theorem `ridge_achievesL2Rate` transfers th
 coefficient rate to an L²-rate for the sample ridge predictor.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open MeasureTheory Matrix BigOperators Causalean.Stat
@@ -39,56 +45,45 @@ open MeasureTheory Matrix BigOperators Causalean.Stat
 variable {Ω γ K : Type*} [MeasurableSpace Ω] [MeasurableSpace γ]
   [Fintype K] [DecidableEq K] {μ : Measure Ω}
 
-/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
-set of feature coordinates](hyp:K), [a feature map from covariates into those coordinates](hyp:φ),
-[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a nonnegative sample
-size](hyp:n), and [a sample-space outcome selecting one realized sequence](hyp:ω), the [empirical
-feature Gram matrix](goal) is $n^{-1}\sum_{i<n}\phi(x_i)\phi(x_i)^\mathsf{T}$, where
-$(x_i,y_i)$ is the $i$th realized observation. -/
+/-- [The empirical feature Gram matrix](goal) is [average feature outer product](step:1), the
+design second moment used by ridge regression. It is computed from
+[sample-indexed observations](hyp:Z) at [sample size and realized sample state](hyp:n,ω), using
+[a finite feature map](hyp:K,φ) on [the sample and covariate spaces](hyp:Ω,γ). -/
 noncomputable def empiricalGram (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (n : ℕ) (ω : Ω) : Matrix K K ℝ :=
   (n : ℝ)⁻¹ • ∑ i ∈ Finset.range n,
     Matrix.vecMulVec (φ.φ (Z i ω).1) (φ.φ (Z i ω).1)
 
-/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
-set of feature coordinates](hyp:K), [a feature map from covariates into those coordinates](hyp:φ),
-[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a nonnegative sample
-size](hyp:n), and [a sample-space outcome selecting one realized sequence](hyp:ω), the [empirical
-feature--response cross moment](goal) is $n^{-1}\sum_{i<n}y_i\phi(x_i)$, where
-$(x_i,y_i)$ is the $i$th realized observation. -/
+/-- [The empirical feature--response cross moment](goal) is
+[average response times feature](step:1), the right side of the ridge normal equations. It uses
+from [sample-indexed observations](hyp:Z) at [sample size and realized sample state](hyp:n,ω),
+using [a finite feature map](hyp:K,φ) on [the sample and covariate spaces](hyp:Ω,γ). -/
 noncomputable def empiricalCross (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (n : ℕ) (ω : Ω) : K → ℝ :=
   (n : ℝ)⁻¹ • ∑ i ∈ Finset.range n, (Z i ω).2 • φ.φ (Z i ω).1
 
-/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
-set of feature coordinates whose labels can be compared for equality](hyp:K), [a feature map from
-covariates into those coordinates](hyp:φ),
-[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a real ridge-penalty
-level](hyp:lam), [a nonnegative sample size](hyp:n), and [a sample-space outcome selecting one
-realized sequence](hyp:ω), the [sample ridge coefficient vector](goal) is
-$(\widehat G_n+\lambda I)^{-1}\widehat C_n$. No nonsingularity condition is imposed on the
-regularized Gram matrix; its inverse is the total matrix-inverse operation used here. -/
+/-- [The sample ridge coefficient vector](goal) is
+[inverse regularized Gram times the feature--response moment](step:1). It uses
+[sample-indexed observations](hyp:Z), [a finite decidable feature map](hyp:K,φ),
+[penalty level](hyp:lam), and [sample size and realized state](hyp:n,ω) on
+[the sample and covariate spaces](hyp:Ω,γ). No nonsingularity condition is imposed. -/
 noncomputable def sampleRidgeCoef (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (lam : ℝ) (n : ℕ) (ω : Ω) : K → ℝ :=
   (empiricalGram φ Z n ω + lam • (1 : Matrix K K ℝ))⁻¹ *ᵥ empiricalCross φ Z n ω
 
-/-- Given [an arbitrary sample space](hyp:Ω), [an arbitrary covariate space](hyp:γ), [a finite
-set of feature coordinates whose labels can be compared for equality](hyp:K), [a feature map from
-covariates into those coordinates](hyp:φ),
-[a sequence of data samples indexed by sample-space outcomes](hyp:Z), [a real ridge-penalty
-level](hyp:lam), [a nonnegative sample size](hyp:n), and [a sample-space outcome selecting one
-realized sequence](hyp:ω), the [sample ridge predictor](goal) maps each covariate value $x$ to
-$\sum_k\widehat\beta_{n,k}\phi_k(x)$, where $\widehat\beta_n$ is the corresponding sample ridge
-coefficient vector. -/
+/-- [The sample ridge predictor](goal) maps each covariate to
+[the sample-coefficient linear feature score](step:1). Those coefficients come from
+[sample-indexed observations](hyp:Z), [a finite decidable feature map](hyp:K,φ),
+[penalty level](hyp:lam), and
+[sample size and realized state](hyp:n,ω) on [the sample and covariate spaces](hyp:Ω,γ). -/
 noncomputable def sampleRidgePredictor (φ : FeatureMap γ K) (Z : ℕ → Ω → γ × ℝ)
     (lam : ℝ) (n : ℕ) (ω : Ω) : γ → ℝ :=
   fun x => ∑ k, sampleRidgeCoef φ Z lam n ω k * φ.φ x k
 
-/-- Given [an arbitrary covariate space](hyp:γ), [a finite set of feature coordinates](hyp:K),
-[a feature map from covariates into those coordinates](hyp:φ), and [a probability or other measure
-on covariate--response pairs](hyp:P), the [population feature Gram matrix](goal) has $(k,l)$ entry
-$\int \phi_k(x)\phi_l(x)\,dP(x,y)$. The definition is entrywise, so it does not require a
-matrix-valued integral.
+/-- [The population feature Gram matrix](goal) records
+[every expected feature-coordinate product](step:1), the population design second moment. It
+uses [a finite feature map](hyp:K,φ) on [a measurable covariate space](hyp:γ) under
+[a joint covariate--response law](hyp:P), defined entrywise to avoid a matrix-valued integral.
 
 The population feature Gram is defined entrywise to avoid matrix-valued Bochner integration. -/
 noncomputable def populationGram (φ : FeatureMap γ K) (P : Measure (γ × ℝ)) :
@@ -330,52 +325,90 @@ theorem centered_score_mean_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × �
       ∀ k, Causalean.Stat.IsBigOp (fun n ω => D n ω k)
         (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
     intro k
-    have hk0 := S.sampleMean_sub_isBigOp (hg_meas k) (by simpa [g] using hscore k)
     let A : ℝ := ∫ z, (g k z) ^ 2 ∂P
     have hA_nonneg : 0 ≤ A := by
       dsimp [A]
       exact integral_nonneg fun z => sq_nonneg _
-    have hrate_le : ∀ n : ℕ,
-        Real.sqrt (A / (n : ℝ)) ≤
-          (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
-      intro n
-      calc
-        Real.sqrt (A / (n : ℝ))
-            = Real.sqrt A * (Real.sqrt (n : ℝ))⁻¹ := by
-              rw [Real.sqrt_div hA_nonneg, div_eq_mul_inv]
-        _ ≤ (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
-              exact mul_le_mul_of_nonneg_right
-                (by linarith [Real.sqrt_nonneg A])
-                (inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ)))
-    have hk1 : Causalean.Stat.IsBigOp
-        (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P)
-        (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
-      exact Causalean.Stat.IsBigOp.mono_rate
-        (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
-    have hk2 : Causalean.Stat.IsBigOp
-        (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P)
-        (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
-      exact Causalean.Stat.IsBigOp.scale_rate
-        (rn := fun n => (Real.sqrt (n : ℝ))⁻¹)
-        (by linarith [Real.sqrt_nonneg A]) hk1
     have hfun :
         (fun n ω => D n ω k) =
           (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P) := by
       funext n ω
       exact hcoord n ω k
     rw [hfun]
-    exact hk2
+    by_cases hA_pos : 0 < A
+    · have hk0 := S.sampleMean_sub_isBigOp (hg_meas k)
+          (by simpa [g] using hscore k) (by simpa [A] using hA_pos)
+      have hrate_le : ∀ n : ℕ,
+          Real.sqrt (A / (n : ℝ)) ≤
+            (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
+        intro n
+        calc
+          Real.sqrt (A / (n : ℝ))
+              = Real.sqrt A * (Real.sqrt (n : ℝ))⁻¹ := by
+                rw [Real.sqrt_div hA_nonneg, div_eq_mul_inv]
+          _ ≤ (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹ := by
+                exact mul_le_mul_of_nonneg_right
+                  (by linarith [Real.sqrt_nonneg A])
+                  (inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ)))
+      have hk1 : Causalean.Stat.IsBigOp
+          (fun n ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P)
+          (fun n => (Real.sqrt A + 1) * (Real.sqrt (n : ℝ))⁻¹) μ := by
+        exact Causalean.Stat.IsBigOp.mono_rate
+          (fun n => Real.sqrt_nonneg (A / (n : ℝ))) hrate_le hk0
+      exact Causalean.Stat.IsBigOp.scale_rate
+        (rn := fun n => (Real.sqrt (n : ℝ))⁻¹)
+        (by linarith [Real.sqrt_nonneg A]) hk1
+    · have hA_zero : A = 0 := le_antisymm (le_of_not_gt hA_pos) hA_nonneg
+      intro δ hδ
+      refine ⟨1, one_pos, ?_⟩
+      filter_upwards [Filter.eventually_gt_atTop (0 : ℕ)] with n hn
+      have hsq := S.sampleMean_sub_sq_lintegral_le (hg_meas k)
+        (by simpa [g] using hscore k) hn
+      have hlintegral_zero :
+          ∫⁻ ω, ENNReal.ofReal
+            ((S.sampleMean (g k) n ω - ∫ z, g k z ∂P) ^ 2) ∂μ = 0 := by
+        apply le_antisymm
+        · simpa [A, hA_zero] using hsq
+        · exact bot_le
+      have hae_sq :
+          (fun ω => ENNReal.ofReal
+            ((S.sampleMean (g k) n ω - ∫ z, g k z ∂P) ^ 2)) =ᵐ[μ] 0 :=
+        (lintegral_eq_zero_iff' (by fun_prop)).mp hlintegral_zero
+      have hae_zero :
+          (fun ω => S.sampleMean (g k) n ω - ∫ z, g k z ∂P) =ᵐ[μ] 0 := by
+        filter_upwards [hae_sq] with ω hω
+        simp only [Pi.zero_apply] at hω
+        have hsquare_zero :
+            (S.sampleMean (g k) n ω - ∫ z, g k z ∂P) ^ 2 = 0 :=
+          le_antisymm (ENNReal.ofReal_eq_zero.mp hω) (sq_nonneg _)
+        exact sq_eq_zero_iff.mp hsquare_zero
+      have hrate_pos : 0 < (Real.sqrt (n : ℝ))⁻¹ :=
+        inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
+      have hevent_zero :
+          μ {ω | (1 : ℝ) * (Real.sqrt (n : ℝ))⁻¹ ≤
+            ‖S.sampleMean (g k) n ω - ∫ z, g k z ∂P‖} = 0 := by
+        rw [measure_eq_zero_iff_ae_notMem]
+        filter_upwards [hae_zero] with ω hω
+        simp [hω, not_le.mpr hrate_pos]
+      calc
+        μ {ω | (1 : ℝ) * (Real.sqrt (n : ℝ))⁻¹ ≤
+            ‖S.sampleMean (g k) n ω - ∫ z, g k z ∂P‖} = 0 := hevent_zero
+        _ ≤ δ := bot_le
   have hcoord_abs :
       ∀ k, Causalean.Stat.IsBigOp (fun n ω => |D n ω k|)
         (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
     intro k
-    simpa [Causalean.Stat.IsBigOp, abs_abs] using hcoord_big k
+    simpa only [Causalean.Stat.IsBigOp, Causalean.Stat.Modes.BoundedInProbability,
+      Real.norm_eq_abs, abs_abs] using hcoord_big k
+  have hroot_pos : ∀ᶠ n : ℕ in Filter.atTop, 0 < (Real.sqrt (n : ℝ))⁻¹ :=
+    (Filter.eventually_gt_atTop (0 : ℕ)).mono fun n hn =>
+      inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
   have hsum_abs : Causalean.Stat.IsBigOp
       (fun n ω => ∑ k, |D n ω k|) (fun n => (Real.sqrt (n : ℝ))⁻¹) μ := by
     simpa using
       (IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
         (X := fun k n ω => |D n ω k|)
-        (fun k _ => hcoord_abs k))
+        hroot_pos (fun k _ => hcoord_abs k))
   refine IsBigOp.of_abs_le
     (Xn := fun n ω => ‖empiricalCross φ S.Z n ω -
       empiricalGram φ S.Z n ω *ᵥ βstar - lam • βstar‖)
@@ -432,6 +465,9 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
     fun n ω => (empiricalGram φ S.Z n ω + lam • (1 : Matrix K K ℝ))⁻¹
   have hrn_nonneg : ∀ n, 0 ≤ rn n := fun n =>
     inv_nonneg.mpr (Real.sqrt_nonneg (n : ℝ))
+  have hrn_pos : ∀ᶠ n : ℕ in Filter.atTop, 0 < rn n :=
+    (Filter.eventually_gt_atTop (0 : ℕ)).mono fun n hn =>
+      inv_pos.mpr (Real.sqrt_pos.mpr (by exact_mod_cast hn))
   have hDnorm : Causalean.Stat.IsBigOp (fun n ω => ‖D n ω‖) rn μ := by
     simpa [D, rn] using
       (centered_score_mean_isBigOp φ P S βstar hpop hφ hscore)
@@ -546,7 +582,7 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
     have hsum : Causalean.Stat.IsBigOp
         (fun n ω => ∑ l ∈ (Finset.univ : Finset K), Inv n ω k l * D n ω l) rn μ :=
       IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
-        (X := fun l n ω => Inv n ω k l * D n ω l) hsummand
+        (X := fun l n ω => Inv n ω k l * D n ω l) hrn_pos hsummand
     refine IsBigOp.of_abs_le
       (Yn := fun n ω => ∑ l ∈ (Finset.univ : Finset K), Inv n ω k l * D n ω l) ?_
       hsum
@@ -563,13 +599,14 @@ theorem sampleRidgeCoef_isBigOp (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
       Causalean.Stat.IsBigOp
         (fun n ω => |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|) rn μ := by
     intro k
-    simpa [Causalean.Stat.IsBigOp, abs_abs] using hcoef_coord k
+    simpa only [Causalean.Stat.IsBigOp, Causalean.Stat.Modes.BoundedInProbability,
+      Real.norm_eq_abs, abs_abs] using hcoef_coord k
   have hsum_abs : Causalean.Stat.IsBigOp
       (fun n ω => ∑ k, |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|) rn μ := by
     simpa using
       (IsBigOp.finset_sum (μ := μ) (s := (Finset.univ : Finset K))
         (X := fun k n ω => |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|)
-        (fun k _ => hcoord_abs k))
+        hrn_pos (fun k _ => hcoord_abs k))
   refine IsBigOp.of_abs_le
     (Xn := fun n ω => ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖)
     (Yn := fun n ω => ∑ k, |(sampleRidgeCoef φ S.Z lam n ω - βstar) k|)
@@ -744,13 +781,15 @@ theorem eLpNorm_predictor_sub_le (φ : FeatureMap γ K) (P : Measure (γ × ℝ)
     _ = (∑ k, (eLpNorm (fun z : γ × ℝ => φ.φ z.1 k) 2 P).toReal) * ‖β - βstar‖ := by
           rw [hδ]; ring
 
-/-- **Ridge root-n estimation rate.** For [a strictly positive ridge penalty `λ`](hyp:hlam), a
-finite feature map `φ`, and an i.i.d. sample `S` from a distribution `P` on features and
-outcome, if [the true coefficient vector `βstar` satisfies the regularized population ridge
+/-- **Ridge root-n rate toward the penalized pseudo-true predictor.** For [a strictly positive
+ridge penalty `λ`](hyp:hlam), a finite feature map `φ`, and an i.i.d. sample `S` from a
+distribution `P` on features and outcome, if [the pseudo-true coefficient vector `βstar`
+satisfies the regularized population ridge
 normal equations](hyp:hpop), [each feature coordinate is measurable](hyp:hφ), [the fourth
-moment of the squared feature norm is finite](hyp:h4), and [each per-coordinate score function
+moment of the feature norm is finite](hyp:h4), and [each per-coordinate score function
 is square-integrable](hyp:hscore), then [the sample ridge predictor converges to the population
-ridge predictor at the root-n rate in the `L²(P)` sense](goal).
+ridge predictor at the root-n rate in the `L²(P)` sense](goal); this fixed-`λ` target is not
+asserted to equal the conditional mean.
 
 The regularized population Gram is positive definite because the population feature Gram is
 positive semidefinite and `λI` is positive definite when `λ > 0`. -/
@@ -776,108 +815,13 @@ theorem ridge_achievesL2Rate (φ : FeatureMap γ K) (P : Measure (γ × ℝ))
     simpa [sampleRidgePredictor] using
       (linear_predictor_sub_memLp_of_l4 φ P hφ h4
         (sampleRidgeCoef φ S.Z lam n ω) βstar).eLpNorm_ne_top
-  intro ε hε
-  rcases hcoef ε hε with ⟨M0, hM0⟩
-  let M : ℝ := max M0 0
-  have hM0_le_M : M0 ≤ M := le_max_left M0 0
-  have hM_nonneg : 0 ≤ M := le_max_right M0 0
-  refine ⟨C * M, ?_⟩
-  have hlim_M :
-      Filter.limsup
-          (fun n : ℕ =>
-            μ {ω | M * (Real.sqrt (n : ℝ))⁻¹ <
-              |‖sampleRidgeCoef φ S.Z lam n ω - βstar‖|}) Filter.atTop
-        ≤ ENNReal.ofReal ε := by
-    refine le_trans (Filter.limsup_le_limsup (Filter.Eventually.of_forall ?_)) hM0
-    intro n
-    apply measure_mono
-    intro ω hω
-    have hr_nonneg : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ :=
-      inv_nonneg.mpr (Real.sqrt_nonneg _)
-    exact lt_of_le_of_lt (mul_le_mul_of_nonneg_right hM0_le_M hr_nonneg) hω
-  refine le_trans (Filter.limsup_le_limsup (Filter.Eventually.of_forall ?_)) hlim_M
-  intro n
-  apply measure_mono
-  intro ω hω
-  by_cases hC_zero : C = 0
-  · have hpred_le_zero :
-        (eLpNorm
-          (fun x =>
-            sampleRidgePredictor φ S.Z lam n ω x -
-              ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal ≤ 0 := by
-      simpa [sampleRidgePredictor, hC_zero] using
-        hC_bound (sampleRidgeCoef φ S.Z lam n ω)
-    have hpred_nonneg :
-        0 ≤ (eLpNorm
-          (fun x =>
-            sampleRidgePredictor φ S.Z lam n ω x -
-              ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal :=
-      ENNReal.toReal_nonneg
-    have hpred_abs :
-        |(eLpNorm
-          (fun x =>
-            sampleRidgePredictor φ S.Z lam n ω x -
-              ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal| = 0 := by
-      rw [abs_of_nonneg hpred_nonneg]
-      exact le_antisymm hpred_le_zero hpred_nonneg
-    rw [hC_zero, zero_mul, zero_mul] at hω
-    have hpred_abs' :
-        |(fun n ω =>
-            (eLpNorm
-              (fun x =>
-                sampleRidgePredictor φ S.Z lam n ω x -
-                  (fun x => ∑ k, βstar k * φ.φ x k) x) 2
-              (P.map Prod.fst)).toReal) n ω| = 0 := by
-      simpa using hpred_abs
-    exfalso
-    have hωlt :
-        0 <
-          |(fun n ω =>
-              (eLpNorm
-                (fun x =>
-                  sampleRidgePredictor φ S.Z lam n ω x -
-                    (fun x => ∑ k, βstar k * φ.φ x k) x) 2
-                (P.map Prod.fst)).toReal) n ω| := by
-      simpa using hω
-    rw [hpred_abs'] at hωlt
-    exact (lt_irrefl (0 : ℝ)) hωlt
-  · have hC_pos : 0 < C := lt_of_le_of_ne hC_nonneg (Ne.symm hC_zero)
-    have hpred_bound :
-        (eLpNorm
-          (fun x =>
-            sampleRidgePredictor φ S.Z lam n ω x -
-              ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal
-          ≤ C * ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖ := by
-      simpa [sampleRidgePredictor] using
-        hC_bound (sampleRidgeCoef φ S.Z lam n ω)
-    have hpred_nonneg :
-        0 ≤ (eLpNorm
-          (fun x =>
-            sampleRidgePredictor φ S.Z lam n ω x -
-              ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal :=
-      ENNReal.toReal_nonneg
-    have hnorm_nonneg : 0 ≤ ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖ := norm_nonneg _
-    have hr_nonneg : 0 ≤ (Real.sqrt (n : ℝ))⁻¹ :=
-      inv_nonneg.mpr (Real.sqrt_nonneg _)
-    have hlt :
-        C * (M * (Real.sqrt (n : ℝ))⁻¹) <
-          C * ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖ := by
-      calc
-        C * (M * (Real.sqrt (n : ℝ))⁻¹)
-            = (C * M) * (Real.sqrt (n : ℝ))⁻¹ := by ring
-        _ < |(eLpNorm
-              (fun x =>
-                sampleRidgePredictor φ S.Z lam n ω x -
-                  ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal| := hω
-        _ = (eLpNorm
-              (fun x =>
-                sampleRidgePredictor φ S.Z lam n ω x -
-                  ∑ k, βstar k * φ.φ x k) 2 (P.map Prod.fst)).toReal := by
-              rw [abs_of_nonneg hpred_nonneg]
-        _ ≤ C * ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖ := hpred_bound
-    have hlt' : M * (Real.sqrt (n : ℝ))⁻¹ <
-        ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖ := by
-      nlinarith [hC_pos, hlt]
-    simpa [abs_of_nonneg hnorm_nonneg] using hlt'
+  refine IsBigOp.of_abs_le
+    (Yn := fun n ω => C * ‖sampleRidgeCoef φ S.Z lam n ω - βstar‖) ?_
+    (IsBigOp.const_mul C hcoef)
+  intro n ω
+  rw [abs_of_nonneg ENNReal.toReal_nonneg,
+    abs_of_nonneg (mul_nonneg hC_nonneg (norm_nonneg _))]
+  simpa [sampleRidgePredictor] using
+    hC_bound (sampleRidgeCoef φ S.Z lam n ω)
 
 end Causalean.ML

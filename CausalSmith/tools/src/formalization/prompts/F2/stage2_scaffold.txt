@@ -15,14 +15,16 @@ and structure only: every new proof body is `:= by sorry` (proof-filling is Stag
 MODE the REVISE block overrides that: preserve every working proof whose statement is unchanged, adapt
 an affected proof when practical, and leave `sorry` only for genuinely new or changed obligations.
 
+{{HEADER_CONTRACT}}
+
 The plan is the contract: per node it fixes `disposition` (`reuse <decl>` vs `define-local`),
 `lean_kind`, `lean_name`, `target_file`, the env world, and the `hyps`/`members` wiring; F1 already did
 the reuse SEARCH. Realize each node as planned, tagged so the plan↔Lean map stays one-to-one. When a
 planned decision does not work in Lean, ADJUST and SYNC the change back into plan.json (below).
 
-**TARGETED IMPORTS — never blanket `import Mathlib`.** Import only the modules you use (the plan's
-per-node `modules`, the env `modules`, plus the few `import Mathlib.<Path>` leaves they lack),
-mirroring the surrounding Causalean files; a blanket import bloats the closure and times out the
+**TARGETED IMPORTS.** Follow the HEADER CONTRACT above and include only the modules you use (the
+plan's per-node `modules`, the env `modules`, plus the few targeted Mathlib leaves they lack),
+mirroring the surrounding Causalean files; an umbrella import bloats the closure and times out the
 lean-lsp vacuity probe at the gate.
 
 === INPUTS (in the brief) ===
@@ -79,10 +81,11 @@ Tag the env S-block's `variable (...)` block with `-- @env: <S-id>`.
   at class boundaries the plan names.
 - definition, CONSTRUCTION (`lean_kind:"def"`) → a `def` / `noncomputable def` realizing the core
   `construction`, tagged `-- @node: def:…`.
-- statement (`lean_kind:"theorem"|"lemma"`) → a `theorem` (T-block) or `lemma`/`private lemma`
-  (L-block) named `lean_name`, tagged `-- @node: thm:|lem:|…`, with hypotheses exactly the plan's
-  `hyps` (assumption `def`s inline, class structures as bundles). NEVER declare an L-block `theorem`
-  (F2.5 flags it); public-vs-private and lemma-vs-theorem are orthogonal.
+- statement (`lean_kind:"theorem"|"lemma"`) → a `theorem` (T-block) or bare `lemma` (L-block)
+  named `lean_name`, tagged `-- @node: thm:|lem:|…`, with hypotheses exactly the plan's `hyps`
+  (assumption `def`s inline, class structures as bundles). NEVER declare an L-block `theorem`
+  (F2.5 flags it). Follow the HEADER CONTRACT above for visibility; helpers stay bare, and nothing
+  is private in module files unless it is truly file-local and never needed by a proof downstream.
 - open-ended residual (`kind:"openendedquestion"`) → a named tagged `def`, never a theorem and never
   a theorem dependency, by the frozen-node TWO-CASE rule: (A) the node fully specifies every predicate
   needed to state the question → a named never-proved `Prop` encoding exactly those quantified
@@ -94,9 +97,9 @@ Tag the env S-block's `variable (...)` block with `-- @env: <S-id>`.
   `Prop` (fabricates criteria). Exclude both cases from the manifest and from theorem dependencies; a
   genuine resolution lives in a separate `thm:`/`prop:` node.
 
-For a `disposition:"reuse"` node/S-block: `import` the named decl and build on it (do NOT re-state it
-over plain ℝ/Set). For `define-local`: write the decl yourself (sorry body for lemmas/theorems; full
-body for defs/structures).
+For a `disposition:"reuse"` node/S-block: make the named declaration available under the HEADER
+CONTRACT and build on it (do NOT re-state it over plain ℝ/Set). For `define-local`: write the decl
+yourself (sorry body for lemmas/theorems; full body for defs/structures).
 
 === IMPLEMENT THE PLAN + SYNC-BACK ===
 
@@ -206,10 +209,11 @@ Follow the plan's `target_file` per statement node. Size for PROJECTED POST-PROO
 multiply a scaffold's length): target ≤600 lines per file; split before ~900 only for an independent
 topic/proof chain; sync any split beyond the plan back into plan.json.
 - Single statement → one `Basic.lean`.
-- Multi statement (≥2) → `Basic.lean` (imports + shared assumption `def`s / class structures /
+- Multi statement (≥2) → `Basic.lean` (shared assumption `def`s / class structures /
   construction `def`s + L-lemmas reused across ≥2 theorems) + one `T<local_id>.lean` per theorem. A
   shared L-cluster is split by SUBSYSTEM into `Helpers/<Topic>.lean` files in a dependency chain with
-  a thin `Helpers.lean` barrel — split from the START, never scaffold a monolith for F3 to split.
+  a thin imports-only `Helpers.lean` barrel governed by the HEADER CONTRACT — split from the START,
+  never scaffold a monolith for F3 to split.
 - `artifacts` MUST list every file you wrote (absolute paths); verify each compiles standalone
   (`lean_diagnostic_messages`; only `declaration uses 'sorry'` warnings acceptable).
 

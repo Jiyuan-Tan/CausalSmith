@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Experimentation.DesignBased.DesignCore
+
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 /-!
 # Finite-sample delta-method identities for the design-based layer
@@ -25,18 +27,20 @@ computation never has to leave the `FiniteDesign` world.
   estimator, the per-arm building block of a ratio/Hájek CLT's asymptotic-linearity argument.
 -/
 
+public section
+
 open scoped BigOperators
+
 
 namespace Causalean
 namespace Experimentation
 namespace DesignBased
 
-/-- **Capped ratio-remainder bound.** Consider a ratio estimator `A / D` of a target `μ`, scaled by
-`√n` (here `sn` with `sn² = n`), and let `G = A − μ·D` be the centered numerator. The scaled
-second-order remainder `√n·(A/D − μ) − √n⁻¹·G` equals `√n⁻¹·G·(n/D − 1)`, and on the event where the
-denominator is at least half its target (equivalently `n/D ≤ 2`) it is bounded by
-`2·|√n⁻¹·G|·|n⁻¹·D − 1|`. This is the per-arm remainder control a design-based ratio / Hájek CLT
-uses to reduce the studentized estimator to its linear score. -/
+/-- For [a positive target scale](hyp:n,hn), [a square-root scale whose square is the target
+scale](hyp:sn,hsn_sq), [a numerator and positive denominator](hyp:A,D,hD), [a target and its
+centered numerator identity](hyp:μ,G,hG), and [a capped inverse-denominator ratio](hyp:hcap), [the
+scaled ratio remainder is bounded by twice the product of the centered score magnitude and the
+relative denominator error](goal). -/
 lemma ratio_remainder_capped_bound {n sn A D μ G : ℝ}
     (hn : 0 < n) (hsn_sq : sn ^ 2 = n) (hD : 0 < D) (hcap : n / D ≤ 2)
     (hG : G = A - μ * D) :
@@ -84,10 +88,10 @@ lemma E_centered_ratio (X : Ω → ℝ) (a : ℝ) (ha : a ≠ 0) (hEX : D.E X = 
   field_simp [ha]
   ring
 
-/-- **Covariance of two normalized ratios (the ratio linearization kernel).** In a finite design,
-the mean of the product of two mean-normalized ratios `(X/E[X] − 1)(Y/E[Y] − 1)` equals
-`E[XY] / (E[X]·E[Y]) − 1`. This is the exact second cross-moment at the heart of every
-Horvitz–Thompson / Hájek ratio-variance linearization. -/
+/-- For [a finite design](hyp:D), [two design statistics](hyp:X,Y), [their two means and cross
+moment](hyp:a,b,c), [nonzero mean denominators](hyp:ha,hb), and [the asserted first- and
+cross-moment identities](hyp:hEX,hEY,hEXY), [the mean product of the two normalized centered
+ratios equals the normalized cross moment minus one](goal). -/
 lemma E_centered_ratio_mul (X Y : Ω → ℝ) (a b c : ℝ)
     (ha : a ≠ 0) (hb : b ≠ 0)
     (hEX : D.E X = a) (hEY : D.E Y = b) (hEXY : D.E (fun z => X z * Y z) = c) :

@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Bandwidth
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Bandwidth
 
 /-! # Elementary rates for the continuity-only frontier -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

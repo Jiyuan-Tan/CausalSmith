@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderContinuousVersion
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderSupport
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderContinuousVersion
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderSupport
 
 /-!
 # Continuous conditional-rank assembly
@@ -8,6 +9,11 @@ This file assembles the support, continuous-version, explicit equation-(11),
 and signed-rank facts into the complete conditional-rank clause consumed by
 the exact population decoder theorem.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -19,7 +25,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- A ratio-graph order that also respects the latent edges has the law-selected continuous
 conditional CDF, its equation-(11) realization, and the signed intervention-CDF rank.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma exactRatioDecoder_continuousRankClauses_of_order
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -112,7 +118,7 @@ lemma exactRatioDecoder_continuousRankClauses_of_order
 -- @node: exactRatioDecoder_continuousRankClauses
 /-- Transitive-closure recovery supplies latent-edge compatibility for every valid ratio order.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,htc), [the stated conclusion](goal) follows. -/
 lemma exactRatioDecoder_continuousRankClauses
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

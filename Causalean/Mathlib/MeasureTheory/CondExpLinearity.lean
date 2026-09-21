@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+module
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 
 /-!
 # Integrability-free linearity of conditional expectation
@@ -24,6 +25,8 @@ convenience layer over the Mathlib originals — no mathematics is added.
 The wrapper analogues for `POVar.condExpGiven` and `POCFBundle.condExpGiven` live next to
 those definitions, in `Causalean/PO/Conditioning/`.
 -/
+
+public section
 
 open Filter
 

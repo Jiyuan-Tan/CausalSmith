@@ -3,19 +3,18 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# The role of the propensity score (Hahn): AIPW orthogonality to propensity scores
+# AIPW cancellation against propensity-score residuals
 
-This file proves that the AIPW score `ψ_AIPW` is orthogonal, in
-`L²(P_Z)`, to every *propensity-score direction*
+This file proves that the AIPW function has zero integral when multiplied by
+a measurable covariate function and the propensity-score residual:
 
-    s_e(z) = α(projX z) · (indA z − e_val (projX z)),
+    s_e(z) = α(projX z) · (indA z − e_val (projX z)).
 
-where `α : γ → ℝ` is the score of a perturbation of the propensity model `D | X`
-(a mean-zero-given-X function of `(D, X)`).  This is the formal statement of
-Hahn's observation that propensity-score nuisance directions are killed by the
-AIPW score.  The later efficiency statements use an abstract mean-zero tangent
-space and an explicitly supplied smaller tangent space; this file does not
-construct the known-propensity tangent space.
+The theorem assumes the three terms in its decomposition are integrable. It
+does not show that the multiplier is the score of a regular submodel, place the
+two factors in `L²(P_Z)`, or identify a known-propensity tangent space. The later
+efficiency statements instead use an abstract mean-zero subspace and an
+explicitly supplied smaller subspace.
 
 ## Proof
 
@@ -42,28 +41,30 @@ and `s_e = α(X) (a − e(X))` (`a = 1_{D=true}`), one shows term by term:
 Sum = 0.
 -/
 
-import Causalean.Estimation.ATE.InfluenceFunction
-import Causalean.Estimation.Efficiency.TangentProjection
-import Causalean.Estimation.Efficiency.ATEVariance
-import Causalean.Panel.FWLInstanceL2
+module
+public import Causalean.Estimation.ATE.InfluenceFunction
+public import Causalean.Estimation.Efficiency.TangentProjection
+public import Causalean.Estimation.Efficiency.ATEVariance
+public import Causalean.Stat.LinearModel.FWLInstanceL2
 
 /-!
 # ATE tangent-space efficiency identities
 
-This module proves that the augmented inverse-probability weighted score is
-orthogonal to propensity-score nuisance directions and records its projection
-properties in the Hilbert space `Lp ℝ 2 S.P_Z`. The theorem
-`BackdoorEstimationSystem.aipw_orthogonal_propensity_score` formalizes Hahn's
-propensity-score orthogonality calculation.
+This module proves an integrable-product cancellation identity for the augmented
+inverse-probability weighted function and propensity-score residuals. It also records
+projection properties for a separately constructed square-integrable AIPW element.
 
-The second half builds the full mean-zero tangent space `Tfull`, represents the
-AIPW score as `aipwLp`, proves `aipwLp_mem_tangent`, and derives the projection
-and variance identities `effBound_eq_variance`, `effBound_eq_hahn`, and
-`efficiency_bound_optimal`. The final tangent-shrinking theorem states the
-abstract known-propensity corollary for any supplied smaller tangent space that
-still contains the AIPW score. The pathwise-gradient/canonical-gradient bridge
-is developed in `ATEEfficientIF.lean`.
+The second half builds the full mean-zero subspace `Tfull`, represents the
+AIPW score as `aipwLp`, proves `aipwLp_mem_tangent`, and derives projection-norm
+and variance identities. These are Hilbert-space statements about the supplied
+AIPW reference vector, not pathwise-gradient results under the file's finite-moment
+hypotheses. The final tangent-shrinking theorem gives equality of abstract bounds
+for any supplied smaller tangent space that still contains the AIPW score; it
+does not construct the known-propensity tangent space. The
+pathwise-gradient/canonical-gradient bridge is developed in `ATEEfficientIF.lean`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -187,23 +188,24 @@ lemma propensity_score_residual_integral_zero
           MeasureTheory.integral_congr_ae hhresid_ce_zero
     _ = 0 := MeasureTheory.integral_zero _ _
 
-/-! ## Headline theorem: orthogonality to propensity-score directions -/
+/-! ## Headline theorem: cancellation against propensity-score residuals -/
 
 set_option maxHeartbeats 1000000 in
 -- The proof assembles the pointwise `ψ·s_e` decomposition (two `a ∈ {0,1}`
 -- field-arithmetic branches), three integrability facts, and three integral
 -- vanishings in a single term, exceeding the default heartbeat budget.
-/-- **The role of the propensity score (Hahn).**
-
-The AIPW influence function `ψ_AIPW` is orthogonal in `L²(P_Z)` to every
-propensity-score direction `s_e(z) = α(projX z) · (indA z − e_val (projX z))`:
+/-- The [observed-law mean of an AIPW function times a covariate multiplier and
+propensity residual is zero](goal) for [a backdoor ATE estimation system](hyp:S)
+satisfying [the backdoor assumptions](hyp:hA) and [strict
+overlap](hyp:ε,h_overlap), provided the [multiplier is
+measurable](hyp:α,hα_meas) and [the three product terms are
+integrable](hyp:h_sA_int,h_sB_int,h_sC_int).
 
     ∫ z, ψ_AIPW(z) · α(projX z) · (indA z − e_val (projX z)) ∂P_Z = 0.
 
-Such directions are the scores of perturbations of the propensity model `D | X`.
-The identity says that knowledge of the propensity score lies in the orthogonal
-complement of the AIPW influence function, i.e. it does not lower the
-semiparametric efficiency bound for the ATE. -/
+This is an integrable-product cancellation identity. It does not assert that the
+multiplier defines a regular-submodel score or prove equality of efficiency bounds
+with and without a known propensity score. -/
 theorem aipw_orthogonal_propensity_score
     (S : ATE.BackdoorEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions)
@@ -407,8 +409,9 @@ constants).  The headline results are:
 
 * `aipw_score_meanZero_projection_eq` — the AIPW score is unchanged by projection onto the
   mean-zero tangent space;
-* `effBound_eq_hahn` — the efficiency bound equals Hahn's `V_H`;
-* `efficiency_bound_optimal` — every abstract gradient has squared
+* `aipwProjectionNormSq_eq_hahnVariance` — the projected squared norm equals the
+  Hahn-form variance;
+* `aipwProjectionNormSq_le_normSq` — every abstract relative gradient has squared
   square-integrable norm at least the projected squared norm;
 * `effBound_eq_of_smaller_tangent_containing_aipw` — any supplied smaller tangent space that
   contains the AIPW score has the same abstract bound.
@@ -474,7 +477,7 @@ instance instHasOrthogonalProjection_Tfull
 /-- Inner product against the constant-one function equals integration under the observed data law. -/
 theorem inner_oneLp (S : ATE.BackdoorEstimationSystem P γ) (f : Lp ℝ 2 S.P_Z) :
     ⟪f, S.oneLp⟫_ℝ = ∫ z, f z ∂S.P_Z := by
-  rw [Causalean.Panel.FWLInstanceL2.inner_eq_integral]
+  rw [Causalean.Stat.FWLInstanceL2.inner_eq_integral]
   refine MeasureTheory.integral_congr_ae ?_
   filter_upwards [(memLp_const (1 : ℝ)).coeFn_toLp (p := 2) (μ := S.P_Z)]
     with z hz
@@ -518,14 +521,15 @@ theorem aipw_score_meanZero_projection_eq (S : ATE.BackdoorEstimationSystem P γ
   efficientIF_eq_self_of_mem S.Tfull
     (S.aipwLp_mem_tangent h_overlap hA h_y2 h_yd2)
 
-/-- **Semiparametric efficiency bound equals the AIPW variance.** Let `S` be a backdoor
+/-- **The AIPW projection norm equals its second moment.** Let `S` be a backdoor
 average-treatment-effect estimation system with [strict overlap at level ε](hyp:h_overlap),
 satisfying [the system's core identification assumptions](hyp:hA), in which [the observed
 outcome has finite second moment](hyp:h_y2) and [each potential outcome under treatment level
-`d` has finite second moment](hyp:h_yd2). Then [the semiparametric efficiency bound for the
-backdoor ATE, computed against the full mean-zero tangent space, equals the second moment of the
-AIPW influence function `ψ_AIPW` under the observed-data law `P_Z`](goal). -/
-theorem effBound_eq_variance (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
+`d` has finite second moment](hyp:h_yd2). Then [the squared norm obtained by projecting the
+AIPW reference vector onto the full mean-zero subspace equals the second moment of
+`ψ_AIPW` under the observed-data law `P_Z`](goal). -/
+theorem aipwProjectionNormSq_eq_secondMoment
+    (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
     (hA : S.toPOBackdoorSystem.Assumptions)
     (h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)
@@ -535,7 +539,7 @@ theorem effBound_eq_variance (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
       = ∫ z, (S.ψ_AIPW z) ^ 2 ∂S.P_Z := by
   rw [effBound, S.aipw_score_meanZero_projection_eq h_overlap hA h_y2 h_yd2,
     ← real_inner_self_eq_norm_sq,
-    Causalean.Panel.FWLInstanceL2.inner_eq_integral]
+    Causalean.Stat.FWLInstanceL2.inner_eq_integral]
   refine MeasureTheory.integral_congr_ae ?_
   have hae : (S.aipwLp h_overlap hA h_y2 h_yd2 : γ × Bool × ℝ → ℝ)
       =ᵐ[S.P_Z] S.ψ_AIPW :=
@@ -543,12 +547,12 @@ theorem effBound_eq_variance (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
   filter_upwards [hae] with z hz
   rw [hz, sq]
 
-/-- **Semiparametric efficiency bound equals Hahn's three-term variance formula.** Let `S` be a
+/-- **The AIPW projection norm equals Hahn's three-term variance formula.** Let `S` be a
 backdoor average-treatment-effect estimation system with [strict overlap at level
 ε](hyp:h_overlap), satisfying [the system's core identification assumptions](hyp:hA), in which
 [the observed outcome has finite second moment](hyp:h_y2) and [each potential outcome under
-treatment level `d` has finite second moment](hyp:h_yd2). Then [the semiparametric efficiency
-bound for the backdoor ATE equals the sum of the between-arms regression-contrast variance
+treatment level `d` has finite second moment](hyp:h_yd2). Then [the projected squared norm
+of the AIPW reference vector equals the sum of the between-arms regression-contrast variance
 `∫(μ(1,X)-μ(0,X)-θ₀)²dP_X`, the treated-arm weighted residual variance
 `∫(A/e(X)²)(Y-μ(1,X))²dP_Z`, and the control-arm weighted residual variance
 `∫((1-A)/(1-e(X))²)(Y-μ(0,X))²dP_Z`](goal).
@@ -558,7 +562,8 @@ Chaining the variance identity with the AIPW variance decomposition gives
     V_H = ∫ (μ₁ − μ₀ − θ₀)² dP_X
           + ∫ (a / e²)   (y − μ₁)² dP_Z
           + ∫ ((1−a) / (1−e)²) (y − μ₀)² dP_Z. -/
-theorem effBound_eq_hahn (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
+theorem aipwProjectionNormSq_eq_hahnVariance
+    (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
     (hA : S.toPOBackdoorSystem.Assumptions)
     (h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)
@@ -570,22 +575,24 @@ theorem effBound_eq_hahn (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
             (projY z - S.μ_val true (projX z)) ^ 2 ∂S.P_Z)
         + (∫ z, ((1 - indA z) / (1 - S.e_val (projX z)) ^ 2) *
             (projY z - S.μ_val false (projX z)) ^ 2 ∂S.P_Z) := by
-  rw [S.effBound_eq_variance h_overlap hA h_y2 h_yd2,
+  rw [S.aipwProjectionNormSq_eq_secondMoment h_overlap hA h_y2 h_yd2,
     S.aipw_variance_hahn_decomposition h_overlap hA h_y2 h_yd2]
 
-/-- **The efficiency bound lower-bounds every gradient's squared norm.** Let `S` be a backdoor
+/-- **The AIPW projection norm lower-bounds every relative gradient's squared
+norm.** Let `S` be a backdoor
 average-treatment-effect estimation system with [strict overlap at level ε](hyp:h_overlap),
 satisfying [the system's core identification assumptions](hyp:hA), in which [the observed
 outcome has finite second moment](hyp:h_y2) and [each potential outcome under treatment level
 `d` has finite second moment](hyp:h_yd2). If `ψ` is a square-integrable element of `L²(P_Z)` that
 [is a gradient for the AIPW influence function relative to the full mean-zero tangent
-space](hyp:hψ), then [the semiparametric efficiency bound is at most the squared `L²` norm of
+space](hyp:hψ), then [the projected AIPW squared norm is at most the squared `L²` norm of
 `ψ`](goal).
 
 The formal conclusion is the abstract squared-norm inequality for any
 `IsGradient` element. It does not by itself identify gradients with mean-zero
 influence functions or convert the squared `L²` norm into a variance statement. -/
-theorem efficiency_bound_optimal (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
+theorem aipwProjectionNormSq_le_normSq
+    (S : ATE.BackdoorEstimationSystem P γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
     (hA : S.toPOBackdoorSystem.Assumptions)
     (h_y2 : Integrable (fun ω => (S.toPOBackdoorSystem.factualY ω) ^ 2) P.μ)

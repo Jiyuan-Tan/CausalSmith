@@ -10,12 +10,13 @@ Pointwise Lipschitz constant `K_seqDR`, indicator/K bound lemmas,
 bounds, and `μ_val` MemLp — used by the headline theorem in `ScoreL2.lean`.
 -/
 
-import Causalean.Estimation.DTR.SeqDRMoment
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
+module
+public import Causalean.Estimation.DTR.SeqDRMoment
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
 
 /-!
 # Sequential DR score norm helpers
@@ -34,6 +35,8 @@ The later lemmas provide the pointwise score algebra used by
 the square-integrability of the true stagewise regression representatives under
 the corresponding history marginals.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -139,9 +142,15 @@ lemma eLpNorm_comp_histH₁_eq
 set_option maxHeartbeats 800000 in
 -- The truncation argument combines tail selection, L² monotonicity, and lpNorm coercions.
 omit [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ] in
-/-- Multiplying an L²-convergent error by a fixed square-integrable residual still gives a stochastic little-o L² norm.
+/-- If a [measurable](hyp:hR_meas), [nonnegative](hyp:hR_nonneg),
+[square-integrable residual](hyp:hR_memLp) multiplies errors that are
+[square-integrable](hyp:hdeZ_memLp), [measurable](hyp:hdeZ_meas), and
+[uniformly pointwise bounded in absolute value by one](hyp:hdeZ_bdd), and whose
+[L² norms vanish in probability](hyp:hdeZ_rate), then [the product L² norms vanish in
+probability](goal).
 
-The proof uses truncation of the residual and domination by the original error rate on the bounded part. -/
+The proof uses truncation of the residual and domination by the original error rate on the
+bounded part. -/
 theorem residual_mul_error_isLittleOp_one
     {α : Type*} [MeasurableSpace α] {ν : Measure α} [IsProbabilityMeasure ν]
     {R : α → ℝ} (hR_meas : Measurable R) (hR_nonneg : ∀ z, 0 ≤ R z)
@@ -263,14 +272,14 @@ theorem residual_mul_error_isLittleOp_one
   have hnorm_nonneg :
       0 ≤ (eLpNorm (fun z : α => R z * |deZ n ω z|) 2 ν).toReal :=
     ENNReal.toReal_nonneg
-  have hlt_norm :
-      δ < (eLpNorm (fun z : α => R z * |deZ n ω z|) 2 ν).toReal := by
+  have hnorm_large :
+      δ ≤ (eLpNorm (fun z : α => R z * |deZ n ω z|) 2 ν).toReal := by
     simpa [abs_of_nonneg hnorm_nonneg] using hω
-  have hde_large : δ / (2 * M) < (eLpNorm (deZ n ω) 2 ν).toReal := by
+  have hde_large : δ / (2 * M) ≤ (eLpNorm (deZ n ω) 2 ν).toReal := by
     have hb := hcross_bound n ω
     by_contra hnot
     have hle : (eLpNorm (deZ n ω) 2 ν).toReal ≤ δ / (2 * M) :=
-      le_of_not_gt hnot
+      (lt_of_not_ge hnot).le
     have hprod_le :
         M * (eLpNorm (deZ n ω) 2 ν).toReal ≤ δ / 2 := by
       calc
@@ -281,7 +290,7 @@ theorem residual_mul_error_isLittleOp_one
         (eLpNorm (fun z : α => R z * |deZ n ω z|) 2 ν).toReal ≤ δ / 2 + τ := by
       exact hb.trans (add_le_add hprod_le le_rfl)
     dsimp [τ] at hcross_le
-    nlinarith
+    nlinarith [hnorm_large]
   have hde_nonneg : 0 ≤ (eLpNorm (deZ n ω) 2 ν).toReal := ENNReal.toReal_nonneg
   simpa [abs_of_nonneg hde_nonneg] using hde_large
 
@@ -560,42 +569,42 @@ lemma seqDR_real_bound
 /-- The true stage-zero regression representative is square-integrable under the stage-zero history marginal. -/
 lemma μ₀_val_memLp
     (S : DTREstimationSystem P δ γ)
-    (hA : S.toPODTRSystem.Assumptions)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
     (h_yd2 : ∀ dbar : Fin 2 → δ,
-      Integrable (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ) :
+      Integrable (fun ω => (S.toPOLongitudinalPathSystem.Y_of dbar ω) ^ 2) P.μ) :
     MemLp S.μ₀_val 2 S.P_H₀ := by
-  have hYd_L2 : MemLp (S.toPODTRSystem.Y_of S.dbar) 2 P.μ :=
+  have hYd_L2 : MemLp (S.toPOLongitudinalPathSystem.Y_of S.dbar) 2 P.μ :=
     (memLp_two_iff_integrable_sq
-      (S.toPODTRSystem.measurable_Y_of S.dbar).aestronglyMeasurable).2
+      (S.toPOLongitudinalPathSystem.measurable_Y_of S.dbar).aestronglyMeasurable).2
         (h_yd2 S.dbar)
   have hcond_L2 :
-      MemLp ((S.toPODTRSystem.historyBundle 0 (by decide)).condExpGiven
-        (S.toPODTRSystem.Y_of S.dbar) P.μ) 2 P.μ := by
+      MemLp ((S.toPOLongitudinalPathSystem.historyBundle 0 (by decide)).condExpGiven
+        (S.toPOLongitudinalPathSystem.Y_of S.dbar) P.μ) 2 P.μ := by
     simpa [POCFBundle.condExpGiven] using hYd_L2.condExp
   have hcomp_L2 :
       MemLp (fun ω => S.μ₀_val
-        (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)) 2 P.μ :=
+        (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)) 2 P.μ :=
     hcond_L2.ae_eq (S.μ₀_compat hA)
   rw [DTREstimationSystem.P_H₀]
   exact (memLp_map_measure_iff S.μ₀_meas.aestronglyMeasurable
-    (S.toPODTRSystem.measurable_factualS ⟨0, by decide⟩).aemeasurable).2 hcomp_L2
+    (S.toPOLongitudinalPathSystem.measurable_factualS ⟨0, by decide⟩).aemeasurable).2 hcomp_L2
 
 /-- The true stage-one regression representative is square-integrable under the stage-one history marginal. -/
 lemma μ₁_val_memLp
     (S : DTREstimationSystem P δ γ)
     {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ) :
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ) :
     MemLp S.μ₁_val 2 S.P_H₁ := by
   let H1 : P.Ω → γ 1 × δ × γ 0 := fun ω =>
-    (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-     S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-     S.toPODTRSystem.factualS ⟨0, by decide⟩ ω)
+    (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+     S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω)
   have hH1_meas : Measurable H1 := by
     dsimp [H1]
-    exact (S.toPODTRSystem.measurable_factualS ⟨1, by decide⟩).prod
-      ((S.toPODTRSystem.measurable_factualD ⟨0, by decide⟩).prod
-        (S.toPODTRSystem.measurable_factualS ⟨0, by decide⟩))
+    exact (S.toPOLongitudinalPathSystem.measurable_factualS ⟨1, by decide⟩).prod
+      ((S.toPOLongitudinalPathSystem.measurable_factualD ⟨0, by decide⟩).prod
+        (S.toPOLongitudinalPathSystem.measurable_factualS ⟨0, by decide⟩))
   have hcomp_L2 :
       MemLp (fun ω => S.μ₁_val (H1 ω)) 2 P.μ := by
     simpa [H1] using (S.stageOneReg_memLp h_overlap h_y2).ae_eq
@@ -632,16 +641,16 @@ theorem seqDR_score_diff_pointwise_bound
                 * |η.e₁_fn (histH₁ z) - S.e₁_val (histH₁ z)|) := by
   rcases h_overlap with ⟨hε_pos, _hε_half, hprop⟩
   have h_e_ω : ∀ᵐ ω ∂P.μ,
-      (ε ≤ S.e₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ∧
-        S.e₀_val (S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ≤ 1 - ε)
+      (ε ≤ S.e₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ∧
+        S.e₀_val (S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ≤ 1 - ε)
       ∧ (ε ≤ S.e₁_val
-          (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-           S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-           S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ∧
+          (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+           S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+           S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ∧
         S.e₁_val
-          (S.toPODTRSystem.factualS ⟨1, by decide⟩ ω,
-           S.toPODTRSystem.factualD ⟨0, by decide⟩ ω,
-           S.toPODTRSystem.factualS ⟨0, by decide⟩ ω) ≤ 1 - ε) := by
+          (S.toPOLongitudinalPathSystem.factualS ⟨1, by decide⟩ ω,
+           S.toPOLongitudinalPathSystem.factualD ⟨0, by decide⟩ ω,
+           S.toPOLongitudinalPathSystem.factualS ⟨0, by decide⟩ ω) ≤ 1 - ε) := by
     filter_upwards [hprop, S.e₀_compat, S.e₁_compat] with ω hω hcomp0 hcomp1
     rw [hcomp0] at hω
     rw [hcomp1] at hω

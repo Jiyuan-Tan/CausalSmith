@@ -2,56 +2,18 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Finite-grid support-process tail tests
-
-Built directly on the finite-grid support-process CLT
-`setValued_supportProcess_clt` (`SupportProcess.lean`).  Beresteanu & Molinari
-(2008, Thm 2.2) motivate a specification test of the null
-
-    H₀ : E[F] = EF
-
-for a set-valued random variable `F`.  This file formalizes the algebraic
-finite-grid proxy built from the normalized sum of the centered support process.
-Over a fixed grid of `k` directions `p₀,…,p_{k-1}` the statistic is the `ℓ^∞`
-functional of those normalized support-process coordinates.  When the separate
-Minkowski-mean bridge hypotheses are available, this proxy can be related to
-
-    Tₙ = maxⱼ √n · |s(pⱼ, F̄ₙ) − s(pⱼ, EF)|,
-
-but the declarations below state and prove results for the normalized
-support-process statistic itself.  Under the mean-zero / Artstein hypothesis
-`∫ ψ = 0` of the support process, the CLT gives convergence to `‖z‖_∞` over the
-grid for the finite-dimensional Gaussian limit `z`, so the rejection probability
-converges to the limit-law tail `L(c, ∞)`.  Choosing `c` as the `(1−α)`-quantile
-of the limit law `L` (a
-continuity point, so `L{c} = 0`) delivers an asymptotic level-`α` test.
-
-## Main definitions
-
-* `gridTestStat` — the two-sided normalized support-process statistic.
-* `gridTestReject` — the rejection region `{ω | c < Tₙ ω}` at critical value `c`.
-
-## Main results
-
-* `gridTestStat_clt` — under the mean-zero hypothesis, the statistic converges
-  in distribution to the law
-  `(gaussianLimit ψ).map maxAbsK` of `maxⱼ |z(pⱼ)|`; a thin restatement of
-  `setValued_supportProcess_clt`.
-* `gridTest_asymptotic_level` — under `H₀`, at any continuity point `c` of the
-  limit law, the rejection probability `μ (gridTestReject … c)` converges to the
-  limit-law tail `L(c, ∞)`.  Proved by portmanteau on the open half-line `Ioi c`.
 -/
 
-import Causalean.PO.ID.Partial.RandomSet.SupportProcess
+module
+public import Causalean.PO.ID.Partial.RandomSet.SupportProcess
 
-/-! # Finite-Grid Specification Tests for Random Sets
+/-! # Finite-Grid Support-Process Tail Statistics
 
-This file formulates finite-grid specification tests for the Aumann expectation
-of a set-valued random variable using the normalized centered support process.
-The statistic is the gridwise supremum of that normalized support-process sum,
-and its asymptotic level follows from the finite-direction support-process
-central limit theorem.
+This file defines a gridwise supremum statistic for the normalized sum of a
+centered support process and proves its Gaussian limit and limiting upper-tail
+probability. The declarations do not identify the statistic with an empirical
+Minkowski or Hausdorff statistic, and they do not derive the mean-zero condition
+from a set-equality null.
 
 Main declarations:
 * `gridTestStat` is the finite-grid `l^\infty` statistic applied to the
@@ -59,9 +21,11 @@ Main declarations:
 * `gridTestReject` is the rejection region `{T_n > c}`.
 * `gridTestStat_clt` transports the support-process CLT through the grid
   supremum functional.
-* `gridTest_asymptotic_level` identifies the limiting rejection probability at
+* `gridTest_tail_probability_limit` identifies the limiting upper-tail probability at
   continuity points of the Gaussian limit law.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
 
@@ -73,9 +37,10 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 
 /-- For [a measurable sample space](hyp:Ω) with [sampling measure](hyp:μ), [a measurable outcome
-space](hyp:X) with [outcome measure](hyp:P), [a nonempty grid containing $k$ directions](hyp:k),
-[an inner-product outcome space](hyp:V), [an independent and identically distributed sample](hyp:S),
-[a set-valued outcome function](hyp:F), [its proposed center set](hyp:EF), and [a grid of directions](hyp:p),
+space](hyp:X) with [outcome measure](hyp:P), [a nonempty grid containing $k$
+directions](hyp:k), [an inner-product outcome space](hyp:V), [an independent and
+identically distributed sample](hyp:S), [a set-valued outcome function](hyp:F),
+[its proposed center set](hyp:EF), and [a grid of directions](hyp:p),
 the [finite-grid test statistic](goal), at every nonnegative sample size and sample point, is the
 largest absolute coordinate of the normalized centered support-process sum.
 
@@ -93,13 +58,12 @@ noncomputable def gridTestStat (S : IIDSample Ω X μ P) (F : X → Set V) (EF :
     (fun m => Finset.range m) n ω)
 
 /-- For [a measurable sample space](hyp:Ω) with [sampling measure](hyp:μ), [a measurable outcome
-space](hyp:X) with [outcome measure](hyp:P), [a nonempty grid containing $k$ directions](hyp:k),
-[an inner-product outcome space](hyp:V), [an independent and identically distributed sample](hyp:S),
-[a set-valued outcome function](hyp:F), [its proposed center set](hyp:EF), [a grid of directions](hyp:p),
+space](hyp:X) with [outcome measure](hyp:P), [a nonempty grid containing $k$
+directions](hyp:k), [an inner-product outcome space](hyp:V), [an independent and
+identically distributed sample](hyp:S), [a set-valued outcome function](hyp:F),
+[its proposed center set](hyp:EF), [a grid of directions](hyp:p),
 [a nonnegative sample size](hyp:n), and [a real critical value](hyp:c), the [rejection region](goal)
-is the set of sample points at which the finite-grid test statistic exceeds the critical value.
-
-Reject `H₀ : E[F] = EF` when the statistic `Tₙ` exceeds `c`. -/
+is the set of sample points at which the finite-grid statistic exceeds the critical value. -/
 def gridTestReject (S : IIDSample Ω X μ P) (F : X → Set V) (EF : Set V)
     (p : Fin k → V) (n : ℕ) (c : ℝ) : Set Ω :=
   {ω | c < gridTestStat S F EF p n ω}
@@ -120,7 +84,7 @@ include hmean in
 /-- [The normalized finite-grid support-process statistic converges in
 distribution to the grid supremum of its Gaussian limit](goal).
 
-Under the mean-zero / Artstein hypothesis `∫ ψ = 0`, the finite-grid statistic
+Under the assumed mean-zero moment condition `∫ ψ = 0`, the finite-grid statistic
 `gridTestStat` converges in distribution to the law
 `(gaussianLimit ψ).map maxAbsK` of `maxⱼ |z(pⱼ)|` for the finite-dimensional
 Gaussian limit `z` of the support process.  A thin restatement of
@@ -133,7 +97,7 @@ theorem gridTestStat_clt :
 
 omit [IsProbabilityMeasure P] in
 include hmean hSum_meas in
-/-- **Asymptotic level of the finite-grid tail test.** At [any continuity point `c` of the
+/-- **Limit of the finite-grid upper-tail probability.** At [any continuity point `c` of the
 Gaussian limit law of the grid test statistic](hyp:hfront) — i.e. the limit law assigns
 zero mass to `{c}` — [the tail (rejection) probability of the normalized finite-grid
 support-process statistic converges to the corresponding tail mass of the Gaussian limit
@@ -145,19 +109,20 @@ converges to the limit-law tail:
 
     μ (gridTestReject … c)  →  L(c, ∞).
 
-Choosing `c` as the `(1−α)`-quantile of `L` (a continuity point) makes the right
-side `α`, giving an asymptotic level-`α` test.  Proof: the rejection event is
-`{Tₙ ∈ Ioi c}`, so the conclusion is portmanteau
+If `c` is a `(1−α)`-quantile of `L` and a continuity point, the limiting tail
+is `α`. This statement alone does not connect that tail probability to a
+set-equality null. Proof: the event is `{Tₙ ∈ Ioi c}`, so the conclusion is portmanteau
 (`tendsto_measure_of_null_frontier_of_tendsto'`) on the open half-line `Ioi c`,
 whose frontier `{c}` is null by the continuity-point hypothesis. -/
-theorem gridTest_asymptotic_level {c : ℝ}
+theorem gridTest_tail_probability_limit {c : ℝ}
     (hfront : ((gaussianLimit hψ hvar).map maxAbsK) {c} = 0) :
     Tendsto (fun n => μ (gridTestReject S F EF p n c)) atTop
       (𝓝 (((gaussianLimit hψ hvar).map maxAbsK) (Set.Ioi c))) := by
   have hclt := gridTestStat_clt S F EF p hψ hvar hmean hSum_meas
-  unfold Tendsto_dist_vec at hclt
+  have hclt' := (Tendsto_dist_vec_iff _ _ _
+    (fun n => measurable_maxAbsK.comp_aemeasurable (hSum_meas n))).1 hclt
   have hport := MeasureTheory.ProbabilityMeasure.tendsto_measure_of_null_frontier_of_tendsto'
-    hclt (E := Set.Ioi c) (by rw [frontier_Ioi]; exact hfront)
+    hclt' (E := Set.Ioi c) (by rw [frontier_Ioi]; exact hfront)
   refine hport.congr' ?_
   filter_upwards with n
   -- the per-`n` rejection probability equals the pushforward mass of `Ioi c`

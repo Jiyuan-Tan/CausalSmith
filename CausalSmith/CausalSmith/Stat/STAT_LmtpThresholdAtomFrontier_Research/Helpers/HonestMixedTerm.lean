@@ -4,9 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestExpectedLength
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestExpectedLength
 
 /-! # Disjoint-block factorization for the honest-radius mixed term -/
+
+public section
+
+open Causalean.Mathlib.Probability.Independence
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
@@ -110,14 +115,14 @@ lemma integral_atomEstimate_mul_sqrt_weightEnergy
       ((interceptWeight_measurable B x kappa cminus cplus delta h i).comp
         (hextMeas B.I2)).pow_const 2
   have hFproj (z : Fin n → ClampObs J) :
-      F (Causalean.finsetCoordProj B.I1 z) = atomEstimate B z x delta := by
+      F (finsetCoordProj B.I1 z) = atomEstimate B z x delta := by
     unfold F atomEstimate blockAverage
     congr 1
     apply Finset.sum_congr rfl
     intro i hi
-    simp [extendBlock, Causalean.finsetCoordProj, hi]
+    simp [extendBlock, finsetCoordProj, hi]
   have hGproj (z : Fin n → ClampObs J) :
-      G (Causalean.finsetCoordProj B.I2 z) =
+      G (finsetCoordProj B.I2 z) =
         Real.sqrt (∑ i ∈ B.I2,
           (interceptWeight B z x ell kappa cminus cplus delta h i) ^ 2) := by
     unfold G
@@ -126,7 +131,7 @@ lemma integral_atomEstimate_mul_sqrt_weightEnergy
     intro i hi
     congr 1
     exact (interceptWeight_congr_I2 (ell := ell) B
-      (extendBlock B.I2 (Causalean.finsetCoordProj B.I2 z)) z x
+      (extendBlock B.I2 (finsetCoordProj B.I2 z)) z x
       kappa cminus cplus delta h
       (by
         intro j hj
@@ -135,13 +140,13 @@ lemma integral_atomEstimate_mul_sqrt_weightEnergy
         rfl) i hi).symm
   have hfactor := integral_mul_I1_I2 P B hprob F G hF hG
   calc
-    _ = ∫ z, F (Causalean.finsetCoordProj B.I1 z) *
-        G (Causalean.finsetCoordProj B.I2 z) ∂iidProduct P n := by
+    _ = ∫ z, F (finsetCoordProj B.I1 z) *
+        G (finsetCoordProj B.I2 z) ∂iidProduct P n := by
       apply integral_congr_ae
       filter_upwards with z
       rw [hFproj, hGproj]
-    _ = (∫ z, F (Causalean.finsetCoordProj B.I1 z) ∂iidProduct P n) *
-        ∫ z, G (Causalean.finsetCoordProj B.I2 z) ∂iidProduct P n := hfactor
+    _ = (∫ z, F (finsetCoordProj B.I1 z) ∂iidProduct P n) *
+        ∫ z, G (finsetCoordProj B.I2 z) ∂iidProduct P n := hfactor
     _ = _ := by
       congr 1
       · apply integral_congr_ae

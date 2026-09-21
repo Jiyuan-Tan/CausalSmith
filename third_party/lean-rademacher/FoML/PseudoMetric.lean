@@ -1,4 +1,7 @@
-import FoML.CoveringNumber
+module
+public import FoML.CoveringNumber
+
+@[expose] public section
 
 universe v
 open scoped BigOperators

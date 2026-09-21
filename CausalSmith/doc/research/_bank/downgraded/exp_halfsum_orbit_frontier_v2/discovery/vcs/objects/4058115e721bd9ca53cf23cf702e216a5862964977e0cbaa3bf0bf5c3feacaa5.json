@@ -1,0 +1,55 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "thm:finite-fallback",
+    "kind": "theorem",
+    "statement": "For every positive \\((n_B,n_S,R)\\), \\(\\mathsf{Enum}(n_B,n_S,R)\\) terminates, returns \\(\\mathrm{INFEASIBLE}\\) exactly when \\(\\mathcal A_{n_B,n_S}(R)=\\varnothing\\), and otherwise returns \\(\\Phi_{n_B,n_S}(R)\\) and every maximizing paired multiset. Its recurrence table and terminal objective list form a checkable finite certificate.",
+    "free_symbols": [
+      "nB",
+      "nS",
+      "R",
+      "Enum",
+      "Aclass",
+      "Phi"
+    ],
+    "depends_on": [
+      "def:common-support",
+      "def:support-size",
+      "def:retention",
+      "def:profile-class",
+      "def:frontier",
+      "def:finite-enumerator"
+    ],
+    "justification": "The finite fallback closes every margin below the analytic threshold without claiming an unsupported complexity bound.",
+    "gap": "Generic biclique search is NP-hard and the closest exact-test papers do not give a complete certificate for the structured small-margin problem.",
+    "consumer": "Small marketplace pilots receive an auditable exact design choice rather than an asymptotic or large-margin approximation.",
+    "proof_tex": "Fix \\(n_B,n_S,R\\in\\mathbb Z_{>0}\\).  We first prove that the search space named in \\(\\mathsf{Enum}\\) is finite.  If \\((L,a,b)\\) satisfies the two positivity conditions and the two covering conditions in \\(\\mathcal A_{n_B,n_S}(R)\\), then\n\\[\n  2n_B=\\sum_{\\ell=1}^{L}a_\\ell\\ge L,\n  \\qquad\n  2n_S=\\sum_{\\ell=1}^{L}b_\\ell\\ge L.\n\\]\nConsequently \\(1\\le L\\le L_{\\max}:=\\min\\{2n_B,2n_S\\}\\).  For a fixed such \\(L\\), a positive composition \\(a\\) of \\(2n_B\\) is in bijection with the set of its \\(L-1\\) strictly increasing partial sums in \\(\\{1,\\ldots,2n_B-1\\}\\): the inverse map takes successive differences, including the differences from \\(0\\) and to \\(2n_B\\).  Thus there are exactly \\(\\binom{2n_B-1}{L-1}\\) possible ordered vectors \\(a\\), and, by the same argument, exactly \\(\\binom{2n_S-1}{L-1}\\) possible ordered vectors \\(b\\).  Hence the number of ordered paired compositions considered before quotienting by common coordinate permutations is\n\\[\n  N=\\sum_{L=1}^{L_{\\max}}\n       \\binom{2n_B-1}{L-1}\\binom{2n_S-1}{L-1}<\\infty.\n\\]\nPassing to common-permutation classes cannot increase this number.  Therefore the composition loop in Definition \\(\\mathrm{def{:}finite\\text{-}enumerator}\\) terminates.\n\nWe next verify the coefficient recursion used for each candidate.  For a fixed paired composition, put\n\\[\n  P_r(x,y):=\\prod_{\\ell=1}^{r}(1+x^{a_\\ell}y^{b_\\ell}),\n  \\qquad 0\\le r\\le L,\n\\]\nand initialize \\(d_0(i,j)=\\mathbf 1\\{(i,j)=(0,0)\\}\\), with \\(d_r(i,j)=0\\) whenever \\(i<0\\) or \\(j<0\\).  We claim that, for \\(0\\le i\\le n_B\\) and \\(0\\le j\\le n_S\\),\n\\[\n  d_r(i,j)=[x^iy^j]P_r(x,y).                                      \\tag{1}\n\\]\nFor \\(r=0\\), this is the initialization.  If it holds at \\(r\\), multiplication by the next factor gives\n\\[\n\\begin{aligned}\n [x^iy^j]P_{r+1}(x,y)\n &= [x^iy^j]P_r(x,y)\n    +[x^{i-a_{r+1}}y^{j-b_{r+1}}]P_r(x,y)\\\\\n &=d_r(i,j)+d_r(i-a_{r+1},j-b_{r+1})\n  =d_{r+1}(i,j),\n\\end{aligned}\n\\]\nwhere a coefficient having a negative exponent is zero.  This proves (1) by finite induction.  In particular, Definition \\(\\mathrm{def{:}support\\text{-}size}\\) and (1) yield\n\\[\n d_L(n_B,n_S)\n =[x^{n_B}y^{n_S}]\\prod_{\\ell=1}^{L}(1+x^{a_\\ell}y^{b_\\ell})\n =h(a,b).                                                        \\tag{2}\n\\]\nEquivalently, expanding the product chooses a vector \\(z\\in\\{0,1\\}^L\\), and the monomial selected by \\(z\\) has exponents \\(\\sum_\\ell a_\\ell z_\\ell\\) and \\(\\sum_\\ell b_\\ell z_\\ell\\); Definition \\(\\mathrm{def{:}common\\text{-}support}\\) therefore shows directly that the last quantity in (2) is \\(|H(a,b)|\\).  Thus the recursion computes the support size exactly, rather than approximately.\n\nIt remains to prove that quotienting by common permutations loses neither feasibility nor an optimizer.  Let \\(\\sigma\\) be a permutation of \\([L]\\), and set \\(a'_\\ell=a_{\\sigma(\\ell)}\\) and \\(b'_\\ell=b_{\\sigma(\\ell)}\\).  The bijection \\(z'_{\\ell}=z_{\\sigma(\\ell)}\\) preserves both half-sum equations, so Definition \\(\\mathrm{def{:}common\\text{-}support}\\) gives\n\\[\n  h(a',b')=h(a,b).\n\\]\nLikewise Definition \\(\\mathrm{def{:}retention}\\) gives\n\\[\n  F(a',b')=\\sum_{\\ell=1}^{L}a_{\\sigma(\\ell)}b_{\\sigma(\\ell)}\n           =\\sum_{k=1}^{L}a_kb_k=F(a,b).                         \\tag{3}\n\\]\nHence feasibility and the objective are well defined on every paired multiset enumerated by \\(\\mathsf{Enum}\\).\n\nEvery enumerated candidate has positive coordinates and the prescribed two totals by construction.  By (2), it is retained by the support-floor check exactly when \\(h(a,b)\\ge R\\); by Definition \\(\\mathrm{def{:}profile\\text{-}class}\\), this is exactly membership in \\(\\mathcal A_{n_B,n_S}(R)\\).  Conversely, every member of that class has \\(L\\le L_{\\max}\\) by the first display and is a pair of positive compositions of the prescribed totals.  Its common-permutation class therefore occurs in the finite enumeration, and (2)--(3) preserve its feasibility and objective.  We have consequently proved the exact equivalence\n\\[\n \\mathcal A_{n_B,n_S}(R)=\\varnothing\n \\quad\\Longleftrightarrow\\quad\n \\text{the enumerator's feasible terminal list is empty}.       \\tag{4}\n\\]\nThis proves the asserted correctness of the \\(\\mathrm{INFEASIBLE}\\) output.\n\nIf the class is nonempty, let \\(\\mathscr E_R\\) be the nonempty finite set of feasible paired-multiset representatives produced by the enumeration.  Exhaustiveness and (3) imply\n\\[\n \\max_{(L,a,b)\\in\\mathscr E_R}F(a,b)\n =\\max_{(L,a,b)\\in\\mathcal A_{n_B,n_S}(R)}F(a,b)\n =\\Phi_{n_B,n_S}(R),                                             \\tag{5}\n\\]\nwhere the last equality is Definition \\(\\mathrm{def{:}frontier}\\).  The terminal comparison made by \\(\\mathsf{Enum}\\) returns the left side of (5) and retains precisely every representative whose listed objective equals it.  The preceding correspondence then proves that the output consists of every maximizing paired multiset and no nonmaximizer.\n\nFinally, the computation is a finite certificate.  A checker regenerates the finitely many paired compositions using the partial-sum description above; for each one it verifies positivity and the two totals, checks the displayed initialization and every integer addition in the recurrence, reads \\(d_L(n_B,n_S)\\) as the exact support size by the proved invariant (1), and independently checks \\(F(a,b)=\\sum_\\ell a_\\ell b_\\ell\\).  Comparing the resulting finite terminal list verifies (4), (5), and the complete list of equality cases.  All checks are finite integer equalities and inequalities, and no complexity bound is required.\n\nAs the smallest boundary audit, take \\(n_B=n_S=1\\).  For \\(L=1\\), the sole candidate is \\((a,b)=((2),(2))\\), for which \\(H(a,b)=\\varnothing\\).  For \\(L=2\\), the sole paired multiset is \\((a,b)=((1,1),(1,1))\\), for which\n\\[\n H(a,b)=\\{(1,0),(0,1)\\},\\qquad h(a,b)=2,\\qquad F(a,b)=2.\n\\]\nThus the algorithm returns frontier \\(2\\) for \\(R\\in\\{1,2\\}\\) and returns \\(\\mathrm{INFEASIBLE}\\) for \\(R\\ge3\\), exactly as Definitions \\(\\mathrm{def{:}profile\\text{-}class}\\) and \\(\\mathrm{def{:}frontier}\\) require.  In particular, the infeasible \\(L=1\\) candidate, despite its larger raw objective \\(F=4\\), is correctly excluded by the exact support computation.",
+    "proof_basis": {
+      "ass:buyer-cover": "8f94d0d9162180caead4f5f8a448f8446c9d6085fe8333489b81b71b34d507b8",
+      "ass:positive-buyer-blocks": "a771cfb79318aa2465278fd3e7d4c9f3d19fc73ecf35b4300b1b362027ff746f",
+      "ass:positive-seller-blocks": "ffa31babb4a2aed2455fd04892be0390885d9f512b42131df82b1d8fbb7f0ba8",
+      "ass:seller-cover": "f5156fe67bbf7b5e82417be174af75bebc75c5e1442b5ae35c064750f7a4506f",
+      "ass:support-floor": "59b81d56829c1dc362c6946903230398acb8afc9f9ec3906200b15daebabc4cc",
+      "def:common-support": "bf8d3a9abfb19c0f0ddb45438363fd2ac18a29f6cdc2793f5dd5ea13bd51b5cc",
+      "def:finite-enumerator": "c5f720f5136f4ca489350bbe723c2d6d1b268b095b128a4780c3fa1cb8964a62",
+      "def:frontier": "115d63d09fe70edb74156f60bbd2978a45838a0ec8fab0d45f4118c649499b43",
+      "def:profile-class": "846418418e18fc35e3e41486065fd5ca8d535e72234a35a6f62c26ada49e12c2",
+      "def:retention": "80e58925e4acde8146b8f3cebd8599451557ebb89ab749088ce3a2723e6d0863",
+      "def:support-size": "7e8c912676be45942a1e0a02c09ab6e3c5815b55c14e441d6cc9a260361e51b7",
+      "sym:Aclass": "07853719b1cbdf6f44b3cd11f93e43159e1e5b508a879d2c8044623d9869f7e7",
+      "sym:Enum": "94f50bb821731aaf82ac02e934c0b0378bfbe381a860a6c890b2b43a03f78ee8",
+      "sym:F": "b4d7c95e471e878d9cad3f7cd919dcd8b3fb784fe75f1481cb40fe8d11e2f394",
+      "sym:H": "4213db32c33dff8667ce807ad9958c893ccfb05725bc6227094ef4918922947d",
+      "sym:L": "9b167f1d2f5209fa71cb4a1fc400d8f2f90f96ba73303a18a6ae3e8d91a3eb73",
+      "sym:Phi": "10564d809d9e8a748a3068b52c6da792dd5be59a6094df3021998330269d8a25",
+      "sym:R": "9bd4513f509f271336dff7845bec034171068ef6e55e3daad69c95eadfd1e72b",
+      "sym:a": "0383436f8eebec542df7b622f2ef64693d3b18fd5594339eb1ea6c9194d02318",
+      "sym:b": "2e6f0fe71ee66d459822e8943ab748186a81a912cb680bc062ecff59d4993f49",
+      "sym:h": "00515da62b4274b4e07128dc5bd6bdbf32e49a1e96457523c225351bc9e2b160",
+      "sym:nB": "dcf5e643254dd8c248d8e1c1b7f71abd59b7c66963689a8ee0abae706b9aa879",
+      "sym:nS": "5f5b0728dce7272d0c046383aee521288d472412e3c6e05167dd2ac4e3883151",
+      "sym:rho": "fd97a299c522094bb231153e70842d6c30cbf9e7f7c2ac10bddc1bce1308af8d",
+      "thm:finite-fallback": "ee3bb3c74ded0a63366865404bb702bec0821619e4a6c07ea7749cd03c0d8444"
+    }
+  }
+}

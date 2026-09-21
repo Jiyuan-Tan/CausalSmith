@@ -1,4 +1,5 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Kneser
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Kneser
 
 /-!
 # Exact Kneser spectral identity
@@ -6,6 +7,8 @@ import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Resear
 The paper's exact identity is stated conditionally on the two cited Johnson/Kneser
 logical gates.  Stage 3 supplies the Lean proof of the conditional result.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

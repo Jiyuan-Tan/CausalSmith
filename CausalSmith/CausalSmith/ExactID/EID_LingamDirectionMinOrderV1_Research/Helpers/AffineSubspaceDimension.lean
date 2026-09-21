@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.AffineSubspaceDimension
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PolynomialRetractDimension
+module
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.AffineSubspaceDimension
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.PolynomialRetractDimension
 
 /-!
 # Compatibility reexports for affine-subspace dimension
@@ -13,6 +14,8 @@ import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Polyno
 The general affine-linear proofs now live in neutral substrate.  This import
 preserves every original paper-facing name.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -19,11 +19,14 @@ records that this sharp rate is INHERITED from one-server private pointwise
 regression, not a new causal exponent.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateUpperEndpoint
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CausalLowerBound
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RateAlgebra
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.EqualSmoothnessAlgebra
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionEmbedding
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateUpperEndpoint
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CausalLowerBound
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RateAlgebra
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.EqualSmoothnessAlgebra
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionEmbedding
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

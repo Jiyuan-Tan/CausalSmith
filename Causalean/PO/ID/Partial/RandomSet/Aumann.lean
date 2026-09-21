@@ -2,54 +2,32 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# The d = 1 Aumann expectation through the support function (Artstein bridge)
-
-`RandomSet/Interval.lean` computes the selection (Aumann) expectation of an
-interval random set, `E[F] = [∫L, ∫U]`.  `SupportFunction/` gives the abstract
-support-function engine.  This file is the bridge between them in the `d = 1`
-case — the link Beresteanu & Molinari (2008) use to turn set-valued moments into
-scalar moments of the support process.
-
-The unit "sphere" `S⁰ ⊆ ℝ` is `{+1, −1}`, and for an interval `[a, b]`
-(`a ≤ b`) the support function in those two directions is
-
-    s(+1, [a,b]) = b,        s(−1, [a,b]) = −a.
-
-Hence the **Artstein identity** `s(p, E[F]) = E[s(p, F)]` (`p ∈ {±1}`) reduces to
-the endpoint identities `s(+1, E[F]) = ∫U = E[s(+1,F)]` and
-`s(−1, E[F]) = −∫L = E[s(−1,F)]`, and the Hausdorff keystone of `Hausdorff.lean`
-becomes the `d = 1` Hörmander identity `H(A,B) = sup_{p∈{±1}} |s(p,A) − s(p,B)|`.
-
-## Main results
-
-* `supportFn_Icc_one` / `supportFn_Icc_neg_one` — support function of a real
-  interval at `+1` / `−1`.
-* `hausdorffDist_Icc_eq_supportFn` — the `d = 1` Hörmander identity (A.1).
-* `artstein_supportFn_one` / `artstein_supportFn_neg_one` — the `d = 1` Artstein
-  identity `s(±1, E[F]) = E[s(±1, F)]`.
 -/
 
-import Causalean.PO.ID.Partial.RandomSet.Interval
-import Causalean.PO.ID.Partial.RandomSet.Hausdorff
-import Causalean.PO.ID.Partial.SupportFunction.Basic
+module
+public import Causalean.PO.ID.Partial.RandomSet.Interval
+public import Causalean.PO.ID.Partial.RandomSet.Hausdorff
+public import Causalean.PO.ID.Partial.SupportFunction.Basic
 
-/-! # The One-Dimensional Aumann Support Bridge
+/-! # The One-Dimensional Everywhere-Selection Support Bridge
 
-This file connects interval-valued Aumann expectations with support functions
-in the two unit directions on the real line. The support function of `[a,b]` at
-`+1` is `b`, and at `-1` is `-a`; these endpoint formulas turn both the
-Hausdorff identity and the Artstein expectation identity into scalar interval
-facts.
+This file connects the interval produced by the everywhere-selection
+expectation with support functions in the two unit directions on the real line.
+The support function of `[a,b]` at `+1` is `b`, and at `-1` is `-a`; these
+endpoint formulas yield scalar support-expectation identities and the interval
+Hausdorff identity. The selection interface used here requires membership at
+every outcome, not merely almost surely.
 
 Main declarations:
 * `supportFn_Icc_one` and `supportFn_Icc_neg_one` compute support functions of
   real intervals at the two unit directions.
 * `hausdorffDist_Icc_eq_supportFn` rewrites interval Hausdorff distance in the
   `d = 1` support-function form.
-* `artstein_supportFn_one` and `artstein_supportFn_neg_one` prove the
-  one-dimensional Artstein identities for `selectionExpectation`.
+* `artstein_supportFn_one` and `artstein_supportFn_neg_one` prove endpoint
+  support-expectation identities for `selectionExpectation`.
 -/
+
+public section
 
 open MeasureTheory
 open scoped RealInnerProductSpace
@@ -87,19 +65,20 @@ Hausdorff distance between the intervals `[a,b]` and `[c,d]` equals the largest,
 the two unit directions `+1` and `−1`, of the absolute difference between their
 support functions in that direction](goal). -/
 theorem hausdorffDist_Icc_eq_supportFn {a b c d : ℝ} (hab : a ≤ b) (hcd : c ≤ d) :
-    hausdorffDist (Set.Icc a b) (Set.Icc c d)
+    hausdorffDist
+        (Set.Icc a b) (Set.Icc c d)
       = max |supportFn (Set.Icc a b) (-1 : ℝ) - supportFn (Set.Icc c d) (-1 : ℝ)|
             |supportFn (Set.Icc a b) (1 : ℝ) - supportFn (Set.Icc c d) (1 : ℝ)| := by
   rw [hausdorffDist_Icc hab hcd, supportFn_Icc_one hab, supportFn_Icc_one hcd,
     supportFn_Icc_neg_one hab, supportFn_Icc_neg_one hcd,
     show (-a) - (-c) = -(a - c) by ring, abs_neg]
 
-/-- **Artstein identity, `d = 1`, direction `+1`.** For [measurable lower and upper
+/-- **Endpoint support identity in direction `+1`.** For [measurable lower and upper
 endpoint functions `L`, `U` of an interval-valued random set](hyp:hL,hU) that are
 [integrable](hyp:hLint,hUint) and satisfy [`L` pointwise at most `U`](hyp:hLU), [the
-support function of the Aumann (selection) expectation of the random interval `[L, U]`
-in the direction `+1`, namely the upper endpoint, equals the expectation of the support
-function of the random interval itself in that direction](goal):
+support function of the everywhere-selection expectation of `[L, U]` in direction
+`+1` equals the expected support function of the realized interval in that
+direction](goal):
 `s(+1, E[F]) = E[s(+1, F)]`. -/
 theorem artstein_supportFn_one (hL : Measurable L) (hU : Measurable U)
     (hLint : Integrable L μ) (hUint : Integrable U μ) (hLU : ∀ ω, L ω ≤ U ω) :
@@ -110,12 +89,12 @@ theorem artstein_supportFn_one (hL : Measurable L) (hU : Measurable U)
   rw [selectionExpectation_eq_Icc hL hU hLint hUint hLU,
     supportFn_Icc_one (integral_le_integral_of_le hLint hUint hLU), hfun]
 
-/-- **Artstein identity, `d = 1`, direction `−1`.** For [measurable lower and upper
+/-- **Endpoint support identity in direction `−1`.** For [measurable lower and upper
 endpoint functions `L`, `U` of an interval-valued random set](hyp:hL,hU) that are
 [integrable](hyp:hLint,hUint) and satisfy [`L` pointwise at most `U`](hyp:hLU), [the
-support function of the Aumann (selection) expectation of the random interval `[L, U]`
-in the direction `−1`, namely the negated lower endpoint, equals the expectation of the
-support function of the random interval itself in that direction](goal):
+support function of the everywhere-selection expectation of `[L, U]` in direction
+`−1` equals the expected support function of the realized interval in that
+direction](goal):
 `s(−1, E[F]) = E[s(−1, F)]`. -/
 theorem artstein_supportFn_neg_one (hL : Measurable L) (hU : Measurable U)
     (hLint : Integrable L μ) (hUint : Integrable U μ) (hLU : ∀ ω, L ω ≤ U ω) :

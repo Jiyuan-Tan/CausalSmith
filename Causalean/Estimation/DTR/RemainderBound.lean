@@ -31,15 +31,16 @@ nuisance is `o_p(n^{-1/2})`.  This is the form consumed at DML stage by
 `DTRInstance.lean`.
 
 The stochastic-order corollary uses the canonical `IsLittleOp` closure
-helpers imported from `Causalean.Stat.Orthogonality.ConditionalOp`, rather
+helpers imported from `Causalean.Stat.Limit.StochasticOrderEnvelope`, rather
 than restating the ATE proof-local helper lemmas.
 -/
 
-import Causalean.Estimation.DTR.RemainderIdentity
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.L2Space
+module
+public import Causalean.Estimation.DTR.RemainderIdentity
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
 
 /-!
 Bounds the sequential doubly robust second-order remainder for a two-stage
@@ -48,6 +49,8 @@ nuisance errors in the DTR product-rate condition. The main declarations are
 `seqDR_rem_const`, `seqDR_remainder_bound`, and the random-nuisance
 stochastic-order corollary `seqDR_remainder_op`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -82,30 +85,25 @@ noncomputable def seqDR_rem_const (ε : ℝ) : ℝ := 2 / (ε ^ 2 * (1 - ε))
 treatment-regime estimation system satisfying [the sequential causal
 assumptions](hyp:hA), for which [the stage-0 and stage-1 propensity scores are
 bounded within a margin ε of 0 and 1 (strict overlap)](hyp:h_overlap), and where
-[the factual outcome](hyp:h_y2) and [the potential outcome under every fixed
-treatment regime](hyp:h_yd2) each have finite second moment. For any candidate
+[the factual outcome has finite second moment](hyp:h_y2). For any candidate
 nuisance vector η whose propensities likewise [lie in this strict-overlap
 band](hyp:hη), and whose [stage-0 outcome-regression error](hyp:hΔμ₀_memLp),
 [stage-1 outcome-regression error](hyp:hΔμ₁_memLp), [stage-0 propensity
 error](hyp:hΔe₀_memLp), and [stage-1 propensity error](hyp:hΔe₁_memLp) are each
 square-integrable against the corresponding stage's history law, [the absolute value
 of the population sequential doubly robust moment at η and the true target θ₀ is at
-most an explicit `O(ε⁻²)` constant times the sum of the two stagewise
-outcome-regression L² errors, times the sum of the two stagewise propensity L²
-errors](goal).
+most an explicit `O(ε⁻²)` constant times the sum of the two same-stage products of
+outcome-regression and propensity L² errors](goal).
 
-Cauchy–Schwarz on each summand of `seqDR_remainder_identity`, plus
-the slack inequality `Σ aₖ bₖ ≤ (Σ aₖ) · (Σ bₖ)` for nonneg sequences,
-yields the L²-product bound.  The constant `seqDR_rem_const ε` absorbs
+Cauchy–Schwarz on each summand of `seqDR_remainder_identity` yields the
+stage-matched L²-product bound. The constant `seqDR_rem_const ε` absorbs
 the stage-0 IPW weight bound `ε⁻¹` and the stage-1 IPW weight bound
 `ε⁻²`. -/
 theorem seqDR_remainder_bound
     (S : DTREstimationSystem P δ γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
-    (h_yd2 : ∀ dbar : Fin 2 → δ, Integrable
-      (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (η : DTRNuisanceVec₂ δ γ) (hη : η ∈ DTREstimationSystem.H_ε ε)
     (hΔμ₀_memLp : MemLp (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀)
     (hΔμ₁_memLp : MemLp (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁)
@@ -113,10 +111,10 @@ theorem seqDR_remainder_bound
     (hΔe₁_memLp : MemLp (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁) :
     |∫ z, S.seqDRMomentFunctional η z S.θ₀ ∂(S.P_Z)|
       ≤ seqDR_rem_const ε *
-          ((eLpNorm (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal
-            + (eLpNorm (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal) *
-          ((eLpNorm (fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal
-            + (eLpNorm (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal) := by
+          ((eLpNorm (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
+              (eLpNorm (fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
+            (eLpNorm (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
+              (eLpNorm (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal) := by
   let dμ0 : γ 0 → ℝ := fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀
   let de0 : γ 0 → ℝ := fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀
   let dμ1 : γ 1 × δ × γ 0 → ℝ := fun h => η.μ₁_fn h - S.μ₁_val h
@@ -253,7 +251,7 @@ theorem seqDR_remainder_bound
     simpa [dμ1, de1] using
       integral_abs_mul_le_eLpNorm_mul_eLpNorm
         (ν := S.P_H₁) hΔμ₁_memLp hΔe₁_memLp
-  have hident := seqDR_remainder_identity S h_overlap hA h_y2 h_yd2 η hη
+  have hident := seqDR_remainder_identity S h_overlap hA h_y2 η hη
     hΔμ₀_memLp hΔμ₁_memLp hΔe₀_memLp hΔe₁_memLp
   calc
     |∫ z, S.seqDRMomentFunctional η z S.θ₀ ∂(S.P_Z)|
@@ -281,20 +279,13 @@ theorem seqDR_remainder_bound
           exact add_le_add
             (mul_le_mul_of_nonneg_left hCS0 hC_nonneg)
             (mul_le_mul_of_nonneg_left hCS1 hC_nonneg)
-    _ ≤ seqDR_rem_const ε *
-          ((eLpNorm dμ0 2 S.P_H₀).toReal + (eLpNorm dμ1 2 S.P_H₁).toReal) *
-          ((eLpNorm de0 2 S.P_H₀).toReal + (eLpNorm de1 2 S.P_H₁).toReal) := by
-          have hμ0 : 0 ≤ (eLpNorm dμ0 2 S.P_H₀).toReal := ENNReal.toReal_nonneg
-          have hμ1 : 0 ≤ (eLpNorm dμ1 2 S.P_H₁).toReal := ENNReal.toReal_nonneg
-          have he0 : 0 ≤ (eLpNorm de0 2 S.P_H₀).toReal := ENNReal.toReal_nonneg
-          have he1 : 0 ≤ (eLpNorm de1 2 S.P_H₁).toReal := ENNReal.toReal_nonneg
-          nlinarith [mul_nonneg hμ0 he1, mul_nonneg hμ1 he0]
     _ = seqDR_rem_const ε *
-          ((eLpNorm (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal
-            + (eLpNorm (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal) *
-          ((eLpNorm (fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal
-            + (eLpNorm (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal) := by
+          ((eLpNorm (fun s₀ => η.μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
+              (eLpNorm (fun s₀ => η.e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
+            (eLpNorm (fun h => η.μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
+              (eLpNorm (fun h => η.e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal) := by
           simp [dμ0, de0, dμ1, de1]
+          ring
 
 /-! ## Stochastic-order corollary used by DML
 
@@ -311,39 +302,30 @@ stages, mirroring `aipw_remainder_op` which sums over `a ∈ {0, 1}`. -/
 product rate.** Consider a two-stage dynamic treatment-regime estimation system
 satisfying [the sequential causal assumptions](hyp:hA), for which [the stage-0 and
 stage-1 propensity scores are bounded within a margin ε of 0 and 1 (strict
-overlap)](hyp:h_overlap), and where [the factual outcome](hyp:h_y2) and [the
-potential outcome under every fixed treatment regime](hyp:h_yd2) each have finite
-second moment. Let `η̂ₙ` be a sequence of sample-size-indexed, possibly random,
+overlap)](hyp:h_overlap), and where [the factual outcome has finite second
+moment](hyp:h_y2). Let `η̂ₙ` be a sequence of sample-size-indexed, possibly random,
 candidate nuisance vectors that [always land in the strict-overlap band, for every
 sample size and every outcome of the underlying randomness](hyp:h_in_H), with
 [stage-0 outcome-regression error](hyp:hΔμ₀_memLp), [stage-1 outcome-regression
 error](hyp:hΔμ₁_memLp), [stage-0 propensity error](hyp:hΔe₀_memLp), and [stage-1
 propensity error](hyp:hΔe₁_memLp) each square-integrable against the corresponding
-stage's history law at every sample size and outcome. If the four stagewise L²
-products of outcome-regression and propensity error — [own-stage at
-stage 0](hyp:h_product_rate_00), [own-stage at stage 1](hyp:h_product_rate_11),
-[stage-0 outcome-regression with stage-1 propensity](hyp:h_product_rate_01), and
-[stage-1 outcome-regression with stage-0 propensity](hyp:h_product_rate_10) — are
+stage's history law at every sample size and outcome. If the two same-stage L²
+products of outcome-regression and propensity error — [stage
+0](hyp:h_product_rate_00) and [stage 1](hyp:h_product_rate_11) — are
 each `o_p(n^{-1/2})`, then [the population sequential doubly robust moment evaluated
 at the random nuisance `η̂ₙ` is itself `o_p(n^{-1/2})`](goal).
 
 If `η̂_n ω ∈ H_ε` for all `n, ω` and for each stage `k ∈ {0, 1}` the
-L²-product `‖Δμ_k‖₂ · ‖Δe_k‖₂ = o_p(n^{-1/2})`, plus the stage-cross
-products `‖Δμ_0‖₂ · ‖Δe_1‖₂` and `‖Δμ_1‖₂ · ‖Δe_0‖₂` are also
-`o_p(n^{-1/2})`, then the population sequential DR moment at the random
+L²-product `‖Δμ_k‖₂ · ‖Δe_k‖₂ = o_p(n^{-1/2})`, then the population sequential DR moment at the random
 nuisance is `o_p(n^{-1/2})` under `μ`.
 
-The cross-stage product hypotheses are needed because `seqDR_remainder_bound`
-yields `(‖Δμ_0‖ + ‖Δμ_1‖) · (‖Δe_0‖ + ‖Δe_1‖)`, which expands into all
-four pairs.  Direct consequence of `seqDR_remainder_bound` plus closure
-of `IsLittleOp` under finite sums and constant scaling. -/
+This is a direct consequence of the stage-matched `seqDR_remainder_bound` plus
+closure of `IsLittleOp` under finite sums and constant scaling. -/
 theorem seqDR_remainder_op
     (S : DTREstimationSystem P δ γ) {ε : ℝ}
     (h_overlap : S.StrictOverlap ε)
-    (hA : S.toPODTRSystem.Assumptions)
-    (h_y2 : Integrable (fun ω => (S.toPODTRSystem.factualY ω) ^ 2) P.μ)
-    (h_yd2 : ∀ dbar : Fin 2 → δ, Integrable
-      (fun ω => (S.toPODTRSystem.Y_of dbar ω) ^ 2) P.μ)
+    (hA : S.toPOLongitudinalPathSystem.Assumptions)
+    (h_y2 : Integrable (fun ω => (S.toPOLongitudinalPathSystem.factualY ω) ^ 2) P.μ)
     (η_hat : ℕ → P.Ω → DTRNuisanceVec₂ δ γ)
     (h_in_H : ∀ n ω, η_hat n ω ∈ DTREstimationSystem.H_ε ε)
     (hΔμ₀_memLp :
@@ -373,22 +355,6 @@ theorem seqDR_remainder_op
               (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
             (eLpNorm (fun h =>
               (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
-        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ)
-    (h_product_rate_01 :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm (fun s₀ =>
-              (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
-            (eLpNorm (fun h =>
-              (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
-        (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ)
-    (h_product_rate_10 :
-      IsLittleOp
-        (fun n ω =>
-          (eLpNorm (fun h =>
-              (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
-            (eLpNorm (fun s₀ =>
-              (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal)
         (fun n => (n : ℝ) ^ (-(1 / 2 : ℝ))) P.μ) :
     IsLittleOp
       (fun n ω => ∫ z, S.seqDRMomentFunctional (η_hat n ω) z S.θ₀ ∂(S.P_Z))
@@ -404,35 +370,16 @@ theorem seqDR_remainder_op
         (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
       (eLpNorm (fun h =>
         (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal
-  let prod01 : ℕ → P.Ω → ℝ := fun n ω =>
-    (eLpNorm (fun s₀ =>
-        (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
-      (eLpNorm (fun h =>
-        (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal
-  let prod10 : ℕ → P.Ω → ℝ := fun n ω =>
-    (eLpNorm (fun h =>
-        (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
-      (eLpNorm (fun s₀ =>
-        (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal
   let sumProd : ℕ → P.Ω → ℝ := fun n ω =>
-    prod00 n ω + prod11 n ω + prod01 n ω + prod10 n ω
+    prod00 n ω + prod11 n ω
   have hrn_nonneg : ∀ᶠ n : ℕ in atTop, 0 ≤ rn n := by
     filter_upwards with n
     exact Real.rpow_nonneg (Nat.cast_nonneg n) _
   have hsum_rate :
       IsLittleOp sumProd rn P.μ := by
-    have h0011 :
-        IsLittleOp (fun n ω => prod00 n ω + prod11 n ω) rn P.μ := by
-      simpa [prod00, prod11, rn] using
-        IsLittleOp.add_eventually_nonneg_rate (μ := P.μ) hrn_nonneg
-          h_product_rate_00 h_product_rate_11
-    have h0110 :
-        IsLittleOp (fun n ω => prod01 n ω + prod10 n ω) rn P.μ := by
-      simpa [prod01, prod10, rn] using
-        IsLittleOp.add_eventually_nonneg_rate (μ := P.μ) hrn_nonneg
-          h_product_rate_01 h_product_rate_10
-    simpa [sumProd, add_assoc] using
-      IsLittleOp.add_eventually_nonneg_rate (μ := P.μ) hrn_nonneg h0011 h0110
+    simpa [sumProd, prod00, prod11, rn] using
+      IsLittleOp.add_eventually_nonneg_rate (μ := P.μ) hrn_nonneg
+        h_product_rate_00 h_product_rate_11
   have hCpos : 0 < seqDR_rem_const ε := by
     unfold seqDR_rem_const
     have h1 : 0 < 1 - ε := by linarith [h_overlap.2.1]
@@ -447,15 +394,9 @@ theorem seqDR_remainder_op
     have h11 : 0 ≤ prod11 n ω := by
       dsimp [prod11]
       exact mul_nonneg ENNReal.toReal_nonneg ENNReal.toReal_nonneg
-    have h01 : 0 ≤ prod01 n ω := by
-      dsimp [prod01]
-      exact mul_nonneg ENNReal.toReal_nonneg ENNReal.toReal_nonneg
-    have h10 : 0 ≤ prod10 n ω := by
-      dsimp [prod10]
-      exact mul_nonneg ENNReal.toReal_nonneg ENNReal.toReal_nonneg
     dsimp [sumProd]
     positivity
-  have hbound := seqDR_remainder_bound S h_overlap hA h_y2 h_yd2
+  have hbound := seqDR_remainder_bound S h_overlap hA h_y2
     (η_hat n ω) (h_in_H n ω) (hΔμ₀_memLp n ω) (hΔμ₁_memLp n ω)
     (hΔe₀_memLp n ω) (hΔe₁_memLp n ω)
   have habs_sum : |sumProd n ω| = sumProd n ω := abs_of_nonneg hsum_nonneg
@@ -465,16 +406,15 @@ theorem seqDR_remainder_op
           have hrhs :
               seqDR_rem_const ε *
                   ((eLpNorm (fun s₀ =>
-                        (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal
-                    + (eLpNorm (fun h =>
-                        (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal) *
-                  ((eLpNorm (fun s₀ =>
-                        (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal
-                    + (eLpNorm (fun h =>
+                        (η_hat n ω).μ₀_fn s₀ - S.μ₀_val s₀) 2 S.P_H₀).toReal *
+                    (eLpNorm (fun s₀ =>
+                        (η_hat n ω).e₀_fn s₀ - S.e₀_val s₀) 2 S.P_H₀).toReal +
+                  (eLpNorm (fun h =>
+                        (η_hat n ω).μ₁_fn h - S.μ₁_val h) 2 S.P_H₁).toReal *
+                    (eLpNorm (fun h =>
                         (η_hat n ω).e₁_fn h - S.e₁_val h) 2 S.P_H₁).toReal)
                 = seqDR_rem_const ε * sumProd n ω := by
-            dsimp [sumProd, prod00, prod11, prod01, prod10]
-            ring
+            dsimp [sumProd, prod00, prod11]
           exact hbound.trans_eq hrhs
     _ = seqDR_rem_const ε * |sumProd n ω| :=
           congrArg (fun x => seqDR_rem_const ε * x) habs_sum.symm

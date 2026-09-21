@@ -27,17 +27,19 @@ a bounded, mean-zero, square-integrable function with variance
     √n (F̂ₙ(y) − F(y)) ⇒ N(0, F(y)(1 − F(y)))
 
 is therefore a direct instance of `IsAsymLinear.tendsto_normal`.  This is the
-base layer for the sample-quantile asymptotics in `Stat/SampleQuantile.lean`
+base layer for the sample-quantile asymptotics in
+`Stat/Quantile/SampleQuantile.lean`
 (Bahadur representation) and, downstream, for quantile-treatment-effect
 inference.
 
 File is project-agnostic and a candidate for upstream contribution to Mathlib.
 -/
 
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.Limit.WLLN
-import Mathlib.Probability.CDF
-import Causalean.Tactic.Attr
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.Limit.WLLN
+public import Mathlib.Probability.CDF
+public import Causalean.Tactic.Attr
 
 /-! # Empirical Distribution Functions
 
@@ -45,6 +47,8 @@ This file defines the empirical cumulative distribution function of a real
 i.i.d. sample and its pointwise influence function. It proves the boundedness,
 mean-zero, variance, weak-law, and asymptotic-linearity facts that support
 sample-quantile and quantile-treatment-effect inference. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -184,13 +188,16 @@ empirical cdf is asymptotically linear with an identically-zero remainder. -/
 
 /-- `o_p`-triviality of the zero sequence at the constant rate `rₙ = 1`. -/
 lemma isLittleOp_zero : IsLittleOp (fun _ (_ : Ω) => (0 : ℝ)) (fun _ => (1 : ℝ)) μ := by
+  apply (Modes.isLittleOpF_iff_strict
+    (fun _ => μ) (fun _ (_ : Ω) => (0 : ℝ)) atTop
+    (fun _ => (1 : ℝ)) (Eventually.of_forall fun _ => zero_lt_one)).2
   intro ε hε
-  have hset : {ω : Ω | ε * (1 : ℝ) < |(0 : ℝ)|} = (∅ : Set Ω) := by
+  have hset : {ω : Ω | ε * (1 : ℝ) < ‖(0 : ℝ)‖} = (∅ : Set Ω) := by
     ext ω
-    simp only [mul_one, abs_zero, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_lt]
+    simp only [mul_one, norm_zero, Set.mem_setOf_eq, Set.mem_empty_iff_false, iff_false, not_lt]
     exact hε.le
-  simp only [hset, measure_empty]
-  exact tendsto_const_nhds
+  simpa only [hset, measure_empty] using
+    (tendsto_const_nhds : Tendsto (fun _ : ℕ => (0 : ENNReal)) atTop (𝓝 0))
 
 /-- **Key identity.**  The rescaled empirical-cdf deviation equals the
 normalized influence-function sum: `√n (F̂ₙ(y) − F(y)) = (1/√n) Σ cdfIF(Z_i)`. -/
@@ -200,14 +207,14 @@ lemma rescaledEmpiricalCDF_eq_normalizedSum (S : IIDSample Ω ℝ μ P) (y : ℝ
         * ∑ i ∈ Finset.range n, cdfIF P y (S.Z i ω) := by
   rcases Nat.eq_zero_or_pos n with hn | hn
   · subst hn
-    simp [IIDSample.empiricalCDF, IIDSample.sampleMean]
+    simp [IIDSample.empiricalCDF, IIDSample.sampleMean, smul_eq_mul]
   · have hcard : ((Finset.range n).card : ℝ) = (n : ℝ) := by rw [Finset.card_range]
     have hnpos : (0 : ℝ) < (n : ℝ) := by exact_mod_cast hn
     have hsum : ∑ i ∈ Finset.range n, cdfIF P y (S.Z i ω)
         = (∑ i ∈ Finset.range n, cdfStat y (S.Z i ω)) - (n : ℝ) * cdf P y := by
       simp only [cdfIF, Finset.sum_sub_distrib, Finset.sum_const, Finset.card_range, nsmul_eq_mul]
     rw [hcard, hsum]
-    simp only [IIDSample.empiricalCDF, IIDSample.sampleMean]
+    simp only [IIDSample.empiricalCDF, IIDSample.sampleMean, smul_eq_mul]
     set t := ∑ i ∈ Finset.range n, cdfStat y (S.Z i ω) with ht
     set r := Real.sqrt (n : ℝ) with hrdef
     have hr2 : r * r = (n : ℝ) := by rw [hrdef]; exact Real.mul_self_sqrt hnpos.le

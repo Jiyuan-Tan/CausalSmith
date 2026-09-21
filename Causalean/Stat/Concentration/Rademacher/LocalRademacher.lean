@@ -11,10 +11,10 @@ of small `norm`-radius. The headline argument:
 1. **Star-hull lifting**: localizing in `F` is dominated by localizing in
    `starHull F`, which is convenient because the star hull is closed
    under non-negative rescaling.
-2. **Sub-root envelope**: a sub-root `ψ` upper-bounds the Rademacher
+2. **Star-shaped envelope**: a star-shaped `ψ` upper-bounds the Rademacher
    complexity of `starHull F ∩ ball(0, r)`.
 3. **Critical radius**: `criticalRadius ψ` is the fixed point at which
-   the linear bound `ψ(r) ≤ r · δ_n` (`subRoot_homogeneity`) kicks in.
+   the linear bound `ψ(r) ≤ r · δ_n` (`starShapedEnvelope_homogeneity`) kicks in.
 
 Combining (1)–(3) gives `localRademacherComplexity F norm μ X n r ≤
 r · δ_n` for every `r ≥ δ_n` — the **localized inequality** that drives
@@ -31,7 +31,7 @@ We define `localRademacherComplexity F norm μ X n r` as the FoML
 The `starHullParam ι := Set.Icc (0:ℝ) 1 × ι` index replaces the earlier
 subtype `starHullIndex F = {f // f ∈ starHull F}` (which had no
 countable dense parameterisation when `F` was countable). The
-parameterised form admits clean monotonicity arguments through
+parameterised form supports clean monotonicity arguments through
 `starHullEval`.
 
 The zero-out form fixes the monotonicity direction:
@@ -53,9 +53,10 @@ Reference:
   Ann. Statist. 33 (2005) 1497–1537, Theorem 3.3.
 -/
 
-import Causalean.Stat.Concentration.Rademacher.StarHull
-import Causalean.Stat.Concentration.UniformDeviation.CriticalRadius
-import Causalean.Stat.Concentration.Rademacher.Rademacher
+module
+public import Causalean.Stat.Concentration.Rademacher.StarHull
+public import Causalean.Stat.Concentration.Localization.CriticalRadius
+public import Causalean.Stat.Concentration.Rademacher.Rademacher
 
 /-! # Local Rademacher Complexity
 
@@ -70,10 +71,12 @@ bridge from an ordinary `ι`-indexed zero-out class to the star-hull
 parameterization.
 
 The headline theorem `localRademacher_le_critical_radius` consumes a
-`RademacherUpperBound` and a `SubRoot` envelope to show that, above the critical
+`RademacherUpperBound` and a `IsStarShapedEnvelope` envelope to show that, above the critical
 radius, the localized Rademacher complexity is bounded by
 `r * criticalRadius ψ`. This is the local-complexity step used in uniform
 deviation bounds. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Stat
@@ -279,36 +282,34 @@ lemma localRademacherComplexity_le_upperBound
   unfold localRademacherComplexity
   exact hub r hr
 
-/-- **Localized inequality (headline).** Suppose [the envelope `ψ` is sub-root: nonnegative,
+/-- **Localized inequality (headline).** Suppose [the envelope `ψ` is star-shaped: nonnegative,
     non-decreasing, and with the ratio `ψ r / r` non-increasing in `r`](hyp:hψ), and
     [`ψ` upper-bounds the localized population Rademacher complexity of the class `F` (measured
     by `norm`, under the sampling law `μ`, map `X`, and sample size `n`) at every nonnegative
     radius](hyp:hub). Writing `δ* := criticalRadius ψ`, suppose [`δ*` is positive](hyp:hcrit_pos)
-    and [it satisfies the fixed-point bound `ψ δ* ≤ δ*²`](hyp:hcrit_fp). Then for
-    [every radius `r ≥ δ*`](hyp:hr), [the localized Rademacher complexity at radius `r` is at
+    and [the radius `r` is at least `δ*`](hyp:hr). Then [the localized Rademacher complexity at radius `r` is at
     most `r · δ*`](goal).
 
     This is the workhorse inequality consumed by `localized_uniform_deviation`.
 
     The proof chains `localRademacherComplexity_le_upperBound` with
-    `subRoot_homogeneity`. The fixed-point witness for `criticalRadius ψ`
-    is supplied as `hcrit_fp : ψ (criticalRadius ψ) ≤ criticalRadius ψ ^ 2`
-    (clients typically derive this from a sub-root regularity argument
-    that places the critical radius inside `{δ | ψ δ ≤ δ²}`). -/
+    `starShapedEnvelope_homogeneity`. The fixed-point witness for `criticalRadius ψ`
+    follows from the star-shaped-envelope condition and positivity via
+    `criticalRadius_fp_of_isStarShapedEnvelope`. -/
 theorem localRademacher_le_critical_radius
     {F : ι → 𝒳 → ℝ} {norm : (𝒳 → ℝ) → ℝ}
     {μ : Measure Ω} {X : Ω → 𝒳} {n : ℕ}
-    {ψ : ℝ → ℝ} (hψ : SubRoot ψ)
+    {ψ : ℝ → ℝ} (hψ : IsStarShapedEnvelope ψ)
     (hub : RademacherUpperBound F norm μ X n ψ)
     {r : ℝ} (hr : criticalRadius ψ ≤ r)
-    (hcrit_pos : 0 < criticalRadius ψ)
-    (hcrit_fp : ψ (criticalRadius ψ) ≤ criticalRadius ψ ^ 2) :
+    (hcrit_pos : 0 < criticalRadius ψ) :
     localRademacherComplexity F norm μ X n r ≤ r * criticalRadius ψ := by
   have h_r_nn : 0 ≤ r := le_trans (criticalRadius_nonneg ψ) hr
   have h₁ : localRademacherComplexity F norm μ X n r ≤ ψ r :=
     localRademacherComplexity_le_upperBound hub h_r_nn
   have h₂ : ψ r ≤ r * criticalRadius ψ :=
-    subRoot_homogeneity hψ hcrit_pos hr hcrit_fp
+    starShapedEnvelope_homogeneity hψ hcrit_pos hr
+      (criticalRadius_fp_of_isStarShapedEnvelope hψ hcrit_pos)
   exact le_trans h₁ h₂
 
 /-- **Bridge lemma: `ι`-indexed zero-out class ≤ `starHullParam ι`-indexed zero-out class.**

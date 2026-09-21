@@ -1,15 +1,18 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesModel
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesModel
 
 /-!
 Assembly of the finite van Trees regularity record for the smooth two-arm model.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset Set MeasureTheory
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 
-open Causalean.Stat.Limit.ObservationDependentVanTrees
+open Causalean.Stat.Minimax.ObservationDependentVanTrees
 
 -- @node: finiteCountProduct_aestronglyMeasurable_of_sections
 /-- [every finite-coordinate section satisfies the stated regularity condition](hyp:hf), [Sectionwise measurability on a finite discrete carrier gives product almost-everywhere strong measurability.](goal) -/

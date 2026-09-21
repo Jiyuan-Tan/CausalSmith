@@ -1,0 +1,58 @@
+{
+  "node_type": "meta",
+  "body": {
+    "qid": "panel_loading_transition",
+    "specialization": "v1",
+    "cluster": "panel",
+    "target_estimand": "\\(\\theta_n=uA^+v\\)",
+    "estimand_functional": "\\(I_n^{\\mathrm{out}}=\\begin{cases}[\\widehat\\theta_n-\\sigma^2W_n-d_n,\\widehat\\theta_n+\\sigma^2W_n+d_n],&\\text{if }G_n,\\\\{}[-B^2/c,B^2/c],&\\text{if }G_n^c.\\end{cases}\\)",
+    "sampling_model": {
+      "design": "Four-block strong-factor panel experiment with one unobserved counterfactual mean and a donor-only spectral construction.",
+      "units": "For each \\(n\\), the donor block is \\(n\\times n\\), the target row is \\(1\\times n\\), and the target column is \\(n\\times1\\).",
+      "treatment": "Treatment masks the lower-right untreated potential-outcome entry; identification of its mean follows from the exact rank and span restrictions.",
+      "overlap": "No target-loading lower bound is imposed; donor singular values satisfy \\(cn\\le s_r(A)\\le s_1(A)\\le C_0n\\).",
+      "nuisance_estimation": "Known \\(r\\) and \\(\\sigma\\); \\(A\\), its singular spaces, and both target loading coordinates are unknown and estimated only through the real Gaussian observations \\(X,R,C\\). The certified implementation first applies the measurable map \\(\\mathsf{Enc}_{p_n,L_n}\\) and retains an explicit encoding-exception flag."
+    },
+    "comparator_promise_table": [
+      {
+        "comparator_bibkey": "YanWainwright2024",
+        "comparator_claim": "Theorem 1 gives Gaussian entrywise inference under condition \\(4.4\\mathrm{c}\\).  The present upper guarantee removes that condition only on the canonical square one-target subclass proved by the embedding proposition; the local lower bound on this subclass transfers to any containing class because honesty on the larger class implies honesty on the subclass.",
+        "matched_by": "prop:yan-wainwright-class-embedding, thm:uniform-coverage, thm:local-length-lower-bound",
+        "match_kind": "strict_tightening"
+      },
+      {
+        "comparator_bibkey": "BeiNavjeevan2026",
+        "comparator_claim": "Theorems 4.1--4.2 give uniformly valid minimum-distance inference for first-order-degenerate smooth transformations from a uniformly Gaussian primitive estimator.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "XiaYanWainwright2025",
+        "comparator_claim": "Appendix C proposes a first-order bilinear interval and states that analogous validity requires modified projected-loading conditions.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "TeraoWatanabeOzaki2025",
+        "comparator_claim": "Residuals from computed SVD factors produce verified enclosures for singular values.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      },
+      {
+        "comparator_bibkey": "VuChunikhinaRaich2021",
+        "comparator_claim": "Truncated SVD has explicit first- and second-order perturbation expansions and normwise remainder bounds.",
+        "matched_by": "unmatched",
+        "match_kind": "downgraded_to_informed_by"
+      }
+    ],
+    "tldr": "A strong donor block identifies the missing untreated panel mean as \\(\\theta_n=uA^+v\\), but a purely Gaussian first-order interval is not uniformly valid when target loadings vanish. The donor-only analytic interval retains the bilinear term through an exact conditional Gaussian reduction, covers uniformly over the known-rank strong-donor class, has expected length of order \\(w_n=a_n+b_n\\), recovers the Gaussian oracle constant along every first-order-dominant sequence, and matches the transition order through an interior local Kullback--Leibler lower bound. A measurable finite-range dyadic encoding followed by the certified outward algorithm now preserves these guarantees: every numerical padding component is uniformly \\(o(n^{-1})\\), including at rank-one joint zero. The polynomial-time headline uses exact-dyadic public controls; refinable non-dyadic controls require an explicit uniform refinement modulus.",
+    "project_justification": {
+      "gap": "Existing four-block panel intervals are sharp only after a target-loading lower bound, while generic first-order-degeneracy inference assumes that the primitive Gaussian experiment and its covariance are already available. Neither literature controls donor-SVD target drift at the quadratic \\(n^{-1}\\) width or certifies floating-point endpoints.",
+      "niche": "Known-rank Gaussian strong-donor panels isolate a finite-dimensional bilinear reduced experiment while retaining the repeated-spectrum, joint-zero, and arbitrarily slow-transition cases that defeat a single delta-method normalization.",
+      "fill": "The project derives the donor-conditional Gaussian experiment, constructs an analytic outer interval with an observable donor allowance and bounded fallback, proves transition-order upper and local lower length results together with every-sequence oracle length, and closes the implementation transfer with explicit encoding schedules, residual-certified Newton--Schulz inverses, a noncommutative rounded matrix-sign recurrence with exact truncation tails, probability-bracketed quantiles, and an uncertain-gate hull. The finite-precision theorem applies to continuous Gaussian observations after measurable encoding and to exact-dyadic public controls; the subclass lower bound transfers upward to every containing model class."
+    },
+    "related_work": "Yan and Wainwright (2024) supply the four-block spectral estimator, its master expansion, regular Gaussian interval, and lower-bound architecture. Under their normalization \\(\\omega=\\sigma\\sqrt{NT}\\), the present model is a canonical square one-target subclass with \\(\\rho_{N,T}=O(n^{-1/2})\\); their Gaussian theorem still requires condition \\(4.4\\mathrm c\\), which fails at joint-zero loadings. The upper comparison is only on this embedded subclass, while the proved local lower bound on the subclass transfers upward to every model class containing it. Bei and Navjeevan (2026) provide the general first-order-degeneracy inference context, while the narrow contribution here is the complete strong-donor panel transfer and all-sequence length theorem. Xia, Yan, and Wainwright (2025) and CAST are the direct consumer. Existing verified-SVD and floating-point work informs the arithmetic design, but the proof here supplies the missing coupled certificate for invariant projectors, pseudoinverses, quantiles, gate uncertainty, and measurable observation encoding. The polynomial-time statement is intentionally limited to exact-dyadic public controls unless a uniform refinement modulus is supplied.",
+    "technical_internal_limitation": "The certificate is a mathematical bit-model theorem for MPFR-equivalent directed radix-two arithmetic, not a verification of a particular software implementation. Its sharp branch uses invariant spectral projectors and therefore permits repeated retained singular values, but it falls back to a bounded outward hull when the retained--discarded split or gate cannot be certified. Public controls are exact dyadics in the headline theorem; an arbitrary fixed enclosing interval is insufficient for shrinking quantile enclosures, and a refinable non-dyadic control needs an explicit uniform time-and-output-size modulus. The statistical model still assumes known rank and variance, independent Gaussian blocks, strong donors, and exact span membership.",
+    "honest_scope": "The result covers continuously distributed Gaussian observations in square known-rank strong-donor panels after a measurable finite-range dyadic encoding. It proves uniform coverage, transition-order expected length, every-sequence oracle Gaussian length, and uniformly negligible certified numerical padding, including rank-one joint zero. It does not claim unknown-rank adaptation, approximate-factor or weak-donor robustness, dependent or unknown-variance inference, a verified production implementation, or inference for a realized untreated outcome. The Yan--Wainwright comparison is only on the canonical embedded square one-target subclass, never their full published class. Polynomial bit complexity assumes exact-dyadic public controls; a non-dyadic refinement oracle must carry a uniform modulus into the schedules."
+  }
+}

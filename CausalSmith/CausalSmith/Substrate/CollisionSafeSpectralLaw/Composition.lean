@@ -1,5 +1,6 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicWasserstein
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.AtomicWasserstein
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.FunctionalCalculus
 
 /-!
 # Collision-safe operator-to-law composition
@@ -9,6 +10,8 @@ Kantorovich--Rubinstein duality.  Its public theorem is entirely model-independe
 supplies positive normalized atomic laws whose Lipschitz tests are represented by left-right
 functional-calculus evaluations.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

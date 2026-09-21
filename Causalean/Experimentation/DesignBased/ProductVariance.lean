@@ -21,7 +21,8 @@ variance `Var_prod_apply`, and the cross-coordinate covariance vanishing
 `Cov_prod_apply_of_ne`.
 -/
 
-import Causalean.Experimentation.DesignBased.ProductBlock
+module
+public import Causalean.Experimentation.DesignBased.ProductBlock
 
 /-! # Product-design variance identities
 
@@ -33,6 +34,8 @@ coordinates, yielding `FiniteDesign.Var_prod_apply` for one-coordinate variances
 `FiniteDesign.Var_prod_linear_comb` states that the variance of a linear combination of
 single-coordinate statistics is the sum of squared coefficients times the marginal variances.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

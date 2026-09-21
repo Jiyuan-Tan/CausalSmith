@@ -42,13 +42,14 @@ This file provides:
 Used by `Estimation/CATE/OrthogonalLearning/DRLearner/Analytic.lean` to identify the opaque
 `NuisanceDirDeriv.dPhi` field with the closed form via uniqueness of
 limits, and downstream by `cond_exp_phi_eta_dir_deriv_at_truth_zero`
-(in `Estimation/CATE/ConditionalBias.lean` or this file) to conclude
+(in `Estimation/CATE/Core/ConditionalBias.lean` or this file) to conclude
 that the σ(X)-conditional of the closed form is zero a.e. at the truth.
 -/
 
-import Causalean.Estimation.CATE.Core.PseudoOutcome
-import Mathlib.Analysis.Calculus.Deriv.Inv
-import Mathlib.Analysis.Calculus.Deriv.Slope
+module
+public import Causalean.Estimation.CATE.Core.PseudoOutcome
+public import Mathlib.Analysis.Calculus.Deriv.Inv
+public import Mathlib.Analysis.Calculus.Deriv.Slope
 
 /-!
 Computes directional derivatives for CATE doubly robust pseudo-outcome maps. The
@@ -61,6 +62,8 @@ These derivative formulas are the analytic core of the CATE orthogonality and
 second-order bias arguments, including the conditional mean-zero result for the
 derivative at the truth in `ConditionalBias.lean`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

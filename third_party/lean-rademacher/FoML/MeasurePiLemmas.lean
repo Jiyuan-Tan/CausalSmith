@@ -1,6 +1,9 @@
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.Probability.Independence.Basic
-import Mathlib.MeasureTheory.Constructions.Pi
+module
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.MeasureTheory.Constructions.Pi
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 

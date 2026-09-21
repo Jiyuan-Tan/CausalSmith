@@ -1,0 +1,271 @@
+\begin{proof}[Proof of \cref{obj:thm:inverse-count-baseline}]
+\begin{enumerate}
+\item By \cref{obj:lem:poisson-inverse-count-risk}, choose \(C_0>0\), depending only on \(\epsilon\), such that for every \(d\), every \(u,t>0\), and every \(P\in\mathcal M_{d,\epsilon}\),
+\[
+\operatorname{Var}_P(Z^H)\le C_0(u^{-1}+t^{-1}),
+\qquad
+\bigl|E_P Z^H-\tau(P)\bigr|\le C_0\min\{1,d/t\}.
+\]
+Hence, in the independent Poisson count experiment,
+\[
+E_P\{Z^H-\tau(P)\}^2
+=
+\operatorname{Var}_P(Z^H)+\{E_PZ^H-\tau(P)\}^2
+\le
+C_0(u^{-1}+t^{-1})
++
+C_0^2\min\{1,d/t\}^2 .
+\]
+Set
+\[
+C_\epsilon=100000(1+C_0+C_0^2)>0 .
+\]
+% lean: poisson_inverse_count_sqRisk_bound
+
+\item Fix \(n\ge1\), \(m\ge0\), and \(d\ge2\).  Let
+\[
+M_0=\lfloor n/3\rfloor,\qquad
+n_p=\left\lfloor\frac{n-M_0}{2}\right\rfloor,\qquad
+n_f=n-M_0-n_p,\qquad
+m_f=m-\lfloor m/2\rfloor ,
+\]
+and put
+\[
+u=\frac{M_0}{8},\qquad
+t=\frac{n_f+m_f}{8},\qquad
+\mathfrak q=\frac1n+\frac{d^2}{(n+m)^2}.
+\]
+The estimator is a finite sum of measurable prefix statistics with deterministic weights, so it is measurable.  The class \(\mathcal M_{d,\epsilon}\) is nonempty: the law with uniform covariate distribution, propensity \(1/2\), and equal outcome regressions in the two arms satisfies \cref{obj:ass:overlap} because \(0<\epsilon<1/2\). % lean: inverse_count_baseline
+
+\item First suppose \(24\le n\).  The block arithmetic gives
+\[
+n\le4M_0,\qquad n+m\le4(n_f+m_f),
+\]
+and therefore \(M_0>0\), \(n_f+m_f>0\), \(u>0\), and \(t>0\).  Consequently
+\[
+\frac n{32}\le u,\qquad
+\frac{n+m}{32}\le t,
+\]
+so
+\[
+u^{-1}\le\frac{32}{n},
+\qquad
+t^{-1}\le\frac{32}{n+m}\le\frac{32}{n}.
+\]
+Also,
+\[
+\frac dt\le \frac{32d}{n+m},
+\]
+and hence
+\[
+\min\{1,d/t\}^2
+\le (d/t)^2
+\le
+1024\,\frac{d^2}{(n+m)^2}.
+\]
+% lean: inverse_count_baseline
+
+\item For the Poisson prefix overflow terms, the elementary bound
+\[
+\Pr\{\operatorname{Poi}(\Lambda_{\mathrm{tail}}/8)>\Lambda_{\mathrm{tail}}\}
+\le \frac8{\Lambda_{\mathrm{tail}}},\qquad \Lambda_{\mathrm{tail}}\ge1,
+\]
+is obtained as follows.  Bernstein's upper-tail inequality for a Poisson variable with mean \(\Lambda_{\mathrm{tail}}/8\), applied with deviation parameter \(\Lambda_{\mathrm{tail}}/4\), yields
+\[
+\Pr\{\operatorname{Poi}(\Lambda_{\mathrm{tail}}/8)>\Lambda_{\mathrm{tail}}\}
+\le \exp(-\Lambda_{\mathrm{tail}}/4).
+\]
+Since \(\exp(x)\ge 1+x\),
+\[
+\exp(-\Lambda_{\mathrm{tail}}/4)=\frac1{\exp(\Lambda_{\mathrm{tail}}/4)}
+\le \frac1{\Lambda_{\mathrm{tail}}/4}
+=\frac4{\Lambda_{\mathrm{tail}}}
+\le\frac8{\Lambda_{\mathrm{tail}}} .
+\]
+Applying this with \(\Lambda_{\mathrm{tail}}=M_0\) and \(\Lambda_{\mathrm{tail}}=n_f+m_f\) gives
+\[
+\Pr\{\operatorname{Poi}(u)>M_0\}\le \frac8{M_0},
+\qquad
+\Pr\{\operatorname{Poi}(t)>n_f+m_f\}\le \frac8{n_f+m_f}.
+\]
+Together with \(n\le4M_0\) and \(n+m\le4(n_f+m_f)\), this implies
+\[
+\frac8{M_0}\le \frac{32}{n},
+\qquad
+\frac8{n_f+m_f}\le \frac{32}{n+m}\le \frac{32}{n}.
+\]
+% lean: poisson_eighth_overflow_le_inv
+
+\item Fix \(P\in\mathcal M_{d,\epsilon}\).  Under the probability law \(\mathbb P^{\mathrm{pref}}_{P,u,t}\), draw two independent finite prefixes: an outcome-marked prefix from \(P\) with Poisson length of mean \(u\), and a treatment--covariate prefix from \(P_{XA}\) with Poisson length of mean \(t\).  If \(S_{ax}\) is the number of outcome-marked prefix records with \((X,A,Y)=(x,a,1)\) and \(K_{ax}\) is the number of treatment--covariate prefix records with \((X,A)=(x,a)\), set
+\[
+\widehat\tau^{\mathrm{IC,pref}}_{u,t}
+=
+\operatorname{clip}_{[-1,1]}
+\left[
+\sum_{x=1}^d
+\left\{
+\frac{S_{1x}}u\frac{K_{0x}+K_{1x}+1}{K_{1x}+1}
+-
+\frac{S_{0x}}u\frac{K_{0x}+K_{1x}+1}{K_{0x}+1}
+\right\}
+\right],
+\]
+and define
+\[
+\mathcal R_{\mathrm{pref}}(P;u,t)
+:=
+E_{\mathbb P^{\mathrm{pref}}_{P,u,t}}
+\left[
+\left\{
+\widehat\tau^{\mathrm{IC,pref}}_{u,t}-\tau(P)
+\right\}^2
+\right].
+\]
+The prefix transfer in \cref{obj:lem:inverse-count-poisson-prefix-transfer}, applied with the present block sizes and intensities, gives
+\[
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+\le
+\mathcal R_{\mathrm{pref}}(P;u,t)
++
+4\left[
+\Pr\{\operatorname{Poi}(u)>M_0\}
++
+\Pr\{\operatorname{Poi}(t)>n_f+m_f\}
+\right].
+\]
+Here the fixed-sample estimator is the finite Rao--Blackwell average over admissible prefix lengths in \cref{obj:synth_5}; the displayed inequality accounts for the two overflow events, and the coefficient \(4\) is the squared diameter of \([-1,1]\) for the clipped statistic and the target \(\tau(P)\). % lean: inverseCountEstimator_risk_le_poissonPrefixes
+
+\item The Poisson-prefix counts have the Poisson count law by \cref{obj:lem:poisson-prefix-count-law}: for every \(x\in[d]\) and \(a\in\{0,1\}\),
+\[
+S_{ax}\sim\operatorname{Poi}(u q_{ax}),
+\qquad
+K_{ax}\sim\operatorname{Poi}(t s_{ax}),
+\]
+and these coordinates are mutually independent.  Thus the pushforward of \(\mathbb P^{\mathrm{pref}}_{P,u,t}\) under the count map is exactly the product law used in \cref{obj:lem:poisson-inverse-count-risk}.  We first record the range of the target.  The cell masses satisfy \(p_x\ge0\) and \(\sum_{x=1}^d p_x=1\), and the binary-outcome regressions satisfy \(0\le\mu_{ax}\le1\).  Hence
+\[
+\left|\tau(P)\right|
+=
+\left|\sum_{x=1}^d p_x(\mu_{1x}-\mu_{0x})\right|
+\le
+\sum_{x=1}^d p_x\,|\mu_{1x}-\mu_{0x}|
+\le
+\sum_{x=1}^d p_x
+=1 .
+\]
+Thus \(\tau(P)\in[-1,1]\).  Since projection onto \([-1,1]\) cannot increase distance from a point of \([-1,1]\), clipping gives
+\[
+\mathcal R_{\mathrm{pref}}(P;u,t)
+\le
+E_P\{Z^H-\tau(P)\}^2 .
+\]
+Combining this with Step 1 gives
+\[
+\mathcal R_{\mathrm{pref}}(P;u,t)
+\le
+C_0(u^{-1}+t^{-1})
++
+C_0^2\min\{1,d/t\}^2 .
+\]
+% lean: finitePrefixInverseCountStatistic_risk_le_poissonCount
+
+\item The preceding displays imply
+\[
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+\le
+\left(64C_0+1024C_0^2+256\right)
+\left\{
+\frac1n+\frac{d^2}{(n+m)^2}
+\right\}.
+\]
+Indeed, the variance contribution is bounded by
+\[
+C_0(u^{-1}+t^{-1})\le 64C_0\,\frac1n,
+\]
+the squared-bias contribution by
+\[
+C_0^2\min\{1,d/t\}^2
+\le
+1024C_0^2\,\frac{d^2}{(n+m)^2},
+\]
+and the overflow contribution by
+\[
+4\left(\frac8{M_0}+\frac8{n_f+m_f}\right)
+\le
+256\,\frac1n .
+\]
+Since
+\[
+64C_0+1024C_0^2+256\le C_\epsilon,
+\]
+the preceding display gives the large-sample estimate
+\[
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+\le
+C_\epsilon\mathfrak q .
+\]
+If \(\mathfrak q\le1\), then \(\min\{1,\mathfrak q\}=\mathfrak q\), and hence
+\[
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\right\}^2
+\right]
+\le
+C_\epsilon\min\{1,\mathfrak q\}.
+\]
+When \(\mathfrak q>1\), both the estimator and \(\tau(P)\) lie in \([-1,1]\), so
+\[
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\right\}^2
+\right]\le4
+\le C_\epsilon\min\{1,\mathfrak q\}.
+\]
+% lean: inverseCountEstimator_mse_le_four
+
+\item It remains to cover \(n<24\).  Then \(n\le23\), and
+\[
+\frac1{23}\le \frac1n\le \mathfrak q,
+\qquad
+\frac1{23}\le \min\{1,\mathfrak q\}.
+\]
+Again using the boundedness of the estimator and of \(\tau(P)\),
+\[
+E_P\!\left[
+\left\{\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)\right\}^2
+\right]\le4
+\le
+C_\epsilon\min\{1,\mathfrak q\},
+\]
+because \(C_\epsilon\ge92\). % lean: inverse_count_baseline
+
+\item Taking the supremum over \(P\in\mathcal M_{d,\epsilon}\) in the preceding bound gives
+\[
+\sup_{P\in\mathcal M_{d,\epsilon}}
+E_{P^{\otimes n}\otimes P_{XA}^{\otimes m}}
+\left[
+\left\{
+\widehat\tau^{\mathrm{IC}}_{n,m,d}-\tau(P)
+\right\}^2
+\right]
+\le
+C_\epsilon
+\min\left\{
+1,\frac1n+\frac{d^2}{(n+m)^2}
+\right\}.
+\]
+Finally, \(\widehat\tau^{\mathrm{IC}}_{n,m,d}\) is an admissible measurable estimator in the class defining \(R_\epsilon(n,m,d)\) in \cref{obj:def:minimax-risk}.  Therefore
+\[
+R_\epsilon(n,m,d)
+\le
+C_\epsilon
+\min\left\{
+1,\frac1n+\frac{d^2}{(n+m)^2}
+\right\}.
+\]
+% lean: inverse_count_baseline
+\end{enumerate}
+\end{proof}

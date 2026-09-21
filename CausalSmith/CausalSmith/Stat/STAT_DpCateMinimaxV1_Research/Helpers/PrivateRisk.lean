@@ -9,11 +9,16 @@ Auxiliary deterministic and measure-theoretic estimates for the uniform absolute
 bound of the projected, Laplace-privatized local-polynomial CATE mechanism.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateMechanism
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationBias
-import Causalean.Mathlib.Probability.IidMeanVariance
-import Causalean.Stat.Privacy.LaplaceMechanism
-import Causalean.Mathlib.Analysis.ConvexProjection
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateMechanism
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationBias
+public import Causalean.Mathlib.Probability.IidMeanVariance
+public import Causalean.Stat.Privacy.LaplaceMechanism
+public import Causalean.Mathlib.Analysis.ConvexProjection
+
+/-! ## Elementary deterministic estimates -/
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -22,8 +27,6 @@ open scoped BigOperators ENNReal
 open Causalean.Mathlib.Analysis
 open Causalean.Mathlib.Probability
 open Causalean.Stat.Privacy
-
-/-! ## Elementary deterministic estimates -/
 
 /-- Clipping to `[-2,2]` cannot increase distance from a point of that interval. -/
 private theorem abs_clip_two_sub_le {z tau : ℝ} (htau : |tau| ≤ 2) :

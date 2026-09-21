@@ -1,9 +1,10 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import Causalean.Stat.Minimax.HellingerAffinity
-import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Mathlib.Analysis.Complex.Trigonometric
-import Mathlib.Analysis.Real.Pi.Bounds
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import Causalean.Stat.Minimax.HellingerAffinity
+public import Mathlib.Analysis.SpecialFunctions.Integrals.Basic
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+public import Mathlib.Analysis.Complex.Trigonometric
+public import Mathlib.Analysis.Real.Pi.Bounds
 
 /-!
 # Affinity defect of the cosine-squared least-favourable pair
@@ -15,6 +16,8 @@ computation specific to this run's least-favourable prior: the exact affinity of
 translates of the cosine-squared bump `cosSqDensity`, and the resulting quadratic bound on
 its affinity defect.
 -/
+
+public section
 
 open scoped BigOperators ENNReal
 open MeasureTheory

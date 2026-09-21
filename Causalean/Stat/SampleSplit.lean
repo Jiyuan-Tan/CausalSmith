@@ -11,8 +11,15 @@ Re-exports the per-strategy split structures.  Existing consumers that import
 K-fold split lives in `Causalean.Stat.SampleSplit.KFold`.
 -/
 
-import Causalean.Stat.SampleSplit.OneShot
-import Causalean.Stat.SampleSplit.KFold
+module
+public import Causalean.Stat.SampleSplit.FiniteCategoryPilot
+public import Causalean.Stat.SampleSplit.FiniteSelector
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcessHighProbability
+public import Causalean.Stat.SampleSplit.FoldBWLLN
+public import Causalean.Stat.SampleSplit.KFold
+public import Causalean.Stat.SampleSplit.OneShot
+public import Causalean.Stat.SampleSplit.PartialFoldCLT
 
 /-! # Sample-Splitting Umbrella
 

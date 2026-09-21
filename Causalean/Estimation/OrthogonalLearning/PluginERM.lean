@@ -17,8 +17,9 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-plugin-erm`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Setup
-import Causalean.Stat.SampleSplit.OneShot
+module
+public import Causalean.Estimation.OrthogonalLearning.Setup
+public import Causalean.Stat.SampleSplit.OneShot
 
 /-! # Sample-Split Plug-In ERM
 
@@ -30,6 +31,8 @@ inputs to the orthogonal statistical-learning oracle inequality.
 The main declarations are `empRiskFoldB`, the fold-B empirical risk, and
 `SampleSplitPluginERM`, the approximate empirical-risk-minimization predicate
 for a sample-indexed target estimator and plug-in nuisance estimate. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

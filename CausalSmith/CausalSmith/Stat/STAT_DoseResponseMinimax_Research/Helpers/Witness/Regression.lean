@@ -12,8 +12,11 @@ proved on the genuine joint law `doseDataMeasure` viewed through its single-bind
 restructuring `doseDataMeasure = doseAXMeasure.bind doseChannelAX`.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Measure
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Channel
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Measure
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Channel
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

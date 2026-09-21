@@ -5,7 +5,7 @@
 // panel passes. The structural gate has already verified well-formedness, so the
 // panel focuses on the math/decision rubric. Verdicts are combined worst-of, and
 // a finding citing a nonexistent node is rejected mechanically (D0_CORE_REDESIGN.md §6).
-// Prompts are derived from stage0_5_{math_review,review}.txt + a core-review adapter (§11).
+// Prompts are derived from stage0_5_{math_review,rubric_review}.txt + a core-review adapter (§11).
 import { existsSync } from "node:fs";
 import { mkdir, rm } from "node:fs/promises";
 import path from "node:path";
@@ -41,7 +41,7 @@ import {
 // reusing the cold-referee prompt here and then stripping its tier.
 const REFEREES: { role: "math" | "general" | "decision"; prompt: string }[] = [
   { role: "math", prompt: "stage0_5_math_review.txt" },
-  { role: "decision", prompt: "stage0_5_review.txt" },
+  { role: "decision", prompt: "stage0_5_rubric_review.txt" },
 ];
 
 function reviewVerdictPath(ctx: PipelineContext, role: string): string {

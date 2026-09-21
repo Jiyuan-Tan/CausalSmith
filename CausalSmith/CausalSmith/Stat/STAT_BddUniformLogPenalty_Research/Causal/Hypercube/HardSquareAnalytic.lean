@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Family
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Family
 
 /-!
 # Analytic reductions for the fixed hard square
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.Fami
 This module starts the remaining local-mass, slice, and Gram block by
 reducing the uniform kernel to its closed-ball support.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

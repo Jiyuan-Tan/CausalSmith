@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Data.Real.Basic
+module
+public import Mathlib.Data.Real.Basic
 
 /-! # Criterion Sets
 
@@ -15,6 +16,8 @@ set of parameters whose sample criterion value is below a cutoff.
 
 The file contains only definitions and elementary set lemmas; Hausdorff
 consistency of the level-set estimator is developed separately. -/
+
+@[expose] public section
 
 namespace Causalean.PartialID.CriterionSet
 

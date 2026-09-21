@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FactorialMoments
-import Causalean.Stat.Minimax.ChiSquaredFinite
-import Causalean.Stat.UStatistic.OrderM.Variance
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FactorialMoments
+public import Causalean.Stat.Minimax.ChiSquaredFinite
+public import Causalean.Stat.UStatistic.OrderM.Variance
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

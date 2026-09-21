@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlSharp
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.ControlCalibrated
 
 /-! # Marginal Sensitivity Model — control cutoff calibration
 
 This file is the control-arm mirror of the treated cutoff-selection and calibration-bracket
 development: the cutoff propensity uses the untreated indicator and the control propensity
 `P[D=0 | X]`, decomposes its conditional calibration value into a minimum-weight term plus a
-conditional control-survival term, and reduces calibrated membership in the sharp control MSM set to
+conditional control-survival term, and reduces calibrated membership in the calibrated control MSM set to
 the corresponding conditional-survival equation.
 
 It defines the control endpoint weights `wMin0` and `wMax0`, the upper-cutoff
@@ -20,6 +21,8 @@ survival functional `controlSurv`. The main theorems are the calibration
 bracket lemmas, `control_calibValue_eq`, `controlCutoffProp_calibrated_of_survival`,
 `cutoffProp0_mem_MSMSet0`, and `cutoffProp0_mem_MSMSetCalib0_of_survival`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -178,9 +181,7 @@ theorem condExp_control_wMax0_eq (Λ : ℝ)
     rfl))
 
 /-- **Cutoff control calibration value decomposes into a lower bracket plus a survival term.**
-Fix [a sensitivity parameter Λ](hyp:Λ) and [a cutoff function c measurable with respect to the
-covariate σ-algebra](hyp:c,_hc_meas). If [the ratio of the control indicator `1{D=0}` to the
-cutoff-calibration weight `cutoffProp0 Λ c` is integrable](hyp:_hint), [the product of the control
+Fix [a sensitivity parameter and cutoff function](hyp:Λ,c). If [the product of the control
 indicator and the survival-cutoff indicator `1{c<Y}` is integrable](hyp:hint1), [the product of
 the control indicator and the lower weight `wMin0 Λ` is integrable](hyp:hmin_int), and [the
 product of the weight spread `wMax0 Λ - wMin0 Λ` with the control-indicator survival term is
@@ -188,8 +189,7 @@ integrable](hyp:hdiff_int), then [the conditional expectation, given the covaria
 the control indicator divided by the cutoff-calibration weight equals, almost everywhere, the
 lower weight times the control propensity plus the weight spread times the conditional
 control-survival functional `controlSurv c`](goal). -/
-theorem control_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (_hc_meas : Measurable[S.sigmaX] c)
-    (_hint : Integrable (fun ω => S.dVar.indicator false ω / S.cutoffProp0 Λ c ω) P.μ)
+theorem control_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmin_int : Integrable (fun ω => S.dVar.indicator false ω * S.wMin0 Λ ω) P.μ)
@@ -272,10 +272,8 @@ theorem control_calibValue_eq (Λ : ℝ) (c : P.Ω → ℝ) (_hc_meas : Measurab
 
 /-- **A cutoff solving the target control-survival equation is calibrated.** Fix [a sensitivity
 parameter Λ strictly greater than 1](hyp:Λ,hΛ). If [the control propensity `P[D=0∣X]` lies
-strictly between 0 and 1 almost everywhere (overlap)](hyp:hoverlap), [the cutoff function c is
-measurable with respect to the covariate σ-algebra](hyp:c,hc_meas), [the ratio of the control
-indicator `1{D=0}` to the cutoff-calibration weight `cutoffProp0 Λ c` is integrable](hyp:hint),
-[the product of the control indicator and the survival-cutoff indicator `1{c<Y}` is
+strictly between 0 and 1 almost everywhere (overlap)](hyp:hoverlap), and [the product of the
+control indicator and the survival-cutoff indicator `1{c<Y}` is
 integrable](hyp:hint1), [the product of the control indicator and the lower weight `wMin0 Λ` is
 integrable](hyp:hmin_int), [the product of the weight spread with the control-indicator survival
 term is integrable](hyp:hdiff_int), and [the conditional control-survival functional at c equals,
@@ -284,8 +282,7 @@ cutoff-calibration propensity `cutoffProp0 Λ c` is calibrated: the conditional 
 control indicator divided by it, given the covariates, equals 1 almost everywhere](goal). -/
 theorem controlCutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
-    (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator false ω / S.cutoffProp0 Λ c ω) P.μ)
+    (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmin_int : Integrable (fun ω => S.dVar.indicator false ω * S.wMin0 Λ ω) P.μ)
@@ -295,7 +292,7 @@ theorem controlCutoffProp_calibrated_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     S.Calibrated0 (S.cutoffProp0 Λ c) := by
   unfold POBackdoorSystem.Calibrated0
   have hΛ0 : 0 < Λ := lt_trans zero_lt_one hΛ
-  refine (S.control_calibValue_eq Λ c hc_meas hint hint1 hmin_int hdiff_int).trans ?_
+  refine (S.control_calibValue_eq Λ c hint1 hmin_int hdiff_int).trans ?_
   filter_upwards [hoverlap, hsurv] with ω hω hsurvω
   rw [hsurvω]
   set e : ℝ := S.propScore false ω with he_def
@@ -405,9 +402,7 @@ theorem cutoffProp0_mem_MSMSet0 (Λ : ℝ) (hΛ : 1 ≤ Λ)
 /-- **The cutoff belongs to the calibrated control MSM set whenever it solves the target
 control-survival equation.** Fix [a sensitivity parameter Λ strictly greater than 1](hyp:Λ,hΛ). If
 [the control propensity `P[D=0∣X]` lies strictly between 0 and 1 almost everywhere
-(overlap)](hyp:hoverlap), [the cutoff function c is measurable with respect to the covariate
-σ-algebra](hyp:c,hc_meas), [the ratio of the control indicator `1{D=0}` to the cutoff-calibration
-weight `cutoffProp0 Λ c` is integrable](hyp:hint), [the product of the control indicator and the
+(overlap)](hyp:hoverlap), and [the product of the control indicator and the
 survival-cutoff indicator `1{c<Y}` is integrable](hyp:hint1), [the product of the control
 indicator and the lower weight `wMin0 Λ` is integrable](hyp:hmin_int), [the product of the weight
 spread with the control-indicator survival term is integrable](hyp:hdiff_int), and [the
@@ -416,8 +411,7 @@ conditional control-survival functional at c equals, almost everywhere, the targ
 the calibrated control MSM set `MSMSetCalib0 Λ`](goal). -/
 theorem cutoffProp0_mem_MSMSetCalib0_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore false ω ∧ S.propScore false ω < 1)
-    (c : P.Ω → ℝ) (hc_meas : Measurable[S.sigmaX] c)
-    (hint : Integrable (fun ω => S.dVar.indicator false ω / S.cutoffProp0 Λ c ω) P.μ)
+    (c : P.Ω → ℝ)
     (hint1 : Integrable (fun ω =>
       S.dVar.indicator false ω * (if c ω < S.factualY ω then (1 : ℝ) else 0)) P.μ)
     (hmin_int : Integrable (fun ω => S.dVar.indicator false ω * S.wMin0 Λ ω) P.μ)
@@ -426,7 +420,7 @@ theorem cutoffProp0_mem_MSMSetCalib0_of_survival (Λ : ℝ) (hΛ : 1 < Λ)
     (hsurv : S.controlSurv c =ᵐ[P.μ] S.survTarget0 Λ) :
     S.cutoffProp0 Λ c ∈ S.MSMSetCalib0 Λ :=
     ⟨S.cutoffProp0_mem_MSMSet0 Λ (le_of_lt hΛ) hoverlap c,
-   S.controlCutoffProp_calibrated_of_survival Λ hΛ hoverlap c hc_meas hint hint1
+   S.controlCutoffProp_calibrated_of_survival Λ hΛ hoverlap c hint1
      hmin_int hdiff_int hsurv⟩
 
 end POBackdoorSystem

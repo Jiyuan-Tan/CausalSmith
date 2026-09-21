@@ -10,7 +10,7 @@ law of `‖W‖²` where `W` is the standard `d`-dimensional Gaussian
 (`Causalean/Mathlib/StandardGaussian.lean`, `stdGaussian`).  This is the textbook
 definition (sum of `d` independent squared standard normals) and is exactly the
 target produced by whitening the multivariate-CLT Gaussian limit through a Wald
-quadratic form (`Causalean/Stat/ChiSquaredWald.lean`).
+quadratic form (`Causalean/Stat/Inference/ChiSquaredWald.lean`).
 
 The connection to the `Gamma(d/2, 1/2)` density (`ProbabilityTheory.gammaMeasure`)
 is a separate, much deeper analytic fact and is *not* developed here; Mathlib has
@@ -26,8 +26,10 @@ Key declarations:
   on `finrank E`, equalling `chiSqDist (finrank ℝ E)`.
 * `noAtoms_chiSqDist` — `χ²_d` has no atoms for `d ≥ 1`.
 -/
-import Causalean.Stat.CLT.GaussianCharFunBridge
-import Causalean.Mathlib.StandardGaussian
+
+module
+public import Causalean.Stat.CLT.GaussianCharFunBridge
+public import Causalean.Mathlib.StandardGaussian
 
 /-! # Chi-Squared Distribution
 
@@ -40,10 +42,16 @@ that law, `stdGaussian_map_linearIsometryEquiv`, the dimension-only identity
 `stdGaussian_map_normSq`, and the no-atom theorems `noAtoms_pi_normSq` and
 `noAtoms_chiSqDist`. -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Complex Causalean.Mathlib
 open scoped RealInnerProductSpace
 
 namespace Causalean.Stat
+
+local notation "stdGaussian" => Causalean.Mathlib.stdGaussian
+local notation "covarianceBilin_stdGaussian" =>
+  Causalean.Mathlib.covarianceBilin_stdGaussian
 
 /-- For [a nonnegative integer number of degrees of freedom](hyp:d), the
 [chi-squared distribution](goal) is the probability law on the real line of

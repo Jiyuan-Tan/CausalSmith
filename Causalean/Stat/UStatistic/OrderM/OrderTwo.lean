@@ -1,31 +1,5 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# The order-2 U-statistic CLT as a specialization of the order-`m` CLT
-
-The fixed-order theory (`OrderM.CLT`) subsumes the bespoke order-2 CLT of
-`UStatistic.Hajek` / `UStatistic.Variance`.  This file makes that precise: it
-records the `m = 2` bridge identities relating the order-`m` objects for the
-paired kernel `pairKernel h` (`z ↦ h (z 0) (z 1)`) to the order-2 objects
-(`uMean`, `uProj`, `uDegen`), and then re-derives the symmetric-kernel order-2
-CLT `√n (Uₙ − θ) ⇒ N(0, 4 ζ₁)` from `uStatisticOrder_clt_of_regular`.
-
-The bridge (for a symmetric kernel `h`):
-
-* `uMeanOrder (pairKernel h) P = uMean h P`
-* `uProjOrderAt j (pairKernel h) P = uProj h P` for each `j : Fin 2`
-* `uInfluenceOrder (pairKernel h) P = fun x => 2 · uProj h P x`
-* `uDegenOrder (pairKernel h) P z = uDegen h P (z 0) (z 1)`
-* `uStatisticOrder S (pairKernel h) n = uStatistic S h n` (already
-  `uStatisticOrder_two_eq_uStatistic`).
-
-The `Fin 2 → X` product law is bridged to `P ×ₘ P` via the finite-product/`piFinTwo`
-measure equivalence.
--/
-
-import Causalean.Stat.UStatistic.OrderM.CLT
+module
+public import Causalean.Stat.UStatistic.OrderM.CLT
 
 /-!
 Specializes the fixed-order U-statistic CLT to the order-2 theory.
@@ -33,10 +7,24 @@ Specializes the fixed-order U-statistic CLT to the order-2 theory.
 The bridge sends a two-argument kernel `h : X → X → ℝ` to `pairKernel h :
 (Fin 2 → X) → ℝ` and proves that the order-`m` mean, projections, influence
 function, degenerate residual, and statistic agree with their order-2
-counterparts.  The final theorem, `uStatistic_clt_of_symmetric_via_orderM`,
-derives the classical symmetric-kernel order-2 CLT from
-`uStatisticOrder_clt_of_regular`.
+counterparts. The final theorem,
+`uStatistic_clt_of_symmetric_explicit_conditions_via_orderM`,
+derives a symmetric-kernel order-2 CLT under explicit residual, projection, and
+pointwise row-integrability assumptions from
+`uStatisticOrder_clt_of_explicit_conditions`.
+
+The bridge also identifies the two-coordinate product law with the ordinary
+product measure, allowing the fixed-order regularity assumptions to be checked
+using the two-argument kernel interface.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+public section
 
 namespace Causalean.Stat
 
@@ -170,8 +158,8 @@ end Bridge
 
 /-! ## The order-2 CLT via the order-`m` result -/
 
-/-- **Order-2 U-statistic CLT, derived from the fixed-order-`m` CLT.** For an i.i.d.
-sample `S` and a two-argument kernel `h : X → X → ℝ` that is [symmetric](hyp:hsymm) and
+/-- **Order-2 U-statistic CLT from explicit conditions.** For [an i.i.d.
+sample](hyp:S) and [a two-argument kernel](hyp:h) that is [symmetric](hyp:hsymm) and
 [jointly measurable](hyp:hmeas), suppose the order-2 Hájek residual of `h` is
 [square-integrable under the product law `P × P`](hyp:hL2), the row integral
 `x ↦ ∫h(x,y)dP(y)` [is integrable](hyp:hint) and [each row `y ↦ h(x,y)` is itself
@@ -182,11 +170,10 @@ almost-everywhere measurable at every sample size](hyp:hθn_meas). Then [the
 with variance `4ζ₁`, where `ζ₁` is the variance of the first Hoeffding
 projection](goal).
 
-This has the same statement as `uStatistic_clt_of_symmetric`, but its proof runs
-through `uStatisticOrder_clt_of_regular` (order `m = 2`, kernel `pairKernel h`)
-using the bridge identities above — demonstrating that the general fixed-order
-theory subsumes the order-2 result. -/
-theorem uStatistic_clt_of_symmetric_via_orderM
+Its proof runs through `uStatisticOrder_clt_of_explicit_conditions` (order `m = 2`, kernel
+`pairKernel h`) using the bridge identities above, showing that the general
+fixed-order theory yields this regularity-based order-2 result. -/
+theorem uStatistic_clt_of_symmetric_explicit_conditions_via_orderM
     {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
     {μ : Measure Ω} {P : Measure X}
     (S : IIDSample Ω X μ P) (h : X → X → ℝ)
@@ -432,10 +419,6 @@ theorem uStatistic_clt_of_symmetric_via_orderM
       simpa [Function.comp_def] using hmp_eval.integrable_comp_of_integrable hcol
   have hψ_meas' : Measurable (uInfluenceOrder (pairKernel h) P) := by
     simpa [hψ_bridge] using (hproj_meas.const_mul 2)
-  have hψ_mean' : ∫ x, uInfluenceOrder (pairKernel h) P x ∂P = 0 := by
-    rw [hψ_bridge]
-    integral_linearity
-    rw [uProj_integral_eq_zero hint, mul_zero]
   have hψ_sq' : Integrable (fun x => (uInfluenceOrder (pairKernel h) P x) ^ 2) P := by
     have hscaled : Integrable (fun x => (4 : ℝ) * (uProj h P x) ^ 2) P :=
       hproj_sq.const_mul 4
@@ -451,9 +434,8 @@ theorem uStatistic_clt_of_symmetric_via_orderM
         (uMeanOrder (pairKernel h) P) (fun r => Finset.range r) n) μ := by
     intro n
     simpa [hstat_bridge, hmean_bridge] using hθn_meas n
-  have hclt := uStatisticOrder_clt_of_regular S (pairKernel h)
-    hmeas' hL2' hslice_int' hmean' hrow' hψ_meas' hψ_mean' hψ_sq'
-    hθn_meas'
+  have hclt := uStatisticOrder_clt_of_explicit_conditions S (pairKernel h)
+    hmeas' hL2' hslice_int' hmean' hrow' hψ_meas' hψ_sq' hθn_meas'
   simpa [hstat_bridge, hmean_bridge, hψ_bridge] using hclt
 
 end Causalean.Stat

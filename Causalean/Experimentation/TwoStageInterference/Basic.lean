@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.TwoStage
+module
+public import Causalean.Experimentation.DesignBased.TwoStage
 
 /-! # Hudgens–Halloran (2008): two-stage interference setup, estimands, estimators
 
@@ -24,6 +25,8 @@ estimands `indMean`, `groupMean`, `popMean`, `indMarg`, and `popMarg`, causal co
 `popEst`, and `estDirect`.  The unbiasedness and variance theorems for these definitions live in
 `Unbiased.lean`, `Effects.lean`, `BetweenGroup.lean`, and `Variance.lean`.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -109,11 +112,11 @@ noncomputable def popMarg (ρ : ∀ i, FiniteDesign (WAssign n i))
 /-- Given [a finite population of groups](hyp:ι), [the number of units in every group](hyp:n), [a
 within-group randomization design for every group](hyp:ψ), and [the potential outcome of each unit
 under every within-group assignment](hyp:Y), the [Hudgens--Halloran direct-effect contrast](goal)
-is the population average potential outcome under treatment minus that under control, both evaluated
+is the population average potential outcome under control minus that under treatment, both evaluated
 under the supplied design. -/
 noncomputable def CE_direct (ψ : ∀ i, FiniteDesign (WAssign n i))
     (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) : ℝ :=
-  popMean ψ Y true - popMean ψ Y false
+  popMean ψ Y false - popMean ψ Y true
 
 /-- Given [a finite population of groups](hyp:ι), [the number of units in every group](hyp:n), [a
 first within-group randomization design for every group](hyp:ψ), [a second such design for every
@@ -129,9 +132,7 @@ first within-group randomization design for every group](hyp:ψ), [a second such
 group](hyp:φ), and [the potential outcome of each unit under every within-group assignment](hyp:Y),
 the [total causal effect](goal) is the population average potential outcome under control using the
 second design minus that under treatment using the first design.
-
-Sign convention note: this is the control-minus-treatment orientation, negated
-relative to the Hudgens-Halloran (2008) treatment-minus-control total effect. -/
+This is the Hudgens--Halloran (2008) control-minus-treatment orientation. -/
 noncomputable def CE_total (ψ φ : ∀ i, FiniteDesign (WAssign n i))
     (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) : ℝ :=
   popMean φ Y false - popMean ψ Y true
@@ -140,10 +141,7 @@ noncomputable def CE_total (ψ φ : ∀ i, FiniteDesign (WAssign n i))
 first within-group randomization design for every group](hyp:ψ), [a second such design for every
 group](hyp:φ), and [the potential outcome of each unit under every within-group assignment](hyp:Y),
 the [overall causal effect](goal) is the population marginal average potential outcome using the
-second design minus that using the first design.
-
-Sign convention note: this keeps the file's control-minus-treatment orientation,
-negated relative to the Hudgens-Halloran (2008) overall-effect convention. -/
+second design minus that using the first design, in the Hudgens--Halloran (2008) convention. -/
 noncomputable def CE_overall (ψ φ : ∀ i, FiniteDesign (WAssign n i))
     (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) : ℝ :=
   popMarg φ Y - popMarg ψ Y
@@ -176,11 +174,11 @@ noncomputable def popEst (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
 potential outcome of each unit under every within-group assignment](hyp:Y), [a control denominator
 for every group](hyp:m0), [a treatment denominator for every group](hyp:m1), [a real population
 denominator](hyp:denom), and [a realized joint assignment](hyp:sw), the [direct-effect estimator](goal)
-is the estimated treatment mean minus the estimated control mean among groups assigned the
+is the estimated control mean minus the estimated treatment mean among groups assigned the
 first allocation strategy. -/
 noncomputable def estDirect (Y : ∀ i, Fin (n i) → WAssign n i → ℝ)
     (m0 m1 : ι → ℝ) (denom : ℝ) (sw : StratAssign ι × ∀ i, WAssign n i) : ℝ :=
-  popEst Y true true m1 denom sw - popEst Y false true m0 denom sw
+  popEst Y false true m0 denom sw - popEst Y true true m1 denom sw
 
 end TwoStageInterference
 end Experimentation

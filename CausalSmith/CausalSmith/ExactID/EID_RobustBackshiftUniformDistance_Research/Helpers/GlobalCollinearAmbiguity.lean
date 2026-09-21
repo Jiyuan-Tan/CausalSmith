@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.SharpThreshold
-import Causalean.Discovery.LinearDisentanglement.CollinearAmbiguity.Main
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.SharpThreshold
+public import Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence.Main
 
 /-!
 # Globally admissible collinear ambiguity
@@ -8,11 +9,13 @@ Bridges the reusable two-coordinate deformation to the paper's global cycle-prod
 normalization.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open scoped Matrix Topology
 open Filter Set Metric
-open Causalean.Discovery.LinearDisentanglement.CollinearAmbiguity
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 noncomputable section
 

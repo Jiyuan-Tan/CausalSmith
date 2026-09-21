@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareAnalytic
-import Mathlib.MeasureTheory.Integral.CircleIntegral
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareAnalytic
+public import Mathlib.MeasureTheory.Integral.CircleIntegral
 
 /-!
 # Arm-slice certificates for the fixed hard square
@@ -8,6 +9,8 @@ This module proves finiteness by parametrizing the ambient radius circle and
 strict positivity by exhibiting short armwise arcs with nontrivial coordinate
 projections.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

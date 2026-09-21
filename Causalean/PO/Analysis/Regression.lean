@@ -7,17 +7,20 @@ Authors: Jiyuan Tan
 
 A lightweight predicate `IsRegressionFunction μ X g f` saying that `f : ℝ → ℝ`
 represents `E[g | X = ·]` via the integral identity on every measurable slice
-`X ⁻¹' A`.  Used by the RDD-style identification theorems (sharp and fuzzy).
+`X ⁻¹' A`, with `X` required to be almost-everywhere measurable. Used by the
+RDD-style identification theorems (sharp and fuzzy).
 
-The general conditional-distribution theory lives in
-`Causalean/Mathlib/CondDistrib.lean`; this predicate is the minimum interface
-needed for theorem statements that only require a concrete regression
-representative.
+The general measurable-preimage characterization of conditional expectation
+lives in `Causalean.Mathlib.MeasureTheory.CondExpPreimage`. This predicate is a
+specialized interface for theorem statements that only require a concrete
+regression representative; no adapter between the two interfaces is provided
+in this file.
 -/
 
-import Mathlib.MeasureTheory.Function.AEEqOfIntegral
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Measure.Map
+module
+public import Mathlib.MeasureTheory.Function.AEEqOfIntegral
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Measure.Map
 
 /-! # Regression Function Representatives
 
@@ -27,10 +30,16 @@ given another. The predicate is used as a lightweight interface in
 RDD-style potential-outcome identification statements.
 
 The central structure is `IsRegressionFunction μ X g f`, which requires
-measurability, integrability, and equality of slice integrals over every
-measurable event in the range of `X`.  The file also proves pushforward
-integrability of representatives, closure under subtraction, and almost-everywhere
-equality of two representatives when the represented responses are a.e. equal. -/
+almost-everywhere measurability of the conditioning variable, measurability of
+the representative, integrability, and equality of slice integrals over every
+measurable event in the range of `X`. The file also proves pushforward
+integrability of representatives, closure under subtraction, and
+almost-everywhere equality of two representatives when the represented
+responses are a.e. equal. The general conditional-expectation characterization
+for measurable preimages is in `Causalean.Mathlib.MeasureTheory.CondExpPreimage`;
+this file does not yet connect the two APIs. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -38,8 +47,9 @@ namespace PO
 open MeasureTheory
 
 /-- A regression-function representative for the conditional mean of a response `g`
-given a conditioning variable `X`: a candidate function `f` on the real line that is
-[measurable](hyp:measurable), for which [the response `g` is
+given a [conditioning variable `X` that is `μ`-almost-everywhere
+measurable](hyp:aemeasurable_conditioner): a candidate function `f` on the real
+line that is [measurable](hyp:measurable), for which [the response `g` is
 integrable](hyp:integrable_response) and [the composite `f ∘ X` is
 integrable](hyp:integrable_compose), and such that [the integral of `g` over every
 measurable event determined by `X` equals the integral of `f ∘ X` over that same
@@ -49,6 +59,7 @@ This is a concrete representative of the regression function `E[g | X = x]`,
 encoded by the integral identity on every measurable slice of `X`. -/
 structure IsRegressionFunction {Ω : Type*} [MeasurableSpace Ω]
     (μ : Measure Ω) (X : Ω → ℝ) (g : Ω → ℝ) (f : ℝ → ℝ) : Prop where
+  aemeasurable_conditioner : AEMeasurable X μ
   measurable : Measurable f
   integrable_response : Integrable g μ
   integrable_compose : Integrable (fun ω => f (X ω)) μ
@@ -61,24 +72,26 @@ namespace IsRegressionFunction
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
   {X : Ω → ℝ} {g : Ω → ℝ} {f : ℝ → ℝ}
 
-/-- Pushforward integrability: `f` is integrable under `μ.map X` whenever
-`X` is `AEMeasurable` and `f` represents `E[g|X=·]`. -/
-lemma integrable_pushforward (h : IsRegressionFunction μ X g f)
-    (hX : AEMeasurable X μ) :
+/-- If [`f` represents the conditional mean of `g` given `X`](hyp:h), then
+[`f` is integrable under the pushforward measure `μ.map X`](goal). -/
+lemma integrable_pushforward (h : IsRegressionFunction μ X g f) :
     Integrable f (μ.map X) := by
-  rw [integrable_map_measure h.measurable.aestronglyMeasurable hX]
+  rw [integrable_map_measure h.measurable.aestronglyMeasurable
+    h.aemeasurable_conditioner]
   exact h.integrable_compose
 
 end IsRegressionFunction
 
-/-- Linearity (subtraction) of `IsRegressionFunction`: difference of
-representatives is the representative of the difference. -/
+/-- If [`f₁` represents the conditional mean of `g₁` given `X`](hyp:h₁) and
+[`f₂` represents the conditional mean of `g₂` given `X`](hyp:h₂), then [their
+difference represents the conditional mean of `g₁ - g₂` given `X`](goal). -/
 lemma IsRegressionFunction.sub
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     {X : Ω → ℝ} {g₁ g₂ : Ω → ℝ} {f₁ f₂ : ℝ → ℝ}
     (h₁ : IsRegressionFunction μ X g₁ f₁)
     (h₂ : IsRegressionFunction μ X g₂ f₂) :
     IsRegressionFunction μ X (fun ω => g₁ ω - g₂ ω) (fun x => f₁ x - f₂ x) where
+  aemeasurable_conditioner := h₁.aemeasurable_conditioner
   measurable := h₁.measurable.sub h₂.measurable
   integrable_response := h₁.integrable_response.sub h₂.integrable_response
   integrable_compose := h₁.integrable_compose.sub h₂.integrable_compose
@@ -95,9 +108,8 @@ lemma IsRegressionFunction.sub
         h₂.integrable_compose.integrableOn
     rw [h_lhs, h_rhs, h₁.integral_preimage_eq A hA, h₂.integral_preimage_eq A hA]
 
-/-- Fix a conditioning variable `X` that is [`μ`-almost-everywhere
-measurable](hyp:hX). If [two response variables `g₁` and `g₂` are `μ`-almost-
-everywhere equal](hyp:hg), and [`f₁` is a regression-function representative of
+/-- If [two response variables `g₁` and `g₂` are `μ`-almost-everywhere
+equal](hyp:hg), and [`f₁` is a regression-function representative of
 the conditional mean of `g₁` given `X`](hyp:h₁) while [`f₂` is a
 regression-function representative of the conditional mean of `g₂` given
 `X`](hyp:h₂), then [`f₁` and `f₂` agree `(μ.map X)`-almost everywhere](goal).
@@ -107,22 +119,21 @@ expectation. -/
 lemma IsRegressionFunction.aeEq_of_aeEq_response
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     {X : Ω → ℝ} {g₁ g₂ : Ω → ℝ} {f₁ f₂ : ℝ → ℝ}
-    (hX : AEMeasurable X μ)
     (hg : g₁ =ᵐ[μ] g₂)
     (h₁ : IsRegressionFunction μ X g₁ f₁)
     (h₂ : IsRegressionFunction μ X g₂ f₂) :
     f₁ =ᵐ[μ.map X] f₂ := by
   refine MeasureTheory.Integrable.ae_eq_of_forall_setIntegral_eq
-    f₁ f₂ (h₁.integrable_pushforward hX) (h₂.integrable_pushforward hX) ?_
+    f₁ f₂ h₁.integrable_pushforward h₂.integrable_pushforward ?_
   intro A hA _
   have h_pull₁ :
       (∫ x in A, f₁ x ∂(μ.map X)) = ∫ ω in X ⁻¹' A, f₁ (X ω) ∂μ :=
     setIntegral_map (μ := μ) (g := X) (f := f₁) hA
-      h₁.measurable.aestronglyMeasurable hX
+      h₁.measurable.aestronglyMeasurable h₁.aemeasurable_conditioner
   have h_pull₂ :
       (∫ x in A, f₂ x ∂(μ.map X)) = ∫ ω in X ⁻¹' A, f₂ (X ω) ∂μ :=
     setIntegral_map (μ := μ) (g := X) (f := f₂) hA
-      h₂.measurable.aestronglyMeasurable hX
+      h₂.measurable.aestronglyMeasurable h₂.aemeasurable_conditioner
   have h_eq₁ :
       (∫ ω in X ⁻¹' A, f₁ (X ω) ∂μ) = ∫ ω in X ⁻¹' A, g₁ ω ∂μ :=
     (h₁.integral_preimage_eq A hA).symm

@@ -1,23 +1,26 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Fibers
-import Causalean.Stat.Sample.PiTransport
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
-import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
-import Mathlib.MeasureTheory.Measure.Prod
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Fibers
+public import Causalean.Stat.Sample.PiTransport
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+public import Mathlib.MeasureTheory.Measure.Prod
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
 
 set_option linter.unusedDecidableInType false
 set_option linter.style.longLine false
+
+open scoped BigOperators ENNReal
+open Finset Matrix MeasureTheory ProbabilityTheory
 
 /-! Model-induced finite probability measures, finite two-sample block laws, empirical moments,
 and the concentration projection set. Infinite i.i.d. sequences occur only inside the proof of
 `pi_hoeffding_cell`, through Causalean's finite-prefix transport theorem. -/
 
-open scoped BigOperators ENNReal
-open Finset Matrix MeasureTheory ProbabilityTheory
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
@@ -29,7 +32,7 @@ variable {E U W X Y : Type*}
   [MeasurableSingletonClass E] [MeasurableSingletonClass W]
   [MeasurableSingletonClass X] [MeasurableSingletonClass Y]
 
-private lemma observedWeights_sum (Mdl : LatentShiftSCM E U W X Y) :
+lemma observedWeights_sum (Mdl : LatentShiftSCM E U W X Y) :
     ∑ o : E × W × X × Y,
       ENNReal.ofReal (observedLaw Mdl o.1 o.2.1 o.2.2.1 o.2.2.2) = 1 := by
   simp only [Fintype.sum_prod_type]
@@ -69,7 +72,7 @@ noncomputable def observedMeasure (Mdl : LatentShiftSCM E U W X Y) :
 noncomputable instance observedMeasure_isProbability (Mdl : LatentShiftSCM E U W X Y) :
     IsProbabilityMeasure (observedMeasure Mdl) := PMF.toMeasure.isProbabilityMeasure _
 
-private lemma targetWeights_sum (Mdl : LatentShiftSCM E U W X Y) :
+lemma targetWeights_sum (Mdl : LatentShiftSCM E U W X Y) :
     ∑ w, ENNReal.ofReal (targetProxyVector Mdl w) = 1 := by
   rw [← ENNReal.ofReal_sum_of_nonneg (fun w _ => targetProxyVector_nonneg Mdl w)]
   simp [targetProxyVector_sum]

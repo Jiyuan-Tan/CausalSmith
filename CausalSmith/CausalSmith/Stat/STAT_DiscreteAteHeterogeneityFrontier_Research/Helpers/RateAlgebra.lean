@@ -1,6 +1,9 @@
 /- Endpoint and shrinking-radius rate algebra. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_TwoSidedMinimaxBracket
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_TwoSidedMinimaxBracket
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

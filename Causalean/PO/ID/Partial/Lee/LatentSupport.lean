@@ -13,7 +13,8 @@ lies in `𝒴` almost surely on each of the two latent strata
 construction to derive the normalisation `∑ y∈𝒴, f1AS y = 1`.
 -/
 
-import Causalean.PO.ID.Partial.Lee.MixtureIdentity
+module
+public import Causalean.PO.ID.Partial.Lee.MixtureIdentity
 
 /-! # Lee Latent Support Transfer
 
@@ -28,6 +29,8 @@ almost-sure finite-support hypothesis for the factual outcome restricted to the
 observable selected-treated cell. Using consistency and pair-level random
 assignment, it proves that `YofA true` lies in the same finite support almost
 surely on both `alwaysSelected` and `helpedSelected`. -/
+
+public section
 
 namespace Causalean
 namespace PO

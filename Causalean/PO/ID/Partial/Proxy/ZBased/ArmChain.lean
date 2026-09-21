@@ -5,8 +5,9 @@ Authors: Jiyuan Tan
 
 # Proximal partial identification — Z-based bridge-substitution arm-level lemmas
 
-The two paired bridge-substitution arm-level lemmas underlying Theorem 2 of
-Ghassami-Shpitser-Tchetgen Tchetgen (arXiv 2304.04374), Section 2.2:
+The two paired bridge-substitution arm-level lemmas underlying the abstract
+Z-envelope bounds, inspired by Ghassami, Zhang, Shpitser, and Tchetgen Tchetgen
+(arXiv:2304.04374v4, 2026):
 
 * `condIntYofA_le_envelope_arm`  — paired upper arm chain.
 * `envelope_le_condIntYofA_arm`  — paired lower arm chain.
@@ -16,8 +17,9 @@ These walk the off-arm bridge-substitution chain that converts
 treatment-side bridge `q` and the σ_AZX-conditional envelope.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers
-import Causalean.Mathlib.LikelihoodRatioSwap
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers
+public import Causalean.Mathlib.MeasureTheory.Integral.LikelihoodRatio
 
 /-! # Z-based proximal arm-swap chain
 
@@ -36,6 +38,12 @@ factorization that rewrites the `q`-weighted conditional expectation in the
 middle of both chains.
 -/
 
+public section
+
+open Causalean.Mathlib.MeasureTheory.Integral
+
+open Causalean.Mathlib.Probability.Independence.Conditional
+
 namespace Causalean
 namespace PO
 
@@ -52,8 +60,7 @@ variable {P : POSystem}
 
 /-! ### Bridge-substitution identities (envelope form) -/
 
-/-- Factorisation identity used inside the arm chains (paper Theorem 2,
-intermediate step). On `s = {A = a}`,
+/-- Factorisation identity used inside the Z-envelope arm chains. On `s = {A = a}`,
   `∫_s μ[Y|σ_AUX]·μ[q|σ_AUX] dμ = ∫_s μ[Y|σ_AZX]·q dμ`.
 The chain is:
   μ[Y|σ_AUX]·μ[q|σ_AUX]
@@ -87,7 +94,7 @@ private lemma condIntYq_factor_arm
     HA.proxy_YZ.symm
   have hZX_Y : ProbabilityTheory.CondIndepFun S.σ_AUX S.σ_AUX_le
       (fun ω => (S.Z ω, S.X ω)) S.Y μ :=
-    Causalean.condIndepFun_prodMk_of_measurable_left S.σ_AUX_le
+    condIndepFun_prodMk_of_measurable_left S.σ_AUX_le
       S.measurable_Z S.measurable_Y hX_m_AUX hZ_Y
   -- Apply condExp_mul_of_condIndep with f = (Z, X), g = Y,
   -- u (z, x) = q (z, a, x), v = id.
@@ -108,7 +115,7 @@ private lemma condIntYq_factor_arm
     rw [hcomm]; exact hYq
   have huv_int : Integrable
       (fun ω => u (S.Z ω, S.X ω) * v (S.Y ω)) μ := by fun_prop
-  have hCondExpMul := Causalean.condExp_mul_of_condIndep S.σ_AUX_le
+  have hCondExpMul := condExp_mul_of_condIndep S.σ_AUX_le
     hZX_meas S.measurable_Y hZX_Y hu_meas hv_meas hu_int hv_int huv_int
   -- σ_AZX-measurability of `q (Z ω, a, X ω)` (factor through (A, Z, X)).
   have hq_meas_AZX : Measurable[S.σ_AZX] (fun ω => HA.q (S.Z ω, a, S.X ω)) := by fun_prop
@@ -161,17 +168,14 @@ private lemma condIntYq_factor_arm
   exact hStepA.trans (hStepB.trans (hStepC.trans hStepD))
 
 set_option maxHeartbeats 400000 in
-/-- **Off-arm bridge-substitution identity, upper envelope side.** Fix a treatment arm `a`
-and assume [the Z-based assumption bundle](hyp:HA) — consistency, latent
-exchangeability, the outcome-proxy independence condition, and the treatment-side bridge
-`q` — together with [the treatment and outcome variables being distinct](hyp:hAY); let
-`Uenv` be [an upper envelope function bounding the σ(A,Z,X)-conditional mean of the
-outcome on the on-arm stratum](hyp:hU), assumed [integrable](hyp:hUInt), with [the
-envelope weighted by the treatment-proxy bridge](hyp:hU_int) and [the envelope weighted
-by the likelihood-ratio arm-swap factor](hyp:hU_int_L) both integrable. Then [the
-average potential outcome `Y(a)` over the off-arm stratum `{A ≠ a}` is at most the
-average of the envelope `Uenv(a, X)` over that same stratum](goal):
-`∫_{A≠a} Y(a) dμ ≤ ∫_{A≠a} Uenv(a, X) dμ`.
+/-- **Off-arm bridge substitution, upper-envelope side.** [The set integral of
+the potential outcome over the opposite treatment arm is at most the set
+integral of an outcome envelope over that arm](goal). This uses [the Z-based
+bridge assumptions](hyp:HA) at [the specified treatment arm](hyp:a), [distinct
+treatment and outcome variables](hyp:hAY), [an on-arm upper conditional-mean
+envelope](hyp:hU), and integrability of [the envelope](hyp:hUInt), [its product
+with the treatment bridge](hyp:hU_int), and [its product with the arm-swap
+factor](hyp:hU_int_L).
 
 On the off-arm stratum `{A = ¬a}`,
   `∫_{A=¬a} Y(a) dμ ≤ ∫_{A=¬a} Uenv(a, X) dμ`,
@@ -185,7 +189,7 @@ provided
 * `IsUpperEnvZ μ a Uenv`: `Uenv(a, X)` upper-bounds `E[Y | σ_AZX]` μ-a.e. on
                          `{A = a}`.
 
-Proof outline (paper Appendix, Theorem 2):
+Proof outline, following the analogous source argument:
 
   ∫_{A=¬a} Y(a) dμ
     = ∫ E[Y(a) | σ_AUX] · 𝟙{A=¬a} dμ                    (tower, σ_AUX-meas indic)
@@ -219,7 +223,7 @@ lemma condIntYofA_le_envelope_arm
       Integrable (fun ω => Uenv (a, S.X ω) * HA.likelihoodRatio_swapA a ω) μ) :
     (∫ ω in {ω | S.A ω ≠ a}, S.YofA a ω ∂μ)
       ≤ (∫ ω in {ω | S.A ω ≠ a}, Uenv (a, S.X ω) ∂μ) := by
-  -- Implements the chain in the docstring (paper Thm 2 Appendix).
+  -- Implements the chain described in the docstring.
   -- We materialise each line as a `have` and chain them together.
   set s' : Set P.Ω := {ω | S.A ω ≠ a} with hs'_def
   set s : Set P.Ω := {ω | S.A ω = a} with hs_def
@@ -294,7 +298,7 @@ lemma condIntYofA_le_envelope_arm
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
     -- Apply L2.
     have hL2 :=
-      Causalean.setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
+      setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
         S.σ_UX_le {ω | S.A ω = a} {ω | S.A ω = !a}
         (S.measurable_A (measurableSet_singleton a))
         (S.measurable_A (measurableSet_singleton (!a)))
@@ -323,7 +327,7 @@ lemma condIntYofA_le_envelope_arm
   -- for Y, we get E[Y|σ_UX] =ᵐ[restrict s] E[Y(a)|σ_UX].
   -- ============================================================
   -- Corrected step: use σ_AUX rather than σ_UX in the middle of the chain.
-  -- This avoids requiring a separate `Y ⟂ A | σ_UX` lift; paper Theorem 2 does not bundle it.
+  -- This avoids requiring a separate `Y ⟂ A | σ_UX` lift.
   -- hCE_eq_arm_AUX : μ[Y(a)|σ_UX] =ᵐ[restrict s] μ[Y|σ_AUX].
   -- Derived from: hLatent.symm (gives μ[Y(a)|σ_UX] =ᵐ μ[Y(a)|σ_AUX] globally)
   -- and hConsist.symm (gives μ[Y(a)|σ_AUX] =ᵐ[restrict s] μ[Y|σ_AUX]).
@@ -429,7 +433,7 @@ lemma condIntYofA_le_envelope_arm
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
     have hL2 :=
-      Causalean.setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
+      setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
         S.σ_UX_le {ω | S.A ω = a} {ω | S.A ω = !a}
         (S.measurable_A (measurableSet_singleton a))
         (S.measurable_A (measurableSet_singleton (!a)))
@@ -468,8 +472,14 @@ lemma condIntYofA_le_envelope_arm
     _ = (∫ ω in s', Uenv (a, S.X ω) ∂μ) := hStep10
 
 set_option maxHeartbeats 400000 in
-/-- Off-arm bridge-substitution identity, **lower** envelope side. Mirror of
-`condIntYofA_le_envelope_arm`. -/
+/-- **Off-arm bridge substitution, lower-envelope side.** [The set integral of
+an outcome envelope over the opposite treatment arm is at most the set integral
+of the potential outcome over that arm](goal). This uses [the Z-based bridge
+assumptions](hyp:HA) at [the specified treatment arm](hyp:a), [distinct treatment
+and outcome variables](hyp:hAY), [an on-arm lower conditional-mean
+envelope](hyp:hL), and integrability of [the envelope](hyp:hLInt), [its product
+with the treatment bridge](hyp:hL_int), and [its product with the arm-swap
+factor](hyp:hL_int_L). -/
 lemma envelope_le_condIntYofA_arm
     (HA : POProximalSystem.ZBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -534,7 +544,7 @@ lemma envelope_le_condIntYofA_arm
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
     have hL2 :=
-      Causalean.setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
+      setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
         S.σ_UX_le {ω | S.A ω = a} {ω | S.A ω = !a}
         (S.measurable_A (measurableSet_singleton a))
         (S.measurable_A (measurableSet_singleton (!a)))
@@ -632,7 +642,7 @@ lemma envelope_le_condIntYofA_arm
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
       · intro h; cases ha : S.A ω <;> cases a <;> simp_all
     have hL2 :=
-      Causalean.setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
+      setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
         S.σ_UX_le {ω | S.A ω = a} {ω | S.A ω = !a}
         (S.measurable_A (measurableSet_singleton a))
         (S.measurable_A (measurableSet_singleton (!a)))

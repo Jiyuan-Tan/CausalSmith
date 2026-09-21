@@ -1,10 +1,13 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Measurability
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeNonempty
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TSummaryRepairTotalBorel
-import Mathlib.Analysis.SpecificLimits.Normed
-import Mathlib.LinearAlgebra.Matrix.FiniteDimensional
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Measurability
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.StructuredLatticeNonempty
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TSummaryRepairTotalBorel
+public import Mathlib.Analysis.SpecificLimits.Normed
+public import Mathlib.LinearAlgebra.Matrix.FiniteDimensional
 
 /-! # Borel measurability of the hard-threshold lattice criterion -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

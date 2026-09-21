@@ -20,8 +20,9 @@ The capstone `inClass_perturbed` packages these into `InClass m̂ ĝ εg εm mλ
 whenever `β² ≤ εm` and `(α+β)²/(1 − 2β)² ≤ εg`.
 -/
 
-import Causalean.Estimation.MinimaxATE.Reduction.Bump
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+module
+public import Causalean.Estimation.MinimaxATE.Reduction.Bump
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
 
 /-! # Base Class Membership
 
@@ -34,6 +35,8 @@ treated-arm pointwise deviation, and `l2sq_gPerturbed_true_le` for the treated-a
 The capstone `inClass_perturbed` connects the explicit construction to the finite minimax
 lower-bound framework by producing an `InClass` witness under the stated budgets.
 -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

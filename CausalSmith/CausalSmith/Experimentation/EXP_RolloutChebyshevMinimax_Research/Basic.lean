@@ -24,18 +24,17 @@ class structure `RolloutLawClass`, and the small inherited-setup identity
 | Mathlib `Polynomial.Chebyshev.T`, `Real.cos`, `Real.sqrt`, `sInf`/`sSup` | reuse (S2) | the schedules `S_{k,q}`, weights `W_β(p)`, amplification `A_β`/`M`, and Chebyshev/equal grids are pure real/polynomial optimal-recovery objects. |
 -/
 
-import Mathlib.Algebra.BigOperators.Ring.Finset
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.Analysis.SpecialFunctions.Sqrt
-import Mathlib.Algebra.Order.Round
-import Mathlib.Order.CompleteLattice.Basic
-import Mathlib.Order.Monotone.Basic
-import Causalean.Experimentation.DesignBased.DesignCore
+module
+public import Mathlib.Algebra.BigOperators.Ring.Finset
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+public import Mathlib.Algebra.Order.Round
+public import Mathlib.Order.CompleteLattice.Basic
+public import Mathlib.Order.Monotone.Basic
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 open Causalean.Experimentation.DesignBased
 open scoped BigOperators
-
-namespace CausalSmith.Experimentation.RolloutChebyshev
 
 /-! ## Environment S1 — finite-population monotone-Bernoulli rollout DESIGN world
 
@@ -49,6 +48,10 @@ exposed at this abstract `FiniteDesign` level (matching the paper's honest scope
 novelty is the design object, not new PO machinery).
 
 `@env: S1` -/
+
+@[expose] public section
+
+namespace CausalSmith.Experimentation.RolloutChebyshev
 
 /-! ### Assumption atoms (threaded Props) -/
 

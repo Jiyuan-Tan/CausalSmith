@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.Sequential.Ville
-import Causalean.Experimentation.Sequential.AnytimeValid
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+module
+public import Causalean.Experimentation.Sequential.Ville
+public import Causalean.Experimentation.Sequential.AnytimeValid
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
 
 /-!
 # Waudby-Smith & Ramdas (2024): confidence sequences by betting
@@ -21,6 +22,8 @@ nonnegative, with `K₀ = 1`, and a fair bet cannot grow capital in expectation.
 keeping the values `m` whose capital has not yet reached `1/α` — yields a **confidence sequence**
 for the mean with time-uniform coverage `1 − α`, directly via Ville's inequality.
 -/
+
+@[expose] public section
 
 open MeasureTheory
 open scoped ENNReal ProbabilityTheory BigOperators
@@ -120,21 +123,19 @@ theorem isTestSupermartingale_capital [IsProbabilityMeasure μ] {X lam : ℕ →
   · rw [capital_zero]
     simp [integral_const]
 
-/-- **Betting confidence sequence (coverage).** If [the betting capital process built from the
-data stream `X`, betting fractions `lam`, and candidate mean `m` is a test supermartingale under
-`μ`](hyp:hM) and [the target error level `α` is strictly positive](hyp:hα), then [the sequence
-of confidence sets that retains a candidate mean `m` only while its capital has not yet reached
-`1/α` is a valid confidence sequence with time-uniform coverage `1 − α`](goal). -/
+/-- **Betting confidence sequence (coverage).** If
+[the betting capital is a test supermartingale](hyp:hM) and
+[the target error level `α` is strictly positive](hyp:α,hα), then
+[wealth inversion gives a confidence sequence with time-uniform coverage `1 − α`](goal). -/
 theorem isConfidenceSequence_bettingCI [IsFiniteMeasure μ] {X lam : ℕ → Ω → ℝ} {m : ℝ}
     (hM : IsTestSupermartingale (capital X lam m) ℱ μ) {α : ℝ} (hα : 0 < α) :
     IsConfidenceSequence (confSeqOfWealth (capital X lam m) α) μ α :=
   isConfidenceSequence_confSeqOfWealth hM hα
 
-/-- **Anytime-valid test by betting.** If [the betting capital process built from the data
-stream `X`, betting fractions `lam`, and candidate mean `m` is a test supermartingale under
-`μ`](hyp:hM) and [the target error level `α` is strictly positive](hyp:hα), then [the rejection
-region that declares significance once the capital ever reaches `1/α` is an anytime-valid
-level-`α` test](goal). -/
+/-- **Anytime-valid test by betting.** If
+[the betting capital is a test supermartingale](hyp:hM) and
+[the target error level `α` is strictly positive](hyp:α,hα), then
+[crossing `1/α` defines an anytime-valid level-`α` test](goal). -/
 theorem isAnytimeValid_betting [IsFiniteMeasure μ] {X lam : ℕ → Ω → ℝ} {m : ℝ}
     (hM : IsTestSupermartingale (capital X lam m) ℱ μ) {α : ℝ} (hα : 0 < α) :
     IsAnytimeValid (rejectionRegion (capital X lam m) α) μ α :=

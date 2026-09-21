@@ -3,237 +3,355 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Estimation.Efficiency.TangentProjection
-import Mathlib.Analysis.Calculus.Deriv.Basic
+
+module
+public import Causalean.Estimation.Efficiency.TangentProjection
+public import Causalean.Mathlib.MeasureTheory.RadonNikodymSqrt
+public import Mathlib.Analysis.Calculus.Deriv.Basic
 
 /-!
-# Regular submodels and pathwise gradients (abstract semiparametric layer)
+# DQM submodels, tangent spaces, and pathwise gradients
 
-This is the abstract **pathwise-gradient / regular-submodel** layer that upgrades
-the projection algebra of `Causalean.Estimation.Efficiency.TangentProjection`
-(`IsGradient`, `efficientIF`) into the genuine Hahn (1998) statement: an influence
-function is the *efficient influence function* when it is the canonical
-(projected) pathwise gradient of the target functional along **every** regular
-submodel.
+This module implements the standard semiparametric framework of van der Vaart
+(1998), §25.3. A regular submodel is a path of probability laws dominated by
+the base law whose square-root Radon--Nikodym densities are differentiable in
+quadratic mean. Its score is therefore determined by its path.
 
-Fix a real Hilbert space `H` (in applications `Lp ℝ 2 P`), a distinguished vector
-`one : H` (in applications the constant function, so `mean-zero` means
-`⟪·, one⟫ = 0`), and a base law `P₀ : 𝓛` in an abstract type of laws `𝓛` on which
-functionals `ψ : 𝓛 → ℝ` are evaluated.
+A model is represented by a chosen family of regular submodels. Its tangent
+space is the closed linear span of their scores. A pathwise gradient represents
+the derivative of the functional along every member of that family, and its
+orthogonal projection onto the tangent space is the canonical gradient, or
+efficient influence function.
 
-* `RegularSubmodel one P₀` packages a one-parameter path of laws `t ↦ path t`
-  through `P₀` at `t = 0`, together with a mean-zero L² **score** `s ∈ H` (the
-  tangent direction). The path and score are *abstract fields*: we never build
-  parametric families from raw measures here.
-* `IsPathwiseGradient one P₀ ψ g` says `g` represents the derivative of `ψ` along
-  every submodel: `t ↦ ψ (path t)` is differentiable at `0` with derivative
-  `⟪g, s⟫`.
-* `IsTangentSpace one P₀ T` says the closed subspace `T` is a genuine tangent
-  space: it contains every score and is contained in the closure of their span
-  (so `T` equals the closed span of the score set).
+The restriction `P_t ≪ P` does not shrink the tangent space of the
+nonparametric model: `TiltTangent.lean` constructs dominated bounded
+exponential tilts whose scores already span a dense subspace of `L²₀(P)`.
 
-The main results: the orthogonal projection of any pathwise gradient onto a
-tangent space `T` is again a pathwise gradient (`orthogonalProjection_isPathwiseGradient`);
-all pathwise gradients share the *same* projection onto `T`
-(`efficientIF_eq_of_isPathwiseGradient`); hence a pathwise gradient lying in `T`
-is the unique such and equals `efficientIF T g` for every gradient `g`
-(`isPathwiseGradient_eq_efficientIF_of_mem`) — the efficient influence function is
-well-defined as the canonical gradient.
-
-Reference: Hahn (1998, Econometrica); Bickel–Klaassen–Ritov–Wellner (1993);
-Tsiatis (2006), Ch. 3; van der Vaart (1998), Ch. 25.
+Paths are indexed by all `t ∈ ℝ`, and derivatives at zero are two-sided. This
+is the usual nonparametric or regular-parametric setting with the base law at
+an interior parameter value. One-sided tangent cones and boundary models are
+not represented by this interface.
 -/
+
+@[expose] public section
+
+noncomputable section
 
 namespace Causalean.Estimation.Efficiency
 
-open Causalean.Estimation.Efficiency
+open Filter MeasureTheory Topology
+open Causalean.Mathlib.MeasureTheory
 open scoped InnerProductSpace RealInnerProductSpace
 
-variable {𝓛 : Type*} {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
+variable {Z : Type*} [MeasurableSpace Z]
 
-/-- A **regular submodel** through the base law `P₀` bundles [a one-parameter path of laws,
-indexed by a real perturbation parameter](hyp:path), that [passes through `P₀` at parameter
-zero](hyp:path_zero), together with [its tangent direction, an L² score vector](hyp:score)
-required to be [mean-zero, i.e. orthogonal to the distinguished vector `one`](hyp:score_meanZero).
+/-- Given [a base probability law `P`](hyp:P), [a probability law `Q`](hyp:Q),
+and [a perturbation parameter `t`](hyp:t), the [DQM square-root-density
+quotient](goal) is `t⁻¹(sqrt(dQ/dP) - 1)` as an element of `L²(P)`. -/
+noncomputable def dqmQuotient (P Q : Measure Z) [IsProbabilityMeasure P]
+    [IsProbabilityMeasure Q] (t : ℝ) : Lp ℝ 2 P :=
+  t⁻¹ • (rnSqrtDensityLp P Q - lpOne P)
 
-The path and score are abstract interface fields: we do not construct parametric families from
-measures. -/
-structure RegularSubmodel (one : H) (P₀ : 𝓛) where
-  /-- The one-parameter path of laws. -/
-  path : ℝ → 𝓛
-  /-- The path passes through the base law at parameter `0`. -/
-  path_zero : path 0 = P₀
-  /-- The L² score (tangent direction) of the submodel. -/
-  score : H
-  /-- The score is mean-zero: orthogonal to the distinguished vector `one`. -/
-  score_meanZero : ⟪score, one⟫_ℝ = 0
+private theorem dqmQuotient_congr (P Q R : Measure Z) [IsProbabilityMeasure P]
+    [IsProbabilityMeasure Q] [IsProbabilityMeasure R] (t : ℝ) (h : Q = R) :
+    dqmQuotient P Q t = dqmQuotient P R t := by
+  subst R
+  rfl
 
-/-- Given [a real normed inner-product space with a distinguished vector](hyp:H,one) and [a base
-law in an abstract collection of laws](hyp:𝓛,P₀), the [score set](goal) is the set of
-score vectors of all regular one-parameter submodels through that base law. -/
-def scoreSet (one : H) (P₀ : 𝓛) : Set H :=
-  Set.range (fun m : RegularSubmodel one P₀ => m.score)
+/-- A regular submodel through [a probability law `P`](hyp:P) consists of [a path
+of probability laws](hyp:path) [passing through `P` at zero](hyp:path_zero),
+[dominated by `P`](hyp:path_ac), and [a mean-zero square-integrable score](hyp:score)
+coupled to that path by [differentiability in quadratic mean](hyp:dqm).
 
-/-- Given [a real normed inner-product space with a distinguished vector](hyp:H,one) and [a base
-law in an abstract collection of laws](hyp:𝓛,P₀), the [tangent space](goal) is the
-topological closure of the linear span of the score set of regular submodels through
-that base law.
+The DQM field is equation (25.13) of van der Vaart (1998): in `L²(P)`,
+`(sqrt(dP_t/dP)-1)/t → score/2`. Squaring the L² norm gives exactly the
+integral formulation. Domination is imposed for all `t`; bounded exponential
+tilts satisfy it and already generate the full nonparametric tangent space. -/
+structure RegularSubmodel (P : Measure Z) [IsProbabilityMeasure P] where
+  /-- The two-sided one-parameter path of laws, indexed by every real `t`. -/
+  path : ℝ → Measure Z
+  /-- Every law on the path is a probability measure. -/
+  path_probability : ∀ t, IsProbabilityMeasure (path t)
+  /-- The path passes through the base law at zero. -/
+  path_zero : path 0 = P
+  /-- Every path law is absolutely continuous with respect to the base law. -/
+  path_ac : ∀ t, path t ≪ P
+  /-- The square-integrable score. -/
+  score : Lp ℝ 2 P
+  /-- The score has mean zero under the base law. -/
+  score_meanZero : score ∈ meanZeroLp P
+  /-- The square-root-density difference quotient converges in L² to half the score. -/
+  dqm : Tendsto
+    (fun t => letI := path_probability t; dqmQuotient P (path t) t)
+    (𝓝[≠] 0) (𝓝 ((2 : ℝ)⁻¹ • score))
 
-The **tangent space** generated by the regular submodels through `P₀`: the
-topological closure of the linear span of the score set. -/
-noncomputable def tangentSpace (one : H) (P₀ : 𝓛) : Submodule ℝ H :=
-  (Submodule.span ℝ (scoreSet one P₀)).topologicalClosure
+namespace RegularSubmodel
 
-/-- A candidate closed subspace `T` of the Hilbert space is a genuine **tangent space** for the
-regular submodels through the base law `P₀` when [every submodel's score lies in
-`T`](hyp:scores_mem) and [`T` is contained in the closed linear span of all submodel
-scores](hyp:le_closure) — together these force `T` to equal that closed span, the tangent space
-generated by the available parametric perturbations.
+/-- For [a DQM regular submodel `m`](hyp:m), [the integral of the squared
+square-root-density quotient error converges to zero](goal). This is the
+integral form of van der Vaart's equation (25.13), with the quotient represented
+canonically in `L²(P)`. -/
+theorem dqm_integral_tendsto {P : Measure Z} [IsProbabilityMeasure P]
+    (m : RegularSubmodel P) :
+    Tendsto
+      (fun t =>
+        letI := m.path_probability t
+        ∫ z, (dqmQuotient P (m.path t) t z -
+          ((2 : ℝ)⁻¹ • m.score) z) ^ 2 ∂P)
+      (𝓝[≠] 0) (𝓝 0) := by
+  have hdiff := m.dqm.sub
+    (tendsto_const_nhds : Tendsto (fun _ : ℝ => (2 : ℝ)⁻¹ • m.score)
+      (𝓝[≠] 0) (𝓝 ((2 : ℝ)⁻¹ • m.score)))
+  have hsq := hdiff.norm.pow 2
+  have hsq0 : Tendsto
+      (fun t =>
+        letI := m.path_probability t
+        ‖dqmQuotient P (m.path t) t - (2 : ℝ)⁻¹ • m.score‖ ^ 2)
+      (𝓝[≠] 0) (𝓝 0) := by
+    simpa only [sub_self, norm_zero, zero_pow (by norm_num : 2 ≠ 0)] using hsq
+  simp_rw [lpNorm_sq_eq_integral_sq] at hsq0
+  convert hsq0 using 1
+  funext t
+  letI : IsProbabilityMeasure (m.path t) := m.path_probability t
+  apply integral_congr_ae
+  filter_upwards [Lp.coeFn_sub (dqmQuotient P (m.path t) t)
+    ((2 : ℝ)⁻¹ • m.score)] with z hz
+  rw [hz]
+  rfl
 
-In applications this is the closed subspace of mean-zero L² functions spanned by the available
-scores (all of mean-zero L² in the nonparametric model). -/
-structure IsTangentSpace (one : H) (P₀ : 𝓛) (T : Submodule ℝ H) : Prop where
-  /-- Every submodel score lies in `T`. -/
-  scores_mem : ∀ m : RegularSubmodel one P₀, m.score ∈ T
-  /-- `T` is contained in the closed span of the score set. -/
-  le_closure : T ≤ tangentSpace one P₀
+/-- If [two regular submodels through `P`](hyp:m,n) have [the same law path](hyp:hpath),
+then [their DQM scores are equal](goal). -/
+theorem score_eq_of_path_eq {P : Measure Z} [IsProbabilityMeasure P]
+    (m n : RegularSubmodel P) (hpath : m.path = n.path) : m.score = n.score := by
+  have hm := m.dqm
+  have hn := n.dqm
+  have hcurve :
+      (fun t => letI := m.path_probability t; dqmQuotient P (m.path t) t) =
+        (fun t => letI := n.path_probability t; dqmQuotient P (n.path t) t) := by
+    funext t
+    exact @dqmQuotient_congr Z _ P (m.path t) (n.path t) _
+      (m.path_probability t) (n.path_probability t) t (congrFun hpath t)
+  rw [hcurve] at hm
+  have hhalf : (2 : ℝ)⁻¹ • m.score = (2 : ℝ)⁻¹ • n.score :=
+    tendsto_nhds_unique hm hn
+  have hscaled := congrArg (fun x : Lp ℝ 2 P => (2 : ℝ) • x) hhalf
+  simpa [smul_smul] using hscaled
 
-/-- Given [a real normed inner-product space with a distinguished vector](hyp:H,one), [a base law
-in an abstract collection of laws](hyp:𝓛,P₀), [a real-valued functional of laws](hyp:ψ),
-and [a candidate influence-function vector](hyp:g), the [candidate is a pathwise
-gradient of the functional at the base law](goal) exactly when, along every regular
-one-parameter submodel through that law, the functional is differentiable at zero and
-its derivative equals the inner product of the candidate vector with that submodel's
-score.
+/-- For [a base probability law `P`](hyp:P), the [constant regular submodel](goal)
+keeps the law equal to `P` and has zero score. -/
+noncomputable def constant (P : Measure Z) [IsProbabilityMeasure P] :
+    RegularSubmodel P where
+  path := fun _ => P
+  path_probability := fun _ => inferInstance
+  path_zero := rfl
+  path_ac := fun _ => Measure.AbsolutelyContinuous.rfl
+  score := 0
+  score_meanZero := (meanZeroLp P).zero_mem
+  dqm := by
+    simpa [dqmQuotient] using
+      (tendsto_const_nhds : Tendsto (fun _ : ℝ => (0 : Lp ℝ 2 P)) (𝓝[≠] 0) (𝓝 0))
 
-`g : H` is a **pathwise gradient** of the functional `ψ : 𝓛 → ℝ` at `P₀`:
-along every regular submodel, `t ↦ ψ (path t)` is differentiable at `0` with
-derivative `⟪g, score⟫`. This is the abstract semiparametric characterization of
-an influence function as the pathwise derivative of the target functional. -/
-def IsPathwiseGradient (one : H) (P₀ : 𝓛) (ψ : 𝓛 → ℝ) (g : H) : Prop :=
-  ∀ m : RegularSubmodel one P₀,
-    HasDerivAt (fun t => ψ (m.path t)) (⟪g, m.score⟫_ℝ) 0
+/-- If [a regular submodel through `P`](hyp:m) has [the constant law path](hyp:hpath),
+then [its score is zero](goal). -/
+theorem score_eq_zero_of_path_eq_const {P : Measure Z} [IsProbabilityMeasure P]
+    (m : RegularSubmodel P) (hpath : m.path = fun _ => P) : m.score = 0 := by
+  simpa [constant] using m.score_eq_of_path_eq (constant P) hpath
 
-/-- Two pathwise gradients of the same functional pair identically with every
-submodel score: `⟪g, s⟫ = ⟪g', s⟫`. (Both equal the pathwise derivative
-`d/dt ψ(path t)|₀`, which is unique.) -/
-theorem inner_score_eq_of_isPathwiseGradient {one : H} {P₀ : 𝓛} {ψ : 𝓛 → ℝ}
-    {g g' : H} (hg : IsPathwiseGradient one P₀ ψ g)
-    (hg' : IsPathwiseGradient one P₀ ψ g') (m : RegularSubmodel one P₀) :
+end RegularSubmodel
+
+/-- Given [a probability law `P`](hyp:P) and [a chosen family `S` of regular
+submodels through it](hyp:S), the [tangent score set](goal) consists of the scores
+of members of `S`. -/
+def scoreSet (P : Measure Z) [IsProbabilityMeasure P]
+    (S : Set (RegularSubmodel P)) : Set (Lp ℝ 2 P) :=
+  {g | ∃ m ∈ S, m.score = g}
+
+/-- Given [a probability law `P`](hyp:P) and [a chosen family `S` of regular
+submodels](hyp:S), the [generated tangent space](goal) is the closed linear span
+of their score set. -/
+noncomputable def tangentSpace (P : Measure Z) [IsProbabilityMeasure P]
+    (S : Set (RegularSubmodel P)) : Submodule ℝ (Lp ℝ 2 P) :=
+  (Submodule.span ℝ (scoreSet P S)).topologicalClosure
+
+/-- Every [score of a submodel `m` belonging to `S`](hyp:hm) [lies in the tangent
+space generated by `S`](goal). -/
+theorem score_mem_tangentSpace {P : Measure Z} [IsProbabilityMeasure P]
+    {S : Set (RegularSubmodel P)} {m : RegularSubmodel P} (hm : m ∈ S) :
+    m.score ∈ tangentSpace P S := by
+  apply Submodule.le_topologicalClosure (Submodule.span ℝ (scoreSet P S))
+  apply Submodule.subset_span
+  exact ⟨m, hm, rfl⟩
+
+/-- For [a probability law `P`](hyp:P) and [a submodel family `S`](hyp:S), [the
+closed generated tangent space has an orthogonal projection](goal). -/
+noncomputable instance tangentSpaceHasOrthogonalProjection
+    (P : Measure Z) [IsProbabilityMeasure P] (S : Set (RegularSubmodel P)) :
+    (tangentSpace P S).HasOrthogonalProjection := by
+  letI : CompleteSpace (tangentSpace P S) := by
+    rw [tangentSpace]
+    infer_instance
+  infer_instance
+
+/-- Given [a probability law `P`](hyp:P), [a functional `ψ`](hyp:ψ), [an L²
+candidate `g`](hyp:g), and [a family `S` of regular submodels](hyp:S), [the
+candidate is a pathwise gradient relative to `S`](goal) when every path derivative
+equals its inner product with that path's DQM score. -/
+def IsPathwiseGradient (P : Measure Z) [IsProbabilityMeasure P]
+    (ψ : Measure Z → ℝ) (g : Lp ℝ 2 P) (S : Set (RegularSubmodel P)) : Prop :=
+  ∀ m ∈ S, HasDerivAt (fun t => ψ (m.path t)) ⟪g, m.score⟫_ℝ 0
+
+/-- If [two candidates are pathwise gradients relative to the same family](hyp:hg,hg'),
+then [they have the same inner product](goal) with [every score in that family](hyp:hm). -/
+theorem inner_score_eq_of_isPathwiseGradient
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g g' : Lp ℝ 2 P}
+    (hg : IsPathwiseGradient P ψ g S) (hg' : IsPathwiseGradient P ψ g' S)
+    {m : RegularSubmodel P} (hm : m ∈ S) :
     ⟪g, m.score⟫_ℝ = ⟪g', m.score⟫_ℝ :=
-  (hg m).unique (hg' m)
+  (hg m hm).unique (hg' m hm)
 
-/-- The difference of two pathwise gradients is orthogonal to every submodel
-score. -/
-theorem inner_sub_score_eq_zero_of_isPathwiseGradient {one : H} {P₀ : 𝓛}
-    {ψ : 𝓛 → ℝ} {g g' : H} (hg : IsPathwiseGradient one P₀ ψ g)
-    (hg' : IsPathwiseGradient one P₀ ψ g') (m : RegularSubmodel one P₀) :
-    ⟪g - g', m.score⟫_ℝ = 0 := by
-  rw [inner_sub_left, inner_score_eq_of_isPathwiseGradient hg hg' m, sub_self]
-
-/-- The difference of two pathwise gradients lies in the orthogonal complement of
-any tangent space `T`.
-
-Strategy: `g - g'` is orthogonal to every score, hence to the span of the score
-set, hence (orthogonal complements are closed) to its topological closure
-`tangentSpace one P₀`; antitonicity of `·ᗮ` with `T ≤ tangentSpace` then places
-`g - g'` in `Tᗮ`. Use `Submodule.orthogonal_closure` to drop the closure. -/
-theorem sub_mem_orthogonal_of_isPathwiseGradient {one : H} {P₀ : 𝓛} {ψ : 𝓛 → ℝ}
-    {g g' : H} {T : Submodule ℝ H} (hT : IsTangentSpace one P₀ T)
-    (hg : IsPathwiseGradient one P₀ ψ g)
-    (hg' : IsPathwiseGradient one P₀ ψ g') :
-    g - g' ∈ Tᗮ := by
-  apply Submodule.orthogonal_le hT.le_closure
-  rw [tangentSpace, Submodule.orthogonal_closure]
-  rw [Submodule.mem_orthogonal']
+/-- If [two candidates are pathwise gradients relative to the same family](hyp:hg,hg'),
+then [their difference is orthogonal to the generated tangent space](goal). -/
+theorem sub_mem_orthogonal_of_isPathwiseGradient
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g g' : Lp ℝ 2 P}
+    (hg : IsPathwiseGradient P ψ g S) (hg' : IsPathwiseGradient P ψ g' S) :
+    g - g' ∈ (tangentSpace P S)ᗮ := by
+  rw [tangentSpace, Submodule.orthogonal_closure, Submodule.mem_orthogonal']
   intro u hu
-  let Z : Submodule ℝ H := {
+  let W : Submodule ℝ (Lp ℝ 2 P) := {
     carrier := {v | ⟪g - g', v⟫_ℝ = 0}
     zero_mem' := by simp
-    add_mem' := by
-      intro v w hv hw
-      change ⟪g - g', v + w⟫_ℝ = 0
-      rw [inner_add_right, hv, hw, add_zero]
-    smul_mem' := by
-      intro a v hv
-      change ⟪g - g', a • v⟫_ℝ = 0
-      rw [inner_smul_right, hv, mul_zero] }
-  have hspan : Submodule.span ℝ (scoreSet one P₀) ≤ Z := by
+    add_mem' := by intros; simp_all [inner_add_right]
+    smul_mem' := by intros; simp_all [inner_smul_right] }
+  have hspan : Submodule.span ℝ (scoreSet P S) ≤ W := by
     rw [Submodule.span_le]
-    rintro x ⟨m, rfl⟩
-    exact inner_sub_score_eq_zero_of_isPathwiseGradient hg hg' m
+    rintro _ ⟨m, hm, rfl⟩
+    change ⟪g - g', m.score⟫_ℝ = 0
+    rw [inner_sub_left, inner_score_eq_of_isPathwiseGradient hg hg' hm, sub_self]
   exact hspan hu
 
-/-- **Two pathwise gradients differ by an orthogonal-complement element**, i.e.
-either is a `TangentProjection`-gradient of the other relative to any tangent
-space `T`. This is the bridge from the pathwise (`HasDerivAt`) layer to the inner
-product `IsGradient` algebra of `TangentProjection.lean`. -/
-theorem isGradient_of_isPathwiseGradient {one : H} {P₀ : 𝓛} {ψ : 𝓛 → ℝ}
-    {g g' : H} {T : Submodule ℝ H} (hT : IsTangentSpace one P₀ T)
-    (hg : IsPathwiseGradient one P₀ ψ g)
-    (hg' : IsPathwiseGradient one P₀ ψ g') :
-    IsGradient T g g' :=
-  (isGradient_iff_sub_mem_orthogonal g g').2
-    (sub_mem_orthogonal_of_isPathwiseGradient hT hg' hg)
+/-- Given [a probability law `P`](hyp:P), [a submodel family `S`](hyp:S), and
+[a reference gradient `g`](hyp:g), the [canonical gradient](goal) is the
+orthogonal projection of `g` onto the tangent space generated by `S`. -/
+noncomputable def canonicalGradient (P : Measure Z) [IsProbabilityMeasure P]
+    (S : Set (RegularSubmodel P)) (g : Lp ℝ 2 P) : Lp ℝ 2 P :=
+  efficientIF (tangentSpace P S) g
 
-section Projection
+/-- Given [a probability law `P`](hyp:P), [a functional `ψ`](hyp:ψ), [a candidate
+`g`](hyp:g), and [a submodel family `S`](hyp:S), [the candidate is an efficient
+influence function](goal) when it is a pathwise gradient and belongs to the
+generated tangent space. -/
+def IsEfficientInfluenceFunction (P : Measure Z) [IsProbabilityMeasure P]
+    (ψ : Measure Z → ℝ) (g : Lp ℝ 2 P) (S : Set (RegularSubmodel P)) : Prop :=
+  IsPathwiseGradient P ψ g S ∧ g ∈ tangentSpace P S
 
-variable {T : Submodule ℝ H} [T.HasOrthogonalProjection]
+/-- If [a candidate `g` is a pathwise gradient](hyp:hg), then [its canonical
+gradient is also a pathwise gradient](goal). -/
+theorem canonicalGradient_isPathwiseGradient
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g : Lp ℝ 2 P}
+    (hg : IsPathwiseGradient P ψ g S) :
+    IsPathwiseGradient P ψ (canonicalGradient P S g) S := by
+  intro m hm
+  have hinner : ⟪canonicalGradient P S g, m.score⟫_ℝ = ⟪g, m.score⟫_ℝ := by
+    rw [canonicalGradient, efficientIF]
+    exact (tangentSpace P S).inner_orthogonalProjection_eq_of_mem_right
+      ⟨m.score, score_mem_tangentSpace hm⟩ g
+  simpa [hinner] using hg m hm
 
-/-- **The projection of a pathwise gradient is a pathwise gradient.** Suppose
-[`T` is a tangent space for the regular submodels through the base law
-`P₀`](hyp:hT), and suppose [`g` reproduces the pathwise derivative of the
-functional `ψ` along every such submodel — it is a pathwise gradient of `ψ` at
-`P₀`](hyp:hg). Then [the orthogonal projection of `g` onto `T`, written
-`efficientIF T g`, is again a pathwise gradient of `ψ`](goal).
+/-- If [a candidate `g` is a pathwise gradient](hyp:hg), then [its canonical
+gradient is an efficient influence function](goal). -/
+theorem canonicalGradient_isEfficientInfluenceFunction
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g : Lp ℝ 2 P}
+    (hg : IsPathwiseGradient P ψ g S) :
+    IsEfficientInfluenceFunction P ψ (canonicalGradient P S g) S :=
+  ⟨canonicalGradient_isPathwiseGradient hg, efficientIF_mem g⟩
 
-Strategy: for each submodel `m`, `m.score ∈ T` (`hT.scores_mem`), so
-`⟪efficientIF T g, m.score⟫ = ⟪g, m.score⟫` by
-`inner_orthogonalProjection_eq_of_mem`; rewrite and apply `hg m`. -/
-theorem orthogonalProjection_isPathwiseGradient {one : H} {P₀ : 𝓛} {ψ : 𝓛 → ℝ}
-    {g : H} (hT : IsTangentSpace one P₀ T) (hg : IsPathwiseGradient one P₀ ψ g) :
-    IsPathwiseGradient one P₀ ψ (efficientIF T g) := by
-  intro m
-  have hinner : ⟪efficientIF T g, m.score⟫_ℝ = ⟪g, m.score⟫_ℝ := by
-    rw [efficientIF]
-    exact T.inner_orthogonalProjection_eq_of_mem_right ⟨m.score, hT.scores_mem m⟩ g
-  simpa [hinner] using hg m
+/-- If [two candidates are efficient influence functions for the same functional
+and submodel family](hyp:hg,hg'), then [they are equal](goal). -/
+theorem efficientInfluenceFunction_unique
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g g' : Lp ℝ 2 P}
+    (hg : IsEfficientInfluenceFunction P ψ g S)
+    (hg' : IsEfficientInfluenceFunction P ψ g' S) : g = g' := by
+  have horth := sub_mem_orthogonal_of_isPathwiseGradient hg.1 hg'.1
+  have hzero : g - g' = 0 := by
+    apply (inner_self_eq_zero (𝕜 := ℝ)).mp
+    exact (Submodule.mem_orthogonal' (tangentSpace P S) (g - g')).1 horth
+      (g - g') ((tangentSpace P S).sub_mem hg.2 hg'.2)
+  exact sub_eq_zero.mp hzero
 
-/-- **All pathwise gradients share the same projection onto a tangent space.**
-Hence the efficient influence function `efficientIF T g` does not depend on the
-chosen pathwise gradient `g`: it is the canonical gradient. -/
-theorem efficientIF_eq_of_isPathwiseGradient {one : H} {P₀ : 𝓛} {ψ : 𝓛 → ℝ}
-    {g g' : H} (hT : IsTangentSpace one P₀ T)
-    (hg : IsPathwiseGradient one P₀ ψ g)
-    (hg' : IsPathwiseGradient one P₀ ψ g') :
-    efficientIF T g = efficientIF T g' := by
-  have hgrad : IsGradient T g g' := isGradient_of_isPathwiseGradient hT hg hg'
-  have hproj : (T.orthogonalProjection g' : H) = efficientIF T g :=
-    orthogonalProjection_eq_of_isGradient hgrad
-  simpa [efficientIF] using hproj.symm
+/-- If [an efficient influence function `g` is known](hyp:hg) and [another
+candidate `v` is a pathwise gradient](hyp:hv), then [the canonical gradient of
+`v` equals `g`](goal). -/
+theorem canonicalGradient_eq_of_isEfficientInfluenceFunction
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g v : Lp ℝ 2 P}
+    (hg : IsEfficientInfluenceFunction P ψ g S)
+    (hv : IsPathwiseGradient P ψ v S) : canonicalGradient P S v = g := by
+  exact efficientInfluenceFunction_unique
+    (canonicalGradient_isEfficientInfluenceFunction hv) hg
 
-/-- **The efficient influence function is the unique pathwise gradient in `T`.**
-If `g` is any pathwise gradient and `g'` is a pathwise gradient lying in the
-tangent space `T`, then `g' = efficientIF T g`. Thus a pathwise gradient inside
-`T` is uniquely determined and equals the projection of every gradient — the
-efficient influence function / canonical gradient. -/
-theorem isPathwiseGradient_eq_efficientIF_of_mem {one : H} {P₀ : 𝓛} {ψ : 𝓛 → ℝ}
-    {g g' : H} (hT : IsTangentSpace one P₀ T)
-    (hg : IsPathwiseGradient one P₀ ψ g)
-    (hg' : IsPathwiseGradient one P₀ ψ g') (hmem : g' ∈ T) :
-    g' = efficientIF T g := by
-  exact efficientIF_unique (isGradient_of_isPathwiseGradient hT hg hg') hmem
+/-- If [a candidate `g` is a pathwise gradient of `ψ` relative to `S`](hyp:hg), then
+[viewing `g` as a Hilbert-space gradient of its canonical projection onto the generated
+tangent space is valid](goal). This is the bridge from path derivatives to the abstract
+`IsGradient`/`effBound` projection API. -/
+theorem isGradient_canonicalGradient_of_isPathwiseGradient
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g : Lp ℝ 2 P}
+    (hg : IsPathwiseGradient P ψ g S) :
+    IsGradient (tangentSpace P S) (canonicalGradient P S g) g := by
+  intro s hs
+  rw [canonicalGradient, efficientIF]
+  exact ((tangentSpace P S).inner_orthogonalProjection_eq_of_mem_right ⟨s, hs⟩ g).symm
 
-/-- **A pathwise gradient lying in `T` equals its own projection.** This recovers
-`efficientIF_eq_self_of_mem`, now as a corollary of "`g` is the efficient
-influence function": a gradient already in the tangent space is the canonical
-gradient. -/
-theorem efficientIF_eq_self_of_isPathwiseGradient_mem {one : H} {P₀ : 𝓛}
-    {ψ : 𝓛 → ℝ} {g : H} (hT : IsTangentSpace one P₀ T)
-    (hg : IsPathwiseGradient one P₀ ψ g) (hmem : g ∈ T) :
-    efficientIF T g = g :=
-  (isPathwiseGradient_eq_efficientIF_of_mem hT hg hg hmem).symm
+/-- If [a candidate `g` is a pathwise gradient of `ψ` relative to `S`](hyp:hg), then
+[the squared norm of its canonical gradient is no larger than the squared norm of
+`g`](goal), the Hilbert-space efficiency bound. The corresponding statistical
+lower bound is
+`AsymptoticLanConvolution.regular_asymptoticVariance_ge_gradientNormSq`, which
+shows that a regular estimator's asymptotic variance cannot fall below the
+canonical-gradient norm squared. -/
+theorem canonicalGradient_normSq_le
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S : Set (RegularSubmodel P)} {g : Lp ℝ 2 P}
+    (hg : IsPathwiseGradient P ψ g S) :
+    ‖canonicalGradient P S g‖ ^ 2 ≤ ‖g‖ ^ 2 := by
+  have hbound := effBound_le_normSq
+    (isGradient_canonicalGradient_of_isPathwiseGradient hg)
+  have hmem : canonicalGradient P S g ∈ tangentSpace P S := by
+    exact efficientIF_mem g
+  rw [effBound, efficientIF_eq_self_of_mem (tangentSpace P S) hmem] at hbound
+  exact hbound
 
-end Projection
+/-- Let [a smaller regular-submodel family `S` be contained in `S'`](hyp:hSS') and
+suppose [both families generate the same tangent space](hyp:hT). If [`g` is the efficient
+influence function relative to `S`](hyp:hg) and [`ψ` has some pathwise gradient `v` along
+the enlarged family `S'`](hyp:hv), then [`g` remains the efficient influence function
+relative to `S'`](goal). -/
+theorem IsEfficientInfluenceFunction.mono_of_tangentSpace_eq
+    {P : Measure Z} [IsProbabilityMeasure P] {ψ : Measure Z → ℝ}
+    {S S' : Set (RegularSubmodel P)} {g v : Lp ℝ 2 P}
+    (hg : IsEfficientInfluenceFunction P ψ g S)
+    (hSS' : S ⊆ S') (hT : tangentSpace P S = tangentSpace P S')
+    (hv : IsPathwiseGradient P ψ v S') :
+    IsEfficientInfluenceFunction P ψ g S' := by
+  have hvS : IsPathwiseGradient P ψ v S := fun m hm => hv m (hSS' hm)
+  have hcanon : canonicalGradient P S v = g :=
+    canonicalGradient_eq_of_isEfficientInfluenceFunction hg hvS
+  constructor
+  · intro m hm
+    have hscore : m.score ∈ tangentSpace P S := by
+      rw [hT]
+      exact score_mem_tangentSpace hm
+    have hinner : ⟪g, m.score⟫_ℝ = ⟪v, m.score⟫_ℝ := by
+      rw [← hcanon, canonicalGradient, efficientIF]
+      exact (tangentSpace P S).inner_orthogonalProjection_eq_of_mem_right
+        ⟨m.score, hscore⟩ v
+    simpa only [hinner] using hv m hm
+  · rw [← hT]
+    exact hg.2
 
 end Causalean.Estimation.Efficiency

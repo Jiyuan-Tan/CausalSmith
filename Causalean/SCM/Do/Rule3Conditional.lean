@@ -4,16 +4,20 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.Rule3
-import Causalean.SCM.Do.ValuesProjectionCI
+module
 
-/-! # Conditional Rule 3 of do-Calculus (a.e. `obsCondKernel` form)
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.Mathlib.Probability.Kernel.CondDistrib
+public import Causalean.SCM.Do.Rule3
+public import Causalean.SCM.Do.ValuesProjectionCI
 
-The joint-marginal Rule 3\* (`do_rule3` / `condDistrib_intervention_ancestral_eq`)
+/-! # Conditional Rule 3* (a.e. `obsCondKernel` form)
+
+The joint-marginal Rule 3\* (`do_rule3_star` / `condDistrib_intervention_ancestral_eq`)
 transports the *joint* law of an ancestrally-blocked outcome block across an
-intervention.  This file upgrades it to the **conditional** Rule 3 — Pearl's
-`p(Y | do(z), W) = p(Y | W)` — in the honest almost-everywhere form, matching the
-style of `do_rule2_kernel`.
+intervention. This file derives its **conditional Rule 3\*** consequence,
+`p(Y | do(z), W) = p(Y | W)`, under the same strong non-ancestor premise, in an
+almost-everywhere form. It does not formalize Pearl's full Rule 3 premise.
 
 The mathematical content is a single disintegration fact: `condDistrib` depends
 only on the joint pushforward `μ.map (X, Y)`, and Rule 3\* makes the two joint
@@ -27,14 +31,24 @@ transports a marginal.
 * `condDistrib_eq_of_map_prod_eq` — generic: equal joint pushforwards ⇒ equal `condDistrib`.
 * `obsKernel_map_prodWY_eq` — Rule 3\* specialized to the `(W, Y)` joint pushforward.
 * `obsKernel_map_W_eq` — Rule 3\* specialized to the `W`-marginal.
-* `do_rule3_conditional_condDistrib` — conditional Rule 3, literal `condDistrib` form.
-* `do_rule3_conditional` — conditional Rule 3, headline a.e. `obsCondKernel` form.
+* `do_rule3_star_conditional_condDistrib` — conditional Rule 3*, literal `condDistrib` form.
+* `do_rule3_star_conditional` — conditional Rule 3*, headline a.e. `obsCondKernel` form.
 
 ## References
 
-* Basic Concepts.tex, Proposition (do-Calculus), Rule 3.
-* Pearl (2009), Causality, Chapter 3.
+* Basic Concepts.tex, Proposition (do-Calculus), Rule 3*.
+* Malinsky, Shpitser & Richardson (2019), for Rule 3*.
+* Pearl (2009), Causality, Chapter 3, for comparison with the full Rule 3.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Kernel
 
 namespace Causalean
 
@@ -48,26 +62,6 @@ open scoped MeasureTheory ProbabilityTheory
 -- ============================================================
 -- § 0. Disintegration uniqueness (the whole mathematical core)
 -- ============================================================
-
-/-- Two conditional distributions with the same joint law are equal.
-
-    If the joint pushforward of `(X, Y)` under `μ` equals the joint pushforward
-    of `(X', Y')` under `ν`, then the conditional distribution of `Y` given `X`
-    under `μ` equals that of `Y'` given `X'` under `ν`.  This is immediate from
-    `condDistrib Y X μ = (μ.map (X, Y)).condKernel`: the conditional distribution
-    is a pure function of the joint law, so equal joint laws give equal
-    conditionals.  The two source measures may live on different spaces. -/
-theorem condDistrib_eq_of_map_prod_eq
-    {α α' β γ : Type*}
-    [MeasurableSpace α] [MeasurableSpace α'] [MeasurableSpace β] [MeasurableSpace γ]
-    [StandardBorelSpace β] [Nonempty β]
-    {X : α → γ} {Y : α → β} {X' : α' → γ} {Y' : α' → β}
-    {μ : MeasureTheory.Measure α} {ν : MeasureTheory.Measure α'}
-    [MeasureTheory.IsFiniteMeasure μ] [MeasureTheory.IsFiniteMeasure ν]
-    (h : μ.map (fun a => (X a, Y a)) = ν.map (fun a => (X' a, Y' a))) :
-    ProbabilityTheory.condDistrib Y X μ = ProbabilityTheory.condDistrib Y' X' ν := by
-  rw [ProbabilityTheory.condDistrib, ProbabilityTheory.condDistrib]
-  congr 1
 
 -- ============================================================
 -- § 1. Rule 3* pushforward specializations
@@ -174,13 +168,18 @@ theorem obsKernel_map_W_eq
     (fun z hz v hv => hNoDesc v hv z hz) s'
 
 -- ============================================================
--- § 2. Conditional Rule 3
+-- § 2. Conditional Rule 3*
 -- ============================================================
 
-/-- **Conditional Rule 3 (literal `condDistrib` form).**
+/-- **Conditional Rule 3* (literal `condDistrib` form).** Fix [a do-set whose random copies are
+    observed and whose fixed copies have not already been intervened on](hyp:hZ_obs,hZ_fixed),
+    [an observed target block](hyp:hY), and [an observed conditioning block](hyp:hW). If [no fixed
+    copy of an intervened node is an ancestor of the target or conditioning block](hyp:hNoDesc),
+    then at [each post-intervention fixed assignment](hyp:s'), [the conditional distribution of
+    the target given the conditioning block is the same after intervention as under the base
+    model at the corresponding fixed assignment](goal).
 
-    The conditional distribution of the target block `Y` given the conditioning
-    block `W` is the same after intervening on `Z` as under the base model:
+    In probability notation:
 
         p( Y(z) | W(z) )_{M'.fixSet Z} = p( Y | W )_{M'}.
 
@@ -188,7 +187,7 @@ theorem obsKernel_map_W_eq
     (`obsKernel_map_prodWY_eq`) and `condDistrib` depends only on the joint law
     (`condDistrib_eq_of_map_prod_eq`), the two conditional distributions are
     literally equal — no almost-everywhere qualifier is needed here. -/
-theorem do_rule3_conditional_condDistrib
+theorem do_rule3_star_conditional_condDistrib
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
@@ -210,26 +209,28 @@ theorem do_rule3_conditional_condDistrib
   condDistrib_eq_of_map_prod_eq
     (obsKernel_map_prodWY_eq M' Z hZ_obs hZ_fixed Y W hY hW hNoDesc s')
 
-/-- **Conditional Rule 3 (headline, a.e. `obsCondKernel` form).** Pearl's Rule 3 for
-    the deletion of actions, stated against the project's jointly-measurable
+/-- **Conditional Rule 3* (headline, a.e. `obsCondKernel` form).** The non-ancestor
+    specialization of deletion of actions, stated against the project's jointly-measurable
     conditional kernel. Fix [a do-set `Z` of nodes whose random copies are observed
     in the base model and whose fixed nodes have not already been intervened
     on](hyp:hZ_obs,hZ_fixed), [an outcome block `Y`](hyp:hY) and [a conditioning
     block `W`](hyp:hW) of observed variables. If [none of the fixed copies of `Z`'s
     nodes is an ancestor, in the intervention SWIG graph, of any node in
-    `Y ∪ W`](hyp:hNoDesc), then [for almost every value `w` of `W` under the
+    `Y ∪ W`](hyp:hNoDesc), then at [a post-intervention fixed assignment](hyp:s'),
+    [for almost every value `w` of `W` under the
     intervened model's `W`-marginal, the `Y`-given-`W` conditional kernel of the
     model intervened at `do(Z)` equals the `Y`-given-`W` conditional kernel of the
     base model, both evaluated at the corresponding fixed values](goal).
 
-    This is the conditional analogue of the joint Rule 3\* `do_rule3`, and the
-    conditional counterpart of the kernel-native Rule 2 `do_rule2_kernel`.
+    This is the conditional analogue of the joint Rule 3\* `do_rule3_star`.
+    Its non-ancestor premise on all of `Y ∪ W` is stronger than the premise of
+    Pearl's full Rule 3.
 
     The a.e. qualifier is intrinsic to `obsCondKernel` (a disintegration
     representative), not to the intervention: the underlying conditional
-    distributions are literally equal by `do_rule3_conditional_condDistrib`; the
+    distributions are literally equal by `do_rule3_star_conditional_condDistrib`; the
     common base measure is the (Rule-3\*-equal) `W`-marginal. -/
-theorem do_rule3_conditional
+theorem do_rule3_star_conditional
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)
     (hZ_fixed : ∀ D ∈ Z, SWIGNode.fixed D ∉ M'.fixed)
@@ -255,7 +256,7 @@ theorem do_rule3_conditional
           (M'.fixSetProj Z hZ_obs hZ_fixed s', w)) := by
   -- Bridge both `obsCondKernel`s to `condDistrib`, rewrite the do-side base to the
   -- common `W`-marginal (`obsKernel_map_W_eq`) and the do-side conditional to the
-  -- base conditional (`do_rule3_conditional_condDistrib`), then chain a.e. equalities.
+  -- base conditional (`do_rule3_star_conditional_condDistrib`), then chain a.e. equalities.
   have h1 := (M'.fixSet Z hZ_obs hZ_fixed).obsCondKernel_ae_eq_condDistrib Y W
     ((fixSet_observed M' Z hZ_obs hZ_fixed).symm ▸ hY)
     ((fixSet_observed M' Z hZ_obs hZ_fixed).symm ▸ hW) s'
@@ -263,7 +264,7 @@ theorem do_rule3_conditional
     (M'.fixSetProj Z hZ_obs hZ_fixed s')
   have hbase := obsKernel_map_W_eq M' Z hZ_obs hZ_fixed W hW
     (fun v hv d hd => hNoDesc v (Finset.mem_union_right _ hv) d hd) s'
-  have hcd := do_rule3_conditional_condDistrib M' Z hZ_obs hZ_fixed Y W hY hW hNoDesc s'
+  have hcd := do_rule3_star_conditional_condDistrib M' Z hZ_obs hZ_fixed Y W hY hW hNoDesc s'
   rw [hbase] at h1
   rw [hcd] at h1
   exact h1.trans h2.symm

@@ -3,20 +3,19 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Probability.CondVar
+
+module
+public import Mathlib.Probability.CondVar
 
 /-!
-# Unconditional (full-sample-law) bias / variance of a truncated estimator
+# Generic full-sample-law bias / variance lifts for a truncated estimator
 
-Unconditional risk bounds for truncated local-polynomial estimators, lifting conditional-on-design
-bias and variance estimates through good-design events.
+Generic unconditional risk bounds for a truncated estimator, lifting assumed conditional bias and
+variance estimates through a measurable good event.
 
-The conditional-on-design capstones `localPoly_estimatorBias_window` and
-`localPoly_estimatorStochL2` bound the bias / variance of the interior local-polynomial estimator
-**given a non-degenerate design** (equivalently, on the high-probability good-design event of
-`designMatrix_inv_concentration`). A full risk bound for the random-design estimator also needs
-bounds on the bias `𝔼[est] − f(t)` and stochastic `L²` error `√Var(est)` under the **full** sample
-law, where the design itself is random.
+The results take a sub-σ-algebra, a measurable good event, and the relevant conditional bias and
+variance bounds as hypotheses. They do not construct a random local-polynomial estimator or show
+that a design-concentration event supplies those hypotheses.
 
 This module performs that high-probability-to-`L²` lift as a pair of generic probabilistic facts,
 with no conditional-on-design caveat remaining:
@@ -31,12 +30,13 @@ with no conditional-on-design caveat remaining:
   (`≤ Bsq` on `G`, `≤ 4M²` off it). Yields `Var(est) ≤ Vrate + Bsq + 5M²·μ(Gᶜ)`.
 * `estimatorStochL2_unconditional` — the `√·` form of the variance bound.
 
-Each carries an explicit `μ(Gᶜ)` tail; `designMatrix_inv_concentration` makes that tail tiny (and a
-regime hypothesis absorbs it into the leading rate). The lift takes the *conditional* bias /
-variance bounds as hypotheses — exactly the output of the conditional capstones — and is otherwise
-self-contained: the conditional-expectation and law-of-total-variance machinery is
+Each carries an explicit `μ(Gᶜ)` tail. The caller must bound that probability and establish the
+conditional hypotheses for the same estimator and event. The lift is otherwise self-contained:
+the conditional-expectation and law-of-total-variance machinery is
 `MeasureTheory.condExp` / `ProbabilityTheory.condVar` from Mathlib.
 -/
+
+public section
 
 namespace Causalean.Stat.Nonparametric
 
@@ -192,10 +192,9 @@ absolute value](hyp:hM) estimating `θ` [with `|θ| ≤ M`](hyp:hθ) relative to
 the ambient σ-algebra](hyp:hm), and [an `m`-measurable good-design event `G`](hyp:hG) on which,
 almost everywhere, [the conditional variance is at most a nonnegative rate `Vrate`](hyp:hVr,hVcond)
 and [the squared conditional bias is at most a nonnegative constant `Bsq`](hyp:hBsq,hBcond), [the
-full-sample-law stochastic `L²` error obeys `√Var(est) ≤ √(Vrate + Bsq + 5M²·μ(Gᶜ))`](goal). With
-`Vrate = Cvar²·(Nh)⁻¹`, `Bsq = Cbias²·h^{2β}` and a negligible truncation tail (`5M²·μ(Gᶜ)` driven
-to `o((Nh)⁻¹)` by `designMatrix_inv_concentration`), this gives the full-sample stochastic `L²` rate
-up to the bias and the negligible tail. -/
+full-sample-law stochastic `L²` error obeys `√Var(est) ≤ √(Vrate + Bsq + 5M²·μ(Gᶜ))`](goal). Any
+specialization to local-polynomial rates requires the caller to prove the displayed choices of
+`Vrate`, `Bsq`, and the bad-event probability for one common random estimator and event. -/
 theorem estimatorStochL2_unconditional {est : Ω → ℝ} {θ Bsq Vrate M : ℝ} {G : Set Ω}
     (hm : m ≤ m0) (hest : MemLp est 2 μ) (hM : ∀ ω, |est ω| ≤ M) (hθ : |θ| ≤ M)
     (hVr : 0 ≤ Vrate) (hBsq : 0 ≤ Bsq) (hG : MeasurableSet[m] G)

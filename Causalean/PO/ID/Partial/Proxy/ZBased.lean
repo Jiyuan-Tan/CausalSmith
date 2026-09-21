@@ -3,10 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Proximal partial identification — Z-based bounds (Theorem 2 / Corollary 2)
+# Proximal partial identification — abstract Z-envelope bounds
 
-Treatment-confounding-proxy bounds of Ghassami-Shpitser-Tchetgen Tchetgen
-(arXiv 2304.04374), Section 2.2.
+Abstract treatment-confounding-proxy envelope bounds inspired by Ghassami,
+Zhang, Shpitser, and Tchetgen Tchetgen (arXiv:2304.04374v4, 2026).
 
 Under Assumptions 3-5 (consistency, latent exchangeability, `proxy_YZ`,
 treatment-side bridge `q`), the off-arm potential-outcome mean is sandwiched
@@ -15,25 +15,25 @@ by a pair of envelopes for `E[Y | Z, X, A = a]`:
   E[ Lenv(a, X) | A = ¬a ] ≤ E[Y(a) | A = ¬a] ≤ E[ Uenv(a, X) | A = ¬a ]
 
 where `Lenv` (resp. `Uenv`) lower- (resp. upper-) bounds the σ_AZX-conditional
-expectation `E[Y | Z, X, A = a]` μ-a.e. on `{A = a}`. The canonical (sharp)
-choices are `Lenv(a, x) = min_z E[Y | z, x, A = a]` and the corresponding
-`max_z` (paper Remark 5: these automatically sit inside `[inf Y, sup Y]`,
-so no clamp is needed here).
+expectation `E[Y | Z, X, A = a]` μ-a.e. on `{A = a}`. The envelope functions
+are supplied as hypotheses; this file does not construct conditional extrema
+or establish attainability or sharpness.
 
 ## Main results
 
-* `condMeanYofA_Z_bounds` — Theorem 2: envelope sandwich on the conditional
-                            target `E[Y(a) | A = ¬a]`.
-* `meanYofA_Z_bounds`     — Corollary 2: marginal version of Theorem 2 via
-                            the strata identity `meanYofA_eq_strata`.
+* `condMeanYofA_Z_bounds` — abstract envelope sandwich on the conditional
+  target `E[Y(a) | A = ¬a]`.
+* `meanYofA_Z_bounds` — marginal version via the strata identity
+  `meanYofA_eq_strata`.
 
 The deep core is the bridge-substitution identity
 `condIntYofA_eq_envelope_arm`, which turns `E[Y(a) | A=¬a]` into a moment of
 `E[Y | Z, X, A = a]`; the downstream bounds consume that identity.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers
-import Causalean.PO.ID.Partial.Proxy.ZBased.ArmChain
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers
+public import Causalean.PO.ID.Partial.Proxy.ZBased.ArmChain
 
 /-! # Z-based proximal partial-identification bounds
 
@@ -44,11 +44,13 @@ bridge-substitution lemmas from `ZBased.ArmChain`, where the treatment bridge
 integrals.
 
 Main declarations:
-* `condMeanYofA_Z_bounds` is the Theorem 2 conditional sandwich for
+* `condMeanYofA_Z_bounds` is the conditional abstract envelope sandwich for
   `condMeanYofA`.
-* `meanYofA_Z_bounds` is the Corollary 2 marginal sandwich, using
+* `meanYofA_Z_bounds` is the marginal envelope sandwich, using
   `meanYofA_eq_strata` to add the consistency-identified on-arm contribution.
 -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -64,22 +66,21 @@ variable {P : POSystem}
   {S : POProximalSystem P γ_X γ_Z γ_W γ_U}
   {μ : Measure P.Ω} [IsFiniteMeasure μ] [StandardBorelSpace P.Ω]
 
-/-! ### Theorem 2: conditional-target envelope sandwich -/
+/-! ### Conditional abstract Z-envelope sandwich -/
 
-/-- **Theorem 2** (Ghassami-Shpitser-Tchetgen Tchetgen, arXiv 2304.04374). Fix a
-treatment arm `a` and assume [the Z-based assumption bundle](hyp:HA) — consistency,
-latent exchangeability, the outcome-proxy independence condition `Y ⟂ Z ∣ (A, U, X)`,
-and the treatment-side bridge `q` — together with [the treatment and outcome variables
-being distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope functions
-bounding the σ(A,Z,X)-conditional mean of the outcome on the on-arm
-stratum](hyp:hL,hU), assumed [integrable](hyp:hLInt,hUInt), with [the envelope weighted
-by the treatment-proxy bridge](hyp:hL_q,hU_q) and [the envelope weighted by the
-likelihood-ratio arm-swap factor](hyp:hL_L,hU_L) both integrable, and [the off-arm
-stratum of positive mass](hyp:hμpos). Then [the conditional target `E[Y(a) ∣ A ≠ a]` is
-sandwiched between the normalised `{A ≠ a}`-integrals of `Lenv(a,X)` and
-`Uenv(a,X)`](goal).
+/-- **Abstract Z-envelope consequence.** [The conditional counterfactual mean
+among units in the opposite treatment arm lies between normalized integrals of
+lower and upper outcome envelopes over that arm](goal). The result uses [the
+Z-based bridge assumptions](hyp:HA), [distinct treatment and outcome
+variables](hyp:hAY), [a treatment arm and lower and upper envelope
+functions](hyp:a,Lenv,Uenv), [on-arm conditional-mean envelope
+comparisons](hyp:hL,hU), [integrability of the envelopes](hyp:hLInt,hUInt),
+[integrability after weighting by the treatment bridge](hyp:hL_q,hU_q),
+[integrability after weighting by the arm-swap factor](hyp:hL_L,hU_L), and
+[positive mass for the opposite arm](hyp:hμpos).
 
-The sharp instance is `Lenv(a,x) = min_z E[Y|z,x,A=a]`, `Uenv(a,x) = max_z E[Y|z,x,A=a]`. -/
+The envelope comparisons are hypotheses; no conditional extremum or sharpness
+result is proved. -/
 theorem condMeanYofA_Z_bounds
     (HA : POProximalSystem.ZBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -113,17 +114,17 @@ theorem condMeanYofA_Z_bounds
     have := mul_le_mul_of_nonneg_left hU_int hinv_nn
     simpa [POProximalSystem.condMeanYofA] using this
 
-/-! ### Corollary 2: marginal-target envelope sandwich -/
+/-! ### Marginal abstract Z-envelope sandwich -/
 
-/-- **Corollary 2** (Ghassami-Shpitser-Tchetgen Tchetgen, arXiv 2304.04374). Fix a
-treatment arm `a` and assume [the Z-based assumption bundle](hyp:HA), with [the
-treatment and outcome variables distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and
-upper envelope functions bounding the σ(A,Z,X)-conditional mean of the outcome on the
-on-arm stratum](hyp:hL,hU), assumed [integrable](hyp:hLInt,hUInt), with [the envelope
-weighted by the treatment-proxy bridge](hyp:hL_q,hU_q) and [the envelope weighted by the
-likelihood-ratio arm-swap factor](hyp:hL_L,hU_L) both integrable. Then [the marginal
-target `E[Y(a)]` is sandwiched between the `{A ≠ a}`-integral of `Lenv(a,X)` and of
-`Uenv(a,X)`, each plus the point-identified `{A = a}`-integral of `Y`](goal).
+/-- **Marginal abstract Z-envelope consequence.** [The marginal counterfactual
+mean lies between the opposite-arm integrals of lower and upper outcome
+envelopes after adding the identified contribution from the observed arm](goal).
+The result uses [the Z-based bridge assumptions](hyp:HA), [distinct treatment
+and outcome variables](hyp:hAY), [a treatment arm and lower and upper envelope
+functions](hyp:a,Lenv,Uenv), [on-arm conditional-mean envelope
+comparisons](hyp:hL,hU), [integrability of the envelopes](hyp:hLInt,hUInt),
+[integrability after weighting by the treatment bridge](hyp:hL_q,hU_q), and
+[integrability after weighting by the arm-swap factor](hyp:hL_L,hU_L).
 
 Obtained from `condMeanYofA_Z_bounds` by `meanYofA_eq_strata`: the
 `{A = a}`-stratum integral is point-identified via consistency, so only the

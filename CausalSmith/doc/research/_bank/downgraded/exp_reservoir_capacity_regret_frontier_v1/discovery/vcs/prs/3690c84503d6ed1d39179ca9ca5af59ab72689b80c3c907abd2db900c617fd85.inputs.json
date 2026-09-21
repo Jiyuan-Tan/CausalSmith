@@ -1,0 +1,241 @@
+{
+  "units": [
+    {
+      "unit": "thm:all-policy-lower-frontier",
+      "targets": [
+        "lem:design-variance-identity",
+        "prop:causal-regret-reduction",
+        "lem:offline-adjacent",
+        "thm:all-policy-lower-frontier",
+        "thm:capped-grid-upper",
+        "oeq:endpoint-safe-coarsening",
+        "thm:minimax-frontier",
+        "prop:frontier-regimes",
+        "prop:memory-iff",
+        "prop:constant-score-sanity"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:design-variance-identity",
+            "proof_tex": "Put \\(A_i=2Z_i-1\\), \\(D_i=Y_i(1)-Y_i(0)\\), and recall that \\(S_i=Y_i(1)+Y_i(0)\\).  Definition \\(\\mathrm{def:ipw\\text{-}estimator}\\) gives, unit by unit,\n\\[\n2Z_iY_i^{\\mathrm{obs}}-2(1-Z_i)Y_i^{\\mathrm{obs}}=D_i+A_iS_i,\n\\]\nbecause the two sides equal \\(2Y_i(1)\\) when \\(Z_i=1\\) and equal \\(-2Y_i(0)\\) when \\(Z_i=0\\).  Conditional on \\((W_i)_{i=1}^T\\) and \\(\\xi\\), Assumption \\(\\mathrm{ass:policy\\text{-}nonanticipating}\\), as incorporated in Definition \\(\\mathrm{def:policy\\text{-}class}\\), makes \\(M_\\pi\\) fixed.  Orient an edge \\((i_k,j_k)\\) so that \\(A_{i_k}=\\varepsilon_k\\) and \\(A_{j_k}=-\\varepsilon_k\\).  Its contribution to \\(T\\widehat\\tau_{\\mathrm{IPW}}\\) is\n\\[\nD_{i_k}+D_{j_k}+\\varepsilon_k(S_{i_k}-S_{j_k}).\n\\]\nBy Assumption \\(\\mathrm{ass:fair\\text{-}orientations}\\), the signs are conditionally independent, have mean zero, and have variance one.  Therefore\n\\[\n\\mathbb E_Z[T\\widehat\\tau_{\\mathrm{IPW}}\\mid (W_i)_{i=1}^T,\\xi]\n=\\sum_{i=1}^T D_i=T\\tau_T\n\\]\nand, again by conditional independence of the signs,\n\\[\n\\operatorname{Var}_Z(T\\widehat\\tau_{\\mathrm{IPW}}\\mid (W_i)_{i=1}^T,\\xi)\n=\\sum_{(i,j)\\in M_\\pi}(S_i-S_j)^2.\n\\]\nDivision by \\(T^2>0\\) proves both assertions."
+          },
+          {
+            "id": "prop:causal-regret-reduction",
+            "proof_tex": "For brevity write \\(g_i=g(X_i)\\) and \\(v_i=\\operatorname{Var}_P(S_i\\mid X_i)\\).  The pairwise sign calculation in the proved Lemma \\(\\mathrm{lem:design\\text{-}variance\\text{-}identity}\\), applied directly to an independently oriented matching \\(M\\) fixed given the covariates, gives\n\\[\n\\mathbb E_P\\!\\left[\\operatorname{Var}_Z\\{\\widehat\\tau_{\\mathrm{IPW}}(M)\\mid (W_i)_{i=1}^T\\}\\,\\middle|\\,(X_i)_{i=1}^T\\right]\n=T^{-2}\\sum_{(i,j)\\in M}\\mathbb E_P[(S_i-S_j)^2\\mid (X_i)_{i=1}^T].\n\\]\nAssumption \\(\\mathrm{ass:iid\\text{-}units}\\) gives conditional independence of \\(S_i\\) and \\(S_j\\) for \\(i\\ne j\\), while the definition of the prognostic score gives \\(\\mathbb E_P(S_i\\mid X_i)=g_i\\).  Hence\n\\[\n\\mathbb E_P[(S_i-S_j)^2\\mid (X_i)_{i=1}^T]=v_i+v_j+(g_i-g_j)^2.\n\\]\nEvery perfect matching uses each index exactly once, so\n\\[\n\\mathbb E_P\\!\\left[\\operatorname{Var}_Z\\{\\widehat\\tau_{\\mathrm{IPW}}(M)\\mid (W_i)_{i=1}^T\\}\\,\\middle|\\,(X_i)_{i=1}^T\\right]\n=T^{-2}\\left\\{\\sum_{i=1}^T v_i+C_g(M)\\right\\}.\n\\]\nThe same calculation conditional also on \\(\\xi\\) applies to \\(M_\\pi\\), because policy nonanticipation makes that matching fixed given \\((X_i)_{i=1}^T\\) and \\(\\xi\\).  The term \\(\\sum_i v_i\\) is independent of \\(M\\); Definition \\(\\mathrm{def:offline\\text{-}oracle}\\) therefore gives\n\\[\n\\min_{M\\in\\mathfrak M_T}T^{-2}\\left\\{\\sum_i v_i+C_g(M)\\right\\}\n=T^{-2}\\left\\{\\sum_i v_i+O_g(X)\\right\\}.\n\\]\nSubtracting, taking \\(\\mathbb E_{P,\\xi}\\), and multiplying by \\(T\\) proves the displayed equality.  Taking first the supremum over \\(P\\) and then the infimum over \\(\\pi\\), exactly as in Definition \\(\\mathrm{def:minimax\\text{-}regret}\\), proves the consequence."
+          },
+          {
+            "id": "lem:offline-adjacent",
+            "proof_tex": "Write \\(a_r=g(X_{\\sigma(r)})\\), so \\(a_1\\le\\cdots\\le a_T\\).  We first prove optimality of adjacent pairing by induction on the even number of points.  In any matching, suppose \\(a_1\\) is paired with \\(a_j\\).  If \\(j=2\\), remove that pair and apply the induction hypothesis.  If \\(j>2\\), let \\(a_2\\) be paired with \\(a_k\\).  When \\(a_2\\le a_j\\le a_k\\),\n\\[\n(a_j-a_1)^2+(a_k-a_2)^2-(a_2-a_1)^2-(a_k-a_j)^2\n=2(a_j-a_2)(a_k-a_1)\\ge0.\n\\]\nWhen \\(a_2\\le a_k\\le a_j\\),\n\\[\n(a_j-a_1)^2+(a_k-a_2)^2-(a_2-a_1)^2-(a_j-a_k)^2\n=2(a_k-a_2)(a_j-a_1)\\ge0.\n\\]\nThus in either ordering the two original edges can be replaced by \\((a_1,a_2)\\) and an edge between \\(a_j,a_k\\) without increasing cost.  Induction proves\n\\[\nO_g(X)=\\sum_{k=1}^{T/2}(a_{2k}-a_{2k-1})^2.\n\\]\nAll selected gaps are nonnegative, and their sum is no larger than \\(a_T-a_1\\).  Therefore\n\\[\nO_g(X)\\le\\left\\{\\sum_{k=1}^{T/2}(a_{2k}-a_{2k-1})\\right\\}^2\n\\le(a_T-a_1)^2\\le4G^2,\n\\]\nwhere the last step is Assumption \\(\\mathrm{ass:score\\text{-}envelope}\\)."
+          },
+          {
+            "id": "thm:all-policy-lower-frontier",
+            "proof_tex": "Fix \\(\\pi\\in\\Pi_{T,B}\\), and write \\(C_h\\) for the cost in Definition \\(\\mathrm{def:pair\\text{-}cost}\\) with \\(g=h\\).  Draw \\(h\\sim\\nu\\) from Lemma \\(\\mathrm{lem:holder\\text{-}variogram\\text{-}prior}\\), independently of the uniform covariates and \\(\\xi\\), and use the corresponding law \\(P_h\\) from that lemma.  By policy nonanticipation, \\(M_\\pi\\) is a function only of the covariates and \\(\\xi\\), so it is independent of the draw of \\(h\\).  The edge sum is finite and bounded, so linearity permits the expectations and the sum to be interchanged.  The variogram inequality followed by Lemma \\(\\mathrm{lem:weighted\\text{-}suffix\\text{-}geometric\\text{-}lower}\\) gives\n\\[\n\\begin{split}\n\\mathbb E_{h\\sim\\nu}\\mathbb E_{P_h,\\xi}C_h(M_\\pi)\n&=\\mathbb E_{X,\\xi}\\sum_{(i,j)\\in M_\\pi}\\mathbb E_{h\\sim\\nu}\\{h(X_i)-h(X_j)\\}^2\\\\\n&\\ge c_\\nu\\mathbb E_{X,\\xi}\\sum_{(i,j)\\in M_\\pi}\\|X_i-X_j\\|_2^{2\\beta}\\\\\n&\\ge c_1T F_\\alpha(T,b)\n\\end{split}\n\\]\nfor a constant \\(c_1>0\\).  Lemma \\(\\mathrm{lem:offline\\text{-}adjacent}\\) and \\(\\|h\\|_\\infty\\le A_\\nu\\) imply \\(O_h(X)\\le4A_\\nu^2\\) pathwise.  Since every \\(P_h\\) is in the model class, averaging over \\(h\\) and then bounding a supremum below by an average show that\n\\[\nQ_\\pi:=T^{-1}\\sup_{P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)}\n\\mathbb E_{P,\\xi}[C_g(M_\\pi)-O_g(X)]\n\\ge c_1F_\\alpha(T,b)-\\frac{4A_\\nu^2}{T}.\n\\]\nIndependently, Lemma \\(\\mathrm{lem:mandatory\\text{-}final\\text{-}pair\\text{-}lower}\\) gives \\(Q_\\pi\\ge c_{\\mathrm{end}}/T\\).  Thus\n\\[\nc_1F_\\alpha(T,b)\\le Q_\\pi+\\frac{4A_\\nu^2}{T}\n\\le\\left(1+\\frac{4A_\\nu^2}{c_{\\mathrm{end}}}\\right)Q_\\pi.\n\\]\nThe multiplier is finite because \\(L,G,H>0\\).  The resulting lower bound on \\(Q_\\pi\\) is uniform over every deterministic or randomized feasible policy.  Taking the infimum over \\(\\pi\\) in Definition \\(\\mathrm{def:minimax\\text{-}regret}\\) proves\n\\[\nR_T(B)\\ge cF_\\alpha(T,b),\n\\]\nwhere \\(c>0\\) depends only on the fixed envelopes listed in the theorem."
+          },
+          {
+            "id": "thm:capped-grid-upper",
+            "proof_tex": "Fix \\(1\\le m\\le b\\), put \\(k=\\lfloor m^{1/d}\\rfloor\\ge1\\), and partition \\([0,1]^d\\) into \\(q=k^d\\le m\\) congruent cubes.  Before emergency clearing, keep at most one stored unit in each cube: an arrival in an occupied cube is paired with that stored unit, and an arrival in an empty cube is stored.  Immediately before each arrival, let \\(u\\) be the reservoir size and let \\(r\\) be the number of arrivals including the current one that remain.  If \\(u=r\\), match every remaining arrival to an arbitrary stored unit and never store again.\n\nAll choices use only the current and preceding covariates.  A stored unit receives a private fair treatment coin, and its eventual partner receives the opposite treatment, so immediate assignment and fair orientation hold.  Before clearing, occupancy is at most one per cube and hence at most \\(q\\le m\\le B\\).  If \\(u<r\\), the parity identity \\(u\\equiv r\\pmod 2\\), which follows from even \\(T\\) and arrival incidence, gives \\(u\\le r-2\\); thus storing the current arrival preserves feasibility for terminal clearing.  If equality \\(u=r\\) occurs, the stated rule removes exactly one stored unit at each remaining arrival and ends at zero.  Hence the policy lies in \\(\\Pi_{T,B}\\), respects the cap pathwise, and empties at \\(T\\).\n\nEvery non-clearing edge lies in one cube and has Euclidean length at most \\(\\sqrt d/k\\).  Assumption \\(\\mathrm{ass:holder\\text{-}score}\\) bounds its squared score difference by \\(L^2d^\\beta k^{-2\\beta}\\).  At most \\(T/2\\) such edges occur.  Clearing starts with at most \\(q\\) stored units, so it creates at most \\(q\\) edges; Assumption \\(\\mathrm{ass:score\\text{-}envelope}\\) bounds each of their costs by \\(4G^2\\).  Since \\(O_g(X)\\ge0\\), pathwise\n\\[\nT^{-1}\\{C_g(M_\\pi)-O_g(X)\\}\n\\le \\frac{L^2d^\\beta}{2}k^{-2\\beta}+\\frac{4G^2q}{T}.\n\\]\nFor \\(x=m^{1/d}\\ge1\\), \\(\\lfloor x\\rfloor\\ge x/2\\); hence \\(k^{-2\\beta}\\le2^{2\\beta}m^{-2\\beta/d}=2^{2\\beta}m^{-\\alpha}\\), while \\(q\\le m\\).  Taking expectations and the supremum over the model class gives the asserted \\(C\\{m^{-\\alpha}+m/T\\}\\) bound.  Infimizing over \\(m\\le b\\) proves the final display."
+          },
+          {
+            "id": "prop:frontier-regimes",
+            "proof_tex": "Let \\(H_\\alpha(b)=\\sum_{r=1}^b r^{-\\alpha}\\).  If \\(0<\\alpha<1\\), integral comparison gives constants depending only on \\(\\alpha\\) such that\n\\[\nc_\\alpha b^{1-\\alpha}\\le H_\\alpha(b)\\le C_\\alpha b^{1-\\alpha}.\n\\]\nSince \\(b\\le T/2\\),\n\\[\nT^{-1}H_\\alpha(b)\\le C_\\alpha(b/T)b^{-\\alpha}\\le (C_\\alpha/2)b^{-\\alpha},\n\\]\nwhile \\(F_\\alpha(T,b)\\ge b^{-\\alpha}\\).  Thus \\(F_\\alpha(T,b)\\asymp b^{-\\alpha}\\).  If \\(\\alpha=1\\), integral comparison gives \\(H_1(b)\\asymp\\log(1+b)\\), so\n\\[\nF_1(T,b)\\asymp b^{-1}+T^{-1}\\log(1+b).\n\\]\nIf \\(\\alpha>1\\),\n\\[\n1\\le H_\\alpha(b)\\le1+\\int_1^\\infty x^{-\\alpha}\\,dx=1+(\\alpha-1)^{-1},\n\\]\nand hence \\(F_\\alpha(T,b)\\asymp b^{-\\alpha}+T^{-1}\\).  Substitution into Theorem \\(\\mathrm{thm:minimax\\text{-}frontier}\\) yields the displayed three regimes.  Conversely, the same comparisons turn those three regime bounds back into bounds by fixed multiples of \\(F_\\alpha(T,b)\\), proving the claimed equivalence."
+          },
+          {
+            "id": "prop:memory-iff",
+            "proof_tex": "Let \\(b_T=\\min\\{B_T,T/2\\}\\).  If \\(B_T\\to\\infty\\), then \\(b_T\\to\\infty\\).  In Theorem \\(\\mathrm{thm:capped\\text{-}grid\\text{-}upper}\\), choose\n\\[\nm_T=\\min\\{b_T,\\lfloor T^{1/2}\\rfloor\\}.\n\\]\nFor all sufficiently large \\(T\\), \\(m_T\\ge1\\), \\(m_T\\to\\infty\\), and \\(m_T/T\\le T^{-1/2}\\).  Therefore\n\\[\n0\\le R_T(B_T)\\le C\\{m_T^{-\\alpha}+m_T/T\\}\\longrightarrow0.\n\\]\nConversely, if \\(B_T\\not\\to\\infty\\), there are an integer \\(K\\) and an infinite subsequence along which \\(B_T\\le K\\).  Along that subsequence \\(b_T\\le K\\), and Theorem \\(\\mathrm{thm:all\\text{-}policy\\text{-}lower\\text{-}frontier}\\) gives\n\\[\nR_T(B_T)\\ge cF_\\alpha(T,b_T)\\ge cb_T^{-\\alpha}\\ge cK^{-\\alpha}>0.\n\\]\nThus the regret cannot converge to zero.  This proves both directions."
+          },
+          {
+            "id": "prop:constant-score-sanity",
+            "proof_tex": "If \\(g(x)=c\\) for all \\(x\\in\\mathcal X\\), then every edge satisfies\n\\[\n\\{g(X_i)-g(X_j)\\}^2=(c-c)^2=0.\n\\]\nDefinition \\(\\mathrm{def:pair\\text{-}cost}\\) therefore gives \\(C_g(M)=0\\) for every \\(M\\in\\mathfrak M_T\\).  Taking the minimum in Definition \\(\\mathrm{def:offline\\text{-}oracle}\\) gives \\(O_g(X)=0\\).  Consequently \\(T^{-1}\\mathbb E_{P,\\xi}[C_g(M_\\pi)-O_g(X)]=0\\) for every feasible \\(\\pi\\).  The corrected Proposition \\(\\mathrm{prop:causal\\text{-}regret\\text{-}reduction}\\) identifies this last quantity with \\(T\\) times the stated ex ante mean conditional design-variance excess."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [
+          {
+            "id": "lem:holder-variogram-prior",
+            "kind": "lemma",
+            "statement": "There are constants \\(A_\\nu,c_\\nu>0\\), depending only on \\((d,\\beta,L,G,H)\\), and a probability measure \\(\\nu\\) on continuous functions \\(h:\\mathcal X\\to\\mathbb R\\) such that every \\(h\\) in its support satisfies\n\\[\n\\|h\\|_\\infty\\le A_\\nu\\le\\min\\{G,2H\\},\\qquad |h(x)-h(y)|\\le L\\|x-y\\|_2^\\beta,\n\\]\nand\n\\[\n\\mathbb E_{h\\sim\\nu}\\{h(x)-h(y)\\}^2\\ge c_\\nu\\|x-y\\|_2^{2\\beta}\n\\quad\\text{for all }x,y\\in\\mathcal X.\n\\]\nMoreover, for every such \\(h\\), the law under which the \\(X_i\\) are independent uniform variables on \\(\\mathcal X\\) and \\(Y_i(0)=Y_i(1)=h(X_i)/2\\) belongs to \\(\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) and has prognostic score \\(g=h\\).",
+            "free_symbols": [
+              "d",
+              "beta",
+              "L",
+              "G",
+              "H",
+              "flower",
+              "fupper",
+              "Xspace",
+              "Pclass",
+              "Xi",
+              "Yiz",
+              "g"
+            ],
+            "depends_on": [
+              "ass:iid-units",
+              "ass:density-envelope",
+              "ass:bounded-outcomes",
+              "ass:score-envelope",
+              "ass:holder-score",
+              "def:model-class"
+            ],
+            "proof_tex": "We give separate constructions for \\(\\beta=1\\) and \\(0<\\beta<1\\).  If \\(\\beta=1\\), let \\(\\sigma_1,\\ldots,\\sigma_d\\) be independent Rademacher variables and set\n\\[\nh_\\sigma(x)=a\\sum_{\\ell=1}^d\\sigma_\\ell(x_\\ell-1/2).\n\\]\nThen \\(\\|h_\\sigma\\|_\\infty\\le ad/2\\), its Lipschitz constant is at most \\(a\\sqrt d\\), and independence of the signs gives\n\\[\n\\mathbb E_\\sigma\\{h_\\sigma(x)-h_\\sigma(y)\\}^2=a^2\\|x-y\\|_2^2.\n\\]\nChoosing \\(a>0\\) small enough proves the claim in this case.\n\nNow suppose \\(0<\\beta<1\\).  Put \\(h_j=2^{-j}\\).  On the countable product of copies of \\([0,1]^d\\) with uniform measure and copies of \\(\\{-1,1\\}\\) with fair measure, independently at every level \\(j\\), shift the infinite grid of cubes of side \\(h_j\\) by a vector uniform on \\([0,h_j)^d\\), and attach independent Rademacher signs \\(\\sigma_{j,Q}\\) to its countably many cells.  This explicitly defines the probability measure used below.  Fix \\(\\epsilon\\in(0,1/4)\\).  For a cell \\(Q\\), let\n\\[\n\\psi_{j,Q}(x)=\\min\\left\\{1,\\frac{\\operatorname{dist}_\\infty(x,\\partial Q)}{\\epsilon h_j}\\right\\},\\qquad x\\in Q,\n\\]\nand define \\(F_j(x)=\\sigma_{j,Q}\\psi_{j,Q}(x)\\) in the cell containing \\(x\\), with value zero on cell boundaries.  This is continuous, \\(|F_j|\\le1\\), is centered after averaging its signs, and satisfies\n\\[\n|F_j(x)-F_j(y)|\\le C_d\\min\\{1,\\|x-y\\|_2/h_j\\}.\n\\]\nIndeed, within one cell this is the Lipschitz bound for distance to a closed set.  Across cells, a line segment between the points meets a cell boundary; the two values are bounded by their respective distances from a boundary when the points are close, while the uniform bound gives the other branch of the minimum.\n\nDefine the uniformly convergent random series\n\\[\nh(x)=a\\sum_{j=0}^\\infty h_j^\\beta F_j(x).\n\\]\nIts supremum norm is at most \\(a/(1-2^{-\\beta})\\).  If \\(r=\\|x-y\\|_2\\le1\\), split the preceding increment bound at the last scale with \\(h_j\\ge r\\).  The two geometric sums give\n\\[\n\\sum_{j=0}^\\infty h_j^\\beta\\min\\{1,r/h_j\\}\n\\le C_\\beta r^\\beta.\n\\]\nFor \\(r>1\\), the same conclusion follows from the uniform bound after increasing the constant.  Thus \\(|h(x)-h(y)|\\le aC_{d,\\beta}r^\\beta\\).\n\nIt remains to prove the lower variogram bound.  For \\(x\\ne y\\), choose a dyadic scale satisfying\n\\[\n\\frac{\\|x-y\\|_2}{4\\sqrt d}\\le h_j\\le\\frac{\\|x-y\\|_2}{2\\sqrt d}.\n\\]\nSuch a scale exists, and the two points cannot be in the same shifted cell because that cell has Euclidean diameter \\(\\sqrt d\\,h_j<\\|x-y\\|_2\\).  Under the uniform shift, \\(x\\) lies on the plateau \\(\\{\\psi_{j,Q}=1\\}\\) with probability \\((1-2\\epsilon)^d\\).  Conditional on the shift, the signs in the two distinct cells are independent, whence\n\\[\n\\mathbb E\\{F_j(x)-F_j(y)\\}^2\n=\\mathbb E\\{\\psi_{j,Q(x)}(x)^2+\\psi_{j,Q(y)}(y)^2\\}\n\\ge(1-2\\epsilon)^d.\n\\]\nIndependence and centering across levels make all cross terms in the squared series vanish.  Consequently\n\\[\n\\mathbb E\\{h(x)-h(y)\\}^2\n\\ge a^2h_j^{2\\beta}(1-2\\epsilon)^d\n\\ge a^2(4\\sqrt d)^{-2\\beta}(1-2\\epsilon)^d\\|x-y\\|_2^{2\\beta}.\n\\]\nChoose \\(a>0\\) so that both \\(a/(1-2^{-\\beta})\\le\\min\\{G,2H\\}\\) and \\(aC_{d,\\beta}\\le L\\).  This yields \\(A_\\nu,c_\\nu>0\\).  Finally, the uniform density obeys \\(\\underline f\\le1\\le\\overline f\\); the deterministic potential outcomes are bounded by \\(H\\), have prognostic score \\(h\\), and the units can be drawn independently.  All five membership conditions in Definition \\(\\mathrm{def:model\\text{-}class}\\) follow.",
+            "status": "proved"
+          },
+          {
+            "id": "lem:weighted-suffix-geometric-lower",
+            "kind": "lemma",
+            "statement": "Suppose that the \\(X_i\\) are independent and uniform on \\(\\mathcal X\\).  There is \\(c_{\\mathrm{geo}}>0\\), depending only on \\((d,\\beta)\\), such that every randomized \\(\\pi\\in\\Pi_{T,B}\\) satisfies\n\\[\n\\mathbb E_{X,\\xi}\\sum_{(i,j)\\in M_\\pi}\\|X_i-X_j\\|_2^{2\\beta}\n\\ge c_{\\mathrm{geo}}\\left\\{(T-b)b^{-\\alpha}+\\sum_{r=1}^b r^{-\\alpha}\\right\\}\n\\ge \\frac{c_{\\mathrm{geo}}}{2}\\,T F_\\alpha(T,b).\n\\]",
+            "free_symbols": [
+              "T",
+              "B",
+              "b",
+              "d",
+              "beta",
+              "alpha",
+              "pi",
+              "PiTB",
+              "Xi",
+              "xi",
+              "Mpi",
+              "Falpha"
+            ],
+            "depends_on": [
+              "ass:policy-nonanticipating",
+              "ass:arrival-incidence",
+              "ass:hard-cap",
+              "ass:terminal-empty",
+              "def:policy-class",
+              "def:frontier"
+            ],
+            "proof_tex": "Let \\(I_t\\) indicate that arrival \\(t\\) is matched rather than stored, put \\(r=T-t+1\\), and set \\(K_r=\\min\\{b,r\\}\\).  Immediately before arrival \\(t\\), terminal emptying and arrival incidence imply that the reservoir size is at most \\(r\\), since each stored unit requires a distinct future arrival.  It is also at most \\(B\\), and the simultaneous past-and-future bounds imply that it is at most \\(T/2\\).  Hence it is at most \\(K_r\\).\n\nConditional on the covariate history before \\(t\\) and on \\(\\xi\\), let\n\\[\n\\rho_r=\\delta K_r^{-1/d}.\n\\]\nThe union of Euclidean balls of radius \\(\\rho_r\\) around all stored points has uniform probability at most \\(v_d\\delta^d\\), where \\(v_d\\) is the volume of the unit Euclidean ball.  Choose the fixed \\(\\delta>0\\) so that \\(\\eta:=v_d\\delta^d\\le1/4\\).  Even though the decision \\(I_t\\) may use \\(X_t\\), the probability of the joint event that \\(I_t=1\\) and \\(X_t\\) is within \\(\\rho_r\\) of some stored point is at most \\(\\eta\\).  Therefore, if \\(J_t\\) denotes the selected partner on a match,\n\\[\n\\mathbb E[I_t\\|X_t-X_{J_t}\\|_2^{2\\beta}\\mid X_1,\\ldots,X_{t-1},\\xi]\n\\ge\\delta^{2\\beta}K_r^{-\\alpha}\\left\\{\\mathbb E[I_t\\mid X_1,\\ldots,X_{t-1},\\xi]-\\eta\\right\\},\n\\]\nusing \\(\\alpha=2\\beta/d\\).\n\nIt remains to lower-bound the weighted number of matches.  In any suffix of \\(r\\) arrivals, if the reservoir size just before that suffix is \\(s\\), arrival incidence and terminal emptying give exactly \\((r+s)/2\\) match actions, hence at least \\(r/2\\).  Put \\(u_t=K_{T-t+1}^{-\\alpha}\\), \\(a_t=I_t-1/2\\), and \\(S_j=\\sum_{t=j}^T a_t\\).  The suffix count gives \\(S_j\\ge0\\), while \\(u_t\\) is nondecreasing.  Summation by parts yields the pathwise inequality\n\\[\n\\sum_{t=1}^T u_ta_t=u_1S_1+\\sum_{j=2}^T(u_j-u_{j-1})S_j\\ge0.\n\\]\nThus \\(\\sum_tu_t\\mathbb E I_t\\ge\\frac12\\sum_tu_t\\).  Summing the conditional distance bound and using \\(\\eta\\le1/4\\) gives\n\\[\n\\mathbb E_{X,\\xi}\\sum_{(i,j)\\in M_\\pi}\\|X_i-X_j\\|_2^{2\\beta}\n\\ge\\frac{\\delta^{2\\beta}}4\\sum_{r=1}^T\\min\\{b,r\\}^{-\\alpha}\n=\\frac{\\delta^{2\\beta}}4\\left\\{(T-b)b^{-\\alpha}+\\sum_{r=1}^b r^{-\\alpha}\\right\\}.\n\\]\nBecause \\(b\\le T/2\\), the expression in braces is at least \\(\\frac12\\{Tb^{-\\alpha}+\\sum_{r=1}^b r^{-\\alpha}\\}=\\frac12TF_\\alpha(T,b)\\).  This proves the result.",
+            "status": "proved"
+          },
+          {
+            "id": "lem:mandatory-final-pair-lower",
+            "kind": "lemma",
+            "statement": "There are a law \\(P_0\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) and a constant \\(c_{\\mathrm{end}}>0\\), depending only on \\((L,G,H)\\), such that for every even \\(T\\ge32\\), every \\(B\\ge1\\), and every \\(\\pi\\in\\Pi_{T,B}\\),\n\\[\nT^{-1}\\mathbb E_{P_0,\\xi}[C_g(M_\\pi)-O_g(X)]\\ge \\frac{c_{\\mathrm{end}}}{T}.\n\\]",
+            "free_symbols": [
+              "Pclass",
+              "beta",
+              "d",
+              "L",
+              "G",
+              "H",
+              "flower",
+              "fupper",
+              "T",
+              "B",
+              "pi",
+              "PiTB",
+              "Cg",
+              "Mpi",
+              "Og",
+              "Xi",
+              "g",
+              "xi"
+            ],
+            "depends_on": [
+              "ass:iid-units",
+              "ass:density-envelope",
+              "ass:bounded-outcomes",
+              "ass:score-envelope",
+              "ass:holder-score",
+              "ass:arrival-incidence",
+              "ass:terminal-empty",
+              "def:model-class",
+              "def:policy-class",
+              "def:pair-cost",
+              "def:offline-oracle",
+              "lem:offline-adjacent"
+            ],
+            "proof_tex": "Let the covariates be independent uniform variables on \\(\\mathcal X\\), put\n\\[\na_0=\\min\\{L,G,2H\\}>0,\\qquad g(x)=a_0x_1,\n\\]\nand set \\(Y_i(0)=Y_i(1)=g(X_i)/2\\).  Since \\(|x_1-y_1|\\le\\|x-y\\|_2^\\beta\\) for \\(x,y\\in[0,1]^d\\) and \\(0<\\beta\\le1\\), this law belongs to the model class.\n\nImmediately before arrival \\(T\\), terminal emptying and arrival incidence force the reservoir to contain exactly one unit, say \\(J\\), and the final action must pair \\(J\\) with \\(T\\).  The variable \\(X_T\\) is independent of \\((X_J,J)\\), even though \\(J\\) is selected from the preceding history.  Hence\n\\[\n\\mathbb E\\{g(X_T)-g(X_J)\\}^2\n\\ge\\operatorname{Var}\\{g(X_T)\\}=\\frac{a_0^2}{12}.\n\\]\nThis final edge is one term of \\(C_g(M_\\pi)\\).\n\nFor the oracle, Lemma \\(\\mathrm{lem:offline\\text{-}adjacent}\\) pairs adjacent order statistics of the first coordinates.  If \\(U_{(1)}\\le\\cdots\\le U_{(T)}\\) are the order statistics of \\(T\\) independent uniform variables, every spacing \\(D_k=U_{(k+1)}-U_{(k)}\\) has density \\(T(1-s)^{T-1}\\) on \\([0,1]\\).  This follows directly by integrating the constant order-statistic density \\(T!\\) over the simplex on the two sides of a fixed gap.  Consequently,\n\\[\n\\mathbb E D_k^2=T\\int_0^1s^2(1-s)^{T-1}\\,ds=\\frac{2}{(T+1)(T+2)}.\n\\]\nThere are \\(T/2\\) selected adjacent gaps, so\n\\[\n\\mathbb E O_g(X)=\\frac{a_0^2T}{(T+1)(T+2)}.\n\\]\nFor \\(T\\ge32\\), the last display is at most \\(a_0^2/32\\), and therefore\n\\[\n\\mathbb E[C_g(M_\\pi)-O_g(X)]\n\\ge a_0^2\\left(\\frac1{12}-\\frac1{32}\\right)\n\\ge\\frac{a_0^2}{24}.\n\\]\nDivision by \\(T\\) proves the claim with \\(c_{\\mathrm{end}}=a_0^2/24\\).",
+            "status": "proved"
+          }
+        ],
+        "proposed_statement_changes": [
+          {
+            "id": "prop:causal-regret-reduction",
+            "proposed": "For every \\(P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) and \\(\\pi\\in\\Pi_{T,B}\\),\n\\[\n\\begin{split}\nT\\,\\mathbb E_{P,\\xi}\\!\\Bigg[&\\mathbb E_P\\!\\left[\\operatorname{Var}_Z\\{\\widehat\\tau_{\\mathrm{IPW}}(M_\\pi)\\mid (W_i)_{i=1}^T,\\xi\\}\\,\\middle|\\,(X_i)_{i=1}^T,\\xi\\right]\\\\\n&-\\min_{M\\in\\mathfrak M_T}\\mathbb E_P\\!\\left[\\operatorname{Var}_Z\\{\\widehat\\tau_{\\mathrm{IPW}}(M)\\mid (W_i)_{i=1}^T\\}\\,\\middle|\\,(X_i)_{i=1}^T\\right]\\Bigg]\\\\\n&=T^{-1}\\mathbb E_{P,\\xi}[C_g(M_\\pi)-O_g(X)].\n\\end{split}\n\\]\nConsequently, \\(R_T(B)\\) is exactly \\(T\\) times the minimax ex ante mean conditional design-variance excess over the prognostic oracle that chooses a matching from the covariates before the latent potential outcomes are revealed.",
+            "reason": "The original claim minimizes the realized latent prognostic sums before averaging. With four units, uniform covariates, zero prognostic score, and independent nondegenerate centered prognostic sums, fixed consecutive online pairing has positive expected variance regret against that latent-outcome oracle while the score-cost right side is zero. Moving the latent-outcome expectation inside each matching criterion restricts the oracle to covariate information and yields the exact proved identity.",
+            "direction": "narrow"
+          },
+          {
+            "id": "prop:constant-score-sanity",
+            "proposed": "For any \\(P\\in\\mathcal P_{\\beta,d}(L,G,H,\\underline f,\\overline f)\\) whose \\(g\\) is constant on \\(\\mathcal X\\), every \\(M\\in\\mathfrak M_T\\) satisfies \\(C_g(M)=O_g(X)=0\\).  Hence every feasible policy has zero per-law normalized matching regret and, by Proposition \\(\\mathrm{prop:causal\\text{-}regret\\text{-}reduction}\\), zero ex ante mean conditional design-variance excess relative to the covariate prognostic oracle.",
+            "reason": "A constant conditional prognostic score makes the score regret zero but does not make regret against an oracle that sees realized latent prognostic sums zero. The corrected conclusion uses precisely the covariate prognostic oracle in the narrowed causal-regret proposition.",
+            "direction": "narrow"
+          }
+        ],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:all-policy-lower-frontier",
+            "proposed": {
+              "id": "thm:all-policy-lower-frontier",
+              "kind": "theorem",
+              "statement": "There exists \\(c>0\\), depending only on \\((d,\\beta,L,G,H,\\underline f,\\overline f)\\), such that for every even \\(T\\ge32\\) and every \\(B\\ge1\\),\n\\[\nR_T(B)\\ge cF_\\alpha(T,b).\n\\]\nThe inequality holds against every randomized policy in \\(\\Pi_{T,B}\\).",
+              "free_symbols": [
+                "d",
+                "beta",
+                "L",
+                "G",
+                "H",
+                "flower",
+                "fupper",
+                "T",
+                "B",
+                "RTB",
+                "Falpha",
+                "alpha",
+                "b",
+                "PiTB"
+              ],
+              "depends_on": [
+                "ass:iid-units",
+                "ass:density-envelope",
+                "ass:bounded-outcomes",
+                "ass:holder-score",
+                "ass:policy-nonanticipating",
+                "ass:arrival-incidence",
+                "ass:hard-cap",
+                "ass:terminal-empty",
+                "def:model-class",
+                "def:policy-class",
+                "def:frontier",
+                "def:minimax-regret",
+                "lem:offline-adjacent",
+                "lem:holder-variogram-prior",
+                "lem:weighted-suffix-geometric-lower",
+                "lem:mandatory-final-pair-lower"
+              ],
+              "status": "to-prove",
+              "justification": "A weighted-suffix converse separates persistent capacity cost from the shrinking-partner deadline cost for all policies.",
+              "gap": "Online matching lower bounds in \\cite{ascheretal2026generalarrivals} and \\cite{azarchiplunkarkaplan2017delays} use competitive ratios or delay adversaries and do not retain the causal scalar-oracle subtraction.",
+              "consumer": "The converse tells investigators how much precision no reservoir implementation can recover at a specified cap."
+            },
+            "reason": "The proof uses three new load-bearing lemmas and the minimax-regret definition directly; the dependency list must expose that proof spine and no longer needs the causal-regret reduction.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": [
+          {
+            "node_id": "oeq:endpoint-safe-coarsening",
+            "what_is_open": "Construct and prove a uniform endpoint-safe multiscale workload bound strong enough to charge emergency clearing by the frontier harmonic sum while retaining arrival-incidence matching and a deterministic hard cap.",
+            "obstruction": "The frozen coarsening handle specifies neither phase lengths nor a proved recursion for inherited cell workloads. At fixed sample size those workloads are dependent, and density lower bounds alone do not justify independent-cell clearance or the asserted exponential tail. The capped grid proof pays one arbitrary-cost edge per residual cell, which is too large in the deadline-dominated regime.",
+            "attempted": "I derived the exact cell update bound after a merge and examined geometric phase schedules. They control ordinary within-cell edges, but a proof still needs a concentration or workload contraction argument for residues inherited across levels; naive per-cell binomial bounds do not close because inherited loads are history-dependent and correlated.",
+            "partial_result": "The proved capped-grid construction gives\n\\[\nR_T(B)\\le C\\inf_{1\\le m\\le b}\\{m^{-\\alpha}+m/T\\},\n\\]\nwith deterministic cap compliance and terminal emptying.  Together with the proved lower theorem, this matches \\(F_\\alpha(T,b)\\) whenever \\(b^{1+\\alpha}\\le T\\).  What remains is an expected multiscale workload or clearance bound that replaces the terminal \\(m/T\\) charge in the complementary regime."
+          },
+          {
+            "node_id": "thm:minimax-frontier",
+            "what_is_open": "The all-regime upper inequality and its attaining policy remain unproved because they require a positive resolution of the endpoint-safe coarsening question.",
+            "obstruction": "The lower frontier is proved, but the available implementable policy incurs a terminal residual-cell charge that can exceed the claimed harmonic deadline term when capacity is large relative to the horizon.",
+            "attempted": "I combined the sharp weighted-suffix lower bound with the pathwise capped-grid construction and tested whether deterministic geometric coarsening alone removes the residual charge. It does not without a new inherited-workload estimate.",
+            "partial_result": "The completed arguments establish the two-sided partial frontier\n\\[\ncF_\\alpha(T,b)\\le R_T(B)\\le C\\inf_{1\\le m\\le b}\\{m^{-\\alpha}+m/T\\}.\n\\]\nIn particular, the bounds match up to fixed constants throughout \\(b^{1+\\alpha}\\le T\\), and they already imply \\(R_T(B_T)\\to0\\) if and only if \\(B_T\\to\\infty\\).  The all-regime upper bound remains contingent on the endpoint-safe coarsening workload estimate."
+          }
+        ]
+      }
+    }
+  ]
+}

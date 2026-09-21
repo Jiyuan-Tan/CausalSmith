@@ -14,7 +14,8 @@ For the partially linear `GeneralMoment` instance (`plrGeneralMoment`):
   `E[ψ(η₀, ·, θ₀)²] = E[U²·(D − m₀(X))²] < ∞`.
 -/
 
-import Causalean.Estimation.PLR.Setup
+module
+public import Causalean.Estimation.PLR.Setup
 
 /-! # Mean-zero and finite variance for the partially linear score
 
@@ -22,6 +23,8 @@ This file proves the two partially linear score facts consumed by the double
 machine-learning engine: `plr_meanZero`, the population mean-zero identity at the
 truth, and `plr_finite_var`, finite second moment of the true score under the
 observed-data law. -/
+
+public section
 
 namespace Causalean
 namespace Estimation

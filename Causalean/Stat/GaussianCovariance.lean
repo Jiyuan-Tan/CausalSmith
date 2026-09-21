@@ -1,8 +1,9 @@
-import Mathlib.Analysis.Matrix.Order
-import Causalean.Stat.Limit.ContinuousMapping
-import Causalean.Stat.MEstimation.FiniteModelSelection
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Topology.Instances.Matrix
+module
+public import Mathlib.Analysis.Matrix.Order
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Causalean.Stat.MEstimation.FiniteModelSelection
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Topology.Instances.Matrix
 
 /-!
 # Gaussian covariance discrepancy and finite model selection
@@ -12,6 +13,8 @@ derives its compact-model attainment, strict separation, perturbation stability,
 finite-model-selection interfaces.  The model assumptions are stated separately from the matrix
 inequality, so the results can be reused for any finite family of covariance models.
 -/
+
+@[expose] public section
 
 open Filter MeasureTheory Set Topology
 open scoped Matrix MatrixOrder
@@ -534,4 +537,3 @@ theorem tendstoInProb_covarianceModelLoss [MeasurableSpace Ω]
 
 
 end Causalean.Stat
-

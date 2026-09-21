@@ -4,8 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Lee.TrimMean
-import Causalean.PO.ID.Partial.Basic
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Basic
+public import Causalean.PO.ID.Partial.Lee.TrimMean
 
 /-! # Lee Trimmed-Mean Bound
 
@@ -17,6 +20,10 @@ scalar sandwich used by the final Lee bound.
 The argument is an order-theoretic consequence of the trimmed-mean range and
 the identity between the trim-weight mean and the always-selected conditional
 mean. -/
+
+public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -39,8 +46,8 @@ lemma trimmed_bounds_condExp_Y1_AS
     (𝒴 : Finset ℝ)
     (hSupp : ∀ᵐ ω ∂(P.μ.restrict S.selectedTreated), S.factualY ω ∈ 𝒴) :
     S.lowerTrimMean 𝒴
-      ≤ eventCondExp P.μ S.alwaysSelected (S.YofA true)
-    ∧ eventCondExp P.μ S.alwaysSelected (S.YofA true) ≤ S.upperTrimMean 𝒴 := by
+      ≤ normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA true)
+    ∧ normalizedRestrictedIntegral P.μ S.alwaysSelected (S.YofA true) ≤ S.upperTrimMean 𝒴 := by
   classical
   have hMw := S.Mw_alwaysSelectedTrimWeight_eq_condExp_Y1_AS hA hMono 𝒴 hSupp
   have hmem :
@@ -49,7 +56,8 @@ lemma trimmed_bounds_condExp_Y1_AS
     exact ⟨S.alwaysSelectedTrimWeight hA hMono 𝒴 hSupp, rfl⟩
   have hf1_nonneg : ∀ y, 0 ≤ S.f1 y := by
     intro y
-    unfold f1 eventCondExp
+    unfold f1
+    rw [eventCondExp_eq]
     exact div_nonneg
       (MeasureTheory.setIntegral_nonneg
         S.measurableSet_selectedTreated

@@ -3,27 +3,33 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Matrix.Block
-import Mathlib.Data.Matrix.Mul
-import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Data.Real.Basic
+
+module
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Matrix.Block
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Data.Real.Basic
 
 /-! # Generalized-permutation (monomial) matrices
 
-This file collects the linear-algebra facts about generalized-permutation (monomial) matrices
-that underlie linear causal-discovery identification arguments. A generalized-permutation matrix
-has exactly one non-zero entry in each row and column — equivalently, it is a permutation composed
-with a non-zero diagonal rescaling. Such matrices are the ambiguity group of independent component
-analysis: a mixing matrix is recovered only up to relabelling and rescaling its columns. The three
-results here are: (1) an invertible matrix with at most one non-zero entry per column is
-automatically of this generalized-permutation form; (2) a simultaneous row/column permutation of a
-lower-triangular matrix with non-zero diagonal keeps a non-zero diagonal exactly when the two
-permutations agree; and (3) two unit-diagonal matrices related by a generalized permutation, one of
-them triangular in a causal order, must be equal. They are consumed by the LiNGAM and
-linear-causal-disentanglement developments to turn an ICA-level identification (sharp only up to
-generalized permutation) into a sharp structural identification.
+A generalized-permutation (monomial) matrix has exactly one non-zero entry in each row and
+column — equivalently, it is a permutation matrix composed with an invertible diagonal rescaling.
+These matrices form a group, and this file collects three facts about it.
+
+1. An invertible matrix with at most one non-zero entry per column is automatically of
+   generalized-permutation form.
+2. A simultaneous row/column permutation of a lower-triangular matrix with non-zero diagonal
+   keeps a non-zero diagonal exactly when the two permutations agree.
+3. Two unit-diagonal matrices related by a generalized permutation, one of them lower-triangular
+   with respect to some ordering of the indices, are equal — triangularity plus a unit diagonal
+   forces the permutation to be the identity and every scaling to be one.
+
+The third fact is a rigidity statement: within the generalized-permutation orbit of a matrix,
+triangularity with respect to an ordering pins down a unique representative.
 -/
+
+public section
 
 namespace Causalean.Mathlib.LinearAlgebra
 
@@ -122,13 +128,14 @@ theorem perm_uniqueness {n : ℕ} {K : Type*} [Zero K] {M : Matrix (Fin n) (Fin 
   · rintro rfl i
     exact hdiag (σ i)
 
-/-- **Generalized-permutation reduction.** For matrices `C, C'` over `Fin n × Fin n` valued in
-`K`, if [`C` has unit diagonal](hyp:hCdiag) and [`C'` has unit diagonal](hyp:hC'diag), [`C` is
-lower triangular in some causal order `σ`](hyp:hCtri) (`C i j = 0` when `σ i < σ j`), and [`C'`
-is obtained from `C` by a generalized permutation with permutation `τ` and scalings `d`, i.e.
-`C' i j = d i · C (τ i) j` for all `i`, `j`](hyp:hW), then [`C = C'`](goal): the unit diagonal
-plus triangularity force the underlying permutation to be the identity and every scaling to be
-one. (Formerly `Discovery.LiNGAM.lingam_reduction`.) -/
+/-- **Triangular representative of a generalized-permutation orbit.** For matrices `C, C'` over
+`Fin n × Fin n` valued in `K`, if [`C` has unit diagonal](hyp:hCdiag) and
+[`C'` has unit diagonal](hyp:hC'diag),
+[`C` is lower triangular for some ordering `σ` of the indices](hyp:hCtri) (`C i j = 0` when
+`σ i < σ j`), and [`C'` is obtained from `C` by a generalized permutation with permutation `τ`
+and scalings `d`, i.e. `C' i j = d i · C (τ i) j` for all `i`, `j`](hyp:hW), then
+[`C = C'`](goal): the unit diagonal plus triangularity force the underlying permutation to be the
+identity and every scaling to be one. -/
 theorem eq_of_genPerm_triangular_unitDiag {n : ℕ} {K : Type*}
     [MulZeroOneClass K] [Nontrivial K] {C C' : Matrix (Fin n) (Fin n) K}
     (hCdiag : ∀ i, C i i = 1) (hC'diag : ∀ i, C' i i = 1)

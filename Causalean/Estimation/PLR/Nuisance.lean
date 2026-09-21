@@ -13,11 +13,12 @@ Authors: Jiyuan Tan
                      `[AddCommGroup H] [Module ℝ H]`.
 
 Direct (but simpler) mirror of `NuisanceVec` in
-`Causalean/Estimation/ATE/AIPWMoment.lean`: two real-valued function fields
+`Causalean/Estimation/ATE/Score/AIPWMoment.lean`: two real-valued function fields
 instead of a `Bool`-indexed regression and a propensity score.
 -/
 
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+module
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
 /-! # Bundled nuisance space for the partially linear model
 
@@ -27,6 +28,8 @@ their measurability witnesses into a single type `PLRNuisance`, and equips it
 with componentwise real-vector-space structure. This bundled nuisance space is
 the nuisance space used by the partially linear double-machine-learning moment
 instance. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

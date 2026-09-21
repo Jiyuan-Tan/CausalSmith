@@ -26,9 +26,10 @@ observed nodes.
   is proved internally from the product-measure projection lemma.
 -/
 
-import Causalean.SCM.Model.SCM
-import Causalean.SCM.Model.Kernel
-import Causalean.Graph.Induce
+module
+public import Causalean.SCM.Model.SCM
+public import Causalean.SCM.Model.Kernel
+public import Causalean.Graph.Induce
 
 /-! # Induced Structural Causal Models
 
@@ -50,6 +51,13 @@ the original structural causal model.
 * `SCM.induce_marginal_compat` proves the observational-kernel marginal
   compatibility theorem for induced submodels.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -80,7 +88,7 @@ namespace SCM
     only clause (a). -/
 def isAncestrallyClosedSCM (M : Causalean.SCM N Ω) (R : Finset (SWIGNode N)) : Prop :=
   (∀ v ∈ R, ∀ v' ∈ M.dag.parents v, v' ∈ M.observed → v' ∈ R) ∧
-  (∀ v ∈ R, ∀ d ∈ M.dag.parents v, d ∈ M.fixed → Causalean.iotaMap d ∈ R)
+  (∀ v ∈ R, ∀ d ∈ M.dag.parents v, d ∈ M.fixed → iotaMap d ∈ R)
 
 -- ============================================================
 -- § 2. Induced sub-SCM
@@ -104,7 +112,7 @@ lemma induce_parents_eq_of_ancClosed (M : Causalean.SCM N Ω)
   -- `v` lives in the induced active set via the `newObserved` summand.
   have hvActive :
       v ∈ (M.toSWIGGraph.fixed.filter
-              (fun s => Causalean.iotaMap s ∈ R ∩ M.observed))
+              (fun s => iotaMap s ∈ R ∩ M.observed))
             ∪ (R ∩ M.observed) ∪
               (M.toSWIGGraph.unobserved.filter
                 (fun u => ∃ w ∈ R ∩ M.observed, M.toSWIGGraph.dag.edge u w)) := by
@@ -118,21 +126,21 @@ lemma induce_parents_eq_of_ancClosed (M : Causalean.SCM N Ω)
       (M.dag_edges_classified u v huEdge).1
     have huActive :
         u ∈ (M.toSWIGGraph.fixed.filter
-                (fun s => Causalean.iotaMap s ∈ R ∩ M.observed))
+                (fun s => iotaMap s ∈ R ∩ M.observed))
               ∪ (R ∩ M.observed) ∪
                 (M.toSWIGGraph.unobserved.filter
                   (fun u => ∃ w ∈ R ∩ M.observed, M.toSWIGGraph.dag.edge u w)) := by
       rcases Finset.mem_union.mp huClass with hu | hu
       · rcases Finset.mem_union.mp hu with huFix | huObs
         · -- `u ∈ M.fixed`: use pairing closure (clause b).
-          have hIotaR : Causalean.iotaMap u ∈ R := hR.2 v hvR u huM huFix
-          have hIotaObs : Causalean.iotaMap u ∈ M.observed :=
+          have hIotaR : iotaMap u ∈ R := hR.2 v hvR u huM huFix
+          have hIotaObs : iotaMap u ∈ M.observed :=
             M.fixed_image_in_observed u huFix
-          have hIotaNewObs : Causalean.iotaMap u ∈ R ∩ M.observed :=
+          have hIotaNewObs : iotaMap u ∈ R ∩ M.observed :=
             Finset.mem_inter.mpr ⟨hIotaR, hIotaObs⟩
           have huNewFixed :
               u ∈ M.toSWIGGraph.fixed.filter
-                    (fun s => Causalean.iotaMap s ∈ R ∩ M.observed) :=
+                    (fun s => iotaMap s ∈ R ∩ M.observed) :=
             Finset.mem_filter.mpr ⟨huFix, hIotaNewObs⟩
           exact Finset.mem_union_left _ (Finset.mem_union_left _ huNewFixed)
         · -- `u ∈ M.observed`: use observed-ancestor closure (clause a).
@@ -398,13 +406,13 @@ lemma induce_evalMap_compat (M : Causalean.SCM N Ω) (R : Finset (SWIGNode N))
       by_cases hfix : w.val ∈ M.fixed
       · -- Fixed: by ancestral closure clause (b), `iotaMap w ∈ R ∩ M.observed`, so
         -- `w ∈ (M.induce R hR).fixed` (the filter witness).
-        have hIotaR : Causalean.iotaMap w.val ∈ R := hR.2 v hvR w.val w.property hfix
-        have hIotaObs : Causalean.iotaMap w.val ∈ M.observed :=
+        have hIotaR : iotaMap w.val ∈ R := hR.2 v hvR w.val w.property hfix
+        have hIotaObs : iotaMap w.val ∈ M.observed :=
           M.fixed_image_in_observed w.val hfix
-        have hIotaInter : Causalean.iotaMap w.val ∈ R ∩ M.observed :=
+        have hIotaInter : iotaMap w.val ∈ R ∩ M.observed :=
           Finset.mem_inter.mpr ⟨hIotaR, hIotaObs⟩
         have hfixInd : w.val ∈ (M.induce R hR).fixed := by
-          change w.val ∈ M.fixed.filter (fun s => Causalean.iotaMap s ∈ R ∩ M.observed)
+          change w.val ∈ M.fixed.filter (fun s => iotaMap s ∈ R ∩ M.observed)
           exact Finset.mem_filter.mpr ⟨hfix, hIotaInter⟩
         rw [dif_pos hfix, dif_pos hfixInd]
         -- `(sTilde|_R) ⟨w.val, hfixInd⟩ = sTilde ⟨w.val, hfix⟩` by proof irrelevance

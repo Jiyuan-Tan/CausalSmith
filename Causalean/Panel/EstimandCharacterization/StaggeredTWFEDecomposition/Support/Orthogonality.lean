@@ -18,8 +18,9 @@ hypothesis `B_balanced : cellMass = cohortMass · periodMass`** to make the
 cross-cohort sum collapse to `E[D]`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Integrals
-import Causalean.Tactic.IntegralLinearity
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Integrals
+public import Causalean.Tactic.IntegralLinearity
 
 /-! # Goodman-Bacon Bridge Orthogonality
 
@@ -27,6 +28,8 @@ This file proves the cohort-axis and period-axis orthogonality conditions needed
 for the measure-theoretic Goodman-Bacon bridge. Under the balanced cell-mass
 product condition, residuals from the panel propensity and mean regressions are
 orthogonal to the saturated cohort and period indicator class. -/
+
+@[expose] public section
 
 namespace Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition
 

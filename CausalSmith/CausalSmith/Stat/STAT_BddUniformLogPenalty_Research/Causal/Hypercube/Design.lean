@@ -1,16 +1,17 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareClassGeometry
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.SmoothEnvelope
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGramCertificate
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSlice
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedObservation
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.CommonStatisticBernoulli
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCancellation
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedKL
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCertificate
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedSuccess
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedNormalized
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.DecisionClass
-import Mathlib.InformationTheory.KullbackLeibler.Basic
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareClassGeometry
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.SmoothEnvelope
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGramCertificate
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSlice
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedObservation
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.CommonStatisticBernoulli
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCancellation
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedKL
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedCertificate
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedSuccess
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedNormalized
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.DecisionClass
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
 
 /-!
 # Fixed-geometry angular hypercube
@@ -19,6 +20,8 @@ The predicate in this file records the whole certified least-favourable
 family: common geometry, class membership, disjoint local cells, locality,
 target separation, radial agreement, and the two directed KL bounds.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal NNReal

@@ -1,0 +1,354 @@
+%%% FIELD proof-finite-sample-projection
+Put \(U=(u_j(x))_{x,j=1}^K\) and \(Q=K^{-1/2}U\).  Orthonormality of the stated DCT in \(\ell^2_{K,X}\) gives \(Q^\top Q=Q Q^\top=I_K\) and, for every \(x\),
+\[
+ \sum_{j=1}^K u_j(x)^2=K. \tag{1}
+\]
+Write \(N_x=\sum_{i=1}^{n_{\rm tr}}\mathbf 1\{X_i=x\}\), \(g_x=Kp_X(x)\), and \(\widehat g_x=KN_x/n_{\rm tr}\).  The definitions of \(G_X\) and \(\widehat G_X^{\rm tr}\), followed by \(U=\sqrt KQ\), imply
+\[
+ G_X=Q^\top\operatorname{diag}(g_x)Q,
+ \qquad
+ \widehat G_X^{\rm tr}=Q^\top\operatorname{diag}(\widehat g_x)Q. \tag{2}
+\]
+By the two marginal bounds in \(\mathrm{def:model\mbox{-}class}\),
+\[
+ \eta\le g_x\le \eta^{-1}. \tag{3}
+\]
+Let \(\widetilde g_x\) be \(\widehat g_x\) clipped to \([\eta/2,2/\eta]\).  Thus, with \(W=G_X^{-1/2}\),
+\[
+ W=Q^\top\operatorname{diag}(g_x^{-1/2})Q,
+ \qquad
+ \widehat W_X^{\rm tr}=Q^\top\operatorname{diag}(\widetilde g_x^{-1/2})Q,
+ \qquad
+ \|\widehat W_X^{\rm tr}\|_{\rm op}\le \sqrt{2/\eta}. \tag{4}
+\]
+
+We first control the metric error without suppressing its dependence on the training sample.  For \(h_\theta\in\mathcal H_\beta(R,\eta)\), set \(e_\theta(x)=b(x)-(Ah_\theta)(x)\) and \(r_\theta=m-B\theta\).  Since \(b(x)\in[0,1]\) and the box restriction implies \((Ah_\theta)(x)\in[\eta,1-\eta]\),
+\[
+ |e_\theta(x)|\le1. \tag{5}
+\]
+Directly from the definitions of \(m\), \(B\), and \(A\),
+\[
+ Qr_\theta=K^{-1/2}\operatorname{diag}(g_x)(e_\theta(x))_{x=1}^K. \tag{6}
+\]
+Because the clipping interval contains every \(g_x\), scalar projection is nonexpansive relative to \(g_x\), so \(|\widetilde g_x-g_x|\le|\widehat g_x-g_x|\).  For positive \(s,t\),
+\[
+ t\,|s^{-1/2}-t^{-1/2}|
+ =\frac{\sqrt t\,|s-t|}{\sqrt s(\sqrt s+\sqrt t)}.
+\]
+Using \(s=\widetilde g_x\), \(t=g_x\), (3), and (6), we obtain, with \(D_G=\max_x|\widehat g_x-g_x|\),
+\[
+ \sup_{h_\theta\in\mathcal H_\beta(R,\eta)}
+ \|(\widehat W_X^{\rm tr}-W)r_\theta\|_2
+ \le \min\{\sqrt{2/\eta}\,D_G,\,3\eta^{-3/2}\}. \tag{7}
+\]
+The second term follows separately from \(g_x/\sqrt{\widetilde g_x}\le\sqrt2\eta^{-3/2}\), \(\sqrt{g_x}\le\eta^{-1/2}\), and (5).
+
+For completeness, an elementary exponential calculation gives the needed cell-count bound.  If \(I\) is Bernoulli with mean \(p\), expansion of its moment generating function and \(k!\ge2\,3^{k-2}\) for \(k\ge2\) give, for \(0<\lambda<3\),
+\[
+ \log E\exp\{\lambda(I-p)\}
+ \le \frac{p\lambda^2}{2(1-\lambda/3)}.
+\]
+Exponential Markov inequality, applied also to \(-\lambda(I-p)\) and optimized in \(\lambda\), therefore yields
+\[
+ P\!\left\{|N_x/n_{\rm tr}-p_X(x)|>
+ \sqrt{\frac{2p_X(x)\ell}{n_{\rm tr}}}+\frac{\ell}{3n_{\rm tr}}\right\}
+ \le2e^{-\ell}. \tag{8}
+\]
+Take \(\ell=\log(4K/q)\) and use a union bound.  With probability at least \(1-q/2\), (3) and (8) imply
+\[
+ D_G\le \sqrt{\frac{2K\ell}{\eta n_{\rm tr}}}+\frac{K\ell}{3n_{\rm tr}}. \tag{9}
+\]
+Since \(K\ge2\) and \(q<1\), \(\ell\le(3/2)\log(2K/q)\).  Put
+\[
+ z=\sqrt{\frac{K\log(2K/q)}{n_{\rm tr}}}.
+\]
+If \(z\le\eta^{-1}\), combine the first bounds in (7) and (9), and use \(z^2\le\eta^{-1}z\).  If \(z>\eta^{-1}\), use the second bound in (7).  In both cases,
+\[
+ \sup_{h_\theta\in\mathcal H_\beta(R,\eta)}
+ \|(\widehat W_X^{\rm tr}-W)(m-B\theta)\|_2
+ \le4\eta^{-3/2}z. \tag{10}
+\]
+
+We next control the two moment errors.  Independence and identical distribution within the testing fold, \(Y^2\le1\), and (1) give
+\[
+ E_P\|\widehat m^{\rm te}-m\|_2^2
+ =\frac1{n_{\rm te}}\operatorname{tr}\operatorname{Var}_P\{u(X)Y\}
+ \le\frac K{n_{\rm te}}. \tag{11}
+\]
+Let \(D_\beta=\operatorname{diag}(j^\beta:1\le j\le K)\).  Since \(|v_1|=1\), \(|v_j|\le\sqrt2\) for \(j\ge2\), and \(\sum_i u_i(X)^2=K\),
+\[
+ \begin{split}
+ E_P\| (\widehat B^{\rm tr}-B)D_\beta^{-1}\|_{\rm HS}^2
+ &\le \frac1{n_{\rm tr}}E_P\|u(X)(D_\beta^{-1}v(W))^\top\|_{\rm HS}^2\\
+ &\le \frac{2KS_\beta(K)}{n_{\rm tr}}.
+ \end{split}\tag{12}
+\]
+Markov's inequality applied to (11) and (12) shows that, outside a set of probability at most \(q/2\),
+\[
+ \|\widehat m^{\rm te}-m\|_2\le2\sqrt{\frac K{q n_{\rm te}}},
+ \qquad
+ \sup_{h_\theta\in\mathcal H_\beta(R,\eta)}
+ \|(\widehat B^{\rm tr}-B)\theta\|_2
+ \le R\sqrt{\frac{8KS_\beta(K)}{q n_{\rm tr}}}. \tag{13}
+\]
+Here the last inequality uses \(\|D_\beta\theta\|_2\le R\), which is precisely the source constraint.  The training and testing folds are independent by \(\mathrm{ass:iid\mbox{-}sampling}\), although only the union bound, not independence of the displayed events, is needed.
+
+For every feasible \(\theta\), the triangle inequality, (4), (10), and (13) give
+\[
+ \begin{split}
+ &\left|\|\widehat W_X^{\rm tr}(\widehat m^{\rm te}-\widehat B^{\rm tr}\theta)\|_2
+ -\|W(m-B\theta)\|_2\right|\\
+ &\quad\le
+ 2\sqrt{2/\eta}\sqrt{\frac K{q n_{\rm te}}}
+ +4\eta^{-1/2}R\sqrt{\frac{KS_\beta(K)}{q n_{\rm tr}}}
+ +4\eta^{-3/2}\sqrt{\frac{K\log(2K/q)}{n_{\rm tr}}}\\
+ &\quad\le t_q,
+ \end{split}\tag{14}
+\]
+where the last step uses \(0<\eta<1/2\) and the declared constant \(32\eta^{-3/2}\).  Taking the supremum over feasible \(\theta\), and using
+\[
+ \left|\inf_\theta F_\theta-\inf_\theta G_\theta\right|
+ \le\sup_\theta|F_\theta-G_\theta|, \tag{15}
+\]
+proves \(|\widehat d_{\rm sp}-d(P)|\le t_q\).  Equations (9) and (13) fail with total probability at most \(q\), uniformly in \(P\in\mathcal P_K^\cup\); no step depends on \(a\).  This proves the first assertion.
+
+At \(q=\alpha\), if \(d(P)=0\), the same event implies \(\widehat d_{\rm sp}\le t_\alpha\), hence \(\phi_{\rm sp}=0\).  Thus \(E_P\phi_{\rm sp}\le\alpha\).  On that event, \(\widehat d_{\rm sp}-t_\alpha\le d(P)\); since \(d(P)\ge0\), it follows that \(L_n=(\widehat d_{\rm sp}-t_\alpha)_+\le d(P)\).  Taking the required supremum and infimum proves the level and coverage claims.
+
+%%% FIELD proof-fixed-k-upper
+Set \(q=\epsilon_{\rm tot}/2\) and \(t=t_q\).  By \(\mathrm{thm:finite\mbox{-}sample\mbox{-}projection}\), every null law satisfies
+\[
+ P(\widehat d_{\rm sp}>t)\le q. \tag{16}
+\]
+If \(d(P)\ge3t\), then on the event \(|\widehat d_{\rm sp}-d(P)|\le t\) one has \(\widehat d_{\rm sp}\ge2t>t\).  Hence every such alternative satisfies
+\[
+ P(\widehat d_{\rm sp}\le t)\le q. \tag{17}
+\]
+Adding (16) and (17) gives total error at most \(2q=\epsilon_{\rm tot}\).  The definition of \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\) therefore gives
+\[
+ \rho^\star_{n,K}(a,\epsilon_{\rm tot})\le3t_{\epsilon_{\rm tot}/2}. \tag{18}
+\]
+For fixed \(K\), \(S_\beta(K)\), \(\log(4K/\epsilon_{\rm tot})\), and both fold-size ratios are constants, so every summand in \(t_{\epsilon_{\rm tot}/2}\) is a constant times \(n^{-1/2}\).  The bound contains no \(a\), and is consequently uniform over \(a\in[a_L,a_U]\).  This proves the asserted order and its stated dependence on constants.
+
+%%% FIELD proof-positive-two-label
+Let \(\lambda=2^{-a}\).  Summing the bracket involving \(y\) over \(y\in\{0,1\}\) gives one.  Since \(\sum_{x=1}^2s_2(x)=\sum_{w=1}^2s_2(w)=0\), summing the remaining factor shows normalization and gives
+\[
+ P(X=x)=P(W=w)=\frac12. \tag{19}
+\]
+Moreover \(\lambda\le2^{-a_L}\), while \(|\gamma_2s_2(x)+\delta_2s_2(w)|\le1/4\).  Hence each of the eight cells is bounded below by
+\[
+ \frac14(1-\lambda)\frac14\ge\frac{1-2^{-a_L}}{16}>0. \tag{20}
+\]
+Conditional on \(X=x\),
+\[
+ P(W=w\mid X=x)=\frac12\{1+\lambda s_2(x)s_2(w)\},
+\]
+and therefore
+\[
+ E\{s_2(W)\mid X=x\}=\lambda s_2(x). \tag{21}
+\]
+The second DCT vector at \(K=2\) is exactly \(v_2=s_2\), and every mean-zero \(g\in\ell^2_{2,W}\) is a scalar multiple of \(s_2\).  Thus (21) and \(L^{-a}s_2=2^{-a}s_2\) imply
+\[
+ \|Ag\|_{L^2_X}=\|L^{-a}g\|_{\ell^2_{2,W}}. \tag{22}
+\]
+Consequently both link inequalities hold, with ratio slacks \(1-c_{\rm link}\) and \(C_{\rm link}-1\), uniformly in \(a\).  Finally, iterated expectation and (21) give
+\[
+ b(x)=\frac12+\gamma_2s_2(x)+\delta_2E\{s_2(W)\mid X=x\}
+ =\frac12+(\gamma_2+2^{-a}\delta_2)s_2(x). \tag{23}
+\]
+For either uniform marginal, the lower balance slack is \((1-\eta)/2>1/4\), and the upper balance slack is \((1-\eta)/(2\eta)>1/2\).  Equations (19), (22), and these inequalities verify every member property in \(\mathrm{def:model\mbox{-}class}\), completing the proof.
+
+%%% FIELD statement-fixed-k-lower
+Suppose that, for every \(a\in[a_L,a_U]\), the nonempty regular subclass contains a law whose \((X,W)\) cells, marginal slacks, and two link slacks are bounded below uniformly in \(a\) by positive constants.  Then there are laws \(P_{0,a},P_{t,a}\in\mathcal P_K(a)\), preserving those slacks, such that \(P_{0,a}\) is strictly positive, \(d(P_{0,a})=0\), \(d(P_{t,a})=t\) for \(0<t\le\eta/2\),
+\[
+ D_{\rm KL}(P_{t,a}\|P_{0,a})\le\frac{t^2}{\eta(1-\eta)},
+\]
+and
+\[
+ \chi^2(P_{t,a}^{\otimes n},P_{0,a}^{\otimes n})
+ \le \exp\!\left\{\frac{nt^2}{\eta(1-\eta)}\right\}-1.
+\]
+Consequently, for every \(\epsilon_{\rm tot}\in(0,1)\), a constant \(c>0\), independent of \(a\) and \(n\), satisfies
+\[
+ \rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge c n^{-1/2}.
+\]
+Together with \(\mathrm{thm:fixed\mbox{-}k\mbox{-}upper\mbox{-}bound}\), the fixed-support radius is \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\asymp n^{-1/2}\) uniformly in \(a\).
+
+%%% FIELD proof-fixed-k-lower
+Fix \(a\) and take a regular \((X,W)\) law furnished by the premise.  The set \(\mathcal H_\beta(R,\eta)\) is nonempty because it contains the constant \(1/2\), and it is compact because it is a closed bounded subset of \(\mathbb R^K\).  Hence the continuous linear functional \(h\mapsto E\{h(W)\}\) has a maximizer \(h_a^*\).  Put
+\[
+ M_a=E\{h_a^*(W)\},\qquad b_{0,a}=Ah_a^*.
+\]
+Retain the chosen \((X,W)\) law and define \(Y\mid X=x,W=w\) under \(P_{0,a}\) as Bernoulli with success probability \(b_{0,a}(x)\).  Under \(P_{t,a}\), use success probability \(b_{0,a}(x)+t\), where \(0<t\le\eta/2\).  The box constraint and conditional expectation give
+\[
+ \eta\le b_{0,a}(x)\le1-\eta,
+ \qquad
+ \eta\le b_{0,a}(x)+t\le1-\eta/2. \tag{24}
+\]
+Thus both full tables are strictly positive.  Their \((X,W)\) laws, hence their margins and conditional-expectation operators, are unchanged.  They therefore belong to \(\mathcal P_K(a)\) and inherit all stipulated uniform slacks.  Also \(b_{0,a}=Ah_a^*\), so \(d(P_{0,a})=0\).
+
+For any \(h\in\mathcal H_\beta(R,\eta)\), Cauchy--Schwarz and iterated expectation give
+\[
+ \begin{split}
+ \|b_{0,a}+t-Ah\|_{L^2_X}
+ &\ge \left|E\{b_{0,a}(X)+t-(Ah)(X)\}\right|\\
+ &=M_a+t-E\{h(W)\}\ge t.
+ \end{split}\tag{25}
+\]
+At \(h=h_a^*\), the residual is the constant function \(t\), whose \(L^2_X\)-norm is \(t\).  Hence
+\[
+ d(P_{t,a})=t. \tag{26}
+\]
+This also proves transversality: \(h_a^*\) lies on the exposed maximizing face, and the path moves in its supporting-normal direction.  It cannot be an interior maximizer, since a sufficiently small positive constant perturbation would preserve both source and box constraints and increase its expectation.
+
+For one observation, direct summation over the two Bernoulli outcomes yields
+\[
+ \chi^2(P_{t,a},P_{0,a})
+ =E\!\left[\frac{t^2}{b_{0,a}(X)\{1-b_{0,a}(X)\}}\right]
+ \le\frac{t^2}{\eta(1-\eta)}, \tag{27}
+\]
+where (24) was used.  If \(L=dP_{t,a}/dP_{0,a}\), then \(\log L\le L-1\) gives
+\[
+ D_{\rm KL}(P_{t,a}\|P_{0,a})=E_{P_{t,a}}\log L
+ \le E_{P_{0,a}}(L-1)^2=\chi^2(P_{t,a},P_{0,a}),
+\]
+which proves the stated Kullback--Leibler bound.  Independence from \(\mathrm{ass:iid\mbox{-}sampling}\) and multiplication of likelihood ratios imply
+\[
+ 1+\chi^2(P_{t,a}^{\otimes n},P_{0,a}^{\otimes n})
+ =\{1+\chi^2(P_{t,a},P_{0,a})\}^n
+ \le\exp\!\left\{\frac{nt^2}{\eta(1-\eta)}\right\}. \tag{28}
+\]
+For any two probability laws \(Q,P\), Cauchy--Schwarz applied to \(dQ/dP-1\) proves
+\[
+ \|Q-P\|_{\rm TV}\le\frac12\sqrt{\chi^2(Q,P)}, \tag{29}
+\]
+and the pointwise inequality between the two test errors proves
+\[
+ E_P\phi+E_Q(1-\phi)\ge1-\|Q-P\|_{\rm TV}. \tag{30}
+\]
+Choose
+\[
+ c=\min\!\left\{\frac\eta2,
+ \sqrt{\eta(1-\eta)\log\{1+(1-\epsilon_{\rm tot})^2\}}\right\}
+\]
+and set \(t=c/\sqrt n\).  Equations (28)--(30) make the two-error sum at least \((1+\epsilon_{\rm tot})/2>\epsilon_{\rm tot}\), uniformly in \(a\).  Since the two laws belong to the corresponding null and separated alternative sets and (26) holds, the definition of the minimax radius gives \(\rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge c n^{-1/2}\).  Combining this with the already proved fixed-\(K\) upper bound completes the matched conclusion.
+
+%%% FIELD statement-legal-dense
+Assume the explicit slack-compatibility condition that there is a constant \(\varepsilon\) satisfying
+\[
+ c_{\rm link}<\varepsilon<C_{\rm link},
+ \qquad
+ 2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}<1.
+\]
+Then, uniformly for \(a\in[a_L,a_U]\), there is a common strictly positive multinomial null on the lower-box face \(h_0\equiv\eta\) and a Rademacher family of alternatives in \(\mathcal P_K(a)\) such that every \((X,W,Y)\) cell is at least \(cK^{-2}\) for some constant \(c>0\), the link slack is bounded away from zero, and, with \(m=K-\lfloor K/2\rfloor\), amplitude \(\delta>0\), and \(J=\lfloor K/2\rfloor+1\),
+\[
+ d(P_s)\ge \delta-\varepsilon R J^{-(a+\beta)},
+ \qquad
+ \chi^2\!\left(2^{-m}\sum_sP_s^{\otimes n},P_0^{\otimes n}\right)
+ \le \exp\!\left\{\frac{n^2\delta^4}{2m\eta^2(1-\eta)^2}\right\}-1.
+\]
+Consequently, whenever \(K=o(n^{2/3})\) and \(K^{-(a+\beta)}\le c_0K^{1/4}/\sqrt n\), constants \(c_0,c_1>0\) can be chosen so that
+\[
+ \rho^\star_{n,K}(a,\epsilon_{\rm tot})\ge c_1\frac{K^{1/4}}{\sqrt n}.
+\]
+This is an affirmative legal dense-block converse on the displayed, explicitly nonempty slack subregime; without the compatibility condition the DCT-positive construction below is not certified by the frozen assumptions alone.
+
+%%% FIELD proof-legal-dense
+Fix \(\varepsilon\) as in the statement and define the \((X,W)\) mass function
+\[
+ q_a(x,w)=\frac1{K^2}\left\{1+\varepsilon\sum_{j=2}^Kj^{-a}u_j(x)v_j(w)\right\}. \tag{31}
+\]
+The DCT bounds \(|u_j(x)|,|v_j(w)|\le\sqrt2\), orthogonality to the constant, and \(a\ge a_L\) show that (31) has uniform margins and
+\[
+ q_a(x,w)\ge K^{-2}\left\{1-2\varepsilon\sum_{j=2}^{\infty}j^{-a_L}\right\}=:c_qK^{-2}>0. \tag{32}
+\]
+Under (31), direct DCT orthogonality gives
+\[
+ Av_1=u_1,
+ \qquad
+ Av_j=\varepsilon j^{-a}u_j\quad(2\le j\le K). \tag{33}
+\]
+Because \(P_W\) is uniform, a mean-zero \(g\) has zero first DCT coefficient.  Parseval's identity and (33) therefore yield
+\[
+ \|Ag\|_{L^2_X}=\varepsilon\|L^{-a}g\|_{\ell^2_{K,W}}. \tag{34}
+\]
+Thus the two link inequalities hold with uniform ratio slack
+\(\min\{\varepsilon-c_{\rm link},C_{\rm link}-\varepsilon\}>0\), while the uniform margins satisfy the declared balance bounds.
+
+Let \(B_K=\{J,\ldots,K\}\), where \(J=\lfloor K/2\rfloor+1\), and let \(m=|B_K|\).  For \(s\in\{-1,1\}^m\), define
+\[
+ f_s(x)=\frac\delta{\sqrt m}\sum_{j\in B_K}s_ju_j(x). \tag{35}
+\]
+Under the common null \(P_0\), use the \((X,W)\) law (31) and let \(Y\mid X,W\) be Bernoulli with success probability \(\eta\).  The bridge \(h_0\equiv\eta\) belongs to \(\mathcal H_\beta(R,\eta)\), because \(\eta<R\), lies on its lower-box face, and satisfies \(Ah_0=b_0\equiv\eta\).  Hence \(d(P_0)=0\).  Under \(P_s\), retain (31) and use Bernoulli success probability \(\eta+f_s(X)\).  Since
+\[
+ \|f_s\|_\infty\le\delta\sqrt{2m}, \tag{36}
+\]
+the condition \(\delta\sqrt{2m}\le\eta/2\) makes every success probability lie in \([\eta/2,3\eta/2]\).  As \(\eta<1/2\), every failure probability is at least \(1-3\eta/2>1/4\).  Combining this with (32), every three-way cell is at least \((c_q\eta/2)K^{-2}\).  The \((X,W)\) law is unchanged, so (34) proves \(P_s\in\mathcal P_K(a)\).
+
+Let \(\Pi_{B_K}\) be orthogonal projection onto the output DCT coordinates in \(B_K\).  For every \(h_\theta\in\mathcal H_\beta(R,\eta)\), (33) and the source constraint give
+\[
+ \begin{split}
+ \|\Pi_{B_K}Ah_\theta\|_{L^2_X}^2
+ &=\varepsilon^2\sum_{j\in B_K}j^{-2a}\theta_j^2\\
+ &\le \varepsilon^2J^{-2(a+\beta)}
+ \sum_{j\in B_K}j^{2\beta}\theta_j^2
+ \le\varepsilon^2R^2J^{-2(a+\beta)}.
+ \end{split}\tag{37}
+\]
+Since \(\Pi_{B_K}b_s=f_s\), Parseval gives \(\|f_s\|_{L^2_X}=\delta\).  Projection contraction and the reverse triangle inequality now imply
+\[
+ d(P_s)\ge\delta-\varepsilon RJ^{-(a+\beta)}. \tag{38}
+\]
+Notice that (37) profiles over the complete source-and-box image, rather than a singleton null.
+
+The one-observation likelihood ratio relative to \(P_0\) is
+\[
+ \ell_s(O)=1+\frac{f_s(X)(Y-\eta)}{\eta(1-\eta)}. \tag{39}
+\]
+Conditional summation over \(Y\), followed by uniformity of \(P_X\) and DCT orthogonality, gives
+\[
+ E_0(\ell_s\ell_t)
+ =1+\frac{\langle f_s,f_t\rangle_{L^2_X}}{\eta(1-\eta)}
+ =1+\frac{\delta^2}{m\eta(1-\eta)}\sum_{j\in B_K}s_jt_j. \tag{40}
+\]
+Independence across observations, \((1+x)^n\le e^{nx}\) for \(x>-1\), and averaging the independent Rademacher products \(s_jt_j\) show
+\[
+ \begin{split}
+ 1+\chi^2\!\left(2^{-m}\sum_sP_s^{\otimes n},P_0^{\otimes n}\right)
+ &\le \cosh\!\left(\frac{n\delta^2}{m\eta(1-\eta)}\right)^m\\
+ &\le \exp\!\left\{\frac{n^2\delta^4}{2m\eta^2(1-\eta)^2}\right\},
+ \end{split}\tag{41}
+\]
+where \(\cosh x\le e^{x^2/2}\) follows by comparing the power series term by term.
+
+Choose \(\delta=c_*m^{1/4}/\sqrt n\), with \(c_*>0\) sufficiently small that one half of the square root of the right side of (41) minus one is strictly less than \(1-\epsilon_{\rm tot}\).  The condition \(K=o(n^{2/3})\) makes (36) hold eventually, because \(\delta\sqrt{2m}=O(K^{3/4}/\sqrt n)=o(1)\).  Since \(J\ge K/2\) and \(m\ge K/2\), a sufficiently small \(c_0\) in the tail condition makes the second term of (38) at most \(\delta/2\).  Hence every alternative has defect at least \(c_1K^{1/4}/\sqrt n\) for a constant \(c_1>0\).
+
+Finally, for any test \(\phi\), its worst null error plus its worst alternative error is at least
+\[
+ E_{P_0^{\otimes n}}\phi+2^{-m}\sum_sE_{P_s^{\otimes n}}(1-\phi)
+ \ge1-\left\|2^{-m}\sum_sP_s^{\otimes n}-P_0^{\otimes n}\right\|_{\rm TV}. \tag{42}
+\]
+The Cauchy--Schwarz bound (29), (41), and the choice of \(c_*\) make (42) exceed \(\epsilon_{\rm tot}\).  The definition of \(\rho^\star_{n,K}\) proves the claimed lower bound.
+
+%%% FIELD partial-operator-nuisance
+The proved projection inequality gives the honest, unprofiled training contribution
+\[
+ R\sqrt{KS_\beta(K)/n_{\rm tr}}+
+ \sqrt{K\log(2K)/n_{\rm tr}},
+\]
+while the fixed-support transverse path and the legal dense family above perturb only the regression component and therefore match neither summand.  At a fixed smooth source face, the first-order residual caused by an operator perturbation \(\Delta A\) is \(-\Delta A h_0\), so the bridge coefficient, not an inverse singular value, multiplies operator noise.  This is the strongest established reduction; uniform profiling over all source--box intersections and arbitrary output rotations remains unproved.
+
+%%% FIELD partial-sharp-frontier
+The finite-sample theorem and the scalar converse yield the honest bracket
+\[
+ c n^{-1/2}
+ \ \le\ \rho^\star_{n,K}(a,\epsilon_{\rm tot})
+ \ \le\ C\left\{\sqrt{K/n}+R\sqrt{KS_\beta(K)/n}+\sqrt{K\log K/n}\right\},
+\]
+under the regular-subclass premise of \(\mathrm{thm:fixed\mbox{-}k\mbox{-}transverse\mbox{-}lower}\).  In the dense regime \(K=o(n^{2/3})\) and \(K^{-(a+\beta)}\lesssim K^{1/4}/\sqrt n\), the left side strengthens to \(c\max\{n^{-1/2},K^{1/4}/\sqrt n\}\) under the explicit link-slack compatibility condition in \(\mathrm{thm:legal\mbox{-}dense\mbox{-}block\mbox{-}partial}\).  The displayed upper bound shrinks for polynomial \(K=n^\kappa\) whenever \(\kappa<1\) if \(\beta\ge1/2\), and whenever \(\kappa<\{2(1-\beta)\}^{-1}\) if \(0<\beta<1/2\).  These are certified sufficient growth ranges for the conservative test, not the unknown maximal minimax range.
+
+%%% FIELD partial-adaptive
+The existing rule \(\phi_{\rm sp}\) is independent of \(a\) and has finite-sample level at most \(\alpha\) over the complete union null, with both folds and every active face covered deterministically by the projection comparison.  It has power at separation \(t_\alpha+t_\zeta\).  Moreover, on \(|\widehat d_{\rm sp}-d(P)|\le t_\alpha\),
+\[
+ 0\le d(P)-L_n\le2t_\alpha,
+\]
+so \(L_n\) is an honest adaptive lower confidence bound with conservative width \(2t_\alpha\).  No comparison of this width with the unresolved sharp frontier, and hence no smallest \(\Lambda_{\rm adap}(n,K)\), is currently proved.

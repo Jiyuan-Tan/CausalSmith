@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Data.Matrix.Mul
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.LinearIndependent.Defs
-import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Data.Real.Basic
+module
+public import Mathlib.Data.Matrix.Mul
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.LinearIndependent.Defs
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Data.Real.Basic
 
 /-!
 # Linear causal disentanglement: model layer
@@ -26,11 +27,12 @@ For a fixed context, the latent SEM is `Z = A Z + Ω^{1/2} ε`, equivalently
 `d × p` matrix with `H G = I_d`).  The only **observable** content is the family of
 precision matrices `Θ_k = Hᵀ Bₖᵀ Bₖ H ∈ ℝ^{p×p}` (one per context).
 
-We take the **algebraic** (matrix-level) view of the paper's Theorem 2: the data of
-a disentanglement model is a tuple `(H, {B_k}, {i_k}, {λ_k})` satisfying the
-structural assumptions, and identifiability compares two such tuples that produce
-the *same* family `{Θ_k}`.  No Moore–Penrose pseudoinverse is needed: `H` enters
-only through `LinearIndependent ℝ H` (full row rank) and the formula for `Θ_k`.
+We take an **unnormalized algebraic relaxation** of the model surrounding the
+paper's Theorem 2: the data is a tuple `(H, {B_k}, {i_k}, {λ_k})`, and uniqueness
+compares two such tuples that produce the *same* family `{Θ_k}`. The paper's row
+normalization (Assumption 1(c)), which removes scaling and sign ambiguity, is not
+encoded here. No Moore–Penrose pseudoinverse is needed: `H` enters only through
+`LinearIndependent ℝ H` (full row rank) and the formula for `Θ_k`.
 
 Conventions for a `Solution d p K`:
 * context `0` is observational with matrix `B0`; contexts `1 … K` are interventional
@@ -48,19 +50,24 @@ Conventions for a `Solution d p K`:
 `(P_σ)_{ij} = ⟦i = σ j⟧`, matching the paper.
 -/
 
+@[expose] public section
+
+
 namespace Causalean.Discovery.LinearDisentanglement
 
 open scoped BigOperators
 
-/-- For [a nonnegative integer dimension](hyp:d) and [an index in that dimension](hyp:i), the [standard basis vector](goal) is the real vector that equals one at the specified index and zero at every other index. -/
+/-- [The standard basis vector](goal) isolates [coordinate `i`](hyp:i) in [dimension `d`](hyp:d),
+the algebraic representation of a single-node intervention target. -/
 abbrev stdVec (d : ℕ) (i : Fin d) : Fin d → ℝ := Pi.single i (1 : ℝ)
 
-/-- For [a nonnegative integer dimension](hyp:d) and [a permutation of its indices](hyp:σ), the [permutation matrix](goal) is the real square matrix whose entry in row i and column j is one exactly when i is the image of j under the permutation, and is zero otherwise. -/
+/-- [The permutation matrix](goal) relabels latent coordinates according to [permutation
+`σ`](hyp:σ) in [dimension `d`](hyp:d), with one unit entry in each row and column. -/
 def permMat {d : ℕ} (σ : Equiv.Perm (Fin d)) : Matrix (Fin d) (Fin d) ℝ :=
   Matrix.of fun i j => if i = σ j then (1 : ℝ) else 0
 
-/-- **A linear causal disentanglement model** with `d` latent variables, `p` observed
-variables, and `K` interventional contexts (Squires, Seigal, Bhate & Uhler 2023) bundles
+/-- **An unnormalized algebraic relaxation of a linear causal disentanglement model**
+with `d` latent variables, `p` observed variables, and `K` interventional contexts bundles
 [a full-row-rank mixing pseudoinverse from the observed to the latent space](hyp:H,hH), [a
 latent edge relation](hyp:Edge) that [respects the node order](hyp:hAcyc), and [an
 observational structural matrix](hyp:B0) that is [upper triangular](hyp:hB0up), has [a
@@ -104,15 +111,21 @@ namespace Solution
 
 variable {d p K : ℕ}
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S), the [observational precision matrix](goal) is the p-by-p real matrix obtained by sandwiching the observational structural matrix's Gram matrix between the mixing pseudoinverse and its transpose. -/
+/-- [The observational precision matrix](goal) is the observable Gram form induced by the baseline
+structural matrix and mixing pseudoinverse of [solution `S`](hyp:S), with [latent dimension
+`d`](hyp:d), [observed dimension `p`](hyp:p), and [intervention count `K`](hyp:K). -/
 def Theta0 (S : Solution d p K) : Matrix (Fin p) (Fin p) ℝ :=
   S.H.transpose * S.B0.transpose * S.B0 * S.H
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [an intervention context](hyp:k), the [interventional precision matrix](goal) is the p-by-p real matrix obtained by sandwiching that context's structural-matrix Gram matrix between the mixing pseudoinverse and its transpose. -/
+/-- [The precision matrix in intervention context `k`](goal) is the observable Gram form generated
+by [context `k`](hyp:k) of [solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed
+dimension `p`](hyp:p), and [intervention count `K`](hyp:K). -/
 def Theta (S : Solution d p K) (k : Fin K) : Matrix (Fin p) (Fin p) ℝ :=
   S.H.transpose * (S.Bint k).transpose * (S.Bint k) * S.H
 
-/-- For [a linear causal disentanglement solution with d latent variables, p observed variables, and K intervention contexts](hyp:d,p,K,S) and [a permutation of the latent-node indices](hyp:σ), the [order-preserving relabeling condition](goal) holds exactly when every directed edge from a parent to a child remains ordered with the child's relabeled index strictly smaller than the parent's. -/
+/-- [A latent relabeling preserves the causal order](goal) when [permutation `σ`](hyp:σ) keeps every
+child below its parent in [solution `S`](hyp:S), with [latent dimension `d`](hyp:d), [observed
+dimension `p`](hyp:p), and [intervention count `K`](hyp:K). -/
 def InSG (S : Solution d p K) (σ : Equiv.Perm (Fin d)) : Prop :=
   ∀ j i, S.Edge j i → σ i < σ j
 
@@ -120,9 +133,8 @@ end Solution
 
 /-! ### Basic facts about permutation matrices -/
 
-/-- For [a dimension d](hyp:d) and [a permutation σ of `Fin d`](hyp:σ), [the permutation
-matrix `permMat σ` is orthogonal: its product with its own transpose is the identity
-matrix](goal). -/
+/-- [A permutation matrix is orthogonal](goal), so relabeling by [permutation `σ`](hyp:σ) in
+[dimension `d`](hyp:d) preserves the Gram geometry used by the observed precision matrices. -/
 theorem permMat_mul_transpose {d : ℕ} (σ : Equiv.Perm (Fin d)) :
     permMat σ * (permMat σ).transpose = 1 := by
   ext i k

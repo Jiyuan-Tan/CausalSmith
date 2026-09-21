@@ -4,31 +4,34 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
-import Causalean.Experimentation.DesignBased.Estimators.DifferenceInMeans
-import Mathlib.Tactic.NormNum
+module
+public import Causalean.Experimentation.DesignBased.Designs.CompleteRandomization
+public import Causalean.Experimentation.DesignBased.Estimators.DifferenceInMeans
+public import Mathlib.Tactic.NormNum
 
 /-!
 # Li & Ding (2017): finite-population moments of the simple-random-sampling mean
 
 Worked application of the complete-randomization design to Li & Ding (2017), "General Forms of
-Finite Population Central Limit Theorems with Applications to Causal Inference" (JASA).  Their
-foundational object (Theorem 1, after Hájek 1960) is the average `ȳ_S = (1/n) ∑_{i∈S} y_i` of a
+Finite Population Central Limit Theorems with Applications to Causal Inference" (JASA).  The
+central-limit theorem in that paper studies the average `ȳ_S = (1/n) ∑_{i∈S} y_i` of a
 **simple random sample** `S` of size `n` drawn from a fixed finite population `Π_N = {y_1,…,y_N}` —
 which is exactly the `completeRandomization` design on size-`n` subsets.  This file proves the two
-exact finite-sample moments that the Hájek central limit theorem is stated about:
+exact finite-sample moments used to center and standardize the associated finite-population CLT:
 
 * the sample mean is **unbiased** for the population mean, `E[ȳ_S] = ȳ_N`; and
 * its randomization variance is the classical sampling-without-replacement (Cochran) formula
   `Var(ȳ_S) = (1/n − 1/N)·v_N`, where `v_N = (1/(N−1)) ∑ (y_i − ȳ_N)²` is the finite-population
   variance.
 
-The Hájek CLT itself — `(ȳ_S − ȳ_N)/√Var(ȳ_S) ⇝ N(0,1)` under the Lindeberg-type condition
-`m_N/(v_N·min(n,N−n)) → 0`, where `m_N = maxᵢ (y_i − ȳ_N)²` — is the asymptotic result built on
-these moments.  This module formalizes the finite-population moments and the maximal-deviation
-quantity `popMaxSqDev`; it does not formalize the sequence-level convergence-in-distribution
-statement.
+Li and Ding use the sufficient maximal-deviation condition
+`m_N/(v_N·min(n,N−n)) → 0`, where `m_N = maxᵢ (y_i − ȳ_N)²`, for their asymptotic normality
+result.  This condition implies Hájek's weaker Lindeberg criterion; it is not the classical sharp
+criterion itself.  This module formalizes the exact finite-population moments and the quantity
+`popMaxSqDev`; the sequence-level central limit theorem is proved in the DesignBased development.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -57,8 +60,7 @@ noncomputable def popVar (y : U → ℝ) : ℝ :=
 for each unit](hyp:y), the [maximum squared deviation](goal) is the largest squared deviation of
 an outcome from the finite-population mean.
 
-This quantity is denoted by $m_N$ in the Hájek
-central-limit condition. -/
+This quantity is denoted by $m_N$ in the Li–Ding maximal-deviation sufficient condition. -/
 noncomputable def popMaxSqDev [Nonempty U] (y : U → ℝ) : ℝ :=
   Finset.univ.sup' Finset.univ_nonempty (fun i => (y i - popMean y) ^ 2)
 
@@ -70,20 +72,22 @@ zero. -/
 noncomputable def sampleMean (n : ℕ) (y : U → ℝ) (S : {S : Finset U // S.card = n}) : ℝ :=
   (∑ i, (if i ∈ S.val then y i else 0)) / (n : ℝ)
 
-/-- **Unbiasedness of the sample mean** (Li & Ding 2017, Thm 1 moments). For [a sample size that
+/-- **Unbiasedness of the sample mean.** For [a sample size that
 is positive](hyp:hn0) and [at most the population size](hyp:hn), [the mean of a simple random
 sample of that size, drawn without replacement from the finite population of outcomes `y`, is
 unbiased for the population mean](goal): each unit is sampled with probability `n/N`, which the
-`1/n` weight averages to `1/N`. -/
+`1/n` weight averages to `1/N`.  This is a classical sampling identity used in the setup of Li and
+Ding (2017), not their Theorem 1. -/
 theorem E_sampleMean (n : ℕ) (hn : n ≤ Fintype.card U) (hn0 : 0 < n) (y : U → ℝ) :
     (completeRandomization n hn).E (sampleMean n y) = popMean y :=
   -- `sampleMean n y` is definitionally the treated-arm mean of `y`, already proved unbiased.
   E_treatedMean n hn hn0 y
 
-/-- **Variance of the sample mean** (Li & Ding 2017, Thm 1 / Cochran). For [a sample size that is
+/-- **Variance of the sample mean.** For [a sample size that is
 positive](hyp:hn0) and [at most the population size](hyp:hn), when [the population contains at
 least two units](hyp:hN), [the randomization variance of the simple-random-sample mean equals
-`(1/n − 1/N)·v_N`, the sampling-without-replacement variance](goal). -/
+`(1/n − 1/N)·v_N`, the sampling-without-replacement variance](goal).  This is the classical
+sampling-without-replacement identity used by Li and Ding (2017), not their Theorem 1. -/
 theorem Var_sampleMean (n : ℕ) (hn : n ≤ Fintype.card U) (hn0 : 0 < n) (hN : 2 ≤ Fintype.card U)
     (y : U → ℝ) :
     (completeRandomization n hn).Var (sampleMean n y)

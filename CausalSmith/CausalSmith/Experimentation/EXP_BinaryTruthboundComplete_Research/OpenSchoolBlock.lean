@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
 
 /-! Descriptive carriers for the unresolved school-network application. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.BinaryTruthbound
 

@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSchedulePrior
-import Mathlib.Data.Nat.Choose.Sum
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSchedulePrior
+public import Mathlib.Data.Nat.Choose.Sum
 
 /-!
 Exact transformed-score fibers for the canonical two-arm schedule prior.
@@ -8,6 +9,8 @@ This module proves the binomial statistic law, its normalized boundary cases,
 and the state-independent uniform conditional score kernel used by the
 Rao--Blackwell assembly.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

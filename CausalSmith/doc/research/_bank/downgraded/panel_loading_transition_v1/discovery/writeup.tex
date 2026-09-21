@@ -1,0 +1,1832 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{panel\_\allowbreak{}loading\_\allowbreak{}transition}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} A strong donor block identifies the missing untreated panel mean as \(\theta_n=uA^+v\). The donor-only interval \(I_n^{\mathrm{out}}\) retains the bilinear transition term through an exact conditional Gaussian reduction, covers uniformly without a target-loading lower bound, has expected length of order \(w_n=a_n+b_n\), and attains the Gaussian oracle constant along every first-order-dominant sequence. The corrected canonical comparison uses Yan--Wainwright's normalization \(\omega=\sigma(n+1)\), giving global noise ratio \(O(n^{-1/2})\) and local ratios \(O(n^{-3/2})\). A measurable dyadic encoding plus residual-certified directed arithmetic now yields the same coverage and length guarantees, including uniformly negligible numerical padding, under exact-dyadic public controls.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing four-block panel intervals are sharp only after a target-loading lower bound, while generic first-order-degeneracy inference assumes that the primitive Gaussian experiment and its covariance are already available. Neither literature controls donor-SVD target drift at the quadratic \(n^{-1}\) width or certifies floating-point endpoints.
+
+\paragraph{Niche.} Known-rank Gaussian strong-donor panels isolate a finite-dimensional bilinear reduced experiment while retaining the repeated-spectrum, joint-zero, and arbitrarily slow-transition cases that defeat a single delta-method normalization.
+
+\paragraph{Fill.} The project derives the donor-conditional experiment, constructs an analytic outer interval with an observable donor allowance and bounded fallback, proves transition-order and every-sequence oracle length results, and supplies a certified implementation. The implementation measurably encodes the continuous Gaussian observations, constructs inverse candidates by residual-certified Newton--Schulz iteration, encloses invariant projectors with an explicit matrix-sign truncation tail, propagates noncommutative rounding error through a solved recurrence, and falls back to a bounded branch hull whenever the spectral decision is uncertain.
+
+\section{Related work}
+
+Yan and Wainwright (2024) supply the four-block spectral estimator, regular Gaussian interval, and lower-bound architecture. Under their variance convention the present embedded \((n+1)\)-by-\((n+1)\) model has \(\omega=\sigma(n+1)\), so their global noise quantity is \(O(n^{-1/2})\), while the local quantities in condition \(4.4\) are \(O(n^{-3/2})\); these corrected rates still verify conditions \(4.1\)--\(4.4\mathrm b\), and joint-zero loadings fail condition \(4.4\mathrm c\). The upper extension is only on this canonical square one-target subclass, never the full published class. Bei and Navjeevan (2026) supply the general first-order-degeneracy perspective, whereas the present contribution is the strong-donor panel transfer, observable donor allowance, all-sequence length theorem, and certified computation. Xia, Yan, and Wainwright (2025) and CAST are the same-question consumers. Verified-SVD and floating-point references motivate individual numerical ingredients but do not themselves prove the combined coverage-preserving implementation; that claim is derived here under the stated exact-dyadic public-control model.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_n=uA^+v\).
+Primary functional / estimator / diagnostic: \(I_n^{\mathrm{out}}=\begin{cases}[\widehat\theta_n-\sigma^2W_n-d_n,\widehat\theta_n+\sigma^2W_n+d_n],&\text{if }G_n,\\{}[-B^2/c,B^2/c],&\text{if }G_n^c.\end{cases}\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{positive integer}; \(\mathbb N\); \texttt{panel dimension}
+  \item \texttt{r0} --- \texttt{positive integer}; \(\mathbb N\); \texttt{fixed rank ceiling}
+  \item \texttt{r} --- \texttt{positive integer}; \(\{1,\ldots,r_0\}\); \texttt{known fixed rank}
+  \item \texttt{alpha} --- \texttt{real number}; \((0,1/2)\); \texttt{miscoverage level}
+  \item \texttt{sigma} --- \texttt{positive real number}; \((0,\infty)\); \texttt{known noise standard deviation}
+  \item \texttt{c} --- \texttt{positive real number}; \((0,1]\); \texttt{least-\allowbreak{}signal constant}
+  \item \texttt{C0} --- \texttt{real number}; \([2,\infty)\); \texttt{largest-\allowbreak{}signal constant}
+  \item \texttt{mu} --- \texttt{real number}; \([1,\infty)\); \texttt{incoherence constant}
+  \item \texttt{B} --- \texttt{real number}; \([3,\infty)\); \texttt{entry bound}
+  \item \texttt{delta} --- \texttt{positive real number}; \((0,\infty)\); \texttt{interior slack}
+  \item \texttt{A} --- \texttt{deterministic matrix}; \(\mathbb R^{n\times n}\); \texttt{donor mean matrix}
+  \item \texttt{U} --- \texttt{deterministic matrix}; \(\mathbb R^{n\times r}\); \texttt{donor left singular space}
+  \par\smallskip\noindent\emph{Definition.} compact left singular-vector matrix of \(A\)
+  \item \texttt{S} --- \texttt{deterministic diagonal matrix}; \(\mathbb R^{r\times r}\); \texttt{donor spectrum}
+  \par\smallskip\noindent\emph{Definition.} positive singular-value matrix of \(A\)
+  \item \texttt{V} --- \texttt{deterministic matrix}; \(\mathbb R^{n\times r}\); \texttt{donor right singular space}
+  \par\smallskip\noindent\emph{Definition.} compact right singular-vector matrix of \(A\)
+  \item \texttt{u} --- \texttt{deterministic row vector}; \(\mathbb R^{1\times n}\); \texttt{target row mean}
+  \item \texttt{v} --- \texttt{deterministic column vector}; \(\mathbb R^{n\times1}\); \texttt{target column mean}
+  \item \texttt{E} --- \texttt{random matrix}; \(\mathbb R^{n\times n}\); \texttt{donor noise}
+  \item \texttt{e} --- \texttt{random row vector}; \(\mathbb R^{1\times n}\); \texttt{row noise}
+  \item \texttt{f} --- \texttt{random column vector}; \(\mathbb R^{n\times1}\); \texttt{column noise}
+  \item \texttt{X} --- \texttt{random matrix}; \(\mathbb R^{n\times n}\); \texttt{observed donor block}
+  \par\smallskip\noindent\emph{Definition.} \(X=A+E\)
+  \item \texttt{R} --- \texttt{random row vector}; \(\mathbb R^{1\times n}\); \texttt{observed target row}
+  \par\smallskip\noindent\emph{Definition.} \(R=u+e\)
+  \item \texttt{C} --- \texttt{random column vector}; \(\mathbb R^{n\times1}\); \texttt{observed target column}
+  \par\smallskip\noindent\emph{Definition.} \(C=v+f\)
+  \item \texttt{P} --- \texttt{probability law}; \texttt{generic data-\allowbreak{}generating law}
+  \par\smallskip\noindent\emph{Definition.} law of \((X,R,C)\) indexed by \((A,u,v)\)
+  \item \texttt{Q} --- \texttt{probability law}; \texttt{generic local alternative}
+  \par\smallskip\noindent\emph{Definition.} alternative law indexed by \((A_Q,u_Q,v_Q)\)
+  \item \texttt{calP} --- \texttt{class of probability laws}; \(\mathcal P_n\); \texttt{strong-\allowbreak{}donor model class}
+  \item \texttt{Aplus} --- \texttt{deterministic matrix}; \(\mathbb R^{n\times n}\); \texttt{population inverse map}
+  \par\smallskip\noindent\emph{Definition.} Moore--Penrose pseudoinverse \(A^+\)
+  \item \texttt{theta} --- \texttt{real number}; \texttt{missing untreated mean}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_n=uA^+v\)
+  \item \texttt{a} --- \texttt{nonnegative real number}; \texttt{first-\allowbreak{}order transition scale}
+  \item \texttt{b} --- \texttt{positive real number}; \texttt{second-\allowbreak{}order transition scale}
+  \item \texttt{w} --- \texttt{positive real number}; \texttt{total transition scale}
+  \item \texttt{Xr} --- \texttt{random rank-\allowbreak{}r matrix}; \(\mathbb R^{n\times n}\); rank-r truncation of \(X\)
+  \item \texttt{Uhat} --- \texttt{random matrix}; \(\mathbb R^{n\times r}\); \texttt{retained left singular vectors}
+  \item \texttt{Shat} --- \texttt{random diagonal matrix}; \(\mathbb R^{r\times r}\); \texttt{retained singular values}
+  \item \texttt{Vhat} --- \texttt{random matrix}; \(\mathbb R^{n\times r}\); \texttt{retained right singular vectors}
+  \item \texttt{G} --- \texttt{event}; \texttt{spectral gate}
+  \item \texttt{D} --- \texttt{random diagonal matrix}; \(\mathbb R^{r\times r}\); \texttt{retained inverse singular values}
+  \item \texttt{Zp} --- \texttt{random vector}; \(\mathbb R^r\); \texttt{projected row coordinate}
+  \item \texttt{Zq} --- \texttt{random vector}; \(\mathbb R^r\); \texttt{projected column coordinate}
+  \item \texttt{Z} --- \texttt{random vector}; \(\mathbb R^{2r}\); \texttt{stacked reduced coordinate}
+  \item \texttt{m} --- \texttt{random conditional-\allowbreak{}mean vector}; \(\mathbb R^{2r}\); mean of \(Z\) conditional on \(X\)
+  \item \texttt{mp} --- \texttt{random conditional-\allowbreak{}mean vector}; \(\mathbb R^r\); row component of \(m\)
+  \item \texttt{mq} --- \texttt{random conditional-\allowbreak{}mean vector}; \(\mathbb R^r\); column component of \(m\)
+  \item \texttt{xi} --- \texttt{random vector}; \(\mathbb R^{2r}\); \texttt{centered reduced noise}
+  \item \texttt{sm} --- \texttt{function}; \(\mathbb R^{2r}\to[0,\infty)\); \texttt{conditional gradient scale}
+  \item \texttt{thetaX} --- \texttt{real number}; \texttt{donor-\allowbreak{}conditional target}
+  \par\smallskip\noindent\emph{Definition.} \(\theta_{X,n}=uX_r^+v\)
+  \item \texttt{thetahat} --- \texttt{real-\allowbreak{}valued statistic}; \texttt{spectral plug-\allowbreak{}in center}
+  \item \texttt{h} --- \texttt{positive real-\allowbreak{}valued statistic}; \texttt{conditional curvature scale}
+  \item \texttt{sZ} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{observed conditional gradient scale}
+  \item \texttt{tZ} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{observed gradient-\allowbreak{}to-\allowbreak{}curvature ratio}
+  \item \texttt{Phi} --- \texttt{distribution function}; \texttt{Gaussian calibration}
+  \par\smallskip\noindent\emph{Definition.} standard normal distribution function \(\Phi\)
+  \item \texttt{Fchi} --- \texttt{distribution function}; \texttt{radial calibration}
+  \par\smallskip\noindent\emph{Definition.} distribution function \(F_{\chi^2_{2r}}\)
+  \item \texttt{beta} --- \texttt{function}; \([0,\infty)\to(0,\alpha/4]\); \texttt{tail allocation}
+  \item \texttt{rho} --- \texttt{function}; \([0,\infty)\to(0,\infty)\); \texttt{radial critical value}
+  \item \texttt{zeta} --- \texttt{function}; \([0,\infty)\to(0,\infty)\); \texttt{linear critical value}
+  \item \texttt{Cr} --- \texttt{positive real number}; \texttt{chi-\allowbreak{}square envelope constant}
+  \item \texttt{Ar} --- \texttt{positive real number}; \texttt{localization constant}
+  \item \texttt{Rzero} --- \texttt{positive real-\allowbreak{}valued statistic}; \texttt{observable localization radius}
+  \item \texttt{tminus} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{lower localized signal ratio}
+  \item \texttt{tplus} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{upper localized signal ratio}
+  \item \texttt{W} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{analytic Gaussian outer half-\allowbreak{}width}
+  \item \texttt{ell} --- \texttt{positive real number}; \texttt{logarithmic donor factor}
+  \item \texttt{Axi} --- \texttt{positive real number}; \texttt{projected-\allowbreak{}noise envelope constant}
+  \item \texttt{Agamma} --- \texttt{positive real number}; \texttt{compressed-\allowbreak{}donor envelope constant}
+  \item \texttt{CT} --- \texttt{positive real number}; \texttt{sandwich perturbation constant}
+  \item \texttt{K0} --- \texttt{positive real number}; \texttt{explicit donor-\allowbreak{}allowance constant}
+  \item \texttt{d} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{observable donor-\allowbreak{}target allowance}
+  \item \texttt{M0} --- \texttt{positive real number}; \texttt{bounded fallback radius}
+  \item \texttt{Iout} --- \texttt{random closed interval}; \(I_n^{\mathrm{out}}\subset\mathbb R\); \texttt{exact-\allowbreak{}real analytic outer confidence interval}
+  \item \texttt{KL} --- \texttt{function}; \(\mathcal P_n\times\mathcal P_n\to[0,\infty)\); \texttt{Gaussian Kullback-\allowbreak{}-\allowbreak{}Leibler divergence}
+  \item \texttt{Nloc} --- \texttt{set of probability laws}; \(\mathcal N_n(P)\subseteq\mathcal P_n\); \texttt{unit Kullback-\allowbreak{}-\allowbreak{}Leibler neighborhood}
+  \item \texttt{Lin} --- \texttt{positive integer sequence}; \(\mathbb N^{\mathbb N}\); \texttt{encoded-\allowbreak{}input bit-\allowbreak{}length bound}
+  \item \texttt{pbits} --- \texttt{positive integer sequence}; \(\mathbb N^{\mathbb N}\); \texttt{observation-\allowbreak{}encoding precision schedule}
+  \item \texttt{qbits} --- \texttt{positive integer sequence}; \(\mathbb N^{\mathbb N}\); \texttt{directed-\allowbreak{}arithmetic working-\allowbreak{}precision schedule}
+  \item \texttt{Tenc} --- \texttt{positive real sequence}; \((0,\infty)^{\mathbb N}\); \texttt{observable encoding-\allowbreak{}range threshold}
+  \par\smallskip\noindent\emph{Definition.} \(T_n^{\mathrm{enc}}=2^{L_n-p_n-\lceil\log_2(p_n+2)\rceil-4}\)
+  \item \texttt{Ddyad} --- \texttt{set of exact dyadic rationals}; \(\mathbb D_{L_n}\); \texttt{bounded exact-\allowbreak{}input alphabet}
+  \par\smallskip\noindent\emph{Definition.} signed dyadic rationals whose numerator and exponent have total binary encoding length at most \(L_n\)
+  \item \texttt{Enc} --- \texttt{measurable function}; \(\mathbb R^{n^2+2n}\to\mathbb D_{L_n}^{n^2+2n}\times\{0,1\}\); \texttt{real-\allowbreak{}observation dyadic encoding map}
+  \item \texttt{Xdy} --- \texttt{exact dyadic matrix}; \(\mathbb D_{L_n}^{n\times n}\); \texttt{encoded donor block}
+  \item \texttt{Rdy} --- \texttt{exact dyadic row vector}; \(\mathbb D_{L_n}^{1\times n}\); \texttt{encoded target row}
+  \item \texttt{Cdy} --- \texttt{exact dyadic column vector}; \(\mathbb D_{L_n}^{n\times1}\); \texttt{encoded target column}
+  \item \texttt{kappa} --- \texttt{binary random variable}; \(\{0,1\}\); \texttt{encoding-\allowbreak{}range exception flag}
+  \item \texttt{Fdir} --- \texttt{directed-\allowbreak{}rounding arithmetic family}; \((\mathbb F_{n,q_n}^{\downarrow},\mathbb F_{n,q_n}^{\uparrow})_{n\ge1}\); \texttt{radix-\allowbreak{}two finite-\allowbreak{}precision execution model}
+  \item \texttt{eta} --- \texttt{positive real sequence}; \((0,1)^{\mathbb N}\); \texttt{unit-\allowbreak{}roundoff schedule}
+  \par\smallskip\noindent\emph{Definition.} \(\eta_n=2^{1-q_n}\)
+  \item \texttt{Idy} --- \texttt{closed interval}; \(I_n^{\mathrm{dyad}}\subset\mathbb R\); \texttt{deterministically certified interval from exact dyadic data}
+  \item \texttt{Ifp} --- \texttt{random closed interval}; \(I_n^{\mathrm{fp}}\subset\mathbb R\); \texttt{composed encoded finite-\allowbreak{}precision interval}
+  \item \texttt{J} --- \texttt{sequence of random closed intervals}; \((J_n)_{n\ge1}\); \texttt{generic honest comparator interval}
+  \item \texttt{epsilon} --- \texttt{nonnegative real-\allowbreak{}valued random variable}; \texttt{composed-\allowbreak{}procedure excess length}
+  \item \texttt{Deltaenc} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{certified propagation radius for observation encoding}
+  \item \texttt{Deltaarith} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{certified directed-\allowbreak{}arithmetic padding radius}
+  \item \texttt{Deltanum} --- \texttt{nonnegative real-\allowbreak{}valued statistic}; \texttt{total certified encoding and arithmetic padding radius}
+  \item \texttt{Hcert} --- \texttt{construction handle}; \texttt{certified implementation route}
+  \item \texttt{K} --- \texttt{positive real number}; \texttt{class-\allowbreak{}dependent finite constant}
+  \item \texttt{Kalpha} --- \texttt{positive real number}; \texttt{finite upper-\allowbreak{}bound constant}
+  \item \texttt{kalpha} --- \texttt{positive real number}; \texttt{positive local lower-\allowbreak{}bound constant}
+  \item \texttt{Mbar} --- \texttt{deterministic matrix}; \(\mathbb R^{(n+1)\times(n+1)}\); \texttt{augmented one-\allowbreak{}target four-\allowbreak{}block mean}
+  \par\smallskip\noindent\emph{Definition.} \(\overline M_n=\begin{bmatrix}A&v\\u&uA^+v\end{bmatrix}\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:exact-rank]\label{ass:exact-rank}
+\(\operatorname{rank}(A)=r\)
+\par\smallskip\noindent\emph{Standard} (exact fixed-rank factor structure, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:strong-spectrum]\label{ass:strong-spectrum}
+\(cn\le s_r(A)\le s_1(A)\le C_0n\)
+\par\smallskip\noindent\emph{Standard} (strong-factor spectral scaling, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:incoherence]\label{ass:incoherence}
+\(\max\{\|U\|_{2,\infty},\|V\|_{2,\infty}\}\le\sqrt{\mu r/n}\)
+\par\smallskip\noindent\emph{Standard} (matrix incoherence, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:bounded-entries]\label{ass:bounded-entries}
+\(\max\{\|A\|_{\max},\|u\|_{\infty},\|v\|_{\infty}\}\le B\)
+\par\smallskip\noindent\emph{Standard} (uniform bounded-entry condition, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:row-span]\label{ass:row-span}
+\(u\in\operatorname{row}(A)\)
+\par\smallskip\noindent\emph{Standard} (target-row span condition, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:column-span]\label{ass:column-span}
+\(v\in\operatorname{col}(A)\)
+\par\smallskip\noindent\emph{Standard} (target-column span condition, \cite{YanWainwright2024}).
+\end{assumption}
+
+\begin{assumption}[ass:gaussian-blocks]\label{ass:gaussian-blocks}
+\(\operatorname{vec}(E,e,f)\sim\mathcal N(0,\sigma^2 I_{n^2+2n})\)
+\par\smallskip\noindent\emph{Standard} (independent homoskedastic Gaussian block noise, \cite{YanWainwright2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} Strong-donor class \(\mathcal P_n\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal P_n=\{P=P_{A,u,v}:\operatorname{rank}(A)=r,\ cn\le s_r(A)\le s_1(A)\le C_0n,\ \max(\|U\|_{2,\infty},\|V\|_{2,\infty})\le\sqrt{\mu r/n},\ \max(\|A\|_{\max},\|u\|_\infty,\|v\|_\infty)\le B,\ u\in\operatorname{row}(A),\ v\in\operatorname{col}(A),\ \operatorname{vec}(E,e,f)\sim\mathcal N(0,\sigma^2I_{n^2+2n}),\ 1\le r\le r_0\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}exact-\allowbreak{}rank}; \texttt{ass:\allowbreak{}strong-\allowbreak{}spectrum}; \texttt{ass:\allowbreak{}incoherence}; \texttt{ass:\allowbreak{}bounded-\allowbreak{}entries}; \texttt{ass:\allowbreak{}row-\allowbreak{}span}; \texttt{ass:\allowbreak{}column-\allowbreak{}span}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}blocks}.
+\end{definition}
+
+\begin{definition}[def:transition-scale]\label{def:transition-scale}
+\par\smallskip\noindent\emph{Defined object.} Transition scales \(a_n,b_n,w_n\)
+\par\smallskip\noindent\emph{Construction.} \(a_n=\sigma\sqrt{\|uA^+\|_2^2+\|A^+v\|_2^2},\quad b_n=\sigma^2\|A^+\|_{\mathrm F},\quad w_n=a_n+b_n\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Aplus}; \texttt{u}; \texttt{v}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:donor-tsvd]\label{def:donor-tsvd}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Donor-\allowbreak{}only rank-\allowbreak{}r truncated SVD}
+\par\smallskip\noindent\emph{Construction.} \(X_r=\widehat U\widehat S\widehat V^{\top}\in\arg\min_{\operatorname{rank}(M)\le r}\|X-M\|_{\mathrm F}\), with a fixed measurable convention for singular subspaces
+\par\smallskip\noindent\emph{Inputs.} \texttt{X}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:spectral-gate]\label{def:spectral-gate}
+\par\smallskip\noindent\emph{Defined object.} Spectral gate \(G_n\)
+\par\smallskip\noindent\emph{Construction.} \(G_n=\{s_r(X)\ge cn/2,\ s_1(X)\le2C_0n\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{X}; \texttt{r}; \texttt{c}; \texttt{C0}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:gaussian-coordinates]\label{def:gaussian-coordinates}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Donor-\allowbreak{}conditional reduced coordinates}
+\par\smallskip\noindent\emph{Construction.} On \(G_n\), \(D_n=\widehat S^{-1}\), \(Z_{p,n}=(R\widehat V)^{\top}/\sigma\), \(Z_{q,n}=\widehat U^{\top}C/\sigma\), \(m_{p,n}=(u\widehat V)^{\top}/\sigma\), \(m_{q,n}=\widehat U^{\top}v/\sigma\), \(Z_n=(Z_{p,n}^{\top},Z_{q,n}^{\top})^{\top}\), \(m_n=(m_{p,n}^{\top},m_{q,n}^{\top})^{\top}\), and \(\xi_n=Z_n-m_n\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Uhat}; \texttt{Shat}; \texttt{Vhat}; \texttt{R}; \texttt{C}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:calibration]\label{def:calibration}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Localized Gaussian calibration}
+\par\smallskip\noindent\emph{Construction.} For \(t\ge0\), \(\beta_\alpha(t)=\alpha/[4(1+t)]\), \(\rho_\alpha(t)=\sqrt{F^{-1}_{\chi^2_{2r}}(1-\beta_\alpha(t))}\), \(\zeta_\alpha(t)=\Phi^{-1}(1-[\alpha-\beta_\alpha(t)]/2)\), \(C_{r,\alpha}=4r+3\log(4/\alpha)+3\), and \(A_{r,\alpha}=\max\{2,4C_{r,\alpha}\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{alpha}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:conditional-gradient]\label{def:conditional-gradient}
+\par\smallskip\noindent\emph{Defined object.} Conditional gradient scale \(s_D(m)\)
+\par\smallskip\noindent\emph{Construction.} For \(m=(m_p^{\top},m_q^{\top})^{\top}\), \(s_D(m)=\sqrt{\|Dm_q\|_2^2+\|D^{\top}m_p\|_2^2}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{m}; \texttt{D}.
+\end{definition}
+
+\begin{definition}[def:analytic-halfwidth]\label{def:analytic-halfwidth}
+\par\smallskip\noindent\emph{Defined object.} Analytic Gaussian outer half-width \(W_n\)
+\par\smallskip\noindent\emph{Construction.} \(\widehat\theta_n=\sigma^2Z_{p,n}^{\top}D_nZ_{q,n}\), \(h_n=\|D_n\|_{\mathrm{op}}\), \(s_{Z,n}=\sqrt{\|D_nZ_{q,n}\|_2^2+\|D_n^{\top}Z_{p,n}\|_2^2}\), \(t_{Z,n}=s_{Z,n}/h_n\), \(R_{0,n}=\sqrt{C_{r,\alpha}\log(e+2t_{Z,n}+A_{r,\alpha})}\), \(t_{-,n}=\max\{0,t_{Z,n}-R_{0,n}\}\), \(t_{+,n}=t_{Z,n}+R_{0,n}\), and \(W_n=h_n[\zeta_\alpha(t_{-,n})t_{+,n}+C_{r,\alpha}\log(e+t_{+,n})/2]\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}; \texttt{Zp}; \texttt{Zq}; \texttt{sigma}; \texttt{alpha}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:donor-allowance]\label{def:donor-allowance}
+\par\smallskip\noindent\emph{Defined object.} Observable donor allowance \(d_n\)
+\par\smallskip\noindent\emph{Construction.} Let \(A_\xi=\sqrt{r_0}+\sqrt{12}\), \(A_\gamma=\sigma(r_0+\sqrt{12})\), \(C_T=3A_\gamma/(2c^2)+54\sigma^2/c^3\), \(K_0=9A_\xi^2C_T/8\), and \(\ell_n=\log(e+n)\); then \(d_n=K_0\sigma^2\ell_n n^{-2}(\|Z_{p,n}\|_2+\sqrt{\ell_n})(\|Z_{q,n}\|_2+\sqrt{\ell_n})\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Zp}; \texttt{Zq}; \texttt{r0}; \texttt{sigma}; \texttt{c}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:analytic-interval]\label{def:analytic-interval}
+\par\smallskip\noindent\emph{Defined object.} Exact-real analytic outer interval \(I_n^{\mathrm{out}}\)
+\par\smallskip\noindent\emph{Construction.} Let \(M_0=B^2/c\). On \(G_n\), set \(I_n^{\mathrm{out}}=[\widehat\theta_n-\sigma^2W_n-d_n,\widehat\theta_n+\sigma^2W_n+d_n]\); on \(G_n^c\), set \(I_n^{\mathrm{out}}=[-M_0,M_0]\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{thetahat}; \texttt{W}; \texttt{d}; \texttt{B}; \texttt{c}.
+\end{definition}
+
+\begin{definition}[def:local-neighborhood]\label{def:local-neighborhood}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Interior local Kullback-\allowbreak{}-\allowbreak{}Leibler neighborhood}
+\par\smallskip\noindent\emph{Construction.} For \(P=P_{A,u,v}\) and \(Q=P_{A_Q,u_Q,v_Q}\), \(\operatorname{KL}(P,Q)=[\|A-A_Q\|_{\mathrm F}^2+\|u-u_Q\|_2^2+\|v-v_Q\|_2^2]/(2\sigma^2)\) and \(\mathcal N_n(P)=\{Q\in\mathcal P_n:\operatorname{KL}(P,Q)\le1\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{calP}; \texttt{sigma}.
+\end{definition}
+
+\begin{definition}[def:observation-encoding]\label{def:observation-encoding}
+\par\smallskip\noindent\emph{Defined object.} Measurable observation encoding \(\mathsf{Enc}_{p_n,L_n}\)
+\par\smallskip\noindent\emph{Construction.} For \(y=(\operatorname{vec}(X)^{\top},R,C^{\top})^{\top}\), let \(T_n^{\mathrm{enc}}=2^{L_n-p_n-\lceil\log_2(p_n+2)\rceil-4}\), \(\kappa_n=\mathbf 1\{\|y\|_\infty>T_n^{\mathrm{enc}}\}\), and \(\operatorname{rnd}_{p_n}(x)=2^{-p_n}\operatorname{nint}_{\mathrm{even}}(2^{p_n}x)\), where \(\operatorname{nint}_{\mathrm{even}}\) is nearest-integer rounding with ties to an even integer. Set \((\widetilde X,\widetilde R,\widetilde C)\) coordinatewise to \(\operatorname{rnd}_{p_n}(y)\) when \(\kappa_n=0\), and to zero when \(\kappa_n=1\). Thus \(\mathsf{Enc}_{p_n,L_n}(X,R,C)=(\widetilde X,\widetilde R,\widetilde C,\kappa_n)\); on \(\kappa_n=0\), every coordinate error is at most \(2^{-p_n-1}\), and every encoded numerator and exponent has total binary length at most \(L_n\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{X}; \texttt{R}; \texttt{C}; \texttt{pbits}; \texttt{Lin}.
+\end{definition}
+
+\begin{definition}[def:directed-rounding-model]\label{def:directed-rounding-model}
+\par\smallskip\noindent\emph{Defined object.} Exact-dyadic directed-rounding model \(\mathbb F_n^{\mathrm{dir}}\)
+\par\smallskip\noindent\emph{Construction.} The deterministic input consists of exact signed dyadic arrays \(\widetilde X,\widetilde R,\widetilde C\), exact dyadic public controls \(\alpha,\sigma,c,C_0,B\), and exact integer controls, each with total numerator, exponent, and control-description bit length at most \(L_n\).  Computation uses MPFR-equivalent radix-two arithmetic with a \(q_n\)-bit normalized significand, correctly rounded operations in both round-toward-minus-infinity and round-toward-plus-infinity modes, and an arbitrary-precision signed exponent.  Overflow and subnormal values therefore do not occur in this abstract model.  An IEEE 754 backend must instead apply certified exact power-of-two rescaling, widen its exponent range before endpoint emission whenever an overflow or subnormal flag is possible, and reject every flushed value.  Bit cost counts \(n,L_n,p_n,q_n,\lceil\log_2(1/\alpha)\rceil\) and the bit lengths of all dynamically stored exponents.  A corollary using a refinable non-dyadic public control is outside this input model unless it supplies a known uniform time-and-output-size modulus, incorporates that modulus into \(L_n\), and records the returned control interval as input uncertainty.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Xdy}; \texttt{Rdy}; \texttt{Cdy}; \texttt{alpha}; \texttt{sigma}; \texttt{c}; \texttt{C0}; \texttt{B}; \texttt{Lin}; \texttt{pbits}; \texttt{qbits}.
+\end{definition}
+
+\begin{definition}[def:certified-handle]\label{def:certified-handle}
+\par\smallskip\noindent\emph{Defined object.} Certified outward-arithmetic handle \(H_n^{\mathrm{cert}}\)
+\par\smallskip\noindent\emph{Construction.} Starting from exact dyadic \((\widetilde X,\widetilde R,\widetilde C)\), their coordinate boxes of radius \(2^{-p_n-1}\), and exact dyadic public controls, adaptively double the working precision in \(\mathbb F_n^{\mathrm{dir}}\) up to a prescribed polynomial cap.  Every scalar, vector, and matrix node \(x\) carries a computed center \(\widehat x\) and an outward radius \(r(x)\).  For a directed scalar operation \(j\), store an integer \(e_j\) bounding its exact-result magnitude by \(2^{e_j}\), assign radius \(2^{e_j-q_n}\), and define \(\omega_q\) for a compound node as the normwise sum of those scalar radii with the appropriate dimension factors.  Propagate radii by
+\[
+r(x\mathbin\pm y)=r(x)+r(y)+\omega_q,
+\qquad
+r(xy)=\|\widehat x\|r(y)+\|\widehat y\|r(x)+r(x)r(y)+\omega_q,
+\]
+\[
+r(g(x))=\sup_{z\in J}|g'(z)|r(x)+\omega_q
+\]
+for scalar \(g\) on the current interval \(J\).  For a candidate inverse \(L\), accept only if
+\[
+\varrho=\|I-\widehat K L\|+r(K)\|L\|<1,
+\qquad
+r(K^{-1})={\|L\|\varrho\over1-\varrho}+\omega_q.
+\]
+For each matrix-sign update use
+\[
+S^+=(S+S^{-1})/2,
+\qquad
+r(S^+)={1\over2}\{r(S)+r(S^{-1})\}+\omega_q.
+\]
+Construct the whole retained invariant projectors, the residual-certified pseudoinverse, matrix products, norms, scalar calibration, and endpoints with these recurrences.  Use a three-way accept--reject--uncertain spectral gate: accept or reject only after the full singular-value enclosure separates the threshold, and on uncertainty return the outward hull of the off-gate interval \([-M_0,M_0]\) and every feasible on-gate enclosure.  Enclose \(\Phi^{-1}\) and \(F_{\chi^2_{2r}}^{-1}\) by directed rational evaluation followed by probability-bracketed bisection until the quantile enclosure for \(Q\) has width at most \(8\cdot2^{1-q_n}(1+|Q|)\).  Record input-box propagation as \(\Delta_n^{\mathrm{enc}}\), arithmetic and branching propagation as \(\Delta_n^{\mathrm{arith}}\), and return \(I_n^{\mathrm{dyad}}\) only with the resulting containment certificate.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Xdy}; \texttt{Rdy}; \texttt{Cdy}; \texttt{r}; \texttt{alpha}; \texttt{sigma}; \texttt{c}; \texttt{C0}; \texttt{B}; \texttt{Lin}; \texttt{pbits}; \texttt{qbits}; \texttt{Fdir}.
+\end{definition}
+
+\begin{definition}[def:composed-encoded-interval]\label{def:composed-encoded-interval}
+\par\smallskip\noindent\emph{Defined object.} Composed encoded interval \(I_n^{\mathrm{fp}}\)
+\par\smallskip\noindent\emph{Construction.} Apply \(\mathsf{Enc}_{p_n,L_n}\) to the real Gaussian observations. Set \(I_n^{\mathrm{fp}}=I_n^{\mathrm{dyad}}\) when \(\kappa_n=0\), where \(I_n^{\mathrm{dyad}}\) is returned by \(H_n^{\mathrm{cert}}\) from the exact dyadic arrays and their coordinate-error boxes; set \(I_n^{\mathrm{fp}}=[-M_0,M_0]\) when \(\kappa_n=1\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Enc}; \texttt{X}; \texttt{R}; \texttt{C}; \texttt{Hcert}; \texttt{M0}.
+\end{definition}
+
+\begin{definition}[def:finite-precision-excess]\label{def:finite-precision-excess}
+\par\smallskip\noindent\emph{Defined object.} Composed-procedure excess length \(\varepsilon_n\)
+\par\smallskip\noindent\emph{Construction.} \(\varepsilon_n=[\operatorname{length}(I_n^{\mathrm{fp}})-\operatorname{length}(I_n^{\mathrm{out}})]_+\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Ifp}; \texttt{Iout}.
+\end{definition}
+
+\begin{definition}[def:numerical-padding]\label{def:numerical-padding}
+\par\smallskip\noindent\emph{Defined object.} Certified numerical padding \(\Delta_n^{\mathrm{num}}\)
+\par\smallskip\noindent\emph{Construction.} On \(\kappa_n=0\), let \(\Delta_n^{\mathrm{enc}}\) be the sum of the nonnegative radii obtained by propagating the deterministic coordinate error \(2^{-p_n-1}\) through the certified recurrence, let \(\Delta_n^{\mathrm{arith}}\) be the sum of the nonnegative outward radii for retained-projector and pseudoinverse enclosure, matrix-sign and residual-inverse steps, gate classification, normal and chi-square quantiles, scalar calibration, interval wrapping, and final endpoint rounding, and set \(\Delta_n^{\mathrm{num}}=\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}\).  On \(\kappa_n=1\), the handle is not run; extend every summand of \(\Delta_n^{\mathrm{enc}}\) and \(\Delta_n^{\mathrm{arith}}\) by zero and set \(\Delta_n^{\mathrm{num}}=M_0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Enc}; \texttt{Hcert}; \texttt{Fdir}; \texttt{pbits}; \texttt{qbits}; \texttt{Lin}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:conditional-reduction]\label{lem:conditional-reduction}
+Uniformly over \(P\in\mathcal P_n\), conditional on \(X\) and on \(G_n\), \(Z_n=m_n+\xi_n\) with \(\xi_n\sim\mathcal N(0,I_{2r})\), \(\theta_{X,n}=\sigma^2m_{p,n}^{\top}D_nm_{q,n}\), \(\sup_{P\in\mathcal P_n}P(|\theta_{X,n}-\theta_n|>d_n,\,G_n)\le e^{-n/2}+3(e+n)^{-6}\), and \(\sup_{P\in\mathcal P_n}\mathbb E_P[d_n\mathbf 1\{G_n\}]/w_n\le K[\ell_n/\sqrt n+\ell_n^2/n]\to0\) for a fixed class-dependent \(K<\infty\).
+\end{lemma}
+\begin{proof}
+Write \(A=USV^{\top}\).  The span assumptions give unique coordinates \(x,y\in\mathbb R^r\) such that \(u=x^{\top}V^{\top}\) and \(v=Uy\), with \(\|x\|_2=\|u\|_2\) and \(\|y\|_2=\|v\|_2\).  Conditional on \(X\), the matrices \(\widehat U,\widehat S,\widehat V\) are fixed.  By the block independence in \(\textnormal{ass:gaussian-blocks}\),
+\[
+ (e\widehat V)^{\top}/\sigma\sim N(0,I_r),\qquad
+ \widehat U^{\top}f/\sigma\sim N(0,I_r),
+\]
+independently of one another and of \(X\).  This proves the asserted conditional experiment \(Z=m+\xi\), \(\xi\sim N(0,I_{2r})\).  Moreover,
+\[
+ \sigma^2m_p^{\top}Dm_q
+ =u\widehat V\widehat S^{-1}\widehat U^{\top}v
+ =uX_r^+v=\theta_X.
+\]
+
+We next prove the donor comparison, including the constants needed by the stated allowance.  Put \(e_0=\|E\|_{\mathrm{op}}\), \(L=U^{\top}\widehat U\), \(M=V^{\top}\widehat V\), and suppose first that \(e_0\le cn/4\).  The singular equations and the fact that \((I-UU^{\top})A=0\) give
+\[
+ \|(I-UU^{\top})\widehat U\|_{\mathrm{op}}
+ \le {e_0\over cn-e_0}=:\lambda,
+ \qquad
+ \|(I-VV^{\top})\widehat V\|_{\mathrm{op}}\le\lambda.
+\]
+Indeed, the left sides multiplied by \(\widehat S\) are respectively \((I-UU^{\top})E\widehat V\) and \((I-VV^{\top})E^{\top}\widehat U\), while the least retained singular value is at least \(cn-e_0\) by the min--max formula.  Hence \(\lambda\le1/3\),
+\[
+ s_r(L),s_r(M)\ge\sqrt{1-\lambda^2},qquad
+ \|LL^{\top}-I_r\|_{\mathrm{op}},\|MM^{\top}-I_r\|_{\mathrm{op}}\le\lambda^2.
+\]
+Let \(F=X-X_r\).  Orthogonality of the truncated singular expansion gives
+\[
+ F=(I-\widehat U\widehat U^{\top})F(I-\widehat V\widehat V^{\top}),
+ \qquad \|F\|_{\mathrm{op}}=s_{r+1}(X)\le e_0.
+\]
+Consequently, for \(B_X=U^{\top}X_rV=L\widehat S M^{\top}\) and \(\gamma=\|U^{\top}EV\|_{\mathrm{op}}\),
+\[
+ \|B_X-S\|_{\mathrm{op}}\le\gamma+\lambda^2e_0,
+ \qquad \|B_X^{-1}\|_{\mathrm{op}}\le {3\over2cn}.
+\]
+Direct multiplication gives the basis-invariant sandwich identity
+\[
+ T_X:=V^{\top}X_r^+U=(MM^{\top})B_X^{-1}(LL^{\top}).
+\]
+Expanding its three factors around \(S^{-1}\), and using
+\(B_X^{-1}-S^{-1}=B_X^{-1}(S-B_X)S^{-1}\), yields
+\[
+ \|T_X-S^{-1}\|_{\mathrm{op}}
+ \le {3\lambda^2\over cn}+{3(\gamma+\lambda^2e_0)\over2c^2n^2}
+ \le {3\gamma\over2c^2n^2}+{6e_0^2\over c^3n^3}.
+\]
+For the last inequality, use \(\lambda^2\le16e_0^2/(9c^2n^2)\) and \(e_0\le cn/4\).  It follows that
+\[
+ |\theta_X-\theta|
+ =|x^{\top}(T_X-S^{-1})y|
+ \le\|u\|_2\|v\|_2
+ \left\{{3\gamma\over2c^2n^2}+{6e_0^2\over c^3n^3}\right\}.
+\]
+
+For completeness, the Gaussian bounds used below follow directly from exponential moments.  If \(g\sim N(0,I_d)\), optimizing the moment-generating function of \(\|g\|_2^2\) gives
+\[
+ \Pr\{\|g\|_2>\sqrt d+\sqrt{2x}\}\le e^{-x}.
+\]
+For an \(n\)-by-\(n\) standard Gaussian matrix \(G_0\), Gaussian interpolation applied to \(y^{\top}G_0x\), with comparison process \(g^{\top}y+h^{\top}x\), gives \(\mathbb E\|G_0\|_{\mathrm{op}}\le2\sqrt n\): its increment comparison is
+\[
+ \|y-y'\|_2^2+\|x-x'\|_2^2-
+ \mathbb E[(y^{\top}G_0x-y'^{\top}G_0x')^2]
+ =2(1-\langle x,x'\rangle)(1-\langle y,y'\rangle)\ge0.
+\]
+The interpolation identity is obtained first for finite nets by differentiating the log-sum-exp and then by monotone net approximation.  For the concentration step, let \(F\) be any smooth one-Lipschitz function of a standard Gaussian vector and put \(\Lambda(t)=\log\mathbb E e^{tF}\).  Differentiating entropy along the Ornstein--Uhlenbeck interpolation and using Gaussian integration by parts gives
+\[
+ \operatorname{Ent}(e^{tF})\le {t^2\over2}\mathbb E e^{tF}.
+\]
+Indeed, the derivative of entropy along the interpolation is the negative expected squared gradient divided by the interpolated density, and the gradient contraction contributes \(e^{-2s}\); its integral over \(s\ge0\) is \(1/2\).  Dividing by \(\mathbb E e^{tF}\) gives \(t\Lambda'(t)-\Lambda(t)\le t^2/2\), and integration from zero to \(t\) gives
+\(\mathbb E\exp\{t(F-\mathbb EF)\}\le e^{t^2/2}\).  Approximation extends this result to \(F(G_0)=\|G_0\|_{\mathrm{op}}\).  Chernoff optimization therefore gives
+\[
+ \Pr\{\|E\|_{\mathrm{op}}>3\sigma\sqrt n\}\le e^{-n/2}.
+\]
+
+Let \(H_n\) be the intersection of the four events
+\[
+ \|E\|_{\mathrm{op}}\le3\sigma\sqrt n,\quad
+ \|U^{\top}EV\|_{\mathrm{op}}\le\sigma(r+\sqrt{12\ell_n}),\quad
+ \|\xi_p\|_2,\|\xi_q\|_2\le\sqrt r+\sqrt{12\ell_n}.
+\]
+The entries of \(U^{\top}EV/\sigma\) are independent standard normals, so its operator norm is bounded by its Frobenius norm.  Applying the displayed vector bound with \(x=6\ell_n\) to that \(r^2\)-vector and to each projected-noise \(r\)-vector, and using \(r\le r_0\), gives
+\[
+ \sup_{P\in\mathcal P_n}P(H_n^c)
+ \le e^{-n/2}+3e^{-6\ell_n}
+ =e^{-n/2}+3(e+n)^{-6}.
+\]
+For \(n\ge144\sigma^2/c^2\), \(H_n\) implies \(e_0\le cn/4\).  It also implies \(G_n\), by the min--max perturbation inequalities
+\(s_r(X)\ge s_r(A)-e_0\) and \(s_1(X)\le s_1(A)+e_0\), together with \(c\le1\) and \(C_0\ge2\).  On \(H_n\), the preceding sandwich bound and \(\ell_n\ge1\) imply
+\[
+ \|T_X-S^{-1}\|_{\mathrm{op}}
+ \le C_T{\ell_n\over n^2}.
+\]
+Moreover \(s_r(M)\ge\sqrt8/3\), and therefore
+\[
+ \|u\|_2\le {3\sigma A_\xi\over\sqrt8}
+ (\|Z_p\|_2+\sqrt{\ell_n}),qquad
+ \|v\|_2\le {3\sigma A_\xi\over\sqrt8}
+ (\|Z_q\|_2+\sqrt{\ell_n}).
+\]
+Substitution proves \(|\theta_X-\theta|\le d_n\) on \(H_n\), because \(K_0=9A_\xi^2C_T/8\).  This proves the asserted probability bound.
+
+It remains to verify the expectation statement.  Write \(U_0=\|u\|_2\), \(V_0=\|v\|_2\).  Conditional independence of the two projected observations and Jensen's inequality give, without restricting the donor event,
+\[
+ \mathbb E_P[d_n\mathbf1\{G_n\}]
+ \le {K_0\sigma^2\ell_n\over n^2}
+ (U_0/\sigma+\sqrt r+\sqrt{\ell_n})
+ (V_0/\sigma+\sqrt r+\sqrt{\ell_n}).
+\]
+The spectrum and span conditions imply
+\[
+ a_n\ge {\sigma(U_0+V_0)\over\sqrt2C_0n},qquad
+ b_n\ge {\sigma^2\over C_0n},qquad
+ w_n\ge {\kappa(U_0+V_0+1)\over n},
+\]
+where \(\kappa=\min\{\sigma/(\sqrt2C_0),\sigma^2/C_0\}>0\).  Also \(U_0,V_0\le B\sqrt n\) and
+\(U_0V_0/(U_0+V_0+1)\le B\sqrt n\).  Expanding the last product thus yields a constant \(K\), depending only on the fixed class constants, such that
+\[
+ \sup_{P\in\mathcal P_n}{\mathbb E_P[d_n\mathbf1\{G_n\}]\over w_n}
+ \le K\left({\ell_n\over\sqrt n}+{\ell_n^2\over n}\right)\longrightarrow0.
+\]
+This proves every assertion of the lemma without a target-loading lower bound.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the first changed proof step: it supplies the primitive experiment required by nonregular inversion without normalizing away the quadratic term. \textit{Gap.} Yan--Wainwright Appendix A retains the bilinear noise term but does not give this donor-measurable reduction with an expectation-compatible target-drift allowance. \textit{Consumer.} It makes first-order-degeneracy inference usable for CAST's four-block counterfactual subproblems.
+
+\begin{lemma}[lem:gaussian-outer-inversion]\label{lem:gaussian-outer-inversion}
+For every invertible diagonal \(D_n\) and every \(m_n\in\mathbb R^{2r}\), the interval \([\sigma^2Z_{p,n}^{\top}D_nZ_{q,n}-\sigma^2W_n,\sigma^2Z_{p,n}^{\top}D_nZ_{q,n}+\sigma^2W_n]\) covers \(\sigma^2m_{p,n}^{\top}D_nm_{q,n}\) with probability at least \(1-\alpha\), has expected length at most \(K_\alpha\sigma^2(s(m_n)+\|D_n\|_{\mathrm{op}})\), and its length divided by \(2\Phi^{-1}(1-\alpha/2)\sigma^2s(m_n)\) converges to one along every sequence with \(s(m_n)/\|D_n\|_{\mathrm{op}}\to\infty\).
+\end{lemma}
+\begin{proof}
+Put \(h=\|D\|_{\mathrm{op}}\), \(s=s_D(m)\), \(t=s/h\), and write \(Z=m+\xi\), where \(\xi=(\xi_p^{\top},\xi_q^{\top})^{\top}\sim N(0,I_{2r})\).  The exact bilinear expansion is
+\[
+ Z_p^{\top}DZ_q-m_p^{\top}Dm_q
+ =\langle(Dm_q,D^{\top}m_p),\xi\rangle+\xi_p^{\top}D\xi_q,qquad
+ |\xi_p^{\top}D\xi_q|\le {h\over2}\|\xi\|_2^2.
+\]
+The linear term is centered normal with variance \(s^2\), including the degenerate case \(s=0\).
+
+We first record the radial bound implicit in the calibration.  For \(Y\sim\chi^2_d\), its moment-generating function and Chernoff optimization give
+\[
+ \Pr\{Y>d+2\sqrt{dx}+2x\}\le e^{-x}\qquad(x\ge0).
+\]
+With \(d=2r\) and \(x=\log(4(1+t)/\alpha)\), this and \(2\sqrt{dx}\le d+x\) imply
+\[
+ \rho_\alpha(t)^2\le C_{r,\alpha}\log(e+t).
+\]
+Hence the event
+\[
+ \|\xi\|_2\le\rho_\alpha(t),qquad
+ |\langle(Dm_q,D^{\top}m_p),\xi\rangle|
+ \le\zeta_\alpha(t)s
+\]
+has probability at least \(1-\beta_\alpha(t)-[\alpha-\beta_\alpha(t)]=1-\alpha\).  On this event the absolute bilinear error is at most
+\[
+ H(m):=h\left\{\zeta_\alpha(t)t+{C_{r,\alpha}\over2}\log(e+t)\right\}.
+\]
+
+It remains to show that the observable \(W\) dominates this quantity on the same event.  The map \(m\mapsto s_D(m)\) obeys
+\[
+ |s_D(Z)-s_D(m)|\le h\|Z-m\|_2,qquad |t_Z-t|\le\|\xi\|_2.
+\]
+If \(t>2t_Z\), then \(t/2<\sqrt{C_{r,\alpha}\log(e+t)}\).  For \(t\ge2\), \(\log(e+t)\le t\), and therefore \(t<4C_{r,\alpha}\); for \(t<2\) the same conclusion follows from the definition of \(A_{r,\alpha}\).  Thus in every case
+\[
+ t\le2t_Z+A_{r,\alpha},qquad
+ |t-t_Z|\le R_0,qquad t_-\le t\le t_+.
+\]
+The function \(\zeta_\alpha\) is decreasing because \(\beta_\alpha\) is decreasing.  Consequently,
+\[
+ H(m)\le h\left\{\zeta_\alpha(t_-)t_+
+ +{C_{r,\alpha}\over2}\log(e+t_+)\right\}=W.
+\]
+The stated interval therefore covers \(\sigma^2m_p^{\top}Dm_q\) with probability at least \(1-\alpha\).
+
+For length, \(\zeta_\alpha(t)\le\Phi^{-1}(1-3\alpha/8)\).  Also \(R_0\le K_{r,\alpha}(1+\sqrt{t_Z})\), whence \(t_+\le K_{r,\alpha}(1+t_Z)\) and \(\log(e+t_+)\le K_{r,\alpha}(1+t_Z)\).  Therefore
+\[
+ W\le K_\alpha h(1+t_Z)=K_\alpha(h+s_D(Z)).
+\]
+Since \(\mathbb E_m s_D(Z)\le s_D(m)+h\mathbb E\|\xi\|_2\), fixed \(r\le r_0\) gives
+\[
+ \mathbb E_m[2\sigma^2W]\le K_\alpha\sigma^2(s_D(m)+h),
+\]
+after absorbing the factor two into \(K_\alpha\).
+
+Finally consider any deterministic triangular sequence with \(t=s_D(m)/h\to\infty\).  The inequality \(|t_Z-t|\le\|\xi\|_2=O_P(1)\) gives \(t_Z/t\to1\).  Hence \(R_0/t_Z\to0\), \(t_-/t\to1\), \(t_+/t\to1\), \(\zeta_\alpha(t_-)\to z_\alpha:=\Phi^{-1}(1-\alpha/2)\), and \(\log(e+t_+)/t\to0\), all in probability.  Thus
+\[
+ {W\over s_D(m)}\longrightarrow z_\alpha
+\]
+in probability, which is exactly the asserted length ratio.  This self-contained outer inversion is an explicit specialization of the first-order-degeneracy problem studied by Bei--Navjeevan~\cite{BeiNavjeevan2026}; no theorem from that paper is used as a premise here.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A single analytic formula replaces nonlinear endpoint optimization while preserving exact finite-dimensional coverage and the regular Gaussian constant. \textit{Gap.} Bei--Navjeevan establish general minimum-distance validity, but not this explicit outer formula or its every-diverging-sequence length limit. \textit{Consumer.} Applied panel routines can evaluate the interval using one SVD and scalar special functions.
+
+\begin{theorem}[thm:uniform-coverage]\label{thm:uniform-coverage}
+For the donor-only interval \(I_n^{\mathrm{out}}\), \(\liminf_{n\to\infty}\inf_{P\in\mathcal P_n}P\{\theta_n\in I_n^{\mathrm{out}}\}\ge1-\alpha\), with no lower bound on either target loading.  Under the canonical embedding in \(\textup{prop:yan-wainwright-class-embedding}\), this extends the coverage guarantee of the loading-restricted Yan--Wainwright Gaussian theorem on the embedded square one-target subclass: it includes joint-zero and arbitrarily slow loading transitions that violate condition \(4.4\mathrm{c}\).  It makes no claim of an extension over the full published Yan--Wainwright class.
+\end{theorem}
+\begin{proof}
+Fix \(P=P_{A,u,v}\in\mathcal P_n\).  The definition of \(\mathcal P_n\) gives \(\|u\|_2\le B\sqrt n\), \(\|v\|_2\le B\sqrt n\), and \(\|A^+\|_{\mathrm{op}}=s_r(A)^{-1}\le(cn)^{-1}\).  Therefore
+\[
+|\theta_n|=|uA^+v|
+\le\|u\|_2\|A^+\|_{\mathrm{op}}\|v\|_2
+\le\frac{B^2}{c}=M_0.
+\tag{1}
+\]
+Thus the off-gate interval \([-M_0,M_0]\) always covers \(\theta_n\).
+
+On \(G_n\), condition on \(X\).  By \(\textup{lem:conditional-reduction}\),
+\[
+Z_n=m_n+\xi_n,\qquad \xi_n\mid X\sim\mathcal N(0,I_{2r}),
+\qquad
+\theta_{X,n}=\sigma^2m_{p,n}^{\mathsf T}D_nm_{q,n},
+\tag{2}
+\]
+and
+\[
+\sup_{P\in\mathcal P_n}
+P\bigl(|\theta_{X,n}-\theta_n|>d_n,\,G_n\bigr)
+\le e^{-n/2}+3(e+n)^{-6}.
+\tag{3}
+\]
+The gate gives \(s_r(X)>0\), so every diagonal entry of \(D_n=\widehat S^{-1}\) is positive.  Applying \(\textup{lem:gaussian-outer-inversion}\) conditionally at this realized \(D_n\) and \(m_n\) yields
+\[
+P\left(
+|\widehat\theta_n-\theta_{X,n}|>\sigma^2W_n
+\,\middle|\,X\right)\le\alpha
+\quad\hbox{on \(G_n\)}.
+\tag{4}
+\]
+If neither failure in (3) and (4) occurs, the triangle inequality gives
+\[
+|\widehat\theta_n-\theta_n|
+\le\sigma^2W_n+d_n,
+\]
+which is precisely on-gate membership of \(\theta_n\) in \(I_n^{\mathrm{out}}\).  Combining this fact with (1), integrating (4) over \(X\), and using (3),
+\[
+\sup_{P\in\mathcal P_n}P\{\theta_n\notin I_n^{\mathrm{out}}\}
+\le\alpha+e^{-n/2}+3(e+n)^{-6}.
+\tag{5}
+\]
+Taking the limit superior proves the asserted uniform coverage.  No step divides by \(u\), \(v\), or a loading norm.
+
+For the comparison clause, \(\textup{prop:yan-wainwright-class-embedding}\) identifies \(\mathcal P_n\) with a canonical square one-target subclass satisfying Yan--Wainwright conditions \(4.1\)--\(4.4\mathrm b\) for sufficiently large \(n\).  The cited node \(\textup{lem:yan-wainwright-gaussian-condition}\) records that their Theorem~1 additionally assumes condition \(4.4\mathrm c\).  At \(u=v=0\), the law remains in \(\mathcal P_n\), (5) still applies, and the embedding proposition proves that condition \(4.4\mathrm c\) fails.  Hence the new coverage result includes joint-zero and arbitrarily slow loading transitions outside that loading-restricted theorem on the embedded subclass.  This argument neither identifies \(\mathcal P_n\) with, nor claims an extension over, the full published class.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Uniform coverage across the joint-zero and slow-transition cone is the central inferential claim. \textit{Gap.} Yan--Wainwright's Gaussian theorem assumes condition \(4.4\mathrm c\); after correcting their noise normalization, the canonical embedded subclass still satisfies conditions \(4.1\)--\(4.4\mathrm b\), while joint-zero loadings violate condition \(4.4\mathrm c\). \textit{Consumer.} CAST users obtain valid missing-mean uncertainty even when fitted target factor loadings are nearly zero, within the stated strong-donor subclass.
+
+\begin{theorem}[thm:transition-length]\label{thm:transition-length}
+There exists \(K_\alpha<\infty\), depending only on \(\alpha,c,C_0,\mu,B,r_0,\sigma\), such that for all sufficiently large \(n\), \(\sup_{P\in\mathcal P_n}\mathbb E_P[\operatorname{length}(I_n^{\mathrm{out}})]/w_n\le K_\alpha\).
+\end{theorem}
+\begin{proof}
+On \(G_n\), \(h_n\le2/(cn)\), and the span representations give
+\[
+ s_D(m_n)
+ \le {h_n\over\sigma}(\|u\|_2+\|v\|_2)
+ \le {2(\|u\|_2+\|v\|_2)\over c\sigma n}.
+\]
+The Gaussian-outer-inversion expectation bound, followed by the lower bound for \(w_n\) proved in \(\textnormal{lem:conditional-reduction}\), therefore gives
+\[
+ \mathbb E_P[2\sigma^2W_n\mathbf1\{G_n\}]
+ \le K_\alpha {\|u\|_2+\|v\|_2+1\over n}
+ \le K_\alpha w_n.
+\]
+The same lemma gives \(\mathbb E_P[2d_n\mathbf1\{G_n\}]=o(w_n)\) uniformly.  For sufficiently large \(n\), the event \(\|E\|_{\mathrm{op}}\le3\sigma\sqrt n\) is contained in \(G_n\), so
+\[
+ P(G_n^c)\le e^{-n/2}.
+\]
+Since the off-gate length is \(2M_0\) and \(w_n\ge\sigma^2/(C_0n)\),
+\[
+ {2M_0P(G_n^c)\over w_n}
+ \le {2M_0C_0n\over\sigma^2}e^{-n/2}=o(1)
+\]
+uniformly over the class.  Adding the three contributions proves the displayed uniform bound after enlarging \(K_\alpha\).  This also shows explicitly why the bounded spectral fallback does not alter the transition order.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Coverage alone could be achieved by projection; transition-order expected length makes the interval informative at joint zero. \textit{Gap.} Neither the panel anchor nor generic minimum-distance theory proves a donor-uniform expected-length bound at the sum of first- and second-order scales. \textit{Consumer.} The bound supplies a principled uncertainty floor for entrywise treatment-effect reporting in strong-factor panels.
+
+\begin{theorem}[thm:oracle-length]\label{thm:oracle-length}
+Along every sequence \(P_n\in\mathcal P_n\) with \(b_n/a_n\to0\), \(\operatorname{length}(I_n^{\mathrm{out}})/[2\Phi^{-1}(1-\alpha/2)a_n]\to1\) in \(P_n\)-probability, without any prescribed rate at which \(a_n/b_n\) diverges.
+\end{theorem}
+\begin{proof}
+Fix a sequence \(P_n\in\mathcal P_n\) with \(b_n/a_n\to0\).  In particular \(a_n>0\) eventually.  Write \(U_0=\|u\|_2\), \(V_0=\|v\|_2\), \(e_0=\|E\|_{\mathrm{op}}\), and
+\[
+a_{X,n}=\sigma^2s_D(m_n).
+\tag{1}
+\]
+We first compare (1) with the population first-order scale.
+
+On \(e_0\le cn/4\), let \(X_r=\widehat U\widehat S\widehat V^{\mathsf T}\).  The singular-vector equations, after projection onto the null complements of \(A\), give
+\[
+\|(I-UU^{\mathsf T})\widehat U\|_{\mathrm{op}}
++\|(I-VV^{\mathsf T})\widehat V\|_{\mathrm{op}}
+\le K\frac{e_0}{n},
+\qquad
+\|\widehat S^{-1}\|_{\mathrm{op}}\le\frac{2}{cn}.
+\tag{2}
+\]
+Indeed, \((I-UU^{\mathsf T})\widehat U\widehat S=(I-UU^{\mathsf T})E\widehat V\), and the retained singular values are at least \(cn-e_0\); the right-space equation is identical.  Put \(L=U^{\mathsf T}\widehat U\), \(M=V^{\mathsf T}\widehat V\), and \(B_X=U^{\mathsf T}X_rV=L\widehat S M^{\mathsf T}\).  Since the residual \(X-X_r\) is orthogonal to the retained left and right spaces, direct multiplication gives
+\[
+V^{\mathsf T}X_r^+U=(MM^{\mathsf T})B_X^{-1}(LL^{\mathsf T}).
+\tag{3}
+\]
+The bounds in (2), the resolvent identity \(B_X^{-1}-S^{-1}=B_X^{-1}(S-B_X)S^{-1}\), and \(\|B_X^{-1}\|_{\mathrm{op}}\le2/(cn)\) imply
+\[
+\|V^{\mathsf T}X_r^+U-S^{-1}\|_{\mathrm{op}}
+\le K\frac{e_0}{n^2}.
+\tag{4}
+\]
+Decompose \(X_r^+U-A^+U\) into its projection onto \(\operatorname{col}(V)\) and its orthogonal complement.  Equation (4) controls the former; (2) and \(\|\widehat S^{-1}\|_{\mathrm{op}}\le2/(cn)\) control the latter.  Transposition gives the second inequality below:
+\[
+\|(X_r^+-A^+)U\|_{\mathrm{op}}
++\|V^{\mathsf T}(X_r^+-A^+)\|_{\mathrm{op}}
+\le K\frac{e_0}{n^2}.
+\tag{5}
+\]
+The span assumptions give \(u=uVV^{\mathsf T}\) and \(v=UU^{\mathsf T}v\).  Therefore (5) and the reverse triangle inequality for Euclidean norms yield
+\[
+|a_{X,n}-a_n|
+\le K\sigma\frac{e_0}{n^2}(U_0+V_0).
+\tag{6}
+\]
+Moreover, since the singular values of \(A^+\) on its row and column spaces lie between \((C_0n)^{-1}\) and \((cn)^{-1}\),
+\[
+a_n\ge\frac{\sigma(U_0+V_0)}{\sqrt2C_0n}.
+\tag{7}
+\]
+
+For completeness, a \(1/4\)-net argument gives \(e_0/n\to0\) in probability uniformly over the class.  A maximal \(1/4\)-separated unit-sphere net has at most \(9^n\) points, and
+\[
+P(e_0>x)\le2\,9^{2n}\exp\left(-\frac{x^2}{8\sigma^2}\right),
+\tag{8}
+\]
+because \(\|E\|_{\mathrm{op}}\le2\max|x^{\mathsf T}Ey|\) over the two nets and each bilinear form is \(\mathcal N(0,\sigma^2)\).  Equations (6)--(8) prove
+\[
+\frac{a_{X,n}}{a_n}\longrightarrow1
+\quad\hbox{in probability}.
+\tag{9}
+\]
+
+The singular-value min--max formula implies \(|s_j(X)-s_j(A)|\le e_0\).  Hence, on \(e_0<cn/2\),
+\[
+\left|\frac{s_j(A)}{s_j(X)}-1\right|
+\le\frac{e_0}{cn-e_0},
+\qquad 1\le j\le r.
+\]
+Since \(r\le r_0\), this gives
+\[
+\frac{\sigma^2\|\widehat S^{-1}\|_{\mathrm F}}{b_n}
+\longrightarrow1
+\quad\hbox{in probability}.
+\tag{10}
+\]
+Writing \(h_n=\|D_n\|_{\mathrm{op}}\le\|\widehat S^{-1}\|_{\mathrm F}\), (9), (10), and \(b_n/a_n\to0\) imply
+\[
+\frac{s_D(m_n)}{h_n}
+=\frac{a_{X,n}}{\sigma^2h_n}\longrightarrow\infty
+\quad\hbox{in probability}.
+\tag{11}
+\]
+
+Conditional on \(X\), \(\textup{lem:gaussian-outer-inversion}\) applies to the exact Gaussian experiment in \(\textup{lem:conditional-reduction}\).  Its every-sequence assertion and a subsequence argument applied to (11) give
+\[
+\frac{\sigma^2W_n}{z_\alpha a_{X,n}}\longrightarrow1
+\quad\hbox{in probability on \(G_n\)},
+\qquad z\_\alpha=\Phi\textasciicircum{}{-1}(1-\alpha/2).
+\tag{12}
+\]
+To justify the subsequence step, if (12) failed, one could choose realizations of \(X\) along a subsequence for which \(s_D(m_n)/h_n\to\infty\) but the conditional failure probability stayed bounded away from zero, contradicting the deterministic every-sequence conclusion of that lemma.
+
+The expectation conclusion of \(\textup{lem:conditional-reduction}\), Markov's inequality, and \(w_n/a_n=1+b_n/a_n\to1\) give
+\[
+\frac{d_n\mathbf1\{G_n\}}{a_n}\longrightarrow0
+\quad\hbox{in probability}.
+\tag{13}
+\]
+Equation (8) and the strong-spectrum bounds imply \(P_n(G_n^c)\to0\).  On \(G_n\), the interval length is \(2\sigma^2W_n+2d_n\).  Combining (9), (12), and (13), and discarding the vanishing off-gate event, proves
+\[
+\frac{\operatorname{length}(I_n^{\mathrm{out}})}
+{2\Phi^{-1}(1-\alpha/2)a_n}\longrightarrow1
+\quad\hbox{in \(P_n\)-probability}.
+\]
+Only the divergence \(a_n/b_n\to\infty\) was used; no deterministic divergence rate or loading pretest was introduced.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Every-sequence adaptation rules out a hidden signal pretest that sacrifices slowly diverging regular sequences. \textit{Gap.} Bei--Navjeevan's general result allows a fixed conservativeness allowance away from degeneracy and suggests a tuning-based pretest; the panel literature has no exact all-sequence Gaussian-length constant. \textit{Consumer.} Regular high-loading counterfactual entries retain the same asymptotic length as the established Gaussian interval.
+
+\begin{theorem}[thm:local-length-lower-bound]\label{thm:local-length-lower-bound}
+For every \(0<\delta<\min\{c,C_0-c,\mu-1,B\}\), every sequence \(P_n\in\mathcal P_n\) satisfying \((c+\delta)n\le s_r(A)\le s_1(A)\le(C_0-\delta)n\), \(\max\{\|U\|_{2,\infty},\|V\|_{2,\infty}\}\le\sqrt{(\mu-\delta)r/n}\), and \(\max\{\|A\|_{\max},\|u\|_\infty,\|v\|_\infty\}\le B-\delta\), and every measurable interval sequence \(J_n\) satisfying \(\liminf_n\inf_{Q\in\mathcal P_n}Q\{\theta_n(Q)\in J_n\}\ge1-\alpha\), there exists \(k_\alpha>0\) such that \(\liminf_n\sup_{Q\in\mathcal N_n(P_n)}\mathbb E_Q[\operatorname{length}(J_n)]/w_n(P_n)\ge k_\alpha\).
+\end{theorem}
+\begin{proof}
+Fix \(\delta\) and an interior sequence \(P_n=P_{A,u,v}\) satisfying the hypotheses of the theorem.  All quantities below may depend on \(n\).  By \(\mathrm{ass{:}exact\mbox{-}rank}\), take a compact singular value decomposition
+\[
+A=USV^{\mathsf T},
+\qquad
+D=S^{-1}.
+\]
+By \(\mathrm{ass{:}strong\mbox{-}spectrum}\), every diagonal entry of the \(r\)-by-\(r\) diagonal matrix \(S\) is positive.  By \(\mathrm{ass{:}row\mbox{-}span}\) and \(\mathrm{ass{:}column\mbox{-}span}\), the coordinates
+\[
+x=(uV)^{\mathsf T}\in\mathbb R^r,
+\qquad
+y=U^{\mathsf T}v\in\mathbb R^r
+\]
+obey \(u=x^{\mathsf T}V^{\mathsf T}\) and \(v=Uy\).  Since the Moore--Penrose inverse of the displayed compact singular value decomposition is \(A^+=V D U^{\mathsf T}\), the target in the theorem satisfies
+\[
+\theta_n(P_n)=uA^+v=x^{\mathsf T}Dy. \tag{1}
+\]
+Thus this equality is a consequence of the span restrictions and the target definition, rather than a definition of an observed-law surrogate.  Orthonormality of the columns of \(U\) and \(V\), together with \(\mathrm{def{:}transition\mbox{-}scale}\), gives
+\[
+a_n=\sigma\bigl(\|Dx\|_2^2+\|Dy\|_2^2\bigr)^{1/2},
+\qquad
+b_n=\sigma^2\|D\|_{\mathrm F},
+\qquad
+w_n=a_n+b_n. \tag{2}
+\]
+In particular, \(b_n>0\), because \(r\geq1\), \(\sigma>0\), and \(D\) has positive diagonal entries; hence division by \(w_n\) below is valid.
+
+Put
+\[
+\tau=\frac{1-2\alpha}{2}.
+\]
+The restriction \(0<\alpha<1/2\) implies \(0<\tau<1/2\).  We construct alternatives by leaving \(A\) and the noise covariance fixed and perturbing only \((x,y)\).
+
+First suppose \(a_n>0\).  For \(g(x,y)=x^{\mathsf T}Dy\), direct differentiation gives
+\[
+\nabla g(x,y)=(Dy,Dx),
+\qquad
+\|\nabla g(x,y)\|_2=a_n/\sigma>0.
+\]
+Define \((h_x,h_y)=\sigma\tau\nabla g/\|\nabla g\|_2\).  For \(s\in\{-1,1\}\), let \(Q_s\) retain \(A\) and have coordinates \((x+s h_x,y+s h_y)\).  Expanding (1), its target displacement is
+\[
+\Delta_s
+=\theta_n(Q_s)-\theta_n(P_n)
+=s\{h_x^{\mathsf T}Dy+x^{\mathsf T}Dh_y\}+h_x^{\mathsf T}Dh_y
+=s\tau a_n+h_x^{\mathsf T}Dh_y. \tag{3}
+\]
+For real \(z,c_0\), \(\max\{|z+c_0|,|-z+c_0|\}\geq |z|\), because otherwise the triangle inequality applied to their difference \(2z\) would fail.  Applying this fact to (3) yields
+\[
+\max_{s\in\{-1,1\}}|\Delta_s|\geq\tau a_n. \tag{4}
+\]
+When \(a_n=0\), (4) remains valid with zero right-hand side and no first-order alternatives are required.
+
+For the second-order alternatives, choose \(j\in\{1,\ldots,r\}\) such that \(D_{jj}=\|D\|_{\mathrm{op}}\), and put \(h_0=\sigma\tau/\sqrt2\).  For each \((s,t)\in\{-1,1\}^2\), let \(Q_{s,t}\) retain \(A\) and have coordinates
+\[
+(x+s h_0e_j,\ y+t h_0e_j).
+\]
+Another expansion of (1) gives
+\[
+\Delta_{s,t}
+=\theta_n(Q_{s,t})-\theta_n(P_n)
+=s h_0(Dy)_j+t h_0(Dx)_j+st h_0^2D_{jj}. \tag{5}
+\]
+Multiplication by \(st\) and averaging over the four signs cancels the two linear terms, so
+\[
+\frac14\sum_{s,t\in\{-1,1\}}st\Delta_{s,t}
+=h_0^2D_{jj}
+=\frac{\sigma^2\tau^2}{2}\|D\|_{\mathrm{op}}. \tag{6}
+\]
+The absolute value of the left side of (6) is at most \(\max_{s,t}|\Delta_{s,t}|\).  Also, because \(D\) has \(r\leq r_0\) diagonal entries,
+\[
+\|D\|_{\mathrm F}^2=\sum_{k=1}^rD_{kk}^2
+\leq r\|D\|_{\mathrm{op}}^2
+\leq r_0\|D\|_{\mathrm{op}}^2.
+\]
+Equations (2) and (6) therefore imply
+\[
+\max_{s,t\in\{-1,1\}}|\Delta_{s,t}|
+\geq\frac{\tau^2}{2\sqrt{r_0}}b_n. \tag{7}
+\]
+
+We now verify both model membership and locality, including the boundary constraints needed for those conclusions.  Any coordinate perturbation \((q_x,q_y)\) used above is implemented by
+\[
+u'=u+q_x^{\mathsf T}V^{\mathsf T},
+\qquad
+v'=v+Uq_y. \tag{8}
+\]
+It preserves \(u'\in\operatorname{row}(A)\) and \(v'\in\operatorname{col}(A)\).  For every first- or second-order alternative,
+\[
+\|q_x\|_2^2+\|q_y\|_2^2=\sigma^2\tau^2. \tag{9}
+\]
+Indeed, this is immediate from the normalization of \((h_x,h_y)\) in the first case and from \(2h_0^2=\sigma^2\tau^2\) in the second.  By the theorem's interior incoherence condition and \(r\leq r_0\), (8)--(9) give, for every coordinate \(k\),
+\[
+\bigl|q_x^{\mathsf T}V_{k\mathbin{\boldsymbol\cdot}}^{\mathsf T}\bigr|
+\leq\|q_x\|_2\|V_{k\mathbin{\boldsymbol\cdot}}\|_2
+\leq\sigma\tau\sqrt{\frac{\mu r_0}{n}},
+\qquad
+\bigl|(Uq_y)_k\bigr|
+\leq\sigma\tau\sqrt{\frac{\mu r_0}{n}}. \tag{10}
+\]
+The class constants \(\sigma,\mu,r_0\) and the positive slack \(\delta\) are fixed, so the last bound is at most \(\delta\) for all sufficiently large \(n\).  Since the interior hypothesis gives \(\|u\|_\infty,\|v\|_\infty\leq B-\delta\), (10) implies \(\|u'\|_\infty,\|v'\|_\infty\leq B\).  The matrix \(A\) is unchanged, so its exact rank, spectral bounds, singular spaces, incoherence, and entry bound continue to satisfy respectively \(\mathrm{ass{:}exact\mbox{-}rank}\), \(\mathrm{ass{:}strong\mbox{-}spectrum}\), \(\mathrm{ass{:}incoherence}\), and \(\mathrm{ass{:}bounded\mbox{-}entries}\).  The covariance is unchanged and satisfies \(\mathrm{ass{:}gaussian\mbox{-}blocks}\).  Thus every constructed alternative belongs to \(\mathcal P_n\) by \(\mathrm{def{:}model\mbox{-}class}\) for all sufficiently large \(n\).
+
+Orthonormality in (8) and (9) yield
+\[
+\|u-u'\|_2^2+\|v-v'\|_2^2
+=\|q_x\|_2^2+\|q_y\|_2^2
+=\sigma^2\tau^2.
+\]
+Because \(A\) is unchanged, \(\mathrm{def{:}local\mbox{-}neighborhood}\) now gives
+\[
+\operatorname{KL}(P_n,Q)=\frac{\tau^2}{2}<1 \tag{11}
+\]
+for every constructed alternative \(Q\).  Hence all of them lie in \(\mathcal N_n(P_n)\).
+
+We next derive the probability comparison used below directly from \(\mathrm{ass{:}gaussian\mbox{-}blocks}\).  For any constructed \(Q\), the joint data densities \(p\) and \(q\) under \(P_n\) and \(Q\) are Gaussian with common covariance \(\sigma^2I\), and (9) says that their mean vectors are separated by Euclidean norm \(\sigma\tau\).  Completing the square in the Gaussian densities gives
+\[
+\int\sqrt{pq}=\exp(-\tau^2/8).
+\]
+Cauchy--Schwarz and \(1-e^{-z}\leq z\) for \(z\geq0\) then give
+\[
+\begin{aligned}
+\operatorname{TV}(P_n,Q)
+&=\frac12\int|\sqrt p-\sqrt q\,|\,(\sqrt p+\sqrt q)\\
+&\leq\frac12
+\left\{\int(\sqrt p-\sqrt q)^2\right\}^{1/2}
+\left\{\int(\sqrt p+\sqrt q)^2\right\}^{1/2}\\
+&=\sqrt{1-\left(\int\sqrt{pq}\right)^2}
+=\sqrt{1-e^{-\tau^2/4}}
+\leq\frac\tau2. 
+\end{aligned} \tag{12}
+\]
+
+Define
+\[
+\gamma_n=\inf_{H\in\mathcal P_n}H\{\theta_n(H)\in J_n\},
+\qquad
+\varepsilon_n=(1-\alpha-\gamma_n)_+.
+\]
+The assumed lower limit for uniform coverage implies \(\varepsilon_n\to0\), and the definition of the infimum implies, for every \(H\in\mathcal P_n\),
+\[
+H\{\theta_n(H)\in J_n\}\geq1-\alpha-\varepsilon_n. \tag{13}
+\]
+For any constructed alternative \(Q\), total-variation transfer of the second event in (13), followed by the union bound under \(P_n\), yields
+\[
+\begin{aligned}
+&P_n\{\theta_n(P_n)\in J_n,\ \theta_n(Q)\in J_n\}\\
+&\quad\geq
+P_n\{\theta_n(P_n)\in J_n\}
++P_n\{\theta_n(Q)\in J_n\}-1\\
+&\quad\geq1-2\alpha-2\varepsilon_n-\operatorname{TV}(P_n,Q)\\
+&\quad\geq1-2\alpha-2\varepsilon_n-\frac\tau2. 
+\end{aligned} \tag{14}
+\]
+On this event the interval contains both real numbers, so its length is at least \(|\theta_n(Q)-\theta_n(P_n)|\).
+
+Choose \(Q_n^\star\) from the finite union of the required first-order alternatives and the four second-order alternatives to maximize absolute displacement.  Equations (4) and (7) show, also when \(a_n=0\), that
+\[
+\begin{aligned}
+|\theta_n(Q_n^\star)-\theta_n(P_n)|
+&\geq\max\left\{\tau a_n,\frac{\tau^2}{2\sqrt{r_0}}b_n\right\}\\
+&\geq\frac{\tau^2}{4\sqrt{r_0}}(a_n+b_n)
+=\frac{\tau^2}{4\sqrt{r_0}}w_n. 
+\end{aligned} \tag{15}
+\]
+For the second inequality, \(\max\{z_1,z_2\}\geq(z_1+z_2)/2\) for nonnegative \(z_1,z_2\), and \(\tau/2\geq\tau^2/(4\sqrt{r_0})\) because \(0<\tau<1/2\) and \(r_0\geq1\).
+
+Combining (14)--(15), with the conclusion automatic if the expected length is infinite, gives
+\[
+\frac{\mathbb E_{P_n}[\operatorname{length}(J_n)]}{w_n(P_n)}
+\geq
+\frac{\tau^2}{4\sqrt{r_0}}
+\left(1-2\alpha-2\varepsilon_n-\frac\tau2\right). \tag{16}
+\]
+Finally, \(P_n\in\mathcal N_n(P_n)\) because \(\operatorname{KL}(P_n,P_n)=0\) in \(\mathrm{def{:}local\mbox{-}neighborhood}\).  Therefore the supremum over \(Q\in\mathcal N_n(P_n)\) in the theorem is at least the left side of (16).  Taking lower limits, using \(\varepsilon_n\to0\), and substituting \(\tau=(1-2\alpha)/2\), proves the asserted bound with the explicit fixed-class constant
+\[
+k_\alpha
+=\frac{\tau^2}{4\sqrt{r_0}}
+\left(1-2\alpha-\frac\tau2\right)
+=\frac{3\tau^2(1-2\alpha)}{16\sqrt{r_0}}>0.
+\]
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The converse certifies that the linear-plus-quadratic scale is intrinsic rather than an artifact of conservative inversion. \textit{Gap.} Yan--Wainwright's genie-aided lower bound targets the regular first-order variance and does not establish transition-width necessity at joint loading degeneracy. \textit{Consumer.} Methodologists comparing panel intervals receive an instance-local benchmark that projection or Bonferroni procedures can be measured against.
+
+\begin{proposition}[prop:rank-one-reduction]\label{prop:rank-one-reduction}
+When \(r=1\) and \(b_n/a_n\to0\), the center and first-order half-width of \(I_n^{\mathrm{out}}\) reduce to the rank-one four-block spectral plug-in center and Gaussian variance formula of Yan--Wainwright, up to \(o_P(a_n)\).
+\end{proposition}
+\begin{proof}
+Let \(r=1\), and write the retained singular triplet as \((\widehat u,\widehat s,\widehat v)\).  Direct substitution in the definitions gives the exact identity
+\[
+\widehat\theta_n
+=\sigma^2Z_{p,n}^{\mathsf T}D_nZ_{q,n}
+=\frac{(R\widehat v)(\widehat u^{\mathsf T}C)}{\widehat s}
+=RX_r^+C.
+\tag{1}
+\]
+Thus the center is exactly the rank-one four-block spectral plug-in center, independently of signs chosen for \(\widehat u\) and \(\widehat v\).  The observed first-order scale is
+\[
+\widehat a_{X,n}:=\sigma^2s_{Z,n}
+=\sigma\left\{
+\frac{(\widehat u^{\mathsf T}C)^2+(R\widehat v)^2}{\widehat s^2}
+\right\}^{1/2},
+\tag{2}
+\]
+which is the rank-one specialization of the Yan--Wainwright Gaussian variance formula in equations \(4.5\mathrm b\) and \(4.6\mathrm a\) of Yan and Wainwright~\cite{YanWainwright2024}.
+
+Assume \(b_n/a_n\to0\).  With \(a_{X,n}=\sigma^2s_D(m_n)\), the scale comparison proved in \(\textup{thm:oracle-length}\) gives \(a_{X,n}/a_n\to1\) in probability.  Since \(Z_n=m_n+\xi_n\), the gradient map is \(h_n\)-Lipschitz and therefore
+\[
+|s_{Z,n}-s_D(m_n)|\le h_n\|\xi_n\|_2.
+\tag{3}
+\]
+Here \(\|\xi_n\|_2=O_P(1)\), because its dimension is two, and
+\[
+\frac{\sigma^2h_n}{a_n}
+\le\frac{\sigma^2\|\widehat S^{-1}\|_{\mathrm F}}{b_n}
+\frac{b_n}{a_n}=o_P(1)
+\tag{4}
+\]
+by the singular-value comparison in the proof of \(\textup{thm:oracle-length}\).  Equations (2)--(4) imply \(\widehat a_{X,n}/a_n\to1\).
+
+Moreover \(t_{Z,n}=s_{Z,n}/h_n\to\infty\) in probability.  The definitions of \(R_{0,n},t_{-,n},t_{+,n}\) give
+\[
+R_{0,n}=O_P(\sqrt{\log(e+t_{Z,n})})=o_P(t_{Z,n}),
+\quad
+\frac{t_{\pm,n}}{t_{Z,n}}\to1,
+\]
+while \(\beta_\alpha(t_{-,n})\to0\), so \(\zeta_\alpha(t_{-,n})\to z_\alpha\).  Also \(\log(e+t_{+,n})/t_{Z,n}\to0\).  Substitution into the analytic half-width yields
+\[
+\sigma^2W_n=z_\alpha\widehat a_{X,n}+o_P(a_n).
+\tag{5}
+\]
+Finally, the donor-allowance expectation bound in \(\textup{lem:conditional-reduction}\) and \(w_n/a_n\to1\) imply \(d_n=o_P(a_n)\).  Equations (1), (2), and (5) show that the center is the established rank-one spectral center and that the full on-gate half-width is the established Gaussian half-width plus \(o_P(a_n)\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction is the required sanity check in the standard regular special case. \textit{Gap.} This is a compatibility result rather than a novelty claim; it prevents the transition construction from changing the established regular target. \textit{Consumer.} Existing rank-one implementations can adopt the transition correction without changing their regular-regime estimand.
+
+\begin{theorem}[thm:deterministic-dyadic-certificate]\label{thm:deterministic-dyadic-certificate}
+Suppose that the public controls \(\alpha,\sigma,c,C_0,B\) are exact dyadic numbers, that the rank and dimension controls are exact integers, and that all control-description lengths are at most \(L_n\).  For every exact dyadic triple \((\widetilde X,\widetilde R,\widetilde C)\in\mathbb D_{L_n}^{n^2+2n}\) and every real triple \((X,R,C)\) in its coordinate box of radius \(2^{-p_n-1}\), the handle \(H_n^{\mathrm{cert}}\) has a deterministic adaptive precision cap polynomial in \(n,L_n,p_n,\lceil\log_2(1/\alpha)\rceil\).  It terminates within bit complexity polynomial in the same quantities and returns \(I_n^{\mathrm{dyad}}\) containing the exact-real interval \(I_n^{\mathrm{out}}(X,R,C)\).  Its certificate satisfies
+\[
+0\le \operatorname{length}(I_n^{\mathrm{dyad}})
+-\operatorname{length}(I_n^{\mathrm{out}}(X,R,C))
+\le2(\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}).
+\]
+The certificate remains valid for repeated retained singular values, computes outward enclosures of \(\Phi^{-1}\) and \(F_{\chi^2_{2r}}^{-1}\) in certified polynomial time, returns the bounded outward fallback hull whenever the spectral gate or retained--discarded split is uncertain, and never accepts overflow, a subnormal value, or flush-to-zero behavior.  A refinable non-dyadic public control is not covered unless a separate corollary supplies a known uniform time-and-output-size modulus, incorporates that modulus in the schedules and bit count, and propagates the returned control interval as input uncertainty.
+\end{theorem}
+\begin{proof}
+Put \(\delta=2^{-p_n-1}\), let \(\mathcal B\) be the coordinate box of radius
+\(\delta\) around the exact dyadic arrays, and give every exact-dyadic public
+control radius zero.  We construct both a coarse enclosure and a sharp
+enclosure.
+
+Let \(T\) be a directed upper bound for every absolute coordinate on
+\(\mathcal B\).  At every point of \(\mathcal B\) at which the spectral gate
+holds,
+\[
+\|X_r^+\|_{
+\mathrm{op}}\le {2\over cn},
+\quad
+\|Z_{p,n}\|_2,\|Z_{q,n}\|_2\le {\sqrt nT\over\sigma},
+\quad
+t_{Z,n}\le {\sqrt{2n}T\over\sigma}=:\overline t.                    \tag{1}
+\]
+Because \(\beta_\alpha(t)=\alpha/[4(1+t)]\),
+\[
+0<\zeta_\alpha(t)\le z_{
+\max}:=\Phi^{-1}(1-3\alpha/8).                                       \tag{2}
+\]
+Define
+\[
+\overline R=\sqrt{C_{r,\alpha}\log(e+2\overline t+A_{r,\alpha})},
+\]
+\[
+\overline W={2\over cn}
+\left\{z_{
+\max}(\overline t+\overline R)
++{C_{r,\alpha}\over2}\log(e+\overline t+\overline R)\right\}.      \tag{3}
+\]
+Monotonicity of the displayed majorants in the analytic-halfwidth definition
+gives \(W_n\le\overline W\).  Moreover,
+\[
+|\widehat\theta_n|=|RX_r^+C|\le {2T^2\over c},                       \tag{4}
+\]
+and
+\[
+d_n\le K_0\sigma^2\ell_n n^{-2}
+\left({\sqrt nT\over\sigma}+\sqrt{\ell_n}\right)^2=:\overline d.   \tag{5}
+\]
+Consequently every feasible on-gate interval lies in
+\[
+[-\overline H,\overline H],\qquad
+\overline H={2T^2\over c}+\sigma^2\overline W+\overline d,           \tag{6}
+\]
+whereas every off-gate interval is \([-M_0,M_0]\).  Directed majorants of
+(1)--(6) are finite.  The inequalities \(\log(e+x)\le1+x\) and
+\(\sqrt x\le1+x\) show that their magnitude exponents have polynomial bit
+length.  Thus the hull of (6) and the fallback is a polynomial-time computable
+coarse enclosure without a spectral-gap premise.
+
+For the sharp branch put \(\tau=(cn/2)^2\) and use the invariant projectors
+\[
+P_R=\mathbf1_{(\tau,\infty)}(X^{\mathsf T}X),
+\qquad
+P_L=\mathbf1_{(\tau,\infty)}(XX^{\mathsf T}).                         \tag{7}
+\]
+Whenever the retained count is certified to be \(r\),
+\[
+X_r=P_LXP_R,
+\qquad
+X_r^+=X_r^{\mathsf T}(X_rX_r^{\mathsf T}+I-P_L)^{-1}.                \tag{8}
+\]
+Indeed, if \(X_r=U_rS_rV_r^{\mathsf T}\), the inverse in (8) equals
+\(U_rS_r^{-2}U_r^{\mathsf T}+I-P_L\), and left multiplication by
+\(X_r^{\mathsf T}\) gives \(V_rS_r^{-1}U_r^{\mathsf T}\).
+
+The certified-error recurrence supplies the scaled Newton--Schulz candidate for
+the inverse in (8), accepts it only through the full directed residual test, and
+computes (7) by matrix-sign iteration.  After \(j\) sign stages it includes the
+exact truncation tail
+\[
+{2\chi^{2^j}\over1-\chi^{2^j}}                                      \tag{9}
+\]
+and its solved noncommutative recurrence includes both transported box error and
+directed rounding error.  Repeated singular values inside the retained cluster
+change an individual singular-vector basis but not either projector; a boundary
+tie is not accepted and invokes the coarse hull.
+
+All interval inputs are evaluated invariantly:
+\[
+\widehat\theta_n=RX_r^+C,
+\qquad
+s_{Z,n}={1\over\sigma}
+\sqrt{\|X_r^+C\|_2^2+
+\|(X_r^+)^{\mathsf T}R^{\mathsf T}\|_2^2},                            \tag{10}
+\]
+\[
+\|Z_{p,n}\|_2={\|P_RR^{\mathsf T}\|_2\over\sigma},
+\qquad
+\|Z_{q,n}\|_2={\|P_LC\|_2\over\sigma}.                             \tag{11}
+\]
+Hence the exact endpoints are invariant under rotations within a repeated
+retained singular subspace.
+
+For completeness, the two quantile enclosures can be produced with directed
+rational arithmetic.  Taylor's formula with integral remainder gives
+\[
+\left|e^y-\sum_{j=0}^m{y^j\over j!}\right|
+\le {e^{|y|}|y|^{m+1}\over(m+1)!}.                                   \tag{12}
+\]
+The identity
+\[
+\pi=16\arctan(1/5)-4\arctan(1/239)                                  \tag{13}
+\]
+and the alternating power series for \(\arctan\) provide geometrically
+shrinking rational brackets for \(\pi\).  Combining (12)--(13) with
+\[
+\Phi(x)=\frac12+{1\over\sqrt{2\pi}}
+\int_0^x e^{-t^2/2}\,dt                                             \tag{14}
+\]
+provides directed rational brackets for \(\Phi\).  For fixed \(r\), direct
+integration of the gamma density gives
+\[
+F_{\chi^2_{2r}}(x)
+=1-e^{-x/2}\sum_{j=0}^{r-1}{(x/2)^j\over j!},\qquad x\ge0.           \tag{15}
+\]
+Completing the square in the standard-normal exponential moment yields
+\(P(Z\ge x)\le e^{-x^2/2}\).  This supplies a bracket of polynomial bit length
+for the normal quantile, while (15) supplies one of size
+\(O_{r_0}(1+\log(1/\gamma))\) at upper-tail probability \(\gamma\).  The
+densities are positive on the resulting finite interior brackets.  Directed
+probability bisection, retaining both branches whenever a function enclosure
+overlaps the target probability, therefore returns an enclosure for a quantile
+\(Q\) of width at most
+\[
+8\cdot2^{1-q_n}(1+|Q|).                                               \tag{16}
+\]
+The series lengths, bisection counts, mantissa costs, and exponent lengths are
+polynomial because \(r\le r_0\) is fixed.
+
+At successively doubled precisions, the algorithm attempts to certify that the
+entire box is off the gate or is on the gate with the common split (7).  The
+certified-error recurrence bounds the required number of Newton--Schulz and sign
+stages and all stored exponent lengths.  Choose the prescribed maximum working
+precision to be a fixed polynomial in
+\(n,L_n,p_n,\lceil\log_2(1/\alpha)\rceil\) dominating those bounds.  If no
+comparison separates by that cap, the algorithm returns the coarse hull (6).
+It therefore terminates after logarithmically many precision doublings, each
+containing polynomially many finite-precision operations.
+
+Fix \((X,R,C)\in\mathcal B\), write its exact interval as \([L,U]\), and write
+the returned interval as \([\underline L,\overline U]\).  Induction using the
+algebraic enclosure rules, the residual test, (9), the quantile brackets, and the
+branch hull gives
+\[
+\underline L\le L\le U\le\overline U.                               \tag{17}
+\]
+By the definitions of the accumulated endpoint propagation radii,
+\[
+0\le L-\underline L\le
+\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}},
+\qquad
+0\le\overline U-U\le
+\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}.                   \tag{18}
+\]
+Adding (18) proves the factor-two length bound.  Arbitrary-precision signed
+exponents exclude overflow and subnormal values in the abstract model.  An IEEE
+backend emits no certificate unless exact power-of-two rescaling and exponent
+widening exclude overflow, subnormals, and flushing.  This proves all assertions
+for exact-dyadic controls.  The final limitation concerning non-dyadic controls
+is immediate: without a uniform time-and-output-size modulus, neither their
+input length nor the propagated control radius is bounded by the displayed
+complexity parameters.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This isolates arithmetic containment and bit complexity on exact dyadic arrays and exact-dyadic public controls. \textit{Gap.} The theorem jointly certifies projectors, pseudoinverses, discontinuous gate logic, normal and chi-square quantiles, and exceptional floating-point states. \textit{Consumer.} Interval-library implementers obtain a deterministic certificate that can be audited independently of the panel sampling model.
+
+\begin{theorem}[thm:certified-implementation]\label{thm:certified-implementation}
+Suppose the public controls \(\alpha,\sigma,c,C_0,B\) are exact dyadic inputs whose description lengths are eventually at most \(L_n\).  Put
+\[
+h_\alpha=\lceil\log_2(64/\alpha)\rceil,
+\qquad
+g_n=20\{h_\alpha+\lceil\log_2(n+2)\rceil+1\},
+\]
+\[
+p_n=n^2+4g_n,\qquad q_n=p_n-g_n,\qquad
+\tau_n=B+\sigma\sqrt{12\log(e+n)}+1,
+\]
+and, for a sufficiently large fixed integer \(C_\star\),
+\[
+L_n=p_n+\lceil\log_2(p_n+2)\rceil
++\lceil\log_2\tau_n\rceil+2g_n+C_\star.
+\]
+Then \(p_n,L_n,q_n\) are polynomially bounded in \(n\) and \(\lceil\log_2(1/\alpha)\rceil\), \(T_n^{\mathrm{enc}}\ge\tau_n\), and the composed measurable interval \(I_n^{\mathrm{fp}}\) satisfies
+\[
+\liminf_{n\to\infty}\inf_{P\in\mathcal P_n}
+P\{\theta_n\in I_n^{\mathrm{fp}}\}\ge1-\alpha,
+\qquad
+\sup_{P\in\mathcal P_n}P(\kappa_n=1)=o(n^{-1}),
+\]
+\[
+\sup_{P\in\mathcal P_n}
+\frac{\mathbb E_P[\varepsilon_n]}{w_n}\longrightarrow0,
+\qquad
+\limsup_{n\to\infty}\sup_{P\in\mathcal P_n}
+\frac{\mathbb E_P[\operatorname{length}(I_n^{\mathrm{fp}})]}{w_n}
+\le K_\alpha.
+\]
+On \(\kappa_n=0\),
+\[
+I_n^{\mathrm{out}}(X,R,C)\subseteq I_n^{\mathrm{fp}},
+\qquad
+0\le\varepsilon_n\le2\Delta_n^{\mathrm{num}};
+\]
+on \(\kappa_n=1\), \(I_n^{\mathrm{fp}}=[-M_0,M_0]\).  Along every sequence \(P_n\in\mathcal P_n\) with \(b_n/a_n\to0\),
+\[
+\frac{\varepsilon_n}{a_n}\longrightarrow0
+\quad\hbox{in \(L^1(P_n)\) and in probability},
+\qquad
+\frac{\operatorname{length}(I\_n\textasciicircum{}{\mathrm{fp}})}
+{2\Phi\textasciicircum{}{-1}(1-\alpha/2)a\_n}\longrightarrow1
+\quad\hbox{in probability}.
+\]
+Finally, uniformly over \(P\in\mathcal P_n\), the expectation of every nonnegative recorded summand of \(\Delta_n^{\mathrm{enc}}\) and \(\Delta_n^{\mathrm{arith}}\), the fallback contribution \(M_0\mathbf1\{\kappa_n=1\}\), and \(\varepsilon_n\) is \(o(n^{-1})\).  In particular, this holds along every sequence with \(r=1\) and \(u=v=0\).
+\end{theorem}
+\begin{proof}
+Let \(h_\alpha,g_n,p_n,q_n,\tau_n,L_n\) have the values in the statement.  If
+\(C_\star\ge4\), then the definition of the encoding threshold gives
+\[
+T_n^{\mathrm{enc}}
+=2^{L_n-p_n-\lceil\log_2(p_n+2)\rceil-4}
+=2^{\lceil\log_2\tau_n\rceil+2g_n+C_\star-4}
+\ge\tau_n.                                                            \tag{1}
+\]
+The three schedules are polynomially bounded in \(n\) and
+\(h_\alpha\).  On \(\kappa_n=0\), an encoded coordinate has numerator length
+at most
+\[
+p_n+\lceil\log_2(T_n^{\mathrm{enc}}+1)\rceil+2,
+\]
+and its signed exponent \(-p_n\) has \(O(\log(p_n+2))\) bits.  Thus a sufficiently
+large fixed \(C_\star\), together with the assumed control-description bound,
+places every input in \(\mathbb D_{L_n}\) and in the directed-arithmetic model.
+
+There are \(N_n=n^2+2n\le3n^2\) observed coordinates, each with a mean bounded
+by \(B\).  Completing the square in the standard-normal exponential moment and
+applying exponential Markov inequality gives
+\[
+P(|Z|>x)\le2e^{-x^2/2},\qquad x\ge0.                                  \tag{2}
+\]
+Since (1) implies
+\(T_n^{\mathrm{enc}}\ge B+\sigma\sqrt{12\log(e+n)}+1\), a union bound gives
+\[
+\sup_{P\in\mathcal P_n}P(\kappa_n=1)
+\le2N_ne^{-6\log(e+n)}
+\le6n^2(e+n)^{-6}=O(n^{-4})=o(n^{-1}).                                \tag{3}
+\]
+
+We isolate a stable donor event.  A maximal \(1/4\)-separated subset of the
+Euclidean unit sphere has at most \(9^n\) points, by comparison of disjoint
+radius-\(1/8\) balls with the radius-\(9/8\) ball.  Approximating both unit
+vectors by this net gives
+\(\|E\|_{
+\mathrm{op}}\le2\max|x^{\mathsf T}Ey|\).  For fixed net vectors,
+\(x^{\mathsf T}Ey/\sigma\) is standard normal.  Equation (2) and a union bound
+therefore yield a fixed \(k_0>0\) such that
+\[
+\sup_{P\in\mathcal P_n}
+P\{\|E\|_{
+\mathrm{op}}>cn/8\}
+\le2\,9^{2n}\exp\left(-{c^2n^2\over512\sigma^2}\right)
+\le e^{-k_0n^2}                                                       \tag{4}
+\]
+for all sufficiently large \(n\).
+
+The singular-value variational formula and the triangle inequality imply
+\(|s_j(M+H)-s_j(M)|\le\|H\|_{
+\mathrm{op}}\).  On the complement of the event in (4), exact rank and the
+strong-spectrum assumption give
+\[
+s_r(X)\ge7cn/8,qquad s_{r+1}(X)\le cn/8,qquad
+s_1(X)\le C_0n+cn/8.                                                  \tag{5}
+\]
+The true donor and every matrix in its encoding box differ entrywise by at most
+\(2^{-p_n}\), and hence in operator norm by at most \(n2^{-p_n}\).  Therefore,
+for all sufficiently large \(n\), every donor matrix in the box satisfies
+\[
+s_r\ge3cn/4,qquad s_{r+1}\le cn/4,qquad s_1\le3C_0n/2.              \tag{6}
+\]
+
+Put
+\[
+\mathcal H_n=n+T_n^{\mathrm{enc}}+\alpha^{-1}+p_n+q_n+1,
+\qquad P_n^\star=K_\star\mathcal H_n^{k_\star}.
+\]
+For fixed \(\alpha\) and the fixed class constants, (1) and the definition of
+\(g_n\) show that \(T_n^{\mathrm{enc}},\mathcal H_n,P_n^\star\) are polynomial
+in \(n\).  On \(\kappa_n=0\), the coordinate box is bounded by
+\(T_n^{\mathrm{enc}}+1\).  Applying the two branches of the stable-padding lemma
+and using (4)--(6) gives, for every fixed \(m>0\),
+\[
+\begin{aligned}
+\sup_{P\in\mathcal P_n}\mathbb E_P[&
+(\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}})
+\mathbf1\{\kappa_n=0\}]\\
+&\le P_n^\star(2^{-p_n}+2^{1-q_n})+P_n^\star e^{-k_0n^2}
+=o(n^{-m}),
+\end{aligned}                                                        \tag{7}
+\]
+because \(p_n=n^2+4g_n\) and \(q_n=n^2+3g_n\).  Every recorded radius is
+nonnegative, so (7) also bounds each recorded summand.
+
+The deterministic dyadic certificate applies.  On \(\kappa_n=0\), it gives
+\[
+I_n^{\mathrm{out}}(X,R,C)\subseteq I_n^{\mathrm{fp}},
+\qquad
+0\le\varepsilon_n
+\le2(\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}})
+=2\Delta_n^{\mathrm{num}}.                                          \tag{8}
+\]
+On \(\kappa_n=1\), the composed procedure returns \([-M_0,M_0]\), which
+contains the target because
+\[
+|\theta_n|
+\le\|u\|_2\|A^+\|_{
+\mathrm{op}}\|v\|_2
+\le(B\sqrt n){1\over cn}(B\sqrt n)=M_0.                              \tag{9}
+\]
+On that branch \(0\le\varepsilon_n\le2M_0\).  Equations (3), (7), and (8)
+therefore prove
+\[
+\sup_{P\in\mathcal P_n}\mathbb E_P[\varepsilon_n]=o(n^{-1}),
+\qquad
+\sup_{P\in\mathcal P_n}\mathbb E_P[
+M_0\mathbf1\{\kappa_n=1\}]=o(n^{-1}),                               \tag{10}
+\]
+as well as the same bound for each recorded summand.
+
+On \(\kappa_n=0\), coverage by \(I_n^{\mathrm{out}}\) implies coverage by
+\(I_n^{\mathrm{fp}}\) by (8); on \(\kappa_n=1\), coverage holds by (9).
+The established uniform-coverage theorem consequently gives
+\[
+\liminf_n\inf_{P\in\mathcal P_n}
+P\{\theta_n\in I_n^{\mathrm{fp}}\}\ge1-\alpha.                       \tag{11}
+\]
+Furthermore,
+\[
+w_n\ge b_n=\sigma^2\|A^+\|_{
+\mathrm F}
+\ge{\sigma^2\over s_1(A)}\ge{\sigma^2\over C_0n}.                  \tag{12}
+\]
+Combining (10)--(12) yields
+\[
+\sup_{P\in\mathcal P_n}{\mathbb E_P[\varepsilon_n]\over w_n}
+\longrightarrow0.                                                    \tag{13}
+\]
+For nonnegative \(x,y\), \(x\le y+[x-y]_+\), and hence
+\[
+\operatorname{length}(I_n^{\mathrm{fp}})
+\le\operatorname{length}(I_n^{\mathrm{out}})+\varepsilon_n.
+\]
+The established transition-length theorem and (13) prove the asserted
+transition-order expected-length bound with its stated \(K_\alpha\).
+
+Finally, suppose \(b_n/a_n\to0\).  Equation (12) implies
+\[
+na_n\ge{\sigma^2\over C_0}{a_n\over b_n}\longrightarrow\infty.      \tag{14}
+\]
+Equations (10) and (14) give
+\[
+{\mathbb E_{P_n}[\varepsilon_n]\over a_n}
+={n\mathbb E_{P_n}[\varepsilon_n]\over na_n}\longrightarrow0.      \tag{15}
+\]
+Thus \(\varepsilon_n/a_n\to0\) in \(L^1(P_n)\) and in probability.  On
+\(\kappa_n=0\), the length difference is nonnegative and equals
+\(\varepsilon_n\); on \(\kappa_n=1\), the event probability tends to zero by
+(3).  It follows that
+\[
+{\operatorname{length}(I_n^{\mathrm{fp}})
+-\operatorname{length}(I_n^{\mathrm{out}})\over a_n}
+\longrightarrow0\quad\hbox{in probability}.                         \tag{16}
+\]
+Combining (16) with the established oracle-length theorem proves the stated
+Gaussian ratio.  The uniform summand estimates in (10) imply the final
+\(o(n^{-1})\) assertion, in particular along the rank-one joint-zero sequence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem closes the statistical last mile from continuous Gaussian observations to a measurable finite-precision interval. \textit{Gap.} The chosen schedules make clipping probability and every recorded encoding or arithmetic padding term negligible even at the rank-one joint-zero \(n^{-1}\) scale. \textit{Consumer.} CAST-style software can preserve the proved coverage and transition-length guarantees when it implements the stated exact-dyadic control and directed-arithmetic contract.
+
+\begin{lemma}[lem:stable-certified-padding]\label{lem:stable-certified-padding}
+Let \(\delta_n=2^{-p_n-1}\), let \(\mathcal B_n\) be the coordinate box of radius \(\delta_n\) about \((\widetilde X,\widetilde R,\widetilde C)\) on \(\kappa_n=0\), and suppose the public controls are exact dyadic inputs.  Put
+\[
+\mathcal H_n=n+T_n^{\mathrm{enc}}+\alpha^{-1}+p_n+q_n+1.
+\]
+There are finite constants \(K_\star,k_\star\), depending only on \(c,C_0,B,\sigma,r_0\), such that for all sufficiently large \(n>r_0\), if every coordinate of \(\mathcal B_n\) is at most \(T_n^{\mathrm{enc}}+1\) in absolute value, then
+\[
+0\le\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}
+\le K_\star\mathcal H_n^{k_\star}.
+\]
+If in addition every donor matrix \(X'\in\mathcal B_n\) satisfies
+\[
+s_r(X')\ge3cn/4,\qquad s_{r+1}(X')\le cn/4,
+\qquad s_1(X')\le3C_0n/2,
+\]
+then
+\[
+\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}
+\le K_\star\mathcal H_n^{k_\star}
+\bigl(2^{-p_n}+2^{1-q_n}\bigr).
+\]
+Every nonnegative radius recorded as a summand of either \(\Delta_n^{\mathrm{enc}}\) or \(\Delta_n^{\mathrm{arith}}\) obeys the corresponding upper bound.
+\end{lemma}
+\begin{proof}
+Let \(T=T_n^{\mathrm{enc}}+1\).  On \(\kappa_n=0\), every coordinate of every
+point of \(\mathcal B_n\) has absolute value at most \(T\).  At a feasible
+on-gate point, the gate and the rank-\(r\) truncation give
+\[
+\|X_r^+\|_{
+\mathrm{op}}\le {2\over cn},
+\qquad
+\|Z_{p,n}\|_2,\|Z_{q,n}\|_2\le {\sqrt nT\over\sigma}.               \tag{1}
+\]
+Since \(h_n=\|D_n\|_{
+\mathrm{op}}\) and
+\(s_{Z,n}\le h_n(\|Z_{p,n}\|_2^2+\|Z_{q,n}\|_2^2)^{1/2}\),
+\[
+t_{Z,n}\le {\sqrt{2n}T\over\sigma}.                                 \tag{2}
+\]
+Furthermore \(0<\beta_\alpha(t)\le\alpha/4\), and hence
+\[
+0<\zeta_\alpha(t)\le \Phi^{-1}(1-3\alpha/8).                        \tag{3}
+\]
+Equations (1)--(3), the definitions of \(R_{0,n},t_{-,n},t_{+,n},W_n\), and
+\(C_{r,\alpha}\le C(1+\log(1/\alpha))\) show that \(W_n\) is bounded by a
+fixed polynomial in
+\(\mathcal H_n=n+T_n^{\mathrm{enc}}+\alpha^{-1}+p_n+q_n+1\).
+Also
+\[
+|\widehat\theta_n|=|RX_r^+C|\le {2T^2\over c},                       \tag{4}
+\]
+and
+\[
+d_n\le K_0\sigma^2\ell_n n^{-2}
+\left({\sqrt nT\over\sigma}+\sqrt{\ell_n}\right)^2.                 \tag{5}
+\]
+Thus every feasible on-gate endpoint is bounded by
+\(K\mathcal H_n^k\), while the off-gate interval has fixed radius
+\(M_0=B^2/c\).  The handle can always return the outward hull of these branches.
+This proves
+\[
+0\le\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}
+\le K\mathcal H_n^k.                                                  \tag{6}
+\]
+Exact-dyadic public controls contribute zero input radius.
+
+Now impose the three stable spectral inequalities in the statement.  Relative
+to \(\tau=(cn/2)^2\), every retained or discarded squared singular value is
+separated from the cutoff by at least
+\[
+\min\{(3cn/4)^2-(cn/2)^2,(cn/2)^2-(cn/4)^2\}
+=\frac{3c^2n^2}{16}.                                                   \tag{7}
+\]
+The certified-error recurrence lemma therefore applies to the sharp projector,
+pseudoinverse, scalar-calibration, and endpoint graph.  If its precision test
+succeeds, it gives
+\[
+\Delta_n^{\mathrm{enc}}+\Delta_n^{\mathrm{arith}}
+\le K\mathcal H_n^k(2^{-p_n}+2^{1-q_n}).                              \tag{8}
+\]
+If that test fails, its failure implies
+\(1\le K\mathcal H_n^d(2^{-p_n}+2^{1-q_n})\).  Multiplying (6) by this
+inequality and increasing the fixed exponent proves (8) in that case as well.
+Every recorded summand is nonnegative and is at most the displayed sum, so it
+obeys the same applicable bound.  This proves the lemma.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The stable-box lemma converts the recurrence into a uniform observable padding bound and retains a valid coarse-hull case at inadequate precision. \textit{Gap.} The bound includes input and working precision in its polynomial majorant and applies summand by summand. \textit{Consumer.} The statistical transfer can integrate numerical padding rather than relying on a high-probability backward-error slogan.
+
+\begin{lemma}[lem:yan-wainwright-gaussian-condition]\label{lem:yan-wainwright-gaussian-condition}
+Yan--Wainwright's Gaussian approximation in Theorem~1 assumes all of condition \(4.4\), including condition \(4.4\mathrm{c}\).
+\end{lemma}
+
+\begin{proposition}[prop:yan-wainwright-class-embedding]\label{prop:yan-wainwright-class-embedding}
+For every \(P\in\mathcal P_n\), the augmented mean \(\overline M_n\) has rank \(r\) and, with donor dimensions \(N_1=T_1=n\) and target dimensions \(N_2=T_2=1\), its three observed blocks have exactly the law of \((X,C,R)\).  This is a square one-target bounded Gaussian subclass of the Yan--Wainwright four-block model.  For every fixed positive approximation tolerance, their conditions \(4.1\), \(4.2\), \(4.3\), and \(4.4\mathrm{a}\)--\(4.4\mathrm{b}\) hold for all sufficiently large \(n\), uniformly over \(P\in\mathcal P_n\).  At \(u=v=0\), their condition \(4.4\mathrm{c}\) fails.
+\end{proposition}
+\begin{proof}
+Fix \(P=P_{A,u,v}\in\mathcal P_n\), and write the compact singular-value decomposition
+\[
+A=USV^{\mathsf T},
+\qquad cn\le s_r(A)\le s_1(A)\le C_0n.
+\tag{1}
+\]
+The span conditions give \(u=uVV^{\mathsf T}\) and \(v=UU^{\mathsf T}v\).  Define
+\[
+\ell=S^{-1}V^{\mathsf T}u^{\mathsf T},\qquad
+q=S^{-1}U^{\mathsf T}v,\qquad
+L=\begin{bmatrix}U\\ \ell^{\mathsf T}\end{bmatrix},\qquad
+H=\begin{bmatrix}V\\ q^{\mathsf T}\end{bmatrix}.
+\]
+Then block multiplication and the definition of \(\theta_n\) give
+\[
+LSH^{\mathsf T}
+=\begin{bmatrix}
+A&UU^{\mathsf T}v\\
+uVV^{\mathsf T}&uVS^{-1}U^{\mathsf T}v
+\end{bmatrix}
+=\begin{bmatrix}A&v\\u&\theta_n\end{bmatrix}
+=\overline M_n.
+\tag{2}
+\]
+The first \(n\) rows of \(L\) and \(H\) are \(U\) and \(V\), so both factors have column rank \(r\).  Since \(S\) is invertible, (2) proves \(\operatorname{rank}(\overline M_n)=r\).  The Gaussian-block assumption says that the three observed blocks have means \((A,v,u)\), observations \((X,C,R)\), and mutually independent \(\mathcal N(0,\sigma^2)\) entry noise.  The lower-right scalar is missing.  Thus this is the four-block model with \(N=T=n+1\), \(N_1=T_1=n\), and \(N_2=T_2=1\).  Its mean entries are bounded by \(\max\{B,B^2/c\}\), by (1) and the calculation in (1) of the coverage proof.
+
+We verify the conditions in equations \(4.1\)--\(4.4\) of Yan and Wainwright~\cite{YanWainwright2024}.  The entry bound and (1) imply
+\[
+\|\ell\|_2\le\frac{\|u\|_2}{s_r(A)}
+\le\frac{B}{c\sqrt n},
+\qquad
+\|q\|_2\le\frac{B}{c\sqrt n}.
+\tag{3}
+\]
+An orthonormal basis of \(\operatorname{col}(L)\) is \(\overline U=L(L^{\mathsf T}L)^{-1/2}O_L\), for an orthogonal \(O_L\).  If \(\overline U_1\) denotes its first \(n\) rows, then
+\[
+\overline U_1^{\mathsf T}\overline U_1
+=O_L^{\mathsf T}(I_r+\ell\ell^{\mathsf T})^{-1}O_L.
+\tag{4}
+\]
+For all sufficiently large \(n\), (3)--(4) give
+\[
+\frac12 I_r\preceq\overline U_1^{\mathsf T}\overline U_1\preceq I_r.
+\tag{5}
+\]
+The identical calculation for \(H\) gives (5) for \(\overline V_1\).  Since \(n/(n+1)\in[1/2,1]\), condition \(4.1\) holds, for example with fixed constants \(c_\ell=1/2\) and \(c_u=2\).
+
+Deleting the last row and column is multiplication by coordinate contractions.  The singular-value variational formula therefore gives
+\[
+\sigma_r^\star=s_r(\overline M_n)\ge s_r(A)\ge cn.
+\tag{6}
+\]
+Yan--Wainwright scale each noise entry to have variance \(\omega^2/(NT)\).  Here the variance is \(\sigma^2\) and \(N=T=n+1\), so the correct normalization is
+\[
+\omega=\sigma\sqrt{NT}=\sigma(n+1).
+\tag{7}
+\]
+Consequently their global quantity in condition \(4.2\) satisfies
+\[
+\rho_{N,T}
+=\frac{\omega}{\sigma_r^\star\sqrt{\min\{N_1,T_1\}}}
+\le\frac{\sigma(n+1)}{cn\sqrt n}=O(n^{-1/2}),
+\tag{8}
+\]
+and \(\min\{N_1,T_1\}=n\) eventually exceeds every fixed multiple of \(\log(N+T)\).  Since \(r\le r_0\),
+\[
+\rho_{N,T}\sqrt{r+\log(N+T)}
+=O\left(\sqrt{\frac{\log n}{n}}\right)\longrightarrow0,
+\tag{9}
+\]
+which verifies condition \(4.3\) for every fixed positive approximation tolerance.
+
+The local quantities in condition \(4.4\) use the entrywise noise standard deviation \(\omega/\sqrt{NT}=\sigma\), not \(\omega\).  Hence
+\[
+\rho_N=\frac{\sigma}{\sigma_r^\star\sqrt{N_1}}
+\le\frac{\sigma}{cn^{3/2}},
+\qquad
+\rho_T\le\frac{\sigma}{cn^{3/2}}.
+\tag{10}
+\]
+The last row of \(\overline U\) has norm at most \(\|\ell\|_2\), and the last row of \(\overline V\) has norm at most \(\|q\|_2\).  Thus the target local incoherences in condition \(4.4\mathrm a\) satisfy
+\[
+\mu_{n+1}=\sqrt{\frac{n+1}{r}}
+\|\overline U_{n+1,\boldsymbol\cdot}\|_2
+\le\frac{\sqrt2B}{c},
+\qquad
+\nu_{n+1}\le\frac{\sqrt2B}{c}.
+\tag{11}
+\]
+Combining (10)--(11), the two left sides of condition \(4.4\mathrm b\) are bounded, respectively, by
+\[
+\max\{\mu_{n+1}\rho_T,\nu_{n+1}\rho_N\}\sqrt r
+\le\frac{\sqrt2B\sigma\sqrt{r_0}}{c^2n^{3/2}}\longrightarrow0
+\tag{12}
+\]
+and
+\[
+\min\left\{\frac{\mu_{n+1}}{\sqrt{N_1}},
+\frac{\nu_{n+1}}{\sqrt{T_1}}\right\}
+\sqrt{r\log(N+T)}
+\le\frac{\sqrt2B\sqrt{r_0\log(2n+2)}}{c\sqrt n}\longrightarrow0.
+\tag{13}
+\]
+Thus conditions \(4.4\mathrm a\)--\(4.4\mathrm b\) hold uniformly for every fixed tolerance.
+
+Finally, \(u=v=0\) satisfies every class condition.  Then \(\ell=q=0\), so \(\mu_{n+1}=\nu_{n+1}=0\), whereas \(\rho_N,\rho_T>0\).  With the extended-real convention for division by zero, the first factor in condition \(4.4\mathrm c\) is
+\[
+\min\left\{\frac{\rho_T}{\mu_{n+1}},
+\frac{\rho_N}{\nu_{n+1}}\right\}=+\infty.
+\]
+Therefore condition \(4.4\mathrm c\) fails at joint zero.  Equations (1)--(13) prove precisely the canonical-subclass conclusion.  Notice in particular the corrected global order \(O(n^{-1/2})\) in (8) and the distinct local order \(O(n^{-3/2})\) in (10).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The embedding fixes the comparison domain and verifies the published normalization rather than treating the present class as the full Yan--Wainwright model. \textit{Gap.} The corrected calculation has \(\omega=\sigma(n+1)\), global \(\rho_{N,T}=O(n^{-1/2})\), and local \(\rho_N,\rho_T=O(n^{-3/2})\); these rates suffice for the claimed conditions. \textit{Consumer.} Readers can distinguish the subclass upper extension from the upward transfer of a lower bound to any containing class.
+
+\begin{lemma}[lem:certified-error-recurrence]\label{lem:certified-error-recurrence}
+Put
+\[
+\mathcal H_n=n+T_n^{\mathrm{enc}}+\alpha^{-1}+p_n+q_n+1,
+\qquad
+\epsilon_n^{\mathrm{mach}}=2^{-p_n}+2^{1-q_n}.
+\]
+For exact-dyadic public controls, the handle \(H_n^{\mathrm{cert}}\) may be implemented with the following certified computation graph.  Every node \(x\) has a computed center \(\widehat x\) and an outward radius \(r(x)\); inputs, sums, products, scalar functions, residual-certified inverses, and matrix-sign updates obey the displayed recurrences in \(H_n^{\mathrm{cert}}\).  Each inverse candidate for a nonsingular matrix \(K\) is constructed by the scaled Newton--Schulz iteration
+\[
+L_0=\lambda K^{\mathsf T},\qquad
+L_{j+1}=L_j(2I-KL_j),\qquad
+\lambda=2^{-\lceil\log_2(\|K\|_1\|K\|_\infty)\rceil},
+\]
+and is accepted only when its directed residual satisfies \(\varrho(K,L_j)<1\).  If \(S_0\) is a symmetrically scaled matrix whose spectrum lies in \([-1,-\gamma]\cup[\gamma,1]\), its matrix-sign enclosure after \(j\) updates includes the deterministic truncation tail
+\[
+\frac{2\chi^{2^j}}{1-\chi^{2^j}},
+\qquad
+\chi=\frac{1-\gamma}{1+\gamma}.
+\]
+There are finite constants \(K_\star,k_\star,d_\star\), depending only on \(c,C_0,B,\sigma,r_0\), such that, for all sufficiently large \(n>r_0\), every computation attempted on a coordinate box bounded by \(T_n^{\mathrm{enc}}+1\) has every intermediate computed center bounded in its assigned norm by
+\[
+K_\star\mathcal H_n^{k_\star}.
+\]
+If every donor matrix \(X'\) in the box satisfies
+\[
+s_r(X')\ge3cn/4,\qquad s_{r+1}(X')\le cn/4,\qquad
+s_1(X')\le3C_0n/2,
+\]
+then every transported input radius, rounding radius, matrix-sign tail, and final wrapping radius is bounded by
+\[
+K_\star\mathcal H_n^{k_\star}\epsilon_n^{\mathrm{mach}}.
+\]
+When \(K_\star\mathcal H_n^{d_\star}\epsilon_n^{\mathrm{mach}}\le1\), the residual tests certify the sharp retained-projector and pseudoinverse branch after \(O(\log\mathcal H_n+\log(q_n+2))\) Newton--Schulz and matrix-sign stages; otherwise the certified coarse hull is returned and obeys the same displayed radius bound after increasing \(k_\star\).  The operation count, mantissa cost, and dynamically stored exponent lengths are polynomial in \(n,L_n,p_n,q_n,\lceil\log_2(1/\alpha)\rceil\).  Every returned enclosure is valid by induction, including under repeated retained singular values and an uncertain gate.
+\end{lemma}
+\begin{proof}
+Put \(\varepsilon_{
+\mathrm{mach},n}=2^{-p_n}+2^{1-q_n}\) and
+\[
+\mathcal H_n=n+T_n^{\mathrm{enc}}+\alpha^{-1}+p_n+q_n+1.
+\]
+We first prove validity of the elementary enclosure rules.  If
+\(\|x-\widehat x\|\le r(x)\) and \(\|y-\widehat y\|\le r(y)\), the triangle
+inequality proves the addition rule.  Moreover,
+\[
+xy-\widehat x\widehat y
+=\widehat x(y-\widehat y)+(x-\widehat x)\widehat y
++(x-\widehat x)(y-\widehat y),                                      \tag{1}
+\]
+so submultiplicativity proves the product rule before its nonnegative rounding
+allowance is added.  A correctly directed radix-two operation whose exact result
+has magnitude at most \(2^{e_j}\) differs from that result by at most
+\(2^{e_j-q_n}\).  Summing these scalar errors, with the dimension factors coming
+from \(\|M\|_{\mathrm{op}}\le\|M\|_{\mathrm F}\), gives the stated
+\(\omega_q\).  The mean-value theorem gives the scalar-function rule on the
+current interval.
+
+For the residual inverse rule, let \(R_K=I-KL\).  The enclosure of \(K\) gives
+\[
+\|R_K\|\le \|I-\widehat K L\|+r(K)\|L\|=\varrho<1.                 \tag{2}
+\]
+The finite geometric identity and \(\|R_K^m\|\to0\) imply
+\((I-R_K)^{-1}=\sum_{j\ge0}R_K^j\).  Since \(KL=I-R_K\),
+\[
+\|K^{-1}-L\|
+\le {\|L\|\varrho\over1-\varrho}.                                  \tag{3}
+\]
+Thus the inverse radius in the certified handle is valid.  Applying the same
+rules to \((S+S^{-1})/2\), and taking the outward hull whenever a comparison
+overlaps zero, proves containment inductively for every finite computation graph.
+
+We next give a polynomial-time candidate for every inverse that the sharp branch
+attempts.  For a nonsingular \(d\)-by-\(d\) center \(K\), set
+\[
+\lambda=2^{-\lceil\log_2(\|K\|_1\|K\|_\infty)\rceil},\qquad
+L_0=\lambda K^{\mathsf T},\qquad
+L_{j+1}=L_j(2I-KL_j).                                                \tag{4}
+\]
+Because \(\|K\|_{\mathrm{op}}^2\le\|K\|_1\|K\|_\infty\), the eigenvalues
+of \(\lambda KK^{\mathsf T}\) belong to \((0,1]\), and
+\[
+\|I-KL_0\|_{
+\mathrm{op}}
+\le1-{s_d(K)^2\over2\|K\|_1\|K\|_\infty}.                         \tag{5}
+\]
+Exact arithmetic gives \(I-KL_{j+1}=(I-KL_j)^2\).  The handle attempts an
+inverse only after its preceding enclosures give
+\(\|K\|_1\|K\|_\infty\le\mathcal H_n^{d_1}\) and
+\(s_d(K)^{-1}\le\mathcal H_n^{d_1}\), for a fixed \(d_1\); otherwise it
+returns the coarse hull.  Hence the decrement in (5) is at least
+\(\mathcal H_n^{-d_2}\), and the exact residual is at most \(1/8\) after at
+most
+\[
+J_{
+\mathrm{inv}}\le C\{\log\mathcal H_n+\log(q_n+2)\}                \tag{6}
+\]
+iterations.
+
+For the rounded iteration, (1) yields
+\[
+\widehat r_{j+1}\le \widehat r_j^2+Omega_n,
+\qquad
+\Omega_n=C\mathcal H_n^{d_3}\varepsilon_{
+\mathrm{mach},n}.                                                     \tag{7}
+\]
+Let \(z_{j+1}=z_j^2\), with \(z_0\) equal to the right side of (5), and put
+\(d_j=[\widehat r_j-z_j]_+\).  While \(\widehat r_j\le1\),
+\[
+d_{j+1}\le2d_j+d_j^2+\Omega_n.
+\]
+Induction for the \(O(\log\mathcal H_n)\) iterations needed to make
+\(z_j\le1/8\) gives
+\(d_j\le3^{j+1}\Omega_n\le C\mathcal H_n^{d_4}\varepsilon_{
+\mathrm{mach},n}\).  If this last bound is at most \(1/8\), the interval
+\([0,1/3]\) is subsequently invariant under (7), and the directed evaluation
+of (2) certifies \(\varrho<1\).  Also
+\(L_j=K^{-1}(I-R_{K,j})\) in exact arithmetic, so throughout the accepted
+iteration \(\|L_j\|\le2\|K^{-1}\|\), up to the same polynomially amplified
+rounding radius.  If the precision inequality fails, then
+\(1\le C\mathcal H_n^{d_4}\varepsilon_{
+\mathrm{mach},n}\); multiplying the polynomial coarse radius by this inequality
+gives the claimed precision-scaled bound after increasing its exponent.  Thus
+both successful and unsuccessful residual branches satisfy the assertion.
+
+We now certify the invariant projectors.  Put \(\tau=(cn/2)^2\).  On the stable
+box, the spectra of \(X^{\mathsf T}X-\tau I\) and
+\(XX^{\mathsf T}-\tau I\) have distance at least
+\[
+g_n^{\mathrm{sp}}
+=\min\{(3cn/4)^2-(cn/2)^2,(cn/2)^2-(cn/4)^2\}
+=\frac{3c^2n^2}{16}                                                   \tag{8}
+\]
+from zero, while their norms are at most a constant times \(n^2\).  Division by
+a certified power of two between that upper bound and twice it produces a
+symmetric \(S_0\) with
+\[
+\operatorname{spec}(S_0)\subset[-1,-\gamma]\cup[\gamma,1],           \tag{9}
+\]
+where \(\gamma>0\) depends only on \(c,C_0\).
+
+For a scalar \(x\ne0\), writing \(s=\operatorname{sign}(x)\) and
+\(z=(x-s)/(x+s)\), direct substitution into
+\(x^+=(x+x^{-1})/2\) gives \((x^+-s)/(x^++s)=z^2\).  Diagonalizing \(S_0\)
+therefore proves that the exact sign iterates obey
+\[
+\|S_j-\operatorname{sign}(S_0)\|_{
+\mathrm{op}}
+\le {2\chi^{2^j}\over1-\chi^{2^j}},
+\qquad \chi={1-\gamma\over1+\gamma}<1.                               \tag{10}
+\]
+The right side of (10) is explicitly added to the returned enclosure.  Taking
+\(J_{
+\mathrm{sign}}=O(\log(q_n+2))\) makes it no larger than
+\(2^{1-q_n}\).
+
+It remains to control noncommuting rounded perturbations.  For
+\(F(S)=(S+S^{-1})/2\), the resolvent identity gives the exact formula
+\[
+F(S+E)-F(S)
+=\frac12(E-S^{-1}ES^{-1})
++\frac12S^{-1}ES^{-1}E(S+E)^{-1}.                                    \tag{11}
+\]
+Thus \(DF_S(E)=\frac12(E-S^{-1}ES^{-1})\), without a commutativity
+assumption.  After the first exact sign step every eigenvalue has absolute value
+at least one.  The graph symmetrizes each rounded center outward, so (11), the
+residual inverse enclosure, and the accumulated directed rounding error give
+\[
+e_{j+1}\le e_j+C e_j^2+C\mathcal H_n^{d_5}2^{1-q_n},\qquad j\ge1.    \tag{12}
+\]
+The first step has the same form with a constant depending on \(\gamma^{-1}\).
+Write \(\Omega=C\mathcal H_n^{d_5}2^{1-q_n}\), let
+\(J=J_{
+\mathrm{sign}}\), and set
+\(\widetilde e_j=e_j+(J-j)\Omega\).  Then
+\(\widetilde e_{j+1}\le\widetilde e_j+C\widetilde e_j^2\).  Since
+\(y+Cy^2\le y/(1-Cy)\) for \(Cy<1\), iteration yields
+\[
+e_j\le {x\over1-C(j-1)x},
+\qquad x=e_1+J\Omega,                                                  \tag{13}
+\]
+whenever the denominator is positive.  The input box gives
+\(e_1\le C\mathcal H_n^{d_6}2^{-p_n}\), and
+\(J\le C\log(q_n+2)\le C\mathcal H_n\).  Hence (13) is bounded by
+\[
+C\mathcal H_n^{d_7}
+\bigl(2^{-p_n}+2^{1-q_n}\bigr).                                      \tag{14}
+\]
+If its precision condition fails, the preceding coarse-radius case split proves
+(14) after another fixed increase of \(d_7\).  Equations (11)--(14) are the
+required solved noncommutative recurrence.
+
+The projectors are \((I\pm\operatorname{sign}(S_0))/2\).  On the stable box,
+(8), (10), and (14) certify their retained count.  The invariant pseudoinverse
+is computed as
+\[
+X_r=P_LXP_R,qquad K_r=X_rX_r^{\mathsf T}+I-P_L,qquad
+X_r^+=X_r^{\mathsf T}K_r^{-1}.                                       \tag{15}
+\]
+The eigenvalues of \(K_r\) are the retained squared singular values and ones on
+the orthogonal complement.  Consequently
+\(\|K_r\|\le C\mathcal H_n^2\) and
+\(s_n(K_r)^{-1}\le1+(3cn/4)^{-2}\le2\) for large \(n\).  Equations
+(4)--(7) therefore residual-certify (15), and the product rule gives a
+polynomial-times-\(\varepsilon_{
+\mathrm{mach},n}\) radius.  Only invariant projectors are used, so repeated
+singular values inside the retained cluster require no internal eigengap.
+
+All remaining centers are polynomially bounded.  Indeed,
+\[
+\|Z_{p,n}\|_2,\|Z_{q,n}\|_2
+\le {\sqrt n(T_n^{\mathrm{enc}}+1)\over\sigma},
+\qquad \|D_n\|_{
+\mathrm{op}}\le {4\over3cn}.                                        \tag{16}
+\]
+The logarithm and square-root arguments in the calibration are at least one.
+The normal upper-tail probability used by \(\zeta_\alpha\) lies between
+\(3\alpha/8\) and \(\alpha/2\).  For fixed \(r\),
+\[
+1-F_{\chi^2_{2r}}(x)
+=e^{-x/2}\sum_{j=0}^{r-1}{(x/2)^j\over j!},                           \tag{17}
+\]
+so the chi-square quantile at tail probability
+\(\alpha/[4(1+t)]\), and the reciprocals of both relevant densities, are
+bounded by fixed powers of \(\mathcal H_n\).  The scalar enclosure rule thus
+amplifies radii by at most another fixed polynomial.
+
+There are \(O(n^3)\) scalar operations per matrix product, (6) bounds every
+inverse iteration, (10) bounds every sign iteration, and probability-bracketed
+bisection uses \(O(q_n+\log\mathcal H_n)\) steps.  Every center magnitude is
+at most a fixed power of \(\mathcal H_n\), so every stored exponent has
+\(O(\log\mathcal H_n)\) bits.  Summation over this polynomial graph proves,
+for constants depending only on \(c,C_0,B,\sigma,r_0\),
+\[
+\max_x\|\widehat x\|\le K_\star\mathcal H_n^{k_\star},
+\qquad
+\max_x r(x)\le K_\star\mathcal H_n^{k_\star}
+\bigl(2^{-p_n}+2^{1-q_n}\bigr)                                      \tag{18}
+\]
+on the stable box.  The first inequality is a center bound and does not vanish
+with precision; the second is the transported-radius bound.  Outside the stable
+branch, the handle returns its polynomially bounded coarse hull.  The
+inadequate-precision implication used after (7) converts that coarse bound to
+the asserted alternative radius bound.  Correct rounding, (3), the sign tail
+(10), and branch hulling prove validity even under an uncertain gate.  This
+establishes every assertion of the lemma, including bit complexity.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The recurrence is the quantitative bridge from exact formulas to outward finite-precision endpoints. \textit{Gap.} It now separates polynomially bounded computed centers from precision-scaled radii, constructs every inverse candidate, includes the exact matrix-sign tail, and solves the noncommutative rounded-iterate accumulation. \textit{Consumer.} Certified numerical implementations receive explicit residual, iteration, radius, and bit-complexity obligations.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The numerical theorem is for the abstract directed radix-two model with arbitrary signed exponents and exact-dyadic public controls. A non-dyadic refinable control requires a separate known uniform time-and-output-size modulus, inclusion of that modulus in the schedules and bit count, and propagation of the returned control interval. An IEEE implementation must still realize the stipulated exact power-of-two rescaling, exponent widening, outward special-function evaluation, and rejection of flushed values. The statistical model continues to require known fixed rank, known homoskedastic Gaussian variance, strong donor factors, and exact row and column span membership.
+
+\section{Honest scope}
+
+The result covers square strong-donor panels of known fixed rank with known homoskedastic Gaussian variance, exact row and column span membership, fixed incoherence, and bounded entries. It does not claim unknown-rank adaptation, weak-donor inference, approximate-factor robustness, dependence robustness, or inference for a realized untreated outcome. Its comparison with Yan--Wainwright is confined to the proved canonical square one-target subclass. Real Gaussian observations remain continuous and are passed through the measurable encoding map; only the public controls are restricted to exact dyadic inputs for the proved polynomial-time certificate. Arbitrary refinable public controls and a deployed IEEE implementation remain outside the theorem unless their additional moduli and exceptional-state checks are supplied.
+
+\begin{thebibliography}{99}
+
+  \bibitem{YanWainwright2024} Yuling Yan and Martin J. Wainwright. "Entrywise Inference for Missing Panel Data: A Simple and Instance-Optimal Approach." arXiv:2401.13665, revised 2024.
+
+  \bibitem{BeiNavjeevan2026} Xinyue Bei and Manu Navjeevan. "Inference under First-Order Degeneracy." arXiv:2602.07377, 2026.
+
+  \bibitem{XiaYanWainwright2025} Eric Xia, Yuling Yan, and Martin J. Wainwright. "Inference under Staggered Adoption: Case Study of the Affordable Care Act." arXiv:2412.09482, revised 2025.
+
+  \bibitem{AndrewsMikusheva2016} Isaiah Andrews and Anna Mikusheva. "Conditional Inference With a Functional Nuisance Parameter." Econometrica 84, 1571--1612, 2016.
+
+  \bibitem{BaiNg2021} Jushan Bai and Serena Ng. "Matrix Completion, Counterfactuals, and Factor Analysis of Missing Data." Journal of the American Statistical Association 116, 1746--1763, 2021.
+
+  \bibitem{TeraoWatanabeOzaki2025} Takeshi Terao, Yoshitaka Watanabe, and Katsuhisa Ozaki. "Verified Error Bounds for the Singular Values of Structured Matrices with Applications to Computer-Assisted Proofs for Differential Equations." arXiv:2502.09984, 2025.
+
+  \bibitem{DopicoMoro2004} Froilan M. Dopico and Julio Moro. "A Note on Multiplicative Backward Errors of Accurate SVD Algorithms." SIAM Journal on Matrix Analysis and Applications 25, 1021--1031, 2004.
+
+  \bibitem{VuChunikhinaRaich2021} Trung Vu, Evgenia Chunikhina, and Raviv Raich. "Perturbation Expansions and Error Bounds for the Truncated Singular Value Decomposition." Linear Algebra and its Applications 627, 94--139, 2021.
+
+  \bibitem{ChoiKwonLiao2024} Jungjun Choi, Hyukjun Kwon, and Yuan Liao. "Inference for Low-Rank Completion without Sample Splitting with Application to Treatment Effect Estimation." Journal of Econometrics 240, 2024.
+
+  \bibitem{ChoiKwonLiao2026} Jungjun Choi, Hyukjun Kwon, and Yuan Liao. "Inference for Low-Rank Models without Estimating the Rank." Journal of the American Statistical Association, 2026.
+
+  \bibitem{CattaneoFengPalombaTitiunik2025} Matias D. Cattaneo, Yingjie Feng, Filippo Palomba, and Rocio Titiunik. "Uncertainty Quantification in Synthetic Controls with Staggered Treatment Adoption." Review of Economics and Statistics, 2025.
+
+  \bibitem{BenMichaelFeller2026} Eli Ben-Michael and Avi Feller. "Discussion of Matrix Completion When Missing Is Not at Random and Its Applications in Causal Panel Data Models." arXiv:2602.21314, 2026.
+
+  \bibitem{BordinoBerrettKlopp2026} Alberto Bordino, Thomas B. Berrett, and Olga Klopp. "Estimation of Linear Functionals in Multilayer Panels under Staggered Adoption." arXiv:2607.06330, 2026.
+
+  \bibitem{IEEE7542019} IEEE. "IEEE Standard for Floating-Point Arithmetic." IEEE Std 754-2019, 2019.
+
+\end{thebibliography}
+
+\end{document}

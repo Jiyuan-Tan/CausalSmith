@@ -1,6 +1,9 @@
 /- Copyright (c) 2026 Jiyuan Tan. All rights reserved. -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.BumpHolderAux
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.BumpHolderAux
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

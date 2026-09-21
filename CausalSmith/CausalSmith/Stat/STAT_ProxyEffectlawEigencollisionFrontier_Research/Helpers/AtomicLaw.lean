@@ -1,12 +1,15 @@
-import Mathlib.MeasureTheory.Measure.Dirac
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
-import Mathlib.Topology.Instances.EReal.Lemmas
-import Mathlib.Algebra.BigOperators.Fin
-import Mathlib.Topology.Compactness.Compact
+module
+public import Mathlib.MeasureTheory.Measure.Dirac
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+public import Mathlib.Topology.Instances.EReal.Lemmas
+public import Mathlib.Algebra.BigOperators.Fin
+public import Mathlib.Topology.Compactness.Compact
 
 /-!
 Finite atomic probability laws and their finite-transport formulation of one-Wasserstein loss.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

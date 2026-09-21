@@ -3,14 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Marginal Sensitivity Model — closed-form bounds for `E[Y(1)]`
+# Marginal Sensitivity Model — closed forms for an unnormalized IPW odds-box relaxation
 
 The MSM interval endpoints `msmUpper Λ`, `msmLower Λ` (the `sSup`/`sInf` of the candidate IPW mean
 over the odds-ratio ambiguity set `MSMSet Λ`, from `Setup.lean`) have a **closed form**. Because
-the ambiguity set is the literal Zhao–Small–Bhattacharya odds-ratio box (no calibration constraint),
-the optimization over candidate complete propensities is *pointwise separable*: writing the
-inverse-propensity weight `w = 1/ẽ`, the candidate mean is `∫ A·Y·w` with `w` ranging pointwise over
-`[wMin, wMax]`, where
+the ambiguity set has only a pointwise odds-ratio constraint and no calibration constraint, the
+optimization over candidate complete propensities is *pointwise separable*. Writing the
+inverse-propensity weight `w = 1/ẽ`, the unnormalized candidate mean is `∫ A·Y·w`, with `w`
+ranging pointwise over `[wMin, wMax]`, where
 
     wMin(X) = 1 + (1 − e(X)) / (Λ · e(X)),   wMax(X) = 1 + Λ · (1 − e(X)) / e(X),
 
@@ -24,26 +24,29 @@ The proof is the two-sided `sSup`/`sInf` argument: the pointwise box bound shows
 is `≤` (resp. `≥`) the closed form, and the boundary weight `w* = (wMax if Y ≥ 0 else wMin)` is
 attained by a feasible `ẽ* = 1/w* ∈ MSMSet Λ`, so the closed form is the genuine extremum.
 
-These are valid (and equal to the sup/inf over the ZSB box). They are *not* the sharp Dorn-Guo (2022)
-bounds, which additionally impose a weight-calibration constraint that tightens the box into a
-conditional-quantile / CVaR balancing functional; the calibrated sharp bounds are developed in the
-`Sharp`, `QuantileBalance`, and cutoff-construction modules.
+These are exactly the sup/inf of the unnormalized IPW functional over the odds box. They are not
+the normalized linear-fractional interval of Zhao–Small–Bhattacharya. The calibrated bounds,
+which impose a weight-calibration constraint, are developed in `Calibrated`,
+`QuantileBalance`, and the cutoff-construction modules.
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Setup
-import Causalean.Tactic.Attr
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.Setup
+public import Causalean.Tactic.Attr
 
 /-! # Closed-form uncalibrated marginal-sensitivity bounds
 
-This file computes the Zhao-Small-Bhattacharya box bounds for `E[Y(1)]`. Because
-the uncalibrated odds-ratio ambiguity set is pointwise separable, the supremum
-and infimum of the candidate mean are attained by boundary inverse-propensity
-weights selected according to the sign of the observed outcome.
+This file computes closed forms for an unnormalized IPW functional over an odds-ratio box.
+Because the box is pointwise separable, the supremum and infimum are attained by boundary
+inverse-propensity weights selected according to the sign of the observed outcome. These are
+not the normalized linear-fractional bounds of Zhao–Small–Bhattacharya.
 
 The public surface consists of the endpoint weights `wMin` and `wMax`, the
 integral forms `msmUpperForm` and `msmLowerForm`, and the closed-form identities
 `msmUpper_eq` and `msmLower_eq`.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -190,21 +193,20 @@ private lemma weight_mul_ge_lower {a y w wm wM : ℝ} (ha : 0 ≤ a)
     have hay : a * y ≤ 0 := mul_nonpos_of_nonneg_of_nonpos ha (le_of_lt hy)
     exact mul_le_mul_of_nonpos_left hhi hay
 
-/-- **Closed form of the MSM upper bound.** Fix [a sensitivity parameter Λ at least 1](hyp:Λ,hΛ).
-If [the propensity score lies strictly between 0 and 1 almost everywhere (two-sided
-overlap)](hyp:hoverlap), [every candidate propensity in the odds-ratio ambiguity set is
-measurable up to null sets](hyp:hmeas), and [the envelope `A·|Y|·wMax(Λ)` — which dominates
-every candidate IPW integrand — is integrable](hyp:henv), then [the supremum of the candidate
-IPW mean over the ambiguity set is attained pointwise: the MSM upper bound equals
-`E[A·Y·(wMax if Y≥0 else wMin)]`](goal).
+/-- The [largest unnormalized inverse-probability-weighted mean in the odds box is obtained by
+using the upper endpoint weight for nonnegative outcomes and the lower endpoint weight for
+negative outcomes](goal). This holds for [a potential-outcomes backdoor system](hyp:S) at
+[a sensitivity level of at least one](hyp:Λ,hΛ) under [two-sided propensity
+overlap](hyp:hoverlap), [measurability of every candidate propensity up to null sets](hyp:hmeas),
+and [integrability of an envelope that dominates every candidate weighted outcome](hyp:henv).
 
 The envelope-integrability condition dominates every candidate integrand `A·Y/ẽ`
 (since `1/ẽ ≤ wMax`), giving both `BddAbove` of the image and integrability of the closed form. -/
 theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
-    (hmeas : ∀ etilde ∈ S.MSMSet Λ, AEMeasurable etilde P.μ)
+    (hmeas : ∀ etilde ∈ S.MSMSet true Λ, AEMeasurable etilde P.μ)
     (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ) :
-    S.msmUpper Λ = S.msmUpperForm Λ := by
+    S.msmUpper true Λ = S.msmUpperForm Λ := by
   classical
   have hΛ0 : (0:ℝ) < Λ := lt_of_lt_of_le one_pos hΛ
   -- Abbreviations.
@@ -275,7 +277,7 @@ theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
   have hform_eq : S.msmUpperForm Λ = ∫ ω, A ω * Y ω * wstar ω ∂P.μ := by
     rfl
   -- Witness: `estar = 1/wstar ∈ MSMSet Λ` with `candMean estar = msmUpperForm`.
-  have hestar_candMean : S.candMean estar = S.msmUpperForm Λ := by
+  have hestar_candMean : S.candMean true estar = S.msmUpperForm Λ := by
     rw [hform_eq]
     unfold POBackdoorSystem.candMean
     refine integral_congr_ae ?_
@@ -291,7 +293,7 @@ theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     by_cases hy : 0 ≤ Y ω
     · simp only [if_pos hy]; linarith
     · simp only [if_neg hy]; exact hwm1
-  have hestar_mem : estar ∈ S.MSMSet Λ := by
+  have hestar_mem : estar ∈ S.MSMSet true Λ := by
     refine ⟨?_, ?_⟩
     · filter_upwards [hwstar_gt1] with ω hω
       rw [hestar_def]
@@ -310,7 +312,7 @@ theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
       rw [hinv]
       exact ⟨hmin, hmax⟩
   -- Every candidate mean is `≤ msmUpperForm`.
-  have hcand_le : ∀ etilde ∈ S.MSMSet Λ, S.candMean etilde ≤ S.msmUpperForm Λ := by
+  have hcand_le : ∀ etilde ∈ S.MSMSet true Λ, S.candMean true etilde ≤ S.msmUpperForm Λ := by
     intro et hmem
     obtain ⟨hint, hor⟩ := hmem
     have hetm : AEMeasurable et P.μ := hmeas et ⟨hint, hor⟩
@@ -342,16 +344,16 @@ theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
       filter_upwards with ω
       rw [mul_one_div]
     -- `candMean et = ∫ A*Y*(1/et) ≤ ∫ A*Y*wstar = form`.
-    rw [show S.candMean et = ∫ ω, A ω * Y ω / et ω ∂P.μ from rfl, hform_eq]
+    rw [show S.candMean true et = ∫ ω, A ω * Y ω / et ω ∂P.μ from rfl, hform_eq]
     rw [integral_congr_ae heq_w]
     apply integral_mono_ae (hcandmean_int.congr heq_w) hform_int
     filter_upwards [hbox] with ω hb
     obtain ⟨hmin, hmax⟩ := hb
     exact weight_mul_le_upper (hA0 ω) hmin hmax
   -- Assemble: `msmUpper = sSup (candMean '' MSMSet) = msmUpperForm`.
-  have hne : (S.candMean '' S.MSMSet Λ).Nonempty :=
-    ⟨S.candMean estar, Set.mem_image_of_mem _ hestar_mem⟩
-  have hbdd : BddAbove (S.candMean '' S.MSMSet Λ) := by
+  have hne : (S.candMean true '' S.MSMSet true Λ).Nonempty :=
+    ⟨S.candMean true estar, Set.mem_image_of_mem _ hestar_mem⟩
+  have hbdd : BddAbove (S.candMean true '' S.MSMSet true Λ) := by
     refine ⟨S.msmUpperForm Λ, ?_⟩
     rintro x ⟨et, hmem, rfl⟩
     exact hcand_le et hmem
@@ -362,18 +364,17 @@ theorem msmUpper_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
   · rw [← hestar_candMean]
     exact le_csSup hbdd (Set.mem_image_of_mem _ hestar_mem)
 
-/-- **Closed form of the MSM lower bound.** Fix [a sensitivity parameter Λ at least 1](hyp:Λ,hΛ).
-If [the propensity score lies strictly between 0 and 1 almost everywhere (two-sided
-overlap)](hyp:hoverlap), [every candidate propensity in the odds-ratio ambiguity set is
-measurable up to null sets](hyp:hmeas), and [the envelope `A·|Y|·wMax(Λ)` — which dominates
-every candidate IPW integrand — is integrable](hyp:henv), then [the infimum of the candidate
-IPW mean over the ambiguity set is attained pointwise: the MSM lower bound equals
-`E[A·Y·(wMin if Y≥0 else wMax)]`](goal). -/
+/-- The [smallest unnormalized inverse-probability-weighted mean in the odds box is obtained by
+using the lower endpoint weight for nonnegative outcomes and the upper endpoint weight for
+negative outcomes](goal). This holds for [a potential-outcomes backdoor system](hyp:S) at
+[a sensitivity level of at least one](hyp:Λ,hΛ) under [two-sided propensity
+overlap](hyp:hoverlap), [measurability of every candidate propensity up to null sets](hyp:hmeas),
+and [integrability of an envelope that dominates every candidate weighted outcome](hyp:henv). -/
 theorem msmLower_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
-    (hmeas : ∀ etilde ∈ S.MSMSet Λ, AEMeasurable etilde P.μ)
+    (hmeas : ∀ etilde ∈ S.MSMSet true Λ, AEMeasurable etilde P.μ)
     (henv : Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ) :
-    S.msmLower Λ = S.msmLowerForm Λ := by
+    S.msmLower true Λ = S.msmLowerForm Λ := by
   classical
   have hΛ0 : (0:ℝ) < Λ := lt_of_lt_of_le one_pos hΛ
   set A : P.Ω → ℝ := S.dVar.indicator true with hA_def
@@ -443,7 +444,7 @@ theorem msmLower_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
   have hform_eq : S.msmLowerForm Λ = ∫ ω, A ω * Y ω * wstar ω ∂P.μ := by
     rfl
   -- Witness `estar = 1/wstar ∈ MSMSet`, `candMean estar = msmLowerForm`.
-  have hestar_candMean : S.candMean estar = S.msmLowerForm Λ := by
+  have hestar_candMean : S.candMean true estar = S.msmLowerForm Λ := by
     rw [hform_eq]
     unfold POBackdoorSystem.candMean
     refine integral_congr_ae ?_
@@ -451,7 +452,7 @@ theorem msmLower_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     obtain ⟨_, _, hpos⟩ := hω
     change A ω * Y ω / (1 / wstar ω) = A ω * Y ω * wstar ω
     rw [div_div_eq_mul_div, div_one]
-  have hestar_mem : estar ∈ S.MSMSet Λ := by
+  have hestar_mem : estar ∈ S.MSMSet true Λ := by
     refine ⟨?_, ?_⟩
     · filter_upwards [hwstar_gt1] with ω hω
       rw [hestar_def]
@@ -466,7 +467,7 @@ theorem msmLower_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
       have hinv : 1 / estar ω = wstar ω := by rw [hestar_def, one_div_one_div]
       rw [hinv]; exact ⟨hmin, hmax⟩
   -- Every candidate mean is `≥ msmLowerForm`.
-  have hcand_ge : ∀ etilde ∈ S.MSMSet Λ, S.msmLowerForm Λ ≤ S.candMean etilde := by
+  have hcand_ge : ∀ etilde ∈ S.MSMSet true Λ, S.msmLowerForm Λ ≤ S.candMean true etilde := by
     intro et hmem
     obtain ⟨hint, hor⟩ := hmem
     have hetm : AEMeasurable et P.μ := hmeas et ⟨hint, hor⟩
@@ -493,16 +494,16 @@ theorem msmLower_eq (Λ : ℝ) (hΛ : 1 ≤ Λ)
     have heq_w : (fun ω => A ω * Y ω / et ω)
         =ᵐ[P.μ] (fun ω => A ω * Y ω * (1 / et ω)) := by
       filter_upwards with ω; rw [mul_one_div]
-    rw [show S.candMean et = ∫ ω, A ω * Y ω / et ω ∂P.μ from rfl, hform_eq]
+    rw [show S.candMean true et = ∫ ω, A ω * Y ω / et ω ∂P.μ from rfl, hform_eq]
     rw [integral_congr_ae heq_w]
     apply integral_mono_ae hform_int (hcandmean_int.congr heq_w)
     filter_upwards [hbox] with ω hb
     obtain ⟨hmin, hmax⟩ := hb
     exact weight_mul_ge_lower (hA0 ω) hmin hmax
   -- Assemble via `sInf`.
-  have hne : (S.candMean '' S.MSMSet Λ).Nonempty :=
-    ⟨S.candMean estar, Set.mem_image_of_mem _ hestar_mem⟩
-  have hbdd : BddBelow (S.candMean '' S.MSMSet Λ) := by
+  have hne : (S.candMean true '' S.MSMSet true Λ).Nonempty :=
+    ⟨S.candMean true estar, Set.mem_image_of_mem _ hestar_mem⟩
+  have hbdd : BddBelow (S.candMean true '' S.MSMSet true Λ) := by
     refine ⟨S.msmLowerForm Λ, ?_⟩
     rintro x ⟨et, hmem, rfl⟩
     exact hcand_ge et hmem

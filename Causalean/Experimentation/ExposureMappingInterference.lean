@@ -4,15 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased
-import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Consistency
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinCLT
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Intervals
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinInstance
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarianceConsistency
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarEstQuadBound
-import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarEstConsistencyConditions
+module
+public import Causalean.Experimentation.DesignBased
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Consistency
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.Intervals
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinCLT
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.SteinInstance
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarEstConsistencyConditions
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarEstQuadBound
+public import Causalean.Experimentation.ExposureMappingInterference.Asymptotics.VarianceConsistency
+public import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
 
 /-!
 # Aronow & Samii (2017) — average causal effects under general interference

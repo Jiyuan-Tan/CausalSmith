@@ -18,13 +18,16 @@ constant. The Le Cam MSE form is assembled from the probability-form bound in
 `Causalean.Stat.MinimaxRisk` + a Markov/Chebyshev MSE bridge + Pinsker.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Basic
-import Causalean.Mathlib.Probability.SignedTwoPoint
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Stat.Minimax.BretagnolleHuber
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.LeCamTwoPoint
-import Mathlib.Topology.Algebra.Field
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Basic
+public import Causalean.Mathlib.Probability.SignedTwoPoint
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Stat.Minimax.BretagnolleHuber
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.LeCamTwoPoint
+public import Mathlib.Topology.Algebra.Field
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

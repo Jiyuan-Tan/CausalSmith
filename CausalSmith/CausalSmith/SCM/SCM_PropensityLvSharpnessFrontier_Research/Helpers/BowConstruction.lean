@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CapBridge
 
 /-! # Canonical fixed-stratum bow witnesses -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

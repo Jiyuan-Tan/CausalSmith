@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.PopulationNumeratorBound
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SelectorSoundness
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T2_ExactContourIdentification
-import Mathlib.MeasureTheory.Measure.Map
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.PopulationNumeratorBound
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SelectorSoundness
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T2_ExactContourIdentification
+public import Mathlib.MeasureTheory.Measure.Map
 
 /-!
 # Good-event assembly for the adaptive contour selector
@@ -9,6 +10,8 @@ import Mathlib.MeasureTheory.Measure.Map
 This module packages the deterministic split-fold facts, measurable empirical
 transform errors, and selected-contour certificate used by the root-risk proof.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -649,10 +652,10 @@ private lemma selectedContourFrom_some_best
     intro k hk
     exact hmax k (Finset.mem_filter.mpr ⟨Finset.mem_univ k, hk⟩)
   have hsome : ∃ j, pilotBestFrom B outcomes j = true := ⟨jmax, hbest⟩
-  let j := Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch.leastTrue
+  let j := Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch.leastTrue
     (pilotBestFrom B outcomes)
   have hjbest : pilotBestFrom B outcomes j = true :=
-    Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch.leastTrue_accepts
+    Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch.leastTrue_accepts
       hsome
   refine ⟨j, ?_, ?_⟩
   · simp [selectedContourFrom, hsome, j]
@@ -747,9 +750,9 @@ private lemma outcome_error_le_sup
 private lemma zeroMultiplicityCount_eq_of_analyticOrders_pre
     (f g : ℂ → ℂ) (rho R : ℝ) (hrho : rho < R)
     (horder : ∀ z : ℂ, ‖z‖ ≤ R → analyticOrderAt f z = analyticOrderAt g z) :
-    Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount f 0 rho =
-      Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount g 0 rho := by
-  unfold Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+    Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount f 0 rho =
+      Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount g 0 rho := by
+  unfold Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
   apply finsum_congr
   intro z
   by_cases hz : z ∈ Metric.ball (0 : ℂ) rho
@@ -769,7 +772,7 @@ private lemma population_candidate_pre
       (4 * searchRadius p * Real.exp (2 * p.Cg * searchRadius p))⁻¹) :
     let B := contourBank p pStar
     ∃ j : Fin (B.JBase + 1),
-      1 ≤ Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      1 ≤ Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (residualMGF p m p.n) 0 (B.rho j) ∧
       (∀ z ∈ Metric.sphere (0 : ℂ) (B.rho j),
         3 * B.aStar / 4 ≤ ‖residualMGF p m p.n z‖) ∧
@@ -821,7 +824,7 @@ private lemma canonical_candidate_admissible
       (pilotOutcome input B j).admissible B = true ∧
       39 * (B.aStarRat : ℝ) / 64 ≤
         ((pilotOutcome input B j).modulus.lo : ℝ) ∧
-      1 ≤ Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      1 ≤ Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (residualMGF p m p.n) 0 (B.rho j) ∧
       (∀ z ∈ Metric.sphere (0 : ℂ) (B.rho j),
         3 * B.aStar / 4 ≤ ‖residualMGF p m p.n z‖) ∧
@@ -883,8 +886,8 @@ private lemma canonical_candidate_admissible
       exact hp0.1
     have hwidth : (pilotModulus input B 0 j).width ≤ B.aStarRat / 64 := by
       exact hp0.2.1
-    unfold Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.RatInterval.Contains at hcontains
-    unfold Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.RatInterval.width at hwidth
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.RatInterval.Contains at hcontains
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.RatInterval.width at hwidth
     have hwidthR : ((pilotModulus input B 0 j).hi : ℝ) -
         ((pilotModulus input B 0 j).lo : ℝ) ≤ (B.aStarRat : ℝ) / 64 := by
       exact_mod_cast hwidth
@@ -899,11 +902,11 @@ private lemma canonical_candidate_admissible
       (Metric.closedBall (0 : ℂ) (B.rho j)) :=
     (semanticEmpiricalF_analyticOnNhd p m.gcode data
       (spectralFold p.n 0) 0).mono (fun _ _ ↦ Set.mem_univ _)
-  have hrouche : Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+  have hrouche : Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
       (residualMGF p m p.n) 0 (B.rho j) =
-      Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) := by
-    apply Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.rouche_circle
+    apply Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.rouche_circle
       (contourBank_rho_pos p pStar j) hFanalytic hempanalytic
     intro z hz
     have herr := residual_error_le_sup p m hn hclass data 0
@@ -927,14 +930,14 @@ private lemma canonical_candidate_admissible
     rw [haeq] at hpop
     have ha : (0 : ℝ) < B.aStarRat := by exact_mod_cast B.aStarRat_pos
     nlinarith [hpop z hz]
-  have hap := Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.argumentPrinciple_circle
+  have hap := Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.argumentPrinciple_circle
     (contourBank_rho_pos p pStar j) hempanalytic hboundary
   have hw := hspec.2.2.1
   dsimp [WindingEnclosureSpecification, input, B] at hw
   have hwcontains := (hw.2.2.2.1 hp0pos).2.1
   have hnormalized : normalizedContourValue
       (spectralWindingEvaluator input B j ⟨(pilotModulus input B 0 j).lo, hp0pos⟩) =
-      (Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      (Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) : ℂ) := by
     rw [← hap]
     unfold normalizedContourValue
@@ -942,7 +945,7 @@ private lemma canonical_candidate_admissible
     dsimp only [input, B]
     rw [circleContourIntegral_eq_circleIntegral, (contourBank p pStar).rho_value]
     simp only [max_self, Nat.cast_one]
-    unfold Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.normalizedLogDerivCircleIntegral
+    unfold Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.normalizedLogDerivCircleIntegral
     congr 1
     · norm_num
     · apply circleIntegral.integral_congr (contourBank_rho_pos p pStar j).le
@@ -950,7 +953,7 @@ private lemma canonical_candidate_admissible
       simp only [spectralDenominatorMap_value_canonical]
       rw [logDeriv_apply, deriv_semanticEmpiricalF_zero]
   have hwcount : (windingEnclosure input B j).Contains
-      ((Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      ((Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) : ℝ) : ℂ) := by
     change (windingEnclosure input B j).Contains
       (normalizedContourValue
@@ -960,11 +963,11 @@ private lemma canonical_candidate_admissible
     exact hwcontains
   have hdecodedEmp := uniqueNonnegativeInteger_complete
     (windingEnclosure input B j)
-    (Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+    (Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
       (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j))
     hwcount hw.1 hw.2.1
   have hdecoded : (pilotOutcome input B j).decoded = some
-      (Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      (Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (residualMGF p m p.n) 0 (B.rho j)) := by
     dsimp [pilotOutcome]
     rw [hrouche]
@@ -1114,8 +1117,8 @@ private lemma canonicalSelectorGoodEvent_of_small_errors
       exact hp1.1
     have hw : (pilotModulus input B 1 j).width ≤ B.aStarRat / 64 := by
       exact hp1.2.1
-    unfold Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.RatInterval.Contains at hc
-    unfold Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.RatInterval.width at hw
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.RatInterval.Contains at hc
+    unfold Causalean.Mathlib.Analysis.IntervalArithmetic.RatInterval.width at hw
     have hwR : ((pilotModulus input B 1 j).hi : ℝ) -
         ((pilotModulus input B 1 j).lo : ℝ) ≤ (B.aStarRat : ℝ) / 64 := by
       exact_mod_cast hw
@@ -1208,7 +1211,7 @@ private lemma selected_decoded_eq_population_count
     (hmu : ∀ z ∈ Metric.sphere (0 : ℂ) ((contourBank p pStar).rho j),
       31 * ((contourBank p pStar).aStarRat : ℝ) / 64 ≤
         ‖residualMGF p m p.n z‖) :
-    N = Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+    N = Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
       (residualMGF p m p.n) 0 ((contourBank p pStar).rho j) := by
   let B := contourBank p pStar
   let input := canonicalRepresentedInput p pStar cStar m.gcode data
@@ -1217,11 +1220,11 @@ private lemma selected_decoded_eq_population_count
     by_cases hsome : ∃ k, pilotBestFrom B (fun k ↦ pilotOutcome input B k) k = true
     · rw [selectedContourFrom, if_pos hsome] at hj
       have hjEq :
-          Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch.leastTrue
+          Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch.leastTrue
             (pilotBestFrom B (fun k ↦ pilotOutcome input B k)) = j :=
         Option.some.inj hj
       rw [← hjEq]
-      exact Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.FiniteSearch.leastTrue_accepts
+      exact Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch.leastTrue_accepts
         hsome
     · rw [selectedContourFrom, if_neg hsome] at hj
       simp at hj
@@ -1241,11 +1244,11 @@ private lemma selected_decoded_eq_population_count
       (Metric.closedBall (0 : ℂ) (B.rho j)) :=
     (semanticEmpiricalF_analyticOnNhd p m.gcode data
       (spectralFold p.n 0) 0).mono (fun _ _ ↦ Set.mem_univ _)
-  have hrouche : Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+  have hrouche : Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
       (residualMGF p m p.n) 0 (B.rho j) =
-      Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) := by
-    apply Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.rouche_circle
+    apply Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.rouche_circle
       (contourBank_rho_pos p pStar j) hFanalytic hempanalytic
     intro z hz
     have herr := residual_error_le_sup p m hn hclass data 0
@@ -1265,7 +1268,7 @@ private lemma selected_decoded_eq_population_count
     rw [hzero, zero_sub, norm_neg] at herr
     have ha : (0 : ℝ) < B.aStarRat := by exact_mod_cast B.aStarRat_pos
     nlinarith [hmu z hz]
-  have hap := Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.argumentPrinciple_circle
+  have hap := Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.argumentPrinciple_circle
     (contourBank_rho_pos p pStar j) hempanalytic hboundary
   have hspec := ((representedNodeSpecifications p) pStar cStar m.gcode data).1 j
   have hw := hspec.2.2.1
@@ -1273,7 +1276,7 @@ private lemma selected_decoded_eq_population_count
   have hwcontains := (hw.2.2.2.1 hp0pos).2.1
   have hnormalized : normalizedContourValue
       (spectralWindingEvaluator input B j ⟨(pilotModulus input B 0 j).lo, hp0pos⟩) =
-      (Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      (Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) : ℂ) := by
     rw [← hap]
     unfold normalizedContourValue
@@ -1281,7 +1284,7 @@ private lemma selected_decoded_eq_population_count
     dsimp only [input, B]
     rw [circleContourIntegral_eq_circleIntegral, (contourBank p pStar).rho_value]
     simp only [max_self, Nat.cast_one]
-    unfold Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.normalizedLogDerivCircleIntegral
+    unfold Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.normalizedLogDerivCircleIntegral
     congr 1
     · norm_num
     · apply circleIntegral.integral_congr (contourBank_rho_pos p pStar j).le
@@ -1289,7 +1292,7 @@ private lemma selected_decoded_eq_population_count
       simp only [spectralDenominatorMap_value_canonical]
       rw [logDeriv_apply, deriv_semanticEmpiricalF_zero]
   have hwcount : (windingEnclosure input B j).Contains
-      ((Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      ((Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) : ℝ) : ℂ) := by
     change (windingEnclosure input B j).Contains
       (normalizedContourValue
@@ -1299,13 +1302,13 @@ private lemma selected_decoded_eq_population_count
     exact hwcontains
   have hdecodedEmp := uniqueNonnegativeInteger_complete
     (windingEnclosure input B j)
-    (Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+    (Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
       (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j))
     hwcount hw.1 hw.2.1
   have hdecoded' : (pilotOutcome input B j).decoded = some N := by
     simpa [input, B] using hdecoded
   dsimp [pilotOutcome] at hdecoded' hdecodedEmp
-  have hNemp : N = Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+  have hNemp : N = Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
       (semanticEmpiricalF p m.gcode data (spectralFold p.n 0) 0) 0 (B.rho j) := by
     exact Option.some.inj (hdecoded'.symm.trans hdecodedEmp)
   exact hNemp.trans hrouche.symm
@@ -1421,9 +1424,9 @@ private lemma canonicalSelectorPacket_of_small_errors
     have hid := exact_contour_identification p m p.n (by omega) hclass pStar j
       hFzero hHzero (by simpa [hcount] using hN0)
     have hap : contourCount (residualMGF p m p.n) ((contourBank p pStar).rho j) =
-        (Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+        (Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
           (residualMGF p m p.n) 0 ((contourBank p pStar).rho j) : ℂ) :=
-      Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.argumentPrinciple_circle
+      Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.argumentPrinciple_circle
         (contourBank_rho_pos p pStar j)
         (residualMGF_analyticOn_closedBall p m p.n hclass
           ((contourBank p pStar).rho j)) hFzero
@@ -1438,9 +1441,9 @@ private lemma canonicalSelectorPacket_of_small_errors
 private lemma zeroMultiplicityCount_eq_of_analyticOrders
     (f g : ℂ → ℂ) (rho R : ℝ) (hrho : rho < R)
     (horder : ∀ z : ℂ, ‖z‖ ≤ R → analyticOrderAt f z = analyticOrderAt g z) :
-    Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount f 0 rho =
-      Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount g 0 rho := by
-  unfold Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+    Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount f 0 rho =
+      Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount g 0 rho := by
+  unfold Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
   apply finsum_congr
   intro z
   by_cases hz : z ∈ Metric.ball (0 : ℂ) rho
@@ -1460,7 +1463,7 @@ private lemma population_candidate
       (4 * searchRadius p * Real.exp (2 * p.Cg * searchRadius p))⁻¹) :
     let B := contourBank p pStar
     ∃ j : Fin (B.JBase + 1),
-      1 ≤ Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.zeroMultiplicityCount
+      1 ≤ Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.zeroMultiplicityCount
         (residualMGF p m p.n) 0 (B.rho j) ∧
       (∀ z ∈ Metric.sphere (0 : ℂ) (B.rho j),
         3 * B.aStar / 4 ≤ ‖residualMGF p m p.n z‖) ∧

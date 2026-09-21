@@ -3,7 +3,8 @@
 # power `npm run search --semantic` and `npm run embed:library`:
 #   doc/retrieval_model_ft       bi-encoder (BAAI/bge-large-en-v1.5 fine-tune)
 #   doc/retrieval_reranker_ft    cross-encoder reranker
-# Both are release assets on the `build-cache` tag. Without them the tooling falls back
+# Both are release assets on the `build-cache` tag (and mirrored, with a model card, at
+# https://huggingface.co/jytan12/causalean-retrieval). Without them the tooling falls back
 # to the off-the-shelf checkpoint (see README, "Retrieval tooling").
 set -euo pipefail
 REPO="${CAUSALEAN_CACHE_REPO:-Jiyuan-Tan/CausalSmith}"

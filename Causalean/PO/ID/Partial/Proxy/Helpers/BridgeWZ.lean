@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers.Common
-import Causalean.PO.ID.Exact.Proximal.Helpers
-import Causalean.Mathlib.LikelihoodRatioSwap
-import Causalean.Mathlib.CondIndep
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers.Common
+public import Causalean.PO.ID.Exact.Proximal.Helpers
+public import Causalean.Mathlib.MeasureTheory.Integral.LikelihoodRatio
+public import Causalean.Mathlib.Probability.Independence.Conditional
+public import Causalean.Tactic.CondexpLinearity
 
 /-! # Two-Proxy Bridge Substitution
 
@@ -22,6 +23,12 @@ stratum odds-ratio factor appears in this identity; that factor is recovered
 later after conditioning on the treatment and covariates. The proof follows the
 paper's sequence of latent exchangeability, outcome bridge substitution,
 likelihood-ratio arm swap, and proxy independence factorization. -/
+
+public section
+
+open Causalean.Mathlib.MeasureTheory.Integral
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
@@ -37,16 +44,18 @@ variable {P : POSystem}
   {S : POProximalSystem P γ_X γ_Z γ_W γ_U}
   {μ : Measure P.Ω} [IsFiniteMeasure μ] [StandardBorelSpace P.Ω]
 
-/-- **Two-proxy bridge-substitution identity, same-arm form** (Ghassami-Shpitser-Tchetgen
-Tchetgen 2024, Theorem 3, equation (★), in the codebase's probability-ratio `q`
-convention). Fix a treatment arm `a` and assume [the two-proxy bridge assumption
+/-- **Two-proxy bridge-substitution identity, same-arm form.** This is an abstract
+probability-ratio-bridge analogue of a step in Ghassami, Zhang, Shpitser, and
+Tchetgen Tchetgen (arXiv:2304.04374v4, 2026). Fix a treatment arm `a` and assume
+[the two-proxy bridge assumption
 bundle](hyp:HA) — consistency, latent exchangeability of `Y(a)`, the likelihood-ratio
 arm-swap relation linking the off-arm and on-arm measures, the outcome bridge `h`, the
-treatment-proxy bridge `q`, and conditional independence of the two proxies `W` and `Z`
-given treatment and covariates — together with [the treatment and outcome variables
-being distinct](hyp:hAY). Then [the average potential outcome `Y(a)` over the off-arm
-stratum `{A ≠ a}` equals the on-arm average of the product of the outcome bridge
-`h(a, W, X)` and the treatment-proxy bridge `q(Z, a, X)`](goal):
+the treatment-proxy bridge `q`, and conditional independence of the two proxies
+`W` and `Z` given treatment, latent confounder, and covariates — together with
+[the treatment and outcome variables being distinct](hyp:hAY). Then [the set
+integral of potential outcome `Y(a)` over the off-arm stratum `{A ≠ a}` equals
+the on-arm set integral of the product of the outcome bridge `h(a, W, X)` and
+the treatment-proxy bridge `q(Z, a, X)`](goal):
 `∫_{A≠a} Y(a) dμ = ∫_{A=a} h(a, W, X) · q(Z, a, X) dμ`.
 
 Conclusion (same-arm form):
@@ -62,7 +71,7 @@ inequalities of σ_AX-measurable functions **on `{A = a}`**. The
 downstream by collapsing `μ[q | σ_AX]` on `{A = a}` via
 `condExp_q_eq_stratumOddsRatio_arm_AX`.
 
-Proof chain (matches paper lines (a)–(d)): four named sub-`have`s
+Proof chain follows the analogous source argument through four named sub-`have`s:
 `hStepA` (latent_exch + tower at σ_AUX), `hStepC` (likelihoodRatio_swapA arm-swap),
 `hStepB` (consistency + bridge_h on `{A=a}`), and `hStepD1`/`hStepD2`/`hStepD3`
 (bridge_q + proxy_WZ_indep factorisation via prodMk-lift to
@@ -151,7 +160,7 @@ lemma condIntYofA_eq_hq_armSwap_twoProxy
       = (∫ ω in s, (μ[S.YofA a | S.σ_UX]) ω
               * HA.likelihoodRatio_swapA a ω ∂μ) := by
     -- Apply L2 with arms (a, ¬a). Needs a ≠ ¬a (true since Bool).
-    have h_swap := Causalean.setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
+    have h_swap := setIntegral_eq_setIntegral_mul_of_likelihoodRatio_swap
       (m := S.σ_UX) (mΩ := P.measΩ) S.σ_UX_le s s'
       hs_meas hs'_meas
       (L := HA.likelihoodRatio_swapA a)
@@ -198,14 +207,14 @@ lemma condIntYofA_eq_hq_armSwap_twoProxy
       have : S.A ω = a := hω
       simp [d, this]
     have hind_zero : s.indicator d =ᵐ[μ] 0 := by
-      simpa using Causalean.indicator_aeEq_of_aeEq_restrict hs_meas hd_zero_on_arm
+      simpa using indicator_aeEq_of_aeEq_restrict hs_meas hd_zero_on_arm
     have hd_zero_cond : μ[d | S.σ_AUX] =ᵐ[μ.restrict s] 0 := by
       have hindCE_zero : s.indicator (μ[d | S.σ_AUX]) =ᵐ[μ] 0 :=
-        Causalean.condExp_indicator_aeEq_zero hs_in_AUX hdint hind_zero
+        condExp_indicator_aeEq_zero hs_in_AUX hdint hind_zero
       have hindCE_zero' :
           s.indicator (μ[d | S.σ_AUX]) =ᵐ[μ] s.indicator (0 : P.Ω → ℝ) := by
         simpa using hindCE_zero
-      simpa using Causalean.aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
+      simpa using aeEq_restrict_of_indicator_aeEq hs_meas hindCE_zero'
     have hCE_dsub : μ[d | S.σ_AUX]
         =ᵐ[μ] μ[fun ω => HA.h (S.A ω, S.W ω, S.X ω) | S.σ_AUX]
               - μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AUX] :=
@@ -274,7 +283,7 @@ lemma condIntYofA_eq_hq_armSwap_twoProxy
   -- Lift proxy_WZ_indep : W ⟂ Z | σ_AUX  to  (W,X) ⟂ Z | σ_AUX.
   have hWX_Z : ProbabilityTheory.CondIndepFun S.σ_AUX S.σ_AUX_le
       (fun ω => (S.W ω, S.X ω)) S.Z μ :=
-    Causalean.condIndepFun_prodMk_of_measurable_left S.σ_AUX_le
+    condIndepFun_prodMk_of_measurable_left S.σ_AUX_le
       S.measurable_W S.measurable_Z hX_m_AUX HA.proxy_WZ_indep
   -- Symm: Z ⟂ (W,X) | σ_AUX.
   have hZ_WX : ProbabilityTheory.CondIndepFun S.σ_AUX S.σ_AUX_le
@@ -284,7 +293,7 @@ lemma condIntYofA_eq_hq_armSwap_twoProxy
       (fun ω => (S.Z ω, S.X ω)) (fun ω => (S.W ω, S.X ω)) μ := by
     have hWX_meas : Measurable (fun ω : P.Ω => (S.W ω, S.X ω)) :=
       Measurable.prodMk S.measurable_W S.measurable_X
-    exact Causalean.condIndepFun_prodMk_of_measurable_left S.σ_AUX_le
+    exact condIndepFun_prodMk_of_measurable_left S.σ_AUX_le
       S.measurable_Z hWX_meas hX_m_AUX hZ_WX
   -- Symm again: (W,X) ⟂ (Z,X) | σ_AUX.
   have hWX_ZX : ProbabilityTheory.CondIndepFun S.σ_AUX S.σ_AUX_le
@@ -321,7 +330,7 @@ lemma condIntYofA_eq_hq_armSwap_twoProxy
     change Integrable
       (fun ω => HA.h (a, S.W ω, S.X ω) * HA.q (S.Z ω, a, S.X ω)) μ
     exact hhqInt
-  have hCondExpMul := Causalean.condExp_mul_of_condIndep S.σ_AUX_le
+  have hCondExpMul := condExp_mul_of_condIndep S.σ_AUX_le
     hWX_meas hZX_meas hWX_ZX hu_meas hv_meas hu_int hv_int huv_int
   -- Step d.3: substitute the factored form under the integral on s.
   have hStepD2 : (∫ ω in s, (μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AUX]) ω

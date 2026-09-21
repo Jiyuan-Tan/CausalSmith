@@ -11,9 +11,12 @@ constant `C(ε,d̄) = max{1, ε^{-(d̄-1)}}`, yielding an observable constant-fa
 certificate `α_cert ≤ C(ε,d̄)`.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Surrogate
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TConvexDesign
-import Mathlib.Topology.Order.Compact
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Surrogate
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TConvexDesign
+public import Mathlib.Topology.Order.Compact
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.style.whitespace false

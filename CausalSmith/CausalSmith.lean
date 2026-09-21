@@ -20,45 +20,30 @@ cluster used by the `causalsmith research` pipeline:
   theorems (CLT / asymptotic normality + Wald coverage for design-based causal
   estimands), built on `Causalean/Experimentation/` — populated as proposals
   graduate.
+* `CausalSmith.SCM.*` — graphical identification / SCM theorems.
+* `CausalSmith.Substrate.*` — reusable substrate built by `causalsmith study`.
 * `CausalSmith.Mathlib.*` — Mathlib-shaped helpers staged in CausalSmith
   before any promotion to `Causalean/Mathlib/`.
 
-This umbrella imports every completed auto-generated research module so
-`lake -d CausalSmith build` type-checks the completed corpus. Active research
-runs are deliberately excluded until they finish. Causalean never imports
-anything from this package.
+This umbrella is the DEFAULT build target and deliberately stays light: it
+imports Causalean and the shared Mathlib-shaped helpers. `lake -d CausalSmith
+build` therefore warms the foundation a new research run starts from and never
+compiles the Lean code of existing papers.
+
+Existing papers are opt-in. Each run is built through its own run barrel
+(`lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research`), and a run that
+imports an earlier paper or a `CausalSmith.Substrate.*` module compiles just that
+import closure on demand. Prebuilt oleans for every module are fetched with
+`scripts/fetch_build_cache.sh --causalsmith`, and
+`CausalSmith/tools/scripts/full_tree_build.sh` type-checks every module.
+Causalean never imports anything from this package.
 -/
 
-import CausalSmith.Research
+module
+public import Causalean
+public import CausalSmith.Mathlib.Concentration.FiniteClassRademacher
+public import CausalSmith.Mathlib.InformationTheory.ProductChiSquared
+public import CausalSmith.Mathlib.Probability.ParameterizedFinitePoissonSample
+public import CausalSmith.Mathlib.Probability.PoissonUsableOccupancy
 
-
--- Stat — minimax-rate / efficiency / limit-law theorems. T1 and T2 transitively
--- cover the cluster Basic, Helpers, Helpers_Part1–5, and the reachable
--- CausalSmith.Mathlib helpers (BernoulliKL, KLBind, IntegralBind, MemLp).
--- [d-stage-test hidden] import CausalSmith.Stat.STAT_AteOverlapDecay_Research.T1
--- [d-stage-test hidden] import CausalSmith.Stat.STAT_AteOverlapDecay_Research.T2
-
--- Stat — policy-regret rate under coupled margin / one-sided overlap decay.
--- The three T-files transitively cover the cluster Basic and Helpers.
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.T_minimax_lower
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.T_feasible_upper
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.T_feasible_tight
-
--- Mathlib-shaped substrate for the central-DP CATE minimax run: convex/Loewner
--- projection, monomial Gram positive-definiteness, multivariate Hölder–Taylor
--- monomial approximation, i.i.d. empirical-mean L² deviation.
-import Causalean.Mathlib.Analysis.ConvexProjection
-import Causalean.Mathlib.Analysis.MonomialGram
-import Causalean.Stat.Nonparametric.Approximation.HolderTaylorMonomial
-import Causalean.Mathlib.Probability.IidMeanVariance
-
--- Central-DP CATE minimax: the achievability (private local-polynomial) substrate.
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationBias
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateMechanism
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateRiskBound
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.Bracket
-
--- Causalean minimax helpers not yet reachable from any theorem (Le Cam
--- two-point converse infrastructure); imported here so bare `lake build`
--- still type-checks them through the CausalSmith umbrella.
-import Causalean.Stat.Minimax.LeCamTwoPoint
+public section

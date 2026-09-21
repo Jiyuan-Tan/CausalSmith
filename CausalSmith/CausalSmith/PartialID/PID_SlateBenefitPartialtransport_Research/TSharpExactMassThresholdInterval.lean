@@ -1,4 +1,5 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TFullLawEndpointAttainment
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TFullLawEndpointAttainment
 
 /-!
 # Sharp exact-mass threshold interval
@@ -6,6 +7,8 @@ import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TFullLawE
 The cellwise exact-mass projection, sharp threshold cut values, and aggregate
 identified interval are stated together.
 -/
+
+public section
 
 open scoped BigOperators
 open MeasureTheory Set Causalean PO
@@ -41,7 +44,7 @@ theorem sharp_exact_mass_threshold_interval
       sInf (benefitMass '' branchFreePolytope c hValid x) = c.benefitLower x ∧
       sSup (benefitMass '' branchFreePolytope c hValid x) = c.benefitUpper x) ∧
     (∀ x, c.mass x = 0 → branchFreePolytope c hValid x = {0}) ∧
-    Causalean.PartialID.IdentifiedInterval
+    Causalean.Stat.AttainableSet.IdentifiedInterval
       (fun W : FullLawCandidate P 𝒳 K => benefitProbabilityOf W)
       (fun W : FullLawCandidate P 𝒳 K => FullLawFeasible S.observedLaw W) =
         c.identifiedIcc S.p S.observedLaw rfl (p_eq_observedCellWeights S)
@@ -169,7 +172,7 @@ theorem sharp_exact_mass_threshold_interval
     have hLU : L ≤ U := by
       dsimp [L, U, Capacities.endpointMap]
       exact (div_le_div_iff_of_pos_right model.positiveAggregateSurvivors).2 hsumLU
-    have houter : Causalean.PartialID.IdentifiedInterval
+    have houter : Causalean.Stat.AttainableSet.IdentifiedInterval
         (fun W : FullLawCandidate P 𝒳 K => benefitProbabilityOf W)
         (fun W : FullLawCandidate P 𝒳 K => FullLawFeasible S.observedLaw W) ⊆
         Set.Icc L U := by

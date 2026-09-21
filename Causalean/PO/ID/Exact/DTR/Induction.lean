@@ -3,10 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Dynamic Treatment Regime: induction machinery (general `n`)
+# Fixed Longitudinal Treatment Path: induction machinery (general `n`)
 
-Provides the **base case** (`cdtr_base`) and the **inductive step**
-(`cdtr_step`) for the backward induction underlying the general-`n` DTR
+Provides the **base case** (`conditionalPath_base`) and the **inductive step**
+(`conditionalPath_step`) for the backward induction underlying the general-`n` treatment-path
 backdoor identification theorem.  `DTR/Main.lean` assembles these two
 lemmas into the closed-form identification statement
 `(historyBundle 0).condExpGiven (Y_of dbar) =ᵐ innerReg dbar (n-1)`.
@@ -17,29 +17,35 @@ The identity proved by induction is (★):
       =ᵐ[P.μ]
     indD dbar (n-1-j) · (historyBundle (n-1-j)).condExpGiven (Y_of dbar)
 
-with `j = 0` covered by `cdtr_base` and `j → j+1` by `cdtr_step`.
+with `j = 0` covered by `conditionalPath_base` and `j → j+1` by `conditionalPath_step`.
 -/
 
-import Causalean.PO.ID.Exact.DTR.Setup
-import Causalean.PO.ID.Exact.DTR.Helpers
-import Causalean.Mathlib.CondIndep
+module
+public import Causalean.PO.ID.Exact.DTR.Setup
+public import Causalean.PO.ID.Exact.DTR.Helpers
+public import Causalean.Mathlib.Probability.Independence.Conditional
 
-/-! # Dynamic Treatment Regime Induction
+/-! # Fixed Longitudinal Treatment Path Induction
 
 This file proves the base case and inductive step for the backward-induction
-identity behind general finite-horizon dynamic backdoor identification. The
+identity behind general finite-horizon treatment-path backdoor identification. The
 identity connects the observable iterated conditional-expectation ratios to the
 conditional mean of the regime counterfactual outcome.
 
-The public theorems `cdtr_base` and `cdtr_step` are the cancellation identities
-consumed by `cdtr_iter`, `cdtr_backdoor`, and `dtr_backdoor` in `DTR/Main.lean`. -/
+The public theorems `conditionalPath_base` and `conditionalPath_step` are the
+cancellation identities consumed by `conditionalPath_iter`,
+`conditionalPath_backdoor`, and `treatmentPath_backdoor` in `DTR/Main.lean`. -/
+
+public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
 
 open MeasureTheory ProbabilityTheory
 
-namespace PODTRSystem
+namespace POLongitudinalPathSystem
 
 variable {P : POSystem} {n : ℕ} {δ : Type} {γ : Fin n → Type}
 variable [MeasurableSpace δ] [MeasurableSingletonClass δ]
@@ -61,16 +67,17 @@ Proof structure (mirrors `DTR.lean` step_1):
 5. On `{indD (n-1) = 1}`, use overlap_{n-1} to establish the cancellation.
    On `{indD (n-1) = 0}`, both sides collapse to `0`. -/
 
-/-- **Base case of the backward induction for a dynamic treatment regime.**
-Under [the dynamic-treatment-regime identification assumptions — consistency
+/-- **Base case of the backward induction for a fixed longitudinal treatment path.**
+For [a longitudinal-path system and prescribed treatment path](hyp:S,dbar), under
+[the fixed-treatment-path identification assumptions — consistency
 and stage-wise sequential exchangeability/overlap](hyp:hA), provided [the
 horizon `n` is positive](hyp:hn), [the depth-zero adjusted-regression
 functional, multiplied by the indicator that the observed treatment matches
 the target regime `dbar` through stage `n-1`, agrees almost everywhere with
 that same indicator multiplied by the conditional mean of the regime outcome
 given the treatment-and-covariate history through stage `n-1`](goal). -/
-theorem cdtr_base [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (S : PODTRSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
+theorem conditionalPath_base [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    (S : POLongitudinalPathSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
     (hn : 0 < n) :
     (fun ω => S.innerReg dbar 0 ω * S.indD dbar (n-1) ω)
       =ᵐ[P.μ]
@@ -332,7 +339,7 @@ theorem cdtr_base [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
             (fun ω' => S.factualY ω' * S.indD dbar n ω') P.μ ω
         /
         (S.historyBundle m hm_lt).condExpGiven (S.indD dbar n) P.μ ω := by
-    unfold PODTRSystem.innerReg
+    unfold POLongitudinalPathSystem.innerReg
     simp only [hn, ↓reduceDIte]
     -- The result uses `historyBundle (n-1) _`; rewrite `n-1` to `m`.
     rfl
@@ -398,15 +405,16 @@ Note on indexing: `DTR/Setup.lean`'s `innerReg (j+1)` recursion uses
 `stage = histIdx = n - j - 2` and conditions on `historyBundle (n - j - 2) =
 historyBundle k`, adding numerator factor
 `(dVar ⟨k, hk⟩).indicator (dbar ⟨k, hk⟩)`.  The induction hypothesis in
-`cdtr_step` is stated at depth `j` (with `indD (n - j - 1)` on the indD
+`conditionalPath_step` is stated at depth `j` (with `indD (n - j - 1)` on the indD
 side) and concludes at depth `j + 1` (with `indD (n - j - 2)`).  -/
 
-/-- The induction step moves the dynamic-regime cancellation identity one stage outward.
-
-It assumes the identity and integrability at the current depth and proves the
-next identity in the backward induction. -/
-theorem cdtr_step [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (S : PODTRSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
+/-- [A longitudinal-path system and prescribed treatment path](hyp:S,dbar), under
+[the identifying assumptions](hyp:hA), [a valid next recursion depth](hyp:j,hj) with
+[its mirrored history index inside the horizon](hyp:hk), [integrability of the current
+regression](hyp:hIH_int), and [the current cancellation identity](hyp:IH), [the same
+cancellation identity holds one stage farther outward](goal). -/
+theorem conditionalPath_step [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    (S : POLongitudinalPathSystem P n δ γ) (hA : S.Assumptions) (dbar : Fin n → δ)
     (j : ℕ) (hj : j + 1 < n)
     (hk : n - j - 2 < n)
     (hIH_int : Integrable (S.innerReg dbar j) P.μ)
@@ -764,7 +772,7 @@ theorem cdtr_step [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     rw [hKω', h1]
     field_simp
 
-end PODTRSystem
+end POLongitudinalPathSystem
 
 end PO
 end Causalean

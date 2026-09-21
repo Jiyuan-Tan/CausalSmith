@@ -1,6 +1,7 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockScore
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockScore
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-!
 # Bernoulli Fourier moments
@@ -8,6 +9,8 @@ import Causalean.Experimentation.DesignBased.ProductVariance
 These are the two product-design identities used by both the block
 representer and the global SNIPE variance argument.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

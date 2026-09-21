@@ -17,7 +17,8 @@ bound `a·λ^{κ-1} ≤ I ≤ A·λ^{κ-1}`.  The shell lower bound crucially us
 tail bounds (the gap `cm < cp` makes a one-sided argument fail).
 -/
 
-import Causalean.Stat.PolynomialTail.MomentJBounds
+module
+public import Causalean.Stat.PolynomialTail.MomentJBounds
 
 /-!
 # Bounds for the inverse second moment
@@ -34,6 +35,8 @@ shell from the two-sided polynomial-tail assumption.  The module then proves
 plus `IsTheta` corollaries `invMomentJ_isTheta_lt`, `invMomentI_isTheta_lt`,
 `invMomentJ_isTheta_gt`, and `invMomentI_isTheta_gt` as `lam -> 0+`.
 -/
+
+public section
 
 namespace Causalean.Stat.PolynomialTail
 

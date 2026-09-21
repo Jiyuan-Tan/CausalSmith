@@ -24,6 +24,7 @@ function setPlatform(p: NodeJS.Platform) {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks();
   vi.resetModules();
   vi.doUnmock("node:fs");
   setPlatform(realPlatform);
@@ -55,5 +56,17 @@ describe("bashBinary", () => {
   it("ignores gitBashPath off Windows", async () => {
     setPlatform("linux");
     expect((await localConfigWith(cfg)).bashBinary()).toBe("bash");
+  });
+});
+
+describe("localConfig obsolete keys", () => {
+  it("ignores the retired module-system key with a one-line warning", async () => {
+    const obsoleteKey = ["module", "System"].join("");
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { localConfig } = await localConfigWith(JSON.stringify({ [obsoleteKey]: false }));
+    expect(localConfig().codexSandbox).toBe("workspace-write");
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]?.[0]).toMatch(/ignoring obsolete .*always enabled/);
+    expect(String(warn.mock.calls[0]?.[0])).not.toContain("\n");
   });
 });

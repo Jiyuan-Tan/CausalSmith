@@ -1,8 +1,11 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CdfMaps
-import Causalean.Stat.Sample
-import Causalean.Stat.Quantile.EmpiricalCDF
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CdfMaps
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Quantile.EmpiricalCDF
 
 /-! # Fixed-stratum empirical estimators and confidence bands -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

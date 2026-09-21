@@ -1,0 +1,53 @@
+{
+  "node_type": "statement",
+  "body": {
+    "id": "thm:certificate-completeness",
+    "kind": "theorem",
+    "statement": "For every canonically encoded fixed instance \\(S,G,Rsrc,Psrc,rho,a,B,Ictx,K\\) satisfying the model assumptions, let \\(F\\) be the dense polynomial obtained by replaying its target factorization. There exist serialized endpoint groundings \\(Z\\) and a certificate \\(Gamma\\) such that \\(Check(S,G,Rsrc,Psrc,rho,a,B,Ictx,K,F,Z,Gamma)=1\\). The combined bit length of \\(Z\\) and \\(Gamma\\), and the checker's bit running time on the complete input and certificate, are bounded by one fixed polynomial in \\(D+LF+T+1\\). Each selected optimizer and endpoint is represented by a primitive irreducible integer polynomial and a rational isolating interval, and its algebraic degree is at most \\(\\max\\{1,D-1\\}\\).",
+    "free_symbols": [
+      "Gamma",
+      "Check",
+      "F",
+      "K",
+      "Psrc",
+      "D",
+      "LF",
+      "T",
+      "qminus",
+      "qplus",
+      "L",
+      "U",
+      "S",
+      "G",
+      "Rsrc",
+      "rho",
+      "a",
+      "B",
+      "Ictx",
+      "Z"
+    ],
+    "depends_on": [
+      "ass:finite-domains",
+      "ass:acyclic-groundings",
+      "ass:markovian-noises",
+      "ass:type-sharing",
+      "ass:source-compatibility",
+      "ass:one-unsupported-row",
+      "ass:binary-free-row",
+      "lem:polynomial-reduction",
+      "lem:sturm-root-count-correctness",
+      "lem:integer-root-isolation-polynomial-time",
+      "lem:rational-polynomial-factorization-polynomial-time",
+      "lem:algebraic-extension-isolation-polynomial-time",
+      "def:critical-candidates",
+      "def:certificate-grammar",
+      "def:checker",
+      "thm:endpoint-models",
+      "thm:certificate-soundness"
+    ],
+    "justification": "Completeness and an input-based size bound prevent the grammar from achieving soundness by refusing hard legal instances or hiding exponential proof objects.",
+    "gap": "Exact root-isolation papers bound algebraic certificates for supplied polynomials, but the polynomial-size composition with value links, tie handling, and relational model tables is not supplied by the causal or verification literature.",
+    "consumer": "A traffic-bound producer can always emit a finite replayable record whose checking cost is controlled by the explicit instance rather than by trust in neural or numerical optimization.",
+    "proof_tex": "Put \\(N=D+LF+T+1\\).  We construct an accepted record and bound its size before invoking its checker.\n\nFirst copy the canonical fixed-instance fields, the exhaustive \\(Ictx\\) records, and the rational supported rows into the certificate.  Their total length is at most \\(O(T+LF)\\).  Since the given \\(F\\) is obtained by replaying the target factorization, list the corresponding additions and multiplications in the order induced by \\(Ictx\\).  The number of listed gates is polynomial in the explicit incidence length.  A product uses at most the explicitly listed number of rational row entries, so denominator and numerator bit lengths add; a sum adds at most the logarithm of the number of summands beyond the common-denominator contribution.  Thus fraction-free gate numerators and denominators have bit length polynomial in \\(T+LF+D+1\\).  Replaying them returns exactly \\(F\\).\n\nWrite \\(F=A/M\\), where \\(M>0\\), \\(A\\in\\mathbb Z[q]\\), and the coefficients of \\(A\\) have no common factor.  Taking the product of the input coefficient denominators is a valid choice before primitive reduction, so \\(\\log M\\) and the coefficient bit length \\(\\tau\\) of \\(A\\) are \\(O(LF+\\log(D+1))\\).  If \\(D=0\\), take \\(Ccrit=\\{0,1\\}\\), select \\(qminus=qplus=0\\), and take \\(L=U=F(0)\\); all algebraic descriptors are linear and the argument below is unnecessary.  If \\(D=1\\), there are again no interior derivative roots and the two boundary values suffice.\n\nSuppose \\(D\\geq2\\).  Compute the square-free part \\(g\\) of \\(A'\\) by fraction-free gcd arithmetic.  Subresultant coefficients are minors of matrices of dimension \\(O(D)\\); the determinant expansion bounds their bit lengths by a polynomial in \\(D+\\tau+1\\).  Thus \\(g\\) has degree at most \\(D-1\\), polynomial coefficient length, and is computed in polynomial bit time.  By the cited integer-root-isolation result, all its real roots have polynomial-length disjoint rational isolators, computable in polynomial bit time.  Sturm counts retain exactly those in \\((0,1)\\), while rational substitution handles \\(0\\) and \\(1\\).  This produces every member of \\(Ccrit\\), including a repeated root of \\(A'\\) exactly once.\n\nApply the cited rational-factorization algorithm to \\(g\\), and attach to each interior candidate the primitive irreducible factor having the isolated root in its interval.  This gives a simple-extension representation for each candidate in polynomial bit time.\n\nIntroduce a value variable \\(z\\) and form\n\\[\n E(z)=(Mz-A(0))(Mz-A(1))\\operatorname{Res}_{q}\\!\\left(g(q),A(q)-Mz\\right).\n\\]\nThe resultant is nonzero because \\(z\\) is an indeterminate and \\(A(q)-Mz\\) cannot share a factor in \\(q\\) with \\(g(q)\\) over \\(\\mathbb Q(z)\\).  Its Sylvester matrix has dimension \\(O(D)\\), entries of degree at most one in \\(z\\), and coefficient bit length polynomial in \\(D+\\tau\\).  Expanding its determinant shows that \\(E\\) has degree at most \\(D+1\\) and coefficient bit length polynomial in \\(N\\).  Primitive and square-free reduction preserves polynomial degree and bit length by the same subresultant-minor bound.\n\nIsolate the distinct real roots of the square-free part of \\(E\\), obtaining disjoint one-root rational intervals.  For each admissible algebraic candidate \\(c\\), regard \\(A(c)-Mz\\) as a linear polynomial over \\(\\mathbb Q(c)\\).  The cited extension-field algorithm isolates its unique root \\(F(c)\\).  Equality with a rational interval endpoint is decided by reducing \\(A(c)-Ma\\) modulo the attached irreducible polynomial of \\(c\\); otherwise refinement determines its strict side.  Refine the isolators until exactly one value-root interval \\(J=(a,b)\\) satisfies \\(a<F(c)<b\\).  Such an interval exists because \\(g(c)=0\\) implies \\(E(F(c))=0\\), and it is unique because the intervals are disjoint and each contains one distinct root.  Boundary candidates are evaluated by rational arithmetic.  Record the link from \\(c\\) to that root label.  Two candidates have equal values exactly when they receive the same label; distinct values receive disjoint labels after root isolation.  Thus ties, including boundary ties, are settled without comparing two unrelated algebraic extension fields or waiting for equal numerical intervals to separate.  Sorting the at most \\(D+1\\) labels selects \\(L\\), \\(U\\), \\(qminus\\), and \\(qplus\\) with polynomially many polynomial-size operations.  An extraneous real root of \\(E\\) has no link from a feasible candidate and is never selected.\n\nApply the cited rational-factorization algorithm to the square-free part of \\(E\\), select the primitive irreducible factor containing each chosen endpoint, and retain its rational isolator.  Together with the already attached optimizer factors, this gives the required exact representations.  An interior optimizer is a root of \\(A'\\), so\n\\[\n [\\mathbb Q(q_\\circ):\\mathbb Q]\\leq D-1.\n\\]\nBecause \\(F(q_\\circ)=A(q_\\circ)/M\\in\\mathbb Q(q_\\circ)\\), the endpoint degree is no larger.  Boundary optimizers and their values are rational.  Therefore all four selected numbers have degree at most \\(\\max\\{1,D-1\\}\\).\n\nConstruct the two endpoint models by the breakpoint theorem.  If type \\(t\\) has \\(R_t\\) explicit contexts and alphabet size \\(k_t\\), its number of positive atoms is at most \\(1+R_t(k_t-1)\\).  Since the explicit encoding contains all these rows, \\(\\sum_t R_tk_t=O(T)\\).  A context-by-atom output table therefore has at most\n\\[\n \\sum_t R_t\\bigl(1+R_t(k_t-1)\\bigr)=O(T^2)\n\\]\nentries.  The source and target node references add \\(O(T)\\) entries.  Supported breakpoints have \\(O(T)\\)-bit rational descriptions.  Per endpoint, all masses are rational except possibly \\(q_\\circ-a\\) and \\(b-q_\\circ\\), which reference the single polynomial-and-isolator descriptor of \\(q_\\circ\\).  Exact extension-field sign tests sort \\(q_\\circ\\) against rational thresholds and certify nonnegativity, including equality at a threshold.  Thus \\(Z\\) has polynomial bit length and is produced in polynomial bit time.\n\nComplete \\(\\Gamma\\) with the canonical injective digest, local incidence checks, Sturm counts, candidate links, tie labels, order records, and exact finite-model source and target evaluations.  There are \\(O(D)\\) candidate and value roots and at most \\(O(D^2)\\) pairwise order records.  Every polynomial, interval, table, and arithmetic identity in them has bit length polynomial in \\(N\\), by the determinant bounds and the three cited polynomial-time algebraic algorithms.  Consequently \\(|Z|+|\\Gamma|\\) is bounded by one fixed polynomial in \\(N\\).\n\nThe checker parses only these polynomially many records.  Rational arithmetic, fraction-free gcd and resultant identities, Sturm variations, algebraic sign checks, table traversal, and finite-model evaluation all involve polynomially many integers of polynomial bit length.  Its bit running time is therefore bounded by another fixed polynomial in \\(N\\).  Each constructed clause is true by construction, so the certificate-soundness proof shows that every check succeeds and\n\\[\n Check(S,G,Rsrc,Psrc,rho,a,B,Ictx,K,F,Z,Gamma)=1.\n\\]\nThis proves existence, completeness, the noncircular size and checking bounds, and the stated algebraic-degree guarantee."
+  }
+}

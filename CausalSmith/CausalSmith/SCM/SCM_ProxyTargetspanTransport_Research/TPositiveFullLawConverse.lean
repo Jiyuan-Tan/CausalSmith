@@ -1,12 +1,15 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Perturbation
-import Causalean.PO.ID.Partial.Basic
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Perturbation
+public import Causalean.PO.ID.Partial.Basic
 
 set_option linter.unusedDecidableInType false
 
-/-! Positive full-observed-law perturbation converse. -/
-
 open Matrix
 open scoped BigOperators
+
+/-! Positive full-observed-law perturbation converse. -/
+
+public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
@@ -41,7 +44,7 @@ theorem positive_full_law_converse (PO : E → W → X → Y → ℝ) (bvec : W 
                 t * dotProduct h bvec) ∧
       Set.Ioo (interventionalProb Mdl x y - ε * |dotProduct h bvec|)
           (interventionalProb Mdl x y + ε * |dotProduct h bvec|) ⊆
-        Causalean.PartialID.IdentifiedInterval
+        Causalean.Stat.AttainableSet.IdentifiedInterval
           (fun M : LatentShiftSCM E U W X Y => interventionalProb M x y)
           (fun M => M ∈ compatibleFiber PO bvec) := by
   have hM : PositiveLatentShiftClass Mdl := hMdl.1

@@ -20,11 +20,13 @@ cells). Only the additive untreated-outcome model `E[Y(0) ∣ cell] = q · β₀
 paper's fixed-effect / parallel-trends restriction — remains a modeling
 hypothesis, supplied to the discharge lemma.
 
-Source spec: `doc/basic_concepts/po/estimand_characterization/bjs_imputation.md`.
+Source spec:
+`doc/basic_concepts/po/estimand_characterization/borusyak_jaravel_spiess_imputation.md`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
-import Causalean.Panel.PO.PopulationCells
+module
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
+public import Causalean.Panel.PO.PopulationCells
 
 /-! # Borusyak-Jaravel-Spiess imputation population bridge
 
@@ -32,6 +34,8 @@ This file constructs a finite `BJSPanel` from a probability space with treated
 and untreated potential outcomes, defining its mean fields as treated/untreated
 cell conditional means and deriving the untreated-consistency and fixed-effect
 restrictions from cell-level potential-outcome consistency. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -95,11 +99,19 @@ variable (E : BJSPopulation Treated Untreated Regressor)
 
 attribute [instance] BJSPopulation.measΩ BJSPopulation.probμ
 
-/-- For [a BJS population with finite treated-cell, untreated-cell, and regressor collections](hyp:E), the [treated-and-untreated cell partition](goal) partitions its sample space according to the population's treated/untreated cell classifier, using the population probability measure. -/
+/-- For [a BJS population with finite treated-cell, untreated-cell, and regressor
+collections](hyp:E), the [treated-and-untreated cell partition](goal) partitions
+its sample space according to the population's treated/untreated cell
+classifier, using the population probability measure. -/
 noncomputable def cells : CellPartition E.μ (Treated ⊕ Untreated) :=
   cellPartitionOfClassifier E.μ E.cellOf E.cell_meas E.cell_pos
 
-/-- For [a BJS population with finite treated-cell, untreated-cell, and regressor collections](hyp:E), the [induced BJS panel](goal) retains its regressor rows, target weights, and nuisance vector, and defines each outcome mean as the corresponding treated- or untreated-cell conditional mean. For every treated cell, its treatment effect is the conditional mean of the treated potential outcome minus that of the untreated potential outcome. -/
+/-- For [a BJS population with finite treated-cell, untreated-cell, and regressor
+collections](hyp:E), the [induced BJS panel](goal) retains its regressor rows,
+target weights, and nuisance vector, and defines each outcome mean as the
+corresponding treated- or untreated-cell conditional mean. For every treated
+cell, its treatment effect is the conditional mean of the treated potential
+outcome minus that of the untreated potential outcome. -/
 noncomputable def toPanel : BJSPanel Treated Untreated Regressor where
   qT := E.qT
   qU := E.qU

@@ -14,8 +14,9 @@ yields a valid — indeed over-covering — Chebyshev tail bound, replacing the 
 the estimable `E[V̂]`.
 -/
 
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Causalean.Experimentation.DesignBased.Risk
+module
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Causalean.Experimentation.DesignBased.Risk
 
 /-! # Conservative variance estimators
 
@@ -27,6 +28,8 @@ Conservative variance estimators have expectation at least the true finite-desig
 `FiniteDesign.chebyshev_conservative` turns conservativeness into a valid Chebyshev tail bound
 with `E[Vhat]` in place of the unknown variance.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
 
 /-!
 # A Luxemburg square-exponential bound implies a global MGF bound
@@ -7,6 +8,8 @@ This file supplies the real-variable estimate used by transform-zero localizatio
 A centered random variable whose square-exponential moment is at most two has
 all real exponential moments, with an explicit quadratic MGF envelope.
 -/
+
+public section
 
 noncomputable section
 

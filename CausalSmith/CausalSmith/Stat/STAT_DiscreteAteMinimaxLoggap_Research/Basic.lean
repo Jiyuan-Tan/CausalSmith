@@ -9,13 +9,16 @@ transport.  The potential-outcome overlay below is finite and binary, so the
 general regime-indexed PO API would be a different abstraction (`bypass-justified`).
 -/
 
-import Causalean.Stat.Sample
-import Causalean.Stat.Sample.PiTransport
-import Mathlib.Probability.ProbabilityMassFunction.Constructions
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
-import Mathlib.Probability.ProductMeasure
-import Mathlib.Probability.Independence.InfinitePi
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Sample.PiTransport
+public import Mathlib.Probability.ProbabilityMassFunction.Constructions
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
+public import Mathlib.Probability.ProductMeasure
+public import Mathlib.Probability.Independence.InfinitePi
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

@@ -1,30 +1,7 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Order-2 U-statistics and the Hoeffding decomposition
-
-The reusable statistical primitive underlying variance estimators, rank/sign
-statistics, and kernel two-sample tests.  For a symmetric kernel `h : X → X → ℝ`
-and an i.i.d. sample `S`, the order-2 U-statistic is
-
-  Uₙ = (n(n−1))⁻¹ Σ_{i ≠ j, i,j < n} h(Zᵢ, Zⱼ).
-
-The **Hoeffding decomposition** writes the kernel as
-
-  h(x, y) = θ + h₁(x) + h₁(y) + g(x, y),
-
-where `θ = ∬ h dP dP` is the population mean, `h₁(x) = ∫ h(x, ·) dP − θ` is the
-first projection (centered), and `g` is the degenerate second-order kernel,
-characterised by `∫ g(x, ·) dP = 0` for every `x`.  This file proves the
-decomposition identity and the two mean-zero facts (`∫ h₁ dP = 0` and the
-degeneracy of `g`); the CLT and variance bounds live in sibling files.
--/
-
-import Causalean.Stat.Sample
-import Causalean.Tactic.IntegralLinearity
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.Stat.Sample
+public import Causalean.Tactic.IntegralLinearity
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 # Order-2 U-statistics
@@ -36,9 +13,23 @@ centering and integrability facts for the first projection, and
 `uDegen_integral_right_eq_zero`, the one-coordinate degeneracy property of the
 second-order residual.
 
-Sibling files build the variance and asymptotic-normality theory on top of these
-definitions; this file supplies the reusable decomposition substrate.
+The statistic averages a two-argument kernel over ordered distinct sample
+pairs. For symmetric kernels, this agrees with the usual average over unordered
+pairs. The residual identity is
+
+  `h(x, y) = θ + h₁(x) + h₁(y) + g(x, y)`.
+
+The module also proves that the first projection is centered and that the
+residual integrates to zero in one coordinate under the stated assumptions.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -49,27 +40,45 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 /-! ## Definitions -/
 
-/-- For [a sample space and an outcome space, each equipped with a σ-algebra](hyp:Ω,X), [an independent and identically distributed sample with probability law $\mu$ and marginal law $P$](hyp:μ,P,S), [a real-valued two-argument kernel](hyp:h), and [a nonnegative integer $n$](hyp:n), [the order-two U-statistic](goal) is the random variable that, at each sample outcome, equals $(n(n-1))^{-1}$ times the sum of the kernel over all ordered distinct pairs among the first $n$ observations.
+/-- For [a sample space and an outcome space, each equipped with a
+σ-algebra](hyp:Ω,X), [an independent and identically distributed sample with probability law
+$\mu$ and marginal law $P$](hyp:μ,P,S), [a real-valued two-argument kernel](hyp:h), and
+[a nonnegative integer $n$](hyp:n), [the order-two U-statistic](goal) is the random
+variable that, at each sample outcome, equals $(n(n-1))^{-1}$ times the sum of the kernel
+over all ordered distinct pairs among the first $n$ observations.
 
-The order-2 U-statistic with kernel `h` over the first `n` sample points is `(n(n−1))⁻¹ Σ_{(i,j) ∈ offDiag (range n)} h(Zᵢ, Zⱼ)`.  The off-diagonal sum ranges over ordered pairs `i ≠ j`; for a symmetric kernel this is the usual `(n choose 2)⁻¹ Σ_{i<j}`. -/
+The order-2 U-statistic with kernel `h` over the first `n` sample points is
+`(n(n−1))⁻¹ Σ_{(i,j) ∈ offDiag (range n)} h(Zᵢ, Zⱼ)`. The off-diagonal sum ranges over
+ordered pairs `i ≠ j`; for a symmetric kernel this is the usual
+`(n choose 2)⁻¹ Σ_{i<j}`. -/
 noncomputable def uStatistic (S : IIDSample Ω X μ P) (h : X → X → ℝ) (n : ℕ) :
     Ω → ℝ :=
   fun ω => ((n : ℝ) * ((n : ℝ) - 1))⁻¹ *
     ∑ p ∈ (Finset.range n).offDiag, h (S.Z p.1 ω) (S.Z p.2 ω)
 
-/-- For [an outcome space equipped with a σ-algebra](hyp:X), [a real-valued two-argument kernel](hyp:h), and [a measure $P$ on that space](hyp:P), [the population mean of the kernel](goal) is its iterated integral with respect to $P$ in both arguments.
+/-- For [an outcome space equipped with a σ-algebra](hyp:X),
+[a real-valued two-argument kernel](hyp:h), and [a measure $P$ on that space](hyp:P),
+[the population mean of the kernel](goal) is its iterated integral with respect to $P$ in
+both arguments.
 
 The population mean of the kernel is `θ = ∬ h dP dP`. -/
 noncomputable def uMean (h : X → X → ℝ) (P : Measure X) : ℝ :=
   ∫ x, (∫ y, h x y ∂P) ∂P
 
-/-- For [an outcome space equipped with a σ-algebra](hyp:X), [a real-valued two-argument kernel](hyp:h), and [a measure $P$ on that space](hyp:P), [the first centered Hoeffding projection](goal) assigns to each outcome $x$ the integral of the kernel with first argument $x$ under $P$, minus the population mean of the kernel.
+/-- For [an outcome space equipped with a σ-algebra](hyp:X),
+[a real-valued two-argument kernel](hyp:h), and [a measure $P$ on that space](hyp:P),
+[the first centered Hoeffding projection](goal) assigns to each outcome $x$ the integral
+of the kernel with first argument $x$ under $P$, minus the population mean of the kernel.
 
 The first Hoeffding projection is centered: `h₁(x) = ∫ h(x, ·) dP − θ`. -/
 noncomputable def uProj (h : X → X → ℝ) (P : Measure X) : X → ℝ :=
   fun x => (∫ y, h x y ∂P) - uMean h P
 
-/-- For [an outcome space equipped with a σ-algebra](hyp:X), [a real-valued two-argument kernel](hyp:h), and [a measure $P$ on that space](hyp:P), [the degenerate second-order kernel](goal) assigns to outcomes $x$ and $y$ the original kernel value minus its population mean and minus its first centered Hoeffding projections at $x$ and $y$.
+/-- For [an outcome space equipped with a σ-algebra](hyp:X),
+[a real-valued two-argument kernel](hyp:h), and [a measure $P$ on that space](hyp:P),
+[the degenerate second-order kernel](goal) assigns to outcomes $x$ and $y$ the original
+kernel value minus its population mean and minus its first centered Hoeffding projections
+at $x$ and $y$.
 
 The degenerate second-order kernel is `g(x, y) = h(x, y) − θ − h₁(x) − h₁(y)`. -/
 noncomputable def uDegen (h : X → X → ℝ) (P : Measure X) : X → X → ℝ :=

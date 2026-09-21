@@ -9,8 +9,9 @@ Defines `zFixedAsRandom`, `valuesUnionMk`, and `fillZrW`, the injection
 from `ValuesOn W` into `ValuesOn (Z.image .random ∪ W)` needed for Rule 2.
 -/
 
-import Causalean.SCM.Model.Kernel
-import Causalean.Mathlib.MeasureTheory.FinsetValues
+module
+public import Causalean.SCM.Model.Kernel
+public import Causalean.SCM.Model.Values
 
 /-! # Value-Space Helpers for Rule 2
 
@@ -18,6 +19,13 @@ This file builds the value-space maps that insert intervention values into a
 conditioning assignment. These maps provide the bookkeeping needed to compare
 conditioning on an observed random copy with conditioning on the corresponding
 intervention value in Rule 2. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -96,61 +104,6 @@ noncomputable def fillZrW
         (valuesProjection
           (fixSet_image_fixed_subset M' Z hZ_obs hZ_fixed) s'))
       w
-
-/-- For [two sets of graph nodes](hyp:A) that are [disjoint](hyp:hDisj), the [value-assignment equivalence for their union](goal) is a measurable bijection between assignments on their union and pairs consisting of an assignment on each set.
-
-The forward map projects to each part and the inverse recombines them; disjointness
-ensures the first part's priority cannot overwrite the second part. -/
-noncomputable def valuesUnionEquiv {A B : Finset (SWIGNode N)}
-    (hDisj : Disjoint A B) :
-    ValuesOn (A ∪ B) (swigΩ Ω) ≃ᵐ
-      ValuesOn A (swigΩ Ω) × ValuesOn B (swigΩ Ω) where
-  toFun ξ :=
-    (valuesProjection (Finset.subset_union_left) ξ,
-     valuesProjection (Finset.subset_union_right) ξ)
-  invFun p := valuesUnionMk p.1 p.2
-  left_inv ξ := by
-    funext ⟨v, hv⟩
-    by_cases hA : v ∈ A
-    · simp [valuesProjection, valuesUnionMk_apply_left _ _ hA]
-    · have hB : v ∈ B := (Finset.mem_union.mp hv).resolve_left hA
-      simp [valuesUnionMk_apply_right _ _ hv hA, valuesProjection]
-  right_inv := by
-    rintro ⟨a, b⟩
-    ext
-    · rename_i i
-      obtain ⟨v, hvA⟩ := i
-      have hv : v ∈ A ∪ B := Finset.subset_union_left hvA
-      simp [valuesProjection, valuesUnionMk_apply_left _ _ hvA]
-    · rename_i i
-      obtain ⟨v, hvB⟩ := i
-      have hv : v ∈ A ∪ B := Finset.subset_union_right hvB
-      have hA : v ∉ A := fun hA' =>
-        (Finset.disjoint_left.mp hDisj hA') hvB
-      simp [valuesProjection, valuesUnionMk_apply_right _ _ hv hA]
-  measurable_toFun :=
-    (measurable_valuesProjection _).prodMk (measurable_valuesProjection _)
-  measurable_invFun := by
-    change Measurable (fun p : ValuesOn A (swigΩ Ω) × ValuesOn B (swigΩ Ω) =>
-      valuesUnionMk p.1 p.2)
-    refine measurable_pi_iff.mpr ?_
-    rintro ⟨v, hv⟩
-    by_cases hA : v ∈ A
-    · have h_eq :
-          (fun p : ValuesOn A (swigΩ Ω) × ValuesOn B (swigΩ Ω) =>
-              valuesUnionMk p.1 p.2 ⟨v, hv⟩)
-            = (fun p => p.1 ⟨v, hA⟩) :=
-        funext fun _ => valuesUnionMk_apply_left _ _ hA
-      rw [h_eq]
-      exact (measurable_pi_apply _).comp measurable_fst
-    · have hB : v ∈ B := (Finset.mem_union.mp hv).resolve_left hA
-      have h_eq :
-          (fun p : ValuesOn A (swigΩ Ω) × ValuesOn B (swigΩ Ω) =>
-              valuesUnionMk p.1 p.2 ⟨v, hv⟩)
-            = (fun p => p.2 ⟨v, hB⟩) :=
-        funext fun _ => valuesUnionMk_apply_right _ _ hv hA
-      rw [h_eq]
-      exact (measurable_pi_apply _).comp measurable_snd
 
 /-- The Rule 2 filler is measurable as a function of the free conditioning assignment.
 

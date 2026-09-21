@@ -24,7 +24,8 @@ It is a *linear score* in the target `θ`: with the treatment residual
   the data (the nuisance carries its own measurability).
 -/
 
-import Causalean.Estimation.PLR.Nuisance
+module
+public import Causalean.Estimation.PLR.Nuisance
 
 /-! # Partially linear orthogonal score
 
@@ -33,6 +34,8 @@ linear model, its decomposition into the linear-in-parameter form, and the
 measurability of these maps in the data. The score is linear in the structural
 slope, with coefficient minus the squared treatment residual and constant term
 given by the residualized outcome times the treatment residual. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

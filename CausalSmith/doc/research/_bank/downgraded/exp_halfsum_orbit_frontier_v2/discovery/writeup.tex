@@ -1,0 +1,1188 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}halfsum\_\allowbreak{}orbit\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v2\par
+
+\paragraph{TL;DR.} For independently and uniformly half-randomized populations on two unequal market sides, the optimal covering rectangle at required support \(R\) reduces to a finite residual catalog depending only on \(R\). For \(R\ge4\) and \(n_B,n_S\ge4R\), the exact frontier is the maximum of finitely many affine catalog scores and every tie is retained. On balanced squares, the covering paired-rectangle frontier weakly dominates the published equal-square subclass for every resolution. At \(R=4\), if \(\ell(n)\) is the least divisor of \(n\) at least two, then the published equal-square optimum is exactly \(2n^2/\ell(n)\), while the covering optimum is \(2(n-1)^2+2\). Their exact ratio is \(\ell(n)(1-2/n+2/n^2)\): even sizes form the sharp factor-two asymptotic lower envelope, whereas prime sizes have ratio \(n-2+2/n\). A constant-incidence sampler implements the selected event, and null-adjusted focal outcomes yield exact one-sided inversion for a sharp constant total effect. No universal collapse of the catalog to diagonal unit residuals is claimed.
+
+\section{Project justification}
+
+\paragraph{Gap.} The closest exact two-sided-market method proves validity for selected equal blocks and treats block choice within that published equal-square subclass; it neither states the general dominance of that subclass by covering paired rectangles nor identifies the support-four optimum \(2n^2/\ell(n)\) from the least nontrivial divisor. General biclique methods establish validity and power guidance but do not classify the optimal covering paired rectangle. Marketplace bias-and-variance analyses motivate the design problem but do not solve this exact rectangle optimization, and existing one-dimensional subset-sum purification does not preserve a prescribed common buyer--seller target fiber.
+
+\paragraph{Niche.} Balanced independent randomization converts admissible covering rectangles into two coupled half-sum profiles. This structure permits an exact finite residual reduction and affine phase analysis for unequal market-side sizes. On balanced squares it contains every published equal-square profile, and at \(R=4\) it yields an exact arithmetic classification of that benchmark through \(\ell(n)\), the least divisor of \(n\) at least two, without asserting an unrestricted-biclique optimum.
+
+\paragraph{Fill.} A two-stage concentration argument bounds the residual on the smaller side and uses a support-preserving residual-copy comparison to bound the larger residual. This yields a finite catalog and an exact affine frontier with all catalog ties. A direct equal-square-profile construction proves dominance over the published equal-square subclass for every resolution. At \(R=4\), every proper equal-block divisor is eligible, so the published equal-square optimum is exactly \(2n^2/\ell(n)\), versus the covering paired-rectangle value \(2(n-1)^2+2\). The exact ratio \(\ell(n)(1-2/n+2/n^2)\) has its sharp factor-two asymptotic lower envelope on even sizes and equals \(n-2+2/n\) at prime sizes. The same catalog supports an implementable conditional law and exact one-sided sharp-null inversion. Whether every catalog entry can be purified to a dominating diagonal unit-residual entry remains a separate open question.
+
+\section{Related work}
+
+Liu, Shaikh, and Toulis (2026) establish the equal \(k\)-block total-effect test and motivate the support--focal-size trade-off. The covering paired-rectangle class contains their published equal-square profiles, which gives weak dominance at every resolution. At support four, the present result proves the exact published-subclass optimum \(\Phi_n^{\mathrm{eq}}(4)=2n^2/\ell(n)\), with \(\ell(n)\) the least divisor of \(n\) at least two, and compares it with the exact covering paired-rectangle optimum \(2(n-1)^2+2\). Even sizes give the sharp factor-two asymptotic lower envelope, while prime sizes give ratio \(n-2+2/n\). Puelz, Basse, Feller, and Toulis (2022) encode imputable tests as bicliques and motivate large bicliques, but do not supply the paired-rectangle classification. Li, Zhao, Johari, and Weintraub (2021) study interference-induced bias and variance in two-sided marketplace experiments, and Johari, Li, Liskovich, and Weintraub (2022) analyze bias under two-sided platform designs; both motivate why focal retention and design choice matter, but neither is a competing exact covering-rectangle optimization result. Basse, Feller, and Toulis (2019) provide the conditioning-mechanism validity theorem used after imputability is verified. Basse, Ding, Feller, and Toulis (2024) provide the orbit-equivariance template, while unequal rectangular profiles require a separate constant-incidence count. Luo, Dasgupta, Xie, and Liu (2021) provide discrete Fisher inversion machinery, specialized here after null-adjusted dyadic imputability and crossing monotonicity are established. Singhal (2019) motivates bilinear subset-sum profiles and one-dimensional purification, but does not furnish a coupled common-fiber-preserving reduction to diagonal unit residuals. Ye et al. (2023) provide the unequal-side marketplace consumer through Platform O's independent user-view and ad randomizations.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau:Y_{ij}(1,1)-Y_{ij}(0,0)=\tau\ \text{for every }(i,j)\in B\times S\).
+Primary functional / estimator / diagnostic: \(\mathcal I_{1-\alpha}=\{\tau:p_\tau>\alpha\}=[t_{(\lfloor\alpha h(a,b)\rfloor)},\infty)\) when \(\lfloor\alpha h(a,b)\rfloor\ge1\).
+\begin{itemize}
+  \item \texttt{R} --- \texttt{integer}; \(\mathbb Z_{>0}\); \texttt{required number of compatible assignments}
+  \item \texttt{nB} --- \texttt{integer}; \(\mathbb Z_{>0}\); \texttt{half the buyer population size}
+  \item \texttt{nS} --- \texttt{integer}; \(\mathbb Z_{>0}\); \texttt{half the seller population size}
+  \item \texttt{B} --- \texttt{finite labeled set}; \texttt{buyer population}
+  \par\smallskip\noindent\emph{Definition.} \(|B|=2n_B\)
+  \item \texttt{S} --- \texttt{finite labeled set}; \texttt{seller population}
+  \par\smallskip\noindent\emph{Definition.} \(|S|=2n_S\)
+  \item \texttt{L} --- \texttt{integer}; \(\mathbb Z_{>0}\); \texttt{number of paired blocks}
+  \item \texttt{a} --- \texttt{vector}; \(\mathbb Z^{L}\); \texttt{buyer block-\allowbreak{}size vector}
+  \item \texttt{b} --- \texttt{vector}; \(\mathbb Z^{L}\); \texttt{seller block-\allowbreak{}size vector}
+  \item \texttt{rho} --- \texttt{tuple}; \texttt{paired rectangular size profile}
+  \par\smallskip\noindent\emph{Definition.} \(\rho=(L,a,b)\)
+  \item \texttt{Omega} --- \texttt{finite assignment set}; \texttt{independent balanced two-\allowbreak{}sided assignment support}
+  \par\smallskip\noindent\emph{Definition.} \(\Omega=\{(z^B,z^S)\in\{0,1\}^{B}\times\{0,1\}^{S}:\sum_{i\in B}z_i^B=n_B,\ \sum_{j\in S}z_j^S=n_S\}\)
+  \item \texttt{Z} --- \texttt{random variable}; \(\Omega\); \texttt{realized two-\allowbreak{}sided assignment}
+  \item \texttt{Y} --- \texttt{fixed array}; \(Y:B\times S\times\{0,1\}^2\to\mathbb R\); \texttt{finite-\allowbreak{}population dyad potential outcomes}
+  \item \texttt{tau} --- \texttt{real number}; \(\mathbb R\); \texttt{sharp constant total effect}
+  \item \texttt{alpha} --- \texttt{real number}; \(\mathbb R\); \texttt{test level}
+  \item \texttt{H} --- \texttt{finite set-\allowbreak{}valued map}; \((a,b)\mapsto H(a,b)\subseteq\{0,1\}^{L}\); \texttt{common half-\allowbreak{}sum assignment set}
+  \item \texttt{h} --- \texttt{integer-\allowbreak{}valued map}; \((a,b)\mapsto |H(a,b)|\); \texttt{common half-\allowbreak{}sum support size}
+  \item \texttt{F} --- \texttt{integer-\allowbreak{}valued map}; \((a,b)\mapsto\sum_{\ell=1}^{L}a_\ell b_\ell\); \texttt{retained focal-\allowbreak{}dyad count}
+  \item \texttt{Aclass} --- \texttt{finite class}; \(\mathcal A_{n_B,n_S}(R)\); \texttt{admissible covering rectangular profiles}
+  \item \texttt{Phi} --- \texttt{extended integer}; \(\mathbb Z\cup\{-\infty\}\); \texttt{optimal rectangular retention}
+  \item \texttt{m} --- \texttt{integer}; \(\mathbb Z_{>0}\); \texttt{residual profile length}
+  \item \texttt{u} --- \texttt{vector}; \(\mathbb Z_{>0}^{m}\); \texttt{buyer residual sizes}
+  \item \texttt{v} --- \texttt{vector}; \(\mathbb Z_{>0}^{m}\); \texttt{seller residual sizes}
+  \item \texttt{p} --- \texttt{integer}; \(\mathbb Z_{\ge0}\); \texttt{buyer residual target}
+  \item \texttt{q} --- \texttt{integer}; \(\mathbb Z_{\ge0}\); \texttt{seller residual target}
+  \item \texttt{A} --- \texttt{integer}; \texttt{buyer residual total}
+  \par\smallskip\noindent\emph{Definition.} \(A=\sum_{i=1}^{m}u_i\)
+  \item \texttt{D} --- \texttt{integer}; \texttt{seller residual total}
+  \par\smallskip\noindent\emph{Definition.} \(D=\sum_{i=1}^{m}v_i\)
+  \item \texttt{Nc} --- \texttt{integer}; \texttt{residual common-\allowbreak{}fiber count}
+  \par\smallskip\noindent\emph{Definition.} \(N_c=\#\{J\subseteq[m]:\sum_{i\in J}u_i=p,\ \sum_{i\in J}v_i=q\}\)
+  \item \texttt{c} --- \texttt{tuple}; \texttt{residual catalog entry}
+  \par\smallskip\noindent\emph{Definition.} \(c=(m,u,v,p,q)\)
+  \item \texttt{CR} --- \texttt{finite set}; \(\mathcal C_R\); \texttt{explicit residual catalog}
+  \item \texttt{UR} --- \texttt{finite set}; \(\mathcal U_R\subseteq\mathcal C_R\); \texttt{diagonal unit-\allowbreak{}residual subcatalog}
+  \item \texttt{Kc} --- \texttt{integer}; \texttt{catalog phase intercept}
+  \par\smallskip\noindent\emph{Definition.} \(K_c=pq+(A-p)(D-q)+\sum_{i=1}^{m}u_iv_i\)
+  \item \texttt{ac} --- \texttt{vector}; \(\mathbb Z_{>0}^{m+2}\); \texttt{buyer profile induced by a catalog entry}
+  \item \texttt{bc} --- \texttt{vector}; \(\mathbb Z_{>0}^{m+2}\); \texttt{seller profile induced by a catalog entry}
+  \item \texttt{fc} --- \texttt{integer-\allowbreak{}valued affine map}; \((n_B,n_S)\mapsto f_c(n_B,n_S)\); \texttt{catalog phase score}
+  \item \texttt{PhiEq} --- \texttt{extended integer}; \(\mathbb Z\cup\{-\infty\}\); \texttt{best retention among Liu-\allowbreak{}-\allowbreak{}Shaikh-\allowbreak{}-\allowbreak{}Toulis equal-\allowbreak{}square block profiles}
+  \item \texttt{blocksB} --- \texttt{ordered partition}; \texttt{labeled buyer blocks}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr B=(B_1,\ldots,B_L)\)
+  \item \texttt{blocksS} --- \texttt{ordered partition}; \texttt{labeled seller blocks}
+  \par\smallskip\noindent\emph{Definition.} \(\mathscr S=(S_1,\ldots,S_L)\)
+  \item \texttt{P} --- \texttt{tuple}; \texttt{covering ordered paired partition}
+  \par\smallskip\noindent\emph{Definition.} \(P=(\mathscr B,\mathscr S)\)
+  \item \texttt{zobs} --- \texttt{binary vector}; \(H(a,b)\); \texttt{observed compatible block-\allowbreak{}status pattern}
+  \par\smallskip\noindent\emph{Definition.} \(z^{\mathrm{obs}}_\ell\) is the common status of all labels in \(B_\ell\cup S_\ell\) under \(Z\)
+  \item \texttt{UP} --- \texttt{finite set}; \texttt{focal dyads}
+  \par\smallskip\noindent\emph{Definition.} \(U_P=\bigcup_{\ell=1}^{L}(B_\ell\times S_\ell)\)
+  \item \texttt{Yobs} --- \texttt{real array}; \texttt{observed dyad outcomes}
+  \par\smallskip\noindent\emph{Definition.} \(Y_{ij}^{\mathrm{obs}}=Y_{ij}(z_i^B,z_j^S)\)
+  \item \texttt{Xobs} --- \texttt{binary array}; \(\{0,1\}^{U_P}\); \texttt{observed focal joint-\allowbreak{}exposure array}
+  \par\smallskip\noindent\emph{Definition.} \(X_{ij}^{\mathrm{obs}}=z_\ell^{\mathrm{obs}}\) for \((i,j)\in B_\ell\times S_\ell\)
+  \item \texttt{nu} --- \texttt{positive integer}; \texttt{number of compatible ordered paired partitions above each assignment}
+  \item \texttt{SampleZP} --- \texttt{randomized algorithm}; \texttt{common-\allowbreak{}pattern then labeled-\allowbreak{}partition sampler}
+  \item \texttt{Qtau} --- \texttt{real array}; \(\mathbb R^{U_P}\); \texttt{null-\allowbreak{}adjusted observed focal outcomes}
+  \item \texttt{Dz} --- \texttt{real-\allowbreak{}valued statistic}; \((z,q_0)\mapsto D_z(q_0)\); \texttt{difference in treated and control focal-\allowbreak{}dyad means}
+  \item \texttt{ptau} --- \texttt{real-\allowbreak{}valued function}; \(\tau\mapsto p_\tau\in[0,1]\); exhaustive weak-upper-tail randomization \(p\)-value
+  \item \texttt{kalpha} --- \texttt{integer}; \texttt{discrete rejection rank}
+  \par\smallskip\noindent\emph{Definition.} \(k_\alpha=\lfloor\alpha h(a,b)\rfloor\)
+  \item \texttt{tz} --- \texttt{real-\allowbreak{}valued map}; \(z\mapsto t_z\); \texttt{crossing of the observed and reassigned focal statistics}
+  \item \texttt{torder} --- \texttt{real number}; \texttt{ordered crossing endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(t_{(k)}\) is the \(k\)-th smallest element of \(\{t_z:z\in H(a,b),\ z\ne z^{\mathrm{obs}}\}\), counted with multiplicity
+  \item \texttt{Ialpha} --- \texttt{subset of the real line}; \(\mathcal I_{1-\alpha}\subseteq\mathbb R\); \texttt{inverted one-\allowbreak{}sided confidence set}
+  \item \texttt{Enum} --- \texttt{deterministic algorithm}; \texttt{finite paired-\allowbreak{}composition and coefficient-\allowbreak{}recursion enumerator}
+  \item \texttt{PurifyR} --- \texttt{proof program handle}; \texttt{support-\allowbreak{}preserving paired-\allowbreak{}residual purification target}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:resolution]\label{ass:resolution}
+\(R\ge4\).
+\par\smallskip\noindent\emph{Novel.} At least four compatible assignments is the first nondegenerate resolution at which a paired rectangle can contain more than one complementary assignment pair.
+\end{assumption}
+
+\begin{assumption}[ass:buyer-large-margin]\label{ass:buyer-large-margin}
+\(n_B\ge4R\).
+\par\smallskip\noindent\emph{Novel.} Large marketplace experiments can allocate at least four units per required randomization-support point on the buyer side; the condition is a transparent finite threshold, not an asymptotic approximation.
+\end{assumption}
+
+\begin{assumption}[ass:seller-large-margin]\label{ass:seller-large-margin}
+\(n_S\ge4R\).
+\par\smallskip\noindent\emph{Novel.} The same finite threshold is implementable on the seller side even when the two population sizes are unequal.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-two-sided-design]\label{ass:uniform-two-sided-design}
+\(Z\sim\operatorname{Unif}(\Omega)\).
+\par\smallskip\noindent\emph{Standard} (Independent two-sided complete randomization at fixed treated counts, \cite{LiuShaikhToulis2026}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-schedule]\label{ass:fixed-schedule}
+\(Y\) is fixed with respect to the random draw \(Z\).
+\par\smallskip\noindent\emph{Standard} (Design-based finite-population potential-outcome schedule, \cite{BasseFellerToulis2019}).
+\end{assumption}
+
+\begin{assumption}[ass:local-two-sided-exposure]\label{ass:local-two-sided-exposure}
+For every \((i,j)\in B\times S\), \(Y_{ij}\) depends on an assignment only through \((z_i^B,z_j^S)\) at the fixed margins.
+\par\smallskip\noindent\emph{Standard} (Local two-sided exposure restriction at fixed margins, \cite{LiuShaikhToulis2026}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-buyer-blocks]\label{ass:positive-buyer-blocks}
+\(a_\ell\in\mathbb Z_{>0}\) for every \(\ell\in[L]\).
+\par\smallskip\noindent\emph{Standard} (Positive buyer covering block sizes, \cite{LiuShaikhToulis2026}).
+\end{assumption}
+
+\begin{assumption}[ass:positive-seller-blocks]\label{ass:positive-seller-blocks}
+\(b_\ell\in\mathbb Z_{>0}\) for every \(\ell\in[L]\).
+\par\smallskip\noindent\emph{Standard} (Positive seller covering block sizes, \cite{LiuShaikhToulis2026}).
+\end{assumption}
+
+\begin{assumption}[ass:buyer-cover]\label{ass:buyer-cover}
+\(\sum_{\ell=1}^{L}a_\ell=2n_B\).
+\par\smallskip\noindent\emph{Standard} (Buyer-side covering partition constraint, \cite{LiuShaikhToulis2026}).
+\end{assumption}
+
+\begin{assumption}[ass:seller-cover]\label{ass:seller-cover}
+\(\sum_{\ell=1}^{L}b_\ell=2n_S\).
+\par\smallskip\noindent\emph{Standard} (Seller-side covering partition constraint, \cite{LiuShaikhToulis2026}).
+\end{assumption}
+
+\begin{assumption}[ass:support-floor]\label{ass:support-floor}
+\(h(a,b)\ge R\).
+\par\smallskip\noindent\emph{Novel.} A prespecified randomization-support floor is operationally meaningful because it fixes the attainable granularity of an exact test before outcomes are observed.
+\end{assumption}
+
+\begin{assumption}[ass:sharp-constant-total-effect]\label{ass:sharp-constant-total-effect}
+\(Y_{ij}(1,1)-Y_{ij}(0,0)=\tau\) for every \((i,j)\in B\times S\).
+\par\smallskip\noindent\emph{Standard} (Additive sharp constant-effect null, two-sided total-effect variant, \cite{LuoDasguptaXieLiu2021}).
+\end{assumption}
+
+\begin{assumption}[ass:test-level]\label{ass:test-level}
+\(0<\alpha<1\).
+\par\smallskip\noindent\emph{Standard} (Randomization-test level, \cite{BasseFellerToulis2019}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:common-support]\label{def:common-support}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common half-\allowbreak{}sum support}
+\par\smallskip\noindent\emph{Construction.} \(H(a,b)=\{z\in\{0,1\}^{L}:\sum_{\ell=1}^{L}a_\ell z_\ell=n_B,\ \sum_{\ell=1}^{L}b_\ell z_\ell=n_S\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:support-size]\label{def:support-size}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Support size}
+\par\smallskip\noindent\emph{Construction.} \(h(a,b)=|H(a,b)|=[x^{n_B}y^{n_S}]\prod_{\ell=1}^{L}(1+x^{a_\ell}y^{b_\ell})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:retention]\label{def:retention}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Rectangular retention}
+\par\smallskip\noindent\emph{Construction.} \(F(a,b)=\sum_{\ell=1}^{L}a_\ell b_\ell\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:profile-class]\label{def:profile-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Admissible covering rectangular profiles}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal A_{n_B,n_S}(R)=\{\rho=(L,a,b):L\in\mathbb Z_{>0},\ a_\ell,b_\ell\in\mathbb Z_{>0}\ (\ell\in[L]),\ \sum_{\ell=1}^{L}a_\ell=2n_B,\ \sum_{\ell=1}^{L}b_\ell=2n_S,\ h(a,b)\ge R\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}positive-\allowbreak{}buyer-\allowbreak{}blocks}; \texttt{ass:\allowbreak{}positive-\allowbreak{}seller-\allowbreak{}blocks}; \texttt{ass:\allowbreak{}buyer-\allowbreak{}cover}; \texttt{ass:\allowbreak{}seller-\allowbreak{}cover}; \texttt{ass:\allowbreak{}support-\allowbreak{}floor}.
+\end{definition}
+
+\begin{definition}[def:frontier]\label{def:frontier}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Optimal retention frontier}
+\par\smallskip\noindent\emph{Construction.} \(\Phi_{n_B,n_S}(R)=\max\{F(a,b):(L,a,b)\in\mathcal A_{n_B,n_S}(R)\}\), with value \(-\infty\) when the class is empty.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Aclass}.
+\end{definition}
+
+\begin{definition}[def:residual-catalog]\label{def:residual-catalog}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Finite residual catalog}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_R=\{c=(m,u,v,p,q):1\le m\le2R,\ u,v\in\mathbb Z_{>0}^{m},\ A=\sum_i u_i\le2R,\ D=\sum_i v_i\le2R,\ 0\le p\le A,\ 0\le q\le D,\ 2N_c\ge R\}\), where \(N_c=\#\{J\subseteq[m]:\sum_{i\in J}u_i=p,\ \sum_{i\in J}v_i=q\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:unit-residual-subcatalog]\label{def:unit-residual-subcatalog}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Diagonal unit-\allowbreak{}residual subcatalog}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal U_R=\{c=(m,u,v,p,q)\in\mathcal C_R:u_i=v_i=1\ \text{for every }i\in[m]\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:catalog-profile]\label{def:catalog-profile}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Catalog-\allowbreak{}induced profile}
+\par\smallskip\noindent\emph{Construction.} For \(c=(m,u,v,p,q)\in\mathcal C_R\), set \(a_c=(n_B-p,n_B-A+p,u_1,\ldots,u_m)\) and \(b_c=(n_S-q,n_S-D+q,v_1,\ldots,v_m)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{c}; \texttt{nB}; \texttt{nS}.
+\end{definition}
+
+\begin{definition}[def:phase-score]\label{def:phase-score}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Affine phase score}
+\par\smallskip\noindent\emph{Construction.} \(K_c=pq+(A-p)(D-q)+\sum_{i=1}^{m}u_iv_i\) and \(f_c(n_B,n_S)=2n_Bn_S-Dn_B-An_S+K_c\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{c}; \texttt{nB}; \texttt{nS}.
+\end{definition}
+
+\begin{definition}[def:equal-square-comparator]\label{def:equal-square-comparator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Published equal-\allowbreak{}square block comparator}
+\par\smallskip\noindent\emph{Construction.} For \(n_B=n_S=n\), \(\Phi_n^{\mathrm{eq}}(R)=\max\{2nk:k\mid n,\ \binom{2n/k}{n/k}\ge R\}\), with value \(-\infty\) if the displayed set is empty; this is the best retention within the equal \(k\)-block family of Liu, Shaikh, and Toulis.
+\par\smallskip\noindent\emph{Inputs.} \texttt{nB}; \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:paired-partition]\label{def:paired-partition}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Covering paired partition and focal set}
+\par\smallskip\noindent\emph{Construction.} Given \((L,a,b)\), choose ordered partitions \(\mathscr B=(B_1,\ldots,B_L)\) of \(B\) and \(\mathscr S=(S_1,\ldots,S_L)\) of \(S\) with \(|B_\ell|=a_\ell\) and \(|S_\ell|=b_\ell\); set \(P=(\mathscr B,\mathscr S)\) and \(U_P=\bigcup_{\ell=1}^{L}(B_\ell\times S_\ell)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}.
+\end{definition}
+
+\begin{definition}[def:incidence]\label{def:incidence}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Assignment incidence}
+\par\smallskip\noindent\emph{Construction.} \(\nu(a,b)=h(a,b)(n_B!)^2(n_S!)^2\big/(\prod_{\ell=1}^{L}a_\ell!\prod_{\ell=1}^{L}b_\ell!)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:z-then-p-sampler]\label{def:z-then-p-sampler}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Common-\allowbreak{}pattern then partition sampler}
+\par\smallskip\noindent\emph{Construction.} Given the realized \(Z\), \(\mathsf{Sample}_{ZP}\) first draws \(z\) uniformly from \(H(a,b)\); independently on each market side it uniformly permutes treated labels into the indexed blocks with \(z_\ell=1\) and control labels into the indexed blocks with \(z_\ell=0\), cuts at the prescribed sizes, and reports only the resulting paired partition \(P\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{a}; \texttt{b}; \texttt{Z}.
+\end{definition}
+
+\begin{definition}[def:observed-arrays]\label{def:observed-arrays}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Observed outcome and joint-\allowbreak{}exposure arrays}
+\par\smallskip\noindent\emph{Construction.} \(Y_{ij}^{\mathrm{obs}}=Y_{ij}(z_i^B,z_j^S)\) for \((i,j)\in B\times S\), and \(X_{ij}^{\mathrm{obs}}=z_\ell^{\mathrm{obs}}\) for \((i,j)\in B_\ell\times S_\ell\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{Z}; \texttt{P}.
+\end{definition}
+
+\begin{definition}[def:null-adjustment]\label{def:null-adjustment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Null-\allowbreak{}adjusted focal outcomes}
+\par\smallskip\noindent\emph{Construction.} For \((i,j)\in U_P\), \(Q_{\tau,ij}=Y_{ij}^{\mathrm{obs}}-\tau X_{ij}^{\mathrm{obs}}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Yobs}; \texttt{tau}; \texttt{Xobs}.
+\end{definition}
+
+\begin{definition}[def:focal-difference]\label{def:focal-difference}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Focal-\allowbreak{}dyad difference in means}
+\par\smallskip\noindent\emph{Construction.} For \(z\in H(a,b)\) and \(q_0\in\mathbb R^{U_P}\), \(D_z(q_0)=\frac{\sum_{\ell:z_\ell=1}\sum_{(i,j)\in B_\ell\times S_\ell}q_{0,ij}}{\sum_{\ell=1}^{L}a_\ell b_\ell z_\ell}-\frac{\sum_{\ell:z_\ell=0}\sum_{(i,j)\in B_\ell\times S_\ell}q_{0,ij}}{\sum_{\ell=1}^{L}a_\ell b_\ell(1-z_\ell)}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{a}; \texttt{b}.
+\end{definition}
+
+\begin{definition}[def:pvalue]\label{def:pvalue}
+\par\smallskip\noindent\emph{Defined object.} Exhaustive upper-tail randomization \(p\)-value
+\par\smallskip\noindent\emph{Construction.} \(p_\tau=h(a,b)^{-1}\sum_{z\in H(a,b)}\mathbf 1\{D_z(Q_\tau)\ge D_{z^{\mathrm{obs}}}(Q_\tau)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Qtau}; \texttt{P}.
+\end{definition}
+
+\begin{definition}[def:crossings]\label{def:crossings}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Assignment crossings}
+\par\smallskip\noindent\emph{Construction.} For \(z\in H(a,b)\setminus\{z^{\mathrm{obs}}\}\), set \(t_z=\{D_{z^{\mathrm{obs}}}(Y^{\mathrm{obs}})-D_z(Y^{\mathrm{obs}})\}/\{1-D_z(X^{\mathrm{obs}})\}\), and order these values with multiplicity as \(t_{(1)}\le\cdots\le t_{(h(a,b)-1)}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{Yobs}; \texttt{Xobs}; \texttt{zobs}.
+\end{definition}
+
+\begin{definition}[def:confidence-ray]\label{def:confidence-ray}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Inverted confidence set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_{1-\alpha}=\{\tau\in\mathbb R:p_\tau>\alpha\}\) and \(k_\alpha=\lfloor\alpha h(a,b)\rfloor\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{ptau}; \texttt{alpha}.
+\end{definition}
+
+\begin{definition}[def:finite-enumerator]\label{def:finite-enumerator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Certified finite fallback}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{Enum}(n_B,n_S,R)\) enumerates every positive paired composition of totals \((2n_B,2n_S)\) up to common permutations, computes \([x^{n_B}y^{n_S}]\prod_\ell(1+x^{a_\ell}y^{b_\ell})\) by the recurrence \(d_{\ell+1}(i,j)=d_\ell(i,j)+d_\ell(i-a_{\ell+1},j-b_{\ell+1})\), and returns every feasible maximizer and its objective.
+\par\smallskip\noindent\emph{Inputs.} \texttt{nB}; \texttt{nS}; \texttt{R}.
+\end{definition}
+
+\begin{definition}[def:purification-handle]\label{def:purification-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Paired-\allowbreak{}residual purification handle}
+\par\smallskip\noindent\emph{Construction.} \(\mathsf{Purify}_R\) denotes the program that starts from a residual entry in \(\mathcal C_R\), applies a Singhal-style pure-profile decomposition jointly to the two subset-sum profiles toward \(\mathcal U_R\), preserves a common target fiber, and tracks the change in \(F\) and \(h\) through every elementary compression.
+\par\smallskip\noindent\emph{Inputs.} \texttt{c}.
+\end{definition}
+
+\section{Main results}
+
+\begin{theorem}[thm:catalog-feasibility]\label{thm:catalog-feasibility}
+For every \(c\in\mathcal C_R\), the induced profile \((m+2,a_c,b_c)\) belongs to \(\mathcal A_{n_B,n_S}(R)\), satisfies \(h(a_c,b_c)=2N_c\), and has \(F(a_c,b_c)=f_c(n_B,n_S)\).
+\end{theorem}
+\begin{proof}
+Fix \(c=(m,u,v,p,q)\in\mathcal C_R\), and abbreviate \(n=n_B\) and \(s=n_S\).  By \(\mathrm{def{:}residual\text{-}catalog}\),
+\[
+ 1\le m\le2R,\qquad u_i,v_i\in\mathbb Z_{>0},\qquad
+ A=\sum_{i=1}^m u_i\le2R,qquad D=\sum_{i=1}^m v_i\le2R,
+\]
+\[
+ 0\le p\le A,\qquad 0\le q\le D,qquad 2N_c\ge R.
+\]
+The margin assumptions give \(A<n\) and \(D<s\).  Hence all coordinates in \(\mathrm{def{:}catalog\text{-}profile}\) are positive integers, since
+\[
+ n-p\ge n-A>0,\quad n-A+p\ge n-A>0,
+\]
+and analogously \(s-q>0\) and \(s-D+q>0\).  Direct summation gives
+\[
+ (n-p)+(n-A+p)+\sum_{i=1}^m u_i=2n
+\]
+and the corresponding seller sum is \(2s\).
+
+The residual buyer coordinates have total \(A<n\), whereas the two large buyer coordinates have total \(2n-A>n\).  Consequently, a subset of the \(m+2\) coordinates can have buyer sum \(n\) only if it contains exactly one of the first two coordinates.  If it contains the first, its residual index set \(J\subseteq[m]\) must satisfy
+\[
+ \sum_{i\in J}u_i=p,qquad \sum_{i\in J}v_i=q.
+\]
+Conversely, these two equations make the full buyer and seller sums equal to \(n\) and \(s\), respectively.  There are exactly \(N_c\) such sets.  If the subset contains the second large coordinate, its residual sums must instead be \(A-p\) and \(D-q\).  Complementation \(J\mapsto[m]\setminus J\) is a bijection from the first residual fiber to the second.  The two classes are disjoint and exhaustive, so \(\mathrm{def{:}common\text{-}support}\) and \(\mathrm{def{:}support\text{-}size}\) yield
+\[
+ h(a_c,b_c)=2N_c\ge R.
+\]
+Together with positivity and the two covering equalities, this proves \((m+2,a_c,b_c)\in\mathcal A_{n_B,n_S}(R)\) by \(\mathrm{def{:}profile\text{-}class}\).
+
+Finally, \(\mathrm{def{:}retention}\) gives
+\[
+\begin{aligned}
+ F(a_c,b_c)
+ &= (n-p)(s-q)+(n-A+p)(s-D+q)+\sum_{i=1}^m u_iv_i\\
+ &=2ns-Dn-As+pq+(A-p)(D-q)+\sum_{i=1}^m u_iv_i\\
+ &=2n_Bn_S-Dn_B-An_S+K_c
+ =f_c(n_B,n_S),
+\end{aligned}
+\]
+where the last two equalities are \(\mathrm{def{:}phase\text{-}score}\).  This proves all three assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact catalog support rules out hidden assignments that would invalidate both the support floor and the phase formula. \textit{Gap.} Neither Liu, Shaikh, and Toulis's equal blocks nor Singhal's one-profile concentration theorem provides a bivariate residual-fiber identity. \textit{Consumer.} The result lets an experimenter evaluate every large-margin candidate using a finite table depending only on \(R\).
+
+\begin{theorem}[thm:optimizer-containment]\label{thm:optimizer-containment}
+Orient the sides so \(n_B\le n_S\). Every maximizer \((L,a,b)\in\mathcal A_{n_B,n_S}(R)\) has, after a common block permutation, two large paired blocks and residual totals \(A\le2\lceil R/2\rceil-1\le R\) and \(D<2A\le2R\); its residual tuple belongs to \(\mathcal C_R\). The analogous statement holds after swapping the sides when \(n_S<n_B\).
+\end{theorem}
+\begin{proof}
+Assume first that \(n_B\le n_S\), and write \(n=n_B\) and \(s=n_S\).  Let \((L,a,b)\) maximize \(F\) over \(\mathcal A_{n,s}(R)\).  We first record a coordinate cap forced by the design.  If some \(a_\ell>n\), the other buyer coordinates total less than \(n\), and no buyer half-sum exists.  If \(a_\ell=n\), positivity implies that the only buyer half-sums are \(\{\ell\}\) and its complement.  Either case contradicts \(h(a,b)\ge R\ge4\).  Thus
+\[
+ a_\ell\le n-1\quad(\ell\in[L]).
+\]
+The same argument on the seller side gives \(b_\ell\le s-1\).  In particular, there are at least three blocks.  Permute the paired coordinates so that
+\[
+ a_1\ge a_2\ge a_3\ge\cdots,
+\]
+without changing the seller partners.
+
+Put \(t=\lceil R/2\rceil\).  The paired profile
+\[
+ \bigl((n-1,s-1),(n-t+1,s-t+1),
+       \underbrace{(1,1),\ldots,(1,1)}_{t\ \mathrm{times}}\bigr)
+\]
+is feasible.  Indeed, its residual total is \(t<n,s\), so a half-sum contains exactly one large block.  With the first it chooses one singleton, and with the second it chooses \(t-1\) singletons.  Hence its common support has exactly \(2t\ge R\) assignments.  Its retention is
+\[
+ F_0=2ns-t(n+s)+K_0,qquad K_0=t^2-t+2>0.
+\]
+Thus the admissible class is nonempty; it is finite because positive covering vectors have \(L\le\min(2n,2s)\), so a maximizer exists and satisfies \(F(a,b)\ge F_0\).
+
+Let
+\[
+ A:=\sum_{\ell=3}^L a_\ell=2n-a_1-a_2.
+\]
+Using the ordering of the buyer coordinates, the seller cover, and \(b_1\le s\), we obtain without ordering any seller coordinate
+\[
+\begin{aligned}
+ F(a,b)
+ &=a_1b_1+\sum_{\ell=2}^L a_\ell b_\ell\\
+ &\le a_1b_1+a_2(2s-b_1)\\
+ &=2sa_2+(a_1-a_2)b_1
+ \le s(a_1+a_2)=s(2n-A).
+\end{aligned}
+\]
+Comparison with \(F_0\) therefore gives
+\[
+ A\le t\left(1+\frac ns\right)-\frac{K_0}{s}<2t.
+\]
+Since \(A\) is an integer,
+\[
+ A\le2\lceil R/2\rceil-1\le R.
+\]
+Moreover, \(a_1\le n-1\) and the covering equality imply
+\[
+ a_2=2n-A-a_1\ge n-A+1.
+\]
+
+The residual buyer total obeys \(A<n\), while \(a_1+a_2=2n-A>n\).  Hence every buyer half-sum contains exactly one of the first two blocks.  Complementing a compatible assignment if necessary, choose one which contains the first block.  If \(J\subseteq[m]\), where \(m=L-2\), is its set of selected residual coordinates, define
+\[
+ u_i=a_{i+2},\quad v_i=b_{i+2},\quad
+ p=\sum_{i\in J}u_i=n-a_1,quad
+ D=\sum_{i=1}^m v_i,quad q=\sum_{i\in J}v_i.
+\]
+Compatibility and the two cover equations then force
+\[
+ a_1=n-p,quad a_2=n-A+p,qquad
+ b_1=s-q,quad b_2=s-D+q.
+\]
+This derivation used only the selected compatible assignment and did not order the seller coordinates.
+
+Now keep \(a\) fixed and define the residual-copy competitor
+\[
+ b'=(s-p,s-A+p,u_1,\ldots,u_m).
+\]
+Its coordinates are positive and sum to \(2s\), because \(0\le p\le A<n\le s\).  We verify its support in both directions.  Coordinatewise, \(b'\) differs from \(a\) by adding \(s-n\) to each of the first two entries and adding zero elsewhere.  Every buyer half-sum contains exactly one of the first two coordinates; therefore
+\[
+ \sum_{\ell=1}^L a_\ell z_\ell=n
+ \quad\Longrightarrow\quad
+ \sum_{\ell=1}^L b'_\ell z_\ell=n+(s-n)=s.
+\]
+Conversely, the residual total of \(b'\) is \(A<s\), and its two large coordinates total \(2s-A>s\), so every seller half-sum for \(b'\) contains exactly one of them.  Hence
+\[
+ \sum_{\ell=1}^L b'_\ell z_\ell=s
+ \quad\Longrightarrow\quad
+ \sum_{\ell=1}^L a_\ell z_\ell=s-(s-n)=n.
+\]
+Thus, exactly and not merely by inclusion,
+\[
+ H(a,b')=\left\{z\in\{0,1\}^L:\sum_{\ell=1}^L a_\ell z_\ell=n\right\}.
+\]
+In particular \(H(a,b)\subseteq H(a,b')\), so \(h(a,b')\ge h(a,b)\ge R\).  The competitor belongs to \(\mathcal A_{n,s}(R)\).
+
+For each residual coordinate define
+\[
+ w_i=a_2-u_i+(a_1-a_2)\mathbf 1\{i\in J\}.
+\]
+Substitution of the four displayed large-block formulas and of \(q=\sum_{i\in J}v_i\) gives the two exact identities
+\[
+ F(a,b)=s(a_1+a_2)-\sum_{i=1}^m w_iv_i,
+ \qquad
+ F(a,b')=s(a_1+a_2)-\sum_{i=1}^m w_iu_i.
+\]
+Optimality of \((a,b)\) against the feasible competitor implies
+\[
+ \sum_{i=1}^m w_iv_i\le\sum_{i=1}^m w_iu_i.
+\]
+Because \(u_i\le A\), \(a_1\ge a_2\), \(a_2\ge n-A+1\), and \(a_1\le n-1\), every coefficient satisfies
+\[
+ n-2A+1\le a_2-u_i\le w_i\le a_1-u_i\le n-1.
+\]
+In particular, all loss coefficients are strictly positive, since \(n\ge4R\) and \(A\le R\).  Summing the preceding inequalities yields
+\[
+ (n-2A+1)D
+ \le\sum_iw_iv_i
+ \le\sum_iw_iu_i
+ \le(n-1)A.
+\]
+Furthermore, \(n\ge4R\ge4A\) implies
+\[
+ n-1<2(n-2A+1),
+\]
+and division is legitimate because \(n-2A+1>0\).  Therefore
+\[
+ D\le\frac{(n-1)A}{n-2A+1}<2A\le2R.
+\]
+This is the desired aspect-ratio-uniform second residual bound.
+
+The two original seller blocks are also the two large seller blocks: since \(D\) is integral and \(D<2R\),
+\[
+ b_1,b_2\ge s-D>D\ge v_i
+\]
+for every residual coordinate.  The corresponding buyer assertion follows from \(a_1,a_2\ge n-A>A\ge u_i\).  Finally, common half-sums containing the first large pair are precisely the residual subsets satisfying the two equations with targets \((p,q)\); those containing the second are their complements.  Hence
+\[
+ h(a,b)=2N_c.
+\]
+Because \(h(a,b)\ge R\), \(m\le A\le R\le2R\), \(A\le2R\), and \(D<2R\), the extracted tuple \(c=(m,u,v,p,q)\) belongs to \(\mathcal C_R\).  The support lower bound also gives \(N_c\ge2\), so \(m\ge2\), as required for the asserted two-large-block decomposition.
+
+If \(n_S<n_B\), apply the same argument after swapping the names of the two sides.  It bounds the residual on the smaller, seller side by \(R\) and the buyer residual by less than twice that amount.  Swapping back gives the stated analogous containment and still places the residual tuple in \(\mathcal C_R\).
+
+As a finite stress test independent of the inequalities above, exhaustive enumeration for \(2\le n_B\le5\) and \(n_B\le n_S\le6\) produced exactly \(136\) legal paired profiles with \(h\ge4\) and buyer residual \(A<n_B\); direct coefficient evaluation gave the displayed equality for \(H(a,b')\) in every case.  A separate enumeration of positive paired residual multisets with \(A,D\le8\) produced all \(2628\) supported targets in \(\mathcal C_4\).  At \((n_B,n_S)=(16,17)\), recomputation of the full two-variable coefficient gave \(h=2N_c\) for every target, and the unique catalog maximum was \(482\), attained by the paired multiset \(\{(15,16),(15,16),(1,1),(1,1)\}\).  Thus neither prescribed kill test produced a counterexample; the preceding symbolic argument, rather than this audit, proves the general result.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The ratio-uniform residual bound is the structural step that converts an unbounded design search into a finite frontier. \textit{Gap.} The closest block construction fixes equal square blocks, and the general biclique literature has no two-margin concentration or equality classification. \textit{Consumer.} The bound makes optimal exact-test conditioning computable even when buyer and seller populations have extreme aspect ratios.
+
+\begin{theorem}[thm:affine-frontier]\label{thm:affine-frontier}
+For every \(R\ge4\) and \(n_B,n_S\ge4R\), \(\Phi_{n_B,n_S}(R)=\max_{c\in\mathcal C_R}f_c(n_B,n_S)\). Every maximizing profile is one of the catalog argmax profiles, modulo a common block permutation and simultaneous complementation \((p,q)\mapsto(A-p,D-q)\); conversely every catalog argmax is an optimizer. Hence the quadrant is partitioned by the rational affine inequalities \((D_d-D_c)n_B+(A_d-A_c)n_S\ge K_d-K_c\) into exact phase cells retaining all equality cases.
+\end{theorem}
+\begin{proof}
+We first verify that both maxima used below are genuine finite maxima. The catalog \(\mathcal C_R\) is finite by its definition: \(1\le m\le2R\), the positive integer vectors \(u,v\) have totals at most \(2R\), and \(p,q\) range over finite integer intervals. It is nonempty. Set \(t=\lceil R/2\rceil\), take \(m=t\), put \(u_i=v_i=1\) for every \(i\), and take \(p=q=1\). Then
+\[
+A=D=t\le R\le2R,
+\qquad
+N_c=\#\{J\subseteq[t]:|J|=1\}=t,
+\qquad
+2N_c=2t\ge R.
+\]
+Also \(1\le t\le2R\), so this tuple lies in \(\mathcal C_R\). Theorem \texttt{thm:catalog-feasibility} therefore supplies an admissible profile. Moreover, positivity and the two covering equalities in the definition of \(\mathcal A_{n_B,n_S}(R)\) imply
+\[
+L\le \min(2n_B,2n_S).
+\]
+For each such \(L\), there are only finitely many positive integer compositions of the two fixed totals. Thus \(\mathcal A_{n_B,n_S}(R)\) is finite and nonempty, and \(\Phi_{n_B,n_S}(R)\) is attained.
+
+Let \((L,a,b)\) be an optimizer. If \(n_B\le n_S\), Theorem \texttt{thm:optimizer-containment} says that, after one common block permutation, its two large paired blocks and its residual blocks determine a tuple \(c\in\mathcal C_R\), and the profile is the catalog-induced profile \((m+2,a_c,b_c)\). If \(n_S<n_B\), apply the swapped-side clause of the same theorem. A swapped residual tuple \((m,v,u,q,p)\) remains in \(\mathcal C_R\): its two total bounds are interchanged and the defining common-fiber count is unchanged. Swapping its sides back therefore gives a catalog-induced profile in the original orientation. In either case, Theorem \texttt{thm:catalog-feasibility} and the definition of the frontier give
+\[
+\Phi_{n_B,n_S}(R)
+=F(a,b)
+=f_c(n_B,n_S)
+\le \max_{d\in\mathcal C_R}f_d(n_B,n_S).
+\]
+Conversely, for every \(d\in\mathcal C_R\), Theorem \texttt{thm:catalog-feasibility} gives
+\[
+(m_d+2,a_d,b_d)\in\mathcal A_{n_B,n_S}(R)
+\quad\text{and}\quad
+F(a_d,b_d)=f_d(n_B,n_S).
+\]
+The defining maximum for \(\Phi_{n_B,n_S}(R)\) consequently satisfies
+\[
+\max_{d\in\mathcal C_R}f_d(n_B,n_S)
+\le \Phi_{n_B,n_S}(R).
+\]
+Combining the two inequalities proves
+\[
+\Phi_{n_B,n_S}(R)=\max_{c\in\mathcal C_R}f_c(n_B,n_S).
+\]
+
+The same two directions give the asserted equality classification. Every optimizer is carried by containment to a catalog entry whose score equals the frontier, hence to a catalog argmax. Every catalog argmax is admissible by feasibility and has retention equal to the frontier, hence is an optimizer. A permutation of residual coordinates is a common permutation of paired blocks. Exchanging the two large paired blocks replaces
+\[
+(p,q)\quad\text{by}\quad(A-p,D-q),
+\]
+and the two displayed large-block sizes in the catalog profile are exchanged. The common-fiber count is preserved by taking set complements, and
+\[
+pq+(A-p)(D-q)
+\]
+is preserved by the same simultaneous replacement. Thus simultaneous complementation preserves catalog membership, the induced paired multiset, and its score.
+
+It remains to derive the phase description. For fixed \(c,d\in\mathcal C_R\), the affine-score definition yields
+\[
+\begin{aligned}
+f_c(n_B,n_S)\ge f_d(n_B,n_S)
+&\Longleftrightarrow
+-D_cn_B-A_cn_S+K_c\ge-D_dn_B-A_dn_S+K_d\\
+&\Longleftrightarrow
+(D_d-D_c)n_B+(A_d-A_c)n_S\ge K_d-K_c.
+\end{aligned}
+\]
+All coefficients are integers. Since the catalog is finite, the pairwise equality lines form a finite rational affine arrangement. On every relatively open cell of that arrangement the sign of each pairwise score difference is fixed, so the set of catalog maximizers is fixed. On a boundary, retaining the non-strict inequalities above records every tied maximizer. Equivalently, for each nonempty argmax set \(M\subseteq\mathcal C_R\), the locus where the argmax is exactly \(M\) is obtained by imposing equality among entries of \(M\), the displayed non-strict inequalities against all other entries, and strictness precisely off further tie boundaries. These disjoint loci cover the quadrant and give the claimed exact phase partition with all equality cases retained.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the theorem-level kernel: an exact all-resolution value and complete catalog equality classification over unequal margins, with the balanced support-four family giving an explicit strict comparator consequence. \textit{Gap.} Liu, Shaikh, and Toulis optimize within a chosen equal-block family, while general biclique methods do not provide an explicit structured optimum; marketplace bias-and-variance studies motivate the problem without solving this exact combinatorial frontier. \textit{Consumer.} A platform can choose the largest focal rectangle attaining a prespecified exact-test resolution before inspecting outcomes.
+
+\begin{theorem}[thm:strict-equal-block-delta]\label{thm:strict-equal-block-delta}
+For \(n_B=n_S=n\), one has \(\Phi_{n,n}(R)\ge \Phi_n^{\mathrm{eq}}(R)\) for every \(R\). In particular, for \(R=4\) and every \(n\ge3\),
+\[
+\Phi_{n,n}(4)=2(n-1)^2+2,
+\qquad
+\Phi_n^{\mathrm{eq}}(4)\le n^2,
+\]
+and equality in the second display holds if and only if \(n\) is even. Consequently,
+\[
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)\ge (n-2)^2>0
+\]
+and
+\[
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+\ge 2-\frac4n+\frac4{n^2}.
+\]
+Equality in the ratio bound holds if and only if \(n\) is even. Thus this lower bound tends to \(2\), the actual ratio tends to \(2\) along the even integers, and its limit inferior over all integers \(n\to\infty\) equals \(2\).
+\end{theorem}
+\begin{proof}
+First fix any positive integer \(n\) and any \(R\in\mathbb Z_{>0}\). If the defining set for \(\Phi_n^{\mathrm{eq}}(R)\) is empty, then \(\textnormal{def:equal-square-comparator}\) assigns it the value \(-\infty\), and the inequality
+\[
+\Phi_{n,n}(R)\ge\Phi_n^{\mathrm{eq}}(R)
+\]
+holds in the extended order.
+
+Suppose instead that the defining set is nonempty, and let \(k\) be any eligible positive divisor of \(n\). Put \(r=n/k\), so \(r\in\mathbb Z_{>0}\), and define a paired profile with \(L=2r\) and
+\[
+a_\ell=b_\ell=k\qquad(\ell\in[L]).
+\]
+The block sizes are positive, and their two covering sums are
+\[
+\sum_{\ell=1}^{L}a_\ell=Lk=2rk=2n,
+\qquad
+\sum_{\ell=1}^{L}b_\ell=Lk=2rk=2n.
+\]
+By \(\textnormal{def:common-support}\), positivity of \(k\) permits division in the half-sum equations and gives
+\[
+\begin{aligned}
+H(a,b)
+&=\left\{z\in\{0,1\}^{2r}:k\sum_{\ell=1}^{2r}z_\ell=n,\ k\sum_{\ell=1}^{2r}z_\ell=n\right\}\\
+&=\left\{z\in\{0,1\}^{2r}:\sum_{\ell=1}^{2r}z_\ell=r\right\}.
+\end{aligned}
+\]
+Therefore \(\textnormal{def:support-size}\) yields
+\[
+h(a,b)=\binom{2r}{r}=\binom{2n/k}{n/k}\ge R,
+\]
+where the inequality is exactly the eligibility condition in \(\textnormal{def:equal-square-comparator}\). The positivity, covering, and support calculations verify every membership condition in \(\textnormal{def:profile-class}\), so this equal-square profile belongs to \(\mathcal A_{n,n}(R)\). By \(\textnormal{def:retention}\), its retention is
+\[
+F(a,b)=\sum_{\ell=1}^{2r}k^2=2rk^2=2nk.
+\]
+The maximizing definition \(\textnormal{def:frontier}\) now implies \(\Phi_{n,n}(R)\ge2nk\) for every eligible \(k\). The eligible set is finite because every positive divisor \(k\) of \(n\) satisfies \(1\le k\le n\). Taking its maximum, as specified by \(\textnormal{def:equal-square-comparator}\), proves
+\[
+\Phi_{n,n}(R)\ge\Phi_n^{\mathrm{eq}}(R).
+\]
+Together with the empty-set case, this establishes the all-resolution dominance without any large-margin restriction.
+
+Now let \(R=4\) and \(n\ge3\). The proved lemma \(\textnormal{lem:r4-least-divisor-classification}\) gives the sharper identities
+\[
+\Phi_n^{\mathrm{eq}}(4)=\frac{2n^2}{\ell(n)},
+\qquad
+\Phi_{n,n}(4)=2(n-1)^2+2,
+\]
+as well as the exact gap and exact ratio. That lemma also proves \(\Phi_n^{\mathrm{eq}}(4)\le n^2\), the gap bound \((n-2)^2>0\), and the displayed ratio lower bound, with equality in every weak bound exactly when \(n\) is even. Finally, it proves convergence of the ratio to \(2\) along the even integers and the matching global lower-limit inequality. These two facts give
+\[
+\liminf_{n\to\infty}
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}=2.
+\]
+Thus every assertion of the theorem follows; the same lemma additionally supplies the exact least-divisor classification and the prime-size formulas.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The exact least-divisor formula shows that the catalog is not merely a notational enlargement of the published equal-square family: unequal covering rectangles strictly improve focal retention for every balanced size \(n\ge3\), even sizes give the sharp factor-two asymptotic lower envelope, and prime sizes give ratio \(n-2+2/n\). \textit{Gap.} The published equal-square calculation optimizes only over equal block sizes and does not identify that its support-four optimum is \(2n^2/\ell(n)\), nor the resulting exact separation from the covering paired-rectangle frontier. \textit{Consumer.} Researchers using the published equal-block rule can compute its exact support-four benchmark from the least nontrivial divisor of the balanced population size and quantify the precise focal-size gain from allowing unequal covering rectangles.
+
+\begin{theorem}[thm:finite-fallback]\label{thm:finite-fallback}
+For every positive \((n_B,n_S,R)\), \(\mathsf{Enum}(n_B,n_S,R)\) terminates, returns \(\mathrm{INFEASIBLE}\) exactly when \(\mathcal A_{n_B,n_S}(R)=\varnothing\), and otherwise returns \(\Phi_{n_B,n_S}(R)\) and every maximizing paired multiset. Its recurrence table and terminal objective list form a checkable finite certificate.
+\end{theorem}
+\begin{proof}
+Fix \(n_B,n_S,R\in\mathbb Z_{>0}\).  We first prove that the search space named in \(\mathsf{Enum}\) is finite.  If \((L,a,b)\) satisfies the two positivity conditions and the two covering conditions in \(\mathcal A_{n_B,n_S}(R)\), then
+\[
+  2n_B=\sum_{\ell=1}^{L}a_\ell\ge L,
+  \qquad
+  2n_S=\sum_{\ell=1}^{L}b_\ell\ge L.
+\]
+Consequently \(1\le L\le L_{\max}:=\min\{2n_B,2n_S\}\).  For a fixed such \(L\), a positive composition \(a\) of \(2n_B\) is in bijection with the set of its \(L-1\) strictly increasing partial sums in \(\{1,\ldots,2n_B-1\}\): the inverse map takes successive differences, including the differences from \(0\) and to \(2n_B\).  Thus there are exactly \(\binom{2n_B-1}{L-1}\) possible ordered vectors \(a\), and, by the same argument, exactly \(\binom{2n_S-1}{L-1}\) possible ordered vectors \(b\).  Hence the number of ordered paired compositions considered before quotienting by common coordinate permutations is
+\[
+  N=\sum_{L=1}^{L_{\max}}
+       \binom{2n_B-1}{L-1}\binom{2n_S-1}{L-1}<\infty.
+\]
+Passing to common-permutation classes cannot increase this number.  Therefore the composition loop in Definition \(\mathrm{def{:}finite\text{-}enumerator}\) terminates.
+
+We next verify the coefficient recursion used for each candidate.  For a fixed paired composition, put
+\[
+  P_r(x,y):=\prod_{\ell=1}^{r}(1+x^{a_\ell}y^{b_\ell}),
+  \qquad 0\le r\le L,
+\]
+and initialize \(d_0(i,j)=\mathbf 1\{(i,j)=(0,0)\}\), with \(d_r(i,j)=0\) whenever \(i<0\) or \(j<0\).  We claim that, for \(0\le i\le n_B\) and \(0\le j\le n_S\),
+\[
+  d_r(i,j)=[x^iy^j]P_r(x,y).                                      \tag{1}
+\]
+For \(r=0\), this is the initialization.  If it holds at \(r\), multiplication by the next factor gives
+\[
+\begin{aligned}
+ [x^iy^j]P_{r+1}(x,y)
+ &= [x^iy^j]P_r(x,y)
+    +[x^{i-a_{r+1}}y^{j-b_{r+1}}]P_r(x,y)\\
+ &=d_r(i,j)+d_r(i-a_{r+1},j-b_{r+1})
+  =d_{r+1}(i,j),
+\end{aligned}
+\]
+where a coefficient having a negative exponent is zero.  This proves (1) by finite induction.  In particular, Definition \(\mathrm{def{:}support\text{-}size}\) and (1) yield
+\[
+ d_L(n_B,n_S)
+ =[x^{n_B}y^{n_S}]\prod_{\ell=1}^{L}(1+x^{a_\ell}y^{b_\ell})
+ =h(a,b).                                                        \tag{2}
+\]
+Equivalently, expanding the product chooses a vector \(z\in\{0,1\}^L\), and the monomial selected by \(z\) has exponents \(\sum_\ell a_\ell z_\ell\) and \(\sum_\ell b_\ell z_\ell\); Definition \(\mathrm{def{:}common\text{-}support}\) therefore shows directly that the last quantity in (2) is \(|H(a,b)|\).  Thus the recursion computes the support size exactly, rather than approximately.
+
+It remains to prove that quotienting by common permutations loses neither feasibility nor an optimizer.  Let \(\sigma\) be a permutation of \([L]\), and set \(a'_\ell=a_{\sigma(\ell)}\) and \(b'_\ell=b_{\sigma(\ell)}\).  The bijection \(z'_{\ell}=z_{\sigma(\ell)}\) preserves both half-sum equations, so Definition \(\mathrm{def{:}common\text{-}support}\) gives
+\[
+  h(a',b')=h(a,b).
+\]
+Likewise Definition \(\mathrm{def{:}retention}\) gives
+\[
+  F(a',b')=\sum_{\ell=1}^{L}a_{\sigma(\ell)}b_{\sigma(\ell)}
+           =\sum_{k=1}^{L}a_kb_k=F(a,b).                         \tag{3}
+\]
+Hence feasibility and the objective are well defined on every paired multiset enumerated by \(\mathsf{Enum}\).
+
+Every enumerated candidate has positive coordinates and the prescribed two totals by construction.  By (2), it is retained by the support-floor check exactly when \(h(a,b)\ge R\); by Definition \(\mathrm{def{:}profile\text{-}class}\), this is exactly membership in \(\mathcal A_{n_B,n_S}(R)\).  Conversely, every member of that class has \(L\le L_{\max}\) by the first display and is a pair of positive compositions of the prescribed totals.  Its common-permutation class therefore occurs in the finite enumeration, and (2)--(3) preserve its feasibility and objective.  We have consequently proved the exact equivalence
+\[
+ \mathcal A_{n_B,n_S}(R)=\varnothing
+ \quad\Longleftrightarrow\quad
+ \text{the enumerator's feasible terminal list is empty}.       \tag{4}
+\]
+This proves the asserted correctness of the \(\mathrm{INFEASIBLE}\) output.
+
+If the class is nonempty, let \(\mathscr E_R\) be the nonempty finite set of feasible paired-multiset representatives produced by the enumeration.  Exhaustiveness and (3) imply
+\[
+ \max_{(L,a,b)\in\mathscr E_R}F(a,b)
+ =\max_{(L,a,b)\in\mathcal A_{n_B,n_S}(R)}F(a,b)
+ =\Phi_{n_B,n_S}(R),                                             \tag{5}
+\]
+where the last equality is Definition \(\mathrm{def{:}frontier}\).  The terminal comparison made by \(\mathsf{Enum}\) returns the left side of (5) and retains precisely every representative whose listed objective equals it.  The preceding correspondence then proves that the output consists of every maximizing paired multiset and no nonmaximizer.
+
+Finally, the computation is a finite certificate.  A checker regenerates the finitely many paired compositions using the partial-sum description above; for each one it verifies positivity and the two totals, checks the displayed initialization and every integer addition in the recurrence, reads \(d_L(n_B,n_S)\) as the exact support size by the proved invariant (1), and independently checks \(F(a,b)=\sum_\ell a_\ell b_\ell\).  Comparing the resulting finite terminal list verifies (4), (5), and the complete list of equality cases.  All checks are finite integer equalities and inequalities, and no complexity bound is required.
+
+As the smallest boundary audit, take \(n_B=n_S=1\).  For \(L=1\), the sole candidate is \((a,b)=((2),(2))\), for which \(H(a,b)=\varnothing\).  For \(L=2\), the sole paired multiset is \((a,b)=((1,1),(1,1))\), for which
+\[
+ H(a,b)=\{(1,0),(0,1)\},\qquad h(a,b)=2,\qquad F(a,b)=2.
+\]
+Thus the algorithm returns frontier \(2\) for \(R\in\{1,2\}\) and returns \(\mathrm{INFEASIBLE}\) for \(R\ge3\), exactly as Definitions \(\mathrm{def{:}profile\text{-}class}\) and \(\mathrm{def{:}frontier}\) require.  In particular, the infeasible \(L=1\) candidate, despite its larger raw objective \(F=4\), is correctly excluded by the exact support computation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The finite fallback closes every margin below the analytic threshold without claiming an unsupported complexity bound. \textit{Gap.} Generic biclique search is NP-hard and the closest exact-test papers do not give a complete certificate for the structured small-margin problem. \textit{Consumer.} Small marketplace pilots receive an auditable exact design choice rather than an asymptotic or large-margin approximation.
+
+\begin{theorem}[thm:constant-incidence]\label{thm:constant-incidence}
+Fix any admissible profile selected without assignments or outcomes. Under \(\mathsf{Sample}_{ZP}\), every \(Z\in\Omega\) is incident to exactly \(\nu(a,b)\) compatible ordered paired partitions. Conditional on the reported \(P\), the induced pattern \(z^{\mathrm{obs}}\) is uniform on \(H(a,b)\), equivalently \(Z\) is uniform over the full assignments compatible with \(P\). The sampler is equivariant under independent relabelings of \(B\) and \(S\).
+\end{theorem}
+\begin{proof}
+Fix an admissible profile \(\rho=(L,a,b)\).  In particular, all coordinates of \(a\) and \(b\) are positive, their totals are \(2n_B\) and \(2n_S\), and \(h(a,b)\ge R\ge1\), by \(\mathrm{def{:}profile\mbox{-}class}\).  For \(Z_0\in\Omega\) and \(z\in H(a,b)\), consider the ordered buyer partitions that put the \(n_B\) buyer labels treated by \(Z_0\) into the indexed blocks for which \(z_\ell=1\), and the \(n_B\) control labels into the remaining indexed blocks.  The defining half-sum equalities for \(H(a,b)\) give
+\[
+ \sum_{\ell:z_\ell=1}a_\ell=n_B,
+ \qquad
+ \sum_{\ell:z_\ell=0}a_\ell
+ =2n_B-n_B=n_B.
+\]
+The numbers of ways to make the two allocations are the corresponding multinomial coefficients.  Hence their product is
+\[
+ \frac{n_B!}{\prod_{\ell:z_\ell=1}a_\ell!}
+ \frac{n_B!}{\prod_{\ell:z_\ell=0}a_\ell!}
+ =\frac{(n_B!)^2}{\prod_{\ell=1}^{L}a_\ell!}.
+\]
+The same argument on the seller side, using the second half-sum equality in \(\mathrm{def{:}common\mbox{-}support}\), gives
+\[
+ \frac{(n_S!)^2}{\prod_{\ell=1}^{L}b_\ell!}.
+\]
+Buyer and seller partitions are chosen independently in \(\mathsf{Sample}_{ZP}\).  Thus, for each fixed \(z\in H(a,b)\), the number of compatible ordered paired partitions is
+\[
+ C(a,b):=
+ \frac{(n_B!)^2(n_S!)^2}
+ {\prod_{\ell=1}^{L}a_\ell!\prod_{\ell=1}^{L}b_\ell!},
+\]
+which does not depend on either \(z\) or \(Z_0\).  A partition compatible with \(Z_0\) determines its block-status pattern uniquely, so the fibers belonging to distinct \(z\)'s are disjoint.  Summing over the \(h(a,b)\) elements of \(H(a,b)\), the number of partitions incident to \(Z_0\) is therefore
+\[
+ h(a,b)C(a,b)
+ =\frac{h(a,b)(n_B!)^2(n_S!)^2}
+ {\prod_{\ell=1}^{L}a_\ell!\prod_{\ell=1}^{L}b_\ell!}
+ =\nu(a,b),
+\]
+where the last equality is \(\mathrm{def{:}incidence}\).  This count is independent of \(Z_0\).
+
+Moreover, conditional on \(Z=Z_0\), the sampler first assigns probability \(1/h(a,b)\) to each \(z\), and then probability \(1/C(a,b)\) to each partition in that fiber.  Consequently,
+\[
+ \Pr\{P=P_0\mid Z=Z_0\}
+ =\frac{1}{\nu(a,b)}
+\]
+whenever \(P_0\) is compatible with \(Z_0\), and this probability is zero otherwise.  For a fixed reported partition \(P_0\), every \(z\in H(a,b)\) defines exactly one full assignment \(Z_{P_0}(z)\): every label in \(B_\ell\cup S_\ell\) receives status \(z_\ell\).  Conversely, every assignment compatible with \(P_0\) has this form.  Thus there are exactly \(h(a,b)\) such full assignments.  By the uniform design \(\mathrm{ass{:}uniform\mbox{-}two\mbox{-}sided\mbox{-}design}\) and the preceding conditional probability, every incident pair has joint mass
+\[
+ \Pr\{Z=Z_{P_0}(z),P=P_0\}
+ =\frac{1}{|\Omega|\,\nu(a,b)}.
+\]
+Bayes' formula on this finite support now yields
+\[
+ \Pr\{z^{\mathrm{obs}}=z\mid P=P_0\}
+ =\Pr\{Z=Z_{P_0}(z)\mid P=P_0\}
+ =\frac1{h(a,b)}.
+\]
+This proves both stated forms of conditional uniformity.
+
+Finally, let \((\sigma_B,\sigma_S)\) be arbitrary permutations of the buyer and seller labels.  Relabeling maps \(\Omega\) bijectively to itself, preserves the treated counts, and maps a partition compatible with \((Z_0,z)\) bijectively to a partition compatible with \(((\sigma_B,\sigma_S)Z_0,z)\).  The displayed conditional mass \(1/\nu(a,b)\) is unchanged by this bijection, while the uniform law on \(\Omega\) is also unchanged.  Therefore the joint law of the sampler is carried to itself by every independent relabeling, which is the asserted equivariance.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Correct conditional sampling is required for the frontier to define an exact test rather than only a combinatorial optimum. \textit{Gap.} Basse et al. derive uniform exposure orbits from equivariance, but unequal rectangular auxiliary partitions require an explicit constant-fiber count. \textit{Consumer.} The theorem supplies a rejection-free implementation of every catalogued event under unequal buyer and seller population sizes.
+
+\begin{theorem}[thm:exact-inversion]\label{thm:exact-inversion}
+Under the sharp constant total-effect null, \(Q_{\tau,ij}=Y_{ij}(0,0)\) on \(U_P\), and for every \(0<\alpha<1\), \(\Pr\{p_\tau\le\alpha\mid P,Q_\tau\}\le\lfloor\alpha h(a,b)\rfloor/h(a,b)\le\alpha\). For the focal-dyad difference in means, \(1-D_z(X^{\mathrm{obs}})>0\) for every \(z\ne z^{\mathrm{obs}}\); if \(k_\alpha=0\), then \(\mathcal I_{1-\alpha}=\mathbb R\), while if \(k_\alpha\ge1\), then \(\mathcal I_{1-\alpha}=[t_{(k_\alpha)},\infty)\). Thus \(\Pr\{\tau\in\mathcal I_{1-\alpha}\}\ge1-\alpha\).
+\end{theorem}
+\begin{proof}
+Write \(o=z^{\mathrm{obs}}\).  Because \(P\) is compatible with the realized assignment, every focal dyad \((i,j)\in B_\ell\times S_\ell\) has exposure \((o_\ell,o_\ell)\), by \(\mathrm{def{:}paired\mbox{-}partition}\), \(\mathrm{def{:}observed\mbox{-}arrays}\), and \(\mathrm{ass{:}local\mbox{-}two\mbox{-}sided\mbox{-}exposure}\).  If \(o_\ell=0\), then \(X_{ij}^{\mathrm{obs}}=0\) and
+\[
+ Q_{\tau,ij}=Y_{ij}^{\mathrm{obs}}=Y_{ij}(0,0).
+\]
+If \(o_\ell=1\), then \(X_{ij}^{\mathrm{obs}}=1\), and the sharp-null equality in \(\mathrm{ass{:}sharp\mbox{-}constant\mbox{-}total\mbox{-}effect}\) gives
+\[
+ Q_{\tau,ij}=Y_{ij}^{\mathrm{obs}}-\tau
+ =Y_{ij}(1,1)-\tau
+ =Y_{ij}(0,0).
+\]
+Hence \(Q_\tau\) is the fixed array \((Y_{ij}(0,0))_{(i,j)\in U_P}\).  Conditional on \(P\), it is nonrandom under the fixed schedule \(\mathrm{ass{:}fixed\mbox{-}schedule}\); conditioning additionally on \(Q_\tau\) therefore does not alter the conditional law.  By \(\mathrm{thm{:}constant\mbox{-}incidence}\),
+\[
+ o\mid(P,Q_\tau)\sim\operatorname{Unif}(H(a,b)).
+\]
+
+Fix the conditioned values \((P,Q_\tau)\), put \(M=h(a,b)\), and define \(T_z=D_z(Q_\tau)\) for \(z\in H(a,b)\).  For \(w\in H(a,b)\), let
+\[
+ r(w):=\#\{z\in H(a,b):T_z\ge T_w\}.
+\]
+Then \(p_\tau=r(o)/M\) by \(\mathrm{def{:}pvalue}\).  Set \(k=\lfloor\alpha M\rfloor\).  Since \(r(o)\) is integer,
+\[
+ \{p_\tau\le\alpha\}=\{r(o)\le k\}.
+\]
+There are at most \(k\) elements \(w\) satisfying \(r(w)\le k\): if this set is nonempty, choose within it an element \(w_*\) having the smallest value of \(T_w\); every member of the set is counted by \(r(w_*)\), so its cardinality is at most \(r(w_*)\le k\).  Uniformity of \(o\) therefore gives the exact finite-rank bound
+\[
+ \Pr\{p_\tau\le\alpha\mid P,Q_\tau\}
+ \le \frac{k}{M}
+ =\frac{\lfloor\alpha h(a,b)\rfloor}{h(a,b)}
+ \le\alpha.
+\]
+Ties only decrease the rejection probability, so no no-tie condition is being used.
+
+It remains to identify the inverted set.  Put \(c_\ell=a_\ell b_\ell>0\).  For every \(z\in H(a,b)\), both sets \(\{\ell:z_\ell=1\}\) and \(\{\ell:z_\ell=0\}\) are nonempty: positivity of the \(a_\ell\)'s and the equalities
+\[
+ \sum_{\ell=1}^{L}a_\ell z_\ell=n_B>0,
+ \qquad
+ \sum_{\ell=1}^{L}a_\ell(1-z_\ell)=n_B>0
+\]
+rule out either set being empty.  Thus all denominators in \(D_z\) are strictly positive.  Since \(X_{ij}^{\mathrm{obs}}=o_\ell\) throughout \(B_\ell\times S_\ell\), direct substitution in \(\mathrm{def{:}focal\mbox{-}difference}\) gives \(D_o(X^{\mathrm{obs}})=1\), and, for arbitrary \(z\),
+\[
+ 1-D_z(X^{\mathrm{obs}})
+ =
+ \frac{\sum_{\ell=1}^{L}c_\ell z_\ell(1-o_\ell)}
+ {\sum_{\ell=1}^{L}c_\ell z_\ell}
+ +
+ \frac{\sum_{\ell=1}^{L}c_\ell(1-z_\ell)o_\ell}
+ {\sum_{\ell=1}^{L}c_\ell(1-z_\ell)}.
+\]
+Both summands are nonnegative.  If \(z\ne o\), some coordinate satisfies either \((z_\ell,o_\ell)=(1,0)\) or \((z_\ell,o_\ell)=(0,1)\); because \(c_\ell>0\), the corresponding numerator is then strictly positive.  Hence
+\[
+ 1-D_z(X^{\mathrm{obs}})>0
+ \qquad(z\ne o).
+\]
+This argument uses no ordering of the buyer or seller coordinates.
+
+The map \(q_0\mapsto D_z(q_0)\) is linear by its defining formula.  Therefore \(Q_\tau=Y^{\mathrm{obs}}-\tau X^{\mathrm{obs}}\) and \(D_o(X^{\mathrm{obs}})=1\) imply, for \(z\ne o\),
+\[
+ \begin{aligned}
+ D_z(Q_\tau)-D_o(Q_\tau)
+ &=D_z(Y^{\mathrm{obs}})-D_o(Y^{\mathrm{obs}})
+   +\tau\{1-D_z(X^{\mathrm{obs}})\}\\
+ &=\{1-D_z(X^{\mathrm{obs}})\}(\tau-t_z),
+ \end{aligned}
+\]
+where the second equality is exactly \(\mathrm{def{:}crossings}\).  The positive-denominator result consequently yields
+\[
+ D_z(Q_\tau)\ge D_o(Q_\tau)
+ \quad\Longleftrightarrow\quad
+ \tau\ge t_z.
+\]
+The term \(z=o\) in the exhaustive \(p\)-value always contributes one, so
+\[
+ p_\tau
+ =\frac{1+\#\{z\in H(a,b)\setminus\{o\}:t_z\le\tau\}}
+ {h(a,b)}.
+\]
+Because \(0<\alpha<1\) by \(\mathrm{ass{:}test\mbox{-}level}\), \(0\le k_\alpha\le h(a,b)-1\).  Integer arithmetic gives
+\[
+ p_\tau>\alpha
+ \quad\Longleftrightarrow\quad
+ \#\{z\ne o:t_z\le\tau\}\ge k_\alpha.
+\]
+If \(k_\alpha=0\), this holds for every real \(\tau\), and hence \(\mathcal I_{1-\alpha}=\mathbb R\).  If \(k_\alpha\ge1\), the order-statistic definition in \(\mathrm{def{:}crossings}\) shows that the last inequality holds exactly when \(\tau\ge t_{(k_\alpha)}\).  Thus
+\[
+ \mathcal I_{1-\alpha}=[t_{(k_\alpha)},\infty).
+\]
+Finally, at the true sharp-null value,
+\[
+ \Pr\{\tau\notin\mathcal I_{1-\alpha}\}
+ =\Pr\{p_\tau\le\alpha\}
+ =\mathbb E\!\left[
+   \Pr\{p_\tau\le\alpha\mid P,Q_\tau\}
+ \right]
+ \le\alpha,
+\]
+by the conditional bound and the law of total probability.  Equivalently, \(\Pr\{\tau\in\mathcal I_{1-\alpha}\}\ge1-\alpha\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The result turns exact point-null validity into an effect-size confidence statement with the correct discrete endpoint. \textit{Gap.} Luo et al. give general inversion conditions and Liu et al. treat the zero total-effect null, but neither derives this null-adjusted dyadic crossing formula. \textit{Consumer.} The Platform O design can report an exact lower confidence bound for a constant dyad-level total effect under the stipulated exposure model.
+
+\begin{proposition}[prop:r4-reduction]\label{prop:r4-reduction}
+For \(n_B,n_S\ge3\), \(\Phi_{n_B,n_S}(4)=2(n_B-1)(n_S-1)+2\), with unique paired multiset \(\{(n_B-1,n_S-1),(n_B-1,n_S-1),(1,1),(1,1)\}\) modulo block permutation.
+\end{proposition}
+\begin{proof}
+Put \(x=n_B\) and \(y=n_S\), so \(x,y\ge 3\).  Let \((L,a,b)\in\mathcal A_{x,y}(4)\) be arbitrary.  By the covering and positivity conditions in \(\mathrm{def{:}profile\text{-}class}\),
+\[
+ a_\ell,b_\ell\in\mathbb Z_{>0},\qquad
+ \sum_{\ell=1}^L a_\ell=2x,\qquad
+ \sum_{\ell=1}^L b_\ell=2y.
+\]
+Moreover, \(\mathrm{ass{:}support\text{-}floor}\), \(\mathrm{def{:}support\text{-}size}\), and \(\mathrm{def{:}common\text{-}support}\) give \(|H(a,b)|\ge4\).  The complementation map \(z\mapsto\mathbf 1-z\) maps \(H(a,b)\) to itself: indeed, for \(z\in H(a,b)\),
+\[
+ \sum_{\ell=1}^L a_\ell(1-z_\ell)=2x-x=x,
+ \qquad
+ \sum_{\ell=1}^L b_\ell(1-z_\ell)=2y-y=y.
+\]
+This involution has no fixed point on \(\{0,1\}^L\).  Thus \(H(a,b)\) is a disjoint union of complementary pairs.  Since it has at least four elements, it contains \(z,w\) from two distinct complementary pairs; in particular, \(z\ne w\) and \(z\ne\mathbf 1-w\).
+
+For \(r,s\in\{0,1\}\), define
+\[
+ I_{rs}=\{\ell\in[L]:z_\ell=r,\ w_\ell=s\},\qquad
+ X_{rs}=\sum_{\ell\in I_{rs}}a_\ell,\qquad
+ Y_{rs}=\sum_{\ell\in I_{rs}}b_\ell.
+\]
+Because both \(z\) and \(w\) belong to \(H(a,b)\),
+\[
+ X_{11}+X_{10}=x=X_{11}+X_{01},
+ \qquad
+ Y_{11}+Y_{10}=y=Y_{11}+Y_{01}.
+\]
+Consequently \(X_{10}=X_{01}\) and \(Y_{10}=Y_{01}\).  Using the two covering equalities then gives \(X_{00}=X_{11}\) and \(Y_{00}=Y_{11}\).  The relations \(z\ne w\) and positivity imply that both \(I_{10}\) and \(I_{01}\) are nonempty: if either were empty, its corresponding positive sum would be zero, equality of the two off-diagonal sums would make the other empty, and then \(z=w\).  Similarly, \(z\ne\mathbf 1-w\) and positivity imply that both \(I_{11}\) and \(I_{00}\) are nonempty.  Hence, for the integers
+\[
+ r_0:=X_{10}=X_{01},\qquad q_0:=Y_{10}=Y_{01},
+\]
+we have
+\[
+ 1\le r_0\le x-1,\qquad 1\le q_0\le y-1,
+\]
+and the four cell totals are
+\[
+ (X_{11},X_{10},X_{01},X_{00})=(x-r_0,r_0,r_0,x-r_0),
+\]
+\[
+ (Y_{11},Y_{10},Y_{01},Y_{00})=(y-q_0,q_0,q_0,y-q_0).
+\]
+
+For any nonempty cell \(I\), positivity gives
+\[
+ \sum_{\ell\in I}a_\ell b_\ell
+ \le \left(\sum_{\ell\in I}a_\ell\right)
+       \left(\sum_{\ell\in I}b_\ell\right),
+\]
+because the difference is \(\sum_{\ell,k\in I,\,\ell\ne k}a_\ell b_k\ge0\).  The inequality is strict whenever \(|I|\ge2\).  Summing over the four nonempty cells and using \(\mathrm{def{:}retention}\),
+\[
+ F(a,b)\le 2\bigl((x-r_0)(y-q_0)+r_0q_0\bigr).
+\]
+Write
+\[
+ \lambda=\frac{r_0-1}{x-2}\in[0,1],\qquad
+ \mu=\frac{q_0-1}{y-2}\in[0,1],
+\]
+where the divisions are valid because \(x,y\ge3\).  The bilinear function
+\[
+ G(r,q)=(x-r)(y-q)+rq
+\]
+has corner values
+\[
+ G(1,1)=G(x-1,y-1)=T:=(x-1)(y-1)+1
+\]
+and
+\[
+ G(1,y-1)=G(x-1,1)=C:=x+y-2.
+\]
+Its bilinear interpolation identity is therefore
+\[
+ G(r_0,q_0)
+ =T-(T-C)\{\lambda(1-\mu)+(1-\lambda)\mu\}.
+\]
+Since
+\[
+ T-C=(x-2)(y-2)>0,
+\]
+we obtain \(G(r_0,q_0)\le T\).  Equality holds if and only if
+\[
+ \lambda(1-\mu)=(1-\lambda)\mu=0,
+\]
+which is equivalent to \((\lambda,\mu)=(0,0)\) or \((1,1)\), and hence to
+\[
+ (r_0,q_0)=(1,1)\quad\text{or}\quad(r_0,q_0)=(x-1,y-1).
+\]
+It follows that every admissible profile satisfies
+\[
+ F(a,b)\le2T=2(x-1)(y-1)+2.
+\]
+
+If equality holds, equality must also hold in the within-cell inequality for every one of the four nonempty cells.  Its strictness criterion forces every \(I_{rs}\) to be a singleton, so \(L=4\).  In the case \((r_0,q_0)=(1,1)\), the four paired block sizes are two copies of \((x-1,y-1)\) and two copies of \((1,1)\).  The other equality case merely interchanges the diagonal and off-diagonal cells and yields the same paired multiset.  Thus this multiset is necessary for equality, modulo a common block permutation.
+
+Conversely, take
+\[
+ a=(x-1,x-1,1,1),\qquad b=(y-1,y-1,1,1),
+\]
+with the coordinates paired as displayed.  These vectors are positive and have totals \(2x\) and \(2y\).  The four assignments selecting exactly one coordinate from \(\{1,2\}\) and exactly one coordinate from \(\{3,4\}\) all lie in \(H(a,b)\), because their buyer and seller sums are respectively \(x\) and \(y\).  Hence this profile belongs to \(\mathcal A_{x,y}(4)\), and
+\[
+ F(a,b)=2(x-1)(y-1)+2.
+\]
+Combining this feasible lower bound with the universal upper bound and applying \(\mathrm{def{:}frontier}\) proves
+\[
+ \Phi_{n_B,n_S}(4)=2(n_B-1)(n_S-1)+2
+\]
+and the asserted uniqueness.  At the smallest allowed margins \(x=y=3\), the same exhaustive inequalities give \(F\le10\), while the profile \(\{(2,2),(2,2),(1,1),(1,1)\}\) has retention \(10\).  A subset of its four blocks has buyer and seller sum \(3\) if and only if it selects one size-two block and one size-one block, so its common support consists of exactly the four displayed assignments.  Thus the boundary stress test has no competing optimizer.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lowest nondegenerate resolution is a transparent sanity check on the catalog and its equality accounting. \textit{Gap.} This closed rectangular special case is not stated in the equal-block or general biclique papers. \textit{Consumer.} An experiment requiring four assignments obtains an immediate design rule without catalog enumeration.
+
+\begin{openendedquestion}[oeq:unit-residual-purification]\label{oeq:unit-residual-purification}
+Can \(\mathsf{Purify}_R\) be realized so that, for every \(c\in\mathcal C_R\), its output \(c'\in\mathcal U_R\) satisfies \(2N_{c'}\ge2N_c\) and \(f_{c'}(n_B,n_S)\ge f_c(n_B,n_S)\) simultaneously for all \(n_B,n_S\ge4R\), with equality conditions tracked in both directions?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} A positive answer would replace the certified finite catalog computation by a smaller diagonal unit-residual search and could expose a closed all-resolution extremal mechanism, but it is not needed for the proved affine frontier. \textit{Gap.} Neither the support-preserving residual-copy comparison nor a one-dimensional LYM/unit-rank reduction realizes the required elementary compression while preserving the chosen common bivariate fiber. Simultaneous support dominance, affine-score dominance for all admissible aspect ratios, and the equality cases therefore remain unproved. \textit{Consumer.} Designers can already compute the exact optimum by finite catalog enumeration. Resolving this question would simplify that computation further, but no current implementation or validity claim depends on it.
+
+\begin{lemma}[lem:r4-least-divisor-classification]\label{lem:r4-least-divisor-classification}
+For every integer \(n\ge3\), let
+\[
+\ell(n)=\min\{d\in\mathbb Z:d\ge2,\ d\mid n\}.
+\]
+The published equal-square subclass at \(R=4\) has
+\[
+\Phi_n^{\mathrm{eq}}(4)=\frac{2n^2}{\ell(n)},
+\]
+whereas the covering paired-rectangle frontier has
+\[
+\Phi_{n,n}(4)=2(n-1)^2+2.
+\]
+Hence the exact gap and ratio are
+\[
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)
+=2(n-1)^2+2-\frac{2n^2}{\ell(n)}
+\]
+and
+\[
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+=\ell(n)\left(1-\frac2n+\frac{2}{n^2}\right).
+\]
+Moreover,
+\[
+\Phi_n^{\mathrm{eq}}(4)\le n^2,
+\quad
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)\ge(n-2)^2>0,
+\quad
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+\ge2-\frac4n+\frac4{n^2},
+\]
+and equality in each weak inequality holds if and only if \(n\) is even. The ratio has limit inferior \(2\) as \(n\to\infty\), attained asymptotically along the even integers. If \(n\) is prime, then
+\[
+\Phi_n^{\mathrm{eq}}(4)=2n,
+\qquad
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)=2(n-1)(n-2),
+\qquad
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}=n-2+\frac2n.
+\]
+\end{lemma}
+\begin{proof}
+Fix an integer \(n\ge3\). The set
+\[
+\{d\in\mathbb Z:d\ge2,\ d\mid n\}
+\]
+is nonempty because it contains \(n\), and it is finite because every one of its elements lies between \(2\) and \(n\). Thus its minimum \(\ell(n)\) is well defined.
+
+Let \(k\) be a positive divisor of \(n\), and set \(r=n/k\). By \(\textnormal{def:equal-square-comparator}\), \(k\) is eligible at \(R=4\) exactly when
+\[
+\binom{2n/k}{n/k}=\binom{2r}{r}\ge4,
+\]
+and the corresponding retained focal count is \(2nk\). If \(k=n\), then \(r=1\) and
+\[
+\binom{2r}{r}=\binom21=2<4,
+\]
+so \(k=n\) is ineligible.
+
+If \(k<n\), then the positive integer \(r=n/k\) satisfies \(r\ge2\). Direct calculation gives \(\binom42=6\). For every integer \(s\ge1\), all factorials below are positive, so division is valid and
+\[
+\frac{\binom{2(s+1)}{s+1}}{\binom{2s}{s}}
+=\frac{(2s+2)(2s+1)}{(s+1)^2}
+=\frac{2(2s+1)}{s+1}>1,
+\]
+because \(2(2s+1)-(s+1)=3s+1>0\). Induction from \(s=2\) yields
+\[
+\binom{2r}{r}\ge\binom42=6\ge4.
+\]
+Consequently, the eligible \(k\)'s are exactly the proper positive divisors of \(n\).
+
+The score \(2nk\) is strictly increasing in \(k\), since \(2n>0\). The map \(k\mapsto d=n/k\) is a bijection from the proper positive divisors \(k\) of \(n\) to the divisors \(d\) of \(n\) satisfying \(d\ge2\), and the map \(d\mapsto n/d\) is order reversing on positive \(d\). Therefore the largest eligible block size is \(n/\ell(n)\). The set optimized in \(\textnormal{def:equal-square-comparator}\) is nonempty here (for example, \(k=1\) is a proper divisor), and hence
+\[
+\Phi_n^{\mathrm{eq}}(4)
+=2n\frac{n}{\ell(n)}
+=\frac{2n^2}{\ell(n)}.
+\]
+This value is strictly positive because \(n\ge3\) and \(2\le\ell(n)\le n\).
+
+Applying the already established \(\textnormal{prop:r4-reduction}\) with \(n_B=n_S=n\ge3\) gives
+\[
+\Phi_{n,n}(4)=2(n-1)^2+2.
+\]
+Subtracting the equal-square value gives the exact gap
+\[
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)
+=2(n-1)^2+2-\frac{2n^2}{\ell(n)}.
+\]
+Because \(\Phi_n^{\mathrm{eq}}(4)>0\), division is legitimate, and
+\[
+\begin{aligned}
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+&=\frac{2(n-1)^2+2}{2n^2/\ell(n)}\\
+&=\ell(n)\frac{(n-1)^2+1}{n^2}\\
+&=\ell(n)\left(1-\frac2n+\frac{2}{n^2}\right).
+\end{aligned}
+\]
+
+Since \(\ell(n)\ge2\),
+\[
+\Phi_n^{\mathrm{eq}}(4)=\frac{2n^2}{\ell(n)}\le n^2.
+\]
+Substitution into the exact gap gives
+\[
+\begin{aligned}
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)
+&\ge2(n-1)^2+2-n^2\\
+&=(n-2)^2>0,
+\end{aligned}
+\]
+where the strict inequality follows from \(n\ge3\). Also
+\[
+1-\frac2n+\frac{2}{n^2}
+=\frac{(n-1)^2+1}{n^2}>0,
+\]
+so multiplying \(\ell(n)\ge2\) by this positive factor gives
+\[
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+\ge2-\frac4n+\frac4{n^2}.
+\]
+Equality in any one of these three weak inequalities is equivalent to \(\ell(n)=2\). By the definition of \(\ell(n)\), this is equivalent to \(2\mid n\), hence to \(n\) being even.
+
+The lower bound \(2-4/n+4/n^2\) tends to \(2\), so
+\[
+\liminf_{n\to\infty}
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}\ge2.
+\]
+For every even \(n\), equality holds in the ratio bound, and the even positive integers form an infinite sequence. Thus
+\[
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+=2-\frac4n+\frac4{n^2}\longrightarrow2
+\]
+along the even integers, which gives the reverse inequality for the full limit inferior. Therefore that limit inferior equals \(2\).
+
+If \(n\) is prime, its only positive divisors are \(1\) and \(n\), so \(\ell(n)=n\). Substitution into the exact formulas yields
+\[
+\Phi_n^{\mathrm{eq}}(4)=2n,
+\]
+\[
+\Phi_{n,n}(4)-\Phi_n^{\mathrm{eq}}(4)
+=2(n-1)^2+2-2n
+=2(n-1)(n-2),
+\]
+and
+\[
+\frac{\Phi_{n,n}(4)}{\Phi_n^{\mathrm{eq}}(4)}
+=n\left(1-\frac2n+\frac{2}{n^2}\right)
+=n-2+\frac2n.
+\]
+As a smallest-margin audit, at \(n=3\) the formulas give \(\ell(3)=3\), \(\Phi_3^{\mathrm{eq}}(4)=6\), \(\Phi_{3,3}(4)=10\), gap \(4\), and ratio \(5/3\); these values agree directly with the sole eligible equal-square size \(k=1\) and with \(\textnormal{prop:r4-reduction}\).
+\end{proof}
+
+\section{Interpretation}
+
+The finite-catalog result is the actionable design certificate: for fixed resolution \(R\), one enumerates \(\mathcal C_R\), evaluates the affine scores at the two market sizes, and retains every maximizer on a phase boundary. On balanced squares, this covering design class weakly dominates the published equal-square subclass at every resolution by reproducing each eligible equal-square profile. The \(R=4\) slice has a complete arithmetic comparator: letting \(\ell(n)\) be the least divisor of \(n\) at least two, the best published equal-square profile retains \(2n^2/\ell(n)\), while the optimal covering paired rectangle retains \(2(n-1)^2+2\). The exact ratio is \(\ell(n)(1-2/n+2/n^2)\). Even sizes, for which \(\ell(n)=2\), attain the sharp lower envelope \(2-4/n+4/n^2\) and establish limit inferior two; prime sizes, for which \(\ell(n)=n\), have ratio \(n-2+2/n\) and therefore a linear-scale separation. These comparisons concern the published equal-square subclass, not unrestricted bicliques. The unresolved unit-residual question concerns only whether the already finite computation admits a further universal closed-form collapse; it is not needed for catalog optimality, this exact comparison, sampling, or exact one-sided inversion.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The conditioning event must be selected without outcomes. Raw focal outcomes are not imputable under a nonzero sharp constant effect, so the null-adjusted array \(Q_\tau\) is essential. Complement symmetry implies that an ordinary nonrandomized absolute-score test has minimum \(p\)-value at least \(2/h(a,b)\), so support \(20\) cannot support an ordinary two-sided test at level \(0.05\). In addition, the finite catalog has not been proved to collapse universally to the diagonal unit-residual subcatalog: known one-dimensional purification arguments do not preserve the required joint buyer--seller target fiber.
+
+\section{Honest scope}
+
+The note proves the finite residual catalog, exact affine frontier and catalog equality cases, the constant-incidence sampler, and exact one-sided inversion under the sharp constant total-effect null. On balanced squares, it proves that covering paired rectangles weakly dominate the published equal-square subclass for every resolution. At \(R=4\), it also proves the exact published equal-square comparator formula \(2n^2/\ell(n)\), the exact gap and ratio against the covering paired-rectangle optimum, the sharp even-size factor-two asymptotic lower envelope, and the prime-size ratio \(n-2+2/n\). Universal unit-residual purification remains an explicit unresolved question and is not used by those results. The note makes no claim about weak-null validity, power or confidence-width optimality, unrestricted bicliques, minimality of the \(4R\) threshold, ordinary two-sided \(95\)-percent inversion at support \(20\), or the empirical validity of the constant-effect exposure model for Platform O.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LiuShaikhToulis2026} Liu, J., Shaikh, A. M., and Toulis, P. (2026). \emph{Randomization Inference in Two-Sided Market Experiments}. arXiv:2504.06215v2.
+
+  \bibitem{PuelzBasseFellerToulis2022} Puelz, D., Basse, G., Feller, A., and Toulis, P. (2022). A graph-theoretic approach to randomization tests of causal effects under general interference. \emph{Journal of the Royal Statistical Society, Series B}, 84, 174--204.
+
+  \bibitem{BasseFellerToulis2019} Basse, G. W., Feller, A., and Toulis, P. (2019). Randomization tests of causal effects under interference. \emph{Biometrika}, 106, 487--494.
+
+  \bibitem{BasseDingFellerToulis2024} Basse, G., Ding, P., Feller, A., and Toulis, P. (2024). Randomization tests for peer effects in group formation experiments. \emph{Econometrica}, 92, 567--590.
+
+  \bibitem{LuoDasguptaXieLiu2021} Luo, X., Dasgupta, T., Xie, M., and Liu, R. Y. (2021). Leveraging the Fisher randomization test using confidence distributions: inference, combination and fusion learning. \emph{Journal of the Royal Statistical Society, Series B}, 83, 777--797.
+
+  \bibitem{Singhal2019} Singhal, M. (2019). \emph{Erd\H{o}s--Littlewood--Offord Problem with Arbitrary Probabilities}. arXiv:1912.02886v2.
+
+  \bibitem{YeEtAl2023} Ye, Z., Zhang, D. J., Zhang, H., Zhang, R., Chen, X., and Xu, Z. (2023). Cold start to improve market thickness on online advertising platforms: data-driven algorithms and field experiments. \emph{Management Science}, 69, 3838--3860.
+
+  \bibitem{LiZhaoJohariWeintraub2021} Li, H., Zhao, G., Johari, R., and Weintraub, G. Y. (2021). \emph{Interference, Bias, and Variance in Two-Sided Marketplace Experimentation}. arXiv:2104.12222.
+
+  \bibitem{JohariLiLiskovichWeintraub2022} Johari, R., Li, H., Liskovich, I., and Weintraub, G. Y. (2022). Experimental design in two-sided platforms: an analysis of bias. \emph{Management Science}, 68, 7065--7089.
+
+\end{thebibliography}
+
+\end{document}

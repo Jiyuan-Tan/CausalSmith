@@ -19,16 +19,19 @@ into a `TwoPointWitness` and discharges the χ² indistinguishability, yielding 
   the coefficient `Γ/K`), so `χ² ≤ 1` whenever `Γ ≤ 1` and `2n²(Γ/2)² ≤ K·log 2`.
 
 The capstone `minimax_lower_bound_gen` shows every measurable estimator
-misses the true ATE by `s = g₁β(α+β)/(2(g₁²−β²)) ≍ √(εg·εm)` with probability `≥ 1/4`
-somewhere in the class — the doubly-robust product rate is unbeatable for any constant
-bounded-away center.  At `m₀ = g₁ = 1/2` this recovers `minimax_lower_bound`.
+misses the true ATE by the displayed perturbation-dependent separation
+`s = g₁β(α+β)/(2(g₁²−β²))` with probability at least `1/4` somewhere in the
+class. At `m₀ = g₁ = 1/2` this recovers `minimax_lower_bound`. The theorem's
+one-sided budget hypotheses do not themselves compare this separation from below
+with `√(εg·εm)`.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Membership
-import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.ChiSqOverlap
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
-import Causalean.Estimation.MinimaxATE.Reduction.Witness
-import Causalean.Stat.Minimax.Mixture
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.Membership
+public import Causalean.Estimation.MinimaxATE.ConstCenterGeneral.ChiSqOverlap
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
+public import Causalean.Estimation.MinimaxATE.Reduction.Witness
+public import Causalean.Stat.Minimax.Mixture
 
 /-! # General-Center Lower Bound
 
@@ -41,8 +44,10 @@ The main calculations are `one_add_chiSqDiv_QtrueG_QfalseG`, which expresses the
 second moment through the general-center overlap coefficient, `chiSqDiv_QtrueG_QfalseG_le_one`,
 which applies the Ingster bound under the `Γ` sample-size regime, and
 `tvDist_QfalseG_QtrueG_le_half`, which converts chi-squared control to total variation. The
-capstone `minimax_lower_bound_gen` shows that every measurable estimator misses by the
-general-center product-rate scale somewhere in the structure-agnostic nuisance class. -/
+capstone `minimax_lower_bound_gen` gives a `1/4` miss-probability bound at the construction's
+displayed general-center separation, which may be zero. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -51,12 +56,6 @@ open Causalean.Stat
 open scoped ENNReal BigOperators
 
 namespace GenConstr
-
-/-- For every [positive number $K$ of paired cells](hyp:K), [the paired-cell covariate space](goal) contains [the first cell paired with the true binary position](step:1).
-
-The paired-cell covariate is nonempty whenever $K \ne 0$. -/
-instance instNonemptyFinBoolProd {K : ℕ} [NeZero K] : Nonempty (Fin K × Bool) :=
-  ⟨(⟨0, Nat.pos_of_ne_zero (NeZero.ne K)⟩, true)⟩
 
 /-- The per-cell overlap coefficient is nonnegative. -/
 theorem Γ_nonneg (P : GenConstr) : 0 ≤ P.Γ := by

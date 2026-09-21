@@ -1,12 +1,15 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCoordinateEvidence
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinPrimitiveCertificates
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCoordinateEvidence
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinPrimitiveCertificates
+
+@[expose] public section
 
 set_option linter.style.longLine false
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
 open scoped BigOperators
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 open Causalean.Mathlib.Probability.CertifiedFiniteMarkovExpectation
 
 set_option maxRecDepth 1000000 in

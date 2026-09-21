@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.Core
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.Core
 
 /-!
 # Base Localized Events for Primal NPIV
@@ -19,6 +20,8 @@ along an IID sample.  The class-specific event files for `H`, `F`, `H · F`, and
 interpretation fields.
 -/
 
+public section
+
 namespace Causalean
 namespace Estimation
 namespace NPIV
@@ -27,6 +30,13 @@ namespace Primal
 open MeasureTheory Causalean.Stat Causalean.Stat.Concentration
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
+
+/-- Given an [envelope bound](hyp:b), [localization radius](hyp:r), [critical
+radius](hyp:crit), [log-confidence budget](hyp:x), and [sample size](hyp:n), the
+[NPIV fixed-radius Bousquet slack](goal) is the variance-sensitive square-root
+term plus its linear correction. -/
+@[expose] noncomputable def npivBousquetSlack (b r crit x n : ℝ) : ℝ :=
+  2 * Real.sqrt ((r ^ 2 + 8 * b * r * crit) * x / n) + 8 * b * x / n
 
 /-! ## Per-class Ω-side localized deviation helpers
 
@@ -63,12 +73,12 @@ lemma integral_comp_law_W
 [the pushforward of the ambient measure under the observed-variable map equals the stated
 observation law $P_W$](hyp:h_law_W) and [the sample size n is positive](hyp:hn). Fix a
 confidence parameter ζ with [$0 < ζ ≤ 1$](hyp:hζ_pos,hζ_le), a localized rate $δ_n$ with
-[$δ_n > 0$](hyp:hδn_pos), and a radius `Rmax` with [`δ_n ≤ Rmax`](hyp:hRmax_lb). If
-[for every dyadic level K with `Rmax ≤ δ_n · 2 ^ K`, the corresponding complexity term stays
+[$δ_n > 0$](hyp:hδn_pos), and a radius `Rmax`. If [there is a dyadic level K with
+`Rmax ≤ δ_n · 2 ^ K` whose corresponding complexity term stays
 below `δ_n ^ 2`](hyp:hslack), then [there is an event of probability at least `1 - ζ` on
 which, for every index in the regime bundle whose function norm is at most `Rmax`, the
 empirical average of that function over the first n sample draws deviates from its
-population mean by at most `8 * δ_n * norm + 5 * δ_n ^ 2`](goal).
+population mean by at most `10 * δ_n * norm + 5 * δ_n ^ 2`](goal).
 
 This is the NPIV-facing wrapper around
 `localized_uniform_deviation_sharp`: it transports the product-space event
@@ -86,27 +96,27 @@ lemma localized_omega_event_sharp_for_bundle
     (hn : 0 < n)
     {ζ : ℝ} (hζ_pos : 0 < ζ) (hζ_le : ζ ≤ 1)
     (hδn_pos : 0 < δ_n)
-    (hRmax_lb : δ_n ≤ Rmax)
-    (hslack : ∀ K : ℕ,
-      Rmax ≤ δ_n * (2 : ℝ) ^ K →
-      B.regime.b * Real.sqrt
-          (2 * Real.log (2 * ((K : ℝ) + 1) / ζ) / n)
-        ≤ δ_n ^ 2) :
+    (hslack : ∃ K : ℕ,
+      Rmax ≤ δ_n * (2 : ℝ) ^ K ∧
+      2 * Real.sqrt
+          ((1 + 8 * B.regime.b) * Real.log (2 * ((K : ℝ) + 1) / ζ) / n)
+        + 8 * B.regime.b * Real.log (2 * ((K : ℝ) + 1) / ζ) / (n * δ_n)
+        ≤ δ_n) :
     ∃ E : Set Ω,
       MeasurableSet E ∧ μ E ≥ 1 - ENNReal.ofReal ζ ∧
       ∀ ω ∈ E, ∀ i : B.ι,
         B.norm (B.F i) ≤ Rmax →
         |(n : ℝ)⁻¹ * ∑ k : Fin n, B.F i (B.X (sample.Z k ω))
             - ∫ ω', B.F i (B.X (S.W ω')) ∂μ|
-          ≤ 8 * δ_n * B.norm (B.F i) + 5 * δ_n ^ 2 := by
+          ≤ 10 * δ_n * B.norm (B.F i) + 5 * δ_n ^ 2 := by
   classical
   haveI : IsProbabilityMeasure P_W := by
     rw [← h_law_W]
     exact Measure.isProbabilityMeasure_map S.meas_W.aemeasurable
   obtain ⟨E₀, hE₀_meas, hE₀_prob, hE₀_bound⟩ :=
     localized_uniform_deviation_sharp B.F B.norm P_W B.X B.X_meas B.F_meas
-      B.regime hζ_pos hζ_le n hn (ρ := δ_n) (Rmax := Rmax)
-      B.crit_le hδn_pos B.crit_pos B.crit_fp
+      B.norm_nonneg B.regime hζ_pos hζ_le n hn (ρ := δ_n) (Rmax := Rmax)
+      B.crit_le hδn_pos B.crit_pos
       B.rad_bdd B.rad_int hslack
   let Ψ : Ω → (Fin n → S.𝒲) := fun ω k => sample.Z k ω
   let E : Set Ω := Ψ ⁻¹' E₀

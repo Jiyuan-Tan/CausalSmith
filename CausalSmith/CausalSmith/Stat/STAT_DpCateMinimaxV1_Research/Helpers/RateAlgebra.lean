@@ -10,9 +10,12 @@ calibration `r_n^{regDP}` (`lem:private_regression_calibration_algebra`) by the
 bandwidth split at `h₀ = n^{-1/(2γ+d)}`, `h_p = (n ε_n)^{-1/(γ+d)}`.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionCalibrationBounds
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.RegressionCalibrationBounds
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

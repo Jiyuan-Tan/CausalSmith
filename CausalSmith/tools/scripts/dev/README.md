@@ -31,5 +31,3 @@ file:line, and the T-blocks that reach it.
   `npx tsx scripts/dev/repin_frozen_hashes.mjs <bundleDirAbs>`.
 - `salvage_resolved_oeqs.ts` — one-off audited migration for legacy D0 cores that proved
   open equivalences in place; reads the core + plan, re-runs the plan gate, rebuilds the graph.
-- `watch.py` — ad-hoc poller that tails active research runs (hardcoded run list / path;
-  edit before use). Pure scratch monitoring helper.

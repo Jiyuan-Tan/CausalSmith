@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Cr2Ratio
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Cr2Ratio
 
 /-!
 # CR2 dense-regime phase frontier
 -/
+
+public section
 
 open scoped Topology
 open Filter

@@ -7,7 +7,7 @@ Authors: Jiyuan Tan
 
 Every interval-identification theorem in this library produces a *population
 sandwich* `L ≤ θ₀ ≤ U` (Manski, Balke–Pearl, Lee, Proxy, …; see
-`SandwichInterval.lean`).  Turning such bounds into a **confidence interval**
+`Causalean.PO.ID.Partial.Basic`). Turning such bounds into a **confidence interval**
 forces a choice that does not arise under point identification: should the random
 interval cover the whole identified set `[L, U]`, or only the (single, unknown)
 true value `θ₀ ∈ [L, U]`?  These are the two coverage notions of the partial-ID
@@ -31,8 +31,8 @@ framework, mirroring `PartialID/Basic.lean`.
 
 * `RandomCoversPoint A B θ` — the event that the random interval `[A ω, B ω]`
   contains the fixed value `θ`.
-* `RandomCoversIcc A B L U` — the event that `[A ω, B ω]` contains the whole
-  interval `[L, U]`.
+* `RandomCoversIcc A B L U` — the event that `A ω ≤ L` and `U ≤ B ω`; when
+  `L ≤ U`, this means that `[A ω, B ω]` contains the whole interval `[L, U]`.
 
 ## Main results
 
@@ -47,20 +47,24 @@ framework, mirroring `PartialID/Basic.lean`.
   the previous two results.
 -/
 
-import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
-import Mathlib.MeasureTheory.Measure.Real
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
+module
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+public import Mathlib.MeasureTheory.Measure.Real
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Order
 
 /-! # Coverage Vocabulary for Interval-Identified Parameters
 
 This file defines the two coverage events used for confidence intervals around an
 interval-identified scalar parameter: coverage of a fixed parameter value and
-coverage of the whole identified interval. `RandomCoversPoint A B theta` is the
+coverage of a nonempty identified interval. `RandomCoversPoint A B theta` is the
 sample event that the random interval `[A omega, B omega]` contains `theta`;
-`RandomCoversIcc A B L U` is the event that it contains the whole population
+`RandomCoversIcc A B L U` is the event that its endpoints satisfy `A omega ≤ L`
+and `U ≤ B omega`; for `L ≤ U`, this is coverage of the whole population
 identified interval `[L, U]`.
 
-The theorem `randomCoversIcc_subset_randomCoversPoint` records the elementary
+Population bounds used with `RandomCoversIcc` are required to satisfy `L ≤ U`;
+under that condition its endpoint inequalities are equivalent to literal set
+containment. The theorem `randomCoversIcc_subset_randomCoversPoint` records the elementary
 Horowitz-Manski to Imbens-Manski implication: set coverage implies point
 coverage for every true value inside `[L, U]`. The endpoint lemmas
 `lowerOvershoot_subset_absMiss` and `upperUndershoot_subset_absMiss`, together
@@ -69,14 +73,17 @@ used by concentration-based intervals. The abstract theorems
 `honest_ci_set_cover` and `honest_ci_point_cover` then prove honest set and
 parameter coverage from upper bounds on those endpoint miss probabilities. -/
 
+@[expose] public section
+
 namespace Causalean.PartialID.Inference
 
 open MeasureTheory
 
 variable {Ω : Type*}
 
-/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:A), [an upper endpoint function](hyp:B), and
-[a fixed real parameter value](hyp:θ), the [parameter-coverage event](goal) is the set of
+/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:A),
+[an upper endpoint function](hyp:B), and [a fixed real parameter value](hyp:θ),
+the [parameter-coverage event](goal) is the set of
 sample outcomes at which the random interval with those endpoints contains that value.
 
 **Coverage of the parameter** (Imbens–Manski notion).  The event that the
@@ -84,20 +91,24 @@ random interval `[A ω, B ω]` contains the fixed real value `θ`.
 
 This is a *sampling-level* object — a (random) subset of the sample space `Ω`,
 indexed by the data-dependent endpoints `A, B` — not to be confused with the
-*population* identified set `PartialID.IdentifiedInterval`.  Even under point
+*population* identified set `Causalean.Stat.AttainableSet.IdentifiedSet`.  Even under point
 identification (`L = U`, identified set a singleton), this remains the coverage
 event of the random confidence interval, which is the whole point of inference. -/
 def RandomCoversPoint (A B : Ω → ℝ) (θ : ℝ) : Set Ω :=
   {ω | A ω ≤ θ ∧ θ ≤ B ω}
 
-/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:A), [an upper endpoint function](hyp:B), [a real
-lower bound](hyp:L), and [a real upper bound](hyp:U), the [identified-set coverage event](goal)
-is the set of sample outcomes at which the random interval with those endpoints contains the
-entire closed interval from the lower to the upper bound.
+/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:A),
+[an upper endpoint function](hyp:B), [a real lower bound](hyp:L), and
+[a real upper bound](hyp:U), the [endpoint-coverage event](goal) is the set of
+sample outcomes at which the random endpoints satisfy the two corresponding
+inequalities. When the lower bound is at most the upper bound, this means that
+the random interval contains the entire closed interval between them.
 
 **Coverage of the identified set** (Horowitz–Manski notion).  The event that
-the random interval `[A ω, B ω]` contains the whole population interval `[L, U]`.
-Equivalently `A ω ≤ L` and `U ≤ B ω`. -/
+the random interval `[A ω, B ω]` satisfies the endpoint inequalities
+`A ω ≤ L` and `U ≤ B ω`. When `L ≤ U`, this is equivalent to containing
+the whole population interval `[L, U]`; callers claiming set coverage must supply
+that order condition. -/
 def RandomCoversIcc (A B : Ω → ℝ) (L U : ℝ) : Set Ω :=
   {ω | A ω ≤ L ∧ U ≤ B ω}
 
@@ -123,7 +134,7 @@ theorem randomCoversIcc_compl_subset {lo hi : Ω → ℝ} {L U wL wU : ℝ} :
     (RandomCoversIcc (fun ω => lo ω - wL) (fun ω => hi ω + wU) L U)ᶜ
       ⊆ {ω | L < lo ω - wL} ∪ {ω | hi ω + wU < U} := by
   intro ω hω
-  simp only [RandomCoversIcc, Set.mem_compl_iff, Set.mem_setOf_eq, not_and_or, not_le] at hω
+  simp only [RandomCoversIcc, Set.mem_compl_iff, Set.mem_ofPred_eq, not_and_or, not_le] at hω
   rcases hω with hL | hU
   · left
     exact hL
@@ -157,12 +168,16 @@ theorem upperUndershoot_subset_absMiss {hi : Ω → ℝ} {U wU : ℝ} :
 measurable](hyp:hlo) and [`hi` measurable](hyp:hhi). Suppose [the probability that the
 widened lower endpoint `lo − wL` overshoots `L` is at most `δL`](hyp:hML), and [the
 probability that the widened upper endpoint `hi + wU` undershoots `U` is at most
-`δU`](hyp:hMU). Then [the widened random interval `[lo − wL, hi + wU]` covers the entire
-identified set `[L, U]` with probability at least `1 − δL − δU`](goal).
+`δU`](hyp:hMU). Then [the
+widened random interval `[lo − wL, hi + wU]` covers the entire identified set
+`[L, U]` with probability at least `1 − δL − δU`](goal).
 
 This is a conservative partial-ID analogue of the Horowitz–Manski (2000)
 confidence region, proved by a single union bound over the two
-one-sided endpoint-failure events. It is stated
+one-sided endpoint-failure events. The union bound needs no ordering of `L` and
+`U`; the conclusion is read as coverage of the identified set in the intended
+regime `L ≤ U`, and remains a true statement about the two endpoint inequalities
+otherwise. It is stated
 abstractly in the miss probabilities so that any concentration inequality
 (Hoeffding, Bernstein, …) can be plugged in; see `Inference/IntervalCI.lean`. -/
 theorem honest_ci_set_cover {lo hi : Ω → ℝ} (hlo : Measurable lo) (hhi : Measurable hi)

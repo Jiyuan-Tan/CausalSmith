@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxDecision
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxDepoisson
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.FiniteMaxDecision
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxDepoisson
 
 /-!
 # Causal finite-packing lower bound
@@ -8,6 +9,8 @@ This module converts the causal hard-family cell experiment into a
 coordinatewise testing problem and transfers its loss back to a fixed-size
 sample.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set Filter Asymptotics
 open scoped ENNReal NNReal BigOperators

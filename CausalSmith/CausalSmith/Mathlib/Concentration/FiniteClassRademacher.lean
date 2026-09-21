@@ -19,9 +19,12 @@ condition that active star-hull rays at radius `r` have scalar coefficient at
 most `r`, plus the unit finite-class envelope on the observed coordinates.
 -/
 
-import Causalean.Stat.Concentration.UniformDeviation.CriticalRadius
-import Causalean.Stat.Concentration.Rademacher.Contraction
-import FoML.Massart
+module
+public import Causalean.Stat.Concentration.Localization.CriticalRadius
+public import Causalean.Stat.Concentration.Rademacher.Contraction
+public import FoML.Massart
+
+@[expose] public section
 
 namespace CausalSmith.Mathlib.Concentration
 
@@ -539,8 +542,8 @@ private lemma finite_linear_rademacher_starHullZeroOut
             hpoint
     _ = r * C := by simp [C]
 
-private lemma subRoot_const {C : ℝ} (hC : 0 ≤ C) :
-    SubRoot (fun _ : ℝ => C) := by
+private lemma isStarShapedEnvelope_const {C : ℝ} (hC : 0 ≤ C) :
+    IsStarShapedEnvelope (fun _ : ℝ => C) := by
   refine ⟨?_, ?_, ?_⟩
   · intro _ _
     exact hC
@@ -552,8 +555,8 @@ private lemma subRoot_const {C : ℝ} (hC : 0 ≤ C) :
       div_le_div_of_nonneg_left hC hr₁ hrle
     exact hdiv
 
-private lemma subRoot_linear {C : ℝ} (hC : 0 ≤ C) :
-    SubRoot (fun r : ℝ => r * C) := by
+private lemma isStarShapedEnvelope_linear {C : ℝ} (hC : 0 ≤ C) :
+    IsStarShapedEnvelope (fun r : ℝ => r * C) := by
   refine ⟨?_, ?_, ?_⟩
   · intro r hr
     exact mul_nonneg hr hC
@@ -581,7 +584,7 @@ theorem finiteClass_rademacherUpperBound
     {n : ℕ} (hn : 0 < n)
     (b : ℝ) (hb : 0 ≤ b) (hbound : ∀ i ω, |F i (X ω)| ≤ b) :
     ∃ ψ : ℝ → ℝ,
-      SubRoot ψ ∧
+      IsStarShapedEnvelope ψ ∧
       RademacherUpperBound F norm μ X n ψ ∧
       (∀ r,
         ψ r =
@@ -591,7 +594,7 @@ theorem finiteClass_rademacherUpperBound
     (b / Real.sqrt (n : ℝ)) *
       Real.sqrt (2 * Real.log (2 * Fintype.card ι))
   refine ⟨fun _ => C, ?_, ?_, ?_⟩
-  · exact subRoot_const
+  · exact isStarShapedEnvelope_const
       (mul_nonneg
         (div_nonneg hb (Real.sqrt_nonneg _))
         (Real.sqrt_nonneg _))
@@ -618,7 +621,7 @@ theorem finiteClass_rademacherUpperBound_linear
       norm (starHullEval F p) ≤ r → p.1.val ≤ r)
     (hunit : ∀ i ω, |F i (X ω)| ≤ 1) :
     ∃ ψ : ℝ → ℝ,
-      SubRoot ψ ∧
+      IsStarShapedEnvelope ψ ∧
       RademacherUpperBound F norm μ X n ψ ∧
       (∀ r,
         ψ r =
@@ -627,7 +630,7 @@ theorem finiteClass_rademacherUpperBound_linear
   let C : ℝ :=
     Real.sqrt ((2 * Real.log (2 * Fintype.card ι)) / (n : ℝ))
   refine ⟨fun r => r * C, ?_, ?_, ?_⟩
-  · exact subRoot_linear (Real.sqrt_nonneg _)
+  · exact isStarShapedEnvelope_linear (Real.sqrt_nonneg _)
   · intro r hr
     exact finite_linear_rademacher_starHullZeroOut
       F norm μ X hn r hr (hscale r hr) hunit

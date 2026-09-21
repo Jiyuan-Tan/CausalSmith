@@ -1,10 +1,13 @@
-import FoML.Rademacher
-import FoML.McDiarmid
-import FoML.BoundedDifference
-import FoML.SeparableSpaceSup
-import FoML.LinearPredictorL2
-import FoML.LinearPredictorL1
-import FoML.DudleyEntropy
+module
+public import FoML.Rademacher
+public import FoML.McDiarmid
+public import FoML.BoundedDifference
+public import FoML.SeparableSpaceSup
+public import FoML.LinearPredictorL2
+public import FoML.LinearPredictorL1
+public import FoML.DudleyEntropy
+
+@[expose] public section
 
 section
 

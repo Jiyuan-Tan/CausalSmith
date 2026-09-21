@@ -7,10 +7,13 @@ for the binary source experiment, but its binary outcome law cannot represent th
 paper's conditional-second-moment model (`bypass-justified`).
 -/
 
-import Causalean.Stat.Sample
-import Causalean.Stat.Sample.PiTransport
-import Mathlib.Probability.ProductMeasure
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.Stat.Sample
+public import Causalean.Stat.Sample.PiTransport
+public import Mathlib.Probability.ProductMeasure
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

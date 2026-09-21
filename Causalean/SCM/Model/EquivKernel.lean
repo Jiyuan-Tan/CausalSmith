@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.Kernel
+module
+public import Causalean.SCM.Model.Kernel
 
 /-! # Kernel Transport Across Equivalent Models
 
@@ -23,6 +24,13 @@ topological orderings or proof witnesses differ but whose causal content is the 
 * `SCM.Equiv.heq_obsCondKernel` transports observational conditional kernels
   when the conditioning and target coordinate sets are shared.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -375,10 +383,10 @@ private theorem heq_obsCondKernel_aux
   unfold SCM.obsCondPairKernel
   rw [h_ok_eq]
 
-/-- **HEq transport for `obsCondKernel`.**
-
-    Under structural equivalence, a conditional observational kernel built from
-    observed target and conditioning coordinates is the same for either model. -/
+/-- Given [two finite structural causal models with matching graphs](hyp:N,Ω,M₁,M₂,hGraph),
+[matching structural functions](hyp:hSF), [matching latent distributions](hyp:hLD), [target and
+conditioning coordinate sets](hyp:Y,CC), and [proofs that both sets are observed in the first
+model](hyp:hY₁,hCC₁), [the two observational conditional kernels are equal after type transport](goal). -/
 theorem Equiv.heq_obsCondKernel
     {M₁ M₂ : Causalean.SCM N Ω}
     (hGraph : SWIGGraph.Equivalent M₁.toSWIGGraph M₂.toSWIGGraph)

@@ -1,0 +1,2943 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}subsampled\_\allowbreak{}processdag\_\allowbreak{}root\_\allowbreak{}certificate}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} Subsampling turns a fine-grid process DAG into a matrix-root problem, so a queried causal transfer is governed by the compatible fiber rather than by a selected numerical root.  For odd \(m\), seeding the queried edge and closing only under graph-supported remainder monomials gives an exact terminating dependency set: separation only there identifies the transfer and yields one uniformly calibrated Wald band for the entire curve in \(C(\mathbb T;\mathbb C)\).  Prespecified finite-frequency, directed-corridor, and globally separated Wald results remain explicit corollaries.  For even \(m\), the same-law sign obstruction continues to hold on the larger unrestricted stable Gaussian VAR(1) class with arbitrary positive-definite innovations.  Exact transfer-aware certification and branch-free confidence-region inversion cover singular and nonregular cases.
+
+\section{Project justification}
+
+\paragraph{Gap.} Published subsampling results either use non-Gaussian shocks for positive recovery, enumerate qualitative graph equivalence classes, or choose a numerical matrix-root branch.  Gong et al.'s positive theorem assumes non-Gaussian innovations together with full-rank, nonzero-diagonal, and weak-connectivity conditions, so neither it nor the present Gaussian supplied-order result contains the other.  Prior root-recursive inference does not isolate the exact finite dependency set for one causal transfer or calibrate a simultaneous band over every unit-modulus frequency under rank-changing covariance.
+
+\paragraph{Niche.} A supplied causal order makes triangular divided-difference recursion available.  For the direct transfer, the sharp recursive locality is obtained by seeding \(u\to v\) and repeatedly adding only allowed off-diagonal variables that actually occur in retained \(m\)-step remainder monomials, together with their incident diagonals.  This exact closure terminates, is contained in the directed path corridor, and can be strictly smaller; its two recovered target coordinates define a smooth finite-dimensional image in \(C(\mathbb T;\mathbb C)\).
+
+\paragraph{Fill.} The project gives an explicit exact-dependency identifying map and a uniformly exact simultaneous Wald band for the full transfer curve on \(\mathbb T\), on a nonempty compact class separated only on that finite set.  The finite-frequency result with its smaller grid-specific critical value, followed by the path-corridor and globally separated conclusions, are explicit corollaries.  It also gives an unrestricted stable-Gaussian even-sign obstruction with arbitrary positive-definite innovations, plus a total transfer-aware CAD fallback with attained witnesses and finite-sample branch-free inversion.  The covariance-envelope fallback remains a validity device equal pathwise to the deterministic box, not a claimed adaptive improvement.
+
+\section{Related work}
+
+Gong et al. (2015) motivate temporal causal recovery from subsampled data.  Their positive recovery theorem uses non-Gaussian innovations together with full-rank, nonzero-diagonal, and weak-connectivity conditions; the present positive result instead uses Gaussian innovations, a supplied order, and process-DAG restrictions, so the two positive classes are incomparable rather than related by inclusion.  Their Gaussian nonuniqueness discussion motivates the obstruction, while the present proof isolates an even-factor sign pair on the strictly larger stable Gaussian VAR(1) class with arbitrary positive-definite innovation covariance and no order or triangularity requirement.  Tank, Fox, and Shojaie (2019) likewise use non-Gaussian shocks and likelihood methods.  Hyttinen et al. (2017) preserve qualitative subsampling ambiguity through exact constraints, whereas the present target is a numerical rational transfer.  Smith (2003), Bini, Higham, and Meini (2005), and Higham (2008) supply triangular-root algorithms and branch theory; the new step derives the exact finite \(m\)-step graph-supported monomial dependency closure for one queried transfer and propagates its finite-dimensional Gaussian derivative into a simultaneous full-unit-circle band.  The larger directed-path corridor and global recursion remain readable corollaries.  Reiter et al. (2026) identify rational link effects from an unaliased fine-grid spectrum, and Reiter et al. (2024) derive local delta-method inference once fine-grid coefficients are differentiably estimable.  Basu and Michailidis (2015), Hsu, Kakade, and Zhang (2012), and Giurcanu and Spokoiny (2004) provide concentration context for finite-sample moment regions.  Mixed-frequency VARMA and unit-root results of Deistler, Koelbl, and Anderson (2017), Anderson et al. (2016), and Gersing, Sögner, and Deistler (2023) concern different model classes.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(h_{uv}(z)=A_{vu}z/(1-A_{vv}z)\).
+Primary functional / estimator / diagnostic: \(\mathcal H_{uv}(B,Q;G)=\{A_{vu}z/(1-A_{vv}z):(A,D)\in\mathcal S(B,Q;G)\}\), with \(\operatorname{Cert}_{uv,m,G}(B,Q)\) returning its unique element or two attained unequal elements.
+\begin{itemize}
+  \item \texttt{d} --- \texttt{integer}; \(\mathbb N\); \texttt{model index}
+  \par\smallskip\noindent\emph{Definition.} Number of component processes, with \(d\ge 2\).
+  \item \texttt{V} --- \texttt{finite index set}; \(\{1,\ldots,d\}\); \texttt{vertices}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Supplied labels in topological order.}
+  \item \texttt{m} --- \texttt{integer}; \(\{2,3,\ldots\}\); \texttt{sampling factor}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Known temporal subsampling factor.}
+  \item \texttt{G} --- \texttt{directed acyclic graph}; \(G=(V,E)\); \texttt{causal graph}
+  \par\smallskip\noindent\emph{Definition.} Supplied labeled process DAG whose cross-variable arrows respect the order on \(V\).
+  \item \texttt{u} --- \texttt{vertex}; \(V\); \texttt{query index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Source of the queried direct transfer.}
+  \item \texttt{v} --- \texttt{vertex}; \(V\); \texttt{query index}
+  \par\smallskip\noindent\emph{Definition.} Target of the queried direct transfer, with \(u<v\).
+  \item \texttt{gamma} --- \texttt{constant}; \((0,1)\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform fine-\allowbreak{}grid stability margin.}
+  \item \texttt{L} --- \texttt{constant}; \([1,\infty)\); \texttt{compactness constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Uniform entry bound for the fine transition.}
+  \item \texttt{d\_\allowbreak{}min} --- \texttt{constant}; \((0,\infty)\); \texttt{compactness constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Lower eigenvalue bound for the fine innovation covariance.}
+  \item \texttt{d\_\allowbreak{}max} --- \texttt{constant}; \((d_{\min},\infty)\); \texttt{compactness constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Upper eigenvalue bound for the fine innovation covariance.}
+  \item \texttt{kappa} --- \texttt{constant}; \((0,\infty)\); \texttt{regularity constant}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Separation margin for nonzero divided differences and regular branches.}
+  \item \texttt{alpha} --- \texttt{constant}; \((0,1)\); \texttt{inference level}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Miscoverage probability.}
+  \item \texttt{N} --- \texttt{integer}; \(\mathbb N\); \texttt{computational precision}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Precision index for rational outward rounding.}
+  \item \texttt{z} --- \texttt{complex argument}; \(\mathbb T=\{z\in\mathbb C:|z|=1\}\); \texttt{transfer argument}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Frequency-\allowbreak{}domain argument.}
+  \item \texttt{A} --- \texttt{matrix}; \(\mathbb R^{d\times d}\); \texttt{structural parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fine-\allowbreak{}grid transition matrix.}
+  \item \texttt{D} --- \texttt{matrix}; \(\mathbb S_{++}^{d}\); \texttt{structural nuisance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Fine-\allowbreak{}grid innovation covariance.}
+  \item \texttt{epsilon} --- \texttt{stochastic process}; \((\mathbb R^d)^{\mathbb Z}\); \texttt{exogenous noise}
+  \par\smallskip\noindent\emph{Definition.} Fine-grid innovation sequence \((\varepsilon_t)_{t\in\mathbb Z}\).
+  \item \texttt{X} --- \texttt{stochastic process}; \((\mathbb R^d)^{\mathbb Z}\); \texttt{fine-\allowbreak{}grid process}
+  \par\smallskip\noindent\emph{Definition.} Unique stationary solution of \(X_t=AX_{t-1}+\varepsilon_t\).
+  \item \texttt{Y} --- \texttt{stochastic process}; \((\mathbb R^d)^{\mathbb Z}\); \texttt{observed data process}
+  \par\smallskip\noindent\emph{Definition.} Observed coarse process \(Y_s=X_{ms}\).
+  \item \texttt{n} --- \texttt{integer}; \(\{3,4,\ldots\}\); \texttt{sample size}
+  \par\smallskip\noindent\emph{Definition.} Number of observed coarse transitions in \((Y_0,\ldots,Y_n)\).
+  \item \texttt{eta} --- \texttt{stochastic process}; \((\mathbb R^d)^{\mathbb Z}\); \texttt{coarse noise}
+  \par\smallskip\noindent\emph{Definition.} Coarse innovation \(\eta_s=\sum_{r=0}^{m-1}A^r\varepsilon_{ms-r}\).
+  \item \texttt{M0} --- \texttt{matrix}; \(\mathbb S_{++}^{d}\); \texttt{observed-\allowbreak{}law functional}
+  \par\smallskip\noindent\emph{Definition.} Lag-zero coarse moment \(M_0=\mathbb E[Y_sY_s^\top]\).
+  \item \texttt{M1} --- \texttt{matrix}; \(\mathbb R^{d\times d}\); \texttt{observed-\allowbreak{}law functional}
+  \par\smallskip\noindent\emph{Definition.} Lag-one coarse moment \(M_1=\mathbb E[Y_sY_{s-1}^\top]\).
+  \item \texttt{B} --- \texttt{matrix}; \(\mathbb R^{d\times d}\); \texttt{identified coarse parameter}
+  \par\smallskip\noindent\emph{Definition.} Coarse transition \(B=A^m\).
+  \item \texttt{Q} --- \texttt{matrix}; \(\mathbb S_{++}^{d}\); \texttt{identified coarse parameter}
+  \par\smallskip\noindent\emph{Definition.} Coarse innovation covariance \(Q=\sum_{r=0}^{m-1}A^rD(A^r)^\top\).
+  \item \texttt{Cm} --- \texttt{polynomial}; \(C_m:\mathbb R^2\to\mathbb R\); \texttt{divided-\allowbreak{}difference coefficient}
+  \par\smallskip\noindent\emph{Definition.} \(C_m(x,y)=\sum_{r=0}^{m-1}x^r y^{m-1-r}\).
+  \item \texttt{Rm} --- \texttt{polynomial family}; \(R_{vu,m}:\mathbb R^{d\times d}\to\mathbb R\); \texttt{indirect-\allowbreak{}path remainder}
+  \par\smallskip\noindent\emph{Definition.} Sum of monomials in \((A^m)_{vu}\) indexed by nondecreasing walks from \(u\) to \(v\) containing at least two strict increases.
+  \item \texttt{h} --- \texttt{rational function}; \(h_{uv}:\mathbb T\to\mathbb C\); \texttt{target estimand}
+  \par\smallskip\noindent\emph{Definition.} Direct fine-grid causal transfer \(h_{uv}(z)=A_{vu}z/(1-A_{vv}z)\).
+  \item \texttt{K} --- \texttt{effective real closed field}; \(K\subseteq\mathbb R\); \texttt{exact input domain}
+  \par\smallskip\noindent\emph{Definition.} Ordered field with effective arithmetic, sign tests, and real-root isolation; \(\mathbb Q\) and \(\mathbb R_{\mathrm{alg}}\) are admissible.
+  \item \texttt{Sfiber} --- \texttt{set}; \(\mathbb R^{d\times d}\times\mathbb S_{++}^{d}\); \texttt{identification fiber}
+  \par\smallskip\noindent\emph{Definition.} Compatible fine-grid parameter fiber \(\mathcal S(B,Q;G)\).
+  \item \texttt{Pifiber} --- \texttt{set}; \(\mathbb R^2\); \texttt{target parameter fiber}
+  \par\smallskip\noindent\emph{Definition.} Pair projection \(\Pi_{uv}(B,Q;G)=\{(A_{vu},A_{vv}):(A,D)\in\mathcal S(B,Q;G)\}\).
+  \item \texttt{Hfiber} --- \texttt{set of rational functions}; \texttt{identified set}
+  \par\smallskip\noindent\emph{Definition.} Transfer fiber \(\mathcal H_{uv}(B,Q;G)=\{pz/(1-qz):(p,q)\in\Pi_{uv}(B,Q;G)\}\).
+  \item \texttt{Zeval} --- \texttt{finite set}; \(\mathcal Z\subset\mathbb T\); \texttt{evaluation domain}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Prespecified finite frequency grid for simultaneous Wald bands.}
+  \item \texttt{hatM0} --- \texttt{random matrix}; \(\mathbb S^d\); \texttt{moment estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat M_0=n^{-1}\sum_{s=1}^{n}Y_sY_s^\top\).
+  \item \texttt{hatM1} --- \texttt{random matrix}; \(\mathbb R^{d\times d}\); \texttt{moment estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat M_1=n^{-1}\sum_{s=1}^{n}Y_sY_{s-1}^\top\).
+  \item \texttt{hatB} --- \texttt{random matrix}; \(\mathbb R^{d\times d}\); \texttt{coarse estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat B=\widehat M_1\widehat M_0^{-1}\) whenever \(\widehat M_0\) is positive definite.
+  \item \texttt{hatQ} --- \texttt{random matrix}; \(\mathbb S^d\); \texttt{coarse estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat Q=\widehat M_0-\widehat B\widehat M_0\widehat B^\top\).
+  \item \texttt{hath} --- \texttt{random rational function}; \texttt{regular estimator}
+  \par\smallskip\noindent\emph{Definition.} Regular-branch plug-in transfer obtained by graph recursion from \((\widehat B,\widehat Q)\) and evaluation of \(A_{vu}z/(1-A_{vv}z)\).
+  \item \texttt{Sigmah} --- \texttt{matrix-\allowbreak{}valued function}; \(\mathbb S_+^{2|\mathcal Z|}\); \texttt{Wald variance}
+  \par\smallskip\noindent\emph{Definition.} Long-run delta-method covariance of the stacked real and imaginary parts of \((\widehat h_{uv}(z))_{z\in\mathcal Z}\).
+  \item \texttt{Wn} --- \texttt{random vector}; \(\mathbb R^{(n+1)d}\); \texttt{quadratic-\allowbreak{}form input}
+  \par\smallskip\noindent\emph{Definition.} Stacked trajectory \(W_n=(Y_0^\top,\ldots,Y_n^\top)^\top\).
+  \item \texttt{Hell} --- \texttt{family of symmetric matrices}; \(\mathbb S^{(n+1)d}\); \texttt{lag-\allowbreak{}moment quadratic forms}
+  \par\smallskip\noindent\emph{Definition.} Matrices \(H_{\ell ij}\) satisfying \(W_n^\top H_{0ij}W_n=(\widehat M_0)_{ij}\) and \(W_n^\top H_{1ij}W_n=(\widehat M_1)_{ij}\).
+  \item \texttt{talpha} --- \texttt{constant}; \((0,\infty)\); \texttt{simultaneous tail level}
+  \par\smallskip\noindent\emph{Definition.} \(t_\alpha=\log(4d^2/\alpha)\).
+  \item \texttt{Ksigma} --- \texttt{constant}; \((0,\infty)\); \texttt{quadratic-\allowbreak{}form scale}
+  \par\smallskip\noindent\emph{Definition.} Explicit uniform bound \(K_\Sigma=d_{\max}\sum_{r=0}^{m-1}(dL)^{2r}\left[\{1-(1-\gamma)^m\}^{-1}\sum_{k=0}^{d-1}\{2(dL)^m/(1-(1-\gamma)^m)\}^k\right]^2\) on \(\|\operatorname{Cov}(W_n)\|_{\mathrm{op}}\), obtained through the coarse spectral-density resolvent.
+  \item \texttt{rn} --- \texttt{constant}; \((0,\infty)\); \texttt{moment radius}
+  \par\smallskip\noindent\emph{Definition.} Candidate simultaneous radius \(r_n=2K_\Sigma\{\sqrt{t_\alpha/n}+t_\alpha/n\}\).
+  \item \texttt{OutN} --- \texttt{operator}; \(\operatorname{Out}_N:\mathbb R\times[0,\infty)\to\{[a,b]:a,b\in\mathbb Q\}\); \texttt{outward rounding}
+  \par\smallskip\noindent\emph{Definition.} A verified interval-arithmetic operator returning a rational interval containing \([x-r,x+r]\).
+  \item \texttt{Cmoment} --- \texttt{random set}; \(\mathbb S^d\times\mathbb R^{d\times d}\); \texttt{coarse confidence region}
+  \par\smallskip\noindent\emph{Definition.} Rational moment box \(\mathcal C_n^M(\alpha)=\prod_{\ell\in\{0,1\},i,j\in V}\operatorname{Out}_N((\widehat M_\ell)_{ij},r_n)\).
+  \item \texttt{Rinverse} --- \texttt{random set}; \(\mathbb R^{d\times d}\times\mathbb S_{++}^d\); \texttt{branch-\allowbreak{}free inverse confidence region}
+  \par\smallskip\noindent\emph{Definition.} Fine-model inverse \(\mathcal R_n\) of \(\mathcal C_n^M(\alpha)\) through the stationary moment equations, restricted to the compact ordered process-DAG class.
+  \item \texttt{Ch} --- \texttt{random set of rational functions}; \texttt{transfer confidence set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal C_n^h=\{A_{vu}z/(1-A_{vv}z):(A,D)\in\mathcal R_n\}\).
+  \item \texttt{Cert} --- \texttt{algorithm}; \texttt{formula-\allowbreak{}or-\allowbreak{}ambiguity certificate}
+  \par\smallskip\noindent\emph{Definition.} \(\operatorname{Cert}_{uv,m,G}(B,Q)\) enumerates real diagonal root branches, eliminates every nonsingular off-diagonal coordinate by the triangular divided-difference recursion, invokes exact CAD on each residual singular system and its two-copy transfer-inequality system, and returns either incompatibility, the common rational transfer, or two exact stable transfer-distinct witnesses.
+  \item \texttt{CalHandle} --- \texttt{research construction handle}; \texttt{open-\allowbreak{}question handle}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Build a data-\allowbreak{}adaptive calibration by splitting each centered lag-\allowbreak{}moment quadratic form into positive and negative spectral parts,\allowbreak{} upper-\allowbreak{}bounding their trace and operator norms with a confidence envelope for the block-\allowbreak{}Toeplitz trajectory covariance,\allowbreak{} and applying verified rational interval arithmetic before semialgebraic inversion;\allowbreak{} the calibration itself is to be derived.}
+  \item \texttt{Vcorr} --- \texttt{finite vertex subset}; \(V_{uv}^{G}\subseteq V\); \texttt{target corridor vertices}
+  \par\smallskip\noindent\emph{Definition.} Vertices lying on at least one directed path from \(u\) to \(v\), with zero-length endpoint paths allowed.
+  \item \texttt{Ecorr} --- \texttt{finite edge subset}; \(E_{uv}^{G}\subseteq E\); \texttt{target corridor edges}
+  \par\smallskip\noindent\emph{Definition.} Edges lying on at least one directed path from \(u\) to \(v\).
+  \item \texttt{Rcorr} --- \texttt{partial rational map}; \(\mathscr R_{uv,m,G}:\mathbb R^{d\times d}\dashrightarrow\mathbb R^{V_{uv}^{G}\sqcup E_{uv}^{G}}\); \texttt{target corridor root map}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Odd real diagonal roots and divided-\allowbreak{}difference edge recursion restricted to the target corridor.}
+  \item \texttt{Phicorr} --- \texttt{rational-\allowbreak{}function-\allowbreak{}valued partial map}; \(\Phi_{uv,m,G}:\mathbb R^{d\times d}\dashrightarrow\mathbb R(z)\); \texttt{corridor identifying functional}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Transfer obtained from the target entries of the corridor root map.}
+  \item \texttt{Mcorr} --- \texttt{model class}; \texttt{localized inference class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Compact odd-\allowbreak{}factor Gaussian process-\allowbreak{}DAG models with derivative and divided-\allowbreak{}difference separation only on the target corridor.}
+  \item \texttt{hathcorr} --- \texttt{random rational function}; \texttt{localized regular estimator}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Plug-\allowbreak{}in transfer obtained from the empirical coarse transition through the target-\allowbreak{}corridor recursion.}
+  \item \texttt{Sigmahcorr} --- \texttt{matrix-\allowbreak{}valued function}; \(\mathbb S_+^{2|\mathcal Z|}\); \texttt{localized Wald variance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Long-\allowbreak{}run delta-\allowbreak{}method covariance of the stacked real and imaginary parts of the target-\allowbreak{}corridor plug-\allowbreak{}in transfer.}
+  \item \texttt{Ealg} --- \texttt{finite edge subset}; \(E_{uv}^{\mathrm{alg},m}\subseteq E\); \texttt{exact algebraic dependency edges}
+  \par\smallskip\noindent\emph{Definition.} Smallest edge set containing \(u\to v\) and closed under allowed off-diagonal variables occurring in nonzero graph-supported monomials of the retained \(m\)-step remainders.
+  \item \texttt{Valg} --- \texttt{finite vertex subset}; \(V_{uv}^{\mathrm{alg},m}\subseteq V\); \texttt{exact algebraic dependency vertices}
+  \par\smallskip\noindent\emph{Definition.} Endpoints of edges in \(E_{uv}^{\mathrm{alg},m}\), whose diagonal coordinates enter the exact recursion.
+  \item \texttt{Ralg} --- \texttt{partial rational map}; \(\mathscr R^{\mathrm{alg}}_{uv,m,G}:\mathbb R^{d\times d}\dashrightarrow\mathbb R^{V_{uv}^{\mathrm{alg},m}\sqcup E_{uv}^{\mathrm{alg},m}}\); \texttt{exact target root map}
+  \par\smallskip\noindent\emph{Definition.} Odd diagonal roots and divided-difference recursion restricted to the exact finite \(m\)-step algebraic dependency closure.
+  \item \texttt{Phialg} --- \texttt{rational-\allowbreak{}function-\allowbreak{}valued partial map}; \(\Phi^{\mathrm{alg}}_{uv,m,G}:\mathbb R^{d\times d}\dashrightarrow\mathbb R(z)\); \texttt{exact dependency identifying functional}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Queried transfer obtained from the target coordinates of the exact algebraic-\allowbreak{}dependency root map.}
+  \item \texttt{Malg} --- \texttt{model class}; \texttt{exact-\allowbreak{}local inference class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Compact odd-\allowbreak{}factor Gaussian process-\allowbreak{}DAG models with diagonal-\allowbreak{}root and divided-\allowbreak{}difference separation only on the exact algebraic dependency closure.}
+  \item \texttt{hathalg} --- \texttt{random rational function}; \texttt{exact-\allowbreak{}local regular estimator}
+  \par\smallskip\noindent\emph{Definition.} \texttt{Plug-\allowbreak{}in transfer obtained from the empirical coarse transition through the exact algebraic-\allowbreak{}dependency recursion.}
+  \item \texttt{Sigmahalg} --- \texttt{matrix-\allowbreak{}valued covariance kernel}; \(C(\mathbb T\times\mathbb T;\mathbb R^{2\times2})\); \texttt{exact-\allowbreak{}local full-\allowbreak{}frequency Wald covariance}
+  \par\smallskip\noindent\emph{Definition.} The real--imaginary covariance kernel \(\Sigma_{h,\mathrm{alg}}(z,z')\) of the finite-dimensional Gaussian image of the exact algebraic-dependency plug-in transfer on the full unit circle.
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:known-sampling-factor]\label{ass:known-sampling-factor}
+The subsampling factor \(m\ge2\) is known.
+\par\smallskip\noindent\emph{Standard} (known systematic-sampling factor, \cite{gong2015discovering}).
+\end{assumption}
+
+\begin{assumption}[ass:supplied-labeled-order]\label{ass:supplied-labeled-order}
+Every cross-variable arrow \(i\to j\) in \(G\) satisfies \(i<j\).
+\par\smallskip\noindent\emph{Novel.} An externally fixed order is realistic for layered physical, biological, and production systems in which upstream and downstream variables are determined before time-series fitting; the assumption is maintained rather than inferred from the Gaussian law.
+\end{assumption}
+
+\begin{assumption}[ass:query-edge]\label{ass:query-edge}
+The queried arrow \(u\to v\) belongs to \(G\).
+\par\smallskip\noindent\emph{Standard} (queried directed process link, \cite{reiter2026processgraphs}).
+\end{assumption}
+
+\begin{assumption}[ass:lower-triangular]\label{ass:lower-triangular}
+\(A_{ij}=0\) for every \(i<j\).
+\par\smallskip\noindent\emph{Standard} (recursive triangular transition, \cite{smith2003schur}).
+\end{assumption}
+
+\begin{assumption}[ass:graph-support]\label{ass:graph-support}
+\(A_{ij}=0\) for every \(i>j\) such that \(j\to i\notin G\).
+\par\smallskip\noindent\emph{Standard} (process-DAG zero restriction, \cite{reiter2026processgraphs}).
+\end{assumption}
+
+\begin{assumption}[ass:gaussian-innovations]\label{ass:gaussian-innovations}
+The sequence \((\varepsilon_t)_{t\in\mathbb Z}\) is independent and identically distributed as \(N(0,D)\).
+\par\smallskip\noindent\emph{Standard} (Gaussian white-noise innovations, \cite{gong2015discovering}).
+\end{assumption}
+
+\begin{assumption}[ass:diagonal-innovations]\label{ass:diagonal-innovations}
+The matrix \(D\) is diagonal.
+\par\smallskip\noindent\emph{Standard} (contemporaneously independent structural innovations, \cite{gong2015discovering}).
+\end{assumption}
+
+\begin{assumption}[ass:stable-transition]\label{ass:stable-transition}
+\(\rho(A)<1\).
+\par\smallskip\noindent\emph{Standard} (stable VAR transition, \cite{gong2015discovering}).
+\end{assumption}
+
+\begin{assumption}[ass:stability-margin]\label{ass:stability-margin}
+\(\max_{i\in V}|A_{ii}|\le1-\gamma\).
+\par\smallskip\noindent\emph{Standard} (uniform stability margin for a triangular VAR, \cite{basu2015regularized}).
+\end{assumption}
+
+\begin{assumption}[ass:entry-envelope]\label{ass:entry-envelope}
+\(\max_{i,j\in V}|A_{ij}|\le L\).
+\par\smallskip\noindent\emph{Standard} (compact coefficient envelope, \cite{basu2015regularized}).
+\end{assumption}
+
+\begin{assumption}[ass:innovation-lower]\label{ass:innovation-lower}
+\(D\succeq d_{\min}I_d\).
+\par\smallskip\noindent\emph{Standard} (uniformly nonsingular innovation covariance, \cite{basu2015regularized}).
+\end{assumption}
+
+\begin{assumption}[ass:innovation-upper]\label{ass:innovation-upper}
+\(D\preceq d_{\max}I_d\).
+\par\smallskip\noindent\emph{Standard} (uniform innovation-variance envelope, \cite{basu2015regularized}).
+\end{assumption}
+
+\begin{assumption}[ass:odd-factor]\label{ass:odd-factor}
+The integer \(m\) is odd.
+\par\smallskip\noindent\emph{Standard} (odd subsampling factor, \cite{gong2015discovering}).
+\end{assumption}
+
+\begin{assumption}[ass:divided-difference-separation]\label{ass:divided-difference-separation}
+\(\min_{j\to i\in G}|C_m(A_{ii},A_{jj})|\ge\kappa\).
+\par\smallskip\noindent\emph{Novel.} The excluded collision sets are algebraic hypersurfaces; persistence coefficients bounded away from simultaneous zero or opposite-sign collision describe a nondegenerate region that is stable under small perturbations.
+\end{assumption}
+
+\begin{assumption}[ass:effective-input]\label{ass:effective-input}
+Every entry of \(B\) and \(Q\) is represented in the effective real closed field \(K\).
+\par\smallskip\noindent\emph{Novel.} Rational and real-algebraic population inputs, as well as verified rational enclosures of digital sample moments, have exactly this representation; the condition distinguishes an executable certificate from a merely set-theoretic definability claim.
+\end{assumption}
+
+\begin{assumption}[ass:confidence-level]\label{ass:confidence-level}
+\(0<\alpha<1\).
+\par\smallskip\noindent\emph{Standard} (fixed confidence level, \cite{giurcanu2004confidence}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:model-class]\label{def:model-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{ordered subsampled Gaussian process-\allowbreak{}DAG class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M(d,m,G)=\{(A,D,(X_t)_{t\in\mathbb Z},(Y_s)_{s\in\mathbb Z};d,m,G):\text{assumptions }\mathrm{ass{:}known\mbox{-}sampling\mbox{-}factor},\mathrm{ass{:}supplied\mbox{-}labeled\mbox{-}order},\mathrm{ass{:}lower\mbox{-}triangular},\mathrm{ass{:}graph\mbox{-}support},\mathrm{ass{:}gaussian\mbox{-}innovations},\mathrm{ass{:}diagonal\mbox{-}innovations},\mathrm{ass{:}stable\mbox{-}transition}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}known-\allowbreak{}sampling-\allowbreak{}factor}; \texttt{ass:\allowbreak{}supplied-\allowbreak{}labeled-\allowbreak{}order}; \texttt{ass:\allowbreak{}lower-\allowbreak{}triangular}; \texttt{ass:\allowbreak{}graph-\allowbreak{}support}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}diagonal-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}stable-\allowbreak{}transition}.
+\end{definition}
+
+\begin{definition}[def:compact-class]\label{def:compact-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compact stable class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})=\{(A,D,(X_t)_{t\in\mathbb Z},(Y_s)_{s\in\mathbb Z};d,m,G):\text{assumptions }\mathrm{ass{:}known\mbox{-}sampling\mbox{-}factor},\mathrm{ass{:}supplied\mbox{-}labeled\mbox{-}order},\mathrm{ass{:}lower\mbox{-}triangular},\mathrm{ass{:}graph\mbox{-}support},\mathrm{ass{:}gaussian\mbox{-}innovations},\mathrm{ass{:}diagonal\mbox{-}innovations},\mathrm{ass{:}stability\mbox{-}margin},\mathrm{ass{:}entry\mbox{-}envelope},\mathrm{ass{:}innovation\mbox{-}lower},\mathrm{ass{:}innovation\mbox{-}upper}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}known-\allowbreak{}sampling-\allowbreak{}factor}; \texttt{ass:\allowbreak{}supplied-\allowbreak{}labeled-\allowbreak{}order}; \texttt{ass:\allowbreak{}lower-\allowbreak{}triangular}; \texttt{ass:\allowbreak{}graph-\allowbreak{}support}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}diagonal-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}stability-\allowbreak{}margin}; \texttt{ass:\allowbreak{}entry-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}lower}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}upper}.
+\end{definition}
+
+\begin{definition}[def:regular-class]\label{def:regular-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{regular odd-\allowbreak{}factor class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{reg}}(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)=\{(A,D,(X_t)_{t\in\mathbb Z},(Y_s)_{s\in\mathbb Z};d,m,G):\text{assumptions }\mathrm{ass{:}known\mbox{-}sampling\mbox{-}factor},\mathrm{ass{:}supplied\mbox{-}labeled\mbox{-}order},\mathrm{ass{:}lower\mbox{-}triangular},\mathrm{ass{:}graph\mbox{-}support},\mathrm{ass{:}gaussian\mbox{-}innovations},\mathrm{ass{:}diagonal\mbox{-}innovations},\mathrm{ass{:}stability\mbox{-}margin},\mathrm{ass{:}entry\mbox{-}envelope},\mathrm{ass{:}innovation\mbox{-}lower},\mathrm{ass{:}innovation\mbox{-}upper},\mathrm{ass{:}odd\mbox{-}factor},\mathrm{ass{:}divided\mbox{-}difference\mbox{-}separation}\text{ hold}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}known-\allowbreak{}sampling-\allowbreak{}factor}; \texttt{ass:\allowbreak{}supplied-\allowbreak{}labeled-\allowbreak{}order}; \texttt{ass:\allowbreak{}lower-\allowbreak{}triangular}; \texttt{ass:\allowbreak{}graph-\allowbreak{}support}; \texttt{ass:\allowbreak{}gaussian-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}diagonal-\allowbreak{}innovations}; \texttt{ass:\allowbreak{}stability-\allowbreak{}margin}; \texttt{ass:\allowbreak{}entry-\allowbreak{}envelope}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}lower}; \texttt{ass:\allowbreak{}innovation-\allowbreak{}upper}; \texttt{ass:\allowbreak{}odd-\allowbreak{}factor}; \texttt{ass:\allowbreak{}divided-\allowbreak{}difference-\allowbreak{}separation}.
+\end{definition}
+
+\begin{definition}[def:compatible-fiber]\label{def:compatible-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compatible fine-\allowbreak{}grid fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal S(B,Q;G)=\{(A,D):A^m=B,\ \sum_{r=0}^{m-1}A^rD(A^r)^\top=Q,\ A_{ij}=0\text{ for }i<j,\ A_{ij}=0\text{ for }i>j\text{ with }j\to i\notin G,\ \max_i|A_{ii}|<1,\ D_{ij}=0\text{ for }i\ne j,\ D\succ0\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{Q}; \texttt{G}; \texttt{m}.
+\end{definition}
+
+\begin{definition}[def:pair-fiber]\label{def:pair-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{queried coefficient-\allowbreak{}pair fiber}
+\par\smallskip\noindent\emph{Construction.} \(\Pi_{uv}(B,Q;G)=\{(p,q)\in\mathbb R^2:\exists(A,D)\in\mathcal S(B,Q;G),\ p=A_{vu},\ q=A_{vv}\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Sfiber}; \texttt{u}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:transfer-fiber]\label{def:transfer-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{queried transfer fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_{uv}(B,Q;G)=\{h_{p,q}:h_{p,q}(z)=pz/(1-qz),\ (p,q)\in\Pi_{uv}(B,Q;G)\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Pifiber}; \texttt{z}.
+\end{definition}
+
+\begin{definition}[def:graph-recursion]\label{def:graph-recursion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{graph-\allowbreak{}recursive root map}
+\par\smallskip\noindent\emph{Construction.} For each selected real diagonal root \(A_{ii}\) of \(B_{ii}\), process pairs \((v,u)\) in increasing \(v-u\); when \(C_m(A_{vv},A_{uu})\ne0\), set \(A_{vu}=\{B_{vu}-R_{vu,m}(A)\}/C_m(A_{vv},A_{uu})\) on an allowed edge and set forbidden entries to zero subject to their induced compatibility equations.
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{G}; \texttt{m}.
+\end{definition}
+
+\begin{definition}[def:certificate]\label{def:certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{formula-\allowbreak{}or-\allowbreak{}ambiguity certificate}
+\par\smallskip\noindent\emph{Construction.} \(\operatorname{Cert}_{uv,m,G}(B,Q)\) is the exact algorithm declared by symbol \(\mathrm{Cert}\), using the graph-recursive root map on regular coordinates and CAD on the remaining semialgebraic fiber and two-copy transfer comparison.
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{Q}; \texttt{G}; \texttt{m}; \texttt{u}; \texttt{v}; \texttt{K}.
+\end{definition}
+
+\begin{definition}[def:empirical-moments]\label{def:empirical-moments}
+\par\smallskip\noindent\emph{Defined object.} \texttt{overlapping lag-\allowbreak{}moment estimator}
+\par\smallskip\noindent\emph{Construction.} \(\widehat M_0=n^{-1}\sum_{s=1}^{n}Y_sY_s^\top\) and \(\widehat M_1=n^{-1}\sum_{s=1}^{n}Y_sY_{s-1}^\top\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Y}; \texttt{n}.
+\end{definition}
+
+\begin{definition}[def:moment-box]\label{def:moment-box}
+\par\smallskip\noindent\emph{Defined object.} \texttt{outward-\allowbreak{}rounded simultaneous moment box}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_n^M(\alpha)=\prod_{\ell\in\{0,1\},i,j\in V}\operatorname{Out}_N((\widehat M_\ell)_{ij},2K_\Sigma\{\sqrt{\log(4d^2/\alpha)/n}+\log(4d^2/\alpha)/n\})\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{hatM0}; \texttt{hatM1}; \texttt{Ksigma}; \texttt{alpha}; \texttt{N}.
+\end{definition}
+
+\begin{definition}[def:inverse-region]\label{def:inverse-region}
+\par\smallskip\noindent\emph{Defined object.} \texttt{branch-\allowbreak{}free semialgebraic inverse}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_n=\{(A,D):\exists(M_0,M_1)\in\mathcal C_n^M(\alpha),\ M_0\succ0,\ M_1=A^mM_0,\ M_0=A^mM_0(A^m)^\top+\sum_{r=0}^{m-1}A^rD(A^r)^\top,\ A_{ij}=0\text{ for }i<j,\ A_{ij}=0\text{ for }i>j\text{ with }j\to i\notin G,\ \max_i|A_{ii}|\le1-\gamma,\ \max_{i,j}|A_{ij}|\le L,\ D_{ij}=0\text{ for }i\ne j,\ d_{\min}I_d\preceq D\preceq d_{\max}I_d\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Cmoment}; \texttt{G}; \texttt{m}; \texttt{gamma}; \texttt{L}; \texttt{d\_\allowbreak{}min}; \texttt{d\_\allowbreak{}max}.
+\end{definition}
+
+\begin{definition}[def:transfer-confidence-set]\label{def:transfer-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{global transfer confidence set}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal C_n^h=\{A_{vu}z/(1-A_{vv}z):(A,D)\in\mathcal R_n\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{Rinverse}; \texttt{u}; \texttt{v}; \texttt{z}.
+\end{definition}
+
+\begin{definition}[def:regular-estimator]\label{def:regular-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{regular recursive plug-\allowbreak{}in estimator}
+\par\smallskip\noindent\emph{Construction.} Compute \((\widehat B,\widehat Q)\) from \((\widehat M_0,\widehat M_1)\), apply the unique odd graph-recursive root map, recover diagonal \(D\) recursively, and set \(\widehat h_{uv}(z)=\widehat A_{vu}z/(1-\widehat A_{vv}z)\) for \(z\in\mathcal Z\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{hatM0}; \texttt{hatM1}; \texttt{G}; \texttt{u}; \texttt{v}; \texttt{Zeval}.
+\end{definition}
+
+\begin{definition}[def:adaptive-calibration-handle]\label{def:adaptive-calibration-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{spectral-\allowbreak{}split adaptive calibration handle}
+\par\smallskip\noindent\emph{Construction.} Use \(\mathrm{CalHandle}\): spectral splitting of the stacked lag quadratic forms, a data-dependent block-Toeplitz covariance envelope, and verified rational outward rounding targeted at a coordinatewise smaller moment box whose full semialgebraic inverse remains uniformly valid.
+\par\smallskip\noindent\emph{Inputs.} \texttt{Hell}; \texttt{Wn}; \texttt{OutN}.
+\end{definition}
+
+\begin{definition}[def:derivative-separated-regular-class]\label{def:derivative-separated-regular-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{derivative-\allowbreak{}separated regular odd-\allowbreak{}factor class}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_{\mathrm{reg}}^{\partial}(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\) is the set of all \((A,D,(X_t)_{t\in\mathbb Z},(Y_s)_{s\in\mathbb Z};d,m,G)\in\mathcal M_{\mathrm{reg}}(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\) such that
+\[
+ \min_{i\in V}m|A_{ii}|^{m-1}\ge \kappa.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{m}; \texttt{G}; \texttt{gamma}; \texttt{L}; \texttt{d\_\allowbreak{}min}; \texttt{d\_\allowbreak{}max}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:target-corridor]\label{def:target-corridor}
+\par\smallskip\noindent\emph{Defined object.} \texttt{directed target corridor}
+\par\smallskip\noindent\emph{Construction.} Allow a directed path of length zero at either endpoint and define
+\[
+ V_{uv}^{G}
+ =\{w\in V:u\leadsto w\text{ in }G\text{ and }w\leadsto v\text{ in }G\},
+ \qquad
+ E_{uv}^{G}
+ =\{j\to i\in E:j\in V_{uv}^{G},\ i\in V_{uv}^{G}\}.
+\]
+Equivalently, \(V_{uv}^{G}\) and \(E_{uv}^{G}\) are respectively the vertices and edges lying on at least one directed path from \(u\) to \(v\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{u}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:target-corridor-recursion]\label{def:target-corridor-recursion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{target-\allowbreak{}corridor root and transfer map}
+\par\smallskip\noindent\emph{Construction.} For odd \(m\), define the partial corridor-root map \(\mathscr R_{uv,m,G}(B)\) as follows.  For each \(i\in V_{uv}^{G}\), set
+\[
+ \mathscr R_{uv,m,G}(B)_{ii}=B_{ii}^{1/m},
+\]
+where the real odd root is used.  Process the edges \(j\to i\in E_{uv}^{G}\) in increasing order of \(i-j\), treating graph-forbidden entries as zero, and set
+\[
+ \mathscr R_{uv,m,G}(B)_{ij}
+ =\frac{B_{ij}-R_{ij,m}(\mathscr R_{uv,m,G}(B))}
+ {C_m(\mathscr R_{uv,m,G}(B)_{ii},\mathscr R_{uv,m,G}(B)_{jj})}.
+\]
+The map is defined precisely when all displayed denominators are nonzero.  Its transfer functional is
+\[
+ \Phi_{uv,m,G}(B)(z)
+ =\frac{\mathscr R_{uv,m,G}(B)_{vu}z}
+ {1-\mathscr R_{uv,m,G}(B)_{vv}z}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{m}; \texttt{G}; \texttt{u}; \texttt{v}.
+\end{definition}
+
+\begin{definition}[def:corridor-derivative-separated-class]\label{def:corridor-derivative-separated-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{target-\allowbreak{}corridor derivative-\allowbreak{}separated class}
+\par\smallskip\noindent\emph{Construction.} The target-corridor derivative-separated class is
+\[
+\begin{split}
+ \mathcal M_{uv,\mathrm{cor}}^{\partial}
+ &(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\\
+ ={}&\left\{P\in\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max}):
+ m\text{ is odd},\right.\\
+ &\left.\qquad
+ \min_{i\in V_{uv}^{G}}m|A_{ii}|^{m-1}\ge\kappa,
+ \quad
+ \min_{j\to i\in E_{uv}^{G}}|C_m(A_{ii},A_{jj})|\ge\kappa
+ \right\}.
+\end{split}
+\]
+The minima are over nonempty finite sets whenever \(u\to v\in G\), because then \(u,v\in V_{uv}^{G}\) and \(u\to v\in E_{uv}^{G}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{m}; \texttt{G}; \texttt{u}; \texttt{v}; \texttt{gamma}; \texttt{L}; \texttt{d\_\allowbreak{}min}; \texttt{d\_\allowbreak{}max}; \texttt{kappa}.
+\end{definition}
+
+\begin{definition}[def:corridor-estimator]\label{def:corridor-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{target-\allowbreak{}corridor recursive plug-\allowbreak{}in estimator}
+\par\smallskip\noindent\emph{Construction.} On the event \(\widehat M_0\succ0\), compute
+\[
+ \widehat B=\widehat M_1\widehat M_0^{-1},
+ \qquad
+ \widehat h_{uv}^{\mathrm{cor}}(z)
+ =\Phi_{uv,m,G}(\widehat B)(z),\qquad z\in\mathcal Z,
+\]
+using only the diagonal and edge operations in \(\mathscr R_{uv,m,G}\).  Define the estimator arbitrarily if \(\widehat M_0\) is not positive definite or a corridor denominator vanishes.
+\par\smallskip\noindent\emph{Inputs.} \texttt{hatM0}; \texttt{hatM1}; \texttt{G}; \texttt{u}; \texttt{v}; \texttt{m}; \texttt{Zeval}.
+\end{definition}
+
+\begin{definition}[def:algebraic-dependency-closure]\label{def:algebraic-dependency-closure}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact finite algebraic dependency closure}
+\par\smallskip\noindent\emph{Construction.} For each allowed edge \(j\to i\in E\), let \(\overline R^{G}_{ij,m}\) be the formal polynomial obtained from \(R_{ij,m}\) after setting every upper-triangular or graph-forbidden off-diagonal variable to zero.  For \(F\subseteq E\), define
+\[
+ \mathfrak D_m(F)
+ =F\cup\left\{k\to\ell\in E:
+ A_{\ell k}\text{ occurs with positive exponent in a monomial with nonzero coefficient of }
+ \overline R^{G}_{ij,m}
+ \text{ for some }j\to i\in F\right\}.
+\]
+Starting from
+\[
+ E_{uv}^{\mathrm{alg},m,(0)}=\{u\to v\},
+ \qquad
+ E_{uv}^{\mathrm{alg},m,(r+1)}
+ =\mathfrak D_m\!\left(E_{uv}^{\mathrm{alg},m,(r)}\right),
+\]
+define the exact finite \(m\)-step algebraic dependency closure and its incident vertices by
+\[
+ E_{uv}^{\mathrm{alg},m}=\bigcup_{r\ge0}E_{uv}^{\mathrm{alg},m,(r)},
+ \qquad
+ V_{uv}^{\mathrm{alg},m}
+ =\left\{i\in V:i\text{ is an endpoint of an edge in }E_{uv}^{\mathrm{alg},m}\right\}.
+\]
+Thus a diagonal coordinate \(A_{ii}\) is retained exactly when \(i\in V_{uv}^{\mathrm{alg},m}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{G}; \texttt{u}; \texttt{v}; \texttt{m}; \texttt{Rm}.
+\end{definition}
+
+\begin{definition}[def:algebraic-dependency-recursion]\label{def:algebraic-dependency-recursion}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact algebraic-\allowbreak{}dependency root and transfer map}
+\par\smallskip\noindent\emph{Construction.} For odd \(m\), define the partial algebraic-dependency root map \(\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)\) as follows.  For every \(i\in V_{uv}^{\mathrm{alg},m}\), set
+\[
+ \mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{ii}=B_{ii}^{1/m},
+\]
+using the unique real odd root.  Process the edges \(j\to i\in E_{uv}^{\mathrm{alg},m}\) in increasing order of \(i-j\), set graph-forbidden entries to zero, and put
+\[
+ \mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{ij}
+ =\frac{B_{ij}-\overline R^{G}_{ij,m}
+ \bigl(\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)\bigr)}
+ {C_m\!\left(\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{ii},
+ \mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{jj}\right)}.
+\]
+The map is defined exactly when every displayed denominator is nonzero.  Its queried transfer is
+\[
+ \Phi^{\mathrm{alg}}_{uv,m,G}(B)(z)
+ =\frac{\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{vu}z}
+ {1-\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{vv}z}.
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{B}; \texttt{m}; \texttt{G}; \texttt{u}; \texttt{v}; \texttt{Ealg}; \texttt{Valg}.
+\end{definition}
+
+\begin{definition}[def:algebraic-dependency-separated-class]\label{def:algebraic-dependency-separated-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact algebraic-\allowbreak{}dependency derivative-\allowbreak{}separated class}
+\par\smallskip\noindent\emph{Construction.} The algebraic-dependency derivative-separated class is
+\[
+\begin{split}
+ \mathcal M_{uv,\mathrm{alg}}^{\partial}
+ &(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\\
+ ={}&\left\{P\in\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max}):
+ m\text{ is odd},\right.\\
+ &\left.\qquad
+ \min_{i\in V_{uv}^{\mathrm{alg},m}}m|A_{ii}|^{m-1}\ge\kappa,
+ \quad
+ \min_{j\to i\in E_{uv}^{\mathrm{alg},m}}|C_m(A_{ii},A_{jj})|\ge\kappa
+ \right\}.
+\end{split}
+\]
+When \(u\to v\in G\), both finite index sets in the minima are nonempty because \(u\to v\in E_{uv}^{\mathrm{alg},m}\) and \(u,v\in V_{uv}^{\mathrm{alg},m}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{d}; \texttt{m}; \texttt{G}; \texttt{u}; \texttt{v}; \texttt{gamma}; \texttt{L}; \texttt{d\_\allowbreak{}min}; \texttt{d\_\allowbreak{}max}; \texttt{kappa}; \texttt{Ealg}; \texttt{Valg}.
+\end{definition}
+
+\begin{definition}[def:algebraic-dependency-estimator]\label{def:algebraic-dependency-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{exact algebraic-\allowbreak{}dependency recursive plug-\allowbreak{}in estimator}
+\par\smallskip\noindent\emph{Construction.} On the event \(\widehat M_0\succ0\), form
+\[
+ \widehat B=\widehat M_1\widehat M_0^{-1},
+ \qquad
+ \widehat h_{uv}^{\mathrm{alg}}(z)
+ =\Phi^{\mathrm{alg}}_{uv,m,G}(\widehat B)(z),
+ \qquad z\in\mathbb T,
+\]
+using only the diagonal and edge operations in \(\mathscr R^{\mathrm{alg}}_{uv,m,G}\).  Define the random rational function arbitrarily if \(\widehat M_0\) is not positive definite, an algebraic-dependency denominator vanishes, or the displayed rational function has a pole on \(\mathbb T\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{hatM0}; \texttt{hatM1}; \texttt{G}; \texttt{u}; \texttt{v}; \texttt{m}; \texttt{Ealg}; \texttt{Valg}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:coarse-law-reduction]\label{lem:coarse-law-reduction}
+The observed process satisfies \(Y_s=BY_{s-1}+\eta_s\), where \(B=A^m\), \(\eta_s\) is independent Gaussian white noise with covariance \(Q\), and \(B=M_1M_0^{-1}\), \(Q=M_0-BM_0B^\top\). Conversely, stable \(B\) and positive definite \(Q\) determine the stationary coarse Gaussian law.
+\end{lemma}
+\begin{proof}
+Iterating the fine recursion \(m\) times gives, for every \(s\in\mathbb Z\),
+\[
+ X_{ms}=A^mX_{m(s-1)}+\sum_{r=0}^{m-1}A^r\varepsilon_{ms-r}.
+\]
+By the definitions of \(Y\), \(B\), and \(\eta\), this is
+\[
+ Y_s=BY_{s-1}+\eta_s,
+ \qquad B=A^m.
+\]
+The innovation indices entering \(\eta_s\) form the block
+\(\{m(s-1)+1,\ldots,ms\}\). These blocks are disjoint for distinct values of
+\(s\). Hence \(\mathrm{ass{:}gaussian\mbox{-}innovations}\) implies that the
+\(\eta_s\) are independent centered Gaussian vectors. The same block is
+strictly later than all innovations measurable with respect to
+\(Y_{s-1}\), so \(\eta_s\) is independent of \(Y_{s-1}\). Independence of
+the fine innovations also gives
+\[
+ \operatorname{Cov}(\eta_s)
+ =\sum_{r=0}^{m-1}A^rD(A^r)^\top=Q.
+\]
+Because \(D\succ0\), the term with \(r=0\) shows that \(Q\succ0\).
+
+Assumption \(\mathrm{ass{:}stable\mbox{-}transition}\) gives
+\(\rho(B)=\rho(A)^m<1\). The unique stationary covariance therefore obeys
+\[
+ M_0=BM_0B^\top+Q.
+\]
+It is positive definite because
+\(M_0=\sum_{k=0}^{\infty}B^kQ(B^k)^\top\succeq Q\succ0\). Taking the
+cross-moment of the coarse recursion with \(Y_{s-1}\), and using the
+independence just proved, yields
+\[
+ M_1=\mathbb E[Y_sY_{s-1}^\top]=BM_0.
+\]
+Thus division by \(M_0\) is legitimate and
+\[
+ B=M_1M_0^{-1},
+ \qquad Q=M_0-BM_0B^\top.
+\]
+
+Conversely, let \(B\) be real with \(\rho(B)<1\), and let \(Q\succ0\).
+For independent \(N(0,Q)\) vectors \((\eta_s)_{s\in\mathbb Z}\), the series
+\[
+ Y_s=\sum_{k=0}^{\infty}B^k\eta_{s-k}
+\]
+converges in \(L^2\), since finite-dimensional stability implies a bound
+\(\lVert B^k\rVert_{\mathrm{op}}\le Cc^k\) for some \(C<\infty\) and
+\(c<1\). It is the unique stationary solution of
+\(Y_s=BY_{s-1}+\eta_s\). Its mean is zero and its covariance sequence is
+\[
+ \Gamma_0=\sum_{k=0}^{\infty}B^kQ(B^k)^\top,
+ \qquad \Gamma_j=B^j\Gamma_0\quad(j\ge0),
+\]
+with \(\Gamma_{-j}=\Gamma_j^\top\). A centered Gaussian process is determined
+by its covariance function, so stable \(B\) and positive definite \(Q\)
+determine the entire stationary coarse Gaussian law.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This reduces observational equivalence to two coarse matrices before any root argument. \textit{Gap.} Gong et al. derive the subsampled transition and innovation mixture; the converse coarse-law sufficiency is recorded here to fix the exact fiber. \textit{Consumer.} The certificate and both inference procedures use \((B,Q)\) or equivalently \((M_0,M_1)\) as their complete observed-law input.
+
+\begin{lemma}[lem:path-expansion]\label{lem:path-expansion}
+For every \(u<v\), \((A^m)_{vu}=A_{vu}C_m(A_{vv},A_{uu})+R_{vu,m}(A)\), and each monomial of \(R_{vu,m}(A)\) follows a directed path from \(u\) to \(v\) with at least two strict vertex increases and only smaller endpoint gaps.
+\end{lemma}
+\begin{proof}
+By assumption \(\mathrm{ass{:}lower\mbox{-}triangular}\), a nonzero summand in the product expansion of \((A^m)_{vu}\) is indexed by a nondecreasing walk
+\[
+ u=i_0\le i_1\le\cdots\le i_m=v,
+ \qquad
+ \prod_{s=1}^{m}A_{i_s i_{s-1}}.
+\]
+If this walk has exactly one strict increase, that increase must be \(u<v\).  If it occurs between positions \(s\) and \(s+1\), with \(s\in\{0,\ldots,m-1\}\), its monomial is
+\[
+ A_{vv}^{m-1-s}A_{vu}A_{uu}^{s}.
+\]
+Summing these \(m\) monomials and reindexing gives
+\[
+ A_{vu}\sum_{s=0}^{m-1}A_{vv}^{m-1-s}A_{uu}^{s}
+ =A_{vu}C_m(A_{vv},A_{uu}).
+\]
+Every remaining nonzero walk has at least two strict increases.  Its strict increases give vertices
+\[
+ u=j_0<j_1<\cdots<j_k=v,
+ \qquad k\ge2.
+\]
+Assumption \(\mathrm{ass{:}graph\mbox{-}support}\), together with the supplied order in \(\mathrm{ass{:}supplied\mbox{-}labeled\mbox{-}order}\), implies that every strict factor \(A_{j_rj_{r-1}}\) follows the directed edge \(j_{r-1}\to j_r\) in \(G\).  Since \(k\ge2\), every such factor satisfies
+\[
+ 0<j_r-j_{r-1}<v-u.
+\]
+The sum of precisely these remaining monomials is the polynomial \(R_{vu,m}(A)\) from its definition.  Partitioning the complete product expansion into the one-jump and at-least-two-jump walks proves both the displayed identity and the asserted support and endpoint-gap properties.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The identity exposes the exact coefficient whose vanishing separates recursive identification from singular fibers. \textit{Gap.} Smith's triangular recurrence is numerical and branch-oriented; the graph-indexed path remainder and its causal support checks are the adapted algebraic form. \textit{Consumer.} It lets a scientist recover a queried edge without solving the full matrix polynomial whenever the ancestral recursion is regular.
+
+\begin{lemma}[lem:divided-difference-zero-set]\label{lem:divided-difference-zero-set}
+If \(m\) is odd, then \(C_m(x,y)>0\) for every \((x,y)\ne(0,0)\) and \(C_m(0,0)=0\). If \(m\) is even, then \(C_m(x,y)=0\) if and only if \(x=-y\).
+\end{lemma}
+\begin{proof}
+First suppose \(x\ne y\).  The finite geometric identity gives
+\[
+ C_m(x,y)=\sum_{r=0}^{m-1}x^r y^{m-1-r}
+ =\frac{x^m-y^m}{x-y}.
+\]
+If \(x=y\), direct substitution gives
+\[
+ C_m(x,x)=m x^{m-1}.
+\]
+Let \(m\) be odd.  The function \(t\mapsto t^m\) is strictly increasing on \(\mathbb R\), so, for \(x\ne y\), the numerator \(x^m-y^m\) and denominator \(x-y\) have the same sign.  Hence \(C_m(x,y)>0\).  For \(x=y\ne0\), the integer \(m-1\) is even, and therefore \(m x^{m-1}>0\).  At \((x,y)=(0,0)\), every monomial in the defining sum is zero because \(m-1\ge1\), so \(C_m(0,0)=0\).
+
+Now let \(m\) be even.  When \(x\ne y\), the quotient above vanishes exactly when \(x^m=y^m\), equivalently \(|x|=|y|\); the inequality \(x\ne y\) then makes this equivalent to \(x=-y\).  When \(x=y\), the value \(m x^{m-1}\) vanishes exactly when \(x=0\), which again is exactly the coincident case of \(x=-y\).  Conversely, substituting \(y=-x\) in the defining sum, including \(x=0\), gives zero.  This proves both zero-set assertions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The zero set supplies the sharp parity-specific collision geometry. \textit{Gap.} Classical root algorithms note singular recurrences but do not translate their zero locus into a causal identification frontier. \textit{Consumer.} It tells a data analyst which persistence configurations require the exact fallback rather than the closed-form recursion.
+
+\begin{theorem}[thm:odd-regular-identification]\label{thm:odd-regular-identification}
+Suppose \(m\) is odd and no allowed edge \(j\to i\) has \(A_{ii}=A_{jj}=0\). Then every nonempty \(\mathcal S(B,Q;G)\) is a singleton. Its diagonal is \(A_{ii}=B_{ii}^{1/m}\); its allowed off-diagonal entries are recovered in increasing endpoint gap by \(A_{ij}=\{B_{ij}-R_{ij,m}(A)\}/C_m(A_{ii},A_{jj})\); and its diagonal innovations are recovered in increasing \(i\) by \(D_{ii}=\{Q_{ii}-\sum_{j<i}D_{jj}\sum_{r=0}^{m-1}(A^r)_{ij}^2\}/\sum_{r=0}^{m-1}A_{ii}^{2r}\). For arbitrary \((B,Q)\), the recursively produced candidate is compatible if and only if its diagonal is stable, every recovered \(D_{ii}\) is positive, every forbidden entry of \(A^m=B\) holds, and the complete covariance equation \(Q=\sum_{r=0}^{m-1}A^rD(A^r)^\top\) holds. Consequently every nonempty compatible transfer fiber satisfies \(\mathcal H_{uv}(B,Q;G)=\{h_{uv}\}\).
+\end{theorem}
+\begin{proof}
+Assume the hypotheses of the theorem and let \((A,D)\in\mathcal S(B,Q;G)\).  By \(\texttt{ass:lower-triangular}\), every power \(A^r\) is lower triangular, and multiplication of triangular matrices gives
+\[
+(A^r)_{ii}=A_{ii}^r \qquad (i\in V,\ r\geq 0).
+\]
+The transition equation in \(\texttt{def:compatible-fiber}\) therefore implies, coordinate by coordinate,
+\[
+B_{ii}=(A^m)_{ii}=A_{ii}^m. \tag{1}
+\]
+By \(\texttt{ass:odd-factor}\), \(m\) is odd.  For real \(x\neq y\), the polynomial identity
+\[
+x^m-y^m=(x-y)C_m(x,y)
+\]
+and \(\texttt{lem:divided-difference-zero-set}\) imply \(C_m(x,y)>0\), since \((x,y)\neq(0,0)\).  Hence \(x^m-y^m\) has the same sign as \(x-y\), so \(x\mapsto x^m\) is strictly increasing and injective on \(\mathbb R\).  Thus every member of the compatible fiber has the same diagonal,
+\[
+A_{ii}=B_{ii}^{1/m}, \tag{2}
+\]
+where \(B_{ii}^{1/m}\) denotes the unique real \(m\)-th root.
+
+We next determine all lower off-diagonal coordinates by induction on the endpoint gap.  The entries above the diagonal are zero by \(\texttt{ass:lower-triangular}\), and an entry \(A_{ij}\) with \(i>j\) and \(j\to i\notin G\) is zero by \(\texttt{ass:graph-support}\).  Suppose all allowed entries whose endpoint gap is less than \(g\) have been determined, and let \(j\to i\) be an allowed edge with \(i-j=g\).  The established result \(\texttt{lem:path-expansion}\) yields
+\[
+B_{ij}=(A^m)_{ij}
+=A_{ij}C_m(A_{ii},A_{jj})+R_{ij,m}(A). \tag{3}
+\]
+Every monomial in \(R_{ij,m}(A)\) contains at least two strict vertex increases along a graph-supported path from \(j\) to \(i\).  Each strict-increase edge in such a path consequently has endpoint gap strictly smaller than \(i-j=g\).  All of its off-diagonal factors are therefore already known by the induction hypothesis or are zero by \(\texttt{ass:graph-support}\); its diagonal factors are known from (2).  Hence \(R_{ij,m}(A)\) is known at this stage.
+
+The noncollision hypothesis gives \((A_{ii},A_{jj})\neq(0,0)\) for this allowed edge.  Since \(m\) is odd, \(\texttt{lem:divided-difference-zero-set}\) gives
+\[
+C_m(A_{ii},A_{jj})>0. \tag{4}
+\]
+Division in (3) is thus legitimate and forces
+\[
+A_{ij}
+=\frac{B_{ij}-R_{ij,m}(A)}{C_m(A_{ii},A_{jj})}. \tag{5}
+\]
+Induction over \(g=1,\ldots,d-1\) determines every allowed lower-triangular entry.  If \((\widetilde A,\widetilde D)\) is another member of \(\mathcal S(B,Q;G)\), equations (1)--(2) give \(\widetilde A_{ii}=A_{ii}\) for every \(i\), so the same noncollision inequalities and the same induction applied to (3)--(5) give \(\widetilde A=A\).  Therefore the fine transition matrix is unique whenever the fiber is nonempty.
+
+Fix this recovered \(A\).  The definition \(\texttt{def:compatible-fiber}\) requires \(D\) to be diagonal.  The \((i,i)\) coordinate of its covariance equation is therefore
+\[
+\begin{aligned}
+Q_{ii}
+&=\sum_{r=0}^{m-1}\bigl(A^rD(A^r)^\top\bigr)_{ii}\\
+&=\sum_{r=0}^{m-1}\sum_{j=1}^{d}D_{jj}(A^r)_{ij}^2.
+\end{aligned} \tag{6}
+\]
+Lower triangularity gives \((A^r)_{ij}=0\) for \(j>i\), while \((A^r)_{ii}=A_{ii}^r\).  Hence (6) becomes
+\[
+Q_{ii}
+=D_{ii}\sum_{r=0}^{m-1}A_{ii}^{2r}
++\sum_{j<i}D_{jj}\sum_{r=0}^{m-1}(A^r)_{ij}^2. \tag{7}
+\]
+The coefficient
+\[
+s_i:=\sum_{r=0}^{m-1}A_{ii}^{2r}
+\]
+is strictly positive because its \(r=0\) summand is one.  Starting at \(i=1\) and proceeding in the supplied order, equation (7) uniquely determines
+\[
+D_{ii}
+=\frac{Q_{ii}-\displaystyle\sum_{j<i}D_{jj}
+\displaystyle\sum_{r=0}^{m-1}(A^r)_{ij}^2}
+{\displaystyle\sum_{r=0}^{m-1}A_{ii}^{2r}}. \tag{8}
+\]
+Thus a compatible diagonal innovation covariance is unique as well.  We have shown that \(\mathcal S(B,Q;G)\) has at most one element, so every nonempty compatible fiber is a singleton.
+
+We now verify the asserted compatibility test.  Consider arbitrary input \((B,Q)\) in the theorem's odd, noncollision regime, and construct a candidate by (2), by imposing the structural zeros, by the gap recursion (5), and by the innovation recursion (8).  Its diagonal transition equations hold by (2), and its allowed lower-triangular transition equations hold by (3) and (5).  Therefore the remaining non-recursed coordinates of \(A^m=B\), namely the upper-triangular and graph-forbidden coordinates, hold exactly when the advertised forbidden-coordinate checks pass.  Similarly, (8) enforces every diagonal coordinate of the covariance equation; requiring the complete equality
+\[
+Q=\sum_{r=0}^{m-1}A^rD(A^r)^\top \tag{9}
+\]
+checks all remaining covariance coordinates.  Because the candidate \(A\) is triangular, its eigenvalues are its diagonal entries, so the stability requirement in \(\texttt{def:compatible-fiber}\) is equivalent to
+\[
+\max_{i\in V}|A_{ii}|<1. \tag{10}
+\]
+Because the candidate \(D\) is diagonal, \(D\succ0\) is equivalent to
+\[
+D_{ii}>0\qquad(i\in V). \tag{11}
+\]
+Conditions (9)--(11), together with the remaining transition-coordinate checks, imply every condition in \(\texttt{def:compatible-fiber}\), and hence are sufficient for compatibility.  Conversely, each is required by that definition, so they are necessary.  This proves the stated if-and-only-if test.  If the rooted diagonal of an input has a zero-zero pair on an allowed edge, then the input lies outside the theorem's noncollision regime and the division in (5) is not asserted.
+
+Finally, \(\texttt{def:transfer-fiber}\) maps each compatible pair to the rational function
+\[
+z\longmapsto \frac{A_{vu}z}{1-A_{vv}z}.
+\]
+For \(|z|=1\), (10) implies \(|A_{vv}z|<1\), so its denominator is nonzero.  The singleton compatible fiber therefore maps to
+\[
+\mathcal H_{uv}(B,Q;G)
+=\left\{z\longmapsto\frac{A_{vu}z}{1-A_{vv}z}\right\}
+=\{h_{uv}\}. \tag{12}
+\]
+Here \(h_{uv}\) is the structural causal transfer fixed by the fine-grid model; equation (12) proves its recovery from the compatible coarse-law fiber rather than defining the causal target from \((B,Q)\).
+
+For an exact regular stress test, take \(d=2\), \(m=3\), let \(G\) contain \(1\to2\), and set
+\[
+A=\begin{pmatrix}1/2&0\\[2pt]1/4&1/3\end{pmatrix},
+\qquad D=I_2.
+\]
+Direct multiplication gives
+\[
+B=A^3
+=\begin{pmatrix}1/8&0\\[2pt]19/144&1/27\end{pmatrix},
+\qquad
+Q=\sum_{r=0}^{2}A^r(A^r)^\top
+=\begin{pmatrix}21/16&17/96\\[2pt]17/96&6373/5184\end{pmatrix}.
+\]
+Indeed,
+\[
+C_3(1/3,1/2)=\frac19+\frac16+\frac14=\frac{19}{36},
+\qquad
+\frac{19/144}{19/36}=\frac14.
+\]
+The first use of (8) gives \(D_{11}=1\).  For its second use, the earlier-coordinate contribution is
+\[
+\left(\frac14\right)^2+\left(\frac5{24}\right)^2=\frac{61}{576},
+\]
+and
+\[
+\frac{6373}{5184}-\frac{61}{576}
+=\frac{91}{81}
+=1+\left(\frac13\right)^2+\left(\frac13\right)^4,
+\]
+so \(D_{22}=1\).  The recovered transfer is \(h_{12}(z)=z/\{4(1-z/3)\}\), agreeing exactly with the structural transfer.
+
+The noncollision condition is load-bearing.  With the same graph and \(m=3\), fix \(q_1,q_2>0\) and, for each \(a\) satisfying \(|a|<\sqrt{q_2/q_1}\), define
+\[
+A(a)=\begin{pmatrix}0&0\\ a&0\end{pmatrix},
+\qquad
+D(a)=\operatorname{diag}(q_1,q_2-a^2q_1).
+\]
+Then \(A(a)^2=0\), \(A(a)\) is stable, and the strict bound on \(a\) gives \(D(a)\succ0\).  Direct multiplication yields
+\[
+A(a)^3=0,
+\qquad
+\sum_{r=0}^{2}A(a)^rD(a)(A(a)^r)^\top
+=\operatorname{diag}(q_1,q_2).
+\]
+Thus one coarse pair \((B,Q)=(0,\operatorname{diag}(q_1,q_2))\) has an open interval of compatible fine parameters with distinct transfers
+\[
+h_{12}^{(a)}(z)=az.
+\]
+Both endpoint persistences on the allowed edge are zero, exactly violating the noncollision hypothesis.  Identification therefore genuinely fails after that hypothesis is removed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This theorem retains the stronger full-parameter singleton result under noncollision on every allowed edge; the new target-corridor theorem shows that full uniqueness is unnecessary for the causal transfer. \textit{Gap.} Classical triangular-root recursion computes a chosen root but does not prove graph- and covariance-compatible uniqueness, while Gong et al.'s positive theorem uses a different non-Gaussian information regime. \textit{Consumer.} Users needing the entire fine transition and diagonal innovation covariance may apply the global recursion; transfer-only users can invoke the weaker corridor theorem.
+
+\begin{theorem}[thm:even-sign-ambiguity]\label{thm:even-sign-ambiguity}
+If \(m\) is even and \((A,D)\in\mathcal S(B,Q;G)\), then \((-A,D)\in\mathcal S(B,Q;G)\). If \(A_{vu}\ne0\), the two attained transfers \(A_{vu}z/(1-A_{vv}z)\) and \(-A_{vu}z/(1+A_{vv}z)\) are unequal as rational functions. Hence no nonzero queried edge transfer is point identified from the Gaussian coarse law under an even factor.
+\end{theorem}
+\begin{proof}
+Assume that \(m\) is even and fix \((A,D)\in\mathcal S(B,Q;G)\).  By \(\mathrm{ass{:}known\mbox{-}sampling\mbox{-}factor}\), \(m\ge2\) is the fixed sampling factor, so \(m=2k\) for an integer \(k\ge1\).  Put \(\widetilde A=-A\).  The first equality in \(\mathrm{def{:}compatible\mbox{-}fiber}\) gives \(A^m=B\), and therefore
+\[
+ \widetilde A^m=(-A)^{2k}=A^{2k}=B.
+\]
+For every \(r\in\{0,\ldots,m-1\}\),
+\[
+ \widetilde A^rD(\widetilde A^r)^\top
+ =(-1)^rA^rD\bigl((-1)^rA^r\bigr)^\top
+ =(-1)^{2r}A^rD(A^r)^\top
+ =A^rD(A^r)^\top.
+\]
+Summing this equality and using the second equality in \(\mathrm{def{:}compatible\mbox{-}fiber}\) yields
+\[
+ \sum_{r=0}^{m-1}\widetilde A^rD(\widetilde A^r)^\top
+ =\sum_{r=0}^{m-1}A^rD(A^r)^\top
+ =Q.
+\]
+Every required zero is preserved because \(\widetilde A_{ij}=-A_{ij}\): thus \(\widetilde A_{ij}=0\) when \(i<j\), and also when \(i>j\) and \(j\to i\notin G\).  Stability is preserved coordinatewise since
+\[
+ \max_i|\widetilde A_{ii}|=\max_i|A_{ii}|<1.
+\]
+The matrix \(D\) is unchanged, so it remains diagonal and positive definite.  These are all constraints in \(\mathrm{def{:}compatible\mbox{-}fiber}\), and hence
+\[
+ (-A,D)=(\widetilde A,D)\in\mathcal S(B,Q;G).
+\]
+
+The same membership conditions also show that \(A\) is lower triangular.  Its characteristic polynomial is therefore
+\[
+ \det(\lambda I-A)=\prod_{i=1}^{d}(\lambda-A_{ii}),
+\]
+so \(\rho(A)=\max_i|A_{ii}|<1\).  The theorem \(\mathrm{thm{:}unrestricted\mbox{-}even\mbox{-}sign\mbox{-}ambiguity}\), applied with this \(A\), the positive-definite matrix \(D\), and the even factor \(m\), now proves that the stationary Gaussian processes with fine transitions \(A\) and \(-A\) have exactly the same sampled law.  This application is valid a fortiori for diagonal \(D\); the unrestricted theorem itself does not use that restriction.
+
+By \(\mathrm{ass{:}query\mbox{-}edge}\), \(u\to v\) is the queried arrow.  Write \(p=A_{vu}\) and \(q=A_{vv}\).  From the two established memberships and \(\mathrm{def{:}transfer\mbox{-}fiber}\), the common observed law attains both
+\[
+ h_+(z)=\frac{pz}{1-qz}
+ \quad\text{and}\quad
+ h_-(z)=\frac{-pz}{1+qz}
+\]
+in \(\mathcal H_{uv}(B,Q;G)\).  Here \(|q|<1\) by \(\mathrm{def{:}compatible\mbox{-}fiber}\), so both denominators are nonzero for every \(|z|=1\).  If the two rational functions were equal, cross multiplication would imply
+\[
+ pz(1+qz)=-pz(1-qz),
+\]
+and cancellation of the quadratic terms would give \(2pz=0\).  This is impossible when \(p=A_{vu}\ne0\).  Hence the transfer fiber contains two attained unequal elements.  Since they arise from the same Gaussian coarse law, no functional of that law can equal the queried nonzero transfer in both compatible models; point identification fails.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The global sign action is an unavoidable same-law obstruction that covariance filtering cannot remove. \textit{Gap.} Gong et al.'s even sign conclusion is embedded in a non-Gaussian identification theorem; this claim proves the obstruction directly for the Gaussian law after the complete coarse covariance restriction. \textit{Consumer.} For a conditionally ordered Temperature--Ozone analysis with \(m=2\), the result prevents reporting a branch-selected directional transfer as identified.
+
+\begin{theorem}[thm:total-certificate]\label{thm:total-certificate}
+Under effective \(K\)-valued inputs, \(\operatorname{Cert}_{uv,m,G}(B,Q)\) terminates and is sound and complete. It returns incompatibility exactly when \(\mathcal S(B,Q;G)=\varnothing\); conditional on \(\mathcal S(B,Q;G)\ne\varnothing\), it returns one rational function exactly when \(\mathcal H_{uv}(B,Q;G)\) consists of one rational function; otherwise it returns two attained stable pairs \((A,D),(A',D')\in\mathcal S(B,Q;G)\) satisfying \((A_{vu}-A'_{vu})^2+(A_{vu}A'_{vv}-A'_{vu}A_{vv})^2>0\). The certificate remains complete for zero diagonals, zero queried edges, open fibers, positive-dimensional fibers, and branch mergers.
+\end{theorem}
+\begin{proof}
+Fix effective \(K\)-valued matrices \(B,Q\), the supplied graph \(G\), and the known integer \(m\geq2\).  For a compatible structural pair \((A,D)\), the causal target is the fine-grid transfer \(h_{uv}(z)=A_{vu}z/(1-A_{vv}z)\).  The set \(\mathcal H_{uv}(B,Q;G)\), by contrast, is the image of the compatible structural fiber under this transfer map.  We prove that the certificate decides whether this image is empty, a singleton, or contains two unequal attained transfers.
+
+Define the finite coordinate set
+\[
+ \mathcal I_G
+ =\{(i,i):i\in V\}\cup
+   \{(i,j):j<i\text{ and }j\to i\text{ in }G\}.
+\]
+For every \((i,j)\in\mathcal I_G\), introduce a real variable \(a_{ij}\), and introduce real variables \(d_1,\ldots,d_d\).  Let \(\widetilde A(a)\) have entry \(a_{ij}\) on \(\mathcal I_G\) and zero elsewhere, and put \(\widetilde D(d)=\operatorname{diag}(d_1,\ldots,d_d)\).  Thus lower triangularity and graph support are imposed by the coordinate parametrization itself.
+
+Consider the finite system
+\[
+ [\widetilde A(a)^m]_{ij}=B_{ij}\qquad(i,j\in V),                 \tag{1}
+\]
+\[
+ \left[\sum_{r=0}^{m-1}\widetilde A(a)^r\widetilde D(d)
+                    (\widetilde A(a)^r)^\top\right]_{ij}
+ =Q_{ij}\qquad(i,j\in V),                                        \tag{2}
+\]
+and
+\[
+ -1<a_{ii}<1\qquad(i\in V),
+ \qquad d_i>0\qquad(i\in V).                                    \tag{3}
+\]
+Every left side in (1)--(2) is a polynomial in finitely many variables with coefficients in \(K\), by \(\mathrm{ass{:}effective\mbox{-}input}\).  Because \(\widetilde A(a)\) is triangular,
+\[
+ \det(\lambda I-\widetilde A(a))=\prod_{i=1}^d(\lambda-a_{ii}),
+ \qquad \rho(\widetilde A(a))=\max_i|a_{ii}|.
+\]
+Hence the first inequalities in (3) are equivalent to stability.  Moreover, for every nonzero \(x\in\mathbb R^d\),
+\[
+ x^\top\widetilde D(d)x=\sum_{i=1}^d d_i x_i^2>0
+\]
+if and only if every \(d_i>0\); thus the second inequalities in (3) are equivalent to \(\widetilde D(d)\succ0\).  It follows directly from \(\mathrm{def{:}compatible\mbox{-}fiber}\) that
+\[
+ (a,d)\longmapsto (\widetilde A(a),\widetilde D(d))               \tag{4}
+\]
+is a bijection from the realization of (1)--(3) onto \(\mathcal S(B,Q;G)\).  In particular, this encoding preserves the strict stability and positivity conditions and introduces no boundary points.
+
+The diagonal equations in (1) are
+\[
+ a_{ii}^{m}=B_{ii}\qquad(i\in V).                                \tag{5}
+\]
+The effective arithmetic, sign tests, and real-root isolation supplied by the definition of the effective real closed field \(K\) enumerate their real roots and decide (3).  For odd \(m\), \(x\mapsto x^m\) is strictly increasing and onto \(\mathbb R\), so (5) has exactly one real root for each \(i\).  For even \(m\), (5) has no real root when \(B_{ii}<0\), the single root zero when \(B_{ii}=0\), and the two roots \(\pm B_{ii}^{1/m}\) when \(B_{ii}>0\).  There are therefore finitely many surviving stable diagonal branches, all exactly represented in \(K\).  If none survives, (4) proves \(\mathcal S(B,Q;G)=\varnothing\).
+
+Fix a surviving branch and process off-diagonal pairs \((v,u)\) in increasing order of \(v-u\), as in \(\mathrm{def{:}graph\mbox{-}recursion}\).  By \(\mathrm{lem{:}path\mbox{-}expansion}\),
+\[
+ a_{vu}C_m(a_{vv},a_{uu})
+ =B_{vu}-R_{vu,m}(\widetilde A(a)).                               \tag{6}
+\]
+Every off-diagonal coordinate on the right of (6) has smaller endpoint gap.  The diagonal entries are fixed on the branch, so
+\[
+ c_{vu}:=C_m(a_{vv},a_{uu})\in K.                                \tag{7}
+\]
+The zero-set characterization \(\mathrm{lem{:}divided\mbox{-}difference\mbox{-}zero\mbox{-}set}\), together with exact sign tests in \(K\), decides whether \(c_{vu}=0\).  Thus the odd case \(a_{vv}=a_{uu}=0\) and the even case \(a_{vv}=-a_{uu}\) are retained as singular cases and are never divided through.
+
+If \(u\to v\) is allowed by \(G\) and \(c_{vu}\ne0\), equation (6) is equivalent to the unique substitution
+\[
+ a_{vu}
+ =\frac{B_{vu}-R_{vu,m}(\widetilde A(a))}{c_{vu}}.                \tag{8}
+\]
+Division is legitimate because of the tested condition \(c_{vu}\ne0\).  Since the inverse of this fixed nonzero element belongs to the field \(K\), substitution into later transition equations and into (2) leaves polynomial equations over \(K\) in the residual variables.  If \(c_{vu}=0\), the coordinate is not eliminated and the induced equation
+\[
+ B_{vu}-R_{vu,m}(\widetilde A(a))=0                               \tag{9}
+\]
+is retained.  If \(u\to v\) is forbidden, the parametrization fixes \(a_{vu}=0\), and its transition compatibility equation, which is again (9), is retained regardless of \(c_{vu}\).
+
+We now prove exactness of the recursion by induction on the endpoint gap.  At an allowed nonsingular coordinate, (6) shows that every solution before substitution has the value (8), and direct replacement shows that every solution of the substituted system lifts uniquely through (8).  At a singular or forbidden coordinate, no residual variable or compatibility equation is discarded.  The induction is valid because \(\mathrm{lem{:}path\mbox{-}expansion}\) places only smaller-gap off-diagonal coordinates in the remainder.  After the finitely many pairs have been processed, every transition equation not used for an exact substitution, every covariance equation in (2), and every strict inequality in (3) remains imposed.  If \(\mathfrak R_b\) denotes the residual semialgebraic realization on branch \(b\), and \(\operatorname{Rec}_b\) denotes reconstruction by all substitutions, then
+\[
+ \mathcal S(B,Q;G)
+ =\bigcup_b\operatorname{Rec}_b(\mathfrak R_b).                  \tag{10}
+\]
+This is literal set equality, not equality after algebraic or topological closure.
+
+Each \(\mathfrak R_b\) is a finite Boolean combination of polynomial equalities and strict polynomial inequalities over \(K\).  There are finitely many branches and variables.  By \(\mathrm{lem{:}effective\mbox{-}cad\mbox{-}decision\mbox{-}sampling}\), CAD terminates on every branch, decides whether \(\mathfrak R_b\) is empty, and returns an exact represented sample point when it is nonempty, including for open or positive-dimensional realizations.  Equation (10) therefore implies that all branch systems are empty if and only if \(\mathcal S(B,Q;G)=\varnothing\).  This proves termination, soundness, and completeness of the incompatibility output.
+
+It remains to classify the transfer fiber.  Take two compatible points and write
+\[
+ p=A_{vu},\quad q=A_{vv},\qquad p'=A'_{vu},\quad q'=A'_{vv}.
+\]
+Stability gives \(|q|<1\) and \(|q'|<1\).  Therefore, for every \(z\in\mathbb T\), both denominators \(1-qz\) and \(1-q'z\) are nonzero, and \(z\ne0\).  Cross multiplication is consequently valid, and the two transfers agree on \(\mathbb T\) if and only if
+\[
+ p(1-q'z)=p'(1-qz)\qquad\text{for every }z\in\mathbb T.          \tag{11}
+\]
+The difference between the two sides is
+\[
+ (p-p')+(p'q-pq')z.                                               \tag{12}
+\]
+Evaluating (12) at \(z=1\) and \(z=-1\) shows that it vanishes on \(\mathbb T\) if and only if both coefficients vanish.  Hence
+\[
+ h_{p,q}=h_{p',q'}
+ \quad\Longleftrightarrow\quad
+ p=p'\ \text{ and }\ pq'=p'q,                                   \tag{13}
+\]
+and, because the coefficients are real,
+\[
+ h_{p,q}\ne h_{p',q'}
+ \quad\Longleftrightarrow\quad
+ \Delta(p,q,p',q')
+ :=(p-p')^2+(pq'-p'q)^2>0.                                       \tag{14}
+\]
+In particular, (13) correctly recognizes that every pair \((0,q)\) represents the same zero transfer; equality of coefficient pairs is not required.
+
+For every ordered pair of diagonal branches, form two copies of their complete residual systems and append the strict polynomial inequality (14), after reconstruction.  By (10) and (14), the finite union of these two-copy systems is feasible if and only if two points of \(\mathcal S(B,Q;G)\) have unequal transfers.  The cited CAD lemma decides feasibility and, when feasible, supplies exact residual sample points.  Reconstruction then gives attained pairs
+\[
+ (A,D),(A',D')\in\mathcal S(B,Q;G)
+\]
+such that
+\[
+ (A_{vu}-A'_{vu})^2
+ +(A_{vu}A'_{vv}-A'_{vu}A_{vv})^2>0.
+\]
+Their strict stability and innovation positivity follow from their one-copy systems.  This proves both soundness and completeness of the ambiguity output.
+
+If every two-copy system is infeasible, (14) says that all compatible points yield the same transfer.  An exact sample from any nonempty one-copy branch supplies \((p,q)\), so the certificate returns the common exact rational function
+\[
+ z\longmapsto\frac{pz}{1-qz}.
+\]
+Conversely, if \(\mathcal H_{uv}(B,Q;G)\) is a singleton, no two-copy system can satisfy (14), and the certificate returns that common function.  Therefore the singleton output is equivalent to point identification of the causal transfer, and the three outputs in the theorem are exhaustive.
+
+The preceding equivalences also cover all listed exceptional cases.  Zero diagonal roots remain among (5) and enter a residual singular system whenever their divided difference vanishes.  A forbidden queried edge, or an allowed queried edge forced to zero by compatibility, is handled by (13).  Strict inequalities and the cited CAD result cover open and positive-dimensional fibers.  Duplicate branches or branch mergers do not affect the conclusion because (10) is a union and the two-copy test ranges over every ordered pair of branches.  No rank, overlap, conditioning, boundary passage, or limit argument is used; the only divisions are the explicitly certified divisions in (8).
+
+Finally, the two prescribed exact stress tests confirm that the construction does not lose singular fibers or the even-factor sign pair.  For the first, take \(d=2\), \(m=3\), let \(G\) contain \(1\to2\), and set \(B=0\) and \(Q=I_2\).  Define
+\[
+ A_{\pm}=\begin{pmatrix}0&0\\ \pm\tfrac12&0\end{pmatrix},
+ \qquad
+ D_{\pm}=\operatorname{diag}\!\left(1,\tfrac34\right).
+\]
+Then \(A_{\pm}^2=0\), and hence
+\[
+ A_{\pm}^3=0=B,
+ \qquad
+ \sum_{r=0}^{2}A_{\pm}^rD_{\pm}(A_{\pm}^r)^\top
+ =D_{\pm}+A_{\pm}D_{\pm}A_{\pm}^\top
+ =\operatorname{diag}\!\left(1,\tfrac34\right)
+  +\operatorname{diag}\!\left(0,\tfrac14\right)
+ =I_2.
+\]
+Both pairs are strictly interior because \(\rho(A_{\pm})=0<1\) and \(D_{\pm}\succ0\), while their transfers are \(z/2\) and \(-z/2\).  Thus the exact two-copy test must retain two attained, interior, transfer-distinct witnesses.
+
+For the second test, take \(d=2\), \(m=2\), and any compatible \((A,D)\) with \(A_{21}\ne0\).  The map \(A\mapsto-A\) preserves triangular and graph-support zeros, stability, and positivity of \(D\), while
+\[
+ (-A)^2=A^2,
+ \qquad
+ D+(-A)D(-A)^\top=D+ADA^\top.
+\]
+Thus \((-A,D)\) is compatible with the same \((B,Q)\).  With \(p=A_{21}\), \(q=A_{22}\), \(p'=-p\), and \(q'=-q\),
+\[
+ \Delta(p,q,-p,-q)
+ =(2p)^2+\{p(-q)-(-p)q\}^2
+ =4p^2>0.
+\]
+Every nonzero-edge two-variable \(m=2\) compatible case therefore retains its global sign pair.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} A total formula-or-ambiguity output replaces numerical root selection by an auditable causal identification certificate. \textit{Gap.} Classical CAD decides semialgebraic formulas and classical root methods select branches; neither provides this target-aware graph-recursive contract with covariance filtering and exact transfer-distinct witnesses. \textit{Consumer.} Software for subsampled process-DAG analysis can refuse false singleton answers and furnish two explicit observationally equivalent causal explanations when identification fails.
+
+\begin{proposition}[prop:singular-open-fiber]\label{prop:singular-open-fiber}
+For \(d=2\), \(m=3\), \(B=0\), and \(Q=\operatorname{diag}(q_1,q_2)\succ0\), the matrices \(A=\left(\begin{smallmatrix}0&0\\a&0\end{smallmatrix}\right)\) and \(D=\operatorname{diag}(q_1,q_2-a^2q_1)\) belong to the compatible fiber for every \(|a|<\sqrt{q_2/q_1}\). Thus a queried lower edge has an open interval of attained transfer coefficients, and the certificate must return two interior witnesses rather than unattained endpoints.
+\end{proposition}
+\begin{proof}
+Work under the queried-edge hypothesis and the effective-input hypothesis.  Since \(d=2\), the ordered vertex set is \(V=\{1,2\}\); because \(u<v\), necessarily \(u=1\) and \(v=2\), and the queried-edge hypothesis gives \(1\to2\in G\).  Positive definiteness of \(Q=\operatorname{diag}(q_1,q_2)\) gives
+\[
+q_i=e_i^{\top}Qe_i>0,\qquad i=1,2.
+\]
+Put \(\rho=\sqrt{q_2/q_1}\), which is a strictly positive real number.  For an arbitrary \(a\in\mathbb R\) with \(|a|<\rho\), let
+\[
+A(a)=\left(\begin{smallmatrix}0&0\\ a&0\end{smallmatrix}\right),
+\qquad
+D(a)=\operatorname{diag}(q_1,q_2-a^2q_1).
+\]
+The matrix \(A(a)\) is lower triangular.  Its only possibly nonzero cross-variable entry is \(A(a)_{21}=a\), which is permitted because \(1\to2\in G\); hence it obeys the graph-support restriction in the definition of \(\mathcal S(B,Q;G)\).  Both diagonal entries of \(A(a)\) vanish, so the stability condition in that definition is
+\[
+\max_{i\in\{1,2\}}|A(a)_{ii}|=0<1.
+\]
+Moreover, \(|a|<\rho\) implies \(a^2q_1<q_2\), where multiplication by \(q_1>0\) preserves the strict inequality.  Thus \(D(a)\) is diagonal and
+\[
+D(a)_{11}=q_1>0,
+\qquad
+D(a)_{22}=q_2-a^2q_1>0,
+\]
+so \(D(a)\succ0\).
+
+Direct multiplication gives
+\[
+A(a)^2=0,
+\qquad
+A(a)D(a)A(a)^{\top}
+=\operatorname{diag}(0,a^2q_1).
+\]
+Because \(m=3\) and \(B=0\), it follows that
+\[
+A(a)^m=A(a)^3=0=B
+\]
+and
+\[
+\sum_{r=0}^{m-1}A(a)^rD(a)\bigl(A(a)^r\bigr)^{\top}
+=D(a)+A(a)D(a)A(a)^{\top}
+=\operatorname{diag}(q_1,q_2)
+=Q.
+\]
+Every condition in the definition of the compatible fiber is therefore satisfied, proving
+\[
+\bigl(A(a),D(a)\bigr)\in\mathcal S(0,Q;G)
+\quad\text{for every }a\in(-\rho,\rho).
+\]
+
+For this compatible pair, \(A(a)_{21}=a\) and \(A(a)_{22}=0\).  The definition of the queried direct transfer therefore yields, for every \(z\in\mathbb T\),
+\[
+h_{12}^{(a)}(z)
+=\frac{A(a)_{21}z}{1-A(a)_{22}z}
+=az.
+\]
+Since \(|z|=1\) entails \(z\ne0\), distinct values of \(a\) give distinct transfer functions (and distinct transfer values at every \(z\in\mathbb T\)).  Hence the entire open coefficient interval \((-\rho,\rho)\) is attained.
+
+It remains to check that the endpoints are not hidden elsewhere in the compatible fiber.  Let \((\widetilde A,\widetilde D)\in\mathcal S(0,Q;G)\) be arbitrary.  Lower triangularity and diagonal innovations permit the representations
+\[
+\widetilde A=\left(\begin{smallmatrix}x&0\\ b&y\end{smallmatrix}\right),
+\qquad
+\widetilde D=\operatorname{diag}(\delta_1,\delta_2),
+\qquad
+\delta_1>0,\quad\delta_2>0.
+\]
+The diagonal entries of \(\widetilde A^3=B=0\) are \(x^3\) and \(y^3\).  Over \(\mathbb R\), \(x^3=y^3=0\) implies \(x=y=0\), whence \(\widetilde A^2=0\).  Applying the coarse-covariance equality in the compatible-fiber definition now gives
+\[
+Q
+=\widetilde D+\widetilde A\widetilde D\widetilde A^{\top}
+=\operatorname{diag}(\delta_1,\delta_2+b^2\delta_1).
+\]
+Equating diagonal entries with \(Q=\operatorname{diag}(q_1,q_2)\) yields
+\[
+\delta_1=q_1,
+\qquad
+\delta_2=q_2-b^2q_1.
+\]
+The required strict positivity \(\delta_2>0\) is equivalent to \(|b|<\rho\).  Thus every compatible transfer coefficient is interior, while at \(b=\pm\rho\) one would have \(\delta_2=0\), contradicting \(\widetilde D\succ0\).  The two boundary coefficients are therefore unattained, not merely omitted by the displayed family.
+
+Finally, the effective-input hypothesis puts \(q_1,q_2\in K\).  Because \(K\) is real closed and \(q_2/q_1>0\), its positive square root \(\rho\) lies in \(K\).  The choices
+\[
+a_-=-\frac{\rho}{2},
+\qquad
+a_+=\frac{\rho}{2}
+\]
+are exact, distinct, and interior; their innovation matrices have second diagonal entry \(3q_2/4>0\), and their transfers are respectively \(-\rho z/2\) and \(\rho z/2\).  Consequently the compatible fiber is nonempty and its transfers are not all equal.  Under the output contract in the definition of \(\operatorname{Cert}_{12,3,G}(0,Q)\), neither the incompatibility output nor the common-transfer output can be sound on this instance.  Its ambiguity output must therefore consist of two attained, transfer-distinct witnesses.  The preceding reverse calculation shows that every attained witness has coefficient in \((-\rho,\rho)\), so endpoint-only output is impossible and the witnesses must be interior.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the destructive sanity check for singular odd-factor completeness. \textit{Gap.} A regular-root recursion alone would incorrectly suggest odd-factor point identification at this collision. \textit{Consumer.} It is an exact regression test for any implementation of the CAD fallback.
+
+\begin{theorem}[thm:generic-phase]\label{thm:generic-phase}
+In fine-parameter space, failure of the odd-factor graph recursion is contained in \(\bigcup_{j\to i\in G}\{A_{ii}=A_{jj}=0\}\). For any fixed even diagonal-root branch, failure is contained in \(\bigcup_{j\to i\in G}\{A_{ii}=-A_{jj}\}\). Outside these proper algebraic sets, each diagonal branch produces at most one recursively determined \(A\) and at most one diagonal \(D\), after which the full \((B,Q)\) equations only filter branches.
+\end{theorem}
+\begin{proof}
+Fix a diagonal-root branch, so every \(A_{ii}\) is fixed by \(A_{ii}^m=B_{ii}\).  Process off-diagonal pairs in increasing endpoint gap.  Lemma \(\mathrm{lem{:}path\mbox{-}expansion}\) shows that at an allowed edge \(j\to i\) the only coefficient multiplying the as-yet-undetermined coordinate \(A_{ij}\) is \(C_m(A_{ii},A_{jj})\), while its remainder uses only previously processed gaps.  Thus recursion can fail only when this coefficient vanishes.
+
+For odd \(m\), Lemma \(\mathrm{lem{:}divided\mbox{-}difference\mbox{-}zero\mbox{-}set}\) gives
+\[
+ C_m(A_{ii},A_{jj})=0
+ \quad\Longleftrightarrow\quad
+ A_{ii}=A_{jj}=0.
+\]
+Taking the union over the finitely many allowed edges proves the first containment.  Each component \(\{A_{ii}=A_{jj}=0\}\) is the common zero set of two coordinate polynomials and is proper; a finite union of these components is also proper, with the empty union allowed when \(G\) has no edges.
+
+For even \(m\), on any fixed real diagonal branch the same lemma gives
+\[
+ C_m(A_{ii},A_{jj})=0
+ \quad\Longleftrightarrow\quad
+ A_{ii}+A_{jj}=0.
+\]
+This proves the second containment, and every component is a proper algebraic hyperplane.  Outside the relevant union, every division in the increasing-gap recursion is legal.  Induction on the gap therefore determines at most one graph-compatible \(A\) on that diagonal branch; forbidden entries remain fixed at zero and their power equations are checks rather than additional choices.
+
+For a recursively determined \(A\), diagonal \(D\) must obey, for each \(i\),
+\[
+ Q_{ii}=D_{ii}\sum_{r=0}^{m-1}A_{ii}^{2r}
+ +\sum_{j<i}D_{jj}\sum_{r=0}^{m-1}(A^r)_{ij}^{2}.
+\]
+The coefficient of \(D_{ii}\) contains the term one and is therefore strictly positive.  Increasing \(i\) consequently determines at most one diagonal \(D\).  The remaining entries of \(A^m=B\), the full covariance equation, strict stability, and positivity of \(D\) can only retain or reject the candidate; they introduce no further candidate on the fixed branch.  This proves the asserted generic phase statement in fine-parameter space, without making any claim that its image complement in observed-law space is algebraic or null.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem promotes isolated examples to an algebraically generic identification-and-ambiguity phase diagram. \textit{Gap.} No cited subsampling paper identifies the exact graph-indexed exceptional varieties for target recovery. \textit{Consumer.} It supports diagnostics that route almost every compatible odd-factor input through a closed form and reserve CAD for named collision strata.
+
+\begin{theorem}[thm:regular-wald-band]\label{thm:regular-wald-band}
+Suppose \(\mathcal Z\ne\varnothing\), \(m\) is odd, every arrow \(j\to i\) in \(G\) satisfies \(j<i\), \(u\to v\in G\), and
+\[
+ \kappa\le m(1-\gamma)^{m-1}.
+\]
+Then the derivative-separated regular class \(\mathcal M_{\mathrm{reg}}^{\partial}(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\) is nonempty.  Uniformly over this class, as \(n\to\infty\), the real vector stacking the real and imaginary parts of
+\[
+ \sqrt n\bigl(\widehat h_{uv}(z)-h_{uv}(z)\bigr),
+ \qquad z\in\mathcal Z,
+\]
+converges to the centered Gaussian law obtained by applying the Jacobian of the moment-to-root recursion and
+\[
+ \mathrm dh_{uv}(z)
+ =\frac{z\,\mathrm dA_{vu}}{1-A_{vv}z}
+  +\frac{A_{vu}z^2\,\mathrm dA_{vv}}{(1-A_{vv}z)^2}
+\]
+to the long-run Gaussian lag-moment covariance.  Let \(\widehat\Sigma_h\) be the positive-semidefinite plug-in estimate obtained from the Gaussian Isserlis covariance series and the recursive Jacobian, and let \(\widehat c_{1-\alpha}\) be the \((1-\alpha)\)-quantile of the maximum complex modulus of the corresponding centered Gaussian vector.  Then
+\[
+ \sup_{P\in\mathcal M_{\mathrm{reg}}^{\partial}}
+ \left|
+ P\!\left\{
+ h_{uv}(z)\in
+ \left\{w\in\mathbb C:
+ |w-\widehat h_{uv}(z)|\le
+ \frac{\widehat c_{1-\alpha}}{\sqrt n}
+ \right\}
+ \text{ for every }z\in\mathcal Z
+ \right\}-(1-\alpha)
+ \right|\longrightarrow0,
+\]
+where the class in the supremum has the full argument list displayed above.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ \mathfrak P_{\partial}
+ =\mathcal M_{\mathrm{reg}}^{\partial}
+ (d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)
+\]
+and let \(\mathfrak P_{uv,\partial}\) denote the target-corridor class in
+\(\mathrm{def{:}corridor\mbox{-}derivative\mbox{-}separated\mbox{-}class}\),
+with the same displayed arguments.  By
+\(\mathrm{def{:}regular\mbox{-}class}\) and
+\(\mathrm{def{:}derivative\mbox{-}separated\mbox{-}regular\mbox{-}class}\),
+every \(P\in\mathfrak P_{\partial}\) belongs to the compact class, has odd
+\(m\), and satisfies
+\[
+ m|A_{ii}|^{m-1}\geq\kappa\quad(i\in V),
+ \qquad
+ |C_m(A_{ii},A_{jj})|\geq\kappa\quad(j\to i\in E).
+ \tag{1}
+\]
+Since \(V_{uv}^{G}\subseteq V\) and \(E_{uv}^{G}\subseteq E\) by
+\(\mathrm{def{:}target\mbox{-}corridor}\), restriction of the two minima
+in \((1)\) gives
+\[
+ \mathfrak P_{\partial}\subseteq\mathfrak P_{uv,\partial}.
+ \tag{2}
+\]
+The ordering and query-edge hypotheses, the assumed inequality
+\(\kappa\leq m(1-\gamma)^{m-1}\), and
+\(\mathrm{lem{:}derivative\mbox{-}separated\mbox{-}class\mbox{-}nonempty}\)
+also give
+\[
+ \mathfrak P_{\partial}\neq\varnothing.
+ \tag{3}
+\]
+
+We next prove that the full and corridor procedures agree with probability
+tending to one uniformly on \(\mathfrak P_{\partial}\).  First we establish
+the required uniform consistency of the coarse transition estimator.  Fix
+any matrix norm.  A nonzero summand in an entry of \(A^r\) is indexed by a
+nondecreasing walk in the supplied order.  Such a walk has at most
+\(d-1\) strict increases.  If it has \(q\) strict increases, its absolute
+value is at most \(L^q(1-\gamma)^{r-q}\), and, for fixed \(d\), the number
+of such summands is bounded by a constant times \((r+1)^q\).  Hence, for
+any fixed \(r_0\in(1-\gamma,1)\), the polynomial factor can be absorbed
+into the larger geometric rate, yielding a constant \(C_0<\infty\),
+depending only on \(d,\gamma,L\), such that
+\[
+ \sup_{P\in\mathfrak P_{\partial}}\|A^r\|
+ \leq C_0r_0^r,
+ \qquad r\geq0.
+ \tag{4}
+\]
+Here the walk expansion uses the lower-triangular and graph-support
+conditions contained in \(\mathrm{def{:}regular\mbox{-}class}\), while the
+bounds on diagonal and strict off-diagonal factors use respectively the
+stability-margin and entry-envelope conditions in that definition.
+
+Iterating the structural equation and using \((4)\) shows in \(L^2\) that
+the unique stationary solution is
+\[
+ X_t=\sum_{r=0}^{\infty}A^r\varepsilon_{t-r}.
+\]
+Independence and centering of the Gaussian innovations therefore give
+\[
+ M_0=\sum_{r=0}^{\infty}A^rD(A^r)^\top,
+ \qquad
+ d_{\min}I_d\preceq M_0\preceq C_1I_d,
+ \tag{5}
+\]
+for a finite constant \(C_1\) uniform on \(\mathfrak P_{\partial}\).
+Indeed, the lower bound is the \(r=0\) term and the upper bound follows
+from \(D\preceq d_{\max}I_d\) and the summability of \(C_0^2r_0^{2r}\).
+Writing \(B=A^m\), iteration over one coarse step gives
+\[
+ \mathbb E_P[Y_{s+k}Y_s^\top]=B^kM_0\quad(k\geq0),
+ \qquad
+ \sup_{P\in\mathfrak P_{\partial}}\|B^kM_0\|
+ \leq C_2r_0^{mk}.
+ \tag{6}
+\]
+
+For centered jointly Gaussian scalar random variables, direct
+differentiation of their joint moment-generating function at zero gives
+\[
+ \operatorname{Cov}(U_1U_2,U_3U_4)
+ =\operatorname{Cov}(U_1,U_3)\operatorname{Cov}(U_2,U_4)
+  +\operatorname{Cov}(U_1,U_4)\operatorname{Cov}(U_2,U_3).
+ \tag{7}
+\]
+Apply \((7)\) to scalar entries of \(Y_sY_s^\top\) and
+\(Y_sY_{s-1}^\top\).  Equation \((6)\), and its transpose for negative
+lags, imply that for every scalar coordinate \(Z_s\) of these two product
+arrays,
+\[
+ \sup_{P\in\mathfrak P_{\partial}}
+ \sum_{k\in\mathbb Z}
+ \bigl|\operatorname{Cov}_P(Z_0,Z_k)\bigr|\leq C_3
+ \tag{8}
+\]
+with \(C_3<\infty\).  Expanding the variance of each sample average in
+\(\mathrm{def{:}empirical\mbox{-}moments}\), summing \((8)\), and using
+that \(d\) is fixed now yields
+\[
+ \sup_{P\in\mathfrak P_{\partial}}
+ \mathbb E_P\!\left[
+  \|\widehat M_0-M_0\|^2+
+  \|\widehat M_1-M_1\|^2
+ \right]\leq\frac{C_4}{n}.
+ \tag{9}
+\]
+For every unit vector \(x\), \((5)\) gives
+\(x^\top\widehat M_0x\geq d_{\min}-\|\widehat M_0-M_0\|\).
+Moreover, \((9)\) implies directly that
+\(P\{\|\widehat M_0-M_0\|\geq d_{\min}/2\}\leq
+4C_4/(nd_{\min}^2)\).  Thus \(\widehat M_0\succ0\) with probability
+tending to one uniformly.  On the event
+\(\|\widehat M_0-M_0\|<d_{\min}/2\), the inverse
+identity
+\[
+ \widehat M_0^{-1}-M_0^{-1}
+ =\widehat M_0^{-1}(M_0-\widehat M_0)M_0^{-1}
+\]
+bounds the inverse difference by a uniform constant times
+\(\|\widehat M_0-M_0\|\).  Since
+\(M_1=BM_0\), \(\widehat B=\widehat M_1\widehat M_0^{-1}\), and \(B\) is
+uniformly bounded by \((4)\), equation \((9)\) consequently implies
+\[
+ \sup_{P\in\mathfrak P_{\partial}}P(\widehat M_0\not\succ0)
+ \longrightarrow0,
+ \qquad
+ \sup_{P\in\mathfrak P_{\partial}}
+ P\!\left(\|\widehat B-B\|>\delta\right)
+ \longrightarrow0
+ \quad(\delta>0).
+ \tag{10}
+\]
+
+We now construct one neighborhood on which both recursions are regular.
+By \((1)\),
+\[
+ |A_{ii}|\geq (\kappa/m)^{1/(m-1)}>0.
+ \tag{11}
+\]
+Thus the odd-root inverse \(b\mapsto b^{1/m}\), evaluated at
+\(b=A_{ii}^m\), has derivative
+\[
+ \frac{1}{mA_{ii}^{m-1}},
+ \tag{12}
+\]
+whose absolute value is at most \(\kappa^{-1}\).  Every off-diagonal
+division in the full recursion has denominator bounded in absolute value
+below by \(\kappa\), by \((1)\).  The admissible \(A\)-parameters are a
+closed subset of the finite-dimensional box imposed by the entry and
+stability-margin bounds, and hence are compact.  Starting with the
+diagonal updates and then inducting over the finitely many endpoint gaps,
+continuity of polynomial evaluation and division, together with
+\((11)\)--\((12)\), therefore supplies a common \(\delta_0>0\) such that,
+whenever \(\|\widetilde B-B\|<\delta_0\), both the full recursion of
+\(\mathrm{def{:}regular\mbox{-}estimator}\) and the corridor recursion of
+\(\mathrm{def{:}target\mbox{-}corridor\mbox{-}recursion}\) are defined and
+all of their divided-difference denominators have absolute value at least
+\(\kappa/2\).  Define
+\[
+ \mathcal E_n
+ =\{\widehat M_0\succ0,\ \|\widehat B-B\|<\delta_0\}.
+\]
+Equation \((10)\) gives
+\[
+ \sup_{P\in\mathfrak P_{\partial}}P(\mathcal E_n^c)
+ \longrightarrow0.
+ \tag{13}
+\]
+
+On \(\mathcal E_n\), the full and corridor diagonal roots agree on
+\(V_{uv}^{G}\), because each is the unique real odd root of the same
+entry \(\widehat B_{ii}\).  Process the edges \(j\to i\in E_{uv}^{G}\)
+by increasing endpoint gap.  By
+\(\mathrm{lem{:}target\mbox{-}corridor\mbox{-}recursion\mbox{-}closure}\),
+every diagonal and strict-edge coordinate in \(R_{ij,m}\) lies in the
+corridor, and every such strict edge has smaller endpoint gap.  The
+induction hypothesis therefore makes the numerator, denominator, and all
+previously recovered inputs in the full and corridor updates identical.
+It follows that
+\[
+ \widehat A_{ij}^{\mathrm{full}}
+ =\widehat A_{ij}^{\mathrm{cor}}
+ \quad(j\to i\in E_{uv}^{G}),
+ \qquad
+ \widehat A_{vv}^{\mathrm{full}}=
+ \widehat A_{vv}^{\mathrm{cor}}.
+ \tag{14}
+\]
+Because \(u\to v\in E_{uv}^{G}\), the estimator definitions and \((14)\)
+give, simultaneously for all \(z\in\mathcal Z\),
+\[
+ \widehat h_{uv}(z)
+ =\widehat h_{uv}^{\mathrm{cor}}(z)
+ =\frac{\widehat A_{vu}^{\mathrm{cor}}z}
+ {1-\widehat A_{vv}^{\mathrm{cor}}z}.
+ \tag{15}
+\]
+The computation of \(\widehat Q\) and recovery of innovation variances in
+the full procedure do not occur in the final expression in \((15)\).
+
+The equality in \((15)\) is an identity between differentiable maps on
+the common neighborhood just constructed.  Consequently the target rows
+of the full and corridor recursive Jacobians agree there and vanish on
+all non-corridor recursion inputs.  Differentiating the last expression
+gives
+\[
+ \mathrm dh_{uv}(z)
+ =\frac{z\,\mathrm dA_{vu}}{1-A_{vv}z}
+  +\frac{A_{vu}z^2\,\mathrm dA_{vv}}{(1-A_{vv}z)^2}.
+ \tag{16}
+\]
+Both denominators are nonzero because \(|A_{vv}z|\leq1-\gamma<1\) for
+\(z\in\mathcal Z\subseteq\mathbb T\).  The two procedures use the same
+Isserlis-series estimate of the coarse lag-moment covariance.  Equality
+of their target Jacobians therefore implies on \(\mathcal E_n\) that
+their positive-semidefinite plug-in covariance matrices and induced
+Gaussian laws coincide.  With the quantile convention in the two theorem
+statements,
+\[
+ \widehat\Sigma_h=\widehat\Sigma_{h,\mathrm{cor}},
+ \qquad
+ \widehat c_{1-\alpha}
+ =\widehat c_{1-\alpha}^{\mathrm{cor}}.
+ \tag{17}
+\]
+
+By \((2)\),
+\(\mathrm{thm{:}target\mbox{-}corridor\mbox{-}wald\mbox{-}band}\)
+applies to every \(P\in\mathfrak P_{\partial}\).  Equations
+\((13)\), \((15)\), and \((17)\) show that replacing the corridor
+statistic, covariance, and critical value by their full-recursion
+counterparts changes their joint law only on an event whose probability
+tends to zero uniformly.  The asserted uniform centered Gaussian limit,
+with derivative \((16)\), follows from the corridor theorem.
+
+Finally, let \(\mathcal C_n^{\mathrm{full}}\) and
+\(\mathcal C_n^{\mathrm{cor}}\) be the simultaneous coverage events in the
+present theorem and in the corridor theorem.  Equations \((15)\) and
+\((17)\) imply that they agree on \(\mathcal E_n\).  Therefore
+\[
+\begin{split}
+ \sup_{P\in\mathfrak P_{\partial}}
+ \left|P(\mathcal C_n^{\mathrm{full}})-(1-\alpha)\right|
+ &\leq
+ \sup_{P\in\mathfrak P_{\partial}}
+ \left|P(\mathcal C_n^{\mathrm{cor}})-(1-\alpha)\right|
+ +\sup_{P\in\mathfrak P_{\partial}}P(\mathcal E_n^c)\\
+ &\leq
+ \sup_{P\in\mathfrak P_{uv,\partial}}
+ \left|P(\mathcal C_n^{\mathrm{cor}})-(1-\alpha)\right|
+ +\sup_{P\in\mathfrak P_{\partial}}P(\mathcal E_n^c)
+ \longrightarrow0.
+\end{split}
+ \tag{18}
+\]
+The first term tends to zero by
+\(\mathrm{thm{:}target\mbox{-}corridor\mbox{-}wald\mbox{-}band}\), and
+the second by \((13)\).  Together with \((3)\), this proves nonemptiness,
+the stated uniform limit law, and the simultaneous coverage conclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The globally separated theorem is preserved as a simple nonvacuous corollary of the sharper target-corridor result. \textit{Gap.} Global regularity is stronger than the target requires, but remains an easily stated sufficient condition. \textit{Consumer.} Existing implementations that already recover the full triangular root may continue to use the global estimator and obtain the same target bands.
+
+\begin{theorem}[thm:uniform-moment-box]\label{thm:uniform-moment-box}
+There is an explicit expression for \(K_\Sigma=K_\Sigma(d,m,\gamma,L,d_{\max})\), obtained from the coarse spectral-density resolvent, such that for every \(n\ge3\), \(\Pr\{(M_0,M_1)\in\mathcal C_n^M(\alpha)\}\ge1-\alpha\) uniformly over \(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})\). One admissible calibration is certified by \(\|H_{\ell ij}\|_{\mathrm F}\le n^{-1/2}\), \(\|H_{\ell ij}\|_{\mathrm{op}}\le n^{-1}\), Gaussian quadratic-form tails, and the radius \(r_n=2K_\Sigma\{\sqrt{\log(4d^2/\alpha)/n}+\log(4d^2/\alpha)/n\}\); verified rational outward rounding can only enlarge the region.
+\end{theorem}
+\begin{proof}
+Fix a member of \(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})\).
+The lower-triangular restriction and the stability-margin restriction imply
+\(\rho(A)=\max_i|A_{ii}|\le1-\gamma<1\), so the coarse-law reduction applies.
+Put
+\[
+ r_0=(1-\gamma)^m,
+ \qquad \beta=(dL)^m,
+ \qquad
+ \overline q=d_{\max}\sum_{r=0}^{m-1}(dL)^{2r}.
+\]
+The entry envelope gives
+\(\lVert A\rVert_{\mathrm{op}}\le\lVert A\rVert_{\mathrm F}\le dL\).
+Consequently,
+\[
+ \lVert B\rVert_{\mathrm{op}}=\lVert A^m\rVert_{\mathrm{op}}\le\beta,
+ \qquad
+ \lVert Q\rVert_{\mathrm{op}}
+ \le d_{\max}\sum_{r=0}^{m-1}\lVert A\rVert_{\mathrm{op}}^{2r}
+ \le\overline q.
+\]
+
+We next bound the coarse resolvent without assuming that \(B\) is normal.
+Write \(B=\Delta+T\), where \(\Delta\) is diagonal and \(T\) is strictly
+lower triangular. Since \(\Delta_{ii}=A_{ii}^m\), for every \(|w|=1\),
+\[
+ \lVert(I-w\Delta)^{-1}\rVert_{\mathrm{op}}
+ \le(1-r_0)^{-1}.
+\]
+Moreover, \(\beta\ge1\) and
+\(\lVert T\rVert_{\mathrm{op}}\le\lVert B\rVert_{\mathrm{op}}+
+\lVert\Delta\rVert_{\mathrm{op}}\le2\beta\). The matrix
+\(S_w=(I-w\Delta)^{-1}wT\) is strictly lower triangular, hence
+\(S_w^d=0\). Factoring \(I-wB=(I-w\Delta)(I-S_w)\) and using the finite
+geometric sum gives
+\[
+ \begin{split}
+ \lVert(I-wB)^{-1}\rVert_{\mathrm{op}}
+ &\le {1\over1-r_0}\sum_{k=0}^{d-1}
+ \left({2\beta\over1-r_0}\right)^k
+ =:R_B.
+ \end{split}
+\]
+
+Let \(\Sigma_n=\operatorname{Cov}(W_n)\). The stationary coarse VAR has
+matrix spectral density, in the convention in which covariance is the
+normalized Fourier integral,
+\[
+ F_Y(w)=(I-wB)^{-1}Q(I-\overline w B^\top)^{-1},
+ \qquad |w|=1.
+\]
+For any block vector \(c=(c_0^\top,\ldots,c_n^\top)^\top\), the spectral
+representation and Parseval's identity yield
+\[
+ c^\top\Sigma_nc
+ \le \sup_{|w|=1}\lVert F_Y(w)\rVert_{\mathrm{op}}
+       \sum_{s=0}^n\lVert c_s\rVert_2^2
+ \le \overline q R_B^2\lVert c\rVert_2^2.
+\]
+It follows that
+\[
+ \lVert\Sigma_n\rVert_{\mathrm{op}}\le \overline q R_B^2
+ =d_{\max}\sum_{r=0}^{m-1}(dL)^{2r}
+ \left[
+ {1\over1-(1-\gamma)^m}
+ \sum_{k=0}^{d-1}
+ \left\{{2(dL)^m\over1-(1-\gamma)^m}\right\}^{k}
+ \right]^2
+ =K_\Sigma.
+\]
+This calculation also proves explicitly that \(K_\Sigma\) is independent of
+the chosen member of the compact class and of \(n\).
+
+For completeness, we verify both the overlap constants and the Gaussian
+tail used below. The unique symmetric matrix representing
+\((\widehat M_0)_{ij}\) as a quadratic form has \(n\) diagonal time blocks
+when \(i=j\), and has the two symmetric entries of size \(1/(2n)\) for each
+of the \(n\) products when \(i\ne j\). The symmetric matrix representing
+\((\widehat M_1)_{ij}\) has entries \(1/(2n)\) in the two transpose
+positions corresponding to each product
+\(Y_{s,i}Y_{s-1,j}\). A row contains at most two such lag-one entries.
+Therefore, for every \(\ell\in\{0,1\}\) and \(i,j\in V\),
+\[
+ \lVert H_{\ell ij}\rVert_{\mathrm F}\le n^{-1/2},
+ \qquad
+ \lVert H_{\ell ij}\rVert_{\mathrm{op}}\le n^{-1}.
+\]
+The operator bound in the lag-one case follows also from the maximum
+absolute row sum; the Frobenius calculation counts the two symmetric
+copies, so it already accounts for overlapping observations.
+
+Let \(Z\) be a standard Gaussian vector and let \(C\) be symmetric. After
+orthogonal diagonalization, for
+\(0<2\theta\lVert C\rVert_{\mathrm{op}}<1\), independence and the scalar
+normal moment generating function give
+\[
+ \log\mathbb E\exp\{\theta(Z^\top CZ-\operatorname{tr}C)\}
+ =\sum_a\left[-\theta\lambda_a-\tfrac12\log(1-2\theta\lambda_a)\right]
+ \le {\theta^2\lVert C\rVert_{\mathrm F}^2
+       \over1-2\theta\lVert C\rVert_{\mathrm{op}}}.
+\]
+Here we used
+\(-\log(1-x)-x\le x^2/(2(1-|x|))\) for \(|x|<1\), which follows by
+termwise comparison of its power series. Chernoff's inequality, optimized
+in \(\theta\), and the same calculation with \(-C\), imply
+\[
+ \Pr\left\{|Z^\top CZ-\operatorname{tr}C|>
+ 2\lVert C\rVert_{\mathrm F}\sqrt t+
+ 2\lVert C\rVert_{\mathrm{op}}t\right\}\le2e^{-t}
+ \quad(t>0).
+\]
+
+Apply this result with
+\(C=\Sigma_n^{1/2}H_{\ell ij}\Sigma_n^{1/2}\). Stationarity gives
+\(\mathbb E[W_n^\top H_{\ell ij}W_n]=(M_\ell)_{ij}\), and the preceding
+bounds give
+\[
+ \lVert C\rVert_{\mathrm F}\le K_\Sigma n^{-1/2},
+ \qquad
+ \lVert C\rVert_{\mathrm{op}}\le K_\Sigma n^{-1}.
+\]
+Thus, with \(t=t_\alpha=\log(4d^2/\alpha)>0\),
+\[
+ \Pr\left\{|(\widehat M_\ell-M_\ell)_{ij}|>r_n\right\}
+ \le2e^{-t_\alpha},
+ \qquad
+ r_n=2K_\Sigma\left\{\sqrt{t_\alpha/n}+t_\alpha/n\right\}.
+\]
+There are \(2d^2\) indexed entries. The union bound and the definition of
+\(t_\alpha\) therefore give
+\[
+ \Pr\left\{\max_{\ell\in\{0,1\},\,i,j\in V}
+ |(\widehat M_\ell-M_\ell)_{ij}|\le r_n\right\}
+ \ge1-4d^2e^{-t_\alpha}=1-\alpha.
+\]
+On this event, each true coordinate belongs to
+\([ (\widehat M_\ell)_{ij}-r_n,
+    (\widehat M_\ell)_{ij}+r_n ]\). By the defining containment property of
+\(\operatorname{Out}_N\), it also belongs to the corresponding rational
+outward-rounded interval. Hence
+\[
+ \Pr\{(M_0,M_1)\in\mathcal C_n^M(\alpha)\}\ge1-\alpha.
+\]
+Every bound above is uniform over the compact class, which proves the
+claimed uniformity and the assertion that outward rounding cannot reduce
+coverage.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This closes the finite-sample calibration bottleneck needed for honest inference at singular and unidentified laws. \textit{Gap.} Basu and Michailidis control Gaussian Gram matrices, Hsu et al. control quadratic forms, and Giurcanu and Spokoiny give scalar covariance bands; none supplies this joint multivariate lag region with explicit compact-class constants and exact-computation rounding. \textit{Consumer.} Any branch-free transfer certificate can be inverted with advertised finite-sample coverage, including near root collisions where Wald approximations fail.
+
+\begin{theorem}[thm:global-honest-inversion]\label{thm:global-honest-inversion}
+For every data-generating member of
+\(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})\),
+\(\Pr\{h_{uv}\in\mathcal C_n^h\}\ge1-\alpha\). The claim holds without
+selecting a matrix-root branch and without divided-difference or
+branch-separation assumptions. If an observed moment law has two compatible
+members of the compact class with unequal queried transfers, then the set
+need not contract: whenever the common moment pair is in
+\(\mathcal C_n^M(\alpha)\), both attained transfers belong to
+\(\mathcal C_n^h\).
+\end{theorem}
+\begin{proof}
+Fix an arbitrary data-generating law \(P_\star\) in
+\(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})\), let
+\((A_\star,D_\star)\) be its fine-grid parameters, and let
+\((M_{0\star},M_{1\star})\) be its stationary coarse lag-zero and lag-one
+moments.  Define
+\[
+ E_n:=\{(M_{0\star},M_{1\star})\in\mathcal C_n^M(\alpha)\}.
+\]
+By \(\mathrm{def{:}compact\mbox{-}class}\), \(A_\star\) is lower
+triangular and
+\(\max_{i\in V}|(A_\star)_{ii}|\leq 1-\gamma\).  Therefore
+\[
+ \det(\lambda I_d-A_\star)
+ =\prod_{i\in V}\{\lambda-(A_\star)_{ii}\},
+ \qquad
+ \rho(A_\star)=\max_{i\in V}|(A_\star)_{ii}|
+ \leq 1-\gamma<1.
+\]
+Thus the stability premise of
+\(\mathrm{lem{:}coarse\mbox{-}law\mbox{-}reduction}\) is satisfied.
+That lemma and the definition of the coarse innovation covariance give
+\[
+ M_{0\star}\succ0,
+ \qquad
+ M_{1\star}=A_\star^mM_{0\star},
+\]
+and
+\[
+ M_{0\star}
+ =A_\star^mM_{0\star}(A_\star^m)^\top
+  +\sum_{r=0}^{m-1}A_\star^rD_\star(A_\star^r)^\top.
+\]
+The membership of \(P_\star\) in the compact class separately supplies
+the lower-triangular and graph-support zero restrictions, diagonality of
+\(D_\star\), and the inequalities
+\[
+ \max_{i\in V}|(A_\star)_{ii}|\leq1-\gamma,
+ \qquad
+ \max_{i,j\in V}|(A_\star)_{ij}|\leq L,
+ \qquad
+ d_{\min}I_d\preceq D_\star\preceq d_{\max}I_d.
+\]
+Consequently, on \(E_n\), every constraint in
+\(\mathrm{def{:}inverse\mbox{-}region}\) is satisfied by
+\((A_\star,D_\star)\), with existential witnesses
+\((M_0,M_1)=(M_{0\star},M_{1\star})\).  Hence
+\[
+ E_n\subseteq\{(A_\star,D_\star)\in\mathcal R_n\}.
+\]
+For every \(z\in\mathbb T\), the stability margin yields
+\[
+ |1-(A_\star)_{vv}z|
+ \geq 1-|(A_\star)_{vv}|\,|z|
+ \geq\gamma>0.
+\]
+Thus the causal transfer
+\(h_{uv,\star}(z)=(A_\star)_{vu}z/
+\{1-(A_\star)_{vv}z\}\) is well defined.  By
+\(\mathrm{def{:}transfer\mbox{-}confidence\mbox{-}set}\), the preceding
+membership in \(\mathcal R_n\) implies
+\(h_{uv,\star}\in\mathcal C_n^h\).  It follows that
+\[
+ P_\star\{h_{uv,\star}\in\mathcal C_n^h\}
+ \geq P_\star(E_n)
+ \geq1-\alpha,
+\]
+where the last inequality is
+\(\mathrm{thm{:}uniform\mbox{-}moment\mbox{-}box}\).  Since
+\(P_\star\) was arbitrary, the coverage statement is uniform over the
+compact class.  This inclusion argument imposes all stationary moment
+equations jointly and neither selects a matrix-root branch nor divides by a
+divided difference.
+
+For the final assertion, suppose that two compact-class members
+\((A^{(1)},D^{(1)})\) and \((A^{(2)},D^{(2)})\) induce the same stationary
+coarse moment pair \((M_0,M_1)\), while their queried transfers
+\(h_{uv}^{(1)}\) and \(h_{uv}^{(2)}\) are unequal.  On the event
+\[
+ E_n^\circ:=\{(M_0,M_1)\in\mathcal C_n^M(\alpha)\},
+\]
+the coarse-law identities and the compact-class restrictions, applied
+separately for \(k\in\{1,2\}\), show that
+\[
+ (A^{(k)},D^{(k)})\in\mathcal R_n.
+\]
+Therefore
+\[
+ \{h_{uv}^{(1)},h_{uv}^{(2)}\}\subseteq\mathcal C_n^h
+ \quad\text{on }E_n^\circ
+\]
+by \(\mathrm{def{:}transfer\mbox{-}confidence\mbox{-}set}\).  Both
+elements are attained by compatible compact-class models, rather than being
+mere limiting values, which proves the asserted possible noncontraction.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Inverse-image coverage is the globally valid counterpart to local branchwise Wald inference. \textit{Gap.} The cited process-graph inference paper conditions on a differentiable fine-grid effect and does not cover observationally equivalent roots or singular fibers. \textit{Consumer.} Scientific conclusions remain valid when sampling parity, persistence collisions, or finite samples leave several fine-grid causal explanations alive.
+
+\begin{proposition}[prop:unsubsampled-reduction]\label{prop:unsubsampled-reduction}
+Under the formal specialization of the displayed constructions to \(m=1\), one has \(B=A\) and \(Q=D\). Consequently, \(\mathcal S(B,Q;G)\) is empty when \((B,Q)\) violates any fine-grid compatibility constraint and otherwise equals the singleton \(\{(B,Q)\}\). Accordingly, on an admissible exact input the certificate returns incompatibility in the first case, while in the second case it returns the unique transfer
+\[
+h_{uv}(z)=\frac{B_{vu}z}{1-B_{vv}z},
+\]
+which is the standard unaliased direct process transfer.
+\end{proposition}
+\begin{proof}
+Formally specialize Definitions~\(\texttt{def:compatible-fiber}\) and \(\texttt{def:certificate}\) to \(m=1\). Let \((A,D)\in\mathcal S(B,Q;G)\). The first compatibility equation in Definition~\(\texttt{def:compatible-fiber}\) gives
+\[
+B=A^1=A.
+\]
+The second compatibility equation in that definition, together with \(A^0=I_d\), gives
+\[
+Q=\sum_{r=0}^{1-1}A^rD(A^r)^\top
+  =A^0D(A^0)^\top
+  =D.
+\]
+Thus every member of \(\mathcal S(B,Q;G)\) equals \((B,Q)\), so the fiber has at most one member.
+
+Conversely, substitute \((A,D)=(B,Q)\) into Definition~\(\texttt{def:compatible-fiber}\). The two coarse equations hold identically because
+\[
+B^1=B
+\qquad\text{and}\qquad
+\sum_{r=0}^{0}B^rQ(B^r)^\top=B^0Q(B^0)^\top=Q.
+\]
+The remaining defining conditions hold if and only if
+\[
+B_{ij}=0\quad(i<j),
+\qquad
+B_{ij}=0\quad(i>j\text{ and }j\to i\notin G),
+\]
+\[
+\max_i|B_{ii}|<1,
+\qquad
+Q_{ij}=0\quad(i\ne j),
+\qquad
+Q\succ0.
+\]
+These are precisely the lower-triangularity, graph-support, stability, diagonal-innovation, and positive-definiteness constraints in the formally specialized compatible-fiber definition. Hence
+\[
+\mathcal S(B,Q;G)=
+\begin{cases}
+\{(B,Q)\},&\text{if all the displayed fine-grid compatibility constraints hold},\\
+\varnothing,&\text{otherwise}.
+\end{cases}
+\]
+
+It remains to verify the certificate output. Under \(m=1\), every enumerated diagonal-root equation is
+\[
+a_{ii}^{,1}=B_{ii},
+\]
+and therefore has the unique real solution \(a_{ii}=B_{ii}\). By the declared definition of the divided-difference polynomial,
+\[
+C_1(x,y)=\sum_{r=0}^{0}x^r y^{0-r}=1.
+\]
+A nondecreasing walk of length one has at most one strict increase, while \(R_{vu,1}\) contains only monomials indexed by walks having at least two strict increases. Thus every remainder used by the specialized triangular recursion is zero. At each allowed off-diagonal coordinate, the root equation consequently reduces to
+\[
+B_{ij}=A_{ij}C_1(A_{ii},A_{jj})+0=A_{ij}.
+\]
+There is therefore no singular divided-difference coordinate, and the graph-recursive part of Definition~\(\texttt{def:certificate}\) produces the unique transition candidate \(A=B\). Given that candidate, the coarse covariance equation is
+\[
+Q=\sum_{r=0}^{0}A^rD(A^r)^\top=D,
+\]
+so it produces the unique innovation candidate \(D=Q\). The certificate's exact compatibility test accepts this candidate exactly when it satisfies all conditions defining \(\mathcal S(B,Q;G)\). By the fiber characterization above, the certificate therefore returns incompatibility exactly when the fiber is empty and otherwise accepts the unique compatible pair \((B,Q)\).
+
+In the latter case, any two compatible copies used in the certificate's transfer-inequality test both equal \((B,Q)\), so transfer-distinct witnesses cannot exist. Definition~\(\texttt{def:certificate}\) must therefore return the common transfer. By the declared definition of \(h_{uv}\), this transfer is
+\[
+h_{uv}(z)=\frac{A_{vu}z}{1-A_{vv}z}
+          =\frac{B_{vu}z}{1-B_{vv}z}.
+\]
+Compatibility supplies \(|B_{vv}|<1\). Since \(z\in\mathbb T\) implies \(|z|=1\),
+\[
+|B_{vv}z|=|B_{vv}|<1,
+\]
+and hence \(1-B_{vv}z\ne0\). The displayed transfer is therefore well defined on all of \(\mathbb T\). Because \(A=B\), it is exactly the direct fine-grid transfer with no temporal aliasing. This proves the proposition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This verifies that the new machinery collapses to the familiar fine-grid formula when aliasing is removed. \textit{Gap.} The reduction is not a novelty claim; it is the required fidelity check against standard process-graph transfer analysis. \textit{Consumer.} Implementers can test the certificate against an unaliased benchmark before using it on subsampled data.
+
+\begin{theorem}[thm:adaptive-calibration-fallback]\label{thm:adaptive-calibration-fallback}
+The literal coordinatewise no-wider requirement has a finite-sample valid
+fallback. In the spectral-split calibration handle, take the measurable
+covariance envelope to be the constant function \(K_\Sigma\), and define
+\[
+ \widetilde{\mathcal C}_n^M(\alpha)=\mathcal C_n^M(\alpha),
+ \qquad
+ \widetilde{\mathcal R}_n=\mathcal R_n,
+ \qquad
+ \widetilde{\mathcal C}_n^h=\mathcal C_n^h.
+\]
+Then every coordinate interval is no wider than its deterministic
+\(K_\Sigma\)-box counterpart with probability one, the moment region has
+finite-sample coverage at least \(1-\alpha\) uniformly over the compact
+class, and the rational encoding and exact semialgebraic inverse are
+preserved. This construction certifies equality of widths; the frozen
+handle is not used here to claim a strict adaptive improvement.
+\end{theorem}
+\begin{proof}
+Fix \(n\geq3\) and a law \(P\) in
+\(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})\).  On the
+trajectory sample space \(\Omega_n=\mathbb R^{(n+1)d}\), equipped with its
+Borel \(\sigma\)-field, define
+\[
+ \widehat K_{\Sigma,n}:\Omega_n\longrightarrow(0,\infty),
+ \qquad
+ \widehat K_{\Sigma,n}(w):=K_\Sigma.
+\]
+This function is measurable: the inverse image of a Borel set is
+\(\Omega_n\) when that set contains \(K_\Sigma\), and is empty otherwise.
+
+Write \(\Sigma_{n,P}=\operatorname{Cov}_P(W_n)\).  The explicit uniform
+coarse spectral-density resolvent bound used in
+\(\mathrm{thm{:}uniform\mbox{-}moment\mbox{-}box}\) gives
+\[
+ 0\preceq\Sigma_{n,P}\preceq K_\Sigma I_{(n+1)d},
+ \qquad
+ \|\Sigma_{n,P}\|_{\mathrm{op}}
+ \leq K_\Sigma=\widehat K_{\Sigma,n}(W_n)
+ \quad P\text{-almost surely}.
+\]
+Thus the proposed constant function is a valid covariance envelope for
+every member of the compact class.
+
+It is compatible with the spectral split in
+\(\mathrm{def{:}adaptive\mbox{-}calibration\mbox{-}handle}\).  Indeed,
+for any symmetric lag-moment quadratic-form matrix, write
+\(H_{\ell ij}=H_{\ell ij}^{+}-H_{\ell ij}^{-}\), where
+\(H_{\ell ij}^{+},H_{\ell ij}^{-}\succeq0\) are its positive and negative
+spectral parts.  For \(s\in\{+,-\}\), covariance domination and cyclicity
+of trace imply
+\[
+ \operatorname{tr}(H_{\ell ij}^{s}\Sigma_{n,P})
+ =\operatorname{tr}\!\left((H_{\ell ij}^{s})^{1/2}
+ \Sigma_{n,P}(H_{\ell ij}^{s})^{1/2}\right)
+ \leq K_\Sigma\operatorname{tr}(H_{\ell ij}^{s}),
+\]
+while submultiplicativity gives
+\[
+ \bigl\|\Sigma_{n,P}^{1/2}H_{\ell ij}^{s}
+ \Sigma_{n,P}^{1/2}\bigr\|_{\mathrm{op}}
+ \leq K_\Sigma\|H_{\ell ij}^{s}\|_{\mathrm{op}}.
+\]
+Hence both spectral parts are controlled by the constant envelope, and
+their recombination recovers the deterministic two-sided calibration
+certified in \(\mathrm{thm{:}uniform\mbox{-}moment\mbox{-}box}\).
+
+For every realized trajectory, now set
+\[
+ \widetilde{\mathcal C}_n^M(\alpha):=\mathcal C_n^M(\alpha),
+ \qquad
+ \widetilde{\mathcal R}_n:=\mathcal R_n,
+ \qquad
+ \widetilde{\mathcal C}_n^h:=\mathcal C_n^h.
+\]
+For each \((\ell,i,j)\in\{0,1\}\times V\times V\), the associated
+coordinate interval is therefore exactly
+\[
+ \operatorname{Out}_N\!\left((\widehat M_\ell)_{ij},
+ 2K_\Sigma\left\{
+ \sqrt{\frac{\log(4d^2/\alpha)}{n}}
+ +\frac{\log(4d^2/\alpha)}{n}\right\}\right),
+\]
+which is the deterministic-\(K_\Sigma\) interval of
+\(\mathrm{def{:}moment\mbox{-}box}\).  Thus each fallback interval has
+exactly, and therefore no more than, the width of its deterministic
+counterpart at every sample point.  In particular,
+\[
+ P\!\left\{\text{all fallback coordinate widths are no larger than the
+ deterministic-\(K_\Sigma\) widths}\right\}=1.
+\]
+Moreover, equality of the moment regions and
+\(\mathrm{thm{:}uniform\mbox{-}moment\mbox{-}box}\) imply
+\[
+ \inf_{P\in\mathcal M_{\mathrm{cmp}}}
+ P\{(M_0,M_1)\in\widetilde{\mathcal C}_n^M(\alpha)\}
+ =
+ \inf_{P\in\mathcal M_{\mathrm{cmp}}}
+ P\{(M_0,M_1)\in\mathcal C_n^M(\alpha)\}
+ \geq1-\alpha.
+\]
+Every endpoint is rational by the defining property of
+\(\operatorname{Out}_N\).  Finally,
+\(\widetilde{\mathcal R}_n=\mathcal R_n\) leaves every equality and
+inequality in \(\mathrm{def{:}inverse\mbox{-}region}\) unchanged, and
+\(\widetilde{\mathcal C}_n^h=\mathcal C_n^h\) leaves its transfer
+projection unchanged.  The rational encoding and exact branch-free
+semialgebraic inverse are consequently preserved.  By
+\(\mathrm{thm{:}global\mbox{-}honest\mbox{-}inversion}\), the same
+equalities also preserve finite-sample transfer coverage.  Since all width
+comparisons are equalities, the construction establishes no strict adaptive
+improvement.
+\end{proof}
+
+\begin{lemma}[lem:effective-cad-decision-sampling]\label{lem:effective-cad-decision-sampling}
+Let \(K\) be an effective real closed field.  For every finite Boolean combination of polynomial equalities and strict or weak polynomial inequalities with coefficients in \(K\), cylindrical algebraic decomposition terminates, decides whether its realization in a finite-dimensional affine space is empty, and, when it is nonempty, returns an exact represented sample point.  This decision-and-sampling conclusion applies to open and positive-dimensional semialgebraic realizations as well as to zero-dimensional ones.
+\end{lemma}
+
+\begin{lemma}[lem:derivative-separated-class-nonempty]\label{lem:derivative-separated-class-nonempty}
+If every arrow \(j\to i\) in \(G\) satisfies \(j<i\) and \(u\to v\in G\), then the derivative-separated regular class \(\mathcal M_{\mathrm{reg}}^{\partial}(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\) is nonempty if and only if
+\[
+ \kappa\le m(1-\gamma)^{m-1}.
+\]
+\end{lemma}
+\begin{proof}
+Put \(\rho=1-\gamma\).  If the class is nonempty, its defining derivative separation and the stability-margin condition in \(\mathrm{def{:}regular\mbox{-}class}\) give, for every \(i\in V\),
+\[
+ \kappa\le m|A_{ii}|^{m-1}\le m\rho^{m-1}.
+\]
+This proves necessity.
+
+Conversely, suppose \(\kappa\le m\rho^{m-1}\), and define
+\[
+ a=\left(\frac{\kappa}{m}\right)^{1/(m-1)},
+ \qquad
+ \delta=\frac{d_{\min}+d_{\max}}{2},
+ \qquad
+ A=aI_d,
+ \qquad
+ D=\delta I_d.
+\]
+Because \(\kappa>0\), \(m\) is odd on \(\mathcal M_{\mathrm{reg}}\), and \(m\ge2\), the number \(a\) is well defined and satisfies \(0<a\le\rho<1\).  The matrix \(A\) is lower triangular and obeys every graph-support zero restriction.  It also satisfies \(\max_{ij}|A_{ij}|=a<1\le L\).  The matrix \(D\) is diagonal and satisfies
+\[
+ d_{\min}I_d\preceq D\preceq d_{\max}I_d.
+\]
+For every allowed edge \(j\to i\),
+\[
+ C_m(A_{ii},A_{jj})=C_m(a,a)
+ =\sum_{r=0}^{m-1}a^{m-1}
+ =ma^{m-1}=\kappa,
+\]
+and, for every \(i\), \(m|A_{ii}|^{m-1}=\kappa\).  Let \((\varepsilon_t)_{t\in\mathbb Z}\) be independent \(N(0,D)\) vectors and set
+\[
+ X_t=\sum_{r=0}^{\infty}a^r\varepsilon_{t-r},
+ \qquad Y_s=X_{ms}.
+\]
+The series converges in \(L^2\), since \(a^2<1\), and it is the stationary Gaussian solution of \(X_t=AX_{t-1}+\varepsilon_t\).  Thus every condition in \(\mathrm{def{:}regular\mbox{-}class}\), as well as the additional derivative separation in \(\mathrm{def{:}derivative\mbox{-}separated\mbox{-}regular\mbox{-}class}\), holds.  This proves sufficiency.
+\end{proof}
+
+\begin{lemma}[lem:target-corridor-recursion-closure]\label{lem:target-corridor-recursion-closure}
+If \(j\to i\in E_{uv}^{G}\), then every strict edge and every vertex occurring in a monomial of \(R_{ij,m}(A)\) lies in \(E_{uv}^{G}\) and \(V_{uv}^{G}\), respectively.  Every strict edge in such a monomial has endpoint gap strictly smaller than \(i-j\).  Consequently the recursion for a corridor edge uses only corridor diagonal entries and previously recovered corridor edges.
+\end{lemma}
+\begin{proof}
+Fix \(j\to i\in E_{uv}^{G}\).  By \(\mathrm{def{:}target\mbox{-}corridor}\), there is a directed path from \(u\) to \(v\) that contains the edge \(j\to i\).  In particular there are directed paths \(u\leadsto j\) and \(i\leadsto v\).  By \(\mathrm{lem{:}path\mbox{-}expansion}\), a monomial of \(R_{ij,m}(A)\) is indexed by a nondecreasing walk from \(j\) to \(i\) with at least two strict increases, and every strict increase follows an edge of \(G\).  Delete the repeated vertices caused by diagonal steps.  The remaining strict steps form a directed path
+\[
+ j=i_0\to i_1\to\cdots\to i_r=i,
+ \qquad r\ge2.
+\]
+Concatenating \(u\leadsto j\), this path, and \(i\leadsto v\) gives a directed \(u\)-to-\(v\) path.  Hence each \(i_\ell\) belongs to \(V_{uv}^{G}\), and every edge \(i_{\ell-1}\to i_\ell\) belongs to \(E_{uv}^{G}\), by the same definition.  Because \(r\ge2\) and the supplied labels increase strictly along every edge, for every \(\ell\)
+\[
+ 0<i_\ell-i_{\ell-1}<i-j.
+\]
+Thus all off-diagonal factors of the monomial have smaller endpoint gap.  Diagonal factors use only the vertices \(i_\ell\) already shown to lie in the corridor.  This holds for every monomial, proving all three claims.
+\end{proof}
+
+\begin{theorem}[thm:target-corridor-identification]\label{thm:target-corridor-identification}
+Suppose \(m\) is odd, \(u\to v\in G\), and \(\mathcal S(B,Q;G)\ne\varnothing\).  If
+\[
+ C_m(B_{ii}^{1/m},B_{jj}^{1/m})\ne0
+ \qquad\text{for every }j\to i\in E_{uv}^{G},
+\]
+then all compatible pairs \((A,D)\in\mathcal S(B,Q;G)\) have the same diagonal coordinates \(A_{ii}\), \(i\in V_{uv}^{G}\), and the same edge coordinates \(A_{ij}\), \(j\to i\in E_{uv}^{G}\).  These common coordinates equal \(\mathscr R_{uv,m,G}(B)\), and
+\[
+ \mathcal H_{uv}(B,Q;G)=\{\Phi_{uv,m,G}(B)\}.
+\]
+No uniqueness is asserted for transition coordinates or innovation variances outside the target corridor.
+\end{theorem}
+\begin{proof}
+The exact algebraic result first identifies the queried transfer, and the path corridor then gives a readable sufficient recursion for all path coordinates.  Indeed, \(\mathrm{lem{:}algebraic\mbox{-}dependency\mbox{-}closure}\) gives
+\[
+ E_{uv}^{\mathrm{alg},m}\subseteq E_{uv}^{G},
+ \qquad
+ V_{uv}^{\mathrm{alg},m}\subseteq V_{uv}^{G}.
+\tag{1}
+\]
+The displayed nonvanishing premise of the present theorem therefore implies the nonvanishing premise of \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}identification}\).  That theorem yields
+\[
+ \mathcal H_{uv}(B,Q;G)
+ =\{\Phi^{\mathrm{alg}}_{uv,m,G}(B)\}.
+\tag{2}
+\]
+
+For completeness, we prove the stronger coordinate assertion made by this corridor corollary.  Fix any
+\((A,D)\in\mathcal S(B,Q;G)\), which exists by hypothesis.  Lower triangularity gives
+\[
+ B_{ii}=(A^m)_{ii}=A_{ii}^m.
+\]
+Since \(m\) is odd,
+\[
+ A_{ii}=B_{ii}^{1/m}
+ \qquad(i\in V_{uv}^{G}).
+\tag{3}
+\]
+Thus every compatible pair has the same corridor diagonals.  Induct over the positive endpoint gap \(g=i-j\) for corridor edges.  If all corridor edges of gap less than \(g\) have already been recovered, then \(\mathrm{lem{:}path\mbox{-}expansion}\) gives, for \(j\to i\in E_{uv}^{G}\) of gap \(g\),
+\[
+ B_{ij}=A_{ij}C_m(A_{ii},A_{jj})+R_{ij,m}(A).
+\tag{4}
+\]
+By \(\mathrm{lem{:}target\mbox{-}corridor\mbox{-}recursion\mbox{-}closure}\), the remainder in \((4)\) uses only the diagonals in \((3)\) and corridor edges of gap less than \(g\).  It is therefore already a common function of \(B\).  The theorem's premise and \((3)\) give
+\[
+ C_m(A_{ii},A_{jj})
+ =C_m(B_{ii}^{1/m},B_{jj}^{1/m})\ne0.
+\tag{5}
+\]
+Solving \((4)\) with the legitimate division in \((5)\) yields
+\[
+ A_{ij}
+ =\frac{B_{ij}-R_{ij,m}(A)}
+ {C_m(B_{ii}^{1/m},B_{jj}^{1/m})},
+\tag{6}
+\]
+which is exactly the next update in \(\mathscr R_{uv,m,G}(B)\).  Finite induction proves that every compatible pair has all the common corridor coordinates asserted in the statement and that they equal \(\mathscr R_{uv,m,G}(B)\).
+
+In particular, the corridor and exact recursions both equal the compatible values of \(A_{vu}\) and \(A_{vv}\).  Hence
+\[
+ \Phi_{uv,m,G}(B)(z)
+ =\Phi^{\mathrm{alg}}_{uv,m,G}(B)(z).
+\tag{7}
+\]
+Combining \((2)\) and \((7)\) gives
+\(\mathcal H_{uv}(B,Q;G)=\{\Phi_{uv,m,G}(B)\}\).  Compatibility ensures \(|A_{vv}|<1\), so \(|1-A_{vv}z|\ge1-|A_{vv}|>0\) for \(|z|=1\).  The proof compares no coordinate outside the path corridor and no component of \(D\), so it does not assert full-fiber uniqueness.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The directed-path corridor contains the exact algebraic dependency closure, so its noncollision conditions give a readable sufficient identification criterion and additionally recover every path-corridor coordinate. \textit{Gap.} Existing root and subsampling results do not supply this graph-readable target-path corollary or distinguish it from the smaller exact monomial dependency set. \textit{Consumer.} A researcher may use directed path enumeration as a simple sufficient checklist, while the sharper exact-closure theorem avoids checking path edges that cannot enter an \(m\)-step remainder.
+
+\begin{lemma}[lem:uniform-compact-gaussian-lag-moment-clt]\label{lem:uniform-compact-gaussian-lag-moment-clt}
+For fixed \(d,m,G,\gamma,L,d_{\min},d_{\max}\), uniformly over \(\mathcal M_{\mathrm{cmp}}(d,m,G;\gamma,L,d_{\min},d_{\max})\),
+\[
+ \sqrt n\,\operatorname{vec}_{s}
+ \bigl(\widehat M_0-M_0,\widehat M_1-M_1\bigr)
+ \Longrightarrow N(0,\Omega(P)),
+ \qquad
+ \Omega(P)=\sum_{k\in\mathbb Z}\operatorname{Cov}_P(g_0,g_k),
+\]
+where
+\[
+ g_s=\operatorname{vec}_{s}
+ \bigl(Y_sY_s^\top-M_0,Y_sY_{s-1}^\top-M_1\bigr).
+\]
+The covariance series converges absolutely and uniformly.  On the event that \(\widehat B=\widehat M_1\widehat M_0^{-1}\) exists and is stable, substituting \((\widehat B,\widehat M_0)\) into the Gaussian Isserlis covariance series and projecting onto the positive-semidefinite cone gives a uniformly consistent estimator of \(\Omega(P)\); defining it arbitrarily off that event does not affect consistency.
+\end{lemma}
+\begin{proof}
+Put \(\rho=1-\gamma<1\) and let \(\mathfrak P_{\mathrm{cmp}}\) denote the class in the statement.  We first derive uniform covariance decay from the defining bounds of \(\mathrm{def{:}compact\mbox{-}class}\).  A nonzero entry of \(A^r\) is a sum over nondecreasing labeled walks.  Such a walk has at most \(d-1\) strict increases; every strict-increase factor has modulus at most \(L\), every diagonal factor has modulus at most \(\rho\), and the positions of the strict increases can be chosen in at most a polynomial number of ways.  Since \(d\) is fixed, there is a finite \(C_A=C_A(d,L,\rho)\) such that, uniformly over the class,
+\[
+ \lVert A^r\rVert_{\mathrm{op}}
+ \le C_A(r+1)^{d-1}\rho^{(r-d+1)_+},
+ \qquad r\ge0.                                             \tag{1}
+\]
+The innovation bounds in \(\mathrm{def{:}compact\mbox{-}class}\) and the stationary series representation give
+\[
+ M_0=\sum_{r=0}^{\infty}A^rD(A^r)^\top,
+ \qquad
+ d_{\min}I_d\preceq M_0\preceq C_0I_d                    \tag{2}
+\]
+for a finite \(C_0=C_0(d,L,\gamma,d_{\max})\); the lower inequality uses the \(r=0\) summand \(D\succeq d_{\min}I_d\), and the upper inequality follows by squaring and summing \((1)\).  By \(\mathrm{lem{:}coarse\mbox{-}law\mbox{-}reduction}\), the sampled process is the stationary Gaussian recursion
+\[
+ Y_s=BY_{s-1}+\eta_s,
+ \qquad B=A^m,
+ \qquad \eta_s\mathrel{\mathrm{iid}}\sim N(0,Q),           \tag{3}
+\]
+with each \(\eta_s\) independent of the preceding coarse history.  Hence, for \(k\ge0\),
+\[
+ \Gamma_Y(k):=\operatorname{Cov}(Y_k,Y_0)=B^kM_0=A^{mk}M_0. \tag{4}
+\]
+Equations \((1)\), \((2)\), and transposition for negative lags imply constants \(C<\infty\) and \(r_0\in(0,1)\), depending only on the displayed class constants, such that
+\[
+ \lVert\Gamma_Y(k)\rVert_{\mathrm{op}}
+ \le C(|k|+1)^{d-1}r_0^{|k|},
+ \qquad k\in\mathbb Z.                                    \tag{5}
+\]
+
+Let \(W_s=(Y_s^\top,Y_{s-1}^\top)^\top\).  Every coordinate of \(g_s\) is a centered product of two coordinates of \(W_s\).  For centered jointly Gaussian variables, expanding the fourth moment into its three pairings and subtracting the product of the two within-time covariances gives
+\[
+ \operatorname{Cov}(W_{0,a}W_{0,b},W_{k,c}W_{k,e})
+ =\operatorname{Cov}(W_{0,a},W_{k,c})
+  \operatorname{Cov}(W_{0,b},W_{k,e})
+ +\operatorname{Cov}(W_{0,a},W_{k,e})
+  \operatorname{Cov}(W_{0,b},W_{k,c}).                     \tag{6}
+\]
+Each cross-covariance on the right is an entry of \(\Gamma_Y(k+s)\) for \(s\in\{-1,0,1\}\).  Thus \((5)\)--\((6)\) give
+\[
+ \sup_{P\in\mathfrak P_{\mathrm{cmp}}}
+ \lVert\operatorname{Cov}_P(g_0,g_k)\rVert_{\mathrm{op}}
+ \le C_g(|k|+2)^{2d-2}r_0^{2(|k|-1)_+}.                   \tag{7}
+\]
+The right-hand side is summable over \(k\in\mathbb Z\), proving absolute and uniform convergence of \(\Omega(P)\).
+
+We next prove the central limit assertion without adding a mixing hypothesis.  Fix a real vector \(t\) of the dimension of \(g_s\), and put
+\[
+ S_n(t)=n^{-1/2}\sum_{s=1}^{n}t^\top g_s.
+\]
+With \({\bf Y}_n=(Y_0^\top,\ldots,Y_n^\top)^\top\), there is a real symmetric block-banded matrix \(H_n(t)\), of bandwidth one, such that
+\[
+ S_n(t)=n^{-1/2}
+ \left\{{\bf Y}_n^\top H_n(t){\bf Y}_n
+ -\operatorname{tr}\bigl(H_n(t)\Gamma_n\bigr)\right\},
+ \qquad \Gamma_n=\operatorname{Cov}({\bf Y}_n).            \tag{8}
+\]
+The finitely many block values of \(H_n(t)\) depend only on \(t\), so \(\sup_n\lVert H_n(t)\rVert_{\mathrm{op}}<\infty\).  The block Toeplitz form of \(\Gamma_n\) and the summability in \((5)\) give, by the maximum block-row-sum bound,
+\[
+ \sup_{n\ge1}\sup_{P\in\mathfrak P_{\mathrm{cmp}}}
+ \lVert\Gamma_n\rVert_{\mathrm{op}}<\infty.               \tag{9}
+\]
+Let \(K_n=\Gamma_n^{1/2}H_n(t)\Gamma_n^{1/2}\), and let \(\mu_{n,1},\ldots,\mu_{n,(n+1)d}\) be its real eigenvalues.  Equations \((8)\)--\((9)\) imply \(\max_j|\mu_{n,j}|\le C_t\) uniformly.
+
+To calculate the characteristic function, write \({\bf Y}_n=\Gamma_n^{1/2}\xi\) with \(\xi\sim N(0,I)\), allowing zero eigenvalues of \(\Gamma_n\), and diagonalize \(K_n\).  Independence of the coordinates of the rotated \(\xi\) and the elementary Gaussian integral
+\[
+ \mathbb E\exp(i a\xi_1^2)=(1-2ia)^{-1/2}
+\]
+give, for fixed \(\lambda\),
+\[
+ \mathbb E e^{i\lambda S_n(t)}
+ =\prod_j
+ \exp\!\left(-\frac{i\lambda\mu_{n,j}}{\sqrt n}\right)
+ \left(1-\frac{2i\lambda\mu_{n,j}}{\sqrt n}\right)^{-1/2}. \tag{10}
+\]
+For all sufficiently large \(n\), uniformly in the model and in \(j\), the arguments of the logarithms in \((10)\) lie in a fixed disk not containing zero.  Taylor expansion of \(-\frac12\log(1-x)\), with the linear term canceled by the exponential, yields
+\[
+ \log\mathbb E e^{i\lambda S_n(t)}
+ =-\frac{\lambda^2}{n}\sum_j\mu_{n,j}^2+\mathcal R_n,
+ \qquad
+ |\mathcal R_n|
+ \le \frac{C_\lambda}{n^{3/2}}\sum_j|\mu_{n,j}|^3
+ \le\frac{C_{\lambda,t}}{\sqrt n}.                        \tag{11}
+\]
+The finite-sample variance identity following from stationarity is
+\[
+ \operatorname{Var}_P(S_n(t))
+ =\sum_{|k|<n}\left(1-\frac{|k|}{n}\right)
+ t^\top\operatorname{Cov}_P(g_0,g_k)t
+ =\frac{2}{n}\sum_j\mu_{n,j}^2.                            \tag{12}
+\]
+By the uniform summability in \((7)\), the first expression in \((12)\) converges uniformly to \(t^\top\Omega(P)t\).  Substitution into \((11)\) proves, uniformly in \(P\),
+\[
+ \mathbb E e^{i\lambda S_n(t)}
+ -\exp\!\left(-\frac{\lambda^2}{2}t^\top\Omega(P)t\right)
+ \longrightarrow0.                                        \tag{13}
+\]
+This remains valid when the limiting variance is zero.  Since \((13)\) holds for every fixed \(t\), the Cram\'er--Wold argument proves the asserted vector Gaussian limit uniformly.
+
+It remains to establish the plug-in assertion.  The just-proved limit implies
+\[
+ \widehat M_0-M_0=O_{\mathbb P}(n^{-1/2}),
+ \qquad
+ \widehat M_1-M_1=O_{\mathbb P}(n^{-1/2})                  \tag{14}
+\]
+uniformly.  By \((2)\), matrix inversion is uniformly continuous on a common neighborhood of all population \(M_0\)'s.  Therefore
+\[
+ \widehat B-B=o_{\mathbb P}(1)                             \tag{15}
+\]
+uniformly.  Every population \(B=A^m\) has spectral radius at most \(\rho^m<1\).  The population \(B\)'s form a compact set, and the stable matrices form an open set, so they possess a common stable neighborhood.  Consequently
+\[
+ \sup_{P\in\mathfrak P_{\mathrm{cmp}}}
+ P(\widehat B\text{ is not stable})\longrightarrow0.       \tag{16}
+\]
+On the complementary event, all covariances used in \((6)\) are explicit continuous functions of \((\widehat B,\widehat M_0)\): for nonnegative lag \(k\), use \(\widehat B^k\widehat M_0\), and use its transpose for negative lag.  Finite truncations of the Isserlis series are therefore uniformly consistent by \((14)\)--\((15)\).  On a sufficiently small common stable neighborhood, the same walk or Jordan-block estimate as in \((5)\) supplies a summable envelope independent of the model and of the estimate.  The tails of both the population and plug-in series are consequently uniformly negligible.  The unprojected Isserlis estimator \(\widetilde\Omega\) thus satisfies
+\[
+ \widetilde\Omega-\Omega(P)=o_{\mathbb P}(1)              \tag{17}
+\]
+uniformly.  Let \(\widehat\Omega\) be a closest positive-semidefinite matrix to \(\widetilde\Omega\) in Frobenius norm.  Since \(\Omega(P)\succeq0\), the minimizing property and the triangle inequality give
+\[
+ \lVert\widehat\Omega-\Omega(P)\rVert_F
+ \le2\lVert\widetilde\Omega-\Omega(P)\rVert_F.           \tag{18}
+\]
+Equations \((16)\)--\((18)\) prove the stated uniform consistency, including the permitted arbitrary definition off the stable event.
+\end{proof}
+
+\begin{theorem}[thm:target-corridor-wald-band]\label{thm:target-corridor-wald-band}
+Suppose \(\mathcal Z\ne\varnothing\), \(m\) is odd, every arrow \(j\to i\) in \(G\) satisfies \(j<i\), \(u\to v\in G\), and
+\[
+ \kappa\le m(1-\gamma)^{m-1}.
+\]
+Then \(\mathcal M_{uv,\mathrm{cor}}^{\partial}(d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)\) is nonempty.  Uniformly over this class, as \(n\to\infty\), the real vector stacking the real and imaginary parts of
+\[
+ \sqrt n\bigl(\widehat h_{uv}^{\mathrm{cor}}(z)-h_{uv}(z)\bigr),
+ \qquad z\in\mathcal Z,
+\]
+converges to the centered Gaussian law obtained by applying the Jacobian of the moment-to-\(B\) map, the target-corridor recursion, and
+\[
+ \mathrm dh_{uv}(z)
+ =\frac{z\,\mathrm dA_{vu}}{1-A_{vv}z}
+  +\frac{A_{vu}z^2\,\mathrm dA_{vv}}{(1-A_{vv}z)^2}
+\]
+to the long-run Gaussian lag-moment covariance.  Let \(\widehat\Sigma_{h,\mathrm{cor}}\) be the positive-semidefinite plug-in estimate obtained from the Gaussian Isserlis covariance series and this localized Jacobian, and let \(\widehat c_{1-\alpha}^{\mathrm{cor}}\) be the \((1-\alpha)\)-quantile of the maximum complex modulus of the corresponding centered Gaussian vector.  Then
+\[
+ \sup_{P\in\mathcal M_{uv,\mathrm{cor}}^{\partial}}
+ \left|
+ P\!\left\{
+ h_{uv}(z)\in
+ \left\{w\in\mathbb C:
+ |w-\widehat h_{uv}^{\mathrm{cor}}(z)|
+ \le\frac{\widehat c_{1-\alpha}^{\mathrm{cor}}}{\sqrt n}
+ \right\}
+ \text{ for every }z\in\mathcal Z
+ \right\}-(1-\alpha)
+ \right|\longrightarrow0,
+\]
+where the class in the supremum has the full argument list displayed above.  This result imposes no root-derivative or divided-difference separation outside \(V_{uv}^{G}\) and \(E_{uv}^{G}\), and does not assert full-\(A\) uniqueness.
+\end{theorem}
+\begin{proof}
+Write
+\[
+ \mathfrak P_{\mathrm{cor}}
+ =\mathcal M_{uv,\mathrm{cor}}^{\partial}
+ (d,m,G;\gamma,L,d_{\min},d_{\max},\kappa),
+ \qquad
+ \mathfrak P_{\mathrm{alg}}
+ =\mathcal M_{uv,\mathrm{alg}}^{\partial}
+ (d,m,G;\gamma,L,d_{\min},d_{\max},\kappa).
+\]
+By \(\mathrm{lem{:}algebraic\mbox{-}dependency\mbox{-}closure}\),
+\[
+ E_{uv}^{\mathrm{alg},m}\subseteq E_{uv}^{G},
+ \qquad
+ V_{uv}^{\mathrm{alg},m}\subseteq V_{uv}^{G}.
+\tag{1}
+\]
+Restricting the two separation inequalities in \(\mathrm{def{:}corridor\mbox{-}derivative\mbox{-}separated\mbox{-}class}\) to the subsets in \((1)\) proves
+\[
+ \mathfrak P_{\mathrm{cor}}\subseteq\mathfrak P_{\mathrm{alg}}.
+\tag{2}
+\]
+
+The corridor class is nonempty under the displayed feasibility condition.  To see this directly, set
+\[
+ a=\left(\frac{\kappa}{m}\right)^{1/(m-1)},
+ \qquad A=aI_d,
+ \qquad D=d_{\min}I_d.
+\tag{3}
+\]
+Then \(0<a\le1-\gamma<1\), all graph zeros hold, \(|A_{ij}|\le1\le L\), and
+\(d_{\min}I_d\preceq D\preceq d_{\max}I_d\).  For every corridor vertex and edge,
+\[
+ m|A_{ii}|^{m-1}=\kappa,
+ \qquad
+ C_m(A_{ii},A_{jj})=C_m(a,a)=\kappa.
+\tag{4}
+\]
+Thus the stationary Gaussian model generated by \((A,D)\) belongs to \(\mathfrak P_{\mathrm{cor}}\).
+
+On any neighborhood where both localized recursions are defined, the exact-closure recursion and the corridor recursion agree on every exact-closure coordinate.  For diagonals this follows from their common odd-root formula.  For an edge in \(E_{uv}^{\mathrm{alg},m}\), the fixed-point property in \(\mathrm{lem{:}algebraic\mbox{-}dependency\mbox{-}closure}\) says that its remainder uses only exact-closure diagonals and smaller-gap exact-closure edges.  Induction on the gap therefore gives the same numerator and denominator in both recursions.  In particular,
+\[
+ \widehat A_{vu}^{\mathrm{cor}}=\widehat A_{vu}^{\mathrm{alg}},
+ \qquad
+ \widehat A_{vv}^{\mathrm{cor}}=\widehat A_{vv}^{\mathrm{alg}},
+ \qquad
+ \widehat h_{uv}^{\mathrm{cor}}(z)=\widehat h_{uv}^{\mathrm{alg}}(z).
+\tag{5}
+\]
+On \(\mathfrak P_{\mathrm{cor}}\), every relevant population derivative and divided difference is at least \(\kappa\) in absolute value.  Consistency of the empirical moments from \(\mathrm{lem{:}uniform\mbox{-}compact\mbox{-}gaussian\mbox{-}lag\mbox{-}moment\mbox{-}clt}\) makes the common-neighborhood event used in \((5)\) have probability tending to one uniformly.  Arbitrary definitions off that event do not affect the limit.
+
+Differentiating the common target formula in \((5)\) shows that the target rows of the two localized Jacobians coincide; the rows for inputs outside the exact closure vanish for the target map.  Therefore their positive-semidefinite plug-in covariances and Gaussian maximum-modulus critical values agree with probability tending to one uniformly on \(\mathfrak P_{\mathrm{cor}}\).  Applying \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}finite\mbox{-}grid\mbox{-}wald\mbox{-}corollary}\) and restricting its uniform assertion by \((2)\) proves the Gaussian limit and simultaneous-disk coverage in the present statement.  This establishes the directed-path corridor theorem as a nonempty, readily checked corollary of inference on the exact finite \(m\)-step algebraic dependency closure.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The path-corridor margins dominate the exact dependency margins, and the two recursions agree on the queried coordinates, so the corridor band is a readable nonempty corollary. \textit{Gap.} Fine-grid process-graph Wald theory does not provide this easily checked path-based corollary of aliased exact-dependency inference or handle rank-changing simultaneous complex-frequency covariance. \textit{Consumer.} Practitioners may check all vertices and edges on directed \(u\)-to-\(v\) paths for a simple sufficient Wald guarantee; implementations seeking a larger exact-closure regular class can instead compute the exact closure.
+
+\begin{theorem}[thm:unrestricted-even-sign-ambiguity]\label{thm:unrestricted-even-sign-ambiguity}
+Let \(m\) be even, let \(A\in\mathbb R^{d\times d}\) satisfy \(\rho(A)<1\), and let \(D\in\mathbb S_{++}^{d}\) be arbitrary.  For each \(s\in\{-1,1\}\), let \((X_t^{(s)})_{t\in\mathbb Z}\) be the zero-mean stationary Gaussian VAR(1) model
+\[
+ X_t^{(s)}=sA X_{t-1}^{(s)}+\varepsilon_t^{(s)},
+ \qquad
+ (\varepsilon_t^{(s)})_{t\in\mathbb Z}\mathrel{\mathrm{iid}}\sim N(0,D).
+\]
+Then the subsampled processes \((X_{jm}^{(1)})_{j\in\mathbb Z}\) and \((X_{jm}^{(-1)})_{j\in\mathbb Z}\) have the same law.  This conclusion requires neither a supplied variable order, triangularity or graph-support restrictions on \(A\), nor diagonality of \(D\).  For any \(u\ne v\) such that \(A_{vu}\ne0\), the attained direct coordinate transfers
+\[
+ \frac{A_{vu}z}{1-A_{vv}z}
+ \quad\text{and}\quad
+ \frac{-A_{vu}z}{1+A_{vv}z}
+\]
+are unequal as elements of \(\mathbb R(z)\).  Consequently the direct coordinate transfer is not point identified by the even-subsampled stationary Gaussian law on this unrestricted stable VAR(1) class.
+\end{theorem}
+\begin{proof}
+Put \(A_s=sA\) for \(s\in\{-1,1\}\).  First we verify that the stationary models in the statement are well defined.  Choose \(\varrho\) with \(\rho(A)<\varrho<1\).  A finite-dimensional Jordan-form calculation gives a constant \(C<\infty\) such that
+\[
+ \lVert A^k\rVert\le C \varrho^k,
+ \qquad k\ge0.
+\]
+Indeed, on a Jordan block with eigenvalue \(\lambda\), every entry of its \(k\)-th power is a constant multiple of \(\binom{k}{j}\lambda^{k-j}\) for some fixed \(j\); since \(|\lambda|<\varrho\), each such sequence is bounded by a constant times \(\varrho^k\).  Conjugating the finitely many blocks changes only the constant.  The same bound holds for \(A_s^k=s^kA^k\).  Taking \(\lVert\cdot\rVert\) to be the spectral norm, independence and centering of the innovations therefore imply, for \(M>N\),
+\[
+ \mathbb E\left\lVert
+   \sum_{k=N}^{M}A_s^k\varepsilon_{t-k}^{(s)}
+ \right\rVert^2
+ =\sum_{k=N}^{M}\operatorname{tr}
+   \left(A_s^kD(A_s^k)^\top\right)
+ \le \operatorname{tr}(D)C^2\sum_{k=N}^{M}\varrho^{2k}.
+\]
+The last expression tends to zero as \(N\to\infty\), uniformly in \(M>N\).  Thus
+\[
+ X_t^{(s)}:=\sum_{k=0}^{\infty}A_s^k\varepsilon_{t-k}^{(s)}
+\]
+converges in second mean, is centered, stationary, and Gaussian, and shifting the series proves
+\(X_t^{(s)}=A_sX_{t-1}^{(s)}+\varepsilon_t^{(s)}\).
+
+Iterating this recursion through one block of length \(m\), and defining \(Y_j^{(s)}:=X_{jm}^{(s)}\), gives
+\[
+ Y_j^{(s)}=A_s^mY_{j-1}^{(s)}+\eta_j^{(s)},
+ \qquad
+ \eta_j^{(s)}:=\sum_{r=0}^{m-1}A_s^r\varepsilon_{jm-r}^{(s)}.
+\]
+Distinct indices \(j\) use disjoint innovation blocks.  Hence the \(\eta_j^{(s)}\) are independent centered Gaussian vectors, and \(\eta_j^{(s)}\) is independent of the sigma-field generated by \(Y_{j-1}^{(s)},Y_{j-2}^{(s)},\ldots\).  Because \(m\) is even,
+\[
+ A_s^m=s^mA^m=A^m=:\overline B.
+\]
+Moreover, symmetry of scalar multiplication with matrix transposition yields, term by term,
+\[
+ \operatorname{Cov}(\eta_j^{(s)})
+ =\sum_{r=0}^{m-1}(sA)^rD\bigl((sA)^r\bigr)^\top
+ =\sum_{r=0}^{m-1}s^{2r}A^rD(A^r)^\top
+ =\sum_{r=0}^{m-1}A^rD(A^r)^\top
+ =:\overline Q.
+\]
+Notice that \(\overline Q\succ0\), because its \(r=0\) summand is \(D\succ0\) and every other summand is positive semidefinite.  Also \(\rho(\overline B)=\rho(A)^m<1\).  Iteration of the coarse recursion through \(L\) blocks gives
+\[
+ Y_0^{(s)}=\overline B^L Y_{-L}^{(s)}
+ +\sum_{\ell=0}^{L-1}\overline B^\ell\eta_{-\ell}^{(s)}.
+\]
+Stationarity gives \(\mathbb E\lVert Y_{-L}^{(s)}\rVert^2=\mathbb E\lVert Y_0^{(s)}\rVert^2<\infty\), while the same matrix-power bound applied to \(\overline B\) implies \(\overline B^L Y_{-L}^{(s)}\to0\) in second mean.  Taking \(L\to\infty\) shows that its stationary marginal covariance is uniquely
+\[
+ \overline\Gamma_0
+ =\sum_{\ell=0}^{\infty}\overline B^\ell
+      \overline Q(\overline B^\ell)^\top.
+\]
+Thus both sampled processes have initial distribution \(N(0,\overline\Gamma_0)\), conditional transition kernel
+\[
+ Y_j\mid Y_{j-1}=y\sim N(\overline B y,\overline Q),
+\]
+and independent block innovations.  Iterated conditioning proves equality of every finite-dimensional distribution, hence equality of the two sampled-process laws.  None of this calculation imposed an ordering, a zero restriction on \(A\), or diagonality of \(D\).
+
+Finally, set \(p=A_{vu}\) and \(q=A_{vv}\).  The direct coordinate transfers under \(A\) and \(-A\) are respectively
+\[
+ h_+(z)=\frac{pz}{1-qz},
+ \qquad
+ h_-(z)=\frac{-pz}{1+qz}.
+\]
+Their denominator polynomials have constant term one and hence are nonzero polynomials.  If \(h_+=h_-\) in \(\mathbb R(z)\), cross multiplication would give
+\[
+ pz(1+qz)=-pz(1-qz),
+\]
+so cancellation of the equal quadratic terms would give \(2pz=0\) as a polynomial.  This contradicts \(p=A_{vu}\ne0\).  The same observed law therefore attains two unequal values of the causal query, which is precisely failure of point identification.
+\end{proof}
+
+\begin{theorem}[thm:adaptive-calibration-literal-answer]\label{thm:adaptive-calibration-literal-answer}
+The adaptive-calibration question has an affirmative answer in its literal weak \emph{no wider} sense. For every \(n\geq3\), the spectral-split handle \(\mathrm{CalHandle}\) admits the measurable constant covariance envelope \(\widehat K_{\Sigma,n}\equiv K_\Sigma\) and the choices
+\[
+ \widetilde{\mathcal C}_n^M(\alpha)=\mathcal C_n^M(\alpha),
+ \qquad
+ \widetilde{\mathcal R}_n=\mathcal R_n,
+ \qquad
+ \widetilde{\mathcal C}_n^h=\mathcal C_n^h.
+\]
+For every law in the compact class, every coordinate interval then has exactly the width of its deterministic-\(K_\Sigma\) counterpart with probability one; consequently the coordinatewise no-wider probability equals one for every \(n\), and hence tends to one for every interior regular law in that class. The moment region has finite-sample coverage at least \(1-\alpha\) uniformly over the compact class, its endpoints are rationally outward rounded, and its exact branch-free semialgebraic inverse is unchanged. This answer certifies equality of widths and does not certify a strict adaptive improvement.
+\end{theorem}
+\begin{proof}
+Apply \(\mathrm{thm{:}adaptive\mbox{-}calibration\mbox{-}fallback}\) for
+each \(n\geq3\).  It supplies the measurable constant envelope
+\(\widehat K_{\Sigma,n}\equiv K_\Sigma\) and proves, for every realized
+trajectory,
+\[
+ \widetilde{\mathcal C}_n^M(\alpha)=\mathcal C_n^M(\alpha),
+ \qquad
+ \widetilde{\mathcal R}_n=\mathcal R_n,
+ \qquad
+ \widetilde{\mathcal C}_n^h=\mathcal C_n^h.
+\]
+The first equality makes every coordinate interval exactly as wide as its
+deterministic-\(K_\Sigma\) counterpart.  Therefore the coordinatewise
+no-wider event is the whole trajectory sample space and has probability one
+under every compact-class law for every \(n\).  For each interior regular
+law belonging to that class, this probability sequence is consequently
+identically one and converges to one.  The fallback theorem also gives
+uniform finite-sample coverage at least \(1-\alpha\), rational outward
+rounding, and preservation of the exact branch-free semialgebraic inverse.
+Because all width comparisons are equalities, no strict adaptive
+improvement has been established.
+\end{proof}
+
+\begin{lemma}[lem:algebraic-dependency-closure]\label{lem:algebraic-dependency-closure}
+Assume \(u\to v\in G\).  The increasing sequence defining \(E_{uv}^{\mathrm{alg},m}\) stabilizes after at most \(d(d-1)/2\) strict additions.  At its fixed point, every allowed off-diagonal variable occurring in a nonzero monomial of \(\overline R^{G}_{ij,m}\), for \(j\to i\in E_{uv}^{\mathrm{alg},m}\), belongs to \(E_{uv}^{\mathrm{alg},m}\) and has endpoint gap strictly smaller than \(i-j\).  Moreover,
+\[
+ E_{uv}^{\mathrm{alg},m}\subseteq E_{uv}^{G},
+ \qquad
+ V_{uv}^{\mathrm{alg},m}\subseteq V_{uv}^{G}.
+\]
+These inclusions can be strict: when \(d=4\), \(m=2\), and \(G\) has exactly the edges \(1\to4\), \(1\to2\), \(2\to3\), and \(3\to4\), the query \(1\to4\) has
+\[
+ E_{14}^{\mathrm{alg},2}=\{1\to4\}
+ \quad\text{but}\quad
+ E_{14}^{G}=\{1\to4,1\to2,2\to3,3\to4\}.
+\]
+\end{lemma}
+\begin{proof}
+Write \(F_r=E_{uv}^{\mathrm{alg},m,(r)}\).  By construction,
+\[
+ F_r\subseteq\mathfrak D_m(F_r)=F_{r+1}\subseteq E.
+\tag{1}
+\]
+The supplied order makes every edge an ordered pair \(j\to i\) with \(j<i\), so \(E\) has at most \(d(d-1)/2\) elements.  Whenever \(F_{r+1}\ne F_r\), at least one new edge is added.  Thus there is an index \(r_*\le d(d-1)/2\) for which \(F_{r_*+1}=F_{r_*}\); monotonicity in \((1)\) then gives \(F_r=F_{r_*}\) for every \(r\ge r_*\).  This proves termination and
+\[
+ E_{uv}^{\mathrm{alg},m}=F_{r_*}=\mathfrak D_m(F_{r_*}).
+\tag{2}
+\]
+The fixed-point equality \((2)\) is exactly the assertion that every allowed off-diagonal variable appearing in any retained remainder is retained.
+
+We prove the corridor inclusion by induction on \(r\).  The seed \(u\to v\) lies on the one-edge directed path from \(u\) to \(v\), hence \(F_0\subseteq E_{uv}^{G}\).  Suppose \(F_r\subseteq E_{uv}^{G}\), fix \(j\to i\in F_r\), and let \(k\to\ell\) be newly added because \(A_{\ell k}\) occurs in a nonzero graph-supported monomial of \(\overline R^{G}_{ij,m}\).  By \(\mathrm{lem{:}path\mbox{-}expansion}\), the strict edges of that monomial form a directed path from \(j\) to \(i\), the edge \(k\to\ell\) lies on that path, and its endpoint gap satisfies
+\[
+ \ell-k<i-j.
+\tag{3}
+\]
+Because \(j\to i\in E_{uv}^{G}\), there are directed paths from \(u\) to \(j\) and from \(i\) to \(v\).  Concatenating the former, the monomial path from \(j\) to \(i\), and the latter produces a directed \(u\)-to-\(v\) path containing \(k\to\ell\).  Hence \(k\to\ell\in E_{uv}^{G}\).  This proves \(F_{r+1}\subseteq E_{uv}^{G}\), and finite induction together with \((2)\) gives
+\[
+ E_{uv}^{\mathrm{alg},m}\subseteq E_{uv}^{G}.
+\tag{4}
+\]
+Every vertex in \(V_{uv}^{\mathrm{alg},m}\) is incident to an edge on the left of \((4)\), so it lies on the corresponding directed \(u\)-to-\(v\) path.  Thus \(V_{uv}^{\mathrm{alg},m}\subseteq V_{uv}^{G}\).  Equation \((3)\), applied at the fixed point, proves the smaller-gap assertion.  It also shows that increasing endpoint gap is a valid topological order for the recursion.
+
+It remains to verify strictness.  In the stated four-vertex graph, direct multiplication gives
+\[
+ (A^2)_{41}
+ =A_{41}(A_{44}+A_{11})+A_{42}A_{21}+A_{43}A_{31}.
+\tag{5}
+\]
+The edges \(2\to4\) and \(1\to3\) are absent, so graph support sets \(A_{42}=A_{31}=0\).  Consequently
+\[
+ \overline R^{G}_{41,2}=0.
+\tag{6}
+\]
+Starting from \(F_0=\{1\to4\}\), equation \((6)\) adds no edge, and hence \(E_{14}^{\mathrm{alg},2}=\{1\to4\}\).  On the other hand, the direct edge and the chordless path \(1\to2\to3\to4\) are both directed paths from \(1\) to \(4\), so all four displayed edges belong to \(E_{14}^{G}\).  This proves the claimed strict inclusion without assigning any numerical coefficient a special value.
+\end{proof}
+
+\begin{theorem}[thm:algebraic-dependency-identification]\label{thm:algebraic-dependency-identification}
+Suppose \(m\) is odd, \(u\to v\in G\), and \(\mathcal S(B,Q;G)\ne\varnothing\).  If
+\[
+ C_m(B_{ii}^{1/m},B_{jj}^{1/m})\ne0
+ \qquad\text{for every }j\to i\in E_{uv}^{\mathrm{alg},m},
+\]
+then every compatible pair \((A,D)\in\mathcal S(B,Q;G)\) has the same diagonal coordinates \(A_{ii}\), \(i\in V_{uv}^{\mathrm{alg},m}\), and the same edge coordinates \(A_{ij}\), \(j\to i\in E_{uv}^{\mathrm{alg},m}\).  They equal \(\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)\), and
+\[
+ \mathcal H_{uv}(B,Q;G)
+ =\{\Phi^{\mathrm{alg}}_{uv,m,G}(B)\}.
+\]
+No uniqueness is asserted for transition coordinates or innovation variances outside the exact algebraic dependency closure.
+\end{theorem}
+\begin{proof}
+Fix arbitrary compatible pairs
+\[
+ (A,D),(\widetilde A,\widetilde D)\in\mathcal S(B,Q;G).
+\tag{1}
+\]
+The triangular restrictions in \(\mathrm{def{:}compatible\mbox{-}fiber}\) imply that the diagonal entry of a matrix power is the corresponding power of the diagonal entry.  Since both pairs in \((1)\) satisfy the same equation \(A^m=B\), for every \(i\in V\),
+\[
+ B_{ii}=A_{ii}^m=\widetilde A_{ii}^m.
+\tag{2}
+\]
+The map \(x\mapsto x^m\) is injective on \(\mathbb R\) when \(m\) is odd.  Therefore
+\[
+ A_{ii}=\widetilde A_{ii}=B_{ii}^{1/m}.
+\tag{3}
+\]
+In particular, all retained diagonal coordinates agree with the diagonal step of \(\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)\).
+
+We now induct over the positive endpoint gap \(g=i-j\) among edges in \(E_{uv}^{\mathrm{alg},m}\).  Assume that every retained edge of gap less than \(g\) has a common value under \(A\) and \(\widetilde A\), equal to the algebraic recursion.  For \(j\to i\in E_{uv}^{\mathrm{alg},m}\) with \(i-j=g\), \(\mathrm{lem{:}path\mbox{-}expansion}\), after graph-forbidden variables are set to zero, gives
+\[
+ B_{ij}
+ =A_{ij}C_m(A_{ii},A_{jj})+\overline R^{G}_{ij,m}(A),
+\tag{4}
+\]
+and the same equality with \(A\) replaced by \(\widetilde A\).  By \(\mathrm{lem{:}algebraic\mbox{-}dependency\mbox{-}closure}\), every off-diagonal variable in the remainder belongs to \(E_{uv}^{\mathrm{alg},m}\) and has gap less than \(g\); every diagonal variable is incident to one of those retained edges and hence belongs to \(V_{uv}^{\mathrm{alg},m}\).  The induction hypothesis and \((3)\) therefore yield
+\[
+ \overline R^{G}_{ij,m}(A)
+ =\overline R^{G}_{ij,m}(\widetilde A).
+\tag{5}
+\]
+Moreover, \((3)\) and the displayed premise of the theorem give
+\[
+ C_m(A_{ii},A_{jj})
+ =C_m(B_{ii}^{1/m},B_{jj}^{1/m})\ne0.
+\tag{6}
+\]
+Subtracting the common remainder in \((5)\) from \((4)\) and dividing by the nonzero quantity in \((6)\) gives
+\[
+ A_{ij}=\widetilde A_{ij}
+ =\frac{B_{ij}-\overline R^{G}_{ij,m}(A)}
+ {C_m(B_{ii}^{1/m},B_{jj}^{1/m})}.
+\tag{7}
+\]
+This is exactly the next algebraic-recursion update.  The closure is finite by \(\mathrm{lem{:}algebraic\mbox{-}dependency\mbox{-}closure}\), so finite induction proves all asserted coordinate equalities.
+
+The seed belongs to the closure, so \(u\to v\in E_{uv}^{\mathrm{alg},m}\) and \(v\in V_{uv}^{\mathrm{alg},m}\).  Equations \((3)\) and \((7)\) identify \(A_{vv}\) and \(A_{vu}\), respectively.  Thus every pair in the nonempty compatible fiber has transfer
+\[
+ h_{uv}(z)
+ =\frac{A_{vu}z}{1-A_{vv}z}
+ =\frac{\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{vu}z}
+ {1-\mathscr R^{\mathrm{alg}}_{uv,m,G}(B)_{vv}z}
+ =\Phi^{\mathrm{alg}}_{uv,m,G}(B)(z).
+\tag{8}
+\]
+Compatibility supplies \(|A_{vv}|<1\).  Hence, for every \(|z|=1\),
+\[
+ |1-A_{vv}z|\ge1-|A_{vv}|>0,
+\tag{9}
+\]
+so the rational function in \((8)\) is defined on \(\mathbb T\).  By \(\mathrm{def{:}transfer\mbox{-}fiber}\), equality \((8)\) for every compatible pair proves
+\(\mathcal H_{uv}(B,Q;G)=\{\Phi^{\mathrm{alg}}_{uv,m,G}(B)\}\).  Neither the induction nor the transfer calculation compares any coordinate outside the algebraic dependency closure or any entry of \(D\), so no broader uniqueness follows.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The causal transfer uses only \(A_{vu}\) and \(A_{vv}\); closing the formal \(m\)-step remainders from the queried edge retains exactly the finite coordinates that can enter their recursive recovery. \textit{Gap.} Triangular-root algorithms and subsampling results do not isolate the exact graph-supported monomial dependency set for one queried causal transfer or prove equality across a nonsingleton compatible fiber. \textit{Consumer.} A researcher computes the unique transfer after checking noncollision only on the exact algebraic dependency closure; the larger directed-path corridor remains a simple sufficient checklist.
+
+\begin{theorem}[thm:algebraic-dependency-uniform-wald-band]\label{thm:algebraic-dependency-uniform-wald-band}
+Suppose \(m\) is odd, every arrow \(j\to i\) in \(G\) satisfies \(j<i\), \(u\to v\in G\), and
+\[
+ \kappa\le m(1-\gamma)^{m-1}.
+\]
+Then
+\[
+ \mathfrak P_{\mathrm{alg}}
+ :=\mathcal M_{uv,\mathrm{alg}}^{\partial}
+ (d,m,G;\gamma,L,d_{\min},d_{\max},\kappa)
+\]
+is nonempty.  Regard the exact algebraic-dependency moment-to-transfer map as a map into the real Banach space \(C(\mathbb T;\mathbb C)\), equipped with the norm
+\[
+ \|f\|_{\infty}=\sup_{|z|=1}|f(z)|.
+\]
+Uniformly over \(P\in\mathfrak P_{\mathrm{alg}}\),
+\[
+ \sqrt n\bigl(\widehat h_{uv}^{\mathrm{alg}}-h_{uv}\bigr)
+ \Longrightarrow Z_{h,P}
+ \quad\text{in }C(\mathbb T;\mathbb C),
+\]
+where \(Z_{h,P}\) is the centered finite-dimensional Gaussian image obtained by applying the Fr\'echet derivative of the moment-to-\(B\) map, the exact algebraic-dependency recursion, and
+\[
+ \mathrm dh_{uv}(z)
+ =\frac{z\,\mathrm dA_{vu}}{1-A_{vv}z}
+  +\frac{A_{vu}z^2\,\mathrm dA_{vv}}{(1-A_{vv}z)^2},
+ \qquad |z|=1,
+\]
+to the long-run Gaussian lag-moment limit.  There is a constant \(c_*>0\), depending only on the displayed class constants, such that
+\[
+ \inf_{P\in\mathfrak P_{\mathrm{alg}}}
+ \inf_{|z|=1}\mathbb E_P|Z_{h,P}(z)|^2\ge c_*.
+\]
+Let \(\widehat L_{h,\mathrm{alg}}\) be the plug-in Fr\'echet derivative, let \(\widehat\Omega\succeq0\) be the Gaussian Isserlis-series estimator of the lag-moment covariance, and, conditionally on the observations, define
+\[
+ \widehat Z_{h,\mathrm{alg}}
+ =\widehat L_{h,\mathrm{alg}}\widehat\Omega^{1/2}\xi,
+ \qquad \xi\sim N(0,I),
+\]
+with \(\xi\) independent of the observations.  Its real--imaginary covariance kernel is \(\widehat\Sigma_{h,\mathrm{alg}}\).  Define
+\[
+ \widehat c_{1-\alpha}^{\mathrm{alg},\mathbb T}
+ =\inf\left\{t:
+ \Pr\!\left(
+  \sup_{|z|=1}|\widehat Z_{h,\mathrm{alg}}(z)|\le t
+  \mathrel{\big|}Y_0,\ldots,Y_n
+ \right)\ge1-\alpha\right\}.
+\]
+Then the full-frequency simultaneous Wald disks are uniformly exact:
+\[
+ \sup_{P\in\mathfrak P_{\mathrm{alg}}}
+ \left|
+ P\!\left\{
+  |h_{uv}(z)-\widehat h_{uv}^{\mathrm{alg}}(z)|
+  \le\frac{\widehat c_{1-\alpha}^{\mathrm{alg},\mathbb T}}{\sqrt n}
+  \text{ for every }z\in\mathbb T
+ \right\}-(1-\alpha)
+ \right|\longrightarrow0.
+\]
+No root-derivative or divided-difference separation is imposed outside \(V_{uv}^{\mathrm{alg},m}\) and \(E_{uv}^{\mathrm{alg},m}\), and no uniqueness is asserted for coordinates of \(A\) outside that exact closure.
+\end{theorem}
+\begin{proof}
+Put
+\[
+ \mathfrak P_{\mathrm{alg}}
+ =\mathcal M_{uv,\mathrm{alg}}^{\partial}
+ (d,m,G;\gamma,L,d_{\min},d_{\max},\kappa).
+\tag{1}
+\]
+We prove nonemptiness first.  Since \(m\ge2\) is odd, \(m\ge3\).  Define
+\[
+ a=\left(\frac{\kappa}{m}\right)^{1/(m-1)}.
+\tag{2}
+\]
+The feasibility inequality gives \(0<a\le1-\gamma<1\).  Take \(A=aI_d\), \(D=d_{\min}I_d\), and let \(X\) be the stationary Gaussian solution driven by independent \(N(0,D)\) innovations; set \(Y_s=X_{ms}\).  The off-diagonal entries of \(A\) vanish, so the lower-triangular and graph-support restrictions hold.  Also \(\rho(A)=a<1\), \(\max_{i,j}|A_{ij}|=a\le1\le L\), and
+\[
+ d_{\min}I_d\preceq D=d_{\min}I_d\preceq d_{\max}I_d.
+\tag{3}
+\]
+For every retained vertex and retained edge,
+\[
+ m|A_{ii}|^{m-1}=ma^{m-1}=\kappa,
+ \qquad
+ C_m(A_{ii},A_{jj})=C_m(a,a)=ma^{m-1}=\kappa.
+\tag{4}
+\]
+Thus this law belongs to \(\mathfrak P_{\mathrm{alg}}\).  Notice also that the seed \(u\to v\) makes \(u\in V_{uv}^{\mathrm{alg},m}\); hence every member of the class satisfies
+\[
+ \kappa\le m|A_{uu}|^{m-1}\le m(1-\gamma)^{m-1}.
+\tag{5}
+\]
+Thus the displayed feasibility inequality is necessary as well as sufficient for this construction.
+
+We next establish uniform smoothness.  The admissible pairs \((A,D)\) form a closed subset of a bounded finite-dimensional set: the graph zeros are linear equalities, the stability-margin and entry restrictions are closed inequalities, the innovation restrictions put the diagonal entries of \(D\) in \([d_{\min},d_{\max}]\), and the finitely many derivative-separation restrictions are closed polynomial inequalities.  Hence the parameter set underlying \(\mathfrak P_{\mathrm{alg}}\) is compact.  Because \(A\) is lower triangular,
+\[
+ \rho(A)=\max_{i\in V}|A_{ii}|\le1-\gamma<1.
+\tag{6}
+\]
+The stationary covariance therefore exists and equals
+\[
+ M_0=\sum_{r=0}^{\infty}A^rD(A^r)^\top.
+\tag{7}
+\]
+The term \(r=0\) and the innovation lower bound give \(M_0\succeq d_{\min}I_d\).  To obtain a uniform upper bound, expand each entry of \(A^r\) over nondecreasing index walks.  Such a walk has at most \(d-1\) strict increases.  Terms with \(q\) strict increases have absolute value at most \(L^q(1-\gamma)^{r-q}\), and their number is at most a constant, depending only on \(d\), times \((r+1)^q\).  Choosing any \(r_0\in(1-\gamma,1)\) absorbs this fixed-degree polynomial and gives a constant \(C_A<\infty\) such that
+\[
+ \sup_{P\in\mathfrak P_{\mathrm{alg}}}\|A^r\|
+ \le C_A r_0^r,
+ \qquad r\ge0.
+\tag{8}
+\]
+Equations \((7)\), \((8)\), and \(D\preceq d_{\max}I_d\) imply that for some finite \(C_0=C_0(d,L,\gamma,d_{\max})\),
+\[
+ d_{\min}I_d\preceq M_0\preceq C_0I_d
+\tag{9}
+\]
+uniformly.  Consequently
+\[
+ T_B:(M_0,M_1)\longmapsto B=M_1M_0^{-1}
+\tag{10}
+\]
+is twice continuously differentiable, with uniformly bounded first and second derivatives, on one common neighborhood of all population moment pairs.
+
+For every \(i\in V_{uv}^{\mathrm{alg},m}\), triangularity gives \(B_{ii}=A_{ii}^m\), while class membership gives
+\[
+ m|A_{ii}|^{m-1}\ge\kappa.
+\tag{11}
+\]
+Oddness of \(m\) makes the real root unique.  Its first two derivatives at \(B_{ii}=A_{ii}^m\) are
+\[
+ \frac{\partial A_{ii}}{\partial B_{ii}}
+ =\frac{1}{mA_{ii}^{m-1}},
+ \qquad
+ \frac{\partial^2 A_{ii}}{\partial B_{ii}^2}
+ =-\frac{m-1}{m^2A_{ii}^{2m-1}}.
+\tag{12}
+\]
+By \((11)\), \(|A_{ii}|\ge(\kappa/m)^{1/(m-1)}>0\), so the quantities in \((12)\) are uniformly bounded.  For a retained edge \(j\to i\), \(\mathrm{def{:}algebraic\mbox{-}dependency\mbox{-}recursion}\) and \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}identification}\) give the recursive identity
+\[
+ A_{ij}
+ =\frac{B_{ij}-\overline R^{G}_{ij,m}(A)}
+ {C_m(A_{ii},A_{jj})},
+ \qquad
+ |C_m(A_{ii},A_{jj})|\ge\kappa.
+\tag{13}
+\]
+By \(\mathrm{lem{:}algebraic\mbox{-}dependency\mbox{-}closure}\), the polynomial remainder in \((13)\) contains only retained diagonals and retained edges of strictly smaller endpoint gap.  Induction over the finitely many endpoint gaps, starting from \((12)\), therefore shows that the exact root coordinates are twice continuously differentiable functions of \(B\).  Compactness and continuity yield a common neighborhood of the population \(B\)'s on which all root derivatives are bounded and every divisor in \((12)\)--\((13)\) has absolute value at least \(\kappa/2\).  This induction uses no coordinate outside \(V_{uv}^{\mathrm{alg},m}\) and \(E_{uv}^{\mathrm{alg},m}\).
+
+Write \(p=A_{vu}\) and \(q=A_{vv}\).  For real increments \(s,t\), define the real Fr\'echet derivatives of
+\[
+ H(p,q)(z)=\frac{pz}{1-qz},\qquad z\in\mathbb T,
+\tag{14}
+\]
+as maps into \(C(\mathbb T;\mathbb C)\).  Direct differentiation gives
+\[
+ DH_{p,q}[s,t](z)
+ =\frac{zs}{1-qz}+\frac{pz^2t}{(1-qz)^2}
+\tag{15}
+\]
+and
+\[
+ D^2H_{p,q}[(s_1,t_1),(s_2,t_2)](z)
+ =\frac{z^2(s_1t_2+s_2t_1)}{(1-qz)^2}
+  +\frac{2pz^3t_1t_2}{(1-qz)^3}.
+\tag{16}
+\]
+The stability margin supplies, simultaneously for all \(z\in\mathbb T\),
+\[
+ |1-qz|\ge1-|q|\ge\gamma.
+\tag{17}
+\]
+Since \(|p|\le L\), equations \((15)\)--\((17)\) imply
+\[
+ \|DH_{p,q}[s,t]\|_\infty
+ \le\gamma^{-1}|s|+L\gamma^{-2}|t|
+\tag{18}
+\]
+and
+\[
+ \|D^2H_{p,q}[(s_1,t_1),(s_2,t_2)]\|_\infty
+ \le\gamma^{-2}(|s_1t_2|+|s_2t_1|)
+   +2L\gamma^{-3}|t_1t_2|.
+\tag{19}
+\]
+Shrinking the common neighborhood if necessary replaces \(\gamma\) in these bounds by \(\gamma/2\).  Composing \((10)\), the exact recursion \((12)\)--\((13)\), and \((14)\), the ordinary finite-dimensional chain rule and \((18)\)--\((19)\) give a map
+\[
+ F:\vartheta=\operatorname{vec}_{s}(M_0,M_1)\longmapsto h_{uv}
+ \in C(\mathbb T;\mathbb C)
+\tag{20}
+\]
+whose first and second real Fr\'echet derivatives are bounded uniformly on a common neighborhood.  In particular, for a constant \(C_F<\infty\),
+\[
+ \|F(\vartheta+\delta)-F(\vartheta)-L_P\delta\|_\infty
+ \le C_F\|\delta\|^2,
+ \qquad L_P=DF_\vartheta,
+\tag{21}
+\]
+whenever \(\vartheta+\delta\) is in that neighborhood.  The derivative in the last step of the composition is exactly \((15)\), which is the derivative displayed in the theorem.  By \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}identification}\), \(F(\vartheta)\) is the causal transfer \(h_{uv}\), rather than merely a regression functional of the coarse law.
+
+Let
+\[
+ \widehat\vartheta
+ =\operatorname{vec}_{s}(\widehat M_0,\widehat M_1).
+\tag{22}
+\]
+The uniform compact Gaussian lag-moment central limit theorem gives, uniformly on \(\mathfrak P_{\mathrm{alg}}\),
+\[
+ \sqrt n(\widehat\vartheta-\vartheta)
+ \Longrightarrow W_P\sim N(0,\Omega(P)),
+ \qquad
+ \Omega(P)=\sum_{k\in\mathbb Z}\operatorname{Cov}_P(g_0,g_k),
+\tag{23}
+\]
+and supplies uniform tightness.  Hence the probability that \(\widehat\vartheta\) leaves the common neighborhood tends to zero uniformly.  On the event \(\sqrt n\|\widehat\vartheta-\vartheta\|\le K\), equation \((21)\) gives
+\[
+ \sqrt n\,
+ \|F(\widehat\vartheta)-F(\vartheta)-L_P(\widehat\vartheta-\vartheta)\|_\infty
+ \le\frac{C_FK^2}{\sqrt n}.
+\tag{24}
+\]
+First choose \(K\) by uniform tightness and then let \(n\to\infty\).  It follows that the left side of \((24)\) is \(o_{\mathbb P}(1)\) uniformly.  Since the domain of \(L_P\) is finite dimensional and \(\sup_P\|L_P\|_{\mathrm{op}}<\infty\), applying \(L_P\) to the finite-dimensional uniform limit \((23)\) gives
+\[
+ \sqrt n\bigl(\widehat h_{uv}^{\mathrm{alg}}-h_{uv}\bigr)
+ \Longrightarrow Z_{h,P}:=L_PW_P
+ \quad\text{in }C(\mathbb T;\mathbb C),
+\tag{25}
+\]
+uniformly in bounded-Lipschitz distance.  The arbitrary definition of the estimator off its regular event is immaterial because that event's complement has probability tending to zero uniformly.
+
+We now prove that the Gaussian image does not collapse, even when its covariance rank changes.  Define
+\[
+ \widetilde M_0=n^{-1}\sum_{s=1}^{n}Y_{s-1}Y_{s-1}^\top.
+\]
+The empirical moments satisfy the exact boundary identity
+\[
+ \widehat M_0-\widetilde M_0
+ =n^{-1}(Y_nY_n^\top-Y_0Y_0^\top).
+\tag{26}
+\]
+Equations \((8)\)--\((9)\) and Gaussianity yield a uniform fourth-moment bound for \(Y_s\), so the right side of \((26)\) is \(o_{\mathbb P}(n^{-1/2})\) uniformly.  By \(\mathrm{lem{:}coarse\mbox{-}law\mbox{-}reduction}\),
+\[
+ Y_s=BY_{s-1}+\eta_s,
+ \qquad
+ \widehat M_1
+ =B\widetilde M_0+n^{-1}\sum_{s=1}^{n}\eta_sY_{s-1}^\top.
+\tag{27}
+\]
+The first-order expansion of \((10)\), together with \((26)\), gives
+\[
+ \sqrt n\,\operatorname{vec}(\widehat B-B)
+ =\operatorname{vec}\!\left(
+ n^{-1/2}\sum_{s=1}^{n}\eta_sY_{s-1}^\top M_0^{-1}
+ \right)+o_{\mathbb P}(1)
+\tag{28}
+\]
+uniformly.  Since \(\eta_s\) is independent of the coarse past, the summands are martingale differences.  Their covariance, in the corresponding vectorization order, is
+\[
+ \Gamma_B=M_0^{-1}\otimes Q.
+\tag{29}
+\]
+Furthermore,
+\[
+ Q=\sum_{r=0}^{m-1}A^rD(A^r)^\top\succeq D\succeq d_{\min}I_d.
+\tag{30}
+\]
+Combining \((9)\), \((29)\), and \((30)\) yields
+\[
+ \Gamma_B\succeq c_BI_{d^2},
+ \qquad c_B=\frac{d_{\min}}{C_0}>0.
+\tag{31}
+\]
+
+The seed edge \(u\to v\) is retained.  Every variable in its remainder has smaller endpoint gap, so no recursively recovered input to that remainder depends on \(B_{vu}\); diagonal roots depend only on diagonal entries of \(B\).  Differentiating \((13)\) for the seed therefore gives
+\[
+ \frac{\partial A_{vu}}{\partial B_{vu}}
+ =\frac{1}{C_m(A_{vv},A_{uu})},
+ \qquad
+ \frac{\partial A_{vv}}{\partial B_{vu}}=0.
+\tag{32}
+\]
+For \(|z|=1\), the entry and stability bounds imply
+\[
+ |C_m(A_{vv},A_{uu})|
+ \le\sum_{r=0}^{m-1}|A_{vv}|^r|A_{uu}|^{m-1-r}\le m,
+ \qquad
+ |1-A_{vv}z|\le2.
+\tag{33}
+\]
+Equations \((15)\), \((32)\), and \((33)\) give
+\[
+ \left|\frac{\partial h_{uv}(z)}{\partial B_{vu}}\right|
+ =\frac{1}{|C_m(A_{vv},A_{uu})|\,|1-A_{vv}z|}
+ \ge\frac{1}{2m},
+ \qquad |z|=1.
+\tag{34}
+\]
+Applying the positive-definite covariance bound \((31)\) to this derivative yields
+\[
+ \mathbb E_P|Z_{h,P}(z)|^2
+ \ge\frac{c_B}{4m^2}=:c_*>0
+\tag{35}
+\]
+uniformly over \(P\in\mathfrak P_{\mathrm{alg}}\) and \(z\in\mathbb T\).  Thus the limiting process is never the zero random element, although its finite-dimensional covariance is allowed to change rank.
+
+It remains to justify plug-in calibration.  Let \(q_0\) be the fixed dimension of \(\vartheta\).  The covariance estimator in \(\mathrm{lem{:}uniform\mbox{-}compact\mbox{-}gaussian\mbox{-}lag\mbox{-}moment\mbox{-}clt}\), after projection onto the positive-semidefinite cone, satisfies
+\[
+ \|\widehat\Omega-\Omega(P)\|=o_{\mathbb P}(1)
+\tag{36}
+\]
+uniformly.  The uniform consistency of the moments, the common regular neighborhood, and continuity of the derivatives in \((10)\)--\((20)\) also give
+\[
+ \|\widehat L_{h,\mathrm{alg}}-L_P\|_{\mathrm{op}}
+ =o_{\mathbb P}(1)
+\tag{37}
+\]
+uniformly, where the operator norm maps \(\mathbb R^{q_0}\) into \(C(\mathbb T;\mathbb C)\).  Matrix square roots are continuous on the positive-semidefinite cone: this follows in finite dimension by approximating the continuous scalar function \(x\mapsto\sqrt x\) uniformly by polynomials on a common bounded spectral interval.  Hence, for \(\xi\sim N(0,I_{q_0})\),
+\[
+ \widehat Z_{h,\mathrm{alg}}
+ =\widehat L_{h,\mathrm{alg}}\widehat\Omega^{1/2}\xi,
+ \qquad
+ Z_{h,P}=L_P\Omega(P)^{1/2}\xi,
+\tag{38}
+\]
+can be coupled so that their conditional generating operators differ by \(o_{\mathbb P}(1)\) in operator norm, uniformly.  The covariance kernel \(\widehat\Sigma_{h,\mathrm{alg}}\) is the real--imaginary covariance kernel induced by the first expression in \((38)\); it is positive semidefinite by construction.
+
+For a bounded linear map \(T:\mathbb R^{q_0}\to C(\mathbb T;\mathbb C)\), define
+\[
+ c_{1-\alpha}(T)
+ =\inf\left\{t:
+ \Pr\bigl(\|T\xi\|_\infty\le t\bigr)\ge1-\alpha
+ \right\}.
+\tag{39}
+\]
+If \(T\xi\) is nonzero, its support \(S_T\) is a nonzero finite-dimensional linear subspace of \(C(\mathbb T;\mathbb C)\), and its law has a strictly positive density relative to Lebesgue measure on \(S_T\).  The restriction of \(\|\cdot\|_\infty\) to \(S_T\) is a norm.  In polar coordinates on \(S_T\), every ray meets a sphere \(\{f:\|f\|_\infty=t\}\) in at most one point; hence that sphere has Lebesgue measure zero.  If \(0<t_1<t_2\), the annulus \(\{f:t_1<\|f\|_\infty<t_2\}\) contains a nonempty relatively open set and therefore has positive Gaussian probability.  Thus the distribution function of \(\|T\xi\|_\infty\) is continuous and strictly increasing on \((0,\infty)\), and \(c_{1-\alpha}(T)\) is unique and positive because \(0<\alpha<1\).
+
+If \(T_j\to T\) in operator norm and \(T\xi\) is nonzero, then
+\[
+ \|T_j\xi-T\xi\|_\infty
+ \le\|T_j-T\|_{\mathrm{op}}\|\xi\|\longrightarrow0
+ \quad\text{almost surely}.
+\tag{40}
+\]
+The continuity and strict increase just proved show, by bracketing the unique quantile with two continuity points, that
+\[
+ c_{1-\alpha}(T_j)\longrightarrow c_{1-\alpha}(T).
+\tag{41}
+\]
+The population generating operators
+\[
+ T_P=L_P\Omega(P)^{1/2}
+\tag{42}
+\]
+range over a compact set by compactness of the parameter class, continuity of the covariance series, and continuity of \(L_P\).  Bound \((35)\), evaluated for example at \(z=1\), keeps this compact set away from the zero operator.  Consequently the quantile continuity in \((41)\) is uniform on a neighborhood of the range in \((42)\).  From \((36)\)--\((38)\),
+\[
+ \widehat c_{1-\alpha}^{\mathrm{alg},\mathbb T}
+ =c_{1-\alpha}(T_P)+o_{\mathbb P}(1)
+\tag{43}
+\]
+uniformly over \(P\in\mathfrak P_{\mathrm{alg}}\).
+
+Finally, suppose uniform coverage failed.  There would be a sequence \(P_n\in\mathfrak P_{\mathrm{alg}}\) for which the absolute coverage error stays bounded away from zero.  Compactness gives a subsequence along which the fine parameters, \(L_{P_n}\), \(\Omega(P_n)\), and hence \(T_{P_n}\), converge to limits \(L_*\), \(\Omega_*\), and \(T_*\).  By \((35)\), \(T_*\xi\) is nonzero.  The uniform functional limit \((25)\) and \((43)\) give, along this subsequence,
+\[
+ \sqrt n\bigl(\widehat h_{uv}^{\mathrm{alg}}-h_{uv}\bigr)
+ \Longrightarrow T_*\xi,
+ \qquad
+ \widehat c_{1-\alpha}^{\mathrm{alg},\mathbb T}
+ \longrightarrow c_{1-\alpha}(T_*)
+ \quad\text{in probability}.
+\tag{44}
+\]
+The boundary \(\{f:\|f\|_\infty=c_{1-\alpha}(T_*)\}\) has zero probability by the sphere argument.  Therefore \((44)\) implies
+\[
+ P_{P_n}\!\left\{
+  \sup_{|z|=1}\sqrt n\,
+  |\widehat h_{uv}^{\mathrm{alg}}(z)-h_{uv}(z)|
+  \le\widehat c_{1-\alpha}^{\mathrm{alg},\mathbb T}
+ \right\}\longrightarrow1-\alpha,
+\tag{45}
+\]
+contradicting the selected sequence.  This proves the asserted uniform full-unit-circle coverage.  The causal interpretation of the center in \((45)\) follows from \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}identification}\), while all stochastic inputs come from the observed coarse law through \(\mathrm{lem{:}coarse\mbox{-}law\mbox{-}reduction}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Only diagonal roots and divided differences in the exact formal dependency closure enter the queried transfer.  Uniform first and second Fr\'echet derivative bounds therefore hold in \(C(\mathbb T;\mathbb C)\) without separation elsewhere. \textit{Gap.} Existing fine-grid process-graph Wald theory does not cover an aliased exact-closure recursion with simultaneous full-unit-circle calibration and covariance rank changes. \textit{Consumer.} Practitioners compute the exact closure from \(G\) and \(m\), check only its margins, and obtain one simultaneous Wald disk radius for every unit-modulus frequency; finite grids may use the explicit projected corollary.
+
+\begin{theorem}[thm:algebraic-dependency-finite-grid-wald-corollary]\label{thm:algebraic-dependency-finite-grid-wald-corollary}
+Under the hypotheses of \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}uniform\mbox{-}wald\mbox{-}band}\), let \(\varnothing\ne\mathcal Z\subset\mathbb T\) be finite.  Restrict \(\widehat h_{uv}^{\mathrm{alg}}\) and its plug-in Gaussian image to \(\mathcal Z\), and define
+\[
+ \widehat c_{1-\alpha}^{\mathrm{alg},\mathcal Z}
+ =\inf\left\{t:
+ \Pr\!\left(
+  \max_{z\in\mathcal Z}|\widehat Z_{h,\mathrm{alg}}(z)|\le t
+  \mathrel{\big|}Y_0,\ldots,Y_n
+ \right)\ge1-\alpha\right\}.
+\]
+Then, with \(\mathfrak P_{\mathrm{alg}}\) denoting the full-argument exact algebraic-dependency separated class,
+\[
+ \sup_{P\in\mathfrak P_{\mathrm{alg}}}
+ \left|
+ P\!\left\{
+  |h_{uv}(z)-\widehat h_{uv}^{\mathrm{alg}}(z)|
+  \le\frac{\widehat c_{1-\alpha}^{\mathrm{alg},\mathcal Z}}{\sqrt n}
+  \text{ for every }z\in\mathcal Z
+ \right\}-(1-\alpha)
+ \right|\longrightarrow0.
+\]
+Thus the prespecified finite-frequency band is an explicit corollary of the full-unit-circle result and uses its own, generally smaller, grid-specific critical value.
+\end{theorem}
+\begin{proof}
+Let
+\[
+ \mathcal E_{\mathcal Z}:C(\mathbb T;\mathbb C)longrightarrow\mathbb C^{\mathcal Z},
+ \qquad
+ \mathcal E_{\mathcal Z}(f)=(f(z))_{z\in\mathcal Z}.
+\]
+With the maximum complex modulus on \(\mathbb C^{\mathcal Z}\), this is a continuous real-linear map of operator norm at most one.  Applying \(\mathcal E_{\mathcal Z}\) to the uniform functional central limit theorem in \(\mathrm{thm{:}algebraic\mbox{-}dependency\mbox{-}uniform\mbox{-}wald\mbox{-}band}\) gives
+\[
+ \sqrt n\bigl(\widehat h_{uv}^{\mathrm{alg}}(z)-h_{uv}(z)\bigr)_{z\in\mathcal Z}
+ \Longrightarrow
+ \bigl(Z_{h,P}(z)\bigr)_{z\in\mathcal Z}
+\tag{1}
+\]
+uniformly over \(\mathfrak P_{\mathrm{alg}}\).  The same theorem gives
+\[
+ \inf_{P\in\mathfrak P_{\mathrm{alg}}}
+ \inf_{z\in\mathcal Z}\mathbb E_P|Z_{h,P}(z)|^2\ge c_*>0,
+\tag{2}
+\]
+so the limiting Gaussian vector is not zero, although its real covariance may change rank.
+
+The plug-in generating map for the vector in \((1)\) is \(\mathcal E_{\mathcal Z}\widehat L_{h,\mathrm{alg}}\widehat\Omega^{1/2}\), which converges uniformly in probability in operator norm to \(\mathcal E_{\mathcal Z}L_P\Omega(P)^{1/2}\).  On the support of any nonzero centered Gaussian vector, the maximum complex modulus is a norm.  Its spheres have support-Lebesgue measure zero by the radial argument, and every nonempty norm annulus has positive Gaussian probability.  Therefore its \((1-\alpha)\)-quantile is unique, positive, and continuous under operator-norm convergence, including at covariance rank changes.  Hence the grid-specific plug-in critical value is uniformly consistent for the quantile of the right side of \((1)\).
+
+If uniform coverage failed, compactness of the class would produce a sequence and a subsequence on which the population generating maps converge to a nonzero limit.  Along that subsequence, \((1)\), plug-in quantile consistency, and the zero probability of the limiting norm sphere would force the displayed coverage probability to converge to \(1-\alpha\), a contradiction.  This proves the finite-grid corollary.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Evaluation on a finite frequency set is a continuous linear projection of the full transfer curve, and grid-specific Gaussian calibration preserves exact asymptotic coverage. \textit{Gap.} A full-circle critical value can be conservative for a finite reporting grid, so the explicit finite-grid corollary retains the smaller grid-specific critical value. \textit{Consumer.} Users who report only a prespecified finite frequency grid may use the corresponding projected Gaussian quantile without fitting or selecting another root branch.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The exact-dependency result still assumes a supplied scientifically defensible order and a known odd sampling factor for positive identification; it does not infer the order.  The full-frequency Wald band also requires fixed dimension, a uniform stability margin, and root-derivative and divided-difference separation on the exact closure.  The closure is exact for formal graph-supported monomial dependence in the stated triangular recursion, not a claim that every retained coefficient is numerically influential at every parameter value.  Genericity is in fine-parameter space, not observed-law image space.  Exact CAD certifies termination but not polynomial-time scalability, and executable witnesses require effective real-closed-field input.  Gong et al.'s Temperature--Ozone example is used only as a conditional \(m=2\) Gaussian ambiguity audit if external science supplies the one-way order; their fit does not establish that order, and their positive non-Gaussian theorem is not imported into this Gaussian class.
+
+\section{Honest scope}
+
+Positive identification and Wald inference concern stable, ordered, finite-dimensional Gaussian VAR(1) process-DAG models with known odd subsampling factor and diagonal fine innovation covariance.  Point identification and smooth recovery of \(h_{uv}\) require noncollision and derivative separation only on the exact finite \(m\)-step algebraic dependency closure seeded at \(u\to v\).  On the derivative-separated class, the Wald guarantee is simultaneous over the full unit circle; finite grids, the directed path corridor, and global separation give explicit sufficient corollaries.  Coefficients and innovation variances outside the exact closure may remain ambiguous, and no full-matrix uniqueness is claimed.  In contrast, the even-factor sign obstruction holds for every stable Gaussian VAR(1) with arbitrary positive-definite innovation covariance, even without a supplied order, triangularity, or graph zeros, whenever the queried coordinate is nonzero.  Outside the exact-local regular class, inference is branch-free.  No claim is made about unknown sampling factors, high-dimensional rates, VARMA or unit-root extensions, or the scientific validity of the Temperature--Ozone ordering.
+
+\begin{thebibliography}{99}
+
+  \bibitem{gong2015discovering} Gong, M., Zhang, K., Schölkopf, B., Tao, D., and Geiger, P. (2015). Discovering temporal causal relations from subsampled data. \emph{Proceedings of the 32nd International Conference on Machine Learning}, 1898--1906.
+
+  \bibitem{tank2019identifiability} Tank, A., Fox, E. B., and Shojaie, A. (2019). Identifiability and estimation of structural vector autoregressive models for subsampled and mixed frequency time series. \emph{Biometrika} 106, 433--452.
+
+  \bibitem{hyttinen2017constraint} Hyttinen, A., Plis, S., Järvisalo, M., Eberhardt, F., and Danks, D. (2017). Causal discovery from subsampled time series data by constraint optimization. \emph{International Journal of Approximate Reasoning} 90, 150--167.
+
+  \bibitem{smith2003schur} Smith, M. I. (2003). A Schur algorithm for computing matrix \(p\)-th roots. \emph{SIAM Journal on Matrix Analysis and Applications} 24, 971--989.
+
+  \bibitem{higham2008functions} Higham, N. J. (2008). \emph{Functions of Matrices: Theory and Computation}. SIAM.
+
+  \bibitem{bini2005algorithms} Bini, D. A., Higham, N. J., and Meini, B. (2005). Algorithms for the matrix \(p\)-th root. \emph{Numerical Algorithms} 39, 349--378.
+
+  \bibitem{reiter2026processgraphs} Reiter, N.-D., Wahl, J., Gerhardus, A., and Runge, J. (2026). Causal inference on process graphs, Part II: causal structure and effect identification. \emph{Bernoulli}.
+
+  \bibitem{reiter2024uncertainty} Reiter, N.-D., Wahl, J., Hegerl, G. C., and Runge, J. (2024). Asymptotic uncertainty in the estimation of frequency domain causal effects for linear processes. arXiv:2406.18191.
+
+  \bibitem{basu2015regularized} Basu, S., and Michailidis, G. (2015). Regularized estimation in sparse high-dimensional time series models. \emph{Annals of Statistics} 43, 1535--1567.
+
+  \bibitem{hsu2012quadratic} Hsu, D., Kakade, S. M., and Zhang, T. (2012). A tail inequality for quadratic forms of subgaussian random vectors. \emph{Electronic Communications in Probability} 17, 1--6.
+
+  \bibitem{giurcanu2004confidence} Giurcanu, M., and Spokoiny, V. (2004). Confidence estimation of the covariance function of stationary and locally stationary processes. \emph{Statistics and Risk Modeling} 22, 283--300.
+
+  \bibitem{li2023chordalcad} Li, H., Xia, B., Zhang, H., and Zheng, T. (2023). Choosing the variable ordering for cylindrical algebraic decomposition via exploiting chordal structure. \emph{Journal of Symbolic Computation} 114, 1--19.
+
+  \bibitem{wilson2014subcad} Wilson, D. J., Bradford, R. J., Davenport, J. H., and England, M. (2014). Cylindrical algebraic sub-decompositions. \emph{Mathematics in Computer Science} 8, 263--288.
+
+  \bibitem{deistler2017nonidentifiability} Deistler, M., Koelbl, L., and Anderson, B. D. O. (2017). Non-identifiability of VMA and VARMA systems in the mixed frequency case. \emph{Econometrics and Statistics} 4, 31--38.
+
+  \bibitem{anderson2016mixedfrequency} Anderson, B. D. O., Deistler, M., Felsenstein, E., Funovits, B., Koelbl, L., and Zamani, M. (2016). Multivariate AR systems and mixed frequency data: generic identifiability and estimation. \emph{Econometric Theory} 32, 793--826.
+
+  \bibitem{gersing2023retrieval} Gersing, P., Sögner, L., and Deistler, M. (2023). Retrieval from mixed sampling frequency: generic identifiability in the unit root VAR. arXiv:2204.05952.
+
+\end{thebibliography}
+
+\end{document}

@@ -4,12 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.Kernel
+module
+public import Causalean.SCM.Model.Kernel
 
-/-! # Rule 3 Kernel Identity
+/-! # Rule 3* Non-Ancestor Kernel Identity
 
-This file proves the kernel-level form of Rule 3 of do-calculus for structural
-causal models. The transport theorem `fixSet_latentProduct_compat` identifies
+This file proves the kernel-level non-ancestor marginal transport used by the
+restricted Rule 3* interface for structural causal models. The transport theorem
+`fixSet_latentProduct_compat` identifies
 the latent-product measure before and after an additional intervention,
 `fixSet_evalMap_nonAnc_compat` proves pointwise agreement of evaluation at nodes
 with no fixed-intervention ancestors, and
@@ -17,6 +19,13 @@ with no fixed-intervention ancestors, and
 observed marginal kernels for targets not descended from the added intervention
 nodes.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -27,7 +36,7 @@ namespace SCM
 
 open scoped MeasureTheory ProbabilityTheory
 
-/-- **Cross-SCM latent-product transport for Rule 3.**
+/-- **Cross-SCM latent-product transport for Rule 3*.**
 
     Pushing the intervened latent product `(M'.fixSet Z).latentProduct`
     through the coordinate-rename `valuesProjection` along `fixSet_unobserved` recovers
@@ -88,7 +97,7 @@ lemma hNoDesc_descend_to_parent
 
 set_option maxHeartbeats 800000 in
 -- This recursive `evalMap` compatibility proof needs a larger heartbeat budget.
-/-- **Cross-SCM `evalMap` bridge for Rule 3.**
+/-- **Cross-SCM `evalMap` bridge for Rule 3*.**
 
     At an observed node `v` whose `SWIGNode.fixed z` ancestors (`z ∈ Z`) are
     all absent in the intervention graph `(M'.fixSet Z).dag`,
@@ -97,7 +106,7 @@ set_option maxHeartbeats 800000 in
     argument via `fixSetProj` and transporting the latent argument along
     `fixSet_unobserved`.
 
-    Analogous to `SCM.induce_evalMap_compat` in `Causal/Model/Induced.lean`,
+    Analogous to `SCM.induce_evalMap_compat` in `Causalean/SCM/Model/Induced.lean`,
     but for the further-intervention direction rather than the induced
     sub-SCM direction.
 
@@ -335,9 +344,9 @@ theorem fixSet_evalMap_nonAnc_compat
           rcases M'.observed_is_random _ hobs with ⟨_, hEq⟩
           cases hEq
 
-/-- **Rule 3 core — intervention on non-ancestors of `T` is irrelevant** (Option B in
-    the design; covers the simplified `Z_Y = Z` case of the tex's Rule 3, sufficient
-    for backdoor / frontdoor demos). Fix [a do-set `Z` of nodes whose random copies
+/-- **Rule 3* core — intervention on non-ancestors of `T` is irrelevant.** This is the
+    simplified joint non-ancestor transport used by the library's Rule 3* interface.
+    Fix [a do-set `Z` of nodes whose random copies
     are observed in the base model and whose fixed nodes have not already been
     intervened on](hyp:hZ_obs,hZ_fixed) and [a target block `T` of observed
     variables](hyp:hT). If [none of the fixed copies of `Z`'s nodes is an ancestor,

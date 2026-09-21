@@ -23,8 +23,10 @@ while the **efficient** choice `W = Σ⁻¹` gives
 
 (`Cov` stands for the covariance `Σ`, which is a reserved token in Lean.)
 
-The headline `gmm_efficiency` is the Löwner-order optimality (Hansen 1982,
-Thm 3.2):  `V(W) − V★` is a positive operator, with equality at `W = Σ⁻¹`.
+The headline `gmm_efficiency` proves the covariance lower-bound implication
+behind Hansen (1982), Theorem 3.2: `V(W) − V★` is a positive operator. It
+does not formalize that theorem's characterization of all optimal limiting
+weighting matrices.
 
 The proof is the classical one.  With
 
@@ -41,10 +43,13 @@ and the left side is positive by `IsPositive.conj_adjoint` applied to `Σ ⪰ 0`
 Inverses are carried as *data with two-sided witnesses* (mirroring
 `ZEstimatorRegularity.J₀_inv`/`J₀_inverse`) so no operator inverse needs to be
 constructed; invertibility of `GᵀWG`/`Σ`/`GᵀΣ⁻¹G` is supplied by the caller.
+The covariance comparison itself uses only the right-inverse witness for the
+efficient bread; its left-inverse witness is retained for interface symmetry.
 -/
 
-import Mathlib.Analysis.InnerProductSpace.Positive
-import Mathlib.Analysis.InnerProductSpace.Adjoint
+module
+public import Mathlib.Analysis.InnerProductSpace.Positive
+public import Mathlib.Analysis.InnerProductSpace.Adjoint
 
 /-! # GMM Variance Algebra
 
@@ -53,12 +58,14 @@ variance.  It defines the GMM bread operator `gmmBread` and the sandwich
 variance operator `gmmSandwich`, using supplied two-sided inverse witnesses
 rather than constructing operator inverses.
 
-The headline theorem `gmm_efficiency` is Hansen's optimal-weighting result in
-Loewner order: for a symmetric weighting `W`, positive covariance `Cov`, and
-inverse covariance `CovInv`, the sandwich variance
+The headline theorem `gmm_efficiency` is the covariance lower-bound component
+of Hansen's optimal-weighting result: for a symmetric weighting `W`, positive
+covariance `Cov`, and inverse covariance `CovInv`, the sandwich variance
 `gmmSandwich G W Cov breadInv` dominates the efficient variance `effInv`.
 The helper `adjoint_inv_self` records self-adjointness of a right inverse of a
 self-adjoint operator and is used to collapse the cross terms in the proof. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -82,8 +89,7 @@ noncomputable def gmmSandwich (G : E →L[ℝ] F) (W Cov : F →L[ℝ] F)
 /-- The adjoint (self-adjointness) of a right inverse of a self-adjoint
 operator: if `adjoint M = M` and `M ∘L N = id`, then `adjoint N = N`.
 (`adjoint N` is then a left inverse of `M`, and in finite dimension a one-sided
-inverse of an operator that already has a two-sided one is unique.)
-Shared with `OverID.lean`. -/
+inverse of an operator that already has a two-sided one is unique.) -/
 theorem adjoint_inv_self {M N : E →L[ℝ] E}
     (hM : adjoint M = M) (hMN : M ∘L N = ContinuousLinearMap.id ℝ E) :
     adjoint N = N := by
@@ -102,15 +108,15 @@ private theorem adjoint_gmmBread {G : E →L[ℝ] F} {W : F →L[ℝ] F}
   unfold gmmBread
   simp only [adjoint_comp, adjoint_adjoint, hW, comp_assoc]
 
-/-- **GMM optimal-weighting theorem (Hansen 1982, Theorem 3.2).** For a Jacobian `G`, a
+/-- **GMM covariance lower bound (the lower-bound component of Hansen 1982,
+Theorem 3.2).** For a Jacobian `G`, a
 [self-adjoint weighting operator `W`](hyp:hWsa), and a
 [positive-semidefinite covariance operator `Cov`](hyp:hCovpos) admitting
 [a two-sided inverse `CovInv`](hyp:hCovinvL,hCovinvR), suppose further that
 [the "bread" `GᵀWG` has a two-sided inverse `breadInv`](hyp:hbL,hbR) and that
-[the efficient bread `Gᵀ CovInv G` has a two-sided inverse `effInv`](hyp:_heL,heR).
-Then [the sandwich asymptotic variance of the GMM estimator with weighting `W` dominates the
-efficient (optimally-weighted) asymptotic variance in the Löwner order, i.e. their difference is a
-positive-semidefinite operator](goal).
+[the efficient bread `Gᵀ CovInv G` has a right inverse `effInv`](hyp:heR), while
+[the accompanying left-inverse witness is accepted but not needed for this comparison](hyp:_heL).
+Then [the sandwich variance minus the efficient variance is positive semidefinite](goal).
 
 Concretely: `gmmSandwich G W Cov breadInv − effInv` is positive,
 i.e. `V(W) ⪰ V★ = (GᵀCovInvG)⁻¹`. -/

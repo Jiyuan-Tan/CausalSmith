@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.InterventionSet
-import Causalean.SCM.Model.Kernel
-import Causalean.Graph.SWIGSplitMono
-import Causalean.Graph.Induce
-import Causalean.Graph.CComponents
-import Causalean.Graph.DSep.Ancestral
-import Causalean.SCM.ID.Density.LatentBlocks
+module
+public import Causalean.SCM.Model.InterventionSet
+public import Causalean.SCM.Model.Kernel
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.Graph.Induce
+public import Causalean.Graph.CComponents
+public import Causalean.Graph.DSep.Ancestral
+public import Causalean.SCM.ID.Density.LatentBlocks
 
 /-! # Geometric foundation of the do-law g-formula (Tian, fixing route)
 
@@ -31,9 +32,16 @@ These are exactly the objects the success certificate `idSucceeds` ranges over
 named here for use in the measure-theoretic g-formula.  The factorization itself —
 the do-law `Y`-marginal equals the product over `fixTruncCComponentSet` of the
 recovered full-district c-factors (each a functional of `obsDensity` via
-`district_id`, with the truncation realized by the fixing operation `M.fixSet Wn`) —
+`condKernel_fixSet_identity_of_nonAncestor`, with the truncation realized by the fixing operation `M.fixSet Wn`) —
 is developed by the downstream Tian density and ID soundness layers.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.ID
 

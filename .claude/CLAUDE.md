@@ -38,6 +38,24 @@ policies; do not impose interactive-collaboration rules on them.
   `--semantic`. If the index is stale: `lake build && lake exe library_index`.
 - Avoid unnecessary Lean imports. Prefer targeted module imports over umbrellas
   like `import Mathlib`; use `#min_imports` / the `minImports` linter when unsure.
+- **Module/header contract.** Every Causalean or CausalSmith library source file starts with
+  `module`, then a contiguous sorted block of `public import`s, then its `/-! -/`
+  overview. A def-bearing file has `@[expose] public section`; a theorem-only
+  file has `public section`. Leave that blanket section open to EOF and keep
+  declarations bare; put `open`, `noncomputable section`, and namespaces after
+  it. Public definitions have explicit types. `LibraryIndex.lean`,
+  `LibraryIndexCore.lean`, `CausalSmith/PaperIndex.lean`, and vendored test
+  drivers remain non-module.
+- **Barrels are interfaces.** `Causalean.lean`, directory barrels, research-run
+  barrels, and `Helpers.lean` follow the normal module/header/docstring contract
+  and use only `public import`s as dependencies; the root imports top-level
+  barrels, not leaf modules. `Causalean/Tactic/` may use `public meta import`
+  only where an elaborator or macro needs it.
+- **Library layout follows the layer stack.** A module may import only the same
+  or lower layers; use a mathematical topic name, never a run/study slug.
+  `Causalean/Mathlib/` is pure math, mirrors Mathlib-style directories, imports
+  only its own modules and `Tactic`, and has no loose top-level files.
+  `Mathlib/Optimization/` and `Mathlib/Algorithms/` are approved named exceptions.
 - **Library documentation is docstring-canonical.** Author each declaration's
   plain-English description ONCE, in its Lean docstring (FIRST paragraph = the NL
   translation, written for an econometrician with no Lean background, no Lean
@@ -50,11 +68,13 @@ policies; do not impose interactive-collaboration rules on them.
   `cd CausalSmith/tools && npm run embed:library && npm run lint:embeddings`
   before committing. New files must be reachable from the `Causalean.lean` root
   import graph (`check_library_index` fails on orphans).
-- **Headline curation at write time.** A main result (identification theorem,
-  estimand characterization, paper-named decomposition, asymptotic
-  linearity/normality/rate/optimality result, sharp bound) must be added to
-  `headline_theorems` in `doc/library_review/<Area>.json`; technical steps stay
-  supporting-tier. Renames/moves must update the sidecar entry.
+- **Headline curation at write time.** Each theorem-containing Causalean content
+  file has 1–3 headline entries, including files under `Mathlib/`. Selected
+  definitions/structures count toward the cap, but every theorem-containing
+  file must include at least one actual theorem/lemma headline. Its main
+  result belongs in `headline_theorems` in `doc/library_review/<Area>.json`;
+  routine measurability, rewrite, bridge, and intermediate lemmas stay
+  supporting-tier. Renames and moves update the sidecar entry.
 - **Recording a new module:** (1) write the `.lean` file with a `/-! -/` overview
   and a `/--` docstring on every public declaration; (2) `lake build && lake exe
   library_index`; (3) `cd CausalSmith/tools && npm run embed:library && npm run
@@ -100,28 +120,38 @@ policies; do not impose interactive-collaboration rules on them.
   `CausalSmith/doc/SETUP.md` the environment prerequisites.
 
 Build via `lake build` (Causalean) and `lake -d CausalSmith build` (CausalSmith).
+The CausalSmith default target is light (Causalean + shared helpers); existing
+papers' Lean code is opt-in: build a run barrel, sweep everything with
+`CausalSmith/tools/scripts/full_tree_build.sh`, or fetch prebuilt oleans with
+`scripts/fetch_build_cache.sh --causalsmith`.
 Promotion of a CausalSmith lemma to Causalean is a deliberate human step: copy the
 statement + proof into Causalean, then have CausalSmith re-import the Causalean
 version.
 
 ## Module map (orientation index)
 
-### Causalean (foundational)
-- `Causalean/Graph/` — DAG, d-separation (Bayes Ball), SWIG, sub-SWIG, c-components
-- `Causalean/SCM/` — `CausalModel`, do-calculus rules, Markov properties, factored
-  kernels
-- `Causalean/PO/` — potential outcome calculus, consistency, counterfactuals;
-  ID/Exact/ (backdoor, frontdoor, ATE, DID, LATE, RDD, …) and ID/Partial/
-  (Manski family, Balke–Pearl, Lee, Fréchet, …)
-- `Causalean/Panel/` — panel substrate: DGPs, assignment, fixed effects,
-  regression infrastructure
-- `Causalean/Experimentation/` — design-based / randomization inference under
-  interference; `DesignBased/` is the shared substrate, each paper a sibling folder
-- `Causalean/Stat/`, `Causalean/Estimation/` — semiparametric inference,
-  concentration, DML/AIPW, minimax
-- `Causalean/ML/` — learning-theoretic foundations (uses vendored FoML)
-- `Causalean/Discovery/` — causal discovery (concrete example DAGs live under
-  `Causalean/SCM/Examples/`)
+### Causalean (foundational layer stack)
+
+```
+L9  Discovery
+L8  ML                         (ML/CausalApplication may also use L6)
+L7  Panel | Experimentation
+L6  Estimation
+L5  PO/ID | SCM/ID | SCM/PartialID | SCM/Examples
+L4  PO/Conditioning | PO/Analysis | SCM/ID core
+L3  PO/Core | PO/Assumptions | PO/Bridge | SCM/Do | SCM/Factored
+L2  Stat (FiniteDesign, Weighted, LinearModel) | SCM/Model
+L1  Graph
+L0  Mathlib (pure math; Optimization and Algorithms are approved exceptions)
+L-1 Tactic
+```
+
+The PO and SCM columns are independent above L2 and meet only at `PO/Bridge`.
+`Graph/` supplies DAG, d-separation, SWIG, and c-components; `Stat/` supplies
+general statistical foundations; higher layers add causal models, identification,
+estimation, applications, learning, and discovery in that order. `Mathlib/`
+mirrors Mathlib-style mathematical topics; it is not a home for causal or
+statistical content.
 
 ### CausalSmith (umbrella package)
 

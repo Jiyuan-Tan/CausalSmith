@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.SCM
-import Causalean.Graph.SWIGSplitMono
+module
+public import Causalean.SCM.Model.SCM
+public import Causalean.Graph.SWIGSplitMono
 
 /-! # Monolithic Multi-Target Intervention
 
@@ -30,6 +31,11 @@ iterated single-target interventions.
   vertices whose post-intervention parents contain no targeted fixed copy.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 namespace Causalean
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
@@ -41,7 +47,15 @@ namespace SCM
 -- Monolithic parent reindex
 -- ============================================================
 
-/-- For [a finite node population](hyp:N) with [node-value spaces](hyp:Ω), [a SWIG graph](hyp:G), [a finite set of intervention targets](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), [a node](hyp:v), and [an assignment of values to that node's parents after the simultaneous split](hyp:ξ), the [monolithic parent reindexing map](goal) returns the corresponding assignment on the node's parents before the split. It reads a targeted random parent from its new fixed-copy coordinate and otherwise preserves the parent coordinate; these are respectively [the random-parent clause](step:1) and [the fixed-parent clause](step:2).
+/-- For [a finite node population](hyp:N) with [node-value spaces](hyp:Ω),
+[a SWIG graph](hyp:G), [a finite set of intervention targets](hyp:X) whose
+[random copies are observed](hyp:hObs) and whose
+[fixed copies are not already fixed](hyp:hFix), [a node](hyp:v), and
+[an assignment on that node's parents after the simultaneous split](hyp:ξ), the
+[monolithic parent reindexing map](goal) returns the corresponding assignment before the
+split. It reads a targeted random parent from its new fixed-copy coordinate and otherwise
+preserves the parent coordinate; these are respectively
+[the random-parent clause](step:1) and [the fixed-parent clause](step:2).
 
     The monolithic parent reindexer converts split-graph parent values into the parent values
 expected by the original structural function.
@@ -203,7 +217,15 @@ lemma measurable_fixMonoParentMap
 -- The monolithic do operation
 -- ============================================================
 
-/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a finite set of intervention targets](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the [monolithic intervened structural causal model](goal) simultaneously splits every target, [first forming the split graph](step:1) and then assigning each split edge the corresponding original edge type. It retains the original latent laws and structural mechanisms after reindexing their parent-value inputs.
+/-- For [a finite node population](hyp:N) with
+[measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and
+[a finite set of intervention targets](hyp:X) whose
+[random copies are observed](hyp:hObs) and whose
+[fixed copies are not already fixed](hyp:hFix), the
+[monolithic intervened structural causal model](goal) simultaneously splits every target,
+[first forming the split graph](step:1) and then assigning each split edge the corresponding
+original edge type. It retains the original latent laws and structural mechanisms after
+reindexing their parent-value inputs.
 
     The monolithic generalized intervention applies all target splits at once while inheriting
 latent laws and reindexing structural parents.
@@ -221,7 +243,7 @@ noncomputable def fixMono (M : Causalean.SCM N Ω) (X : Finset N)
   let G' : SWIGGraph N := M.toSWIGGraph.splitMono X hObs hFix
   -- Edge-type assignment on the split graph: edges out of `.fixed D` (D ∈ X)
   -- inherit the types of the corresponding `.random D`-outgoing edges.
-  let edgeTypes' : EdgeTypeAssignment G'.dag :=
+  let edgeTypes' : Causalean.SCM.Model.EdgeTypeAssignment G'.dag :=
     { edgeType :=
         fun u v =>
           if h : ∃ D ∈ X, u = SWIGNode.fixed D then
@@ -275,30 +297,26 @@ noncomputable def fixMono (M : Causalean.SCM N Ω) (X : Finset N)
 -- Interface lemmas
 -- ============================================================
 
-/-- **Observed-node invariance of the monolithic intervention.** For a SWIG graph `G` and an
-    intervention target set `X` such that [every targeted node is currently a random observed
-    node](hyp:hObs) and [none of its fixed copies is already fixed](hyp:hFix), [the monolithic
-    intervention graph obtained by fixing `X` has the same observed node set as `G`](goal). -/
-@[simp] lemma fixMono_observed (G : SWIGGraph N) (X : Finset N)
-    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ G.observed)
-    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ G.fixed) :
-    (G.splitMono X hObs hFix).observed = G.observed := rfl
+/-- Deprecated compatibility alias for `SWIGGraph.splitMono_observed`: for [a SWIG graph](hyp:G)
+and [an intervention target set](hyp:X) whose [targeted random copies are observed](hyp:hObs)
+and whose [targeted fixed copies are not already fixed](hyp:hFix), [monolithic splitting
+preserves the observed node set](goal). -/
+@[simp, deprecated SWIGGraph.splitMono_observed (since := "2026-09-15")]
+alias fixMono_observed := SWIGGraph.splitMono_observed
 
-/-- The monolithic intervention preserves the unobserved node set. -/
-@[simp] lemma fixMono_unobserved (G : SWIGGraph N) (X : Finset N)
-    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ G.observed)
-    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ G.fixed) :
-    (G.splitMono X hObs hFix).unobserved = G.unobserved := rfl
+/-- Deprecated compatibility alias for `SWIGGraph.splitMono_unobserved`: for [a SWIG graph](hyp:G)
+and [an intervention target set](hyp:X) whose [targeted random copies are observed](hyp:hObs)
+and whose [targeted fixed copies are not already fixed](hyp:hFix), [monolithic splitting
+preserves the unobserved node set](goal). -/
+@[simp, deprecated SWIGGraph.splitMono_unobserved (since := "2026-09-15")]
+alias fixMono_unobserved := SWIGGraph.splitMono_unobserved
 
-/-- **Fixed-node set of the monolithic intervention.** For a SWIG graph `G` and an intervention
-    target set `X` such that [every targeted node is currently a random observed
-    node](hyp:hObs) and [none of its fixed copies is already fixed](hyp:hFix), [the monolithic
-    intervention graph's fixed node set equals `G`'s fixed node set together with the fixed
-    copies of the targeted nodes in `X`](goal). -/
-@[simp] lemma fixMono_fixed (G : SWIGGraph N) (X : Finset N)
-    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ G.observed)
-    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ G.fixed) :
-    (G.splitMono X hObs hFix).fixed = G.fixed ∪ X.image SWIGNode.fixed := rfl
+/-- Deprecated compatibility alias for `SWIGGraph.splitMono_fixed`: for [a SWIG graph](hyp:G)
+and [an intervention target set](hyp:X) whose [targeted random copies are observed](hyp:hObs)
+and whose [targeted fixed copies are not already fixed](hyp:hFix), [monolithic splitting adds
+the targeted fixed copies to the fixed node set](goal). -/
+@[simp, deprecated SWIGGraph.splitMono_fixed (since := "2026-09-15")]
+alias fixMono_fixed := SWIGGraph.splitMono_fixed
 
 /-- **Latent-distribution invariance of the monolithic intervention.** For a structural causal
     model `M` and an intervention target set `X` such that [every targeted node is currently a
@@ -319,7 +337,7 @@ lemma fixMono_fixed_subset (G : SWIGGraph N) (X : Finset N)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ G.fixed) :
     G.fixed ⊆ (G.splitMono X hObs hFix).fixed := by
   intro x hx
-  rw [fixMono_fixed]
+  rw [SWIGGraph.splitMono_fixed]
   exact Finset.mem_union_left _ hx
 
 /-- The fixed copies of the intervention targets are contained in the fixed node set after the
@@ -329,7 +347,7 @@ lemma fixMono_image_fixed_subset (G : SWIGGraph N) (X : Finset N)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ G.fixed) :
     X.image SWIGNode.fixed ⊆ (G.splitMono X hObs hFix).fixed := by
   intro x hx
-  rw [fixMono_fixed]
+  rw [SWIGGraph.splitMono_fixed]
   exact Finset.mem_union_right _ hx
 
 /-- If no fixed copy of a target is a parent of a vertex after intervention, that vertex has the

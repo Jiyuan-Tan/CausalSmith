@@ -1,8 +1,11 @@
 /- Copyright (c) 2026 Jiyuan Tan. All rights reserved. -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DivergenceLocalized
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContractionAux
-import Causalean.Stat.Minimax.TotalVariation
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DivergenceLocalized
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContractionAux
+public import Causalean.Stat.Minimax.TotalVariation
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

@@ -4,9 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TwoPointDivergenceAux
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
-import Causalean.Stat.Minimax.Pinsker
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TwoPointDivergenceAux
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Causalean.Stat.Minimax.Pinsker
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

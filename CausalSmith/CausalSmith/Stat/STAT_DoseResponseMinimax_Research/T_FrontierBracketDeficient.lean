@@ -10,8 +10,11 @@ Stage-2 scaffold. The certified regime theorem `thm:frontier-bracket-deficient`
 `ρ_n` exponent; the same-class upper endpoint is NOT discharged.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.TwoPointConstruction
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.RateAlgebra
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.TwoPointConstruction
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.RateAlgebra
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

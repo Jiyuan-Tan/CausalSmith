@@ -1,9 +1,9 @@
--- Adapted from auto-res/lean-rademacher FoML/Massart.lean (commit 72d28921dc960f47691640fb973303a1be9d13ca, MIT (c) 2025 AutoRes)
-import Causalean.Stat.Concentration.Rademacher.Rademacher
-import FoML.MaximalInequality
-import FoML.RademacherVariableProperty
-import FoML.Symmetrization
-import FoML.MeasurePiLemmas
+module
+public import Causalean.Stat.Concentration.Rademacher.Rademacher
+public import FoML.MaximalInequality
+public import FoML.RademacherVariableProperty
+public import FoML.Symmetrization
+public import FoML.MeasurePiLemmas
 
 /-!
 Proves the finite-class Massart maximal inequality used by Dudley entropy
@@ -16,6 +16,12 @@ finite restriction `F_on`, and the exported bound `massart_lemma_pmf`.
 Declarations live in `Causalean.Stat.Concentration`; the proof follows the
 FoML development with only namespace and Mathlib API adjustments.
 -/
+
+@[expose] public section
+
+-- Adapted from auto-res/lean-rademacher FoML/Massart.lean (commit 72d28921dc960f47691640fb973303a1be9d13ca, MIT (c) 2025 AutoRes)
+
+
 
 namespace Causalean.Stat.Concentration
 
@@ -327,6 +333,7 @@ lemma massart_lemma_pmf
           measurability
         convert iIndepFun.comp pi_eval_iIndepFun
           (fun i ↦ fun (σi : ({-1, 1} : Finset ℤ)) => (m : ℝ)⁻¹ * (σi.1 : ℝ) * F a (S i)) h
+        · rfl
         · exact heq_of_eq measurablespace_eq
         · rename_i _e1 i i' hi σ σ' hσ
           subst hi

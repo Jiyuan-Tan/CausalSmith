@@ -13,8 +13,9 @@ concretely and discharges the hypothesis, completing the de-abstraction.
 `gaussianLimit ψ` is the centered Gaussian on `E` with covariance the
 second-moment operator `Σ` of `ψ` (`Causalean/Stat/CLT/SecondMomentOperator.lean`).  It
 is built as `(stdGaussian E).map √Σ` where `√Σ` is the positive operator square
-root (`Causalean/Mathlib/OperatorSqrt.lean`) and `stdGaussian E` is the standard
-Gaussian with identity covariance (`Causalean/Mathlib/StandardGaussian.lean`):
+root (`Causalean/Mathlib/Analysis/InnerProductSpace/PosDef/Sqrt.lean`) and
+`stdGaussian E` is the standard Gaussian with identity covariance
+(`Causalean/Mathlib/StandardGaussian.lean`):
 
 * `IsGaussian (gaussianLimit ψ)` — pushforward of a Gaussian by a linear map;
 * `gaussianLimit_mean` — it is centered;
@@ -26,10 +27,12 @@ Gaussian with identity covariance (`Causalean/Mathlib/StandardGaussian.lean`):
 * `IIDSample.clt_normalizedSum_vec` — the multivariate CLT against the *concrete*
   Gaussian limit, with no abstract-`Q` / charFun hypothesis remaining.
 -/
-import Causalean.Stat.CLT.MultivariateCLT
-import Causalean.Stat.CLT.SecondMomentOperator
-import Causalean.Stat.CLT.GaussianCharFunBridge
-import Causalean.Mathlib.StandardGaussian
+
+module
+public import Causalean.Stat.CLT.MultivariateCLT
+public import Causalean.Stat.CLT.SecondMomentOperator
+public import Causalean.Stat.CLT.GaussianCharFunBridge
+public import Causalean.Mathlib.StandardGaussian
 
 /-! # Gaussian Limit Law
 
@@ -46,10 +49,16 @@ covariance, and characteristic function. The final theorem
 `IIDSample.clt_normalizedSum_vec` gives the multivariate CLT against this
 concrete Gaussian limit. -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Complex Causalean.Mathlib
 open scoped RealInnerProductSpace
 
 namespace Causalean.Stat
+
+local notation "stdGaussian" => Causalean.Mathlib.stdGaussian
+local notation "covarianceBilin_stdGaussian" =>
+  Causalean.Mathlib.covarianceBilin_stdGaussian
 
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
@@ -57,9 +66,16 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
     [MeasurableSpace E] [BorelSpace E]
   {ψ : X → E} (hψ : Measurable ψ) (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- Given [a measurable observation space](hyp:X), [a measure on that space](hyp:P), [a finite-dimensional real inner-product outcome space equipped with its Borel σ-algebra](hyp:E), [a measurable vector-valued function of an observation](hyp:ψ,hψ), and [a finite integral of the squared norm of that function under the measure](hyp:hvar), [the Gaussian limit law](goal) is the centered Gaussian measure on the outcome space whose covariance operator is the function's second-moment operator under the given measure.
+/-- Given [a measurable observation space](hyp:X), [a measure on that
+space](hyp:P), [a finite-dimensional real inner-product outcome space equipped
+with its Borel σ-algebra](hyp:E), [a measurable vector-valued function of an
+observation](hyp:ψ,hψ), and [a finite integral of the squared norm of that
+function under the measure](hyp:hvar), [the Gaussian limit law](goal) is the
+centered Gaussian measure on the outcome space whose covariance operator is
+the function's second-moment operator under the given measure.
 
-It is constructed as the pushforward of a standard Gaussian law under the positive square root of that second-moment operator. -/
+It is constructed as the pushforward of a standard Gaussian law under the
+positive square root of that second-moment operator. -/
 noncomputable def gaussianLimit : Measure E :=
   (stdGaussian E).map (secondMomentLM_isPositive hψ hvar).posSqrtCLM
 

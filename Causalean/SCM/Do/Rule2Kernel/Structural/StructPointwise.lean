@@ -37,9 +37,10 @@ assignment does not change the observed outcomes in `Y`.
   cross-model comparison in `StructCrossSCM.lean`.
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.LevelsetCompat
-import Causalean.SCM.Do.Rule2Kernel.Helpers
-import Causalean.SCM.Model.EvalOverrideC
+module
+public import Causalean.SCM.Do.Rule2Kernel.LevelsetCompat
+public import Causalean.SCM.Do.Rule2Kernel.Helpers
+public import Causalean.SCM.Model.EvalOverrideC
 
 /-!
 Pointwise structural identities for the Rule 2 kernel proof.
@@ -53,6 +54,13 @@ that overriding on `Z.image .random ∪ W` at `fillZrW s w` has the same effect 
 `Y` as overriding only on `W` at `w`; `fillZrW_random_eq_fixed` records the
 coordinate identity used by the cross-model bridge.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 

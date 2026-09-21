@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Legality
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Legality
 
 /-! # Finite-alphabet query legality -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

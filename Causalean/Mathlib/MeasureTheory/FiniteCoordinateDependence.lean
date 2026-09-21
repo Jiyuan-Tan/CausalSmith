@@ -1,5 +1,7 @@
-import Mathlib.MeasureTheory.Integral.Marginal
-import Mathlib.MeasureTheory.Measure.WithDensity
+module
+public import Mathlib.Logic.Function.DependsOn
+public import Mathlib.MeasureTheory.Integral.Marginal
+public import Mathlib.MeasureTheory.Measure.WithDensity
 
 /-!
 # Finite coordinate dependence and density marginalization
@@ -15,6 +17,8 @@ The declarations live in the `FiniteCoordinate` sub-namespace so that opening
 `Set` of coordinates and the opposite argument order).
 -/
 
+@[expose] public section
+
 open scoped ENNReal
 open Set Function
 open MeasureTheory
@@ -28,21 +32,20 @@ variable {X : V → Type*} [∀ i, MeasurableSpace (X i)]
 
 /-- A [finite coordinate set](hyp:S) and an [assignment-valued function](hyp:f) determine
 [the property that the function is unchanged whenever two assignments agree on that set](goal). -/
-def DependsOn {Y : Type*} (S : Finset V) (f : (∀ i, X i) → Y) : Prop :=
-  ∀ ⦃x y⦄, (∀ i, i ∈ S → x i = y i) → f x = f y
+abbrev DependsOn {Y : Type*} (S : Finset V) (f : (∀ i, X i) → Y) : Prop :=
+  _root_.DependsOn f (S : Set V)
 
 /-- A function [depending on a smaller coordinate set](hyp:hf) and [that set's inclusion in a
 larger one](hyp:hST) [also depends only on the larger set](goal). -/
+@[deprecated _root_.DependsOn.mono (since := "2026-09-15")]
 theorem DependsOn.mono {Y : Type*} {S T : Finset V} {f : (∀ i, X i) → Y}
-    (hf : DependsOn S f) (hST : S ⊆ T) : DependsOn T f := by
-  intro x y hxy
-  exact hf fun i hi ↦ hxy i (hST hi)
+    (hf : DependsOn S f) (hST : S ⊆ T) : DependsOn T f :=
+  _root_.DependsOn.mono (by simpa using hST) hf
 
 /-- A [chosen coordinate](hyp:i) [can be read from an assignment using only that coordinate](goal). -/
 theorem dependsOn_apply (i : V) :
-    DependsOn (X := X) {i} (fun x : ∀ k, X k ↦ x i) := by
-  intro x y hxy
-  exact hxy i (Finset.mem_singleton_self i)
+    DependsOn (X := X) {i} (fun x : ∀ k, X k ↦ x i) :=
+  fun _ _ hxy ↦ hxy i (by simp)
 
 /-- Two functions [depending on the same coordinate set](hyp:hf,hg), combined through a [fixed
 binary operation](hyp:op), [still depend only on that set](goal). -/
@@ -102,7 +105,8 @@ theorem DependsOn.coordinateExtension_projection {Y : Type*} {S : Finset V}
     f (coordinateExtension S x₀ (coordinateProjection S x)) = f x := by
   apply hf
   intro i hi
-  simp [coordinateExtension, coordinateProjection, hi]
+  have hi' : i ∈ S := hi
+  simp [coordinateExtension, coordinateProjection, hi']
 
 /-- An [anchor assignment](hyp:x₀), a [measurable outcome map](hyp:hf), its [dependence only on a
 finite coordinate set](hyp:hdepends), and [equality of the two corresponding coordinate

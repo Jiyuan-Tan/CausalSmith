@@ -6,24 +6,29 @@ Authors: Jiyuan Tan
 # I.i.d. sample model
 
 Causal-agnostic statistical primitive: an i.i.d. sample on a single ambient
-probability space, matching Mathlib's `iIndepFun` / `IdentDistrib` idiom rather
-than the product-space construction.  See `def:est-iid-sample` in
+measured space, matching Mathlib's `iIndepFun` / `IdentDistrib` idiom rather than
+the product-space construction. Probability normalization is supplied separately
+when applications require it. See `def:est-iid-sample` in
 `doc/basic_concepts/po/estimation.tex`.
 
 This file is intentionally project-agnostic and is a candidate for upstream
 contribution to Mathlib.
 -/
 
-import Mathlib.Probability.IdentDistrib
-import Mathlib.Probability.Independence.Basic
-import Mathlib.MeasureTheory.Measure.MeasureSpace
+module
+public import Mathlib.Probability.IdentDistrib
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.MeasureTheory.Measure.MeasureSpace
 
 /-! # I.i.d. Samples
 
 This file provides the library's causal-agnostic model of an independent and
-identically distributed sample on a common ambient probability space. It also
-defines sample means of real-valued statistics along the first \(n\) sample
+identically distributed sample relative to arbitrary ambient and population
+measures; probability-measure instances are supplied separately when needed. It
+also defines sample means of real-valued statistics along the first \(n\) sample
 points, supplying the base object used by the limit and inference modules. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -31,8 +36,9 @@ open MeasureTheory ProbabilityTheory
 
 /-- An independent and identically distributed sample with marginal law `P`, realized as
 [a sequence of sample points](hyp:Z) given by [measurable maps](hyp:meas) on a single
-ambient probability space: [the family is mutually independent](hyp:indep), [identically
-distributed](hyp:identDist), and [the law of each point is the population law `P`](hyp:law).
+ambient measured space: [the family is mutually independent](hyp:indep), [identically
+distributed](hyp:identDist), and [the law of each point is the measure `P`](hyp:law).
+Neither the ambient measure nor `P` is required by this structure to be a probability measure.
 
 * `Z i : Ω → X`             — the `i`-th sample point.
 * `meas`                    — measurability of each `Z i`.
@@ -55,7 +61,7 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
 
 /-- Each individual sample point of an i.i.d. sample is a measurable map from the ambient
-probability space to the observation space.
+measured space to the observation space.
 
 This is the `meas` field with the sample index instantiated. The field itself is stated for
 all indices at once, which the function-property tactics cannot use; this per-index form is

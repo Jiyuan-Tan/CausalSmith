@@ -27,8 +27,26 @@ Build the Lean packages first (the pipeline pre-warms Lean modules):
 lake exe cache get              # Mathlib build cache
 scripts/fetch_build_cache.sh    # Causalean's prebuilt oleans (release asset; lake then rebuilds only the delta)
 lake build                      # Causalean
-lake -d CausalSmith build       # CausalSmith
+(cd CausalSmith && lake exe cache get)   # CausalSmith keeps its own Mathlib copy; run the cache tool inside it
+lake -d CausalSmith build       # CausalSmith, light: Causalean + shared helpers
 ```
+
+That is all the pipeline needs. The Lean code of existing papers is **opt-in**:
+the default CausalSmith target does not build it, and a new run that imports an
+earlier paper's module compiles only that paper on demand. To present, verify,
+or browse existing papers, fetch their prebuilt oleans, then build what you need:
+
+```sh
+scripts/fetch_build_cache.sh --causalsmith          # prebuilt oleans for every CausalSmith module
+lake -d CausalSmith build CausalSmith.<Area>.<RUN>_Research   # one paper, via its run barrel
+                                                    # (a few early runs have no barrel: name their module files instead)
+bash CausalSmith/tools/scripts/full_tree_build.sh   # every module
+```
+
+`--causalsmith` fetches only the CausalSmith archive, so run the plain form first.
+CI publishes that archive on the same `build-cache` release tag as the Causalean
+one. Its `latest` copy can be a partial build: CI strips every module it did not
+finish, and `lake` builds those.
 
 Install pipeline JS dependencies:
 
@@ -41,7 +59,7 @@ cd CausalSmith/tools && npm install
 The two fine-tuned retrieval models are **gitignored weights**; only their meta sidecars are
 committed. On a fresh machine, download them rather than retraining:
 `scripts/fetch_retrieval_models.sh` (about 2.3 GB, release assets on the `build-cache` tag,
-unpacked into `doc/`), then `cd CausalSmith/tools && npm run embed:library`. This works on
+unpacked into `doc/`; the same weights are on Hugging Face as `jytan12/causalean-retrieval`), then `cd CausalSmith/tools && npm run embed:library`. This works on
 Linux, macOS and Windows alike — on Windows run the script from Git Bash with `zstd` on `PATH` —
 and **with or without a GPU**: nothing in the query or corpus path pins a device, so
 sentence-transformers picks CUDA when present and CPU otherwise. CPU and GPU vectors agree to
@@ -104,6 +122,14 @@ cp CausalSmith/tools/config/local.example.json CausalSmith/tools/config/local.js
 | `openaiApiKey` / `openaiApiKeyFile` | Same, for OpenAI. | unset |
 | `codexApiHome` | `CODEX_HOME` for codex api mode — deliberately not `~/.codex`. | `~/.codex-causalsmith-api` |
 | `claudeConfigDir` | `CLAUDE_CONFIG_DIR` for the spawned `claude` workers — an account switch, not a billing one: run the pipeline on a different Anthropic subscription while your interactive login keeps `~/.claude`. | unset |
+
+### Module system
+
+Generated Lean files place `module` after the optional copyright block, use contiguous
+`public import` lines, add the `/-! ... -/` module docstring, and open one blanket
+`@[expose] public section` for def-bearing files or `public section` for theorem-only files.
+Declarations remain bare; run barrels and `Helpers.lean` are imports-only. Validate the emitted
+headers and repository placement with `npm run lint:module-headers` and `npm run lint:layout`.
 
 Each field also has an environment-variable override (env wins over the file):
 

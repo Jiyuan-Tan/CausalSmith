@@ -20,8 +20,9 @@ in-class perturbation, which is all a lower bound needs.)  The capstone `inClass
 collapses to `ConstCenterGeneral.inClassG` when the center is constant.
 -/
 
-import Causalean.Estimation.MinimaxATE.Reduction.Bump
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Gap
+module
+public import Causalean.Estimation.MinimaxATE.Reduction.Bump
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Gap
 
 /-! # Cell-Varying Class Membership
 
@@ -34,6 +35,8 @@ The lemmas `l2sq_mPertV_le`, `l2sq_gPertV_false`, `gPertV_true_sub`, and
 `l2sq_gPertV_true_le` bound the propensity and outcome-arm `L²(P_X)` errors.  The capstone
 `inClassV` combines those estimates with `validDGP_pertV` to show every perturbed sign vector lies
 in `InClass` around the cell-varying center. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

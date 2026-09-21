@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Basic
-import Causalean.Stat.UStatistic.OrderM.Basic
-import Mathlib.RingTheory.MvPolynomial.Basic
-import Mathlib.RingTheory.Polynomial.Chebyshev
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Basic
+public import Causalean.Stat.UStatistic.OrderM.Basic
+public import Mathlib.RingTheory.MvPolynomial.Basic
+public import Mathlib.RingTheory.Polynomial.Chebyshev
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

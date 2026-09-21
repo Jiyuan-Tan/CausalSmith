@@ -15,9 +15,10 @@ The vector double-demeaned array is component-wise scalar double demeaning, so
 all the uniform-panel orthogonality infrastructure is reused.
 -/
 
-import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.TWFE
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.Data.Matrix.Mul
+module
+public import Causalean.Panel.EstimandCharacterization.FlexibleDIDMundlak.TWFE
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.Data.Matrix.Mul
 
 /-! # Wooldridge Vector TWFE
 
@@ -29,6 +30,8 @@ constructs the componentwise residual `ddotVec`, residualized Gram matrix
 `VectorTWFEProblem.betaTWFE_unique`, then relates the scalar problem to the
 one-coordinate case with `ScalarTWFEProblem.toVector` and
 `ScalarTWFEProblem.toVector_betaTWFE`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -89,8 +92,10 @@ def vecTwfeNormalEq (P : VectorTWFEProblem Unit Time K) (β : K → ℝ) : Prop 
 end VectorTWFEProblem
 
 omit [DecidableEq K] in
-/-- The coordinate-wise normal equation is equivalent to the matrix normal
-equation `Q_{\ddot X} β = Σ_it ddot X ddot Y`. -/
+/-- For [a vector regressor array, an outcome array, and a candidate coefficient
+vector](hyp:X,Y,β) over [finite unit, period, and regressor-coordinate
+sets](hyp:Unit,Time,K), [the coordinate-wise residual normal equations are
+equivalent to the residualized Gram-matrix normal equation](goal). -/
 theorem vecNormalEq_iff_mulVec (X : Unit → Time → K → ℝ) (Y : Unit → Time → ℝ)
     (β : K → ℝ) :
     (∀ k, ∑ i, ∑ t,
@@ -194,8 +199,9 @@ noncomputable def ScalarTWFEProblem.toVector (P : ScalarTWFEProblem Unit Time) :
     rw [hval]
     exact (isUnit_iff_ne_zero).mpr (ne_of_gt P.ddotX_ss_pos)
 
-/-- The singleton-coordinate vector TWFE coefficient recovers the scalar TWFE
-coefficient, so the scalar theorem is the `K = Fin 1` case of the vector one. -/
+/-- For [a scalar finite balanced-panel regression problem](hyp:P) over [finite
+unit and period sets](hyp:Unit,Time), [the sole coordinate of its vector embedding's
+TWFE coefficient equals the scalar TWFE coefficient](goal). -/
 theorem ScalarTWFEProblem.toVector_betaTWFE (P : ScalarTWFEProblem Unit Time) :
     P.toVector.betaTWFE 0 = P.betaTWFE := by
   have hsol : P.toVector.vecTwfeNormalEq (fun _ => P.betaTWFE) := by

@@ -11,21 +11,22 @@ moment functional `m : H → Z → ℝ → ℝ` together with the truth nuisance
 and the bilinear seminorm pair `(ρ₁, ρ₂)` used to express product-rate
 remainders.
 
-See `docs/superpowers/specs/2026-05-06-general-dml-framework-design.md` §4.1.
 -/
 
-import Causalean.Estimation.ATE.Setup
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Topology.Algebra.Module.Basic
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Topology.Algebra.Module.Basic
 
 /-! # Abstract Moment Functionals
 
 This file defines the moment-functional interface used by the double machine
 learning layer. The interface records the observed-data moment, the true
 nuisance and scalar target, the local perturbation set, bilinear seminorms for
-product-rate bounds, and the nonzero Jacobian of the population moment. Concrete
+product-rate bounds, and a nonzero linearization scale. Concrete
 double-machine-learning instances reduce to filling this interface, which
 centralizes the generic asymptotic-linearity machinery. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -33,17 +34,18 @@ namespace OrthogonalMoments
 
 open MeasureTheory
 
-/-- A general moment bundles a score function of a nuisance, an observation, and a scalar
-parameter, a truth nuisance [η₀](hyp:η₀) and truth parameter `θ₀`, a set of admissible
-nuisance perturbations, and a pair of bilinear seminorms used to bound product-rate
-remainders, subject to: [the score is jointly measurable in the observation for every
-nuisance and parameter value](hyp:m_meas), [the truth nuisance belongs to the perturbation
-set](hyp:η₀_mem), and [the population moment's parameter-derivative at the truth (its
-Jacobian) is nonzero, so that its inverse is well-defined](hyp:J₀_ne_zero).
+/-- For [randomness and observed-data spaces with measures and a real nuisance
+vector space](hyp:Ω,μ,Z,P_Z,H), a general scaled moment system
+bundles [a score function](hyp:m), [a truth nuisance](hyp:η₀), [a truth
+parameter](hyp:θ₀), [an admissible perturbation set](hyp:H_ε), [two
+error gauges](hyp:ρ₁,ρ₂), and [a caller-supplied linearization
+scale](hyp:linScale), subject to [score measurability](hyp:m_meas), [truth
+membership in the perturbation set](hyp:η₀_mem), and [nonvanishing of the
+scale](hyp:linScale_ne_zero).
 
-This is the Chernozhukov-form interface for scalar targets: the Jacobian is the
-parameter derivative of the population moment at the truth, and its
-nonsingularity makes the inverse Jacobian well-defined.
+The interface is algebraic: `linScale` is a caller-supplied scale and is not
+asserted here to be a derivative of the population moment. `LinearMoment`
+below adds an equality that identifies this scale with the coefficient mean.
 
 * `m η z θ`     — the moment functional, parametric in nuisance `η`, data `z`,
                   and parameter `θ`.
@@ -54,11 +56,8 @@ nonsingularity makes the inverse Jacobian well-defined.
 * `ρ₂ η η'`     — second bilinear seminorm slot (e.g., propensity L²).
 * `m_meas`      — joint measurability witness for `m η · θ`.
 * `η₀_mem`      — `η₀ ∈ H_ε`.
-* `J₀`          — Jacobian `∂_θ ∫ m(η₀, ·, θ) dP_Z |_{θ=θ₀}` of the population
-                  moment in the parameter direction.  For AIPW (linear score
-                  `m(η, z, θ) = ψ(η, z) − θ`), `J₀ = −1`.  This interface is
-                  the scalar-target form of the orthogonal-moment framework.
-* `J₀_ne_zero`  — non-singularity witness; `J₀⁻¹` is well-defined. -/
+* `linScale`          — caller-supplied scale used by the one-step formulas.
+* `linScale_ne_zero`  — nonzero witness, so its reciprocal is well-defined. -/
 structure GeneralMoment
     (Ω : Type*) [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
     (Z : Type*) [MeasurableSpace Z] (P_Z : MeasureTheory.Measure Z)
@@ -71,8 +70,8 @@ structure GeneralMoment
   ρ₂           : H → H → NNReal
   m_meas       : ∀ η θ, Measurable (fun z => m η z θ)
   η₀_mem       : η₀ ∈ H_ε
-  J₀           : ℝ
-  J₀_ne_zero   : J₀ ≠ 0
+  linScale         : ℝ
+  linScale_ne_zero : linScale ≠ 0
 
 namespace GeneralMoment
 
@@ -80,19 +79,20 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : MeasureTheory.Measure Ω}
          {Z : Type*} [MeasurableSpace Z] {P_Z : MeasureTheory.Measure Z}
          {H : Type*} [AddCommGroup H] [Module ℝ H]
 
-/-- For [a general moment system](hyp:M), the [inverse population Jacobian](goal)
-is the reciprocal of the system's nonzero population Jacobian.
+/-- For [a general moment system](hyp:M), the [inverse linearization scale](goal)
+is the reciprocal of the system's nonzero caller-supplied scale.
 
-For the AIPW linear score, the Jacobian is minus one, so the inverse Jacobian is
-also minus one. -/
-noncomputable def J₀_inv (M : GeneralMoment Ω μ Z P_Z H) : ℝ := M.J₀⁻¹
+For the AIPW linear score, the identified scale is minus one, so its reciprocal
+is also minus one. -/
+noncomputable def linScaleInv (M : GeneralMoment Ω μ Z P_Z H) : ℝ :=
+  M.linScale⁻¹
 
-/-- **Jacobian times its inverse is one.** For [a general orthogonal-moment
-system](hyp:M), [the population Jacobian times its inverse equals one](goal). -/
-@[simp] lemma J₀_mul_J₀_inv (M : GeneralMoment Ω μ Z P_Z H) :
-    M.J₀ * M.J₀_inv = 1 := by
-  unfold J₀_inv
-  exact mul_inv_cancel₀ M.J₀_ne_zero
+/-- For [a general orthogonal-moment system](hyp:M), [its linearization scale
+times its reciprocal equals one](goal). -/
+@[simp] lemma linScale_mul_inv (M : GeneralMoment Ω μ Z P_Z H) :
+    M.linScale * M.linScaleInv = 1 := by
+  unfold linScaleInv
+  exact mul_inv_cancel₀ M.linScale_ne_zero
 
 end GeneralMoment
 
@@ -113,12 +113,16 @@ from the true nuisance to that value also belongs to the admissible set. -/
 def H_ε_PerturbClosed (M : GeneralMoment Ω μ Z P_Z H) : Prop :=
   ∀ η ∈ M.H_ε, ∀ t ∈ Set.Icc (0 : ℝ) 1, M.η₀ + t • (η - M.η₀) ∈ M.H_ε
 
-/-- A linear moment is a general moment whose score is affine in the scalar
-target parameter.
+/-- For [randomness and observed-data spaces with measures and a real nuisance
+vector space](hyp:Ω,μ,Z,P_Z,H), a linear moment system is a general
+moment with [coefficient and constant score terms](hyp:m_a,m_b),
+[measurability of those terms](hyp:m_a_meas,m_b_meas), [an affine score
+decomposition](hyp:m_decomp), and [identification of the linearization scale
+with the population coefficient mean](hyp:linScale_eq).
 
 It carries the coefficient and constant terms of the linear-score
 decomposition, their measurability, and the consistency condition saying that
-the Jacobian is the population mean of the coefficient at the truth. AIPW is the
+the linearization scale is the population mean of the coefficient at the truth. AIPW is the
 canonical instance with constant coefficient minus one. -/
 structure LinearMoment
     (Ω : Type*) [MeasurableSpace Ω] (μ : MeasureTheory.Measure Ω)
@@ -130,9 +134,9 @@ structure LinearMoment
   m_a_meas : ∀ η, Measurable (m_a η)
   m_b_meas : ∀ η, Measurable (m_b η)
   m_decomp : ∀ η z θ, m η z θ = m_a η z * θ + m_b η z
-  /-- Jacobian field is consistent with the linear decomposition:
-  `J₀ = ∫ m_a(η₀, z) dP_Z`. -/
-  J₀_eq     : J₀ = ∫ z, m_a η₀ z ∂P_Z
+  /-- The linearization scale is the population mean of the linear coefficient:
+  `linScale = ∫ m_a(η₀, z) dP_Z`. -/
+  linScale_eq : linScale = ∫ z, m_a η₀ z ∂P_Z
 
 end OrthogonalMoments
 end Estimation

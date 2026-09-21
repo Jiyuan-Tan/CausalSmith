@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
 
 /-!
 # Compact triangular predecessor-score inverse
@@ -7,6 +8,11 @@ This file packages equations (7)--(9): predecessor latent coordinates form a com
 their triangular log-ratio score map is a continuous injection, and hence it has a continuous
 inverse on its image.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 open scoped Topology
@@ -23,7 +29,7 @@ abbrev PredecessorLatentCube {n : ℕ} (order : Fin n → ℕ) (i : Fin n) :=
 -- @node: predecessorCubeLatentState
 /-- Embed predecessor coordinates into the full latent cube, filling nonpredecessors with zero. -/
 def predecessorCubeLatentState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (z : PredecessorLatentCube order i) : LatentState n := fun k =>
   if h : W.targetPerm.symm k ∈ predecessorSet order i then
@@ -32,7 +38,7 @@ def predecessorCubeLatentState
 -- @node: predecessorLatentCubeOfState
 /-- Restrict a latent cube point to the coordinates indexed by decoder predecessors. -/
 def predecessorLatentCubeOfState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (v : LatentState n) (hv : v ∈ latentCube n) : PredecessorLatentCube order i :=
   fun j => ⟨v (W.targetPerm j), hv _ (Set.mem_univ _)⟩
@@ -41,7 +47,7 @@ def predecessorLatentCubeOfState
 /-- Embedding the predecessor restriction back into the ambient cube preserves every
 predecessor coordinate.  Given [the stated inputs and conditions](hyp:hv,hj), [the stated conclusion](goal) follows. -/
 lemma predecessorCubeLatentState_ofState_apply
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (v : LatentState n) (hv : v ∈ latentCube n)
     (j : Fin n) (hj : j ∈ predecessorSet order i) :
@@ -53,7 +59,7 @@ lemma predecessorCubeLatentState_ofState_apply
 -- @node: predecessorScoreMap
 /-- The triangular predecessor log-ratio map, written directly in latent coordinates. -/
 def predecessorScoreMap
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (z : PredecessorLatentCube order i) : PredecessorLogRatios order i := fun j =>
   Real.log
@@ -64,7 +70,7 @@ def predecessorScoreMap
 -- @node: predecessorCubeLatentState_mem_latentCube
 /-- The zero-filled predecessor-coordinate embedding always lies in the full latent cube.  [the stated conclusion](goal) follows. -/
 lemma predecessorCubeLatentState_mem_latentCube
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (z : PredecessorLatentCube order i) :
     predecessorCubeLatentState W order i z ∈ latentCube n := by
@@ -78,7 +84,7 @@ lemma predecessorCubeLatentState_mem_latentCube
 /-- On a latent cube point, the compact triangular score map is exactly the observed
 predecessor log-ratio projection pulled back through the mixing map.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,horder,hgraphOrder,hv), [the stated conclusion](goal) follows. -/
 lemma predecessorScoreMap_of_latentState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -101,7 +107,7 @@ lemma predecessorScoreMap_of_latentState
     · intro a ha
       let k := W.targetPerm.symm a
       have hkParent : k ∈ environmentParentSet W j := by
-        simpa [k, environmentParentSet, Causalean.DAG.parents] using ha
+        simpa [k, environmentParentSet, DAG.parents] using ha
       have hkBeforeJ := environmentParentSet_subset_predecessorSet_of_transitiveClosure
         W horder hgraphOrder j hkParent
       have hjBeforeI : order j < order i := by
@@ -117,7 +123,7 @@ lemma predecessorScoreMap_of_latentState
 /-- Every predecessor log-ratio vector realized by a latent cube point belongs to the image
 of the compact triangular predecessor-score map.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,horder,hgraphOrder,hv), [the stated conclusion](goal) follows. -/
 lemma observedPredecessorLogRatio_mem_scoreRange
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -134,7 +140,7 @@ lemma observedPredecessorLogRatio_mem_scoreRange
 -- @node: continuous_predecessorScoreMap
 /-- Smooth positive mechanisms make the triangular predecessor score map continuous.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma continuous_predecessorScoreMap
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) : Continuous (predecessorScoreMap W order i) := by
   have hlatent : Continuous (predecessorCubeLatentState W order i) := by
@@ -165,7 +171,7 @@ lemma continuous_predecessorScoreMap
 -- @node: predecessorScoreMap_injective
 /-- The prescribed own-score signs make the triangular predecessor score map injective.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma predecessorScoreMap_injective
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -198,7 +204,7 @@ lemma predecessorScoreMap_injective
 -- @node: predecessorScoreHomeomorph
 /-- The compact triangular predecessor score map is a homeomorphism onto its image. -/
 noncomputable def predecessorScoreHomeomorph
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -216,7 +222,7 @@ noncomputable def predecessorScoreHomeomorph
 -- @node: continuous_predecessorScoreInverse
 /-- The inverse predecessor-coordinate reconstruction is continuous on the score image.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma continuous_predecessorScoreInverse
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

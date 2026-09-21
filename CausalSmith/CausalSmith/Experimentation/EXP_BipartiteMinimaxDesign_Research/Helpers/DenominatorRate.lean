@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Denominator-kernel asymptotic rate
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.unusedSectionVars false

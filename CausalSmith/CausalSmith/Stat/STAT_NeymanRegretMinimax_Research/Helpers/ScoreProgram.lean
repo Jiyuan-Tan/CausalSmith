@@ -10,7 +10,10 @@ complexity and the feasible-direction positivity lemma, importing the score-cost
 definitions and arm-wise score-program solution from `ScoreProgramDefs`.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ScoreProgramDefs
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.ScoreProgramDefs
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

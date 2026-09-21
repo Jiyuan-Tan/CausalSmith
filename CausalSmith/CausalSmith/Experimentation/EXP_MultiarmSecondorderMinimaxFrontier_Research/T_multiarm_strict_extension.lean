@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_exact_response_type_game
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_embedded_two_arm_converse
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_universal_second_order_rate
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_exact_response_type_game
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_embedded_two_arm_converse
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_universal_second_order_rate
 
 /-! Scope comparison: exact binary orbit games for every fixed arm count. -/
+
+@[expose] public section
 
 open Filter
 

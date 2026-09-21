@@ -3,18 +3,20 @@ Copyright (c) 2024 Chenyi Li. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Chenyi Li, Shengyang Xu, Yuxuan Wu
 -/
-import Mathlib.Analysis.Convex.Cone.Basic
-import Mathlib.Analysis.Calculus.LocalExtr.Basic
-import Mathlib.Analysis.LocallyConvex.Separation
-import Mathlib.LinearAlgebra.Matrix.Rank
-import Mathlib.LinearAlgebra.FiniteDimensional.Basic
-import Mathlib.Analysis.Calculus.Implicit
-import Mathlib.Analysis.Calculus.MeanValue
-import Mathlib.Analysis.Calculus.ContDiff.RCLike
-import Mathlib.Analysis.InnerProductSpace.Calculus
-import Optlib.Differential.Calculation
-import Optlib.Convex.Farkas
-import Optlib.Differential.Lemmas
+
+module
+public import Mathlib.Analysis.Convex.Cone.Basic
+public import Mathlib.Analysis.Calculus.LocalExtr.Basic
+public import Mathlib.Analysis.LocallyConvex.Separation
+public import Mathlib.LinearAlgebra.Matrix.Rank
+public import Mathlib.LinearAlgebra.FiniteDimensional.Basic
+public import Mathlib.Analysis.Calculus.Implicit
+public import Mathlib.Analysis.Calculus.MeanValue
+public import Mathlib.Analysis.Calculus.ContDiff.RCLike
+public import Mathlib.Analysis.InnerProductSpace.Calculus
+public import Optlib.Differential.Calculation
+public import Optlib.Convex.Farkas
+public import Optlib.Differential.Lemmas
 
 /-!
 # Constrained_Problem
@@ -32,6 +34,8 @@ This file contains the following parts of constrained optimization problem.
 * the proof of KKT conditions under LICQ
 * the proof of KKT conditions under linear constraint qualification
 -/
+
+@[expose] public section
 
 open InnerProductSpace Set BigOperators
 set_option linter.unusedVariables false

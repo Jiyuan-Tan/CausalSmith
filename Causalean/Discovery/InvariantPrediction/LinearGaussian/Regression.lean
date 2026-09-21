@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Model
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Model
 
 /-!
 # Invariant Causal Prediction — regression-invariance null and identified set
@@ -51,6 +52,8 @@ the **identified set** `S(E)` (Peters–Bühlmann–Meinshausen 2016, `eq:betapr
   satisfy the null.
 -/
 
+@[expose] public section
+
 namespace Causalean.Discovery.InvariantPrediction.LinearGaussian
 
 open MeasureTheory ProbabilityTheory
@@ -58,31 +61,28 @@ open scoped BigOperators
 
 variable {p : ℕ}
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p), [a coefficient
-vector](hyp:γ), and [a set of coordinate indices](hyp:S), [the assertion that the coefficient
-vector is supported on that set](goal) means that every nonzero coefficient has an index in the
-set.
+/-- [A coefficient vector is supported on a predictor set](goal) precisely when every nonzero entry
+of [the vector](hyp:γ) belongs to [that set](hyp:S), in a model with [predictor dimension
+`p`](hyp:p).
 
 `γ` is **supported on `S`**: every nonzero coordinate of `γ` lies in `S`
 (the paper's `β_k = 0 if k ∉ S`). -/
 def SupportedOn (γ : Fin (p + 1) → ℝ) (S : Finset (Fin (p + 1))) : Prop :=
   ∀ k, γ k ≠ 0 → k ∈ S
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p), [an observational
-linear structural-equation model](hyp:M), [a coefficient vector](hyp:γ), and [a realization of that
-model's exogenous variables](hyp:ω), [the observational regression residual](goal) is the target
-value minus the sum of each coordinate value multiplied by its coefficient.
+/-- [The observational regression residual](goal) measures unexplained target variation after
+subtracting the linear prediction defined by [coefficients `γ`](hyp:γ) from [SEM `M`](hyp:M) at
+[realization `ω`](hyp:ω), in [predictor dimension `p`](hyp:p).
 
 The regression residual in the observational SEM:
 `R = Y − Σ_k γ k · X_k` (with `γ` supported on `S`, so only `k ∈ S` matter). -/
 def obsResidual (M : ObsSEM p) (γ : Fin (p + 1) → ℝ) (ω : M.Ω) : ℝ :=
   M.X ω (target p) - ∑ k, γ k * M.X ω k
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p), [an observational
-linear structural-equation model](hyp:M), [an interventional environment based on that model](hyp:e),
-[a coefficient vector](hyp:γ), and [a realization of the model's exogenous variables](hyp:ω), [the
-interventional regression residual](goal) is the intervened target value minus the sum of each
-intervened coordinate value multiplied by its coefficient.
+/-- [The interventional regression residual](goal) applies [the same coefficient vector](hyp:γ) to
+the post-intervention coordinates from [environment `e`](hyp:e) based on [observational SEM
+`M`](hyp:M), at [realization `ω`](hyp:ω) in [predictor dimension `p`](hyp:p); it is the quantity
+whose law ICP compares across environments.
 
 The regression residual in an interventional environment, on `M`'s space:
 `R^e = Y^e − Σ_k γ k · X_k^e`. -/
@@ -93,14 +93,11 @@ namespace EnvFamily
 
 variable (F : EnvFamily p)
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p), [a linear-Gaussian
-environment family](hyp:F), and [a predictor set](hyp:S), [the regression-invariance null](goal)
-means that there exist a coefficient vector supported on that set and one residual measure
-such that (1) [the coefficient vector is supported on the predictor set](step:1), (2) [in the
-observational environment the residual is independent of each selected predictor](step:2), (3) [its
-observational residual law is the common law](step:3), (4) [in every interventional environment the
-residual is independent of each selected predictor](step:4), and (5) every interventional residual
-law is the same common law.
+/-- [The regression-invariance null](goal) holds for [a predictor set](hyp:S) in [a family of
+intervention environments](hyp:F) with [finite predictor dimension](hyp:p) when one coefficient
+vector supported on the selected predictors produces a residual that is independent of every
+selected predictor and has one common law in both the observational and every interventional
+environment.
 
 **Pairwise regression-invariance null.**
 
@@ -128,28 +125,25 @@ def InvarianceNull (S : Finset (Fin (p + 1))) : Prop :=
       F.obs.P) ∧
     (∀ i, F.obs.P.map (envResidual (F.env i) γ) = Fε)
 
-/-- For every [number of predictor coordinates](hyp:p) and [linear-Gaussian environment family
-with those predictor coordinates and one target coordinate](hyp:F), [a decision procedure for
-whether each predictor set satisfies the regression-invariance null](goal) is [supplied by
-classical reasoning](step:1).
+/-- [Classical decidability of the regression-invariance null](goal) lets the finite search filter
+candidate predictor sets in [environment family `F`](hyp:F) with [predictor dimension `p`](hyp:p);
+the [decision rule uses classical reasoning](step:1).
 
 Decidability of the invariance null, needed for the `filter` in
 `invariantSets`.  The predicate is genuinely a `Prop` over measures, so this is
 supplied classically. -/
 noncomputable instance : DecidablePred (F.InvarianceNull) := fun _ => Classical.dec _
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p) and [a
-linear-Gaussian environment family](hyp:F), [the collection of invariant predictor sets](goal) is
-the finite collection of predictor subsets whose regression-invariance null holds.
+/-- [The invariant predictor collection](goal) is the finite search space of subsets whose residual
+law survives every environment in [family `F`](hyp:F) with [predictor dimension `p`](hyp:p).
 
 The collection of predictor subsets `S ⊆ {1,…,p}` whose invariance null
 holds — the index set of the `S(E)` intersection (`eq:ident`). -/
 noncomputable def invariantSets : Finset (Finset (Fin (p + 1))) :=
   (predictors p).powerset.filter (fun S => F.InvarianceNull S)
 
-/-- For [a model with p predictor coordinates and one target coordinate](hyp:p) and [a
-linear-Gaussian environment family](hyp:F), [the identified set](goal) is the intersection of all
-predictor sets in that family's collection of invariant predictor sets.
+/-- [The ICP identified set](goal) keeps the predictors present in every invariant subset for
+[environment family `F`](hyp:F) with [predictor dimension `p`](hyp:p).
 
 The **identified set** `S(E) := ⋂ {S : H_{0,S} holds}` (`eq:ident`).
 
@@ -160,14 +154,17 @@ because under the theorem's hypotheses `PA(Y)` itself always satisfies the null
 noncomputable def identifiedSet : Finset (Fin (p + 1)) :=
   (F.invariantSets).inf id
 
-/-- For [a predictor index k](hyp:k), [k lies in the identified set `S(E)` exactly when k
-belongs to every predictor subset whose invariance null holds](goal). -/
+/-- [A predictor lies in the ICP identified set exactly when every invariant model includes
+it](goal), for [environment family `F`](hyp:F) with [predictor dimension `p`](hyp:p) and [candidate
+coordinate `k`](hyp:k). -/
 theorem mem_identifiedSet {k : Fin (p + 1)} :
     k ∈ F.identifiedSet ↔ ∀ S ∈ F.invariantSets, k ∈ S := by
   classical
   simp only [identifiedSet, Finset.mem_inf, id_eq]
 
-/-- Membership in `invariantSets`. -/
+/-- [A predictor set belongs to the invariant collection exactly when it uses only predictor
+coordinates and satisfies the regression-invariance null](goal), for [environment family
+`F`](hyp:F) with [predictor dimension `p`](hyp:p) and [candidate set `S`](hyp:S). -/
 theorem mem_invariantSets {S : Finset (Fin (p + 1))} :
     S ∈ F.invariantSets ↔ S ⊆ predictors p ∧ F.InvarianceNull S := by
   classical

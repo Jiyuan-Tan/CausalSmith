@@ -37,8 +37,9 @@ To resolve a run dir, use the known prefix — do not hunt:
 
     ls -d CausalSmith/doc/research/active/<qid>*/ 2>/dev/null
 
-**Never run a recursive walk from `/`, `/soalnas`, `/sailhome`, `/scr` or `/tmp`, and always bound a
-repo walk with `-maxdepth`.** The tree is on a shared network mount: an unbounded walk wedges in
-uninterruptible disk wait, is orphaned when the calling tool times out, and then blocks every later
-command from that agent. If a path does not resolve, re-read the qid and the prefix above rather than
-widening the search.
+**Never run a recursive walk from a filesystem root, a mount point, a home directory, a temp
+directory, or anywhere else outside the repository, and always bound a repo walk with `-maxdepth`.**
+The tree may live on a shared network mount, where an unbounded walk wedges in uninterruptible disk
+wait, is orphaned when the calling tool times out, and then blocks every later command from that
+agent. If a path does not resolve, re-read the qid and the prefix above rather than widening the
+search.

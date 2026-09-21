@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.CausalBridgeMeasure
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
-import Causalean.Mathlib.MeasureTheory.PartitionIntegral
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.CausalBridgeMeasure
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.RegressionVersion
+public import Causalean.Mathlib.MeasureTheory.PartitionIntegral
 
 /-!
 # Identification identities for the causal clamp bridge
@@ -15,6 +16,8 @@ This file turns the normalized-stratum product law into the conditional
 integral identity and the pathwise decomposition used by the two causal bridge
 theorems.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

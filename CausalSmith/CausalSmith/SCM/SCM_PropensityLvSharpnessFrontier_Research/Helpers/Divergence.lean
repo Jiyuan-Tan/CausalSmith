@@ -1,9 +1,12 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Classes
-import Mathlib.Analysis.Convex.Function
-import Mathlib.Data.EReal.Basic
-import Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Classes
+public import Mathlib.Analysis.Convex.Function
+public import Mathlib.Data.EReal.Basic
+public import Mathlib.MeasureTheory.Measure.Decomposition.IntegralRNDeriv
 
 /-! # Generic divergence and legality classes -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

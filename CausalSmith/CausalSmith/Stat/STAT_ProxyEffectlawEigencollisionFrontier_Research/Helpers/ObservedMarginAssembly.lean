@@ -1,11 +1,14 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConditionalMomentAdapters
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedLawAdapters
-import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
-import Mathlib.MeasureTheory.SpecificCodomains.WithLp
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ConditionalMomentAdapters
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.ObservedLawAdapters
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Mathlib.MeasureTheory.SpecificCodomains.WithLp
 
 /-!
 Assembly lemmas for the observed VMW margin proposition.
 -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

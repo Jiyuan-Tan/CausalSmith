@@ -3,11 +3,13 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core
-import Mathlib.Analysis.Convex.Deriv
-import Mathlib.Analysis.Calculus.Deriv.Inv
-import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import Mathlib.Analysis.SpecialFunctions.Sigmoid
+
+module
+public import Causalean.ML.Core
+public import Mathlib.Analysis.Convex.Deriv
+public import Mathlib.Analysis.Calculus.Deriv.Inv
+public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import Mathlib.Analysis.SpecialFunctions.Sigmoid
 
 /-! # Logistic regression — convexity and existence
 
@@ -16,6 +18,8 @@ Binary logistic regression with score `⟪β, x⟫` and the score-space log-loss
 empirical logistic risk are convex, and that an empirical-risk minimizer exists
 on any nonempty compact parameter set.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 
@@ -46,10 +50,11 @@ private lemma hasDerivAt_softplus (x : ℝ) : HasDerivAt softplus (Real.sigmoid 
 theorem continuous_softplus : Continuous softplus := by
   exact continuous_iff_continuousAt.2 fun x => (hasDerivAt_softplus x).continuousAt
 
-/-- For [a finite sample index set](hyp:ι), [a real inner-product feature space](hyp:E),
-[a sample of feature vectors paired with binary outcomes](hyp:Z), and [a coefficient vector](hyp:β),
-the [empirical logistic risk](goal) is the average, over the sample, of logistic
-score loss evaluated at the inner product of the coefficient vector and each feature vector. -/
+/-- [Empirical logistic risk](goal) is
+[average logistic loss at coefficient--feature inner products](step:1). It scores
+[a coefficient vector](hyp:β) on
+[feature--binary-outcome observations](hyp:Z) indexed by [a finite sample set](hyp:ι) in
+[a real inner-product feature space](hyp:E). -/
 noncomputable def logisticEmpRisk (Z : ι → E × Bool) (β : E) : ℝ :=
   (Fintype.card ι : ℝ)⁻¹ * ∑ i, logisticScoreLoss (Z i).2 (inner ℝ β (Z i).1)
 
@@ -79,8 +84,8 @@ theorem convexOn_logisticScoreLoss (y : Bool) :
   simp only [logisticScoreLoss, sub_eq_add_neg, ← neg_mul]
   exact convexOn_softplus.add hlin
 
-/-- [For any finite sample of feature–label pairs `Z`](hyp:Z), [the empirical logistic
-risk, as a function of the coefficient, is convex](goal). -/
+/-- [Empirical logistic risk is convex in the coefficient vector](goal) for
+[every finite feature--label sample](hyp:Z). -/
 theorem convexOn_logisticEmpRisk (Z : ι → E × Bool) :
     ConvexOn ℝ Set.univ (logisticEmpRisk Z) := by
   classical
@@ -126,9 +131,10 @@ theorem continuous_logisticEmpRisk (Z : ι → E × Bool) :
     exact continuous_finset_sum Finset.univ fun i _ => hterm i
   exact continuous_const.mul hsum
 
-/-- For any labeled sample `Z` and a parameter set `Θset` that is [nonempty](hyp:hne) and
-[compact](hyp:hcompact), [the empirical logistic risk attains its minimum over `Θset` at some
-parameter `βhat` in `Θset`](goal). -/
+/-- [Empirical logistic risk attains a constrained minimum](goal) for
+[any labeled sample](hyp:Z) whenever the parameter set is [nonempty](hyp:hne) and
+[compact](hyp:hcompact).
+Compactness prevents an optimizing coefficient sequence from escaping to infinity. -/
 theorem logistic_exists_minimizer_on_compact (Z : ι → E × Bool)
     {Θset : Set E} (hne : Θset.Nonempty) (hcompact : IsCompact Θset) :
     ∃ βhat ∈ Θset, IsMinOn (logisticEmpRisk Z) Θset βhat :=

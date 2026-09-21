@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Independence.Conditional
-import Mathlib.Probability.Kernel.CompProdEqIff
+module
+public import Mathlib.Probability.Independence.Conditional
+public import Mathlib.Probability.Kernel.CompProdEqIff
 
 /-!
 # Conditional distributions for product kernels
@@ -20,6 +21,8 @@ The public theorems `condDistrib_fst_of_compProd_prod` and
 `condDistrib_snd_of_compProd_prod` record these two coordinate conditionals for
 `Measure.compProd ρ (Kernel.prod κ η)`.
 -/
+
+public section
 
 namespace Causalean.Mathlib.ProbabilityTheory.ProductCondDistrib
 

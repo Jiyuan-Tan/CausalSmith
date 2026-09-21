@@ -1,8 +1,9 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Capacities
-import Causalean.PO.Assumptions.IndepCF
-import Causalean.PO.Core.Variable
-import Causalean.Stat.Sample
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Capacities
+public import Causalean.PO.Assumptions.IndepCF
+public import Causalean.PO.Core.Variable
+public import Causalean.Stat.Sample
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
 
 /-!
 # Slate-benefit potential-outcome setup
@@ -10,6 +11,8 @@ import Mathlib.MeasureTheory.Constructions.Polish.Basic
 The five-node potential-outcome subsystem, its causal assumptions, and the
 pointwise and uniform law classes used throughout the paper.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open Causalean PO Causalean.Stat

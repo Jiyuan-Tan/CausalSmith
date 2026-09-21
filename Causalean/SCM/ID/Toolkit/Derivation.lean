@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.BackdoorCriterion
-import Causalean.SCM.Do.Rule2AE
+
+module
+public import Causalean.SCM.ID.BackdoorCriterion
+public import Causalean.SCM.Do.Rule2AE
 
 /-!
 # Do-calculus derivation helpers (identification toolkit, Layer 2)
@@ -23,11 +25,19 @@ in one call.
   post-intervention fixed nodes (the conditioning set `Rule 2` wants).
 * `backdoorCriterion_W_nonDesc` / `backdoorCriterion_W_nonDescM1` — criterion (i)
   in the two non-ancestry forms the Rule-2 witness transfer consumes.
-* `backdoor_rule2_ae` — the **Rule-2 applicator**: from a `backdoorCriterion`
-  (plus overlap + positivity) it produces the a.e. `obsCondKernel` do/obs identity
+* `backdoor_rule2_ae_of_positivity` — the **Rule-2 applicator**: from a `backdoorCriterion`
+  plus product positivity it produces the a.e. `obsCondKernel` do/obs identity
   directly, deriving the three graphical premises internally.  This is the
-  one-call replacement for the criterion→premises→`do_rule2_kernel` sequence.
+  one-call replacement for the
+  criterion→premises→`do_rule2_kernel_of_nondescendant_product_ae` sequence.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -65,7 +75,8 @@ theorem disjoint_fixed_observed (M : Causalean.SCM N Ω) :
     From the splitMono d-separation in the criterion, the post-intervention graph
     `M.fixSet X` d-separates `Y` from `X.image .random` given
     `Z ∪ (M.fixSet X).fixed`.  This is the exact conditioning set that the
-    kernel-level Rule 2 (`do_rule2_kernel`) consumes. -/
+    restricted kernel-level Rule 2
+    (`do_rule2_kernel_of_nondescendant_product_ae`) consumes. -/
 theorem backdoorCriterion_dSep_fixSet
     (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
@@ -73,7 +84,7 @@ theorem backdoorCriterion_dSep_fixSet
     (Y Z : Finset (SWIGNode N))
     (hY : Y ⊆ M.observed)
     (hXr : X.image SWIGNode.random ⊆ M.observed)
-    (h_bd : M.toSWIGGraph.backdoorCriterion X hObs hFix Y Z) :
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z) :
     (M.fixSet X hObs hFix).dag.dSep
       Y (X.image SWIGNode.random) (Z ∪ (M.fixSet X hObs hFix).fixed) := by
   have h_step1 :
@@ -113,7 +124,7 @@ theorem backdoorCriterion_W_nonDesc
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
     (Y Z : Finset (SWIGNode N))
-    (h_bd : M.toSWIGGraph.backdoorCriterion X hObs hFix Y Z) :
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z) :
     ∀ x ∈ X, ∀ v ∈ Z,
       ¬ (M.fixSet X hObs hFix).dag.isAncestor (SWIGNode.fixed x) v := by
   intro x hx v hv hanc
@@ -131,22 +142,68 @@ theorem backdoorCriterion_W_nonDescM1
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
     (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
     (Y Z : Finset (SWIGNode N))
-    (h_bd : M.toSWIGGraph.backdoorCriterion X hObs hFix Y Z) :
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z) :
     ∀ D ∈ X, ∀ w ∈ Z, ¬ M.dag.isAncestor (SWIGNode.random D) w :=
   fun D hD w hw => h_bd.2.2.2.1 w hw D hD
 
-/-- **Rule-2 applicator (backdoor form).**
+/-- For [a finite node population with measurable, standard-Borel, nonempty value
+spaces](hyp:N,Ω), [a structural causal model](hyp:M), [a treatment set](hyp:X)
+[whose random copies are observed and whose fixed copies are not already fixed](hyp:hObs,hFix),
+[observed outcome and adjustment sets](hyp:Y,Z,hY,hZ), [a backdoor
+criterion](hyp:h_bd), [a fixed-node assignment](hyp:s0), and [product-level
+positivity](hyp:hPositivity_ae), [the post-intervention and observational conditional
+kernels agree for almost every treatment/adjustment pair](goal).
 
-    From a `backdoorCriterion X … Y Z` (plus joint overlap and product-level
-    positivity), the post-`do(X)` `Y | Z`-conditional kernel agrees, for
-    `(νX ⊗ₘ μZ)`-almost-every treatment/adjustment pair `(t, z)`, with the
-    observational `Y | (X.random ∪ Z)`-conditional at the filled point.  This is
+    **Rule-2 applicator (backdoor form).** The post-`do(X)` `Y | Z`-conditional
+    kernel agrees, for `(νX ⊗ₘ μZ)`-almost-every treatment/adjustment pair `(t, z)`,
+    with the observational `Y | (X.random ∪ Z)`-conditional at the filled point.  This is
     exactly the conclusion of `obsCondKernel_fixSet_eq_ae_witness`, but it consumes
     the criterion directly: the three graphical premises (`dSep`, and the two
     non-descendance forms) are derived internally via `backdoorCriterion_dSep_fixSet`
     / `backdoorCriterion_W_nonDesc` / `backdoorCriterion_W_nonDescM1`.  An
     identification proof therefore invokes Rule 2 in one line from the criterion,
     instead of rebuilding the graphical ledger and threading it into the raw rule. -/
+theorem backdoor_rule2_ae_of_positivity
+    (M : Causalean.SCM N Ω) (X : Finset N)
+    (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
+    (hFix : ∀ D ∈ X, SWIGNode.fixed D ∉ M.fixed)
+    (Y Z : Finset (SWIGNode N))
+    (hY : Y ⊆ M.observed) (hZ : Z ⊆ M.observed)
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z)
+    (s0 : M.FixedValues)
+    (hPositivity_ae :
+      (((M.obsKernel s0).map
+          (valuesProjection (Finset.image_subset_iff.mpr hObs)) ⊗ₘ
+          ProbabilityTheory.Kernel.const _
+            ((M.obsKernel s0).map (valuesProjection hZ))).map
+          (fun p => valuesUnionMk p.1 p.2))
+        ≪ ((M.obsKernel s0).map
+          (valuesProjection
+            (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ)))) :
+    ∀ᵐ p ∂((M.obsKernel s0).map
+          (valuesProjection (Finset.image_subset_iff.mpr hObs)) ⊗ₘ
+            ProbabilityTheory.Kernel.const _
+              ((M.obsKernel s0).map (valuesProjection hZ))),
+      (M.fixSet X hObs hFix).obsCondKernel Y Z
+          ((SCM.fixSet_observed M X hObs hFix).symm ▸ hY)
+          ((SCM.fixSet_observed M X hObs hFix).symm ▸ hZ)
+          (M.fixSetExtend X hObs hFix s0 p.1, p.2)
+      = M.obsCondKernel Y (X.image SWIGNode.random ∪ Z) hY
+          (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ)
+          (s0, valuesUnionMk p.1 p.2) :=
+  SCM.obsCondKernel_fixSet_eq_ae_witness M X hObs hFix Y Z hY hZ
+    (Finset.image_subset_iff.mpr hObs)
+    (Finset.union_subset (Finset.image_subset_iff.mpr hObs) hZ)
+    (backdoorCriterion_dSep_fixSet M X hObs hFix Y Z hY
+      (Finset.image_subset_iff.mpr hObs) h_bd)
+    (backdoorCriterion_W_nonDesc M X hObs hFix Y Z h_bd)
+    (backdoorCriterion_W_nonDescM1 M X hObs hFix Y Z h_bd)
+    s0 hPositivity_ae
+
+/-- Compatibility wrapper for the former overlap-bearing Rule-2 interface.
+Use `backdoor_rule2_ae_of_positivity`, whose proof requires only the stated
+positivity and graphical assumptions. -/
+@[deprecated backdoor_rule2_ae_of_positivity (since := "2026-09-19")]
 theorem backdoor_rule2_ae
     (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
@@ -155,12 +212,8 @@ theorem backdoor_rule2_ae
     (hY : Y ⊆ M.observed) (hZ : Z ⊆ M.observed)
     (hXr : X.image SWIGNode.random ⊆ M.observed)
     (hXrZ : X.image SWIGNode.random ∪ Z ⊆ M.observed)
-    (hDisj_YXr : Disjoint Y (X.image SWIGNode.random))
-    (hDisj_XrZ : Disjoint (X.image SWIGNode.random) Z)
-    (h_bd : M.toSWIGGraph.backdoorCriterion X hObs hFix Y Z)
+    (h_bd : Causalean.SWIGGraph.backdoorCriterion M.toSWIGGraph X hObs hFix Y Z)
     (s0 : M.FixedValues)
-    (hOverlap : ∀ s : (M.fixSet X hObs hFix).FixedValues,
-      Causalean.SCM.ID.Rule2JointOverlap M X hObs hFix Z hXrZ s)
     (hPositivity_ae :
       (((M.obsKernel s0).map (valuesProjection hXr) ⊗ₘ
           ProbabilityTheory.Kernel.const _
@@ -176,11 +229,7 @@ theorem backdoor_rule2_ae
           (M.fixSetExtend X hObs hFix s0 p.1, p.2)
       = M.obsCondKernel Y (X.image SWIGNode.random ∪ Z) hY hXrZ
           (s0, valuesUnionMk p.1 p.2) :=
-  SCM.obsCondKernel_fixSet_eq_ae_witness M X hObs hFix Y Z hY hZ hXr hXrZ
-    (backdoorCriterion_dSep_fixSet M X hObs hFix Y Z hY hXr h_bd)
-    (backdoorCriterion_W_nonDesc M X hObs hFix Y Z h_bd)
-    (backdoorCriterion_W_nonDescM1 M X hObs hFix Y Z h_bd)
-    s0 hPositivity_ae
+  backdoor_rule2_ae_of_positivity M X hObs hFix Y Z hY hZ h_bd s0 hPositivity_ae
 
 end SCM
 

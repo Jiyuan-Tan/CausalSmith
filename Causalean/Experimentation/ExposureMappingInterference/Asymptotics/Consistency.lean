@@ -4,26 +4,30 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.HT.Variance
-import Causalean.Experimentation.DesignBased.HT.Unbiased
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Mathlib.Analysis.SpecificLimits.Basic
+module
+public import Causalean.Experimentation.DesignBased.HT.Variance
+public import Causalean.Experimentation.DesignBased.HT.Unbiased
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
-# Consistency of the Horvitz–Thompson effect estimator (Aronow–Samii 2017, Prop 6.4)
+# Horvitz–Thompson exposure-mean consistency
 
-Along a sequence of nested finite-population experiments, the HT mean (hence effect)
-estimator converges in probability to its estimand under two conditions:
+Along a sequence of nested finite-population experiments, the HT exposure-mean estimator
+converges in probability to its estimand under versions of the two assumptions used for
+Aronow–Samii (2017), Proposition 6.1:
 
-* **Condition 1 (boundedness):** outcomes and inverse exposure probabilities are bounded,
+* **Condition 3 (boundedness):** outcomes and inverse exposure probabilities are bounded,
   so each weighted summand `y_i(d)/π_i(d)` is bounded by a constant `c`.
-* **Condition 2 (pairwise dependence):** `∑_{i,j} g_{ij} = o(N²)`, where `g_{ij}=0`
+* **Condition 4 (pairwise dependence):** `∑_{i,j} g_{ij} = o(N²)`, where `g_{ij}=0`
   whenever the exposure indicators of `i` and `j` are uncorrelated.
 
 The proof is the lightweight-layer Chebyshev inequality applied to the `O((N+∑g)/N²)`
-variance bound; no central limit theorem is needed.
+variance bound; no central limit theorem is needed. The theorem is the one-exposure component
+used to obtain the paper's effect-estimator conclusion, rather than Proposition 6.1 itself.
 -/
 
+@[expose] public section
 
 open scoped BigOperators Topology
 open Finset Filter
@@ -183,19 +187,53 @@ theorem Var_htMean_le (d : E.Δ) {c : ℝ} (hc : 0 ≤ c)
 
 end Experiment
 
-/-- **Chebyshev consistency.** Along a sequence of experiments with [a sequence of treatment
-assignments `d`](hyp:d) such that [every unit's exposure probability under `d` is
-nonzero](hyp:hpos), if [the design variance of the Horvitz–Thompson mean estimator tends to
-`0`](hyp:hvar), then for [any positive threshold `ε`](hyp:hε), [the estimator is consistent:
-`Pr[|μ̂ − μ| ≥ ε] → 0`](goal). -/
-theorem htMean_consistent_of_var (Exp : ℕ → Experiment) (d : ∀ n, (Exp n).Δ)
+/-- **One-exposure consistency ingredient for Aronow--Samii (2017), Proposition 6.1.** Along
+[a sequence of experiments](hyp:Exp) and [exposures of interest](hyp:d), suppose
+[every exposure probability is nonzero](hyp:hpos),
+[weighted outcomes are uniformly bounded by nonnegative `c`](hyp:c,hbound,hc),
+[population size tends to infinity](hyp:hN), and
+[the normalized dependency sum tends to zero](hyp:hdep). Then, for
+[every positive threshold](hyp:ε,hε),
+[the Horvitz--Thompson exposure mean converges in probability](goal). -/
+theorem htMean_consistent_of_bounded_dependency
+    (Exp : ℕ → Experiment) (d : ∀ n, (Exp n).Δ)
     (hpos : ∀ n i, prop (Exp n).D (Exp n).f (Exp n).θ i (d n) ≠ 0)
-    (hvar : Tendsto (fun n => (Exp n).D.Var (htMean (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (d n)))
-      atTop (𝓝 0)) {ε : ℝ} (hε : 0 < ε) :
+    {c : ℝ} (hc : 0 ≤ c)
+    (hbound : ∀ n i,
+      |(Exp n).y i (d n) / prop (Exp n).D (Exp n).f (Exp n).θ i (d n)| ≤ c)
+    (hN : Tendsto (fun n => (Exp n).N) atTop atTop)
+    (hdep : Tendsto (fun n =>
+      (∑ i, ∑ j ∈ Finset.univ.erase i, (Exp n).gdep (d n) i j) /
+        ((Exp n).N : ℝ) ^ 2) atTop (𝓝 0))
+    {ε : ℝ} (hε : 0 < ε) :
     Tendsto (fun n => (Exp n).D.Pr
         (fun z => ε ≤ |htMean (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (d n) z
             - muTrue (Exp n).y (d n)|))
       atTop (𝓝 (0 : ℝ)) := by
+  have hNreal : Tendsto (fun n => ((Exp n).N : ℝ)) atTop atTop :=
+    tendsto_natCast_atTop_atTop.comp hN
+  have hNinv : Tendsto (fun n => ((Exp n).N : ℝ)⁻¹) atTop (𝓝 0) :=
+    tendsto_inv_atTop_zero.comp hNreal
+  have hvarUpper : Tendsto (fun n => c ^ 2 *
+      (((Exp n).N : ℝ) + ∑ i, ∑ j ∈ Finset.univ.erase i, (Exp n).gdep (d n) i j) /
+        ((Exp n).N : ℝ) ^ 2) atTop (𝓝 0) := by
+    have hmain := (tendsto_const_nhds.mul (hNinv.add hdep) :
+      Tendsto (fun n => c ^ 2 * (((Exp n).N : ℝ)⁻¹ +
+        (∑ i, ∑ j ∈ Finset.univ.erase i, (Exp n).gdep (d n) i j) /
+          ((Exp n).N : ℝ) ^ 2)) atTop (𝓝 (c ^ 2 * (0 + 0))))
+    convert hmain using 1
+    · funext n
+      set N : ℝ := ((Exp n).N : ℝ)
+      set S : ℝ := ∑ i, ∑ j ∈ Finset.univ.erase i, (Exp n).gdep (d n) i j
+      by_cases hN0 : N = 0
+      · simp [hN0]
+      · field_simp
+    · simp
+  have hvar : Tendsto (fun n => (Exp n).D.Var
+      (htMean (Exp n).D (Exp n).y (Exp n).f (Exp n).θ (d n))) atTop (𝓝 0) := by
+    refine squeeze_zero (fun n => (Exp n).D.E_nonneg (fun _ => sq_nonneg _))
+      (fun n => ?_) hvarUpper
+    exact (Exp n).Var_htMean_le (d n) hc (hbound n)
   have hε2 : (0 : ℝ) < ε ^ 2 := pow_pos hε 2
   -- Upper bound: `Var_n / ε²`, which tends to `0` by Chebyshev + `hvar`.
   refine squeeze_zero (g := fun n =>

@@ -6,15 +6,16 @@ Authors: Jiyuan Tan
 # Borusyak-Jaravel-Spiess finite imputation event-study algebra
 
 Finite-cell, paper-specific population characterization of the BJS imputation
-functional.  Treated and untreated panel cells are modeled directly as finite
-index types. Unit/time grounding, OLS construction of weights, and
-Gauss-Markov efficiency are supplied by companion modules.
+functional. Treated and untreated panel cells are modeled directly as finite
+index types. Companion modules supply unit/time grounding and a separate
+full-design OLS variance comparison; they do not prove that `psiImp` is BLUE.
 -/
 
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Data.Real.Basic
-import Mathlib.Tactic.Ring
+module
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Data.Real.Basic
+public import Mathlib.Tactic.Ring
 
 /-! # Borusyak-Jaravel-Spiess Imputation
 
@@ -27,6 +28,8 @@ the observed imputation functional `psiImp`, and the identification theorem
 `bjs_imputation_identification`.  It also defines the finite linear-estimator
 API and the witness lemma `linear_unbiased_of_imputation_representation`; the
 substrate-based construction of those witnesses lives in `PanelBridge.lean`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -82,8 +85,9 @@ namespace BJSPanel
 
 variable (P : BJSPanel Treated Untreated Regressor)
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [target estimand](goal) is the finite sum of each
-treated cell's causal effect multiplied by its supplied target weight; the weights need not be
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P),
+the [target estimand](goal) is the finite sum of each treated cell's causal
+effect multiplied by its supplied target weight; the weights need not be
 positive or sum to one.
 
 Target weighted sum over treated-cell effects.  No positivity or
@@ -91,19 +95,25 @@ normalization of `a` is imposed. -/
 def theta : ℝ :=
   ∑ c : Treated, P.a c * P.tau c
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [an arbitrary treated-cell effect vector](hyp:tau'),
-the [corresponding target value](goal) is the finite sum of that vector weighted by the panel's
-target weights. -/
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P)
+and [an arbitrary treated-cell effect vector](hyp:tau'), the
+[corresponding target value](goal) is the finite sum of that vector weighted by
+the panel's target weights. -/
 def targetForTau (tau' : Treated → ℝ) : ℝ :=
   ∑ c : Treated, P.a c * tau' c
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [untreated-outcome model condition](goal) requires that [every treated cell's untreated potential-outcome mean equals its regressor-row dot product with the nuisance vector](step:1), [every untreated cell's untreated potential-outcome mean equals its regressor-row dot product with that vector](step:2), and [every untreated cell's observed mean equals its untreated potential-outcome mean](step:3). -/
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P),
+the [untreated-outcome model condition](goal) requires that
+[treated untreated means follow the nuisance regression](step:1),
+[untreated-cell untreated means follow that regression](step:2), and
+[untreated observed means equal untreated means](step:3). -/
 def UntreatedOutcomeModel : Prop :=
   (∀ c : Treated, P.EY0_T c = dot (P.qT c) P.beta0) ∧
     (∀ u : Untreated, P.EY0_U u = dot (P.qU u) P.beta0) ∧
       (∀ u : Untreated, P.EY_U u = P.EY0_U u)
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [fixed-treatment-effect condition](goal) requires that
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P),
+the [fixed-treatment-effect condition](goal) requires that
 in every treated cell the observed mean equals the untreated potential-outcome mean plus that
 cell's stored treatment effect. -/
 def TreatmentEffectFixed : Prop :=
@@ -122,15 +132,17 @@ structure ImputationWeights where
     ∀ c : Treated, P.a c ≠ 0 →
       ∀ r : Regressor, ∑ u : Untreated, weight c u * P.qU u r = P.qT c r
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), the [target-relevant prediction-identification condition](goal)
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P),
+the [target-relevant prediction-identification condition](goal)
 holds exactly when at least one imputation-weight system represents every treated regressor row
 with nonzero target weight as a weighted combination of untreated regressor rows. -/
 def PredictionIdentified : Prop :=
   Nonempty P.ImputationWeights
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [an array of imputation weights from treated to
-untreated cells](hyp:h), the [observed-law imputation functional](goal) is the target-weighted
-sum of each treated observed mean less its imputed untreated observed mean.
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P)
+and [treated-to-untreated imputation weights](hyp:h), the
+[observed-law imputation functional](goal) is the target-weighted sum of each
+treated observed mean less its imputed untreated observed mean.
 
 Observed-law population imputation functional for arbitrary imputation
 weights.  The row identity is a theorem hypothesis, not part of this
@@ -221,38 +233,41 @@ namespace LinearEstimator
 
 variable {P}
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), [a linear estimator](hyp:L), [an arbitrary array of treated
-cell outcomes](hyp:YT), and [an arbitrary array of untreated cell outcomes](hyp:YU), the
-[linear-estimator value](goal) is the sum of treated outcomes weighted by treated coefficients
-plus untreated outcomes weighted by untreated coefficients. -/
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P),
+[a linear estimator](hyp:L), [treated-cell outcomes](hyp:YT), and
+[untreated-cell outcomes](hyp:YU), the [linear-estimator value](goal) is the sum
+of outcomes weighted by the corresponding treated or untreated coefficients. -/
 def value (L : P.LinearEstimator) (YT : Treated → ℝ) (YU : Untreated → ℝ) : ℝ :=
   (∑ c : Treated, L.vT c * YT c) + ∑ u : Untreated, L.vU u * YU u
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [a linear estimator](hyp:L), the [observed-law
-linear-estimator value](goal) is its value at the panel's treated and untreated observed means. -/
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P)
+and [a linear estimator](hyp:L), the [observed-law estimator value](goal) is its
+value at the panel's treated and untreated observed means. -/
 def observedValue (L : P.LinearEstimator) : ℝ :=
   L.value P.EY_T P.EY_U
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P), [a linear estimator](hyp:L), [a nuisance coefficient
-vector](hyp:beta), and [an arbitrary treated-effect vector](hyp:tau'), the [model-implied
-linear-estimator value](goal) is its value when treated outcomes equal the regressor prediction
-plus the effect and untreated outcomes equal the regressor prediction. -/
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P),
+[a linear estimator](hyp:L), [a nuisance coefficient vector](hyp:beta), and
+[an arbitrary treated-effect vector](hyp:tau'), the
+[model-implied estimator value](goal) uses regressor predictions plus effects
+for treated outcomes and regressor predictions for untreated outcomes. -/
 def modelValue (L : P.LinearEstimator)
     (beta : Regressor → ℝ) (tau' : Treated → ℝ) : ℝ :=
   L.value
     (fun c : Treated => dot (P.qT c) beta + tau' c)
     (fun u : Untreated => dot (P.qU u) beta)
 
-/-- For [finite treated-cell, untreated-cell, and regressor sets and a BJS panel](hyp:Treated,Untreated,Regressor,P) and [a linear estimator](hyp:L), the [unbiasedness condition
-for all treated effects](goal) requires that, for every nuisance coefficient vector and every
-treated-effect vector, the estimator's model-implied value equals the corresponding target value. -/
+/-- For [finite cell sets and a BJS panel](hyp:Treated,Untreated,Regressor,P)
+and [a linear estimator](hyp:L), [unbiasedness for all treated effects](goal)
+requires its model-implied value to equal the target for every nuisance and
+treated-effect vector. -/
 def unbiasedForAllTau (L : P.LinearEstimator) : Prop :=
   ∀ (beta : Regressor → ℝ) (tau' : Treated → ℝ),
     L.modelValue beta tau' = P.targetForTau tau'
 
 /-- Unrestricted treatment-effect heterogeneity forces the treated-cell weights to
 equal the target weights (`vT = a`).  Proved by an indicator-`tau` test.  Hoisted
-here so the efficiency layer can reuse it without re-running the argument. -/
+here so the variance-comparison layer can reuse it without re-running the argument. -/
 lemma vT_eq_a (L : P.LinearEstimator) (h : L.unbiasedForAllTau) (c : Treated) :
     L.vT c = P.a c := by
   classical
@@ -261,7 +276,8 @@ lemma vT_eq_a (L : P.LinearEstimator) (h : L.unbiasedForAllTau) (c : Treated) :
   simpa [LinearEstimator.modelValue, LinearEstimator.value, targetForTau, dot] using hh
 
 /-- Nuisance unbiasedness for every `beta` gives the BJS left-null-space coordinate
-constraint `aᵀ Q_T + vUᵀ Q_U = 0` (row by row).  Hoisted for the efficiency layer. -/
+constraint `aᵀ Q_T + vUᵀ Q_U = 0` (row by row). Hoisted for the
+variance-comparison layer. -/
 lemma nuisance_coord (L : P.LinearEstimator) (h : L.unbiasedForAllTau) (r : Regressor) :
     (∑ c : Treated, P.a c * P.qT c r) + ∑ u : Untreated, L.vU u * P.qU u r = 0 := by
   classical
@@ -416,17 +432,16 @@ theorem linear_unbiased_of_imputation_representation
   simpa [LinearEstimator.modelValue, LinearEstimator.value, targetForTau, dot] using h
 
 /-!
-## Note on the Efficiency / BLUE / Gauss-Markov Result
+## Note on the Full-Design Variance Comparison
 
-The second half of `prop:po-estimand-bjs-linear-unbiased-imputation` in BJS
-(2024) asserts that under spherical errors `Var(ε) = σ² I`, the OLS imputation
-estimator is the **minimum-variance linear unbiased estimator** (BLUE /
-Gauss-Markov) within the class characterized above.
-
-This efficiency claim is formalized in the companion file
-`Causalean/Panel/EstimandCharacterization/ImputationEventStudy/Efficiency.lean` as
-`BJSPanel.bjs_ols_imputation_min_variance_spherical`.  It is built on the finite
-Gauss-Markov layer under `Causalean/Estimation/GaussMarkov/`:
+The companion file
+`Causalean/Panel/EstimandCharacterization/ImputationEventStudy/FullDesignGaussMarkov.lean`
+contains `BJSPanel.bjs_full_design_ols_min_variance_spherical`, which proves a narrower
+full-column-rank Gauss–Markov variance inequality for the OLS weight of
+`designFull`. It does not identify that weight with `ImputationWeights` or
+`psiImp`, and therefore does not by itself formalize the paper's claim that the
+concrete imputation estimator is BLUE. The inequality is built on the finite
+Gauss-Markov layer under `Causalean/Stat/LinearModel/GaussMarkov/`:
 
 1. `GaussMarkov.quadVar Σ w = wᵀ Σ w` — the variance quadratic form, justified
    probabilistically by `GaussMarkov.variance_linearCombination`
@@ -434,24 +449,26 @@ Gauss-Markov layer under `Causalean/Estimation/GaussMarkov/`:
 2. `GaussMarkov.SphericalErrors Σ σ : Σ = σ² • I` (and the random-family form
    `GaussMarkov.SphericalFamily`).
 3. `GaussMarkov.olsWeight X c = X (XᵀX)⁻¹ c` — the normal-equations inverse
-   OLS weight, with `olsWeight_unbiased` and `olsWeight_mem_colSpan`.
-4. `GaussMarkov.gauss_markov_spherical` / `gauss_markov_gls` — the finite
-   Gauss-Markov ordering theorems (column-span weight ⟂ left-null-space, so
-   Pythagoras gives minimum variance), and `variance_blue_spherical` /
-   `variance_blue_gls` lift these to actual `ProbabilityTheory.variance`.
+   OLS weight, with `olsWeight_vecMul_eq` and `olsWeight_mem_colSpan`.
+4. `GaussMarkov.quadVar_spherical_le_of_colSpan` /
+   `quadVar_le_of_mulVec_mem_colSpan` — the quadratic-form ordering theorems
+   (column-span weight ⟂ left-null-space, so Pythagoras gives the comparison),
+   and `linearCombination_variance_spherical_le_of_colSpan` /
+   `linearCombination_variance_le_of_covMul_mem_colSpan` lift these to actual
+   `ProbabilityTheory.variance`.
 
-The BJS efficiency theorem instantiates `variance_blue_spherical` at the
-event-study design `BJSPanel.designFull` (a treated-cell indicator block stacked
-with the covariate block); the BJS imputation estimator is exactly the OLS
-estimator for that design.  The hoisted facts `LinearEstimator.vT_eq_a` and
+The full-design theorem instantiates
+`linearCombination_variance_spherical_le_of_colSpan` at
+`BJSPanel.designFull` (a treated-cell indicator block stacked with the covariate
+block). The hoisted facts `LinearEstimator.vT_eq_a` and
 `LinearEstimator.nuisance_coord` supply the unbiasedness ↔ design-constraint
 bridge.
 
 The theorems in *this* file (`bjs_imputation_identification`,
 `bjs_linear_unbiased_iff_imputation_form`,
 `linear_unbiased_of_prediction_identified`) cover the
-**identification + linear-unbiased characterization** half; `Efficiency.lean`
-covers the **efficiency / BLUE** half.
+**identification + linear-unbiased characterization** half;
+`FullDesignGaussMarkov.lean` covers the **full-design variance-comparison** half.
 
 ## Note on `PredictionIdentified` sufficient conditions (G8)
 

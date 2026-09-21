@@ -3,11 +3,15 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.GapReduction
-import Mathlib.Data.Fin.VecNotation
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.GapReduction
+public import Mathlib.Data.Fin.VecNotation
 
 /-! # Sharp-certificate active-set assembly helpers -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

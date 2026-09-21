@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Basic
+module
+public import CausalSmith.Substrate.PositiveDensityCondindepIntersection.Basic
 
 /-!
 # Marginal laws of a three-block product density
@@ -8,6 +9,8 @@ identifying every marginal law used by the conditional-independence bridge.  In 
 records the laws of the conditioning block, each random block paired with the conditioning block,
 and the fully reordered triple.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

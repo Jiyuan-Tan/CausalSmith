@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.EvalOverrideC
+module
+public import Causalean.SCM.Model.EvalOverrideC
 
 /-! # The latent cutset `C_W` for the continuous-backdoor witness kernel
 
@@ -32,11 +33,18 @@ that agree on the cutset produce the same override evaluation on `Y`.
   as a measurable factorization through the cutset projection.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
 namespace Causalean
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
 
-namespace DAG
+namespace Graph.DAG
 
 variable (G : DAG V)
 
@@ -161,7 +169,7 @@ theorem isAncestorAvoiding.exists_path {C : Finset V} {u v : V}
             List.getElem_append_left (h := hi1_lt)]
         rw [hgi1]; exact hint i hi2_lt
 
-end DAG
+end Graph.DAG
 
 namespace SCM
 

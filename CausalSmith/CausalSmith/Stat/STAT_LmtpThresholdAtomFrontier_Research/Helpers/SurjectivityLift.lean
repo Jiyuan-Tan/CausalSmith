@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TCausalBridge
-import Causalean.Mathlib.Probability.Kernel.ParameterizedKernelQuantileRealization
-import Mathlib.Probability.Kernel.Disintegration.Integral
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TCausalBridge
+public import Causalean.Mathlib.Probability.Kernel.ParameterizedKernelQuantileRealization
+public import Mathlib.Probability.Kernel.Disintegration.Integral
 
 /-! # Quantile lifts of observed clamp laws -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

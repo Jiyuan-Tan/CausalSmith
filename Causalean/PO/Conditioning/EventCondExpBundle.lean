@@ -2,45 +2,11 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Bundle analogue of `POSystem.eventCondExp_of_consistency_IndepCF`
-
-`PO/Conditioning/EventCondExp.lean` provides the single-period workhorse used in
-`PO/ID/Exact/LATE.lean` and `HeckmanRoy/Wald.lean`:
-
-  E[factualF | a = x]  =  ∫ h(B.jointValue) dμ
-
-under unconditional `IndepCF a B` plus the consistency-on-event identity
-`factualF = h ∘ B.jointValue` on `{a = x}`.
-
-This file lifts the same identity to the *bundle conditional* setting used
-by the Dynamic LATE bridges (def:po-dynamic-late-bridge).  Under
-`P.CondIndepCFBundle a B C` (instrument `a` independent of `B` given the
-σ-algebra of `C`) and the same consistency-on-event premise, the bundle
-conditional expectation of the product `factualF · 1_{a=x}` factors:
-
-  C.condExpGiven (factualF · 1_{a=x})
-    =ᵐ C.condExpGiven (h ∘ B.jointValue) · C.condExpGiven (1_{a=x}).
-
-The corresponding **ratio form** then collapses to the conditional mean of
-`h ∘ B.jointValue` whenever the conditional probability of `{a=x}` is a.s.
-positive.  This is the per-stage workhorse for the four bridge identities
-in `PO/ID/Exact/DynamicLATE/Bridges.lean`.
-
-Proof outline:
-1.  Rewrite `factualF · 1_{a=x} =ᵐ (h ∘ B.jointValue) · 1_{a=x}` using `hF_eq`.
-2.  Recognise `1_{a=x} = u ∘ a.factual` for `u y := if y = x then 1 else 0`,
-    so the LHS integrand becomes `(u ∘ a.factual) · (h ∘ B.jointValue)`.
-3.  Apply `Causalean.condExp_mul_of_condIndep` with `m := C.sigma`,
-    `f := a.factual`, `g := B.jointValue`, exploiting
-    `hCI.toCondIndepFun : CondIndepFun C.sigma C.sigma_le a.factual B.jointValue P.μ`
-    (which holds because `(RegimedVar.ofFactual a).value = a.factual` by `rfl`).
-4.  Rewrite the resulting product back into `condExpGiven` form via
-    `POCFBundle.condExpGiven_congr_ae` and `hu_eq`.
 -/
 
-import Causalean.PO.Conditioning.Bundle
-import Causalean.PO.Conditioning.EventCondExp
+module
+public import Causalean.PO.Conditioning.Bundle
+public import Causalean.PO.Conditioning.EventCondExp
 
 /-! # Bundle-Conditional Event Expectations
 
@@ -49,12 +15,16 @@ conditioning on a finite bundle of potential-outcome variables. It provides the
 product and ratio forms needed for dynamic local-average-treatment-effect bridge
 arguments.
 
-The theorem `POCFBundle.condExpGiven_mul_of_consistency_CondIndepCFBundle`
-turns bundle-conditional independence and a consistency-on-event product
+The theorem `POCFBundle.condExpGiven_mul_of_indicator_ae_eq_CondIndepCFBundle`
+turns bundle-conditional independence and an indicator-weighted product
 identity into a factorization of bundle conditional expectations.  The theorem
-`POCFBundle.condExpRatio_of_consistency_CondIndepCFBundle` divides that
+`POCFBundle.condExpRatio_of_indicator_ae_eq_CondIndepCFBundle` divides that
 factorization by the conditional event probability under an a.e. nonzero
 denominator assumption. -/
+
+public section
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
@@ -68,7 +38,7 @@ namespace POCFBundle
 variable {P : POSystem} (B C : POCFBundle P)
 
 /-- **Bundle product-form workhorse** (analogue of
-`POSystem.eventCondExp_of_consistency_IndepCF`). Suppose [a factual variable
+`POSystem.eventCondExp_of_ae_eq_IndepCF`). Suppose [a factual variable
 `a` is conditionally independent, given the σ-algebra of a bundle `C`, of a
 counterfactual bundle `B`](hyp:hCI), where [`h` is a measurable
 function](hyp:hh_meas) [whose composite with `B`'s joint value is
@@ -85,7 +55,7 @@ the indicator of `{a = x}`](goal):
     =ᵐ C.condExpGiven (h ∘ B.jointValue) · C.condExpGiven (1_{a=x}).
 
 Used by dynamic-regime bridge arguments that condition on a history bundle. -/
-theorem condExpGiven_mul_of_consistency_CondIndepCFBundle
+theorem condExpGiven_mul_of_indicator_ae_eq_CondIndepCFBundle
     [StandardBorelSpace P.Ω]
     {α : Type*} [MeasurableSpace α]
     {a : POVar P α}
@@ -158,16 +128,16 @@ theorem condExpGiven_mul_of_consistency_CondIndepCFBundle
   exact (C.condExpGiven_congr_ae hF_eq).trans hfact'
 
 /-- **Bundle ratio-form workhorse**: ratio version of
-`condExpGiven_mul_of_consistency_CondIndepCFBundle`. Under the same
+`condExpGiven_mul_of_indicator_ae_eq_CondIndepCFBundle`. Under the same
 hypotheses as that theorem — [bundle-conditional independence of `a` from
 `B` given `C`](hyp:hCI), [a measurable](hyp:hh_meas) and
 [integrable](hyp:hh_int) composite `h ∘ B.jointValue`, [a measurable
-singleton `{x}`](hyp:hx), and [the consistency-on-event product
+singleton `{x}`](hyp:hx), and [an indicator-weighted almost-everywhere
 identity](hyp:hF_eq) — plus [an almost-surely nonzero bundle-conditional
 probability of `{a = x}`](hyp:hOver), [the conditional ratio
 `condExpRatio (factualF · 1_{a=x}) (1_{a=x})` collapses almost everywhere to
 the bundle conditional mean of `h ∘ B.jointValue`](goal). -/
-theorem condExpRatio_of_consistency_CondIndepCFBundle
+theorem condExpRatio_of_indicator_ae_eq_CondIndepCFBundle
     [StandardBorelSpace P.Ω]
     {α : Type*} [MeasurableSpace α]
     {a : POVar P α}
@@ -183,7 +153,7 @@ theorem condExpRatio_of_consistency_CondIndepCFBundle
         =ᵐ[P.μ]
       C.condExpGiven (fun ω' => h (B.jointValue ω')) P.μ := by
   refine C.condExpRatio_eq_of_mul ?_ hOver
-  filter_upwards [condExpGiven_mul_of_consistency_CondIndepCFBundle B C
+  filter_upwards [condExpGiven_mul_of_indicator_ae_eq_CondIndepCFBundle B C
     hCI hh_meas hh_int hx hF_eq] with ω hω
   simpa [Pi.mul_apply, mul_comm] using hω
 

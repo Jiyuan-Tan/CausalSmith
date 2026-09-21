@@ -1,12 +1,15 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Fibers
-import Causalean.PO.ID.Partial.Basic
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Fibers
+public import Causalean.PO.ID.Partial.Basic
 
 set_option linter.unusedDecidableInType false
 
-/-! Shared observable factorization for the finite latent-shift transport model. -/
-
 open scoped BigOperators
 open Finset Matrix
+
+/-! Shared observable factorization for the finite latent-shift transport model. -/
+
+public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

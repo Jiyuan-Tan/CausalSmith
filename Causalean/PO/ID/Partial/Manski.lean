@@ -25,12 +25,8 @@ The submodules provide:
 * `IntervalForm` — `Set.Icc` restatements of the ATE sandwiches.
 -/
 
-import Causalean.PO.ID.Partial.Manski.NonAsp
-import Causalean.PO.ID.Partial.Manski.MTR
-import Causalean.PO.ID.Partial.Manski.MTS
-import Causalean.PO.ID.Partial.Manski.MIV
-import Causalean.PO.ID.Partial.Manski.Combined
-import Causalean.PO.ID.Partial.Manski.IntervalForm
+module
+public import Causalean.PO.ID.Partial.Manski.IntervalForm
 
 /-!
 This file is the umbrella module for the Manski partial-identification bound

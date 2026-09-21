@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.RkhsEmpiricalMean
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.TExactRatioDecoder
-import Mathlib.Order.Interval.Finset.Basic
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.RkhsEmpiricalMean
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.TExactRatioDecoder
+public import Mathlib.Order.Interval.Finset.Basic
 
 /-!
 # Simultaneous confidence edges
@@ -8,6 +9,11 @@ import Mathlib.Order.Interval.Finset.Basic
 This file states the conditional and unconditional simultaneous MMD bounds,
 soundness of selected edges, and transitive-closure recovery under a cover margin.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -17,7 +23,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 /-- The event that every empirical MMD is within the simultaneous confidence radius. -/
 def simultaneousMmdEvent
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {W : ObservedWorld G θ} {Ω H : Type*} [MeasurableSpace Ω]
     [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
     (S : SampleSplitWorld W Ω) (U : UnitNormFeatureMap H) : Set Ω :=
@@ -31,7 +37,7 @@ set_option maxHeartbeats 2000000 in
 bounds. Selected arrows are ancestral, and a two-radius cover margin recovers the true transitive
 closure.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hSampling,hn,hN,hα,hη,hfirst), [the stated conclusion](goal) follows. -/
 theorem simultaneous_confidence_edges
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     {Ω : Type*} [MeasurableSpace Ω] (S : SampleSplitWorld W Ω)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
@@ -224,7 +230,7 @@ theorem simultaneous_confidence_edges
           (sampleSplitConfidenceGraph S gaussianFeatureMap hSampling ω) j i := by
       intro j i hji
       have ha : G.isAncestor (W.targetPerm j) (W.targetPerm i) :=
-        Causalean.DAG.isAncestor.edge hji
+        DAG.isAncestor.edge hji
       have hc := isAncestor_transGen_ancestralCover G ha
       have mapped := hmapCoverPath hc
       simpa using mapped

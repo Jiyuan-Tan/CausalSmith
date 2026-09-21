@@ -1,9 +1,12 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Concentration
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.LatticeEstimator
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TGapFreePositiveMeasureModulus
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TCollisionUniformRootN
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.Concentration
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.LatticeEstimator
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TGapFreePositiveMeasureModulus
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.TCollisionUniformRootN
 
 /-! # Derived certificates for the advised finite summary library -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -845,7 +848,8 @@ theorem netEstimator_wass1_le
     (primitives : ExactRealPrimitives) (A : NetLibrary k dx dz n L pi0 sigma0)
     (hCmod : 0 ≤ Cmod)
     (hmodel : ∀ (P Q : ModelLaw k dx dz L pi0 sigma0),
-      AtomicLaw.LawModulo.wass1 (by letI := P.prob; exact quotientLaw P.P P.model)
+      AtomicLaw.LawModulo.wass1 (k := k) (radius := effectRadius dz L sigma0)
+          (by letI := P.prob; exact quotientLaw P.P P.model)
           (by letI := Q.prob; exact quotientLaw Q.P Q.model) ≤
         Cmod * dS P.summary Q.summary)
     (P : Measure (FullData k dx dz)) (hP : IsProbabilityMeasure P)

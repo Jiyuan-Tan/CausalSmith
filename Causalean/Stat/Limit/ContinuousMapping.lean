@@ -14,9 +14,10 @@ The headline lemma is `Tendsto_inProb.comp_continuousAt`: if `Yn →_p c` and
 specializations and bookkeeping helpers (`inv`, `sub_const`, `isLittleOp_one`).
 -/
 
-import Causalean.Stat.Limit.Convergence
-import Mathlib.Topology.MetricSpace.Pseudo.Pi
-import Mathlib.Topology.Instances.Matrix
+module
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.Topology.MetricSpace.Pseudo.Pi
+public import Mathlib.Topology.Instances.Matrix
 
 /-! # Continuous Mapping
 
@@ -32,6 +33,8 @@ also provides finite-dimensional continuous mapping principles
 `Tendsto_inProb.pi_comp_continuousAt` and
 `Tendsto_inProb.matrix_comp_continuousAt`, which lift entrywise convergence in
 probability to continuous functionals of vectors and square matrices. -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -142,17 +145,8 @@ theorem Tendsto_inProb.isLittleOp_one
     {Ω : Type*} [MeasurableSpace Ω] {Yn : ℕ → Ω → ℝ} {μ : Measure Ω}
     (h : Tendsto_inProb Yn (fun _ => 0) μ) :
     IsLittleOp Yn (fun _ => (1 : ℝ)) μ := by
-  intro ε hε
-  simp only [causal_defs_simps] at h
-  rw [tendstoInMeasure_iff_norm] at h
-  have ht := h ε hε
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ht
-    (fun _ => zero_le) ?_
-  intro n
-  apply measure_mono
-  intro ω hω
-  have hle : ε ≤ |Yn n ω| := le_of_lt (by simpa using hω)
-  simpa [Real.norm_eq_abs] using hle
+  exact (Modes.tendstoInProbability_zero_iff_isLittleOpF_one
+    (fun _ => μ) Yn atTop).mp h
 
 /-- **In-probability tightness.**  A sequence converging in probability to a
 constant is bounded in probability: `Xₙ →ₚ c ⟹ Xₙ = O_p(1)`. -/
@@ -160,28 +154,18 @@ theorem Tendsto_inProb.isBigOp_one
     {Ω : Type*} [MeasurableSpace Ω] {Xn : ℕ → Ω → ℝ} {c : ℝ} {μ : Measure Ω}
     (h : Tendsto_inProb Xn (fun _ => c) μ) :
     IsBigOp Xn (fun _ => (1 : ℝ)) μ := by
-  intro ε hε
-  refine ⟨|c| + 1, ?_⟩
+  intro δ hδ
+  refine ⟨|c| + 1, by positivity, ?_⟩
   simp only [causal_defs_simps] at h
   rw [tendstoInMeasure_iff_norm] at h
   have ht := h 1 one_pos
-  have hlim :
-      Filter.limsup (fun n => μ {ω | (1 : ℝ) ≤ ‖Xn n ω - c‖}) Filter.atTop = 0 :=
-    ht.limsup_eq
-  calc
-    Filter.limsup (fun n => μ {ω | (|c| + 1) * (fun _ => (1 : ℝ)) n < |Xn n ω|})
-        Filter.atTop
-        ≤ Filter.limsup (fun n => μ {ω | (1 : ℝ) ≤ ‖Xn n ω - c‖}) Filter.atTop := by
-          refine Filter.limsup_le_limsup (Filter.Eventually.of_forall ?_)
-          intro n
-          apply measure_mono
-          intro ω hω
-          simp only [Set.mem_setOf_eq, mul_one] at hω ⊢
-          rw [Real.norm_eq_abs]
-          have htri := abs_sub_abs_le_abs_sub (Xn n ω) c
-          linarith
-    _ = 0 := hlim
-    _ ≤ ENNReal.ofReal ε := zero_le
+  rw [ENNReal.tendsto_nhds_zero] at ht
+  filter_upwards [ht δ hδ] with n hn
+  refine (measure_mono ?_).trans hn
+  intro ω hω
+  simp only [Set.mem_setOf_eq, mul_one, Real.norm_eq_abs] at hω ⊢
+  have htri := abs_sub_abs_le_abs_sub (Xn n ω) c
+  linarith
 
 set_option linter.unusedFintypeInType false
 

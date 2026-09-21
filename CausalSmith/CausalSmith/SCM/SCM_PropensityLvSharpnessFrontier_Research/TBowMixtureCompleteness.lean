@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedBowMixtureCompleteness
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TOneSidedBowMixtureCompleteness
 
 /-! # Mutual-support bow-mixture completeness -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -6,13 +6,16 @@ oracle class and by a fixed-geometry slice.  Model-class quantification is
 kept abstract; this file does not close either paper theorem.
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
-import Causalean.Stat.Minimax.HonestConfidenceSet
-import Causalean.Mathlib.MeasureTheory.SetIntegralRecovery
-import Causalean.Stat.Concentration.Chebyshev
-import Causalean.Stat.Sample.EffectiveSampleSize
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.InversionRisk
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.RegularCellRisk_Part1
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_CompactCausalRange
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+public import Causalean.Mathlib.MeasureTheory.SetIntegralRecovery
+public import Causalean.Stat.Concentration.Chebyshev
+public import Causalean.Stat.Sample.EffectiveSampleSize
+
+@[expose] public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

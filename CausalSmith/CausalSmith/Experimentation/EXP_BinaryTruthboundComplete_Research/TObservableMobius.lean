@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
 
 /-! Observable-rule characterization by Boolean Mobius support. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

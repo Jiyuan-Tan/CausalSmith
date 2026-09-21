@@ -1,6 +1,7 @@
-import Causalean.Experimentation.DesignBased.Designs.Bernoulli
-import Causalean.Experimentation.DesignBased.PotentialOutcome
-import Mathlib.Order.Interval.Finset.Nat
+module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Causalean.Experimentation.DesignBased.PotentialOutcome
+public import Mathlib.Order.Interval.Finset.Nat
 
 /-!
 # SNIPE degree-frontier model
@@ -15,6 +16,9 @@ reused for the assignment law.  The exposure-mapping potential-outcome layer and
 `Causalean.Graph.DAG` are bypassed because the former hides the raw polynomial
 coefficients and the latter forbids the required self-loops.
 -/
+
+@[expose] public section
+
 
 open scoped BigOperators
 open Finset

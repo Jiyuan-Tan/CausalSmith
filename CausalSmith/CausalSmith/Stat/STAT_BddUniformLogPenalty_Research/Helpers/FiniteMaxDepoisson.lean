@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxRisk
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxRisk
 
 /-!
 # Retention and de-Poissonization for the finite packing maximum
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxRisk
 This file transfers the canonical marked-Poisson maximum loss to the retained
 fixed-size sample and controls the failed-count event.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set Filter Asymptotics
 open scoped ENNReal NNReal BigOperators

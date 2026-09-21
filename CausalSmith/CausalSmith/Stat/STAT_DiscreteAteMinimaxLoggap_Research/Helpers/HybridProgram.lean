@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
-import Mathlib.LinearAlgebra.Finsupp.LinearCombination
-import Mathlib.Data.List.GetD
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.Estimator
+public import Mathlib.LinearAlgebra.Finsupp.LinearCombination
+public import Mathlib.Data.List.GetD
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

@@ -1,10 +1,11 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.OverlapCount
-import Causalean.Experimentation.DesignBased.ProductBlock
-import Causalean.Experimentation.DesignBased.ProductVariance
-import Mathlib.Algebra.Order.Chebyshev
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance_Part1
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenter
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.OverlapCount
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.DesignBased.ProductVariance
+public import Mathlib.Algebra.Order.Chebyshev
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance_Part1
 
 /-!
 # Centred-monomial expansion of the SNIPE score
@@ -13,6 +14,8 @@ Expands a potential outcome in the centred monomial basis of the Bernoulli
 design, records the orthogonality and energy identities of that expansion, and
 shows the coefficients vanish outside the relevant block support.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

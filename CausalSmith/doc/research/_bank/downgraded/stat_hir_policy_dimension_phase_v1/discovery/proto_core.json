@@ -1,0 +1,1707 @@
+{
+  "qid": "stat_hir_policy_dimension_phase",
+  "specialization": "v1",
+  "cluster": "stat",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "positive integer",
+      "space": "\\(\\mathbb N\\)",
+      "role": "sample-size index"
+    },
+    {
+      "name": "armset",
+      "type": "finite set",
+      "def": "\\(\\mathcal A=\\{0,1\\}\\)",
+      "role": "treatment arms"
+    },
+    {
+      "name": "methodset",
+      "type": "finite set",
+      "def": "\\(\\mathcal J=\\{T,E,D\\}\\)",
+      "role": "true-propensity IPW, entropy-balanced IPW, and oracle DR labels"
+    },
+    {
+      "name": "pseq",
+      "type": "integer sequence",
+      "space": "\\(\\mathbb N^{\\mathbb N}\\)",
+      "def": "\\(p_n\\in\\mathbb N\\)",
+      "role": "policy dimension",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "kappa",
+      "type": "scalar",
+      "space": "\\((0,1/2)\\)",
+      "role": "proportional dimension"
+    },
+    {
+      "name": "gammalow",
+      "type": "scalar constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\underline\\gamma>0\\)",
+      "role": "lower signal bound"
+    },
+    {
+      "name": "gammahigh",
+      "type": "scalar constant",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\overline\\gamma>\\underline\\gamma\\)",
+      "role": "upper signal bound",
+      "refs": [
+        "gammalow"
+      ]
+    },
+    {
+      "name": "gamma",
+      "type": "scalar",
+      "space": "\\([\\underline\\gamma,\\overline\\gamma]\\subset(0,\\infty)\\)",
+      "role": "outcome-signal strength",
+      "refs": [
+        "gammalow",
+        "gammahigh"
+      ]
+    },
+    {
+      "name": "lambda",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "role": "fixed KL penalty"
+    },
+    {
+      "name": "radius",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "role": "policy-radius bound"
+    },
+    {
+      "name": "Zstd",
+      "type": "random variable",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(Z\\sim\\mathcal N(0,1)\\)",
+      "role": "scalar Gaussian reference"
+    },
+    {
+      "name": "phistd",
+      "type": "function",
+      "sig": "\\(\\phi:\\mathbb R\\to(0,\\infty)\\)",
+      "def": "\\(\\phi(z)=(2\\pi)^{-1/2}\\exp(-z^2/2)\\)",
+      "role": "standard-normal density"
+    },
+    {
+      "name": "Phistd",
+      "type": "function",
+      "sig": "\\(\\Phi:\\mathbb R\\to(0,1)\\)",
+      "def": "\\(\\Phi(t)=\\int_{-\\infty}^{t}\\phi(z)\\,dz\\)",
+      "role": "standard-normal distribution function",
+      "refs": [
+        "phistd"
+      ]
+    },
+    {
+      "name": "sigmoid",
+      "type": "function",
+      "sig": "\\(\\sigma:\\mathbb R\\to(0,1)\\)",
+      "def": "\\(\\sigma(z)=\\{1+\\exp(-z)\\}^{-1}\\)",
+      "role": "logistic link"
+    },
+    {
+      "name": "qseq",
+      "type": "triangular array of random vectors",
+      "space": "\\(q_{ni}\\in\\mathbb R^{p_n}\\)",
+      "role": "Gaussian policy features",
+      "refs": [
+        "n",
+        "pseq"
+      ]
+    },
+    {
+      "name": "Aseq",
+      "type": "triangular array of binary random variables",
+      "space": "\\(A_{ni}\\in\\mathcal A\\)",
+      "role": "randomized treatment",
+      "refs": [
+        "n",
+        "armset"
+      ]
+    },
+    {
+      "name": "Sseq",
+      "type": "triangular array of signs",
+      "space": "\\(S_{ni}\\in\\{-1,1\\}\\)",
+      "def": "\\(S_{ni}=2A_{ni}-1\\)",
+      "role": "centered treatment sign",
+      "refs": [
+        "Aseq"
+      ]
+    },
+    {
+      "name": "Xseq",
+      "type": "triangular array of random vectors",
+      "space": "\\(X_{ni}\\in\\mathbb R^{p_n}\\)",
+      "def": "\\(X_{ni}=S_{ni}q_{ni}\\)",
+      "role": "row-sign-symmetrized Gaussian feature used only for the marginal true-propensity IPW invariance",
+      "refs": [
+        "Sseq",
+        "qseq",
+        "pseq"
+      ]
+    },
+    {
+      "name": "mseq",
+      "type": "triangular array of conditional means",
+      "space": "\\((0,1)\\)",
+      "def": "\\(m_{ni}=\\sigma(\\gamma q_{ni,1})\\)",
+      "role": "arm-invariant outcome regression",
+      "refs": [
+        "sigmoid",
+        "gamma",
+        "qseq"
+      ]
+    },
+    {
+      "name": "Yseq",
+      "type": "triangular array of binary random variables",
+      "space": "\\(Y_{ni}\\in\\{0,1\\}\\)",
+      "role": "observed outcome",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "vgamma",
+      "type": "scalar function",
+      "sig": "\\(v:(0,\\infty)\\to(0,1/4)\\)",
+      "def": "\\(v_\\gamma=\\mathbb E[\\sigma(\\gamma Z)\\{1-\\sigma(\\gamma Z)\\}]\\)",
+      "role": "oracle residual-variance summary",
+      "refs": [
+        "sigmoid",
+        "gamma",
+        "Zstd"
+      ]
+    },
+    {
+      "name": "qbar",
+      "type": "triangular array of vectors",
+      "space": "\\(\\mathbb R^{p_n}\\)",
+      "def": "\\(\\bar q_n=n^{-1}\\sum_{i=1}^{n}q_{ni}\\)",
+      "role": "pooled empirical balance target",
+      "refs": [
+        "n",
+        "pseq",
+        "qseq"
+      ]
+    },
+    {
+      "name": "narm",
+      "type": "triangular array of counts",
+      "def": "\\(n_{an}=\\sum_{i=1}^{n}\\mathbf 1\\{A_{ni}=a\\}\\), \\(a\\in\\mathcal A\\)",
+      "role": "arm sizes",
+      "refs": [
+        "n",
+        "Aseq",
+        "armset"
+      ]
+    },
+    {
+      "name": "betaball",
+      "type": "triangular array of compact sets",
+      "space": "\\(\\mathcal B_n\\subset\\mathbb R^{p_n}\\)",
+      "def": "\\(\\mathcal B_n=\\{\\beta\\in\\mathbb R^{p_n}:\\|\\beta\\|_2\\le R\\}\\)",
+      "role": "rescaled logistic-policy parameter space",
+      "refs": [
+        "n",
+        "pseq",
+        "radius"
+      ]
+    },
+    {
+      "name": "policy",
+      "type": "policy family",
+      "sig": "\\(\\pi_\\beta:\\mathbb R^{p_n}\\to(0,1)\\)",
+      "def": "\\(\\pi_\\beta(q)=\\sigma(q^\\top\\beta)\\), \\(\\beta\\in\\mathcal B_n\\)",
+      "role": "benchmark-centered logistic assignment rule",
+      "refs": [
+        "sigmoid",
+        "pseq",
+        "betaball"
+      ]
+    },
+    {
+      "name": "hfun",
+      "type": "function",
+      "sig": "\\(h:\\mathbb R\\to[0,\\log 2)\\)",
+      "def": "\\(h(z)=z\\sigma(z)-\\log\\{1+\\exp(z)\\}+\\log 2\\)",
+      "role": "Bernoulli KL divergence from one half",
+      "refs": [
+        "sigmoid"
+      ]
+    },
+    {
+      "name": "gfun",
+      "type": "function",
+      "sig": "\\(g:[0,\\infty)\\to[0,\\log 2)\\)",
+      "def": "\\(g(r)=\\mathbb E[h(rZ)]\\)",
+      "role": "radial population KL loss",
+      "refs": [
+        "hfun",
+        "Zstd"
+      ]
+    },
+    {
+      "name": "popcriterion",
+      "type": "triangular array of functions",
+      "sig": "\\(J_n:\\mathcal B_n\\to\\mathbb R\\)",
+      "def": "\\(J_n(\\beta)=1/2-\\lambda g(\\|\\beta\\|_2)\\)",
+      "role": "population penalized welfare",
+      "refs": [
+        "n",
+        "betaball",
+        "lambda",
+        "gfun"
+      ]
+    },
+    {
+      "name": "feasevent",
+      "type": "triangular array of events",
+      "def": "\\(\\mathcal E_{an}=\\{n_{an}>0\\}\\cap\\{\\bar q_n\\in\\operatorname{relint}\\operatorname{conv}(q_{ni}:A_{ni}=a)\\}\\)",
+      "role": "certified strict pooled-target feasibility event for the unique entropy-weight solution",
+      "refs": [
+        "qbar",
+        "qseq",
+        "Aseq",
+        "armset",
+        "narm"
+      ]
+    },
+    {
+      "name": "ebweights",
+      "type": "triangular array of positive weights",
+      "space": "\\(w_{ian}>0\\)",
+      "role": "total arm-specific weights, equal to entropy-balancing weights on certified feasibility and to uniform arm weights otherwise",
+      "ref": "def:entropy-weights"
+    },
+    {
+      "name": "etatilt",
+      "type": "triangular array of dual vectors",
+      "space": "\\(\\eta_{an}\\in\\mathbb R^{p_n}\\)",
+      "def": "On \\(\\mathcal E_{an}\\), \\(\\eta_{an}\\) is the minimum-Euclidean-norm entropy-dual coefficient associated with the unique exact-balancing weights; on \\(\\mathcal E_{an}^{c}\\), \\(\\eta_{an}=0\\)",
+      "role": "total arm-specific entropy tilt with a deterministic complement-event default",
+      "refs": [
+        "armset",
+        "n",
+        "pseq",
+        "ebweights",
+        "Aseq",
+        "feasevent"
+      ]
+    },
+    {
+      "name": "dseq",
+      "type": "triangular array of signed weights",
+      "def": "\\(d_{ni}=nS_{ni}w_{iA_{ni}n}\\)",
+      "role": "total method-\\(E\\) score multiplier, induced by exact entropy weights on feasibility and by the uniform default otherwise",
+      "refs": [
+        "n",
+        "Sseq",
+        "ebweights",
+        "Aseq"
+      ]
+    },
+    {
+      "name": "scorecoef",
+      "type": "triangular array indexed by method",
+      "def": "\\(c_{T,ni}=2S_{ni}Y_{ni}\\), \\(c_{E,ni}=d_{ni}Y_{ni}\\), and \\(c_{D,ni}=2S_{ni}(Y_{ni}-m_{ni})\\)",
+      "role": "three empirical policy-score coefficients",
+      "refs": [
+        "methodset",
+        "Sseq",
+        "Yseq",
+        "dseq",
+        "mseq"
+      ]
+    },
+    {
+      "name": "empobjective",
+      "type": "triangular array of random functions",
+      "sig": "\\(F_{jn}:\\mathcal B_n\\to\\mathbb R\\)",
+      "role": "centered empirical policy criteria",
+      "ref": "def:empirical-objectives"
+    },
+    {
+      "name": "selectedbeta",
+      "type": "triangular array of random vectors",
+      "space": "\\(\\widehat\\beta_{jn}\\in\\mathcal B_n\\)",
+      "role": "globally selected policy parameters",
+      "ref": "def:global-selector"
+    },
+    {
+      "name": "regret",
+      "type": "triangular array of nonnegative random variables",
+      "def": "\\(\\mathcal R_{jn}=J_n(0)-J_n(\\widehat\\beta_{jn})\\)",
+      "role": "population penalized-welfare regret",
+      "refs": [
+        "methodset",
+        "popcriterion",
+        "selectedbeta"
+      ]
+    },
+    {
+      "name": "tbal",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(t_{\\mathrm{bal}}\\) is the unique nonnegative root of \\(t=\\{\\phi(t)+t\\Phi(t)\\}/2\\)",
+      "role": "deformed-orthant root",
+      "refs": [
+        "phistd",
+        "Phistd"
+      ]
+    },
+    {
+      "name": "kappabal",
+      "type": "scalar",
+      "space": "\\((0,1/2)\\)",
+      "def": "\\(\\kappa_{\\mathrm{bal}}=\\Phi(t_{\\mathrm{bal}})/2\\)",
+      "role": "pooled-target exact-balance threshold",
+      "refs": [
+        "Phistd",
+        "tbal"
+      ]
+    },
+    {
+      "name": "Qmat",
+      "type": "triangular array of matrices",
+      "space": "\\(\\mathbb R^{n\\times p_n}\\)",
+      "def": "\\(Q_n\\) has row \\(i\\) equal to \\(q_{ni}^\\top\\)",
+      "role": "Gaussian design matrix",
+      "refs": [
+        "n",
+        "pseq",
+        "qseq"
+      ]
+    },
+    {
+      "name": "Lmat",
+      "type": "triangular array of matrices",
+      "def": "\\(L_n=(Q_n^\\top Q_n)^{+}Q_n^\\top\\), where \\({}^{+}\\) denotes the Moore--Penrose pseudoinverse",
+      "role": "total full-sample least-squares resolvent",
+      "refs": [
+        "Qmat"
+      ]
+    },
+    {
+      "name": "rankevent",
+      "type": "triangular array of events",
+      "def": "\\(\\mathcal Q_n=\\{\\operatorname{rank}(Q_n)=p_n\\}\\)",
+      "role": "full-column-rank event on which the pseudoinverse equals the ordinary least-squares inverse",
+      "refs": [
+        "Qmat",
+        "pseq"
+      ]
+    },
+    {
+      "name": "Dmat",
+      "type": "triangular array of diagonal matrices",
+      "def": "\\(D_n=\\operatorname{diag}(d_{n1},\\ldots,d_{nn})\\)",
+      "role": "total diagonal method-\\(E\\) score-weight matrix",
+      "refs": [
+        "dseq",
+        "n"
+      ]
+    },
+    {
+      "name": "uvec",
+      "type": "triangular array of vectors",
+      "space": "\\(\\mathbb R^n\\)",
+      "def": "\\(u_n=(m_{n1}-1/2,\\ldots,m_{nn}-1/2)^\\top\\)",
+      "role": "centered outcome-signal vector",
+      "refs": [
+        "mseq",
+        "n"
+      ]
+    },
+    {
+      "name": "Vmat",
+      "type": "triangular array of diagonal matrices",
+      "def": "\\(V_n=\\operatorname{diag}(m_{n1}(1-m_{n1}),\\ldots,m_{nn}(1-m_{nn}))\\)",
+      "role": "conditional outcome-variance matrix",
+      "refs": [
+        "mseq",
+        "n"
+      ]
+    },
+    {
+      "name": "onesvec",
+      "type": "triangular array of deterministic vectors",
+      "space": "\\(\\mathbb R^n\\)",
+      "def": "\\(\\mathbf 1_n=(1,\\ldots,1)^\\top\\)",
+      "role": "all-ones vector",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "bEB",
+      "type": "triangular array of random vectors",
+      "def": "\\(b_{E,n}=L_nD_n(Y_n-\\mathbf 1_n/2)\\)",
+      "role": "total strong-penalty method-\\(E\\) diagnostic, interpreted as entropy-balanced on the certified event",
+      "refs": [
+        "Lmat",
+        "Dmat",
+        "Yseq",
+        "onesvec",
+        "n"
+      ]
+    },
+    {
+      "name": "rho",
+      "type": "method-indexed deterministic scalar",
+      "space": "\\(\\rho_j\\in[0,R]\\)",
+      "role": "candidate deterministic limit of the selected norm",
+      "refs": [
+        "methodset",
+        "radius"
+      ]
+    },
+    {
+      "name": "rlimit",
+      "type": "method-indexed deterministic scalar",
+      "def": "\\(r_j=\\lambda g(\\rho_j)\\)",
+      "role": "limiting population regret",
+      "refs": [
+        "methodset",
+        "lambda",
+        "gfun",
+        "rho"
+      ]
+    },
+    {
+      "name": "dividend",
+      "type": "scalar function",
+      "def": "\\(\\Delta_{\\mathrm{HIR}}(\\kappa,\\gamma,\\lambda,R)=r_T-r_E\\)",
+      "role": "HIR regret dividend",
+      "refs": [
+        "kappa",
+        "gamma",
+        "lambda",
+        "radius",
+        "rlimit"
+      ]
+    },
+    {
+      "name": "phasecells",
+      "type": "three subsets of the parameter space",
+      "def": "\\(\\mathcal C_s=\\{(\\kappa,\\gamma,\\lambda,R):\\operatorname{sgn}(\\Delta_{\\mathrm{HIR}})=s\\}\\) for \\(s\\in\\{-,0,+\\}\\)",
+      "role": "negative, zero, and positive dividend cells",
+      "refs": [
+        "kappa",
+        "gamma",
+        "lambda",
+        "radius",
+        "dividend"
+      ]
+    },
+    {
+      "name": "jointstate",
+      "type": "finite-dimensional deterministic state to be constructed",
+      "role": "joint tilt-policy state and global selection certificate",
+      "ref": "def:joint-resolvent-handle"
+    },
+    {
+      "name": "gammahat",
+      "type": "scalar estimator",
+      "def": "\\(\\widehat\\gamma_n\\in\\operatorname*{arg\\,max}_{g\\in[\\underline\\gamma,\\overline\\gamma]}\\sum_{i=1}^{n}\\{Y_{ni}\\log\\sigma(gq_{ni,1})+(1-Y_{ni})\\log(1-\\sigma(gq_{ni,1}))\\}\\)",
+      "role": "one-dimensional signal estimator",
+      "refs": [
+        "gammalow",
+        "gammahigh",
+        "n",
+        "Yseq",
+        "sigmoid",
+        "qseq"
+      ]
+    },
+    {
+      "name": "phaseparam",
+      "type": "four-dimensional parameter vector",
+      "space": "\\(\\Xi=(0,1/2)\\times[\\underline\\gamma,\\overline\\gamma]\\times(0,\\infty)^2\\)",
+      "def": "\\(\\xi=(\\kappa,\\gamma,\\lambda,R)\\in\\Xi\\)",
+      "role": "phase-diagram argument",
+      "refs": [
+        "kappa",
+        "gamma",
+        "lambda",
+        "radius",
+        "gammalow",
+        "gammahigh"
+      ]
+    },
+    {
+      "name": "abstainsym",
+      "type": "decision symbol",
+      "def": "\\(\\bot\\notin\\{-,0,+\\}\\)",
+      "role": "reported when a certified phase sign is unavailable"
+    },
+    {
+      "name": "certbranches",
+      "type": "finite set-valued map",
+      "def": "\\(\\mathfrak B(\\xi)\\) is the finite set of real joint-state branches satisfying the state equations and all feasibility and radius KKT inequalities; every \\(b=(b_T,b_E,b_D)\\in\\mathfrak B(\\xi)\\) records method norms \\(\\rho_j(b;\\xi)\\) and limiting objective values \\(V_j(b;\\xi)\\)",
+      "role": "certified candidate branches supplied by the joint system",
+      "refs": [
+        "phaseparam",
+        "jointstate",
+        "methodset",
+        "rho"
+      ]
+    },
+    {
+      "name": "branchgap",
+      "type": "branch-selection slack",
+      "def": "\\(G_b(\\xi)=\\min_{j\\in\\mathcal J}\\inf_{c\\in\\mathfrak B(\\xi):c_j\\ne b_j}\\{V_j(b;\\xi)-V_j(c;\\xi)\\}\\), with a method having no competing branch assigned gap one before taking the minimum",
+      "role": "minimum global-objective separation from every competing branch",
+      "refs": [
+        "phaseparam",
+        "certbranches",
+        "methodset"
+      ]
+    },
+    {
+      "name": "branchmap",
+      "type": "total selected-branch map",
+      "def": "\\(b^\\star(\\xi)=b\\) if exactly one \\(b\\in\\mathfrak B(\\xi)\\) has \\(G_b(\\xi)>0\\), and \\(b^\\star(\\xi)=\\bot\\) otherwise; thus an empty certificate set or any unresolved global tie is handled deterministically by abstention",
+      "role": "certified deterministic selector with total tie handling",
+      "refs": [
+        "phaseparam",
+        "certbranches",
+        "branchgap",
+        "abstainsym"
+      ]
+    },
+    {
+      "name": "dbal",
+      "type": "nonnegative scalar function",
+      "def": "\\(d_{\\mathrm{bal}}(\\xi)=(\\kappa_{\\mathrm{bal}}-\\kappa)_+\\)",
+      "role": "distance to loss of pooled-target balance feasibility",
+      "refs": [
+        "phaseparam",
+        "kappabal"
+      ]
+    },
+    {
+      "name": "drad",
+      "type": "nonnegative scalar function",
+      "def": "\\(d_{\\mathrm{rad}}(\\xi)=\\min_{j\\in\\mathcal J}\\{R-\\rho_j(b^\\star(\\xi);\\xi)\\}\\) when \\(b^\\star(\\xi)\\ne\\bot\\), and \\(d_{\\mathrm{rad}}(\\xi)=0\\) otherwise",
+      "role": "distance to the nearest selected-policy radius contact",
+      "refs": [
+        "phaseparam",
+        "methodset",
+        "radius",
+        "rho",
+        "branchmap",
+        "abstainsym"
+      ]
+    },
+    {
+      "name": "dcoll",
+      "type": "nonnegative scalar function",
+      "def": "\\(d_{\\mathrm{col}}(\\xi)=G_{b^\\star(\\xi)}(\\xi)\\) when \\(b^\\star(\\xi)\\ne\\bot\\), and \\(d_{\\mathrm{col}}(\\xi)=0\\) otherwise",
+      "role": "global-optimizer branch-separation distance",
+      "refs": [
+        "phaseparam",
+        "branchgap",
+        "branchmap",
+        "abstainsym"
+      ]
+    },
+    {
+      "name": "dzero",
+      "type": "nonnegative scalar function",
+      "def": "\\(d_0(\\xi)=|\\lambda\\{g(\\rho_T(b^\\star(\\xi);\\xi))-g(\\rho_E(b^\\star(\\xi);\\xi))\\}|\\) when \\(b^\\star(\\xi)\\ne\\bot\\), and \\(d_0(\\xi)=0\\) otherwise",
+      "role": "distance to the zero HIR-dividend boundary",
+      "refs": [
+        "phaseparam",
+        "lambda",
+        "gfun",
+        "rho",
+        "branchmap",
+        "abstainsym"
+      ]
+    },
+    {
+      "name": "distvec",
+      "type": "four-dimensional function",
+      "def": "\\(d(\\xi)=\\{d_{\\mathrm{bal}}(\\xi),d_{\\mathrm{rad}}(\\xi),d_{\\mathrm{col}}(\\xi),d_0(\\xi)\\}^\\top\\)",
+      "role": "vector of the four separately defined boundary distances",
+      "refs": [
+        "phaseparam",
+        "dbal",
+        "drad",
+        "dcoll",
+        "dzero"
+      ]
+    },
+    {
+      "name": "phasealpha",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "\\(\\alpha\\in(0,1)\\)",
+      "role": "simultaneous phase-inference error level"
+    },
+    {
+      "name": "infohat",
+      "type": "positive scalar estimator",
+      "def": "\\(\\widehat I_{\\gamma,n}=n^{-1}\\sum_{i=1}^{n}q_{ni,1}^2\\sigma(\\widehat\\gamma_nq_{ni,1})\\{1-\\sigma(\\widehat\\gamma_nq_{ni,1})\\}\\)",
+      "role": "estimated Fisher information for the scalar signal",
+      "refs": [
+        "n",
+        "qseq",
+        "sigmoid",
+        "gammahat"
+      ]
+    },
+    {
+      "name": "phaseparamhat",
+      "type": "four-dimensional plug-in estimator",
+      "def": "\\(\\widehat\\xi_n=(p_n/n,\\widehat\\gamma_n,\\lambda,R)\\)",
+      "role": "estimated phase-diagram argument; only \\(\\gamma\\) is statistically estimated and \\(p_n/n\\), \\(\\lambda\\), and \\(R\\) are observed or fixed",
+      "refs": [
+        "phaseparam",
+        "pseq",
+        "n",
+        "gammahat",
+        "lambda",
+        "radius"
+      ]
+    },
+    {
+      "name": "Omegahat",
+      "type": "four-by-four covariance estimator",
+      "def": "\\(\\widehat\\Omega_n=\\partial_\\gamma d(\\widehat\\xi_n)\\partial_\\gamma d(\\widehat\\xi_n)^\\top/\\widehat I_{\\gamma,n}\\), with the derivative taken on the certified branch and \\(\\widehat\\Omega_n=0_{4\\times4}\\) when that derivative is unavailable",
+      "role": "estimated covariance in the joint boundary-distance limit",
+      "refs": [
+        "distvec",
+        "phaseparamhat",
+        "infohat",
+        "branchmap"
+      ]
+    },
+    {
+      "name": "simradius",
+      "type": "nonnegative random radius",
+      "def": "\\(\\widehat u_{n,1-\\alpha}=n^{-1/2}q_{1-\\alpha}(\\widehat\\Omega_n)\\), where \\(q_{1-\\alpha}(\\Omega)=\\inf\\{t:\\mathbb P(\\max_{1\\le\\ell\\le4}|W_\\ell|\\le t)\\ge1-\\alpha,\\ W\\sim\\mathcal N_4(0,\\Omega)\\}\\)",
+      "role": "estimable simultaneous uncertainty radius with explicit Gaussian-max quantile",
+      "refs": [
+        "n",
+        "phasealpha",
+        "Omegahat"
+      ]
+    },
+    {
+      "name": "phaseplug",
+      "type": "total abstaining phase classifier",
+      "role": "feasible phase-inference output",
+      "ref": "def:phase-plugin"
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:aspect-ratio",
+      "kind": "proportional asymptotics",
+      "condition": "\\(p_n/n\\to\\kappa\\)",
+      "free_symbols": [
+        "pseq",
+        "n",
+        "kappa"
+      ],
+      "standard": {
+        "name": "Proportional-dimensional asymptotics",
+        "cite": "SurCandes2019"
+      },
+      "used_by": [
+        "thm:balance-threshold",
+        "prop:quadratic-identity",
+        "oeq:joint-phase-system",
+        "thm:phase-inference"
+      ]
+    },
+    {
+      "id": "ass:gaussian-features",
+      "kind": "design distribution",
+      "condition": "\\((q_{ni})_{i=1}^{n}\\) are independent with \\(q_{ni}\\sim\\mathcal N(0,I_{p_n})\\)",
+      "free_symbols": [
+        "qseq",
+        "n",
+        "pseq"
+      ],
+      "standard": {
+        "name": "Isotropic Gaussian proportional design",
+        "cite": "SurCandes2019"
+      },
+      "used_by": [
+        "prop:radial-invariance",
+        "thm:balance-threshold",
+        "prop:quadratic-identity",
+        "oeq:joint-phase-system",
+        "thm:phase-inference"
+      ]
+    },
+    {
+      "id": "ass:randomization",
+      "kind": "causal-structural",
+      "condition": "\\((A_{ni})_{i=1}^{n}\\) are independent Bernoulli variables with \\(\\mathbb P(A_{ni}=1)=1/2\\) and are independent of \\((q_{ni})_{i=1}^{n}\\)",
+      "free_symbols": [
+        "Aseq",
+        "n",
+        "qseq"
+      ],
+      "standard": {
+        "name": "Known Bernoulli randomized assignment",
+        "cite": "FangRidderXie2026"
+      },
+      "used_by": [
+        "prop:radial-invariance",
+        "thm:balance-threshold",
+        "prop:quadratic-identity",
+        "oeq:joint-phase-system",
+        "prop:fixed-dimensional-reduction"
+      ]
+    },
+    {
+      "id": "ass:binary-logistic-outcome",
+      "kind": "outcome model",
+      "condition": "\\((Y_{ni})_{i=1}^{n}\\) are conditionally independent given \\((q_{ni},A_{ni})_{i=1}^{n}\\) and \\(Y_{ni}\\mid(q_{ni},A_{ni})\\sim\\operatorname{Bernoulli}(m_{ni})\\)",
+      "free_symbols": [
+        "Yseq",
+        "n",
+        "qseq",
+        "Aseq",
+        "mseq"
+      ],
+      "standard": {
+        "name": "Correct logistic binary-response model",
+        "cite": "SurCandes2019"
+      },
+      "used_by": [
+        "prop:radial-invariance",
+        "prop:quadratic-identity",
+        "oeq:joint-phase-system",
+        "thm:phase-inference",
+        "prop:fixed-dimensional-reduction"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:entropy-weights",
+      "name": "ebweights",
+      "construction": "For every sample and arm \\(a\\), define the within-arm weight family as follows. On \\(\\mathcal E_{an}\\), use the unique minimizer of \\(\\sum_{i:A_{ni}=a}w_i\\log(n_{an}w_i)\\) subject to \\(w_i>0\\), \\(\\sum_{i:A_{ni}=a}w_i=1\\), and \\(\\sum_{i:A_{ni}=a}w_iq_{ni}=\\bar q_n\\); equivalently, \\(w_{ian}=\\exp(q_{ni}^{\\top}\\eta_{an})/\\sum_{k:A_{nk}=a}\\exp(q_{nk}^{\\top}\\eta_{an})\\), with \\(\\eta_{an}\\) chosen as the minimum-Euclidean-norm dual solution. On \\(\\{n_{an}>0\\}\\cap\\mathcal E_{an}^{c}\\), set \\(w_{ian}=1/n_{an}\\) for every \\(i\\) with \\(A_{ni}=a\\) and set \\(\\eta_{an}=0\\). When \\(n_{an}=0\\), set the within-arm weight family to the empty vector and \\(\\eta_{an}=0\\). These complement rules are only totality conventions and do not assert exact balance or entropy balancing",
+      "free_symbols": [
+        "ebweights",
+        "etatilt",
+        "feasevent",
+        "Aseq",
+        "armset",
+        "narm",
+        "qseq",
+        "qbar",
+        "n"
+      ],
+      "inputs": [
+        "qseq",
+        "Aseq",
+        "qbar",
+        "feasevent"
+      ]
+    },
+    {
+      "id": "def:empirical-objectives",
+      "name": "empobjective",
+      "construction": "Using the total coefficients induced by \\(w_{iA_{ni}n}\\), for every sample, \\(j\\in\\mathcal J\\), and \\(\\beta\\in\\mathcal B_n\\), set \\(F_{jn}(\\beta)=n^{-1}\\sum_{i=1}^{n}[c_{j,ni}\\{\\sigma(q_{ni}^{\\top}\\beta)-1/2\\}-\\lambda h(q_{ni}^{\\top}\\beta)]\\)",
+      "free_symbols": [
+        "empobjective",
+        "methodset",
+        "betaball",
+        "n",
+        "scorecoef",
+        "ebweights",
+        "sigmoid",
+        "qseq",
+        "lambda",
+        "hfun"
+      ],
+      "inputs": [
+        "scorecoef",
+        "ebweights",
+        "qseq",
+        "lambda",
+        "hfun",
+        "betaball"
+      ]
+    },
+    {
+      "id": "def:global-selector",
+      "name": "selectedbeta",
+      "construction": "For every sample and \\(j\\in\\mathcal J\\), continuity of the total objective on the compact ball makes \\(\\operatorname*{arg\\,max}_{\\beta\\in\\mathcal B_n}F_{jn}(\\beta)\\) nonempty and compact. Define \\(\\widehat\\beta_{jn}\\) by first minimizing \\(\\|\\beta\\|_2\\) over that set and then successively minimizing coordinates \\(1,\\ldots,p_n\\); this deterministic lexicographic rule returns exactly one global maximizer",
+      "free_symbols": [
+        "selectedbeta",
+        "methodset",
+        "betaball",
+        "empobjective",
+        "n",
+        "pseq"
+      ],
+      "inputs": [
+        "empobjective",
+        "betaball",
+        "pseq"
+      ]
+    },
+    {
+      "id": "def:joint-resolvent-handle",
+      "name": "jointstate",
+      "construction": "On \\(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\), apply Gaussian leave-one-observation regression jointly to the two exact entropy-tilt equations and the policy first-order equations, retain the overlaps \\(\\eta_{0n}^{\\top}\\eta_{1n}\\), \\(\\eta_{an}^{\\top}\\widehat\\beta_{jn}\\), \\(\\|\\eta_{an}\\|_2^2\\), and \\(\\|\\widehat\\beta_{jn}\\|_2^2\\), and close their response terms with the block Jacobian; append a global objective-value comparison and the radius KKT multiplier as the selection certificate. No state-equation conclusion is attributed to the uniform fallback outside this event",
+      "free_symbols": [
+        "jointstate",
+        "ebweights",
+        "etatilt",
+        "empobjective",
+        "selectedbeta",
+        "methodset",
+        "radius",
+        "n",
+        "pseq",
+        "qseq",
+        "Aseq",
+        "Yseq",
+        "feasevent",
+        "rankevent"
+      ],
+      "inputs": [
+        "ebweights",
+        "empobjective",
+        "selectedbeta",
+        "qseq",
+        "Aseq",
+        "Yseq",
+        "radius",
+        "feasevent",
+        "rankevent"
+      ]
+    },
+    {
+      "id": "def:certified-branch-selector",
+      "name": "branchmap",
+      "construction": "For every \\(\\xi\\in\\Xi\\), compute \\(\\mathfrak B(\\xi)\\) and every certificate slack \\(G_b(\\xi)\\); return the unique \\(b\\) with \\(G_b(\\xi)>0\\) when it exists, and return \\(\\bot\\) when the certified set is empty, more than one branch passes, or a global-objective tie has zero slack",
+      "free_symbols": [
+        "branchmap",
+        "phaseparam",
+        "certbranches",
+        "branchgap",
+        "abstainsym"
+      ],
+      "inputs": [
+        "phaseparam",
+        "certbranches",
+        "branchgap"
+      ]
+    },
+    {
+      "id": "def:balance-boundary-distance",
+      "name": "dbal",
+      "construction": "Set \\(d_{\\mathrm{bal}}(\\xi)=(\\kappa_{\\mathrm{bal}}-\\kappa)_+\\); it is positive exactly on the strict-feasibility side and is zero on or beyond the feasibility boundary",
+      "free_symbols": [
+        "dbal",
+        "phaseparam",
+        "kappa",
+        "kappabal"
+      ],
+      "inputs": [
+        "phaseparam",
+        "kappabal"
+      ]
+    },
+    {
+      "id": "def:radius-boundary-distance",
+      "name": "drad",
+      "construction": "Set \\(d_{\\mathrm{rad}}(\\xi)=\\min_{j\\in\\mathcal J}\\{R-\\rho_j(b^\\star(\\xi);\\xi)\\}\\) when \\(b^\\star(\\xi)\\ne\\bot\\), and set it to zero otherwise",
+      "free_symbols": [
+        "drad",
+        "phaseparam",
+        "methodset",
+        "radius",
+        "rho",
+        "branchmap",
+        "abstainsym"
+      ],
+      "inputs": [
+        "phaseparam",
+        "branchmap",
+        "rho",
+        "radius"
+      ]
+    },
+    {
+      "id": "def:collision-boundary-distance",
+      "name": "dcoll",
+      "construction": "Set \\(d_{\\mathrm{col}}(\\xi)=G_{b^\\star(\\xi)}(\\xi)\\) when \\(b^\\star(\\xi)\\ne\\bot\\), and set it to zero otherwise",
+      "free_symbols": [
+        "dcoll",
+        "phaseparam",
+        "branchgap",
+        "branchmap",
+        "abstainsym"
+      ],
+      "inputs": [
+        "phaseparam",
+        "branchgap",
+        "branchmap"
+      ]
+    },
+    {
+      "id": "def:zero-dividend-boundary-distance",
+      "name": "dzero",
+      "construction": "Set \\(d_0(\\xi)=|\\lambda\\{g(\\rho_T(b^\\star(\\xi);\\xi))-g(\\rho_E(b^\\star(\\xi);\\xi))\\}|\\) when \\(b^\\star(\\xi)\\ne\\bot\\), and set it to zero otherwise",
+      "free_symbols": [
+        "dzero",
+        "phaseparam",
+        "lambda",
+        "gfun",
+        "rho",
+        "branchmap",
+        "abstainsym"
+      ],
+      "inputs": [
+        "phaseparam",
+        "branchmap",
+        "rho",
+        "lambda",
+        "gfun"
+      ]
+    },
+    {
+      "id": "def:simultaneous-radius",
+      "name": "simradius",
+      "construction": "Evaluate \\(\\widehat d_n=d(\\widehat\\xi_n)\\), \\(\\widehat I_{\\gamma,n}\\), and \\(\\widehat\\Omega_n=\\partial_\\gamma d(\\widehat\\xi_n)\\partial_\\gamma d(\\widehat\\xi_n)^\\top/\\widehat I_{\\gamma,n}\\) on the certified branch; then set \\(\\widehat u_{n,1-\\alpha}=n^{-1/2}q_{1-\\alpha}(\\widehat\\Omega_n)\\), where \\(q_{1-\\alpha}(\\Omega)=\\inf\\{t:\\mathbb P(\\max_{1\\le\\ell\\le4}|W_\\ell|\\le t)\\ge1-\\alpha,\\ W\\sim\\mathcal N_4(0,\\Omega)\\}\\); if the branch or derivative is uncertified, set \\(\\widehat u_{n,1-\\alpha}=+\\infty\\)",
+      "free_symbols": [
+        "simradius",
+        "distvec",
+        "phaseparamhat",
+        "infohat",
+        "Omegahat",
+        "phasealpha",
+        "n",
+        "branchmap"
+      ],
+      "inputs": [
+        "distvec",
+        "phaseparamhat",
+        "infohat",
+        "Omegahat",
+        "phasealpha"
+      ]
+    },
+    {
+      "id": "def:phase-plugin",
+      "name": "phaseplug",
+      "construction": "Estimate only \\(\\gamma\\) by \\(\\widehat\\gamma_n\\), use the observed aspect ratio \\(p_n/n\\), and treat \\(\\lambda\\) and \\(R\\) as fixed; compute \\(\\widehat\\xi_n=(p_n/n,\\widehat\\gamma_n,\\lambda,R)\\), \\(\\widehat b_n=b^\\star(\\widehat\\xi_n)\\), and the four coordinates \\(\\widehat d_{\\ell n}=d_\\ell(\\widehat\\xi_n)\\) for \\(\\ell\\in\\{\\mathrm{bal},\\mathrm{rad},\\mathrm{col},0\\}\\); set \\(\\widehat\\Delta_n=\\lambda\\{g(\\rho_T(\\widehat b_n;\\widehat\\xi_n))-g(\\rho_E(\\widehat b_n;\\widehat\\xi_n))\\}\\) when \\(\\widehat b_n\\ne\\bot\\) and set \\(\\widehat\\Delta_n=0\\) otherwise; define the total output by \\(\\widehat s_{n,\\alpha}=\\operatorname{sgn}(\\widehat\\Delta_n)\\) if \\(\\widehat b_n\\ne\\bot\\) and \\(\\min_\\ell\\widehat d_{\\ell n}>\\widehat u_{n,1-\\alpha}\\), and \\(\\widehat s_{n,\\alpha}=\\bot\\) otherwise",
+      "free_symbols": [
+        "phaseplug",
+        "phaseparamhat",
+        "pseq",
+        "n",
+        "gammahat",
+        "lambda",
+        "radius",
+        "branchmap",
+        "distvec",
+        "dbal",
+        "drad",
+        "dcoll",
+        "dzero",
+        "rho",
+        "gfun",
+        "simradius",
+        "phasealpha",
+        "abstainsym"
+      ],
+      "inputs": [
+        "phaseparamhat",
+        "branchmap",
+        "distvec",
+        "simradius"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:radial-invariance",
+      "kind": "proposition",
+      "statement": "For every \\(n\\) and \\(j\\in\\mathcal J\\), \\(\\mathcal R_{jn}=\\lambda g(\\|\\widehat\\beta_{jn}\\|_2)\\), where \\(g'(r)=r\\,\\mathbb E[Z^2\\sigma'(rZ)]>0\\) for \\(r>0\\). For method \\(T\\), set \\(X_{ni}=S_{ni}q_{ni}\\). Oddness of \\(\\sigma(z)-1/2\\) and evenness of \\(h(z)\\) give, simultaneously for every \\(\\beta\\in\\mathcal B_n\\), \\[F_{Tn}(\\beta)=n^{-1}\\sum_{i=1}^{n}\\left[2Y_{ni}\\{\\sigma(X_{ni}^{\\top}\\beta)-1/2\\}-\\lambda h(X_{ni}^{\\top}\\beta)\\right].\\] Under Gaussian central symmetry and \\(\\sigma(t)+\\sigma(-t)=1\\), the pairs \\((X_{ni},Y_{ni})\\) are independent across \\(i\\), with \\(X_{ni}\\sim\\mathcal N(0,I_{p_n})\\), \\(Y_{ni}\\sim\\operatorname{Bernoulli}(1/2)\\), and \\(X_{ni}\\perp Y_{ni}\\). Hence the unconditional law of \\(F_{Tn}\\) as a random function on \\(\\mathcal B_n\\), and therefore the marginal law of \\(\\|\\widehat\\beta_{Tn}\\|_2\\) and \\(\\mathcal R_{Tn}\\), is independent of \\(\\gamma\\). This invariance is not conditional on the original \\(Q_n\\) or \\(A_n\\), and it does not assert gamma-invariance of their joint law with \\(F_{Tn}\\), of the entropy tilts, of methods \\(E\\) or \\(D\\), of cross-method overlaps or branch and collision quantities, or of the full phase vector.",
+      "free_symbols": [
+        "n",
+        "methodset",
+        "regret",
+        "lambda",
+        "gfun",
+        "selectedbeta",
+        "Zstd",
+        "sigmoid",
+        "empobjective",
+        "gamma",
+        "Xseq",
+        "Sseq",
+        "qseq",
+        "Yseq",
+        "hfun",
+        "betaball",
+        "Qmat",
+        "Aseq",
+        "etatilt",
+        "jointstate",
+        "branchgap",
+        "dividend",
+        "phaseparam"
+      ],
+      "depends_on": [
+        "ass:gaussian-features",
+        "ass:randomization",
+        "ass:binary-logistic-outcome",
+        "def:empirical-objectives",
+        "def:global-selector"
+      ],
+      "status": "to-prove",
+      "justification": "The radial identity converts every method's regret into a selected-norm comparison, while the unconditional row-sign representation supplies an exact gamma-free marginal benchmark only for the true-propensity objective.",
+      "gap": "FangRidderXie2026 obtains a local quadratic regret law in fixed dimension; the exact radial identity and the finite-sample unconditional true-IPW random-function invariance are specific to the Gaussian arm-invariant null-effect calibration and do not remove gamma from the coupled entropy or DR phase system.",
+      "consumer": "A commitment-savings targeting analyst can compare overfitting costs through fitted norms without estimating a separate value functional in this calibration model."
+    },
+    {
+      "id": "thm:balance-threshold",
+      "kind": "theorem",
+      "statement": "Let \\(t_{\\mathrm{bal}}\\) solve \\(t=\\{\\phi(t)+t\\Phi(t)\\}/2\\) and let \\(\\kappa_{\\mathrm{bal}}=\\Phi(t_{\\mathrm{bal}})/2=0.3043687064\\ldots\\). Then \\(\\mathbb P(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n)\\to1\\) when \\(\\kappa<\\kappa_{\\mathrm{bal}}\\), while \\(\\mathbb P(\\mathcal E_{0n}\\cap\\mathcal E_{1n})\\to0\\) when \\(\\kappa>\\kappa_{\\mathrm{bal}}\\). In the interior regime, \\(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\) is therefore the certified event on which both arms use their unique exact-balancing entropy solutions and the ordinary full-rank leverage identities apply.",
+      "free_symbols": [
+        "tbal",
+        "phistd",
+        "Phistd",
+        "kappabal",
+        "feasevent",
+        "rankevent",
+        "n",
+        "kappa"
+      ],
+      "depends_on": [
+        "ass:aspect-ratio",
+        "ass:gaussian-features",
+        "ass:randomization"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem identifies the exact domain on which proportional exact entropy balancing exists.",
+      "gap": "ZhaoPercival2017 gives fixed-dimensional interiority and DaiYan2024 documents high-dimensional infeasibility; neither derives the endogenous pooled-target threshold.",
+      "consumer": "The threshold tells trial analysts when exact same-coordinate balancing is mathematically unavailable before any policy comparison is attempted."
+    },
+    {
+      "id": "prop:quadratic-identity",
+      "kind": "proposition",
+      "statement": "On \\(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\), the unique exact-balancing weights imply \\(Q_n^{\\top}d_n=0\\) and \\(\\mathbb E[\\|b_{E,n}\\|_2^2\\mid Q_n,A_n]=\\|L_nD_nu_n\\|_2^2+\\operatorname{tr}(L_nD_nV_nD_nL_n^{\\top})\\), with \\(L_n=(Q_n^\\top Q_n)^{-1}Q_n^\\top\\) on this event. At \\(\\gamma=1\\), on the same certified event, the two terms and their covariance corrections admit deterministic resolvent limits under the original same-sample entropy weights on an interval containing \\(\\kappa=1/8\\), and the resulting limit recovers \\(r_E=\\kappa/(8\\lambda)+o(\\kappa)\\) as \\(\\kappa\\downarrow0\\). No identity or entropy-balance conclusion is asserted for the uniform fallback on the complement.",
+      "free_symbols": [
+        "feasevent",
+        "rankevent",
+        "Qmat",
+        "dseq",
+        "bEB",
+        "Lmat",
+        "Dmat",
+        "uvec",
+        "Vmat",
+        "Aseq",
+        "gamma",
+        "kappa",
+        "rlimit",
+        "lambda",
+        "n",
+        "methodset"
+      ],
+      "depends_on": [
+        "ass:aspect-ratio",
+        "ass:gaussian-features",
+        "ass:randomization",
+        "ass:binary-logistic-outcome",
+        "def:entropy-weights",
+        "thm:balance-threshold"
+      ],
+      "status": "to-prove",
+      "justification": "This is the early kill test for whether coherent leverage and Jacobian terms have a finite closure.",
+      "gap": "LuYangWang2025 controls proportional linear and quadratic leverage for regression adjustment, but the diagonal weights here are endogenous exponential tilts sharing the same Gaussian rows.",
+      "consumer": "Passing this test validates the strong-penalty benchmark required to trust any full phase diagram."
+    },
+    {
+      "id": "oeq:joint-phase-system",
+      "kind": "openendedquestion",
+      "statement": "Can the joint-resolvent handle be turned into a finite, explicit deterministic system that outputs \\(\\mathfrak B(\\xi)\\), the norms \\(\\rho_j(b;\\xi)\\), the limiting objective values, their global-selection slacks \\(G_b(\\xi)\\), and the branch derivatives needed for inference, such that, uniformly on compact subsets of \\(\\{0<\\kappa<\\kappa_{\\mathrm{bal}}\\}\\) with \\(d_{\\mathrm{col}}(\\xi)>0\\), \\(\\mathbb P(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n)\\to1\\), \\(b^\\star(\\xi)\\ne\\bot\\), and for every \\(\\varepsilon>0\\), \\(\\mathbb P[\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\cap\\{\\max_{j\\in\\mathcal J}|\\|\\widehat\\beta_{jn}\\|_2-\\rho_j(b^\\star(\\xi);\\xi)|>\\varepsilon\\}]\\to0\\), while the same certified-event system gives the exact cells \\(\\mathcal C_+\\), \\(\\mathcal C_0\\), and \\(\\mathcal C_-\\), every radius-saturation boundary, and the ordering relative to \\(r_D\\)? The \\(E\\)-method components of the system must use the unique original same-sample entropy weights on \\(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\); the total uniform fallback only defines finite-sample outputs off that event and is not part of the entropy-balance asymptotics. The answer must strictly extend Theorem 4 of FangRidderXie2026 from fixed policy dimension to \\(p_n/n\\to\\kappa>0\\), not replace the estimator by a cross-fitted or independent-weight surrogate.",
+      "free_symbols": [
+        "jointstate",
+        "phaseparam",
+        "certbranches",
+        "branchgap",
+        "branchmap",
+        "dcoll",
+        "abstainsym",
+        "kappa",
+        "kappabal",
+        "selectedbeta",
+        "n",
+        "rho",
+        "methodset",
+        "phasecells",
+        "radius",
+        "rlimit",
+        "pseq",
+        "ebweights",
+        "feasevent",
+        "rankevent"
+      ],
+      "depends_on": [
+        "ass:aspect-ratio",
+        "ass:gaussian-features",
+        "ass:randomization",
+        "ass:binary-logistic-outcome",
+        "def:entropy-weights",
+        "def:empirical-objectives",
+        "def:global-selector",
+        "def:joint-resolvent-handle",
+        "def:certified-branch-selector",
+        "def:collision-boundary-distance",
+        "prop:radial-invariance",
+        "thm:balance-threshold",
+        "prop:quadratic-identity"
+      ],
+      "status": "to-prove",
+      "justification": "The system is the theorem-level kernel because proportional reuse of the design can reverse the classical HIR regret ranking.",
+      "gap": "FangRidderXie2026 assumes fixed rule dimension, SurCandes2019 treats one convex logistic likelihood, and ThrampoulidisAbbasiHassibi2018 requires a convex Gaussian estimator; none handles two endogenous tilts followed by a nonconcave global policy optimizer.",
+      "consumer": "The phase cells determine whether expanded-feature commitment-savings targeting should use known assignment probabilities, exact balancing, or oracle residualization."
+    },
+    {
+      "id": "thm:phase-inference",
+      "kind": "theorem",
+      "statement": "Let \\(\\xi_n^0=(p_n/n,\\gamma,\\lambda,R)\\), \\(\\widehat d_n=d(\\widehat\\xi_n)\\), and \\(I_\\gamma=\\mathbb E[Z^2\\sigma(\\gamma Z)\\{1-\\sigma(\\gamma Z)\\}]\\). On every compact set \\(K\\subset(0,\\kappa_{\\mathrm{bal}})\\times(\\underline\\gamma,\\overline\\gamma)\\times(0,\\infty)^2\\) on which the four-distance map is continuously differentiable and \\(\\inf_{\\xi\\in K}\\min\\{d_{\\mathrm{bal}}(\\xi),d_{\\mathrm{rad}}(\\xi),d_{\\mathrm{col}}(\\xi),d_0(\\xi)\\}>0\\), uniformly in \\(\\xi\\in K\\), \\[\\sqrt n\\{\\widehat d_n-d(\\xi_n^0)\\}\\Rightarrow\\mathcal N_4\\!\\left(0,\\Omega(\\xi)\\right),\\qquad \\Omega(\\xi)=\\frac{\\partial_\\gamma d(\\xi)\\partial_\\gamma d(\\xi)^\\top}{I_\\gamma},\\qquad \\widehat\\Omega_n\\to_{\\mathbb P}\\Omega(\\xi).\\] Consequently, the simultaneous intervals \\( [\\widehat d_{\\ell n}-\\widehat u_{n,1-\\alpha},\\widehat d_{\\ell n}+\\widehat u_{n,1-\\alpha}]\\), \\(\\ell\\in\\{\\mathrm{bal},\\mathrm{rad},\\mathrm{col},0\\}\\), have joint coverage at least \\(1-\\alpha+o(1)\\) uniformly on \\(K\\), and \\(\\sup_{\\xi\\in K}\\mathbb P_\\xi\\{\\widehat s_{n,\\alpha}\\ne\\operatorname{sgn}(\\Delta_{\\mathrm{HIR}}(\\xi))\\}\\to0\\), where any abstention counts as an error. Thus the classifier is total, reports \\(\\bot\\) whenever any certificate is missing or any estimated boundary distance fails to exceed \\(\\widehat u_{n,1-\\alpha}\\), and is uniformly nonabstaining and sign-consistent on compact margin-separated sets.",
+      "free_symbols": [
+        "kappabal",
+        "dividend",
+        "radius",
+        "phaseplug",
+        "phaseparam",
+        "phaseparamhat",
+        "branchmap",
+        "abstainsym",
+        "distvec",
+        "dbal",
+        "drad",
+        "dcoll",
+        "dzero",
+        "Omegahat",
+        "simradius",
+        "phasealpha",
+        "n",
+        "pseq",
+        "kappa",
+        "gamma",
+        "gammalow",
+        "gammahigh",
+        "lambda",
+        "Zstd",
+        "sigmoid"
+      ],
+      "depends_on": [
+        "ass:aspect-ratio",
+        "ass:gaussian-features",
+        "ass:binary-logistic-outcome",
+        "def:joint-resolvent-handle",
+        "def:certified-branch-selector",
+        "def:balance-boundary-distance",
+        "def:radius-boundary-distance",
+        "def:collision-boundary-distance",
+        "def:zero-dividend-boundary-distance",
+        "def:simultaneous-radius",
+        "def:phase-plugin",
+        "oeq:joint-phase-system"
+      ],
+      "status": "to-prove",
+      "justification": "A deterministic diagram is operational only if its phase label can be learned from a trial away from nonregular boundaries.",
+      "gap": "SurCandes2019 estimates scalar states for one logistic MLE and LuYangWang2025 estimates quadratic variance components; neither gives joint inference for a contrast of dependent optimized policy criteria.",
+      "consumer": "The theorem supplies an uncertainty-aware label for whether entropy balancing improves or worsens targeting regret in a feature-expanded trial reanalysis."
+    },
+    {
+      "id": "prop:fixed-dimensional-reduction",
+      "kind": "proposition",
+      "statement": "Under the same one-observation law with \\(p_n=p\\) fixed before \\(n\\to\\infty\\), the true-propensity IPW and oracle DR bulk-coordinate gradient variances at \\(\\beta=0\\) are \\(1/8\\) and \\(v_\\gamma/4\\), respectively. On \\(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\), the exact linear entropy-balance variance is \\(1/16\\); this event has probability tending to one in the fixed-dimensional limit. Consequently, as \\(\\kappa\\downarrow0\\) after the proportional limits, \\(r_T=\\kappa/(4\\lambda)+o(\\kappa)\\), \\(r_E=\\kappa/(8\\lambda)+o(\\kappa)\\), and \\(r_D=v_\\gamma\\kappa/(2\\lambda)+o(\\kappa)\\), provided the certified-event uniform remainder asserted by the joint system holds. The uniform complement-event fallback is not identified with entropy balancing in this reduction.",
+      "free_symbols": [
+        "pseq",
+        "n",
+        "selectedbeta",
+        "vgamma",
+        "feasevent",
+        "rankevent",
+        "methodset",
+        "gamma",
+        "kappa",
+        "rlimit",
+        "lambda"
+      ],
+      "depends_on": [
+        "ass:gaussian-features",
+        "ass:randomization",
+        "ass:binary-logistic-outcome",
+        "def:entropy-weights",
+        "prop:radial-invariance",
+        "thm:balance-threshold",
+        "oeq:joint-phase-system"
+      ],
+      "status": "to-prove",
+      "justification": "This sanity reduction anchors the proportional system to the classical HIR projection while showing that linear balance remains strictly short of oracle DR when \\(\\gamma>0\\).",
+      "gap": "HiranoImbensRidder2003 and FangRidderXie2026 obtain full efficiency from sufficiently rich estimated propensity scores; the exact same-coordinate linear balance used here spans only a partial projection.",
+      "consumer": "The reduction gives analysts a low-dimensional diagnostic and prevents interpreting exact linear balance as automatic oracle efficiency."
+    }
+  ],
+  "sampling_model": {
+    "design": "Independent Bernoulli randomization with \\(\\mathbb P(A_{ni}=1)=1/2\\).",
+    "units": "Independent superpopulation draws with \\(q_{ni}\\sim\\mathcal N(0,I_{p_n})\\) and \\(p_n/n\\to\\kappa\\).",
+    "treatment": "Binary treatment \\(A_{ni}\\in\\{0,1\\}\\) with known propensity one half.",
+    "outcome": "Binary outcome with \\(Y_{ni}\\mid(q_{ni},A_{ni})\\sim\\operatorname{Bernoulli}\\{\\sigma(\\gamma q_{ni,1})\\}\\) in both arms.",
+    "overlap": "Known propensity is exactly one half.",
+    "nuisance_estimation": "On each arm's certified strict-feasibility event, the unique exact same-sample entropy weights balance all \\(p_n\\) coordinates to the pooled empirical mean. On its complement, uniform within-arm weights provide a harmless total finite-sample default and are not called entropy balancing. Every least-squares leverage object uses the Moore--Penrose pseudoinverse for arbitrary \\(Q_n\\). Oracle DR uses the known conditional mean, while \\(\\gamma\\) is estimated only for phase inference."
+  },
+  "estimand_functional": "\\((r_T,r_E,r_D,\\Delta_{\\mathrm{HIR}})=\\{\\lambda g(\\rho_T),\\lambda g(\\rho_E),\\lambda g(\\rho_D),\\lambda[g(\\rho_T)-g(\\rho_E)]\\}\\)",
+  "target_estimand": "\\(\\mathcal R_{jn}=J_n(0)-J_n(\\widehat\\beta_{jn})\\)",
+  "bibliography": [
+    {
+      "key": "FangRidderXie2026",
+      "citation": "Yue Fang, Geert Ridder, and Haitian Xie. Improving on a Lottery: Efficient Estimation of Optimal Assignment Rules. arXiv:2512.19230, version 3, 2026."
+    },
+    {
+      "key": "HiranoImbensRidder2003",
+      "citation": "Keisuke Hirano, Guido W. Imbens, and Geert Ridder. Efficient Estimation of Average Treatment Effects Using the Estimated Propensity Score. Econometrica 71, 1161--1189, 2003."
+    },
+    {
+      "key": "SurCandes2019",
+      "citation": "Pragya Sur and Emmanuel J. Candès. A Modern Maximum-Likelihood Theory for High-Dimensional Logistic Regression. Proceedings of the National Academy of Sciences 116, 14516--14525, 2019."
+    },
+    {
+      "key": "CandesSur2020",
+      "citation": "Emmanuel J. Candès and Pragya Sur. The Phase Transition for the Existence of the Maximum Likelihood Estimate in High-Dimensional Logistic Regression. Annals of Statistics 48, 27--42, 2020."
+    },
+    {
+      "key": "ThrampoulidisAbbasiHassibi2018",
+      "citation": "Christos Thrampoulidis, Ehsan Abbasi, and Babak Hassibi. Precise Error Analysis of Regularized \\(M\\)-Estimators in High Dimensions. IEEE Transactions on Information Theory 64, 5592--5628, 2018."
+    },
+    {
+      "key": "AmelunxenLotzMcCoyTropp2014",
+      "citation": "Dennis Amelunxen, Martin Lotz, Michael B. McCoy, and Joel A. Tropp. Living on the Edge: Phase Transitions in Convex Programs with Random Data. Information and Inference 3, 224--294, 2014."
+    },
+    {
+      "key": "Hainmueller2012",
+      "citation": "Jens Hainmueller. Entropy Balancing for Causal Effects: A Multivariate Reweighting Method to Produce Balanced Samples in Observational Studies. Political Analysis 20, 25--46, 2012."
+    },
+    {
+      "key": "ZhaoPercival2017",
+      "citation": "Qingyuan Zhao and Daniel Percival. Entropy Balancing Is Doubly Robust. Journal of Causal Inference 5, article 20160010, 2017."
+    },
+    {
+      "key": "DaiYan2024",
+      "citation": "Yimin Dai and Ying Yan. Mahalanobis Balancing: A Multivariate Perspective on Approximate Covariate Balancing. Scandinavian Journal of Statistics 51, 963--989, 2024."
+    },
+    {
+      "key": "LuYangWang2025",
+      "citation": "Xin Lu, Fan Yang, and Yuhao Wang. Debiased Regression Adjustment in Completely Randomized Experiments with Moderately High-Dimensional Covariates. arXiv:2309.02073, version 3, 2025."
+    },
+    {
+      "key": "AtheyWager2021",
+      "citation": "Susan Athey and Stefan Wager. Policy Learning with Observational Data. Econometrica 89, 133--161, 2021."
+    },
+    {
+      "key": "WangZubizarreta2020",
+      "citation": "Yixin Wang and José R. Zubizarreta. Minimal Dispersion Approximately Balancing Weights: Asymptotic Properties and Practical Considerations. Biometrika 107, 93--105, 2020."
+    },
+    {
+      "key": "ChernozhukovEtAl2018DML",
+      "citation": "Victor Chernozhukov and coauthors. Double or Debiased Machine Learning for Treatment and Structural Parameters. Econometrics Journal 21, C1--C68, 2018."
+    },
+    {
+      "key": "AshrafKarlanYin2006",
+      "citation": "Nava Ashraf, Dean Karlan, and Wesley Yin. Tying Odysseus to the Mast: Evidence from a Commitment Savings Product in the Philippines. Quarterly Journal of Economics 121, 635--672, 2006."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "FangRidderXie2026",
+      "comparator_claim": "Theorem 4 gives \\(\\sqrt n(\\widehat\\theta^{ep}-\\theta^*)\\Rightarrow G\\) and \\(nR_\\lambda(\\widehat\\theta^{ep})\\Rightarrow G^\\top HG/2\\) in fixed policy dimension.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "strict_tightening"
+    },
+    {
+      "comparator_bibkey": "HiranoImbensRidder2003",
+      "comparator_claim": "Nonparametrically estimated-propensity IPW attains the semiparametric efficiency bound for the average treatment effect.",
+      "matched_by": "Proposition 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "SurCandes2019",
+      "comparator_claim": "The proportional logistic MLE has coordinate and norm limits governed by three scalar state parameters.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "CandesSur2020",
+      "comparator_claim": "Logistic-MLE existence has a sharp Gaussian proportional phase-transition curve.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ThrampoulidisAbbasiHassibi2018",
+      "comparator_claim": "A convex Gaussian \\(M\\)-estimator has a deterministic squared-error limit obtained from a finite scalar saddle problem.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "DaiYan2024",
+      "comparator_claim": "A quadratic approximate-balance constraint avoids infeasibility of high-dimensional exact balancing.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AmelunxenLotzMcCoyTropp2014",
+      "comparator_claim": "The approximate kinematic formula locates random cone-intersection transitions through statistical dimensions up to a square-root-dimensional window.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Hainmueller2012",
+      "comparator_claim": "Entropy balancing has an exponential-tilt dual whose optimum enforces exact covariate moments.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "ZhaoPercival2017",
+      "comparator_claim": "Entropy balancing is doubly robust and can attain semiparametric efficiency under fixed-dimensional model conditions.",
+      "matched_by": "Theorem 2",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LuYangWang2025",
+      "comparator_claim": "A debiased proportional regression adjustment admits a linear-plus-quadratic limit and feasible conservative inference.",
+      "matched_by": "Proposition 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "AtheyWager2021",
+      "comparator_claim": "Doubly robust policy scores support regret guarantees for empirical policy learning under observational sampling.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A binary randomized trial can use known-propensity IPW, certified exact entropy-balanced IPW with a uniform off-feasibility default, or oracle DR to learn a KL-regularized logistic assignment rule. Fixed-dimensional theory ranks sufficiently rich estimated-propensity criteria as efficient, but this ranking need not survive when the policy dimension is proportional to sample size. Population regret reduces exactly to the selected policy norm, and row-sign symmetrization makes the unconditional marginal true-IPW objective law gamma-free; this symmetry does not remove \\(\\gamma\\) from entropy balancing, oracle DR, cross-method dependence, or the phase diagram. The core derives the pooled-target balance threshold and asks for a joint deterministic tilt-policy system on the certified balance-and-rank event that retains same-sample overlaps, Jacobian responses, nonconcave global selection, and radius saturation. Every finite-sample objective and optimizer remains total through the harmless fallback and Moore--Penrose leverage convention. The system yields positive, zero, and negative HIR-dividend cells together with a total classifier that uses a certified branch, separate feasibility, radius, collision, and zero-dividend distances, and an estimable simultaneous radius to report a sign or \\(\\bot\\).",
+  "project_justification": {
+    "gap": "FangRidderXie2026 proves efficient penalized-policy regret only for a fixed finite-dimensional rule class, while proportional logistic theory and high-dimensional balancing theory study separate convex estimators. No published result jointly analyzes exact same-sample entropy tilts and the downstream global logistic-policy optimizer.",
+    "niche": "The proportional regime makes own-observation leverage, tilt-policy overlap, and tilt-Jacobian response terms order one; it also creates a sharp feasibility boundary and permits a reversal of the classical HIR regret ordering.",
+    "fill": "The project combines deformed-orthant conic geometry with a joint leave-one-out resolvent construction and a separate global-selection certificate, then maps the selected norms into exact regret and phase inference."
+  },
+  "related_work": "FangRidderXie2026 supplies the benchmark-lottery motivation, the fixed-dimensional regret law, and the rich-balance HIR comparison; Open-ended Question 1 targets the precise proportional gap identified in its conclusion. HiranoImbensRidder2003 supplies the classical score-projection mechanism, while Proposition 4 records why balancing only linear coordinates does not attain the full oracle projection here. SurCandes2019 reduces a single proportional logistic likelihood to scalar state evolution, and ThrampoulidisAbbasiHassibi2018 derives finite saddle systems for convex Gaussian estimators; the present pipeline is coupled and its policy objective is not globally concave. CandesSur2020 and AmelunxenLotzMcCoyTropp2014 provide the separation and statistical-dimension techniques adapted in Theorem 2 to an endogenous pooled target. Hainmueller2012 and ZhaoPercival2017 connect entropy duality, exact balance, and fixed-dimensional causal efficiency, whereas DaiYan2024 emphasizes that exact balance can fail in high dimension. LuYangWang2025 shows how order-one diagonal and off-diagonal leverage terms enter proportional randomized-trial adjustment, motivating the quadratic kill test without subsuming exponential same-sample weights. AtheyWager2021 supplies the oracle DR policy-score comparator. AshrafKarlanYin2006 supplies the commitment-savings application substrate, but the current Gaussian binary model is a calibration benchmark rather than a literal model of that three-arm trial.",
+  "technical_internal_limitation": "The row contribution \\(c\\{\\sigma(z)-1/2\\}-\\lambda h(z)\\) need not be concave in \\(z\\), so a stationary AMP equation or a direct convex-CGMT invocation does not certify the selected policy. Row-sign symmetrization identifies only the unconditional marginal law of the true-IPW random function; conditioning on the original design or coupling that function to entropy tilts, oracle DR, or branch certificates destroys the reduction needed for the joint phase calculation. The entropy-balanced quadratic identity contains the coherent term \\(\\|L_nD_nu_n\\|_2^2\\), which cannot be dropped or evaluated by replacing \\(D_n\\) with independent lognormal weights. Finite computations suggest both ranking reversal and radius-induced equality, but they neither prove asymptotic cells nor exclude optimizer collisions.",
+  "honest_scope": "The radial regret identity, unconditional marginal true-IPW gamma-invariance, deformed-orthant threshold calculation, fixed-dimensional score variances, and conditional quadratic identity are concrete derivation targets, but every numbered node remains to be proved. The true-IPW invariance is not conditional on \\(Q_n\\) or \\(A_n\\) and does not apply to entropy tilts, the \\(E\\) or \\(D\\) criteria, cross-method overlaps, branch or collision quantities, \\(r_E\\), \\(r_D\\), \\(\\Delta_{\\mathrm{HIR}}\\), or the phase vector \\(\\xi=(\\kappa,\\gamma,\\lambda,R)\\). The entropy weights, empirical objectives, leverage matrices, and deterministic global selectors are defined on every finite sample. The uniform arm weights used when strict feasibility fails are only a totality convention: all exact-balance identities and all asymptotic conclusions for method \\(E\\) are restricted to \\(\\mathcal E_{0n}\\cap\\mathcal E_{1n}\\cap\\mathcal Q_n\\), whose probability tends to one in the claimed interior regime. The principal open content is finite closure plus global uniqueness for the original same-sample entropy tilts and nonconcave policy optimizer on that certified event. The phase rule is defined everywhere but abstains at uncertified branches and within its simultaneous uncertainty radius of feasibility, zero-dividend, radius-contact, or collision boundaries; its uniform sign-consistency and simultaneous coverage claims apply to compact interior branch strata separated from all four boundaries and from the endpoints of the signal interval. Learned outcome regression, non-Gaussian covariates, heterogeneous effects, multiple arms, and a literal analysis of savings outcomes remain outside scope.",
+  "seeds": [
+    "Joint proportional HIR regret phase system",
+    "Exact pooled-target entropy-balance threshold",
+    "Proportional same-sample score-projection frontier",
+    "Regret-optimal approximate-balance tolerance",
+    "Phase-label limit law and collision inference",
+    "Universality of the HIR sign cells",
+    "Local minimax phase-classification frontier",
+    "Same-sample versus cross-fitted divergence frontier",
+    "Randomization-orbit inversion for learned-policy regret"
+  ],
+  "seed_details": [
+    {
+      "id": "seed-1",
+      "title": "Joint proportional HIR regret phase system",
+      "anchor": "FangRidderXie2026",
+      "anchor_location": "Introduction, Theorem 4, its score-expansion proof in Appendix C, and Section 8.",
+      "motif": "M16",
+      "target_tier": "field",
+      "first_changed_proof_step": "The bound \\(K/n=o(1)\\) used before the local score expansion becomes order one, so the entropy tilt, score, and policy optimizer must be solved jointly.",
+      "destination_search": "Searches combining proportional dimension, entropy balancing, KL policy regret, and same-sample weights found the component literatures but no joint deterministic regret theorem.",
+      "red_team": "Immediate from FangRidderXie2026 plus SurCandes2019 because both already provide regret and proportional state equations.",
+      "rebuttal": "The former is fixed-dimensional and the latter handles one concave likelihood; neither retains endogenous tilt-policy overlap or certifies a nonconcave global selector.",
+      "status": "selected after deep scan",
+      "rank": 1,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5
+      }
+    },
+    {
+      "id": "seed-2",
+      "title": "Exact pooled-target entropy-balance threshold",
+      "anchor": "DaiYan2024",
+      "anchor_location": "Introduction, dual quadratic-balance construction, high-dimensional theory, and conclusion.",
+      "motif": "none",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Replace generic statements of high-dimensional infeasibility by a strict-alternative reduction for the correlated rows \\(q_{ni}-\\bar q_n\\), then compute the statistical dimension of the deformed orthant.",
+      "destination_search": "Searches for pooled empirical targets, Gaussian convex hulls, and entropy-balance phase transitions found no formula matching \\(\\Phi(t_{\\mathrm{bal}})/2\\).",
+      "red_team": "Immediate from Wendel's theorem with threshold \\(p/n_a=1/2\\).",
+      "rebuttal": "The pooled target shares all rows with the arm hull, producing covariance \\(I-n^{-1}\\mathbf 1\\mathbf 1^\\top\\); the resulting threshold is approximately \\(0.30437\\), not \\(0.25\\).",
+      "status": "deepened but not selected",
+      "rank": 2,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 5,
+        "consumer_value": 4
+      }
+    },
+    {
+      "id": "seed-3",
+      "title": "Proportional same-sample score-projection frontier",
+      "anchor": "HiranoImbensRidder2003",
+      "anchor_location": "Introduction, efficiency theorem for estimated-propensity IPW, empirical-likelihood interpretation, and conclusion.",
+      "motif": "M11(b)",
+      "target_tier": "field",
+      "first_changed_proof_step": "The classical sieve projection is no longer deterministic because every balanced coordinate has order-one leverage and is reused by the policy optimizer.",
+      "destination_search": "Searches pairing same-sample entropy tilting with proportional policy scores found leverage analyses for regression adjustment but no policy-score projection operator.",
+      "red_team": "Immediate from the efficient influence function because estimated propensity and DR are asymptotically equivalent.",
+      "rebuttal": "Exact linear balance does not span the outcome-weighted logistic policy score, and its fixed-dimensional variance \\(1/16\\) is strictly above the oracle value \\(v_\\gamma/4\\).",
+      "status": "deepened but folded into the selected seed",
+      "rank": 3,
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4
+      }
+    },
+    {
+      "id": "seed-4",
+      "title": "Regret-optimal approximate-balance tolerance",
+      "anchor": "WangZubizarreta2020",
+      "anchor_location": "Introduction, minimal-dispersion duality and asymptotic theory, and conclusion.",
+      "motif": "M16",
+      "target_tier": "field",
+      "first_changed_proof_step": "Replace bias-dispersion tolerance selection for a fixed ATE by a joint tolerance response for both pseudo-outcomes and the selected policy norm.",
+      "destination_search": "The target-method search found approximate weighting and policy learning separately, but no tolerance-by-regret phase diagram.",
+      "red_team": "Immediate by cross-validating the balance tolerance in DaiYan2024.",
+      "rebuttal": "Prediction or imbalance tuning does not optimize population policy regret and cannot capture a discontinuity at feasibility or radius contact.",
+      "status": "ranked out because it adds a tuning coordinate before closing exact balance",
+      "rank": 4,
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      }
+    },
+    {
+      "id": "seed-5",
+      "title": "Phase-label limit law and collision inference",
+      "anchor": "SurCandes2019",
+      "anchor_location": "Introduction, Theorem 2, AMP state evolution in Section 4, and Section 5.",
+      "motif": "M11(c)",
+      "target_tier": "field",
+      "first_changed_proof_step": "A single smooth scalar state is replaced by a contrast of dependent globally selected branches with radius contact and possible collisions.",
+      "destination_search": "The search found feasible proportional inference for logistic MLEs and quadratic regression adjustment, but not phase labels for coupled optimized policies.",
+      "red_team": "Routine delta method after estimating \\(\\gamma\\).",
+      "rebuttal": "Only away from all boundaries is it routine; identifying and controlling collision and radius-contact moduli requires the new joint system.",
+      "status": "ranked out as a downstream theorem of seed 1",
+      "rank": 5,
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 5
+      }
+    },
+    {
+      "id": "seed-6",
+      "title": "Universality of the HIR sign cells",
+      "anchor": "SurCandes2019",
+      "anchor_location": "Non-Gaussian discussion in Section 2.7, AMP proof sketch in Section 4, and future directions in Section 5.",
+      "motif": "M16+M7",
+      "target_tier": "field",
+      "first_changed_proof_step": "A Lindeberg row replacement perturbs both arm tilts and every downstream policy score, so structural optimizer bounds must precede replacement.",
+      "destination_search": "Universality results cover single regularized estimators, while elliptical phase-transition results warn that feasibility geometry can change.",
+      "red_team": "Standard universality once the Gaussian fixed point is known.",
+      "rebuttal": "The endogenous pooled target and nonconvex downstream selector violate the separable single-estimator structure required by available replacement theorems.",
+      "status": "ranked out until the Gaussian kernel is closed",
+      "rank": 6,
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5
+      }
+    },
+    {
+      "id": "seed-7",
+      "title": "Local minimax phase-classification frontier",
+      "anchor": "FangRidderXie2026",
+      "anchor_location": "Sections 3 and 4 on quadratic regret and Section 8 on open growing-class theory.",
+      "motif": "M11(a)",
+      "target_tier": "field",
+      "first_changed_proof_step": "Local asymptotic normality for \\(\\gamma\\) must be composed with a transversality modulus for a selected high-dimensional regret branch.",
+      "destination_search": "No matched lower bound was found for classifying a HIR-dividend sign near a proportional policy-regret boundary.",
+      "red_team": "A routine two-point lower bound for estimating the scalar \\(\\gamma\\).",
+      "rebuttal": "The scalar reduction is valid only after proving branch stability; nevertheless, the converse would add little beyond the joint-system theorem.",
+      "status": "ranked out because the likely converse is derivative bookkeeping rather than the primary mathematical advance",
+      "rank": 7,
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 3
+      }
+    },
+    {
+      "id": "seed-8",
+      "title": "Same-sample versus cross-fitted divergence frontier",
+      "anchor": "ChernozhukovEtAl2018DML",
+      "anchor_location": "Introduction, orthogonal-score construction, Theorem 3.1 with its proof, and the sample-splitting discussion.",
+      "motif": "M2+M16",
+      "target_tier": "field",
+      "first_changed_proof_step": "Conditioning on training folds removes own-observation feedback, while full-sample entropy tilting retains diagonal leverage and Jacobian response.",
+      "destination_search": "The exact target-method search found cross-fitting theory and high-dimensional balancing but no derived frontier for optimized policy regret.",
+      "red_team": "Cross-fitting merely changes constants and is asymptotically equivalent.",
+      "rebuttal": "With \\(p/n\\to\\kappa>0\\), diagonal leverage is order one, so equivalence itself requires a derived vanishing-leverage frontier rather than an assertion.",
+      "status": "ranked out to avoid changing the three fixed comparators in the topic",
+      "rank": 8,
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 3
+      }
+    },
+    {
+      "id": "seed-9",
+      "title": "Randomization-orbit inversion for learned-policy regret",
+      "anchor": "AshrafKarlanYin2006",
+      "anchor_location": "Experimental design, primary savings results, heterogeneity discussion, and conclusion.",
+      "motif": "M17",
+      "target_tier": "subfield",
+      "first_changed_proof_step": "Recompute the entire learned rule over the assignment orbit and invert a regret-ranking statistic.",
+      "destination_search": "Permutation searches found policy evaluation and randomization inference, but exact inversion requires a sharp potential-outcome null absent from the present arm-invariant-mean model.",
+      "red_team": "The proposed orbit is invalid because equal conditional means do not make unit-level potential outcomes invariant to reassignment.",
+      "rebuttal": "The objection holds under the stated model; adding a sharp null would change the target rather than solve the given opportunity.",
+      "status": "dropped after red-team",
+      "rank": 9,
+      "scores": {
+        "direct_evidence": 2,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 1,
+        "consumer_value": 4
+      },
+      "anti_pattern_check": "Rejected rather than forcing an M17 seed through a stronger sharp-null assumption."
+    }
+  ],
+  "literature_map": [
+    {
+      "candidate": "seed-1",
+      "anchor": "FangRidderXie2026",
+      "adjacent_threads": "SurCandes2019 supplies AMP norm states; ThrampoulidisAbbasiHassibi2018 supplies a finite scalar saddle template; LuYangWang2025 supplies proportional leverage decompositions; AtheyWager2021 supplies the DR policy-score benchmark.",
+      "settled": "Fixed-dimensional efficient regret, single-convex-estimator proportional limits, and DR regret foundations are settled in their respective models.",
+      "unoccupied_pair": "No checked source treats exact same-sample entropy tilts followed by a globally selected KL-logistic policy with \\(p_n/n\\to\\kappa\\).",
+      "exemplars_used": "The motivation arc follows FangRidderXie2026; the finite-state strategy adapts SurCandes2019 and ThrampoulidisAbbasiHassibi2018; the early quadratic decomposition adapts LuYangWang2025."
+    },
+    {
+      "candidate": "seed-2",
+      "anchor": "DaiYan2024",
+      "adjacent_threads": "Hainmueller2012 supplies primal-dual entropy balance; ZhaoPercival2017 supplies fixed-dimensional feasibility and efficiency; CandesSur2020 and AmelunxenLotzMcCoyTropp2014 supply separation and conic phase geometry.",
+      "settled": "Exact-balance duality and general Gaussian cone kinematics are settled, but the causal pooled-target cone is not tabulated.",
+      "unoccupied_pair": "No closer paper located the correlated pooled-target threshold \\(\\kappa_{\\mathrm{bal}}\\).",
+      "exemplars_used": "The writing arc follows DaiYan2024, while the proof construction adapts strict alternatives and statistical dimension from the conic exemplars."
+    },
+    {
+      "candidate": "seed-3",
+      "anchor": "HiranoImbensRidder2003",
+      "adjacent_threads": "FangRidderXie2026 transfers HIR to policy regret; ZhaoPercival2017 and Hainmueller2012 connect balance to score cancellation; ChernozhukovEtAl2018DML supplies the cross-fitted benchmark; LuYangWang2025 isolates order-one leverage.",
+      "settled": "Full efficient projection is settled when the balancing sieve is sufficiently rich and low-dimensional relative to sample size.",
+      "unoccupied_pair": "The same-sample proportional projection with only exact linear coordinates remains uncharacterized and need not equal oracle DR.",
+      "exemplars_used": "The operator interpretation adapts the HIR projection, and the own-observation terms adapt the linear-plus-quadratic leverage decomposition."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Fang, Ridder, and Xie",
+      "year": 2026,
+      "venue": "arXiv Econometrics",
+      "bibkey": "FangRidderXie2026",
+      "one_line": "Theorem 4 and its proof establish fixed-dimensional efficient regret for sufficiently rich estimated-propensity balance, while Section 8 leaves growing classes open.",
+      "relevant_to": "oeq:joint-phase-system"
+    },
+    {
+      "author": "Sur and Candès",
+      "year": 2019,
+      "venue": "Proceedings of the National Academy of Sciences",
+      "bibkey": "SurCandes2019",
+      "one_line": "Theorem 2 and Section 4 reduce one proportional Gaussian logistic MLE to a unique low-dimensional state evolution.",
+      "relevant_to": "oeq:joint-phase-system"
+    },
+    {
+      "author": "Candès and Sur",
+      "year": 2020,
+      "venue": "Annals of Statistics",
+      "bibkey": "CandesSur2020",
+      "one_line": "Gaussian separation geometry produces a sharp logistic-MLE existence boundary but not the endogenous pooled-target balance cone.",
+      "relevant_to": "thm:balance-threshold"
+    },
+    {
+      "author": "Amelunxen, Lotz, McCoy, and Tropp",
+      "year": 2014,
+      "venue": "Information and Inference",
+      "bibkey": "AmelunxenLotzMcCoyTropp2014",
+      "one_line": "The approximate kinematic formula and metric characterization of statistical dimension supply the geometric engine for the threshold.",
+      "relevant_to": "thm:balance-threshold"
+    },
+    {
+      "author": "Hirano, Imbens, and Ridder",
+      "year": 2003,
+      "venue": "Econometrica",
+      "bibkey": "HiranoImbensRidder2003",
+      "one_line": "Estimated-propensity IPW achieves the ATE efficiency bound through an empirical-likelihood score projection in the classical regime.",
+      "relevant_to": "prop:fixed-dimensional-reduction"
+    },
+    {
+      "author": "Dai and Yan",
+      "year": 2024,
+      "venue": "Scandinavian Journal of Statistics",
+      "bibkey": "DaiYan2024",
+      "one_line": "Mahalanobis balance makes high-dimensional exact-balance infeasibility a primary obstacle and replaces many equalities by one quadratic tolerance.",
+      "relevant_to": "thm:balance-threshold"
+    },
+    {
+      "author": "Lu, Yang, and Wang",
+      "year": 2025,
+      "venue": "arXiv Statistics Methodology",
+      "bibkey": "LuYangWang2025",
+      "one_line": "The proportional regression-adjustment expansion retains linear and quadratic leverage components and develops feasible inference for them.",
+      "relevant_to": "prop:quadratic-identity"
+    },
+    {
+      "author": "Athey and Wager",
+      "year": 2021,
+      "venue": "Econometrica",
+      "bibkey": "AtheyWager2021",
+      "one_line": "Orthogonal doubly robust policy scores connect value estimation to regret and define the oracle comparator used here.",
+      "relevant_to": "oeq:joint-phase-system"
+    }
+  ],
+  "novelty_justification": "The closest result is Theorem 4 of FangRidderXie2026, whose proof requires a balancing dimension satisfying \\(K/n=o(1)\\) and a fixed-dimensional local optimizer. The proposed kernel instead fixes \\(p_n/n\\to\\kappa>0\\), uses the same Gaussian rows to estimate two exact entropy tilts and a downstream policy, and requires a global-selection certificate because the logistic parameterization makes the empirical policy objective nonconcave. SurCandes2019 and ThrampoulidisAbbasiHassibi2018 do not subsume this kernel: they analyze one estimator, and the latter relies on convexity. The pooled target also changes exact-balance geometry, yielding \\(\\kappa_{\\mathrm{bal}}=\\Phi(t_{\\mathrm{bal}})/2\\) rather than the independent-origin Wendel value. The strict delta is an answer-open phase partition in which the sign of \\(r_T-r_E\\) can be positive, zero through radius saturation, or negative; fixed-dimensional HIR theory permits only the first ranking under its rich-sieve conditions."
+}

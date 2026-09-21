@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import Causalean.Experimentation.DesignBased.ProductMeasure
-import Mathlib.Probability.Moments.SubGaussian
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import Causalean.Stat.FiniteDesign.ProductMeasure
+public import Mathlib.Probability.Moments.SubGaussian
 
 /-! Contrast-score moments and the explicit clipped-shrinkage procedure. -/
+
+@[expose] public section
 
 open scoped BigOperators
 

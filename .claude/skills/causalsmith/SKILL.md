@@ -96,6 +96,11 @@ stop even in `--auto`, reporting burned levers, the fallback, and remaining choi
 the sub "never ask / fully autonomous" (it fights the bounce point). Never lower tier to manufacture
 acceptance. Record the selection summary in the first decision-log entry.
 
+**User-supplied topic (`--propose <topic> <qid> <spec>`):** skip selection and the gate, but still run
+the `causalsmith-topics` § "Bounded presolve" (`gpt-6-astra`, `xhigh`) on the user's topic before
+launching. `launch` → embed its capsule in the anchor and launch. `pivot`/`drop` → report the verbatim
+receipt to the user and stop; their topic is never silently changed. Skip on `--resume` and `--upgrade`.
+
 ## Handling escalations
 
 Every escalation carries **verbatim receipts** (the reviewer phrase, the `.tex` line). Missing receipts
@@ -262,7 +267,7 @@ lease-return escalation).
 | *(none, or a bare area/interest)* | No qid to parse: § "Topic selection" first, then launch the form it returns. |
 | `<qid> <spec>` | Cold start. |
 | `--resume <qid> <spec>` | Resume after a checkpoint or block. |
-| `--propose <topic> <qid> <spec>` | Run with D-1 proposal first. |
+| `--propose <topic> <qid> <spec>` | Presolve the topic (§ "Topic selection"), then run with D-1 proposal first. |
 | `--propose <topic> --novelty <tier> --upgrade <parent_qid>_<parent_spec> --upgrade-axis <axis> <qid> <spec>` | Upgrade a banked parent; `<tier>` ≥ the parent's `banked_novelty_tier` (equal allowed — the delta is enforced by the D0.5 `upgrade_axis` rubric). |
 | `--downgrade-tier <tier> <qid> <spec>` | Accept an achieved lower tier after `terminal:below-floor`: lowers the floor, re-passes D0.5, continues per `--auto`. `<tier>` must be strictly below the current floor and ≤ the reviewer-assessed tier. |
 | `--angle-action <continue\|switch\|retry\|give-up> <qid> <spec>` | Resolve a persisted D-0.5 checkpoint; `retry --extra-revisions N`; add `--angle-directive <text\|->` to persist a repair. |

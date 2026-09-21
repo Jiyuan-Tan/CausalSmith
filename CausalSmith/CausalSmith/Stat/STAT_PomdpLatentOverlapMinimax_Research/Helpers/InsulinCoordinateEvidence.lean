@@ -1,5 +1,8 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCoordinateEvidenceFalse
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCoordinateEvidenceTrue
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCoordinateEvidenceFalse
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinCoordinateEvidenceTrue
+
+public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

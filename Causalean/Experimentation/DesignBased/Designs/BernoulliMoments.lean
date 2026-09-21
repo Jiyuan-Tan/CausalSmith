@@ -20,8 +20,9 @@ energy of the coefficients, and a statistic that only looks at a block of units 
 supported on the subsets of that block.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.Bernoulli
-import Causalean.Experimentation.DesignBased.ProductBlock
+module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Causalean.Experimentation.DesignBased.ProductBlock
 
 /-! # Product moments and centered monomials of the Bernoulli design
 
@@ -36,6 +37,8 @@ It then develops the centered-monomial (Walsh/Fourier) expansion of an arbitrary
 `exists_centeredMonomial_expansion` (completeness), `bernoulliDesign_E_sq_of_expansion`
 (Parseval), and the coefficient-support facts `centeredMonomial_coef_empty_eq_zero` and
 `centeredMonomial_coef_eq_zero_of_not_subset` for statistics satisfying `DependsOnBlock`. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -276,9 +279,9 @@ theorem bernoulliDesign_E_centeredMonomial_mul_treatInd_prod (p : U → ℝ) (hp
 /-! ### The centered-monomial expansion -/
 
 omit [DecidableEq U] in
-/-- **Completeness of the centered-monomial basis.** Every real-valued statistic of a Bernoulli
-assignment can be written as a linear combination of the centered monomials indexed by the subsets
-of the population — the design-based Fourier (Walsh) expansion of the statistic. -/
+/-- For [a vector of Bernoulli assignment probabilities](hyp:p) and [a real-valued assignment
+statistic](hyp:F), [there is a coefficient for every population subset giving an exact
+centered-monomial expansion of the statistic](goal). -/
 lemma exists_centeredMonomial_expansion (p : U → ℝ) (F : (U → Bool) → ℝ) :
     ∃ a : Finset U → ℝ, ∀ z,
       F z = ∑ S ∈ (Finset.univ : Finset U).powerset, a S * centeredMonomial p S z := by
@@ -325,10 +328,11 @@ lemma exists_centeredMonomial_expansion (p : U → ℝ) (F : (U → Bool) → �
       rw [Finset.sum_mul]
       exact Finset.sum_congr rfl fun w _ => by ring
 
-/-- **Parseval's identity for the Bernoulli design.** Once a statistic is written in the
-centered-monomial basis, its second moment is the sum over subsets of the squared coefficient times
-the product of the per-unit assignment variances on that subset — the basis is orthogonal, so no
-cross terms survive. -/
+/-- For [a vector of assignment probabilities](hyp:p) that is [coordinatewise nonnegative and at
+most one](hyp:hp0,hp1), [a real-valued assignment statistic](hyp:F), [centered-monomial
+coefficients](hyp:a), and [an exact expansion using those coefficients](hyp:ha), [the statistic's
+Bernoulli-design second moment equals the sum of coefficient squares weighted by the corresponding
+products of assignment variances](goal). -/
 theorem bernoulliDesign_E_sq_of_expansion (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (F : (U → Bool) → ℝ) (a : Finset U → ℝ)
     (ha : ∀ z, F z = ∑ S ∈ (Finset.univ : Finset U).powerset, a S * centeredMonomial p S z) :

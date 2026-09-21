@@ -1,6 +1,7 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderPruning
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankAssembly
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderPruning
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankAssembly
 
 /-!
 # Compatible-representation bookkeeping
@@ -10,6 +11,11 @@ representation argument.  The remaining analytic step is the componentwise coord
 identification from the common law-selected ranks.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory Set
 
 noncomputable section
@@ -18,7 +24,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 /-- The scalar rank chart selected by an intervention CDF and the prescribed ratio-score sign. -/
 def signedInterventionCDF
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (i : Fin n) (z : ℝ) : ℝ :=
   if s.value i = 1 then interventionCDF θ i z else 1 - interventionCDF θ i z
 
@@ -26,7 +32,7 @@ def signedInterventionCDF
 /-- Strict positivity of the intervention density makes its CDF strictly increasing on the
 latent interval.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma interventionCDF_strictMonoOn
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (hpos : PositiveNormalizedSmoothMechanisms G θ) (i : Fin n) :
     StrictMonoOn (interventionCDF θ i) (Set.Icc (0 : ℝ) 1) := by
   intro a ha b hb hab
@@ -57,7 +63,7 @@ lemma interventionCDF_strictMonoOn
 /-- Reflection for a negative score sign preserves injectivity of the scalar intervention-CDF
 chart.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma signedInterventionCDF_injOn
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ) (i : Fin n) :
     Set.InjOn (signedInterventionCDF s θ i) (Set.Icc (0 : ℝ) 1) := by
   intro a ha b hb heq
@@ -72,7 +78,7 @@ lemma signedInterventionCDF_injOn
 /-- The probability-family packaging, selected order, and rank coordinates are literally shared
 by representations whose supplied law families are equal.  Given [the stated inputs and conditions](hyp:hlaw), [the stated conclusion](goal) follows. -/
 lemma observedProbabilityLawFamily_eq_of_law_eq
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hlaw : W₂.law = W₁.law) :
@@ -83,7 +89,7 @@ lemma observedProbabilityLawFamily_eq_of_law_eq
 /-- Compatible smooth observed worlds with the same observational law have the same observed
 support.  Given [the stated inputs and conditions](hyp:hpos₁,hmix₁,hone₁,hpos₂,hmix₂,hone₂,hlaw), [the stated conclusion](goal) follows. -/
 lemma observedSupport_eq_of_observationalLaw_eq
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hpos₁ : PositiveNormalizedSmoothMechanisms G₁ θ₁)
@@ -102,7 +108,7 @@ lemma observedSupport_eq_of_observationalLaw_eq
 /-- Equality of environment-label graphs gives graph isomorphism under the intervention-target
 alignment permutation.  Given [the stated inputs and conditions](hyp:hgraph), [the stated conclusion](goal) follows. -/
 lemma aligned_edge_iff_of_permutedGraph_eq
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hgraph : permutedGraph G₁ W₁ = permutedGraph G₂ W₂) :
@@ -119,7 +125,7 @@ lemma aligned_edge_iff_of_permutedGraph_eq
 /-- If law-only exact pruning identifies both representations' parent relations, their latent
 graphs align by the target permutation.  Given [the stated inputs and conditions](hyp:hprune₁,hprune₂), [the stated conclusion](goal) follows. -/
 lemma aligned_edge_iff_of_common_exactPruning
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (laws : ObservedProbabilityLawFamily n)
@@ -146,7 +152,7 @@ lemma aligned_edge_iff_of_common_exactPruning
 ratio graph and, once the reference transitive closure is identified, the reference graph too.
 No cover-separation premise is required for the competitor.  Given [the stated inputs and conditions](hyp:hpos₂,hmix₂,hone₂,hlaw,htc₁), [the stated conclusion](goal) follows. -/
 lemma competitorTopologicalOrder_is_common_of_law_eq
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {s : SignVector n} {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hpos₂ : PositiveNormalizedSmoothMechanisms G₂ θ₂)
@@ -185,7 +191,7 @@ lemma competitorTopologicalOrder_is_common_of_law_eq
     exact Relation.TransGen.single hji
   have hedge₂ : ∀ ⦃j i⦄, permutedGraph G₂ W₂ j i → order j < order i := by
     intro j i hji
-    exact G₂.isAncestor_topoOrder_lt (Causalean.DAG.isAncestor.edge hji)
+    exact G₂.isAncestor_topoOrder_lt (DAG.isAncestor.edge hji)
   refine ⟨⟨hinj, hratio⟩, hedge₁, hedge₂, ?_, ?_⟩
   · intro j i hji
     simpa [predecessorSet, order] using hedge₁ (by
@@ -198,7 +204,7 @@ lemma competitorTopologicalOrder_is_common_of_law_eq
 /-- Two representations realizing the same law-only rank coordinate have equal signed scalar
 intervention-CDF coordinates at every common support point.  Given [the stated inputs and conditions](hyp:hmix₁,hmix₂,hrank₁,hrank₂,hx₁,hx₂), [the stated conclusion](goal) follows. -/
 lemma signedInterventionCDF_eq_of_common_rank
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {s : SignVector n} {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hmix₁ : SharedDiffeomorphicMixing G₁ θ₁ W₁)
@@ -233,7 +239,7 @@ lemma signedInterventionCDF_eq_of_common_rank
 both worlds realize the common law-only rank.  This is the componentwise-dependence leaf of the
 representation argument.  Given [the stated inputs and conditions](hyp:hmix₁,hpos₂,hmix₂,hrank₁,hrank₂,hx₁,hx₂,hy₁,hy₂,hcoord), [the stated conclusion](goal) follows. -/
 lemma alignedCoordinate_eq_of_common_rank
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     {s : SignVector n} {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hmix₁ : SharedDiffeomorphicMixing G₁ θ₁ W₁)
@@ -277,7 +283,7 @@ lemma alignedCoordinate_eq_of_common_rank
 closures, the assembled equation-(11)--(12) rank formula identifies their signed scalar CDF
 coordinates pointwise on the common support.  Given [the stated inputs and conditions](hyp:hpos₁,hmix₁,hone₁,hsign₁,hpos₂,hmix₂,hone₂,hsign₂,hlaw,htc₁,htc₂,horder,hx₁,hx₂), [the stated conclusion](goal) follows. -/
 lemma signedInterventionCDF_eq_of_common_law_and_transitiveClosures
-    {n : ℕ} {G₁ G₂ : Causalean.DAG (Fin n)}
+    {n : ℕ} {G₁ G₂ : DAG (Fin n)}
     (s : SignVector n) {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂)
     (hpos₁ : PositiveNormalizedSmoothMechanisms G₁ θ₁)

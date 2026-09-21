@@ -1,3 +1,6 @@
+module
+public import FoML.Defs
+
 /-!
 # Work In Progress: Rademacher sign properties
 
@@ -5,7 +8,7 @@ This module is currently not imported from `FoML.Main`.
 It is kept under `FoML/WIP` while the development is ongoing.
 -/
 
-import FoML.Defs
+@[expose] public section
 
 open Real Function
 open scoped ENNReal

@@ -42,10 +42,13 @@ The centered half renormalizes the fold-B centered empirical-process bound by
 the extra `(√|B|)⁻¹ → 0` factor.
 -/
 
-import Causalean.Estimation.PLR.Feasible
-import Causalean.Stat.SampleSplit.FoldBWLLN
-import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
-import Causalean.Stat.Limit.Convergence
+module
+public import Causalean.Estimation.PLR.DML
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.Limit.StochasticOrder
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+public import Causalean.Stat.SampleSplit.FoldBWLLN
 
 /-! # Fold-B partialling-out Jacobian consistency
 
@@ -53,6 +56,8 @@ This file proves that the empirical Jacobian of the partially linear
 partialling-out score, averaged over the estimation fold, converges in probability
 to its population value. It supplies the Jacobian-consistency condition needed by
 the feasible partially linear double-machine-learning asymptotic-normality result. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -74,7 +79,7 @@ Change of variables `∫ · dP_Z = ∫ · ∘ (X,D,Y) dμ`, then the pointwise i
 `mₐ(η₀, z) = −(z.d − m_val(z.x))²` and the `residSecondMoment` / `J₀`
 definitions. -/
 lemma integral_plrMomentA_η₀_eq_J₀ (S : PLRSystem P γ) :
-    ∫ z, plrMomentA S.η₀ z ∂S.P_Z = S.plrGeneralMoment.J₀ := by
+    ∫ z, plrMomentA S.η₀ z ∂S.P_Z = S.plrGeneralMoment.linScale := by
   rw [S.integral_P_Z (measurable_plrMomentA S.η₀)]
   change ∫ ω, plrMomentA S.η₀ (S.factualZ ω) ∂P.μ = -S.residSecondMoment
   rw [residSecondMoment, ← integral_neg]
@@ -165,26 +170,14 @@ lemma integral_plrMomentA_diff_eq (S : PLRSystem P γ)
   rw [hcross_zero]
   simp only [hΔm_def, mul_zero, zero_sub]
 
-/-- An `o_p(1)` sequence converges in probability to `0`.  (The reverse of
-`Tendsto_inProb.isLittleOp_one`; both unfold to the vanishing of the deviation-set
-measures, differing only between strict `<` at threshold `ε·1` and weak `≤` at
-threshold `ε`.) -/
-private lemma tendsto_inProb_zero_of_isLittleOp_one {Xn : ℕ → P.Ω → ℝ}
+/-- An `o_p(1)` sequence converges in probability to `0`. The shared row-varying
+hub uses weak tail events, while the legacy fixed-space stochastic-order
+predicate uses strict tail events. -/
+private lemma tendstoInProbability_zero_of_isLittleOp_one {Xn : ℕ → P.Ω → ℝ}
     (h : IsLittleOp Xn (fun _ => (1 : ℝ)) P.μ) :
-    Tendsto_inProb Xn (fun _ => 0) P.μ := by
-  unfold Tendsto_inProb
-  rw [tendstoInMeasure_iff_norm]
-  intro ε hε
-  -- `h (ε/2)` controls the strict-`<` tail at threshold `ε/2`, which contains the
-  -- weak-`≤` tail at threshold `ε`.
-  have ht := h (ε / 2) (by linarith)
-  refine tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds ht
-    (fun _ => zero_le) ?_
-  intro n
-  apply measure_mono
-  intro ω hω
-  simp only [Set.mem_setOf_eq, Real.norm_eq_abs, sub_zero, mul_one] at hω ⊢
-  linarith [hω]
+    Modes.TendstoInProbability (fun _ => P.μ) Xn atTop (fun _ _ => 0) := by
+  rw [Modes.tendstoInProbability_zero_iff_isLittleOpF_one]
+  exact h
 
 /-- The squared L²(P_X) magnitude of the treatment-regression error coincides with
 the `μ`-integral of the squared pulled-back error:
@@ -237,8 +230,9 @@ $J_0=-E[(D-m_{val}(X))^2]$](goal):
 
     Pₙmₐ(η̂) = |B(n)|⁻¹ Σ_{i ∈ B(n)} mₐ(η̂(n,ω), Zᵢ)  →ₚ  J₀.
 
-This supplies the `hJ_consist` hypothesis of `plr_dml_feasible_tendstoNormal`
-from primitive L²-rate, integrability, and fold-B empirical-process assumptions.
+This supplies the `hJ_consist` hypothesis of
+`plr_dml_feasible_tendstoNormal_of_jacobianConsistency` from primitive L²-rate,
+integrability, and fold-B empirical-process assumptions.
 
 The truth-Jacobian average converges to `J₀` by the fold-B weak law of large numbers
 (applied to the fixed statistic `mₐ(η₀, ·)`).  The increment between the estimated and
@@ -272,7 +266,7 @@ theorem plr_jacobian_consistency
           (eLpNorm (fun x => S.mVal x - (η_hat n ω).mFn x) 2 S.P_X).toReal)
         (fun _ => (1 : ℝ)) P.μ)
     -- Fold-A measurability of the partialling-out-moment increment (mirroring the
-    -- `h_m_foldA`-style hypotheses of `plr_dml_isAsymLinear`: `η̂` is fold-A trained).
+    -- `h_m_foldA`-style hypotheses of `plr_oneStepOracleDML_isAsymLinear`: `η̂` is fold-A trained).
     (hΔa_meas :
       ∀ n, Measurable (Function.uncurry
         (fun ω z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z)))
@@ -299,10 +293,10 @@ theorem plr_jacobian_consistency
         (fun n ω =>
           (eLpNorm (fun z => plrMomentA (η_hat n ω) z - plrMomentA S.η₀ z) 2 S.P_Z).toReal)
         (fun _ => (1 : ℝ)) P.μ) :
-    Tendsto_inProb
+    Modes.TendstoInProbability (fun _ => P.μ)
       (fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
         ∑ i ∈ split.foldB n, plrMomentA (η_hat n ω) (sample.Z i ω))
-      (fun _ => S.plrGeneralMoment.J₀) P.μ := by
+      atTop (fun _ _ => S.plrGeneralMoment.linScale) := by
   classical
   -- Abbreviations: the truth statistic `g₀`, the truth-Jacobian average `Y₀`, and the
   -- target `Yn`.
@@ -311,9 +305,10 @@ theorem plr_jacobian_consistency
     ∑ i ∈ split.foldB n, plrMomentA (η_hat n ω) (sample.Z i ω) with hYn_def
   set Y₀ : ℕ → P.Ω → ℝ := fun n ω => ((split.foldB n).card : ℝ)⁻¹ *
     ∑ i ∈ split.foldB n, g₀ (sample.Z i ω) with hY₀_def
-  set J₀ : ℝ := S.plrGeneralMoment.J₀ with hJ₀_def
+  set J₀ : ℝ := S.plrGeneralMoment.linScale with hJ₀_def
   -- STEP 2: `Y₀ →ₚ J₀` by the fold-B WLLN, with the limit rewritten by step 1.
-  have hY₀_lim : Tendsto_inProb Y₀ (fun _ => J₀) P.μ := by
+  have hY₀_lim : Modes.TendstoInProbability (fun _ => P.μ) Y₀ atTop
+      (fun _ _ => J₀) := by
     have hwlln := OneShotSplit.foldB_sampleMean_tendsto_inProb sample split
       (measurable_plrMomentA S.η₀) hg0_memLp
     have hint : ∫ z, g₀ z ∂S.P_Z = J₀ := S.integral_plrMomentA_η₀_eq_J₀
@@ -332,21 +327,24 @@ theorem plr_jacobian_consistency
   set rateM : ℕ → P.Ω → ℝ := fun n ω =>
     (eLpNorm (fun x => S.mVal x - (η_hat n ω).mFn x) 2 S.P_X).toReal with hrateM_def
   have hrateM_lo : IsLittleOp rateM (fun _ => (1 : ℝ)) P.μ := h_m_rate
-  have hrateM_inProb : Tendsto_inProb rateM (fun _ => 0) P.μ :=
-    tendsto_inProb_zero_of_isLittleOp_one hrateM_lo
-  have hrateMsq_inProb : Tendsto_inProb (fun n ω => (rateM n ω) ^ 2) (fun _ => 0) P.μ := by
+  have hrateM_inProb : Modes.TendstoInProbability (fun _ => P.μ) rateM atTop
+      (fun _ _ => 0) := tendstoInProbability_zero_of_isLittleOp_one hrateM_lo
+  have hrateMsq_inProb : Modes.TendstoInProbability (fun _ => P.μ)
+      (fun n ω => (rateM n ω) ^ 2) atTop (fun _ _ => 0) := by
     have hcont : ContinuousAt (fun x : ℝ => x ^ 2) (0 : ℝ) :=
       (continuous_pow 2).continuousAt
-    have := hrateM_inProb.comp_continuousAt (g := fun x : ℝ => x ^ 2) hcont
+    have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hrateM_inProb
     simpa using this
-  have hbias_inProb : Tendsto_inProb bias (fun _ => 0) P.μ := by
+  have hbias_inProb : Modes.TendstoInProbability (fun _ => P.μ) bias atTop
+      (fun _ _ => 0) := by
     have heq : bias = fun n ω => -((rateM n ω) ^ 2) := by
       funext n ω; rw [hbias_eq n ω, hrateM_def]
     rw [heq]
     have hcont : ContinuousAt (fun x : ℝ => -x) (0 : ℝ) := (continuous_neg).continuousAt
-    have := hrateMsq_inProb.comp_continuousAt (g := fun x : ℝ => -x) hcont
+    have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hrateMsq_inProb
     simpa using this
-  have hbias_lo : IsLittleOp bias (fun _ => (1 : ℝ)) P.μ := hbias_inProb.isLittleOp_one
+  have hbias_lo : IsLittleOp bias (fun _ => (1 : ℝ)) P.μ :=
+    Causalean.Stat.Tendsto_inProb.isLittleOp_one hbias_inProb
   -- The "effective" bias `(|B|⁻¹·|B|)·bias` — equal to `bias` on nonempty folds and `0`
   -- on empty folds — so that the pointwise decomposition below holds for ALL `n`.  Its
   -- `{0,1}`-valued prefactor leaves it `o_p(1)`.
@@ -388,7 +386,8 @@ theorem plr_jacobian_consistency
       with hcenteredSqrt_def
     -- `centeredSqrt` is `O_p(1)` (it converges in probability to `0`).
     have hcenteredSqrt_bigO : IsBigOp centeredSqrt (fun _ => (1 : ℝ)) P.μ :=
-      (tendsto_inProb_zero_of_isLittleOp_one hsqrt_centered).isBigOp_one
+      Causalean.Stat.Tendsto_inProb.isBigOp_one
+        (tendstoInProbability_zero_of_isLittleOp_one hsqrt_centered)
     -- The deterministic factor `(√|B(n)|)⁻¹ → 0`, since `|B(n)| → ∞`.
     have ha_tendsto :
         Tendsto (fun n => (Real.sqrt ((split.foldB n).card : ℝ))⁻¹) atTop (𝓝 0) := by
@@ -448,23 +447,26 @@ theorem plr_jacobian_consistency
       funext n ω; exact hYn_sub_Y₀ n ω
     rw [heq]
     exact IsLittleOp.add_one hcentered_lo hbiasEff_lo
-  -- STEP 4: `Yn − J₀ = (Yn − Y₀) + (Y₀ − J₀)`, both `o_p(1)`; back to `Tendsto_inProb`.
+  -- STEP 4: `Yn − J₀ = (Yn − Y₀) + (Y₀ − J₀)`, both `o_p(1)`; return to convergence in probability.
   have hY₀_sub_lo : IsLittleOp (fun n ω => Y₀ n ω - J₀) (fun _ => (1 : ℝ)) P.μ :=
-    hY₀_lim.sub_const.isLittleOp_one
+    Causalean.Stat.Tendsto_inProb.isLittleOp_one
+      (Causalean.Stat.Tendsto_inProb.sub_const hY₀_lim)
   have hYn_sub_J₀_lo : IsLittleOp (fun n ω => Yn n ω - J₀) (fun _ => (1 : ℝ)) P.μ := by
     have heq : (fun n ω => Yn n ω - J₀)
         = fun n ω => (Yn n ω - Y₀ n ω) + (Y₀ n ω - J₀) := by
       funext n ω; ring
     rw [heq]
     exact IsLittleOp.add_one hYn_sub_Y₀_lo hY₀_sub_lo
-  -- Convert `IsLittleOp (Yn − J₀) 1` back into `Tendsto_inProb Yn J₀`.
-  have hYn_sub_inProb : Tendsto_inProb (fun n ω => Yn n ω - J₀) (fun _ => 0) P.μ :=
-    tendsto_inProb_zero_of_isLittleOp_one hYn_sub_J₀_lo
+  -- Convert `IsLittleOp (Yn − J₀) 1` back into convergence in probability.
+  have hYn_sub_inProb : Modes.TendstoInProbability (fun _ => P.μ)
+      (fun n ω => Yn n ω - J₀) atTop (fun _ _ => 0) :=
+    tendstoInProbability_zero_of_isLittleOp_one hYn_sub_J₀_lo
   -- `Yn = (Yn − J₀) + J₀`, so `Yn →ₚ J₀`.
-  have hfinal : Tendsto_inProb Yn (fun _ => J₀) P.μ := by
+  have hfinal : Modes.TendstoInProbability (fun _ => P.μ) Yn atTop
+      (fun _ _ => J₀) := by
     have hcont : ContinuousAt (fun x : ℝ => x + J₀) (0 : ℝ) :=
       (continuous_add_const J₀).continuousAt
-    have := hYn_sub_inProb.comp_continuousAt (g := fun x : ℝ => x + J₀) hcont
+    have := Causalean.Stat.Tendsto_inProb.comp_continuousAt hcont hYn_sub_inProb
     simpa using this
   exact hfinal
 

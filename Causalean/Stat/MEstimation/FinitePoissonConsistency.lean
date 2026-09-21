@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.MEstimation.ArgmaxStability
-import Causalean.Stat.MEstimation.FinitePoisson
-import Mathlib.Algebra.BigOperators.Field
-import Mathlib.Topology.Sequences
+module
+public import Causalean.Stat.MEstimation.ArgmaxStability
+public import Causalean.Stat.MEstimation.FinitePoisson
+public import Mathlib.Algebra.BigOperators.Field
+public import Mathlib.Topology.Sequences
 
 /-!
 # Consistency and continuity of finite Poisson projections
@@ -16,6 +17,8 @@ This module proves uniform convergence of finite Poisson objectives, compact
 containment and convergence of their maximizers, and continuity of the selected
 maximizer under perturbations of the finite mean vector.
 -/
+
+public section
 
 open scoped BigOperators Topology
 open Filter

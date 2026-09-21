@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.Separability
-import Causalean.Stat.Concentration.Covering.EuclideanRadialPolynomial
-import Causalean.Stat.Concentration.VarianceAdaptiveVCExpectedMaximal.Basic
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.Separability
+public import Causalean.Stat.Concentration.VC.RadialPolynomial
+public import Causalean.Stat.Concentration.VC.BasicVarianceAdaptiveVCExpectedMaximal
 
 /-!
 # Radial covering adapter for the winsorized score
@@ -11,6 +12,8 @@ keeps the strict and non-strict signed arms separate, including the radius-zero
 trace, so it remains uniform for empirical laws with atoms on moving
 boundaries.
 -/
+
+public section
 
 open Causalean.Stat.Concentration
 open Causalean.Stat.Concentration.EuclideanRadialPolynomial

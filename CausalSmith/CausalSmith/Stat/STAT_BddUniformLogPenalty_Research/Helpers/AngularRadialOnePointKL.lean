@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialKL
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAssembly
-import Mathlib.MeasureTheory.Function.AEEqOfIntegral
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialKL
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAssembly
+public import Mathlib.MeasureTheory.Function.AEEqOfIntegral
 
 /-!
 # One-point KL bound for the angular radial construction
@@ -8,6 +9,8 @@ import Mathlib.MeasureTheory.Function.AEEqOfIntegral
 This module supplies the paper-local common-radius kernel representation and
 the quantitative exceptional-radius estimate used by the angular packing.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

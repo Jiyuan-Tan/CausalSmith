@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.Topology.MetricSpace.UniformConvergence
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.Topology.MetricSpace.UniformConvergence
 
 /-!
 # Finite-measure integration under uniform convergence
@@ -13,6 +14,8 @@ import Mathlib.Topology.MetricSpace.UniformConvergence
 This file packages continuity of set integration directly from the topology of uniform
 convergence on the integration set. The parameter space need not be locally compact.
 -/
+
+public section
 
 open Filter Set MeasureTheory
 open scoped Topology UniformConvergence

@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.InnerProductSpace.EuclideanDist
-import Mathlib.Analysis.Normed.Lp.MeasurableSpace
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
-import Mathlib.MeasureTheory.Constructions.Polish.Basic
-import Mathlib.Topology.MetricSpace.HausdorffDistance
-import Mathlib.Topology.Order.Compact
+module
+public import Mathlib.Analysis.InnerProductSpace.EuclideanDist
+public import Mathlib.Analysis.Normed.Lp.MeasurableSpace
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Metrizable
+public import Mathlib.MeasureTheory.Constructions.Polish.Basic
+public import Mathlib.Topology.MetricSpace.HausdorffDistance
+public import Mathlib.Topology.Order.Compact
 
 /-!
 # Measurable minimizers on compact Euclidean action sets
@@ -23,6 +24,8 @@ The hypotheses are the compact-action specialization of Brown--Purves, *Measurab
 Extrema* (1973), Corollary 1: the fixed feasible sections are compact, hence sigma-compact, and
 continuity supplies the required lower semicontinuity and exact attainment.
 -/
+
+public section
 
 open Metric Set
 
@@ -117,8 +120,8 @@ fixed [nonempty compact action set](hyp:K,hK,hKne) in finite-dimensional Euclide
 a [Borel measurable, feasible rule that minimizes the objective at every parameter](goal).
 
 This is an exact selector: no uniqueness or convexity is assumed. The `StandardBorelSpace`
-hypothesis records the standard measurable-extrema setting on the parameter space; the action
-space has its canonical Euclidean Borel structure.
+hypothesis is part of the stated parameter-space setting, although the construction below uses
+only its measurable structure. The action space has its canonical Euclidean Borel structure.
 
 Proof strategy: specialize the Brown--Purves compact-section construction.  First use a countable
 dense subset of each fixed nonempty compact feasible set to prove that its pointwise minimum value

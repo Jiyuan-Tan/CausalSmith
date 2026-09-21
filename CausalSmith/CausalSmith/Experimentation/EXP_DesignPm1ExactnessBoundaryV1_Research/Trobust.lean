@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers
-import Mathlib.Topology.Order.Basic
-import Mathlib.Order.Filter.AtTopBot.Basic
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers
+public import Mathlib.Topology.Order.Basic
+public import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-! # Robust-corner exactness (`thm:robust-corner-exactness`)
 
@@ -14,6 +16,8 @@ Finite-`κ` iid exactness holds iff on the affine-balanced locus `a+3b=2m`,
 `r=2b(a+b)`. On the locus, for every `κ > 0`, `I_n` is the unique relaxed minimizer
 attained by `P_iid`; off the locus, `I_n` is never a finite-`κ` minimizer but
 minimizers converge to `I_n` as `κ → ∞`. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

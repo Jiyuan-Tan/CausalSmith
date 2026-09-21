@@ -1,7 +1,8 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
-import Causalean.PO.Conditioning.Bundle
-import Causalean.PO.Conditioning.EventCondExpBundle
-import Mathlib.MeasureTheory.Function.FactorsThrough
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Basic
+public import Causalean.PO.Conditioning.Bundle
+public import Causalean.PO.Conditioning.EventCondExpBundle
+public import Mathlib.MeasureTheory.Function.FactorsThrough
 
 /-!
 # Singleton conditioning-bundle bridge
@@ -9,6 +10,8 @@ import Mathlib.MeasureTheory.Function.FactorsThrough
 This local bridge transports conditional independence given the covariate
 variable to the equivalent singleton conditioning bundle.
 -/
+
+@[expose] public section
 
 open MeasureTheory Causalean PO
 open scoped ProbabilityTheory

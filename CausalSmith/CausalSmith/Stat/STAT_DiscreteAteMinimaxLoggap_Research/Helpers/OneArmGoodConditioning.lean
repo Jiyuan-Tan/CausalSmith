@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductConditioning
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConditioning
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmFuzzyReduction
-import Causalean.Stat.Minimax.Mixture
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductConditioning
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmConditioning
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmFuzzyReduction
+public import Causalean.Stat.Minimax.Mixture
 
 /-!
 # Good-event conditioning for finite one-arm product priors
@@ -10,6 +11,8 @@ This module conditions a finite prior on a positive-mass good event, records
 the resulting predictive-mixture decomposition, and maps mass/target-good iid
 configurations to anchored control-zero laws.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

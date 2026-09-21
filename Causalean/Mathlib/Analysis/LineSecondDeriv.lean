@@ -2,9 +2,11 @@
 Copyright (c) 2026 CausalSmith contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Mathlib.Analysis.Calculus.ContDiff.Comp
-import Mathlib.Analysis.Calculus.Deriv.Slope
-import Mathlib.Analysis.Convex.Deriv
+
+module
+public import Mathlib.Analysis.Calculus.ContDiff.Comp
+public import Mathlib.Analysis.Calculus.Deriv.Slope
+public import Mathlib.Analysis.Convex.Deriv
 
 /-!
 # Second directional derivative along an affine line
@@ -31,6 +33,8 @@ The statements are objective-agnostic: callers supply `ContDiff ℝ 2 f` and rea
 directional curvature. This is the substrate behind the `dirModulus` / `EnvelopeLineC2Data`
 discharge for the reciprocal-product variance envelope.
 -/
+
+@[expose] public section
 
 open Set Filter Topology
 

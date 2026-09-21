@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.LeastSquares.SmootherBias
-import Causalean.Stat.Nonparametric.LocalPoly.Weights
+
+module
+public import Causalean.Stat.Nonparametric.LinearSmoother.Bias
+public import Causalean.Stat.Nonparametric.LocalPoly.Weights
 
 /-!
 # Interior local-polynomial bias `O(h^β)`
@@ -30,6 +32,10 @@ matrix and design points within bandwidth `h` of the target `t`, has bias
 
 i.e. `O(h^β)` once the leverage `∑ᵢ|Sᵢ|` is controlled by the design density.
 -/
+
+public section
+
+open Causalean.Mathlib.Analysis.HolderTaylor
 
 namespace Causalean.Stat.Nonparametric
 

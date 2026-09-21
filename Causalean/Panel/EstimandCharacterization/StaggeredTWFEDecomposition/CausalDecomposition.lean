@@ -10,10 +10,11 @@ potential-outcome layer on top of the algebraic headline
 `AlgebraicDecomposition.lean`. See `StaggeredTWFEDecomposition.lean` for the
 folder layer-map.
 
-Fuses the algebraic Goodman-Bacon identity `twfe_eq_weighted_avg`
-(`betaTWFE P = ∑ weight · contrast`) with the Layer C causal corollaries
-(`Δ_TN_eq_ATT`, `Δ_EL_eq_ATT`, `Δ_LE_eq_bad_comparison`) into a single
-statement: under the two-state potential-outcome assumptions
+Fuses the algebraic Goodman-Bacon identity `twfe_eq_normalized_comparison_sum`
+(`betaTWFE P = ∑ weight · contrast`) with the totalized Layer C equalities
+(`Δ_TN_eq_ATT_totalized`, `Δ_EL_eq_ATT_totalized`,
+`Δ_LE_eq_bad_comparison`) into a single statement: under the two-state
+potential-outcome assumptions
 `CausalAssumptions P Y0 Y1`, the TWFE coefficient equals the totalized weighted
 sum of the *potential-outcome* window contrasts `ATT_window Y0 Y1` (with the
 late-versus-early bad-comparison adjustment). A weighted-average
@@ -23,17 +24,21 @@ NL artifact:
 `doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.md`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.AlgebraicDecomposition
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Causal
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.AlgebraicDecomposition
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Causal
 
 /-! # Goodman-Bacon fused causal decomposition
 
 This file composes the algebraic TWFE totalized weighted-sum identity with the
-causal window-ATT corollaries, expressing the two-way fixed-effect coefficient
+causal window-effect equalities, expressing the two-way fixed-effect coefficient
 as a sum of normalized comparison weights times potential-outcome window
-contrasts, with the late-versus-early bad-comparison term made explicit. A
-weighted-average interpretation requires the separate positive-variance
-condition used by `weights_sum_one`. -/
+contrasts, with the late-versus-early bad-comparison term made explicit. TN and
+EL entries with empty pre-treatment windows are zero-weight bookkeeping terms,
+not standalone DID identification results. A weighted-average interpretation
+requires the separate positive-variance condition used by `weights_sum_one`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -47,10 +52,11 @@ open Classical in
 /-- For [a finite collection of cohorts whose members can be compared for equality](hyp:𝒢), [a natural-number panel length](hyp:T), [a cohort panel](hyp:P), [two potential-outcome paths, respectively under no treatment and under treatment at the cohort's own adoption date](hyp:Y0,Y1), and [a labelled ordered pair of cohorts](hyp:k), [the causal two-by-two contrast](goal) is zero when that comparison is inadmissible; otherwise, it is the relevant window average treatment effect for a treated-versus-never-treated or early-versus-late comparison, and for a late-versus-early comparison it is the late cohort's window average treatment effect minus the early cohort's corresponding treated-period effect net of its pre-period effect.
 
 The **causal** 2x2 contrast on the full index `CompTag × 𝒢 × 𝒢`: on an
-admissible comparison it returns the potential-outcome window contrast identified
-by the Layer C corollaries — `ATT_window` for TN/EL and the bad-comparison
-adjustment for LE — and `0` otherwise. This is the causal counterpart of the
-algebraic `contrast`. -/
+admissible comparison it returns the totalized potential-outcome window contrast
+given by the Layer C equalities — `ATT_window` for TN/EL and the bad-comparison
+adjustment for LE — and `0` otherwise. For TN or EL with an empty pre-treatment
+window, this is a zero-weight bookkeeping value rather than a standalone DID
+estimand. This is the causal counterpart of the algebraic `contrast`. -/
 noncomputable def contrastCausal (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
     (k : CompTag × 𝒢 × 𝒢) : ℝ :=
   if admissible P k then
@@ -75,9 +81,9 @@ theorem contrast_eq_contrastCausal (P : CohortPanel 𝒢 T)
   rcases k with ⟨tag, g, u⟩
   cases tag
   · obtain ⟨hg, hu, _, _⟩ := hk
-    exact Δ_TN_eq_ATT P Y0 Y1 hA g u hg hu
+    exact Δ_TN_eq_ATT_totalized P Y0 Y1 hA g u hg hu
   · obtain ⟨hlt, hfin, _, _⟩ := hk
-    exact Δ_EL_eq_ATT P Y0 Y1 hA g u hlt hfin
+    exact Δ_EL_eq_ATT_totalized P Y0 Y1 hA g u hlt hfin
   · obtain ⟨hlt, hfin, _, _⟩ := hk
     simpa using Δ_LE_eq_bad_comparison P Y0 Y1 hA g u hlt hfin
 
@@ -90,13 +96,16 @@ comparisons, of each comparison's Goodman-Bacon weight times its potential-outco
 contrast — the treated-versus-never and early-versus-late window-specific ATTs, or the
 late-versus-early bad-comparison adjustment](goal).
 
-The positive-variance hypothesis is the nondegenerate condition needed for the
-normalized comparison weights to have their coefficient interpretation and sum
-to one. -/
+TN and EL comparisons with empty pre-treatment windows remain in the index, but their raw
+weights are zero. Their totalized contrasts are algebraic bookkeeping terms and are not
+standalone DID identification claims.
+
+A separate positive-variance hypothesis is needed for the normalized comparison
+weights to have their coefficient interpretation and sum to one. -/
 theorem twfe_po_decomposition (P : CohortPanel 𝒢 T) (Y0 Y1 : 𝒢 → Fin T → ℝ)
     (hA : CausalAssumptions P Y0 Y1) :
     betaTWFE P = ∑ k ∈ 𝒦 P, weight P k * contrastCausal P Y0 Y1 k := by
-  rw [twfe_eq_weighted_avg_core P]
+  rw [twfe_eq_normalized_comparison_sum P]
   refine Finset.sum_congr rfl ?_
   intro k hk
   have hk' : admissible P k := by simpa [𝒦] using hk

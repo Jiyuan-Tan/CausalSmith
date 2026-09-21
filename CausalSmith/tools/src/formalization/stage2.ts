@@ -59,6 +59,7 @@ import {
 import { laterStageEverRan } from "../shared/resume_mode.js";
 import { parseJsonWithEscapeRepair } from "../shared/codex_json.js";
 import { buildRunModules } from "./proof_review_loop.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
 
 /** Headline nodes whose statement meaning changed through an untagged inline
  * definition/structure during an F2 revise pass.  The headline's own Lean
@@ -331,7 +332,7 @@ function gatedHypsBlockFromPlan(planText: string): string {
 }
 
 function declNameRegex(name: string): RegExp {
-  return new RegExp(`^\\s*(?:noncomputable\\s+|private\\s+|protected\\s+|scoped\\s+)*(?:theorem|lemma|def|abbrev|structure|class|instance)\\s+${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "m");
+  return new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma|def|abbrev|structure|class|instance)\s+${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\b`, "m");
 }
 
 /** Best-effort F2 graph link: seed `-- @node:` annotations from the obj_id
@@ -552,7 +553,13 @@ export async function runStage2(args: {
     }),
     reviseBlock,
     interventionBlock(args.intervention),
-    await readPrompt(args.ctx, "stage2_scaffold.txt"),
+    (await readPrompt(args.ctx, "stage2_scaffold.txt")).replaceAll(
+      "{{HEADER_CONTRACT}}",
+      [
+        "HEADER CONTRACT — Every generated Lean file begins, in order, with the optional copyright block, then `module`, contiguous imports written as `public import` (only a rare deliberate exception marked by a `-- private import` comment may use a private import), the `/-! ... -/` module docstring, and exactly one blanket section: `@[expose] public section` when the file defines a `def`, `abbrev`, `instance`, `structure`, `class`, or `inductive`, otherwise `public section`. Keep declarations bare: no per-declaration `public`, `private`, or `@[expose]`; helpers stay bare, and nothing is private unless it is truly file-local and never needed by a proof downstream. Run barrels and `Helpers.lean` are imports-only and use `public import` on every line.",
+        "MODULE-SYSTEM CONSEQUENCES — A `module` file cannot import a legacy non-`module` file: every imported file must itself be a module file, and the scaffold must never add `import all`. A `def` whose body a downstream `rfl`, `decide`, or `unfold` needs must live in a file with `@[expose] public section`. A certificate evaluated by the kernel (`decide +kernel`) must not pass through well-founded recursion such as `Array.ofFn` or `termination_by`, because importers cannot see termination proofs; use a structural construction.",
+      ].join("\n"),
+    ),
     "",
     bookkeepingPolicyBlock(),
     "",

@@ -4,13 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.UnknownInterference.Basic
-import Causalean.Experimentation.UnknownInterference.Bernoulli
-import Causalean.Experimentation.UnknownInterference.Unbiased
-import Causalean.Experimentation.UnknownInterference.VarianceBound
-import Causalean.Experimentation.UnknownInterference.Consistency
-import Causalean.Experimentation.UnknownInterference.Hajek
-import Causalean.Experimentation.UnknownInterference.Confidence
+module
+public import Causalean.Experimentation.UnknownInterference.Basic
+public import Causalean.Experimentation.UnknownInterference.Bernoulli
+public import Causalean.Experimentation.UnknownInterference.Confidence
+public import Causalean.Experimentation.UnknownInterference.Consistency
+public import Causalean.Experimentation.UnknownInterference.Hajek
+public import Causalean.Experimentation.UnknownInterference.Unbiased
+public import Causalean.Experimentation.UnknownInterference.VarianceBound
 
 /-!
 # Sävje–Aronow–Hudgens (2021) — average treatment effects under unknown interference
@@ -28,7 +29,7 @@ effects in the presence of unknown interference," *Annals of Statistics* 49(2):6
 * `VarianceBound` — `Var(ĤT) ≤ k⁴·d̄/n`, via disjoint-block independence off the
   interference-dependence graph and bounded summands.
 * `Consistency` — the flagship: HT is consistent for EATE under restricted interference
-  (`d̄ = o(n)`) via Chebyshev, with root-n consistency under bounded interference.
+  (`d̄ = o(n)`) via Chebyshev, with root-n variance scaling under bounded interference.
 * `Hajek` — the Hájek (ratio/IPW) estimator is also consistent for EATE, via the in-probability
   Slutsky substrate (`DesignBased/InProb.lean`): the realized weight-sum normalizers tend to one.
 * `Confidence` — the conventional HT variance estimator is anti-conservative under interference

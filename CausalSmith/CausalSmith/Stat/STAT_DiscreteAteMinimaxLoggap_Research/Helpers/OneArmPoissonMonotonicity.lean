@@ -1,6 +1,9 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmDepoissonization
-import Mathlib.MeasureTheory.Group.Convolution
-import Mathlib.Analysis.Complex.ExponentialBounds
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmDepoissonization
+public import Mathlib.MeasureTheory.Group.Convolution
+public import Mathlib.Analysis.Complex.ExponentialBounds
+
+public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

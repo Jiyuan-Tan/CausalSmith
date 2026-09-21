@@ -26,13 +26,16 @@ This file defines the construction and proves it is a `ValidDGP`; the ATE gap,
 class membership, and the χ² indistinguishability live in the sibling `ConstCenterGeneral` files.
 -/
 
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
+module
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.Construction
 
 /-! # General constant-center lower-bound construction
 
 This file constructs null and sign-perturbed finite data-generating processes around arbitrary
 constant propensity and outcome-regression centers strictly inside the unit interval. These
 objects supply the general-center witness used by the ATE minimax lower bound. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 

@@ -6,21 +6,24 @@ Authors: Jiyuan Tan
 # Principal equations through the common-axis image
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisTwin
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CoordinateReversalGeometry
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisTwin
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CoordinateReversalGeometry
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
 noncomputable section
 
-private abbrev finiteCommonAxisImage (m : ℕ) (hm : 1 ≤ m) :=
+abbrev finiteCommonAxisImage (m : ℕ) (hm : 1 ≤ m) :=
   restrictCumBand (2 * m + 2) '' forwardCommonAxisImageClosure m hm
 
-private abbrev finiteForwardVariety (m : ℕ) :=
+abbrev finiteForwardVariety (m : ℕ) :=
   restrictCumBand (2 * m + 2) ''
     cumulantImageVariety (forwardCumulantMap m (2 * m + 2))
 
-private abbrev finiteReverseVariety (m : ℕ) :=
+abbrev finiteReverseVariety (m : ℕ) :=
   restrictCumBand (2 * m + 2) ''
     cumulantImageVariety (reverseCumulantMap m (2 * m + 2))
 

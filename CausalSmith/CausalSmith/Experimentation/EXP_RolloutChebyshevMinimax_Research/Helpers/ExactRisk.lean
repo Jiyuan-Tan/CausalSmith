@@ -9,11 +9,14 @@ Authors: Jiyuan Tan
 obligation, excluded from the theorem manifest) and `lem:exact-chebyshev-rate-feasible`.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Variance
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Schedule
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.T_chebyshev_minimax
-import Mathlib.Analysis.SpecialFunctions.Sqrt
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Variance
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Schedule
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.T_chebyshev_minimax
+public import Mathlib.Analysis.SpecialFunctions.Sqrt
+
+@[expose] public section
 
 open Causalean.Experimentation.DesignBased
 open scoped BigOperators

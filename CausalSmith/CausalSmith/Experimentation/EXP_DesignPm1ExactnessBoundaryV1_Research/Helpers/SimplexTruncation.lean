@@ -3,19 +3,158 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationConvex
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationSlice
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationMinimizers
-import Causalean.Mathlib.Optimization.SimplexTruncation
 
-/-! # `SimplexTruncation` (re-export shim)
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationConvex
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationMinimizers
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.SimplexTruncationSlice
 
-Promoted to `Causalean.Mathlib.Optimization.SimplexTruncation`. This file re-exports those
-declarations into the paper namespace so the two-block design proofs keep
-referencing them unqualified. -/
+/-! # Weighted-simplex truncation
+
+This file gives conditional transfer rules for the weighted-simplex SOCP over
+the parity-truncated simplex `K_d = {t ∈ Δ_M : t_y + t_z ≥ d}`.  Given a
+relaxed minimizer over `Δ_M`, if it is feasible then it is also optimal over
+`K_d`; otherwise the explicit endpoint/interior selector `sStar` from the 1-D
+convex slice is optimal on `K_d`.  The theorem `weighted_simplex_truncation`
+specializes this transfer to supplied positive-scale active-set data or a
+supplied zero-scale exposed-face point; it does not choose either witness.
+`trunc_from_minimizer` is the reusable relaxed-minimizer dichotomy.
+
+The definitions (`InTruncSimplex`, `truncSegPoint`, `truncSelector`) live in
+`SimplexTruncationDefs`; the convexity/boundary-reduction step in
+`SimplexTruncationConvex`; the 1-D slice minimization in `SimplexTruncationSlice`;
+and the relaxed-optimum global-minimizer certificates in
+`SimplexTruncationMinimizers`. This file glues them into conditional transfer
+lemmas for supplied relaxed-minimizer data. -/
+
+public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 
-export Causalean.Mathlib.Optimization (trunc_from_minimizer weighted_simplex_truncation)
+open scoped BigOperators
+
+/-- **Truncation dichotomy from a relaxed minimizer.** Fix [a truncation threshold `d` at most
+the total simplex mass `M`](hyp:hdM), a linear weighting `α`, coordinate weights `β` with
+[its zeroth entry nonnegative](hyp:hβ0) and [its remaining two entries fixed equal to
+`1`](hyp:hβy,hβz), and [a nonnegative regularization parameter `κ`](hyp:hk). Given
+[a point `t_rel` of the simplex `Δ_M`](hyp:hrel) that [globally minimizes the weighted
+objective `wsObj` over `Δ_M`](hyp:hmin), then [the constrained problem over the truncated
+simplex `K_d = {t ∈ Δ_M : t₁ + t₂ ≥ d}` splits into two cases: if `t_rel` already satisfies the
+truncation constraint, it remains a global minimizer over `K_d`; otherwise, the face selector
+point `truncSegPoint M d sStar` is feasible for `K_d` and is a global minimizer over
+`K_d`](goal). This is the κ-agnostic core shared by the `κ > 0` and `κ = 0` branches of the
+headline lemma. -/
+lemma trunc_from_minimizer (M d : ℝ) (hdM : d ≤ M)
+    (α β : Fin 3 → ℝ) (kappa : ℝ)
+    (hβ0 : 0 ≤ β 0) (hβy : β 1 = 1) (hβz : β 2 = 1) (hk : 0 ≤ kappa)
+    (t_rel : Fin 3 → ℝ) (hrel : InSimplex M t_rel)
+    (hmin : ∀ s, InSimplex M s → wsObj α β kappa t_rel ≤ wsObj α β kappa s) :
+    (InTruncSimplex M d t_rel →
+        ∀ s : Fin 3 → ℝ, InTruncSimplex M d s →
+          wsObj α β kappa t_rel ≤ wsObj α β kappa s) ∧
+    (¬ (d ≤ t_rel 1 + t_rel 2) →
+        InTruncSimplex M d (truncSegPoint M d (truncSelector M d α β kappa)) ∧
+        ∀ s : Fin 3 → ℝ, InTruncSimplex M d s →
+          wsObj α β kappa (truncSegPoint M d (truncSelector M d α β kappa))
+            ≤ wsObj α β kappa s) := by
+  have hβnn : ∀ i, 0 ≤ β i := by
+    intro i
+    fin_cases i
+    · exact hβ0
+    · change 0 ≤ β 1
+      linarith [hβy]
+    · change 0 ≤ β 2
+      linarith [hβz]
+  refine ⟨fun _ s hs => hmin s hs.1, ?_⟩
+  intro hinf'
+  have hinf : t_rel 1 + t_rel 2 < d := not_le.mp hinf'
+  have hdpos : 0 < d := by
+    have h1 := hrel.1 1; have h2 := hrel.1 2; linarith
+  obtain ⟨hs0, hsd⟩ := truncSelector_mem M d α β kappa hdpos hβ0 hk
+  set sStar := truncSelector M d α β kappa with hsStar
+  have e0 : truncSegPoint M d sStar 0 = M - d := by simp [truncSegPoint]
+  have e1 : truncSegPoint M d sStar 1 = sStar := by simp [truncSegPoint]
+  have e2 : truncSegPoint M d sStar 2 = d - sStar := by simp [truncSegPoint]
+  have n0 : 0 ≤ truncSegPoint M d sStar 0 := by rw [e0]; linarith
+  have n1 : 0 ≤ truncSegPoint M d sStar 1 := by rw [e1]; linarith
+  have n2 : 0 ≤ truncSegPoint M d sStar 2 := by rw [e2]; linarith
+  have hfeas : InTruncSimplex M d (truncSegPoint M d sStar) := by
+    refine ⟨⟨?_, ?_⟩, ?_⟩
+    · intro i
+      fin_cases i
+      · exact n0
+      · exact n1
+      · exact n2
+    · rw [Fin.sum_univ_three, e0, e1, e2]; ring
+    · rw [e1, e2]; linarith
+  refine ⟨hfeas, ?_⟩
+  intro s hs
+  obtain ⟨σ, hσ0, hσd, hred⟩ :=
+    truncSeg_reduction M d kappa α β hβnn hk t_rel hrel hmin hinf s hs
+  calc wsObj α β kappa (truncSegPoint M d sStar)
+      ≤ wsObj α β kappa (truncSegPoint M d σ) :=
+        truncSeg_selector_le M d α β kappa hdpos hβ0 hβy hβz hk σ hσ0 hσd
+    _ ≤ wsObj α β kappa s := hred
+
+-- @node: lem:weighted-simplex-truncation
+/-- **Conditional weighted-simplex truncation transfer.** For [total mass `M`](hyp:M) with
+[positive mass](hyp:hM), [threshold `d`](hyp:d) [at most `M`](hyp:hdM), [linear weights
+`α`](hyp:α), [coordinate weights `β`](hyp:β) that are [everywhere strictly
+positive](hyp:hβ) with [their last two entries equal to `1`](hyp:hβy,hβz), and
+[regularization parameter `κ`](hyp:kappa) that is [nonnegative](hyp:hk), [two conditional
+rules transfer relaxed optimality to the truncated simplex: at positive `κ`, every supplied
+admissible active-set point either remains optimal when feasible or yields the explicit boundary
+selector when infeasible; at zero `κ`, the same alternatives hold for every supplied point of
+the exposed minimizing face](goal).
+
+*`κ > 0`:* let `(S, λ)` be admissible relaxed data and `t_rel` the induced
+active-set point. If `t_rel ∈ K_d` it already minimizes over `K_d`; otherwise the
+constrained optimum is `truncSegPoint M d sStar` at the endpoint/interior selector
+`sStar = truncSelector`, feasible and minimizing over `K_d`.
+
+*`κ = 0`:* the relaxed argmin set is the exposed `α`-minimizing face. If the chosen
+face point `t_rel` lies in `K_d` it minimizes over `K_d`; otherwise the constrained
+optimum is `truncSegPoint M d sStar` with the `κ = 0` endpoint rule `sStar = 0` if
+`δ ≥ 0`, `sStar = d` if `δ ≤ 0` (the `κ = 0` value of `truncSelector`).
+
+This theorem does not construct admissible active-set data or choose a point of the exposed face;
+those witnesses must be supplied by the caller. -/
+lemma weighted_simplex_truncation (M d : ℝ) (hM : 0 < M)
+    (hdM : d ≤ M)
+    (α β : Fin 3 → ℝ) (kappa : ℝ)
+    (hβ : ∀ i, 0 < β i)
+    (hβy : β 1 = 1) (hβz : β 2 = 1) (hk : 0 ≤ kappa) :
+    (0 < kappa → ∀ (S : Finset (Fin 3)) (lam : ℝ),
+        IsAdmissibleSupport α β kappa S lam →
+      (InTruncSimplex M d (activeSetPoint M α β S lam) →
+        ∀ s : Fin 3 → ℝ, InTruncSimplex M d s →
+          wsObj α β kappa (activeSetPoint M α β S lam) ≤ wsObj α β kappa s) ∧
+      (¬ (d ≤ activeSetPoint M α β S lam 1 + activeSetPoint M α β S lam 2) →
+        InTruncSimplex M d (truncSegPoint M d (truncSelector M d α β kappa)) ∧
+        ∀ s : Fin 3 → ℝ, InTruncSimplex M d s →
+          wsObj α β kappa (truncSegPoint M d (truncSelector M d α β kappa))
+            ≤ wsObj α β kappa s)) ∧
+    (kappa = 0 → ∀ t_rel : Fin 3 → ℝ, t_rel ∈ exposedMinFace M α →
+      (InTruncSimplex M d t_rel →
+        ∀ s : Fin 3 → ℝ, InTruncSimplex M d s →
+          wsObj α β kappa t_rel ≤ wsObj α β kappa s) ∧
+      (¬ (d ≤ t_rel 1 + t_rel 2) →
+        InTruncSimplex M d (truncSegPoint M d (truncSelector M d α β kappa)) ∧
+        ∀ s : Fin 3 → ℝ, InTruncSimplex M d s →
+          wsObj α β kappa (truncSegPoint M d (truncSelector M d α β kappa))
+            ≤ wsObj α β kappa s)) := by
+  constructor
+  · -- κ > 0
+    intro hkpos S lam hadm
+    obtain ⟨hsimp, hmin⟩ :=
+      activeSetPoint_isMinimizer M hM α β kappa hβ hkpos S lam hadm
+    exact trunc_from_minimizer M d hdM α β kappa (hβ 0).le hβy hβz hk _ hsimp hmin
+  · -- κ = 0
+    intro hk0 t_rel hface
+    subst hk0
+    have hsimp : InSimplex M t_rel := hface.1
+    have hmin : ∀ s, InSimplex M s → wsObj α β 0 t_rel ≤ wsObj α β 0 s :=
+      exposedMinFace_isMinimizer M α β t_rel hface
+    exact trunc_from_minimizer M d hdM α β 0 (hβ 0).le hβy hβz le_rfl _ hsimp hmin
 
 end CausalSmith.Experimentation.DesignPm1

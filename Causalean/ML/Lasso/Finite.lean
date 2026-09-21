@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Linear.Finite
-import Mathlib.Analysis.Convex.Function
-import Mathlib.Analysis.Convex.Mul
-import Mathlib.Analysis.Normed.Module.Convex
+
+module
+public import Causalean.ML.Linear.Finite
+public import Mathlib.Analysis.Convex.Function
+public import Mathlib.Analysis.Convex.Mul
+public import Mathlib.Analysis.Normed.Module.Convex
 
 /-! # Lasso — L1-regularized least squares (definitions + convexity)
 
@@ -17,27 +19,29 @@ finite lasso objective. The scalar soft-thresholding optimality theorem is in
 `Lasso/Optimality.lean`.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open Matrix BigOperators
 
 variable {Obs Param : Type*} [Fintype Obs] [Fintype Param]
 
-/-- For [a finite coefficient index set](hyp:Param) and [a coefficient vector](hyp:β), the
-[L1 penalty](goal) is the sum, over all coefficient indices, of the absolute values of its
-coordinates. -/
+/-- [The L1 penalty](goal) measures [a coefficient vector](hyp:β) by
+[summing its absolute coordinates](step:1) over [the finite coefficient index set](hyp:Param),
+solutions. -/
 noncomputable def l1penalty (β : Param → ℝ) : ℝ := ∑ k, |β k|
 
-/-- For [a finite set of observations](hyp:Obs), [a finite coefficient index set](hyp:Param),
-[a design matrix](hyp:X), [an outcome vector](hyp:y), [a penalty weight](hyp:lam), and
-[a coefficient vector](hyp:β), the [lasso objective](goal) is the sum of squared residuals
-plus the penalty weight times the L1 penalty of the coefficient vector. -/
+/-- [The lasso objective](goal) trades [residual squares against an L1 penalty](step:1). It
+evaluates [a coefficient vector](hyp:β) at [penalty weight](hyp:lam) using
+[a design matrix and outcome vector](hyp:X,y) over
+[finite observation and coefficient indices](hyp:Obs,Param). -/
 noncomputable def lassoObjective
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) (lam : ℝ) (β : Param → ℝ) : ℝ :=
   olsObjective X y β + lam * l1penalty β
 
-/-- For [a threshold level](hyp:lam) and [a real-valued input](hyp:z), the
-[soft-thresholded value](goal) is $\max(z-\lambda,0)-\max(-z-\lambda,0)$.
+/-- [Soft thresholding](goal) shrinks [a real input](hyp:z) toward zero by
+[thresholding its positive and negative parts](step:1), at [the chosen threshold level](hyp:lam).
 
 For a nonnegative threshold, this is equivalently
 $\operatorname{sign}(z)\max(|z|-\lambda,0)$. -/
@@ -113,7 +117,10 @@ theorem convexOn_olsObjective (X : Matrix Obs Param ℝ) (y : Obs → ℝ) :
         exact (hsummand i).add ht
   simpa using hfin Finset.univ
 
-/-- The lasso objective is convex for `λ ≥ 0`. -/
+/-- [The lasso objective is convex over the full coefficient space](goal) for
+[a finite design and response vector](hyp:X,y) on
+[the observation and coefficient indices](hyp:Obs,Param),
+provided [the penalty weight is nonnegative](hyp:hlam). -/
 theorem convexOn_lassoObjective
     (X : Matrix Obs Param ℝ) (y : Obs → ℝ) {lam : ℝ} (hlam : 0 ≤ lam) :
     ConvexOn ℝ Set.univ (lassoObjective X y lam) := by

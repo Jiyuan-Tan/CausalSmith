@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.BinaryPadding
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.BinaryPadding
 
 /-! # Concrete exact-family handle facts
 
@@ -6,15 +7,11 @@ This module packages the canonical full-data coupling and the deterministic
 zero-padding identities used by the exact half of the least-favorable handle.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
-
-private abbrev BinLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-
-private abbrev BinObs :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @node: binaryPadFullObs
 /-- Include a binary full-data record on the first `m` cells into an ambient

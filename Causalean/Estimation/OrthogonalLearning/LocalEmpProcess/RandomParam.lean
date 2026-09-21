@@ -30,7 +30,8 @@ factorises `μ.map (ω ↦ (ω, Y ω)) = (μ.trim m_A).prod ν`; then `Measure.p
 `∫ (≤ δ) = ≤ δ` since `μ.trim` is a probability measure.
 -/
 
-import Causalean.Mathlib.IIDCenteredSum
+module
+public import Causalean.Mathlib.Probability.IdentDistrib.CenteredSum
 
 /-! # Cross-Fit Random Parameter Conditioning
 
@@ -44,6 +45,8 @@ if the fold-B coordinate map has law `ν`, the fold-A sigma-algebra is
 independent of that coordinate block, and every selected bad set has
 `ν`-mass at most `δ`, then the random event selected by fold-A data has
 `μ`-mass at most `δ`. -/
+
+public section
 
 namespace Causalean
 namespace Estimation

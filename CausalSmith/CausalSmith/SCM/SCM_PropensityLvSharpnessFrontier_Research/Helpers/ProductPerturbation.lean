@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BowConstruction
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Statements
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BowConstruction
 
 /-! # Product bounds for the paper's two-point perturbations -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

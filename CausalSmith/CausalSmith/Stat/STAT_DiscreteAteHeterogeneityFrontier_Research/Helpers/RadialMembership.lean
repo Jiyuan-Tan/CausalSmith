@@ -1,13 +1,13 @@
 /- Ambient membership of the padded Bernoulli-contracted radial family. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialTarget
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.RadialTarget
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
-
-private abbrev ControlZeroLaw :=
-  CausalSmith.Stat.DiscreteAteMinimaxLoggap.ControlZeroLaw
 
 -- @node: radialPaddedAffine_approximateHomogeneity
 /-- If [the source alphabet embeds in the target alphabet](hyp:hmd) and [the overlap constant is

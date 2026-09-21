@@ -6,10 +6,13 @@ Authors: Jiyuan Tan
 # Finite polynomial-image models for the exceptional-locus dimension proof
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisImageGeometry
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalHeightReduction
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.Jacobian
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.Transcendence
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CommonAxisImageGeometry
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ExceptionalHeightReduction
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.Jacobian
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.Transcendence
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BowConstruction
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.BowConstruction
 
 /-! # One-sided bow-mixture completeness -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

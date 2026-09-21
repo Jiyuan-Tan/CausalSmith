@@ -10,8 +10,9 @@ names a finite target set of variables together with an assignment of
 values on that set.  No graph and no SCM structure is assumed.
 -/
 
-import Causalean.Tactic.Attr
-import Causalean.Mathlib.MeasureTheory.FinsetValues
+module
+public import Causalean.Tactic.Attr
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
 
 /-! # Intervention Regimes
 
@@ -19,6 +20,8 @@ This file defines finite intervention regimes for the potential-outcome
 framework. A regime records the variables fixed by an intervention and the
 assigned value for each fixed variable, without assuming a graph or structural
 causal model. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -120,7 +123,10 @@ lemma sqcup_assign_pos (r₁ r₂ : Regime V X) (h : r₁.Disjoint r₂)
       r₁.assign v h1 := by
   simp [Regime.sqcup, Regime.leftBiasedUnion, h1]
 
-/-- `sqcup` agrees with `r₂` whenever `v ∉ r₁.target` (and hence `v ∈ r₂.target`). -/
+/-- When [two intervention regimes](hyp:r₁,r₂) [have disjoint targets](hyp:h),
+[a variable](hyp:v) is [not targeted by the first regime](hyp:h1), and it
+[is targeted by the second regime](hyp:h2),
+[their disjoint union uses the second regime's assigned value](goal). -/
 lemma sqcup_assign_neg (r₁ r₂ : Regime V X) (h : r₁.Disjoint r₂)
     (v : V) (h1 : v ∉ r₁.target) (h2 : v ∈ r₂.target) :
     (r₁.sqcup r₂ h).assign v (by simp [Regime.sqcup, Regime.leftBiasedUnion, h2]) =

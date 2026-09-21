@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.Convex.Function
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+
+module
+public import Mathlib.Analysis.Convex.Function
+public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 
 /-!
 # Convexity of a reciprocal product of positive coordinates
@@ -20,6 +22,8 @@ the same way and is the form a two-sided design objective needs. These are the r
 "variance-envelope objective is convex on the feasible box" fact, with the concrete feasible box
 replaced by an arbitrary convex set plus coordinate positivity.
 -/
+
+public section
 
 open scoped BigOperators
 

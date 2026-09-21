@@ -14,10 +14,10 @@ Re-exports the helpers used across `WBased.lean`, `ZBased.lean`, and
 * `Helpers/CondExpQ.lean` — q-collapse on the on-arm σ_AX (TwoProxy)
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers.Common
-import Causalean.PO.ID.Partial.Proxy.Helpers.BridgeW
-import Causalean.PO.ID.Partial.Proxy.Helpers.BridgeWZ
-import Causalean.PO.ID.Partial.Proxy.Helpers.CondExpQ
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers.BridgeW
+public import Causalean.PO.ID.Partial.Proxy.Helpers.BridgeWZ
+public import Causalean.PO.ID.Partial.Proxy.Helpers.CondExpQ
 
 /-!
 This file gathers the shared algebra and conditioning facts used by proximal

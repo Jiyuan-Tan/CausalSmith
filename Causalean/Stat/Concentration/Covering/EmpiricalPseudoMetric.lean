@@ -1,7 +1,7 @@
--- Adapted from auto-res/lean-rademacher FoML/PseudoMetric.lean (commit 72d28921dc960f47691640fb973303a1be9d13ca, MIT (c) 2025 AutoRes)
-import Causalean.Stat.Concentration.Covering.CoveringNumber
-import Causalean.Stat.Concentration.Rademacher.Rademacher
-import Causalean.Tactic.Attr
+module
+public import Causalean.Stat.Concentration.Covering.CoveringNumber
+public import Causalean.Stat.Concentration.Rademacher.Rademacher
+public import Causalean.Tactic.Attr
 
 /-!
 Defines the empirical L² pseudometric on function classes used by Dudley
@@ -16,6 +16,12 @@ UPSTREAM-DELTA: declarations are placed in the
 `Causalean.Stat.Concentration` namespace. The proofs are otherwise kept close
 to upstream, with only Mathlib API-drift adjustments for Lean 4.29.
 -/
+
+@[expose] public section
+
+-- Adapted from auto-res/lean-rademacher FoML/PseudoMetric.lean (commit 72d28921dc960f47691640fb973303a1be9d13ca, MIT (c) 2025 AutoRes)
+
+
 
 namespace Causalean.Stat.Concentration
 

@@ -3,8 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.FeasibleERM
-import Causalean.Mathlib.MeasureTheory.SupCountableDense
+
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Helpers.FeasibleERM
+public import Causalean.Mathlib.MeasureTheory.SupCountableDense
+public import Mathlib.Tactic.Positivity.Finset
 
 /-!
 # Discharging the Bochner integrability side conditions (`bochner_integrability_gate`)
@@ -24,6 +27,8 @@ skeleton sequences, which is the dominated-convergence content proved here
 (`lawRegret_tendsto_of_skeleton`, `pooledCrossfitProcess_tendsto_of_skeleton`,
 `foldSubCentered_tendsto_of_skeleton`).
 -/
+
+public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

@@ -67,9 +67,10 @@ Cauchy–Schwarz.
   (outcome collinear with the constant).
 -/
 
-import Causalean.PO.ID.Partial.SupportFunction.Calculus
-import Causalean.PO.ID.Partial.SupportFunction.Interval
-import Causalean.PO.ID.Partial.SupportFunction.AffineBall
+module
+public import Causalean.PO.ID.Partial.SupportFunction.Calculus
+public import Causalean.PO.ID.Partial.SupportFunction.Interval
+public import Causalean.PO.ID.Partial.SupportFunction.AffineBall
 
 /-! # Support-function sensitivity models
 
@@ -78,6 +79,8 @@ reweighted means. It defines robust upper and lower bounds over ambiguity sets,
 records their monotonicity and singleton collapse properties, and computes the
 closed form for the chi-square/L2-ball relaxation.
 -/
+
+@[expose] public section
 
 open scoped RealInnerProductSpace
 

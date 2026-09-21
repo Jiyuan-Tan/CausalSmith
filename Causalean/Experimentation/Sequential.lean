@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.Sequential.Ville
-import Causalean.Experimentation.Sequential.AnytimeValid
-import Causalean.Experimentation.Sequential.AdaptiveDesign
+module
+public import Causalean.Experimentation.Sequential.AdaptiveDesign
+public import Causalean.Experimentation.Sequential.AnytimeValid
+public import Causalean.Experimentation.Sequential.Ville
 
 /-!
 # Adaptive (sequential) experiments with valid inference

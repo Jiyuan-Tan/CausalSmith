@@ -1,7 +1,8 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
-import Causalean.Experimentation.DesignBased.Risk
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Basic
+public import Causalean.Experimentation.DesignBased.Risk
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
 
 /-!
 # Graph-aware SNIPE estimators and minimax risks
@@ -10,6 +11,8 @@ The estimator receives the known graph together with assignment and observed
 outcomes.  The risk then composes one global estimator with each model's own
 graph before applying `FiniteDesign.mse`.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

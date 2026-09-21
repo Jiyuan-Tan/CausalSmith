@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Concentration.ConditionalKernel
-import Causalean.Stat.Concentration.SubGaussianNorm
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.Rank
-import Mathlib.LinearAlgebra.Matrix.ToLin
+module
+public import Causalean.Stat.Concentration.ConditionalKernel
+public import Causalean.Stat.Concentration.SubGaussianNorm
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.LinearAlgebra.Matrix.Rank
+public import Mathlib.LinearAlgebra.Matrix.ToLin
 
 /-!
 # Concentration of projected bounded noise
@@ -18,6 +19,8 @@ energy of independent, centered, unit-bounded noise after an orthogonal matrix
 projection.  The ambient dimension is replaced by an a priori bound on the
 matrix rank.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 
@@ -108,7 +111,7 @@ theorem measure_projection_energy_gt_le
     convert hlin_one using 1
     funext ω
     exact hinner v hv ω
-  have hnet := Causalean.measure_norm_gt_le_five_pow_finrank
+  have hnet := measure_norm_gt_le_five_pow_finrank
     P Z V hZV hsubg ht
   have hrank_eq : Module.finrank ℝ V = Matrix.rank Pi := by
     rw [Matrix.rank_eq_finrank_range_toLin Pi

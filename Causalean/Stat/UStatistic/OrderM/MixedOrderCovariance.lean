@@ -1,11 +1,6 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
--/
-
-import Causalean.Stat.UStatistic.OrderM.PartialMatching
-import Causalean.Stat.UStatistic.OrderM.Variance
+module
+public import Causalean.Stat.UStatistic.OrderM.PartialMatching
+public import Causalean.Stat.UStatistic.OrderM.Variance
 
 /-!
 # Mixed-order partial-matching expansion
@@ -14,6 +9,14 @@ This module classifies pairs of injective tuples by their cross-tuple collision
 matching.  It gives pointwise product and product-law expectation expansions,
 then exposes the size-zero normalization correction in the centered identity.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -594,10 +597,12 @@ theorem mergedProductMoment_empty [IsProbabilityMeasure P] {r s : ℕ}
       rfl
 
 /-- Under a probability population law, for [an i.i.d. sample](hyp:S),
-[statistic orders and a sample size](hyp:r,s,n), if [the first order does not exceed the sample size](hyp:hrn)
+[statistic orders and a sample size](hyp:r,s,n), if
+[the first order does not exceed the sample size](hyp:hrn)
 and [the second order does not exceed the sample size](hyp:hsn), then for [two
 coordinate-function families](hyp:f,g), when [their product kernels are
-measurable](hyp:hmeasF,hmeasG), [their product kernels are integrable](hyp:hintF,hintG),
+measurable](hyp:hmeasF,hmeasG),
+[their product kernels are integrable](hyp:hintF,hintG),
 [every merged kernel is measurable](hyp:hmeas), and [every merged kernel is
 integrable](hyp:hint), [their centered cross moment equals an explicit disjoint
 normalization correction plus the merged moments from every positive-size

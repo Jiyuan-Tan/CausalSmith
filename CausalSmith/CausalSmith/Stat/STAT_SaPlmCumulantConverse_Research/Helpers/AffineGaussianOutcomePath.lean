@@ -1,9 +1,10 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import Causalean.Mathlib.InformationTheory.GaussianKL
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
-import Causalean.Stat.Minimax.LeCamTwoPoint
-import Mathlib.Probability.ConditionalExpectation
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import Causalean.Mathlib.InformationTheory.GaussianKL
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Causalean.Stat.Minimax.LeCamTwoPoint
+public import Mathlib.Probability.ConditionalExpectation
 
 /-!
 # Affine Gaussian outcome paths
@@ -12,6 +13,8 @@ Measure-theoretic infrastructure for replacing the outcome coordinate by an
 affine partially-linear signal plus independent Gaussian noise while retaining
 the joint covariate-treatment law.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -84,7 +87,7 @@ lemma condExp_comp_eq_of_map_prod_eq
       measurable_iff_comap_le.mpr le_rfl
     exact (hg.comp hX').aestronglyMeasurable
 
-private abbrev XT (Xspace : Type*) := Xspace × ℝ
+abbrev XT (Xspace : Type*) := Xspace × ℝ
 
 private lemma measurable_covariate : Measurable (covariate : Obs Xspace → Xspace) := by
   exact measurable_fst

@@ -9,7 +9,10 @@ The resolved information-order theorem: for `m ≥ 3`, the complete truncation
 through order `2m+1` already generically separates the two arrows.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LowerOrderApolarSeparation
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.LowerOrderApolarSeparation
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

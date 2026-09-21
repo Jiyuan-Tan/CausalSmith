@@ -4,21 +4,25 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Exact.Proximal.Setup
-import Mathlib.Probability.Independence.Conditional
+module
+public import Causalean.PO.ID.Exact.Proximal.Setup
+public import Mathlib.Probability.Independence.Conditional
 
 /-! # Proximal Assumptions
 
 This file states the proximal proxy assumptions for average treatment effect
 identification. `POProximalSystem.Assumptions` bundles consistency, latent
 exchangeability, outcome-side and treatment-side proxy restrictions, an outcome
-bridge equation, arm positivity, treatment-arm completeness, and the
-integrability conditions needed for the bridge representation.
+bridge equation, arm positivity, a global-integrability domain condition,
+completeness on that domain, and the integrability conditions needed for the
+bridge representation.
 
-The assumptions follow the Miao, Geng, and Tchetgen Tchetgen proximal
-identification setup. The only exported lemma, `Assumptions.integrable_Y`, is a
-compatibility projection showing that factual outcome integrability follows
-from consistency and integrability of the two potential-outcome cells. -/
+The causal and proxy restrictions follow the Miao, Geng, and Tchetgen Tchetgen
+proximal identification setup. The global-integrability domain condition is an
+additional restriction required by this formalization's globally totalized
+conditional expectation. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -32,9 +36,10 @@ variable {P : POSystem}
   [MeasurableSpace γ_X] [MeasurableSpace γ_Z]
   [MeasurableSpace γ_W] [MeasurableSpace γ_U]
 
-/-- **Proximal ATE assumption bundle** (Miao–Geng–Tchetgen Tchetgen proximal identification,
-`def:po-proximal-assumptions`). For a proximal system with covariate, binary treatment,
-treatment-side and outcome-side proxies, outcome, and latent confounder, this packages
+/-- **Proximal ATE assumption bundle for a globally totalized conditional expectation.**
+For [a proximal system](hyp:S) with covariate, binary treatment, treatment-side
+and outcome-side proxies, outcome, and latent confounder, under
+[a sampling measure](hyp:μ), this packages
 [consistency (SUTVA)](hyp:consistency), [latent exchangeability: each potential outcome is
 independent of treatment given the latent confounder and covariate](hyp:latent_exch), the two
 proxy restrictions that [the outcome-side proxy carries no information about the outcome beyond
@@ -45,9 +50,11 @@ satisfying [the bridge equation that the outcome minus `h` evaluated at treatmen
 proxy, and covariate has zero mean conditional on treatment, treatment-side proxy, and
 covariate](hyp:bridge), a positivity condition that [every latent-confounder-and-covariate-
 measurable event of positive probability meets each treatment arm with positive
-probability](hyp:positivity_arm), a completeness condition that [within each treatment arm,
-functions of the latent confounder and covariate with zero bridge-conditional mean vanish almost
-surely](hyp:completeness), and integrability of [the two potential
+probability](hyp:positivity_arm), [the requirement that any measurable latent function
+integrable within an arm is also globally integrable](hyp:integrable_global_of_integrable_arm),
+[completeness within each treatment arm for globally integrable latent functions whose
+bridge-conditional mean vanishes there](hyp:completeness_of_global_integrable), and
+integrability of [the two potential
 outcomes](hyp:integrable_YofA0,integrable_YofA1), [the composite `h(A,W,X)`](hyp:integrable_hAWX),
 and [the bridge function evaluated at each fixed treatment
 arm](hyp:integrable_h0WX,integrable_h1WX).
@@ -87,22 +94,30 @@ structure Assumptions
     ∀ (a : Bool) (B : Set P.Ω),
       MeasurableSet[S.σ_UX] B →
       μ (B ∩ {ω | S.A ω = a}) = 0 → μ B = 0
-  /-- Completeness within treatment level
-  (Miao-Geng-Tchetgen Tchetgen 2018, Assumption 8).
+  /-- Global-integrability domain condition for the totalized conditional expectation below.
 
-  For each `a ∈ {0,1}` and every measurable `g : γ_U × γ_X → ℝ` integrable
-  on `μ.restrict {A=a}`,
-    if  μ[g(U,X) | σ(A,Z,X)] = 0 a.s. on {A=a},
-    then  g(U,X) = 0 a.s. on {A=a}.
-
-  Conclusion is **stratum-wise** (`=ᵐ[μ.restrict {A=a}]`), not global,
-  matching the classical pointwise-in-(a,x) statement under disintegration.
-  The global conclusion is recovered downstream (step 7 of `Main.lean`)
-  by combining this with `positivity_arm`. -/
-  completeness :
+  Every measurable latent function that is integrable under an arm-restricted measure must also
+  be integrable under `μ`. This is stronger than the usual stratum-wise proximal assumption; it
+  prevents Mathlib's global conditional expectation from becoming zero merely because the
+  function is not globally integrable. -/
+  integrable_global_of_integrable_arm :
     ∀ (a : Bool) (g : γ_U × γ_X → ℝ),
       Measurable g →
       Integrable (fun ω => g (S.UX ω)) (μ.restrict {ω | S.A ω = a}) →
+      Integrable (fun ω => g (S.UX ω)) μ
+  /-- Completeness within treatment level on the explicitly global-integrability domain.
+
+  For each `a ∈ {0,1}` and every measurable `g : γ_U × γ_X → ℝ` integrable under `μ`,
+    if  μ[g(U,X) | σ(A,Z,X)] = 0 a.s. on {A=a},
+    then  g(U,X) = 0 a.s. on {A=a}.
+
+  Unlike the classical arm-measure formulation, this field uses Mathlib's conditional
+  expectation under the global measure, so global integrability is a material extra premise.
+  The conclusion remains stratum-wise; `positivity_arm` globalizes it downstream. -/
+  completeness_of_global_integrable :
+    ∀ (a : Bool) (g : γ_U × γ_X → ℝ),
+      Measurable g →
+      Integrable (fun ω => g (S.UX ω)) μ →
       (μ[fun ω => g (S.UX ω) | S.σ_AZX]) =ᵐ[μ.restrict {ω | S.A ω = a}] 0 →
       (fun ω => g (S.UX ω)) =ᵐ[μ.restrict {ω | S.A ω = a}] 0
   /-- Integrability of Y(0). -/

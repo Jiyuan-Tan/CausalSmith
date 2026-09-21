@@ -1,5 +1,21 @@
-import Causalean.PO.ID.Exact.ATE
-import Causalean.Tactic.CondexpLinearity
+module
+public import Causalean.PO.ID.Exact.ATE
+public import Causalean.Tactic.CondexpLinearity
+
+/-!
+This file identifies the average treatment effect on the treated from observed
+data under back-door assumptions, expressing the causal target through
+covariate-adjusted treated outcomes and an equivalent augmented
+inverse-probability weighted form.
+
+It reuses `POBackdoorSystem` from the ATE file but weakens the overlap
+requirement to the control arm. The public API includes `ATTAssumptions`,
+`ATT_eq_adjustedATT`, and `adjustedATT_eq_aipwForm`, respectively packaging the
+one-sided assumptions, the adjusted ATT identification theorem, and the AIPW
+representation.
+-/
+
+@[expose] public section
 
 /-
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
@@ -15,21 +31,12 @@ observable `adjustedATT = E[A · (μ₁(X) − μ₀(X))] / π_T`, with an AIPW 
 
 This file extends `POBackdoorSystem` (defined in `PO/ID/Exact/ATE.lean`) and reuses
 its bundled definitions (`YofD`, `factualD`, `factualY`, `factualX`, `sigmaX`,
-`propScore`, `CATE`, `Assumptions`).
+`propScore`, `conditionalMeanOutcome`, `Assumptions`).
 -/
 
-/-!
-This file identifies the average treatment effect on the treated from observed
-data under back-door assumptions, expressing the causal target through
-covariate-adjusted treated outcomes and an equivalent augmented
-inverse-probability weighted form.
 
-It reuses `POBackdoorSystem` from the ATE file but weakens the overlap
-requirement to the control arm. The public API includes `ATTAssumptions`,
-`ATT_eq_adjustedATT`, and `adjustedATT_eq_aipwForm`, respectively packaging the
-one-sided assumptions, the adjusted ATT identification theorem, and the AIPW
-representation.
--/
+
+open Causalean.Mathlib.Probability.Independence.Conditional
 
 namespace Causalean
 namespace PO
@@ -42,17 +49,22 @@ variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
 
-/-- Given [a binary-treatment backdoor system](hyp:S), the [marginal treatment probability](goal) is the population mean of the indicator for the treated arm. -/
+/-- The [treated share of the population](goal) in [a binary-treatment backdoor
+system](hyp:S) [is the population mean of the treated-arm indicator](step:1); it is the
+normalizing probability for effects conditional on treatment. -/
 noncomputable def propTreated : ℝ :=
   ∫ ω, S.dVar.indicator true ω ∂P.μ
 
-/-- Given [a binary-treatment backdoor system](hyp:S), the [average treatment effect on the treated](goal) is the population mean treatment effect weighted by the treated-arm indicator and divided by the marginal treatment probability.  It is
+/-- The [average treatment effect on the treated](goal) in [a binary-treatment backdoor
+system](hyp:S) [averages individual treatment effects over treated units](step:1):
 `ATT = E[A · (Y(1) − Y(0))] / π_T`. -/
 noncomputable def ATT : ℝ :=
   (∫ ω, S.dVar.indicator true ω * (S.YofD true ω - S.YofD false ω) ∂P.μ)
     / S.propTreated
 
-/-- Given [a binary-treatment backdoor system](hyp:S), the [adjusted average treatment effect on the treated](goal) is the treated-indicator-weighted population mean of factual outcome minus the adjusted control conditional functional, divided by the marginal treatment probability.  It is the observable, control-regression form:
+/-- The [observable adjusted ATT functional](goal) in [a binary-treatment backdoor
+system](hyp:S) [averages, among treated units, observed outcomes minus the adjusted control
+regression](step:1). It is the control-regression form:
 `E[A · (Y − μ₀(X))] / π_T`. Only the CONTROL regression `μ₀(X) = adjustedCE false`
 appears — the treated potential outcome is observed directly on `{D = 1}` via
 consistency (`A · Y = A · Y(1)`), so no treated regression `μ₁(X)` and hence no
@@ -63,15 +75,20 @@ noncomputable def adjustedATT : ℝ :=
   (∫ ω, S.dVar.indicator true ω * (S.factualY ω - S.adjustedCE false ω) ∂P.μ)
     / S.propTreated
 
-/-- Backdoor assumptions for ATT identification. These are the standard ATT
-conditions, with overlap required on only **one** side — every covariate stratum
-keeps a positive chance of the control arm (`e(X) < 1`) — which is strictly
-weaker than the two-sided overlap the ATE needs, because on the treated the
-outcome is observed directly.
+/-- The standard ATT conditions for [a binary-treatment backdoor system](hyp:S) require
+[factual consistency](hyp:consistency), [conditional independence of treatment from the
+untreated potential outcome given covariates](hyp:unconfoundedness), [one-sided control-arm
+overlap](hyp:overlapControl), [integrability of the treated and untreated potential
+outcomes](hyp:integrable_Y1,integrable_Y0), and [a positive marginal treatment
+probability](hyp:propTreated_pos).
+
+These conditions require overlap and exchangeability only where the untreated
+counterfactual is missing for treated units; the treated potential outcome is
+observed directly among the treated.
 
 Fields:
 * `consistency` (SUTVA) — on `{D = d}`, `Y = Y(d)`.
-* `unconfoundedness` — `D ⟂ (Y(1), Y(0)) | X`.
+* `unconfoundedness` — `D ⟂ Y(0) | X`.
 * `overlapControl` — one-sided overlap `P[D=1 | σ(X)] < 1` a.s.: every covariate
   stratum keeps a positive chance of the CONTROL arm. This is all ATT needs,
   because the treated potential outcome is observed directly on `{D = 1}`
@@ -84,11 +101,10 @@ structure ATTAssumptions (S : POBackdoorSystem P γ)
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ] : Prop where
   /-- Consistency (SUTVA): on `{D = d}`, the observed outcome equals `Y(d)`. -/
   consistency : P.Consistency
-  /-- Unconfoundedness: `D ⟂ (Y(1), Y(0)) | X`, as conditional independence of the
-  realized `D` and the counterfactual bundle given `σ(X)`. -/
+  /-- One-sided unconfoundedness: `D ⟂ Y(0) | X`. Independence from `Y(1)` is
+  unnecessary because that potential outcome is observed among treated units. -/
   unconfoundedness :
-    P.CondIndepCF (RegimedVar.ofFactual S.dVar) S.cfBundle
-      (RegimedVar.ofFactual S.xVar) P.μ
+    CondIndepFun S.sigmaX S.sigmaX_le S.factualD (S.YofD false) P.μ
   /-- One-sided overlap (control common support): `P[D=1 | σ(X)] < 1` a.s. Only the
   upper bound is needed for ATT — the treated arm is observed directly. -/
   overlapControl : ∀ᵐ ω ∂P.μ, S.propScore true ω < 1
@@ -99,10 +115,33 @@ structure ATTAssumptions (S : POBackdoorSystem P γ)
   /-- Positivity of the marginal treatment probability `π_T = P[D=1]`. -/
   propTreated_pos : 0 < S.propTreated
 
+/-- [Traditional two-arm exchangeability](hyp:unconfoundedness) is sufficient for the
+[one-sided ATT identification conditions](goal) in [a backdoor system](hyp:S): retaining
+[consistency](hyp:consistency), [control-arm overlap](hyp:overlapControl), [integrability of
+both potential outcomes](hyp:integrable_Y1,integrable_Y0), and [a nonempty treated
+population](hyp:propTreated_pos), it projects exchangeability onto the untreated potential
+outcome actually missing among treated units. -/
+theorem ATTAssumptions.ofFullUnconfoundedness
+    [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    (consistency : P.Consistency)
+    (unconfoundedness :
+      P.CondIndepCF (RegimedVar.ofFactual S.dVar) S.cfBundle
+        (RegimedVar.ofFactual S.xVar) P.μ)
+    (overlapControl : ∀ᵐ ω ∂P.μ, S.propScore true ω < 1)
+    (integrable_Y1 : Integrable (S.YofD true) P.μ)
+    (integrable_Y0 : Integrable (S.YofD false) P.μ)
+    (propTreated_pos : 0 < S.propTreated) : S.ATTAssumptions where
+  consistency := consistency
+  unconfoundedness := unconfoundedness.component (1 : Fin 2)
+  overlapControl := overlapControl
+  integrable_Y1 := integrable_Y1
+  integrable_Y0 := integrable_Y0
+  propTreated_pos := propTreated_pos
+
 attribute [fun_prop] ATTAssumptions.integrable_Y1 ATTAssumptions.integrable_Y0
 
-/-- Under the ATT assumption bundle the potential outcome of either arm is
-integrable. -/
+/-- [The ATT assumptions](hyp:hA) make [either treatment arm](hyp:d) in [the backdoor
+system](hyp:S) [integrable, so both arm means needed for the treated effect are finite](goal). -/
 @[fun_prop]
 lemma ATTAssumptions.integrable_YofD [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.ATTAssumptions) (d : Bool) : Integrable (S.YofD d) P.μ := by
@@ -110,7 +149,9 @@ lemma ATTAssumptions.integrable_YofD [StandardBorelSpace P.Ω] [IsFiniteMeasure 
   · exact hA.integrable_Y0
   · exact hA.integrable_Y1
 
-/-- Under the ATT assumption bundle the observed outcome is integrable. -/
+/-- [The ATT assumptions](hyp:hA) ensure that [the observed outcome in the backdoor
+system](hyp:S) [has a finite mean](goal), using consistency to select between the two
+integrable potential outcomes. -/
 @[fun_prop]
 lemma ATTAssumptions.integrable_factualY [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.ATTAssumptions) : Integrable S.factualY P.μ :=
@@ -152,8 +193,9 @@ lemma ATTAssumptions.propScore_false_ne [StandardBorelSpace P.Ω] [IsFiniteMeasu
   intro h
   linarith
 
-/-- The backdoor adjustment functional is strongly measurable with respect to the
-covariate sigma-algebra. -/
+/-- [The adjustment functional for a treatment arm](hyp:d) [depends measurably only on
+covariate information](goal) in [the backdoor system](hyp:S), so it is a valid covariate
+regression. -/
 @[fun_prop]
 lemma stronglyMeasurable_adjustedCE_comap
     (d : Bool) :
@@ -165,34 +207,36 @@ lemma stronglyMeasurable_adjustedCE_comap
     (MeasureTheory.stronglyMeasurable_condExp
       (μ := P.μ) (m := S.sigmaX) (f := S.dVar.indicator d)).measurable).stronglyMeasurable
 
-/-- The backdoor adjustment functional is measurable for the ambient sigma-algebra
-on the sample space. -/
+/-- [The adjustment functional for a treatment arm](hyp:d) in [a backdoor
+system](hyp:S) is [a measurable random variable on the full sample space](goal). -/
 @[fun_prop]
 lemma measurable_adjustedCE
     (d : Bool) : Measurable (S.adjustedCE d) :=
   (S.stronglyMeasurable_adjustedCE_comap d).mono S.sigmaX_le |>.measurable
 
-/-- Control-arm backdoor CATE identification under the one-sided ATT assumptions:
-`μ[Y(0) | σ(X)] =ᵐ adjustedCE false`. Discharges the per-arm nonvanishing
-hypothesis of `cate_backdoor_of_propScore_ne` from `overlapControl` (`e < 1`),
-never using `0 < e`. -/
-private lemma cate_backdoor_control [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (hA : S.ATTAssumptions) : S.CATE false =ᵐ[P.μ] S.adjustedCE false :=
-  S.cate_backdoor_of_propScore_ne hA.consistency hA.unconfoundedness
-    hA.integrable_Y1 hA.integrable_Y0 false hA.propScore_false_ne
+/-- Under [the one-sided ATT assumptions](hyp:hA), [a backdoor system's control-arm
+conditional mean equals its adjusted control outcome](goal). This discharges the per-arm
+nonvanishing hypothesis of `conditionalMeanOutcome_backdoor_of_propScore_ne` from
+`overlapControl` (`e < 1`), never using `0 < e`. -/
+private lemma conditionalMeanOutcome_backdoor_control [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
+    (hA : S.ATTAssumptions) : S.conditionalMeanOutcome false =ᵐ[P.μ] S.adjustedCE false :=
+  S.conditionalMeanOutcome_backdoor_of_propScore_ne hA.consistency false hA.unconfoundedness
+    hA.integrable_Y1 hA.integrable_Y0 hA.propScore_false_ne
 
-/-- Under the ATT assumption bundle the control-arm backdoor adjustment
-functional is integrable. -/
+/-- [The ATT assumptions](hyp:hA) make [the control-arm adjustment functional in the
+backdoor system](hyp:S) [integrable](goal), allowing its treated-group weighted mean to
+enter the ATT formula. -/
 @[fun_prop]
 lemma integrable_adjustedCE_control [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.ATTAssumptions) :
     Integrable (S.adjustedCE false) P.μ := by
-  have hcate_int : Integrable (S.CATE false) P.μ := by fun_prop
-  exact hcate_int.congr (S.cate_backdoor_control hA)
+  have hcate_int : Integrable (S.conditionalMeanOutcome false) P.μ := by fun_prop
+  exact hcate_int.congr (S.conditionalMeanOutcome_backdoor_control hA)
 
 private lemma att_numerator_arm [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.ATTAssumptions) (d : Bool)
-    (hcate : S.CATE d =ᵐ[P.μ] S.adjustedCE d)
+    (hCI : CondIndepFun S.sigmaX S.sigmaX_le S.factualD (S.YofD d) P.μ)
+    (hcate : S.conditionalMeanOutcome d =ᵐ[P.μ] S.adjustedCE d)
     (hAdjCE_int : Integrable (S.adjustedCE d) P.μ) :
     ∫ ω, S.dVar.indicator true ω * S.YofD d ω ∂P.μ
       = ∫ ω, S.dVar.indicator true ω * S.adjustedCE d ω ∂P.μ := by
@@ -219,30 +263,11 @@ private lemma att_numerator_arm [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
       have h2 : ω ∉ S.dVar.event true := h
       rw [show u (S.factualD ω) = (0 : ℝ) from Set.indicator_of_notMem h1 _,
         Set.indicator_of_notMem h2]
-  let ψ : (∀ i : Fin S.cfBundle.n, S.cfBundle.type i) → ℝ :=
-    fun f => match d with
-      | true => f (0 : Fin 2)
-      | false => f (1 : Fin 2)
-  have hψ_meas : Measurable ψ := by
-    let instCf : ∀ a : Fin 2, MeasurableSpace (S.cfBundle.type a) :=
-      fun a => S.cfBundle.inst a
-    cases d with
-    | true => exact measurable_pi_apply (0 : Fin 2)
-    | false => exact measurable_pi_apply (1 : Fin 2)
-  have hYofD_eq : S.YofD d = ψ ∘ S.cfBundle.jointValue := by
-    funext ω
-    cases d <;> rfl
-  have hCI :
-      ProbabilityTheory.CondIndepFun S.sigmaX S.sigmaX_le
-        S.factualD (S.YofD d) P.μ := by
-    have hproj := hA.unconfoundedness.project (ψ := ψ) hψ_meas
-    rw [hYofD_eq]
-    exact hproj
   have huMul_int :
       Integrable (fun ω => u (S.factualD ω) * S.YofD d ω) P.μ := by fun_prop
   have hfact :
       P.μ[fun ω => S.dVar.indicator true ω * S.YofD d ω | S.sigmaX]
-        =ᵐ[P.μ] S.propScore true * S.CATE d := by
+        =ᵐ[P.μ] S.propScore true * S.conditionalMeanOutcome d := by
     have hraw :=
       condExp_mul_of_condIndep (μ := P.μ) (m := S.sigmaX) S.sigmaX_le
         (f := S.factualD) (g := S.YofD d)
@@ -250,7 +275,7 @@ private lemma att_numerator_arm [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
         (u := u) (v := id) hu_meas measurable_id
         (by rw [hu_eq]; exact hindT_integrable)
         hYofD_integrable huMul_int
-    unfold POBackdoorSystem.CATE POBackdoorSystem.propScore
+    unfold POBackdoorSystem.conditionalMeanOutcome POBackdoorSystem.propScore
     rw [hu_eq] at hraw
     exact hraw
   have hfact_adj :
@@ -294,7 +319,7 @@ private lemma att_numerator_arm [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 private lemma condExp_indicator_residual_adjusted_zero
     [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.ATTAssumptions) (d : Bool)
-    (hcate : S.CATE d =ᵐ[P.μ] S.adjustedCE d)
+    (hcate : S.conditionalMeanOutcome d =ᵐ[P.μ] S.adjustedCE d)
     (hAdjCE_int : Integrable (S.adjustedCE d) P.μ)
     (h_ne : ∀ᵐ ω ∂P.μ, S.propScore d ω ≠ 0) :
     P.μ[fun ω => S.dVar.indicator d ω * (S.factualY ω - S.adjustedCE d ω) | S.sigmaX]
@@ -320,7 +345,7 @@ private lemma condExp_indicator_residual_adjusted_zero
     by condexp_linearity
   have hYce :
       P.μ[fun ω => S.factualY ω * S.dVar.indicator d ω | S.sigmaX]
-        =ᵐ[P.μ] S.propScore d * S.CATE d := by
+        =ᵐ[P.μ] S.propScore d * S.conditionalMeanOutcome d := by
     filter_upwards [hcate, h_ne] with ω hcat hneω
     unfold POBackdoorSystem.adjustedCE at hcat
     rw [Pi.mul_apply, hcat]
@@ -359,7 +384,7 @@ private lemma weighted_false_residual_integral_zero
     MeasureTheory.condExp_mul_of_stronglyMeasurable_left
       (μ := P.μ) (m := S.sigmaX) hw_sm h_int hresid_int
   have hresid_zero := S.condExp_indicator_residual_adjusted_zero hA false
-    (S.cate_backdoor_control hA) (S.integrable_adjustedCE_control hA)
+    (S.conditionalMeanOutcome_backdoor_control hA) (S.integrable_adjustedCE_control hA)
     hA.propScore_false_ne
   have hweighted_zero :
       P.μ[fun ω => w ω *
@@ -379,9 +404,11 @@ private lemma weighted_false_residual_integral_zero
           MeasureTheory.integral_congr_ae hweighted_zero
     _ = 0 := MeasureTheory.integral_zero _ _
 
-/-- **ATT identification (one-sided overlap).** Under [consistency,
+/-- **ATT identification (one-sided overlap).** In [a binary-treatment backdoor
+system](hyp:S), under [consistency,
 unconfoundedness, one-sided overlap (`e(X) < 1`, the control arm), and
-positivity of the marginal treatment probability](hyp:hA), [the
+integrability of both potential outcomes, together with positivity of the marginal
+treatment probability](hyp:hA), [the
 potential-outcome-level average treatment effect on the treated equals the
 observable adjusted-ATT functional](goal):
 
@@ -392,15 +419,15 @@ Only the control regression `μ₀(X)` appears, so `0 < e(X)` is NOT required:
   numerators ∫ A·(Y(1) − Y(0)) dμ = ∫ A·(Y − μ₀(X)) dμ.
 * On the treated set `Y = Y(1)` (consistency), so ∫ A·Y(1) = ∫ A·Y with NO
   overlap used.
-* For the control term, unconfoundedness + the control-arm CATE identity
-  (`cate_backdoor_control`, needing only `e(X) < 1`) give ∫ A·Y(0) = ∫ A·μ₀(X).
+* For the control term, unconfoundedness + the control-arm conditional-mean identity
+  (`conditionalMeanOutcome_backdoor_control`, needing only `e(X) < 1`) give ∫ A·Y(0) = ∫ A·μ₀(X).
 * Subtraction gives numerator equality; division by `propTreated > 0` finishes. -/
 theorem ATT_eq_adjustedATT [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
     (hA : S.ATTAssumptions) : S.ATT = S.adjustedATT := by
   unfold POBackdoorSystem.ATT POBackdoorSystem.adjustedATT
   congr 1
-  have hfalse := S.att_numerator_arm hA false
-    (S.cate_backdoor_control hA) (S.integrable_adjustedCE_control hA)
+  have hfalse := S.att_numerator_arm hA false hA.unconfoundedness
+    (S.conditionalMeanOutcome_backdoor_control hA) (S.integrable_adjustedCE_control hA)
   have hY1 : Integrable (fun ω => S.dVar.indicator true ω * S.YofD true ω) P.μ := by fun_prop
   have hY0 : Integrable (fun ω => S.dVar.indicator true ω * S.YofD false ω) P.μ := by fun_prop
   have hAfact : Integrable (fun ω => S.dVar.indicator true ω * S.factualY ω) P.μ := by fun_prop
@@ -440,9 +467,10 @@ theorem ATT_eq_adjustedATT [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
           congr with ω
           ring
 
-/-- **AIPW corollary.** Under [the ATT identification assumptions —
-consistency, unconfoundedness, one-sided control-arm overlap, and a positive
-marginal treatment probability](hyp:hA), provided [the observed
+/-- **AIPW corollary.** In [a binary-treatment backdoor system](hyp:S), under [the ATT
+identification assumptions — consistency, unconfoundedness, one-sided control-arm
+overlap, integrable potential outcomes, and a positive marginal treatment
+probability](hyp:hA), provided [the observed
 inverse-propensity-weighted correction term is integrable](hyp:hIPW), [the
 `adjustedATT` functional equals its augmented inverse-propensity-weighted
 (AIPW) form](goal):

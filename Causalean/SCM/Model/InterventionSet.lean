@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Model.InterventionMono
+module
+public import Causalean.SCM.Model.InterventionMono
 
 /-! # Multi-Target Intervention Interface
 
@@ -27,6 +28,13 @@ kernel statements.
   projections used by kernel-level do-calculus statements.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
 namespace Causalean
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
@@ -38,7 +46,12 @@ namespace SCM
 -- § 1. `fixSet` — monolithic multi-target do
 -- ============================================================
 
-/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), and [a finite set of intervention targets](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the [standard multi-target intervention](goal) is the model obtained by simultaneously splitting all targets. It is defined [as the monolithic intervention](step:1).
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), and [a finite set of intervention targets](hyp:X) whose
+    [random copies are observed](hyp:hObs) and whose [fixed copies are not already
+    fixed](hyp:hFix), the [standard multi-target intervention](goal) is the model obtained by
+    simultaneously splitting all targets. It is defined [as the monolithic
+    intervention](step:1).
 
     **Standard (Pearl) multi-target do** — definitional alias for `fixMono`. -/
 noncomputable def fixSet
@@ -106,8 +119,8 @@ lemma fixed_mem_fixSet (M : Causalean.SCM N Ω) (X : Finset N)
     post-intervention graph `(M.fixSet X)`, then `v`'s parent set in
     `(M.fixSet X)` is identical to `v`'s parent set in `M`.
 
-    Key prerequisite for the Rule 3 non-ancestor `evalMap` bridge
-    `fixSet_evalMap_nonAnc_compat` in `Causal/Do/Rule3.lean`. -/
+    Key prerequisite for the Rule 3* non-ancestor `evalMap` bridge
+    `fixSet_evalMap_nonAnc_compat` in `Causalean/SCM/Do/Rule3.lean`. -/
 lemma fixSet_parents_eq_of_no_fixed_parent
     (M : Causalean.SCM N Ω) (X : Finset N)
     (hObs : ∀ D ∈ X, SWIGNode.random D ∈ M.observed)
@@ -129,7 +142,7 @@ lemma splitMono_empty_parents
     (G.splitMono ∅
       (fun _ hD => absurd hD (Finset.notMem_empty _))
       (fun _ hD => absurd hD (Finset.notMem_empty _))).dag.parents v = G.dag.parents v :=
-  splitMono_parents_eq_of_no_fixed_parent G ∅
+  Causalean.Graph.SWIGGraph.splitMono_parents_eq_of_no_fixed_parent G ∅
     (fun _ hD => absurd hD (Finset.notMem_empty _))
     (fun _ hD => absurd hD (Finset.notMem_empty _)) v
     (fun _ hD => absurd hD (Finset.notMem_empty _))
@@ -680,10 +693,11 @@ private theorem swigInterventionSet_insert_equiv_aux
         exact hξ_apply (SWIGNode.fixed d) _ _
   · rfl
 
-/-- **Insert form of monolithic intervention composition.**
-
-    Intervening on `X` and then on a fresh singleton `{y}` is structurally
-    equivalent to the one-shot intervention on `insert y X`. -/
+/-- Given [a finite structural causal model, an intervention set, and a fresh
+    node](hyp:N,Ω,M,X,y), if [the node is outside the set](hyp:hyX), [all enlarged-set random
+    copies are observed](hyp:hInsert_obs), and [none of its fixed copies is already
+    fixed](hyp:hInsert_fixed), then [intervening first on the set and then on the singleton node
+    is structurally equivalent to the one-shot enlarged intervention](goal). -/
 theorem swigInterventionSet_insert_equiv
     (M : Causalean.SCM N Ω) (X : Finset N) (y : N)
     (hyX : y ∉ X)
@@ -724,7 +738,12 @@ theorem swigInterventionSet_insert_equiv
 -- § 3. `fixSetProj` — projection onto original fixed coordinates
 -- ============================================================
 
-/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [a finite intervention-target set](hyp:X) whose [random copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the [projection from post-intervention fixed-value assignments to original fixed-value assignments](goal) restricts an assignment to the model's original fixed coordinates. It is defined [by coordinate projection](step:1).
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), [a finite intervention-target set](hyp:X) whose [random
+    copies are observed](hyp:hObs) and whose [fixed copies are not already fixed](hyp:hFix), the
+    [projection from post-intervention fixed-value assignments to original fixed-value
+    assignments](goal) restricts an assignment to the model's original fixed coordinates. It is
+    defined [by coordinate projection](step:1).
 
     Canonical projection of post-intervention fixed assignments onto the
     original fixed coordinates.
@@ -732,7 +751,8 @@ theorem swigInterventionSet_insert_equiv
     Reads an assignment `s' : (M.fixSet X _ _).FixedValues` on the enlarged
     fixed set `M.fixed ∪ X.image .fixed` at its `M.fixed` coordinates,
     producing an assignment `M.FixedValues`.  Used by the single-intervention
-    do-calculus rules (`DoCalculus.do_rule2 / do_rule3`) to equate
+    do-calculus interfaces (`do_rule2_kernel_of_nondescendant_product_ae` /
+    `do_rule3_star`) to equate
     `(M'.fixSet Z).obsKernel s'` with `M'.obsKernel (M'.fixSetProj Z _ _ s')`
     after projecting the post-intervention fixed slice. -/
 noncomputable def fixSetProj (M : Causalean.SCM N Ω) (X : Finset N)
@@ -753,7 +773,15 @@ theorem measurable_fixSetProj (M : Causalean.SCM N Ω) (X : Finset N)
 -- § 4. `fixSetZSlice` — extractor of the inner `do(Z)` slice
 -- ============================================================
 
-/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω), [a structural causal model](hyp:M), [an initial intervention-target set](hyp:X) whose [random copies are observed](hyp:hX_obs) and whose [fixed copies are not already fixed](hyp:hX_fixed), and [a second intervention-target set](hyp:Z) whose [random copies are observed after the first intervention](hyp:hZ_obs) and whose [fixed copies are not already fixed after the first intervention](hyp:hZ_fixed), the [second-intervention fixed-slice extractor](goal) maps every fixed-value assignment after both interventions to its coordinates for the fixed copies of the second targets. It is defined [by coordinate projection](step:1).
+/-- For [a finite node population](hyp:N) with [measurable node-value spaces](hyp:Ω),
+    [a structural causal model](hyp:M), [an initial intervention-target set](hyp:X) whose [random
+    copies are observed](hyp:hX_obs) and whose [fixed copies are not already
+    fixed](hyp:hX_fixed), and [a second intervention-target set](hyp:Z) whose [random copies are
+    observed after the first intervention](hyp:hZ_obs) and whose [fixed copies are not already
+    fixed after the first intervention](hyp:hZ_fixed), the [second-intervention fixed-slice
+    extractor](goal) maps every fixed-value assignment after both interventions to its coordinates
+    for the fixed copies of the second targets. It is defined [by coordinate
+    projection](step:1).
 
     **Z-fixed-slice extractor.**  Reads a `FixedValues` assignment of the
     double-intervention `((M.fixSet X).fixSet Z)` on the `Z.image .fixed`

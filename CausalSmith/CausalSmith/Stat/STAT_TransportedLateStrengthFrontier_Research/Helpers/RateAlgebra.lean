@@ -2,7 +2,10 @@
 # Frontier rate algebra
 -/
 
-import Causalean.Stat.Inference.AffineInversion
+module
+public import Causalean.Stat.Inference.AffineInversion
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

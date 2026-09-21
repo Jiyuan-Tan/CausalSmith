@@ -1,8 +1,9 @@
-import Causalean.Stat.FiniteRaoBlackwell.Sufficiency
-import Causalean.Stat.Minimax.MinimaxValue
-import Mathlib.Analysis.Convex.Jensen
-import Mathlib.Analysis.Convex.Mul
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+module
+public import Causalean.Stat.FiniteRaoBlackwell.Sufficiency
+public import Causalean.Stat.Minimax.MinimaxValue
+public import Mathlib.Analysis.Convex.Jensen
+public import Mathlib.Analysis.Convex.Mul
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
 /-!
 # Finite Rao--Blackwell reduction for squared loss
@@ -13,6 +14,8 @@ an analytic fiberwise device.  The usable Rao--Blackwell estimator is a single s
 function constructed from a sufficient factorization, and it yields statewise, finite-prior,
 worst-case, and minimax-compatible corollaries.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 
@@ -188,37 +191,32 @@ theorem priorRisk_commonRaoBlackwellEstimator_le
       (E.statisticRisk_commonRaoBlackwellEstimator_le_fullRisk K target est θ)
       (prior.p_nonneg θ)
 
-/-- Under state-independent conditional laws, Rao--Blackwellization weakly decreases the finite
-worst-case squared risk, in the real-valued `worstCaseRisk` API. -/
+/-- Under state-independent conditional laws, Rao--Blackwellization [weakly decreases the
+finite worst-case squared risk](goal) for a [common conditional kernel](hyp:K),
+[target](hyp:target), and [full-data estimator](hyp:est). -/
 theorem worstCaseRisk_commonRaoBlackwellEstimator_le
     (K : E.CommonConditionalKernel)
     (target : Latent → ℝ) (est : Allocation × Observation → ℝ) :
-    Causalean.Stat.worstCaseRisk (E.statisticRisk target)
+    Causalean.Stat.worstCaseRiskENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.statisticRisk target d θ))
         (E.commonRaoBlackwellEstimator K est) ≤
-      Causalean.Stat.worstCaseRisk (E.fullRisk target) est := by
-  /- Finite state spaces bound both risk ranges.  Apply worstCaseRisk_le to the statewise
-  contraction followed by le_worstCaseRisk for the full estimator. -/
-  cases isEmpty_or_nonempty Latent with
-  | inl _ =>
-      simp only [Causalean.Stat.worstCaseRisk_of_isEmpty_class]
-      exact le_rfl
-  | inr _ =>
-      apply Causalean.Stat.worstCaseRisk_le
-      intro θ
-      exact (E.statisticRisk_commonRaoBlackwellEstimator_le_fullRisk K target est θ).trans
-        (Causalean.Stat.le_worstCaseRisk (Set.finite_range _ |>.bddAbove) θ)
+      Causalean.Stat.worstCaseRiskENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.fullRisk target d θ)) est := by
+  apply Causalean.Stat.worstCaseRiskENNReal_le
+  intro θ
+  exact (ENNReal.ofReal_le_ofReal
+    (E.statisticRisk_commonRaoBlackwellEstimator_le_fullRisk K target est θ)).trans
+      (Causalean.Stat.le_worstCaseRiskENNReal est θ)
 
 /-- If every full-data estimator is Rao--Blackwellized through state-independent conditionals,
 the minimax value over statistic-only estimators is no larger than the full-data minimax value. -/
 theorem minimaxValue_statistic_le_full_of_commonConditionalKernel
     (K : E.CommonConditionalKernel) (target : Latent → ℝ) :
-    Causalean.Stat.minimaxValue (E.statisticRisk target) ≤
-      Causalean.Stat.minimaxValue (E.fullRisk target) := by
-  /- Use minimaxValue_le_minimaxValue, pairing each full estimator with its common
-  raoBlackwellEstimator.  Nonnegativity supplies the lower bound for statistic risks. -/
-  apply Causalean.Stat.minimaxValue_le_minimaxValue
-    (Causalean.Stat.bddBelow_range_worstCaseRisk fun est θ ↦
-      E.statisticRisk_nonneg target est θ)
+    Causalean.Stat.minimaxValueENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.statisticRisk target d θ)) ≤
+      Causalean.Stat.minimaxValueENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.fullRisk target d θ)) := by
+  apply Causalean.Stat.minimaxValueENNReal_le_minimaxValue
   intro est
   exact ⟨E.commonRaoBlackwellEstimator K est,
     E.worstCaseRisk_commonRaoBlackwellEstimator_le K target est⟩
@@ -265,17 +263,24 @@ larger finite worst-case squared risk than the full-data estimator. -/
 theorem worstCaseRisk_raoBlackwellEstimator_le
     (F : E.SufficientFactorization)
     (target : Latent → ℝ) (est : Allocation × Observation → ℝ) :
-    Causalean.Stat.worstCaseRisk (E.statisticRisk target) (E.raoBlackwellEstimator F est) ≤
-      Causalean.Stat.worstCaseRisk (E.fullRisk target) est := by
+    Causalean.Stat.worstCaseRiskENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.statisticRisk target d θ))
+        (E.raoBlackwellEstimator F est) ≤
+      Causalean.Stat.worstCaseRiskENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.fullRisk target d θ)) est := by
   exact E.worstCaseRisk_commonRaoBlackwellEstimator_le
     F.toCommonConditionalKernel target est
 
-/-- If the statistic satisfies the finite factorization criterion, its estimator class has
-minimax squared-risk value no larger than the full-data estimator class. -/
+/-- For [a finite uniform-allocation experiment](hyp:E), [a sufficient factorization of its
+full-data masses](hyp:F), and [a real-valued target indexed by latent state](hyp:target), [the
+statistic-only estimator class has minimax squared-risk value no larger than the full-data
+estimator class](goal). -/
 theorem minimaxValue_statistic_le_full
     (F : E.SufficientFactorization) (target : Latent → ℝ) :
-    Causalean.Stat.minimaxValue (E.statisticRisk target) ≤
-      Causalean.Stat.minimaxValue (E.fullRisk target) := by
+    Causalean.Stat.minimaxValueENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.statisticRisk target d θ)) ≤
+      Causalean.Stat.minimaxValueENNReal
+        (fun d θ ↦ ENNReal.ofReal (E.fullRisk target d θ)) := by
   exact E.minimaxValue_statistic_le_full_of_commonConditionalKernel
     F.toCommonConditionalKernel target
 

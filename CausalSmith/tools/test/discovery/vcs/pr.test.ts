@@ -5,8 +5,8 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Core } from "../../../src/discovery/core/schema.js";
 import { SolveUnitOutputSchema, type SolveUnitOutput } from "../../../src/discovery/solve/schemas.js";
 import { commitOrThrow, headGraph } from "../../../src/discovery/vcs/commit.js";
-import { loadGraph } from "../../../src/discovery/vcs/graph.js";
-import { applyUnitOutput, closePr, describePr, listPrs, mergePr, openPr, readPr, reapplyPr, reconcileToBase } from "../../../src/discovery/vcs/pr.js";
+import { loadGraph, statementBlob } from "../../../src/discovery/vcs/graph.js";
+import { applyUnitOutput, closePr, describePr, foldUnitHeads, listPrs, mergePr, openPr, readPr, reapplyPr, reconcileToBase } from "../../../src/discovery/vcs/pr.js";
 import { graphFromCore, renderCore } from "../../../src/discovery/vcs/render.js";
 import { VcsStore } from "../../../src/discovery/vcs/store.js";
 import { deriveStatus } from "../../../src/discovery/vcs/validity.js";
@@ -79,16 +79,20 @@ describe("vcs pull requests", () => {
   });
 
   it("a claim change waits for a verdict; rejecting it leaves the proof of the proposed claim stale", async () => {
+    const main = openCore().statements.find((statement) => statement.id === "thm:main")!;
+    const { proof_tex: _mainProof, ...mainReplacement } = main;
+    const proposedClaim = "The estimand is identified over def:class at rate $n^{-1/4}$.";
     const submission = {
       unit: "u1", targets: ["thm:main", "lem:helper"],
       output: out({
-        proposed_statement_changes: [{ id: "thm:main", current: "ignored", proposed: "The estimand is identified over def:class at rate $n^{-1/4}$.", reason: "the $n^{-1/2}$ rate fails", direction: "narrow" }],
+        proposed_statement_changes: [{ id: "thm:main", current: "ignored", proposed: proposedClaim, reason: "the $n^{-1/2}$ rate fails", direction: "narrow" }],
+        proposed_core_edits: [{ kind: "statement-replace", id: "thm:main", proposed: { ...mainReplacement, statement: proposedClaim, depends_on: ["def:class", "lem:helper", "lem:cited"] }, reason: "typed metadata for the narrowed claim", direction: "correct" }],
         proofs: [{ id: "thm:main", proof_tex: "Proof of the narrowed claim." }, { id: "lem:helper", proof_tex: "By ass:overlap." }],
       }),
     };
     const { pr, head } = await openPr({ store, base, round: 1, submissions: [submission] });
     expect(pr.approval.map((a) => [a.id, a.change, a.content])).toEqual([["thm:main", "changed", true]]);
-    expect(pr.approval[0].reasons[0]).toMatch(/narrow: the/);
+    expect(pr.approval[0].reasons.some((reason) => /narrow: the/.test(reason))).toBe(true);
     expect(deriveStatus(head, "thm:main")).toBe("proved"); // on the PR head, the proof matches the proposed claim
     expect(describePr(pr, await loadGraph(store, base), head)).toMatch(/NEEDS APPROVAL/);
 
@@ -97,15 +101,23 @@ describe("vcs pull requests", () => {
     const { graph } = await headGraph(store);
     expect(deriveStatus(graph, "lem:helper")).toBe("proved");
     expect(deriveStatus(graph, "thm:main")).toBe("to-prove");
-    expect(renderCore(graph).statements.find((s) => s.id === "thm:main")?.statement).toMatch(/n\^\{-1\/2\}/);
+    const rejectedMain = renderCore(graph).statements.find((s) => s.id === "thm:main")!;
+    expect(rejectedMain.statement).toMatch(/n\^\{-1\/2\}/);
+    expect(rejectedMain.depends_on).toEqual(["ass:overlap", "def:class", "lem:helper", "lem:cited"]);
 
     // The same round accepted instead: the narrowed claim lands with its proof.
     const again = await openPr({ store, base: (await store.readRef("main"))!, round: 2, submissions: [submission] });
     const accepted = await mergePr({ store, pr: again.pr, verdict: { accept: "all", note: "narrowing is honest", by: "adjudicator" } });
     expect(accepted.ok).toBe(true);
     const after = (await headGraph(store)).graph;
-    expect(deriveStatus(after, "thm:main")).toBe("proved");
+    expect(deriveStatus(after, "thm:main")).toBe("to-prove");
     expect(renderCore(after).statements.find((s) => s.id === "thm:main")?.statement).toMatch(/n\^\{-1\/4\}/);
+    const reproved = applyUnitOutput(after, {
+      unit: "u2", targets: ["thm:main"], output: out({
+        proofs: [{ id: "thm:main", proof_tex: "Proof against the committed narrowed claim." }],
+      }),
+    });
+    expect(deriveStatus(reproved.graph, "thm:main")).toBe("proved");
   });
 
   it("two units changing one definition conflict at fold time; the second unit's change is dropped and recorded", async () => {
@@ -148,17 +160,23 @@ describe("vcs pull requests", () => {
   });
 
   it("drops the dependents of a rejected item with it, and says so", async () => {
+    const cruxSuffix = "and the headline theorem's asserted conclusion holds";
+    const fullCondition = `${"innocuous regularity language ".repeat(8)}% explanatory comment\n${cruxSuffix}`;
     const { pr } = await openPr({
       store, base, round: 1,
       submissions: [{
         unit: "u1", targets: ["lem:helper"],
         output: out({
-          proposed_assumptions: [{ id: "ass:extra", condition: "an extra condition", free_symbols: [], reason: "needed", standard_or_novel: "novel: new", not_crux: "side condition" }],
+          proposed_assumptions: [{ id: "ass:extra", condition: fullCondition, free_symbols: [], reason: "needed", standard_or_novel: "novel: new", not_crux: true }],
           proposed_core_edits: [{ kind: "definition-add", id: "def:aux", proposed: { id: "def:aux", name: "Q", construction: "$\\{P : \\text{ass:extra}\\}$", by_member_properties: ["ass:extra"] }, reason: "class under the extra condition", direction: "correct" }],
         }),
       }],
     });
     expect(pr.approval.map((a) => a.id).sort()).toEqual(["ass:extra", "def:aux"]);
+    expect(pr.approval.find((a) => a.id === "ass:extra")?.reasons).toEqual(["needed"]);
+    const description = describePr(pr, await loadGraph(store, base), await loadGraph(store, pr.id));
+    expect(description).not.toContain("not crux");
+    expect(description).toContain(fullCondition);
     const partial = await mergePr({ store, pr, verdict: { accept: ["def:aux"], reject: ["ass:extra"], note: "no new assumption", by: "adjudicator" } });
     expect(partial.ok).toBe(true);
     if (!partial.ok) return;
@@ -251,6 +269,352 @@ describe("vcs pull requests", () => {
       .toContainEqual(["proposed_statement_changes", "thm:main", "not a target of this unit"]);
     expect(renderCore(head).statements.find((statement) => statement.id === "thm:main")?.statement)
       .toMatch(/identified over def:class/);
+  });
+
+  it("uses the claim-change channel when a typed replacement echoes different claim text", async () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _proof, ...replacement } = helper;
+    const authoritative = "The helper holds with $\\left(x\\right)$ under ass:overlap.";
+    const { pr, head } = await openPr({
+      store, base, round: 1,
+      submissions: [{
+        unit: "u1", targets: ["lem:helper"], output: out({
+          proposed_statement_changes: [{
+            id: "lem:helper", proposed: authoritative,
+            reason: "correct the claim", direction: "narrow",
+          }],
+          proposed_core_edits: [{
+            kind: "statement-replace", id: "lem:helper",
+            proposed: {
+              ...replacement,
+              statement: "The helper holds with $\\left\\{x\\right\\}$ under ass:overlap.",
+              depends_on: ["ass:overlap"],
+            },
+            reason: "refresh typed metadata", direction: "correct",
+          }],
+        }),
+      }],
+    });
+    expect(pr.units[0].rejected.map((r) => [r.channel, r.id])).toEqual([["statement-replace", "lem:helper"]]);
+    expect(pr.units[0].rejected[0].reason).toMatch(/typed statement text disagrees/);
+    const rendered = renderCore(head).statements.find((statement) => statement.id === "lem:helper")!;
+    expect(rendered.statement).toBe(authoritative);
+    expect(rendered.depends_on).toEqual(["ass:overlap", "def:class"]);
+  });
+
+  it("keeps an unpaired typed replacement from changing a claim or its metadata", async () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _proof, ...replacement } = helper;
+    const { pr, head } = await openPr({
+      store, base, round: 1,
+      submissions: [{
+        unit: "u1", targets: ["lem:helper"], output: out({
+          proposed_core_edits: [{
+            kind: "statement-replace", id: "lem:helper",
+            proposed: {
+              ...replacement,
+              statement: "A materially different claim.",
+              depends_on: [],
+            },
+            reason: "unpaired replacement", direction: "correct",
+          }],
+        }),
+      }],
+    });
+    expect(pr.units[0].rejected.map((item) => [item.channel, item.id, item.reason]))
+      .toContainEqual(["statement-replace", "lem:helper", "claim text changes only through proposed_statement_changes"]);
+    const rendered = renderCore(head).statements.find((statement) => statement.id === "lem:helper")!;
+    expect(rendered.statement).toBe(helper.statement);
+    expect(rendered.depends_on).toEqual(helper.depends_on);
+  });
+
+  it("does not stamp a proof through a canonically colliding unpaired typed echo", () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    helper.statement = "The claim is $\\text {A B}$.";
+    const { proof_tex: _proof, ...replacement } = helper;
+    const changed = applyUnitOutput(graphFromCore(core), {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_core_edits: [{
+          kind: "statement-replace", id: "lem:helper",
+          proposed: { ...replacement, statement: "The claim is $\\text{AB}$." },
+          reason: "canonically colliding echo", direction: "correct",
+        }],
+        proofs: [{ id: "lem:helper", proof_tex: "Proof of the echo." }],
+      }),
+    });
+    expect(changed.rejected.map((item) => item.channel)).toContain("statement-replace");
+    expect(statementBlob(changed.graph, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("does not prove or cite an existing claim through a canonically colliding re-emission", () => {
+    for (const mode of ["proof", "source"] as const) {
+      const core = openCore();
+      const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+      helper.statement = "The claim is $x y$.";
+      const emitted = {
+        ...helper,
+        statement: "The claim is $xy$.",
+        ...(mode === "proof"
+          ? { proof_tex: "Proof of the emitted claim." }
+          : { status: "cited" as const, source: { cite: "R1983", locator: "Theorem 1" } }),
+      };
+      const changed = applyUnitOutput(graphFromCore(core), {
+        unit: "u1", targets: ["lem:helper"], output: out({ added_lemmas: [emitted] }),
+      });
+      expect(changed.rejected.map((item) => item.channel)).toContain("added_lemmas");
+      expect(deriveStatus(changed.graph, "lem:helper")).toBe("to-prove");
+      expect(statementBlob(changed.graph, "lem:helper")!.body.source).toBeUndefined();
+      expect(statementBlob(changed.graph, "lem:helper")!.body.proof_basis).toBeUndefined();
+    }
+  });
+
+  it("does not stamp a fresh added lemma's proof after changing its claim", () => {
+    const changed = applyUnitOutput(graphFromCore(openCore()), {
+      unit: "u1", targets: ["lem:fresh"], output: out({
+        added_lemmas: [{
+          id: "lem:fresh", kind: "lemma", statement: "Fresh claim A.",
+          depends_on: [], free_symbols: [], status: "proved", proof_tex: "Proof of A.",
+        }],
+        proposed_statement_changes: [{
+          id: "lem:fresh", proposed: "Fresh claim B.", reason: "replace fresh claim", direction: "narrow",
+        }],
+      }),
+    });
+    expect(statementBlob(changed.graph, "lem:fresh")!.body.statement).toBe("Fresh claim B.");
+    expect(statementBlob(changed.graph, "lem:fresh")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:fresh")).toBe("to-prove");
+  });
+
+  it("deterministically uses the last same-node claim and typed replacement", async () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _proof, ...replacement } = helper;
+    const authoritative = "The final helper claim holds under ass:overlap.";
+    const { pr, head } = await openPr({
+      store, base, round: 1,
+      submissions: [{
+        unit: "u1", targets: ["lem:helper"], output: out({
+          proposed_statement_changes: [
+            { id: "lem:helper", proposed: "A superseded claim.", reason: "first", direction: "narrow" },
+            { id: "lem:helper", proposed: authoritative, reason: "final", direction: "narrow" },
+          ],
+          proposed_core_edits: [
+            {
+              kind: "statement-replace", id: "lem:helper",
+              proposed: { ...replacement, statement: "A superseded echo.", depends_on: [] },
+              reason: "superseded metadata", direction: "correct",
+            },
+            {
+              kind: "statement-replace", id: "lem:helper",
+              proposed: { ...replacement, statement: "A final but redundant echo.", depends_on: ["ass:overlap"] },
+              reason: "final metadata", direction: "correct",
+            },
+          ],
+          proofs: [{ id: "lem:helper", proof_tex: "A proof with ambiguous claim revision." }],
+        }),
+      }],
+    });
+    expect(pr.units[0].rejected.some((r) => /superseded by a later typed mutation/.test(r.reason))).toBe(true);
+    const rendered = renderCore(head).statements.find((statement) => statement.id === "lem:helper")!;
+    expect(rendered.statement).toBe(authoritative);
+    expect(rendered.depends_on).toEqual(["ass:overlap", "def:class"]);
+    expect(statementBlob(head, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(head, "lem:helper")).toBe("to-prove");
+  });
+
+  it("keeps a standalone changed-claim proof unstamped without matching typed metadata", () => {
+    const first = applyUnitOutput(graphFromCore(openCore()), {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_statement_changes: [{
+          id: "lem:helper", proposed: "The helper now also depends on $n$.",
+          reason: "change symbol scope", direction: "narrow",
+        }],
+        proofs: [{ id: "lem:helper", proof_tex: "The argument uses $n$." }],
+      }),
+    });
+    const changed = statementBlob(first.graph, "lem:helper")!;
+    expect(changed.body.free_symbols).toBeUndefined();
+    expect(changed.body.proof_basis).toBeUndefined();
+    expect(changed.body.proof_tex).toBe("The argument uses $n$.");
+    expect(deriveStatus(first.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("invalidates a carried proof even for a canonically equivalent claim reflow", () => {
+    const baseGraph = graphFromCore(fixtureCore());
+    expect(deriveStatus(baseGraph, "lem:helper")).toBe("proved");
+    const changed = applyUnitOutput(baseGraph, {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_statement_changes: [{
+          id: "lem:helper",
+          proposed: "Under  ass:overlap, the margin is bounded below over def:class.",
+          reason: "canonical reflow", direction: "narrow",
+        }],
+      }),
+    });
+    const helper = statementBlob(changed.graph, "lem:helper")!;
+    expect(helper.body.proof_basis).toBeUndefined();
+    expect(helper.body.free_symbols).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("detaches carried citation evidence from a changed claim", () => {
+    const changed = applyUnitOutput(graphFromCore(openCore()), {
+      unit: "u1", targets: ["lem:cited"], output: out({
+        proposed_statement_changes: [{
+          id: "lem:cited", proposed: "An unrelated replacement claim.",
+          reason: "replace cited claim", direction: "narrow",
+        }],
+      }),
+    });
+    expect(statementBlob(changed.graph, "lem:cited")!.body.source).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:cited")).toBe("to-prove");
+  });
+
+  it("does not trust a paired typed replacement's symbol manifest", () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _proof, ...replacement } = helper;
+    const first = applyUnitOutput(graphFromCore(core), {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_statement_changes: [{
+          id: "lem:helper", proposed: "The helper now depends on $n$.",
+          reason: "new symbol", direction: "narrow",
+        }],
+        proposed_core_edits: [{
+          kind: "statement-replace", id: "lem:helper",
+          proposed: { ...replacement, statement: "A mismatched echo.", free_symbols: ["\\bar d"] },
+          reason: "metadata echo", direction: "correct",
+        }],
+        proofs: [{ id: "lem:helper", proof_tex: "The argument uses $n$." }],
+      }),
+    });
+    const changed = statementBlob(first.graph, "lem:helper")!;
+    expect(changed.body.free_symbols).toBeUndefined();
+    expect(changed.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(first.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("does not use canonicalized TeX equality to bind a proof to a changed claim", () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _proof, ...replacement } = helper;
+    const changed = applyUnitOutput(graphFromCore(core), {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_statement_changes: [{
+          id: "lem:helper", proposed: "The claim is $\\text {A B}$.",
+          reason: "authoritative claim", direction: "narrow",
+        }],
+        proposed_core_edits: [{
+          kind: "statement-replace", id: "lem:helper",
+          proposed: { ...replacement, statement: "The claim is $\\text{AB}$." },
+          reason: "semantically different echo", direction: "correct",
+        }],
+        proofs: [{ id: "lem:helper", proof_tex: "Proof of the typed echo." }],
+      }),
+    });
+    expect(statementBlob(changed.graph, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("does not stamp a pre-change added_lemmas proof onto a changed claim", () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const changed = applyUnitOutput(graphFromCore(core), {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        added_lemmas: [{ ...helper, proof_tex: "Proof of the old claim." }],
+        proposed_statement_changes: [{
+          id: "lem:helper", proposed: "A stronger replacement claim.",
+          reason: "strengthen", direction: "narrow",
+        }],
+      }),
+    });
+    expect(statementBlob(changed.graph, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("does not restamp a carried proof through the explicit proofs channel", () => {
+    const baseGraph = graphFromCore(fixtureCore());
+    const helper = statementBlob(baseGraph, "lem:helper")!;
+    const rendered = renderCore(baseGraph).statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _renderedProof, ...replacement } = rendered;
+    const newClaim = "A stronger helper claim.";
+    const changed = applyUnitOutput(baseGraph, {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_statement_changes: [{ id: "lem:helper", proposed: newClaim, reason: "strengthen", direction: "narrow" }],
+        proposed_core_edits: [{ kind: "statement-replace", id: "lem:helper", proposed: { ...replacement, statement: newClaim }, reason: "matching metadata", direction: "correct" }],
+        proofs: [{ id: "lem:helper", proof_tex: helper.body.proof_tex! }],
+      }),
+    });
+    expect(statementBlob(changed.graph, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(changed.graph, "lem:helper")).toBe("to-prove");
+  });
+
+  it("invalidates an all-symbol proof when a sibling head adds a symbol", () => {
+    const baseGraph = graphFromCore(openCore());
+    const proofHead = applyUnitOutput(baseGraph, {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_statement_changes: [{
+          id: "lem:helper", proposed: "The helper has a revised claim.",
+          reason: "revise", direction: "narrow",
+        }],
+        proofs: [{ id: "lem:helper", proof_tex: "Fresh proof." }],
+      }),
+    });
+    const symbolHead = applyUnitOutput(baseGraph, {
+      unit: "u2", targets: ["thm:main"], output: out({
+        proposed_core_edits: [{
+          kind: "symbol-add", name: "\\eta",
+          proposed: { name: "\\eta", type: "scalar", def: "new sibling symbol" },
+          reason: "add symbol", direction: "correct",
+        }],
+      }),
+    });
+    const folded = foldUnitHeads(baseGraph, [proofHead, symbolHead]).graph;
+    expect(statementBlob(folded, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(folded, "lem:helper")).toBe("to-prove");
+  });
+
+  it("invalidates an explicitly scoped proof when a sibling fills a latent symbol reference", () => {
+    const core = openCore();
+    core.symbols.find((symbol) => symbol.name === "\\bar d")!.refs = ["\\eta"];
+    const baseGraph = graphFromCore(core);
+    const unchangedHead = applyUnitOutput(baseGraph, {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proofs: [{ id: "lem:helper", proof_tex: "Fresh scoped proof." }],
+      }),
+    });
+    const symbolHead = applyUnitOutput(baseGraph, {
+      unit: "u2", targets: ["thm:main"], output: out({
+        proposed_core_edits: [{
+          kind: "symbol-add", name: "\\eta",
+          proposed: { name: "\\eta", type: "scalar", def: "newly resolved reference" },
+          reason: "fill latent reference", direction: "correct",
+        }],
+      }),
+    });
+    const folded = foldUnitHeads(baseGraph, [unchangedHead, symbolHead]).graph;
+    expect(statementBlob(folded, "lem:helper")!.body.proof_basis).toBeUndefined();
+    expect(deriveStatus(folded, "lem:helper")).toBe("to-prove");
+  });
+
+  it("uses the final typed statement mutation across delete and replace", () => {
+    const core = openCore();
+    const helper = core.statements.find((statement) => statement.id === "lem:helper")!;
+    const { proof_tex: _proof, ...replacement } = helper;
+    const changed = applyUnitOutput(graphFromCore(core), {
+      unit: "u1", targets: ["lem:helper"], output: out({
+        proposed_core_edits: [
+          { kind: "statement-delete", id: "lem:helper", reason: "superseded delete", direction: "delete-obsolete" },
+          { kind: "statement-replace", id: "lem:helper", proposed: { ...replacement, depends_on: ["ass:overlap"] }, reason: "final replacement", direction: "correct" },
+        ],
+      }),
+    });
+    expect(changed.rejected.map((r) => r.reason)).toEqual(["superseded by a later typed mutation of the same node in this payload"]);
+    expect(statementBlob(changed.graph, "lem:helper")).toBeDefined();
   });
 
   it("rejects deletion of a live non-target statement", async () => {
@@ -457,6 +821,20 @@ describe("vcs pull requests", () => {
     }) });
     expect(result.graph.nodes.get("thm:answer")).toMatchObject({ body: { proof_tex: "Resolution proof." } });
     expect(result.rejected).toContainEqual(expect.objectContaining({ channel: "resolved_oeqs", id: "thm:answer", reason: expect.stringContaining("another output channel") }));
+  });
+
+  it("deterministically overlays leased prose on an embedded resolution answer", () => {
+    const core = openCore();
+    core.statements.push({ id: "oeq:sharp", kind: "openendedquestion", statement: "Is the rate sharp?", depends_on: [], free_symbols: [], status: "to-prove", justification: "j", gap: "g", consumer: "c" });
+    const result = applyUnitOutput(graphFromCore(core), { unit: "u1", targets: ["oeq:sharp"], proseRole: "owner", output: out({
+      resolved_oeqs: [{ source_id: "oeq:sharp", theorem: { id: "thm:answer", kind: "theorem", statement: "The answer.", depends_on: ["oeq:sharp"], free_symbols: [], status: "proved", proof_tex: "Resolution proof." } }],
+      prose_updates: { tldr: "A fixture.", statement_notes: [{ id: "thm:answer", justification: "why", gap: "none", consumer: "main" }] },
+    }) });
+    expect(result.rejected).toEqual([]);
+    expect(result.graph.nodes.get("thm:answer")).toMatchObject({ body: {
+      proof_tex: "Resolution proof.", justification: "why", gap: "none", consumer: "main",
+    } });
+    expect(deriveStatus(result.graph, "thm:answer")).toBe("proved");
   });
 
   it("excludes a rejected existing-id resolution from provenance cleanup", async () => {

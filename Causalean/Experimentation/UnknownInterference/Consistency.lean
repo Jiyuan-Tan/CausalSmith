@@ -2,43 +2,32 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Sävje–Aronow–Hudgens (2021): consistency of Horvitz–Thompson for EATE under unknown interference
-
-The flagship: along a sequence of Bernoulli experiments, the Horvitz–Thompson estimator is
-**consistent** for the expected average treatment effect under *restricted interference*
-(`d̄ = o(n)`), with no structural knowledge of the interference.  This is the conceptual heart of
-the paper — standard estimators remain close to an average treatment effect even when units
-interfere in unknown ways, as long as the average amount of interference grows slowly enough.
-
-The argument is Chebyshev on the variance bound `Var(ĤT) ≤ k⁴·d̄/n` (`var_htEst_le`): since HT is
-exactly unbiased for EATE (`htEst_unbiased`), `Pr(|ĤT − EATE| ≥ ε) ≤ (k⁴·d̄/n)/ε² → 0` whenever
-`k⁴·d̄/n → 0`.  The same bound gives **root-n consistency** when `d̄` is bounded (`n·Var ≤ k⁴·C`).
-
-The `SAHExperiment` bundle packages one Bernoulli experiment with its regularity constant `k`, so a
-sequence `ℕ → SAHExperiment` is the paper's growing-sample regime.
 -/
 
-import Causalean.Experimentation.UnknownInterference.Unbiased
-import Causalean.Experimentation.UnknownInterference.VarianceBound
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Mathlib.Topology.Order.Bornology
-import Mathlib.Order.Filter.Basic
-import Mathlib.Topology.MetricSpace.Pseudo.Defs
+module
+public import Causalean.Experimentation.UnknownInterference.Unbiased
+public import Causalean.Experimentation.UnknownInterference.VarianceBound
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Mathlib.Order.Filter.Basic
+public import Mathlib.Topology.MetricSpace.Pseudo.Defs
+public import Mathlib.Topology.Order.Bornology
 
 /-! # Consistency under unknown interference
 
 Horvitz-Thompson estimates the expected average treatment effect consistently when average
 interference is sparse.
 
-This file packages one Sävje-Aronow-Hudgens Bernoulli experiment as `SAHExperiment`, including
-the finite unit type, treatment probabilities, potential outcomes, overlap bounds, moment bound,
-and regularity constant.  The namespace-level bundle lemmas `D_E_htEst`, `D_Var_htEst_le`, and
-`chebyshev_eate` restate exact unbiasedness, the finite-sample variance bound, and the resulting
-Chebyshev tail inequality for the packaged experiment.  The main sequence theorem
-`htEst_consistent_eate` proves convergence in probability when `k^4 * dbar / n -> 0`, and
-`root_n_var` records the root-n variance scaling under bounded average interference.
+The `SAHExperiment` structure packages one Sävje-Aronow-Hudgens Bernoulli experiment, including
+overlap, moment, and regularity bounds. Exact unbiasedness and the variance bound
+`Var(ĤT) ≤ k^4 * dbar / n` give a Chebyshev tail bound. Along a sequence of experiments, this
+proves convergence in probability whenever that upper bound tends to zero, without requiring the
+interference graph itself to be known.
+
+The file also records root-n variance control when average interference and the regularity
+constant are uniformly bounded.
 -/
+
+@[expose] public section
 
 open scoped BigOperators Topology
 open Filter
@@ -81,7 +70,7 @@ structure SAHExperiment where
   /-- Upper overlap: `p i ≤ 1 − k⁻¹`. -/
   hphi : ∀ i, p i ≤ 1 - k⁻¹
   /-- Second-moment bound: `E[Y_i²] ≤ k²`. -/
-  hmom : ∀ i, (bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2
+  hmom : ∀ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2
 
 attribute [instance] SAHExperiment.fU SAHExperiment.dU
 
@@ -92,7 +81,7 @@ variable (E : SAHExperiment)
 /-- For [a packaged Sävje--Aronow--Hudgens experiment](hyp:E), the [experiment's Bernoulli
 randomization design](goal) independently assigns each unit treatment according to that
 experiment's stated marginal treatment probabilities. -/
-noncomputable def D : FiniteDesign (E.U → Bool) := bernoulliDesign E.p E.hp0 E.hp1
+noncomputable def D : FiniteDesign (E.U → Bool) := DesignBased.bernoulliDesign E.p E.hp0 E.hp1
 
 /-- For [a packaged Sävje--Aronow--Hudgens experiment](hyp:E), the [experiment's expected average
 treatment-effect estimand](goal) is the expectation, under its Bernoulli randomization design, of

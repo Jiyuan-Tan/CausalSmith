@@ -29,7 +29,8 @@ new override branches (node-self in C; parent-in-C short-circuit via
 (not `M2.observedIndex`).
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.Structural.StructPointwise
+module
+public import Causalean.SCM.Do.Rule2Kernel.Structural.StructPointwise
 
 /-!
 Cross-SCM pointwise bridge for the Rule 2 kernel proof.
@@ -42,6 +43,13 @@ short-circuit and the recursive observed-parent calls. The main theorem
 assignment produced by `fillZrW`, the original and post-intervention overridden
 evaluations agree on every observed coordinate.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -56,15 +64,21 @@ open scoped MeasureTheory ProbabilityTheory
 -- § 1. Structural unfold for `evalMap_overrideC` at an observed node
 -- ============================================================
 
-/-- Parent dispatch for `evalMap_overrideC` at an observed subtype `v`,
-    factoring out the if-else chain so the cast-free unfold lemma
-    can state its result in `structFun`-form without transports.
+/-- For [a structural causal model](hyp:M), [a set of overridden nodes drawn from the observed
+ones](hyp:hC), [an assignment of values to the fixed nodes](hyp:s), [the overriding values carried
+on that set](hyp:c), [an assignment of values to the latent nodes](hyp:ℓ) and [an observed node of
+the model](hyp:v), [the value handed to that node's structural function for each of its
+parents](goal), selected by where the parent sits: a latent parent contributes its latent
+value, a node held fixed by intervention contributes its fixed value, a parent
+inside the overridden set contributes its overriding value, and any remaining observed
+parent contributes the value obtained by evaluating the model at that parent under the same
+override.
 
-    Mirrors `parentDispatch` from `Evaluation.lean`, adding the
-    C-override short-circuit on observed parents.  Restricted here to
-    the `Y = M.observed` case so the recursive `evalMap_overrideC` call
-    is well-typed at every observed parent. -/
-private noncomputable def parentDispatchOverride (M : Causalean.SCM N Ω)
+Implementation note: this factors out the branch chain so the cast-free unfold lemma can state its
+result in structural-function form without transports. It mirrors `parentDispatch` from
+`Evaluation.lean`, adding the override short-circuit on observed parents, and is restricted to the
+observed case so the recursive `evalMap_overrideC` call is well-typed at every observed parent. -/
+noncomputable def parentDispatchOverride (M : Causalean.SCM N Ω)
     {C : Finset (SWIGNode N)} (hC : C ⊆ M.observed)
     (s : FixedValues M) (c : ValuesOn C (swigΩ Ω)) (ℓ : LatentValues M)
     (v : {v // v ∈ M.observed}) :
@@ -126,16 +140,13 @@ private lemma evalObservedAuxOverride_cast_eq_structFunAt
   rw [hrfl]
   exact evalObservedAuxOverride_eq_structFunAt M hC s c ℓ j
 
-/-- **Cast-free observed unfold for `evalMap_overrideC` (Y = M.observed case).**
+/-- Given [a finite structural causal model, an observed override set, fixed and override
+assignments, a latent assignment, and an observed node](hyp:N,Ω,M,C,hC,s,c,ℓ,v), [the model's
+overridden evaluation at that node equals the supplied override when the node is in the override
+set, and otherwise equals its structural function evaluated with the corresponding dispatched
+parent values](goal).
 
-    Specialized to `Y = M.observed` so that the recursive
-    `evalMap_overrideC` call on observed parents is well-typed.  At an
-    observed `v ∈ M.observed`, the override map's value is `c ⟨v.val, _⟩`
-    if `v.val ∈ C`, and otherwise `M.structFun v` applied to a parent
-    tuple combining latents, fixed values, C-overrides, and recursive
-    `M.evalMap_overrideC` calls on observed parents not in `C`.
-
-    The analog of `evalMap_observed_unfold` for the C-overridden map. -/
+The analog of `evalMap_observed_unfold` for the C-overridden map. -/
 lemma evalMap_overrideC_observed_unfold (M : Causalean.SCM N Ω)
     {C : Finset (SWIGNode N)} (hC : C ⊆ M.observed)
     (s : FixedValues M) (c : ValuesOn C (swigΩ Ω)) (ℓ : LatentValues M)

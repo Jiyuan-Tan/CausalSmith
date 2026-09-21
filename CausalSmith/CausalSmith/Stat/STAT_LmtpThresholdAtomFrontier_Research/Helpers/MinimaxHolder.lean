@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxMembership
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.BumpHolder
-import Causalean.Stat.Nonparametric.Approximation.HolderTaylor
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.MinimaxMembership
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.BumpHolder
+public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor
 
 /-! # Taylor certification for the localized minimax bump -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
@@ -18,7 +21,7 @@ open scoped BigOperators
 noncomputable section
 
 private lemma ellOf_eq_holderDerivOrder (beta : ℝ) :
-    ellOf beta = Causalean.Stat.Nonparametric.holderDerivOrder beta := rfl
+    ellOf beta = Causalean.Mathlib.Analysis.HolderTaylor.holderDerivOrder beta := rfl
 
 /-- A global smoothness and top-derivative Hölder bound imply the exact
 within-interval Taylor remainder convention used by `HolderRegression`. The result uses [the `hbeta` condition](hyp:hbeta), [the `hL` condition](hyp:hL), [the `hf` condition](hyp:hf), [the `htop` condition](hyp:htop). [This is the stated conclusion](goal).
@@ -34,16 +37,16 @@ lemma taylorWithin_remainder_of_holder
           iteratedDerivWithin j f (Set.Icc (0 : ℝ) 1) s *
             (t - s) ^ j / (Nat.factorial j : ℝ)| ≤ L * |t - s| ^ beta := by
   intro s hs t ht
-  have hrem := Causalean.Stat.Nonparametric.holder_taylor_remainder
+  have hrem := Causalean.Mathlib.Analysis.HolderTaylor.holder_taylor_remainder
     (f := f) (M := L) (β := beta) (lo := 0) (hi := 1) (t := s) (a := t)
     hbeta hL hs ht (by simpa [ellOf_eq_holderDerivOrder] using hf)
     (by simpa [ellOf_eq_holderDerivOrder] using htop)
   have hpoly :
-      Causalean.Stat.Nonparametric.taylorPoly (ellOf beta) f s t =
+      Causalean.Mathlib.Analysis.HolderTaylor.taylorPoly (ellOf beta) f s t =
         ∑ j ∈ Finset.range (ellOf beta + 1),
           iteratedDerivWithin j f (Set.Icc (0 : ℝ) 1) s *
             (t - s) ^ j / (Nat.factorial j : ℝ) := by
-    unfold Causalean.Stat.Nonparametric.taylorPoly
+    unfold Causalean.Mathlib.Analysis.HolderTaylor.taylorPoly
     apply Finset.sum_congr rfl
     intro j hj
     have hjle : j ≤ ellOf beta := Nat.lt_succ_iff.mp (Finset.mem_range.mp hj)
@@ -55,7 +58,7 @@ lemma taylorWithin_remainder_of_holder
     ring
   rw [← hpoly]
   calc
-    |f t - Causalean.Stat.Nonparametric.taylorPoly (ellOf beta) f s t| ≤
+    |f t - Causalean.Mathlib.Analysis.HolderTaylor.taylorPoly (ellOf beta) f s t| ≤
         L / (Nat.factorial (ellOf beta) : ℝ) * |t - s| ^ beta := by
           simpa [ellOf_eq_holderDerivOrder] using hrem
     _ ≤ L * |t - s| ^ beta := by

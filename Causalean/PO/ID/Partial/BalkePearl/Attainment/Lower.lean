@@ -27,9 +27,12 @@ is not exercised by every branch; the unused-argument linter is disabled here
 rather than hand-tuning eight copies apart.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.Attainment.Basic
+module
+public import Causalean.PO.ID.Partial.BalkePearl.Attainment.Basic
 
 /-! # Witnesses attaining the Balke-Pearl lower expressions -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO

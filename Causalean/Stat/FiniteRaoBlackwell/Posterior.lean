@@ -1,4 +1,5 @@
-import Causalean.Stat.FiniteRaoBlackwell.Core
+module
+public import Causalean.Stat.FiniteRaoBlackwell.Core
 
 /-!
 # Finite prior joint laws and guarded posterior kernels
@@ -9,6 +10,8 @@ marginal, and guarded posterior law of the latent state given the statistic.  On
 statistic fiber the posterior is totalized by the original prior, which preserves normalization
 and does not affect disintegration.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

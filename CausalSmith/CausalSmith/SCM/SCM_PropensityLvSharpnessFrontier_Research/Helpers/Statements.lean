@@ -1,10 +1,13 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CondClasses
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Sampling
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CitedGates
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Probability.CDF
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CondClasses
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Sampling
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.CitedGates
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Probability.CDF
 
 /-! # Shared statement-level predicates -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

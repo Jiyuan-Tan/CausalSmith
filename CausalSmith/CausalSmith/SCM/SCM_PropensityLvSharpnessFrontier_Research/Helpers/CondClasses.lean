@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Divergence
-import Mathlib.Probability.Kernel.CondDistrib
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.Divergence
+public import Mathlib.Probability.Kernel.CondDistrib
 
 /-! # Conditional bow, mixture, and adaptive-hinge classes -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -111,7 +111,7 @@ describe("runStatementAudit / judgeStatements (P1 statement equivalence)", () =>
       .rejects.toThrow(/namespace N.A.*refusing outer/);
     // The same shadowing rule applies when the nearer alias is in a directly imported file.
     await writeFile(join(dir, "Lean", "Imported.lean"), roots + nearer);
-    await writeFile(join(dir, "Lean", "Nested.lean"), "import Lean.Imported\n" + outer);
+    await writeFile(join(dir, "Lean", "Nested.lean"), "public import Lean.Imported\n" + outer);
     await expect(resolveLeanDeclaration(dir, "Lean", { file: "Nested.lean", decl: "N.foo", line: 0 }))
       .rejects.toThrow(/nested export N.A.foo.*refusing outer/);
   });
@@ -154,6 +154,25 @@ end Paper.Outer
     expect(resolved).toMatchObject({
       decl: "Paper.Outer.Inner.target_decl", line: 2, relocated: false, resolution: "crosswalk",
     });
+  });
+
+  it("tracks namespaces around a module-style public section", () => {
+    const source = `module
+public import Mathlib
+
+/-! Module fixture. -/
+
+namespace Outer
+@[expose] public section
+namespace A.B
+end A.B
+end
+lemma target : True := trivial
+end Outer
+`;
+    expect(fullyQualifiedSourceDecls(source)).toEqual([
+      { name: "Outer.target", line: 11, kind: "lemma" },
+    ]);
   });
 
   it("keeps top-level dotted and explicit root declarations absolute", () => {

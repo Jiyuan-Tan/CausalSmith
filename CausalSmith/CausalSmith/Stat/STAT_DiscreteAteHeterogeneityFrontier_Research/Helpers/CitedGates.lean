@@ -1,16 +1,19 @@
 /- Cited interfaces used by the real-outcome frontier development. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Basic
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.LowerBound
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 
 open MeasureTheory ProbabilityTheory Set
 open scoped BigOperators
 
-private abbrev BinLaw :=
+abbrev BinLaw :=
   CausalSmith.Stat.DiscreteAteMinimaxLoggap.DiscreteLaw
-private abbrev BinObs :=
+abbrev BinObs :=
   CausalSmith.Stat.DiscreteAteMinimaxLoggap.Obs
 
 -- @env: S2
@@ -75,11 +78,11 @@ def ZengUsableOccupancyReciprocal (epsilon : ℝ) : Prop :=
         B_epsilon * ((max n d : ℕ) / (n : ℝ) ^ 2 +
           Real.exp (-b_epsilon * (n : ℝ) ^ 2 / (max n d : ℕ)))
 
-private def binArmCount {n d : ℕ} (sample : Fin n → BinObs d)
+def binArmCount {n d : ℕ} (sample : Fin n → BinObs d)
     (a : Bool) (k : Fin d) : ℕ :=
   (Finset.univ.filter fun i => (sample i).1 = k ∧ (sample i).2.1 = a).card
 
-private noncomputable def binArmMean {n d : ℕ} (sample : Fin n → BinObs d)
+noncomputable def binArmMean {n d : ℕ} (sample : Fin n → BinObs d)
     (a : Bool) (k : Fin d) : ℝ :=
   if 0 < binArmCount sample a k then
     (∑ i : Fin n, if (sample i).1 = k ∧ (sample i).2.1 = a ∧ (sample i).2.2
@@ -87,7 +90,7 @@ private noncomputable def binArmMean {n d : ℕ} (sample : Fin n → BinObs d)
   else 0
 
 /-- The equation-(13) occupancy-weighted binary estimator, totalized at zero. -/
-private noncomputable def sourceCollisionEstimator {n d : ℕ}
+noncomputable def sourceCollisionEstimator {n d : ℕ}
     (sample : Fin n → BinObs d) : ℝ :=
   let denom := ∑ k : Fin d,
     if 0 < binArmCount sample false k ∧ 0 < binArmCount sample true k then

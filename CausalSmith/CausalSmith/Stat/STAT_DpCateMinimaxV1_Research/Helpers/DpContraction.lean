@@ -10,7 +10,10 @@ The build-inline hybrid/coupling lemma
 `TV(L_{P^n}(M_n), L_{Q^n}(M_n)) ≤ n·TV(P,Q)·{exp(ε_n) - 1 + δ_n}`.
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContractionAux
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContractionAux
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

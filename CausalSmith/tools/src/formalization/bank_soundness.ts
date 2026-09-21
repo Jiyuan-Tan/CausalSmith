@@ -7,6 +7,8 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { stripLeanComments } from "../graph/extractor.js";
 import { listLeanFiles } from "../pipeline_support.js";
+import { maskLeanCommentsAndStrings } from "../shared/lean_mask.js";
+import { LEAN_IMPORT_RE_GM, parseLeanImport } from "../shared/lean_syntax.js";
 
 /**
  * Comment-aware "does this file contain a REAL (uncommented) `sorry` token?".
@@ -25,7 +27,7 @@ function relOf(file: string, repoRoot: string): string {
   return r.split(path.sep).join("/");
 }
 
-/** Artifact files plus the transitive closure of the `CausalSmith.Mathlib.*` files they import. */
+/** Artifact files plus the transitive closure of every `CausalSmith.*` file they import. */
 function reachableFileClosure(researchFiles: string[], repoRoot: string): string[] {
   const seen = new Set<string>();
   const all: string[] = [];
@@ -42,9 +44,16 @@ function reachableFileClosure(researchFiles: string[], repoRoot: string): string
     } catch {
       continue;
     }
-    for (const m of src.matchAll(/^\s*import\s+(\S+)/gm)) {
-      if (/^CausalSmith\.Mathlib\./.test(m[1])) {
-        queue.push(path.join(repoRoot, m[1].split(".").join("/") + ".lean"));
+    for (const m of maskLeanCommentsAndStrings(src).matchAll(LEAN_IMPORT_RE_GM)) {
+      const imported = parseLeanImport(m[0]);
+      if (imported && /^CausalSmith\./u.test(imported.module)) {
+        // A component written `«Foo Bar»` resolves to the file `Foo Bar.lean`: Lean's module path
+        // uses the raw name, so the guillemets are escaping, not part of the path.
+        const modulePath = imported.module
+          .split(".")
+          .map((c) => c.replace(/^«(.*)»$/u, "$1"))
+          .join("/");
+        queue.push(path.join(repoRoot, modulePath + ".lean"));
       }
     }
   }
@@ -82,7 +91,7 @@ async function scanCheatTokens(
 
 /**
  * F5 bank-soundness gate: scan the artifact subdir plus its reachable
- * CausalSmith/Mathlib closure for real `sorry` tokens and cheat tokens. Returns
+ * CausalSmith closure for real `sorry` tokens and cheat tokens. Returns
  * human-readable issue strings; empty = bankable.
  */
 export async function bankSoundnessIssues(leanDir: string, repoRoot: string): Promise<string[]> {

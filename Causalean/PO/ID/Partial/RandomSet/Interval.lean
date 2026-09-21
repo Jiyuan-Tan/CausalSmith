@@ -2,58 +2,33 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Interval random sets and their selection (Aumann) expectation
-
-Tier-0 random-set substrate for partial identification.  The data of an interval
-random set is a pair of measurable endpoint functions `L, U : Ω → ℝ` with
-`L ω ≤ U ω`, viewed as the set-valued map `ω ↦ [L ω, U ω]`.
-
-The two facts a partial-identification sharpness proof needs are:
-
-* **Measurable selection** — every measurable selection of `[L, U]` is
-  `L + t·(U − L)` for a measurable `t : Ω → [0,1]`, and conversely.  For
-  interval-valued maps this is elementary (the divide-by-width construction); no
-  Kuratowski–Ryll-Nardzewski selection theorem is required.
-* **Selection (Aumann) expectation** — the set of integrals of integrable
-  selections equals `[∫L, ∫U]`.  The `⊇` direction uses a *constant* `t`, so no
-  atomlessness / Lyapunov convexity is needed.
-
-Endpoints are reported through `sInf`/`sSup` (matching the
-`SandwichInterval` convention) so the eventual support-function generalisation is
-a drop-in rather than a rewrite.
-
-## Main results
-
-* `isSelection_iff_exists_param` — selection ↔ `L + t·(U−L)` parametrisation.
-* `selectionExpectation_eq_Icc` — selection expectation `= [∫L, ∫U]`.
-* `sInf_selectionExpectation` / `sSup_selectionExpectation` — sharp endpoints as
-  inf/sup over selections.
-
-Out of scope (flagged for later): the conditional selection expectation
-`E[X∣𝒢] = [E[L∣𝒢], E[U∣𝒢]]`, and the support-function / Artstein / CLR-inference
-layers.
 -/
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
 
-/-! # Interval Random Sets and Aumann Expectations
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+
+/-! # Interval Random Sets and Everywhere-Selection Expectations
 
 This file treats an interval-valued random set as measurable lower and upper
-endpoint functions and characterizes its measurable selections. It proves that
-the selection, or Aumann, expectation of the interval random set is the interval
-whose endpoints are the expectations of the lower and upper endpoint functions.
+endpoint functions and characterizes functions that belong to the interval at
+every sample outcome. It proves that the integrals of integrable measurable
+everywhere-selections form the interval between the endpoint expectations. This
+pointwise interface is stronger than the standard almost-sure selection used to
+define the Aumann expectation.
 
 Main declarations:
 * `randomInterval` and `IsSelection` encode interval-valued random sets and
   their measurable selections.
 * `isSelection_iff_exists_param` parametrizes every selection as
   `L + t * (U - L)` with measurable `t : Ω -> [0,1]`.
-* `selectionExpectation_eq_Icc` identifies the Aumann expectation with
-  `[∫ L, ∫ U]`.
+* `selectionExpectation_eq_Icc` identifies the everywhere-selection
+  expectation with `[∫ L, ∫ U]`.
 * `sInf_selectionExpectation` and `sSup_selectionExpectation` recover the sharp
   lower and upper endpoints from the set of selection integrals.
 -/
+
+@[expose] public section
 
 open MeasureTheory
 
@@ -61,12 +36,14 @@ namespace Causalean.PartialID.RandomSet
 
 variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω} {L U : Ω → ℝ}
 
-/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:L), and [an upper endpoint function](hyp:U), the
+/-- For [a sample space](hyp:Ω), [a lower endpoint function](hyp:L), and [an upper
+endpoint function](hyp:U), the
 [interval-valued random set](goal) assigns to every sample outcome the set of real numbers
 that are at least its lower-endpoint value and at most its upper-endpoint value. -/
 def randomInterval (L U : Ω → ℝ) : Ω → Set ℝ := fun ω => Set.Icc (L ω) (U ω)
 
-/-- For [a sample space equipped with a measurable structure](hyp:Ω), [a lower endpoint function](hyp:L), [an upper endpoint function](hyp:U), and
+/-- For [a sample space equipped with a measurable structure](hyp:Ω), [a lower
+endpoint function](hyp:L), [an upper endpoint function](hyp:U), and
 [a real-valued function on the sample space](hyp:f), the [everywhere measurable-selection
 condition](goal) holds precisely when [the function is measurable](step:1) and [at every
 sample outcome its value lies in the closed interval between the endpoint values](step:2).
@@ -76,15 +53,17 @@ it is measurable and `L ω ≤ f ω ≤ U ω` for every `ω`. -/
 def IsSelection (L U f : Ω → ℝ) : Prop :=
   Measurable f ∧ ∀ ω, f ω ∈ Set.Icc (L ω) (U ω)
 
-/-- The lower endpoint is always a selection, so the random set has a measurable
-selection. -/
+/-- [A measurable lower endpoint](hyp:hL) is an everywhere-selection whenever
+[it is pointwise no larger than the upper endpoint](hyp:hLU), so [the interval
+has a measurable everywhere-selection](goal). -/
 theorem isSelection_left (hL : Measurable L) (hLU : ∀ ω, L ω ≤ U ω) :
     IsSelection L U L :=
   ⟨hL, fun ω => ⟨le_rfl, hLU ω⟩⟩
 
-/-- **Measurable selection of an interval random set.**  A function `f` is a
-selection of `[L, U]` iff `f = L + t·(U − L)` for some measurable
-`t : Ω → [0,1]`.  Elementary — no Kuratowski–Ryll-Nardzewski. -/
+/-- **Measurable everywhere-selection of an interval random set.** Under
+[measurable endpoints](hyp:hL,hU) with [pointwise ordering](hyp:hLU), [a
+function](hyp:f) [belongs to `[L,U]` at every outcome exactly when it has the
+form `L + t·(U − L)` for a measurable weight between zero and one](goal). -/
 theorem isSelection_iff_exists_param (hL : Measurable L) (hU : Measurable U)
     (hLU : ∀ ω, L ω ≤ U ω) (f : Ω → ℝ) :
     IsSelection L U f ↔
@@ -125,14 +104,14 @@ theorem isSelection_iff_exists_param (hL : Measurable L) (hU : Measurable U)
     · nlinarith [hLU ω]
     · nlinarith [hLU ω]
 
-/-- For [a sample space equipped with a measurable structure](hyp:Ω), [a lower endpoint function](hyp:L), [an upper endpoint function](hyp:U), and
-[a measure on the sample space](hyp:μ), the [selection, or Aumann, expectation](goal) is the
-set of real numbers for which there exists a function such that [it is an everywhere measurable
-selection of the endpoint interval](step:1), it is integrable under the measure, and
-its integral under that measure equals the real number.
+/-- For [a sample space equipped with a measurable structure](hyp:Ω), [a lower endpoint
+function](hyp:L), [an upper endpoint function](hyp:U), and [a measure on the sample
+space](hyp:μ), the [everywhere-selection expectation](goal) contains exactly the integrals of
+integrable measurable functions that [belong to the endpoint interval at every sample
+outcome](step:1).
 
-The selection (Aumann) expectation of the interval random set `[L, U]`: the
-set of integrals of integrable measurable selections. -/
+Unlike the standard Aumann expectation, this definition requires pointwise rather than
+almost-sure membership in the random interval. -/
 def selectionExpectation (L U : Ω → ℝ) (μ : Measure Ω) : Set ℝ :=
   {r | ∃ f, IsSelection L U f ∧ Integrable f μ ∧ ∫ ω, f ω ∂μ = r}
 
@@ -141,13 +120,12 @@ theorem integral_le_integral_of_le (hLint : Integrable L μ) (hUint : Integrable
     (hLU : ∀ ω, L ω ≤ U ω) : (∫ ω, L ω ∂μ) ≤ ∫ ω, U ω ∂μ :=
   integral_mono_ae hLint hUint (ae_of_all _ hLU)
 
-/-- **Selection expectation equals `[∫L, ∫U]`.** For [measurable lower and upper endpoint
+/-- **Everywhere-selection expectation equals `[∫L, ∫U]`.** For [measurable lower and upper endpoint
 functions `L`, `U`](hyp:hL,hU) that are [integrable](hyp:hLint,hUint) and satisfy [`L`
-pointwise at most `U`](hyp:hLU), [the selection (Aumann) expectation of the
-interval-valued random set `[L, U]` — the set of integrals of its integrable measurable
-selections — equals the closed interval `[∫L dμ, ∫U dμ]`](goal). The forward inclusion
-is integral monotonicity; the reverse inclusion realises every intermediate value with a
-constant mixing weight `t ∈ [0,1]`, so no atomlessness is needed. -/
+pointwise at most `U`](hyp:hLU), [the integrals of all integrable measurable
+everywhere-selections of `[L, U]` form the closed interval `[∫L dμ, ∫U dμ]`](goal).
+The forward inclusion is integral monotonicity; the reverse inclusion realizes every
+intermediate value with a constant mixing weight, so no atomlessness is needed. -/
 theorem selectionExpectation_eq_Icc (hL : Measurable L) (hU : Measurable U)
     (hLint : Integrable L μ) (hUint : Integrable U μ) (hLU : ∀ ω, L ω ≤ U ω) :
     selectionExpectation L U μ = Set.Icc (∫ ω, L ω ∂μ) (∫ ω, U ω ∂μ) := by
@@ -187,7 +165,7 @@ theorem selectionExpectation_eq_Icc (hL : Measurable L) (hU : Measurable U)
 
 /-- For [measurable lower and upper endpoint functions `L`, `U`](hyp:hL,hU) that are
 [integrable](hyp:hLint,hUint) and satisfy [`L` pointwise at most `U`](hyp:hLU), [the
-sharp lower endpoint of the identified set — the infimum of the selection (Aumann)
+sharp lower endpoint of the identified set — the infimum of the everywhere-selection
 expectation over all measurable selections of the interval-valued random set
 `[L, U]` — equals the expectation of the lower endpoint `L`](goal):
 `sInf (selectionExpectation L U μ) = ∫ L dμ`. -/
@@ -199,7 +177,7 @@ theorem sInf_selectionExpectation (hL : Measurable L) (hU : Measurable U)
 
 /-- For [measurable lower and upper endpoint functions `L`, `U`](hyp:hL,hU) that are
 [integrable](hyp:hLint,hUint) and satisfy [`L` pointwise at most `U`](hyp:hLU), [the
-sharp upper endpoint of the identified set — the supremum of the selection (Aumann)
+sharp upper endpoint of the identified set — the supremum of the everywhere-selection
 expectation over all measurable selections of the interval-valued random set
 `[L, U]` — equals the expectation of the upper endpoint `U`](goal):
 `sSup (selectionExpectation L U μ) = ∫ U dμ`. -/

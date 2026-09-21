@@ -2,45 +2,21 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Scalar interval-data CLT (Beresteanu–Molinari 2008, Theorems 3.1/3.2)
-
-The Tier-1 capstone of the random-set program.  For an i.i.d. sample of interval
-data `Yᵢ = [y_{iL}, y_{iU}]` (`y_L ≤ y_U`) with finite second moments, the
-population Aumann expectation is the Manski sharp bound `E[Y] = [E y_L, E y_U]`
-and the sample-mean interval is `Ȳₙ = [ȳ_{nL}, ȳ_{nU}]`.  Beresteanu–Molinari
-Theorem 3.2 states
-
-    √n · H(Ȳₙ, E[Y])  ⇒  max(|z_L|, |z_U|),
-
-the max-abs of the bivariate Gaussian limit `(z_L, z_U)` of the centered endpoint
-means.  This is a **continuous-mapping image of the multivariate CLT**: the
-endpoint process `√n((ȳ_{nL}, ȳ_{nU}) − (E y_L, E y_U))` is exactly the vector
-normalised sum of the centered influence function `ψ`, which converges to
-`gaussianLimit ψ` (`Stat/CLT/GaussianLimit.lean`), and the Hausdorff statistic is
-`maxAbs` of that vector by the keystone `hausdorffDist_Icc` (`Hausdorff.lean`).
-
-## Main results
-
-* `maxAbs` / `continuous_maxAbs` — the functional `w ↦ max(|w₀|, |w₁|)` on `ℝ²`.
-* `normalizedSum_maxAbs_clt` — the abstract continuous-mapping CLT: `maxAbs` of the
-  vector normalised sum converges to `(gaussianLimit ψ).map maxAbs`.
-* `maxAbs_normalizedSum_eq` — **the Hausdorff bridge**: `maxAbs (normalised sum)`
-  equals `√n · H(Ȳₙ, E[Y])`, identifying the statistic above with the Hausdorff
-  distance between the sample and population identified intervals.
 -/
 
-import Causalean.PO.ID.Partial.RandomSet.Hausdorff
-import Causalean.PO.ID.Partial.RandomSet.Interval
-import Causalean.Stat.CLT.GaussianLimit
+module
+public import Causalean.PO.ID.Partial.RandomSet.Hausdorff
+public import Causalean.PO.ID.Partial.RandomSet.Interval
+public import Causalean.Stat.CLT.GaussianLimit
 
 /-! # Scalar Interval-Data Central Limit Theorem
 
 This file derives the central limit theorem for the Hausdorff distance between a
-sample-mean interval and the population Aumann expectation interval. It reduces
-the interval statistic to the maximum absolute value of the bivariate endpoint
-process, allowing the library's multivariate central limit theorem and continuous
-mapping machinery to apply.
+sample-mean interval and the interval formed by the two population endpoint
+means. It reduces the interval statistic to the maximum absolute value of the
+bivariate endpoint process. This is the symmetric Hausdorff-limit component of
+Beresteanu–Molinari Theorem 3.2(ii); the file does not formalize Theorem 3.1,
+almost-sure consistency, or the directed limit.
 
 Main declarations:
 * `maxAbs`, `continuous_maxAbs`, and `measurable_maxAbs` define the endpoint
@@ -54,6 +30,8 @@ Main declarations:
 * `interval_data_clt_of_memLp` discharges those hypotheses from measurable
   endpoints with `MemLp 2`.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
 open scoped RealInnerProductSpace
@@ -74,7 +52,8 @@ noncomputable abbrev eucl₂ (v : Fin 2 → ℝ) : EuclideanSpace ℝ (Fin 2) :=
 functional](goal) is $\max\{|w_0|,|w_1|\}$. In the scalar random-set setting, this is the
 Hausdorff distance between intervals whose lower- and upper-endpoint gaps are the two coordinates.
 
-In the `d = 1` random-set picture this is the Hausdorff distance between the intervals whose endpoint gaps are `w₀` and `w₁` (cf. `hausdorffDist_Icc`). -/
+In the `d = 1` random-set picture this is the Hausdorff distance between the
+intervals whose endpoint gaps are `w₀` and `w₁` (cf. `hausdorffDist_Icc`). -/
 noncomputable def maxAbs (w : EuclideanSpace ℝ (Fin 2)) : ℝ := max |w 0| |w 1|
 
 /-- The max-absolute-value functional on endpoint deviations is continuous. -/
@@ -90,7 +69,13 @@ section CLT
 variable {ψ : X → EuclideanSpace ℝ (Fin 2)} (hψ : Measurable ψ)
   (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- For [a measurable sample space equipped with a measure](hyp:X,P) and [a two-dimensional vector-valued process on that space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm under the measure](hyp:hvar), the [law obtained by applying the maximum absolute endpoint-deviation statistic to its Gaussian limit is a probability measure](goal). [This follows from taking the measurable pushforward of that Gaussian limit](step:1). -/
+/-- For [a measurable sample space equipped with a measure](hyp:X,P) and [a
+two-dimensional vector-valued process on that space](hyp:ψ) that is
+[measurable](hyp:hψ) and has [an integrable squared norm under the
+measure](hyp:hvar), the [law obtained by applying the maximum absolute
+endpoint-deviation statistic to its Gaussian limit is a probability
+measure](goal). [This follows from taking the measurable pushforward of that
+Gaussian limit](step:1). -/
 instance : IsProbabilityMeasure ((gaussianLimit hψ hvar).map maxAbs) :=
   Measure.isProbabilityMeasure_map measurable_maxAbs.aemeasurable
 
@@ -102,14 +87,15 @@ multivariate CLT (`clt_normalizedSum_vec`) and the continuous-mapping theorem
 (`Tendsto_dist_vec.map_continuous`). -/
 theorem normalizedSum_maxAbs_clt
     (S : IIDSample Ω X μ P)
-    (_hψ_int : Integrable ψ P) (hmean : ∫ x, ψ x ∂P = 0)
+    (hmean : ∫ x, ψ x ∂P = 0)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n) μ) :
     Tendsto_dist_vec
       (fun n ω => maxAbs (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω))
       ((gaussianLimit hψ hvar).map maxAbs) μ
-      (fun n => measurable_maxAbs.comp_aemeasurable (hSum_meas n)) :=
-  Tendsto_dist_vec.map_continuous continuous_maxAbs hSum_meas
+      (fun n => measurable_maxAbs.comp_aemeasurable (hSum_meas n)) := by
+  apply (Tendsto_dist_vec_iff _ _ _ _).2
+  exact Tendsto_dist_vec.map_continuous continuous_maxAbs hSum_meas
     (S.clt_normalizedSum_vec hψ hvar hmean)
 
 end CLT
@@ -133,7 +119,8 @@ lemma sqrt_inv_centered (n : ℕ) (s c : ℝ) :
     field_simp
 
 /-- For [a measurable sample space](hyp:Ω) with [sampling measure](hyp:μ), [a measurable outcome
-space](hyp:X) with [outcome measure](hyp:P), [an independent and identically distributed sample](hyp:S),
+space](hyp:X) with [outcome measure](hyp:P), [an independent and identically
+distributed sample](hyp:S),
 [a real-valued outcome function](hyp:y), [a nonnegative sample size](hyp:n), and [a realized sample
 point](hyp:ω), the [sample mean](goal) is the arithmetic average of the first $n$ observed outcome
 values, with the empty sum divided by zero interpreted by the library's real-number convention.
@@ -147,7 +134,8 @@ upper-endpoint outcome function](hyp:yU), and [a measure on that outcome space](
 [centered interval-endpoint influence function](goal) maps each observation to its lower and upper
 endpoints less their respective population means, viewed as a two-dimensional Euclidean vector.
 
-Its vector normalised sum is the centered-and-scaled endpoint pair `√n((ȳ_{nL}, ȳ_{nU}) − (E y_L, E y_U))`. -/
+Its vector normalised sum is the centered-and-scaled endpoint pair
+`√n((ȳ_{nL}, ȳ_{nU}) − (E y_L, E y_U))`. -/
 noncomputable def intervalIFVec (yL yU : X → ℝ) (P : Measure X) :
     X → EuclideanSpace ℝ (Fin 2) :=
   fun z => eucl₂ ![yL z - ∫ x, yL x ∂P, yU z - ∫ x, yU x ∂P]
@@ -194,7 +182,7 @@ lemma sampleMean_le (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
   exact hLU _
 
 omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
-/-- **The Hausdorff bridge (Beresteanu–Molinari Theorem 3.2, statistic form).** For an
+/-- **Deterministic Hausdorff bridge.** For an
 i.i.d. sample with interval endpoints `yL`, `yU` satisfying [the lower endpoint
 pointwise at most the upper endpoint](hyp:hLU) and [both integrable](hyp:hLint,hUint),
 [the max-abs functional applied to the centered endpoint normalised sum equals the
@@ -328,7 +316,7 @@ lemma intervalIFVec_sum_aemeasurable (S : IIDSample Ω X μ P) (yL yU : X → �
   exact (measurable_intervalIFVec yL yU hLmeas hUmeas).comp (S.meas i)
 
 omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] in
-/-- The scaled Hausdorff statistic is `AEMeasurable` for each `n`.  Equals
+/-- The scaled Hausdorff statistic is `AEMeasurable` for each `n`. It equals
 `maxAbs ∘ (normalised sum)` everywhere by `maxAbs_normalizedSum_eq`. -/
 lemma intervalIFVec_hHmeas (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     (hLU : ∀ z, yL z ≤ yU z) (hLmeas : Measurable yL) (hUmeas : Measurable yU)
@@ -344,11 +332,12 @@ lemma intervalIFVec_hHmeas (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     maxAbs_normalizedSum_eq S yL yU hLU hLint hUint n ω
 
 omit [IsProbabilityMeasure P] in
-/-- **Beresteanu–Molinari Theorem 3.2 (scalar interval data).** For an i.i.d. sample of
+/-- **Symmetric Hausdorff-limit component of Beresteanu–Molinari Theorem 3.2(ii).**
+For an i.i.d. sample of
 interval data `Yᵢ = [y_{iL}, y_{iU}]` with [the lower endpoint pointwise at most the
 upper endpoint](hyp:hLU) and [both endpoints integrable](hyp:hLint,hUint), assume the
 centered endpoint influence function is [measurable](hyp:hψ), has [finite second
-moment](hyp:hvar) and is [integrable](hyp:hψ_int), is [centered](hyp:hmean), and its
+moment](hyp:hvar), is [centered](hyp:hmean), and its
 normalized partial sums and the resulting scaled Hausdorff statistic are
 [almost-everywhere measurable at every sample size](hyp:hSum_meas,hHmeas). Then [the
 scaled Hausdorff distance between the sample-mean interval `Ȳₙ` and the population
@@ -364,7 +353,6 @@ theorem interval_data_clt (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     (hLU : ∀ z, yL z ≤ yU z) (hLint : Integrable yL P) (hUint : Integrable yU P)
     (hψ : Measurable (intervalIFVec yL yU P))
     (hvar : Integrable (fun x => ‖intervalIFVec yL yU P x‖ ^ 2) P)
-    (hψ_int : Integrable (intervalIFVec yL yU P) P)
     (hmean : ∫ x, intervalIFVec yL yU P x ∂P = 0)
     (hSum_meas : ∀ n, AEMeasurable
       (IsAsymLinearVec.normalizedSum S (intervalIFVec yL yU P) (fun m => Finset.range m) n) μ)
@@ -380,11 +368,12 @@ theorem interval_data_clt (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
   Tendsto_dist_vec.congr_ae
     (fun n => measurable_maxAbs.comp_aemeasurable (hSum_meas n))
     hHmeas
-    (normalizedSum_maxAbs_clt hψ hvar S hψ_int hmean hSum_meas)
+    (normalizedSum_maxAbs_clt hψ hvar S hmean hSum_meas)
     (Filter.Eventually.of_forall fun n => Filter.Eventually.of_forall fun ω =>
       maxAbs_normalizedSum_eq S yL yU hLU hLint hUint n ω)
 
-/-- **Beresteanu–Molinari Theorem 3.2, self-contained `MemLp 2` form.** For an i.i.d.
+/-- **Symmetric component of Theorem 3.2(ii), in a self-contained `MemLp 2` form.**
+For an i.i.d.
 sample of interval data `Yᵢ = [y_{iL}, y_{iU}]` with [the lower endpoint pointwise at
 most the upper endpoint](hyp:hLU), [measurable endpoints](hyp:hLmeas,hUmeas), and
 [finite second moments (`MemLp 2`) for both endpoints](hyp:hLsq,hUsq), [the scaled
@@ -408,7 +397,6 @@ theorem interval_data_clt_of_memLp (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     (hLsq.integrable (by norm_num)) (hUsq.integrable (by norm_num))
     (measurable_intervalIFVec yL yU hLmeas hUmeas)
     (intervalIFVec_var_integrable yL yU hLsq hUsq)
-    (intervalIFVec_integrable yL yU hLsq hUsq)
     (intervalIFVec_mean_zero yL yU hLsq hUsq)
     (intervalIFVec_sum_aemeasurable S yL yU hLmeas hUmeas)
     (intervalIFVec_hHmeas S yL yU hLU hLmeas hUmeas

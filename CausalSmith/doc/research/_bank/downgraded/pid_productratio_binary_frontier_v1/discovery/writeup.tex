@@ -1,0 +1,1305 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}productratio\_\allowbreak{}binary\_\allowbreak{}frontier}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} In the positive binary two-decision product sensitivity model of Tan (2025), exact compatibility collapses to five success probabilities and yields sharp lower and upper bounds for \(\mu_{11}\) as at most \(64\) rational branches per endpoint. Reversing the two proof chains behind Proposition 3 gives complete observable iff conditions for equality and strictness, including active ties and every sensitivity-free face. Explicit endpoint and branch maps on the seven-cell simplex then support an all-branch Gaussian-multiplier envelope with uniform asymptotic coverage for the complete sharp interval, without selecting an active branch and while allowing redundant branches and singular score covariance.
+
+\section{Project justification}
+
+\paragraph{Gap.} Tan proves that feasible nonnegative product-ratio triples satisfying the normalization and range constraints admit compatible full-data realizations and gives a generic sharp optimization, but the binary endpoint remains implicit. The necessity direction, the binary-cell mean identity, the finite frontier, the complete Proposition 3 equality geometry, and sample inference require separate arguments.
+
+\paragraph{Niche.} Binary intermediate covariates and outcomes retain the longitudinal compatibility problem while making every conditional ratio table exactly reducible to a success probability, which exposes both a finite frontier and the equality geometry of the relaxations.
+
+\paragraph{Fill.} The project proves full-data attainment for a closed-form branch atlas, completes the Proposition 3 equality-versus-strictness classification, defines matching law-indexed and seven-cell-simplex versions of every endpoint and branch, and attaches a uniformly honest multinomial confidence set for the entire identified interval.
+
+\section{Related work}
+
+Tan (2025) defines the longitudinal product ratios, proves that every feasible nonnegative ratio triple satisfying the stated normalizations and range constraints has a compatible full-data realization, and represents the sharp upper bound by a constrained generalized ICE/IPW program. The present note proves the converse necessity for the binary product model, derives the binary-cell ICE/IPW identity coefficient by coefficient, and then reduces the exact image to a finite frontier; these derivations are not attributed to Tan. Tan also derives two conservative Proposition 3 values with selected exact faces in Corollary 1. The present claims strictly complete that relaxation comparison in the binary model rather than propose a new sensitivity model. Dorn and Guo (2023) show that cross-sectional marginal-sensitivity extrema use normalized threshold weights; their complementary-slackness construction informs the binary threshold reduction, while Tan's sequential product normalizations create the longitudinal coupling. Dorn, Guo, and Kallus (2024) develop sharp and valid cross-sectional estimation but do not address this longitudinal finite frontier. Bonvini et al. (2022) provide efficient estimators and confidence intervals for bounds under different longitudinal MSM sensitivity restrictions. Fang and Santos (2019) explains why an ordinary bootstrap is unreliable for a tied finite minimum or maximum and motivates derivative-aware contact sets. Chernozhukov, Chetverikov, and Kato (2013) supplies Gaussian-multiplier approximation for correlated maxima; the note's proof adds the uniform rational remainder and identified-interval coverage step. Zhang and Zhao (2026) pairs closed-form bounds with multiplier bands under an average-case cross-sectional model, providing a writing and inference exemplar rather than a theorem-level input. Rop et al. (2025) documents the limited use of sensitivity analysis in current time-varying treatment applications. Dickerman et al. (2023) supplies the applied consumer: the absolute six-year cancer risk under a repeated metformin strategy.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\mu_{11}=\mathbb E[Y^{1,1}]\).
+Primary functional / estimator / diagnostic: \(\mu_{11}\in[F_-(P),F_+(P)]\).
+\begin{itemize}
+  \item \texttt{eta} --- \texttt{scalar}; \((0,1/2)\); \texttt{fixed interior margin}
+  \item \texttt{alpha} --- \texttt{scalar}; \((0,1)\); \texttt{miscoverage level}
+  \item \texttt{G} --- \texttt{scalar}; \([1,\infty)\); \texttt{period-\allowbreak{}one outcome-\allowbreak{}ratio bound}
+  \item \texttt{B} --- \texttt{scalar}; \([1,\infty)\); \texttt{baseline outcome-\allowbreak{}ratio bound}
+  \item \texttt{C} --- \texttt{scalar}; \([1,\infty)\); \texttt{baseline covariate-\allowbreak{}ratio bound}
+  \item \texttt{n} --- \texttt{integer}; \(\mathbb N\); \texttt{sample size}
+  \item \texttt{A0} --- \texttt{random variable}; \(\{0,1\}\); \texttt{baseline treatment}
+  \item \texttt{A1} --- \texttt{random variable}; \(\{0,1\}\); \texttt{second treatment}
+  \item \texttt{L1} --- \texttt{random variable}; \(\{0,1\}\); \texttt{intermediate covariate}
+  \item \texttt{L11} --- \texttt{random variable}; \(\{0,1\}\); potential intermediate covariate under sustained treatment \((1,1)\)
+  \item \texttt{Y} --- \texttt{random variable}; \(\{0,1\}\); \texttt{terminal outcome}
+  \item \texttt{O} --- \texttt{random vector}; \(\{0,1\}^4\); \texttt{observed data}
+  \par\smallskip\noindent\emph{Definition.} \(O=(A_0,A_1,L_1,Y)\)
+  \item \texttt{Y11} --- \texttt{random variable}; \(\{0,1\}\); potential outcome under sustained treatment \((1,1)\)
+  \item \texttt{mu11} --- \texttt{scalar}; \([0,1]\); \texttt{causal target}
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{11}=\mathbb E[Y^{1,1}]\)
+  \item \texttt{P} --- \texttt{probability law}; strict interior of the probability simplex on \(\{0,1\}^4\); \texttt{positive observed-\allowbreak{}data law}
+  \item \texttt{a} --- \texttt{scalar}; \((0,1)\)
+  \par\smallskip\noindent\emph{Definition.} \(a=P(A_0=1)\)
+  \item \texttt{qvec} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\)
+  \par\smallskip\noindent\emph{Definition.} \(q_0=P(L_1=0\mid A_0=1)=q\) and \(q_1=1-q\)
+  \item \texttt{evec} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\)
+  \par\smallskip\noindent\emph{Definition.} \(e_\ell=P(A_1=1\mid A_0=1,L_1=\ell)\), \(\ell\in\{0,1\}\)
+  \item \texttt{pvec} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\)
+  \par\smallskip\noindent\emph{Definition.} \(p_\ell=P(Y=1\mid A_0=A_1=1,L_1=\ell)\), \(\ell\in\{0,1\}\)
+  \item \texttt{lambda1} --- \texttt{function}; \(\{0,1\}^2\to(0,\infty)\); \texttt{Tan period-\allowbreak{}one sensitivity ratio}
+  \item \texttt{lambda0Y} --- \texttt{function}; \(\{0,1\}^2\to(0,\infty)\); \texttt{Tan baseline outcome sensitivity ratio}
+  \item \texttt{lambda0L} --- \texttt{function}; \(\{0,1\}\to(0,\infty)\); \texttt{Tan baseline covariate sensitivity ratio}
+  \item \texttt{rho} --- \texttt{function}; \(\{0,1\}^2\to(0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\rho_\ell(y)=e_\ell+(1-e_\ell)\lambda_1(\ell,y)\)
+  \item \texttt{DK} --- \texttt{function family}; \(D_K:[0,1]\to[0,1]\); \texttt{lower binary likelihood-\allowbreak{}ratio envelope}
+  \item \texttt{UK} --- \texttt{function family}; \(U_K:[0,1]\to[0,1]\); \texttt{upper binary likelihood-\allowbreak{}ratio envelope}
+  \item \texttt{TK} --- \texttt{function family}; \(T_K:\mathbb R^2\to\mathbb R\); \texttt{binary check-\allowbreak{}loss transform}
+  \item \texttt{rminus} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\); \texttt{lower period-\allowbreak{}one reweighted success probabilities}
+  \item \texttt{rplus} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\); \texttt{upper period-\allowbreak{}one reweighted success probabilities}
+  \item \texttt{tminus} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\); \texttt{lower baseline-\allowbreak{}outcome reweighted success probabilities}
+  \item \texttt{tplus} --- \texttt{two-\allowbreak{}vector}; \((0,1)^2\); \texttt{upper baseline-\allowbreak{}outcome reweighted success probabilities}
+  \item \texttt{hminus} --- \texttt{scalar}; \((0,1)\); \texttt{lower covariate reweighting probability}
+  \item \texttt{hplus} --- \texttt{scalar}; \((0,1)\); \texttt{upper covariate reweighting probability}
+  \item \texttt{Bminus} --- \texttt{set-\allowbreak{}valued map}; subsets of \(\{0,1\}^6\); \texttt{admissible lower branch indices}
+  \item \texttt{Bplus} --- \texttt{set-\allowbreak{}valued map}; subsets of \(\{0,1\}^6\); \texttt{admissible upper branch indices}
+  \item \texttt{fminus} --- \texttt{finite function family}; \(\{f^-_\beta:\mathcal M_\eta\to\mathbb R:\beta\in\{0,1\}^6\}\); \texttt{lower rational branch extensions}
+  \item \texttt{fplus} --- \texttt{finite function family}; \(\{f^+_\beta:\mathcal M_\eta\to\mathbb R:\beta\in\{0,1\}^6\}\); \texttt{upper rational branch extensions}
+  \item \texttt{Fminus} --- \texttt{functional}; \(F_-:P\mapsto[0,1]\); \texttt{sharp lower endpoint}
+  \item \texttt{Fplus} --- \texttt{functional}; \(F_+:P\mapsto[0,1]\); \texttt{sharp upper endpoint}
+  \item \texttt{V1plus} --- \texttt{functional}; \([0,1]\); \texttt{binary evaluation of Tan's first conservative upper component}
+  \item \texttt{V2plus} --- \texttt{functional}; \([0,1]\); \texttt{binary evaluation of Tan's second conservative upper component}
+  \item \texttt{Vplus} --- \texttt{functional}; \([0,1]\); \texttt{combined conservative upper endpoint}
+  \item \texttt{V1minus} --- \texttt{functional}; \([0,1]\); \texttt{binary evaluation of Tan's first conservative lower component}
+  \item \texttt{V2minus} --- \texttt{functional}; \([0,1]\); \texttt{binary evaluation of Tan's second conservative lower component}
+  \item \texttt{Vminus} --- \texttt{functional}; \([0,1]\); \texttt{combined conservative lower endpoint}
+  \item \texttt{z} --- \texttt{probability vector}; interior of the seven-category simplex \(\Delta_6\)
+  \par\smallskip\noindent\emph{Definition.} \(z=(z_\varnothing,z_{0\mathrm N},z_{1\mathrm N},z_{00},z_{01},z_{10},z_{11})\), where \(z_\varnothing=P(A_0=0)\), \(z_{\ell\mathrm N}=P(A_0=1,L_1=\ell,A_1=0)\), and \(z_{\ell y}=P(A_0=A_1=1,L_1=\ell,Y=y)\) for \(\ell,y\in\{0,1\}\)
+  \item \texttt{psi} --- \texttt{coordinate map}; \(\psi:\operatorname{int}(\Delta_6)\to(0,1)^7\); map from seven coarsened cell probabilities to \((a,q_0,q_1,e_0,e_1,p_0,p_1)\)
+  \item \texttt{ftildeminus} --- \texttt{finite function family}; \(\{\widetilde f^-_\beta:\operatorname{int}(\Delta_6)\to\mathbb R:\beta\in\{0,1\}^6\}\); \texttt{lower rational branches extended on the seven-\allowbreak{}cell simplex}
+  \item \texttt{ftildeplus} --- \texttt{finite function family}; \(\{\widetilde f^+_\beta:\operatorname{int}(\Delta_6)\to\mathbb R:\beta\in\{0,1\}^6\}\); \texttt{upper rational branches extended on the seven-\allowbreak{}cell simplex}
+  \item \texttt{Ftildeminus} --- \texttt{simplex functional}; \(\widetilde F_-:\operatorname{int}(\Delta_6)\to[0,1]\); \texttt{sharp lower-\allowbreak{}endpoint extension on the seven-\allowbreak{}cell simplex}
+  \item \texttt{Ftildeplus} --- \texttt{simplex functional}; \(\widetilde F_+:\operatorname{int}(\Delta_6)\to[0,1]\); \texttt{sharp upper-\allowbreak{}endpoint extension on the seven-\allowbreak{}cell simplex}
+  \item \texttt{X} --- \texttt{random vector}; \texttt{the seven standard basis vectors}
+  \par\smallskip\noindent\emph{Definition.} \(X_i\) is the indicator vector of the seven-category coarsening of \(O_i\)
+  \item \texttt{zhat} --- \texttt{random probability vector}; \texttt{seven-\allowbreak{}category simplex}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat z=n^{-1}\sum_{i=1}^n X_i\)
+  \item \texttt{xi} --- \texttt{multiplier sequence}; iid \(N(0,1)\); \texttt{independent Gaussian multipliers}
+  \par\smallskip\noindent\emph{Definition.} \(\xi_1,\ldots,\xi_n\) are independent of \(O_1,\ldots,O_n\)
+  \item \texttt{Gnstar} --- \texttt{conditional random vector}; \(\mathbb R^7\); \texttt{Gaussian multiplier empirical process}
+  \item \texttt{cn} --- \texttt{random scalar}; \([0,\infty)\); \texttt{all-\allowbreak{}branch conditional critical value}
+  \item \texttt{wn} --- \texttt{random scalar}; \([0,\infty)\); \texttt{endpoint enlargement radius}
+  \item \texttt{Cn} --- \texttt{random interval}; closed subintervals of \([0,1]\); \texttt{confidence set for the complete identified interval}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:outcome-consistency]\label{ass:outcome-consistency}
+\(Y=Y^{1,1}\) whenever \(A_0=A_1=1\).
+\par\smallskip\noindent\emph{Standard} (Outcome consistency for the target strategy, \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:covariate-consistency]\label{ass:covariate-consistency}
+\(L_1=L_1^{1,1}\) whenever \(A_0=1\).
+\par\smallskip\noindent\emph{Standard} (Intermediate-covariate consistency for the target strategy, \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:eta-interior]\label{ass:eta-interior}
+\(\min\{a,1-a,q_0,q_1,e_0,1-e_0,e_1,1-e_1,p_0,1-p_0,p_1,1-p_1\}\geq\eta\).
+\par\smallskip\noindent\emph{Standard} (Fixed-margin longitudinal positivity, \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:iid-sampling]\label{ass:iid-sampling}
+\(O_1,\ldots,O_n\) are iid draws from \(P\).
+\par\smallskip\noindent\emph{Standard} (Iid multinomial sampling, \cite{zhangzhao2026average}).
+\end{assumption}
+
+\begin{assumption}[ass:normalization-one]\label{ass:normalization-one}
+For each \(\ell\in\{0,1\}\), \(\sum_{y=0}^1 p_\ell^y(1-p_\ell)^{1-y}\lambda_1(\ell,y)=1\).
+\par\smallskip\noindent\emph{Standard} (Tan product-model normalization (32), \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:normalization-outcome]\label{ass:normalization-outcome}
+For each \(\ell\in\{0,1\}\), \(\sum_{y=0}^1 p_\ell^y(1-p_\ell)^{1-y}\rho_\ell(y)\lambda_{0Y}(\ell,y)=1\).
+\par\smallskip\noindent\emph{Standard} (Tan product-model normalization (33), \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:normalization-covariate]\label{ass:normalization-covariate}
+\(q_0\lambda_{0L}(0)+q_1\lambda_{0L}(1)=1\).
+\par\smallskip\noindent\emph{Standard} (Tan product-model normalization (34), \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:ratio-box-one]\label{ass:ratio-box-one}
+For every \((\ell,y)\in\{0,1\}^2\), \(G^{-1}\leq\lambda_1(\ell,y)\leq G\).
+\par\smallskip\noindent\emph{Standard} (Tan product sensitivity bound for \(\lambda_1\), \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:ratio-box-outcome]\label{ass:ratio-box-outcome}
+For every \((\ell,y)\in\{0,1\}^2\), \(B^{-1}\leq\lambda_{0Y}(\ell,y)\leq B\).
+\par\smallskip\noindent\emph{Standard} (Tan product sensitivity bound for \(\lambda_{0Y}\), \cite{tan2025sequential}).
+\end{assumption}
+
+\begin{assumption}[ass:ratio-box-covariate]\label{ass:ratio-box-covariate}
+For every \(\ell\in\{0,1\}\), \(C^{-1}\leq\lambda_{0L}(\ell)\leq C\).
+\par\smallskip\noindent\emph{Standard} (Tan product sensitivity bound for \(\lambda_{0L}\), \cite{tan2025sequential}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:eta-interior-product-class]\label{def:eta-interior-product-class}
+\par\smallskip\noindent\emph{Defined object.} \(\eta\)-interior binary product class
+\par\smallskip\noindent\emph{Construction.} \(\mathcal M_\eta=\{P: P\text{ is a positive binary observed-data law indexed by }(a,q_0,q_1,e_0,e_1,p_0,p_1)\text{ and }\mathrm{ass{:}eta\text{-}interior}\text{ holds}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}eta-\allowbreak{}interior}.
+\end{definition}
+
+\begin{definition}[def:binary-product-fiber]\label{def:binary-product-fiber}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Tan-\allowbreak{}compatible binary product-\allowbreak{}ratio fiber}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R(P;G,B,C)=\{(\lambda_1,\lambda_{0Y},\lambda_{0L}):\mathrm{ass{:}normalization\text{-}one},\mathrm{ass{:}normalization\text{-}outcome},\mathrm{ass{:}normalization\text{-}covariate},\mathrm{ass{:}ratio\text{-}box\text{-}one},\mathrm{ass{:}ratio\text{-}box\text{-}outcome},\mathrm{ass{:}ratio\text{-}box\text{-}covariate}\text{ hold for }P\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}normalization-\allowbreak{}one}; \texttt{ass:\allowbreak{}normalization-\allowbreak{}outcome}; \texttt{ass:\allowbreak{}normalization-\allowbreak{}covariate}; \texttt{ass:\allowbreak{}ratio-\allowbreak{}box-\allowbreak{}one}; \texttt{ass:\allowbreak{}ratio-\allowbreak{}box-\allowbreak{}outcome}; \texttt{ass:\allowbreak{}ratio-\allowbreak{}box-\allowbreak{}covariate}.
+\end{definition}
+
+\begin{definition}[def:binary-envelope-maps]\label{def:binary-envelope-maps}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binary likelihood-\allowbreak{}ratio envelope maps}
+\par\smallskip\noindent\emph{Construction.} For \(K\geq1\) and \(x\in[0,1]\), \(D_K(x)=\max\{x/K,\ 1-K(1-x)\}\) and \(U_K(x)=\min\{Kx,\ 1-(1-x)/K\}\).
+\end{definition}
+
+\begin{definition}[def:check-transform]\label{def:check-transform}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binary check-\allowbreak{}loss transform}
+\par\smallskip\noindent\emph{Construction.} For \(K\geq1\) and \((x,k)\in\mathbb R^2\), \(T_K(x,k)=\max\{Kx-(K-1)k,\ x/K+(1-K^{-1})k\}\).
+\end{definition}
+
+\begin{definition}[def:reweighted-probabilities]\label{def:reweighted-probabilities}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Three-\allowbreak{}stage binary reweighting}
+\par\smallskip\noindent\emph{Construction.} For \(\ell\in\{0,1\}\), \(r_\ell^-=e_\ell p_\ell+(1-e_\ell)D_G(p_\ell)\), \(r_\ell^+=e_\ell p_\ell+(1-e_\ell)U_G(p_\ell)\), \(t_\ell^-=D_B(r_\ell^-)\), \(t_\ell^+=U_B(r_\ell^+)\), \(h^-=D_C(q_0)\), and \(h^+=U_C(q_0)\).
+\end{definition}
+
+\begin{definition}[def:compact-sharp-endpoints]\label{def:compact-sharp-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compact sharp endpoint formulas}
+\par\smallskip\noindent\emph{Construction.} \(F_+(P)=a\sum_{\ell=0}^1q_\ell r_\ell^+ +(1-a)\max\{h^-t_0^++(1-h^-)t_1^+,\ h^+t_0^++(1-h^+)t_1^+\}\), and \(F_-(P)=a\sum_{\ell=0}^1q_\ell r_\ell^- +(1-a)\min\{h^-t_0^-+(1-h^-)t_1^-,\ h^+t_0^-+(1-h^+)t_1^-\}\).
+\end{definition}
+
+\begin{definition}[def:rational-branch-family]\label{def:rational-branch-family}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Sixty-\allowbreak{}four-\allowbreak{}branch families}
+\par\smallskip\noindent\emph{Construction.} Let \(u_{K0}(x)=Kx\), \(u_{K1}(x)=1-(1-x)/K\), \(d_{K0}(x)=x/K\), and \(d_{K1}(x)=1-K(1-x)\). For \(\beta\in\{0,1\}^6\) and \(\ell\in\{0,1\}\), define \(r_{\ell\beta}^+=e_\ell p_\ell+(1-e_\ell)u_{G,\beta_\ell}(p_\ell)\), \(t_{\ell\beta}^+=u_{B,\beta_{2+\ell}}(r_{\ell\beta}^+)\), \(r_{\ell\beta}^-=e_\ell p_\ell+(1-e_\ell)d_{G,\beta_\ell}(p_\ell)\), and \(t_{\ell\beta}^-=d_{B,\beta_{2+\ell}}(r_{\ell\beta}^-)\). Put \(h_\beta=d_{C,\beta_5}(q_0)\) if \(\beta_4=0\), and \(h_\beta=u_{C,\beta_5}(q_0)\) if \(\beta_4=1\). For \(s\in\{-,+\}\), set \(f_\beta^s(P)=a\sum_{\ell=0}^1q_\ell r_{\ell\beta}^s+(1-a)\{h_\beta t_{0\beta}^s+(1-h_\beta)t_{1\beta}^s\}\). The set \(\mathcal B_+(P)\) imposes \(u_{G,\beta_\ell}(p_\ell)\leq u_{G,1-\beta_\ell}(p_\ell)\) and \(u_{B,\beta_{2+\ell}}(r_{\ell\beta}^+)\leq u_{B,1-\beta_{2+\ell}}(r_{\ell\beta}^+)\) for both strata; it also imposes \(d_{C,\beta_5}(q_0)\geq d_{C,1-\beta_5}(q_0)\) when \(\beta_4=0\), \(u_{C,\beta_5}(q_0)\leq u_{C,1-\beta_5}(q_0)\) when \(\beta_4=1\), and \(t_{0\beta}^+\leq t_{1\beta}^+\) when \(\beta_4=0\) or \(t_{0\beta}^+\geq t_{1\beta}^+\) when \(\beta_4=1\). The set \(\mathcal B_-(P)\) replaces the first four inequalities by the corresponding \(d_G\)- and \(d_B\)-piece inequalities with \(\geq\), keeps the stated \(d_C\)- and \(u_C\)-piece inequalities, and imposes \(t_{0\beta}^-\geq t_{1\beta}^-\) when \(\beta_4=0\) or \(t_{0\beta}^-\leq t_{1\beta}^-\) when \(\beta_4=1\). All inequalities are weak, and \(F_s(P)=f_\beta^s(P)\) for every \(\beta\in\mathcal B_s(P)\).
+\end{definition}
+
+\begin{definition}[def:seven-cell-coordinate-map]\label{def:seven-cell-coordinate-map}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Seven-\allowbreak{}cell primitive-\allowbreak{}coordinate map}
+\par\smallskip\noindent\emph{Construction.} For \(z=(z_\varnothing,z_{0\mathrm N},z_{1\mathrm N},z_{00},z_{01},z_{10},z_{11})\in\operatorname{int}(\Delta_6)\), put \(d_\ell(z)=z_{\ell\mathrm N}+z_{\ell0}+z_{\ell1}\), \(m_\ell(z)=z_{\ell0}+z_{\ell1}\), \(a(z)=1-z_\varnothing=d_0(z)+d_1(z)\), \(q_\ell(z)=d_\ell(z)/a(z)\), \(e_\ell(z)=m_\ell(z)/d_\ell(z)\), and \(p_\ell(z)=z_{\ell1}/m_\ell(z)\) for \(\ell\in\{0,1\}\). Define \(\psi(z)=(a(z),q_0(z),q_1(z),e_0(z),e_1(z),p_0(z),p_1(z))\).
+\end{definition}
+
+\begin{definition}[def:seven-cell-simplex-extensions]\label{def:seven-cell-simplex-extensions}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Explicit seven-\allowbreak{}cell endpoint and branch maps}
+\par\smallskip\noindent\emph{Construction.} For \(z\in\operatorname{int}(\Delta_6)\), use the coordinates in \(\psi(z)\) and the affine pieces \(u_{K0},u_{K1},d_{K0},d_{K1}\) from \(\mathrm{def{:}rational\text{-}branch\text{-}family}\). For every \(\beta\in\{0,1\}^6\) and \(\ell\in\{0,1\}\), set \(\widetilde r_{\ell\beta}^+(z)=e_\ell(z)p_\ell(z)+\{1-e_\ell(z)\}u_{G,\beta_\ell}(p_\ell(z))\), \(\widetilde t_{\ell\beta}^+(z)=u_{B,\beta_{2+\ell}}(\widetilde r_{\ell\beta}^+(z))\), \(\widetilde r_{\ell\beta}^-(z)=e_\ell(z)p_\ell(z)+\{1-e_\ell(z)\}d_{G,\beta_\ell}(p_\ell(z))\), and \(\widetilde t_{\ell\beta}^-(z)=d_{B,\beta_{2+\ell}}(\widetilde r_{\ell\beta}^-(z))\). Put \(\widetilde h_\beta(z)=d_{C,\beta_5}(q_0(z))\) if \(\beta_4=0\), and \(\widetilde h_\beta(z)=u_{C,\beta_5}(q_0(z))\) if \(\beta_4=1\). For \(s\in\{-,+\}\), define the rational map \(\widetilde f_\beta^s(z)=a(z)\sum_{\ell=0}^1q_\ell(z)\widetilde r_{\ell\beta}^s(z)+(1-a(z))\{\widetilde h_\beta(z)\widetilde t_{0\beta}^s(z)+(1-\widetilde h_\beta(z))\widetilde t_{1\beta}^s(z)\}\). Also define \(\widetilde r_\ell^+(z)=e_\ell(z)p_\ell(z)+\{1-e_\ell(z)\}U_G(p_\ell(z))\), \(\widetilde r_\ell^-(z)=e_\ell(z)p_\ell(z)+\{1-e_\ell(z)\}D_G(p_\ell(z))\), \(\widetilde t_\ell^+(z)=U_B(\widetilde r_\ell^+(z))\), \(\widetilde t_\ell^-(z)=D_B(\widetilde r_\ell^-(z))\), \(\widetilde h^-(z)=D_C(q_0(z))\), and \(\widetilde h^+(z)=U_C(q_0(z))\). The endpoint maps are \(\widetilde F_+(z)=a(z)\sum_{\ell=0}^1q_\ell(z)\widetilde r_\ell^+(z)+\{1-a(z)\}\max_{h\in\{\widetilde h^-(z),\widetilde h^+(z)\}}\{h\widetilde t_0^+(z)+(1-h)\widetilde t_1^+(z)\}\) and \(\widetilde F_-(z)=a(z)\sum_{\ell=0}^1q_\ell(z)\widetilde r_\ell^-(z)+\{1-a(z)\}\min_{h\in\{\widetilde h^-(z),\widetilde h^+(z)\}}\{h\widetilde t_0^-(z)+(1-h)\widetilde t_1^-(z)\}\).
+\end{definition}
+
+\begin{definition}[def:compatible-ratio-lift]\label{def:compatible-ratio-lift}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Compatible ratio lift}
+\par\smallskip\noindent\emph{Construction.} Given \(s_\ell\in[D_G(p_\ell),U_G(p_\ell)]\), \(r_\ell=e_\ell p_\ell+(1-e_\ell)s_\ell\), \(t_\ell\in[D_B(r_\ell),U_B(r_\ell)]\), and \(h\in[D_C(q_0),U_C(q_0)]\), set \(\lambda_1(\ell,1)=s_\ell/p_\ell\), \(\lambda_1(\ell,0)=(1-s_\ell)/(1-p_\ell)\), \(\lambda_{0Y}(\ell,1)=t_\ell/r_\ell\), \(\lambda_{0Y}(\ell,0)=(1-t_\ell)/(1-r_\ell)\), \(\lambda_{0L}(0)=h/q_0\), and \(\lambda_{0L}(1)=(1-h)/q_1\).
+\end{definition}
+
+\begin{definition}[def:tan-binary-conservative-values]\label{def:tan-binary-conservative-values}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Binary Proposition 3 values}
+\par\smallskip\noindent\emph{Construction.} Put \(z_0(k)=(1-B^{-1})k\), \(z_1(k)=B-(B-1)k\), \(H_\ell(x,c)=x+(1-e_\ell)\{T_G(x,c)-x\}\), \(A_\ell(c)=\mathbb E_{W\sim\mathrm{Bern}(p_\ell)}[H_\ell(W,c)]\), \(D_\ell(k,c)=\mathbb E_{W\sim\mathrm{Bern}(p_\ell)}[H_\ell(T_B(W,k),c)]\), and \(R_C(v)=\max_{h\in[h^-,h^+]}\{hv_0+(1-h)v_1\}\). Then \(V_1^+=a\sum_\ell q_\ell r_\ell^+ +(1-a)\min_{c,k_0,k_1\in[0,1]}\sum_\ell q_\ell\{(1-r_\ell^+)T_C(z_0(k_\ell),c)+r_\ell^+T_C(z_1(k_\ell),c)\}\), \(V_2^+=\min_{k_0,k_1,c_0,c_1\in[0,1]}[a\sum_\ell q_\ell A_\ell(c_\ell)+(1-a)R_C((D_\ell(k_\ell,c_\ell))_{\ell=0}^1)]\), and \(V^+=\min\{V_1^+,V_2^+\}\). For \(j\in\{1,2\}\), \(V_j^-(p_0,p_1)=1-V_j^+(1-p_0,1-p_1)\), and \(V^-=\max\{V_1^-,V_2^-\}\).
+\end{definition}
+
+\begin{definition}[def:multiplier-confidence-set]\label{def:multiplier-confidence-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{All-\allowbreak{}branch Gaussian-\allowbreak{}multiplier confidence set}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathbb G_n^*=n^{-1/2}\sum_{i=1}^n\xi_i(X_i-\widehat z)\) and \(E_n=\{\min_j\widehat z_j\geq\eta^4/2\}\). On \(E_n\), let \(c_n\) be the conditional \((1-\alpha)\)-quantile of \(\max_{s\in\{-,+\},\,\beta\in\{0,1\}^6}|\nabla\widetilde f_\beta^s(\widehat z)^\top\mathbb G_n^*|\), put \(w_n=c_n/\sqrt n+n^{-3/4}\), and set \(\mathcal C_n=[\max\{0,\widetilde F_-(\widehat z)-w_n\},\min\{1,\widetilde F_+(\widehat z)+w_n\}]\). On \(E_n^c\), set \(c_n=w_n=0\) and \(\mathcal C_n=[0,1]\).
+\end{definition}
+
+\begin{definition}[def:contact-set-handle]\label{def:contact-set-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Contact-\allowbreak{}set multiplier handle}
+\par\smallskip\noindent\emph{Construction.} Use the finite simplex branch values \(\widetilde f_\beta^-\) and \(\widetilde f_\beta^+\) to screen shrinking neighborhoods of the empirical optima \(\widetilde F_-(\widehat z)\) and \(\widetilde F_+(\widehat z)\), then apply Fang--Santos estimated directional derivatives and a multiplier maximum over the screened contact sets; derive the screening rate and any inflation from uniform coverage rather than fixing a candidate interval in advance.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:binary-probability-reduction]\label{lem:binary-probability-reduction}
+On \(\mathcal M_\eta\), the map from the ten ratio cells to \((s_0,s_1,t_0,t_1,h)\) is a bijection between Tan's normalization-and-box feasible set and \(\prod_{\ell=0}^1[D_G(p_\ell),U_G(p_\ell)]\times\prod_{\ell=0}^1[D_B(r_\ell),U_B(r_\ell)]\times[D_C(q_0),U_C(q_0)]\), with \(r_\ell=e_\ell p_\ell+(1-e_\ell)s_\ell\); its inverse is the compatible ratio lift.
+\end{lemma}
+\begin{proof}
+Put \(f_{\ell 1}=p_\ell\) and \(f_{\ell0}=1-p_\ell\).  By \(\mathrm{ass{:}eta\text{-}interior}\), all \(p_\ell,1-p_\ell,q_0,q_1,e_\ell,1-e_\ell\) are positive, so every division below is legitimate.
+
+Fix \(\ell\) and set \(s_\ell=p_\ell\lambda _1(\ell,1)\).  The normalization in \(\mathrm{ass{:}normalization\text{-}one}\) gives
+\[
+ \lambda _1(\ell,0)=\frac{1-s_\ell}{1-p_\ell}.
+\]
+The two box restrictions in \(\mathrm{ass{:}ratio\text{-}box\text{-}one}\) are therefore equivalent to
+\[
+ \max\!\left\{\frac{p_\ell}{G},,1-G(1-p_\ell)\right\}
+ \leq s_\ell\leq
+ \min\!\left\{Gp_\ell,,1-\frac{1-p_\ell}{G}\right\},
+\]
+which is exactly \(D_G(p_\ell)\leq s_\ell\leq U_G(p_\ell)\) by \(\mathrm{def{:}binary\text{-}envelope\text{-}maps}\).  This equivalence is reversible.
+
+Next observe, using the first normalization, that
+\[
+ \sum_{y=0}^1 f_{\ell y}\rho_\ell(y)
+ =e_\ell+(1-e_\ell)\sum_{y=0}^1f_{\ell y}\lambda _1(\ell,y)=1.
+\]
+The success mass of this normalized binary distribution is
+\[
+ f_{\ell1}\rho_\ell(1)
+ =e_\ell p_\ell+(1-e_\ell)p_\ell\lambda _1(\ell,1)
+ =e_\ell p_\ell+(1-e_\ell)s_\ell=:r_\ell.
+\]
+Because \(0<e_\ell,p_\ell,s_\ell<1\), one has \(0<r_\ell<1\).  Set \(t_\ell=r_\ell\lambda _{0Y}(\ell,1)\).  Applying the preceding binary calculation with \((p_\ell,G,s_\ell)\) replaced by \((r_\ell,B,t_\ell)\), \(\mathrm{ass{:}normalization\text{-}outcome}\) and \(\mathrm{ass{:}ratio\text{-}box\text{-}outcome}\) are equivalent to
+\[
+ D_B(r_\ell)\leq t_\ell\leq U_B(r_\ell),\qquad
+ \lambda _{0Y}(\ell,1)=\frac{t_\ell}{r_\ell},\qquad
+ \lambda _{0Y}(\ell,0)=\frac{1-t_\ell}{1-r_\ell}.
+\]
+
+Finally put \(h=q_0\lambda _{0L}(0)\).  The covariate normalization gives
+\[
+ \lambda _{0L}(0)=\frac h{q_0},\qquad
+ \lambda _{0L}(1)=\frac{1-h}{q_1},
+\]
+and the covariate box is equivalent to \(D_C(q_0)\leq h\leq U_C(q_0)\).  Thus the forward map has precisely the stated product of intervals.  The displayed inverse formulas are unique, satisfy all three normalizations by substitution, and satisfy all three boxes by the definitions of \(D_K\) and \(U_K\).  Hence the map and the compatible ratio lift are mutually inverse, proving the bijection.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This bijection is the non-circular reduction that turns exact compatibility into scalar probability intervals. \textit{Gap.} Tan (2025), Lemmas 7--8, characterizes the functional ratio fiber but does not perform this binary reduction. \textit{Consumer.} It gives a direct audit of every sensitivity-ratio table used to bound an absolute sustained-treatment risk.
+
+\begin{theorem}[thm:sharp-binary-frontier]\label{thm:sharp-binary-frontier}
+For every observed law in \(\mathcal M_\eta\), the sharp identified set for \(\mu_{11}\) under Tan's product sensitivity model is exactly \([F_-(P),F_+(P)]\). Both endpoints have the compact formulas in \(\mathrm{def{:}compact\text{-}sharp\text{-}endpoints}\), each is evaluable by at most \(64\) rational branches with the weak branch inequalities in \(\mathcal B_-(P)\) and \(\mathcal B_+(P)\), every active tie gives the same endpoint value, and each endpoint is attained by a full-data law compatible with the complete observed law \(P\).
+\end{theorem}
+\begin{proof}
+Define the causal identified set without identifying it by fiat with an observed-law optimization:
+\[
+\Theta_I(P)=\left\{\mathbb E_Q[Y^{1,1}]:
+Q\text{ has observed marginal }P,\ Q\text{ obeys target-strategy consistency, and }Q\text{ lies in the }(G,B,C)\text{ product model}\right\}.
+\]
+Thus \(P\) is the distribution of the observed vector \(O=(A_0,A_1,L_1,Y)\in\{0,1\}^4\), whereas \(Q\) additionally carries the unobserved potential variables and \(\mathbb E_Q[Y^{1,1}]\) is the causal target.
+
+Let \(\mathcal S(P)\) be the reduced feasible set of \(x=(s_0,s_1,t_0,t_1,h)\) satisfying
+\[
+s_\ell\in[D_G(p_\ell),U_G(p_\ell)],\qquad
+r_\ell=e_\ell p_\ell+(1-e_\ell)s_\ell,qquad
+t_\ell\in[D_B(r_\ell),U_B(r_\ell)],
+\]
+for \(\ell=0,1\), and \(h\in[D_C(q_0),U_C(q_0)]\). Define
+\[
+M(x)=a\sum_{\ell=0}^1q_\ell r_\ell+(1-a)\{h t_0+(1-h)t_1\}.
+\]
+If \(Q\) contributes a value to \(\Theta_I(P)\), \(\mathrm{lem{:}binary\text{-}product\text{-}ratio\text{-}necessity}\) places its ratios in \(\mathcal R(P;G,B,C)\), and the established binary probability reduction places its scalar coordinates in \(\mathcal S(P)\). The derived binary-cell identity then gives \(\mathbb E_Q[Y^{1,1}]=M(x)\). This proves
+\[
+\Theta_I(P)\subseteq M\{\mathcal S(P)\}.
+\]
+Conversely, for \(x\in\mathcal S(P)\), the compatible ratio lift and the binary probability reduction give a ratio triple in \(\mathcal R(P;G,B,C)\). The narrowly cited Tan realization result supplies a full-data law with complete observed marginal \(P\) and those induced ratios. The derived binary-cell identity gives its causal mean as \(M(x)\). Hence
+\[
+M\{\mathcal S(P)\}\subseteq\Theta_I(P),
+\qquad\text{and therefore}\qquad
+\Theta_I(P)=M\{\mathcal S(P)\}.
+\]
+This establishes both directions of the image equality separately: necessity and the cell formula are proved in this note, while only feasible-triple realization is imported from Tan.
+
+The set \(\mathcal S(P)\) is nonempty: the all-one ratio table gives \(s_\ell=p_\ell\), \(r_\ell=p_\ell\), \(t_\ell=p_\ell\), and \(h=q_0\). It is compact because it is closed and bounded. It is convex because the restrictions on \((r_\ell,t_\ell)\) are the four linear inequalities
+\[
+t_\ell\geq r_\ell/B,qquad
+t_\ell\geq Br_\ell-(B-1),qquad
+t_\ell\leq Br_\ell,qquad
+t_\ell\leq1-(1-r_\ell)/B,
+\]
+while \(r_\ell\) is affine in \(s_\ell\), and the remaining restrictions are intervals. Therefore \(\mathcal S(P)\) is connected. Since \(M\) is continuous, \(M\{\mathcal S(P)\}\) is a compact connected subset of \(\mathbb R\), hence a closed interval whose two extrema are attained.
+
+We now compute those extrema by coordinatewise monotonicity. Define
+\[
+r_\ell^+=e_\ell p_\ell+(1-e_\ell)U_G(p_\ell),qquad
+t_\ell^+=U_B(r_\ell^+),qquad
+h^-=D_C(q_0),\quad h^+=U_C(q_0).
+\]
+The interior condition and finite \(C\) imply \(0<h^-\leq h^+<1\). At fixed \((s_0,s_1,h)\), both coefficients of \(t_0,t_1\) in \(M\) are strictly positive, so an upper optimizer has \(t_\ell=U_B(r_\ell)\). Each affine piece in \(U_B(r)=\min\{Br,1-(1-r)/B\}\) has positive slope. After this substitution, the coefficient \(a q_\ell>0\) makes the objective strictly increasing in \(r_\ell\), and \(1-e_\ell>0\) makes \(r_\ell\) strictly increasing in \(s_\ell\). Thus every upper optimizer has \(s_\ell=U_G(p_\ell)\), giving \(r_\ell=r_\ell^+\) and \(t_\ell=t_\ell^+\). The remaining objective is affine in \(h\), so
+\[
+\max_{x\in\mathcal S(P)}M(x)
+=a\sum_{\ell=0}^1q_\ell r_\ell^+
+ +(1-a)\max\{h^-t_0^++(1-h^-)t_1^+,\ h^+t_0^++(1-h^+)t_1^+\}
+=F_+(P).
+\]
+
+For the lower endpoint define
+\[
+r_\ell^-=e_\ell p_\ell+(1-e_\ell)D_G(p_\ell),qquad
+t_\ell^-=D_B(r_\ell^-).
+\]
+The same positive-coefficient argument now selects \(t_\ell=D_B(r_\ell)\). Both affine pieces in \(D_B(r)=\max\{r/B,1-B(1-r)\}\) have positive slope, so the objective is strictly increasing in \(r_\ell\) and then in \(s_\ell\). Minimization therefore selects \(s_\ell=D_G(p_\ell)\), \(r_\ell=r_\ell^-\), and \(t_\ell=t_\ell^-\). Minimizing the final affine function of \(h\) yields
+\[
+\min_{x\in\mathcal S(P)}M(x)
+=a\sum_{\ell=0}^1q_\ell r_\ell^-
+ +(1-a)\min\{h^-t_0^-+(1-h^-)t_1^-,\ h^+t_0^-+(1-h^+)t_1^-\}
+=F_-(P).
+\]
+Combining these evaluations with the image equality proves the sharp, rather than merely outer, identification result
+\[
+\Theta_I(P)=[F_-(P),F_+(P)].
+\]
+In particular, both endpoints and every intermediate point are attained by compatible full-data laws.
+
+It remains to verify the finite branch atlas. For the upper endpoint, \(U_G(p_0)\), \(U_G(p_1)\), \(U_B(r_0^+)\), and \(U_B(r_1^+)\) each select the smaller of two affine pieces. The sign of \(t_0^+-t_1^+\) selects \(h^-\) or \(h^+\), and the selected covariate envelope selects one of its two affine pieces. These are six binary choices. The weak inequalities defining \(\mathcal B_+(P)\) are exactly the conditions that the six chosen pieces and orderings are active, and direct substitution is precisely \(F_+(P)=f_\beta^+(P)\). Hence at most \(2^6=64\) formulas are evaluated. Replacing the upper envelopes by the lower envelopes, reversing the four piece inequalities, and selecting the minimizing ordering gives \(F_-(P)=f_\beta^-(P)\) for \(\beta\in\mathcal B_-(P)\), again among at most \(64\) formulas. Each \(a,q_\ell,e_\ell,p_\ell\) is a rational function of the positive observed cell probabilities, so every branch is rational on \(\mathcal M_\eta\).
+
+At an envelope tie, the two affine pieces have the same value. At an ordering tie, \(t_0^s=t_1^s\), so \(h t_0^s+(1-h)t_1^s\) is independent of \(h\). Thus all weakly active branches, including simultaneous ties, return the same endpoint. This completes the proof of the compact formulas, the finite rational representation, tie agreement, and full-data attainment.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} It replaces an implicit coupled sharp program by a closed-form, fully attainable binary frontier, with forward and reverse image inclusions justified by distinct arguments. \textit{Gap.} Tan (2025), Lemma 8, gives the generic sharp compatible-ratio optimization but no finite binary endpoint formula; the note separately derives necessity and the binary-cell objective instead of attributing them to that citation. \textit{Consumer.} Dickerman et al.'s six-year cancer analysis can report a sharp interval for the absolute risk under a sustained metformin strategy after binary coarsening.
+
+\begin{lemma}[lem:seven-cell-simplex-agreement]\label{lem:seven-cell-simplex-agreement}
+If \(z\) is induced by an observed law \(P\in\mathcal M_\eta\), then \(\psi(z)=(a,q_0,q_1,e_0,e_1,p_0,p_1)\), \(\widetilde f_\beta^s(z)=f_\beta^s(P)\) for every \(s\in\{-,+\}\) and \(\beta\in\{0,1\}^6\), and \(\widetilde F_s(z)=F_s(P)\) for both signs. In particular, \(\widetilde F_+(z)=\widetilde f_\beta^+(z)\) for every \(\beta\in\mathcal B_+(P)\), and \(\widetilde F_-(z)=\widetilde f_\beta^-(z)\) for every \(\beta\in\mathcal B_-(P)\), including all active ties.
+\end{lemma}
+\begin{proof}
+Fix \(P\in\mathcal M_\eta\), and let \(z\) be its seven-cell coarsening.  By the definitions of \(a,q_\ell,e_\ell,p_\ell\) and of the seven cells,
+\[
+ z_\varnothing=1-a,
+ \qquad
+ z_{\ell\mathrm N}=a q_\ell(1-e_\ell),
+ \qquad
+ z_{\ell y}=a q_\ell e_\ell p_\ell^y(1-p_\ell)^{1-y},
+ \quad \ell,y\in\{0,1\}.
+\]
+Every factor that occurs here is positive by \(\mathrm{ass{:}eta\text{-}interior}\).  In the notation of \(\mathrm{def{:}seven\text{-}cell\text{-}coordinate\text{-}map}\), summing the displayed cells gives
+\[
+ d_\ell(z)=z_{\ell\mathrm N}+z_{\ell0}+z_{\ell1}=a q_\ell,
+ \qquad
+ m_\ell(z)=z_{\ell0}+z_{\ell1}=a q_\ell e_\ell,
+ \qquad
+ z_{\ell1}=a q_\ell e_\ell p_\ell.
+\]
+The denominators in that definition are therefore nonzero.  Consequently,
+\[
+ a(z)=1-z_\varnothing=a,
+ \qquad
+ q_\ell(z)=\frac{d_\ell(z)}{a(z)}=q_\ell,
+ \qquad
+ e_\ell(z)=\frac{m_\ell(z)}{d_\ell(z)}=e_\ell,
+ \qquad
+ p_\ell(z)=\frac{z_{\ell1}}{m_\ell(z)}=p_\ell.
+\]
+This proves \(\psi(z)=(a,q_0,q_1,e_0,e_1,p_0,p_1)\).
+
+Now fix \(s\in\{-,+\}\), \(\beta\in\{0,1\}^6\), and \(\ell\in\{0,1\}\).  Substitute the seven coordinate equalities just proved into the constructions in \(\mathrm{def{:}seven\text{-}cell\text{-}simplex\text{-}extensions}\).  Comparing term by term with \(\mathrm{def{:}rational\text{-}branch\text{-}family}\) yields, in order,
+\[
+ \widetilde r_{\ell\beta}^s(z)=r_{\ell\beta}^s,
+ \qquad
+ \widetilde t_{\ell\beta}^s(z)=t_{\ell\beta}^s,
+ \qquad
+ \widetilde h_\beta(z)=h_\beta,
+\]
+and hence
+\[
+ \widetilde f_\beta^s(z)
+ =a\sum_{\ell=0}^1q_\ell r_{\ell\beta}^s
+ +(1-a)\{h_\beta t_{0\beta}^s+(1-h_\beta)t_{1\beta}^s\}
+ =f_\beta^s(P).
+\]
+The same substitution in the two compact endpoint constructions gives
+\[
+ \widetilde F_+(z)=F_+(P),
+ \qquad
+ \widetilde F_-(z)=F_-(P).
+\]
+By \(\mathrm{thm{:}sharp\text{-}binary\text{-}frontier}\) and the branch identity in \(\mathrm{def{:}rational\text{-}branch\text{-}family}\), every \(\beta\in\mathcal B_s(P)\) satisfies \(F_s(P)=f_\beta^s(P)\).  Combining this equality with the preceding substitutions proves the two final assertions.  The inequalities defining \(\mathcal B_s(P)\) are weak.  Thus, when two affine envelope pieces tie, both give the same value; and when \(t_{0\beta}^s=t_{1\beta}^s\), the expression
+\[
+ h t_{0\beta}^s+(1-h)t_{1\beta}^s
+\]
+is independent of \(h\).  Hence every branch admitted by an active tie has the common endpoint value, as claimed. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The cell factorizations \(z_{\ell\mathrm N}=a q_\ell(1-e_\ell)\) and \(z_{\ell y}=a q_\ell e_\ell p_\ell^y(1-p_\ell)^{1-y}\) recover every primitive coordinate, so direct substitution identifies the simplex and law-indexed formulas. \textit{Gap.} Tan (2025) indexes the endpoint by the observed law but does not give a seven-cell simplex extension for every binary rational branch. \textit{Consumer.} It makes the empirical plug-in map and every gradient in the multiplier envelope functions of the same multinomial probability vector.
+
+\begin{theorem}[thm:conservative-equality-frontier]\label{thm:conservative-equality-frontier}
+For the upper endpoint, \(V_1^+=F_+(P)\) if and only if \(C=1\). Moreover, \(V_2^+=F_+(P)\) if and only if \(G=1\), or \(B=1\), or, when \(G>1\) and \(B>1\), \((p_\ell-(G+1)^{-1})(r_\ell^+-(B+1)^{-1})\geq0\) for both \(\ell=0,1\). Hence \(V^+=F_+(P)\) if and only if at least one of those conditions or \(C=1\) holds, and otherwise \(V^+>F_+(P)\). For the lower endpoint, \(V_1^-=F_-(P)\) if and only if \(C=1\), while for \(G,B>1\), \(V_2^-=F_-(P)\) if and only if \((p_\ell-G/(G+1))(r_\ell^--B/(B+1))\geq0\) for both strata, with \(G=1\) or \(B=1\) again sufficient and necessary as sensitivity-free exceptions. Thus the analogous union is necessary and sufficient for \(V^-=F_-(P)\), and its complement implies \(V^-<F_-(P)\). All weak inequalities include active ties.
+\end{theorem}
+\begin{proof}
+Write \(r_\ell=r_\ell^+\) and \(t_\ell=t_\ell^+\) in the upper-bound argument.  The fixed-margin condition implies
+\[
+ 0<q_\ell,e_\ell,p_\ell,r_\ell,t_\ell<1.
+\]
+Indeed, \(p_\ell,e_\ell,q_\ell\in[\eta,1-\eta]\), the finite-
+\(K\) envelope \(U_K\) maps \((0,1)\) into \((0,1)\), and convex
+mixtures with weights in \((0,1)\) preserve strict interiority.  The
+same argument and \(q_0,q_1>0\) give
+\[
+ 0<D_C(q_0)\leq U_C(q_0)<1.
+\]
+These observations justify every strict-monotonicity and positive-weight
+argument below.
+
+We first establish three elementary consequences of
+\(\mathrm{def{:}check\text{-}transform}\).  If \(K>1\),
+\(W\sim\operatorname{Bern}(u)\), and \(k\in[0,1]\), direct evaluation
+at the two support points gives
+\[
+ \begin{aligned}
+ \mathbb E\{T_K(W,k)\}
+ &=u\{K-(K-1)k\}+(1-u)(1-K^{-1})k\\
+ &=Ku+\frac{K-1}{K}\{1-(K+1)u\}k.                 \tag{1}
+ \end{aligned}
+\]
+Consequently,
+\[
+ \min_{0\leq k\leq1}\mathbb E\{T_K(W,k)\}=U_K(u),
+ \qquad
+ \mathcal Q_K(u):=\mathop{\rm argmin}_{0\leq k\leq1}
+ \mathbb E\{T_K(W,k)\}
+ =
+ \begin{cases}
+ \{0\},&u<(K+1)^{-1},\\
+ [0,1],&u=(K+1)^{-1},\\
+ \{1\},&u>(K+1)^{-1}.
+ \end{cases}                                                   \tag{2}
+\]
+For \(K=1\), \(T_1(x,k)=x\), so every \(k\) is minimizing.  Comparing
+the two affine pieces also shows that \(x\mapsto T_K(x,k)\) is convex
+and increasing, and is strictly increasing when \(K<\infty\).  Finally,
+for \(d\geq0\), substitution into the two pieces yields the affine
+equivariance identity
+\[
+ T_K(b+dx,b+dk)=b+dT_K(x,k).                         \tag{3}
+\]
+
+We next derive the binary dual identity needed below.  For
+\(v=(v_0,v_1)\in[0,1]^2\), define
+\[
+ R_C(v)=\max_{h\in[D_C(q_0),U_C(q_0)]}
+          \{hv_0+(1-h)v_1\}.
+\]
+Then
+\[
+ \min_{0\leq c\leq1}\sum_{\ell=0}^1q_\ell T_C(v_\ell,c)=R_C(v).
+                                                               \tag{4}
+\]
+To prove (4), suppose first that \(v_0\leq v_1\), put
+\(d=v_1-v_0\), and let \(W\sim\operatorname{Bern}(q_1)\).
+Clipping \(c\) to \([v_0,v_1]\) cannot increase the expectation,
+because the derivative in \(c\) has a fixed sign outside that interval.
+Equations (1)--(3) therefore give
+\[
+ \min_c\mathbb E\{T_C(v_0+dW,c)\}
+ =v_0+dU_C(q_1)
+ =D_C(q_0)v_0+\{1-D_C(q_0)\}v_1,
+\]
+where the last equality uses
+\(1-U_C(q_1)=D_C(q_0)\).  This is the maximum defining \(R_C(v)\),
+because its coefficient on the smaller coordinate is the least feasible
+\(h\).  The case \(v_0\geq v_1\) is symmetric and uses the largest
+feasible \(h=U_C(q_0)\).  This proves (4), including \(C=1\).
+
+We now analyze the first conservative component.  For \(k\in[0,1]\)
+write
+\[
+ z_0(k)=(1-B^{-1})k,\qquad z_1(k)=B-(B-1)k,
+\]
+and, for each stratum, put
+\[
+ m_\ell(k)=(1-r_\ell)z_0(k)+r_\ell z_1(k).
+\]
+Equation (1), now with success probability \(r_\ell\) and
+\(K=B\), implies
+\[
+ m_\ell(k)\geq U_B(r_\ell)=t_\ell.                 \tag{5}
+\]
+Convexity through its defining two-point inequality, strict
+monotonicity, and then (5) give, for all \(c,k_0,k_1\in[0,1]\),
+\[
+ \begin{aligned}
+ &(1-r_\ell)T_C(z_0(k_\ell),c)
+      +r_\ell T_C(z_1(k_\ell),c)\\
+ &\hspace{25mm}\geq T_C(m_\ell(k_\ell),c)
+ \geq T_C(t_\ell,c).                               \tag{6}
+ \end{aligned}
+\]
+After multiplication by \(q_\ell>0\), summation, minimization, and
+application of (4), (6) shows from
+\(\mathrm{def{:}tan\text{-}binary\text{-}conservative\text{-}values}\)
+and \(\mathrm{def{:}compact\text{-}sharp\text{-}endpoints}\) that
+\[
+ V_1^+\geq a\sum_\ell q_\ell r_\ell+(1-a)R_C(t)=F_+(P).       \tag{7}
+\]
+If \(C=1\), then \(T_C(x,c)=x\).  Choosing each \(k_\ell\) in
+\(\mathcal Q_B(r_\ell)\) makes (5) an equality, and (4) reduces to
+\(R_1(t)=\sum_\ell q_\ell t_\ell\).  Hence equality holds in (7).
+
+Conversely, suppose \(C>1\) and equality holds in (7).  The objective
+is continuous on the compact cube \([0,1]^3\), so it has a minimizer.
+At any minimizer attaining equality in (7), every nonnegative gap in
+(6), as well as the final minimization gap in (4), must vanish, because
+\(q_0,q_1>0\).  Strict monotonicity in (6) gives
+\(m_\ell(k_\ell)=t_\ell\).  Since \(0<r_\ell<1\), the two support
+points \(z_0(k_\ell)<z_1(k_\ell)\) both receive positive probability.
+The convex map \(x\mapsto T_C(x,c)\) has its unique kink at \(x=c\),
+so equality in that two-point convexity inequality requires
+\[
+ c\notin(z_0(k_\ell),z_1(k_\ell)),\qquad \ell=0,1.             \tag{8}
+\]
+When \(B=1\), both open support intervals equal \((0,1)\).  When
+\(B>1\), each contains \((1-B^{-1},1)\), since
+\(z_0(k)\leq1-B^{-1}<1\leq z_1(k)\).  Thus the two intervals overlap,
+and a common \(c\) satisfying (8) must be on the same side of both.
+Because \(t_\ell=m_\ell(k_\ell)\) lies strictly between the two support
+points, either \(c<t_\ell\) for both strata or \(c>t_\ell\) for both.
+In the first case a sufficiently small increase of \(c\) strictly
+decreases \(\sum_\ell q_\ell T_C(t_\ell,c)\); in the second case a
+sufficiently small decrease does so.  This contradicts the equality
+condition in (4).  We have proved
+\[
+ V_1^+=F_+(P)\quad\Longleftrightarrow\quad C=1.                 \tag{9}
+\]
+Compact attainment also shows that the inequality in (7) is strict
+when \(C>1\).
+
+For the second component, fix a stratum \(\ell\), let
+\(S\sim\operatorname{Bern}(p_\ell)\), and abbreviate
+\(e=e_\ell\), \(p=p_\ell\).  By (1),
+\[
+ A_\ell(c)=ep+(1-e)\mathbb E\{T_G(S,c)\}
+ \geq ep+(1-e)U_G(p)=r_\ell.                                  \tag{10}
+\]
+For fixed \(k\), set \(Z=z_0(k)+\{z_1(k)-z_0(k)\}S=T_B(S,k)\).
+Equation (3), followed by (1), gives
+\[
+ \min_{\gamma\in\mathbb R}\mathbb E\{T_G(Z,\gamma)\}
+ =z_0(k)+\{z_1(k)-z_0(k)\}U_G(p).                              \tag{11}
+\]
+Using the definition of \(H_\ell\), equations (11) and (5) imply,
+for every \((k,c)\in[0,1]^2\),
+\[
+ \begin{aligned}
+ D_\ell(k,c)
+ &=e\,\mathbb E(Z)+(1-e)\mathbb E\{T_G(Z,c)\}\\
+ &\geq z_0(k)+\{z_1(k)-z_0(k)\}
+        \{ep+(1-e)U_G(p)\}\\
+ &=m_\ell(k)\geq U_B(r_\ell)=t_\ell.                         \tag{12}
+ \end{aligned}
+\]
+Every feasible \(h\) in \(R_C\) lies strictly between zero and one;
+hence \(R_C\) is strictly increasing in each coordinate.  Together
+with \(a,1-a,q_0,q_1>0\), (10)--(12) show that
+\(V_2^+=F_+(P)\) holds if and only if, separately for each stratum,
+there are \((k,c)\in[0,1]^2\) such that
+\[
+ A_\ell(c)=r_\ell,qquad D_\ell(k,c)=t_\ell.                   \tag{13}
+\]
+
+Suppose first that \(G>1\) and \(B>1\).  Since \(1-e>0\), equations
+(1)--(2) show that equality in (10) requires
+\[
+ c=0\quad\hbox{if }p<(G+1)^{-1},\qquad
+ c=1\quad\hbox{if }p>(G+1)^{-1},                              \tag{14}
+\]
+while every \(c\in[0,1]\) works at equality.  Equality in the first
+inequality of (12), by (2)--(3), requires
+\[
+ c=z_0(k)\quad\hbox{if }p<(G+1)^{-1},\qquad
+ c=z_1(k)\quad\hbox{if }p>(G+1)^{-1},                          \tag{15}
+\]
+and at equality permits every \(c\in[z_0(k),z_1(k)]\cap[0,1]\).
+Thus (14) and (15) force \(k=0\) below the threshold and \(k=1\)
+above it.  Equality in the last inequality of (12) requires
+\(k\in\mathcal Q_B(r_\ell)\).  Therefore (13) is feasible in stratum
+\(\ell\) exactly when
+\[
+ \left(p_\ell-\frac1{G+1}\right)
+ \left(r_\ell^+-\frac1{B+1}\right)\geq0.                     \tag{16}
+\]
+This also proves sufficiency at both ties: if the first factor is zero,
+the threshold in (15) can be chosen for any minimizing \(k\), and if
+the second factor is zero, every \(k\) minimizes (5).
+
+If \(G=1\), then \(H_\ell(x,c)=x\), so
+\(A_\ell=p_\ell=r_\ell\), and choosing
+\(k\in\mathcal Q_B(p_\ell)\) gives \(D_\ell=t_\ell\).  If \(B=1\),
+then \(Z=S\), \(t_\ell=r_\ell\), and choosing
+\(c\in\mathcal Q_G(p_\ell)\) gives
+\(D_\ell=A_\ell=r_\ell\).  These two cases, together with the
+exhaustive case \(G>1,B>1\), prove
+\[
+ V_2^+=F_+(P)
+ \Longleftrightarrow
+ \left[
+ G=1\ \hbox{or}\ B=1\ \hbox{or}\
+ \left\{
+ \begin{array}{l}
+ G>1,\ B>1,\\
+ (p_\ell-(G+1)^{-1})(r_\ell^+-(B+1)^{-1})\geq0
+ \text{ for }\ell=0,1
+ \end{array}
+ \right.
+ \right].                                                     \tag{17}
+\]
+
+Both components in (7) and (12) dominate \(F_+(P)\), and
+\(V^+=\min(V_1^+,V_2^+)\).  Equations (9) and (17) therefore give the
+claimed union of upper equality faces.  Off that union, compact
+attainment and the equality characterizations make both inequalities
+strict, so \(V^+>F_+(P)\).
+
+It remains to transfer the result to the lower endpoint without adding
+an assumption.  For every \(K\geq1\), direct use of
+\(\mathrm{def{:}binary\text{-}envelope\text{-}maps}\) gives
+\[
+ U_K(1-x)=1-D_K(x).
+\]
+If \(\bar p_\ell=1-p_\ell\), it follows successively that
+\[
+ r_\ell^+(\bar p)=1-r_\ell^-(p),\qquad
+ t_\ell^+(\bar p)=1-t_\ell^-(p),\qquad
+ F_+(\bar p)=1-F_-(p).                                        \tag{18}
+\]
+The last identity follows by expanding the compact formulas: maximizing
+the affine average of \(1-t_\ell^-\) equals one minus minimizing the
+same affine average of \(t_\ell^-\).  By the definition of the lower
+conservative components,
+\[
+ V_j^-(p)=1-V_j^+(\bar p),\qquad j=1,2.                        \tag{19}
+\]
+Applying (9) and (17) to \(\bar p\), and using (18)--(19), proves
+\(V_1^-=F_-(P)\) exactly when \(C=1\).  Moreover, for \(G,B>1\), the
+condition in (16) becomes
+\[
+ \left(p_\ell-\frac{G}{G+1}\right)
+ \left(r_\ell^--\frac{B}{B+1}\right)\geq0,qquad \ell=0,1.    \tag{20}
+\]
+The \(G=1\) and \(B=1\) faces transfer unchanged.  Finally,
+\(V^-=1-V^+(\bar p)\) and (18) reverse strict upper inequality, giving
+\(V^-<F_-(P)\) off the stated lower union.  The weak signs in
+(16) and (20) explicitly include every active tie.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The iff frontier states exactly when tractability costs identification information and exactly when it does not. \textit{Gap.} Tan (2025), Proposition 3 and Corollary 1, prove conservativeness and selected sensitivity-free exact faces but not the binary active-sensitivity iff regions or strict complements. \textit{Consumer.} An analyst can decide from observed cell risks whether the published conservative calculation already equals the sharp sustained-strategy risk bound.
+
+\begin{proposition}[prop:rational-strictness-witness]\label{prop:rational-strictness-witness}
+At \(a=q_0=e_0=e_1=1/2\), \((p_0,p_1)=(3/10,4/5)\), and \(G=B=C=2\), the sharp upper endpoint is \(F_+(P)=61/80\), the first Proposition 3 component is \(V_1^+=25/32\), the second is \(V_2^+=49/64\), and therefore \(V^+-F_+(P)=1/320>0\). The same strict ordering persists on a relative neighborhood inside \(\mathcal M_\eta\) for every \(\eta<1/5\).
+\end{proposition}
+\begin{proof}
+At the displayed rational law, direct evaluation of
+\(\mathrm{def{:}binary\text{-}envelope\text{-}maps}\) gives
+\[
+ U_2(3/10)=\frac35,\qquad U_2(4/5)=\frac9{10},
+\]
+and hence
+\[
+ (r_0^+,r_1^+)=\left(\frac9{20},\frac{17}{20}\right),\qquad
+ (t_0^+,t_1^+)=\left(\frac{29}{40},\frac{37}{40}\right),
+ \qquad (h^-,h^+)=\left(\frac14,\frac34\right).               \tag{21}
+\]
+Because \(t_0^+<t_1^+\), the maximizing covariate weight in the compact
+sharp formula is \(h^-\).  Therefore
+\[
+ \begin{aligned}
+ F_+(P)
+ &=\frac12\frac{9/20+17/20}{2}
+   +\frac12\left\{\frac14\frac{29}{40}
+                    +\frac34\frac{37}{40}\right\}\\
+ &=\frac{13}{40}+\frac7{16}=\frac{61}{80}.                    \tag{22}
+ \end{aligned}
+\]
+
+We next solve the first conservative program exactly.  For \(K=2\),
+\[
+ z_0(k)=\frac{k}{2},\qquad z_1(k)=2-k,
+ \qquad
+ T_2(z,c)\geq\frac z2+\frac c2,
+ \qquad T_2(z,c)\geq2z-c.                                    \tag{23}
+\]
+In each stratum, apply the first lower affine piece in (23) at
+\(z_0(k_\ell)\) and the second at \(z_1(k_\ell)\).  In the resulting
+lower bound, the coefficient of \(k_\ell\), before multiplication by
+\(q_\ell\), is
+\[
+ \frac{1-9r_\ell^+}{4}<0,
+\]
+and the coefficient of the common \(c\), after summing with
+\(q_0=q_1=1/2\), is
+\[
+ \frac12-\frac32\left(\frac{r_0^++r_1^+}{2}\right)
+ =\frac12-\frac32\frac{13}{20}<0.                              \tag{24}
+\]
+Thus this affine lower bound is minimized over the cube at
+\(k_0=k_1=c=1\).  At that point the selected pieces in (23) are active,
+so the lower bound is attained.  The minimized second-stage term is
+\[
+ \sum_{\ell=0}^1q_\ell\left(\frac34+\frac{r_\ell^+}{4}\right)
+ =\frac34+\frac{13}{80}=\frac{73}{80}.                         \tag{25}
+\]
+Combining (25) with the first-stage term \(13/40\) yields
+\[
+ V_1^+=\frac{13}{40}+\frac12\frac{73}{80}=\frac{25}{32}.       \tag{26}
+\]
+
+For the second program, abbreviate
+\(A_\ell=A_\ell(c_\ell)\) and
+\(D_\ell=D_\ell(k_\ell,c_\ell)\).  The feasible endpoint
+\(h=1/4\) gives
+\[
+ R_2(D_0,D_1)\geq\frac14D_0+\frac34D_1.
+\]
+Since \(a=q_0=q_1=1/2\), every feasible objective is consequently at
+least
+\[
+ \left(\frac14A_0+\frac18D_0\right)
+ +\left(\frac14A_1+\frac38D_1\right).                          \tag{27}
+\]
+The inequalities (10)--(12) from the proof of
+\(\mathrm{thm{:}conservative\text{-}equality\text{-}frontier}\) give
+\[
+ A_1\geq\frac{17}{20},\qquad D_1\geq\frac{37}{40}.
+\]
+Both equalities hold at \(c_1=k_1=1\), so the second parenthesis in
+(27) is at least
+\[
+ \frac14\frac{17}{20}+\frac38\frac{37}{40}
+ =\frac{179}{320}.                                             \tag{28}
+\]
+
+It remains to solve the stratum-zero tradeoff rather than minimize its
+two terms separately.  Here
+\[
+ H_0(x,c)=\max\left\{\frac32x-\frac12c,
+                         \frac34x+\frac14c\right\},
+\]
+so evaluation at a \(\operatorname{Bern}(3/10)\) variable gives
+\[
+ A_0(c)=\frac9{20}+\frac{c}{40}.                               \tag{29}
+\]
+For \(Z=z_0(k)\) with probability \(7/10\) and \(Z=z_1(k)\) with
+probability \(3/10\), the upper support point always uses the first
+piece of \(H_0\), while the lower support point changes piece at
+\(k=2c\).  Direct substitution on the two regions gives
+\[
+ \min_{0\leq k\leq1}D_0(k,c)=
+ \begin{cases}
+ \dfrac9{10}-\dfrac{7c}{20},&0\leq c\leq\dfrac12,\\[2mm]
+ \dfrac{57}{80}+\dfrac{c}{40},&\dfrac12\leq c\leq1.
+ \end{cases}                                                   \tag{30}
+\]
+For completeness, when \(k\geq2c\) the unminimized expression is
+\(9/10+3k/40-c/2\), which is increasing in \(k\); when
+\(k\leq2c\) it is \(9/10-3k/16+c/40\), which is decreasing in
+\(k\).  These slopes prove (30), including the boundary minimizers.
+Combining (29) and (30) on the two intervals shows
+\[
+ 2A_0(c)+D_0(k,c)\geq\frac{33}{20},                            \tag{31}
+\]
+with equality at \(c_0=1/2\), \(k_0=1\).  Hence the first
+parenthesis in (27) is at least \(33/160\).
+
+At the four thresholds just specified,
+\[
+ (D_0,D_1)=\left(\frac{29}{40},\frac{37}{40}\right).
+\]
+The first coordinate is smaller, so the maximizing face of \(R_2\)
+is exactly \(h=1/4\); thus every lower bound used in (27)--(31) is
+simultaneously attained.  It follows that
+\[
+ V_2^+=\frac{33}{160}+\frac{179}{320}=\frac{49}{64}.            \tag{32}
+\]
+Equations (22), (26), and (32) give
+\[
+ V^+=\min\{V_1^+,V_2^+\}=\frac{49}{64},\qquad
+ V^+-F_+(P)=\frac{49}{64}-\frac{61}{80}=\frac1{320}>0,         \tag{33}
+\]
+and also
+\[
+ F_+(P)<V_2^+=V^+<V_1^+,qquad V_1^+-V_2^+=\frac1{64}.          \tag{34}
+\]
+
+Finally, all envelope and check-transform maps are continuous.  The
+compact sharp formula is therefore continuous in the primitive cell
+probabilities and sensitivity constants.  Each conservative value is
+the minimum of a jointly continuous function over a fixed compact cube;
+if \(g(x,u)\) denotes either objective, then the elementary bound
+\[
+ \left|\min_u g(x,u)-\min_u g(x',u)\right|
+ \leq\sup_u|g(x,u)-g(x',u)|
+\]
+proves its continuity directly.  The two positive gaps in (34) thus
+remain positive on a relative neighborhood of the displayed law.  At
+that law the smallest of every primitive probability and its complement
+is \(1/5\).  For each fixed \(\eta<1/5\), the neighborhood can therefore
+be chosen small enough to remain in \(\mathcal M_\eta\), which proves
+the asserted persistence.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} An exact rational witness certifies that compatibility has non-negligible empirical content beyond the published relaxations. \textit{Gap.} The numerical examples in Tan (2025) do not supply this exact active-product strictness certificate. \textit{Consumer.} It is a regression test for software implementing both the sharp and conservative binary endpoints.
+
+\begin{lemma}[lem:uniform-branch-remainder]\label{lem:uniform-branch-remainder}
+There is a finite constant \(M=M(\eta,G,B,C)\) such that, for either \(s\in\{-,+\}\) and any \(z,z'\in\Delta_6\) whose coordinates are at least \(\eta^4/2\), \(|\widetilde F_s(z')-\widetilde F_s(z)|\leq\max_{\beta\in\{0,1\}^6}|\nabla\widetilde f_\beta^s(z)^\top(z'-z)|+M\|z'-z\|_2^2\). The inequality holds uniformly when the segment from \(z\) to \(z'\) crosses branch faces and when several simplex branch formulas or gradients coincide.
+\end{lemma}
+\begin{proof}
+Put \(\delta=\eta^4/2\) and
+\[
+ K_\delta=\{z\in\Delta_6:\min_j z_j\geq\delta\}.
+\]
+This set is compact and convex.  For \(z\in K_\delta\), the denominators in \(\mathrm{def{:}seven\text{-}cell\text{-}coordinate\text{-}map}\) obey
+\[
+ a(z)=1-z_\varnothing\geq6\delta,
+ \qquad
+ d_\ell(z)\geq3\delta,
+ \qquad
+ m_\ell(z)\geq2\delta.
+\]
+Therefore every rational branch \(\widetilde f_\beta^s\) is twice continuously differentiable on an open neighborhood of \(K_\delta\).  There are only \(2\cdot2^6=128\) signed branches, so compactness gives a finite constant
+\[
+ H=H(\eta,G,B,C)
+ :=\max_{s\in\{-,+\},\,\beta\in\{0,1\}^6}
+ \sup_{x\in K_\delta}
+ \bigl\|\nabla^2\widetilde f_\beta^s(x)\bigr\|_{\mathrm{op}}<\infty.
+\]
+
+Fix a sign \(s\), two points \(z,z'\in K_\delta\), and write \(v=z'-z\) and \(z_u=z+uv\) for \(0\leq u\leq1\).  By \(\mathrm{def{:}seven\text{-}cell\text{-}simplex\text{-}extensions}\), \(\widetilde F_s\) is obtained from finitely many continuously differentiable rational pieces by finitely many minimum and maximum operations.  It is consequently Lipschitz on \(K_\delta\), and \(u\mapsto\widetilde F_s(z_u)\) is absolutely continuous.  The elementary chain rule for a finite minimum or maximum implies that, for almost every \(u\), there is an active \(\beta(u)\in\{0,1\}^6\) such that
+\[
+ \frac{d}{du}\widetilde F_s(z_u)
+ =\nabla\widetilde f_{\beta(u)}^s(z_u)^\top v.
+\]
+Indeed, away from ties the selected child is locally unique; at a tie where the one-dimensional derivative exists, one may select an active child having that directional derivative.  The same argument applies recursively through the finite sequence of envelope and endpoint operations.  If the segment lies in a tie face, the restrictions of the tied pieces to that face agree, so their directional derivatives along the segment agree as well.
+
+The Hessian bound and the fundamental theorem of calculus give, for every branch and every \(u\),
+\[
+ \left|
+ \{\nabla\widetilde f_\beta^s(z_u)-\nabla\widetilde f_\beta^s(z)\}^\top v
+ \right|
+ \leq Hu\|v\|_2^2.
+\]
+Using absolute continuity, the preceding active-branch representation, and then integrating this inequality, we obtain
+\[
+ \begin{aligned}
+ \left|\widetilde F_s(z')-\widetilde F_s(z)\right|
+ &\leq
+ \int_0^1
+ \left|\nabla\widetilde f_{\beta(u)}^s(z)^\top v\right|\,du
+ +\int_0^1Hu\|v\|_2^2\,du\\
+ &\leq
+ \max_{\beta\in\{0,1\}^6}
+ \left|\nabla\widetilde f_\beta^s(z)^\top(z'-z)\right|
+ +\frac H2\|z'-z\|_2^2.
+ \end{aligned}
+\]
+Thus the asserted inequality holds with \(M=H/2\), simultaneously for both signs.  The proof uses neither a unique active branch nor a positive variance, and the active-child argument explicitly covers crossings and coincident pieces. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This simplex expansion is the load-bearing uniform bound that turns the finite frontier into an honest confidence set without selecting a branch or differentiating a law-indexed functional. \textit{Gap.} Generic directional delta methods give pointwise first-order limits but do not directly provide this uniform quadratic inequality across the product frontier's moving faces. \textit{Consumer.} It validates simultaneous uncertainty propagation for every sharp binary sensitivity endpoint computed from multinomial cells.
+
+\begin{theorem}[thm:uniform-interval-coverage]\label{thm:uniform-interval-coverage}
+For fixed \((\eta,G,B,C,\alpha)\), iid draws \(O_1,\ldots,O_n\sim P\), and \(\mathcal C_n\) from \(\mathrm{def{:}multiplier\text{-}confidence\text{-}set}\), \(\liminf_{n\to\infty}\inf_{P\in\mathcal M_\eta}P\{[F_-(P),F_+(P)]\subseteq\mathcal C_n\}\geq1-\alpha\). On the nonfallback event, \(w_n=O_P(n^{-1/2})\) uniformly over \(\mathcal M_\eta\). The result permits active branch ties, redundant branches, singular covariance matrices, and branch-gradient coordinates with zero variance.
+\end{theorem}
+\begin{proof}
+Write \(z=z(P)\) for the true seven-cell probability vector and put \(\delta=\eta^4/2\).  The cell factorizations proved in \(\mathrm{lem{:}seven\text{-}cell\text{-}simplex\text{-}agreement}\), together with \(\mathrm{ass{:}eta\text{-}interior}\), imply
+\[
+ z_\varnothing=1-a\geq\eta,
+ \qquad
+ z_{\ell\mathrm N}=a q_\ell(1-e_\ell)\geq\eta^3,
+ \qquad
+ z_{\ell y}=a q_\ell e_\ell p_\ell^y(1-p_\ell)^{1-y}\geq\eta^4.
+\]
+In particular, \(z\in K_{\eta^4}\).  For the event \(E_n=\{\min_j\widehat z_j\geq\delta\}\) in \(\mathrm{def{:}multiplier\text{-}confidence\text{-}set}\), each cell frequency satisfies \(\mathbb E_P(\widehat z_j-z_j)^2=z_j(1-z_j)/n\leq1/n\).  Applying Markov's inequality to \((\widehat z_j-z_j)^2\) and summing over the seven cells gives
+\[
+\sup_{P\in\mathcal M_\eta}P(E_n^c)
+\leq\frac{28}{n\eta^8}\longrightarrow0.
+\]
+
+Let \(\mathcal J=\{-,+\}\times\{0,1\}^6\), so \(|\mathcal J|=128\), and, for \(j=(s,\beta)\), define
+\[
+ g_j(x)=\nabla\widetilde f_\beta^s(x),
+ \qquad
+ S_n(z)=\max_{j\in\mathcal J}
+ \left|g_j(z)^\top\sqrt n(\widehat z-z)\right|,
+ \qquad
+ \Sigma(x)=\operatorname{diag}(x)-xx^\top.
+\]
+The denominator bounds used in \(\mathrm{lem{:}uniform\text{-}branch\text{-}remainder}\) show that all \(g_j\) and their first derivatives are uniformly bounded and continuous on \(K_\delta\).
+
+We first prove uniform validity of the multiplier critical value, including singular covariance matrices.  Conditional on the data and on \(E_n\), Gaussianity and independence of the multipliers give exactly
+\[
+ \mathbb G_n^*\mid X_1,\ldots,X_n
+ \sim N\{0,\Sigma(\widehat z)\},
+\]
+because the one-hot vectors satisfy
+\[
+ \frac1n\sum_{i=1}^n(X_i-\widehat z)(X_i-\widehat z)^\top
+ =\operatorname{diag}(\widehat z)-\widehat z\widehat z^\top.
+\]
+Thus \(c_n\) is the conditional \((1-\alpha)\)-quantile of
+\[
+ T_n^*=\max_{j\in\mathcal J}
+ \left|g_j(\widehat z)^\top\mathbb G_n^*\right|.
+\]
+
+To establish calibration uniformly, consider an arbitrary sequence \(P_n\in\mathcal M_\eta\), and write \(z_n=z(P_n)\).  Compactness permits passage to a subsequence for which \(z_n\to z_\infty\in K_{\eta^4}\).  The map \(\psi\) is continuous on this set, so the closed inequalities in \(\mathrm{ass{:}eta\text{-}interior}\) continue to hold at the limiting primitive coordinates \(\psi(z_\infty)\).  For each fixed \(t\in\mathbb R^7\), boundedness of the categorical summands gives the uniform characteristic-function expansion
+\[
+ \mathbb E_{P_n}\exp\!\left\{
+ \frac{i}{\sqrt n}t^\top(X_1-z_n)
+ \right\}
+ =1-\frac1{2n}t^\top\Sigma(z_n)t+O(n^{-3/2}).
+\]
+Raising this expression to the \(n\)-th power proves
+\[
+ \sqrt n(\widehat z-z_n)\ \rightsquigarrow\
+ Z_\infty\sim N\{0,\Sigma(z_\infty)\},
+\]
+with no nonsingularity requirement.  Since the finite array \(g_j(z_n)\) converges entrywise to \(g_j(z_\infty)\), the continuous mapping theorem yields
+\[
+ S_n(z_n)\ \rightsquigarrow\
+ T_\infty:=\max_{j\in\mathcal J}
+ \left|g_j(z_\infty)^\top Z_\infty\right|.
+\]
+Also \(\widehat z-z_n\to0\) in \(P_n\)-probability.  Continuity of the positive-semidefinite square-root map, of \(\Sigma(\cdot)\), and of the finite gradient array therefore shows that, conditionally on the data, the law of \(T_n^*\) converges in probability to the law of \(T_\infty\).  This conclusion remains valid when \(\Sigma(z_\infty)\) is singular.
+
+We next verify that the limiting distribution has no problematic atom.  Choose any upper branch \(\beta_\infty\) active at the limiting primitive coordinates \(\psi(z_\infty)\); such a branch exists because the envelope minima and endpoint maximum are attained and all branch inequalities are weak.  Every affine piece of \(U_G\) has positive slope at least \(G^{-1}\).  In the active upper branch, its selected value of \(h\) belongs to \([0,1]\), so the baseline term involving \(t_0^+\) has a nonnegative coefficient; every affine piece of \(U_B\) also has positive slope.  Hence direct differentiation of \(\mathrm{def{:}rational\text{-}branch\text{-}family}\) gives
+\[
+ \frac{\partial f_{\beta_\infty}^+}{\partial p_0}
+ \geq \frac{a q_0}{G}
+ \geq\frac{\eta^2}{G}.
+\]
+Move an infinitesimal amount of mass from cell \(z_{00}\) to cell \(z_{01}\).  This keeps \(a,d_0,m_0\), and all other primitive coordinates fixed and changes \(p_0\) at rate \(m_0^{-1}\).  Therefore, for \(j_\infty=(+,\beta_\infty)\),
+\[
+ \left|g_{j_\infty,01}(z_\infty)-g_{j_\infty,00}(z_\infty)\right|
+ =\frac1{m_0(z_\infty)}
+ \frac{\partial f_{\beta_\infty}^+}{\partial p_0}
+ \geq\frac{\eta^2}{G}.
+\]
+Using the pairwise representation of categorical variance and the lower cell-probability bound,
+\[
+ \begin{aligned}
+ \operatorname{Var}\!\left\{
+ g_{j_\infty}(z_\infty)^\top(X-z_\infty)
+ \right\}
+ &=\frac12\sum_{k,r}z_{\infty,k}z_{\infty,r}
+ \{g_{j_\infty,k}(z_\infty)-g_{j_\infty,r}(z_\infty)\}^2\\
+ &\geq z_{\infty,00}z_{\infty,01}\frac{\eta^4}{G^2}
+ \geq\frac{\eta^{12}}{G^2}>0.
+ \end{aligned}
+\]
+Thus at least one linear form in \(T_\infty\) is nondegenerate.  For \(x>0\), the event \(\{T_\infty=x\}\) is contained in the finite union of the events \(\{|g_j(z_\infty)^\top Z_\infty|=x\}\) over nondegenerate forms and hence has probability zero; degenerate forms vanish identically.  At \(x=0\), the displayed positive variance likewise gives probability zero.  Moreover, on the linear support of \(Z_\infty\), the map
+\[
+ v\longmapsto\max_{j\in\mathcal J}|g_j(z_\infty)^\top v|
+\]
+is a nonzero continuous homogeneous seminorm.  Every nonempty relative open annulus for this seminorm has positive Gaussian probability.  The distribution function of \(T_\infty\) is therefore continuous and strictly increasing on \((0,\infty)\).  Its \((1-\alpha)\)-quantile \(c_\infty\) is consequently unique, positive, and satisfies
+\[
+ P(T_\infty\leq c_\infty)=1-\alpha.
+\]
+
+Let \(H_\infty\) be the distribution function of \(T_\infty\), and let \(H_n^*\) be the conditional distribution function of \(T_n^*\).  For every sufficiently small \(\varepsilon>0\), strict increase and continuity give
+\[
+ H_\infty(c_\infty-\varepsilon)<1-\alpha
+ <H_\infty(c_\infty+\varepsilon).
+\]
+The conditional Gaussian convergence proved above gives
+\[
+ H_n^*(c_\infty-\varepsilon)\to
+ H_\infty(c_\infty-\varepsilon),
+ \qquad
+ H_n^*(c_\infty+\varepsilon)\to
+ H_\infty(c_\infty+\varepsilon)
+\]
+in \(P_n\)-probability.  By the definition of a conditional quantile, these two inequalities imply
+\[
+ P_{P_n}\{|c_n-c_\infty|>\varepsilon\}\longrightarrow0.
+\]
+For the sampling statistic, on the event \(|c_n-c_\infty|\leq\varepsilon\),
+\[
+ \{S_n(z_n)\leq c_\infty-\varepsilon\}
+ \subseteq\{S_n(z_n)\leq c_n\}
+ \subseteq\{S_n(z_n)\leq c_\infty+\varepsilon\}.
+\]
+Apply the weak convergence of \(S_n(z_n)\), then let \(\varepsilon\downarrow0\).  Continuity of \(H_\infty\) gives
+\[
+P_{P_n}\{S_n(z_n)\leq c_n\}\longrightarrow1-\alpha.
+\]
+Because the original sequence \(P_n\) was arbitrary and every subsequence admits the preceding convergent subsubsequence, the sequential compactness criterion yields
+\[
+ \sup_{P\in\mathcal M_\eta}
+ \left|P_P\{S_n(z(P))\leq c_n\}-(1-\alpha)\right|
+ \longrightarrow0.
+\]
+
+On \(E_n\), both \(z\) and \(\widehat z\) belong to \(K_\delta\).  Applying \(\mathrm{lem{:}uniform\text{-}branch\text{-}remainder}\) to both signs gives
+\[
+ \max_{s\in\{-,+\}}
+ \left|\widetilde F_s(\widehat z)-\widetilde F_s(z)\right|
+ \leq\frac{S_n(z)}{\sqrt n}+M\|\widehat z-z\|_2^2.
+\]
+Since \(\mathbb E_P\|\sqrt n(\widehat z-z)\|_2^2=\operatorname{tr}\Sigma(z)\leq1\), Markov's inequality gives the uniform bound
+\[
+ \sup_{P\in\mathcal M_\eta}
+ P_P\!\left\{M\|\widehat z-z\|_2^2>n^{-3/4}\right\}
+ \leq M n^{-1/4}\longrightarrow0.
+\]
+It follows from the last three displays and the negligible fallback probability that, with uniform limiting probability at least \(1-\alpha\),
+\[
+ \max_{s\in\{-,+\}}
+ \left|\widetilde F_s(\widehat z)-\widetilde F_s(z)\right|
+ \leq \frac{c_n}{\sqrt n}+n^{-3/4}=w_n.
+\]
+By \(\mathrm{lem{:}seven\text{-}cell\text{-}simplex\text{-}agreement}\), \(\widetilde F_s(z)=F_s(P)\).  On the displayed event, the lower endpoint of \(\mathcal C_n\) is no larger than \(F_-(P)\), and its upper endpoint is no smaller than \(F_+(P)\); clipping at zero and one preserves these inequalities because both true endpoints lie in \([0,1]\).  On \(E_n^c\), \(\mathcal C_n=[0,1]\) and containment is automatic.  Therefore
+\[
+ \liminf_{n\to\infty}\inf_{P\in\mathcal M_\eta}
+ P_P\{[F_-(P),F_+(P)]\subseteq\mathcal C_n\}
+ \geq1-\alpha.
+\]
+The interpretation as coverage of the complete sharp identified interval follows from \(\mathrm{thm{:}sharp\text{-}binary\text{-}frontier}\).
+
+It remains to establish the asserted radius rate.  Let \(L\geq1\) be a common bound for \(\|g_j(x)\|_2\) over \(j\in\mathcal J\) and \(x\in K_\delta\).  On \(E_n\), every conditional Gaussian coordinate in \(T_n^*\) has variance at most \(L^2\), because \(\operatorname{tr}\Sigma(\widehat z)\leq1\).  A union bound over the \(128\) absolute Gaussian coordinates gives
+\[
+ P^*(T_n^*>x)\leq256\exp\{-x^2/(2L^2)\}.
+\]
+Consequently,
+\[
+ c_n\leq L\sqrt{2\log(256/\alpha)}
+\]
+on \(E_n\).  Hence \(w_n=O_P(n^{-1/2})\) uniformly on the nonfallback event.  The proof nowhere inverts \(\Sigma(z)\), studentizes a coordinate, selects a unique branch, or removes a redundant form.  It therefore applies unchanged with active ties, singular covariance, redundant branches, and zero-variance gradient coordinates. \(\square\)
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Applications require sampling uncertainty for the entire identified interval, not pointwise standard errors for a selected smooth branch. \textit{Gap.} Tan (2025) leaves sample inference open; Bonvini et al. (2022) and Zhang and Zhao (2026) use different sensitivity models, while Fang and Santos (2019) does not itself yield this all-branch uniform causal-interval guarantee. \textit{Consumer.} It gives a uniformly honest confidence set for the absolute sustained-metformin cancer-risk interval in a discretized target-trial analysis.
+
+\begin{proposition}[prop:no-sensitivity-reduction]\label{prop:no-sensitivity-reduction}
+If \(G=B=C=1\), then \(r_\ell^-=r_\ell^+=p_\ell\), \(t_\ell^-=t_\ell^+=p_\ell\), \(h^-=h^+=q_0\), and \(F_-(P)=F_+(P)=a\sum_{\ell=0}^1q_\ell p_\ell+(1-a)\sum_{\ell=0}^1q_\ell p_\ell=\sum_{\ell=0}^1q_\ell p_\ell\), the usual two-period g-formula with degenerate baseline for \(\mu_{11}\).
+\end{proposition}
+\begin{proof}
+Assume \(G=B=C=1\).  By \(\mathrm{def{:}binary\text{-}envelope\text{-}maps}\), for every \(x\in[0,1]\),
+\[
+D_1(x)=\max\{x,1-(1-x)\}=x,
+\qquad
+U_1(x)=\min\{x,1-(1-x)\}=x.
+\]
+Hence, for each \(\ell\in\{0,1\}\), \(\mathrm{def{:}reweighted\text{-}probabilities}\) gives
+\[
+\begin{aligned}
+r_\ell^-
+ &=e_\ell p_\ell+(1-e_\ell)D_1(p_\ell)
+  =e_\ell p_\ell+(1-e_\ell)p_\ell=p_\ell,\\
+r_\ell^+
+ &=e_\ell p_\ell+(1-e_\ell)U_1(p_\ell)
+  =e_\ell p_\ell+(1-e_\ell)p_\ell=p_\ell.
+\end{aligned}
+\]
+Applying the same envelope identities at the baseline-outcome stage yields
+\[
+t_\ell^-=D_1(r_\ell^-)=r_\ell^-=p_\ell,
+\qquad
+t_\ell^+=U_1(r_\ell^+)=r_\ell^+=p_\ell.
+\]
+At the covariate stage,
+\[
+h^-=D_1(q_0)=q_0,
+\qquad
+h^+=U_1(q_0)=q_0.
+\]
+Because \(q_1=1-q_0\) by the definition of \(q_0,q_1\), substitution into \(\mathrm{def{:}compact\text{-}sharp\text{-}endpoints}\) gives, for either sign,
+\[
+\begin{aligned}
+F_-(P)=F_+(P)
+ &=a\sum_{\ell=0}^1q_\ell p_\ell
+   +(1-a)\{q_0p_0+(1-q_0)p_1\}\\
+ &=a\sum_{\ell=0}^1q_\ell p_\ell
+   +(1-a)\sum_{\ell=0}^1q_\ell p_\ell\\
+ &=\sum_{\ell=0}^1q_\ell p_\ell.
+\end{aligned}
+\]
+The endpoint maximum and minimum cause no additional case: when \(h^-=h^+=q_0\), their two displayed candidate values coincide exactly.  Finally, \(\mathrm{thm{:}sharp\text{-}binary\text{-}frontier}\) states that the identified set for the causal target \(\mu_{11}=\mathbb E[Y^{1,1}]\) is \([F_-(P),F_+(P)]\).  The preceding equality therefore reduces that set to
+\[
+\Theta_I(P)=\left\{\sum_{\ell=0}^1
+P(L_1=\ell\mid A_0=1)
+P(Y=1\mid A_0=A_1=1,L_1=\ell)\right\}.
+\]
+Thus the unique compatible value of \(\mu_{11}\) is the ordinary two-period g-formula with degenerate baseline, as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction verifies that the frontier nests the standard identified analysis when every sensitivity ratio is one. \textit{Gap.} This is a required sanity reduction, not a novelty claim beyond Tan's sensitivity-free model. \textit{Consumer.} It lets an implementation recover the ordinary sustained-treatment risk as a unit test.
+
+\begin{openendedquestion}[oeq:adaptive-contact-envelope]\label{oeq:adaptive-contact-envelope}
+Can the contact-set multiplier handle be developed into a confidence set that retains uniform \((1-\alpha)\) coverage over \(\mathcal M_\eta\), has asymptotically exact rather than conservative coverage whenever the limiting contact-set Gaussian maximum has a continuous quantile, is first-order no wider than \(\mathcal C_n\) at every law with unique separated lower and upper simplex branches, and is strictly narrower on a nonempty observable region where inactive scores from \(\widetilde f_\beta^-\) and \(\widetilde f_\beta^+\) enlarge the all-branch Gaussian quantile?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The all-branch envelope buys robustness by paying a potentially avoidable width cost away from ties. \textit{Gap.} Fang and Santos (2019) motivates estimated contact derivatives, but uniform adaptation across this two-endpoint rational frontier with singular scores is not settled by the cited results. \textit{Consumer.} A successful construction would deliver shorter sensitivity intervals on a certified regular region without sacrificing protection near branch switches.
+
+\begin{lemma}[lem:tan-product-compatibility-program]\label{lem:tan-product-compatibility-program}
+Fix a positive observed binary law \(P\) and finite \(G,B,C\geq 1\). Under target-strategy consistency, every nonnegative triple \((\lambda_1,\lambda_{0Y},\lambda_{0L})\in\mathcal R(P;G,B,C)\) admits a full-data distribution whose observed marginal is \(P\) and whose induced sensitivity ratios equal that triple. Moreover, Tan's sharp upper product-model program maximizes the generalized ICE functional, equivalently the generalized IPW functional, over the nonnegative ratio triples satisfying the same normalization and range constraints.
+\end{lemma}
+\par\smallskip\noindent \textit{Justification.} This cited leaf deliberately carries only Tan's attested feasible-ratio realization and generic sharp-program facts; the converse necessity and binary-cell formula are proved in separate note-level lemmas. \textit{Gap.} The cited excerpt does not justify an iff characterization of arbitrary compatible laws or the specialized binary mean formula. \textit{Consumer.} Its realization direction supplies full-data attainment after the note's scalar reduction and binary-cell identity have been proved.
+
+\begin{lemma}[lem:tan-generalized-ice-ipw-formula]\label{lem:tan-generalized-ice-ipw-formula}
+In Tan's source notation, let \(A_0,A_1,Y,L_0,\overline L_1,\pi_0^*,\pi_1^*,\mathcal E_{L_0},\mathcal E_{\overline L_1},\lambda_0\), and \(\lambda_1\) denote the generic variables, propensities, conditional-expectation operators, and nonnegative sensitivity functions used there. Tan's published equation~(17) defines
+\[
+\mu^{1,1}_{\mathrm{ICE}}(\lambda_0,\lambda_1)
+=E\!\left(\mathcal E_{L_0}\!\left[\mathcal E_{\overline L_1}\!\left\{(\pi_0^*+(1-\pi_0^*)\lambda_0)(\pi_1^*+(1-\pi_1^*)\lambda_1)Y\right\}\right]\right)
+\]
+and
+\[
+\mu^{1,1}_{\mathrm{IPW}}(\lambda_0,\lambda_1)
+=E\!\left\{A_0A_1\left(1+\frac{1-\pi_0^*}{\pi_0^*}\lambda_0\right)\left(1+\frac{1-\pi_1^*}{\pi_1^*}\lambda_1\right)Y\right\}
+\]
+for any nonnegative functions \(\lambda_0\) and \(\lambda_1\).
+\end{lemma}
+
+\begin{lemma}[lem:binary-product-ratio-necessity]\label{lem:binary-product-ratio-necessity}
+Let \(Q\) be any full-data law compatible with the complete observed marginal \(P\), obeying target-strategy consistency and the \((G,B,C)\) product-ratio restrictions. Then its induced triple \((\lambda_1,\lambda_{0Y},\lambda_{0L})\) belongs to \(\mathcal R(P;G,B,C)\). Consequently, with
+\[
+s_\ell=p_\ell\lambda_1(\ell,1),\qquad
+r_\ell=e_\ell p_\ell+(1-e_\ell)s_\ell,\qquad
+t_\ell=r_\ell\lambda_{0Y}(\ell,1),\qquad
+h=q_0\lambda_{0L}(0),
+\]
+one necessarily has \(s_\ell\in[D_G(p_\ell),U_G(p_\ell)]\), \(t_\ell\in[D_B(r_\ell),U_B(r_\ell)]\), and \(h\in[D_C(q_0),U_C(q_0)]\).
+\end{lemma}
+\begin{proof}
+Put \(g_{\ell y}=p_\ell^y(1-p_\ell)^{1-y}\). The interior condition gives \(g_{\ell y}>0\), \(q_\ell>0\), and \(e_\ell\in(0,1)\), so every cell ratio below is defined. By outcome and covariate consistency, these are the observed reference-cell probabilities used in the product-ratio definitions.
+
+For an induced ratio triple, the product model defines the three numerator probability masses by
+\[
+u_{\ell y}=g_{\ell y}\lambda_1(\ell,y),\qquad
+v_{\ell y}=g_{\ell y}\rho_\ell(y)\lambda_{0Y}(\ell,y),\qquad
+w_\ell=q_\ell\lambda_{0L}(\ell).
+\]
+Here \((u_{\ell0},u_{\ell1})\) is the counterfactual-outcome mass in the period-one comparison cell, \((v_{\ell0},v_{\ell1})\) is the baseline comparison-cell outcome mass conditional on counterfactual stratum \(\ell\), and \((w_0,w_1)\) is the baseline comparison-cell counterfactual-covariate mass. They are nonnegative probability mass functions. Therefore
+\[
+\sum_{y=0}^1g_{\ell y}\lambda_1(\ell,y)
+=\sum_{y=0}^1u_{\ell y}=1,
+\]
+which is \(\mathrm{ass{:}normalization\text{-}one}\). Since \(\rho_\ell(y)=e_\ell+(1-e_\ell)\lambda_1(\ell,y)\), the preceding equality also gives
+\[
+\sum_{y=0}^1g_{\ell y}\rho_\ell(y)
+=e_\ell\sum_{y=0}^1g_{\ell y}
+ +(1-e_\ell)\sum_{y=0}^1g_{\ell y}\lambda_1(\ell,y)
+=e_\ell+(1-e_\ell)=1.
+\]
+Normalization of \(v_{\ell\cdot}\) now yields
+\[
+\sum_{y=0}^1g_{\ell y}\rho_\ell(y)\lambda_{0Y}(\ell,y)
+=\sum_{y=0}^1v_{\ell y}=1,
+\]
+which is \(\mathrm{ass{:}normalization\text{-}outcome}\). Finally, normalization of \(w\) gives
+\[
+q_0\lambda_{0L}(0)+q_1\lambda_{0L}(1)=w_0+w_1=1,
+\]
+which is \(\mathrm{ass{:}normalization\text{-}covariate}\).
+
+The premise that \(Q\) lies in the \((G,B,C)\) product sensitivity model says, cell by cell, that
+\[
+G^{-1}\leq\lambda_1(\ell,y)\leq G,qquad
+B^{-1}\leq\lambda_{0Y}(\ell,y)\leq B,qquad
+C^{-1}\leq\lambda_{0L}(\ell)\leq C.
+\]
+Together with the three just-derived normalizations, these inequalities are exactly the membership conditions in \(\mathcal R(P;G,B,C)\). Applying the already-established binary probability reduction to this membership gives the displayed intervals for \(s_\ell,t_\ell,h\), with \(r_\ell=e_\ell p_\ell+(1-e_\ell)s_\ell\). This proves necessity; no existence direction from the cited result has been used.
+\end{proof}
+
+\begin{lemma}[lem:binary-product-cell-identity]\label{lem:binary-product-cell-identity}
+Let \(Q\) be a full-data law compatible with \(P\) in the binary product model, and define \(s_\ell,r_\ell,t_\ell,h\) from its induced ratios as in \(\mathrm{lem{:}binary\text{-}product\text{-}ratio\text{-}necessity}\). Then
+\[
+\mathbb E_Q[Y^{1,1}]
+=a\sum_{\ell=0}^1q_\ell r_\ell
+ +(1-a)\{h t_0+(1-h)t_1\}.
+\]
+This is also the exact specialization of Tan's generalized ICE/IPW functional at \(\lambda_0(\ell,y)=\lambda_{0L}(\ell)\lambda_{0Y}(\ell,y)\). Conversely, every triple in \(\mathcal R(P;G,B,C)\) is realized by a compatible full-data law whose causal mean equals this display.
+\end{lemma}
+\begin{proof}
+Write \(g_{\ell y}=p_\ell^y(1-p_\ell)^{1-y}\). The normalization calculations in \(\mathrm{lem{:}binary\text{-}product\text{-}ratio\text{-}necessity}\) identify the success and failure probabilities explicitly:
+\[
+s_\ell=p_\ell\lambda_1(\ell,1),qquad
+1-s_\ell=(1-p_\ell)\lambda_1(\ell,0),
+\]
+\[
+r_\ell=p_\ell\rho_\ell(1)
+=e_\ell p_\ell+(1-e_\ell)s_\ell,qquad
+1-r_\ell=(1-p_\ell)\rho_\ell(0),
+\]
+\[
+t_\ell=r_\ell\lambda_{0Y}(\ell,1),qquad
+1-t_\ell=(1-r_\ell)\lambda_{0Y}(\ell,0),
+\]
+and
+\[
+h=q_0\lambda_{0L}(0),qquad 1-h=q_1\lambda_{0L}(1).
+\]
+The first pair is the conditional law of \(Y^{1,1}\) in the \(A_0=1,A_1=0,L_1^{1,1}=\ell\) comparison cell. Outcome consistency supplies success probability \(p_\ell\) in the \(A_0=A_1=1,L_1=\ell\) cell, while covariate consistency supplies \(P_Q(L_1^{1,1}=\ell\mid A_0=1)=q_\ell\). Hence, by the law of total probability,
+\[
+P_Q(Y^{1,1}=1\mid A_0=1,L_1^{1,1}=\ell)
+=e_\ell p_\ell+(1-e_\ell)s_\ell=r_\ell.
+\]
+The last two pairs are, respectively, the conditional law of \(Y^{1,1}\) given \(A_0=0,L_1^{1,1}=\ell\) and the law of \(L_1^{1,1}\) given \(A_0=0\). Therefore
+\[
+\begin{aligned}
+\mathbb E_Q[Y^{1,1}]
+&=a\sum_{\ell=0}^1q_\ell r_\ell
+ +(1-a)\sum_{\ell=0}^1q_\ell\lambda_{0L}(\ell)t_\ell\\
+&=a\sum_{\ell=0}^1q_\ell r_\ell
+ +(1-a)\{h t_0+(1-h)t_1\}.
+\end{aligned}
+\]
+
+For an independent audit of every coefficient, specialize the cited generalized IPW definition. The degenerate baseline gives \(\pi_0^*=a\), and in stratum \(\ell\), \(\pi_1^*=e_\ell\). Set \(\lambda_0(\ell,y)=\lambda_{0L}(\ell)\lambda_{0Y}(\ell,y)\). Since the factor \(Y\) kills all \(y=0\) cells, conditioning on the positive cells \(A_0=A_1=Y=1,L_1=\ell\) gives
+\[
+\begin{aligned}
+\mu^{1,1}_{\mathrm{IPW}}(\lambda_{0L}\lambda_{0Y},\lambda_1)
+&=\sum_{\ell=0}^1 a q_\ell e_\ell p_\ell
+ \left(1+\frac{1-a}{a}\lambda_{0L}(\ell)\lambda_{0Y}(\ell,1)\right)
+ \left(1+\frac{1-e_\ell}{e_\ell}\lambda_1(\ell,1)\right)\\
+&=\sum_{\ell=0}^1q_\ell
+ \left\{a+(1-a)\lambda_{0L}(\ell)\lambda_{0Y}(\ell,1)\right\}
+ \left\{e_\ell p_\ell+(1-e_\ell)p_\ell\lambda_1(\ell,1)\right\}\\
+&=\sum_{\ell=0}^1q_\ell
+ \left\{a+(1-a)\lambda_{0L}(\ell)\lambda_{0Y}(\ell,1)\right\}r_\ell\\
+&=a\sum_{\ell=0}^1q_\ell r_\ell
+ +(1-a)\sum_{\ell=0}^1q_\ell\lambda_{0L}(\ell)t_\ell\\
+&=a\sum_{\ell=0}^1q_\ell r_\ell
+ +(1-a)\{h t_0+(1-h)t_1\}.
+\end{aligned}
+\]
+All divisions in the first line are valid because \(a,e_0,e_1\geq\eta>0\). Thus the source functional and the direct full-data calculation agree, and the binary-cell formula has been derived rather than attributed to Tan.
+
+Finally, take any triple in \(\mathcal R(P;G,B,C)\). The narrowly cited compatible-realization result supplies a full-data law with observed marginal \(P\) and exactly those induced ratios. Applying the just-proved calculation to that law shows that its causal mean equals the displayed binary-cell value. This proves the converse attainment assertion.
+\end{proof}
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The source-fidelity repair cleanly separates imported and derived mathematics: Tan supplies the feasible-triple realization, the generic sharp program, and the generalized ICE/IPW definition, whereas this note proves necessity, the binary-cell identity, the image equality, and endpoint attainment. The result remains confined to positive binary outcomes and intermediate covariates with a degenerate baseline and two treatment decisions. No claim concerns contrasts between treatment strategies, sign breakdown, continuous outcomes, more than two decisions, efficiency, or shortest confidence sets.
+
+\section{Honest scope}
+
+The proved contribution consists of the finite endpoint representation, full-data attainment, the Proposition 3 equality frontier and strict witness, exact agreement of the law-indexed and seven-cell-simplex maps, the uniform remainder result, and uniform coverage for the entire sharp interval. The contact-set-adaptive improvement remains isolated as an open-ended question. At \(G=B=C=1\), the formulas reduce to the standard g-formula. The empirical consumer is the absolute sustained-strategy risk only.
+
+\begin{thebibliography}{99}
+
+  \bibitem{tan2025sequential} Tan, Z. (2025). Sensitivity models and bounds under sequential unmeasured confounding in longitudinal studies. \emph{Biometrika}, 112(1), asae044. doi:10.1093/biomet/asae044.
+
+  \bibitem{dorn2023sharp} Dorn, J. and Guo, K. (2023). Sharp sensitivity analysis for inverse propensity weighting via quantile balancing. \emph{Journal of the American Statistical Association}, 118, 2645--2657.
+
+  \bibitem{dorn2024doublyvalid} Dorn, J., Guo, K., and Kallus, N. (2024). Doubly-valid/doubly-sharp sensitivity analysis for causal inference with unmeasured confounding. \emph{Journal of the American Statistical Association}.
+
+  \bibitem{tan2006distributional} Tan, Z. (2006). A distributional approach for causal inference using propensity scores. \emph{Journal of the American Statistical Association}, 101, 1619--1637.
+
+  \bibitem{zhao2019sensitivity} Zhao, Q., Small, D. S., and Bhattacharya, B. B. (2019). Sensitivity analysis for inverse probability weighting estimators via the percentile bootstrap. \emph{Journal of the Royal Statistical Society: Series B}, 81, 735--761.
+
+  \bibitem{bonvini2022msm} Bonvini, M., Kennedy, E. H., Ventura, V., and Wasserman, L. (2022). Sensitivity analysis for marginal structural models. arXiv:2210.04681.
+
+  \bibitem{fangsantos2019directional} Fang, Z. and Santos, A. (2019). Inference on directionally differentiable functions. \emph{Review of Economic Studies}, 86, 377--412.
+
+  \bibitem{cck2013gaussian} Chernozhukov, V., Chetverikov, D., and Kato, K. (2013). Gaussian approximations and multiplier bootstrap for maxima of sums of high-dimensional random vectors. \emph{Annals of Statistics}, 41, 2786--2819.
+
+  \bibitem{firpogalvaoparker2023uniform} Firpo, S., Galvao, A. F., and Parker, T. (2023). Uniform inference for value functions. \emph{Journal of Econometrics}, 235, 228--244.
+
+  \bibitem{zhangzhao2026average} Zhang, Y. and Zhao, Q. (2026). Average-case sensitivity analysis for unmeasured confounding. \emph{Biometrika}, 113(2), asag030.
+
+  \bibitem{rop2025scoping} Rop, M., Maposa, I., Young, T., and Machekano, R. (2025). Causal estimation of time-varying treatments in observational studies: a scoping review of methods, applications, and missing data practices. \emph{BMC Medical Research Methodology}. doi:10.1186/s12874-025-02633-y.
+
+  \bibitem{dickerman2023metformin} Dickerman, B. A., Garcia-Albeniz, X., Logan, R. W., Denaxas, S., and Hernan, M. A. (2023). Evaluating metformin strategies for cancer prevention: a target trial emulation using electronic health records. \emph{Epidemiology}, 34, 690--699.
+
+\end{thebibliography}
+
+\end{document}

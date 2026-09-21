@@ -1,7 +1,10 @@
-import Causalean.Stat.MEstimation.FinitePoissonDerivative
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
+module
+public import Causalean.Stat.MEstimation.FinitePoissonDerivative
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.WeightedFWL
 
 /-! Panel specialization of the shared one-cell finite-Poisson derivative theorem. -/
+
+public section
 
 open scoped BigOperators
 open Module Filter Topology
@@ -132,4 +135,3 @@ lemma betaStar_update_hasDerivAt (T : ℕ) (C : Finset (Cohort T))
   exact Filter.Eventually.of_forall hfun
 
 end CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research
-

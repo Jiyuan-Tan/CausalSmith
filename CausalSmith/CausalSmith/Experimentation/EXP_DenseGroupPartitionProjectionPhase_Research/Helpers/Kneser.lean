@@ -1,8 +1,9 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Basic
-import Causalean.Mathlib.Combinatorics.JohnsonKneser.Harmonics
-import Causalean.Mathlib.Combinatorics.JohnsonKneser.Kneser
-import Mathlib.Data.Finset.Powerset
-import Mathlib.Data.Nat.Choose.Basic
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Basic
+public import Causalean.Mathlib.Combinatorics.JohnsonScheme.Harmonics
+public import Causalean.Mathlib.Combinatorics.JohnsonScheme.Kneser
+public import Mathlib.Data.Finset.Powerset
+public import Mathlib.Data.Nat.Choose.Basic
 
 /-!
 # Johnson components and Kneser covariance
@@ -11,6 +12,8 @@ This file gives the paper's data-only projection family, normalized disjointness
 operator, spectral multipliers, covariance functionals, and two cited logical gates.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
 
@@ -18,7 +21,7 @@ namespace CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase
 
 open Causalean.Experimentation.DesignBased
 
-open Causalean.Mathlib.Combinatorics.JohnsonKneser
+open Causalean.Mathlib.Combinatorics.JohnsonScheme
 
 -- @env: S2
 variable (n M : ℕ)
@@ -365,7 +368,7 @@ lemma canonicalJohnsonOrthogonalDecomposition (n M : ℕ) (hM : M ≤ n) :
   · intro f A
     have h := sum_positive_harmonicProjection_eq_center (by omega)
       (WithLp.toLp 2 f)
-    let A' : Causalean.Mathlib.Combinatorics.JohnsonKneser.Omega n M :=
+    let A' : Causalean.Mathlib.Combinatorics.JohnsonScheme.Omega n M :=
       ⟨A.1, A.2⟩
     have hA := congrFun (congrArg WithLp.ofLp h) A'
     simp only [WithLp.ofLp_sum] at hA
@@ -376,7 +379,7 @@ lemma canonicalJohnsonOrthogonalDecomposition (n M : ℕ) (hM : M ≤ n) :
       rw [slice]
       simp only [completeRandomization, FiniteDesign.E, one_div, mean]
       rw [completeRandomization_card, Fintype.card_fin,
-        Causalean.Mathlib.Combinatorics.JohnsonKneser.card_omega (by omega),
+        Causalean.Mathlib.Combinatorics.JohnsonScheme.card_omega (by omega),
         ← Finset.mul_sum]
       rfl
     rw [hE]
@@ -395,7 +398,7 @@ lemma canonicalJohnsonOrthogonalDecomposition (n M : ℕ) (hM : M ≤ n) :
 lemma canonicalKneserAdjacencySpectrum (n M : ℕ) :
     KneserAdjacencySpectrum n M := by
   intro h2M k f hf
-  have h := Causalean.Mathlib.Combinatorics.JohnsonKneser.kneserAdjacency_eigen
+  have h := Causalean.Mathlib.Combinatorics.JohnsonScheme.kneserAdjacency_eigen
     h2M k (WithLp.toLp 2 f) hf
   funext A
   have hA := congrFun (congrArg WithLp.ofLp h) A
@@ -403,7 +406,7 @@ lemma canonicalKneserAdjacencySpectrum (n M : ℕ) :
   change (∑ x, if Disjoint A.1 x.1 then f x else 0) =
     ((-1 : ℝ) ^ k.1 * ((n - M - k.1).choose (M - k.1) : ℝ)) * f A at hA
   simpa [kneserAdjacency,
-    Causalean.Mathlib.Combinatorics.JohnsonKneser.kneserAdjacency,
+    Causalean.Mathlib.Combinatorics.JohnsonScheme.kneserAdjacency,
     Finset.sum_filter, disjoint_comm,
     mul_ite, PiLp.smul_apply, Pi.smul_apply, smul_eq_mul] using hA
 

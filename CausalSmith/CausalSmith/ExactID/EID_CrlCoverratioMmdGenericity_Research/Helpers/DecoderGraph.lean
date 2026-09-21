@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRank
-import Mathlib.Order.Interval.Finset.Basic
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCore
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRank
+public import Mathlib.Order.Interval.Finset.Basic
 
 /-!
 # Ratio-graph reconstruction for the exact decoder
@@ -11,6 +12,11 @@ edges, ancestral covers generate the latent transitive closure, and every ratio-
 topological ordering places latent parents before their children.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory Set
 
 noncomputable section
@@ -18,21 +24,21 @@ noncomputable section
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 /-- Environment-label parents obtained by pulling back the latent parent set. -/
-def environmentParentSet {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+def environmentParentSet {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (i : Fin n) : Finset (Fin n) :=
   Finset.univ.filter (fun j => G.edge (W.targetPerm j) (W.targetPerm i))
 
 -- @node: PermutedGraphOrdered
 /-- A numeric order respects every latent edge after intervention-label relabeling. -/
 def PermutedGraphOrdered
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) : Prop :=
   ∀ ⦃j i⦄, permutedGraph G W j i → order j < order i
 
 -- @node: permutedGraphOrdered_of_transitiveClosure
 /-- Transitive-closure recovery makes every ratio-graph topological order respect latent edges.  Given [the stated inputs and conditions](hyp:horder,htc), [the stated conclusion](goal) follows. -/
 lemma permutedGraphOrdered_of_transitiveClosure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ)
     (horder : IsTopologicalOrdering
       (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -56,7 +62,7 @@ lemma permutedGraphOrdered_of_transitiveClosure
 /-- The observational canonical-ratio law is invariant under the supplied support
 diffeomorphism.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma canonical_observationalRatioLaw_eq_supplied
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
     (hone : OnePerfectInterventionPerNode G θ W) (i : Fin n) :
@@ -73,7 +79,7 @@ lemma canonical_observationalRatioLaw_eq_supplied
 /-- Every intervention-base canonical-ratio law is likewise invariant under the supplied
 support diffeomorphism.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma canonical_interventionalRatioLaw_eq_supplied
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
     (hone : OnePerfectInterventionPerNode G θ W) (j i : Fin n) :
@@ -91,7 +97,7 @@ lemma canonical_interventionalRatioLaw_eq_supplied
 /-- Hence the canonical-world discrepancy used by cover separation is exactly the observable
 discrepancy of the supplied law family.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma canonical_populationDiscrepancy_eq_observedLawDiscrepancy
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
     (U : UnitNormFeatureMap H) (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
@@ -107,7 +113,7 @@ lemma canonical_populationDiscrepancy_eq_observedLawDiscrepancy
 /-- Cover separation stated for the identity-mixing canonical world supplies exactly the cover
 edges required for the observed world.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hcover), [the stated conclusion](goal) follows. -/
 lemma canonical_coverDiscrepancy_to_supplied
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     {H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
     (U : UnitNormFeatureMap H) (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
@@ -128,7 +134,7 @@ lemma canonical_coverDiscrepancy_to_supplied
 -- @node: ratio_nonancestor_zero
 /-- A non-ancestor intervention leaves the corresponding ratio law unchanged, hence has zero MMD.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hne,hna), [the stated conclusion](goal) follows. -/
 lemma ratio_nonancestor_zero
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -143,7 +149,7 @@ lemma ratio_nonancestor_zero
 -- @node: isAncestor_transGen_ancestralCover
 /-- Every strict ancestor relation in a finite DAG factors through ancestral covers.  Given [the stated inputs and conditions](hyp:h), [the stated conclusion](goal) follows. -/
 lemma isAncestor_transGen_ancestralCover
-    {n : ℕ} (G : Causalean.DAG (Fin n)) {a b : Fin n}
+    {n : ℕ} (G : DAG (Fin n)) {a b : Fin n}
     (h : G.isAncestor a b) : Relation.TransGen (ancestralCover G) a b := by
   letI : LE (Fin n) := ⟨fun x y => x = y ∨ G.isAncestor x y⟩
   letI : LT (Fin n) := ⟨G.isAncestor⟩
@@ -180,7 +186,7 @@ lemma isAncestor_transGen_ancestralCover
 -- @node: observedLawRatioGraph_edge_isAncestor
 /-- Every observable ratio-graph edge points along the latent ancestral order.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hji), [the stated conclusion](goal) follows. -/
 lemma observedLawRatioGraph_edge_isAncestor
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -198,7 +204,7 @@ lemma observedLawRatioGraph_edge_isAncestor
 /-- Sound ratio edges plus all ancestral covers recover exactly the permuted latent
 transitive closure.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hcover), [the stated conclusion](goal) follows. -/
 lemma ratioGraph_transitiveClosure_eq_of_cover
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -244,7 +250,7 @@ lemma ratioGraph_transitiveClosure_eq_of_cover
   have hpermEdge : ∀ {j i}, permutedGraph G W j i →
       Relation.TransGen (observedLawRatioGraph gaussianFeatureMap W.law) j i := by
     intro j i hji
-    have hc := isAncestor_transGen_ancestralCover G (Causalean.DAG.isAncestor.edge hji)
+    have hc := isAncestor_transGen_ancestralCover G (DAG.isAncestor.edge hji)
     simpa using hmapCoverPath hc
   exact le_antisymm hforward (Relation.TransGen.closed (fun _ _ h => hpermEdge h))
 
@@ -252,7 +258,7 @@ lemma ratioGraph_transitiveClosure_eq_of_cover
 /-- Once the ratio graph has the latent transitive closure, every topological ordering puts
 all environment-label parents before their child.  Given [the stated inputs and conditions](hyp:horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma environmentParentSet_subset_predecessorSet_of_transitiveClosure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -267,9 +273,9 @@ lemma environmentParentSet_subset_predecessorSet_of_transitiveClosure
 -- @node: finTwo_edge_ancestralCover
 /-- In a two-vertex DAG every directed edge is automatically a cover of the ancestral
 order, since there is no third vertex that can lie strictly between its endpoints.  Given [the stated inputs and conditions](hyp:hji), [the stated conclusion](goal) follows. -/
-lemma finTwo_edge_ancestralCover (G : Causalean.DAG (Fin 2)) {j i : Fin 2}
+lemma finTwo_edge_ancestralCover (G : DAG (Fin 2)) {j i : Fin 2}
     (hji : G.edge j i) : ancestralCover G j i := by
-  refine ⟨Causalean.DAG.isAncestor.edge hji, ?_⟩
+  refine ⟨DAG.isAncestor.edge hji, ?_⟩
   intro c hjc hci
   have hj_ne_i : j ≠ i := by
     intro h
@@ -289,7 +295,7 @@ lemma finTwo_edge_ancestralCover (G : Causalean.DAG (Fin 2)) {j i : Fin 2}
 /-- Cover separation supplies the bivariate Gaussian-MMD edge witness because every edge of a
 two-vertex DAG is an ancestral cover.  Given [the stated inputs and conditions](hyp:hcover), [the stated conclusion](goal) follows. -/
 lemma bivariate_edge_discrepancy_pos_of_coverSeparated
-    {G : Causalean.DAG (Fin 2)} {theta : Mechanism 2 G}
+    {G : DAG (Fin 2)} {theta : Mechanism 2 G}
     (W : ObservedWorld G theta)
     (hcover : ∀ ⦃a b : Fin 2⦄, ancestralCover G a b →
       0 < populationDiscrepancy gaussianFeatureMap W
@@ -305,7 +311,7 @@ lemma bivariate_edge_discrepancy_pos_of_coverSeparated
 /-- The intervention target of a node cannot be a parent of any earlier node in a valid
 ratio-graph topological ordering.  Given [the stated inputs and conditions](hyp:horder,hgraphOrder,hj), [the stated conclusion](goal) follows. -/
 lemma target_not_parent_of_mem_predecessorSet
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
     (hgraphOrder : PermutedGraphOrdered W order)
@@ -313,7 +319,7 @@ lemma target_not_parent_of_mem_predecessorSet
     W.targetPerm i ∉ G.parents (W.targetPerm j) := by
   intro hparent
   have hi_env : i ∈ environmentParentSet W j := by
-    simpa [environmentParentSet, Causalean.DAG.parents] using hparent
+    simpa [environmentParentSet, DAG.parents] using hparent
   have hi_pred := environmentParentSet_subset_predecessorSet_of_transitiveClosure
     W horder hgraphOrder j hi_env
   have hji : order j < order i := by simpa [predecessorSet] using hj
@@ -322,7 +328,7 @@ lemma target_not_parent_of_mem_predecessorSet
 
 /-- The triangular predecessor-score map recovers every predecessor's latent coordinate.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder,hv,hw,heq), [the stated conclusion](goal) follows. -/
 lemma predecessorLogRatioProjection_injective_on_predecessors
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -345,7 +351,7 @@ lemma predecessorLogRatioProjection_injective_on_predecessors
         intro a ha
         let k := W.targetPerm.symm a
         have hk_env : k ∈ environmentParentSet W j := by
-          simpa [k, environmentParentSet, Causalean.DAG.parents] using ha
+          simpa [k, environmentParentSet, DAG.parents] using ha
         have hk_pred_j := environmentParentSet_subset_predecessorSet_of_transitiveClosure
           W horder hgraphOrder j hk_env
         have hkj : order k < order j := by
@@ -373,7 +379,7 @@ lemma predecessorLogRatioProjection_injective_on_predecessors
 /-- Positivity and the shared perfect-intervention representation make the observed ratio graph
 acyclic, witnessed by the latent DAG's topological order transported to environment labels.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedLawRatioGraph_hasTopologicalOrdering
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -391,7 +397,7 @@ lemma observedLawRatioGraph_hasTopologicalOrdering
 /-- Under the model assumptions, the decoder's internally selected ordering is a valid
 topological ordering of the observed ratio graph.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma selectedTopologicalOrder_valid_of_assumptions
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -414,7 +420,7 @@ lemma selectedTopologicalOrder_valid_of_assumptions
 /-- Equations (4)--(6) assemble into transitive-closure recovery, validity of the decoder's
 selected order, and containment of every true parent among every valid order's predecessors.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hcover), [the stated conclusion](goal) follows. -/
 lemma ratioGraph_reconstruction_order_and_predecessors
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+    {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

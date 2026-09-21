@@ -15,7 +15,8 @@ hence the dependent type signature.
 
 -/
 
-import Causalean.Panel.PO.TreatmentPath
+module
+public import Causalean.Panel.PO.TreatmentPath
 
 /-! # Exposure Mappings
 
@@ -24,6 +25,8 @@ This file defines `Exposure`, a cell-specific map from a realized
 distinguished baseline exposure for each cell. These objects are the
 potential-outcome interface between treatment histories and cell-level
 responses. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel

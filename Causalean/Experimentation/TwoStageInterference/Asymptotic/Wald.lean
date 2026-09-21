@@ -5,9 +5,10 @@ Authors: Jiyuan Tan
 
 # Liu–Hudgens (2014): asymptotic (oracle) Wald confidence-interval coverage
 
-The oracle Wald interval `D̂E ± z·√Var` for the Liu–Hudgens treatment-minus-control direct-effect
-contrast has asymptotic coverage at least `1 − γ`, derived from the direct-contrast CLT and
-standard-normal CDF symmetry.  Concretely,
+The oracle Wald interval `D̂E ± z·√Var` for the Hudgens–Halloran-oriented
+control-minus-treatment direct-effect contrast has asymptotic coverage at least `1 − γ`, derived
+from assumed direct-contrast CDF limits and standard-normal CDF symmetry. This contrast is the
+negative of Liu–Hudgens' treatment-minus-control estimand. Concretely,
 along a sequence of two-stage Hudgens–Halloran experiments the studentized statistic
 `stud = (D̂E − DE̅)/√directVar` is asymptotically standard normal (the CLT), so the covering event
 `|D̂E − DE̅| ≤ z·√directVar` is — after dividing through by `√directVar > 0` — exactly
@@ -18,29 +19,32 @@ the CDF symmetry `Φ(−z) = 1 − Φ(z)`, and a `liminf` comparison delivers th
 This is the transplant of the Aronow–Samii oracle Wald-coverage proof
 (`ExposureMappingInterference.wald_coverage`) to the Liu–Hudgens bundle.  Following that template,
 the two CLT limits at `z` and `−z` are supplied as hypotheses (`hcltPos`, `hcltNeg`) — they are
-exactly the conclusion of `directEffect_clt` — so this coverage statement is decoupled from the
-conditional-CLT regularity plumbing.
+exactly the conclusion of `directEffect_cdf_tendsto_of_uniform_conditional` — so this coverage
+statement is decoupled from the conditional-CLT regularity plumbing.
 
 The interval here is the **oracle** one: it uses the TRUE design variance `directVar` (which
 `var_estD` proves equals `Var(estD)`), not an estimated `V̂`.  The FEASIBLE (estimated-variance)
-interval — the analogue of `ExposureMappingInterference.wald_coverage_feasible` — is `wald_coverage_feasible` in
-`WaldFeasible.lean`.
+interval — the analogue of `ExposureMappingInterference.wald_coverage_feasible` — is
+`wald_coverage_feasible` in `WaldFeasible.lean`.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Asymptotic.Setup
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Mathlib.Topology.Algebra.Order.LiminfLimsup
+module
+public import Causalean.Experimentation.TwoStageInterference.Asymptotic.Setup
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Mathlib.Topology.Algebra.Order.LiminfLimsup
 
 /-! # Oracle Wald coverage
 
-Oracle Wald intervals for Liu-Hudgens treatment-minus-control direct-effect contrasts have
-asymptotic coverage from the CLT.
+Oracle Wald intervals for the control-minus-treatment direct-effect contrast have asymptotic
+coverage from assumed Gaussian CDF limits. The contrast reverses the Liu–Hudgens sign convention.
 
 The public theorem `wald_coverage_oracle` proves the lower-coverage result for intervals using
 the true design variance.  It takes the two one-sided studentized CLT limits at the normal
 quantile and its negative as inputs, then converts the event `|stud| ≤ zq` into coverage of
 `DEbar` by multiplying through the positive square-root design variance.
 -/
+
+public section
 
 open scoped BigOperators Topology
 open Filter
@@ -51,15 +55,15 @@ namespace TwoStageInterference
 
 open DesignBased
 
-/-- **Asymptotic oracle Wald coverage (Liu–Hudgens 2014).** Along a sequence of two-stage
-Hudgens–Halloran experiments `Exp`, let [`stud n` be the studentized statistic
-`(D̂E − DE̅)/√directVar`](hyp:stud,hstud) for the treatment-minus-control direct-effect contrast,
+/-- **Asymptotic oracle Wald coverage (Liu–Hudgens 2014).** Along [a sequence of two-stage
+Hudgens–Halloran experiments](hyp:Exp), let [`stud n` be the studentized statistic
+`(D̂E − DE̅)/√directVar`](hyp:stud,hstud) for the control-minus-treatment direct-effect contrast,
 and assume [the design variance is everywhere positive](hyp:hVar). Let [`zq ≥ 0` be the
-standard-normal upper quantile at level `γ`, i.e. `Φ(zq) = 1 − γ/2`](hyp:hzq0,hzq), and assume
+standard-normal upper quantile at level `γ`, i.e. `Φ(zq) = 1 − γ/2`](hyp:γ,zq,hzq0,hzq), and assume
 [the two studentized-CDF limits of `stud` at `zq` and `−zq` converge to `Φ(zq)` and
 `Φ(−zq)`](hyp:hcltPos,hcltNeg) — exactly the conclusion of the direct-contrast CLT. Then [the
 oracle Wald interval `D̂E ± zq·√directVar` attains asymptotic coverage of `DE̅` at least
-`1 − γ`](goal). -/
+`1 − γ`](goal). The contrast is the negative of Liu–Hudgens' treatment-minus-control estimand. -/
 theorem wald_coverage_oracle (Exp : ℕ → LHExperiment)
     (stud : ∀ n, (StratAssign (Exp n).ι × ∀ i, Fin ((Exp n).gsize i) → Bool) → ℝ)
     (hstud : ∀ n sw, stud n sw = ((Exp n).estD sw - (Exp n).DEbar) / Real.sqrt ((Exp n).directVar))

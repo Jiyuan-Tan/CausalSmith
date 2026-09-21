@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Lasso.Finite
+
+module
+public import Causalean.ML.Lasso.Finite
 
 /-! # Lasso — soft-thresholding closed form
 
@@ -13,14 +15,14 @@ proximal step that underlies closed-form lasso calculations in orthonormal
 coordinates.
 -/
 
+public section
+
 namespace Causalean.ML
 
 open BigOperators
 
-/-- For a real number `a`, if [the regularization level `lam` is
-nonnegative](hyp:hlam), then [the soft-thresholded value `softThreshold lam a` minimizes
-the one-dimensional penalized least-squares objective `u ↦ (u − a)² + 2·lam·|u|` over
-every real `u`](goal). -/
+/-- [Soft thresholding minimizes one-dimensional penalized least squares](goal) at
+[the observed scalar](hyp:a) whenever [the regularization level is nonnegative](hyp:hlam). -/
 theorem softThreshold_isMinOn {lam : ℝ} (hlam : 0 ≤ lam) (a : ℝ) :
     ∀ u : ℝ, (softThreshold lam a - a) ^ 2 + 2 * lam * |softThreshold lam a|
       ≤ (u - a) ^ 2 + 2 * lam * |u| := by

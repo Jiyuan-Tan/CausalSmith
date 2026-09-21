@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Concentration.TailBounds.BinomialCount
-import Causalean.Stat.Sample.PiTransport
+module
+public import Causalean.Stat.Concentration.TailBounds.BinomialCount
+public import Causalean.Stat.Sample.PiTransport
 
 /-!
 # Finite-category counts on arbitrary IID pilot blocks
@@ -19,6 +20,8 @@ The file provides measurable counts, cellwise tilted Chernoff bounds, and a
 cardinality-explicit union bound. Empty coordinate blocks and empty category
 types remain totalized.
 -/
+
+@[expose] public section
 
 noncomputable section
 

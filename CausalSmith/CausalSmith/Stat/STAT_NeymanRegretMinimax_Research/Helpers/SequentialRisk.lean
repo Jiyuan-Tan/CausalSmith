@@ -12,9 +12,12 @@ Bernoulli history + a Bayes-average argument through the van Trees gate +
 harmonic accumulation to `log T`.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.NeymanAlgebra
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.VanTrees
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.SequentialRiskUniform
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.NeymanAlgebra
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.VanTrees
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Helpers.SequentialRiskUniform
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

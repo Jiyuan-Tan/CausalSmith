@@ -17,7 +17,7 @@ two-point method (`Causalean/Stat/Minimax/LeCam.lean`).
 Main results (all under `[IsProbabilityMeasure μ] [IsProbabilityMeasure ν]`):
 
 * `tvDist_nonneg`, `tvDist_le_one` — range `[0,1]`;
-* `tvDist_comm` — symmetry;
+* `tvDist_symm` — symmetry;
 * `measureReal_sub_le_tvDist` — each signed gap `ν.real A − μ.real A` is `≤ tvDist`;
 * `one_sub_tvDist_le_test` — **the testing bound** `1 − tvDist μ ν ≤ μ.real A + ν.real Aᶜ`,
   i.e. the total error of any test (rejection region `A`) is at least `1 − tvDist`.
@@ -26,16 +26,20 @@ These are deliberately project-agnostic and are candidates for upstream
 contribution to Mathlib.
 -/
 
-import Mathlib.MeasureTheory.Measure.Real
-import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
-import Mathlib.MeasureTheory.Integral.Layercake
-import Mathlib.MeasureTheory.Integral.Bochner.Set
+module
+public import Mathlib.MeasureTheory.Measure.Real
+public import Mathlib.MeasureTheory.Measure.ProbabilityMeasure
+public import Mathlib.MeasureTheory.Integral.Layercake
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.Probability.Kernel.Composition.MeasureComp
 
 /-! # Total Variation Distance
 
 This file defines the statistical total variation distance between two probability
 measures on a common measurable space. It develops elementary bounds and the
 testing inequality that underlies Le Cam's two-point minimax method. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -44,9 +48,11 @@ open scoped ENNReal
 
 variable {Ω : Type*} {mΩ : MeasurableSpace Ω} {μ ν : Measure Ω}
 
-/-- For [a sample space equipped with a σ-algebra](hyp:Ω,mΩ) and [two measures on that space](hyp:μ,ν), [the statistical total variation distance](goal) is the supremum, over all measurable events $A$, of the absolute difference between the two measures' real-valued masses of $A$.
+/-- [The statistical total variation distance](goal) between [two measures](hyp:μ,ν) on
+[a sample space equipped with a σ-algebra](hyp:Ω,mΩ) is the largest absolute difference
+between their real-valued masses over all measurable events.
 
-The statistical total variation distance between two measures is the supremum, over measurable sets `A`, of the gap `|μ.real A − ν.real A|`. -/
+Equivalently, it is the supremum of `|μ.real A − ν.real A|` over measurable sets `A`. -/
 noncomputable def tvDist (μ ν : Measure Ω) : ℝ :=
   ⨆ A : {A : Set Ω // MeasurableSet A}, |μ.real A.1 - ν.real A.1|
 
@@ -240,5 +246,45 @@ theorem tvDist_integral_le_of_abs_le_ae (μ ν : Measure Ω)
       tvDist_integral_le_of_range_ae μ ν f hf (-M) (2 * M) (by positivity)
         hμ_range hν_range
     _ = 2 * M * tvDist μ ν := by ring
+
+end Causalean.Stat
+
+
+namespace Causalean.Stat
+
+open MeasureTheory ProbabilityTheory
+open scoped ProbabilityTheory
+
+/-- Given [two probability laws](hyp:mu,nu) and [a common Markov reconstruction
+channel](hyp:K), applying that channel to both laws [cannot increase their total
+variation distance](goal). -/
+theorem tvDist_bind_le
+    {A B : Type*} [MeasurableSpace A] [MeasurableSpace B]
+    (mu nu : Measure A) [IsProbabilityMeasure mu] [IsProbabilityMeasure nu]
+    (K : Kernel A B) [IsMarkovKernel K] :
+    tvDist (K ∘ₘ mu) (K ∘ₘ nu) ≤ tvDist mu nu := by
+  let _ : IsProbabilityMeasure (K ∘ₘ mu) := by infer_instance
+  let _ : IsProbabilityMeasure (K ∘ₘ nu) := by infer_instance
+  unfold tvDist
+  apply ciSup_le
+  rintro ⟨S, hS⟩
+  have hreal (rho : Measure A) [IsProbabilityMeasure rho] :
+      (K ∘ₘ rho).real S = ∫ x, (K x S).toReal ∂rho := by
+    rw [measureReal_def, Measure.bind_apply hS (Kernel.aemeasurable K), ←
+      integral_toReal (K.measurable_coe hS).aemeasurable]
+    filter_upwards with x
+    exact measure_lt_top (K x) S
+  rw [hreal mu, hreal nu]
+  have hrange : ∀ x, (K x S).toReal ∈ Set.Icc (0 : ℝ) 1 := by
+    intro x
+    constructor
+    · exact ENNReal.toReal_nonneg
+    · have hle := ENNReal.toReal_mono (measure_ne_top (K x) _)
+        (measure_mono (Set.subset_univ S))
+      simpa using hle
+  simpa only [zero_add, mul_one, tvDist] using
+    tvDist_integral_range mu nu
+      (fun x => (K x S).toReal) (K.measurable_coe hS).ennreal_toReal
+      0 1 (by norm_num) (by simpa using hrange)
 
 end Causalean.Stat

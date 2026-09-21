@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Density.FiniteReference
-import Mathlib.Probability.Kernel.Composition.MeasureComp
+module
+public import Causalean.SCM.ID.Density.FiniteReference
+public import Mathlib.Probability.Kernel.Composition.MeasureComp
 
 /-!
 # Finite masses for discrete ID
@@ -28,6 +29,10 @@ The main API includes:
   recovers the joint point mass from a conditional-mass ratio once the actual
   denominator is nonzero and finite.
 -/
+
+@[expose] public section
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM.ID.DiscreteID
 
@@ -69,6 +74,8 @@ noncomputable def conditionalDenominator {α β : Type*}
     (μ : MeasureTheory.Measure (α × β)) (b : β) : ENNReal :=
   singletonMass (μ.map Prod.snd) b
 
+/-- The [mass assigned by a measure](hyp:μ) to [a value](hyp:x) is
+[the measure of that value's singleton set](goal). -/
 @[simp] theorem singletonMass_apply {α : Type*} [MeasurableSpace α]
     (μ : MeasureTheory.Measure α) (x : α) :
     singletonMass μ x = μ ({x} : Set α) :=
@@ -287,6 +294,9 @@ theorem valuesOn_measure_eq_of_singletonMass_eq
     μ = ν :=
   measure_eq_of_singletonMass_eq h
 
+/-- The [denominator used for conditioning a joint measure](hyp:μ) at
+[a second-coordinate value](hyp:b) is [that value's singleton mass in the
+second-coordinate marginal](goal). -/
 @[simp] theorem conditionalDenominator_apply {α β : Type*}
     [MeasurableSpace α] [MeasurableSpace β]
     (μ : MeasureTheory.Measure (α × β)) (b : β) :

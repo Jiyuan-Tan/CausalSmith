@@ -20,9 +20,10 @@ dependency graph `G a b := a = b` (every node depends only on itself, degree one
 zero-dependence specialization of `localDependenceCLT_of_conditions`.
 -/
 
-import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
-import Causalean.Experimentation.DesignBased.ProductMeasure
-import Causalean.Experimentation.DesignBased.GaussianCDF
+module
+public import Causalean.Mathlib.Probability.SteinMethod.DepGraphCLT
+public import Causalean.Stat.FiniteDesign.ProductMeasure
+public import Causalean.Experimentation.DesignBased.GaussianCDF
 
 /-! # Independent-summands CLT for product designs
 
@@ -35,6 +36,8 @@ third-moment envelope and unit total design variance have standard-normal distri
 under the product design.
 -/
 
+@[expose] public section
+
 open MeasureTheory ProbabilityTheory Filter
 open scoped Real Topology BigOperators
 
@@ -42,7 +45,7 @@ namespace Causalean
 namespace Experimentation
 namespace DesignBased
 
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 
 variable {ι : ℕ → Type*} [∀ n, Fintype (ι n)] [∀ n, DecidableEq (ι n)]
 variable {α : ∀ n, ι n → Type*} [∀ n i, Fintype (α n i)]

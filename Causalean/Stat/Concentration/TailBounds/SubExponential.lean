@@ -24,7 +24,9 @@ with the convention that `b = 0` recovers the sub-Gaussian case, valid for all
   all `v, b ≥ 0`).
 -/
 
-import Mathlib.Probability.Moments.SubGaussian
+module
+public import Mathlib.Probability.Independence.Integration
+public import Mathlib.Probability.Moments.SubGaussian
 
 /-! # Sub-exponential moment bounds
 
@@ -35,6 +37,8 @@ under negation, a.e. congruence, scaling, independent addition, the zero
 variable, sums over independent families, and the Chernoff tail theorem
 `HasSubexponentialMGF.measure_ge_le`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Concentration
 

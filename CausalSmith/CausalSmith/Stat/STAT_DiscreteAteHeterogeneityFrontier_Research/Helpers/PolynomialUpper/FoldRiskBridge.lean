@@ -1,8 +1,11 @@
 /- Exact reindexing bridges from the polynomial estimation fold to a finite product law. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.SplitBridge
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.FixedBranchAssembly
-import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.SplitBridge
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.PolynomialUpper.FixedBranchAssembly
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.AronowSamiiBinary
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TQuarticSeparation
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.AronowSamiiBinary
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TQuarticSeparation
 
 /-! Conservative-cone membership of the binary Aronow–Samii correction. -/
+
+public section
 
 namespace CausalSmith.Experimentation.BinaryTruthbound
 

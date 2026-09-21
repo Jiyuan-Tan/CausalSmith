@@ -1,13 +1,14 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Cumulant
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ComplexAnalysisLocal
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.BoundedCertifiedComplex
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JensenBlaschke
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Basic
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.ArgumentPrinciple
-import Causalean.Mathlib.Analysis.ArgumentPrincipleCircle.Homotopy
-import Mathlib.Analysis.Complex.JensenFormula
-import Mathlib.Analysis.Complex.AbsMax
-import Mathlib.Analysis.Complex.ExponentialBounds
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Cumulant
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ComplexAnalysisLocal
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.BoundedCertifiedComplex
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JensenBlaschke
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.Basic
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.ArgumentPrinciple
+public import Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple.Homotopy
+public import Mathlib.Analysis.Complex.JensenFormula
+public import Mathlib.Analysis.Complex.AbsMax
+public import Mathlib.Analysis.Complex.ExponentialBounds
 
 /-!
 # Fixed-fuel translated-dyadic contour bank
@@ -17,11 +18,14 @@ integers are the displayed closed forms; there is no unbounded or
 proof-selected search, exact-real inspection, or law query.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open Metric Set
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-open Causalean.Mathlib.Analysis.ArgumentPrincipleCircle
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
+open Causalean.Mathlib.Analysis.Complex.ArgumentPrinciple
 
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 

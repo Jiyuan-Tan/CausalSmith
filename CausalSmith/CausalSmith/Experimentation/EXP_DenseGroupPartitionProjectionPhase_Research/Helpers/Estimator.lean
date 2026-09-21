@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.PartitionDesign
-import Causalean.Experimentation.DesignBased.Estimators.DifferenceInMeans
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.PartitionDesign
+public import Causalean.Experimentation.DesignBased.Estimators.DifferenceInMeans
 
 /-!
 # PAME, exact variance, and scalar CR2 statistics
@@ -8,6 +9,8 @@ This file defines the estimand and estimator on the two-stage assignment space,
 the exact design variance, the independent-group leading term, the degree-one
 correction, and the equal-group scalar CR2 statistic.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

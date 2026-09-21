@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Mathlib.Analysis.ClipInterval
-import Causalean.Stat.Concentration.Rademacher.Contraction
+
+module
+public import Causalean.Mathlib.Analysis.ClipInterval
+public import Causalean.Stat.Concentration.Rademacher.Contraction
 
 /-! # Clamped square surrogate for squared-loss contraction bounds
 
@@ -24,14 +26,16 @@ Ledoux-Talagrand contraction bound to bounded squared-loss classes.
 * `lipschitzAt0_clampedSq` — `clampedSq c` is `LipschitzAt0` with constant `2c` for `c ≥ 0`.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open Causalean.Stat.Concentration Causalean.Mathlib.Analysis
 
-/-- For [a real clipping bound](hyp:c) and [a real input](hyp:t), the [clamped-square
-surrogate](goal) is the square of the input after applying the interval-clipping rule with
-endpoints $-c$ and $c$. This definition applies to every pair of real numbers, including when
-the two endpoints are not ordered.
+/-- [The clamped-square surrogate](goal) controls squared loss globally by
+[clipping to a symmetric interval and squaring](step:1). It uses
+[a real clipping bound](hyp:c) and [real input](hyp:t), even when the nominal lower and upper
+endpoints are not ordered.
 
 The clamped square is a globally Lipschitz surrogate that agrees with the squared map on a
 bounded prediction range. -/
@@ -42,23 +46,23 @@ noncomputable def clampedSq (c t : ℝ) : ℝ := (clipIcc (-c) c t) ^ 2
 lemma continuous_clampedSq (c : ℝ) : Continuous (clampedSq c) :=
   (continuous_clipIcc _ _).pow 2
 
-/-- On [the band where `t` lies within `c` in absolute value](hyp:ht), [the clamped square
-`clampedSq c t` equals the genuine square `t²`](goal). -/
+/-- [Clamped square agrees with ordinary square](goal) throughout
+[the unclipped input band](hyp:ht). -/
 lemma clampedSq_eq_sq {c t : ℝ} (ht : |t| ≤ c) : clampedSq c t = t ^ 2 := by
   rw [clampedSq, clipIcc_neg_eq_self ht]
 
 /-- The clamped square is nonnegative. -/
 lemma clampedSq_nonneg (c t : ℝ) : 0 ≤ clampedSq c t := sq_nonneg _
 
-/-- For [a nonnegative bound `c`](hyp:hc), [the clamped square `clampedSq c t` never exceeds
-`c²`](goal), for every real `t`. -/
+/-- [Clamped square never exceeds the squared clipping bound](goal) for
+[any real input](hyp:t) when [the clipping bound is nonnegative](hyp:hc). -/
 lemma clampedSq_le_sq {c : ℝ} (hc : 0 ≤ c) (t : ℝ) : clampedSq c t ≤ c ^ 2 := by
   have h := abs_clipIcc_neg_le hc t
   calc clampedSq c t = |clipIcc (-c) c t| ^ 2 := by rw [clampedSq, sq_abs]
     _ ≤ c ^ 2 := by gcongr
 
-/-- For [a nonnegative bound `c`](hyp:hc), [the clamped square `clampedSq c` is Lipschitz at
-`0` with constant `2c`: it fixes `0` and is globally `2c`-Lipschitz](goal). -/
+/-- [Clamped square fixes zero and is globally twice-bound Lipschitz](goal) when
+[the clipping bound is nonnegative](hyp:hc). -/
 lemma lipschitzAt0_clampedSq {c : ℝ} (hc : 0 ≤ c) :
     LipschitzAt0 (clampedSq c) (2 * c) := by
   refine ⟨?_, ?_⟩

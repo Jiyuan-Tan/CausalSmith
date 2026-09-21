@@ -8,6 +8,7 @@
 import { resolveLibraryDeclaration } from "./declaration_resolver.js";
 import { extractFullDeclSource } from "./lean_extract.js";
 import type { ModuleDecl } from "./components.js";
+import { LEAN_SECTION_RE } from "../shared/lean_syntax.js";
 
 const LEAN_KEYWORDS = new Set([
   "theorem", "lemma", "def", "abbrev", "structure", "class", "instance", "inductive", "where", "with",
@@ -15,7 +16,7 @@ const LEAN_KEYWORDS = new Set([
   "calc", "exact", "apply", "refine", "intro", "intros", "rcases", "obtain", "cases", "induction", "simp",
   "simpa", "rw", "rwa", "omega", "linarith", "nlinarith", "positivity", "norm_num", "ring", "field_simp",
   "constructor", "use", "exists", "ext", "funext", "congr", "trivial", "rfl", "sorry", "set", "unfold",
-  "open", "namespace", "section", "end", "variable", "import", "private", "protected", "noncomputable",
+  "open", "namespace", "section", "end", "variable", "import", "private", "protected", "public", "meta", "module", "expose", "noncomputable",
   "true", "false", "True", "False", "Type", "Prop", "Sort", "this", "not", "and", "or", "iff", "fun",
   "filter_upwards", "gcongr", "aesop", "decide", "norm_cast", "push_cast", "exact_mod_cast", "first",
   "all_goals", "any_goals", "try", "repeat", "focus", "case", "next", "rename_i", "subst", "specialize",
@@ -64,13 +65,13 @@ export function sectionContextBefore(source: string, line: number): string {
   let continuing = false; // inside a multi-line `variable` block: indented continuation lines belong to it
   for (const raw of lines) {
     const l = raw.trim();
-    if (continuing && l && /^\s/.test(raw) && !/^(end|section|namespace|variable|open|theorem|lemma|def|abbrev|structure|class|instance|inductive)\b/.test(l)) {
+    if (continuing && l && /^\s/.test(raw) && !/^(end|section|namespace|variable|open|public|meta|theorem|lemma|def|abbrev|structure|class|instance|inductive)\b/.test(l)) {
       const frame = frames[frames.length - 1];
       frame[frame.length - 1] += `\n${raw.trimEnd()}`;
       continue;
     }
     continuing = false;
-    if (/^(noncomputable\s+)?section\b/.test(l) || /^namespace\b/.test(l)) {
+    if (LEAN_SECTION_RE.test(l) || /^namespace\b/.test(l)) {
       frames.push(/^namespace\b/.test(l) ? [l] : []);
     } else if (/^end\b/.test(l)) {
       if (frames.length > 1) frames.pop();

@@ -1,4 +1,5 @@
-import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Stability
+module
+public import CausalSmith.Substrate.GaussianMeanEmbeddingQuantitativeMomentStability.Stability
 
 /-!
 # Gaussian mean-embedding quantitative moment stability
@@ -8,3 +9,5 @@ for second moments of probability laws supported on `[0,5]`, together with its
 finite-coordinate estimates, certified degree-202 Taylor remainder, and
 positive embedding-distance corollary.
 -/
+
+public section

@@ -4,17 +4,17 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Model
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Regression
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Helpers.Moments
-import Causalean.Discovery.InvariantPrediction.LinearGaussian.Completeness
+module
+public import Causalean.Discovery.InvariantPrediction.LinearGaussian.Completeness
 
 /-!
 # Invariant Causal Prediction — linear-Gaussian completeness (umbrella)
 
-Self-contained linear-Gaussian formalization of the **completeness** half of
+Self-contained linear-Gaussian specialization of the **completeness** half of
 Invariant Causal Prediction (Peters, Bühlmann & Meinshausen, JRSS-B 2016,
-`arXiv:1501.01332`, Theorem `prop:1`(i), the **do-intervention** version).
+`arXiv:1501.01332`, Theorem 2(i), the **do-intervention** version). The encoded
+models additionally carry observational and interventional target-exogeneity
+certificates rather than deriving them from the recursive SEM.
 
 Unlike the sibling nonparametric SWIG/kernel development (which proves
 soundness, `S(E) ⊆ PA(Y)`, in full generality), this sub-development works in the
@@ -36,6 +36,6 @@ establishes the converse `S(E) ⊇ PA(Y)` — using a random-variable encoding.
   every non-descendant of `k₀` keeps its observational value a.e.
 * `Completeness.lean` — the do-intervention hypotheses, soundness /
   youngest-node / mean-shift intermediate lemmas, and the main theorem
-  `icp_complete_linearGaussian : S(E) = PA(Y)`. Soundness uses the paper's
-  Assumption-1 exogeneity carried as `ObsSEM.hYexo` / `Env.hExo`.
+  `icp_complete_linearGaussian_of_exogeneity : S(E) = PA(Y)`. Soundness assumes
+  the exogeneity certificates carried as `ObsSEM.hYexo` / `Env.hExo`.
 -/

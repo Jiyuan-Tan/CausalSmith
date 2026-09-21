@@ -6,11 +6,10 @@
 import { runStructuralGate } from "../core/gate.js";
 import { extractNodeRefs } from "../core/node_ids.js";
 import type { Core } from "../core/schema.js";
-import { blobMatchesId, META_ID, nodeTypeOf, type NodeId } from "./node.js";
+import { blobMatchesId, contentKey, META_ID, nodeTypeOf, type NodeId } from "./node.js";
 import { nodesOfType, type Graph } from "./graph.js";
 import { deriveStatus, proofCoversCurrentClosure } from "./validity.js";
 import { renderCore, normalizeGraph } from "./render.js";
-import { stableJson } from "../../shared/stable_json.js";
 
 export interface Violation {
   code: string;
@@ -47,6 +46,15 @@ export function checkGraph(g: Graph): CheckResult {
     if (answer?.node_type !== "statement") v("V2", id, `resolved_by '${blob.body.resolved_by}' is not a statement`);
     else if (answer.body.resolved_by !== undefined) v("V2", id, `resolved_by '${blob.body.resolved_by}' is itself resolved`);
     else if (answer.body.kind !== "theorem" || deriveStatus(g, blob.body.resolved_by) !== "proved" || !proofCoversCurrentClosure(g, blob.body.resolved_by)) v("V2", id, `resolved_by '${blob.body.resolved_by}' is not a proved theorem with a complete current basis`);
+    const resolutionBasis = blob.body.proof_basis;
+    if (resolutionBasis === undefined) {
+      v("V2", id, `resolution basis does not pin the current content of '${blob.body.resolved_by}'`);
+    } else if (answer !== undefined) {
+      const keys = Object.keys(resolutionBasis);
+      if (keys.length !== 1 || keys[0] !== blob.body.resolved_by || resolutionBasis[blob.body.resolved_by] !== contentKey(answer)) {
+        v("V2", id, `resolution basis does not pin the current content of '${blob.body.resolved_by}'`);
+      }
+    }
   }
   for (const { id, blob } of nodesOfType(g, "statement")) {
     if (blob.body.resolved_by !== undefined) continue;
@@ -71,13 +79,19 @@ export function checkGraph(g: Graph): CheckResult {
   if (violations.length === 0) {
     const normalized = normalizeGraph(g);
     const drift = Object.keys(normalized.tree).filter((id) => normalized.tree[id].blob !== g.tree[id]?.blob);
-    for (const id of drift) v("V3", id, "not normalized: literal citations or resolved-question edges are not reflected in depends_on");
+    for (const id of drift) v("V3", id, "not normalized: citations, resolved-question edges, or resolution pins need normalization");
   }
 
   // V4: proof bases are well-formed.
   for (const { id, blob } of nodesOfType(g, "statement")) {
     const basis = blob.body.proof_basis;
     if (basis === undefined) continue;
+    if (blob.body.resolved_by !== undefined) {
+      for (const [node, key] of Object.entries(basis)) {
+        if (!/^[a-f0-9]{64}$/.test(key)) v("V4", id, `proof_basis['${node}'] is not a content key`);
+      }
+      continue;
+    }
     if ((blob.body.proof_tex ?? "").trim().length === 0) v("V4", id, "proof_basis without a proof");
     if (blob.body.source !== undefined) v("V4", id, "a cited statement carries a proof_basis");
     for (const [node, key] of Object.entries(basis)) {

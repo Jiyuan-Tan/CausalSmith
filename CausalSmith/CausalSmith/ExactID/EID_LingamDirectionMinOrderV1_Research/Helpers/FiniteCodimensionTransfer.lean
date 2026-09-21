@@ -12,8 +12,11 @@ chains, not only closedness and irreducibility, to the corresponding finite
 complex affine space.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiniteCumBand
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.CodimensionOne
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiniteCumBand
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.CodimensionOne
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

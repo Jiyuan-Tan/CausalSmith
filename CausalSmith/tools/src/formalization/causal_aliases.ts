@@ -192,7 +192,7 @@ export const CAUSAL_ALIASES: AliasEntry[] = [
   {
     canonical: "double machine learning",
     aliases: ["cross fitting","debiased machine learning","debiased ml","dml","neyman orthogonality","orthogonal machine learning","orthogonal moment","orthogonal score","sample splitting"],
-    modules: ["Causalean/Estimation/","Causalean/Estimation/ATE/","Causalean/Estimation/ATT/","Causalean/Estimation/DTR/","Causalean/Estimation/OrthogonalMoments/","Causalean/Stat/Orthogonality/"],
+    modules: ["Causalean/Estimation/","Causalean/Estimation/ATE/","Causalean/Estimation/ATT/","Causalean/Estimation/DTR/","Causalean/Estimation/OrthogonalMoments/"],
   },
   {
     canonical: "doubly robust estimator",
@@ -257,7 +257,7 @@ export const CAUSAL_ALIASES: AliasEntry[] = [
   {
     canonical: "fixed effects estimator",
     aliases: ["fe estimator","within estimator","within transformation"],
-    modules: ["Causalean/Panel/FWLInstanceL2.lean","Causalean/Panel/FixedEffect.lean","Causalean/Panel/FixedEffect/","Causalean/Panel/Weighted/FWL.lean"],
+    modules: ["Causalean/Stat/LinearModel/FWLInstanceL2.lean","Causalean/Panel/FixedEffect.lean","Causalean/Panel/FixedEffect/","Causalean/Stat/Weighted/FWL.lean"],
   },
   {
     canonical: "frontdoor adjustment",
@@ -469,7 +469,7 @@ export const CAUSAL_ALIASES: AliasEntry[] = [
   {
     canonical: "overlap",
     aliases: ["common support","covariate overlap","positivity","propensity bounded away from zero and one","strict overlap","weak overlap"],
-    modules: ["Causalean/Estimation/ATE/","Causalean/Estimation/ATT/","Causalean/Estimation/DTR/","Causalean/PO/ID/","Causalean/SCM/ID/Overlap","Causalean/Stat/PolynomialTail/"],
+    modules: ["Causalean/Estimation/ATE/","Causalean/Estimation/ATT/","Causalean/Estimation/DTR/","Causalean/PO/ID/","Causalean/SCM/Do/Overlap","Causalean/Stat/PolynomialTail/"],
   },
   {
     canonical: "parallel trends",
@@ -631,12 +631,12 @@ export const CAUSAL_ALIASES: AliasEntry[] = [
   {
     canonical: "darmois skitovich",
     aliases: ["darmois skitovich theorem","ds theorem","independent linear form"],
-    modules: ["Causalean/Mathlib/Probability/DarmoisSkitovich","Causalean/Discovery/LiNGAM/"],
+    modules: ["Causalean/Mathlib/Probability/KacBernstein","Causalean/Discovery/LiNGAM/"],
   },
   {
     canonical: "linear non gaussian acyclic model",
     aliases: ["lingam","linear non gaussian","non gaussian scm","ica lingam","direct lingam"],
-    modules: ["Causalean/Discovery/LiNGAM/","Causalean/Discovery/LinearDisentanglement","Causalean/Mathlib/Probability/DarmoisSkitovich"],
+    modules: ["Causalean/Discovery/LiNGAM/","Causalean/Discovery/LinearDisentanglement","Causalean/Mathlib/Probability/KacBernstein"],
   },
   {
     canonical: "linear causal disentanglement",

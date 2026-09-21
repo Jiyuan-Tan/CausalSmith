@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_contrast_risk_continuity
-import Mathlib.Data.Rat.Denumerable
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_contrast_risk_continuity
+public import Mathlib.Data.Rat.Denumerable
 
 /-! Quantitative rational approximation inside the finite-dimensional zero-sum contrast space. -/
+
+public section
 
 namespace CausalSmith.Experimentation.MultiarmSecondorderMinimaxFrontier
 

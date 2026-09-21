@@ -89,4 +89,117 @@ describe("bankSoundnessIssues", () => {
     const issues = await bankSoundnessIssues(leanDir, root);
     expect(issues.some((i) => i.includes("Mathlib/Helper.lean"))).toBe(true);
   });
+
+  it("rejects debt reached only through a module-style public import", async () => {
+    const mathlibDir = join(root, "CausalSmith", "Mathlib");
+    await mkdir(mathlibDir, { recursive: true });
+    await writeFile(join(mathlibDir, "PublicHelper.lean"), [
+      "module",
+      "",
+      "/-! Public helper fixture. -/",
+      "",
+      "@[expose] public section",
+      "namespace H",
+      "theorem hiddenDebt : True := by sorry",
+      "end H",
+    ].join("\n"));
+    await writeFile(join(leanDir, "T.lean"), [
+      "module",
+      "public import CausalSmith.Mathlib.PublicHelper",
+      "",
+      "/-! Artifact fixture. -/",
+      "",
+      "@[expose] public section",
+      "theorem cleanSurface : True := by trivial",
+    ].join("\n"));
+    const issues = await bankSoundnessIssues(leanDir, root);
+    expect(issues.some((i) => i.includes("Mathlib/PublicHelper.lean"))).toBe(true);
+  });
+
+  it.each(["meta import", "import all"])("follows a module-style `%s` line", async (importForm) => {
+    const mathlibDir = join(root, "CausalSmith", "Mathlib");
+    await mkdir(mathlibDir, { recursive: true });
+    await writeFile(join(mathlibDir, "Helper.lean"), "theorem debt : True := by sorry\n");
+    await writeFile(join(leanDir, "T.lean"), `${importForm} CausalSmith.Mathlib.Helper\ntheorem clean : True := by trivial\n`);
+    const issues = await bankSoundnessIssues(leanDir, root);
+    expect(issues.some((i) => i.includes("Mathlib/Helper.lean"))).toBe(true);
+  });
+
+  it("follows a directly imported CausalSmith module outside Mathlib", async () => {
+    const sharedDir = join(root, "CausalSmith", "Shared");
+    await mkdir(sharedDir, { recursive: true });
+    await writeFile(join(sharedDir, "Helper.lean"), "theorem debt : True := by sorry\n");
+    await writeFile(join(leanDir, "T.lean"), "public import CausalSmith.Shared.Helper\ntheorem clean : True := by trivial\n");
+    const issues = await bankSoundnessIssues(leanDir, root);
+    expect(issues.some((i) => i.includes("Shared/Helper.lean"))).toBe(true);
+  });
+
+  it("follows transitive imports through CausalSmith.Substrate", async () => {
+    const sharedDir = join(root, "CausalSmith", "Shared");
+    const substrateDir = join(root, "CausalSmith", "Substrate");
+    await mkdir(sharedDir, { recursive: true });
+    await mkdir(substrateDir, { recursive: true });
+    await writeFile(join(sharedDir, "Helper.lean"), "theorem debt : True := by sorry\n");
+    await writeFile(join(substrateDir, "X.lean"), "public import CausalSmith.Shared.Helper\ntheorem x : True := by trivial\n");
+    await writeFile(join(leanDir, "T.lean"), "public import CausalSmith.Substrate.X\ntheorem clean : True := by trivial\n");
+    const issues = await bankSoundnessIssues(leanDir, root);
+    expect(issues.some((i) => i.includes("Shared/Helper.lean"))).toBe(true);
+  });
+
+  it("ignores imports appearing only inside comments and strings", async () => {
+    const sharedDir = join(root, "CausalSmith", "Shared");
+    await mkdir(sharedDir, { recursive: true });
+    await writeFile(join(sharedDir, "Helper.lean"), "theorem debt : True := by sorry\n");
+    await writeFile(join(leanDir, "T.lean"), [
+      "/- public import CausalSmith.Shared.Helper -/",
+      "-- public import CausalSmith.Shared.Helper",
+      "def example : String := \"public import CausalSmith.Shared.Helper\"",
+      "theorem clean : True := by trivial",
+    ].join("\n"));
+    expect(await bankSoundnessIssues(leanDir, root)).toEqual([]);
+  });
+
+  it("follows a Unicode CausalSmith module name end-to-end", async () => {
+    const mathlibDir = join(root, "CausalSmith", "Mathlib");
+    await mkdir(mathlibDir, { recursive: true });
+    await writeFile(join(mathlibDir, "ΔHelper.lean"), "theorem debt : True := by sorry\n");
+    await writeFile(join(leanDir, "T.lean"), "public import CausalSmith.Mathlib.ΔHelper\ntheorem clean : True := by trivial\n");
+    const issues = await bankSoundnessIssues(leanDir, root);
+    expect(issues.some((i) => i.includes("Mathlib/ΔHelper.lean"))).toBe(true);
+  });
+});
+
+it("resolves a guillemet-quoted import component to Lean's actual file path", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const root = mkdtempSync(join(tmpdir(), "bank-guillemet-"));
+  const run = join(root, "CausalSmith", "Run");
+  mkdirSync(run, { recursive: true });
+  mkdirSync(join(root, "CausalSmith", "Mathlib"), { recursive: true });
+  writeFileSync(join(run, "Main.lean"), "public import CausalSmith.Mathlib.«Quoted»\ntheorem ok : True := trivial\n");
+  writeFileSync(join(root, "CausalSmith", "Mathlib", "Quoted.lean"), "theorem debt : True := by sorry\n");
+  writeFileSync(join(root, "CausalSmith", "Mathlib", "«Quoted».lean"), "theorem clean : True := trivial\n");
+  const issues = await bankSoundnessIssues(run, root);
+  expect(issues.some((i) => /Quoted\.lean/.test(i) && /sorry/.test(i))).toBe(true);
+});
+
+it("resolves guillemet components containing spaces, anywhere in the module path", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const root = mkdtempSync(join(tmpdir(), "bank-guillemet-space-"));
+  const run = join(root, "CausalSmith", "Run");
+  mkdirSync(run, { recursive: true });
+  mkdirSync(join(root, "CausalSmith", "Mathlib"), { recursive: true });
+  mkdirSync(join(root, "CausalSmith", "Sub Dir"), { recursive: true });
+  writeFileSync(
+    join(run, "Main.lean"),
+    "public import CausalSmith.Mathlib.«Quoted Name»\nimport CausalSmith.«Sub Dir».Helper\ntheorem ok : True := trivial\n",
+  );
+  writeFileSync(join(root, "CausalSmith", "Mathlib", "Quoted Name.lean"), "theorem debt1 : True := by sorry\n");
+  writeFileSync(join(root, "CausalSmith", "Sub Dir", "Helper.lean"), "theorem debt2 : True := by sorry\n");
+  const issues = await bankSoundnessIssues(run, root);
+  expect(issues.some((i) => /Quoted Name\.lean/.test(i) && /sorry/.test(i))).toBe(true);
+  expect(issues.some((i) => /Sub Dir\/Helper\.lean/.test(i) && /sorry/.test(i))).toBe(true);
 });

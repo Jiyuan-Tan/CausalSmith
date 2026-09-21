@@ -2,38 +2,25 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Bai (2022): the matched-pair design
-
-This file formalizes the fixed-pair matched-pair randomization design from Bai (2022), "Optimality
-of Matched-Pair Designs in Randomized Controlled Trials" (American Economic Review).  Units are
-organized into pairs indexed by `P`; within each pair the two members occupy the two positions
-`Bool`, and the experiment treats exactly one position per pair, chosen by an independent fair coin.
-This is a product of pair-level fair-coin designs, read so that the coin selects the treated
-position.  It is not independent assignment over the `2|P|` units: within each size-two stratum
-exactly one unit is treated.
-
-This file records the matched-pair design and its **inclusion structure**: each unit is treated with
-probability `½`; the two units of a pair are *perfectly negatively dependent* (exactly one is
-treated); and units in different pairs are treated independently.  It does not compare alternative
-pairings or prove an optimal matching theorem.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.Bernoulli
-import Mathlib.Tactic.NormNum
+module
+public import Causalean.Experimentation.DesignBased.Designs.Bernoulli
+public import Mathlib.Tactic.NormNum
 
 /-! # Matched-pair designs
 
-Matched-pair designs organize units into pairs indexed by `P`, with the two members of each pair
-represented by positions `Bool`.  The assignment `z p` is a pair-level fair coin selecting the
-treated position, so this is not independent assignment over the `2|P|` units: each size-two stratum
-treats exactly one unit.
+Bai's fixed matched-pair design organizes units into pairs and treats exactly one of each pair's
+two positions, selected by an independent fair coin. It is therefore a product across pairs, not
+independent assignment across all units.
 
-This file defines the fair coin `pairCoinDesign`, the product design `matchedPairDesign`, and the
-treatment indicator `mpTreatInd`.  The main inclusion results prove within-pair exclusivity,
-first-order inclusion probability `1/2`, perfect within-pair negative dependence, and cross-pair
-independence with joint probability `1/4`.
+This file defines the pair-level coin, the product design, and its treatment indicator. The main
+inclusion results give treatment probability `1/2`, perfect negative dependence within a pair,
+and independence across pairs with joint treatment probability `1/4`. The file fixes the pairing;
+it does not compare pairings or prove an optimal matching theorem.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

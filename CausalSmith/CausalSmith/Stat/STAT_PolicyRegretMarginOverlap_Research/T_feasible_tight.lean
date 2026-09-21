@@ -13,7 +13,10 @@ converse exponent `r_⋆` — WITHOUT proving it. No theorem is emitted for this
 node and no downstream theorem depends on it; there is no proof and no placeholder proof.
 -/
 
-import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
+module
+public import CausalSmith.Stat.STAT_PolicyRegretMarginOverlap_Research.Basic
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

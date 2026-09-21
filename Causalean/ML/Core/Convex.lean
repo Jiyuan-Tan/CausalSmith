@@ -3,11 +3,13 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core.ERM
-import Mathlib.Analysis.Convex.Function
-import Mathlib.Analysis.InnerProductSpace.Basic
-import Mathlib.Analysis.Calculus.LocalExtr.Basic
-import Mathlib.Topology.Order.Compact
+
+module
+public import Causalean.ML.Core.ERM
+public import Mathlib.Analysis.Convex.Function
+public import Mathlib.Analysis.InnerProductSpace.Basic
+public import Mathlib.Analysis.Calculus.LocalExtr.Basic
+public import Mathlib.Topology.Order.Compact
 
 /-! # Convex-analysis substrate for ERM
 
@@ -16,6 +18,8 @@ the convex methods (logistic regression, lasso, generic convex ERM) instantiate.
 This file is method-agnostic: it speaks only about an abstract objective on a
 real vector / inner-product / normed space.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 
@@ -118,7 +122,10 @@ end FirstOrder
 section Subgradient
 variable {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
 
-/-- In [a real inner-product space](hyp:E), for [a real-valued function](hyp:f), [a subset of the space](hyp:s), [a vector](hyp:g), and [a point](hyp:x), the [statement that the vector is a subgradient of the function at the point relative to the subset](goal) requires [the point to belong to the subset](step:1) and [for every point $y$ in that subset, $f(x)+\langle g,y-x\rangle\le f(y)$](step:2).
+/-- [A vector is a relative subgradient](goal) when [the point lies in the set](step:1) and
+[the vector supports an affine minorant on that set](step:2). The definition applies to
+[the function and constraint set](hyp:f,s) at [the vector and evaluation point](hyp:g,x) in
+[a real inner-product space](hyp:E).
 
 This is the affine supporting-hyperplane inequality restricted to the specified set. -/
 def SubgradientAt (f : E → ℝ) (s : Set E) (g x : E) : Prop :=

@@ -8,12 +8,15 @@ Authors: Jiyuan Tan
 `lem:variance-envelope-sharpness` and `lem:exact-risk-envelope-upper`.
 -/
 
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
-import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
-import Mathlib.Data.Real.Sqrt
-import Mathlib.Data.Real.Pointwise
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.LinearAlgebra.Matrix.PosDef
+module
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Basic
+public import CausalSmith.Experimentation.EXP_RolloutChebyshevMinimax_Research.Helpers.Amplification
+public import Mathlib.Data.Real.Sqrt
+public import Mathlib.Data.Real.Pointwise
+public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+
+public section
 
 open Causalean.Experimentation.DesignBased
 open scoped BigOperators

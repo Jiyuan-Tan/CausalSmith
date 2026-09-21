@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.ScoreDesign
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.FirstOrderUpper
-import Causalean.Experimentation.DesignBased.ProductMeasure
-import Causalean.Experimentation.DesignBased.InProb
-import Mathlib.Probability.Moments.SubGaussian
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.ScoreDesign
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.FirstOrderUpper
+public import Causalean.Stat.FiniteDesign.ProductMeasure
+public import Causalean.Experimentation.DesignBased.InProb
+public import Mathlib.Probability.Moments.SubGaussian
 
 /-! Finite-sample risk improvement of the clipped contrast-score shrinkage rule. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Filter MeasureTheory ProbabilityTheory

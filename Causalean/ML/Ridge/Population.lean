@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Core
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+
+module
+public import Causalean.ML.Core
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Ridge regression — population target
 
@@ -19,37 +21,38 @@ feature span, not a separate claim that the predictor equals the conditional
 regression function.
 -/
 
+@[expose] public section
+
 namespace Causalean.ML
 
 open MeasureTheory BigOperators
 
 variable {X' K : Type*} [MeasurableSpace X'] [Fintype K]
 
-/-- For [a measurable covariate space](hyp:X'), [a finite feature index set](hyp:K),
-[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), [a penalty level](hyp:lam), and
-[a coefficient vector](hyp:β), the [population ridge objective](goal) is the population squared
-prediction risk of the associated linear predictor plus the penalty level times the sum of squared
-coefficients. -/
+/-- [The population ridge objective](goal) trades
+[expected squared loss against coefficient shrinkage](step:1). It evaluates
+[a coefficient vector](hyp:β)
+and [finite feature map](hyp:K,φ) at [penalty level](hyp:lam) under
+[a joint covariate--response law](hyp:P,X'). -/
 noncomputable def populationRidgeObjective
     (P : Measure (X' × ℝ)) (φ : FeatureMap X' K) (lam : ℝ) (β : K → ℝ) : ℝ :=
   populationRisk squaredLoss P (fun x => ∑ k, β k * φ.φ x k) + lam * ∑ k, β k ^ 2
 
-/-- For [a measurable covariate space](hyp:X'), [a finite feature index set](hyp:K),
-[a joint covariate–response measure](hyp:P), [a feature map](hyp:φ), [a penalty level](hyp:lam), and
-[a coefficient vector](hyp:βstar), the [regularized population normal-equation condition](goal)
-holds exactly when, for every feature coordinate, the integral of the product of the linear-predictor
-residual and that coordinate equals the penalty level times its coefficient. -/
+/-- [The population ridge normal equations](goal) require
+[each residual--feature moment to equal its penalty term](step:1). They evaluate
+[a coefficient vector](hyp:βstar) and [finite feature map](hyp:K,φ) at
+[penalty level](hyp:lam) under [a joint covariate--response law](hyp:P,X'). -/
 def IsPopulationRidge (P : Measure (X' × ℝ)) (φ : FeatureMap X' K)
     (lam : ℝ) (βstar : K → ℝ) : Prop :=
   ∀ k, ∫ z, (z.2 - ∑ j, βstar j * φ.φ z.1 j) * φ.φ z.1 k ∂P = lam * βstar k
 
-/-- With [a nonnegative ridge penalty `λ`](hyp:hlam), for a probability measure `P` on features
-and outcome and a finite feature map `φ`, if [the coefficient vector `βstar` satisfies the
-regularized population normal equations `E[(Y − ⟪βstar,φ⟫)φₖ] = λβstarₖ` for every feature
-`k`](hyp:hreg), [the population squared-loss risks of the `βstar`- and `β`-predictors are both
-finite](hyp:hint_star,hint_β), and [each feature is integrable against that
-residual](hyp:hcross), then [the population ridge objective at `βstar` is at most its value at
-any other coefficient vector `β`](goal). -/
+/-- [Population ridge normal equations guarantee objective optimality](goal), for
+[the candidate and comparator coefficients](hyp:βstar,β) under
+[the joint law and finite feature map](hyp:P,φ) on
+[the covariate and feature-coordinate spaces](hyp:X',K). The guarantee requires
+[a nonnegative penalty](hyp:hlam), [the regularized normal equations](hyp:hreg),
+[finite risks for both predictors](hyp:hint_star,hint_β), and
+[integrable residual--feature products](hyp:hcross). -/
 theorem populationRidge_minimizes
     (P : Measure (X' × ℝ)) (φ : FeatureMap X' K) {lam : ℝ} (hlam : 0 ≤ lam)
     {βstar : K → ℝ} (hreg : IsPopulationRidge P φ lam βstar) (β : K → ℝ)

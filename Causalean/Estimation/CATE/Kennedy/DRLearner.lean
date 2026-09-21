@@ -22,8 +22,9 @@ The declarations are thin definitional wrappers around the abstract
 second-stage regression operator.
 -/
 
-import Causalean.Estimation.CATE.Core.PseudoOutcome
-import Causalean.Estimation.OrthogonalMoments.SecondStageOperator
+module
+public import Causalean.Estimation.CATE.Core.PseudoOutcome
+public import Causalean.Estimation.OrthogonalMoments.SecondStageOperator
 
 /-! # DR-Learner CATE Estimator
 
@@ -33,6 +34,8 @@ oracle version `drOracleEstimator` that uses the true pseudo-outcome, the
 associated pointwise risk scale `drOracleRiskScale`, and the unfolding lemma
 `drOracleEstimator_eq_oracleEstimator` for connecting the CATE-specific API to
 the generic second-stage-operator API. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation

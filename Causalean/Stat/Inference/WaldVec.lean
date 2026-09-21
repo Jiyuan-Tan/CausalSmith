@@ -44,9 +44,10 @@ Key declarations:
   automatic when the limit law `χ` has no atoms (e.g. any non-degenerate `χ²`).
 -/
 
-import Causalean.Stat.Inference.Studentize
-import Causalean.Stat.CLT.MultivariateCLT
-import Causalean.Stat.Inference.VarianceEstimation
+module
+public import Causalean.Stat.Inference.Studentize
+public import Causalean.Stat.CLT.MultivariateCLT
+public import Causalean.Stat.Inference.VarianceEstimation
 
 /-!
 This file reduces multivariate Wald ellipsoid coverage to scalar convergence of
@@ -60,6 +61,8 @@ boundary-null hypothesis when the Wald-statistic limit law has no atoms.  The
 chi-squared specialization lives in `Causalean.Stat.Inference.ChiSquaredWald`,
 which identifies the Gaussian quadratic-form limit.
 -/
+
+public section
 
 namespace Causalean.Stat
 

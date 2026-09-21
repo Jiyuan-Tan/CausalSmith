@@ -1,11 +1,6 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
--/
-
-import Causalean.Stat.UStatistic.OrderM.MixedOrderCovariance
-import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+module
+public import Causalean.Stat.UStatistic.OrderM.MixedOrderCovariance
+public import Mathlib.Analysis.SpecialFunctions.ExpDeriv
 
 /-!
 # Mixed-order falling-factorial normalization bounds
@@ -14,6 +9,14 @@ This module supplies uniform bounds for overlap normalizations and for the
 size-zero disjoint correction.  The statements are symmetric in the two orders
 and depend only on a common upper bound `R`.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+public section
 
 namespace Causalean.Stat
 

@@ -1,0 +1,1832 @@
+{
+  "qid": "pid_cot_collision_frontier",
+  "specialization": "v1",
+  "cluster": "partialid",
+  "symbols": [
+    {
+      "name": "K",
+      "type": "cell count",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number of uniform covariate cells and asymptotic index.",
+      "role": "index"
+    },
+    {
+      "name": "d",
+      "type": "arm index",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Arm \\(0\\) is control and arm \\(1\\) is treatment.",
+      "role": "index"
+    },
+    {
+      "name": "j",
+      "type": "cell index",
+      "space": "\\(\\{1,\\ldots,K\\}\\)",
+      "def": "Generic covariate-cell index.",
+      "role": "index",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "n_d",
+      "type": "arm sample size",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Fixed sample size in arm \\(d\\).",
+      "role": "regime size",
+      "refs": [
+        "d"
+      ]
+    },
+    {
+      "name": "i",
+      "type": "within-arm observation index",
+      "space": "\\(\\{1,\\ldots,n_d\\}\\)",
+      "def": "Generic observation index in arm \\(d\\).",
+      "role": "index",
+      "refs": [
+        "d",
+        "n_d"
+      ]
+    },
+    {
+      "name": "a",
+      "type": "control amplitude",
+      "space": "\\((0,1/2)\\)",
+      "def": "Known control-arm Bernoulli amplitude.",
+      "role": "model constant"
+    },
+    {
+      "name": "b",
+      "type": "treatment amplitude",
+      "space": "\\((0,1/2)\\)",
+      "def": "Known treatment-arm Bernoulli amplitude.",
+      "role": "model constant"
+    },
+    {
+      "name": "r",
+      "type": "correlation radius",
+      "space": "\\((0,1)\\)",
+      "def": "Fixed radius of the legal empirical-correlation interval.",
+      "role": "parameter-space constant"
+    },
+    {
+      "name": "\\alpha",
+      "type": "miscoverage probability",
+      "space": "\\((0,1/2)\\)",
+      "def": "Nominal interval miscoverage probability.",
+      "role": "inference constant"
+    },
+    {
+      "name": "c",
+      "type": "mark-signal coefficient",
+      "space": "\\((0,1)\\)",
+      "def": "Known coefficient \\(c=4ab\\).",
+      "role": "derived model constant",
+      "refs": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "name": "\\lambda",
+      "type": "marked-Poisson intensity",
+      "space": "\\([0,\\infty)\\)",
+      "def": "Generic collision intensity in the limit experiment.",
+      "role": "limit parameter"
+    },
+    {
+      "name": "\\rho",
+      "type": "generic cross-arm correlation",
+      "space": "\\([-r,r]\\)",
+      "def": "Correlation parameter indexing the marked-Poisson experiment and its finite-lattice projection.",
+      "role": "experiment parameter",
+      "refs": [
+        "r"
+      ]
+    },
+    {
+      "name": "\\theta_{dj}",
+      "type": "deterministic sign array",
+      "space": "\\(\\{-1,1\\}\\)",
+      "def": "Latent sign in arm \\(d\\) and cell \\(j\\).",
+      "role": "nuisance parameter",
+      "refs": [
+        "d",
+        "j"
+      ]
+    },
+    {
+      "name": "\\rho_K",
+      "type": "empirical cross-arm sign correlation",
+      "space": "\\([-r,r]\\)",
+      "def": "\\(\\rho_K=K^{-1}\\sum_{j=1}^{K}\\theta_{0j}\\theta_{1j}\\).",
+      "role": "finite-array parameter",
+      "refs": [
+        "K",
+        "r",
+        "\\theta_{dj}"
+      ]
+    },
+    {
+      "name": "p_{dj}",
+      "type": "cellwise outcome probability",
+      "space": "\\((0,1)\\)",
+      "def": "\\(p_{0j}=1/2+a\\theta_{0j}\\) and \\(p_{1j}=1/2+b\\theta_{1j}\\).",
+      "role": "observable-law primitive",
+      "refs": [
+        "a",
+        "b",
+        "\\theta_{dj}"
+      ]
+    },
+    {
+      "name": "L_K",
+      "type": "sharp binary-cost COT lower endpoint",
+      "space": "\\([a-br,a+br]\\)",
+      "def": "\\(L_K=K^{-1}\\sum_{j=1}^{K}|p_{1j}-p_{0j}|\\).",
+      "role": "target estimand",
+      "refs": [
+        "K",
+        "a",
+        "b",
+        "r",
+        "p_{dj}"
+      ]
+    },
+    {
+      "name": "\\mathcal A",
+      "type": "confidence-interval endpoint range",
+      "space": "\\(2^{\\mathbb R}\\)",
+      "def": "\\(\\mathcal A=[a-br,a+br]\\).",
+      "role": "interval action range",
+      "refs": [
+        "a",
+        "b",
+        "r"
+      ]
+    },
+    {
+      "name": "\\mathcal D",
+      "type": "endpoint-estimation action range",
+      "space": "\\(2^{\\mathbb R}\\)",
+      "def": "\\(\\mathcal D=[a-b,a+b]\\).",
+      "role": "compact estimation action range",
+      "refs": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "name": "Z_{di}",
+      "type": "observed covariate cell",
+      "space": "\\(\\{1,\\ldots,K\\}\\)",
+      "def": "Cell label of observation \\(i\\) in arm \\(d\\).",
+      "role": "data",
+      "refs": [
+        "K",
+        "d",
+        "i"
+      ]
+    },
+    {
+      "name": "Y_{di}",
+      "type": "observed binary outcome",
+      "space": "\\(\\{0,1\\}\\)",
+      "def": "Outcome of observation \\(i\\) in arm \\(d\\).",
+      "role": "data",
+      "refs": [
+        "d",
+        "i"
+      ]
+    },
+    {
+      "name": "X_{di}",
+      "type": "signed observed outcome",
+      "space": "\\(\\{-1,1\\}\\)",
+      "def": "\\(X_{di}=2Y_{di}-1\\).",
+      "role": "mark primitive",
+      "refs": [
+        "Y_{di}"
+      ]
+    },
+    {
+      "name": "\\mathcal O_K",
+      "type": "full two-arm observation",
+      "space": "\\(\\prod_{d=0}^{1}(\\{1,\\ldots,K\\}\\times\\{0,1\\})^{n_d}\\)",
+      "def": "\\(\\mathcal O_K=((Z_{di},Y_{di}):d\\in\\{0,1\\},\\,1\\le i\\le n_d)\\).",
+      "role": "experiment data",
+      "refs": [
+        "K",
+        "d",
+        "n_d",
+        "i",
+        "Z_{di}",
+        "Y_{di}"
+      ]
+    },
+    {
+      "name": "\\lambda_K",
+      "type": "cross-arm collision intensity",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(\\lambda_K=n_0n_1/K\\).",
+      "role": "regime parameter",
+      "refs": [
+        "K",
+        "n_d"
+      ]
+    },
+    {
+      "name": "\\varepsilon_K",
+      "type": "triple-collision envelope",
+      "space": "\\([0,\\infty)\\)",
+      "def": "\\(\\varepsilon_K=\\lambda_K(n_0+n_1)/K\\).",
+      "role": "approximation scale",
+      "refs": [
+        "K",
+        "n_d",
+        "\\lambda_K"
+      ]
+    },
+    {
+      "name": "s_K",
+      "type": "supported-mixture shell radius",
+      "space": "\\((0,r/8]\\)",
+      "def": "\\(s_K=\\min\\{r/8,[K(1\\vee\\lambda_K)]^{-1/4}\\}\\).",
+      "role": "conditioning scale",
+      "refs": [
+        "K",
+        "r",
+        "\\lambda_K"
+      ]
+    },
+    {
+      "name": "\\mathcal R_K^{\\circ}(r)",
+      "type": "admissible interior correlation lattice",
+      "space": "\\(2^{[-r,r]}\\)",
+      "def": "\\(\\mathcal R_K^{\\circ}(r)=\\{-1+2m/K:m=0,\\ldots,K\\}\\cap[-r+2s_K,r-2s_K]\\).",
+      "role": "supported-mixture parameter set",
+      "refs": [
+        "K",
+        "r",
+        "s_K"
+      ]
+    },
+    {
+      "name": "q_K(\\rho)",
+      "type": "exact interior projection",
+      "space": "\\(\\mathcal R_K^{\\circ}(r)\\)",
+      "def": "For \\(\\mathcal R_K^{\\circ}(r)\\neq\\varnothing\\), \\(q_K(\\rho)\\) is the closest point of \\(\\mathcal R_K^{\\circ}(r)\\) to \\(\\rho\\in[-r,r]\\), with the smaller point selected on a tie.",
+      "role": "boundary-safe parameter projection",
+      "refs": [
+        "r",
+        "\\rho",
+        "\\mathcal R_K^{\\circ}(r)"
+      ]
+    },
+    {
+      "name": "\\eta_K",
+      "type": "shell-conditioning error",
+      "space": "\\([0,2]\\)",
+      "def": "\\(\\eta_K=2\\exp(-K s_K^2/2)\\).",
+      "role": "supported-mixture approximation scale",
+      "refs": [
+        "K",
+        "s_K"
+      ]
+    },
+    {
+      "name": "\\Gamma_{K,q}",
+      "type": "unconditioned product mixing law",
+      "def": "Product law on sign-pair arrays with cell mass \\((1+quv)/4\\).",
+      "role": "supported-mixture primitive",
+      "refs": [
+        "K",
+        "\\theta_{dj}"
+      ]
+    },
+    {
+      "name": "A_{K,q}",
+      "type": "empirical-correlation shell event",
+      "def": "\\(A_{K,q}=\\{|\\rho_K-q|\\le s_K\\}\\).",
+      "role": "legal-support event",
+      "refs": [
+        "K",
+        "\\rho_K",
+        "s_K"
+      ]
+    },
+    {
+      "name": "\\Pi_{K,q}^{\\mathrm{shell}}",
+      "type": "supported mixing law",
+      "def": "\\(\\Pi_{K,q}^{\\mathrm{shell}}=\\Gamma_{K,q}(\\,\\cdot\\mid A_{K,q})\\).",
+      "role": "lower-experiment mixing law",
+      "refs": [
+        "\\Gamma_{K,q}",
+        "A_{K,q}"
+      ]
+    },
+    {
+      "name": "P^{\\mathrm{mix}}_{K,q}",
+      "type": "supported-mixture observation law",
+      "def": "Mixture of finite-array observation laws under \\(\\Pi_{K,q}^{\\mathrm{shell}}\\).",
+      "role": "lower-experiment law",
+      "refs": [
+        "K",
+        "\\Pi_{K,q}^{\\mathrm{shell}}",
+        "\\mathcal O_K"
+      ]
+    },
+    {
+      "name": "\\mathcal M_K",
+      "type": "supported-mixture experiment",
+      "def": "\\(\\mathcal M_K=\\{P^{\\mathrm{mix}}_{K,q}:q\\in\\mathcal R_K^{\\circ}(r)\\}\\).",
+      "role": "finite lower experiment",
+      "refs": [
+        "K",
+        "\\mathcal R_K^{\\circ}(r)",
+        "P^{\\mathrm{mix}}_{K,q}"
+      ]
+    },
+    {
+      "name": "M_K",
+      "type": "one-per-arm collision count",
+      "space": "\\(\\mathbb N_0\\)",
+      "def": "Number of cells containing exactly one sampled observation from each arm and no other sampled observation.",
+      "role": "collision statistic",
+      "refs": [
+        "K",
+        "\\mathcal O_K"
+      ]
+    },
+    {
+      "name": "S_\\ell",
+      "type": "collision mark",
+      "space": "\\(\\{-1,1\\}\\)",
+      "def": "For the \\(\\ell\\)-th one-per-arm collision, \\(S_\\ell=X_{0i}X_{1k}\\) is the product of its signed outcomes.",
+      "role": "collision statistic",
+      "refs": [
+        "X_{di}",
+        "M_K"
+      ]
+    },
+    {
+      "name": "\\mathcal E_{\\lambda,\\rho}",
+      "type": "marked-Poisson experiment",
+      "def": "Experiment observing a Poisson collision count and independent binary marks indexed by \\((\\lambda,\\rho)\\).",
+      "role": "limit experiment",
+      "refs": [
+        "c",
+        "r",
+        "\\lambda",
+        "\\rho"
+      ]
+    },
+    {
+      "name": "f_{\\lambda,\\rho}(k,l)",
+      "type": "marked-Poisson probability mass function",
+      "space": "\\([0,1]\\)",
+      "def": "\\(f_{\\lambda,\\rho}(k,l)=e^{-\\lambda}(\\lambda/2)^{k+l}(1+c\\rho)^k(1-c\\rho)^l/(k!l!)\\).",
+      "role": "limit likelihood",
+      "refs": [
+        "c",
+        "\\lambda",
+        "\\rho",
+        "\\mathcal E_{\\lambda,\\rho}"
+      ]
+    },
+    {
+      "name": "\\mathcal O_{\\lambda}",
+      "type": "marked-Poisson observation",
+      "space": "\\(\\mathbb N_0^2\\)",
+      "def": "\\(\\mathcal O_{\\lambda}=(N_+,N_-)\\), the positive- and negative-mark counts observed in \\(\\mathcal E_{\\lambda,\\rho}\\).",
+      "role": "limit-experiment data",
+      "refs": [
+        "\\lambda",
+        "\\mathcal E_{\\lambda,\\rho}"
+      ]
+    },
+    {
+      "name": "\\mathscr D_K",
+      "type": "finite-array randomized endpoint decision class",
+      "def": "All randomized measurable Markov kernels from \\(\\mathcal O_K\\) to \\(\\mathcal D\\).",
+      "role": "finite-array estimation rules",
+      "refs": [
+        "K",
+        "\\mathcal O_K",
+        "\\mathcal D"
+      ]
+    },
+    {
+      "name": "\\mathscr D_{\\lambda}",
+      "type": "marked-Poisson randomized endpoint decision class",
+      "def": "All randomized measurable Markov kernels from \\(\\mathcal O_{\\lambda}\\) to \\(\\mathcal D\\).",
+      "role": "limit-experiment estimation rules",
+      "refs": [
+        "\\lambda",
+        "\\mathcal O_{\\lambda}",
+        "\\mathcal D"
+      ]
+    },
+    {
+      "name": "\\mathscr C_K",
+      "type": "finite-array randomized interval decision class",
+      "def": "All randomized measurable Markov kernels from \\(\\mathcal O_K\\) to the closed subintervals of \\(\\mathcal A\\).",
+      "role": "finite-array confidence rules",
+      "refs": [
+        "K",
+        "\\mathcal O_K",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "\\mathscr C_{\\lambda}",
+      "type": "marked-Poisson randomized interval decision class",
+      "def": "All randomized measurable Markov kernels from \\(\\mathcal O_{\\lambda}\\) to the closed subintervals of \\(\\mathcal A\\).",
+      "role": "limit-experiment confidence rules",
+      "refs": [
+        "\\lambda",
+        "\\mathcal O_{\\lambda}",
+        "\\mathcal A"
+      ]
+    },
+    {
+      "name": "R_K",
+      "type": "finite-array minimax absolute risk",
+      "space": "\\([0,2br]\\)",
+      "def": "\\(R_K=\\inf_{D_K\\in\\mathscr D_K}\\sup_{\\theta\\in\\mathcal T_K(r)}\\mathbb E_\\theta|D_K-L_K|\\).",
+      "role": "decision frontier",
+      "refs": [
+        "b",
+        "r",
+        "L_K",
+        "\\mathcal O_K",
+        "\\mathscr D_K"
+      ]
+    },
+    {
+      "name": "R(\\lambda)",
+      "type": "marked-Poisson minimax absolute risk",
+      "space": "\\([0,2br]\\)",
+      "def": "\\(R(\\lambda)=\\inf_{D_{\\lambda}\\in\\mathscr D_{\\lambda}}\\sup_{\\rho\\in[-r,r]}\\mathbb E_{\\lambda,\\rho}|D_{\\lambda}-(a-b\\rho)|\\).",
+      "role": "limit decision frontier",
+      "refs": [
+        "a",
+        "b",
+        "r",
+        "\\lambda",
+        "\\rho",
+        "\\mathcal E_{\\lambda,\\rho}",
+        "\\mathscr D_{\\lambda}"
+      ]
+    },
+    {
+      "name": "C_{K,\\alpha}",
+      "type": "finite-array minimax expected interval length",
+      "space": "\\([0,2br]\\)",
+      "def": "\\(C_{K,\\alpha}=\\inf_{\\mathcal C_K\\in\\mathscr C_K}\\sup_{\\theta\\in\\mathcal T_K(r)}\\mathbb E_\\theta\\operatorname{len}(\\mathcal C_K)\\), subject to \\(\\inf_{\\theta\\in\\mathcal T_K(r)}\\Pr_\\theta\\{L_K\\in\\mathcal C_K\\}\\ge1-\\alpha\\).",
+      "role": "honest-inference frontier",
+      "refs": [
+        "b",
+        "r",
+        "\\alpha",
+        "\\mathcal A",
+        "L_K",
+        "\\mathcal O_K",
+        "\\mathscr C_K"
+      ]
+    },
+    {
+      "name": "C_\\alpha(\\lambda)",
+      "type": "marked-Poisson minimax expected interval length",
+      "space": "\\([0,2br]\\)",
+      "def": "\\(C_\\alpha(\\lambda)=\\inf_{\\mathcal C_\\lambda\\in\\mathscr C_{\\lambda}}\\sup_{\\rho\\in[-r,r]}\\mathbb E_{\\lambda,\\rho}\\operatorname{len}(\\mathcal C_\\lambda)\\), subject to \\(\\inf_{\\rho\\in[-r,r]}\\Pr_{\\lambda,\\rho}\\{a-b\\rho\\in\\mathcal C_\\lambda\\}\\ge1-\\alpha\\).",
+      "role": "limit honest-inference frontier",
+      "refs": [
+        "a",
+        "b",
+        "r",
+        "\\alpha",
+        "\\lambda",
+        "\\rho",
+        "\\mathcal A",
+        "\\mathcal E_{\\lambda,\\rho}",
+        "\\mathscr C_{\\lambda}"
+      ]
+    },
+    {
+      "name": "\\widehat L_K",
+      "type": "unprojected collision estimator",
+      "space": "\\(\\mathbb R\\)",
+      "def": "For \\(M_K>0\\), \\(\\widehat L_K=a-(4aM_K)^{-1}\\sum_{\\ell=1}^{M_K}S_\\ell\\), with a fixed bounded default when \\(M_K=0\\).",
+      "role": "estimator",
+      "refs": [
+        "a",
+        "M_K",
+        "S_\\ell"
+      ]
+    },
+    {
+      "name": "\\widehat V_K",
+      "type": "collision variance estimator",
+      "space": "\\([0,\\infty)\\)",
+      "def": "For \\(M_K>0\\), \\(\\widehat V_K=(1-\\overline S_K^2)/(16a^2)\\), where \\(\\overline S_K=M_K^{-1}\\sum_{\\ell=1}^{M_K}S_\\ell\\), with a fixed positive default when \\(M_K=0\\).",
+      "role": "studentizer",
+      "refs": [
+        "a",
+        "M_K",
+        "S_\\ell"
+      ]
+    },
+    {
+      "name": "V(\\rho)",
+      "type": "interior local variance",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(V(\\rho)=(1-c^2\\rho^2)/(16a^2)\\).",
+      "role": "efficiency frontier",
+      "refs": [
+        "a",
+        "c",
+        "r",
+        "\\rho"
+      ]
+    },
+    {
+      "name": "\\mathcal H_K(\\rho_0,H)",
+      "type": "deterministic Hamming shell",
+      "def": "Legal arrays satisfying \\(|\\sqrt{\\lambda_K}(\\rho_K-\\rho_0)|\\le H\\).",
+      "role": "local parameter set",
+      "refs": [
+        "\\lambda_K",
+        "\\rho_K",
+        "r"
+      ]
+    },
+    {
+      "name": "\\ell_T(u)",
+      "type": "bounded truncated quadratic loss",
+      "space": "\\([0,T]\\)",
+      "def": "\\(\\ell_T(u)=\\min\\{u^2,T\\}\\).",
+      "role": "local minimax loss"
+    },
+    {
+      "name": "\\mathfrak I_K",
+      "type": "continuous interpolation map",
+      "def": "Map sending each cellwise sign array to measurable conditional Bernoulli probability functions on \\([0,1]\\), equal to \\(p_{dj}\\) off boundary strips and linearly connected on strips of width \\(K^{-3}\\).",
+      "role": "continuous-image construction",
+      "refs": [
+        "K",
+        "p_{dj}"
+      ]
+    },
+    {
+      "name": "U_{di}",
+      "type": "continuous covariate",
+      "space": "\\([0,1]\\)",
+      "def": "Continuous covariate of observation \\(i\\) in arm \\(d\\).",
+      "role": "continuous data",
+      "refs": [
+        "d",
+        "i"
+      ]
+    },
+    {
+      "name": "\\kappa_K",
+      "type": "measurable cell-index map",
+      "sig": "\\([0,1]\\to\\{1,\\ldots,K\\}\\)",
+      "def": "\\(\\kappa_K(0)=1\\) and \\(\\kappa_K(u)=\\min\\{K,\\lceil Ku\\rceil\\}\\) for \\(u>0\\).",
+      "role": "coarsening map",
+      "refs": [
+        "K"
+      ]
+    },
+    {
+      "name": "g_{d,K,\\theta}",
+      "type": "interpolated conditional outcome probability",
+      "sig": "\\([0,1]\\to(0,1)\\)",
+      "def": "Measurable piecewise-affine interpolation of the cell probabilities \\(p_{dj}\\), specified by \\(\\mathfrak I_K\\).",
+      "role": "continuous-law primitive",
+      "refs": [
+        "K",
+        "d",
+        "p_{dj}",
+        "\\mathfrak I_K",
+        "\\kappa_K"
+      ]
+    },
+    {
+      "name": "\\mathcal O_K^{\\mathrm c}",
+      "type": "continuous two-arm observation",
+      "space": "\\(\\prod_{d=0}^{1}([0,1]\\times\\{0,1\\})^{n_d}\\)",
+      "def": "\\(\\mathcal O_K^{\\mathrm c}=((U_{di},Y_{di}):d\\in\\{0,1\\},\\,1\\le i\\le n_d)\\).",
+      "role": "continuous experiment data",
+      "refs": [
+        "d",
+        "n_d",
+        "i",
+        "U_{di}",
+        "Y_{di}"
+      ]
+    },
+    {
+      "name": "\\mathsf Q_K",
+      "type": "measurable coarsening pushforward kernel",
+      "def": "\\(\\mathsf Q_K\\) maps every \\((U_{di},Y_{di})\\) to \\((\\kappa_K(U_{di}),Y_{di})\\) coordinatewise.",
+      "role": "continuous-to-discrete comparison kernel",
+      "refs": [
+        "U_{di}",
+        "Y_{di}",
+        "\\kappa_K",
+        "\\mathcal O_K^{\\mathrm c}",
+        "\\mathcal O_K"
+      ]
+    },
+    {
+      "name": "L_K^{\\mathrm c}",
+      "type": "continuous interpolation COT endpoint",
+      "space": "\\([0,1]\\)",
+      "def": "The sharp absolute-cost conditional optimal-transport lower endpoint under the continuous interpolation \\(\\mathfrak I_K\\).",
+      "role": "continuous-image target",
+      "refs": [
+        "\\mathfrak I_K"
+      ]
+    },
+    {
+      "name": "\\mathcal I_K(r)",
+      "type": "continuous interpolation experiment class",
+      "def": "Image of legal deterministic arrays under \\(\\mathfrak I_K\\), with uniform continuous covariates.",
+      "role": "continuous comparison class",
+      "refs": [
+        "K",
+        "r",
+        "\\mathfrak I_K",
+        "\\mathcal O_K^{\\mathrm c}"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:amplitude-order",
+      "kind": "support",
+      "condition": "The known amplitudes satisfy \\(b<a\\).",
+      "free_symbols": [
+        "a",
+        "b"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Unequal known signal amplitudes define a transparent binary COT stress test in which the absolute-cost endpoint is affine in cross-arm sign agreement; calibrated binary outcome risks can satisfy this ordering after relabeling the arms."
+      },
+      "used_by": [
+        "def:legal-array-class",
+        "prop:sharp-cot-endpoint"
+      ]
+    },
+    {
+      "id": "ass:sign-array",
+      "kind": "support",
+      "condition": "For every arm \\(d\\) and cell \\(j\\), \\(\\theta_{dj}\\in\\{-1,1\\}\\).",
+      "free_symbols": [
+        "d",
+        "j",
+        "\\theta_{dj}"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "The sign array is a finite-dimensional least-favorable submodel for binary conditional risks, allowing arbitrary cell-to-cell heterogeneity while keeping every conditional probability away from zero and one."
+      },
+      "used_by": [
+        "def:legal-array-class",
+        "prop:sharp-cot-endpoint",
+        "thm:collision-comparison"
+      ]
+    },
+    {
+      "id": "ass:correlation-range",
+      "kind": "support",
+      "condition": "The empirical sign correlation satisfies \\(\\rho_K\\in[-r,r]\\).",
+      "free_symbols": [
+        "K",
+        "r",
+        "\\rho_K"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "A fixed interior correlation band excludes only nearly deterministic cross-arm alignment and contains balanced and heterogeneous arrays used by finite-stratum causal analyses."
+      },
+      "used_by": [
+        "def:legal-array-class",
+        "def:poisson-decision-frontiers",
+        "def:deterministic-shell-handle"
+      ]
+    },
+    {
+      "id": "ass:uniform-cells",
+      "kind": "sampling design",
+      "condition": "For each arm \\(d\\), the labels \\(Z_{d1},\\ldots,Z_{dn_d}\\) are independent and uniformly distributed on \\(\\{1,\\ldots,K\\}\\).",
+      "free_symbols": [
+        "K",
+        "d",
+        "n_d",
+        "Z_{di}"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Equal-probability strata arise from quantile binning of a continuous covariate and isolate the statistical effect of partition resolution from unequal-cell weighting."
+      },
+      "used_by": [
+        "def:finite-array-experiment",
+        "thm:collision-comparison",
+        "thm:finite-information-transfer",
+        "thm:sparse-gaussian"
+      ]
+    },
+    {
+      "id": "ass:arm-independence",
+      "kind": "sampling design",
+      "condition": "The control-arm sample is independent of the treatment-arm sample.",
+      "free_symbols": [
+        "d",
+        "\\mathcal O_K"
+      ],
+      "standard": {
+        "name": "Independent arm samples under a Bernoulli design",
+        "cite": "linGaoBlanchetGlynn2026Causal"
+      },
+      "used_by": [
+        "def:finite-array-experiment",
+        "thm:collision-comparison",
+        "thm:sparse-gaussian"
+      ]
+    },
+    {
+      "id": "ass:conditional-bernoulli",
+      "kind": "outcome model",
+      "condition": "Conditional on all cell labels, the outcomes are independent with \\(Y_{di}\\mid Z_{di}=j\\sim\\operatorname{Bernoulli}(p_{dj})\\).",
+      "free_symbols": [
+        "d",
+        "i",
+        "j",
+        "Y_{di}",
+        "Z_{di}",
+        "p_{dj}"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Binary outcomes with cell-specific risks are common in stratified trials and audit studies; the two known risk levels per arm provide an interpretable calibration submodel rather than an oracle nuisance estimator."
+      },
+      "used_by": [
+        "def:finite-array-experiment",
+        "prop:sharp-cot-endpoint",
+        "thm:collision-comparison",
+        "thm:sparse-gaussian"
+      ]
+    },
+    {
+      "id": "ass:vanishing-triples",
+      "kind": "rare-event regularity",
+      "condition": "Along the triangular array, \\(\\varepsilon_K\\to0\\).",
+      "free_symbols": [
+        "K",
+        "\\varepsilon_K"
+      ],
+      "standard": {
+        "name": "Vanishing dependency-neighborhood mass for Poisson approximation",
+        "cite": "arratiaGoldsteinGordon1989"
+      },
+      "used_by": [
+        "lem:vanishing-triples-implies-growing-cells",
+        "thm:collision-comparison",
+        "thm:finite-information-transfer",
+        "thm:honest-interval-transfer",
+        "thm:sparse-gaussian",
+        "oeq:deterministic-shell-lan"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:legal-array-class",
+      "name": "\\mathcal T_K(r)",
+      "construction": "\\(\\mathcal T_K(r)=\\{(\\theta_{dj})_{d\\in\\{0,1\\},\\,1\\le j\\le K}: \\theta_{dj}\\in\\{-1,1\\}\\text{ for all }d,j\\text{ and }K^{-1}\\sum_{j=1}^{K}\\theta_{0j}\\theta_{1j}\\in[-r,r]\\}\\).",
+      "free_symbols": [
+        "K",
+        "d",
+        "j",
+        "r",
+        "\\theta_{dj}",
+        "\\rho_K"
+      ],
+      "by_member_properties": [
+        "ass:sign-array",
+        "ass:correlation-range"
+      ]
+    },
+    {
+      "id": "def:finite-array-experiment",
+      "name": "\\mathcal F_K",
+      "construction": "For each \\((\\theta_{dj})\\in\\mathcal T_K(r)\\), \\(\\mathcal F_K\\) observes \\(\\mathcal O_K\\) under independent arms, uniform cell labels, and independent conditional Bernoulli outcomes with probabilities \\(p_{dj}\\).",
+      "free_symbols": [
+        "K",
+        "\\theta_{dj}",
+        "\\mathcal O_K",
+        "d",
+        "Z_{di}",
+        "Y_{di}",
+        "p_{dj}"
+      ],
+      "inputs": [
+        "def:legal-array-class",
+        "ass:uniform-cells",
+        "ass:arm-independence",
+        "ass:conditional-bernoulli"
+      ]
+    },
+    {
+      "id": "def:marked-poisson-experiment",
+      "name": "\\mathcal E_{\\lambda,\\rho}",
+      "construction": "Observe \\(N\\sim\\operatorname{Poisson}(\\lambda)\\) and, conditional on \\(N\\), independent marks \\(S_1,\\ldots,S_N\\) satisfying \\(\\Pr_\\rho(S_\\ell=1)=(1+c\\rho)/2\\) for \\(\\rho\\in[-r,r]\\); equivalently observe independent counts \\((N_+,N_-)\\) with mass \\(f_{\\lambda,\\rho}(N_+,N_-)\\).",
+      "free_symbols": [
+        "c",
+        "r",
+        "\\lambda",
+        "\\rho",
+        "S_\\ell",
+        "\\mathcal E_{\\lambda,\\rho}",
+        "f_{\\lambda,\\rho}(k,l)"
+      ],
+      "inputs": [
+        "c",
+        "r"
+      ]
+    },
+    {
+      "id": "def:decision-rule-classes",
+      "name": "\\mathscr D_K,\\mathscr D_{\\lambda},\\mathscr C_K,\\mathscr C_{\\lambda}",
+      "construction": "Let \\(\\mathcal D=[a-b,a+b]\\). For the finite-array experiment, \\(\\mathscr D_K\\) is the collection of all randomized measurable Markov kernels \\(D_K:\\mathcal O_K\\rightsquigarrow\\mathcal D\\). For the marked-Poisson experiment, \\(\\mathscr D_{\\lambda}\\) is the collection of all randomized measurable Markov kernels \\(D_{\\lambda}:\\mathcal O_{\\lambda}\\rightsquigarrow\\mathcal D\\). Since \\(L_K\\in\\mathcal A\\subset\\mathcal D\\) and \\(a-b\\rho\\in\\mathcal A\\subset\\mathcal D\\), replacing any real-valued estimator by \\(\\operatorname{clip}_{\\mathcal D}(t)=\\min\\{a+b,\\max\\{a-b,t\\}\\}\\) cannot increase absolute or squared loss pointwise; hence allowing arbitrary real-valued endpoint actions yields the same minimax infima. Separately, \\(\\mathscr C_K\\) and \\(\\mathscr C_{\\lambda}\\) are the collections of all randomized measurable Markov kernels from \\(\\mathcal O_K\\) and \\(\\mathcal O_{\\lambda}\\), respectively, to the measurable action space of closed subintervals of \\(\\mathcal A\\), including degenerate intervals.",
+      "free_symbols": [
+        "K",
+        "a",
+        "b",
+        "\\rho",
+        "L_K",
+        "\\mathcal A",
+        "\\mathcal D",
+        "\\mathcal O_K",
+        "\\mathcal O_{\\lambda}",
+        "\\mathcal E_{\\lambda,\\rho}",
+        "\\mathscr D_K",
+        "\\mathscr D_{\\lambda}",
+        "\\mathscr C_K",
+        "\\mathscr C_{\\lambda}"
+      ],
+      "inputs": [
+        "def:finite-array-experiment",
+        "def:marked-poisson-experiment"
+      ]
+    },
+    {
+      "id": "def:supported-mixture-handle",
+      "name": "\\mathcal M_K=\\{P^{\\mathrm{mix}}_{K,q}:q\\in\\mathcal R_K^{\\circ}(r)\\}",
+      "construction": "For each \\(q\\in\\mathcal R_K^{\\circ}(r)\\), let \\(\\Gamma_{K,q}\\) make the \\(K\\) cell pairs independent with \\(\\Gamma_{K,q}(\\theta_{0j}=u,\\theta_{1j}=v)=(1+quv)/4\\) for \\(u,v\\in\\{-1,1\\}\\). Put \\(A_{K,q}=\\{|\\rho_K-q|\\le s_K\\}\\), \\(\\Pi_{K,q}^{\\mathrm{shell}}=\\Gamma_{K,q}(\\,\\cdot\\mid A_{K,q})\\), and \\(P^{\\mathrm{mix}}_{K,q}=\\int P^{\\mathcal F_K}_{K,\\theta}\\,d\\Pi_{K,q}^{\\mathrm{shell}}(\\theta)\\). Thus the parameter is the lattice point \\(q\\), the mixing law is a product law before conditioning, and its conditional support lies in \\(\\mathcal T_K(r)\\). For any \\(\\rho\\in[-r,r]\\), boundary comparison uses the exact projection \\(q_K(\\rho)\\), for which \\(|q_K(\\rho)-\\rho|\\le 2s_K+2/K\\).",
+      "free_symbols": [
+        "K",
+        "j",
+        "r",
+        "\\rho",
+        "\\theta_{dj}",
+        "\\rho_K",
+        "\\lambda_K",
+        "s_K",
+        "\\mathcal R_K^{\\circ}(r)",
+        "q_K(\\rho)",
+        "\\eta_K",
+        "\\Gamma_{K,q}",
+        "A_{K,q}",
+        "\\Pi_{K,q}^{\\mathrm{shell}}",
+        "P^{\\mathrm{mix}}_{K,q}",
+        "\\mathcal M_K"
+      ],
+      "inputs": [
+        "def:legal-array-class",
+        "def:finite-array-experiment"
+      ]
+    },
+    {
+      "id": "def:poisson-decision-frontiers",
+      "name": "R(\\lambda),C_\\alpha(\\lambda)",
+      "construction": "Define \\(R(\\lambda)=\\inf_{D_{\\lambda}\\in\\mathscr D_{\\lambda}}\\sup_{\\rho\\in[-r,r]}\\mathbb E_{\\lambda,\\rho}|D_{\\lambda}-(a-b\\rho)|\\). Define \\(C_\\alpha(\\lambda)=\\inf_{\\mathcal C_\\lambda\\in\\mathscr C_{\\lambda}}\\sup_{\\rho\\in[-r,r]}\\mathbb E_{\\lambda,\\rho}\\operatorname{len}(\\mathcal C_\\lambda)\\), subject to \\(\\inf_{\\rho\\in[-r,r]}\\Pr_{\\lambda,\\rho}\\{a-b\\rho\\in\\mathcal C_\\lambda\\}\\ge1-\\alpha\\).",
+      "free_symbols": [
+        "a",
+        "b",
+        "r",
+        "\\alpha",
+        "\\lambda",
+        "\\rho",
+        "\\mathcal A",
+        "\\mathscr D_{\\lambda}",
+        "\\mathscr C_{\\lambda}",
+        "\\mathcal E_{\\lambda,\\rho}",
+        "R(\\lambda)",
+        "C_\\alpha(\\lambda)"
+      ],
+      "inputs": [
+        "def:marked-poisson-experiment",
+        "def:decision-rule-classes"
+      ]
+    },
+    {
+      "id": "def:certified-interval-lp",
+      "name": "\\operatorname{LP}_{m,h,s}^{\\mathrm{int}}(\\lambda)",
+      "construction": "Fix integers \\(m,s\\ge1\\) and a grid \\(G_h=\\{-r=\\rho_0<\\cdots<\\rho_J=r\\}\\) with rational or computable-real nodes and maximum adjacent gap at most \\(h\\). Let \\(\\mathsf X_m=\\{(k,l)\\in\\mathbb N_0^2:k+l\\le m\\}\\), append an overflow state \\(\\star\\), and let \\(\\tau_m(\\lambda)=\\Pr\\{\\operatorname{Poisson}(\\lambda)>m\\}\\). For \\(m+1>\\lambda\\), certify the discarded mass by \\[\\tau_m(\\lambda)\\le \\overline\\tau_m(\\lambda):=e^{-\\lambda}\\left(\\frac{e\\lambda}{m+1}\\right)^{m+1};\\] its worst effects are at most \\(\\overline\\tau_m\\) on coverage and \\(2br\\overline\\tau_m\\) on expected length. The finite action grid is \\(\\mathsf A_h=\\{[a-b\\rho_v,a-b\\rho_u]:0\\le u\\le v\\le J\\}\\); the lower relaxation additionally admits a null grid-coverage pattern of length zero. For any rule and \\(\\rho,\\rho'\\in[-r,r]\\), the common-count coupling gives \\[\\lVert f_{\\lambda,\\rho}-f_{\\lambda,\\rho'}\\rVert_{\\mathrm{TV}}\\le\\omega_\\lambda(|\\rho-\\rho'|):=\\min\\{1,\\lambda c|\\rho-\\rho'|/2\\},\\] and hence every fixed event has probability modulus \\(\\omega_\\lambda\\), while every \\([0,2br]\\)-valued length has expectation modulus \\(2br\\omega_\\lambda\\). The lower finite LP uses variables \\(w_{x,A}\\) for \\(x\\in\\mathsf X_m\\), row sums one, gridwise retained-state coverage at least \\(1-\\alpha-\\tau_m\\), and gridwise retained expected length at most \\(t\\). It is a relaxation because an arbitrary interval maps to the shortest action spanning exactly the grid targets it covers, and overflow can contribute at most \\(\\tau_m\\) to coverage. The upper finite LP uses \\(\\mathsf A_h\\), fixes \\(A_\\star=\\mathcal A\\), and imposes gridwise coverage at least \\(1-\\alpha\\) and expected length at most \\(t\\). Its rule expands each \\(A=[L,U]\\) to \\(E_h(A)=[\\max\\{a-br,L-bh/2\\},\\min\\{a+br,U+bh/2\\}]\\), which adds at most \\(bh\\) in length and makes coverage of the nearest grid target imply coverage of \\(a-b\\rho\\). Put \\(\\omega_h=\\min\\{1,\\lambda ch/4\\}\\) and \\(\\gamma_h=\\omega_h/(\\alpha+\\omega_h)\\); mixing the expanded rule with the full interval \\(\\mathcal A\\) with probability \\(\\gamma_h\\) repairs its off-grid coverage from \\(1-\\alpha-\\omega_h\\) to at least \\(1-\\alpha\\), and adds at most \\(2br\\gamma_h\\) in length. Computation at an arbitrary real \\(\\lambda\\) supplied as a computable input uses an oracle returning rationals \\(\\lambda_s^-\\le\\lambda\\le\\lambda_s^+\\) with \\(\\lambda_s^+-\\lambda_s^-\\le2^{-s}\\); the same rational-or-oracle encoding is used for fixed real inputs. Directed interval evaluation of the exponential, powers, probabilities, action lengths, and all remaining coefficients returns rational bounds \\(f_{s,j,x}^-\\le f_{\\lambda,\\rho_j}(x)\\le f_{s,j,x}^+\\), \\(\\tau_{m,s}^-\\le\\tau_m(\\lambda)\\le\\tau_{m,s}^+\\le\\overline\\tau_m(\\lambda_s^+)\\), and outward upper bounds for \\(\\omega_h,bh,2br\\omega_h,2br\\gamma_h\\). In the rational lower relaxation, coverage uses \\(f^+\\) and right side \\(1-\\alpha-\\tau^+\\), while length uses \\(f^-\\); any exactly rational dual-feasible vector, checked by integer arithmetic after clearing denominators, gives a value \\(D_{m,h,s}^-\\le C_\\alpha(\\lambda)\\). In the rational upper restriction, coverage uses \\(f^-\\) and \\(\\tau^-\\), while length uses \\(f^+\\) and \\(\\tau^+\\); any exactly rational primal-feasible vector gives \\(P_{m,h,s}^+\\), and the reported upper certificate is \\(U_{m,h,s}^+=P_{m,h,s}^++bh+2br\\omega_h+2br\\gamma_h\\), with every displayed correction replaced computationally by its directed rational upper enclosure. Thus \\(\\operatorname{LP}_{m,h,s}^{\\mathrm{int}}(\\lambda)\\) reports the rational enclosure \\([D_{m,h,s}^-,U_{m,h,s}^+]\\); floating-point solvers may propose witnesses but only the exactly checked rational primal and dual witnesses constitute the certificate. Along any refinement with \\(m\\to\\infty\\), \\(h\\downarrow0\\), \\(s\\to\\infty\\), and \\(m+1>\\lambda_s^+\\), the tail, mesh, repair, and coefficient-enclosure errors vanish.",
+      "free_symbols": [
+        "a",
+        "b",
+        "c",
+        "r",
+        "\\alpha",
+        "\\lambda",
+        "\\rho",
+        "f_{\\lambda,\\rho}(k,l)",
+        "C_\\alpha(\\lambda)",
+        "\\mathcal A"
+      ],
+      "inputs": [
+        "def:marked-poisson-experiment",
+        "def:poisson-decision-frontiers"
+      ]
+    },
+    {
+      "id": "def:collision-estimator",
+      "name": "\\widehat L_K,\\widehat V_K",
+      "construction": "For \\(M_K>0\\), set \\(\\overline S_K=M_K^{-1}\\sum_{\\ell=1}^{M_K}S_\\ell\\), \\(\\widehat L_K=a-\\overline S_K/(4a)\\), and \\(\\widehat V_K=(1-\\overline S_K^2)/(16a^2)\\); use fixed bounded positive defaults when \\(M_K=0\\). Do not project \\(\\widehat L_K\\) onto \\(\\mathcal A\\).",
+      "free_symbols": [
+        "M_K",
+        "S_\\ell",
+        "a",
+        "\\widehat L_K",
+        "\\widehat V_K",
+        "\\mathcal A"
+      ],
+      "inputs": [
+        "M_K",
+        "S_\\ell"
+      ]
+    },
+    {
+      "id": "def:deterministic-shell-handle",
+      "name": "\\mathfrak G_{K,T,H}(\\rho_0)",
+      "construction": "For fixed \\(\\rho_0\\in(-r,r)\\) and \\(|h|\\le H\\), start from \\(\\Pi_{K,q_K(\\rho_0+h/\\sqrt{\\lambda_K})}^{\\mathrm{shell}}\\), restrict its support further to \\(\\mathcal H_K(\\rho_0,H+1)\\), and expand jointly the score, collision count, and \\(\\widehat V_K\\). Transfer the bounded loss \\(\\ell_T\\) at fixed \\(H,T\\), then take \\(K\\to\\infty\\), followed by \\(H\\to\\infty\\), followed by \\(T\\to\\infty\\).",
+      "free_symbols": [
+        "K",
+        "r",
+        "\\rho_K",
+        "\\lambda_K",
+        "s_K",
+        "q_K(\\rho)",
+        "\\mathcal H_K(\\rho_0,H)",
+        "\\ell_T(u)",
+        "\\widehat V_K",
+        "V(\\rho)"
+      ],
+      "inputs": [
+        "def:supported-mixture-handle",
+        "def:collision-estimator"
+      ]
+    },
+    {
+      "id": "def:interpolation-image",
+      "name": "\\mathcal I_K(r)",
+      "construction": "For \\(K\\ge2\\), put \\(I_{Kj}=((j-1)/K,j/K]\\), with \\(0\\in I_{K1}\\), and \\(B_{Kj}=[j/K-K^{-3},j/K+K^{-3}]\\) for \\(1\\le j<K\\). For \\(\\theta\\in\\mathcal T_K(r)\\), define \\(g_{d,K,\\theta}(u)=p_{d,\\kappa_K(u)}\\) off \\(\\bigcup_{j<K}B_{Kj}\\); on \\(B_{Kj}\\), let \\(g_{d,K,\\theta}\\) be the affine function joining \\(p_{dj}\\) at \\(j/K-K^{-3}\\) to \\(p_{d,j+1}\\) at \\(j/K+K^{-3}\\). The experiment \\(\\mathfrak I_K(\\theta)\\) observes independent arms with \\(U_{di}\\stackrel{\\mathrm{iid}}{\\sim}\\operatorname{Unif}[0,1]\\) and conditionally independent \\(Y_{di}\\mid U_{di}=u\\sim\\operatorname{Bernoulli}(g_{d,K,\\theta}(u))\\). Set \\(\\mathcal I_K(r)=\\{\\mathfrak I_K(\\theta):\\theta\\in\\mathcal T_K(r)\\}\\). The measurable pushforward \\(\\mathsf Q_K\\) replaces every \\(U_{di}\\) by \\(\\kappa_K(U_{di})\\).",
+      "free_symbols": [
+        "K",
+        "d",
+        "i",
+        "j",
+        "r",
+        "\\theta_{dj}",
+        "p_{dj}",
+        "\\mathfrak I_K",
+        "g_{d,K,\\theta}",
+        "U_{di}",
+        "Y_{di}",
+        "\\kappa_K",
+        "\\mathcal O_K^{\\mathrm c}",
+        "\\mathsf Q_K",
+        "\\mathcal I_K(r)"
+      ],
+      "inputs": [
+        "def:legal-array-class"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:sharp-cot-endpoint",
+      "kind": "proposition",
+      "statement": "For every \\((\\theta_{dj})\\in\\mathcal T_K(r)\\), the sharp lower bound on \\(\\mathbb E|Y(1)-Y(0)|\\) over couplings preserving the two conditional Bernoulli laws cell by cell is \\(L_K\\), and \\(L_K=a-b\\rho_K\\).",
+      "free_symbols": [
+        "K",
+        "d",
+        "j",
+        "a",
+        "b",
+        "r",
+        "\\theta_{dj}",
+        "\\rho_K",
+        "p_{dj}",
+        "L_K"
+      ],
+      "depends_on": [
+        "ass:amplitude-order",
+        "ass:sign-array",
+        "ass:conditional-bernoulli",
+        "def:legal-array-class"
+      ],
+      "status": "to-prove",
+      "justification": "This setup proposition fixes the actual causal partial-identification endpoint before any statistical approximation and provides a sanity check for the collision parameterization.",
+      "gap": "This identity is a direct binary specialization of Lin, Gao, Blanchet, and Glynn's general sharp COT bound in Theorem~1; no novelty is claimed for the affine calculation.",
+      "consumer": "The identity lets \\(\\texttt{causalPIviaCOT}\\) interpret partition-resolution diagnostics directly as uncertainty about a sharp endpoint rather than about an auxiliary regression coefficient."
+    },
+    {
+      "id": "prop:supported-mixture-legality",
+      "kind": "proposition",
+      "statement": "For all sufficiently large \\(K\\), \\(\\mathcal R_K^{\\circ}(r)\\neq\\varnothing\\). For every \\(q\\in\\mathcal R_K^{\\circ}(r)\\), \\(\\Pi_{K,q}^{\\mathrm{shell}}(\\mathcal T_K(r))=1\\), every array in its support obeys \\(|L_K-(a-bq)|\\le b s_K\\), and \\(\\Gamma_{K,q}(A_{K,q}^{\\mathrm c})\\le\\eta_K\\) uniformly in \\(q\\). The projection \\(q_K(\\rho)\\) is measurable and satisfies \\(|q_K(\\rho)-\\rho|\\le 2s_K+2/K\\) for every \\(\\rho\\in[-r,r]\\).",
+      "free_symbols": [
+        "K",
+        "a",
+        "b",
+        "r",
+        "\\rho_K",
+        "L_K",
+        "s_K",
+        "\\mathcal R_K^{\\circ}(r)",
+        "q_K(\\rho)",
+        "\\rho",
+        "\\eta_K",
+        "\\Gamma_{K,q}",
+        "A_{K,q}",
+        "\\Pi_{K,q}^{\\mathrm{shell}}"
+      ],
+      "depends_on": [
+        "ass:amplitude-order",
+        "ass:sign-array",
+        "ass:correlation-range",
+        "def:legal-array-class",
+        "def:supported-mixture-handle",
+        "prop:sharp-cot-endpoint"
+      ],
+      "status": "to-prove",
+      "justification": "The support, lattice, and target-radius assertions prevent a mixed lower experiment from silently leaving the deterministic parameter class or changing the finite-array endpoint.",
+      "gap": "Kipnis's supported-mixture conditioning in Theorems~2.1 and~2.3 concerns a one-sample multinomial testing parameter; it does not supply a two-array correlation lattice or control the realized COT endpoint on every supported array.",
+      "consumer": "This proposition licenses the finite-information and deterministic-shell minimax lower bounds over legal deterministic arrays."
+    },
+    {
+      "id": "lem:vanishing-triples-implies-growing-cells",
+      "kind": "lemma",
+      "statement": "Along the declared triangular array, \\(\\varepsilon_K=n_0n_1(n_0+n_1)/K^2\\ge 2/K^2\\) and \\(K\\to\\infty\\).",
+      "free_symbols": [
+        "K",
+        "n_d",
+        "\\varepsilon_K"
+      ],
+      "depends_on": [
+        "ass:vanishing-triples"
+      ],
+      "status": "to-prove",
+      "justification": "Positive integer arm sizes make growing alphabet size a consequence of the collision regularity condition rather than a redundant maintained assumption.",
+      "gap": "This arithmetic reduction is a setup lemma and carries no novelty claim.",
+      "consumer": "Every asymptotic collision and deterministic-shell statement that needs \\(K\\to\\infty\\) can invoke the implication without enlarging the model class."
+    },
+    {
+      "id": "thm:collision-comparison",
+      "kind": "theorem",
+      "statement": "There exist Markov kernels \\(\\mathsf K_K^{\\to}:\\mathcal O_K\\rightsquigarrow\\mathbb N_0^2\\) and \\(\\mathsf K_K^{\\leftarrow}:\\mathbb N_0^2\\rightsquigarrow\\mathcal O_K\\), depending only on \\(K,n_0,n_1,a,b,r\\) and not on \\(q\\), such that, with the same parameter \\(q\\in\\mathcal R_K^{\\circ}(r)\\) indexing both experiments, \\[\\sup_q\\lVert P^{\\mathrm{mix}}_{K,q}\\mathsf K_K^{\\to}-P^{\\mathcal E}_{\\lambda_K,q}\\rVert_{\\mathrm{TV}}\\le e_K,\\qquad \\sup_q\\lVert P^{\\mathcal E}_{\\lambda_K,q}\\mathsf K_K^{\\leftarrow}-P^{\\mathrm{mix}}_{K,q}\\rVert_{\\mathrm{TV}}\\le e_K,\\] where \\(e_K=\\min\\{1,5\\varepsilon_K+\\eta_K\\}\\). Both sides attach the decision target \\(a-bq\\) to the index \\(q\\). Moreover, for every deterministic array in \\(\\mathcal T_K(r)\\), the law of \\((M_K,S_1,\\ldots,S_{M_K})\\) is within \\(e_K^{\\mathrm{det}}=\\min\\{1,5\\varepsilon_K+\\lambda_K^2/(2K)\\}\\) in total variation of \\(\\mathcal E_{\\lambda_K,\\rho_K}\\), uniformly over arrays.",
+      "free_symbols": [
+        "K",
+        "n_d",
+        "a",
+        "b",
+        "r",
+        "\\mathcal O_K",
+        "\\theta_{dj}",
+        "\\rho_K",
+        "\\lambda_K",
+        "\\varepsilon_K",
+        "s_K",
+        "\\mathcal R_K^{\\circ}(r)",
+        "\\eta_K",
+        "P^{\\mathrm{mix}}_{K,q}",
+        "M_K",
+        "S_\\ell",
+        "\\mathcal E_{\\lambda,\\rho}"
+      ],
+      "depends_on": [
+        "ass:sign-array",
+        "ass:uniform-cells",
+        "ass:arm-independence",
+        "ass:conditional-bernoulli",
+        "ass:vanishing-triples",
+        "lem:vanishing-triples-implies-growing-cells",
+        "def:finite-array-experiment",
+        "def:marked-poisson-experiment",
+        "def:supported-mixture-handle",
+        "prop:supported-mixture-legality"
+      ],
+      "status": "to-prove",
+      "justification": "Two-sided comparison and uniform deterministic approximation are the information-theoretic bridge from the causal endpoint to a tractable non-Gaussian experiment.",
+      "gap": "Arratia, Goldstein, and Gordon provide forward Poisson approximation, while Kipnis's Theorems~2.1 and~2.3 provide one-sample supported-mixture conditioning and fixed-count transfer; neither supplies two parameter-free marked two-arm kernels on the finite correlation lattice or uniform approximation centered at every realized array target.",
+      "consumer": "Any bounded-loss estimator or interval designed in the marked-Poisson experiment can be transported back to the finite covariate partition with an explicit error budget."
+    },
+    {
+      "id": "thm:finite-information-transfer",
+      "kind": "theorem",
+      "statement": "If \\(\\lambda_K\\to\\lambda\\in[0,\\infty)\\), then \\(R_K\\to R(\\lambda)\\). The lower bound ranges over supported mixtures on legal deterministic arrays, and the upper bound uses only the deterministic collision statistic; both sides target the realized \\(L_K\\).",
+      "free_symbols": [
+        "K",
+        "\\lambda_K",
+        "R_K",
+        "R(\\lambda)",
+        "L_K"
+      ],
+      "depends_on": [
+        "ass:vanishing-triples",
+        "lem:vanishing-triples-implies-growing-cells",
+        "def:decision-rule-classes",
+        "def:poisson-decision-frontiers",
+        "thm:collision-comparison"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem converts a nonregular finite-array estimation problem into an exact one-parameter decision frontier.",
+      "gap": "Kipnis obtains sharp minimax risk for large-alphabet testing, not absolute-error estimation of an affine COT endpoint over deterministic two-arm arrays.",
+      "consumer": "A partition designer can report the irreducible estimation error implied by the expected number of cross-arm replications."
+    },
+    {
+      "id": "thm:honest-interval-transfer",
+      "kind": "theorem",
+      "statement": "If \\(\\lambda_K\\to\\lambda\\in[0,\\infty)\\), then \\(C_{K,\\alpha}\\to C_\\alpha(\\lambda)\\). For every computable \\(\\lambda\\), every \\(m,h\\), and all sufficiently large certification precisions \\(s\\), the procedure \\(\\operatorname{LP}_{m,h,s}^{\\mathrm{int}}(\\lambda)\\) returns exactly verified rational values satisfying \\[D_{m,h,s}^-\\le C_\\alpha(\\lambda)\\le U_{m,h,s}^+.\\] The upper rule uses the overflow action \\(\\mathcal A\\), endpoint expansion \\(E_h\\), and full-interval repair probability \\(\\gamma_h\\), and therefore has coverage at least \\(1-\\alpha\\) for every \\(\\rho\\in[-r,r]\\), not only at grid points. Along any refinement with \\(m\\to\\infty\\), \\(h\\downarrow0\\), \\(s\\to\\infty\\), and \\(m+1>\\lambda_s^+\\), \\(U_{m,h,s}^+-D_{m,h,s}^-\\to0\\) and both endpoints converge to \\(C_\\alpha(\\lambda)\\). Write \\(d_K=\\min\\{1,5\\varepsilon_K+\\lambda_K^2/(2K)\\}\\). Applying the corrected upper rule through the deterministic collision statistic loses at most \\(d_K\\) in coverage; mixing once more with \\(\\mathcal A\\) with probability \\(d_K/(\\alpha+d_K)\\) restores coverage at least \\(1-\\alpha\\) uniformly over \\(\\mathcal T_K(r)\\) and adds at most \\(2br\\,d_K/(\\alpha+d_K)\\) in expected length. The matching lower certificate transfers through the supported-mixture reverse kernel, so the finite-array worst-case expected length converges to \\(C_\\alpha(\\lambda)\\).",
+      "free_symbols": [
+        "K",
+        "b",
+        "r",
+        "\\alpha",
+        "\\lambda",
+        "\\rho",
+        "\\lambda_K",
+        "\\varepsilon_K",
+        "C_{K,\\alpha}",
+        "C_\\alpha(\\lambda)",
+        "\\mathcal E_{\\lambda,\\rho}",
+        "\\mathcal O_K",
+        "\\mathcal A"
+      ],
+      "depends_on": [
+        "ass:vanishing-triples",
+        "lem:vanishing-triples-implies-growing-cells",
+        "def:finite-array-experiment",
+        "def:decision-rule-classes",
+        "def:poisson-decision-frontiers",
+        "def:certified-interval-lp",
+        "thm:collision-comparison"
+      ],
+      "status": "to-prove",
+      "justification": "Exact honest interval length is the relevant uncertainty frontier when expected collisions remain finite, and rational primal--dual witnesses make that frontier independently auditable.",
+      "gap": "Evans, Hansen, and Stark establish general Bayes--minimax duality and Stoye diagnoses boundary failures; neither provides a computable interval-action Poisson enclosure with an explicit tail bound, continuum-parameter coverage repair, directed coefficient rounding, and two-sided deterministic-array transfer.",
+      "consumer": "The result supplies machine-checkable finite-information confidence intervals for sparse covariate partitions and a certified stopping rule for further cell refinement."
+    },
+    {
+      "id": "prop:exact-controls",
+      "kind": "proposition",
+      "statement": "The limit frontiers satisfy \\(R(0)=br\\) and \\(C_\\alpha(0)=2br(1-\\alpha)\\). Conditional on exactly one observed mark, the minimax absolute risk is \\(br/(1+cr)\\); if \\(cr\\le1-2\\alpha\\), the minimax expected interval length is \\(b\\{2r+(2\\alpha/c)\\log(1-cr)\\}\\).",
+      "free_symbols": [
+        "a",
+        "b",
+        "r",
+        "\\alpha",
+        "c",
+        "R(\\lambda)",
+        "C_\\alpha(\\lambda)",
+        "\\mathcal E_{\\lambda,\\rho}"
+      ],
+      "depends_on": [
+        "def:marked-poisson-experiment",
+        "def:poisson-decision-frontiers"
+      ],
+      "status": "to-prove",
+      "justification": "Closed-form zero- and one-mark cases independently check the scale, interval realizability, and numerical certification pipeline.",
+      "gap": "Generic bounded-parameter decision theory does not provide these affine weak-mark controls for the COT experiment.",
+      "consumer": "The one-mark length furnishes an independent control for the required \\(\\lambda=1\\) certified linear-program refinement."
+    },
+    {
+      "id": "thm:sparse-gaussian",
+      "kind": "theorem",
+      "statement": "If \\(\\lambda_K\\to\\infty\\), then uniformly over \\((\\theta_{dj})\\in\\mathcal T_K(r)\\), \\(\\sqrt{\\lambda_K}(\\widehat L_K-L_K)/\\sqrt{\\widehat V_K}\\rightsquigarrow\\mathcal N(0,1)\\) and \\(\\widehat V_K-V(\\rho_K)\\to0\\) in probability. The unprojected Wald interval \\([\\widehat L_K\\pm z_{1-\\alpha/2}\\sqrt{\\widehat V_K/\\lambda_K}]\\) has uniform coverage \\(1-\\alpha+o(1)\\) for \\(L_K\\).",
+      "free_symbols": [
+        "K",
+        "a",
+        "b",
+        "r",
+        "\\alpha",
+        "\\theta_{dj}",
+        "\\rho_K",
+        "L_K",
+        "\\lambda_K",
+        "\\widehat L_K",
+        "\\widehat V_K",
+        "V(\\rho)"
+      ],
+      "depends_on": [
+        "ass:uniform-cells",
+        "ass:arm-independence",
+        "ass:conditional-bernoulli",
+        "ass:vanishing-triples",
+        "lem:vanishing-triples-implies-growing-cells",
+        "def:legal-array-class",
+        "def:collision-estimator",
+        "thm:collision-comparison"
+      ],
+      "status": "to-prove",
+      "justification": "This theorem identifies the transition from finite non-Gaussian information to ordinary studentized inference without changing the finite-array target.",
+      "gap": "Lin, Gao, Blanchet, and Glynn's Proposition~3.2 gives the key smooth-density estimation bound, Proposition~3.3 gives the quadratic-objective stability inequality, and Theorem~3.2 gives the resulting central limit theorem; none covers binary marks or deterministic collision sampling.",
+      "consumer": "Once the estimated collision intensity is large, practitioners can replace certified Poisson decisions by a simple variance-matched Wald procedure."
+    },
+    {
+      "id": "oeq:deterministic-shell-lan",
+      "kind": "openendedquestion",
+      "statement": "For every interior \\(\\rho_0\\in(-r,r)\\), can the handle \\(\\mathfrak G_{K,T,H}(\\rho_0)\\) establish the deterministic-shell local asymptotic minimax identity \\(\\lim_{T\\to\\infty}\\lim_{H\\to\\infty}\\liminf_{K\\to\\infty}\\inf_{D_K\\in\\mathscr D_K}\\sup_{\\mathcal H_K(\\rho_0,H)}\\mathbb E\\,\\ell_T(\\sqrt{\\lambda_K}(D_K-L_K))=V(\\rho_0)\\), where \\(\\mathscr D_K\\) contains every randomized measurable Markov kernel from \\(\\mathcal O_K\\) to \\(\\mathcal D=[a-b,a+b]\\), with \\(H\\) taken to infinity before \\(T\\), and with \\(\\operatorname{clip}_{\\mathcal D}(\\widehat L_K)\\) attaining the corresponding upper bound, equivalently with \\(\\widehat L_K\\) attaining it in the real-valued formulation?",
+      "free_symbols": [
+        "K",
+        "a",
+        "b",
+        "r",
+        "\\rho_K",
+        "L_K",
+        "\\lambda_K",
+        "\\widehat L_K",
+        "V(\\rho)",
+        "\\mathcal H_K(\\rho_0,H)",
+        "\\ell_T(u)",
+        "\\mathcal D",
+        "\\mathcal O_K",
+        "\\mathscr D_K"
+      ],
+      "depends_on": [
+        "ass:vanishing-triples",
+        "lem:vanishing-triples-implies-growing-cells",
+        "def:decision-rule-classes",
+        "def:deterministic-shell-handle",
+        "thm:collision-comparison",
+        "thm:sparse-gaussian"
+      ],
+      "status": "to-prove",
+      "justification": "This is the genuine open content needed to certify that the Gaussian variance is an efficiency bound for the full deterministic-array problem rather than only for a mixture experiment.",
+      "gap": "Hirano and Porter transfer bounded local risks from limit experiments, and Kipnis conditions Poisson mixtures to fixed counts; neither derandomizes onto exact two-array Hamming shells with a realized-target centering error that is negligible at collision scale.",
+      "consumer": "A positive resolution certifies the collision estimator as locally minimax and prevents marginal-imbalance information in hand-picked arrays from invalidating the lower bound."
+    },
+    {
+      "id": "thm:interpolation-transfer",
+      "kind": "theorem",
+      "statement": "For every \\(\\theta\\in\\mathcal T_K(r)\\), let \\(P^{\\mathrm c}_{K,\\theta}\\) denote the law of \\(\\mathcal O_K^{\\mathrm c}\\) in \\(\\mathfrak I_K(\\theta)\\) and let \\(P^{\\mathcal F}_{K,\\theta}\\) denote its discrete finite-array law. After applying the measurable coarsening pushforward \\(\\mathsf Q_K\\), \\[\\sup_{\\theta\\in\\mathcal T_K(r)}\\lVert P^{\\mathrm c}_{K,\\theta}\\mathsf Q_K-P^{\\mathcal F}_{K,\\theta}\\rVert_{\\mathrm{TV}}\\le 2(n_0+n_1)/K^2,\\qquad \\sup_{\\theta\\in\\mathcal T_K(r)}|L_K^{\\mathrm c}-L_K|\\le2(a+b)/K^2.\\] Consequently the finite-collision decision transfers and the sparse Gaussian conclusion transfer at the actual endpoint \\(L_K^{\\mathrm c}\\) whenever their displayed comparison errors vanish at the relevant unscaled or \\(\\sqrt{\\lambda_K}\\)-scaled level. This is a comparison of the coarsened pushforward with the discrete experiment; no total-variation comparison is asserted between raw continuous observations and discrete-label observations, and no conclusion is asserted beyond \\(\\mathcal I_K(r)\\).",
+      "free_symbols": [
+        "K",
+        "n_d",
+        "a",
+        "b",
+        "r",
+        "L_K",
+        "L_K^{\\mathrm c}",
+        "\\lambda_K",
+        "\\mathfrak I_K",
+        "U_{di}",
+        "\\kappa_K",
+        "\\mathcal O_K^{\\mathrm c}",
+        "\\mathsf Q_K",
+        "\\mathcal I_K(r)"
+      ],
+      "depends_on": [
+        "def:interpolation-image",
+        "prop:sharp-cot-endpoint",
+        "thm:collision-comparison",
+        "thm:finite-information-transfer",
+        "thm:honest-interval-transfer",
+        "thm:sparse-gaussian"
+      ],
+      "status": "to-prove",
+      "justification": "The restricted transfer gives a continuous-covariate interpretation without claiming an unproved coarsening-bias theorem for a broad smoothness ball.",
+      "gap": "Low and Zhou show that Poissonization transfer can fail below regularity thresholds; existing COT work does not justify this growing-roughness binary interpolation image.",
+      "consumer": "The image supplies a controlled continuous stress test for \\(\\texttt{causalPIviaCOT}\\) partition-resolution diagnostics."
+    }
+  ],
+  "sampling_model": {
+    "design": "Two independent fixed-size arms sample from \\(K\\) equal-probability covariate cells. The primary parameter is a pair of deterministic sign arrays in \\(\\mathcal T_K(r)\\). The lower experiment is indexed by \\(q\\in\\mathcal R_K^{\\circ}(r)\\) and mixes only over the legal shell \\(|\\rho_K-q|\\le s_K\\).",
+    "units": "Within each arm, observations are independent. Conditional on a sampled cell, the outcome is Bernoulli with the cell probability \\(p_{dj}\\).",
+    "treatment": "Arm membership is fixed by the two-sample design; treatment and control samples are independent and no unit appears in both arms.",
+    "overlap": "Every cell has sampling probability \\(1/K\\) in each arm, while cross-arm overlap is governed by \\(\\lambda_K=n_0n_1/K\\).",
+    "nuisance_estimation": "The amplitudes \\(a\\) and \\(b\\) are known. The sign arrays are unrestricted apart from membership in \\(\\mathcal T_K(r)\\); the procedure estimates their empirical cross-arm correlation only through collision marks. Continuous transfer uses \\(U_{di}\\sim\\operatorname{Unif}[0,1]\\) and is compared with the discrete design only after the measurable pushforward \\(\\mathsf Q_K\\)."
+  },
+  "estimand_functional": "\\(L_K=K^{-1}\\sum_{j=1}^{K}|p_{1j}-p_{0j}|=a-bK^{-1}\\sum_{j=1}^{K}\\theta_{0j}\\theta_{1j}\\), estimated for \\(M_K>0\\) by \\(\\widehat L_K=a-(4aM_K)^{-1}\\sum_{\\ell=1}^{M_K}S_\\ell\\)",
+  "target_estimand": "\\(L_K=\\inf_{\\pi:\\,\\pi_{Y(0)\\mid Z},\\pi_{Y(1)\\mid Z}\\ \\mathrm{fixed}}\\mathbb E_\\pi|Y(1)-Y(0)|=a-b\\rho_K\\)",
+  "bibliography": [
+    {
+      "key": "linGaoBlanchetGlynn2026Causal",
+      "citation": "Lin, Sirui, Zijun Gao, José Blanchet, and Peter Glynn (2026). \\emph{Causal Partial Identification via Conditional Optimal Transport}. Proceedings of AISTATS, PMLR 300. arXiv:2506.00257. Theorems 1--6, especially Theorem 1 on general sharp COT bounds."
+    },
+    {
+      "key": "linGaoBlanchetGlynn2026Smooth",
+      "citation": "Lin, Sirui, Zijun Gao, José Blanchet, and Peter Glynn (2026). \\emph{Statistical Inference in Causal Partial Identification with Smooth Densities}. arXiv:2602.20681. Assumptions 2.1--2.2; Proposition 3.2 on the key estimation bound; Proposition 3.3 on the quadratic-objective stability inequality; and Theorem 3.2 on asymptotic normality."
+    },
+    {
+      "key": "jiLeiSpector2023ModelAgnostic",
+      "citation": "Ji, Wenlong, Lihua Lei, and Asher Spector (2023). \\emph{Model-Agnostic Covariate-Assisted Inference on Partially Identified Causal Effects}. arXiv:2310.08115. Theorems 3.1--3.5."
+    },
+    {
+      "key": "oberReynolds2023Estimating",
+      "citation": "Ober-Reynolds, Daniel (2023). \\emph{Estimating Functionals of the Joint Distribution of Potential Outcomes with Optimal Transport}. arXiv:2311.09435, unpublished manuscript. Sharp optimal-transport identified intervals and root-\\(n\\) sample-analogue inference in an instrumental-variables noncompliance setting."
+    },
+    {
+      "key": "kipnis2026MinimaxRisk",
+      "citation": "Kipnis, Alon (2026). \\emph{The Minimax Risk in Testing Uniformity of Poisson Data under Missing Ball Alternatives}. IEEE Transactions on Information Theory. DOI: 10.1109/TIT.2025.3646804."
+    },
+    {
+      "key": "kipnis2026SharpLowerBound",
+      "citation": "Kipnis, Alon (2026). \\emph{Sharp Lower Bound on the Minimax Risk for Multinomial Uniformity Testing via a Conditional Central Limit Theorem}. arXiv:2607.05223. Theorems 2.1 and 2.3."
+    },
+    {
+      "key": "arratiaGoldsteinGordon1989",
+      "citation": "Arratia, Richard, Larry Goldstein, and Louis Gordon (1989). \\emph{Two Moments Suffice for Poisson Approximations: The Chen--Stein Method}. Annals of Probability 17(1), 9--25. Theorem 1."
+    },
+    {
+      "key": "paninski2008Coincidence",
+      "citation": "Paninski, Liam (2008). \\emph{A Coincidence-Based Test for Uniformity Given Very Sparsely Sampled Discrete Data}. IEEE Transactions on Information Theory 54(10), 4750--4755. DOI: 10.1109/TIT.2008.928987."
+    },
+    {
+      "key": "evansHansenStark2005",
+      "citation": "Evans, Steven N., Bendek B. Hansen, and Philip B. Stark (2005). \\emph{Minimax Expected Measure Confidence Sets for Restricted Location Parameters}. Bernoulli 11(4), 571--590. Theorem 1 and Corollary 1."
+    },
+    {
+      "key": "stoye2009More",
+      "citation": "Stoye, Jörg (2009). \\emph{More on Confidence Intervals for Partially Identified Parameters}. Econometrica 77(4), 1299--1315. Propositions 1--2."
+    },
+    {
+      "key": "hiranoPorter2003Support",
+      "citation": "Hirano, Keisuke, and Jack R. Porter (2003). \\emph{Asymptotic Efficiency in Parametric Structural Models with Parameter-Dependent Support}. Econometrica 71(5), 1307--1338. Theorems 1--3."
+    },
+    {
+      "key": "lowZhou2007Poissonization",
+      "citation": "Low, Mark G., and Harrison H. Zhou (2007). \\emph{A Complement to Le Cam's Theorem}. Annals of Statistics 35(3), 1146--1165. arXiv:0708.2233."
+    },
+    {
+      "key": "armstrongKolesar2021FiniteSampleATE",
+      "citation": "Armstrong, Timothy B., and Michal Kolesár (2021). \\emph{Finite-Sample Optimal Estimation and Inference on Average Treatment Effects Under Unconfoundedness}. Econometrica 89(3), 1141--1177. arXiv:1712.04594."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "linGaoBlanchetGlynn2026Causal",
+      "comparator_claim": "Theorem 1 gives general sharp conditional optimal-transport bounds, and Theorems 2--6 develop continuity and statistical guarantees for their estimation.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "linGaoBlanchetGlynn2026Smooth",
+      "comparator_claim": "Proposition 3.2 supplies the key estimation bound, Proposition 3.3 supplies the quadratic-objective stability inequality, and Theorem 3.2 establishes asymptotic normality for quadratic COT under smooth positive densities.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "jiLeiSpector2023ModelAgnostic",
+      "comparator_claim": "Theorem 3.1 gives uniformly valid dual lower confidence bounds even under an arbitrarily inaccurate outcome model, while later results give sharpness under nuisance-rate conditions.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "oberReynolds2023Estimating",
+      "comparator_claim": "The public manuscript characterizes sharp optimal-transport identified intervals and gives root-\\(n\\) sample-analogue inference for potential-outcome functionals in an instrumental-variables noncompliance model.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "kipnis2026SharpLowerBound",
+      "comparator_claim": "Theorems 2.1 and 2.3 transfer a sharp multinomial-uniformity testing lower bound using supported Poisson mixtures and a conditional central limit theorem.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "evansHansenStark2005",
+      "comparator_claim": "Theorem 1 and Corollary 1 characterize minimax expected-measure confidence sets through Bayes--minimax duality and test inversion.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "stoye2009More",
+      "comparator_claim": "Propositions 1 and 2 give uniformly valid confidence intervals for interval-identified parameters with explicit treatment of the identified-set-length nuisance.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "hiranoPorter2003Support",
+      "comparator_claim": "Theorem 3 proves local asymptotic minimax efficiency of Bayes estimators in nonregular parameter-dependent-support experiments.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "arratiaGoldsteinGordon1989",
+      "comparator_claim": "Theorem 1 bounds total-variation error for Poisson approximation of locally dependent rare-event counts and processes.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "kipnis2026MinimaxRisk",
+      "comparator_claim": "The published minimax analysis identifies collision-dominated behavior for testing uniformity of sparse Poisson data under missing-ball alternatives.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "paninski2008Coincidence",
+      "comparator_claim": "The coincidence statistic attains the sparse-alphabet sample-complexity threshold for uniformity testing through explicit collision moment bounds.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "lowZhou2007Poissonization",
+      "comparator_claim": "Poissonized and density-estimation experiments are asymptotically equivalent above a Besov regularity frontier and can fail to be equivalent below it.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "armstrongKolesar2021FiniteSampleATE",
+      "comparator_claim": "Finite-sample optimal confidence intervals balance worst-case smoothness bias against variance for average treatment effects under unconfoundedness.",
+      "matched_by": "unmatched",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "For binary outcomes on a growing uniform covariate partition, the setup identity gives the sharp absolute-cost COT lower endpoint \\(L_K=a-b\\rho_K\\), where \\(\\rho_K\\) is the realized correlation of two deterministic sign arrays. When \\(\\lambda_K=n_0n_1/K\\) stays finite and triple collisions vanish, nearly all information about \\(L_K\\) is carried by a Poisson number of cross-arm collisions with weak binary marks. The proposal establishes an exactly indexed interior-lattice supported-mixture comparison with parameter-free forward and reverse kernels, a uniform deterministic-array collision approximation, exact minimax absolute-risk and honest-length transfer, and computable rational interval-action certificates whose tail, off-grid coverage, and rounding errors are explicit. When \\(\\lambda_K\\) diverges sparsely, the same collision estimator becomes uniformly studentized Gaussian; the open kernel is the matching local minimax theorem on deterministic Hamming shells. Continuous transfer is limited to the coarsening pushforward of an explicit uniform-covariate interpolation image, because arbitrary coarsening changes the COT endpoint without a separate bias bound.",
+  "project_justification": {
+    "gap": "Published COT theory supplies sharp identification, consistency, rates, model-agnostic conservative inference, and smooth quadratic-cost inference through Proposition~3.2's key estimation bound, Proposition~3.3's quadratic-objective stability inequality, and Theorem~3.2's central limit theorem, but it does not characterize the non-Gaussian information experiment created by sparse cross-arm replication on a growing partition. Large-alphabet collision theory and confidence-set duality supply techniques, not the two-arm marked endpoint or legal deterministic-array transfer.",
+    "niche": "The missing object is a single information frontier indexed by expected cross-arm collisions: exact finite-information decisions when \\(\\lambda_K\\) is bounded and Gaussian local efficiency when \\(\\lambda_K\\) diverges, always centered at the actual sharp finite-array endpoint.",
+    "fill": "The project proves a marked-Poisson reduction with parameter-free forward and reverse randomization on an explicit interior correlation lattice under shell-conditioned legal product mixtures, derives uniform collision-statistic approximation for every deterministic array, and certifies honest finite-information intervals by exactly checked rational lower-dual and upper-primal witnesses with explicit Poisson-tail and continuum-coverage corrections. It resolves the remaining LAN-to-shell lower bound before transferring only after a measurable coarsening pushforward from an explicit uniform-covariate interpolation image."
+  },
+  "related_work": "Lin, Gao, Blanchet, and Glynn (2026, AISTATS, Theorems 1--6) establish general sharp COT bounds, continuity, and statistical guarantees; Theorem~1 supplies the identification formula of which the affine binary endpoint is a setup specialization, while their remaining results inform the estimation setting without yielding a rare-collision experiment. Their smooth-density follow-up (2026) uses Proposition~3.2 for the key estimation bound, Proposition~3.3 for the quadratic-objective stability inequality, and Theorem~3.2 for asymptotic normality; the binary absolute-cost model instead requires marked-collision likelihood theory. Ji, Lei, and Spector (2023, Theorems 3.1--3.5) deliver model-agnostic dual inference and emphasize binning loss, but do not optimize honest expected length or identify the collision frontier. Ober-Reynolds (2023, arXiv:2311.09435) is an unpublished manuscript deriving sharp OT intervals and root-\\(n\\) sample-analogue inference for potential-outcome functionals in an instrumental-variables noncompliance model; it informs the OT-inference comparison but does not study sparse covariate collisions or deterministic-array transfer. Paninski (2008) and Kipnis (2026) show that collisions govern sparse large-alphabet testing; Kipnis's Theorems~2.1 and~2.3 in arXiv:2607.05223 provide the closest conditional-central-limit and supported-mixture architecture, although their object is one-sample uniformity testing. Arratia, Goldstein, and Gordon (1989, Theorem 1) supply the forward dependency-neighborhood approximation. Evans, Hansen, and Stark (2005, Theorem 1 and Corollary 1) supply test inversion and Bayes--minimax duality for expected measure, while Stoye (2009, Propositions 1--2) shows why boundary nuisance sequences require uniform coverage analysis; neither source supplies the Poisson-tail truncation, likelihood modulus, endpoint expansion, full-interval repair, or exact rational primal--dual verification required for a continuum-parameter certificate here. Hirano and Porter (2003, Theorem 3) provide the limits-of-experiments efficiency template; exact deterministic Hamming shells and the ordered truncation limits are new obligations here. Low and Zhou (2007) and Armstrong and Kolesár (2021) inform the restricted pushforward transfer and bias-aware scope, without supporting a claim over a full smoothness ball.",
+  "technical_internal_limitation": "The former two-fixed-array lower witness is invalid because armwise marginal imbalance reveals the endpoint without cross-arm collisions. Every lower bound in this core therefore uses mixtures supported on legal arrays and targets the realized \\(L_K\\). Floating-point linear-program output may only suggest candidate witnesses: a certificate exists only after every likelihood and tail coefficient is outward-rounded and the resulting rational primal and dual inequalities are verified exactly. Endpoint decisions may be clipped to \\(\\mathcal D\\) without increasing absolute or squared loss, but projection of the statistic \\(\\widehat L_K\\) onto the narrower range \\(\\mathcal A\\) is excluded from the local Gaussian theorem because it changes boundary risk.",
+  "honest_scope": "The finite-\\(\\lambda\\) experiment comparison, decision transfer, convergence of the rational interval-certificate bracket, sparse studentized central limit theorem, deterministic-shell efficiency identity, and interpolation-image pushforward transfer are all to be proved. The affine binary COT identity and the exact zero- and one-mark formulas are setup and sanity propositions, not novelty claims. At \\(\\lambda=0\\), the result reduces to the no-information bounded-parameter risks \\(R(0)=br\\) and \\(C_\\alpha(0)=2br(1-\\alpha)\\). The interval certificate covers computable \\(\\lambda\\), including rational inputs, through certified shrinking rational enclosures; an uncertified floating-point value is outside the claim. No raw total-variation comparison is made between mutually singular continuous covariates and discrete labels. No claim is made for unknown amplitudes, nonuniform cell probabilities, nonnegligible triple collisions, dense cellwise estimation, or a full continuous smoothness class. Coarsening changes the estimand unless a separate bias theorem is added.",
+  "seeds": [
+    "S1: finite-array marked-collision frontier",
+    "S2: certified honest interval frontier",
+    "S3: deterministic-shell Gaussian efficiency transition",
+    "S4: finite-collision exact absolute-risk curve",
+    "S5: partition-coarsening bias and resolution choice",
+    "S6: nonuniform-cell collision intensity experiment",
+    "S7: unknown-amplitude adaptive collision inference",
+    "S8: multi-arm hypercollision COT endpoint",
+    "S9: compound-Poisson triple-collision transition",
+    "S10: model-agnostic dual versus sharp collision interval frontier"
+  ],
+  "seed_details": [
+    {
+      "id": "S1",
+      "anchor": "linGaoBlanchetGlynn2026Causal",
+      "anchor_location": "Introduction; Theorem 1 on general sharp COT bounds; Theorems 2--6 on continuity and statistical guarantees; Conclusion and Discussion; proofs of Theorems 1 and 4 in the supplement.",
+      "opportunity": "Characterize the complete finite-array information frontier for the sharp binary-cost COT endpoint when information arrives through rare marked cross-arm collisions.",
+      "proof_boundary": "The anchor controls COT by adapted-Wasserstein approximation of conditional laws. The first changed step is to replace conditional-law estimation by a process-level reduction of one-control--one-treatment cell coincidences, retaining their outcome-product marks and the realized array correlation.",
+      "destination_search": "Searches for \\(\\text{conditional optimal transport}+\\text{collision}+\\text{Poisson}+\\text{minimax}\\), \\(\\text{marked Poisson}+\\text{causal partial identification}\\), and \\(\\text{cross-arm collision estimator}\\) found no exact target--method match.",
+      "motif": "M2+M7+M8+M11",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 24
+      },
+      "rank": 1,
+      "red_team": "Immediate from Lin, Gao, Blanchet, and Glynn because their partition estimator already covers discrete COT.",
+      "rebuttal": "Their theorem supplies consistency and rates under adapted-Wasserstein regularity, not a finite-collision limit experiment, exact decision frontier, deterministic-array transfer, or sparse local efficiency result.",
+      "disposition": "selected"
+    },
+    {
+      "id": "S2",
+      "anchor": "stoye2009More",
+      "anchor_location": "Abstract and Introduction; Propositions 1--2 and their proofs; concluding discussion of uniform coverage and local superefficiency.",
+      "opportunity": "Solve the level-\\((1-\\alpha)\\) minimax expected-length interval problem in the finite-\\(\\lambda\\) marked-Poisson experiment and certify computable primal--dual brackets.",
+      "proof_boundary": "Evans, Hansen, and Stark convert confidence sets into randomized tests and apply weak-star Bayes--minimax duality. The first changed step is to sandwich the countable-state, continuum-parameter problem between a tail-relaxed lower LP and an overflow-protected upper LP, then use the marked-likelihood modulus, endpoint expansion, full-interval repair, and exactly checked rational dual and primal witnesses to close the bracket.",
+      "destination_search": "Searches for minimax expected length in Poisson models found bounded-mean and ordinary Poisson-mean intervals, but no interval-action solution for a Poisson number of Bernoulli marks with affine COT target and deterministic-array deficiency transfer.",
+      "motif": "M4+M8",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 5,
+        "total": 23
+      },
+      "rank": 2,
+      "red_team": "Immediate from Evans, Hansen, and Stark because coverage and expected length are linear in randomized confidence actions.",
+      "rebuttal": "The generic duality does not give the tail-relaxed lower program, overflow-protected upper program, marked-likelihood modulus, endpoint expansion and full-interval repair, exactly verified rational witnesses, or transfer to the original deterministic-array experiment.",
+      "disposition": "surviving component of selected kernel"
+    },
+    {
+      "id": "S3",
+      "anchor": "linGaoBlanchetGlynn2026Smooth",
+      "anchor_location": "Introduction; Assumptions 2.1--2.2; Theorem 3.1 on rates; Proposition 3.2 on the key estimation bound; Proposition 3.3 on the quadratic-objective stability inequality; Theorem 3.2 on asymptotic normality; proof of Theorem 3.2; Discussion and Conclusion.",
+      "opportunity": "Derive a uniform studentized Gaussian law and matching interior local asymptotic minimax variance when the collision intensity diverges but triple collisions vanish.",
+      "proof_boundary": "The anchor combines Proposition 3.2's estimation bound with Proposition 3.3's quadratic-objective stability inequality to linearize quadratic COT through smooth Kantorovich potentials. The first changed step is a triangular-array likelihood expansion for marked collision sums under local flips of deterministic sign shells, jointly with the random collision count and variance estimator.",
+      "destination_search": "The target--method search found smooth-density quadratic-cost COT central limit theorems and large-alphabet collision central limit theorems, but no binary-cost COT result centered at the realized deterministic-array endpoint.",
+      "motif": "M11(b)+M11(c)+M7",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 22
+      },
+      "rank": 3,
+      "red_team": "A Bernoulli-mark central limit theorem and Fisher-information calculation make this routine.",
+      "rebuttal": "The upper limit is elementary only after reduction; the hard lower direction must place supported mixtures on exact deterministic Hamming shells and transfer bounded local risks with the radius and truncation limits in the correct order.",
+      "disposition": "surviving component of selected kernel"
+    },
+    {
+      "id": "S4",
+      "anchor": "kipnis2026SharpLowerBound",
+      "anchor_location": "Abstract and Introduction; Sections 1--2; Theorems 2.1 and 2.3; conditional characteristic-function and likelihood-ratio arguments in the proofs; concluding discussion.",
+      "opportunity": "Obtain a closed-form exact minimax absolute-risk curve for every finite collision intensity rather than a certified numerical characterization.",
+      "proof_boundary": "Kipnis optimizes large-alphabet histogram statistics under symmetric product priors. The first changed step is to solve the continuous one-parameter Bayes envelope for a Poisson number of weak Bernoulli marks under absolute loss.",
+      "destination_search": "Searches found sharp testing constants and standard bounded-parameter estimators, but no closed form for this compound Bernoulli-mark decision problem.",
+      "motif": "M11(a)",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 3,
+        "total": 17
+      },
+      "rank": 7,
+      "red_team": "This is only a one-dimensional numerical decision problem.",
+      "rebuttal": "A global analytic least-favorable prior and exact risk curve would be nontrivial, but present evidence supports certified computation more strongly than a closed form.",
+      "disposition": "dropped after deepening because feasibility is weaker than S2"
+    },
+    {
+      "id": "S5",
+      "anchor": "jiLeiSpector2023ModelAgnostic",
+      "anchor_location": "Introduction and motivating examples; Theorems 3.1 and 3.4--3.5 on valid dual bounds; Discussion, including the binning-loss and two-sided-inference sections.",
+      "opportunity": "Derive a sharp coarsening-bias modulus for the continuous growing-roughness interpolation image and optimize partition resolution against collision uncertainty.",
+      "proof_boundary": "The anchor secures validity through dual feasibility even under nuisance misspecification. The first changed step is instead deterministic: compare the continuous conditional Bernoulli transport endpoint with its cell projection before any inferential approximation.",
+      "destination_search": "The search found fixed-smoothness COT rates and bias-aware average-treatment-effect intervals, but not a sharp nonsmooth binary-cost bias--collision frontier under growing roughness.",
+      "motif": "M10+M8+M11(a)",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 5,
+        "total": 20
+      },
+      "rank": 4,
+      "red_team": "A Lipschitz modulus and standard bias-aware interval immediately solve partition choice.",
+      "rebuttal": "The allowed roughness grows with \\(K\\), binary COT is weak-topology discontinuous, and no verified sharp bias modulus is currently available.",
+      "disposition": "dropped from the kernel; retained only as a declared extension because it would require a new class-level theorem"
+    },
+    {
+      "id": "S6",
+      "anchor": "kipnis2026SharpLowerBound",
+      "anchor_location": "Abstract and Introduction; Sections 1--2; Theorems 2.1 and 2.3; conditional characteristic-function and likelihood-ratio arguments in the proofs; concluding discussion.",
+      "opportunity": "Replace uniform cells by known unequal cell probabilities and identify the limiting marked Poisson intensity measure and estimability threshold.",
+      "proof_boundary": "The dependency-neighborhood bound remains available, but the first changed step is to retain heterogeneous cell weights and to determine which weighted correlation functional is identified by collision marks.",
+      "destination_search": "Searches found nonuniform occupancy testing but no nonuniform covariate-cell COT endpoint with marked two-sample collisions.",
+      "motif": "M2+M11(c)",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "rank": 5,
+      "red_team": "This is the same theorem after replacing \\(K^{-1}\\) by cell weights.",
+      "rebuttal": "Unequal weights change both the target and the collision sampling measure, so inverse-probability marks and heavy-cell exclusions create a distinct efficiency frontier.",
+      "disposition": "dropped because it expands the model before the uniform-cell kernel is closed"
+    },
+    {
+      "id": "S7",
+      "anchor": "linGaoBlanchetGlynn2026Smooth",
+      "anchor_location": "Wavelet estimator construction in Section 3.1, the key estimation bound in Proposition 3.2, the quadratic-objective stability inequality in Proposition 3.3, asymptotic normality in Theorem 3.2, and the observational-design extension named in the Conclusion.",
+      "opportunity": "Estimate unknown arm amplitudes jointly with array correlation and derive the orthogonalized collision efficiency bound.",
+      "proof_boundary": "The smooth paper controls observable-marginal estimation in Proposition 3.2 before applying the quadratic-objective stability inequality in Proposition 3.3. Here the first changed step is to orthogonalize the collision-mark mean against armwise marginal information without letting imbalance reveal the lower-bound prior.",
+      "destination_search": "The search found plug-in COT density estimators but no weak-collision endpoint with unknown signal amplitudes.",
+      "motif": "M11(b)",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 17
+      },
+      "rank": 8,
+      "red_team": "Armwise means estimate the amplitudes at the ordinary parametric rate, so this is a routine delta method.",
+      "rebuttal": "That objection is often valid and collapses the novelty unless the lower experiment imposes an additional symmetry; the seed is therefore not retained.",
+      "disposition": "dropped because the red-team objection substantially holds"
+    },
+    {
+      "id": "S8",
+      "anchor": "linGaoBlanchetGlynn2026Causal",
+      "anchor_location": "Theorem 3.1 on sharp COT bounds and the Introduction's emphasis on unmatched continuous covariates.",
+      "opportunity": "For three treatment arms, characterize a multi-marginal binary-cost endpoint whose information appears through pair and triple hypercollisions.",
+      "proof_boundary": "The two-marginal COT identity must first be replaced by a multi-marginal extremal-coupling formula; only then can collision reduction begin.",
+      "destination_search": "The search found multi-marginal OT partial-identification results and separate occupancy asymptotics, but no hypercollision information experiment for a causal endpoint.",
+      "motif": "M10+M11(c)",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 3,
+        "total": 17
+      },
+      "rank": 9,
+      "red_team": "The endpoint may fail to collapse to a single correlation, leaving only a large finite program.",
+      "rebuttal": "That is a real risk and the anchor does not yet supply the requisite closed-form multi-marginal target.",
+      "disposition": "dropped because the first identification step is unresolved"
+    },
+    {
+      "id": "S9",
+      "anchor": "kipnis2026SharpLowerBound",
+      "anchor_location": "Abstract and Introduction; Sections 1--2; Theorems 2.1 and 2.3; conditional characteristic-function and likelihood-ratio arguments in the proofs; concluding discussion.",
+      "opportunity": "At nonnegligible triple-collision intensity, derive a compound-Poisson experiment and the phase transition away from pairwise Bernoulli marks.",
+      "proof_boundary": "The first changed step is to cluster overlapping collision indicators rather than discard them, with cluster marks carrying repeated within-arm outcomes.",
+      "destination_search": "Searches found compound-Poisson occupancy approximation but no decision-theoretic COT endpoint frontier with repeated-arm collision clusters.",
+      "motif": "M2+M11(c)",
+      "target_tier": "field",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 3,
+        "total": 18
+      },
+      "rank": 6,
+      "red_team": "Compound-Poisson approximation is a standard dependency-graph refinement.",
+      "rebuttal": "The approximation is standard, but sufficiency, reverse randomization, and exact decision risk with cluster marks are not; nevertheless the current presolve does not derive them.",
+      "disposition": "dropped for lack of a verified reverse kernel"
+    },
+    {
+      "id": "S10",
+      "anchor": "jiLeiSpector2023ModelAgnostic",
+      "anchor_location": "Theorems 3.1 and 3.4--3.5, the proof sketch based on weak duality plus a central limit theorem, and the Discussion's two-sided confidence-interval section.",
+      "opportunity": "Characterize exactly when model-agnostic dual intervals lose length relative to the sharp finite-collision interval frontier.",
+      "proof_boundary": "The first changed step is to evaluate the dual procedure's actual decision rule in the marked-Poisson experiment and compare its worst expected length with the interval-action optimum.",
+      "destination_search": "No paper located compares robust dual COT intervals with an exact rare-collision minimax benchmark.",
+      "motif": "M1+M2+M8",
+      "target_tier": "subfield",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 3,
+        "novelty": 4,
+        "feasibility": 2,
+        "consumer_value": 4,
+        "total": 16
+      },
+      "rank": 10,
+      "red_team": "The dual estimator is not defined for this stylized known-amplitude experiment, so any comparison would use a stand-in.",
+      "rebuttal": "The comparator-fidelity objection holds unless the published algorithm is specialized exactly; the seed is therefore dropped.",
+      "disposition": "dropped because comparator fidelity is not yet established"
+    }
+  ],
+  "literature_map": [
+    {
+      "thread": "COT identification and direct estimation",
+      "sources": "Lin, Gao, Blanchet, and Glynn (2026, AISTATS), Ji, Lei, and Spector (2023), and Ober-Reynolds (2023, unpublished arXiv manuscript).",
+      "settled": "Sharp covariate-assisted COT endpoints, adapted-Wasserstein continuity, partition consistency and rates, model-agnostic conservative dual inference, and root-\\(n\\) OT inference for instrumental-variables functionals are available.",
+      "open_exact_pair": "These sources do not study a growing uniform partition in which the target is the realized binary-cost endpoint and usable information is carried by cross-arm collision marks."
+    },
+    {
+      "thread": "Smooth COT inference",
+      "sources": "Lin, Gao, Blanchet, and Glynn (2026, arXiv:2602.20681).",
+      "settled": "For smooth positive densities and quadratic costs, Proposition 3.2 gives the key estimation bound, Proposition 3.3 gives the quadratic-objective stability inequality, and Theorem 3.2 gives asymptotic normality.",
+      "open_exact_pair": "Binary outcomes, absolute cost, deterministic sign arrays, and sparse growing partitions violate the proof's density and differentiability route."
+    },
+    {
+      "thread": "Sparse large-alphabet collisions and de-Poissonization",
+      "sources": "Paninski (2008), Kipnis (2026, IEEE Transactions on Information Theory), and Kipnis (2026, arXiv:2607.05223).",
+      "settled": "Collision-dominated testing thresholds, sharp minimax constants in Poisson models, and a conditional lattice central limit theorem transferring a lower bound to fixed multinomial sampling are available.",
+      "open_exact_pair": "These results concern one categorical law and testing loss; they do not construct a marked two-arm COT experiment, preserve the actual array endpoint, or derandomize product priors onto deterministic Hamming shells."
+    },
+    {
+      "thread": "Poisson approximation for dependent rare events",
+      "sources": "Arratia, Goldstein, and Gordon (1989).",
+      "settled": "Dependency-neighborhood bounds control total variation for rare-event counts and point processes.",
+      "open_exact_pair": "The theorem does not supply the parameter-free reverse experiment kernel, legal-array support, or minimax decision transfer."
+    },
+    {
+      "thread": "Minimax expected-length confidence sets",
+      "sources": "Evans, Hansen, and Stark (2005) and Stoye (2009).",
+      "settled": "Test inversion and Bayes--minimax duality characterize expected-measure confidence sets, and boundary nuisance sequences can invalidate pointwise interval reasoning.",
+      "open_exact_pair": "No located result gives convergent rational lower-dual and upper-primal interval-action certificates with explicit Poisson-tail truncation and continuum-parameter coverage repair for the marked-Poisson COT experiment, or transfers their optimality to deterministic arrays."
+    },
+    {
+      "thread": "Local asymptotic minimax transfer",
+      "sources": "Hirano and Porter (2003) and Kipnis (2026, arXiv:2607.05223).",
+      "settled": "Limits of experiments and supported mixture priors can yield local asymptotic minimax lower bounds under bounded losses.",
+      "open_exact_pair": "The missing step is a uniform likelihood expansion under local flips of exact deterministic correlation shells, with local-radius limits taken before removing quadratic-loss truncation."
+    },
+    {
+      "thread": "Continuous transfer and partition bias",
+      "sources": "Low and Zhou (2007), Armstrong and Kolesar (2021), and Lin, Gao, Blanchet, and Glynn (2026).",
+      "settled": "Poissonization equivalence depends on regularity, and honest inference can incorporate a deterministic smoothness bias.",
+      "open_exact_pair": "A full growing-roughness COT ball needs a separate bias theorem; this core therefore transfers only to an explicitly constructed interpolation image."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Lin, Gao, Blanchet, and Glynn",
+      "year": 2026,
+      "venue": "AISTATS, PMLR 300",
+      "bibkey": "linGaoBlanchetGlynn2026Causal",
+      "one_line": "Theorem 1 gives general sharp COT identification and Theorems 2--6 give continuity and statistical guarantees, but no sparse collision experiment.",
+      "relevant_to": "prop:sharp-cot-endpoint"
+    },
+    {
+      "author": "Lin, Gao, Blanchet, and Glynn",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "linGaoBlanchetGlynn2026Smooth",
+      "one_line": "Proposition 3.2 gives the key estimation bound, Proposition 3.3 gives quadratic-objective stability, and Theorem 3.2 gives asymptotic normality outside the binary collision regime.",
+      "relevant_to": "thm:sparse-gaussian"
+    },
+    {
+      "author": "Ji, Lei, and Spector",
+      "year": 2023,
+      "venue": "arXiv",
+      "bibkey": "jiLeiSpector2023ModelAgnostic",
+      "one_line": "Theorems 3.1--3.5 provide model-agnostic dual validity and sharpness conditions while identifying binning and nuisance misspecification as hazards.",
+      "relevant_to": "thm:honest-interval-transfer"
+    },
+    {
+      "author": "Ober-Reynolds",
+      "year": 2023,
+      "venue": "arXiv, unpublished manuscript",
+      "bibkey": "oberReynolds2023Estimating",
+      "one_line": "The manuscript gives sharp OT intervals and root-\\(n\\) sample-analogue inference for instrumental-variables potential-outcome functionals, not sparse collision inference.",
+      "relevant_to": "thm:sparse-gaussian"
+    },
+    {
+      "author": "Kipnis",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "kipnis2026SharpLowerBound",
+      "one_line": "Theorems 2.1 and 2.3 use supported Poisson mixtures and a conditional central limit theorem to transfer a sharp multinomial lower bound.",
+      "relevant_to": "oeq:deterministic-shell-lan"
+    },
+    {
+      "author": "Arratia, Goldstein, and Gordon",
+      "year": 1989,
+      "venue": "Annals of Probability",
+      "bibkey": "arratiaGoldsteinGordon1989",
+      "one_line": "Theorem 1 supplies total-variation Poisson-process bounds for locally dependent rare events used in the forward collision comparison.",
+      "relevant_to": "thm:collision-comparison"
+    },
+    {
+      "author": "Evans, Hansen, and Stark",
+      "year": 2005,
+      "venue": "Bernoulli",
+      "bibkey": "evansHansenStark2005",
+      "one_line": "Theorem 1 and Corollary 1 express minimax expected measure through test inversion and Bayes--minimax duality, but do not provide finite Poisson-tail and continuum-coverage certificates.",
+      "relevant_to": "thm:honest-interval-transfer"
+    },
+    {
+      "author": "Stoye",
+      "year": 2009,
+      "venue": "Econometrica",
+      "bibkey": "stoye2009More",
+      "one_line": "Propositions 1--2 show that pointwise Gaussian interval arguments can fail along boundary nuisance sequences and require uniform repair.",
+      "relevant_to": "thm:honest-interval-transfer"
+    },
+    {
+      "author": "Hirano and Porter",
+      "year": 2003,
+      "venue": "Econometrica",
+      "bibkey": "hiranoPorter2003Support",
+      "one_line": "Theorem 3 gives a local asymptotic minimax template based on convergence of nonregular experiments and bounded-loss Bayes risk.",
+      "relevant_to": "oeq:deterministic-shell-lan"
+    },
+    {
+      "author": "Low and Zhou",
+      "year": 2007,
+      "venue": "Annals of Statistics",
+      "bibkey": "lowZhou2007Poissonization",
+      "one_line": "Poissonization equivalence has a regularity frontier, motivating transfer only to the explicitly declared interpolation image.",
+      "relevant_to": "thm:interpolation-transfer"
+    }
+  ],
+  "novelty_justification": "{\"closest_results\":\"Lin, Gao, Blanchet, and Glynn (2026, AISTATS, Theorems 1--6) give general sharp COT identification and statistical guarantees; the affine binary endpoint here is only a setup specialization of their Theorem 1. Their smooth follow-up (2026) gives the key estimation bound in Proposition 3.2, the quadratic-objective stability inequality in Proposition 3.3, and the central limit theorem in Theorem 3.2. Kipnis (2026, Theorems 2.1 and 2.3 in arXiv:2607.05223) gives the closest supported-mixture and conditional-central-limit template for sharp multinomial minimax testing. Ober-Reynolds (2023, arXiv:2311.09435) gives root-n OT inference in an instrumental-variables setting and is treated as an unpublished informed-by comparator.\",\"non_relabelling\":\"The first proof steps change at every load-bearing point: the quadratic-objective stability inequality of smooth COT in Proposition 3.3, coupled there with Proposition 3.2's estimation bound, is replaced by collision sufficiency; one-sample occupancy priors are replaced by explicitly indexed legal two-array product mixtures and shell conditioning; generic confidence-set duality is supplemented by a tail-relaxed lower LP, an overflow-protected upper LP, a marked-likelihood modulus, endpoint expansion, full-interval repair, and exactly checked rational dual and primal witnesses; and the Gaussian lower bound is centered at the realized deterministic endpoint rather than the mixture mean.\",\"scope_guard\":\"The continuous claim is restricted to the measurable coarsening pushforward of the declared interpolation image. No raw discrete-versus-continuous total-variation claim, full Lipschitz or Besov ball, unknown-amplitude model, nonuniform-cell design, or nonnegligible triple-collision regime is claimed.\",\"strict_gap\":\"No located theorem proves a two-way marked-collision experiment comparison on an admissible finite correlation lattice with legal supported mixtures, solves honest expected interval length in the finite-information limit with a convergent exactly verified rational certificate bracket, and connects that limit to the sparse Gaussian local-efficiency regime for the realized deterministic-array COT endpoint.\"}"
+}

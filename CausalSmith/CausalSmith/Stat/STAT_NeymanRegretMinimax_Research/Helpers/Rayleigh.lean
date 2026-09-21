@@ -8,7 +8,10 @@ Authors: Jiyuan Tan
 Pure finite-dimensional algebra used by `Helpers.ScoreProgram`.
 -/
 
-import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Basic
+module
+public import CausalSmith.Stat.STAT_NeymanRegretMinimax_Research.Basic
+
+public section
 
 namespace CausalSmith.Stat.NeymanRegretMinimax
 

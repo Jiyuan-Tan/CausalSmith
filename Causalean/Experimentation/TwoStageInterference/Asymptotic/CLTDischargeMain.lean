@@ -3,13 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Liu–Hudgens (2014), Proposition 5.1: the primitive asymptotic-normality theorem
+# Primitive asymptotic normality under strong homogeneity
 
-This file assembles the fully-primitive Proposition 5.1.  Under the homogeneity + regularity bundle
-`Homogeneous` of `CLTDischarge`, the studentized treatment-minus-control direct-effect contrast is
-asymptotically standard normal, with the conditional central limit theorem supplied directly by the
-independent-summands CLT `prodDesign_clt` and the selection-mixture lifted by homogeneity — no CLT
-is taken as a black box.
+This file assembles a primitive special-case CLT. Under the strong homogeneity and regularity bundle
+`Homogeneous` of `CLTDischarge`, the studentized control-minus-treatment direct-effect contrast is
+asymptotically standard normal, with the conditional central limit theorem supplied directly by
+`prodDesign_clt` and the selection mixture lifted by homogeneity. The contrast is the negative of
+Liu–Hudgens' treatment-minus-control estimand. Because the assumptions set the between-group effect
+variance to zero, this does not formalize their heterogeneous Proposition 5.1.
 
 It provides the conditional CLT for the reference selection `condCLT_ref` (the application of
 `prodDesign_clt` to the homogeneity-reduced per-coordinate summands) and the headline
@@ -17,18 +18,21 @@ It provides the conditional CLT for the reference selection `condCLT_ref` (the a
 `tendsto_E_of_uniformBound_ae`).
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLTDischarge
+module
+public import Causalean.Experimentation.TwoStageInterference.Asymptotic.CLTDischarge
 
 /-! # Primitive direct-contrast CLT
 
-The primitive Liu-Hudgens treatment-minus-control direct-effect CLT follows from the
-independent-summands product-design CLT.
+The primitive CLT for a strongly homogeneous control-minus-treatment direct-effect contrast follows
+from the independent-summands product-design CLT. This contrast reverses the Liu–Hudgens convention.
 
 The lemma `condCLT_ref` applies `prodDesign_clt` to the homogeneity-reduced per-coordinate summands
 at the reference first-stage selection. The theorem `directEffect_clt_homogeneous` then uses
 selection homogeneity and the support-restricted mixture-lifting lemma to prove that the joint
 studentized direct-effect CDF converges to `stdNormalCdf t`.
 -/
+
+public section
 
 open scoped BigOperators Topology
 open Finset Filter
@@ -143,9 +147,11 @@ lemma condCLT_ref (h : Homogeneous Exp t stud δ M v) :
   rw [stud_eq_sum_of_homogeneous h n (s₀ n) (refSel_mem Exp n) w]
 
 open Classical in
-/-- **Proposition 5.1 (Liu–Hudgens 2014), fully primitive.** Under [the homogeneity and regularity
-bundle](hyp:h), [the studentized treatment-minus-control direct-effect contrast is asymptotically
-standard normal: its joint-design CDF at `t` converges to `Φ(t)`](goal).
+/-- **Primitive CLT under strong homogeneity.** Under [the strong homogeneity and regularity
+bundle](hyp:h), [the studentized control-minus-treatment direct-effect contrast is asymptotically
+standard normal: its joint-design CDF at `t` converges to `Φ(t)`](goal). The contrast is the
+negative of Liu–Hudgens' treatment-minus-control estimand, and the bundle forces its between-group
+effect variance to zero, so this is a strict special case of their heterogeneous Proposition 5.1.
 
 No CLT is assumed: the conditional CLT for the reference selection is `condCLT_ref` (from the
 independent-summands CLT `prodDesign_clt`), the homogeneity hypothesis `hhom` lifts the uniform

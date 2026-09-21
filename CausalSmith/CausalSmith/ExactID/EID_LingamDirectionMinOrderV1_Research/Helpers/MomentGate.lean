@@ -3,26 +3,29 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Gate (ii): truncated-moment realizability with interior
+# Gate (ii): truncated-cumulant realizability with interior
 
-The truncated-moment-interior statement and its proof are general moment-problem facts; they were
-promoted to `Causalean.Stat.MomentProblems` (`TruncatedMomentInterior`,
-`truncatedMomentInterior`) and are re-exported here under the run's namespace.  The remaining
+The constructive truncated-cumulant-interior statement and proof were promoted to
+`Causalean.Stat.MomentProblems` (`TruncatedCumulantInterior`,
+`truncatedCumulantInterior`) and are re-exported here under the run's namespace. The remaining
 declarations in this file derive the run-specific parameter-space consequence used by the flagship
 theorem — the pinned-substitution / Zariski-locus bridge, which is coupled to this run's
 `ParamSpace` and stays here.
 -/
 
-import Causalean.Stat.Nonparametric.MomentProblems.TruncatedCumulantInterior
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
-import Mathlib.Topology.Algebra.MvPolynomial
+module
+public import Causalean.Stat.MomentProblems.TruncatedCumulantInterior
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.ZariskiLocus
+public import Mathlib.Topology.Algebra.MvPolynomial
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal NNReal
 
-export Causalean.Stat.MomentProblems (TruncatedMomentInterior truncatedMomentInterior)
+export Causalean.Stat.MomentProblems (TruncatedCumulantInterior truncatedCumulantInterior)
 
 /-- The real parameter points at which a fixed complex polynomial does not vanish
 after complexification form a Euclidean-open set. -/
@@ -97,7 +100,7 @@ lemma pinSubst_genericParameterPolynomial_ne_zero (m L : ℕ) :
 /-- If the truncated-moment interior gate holds, every polynomial whose pinned form
 is nonzero has a nonvanishing point in the real feasible parameter region. -/
 theorem exists_feasible_nonvanishing {m L : ℕ}
-    (hgate : TruncatedMomentInterior L)
+    (hgate : TruncatedCumulantInterior L)
     (P : MvPolynomial (ParamCoord m) ℂ) (hP : pinSubst m L P ≠ 0) :
     (realFeasibleRegion m L ∩
       {θ : ParamSpace ℝ m |

@@ -1,15 +1,18 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
-import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
-import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Causalean.Stat.Concentration.Chebyshev
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Basic
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.DerivHyp
+public import Mathlib.Analysis.SpecialFunctions.Trigonometric.Bounds
+public import Mathlib.MeasureTheory.Measure.CharacteristicFunction.Basic
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Causalean.Stat.Concentration.Chebyshev
 
 /-!
 # Bounded sine-score estimators
 -/
+
+@[expose] public section
 
 noncomputable section
 

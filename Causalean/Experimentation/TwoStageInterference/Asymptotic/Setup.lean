@@ -16,17 +16,20 @@ the *known* design propensities (within-group control/treatment propensities `m0
 `C(C−1)/(N(N−1))`) as carried regularity hypotheses.  These are exactly the hypotheses of the
 unbiasedness theorem `E_estDirect` and the variance theorem `Var_estDirect`, so the bundle exposes
 two reusable bridges, `E_estD` (the estimator is unbiased for the population average
-treatment-minus-control direct-effect contrast) and `var_estD` (its design variance equals the
+control-minus-treatment direct-effect contrast) and `var_estD` (its design variance equals the
 closed-form two-stage variance `directVar`), simply by feeding the carried hypotheses to those
-theorems.
+theorems. Throughout this layer the contrast retains the Hudgens–Halloran control-minus-treatment
+orientation, which is the negative of Liu–Hudgens' treatment-minus-control estimand.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.BetweenGroupEffect
+module
+public import Causalean.Experimentation.TwoStageInterference.BetweenGroupEffect
 
 /-! # Liu-Hudgens asymptotic setup
 
-`LHExperiment` packages one Hudgens-Halloran two-stage experiment for Liu-Hudgens large-sample
-inference on the treatment-minus-control direct-effect contrast.
+`LHExperiment` packages one Hudgens–Halloran two-stage experiment for large-sample inference on the
+control-minus-treatment direct-effect contrast. This is the negative of the treatment-minus-control
+estimand used by Liu–Hudgens (2014).
 
 The structure carries the group population, group sizes, stage-1 strategy design, within-group
 strategies `ψ` and `φ`, partial-interference potential outcomes, fixed treated/control counts,
@@ -40,6 +43,8 @@ finite-sample Hudgens-Halloran unbiasedness and variance results to each package
 later consistency, CLT, and Wald arguments can reason through `LHExperiment` alone.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
 
@@ -49,8 +54,10 @@ namespace TwoStageInterference
 
 open DesignBased
 
-/-- A single Liu–Hudgens (2014) two-stage experiment, packaged so that a sequence of them can be
-studied for large-sample inference. Carries [a finite population of groups](hyp:ι) with
+/-- A single two-stage experiment in the Hudgens–Halloran orientation, packaged so that a sequence
+can be studied using Liu–Hudgens-style large-sample arguments. Its direct contrast is the negative
+of Liu–Hudgens' treatment-minus-control estimand. It carries [a finite population of groups](hyp:ι)
+with
 [per-group sizes](hyp:gsize), [a stage-1 design assigning each group a strategy](hyp:D₁), the
 per-group allocation strategies [ψ](hyp:ψ) and [φ](hyp:φ), [partial-interference potential
 outcomes](hyp:Y), and design-fixed [control](hyp:m0) and [treatment](hyp:m1) unit counts per
@@ -115,34 +122,44 @@ namespace LHExperiment
 
 variable (E : LHExperiment)
 
-/-- For [a Liu--Hudgens experiment](hyp:E), the [joint two-stage randomization design](goal) first draws the group-level strategy assignment and then draws each group's within-group assignment from the design corresponding to its assigned strategy. -/
+/-- For [a two-stage experiment](hyp:E), the [joint two-stage randomization design](goal) first
+draws the group-level strategy assignment and then draws each group's within-group assignment from
+the design corresponding to its assigned strategy. -/
 noncomputable def jointD : FiniteDesign (StratAssign E.ι × ∀ i, Fin (E.gsize i) → Bool) :=
   jointDesign E.D₁ E.ψ E.φ
 
-/-- For [a Liu--Hudgens experiment](hyp:E), the [Horvitz--Thompson estimator of its treatment-minus-control direct effect](goal) assigns a real-valued estimate to every joint realization of the group-level strategy assignment and all within-group assignments. -/
+/-- For [a two-stage experiment](hyp:E), the [Horvitz--Thompson estimator of its
+control-minus-treatment direct effect](goal) assigns a real-valued estimate to every joint
+realization of the group-level strategy assignment and all within-group assignments. -/
 noncomputable def estD : (StratAssign E.ι × ∀ i, Fin (E.gsize i) → Bool) → ℝ :=
   estDirect E.Y E.m0 E.m1 E.C
 
-/-- For [a Liu--Hudgens experiment](hyp:E), the [population-average treatment-minus-control direct effect](goal) is the mean potential outcome under treatment minus the mean potential outcome under control, with both means evaluated under the experiment's treatment strategy. -/
+/-- For [a two-stage experiment](hyp:E), the [population-average control-minus-treatment direct
+effect](goal) is the mean potential outcome under control minus the mean potential outcome under
+treatment, with both means evaluated under the experiment's treatment strategy. -/
 noncomputable def DEbar : ℝ := CE_direct E.ψ E.Y
 
-/-- For [a Liu--Hudgens experiment](hyp:E), the [closed-form two-stage design variance of the treatment-minus-control direct-effect estimator](goal) equals $(1-C/N)S_\mu^2/C+(CN)^{-1}\sum_i V_i$, where $N$ is the number of groups, $C$ is the number assigned the treatment strategy, $S_\mu^2$ is the population sample variance of the group-level direct-effect contrasts, and $V_i$ is the variance of group $i$'s within-group contrast estimator under the treatment strategy. -/
+/-- For [a two-stage experiment](hyp:E), the [closed-form design variance of the
+control-minus-treatment direct-effect estimator](goal) equals
+`(1-C/N) S_μ²/C + (CN)⁻¹ ∑ᵢ Vᵢ`, where `N` is the number of groups, `C` is the number assigned
+the treatment strategy, `S_μ²` is the population sample variance of the group-level contrasts, and
+`Vᵢ` is group `i`'s within-group contrast-estimator variance under the treatment strategy. -/
 noncomputable def directVar : ℝ :=
   (1 - E.C / (Fintype.card E.ι : ℝ)) / E.C
-      * SmuVar (fun i => groupMean E.ψ E.Y i true - groupMean E.ψ E.Y i false)
+      * SmuVar (fun i => groupMean E.ψ E.Y i false - groupMean E.ψ E.Y i true)
     + (1 / (E.C * (Fintype.card E.ι : ℝ)))
       * ∑ i, (E.ψ i).Var
-          (fun w => groupEst E.Y i true (E.m1 i) w - groupEst E.Y i false (E.m0 i) w)
+          (fun w => groupEst E.Y i false (E.m0 i) w - groupEst E.Y i true (E.m1 i) w)
 
 /-- **Unbiasedness bridge.** [The Horvitz–Thompson estimator is unbiased for the population average
-treatment-minus-control direct-effect contrast](goal).
+control-minus-treatment direct-effect contrast](goal).
 
 Immediate from `E_estDirect` and the carried propensity hypotheses. -/
 theorem E_estD : E.jointD.E E.estD = E.DEbar :=
   E_estDirect E.D₁ E.ψ E.φ E.Y E.m0 E.m1 E.C
     E.hC E.hm0 E.hm1 E.hn E.hprop0 E.hprop1 E.hstage1
 
-/-- **Variance bridge.** [The design variance of the treatment-minus-control direct-effect contrast
+/-- **Variance bridge.** [The design variance of the control-minus-treatment direct-effect contrast
 estimator equals the closed-form two-stage variance `directVar`](goal).
 
 Immediate from `Var_estDirect` and the carried hypotheses. -/

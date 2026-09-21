@@ -41,12 +41,13 @@ separate mutilated-graph construction.
 * Pearl, J. (2009), *Causality*, Theorem 3.3.2.
 -/
 
-import Causalean.SCM.Do.DoCalculus
-import Causalean.SCM.Model.InterventionAncestry
-import Causalean.Graph.SWIGSplitMono
-import Causalean.Graph.DSep.BackdoorBridges
-import Causalean.SCM.ID.Adjustment
-import Causalean.SCM.ID.Identifiable
+module
+public import Causalean.SCM.Do.DoCalculus
+public import Causalean.SCM.Model.InterventionAncestry
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.Graph.DSep.BackdoorBridges
+public import Causalean.SCM.ID.Adjustment
+public import Causalean.SCM.ID.Identifiable
 
 /-!
 # Backdoor criterion and Rule 3 marginal leg
@@ -57,6 +58,13 @@ set.  The full backdoor completeness and identifiability theorems live in
 `Causalean/SCM/ID/Backdoor.lean`; this module supplies their reusable graphical
 criterion and the `Z`-marginal equality needed in the do-calculus assembly.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -114,9 +122,9 @@ open scoped MeasureTheory ProbabilityTheory
     post-intervention observational law at `s_post` equals the `Z`-marginal of the original
     observational law at the pre-intervention configuration underlying `s_post`](goal).
 
-    Proof: direct application of `SCM.do_rule3` with `Y_param := ∅`,
-    `W_param := Z`.  Criterion (i) composes with
-    `SCM.fixSet_isAncestor_fixed_forward` (Phase 1A) to supply Rule 3's
+    Proof: direct application of `SCM.do_rule3_star` with `Y_param := ∅`,
+    `W_param := Z`. Criterion (i) composes with
+    `SCM.fixSet_isAncestor_fixed_forward` (Phase 1A) to supply Rule 3*'s
     `hNoDesc` hypothesis on the post-intervention graph. -/
 theorem backdoor_rule3_Z_marginal
     (M : Causalean.SCM N Ω) (X : Finset N)
@@ -143,10 +151,10 @@ theorem backdoor_rule3_Z_marginal
     -- Unpack `v ∈ ∅ ∪ Z = Z` and contradict criterion (i).
     rw [Finset.empty_union] at hv
     exact h_crit_i v hv d hd hanc_base
-  -- Apply `do_rule3` with `Y_param := ∅`, `W_param := Z`.  Rule 3's
+  -- Apply `do_rule3_star` with `Y_param := ∅`, `W_param := Z`. Rule 3*'s
   -- conclusion projects along `Finset.union_subset (∅.empty_subset _) hZ`
   -- (indexed by `∅ ∪ Z`); the goal projects along `hZ` (indexed by `Z`).
-  have _h := SCM.do_rule3 M X hX_obs hX_fixed
+  have _h := SCM.do_rule3_star M X hX_obs hX_fixed
       (∅ : Finset (SWIGNode N)) Z (Finset.empty_subset _) hZ hNoDesc s_post
   -- Bridge `ValuesOn (∅ ∪ Z) ↦ ValuesOn Z` via `valuesEquivOfEq`.
   -- Post-composing both sides of `_h` with `valuesEquivOfEq hU` and applying

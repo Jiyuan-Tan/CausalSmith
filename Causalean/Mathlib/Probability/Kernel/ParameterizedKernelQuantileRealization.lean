@@ -4,7 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Kernel.Representation
+module
+public import Mathlib.Probability.CDF
+public import Mathlib.Probability.Kernel.Representation
 
 /-!
 # Parameterized quantile realization of real Markov kernels
@@ -16,6 +18,8 @@ randomization inputs by clamping them to that interval.  It proves both the exac
 pushforward law and the pointwise range guarantee needed by parameterized coupling and conditional
 law constructions.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set Function Filter Topology ENNReal unitInterval
 open scoped unitInterval

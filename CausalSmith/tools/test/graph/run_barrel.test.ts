@@ -14,25 +14,20 @@ beforeEach(async () => { root = await mkdtemp(path.join(tmpdir(), "barrel-")); }
 afterEach(async () => { await rm(root, { recursive: true, force: true }); });
 
 describe("writeRunBarrel: per-run aggregator so the run is one buildable target", () => {
-  it("emits a sibling barrel importing every module in the run (incl. nested Helpers/)", async () => {
+  it("emits a module barrel with public imports", async () => {
     const leanDir = path.join(root, "CausalSmith", "ExactID", "EID_Foo_Research");
     await mkdir(path.join(leanDir, "Helpers"), { recursive: true });
     await writeFile(path.join(leanDir, "TApolar.lean"), "-- x\n", "utf8");
     await writeFile(path.join(leanDir, "Helpers", "ApolarQD.lean"), "-- x\n", "utf8");
 
     const out = await writeRunBarrel(root, leanDir);
-    expect(out).toBe(path.join(root, "CausalSmith", "ExactID", "EID_Foo_Research.lean"));
-
     const src = await readFile(out!, "utf8");
-    expect(src).toContain("import CausalSmith.ExactID.EID_Foo_Research.TApolar");
-    expect(src).toContain("import CausalSmith.ExactID.EID_Foo_Research.Helpers.ApolarQD");
-    // Lean requires `import` at the very top: a `/-! -/` module docstring is a DECLARATION, so it
-    // must come AFTER the imports. (A first cut emitted it before them and Lean rejected the file
-    // with "invalid 'import' command, it must be used in the beginning of the file".)
-    const firstImport = src.indexOf("\nimport ");
-    const moduleDoc = src.indexOf("/-!");
-    expect(firstImport).toBeGreaterThan(-1);
-    expect(moduleDoc).toBeGreaterThan(firstImport);
+    expect(src).toMatch(/-\/\n\nmodule\npublic import /);
+    expect(src).toContain("public import CausalSmith.ExactID.EID_Foo_Research.TApolar");
+    expect(src).toContain("public import CausalSmith.ExactID.EID_Foo_Research.Helpers.ApolarQD");
+    expect(src).not.toMatch(/^import CausalSmith\./m);
+    expect(src.indexOf("module\n")).toBeLessThan(src.indexOf("public import "));
+    expect(src.indexOf("public import ")).toBeLessThan(src.indexOf("/-!"));
     // deterministic: sorted, so re-running produces no spurious diff
     expect(src).toBe(await readFile((await writeRunBarrel(root, leanDir))!, "utf8"));
   });

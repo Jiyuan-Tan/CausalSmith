@@ -1,7 +1,10 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_contrast_risk_continuity
-import Causalean.Experimentation.DesignBased.ProductVariance
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.T_contrast_risk_continuity
+public import Causalean.Experimentation.DesignBased.ProductVariance
 
 /-! The contrast-weighted finite-sample upper risk bound, split out to avoid theorem cycles. -/
+
+@[expose] public section
 
 open scoped BigOperators
 

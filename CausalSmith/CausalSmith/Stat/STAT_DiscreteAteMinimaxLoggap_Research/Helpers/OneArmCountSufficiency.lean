@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductTV
-import Causalean.Mathlib.MeasureTheory.IntegralBind
-import Causalean.Mathlib.Probability.FiniteMarkedPoissonPartition.Basic
-import Mathlib.Probability.Kernel.Disintegration.StandardBorel
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductTV
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+public import Causalean.Mathlib.Probability.Poisson.FinitePartition.Basic
+public import Mathlib.Probability.Kernel.Disintegration.StandardBorel
 
 /-!
 # Count sufficiency for predictive total variation
@@ -9,6 +10,8 @@ import Mathlib.Probability.Kernel.Disintegration.StandardBorel
 This module records the exact common-reconstruction-kernel interface needed
 to transport a count-table bound to the full marked-Poisson experiment.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

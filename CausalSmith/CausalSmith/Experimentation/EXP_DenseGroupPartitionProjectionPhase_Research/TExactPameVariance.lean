@@ -1,8 +1,11 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.ExactVariance
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.ExactVariance
 
 /-!
 # Exact PAME variance and CR2 expectation
 -/
+
+public section
 
 namespace CausalSmith.Experimentation.DenseGroupPartitionProjectionPhase
 

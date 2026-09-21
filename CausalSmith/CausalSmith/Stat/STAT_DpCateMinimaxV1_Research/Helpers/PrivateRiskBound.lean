@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationGram
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateRisk
-import Causalean.Mathlib.Probability.IidMeanVariance
+
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PopulationGram
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.PrivateRisk
+public import Causalean.Mathlib.Probability.IidMeanVariance
 
 /-!
 # Integrated risk bound for the private local-polynomial release
@@ -14,6 +16,8 @@ This file integrates the deterministic release error estimate first over the
 Laplace noise and then over the i.i.d. sample.  The constants in the final
 bound depend only on the dimension, polynomial degree, and density envelope.
 -/
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -74,7 +78,7 @@ private lemma integral_sq_le_ball_mass' {d : ℕ} (P : CateLaw d) (hiid : IidSam
   have hball : MeasurableSet (supBall x0 h) := by
     rw [show supBall x0 h = ⋂ i : Fin d, {x | |x i - x0 i| ≤ h} by
       ext x
-      simp [supBall, Causalean.Stat.Nonparametric.supBall]]
+      simp [supBall, Causalean.Mathlib.Analysis.supBall, Set.mem_ofPred_eq]]
     apply MeasurableSet.iInter
     intro i
     change MeasurableSet ((fun x : Fin d → ℝ ↦ |x i - x0 i|) ⁻¹' Set.Iic h)

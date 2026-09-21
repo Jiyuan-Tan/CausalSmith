@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionLocalInverse
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionExclusionApplication
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionWitnessEmbedding
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TConfidenceUnionCoverage
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionLocalInverse
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionExclusionApplication
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ContractionWitnessEmbedding
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.TConfidenceUnionCoverage
 
 /-!
 # Non-effective four-margin contraction
@@ -10,11 +11,13 @@ A uniform but non-computable local radius and explicit linear modulus for arbitr
 regions.
 -/
 
+public section
+
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 
 open Set
 open scoped Matrix.Norms.L2Operator ENNReal Topology
-open Causalean.Discovery.LinearDisentanglement.Quantitative.PairwiseAffine
+open Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 -- @node: thm:non-effective-four-margin-contraction
 /-- Four true-side margins and one feasible-candidate condition-number bound yield a uniform

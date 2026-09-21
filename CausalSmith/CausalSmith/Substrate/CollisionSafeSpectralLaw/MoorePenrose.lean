@@ -1,5 +1,6 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Basic
-import Mathlib.Analysis.InnerProductSpace.Adjoint
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Basic
+public import Mathlib.Analysis.InnerProductSpace.Adjoint
 
 /-!
 # Moore--Penrose inverses and moving-range perturbations
@@ -9,6 +10,8 @@ matrix.  It exposes the Penrose equations, the two associated orthogonal project
 ambient perturbation identity, and its operator-norm and singular-margin consequences.  Neither
 the row space nor the column space is fixed.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

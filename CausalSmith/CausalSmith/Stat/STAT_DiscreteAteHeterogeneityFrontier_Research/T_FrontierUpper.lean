@@ -1,7 +1,10 @@
 /- Known-radius selector upper frontier. -/
 
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_RobustUpperConstruction
-import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
+module
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.T_RobustUpperConstruction
+public import CausalSmith.Stat.STAT_DiscreteAteHeterogeneityFrontier_Research.Helpers.CitedGates
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteHeterogeneityFrontier
 

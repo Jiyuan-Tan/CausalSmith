@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.Data.Real.Basic
+
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.Data.Real.Basic
 
 /-!
 # Positive-definiteness of the integral (population) moment matrix
@@ -24,8 +26,10 @@ positive semidefinite, and positive definite — hence **invertible** — exactl
 `ν` is non-degenerate (no nonzero degree-`p` polynomial of the centered argument vanishes `ν`-almost
 everywhere; e.g. `ν` is not supported on `≤ p` points). This is the integral transport of
 `designMatrix_posDef` and discharges the `IsUnit S.det` hypothesis for the bandwidth-free shape
-matrix `T` feeding the `Θ(Nh)` leverage rate.
+matrix `T` used in the one-sided leverage upper bounds.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Nonparametric
 

@@ -19,10 +19,11 @@ by **sequential `compProd`** of the base latent kernel with the step kernels
   instances at every step.
 -/
 
-import Causalean.SCM.Factored.StepKernel
-import Mathlib.Probability.Kernel.Basic
-import Mathlib.Probability.Kernel.Composition.MapComap
-import Mathlib.Probability.Kernel.Composition.CompProd
+module
+public import Causalean.SCM.Factored.StepKernel
+public import Mathlib.Probability.Kernel.Basic
+public import Mathlib.Probability.Kernel.Composition.MapComap
+public import Mathlib.Probability.Kernel.Composition.CompProd
 
 /-! # Prefix Kernels for Sequential Factorization
 
@@ -31,6 +32,8 @@ observed variables sequentially along a topological order. These kernels are the
 recursive components used to express the structural-model joint kernel as a
 Markov factorization, with Markov-kernel instances for the base and recursive
 cases. -/
+
+@[expose] public section
 
 namespace Causalean
 

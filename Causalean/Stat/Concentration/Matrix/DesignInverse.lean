@@ -3,8 +3,10 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Concentration.Matrix.InversePerturbation
-import Causalean.Stat.Concentration.Matrix.InverseUnionBound
+
+module
+public import Causalean.Stat.Concentration.Matrix.InversePerturbation
+public import Causalean.Stat.Concentration.Matrix.InverseUnionBound
 
 /-!
 # Matrix-inverse concentration for the random design moment matrix
@@ -29,6 +31,8 @@ Here the population matrix `S = 𝔼[M]` is supplied with its invertibility (`Is
 `designMatrix_posDef`) and an inverse-row-sum bound `c`; turning those into the explicit `Θ(Nh)`
 density constants is the remaining kernel-change-of-variables step.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

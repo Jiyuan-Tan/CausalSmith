@@ -1,7 +1,10 @@
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
-import Causalean.Stat.Quantile.EmpiricalCDF
+module
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
+public import Causalean.Stat.Quantile.EmpiricalCDF
 
 /-! # Cited concentration gates -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

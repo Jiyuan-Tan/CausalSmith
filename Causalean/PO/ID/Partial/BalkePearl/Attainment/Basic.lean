@@ -10,9 +10,12 @@ of `cellProb`'s definition: the cells are nonnegative, and for each instrument
 value they sum to one. Both are read off the realized latent table.
 -/
 
-import Causalean.PO.ID.Partial.BalkePearl.ClosedForm
+module
+public import Causalean.PO.ID.Partial.BalkePearl.ClosedForm
 
 /-! # Observed cell probabilities form a distribution per instrument value -/
+
+public section
 
 namespace Causalean
 namespace PO

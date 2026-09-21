@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
 
 /-!
 # Coordinate bridge for the angular packing
@@ -7,6 +8,8 @@ import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
 This file relates the Euclidean-space representation of CTY scores to the
 ordinary product plane used by Mathlib's polar-coordinate integration lemmas.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 

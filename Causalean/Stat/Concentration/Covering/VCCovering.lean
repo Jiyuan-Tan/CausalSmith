@@ -1,7 +1,8 @@
-import Causalean.Stat.Concentration.Covering.CoveringNumber
-import Causalean.Stat.Concentration.Covering.EmpiricalPseudoMetric
-import Mathlib.Combinatorics.SetFamily.Shatter
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
+module
+public import Causalean.Stat.Concentration.Covering.CoveringNumber
+public import Causalean.Stat.Concentration.Covering.EmpiricalPseudoMetric
+public import Mathlib.Combinatorics.SetFamily.Shatter
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
 
 /-!
 For a binary-indexed function class, the empirical covering number is bounded by
@@ -18,6 +19,8 @@ The main exported results are `vc_coveringNumber_le_growth`,
 `vc_coveringNumber_le_sum_choose`, `log_coveringNumber_le_of_card_bound`, and
 `log_coveringNumber_le`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Concentration
 
@@ -167,9 +170,9 @@ theorem vc_coveringNumber_le_growth {F : ι → 𝒳 → ℝ} {S : Fin n → �
     (hfactor : ∀ i j, F i (S j) = φ j (π i (S j)))
     (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
     {ε : ℝ} (hε : 0 < ε) :
-    coveringNumber h' ε ≤ (growthFamily π S).card := by
+    coveringNumber' h' ε ≤ (growthFamily π S).card := by
   classical
-  rw [coveringNumber_eq h' hε]
+  rw [coveringNumber'_eq h' hε]
   let t : Finset (EmpiricalFunctionSpace F S) := patternCover (F := F) π S
   have hfind : Nat.find (coveringNumber_exists h' hε) ≤ t.card :=
     Nat.find_min' (coveringNumber_exists h' hε) (m := t.card)
@@ -188,7 +191,7 @@ theorem vc_coveringNumber_le_sum_choose {F : ι → 𝒳 → ℝ} {S : Fin n →
     (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
     {ε : ℝ} (hε : 0 < ε)
     (hvd : (growthFamily π S).vcDim ≤ d) :
-    coveringNumber h' ε ≤ ∑ k ∈ Finset.Iic d, n.choose k := by
+    coveringNumber' h' ε ≤ ∑ k ∈ Finset.Iic d, n.choose k := by
   exact le_trans (vc_coveringNumber_le_growth hfactor h' hε)
     (card_growthFamily_le_sum_choose (growthFamily π S) hvd)
 
@@ -201,17 +204,17 @@ theorem log_coveringNumber_le_of_card_bound [Nonempty ι]
     (h' : TotallyBounded (Set.univ : Set (EmpiricalFunctionSpace F S)))
     {ε : ℝ} (hε : 0 < ε) {N : ℕ}
     (hcard : (growthFamily π S).card ≤ N) :
-    Real.log (coveringNumber h' ε) ≤ Real.log N := by
+    Real.log (coveringNumber' h' ε) ≤ Real.log N := by
   classical
-  have hcov_card : coveringNumber h' ε ≤ (growthFamily π S).card :=
+  have hcov_card : coveringNumber' h' ε ≤ (growthFamily π S).card :=
     vc_coveringNumber_le_growth hfactor h' hε
-  have hcov_N : coveringNumber h' ε ≤ N := le_trans hcov_card hcard
-  have hcov_pos : 0 < coveringNumber h' ε := by
+  have hcov_N : coveringNumber' h' ε ≤ N := le_trans hcov_card hcard
+  have hcov_pos : 0 < coveringNumber' h' ε := by
     have hnonempty : (Set.univ : Set (EmpiricalFunctionSpace F S)).Nonempty := by
       obtain ⟨i⟩ := (inferInstance : Nonempty ι)
       exact ⟨⟨i⟩, by simp⟩
-    exact coveringNumber_nonzero hnonempty h' hε
-  have hcovN_real : ((coveringNumber h' ε : ℕ) : ℝ) ≤ (N : ℝ) := by
+    exact coveringNumber'_nonzero hnonempty h' hε
+  have hcovN_real : ((coveringNumber' h' ε : ℕ) : ℝ) ≤ (N : ℝ) := by
     exact_mod_cast hcov_N
   exact Real.log_le_log (Nat.cast_pos.mpr hcov_pos) hcovN_real
 
@@ -245,26 +248,26 @@ theorem log_coveringNumber_le [Nonempty ι]
     {ε : ℝ} (hε : 0 < ε)
     (hn_pos : 0 < n)
     (hvd : (growthFamily π S).vcDim ≤ d) :
-    Real.log (coveringNumber h' ε) ≤
+    Real.log (coveringNumber' h' ε) ≤
       Real.log ((d + 1 : ℕ) : ℝ) + (d : ℝ) * Real.log n := by
   classical
   let s : ℕ := ∑ k ∈ Finset.Iic d, n.choose k
-  have hcov_sum : coveringNumber h' ε ≤ s :=
+  have hcov_sum : coveringNumber' h' ε ≤ s :=
     vc_coveringNumber_le_sum_choose hfactor h' hε hvd
-  have hcov_pos : 0 < coveringNumber h' ε := by
+  have hcov_pos : 0 < coveringNumber' h' ε := by
     have hnonempty : (Set.univ : Set (EmpiricalFunctionSpace F S)).Nonempty := by
       obtain ⟨i⟩ := (inferInstance : Nonempty ι)
       exact ⟨⟨i⟩, by simp⟩
-    exact coveringNumber_nonzero hnonempty h' hε
-  have hcov_bound : ((coveringNumber h' ε : ℕ) : ℝ) ≤
+    exact coveringNumber'_nonzero hnonempty h' hε
+  have hcov_bound : ((coveringNumber' h' ε : ℕ) : ℝ) ≤
       ((d + 1 : ℕ) : ℝ) * (n : ℝ) ^ d := by
     calc
-      ((coveringNumber h' ε : ℕ) : ℝ) ≤ (s : ℝ) := by
+      ((coveringNumber' h' ε : ℕ) : ℝ) ≤ (s : ℝ) := by
         exact_mod_cast hcov_sum
       _ ≤ ((d + 1 : ℕ) : ℝ) * (n : ℝ) ^ d :=
         sum_choose_le_succ_mul_pow (n := n) (d := d) hn_pos
   calc
-    Real.log (coveringNumber h' ε) ≤
+    Real.log (coveringNumber' h' ε) ≤
         Real.log (((d + 1 : ℕ) : ℝ) * (n : ℝ) ^ d) := by
       exact Real.log_le_log (Nat.cast_pos.mpr hcov_pos) hcov_bound
     _ = Real.log ((d + 1 : ℕ) : ℝ) + Real.log ((n : ℝ) ^ d) := by

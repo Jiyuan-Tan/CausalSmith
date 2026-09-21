@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
 
 /-!
 # Conditional annihilation for known-zero instruments
 -/
+
+public section
 
 noncomputable section
 

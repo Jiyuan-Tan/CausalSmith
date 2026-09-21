@@ -4,15 +4,18 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.InvariantPrediction.Helpers.MechanismFactor
+module
+public import Causalean.Discovery.InvariantPrediction.Helpers.MechanismFactor
 
 /-!
 # Invariant Causal Prediction: the invariance predicate and mechanism invariance
 
 A predictor set `S` is **invariant** across an environment family when the
-conditional law of the target `Y` given `X_S` — read off from
-`obsCondKernel {Y} S` evaluated at each environment's intervention values `s i`
-— is the *same* in every environment.
+conditional laws of the target `Y` given `X_S` share one rule after the target's
+fixed-parent values are treated as explicit inputs.  In each environment,
+`obsCondKernel {Y} S` evaluated at its intervention values `s i` agrees with the
+common rule at that environment's fixed-parent values; the resulting evaluated
+laws may differ when those values differ.
 
 The central structural fact is `mechanism_invariant`: the target's own observed
 parents `paObs` always form an invariant set, because conditioning on the parents
@@ -25,6 +28,15 @@ nonempty; the finite-measure and countably-generated obligations of
 `obsCondKernel` are threaded as instance hypotheses.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
+
+open Causalean.Mathlib.Probability.Kernel
+
 namespace Causalean.Discovery.InvariantPrediction
 
 open Causalean MeasureTheory ProbabilityTheory
@@ -36,19 +48,17 @@ namespace EnvFamily
 
 variable {ι : Type*} [Fintype ι]
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), and [an invariant-prediction environment family](hyp:F), [the
-target set](goal) is the singleton containing that family's random-form target node. -/
+/-- [The target set](goal) singles out the random-form outcome whose conditional distribution ICP
+compares across [an environment family](hyp:F), over [finite nodes](hyp:N), [finite
+environments](hyp:ι), and [measurable coordinate outcomes](hyp:Ω). -/
 abbrev targetSet (F : EnvFamily N Ω ι) : Finset (SWIGNode N) := {SWIGNode.random F.Y}
 
-/-- For [a finite node-label set](hyp:N), [measurable coordinate outcome spaces](hyp:Ω), [a finite
-environment index set](hyp:ι), [an invariant-prediction environment family](hyp:F), and [a finite
-predictor-node set that is observed in every environment](hyp:S,hS), [the assertion that this
-predictor set is invariant](goal) means that there exists a measure-valued rule for the target as a
-function of the predictor values and the values of fixed parents such that (1) [after transporting fixed-parent
-values between environments, this law is the same in every pair of environments](step:1), and
-(2) in each environment, the observed conditional law of the target given the predictors agrees
-almost everywhere with that common law evaluated at that environment's fixed-parent values.
+/-- [A predictor set observed in every environment](hyp:S,hS) is [invariant](goal) for [a family of
+intervention environments](hyp:F) when the target's conditional law depends only on the predictors
+and fixed parent values: the common conditional rule agrees across environments after fixed-parent
+values are aligned, and each environment's observed conditional law agrees with that rule at its
+own fixed-parent values. This applies to [finite nodes](hyp:N), [finitely many
+environments](hyp:ι), and [measurable coordinate outcomes](hyp:Ω).
 
 `S` is **invariant** across the environment family `F`.
 
@@ -164,7 +174,7 @@ private theorem obsCondKernel_ae_eq_joint_condDistrib
       (Measure.map (F.M i).randomToObserved ((F.M i).jointKernel (F.s i))) :=
     hObsEq ▸ (inferInstance : IsFiniteMeasure ((F.M i).obsKernel (F.s i)))
   simp only [hObsEq] at hbase
-  have hmap := Causalean.condDistrib_map_comp ((F.M i).jointKernel (F.s i))
+  have hmap := condDistrib_map_comp ((F.M i).jointKernel (F.s i))
     (φ := (F.M i).randomToObserved)
     (g := valuesProjection hYobs) (f := valuesProjection hPobs)
     (F.M i).measurable_randomToObserved

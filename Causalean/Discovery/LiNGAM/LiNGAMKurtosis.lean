@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
-import Causalean.Discovery.LiNGAM.Kurtosis
+module
+public import Causalean.Mathlib.LinearAlgebra.MonomialMatrix
+public import Causalean.Discovery.LiNGAM.Kurtosis
 
 /-!
 # LiNGAM identification, kurtosis route
@@ -24,6 +25,8 @@ functions:
   `A⁻¹ = A'⁻¹`.
 -/
 
+public section
+
 namespace Causalean.Discovery.LiNGAM
 
 open MeasureTheory ProbabilityTheory
@@ -32,12 +35,10 @@ open scoped Matrix
 
 variable {Ω : Type*} [MeasurableSpace Ω] {P : Measure Ω} [IsProbabilityMeasure P]
 
-/-- Let `A`, `A'` be `n × n` real matrices such that [`A` is invertible](hyp:hAu)
-and [`A'` is invertible](hyp:hA'u). If [the matrix `A'⁻¹ A` has at most one
-non-zero entry per column](hyp:hcol) — the column-support fact — then [there exist
-a permutation `τ` and a nowhere-zero scale vector `d` such that `A'⁻¹` and `A⁻¹`
-agree up to that generalized permutation: `A'⁻¹ i j = d i · A⁻¹ (τ i) j` for every
-`i, j`](goal). -/
+/-- [Columnwise source separation forces two unmixing matrices to differ only by permutation and
+scaling](goal), the standard ICA ambiguity. For [dimension `n` and mixing matrices
+`A,A'`](hyp:n,A,A'), this needs [both matrices invertible](hyp:hAu,hA'u) and [at most one nonzero
+entry per column of their relative transform](hyp:hcol). -/
 theorem ica_genPerm_relation {n : ℕ} {A A' : Matrix (Fin n) (Fin n) ℝ}
     (hAu : IsUnit A.det) (hA'u : IsUnit A'.det)
     (hcol : ∀ j i k, i ≠ k → (A'⁻¹ * A) i j = 0 ∨ (A'⁻¹ * A) k j = 0) :
@@ -97,7 +98,8 @@ theorem lingam_identifiability_kurtosis {n : ℕ} {A A' : Matrix (Fin n) (Fin n)
     (heI : iIndepFun (fun i ω => e ω i) P) (he'I : iIndepFun (fun i ω => e' ω i) P)
     (heL4 : ∀ i, MemLp (fun ω => e ω i) 4 P)
     (hcent : ∀ i, ∫ ω, e ω i ∂P = 0)
-    (hkurt : (∀ j, 0 < kurt (fun ω => e ω j) P) ∨ (∀ j, kurt (fun ω => e ω j) P < 0))
+    (hkurt : (∀ j, 0 < fourthCumulantAtZeroMean (fun ω => e ω j) P) ∨
+      (∀ j, fourthCumulantAtZeroMean (fun ω => e ω j) P < 0))
     (hobs : P.map (fun ω => A *ᵥ e ω) = P.map (fun ω => A' *ᵥ e' ω)) :
     A⁻¹ = A'⁻¹ := by
   classical
@@ -158,7 +160,7 @@ theorem lingam_identifiability_kurtosis {n : ℕ} {A A' : Matrix (Fin n) (Fin n)
     intro j i k hik
     exact mul_eq_zero.mp
       (colSupport_of_kurtosis (W := W) (hmeas := hem) (hindep := heI) (hL4 := heL4)
-        (hcent := hcent) (hsign := hkurt) hik (hyindep i k hik) j)
+        (hcent := hcent) (hsign := hkurt) (hyindep i k hik) j)
   have hcol' : ∀ j i k, i ≠ k → (A'⁻¹ * A) i j = 0 ∨ (A'⁻¹ * A) k j = 0 := by
     simpa [W] using hcol
   obtain ⟨τ, d, hgp⟩ := ica_genPerm_relation hAu hA'u hcol'

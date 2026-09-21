@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.QuotientLaw
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OutcomeFactorization
-import Mathlib.Topology.Compactness.Compact
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.QuotientLaw
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Helpers.OutcomeFactorization
+public import Mathlib.Topology.Compactness.Compact
 
 /-! Feasible-summary closure, nearest-summary repair, and ordered mass extraction. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 
@@ -426,9 +429,10 @@ def HomogeneousSummarySpecialization (k dx dz : ℕ) (L pi0 sigma0 : ℝ) : Prop
     (V : SignalBasis dx k) (hV : V.SpansSignal Q.summary),
     HomogeneousEffects Q.P tauStar →
       compressedOperator Q.summary V hV = tauStar • (1 : RectMatrix k k) ∧
-      AtomicLaw.LawModulo.toMeasure (by
+      AtomicLaw.LawModulo.toMeasure (k := k) (radius := effectRadius dz L sigma0) (by
         letI := Q.prob
-        exact quotientLaw Q.P Q.model) = Measure.dirac tauStar
+        exact quotientLaw (k := k) (dx := dx) (dz := dz) (L := L)
+          (pi0 := pi0) (sigma0 := sigma0) Q.P Q.model) = Measure.dirac tauStar
 
 /-- Positivity of the last singular value makes a finite rectangular map injective.     Under [the stated inputs and assumptions](hyp:rows,cols,A,h), [the stated conclusion](goal) holds. -/
 -- @node: summaryClosure_injective_of_signalMinSingular_pos

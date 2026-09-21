@@ -1,0 +1,260 @@
+%%% FIELD construction-sparsest-dag-family-corrected
+Enumerate all DAGs on the finite vertex set \(V\).  Retain exactly those DAGs that respect \(\mathcal B\) and for which every conditional-independence statement implied by d-separation has bit one in \(\mathcal I\).  If the retained set is nonempty, let \(e_\star\) be its minimum edge count and let \(\mathfrak D\) be the set of all retained DAGs with \(e_\star\) edges, in canonical order.  If the retained set is empty, record the exhaustive rejection certificate.  A supplied finite SA-MPDAG or CPDAG family \(\mathfrak G\) is optional: it may replace explicit enumeration only after its expansion, graph checks, I-map certificates, minimum-edge certificate, and exhaustiveness certificate establish that its represented DAGs are exactly \(\mathfrak D\); otherwise the default enumeration is used.
+%%% FIELD construction-certified-input-corrected
+Check that \(V\) and every \(\Omega_v\) are finite, that \(|\Omega_v|\geq2\), that \(\mathcal I\) is a complete bit-vector on the finite collection of conditional-independence statements, that \(\mathcal B\) is well typed, that \(X\cap Y=\varnothing\), that \(x\in\prod_{v\in X}\Omega_v\), and that \(Y\subseteq V\setminus X\).  The accepted syntactic input is
+\[
+ \mathfrak u=\bigl(V,(\Omega_v)_{v\in V},\mathcal I,\mathcal B,X,x,Y;
+ [\mathfrak G]_{\mathrm{opt}},[p^{\circ}]_{\mathrm{opt}}\bigr).
+\]
+Neither nonemptiness of \(\mathcal M_{\mathcal I}^{\circ}\) nor existence of an admissible DAG is an acceptance assumption.  If \(\mathfrak G\) is supplied, check it only as the optional compressed certificate specified in \(\mathrm{def{:}sparsest\text{-}dag\text{-}family}\).  If a rational table \(p^{\circ}\) is supplied, retain it only after exact arithmetic verifies \(p^{\circ}\in\mathcal M_{\mathcal I}^{\circ}\cap\mathbb Q^{\Omega}\); it is an optional fast-path sample and not a domain assumption.
+%%% FIELD construction-pairwise-cross-signature
+For \(D,D'\in\mathfrak D\) and an outcome cell \(y\), define
+\[
+ F_{D,D',y}=A_{D,y}B_{D',y}-A_{D',y}B_{D,y}.
+\]
+It is an integer polynomial and, wherever both recorded denominators are nonzero,
+\[
+ T_{D,y}-T_{D',y}=\frac{F_{D,D',y}}{B_{D,y}B_{D',y}}.
+\]
+%%% FIELD construction-sparse-simid-maximal-quotient
+Accept a syntactically certified tuple \(\mathfrak u\).  First decide the basic semialgebraic nonemptiness of \(\mathcal M_{\mathcal I}^{\circ}\).  If it is empty, return a finite exact quantifier-elimination trace or Positivstellensatz identity.  If it is nonempty, retain an exact real-algebraic sample, using a valid optional rational \(p^{\circ}\) instead when supplied.  Next construct \(\mathfrak D\) by \(\mathrm{def{:}sparsest\text{-}dag\text{-}family}\), using a valid optional \(\mathfrak G\) certificate or the exhaustive default enumeration.  If no admissible DAG exists, return its finite exhaustive rejection certificate.
+
+When \(\mathcal M_{\mathcal I}^{\circ}\neq\varnothing\) and \(\mathfrak D\neq\varnothing\), construct all circuits \(T_{D,y}\) and pairwise signatures \(F_{D,D',y}\).  Fix one outcome cell \(y_\star\).  For every unordered pair \(\{D,D'\}\) and every \(y\neq y_\star\), decide exactly the formula
+\[
+ p\in\mathcal M_{\mathcal I}^{\circ},\qquad F_{D,D',y}(p)\neq0.
+\]
+A verified zero fixed-order normal form of \(F_{D,D',y}\) in \(K_{\mathcal I}\), together with its real-Nullstellensatz and saturation identity, may replace the corresponding feasibility decision.  Otherwise first test any retained exact sample as a fast separator and then invoke the decision procedure if that sample does not separate.  A feasible formula returns an exact real-algebraic positive separator with rational-univariate, minimal-polynomial, and isolating or Thom data; an infeasible formula returns a finite quantifier-elimination trace or Positivstellensatz identity.  Use normalization of each intervention vector to infer equality in the omitted coordinate.  Partition \(\mathfrak D\) by universal equality of all outcome coordinates, and return one representative circuit per class, the within-class equality certificates, and one exact positive separator for every pair of distinct classes.  In the one-class case also return the single common circuit.  A nonzero normal form is only a trigger for the positive-chamber feasibility test and is never an ambiguity certificate by itself.
+%%% FIELD stmt-dag-intervention-functional
+For every \(D\in\mathfrak D\) and every strictly positive table \(p\) that is Markov to \(D\), the observed conditional kernels \(k_j(v_j\mid v_{\operatorname{pa}_D(j)})\) are well defined and
+\[
+ p(v)=\prod_{j\in V}k_j(v_j\mid v_{\operatorname{pa}_D(j)}).
+\]
+There is a recursive Markovian structural causal model compatible with \(D\) whose observational law is \(p\).  Moreover, for every recursive Markovian structural causal model compatible with \(D\), having strictly positive observational law \(p\),
+\[
+ P_{\operatorname{do}(X=x)}(Y=y)=T_{D,y}(p)
+\]
+for every outcome cell \(y\).
+%%% FIELD proof-dag-intervention-functional
+Fix a topological order of \(D\).  Because \(p\) is strictly positive, for every vertex \(j\), every parent assignment \(a\), and every state \(b\in\Omega_j\), the observed conditional kernel
+\[
+ k_j(b\mid a)=\frac{p(V_j=b,V_{\operatorname{pa}_D(j)}=a)}
+ {p(V_{\operatorname{pa}_D(j)}=a)}
+\]
+is defined: the denominator is a nonempty sum of strictly positive cells.  Write the topological order as \(v_1,\ldots,v_q\).  The DAG local Markov statement d-separates \(v_j\) from its nonparent predecessors given \(\operatorname{pa}_D(v_j)\).  Markovness and positivity therefore give
+\[
+ p(v_j\mid v_1,\ldots,v_{j-1})
+ =p(v_j\mid v_{\operatorname{pa}_D(v_j)})
+ =k_j(v_j\mid v_{\operatorname{pa}_D(v_j)}).
+\]
+Applying the ordinary chain rule in the topological order yields
+\[
+ p(v)=\prod_{j\in V}k_j(v_j\mid v_{\operatorname{pa}_D(j)}). \tag{1}
+\]
+For each \(j\), let \(U_j\) be independent and uniform on \([0,1]\), order the finite states of \(\Omega_j\), and let the structural function choose the state whose conditional cumulative-probability interval under \(k_j(\,\cdot\mid a)\) contains \(U_j\).  Recursive evaluation in the topological order gives conditional kernel \(k_j\) at vertex \(j\).  Independence of the \(U_j\)'s and (1) therefore give observational law \(p\).  This constructs a recursive Markovian model whose allowed parent graph is \(D\); a displayed edge may be inactive if its kernel does not depend on that parent.
+
+Conversely, in any recursive Markovian model compatible with \(D\), independence of the exogenous variables gives a kernel \(k_j(\,\cdot\mid a)\) for each structural assignment and the observational factorization (1).  Strict positivity makes the parent marginal positive, so this structural kernel equals the displayed observed conditional ratio.  The intervention \(\operatorname{do}(X=x)\) replaces the structural equations for vertices in \(X\) by constants and leaves every other equation and every exogenous law unchanged.  Hence its joint mass on the nonintervened vertices is
+\[
+ p_x(v_{V\setminus X})
+ =\prod_{j\notin X}k_j(v_j\mid v_{\operatorname{pa}_D(j)})\big|_{X=x}. \tag{2}
+\]
+Marginalizing (2) over \(V\setminus(X\cup Y)\), and substituting the observed conditional ratios, is exactly the finite sum specified by \(\mathrm{def{:}truncated\text{-}functional}\).  Therefore its \(Y=y\) cell is \(T_{D,y}(p)\), proving the claimed relationship between the causal target and the observed-table functional.
+%%% FIELD stmt-truncated-vector-normalization
+For every syntactically certified input, every \(p\in\mathcal M_{\mathcal I}^{\circ}\), and every \(D\in\mathfrak D\), all recorded denominators are positive and the truncated-functional vector is normalized:
+\[
+ B_{D,y}(p)>0\quad\text{for every }y,
+ \qquad
+ \sum_{y\in\prod_{v\in Y}\Omega_v}T_{D,y}(p)=1.
+\]
+Consequently, if two such vectors agree in all but one outcome cell, they agree in the remaining cell as well.
+%%% FIELD proof-truncated-vector-normalization
+Fix \(p\in\mathcal M_{\mathcal I}^{\circ}\) and \(D\in\mathfrak D\).  By \(\mathrm{lem{:}common\text{-}law\text{-}redundancy}\), \(p\) is Markov to \(D\), so it has the factorization (1) in \(\mathrm{lem{:}dag\text{-}intervention\text{-}functional}\).  Every denominator recorded in \(B_{D,y}\) is an observed parent marginal or another observed marginal used to form a conditional probability.  It is a nonempty sum of cells \(p_z>0\), by \(\mathrm{def{:}exact\text{-}oracle\text{-}model}\).  Thus
+\[
+ B_{D,y}(p)>0. \tag{3}
+\]
+
+Consider the truncated product
+\[
+ q_D(v_{V\setminus X})
+ =\prod_{j\notin X}k_j(v_j\mid v_{\operatorname{pa}_D(j)})\big|_{X=x}. \tag{4}
+\]
+Sum (4) over the nonintervened vertices in reverse topological order.  At the step for a vertex \(j\notin X\), every factor belonging to a nonintervened descendant has already been summed out, while factors belonging to vertices in \(X\) are absent.  The only remaining factor involving \(v_j\) as its child is \(k_j\), and
+\[
+ \sum_{v_j\in\Omega_j}k_j(v_j\mid v_{\operatorname{pa}_D(j)})=1. \tag{5}
+\]
+Repeated use of (5) therefore yields
+\[
+ \sum_{v_{V\setminus X}}q_D(v_{V\setminus X})=1. \tag{6}
+\]
+By \(\mathrm{def{:}truncated\text{-}functional}\), \(T_{D,y}(p)\) is the marginal of (4) at \(Y=y\).  Summing these disjoint cells and applying (6) gives
+\[
+ \sum_yT_{D,y}(p)=1. \tag{7}
+\]
+If \(T_{D,y}=T_{D',y}\) for every \(y\neq y_\star\), subtracting the two identities (7) gives
+\[
+ T_{D,y_\star}(p)-T_{D',y_\star}(p)
+ =-\sum_{y\neq y_\star}\{T_{D,y}(p)-T_{D',y}(p)\}=0,
+\]
+which proves the omitted-coordinate assertion, including the case in which the outcome state space has one cell.
+%%% FIELD stmt-pairwise-zero-normal-form-soundness
+For \(D,D'\in\mathfrak D\) and an outcome cell \(y\), if
+\[
+ \operatorname{NF}_{\prec,K_{\mathcal I}}(F_{D,D',y})=0,
+\]
+then a finite real-Nullstellensatz and saturation identity certifies
+\[
+ T_{D,y}(p)=T_{D',y}(p)
+ \qquad\text{for every }p\in\mathcal M_{\mathcal I}^{\circ}.
+\]
+When the finite algebraic coefficient field and all polynomial products are supplied in expanded exact form, with exponents in unary, the identity is checkable by finite exact algebraic-number arithmetic and polynomial identity comparison.
+%%% FIELD proof-pairwise-zero-normal-form-soundness
+The zero normal form means
+\[
+ F_{D,D',y}\in K_{\mathcal I}
+ =\sqrt[\mathbb R]{J_{\mathcal I}:s^\infty}
+\]
+by \(\mathrm{def{:}saturated\text{-}real\text{-}radical}\).  Apply \(\mathrm{lem{:}real\text{-}nullstellensatz}\) to \(L=J_{\mathcal I}:s^\infty\) and \(f=F_{D,D',y}\).  Together with membership in the saturation and \(\mathrm{lem{:}real\text{-}closed\text{-}field\text{-}transfer}\), this gives finite integers \(a\geq1\), \(N\geq0\), polynomials \(q_i,a_j\) over a finite real algebraic extension of \(\mathbb Q\), and generators \(f_j\) of \(J_{\mathcal I}\), such that
+\[
+ s^N\left(F_{D,D',y}^{2a}+\sum_iq_i^2\right)
+ =\sum_j a_jf_j. \tag{8}
+\]
+Let \(p\in\mathcal M_{\mathcal I}^{\circ}\).  The oracle-one equalities and normalization in \(\mathrm{def{:}exact\text{-}oracle\text{-}model}\) give \(f_j(p)=0\) for every \(j\).  Strict cell positivity and (3) in \(\mathrm{lem{:}truncated\text{-}vector\text{-}normalization}\) give \(s(p)\neq0\).  Evaluating (8), dividing by \(s(p)^N\), and using nonnegativity of even powers and squares gives
+\[
+ F_{D,D',y}(p)=0. \tag{9}
+\]
+By \(\mathrm{def{:}pairwise\text{-}cross\text{-}signature}\) and positivity of both denominators,
+\[
+ T_{D,y}(p)-T_{D',y}(p)
+ =\frac{F_{D,D',y}(p)}{B_{D,y}(p)B_{D',y}(p)}=0. \tag{10}
+\]
+The identity is finite.  Once its algebraic coefficient field, unary exponents, and expanded products are supplied, exact coefficient reduction checks (8), which proves the stated certificate claim.
+%%% FIELD stmt-guo-perkovic-within-mpdag-enumeration
+For a causal MPDAG \(G\) and disjoint node sets \(X,Y\), the procedure in Theorem 3 of Guo and Perkovic returns finitely many MPDAGs whose represented-DAG sets partition \([G]\), within each of which the total effect of \(X\) on \(Y\) is identified; for any two distinct output MPDAGs, some observational density consistent with \(G\) makes their identified effects different.
+%%% FIELD stmt-thm-sparse-simid-maximal-quotient
+Theorem 2 (SparseSIM-ID maximal-quotient completeness).  For every finite syntactically certified input \(\mathfrak u\), \(\operatorname{SparseSIM\text{-}ID}\) terminates after finitely many exact operations.  It first returns exactly one of the following: (i) a finite exact certificate that \(\mathcal M_{\mathcal I}^{\circ}=\varnothing\); (ii) when that model is nonempty, a finite exhaustive certificate that no DAG respecting \(\mathcal B\) is an I-map of \(\mathcal I\); or (iii) when both \(\mathcal M_{\mathcal I}^{\circ}\) and the computed tied minimum-edge family \(\mathfrak D\) are nonempty, the quotient of \(\mathfrak D\) by
+\[
+ D\sim D'
+ \quad\Longleftrightarrow\quad
+ T_{D,y}(p)=T_{D',y}(p)
+ \quad\text{for every }p\in\mathcal M_{\mathcal I}^{\circ}
+ \text{ and every }y. \tag{11}
+\]
+In case (iii), the output contains one observable arithmetic circuit per equivalence class, finite real-radical or semialgebraic equality certificates for all but one outcome coordinate within every class together with the normalization derivation for the omitted coordinate, and, for every pair of distinct classes, an exact table
+\[
+ p^\dagger\in\mathcal M_{\mathcal I}^{\circ}\cap\mathbb R_{\mathrm{alg}}^\Omega
+\]
+with rational-univariate, minimal-polynomial, and isolating or Thom data at which the representative intervention vectors differ.  This is the unique coarsest partition of \(\mathfrak D\) on whose blocks one common intervention functional exists.  If it has one class, its representative circuit identifies \(P_x(Y)\) in every represented-DAG Markovian structural causal model; if it has more than one class, every returned table is a causal ambiguity witness for its class pair.
+
+Let
+\[
+ N_Y=\prod_{v\in Y}|\Omega_v|.
+\]
+Apart from the single initial decision of whether \(\mathcal M_{\mathcal I}^{\circ}\) is empty, computation of the full quotient requires at most
+\[
+ \binom{|\mathfrak D|}{2}(N_Y-1) \tag{12}
+\]
+positive-chamber separator decisions.  Testing only whether all graphs agree with a fixed reference \(D_0\) requires at most
+\[
+ (|\mathfrak D|-1)(N_Y-1) \tag{13}
+\]
+such decisions.  Zero real-radical normal forms and valid optional exact samples can only reduce these counts.  No running-time or algebraic-height bound is asserted.
+%%% FIELD proof-thm-sparse-simid-maximal-quotient
+Fix a syntactically certified input \(\mathfrak u\).  We prove termination, soundness, completeness, maximality, the decision counts, and the causal interpretation in turn.
+
+For each bit-zero conditional-independence statement \(c\), put
+\[
+ h_c(p)=\sum_{g\in\mathcal C_0(\mathcal I,c)}g(p)^2.
+\]
+Define the finite polynomial sets
+\[
+ E_0=\mathcal C_1(\mathcal I)\cup
+ \left\{\sum_{z\in\Omega}p_z-1\right\},
+ \qquad
+ G_0=H_0=\{p_z:z\in\Omega\}\cup\{h_c:\mathcal I(c)=0\}. \tag{14}
+\]
+Every member has rational coefficients.  For a real table, \(p_z\geq0\) and \(p_z\neq0\) are jointly equivalent to \(p_z>0\).  Each \(h_c\) is a sum of squares, so \(h_c\geq0\) and \(h_c\neq0\) are jointly equivalent to \(h_c>0\).  Hence \(\mathrm{def{:}exact\text{-}oracle\text{-}model}\) gives the exact set equality
+\[
+ S(E_0,G_0,H_0)=\mathcal M_{\mathcal I}^{\circ}. \tag{15}
+\]
+By \(\mathrm{lem{:}semialgebraic\text{-}decision\text{-}with\text{-}certificates}\), emptiness in (15) is decided after finitely many exact operations.  If empty, the returned quantifier-elimination trace or Positivstellensatz identity proves case (i).  If nonempty, the same lemma returns an exact point in \(\mathcal M_{\mathcal I}^{\circ}\cap\mathbb R_{\mathrm{alg}}^\Omega\).  A supplied rational table is used only if its exact check succeeds, so neither existence nor rationality of such an optional table has entered the domain assumptions.
+
+It remains to construct the graph family.  There are at most
+\[
+ q!\,2^{\binom q2} \tag{16}
+\]
+topological-order and forward-edge-set encodings, and every DAG on \(V\) has at least one such encoding.  Deduplicate them.  For each candidate, acyclicity, every required or forbidden orientation in \(\mathcal B\), and every d-separation statement are finite combinatorial tests.  Because \(\mathcal I\) supplies every CI bit, the I-map condition
+\[
+ \operatorname{CI}(D)\subseteq\{c:\mathcal I(c)=1\} \tag{17}
+\]
+is exactly decidable.  Comparing the finitely many edge counts retains every minimum tie.  A rejection certificate lists, for every encoding, a cycle, a background violation, or an implied CI with bit zero; this is finite and checkable.  Thus case (ii) is returned exactly when no admissible I-map exists.  A supplied \(\mathfrak G\) merely replaces this enumeration when its finite certificate proves the same exhaustive conclusion.  There is no favorable complexity claim in (16).
+
+Assume henceforth that both \(\mathcal M_{\mathcal I}^{\circ}\) and \(\mathfrak D\) are nonempty.  The family \(\mathfrak D\) and the outcome state space
+\[
+ \mathcal Y=\prod_{v\in Y}\Omega_v,
+ \qquad |\mathcal Y|=N_Y<\infty, \tag{18}
+\]
+are finite.  The finite marginalizations and exact reductions in \(\mathrm{def{:}truncated\text{-}functional}\) and \(\mathrm{def{:}pairwise\text{-}cross\text{-}signature}\) construct every \(T_{D,y}=A_{D,y}/B_{D,y}\) and \(F_{D,D',y}\).  By \(\mathrm{lem{:}truncated\text{-}vector\text{-}normalization}\), for all \(p\in\mathcal M_{\mathcal I}^{\circ}\),
+\[
+ B_{D,y}(p)B_{D',y}(p)>0,
+ \qquad
+ \sum_{y\in\mathcal Y}T_{D,y}(p)=
+ \sum_{y\in\mathcal Y}T_{D',y}(p)=1. \tag{19}
+\]
+
+Fix the first cell \(y_\star\in\mathcal Y\).  For an unordered graph pair \(\{D,D'\}\) and \(y\neq y_\star\), define
+\[
+ H_{D,D',y}=H_0\cup\{F_{D,D',y}\}. \tag{20}
+\]
+Equations (15) and (20) give
+\[
+ S(E_0,G_0,H_{D,D',y})
+ =\{p\in\mathcal M_{\mathcal I}^{\circ}:F_{D,D',y}(p)\neq0\}. \tag{21}
+\]
+By (19) and \(\mathrm{def{:}pairwise\text{-}cross\text{-}signature}\),
+\[
+ F_{D,D',y}(p)\neq0
+ \quad\Longleftrightarrow\quad
+ T_{D,y}(p)\neq T_{D',y}(p)
+ \qquad(p\in\mathcal M_{\mathcal I}^{\circ}). \tag{22}
+\]
+Apply \(\mathrm{lem{:}semialgebraic\text{-}decision\text{-}with\text{-}certificates}\) to (21).  If feasible, it returns an exactly checkable
+\[
+ p^\dagger\in\mathcal M_{\mathcal I}^{\circ}\cap\mathbb R_{\mathrm{alg}}^\Omega
+ \quad\text{with}\quad
+ T_{D,y}(p^\dagger)\neq T_{D',y}(p^\dagger). \tag{23}
+\]
+If infeasible, its exact certificate proves equality of that coordinate for every table in the model.  Before this call, a zero fixed-order normal form can be certified by \(\mathrm{lem{:}pairwise\text{-}zero\text{-}normal\text{-}form\text{-}soundness}\), while a nonzero normal form makes no assertion about (21).  Testing a retained exact sample is also sound by direct algebraic-number evaluation and affects only speed.
+
+If every tested coordinate for \(\{D,D'\}\) is universally equal, (19) gives
+\[
+ T_{D,y_\star}(p)-T_{D',y_\star}(p)
+ =-\sum_{y\neq y_\star}
+ \{T_{D,y}(p)-T_{D',y}(p)\}=0 \tag{24}
+\]
+for every \(p\in\mathcal M_{\mathcal I}^{\circ}\).  Conversely, any feasible test in (23) disproves universal equality of the vectors.  Thus the finitely many decisions compute exactly the relation in (11), including the omitted coordinate.
+
+The relation in (11) is reflexive and symmetric because equality is, and it is transitive because for every \(p,y\),
+\[
+ T_{D,y}(p)=T_{D',y}(p),\quad
+ T_{D',y}(p)=T_{D'',y}(p)
+ \quad\Longrightarrow\quad
+ T_{D,y}(p)=T_{D'',y}(p). \tag{25}
+\]
+It is therefore an equivalence relation.  Choose the first graph in each class as representative.  Infeasibility or zero-normal-form certificates prove every within-class equality; (24) certifies its omitted coordinate.  If two representatives are in distinct classes, the negation of (11) supplies some \(p,y\) where they differ.  Such a difference cannot occur only at \(y_\star\), by (24), so at least one tested formula between the representatives is feasible.  Its sample (23) is the required exact separator for that class pair.  Because effects agree identically within a class, the same sample separates every member of one class from every member of the other in that coordinate.
+
+To prove maximality, let \(\Pi\) be any partition of \(\mathfrak D\) such that all graphs in each block share one intervention functional on \(\mathcal M_{\mathcal I}^{\circ}\).  Any two graphs in one block then satisfy (11), so that block is contained in a \(\sim\)-class.  Thus \(\Pi\) refines the returned quotient.  Conversely, (11) itself supplies one representative functional on each returned class.  The quotient is therefore the unique coarsest, equivalently maximal-block, common-effect partition.
+
+There are \(\binom{|\mathfrak D|}{2}\) unordered graph pairs and only \(N_Y-1\) tested cells per pair, proving (12).  Relative to \(D_0\), there are \(|\mathfrak D|-1\) nonreference graphs, proving (13).  These counts exclude the one initial model-nonemptiness decision.  Normal-form identities and exact-sample successes omit calls and hence cannot increase either bound.  All loops range over the finite sets in (16) and (18), and every algebraic subroutine terminates, so the complete algorithm terminates.  The finite alternatives (i)--(iii) are mutually exclusive by their stated nonemptiness conditions and exhaustive by the decisions just proved.
+
+Finally, \(\mathrm{lem{:}common\text{-}law\text{-}redundancy}\) makes every \(p\in\mathcal M_{\mathcal I}^{\circ}\) Markov to every \(D\in\mathfrak D\).  By \(\mathrm{lem{:}dag\text{-}intervention\text{-}functional}\), each table-graph pair has a compatible recursive Markovian SCM and its causal law satisfies
+\[
+ P_{x}^{D}(Y=y)=T_{D,y}(p). \tag{26}
+\]
+If the quotient has one class, (11) and (26) prove that its representative observable circuit identifies the common causal law throughout the tied family.  If it has several classes, (23) and (26) give two compatible SCMs with the same strictly positive exact-oracle observed law and different intervention laws.  Hence the returned discrepancy is a causal ambiguity certificate, not merely an algebraic one.
+%%% FIELD stmt-maximal-effect-quotient-corollary
+Corollary (graph-native maximal effect quotient and its one-way MPDAG relation).  On every nonempty exact-oracle model with a nonempty tied minimum-edge family, the quotient returned by Theorem 2 is the unique coarsest partition on which the full intervention-distribution functional is common.  Suppose additionally that \(\mathfrak D=[G]\) for a single MPDAG \(G\), and let \(\mathcal P_G^+\) be its strictly positive Markov model.  If two represented DAGs are assigned the same functional by the within-MPDAG enumeration of Guo and Perkovic and \(\mathcal M_{\mathcal I}^{\circ}\subseteq\mathcal P_G^+\), then they belong to the same SparseSIM-ID quotient class.  Thus every such Guo--Perkovic functional class is contained in a returned class.  The converse containment, and hence extensional equality of the two quotients, is not asserted.
+%%% FIELD proof-maximal-effect-quotient-corollary
+The first assertion is the maximality conclusion of \(\mathrm{thm{:}sparse\text{-}simid\text{-}completeness}\).  For the specialization, let \(D,D'\in[G]\) be assigned the same functional by the procedure in \(\mathrm{lem{:}guo\text{-}perkovic\text{-}within\text{-}mpdag\text{-}enumeration}\).  By the guarantee recorded in that cited result, their graph-generic intervention functionals agree on every law in \(\mathcal P_G^+\).  The assumed inclusion gives, for every \(p\in\mathcal M_{\mathcal I}^{\circ}\) and every outcome cell \(y\),
+\[
+ T_{D,y}(p)=T_{D',y}(p). \tag{27}
+\]
+Equation (11) of Theorem 2 therefore implies \(D\sim D'\), so the Guo--Perkovic class containing \(D,D'\) lies in one SparseSIM-ID class.  This proves the one-way containment.  Equality on the possibly smaller exact-oracle model need not imply equality on all of \(\mathcal P_G^+\), so no reverse containment follows from the present assumptions.

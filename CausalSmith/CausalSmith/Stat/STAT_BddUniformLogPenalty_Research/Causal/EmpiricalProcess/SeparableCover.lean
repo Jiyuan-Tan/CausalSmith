@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.RadialCover
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.RadialCover
 
 /-!
 # Polynomial covering for the one-sided bandwidth enlargement
@@ -9,6 +10,8 @@ the ball center to the polynomial center.  The degree-zero term off the known
 assignment support is kept separate because signed distance is identically
 zero there.
 -/
+
+public section
 
 open Causalean.Stat.Concentration
 open Causalean.Stat.Concentration.EuclideanRadialPolynomial

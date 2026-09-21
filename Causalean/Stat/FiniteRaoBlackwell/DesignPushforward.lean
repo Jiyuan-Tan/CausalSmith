@@ -1,6 +1,7 @@
-import Causalean.Experimentation.DesignBased.DesignCore
-import Mathlib.Analysis.Convex.Jensen
-import Mathlib.Analysis.Convex.Mul
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Mathlib.Analysis.Convex.Jensen
+public import Mathlib.Analysis.Convex.Mul
 
 /-!
 # Conditional means along finite-design pushforwards
@@ -11,6 +12,8 @@ caller-supplied default, while exact disintegration, interval preservation, and 
 Rao--Blackwell contraction remain valid without uniformity, independence, surjectivity, or
 full support.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
-import Causalean.Experimentation.DesignBased.EdgeVarianceBound
+module
+public import Causalean.Experimentation.ExposureMappingInterference.Variance.Conservative
+public import Causalean.Experimentation.DesignBased.EdgeVarianceBound
 
 /-!
-# Quadruple-sum variance bound for the conservative variance estimator (Aronow–Samii Prop 6.6)
+# Finite-grid variance bound for the conservative variance estimator
 
 The feasible Wald-coverage theorem reduces, via `relVar_of_NsqVar_tendsto`, to `Var[N·V̂] → 0`.
 This file establishes the *per-population* core of that limit, the appendix quadruple-sum bound
@@ -20,15 +21,20 @@ rewritten as a single **edge-sum** `∑_{i,j} vb i j` over ordered pairs (diagon
 the three single-index sums; off-diagonal folds the three pairwise sums), and the abstract
 `var_edge_sum_le` is applied with:
 
-* boundedness `|vb i j z| ≤ M` from **Condition 1** (bounded outcomes/inverse-propensities) plus
-  the explicit joint-overlap bound **Condition 1'** (`1/π_{ij} ≤ c₃` on all ordered pairs — the
-  quantitative input the paper's appendix uses implicitly);
+* boundedness `|vb i j z| ≤ M` from the bounded outcomes and inverse propensities in
+  Aronow–Samii's Condition 3, plus an explicit additional joint-overlap bound
+  `1/π_{ij} ≤ c₃` on all ordered pairs;
 * off-edge vanishing `vb i j = 0` for non-adjacent `i ≠ j`, since then the exposures are
   independent and the centered-cross factors `π_{ij} − π_iπ_j = Cov[1ᵢ,1ⱼ]` vanish;
-* edge-covariance vanishing `Cov[vb i j, vb k l] = 0` for graph-unlinked edge pairs — the
-  **Condition 3** (local dependence / dependency graph) input, in the form the appendix uses.
+* edge-covariance vanishing `Cov[vb i j, vb k l] = 0` for graph-unlinked edge pairs.
+
+The last two assumptions are explicit factorization and covariance conditions for this finite-grid
+argument. Together with bounded degree, they are an alternative sufficient-condition route toward
+the variance consistency used in the paper's Proposition 6.2, not a formalization of its exact
+Conditions 3, 5, and 6.
 -/
 
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -340,7 +346,15 @@ private lemma abs_offCov_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : �
     _ = (1 + c₃) * c₁ ^ 2 * c₂ ^ 2 := by ring
 
 omit [Fintype ι] in
-/-- **Boundedness of the edge-function** (Conditions 1 + 1'): `|vb i j z| ≤ vbBound c₁ c₂ c₃`. -/
+/-- **Boundedness of the edge function.** For
+[a finite design, potential outcomes, exposure mapping, and unit traits](hyp:D,y,f,θ),
+[two distinct exposure levels](hyp:dk,dl,_hne),
+[nonnegative bounds](hyp:c₁,c₂,c₃,_hc₁,hc₂,hc₃), [bounded outcomes](hyp:hy),
+[positive marginal propensities](hyp:hπk,hπl),
+[bounded marginal inverse propensities](hyp:hπinvk,hπinvl),
+[bounded joint inverse propensities](hyp:hjk,hjl,hjc),
+[two units](hyp:i,j), and [an assignment](hyp:z),
+[`|vb i j z| ≤ vbBound c₁ c₂ c₃`](goal). -/
 theorem abs_vb_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (_hne : dk ≠ dl)
     {c₁ c₂ c₃ : ℝ} (_hc₁ : 0 ≤ c₁) (hc₂ : 0 ≤ c₂) (hc₃ : 0 ≤ c₃)
@@ -412,7 +426,7 @@ theorem abs_vb_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ �
 omit [Fintype ι] in
 /-- **Off-edge vanishing.** If the same-exposure and cross-exposure pair propensities factor as
 products for an off-diagonal pair `i ≠ j`, then the centered-cross factors vanish and
-`vb i j = 0`; Condition 3 supplies these factorization hypotheses for non-adjacent pairs. -/
+`vb i j = 0`; the theorem assumes these factorization hypotheses directly. -/
 theorem vb_eq_zero_of_indep (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (i j : ι) (hij : i ≠ j)
     (hsame_k : propPairSame D f θ i j dk = prop D f θ i dk * prop D f θ j dk)
@@ -423,18 +437,19 @@ theorem vb_eq_zero_of_indep (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : �
   rw [vb, if_neg hij, vbOff, offVar, offVar, offCov, hsame_k, hsame_l, hcross]
   ring
 
-/-- **Per-population quadruple-sum bound (Aronow–Samii appendix, Prop 6.6).** Suppose [the two
-treatment arms are distinct](hyp:hne) and [outcomes are uniformly bounded by a nonnegative
-constant `c₁`](hyp:hc₁,hy) (Condition 1). Suppose the marginal exposure propensities under each
-arm are [positive](hyp:hπk,hπl) with [inverses uniformly bounded by a nonnegative constant
-`c₂`](hyp:hc₂,hπinvk,hπinvl), and the same-arm and cross-arm pairwise joint exposure propensities
-have [inverses uniformly bounded by a nonnegative constant `c₃`](hyp:hc₃,hjk,hjl,hjc) (Condition
-1'). Suppose further a [symmetric, reflexive dependency relation `G`](hyp:hrefl,hsymm) [of degree
-at most `m`](hyp:hdeg) makes [every non-adjacent pair's joint exposure propensities factor as if
-independent](hyp:hGindep) and gives [every quadruple with no adjacent index pair zero covariance
-between the variance-estimator kernel terms](hyp:hcov0) (Condition 3). Then [the variance of the
-raw conservative variance estimator is linear in the population size:
-`Var[ŷVar(dk)+ŷVar(dl)−2Ĉov] ≤ 8·(vbBound c₁ c₂ c₃)²·m³·N`](goal). -/
+/-- **Finite-grid per-population quadruple-sum bound.** For
+[a finite design, potential outcomes, exposure mapping, and unit traits](hyp:D,y,f,θ), suppose
+[the two treatment arms are distinct](hyp:dk,dl,hne) and
+[outcomes are uniformly bounded by a nonnegative constant `c₁`](hyp:c₁,hc₁,hy). Suppose the
+marginal exposure propensities under each arm are [positive](hyp:hπk,hπl) with
+[inverses uniformly bounded by a nonnegative constant `c₂`](hyp:c₂,hc₂,hπinvk,hπinvl), and the
+same-arm and cross-arm joint exposure propensities have
+[inverses uniformly bounded by a nonnegative constant `c₃`](hyp:c₃,hc₃,hjk,hjl,hjc). Suppose
+further a [symmetric, reflexive dependency relation `G`](hyp:G,hrefl,hsymm)
+[of degree at most `m`](hyp:m,hdeg) makes
+[every non-adjacent pair's joint exposure propensities factor as if independent](hyp:hGindep)
+and ensures [graph-unlinked kernel terms have zero covariance](hyp:hcov0). Then
+[the raw estimator variance is at most `8·(vbBound c₁ c₂ c₃)²·m³·N`](goal). -/
 theorem var_htEdgeStat_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (hne : dk ≠ dl)
     {c₁ c₂ c₃ : ℝ} (hc₁ : 0 ≤ c₁) (hc₂ : 0 ≤ c₂) (hc₃ : 0 ≤ c₃)

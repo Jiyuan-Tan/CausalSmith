@@ -2,7 +2,20 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
+-/
 
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+public import Mathlib.MeasureTheory.Measure.Real
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.Data.ENNReal.Basic
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.SpecialFunctions.Log.Basic
+public import Mathlib.Order.ConditionallyCompleteLattice.Basic
+public import Causalean.Stat.Sample
+
+/-!
 # Policy-regret rate under coupled margin / one-sided overlap decay: shared core
 
 Stage-2 scaffold for `stat_policy_regret_margin_overlap` (v1).
@@ -23,15 +36,7 @@ foundational theorems (`thm:welfare-identity`, `thm:margin-localization`) plus
 No new typeclasses are introduced.
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
-import Mathlib.MeasureTheory.Measure.Real
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.Data.ENNReal.Basic
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecialFunctions.Log.Basic
-import Mathlib.Order.ConditionallyCompleteLattice.Basic
-import Causalean.Stat.Sample
+@[expose] public section
 
 namespace CausalSmith.Stat.PolicyRegretMarginOverlap
 

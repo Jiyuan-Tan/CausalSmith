@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
-import Causalean.Mathlib.Probability.FiniteMarkovOscillation
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.Kernels
+public import Causalean.Mathlib.Probability.FiniteMarkovOscillation
 
 set_option linter.style.longLine false
 
@@ -8,6 +9,8 @@ set_option linter.style.longLine false
 This file contains the distribution/function duality needed for the disjoint-window PHIW
 covariance calculation.  It is independent of the dependent trajectory carriers.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

@@ -1,9 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonTaylor
-import Mathlib.Data.Nat.Choose.Sum
-
-namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
-
-open scoped BigOperators
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPoissonTaylor
+public import Mathlib.Data.Nat.Choose.Sum
 
 /-!
 # Poisson tail collapse for the one-arm lower bound
@@ -13,6 +10,12 @@ count-dependent Taylor remainder and the high-count complement are the upper
 tail of the Cauchy product of two exponential series.  A dyadic Chernoff bound
 then gives the logarithmic calibration used downstream.
 -/
+
+@[expose] public section
+
+namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
+
+open scoped BigOperators
 
 /-- The nonnegative coefficient of degree `k` in the exponential series. -/
 noncomputable def expSeriesCoeff (x : ℝ) (k : ℕ) : ℝ :=

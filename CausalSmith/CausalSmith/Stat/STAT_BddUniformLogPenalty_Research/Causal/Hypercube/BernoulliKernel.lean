@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Basic
-import Causalean.Mathlib.Probability.BernoulliMeasure
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Basic
+public import Causalean.Mathlib.Probability.BernoulliMeasure
 
 /-!
 # Pointwise Bernoulli kernels for the causal hard family
@@ -9,6 +10,8 @@ potential-outcome angular construction.  Unlike the Gaussian-noise kernels in
 the support-boundary family, these kernels obey every finite conditional
 moment envelope uniformly in the exponent.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped ENNReal

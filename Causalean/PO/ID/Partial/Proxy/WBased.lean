@@ -3,47 +3,50 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Proximal partial identification — W-based bounds (Theorem 1, Corollary 1)
+# Proximal partial identification — abstract W-envelope bounds
 
-Bounds on `E[Y(a) | A = ¬a]` (Theorem 1) and on `E[Y(a)]` (Corollary 1)
-under the W-only proxy bundle of Ghassami-Shpitser-Tchetgen Tchetgen
-(2024, arXiv 2304.04374, Section 2.1):
+Bounds on `E[Y(a) | A = ¬a]` and `E[Y(a)]` under a W-only proxy bundle
+inspired by Ghassami, Zhang, Shpitser, and Tchetgen Tchetgen
+(arXiv:2304.04374v4, 2026):
 
   consistency  +  Y(a) ⟂ A | (U, X)  +  W ⟂ A | (U, X)  +  outcome bridge `h`.
 
 The proof template mirrors `TwoProxy.lean`: the outcome-bridge identity
 `condIntYofA_eq_h_arm` reduces `∫_{A=¬a} Y(a) dμ` to the bridge moment
-`∫_{A=¬a} h(a, W, X) dμ`, then the W-density-ratio envelope
+`∫_{A=¬a} h(a, W, X) dμ`, then the operational W-envelope
 (`IsLowerEnvW` / `IsUpperEnvW`) bounds that moment by an integral over
 `{A = a}` against `stratumOddsRatio · Lenv` / `stratumOddsRatio · Uenv`.
 
 ## Main results
 
-* `condMeanYofA_W_bounds` — Theorem 1: sandwich on `E[Y(a) | A = ¬a]`,
-  clamped by the trivial essential-`Y` bounds and the W-envelope bounds.
-* `meanYofA_W_bounds`     — Corollary 1: marginal version, derived from
-  Theorem 1 by adding the point-identified `∫_{A = a} Y dμ`
+* `condMeanYofA_W_bounds` — abstract sandwich on `E[Y(a) | A = ¬a]`,
+  clamped by chosen essential-bound witnesses and W-envelope bounds.
+* `meanYofA_W_bounds`     — marginal version, derived by adding the
+  point-identified `∫_{A = a} Y dμ`
   (`meanYofA_eq_strata`).
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Helpers
+module
+public import Causalean.PO.ID.Partial.Proxy.Helpers
 
 /-! # W-based proximal partial-identification bounds
 
-This file proves the W-only proximal partial-identification bounds of
-Ghassami-Shpitser-Tchetgen Tchetgen for a potential-outcome system with an
-outcome-inducing proxy `W`. The outcome bridge rewrites the off-arm target
-`E[Y(a) | A != a]` as a bridge moment, and the W-density-ratio envelope
+This file proves abstract W-only proximal envelope consequences for a
+potential-outcome system with an outcome-inducing proxy `W`. The outcome
+bridge rewrites the off-arm target
+`E[Y(a) | A != a]` as a bridge moment, and the operational W-envelope
 predicates `IsLowerEnvW` and `IsUpperEnvW` turn that moment into observable
 integrals over the on-arm stratum.
 
 Main declarations:
-* `condMeanYofA_W_bounds` is the conditional Theorem 1 sandwich for
-  `condMeanYofA`, combining the envelope bounds with the trivial essential
-  bounds on `Y`.
-* `meanYofA_W_bounds` is the marginal Corollary 1 sandwich for `meanYofA`,
+* `condMeanYofA_W_bounds` is the conditional envelope sandwich for
+  `condMeanYofA`, combining envelope bounds with chosen essential-bound
+  witnesses for `Y`.
+* `meanYofA_W_bounds` is the marginal sandwich for `meanYofA`,
   obtained by adding the consistency-identified `{A = a}` contribution.
 -/
+
+public section
 
 namespace Causalean
 namespace PO
@@ -59,32 +62,29 @@ variable {P : POSystem}
   {S : POProximalSystem P γ_X γ_Z γ_W γ_U}
   {μ : Measure P.Ω} [IsFiniteMeasure μ] [StandardBorelSpace P.Ω]
 
-/-! ### Theorem 1 — bound on `E[Y(a) | A = ¬a]` -/
+/-! ### Conditional abstract W-envelope bound -/
 
-/-- **Theorem 1** (Ghassami-Shpitser-Tchetgen Tchetgen 2024, W-only partial
-identification). Fix a treatment arm `a` and assume [the W-only assumption
-bundle](hyp:HA) — consistency, latent exchangeability, independence of the proxy `W`
-from treatment given the latent confounder and covariates, the outcome bridge, and
-essential bounds on `Y` — together with [the treatment and outcome variables being
-distinct](hyp:hAY); let `Lenv`, `Uenv` be [lower and upper envelope functions bounding
-the W-proxy density ratio](hyp:hL,hU), with [the off-arm stratum of positive
-mass](hyp:hμpos) and [the envelope-weighted bridge moments
-integrable](hyp:hU_int_h,hL_int_h). Then [the conditional target `E[Y(a) ∣ A ≠ a]` lies
-between the trivial essential-`Y` bound and the integrated envelope bound on each
-side](goal).
+/-- **Abstract W-envelope consequence.** [The conditional counterfactual mean
+among units in the opposite treatment arm lies between a chosen outcome-bound
+witness and an operational W-envelope bound on each side](goal). The result uses
+[the W-only bridge assumptions](hyp:HA), [distinct treatment and outcome
+variables](hyp:hAY), [a treatment arm and lower and upper envelope
+functions](hyp:a,Lenv,Uenv), [the two operational envelope
+comparisons](hyp:hL,hU), [positive mass for the opposite arm](hyp:hμpos), and
+[integrability of the two envelope-weighted bridge moments](hyp:hU_int_h,hL_int_h).
 
 Given:
 * `HA`     : the W-only assumption bundle (consistency, latent
              exchangeability, `W ⟂ A | (U, X)`, outcome bridge `h`,
              essential `Y`-bounds);
-* `Lenv`, `Uenv` : lower/upper envelope functions for the W-density ratio
-                   `r(w, x) = p(w | A = ¬a, x) / p(w | A = a, x)`,
-             operationalised by the integrated forms `IsLowerEnvW`,
-             `IsUpperEnvW`;
+* `Lenv`, `Uenv` : functions satisfying the integrated comparisons
+  `IsLowerEnvW` and `IsUpperEnvW`; no conditional-density construction is
+  supplied;
 * `hμpos` : the off-arm stratum has positive mass.
 
 Conclusion: the conditional target `E[Y(a) | A = ¬a]` lies between the
-trivial essential bound and the integrated envelope bound, on each side. -/
+chosen essential-bound witness and the integrated envelope bound, on each side.
+These witnesses need not be canonical essential extrema. -/
 theorem condMeanYofA_W_bounds
     (HA : POProximalSystem.WBasedAssumptions S μ) (a : Bool)
     (hAY : S.Avar.v ≠ S.Yvar.v)
@@ -129,9 +129,7 @@ theorem condMeanYofA_W_bounds
   -- ============================================================
   -- UPPER BOUND
   -- ============================================================
-  -- Step U1: nonnegativity of φ. The paper assumes Y ≥ 0 ⇒ h ≥ 0. The
-  -- WBased bundle does not bundle nonnegativity of `h`; this is the same
-  -- gap as in `TwoProxy.lean`.
+  -- Step U1: use the bundled pointwise nonnegativity of the bridge.
   have h_nonneg_φ : ∀ x, 0 ≤ φ x := by
     intro x; exact HA.h_nonneg _
   -- Step U2: apply the upper envelope predicate to φ.
@@ -165,7 +163,7 @@ theorem condMeanYofA_W_bounds
   have hCollapse :
       μ[S.Y | S.σ_AX] =ᵐ[μ.restrict s]
       μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AX] :=
-    POProximalSystem.condExp_Y_eq_condExp_h_arm_AX HA a hAY
+    POProximalSystem.condExp_Y_eq_condExp_h_arm_AX HA a
   -- σ_X / σ_AX strong-measurability of the envelope-and-X factor.
   have hX_σX : Measurable[S.σ_X] S.X := Measurable.of_comap_le le_rfl
   have hUenv_σX : Measurable[S.σ_X] (fun ω => Uenv (a, S.X ω)) := by
@@ -236,7 +234,7 @@ theorem condMeanYofA_W_bounds
     rw [hU_collapse] at hgoal
     unfold POProximalSystem.condMeanYofA
     exact hgoal
-  -- Step U5: trivial upper clamp via Y_bdd_above. Needs `Y(a) ≤ essup Y` a.e.
+  -- Step U5: clamp by the chosen a.e. upper-bound witness.
   have hU_triv : S.condMeanYofA μ a ≤ Classical.choose HA.Y_bdd_above := by
     set M : ℝ := Classical.choose HA.Y_bdd_above with hM_def
     have hM : ∀ᵐ ω ∂μ, S.Y ω ≤ M := Classical.choose_spec HA.Y_bdd_above
@@ -314,35 +312,36 @@ theorem condMeanYofA_W_bounds
   -- ASSEMBLE
   -- ============================================================
   refine ⟨?_, ?_⟩
-  · -- max (essinf Y) (envelope-lower) ≤ condMeanYofA
+  · -- max (chosen lower bound) (envelope lower) ≤ condMeanYofA
     exact max_le hL_triv hL_cond
-  · -- condMeanYofA ≤ min (essup Y) (envelope-upper)
+  · -- condMeanYofA ≤ min (chosen upper bound) (envelope upper)
     exact le_min hU_triv hU_cond
 
-/-! ### Corollary 1 — bound on the marginal `E[Y(a)]` -/
+/-! ### Marginal abstract W-envelope bound -/
 
-/-- **Corollary 1** (Ghassami-Shpitser-Tchetgen Tchetgen 2024, W-only marginal
-version). Fix a treatment arm `a` and assume [the W-only assumption bundle](hyp:HA),
-with [the treatment and outcome variables distinct](hyp:hAY); let `Lenv`, `Uenv` be
-[lower and upper envelope functions bounding the W-proxy density ratio](hyp:hL,hU), and
-assume [the envelope-weighted bridge moments](hyp:hU_int_h,hL_int_h) and [the
-envelope-weighted observed conditional means](hyp:hU_int_Y,hL_int_Y) are integrable.
-Then [the marginal target `E[Y(a)]` lies between a trivial clamp and an envelope clamp
-on each side, plus the point-identified on-arm contribution](goal).
+/-- **Marginal abstract W-envelope consequence.** [The marginal counterfactual
+mean lies between a chosen outcome-bound clamp and an operational W-envelope
+clamp on each side, after adding the identified contribution from the observed
+arm](goal). The result uses [the W-only bridge assumptions](hyp:HA), [distinct
+treatment and outcome variables](hyp:hAY), [a treatment arm and lower and upper
+envelope functions](hyp:a,Lenv,Uenv), [the two operational envelope
+comparisons](hyp:hL,hU), [integrability of the envelope-weighted bridge
+moments](hyp:hU_int_h,hL_int_h), and [integrability of the envelope-weighted
+observed conditional means](hyp:hU_int_Y,hL_int_Y).
 
-Marginal version of Theorem 1. The `{A = a}` stratum integral is
+Marginal version of `condMeanYofA_W_bounds`. The `{A = a}` stratum integral is
 point-identified via consistency, so only the `{A = ¬a}` stratum needs
 the envelope bound. The overall bound is the **maximum of the trivial
 clamp and the envelope clamp** on each side, mirroring the conditional
-form of Theorem 1:
+form of the conditional bound:
 
-  max(infY · μ{A≠a}, envelope-lower) + ∫_{A=a} Y dμ
+  max(lowerBound · μ{A≠a}, envelope-lower) + ∫_{A=a} Y dμ
     ≤ E[Y(a)]
-    ≤ min(supY · μ{A≠a}, envelope-upper) + ∫_{A=a} Y dμ.
+    ≤ min(upperBound · μ{A≠a}, envelope-upper) + ∫_{A=a} Y dμ.
 
-The trivial clamp `infY · μ{A≠a} + ∫_{A=a} Y dμ` (and its upper-side
-mirror) corresponds to the worst-case potential outcome on the off-arm
-stratum; the envelope clamp uses the W-density-ratio envelope. The bound
+The witness clamp `lowerBound · μ{A≠a} + ∫_{A=a} Y dμ` (and its upper-side
+mirror) uses the selected a.e. bound on the off-arm
+stratum; the envelope clamp uses the assumed W-envelope comparison. The bound
 is in observable-data form: `μ[Y | σ_AX] = E[Y | A, X]` is the observable
 conditional expectation of `Y`, replacing the latent bridge `h(a, W, X)`
 via the collapse identity `condExp_Y_eq_condExp_h_arm_AX`.
@@ -388,7 +387,7 @@ theorem meanYofA_W_bounds
       exact Measurable.prodMk measurable_fst measurable_snd
     exact HA.measurable_h.comp hp
   have h_int_φ : Integrable (fun ω => φ (S.W ω, S.X ω)) μ := HA.integrable_h_arm a
-  -- Bridge nonnegativity (paper: Y ≥ 0 ⇒ h ≥ 0).
+  -- Use the bundle's assumed pointwise nonnegativity of the bridge.
   have h_nonneg_φ : ∀ x, 0 ≤ φ x := by
     intro x; exact HA.h_nonneg _
   -- Bridge substitution: ∫_{A≠a} Y(a) dμ = ∫_{A≠a} h(a, W, X) dμ.
@@ -474,7 +473,7 @@ theorem meanYofA_W_bounds
   have hCollapse :
       μ[S.Y | S.σ_AX] =ᵐ[μ.restrict s]
       μ[fun ω => HA.h (a, S.W ω, S.X ω) | S.σ_AX] :=
-    POProximalSystem.condExp_Y_eq_condExp_h_arm_AX HA a hAY
+    POProximalSystem.condExp_Y_eq_condExp_h_arm_AX HA a
   -- σ_X-strong-measurability of the Uenv-and-X factor (then lifted to σ_AX).
   have hX_σX : Measurable[S.σ_X] S.X := Measurable.of_comap_le le_rfl
   have hUenv_σX : Measurable[S.σ_X] (fun ω => Uenv (a, S.X ω)) := by

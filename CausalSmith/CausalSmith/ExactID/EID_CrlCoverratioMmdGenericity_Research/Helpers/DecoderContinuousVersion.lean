@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCompProd
-import Mathlib.MeasureTheory.Measure.Support
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderCompProd
+public import Mathlib.MeasureTheory.Measure.Support
 
 /-!
 # Continuous equation-(11) conditional-CDF version
@@ -7,6 +8,11 @@ import Mathlib.MeasureTheory.Measure.Support
 This file proves continuity of the equation-(11) fiber integral and packages the
 ambient Markov kernel as the continuous conditional-CDF version selected by the decoder.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory ProbabilityTheory Set Filter
 
@@ -18,7 +24,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- The clamped equation-(11) score is jointly continuous in predecessor and target
 coordinates.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma continuous_equationElevenClampedScore
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) : Continuous (equationElevenClampedScore W order i) := by
   have hw : Continuous (fun zw : PredecessorLatentCube order i × ℝ =>
@@ -71,7 +77,7 @@ lemma continuous_equationElevenClampedScore
 -- @node: equationElevenPredecessorCDF
 /-- The equation-(11) fiber integral on the compact predecessor cube. -/
 def equationElevenPredecessorCDF
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (z : ℝ × PredecessorLatentCube order i) : ℝ :=
   ∫ w in Set.Icc (0 : ℝ) 1,
@@ -82,7 +88,7 @@ def equationElevenPredecessorCDF
 /-- The equation-(11) fiber integral varies continuously with both its threshold and
 predecessor coordinates.  Given [the stated inputs and conditions](hyp:hpos,hsign), [the stated conclusion](goal) follows. -/
 lemma continuous_equationElevenPredecessorCDF
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hsign : FixedOwnDerivativeSign G s θ)
@@ -193,7 +199,7 @@ lemma continuous_equationElevenPredecessorCDF
 -- @node: equationElevenPredecessorCDF_eq
 /-- The compact fiber CDF is the explicit equation-(11) integral.  [the stated conclusion](goal) follows. -/
 lemma equationElevenPredecessorCDF_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (t : ℝ) (z : PredecessorLatentCube order i) :
     equationElevenPredecessorCDF W order i (t, z) =
@@ -211,7 +217,7 @@ lemma equationElevenPredecessorCDF_eq
 /-- The ambient equation-(11) Markov kernel evaluated on lower intervals, packaged as a
 unit-interval-valued conditional CDF. -/
 def equationElevenAmbientCDF
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -234,7 +240,7 @@ def equationElevenAmbientCDF
 -- @node: measurable_equationElevenAmbientCDF
 /-- The ambient equation-(11) conditional CDF is jointly measurable.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma measurable_equationElevenAmbientCDF
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -253,7 +259,7 @@ lemma measurable_equationElevenAmbientCDF
 -- @node: continuousOn_equationElevenAmbientCDF_scoreRange
 /-- On the realized predecessor-score range, the ambient equation-(11) CDF is continuous.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma continuousOn_equationElevenAmbientCDF_scoreRange
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -314,7 +320,7 @@ lemma continuousOn_equationElevenAmbientCDF_scoreRange
 /-- The observed joint ratio/predecessor support has predecessor component in the compact
 triangular score range.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma observedConditionalRatioSupport_subset_scoreRange
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -407,7 +413,7 @@ lemma rawObservedConditionalRatioCDF_joint_ae_eq_kernel_of_compProd
 /-- The ambient equation-(11) CDF is a continuous conditional-distribution version for the
 observed intervention law.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationElevenAmbientCDF_isContinuousVersion
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -458,7 +464,7 @@ lemma equationElevenAmbientCDF_isContinuousVersion
 /-- On every realized predecessor score, the continuous version evaluates to the explicit
 equation-(11) integral.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder,hv), [the stated conclusion](goal) follows. -/
 lemma equationElevenAmbientCDF_apply_of_latentState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)

@@ -2,38 +2,25 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Sävje–Aronow–Hudgens (2021): Horvitz–Thompson is exactly unbiased for EATE under Bernoulli
-
-Under a Bernoulli design the Horvitz–Thompson estimator is **exactly** unbiased for the expected
-average treatment effect: `E[ĤT] = EATE`.  The key is that each unit's own treatment is independent
-of the other treatments (`Z_i ⊥ Z_{-i}`), so
-
-    E[Z_i Y_i / p_i] = E[Z_i y_i(1; Z_{-i})] / p_i = E[Z_i]·E[y_i(1; Z_{-i})] / p_i
-                     = E[y_i(1; Z_{-i})],
-
-using that `y_i(1; Z_{-i})` (the treated potential outcome) depends only on coordinates other than
-`i` and `E[Z_i] = p_i`.  The control term gives `E[y_i(0; Z_{-i})]` symmetrically, so the `i`ᵗʰ HT
-summand has expectation `E[τ_i(Z_{-i})]`, and averaging over `i` yields `EATE`.
-
-The disjoint-block factorization `E_prod_block_mul` (block `{i}` vs. its complement) supplies the
-independence; `bernoulliDesign_E_treat` / `_ctrl` supply the marginals `E[Z_i] = p_i`.
 -/
 
-import Causalean.Experimentation.UnknownInterference.Bernoulli
-import Causalean.Experimentation.DesignBased.ProductBlock
+module
+public import Causalean.Experimentation.DesignBased.ProductBlock
+public import Causalean.Experimentation.UnknownInterference.Bernoulli
 
 /-! # Unbiasedness under unknown interference
 
 Bernoulli Horvitz-Thompson estimators are exactly unbiased for the expected average treatment
 effect even when outcomes may depend on other units' assignments.
 
-The per-unit theorem `E_htSummand` shows that the `i`th Horvitz-Thompson summand has expectation
-equal to the assignment-conditional treatment effect `tau y i`.  Its proof uses product-design
-block independence between unit `i`'s own treatment and the remaining assignments that determine
-`y_i(1; Z_{-i})` or `y_i(0; Z_{-i})`, plus the Bernoulli marginal identities from `Bernoulli`.
-Summing these identities gives `htEst_unbiased`, the exact equality `E[htEst] = EATE`.
+For each unit, its own Bernoulli treatment is independent of the remaining assignment coordinates
+that determine its treated and control potential outcomes. Product-design block factorization and
+the Bernoulli marginal identities therefore show that the unit's Horvitz-Thompson summand has
+expectation equal to its assignment-conditional treatment effect. Summing these identities proves
+the exact equality `E[htEst] = EATE`.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset
@@ -54,12 +41,12 @@ treatment effect τ_i](goal). -/
 theorem E_htSummand (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (hp0' : ∀ i, p i ≠ 0) (hp1' : ∀ i, (1 : ℝ) - p i ≠ 0)
     (y : U → (U → Bool) → ℝ) (i : U) :
-    (bernoulliDesign p hp0 hp1).E (htSummand p y i)
-      = (bernoulliDesign p hp0 hp1).E (tau y i) := by
+    (DesignBased.bernoulliDesign p hp0 hp1).E (htSummand p y i)
+      = (DesignBased.bernoulliDesign p hp0 hp1).E (tau y i) := by
   classical
   letI : MeasurableSpace Bool := ⊤
   letI : MeasurableSingletonClass Bool := ⟨fun _ => trivial⟩
-  set D := bernoulliDesign p hp0 hp1 with hD
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   -- The treated potential outcome as a function of the full assignment.
   set hT : (U → Bool) → ℝ := fun z => y i (Function.update z i true) with hhT
   set hC : (U → Bool) → ℝ := fun z => y i (Function.update z i false) with hhC
@@ -83,7 +70,7 @@ theorem E_htSummand (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i �
     have hblock : D.E (fun z => (if z i then (1 : ℝ) else 0) * hT z)
         = D.E (fun z => if z i then (1 : ℝ) else 0) * D.E hT := by
       rw [hD]
-      unfold bernoulliDesign
+      unfold DesignBased.bernoulliDesign
       refine FiniteDesign.E_prod_block_mul _ {i} (fun z => if z i then (1 : ℝ) else 0) hT ?_ ?_
       · intro w w' hww
         have hwi : w i = w' i := hww i (Finset.mem_singleton_self i)
@@ -99,7 +86,7 @@ theorem E_htSummand (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i �
           exact hww x (by simp [Finset.mem_singleton, hx])
     rw [hblock]
     have hEtreat : D.E (fun z => if z i then (1 : ℝ) else 0) = p i := by
-      rw [hD]; exact bernoulliDesign_E_treat p hp0 hp1 i
+      rw [hD]; exact DesignBased.bernoulliDesign_E_treat p hp0 hp1 i
     rw [hEtreat]
     field_simp [hp0' i]
   -- Control-term expectation equals `E[hC]`.
@@ -120,7 +107,7 @@ theorem E_htSummand (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i �
     have hblock : D.E (fun z => (if z i then (0 : ℝ) else 1) * hC z)
         = D.E (fun z => if z i then (0 : ℝ) else 1) * D.E hC := by
       rw [hD]
-      unfold bernoulliDesign
+      unfold DesignBased.bernoulliDesign
       refine FiniteDesign.E_prod_block_mul _ {i} (fun z => if z i then (0 : ℝ) else 1) hC ?_ ?_
       · intro w w' hww
         have hwi : w i = w' i := hww i (Finset.mem_singleton_self i)
@@ -136,7 +123,7 @@ theorem E_htSummand (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i �
           exact hww x (by simp [Finset.mem_singleton, hx])
     rw [hblock]
     have hEctrl : D.E (fun z => if z i then (0 : ℝ) else 1) = 1 - p i := by
-      rw [hD]; exact bernoulliDesign_E_ctrl p hp0 hp1 i
+      rw [hD]; exact DesignBased.bernoulliDesign_E_ctrl p hp0 hp1 i
     rw [hEctrl]
     field_simp [hp1' i]
   -- Assemble: `E[htSummand] = E[hT] - E[hC] = E[tau]`.
@@ -155,8 +142,8 @@ average treatment effect](goal). -/
 theorem htEst_unbiased (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (hp0' : ∀ i, p i ≠ 0) (hp1' : ∀ i, (1 : ℝ) - p i ≠ 0)
     (y : U → (U → Bool) → ℝ) :
-    (bernoulliDesign p hp0 hp1).E (htEst p y) = EATE (bernoulliDesign p hp0 hp1) y := by
-  set D := bernoulliDesign p hp0 hp1 with hD
+    (DesignBased.bernoulliDesign p hp0 hp1).E (htEst p y) = EATE (DesignBased.bernoulliDesign p hp0 hp1) y := by
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   set n : ℝ := (Fintype.card U : ℝ) with hn
   -- `E[htEst] = (1/n) * ∑ i E[htSummand i]`.
   have h1 : D.E (htEst p y)

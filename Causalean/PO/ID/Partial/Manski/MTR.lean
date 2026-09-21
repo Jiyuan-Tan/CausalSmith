@@ -20,10 +20,13 @@ We write
     p := (P.μ (S.dEvent true)).toReal,
 so that `1 - p = (P.μ (S.dEvent false)).toReal` (since `P.μ` is a
 probability measure) and conditional means are expressed via
-`eventCondExp P.μ (S.dEvent d) f`.
+`normalizedRestrictedIntegral P.μ (S.dEvent d) f`.
 -/
 
-import Causalean.PO.ID.Partial.Manski.Helpers
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.ID.Partial.Manski.Helpers
 
 /-! # Manski bounds under monotone treatment response
 
@@ -37,6 +40,10 @@ The main public conclusions are the arm comparisons `mtr_E_Y_le_E_Y1` and
 `mtr_lower_le_E_Y0`, the nonnegativity theorem `mtr_nonneg_ATE`, and the final
 two-sided ATE statement `mtr_bounds_ATE`.
 -/
+
+public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -75,8 +82,8 @@ private lemma pairwise_disjoint_dEvent :
 private lemma integral_eq_sum_eventCondExp_dEvent
     (f : P.Ω → ℝ) (hf : Integrable f P.μ) :
     ∫ ω, f ω ∂P.μ
-      = eventCondExp P.μ (S.dEvent true) f * (P.μ (S.dEvent true)).toReal
-        + eventCondExp P.μ (S.dEvent false) f * (P.μ (S.dEvent false)).toReal := by
+      = normalizedRestrictedIntegral P.μ (S.dEvent true) f * (P.μ (S.dEvent true)).toReal
+        + normalizedRestrictedIntegral P.μ (S.dEvent false) f * (P.μ (S.dEvent false)).toReal := by
   have h := integral_eq_sum_measure_mul_eventCondExp (μ := P.μ)
     (A := S.dEvent) S.measurableSet_dEvent S.pairwise_disjoint_dEvent
     S.iUnion_dEvent f hf
@@ -85,10 +92,11 @@ private lemma integral_eq_sum_eventCondExp_dEvent
 /-- Consistency on `{D = d}`: `E[Y(d) | D = d] = E[Y | D = d]`. -/
 private lemma eventCondExp_YofD_eq_factualY_on_dEvent
     (hA : S.BaseAssumptions) (d : Bool) :
-    eventCondExp P.μ (S.dEvent d) (S.YofD d)
-      = eventCondExp P.μ (S.dEvent d) S.factualY :=
-  POVar.eventCondExp_cfUnder_eq_factual_on_event hA.consistency
-    S.yVar S.dVar d (S.measurableSet_dEvent d) (Ne.symm S.hDY) P.μ
+    normalizedRestrictedIntegral P.μ (S.dEvent d) (S.YofD d)
+      = normalizedRestrictedIntegral P.μ (S.dEvent d) S.factualY :=
+  eventCondExp_congr_on P.μ (S.measurableSet_dEvent d) fun _ω hω =>
+    POVar.cf_eq_factual_on_event hA.consistency S.yVar S.dVar d
+      (Ne.symm S.hDY) hω
 
 /-! ### Core pointwise a.s. inequalities -/
 
@@ -154,7 +162,7 @@ theorem mtr_E_Y0_le_E_Y (hA : S.BaseAssumptions) (hMTR : S.MTR) :
 theorem mtr_E_Y1_le_upper (hA : S.BaseAssumptions) :
     ∫ ω, S.YofD true ω ∂P.μ
       ≤ (P.μ (S.dEvent true)).toReal
-          * eventCondExp P.μ (S.dEvent true) S.factualY
+          * normalizedRestrictedIntegral P.μ (S.dEvent true) S.factualY
         + (P.μ (S.dEvent false)).toReal * hA.hi := by
   -- Decompose: E[Y(1)] = p·E[Y(1)|D=1] + (1-p)·E[Y(1)|D=0].
   have hdecomp := S.integral_eq_sum_eventCondExp_dEvent (S.YofD true) hA.integrable_Y1
@@ -173,7 +181,7 @@ theorem mtr_E_Y1_le_upper (hA : S.BaseAssumptions) :
   -- Rewrite the first summand as p · E[Y|D=1].
   have hfirst : ∫ ω in S.dEvent true, S.YofD true ω ∂P.μ
               = (P.μ (S.dEvent true)).toReal
-                  * eventCondExp P.μ (S.dEvent true) S.factualY := by
+                  * normalizedRestrictedIntegral P.μ (S.dEvent true) S.factualY := by
     rw [hset_true, ← eventCondExp_mul_measure_toReal P.μ (S.dEvent true) (measure_ne_top _ _) S.factualY, mul_comm]
   -- Bound the second summand: ∫_{D=0} Y(1) ≤ hi · (μ(D=0)).toReal.
   have hbd_ae : S.YofD true ≤ᵐ[P.μ] (fun _ => hA.hi) :=
@@ -199,7 +207,7 @@ theorem mtr_E_Y1_le_upper (hA : S.BaseAssumptions) :
 `(1-p)·E[Y|D=0] + p·a ≤ E[Y(0)]`. -/
 theorem mtr_lower_le_E_Y0 (hA : S.BaseAssumptions) :
     (P.μ (S.dEvent false)).toReal
-        * eventCondExp P.μ (S.dEvent false) S.factualY
+        * normalizedRestrictedIntegral P.μ (S.dEvent false) S.factualY
       + (P.μ (S.dEvent true)).toReal * hA.lo
     ≤ ∫ ω, S.YofD false ω ∂P.μ := by
   -- Decompose: E[Y(0)] = p·E[Y(0)|D=1] + (1-p)·E[Y(0)|D=0].
@@ -217,7 +225,7 @@ theorem mtr_lower_le_E_Y0 (hA : S.BaseAssumptions) :
     simpa [POManskiIVSystem.YofD, POManskiIVSystem.factualY] using this
   have hsecond : ∫ ω in S.dEvent false, S.YofD false ω ∂P.μ
                = (P.μ (S.dEvent false)).toReal
-                   * eventCondExp P.μ (S.dEvent false) S.factualY := by
+                   * normalizedRestrictedIntegral P.μ (S.dEvent false) S.factualY := by
     rw [hset_false, ← eventCondExp_mul_measure_toReal P.μ (S.dEvent false) (measure_ne_top _ _) S.factualY, mul_comm]
   -- Bound the first summand below: lo · (μ(D=1)).toReal ≤ ∫_{D=1} Y(0).
   have hbd_ae : (fun _ : P.Ω => hA.lo) ≤ᵐ[P.μ] S.YofD false :=
@@ -256,10 +264,10 @@ for `Y(1)` on the control arm and `lo` for `Y(0)` on the treated arm](goal). -/
 theorem mtr_bounds_ATE (hA : S.BaseAssumptions) (hMTR : S.MTR) :
     0 ≤ S.ATE ∧
     S.ATE ≤ ((P.μ (S.dEvent true)).toReal
-                * eventCondExp P.μ (S.dEvent true) S.factualY
+                * normalizedRestrictedIntegral P.μ (S.dEvent true) S.factualY
               + (P.μ (S.dEvent false)).toReal * hA.hi)
            - ((P.μ (S.dEvent false)).toReal
-                * eventCondExp P.μ (S.dEvent false) S.factualY
+                * normalizedRestrictedIntegral P.μ (S.dEvent false) S.factualY
               + (P.μ (S.dEvent true)).toReal * hA.lo) := by
   refine ⟨S.mtr_nonneg_ATE hA hMTR, ?_⟩
   -- ATE = E[Y(1)] - E[Y(0)].

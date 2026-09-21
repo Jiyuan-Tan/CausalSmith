@@ -4,13 +4,16 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestPointwise
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.WeightedConcentration
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
-import Causalean.Stat.Concentration.TailBounds.Hoeffding
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestPointwise
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.HonestIntervalBasic
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.WeightedConcentration
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
+public import Causalean.Stat.Concentration.TailBounds.Hoeffding
 
 /-! # Finite-sample coverage of the bias-aware interval -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

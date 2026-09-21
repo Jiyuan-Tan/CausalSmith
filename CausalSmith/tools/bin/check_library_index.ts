@@ -39,7 +39,11 @@ const STALE_MODULES = new Set([
     readdirSync(join(root, dir), { withFileTypes: true }).flatMap((d) =>
       d.isDirectory() ? walk(`${dir}/${d.name}`) : d.name.endsWith(".lean") ? [`${dir}/${d.name}`] : [],
     );
-  const onDisk = walk("Causalean").map((f) => f.slice(0, -5).replace(/\//g, "."));
+  const { readFileSync } = await import("node:fs");
+  // A deprecated_module shim (left at a module's old path) has no declarations and is imported
+  // only by legacy code outside the root graph; it is transitional, not a library module.
+  const isShim = (f: string) => /^\s*deprecated_module\b/m.test(readFileSync(join(root, f), "utf8"));
+  const onDisk = walk("Causalean").filter((f) => !isShim(f)).map((f) => f.slice(0, -5).replace(/\//g, "."));
   const indexed = new Set(Object.keys(lib.modules));
   const orphans = onDisk.filter(
     (m) =>

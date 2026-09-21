@@ -17,13 +17,16 @@ We take that factored form as primitive: `Yobs y f θ i z = y i (expo f θ i z)`
 lemma: `Yobs i z = ∑_d 1(expo i = d) · y i d`.
 -/
 
-import Causalean.Experimentation.DesignBased.Exposure
+module
+public import Causalean.Experimentation.DesignBased.Exposure
 
 /-! # Potential outcomes under exposure mappings
 
 This file represents a unit's outcome under an assignment by evaluating its potential outcome at
 the exposure induced by that assignment. It supplies the properly specified exposure condition and
 the observed-outcome construction used by the design-based interference results. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

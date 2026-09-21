@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.LocalPoly.EstimatorRisk.SquareCompletion
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+
+module
+public import Causalean.Stat.Nonparametric.LocalPoly.EstimatorRisk.SquareCompletion
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
 # Density constants for the local-polynomial kernel shape matrix
@@ -27,6 +29,8 @@ matrix `G_{jk} = ∫ K(u) u^{j+k} du` is its unit-density analogue. This file:
 These discharge the `(T⁻¹)₀₀ ≤ cInv` and `T₀₀ ≤ cTop` hypotheses fed to
 `population_scaling_of_conj`, leaving no S-level invertibility/leverage assumption.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Nonparametric
 

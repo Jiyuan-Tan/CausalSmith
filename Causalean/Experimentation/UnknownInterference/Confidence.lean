@@ -2,52 +2,28 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Sävje–Aronow–Hudgens (2021): confidence statements under unknown interference
-
-The paper's third contribution: the precision of the Horvitz–Thompson estimator, and why the
-conventional variance estimator may mislead under interference.
-
-* **The warning** — the conventional Horvitz–Thompson variance estimator `V̂_Ber = n⁻²∑ᵢ ĤTᵢ²` has
-  `E[V̂_Ber] − Var(ĤT) = n⁻²(∑ᵢ(E ĤTᵢ)² − ∑_{i≠j} Cov(ĤTᵢ,ĤTⱼ))`. The off-diagonal covariances are
-  nonzero only between interference-dependent units, can have either sign, and are exactly the bias
-  that makes `V̂_Ber` anti-conservative (understate uncertainty) under interference.
-* **The fix** — inflating the conventional estimator by an interference-degree measure restores
-  conservativeness: `Var(ĤT) ≤ (1 + D)·E[V̂_Ber]` whenever every unit's interference degree is at
-  most `D`. (Unconditional, in expectation — the cleaner cousin of the paper's `d_max`/spectral-radius
-  inflated estimators.)
-* **The interval** — since the paper proves a central limit theorem generally fails (Chebyshev is
-  sharp), the valid confidence statement is **Chebyshev-based**: any conservative variance bound `V ≥
-  Var(ĤT)` yields the interval `ĤT ± √(V/α)` with coverage of EATE at least `1 − α` (exact, using HT
-  unbiasedness `E[ĤT] = EATE`). Instantiating with the proven `Var(ĤT) ≤ k⁴·d̄/n` gives a concrete
-  finite-sample valid interval for EATE under unknown interference.
-
-**Scope / faithfulness.** The conservativeness here is *in expectation*; the paper's data-dependent
-estimators are asymptotically conservative *in probability*, which additionally needs the estimator
-to concentrate (`Var(V̂) → 0`) — the same in-expectation-vs-in-probability boundary as the
-Liu–Hudgens feasible interval, left as the next step. The full anti-conservativeness *limit*
-(Proposition with the `B₁`/`B₂` spillover decomposition) is also deferred; the exact finite-sample
-bias identity here is its honest core.
 -/
 
-import Causalean.Experimentation.UnknownInterference.VarianceBound
-import Causalean.Experimentation.UnknownInterference.Unbiased
-import Causalean.Experimentation.DesignBased.Chebyshev
+module
+public import Causalean.Experimentation.UnknownInterference.Unbiased
+public import Causalean.Experimentation.UnknownInterference.VarianceBound
+public import Causalean.Stat.FiniteDesign.Chebyshev
 
 /-! # Confidence under unknown interference
 
-Chebyshev confidence statements remain valid under unknown interference when they use proven
-conservative variance bounds.
+Under unknown interference, off-diagonal covariance can make the conventional
+Horvitz–Thompson variance estimator anti-conservative. This file gives its exact finite-sample
+expectation-bias identity and proves that degree-based inflation is conservative in expectation
+when every unit has bounded interference degree.
 
-This file formalizes three finite-sample confidence facts for the Sävje-Aronow-Hudgens
-Bernoulli setup.  The conventional variance estimator `VhatBer` has an exact expectation-bias
-identity `E_VhatBer_bias`, showing how off-diagonal covariances from interference can make it
-anti-conservative.  The degree statistic `degDep` supports `var_htEst_le_inflated`, an
-in-expectation conservative inflation of `VhatBer` when each unit has bounded interference
-degree.  Finally, `chebyshev_ci_eate` proves coverage for any positive conservative variance
-bound, and `eate_ci_kbound` instantiates it with the finite-sample variance bound
-`k^4 * dbar / n`.
+The confidence results use Chebyshev's inequality rather than a normal approximation. Any positive
+deterministic upper bound on the estimator variance yields a finite-sample interval with coverage
+at least `1 − α`; the final theorem uses the bound `k^4 * dbar / n`. These results do not claim
+that a data-dependent variance estimator is asymptotically conservative in probability, which
+would additionally require concentration of that estimator.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -64,7 +40,8 @@ variable {U : Type*} [Fintype U] [DecidableEq U]
 potential-outcome schedule](hyp:y), and [a realized treatment assignment](hyp:z), the
 [conventional Horvitz--Thompson variance estimator](goal) is the population-size-squared-normalized
 sum of squared unit-level Horvitz--Thompson summands.  Pointwise it equals the sum of the treated
-and control squared inverse-probability-weighted outcome terms because their cross product is zero. -/
+and control squared inverse-probability-weighted outcome terms because their cross product is
+zero. -/
 noncomputable def VhatBer (p : U → ℝ) (y : U → (U → Bool) → ℝ) (z : U → Bool) : ℝ :=
   (∑ i, (htSummand p y i z) ^ 2) / (Fintype.card U : ℝ) ^ 2
 
@@ -78,10 +55,10 @@ noncomputable def degDep (y : U → (U → Bool) → ℝ) (i : U) : ℝ :=
 /-- `E[V̂_Ber] = n⁻² ∑ᵢ E[ĤTᵢ²]` — pushing expectation through the conventional estimator. -/
 private lemma E_VhatBer_eq (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) :
-    (bernoulliDesign p hp0 hp1).E (VhatBer p y)
-      = (∑ i, (bernoulliDesign p hp0 hp1).E (fun z => (htSummand p y i z) ^ 2))
+    (DesignBased.bernoulliDesign p hp0 hp1).E (VhatBer p y)
+      = (∑ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (htSummand p y i z) ^ 2))
         / (Fintype.card U : ℝ) ^ 2 := by
-  set D := bernoulliDesign p hp0 hp1 with hD
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   set n : ℝ := (Fintype.card U : ℝ) with hn
   have hEq : D.E (VhatBer p y)
       = D.E (fun z => (n ^ 2)⁻¹ * ∑ i, (htSummand p y i z) ^ 2) := by
@@ -94,10 +71,10 @@ private lemma E_VhatBer_eq (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i
 /-- `Var(ĤT) = n⁻² ∑ᵢ ∑ⱼ Cov(ĤTᵢ, ĤTⱼ)` — variance of a scaled sum. -/
 private lemma Var_htEst_eq (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) :
-    (bernoulliDesign p hp0 hp1).Var (htEst p y)
-      = (∑ i, ∑ j, (bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j))
+    (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y)
+      = (∑ i, ∑ j, (DesignBased.bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j))
         / (Fintype.card U : ℝ) ^ 2 := by
-  set D := bernoulliDesign p hp0 hp1 with hD
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   set n : ℝ := (Fintype.card U : ℝ) with hn
   have hEstEq : htEst p y = fun z => n⁻¹ * ∑ i : U, (1 : ℝ) * htSummand p y i z := by
     funext z; unfold htEst; rw [hn, div_eq_inv_mul]; congr 1
@@ -116,13 +93,13 @@ the average squared per-unit mean, minus the off-diagonal covariances between un
 Horvitz–Thompson summands](goal). -/
 theorem E_VhatBer_bias (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) :
-    (bernoulliDesign p hp0 hp1).E (VhatBer p y)
-      = (bernoulliDesign p hp0 hp1).Var (htEst p y)
-        + (∑ i, ((bernoulliDesign p hp0 hp1).E (htSummand p y i)) ^ 2
+    (DesignBased.bernoulliDesign p hp0 hp1).E (VhatBer p y)
+      = (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y)
+        + (∑ i, ((DesignBased.bernoulliDesign p hp0 hp1).E (htSummand p y i)) ^ 2
             - ∑ i, ∑ j ∈ Finset.univ.erase i,
-                (bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j))
+                (DesignBased.bernoulliDesign p hp0 hp1).Cov (htSummand p y i) (htSummand p y j))
           / (Fintype.card U : ℝ) ^ 2 := by
-  set D := bernoulliDesign p hp0 hp1 with hD
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   set n : ℝ := (Fintype.card U : ℝ) with hn
   rw [E_VhatBer_eq p hp0 hp1 y, Var_htEst_eq p hp0 hp1 y]
   -- `E[ĤTᵢ²] = Var(ĤTᵢ) + (E ĤTᵢ)²`.
@@ -160,10 +137,10 @@ The off-diagonal covariances are bounded by the per-unit variances
 `D` interference-dependent pairs. -/
 theorem var_htEst_le_inflated (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (y : U → (U → Bool) → ℝ) (D : ℝ) (hD : ∀ i, degDep y i ≤ D) :
-    (bernoulliDesign p hp0 hp1).Var (htEst p y)
-      ≤ (1 + D) * (bernoulliDesign p hp0 hp1).E (VhatBer p y) := by
+    (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y)
+      ≤ (1 + D) * (DesignBased.bernoulliDesign p hp0 hp1).E (VhatBer p y) := by
   classical
-  set Des := bernoulliDesign p hp0 hp1 with hDes
+  set Des := DesignBased.bernoulliDesign p hp0 hp1 with hDes
   set n : ℝ := (Fintype.card U : ℝ) with hn
   -- Abbreviation for `E[ĤTᵢ²]`, and its key facts.
   set Ec : U → ℝ := fun i => Des.E (fun z => (htSummand p y i z) ^ 2) with hEc
@@ -270,11 +247,11 @@ level `α`](hyp:hα), [the interval `ĤT ± √(V/α)` covers the EATE estimand 
 least `1 − α`](goal). -/
 theorem chebyshev_ci_eate (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (hp0' : ∀ i, p i ≠ 0) (hp1' : ∀ i, (1 : ℝ) - p i ≠ 0) (y : U → (U → Bool) → ℝ)
-    {V α : ℝ} (hV0 : 0 < V) (hV : (bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ V) (hα : 0 < α) :
-    1 - α ≤ (bernoulliDesign p hp0 hp1).Pr
-      (fun z => |htEst p y z - EATE (bernoulliDesign p hp0 hp1) y| ≤ Real.sqrt (V / α)) := by
+    {V α : ℝ} (hV0 : 0 < V) (hV : (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ V) (hα : 0 < α) :
+    1 - α ≤ (DesignBased.bernoulliDesign p hp0 hp1).Pr
+      (fun z => |htEst p y z - EATE (DesignBased.bernoulliDesign p hp0 hp1) y| ≤ Real.sqrt (V / α)) := by
   classical
-  set D := bernoulliDesign p hp0 hp1 with hD
+  set D := DesignBased.bernoulliDesign p hp0 hp1 with hD
   set t : ℝ := Real.sqrt (V / α) with ht
   have hVα : 0 < V / α := div_pos hV0 hα
   have ht0 : 0 < t := Real.sqrt_pos.mpr hVα
@@ -315,62 +292,45 @@ theorem chebyshev_ci_eate (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i,
     exact hEmono
   linarith [hPrB, h1le]
 
-/-- `d̄ ≥ 1`: the diagonal pairs `InterfDep i i` (each holds) already contribute `n`. -/
-private lemma one_le_dbar (y : U → (U → Bool) → ℝ) (hcard : 1 ≤ Fintype.card U) :
-    1 ≤ dbar y := by
-  classical
-  have hn0 : (0 : ℝ) < (Fintype.card U : ℝ) := by
-    exact_mod_cast lt_of_lt_of_le zero_lt_one hcard
-  -- dbarCount ≥ n: each diagonal term is 1, and the inner sum dominates the diagonal term.
-  have hdiag : ∀ i : U, (1 : ℝ) ≤ ∑ j : U, if InterfDep y i j then (1 : ℝ) else 0 := by
-    intro i
-    have hii : InterfDep y i i := ⟨i, Or.inl rfl, Or.inl rfl⟩
-    have hterm : (if InterfDep y i i then (1 : ℝ) else 0) = 1 := by simp [hii]
-    calc (1 : ℝ) = (if InterfDep y i i then (1 : ℝ) else 0) := hterm.symm
-      _ ≤ ∑ j : U, if InterfDep y i j then (1 : ℝ) else 0 :=
-          Finset.single_le_sum (f := fun j => if InterfDep y i j then (1 : ℝ) else 0)
-            (fun j _ => by positivity) (Finset.mem_univ i)
-  have hcount : (Fintype.card U : ℝ) ≤ dbarCount y := by
-    unfold dbarCount
-    calc (Fintype.card U : ℝ) = ∑ _i : U, (1 : ℝ) := by
-            rw [Finset.sum_const, Finset.card_univ]; simp
-      _ ≤ ∑ i : U, ∑ j : U, if InterfDep y i j then (1 : ℝ) else 0 :=
-          Finset.sum_le_sum (fun i _ => hdiag i)
-  rw [dbar, le_div_iff₀ hn0, one_mul]
-  exact hcount
-
 /-- **A concrete finite-sample confidence interval for EATE (Sävje–Aronow–Hudgens 2021).** Suppose
 the Bernoulli design has treatment probabilities `p` that [lie in `[0, 1]`](hyp:hp0,hp1), are
 [never exactly zero or one](hyp:hp0',hp1'), and in fact [stay within `[1/k, 1 - 1/k]` for some
 regularity constant `k ≥ 1`](hyp:hk,hplo,hphi); suppose also that [the population is
-nonempty](hyp:hcard), [every unit's outcome has second moment at most `k²`](hyp:hmom), and
-[the significance level `α` is positive](hyp:hα). Then [the Chebyshev interval
-`ĤT ± √(k⁴·d̄/(n·α))`, where `d̄` is the average interference degree and `n` the population
+nonempty](hyp:hcard), [every unit's outcome has second moment at most `k²`](hyp:hmom), and [the
+analyst supplies an upper bound `D₀` on the average interference degree](hyp:D₀,hD₀), while [the
+significance level `α` is positive](hyp:hα). Then [the Chebyshev interval
+`ĤT ± √(k⁴·D₀/(n·α))`, where `n` is the population
 size, covers the EATE estimand with probability at least `1 − α`](goal) — a valid
-(conservative) interval that needs only the regularity constant `k` and the interference
-measure `d̄`. -/
+(conservative) interval that needs only the regularity constant `k` and the supplied interference
+bound `D₀`. -/
 theorem eate_ci_kbound (p : U → ℝ) (hp0 : ∀ i, 0 ≤ p i) (hp1 : ∀ i, p i ≤ 1)
     (hp0' : ∀ i, p i ≠ 0) (hp1' : ∀ i, (1 : ℝ) - p i ≠ 0) (y : U → (U → Bool) → ℝ)
     (k : ℝ) (hk : 1 ≤ k) (hcard : 1 ≤ Fintype.card U)
     (hplo : ∀ i, k⁻¹ ≤ p i) (hphi : ∀ i, p i ≤ 1 - k⁻¹)
-    (hmom : ∀ i, (bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2)
+    (hmom : ∀ i, (DesignBased.bernoulliDesign p hp0 hp1).E (fun z => (y i z) ^ 2) ≤ k ^ 2)
+    (D₀ : ℝ) (hD₀ : dbar y ≤ D₀)
     {α : ℝ} (hα : 0 < α) :
-    1 - α ≤ (bernoulliDesign p hp0 hp1).Pr
-      (fun z => |htEst p y z - EATE (bernoulliDesign p hp0 hp1) y|
-        ≤ Real.sqrt (k ^ 4 * dbar y / ((Fintype.card U : ℝ) * α))) := by
+    1 - α ≤ (DesignBased.bernoulliDesign p hp0 hp1).Pr
+      (fun z => |htEst p y z - EATE (DesignBased.bernoulliDesign p hp0 hp1) y|
+        ≤ Real.sqrt (k ^ 4 * D₀ / ((Fintype.card U : ℝ) * α))) := by
   classical
-  set V : ℝ := k ^ 4 * dbar y / (Fintype.card U : ℝ) with hVdef
+  set V : ℝ := k ^ 4 * D₀ / (Fintype.card U : ℝ) with hVdef
   have hn0 : (0 : ℝ) < (Fintype.card U : ℝ) := by
     exact_mod_cast lt_of_lt_of_le zero_lt_one hcard
   have hk0 : (0 : ℝ) < k := lt_of_lt_of_le zero_lt_one hk
   have hdbar1 : 1 ≤ dbar y := one_le_dbar y hcard
   have hdbar0 : 0 < dbar y := lt_of_lt_of_le zero_lt_one hdbar1
+  have hD₀0 : 0 < D₀ := lt_of_lt_of_le hdbar0 hD₀
   have hV0 : 0 < V := by rw [hVdef]; positivity
-  have hV : (bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ V :=
-    var_htEst_le p hp0 hp1 y k hk hcard hplo hphi hmom
+  have hVraw := var_htEst_le p hp0 hp1 y k hk hcard hplo hphi hmom
+  have hV : (DesignBased.bernoulliDesign p hp0 hp1).Var (htEst p y) ≤ V := by
+    refine hVraw.trans ?_
+    rw [hVdef]
+    exact div_le_div_of_nonneg_right
+      (mul_le_mul_of_nonneg_left hD₀ (by positivity)) hn0.le
   have hci := chebyshev_ci_eate p hp0 hp1 hp0' hp1' y hV0 hV hα
-  -- The interval radius matches: √(V/α) = √(k⁴·d̄/(n·α)).
-  have harg : V / α = k ^ 4 * dbar y / ((Fintype.card U : ℝ) * α) := by
+  -- The interval radius matches: √(V/α) = √(k⁴·D₀/(n·α)).
+  have harg : V / α = k ^ 4 * D₀ / ((Fintype.card U : ℝ) * α) := by
     rw [hVdef, div_div]
   rw [harg] at hci
   exact hci

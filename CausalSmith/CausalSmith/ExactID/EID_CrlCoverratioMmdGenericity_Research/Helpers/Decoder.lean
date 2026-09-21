@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
-import Mathlib.Probability.Kernel.CondDistrib
-import Mathlib.MeasureTheory.Measure.Support
-import Causalean.Mathlib.CondIndep
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
+public import Mathlib.Probability.Kernel.CondDistrib
+public import Mathlib.MeasureTheory.Measure.Support
+public import Causalean.Mathlib.Probability.Independence.Conditional
 
 /-!
 # Population ratio and conditional-rank decoder
@@ -11,6 +12,11 @@ topological ordering internally, constructs `[0,1]`-valued conditional ranks,
 and prunes to the unique minimal admissible parent sets on the model domain.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 open MeasureTheory ProbabilityTheory Set Filter
 open scoped BigOperators ENNReal Topology
 
@@ -19,7 +25,7 @@ noncomputable section
 namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 
 -- @env: S4
-variable {n : ℕ} {G : Causalean.DAG (Fin n)} {s : SignVector n}
+variable {n : ℕ} {G : DAG (Fin n)} {s : SignVector n}
 
 /-- A numerical linear extension of a directed relation. Injectivity excludes tied labels. -/
 def IsTopologicalOrdering (E : Fin n → Fin n → Prop) (order : Fin n → ℕ) : Prop :=
@@ -452,7 +458,7 @@ lemma selectedParentRelation_acyclic
 
 /-- The acyclic graph induced by all successful unique-minimum parent selections. -/
 def selectedParentDAG (laws : ObservedProbabilityLawFamily n) (order : Fin n → ℕ) :
-    Causalean.DAG (Fin n) where
+    DAG (Fin n) where
   edge := selectedParentRelation laws order
   decEdge := Classical.decRel _
   acyclic := selectedParentRelation_acyclic laws order
@@ -460,7 +466,7 @@ def selectedParentDAG (laws : ObservedProbabilityLawFamily n) (order : Fin n →
 /-- Compatibility restricts law-coherence comparisons to representations of the same observed
 law family on the same observed support. -/
 def CompatibleObservedRepresentation
-    {G₁ G₂ : Causalean.DAG (Fin n)} {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
+    {G₁ G₂ : DAG (Fin n)} {θ₁ : Mechanism n G₁} {θ₂ : Mechanism n G₂}
     (W₁ : ObservedWorld G₁ θ₁) (W₂ : ObservedWorld G₂ θ₂) : Prop :=
   W₁.law = W₂.law ∧ observedSupport G₁ W₁ = observedSupport G₂ W₂
 
@@ -468,7 +474,7 @@ def CompatibleObservedRepresentation
 continuous ranks pointwise on the full common observed support. -/
 def ObservedWorldLawCoherent {θ : Mechanism n G} (W : ObservedWorld G θ) : Prop :=
   (∀ i, W.ratio i =ᵐ[W.law 0] observedLawRatio W.law i) ∧
-  ∀ (G' : Causalean.DAG (Fin n)) (θ' : Mechanism n G') (W' : ObservedWorld G' θ'),
+  ∀ (G' : DAG (Fin n)) (θ' : Mechanism n G') (W' : ObservedWorld G' θ'),
     CompatibleObservedRepresentation W W' → ∀ order i,
       ∀ x ∈ observedSupport G W,
         observedLawRankCoordinate (observedProbabilityLawFamily W'.law) order i x =
@@ -502,7 +508,7 @@ lemma selectedTopologicalOrder_isTopologicalOrdering
 topological ordering, constructs unit-interval ranks, and returns the parent-pruned DAG. -/
 def populationDecoder (laws : ObservedProbabilityLawFamily n) :
     (Fin n → Fin n → Prop) ×
-      (Fin n → LatentState n → Set.Icc (0 : ℝ) 1) × Causalean.DAG (Fin n) :=
+      (Fin n → LatentState n → Set.Icc (0 : ℝ) 1) × DAG (Fin n) :=
   let order := selectedTopologicalOrder laws
   (observedLawRatioGraph gaussianFeatureMap laws.1,
     observedLawRankCoordinate laws order, selectedParentDAG laws order)

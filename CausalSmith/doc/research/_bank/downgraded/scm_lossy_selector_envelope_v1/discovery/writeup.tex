@@ -1,0 +1,1115 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{scm\_\allowbreak{}lossy\_\allowbreak{}selector\_\allowbreak{}envelope}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} The selector-specific SCM construction yields an exact causal transport image, an incremental application of standard finite coupling geometry rather than a new transport identification theorem. The new uniform result is a diagnostic for the direct Hong--Li-style paired multiplier numerical-delta implementation defined here: on one fixed-margin, fixed-cell singleton with response means \(2b_n/n\), both absolute bounded-Lipschitz Gaussian approximations vanish while its envelope has coverage tending to zero for every deterministic step schedule. This does not refute Hong and Li's theorem and is not an impossibility result: the witness has collapsing response variance, lacks any fixed response-interiority or nondegenerate-variance bound, and projecting an honest simultaneous primitive region through \(L\) and \(U\) yields an honest fallback. Comparative width and shrinking-margin rates remain open on an explicitly response-interior subclass.
+
+\section{Project justification}
+
+\paragraph{Gap.} Available affine-LP methods do not settle the same joint rare-margin and estimated-cost problem under the present assumptions. For fixed \(\mu\), Cho--Russell remains a transferable randomly perturbed-LP benchmark even as margins shrink, whereas Gafarov's uniform positive slack condition fails on the full shrinking-margin transport class. When \(\mu\) is estimated from response cells whose probabilities may approach zero, neither transfer is automatic because inverse-cell influence envelopes or moments can diverge. The procedure-specific numerical-delta rate and width comparison therefore remains open after imposing response interiority.
+
+\paragraph{Niche.} The incremental contribution is a schedule-independent zero-coverage response-boundary diagnostic for the direct Hong--Li-style paired empirical-influence multiplier numerical-delta implementation defined here, together with an exact projected-region fallback. It is not presented as a counterexample to Hong and Li's theorem. The next subfield question is comparative: on a common response-regular subclass, does row-feasible numerical delta buy narrower intervals or weaker margin-rate requirements than projection or transferred affine-LP methods? The conjectured \(n\kappa_n^3\) threshold is not an established frontier.
+
+\paragraph{Fill.} The note sets \(b_n=1/\log(n+1)\) after a finite-row adjustment, uses Bernoulli means \(2b_n/n\), and proves that the all-zero event tends to probability one, collapses the empirical-influence multiplier critical value to zero, and forces coverage to zero although both absolute bounded-Lipschitz discrepancies vanish. It also defines \(\mathrm{CI}_n^{\mathrm{proj}}=[\inf_{\widetilde\beta\in\mathcal R_n}L(\widetilde\beta),\sup_{\widetilde\beta\in\mathcal R_n}U(\widetilde\beta)]\) and proves the deterministic inclusion from primitive-region coverage. The remaining comparison is confined to \(\mathfrak P_{\kappa,\eta}^{\mathrm{int}}\).
+
+\section{Related work}
+
+VanderWeele and Hernán motivate specified version-assignment laws, and Béal and Latouche supply the PDX setting. D'Haultfoeuille, Gaillac, and Maurel derive a distinct constructive sharp set from unlinked margins in a partially linear data-combination model; the finite transportation image here is standard coupling geometry, and its paper-specific content is attainment inside the displayed selector-specific SCM family. Rubenstein et al. and Beckers--Halpern supply general commutation and abstraction semantics. Xia--Bareinboim Proposition 1 and Definition 6 supply the exact all-intervention partial-projection condition instantiated selector by selector here; this note does not extend their general abstraction theorem and does not preserve one fixed Equation-11 canonical Layer-3 map. Hundrieser et al. analyze empirical optimal transport with estimated costs and optimal-face limits, while Danskin and Bonnans--Shapiro supply the underlying envelope and parametric-LP sensitivity machinery; the fixed-law endpoint derivative here is therefore a finite transportation specialization rather than a distinct sensitivity theorem. Fang--Santos and Hong--Li supply derivative-based and numerical-delta inference. The zero-coverage theorem targets only the direct paired empirical-influence multiplier implementation of the Hong--Li numerical-delta recipe defined here under the displayed absolute bounded-Lipschitz approximations; it neither asserts that Hong--Li's theorem covers the collapsing-variance triangular array nor refutes that theorem. Voronin supplies delta-conditioned uniform consistency for an LP-value procedure under his conditions; it does not by itself provide the paired simultaneous confidence envelope here or verify this response-boundary array. With fixed \(\mu\), each endpoint is an affine transportation-LP projection. Shrinking positive margins alone do not violate Cho--Russell's compact-polyhedron, bounded-envelope, feasibility, i.i.d., or fixed positive absolutely continuous perturbation requirements, so their randomly perturbed LP is a transferred fixed-cost benchmark; it covers the identified set conservatively and attains exact coverage on an outer perturbed set, not the same interval target. Their theorem does not directly verify jointly estimated \(\mu\) with rare cells, because inverse cell probabilities can violate its common bounded envelope. Gafarov's affine epigraph formulation is another fixed-cost benchmark and permits flat primal faces, but his uniform class requires positive rank and slack constants and, in the stated main case, no overidentification and unique dual solutions. On a \(2\times2\) transport row of mass \(\kappa_n\), two nonnegativity residuals have norm at most \(\kappa_n\), so the required uniform slack constant fails as \(\kappa_n\downarrow0\); nonunique dual faces create a separate exclusion. Jointly estimated \(\mu\) transfers only after verifying an affine coefficient representation and uniform \(2+\epsilon\) moments, which \(\pi_{n,cx}\geq\kappa_n\downarrow0\) does not supply. These are benchmarks on admissible subclasses, not results for the full class here. The projected-region fallback is uniformly honest whenever its primitive region is, but no comparative width theorem is claimed.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\theta_h=E_{\mathcal M_{H,s}}[Y\mid\operatorname{do}(H=h)]\).
+Primary functional / estimator / diagnostic: \(\Theta_h=[L(p,r,\mu),U(p,r,\mu)]=\{\sum_{c,x}\gamma_{cx}\mu_{cx}:\gamma\in\Gamma(p,r)\}\).
+\begin{itemize}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal C} --- \texttt{finite nonempty set}; \(\mathcal C=\{1,\ldots,m\}\); \texttt{context support}
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal X} --- \texttt{finite nonempty set}; \(\mathcal X=\{1,\ldots,k\}\); \texttt{micro-\allowbreak{}action fiber}
+  \item \texttt{h} --- \texttt{macro-\allowbreak{}action value}
+  \par\smallskip\noindent\emph{Definition.} \(h\) is the macro label whose micro-action fiber is \(\mathcal X\).
+  \item \texttt{C} --- \texttt{endogenous variable}; \(C\in\mathcal C\); \texttt{pre-\allowbreak{}treatment context}
+  \item \texttt{X} --- \texttt{endogenous variable}; \(X\in\mathcal X\); \texttt{micro action}
+  \item \texttt{Y} --- \texttt{endogenous variable}; \(Y\in\{0,1\}\); \texttt{binary response}
+  \item \texttt{p} --- \texttt{probability vector}; \(\operatorname{int}\Delta(\mathcal C)\)
+  \par\smallskip\noindent\emph{Definition.} \(p_c=P(C=c)\).
+  \item \texttt{U\_\allowbreak{}C} --- \texttt{exogenous context variable}; \(U_C\in\mathcal C\)
+  \par\smallskip\noindent\emph{Definition.} \(P(U_C=c)=p_c\).
+  \item \texttt{r} --- \texttt{probability vector}; \(\operatorname{int}\Delta(\mathcal X)\)
+  \par\smallskip\noindent\emph{Definition.} \(r_x\) is the aggregate share of micro action \(x\) under macro action \(h\).
+  \item \texttt{\textbackslash{}\allowbreak{}mu} --- \texttt{response array}; \((0,1)^{\mathcal C\times\mathcal X}\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_{cx}=E[Y\mid\operatorname{do}(X=x),C=c]\).
+  \item \texttt{S} --- \texttt{exogenous selector seed}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(S\sim\operatorname{Unif}[0,1]\).
+  \item \texttt{U\_\allowbreak{}X} --- \texttt{exogenous baseline-\allowbreak{}action variable}; \texttt{noise for the natural micro-\allowbreak{}action mechanism}
+  \item \texttt{f\_\allowbreak{}0} --- \texttt{fixed structural function}; \(f_0:\mathcal C\times\operatorname{dom}(U_X)\to\mathcal X\)
+  \item \texttt{s} --- \texttt{Markov kernel}; \(s:\mathcal C\to\Delta(\mathcal X)\)
+  \par\smallskip\noindent\emph{Definition.} \(s_x(c)\) is the context-specific implementation probability.
+  \item \texttt{q\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{can\}\allowbreak{}\}\allowbreak{}} --- \texttt{fixed canonical residual kernel}; \(q_{\mathrm{can}}:\mathcal C\times\{h\}\to\Delta(\mathcal X)\)
+  \par\smallskip\noindent\emph{Definition.} \(q_{\mathrm{can}}(x\mid c,h)\) is one fixed Equation-11 residual conditional law.
+  \item \texttt{g\_\allowbreak{}s} --- \texttt{selector function}; \(g_s:\mathcal C\times[0,1]\to\mathcal X\)
+  \par\smallskip\noindent\emph{Definition.} \(P\{g_s(c,S)=x\}=s_x(c)\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma} --- \texttt{nonnegative array}; \(\mathbb R_+^{\mathcal C\times\mathcal X}\)
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_{cx}=p_cs_x(c)\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{can\}\allowbreak{}\}\allowbreak{}} --- \texttt{canonical selector coupling}; \(\mathbb R_+^{\mathcal C\times\mathcal X}\)
+  \par\smallskip\noindent\emph{Definition.} \(\gamma_{\mathrm{can},cx}=p_cq_{\mathrm{can}}(x\mid c,h)\).
+  \item \texttt{B} --- \texttt{finite exogenous response table}; \(\{0,1\}^{\mathcal C\times\mathcal X}\)
+  \par\smallskip\noindent\emph{Definition.} \(E[B_{cx}\mid U_C=c]=\mu_{cx}\) for every \((c,x)\in\mathcal C\times\mathcal X\).
+  \item \texttt{P\_\allowbreak{}R} --- \texttt{common exogenous law}
+  \par\smallskip\noindent\emph{Definition.} \(P_R\) is the joint law of \(U_C,U_X,B,S\), shared by every selector construction.
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}R} --- \texttt{recursive low-\allowbreak{}level response SCM}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_R=\langle(U_C,U_X,B,S),(C,X,Y),\mathcal F_R,P_R\rangle\), with \(C=U_C\), \(X=f_0(C,U_X)\), and \(Y=B_{C,X}\).
+  \item \texttt{\textbackslash{}\allowbreak{}sigma\_\allowbreak{}s} --- \texttt{soft intervention}
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_s\) replaces only the \(X\)-equation of \(\mathcal M_R\) by \(X=g_s(C,S)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}s} --- \texttt{selector-\allowbreak{}implemented low-\allowbreak{}level SCM}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_s=\mathcal M_R^{\sigma_s}\).
+  \item \texttt{H} --- \texttt{endogenous macro-\allowbreak{}action variable}; \(H\in\{h\}\)
+  \par\smallskip\noindent\emph{Definition.} \(H=h\) in the observational structural equation.
+  \item \texttt{Z\_\allowbreak{}s} --- \texttt{endogenous residual selector coordinate}; \(Z_s\in\mathcal X\)
+  \par\smallskip\noindent\emph{Definition.} \(Z_s=g_s(C,S)\) in the augmented and high-level structural equations.
+  \item \texttt{\textbackslash{}\allowbreak{}delta\_\allowbreak{}X} --- \texttt{surjective reconstruction map}; \(\delta_X:\{h\}\times\mathcal X\to\mathcal X\)
+  \par\smallskip\noindent\emph{Definition.} \(\delta_X(h,z)=z\).
+  \item \texttt{\textbackslash{}\allowbreak{}delta} --- \texttt{product reconstruction map}
+  \par\smallskip\noindent\emph{Definition.} \(\delta((c,h,y),(\ast,z,\ast))=(c,\delta_X(h,z),y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\textbackslash{}\allowbreak{}tau} --- \texttt{bijective augmented state map}; \(\widetilde\tau:\mathcal C\times\mathcal X\times\{0,1\}\to\mathcal C\times(\{h\}\times\mathcal X)\times\{0,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde\tau(c,x,y)=(c,(h,x),y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}tau\textasciicircum{}o} --- \texttt{surjective observed state map}; \(\tau^o:\mathcal C\times\mathcal X\times\{0,1\}\to\mathcal C\times\{h\}\times\{0,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \(\tau^o(c,x,y)=(c,h,y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal I\_\allowbreak{}L} --- \texttt{finite intervention set}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal I_L\) contains every hard intervention on an arbitrary subset of \(\{C,X,Y\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}omega} --- \texttt{intervention map}; \(\omega:\mathcal I_L\to\{\text{observed hard interventions}\}\times\{\text{residual assignments}\}\)
+  \par\smallskip\noindent\emph{Definition.} \(\omega\) maps an intervened value \(X=x\) to the split intervention \((H=h,Z_s=x)\), maps interventions on \(C\) and \(Y\) identically, and leaves nonintervened coordinates unset.
+  \item \texttt{\textbackslash{}\allowbreak{}widetilde\{\textbackslash{}\allowbreak{}mathcal M\}\allowbreak{}\_\allowbreak{}s} --- \texttt{constructive augmented abstraction}
+  \par\smallskip\noindent\emph{Definition.} \(\widetilde{\mathcal M}_s\) is the bijective \(\widetilde\tau\)-relabeling of \(\mathcal M_s\) on endogenous variables \((C,(H,Z_s),Y)\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}\{H,\allowbreak{}s\}\allowbreak{}} --- \texttt{high-\allowbreak{}level recursive SCM with a residual coordinate}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_{H,s}=\langle(U_C,U_X,B,S),(C,H,Z_s,Y),(C=U_C,H=h,Z_s=g_s(C,S),Y=B_{C,\delta_X(H,Z_s)}),P_R\rangle\); the observed high-level state is \(C,H,Y\) and \(Z_s\) is the compatible residual coordinate.
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak A\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{free\}\allowbreak{}\}\allowbreak{}} --- \texttt{class}
+  \par\smallskip\noindent\emph{Definition.} Defined by \(\mathrm{def:free\text{-}class}\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma} --- \texttt{transportation polytope}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma=\Gamma(p,r)\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}h} --- \texttt{scalar causal query}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_h=E_{\mathcal M_{H,s}}[Y\mid\operatorname{do}(H=h)]\).
+  \item \texttt{\textbackslash{}\allowbreak{}Theta\_\allowbreak{}h} --- \texttt{identified set}; \(2^{[0,1]}\)
+  \par\smallskip\noindent\emph{Definition.} The set of \(\theta_h\) values over \(\mathfrak A_{\mathrm{free}}\).
+  \item \texttt{L} --- \texttt{lower endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(L=L(p,r,\mu)\).
+  \item \texttt{U} --- \texttt{upper endpoint}
+  \par\smallskip\noindent\emph{Definition.} \(U=U(p,r,\mu)\).
+  \item \texttt{E\_\allowbreak{}+\allowbreak{}} --- \texttt{bipartite effective edge set}; \(E_+\subseteq\mathcal C\times\mathcal X\)
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}L} --- \texttt{compact lower optimal face}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_L=\operatorname*{arg\,min}_{\gamma\in\Gamma}\langle\gamma,\mu\rangle\).
+  \item \texttt{\textbackslash{}\allowbreak{}Gamma\_\allowbreak{}U} --- \texttt{compact upper optimal face}
+  \par\smallskip\noindent\emph{Definition.} \(\Gamma_U=\operatorname*{arg\,max}_{\gamma\in\Gamma}\langle\gamma,\mu\rangle\).
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}L} --- \texttt{lower-\allowbreak{}endpoint coupling}; \(\Gamma_L\)
+  \item \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}U} --- \texttt{upper-\allowbreak{}endpoint coupling}; \(\Gamma_U\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}L} --- \texttt{normalized lower dual optimal face}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_L=\{(a,b):a_c+b_x\le\mu_{cx},\ p^\top a+r^\top b=L,\ p^\top a=0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal D\_\allowbreak{}U} --- \texttt{normalized upper dual optimal face}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal D_U=\{(a,b):a_c+b_x\ge\mu_{cx},\ p^\top a+r^\top b=U,\ p^\top a=0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta} --- \texttt{finite-\allowbreak{}dimensional parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\beta=(p,r,\mu)\).
+  \item \texttt{F} --- \texttt{endpoint map}; \(F(\beta)=(L,U)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb T} --- \texttt{linear tangent space}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb T=\{(d_p,d_r,d_\mu):\mathbf 1^\top d_p=\mathbf 1^\top d_r=0\}\).
+  \item \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}beta\_\allowbreak{}n} --- \texttt{estimator}
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\beta_n=(\widehat p_n,\widehat r_n,\widehat\mu_n)\) estimates \(\beta\) under a fixed law and \(\beta_n\) in row \(n\) of a triangular array.
+  \item \texttt{G} --- \texttt{tight Gaussian vector}; \(\mathbb T\)
+  \item \texttt{G\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{conditional multiplier draw}; \(\mathbb T\)
+  \item \texttt{t} --- \texttt{deterministic numerical-\allowbreak{}delta schedule}
+  \par\smallskip\noindent\emph{Definition.} \(t=(t_n)_{n\ge1}\) with \(t_n>0\) and \(t_n\to0\).
+  \item \texttt{t\_\allowbreak{}n} --- \texttt{positive deterministic sequence term}
+  \par\smallskip\noindent\emph{Definition.} \(t_n\) is the row-\(n\) term of the schedule \(t\).
+  \item \texttt{\textbackslash{}\allowbreak{}alpha} --- \texttt{confidence error probability}; \((0,1)\)
+  \item \texttt{\textbackslash{}\allowbreak{}Pi\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathcal B\}\allowbreak{}} --- \texttt{local feasibility correction}
+  \par\smallskip\noindent\emph{Definition.} \(\Pi_{\mathcal B}\) maps a neighborhood of \(\beta\) into the product of the two probability simplices and the response cube and equals the identity on feasible interior arguments.
+  \item \texttt{\textbackslash{}\allowbreak{}widehat F'\_\allowbreak{}n} --- \texttt{paired numerical derivative map}; \(\widehat F'_n:\mathbb T\to\mathbb R^2\)
+  \item \texttt{q\_\allowbreak{}\{1-\allowbreak{}\textbackslash{}\allowbreak{}alpha,\allowbreak{}n\}\allowbreak{}\textasciicircum{}\textbackslash{}\allowbreak{}star} --- \texttt{conditional critical value}
+  \par\smallskip\noindent\emph{Definition.} \(q_{1-\alpha,n}^\star\) is the conditional \((1-\alpha)\)-quantile of \(\max_j|\widehat F'_n(G_n^\star)_j|\).
+  \item \texttt{p\_\allowbreak{}n} --- \texttt{triangular-\allowbreak{}array context margin}; \(\Delta(\mathcal C)\)
+  \item \texttt{r\_\allowbreak{}n} --- \texttt{triangular-\allowbreak{}array action margin}; \(\Delta(\mathcal X)\)
+  \item \texttt{\textbackslash{}\allowbreak{}mu\_\allowbreak{}n} --- \texttt{triangular-\allowbreak{}array response array}; \([0,1]^{\mathcal C\times\mathcal X}\)
+  \item \texttt{\textbackslash{}\allowbreak{}Delta\_\allowbreak{}n} --- \texttt{alternating response contrast}
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_n=\mu_{n,11}-\mu_{n,12}-\mu_{n,21}+\mu_{n,22}\) in the \(2\times2\) least-favourable array.
+  \item \texttt{\textbackslash{}\allowbreak{}pi\_\allowbreak{}n} --- \texttt{triangular-\allowbreak{}array response-\allowbreak{}study cell probabilities}; \(\Delta(\mathcal C\times\mathcal X)\)
+  \par\smallskip\noindent\emph{Definition.} \(\pi_{n,cx}\) is the row-\(n\) probability of the identifying response-study cell \((c,x)\).
+  \item \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}n} --- \texttt{triangular-\allowbreak{}array parameter}
+  \par\smallskip\noindent\emph{Definition.} \(\beta_n=(p_n,r_n,\mu_n)\).
+  \item \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n} --- \texttt{positive boundary sequence}
+  \par\smallskip\noindent\emph{Definition.} \(\kappa_n\downarrow0\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal H\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathrm\{unif\}\allowbreak{}\}\allowbreak{}} --- \texttt{uniform-\allowbreak{}in-\allowbreak{}law inference handle}
+  \par\smallskip\noindent\emph{Definition.} Defined by \(\mathrm{def:uniform\text{-}handle}\).
+  \item \texttt{P\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}circ} --- \texttt{row data law}
+  \par\smallskip\noindent\emph{Definition.} \(P_n^\circ\) is the law of the observations in row \(n\), with finite-dimensional target \(\beta_n\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P} --- \texttt{triangular-\allowbreak{}array experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P=(P_n^\circ)_{n\ge1}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\textasciicircum{}\{(t)\}\allowbreak{}} --- \texttt{schedule-\allowbreak{}dependent triangular-\allowbreak{}array experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P^{(t)}=(P_n^{\circ,(t)})_{n\ge1}\) denotes a least-favourable experiment selected after the deterministic schedule \(t\) is fixed.
+  \item \texttt{G\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathbb P,\allowbreak{}n\}\allowbreak{}} --- \texttt{row Gaussian approximation}; \(\mathbb T\)
+  \par\smallskip\noindent\emph{Definition.} \(G_{\mathbb P,n}\) has the covariance of the row-\(n\) primitive influence vector under \(P_n^\circ\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}\textasciicircum{}\{0\}\allowbreak{}} --- \texttt{rare-\allowbreak{}cell experiment class}
+  \par\smallskip\noindent\emph{Definition.} Defined by \(\mathrm{def:uniform\text{-}experiment}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\_\allowbreak{}n(t)} --- \texttt{schedule-\allowbreak{}indexed paired confidence envelope}
+  \par\smallskip\noindent\emph{Definition.} Defined by \(\mathrm{def:uniform\text{-}confidence\text{-}envelope}\).
+  \item \texttt{\textbackslash{}\allowbreak{}theta\_\allowbreak{}0} --- \texttt{scalar reference mean}; \([0,1]\)
+  \item \texttt{E\_\allowbreak{}\{\textbackslash{}\allowbreak{}mathbb P\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}star\}\allowbreak{}} --- \texttt{conditional multiplier expectation operator}
+  \par\smallskip\noindent\emph{Definition.} \(E_{\mathbb P}^{\star}\) denotes expectation under the multiplier law conditional on the row-\(n\) data generated under \(P_n^\circ\) in experiment \(\mathbb P\).
+  \item \texttt{\textbackslash{}\allowbreak{}lambda} --- \texttt{positive local-\allowbreak{}contrast intensity}
+  \par\smallskip\noindent\emph{Definition.} \(\lambda>0\) is a fixed coefficient used only for the local alternating contrast in the rare-margin face-switching handle.
+  \item \texttt{b\_\allowbreak{}n} --- \texttt{positive deterministic boundary sequence}
+  \par\smallskip\noindent\emph{Definition.} \(b_n=\min\{1/4,1/\log(n+1)\}\), which equals \(1/\log(n+1)\) after finitely many rows and satisfies \(b_n\downarrow0\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathbb P\textasciicircum{}0} --- \texttt{response-\allowbreak{}boundary triangular-\allowbreak{}array experiment}
+  \par\smallskip\noindent\emph{Definition.} \(\mathbb P^0=(P_n^{\circ,0})_{n\geq1}\) is the \(b_n\)-scaled experiment constructed in \(\mathrm{def:response\text{-}boundary\text{-}singleton}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak Q\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}} --- \texttt{singleton triangular-\allowbreak{}array experiment class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak Q_{\kappa}=\{\mathbb P^0\}\), with \(\mathbb P^0\) specified in \(\mathrm{def:response\text{-}boundary\text{-}singleton}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}n} --- \texttt{random primitive confidence region}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal R_n\) is a nonempty compact simultaneous confidence region for \(\beta_n\), intersected with \(\Delta(\mathcal C)\times\Delta(\mathcal X)\times[0,1]^{\mathcal C\times\mathcal X}\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathrm\{CI\}\allowbreak{}\_\allowbreak{}n\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{proj\}\allowbreak{}\}\allowbreak{}} --- \texttt{projected-\allowbreak{}region confidence envelope}
+  \par\smallskip\noindent\emph{Definition.} \(\mathrm{CI}_n^{\mathrm{proj}}=[\inf_{\widetilde\beta\in\mathcal R_n}L(\widetilde\beta),\,\sup_{\widetilde\beta\in\mathcal R_n}U(\widetilde\beta)]\).
+  \item \texttt{\textbackslash{}\allowbreak{}eta} --- \texttt{fixed response-\allowbreak{}interiority constant}
+  \par\smallskip\noindent\emph{Definition.} \(0<\eta<1/2\).
+  \item \texttt{\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa,\allowbreak{}\textbackslash{}\allowbreak{}eta\}\allowbreak{}\textasciicircum{}\{\textbackslash{}\allowbreak{}mathrm\{int\}\allowbreak{}\}\allowbreak{}} --- \texttt{response-\allowbreak{}interior triangular-\allowbreak{}array experiment class}
+  \par\smallskip\noindent\emph{Definition.} \(\mathfrak P_{\kappa,\eta}^{\mathrm{int}}\) is the primitive response-interior subclass defined by \(\mathrm{def:response\text{-}regular\text{-}subclass}\).
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:selector-exogeneity]\label{ass:selector-exogeneity}
+\(S\perp(C,B)\).
+\par\smallskip\noindent\emph{Novel.} A randomized deployment can use a fresh device that reads recorded context but has no access to latent response types.
+\end{assumption}
+
+\begin{assumption}[ass:calibration]\label{ass:calibration}
+\(\sum_{c\in\mathcal C}p_cs_x(c)=r_x\) for every \(x\in\mathcal X\).
+\par\smallskip\noindent\emph{Novel.} Procurement systems can enforce aggregate action shares even when privacy restrictions suppress their context cross-tabulation.
+\end{assumption}
+
+\begin{assumption}[ass:joint-clt]\label{ass:joint-clt}
+\(\sqrt n(\widehat\beta_n-\beta)\rightsquigarrow G\) in \(\mathbb T\).
+\par\smallskip\noindent\emph{Standard} (finite-dimensional joint central limit theorem, \cite{FangSantos2019DirectionalInference}).
+\end{assumption}
+
+\begin{assumption}[ass:multiplier-law]\label{ass:multiplier-law}
+\(G_n^\star\rightsquigarrow_P G\) conditionally on the data.
+\par\smallskip\noindent\emph{Standard} (conditional weak consistency of primitive resampling, \cite{HongLi2018NumericalDelta}).
+\end{assumption}
+
+\begin{assumption}[ass:step-vanishes]\label{ass:step-vanishes}
+\(t_n\downarrow0\).
+\par\smallskip\noindent\emph{Standard} (vanishing numerical-delta step, \cite{HongLi2018NumericalDelta}).
+\end{assumption}
+
+\begin{assumption}[ass:step-dominates]\label{ass:step-dominates}
+\(\sqrt n t_n\to\infty\).
+\par\smallskip\noindent\emph{Standard} (numerical step dominates primitive estimation error, \cite{HongLi2018NumericalDelta}).
+\end{assumption}
+
+\begin{assumption}[ass:quantile-continuity]\label{ass:quantile-continuity}
+The cdf of \(\max\{|F'_\beta(G)_1|,|F'_\beta(G)_2|\}\) is continuous at its \((1-\alpha)\)-quantile.
+\par\smallskip\noindent\emph{Standard} (continuity of the limiting critical-value distribution, \cite{HongLi2018NumericalDelta}).
+\end{assumption}
+
+\begin{assumption}[ass:quantile-identification]\label{ass:quantile-identification}
+The cdf of \(\max\{|F'_\beta(G)_1|,|F'_\beta(G)_2|\}\) is strictly increasing at its \((1-\alpha)\)-quantile.
+\par\smallskip\noindent\emph{Standard} (local identification of the limiting quantile, \cite{HongLi2018NumericalDelta}).
+\end{assumption}
+
+\begin{assumption}[ass:uniform-margin-floor]\label{ass:uniform-margin-floor}
+\(\min_{c\in\mathcal C}p_{n,c}\wedge\min_{x\in\mathcal X}r_{n,x}\ge\kappa_n\quad\forall n\ge1.\)
+\par\smallskip\noindent\emph{Novel.} This boundary-indexed class includes sparse multinomial deployment margins while keeping every finite-row selector coupling well defined.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-response-cell-floor]\label{ass:uniform-response-cell-floor}
+\(\min_{(c,x)\in\mathcal C\times\mathcal X}\pi_{n,cx}\ge\kappa_n\quad\forall n\ge1.\)
+\par\smallskip\noindent\emph{Novel.} Stratified randomized response studies with allocation floors satisfy this condition even as rare strata become less frequent across rows.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-primitive-clt]\label{ass:uniform-primitive-clt}
+\(\sup_{\mathbb P\in\mathfrak P_{\kappa}^{0}}\sup_{\lVert f\rVert_{\mathrm{BL}}\le1}\left|E_{\mathbb P}f(\sqrt n(\widehat\beta_n-\beta_n))-E f(G_{\mathbb P,n})\right|\longrightarrow0.\)
+\par\smallskip\noindent\emph{Novel.} Finite multinomial margins and bounded cell means satisfy such a row-Gaussian approximation under uniform moment and covariance control when effective cell sizes diverge.
+\end{assumption}
+
+\begin{assumption}[ass:uniform-multiplier-law]\label{ass:uniform-multiplier-law}
+\(\forall\epsilon>0,\quad\sup_{\mathbb P\in\mathfrak P_{\kappa}^{0}}\Pr_{\mathbb P}\!\left\{\sup_{\lVert f\rVert_{\mathrm{BL}}\le1}\left|E_{\mathbb P}^{\star}f(G_n^\star)-E f(G_{\mathbb P,n})\right|>\epsilon\right\}\longrightarrow0.\)
+\par\smallskip\noindent\emph{Novel.} Multiplier resampling of bounded finite-dimensional influence vectors provides this approximation over multinomial arrays with uniformly controlled effective sample sizes.
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:free-class]\label{def:free-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{free-\allowbreak{}selector implementation class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak A_{\mathrm{free}}=\{(\mathcal M_R,s,\sigma_s,\mathcal M_s,\mathcal M_{H,s}):\sigma_s\text{ and }\mathcal M_s\text{ are constructed from }\mathcal M_R\text{ by selector-equation replacement},\ \mathcal M_{H,s}\text{ is constructed by }\mathrm{def:macro\text{-}scm},\ S\perp(C,B),\ \sum_{c\in\mathcal C}p_cs_x(c)=r_x\ \forall x\in\mathcal X\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}selector-\allowbreak{}exogeneity}; \texttt{ass:\allowbreak{}calibration}.
+\end{definition}
+
+\begin{definition}[def:transport-polytope]\label{def:transport-polytope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{margin-\allowbreak{}compatible selector couplings}
+\par\smallskip\noindent\emph{Construction.} \(\Gamma(p,r)=\{\gamma\in\mathbb R_+^{\mathcal C\times\mathcal X}:\sum_{x\in\mathcal X}\gamma_{cx}=p_c\ \forall c\in\mathcal C,\ \sum_{c\in\mathcal C}\gamma_{cx}=r_x\ \forall x\in\mathcal X\}\).
+\end{definition}
+
+\begin{definition}[def:common-response-witness]\label{def:common-response-witness}
+\par\smallskip\noindent\emph{Defined object.} \texttt{common low-\allowbreak{}level response construction}
+\par\smallskip\noindent\emph{Construction.} Fix one law of \((U_C,U_X,B,S)\) with \(P(U_C=c)=p_c\), \(B\perp(U_C,S)\), \(E[B_{cx}]=\mu_{cx}\), and \(S\sim\operatorname{Unif}[0,1]\). Fix \(C=U_C\), \(X=f_0(C,U_X)\), and \(Y=B_{C,X}\) in \(\mathcal M_R\). For input \(\gamma\in\Gamma(p,r)\), set \(s_x(c)=\gamma_{cx}/p_c\), construct \(g_s\) by inverse transform, and apply only \(\sigma_s\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}gamma}.
+\end{definition}
+
+\begin{definition}[def:split-projection-maps]\label{def:split-projection-maps}
+\par\smallskip\noindent\emph{Defined object.} \texttt{typed state and intervention maps}
+\par\smallskip\noindent\emph{Construction.} Split the augmented coordinates \(W=(C,X,Y)\) into observed coordinates \(W^o=(C,H,Y)\) and the residual coordinate \(W^u=(\ast,Z_s,\ast)\). Use \(\delta((c,h,y),(\ast,z,\ast))=(c,\delta_X(h,z),y)\), \(\widetilde\tau(c,x,y)=(c,(h,x),y)\), and \(\tau^o(c,x,y)=(c,h,y)\). For a hard intervention \(j\) on \(J\subseteq\{C,X,Y\}\), \(\omega(j)=(j^o,j^u)\) sends \(C=j_C\) and \(Y=j_Y\) to the same observed-coordinate surgeries, sends \(X=j_X\) to \(H=h\) and residual surgery \(Z_s=j_X\), and leaves every nonintervened coordinate unset.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}s}.
+\end{definition}
+
+\begin{definition}[def:macro-scm]\label{def:macro-scm}
+\par\smallskip\noindent\emph{Defined object.} \texttt{selector-\allowbreak{}specific high-\allowbreak{}level SCM}
+\par\smallskip\noindent\emph{Construction.} For input \(s\), define \(\mathcal M_{H,s}\) with common exogenous variables \(U_C,U_X,B,S\), common law \(P_R\), endogenous variables \(C,H,Z_s,Y\), and equations \(C=U_C\), \(H=h\), \(Z_s=g_s(C,S)\), and \(Y=B_{C,\delta_X(H,Z_s)}\). The observed high-level coordinates are \(C,H,Y\), while \(Z_s\) is the residual coordinate supplied in a partial projection. The intervention \(\operatorname{do}(H=h)\) replaces only the equation for \(H\) by the constant \(h\), retaining \(P_R\) and the equations for \(C,Z_s,Y\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:partial-projection-condition]\label{def:partial-projection-condition}
+\par\smallskip\noindent\emph{Defined object.} \texttt{all-\allowbreak{}intervention partial-\allowbreak{}projection condition}
+\par\smallskip\noindent\emph{Construction.} For \(u\in\mathcal D_{(U_C,U_X,B,S)}\), \(J\subseteq W=(C,X,Y)\), and \(j\in\mathcal D_J\), let \((j^o,j^u)=\omega(j)\). Let \(w_j^u\) equal the residual solution \(Z_{s,j}\), with \(Z_{s,j}=j_X\) when \(X\in J\) and \(Z_{s,j}=g_s(C_j,S)\) when \(X\notin J\). Require \(\delta(w_j^o,w_j^u)=W_j^{\mathcal M_s}(u)\), \(\delta(j^o,j^u)=j\), and \(w_j^o=\mathcal M_{H,s,[j^o]}(u,j^u,z^u)\) for every compatible nonintervened residual argument \(z^u\). Here \([j^o]\) is SCM surgery on observed coordinates and residual surgery is used exactly when \(X\in J\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}s}; \texttt{\textbackslash{}\allowbreak{}mathcal M\_\allowbreak{}\{H,\allowbreak{}s\}\allowbreak{}}.
+\end{definition}
+
+\begin{definition}[def:identified-set]\label{def:identified-set}
+\par\smallskip\noindent\emph{Defined object.} \texttt{compatible macro-\allowbreak{}mean set}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_h=\{E_{\mathcal M_{H,s}}[Y\mid\operatorname{do}(H=h)]:(\mathcal M_R,s,\sigma_s,\mathcal M_s,\mathcal M_{H,s})\in\mathfrak A_{\mathrm{free}}\}\).
+\end{definition}
+
+\begin{definition}[def:endpoints]\label{def:endpoints}
+\par\smallskip\noindent\emph{Defined object.} \texttt{selector-\allowbreak{}envelope endpoints}
+\par\smallskip\noindent\emph{Construction.} \(L(p,r,\mu)=\min_{\gamma\in\Gamma(p,r)}\sum_{c\in\mathcal C}\sum_{x\in\mathcal X}\gamma_{cx}\mu_{cx}\) and \(U(p,r,\mu)=\max_{\gamma\in\Gamma(p,r)}\sum_{c\in\mathcal C}\sum_{x\in\mathcal X}\gamma_{cx}\mu_{cx}\).
+\end{definition}
+
+\begin{definition}[def:endpoint-certificates]\label{def:endpoint-certificates}
+\par\smallskip\noindent\emph{Defined object.} \texttt{endpoint selector and SCM certificates}
+\par\smallskip\noindent\emph{Construction.} For inputs \(\gamma_L\in\Gamma_L\) and \(\gamma_U\in\Gamma_U\), set \(s_{L,x}(c)=\gamma_{L,cx}/p_c\) and \(s_{U,x}(c)=\gamma_{U,cx}/p_c\), then instantiate \(\sigma_s\), \(Z_s\), and \(\mathcal M_{H,s}\) by \(\mathrm{def:common\text{-}response\text{-}witness}\) and \(\mathrm{def:macro\text{-}scm}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}L}; \texttt{\textbackslash{}\allowbreak{}gamma\_\allowbreak{}U}.
+\end{definition}
+
+\begin{definition}[def:paired-numerical-delta]\label{def:paired-numerical-delta}
+\par\smallskip\noindent\emph{Defined object.} \texttt{paired numerical-\allowbreak{}delta construction}
+\par\smallskip\noindent\emph{Construction.} \(\widehat F'_n(g)=\{F(\Pi_{\mathcal B}(\widehat\beta_n+t_ng))-F(\widehat\beta_n)\}/t_n\), where \(\Pi_{\mathcal B}\) is a locally feasible correction into the product of the two simplices and the response cube, is applied after projection to \(\mathbb T\), and is inactive with probability approaching one at every fixed interior \(\beta\). The same draw \(g=G_n^\star\) is used for both coordinates.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}beta\_\allowbreak{}n}; \texttt{G\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}star}; \texttt{t\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:uniform-experiment]\label{def:uniform-experiment}
+\par\smallskip\noindent\emph{Defined object.} \texttt{rare-\allowbreak{}cell experiment class without tuning restrictions}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak P_{\kappa}^{0}=\{\mathbb P=(P_n^\circ)_{n\ge1}:\beta_n=(p_n,r_n,\mu_n),\ \min_{c\in\mathcal C}p_{n,c}\wedge\min_{x\in\mathcal X}r_{n,x}\ge\kappa_n,\ \min_{(c,x)\in\mathcal C\times\mathcal X}\pi_{n,cx}\ge\kappa_n\ \forall n\ge1\}\). Within each row, observations are independent, \(\mathcal C\) and \(\mathcal X\) are fixed, and \(\widehat\beta_n\) stacks the margin and response estimators. No condition on \(n\kappa_n^3\) or on \(t\) is part of this class.
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}uniform-\allowbreak{}margin-\allowbreak{}floor}; \texttt{ass:\allowbreak{}uniform-\allowbreak{}response-\allowbreak{}cell-\allowbreak{}floor}.
+\end{definition}
+
+\begin{definition}[def:uniform-confidence-envelope]\label{def:uniform-confidence-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{schedule-\allowbreak{}indexed triangular-\allowbreak{}array paired confidence envelope}
+\par\smallskip\noindent\emph{Construction.} For an arbitrary deterministic schedule \(t=(t_n)_{n\ge1}\) with \(t_n>0\) and \(t_n\to0\), define \(\mathrm{CI}_n(t)=[F(\widehat\beta_n)_1-q_{1-\alpha,n}^\star/\sqrt n,\ F(\widehat\beta_n)_2+q_{1-\alpha,n}^\star/\sqrt n]\), where \(\widehat F'_n(g)=\{F(\Pi_{\mathcal B}(\widehat\beta_n+t_ng))-F(\widehat\beta_n)\}/t_n\), both endpoint coordinates use the same multiplier draw, and \(\Pi_{\mathcal B}\) is the row-feasible correction.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}widehat\textbackslash{}\allowbreak{}beta\_\allowbreak{}n}; \texttt{G\_\allowbreak{}n\textasciicircum{}\textbackslash{}\allowbreak{}star}; \texttt{t}.
+\end{definition}
+
+\begin{definition}[def:uniform-handle]\label{def:uniform-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{schedule-\allowbreak{}split rare-\allowbreak{}cell face-\allowbreak{}switching handle}
+\par\smallskip\noindent\emph{Construction.} Embed the endpoint LP in support-stratified feasible charts and localize its active primal and dual faces on the \(2\times2\) array \(p_n=r_n=(\kappa_n,1-\kappa_n)\), taking \(n\kappa_n\to\infty\) and \(\Delta_n\in\{0,\lambda(n\kappa_n)^{-1/2}\}\) for fixed \(\lambda\). For sufficiency, combine row-feasible perturbation bounds with Gaussian anti-concentration under \(n\kappa_n^3\to\infty\), \((n\kappa_n)^{-1/2}=o(t_n)\), and \(t_n=o(\kappa_n)\). For procedural sharpness, fix the schedule first. If \(t_n/\kappa_n\not\to0\), pass to a subsequence and choose a boundary array on which the feasibility correction is active with nonvanishing probability, then calculate its effect on the paired critical value. If \(t_n/\kappa_n\to0\) while \(\limsup_n n\kappa_n^3<\infty\), use the zero or local contrast to test whether rare-cell noise prevents optimal-face localization. In either branch, establish an actual limiting critical-value or coverage distortion rather than only failure of a proof condition.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}beta\_\allowbreak{}n}; \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n}; \texttt{t}.
+\end{definition}
+
+\begin{definition}[def:control-contrast]\label{def:control-contrast}
+\par\smallskip\noindent\emph{Defined object.} \texttt{control-\allowbreak{}relative effect set}
+\par\smallskip\noindent\emph{Construction.} \(\Theta_h-\theta_0=\{v-\theta_0:v\in\Theta_h\}\).
+\end{definition}
+
+\begin{definition}[def:response-boundary-singleton]\label{def:response-boundary-singleton}
+\par\smallskip\noindent\emph{Defined object.} \texttt{zero-\allowbreak{}coverage response-\allowbreak{}boundary singleton experiment class}
+\par\smallskip\noindent\emph{Construction.} Let \(b_n=\min\{1/4,1/\log(n+1)\}\), so this is the requested sequence \(1/\log(n+1)\) after a finite-row adjustment.  Let \(\kappa_n\downarrow0\) satisfy \(\kappa_n\leq1/4\).  On \(\mathcal C=\mathcal X=\{1,2\}\), define \(\mathbb P^0=(P_n^{\circ,0})_{n\geq1}\) as follows.  Row \(n\) contains \(n\) independent response-study observations \((W_i,Y_i)\), where \(W_i\) is uniform on \(\mathcal C\times\mathcal X\) and
+\[
+Y_i\mid W_i=(c,x)\sim\operatorname{Bernoulli}(2b_n/n).
+\]
+The deployment margins are observed without error and satisfy \(p_n=r_n=(1/2,1/2)\), while \(\pi_{n,cx}=1/4\) and \(\mu_{n,cx}=2b_n/n\) for every \((c,x)\).  If \(\overline Y_{n,cx}\) is the within-cell response proportion, set it to zero when the cell is empty and define
+\[
+\widehat\mu_{n,cx}=\left(1-\frac{2b_n}{n}\right)\overline Y_{n,cx}+\frac{b_n}{n}.
+\]
+The multiplier draw is the empirical-influence multiplier for these four response estimators and has zero margin coordinates.  Define \(\mathfrak Q_{\kappa}=\{\mathbb P^0\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}kappa\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:projected-region-confidence-envelope]\label{def:projected-region-confidence-envelope}
+\par\smallskip\noindent\emph{Defined object.} \texttt{projected simultaneous primitive-\allowbreak{}region envelope}
+\par\smallskip\noindent\emph{Construction.} Let \(\mathcal R_n\) be any nonempty compact simultaneous confidence region for \(\beta_n\), intersected with \(\Delta(\mathcal C)\times\Delta(\mathcal X)\times[0,1]^{\mathcal C\times\mathcal X}\).  Define the projected-region confidence envelope by
+\[
+\mathrm{CI}_n^{\mathrm{proj}}
+=\left[
+\inf_{\widetilde\beta\in\mathcal R_n}L(\widetilde\beta),
+\ \sup_{\widetilde\beta\in\mathcal R_n}U(\widetilde\beta)
+\right].
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}mathcal R\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:response-regular-subclass]\label{def:response-regular-subclass}
+\par\smallskip\noindent\emph{Defined object.} \texttt{primitive response-\allowbreak{}interior comparison subclass}
+\par\smallskip\noindent\emph{Construction.} Fix \(\eta\in(0,1/2)\).  Define the primitive response-interior subclass
+\[
+\mathfrak P_{\kappa,\eta}^{\mathrm{int}}
+=\left\{\mathbb P\in\mathfrak P_{\kappa}^{0}:
+\eta\leq\mu_{n,cx}\leq1-\eta
+\ \text{for every }n\geq1\text{ and every }(c,x)\in\mathcal C\times\mathcal X
+\right\}.
+\]
+This condition is stated in the primitive Bernoulli response law, is independently checkable, and excludes the collapsing-response singleton without encoding a critical value or coverage conclusion.
+\par\smallskip\noindent\emph{Inputs.} \texttt{\textbackslash{}\allowbreak{}eta}; \texttt{\textbackslash{}\allowbreak{}mathfrak P\_\allowbreak{}\{\textbackslash{}\allowbreak{}kappa\}\allowbreak{}\textasciicircum{}\{0\}\allowbreak{}}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:structural-equation-consequences]\label{lem:structural-equation-consequences}
+For every selector construction, the equations of \(\mathcal M_R\), \(\sigma_s\), and \(\mathcal M_{H,s}\) imply, without additional assumptions, that \(C_{\sigma_s}=C\), \(X_{\sigma_s}=g_s(C,S)\), and the following surgical response rule holds for every \(J\subseteq\{C,X,Y\}\): if \(Y\in J\), then \(Y_j=j_Y\); if \(Y\notin J\), then \(Y_j=B_{C_j,X_j}\). In particular, response modularity is an immediate consequence of equation replacement on every branch on which the \(Y\)-equation has not itself been replaced.
+\end{lemma}
+\begin{proof}
+By Definition~\texttt{def:common-response-witness}, before selector intervention the recursive equations are
+\[
+C=U_C,\qquad X=f_0(C,U_X),\qquad Y=B_{C,X}.
+\]
+The soft intervention \(\sigma_s\) is, by its declared construction, equation replacement at \(X\) only.  Hence it leaves the equations for \(C\) and \(Y\) unchanged and gives
+\[
+C_{\sigma_s}=U_C=C,\qquad X_{\sigma_s}=g_s(C,S),\qquad
+Y_{\sigma_s}=B_{C,g_s(C,S)}.
+\]
+No probabilistic independence condition is used in these equalities.
+
+Now fix \(J\subseteq\{C,X,Y\}\) and a value assignment \(j\) on \(J\).  Hard-intervention surgery replaces precisely the equations indexed by \(J\).  Recursion in the order \(C,X,Y\) therefore yields
+\[
+C_j=\begin{cases}j_C,&C\in J,\\ U_C,&C\notin J,\end{cases}
+\qquad
+X_j=\begin{cases}j_X,&X\in J,\\ g_s(C_j,S),&X\notin J,\end{cases}
+\]
+and
+\[
+Y_j=\begin{cases}j_Y,&Y\in J,\\ B_{C_j,X_j},&Y\notin J.\end{cases}
+\]
+The last display proves both branches in the claimed surgical response rule.  In particular, on every branch with \(Y\notin J\), the unchanged response equation is evaluated at the surgically determined parents; on every branch with \(Y\in J\), that response equation is absent and cannot be used.  Definition~\texttt{def:macro-scm} has the same response equation after reconstruction, namely \(Y=B_{C,\delta_X(H,Z_s)}\), so the identical conclusion holds in \(\mathcal M_{H,s}\).  Thus the asserted modularity is a consequence of the displayed structural equations and surgery, rather than an additional assumption.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This lemma separates genuine selector restrictions from invariances already forced by the structural equations and intervention surgery. \textit{Gap.} The content is an internal semantic audit of the constructed SCM rather than an additional maintained condition. \textit{Consumer.} The projection theorem can invoke the structural branches without assuming its conclusion.
+
+\begin{lemma}[lem:projected-construction]\label{lem:projected-construction}
+For every feasible selector \(s\), \(\widetilde{\mathcal M}_s\) is the constructive \(\widetilde\tau\)-relabeling of \(\mathcal M_s\), and \(\mathcal M_{H,s}\) is its partial SCM projection in the sense of Xia and Bareinboim, Proposition 1 and Definition 6. Fix any \(u=(u_C,u_X,b,s_0)\), any \(J\in\{\varnothing,\{C\},\{X\},\{Y\},\{C,X\},\{C,Y\},\{X,Y\},\{C,X,Y\}\}\), and any assignment \(j\in\mathcal D_J\). The low-level surgical solution is \(C_j=j_C\) if \(C\in J\) and \(C_j=u_C\) otherwise; \(X_j=j_X\) if \(X\in J\) and \(X_j=g_s(C_j,s_0)\) otherwise; and \(Y_j=j_Y\) if \(Y\in J\), whereas \(Y_j=b_{C_j,X_j}\) if \(Y\notin J\). Under \((j^o,j^u)=\omega(j)\), the augmented high-level solution has \(H_j=h\), \(Z_{s,j}=j_X\) if \(X\in J\) and \(Z_{s,j}=g_s(C_j,s_0)\) otherwise, and the same \(C_j\). Its outcome coordinate obeys the required surgical split: if \(Y\in J\), then \(Y_j=j_Y\), equal to the high-level intervention value; if \(Y\notin J\), then \(Y_j=B_{C_j,X_j}=B_{C_j,\delta_X(H_j,Z_{s,j})}\). Thus simultaneous interventions involving \(Y\) and either or both of \(C\) and \(X\) use the intervention value and never the replaced response equation. For every compatible residual argument, \(\delta(w_j^o,w_j^u)=W_j^{\mathcal M_s}(u)\), \(\delta(j^o,j^u)=j\), and \[w_j^o=\mathcal M_{H,s,[j^o]}(u,j^u,z^u).\] Finally, surgery on \(H\) alone leaves \(Z_s=g_s(C,S)\) and \(Y=B_{C,\delta_X(H,Z_s)}\), so \[E_{\mathcal M_{H,s}}[Y\mid\operatorname{do}(H=h)]=\sum_{c\in\mathcal C}\sum_{x\in\mathcal X}p_cs_x(c)\mu_{cx}.\] Every selector uses the same \(\mathcal M_R\), \(P_R\), response-table law, and response equation; only the selector equation and its induced residual law vary with \(s\).
+\end{lemma}
+\begin{proof}
+Because \(\mathcal C\times\mathcal X\) is finite and \(0<\mu_{cx}<1\), a common finite response-table law exists explicitly: for \(b\in\{0,1\}^{\mathcal C\times\mathcal X}\), set
+\[
+P(B=b)=\prod_{c\in\mathcal C}\prod_{x\in\mathcal X}
+\mu_{cx}^{b_{cx}}(1-\mu_{cx})^{1-b_{cx}}.
+\]
+Take \(U_C\sim p\) and \(S\sim\operatorname{Unif}[0,1]\), give \(U_X\) any fixed law, and take \(U_C,U_X,B,S\) mutually independent.  Then \(E[B_{cx}\mid U_C=c]=\mu_{cx}\), and, since \(C=U_C\), Assumption~\texttt{ass:selector-exogeneity} holds.  This supplies the common law \(P_R\) in Definition~\texttt{def:common-response-witness}; it is chosen once and does not depend on the selector.
+
+Fix a feasible selector kernel \(s\) and an exogenous realization \(u=(u_C,u_X,b,s_0)\).  The map \(\widetilde\tau\) in Definition~\texttt{def:split-projection-maps} is bijective, with inverse
+\[
+(c,(h,z),y)\longmapsto(c,z,y).
+\]
+Relabeling the equations of \(\mathcal M_s\) by this bijection gives
+\[
+C=U_C,\qquad H=h,\qquad Z_s=g_s(C,S),
+\qquad Y=B_{C,Z_s}=B_{C,\delta_X(H,Z_s)},
+\]
+where the last equality uses \(\delta_X(h,z)=z\).  These are exactly the equations of \(\mathcal M_{H,s}\) in Definition~\texttt{def:macro-scm}.  This proves the constructive relabeling assertion.
+
+We next verify the all-intervention condition directly, rather than invoking it as a premise.  Fix \(J\subseteq\{C,X,Y\}\) and an assignment \(j\in\mathcal D_J\).  By Lemma~\texttt{lem:structural-equation-consequences}, the low-level surgical solution is
+\[
+C_j=\begin{cases}j_C,&C\in J,\\u_C,&C\notin J,\end{cases}
+\quad
+X_j=\begin{cases}j_X,&X\in J,\\g_s(C_j,s_0),&X\notin J,\end{cases}
+\quad
+Y_j=\begin{cases}j_Y,&Y\in J,\\b_{C_j,X_j},&Y\notin J.\end{cases}
+\tag{1}
+\]
+Under the intervention split \((j^o,j^u)=\omega(j)\) from Definition~\texttt{def:split-projection-maps}, set
+\[
+H_j=h,qquad
+Z_{s,j}=\begin{cases}j_X,&X\in J,\\g_s(C_j,s_0),&X\notin J.\end{cases}
+\tag{2}
+\]
+Equations (1)--(2) give \(Z_{s,j}=X_j\).  If \(Y\in J\), the high-level surgery sets its outcome to \(j_Y=Y_j\).  If \(Y\notin J\), Definition~\texttt{def:macro-scm} and (2) give
+\[
+B_{C_j,\delta_X(H_j,Z_{s,j})}
+=B_{C_j,Z_{s,j}}
+=B_{C_j,X_j}
+=Y_j.
+\tag{3}
+\]
+This covers all eight possible subsets \(J\), including every simultaneous intervention involving \(Y\): in those cases the first branch of (1), rather than (3), applies.
+
+Let \(w_j^o=(C_j,h,Y_j)\) and \(w_j^u=(\ast,Z_{s,j},\ast)\).  By (1)--(3) and the definition of \(\delta\),
+\[
+\delta(w_j^o,w_j^u)=(C_j,X_j,Y_j)=W_j^{\mathcal M_s}(u).
+\]
+On the intervened coordinates, the definition of \(\omega\) likewise gives \(\delta(j^o,j^u)=j\).  When \(X\in J\), the residual surgery fixes \(Z_s=j_X\); when \(X\notin J\), compatibility of a nonintervened residual argument means that it satisfies its retained structural equation \(Z_s=g_s(C_j,s_0)\).  Consequently (1)--(3) also prove, for every such compatible residual argument,
+\[
+w_j^o=\mathcal M_{H,s,[j^o]}(u,j^u,z^u),
+\]
+which is precisely Definition~\texttt{def:partial-projection-condition}.  Thus \(\mathcal M_{H,s}\) is the claimed partial projection, selector by selector.
+
+It remains to calculate the causal query.  Surgery \(\operatorname{do}(H=h)\) replaces the already constant equation for \(H\) and leaves the equations for \(C,Z_s,Y\) intact.  Therefore
+\[
+Y=B_{C,g_s(C,S)}
+\quad\text{under }\operatorname{do}(H=h).
+\]
+Assumption~\texttt{ass:selector-exogeneity} gives \(S\perp(C,B)\).  The response-table condition gives \(E[B_{cx}\mid C=c]=\mu_{cx}\), and \(P\{g_s(c,S)=x\mid C=c\}=s_x(c)\).  Conditioning first on \(C\) and then on the selector event hence yields
+\[
+\begin{aligned}
+E_{\mathcal M_{H,s}}[Y\mid\operatorname{do}(H=h)]
+&=\sum_{c\in\mathcal C}p_c
+  \sum_{x\in\mathcal X}
+  E\!\left[B_{cx}\mathbf 1\{g_s(c,S)=x\}\mid C=c\right]\\
+&=\sum_{c\in\mathcal C}p_c
+  \sum_{x\in\mathcal X}\mu_{cx}s_x(c).
+\end{aligned}
+\tag{4}
+\]
+The common-response-witness definition fixes \(P_R\), \(\mathcal M_R\), and the response table before \(s\) is supplied.  Equations (1)--(4) show that changing \(s\) changes only the selector equation and the induced law of \(Z_s\), as claimed.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This semantic construction lemma makes the macro intervention and every surgical branch explicit before the transport image is formed. \textit{Gap.} Xia and Bareinboim give the general partial-projection identity; this lemma instantiates it for a calibrated selector family with a common low-level response SCM and selector-specific residual laws. \textit{Consumer.} The image proposition can attach a valid high-level SCM certificate to each feasible selector.
+
+\begin{proposition}[prop:sharp-envelope]\label{prop:sharp-envelope}
+The compatible macro-mean set is exactly \[\Theta_h=\left\{\sum_{c\in\mathcal C}\sum_{x\in\mathcal X}\gamma_{cx}\mu_{cx}:\gamma\in\Gamma(p,r)\right\}=[L(p,r,\mu),U(p,r,\mu)],\] and every point of this interval is attained by a high-level SCM from \(\mathrm{lem:projected\text{-}construction}\).
+\end{proposition}
+\begin{proof}
+First, \(\Gamma(p,r)\) is nonempty: the product array \(\gamma^0_{cx}=p_cr_x\) is nonnegative and has row margins \(p\) and column margins \(r\).  By Definition~\texttt{def:transport-polytope}, \(\Gamma(p,r)\) is an intersection of finitely many closed half-spaces and affine hyperplanes.  Each coordinate satisfies \(0\leq\gamma_{cx}\leq1\), so the set is compact; it is convex because all of its constraints are linear.
+
+Consider any member of \(\mathfrak A_{\mathrm{free}}\).  Put \(\gamma_{cx}=p_cs_x(c)\).  Since \(s(c)\) is a probability vector,
+\[
+\sum_x\gamma_{cx}=p_c\sum_xs_x(c)=p_c.
+\]
+Assumption~\texttt{ass:calibration} gives \(\sum_c\gamma_{cx}=r_x\).  Thus \(\gamma\in\Gamma(p,r)\), and equation (4) of Lemma~\texttt{lem:projected-construction} gives
+\[
+\theta_h=\sum_{c,x}\gamma_{cx}\mu_{cx}.
+\tag{5}
+\]
+This proves one inclusion in the asserted identified set.
+
+Conversely, fix \(\gamma\in\Gamma(p,r)\).  Positivity of every \(p_c\) permits the division
+\[
+s_x(c)=\frac{\gamma_{cx}}{p_c}.
+\tag{6}
+\]
+The row constraints on \(\gamma\) show that \(s(c)\in\Delta(\mathcal X)\), and the column constraints show that (6) satisfies Assumption~\texttt{ass:calibration}.  The selector construction certified by Lemma~\texttt{lem:projected-construction} realizes this kernel while retaining its common law, response table, and low-level response SCM.  Definition~\texttt{def:free-class} therefore places the resulting tuple in \(\mathfrak A_{\mathrm{free}}\), and the lemma supplies its all-intervention projection certificate and, by (5), realizes the value \(\langle\gamma,\mu\rangle\).  This proves the reverse inclusion.
+
+The linear map \(T(\gamma)=\langle\gamma,\mu\rangle\) sends the compact set \(\Gamma(p,r)\) to a compact set and the convex set \(\Gamma(p,r)\) to a convex subset of \(\mathbb R\).  Hence its image is a closed interval.  Its endpoints are exactly the minimum and maximum in Definition~\texttt{def:endpoints}.  More explicitly, if \(\gamma_L\) and \(\gamma_U\) attain those extrema and \(L<U\), then for any \(v\in[L,U]\),
+\[
+\lambda=\frac{v-L}{U-L},\qquad
+\gamma_v=(1-\lambda)\gamma_L+\lambda\gamma_U
+\]
+satisfy \(\gamma_v\in\Gamma(p,r)\) and \(T(\gamma_v)=v\).  If \(L=U\), any feasible coupling realizes the sole value.  Thus every point is attained by the certified SCM construction and
+\[
+\Theta_h=\{\langle\gamma,\mu\rangle:\gamma\in\Gamma(p,r)\}=[L,U].
+\]
+Moreover, \(\sum_{c,x}\gamma_{cx}=1\).  Since the finite array \(\mu\) has every entry strictly between zero and one,
+\[
+0<\min_{c,x}\mu_{cx}\leq L\leq U\leq\max_{c,x}\mu_{cx}<1,
+\]
+so the envelope is strictly inside the logical Bernoulli bounds.
+
+As an exact smallest transport stress check, take two contexts and two actions, \(p=r=(1/2,1/2)\), and
+\[
+\mu=\begin{pmatrix}1/4&3/4\\3/4&1/4\end{pmatrix}.
+\]
+Every feasible coupling is
+\[
+\gamma(t)=\begin{pmatrix}t&1/2-t\\1/2-t&t\end{pmatrix},
+\qquad 0\leq t\leq1/2,
+\]
+and direct substitution gives \(T(\gamma(t))=3/4-t\), hence the attained nontrivial interval \([1/4,3/4]\).  The endpoint kernels obtained from (6), together with the common Bernoulli response table and independent seed, satisfy the structural identities already verified above.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting image-and-attainment proposition converts separate margins into the exact causal value set for the displayed selector-specific SCM family. \textit{Gap.} The finite transport image and interval equality are standard coupling geometry, comparable to other sharp sets built from unlinked margins such as D'Haultfoeuille--Gaillac--Maurel in a different partially linear model. The only paper-specific theorem-level content is that every coupling value is attained by the selector-specific SCM construction satisfying the Xia--Bareinboim Definition-6 condition; this is an instantiation of that abstraction framework, not a general extension of it. \textit{Consumer.} A PDX analyst can compute all responder means compatible with released tumor-profile frequencies and drug shares.
+
+\begin{proposition}[prop:fixed-map-obstruction]\label{prop:fixed-map-obstruction}
+Fix a canonical residual kernel \(q_{\mathrm{can}}(x\mid c,h)\). It generates the unique coupling \(\gamma_{\mathrm{can},cx}=p_cq_{\mathrm{can}}(x\mid c,h)\), and therefore spans \(\Gamma(p,r)\) if and only if \(\Gamma(p,r)=\{\gamma_{\mathrm{can}}\}\). With positive margins and \(|\mathcal C|\ge2\) and \(|\mathcal X|\ge2\), \(\operatorname{dim}\Gamma(p,r)=(|\mathcal C|-1)(|\mathcal X|-1)>0\), so no single fixed canonical residual law realizes the free-selector envelope. The family in \(\mathrm{lem:projected\text{-}construction}\) satisfies Definition 6 selector by selector and makes no common Equation-11 Layer-3-map claim.
+\end{proposition}
+\begin{proof}
+Fix \(q_{\mathrm{can}}\).  Under context law \(p\), its joint context--residual law is necessarily
+\[
+P(C=c,Z_s=x\mid\operatorname{do}(H=h))
+=p_cq_{\mathrm{can}}(x\mid c,h)
+=\gamma_{\mathrm{can},cx}.
+\tag{11}
+\]
+Thus a fixed canonical residual kernel realizes the singleton set \(\{\gamma_{\mathrm{can}}\}\).  It spans the feasible coupling set precisely when
+\[
+\Gamma(p,r)=\{\gamma_{\mathrm{can}}\};
+\]
+in particular, this equality itself entails that (11) has column margins \(r\).
+
+Let \(m=|\mathcal C|\) and \(k=|\mathcal X|\).  The affine equations defining \(\Gamma(p,r)\) have one redundancy because both the row totals and the column totals sum to one.  More explicitly, in their real affine solution set, the \((m-1)(k-1)\) entries \(\gamma_{cx}\) with \(c<m\) and \(x<k\) may be chosen freely; the remaining entries are then uniquely recovered from
+\[
+\gamma_{c k}=p_c-\sum_{x<k}\gamma_{cx},
+\qquad
+\gamma_{m x}=r_x-\sum_{c<m}\gamma_{cx},
+\]
+with \(\gamma_{mk}\) fixed consistently by either final margin equation.  Hence that affine solution set has dimension \((m-1)(k-1)\).  The product coupling \(\gamma^0_{cx}=p_cr_x\) is strictly positive because all margins are positive.  A sufficiently small relative neighborhood of \(\gamma^0\) in the affine solution set remains nonnegative, so the transportation polytope has the same dimension.  If \(m,k\geq2\), this dimension is positive; therefore \(\Gamma(p,r)\) is not a singleton and cannot be spanned by (11).
+
+For a direct two-context, three-action check, take
+\[
+p=(1/2,1/2),\qquad r=(1/3,1/3,1/3),\qquad
+\mu=\begin{pmatrix}1/10&1/2&9/10\\9/10&1/2&1/10\end{pmatrix}.
+\]
+The two feasible endpoint couplings are
+\[
+\gamma_L=\begin{pmatrix}1/3&1/6&0\\0&1/6&1/3\end{pmatrix},
+\qquad
+\gamma_U=\begin{pmatrix}0&1/6&1/3\\1/3&1/6&0\end{pmatrix}.
+\]
+Indeed, writing the first-row flows as \(a_x\) reduces the objective, up to a constant, to \(-\frac45a_1+\frac45a_3\) subject to \(0\leq a_x\leq1/3\) and \(\sum_xa_x=1/2\), which proves the displayed minimizer and maximizer.  Their causal means are \(7/30\) and \(23/30\).  Normalization by \(p_c\) gives two distinct selector kernels, and Lemma~\texttt{lem:projected-construction} verifies every partial-projection surgery for both while retaining the common response SCM.  By contrast, the fixed independent canonical kernel \(q_{\mathrm{can}}(x\mid c,h)=r_x\) gives the single product coupling with every entry \(1/6\) and causal mean \(1/2\).  It cannot equal both endpoint couplings.  This finite check confirms the quantifier boundary: Definition~\texttt{def:free-class} permits a selector-specific residual law, and the construction proves Definition~6 compatibility separately for each selector; it does not preserve one fixed canonical Equation-11 Layer-3 map across the family.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting proposition records the exact quantifier boundary between a fixed canonical residual law and a free selector family. \textit{Gap.} The canonical Equation-11 construction determines one residual conditional law, not an entire positive-dimensional transportation polytope. \textit{Consumer.} An abstraction user can verify whether selector-specific residual distributions are admissible for the intended analysis.
+
+\begin{proposition}[prop:joint-derivative]\label{prop:joint-derivative}
+For every \(d=(d_p,d_r,d_\mu)\in\mathbb T\), \(F\) is Hadamard directionally differentiable at the fixed interior parameter \(\beta\), tangentially to \(\mathbb T\), with \[L'_\beta(d)=\min_{\gamma\in\Gamma_L}\langle\gamma,d_\mu\rangle+\max_{(a,b)\in\mathcal D_L}\{\langle a,d_p\rangle+\langle b,d_r\rangle\},\] and \[U'_\beta(d)=\max_{\gamma\in\Gamma_U}\langle\gamma,d_\mu\rangle+\min_{(a,b)\in\mathcal D_U}\{\langle a,d_p\rangle+\langle b,d_r\rangle\}.\] The formulas permit non-singleton primal and dual optimal faces.
+\end{proposition}
+\begin{proof}
+Put \(E=\mathcal C\times\mathcal X\), let \(A\gamma\) collect the row and column sums of \(\gamma\), and write \(b=(p,r)\).  Delete one redundant coordinate of \(A\gamma=b\).  For the lower endpoint define
+\[
+v(b,\mu)=\min\{\langle\gamma,\mu\rangle:A\gamma=b,\ \gamma\geq0\}=L(p,r,\mu).
+\tag{1}
+\]
+The product coupling \(\gamma_{cx}=p_cr_x\) proves feasibility, and the feasible set is compact.
+
+We first derive the exact dual fact used below.  Weak duality follows from
+\[
+p^\top a+r^\top b
+=\sum_{c,x}\gamma_{cx}(a_c+b_x)
+\leq\sum_{c,x}\gamma_{cx}\mu_{cx}.
+\tag{2}
+\]
+For the converse, consider the finitely generated closed polyhedral cone
+\[
+K=\{(Az,\langle z,\mu\rangle+u):z\geq0,\ u\geq0\}.
+\]
+For every \(\varepsilon>0\), the point \((b,v(b,\mu)-\varepsilon)\) is outside \(K\).  A separating hyperplane has a strictly positive last coefficient: if that coefficient were zero, its inequality would contradict \(b=A\gamma\) for a feasible \(\gamma\).  Scaling it to one produces potentials satisfying \(a_c+b_x\leq\mu_{cx}\) and having value greater than \(v(b,\mu)-\varepsilon\).  The attainable values of a linear functional on a finite polyhedron form a closed interval at every finite endpoint.  Letting \(\varepsilon\downarrow0\) proves
+\[
+v(b,\mu)=
+\max_{a,b}\{p^\top a+r^\top b:a_c+b_x\leq\mu_{cx}\}.
+\tag{3}
+\]
+Thus (3) is proved here by finite-dimensional separation, rather than assumed.
+
+The gauge change \((a,b)\mapsto(a+q\mathbf 1,b-q\mathbf 1)\) leaves (3) unchanged.  Because \(\sum_cp_c=1\), every dual optimum has one representative with \(p^\top a=0\); these representatives form \(\mathcal D_L\).  This set is compact.  Indeed, \(0\leq L\leq1\), \(p^\top a=0\), and \(r^\top b=L\).  Some \(a_c\geq0\), so the dual inequalities imply \(b_x\leq1\).  Positivity of \(r_x\) then implies
+\[
+b_x\geq\frac{L-\sum_{y\neq x}r_y}{r_x}\geq-\frac{1-r_x}{r_x}.
+\tag{4}
+\]
+The inequalities \(a_c\leq\mu_{cx}-b_x\), (4), and \(p^\top a=0\) bound every \(a_c\) above and below.  Hence the closed set \(\mathcal D_L\) is bounded.
+
+We also need local stability of feasible couplings.  Given \(\gamma\in\Gamma(p,r)\), move surplus row mass to deficit rows without changing column labels, and then move surplus column mass to deficit columns without changing row labels.  This constructs \(\widetilde\gamma\in\Gamma(\widetilde p,\widetilde r)\) satisfying
+\[
+\|\widetilde\gamma-\gamma\|_1
+\leq\|\widetilde p-p\|_1+\|\widetilde r-r\|_1.
+\tag{5}
+\]
+Applying the same construction in reverse proves the corresponding Hausdorff bound.  Since \(\|\mu\|_\infty\leq1\) and every coupling has mass one, (5) proves that \(v\) is locally Lipschitz jointly in \(b\) and \(\mu\).
+
+Fix \(d=(d_p,d_r,d_\mu)\in\mathbb T\), and put \(h=(d_p,d_r)\) and \(k=d_\mu\).  For \(\gamma\in\Gamma_L\), define the tangent program
+\[
+\rho_\gamma(h)=
+\min_z\{\langle z,\mu\rangle:Az=h,\ 
+z_{cx}\geq0\text{ whenever }\gamma_{cx}=0\}.
+\tag{6}
+\]
+Coordinates with \(\gamma_{cx}>0\) are unrestricted.  Feasibility follows by applying the two mass transfers behind (5) to \((p+td_p,r+td_r)\), dividing the coupling difference by \(t\), and taking a limit.  A negative limiting coordinate can occur only where \(\gamma_{cx}>0\).
+
+The dual of (6) maximizes \(\langle a,d_p\rangle+\langle b,d_r\rangle\) subject to
+\[
+a_c+b_x\leq\mu_{cx}\quad\forall(c,x),
+\qquad
+a_c+b_x=\mu_{cx}\quad\text{if }\gamma_{cx}>0.
+\tag{7}
+\]
+Its feasible set is exactly the dual optimal set in (3).  In one direction, (7) and primal feasibility give equality in (2).  In the other direction, any primal and dual optima satisfy
+\[
+0=\langle\gamma,\mu\rangle-(p^\top a+r^\top b)
+=\sum_{c,x}\gamma_{cx}(\mu_{cx}-a_c-b_x),
+\tag{8}
+\]
+and each summand is nonnegative, so equality holds wherever \(\gamma_{cx}>0\).  Applying the separation proof of (3) to the finite tangent program gives
+\[
+\rho_\gamma(h)=
+\max_{(a,b)\in\mathcal D_L}
+\{\langle a,d_p\rangle+\langle b,d_r\rangle\}.
+\tag{9}
+\]
+Gauge normalization does not affect (9), because both components of \(h\) sum to zero.  Crucially, its right side is independent of \(\gamma\).
+
+It remains to expand the jointly perturbed value.  There are finitely many bases for the rank-reduced matrix \(A\).  Along any sequence \(t\downarrow0\), select an optimal basic coupling for margins \(b+th\) and pass to a subsequence using one fixed basis.  That coupling is affine in \(t\); its limit lies in \(\Gamma_L\), and its first-order coefficient is feasible in (6).  Conversely, if \((\gamma,z)\) is feasible in (6), then \(\gamma+tz\) is feasible for \(b+th\) for all sufficiently small \(t>0\).  Expanding \(\langle\gamma+tz,\mu+tk\rangle\), and using these matching lower and upper bounds, yields
+\[
+\begin{aligned}
+v(b+th,\mu+tk)
+&=v(b,\mu)
++t\min_{\gamma\in\Gamma_L}
+\{\langle\gamma,k\rangle+\rho_\gamma(h)\}+o(t)\\
+&=v(b,\mu)+t\left[
+\min_{\gamma\in\Gamma_L}\langle\gamma,d_\mu\rangle
++\max_{(a,b)\in\mathcal D_L}
+\{\langle a,d_p\rangle+\langle b,d_r\rangle\}\right]+o(t).
+\end{aligned}
+\tag{10}
+\]
+This proves the asserted formula for \(L'_\beta(d)\).
+
+Equation (10) is a Hadamard directional expansion.  If \(d_n\to d\), local Lipschitz continuity from (5) makes the difference between the quotients in directions \(d_n\) and \(d\) tend to zero.  The derivative is continuous in \(d\), since it is a minimum plus a maximum of linear forms over the compact sets \(\Gamma_L\) and \(\mathcal D_L\).
+
+Finally,
+\[
+U(p,r,\mu)=-L(p,r,-\mu).
+\tag{11}
+\]
+The lower optimal plans for cost \(-\mu\) are \(\Gamma_U\).  Negating lower dual potentials produces \(\mathcal D_U\).  Applying (10) to (11) gives
+\[
+U'_\beta(d)=
+\max_{\gamma\in\Gamma_U}\langle\gamma,d_\mu\rangle
++\min_{(a,b)\in\mathcal D_U}
+\{\langle a,d_p\rangle+\langle b,d_r\rangle\}.
+\]
+No step selected a unique optimizer, so both formulas hold for non-singleton primal and dual faces.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This supporting sensitivity proposition supplies the fixed-interior limit object when margins and response means move together. \textit{Gap.} This finite-dimensional formula is a direct specialization of Danskin and parametric linear-program sensitivity results, including Bonnans and Shapiro; it is supporting machinery rather than a standalone novelty claim. \textit{Consumer.} It diagnoses failure of optimizer-specific Wald calculations and supplies the endpoint limit law.
+
+\begin{proposition}[prop:pointwise-numerical-delta]\label{prop:pointwise-numerical-delta}
+Under \(\mathrm{ass:joint\text{-}clt}\), \(\mathrm{ass:multiplier\text{-}law}\), \(\mathrm{ass:step\text{-}vanishes}\), and \(\mathrm{ass:step\text{-}dominates}\), the conditional law of \(\widehat F'_n(G_n^\star)\) converges weakly in probability to the law of \((L'_\beta(G),U'_\beta(G))\) at every fixed interior \(\beta\). Under \(\mathrm{ass:quantile\text{-}continuity}\) and \(\mathrm{ass:quantile\text{-}identification}\), \(q_{1-\alpha,n}^\star\) yields the pointwise simultaneous confidence envelope \([F(\widehat\beta_n)_1-q_{1-\alpha,n}^\star/\sqrt n,F(\widehat\beta_n)_2+q_{1-\alpha,n}^\star/\sqrt n]\), which contains \([L,U]\) with asymptotic probability at least \(1-\alpha\), including nonunique primal and dual faces.
+\end{proposition}
+\begin{proof}
+Let \(D=F'_\beta\), with coordinates supplied by \(\mathrm{prop:joint\text{-}derivative}\).  Those coordinates are extrema of linear forms over fixed compact faces; hence \(D:\mathbb T\to\mathbb R^2\) is continuous and positively homogeneous.
+
+The joint central limit theorem gives
+\[
+\|\widehat\beta_n-\beta\|=O_P(n^{-1/2}),
+\qquad
+\frac{\|\widehat\beta_n-\beta\|}{t_n}=o_P(1),
+\tag{12}
+\]
+where the second conclusion uses \(\sqrt n t_n\to\infty\).  Hadamard directional differentiability implies the following centered finite-difference identity: if \(x_n\to0\), \(s_n\downarrow0\), and \(g_n\to g\), then
+\[
+\frac{F(\beta+s_n(x_n+g_n))-F(\beta+s_nx_n)}{s_n}
+\longrightarrow D(g).
+\tag{13}
+\]
+Indeed, apply the defining sequential limit to \(x_n+g_n\to g\) and to \(x_n\to0\), and subtract, using \(D(0)=0\).  A contradiction and subsequence argument makes (13) uniform for \(g\) in a fixed compact set and \(x_n\) in a set whose radius tends to zero.
+
+The fixed \(\beta\) has positive distance from the boundary of both simplices and the response cube.  Conditional convergence \(G_n^\star\rightsquigarrow_PG\) implies conditional tightness in probability.  Consequently, on every fixed compact set of directions and with probability tending to one, (12), \(t_n\to0\), and interiority make \(\widehat\beta_n+t_ng\) feasible and interior.  The map \(\Pi_{\mathcal B}\) is then the identity.  Taking \(x_n=(\widehat\beta_n-\beta)/t_n\) in (13) proves
+\[
+\sup_{\|g\|\leq M}
+\|\widehat F'_n(g)-D(g)\|=o_P(1)
+\quad\text{for each fixed }M<\infty.
+\tag{14}
+\]
+
+For any bounded Lipschitz \(f\), restrict the conditional multiplier law to a ball of radius \(M\), apply (14) there, and use conditional weak convergence with the continuous map \(D\).  Conditional tightness lets \(M\to\infty\).  Thus
+\[
+E^\star f(\widehat F'_n(G_n^\star))
+\longrightarrow_P E f(D(G)),
+\tag{15}
+\]
+which is the claimed conditional weak convergence of the paired derivative.
+
+The same sequential definition, now at scale \(n^{-1/2}\), gives the directional delta limit
+\[
+\sqrt n\{F(\widehat\beta_n)-F(\beta)\}\rightsquigarrow D(G).
+\tag{16}
+\]
+To justify (16) directly, the sequential Hadamard definition and a contradiction argument imply
+\[
+\sup_{\|g\|\leq M}
+\left\|\sqrt n\{F(\beta+n^{-1/2}g)-F(\beta)\}-D(g)\right\|\to0
+\]
+for each fixed \(M\).  Tightness of \(\sqrt n(\widehat\beta_n-\beta)\), followed by \(M\to\infty\), proves (16).
+
+Set
+\[
+T=\max\{|D(G)_1|,|D(G)_2|\},
+\qquad
+T_n^\star=\max_j|\widehat F'_n(G_n^\star)_j|.
+\]
+By (15), \(T_n^\star\) converges conditionally to \(T\).  Let \(q\) be the \((1-\alpha)\)-quantile of \(T\).  Cdf continuity and strict increase at \(q\) imply
+\[
+q_{1-\alpha,n}^\star\longrightarrow_Pq,
+\qquad
+\Pr(T\leq q)=1-\alpha.
+\tag{17}
+\]
+Indeed, the limiting cdf is below \(1-\alpha\) at \(q-\varepsilon\) and above it at \(q+\varepsilon\) for every sufficiently small \(\varepsilon>0\), so conditional weak convergence brackets the conditional quantile.
+
+Equations (16)--(17) and cdf continuity give
+\[
+\Pr\!\left\{
+\max_j\left|\sqrt n\{F(\widehat\beta_n)_j-F(\beta)_j\}\right|
+\leq q_{1-\alpha,n}^\star\right\}\longrightarrow1-\alpha.
+\tag{18}
+\]
+On this event,
+\[
+F(\widehat\beta_n)_1-\frac{q_{1-\alpha,n}^\star}{\sqrt n}\leq L,
+\qquad
+U\leq F(\widehat\beta_n)_2+\frac{q_{1-\alpha,n}^\star}{\sqrt n}.
+\]
+Therefore the reported interval contains \([L,U]\).  Taking a lower limit proves coverage at least \(1-\alpha\).  The argument uses whole optimal faces through \(D\), so nonuniqueness causes no additional condition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This corollary makes the fixed-support envelope operational with one joint critical value. \textit{Gap.} The claim is a direct Hong--Li numerical-delta corollary after the endpoint derivative is established and is not presented as an independent inference theorem. \textit{Consumer.} A PDX analysis can report a simultaneous uncertainty envelope for the sharp lower and upper responder means.
+
+\begin{openendedquestion}[oeq:uniform-sufficient-regime]\label{oeq:uniform-sufficient-regime}
+Fix \(\eta\in(0,1/2)\) and restrict attention to \(\mathfrak P_{\kappa,\eta}^{\mathrm{int}}\).  Under \(\mathrm{ass:uniform\text{-}primitive\text{-}clt}\) and \(\mathrm{ass:uniform\text{-}multiplier\text{-}law}\), determine whether
+\[
+n\kappa_n^3\to\infty,
+\qquad
+(n\kappa_n)^{-1/2}=o(t_n),
+\qquad
+t_n=o(\kappa_n)
+\]
+imply uniform simultaneous coverage of \([L(\beta_n),U(\beta_n)]\) by \(\mathrm{CI}_n(t)\).  On a subclass where that implication and the hypotheses of each transferred benchmark are all valid, compare the excess width and the required margin and response-study rates of \(\mathrm{CI}_n(t)\) with (i) \(\mathrm{CI}_n^{\mathrm{proj}}\) built from an explicit simultaneous primitive region, (ii) the fixed positive random-perturbation method of Cho--Russell, and (iii) the regularized affine-projection method of Gafarov.  Determine whether the paired numerical-delta envelope has a strict width or rate advantage.  Separately, within the same response-interior subclass, fix \(\kappa_n\downarrow0\), \(n\kappa_n\to\infty\), and \(\limsup_n n\kappa_n^3<\infty\), and ask whether for every deterministic schedule \(t=(t_n)\) with \(t_n>0\) and \(t_n\to0\), there exists \(\mathbb P^{(t)}\in\mathfrak P_{\kappa,\eta}^{\mathrm{int}}\) such that \(\liminf_n\Pr_{\mathbb P^{(t)}}\{[L(\beta_n),U(\beta_n)]\subseteq\mathrm{CI}_n(t)\}<1-\alpha\). Require any such distortion to arise from rare-margin optimal-face switching rather than response collapse.  This is a comparison of specified procedures on their common admissible subclasses, not a minimax impossibility question.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining question is restricted to a concrete primitive response-interior subclass and compares specified procedures only where their assumptions overlap. \textit{Gap.} Uniform face localization, critical-value validity, rare-margin sharpness, and relative width have not been derived on that repaired class. \textit{Consumer.} A resolution would determine whether row-feasible numerical delta offers a genuine practical advantage over the honest fallback and transferred LP benchmarks.
+
+\begin{proposition}[prop:uniform-superiority]\label{prop:uniform-superiority}
+Every compatible selector is superior to the reference intervention if and only if \(L>\theta_0\), and every compatible selector is weakly noninferior if and only if \(L\ge\theta_0\).
+\end{proposition}
+\begin{proof}
+By Definition~\texttt{def:control-contrast} and Proposition~\texttt{prop:sharp-envelope}, the set of effects relative to the reference mean is
+\[
+\Theta_h-\theta_0=[L-\theta_0,U-\theta_0].
+\]
+The lower endpoint is attained by a compatible selector SCM.  Therefore every compatible selector is strictly superior precisely when every element of this interval is positive, which holds if and only if its attained minimum satisfies
+\[
+L-\theta_0>0,
+\]
+or equivalently \(L>\theta_0\).  Likewise, every compatible selector is weakly noninferior precisely when every element is nonnegative, which is equivalent to \(L-\theta_0\geq0\), or \(L\geq\theta_0\).  Endpoint attainment rules out replacing either strict or weak inequality by a weaker condition.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lower endpoint translates the interval into a decision-relevant control comparison. \textit{Gap.} Béal and Latouche compare a known assignment algorithm with controls, not a deployment known only through separate margins. \textit{Consumer.} The PDX analysis can report whether responder-rate superiority survives every calibrated allocation.
+
+\begin{theorem}[thm:response-boundary-zero-coverage]\label{thm:response-boundary-zero-coverage}
+Response-boundary zero coverage under bounded-Lipschitz approximation.  For the singleton class \(\mathfrak Q_{\kappa}\) in \(\mathrm{def:response\text{-}boundary\text{-}singleton}\), one has \(\mathbb P^0\in\mathfrak Q_{\kappa}\subseteq\mathfrak P_{\kappa}^{0}\), and the primitive and conditional multiplier bounded-Lipschitz discrepancies both vanish when their suprema are restricted to \(\mathfrak Q_{\kappa}\):
+\[
+\sup_{\mathbb P\in\mathfrak Q_{\kappa}}
+\sup_{\lVert f\rVert_{\mathrm{BL}}\leq1}
+\left|
+E_{\mathbb P}f\!\left(\sqrt n(\widehat\beta_n-\beta_n)\right)
+-E f(G_{\mathbb P,n})
+\right|\longrightarrow0,
+\]
+and, for every \(\epsilon>0\),
+\[
+\sup_{\mathbb P\in\mathfrak Q_{\kappa}}
+\Pr_{\mathbb P}\!\left\{
+\sup_{\lVert f\rVert_{\mathrm{BL}}\leq1}
+\left|E_{\mathbb P}^{\star}f(G_n^\star)-E f(G_{\mathbb P,n})\right|>\epsilon
+\right\}\longrightarrow0.
+\]
+Nevertheless, the same fixed experiment \(\mathbb P^0\), selected independently of the numerical schedule, satisfies
+\[
+\forall t=(t_n)_{n\geq1}\ \text{with }t_n>0\text{ and }t_n\to0,
+\qquad
+\Pr_{\mathbb P^0}\!\left\{
+[L(\beta_n),U(\beta_n)]\subseteq\mathrm{CI}_n(t)
+\right\}\longrightarrow0.
+\]
+This is a response-boundary failure of the named paired multiplier numerical-delta procedure.  It is neither a rare-margin threshold theorem nor a minimax impossibility theorem for other confidence procedures.
+\end{theorem}
+\begin{proof}
+Put \(q_n=2b_n/n\).  By \(\mathrm{def:response\text{-}boundary\text{-}singleton}\), \(0<b_n\leq1/4\), \(b_n\to0\), and hence
+\[
+0<q_n\leq\frac{1}{2n}\leq\frac12.
+\tag{1}
+\]
+Thus every Bernoulli law in the construction is well defined.  The same definition gives
+\[
+\min_c p_{n,c}\wedge\min_x r_{n,x}=\frac12\geq\kappa_n,
+\qquad
+\min_{c,x}\pi_{n,cx}=\frac14\geq\kappa_n.
+\tag{2}
+\]
+The supports \(\mathcal C=\mathcal X=\{1,2\}\) are fixed and finite, and the observations are independent within every row.  Equations (1)--(2) verify every membership requirement in \(\mathrm{def:uniform\text{-}experiment}\), so
+\[
+\mathbb P^0\in\mathfrak Q_{\kappa}\subseteq\mathfrak P_{\kappa}^{0}.
+\tag{3}
+\]
+
+Let
+\[
+A_n=\{Y_1=\cdots=Y_n=0\}.
+\]
+Independence and the common Bernoulli mean \(q_n\), both from \(\mathrm{def:response\text{-}boundary\text{-}singleton}\), imply
+\[
+\Pr_{\mathbb P^0}(A_n)=(1-q_n)^n.
+\tag{4}
+\]
+For \(0\leq z\leq1/2\), direct integration of \((1-u)^{-1}-1=u/(1-u)\) gives
+\[
+0\leq-\log(1-z)-z
+=\int_0^z\frac{u}{1-u}\,du
+\leq z^2.
+\tag{5}
+\]
+Applying (5) with \(z=q_n\), and using \(nq_n=2b_n\) and \(nq_n^2=4b_n^2/n\), yields
+\[
+\left|n\log(1-q_n)+2b_n\right|
+\leq\frac{4b_n^2}{n}\longrightarrow0.
+\tag{6}
+\]
+Since \(b_n\to0\), equations (4) and (6) show
+\[
+\Pr_{\mathbb P^0}(A_n)\longrightarrow1.
+\tag{7}
+\]
+
+We next verify the two bounded-Lipschitz approximations rather than assuming them.  On \(A_n\), every within-cell proportion is zero, including the stipulated value for an empty cell.  Therefore the estimator in \(\mathrm{def:response\text{-}boundary\text{-}singleton}\) satisfies
+\[
+\widehat\mu_{n,cx}=\frac{b_n}{n},
+\qquad
+\widehat\mu_{n,cx}-\mu_{n,cx}=-\frac{b_n}{n}
+\quad\text{for all }(c,x).
+\tag{8}
+\]
+The margin coordinates have no estimation error.  Since there are four response coordinates,
+\[
+\left\lVert\sqrt n(\widehat\beta_n-\beta_n)\right\rVert_2
+=\frac{2b_n}{\sqrt n}\longrightarrow0
+\quad\text{on }A_n.
+\tag{9}
+\]
+For each \(\epsilon>0\), (7)--(9) give
+\[
+\Pr_{\mathbb P^0}\!\left\{
+\left\lVert\sqrt n(\widehat\beta_n-\beta_n)\right\rVert_2>\epsilon
+\right\}
+\leq \Pr_{\mathbb P^0}(A_n^c)+o(1)
+\longrightarrow0.
+\tag{10}
+\]
+
+For a response cell \(j=(c,x)\), the centered primitive influence coordinate of the ridged cell estimator is
+\[
+\psi_{n,j}(W,Y)
+=(1-q_n)\pi_{n,j}^{-1}\mathbf 1\{W=j\}(Y-q_n).
+\tag{11}
+\]
+Here \(\pi_{n,j}=1/4\).  Conditional Bernoulli variance and (1) imply
+\[
+E_{\mathbb P^0}\psi_{n,j}^2
+=\frac{(1-q_n)^2}{\pi_{n,j}}q_n(1-q_n)
+\leq4q_n.
+\tag{12}
+\]
+The four margin influence coordinates vanish because the margins are observed without error.  By the definition of \(G_{\mathbb P,n}\) as the Gaussian vector with the primitive influence covariance, (12) gives
+\[
+\operatorname{tr}\operatorname{Var}(G_{\mathbb P^0,n})
+\leq16q_n=\frac{32b_n}{n}\longrightarrow0,
+\qquad
+E\lVert G_{\mathbb P^0,n}\rVert_2
+\leq\left\{\operatorname{tr}\operatorname{Var}(G_{\mathbb P^0,n})\right\}^{1/2}
+\longrightarrow0.
+\tag{13}
+\]
+If \(\lVert f\rVert_{\mathrm{BL}}\leq1\), then \(|f(z)-f(0)|\leq\min\{\lVert z\rVert_2,2\}\).  Hence (10), boundedness by \(2\), and (13) imply
+\[
+\begin{split}
+&\sup_{\lVert f\rVert_{\mathrm{BL}}\leq1}
+\left|
+E_{\mathbb P^0}f\!\left(\sqrt n(\widehat\beta_n-\beta_n)\right)
+-Ef(G_{\mathbb P^0,n})
+\right|\\
+&\quad\leq
+E_{\mathbb P^0}\min\!\left\{
+\left\lVert\sqrt n(\widehat\beta_n-\beta_n)\right\rVert_2,2
+\right\}
++E\min\{\lVert G_{\mathbb P^0,n}\rVert_2,2\}
+\longrightarrow0.
+\end{split}
+\tag{14}
+\]
+
+On \(A_n\), every empirical response residual is zero.  The empirical-influence multiplier specified in \(\mathrm{def:response\text{-}boundary\text{-}singleton}\) therefore has conditional law concentrated at zero, and its margin coordinates are zero by construction.  If \(d_{\mathrm{BL}}\) denotes the displayed bounded-Lipschitz distance and \(\delta_0\) point mass at zero, then
+\[
+d_{\mathrm{BL}}\!\left(\mathcal L^\star(G_n^\star),\delta_0\right)=0
+\quad\text{on }A_n,
+\tag{15}
+\]
+while this distance is at most \(2\) off \(A_n\).  Equation (7) thus gives
+\[
+d_{\mathrm{BL}}\!\left(\mathcal L^\star(G_n^\star),\delta_0\right)
+=o_{\mathbb P^0}(1).
+\tag{16}
+\]
+Equation (13) gives \(d_{\mathrm{BL}}(\mathcal L(G_{\mathbb P^0,n}),\delta_0)\to0\).  The triangle inequality and (16) therefore prove
+\[
+\sup_{\lVert f\rVert_{\mathrm{BL}}\leq1}
+\left|E_{\mathbb P^0}^{\star}f(G_n^\star)-Ef(G_{\mathbb P^0,n})\right|
+=o_{\mathbb P^0}(1).
+\tag{17}
+\]
+Because \(\mathfrak Q_{\kappa}=\{\mathbb P^0\}\), each supremum over \(\mathfrak Q_{\kappa}\) equals its single-law counterpart.  Thus (14) and (17) prove the two stated singleton-uniform approximation assertions.
+
+It remains to calculate coverage.  For every \(\gamma\in\Gamma(p_n,r_n)\), \(\sum_{c,x}\gamma_{cx}=1\).  Since all true costs equal \(2b_n/n\), \(\mathrm{def:endpoints}\) gives
+\[
+L(\beta_n)=U(\beta_n)=\frac{2b_n}{n}.
+\tag{18}
+\]
+On \(A_n\), all estimated costs equal \(b_n/n\) by (8), and the same calculation gives
+\[
+F(\widehat\beta_n)=\left(\frac{b_n}{n},\frac{b_n}{n}\right).
+\tag{19}
+\]
+Moreover, (15) says that every conditional multiplier draw is zero.  The parameter \(\widehat\beta_n\) in (19) is feasible and interior because its margins equal \(1/2\) and \(0<b_n/n<1\).  Therefore the local correction in \(\mathrm{def:paired\text{-}numerical\text{-}delta}\) is inactive and, for every \(t_n>0\),
+\[
+\widehat F'_n(0)
+=\frac{F(\widehat\beta_n)-F(\widehat\beta_n)}{t_n}
+=0.
+\tag{20}
+\]
+Consequently \(q_{1-\alpha,n}^\star=0\) on \(A_n\).  By \(\mathrm{def:uniform\text{-}confidence\text{-}envelope}\) and (19),
+\[
+\mathrm{CI}_n(t)=\left[\frac{b_n}{n},\frac{b_n}{n}\right]
+\quad\text{on }A_n.
+\tag{21}
+\]
+Since \(b_n>0\), equations (18) and (21) imply, simultaneously for every deterministic positive schedule,
+\[
+A_n\subseteq
+\left\{[L(\beta_n),U(\beta_n)]\not\subseteq\mathrm{CI}_n(t)\right\}.
+\tag{22}
+\]
+The experiment \(\mathbb P^0\) does not depend on \(t\).  Combining (7) and (22) yields
+\[
+0\leq
+\Pr_{\mathbb P^0}\!\left\{
+[L(\beta_n),U(\beta_n)]\subseteq\mathrm{CI}_n(t)
+\right\}
+\leq1-\Pr_{\mathbb P^0}(A_n)
+\longrightarrow0.
+\tag{23}
+\]
+No deployment margin approaches zero in this construction.  Thus (23) diagnoses the response boundary and this particular multiplier numerical-delta implementation; it proves neither a rare-margin threshold nor impossibility for other procedures.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is a procedure-specific diagnostic: a single fixed experiment satisfies both absolute bounded-Lipschitz approximations but gives zero limiting coverage under every deterministic step for the direct paired empirical-influence multiplier implementation of the Hong--Li-style numerical delta defined in this note. \textit{Gap.} The theorem does not claim that Hong and Li's published result applies to this triangular array and does not refute it. Its mechanism is collapsing Bernoulli response information with fixed margins and fixed study-cell probabilities: response means and primitive variances vanish, and no fixed nondegeneracy lower bound or perturbation-stable failure class is proved. It therefore makes no claim about response-interior laws, a rare-margin threshold, or minimax impossibility. \textit{Consumer.} It tells selector-envelope users that response-side information diagnostics are required before uniform numerical-delta calibration.
+
+\begin{proposition}[prop:projected-region-fallback]\label{prop:projected-region-fallback}
+For every row \(n\), the projected-region confidence envelope satisfies the deterministic implication
+\[
+\{\beta_n\in\mathcal R_n\}
+\subseteq
+\{[L(\beta_n),U(\beta_n)]\subseteq\mathrm{CI}_n^{\mathrm{proj}}\}.
+\]
+Consequently, if \(\mathcal R_n\) has uniform simultaneous primitive coverage over \(\mathfrak P_{\kappa}^{0}\), in the sense that
+\[
+\liminf_{n\to\infty}\inf_{\mathbb P\in\mathfrak P_{\kappa}^{0}}
+\Pr_{\mathbb P}\{\beta_n\in\mathcal R_n\}\geq1-\alpha,
+\]
+then
+\[
+\liminf_{n\to\infty}\inf_{\mathbb P\in\mathfrak P_{\kappa}^{0}}
+\Pr_{\mathbb P}\{[L(\beta_n),U(\beta_n)]\subseteq\mathrm{CI}_n^{\mathrm{proj}}\}
+\geq1-\alpha.
+\]
+Thus this construction is a uniformly honest fallback whenever the primitive region is uniformly honest.
+\end{proposition}
+\begin{proof}
+Fix \(n\) and an outcome for which \(\beta_n\in\mathcal R_n\).  By the definition of an infimum and a supremum over a set containing \(\beta_n\),
+\[
+\inf_{\widetilde\beta\in\mathcal R_n}L(\widetilde\beta)
+\leq L(\beta_n),
+\qquad
+U(\beta_n)
+\leq\sup_{\widetilde\beta\in\mathcal R_n}U(\widetilde\beta).
+\tag{1}
+\]
+The array \(\gamma^0_{cx}=p_{n,c}r_{n,x}\) is nonnegative and satisfies
+\[
+\sum_x\gamma^0_{cx}=p_{n,c}\sum_xr_{n,x}=p_{n,c},
+\qquad
+\sum_c\gamma^0_{cx}=r_{n,x}\sum_cp_{n,c}=r_{n,x}.
+\tag{2}
+\]
+Thus \(\gamma^0\in\Gamma(p_n,r_n)\) by \(\mathrm{def:transport\text{-}polytope}\), so the feasible set in \(\mathrm{def:endpoints}\) is nonempty.  A minimum cannot exceed a maximum over the same nonempty set, and therefore
+\[
+L(\beta_n)\leq U(\beta_n).
+\tag{3}
+\]
+Equations (1)--(3) and \(\mathrm{def:projected\text{-}region\text{-}confidence\text{-}envelope}\) give
+\[
+[L(\beta_n),U(\beta_n)]
+\subseteq\mathrm{CI}_n^{\mathrm{proj}}.
+\tag{4}
+\]
+This proves the event inclusion.  Taking probabilities gives, for every \(\mathbb P\in\mathfrak P_{\kappa}^{0}\),
+\[
+\Pr_{\mathbb P}\{[L(\beta_n),U(\beta_n)]\subseteq\mathrm{CI}_n^{\mathrm{proj}}\}
+\geq
+\Pr_{\mathbb P}\{\beta_n\in\mathcal R_n\}.
+\tag{5}
+\]
+Taking the infimum over \(\mathbb P\), then the lower limit over \(n\), proves the asserted uniform consequence.  The argument is deterministic and does not require uniqueness of either optimal face.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The deterministic inclusion turns any honest simultaneous primitive region into an honest selector-envelope region without differentiability, face uniqueness, or critical-value anti-concentration. \textit{Gap.} Its width depends on the primitive region and may be conservative; no comparison theorem with the numerical-delta interval is proved. \textit{Consumer.} It supplies an actionable fallback for PDX and other deployments when response-boundary diagnostics fail.
+
+\section{Interpretation}
+
+For a fixed interior deployment law, the paired numerical-delta method remains pointwise valid even with nonunique transport faces. Uniform use near a response boundary is different: absolute Gaussian accuracy can coexist with a nearly certain all-zero sample, a zero critical value, and zero coverage. Practitioners should either verify a response-interior or equally strong variance diagnostic before using that numerical-delta envelope, or use the projected-region fallback. For the Béal--Latouche PDX application, superiority to control should be reported as uniform only when the lower selector endpoint exceeds the control benchmark and the uncertainty method covers that lower endpoint; the new diagnostic warns that rare positive outcomes can invalidate the numerical-delta certificate even when allocation margins are well behaved.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The selector seed \(S\) is atomless even though all endogenous and response domains are finite. The residual coordinate is endogenous with equation \(Z_s=g_s(C,S)\), which is essential for interventions on \(C\) to commute; its induced conditional law varies with \(s\). The result proves the Xia--Bareinboim Definition-6 partial-projection identity selector by selector and does not preserve one fixed canonical Equation-11 residual law or one common canonical Layer-3 map across distinct selectors.
+
+\section{Honest scope}
+
+The paper proves a schedule-independent zero-coverage theorem for one collapsing-response singleton and the direct Hong--Li-style paired empirical-influence multiplier numerical-delta envelope defined here. The witness has response means and primitive variances tending to zero; it supplies neither a fixed nondegeneracy lower bound nor a perturbation-stable failure class, so it does not establish failure on the response-interior subclass and does not refute Hong and Li's theorem. The paper also proves an exact deterministic projection fallback from any simultaneous primitive confidence region. It does not prove a minimax impossibility for other methods, a sufficient or sharp \(n\kappa_n^3\) threshold, or a width advantage over projected-region, Cho--Russell, or Gafarov procedures. Cho--Russell transfers cleanly only to the audited fixed-cost LP subclass unless additional estimated-cost envelope conditions are verified; Gafarov additionally requires uniform rank, slack, uniqueness, and moment conditions that exclude parts of the shrinking-margin and nonunique-dual class. The remaining comparison is open on \(\mathfrak P_{\kappa,\eta}^{\mathrm{int}}\). The structural SCM realization, sharp selector interval, fixed-map obstruction, fixed-interior derivative, and pointwise numerical-delta result retain their supporting scope. No effective-support cycle/equality criterion or endpoint flow-certificate theorem is claimed in this note.
+
+\begin{thebibliography}{99}
+
+  \bibitem{VanderWeeleHernan2013MultipleVersions} VanderWeele, Tyler J., and Miguel A. Hernán. 2013. Causal Inference Under Multiple Versions of Treatment. Journal of Causal Inference 1(1): 1--20.
+
+  \bibitem{BealLatouche2020MultipleVersions} Béal, Jonas, and Aurélien Latouche. 2020. Causal Inference with Multiple Versions of Treatment and Application to Personalized Medicine. arXiv:2005.12427.
+
+  \bibitem{DHaultfoeuilleGaillacMaurel2025DataCombination} D'Haultfoeuille, Xavier, Christophe Gaillac, and Arnaud Maurel. 2025. "Partially Linear Models under Data Combination." Review of Economic Studies 92(1): 238--267.
+
+  \bibitem{RubensteinEtAl2017CausalConsistency} Rubenstein, Paul K., et al. 2017. Causal Consistency of Structural Equation Models. Proceedings of UAI.
+
+  \bibitem{BeckersHalpern2019Abstracting} Beckers, Sander, and Joseph Y. Halpern. 2019. Abstracting Causal Models. Proceedings of AAAI 33: 2678--2685.
+
+  \bibitem{FelekisZennaroBranchiniDamoulas2024COTA} Felekis, Yorgos, Fabio Massimo Zennaro, Nicola Branchini, and Theodoros Damoulas. 2024. Causal Optimal Transport of Abstractions. Proceedings of CLeaR, PMLR 236.
+
+  \bibitem{XiaBareinboim2025Lossy} Xia, Kevin Muyuan, and Elias Bareinboim. 2025. Causal Abstraction Inference under Lossy Representations. Proceedings of ICML, PMLR 267: 68225--68235.
+
+  \bibitem{HongLi2018NumericalDelta} Hong, Han, and Jessie Li. 2018. The Numerical Delta Method. Journal of Econometrics 206(2): 379--394.
+
+  \bibitem{FangSantos2019DirectionalInference} Fang, Zheng, and Andres Santos. 2019. Inference on Directionally Differentiable Functions. Review of Economic Studies 86(1): 377--412.
+
+  \bibitem{HundrieserEtAl2024EstimatedOT} Hundrieser, Shayan, Gilles Mordant, Christoph A. Weitkamp, and Axel Munk. 2024. Empirical Optimal Transport under Estimated Costs. Stochastic Processes and their Applications 178: 104462.
+
+  \bibitem{Voronin2025LPPartialID} Voronin, Andrei. 2025. Linear Programming Approach to Partially Identified Econometric Models. arXiv:2503.14940.
+
+  \bibitem{BonnansShapiro2000Perturbation} Bonnans, J. Frédéric, and Alexander Shapiro. 2000. Perturbation Analysis of Optimization Problems. New York: Springer.
+
+  \bibitem{Danskin1967MaxMin} Danskin, John M. 1967. The Theory of Max-Min and Its Application to Weapons Allocation Problems. Berlin: Springer.
+
+  \bibitem{ChoRussell2023SimpleInference} Cho, JoonHwan, and Thomas M. Russell. 2023. "Simple Inference on Functionals of Set-Identified Parameters Defined by Linear Moments." Journal of Business \& Economic Statistics, published online, doi:10.1080/07350015.2023.2203768.
+
+  \bibitem{Gafarov2025SharpAffine} Gafarov, Bulat. 2025. "Simple Subvector Inference on Sharp Identified Set in Affine Models." Journal of Econometrics 249: 105952.
+
+\end{thebibliography}
+
+\end{document}

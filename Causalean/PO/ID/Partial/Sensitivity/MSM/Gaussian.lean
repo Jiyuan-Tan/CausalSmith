@@ -10,19 +10,20 @@ calibrating quantile cutoff is fully explicit. Two ingredients:
 
 * **The calibration level is exactly `Λ/(Λ+1)`, independent of the propensity.** Algebra:
   `survTarget = (1 − wMin·e)/(wMax − wMin) = e/(Λ+1)`, hence `calibLevel = 1 − survTarget/e = Λ/(Λ+1)`
-  (and `calibLevelLower = 1/(Λ+1)`). So the sharp-bound cutoff is the `Λ/(Λ+1)` conditional quantile.
+  (and `calibLevelLower = 1/(Λ+1)`). So the calibrated-bound cutoff is the `Λ/(Λ+1)` conditional quantile.
 
 * **Under the Gaussian conditional law the cutoff is `c(X) = m(X) + σ(X)·Φ⁻¹(Λ/(Λ+1))`** — the explicit
   Gaussian quantile (`probit = Φ⁻¹` from `Mathlib/Probability/StdNormalCDF.lean`). It solves the survival
-  equation `treatedSurv c =ᵐ survTarget Λ`, so the sharp upper bound is attained at this explicit cutoff.
+  equation `treatedSurv c =ᵐ survTarget Λ`, so the calibrated upper bound is attained at this explicit cutoff.
 
 This sidesteps the general measurable-selection: the quantile is closed-form. The subsequent
 `GaussianHalfWidth.lean` file evaluates `candMean (cutoffProp Λ c)` to the closed-form half-width
 `(Λ²−1)/Λ · φ(Φ⁻¹(Λ/(Λ+1))) · E[(1-e(X))σ(X)]` using the truncated Gaussian moment. -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct
-import Causalean.Mathlib.Probability.StdNormalCDF
-import Causalean.Mathlib.Probability.StdNormalMoments
+module
+public import Causalean.Mathlib.Probability.StdNormalCDF
+public import Causalean.Mathlib.Probability.StdNormalMoments
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.CutoffConstruct
 
 /-! # Gaussian treated-arm MSM cutoff formula
 
@@ -31,10 +32,12 @@ Gaussian outcome laws. It proves the propensity-free calibration level
 `calibLevel_eq`, introduces the conditional-Gaussian CDF assumption
 `GaussianTreatedModel`, defines the explicit quantile cutoff `gaussianCutoff`,
 proves `gaussianCutoff_calibrates`, and concludes with `msmUpperCalib_gaussian`:
-the sharp calibrated upper endpoint is the candidate mean at that explicit
+the calibrated upper endpoint is the candidate mean at that explicit
 Gaussian cutoff. The separate half-width file evaluates that candidate mean in
 closed form.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -72,7 +75,7 @@ private lemma survTarget_eq_prop_div (Λ : ℝ) (hΛ : 1 < Λ) {ω : P.Ω}
   rw [hnum, hdeneq]
   field_simp [he0, hΛ0, hΛm, hΛp, ne_of_gt h1e]
 
-/-- **The calibration level is exactly `Λ/(Λ+1)`.** Under overlap and `1 < Λ`, the sharp-upper-bound
+/-- **The calibration level is exactly `Λ/(Λ+1)`.** Under overlap and `1 < Λ`, the calibrated-upper-bound
 quantile level `calibLevel = 1 − survTarget/e` equals `Λ/(Λ+1)` a.e., independent of the propensity
 `e(X)` — because `survTarget = e/(Λ+1)`. Pure algebra from `wMin`, `wMax`. -/
 theorem calibLevel_eq (Λ : ℝ) (hΛ : 1 < Λ)
@@ -147,20 +150,18 @@ theorem gaussianCutoff_calibrates (Λ : ℝ) (hΛ : 1 < Λ)
   field_simp [hΛp_ne]
   ring
 
-/-- **The sharp upper bound at the explicit Gaussian cutoff.** Fix [a sensitivity parameter Λ
+/-- **The calibrated upper bound at the explicit Gaussian cutoff.** Fix [a sensitivity parameter Λ
 strictly greater than 1](hyp:hΛ) and assume [the propensity score for treatment given the
 covariates lies strictly between 0 and 1 almost surely (overlap)](hyp:hoverlap). Under [the
 conditional-Gaussian treated-outcome model, i.e. the treated conditional law of the outcome given
-the covariates is Gaussian with mean `m` and standard deviation `σ`](hyp:hmodel), assuming [every
-candidate complete propensity in the calibrated ambiguity set is almost-everywhere
-measurable](hyp:hmeas) and [the integrability conditions needed to make the candidate means, the
-survival decomposition, and the cutoff propensity well defined](hyp:hreg), [the sharp (Dorn–Guo)
+the covariates is Gaussian with mean `m` and standard deviation `σ`](hyp:hmodel), and assuming [the
+integrability conditions needed to make the candidate means, the
+survival decomposition, and the cutoff propensity well defined](hyp:hreg), [the calibrated (Dorn–Guo)
 upper bound on `E[Y(1)]` equals the candidate IPW mean evaluated at the cutoff propensity built
 from the explicit Gaussian quantile cutoff `m(X) + σ(X)·Φ⁻¹(Λ/(Λ+1))`](goal). -/
 theorem msmUpperCalib_gaussian (Λ : ℝ) (hΛ : 1 < Λ)
     (hoverlap : ∀ᵐ ω ∂P.μ, 0 < S.propScore true ω ∧ S.propScore true ω < 1)
     {m σ : γ → ℝ} (hmodel : S.GaussianTreatedModel m σ)
-    (hmeas : ∀ etilde ∈ S.MSMSetCalib Λ, AEMeasurable etilde P.μ)
     (hreg : Integrable (S.gaussianCutoff m σ Λ) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω / S.cutoffProp Λ (S.gaussianCutoff m σ Λ) ω) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω *
@@ -172,19 +173,19 @@ theorem msmUpperCalib_gaussian (Λ : ℝ) (hΛ : 1 < Λ)
       Integrable (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ ∧
       Integrable (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ ∧
       Integrable (fun ω => |S.gaussianCutoff m σ Λ ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ) :
-    S.msmUpperCalib Λ = S.candMean (S.cutoffProp Λ (S.gaussianCutoff m σ Λ)) := by
+    S.msmUpperCalib true Λ = S.candMean true (S.cutoffProp Λ (S.gaussianCutoff m σ Λ)) := by
   let c := S.gaussianCutoff m σ Λ
   have hc : Measurable[S.sigmaX] c :=
     S.measurable_gaussianCutoff hmodel.measurable_m hmodel.measurable_σ Λ
   have hsurv : S.treatedSurv c =ᵐ[P.μ] S.survTarget Λ := by
     simpa [c] using S.gaussianCutoff_calibrates Λ hΛ hoverlap hmodel
-  obtain ⟨hc_int, hint, hint1, hmin_int, hdiff_int,
+  obtain ⟨hc_int, _hint, hint1, hmin_int, hdiff_int,
     henv, hweight_env, hc_env⟩ := hreg
-  have hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib Λ :=
-    S.cutoffProp_mem_MSMSetCalib_of_survival Λ hΛ hoverlap c hc
-      hint hint1 hmin_int hdiff_int hsurv
+  have hcut_mem : S.cutoffProp Λ c ∈ S.MSMSetCalib true Λ :=
+    S.cutoffProp_mem_MSMSetCalib_of_survival Λ hΛ hoverlap c
+      hint1 hmin_int hdiff_int hsurv
   exact S.msmUpperCalib_eq_cutoff Λ (le_of_lt hΛ) hoverlap c hc
-    hc_int hcut_mem henv hweight_env hc_env hmeas
+    hc_int hcut_mem henv hweight_env hc_env
 
 end POBackdoorSystem
 

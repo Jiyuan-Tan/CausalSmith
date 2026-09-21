@@ -11,16 +11,19 @@ admits an observable global KKT optimality certificate through the envelope
 gradient, a budget multiplier, and complementary box multipliers.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
-import Mathlib.Analysis.Convex.Function
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
-import Mathlib.Analysis.Convex.Topology
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
-import Mathlib.Topology.Order.Compact
-import Optlib.Optimality.Constrained_Problem
-import Causalean.Mathlib.Analysis.SmoothReciprocal
-import Causalean.Mathlib.Analysis.GradientCoord
-import Causalean.Mathlib.Analysis.Convex.ReciprocalProduct
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
+public import Mathlib.Analysis.Convex.Function
+public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+public import Mathlib.Analysis.Convex.Topology
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+public import Mathlib.Topology.Order.Compact
+public import Optlib.Optimality.Constrained_Problem
+public import Causalean.Mathlib.Analysis.SmoothReciprocal
+public import Causalean.Mathlib.Analysis.GradientCoord
+public import Causalean.Mathlib.Analysis.Convex.ReciprocalProduct
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

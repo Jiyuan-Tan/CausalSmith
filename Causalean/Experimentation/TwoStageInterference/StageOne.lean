@@ -7,7 +7,8 @@ Authors: Jiyuan Tan
 
 The variance of the mean of a simple random sample of `m` of `N` fixed numbers is `(1 − m/N)/m`
 times their population variance — the finite-population correction.  This is the between-group
-variance term in Hudgens & Halloran's two-stage variance decomposition (Theorems 4 and 6).  Concretely,
+variance term in Hudgens & Halloran's Equation (A.2) in Appendix A.4 and related variance
+decompositions. Concretely,
 given a design `D₁` with a family of `{0,1}` selection indicators `U i` that pick out a simple
 random sample of size `m` from the `N := card ι` groups (so each indicator has mean `m/N`, each
 distinct pair has joint mean `m(m−1)/(N(N−1))`, and each indicator has the Bernoulli variance
@@ -18,7 +19,8 @@ first- and second-order selection moments are taken as hypotheses, so the lemma 
 and reusable.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.Variance
+module
+public import Causalean.Experimentation.TwoStageInterference.Variance
 
 /-! # Stage-one sampling variance
 
@@ -29,6 +31,8 @@ This file defines `SmuVar`, the `N - 1` sample variance of group-level quantitie
 variance of the selected group mean is `(1 - m/N) / m * SmuVar`.  The result is design-agnostic
 and is used as the between-group term in the two-stage variance decompositions.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -43,7 +47,11 @@ section StageOne
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι] {Ω₁ : Type*} [Fintype Ω₁]
 
-/-- For [a finite collection of groups](hyp:ι) and [a real-valued group-level quantity $\mu_i$](hyp:μ), the [population sample variance of the group-level quantity](goal) is $(N-1)^{-1}\sum_i(\mu_i-\bar\mu)^2$, where $N$ is the number of groups and $\bar\mu=N^{-1}\sum_i\mu_i$. -/
+/-- For [a finite collection of groups](hyp:ι) and
+[a real-valued group-level quantity $\mu_i$](hyp:μ), the
+[population sample variance of the group-level quantity](goal) is
+$(N-1)^{-1}\sum_i(\mu_i-\bar\mu)^2$, where $N$ is the number of groups and
+$\bar\mu=N^{-1}\sum_i\mu_i$. -/
 noncomputable def SmuVar (μ : ι → ℝ) : ℝ :=
   (∑ i, (μ i - (∑ i, μ i) / (Fintype.card ι : ℝ)) ^ 2) / ((Fintype.card ι : ℝ) - 1)
 
@@ -58,8 +66,9 @@ variable (hm : m ≠ 0) (hN1 : ((Fintype.card ι : ℝ) - 1) ≠ 0) (hN : (Finty
 
 include hmean hpair hvar hm hN1 hN in
 set_option linter.unusedDecidableInType false in
-/-- **Stage-1 / between-group SRS variance term** (Hudgens–Halloran 2008, the between-group term of
-Theorems 4 and 6).  Under simple random sampling of `m` of the `N := card ι` groups, with `{0,1}`
+/-- **Stage-1 / between-group SRS variance term** (the finite-population-correction ingredient in
+Hudgens–Halloran 2008, Equation (A.2) in Appendix A.4). Under simple random sampling of `m` of the
+`N := card ι` groups, with `{0,1}`
 selection indicators `U` satisfying the SRS first- and second-order selection moments (`hmean`,
 `hpair`) and the Bernoulli diagonal variance (`hvar`), [the sampling variance of the sample mean
 `(∑ᵢ Uᵢ·μᵢ)/m` of the group-level quantities `μ` equals `(1 − m/N)/m` times the population sample

@@ -1,4 +1,5 @@
-import Mathlib.Analysis.InnerProductSpace.SingularValues
+module
+public import Mathlib.Analysis.InnerProductSpace.SingularValues
 
 /-!
 # Weyl perturbation inequality for singular values
@@ -8,6 +9,8 @@ finite-dimensional real linear maps.  Its support lemmas express the two halves 
 value min--max argument using subspaces, and the main result shows that each singular value is
 1-Lipschitz in the operator norm, including Mathlib's zero-extended indices.
 -/
+
+public section
 
 open Module
 open scoped InnerProductSpace

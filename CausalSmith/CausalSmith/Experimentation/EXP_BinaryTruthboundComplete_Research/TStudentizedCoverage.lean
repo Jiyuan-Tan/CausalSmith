@@ -1,16 +1,21 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BlockArray
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.CitedGates
-import Causalean.Experimentation.DesignBased.InProb
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Causalean.Experimentation.DesignBased.WaldCoverage
-import Causalean.Experimentation.DesignBased.Slutsky
-import Causalean.Experimentation.DesignBased.IndepSummandsCLT
-import Causalean.Experimentation.DesignBased.DependencyCLT
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BlockArray
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.CitedGates
+public import Causalean.Experimentation.DesignBased.InProb
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Causalean.Experimentation.DesignBased.WaldCoverage
+public import Causalean.Experimentation.DesignBased.Slutsky
+public import Causalean.Experimentation.DesignBased.IndepSummandsCLT
+public import Causalean.Experimentation.DesignBased.DependencyCLT
 
 /-! Asymptotic conservative studentized coverage for independently randomized blocks. -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset Set Filter Topology
+
+open Causalean.Mathlib.Probability.SteinMethod
 
 namespace CausalSmith.Experimentation.BinaryTruthbound
 
@@ -135,7 +140,7 @@ private lemma numeratorCDF_tendsto_from_productCLT (Arr : BlockArray) (M V : ℝ
     have hscore := hInd.2 B
     have hcomp := hscore.comp (fun j x => x - blockTau Arr B j) (fun _ => by fun_prop)
     simpa [Y, Function.comp_def, rowDesign] using hcomp
-  let Dep : ∀ B, Causalean.SteinMethod.DepGraph (Y B) (rowDesign Arr B).toMeasure :=
+  let Dep : ∀ B, DepGraph (Y B) (rowDesign Arr B).toMeasure :=
     fun B => {
       G := fun i j => i = j
       decG := inferInstance
@@ -177,15 +182,15 @@ private lemma numeratorCDF_tendsto_from_productCLT (Arr : BlockArray) (M V : ℝ
     intro B j
     simp [Y, rowDesign, blockTau, FiniteDesign.E_sub, FiniteDesign.E_const]
   have hvar : ∀ B, (rowDesign Arr B).E
-      (fun w => Causalean.SteinMethod.depSum (Y B) w ^ 2) = (B : ℝ) * VBar Arr B := by
+      (fun w => depSum (Y B) w ^ 2) = (B : ℝ) * VBar Arr B := by
     intro B
-    have hmeanSum : (rowDesign Arr B).E (Causalean.SteinMethod.depSum (Y B)) = 0 := by
-      unfold Causalean.SteinMethod.depSum
+    have hmeanSum : (rowDesign Arr B).E (depSum (Y B)) = 0 := by
+      unfold depSum
       rw [(rowDesign Arr B).E_sum]
       simp [hYmean]
     have hEeqVar : (rowDesign Arr B).E
-        (fun w => Causalean.SteinMethod.depSum (Y B) w ^ 2) =
-        (rowDesign Arr B).Var (Causalean.SteinMethod.depSum (Y B)) := by
+        (fun w => depSum (Y B) w ^ 2) =
+        (rowDesign Arr B).Var (depSum (Y B)) := by
       rw [FiniteDesign.Var_eq, hmeanSum]
       ring
     rw [hEeqVar]
@@ -202,8 +207,8 @@ private lemma numeratorCDF_tendsto_from_productCLT (Arr : BlockArray) (M V : ℝ
           (rowDesign Arr B).E (Y B i) * (rowDesign Arr B).E (Y B j) := by
         exact hmul
       rw [hmul', sub_self]
-    rw [show Causalean.SteinMethod.depSum (Y B) =
-        fun w => ∑ j : Fin B, 1 * Y B j w by funext w; simp [Causalean.SteinMethod.depSum]]
+    rw [show depSum (Y B) =
+        fun w => ∑ j : Fin B, 1 * Y B j w by funext w; simp [depSum]]
     rw [(rowDesign Arr B).Var_linear_comb Finset.univ (fun _ => 1) (Y B)]
     simp only [one_mul]
     calc
@@ -248,11 +253,11 @@ private lemma numeratorCDF_tendsto_from_productCLT (Arr : BlockArray) (M V : ℝ
     hV.2.eventually (eventually_gt_nhds hV.1)] with B hB hVB
   apply (rowDesign Arr B).Pr_congr
   intro w
-  change (Causalean.SteinMethod.depSum (Y B) w /
+  change (depSum (Y B) w /
       Real.sqrt ((B : ℝ) * VBar Arr B) ≤ t) ↔
     (Real.sqrt B * (tauHat Arr B w - tauBar Arr B) /
       Real.sqrt (VBar Arr B) ≤ t)
-  simp only [Y, Causalean.SteinMethod.depSum]
+  simp only [Y, depSum]
   have hBne : (B : ℝ) ≠ 0 := by exact_mod_cast (Nat.ne_of_gt hB)
   have hVne : VBar Arr B ≠ 0 := ne_of_gt hVB
   apply iff_of_eq

@@ -1,5 +1,6 @@
-import Mathlib.Probability.ConditionalProbability
-import Mathlib.MeasureTheory.Measure.FiniteMeasureProd
+module
+public import Mathlib.Probability.ConditionalProbability
+public import Mathlib.MeasureTheory.Measure.FiniteMeasureProd
 
 /-!
 # Finite-partition aggregation of conditional probabilities
@@ -10,6 +11,8 @@ conditional probability of an event in every positive-probability cell bounds it
 probability.  Zero-probability cells are handled explicitly, so applications only need conditional
 estimates on positive-probability cells.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal BigOperators

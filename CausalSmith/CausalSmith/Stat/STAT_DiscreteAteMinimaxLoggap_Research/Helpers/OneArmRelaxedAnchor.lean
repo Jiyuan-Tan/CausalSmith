@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductConditioning
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmProductConditioning
 
 /-!
 # Relaxed deterministic-anchor configurations
@@ -6,6 +7,8 @@ import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPro
 The source D.2 construction adds the same deterministic anchor to both fuzzy
 hypotheses and only then normalizes the resulting near-unit mass vector.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

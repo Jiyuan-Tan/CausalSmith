@@ -387,16 +387,10 @@ describe("site library loader", () => {
     const lib = loadLibrary(libraryRoot());
     const expected = [
       "Causalean.PO.POBackdoorSystem.wMin_mul_propScore_le_one",
-      "Causalean.PO.POBackdoorSystem.one_le_wMax_mul_propScore",
       "Causalean.PO.POBackdoorSystem.condExp_treat_wMin_eq",
       "Causalean.PO.POBackdoorSystem.condExp_treat_wMax_eq",
       "Causalean.PO.POBackdoorSystem.wMin0_mul_propScore_le_one",
-      "Causalean.PO.POBackdoorSystem.one_le_wMax0_mul_propScore",
-      "Causalean.PO.POBackdoorSystem.condExp_control_wMin0_eq",
-      "Causalean.PO.POBackdoorSystem.condExp_control_wMax0_eq",
-      "Causalean.PO.POBackdoorSystem.control_calibValue_eq",
       "Causalean.PO.POBackdoorSystem.controlCutoffProp_calibrated_of_survival",
-      "Causalean.PO.POBackdoorSystem.cutoffProp0_mem_MSMSet0",
       "Causalean.PO.POBackdoorSystem.cutoffProp0_mem_MSMSetCalib0_of_survival",
     ];
     for (const name of expected) {
@@ -465,11 +459,11 @@ describe("site library loader", () => {
       "Causalean.Discovery.LiNGAM.lingam_identifiable",
       "Causalean.Discovery.LiNGAM.lingam_identifiability_kurtosis",
       "Causalean.Discovery.LinearDisentanglement.sigma_solutions",
-      "Causalean.Discovery.LinearDisentanglement.disentanglement_uniqueness",
-      "Causalean.Discovery.LinearDisentanglement.disentanglement_identifiability",
+      "Causalean.Discovery.LinearDisentanglement.disentanglement_uniqueness_up_to_signed_scaling_of_nondegenerate",
+      "Causalean.Discovery.LinearDisentanglement.disentanglement_identifiability_up_to_signed_scaling_of_nondegenerate",
       "Causalean.Discovery.InvariantPrediction.EnvFamily.mechanism_invariant",
       "Causalean.Discovery.InvariantPrediction.EnvFamily.icp_sound",
-      "Causalean.Discovery.InvariantPrediction.LinearGaussian.EnvFamily.icp_complete_linearGaussian",
+      "Causalean.Discovery.InvariantPrediction.LinearGaussian.EnvFamily.icp_complete_linearGaussian_of_exogeneity",
     ];
     const entries = new Map(lib.entries.map((e) => [e.name, e]));
     expect(core.filter((name) => !entries.has(name))).toEqual([]);
@@ -524,9 +518,7 @@ describe("site library loader", () => {
       "Causalean.Experimentation.DesignBased.E_htTotal",
       "Causalean.Experimentation.DesignBased.E_htMean",
       "Causalean.Experimentation.DesignBased.E_htEffect",
-      "Causalean.Experimentation.DesignBased.Var_htTotal_cov",
       "Causalean.Experimentation.DesignBased.Var_htTotal",
-      "Causalean.Experimentation.DesignBased.Cov_htTotal_cov",
       "Causalean.Experimentation.DesignBased.Cov_htTotal",
       "Causalean.Experimentation.DesignBased.FiniteDesign.chebyshev",
       "Causalean.Experimentation.DesignBased.FiniteDesign.var_edge_sum_le",
@@ -535,27 +527,17 @@ describe("site library loader", () => {
       "Causalean.Experimentation.DesignBased.prodDesign_toMeasure_eq_pi",
       "Causalean.Experimentation.DesignBased.indepFun_prodDesign_blocks",
       "Causalean.Experimentation.DesignBased.prodDesign_clt",
-      "Causalean.Experimentation.ExposureMappingInterference.E_htVarEst",
       "Causalean.Experimentation.ExposureMappingInterference.E_htVarEst_eq_addBias",
-      "Causalean.Experimentation.ExposureMappingInterference.E_htVarEst_add_htA2_ge",
-      "Causalean.Experimentation.ExposureMappingInterference.E_htCovEst_le",
-      "Causalean.Experimentation.ExposureMappingInterference.E_htCovEst_eq_of_noEffect",
-      "Causalean.Experimentation.ExposureMappingInterference.E_htCovEstA_le",
       "Causalean.Experimentation.ExposureMappingInterference.E_htEffectVarEst_ge",
       "Causalean.Experimentation.ExposureMappingInterference.E_htEffectVarEstA_ge",
       "Causalean.Experimentation.ExposureMappingInterference.wald_coverage",
       "Causalean.Experimentation.ExposureMappingInterference.wald_coverage_feasible",
       "Causalean.Experimentation.ExposureMappingInterference.wald_coverage_feasible_of_relVar",
       "Causalean.Experimentation.ExposureMappingInterference.localDependenceCLT_of_stein",
-      "Causalean.Experimentation.ExposureMappingInterference.localDependenceCLT_of_conditions",
-      "Causalean.Experimentation.ExposureMappingInterference.localDependenceCLT_of_paper_conditions",
       "Causalean.Experimentation.ExposureMappingInterference.var_htEdgeStat_le",
       "Causalean.Experimentation.ExposureMappingInterference.htEffectVarEst_undershoot_tendsto_zero",
       "Causalean.Experimentation.TwoStageInterference.E_groupEst",
       "Causalean.Experimentation.TwoStageInterference.E_popEst",
-      "Causalean.Experimentation.TwoStageInterference.E_popEst_pick",
-      "Causalean.Experimentation.TwoStageInterference.E_ShatTreated",
-      "Causalean.Experimentation.TwoStageInterference.E_ShatControl",
       "Causalean.Experimentation.TwoStageInterference.Var_groupAgg",
       "Causalean.Experimentation.TwoStageInterference.Var_srs_mean",
       "Causalean.Experimentation.TwoStageInterference.LHExperiment.E_estD",
@@ -563,9 +545,6 @@ describe("site library loader", () => {
       "Causalean.Experimentation.TwoStageInterference.varHat_nonneg",
       "Causalean.Experimentation.UnknownInterference.E_htSummand",
       "Causalean.Experimentation.UnknownInterference.SAHExperiment.D_E_htEst",
-      "Causalean.Experimentation.UnknownInterference.SAHExperiment.D_Var_htEst_le",
-      "Causalean.Experimentation.UnknownInterference.SAHExperiment.chebyshev_eate",
-      "Causalean.Experimentation.UnknownInterference.chebyshev_ci_eate",
       "Causalean.Experimentation.UnknownInterference.var_htSummand_le",
       "Causalean.Experimentation.UnknownInterference.cov_htSummand_zero",
     ];
@@ -753,7 +732,6 @@ describe("site library loader", () => {
       "Causalean.Estimation.ATE.BackdoorEstimationSystem.weighted_residual_integral_zero",
       "Causalean.Estimation.ATT.TreatedEstimationSystem.weighted_residual_false_integral_zero",
       "Causalean.Estimation.DTR.DTREstimationSystem.weighted_residual_integral_zero_stage0",
-      "Causalean.Estimation.DTR.DTREstimationSystem.indicator_to_propScore_integral_stage1",
       "Causalean.Estimation.CATE.phi_eta_dir_deriv_tendsto",
       "Causalean.Estimation.MinimaxATE.inClass_perturbed",
       "Causalean.Estimation.MinimaxATE.GenConstr.inClassG",
@@ -785,19 +763,19 @@ describe("site library loader", () => {
       "Causalean.SCM.obsDensity_eq_qFactorDensityProduct",
       "Causalean.SCM.qFactorDensityProduct_eq_prod_cComponentFactor",
       "Causalean.SCM.obsKernel_map_eq_obsCondKernel_comp",
-      "Causalean.Stat.Concentration.criticalRadius_fp_of_subRoot",
+      "Causalean.Stat.Concentration.criticalRadius_fp_of_isStarShapedEnvelope",
       "Causalean.Stat.Concentration.iid_sum_chebyshev",
       "Causalean.Stat.IIDSample.map_tuple_eq",
       "Causalean.Stat.IIDSample.empProcVec_eq_stochEquicont_gap",
       "Causalean.Stat.empProcVec_chebyshev",
       "Causalean.Stat.empProcVec_sq_lintegral_le",
-      "Causalean.Stat.hoeffding_decomp_order",
+      "Causalean.Stat.hoeffding_decomp",
       "Causalean.Stat.MomentProblems.BoundedOutcomeEnvelope.rho_envelope_isLUB",
       "Causalean.Stat.secondMomentLM_inner",
       "Causalean.Stat.secondMomentLM_isPositive",
       "Causalean.Stat.stdGaussian_map_normSq_orthogonalProjection",
       "Causalean.Stat.Tendsto_dist.tightness",
-      "Causalean.SteinMethod.steinSol_hasDerivAt",
+      "Causalean.Mathlib.Probability.SteinMethod.steinSol_hasDerivAt",
       "ProbabilityTheory.condDistrib_map_of_condDistrib_fst_eq",
       "Causalean.Mathlib.CompProdAssembly.compProd_eq_of_inner_ae",
       "LinearMap.IsPositive.posSqrt_mul_self",
@@ -937,7 +915,11 @@ describe("NL ↔ Lean crosslink gate", () => {
         // the card falls back to plain (stripped) rendering, so annotations
         // are harmless there. Any OTHER unstructurable annotated statement
         // still fails: its annotations could never highlight anything.
-        if (!d.source.includes("… truncated")) {
+        // An `alias` restates no signature of its own (its binders live on the
+        // declaration it points at), so there is nothing to structure; its card
+        // renders flat, where the markup is inert — the tools lint agrees.
+        const isAlias = /^\s*(?:@\[[^\]]*\]\s*)*(?:protected\s+|private\s+)?alias\s/m.test(sig);
+        if (!isAlias && !d.source.includes("… truncated")) {
           problems.push(`${d.name}: annotated but the statement does not structure into rows`);
         }
         continue;

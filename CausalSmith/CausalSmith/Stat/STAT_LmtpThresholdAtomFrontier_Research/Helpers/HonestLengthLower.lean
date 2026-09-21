@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
-import Causalean.Stat.Minimax.HonestConfidenceSet
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TMinimaxRisk
+public import Causalean.Stat.Minimax.HonestConfidenceSet
 
 /-! # Two-point lower bounds for honest confidence length
 
@@ -13,6 +14,8 @@ This file isolates the low-level expected-length converse for the fixed-Hölder
 clamp model.  It deliberately defines the worst length of one procedure here,
 so that the headline module can reuse the results without an import cycle.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
@@ -301,7 +304,7 @@ lemma observedMinimaxLength_eventually_ge_root
       (fun _ : Fin J × ℝ => 0)) :=
     minimaxDataMeasure_isProbabilityMeasure J kappa hreg.1 hreg.2.2.1 _
       measurable_const (fun _ => by norm_num)
-  have hac := Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n
+  have hac := Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n
   have hint := Causalean.Stat.pi_iid_integrable_sq_dev _ _ hac1 hint1 n
   have hlower := observedMinimaxLength_lower_of_two_point_chi P0 P1 n beta
     kappa L cminus cplus pmin (deltaSeq n) alpha eps chi hP0 hP1 heps.le hsep
@@ -493,7 +496,7 @@ lemma observedMinimaxLength_eventually_ge_local
     (mul_nonneg (mul_nonneg hamp.le (Real.rpow_nonneg hd.1 _))
       (Real.rpow_nonneg hhs.le _)) hsep
     (by simpa [P0, P1, iidProduct, minimaxClampLaw] using
-      Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n)
+      Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n)
     (by simpa [P0, P1, iidProduct, minimaxClampLaw] using
       Causalean.Stat.pi_iid_integrable_sq_dev _ _ hac1 hint1 n)
     hchi0 hchi

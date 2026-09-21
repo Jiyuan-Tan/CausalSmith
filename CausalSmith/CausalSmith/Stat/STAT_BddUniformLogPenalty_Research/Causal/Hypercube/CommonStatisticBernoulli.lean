@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedObservation
-import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareSignedObservation
+public import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
 
 /-!
 # Re-exported common-statistic Bernoulli substrate
@@ -7,6 +8,8 @@ import Causalean.Mathlib.InformationTheory.CommonStatisticBernoulli
 The measure-theoretic construction now lives in Causalean; this module retains
 the accepted run’s original aliases.
 -/
+
+public section
 
 namespace CausalSmith.Stat.BddUniformLogPenalty
 

@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
-import Causalean.Mathlib.Probability.Kernel.GraphMapProd
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
+public import Causalean.Mathlib.Probability.Kernel.GraphMapProd
 
 /-!
 # KL control for affine Gaussian outcome paths
@@ -8,6 +9,8 @@ import Causalean.Mathlib.Probability.Kernel.GraphMapProd
 Kernel and bind representations of the affine outcome channel, used to reduce
 its KL divergence to the equal-variance Gaussian location formula.
 -/
+
+@[expose] public section
 
 noncomputable section
 
@@ -17,7 +20,7 @@ namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 variable {Xspace : Type*} [MeasurableSpace Xspace]
 
-private abbrev XT' (Xspace : Type*) := Xspace × ℝ
+abbrev XT' (Xspace : Type*) := Xspace × ℝ
 
 /-- The scalar innovation channel obtained after expressing an affine outcome
 law in the coordinates of a fixed reference parameter. -/

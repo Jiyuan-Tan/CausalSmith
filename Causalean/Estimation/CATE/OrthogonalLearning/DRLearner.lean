@@ -25,7 +25,7 @@ the function-space view (`Θ := L²(P_X)`) and the finite-dimensional view
 (`Θ := EuclideanSpace ℝ (Fin K)`).
 
 The nuisance space `G := NuisanceVec γ` already carries `AddCommGroup`
-and `Module ℝ` instances (see `Estimation/ATE/AIPWMoment.lean`), so the
+and `Module ℝ` instances (see `Estimation/ATE/Score/AIPWMoment.lean`), so the
 typeclass requirements of `LearningSystem` are met without changing the generic
 framework.
 
@@ -33,10 +33,11 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `prop:est-osl-dr-loss-orthogonal` (lines 143–160).
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Population.NeymanOrthogonal
-import Causalean.Estimation.CATE.Core.PseudoOutcome
-import Causalean.Estimation.CATE.Core.PseudoOutcomeMean
-import Causalean.Estimation.CATE.Core.ConditionalBias
+module
+public import Causalean.Estimation.OrthogonalLearning.Population.NeymanOrthogonal
+public import Causalean.Estimation.CATE.Core.PseudoOutcome
+public import Causalean.Estimation.CATE.Core.PseudoOutcomeMean
+public import Causalean.Estimation.CATE.Core.ConditionalBias
 
 /-!
 Builds the DR-Learner orthogonal-learning system for CATE estimation. It
@@ -47,32 +48,40 @@ and dominated-convergence hypotheses into a `NeymanOrthogLoss` witness for the
 DR-Learner squared loss.
 -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology
   Causalean.PO Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
 
 /-! ## DR-Learner orthogonal-learning system -/
 
-/-- On a measurable covariate space, given [a nuisance-function vector at the truth](hyp:η₀), the [bounded-direction nuisance slice](goal) is the set of all nuisance-function vectors for which [the outcome-regression difference from the truth is uniformly bounded over both treatment arms and covariate values](step:1), and the propensity-score difference from the truth is uniformly bounded over covariate values.
+/-- The [bounded-direction nuisance slice](goal) around [an anchor nuisance
+vector](hyp:η₀) consists of nuisance vectors whose [differences from the
+anchor are uniformly bounded in both arm-specific outcome regressions and the
+propensity score](step:1).
 
 Bounded-direction nuisance slice anchored at `η₀`.
 
-`BoundedNuisanceDirs η₀` is the set of `η : NuisanceVec γ` whose
+`BoundedNuisanceDirs η₀` is the affine slice of `η : NuisanceVec γ` whose
 deviation `η − η₀` has uniformly bounded outcome-regression and
 propensity components.  This is the natural ambient slice for the
 Neyman-orthogonality argument: `dr_scoreZero_of_bounded` (in
-`Estimation/CATE/OrthogonalLearning/DRLearner/Analytic.lean`) discharges the integrated score-zero
-obligation precisely on this set, so taking
+`Estimation/CATE/OrthogonalLearning/DRLearner/Analytic.lean`) discharges the
+integrated score-zero obligation precisely on this set, so taking
 `drLearningSystem.G_set := BoundedNuisanceDirs η₀` lets the abstract
 `LearningSystem`-level orthogonality conclusion be hypothesis-free without
 relying on integral-defaults-to-zero conventions for unbounded
 directions.
 
-The set is a vector subspace of `NuisanceVec γ` (closed under sums and
-scalar multiples) and contains `η₀` itself (witnessed by `Cμ = Ce = 0`).
+It is a translate of the bounded-direction space through `η₀`, not in
+general a vector subspace. It contains `η₀` itself, witnessed by
+`Cμ = Ce = 0`.
 -/
 def BoundedNuisanceDirs
     {γ : Type*} [MeasurableSpace γ] (η₀ : NuisanceVec γ) :
@@ -218,10 +227,10 @@ argument from the natural-language note:
 * `D_θ L_DR(τ₀, η)[ν_θ] = -2 𝔼[(φ_η(Z) − τ₀(X)) · ν_θ(X)]`.
 * Differentiate this in the nuisance directions `ν_η = (ν_μ, ν_e)`.
 * The outcome-regression directions vanish via the conditional Riesz
-  identity (proved in `Estimation/CATE/ConditionalBias.lean` as
+  identity (proved in `Estimation/CATE/Core/ConditionalBias.lean` as
   `cond_exp_residual_at_h` / `phi_eta_minus_phi₀_cond_exp`).
 * The propensity direction vanishes via the conditional residual identity
-  `cond_exp_residual_zero` from `Estimation/ATE/MeanZero.lean`.
+  `cond_exp_residual_zero` from `Estimation/ATE/Score/MeanZero.lean`.
 
 In the abstract `LearningSystem` framework these analytic steps reduce to two
 inputs that any concrete instantiation must supply:
@@ -276,5 +285,6 @@ theorem drNeymanOrthog_witness
   (neymanOrthog_iff_score_deriv_zero _ M hBridge).mpr hScoreFlat
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

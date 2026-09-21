@@ -1,6 +1,9 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BooleanMobius
 
 /-! Odd-degree collapse under outcome-complement symmetry. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.BinaryTruthbound
 

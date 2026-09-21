@@ -1,5 +1,6 @@
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Topology.Order.Compact
+module
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Topology.Order.Compact
 
 /-!
 # Minimum attainment on compact Euclidean sets
@@ -7,6 +8,8 @@ import Mathlib.Topology.Order.Compact
 This module records the compact extreme-value theorem in the precise Euclidean form needed by the
 robust backshift uniform-distance development.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

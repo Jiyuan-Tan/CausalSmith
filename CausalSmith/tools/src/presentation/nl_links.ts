@@ -31,6 +31,7 @@ import { NL_LINKS_VERIFY_REPLY } from "./reply_schemas.js";
 import { writeJsonAtomic } from "./json_io.js";
 import { presentationPrompt } from "./prompt_io.js";
 import { hashEnvBody } from "./tex_anchors.js";
+import { LEAN_DECL_MODIFIERS } from "../shared/lean_syntax.js";
 import {
   assignRowIds,
   isDefinitionLike,
@@ -624,7 +625,7 @@ export function isTheoremLike(statement: string): boolean {
     .replace(/^(?:\s*--[^\n]*\n)+/, "")
     .replace(/@\[[^\]]*\]/g, " ")
     .trimStart();
-  return /^(private\s+|protected\s+|nonrec\s+|noncomputable\s+)*(theorem|lemma)\b/.test(head);
+  return new RegExp(String.raw`^(?:(?:${LEAN_DECL_MODIFIERS})\s+)*(theorem|lemma)\b`).test(head);
 }
 
 /** True only for a definition with an explicitly Prop-valued body. */

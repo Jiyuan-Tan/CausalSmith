@@ -1,11 +1,14 @@
-import Causalean.Mathlib.Analysis.RankOneGramPseudoinverse
-import Causalean.Mathlib.Analysis.LocallyBoundedDerivative
+module
+public import Causalean.Mathlib.Analysis.RankOneGramPseudoinverse
+public import Causalean.Mathlib.Analysis.LocallyBoundedDerivative
 
 /-!
 # Smoothness of the induced rank-one Wald functional
 
 This module composes the algebraic rank-one pseudoinverse with a target direction and an outcome direction.  Its regularity condition is solely a positive isolated upper root of the left Gram matrix and makes no continuity assumption about an eigenvector selector.
 -/
+
+@[expose] public section
 
 open Matrix
 open scoped Matrix.Norms.Elementwise

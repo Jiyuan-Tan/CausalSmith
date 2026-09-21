@@ -23,28 +23,21 @@ reduction
     AsymptoticEquicont  +  consistency  ⟹  StochEquicontAt.
 
 This is the empirical-process step of van der Vaart (1998), Lemma 19.24: the
-chaining/bracketing content lives entirely in `AsymptoticEquicont` (a property
-of the function class), while the passage to the estimator is the elementary
-union-bound argument carried out here.  Establishing `AsymptoticEquicont` for
-concrete classes (finite, bracketing-entropy, …) is the subject of the sibling
-files; the deterministic-curve special case
-(`empProcVec_isLittleOp_of_L2`) is proved here directly from the second-moment
-bound and requires neither chaining nor consistency.
-
-**Deferred (known gap).**  `AsymptoticEquicont` for a *continuum* function class
-via bracketing-entropy chaining is NOT established here — it is a genuine Mathlib
-gap (no chaining / metric-entropy integral machinery upstream).  This layer
-delivers `AsymptoticEquicont ⇒ StochEquicontAt` and the deterministic-curve and
-finite-class instances; the continuum chaining instance remains open and is
-deliberately left as a hypothesis for downstream CLT consumers.
+class-level property is separated from the elementary union-bound argument
+that evaluates it at a consistent estimator.  The deterministic-curve special
+case `empProcVec_isLittleOp_of_L2` is proved here from a second-moment bound.
+The sibling `LipschitzParametric.lean` supplies a continuum finite-dimensional
+Lipschitz instance using covering entropy, Dudley chaining, symmetrization, and
+truncation.  A general bracketing-entropy provider remains outside this file.
 
 References: van der Vaart (1998), §19.4, Lemma 19.24; Theorem 5.41.
 -/
 
-import Causalean.Stat.EmpiricalProcess.Equicontinuity.Process
-import Causalean.Stat.EmpiricalProcess.Equicontinuity.SecondMoment
-import Causalean.Stat.EmpiricalProcess.Equicontinuity.StochEquicont
-import Causalean.Stat.Limit.Convergence
+module
+public import Causalean.Stat.EmpiricalProcess.Equicontinuity.Process
+public import Causalean.Stat.EmpiricalProcess.Equicontinuity.SecondMoment
+public import Causalean.Stat.EmpiricalProcess.Equicontinuity.StochEquicont
+public import Causalean.Stat.Limit.Convergence
 
 /-! # Asymptotic Equicontinuity Modulus
 
@@ -52,9 +45,11 @@ This file separates class-level asymptotic equicontinuity of an empirical
 process from consistency of a random estimator.  It defines
 `AsymptoticEquicont`, proves `empProcVec_atEstimator_tendsto_zero`, packages the
 reduction `stochEquicontAt_of_asymptoticEquicont`, and supplies the deterministic
-curve witness `empProcVec_isLittleOp_of_L2` from second-moment control.  The
-continuum chaining/bracketing theorem is deliberately left as an external
-hypothesis. -/
+curve witness `empProcVec_isLittleOp_of_L2` from second-moment control.
+`LipschitzParametric.lean` supplies the concrete continuum Lipschitz provider;
+this file does not develop a general bracketing-entropy criterion. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -62,12 +57,16 @@ open MeasureTheory ProbabilityTheory Filter Topology
 
 variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
   {μ : Measure Ω} {P : Measure X}
-  {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
-    [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E]
+  {Θ V : Type*} [NormedAddCommGroup Θ]
+  [NormedAddCommGroup V] [InnerProductSpace ℝ V]
+    [FiniteDimensional ℝ V] [MeasurableSpace V] [BorelSpace V]
 
-/-- For [a score family](hyp:ψ), [a reference parameter](hyp:θ₀), [a population probability measure](hyp:P), [a sample-space probability measure](hyp:μ), and [an independent and identically distributed sample from the population](hyp:S), [class-level asymptotic equicontinuity](goal) means that for every $\varepsilon>0$ and every $\eta>0$, there is a $\delta>0$ such that, for all sufficiently large sample sizes, the sample-space probability that some parameter within distance $\delta$ of the reference parameter has centered empirical-process norm exceeding $\varepsilon$ is at most $\eta$.
-
-**Class-level asymptotic equicontinuity** of the score family `ψ` at `θ₀`.
+/-- [Class-level asymptotic equicontinuity](goal) means that every fixed
+empirical-process tolerance is met uniformly on a sufficiently small parameter
+ball, with arbitrarily high eventual probability.  It concerns [a score
+family](hyp:ψ) around [a reference parameter](hyp:θ₀), sampled by [an i.i.d.
+sequence](hyp:S) under [population and sample-space probability
+measures](hyp:P,μ).
 
 For every `ε > 0` and every probability tolerance `η > 0` there is a ball radius
 `δ > 0` such that, eventually in `n`, the probability that the centered
@@ -84,15 +83,15 @@ non-measurable) supremum so that the outer-measure bookkeeping is automatic.
 Unlike `StochEquicontAt`, it makes no reference to an estimator sequence: it is
 a property of the function class and the sample alone, and it is what
 bracketing-entropy / Donsker theorems actually establish. -/
-def AsymptoticEquicont (ψ : E → X → E) (θ₀ : E) (P : Measure X)
+def AsymptoticEquicont (ψ : Θ → X → V) (θ₀ : Θ) (P : Measure X)
     (μ : Measure Ω) (S : IIDSample Ω X μ P) : Prop :=
   ∀ ε : ℝ, 0 < ε → ∀ η : ℝ, 0 < η → ∃ δ : ℝ, 0 < δ ∧
     ∀ᶠ n in atTop,
-      μ {ω | ∃ θ : E, ‖θ - θ₀‖ < δ ∧
+      μ {ω | ∃ θ : Θ, ‖θ - θ₀‖ < δ ∧
           ε < ‖S.empProcVec (fun z => ψ θ z - ψ θ₀ z) n ω‖}
         ≤ ENNReal.ofReal η
 
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+omit [FiniteDimensional ℝ V] [MeasurableSpace V] [BorelSpace V] in
 /-- **Empirical process at the estimator vanishes.** If [the score family `ψ` is asymptotically
 equicontinuous at `θ₀` along the i.i.d. sample `S`](hyp:hAEC) and [`θn` is a sequence of
 estimators consistent for `θ₀`](hyp:hConsistent), then for [any fixed tolerance `ε > 0`](hyp:hε),
@@ -105,8 +104,8 @@ The proof is the textbook union bound: split on `{‖θn − θ₀‖ ≥ δ}` (
 consistency) and `{‖θn − θ₀‖ < δ}` (on which the gap is witnessed by `θ = θn`,
 so the event sits inside the equicontinuity event). -/
 theorem empProcVec_atEstimator_tendsto_zero
-    (ψ : E → X → E) (θ₀ : E)
-    (S : IIDSample Ω X μ P) (θn : ℕ → Ω → E)
+    (ψ : Θ → X → V) (θ₀ : Θ)
+    (S : IIDSample Ω X μ P) (θn : ℕ → Ω → Θ)
     (hAEC : AsymptoticEquicont ψ θ₀ P μ S)
     (hConsistent :
       ∀ ε > 0, Tendsto (fun n => μ {ω | ε < ‖θn n ω - θ₀‖}) atTop (𝓝 0))
@@ -136,7 +135,7 @@ theorem empProcVec_atEstimator_tendsto_zero
   have hsub :
       {ω | ε < ‖S.empProcVec (fun z => ψ (θn n ω) z - ψ θ₀ z) n ω‖}
         ⊆ {ω | δ / 2 < ‖θn n ω - θ₀‖}
-          ∪ {ω | ∃ θ : E, ‖θ - θ₀‖ < δ ∧
+          ∪ {ω | ∃ θ : Θ, ‖θ - θ₀‖ < δ ∧
               ε < ‖S.empProcVec (fun z => ψ θ z - ψ θ₀ z) n ω‖} := by
     intro ω hω
     by_cases hθ : ‖θn n ω - θ₀‖ < δ
@@ -148,14 +147,14 @@ theorem empProcVec_atEstimator_tendsto_zero
   refine le_trans (measure_mono hsub) (le_trans (measure_union_le _ _) ?_)
   exact le_trans (add_le_add hCons_n hAEC_n) hsum_le
 
-omit [FiniteDimensional ℝ E] [MeasurableSpace E] [BorelSpace E] in
+omit [FiniteDimensional ℝ V] [MeasurableSpace V] [BorelSpace V] in
 /-- **Reduction: `StochEquicontAt` from class-level equicontinuity + consistency.** If [the
 score family `ψ` is asymptotically equicontinuous at `θ₀` along the i.i.d. sample
 `S`](hyp:hAEC) and [`θn` is a sequence of estimators consistent for `θ₀`](hyp:hConsistent),
 then [the pair `(ψ, θ₀)` satisfies the stochastic-equicontinuity-at-the-estimator condition
 `StochEquicontAt` along `S` and `θn`](goal).
 
-The `Z`-estimator / GMM CLTs (`zEstimator_clt`, `gmm_asymptotically_linear`)
+The Z-estimator and GMM CLTs (`zEstimator_asymLinear`, `oracleGMM_asymLinear`)
 take `StochEquicontAt` as a hypothesis.  This theorem discharges it from the
 two clean ingredients it actually decomposes into: the Donsker / asymptotic-
 equicontinuity property of the score family (`AsymptoticEquicont`, independent
@@ -163,8 +162,8 @@ of `θn`) and consistency `θn →_p θ₀`.  Any `δ` works since
 `empProcVec_atEstimator_tendsto_zero` already gives the *unconditional* vanishing
 of the gap. -/
 theorem stochEquicontAt_of_asymptoticEquicont
-    (ψ : E → X → E) (θ₀ : E)
-    (S : IIDSample Ω X μ P) (θn : ℕ → Ω → E)
+    (ψ : Θ → X → V) (θ₀ : Θ)
+    (S : IIDSample Ω X μ P) (θn : ℕ → Ω → Θ)
     (hAEC : AsymptoticEquicont ψ θ₀ P μ S)
     (hConsistent :
       ∀ ε > 0, Tendsto (fun n => μ {ω | ε < ‖θn n ω - θ₀‖}) atTop (𝓝 0)) :
@@ -179,6 +178,7 @@ theorem stochEquicontAt_of_asymptoticEquicont
   intro ω hω
   exact hω.2
 
+omit [NormedAddCommGroup Θ] in
 /-- **Deterministic-curve equicontinuity (non-vacuousness witness).** Suppose that for every
 parameter value `θ`, [the score gap `ψ(θ,·) − ψ(θ₀,·)` is measurable and square-integrable
 under `P`](hyp:hψ_meas,hψ_L2). Along a deterministic parameter sequence `θn` whose score
@@ -192,7 +192,7 @@ a fixed curve rather than over a whole ball) and certifies that the
 `AsymptoticEquicont` machinery is satisfiable.  The genuinely uniform
 (sup-over-ball) statement is what requires bracketing-entropy / chaining. -/
 theorem empProcVec_isLittleOp_of_L2 [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
-    (ψ : E → X → E) (θ₀ : E) (θn : ℕ → E)
+    (ψ : Θ → X → V) (θ₀ : Θ) (θn : ℕ → Θ)
     (S : IIDSample Ω X μ P)
     (hψ_meas : ∀ θ, Measurable (fun x => ψ θ x - ψ θ₀ x))
     (hψ_L2 : ∀ θ, MemLp (fun x => ψ θ x - ψ θ₀ x) 2 P)
@@ -201,32 +201,35 @@ theorem empProcVec_isLittleOp_of_L2 [IsProbabilityMeasure μ] [IsProbabilityMeas
       (fun n ω => ‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖)
       (fun _ => (1 : ℝ)) μ := by
   intro ε hε
-  have hεsq : (0 : ℝ) < ε ^ 2 := by positivity
-  have hset : ∀ n,
-      {ω | ε * (fun _ => (1 : ℝ)) n <
-          |‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖|}
-        = {ω | ε < ‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖} := by
-    intro n; ext ω; simp only [Set.mem_setOf_eq, mul_one, abs_norm]
-  simp_rw [hset]
+  have hhalf : 0 < ε / 2 := by positivity
+  have hhalfsq : (0 : ℝ) < (ε / 2) ^ 2 := by positivity
   have hbound : ∀ n,
-      μ {ω | ε < ‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖}
-        ≤ ENNReal.ofReal (∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P)
-            / ENNReal.ofReal (ε ^ 2) := fun n =>
-    empProcVec_chebyshev S (fun z => ψ (θn n) z - ψ θ₀ z)
-      (hψ_meas (θn n)) (hψ_L2 (θn n)) n hε
+      μ {ω | ε ≤ ‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖}
+        ≤ ENNReal.ofReal (∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P) /
+            ENNReal.ofReal ((ε / 2) ^ 2) := by
+    intro n
+    refine (measure_mono ?_).trans
+      (empProcVec_chebyshev S (fun z => ψ (θn n) z - ψ θ₀ z)
+        (hψ_meas (θn n)) (hψ_L2 (θn n)) n hhalf)
+    intro ω hω
+    change ε ≤ ‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖ at hω
+    change ε / 2 < ‖S.empProcVec (fun z => ψ (θn n) z - ψ θ₀ z) n ω‖
+    linarith
   have hdiv : Tendsto (fun n => ENNReal.ofReal (∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P)
-      / ENNReal.ofReal (ε ^ 2)) atTop (𝓝 0) := by
+      / ENNReal.ofReal ((ε / 2) ^ 2)) atTop (𝓝 0) := by
     have hreal : Tendsto
-        (fun n => (∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P) / ε ^ 2) atTop (𝓝 0) := by
-      simpa using hmod.div_const (ε ^ 2)
+        (fun n => (∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P) / (ε / 2) ^ 2)
+        atTop (𝓝 0) := by
+      simpa using hmod.div_const ((ε / 2) ^ 2)
     have heq : ∀ n, ENNReal.ofReal (∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P)
-        / ENNReal.ofReal (ε ^ 2)
-        = ENNReal.ofReal ((∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P) / ε ^ 2) := fun n =>
-      (ENNReal.ofReal_div_of_pos hεsq).symm
+        / ENNReal.ofReal ((ε / 2) ^ 2) =
+          ENNReal.ofReal
+            ((∫ x, ‖ψ (θn n) x - ψ θ₀ x‖ ^ 2 ∂P) / (ε / 2) ^ 2) := fun n =>
+      (ENNReal.ofReal_div_of_pos hhalfsq).symm
     simp_rw [heq]
     rw [← ENNReal.ofReal_zero]
     exact (ENNReal.continuous_ofReal.tendsto 0).comp hreal
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le tendsto_const_nhds hdiv
-    (fun n => zero_le) hbound
+    (fun _ => zero_le) (fun n => by simpa only [mul_one, norm_norm] using hbound n)
 
 end Causalean.Stat

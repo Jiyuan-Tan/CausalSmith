@@ -15,8 +15,9 @@ items `def:po-estimand-residualization-witness`,
 `def:po-estimand-residualized-coefficient`, and `prop:po-estimand-fwl`.
 -/
 
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Population Residualization
 
@@ -24,6 +25,9 @@ This file defines the population residualization primitives used by
 Frisch-Waugh-Lovell style estimand-characterization results. It is independent
 of any particular potential-outcome system so paper-specific modules can
 instantiate the same nuisance-class interface. -/
+
+@[expose] public section
+
 
 namespace Causalean
 namespace Panel

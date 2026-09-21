@@ -15,14 +15,8 @@ the partial-identification bounds of Ghassami-Shpitser-Tchetgen Tchetgen
 * `IntervalForm` — `Set.Icc` interval restatements of all five sandwich bounds.
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Setup
-import Causalean.PO.ID.Partial.Proxy.Assumptions
-import Causalean.PO.ID.Partial.Proxy.Helpers
-import Causalean.PO.ID.Partial.Proxy.WBased
-import Causalean.PO.ID.Partial.Proxy.ZBased
-import Causalean.PO.ID.Partial.Proxy.TwoProxy
-import Causalean.PO.ID.Partial.Proxy.IntervalForm
-
+module
+public import Causalean.PO.ID.Partial.Proxy.IntervalForm
 /-!
 This file is the umbrella module for proximal partial-identification bounds,
 bringing together the setup, assumptions, shared helpers, one-proxy bounds,

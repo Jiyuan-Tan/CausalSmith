@@ -74,8 +74,13 @@ Everything the statements use is defined here, so the interface is self-containe
 variable, no class named only in prose.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
-import Mathlib.RingTheory.Polynomial.Resultant.Basic
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Selector
+public import Mathlib.RingTheory.Polynomial.Resultant.Basic
+
+/-! Public CAD interface declarations for this module. -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -3,12 +3,14 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Minimax.ChiSquared
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Measure.WithDensity
-import Mathlib.MeasureTheory.Constructions.Pi
-import Mathlib.MeasureTheory.Function.L1Space.Integrable
+
+module
+public import Causalean.Stat.Minimax.ChiSquared
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.MeasureTheory.Measure.WithDensity
+public import Mathlib.MeasureTheory.Constructions.Pi
+public import Mathlib.MeasureTheory.Function.L1Space.Integrable
 
 /-!
 # Product / i.i.d. tensorization of the χ²-divergence
@@ -28,6 +30,8 @@ out of the policy-regret converse derivation; the χ² analogue of
 * `chiSqDiv_eq_sum_partition_of_restrict_eq_smul` — the χ²-divergence on a finite
   measurable partition on whose cells `μ` is a constant multiple of `ν`.
 -/
+
+public section
 
 namespace CausalSmith.Mathlib.ProductChiSquared
 
@@ -73,7 +77,7 @@ private lemma chiSqDiv_prod_integrable
     fun z => ((μ₁.prod μ₂).rnDeriv (ν₁.prod ν₂) z).toReal with hP_def
   have hdens : (μ₁.prod μ₂).rnDeriv (ν₁.prod ν₂)
       =ᵐ[ν₁.prod ν₂] fun z => μ₁.rnDeriv ν₁ z.1 * μ₂.rnDeriv ν₂ z.2 :=
-    Causalean.Stat.rnDeriv_prod_eq μ₁ ν₁ μ₂ ν₂ h₁ h₂
+    Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.rnDeriv_prod_eq μ₁ ν₁ μ₂ ν₂ h₁ h₂
   have hPeq : (fun z => P z ^ (2 : ℕ))
       =ᵐ[ν₁.prod ν₂] fun z => (p₁ z.1 ^ (2 : ℕ)) * (p₂ z.2 ^ (2 : ℕ)) := by
     filter_upwards [hdens] with z hz
@@ -130,7 +134,7 @@ lemma chiSqDiv_pi_iid_integrable
         (measurePreserving_piFinSuccAbove (fun _ : Fin (n + 1) => ν) 0).map_eq
       have hac_pi :
           Measure.pi (fun _ : Fin n => μ) ≪ Measure.pi (fun _ : Fin n => ν) :=
-        Causalean.Stat.pi_iid_absolutelyContinuous μ ν hac n
+        Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μ ν hac n
       have hprod : Integrable
           (fun z : Ω × (Fin n → Ω) =>
             (((μ.prod (Measure.pi (fun _ : Fin n => μ))).rnDeriv
@@ -177,7 +181,7 @@ lemma one_add_chiSqDiv_pi_iid_general
         (MeasurableEquiv.piFinSuccAbove (fun _ : Fin (n + 1) => Ω) 0), hμ, hν]
       have hac_pi :
           Measure.pi (fun _ : Fin n => μ) ≪ Measure.pi (fun _ : Fin n => ν) :=
-        Causalean.Stat.pi_iid_absolutelyContinuous μ ν hac n
+        Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous μ ν hac n
       have hint_pi := chiSqDiv_pi_iid_integrable μ ν hac hint n
       rw [Causalean.Stat.chiSqDiv_prod μ ν (Measure.pi (fun _ : Fin n => μ))
         (Measure.pi (fun _ : Fin n => ν)) hac hac_pi hint hint_pi, ih, pow_succ]

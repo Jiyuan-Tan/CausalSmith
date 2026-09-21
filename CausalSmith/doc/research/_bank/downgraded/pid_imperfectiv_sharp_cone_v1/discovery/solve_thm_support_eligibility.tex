@@ -1,0 +1,101 @@
+%%% FIELD proof-support-eligibility
+Fix \(a\in\{d,e\}\), \(b\in\{-1,+1\}\), and \(r\in\mathcal R\).  Assumption \texttt{ass:target-overlap} gives \(P(D\ne a)>0\).  By the definitions of \(\mathcal J\) and \(p_j\), the missing-cell index set is finite and every cell \(j\in\mathcal M_a\) has \(p_j>0\); in particular, every such cell has positive conditional weight given \(D\ne a\).  The set \(\mathcal F_{a,b}^r(P)\) in \texttt{def:branch-polytope} is the intersection of a finite box with finitely many closed half-spaces.  It is therefore convex and, whenever nonempty, compact.
+
+Hold \(x_a\in\mathcal F_{a,b}^r(P)\) fixed in the optimization of \texttt{def:interior-slack}.  The constraints on distinct coordinates of \(t_a\) separate, and the coefficient of every \(t_{a,j}\) in the objective is one.  Hence
+\[
+\begin{aligned}
+\max_{t_a}\sum_{j\in\mathcal M_a}t_{a,j}
+&=\sum_{j\in\mathcal M_a}
+  \max\{t:0\le t\le x_{a,j}-\ell_a,\ t\le u_a-x_{a,j}\} \\
+&=\sum_{j\in\mathcal M_a}
+  \min\{x_{a,j}-\ell_a,\ u_a-x_{a,j}\}.
+\end{aligned}
+\tag{1}
+\]
+Each summand in (1) is nonnegative because \(x_{a,j}\in[\ell_a,u_a]\), and it is positive exactly when \(x_{a,j}\in(\ell_a,u_a)\).  Compactness makes the outer maximum over \(x_a\) attainable when the polytope is nonempty, while \texttt{def:interior-slack} assigns value \(-\infty\) to the empty polytope.  It follows that
+\[
+\tau_{a,b}^r(P)>0
+\quad\Longleftrightarrow\quad
+\text{some }x_a\in\mathcal F_{a,b}^r(P)
+\text{ has at least one coordinate in }(\ell_a,u_a).
+\tag{2}
+\]
+
+We next prove that (2) is exactly the aggregate-support criterion.  Consider first a bounded completion satisfying
+\(\operatorname{Supp}_Q(Y_a\mid D\ne a)=[\ell_a,u_a]\), and let
+\(x_{a,j}=\mathbb E_Q[Y_a\mid(D,Z)=c_j]\) for \(j\in\mathcal M_a\).  Lemma \texttt{lem:branch-reduction}, using consistency and the correlation restriction, places this vector in one of the branch polytopes; restrict attention to the stated branch \(b\).  If all of its coordinates were box endpoints, boundedness would give, cell by cell,
+\[
+\begin{aligned}
+x_{a,j}=\ell_a
+&\Longrightarrow
+\mathbb E_Q[Y_a-\ell_a\mid(D,Z)=c_j]=0
+\Longrightarrow Q(Y_a=\ell_a\mid(D,Z)=c_j)=1, \\
+x_{a,j}=u_a
+&\Longrightarrow
+\mathbb E_Q[u_a-Y_a\mid(D,Z)=c_j]=0
+\Longrightarrow Q(Y_a=u_a\mid(D,Z)=c_j)=1.
+\end{aligned}
+\tag{3}
+\]
+The last implication on each line is the elementary fact that a nonnegative random variable with expectation zero vanishes almost surely.  Since the grid is finite, conditioning further only on \(D\ne a\) forms a finite mixture of these cell laws.  Its support would be contained in \(\{\ell_a,u_a\}\), contradicting the interval support in \texttt{ass:counterfactual-support}, because \(\ell_a<u_a\) by \texttt{ass:factual-support}.  Thus an exact-support completion must have an interior coordinate, and (2) yields \(\tau_{a,b}^r(P)>0\).
+
+Conversely, suppose \(x_a\in\mathcal F_{a,b}^r(P)\) and \(x_{a,j_0}\in(\ell_a,u_a)\) for some \(j_0\in\mathcal M_a\).  Set
+\[
+q=\frac{x_{a,j_0}-\ell_a}{u_a-\ell_a}\in(0,1).
+\tag{4}
+\]
+We explicitly construct a random variable \(V_q\in[0,1]\) with mean \(q\) and topological support \([0,1]\).  If \(q\le 1/2\), let its law be
+\(2q\,\operatorname{Unif}[0,1]+(1-2q)\delta_0\); if \(q\ge 1/2\), let its law be
+\(2(1-q)\,\operatorname{Unif}[0,1]+(2q-1)\delta_1\).  The mixture coefficients are nonnegative and sum to one.  Direct calculation gives
+\[
+\mathbb E[V_q]
+=
+\begin{cases}
+2q(1/2)=q,&q\le 1/2,\\
+2(1-q)(1/2)+(2q-1)=q,&q\ge 1/2,
+\end{cases}
+\tag{5}
+\]
+and the uniform component has strictly positive weight because \(q\in(0,1)\), so the support is \([0,1]\).  On cell \(j_0\), assign
+\(Y_a=\ell_a+(u_a-\ell_a)V_q\).  By (4)--(5), this conditional law has mean \(x_{a,j_0}\) and support \([\ell_a,u_a]\).  On every other missing cell \(j\), assign the two-point law
+\[
+Q(Y_a=u_a\mid(D,Z)=c_j)
+=\frac{x_{a,j}-\ell_a}{u_a-\ell_a},
+\qquad
+Q(Y_a=\ell_a\mid(D,Z)=c_j)
+=\frac{u_a-x_{a,j}}{u_a-\ell_a}.
+\tag{6}
+\]
+The denominators in (4) and (6) are positive by \(\ell_a<u_a\).  These probabilities are in \([0,1]\), sum to one, and give conditional mean \(x_{a,j}\).  Cell \(j_0\) has positive conditional weight given \(D\ne a\), so the finite mixture over all missing cells has support \([\ell_a,u_a]\): it is contained in that interval by construction and contains the support of the positive-weight \(j_0\)-component.  The factual conditional laws are unchanged, so \texttt{ass:factual-support} supplies the factual half of the aggregate equality.  Only missing-cell conditional distributions, not their means, have been selected; consequently the score inequalities defining \(\mathcal F_{a,b}^r(P)\) remain true.  Together with the converse construction in \texttt{lem:branch-reduction}, this is a bounded branch completion satisfying exact aggregate support.  This proves the first equivalence.
+
+For the equivalent geometric formulation, condition on \(\mathcal F_{a,b}^r(P)\ne\varnothing\).  If it has no point with an interior coordinate, each of its points is a vertex of the box.  If it contained two distinct vertices \(v\) and \(w\), convexity would put \((v+w)/2\) in the polytope, and any coordinate on which \(v\) and \(w\) differ would be strictly between \(\ell_a\) and \(u_a\), a contradiction.  Thus the polytope is a singleton box vertex.  The converse is immediate.  The nonemptiness qualification is necessary because the empty polytope is not a singleton and has \(\tau_{a,b}^r(P)=-\infty\).
+
+It remains to establish the sharp closure.  For this eligible branch choose \(x_a^\circ\in\mathcal F_{a,b}^r(P)\) with an interior coordinate, as guaranteed by (2).  For arbitrary \(x_a\in\mathcal F_{a,b}^r(P)\) and \(0<\delta<1\), convexity gives
+\[
+x_a(\delta)=(1-\delta)x_a+\delta x_a^\circ
+\in\mathcal F_{a,b}^r(P).
+\tag{7}
+\]
+The coordinate that is interior for \(x_a^\circ\) is also interior for \(x_a(\delta)\).  The construction above therefore realizes \(x_a(\delta)\) with exact aggregate support.  The associated arm mean satisfies
+\[
+c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}(\delta)
+\longrightarrow
+c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}
+\qquad(\delta\downarrow0).
+\tag{8}
+\]
+By \texttt{def:arm-endpoints}, the continuous linear image of the nonempty compact convex polytope is the compact interval
+\[
+\left\{c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}:
+x_a\in\mathcal F_{a,b}^r(P)\right\}
+=[L_{a,b}^r(P),U_{a,b}^r(P)].
+\tag{9}
+\]
+Every exact-support branch mean lies in (9), and (7)--(8) show that exact-support branch means are dense in (9).  Their closure is therefore precisely this interval.  Finally, \texttt{lem:branch-reduction} expresses the correlation predicate as the union of the two sign branches, and the argument above shows that exact support retains exactly the branches in \(\mathcal B_a^r(P)\) from \texttt{def:eligible-branches}.  Let \(\mathscr S_{a,b}^r(P)\) denote the exact-support arm means attainable in branch \(b\), with this set taken to be empty when the branch is ineligible.  Closure commutes with the finite union over the two branches.  Using \texttt{def:arm-closure} yields
+\[
+\overline{\bigcup_{b\in\{-1,+1\}}\mathscr S_{a,b}^r(P)}
+=\bigcup_{b\in\mathcal B_a^r(P)}[L_{a,b}^r(P),U_{a,b}^r(P)]
+=\mathcal I_a^r(P).
+\tag{10}
+\]
+Thus the displayed set is the sharp arm-mean closure: every compatible mean is contained in it, and every point in it is a limit of compatible exact-support means.

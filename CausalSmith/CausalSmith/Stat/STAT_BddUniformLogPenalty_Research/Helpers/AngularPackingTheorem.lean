@@ -1,14 +1,15 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLaw
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularCellMass
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLocality
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialOutcome
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularHolder
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialFibre
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAssembly
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialKL
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPackingOnePointKL
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaledDelta
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLaw
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularCellMass
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularLocality
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadial
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialOutcome
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularHolder
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialFibre
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialAssembly
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularRadialKL
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularPackingOnePointKL
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularScaledDelta
 
 /-!
 # Angular hard-family certificate
@@ -17,6 +18,8 @@ This downstream module states the complete finite packing certificate and its
 eventual fixed-constant construction.  Keeping it downstream of `AngularLaw`
 lets the assembly use the faithful CTY-law constructor without an import cycle.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set Filter
 open scoped ENNReal

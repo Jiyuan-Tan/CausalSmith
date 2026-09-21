@@ -39,10 +39,11 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 `def:est-osl-second-order-bias`.
 -/
 
-import Causalean.Estimation.CATE.Core.ConditionalBias
-import Causalean.Estimation.ATE.Remainder.Identity
-import Causalean.Stat.Orthogonality.ConditionalOp
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+module
+public import Causalean.Estimation.CATE.Core.ConditionalBias
+public import Causalean.Estimation.ATE.Remainder.Identity
+public import Causalean.Stat.Limit.StochasticOrderEnvelope
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
 
 /-! # Second-Order CATE Bias
 
@@ -52,6 +53,8 @@ first converts the weighted pseudo-outcome bias into a conditional-bias
 integral over covariates with `integral_phiDiff_mul_eq_condBias` and then
 bounds that integral in `abs_integral_phiDiff_mul_le_product` by a product of
 outcome-regression and propensity-score error norms. -/
+
+public section
 
 namespace Causalean
 namespace Estimation

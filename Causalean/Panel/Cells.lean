@@ -5,13 +5,12 @@ Authors: Jiyuan Tan
 
 # Observed panel cells with positive normalized weights
 
-This file formalizes the substrate of Definition 2.1 of
-`CausalSmith/doc/general_projection_carryover_note.tex`: a finite collection of
-**observed unit-period cells** `R ⊆ I × T` together with strictly positive
-weights `ω_r` summing to 1 over `R`.
+This file formalizes a finite collection of **observed unit-period cells**
+`R ⊆ I × T` together with strictly positive weights `ω_r` summing to 1
+over `R`.
 
-As of the `Causalean/Panel/Weighted/` refactor, `Cells I T` is now a thin specialization
-of the generic `Causalean.Panel.Weighted.WeightedSupport (I × T)`.  All algebraic
+`Cells I T` is a thin specialization of the generic
+`Causalean.Stat.Weighted.WeightedSupport (I × T)`. All algebraic
 substrate (`ip`, `ipMat`, `proj`, `residualize`, `tildeX`, `tildeXVec`,
 `Q_XX`, `rhsVec`, `thetaHat`, `RankCondition`) is inherited transparently
 through the `abbrev`, and dot-notation `c.ip A B`, `c.tildeX H X`, etc.,
@@ -27,16 +26,16 @@ The panel-specific `balanced` constructor (which depends on
   `R = I × T`, `ω = 1 / (|I| · |T|)`.
 -/
 
-import Causalean.Panel.Weighted.Support
-import Mathlib.Data.Fintype.Prod
+module
+public import Causalean.Stat.Weighted.Support
+public import Mathlib.Data.Fintype.Prod
 
 /-! # Observed Panel Cells
 
 This file provides the observed-cell substrate for panel regressions: a finite
 set of observed unit-period cells with strictly positive normalized weights. It
 specializes the generic weighted-support infrastructure to panel cell indices
-and supplies the balanced-panel constructor. It mirrors Definition 2.1 of the
-projection note.
+and supplies the balanced-panel constructor.
 
 **Relation to `Causalean.Panel.CellBridge`.** Both files use the word *cell*,
 but for different objects. Here a cell is a **discrete index** `r = (i, t) ∈ I × T`
@@ -44,7 +43,9 @@ carrying a positive normalized weight — a finite-weighted-support object with 
 measure theory. In `CellBridge` a cell is a **measurable level set**
 `{ω | G ω = g}` of an observable map on a probability space. The two share no
 declarations and neither imports the other; the only common substrate is
-`Causalean.Panel.Weighted.IndicatorSpan`. -/
+`Causalean.Stat.Weighted.IndicatorSpan`. -/
+
+@[expose] public section
 
 open scoped BigOperators
 
@@ -53,18 +54,18 @@ namespace Panel
 
 variable (I T : Type*)
 
-/-- [For finite sets of units and periods with decidable equality](hyp:I,T), [the observed cells of a panel](goal) are a finite collection of unit-period pairs equipped with strictly positive weights that sum to one over that collection.
+/-- [For finite sets of units and periods with decidable equality](hyp:I,T),
+[the observed cells of a panel](goal) are a finite collection of unit-period
+pairs equipped with strictly positive weights that sum to one.
 
-This is a thin specialization of `Causalean.Panel.Weighted.WeightedSupport` to the
+This is a thin specialization of `Causalean.Stat.Weighted.WeightedSupport` to the
 product index `R = I × T`.  All algebraic properties (`weight_nonneg`,
 `sum_weight_univ`, `sum_weight_univ_eq_one`, …) and the entire FWL/WLS
 substrate (`ip`, `ipMat`, `proj`, `residualize`, `tildeX`, `tildeXVec`,
 `Q_XX`, `rhsVec`, `thetaHat`, `RankCondition`) are inherited transparently
-through the abbreviation.
-
-Mirrors Definition 2.1 of `CausalSmith/doc/general_projection_carryover_note.tex`. -/
+through the abbreviation. -/
 abbrev Cells [Fintype I] [Fintype T] [DecidableEq I] [DecidableEq T] : Type _ :=
-  Causalean.Panel.Weighted.WeightedSupport (I × T)
+  Causalean.Stat.Weighted.WeightedSupport (I × T)
 
 namespace Cells
 

@@ -4,11 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.SuperPopulation.Basic
-import Causalean.Experimentation.SuperPopulation.CLT
-import Causalean.Experimentation.SuperPopulation.HAC
-import Causalean.Experimentation.SuperPopulation.HACConsistency
-import Causalean.Experimentation.SuperPopulation.MeanCLT
+module
+public import Causalean.Experimentation.SuperPopulation.Basic
+public import Causalean.Experimentation.SuperPopulation.CLT
+public import Causalean.Experimentation.SuperPopulation.HAC
+public import Causalean.Experimentation.SuperPopulation.Network
 
 /-!
 # Super-population experimentation

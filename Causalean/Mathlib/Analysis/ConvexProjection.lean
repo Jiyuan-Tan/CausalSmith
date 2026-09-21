@@ -3,16 +3,18 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.Convex.Topology
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Analysis.InnerProductSpace.Projection.Minimal
-import Mathlib.Algebra.Order.BigOperators.Ring.Finset
-import Mathlib.Data.Real.StarOrdered
-import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
-import Mathlib.LinearAlgebra.Matrix.Basis
-import Mathlib.LinearAlgebra.Matrix.PosDef
-import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
-import Mathlib.Topology.Instances.Matrix
+
+module
+public import Mathlib.Analysis.Convex.Topology
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Analysis.InnerProductSpace.Projection.Minimal
+public import Mathlib.Algebra.Order.BigOperators.Ring.Finset
+public import Mathlib.Data.Real.StarOrdered
+public import Mathlib.LinearAlgebra.Matrix.NonsingularInverse
+public import Mathlib.LinearAlgebra.Matrix.Basis
+public import Mathlib.LinearAlgebra.Matrix.PosDef
+public import Mathlib.MeasureTheory.Constructions.BorelSpace.Basic
+public import Mathlib.Topology.Instances.Matrix
 
 /-!
 # Projection onto closed convex sets
@@ -22,6 +24,8 @@ space, together with its variational, contraction, continuity, and measurability
 also specializes the construction to a Loewner interval of real matrices, using Frobenius distance,
 and supplies the associated matrix inequalities.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.Analysis
 
@@ -244,14 +248,19 @@ theorem loewnerSet_posDef (hc : 0 < c) {G : Matrix (Fin p) (Fin p) ℝ}
     Matrix.PosDef.one.smul (α := ℝ) hc
   convert hbase.add_posSemidef hG using 1; ext i j; simp
 
-private theorem mtx_image_isClosed (p : ℕ) (c C : ℝ) :
+/-- Given [a matrix dimension](hyp:p) and [two real endpoints](hyp:c,C), [the coordinate image of
+the corresponding Loewner interval is closed](goal). -/
+theorem mtx_image_isClosed (p : ℕ) (c C : ℝ) :
     IsClosed (mtx p '' loewnerSet p c C) := by
   have he : (mtx p : Matrix (Fin p) (Fin p) ℝ → EuclideanSpace ℝ (Fin p × Fin p)) =
       mtxHomeo p := rfl
   rw [he]
   exact (mtxHomeo p).isClosed_image.mpr (loewnerSet_isClosed p c C)
 
-private noncomputable def loewnerProjAux (p : ℕ) (c C : ℝ) (hcC : c ≤ C) :
+/-- For ordered lower and upper eigenvalue bounds, this auxiliary map sends a real square matrix
+to its nearest matrix in the associated Loewner interval. It implements the projection through a
+Euclidean coordinate representation and is used by the total Loewner projection. -/
+noncomputable def loewnerProjAux (p : ℕ) (c C : ℝ) (hcC : c ≤ C) :
     Matrix (Fin p) (Fin p) ℝ → Matrix (Fin p) (Fin p) ℝ := fun G =>
   (mtx p).symm (convexProj (mtx p '' loewnerSet p c C)
     ((loewnerSet_nonempty p c C hcC).image (mtx p))
@@ -275,10 +284,10 @@ theorem loewnerProj_mem (hcC : c ≤ C) (G : Matrix (Fin p) (Fin p) ℝ) :
   rcases hm with ⟨S, hS, heq⟩
   simpa [← heq] using hS
 
-/-- **Loewner projection is a nonexpansive (nearest-point) map.** For [ordered interval endpoints
-`c ≤ C`](hyp:hcC), if [a target matrix already lies in the Loewner interval `[cI, CI]`](hyp:hS),
-then [projecting an arbitrary matrix onto that interval, in Frobenius geometry, does not increase
-its Frobenius distance to the in-interval target matrix](goal). -/
+/-- **Loewner projection decreases distance to each feasible target.** For [ordered interval
+endpoints `c ≤ C`](hyp:hcC), if [a target matrix already lies in the Loewner interval
+`[cI, CI]`](hyp:hS), then [projecting an arbitrary matrix onto that interval, in Frobenius
+geometry, does not increase its Frobenius distance to the in-interval target matrix](goal). -/
 theorem loewnerProj_frobDist_le (hcC : c ≤ C)
     (G S : Matrix (Fin p) (Fin p) ℝ) (hS : S ∈ loewnerSet p c C) :
     frobDist (loewnerProj p c C G) S ≤ frobDist G S := by

@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
-import Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic.API
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransform
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.JmsComparator
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.API
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 
 /-!
 # Recorded local-to-Gaussian open problem
@@ -9,11 +10,12 @@ import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
 Nothing in this file asserts a solution of the open problem.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open MeasureTheory
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 variable {Xspace : Type*} [MeasurableSpace Xspace]

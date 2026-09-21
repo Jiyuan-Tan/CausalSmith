@@ -8,7 +8,7 @@ Authors: Jiyuan Tan
 Estimator-agnostic versions of the studentized-CLT and Wald-coverage
 arguments.  These abstract the concrete TRAE-DR estimator
 (`Causalean/Estimation/NPIV/DR/AsymptoticNormal.lean`) into an arbitrary
-sequence `Xn` (the rescaled estimator) together with a variance-estimator
+sequence `Xn` (the rescaled estimator) together with a standard-error estimator
 sequence `σ_hat`, and into an arbitrary studentized statistic `Sn` for the
 Wald-coverage half.
 
@@ -24,9 +24,10 @@ Wald-coverage half.
   studentized interval event, then `coverProb → N(0,1)(Icc (-z) z)`.
 -/
 
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.Limit.ContinuousMapping
-import Mathlib.MeasureTheory.Measure.Portmanteau
+module
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.Limit.ContinuousMapping
+public import Mathlib.MeasureTheory.Measure.Portmanteau
 
 /-!
 This file provides estimator-agnostic studentized CLT and Wald-interval coverage
@@ -43,6 +44,8 @@ from `Xn ⇒ N(0, σ₀ ^ 2)` and `σ_hat →ₚ σ₀ > 0`.  The coverage theor
 `Tendsto_dist.wald_coverage` then transfers the limiting probability of
 `Sn ∈ Icc (-z) z` to an abstract coverage sequence via a bridge hypothesis.
 -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -99,7 +102,7 @@ theorem gaussianMeasure_zero_one_frontier_Icc
 /-! ## Generic studentized CLT -/
 
 /-- **Generic studentized convergence.** Let `Xn` be a real-valued rescaled-estimator sequence
-and `σ_hat` a variance-estimator sequence, with [`σ₀` a positive scale](hyp:hσ₀_pos). Suppose
+and `σ_hat` a standard-error estimator sequence, with [`σ₀` a positive scale](hyp:hσ₀_pos). Suppose
 [`Xn` is measurable at every sample size](hyp:hXn) and [it converges in distribution to the
 project's Gaussian law with mean zero and variance `σ₀²`](hyp:hX), that [`σ_hat` converges in
 probability to `σ₀`](hyp:hσ), and [the studentized ratio `Xn / σ_hat` is measurable at every

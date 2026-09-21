@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedLawChainRule
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedFilter
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedLawChainRule
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.ObservedFilter
 
 set_option linter.style.longLine false
 
@@ -9,6 +10,8 @@ set_option linter.style.longLine false
 This module connects the generic finite-word chain rule to the chronological signed-depth
 path representation.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 

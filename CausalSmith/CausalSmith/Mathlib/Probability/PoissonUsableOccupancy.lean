@@ -1,9 +1,10 @@
-import Mathlib.Algebra.Order.Chebyshev
-import Mathlib.Analysis.Complex.ExponentialBounds
-import Mathlib.Analysis.SpecialFunctions.Exp
-import Mathlib.MeasureTheory.Integral.Prod
-import Mathlib.MeasureTheory.Integral.Pi
-import Mathlib.Probability.Distributions.Poisson.Basic
+module
+public import Mathlib.Algebra.Order.Chebyshev
+public import Mathlib.Analysis.Complex.ExponentialBounds
+public import Mathlib.Analysis.SpecialFunctions.Exp
+public import Mathlib.MeasureTheory.Integral.Prod
+public import Mathlib.MeasureTheory.Integral.Pi
+public import Mathlib.Probability.Distributions.Poisson.Basic
 
 /-!
 # Independent-Poisson usable-occupancy bounds
@@ -14,6 +15,8 @@ quadratically in its intensity, while a heavy cell pays linearly.  The result
 combines these local estimates into the birthday-scale exponent
 `n^2 / max n d` with explicit conservative constants.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Mathlib.Probability
 

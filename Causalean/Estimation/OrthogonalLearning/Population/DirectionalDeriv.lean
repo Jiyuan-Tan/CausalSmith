@@ -6,7 +6,8 @@ Authors: Jiyuan Tan
 # Directional-derivative bundles for a `LearningSystem`
 
 Mirrors `Estimation.OrthogonalMoments.HasDirDeriv`, but for the loss `ℓ : Z → Θ → G → ℝ`
-of an orthogonal statistical-learning system rather than a moment functional.  We carry three bundles:
+of an orthogonal statistical-learning system rather than a moment functional.
+We carry three bundles:
 
 * `HasDirDerivTheta S g`   — pointwise dir derivative of `θ ↦ ℓ z θ g` along
                               the segment `θ₀ → θ`.
@@ -24,7 +25,8 @@ See `doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 this definition) and the preamble of `def:est-osl-neyman-loss`.
 -/
 
-import Causalean.Estimation.OrthogonalLearning.Setup
+module
+public import Causalean.Estimation.OrthogonalLearning.Setup
 
 /-! # Directional Derivatives for Losses
 
@@ -37,6 +39,8 @@ for population risks.
 The public bundles are `HasDirDerivTheta`, `HasDirDerivG`, and
 `HasMixedDirDeriv`. The predicate `FirstOrderInequality` records the integrated
 target-direction first-order condition at the true nuisance. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -57,9 +61,10 @@ from `θ₀` to `θ` at nuisance `g` converges to `dℓ_θ θ z` as the step siz
 zero](hyp:pointwise_tendsto), and [measurability of `dℓ_θ θ` in the observation for every target
 `θ`](hyp:dℓ_θ_meas).
 
-`dℓ_θ θ z` is the directional derivative *value* at `(θ₀, g)` in the
-direction `θ - θ₀`.  In the integrated form
-`∫ z, dℓ_θ θ z ∂P_Z = D_θ L(θ₀, g)[θ - θ₀]`. -/
+`dℓ_θ θ z` is the pointwise directional derivative value at `(θ₀, g)` in the
+direction `θ - θ₀`. Its integral is an integral of these pointwise derivative values.
+Identifying that integral with a directional derivative of the population risk requires a
+separate limit--integral interchange theorem, which this structure does not supply. -/
 structure HasDirDerivTheta
     (S : LearningSystem Ω μ Z P_Z Θ G) (g : G) where
   dℓ_θ : Θ → Z → ℝ
@@ -69,12 +74,17 @@ structure HasDirDerivTheta
       (𝓝[≠] 0) (𝓝 (dℓ_θ θ z))
   dℓ_θ_meas         : ∀ θ, Measurable (dℓ_θ θ)
 
-/-- Pointwise directional derivative of `g ↦ ℓ z θ₀ g` along the segment from
-`g₀` to `g`, packaged with the pointwise tendsto witness and measurability.
+/-- **Directional derivative of the learning-system loss in the nuisance coordinate.** Bundles
+[a candidate pointwise directional-derivative function](hyp:dℓ_g), the witness that [the loss's
+difference quotient along the segment from the distinguished nuisance to any candidate nuisance
+converges pointwise to that function](hyp:pointwise_tendsto), and [measurability of each resulting
+observation function](hyp:dℓ_g_meas).
 
-`dℓ_g g z` is the directional derivative *value* at `(θ₀, g₀)` in the
-nuisance direction `g - g₀`.  In the integrated form
-`∫ z, dℓ_g g z ∂P_Z = D_g L(θ₀, g₀)[g - g₀]`. -/
+`dℓ_g g z` is the pointwise directional derivative value at `(θ₀, g₀)` in the
+nuisance direction `g - g₀`. Its integral is an integral of these pointwise derivative
+values. Identifying that integral with a directional derivative of the population risk
+requires a separate limit--integral interchange theorem, which this structure does not
+supply. -/
 structure HasDirDerivG
     (S : LearningSystem Ω μ Z P_Z Θ G) where
   dℓ_g : G → Z → ℝ
@@ -99,10 +109,10 @@ data — one bundle `Dθ_at g` for each accessible nuisance `g ∈ G_set ∪ {g�
 `(Dθ_at g').dℓ_θ θ z` at `g' := g₀ + t • (g - g₀)` differentiates in `t`
 to `dℓ_θg θ g z` at `t = 0`.
 
-Carrying the family is what the natural-language note's
-`D_g D_θ L(θ₀, g₀)[ν_θ, ν_g]` requires: the inner derivative is taken
-*at the truth* `θ₀`, but the function being differentiated outside is
-itself a directional derivative anchored at the perturbed nuisance.
+Carrying the family supplies the pointwise derivative data that a future
+limit--integral bridge would need to express the natural-language note's
+`D_g D_θ L(θ₀, g₀)[ν_θ, ν_g]`. The structure itself asserts only pointwise
+derivative facts.
 
 `dℓ_θg θ g z` is the mixed directional derivative value at `(θ₀, g₀)` in
 directions `(θ - θ₀, g - g₀)`. -/
@@ -119,12 +129,12 @@ structure HasMixedDirDeriv
       (𝓝[≠] 0) (𝓝 (dℓ_θg θ g z))
   dℓ_θg_meas         : ∀ θ g, Measurable (dℓ_θg θ g)
 
-/-- For [an orthogonal statistical-learning system](hyp:S) and [target-direction derivative
-data for its loss at the distinguished nuisance function](hyp:Dθ), the [population first-order
-inequality](goal) holds exactly when, for every target in the system's target class, the integral
-under the population observation law of the corresponding target directional derivative is
-nonnegative. This is the population KKT condition characterising the distinguished target as a
-minimizer of population risk at the distinguished nuisance over the target class.
+/-- The [population first-order inequality](goal) for [an orthogonal statistical-learning
+system](hyp:S) and [target-derivative data at the distinguished nuisance](hyp:Dθ) requires every
+candidate target's integrated directional derivative at the distinguished target to be
+nonnegative. It is a directly assumed stationarity condition; without further differentiability
+and risk-convexity hypotheses, it does not characterize the distinguished target as a global
+minimizer.
 
 Parameterised over `Dθ : HasDirDerivTheta S S.g₀` so that the integral can
 be expressed using the DD datum already attached to the truth. -/

@@ -17,7 +17,7 @@ The five Layer A propositions (NL doc A5.1–A5.5):
 * `raw_weight_sum_eq_VD` — denominator identity `Λ P = V_D P`.
 * `twfe_numerator_eq_lambda_delta_sum` — numerator identity.
 * `weights_sum_one` — normalized weights sum to one (uses `hVD_pos`).
-* `twfe_eq_weighted_avg` — totalized weighted-average identity.
+* `twfe_eq_weighted_avg` — weighted-average identity under positive variance.
 
 NL artifact:
 `doc/basic_concepts/po/estimand_characterization/goodman_bacon_twfe_timing.md`.
@@ -30,12 +30,14 @@ causal-characterization corollaries live in `Causal.lean` (`Δ_TN_eq_ATT`,
 identity below in `CausalDecomposition.lean`.
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Pairwise
-import Mathlib.Algebra.Order.BigOperators.Group.Finset
-import Mathlib.Data.Fintype.BigOperators
-import Mathlib.Tactic.Linarith
-import Mathlib.Tactic.Ring
-import Mathlib.Tactic.FieldSimp
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Pairwise
+public import Mathlib.Algebra.Order.BigOperators.Group.Finset
+public import Mathlib.Data.Fintype.BigOperators
+public import Mathlib.Tactic.Linarith
+public import Mathlib.Tactic.Ring
+public import Mathlib.Tactic.FieldSimp
+
 /-! # Goodman-Bacon Decomposition
 
 This file establishes the finite staggered-adoption Goodman-Bacon algebraic
@@ -44,6 +46,8 @@ comparisons. It proves nonnegativity of the raw comparison weights, the
 denominator and numerator identities, normalization of the weights under
 positive residualized-treatment variance, and the corresponding weighted-average
 identity. -/
+
+public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -71,7 +75,7 @@ theorem weights_nonneg (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) :
     have hsum_nonneg : 0 ≤ ∑ t : Fin T, D P g t := by
       refine Finset.sum_nonneg' ?_
       intro t
-      by_cases hD : AdoptionDate.le (P.A g) t
+      by_cases hD : P.A g ≤ (t : WithTop (Fin T))
       · simp [D, hD]
       · simp [D, hD]
     simpa using (mul_nonneg (inv_nonneg.mpr hTnonneg) hsum_nonneg)
@@ -82,7 +86,7 @@ theorem weights_nonneg (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) :
       have hsum_le' : (∑ t : Fin T, D P g t) ≤ (∑ t : Fin T, (1 : ℝ)) := by
         refine Finset.sum_le_sum ?_
         intro t ht
-        by_cases hD : AdoptionDate.le (P.A g) t
+        by_cases hD : P.A g ≤ (t : WithTop (Fin T))
         · simp [D, hD]
         · simp [D, hD]
       simpa using hsum_le'
@@ -107,11 +111,11 @@ theorem weights_nonneg (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) :
           have hsum_le : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
             refine Finset.sum_le_sum ?_
             intro t ht
-            by_cases htu : AdoptionDate.le (P.A u) t
-            · have htg : AdoptionDate.le (P.A g) t :=
+            by_cases htu : P.A u ≤ (t : WithTop (Fin T))
+            · have htg : P.A g ≤ (t : WithTop (Fin T)) :=
                 le_of_lt (lt_of_lt_of_le hlt htu)
               simp [D, htu, htg]
-            · by_cases htg : AdoptionDate.le (P.A g) t
+            · by_cases htg : P.A g ≤ (t : WithTop (Fin T))
               · simp [D, htu, htg]
               · simp [D, htu, htg]
           have hsum_le' : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
@@ -155,11 +159,11 @@ theorem weights_nonneg (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) :
           have hsum_le : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
             refine Finset.sum_le_sum ?_
             intro t ht
-            by_cases htu : AdoptionDate.le (P.A u) t
-            · have htg : AdoptionDate.le (P.A g) t :=
+            by_cases htu : P.A u ≤ (t : WithTop (Fin T))
+            · have htg : P.A g ≤ (t : WithTop (Fin T)) :=
                 le_of_lt (lt_of_lt_of_le hlt htu)
               simp [D, htu, htg]
-            · by_cases htg : AdoptionDate.le (P.A g) t
+            · by_cases htg : P.A g ≤ (t : WithTop (Fin T))
               · simp [D, htu, htg]
               · simp [D, htu, htg]
           have hsum_le' : (∑ t : Fin T, D P u t) ≤ (∑ t : Fin T, D P g t) := by
@@ -201,15 +205,15 @@ theorem weights_nonneg (P : CohortPanel 𝒢 T) (k : CompTag × 𝒢 × 𝒢) :
 omit [DecidableEq 𝒢] in
 /-- A never-treated cohort has zero average treatment over the panel. -/
 lemma barD_eq_zero_of_isInf (P : CohortPanel 𝒢 T) {g : 𝒢}
-    (hg : AdoptionDate.isInf (P.A g)) : barD P g = 0 := by
-  unfold barD D AdoptionDate.isInf AdoptionDate.le at *
-  simp [hg]
+    (hg : AdoptionPath.isInfinite (P.A g)) : barD P g = 0 := by
+  unfold barD
+  simp [D_eq_zero_of_isInf P hg]
 
 omit [DecidableEq 𝒢] in
 /-- When one cohort is never treated, its raw comparison weight with another cohort equals the
 product of their cohort shares, the gap in their average treatment rates, and one minus that gap. -/
 lemma lambdaTN_eq_gap_of_isInf (P : CohortPanel 𝒢 T) {g u : 𝒢}
-    (hu : AdoptionDate.isInf (P.A u)) :
+    (hu : AdoptionPath.isInfinite (P.A u)) :
     lambdaTN P g u = P.p g * P.p u * q P g u * (1 - q P g u) := by
   unfold lambdaTN q
   rw [barD_eq_zero_of_isInf P hu]
@@ -230,9 +234,9 @@ open Classical in
 sum of treated-versus-never comparison terms and ordered early-versus-late comparison terms. -/
 lemma Lambda_eq_gap_sums (P : CohortPanel 𝒢 T) :
     Lambda P =
-      (∑ g, ∑ u, if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then
+      (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
               P.p g * P.p u * q P g u * (1 - q P g u) else 0)
-      + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+      + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
                 P.p e * P.p ℓ * q P e ℓ * (1 - q P e ℓ) else 0) := by
   unfold Lambda
   congr 1
@@ -240,16 +244,18 @@ lemma Lambda_eq_gap_sums (P : CohortPanel 𝒢 T) :
     intro g _hg
     refine Finset.sum_congr rfl ?_
     intro u _hu
-    by_cases h : AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)
-    · simp [h, lambdaTN_eq_gap_of_isInf P h.2]
-    · simp [h]
+    by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h,
+        lambdaTN_eq_gap_of_isInf P h.2]
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
   · refine Finset.sum_congr rfl ?_
     intro e _he
     refine Finset.sum_congr rfl ?_
     intro ℓ _hℓ
-    by_cases h : P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ)
-    · simp [h, lambdaEL_add_lambdaLE_eq_gap P e ℓ]
-    · simp [h]
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤
+    · simp [AdoptionPath.isFinite, h,
+        lambdaEL_add_lambdaLE_eq_gap P e ℓ]
+    · simp [AdoptionPath.isFinite, h]
 
 omit [DecidableEq 𝒢] in
 /-- Cohorts that share the same adoption date have identical treatment status
@@ -304,16 +310,16 @@ private lemma numPairContribution_eq_zero_of_A_eq (P : CohortPanel 𝒢 T) {g u 
 omit [DecidableEq 𝒢] in
 private lemma adoption_pair_cases (P : CohortPanel 𝒢 T) (g u : 𝒢) :
     P.A g = P.A u ∨
-      (AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)) ∨
-      (AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g)) ∨
-      (P.A g < P.A u ∧ AdoptionDate.isFin (P.A u)) ∨
-      (P.A u < P.A g ∧ AdoptionDate.isFin (P.A g)) := by
+      (AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)) ∨
+      (AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g)) ∨
+      (P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u)) ∨
+      (P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g)) := by
   rcases lt_trichotomy (P.A g) (P.A u) with hlt | heq | hgt
-  · by_cases hu : AdoptionDate.isInf (P.A u)
+  · by_cases hu : AdoptionPath.isInfinite (P.A u)
     · right; left
       constructor
       · intro hg
-        unfold AdoptionDate.isInf at hu
+        unfold AdoptionPath.isInfinite at hu
         rw [hg, hu] at hlt
         exact (lt_irrefl (⊤ : WithTop (Fin T))) hlt
       · exact hu
@@ -321,11 +327,11 @@ private lemma adoption_pair_cases (P : CohortPanel 𝒢 T) (g u : 𝒢) :
       exact ⟨hlt, hu⟩
   · left
     exact heq
-  · by_cases hg : AdoptionDate.isInf (P.A g)
+  · by_cases hg : AdoptionPath.isInfinite (P.A g)
     · right; right; left
       constructor
       · intro hu
-        unfold AdoptionDate.isInf at hg
+        unfold AdoptionPath.isInfinite at hg
         rw [hu, hg] at hgt
         exact (lt_irrefl (⊤ : WithTop (Fin T))) hgt
       · exact hg
@@ -337,35 +343,35 @@ omit [DecidableEq 𝒢] in
 private lemma adoption_pair_pointwise (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ)
     (hzero : ∀ g u, P.A g = P.A u → f g u = 0) (g u : 𝒢) :
     f g u =
-      (if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
-      (if AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g) then f g u else 0) +
-      (if P.A g < P.A u ∧ AdoptionDate.isFin (P.A u) then f g u else 0) +
-      (if P.A u < P.A g ∧ AdoptionDate.isFin (P.A g) then f g u else 0) := by
+      (if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+      (if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0) +
+      (if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+      (if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
   rcases adoption_pair_cases P g u with hEq | hTN | hNT | hLT | hGT
   · rw [hzero g u hEq]
-    simp [hEq, AdoptionDate.isFin, AdoptionDate.isInf]
+    simp [hEq, AdoptionPath.isFinite, AdoptionPath.isInfinite]
   · rcases hTN with ⟨hgf, hui⟩
-    unfold AdoptionDate.isFin at hgf
-    unfold AdoptionDate.isInf at hui
-    simp [AdoptionDate.isFin, AdoptionDate.isInf, hgf, hui]
+    change P.A g ≠ ⊤ at hgf
+    change P.A u = ⊤ at hui
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, hgf, hui]
   · rcases hNT with ⟨huf, hgi⟩
-    unfold AdoptionDate.isFin at huf
-    unfold AdoptionDate.isInf at hgi
-    simp [AdoptionDate.isFin, AdoptionDate.isInf, huf, hgi]
+    change P.A u ≠ ⊤ at huf
+    change P.A g = ⊤ at hgi
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, huf, hgi]
   · rcases hLT with ⟨hlt, huf⟩
-    unfold AdoptionDate.isFin at huf
+    change P.A u ≠ ⊤ at huf
     have hgf : P.A g ≠ ⊤ := by
       intro hgi
       rw [hgi] at hlt
       exact not_top_lt hlt
-    simp [AdoptionDate.isFin, AdoptionDate.isInf, hlt, huf, hgf, not_lt_of_gt hlt]
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, hlt, huf, hgf, not_lt_of_gt hlt]
   · rcases hGT with ⟨hgt, hgf⟩
-    unfold AdoptionDate.isFin at hgf
+    change P.A g ≠ ⊤ at hgf
     have huf : P.A u ≠ ⊤ := by
       intro hui
       rw [hui] at hgt
       exact not_top_lt hgt
-    simp [AdoptionDate.isFin, AdoptionDate.isInf, hgt, huf, hgf, not_lt_of_gt hgt]
+    simp [AdoptionPath.isFinite,       AdoptionPath.isInfinite, hgt, huf, hgf, not_lt_of_gt hgt]
 
 open Classical in
 omit [DecidableEq 𝒢] in
@@ -376,20 +382,22 @@ lemma adoption_pair_sum_decomp (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → �
     (hzero : ∀ g u, P.A g = P.A u → f g u = 0) :
     (∑ g, ∑ u, f g u) =
       (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
       (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g) then f g u else 0) +
+        if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0) +
       (∑ g, ∑ u,
-        if P.A g < P.A u ∧ AdoptionDate.isFin (P.A u) then f g u else 0) +
+        if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
       (∑ g, ∑ u,
-        if P.A u < P.A g ∧ AdoptionDate.isFin (P.A g) then f g u else 0) := by
+        if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
   calc
     (∑ g, ∑ u, f g u)
         = ∑ g, ∑ u,
-            ((if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
-            (if AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g) then f g u else 0) +
-            (if P.A g < P.A u ∧ AdoptionDate.isFin (P.A u) then f g u else 0) +
-            (if P.A u < P.A g ∧ AdoptionDate.isFin (P.A g) then f g u else 0)) := by
+            ((if AdoptionPath.isFinite (P.A g) ∧
+                AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+            (if AdoptionPath.isFinite (P.A u) ∧
+                AdoptionPath.isInfinite (P.A g) then f g u else 0) +
+            (if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
+            (if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0)) := by
               refine Finset.sum_congr rfl ?_
               intro g _hg
               refine Finset.sum_congr rfl ?_
@@ -406,65 +414,73 @@ omit [DecidableEq 𝒢] in
 open Classical in
 private lemma TN_sum_pair (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ) :
     (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u + f u g else 0) =
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+          f g u + f u g else 0) =
       (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
       (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g) then f g u else 0) := by
+        if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0) := by
   calc
     (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u + f u g else 0)
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+          f g u + f u g else 0)
         = ∑ g, ∑ u,
-            ((if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
-             (if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f u g else 0)) := by
+            ((if AdoptionPath.isFinite (P.A g) ∧
+                AdoptionPath.isInfinite (P.A u) then f g u else 0) +
+             (if AdoptionPath.isFinite (P.A g) ∧
+                AdoptionPath.isInfinite (P.A u) then f u g else 0)) := by
               refine Finset.sum_congr rfl ?_
               intro g _hg
               refine Finset.sum_congr rfl ?_
               intro u _hu
-              by_cases h : AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) <;> simp [h]
+              by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤ <;>
+                simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
     _ = (∑ g, ∑ u,
-          if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
+          if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
         (∑ g, ∑ u,
-          if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f u g else 0) := by
+          if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+            f u g else 0) := by
           simp [Finset.sum_add_distrib]
     _ = (∑ g, ∑ u,
-          if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u else 0) +
+          if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then f g u else 0) +
         (∑ g, ∑ u,
-          if AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g) then f g u else 0) := by
+          if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then
+            f g u else 0) := by
           rw [sum_swap₂ (fun g u =>
-            if AdoptionDate.isFin (P.A u) ∧ AdoptionDate.isInf (P.A g) then f g u else 0)]
+            if AdoptionPath.isFinite (P.A u) ∧ AdoptionPath.isInfinite (P.A g) then f g u else 0)]
 
 omit [DecidableEq 𝒢] in
 open Classical in
 private lemma TT_sum_pair (P : CohortPanel 𝒢 T) (f : 𝒢 → 𝒢 → ℝ) :
     (∑ e, ∑ ℓ,
-        if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f e ℓ + f ℓ e else 0) =
+        if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ + f ℓ e else 0) =
       (∑ g, ∑ u,
-        if P.A g < P.A u ∧ AdoptionDate.isFin (P.A u) then f g u else 0) +
+        if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
       (∑ g, ∑ u,
-        if P.A u < P.A g ∧ AdoptionDate.isFin (P.A g) then f g u else 0) := by
+        if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
   calc
     (∑ e, ∑ ℓ,
-        if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f e ℓ + f ℓ e else 0)
+        if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ + f ℓ e else 0)
         = ∑ e, ∑ ℓ,
-            ((if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f e ℓ else 0) +
-             (if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f ℓ e else 0)) := by
+            ((if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ else 0) +
+             (if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f ℓ e else 0)) := by
               refine Finset.sum_congr rfl ?_
               intro e _he
               refine Finset.sum_congr rfl ?_
               intro ℓ _hℓ
-              by_cases h : P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) <;> simp [h]
+              by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤ <;>
+                simp [AdoptionPath.isFinite, h]
     _ = (∑ e, ∑ ℓ,
-          if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f e ℓ else 0) +
+          if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ else 0) +
         (∑ e, ∑ ℓ,
-          if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f ℓ e else 0) := by
+          if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f ℓ e else 0) := by
           simp [Finset.sum_add_distrib]
     _ = (∑ g, ∑ u,
-          if P.A g < P.A u ∧ AdoptionDate.isFin (P.A u) then f g u else 0) +
+          if P.A g < P.A u ∧ AdoptionPath.isFinite (P.A u) then f g u else 0) +
         (∑ g, ∑ u,
-          if P.A u < P.A g ∧ AdoptionDate.isFin (P.A g) then f g u else 0) := by
+          if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0) := by
           rw [sum_swap₂ (fun g u =>
-            if P.A u < P.A g ∧ AdoptionDate.isFin (P.A g) then f g u else 0)]
+            if P.A u < P.A g ∧ AdoptionPath.isFinite (P.A g) then f g u else 0)]
 
 open Classical in
 omit [DecidableEq 𝒢] in
@@ -472,9 +488,10 @@ private lemma adoption_pair_sum_grouped (P : CohortPanel 𝒢 T) (f : 𝒢 → �
     (hzero : ∀ g u, P.A g = P.A u → f g u = 0) :
     (∑ g, ∑ u, f g u) =
       (∑ g, ∑ u,
-        if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then f g u + f u g else 0) +
+        if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
+          f g u + f u g else 0) +
       (∑ e, ∑ ℓ,
-        if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then f e ℓ + f ℓ e else 0) := by
+        if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then f e ℓ + f ℓ e else 0) := by
   have hdecomp := adoption_pair_sum_decomp P f hzero
   rw [TN_sum_pair P f, TT_sum_pair P f]
   linarith
@@ -484,9 +501,9 @@ open Classical in
 gap, over treated-versus-never and ordered early-versus-later pairs, equals the residualized
 treatment variance. -/
 lemma gap_sums_eq_VD (P : CohortPanel 𝒢 T) :
-    (∑ g, ∑ u, if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u) then
+    (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u) then
               P.p g * P.p u * q P g u * (1 - q P g u) else 0)
-      + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+      + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
                 P.p e * P.p ℓ * q P e ℓ * (1 - q P e ℓ) else 0)
       = VD P := by
   -- Remaining denominator algebra: expand `VD`, use `P.p_sum_one`, and group
@@ -500,16 +517,18 @@ lemma gap_sums_eq_VD (P : CohortPanel 𝒢 T) :
     intro g _hg
     refine Finset.sum_congr rfl ?_
     intro u _hu
-    by_cases h : AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)
-    · simp [h, TN_pair_vd_contribution_eq_gap P h.2]
-    · simp [h]
+    by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h,
+        TN_pair_vd_contribution_eq_gap P h.2]
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
   · refine Finset.sum_congr rfl ?_
     intro e _he
     refine Finset.sum_congr rfl ?_
     intro ℓ _hℓ
-    by_cases h : P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ)
-    · simp [h, TT_pair_vd_contribution_eq_gap P h.1]
-    · simp [h]
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤
+    · simp [AdoptionPath.isFinite, h,
+        TT_pair_vd_contribution_eq_gap P h.1]
+    · simp [AdoptionPath.isFinite, h]
 
 /-- **Prop A5.2 (`raw_weight_sum_eq_VD`).** The aggregate raw-weight
 denominator equals the residualized treatment variance:
@@ -526,9 +545,9 @@ decomposes by unordered cohort pairs into raw-weight times 2x2 DID
 contrast contributions. -/
 theorem twfe_numerator_eq_lambda_delta_sum (P : CohortPanel 𝒢 T) :
     (∑ g, ∑ t, (P.p g / (T : ℝ)) * Dtilde P g t * P.Y g t)
-      = (∑ g, ∑ u, if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)
+      = (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)
                     then lambdaTN P g u * Δ_TN P g u else 0)
-        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ)
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ)
                       then lambdaEL P e ℓ * Δ_EL P e ℓ
                             + lambdaLE P e ℓ * Δ_LE P e ℓ else 0) := by
   rw [twfe_numerator_eq_pairwise_centeredD_Y P]
@@ -539,16 +558,18 @@ theorem twfe_numerator_eq_lambda_delta_sum (P : CohortPanel 𝒢 T) :
     intro g _hg
     refine Finset.sum_congr rfl ?_
     intro u _hu
-    by_cases h : AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)
-    · simp [h, TN_pair_contribution_eq_lambda_delta P h.1 h.2]
-    · simp [h]
+    by_cases h : P.A g ≠ ⊤ ∧ P.A u = ⊤
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h,
+        TN_pair_contribution_eq_lambda_delta P h.1 h.2]
+    · simp [AdoptionPath.isFinite, AdoptionPath.isInfinite, h]
   · refine Finset.sum_congr rfl ?_
     intro e _he
     refine Finset.sum_congr rfl ?_
     intro ℓ _hℓ
-    by_cases h : P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ)
-    · simp [h, TT_pair_contribution_eq_lambda_delta_sum P h.1 h.2]
-    · simp [h]
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤
+    · simp [AdoptionPath.isFinite, h,
+        TT_pair_contribution_eq_lambda_delta_sum P h.1 h.2]
+    · simp [AdoptionPath.isFinite, h]
 
 private lemma sum_compTag (f : CompTag → ℝ) :
     (∑ tag, f tag) = f CompTag.TN + f CompTag.EL + f CompTag.LE := by
@@ -582,11 +603,11 @@ lemma sum_lambdaWeight_eq_Lambda (P : CohortPanel 𝒢 T) :
   simp_rw [Fintype.sum_prod_type]
   simp only [and_true]
   have hELLE :
-      (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+      (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
         lambdaEL P e ℓ else 0)
-        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
           lambdaLE P e ℓ else 0)
-      = ∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+      = ∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
         lambdaEL P e ℓ + lambdaLE P e ℓ else 0 := by
     rw [← Finset.sum_add_distrib]
     refine Finset.sum_congr rfl ?_
@@ -594,7 +615,8 @@ lemma sum_lambdaWeight_eq_Lambda (P : CohortPanel 𝒢 T) :
     rw [← Finset.sum_add_distrib]
     refine Finset.sum_congr rfl ?_
     intro ℓ hℓ
-    by_cases h : P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) <;> simp [h]
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤ <;>
+      simp [AdoptionPath.isFinite, h]
   unfold Lambda
   rw [← hELLE]
   rw [add_assoc]
@@ -603,9 +625,9 @@ omit [DecidableEq 𝒢] in
 open Classical in
 private lemma sum_lambdaWeight_mul_contrast_eq (P : CohortPanel 𝒢 T) :
     ∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k =
-      (∑ g, ∑ u, if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)
+      (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)
                     then lambdaTN P g u * Δ_TN P g u else 0)
-        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ)
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ)
                       then lambdaEL P e ℓ * Δ_EL P e ℓ
                             + lambdaLE P e ℓ * Δ_LE P e ℓ else 0) := by
   classical
@@ -619,11 +641,11 @@ private lemma sum_lambdaWeight_mul_contrast_eq (P : CohortPanel 𝒢 T) :
   simp_rw [Fintype.sum_prod_type]
   simp only [and_true]
   have hELLE :
-      (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+      (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
         lambdaEL P e ℓ * Δ_EL P e ℓ else 0)
-        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+        + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
           lambdaLE P e ℓ * Δ_LE P e ℓ else 0)
-      = ∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) then
+      = ∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ) then
         lambdaEL P e ℓ * Δ_EL P e ℓ + lambdaLE P e ℓ * Δ_LE P e ℓ else 0 := by
     rw [← Finset.sum_add_distrib]
     refine Finset.sum_congr rfl ?_
@@ -631,7 +653,8 @@ private lemma sum_lambdaWeight_mul_contrast_eq (P : CohortPanel 𝒢 T) :
     rw [← Finset.sum_add_distrib]
     refine Finset.sum_congr rfl ?_
     intro ℓ hℓ
-    by_cases h : P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ) <;> simp [h]
+    by_cases h : P.A e < P.A ℓ ∧ P.A ℓ ≠ ⊤ <;>
+      simp [AdoptionPath.isFinite, h]
   rw [← hELLE]
   rw [add_assoc]
 
@@ -661,18 +684,17 @@ theorem weights_sum_one (P : CohortPanel 𝒢 T) (hVD_pos : 0 < VD P) :
     _ = Lambda P / Lambda P := by rw [hsum_lambda]
     _ = 1 := by exact div_self hL_ne
 
-/-- The positivity-free algebraic core of the Goodman-Bacon decomposition: the
-totalized TWFE ratio equals the totalized weighted sum of admissible two-by-two
-DID contrasts, including in zero-variance cases. -/
-theorem twfe_eq_weighted_avg_core (P : CohortPanel 𝒢 T) :
+/-- For [a cohort panel](hyp:P), [the totalized TWFE ratio equals the totalized normalized sum
+of admissible two-by-two DID contrasts, including in zero-variance cases](goal). -/
+theorem twfe_eq_normalized_comparison_sum (P : CohortPanel 𝒢 T) :
     betaTWFE P = ∑ k ∈ 𝒦 P, weight P k * contrast P k := by
   classical
   have hnum := twfe_numerator_eq_lambda_delta_sum P
   have hsum :
       ∑ k ∈ 𝒦 P, lambdaWeight P k * contrast P k =
-        (∑ g, ∑ u, if AdoptionDate.isFin (P.A g) ∧ AdoptionDate.isInf (P.A u)
+        (∑ g, ∑ u, if AdoptionPath.isFinite (P.A g) ∧ AdoptionPath.isInfinite (P.A u)
                       then lambdaTN P g u * Δ_TN P g u else 0)
-          + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionDate.isFin (P.A ℓ)
+          + (∑ e, ∑ ℓ, if P.A e < P.A ℓ ∧ AdoptionPath.isFinite (P.A ℓ)
                         then lambdaEL P e ℓ * Δ_EL P e ℓ
                               + lambdaLE P e ℓ * Δ_LE P e ℓ else 0) :=
     sum_lambdaWeight_mul_contrast_eq P
@@ -699,12 +721,13 @@ theorem twfe_eq_weighted_avg_core (P : CohortPanel 𝒢 T) :
           rw [hweighted]
 
 /-- **Theorem A5.5 (`twfe_eq_weighted_avg`, `thm:po-estimand-goodman-bacon-decomposition`).**
-For [a cohort panel](hyp:P), [the two-way fixed-effects (TWFE) coefficient, under the totalized
-zero-variance convention, equals the weighted sum of admissible two-by-two DID contrasts across
-comparison groups](goal). -/
-theorem twfe_eq_weighted_avg (P : CohortPanel 𝒢 T) :
+For [a cohort panel](hyp:P) whose [residualized-treatment variance is strictly
+positive](hyp:hVD_pos), [the two-way fixed-effects (TWFE) coefficient equals a weighted average
+of admissible two-by-two DID contrasts across comparison groups](goal). The positivity condition
+makes the normalized weights sum to one by `weights_sum_one`. -/
+theorem twfe_eq_weighted_avg (P : CohortPanel 𝒢 T) (hVD_pos : 0 < VD P) :
     betaTWFE P = ∑ k ∈ 𝒦 P, weight P k * contrast P k :=
-  twfe_eq_weighted_avg_core P
+  twfe_eq_normalized_comparison_sum P
 
 end StaggeredTWFEDecomposition
 end Panel.EstimandCharacterization

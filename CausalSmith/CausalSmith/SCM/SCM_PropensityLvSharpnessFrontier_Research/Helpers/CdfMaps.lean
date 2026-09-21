@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Basic
-import Mathlib.Probability.CDF
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Basic
+public import Mathlib.Probability.CDF
 
 /-! # Atom-aware and unrestricted CDF endpoint maps -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.THonestLength
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Pushforward
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.THonestLength
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Pushforward
 
 /-!
 # Four-regime threshold phase diagram
@@ -13,6 +14,8 @@ import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Pushforw
 The statement spells out every limiting regime and retains the almost-sure
 zero-threshold reduction to the ordinary bounded-mean estimator.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

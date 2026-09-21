@@ -12,8 +12,11 @@ selectors, and the observable approximation ratio. Each is a design object
 depending only on the graph `G_n` and the propensity vector `p`.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Basic
-import Mathlib.Analysis.Calculus.Deriv.Basic
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Basic
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Analysis.MeanInequalities
+module
+public import Mathlib.Analysis.MeanInequalities
 
 /-!
 # Offset peeling inequalities
@@ -16,6 +17,8 @@ coefficient version `offsetPeelingConstantC`, the corresponding peeling bounds
 `offset_peeling` and `offset_peeling_coeff`, endpoint extensions at `θ = 0`,
 and `max_two_split` for splitting a clipped two-term offset across summands.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.OffsetPeeling
 
@@ -128,10 +131,7 @@ lemma offsetPeelingConstant_nonneg
 /-- **Deterministic Young/AM-GM peeling for the quarter-offset.** For [an exponent strictly
 between zero and one](hyp:hθ_pos,hθ_lt) and [nonnegative coefficients `a` and `t`](hyp:ha,ht),
 [the positive part of `a·t^θ − t/4` is at most the offset-peeling constant times `a` raised to
-the power `1/(1−θ)`](goal).
-
-The constant is the actual supremum of `a·t^θ − t/4` over `t ≥ 0`:
-`(1 − θ)·(4θ)^{θ/(1−θ)}`. -/
+the power `1/(1−θ)`](goal). -/
 lemma offset_peeling
     (θ a t : ℝ) (hθ_pos : 0 < θ) (hθ_lt : θ < 1)
     (ha : 0 ≤ a) (ht : 0 ≤ t) :

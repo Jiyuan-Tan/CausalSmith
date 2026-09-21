@@ -4,6 +4,7 @@ import { McpClient, type McpClientOpts } from "./mcp.js";
 import { spawnWithInactivityTimeout } from "./spawn.js";
 import { bashBinary, localConfig, leanProjectPathFor } from "../local_config.js";
 import { withLakeBuildLock } from "../shared/build_mutex.js";
+import { LEAN_ATTRS_PREFIX_SRC, LEAN_MODIFIERS_PREFIX_SRC } from "../shared/lean_syntax.js";
 
 // ---------------------------------------------------------------------------
 // Result types — mirror the Pydantic models the MCP server returns.
@@ -963,7 +964,7 @@ function isStyleLintDiagnostic(d: LeanDiagnostic): boolean {
 function findNearestDeclaration(lines: string[], sorryIndex: number): string | undefined {
   for (let idx = sorryIndex; idx >= 0; idx--) {
     const match = lines[idx].match(
-      /^\s*(?:private\s+)?(?:theorem|lemma|def|abbrev|instance|noncomputable\s+def)\s+([A-Za-z0-9_'.]+)/,
+      new RegExp(String.raw`^\s*${LEAN_ATTRS_PREFIX_SRC}${LEAN_MODIFIERS_PREFIX_SRC}(?:theorem|lemma|def|abbrev|instance)\s+([A-Za-z0-9_'.]+)`),
     );
     if (match) return match[1];
   }

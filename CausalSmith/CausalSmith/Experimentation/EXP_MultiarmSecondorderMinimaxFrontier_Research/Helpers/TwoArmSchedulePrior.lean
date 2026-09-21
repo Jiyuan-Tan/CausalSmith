@@ -1,12 +1,16 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import Causalean.Stat.FiniteRaoBlackwell.KernelBridge
-import Causalean.Stat.Minimax.FiniteKernelBayes
-import Mathlib.Data.Nat.Choose.Multinomial
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import Causalean.Stat.FiniteRaoBlackwell.KernelBridge
+public import Causalean.Stat.Minimax.FiniteKernelBayes
+public import Mathlib.Data.Nat.Choose.Cast
+public import Mathlib.Data.Nat.Choose.Multinomial
 
 /-!
 Lift of an arbitrary prior on two-arm effect-class triples to complete labeled
 binary schedules, together with the assignment-ancillary scalar kernel.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

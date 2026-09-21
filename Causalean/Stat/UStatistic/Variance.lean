@@ -1,44 +1,30 @@
-/-
-Copyright (c) 2026 Jiyuan Tan. All rights reserved.
-Released under Apache 2.0 license as described in the file LICENSE.
-Authors: Jiyuan Tan
-
-# Exact variance of the degenerate order-2 U-statistic (thin `m = 2` shell)
-
-For a symmetric, square-integrable, doubly-degenerate kernel `g` the rescaled
-degenerate U-statistic `√n · Gₙ` has the exact second moment `2ζ / (n−1)`,
-`ζ = ∬ g² dP dP`.  This is the `m = 2` case of the general fixed-order exact
-variance `Causalean.Stat.UStatistic.OrderM.ExactVariance`
-(`integral_injectiveTuples_sum_sq_degen`, `integral_rescaled_order_sq_degen`):
-the unscaled formula gives `2ζ / (n(n−1))`, while the rescaled formula
-`n · m! · ζ_m / n^{(m)}` gives `2ζ / (n−1)`.
-
-The bespoke order-2 second-moment computation has been **retired** in favour of
-that general result: the `DegenKernel` hypothesis and the second-moment lemmas
-below are kept (they are the interface consumed by the higher-order
-influence-function estimators, `Causalean.Stat.Nonparametric.HOIF`), but their
-proofs now route through the order-`m` theory via the paired kernel `pairKernel g`
-and the bridges `DegenKernel.toOrderDegenKernel`, `zeta_eq_zetaOrder`.
--/
-
-import Causalean.Stat.UStatistic.OrderM.ExactVariance
+module
+public import Causalean.Stat.UStatistic.OrderM.ExactVariance
 
 /-!
 Defines the degenerate order-2 kernel interface and proves its variance facts
 through the fixed-order theory.
 
-The structure `DegenKernel` records the measurable, symmetric,
-square-integrable, doubly degenerate kernels used by higher-order
-influence-function arguments.  Its bridge `DegenKernel.toOrderDegenKernel`
-turns such a kernel into a completely degenerate `Fin 2` kernel, while
-`zeta_eq_zetaOrder` identifies the order-2 second moment with the fixed-order
-quantity.  The public theorems `integral_offDiag_sum_sq`,
+The structure `DegenKernel` records measurable, symmetric, square-integrable,
+doubly degenerate kernels. Its bridge `DegenKernel.toOrderDegenKernel` turns
+such a kernel into a completely degenerate two-coordinate kernel, while
+`zeta_eq_zetaOrder` identifies the order-two second moment with the fixed-order
+quantity. The public theorems `integral_offDiag_sum_sq`,
 `integral_rescaled_sq`, `memLp_rescaled`, and `integral_rescaled_eq_zero`
-provide the exact order-2 second-moment, `L²`, and mean-zero facts.
+provide the exact order-two second-moment, `L²`, and mean-zero facts through
+the fixed-order exact-variance theory.
 
 The module also gives a nonasymptotic variance bound for a bounded
 off-diagonal kernel average without any degeneracy assumption.
 -/
+
+/-
+Copyright (c) 2026 Jiyuan Tan. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Jiyuan Tan
+-/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -214,7 +200,11 @@ namespace IIDSample
 variable [IsProbabilityMeasure μ] [IsProbabilityMeasure P]
   {g : X → X → ℝ} (S : IIDSample Ω X μ P)
 
-/-- For [a measurable observation space](hyp:X), [a measure on that space](hyp:P), and [a real-valued kernel of two observations](hyp:g), the [kernel second moment](goal) is $\iint g(x,y)^2\,dP(x)\,dP(y)$, evaluated under two independent draws from the given measure.
+/-- For [a measurable observation space](hyp:X),
+[a measure on that space](hyp:P), and
+[a real-valued kernel of two observations](hyp:g), the [kernel second moment](goal)
+is $\iint g(x,y)^2\,dP(x)\,dP(y)$, evaluated under two independent draws from the
+given measure.
 
 This scalar is denoted $\zeta$ and supplies the order-two kernel's second-moment scale. -/
 noncomputable def zeta (P : Measure X) (g : X → X → ℝ) : ℝ :=

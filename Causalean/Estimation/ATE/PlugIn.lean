@@ -3,7 +3,7 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Sample-split plug-in estimator for the back-door ATE
+# Oracle sample-split plug-in estimator for the back-door ATE
 
 `def:est-plug-in-ate` and `thm:est-plug-in-ate-al` instantiated for the
 `BackdoorEstimationSystem` from the ATE estimation setup.
@@ -16,9 +16,12 @@ with `B(n)` the estimation fold of a one-shot split, and `μ̂` an estimator of
 the value-space outcome regression that depends only on the nuisance fold
 `A(n)`.
 
-The headline theorem gives asymptotic linearity at `θ₀` with influence
-function `ψ_plugin(z) = μ(1, x) − μ(0, x) − θ₀`, under the rate
-hypothesis `|B(n)|/n → c` for some `c ∈ (0, 1)`.
+The main theorem is an oracle/known-nuisance benchmark: its assumptions directly
+force the plug-in bias and fold-B empirical-process error to be negligible. It
+gives asymptotic linearity at `θ₀` with influence function
+`ψ_plugin(z) = μ(1, x) − μ(0, x) − θ₀`, under the rate hypothesis
+`|B(n)|/n → c` for some `c ∈ (0, 1)`. A feasible estimator with learned nuisance
+functions generally needs the AIPW/one-step correction; see Newey (1994).
 
 Proof sketch (NL doc, `thm:est-plug-in-ate-al`): two-piece argument on the
 bias term — Cauchy–Schwarz on the conditional mean and Markov on the
@@ -28,28 +31,32 @@ centered i.i.d. sum to which the CLT applies; on fold `B(n)` the scaling is
 `√c`.
 -/
 
-import Causalean.Estimation.ATE.InfluenceFunction
-import Causalean.Tactic.IntegralLinearity
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.SampleSplit.PartialFoldCLT
-import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
-import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
+module
+public import Causalean.Estimation.ATE.InfluenceFunction
+public import Causalean.Tactic.IntegralLinearity
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.SampleSplit.PartialFoldCLT
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
+public import Mathlib.MeasureTheory.Function.LpSeminorm.LpNorm
 
-/-! # Plug-In ATE Estimator
+/-! # Oracle Plug-In ATE Estimator
 
 This file defines the sample-split plug-in estimator for the back-door average
-treatment effect using only the estimated outcome regression. It also records
-the corresponding influence function and the asymptotic-linearity statement
-that compares this estimator with the target average treatment effect.
+treatment effect using only the estimated outcome regression. Its limit theorems
+are oracle/known-nuisance benchmarks: they assume enough bias and empirical-process
+control to make the uncorrected plug-in asymptotically linear. For feasible learned
+nuisances, the usual construction adds the AIPW correction (Newey 1994).
 
 The main declarations are `plugInEstimator`, `ψ_plugin`,
-`plugIn_isAsymLinear`, and `plugIn_tendstoNormal`.  The proofs use the
+`plugInOracle_isAsymLinear`, and `plugInOracle_tendstoNormal`.  The proofs use the
 covariate-law representation of the ATE, fold-B empirical-process bounds, and
 the L² rate of the outcome-regression nuisance to control the plug-in bias.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -106,18 +113,21 @@ noncomputable def ψ_plugin (S : BackdoorEstimationSystem P γ)
     (z : γ × Bool × ℝ) : ℝ :=
   S.μ_val true (projX z) - S.μ_val false (projX z) - S.θ₀
 
-/-- **Asymptotic linearity of the plug-in ATE** — `thm:est-plug-in-ate-al`.  Fix
+/-- **Oracle asymptotic linearity of the plug-in ATE.** Fix
 [the back-door identification assumptions](hyp:hA) for `S`,
 [square-integrability of both potential outcomes](hyp:h_yd2), and a one-shot
-sample split whose training-fold fraction [converges to some `c` with `0 < c <
+sample split whose evaluation-fold fraction [converges to some `c` with `0 < c <
 1`](hyp:hc_pos,hc_lt,h_split_rate). Suppose the outcome-regression learner `μ̂`
 is [measurable](hyp:h_mu_meas), [lies in `L²(P_X)` at every
 realization](hyp:h_mu_memLp), and [depends only on the nuisance-training fold,
 marginally and jointly with the covariate](hyp:h_mu_foldA,h_mu_uncurry_foldA),
 with [joint `L²(P_X)` estimation error at rate `o_p(n^{-1/2})`](hyp:h_rate).
 Then [the sample-split plug-in estimator of the back-door ATE is asymptotically
-linear at the true ATE `θ₀` with influence function `ψ_plugin` along the
-training folds](goal).
+linear at the true ATE `θ₀` with influence function `ψ_plugin` along fold B](goal).
+
+This is an oracle/known-nuisance-rate result: the assumed regression error is
+`o_P(n⁻¹ᐟ²)`. Newey (1994) explains why a general nonparametric plug-in does not
+have this first-order influence function without a bias correction.
 
 Hypotheses (mirroring the NL doc verbatim, including the split-rate
 hypothesis `|B(n)|/n → c`):
@@ -134,7 +144,7 @@ hypothesis `|B(n)|/n → c`):
    process against `n ↦ n^{-1/2}` under `P.μ`.
 
 Conclusion: `IsAsymLinear (plugInEstimator …) θ₀ ψ_plugin sample split.foldB`. -/
-theorem plugIn_isAsymLinear
+theorem plugInOracle_isAsymLinear
     (S : BackdoorEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions)
     (h_yd2 : ∀ d : Bool, Integrable
@@ -186,8 +196,9 @@ theorem plugIn_isAsymLinear
         Integrable
           (fun ω => S.μ_val true (S.toPOBackdoorSystem.factualX ω) -
             S.μ_val false (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-      have hcate : ∀ d, Integrable (S.toPOBackdoorSystem.CATE d) P.μ := fun d => by
-        unfold POBackdoorSystem.CATE
+      have hcate : ∀ d, Integrable
+          (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := fun d => by
+        unfold POBackdoorSystem.conditionalMeanOutcome
         exact MeasureTheory.integrable_condExp
       have h1 :
           Integrable (fun ω => S.μ_val true (S.toPOBackdoorSystem.factualX ω)) P.μ :=
@@ -438,12 +449,12 @@ theorem plugIn_isAsymLinear
         have hY_nonneg : 0 ≤ Yn := by
           dsimp [Yn]
           exact Real.sqrt_nonneg _
-        have hnorm_lt : eps < (eLpNorm (fZ n ω) 2 S.P_Z).toReal := by
+        have hnorm_le : eps ≤ (eLpNorm (fZ n ω) 2 S.P_Z).toReal := by
           simpa [abs_of_nonneg hnorm_nonneg] using hω
-        have hlt_two : eps < 2 * Yn := by
-          exact lt_of_lt_of_le hnorm_lt (by simpa [Yn] using hnorm_bound n ω)
-        have hhalf_lt : eps / 2 < Yn := by nlinarith
-        have hrate_event : (eps / 2) * ((n : ℝ) ^ (-(1 / 2 : ℝ))) < |Yn| := by
+        have hle_two : eps ≤ 2 * Yn := by
+          exact hnorm_le.trans (by simpa [Yn] using hnorm_bound n ω)
+        have hhalf_le : eps / 2 ≤ Yn := by nlinarith
+        have hrate_event : (eps / 2) * ((n : ℝ) ^ (-(1 / 2 : ℝ))) ≤ |Yn| := by
           rw [abs_of_nonneg hY_nonneg]
           nlinarith [mul_le_mul_of_nonneg_left hle (by linarith : 0 ≤ eps / 2)]
         simpa [Yn] using hrate_event
@@ -639,14 +650,14 @@ theorem plugIn_isAsymLinear
         have hY_nonneg : 0 ≤ Yn := by
           dsimp [Yn]
           exact Real.sqrt_nonneg _
-        have hnorm_lt :
-            eps * ((n : ℝ) ^ (-(1 / 2 : ℝ))) <
+        have hnorm_le :
+            eps * ((n : ℝ) ^ (-(1 / 2 : ℝ))) ≤
               (eLpNorm (fZ n ω) 2 S.P_Z).toReal := by
           simpa [abs_of_nonneg hnorm_nonneg] using hω
-        have hlt_two : eps * ((n : ℝ) ^ (-(1 / 2 : ℝ))) < 2 * Yn := by
-          exact lt_of_lt_of_le hnorm_lt (by simpa [Yn] using hnorm_bound n ω)
+        have hle_two : eps * ((n : ℝ) ^ (-(1 / 2 : ℝ))) ≤ 2 * Yn := by
+          exact hnorm_le.trans (by simpa [Yn] using hnorm_bound n ω)
         have hrate_event :
-            (eps / 2) * ((n : ℝ) ^ (-(1 / 2 : ℝ))) < |Yn| := by
+            (eps / 2) * ((n : ℝ) ^ (-(1 / 2 : ℝ))) ≤ |Yn| := by
           rw [abs_of_nonneg hY_nonneg]
           nlinarith
         simpa [Yn] using hrate_event
@@ -656,7 +667,8 @@ theorem plugIn_isAsymLinear
               Real.sqrt ((split.foldB n).card : ℝ) * ∫ z, fZ n ω z ∂S.P_Z)
             (fun _ => (1 : ℝ)) P.μ :=
         sqrtFoldB_integral_isLittleOp_one sample split
-          hc_pos h_split_rate fZ hf_memLp hf_rate
+          hc_pos h_split_rate fZ
+            (fun n => Filter.Eventually.of_forall fun ω => hf_memLp n ω) hf_rate
       change IsLittleOp
         (fun n ω =>
           Real.sqrt ((split.foldB n).card : ℝ) * ∫ x, δ n ω x ∂S.P_X)
@@ -710,9 +722,9 @@ theorem plugIn_isAsymLinear
       have hαpos : 0 < α := by
         dsimp [α]
         linarith
-      let A : ℕ → Set P.Ω := fun n => {ω | (ε / 2) * 1 < |G n ω|}
-      let C : ℕ → Set P.Ω := fun n => {ω | (ε / 2) * 1 < |B n ω|}
-      let D : ℕ → Set P.Ω := fun n => {ω | ε * 1 < |G n ω + B n ω|}
+      let A : ℕ → Set P.Ω := fun n => {ω | (ε / 2) * 1 ≤ |G n ω|}
+      let C : ℕ → Set P.Ω := fun n => {ω | (ε / 2) * 1 ≤ |B n ω|}
+      let D : ℕ → Set P.Ω := fun n => {ω | ε * 1 ≤ |G n ω + B n ω|}
       have hGevent_le := (ENNReal.tendsto_nhds_zero.mp (hG (ε / 2) (by linarith)))
         (ENNReal.ofReal α) (ENNReal.ofReal_pos.mpr hαpos)
       have hBevent_le := (ENNReal.tendsto_nhds_zero.mp (hB (ε / 2) (by linarith)))
@@ -728,23 +740,23 @@ theorem plugIn_isAsymLinear
       have hsubset : D n ⊆ A n ∪ C n := by
         intro ω hω
         by_contra hnot
-        have hnotA : ¬ (ε / 2) * 1 < |G n ω| := by
+        have hnotA : ¬ (ε / 2) * 1 ≤ |G n ω| := by
           intro hx
           exact hnot (Or.inl hx)
-        have hnotC : ¬ (ε / 2) * 1 < |B n ω| := by
+        have hnotC : ¬ (ε / 2) * 1 ≤ |B n ω| := by
           intro hy
           exact hnot (Or.inr hy)
-        have hGle : |G n ω| ≤ (ε / 2) * 1 := le_of_not_gt hnotA
-        have hBle : |B n ω| ≤ (ε / 2) * 1 := le_of_not_gt hnotC
-        have hsum_le : |G n ω + B n ω| ≤ ε * 1 := by
+        have hGlt : |G n ω| < (ε / 2) * 1 := lt_of_not_ge hnotA
+        have hBlt : |B n ω| < (ε / 2) * 1 := lt_of_not_ge hnotC
+        have hsum_lt : |G n ω + B n ω| < ε * 1 :=
           calc
             |G n ω + B n ω| ≤ |G n ω| + |B n ω| :=
               abs_add_le (G n ω) (B n ω)
-            _ ≤ (ε / 2) * 1 + (ε / 2) * 1 := add_le_add hGle hBle
+            _ < (ε / 2) * 1 + (ε / 2) * 1 := add_lt_add hGlt hBlt
             _ = ε * 1 := by ring
-        exact not_lt_of_ge hsum_le hω
+        exact (not_le_of_gt hsum_lt) hω
       exact le_of_lt <| calc
-        P.μ {ω | ε * 1 < |G n ω + B n ω|} = P.μ (D n) := by
+        P.μ {ω | ε * 1 ≤ |G n ω + B n ω|} = P.μ (D n) := by
           simp [D]
         _ ≤ P.μ (A n ∪ C n) := measure_mono hsubset
         _ ≤ P.μ (A n) + P.μ (C n) := MeasureTheory.measure_union_le (A n) (C n)
@@ -778,17 +790,16 @@ theorem plugIn_isAsymLinear
     rw [hdecomp]
     exact hsum
 
-/-- **Asymptotic normality of the plug-in ATE** (`thm:est-plug-in-ate-al`,
-"In particular ..." clause).  Under [the back-door identification
+/-- **Oracle asymptotic normality of the plug-in ATE.** Under [the back-door identification
 assumptions](hyp:hA) for `S`, [square-integrability of both potential
-outcomes](hyp:h_yd2), and a one-shot sample split whose training-fold fraction
+outcomes](hyp:h_yd2), and a one-shot sample split whose evaluation-fold fraction
 [converges to some `c` with `0 < c < 1`](hyp:hc_pos,hc_lt,h_split_rate): suppose
 the learner `μ̂` is [measurable](hyp:h_mu_meas), [in `L²(P_X)` at every
 realization](hyp:h_mu_memLp), [depends only on the nuisance-training fold,
 marginally and jointly with the
 covariate](hyp:h_mu_foldA,h_mu_uncurry_foldA), with [joint `L²(P_X)` estimation
 error at rate `o_p(n^{-1/2})`](hyp:h_rate) — the same hypotheses as
-`plugIn_isAsymLinear`.  Given in addition [a.e. measurability of the rescaled
+`plugInOracle_isAsymLinear`. Given in addition [a.e. measurability of the rescaled
 estimator at every horizon](hyp:hθn_meas) and [a.e. measurability of the
 normalized influence-sum at every horizon](hyp:hSum_meas), then [the rescaled
 estimator `√|B(n)| (θ̂ⁿ − θ₀)` converges in distribution to
@@ -797,7 +808,7 @@ estimator `√|B(n)| (θ̂ⁿ − θ₀)` converges in distribution to
 Together with `|B(n)|/n → c ∈ (0,1)`, Slutsky scaling gives the
 `√n`-rate form `√n (θ̂ⁿ − θ₀) ⇒ N(0, σ²/c)` (variance inflated by the
 sample-splitting cost `1/c`).  That last step is left to the caller. -/
-theorem plugIn_tendstoNormal
+theorem plugInOracle_tendstoNormal
     (S : BackdoorEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.Assumptions)
     (h_yd2 : ∀ d : Bool, Integrable
@@ -844,7 +855,7 @@ theorem plugIn_tendstoNormal
       hθn_meas := by
   haveI : IsProbabilityMeasure P.μ := inferInstance
   have hAL :=
-    plugIn_isAsymLinear S hA h_yd2 sample split
+    plugInOracle_isAsymLinear S hA h_yd2 sample split
       hc_pos hc_lt h_split_rate μ_hat h_mu_meas h_mu_memLp h_mu_foldA
       h_mu_uncurry_foldA h_rate
   have hψ_meas : Measurable (ψ_plugin S) := by

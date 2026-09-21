@@ -2,42 +2,21 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Marginal Sensitivity Model — the sharp (calibrated) partial-identification set
-
-The Zhao–Small–Bhattacharya bounds of `Bounds.lean` (the sup/inf of the candidate IPW mean over the
-odds-ratio box `MSMSet Λ`) are valid but *not sharp*: the box ignores a restriction implied by the
-observed data. As Dorn–Guo (2022) show, the only additional constraint a candidate complete propensity
-`ẽ` must satisfy to be data-compatible is the **calibration** (balancing) identity
-
-    E[ Z / ẽ | σ(X) ] = 1   a.e.
-
-(the true complete propensity satisfies it by the tower property — it conditions on `Y(1)`). Imposing
-it cuts the ambiguity set down to the **calibrated set** `MSMSetCalib Λ`, whose candidate-mean range is
-the *sharp* partial-identification interval `[msmLowerCalib Λ, msmUpperCalib Λ]`.
-
-This file establishes the sharp set and its two defining properties:
-* it is **valid** — the estimand `E[Y(1)]` lies in the sharp interval (the truth `e₀` is calibrated and
-  in the box, hence a feasible candidate), and
-* it is **tighter** than the ZSB bound — `MSMSetCalib Λ ⊆ MSMSet Λ`, so the sharp interval is contained
-  in the ZSB interval of `Bounds.lean`.
-
-**Scope.** This characterizes the sharp identified *set* (Dorn–Guo Corollary on the variational
-problems). The quantile-balancing, cutoff-selection, lower-bound, and Gaussian files downstream evaluate
-these endpoints under their respective cutoff-existence and distributional hypotheses.
 -/
 
-import Causalean.PO.ID.Partial.Sensitivity.MSM.Setup
+module
+public import Causalean.PO.ID.Partial.Sensitivity.MSM.CompatibleRealization
 
-/-! # Sharp calibrated marginal-sensitivity set
+/-! # Sharpness of the calibrated marginal sensitivity bounds
 
-This file defines the calibrated treated-arm MSM ambiguity set and proves its
-basic validity properties. It introduces `Calibrated`, `MSMSetCalib`,
-`msmUpperCalib`, and `msmLowerCalib`; proves that the true complete propensity is
-calibrated and therefore belongs to the calibrated set when the MSM assumption
-holds; proves validity of the sharp interval via `Y1mean_mem_Icc_calib`; and
-shows that calibrated bounds are tighter than the uncalibrated ZSB bounds.
+This file combines the arbitrary-model converse with reciprocal-tilt
+realizations of supplied upper and lower cutoff candidates. Under the explicit
+feasibility, overlap, integrability, and boundedness hypotheses below, the
+calibrated variational endpoints are the supremum and infimum of the compatible
+full-data treated-potential-outcome means.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -46,145 +25,126 @@ open MeasureTheory ProbabilityTheory
 
 namespace POBackdoorSystem
 
-variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
+universe u
+
+variable {P : POSystem.{u, u, u}} {γ : Type u} [MeasurableSpace γ]
 variable (S : POBackdoorSystem P γ)
 
-/-- Given [a binary-treatment backdoor system](hyp:S) and [a candidate complete-propensity function](hyp:etilde), the [calibration condition](goal) holds exactly when the conditional mean, given the covariate σ-algebra, of the treated-arm indicator divided by that function equals one almost surely.
+/-- Given [an observed backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the
+[compatible treated means](goal) are the means of `Y(1)` across all compatible full-data
+models in the ambient universe. -/
+def compatibleTargets (Λ : ℝ) : Set ℝ :=
+  {θ | ∃ M : MSMDataCompatible.{u, u} S Λ, M.target = θ}
 
-**Calibration (data-compatibility).** A candidate complete propensity `ẽ` is *calibrated* if the
-inverse-propensity weighting of the treatment indicator averages to one within every covariate
-stratum: `E[ Z / ẽ | σ(X) ] = 1` a.e. This is the only restriction on `ẽ`
-beyond the odds-ratio box implied by the observed-data distribution. -/
-def Calibrated (etilde : P.Ω → ℝ) : Prop :=
-  P.μ[fun ω => S.dVar.indicator true ω / etilde ω | S.sigmaX] =ᵐ[P.μ] (fun _ => 1)
+/-- **Conditional sharpness from supplied cutoff realizations.** Fix
+[a sensitivity level at least one](hyp:hΛ), [strict observed overlap](hyp:hoverlap),
+[upper and lower covariate cutoffs](hyp:cUpper,cLower), [upper-cutoff measurability and
+integrability](hyp:hcUpper_meas,hcUpper_int), [upper-cutoff feasibility and envelope
+conditions](hyp:hupper_mem,hupper_env,hupper_weight_env,hupper_c_env), [lower-cutoff
+measurability and integrability](hyp:hcLower_meas,hcLower_int), [lower-cutoff feasibility
+and envelope conditions](hyp:hlower_mem,hlower_env,hlower_weight_env,hlower_c_env). If the two
+realized cutoff propensities additionally have [uniform overlap on the treated
+law](hyp:hupper_uniform,hlower_uniform) and produce [integrable
+potential outcomes under their marked laws](hyp:hupper_Y1_int,hlower_Y1_int), and the
+calibrated candidate means are [bounded below and above](hyp:hbddBelow,hbddAbove), then
+[the calibrated upper and lower endpoints are respectively the supremum and infimum of
+the compatible full-data treated means](goal).
 
-/-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the [calibrated MSM ambiguity set](goal) contains exactly the candidate complete-propensity functions that [belong to the MSM ambiguity set at that level](step:1) and satisfy the calibration condition.
-
-**The calibrated (sharp) MSM ambiguity set:** odds-ratio-box members that also satisfy
-calibration. -/
-def MSMSetCalib (Λ : ℝ) : Set (P.Ω → ℝ) :=
-  { etilde | etilde ∈ S.MSMSet Λ ∧ S.Calibrated etilde }
-
-/-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the [sharp MSM upper bound](goal) is the supremum of candidate inverse-probability-weighted means over the calibrated MSM ambiguity set. -/
-noncomputable def msmUpperCalib (Λ : ℝ) : ℝ := sSup (S.candMean '' S.MSMSetCalib Λ)
-
-/-- Given [a binary-treatment backdoor system](hyp:S) and [a sensitivity level](hyp:Λ), the [sharp MSM lower bound](goal) is the infimum of candidate inverse-probability-weighted means over the calibrated MSM ambiguity set. -/
-noncomputable def msmLowerCalib (Λ : ℝ) : ℝ := sInf (S.candMean '' S.MSMSetCalib Λ)
-
-/-- **The true complete propensity is calibrated.** `E[Z / e₀ | σ(X)] = 1` a.e., where
-`e₀ = P[D=1 | σ(X, Y(1))]`. By the tower property (`σ(X) ⊆ σ(X, Y(1))`):
-`E[Z/e₀ | σX] = E[ E[Z/e₀ | σ(X,Y(1))] | σX] = E[ (1/e₀)·E[Z|σ(X,Y(1))] | σX] = E[ e₀/e₀ | σX] = 1`.
-Uses the same condExp pull-out + cancellation as the IPW bridge in `Setup.lean`. -/
-theorem completeProp_calibrated
-    [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
-    (hpos : ∀ᵐ ω ∂P.μ, 0 < S.completeProp ω)
-    (hint : Integrable (fun ω => S.dVar.indicator true ω / S.completeProp ω) P.μ) :
-    S.Calibrated S.completeProp := by
-  classical
-  set A : P.Ω → ℝ := S.dVar.indicator true with hA_def
-  set e : P.Ω → ℝ := S.completeProp with he_def
-  -- `σ(X) ≤ σ(X, Y(1))`.
-  have hX_le : S.sigmaX ≤ S.sigmaXY1 := by
-    rw [POBackdoorSystem.sigmaX, POBackdoorSystem.sigmaXY1]
-    exact le_sup_left
-  -- `1/e` is `σ(X,Y(1))`-strongly measurable (`e = condExp` is).
-  have he_smeas : StronglyMeasurable[S.sigmaXY1] e := by
-    rw [he_def]; exact stronglyMeasurable_condExp
-  have hinv_smeas : StronglyMeasurable[S.sigmaXY1] (fun ω => 1 / e ω) :=
-    (measurable_const.div he_smeas.measurable).stronglyMeasurable
-  -- Integrability of `A` and `(1/e)·A` (= `A/e`).
-  have hA_int : Integrable A P.μ := S.dVar.integrable_indicator true (measurableSet_singleton true)
-  have hinvA_int : Integrable (fun ω => (1 / e ω) * A ω) P.μ := by
-    refine hint.congr (Filter.Eventually.of_forall ?_)
-    intro ω
-    simp [hA_def, he_def, div_eq_inv_mul]
-  -- Pull-out: `μ[(1/e)·A | σ(X,Y(1))] =ᵐ (1/e)·μ[A | σ(X,Y(1))] = (1/e)·e`.
-  have he_cond : (P.μ[A | S.sigmaXY1]) = e := by rw [hA_def, he_def]; rfl
-  have hpull :
-      P.μ[fun ω => (1 / e ω) * A ω | S.sigmaXY1] =ᵐ[P.μ] (fun ω => (1 / e ω) * e ω) := by
-    have h := MeasureTheory.condExp_mul_of_stronglyMeasurable_left
-      (m := S.sigmaXY1) (μ := P.μ) hinv_smeas hinvA_int hA_int
-    refine h.trans ?_
-    rw [he_cond]
-    rfl
-  -- Cancel: `(1/e)·e = 1` a.e. from positivity.
-  have hcancel : (fun ω => (1 / e ω) * e ω) =ᵐ[P.μ] (fun _ => (1 : ℝ)) := by
-    filter_upwards [hpos] with ω hω
-    rw [he_def] at hω
-    rw [he_def]
-    field_simp
-  -- So `μ[A/e | σ(X,Y(1))] =ᵐ 1`.
-  have hinner : P.μ[fun ω => A ω / e ω | S.sigmaXY1] =ᵐ[P.μ] (fun _ => (1 : ℝ)) := by
-    have hrw : (fun ω => A ω / e ω) = (fun ω => (1 / e ω) * A ω) := by
-      funext ω; rw [one_div, div_eq_inv_mul]
-    rw [hrw]
-    exact hpull.trans hcancel
-  -- Tower: `μ[A/e | σX] =ᵐ μ[ μ[A/e | σ(X,Y(1))] | σX] =ᵐ μ[1 | σX] =ᵐ 1`.
-  unfold POBackdoorSystem.Calibrated
-  have htower :
-      P.μ[fun ω => A ω / e ω | S.sigmaX]
-        =ᵐ[P.μ] P.μ[P.μ[fun ω => A ω / e ω | S.sigmaXY1] | S.sigmaX] :=
-    (MeasureTheory.condExp_condExp_of_le hX_le S.sigmaXY1_le).symm
-  refine htower.trans ?_
-  have hcongr :
-      P.μ[P.μ[fun ω => A ω / e ω | S.sigmaXY1] | S.sigmaX]
-        =ᵐ[P.μ] P.μ[(fun _ => (1 : ℝ)) | S.sigmaX] :=
-    condExp_congr_ae hinner
-  refine hcongr.trans ?_
-  exact Filter.EventuallyEq.of_eq (MeasureTheory.condExp_const S.sigmaX_le (1 : ℝ))
-
-/-- The true complete propensity lies in the calibrated set when it satisfies MSM membership and
-calibration. -/
-theorem completeProp_mem_MSMSetCalib (Λ : ℝ)
-    (hmem : S.completeProp ∈ S.MSMSet Λ) (hcalib : S.Calibrated S.completeProp) :
-    S.completeProp ∈ S.MSMSetCalib Λ :=
-  ⟨hmem, hcalib⟩
-
-/-- **The sharp bound is valid.** Assuming [the true complete propensity belongs to the calibrated
-(sharp) marginal-sensitivity ambiguity set](hyp:hmem), [the IPW/tower bridge identity `candMean e₀
-= E[Y(1)]` holds](hyp:hbridge), and [the candidate mean is bounded below and above over the
-calibrated ambiguity set](hyp:hbdd,hbdd'), then [the estimand `E[Y(1)]` lies in the calibrated
-(sharp) interval `[msmLowerCalib Λ, msmUpperCalib Λ]`](goal). -/
-theorem Y1mean_mem_Icc_calib (Λ : ℝ)
-    (hmem : S.completeProp ∈ S.MSMSetCalib Λ)
-    (hbridge : S.candMean S.completeProp = S.Y1mean)
-    (hbdd : BddBelow (S.candMean '' S.MSMSetCalib Λ))
-    (hbdd' : BddAbove (S.candMean '' S.MSMSetCalib Λ)) :
-    S.Y1mean ∈ Set.Icc (S.msmLowerCalib Λ) (S.msmUpperCalib Λ) := by
-  have hmemImg : S.candMean S.completeProp ∈ S.candMean '' S.MSMSetCalib Λ :=
-    Set.mem_image_of_mem _ hmem
-  rw [Set.mem_Icc, ← hbridge]
-  refine ⟨?_, ?_⟩
-  · exact csInf_le hbdd hmemImg
-  · exact le_csSup hbdd' hmemImg
-
-/-- The calibrated set is a subset of the odds-ratio box. -/
-theorem MSMSetCalib_subset (Λ : ℝ) : S.MSMSetCalib Λ ⊆ S.MSMSet Λ :=
-  fun _ h => h.1
-
-/-- **The sharp upper bound is tighter than the ZSB bound.** Assuming [the calibrated
-candidate-mean image is nonempty](hyp:hne) and [the candidate mean is bounded above over the
-uncalibrated odds-ratio-box ambiguity set](hyp:hbdd), [the sharp (calibrated) upper bound is at
-most the ZSB (uncalibrated) upper bound: `msmUpperCalib Λ ≤ msmUpper Λ`](goal). The calibrated set
-is smaller, so its candidate-mean supremum can only decrease. -/
-theorem msmUpperCalib_le_msmUpper (Λ : ℝ)
-    (hne : (S.candMean '' S.MSMSetCalib Λ).Nonempty)
-    (hbdd : BddAbove (S.candMean '' S.MSMSet Λ)) :
-    S.msmUpperCalib Λ ≤ S.msmUpper Λ := by
-  have hsub : S.MSMSetCalib Λ ⊆ S.MSMSet Λ := S.MSMSetCalib_subset Λ
-  have himg : S.candMean '' S.MSMSetCalib Λ ⊆ S.candMean '' S.MSMSet Λ :=
-    Set.image_mono hsub
-  exact csSup_le_csSup hbdd hne himg
-
-/-- **The sharp lower bound is tighter than the ZSB bound:** `msmLower Λ ≤ msmLowerCalib Λ`. -/
-theorem msmLower_le_msmLowerCalib (Λ : ℝ)
-    (hne : (S.candMean '' S.MSMSetCalib Λ).Nonempty)
-    (hbdd : BddBelow (S.candMean '' S.MSMSet Λ)) :
-    S.msmLower Λ ≤ S.msmLowerCalib Λ := by
-  have hsub : S.MSMSetCalib Λ ⊆ S.MSMSet Λ := S.MSMSetCalib_subset Λ
-  have himg : S.candMean '' S.MSMSetCalib Λ ⊆ S.candMean '' S.MSMSet Λ :=
-    Set.image_mono hsub
-  exact csInf_le_csInf hbdd hne himg
+This is a conditional realization theorem, not Dorn--Guo Theorem 1 under the paper's population
+conditions: it assumes feasible extremal cutoffs and their realization regularity. In the source,
+Appendix C.3 proves Proposition 2 and Theorem 1; Appendix C.2 proves Corollary 4. -/
+theorem msmCalib_sharp [StandardBorelSpace P.Ω]
+    (Λ : ℝ) (hΛ : 1 ≤ Λ)
+    (hoverlap : ∀ᵐ ω ∂P.μ,
+      0 < S.propScore true ω ∧ S.propScore true ω < 1)
+    (cUpper cLower : P.Ω → ℝ)
+    (hcUpper_meas : Measurable[S.sigmaX] cUpper)
+    (hcUpper_int : Integrable cUpper P.μ)
+    (hupper_mem : S.cutoffProp Λ cUpper ∈ S.MSMSetCalib true Λ)
+    (hupper_env : Integrable
+      (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
+    (hupper_weight_env : Integrable
+      (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
+    (hupper_c_env : Integrable
+      (fun ω => |cUpper ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
+    (hcLower_meas : Measurable[S.sigmaX] cLower)
+    (hcLower_int : Integrable cLower P.μ)
+    (hlower_mem : S.lowerCutoffProp Λ cLower ∈ S.MSMSetCalib true Λ)
+    (hlower_env : Integrable
+      (fun ω => S.dVar.indicator true ω * |S.factualY ω| * S.wMax Λ ω) P.μ)
+    (hlower_weight_env : Integrable
+      (fun ω => S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
+    (hlower_c_env : Integrable
+      (fun ω => |cLower ω| * S.dVar.indicator true ω * S.wMax Λ ω) P.μ)
+    (hupper_uniform : ∃ ε : ℝ, 0 < ε ∧
+      ∀ᵐ ω ∂P.μ.restrict S.treatedSet,
+        ε ≤ S.cutoffProp Λ cUpper ω ∧ S.cutoffProp Λ cUpper ω ≤ 1 - ε)
+    (hlower_uniform : ∃ ε : ℝ, 0 < ε ∧
+      ∀ᵐ ω ∂P.μ.restrict S.treatedSet,
+        ε ≤ S.lowerCutoffProp Λ cLower ω ∧
+          S.lowerCutoffProp Λ cLower ω ≤ 1 - ε)
+    (hupper_Y1_int : Integrable (fun p : P.Ω × Bool => S.factualY p.1)
+      (Causalean.Mathlib.Probability.bernoulliMarkedLaw
+        (P.μ.restrict S.treatedSet) (S.cutoffProp Λ cUpper)))
+    (hlower_Y1_int : Integrable (fun p : P.Ω × Bool => S.factualY p.1)
+      (Causalean.Mathlib.Probability.bernoulliMarkedLaw
+        (P.μ.restrict S.treatedSet) (S.lowerCutoffProp Λ cLower)))
+    (hbddBelow : BddBelow (S.candMean true '' S.MSMSetCalib true Λ))
+    (hbddAbove : BddAbove (S.candMean true '' S.MSMSetCalib true Λ)) :
+    S.msmUpperCalib true Λ = sSup (S.compatibleTargets Λ) ∧
+      S.msmLowerCalib true Λ = sInf (S.compatibleTargets Λ) := by
+  have hupper_obs : S.cutoffProp Λ cUpper ∈ S.MSMSetCalibObs Λ :=
+    S.cutoffProp_mem_MSMSetCalibObs Λ cUpper hcUpper_meas hupper_mem
+  have hlower_obs : S.lowerCutoffProp Λ cLower ∈ S.MSMSetCalibObs Λ :=
+    S.lowerCutoffProp_mem_MSMSetCalibObs Λ cLower hcLower_meas hlower_mem
+  have hwMin_meas : Measurable (S.wMin Λ) := S.measurable_wMin Λ
+  have hwMax_meas : Measurable (S.wMax Λ) := S.measurable_wMax Λ
+  have hupper_meas : Measurable (S.cutoffProp Λ cUpper) := by
+    unfold POBackdoorSystem.cutoffProp
+    exact measurable_const.div (Measurable.ite
+      (measurableSet_lt (hcUpper_meas.mono S.sigmaX_le le_rfl) S.measurable_factualY)
+      hwMax_meas hwMin_meas)
+  have hlower_meas : Measurable (S.lowerCutoffProp Λ cLower) := by
+    unfold POBackdoorSystem.lowerCutoffProp
+    exact measurable_const.div (Measurable.ite
+      (measurableSet_lt (hcLower_meas.mono S.sigmaX_le le_rfl) S.measurable_factualY)
+      hwMin_meas hwMax_meas)
+  obtain ⟨MUpper, hMUpper⟩ := S.exists_compatible_realization Λ
+    (S.cutoffProp Λ cUpper) (S.cutoffProp Λ cUpper) hupper_meas
+    Filter.EventuallyEq.rfl hupper_obs hupper_uniform hupper_Y1_int
+  obtain ⟨MLower, hMLower⟩ := S.exists_compatible_realization Λ
+    (S.lowerCutoffProp Λ cLower) (S.lowerCutoffProp Λ cLower) hlower_meas
+    Filter.EventuallyEq.rfl hlower_obs hlower_uniform hlower_Y1_int
+  have hupperCut : S.candMean true (S.cutoffProp Λ cUpper) =
+      S.msmUpperCalib true Λ :=
+    (S.msmUpperCalib_eq_cutoff Λ hΛ hoverlap cUpper hcUpper_meas
+      hcUpper_int hupper_mem hupper_env hupper_weight_env hupper_c_env).symm
+  have hlowerCut : S.candMean true (S.lowerCutoffProp Λ cLower) =
+      S.msmLowerCalib true Λ :=
+    (S.msmLowerCalib_eq_cutoff Λ hΛ hoverlap cLower hcLower_meas
+      hcLower_int hlower_mem hlower_env hlower_weight_env hlower_c_env).symm
+  have hupperTarget : MUpper.target = S.msmUpperCalib true Λ := hMUpper.trans hupperCut
+  have hlowerTarget : MLower.target = S.msmLowerCalib true Λ := hMLower.trans hlowerCut
+  have hUpperMem : MUpper.target ∈ S.compatibleTargets Λ := ⟨MUpper, rfl⟩
+  have hLowerMem : MLower.target ∈ S.compatibleTargets Λ := ⟨MLower, rfl⟩
+  have hne : (S.compatibleTargets Λ).Nonempty := ⟨MUpper.target, hUpperMem⟩
+  have hall : ∀ θ ∈ S.compatibleTargets Λ,
+      S.msmLowerCalib true Λ ≤ θ ∧ θ ≤ S.msmUpperCalib true Λ := by
+    rintro θ ⟨M, rfl⟩
+    exact M.target_mem_Icc_msmCalib hΛ hoverlap hbddBelow hbddAbove
+  have hTargetsAbove : BddAbove (S.compatibleTargets Λ) :=
+    ⟨S.msmUpperCalib true Λ, fun θ hθ => (hall θ hθ).2⟩
+  have hTargetsBelow : BddBelow (S.compatibleTargets Λ) :=
+    ⟨S.msmLowerCalib true Λ, fun θ hθ => (hall θ hθ).1⟩
+  constructor
+  · apply le_antisymm
+    · rw [← hupperTarget]
+      exact le_csSup hTargetsAbove hUpperMem
+    · exact csSup_le hne fun θ hθ => (hall θ hθ).2
+  · apply le_antisymm
+    · exact le_csInf hne fun θ hθ => (hall θ hθ).1
+    · rw [← hlowerTarget]
+      exact csInf_le hTargetsBelow hLowerMem
 
 end POBackdoorSystem
 

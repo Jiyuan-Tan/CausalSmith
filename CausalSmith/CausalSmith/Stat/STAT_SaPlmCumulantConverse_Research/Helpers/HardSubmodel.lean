@@ -1,15 +1,18 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianSubGaussian
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianKL
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Causalean.Stat.Minimax.Pinsker
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Basic
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianOutcomePath
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianSubGaussian
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AffineGaussianKL
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Causalean.Stat.Minimax.Pinsker
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-!
 # Non-Gaussian hard submodel
 -/
+
+@[expose] public section
 
 noncomputable section
 

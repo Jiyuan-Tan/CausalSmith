@@ -18,8 +18,9 @@ The two IPW corrections vanish via `weighted_residual_integral_zero` (a
 σ(X)-pull-out lemma based on `cond_exp_residual_zero`). The other two cancel.
 -/
 
-import Causalean.Estimation.ATE.Score.AIPWMoment
-import Causalean.Tactic.IntegralLinearity
+module
+public import Causalean.Estimation.ATE.Score.AIPWMoment
+public import Causalean.Tactic.IntegralLinearity
 
 /-!
 Proves measurability and mean-zero properties of the AIPW influence function
@@ -31,6 +32,8 @@ pull-out lemmas used by the proof, the source-level mean-zero theorem
 `aipw_mean_zero_of_square_integrable` that derives the weighted residual
 integrability gates from strict overlap and second moments.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -137,8 +140,8 @@ lemma cond_exp_residual_zero (S : BackdoorEstimationSystem P γ)
       hA.integrable_factualY
   have hμx_int :
       Integrable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE d) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ_compat hA d)
   have hμx_meas :
@@ -177,8 +180,8 @@ lemma cond_exp_residual_zero (S : BackdoorEstimationSystem P γ)
           S.toPOBackdoorSystem.dVar.indicator d ω |
           S.toPOBackdoorSystem.sigmaX]
         =ᵐ[P.μ]
-          S.toPOBackdoorSystem.propScore d * S.toPOBackdoorSystem.CATE d := by
-    have hcate := S.toPOBackdoorSystem.cate_backdoor hA d
+          S.toPOBackdoorSystem.propScore d * S.toPOBackdoorSystem.conditionalMeanOutcome d := by
+    have hcate := S.toPOBackdoorSystem.conditionalMeanOutcome_backdoor hA d
     filter_upwards [hcate, propScore_ne_zero S hA d] with ω hcat hneω
     unfold POBackdoorSystem.adjustedCE at hcat
     rw [Pi.mul_apply, hcat]
@@ -205,9 +208,9 @@ lemma cond_exp_residual_zero (S : BackdoorEstimationSystem P γ)
   rw [hres_eq]
   refine hsub.trans ?_
   filter_upwards [hYce, hμce, S.μ_compat hA d] with ω hy hmu hcompat
-  have hcate_comp : S.toPOBackdoorSystem.CATE d ω =
+  have hcate_comp : S.toPOBackdoorSystem.conditionalMeanOutcome d ω =
       S.μ_val d (S.toPOBackdoorSystem.factualX ω) := by
-    simpa [POBackdoorSystem.CATE] using hcompat
+    simpa [POBackdoorSystem.conditionalMeanOutcome] using hcompat
   rw [Pi.sub_apply, hy, hmu, Pi.mul_apply, Pi.mul_apply, hcate_comp]
   ring
 
@@ -306,8 +309,8 @@ private lemma weighted_residual_integral_zero
       hA.integrable_factualY
   have hμx_int :
       Integrable (fun ω => S.μ_val d (S.toPOBackdoorSystem.factualX ω)) P.μ := by
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE d) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ_compat hA d)
   have hμx_meas :
@@ -377,9 +380,8 @@ private lemma weighted_residual_integral_zero
 
 Companion to `weighted_residual_integral_zero`: replaces the indicator
 `1_{D=d}` by the value-space propensity `e_val_label d (X)` inside an
-integral against `P.μ`.  Used in `Remainder.aipw_remainder_identity` to
-collapse the cross terms `(1_{D=d} / η.e_fn) · Δμ_d(X)` to their
-`e_val`-weighted form. -/
+integral against `P.μ`. The lemmas below establish the local pull-out chain
+from conditional-expectation linearity and propensity compatibility. -/
 
 /-- Value-space propensity for label `d`: `e_val` for `d = true`,
 `1 − e_val` for `d = false`. -/
@@ -587,8 +589,8 @@ private lemma aipw_factualZ_integral_zero (S : BackdoorEstimationSystem P γ)
     rw [MeasureTheory.integral_congr_ae hEqC.symm]
     exact hC_zero
   have hbase_int : Integrable base P.μ := by
-    have hcate : ∀ d, Integrable (S.toPOBackdoorSystem.CATE d) P.μ := fun d => by
-      unfold POBackdoorSystem.CATE
+    have hcate : ∀ d, Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := fun d => by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     have h1 :
         Integrable (fun ω => S.μ_val true (S.toPOBackdoorSystem.factualX ω)) P.μ :=

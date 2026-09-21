@@ -1,12 +1,13 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HeadlineSupport
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.MinimaxRisk
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier_Part1
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier_Part2
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Estimator
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourable
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HeadlineSupport
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.MinimaxRisk
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier_Part1
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.T_bounded_outcome_frontier_Part2
 
 /-!
 # Simultaneous coefficient-mass and bounded-outcome degree frontier
@@ -16,6 +17,8 @@ quantified outside population size, degree, and envelope, so they depend only
 on the fixed interaction order and Bernoulli probability.  The supporting model-class
 and exact-risk lemmas live in the two sibling parts imported above.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

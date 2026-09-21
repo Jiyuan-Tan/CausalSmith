@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.SuperPopulation.Basic
+module
+public import Causalean.Experimentation.SuperPopulation.Basic
 
 /-!
 # m-dependent CLT for a super-population network field
@@ -19,12 +20,14 @@ graph (`NetworkDependence.toDepGraph`) and invoking the proved bounded-degree de
 its leave-out independence hypothesis.
 -/
 
+public section
+
 open MeasureTheory ProbabilityTheory Filter
 open scoped Real Topology BigOperators
 
 namespace Causalean.Experimentation.SuperPopulation
 
-open Causalean.SteinMethod
+open Causalean.Mathlib.Probability.SteinMethod
 
 /-- **m-dependent network CLT (super-population).** Consider [a sequence of super-population
 network fields `F n`, each on a probability space with measure `μ n`](hyp:μ,F), whose [dependency

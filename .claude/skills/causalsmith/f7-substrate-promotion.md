@@ -12,26 +12,29 @@ faithful general form.
 For EACH helper:
 
 1. **Search Causalean and Mathlib first** (`npm run search -- "<concept>" --scope module`; loogle /
-   leansearch / `exact?`). If the concept exists, state the result in terms of it; never mint a
-   paper-named parallel primitive.
-2. **Fit.** Place under the narrowest relevant domain (`Mathlib/`, `Stat/`, `SCM/`, `PO/`,
-   `Estimation/`, …), creating a topic module only when none fits. Match the target's naming/notation
-   (no run jargon), generality, and granularity (≤600 lines; split before ~900). Strip run-coupled
-   types; if the statement cannot be stated without them, stop and report. Promote the weakest statement
-   the existing proof already supports: drop unused hypotheses and instance arguments, weaken typeclasses
-   to what is used, widen hard-coded types/constants the proof treats generically. Never add a
-   compensating hypothesis.
+   leansearch / `exact?`). A declaration Mathlib already has is reuse, not promotion; never mint a
+   parallel primitive.
+2. **Fit and place.** State the target layer and import only lower layers: Tactic < Mathlib < Graph <
+   Stat/SCM.Model < PO/SCM core < PO/SCM identification < Estimation < Panel/Experimentation < ML <
+   Discovery. Merge into an existing topic module by default; create one only when none fits, using
+   Mathlib-style mathematical nouns, never a study/run or module-prefix name. Under
+   `Causalean/Mathlib/`, use Mathlib directory names and no causal/statistical vocabulary. Match the
+   target's notation and granularity (≤600 lines; split before ~900). Strip run-coupled types; if the
+   statement cannot be stated without them, leave it in the run's `Helpers/` and report. Promote the
+   weakest statement the existing proof already supports: drop unused hypotheses and instance arguments,
+   weaken typeclasses to what is used, widen hard-coded types/constants the proof treats generically.
+   Never add a compensating hypothesis.
 3. **Move** statement + proof into the target; rewire CausalSmith to re-import it and delete the local
-   copy. Causalean never imports CausalSmith.
+   copy. Causalean never imports CausalSmith. A new module uses `module`, contiguous `public import`s,
+   a `/-! -/` docstring, one blanket `@[expose] public section` (def-bearing) or `public section`
+   (theorem-only), and bare declarations; wire it into its directory barrel, not the root.
 4. **Docstrings** (CLAUDE.md): first paragraph = self-contained NL translation with crosslinks —
    `[phrase](hyp:binder)` on every hypothesis/explicit binder, `[phrase](goal)` on the conclusion (for a
    definition: every explicit parameter, `(goal)` on the defined object, `(step:N)` per given-by clause);
    `/-! -/` module overview.
-5. **Curate.** Add every MAIN result (identification / estimand characterization / paper-named
-   decomposition / asymptotic normality, rate, optimality, efficiency / sharp bound) to
-   `headline_theorems` in `doc/library_review/<Area>.json`; leave supporting lemmas uncurated. For a
-   module with no sidecar coverage add a one-line `namespace_intros["<Path>"]` (or `intro` for a new
-   top-level area).
+5. **Curate.** Every theorem-bearing file, including under `Mathlib/`, has 1–3
+   `headline_theorems`; choose main results, never routine lemmas. Add `namespace_intros` only for a
+   genuinely new namespace path without a roll-up module docstring.
 6. **Regenerate:** `lake exe library_index` → `npm run embed:library` + `npm run lint:embeddings` →
    `npm run doc:gen`/`doc:check` → `npm run lint:nl-links` (0 errors).
 
@@ -45,7 +48,8 @@ flagship theorem:
 - Fit: existing primitive reused or the new one justified; no run jargon in shared names.
 - Docstrings + crosslinks on every promoted declaration; any `headline_theorems` entry annotated.
 
-**Report per helper:** promoted path, full-build status, the `#print axioms` output — real evidence, not
-a summary. If any check fails, do not weaken the banked flagship: report and stop; main decides.
+**Report per helper:** promoted path; which existing module/run reuses it, or why it is general; full-build
+status; and the `#print axioms` output — real evidence, not a summary. If any check fails, do not weaken
+the banked flagship: report and stop; main decides.
 
 **Record:** append the new Causalean paths to the bank README's `reusable_artifacts`.

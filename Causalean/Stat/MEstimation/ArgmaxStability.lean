@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Topology.MetricSpace.ProperSpace
-import Mathlib.Topology.Order.Compact
-import Mathlib.Topology.UniformSpace.UniformApproximation
+module
+public import Mathlib.Topology.MetricSpace.ProperSpace
+public import Mathlib.Topology.Order.Compact
+public import Mathlib.Topology.UniformSpace.UniformApproximation
 
 /-!
 # Deterministic argmax stability
@@ -14,6 +15,8 @@ import Mathlib.Topology.UniformSpace.UniformApproximation
 This module proves convergence of exact maximizers from uniform convergence on
 an eventually common compact set and uniqueness of the limiting maximizer.
 -/
+
+public section
 
 open Filter Set Topology
 

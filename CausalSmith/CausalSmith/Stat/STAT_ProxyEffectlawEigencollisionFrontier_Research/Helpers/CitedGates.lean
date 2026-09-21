@@ -1,7 +1,10 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
-import Causalean.Mathlib.MeasureTheory.CompactArgminSelection
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
+public import Causalean.Mathlib.MeasureTheory.CompactArgminSelection
 
 /-! Explicit cited logical gates used by the paper. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialLift
-import Causalean.Mathlib.Analysis.WeightedCauchySchwarz
-import Mathlib.Algebra.MvPolynomial.Degrees
-import Mathlib.Data.Nat.Choose.Bounds
-import Mathlib.MeasureTheory.Integral.Pi
+module
+public import CausalSmith.Stat.STAT_DiscreteOptimalValueMinimaxMatched_Research.Helpers.FactorialLift
+public import Causalean.Mathlib.Analysis.WeightedCauchySchwarz
+public import Mathlib.Algebra.MvPolynomial.Degrees
+public import Mathlib.Data.Nat.Choose.Bounds
+public import Mathlib.MeasureTheory.Integral.Pi
 
 /-! Generic risk bounds and exact moments for centered factorial polynomials. -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteOptimalValueMinimaxMatched
 

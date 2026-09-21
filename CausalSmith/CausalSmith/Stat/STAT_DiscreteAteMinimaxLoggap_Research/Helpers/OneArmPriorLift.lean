@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmSignedPrior
-import Mathlib.Probability.ProbabilityMassFunction.Integrals
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmSignedPrior
+public import Mathlib.Probability.ProbabilityMassFunction.Integrals
 
 /-!
 # Lifting a prior on positive nodes to a one-arm hard prior
@@ -11,6 +12,8 @@ The tilt is chosen so that the observable moments of the lifted prior reduce to
 rational tests of the original prior, which the signed interpolation weights
 annihilate.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

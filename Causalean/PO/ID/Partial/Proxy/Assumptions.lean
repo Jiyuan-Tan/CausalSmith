@@ -4,33 +4,35 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.ID.Partial.Proxy.Setup
-import Mathlib.Probability.Independence.Conditional
+module
+public import Causalean.PO.ID.Partial.Proxy.Setup
+public import Mathlib.Probability.Independence.Conditional
 
 /-!
 # Proximal partial-identification assumption bundles
 
-Three weakened assumption bundles, one per partial-identification theorem
-of Ghassami-Shpitser-Tchetgen Tchetgen (2024):
+Three weakened assumption bundles for abstract proximal envelope bounds inspired
+by Ghassami, Zhang, Shpitser, and Tchetgen Tchetgen (arXiv:2304.04374v4, 2026):
 
-* `WBasedAssumptions`   — outcome-confounding-proxy bounds (Theorem 1).
-* `ZBasedAssumptions`   — treatment-confounding-proxy bounds (Theorem 2).
+* `WBasedAssumptions`   — outcome-confounding-proxy envelope bounds.
+* `ZBasedAssumptions`   — treatment-confounding-proxy envelope bounds.
 * `TwoProxyAssumptions` — two conditionally independent invalid proxies
-                            (Theorem 3).
+                            with joint envelope bounds.
 
 All three weaken the exact-identification bundle
 `POProximalSystem.Assumptions` by dropping the completeness condition (and,
 for the W- and Z-only cases, dropping the unused proxy's assumptions).
 
 The bridge function `h` (W side) and bridge function `q` (Z side) are bundled
-as fields, exactly as in the exact-ID bundle. The treatment-side bridge `q`
-satisfies `E[q(Z, A, X) | A, X, U] = p(U | ¬A, X) / p(U | A, X)`. In the
-general standard-Borel setting the right-hand side is a Radon-Nikodym
-derivative whose existence is non-trivial; we package it as a user-supplied
-measurable function `likelihoodRatio_swapA` together with its defining
-relation.
+as fields. The code uses a propensity-odds convention:
+`E[q(Z,a,X) | A,U,X] = p(A ≠ a | U,X) / p(A = a | U,X)` on the arm `{A=a}`.
+The user supplies this ratio as `likelihoodRatio_swapA` through an operational
+conditional-expectation identity. The paper's latent-density-ratio convention
+differs by the covariate-level `stratumOddsRatio`; no Radon–Nikodym conversion
+theorem is formalized here.
 -/
 
+@[expose] public section
 
 namespace Causalean
 namespace PO
@@ -44,10 +46,10 @@ variable {P : POSystem}
   [MeasurableSpace γ_X] [MeasurableSpace γ_Z]
   [MeasurableSpace γ_W] [MeasurableSpace γ_U]
 
-/-! ## W-only bundle (Theorem 1) -/
+/-! ## W-only bundle -/
 
-/-- Assumption bundle for the W-proxy partial-identification theorem
-(Ghassami-Shpitser-Tchetgen Tchetgen 2024, Thm 1).
+/-- Assumption bundle for the abstract W-proxy envelope bounds, inspired by
+Ghassami, Zhang, Shpitser, and Tchetgen Tchetgen (arXiv:2304.04374v4, 2026).
 
 Drops `proxy_YZ`, `completeness`, and Z-related fields from the exact-ID bundle.
 
@@ -65,8 +67,8 @@ influences `A` only through `U`; (iv) **outcome bridge** (`h`, `bridge`, paper
 Assumption 2) — there exists a function `h(A, W, X)` reproducing the latent
 outcome regression, `E[Y - h(A, W, X) | A, U, X] = 0`, and (`h_nonneg`) it can
 be taken non-negative; (v) **bounded outcome** (`Y_bdd_below`/`Y_bdd_above`) —
-`Y` is essentially bounded, which clamps the reported interval to
-`[essinf Y, essup Y]`; (vi) **strong overlap** (`overlap_strong`) — positivity
+`Y` is essentially bounded, which supplies lower and upper clamp witnesses;
+(vi) **strong overlap** (`overlap_strong`) — positivity
 `P(A = a | U, X) > 0`, needed to lift single-arm a.e. equalities globally.
 
 Fields:
@@ -78,12 +80,12 @@ Fields:
                        bridge is posited to exist; not derived from `Y ⊆ [0, ∞)`).
 - `bridge`          : E[Y - h(A, W, X) | σ(A, U, X)] = 0 a.s. (Paper Assumption 2,
                        latent-side encoding.)
-- `Y_bdd_below` / `Y_bdd_above`  : essential bounds on Y, used to clamp the
-                                    bound to `[essinfY, essupY]`.
+- `Y_bdd_below` / `Y_bdd_above`  : existential essential bounds on Y, used as
+                                    noncanonical clamp witnesses.
 
-The finite essential upper bound makes this a finite-support variant of the
-Ghassami-Shpitser-Tchetgen Tchetgen Theorem 1 assumptions, stronger than the
-paper's nonnegative-support plus sup-clamp formulation. -/
+Essential boundedness allows bounded continuous outcomes and is stronger than
+the source's nonnegative-support plus supremum-clamp formulation. The selected
+clamps are arbitrary witnesses, not formal essential infima or suprema. -/
 structure WBasedAssumptions
     (S : POProximalSystem P γ_X γ_Z γ_W γ_U)
     (μ : Measure P.Ω := P.μ) [IsFiniteMeasure μ]
@@ -127,10 +129,10 @@ structure WBasedAssumptions
   overlap_strong : ∀ a : Bool, ∀ s : Set P.Ω, MeasurableSet[S.σ_UX] s →
       μ (s ∩ {ω | S.A ω = a}) = 0 → μ s = 0
 
-/-! ## Z-only bundle (Theorem 2) -/
+/-! ## Z-only bundle -/
 
-/-- Assumption bundle for the Z-proxy partial-identification theorem
-(Thm 2). Drops `proxy_WAZ`, `completeness`, and W-related fields.
+/-- Assumption bundle for the abstract Z-proxy envelope bounds. It drops
+`proxy_WAZ`, `completeness`, and W-related fields.
 
 Econometric reading of the assumptions.  Here the available proxy is a
 *treatment-confounding proxy* `Z` (a noisy view of `U` on the treatment side);
@@ -173,10 +175,10 @@ Three integrability fields cover finiteness gaps that paper Assumption 3
 (strict overlap) does not entail:
 * `integrable_likelihoodRatio_swapA` — `L = p(¬a|U,X)/p(a|U,X)` is in L¹.
 * `integrable_condExpYofA_mul_L`     — the L¹-pairing `μ[Y(a)|σ_UX] · L`
-  used inside the upper/lower bridge-substitution chain (Theorem 2).
+  used inside the upper/lower bridge-substitution chain.
 * `integrable_condExpY_mul_q`        — the L¹-pairing `μ[Y|σ_AZX] · q(Z,a,X)`
   used inside the σ_AZX-conditional envelope step of the same chain
-  (Theorem 2, paper "all integrals are finite" convention; Remark 5
+  (the source's "all integrals are finite" convention; Remark 5
   forbids a Y-clamp). -/
 structure ZBasedAssumptions
     (S : POProximalSystem P γ_X γ_Z γ_W γ_U)
@@ -222,7 +224,7 @@ structure ZBasedAssumptions
                           * likelihoodRatio_swapA a ω) μ
   /-- Product `μ[Y | σ_AZX] · q(Z, a, X)` is integrable. Required by the
   σ_AZX-conditional envelope step inside the bridge-substitution chain
-  (Theorem 2). The bundle does not give Y or `μ[Y|σ_AZX]` boundedness
+  in the Z-envelope chain. The bundle does not give Y or `μ[Y|σ_AZX]` boundedness
   (Remark 5 forbids a Y-clamp), so L¹·L¹ closure is not automatic; we
   surface it explicitly per the paper's "all integrals are finite"
   convention. -/
@@ -230,7 +232,7 @@ structure ZBasedAssumptions
     Integrable (fun ω => (μ[S.Y | S.σ_AZX]) ω
                           * q (S.Z ω, a, S.X ω)) μ
   /-- Product `Y · q(Z, a, X)` is integrable. Required by the
-  bridge-substitution arm chain (Theorem 2): we factor
+  bridge-substitution arm chain: we factor
   `μ[Y · q | σ_AUX] = μ[Y|σ_AUX] · μ[q|σ_AUX]` under proxy_YZ and tower
   back to `∫_s Y · q dμ`, both of which need this L¹ closure. The bundle
   does not give Y boundedness (Remark 5 forbids a Y-clamp), so L¹·L¹
@@ -255,10 +257,10 @@ structure ZBasedAssumptions
   overlap_strong : ∀ a : Bool, ∀ s : Set P.Ω, MeasurableSet[S.σ_UX] s →
       μ (s ∩ {ω | S.A ω = a}) = 0 → μ s = 0
 
-/-! ## Two-proxy bundle (Theorem 3) -/
+/-! ## Two-proxy bundle -/
 
-/-- Assumption bundle for the two-proxy partial-identification theorem
-(Thm 3). Both proxies `W` and `Z` are present, but the strong exclusion
+/-- Assumption bundle for the abstract two-proxy envelope bound. Both proxies
+`W` and `Z` are present, but the strong exclusion
 restrictions `W ⟂ A | (U, X)` and `Y ⟂ Z | (A, U, X)` may FAIL — that is
 the "invalid proxy" angle. The only proxy-side conditional independence
 required is `proxy_WZ_indep : W ⟂ Z | (A, X, U)` (paper Assumption 6); in
@@ -278,9 +280,10 @@ explicit integrability fields (`integrable_likelihoodRatio_swapA`,
 `integrable_condExpYofA_mul_L`) covering finiteness gaps not implied by
 strict overlap.
 
-This is a finite-support variant of the Ghassami-Shpitser-Tchetgen Tchetgen
-Theorem 3 assumptions: the finite essential upper bound on `Y` is stronger than
-the paper's nonnegative-support plus sup-clamp formulation. -/
+The essential-boundedness requirement allows bounded continuous outcomes and is
+stronger than the source's nonnegative-support plus supremum-clamp formulation.
+Its existential bounds provide arbitrary clamp witnesses, not formal essential
+infima or suprema. -/
 structure TwoProxyAssumptions
     (S : POProximalSystem P γ_X γ_Z γ_W γ_U)
     (μ : Measure P.Ω := P.μ) [IsFiniteMeasure μ]

@@ -1,14 +1,17 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.TUniformOverlapFrontier
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.TUniformOverlapFrontier
 
 set_option linter.style.longLine false
 set_option maxHeartbeats 800000
+
+/-! # Shrinking-overlap phase diagram -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
 open Filter
 open scoped Topology
-
-/-! # Shrinking-overlap phase diagram -/
 
 /-- The local-radius rate surface written in terms of the excess `delta_T`. -/
 noncomputable def localFrontierRate (T : Nat) (t0 zeta : ℝ) (delta : Nat → ℝ) : ℝ :=

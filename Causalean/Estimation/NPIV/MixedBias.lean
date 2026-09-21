@@ -19,7 +19,8 @@ All three results are proved by integral linearity, the dual-solution
 identity at direction `h − h₀`, and the primal moment identity at `q`.
 -/
 
-import Causalean.Estimation.NPIV.Setup
+module
+public import Causalean.Estimation.NPIV.Setup
 
 /-! # Mixed-Bias Identity for NPIV
 
@@ -28,6 +29,8 @@ inverse-problem functionals. It shows that, given a dual solution, the
 functional error factors as the expectation of the product of the dual nuisance
 error and the primal nuisance error, with immediate cancellation at either
 truth. -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -41,8 +44,8 @@ variable {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
 
 /-- **Mixed-bias / DR identity** — `prop:est-trae-mixed-bias`. Fix a linear inverse-problem
 functional system, and suppose [`q₀` solves the associated dual moment equation](hyp:hq₀).
-Then for any [primal candidate function `h` in the closed candidate set `Hbar`](hyp:hh) and
-any [dual candidate function `q` in the closed candidate set `Qbar`](hyp:hq), [the bias of
+Then for any [primal candidate function `h` in `Hbar`](hyp:hh) and
+any [dual candidate function `q` in `Qbar`](hyp:hq), [the bias of
 the doubly-robust functional `Θ(h, q)` relative to the true target `θ₀` equals the
 expectation of the product `(q₀(Z) − q(Z))·(h(X) − h₀(X))` of the dual and primal nuisance
 errors](goal).

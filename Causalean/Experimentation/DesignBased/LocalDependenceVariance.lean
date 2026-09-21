@@ -25,14 +25,17 @@ by the edges of a dependency graph, needs a uniform pointwise bound on the summa
 decorrelation as a hypothesis, and pays a population-size factor.
 -/
 
-import Causalean.Experimentation.DesignBased.Designs.BernoulliMoments
-import Mathlib.Algebra.Order.Chebyshev
+module
+public import Causalean.Experimentation.DesignBased.Designs.BernoulliMoments
+public import Mathlib.Algebra.Order.Chebyshev
 
 /-! # Local-dependence variance bound on a Bernoulli design
 
 This file provides `BlockDegreeLE`, the condition that no unit lies in more than `d` of the
 dependence blocks, and `bernoulliDesign_E_sum_sq_le_blockDegree_mul_sum_sq`, the resulting bound
 `E[(∑ᵢ Fᵢ)²] ≤ d · ∑ᵢ E[Fᵢ²]` for mean-zero, block-dependent summands. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

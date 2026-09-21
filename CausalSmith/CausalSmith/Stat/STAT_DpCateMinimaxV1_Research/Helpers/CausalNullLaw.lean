@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # The fixed null law for the private CATE lower bound
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CateWitness
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.CateWitness
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

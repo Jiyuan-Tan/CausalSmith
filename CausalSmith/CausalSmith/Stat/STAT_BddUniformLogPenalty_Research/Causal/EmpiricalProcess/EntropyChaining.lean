@@ -1,13 +1,14 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.Separability
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.RadialCover
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.SeparableCover
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.ScoreL2
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EuclideanBallsVC
-import Causalean.Stat.Concentration.Covering.DudleyEntropy
-import Causalean.Stat.Concentration.Covering.VCCovering
-import Causalean.Stat.Concentration.Covering.HausslerPacking
-import Causalean.Stat.Concentration.VarianceAdaptiveVCExpectedMaximal
-import Causalean.Stat.Concentration.VarianceAdaptiveVCExpectedMaximal.EntropyChaining
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.Separability
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.RadialCover
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.SeparableCover
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.ScoreL2
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EuclideanBallsVC
+public import Causalean.Stat.Concentration.Covering.DudleyEntropy
+public import Causalean.Stat.Concentration.Covering.VCCovering
+public import Causalean.Stat.Concentration.Covering.HausslerPacking
+public import Causalean.Stat.Concentration.VC.MaximalInequalities
+public import Causalean.Stat.Concentration.VC.EntropyChaining
 
 /-!
 # VC entropy and chaining for the bounded score class
@@ -15,6 +16,8 @@ import Causalean.Stat.Concentration.VarianceAdaptiveVCExpectedMaximal.EntropyCha
 The hypotheses below expose exactly the envelope, variance, and polynomial
 covering information used by the variance-adaptive maximal inequality.
 -/
+
+public section
 
 open MeasureTheory Set
 open scoped ENNReal

@@ -1,14 +1,17 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.World
-import Mathlib.Data.Fintype.EquivFin
-import Mathlib.Data.Finset.Card
-import Mathlib.GroupTheory.GroupAction.Quotient
-import Mathlib.GroupTheory.Perm.DomMulAct
-import Mathlib.Logic.Equiv.Fintype
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.World
+public import Mathlib.Data.Fintype.EquivFin
+public import Mathlib.Data.Finset.Card
+public import Mathlib.GroupTheory.GroupAction.Quotient
+public import Mathlib.GroupTheory.Perm.DomMulAct
+public import Mathlib.Logic.Equiv.Fintype
 
 /-!
 Finite fiber permutations and the assignment/observation orbit facts used by
 the response-type reduction.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -92,7 +95,7 @@ def FiberProfile {I C : Type*} [Fintype I] [Fintype C]
     [DecidableEq C] (f : I → C) :=
   {g : I → C // ∀ c, Fintype.card {i // g i = c} = Fintype.card {i // f i = c}}
 
-private noncomputable def fiberProfileEquivOrbit
+noncomputable def fiberProfileEquivOrbit
     {I C : Type*} [Fintype I] [Fintype C] [DecidableEq C] (f : I → C) :
     FiberProfile f ≃ MulAction.orbit ((Equiv.Perm I)ᵈᵐᵃ) f where
   toFun g := ⟨g.1, by
@@ -116,7 +119,7 @@ private noncomputable def fiberProfileEquivOrbit
   left_inv g := rfl
   right_inv g := rfl
 
-private noncomputable instance fiberProfileFintype
+noncomputable instance fiberProfileFintype
     {I C : Type*} [Fintype I] [Fintype C] [DecidableEq C] (f : I → C) :
     Fintype (FiberProfile f) := by
   classical

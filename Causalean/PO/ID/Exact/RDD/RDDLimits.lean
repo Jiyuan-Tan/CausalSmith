@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.PO.Analysis.Regression
-import Mathlib.Topology.Order.Basic
+module
+public import Causalean.PO.Analysis.Regression
+public import Mathlib.Topology.Order.Basic
 
 /-! # RDD One-Sided Limits
 
@@ -22,6 +23,8 @@ versions `value_eq_of_aeEq_right` and `value_eq_of_aeEq_left` identify the
 cutoff values of two continuous representatives. These results isolate the
 topological and measure-theoretic argument from the causal RDD files. -/
 
+public section
+
 namespace Causalean
 namespace PO
 namespace RDDLimits
@@ -31,9 +34,11 @@ open scoped Topology
 
 variable {π : Measure ℝ} {f g : ℝ → ℝ} {c : ℝ}
 
-/-- For every right-neighborhood of `c`, an a.e. agreement of `f` and `g` on
-`Ici c` plus positive `π`-mass on the open interval yields a point in
-`(c, c + ε)` at which `f = g`. -/
+/-- [Almost-everywhere agreement on the right half-line](hyp:h_aeEq) and [positive
+running-variable mass in every right neighborhood](hyp:h_support) ensure that [each
+positive-width neighborhood](hyp:hε) [contains a point where the two regression
+representatives agree](goal); this supplies the sequence of agreement points needed for
+cutoff-limit identification. -/
 private lemma exists_eq_in_Ioo_right
     (h_aeEq : f =ᵐ[π.restrict (Set.Ici c)] g)
     (h_support : ∀ ε > (0 : ℝ), π (Set.Ioo c (c + ε)) ≠ 0)
@@ -86,9 +91,13 @@ private lemma neBot_left
   rw [haeq] at hx_mem
   exact hsub hx_mem hx_eq
 
-/-- **Right-side limit identification.**  If `f =ᵐ[π.restrict (Ici c)] g`,
-`g` is continuous at `c`, every right-open neighborhood of `c` has positive
-`π`-mass, and `f` has any right-side limit `L` at `c`, then `L = g c`. -/
+/-- **Right-side limit identification.** If [the observable regression agrees almost
+everywhere with a reference regression to the right of the cutoff](hyp:h_aeEq), [the
+reference is continuous at the cutoff](hyp:hg_cont), and [the running-variable law has
+positive mass arbitrarily close on the right](hyp:h_support), then [any right-hand limit
+of the observable regression](hyp:hL) [must equal the reference value at the
+cutoff](goal). This turns one-sided a.e. regression agreement into an identified cutoff
+limit. -/
 theorem oneSidedLimit_eq_right
     (h_aeEq : f =ᵐ[π.restrict (Set.Ici c)] g)
     (hg_cont : ContinuousAt g c)
@@ -155,9 +164,11 @@ theorem oneSidedLimit_eq_left
         (𝓝 L) := h_f.congr' h_eq
   exact tendsto_nhds_unique h_f' h_g
 
-/-- **Pointwise equality from a.e. agreement plus continuity.**  If `f` and
-`g` agree `π.restrict (Ici c)`-a.e., both are continuous at `c`, and every
-right-open neighborhood of `c` has positive `π`-mass, then `f c = g c`. -/
+/-- **Pointwise equality from right-side agreement.** If [two regression
+representatives agree almost everywhere to the right of the cutoff](hyp:h_aeEq), [the
+first is continuous there](hyp:hf_cont), [the second is continuous there](hyp:hg_cont),
+and [the running-variable law has positive mass arbitrarily close on the
+right](hyp:h_support), then [their cutoff values coincide](goal). -/
 theorem value_eq_of_aeEq_right
     (h_aeEq : f =ᵐ[π.restrict (Set.Ici c)] g)
     (hf_cont : ContinuousAt f c) (hg_cont : ContinuousAt g c)
@@ -167,7 +178,11 @@ theorem value_eq_of_aeEq_right
     hf_cont.tendsto.mono_left nhdsWithin_le_nhds
   exact oneSidedLimit_eq_right h_aeEq hg_cont h_support hL
 
-/-- Symmetric pointwise version of `value_eq_of_aeEq_right`. -/
+/-- **Pointwise equality from left-side agreement.** If [two regression
+representatives agree almost everywhere to the left of the cutoff](hyp:h_aeEq), [the
+first is continuous there](hyp:hf_cont), [the second is continuous there](hyp:hg_cont),
+and [the running-variable law has positive mass arbitrarily close on the
+left](hyp:h_support), then [their cutoff values coincide](goal). -/
 theorem value_eq_of_aeEq_left
     (h_aeEq : f =ᵐ[π.restrict (Set.Iio c)] g)
     (hf_cont : ContinuousAt f c) (hg_cont : ContinuousAt g c)

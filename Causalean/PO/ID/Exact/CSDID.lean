@@ -19,9 +19,11 @@ Conventions
   and `D s = 1` for `s.val ≥ g.val`.  `regNT` sets `D s = 0` for every `s`.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Conditioning.EventCondExp
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Staggered-Adoption Difference-in-Differences
 
@@ -38,6 +40,10 @@ The central definitions are `regOf`, `regNT`, `cohortEvent`,
 `neverTreatedEvent`, and the group-time estimand `ATT`; the main theorem
 `att_csdid` proves the observable group-time DID contrast under the
 Callaway-Sant'Anna assumptions. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -68,38 +74,46 @@ variable {P : POSystem} (S : POCSDIDSystem P)
 
 /-! ### `POVar` wrappers, factuals, and events -/
 
-/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [binary
-treatment potential-outcome variable](goal) is the treatment node for that period. -/
+/-- The [period-specific treatment variable](goal) in [a staggered-adoption DID
+system](hyp:S) [records treated status at the selected period](step:1), with
+[that period](hyp:s) locating the unit on the adoption path. -/
 def dVar (s : Fin S.T) : POVar P Bool := ⟨S.D s, S.hDbool s⟩
 
-/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [real-valued
-outcome potential-outcome variable](goal) is the outcome node for that period. -/
+/-- The [period-specific outcome variable](goal) in [a staggered-adoption DID
+system](hyp:S) [records the real-valued response at the selected period](step:1), with
+[that period](hyp:s) fixing the outcome date. -/
 def yVar (s : Fin S.T) : POVar P ℝ := ⟨S.Y s, S.hYreal s⟩
 
-/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [factual
-treatment function](goal) assigns each unit its observed treatment at that period. -/
+/-- The [observed treatment path at one date](goal) in [a staggered-adoption DID
+system](hyp:S) [records each unit's realized treatment status](step:1) at [the selected
+period](hyp:s). -/
 noncomputable def factualD (s : Fin S.T) : P.Ω → Bool := (S.dVar s).factual
 
-/-- For [a staggered-adoption DID system](hyp:S) and [a period](hyp:s), the [factual
-outcome function](goal) assigns each unit its observed outcome at that period. -/
+/-- The [observed outcome at one date](goal) in [a staggered-adoption DID
+system](hyp:S) [records each unit's realized response](step:1) at [the selected
+period](hyp:s). -/
 noncomputable def factualY (s : Fin S.T) : P.Ω → ℝ := (S.yVar s).factual
 
-/-- For [a staggered-adoption DID system](hyp:S), [a period](hyp:s), and [a binary
-treatment value](hyp:b), the [period-specific treatment event](goal) is the set of
-units whose observed treatment at that period equals that value. -/
+/-- The [period-specific treatment group](goal) in [a staggered-adoption DID
+system](hyp:S) [collects units whose observed treatment matches the selected
+status](step:1) at [a chosen period](hyp:s), with [the status](hyp:b) distinguishing
+treated from untreated units. -/
 def dEvent (s : Fin S.T) (b : Bool) : Set P.Ω := (S.dVar s).event b
 
-/-- The observed treatment at each period is measurable. -/
+/-- In [a staggered-adoption DID system](hyp:S), [treatment at a selected
+period](hyp:s) is [measurable, so adoption histories define valid events](goal). -/
 @[fun_prop]
 lemma measurable_factualD (s : Fin S.T) : Measurable (S.factualD s) :=
   (S.dVar s).measurable_factual
 
-/-- The observed outcome at each period is measurable. -/
+/-- In [a staggered-adoption DID system](hyp:S), [the outcome at a selected
+period](hyp:s) is [measurable, so cohort-time means are well-defined](goal). -/
 @[fun_prop]
 lemma measurable_factualY (s : Fin S.T) : Measurable (S.factualY s) :=
   (S.yVar s).measurable_factual
 
-/-- Each period-specific treatment event is measurable. -/
+/-- In [a staggered-adoption DID system](hyp:S), [a treatment status](hyp:b) at
+[a selected period](hyp:s) defines [a measurable group event](goal). -/
 lemma measurableSet_dEvent (s : Fin S.T) (b : Bool) :
     MeasurableSet (S.dEvent s b) :=
   (S.dVar s).measurableSet_event _ (measurableSet_singleton _)
@@ -111,9 +125,10 @@ Built recursively over `k ≤ S.T`, mirroring the construction in
 `dTargetUpTo` lets us prove disjointness for the next `Regime.sqcup`.
 -/
 
-/-- For [a staggered-adoption DID system](hyp:S), the [treatment-target-set function](goal)
-maps each cutoff to [the empty set at cutoff zero](step:1) and [the treatment nodes from periods
-strictly before the cutoff at every positive cutoff](step:2). -/
+/-- The [partial treatment-path target](goal) for [a staggered-adoption DID
+system](hyp:S) [starts with no intervened treatment nodes](step:1) and [adds exactly the
+treatment nodes strictly before each later cutoff](step:2), preventing regimes from
+overwriting outcomes or future treatment assignments. -/
 def dTargetUpTo (S : POCSDIDSystem P) : ℕ → Finset P.V
   | 0     => ∅
   | k + 1 =>
@@ -142,11 +157,10 @@ lemma dTargetUpTo_mem_iff (S : POCSDIDSystem P) :
           have : (⟨k, hk⟩ : Fin S.T) = i := by apply Fin.ext; simp [hi']
           rw [this]
 
-/-- For [a staggered-adoption DID system](hyp:S), [a binary treatment path over
-all periods](hyp:b), [a cutoff](hyp:k), and proof that the cutoff does not exceed
-the horizon, the [partial treatment-path regime together with its target-set
-identity](goal) fixes treatments before the cutoff according to that path and has
-exactly the treatment nodes before the cutoff as its target. -/
+/-- The [partial treatment-path regime with its target certificate](goal) for
+[a staggered-adoption DID system](hyp:S) and [a proposed treatment path](hyp:b)
+[intervenes nowhere at the initial cutoff](step:1) and [extends the regime one period at
+a time while certifying that exactly the past treatment nodes are targeted](step:2). -/
 noncomputable def regUpToAux (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
     (k : ℕ) → k ≤ S.T →
       { r : Regime P.V P.X // r.target = S.dTargetUpTo k }
@@ -176,9 +190,9 @@ noncomputable def regUpToAux (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
         rw [hrec]
         ext w; simp [Finset.mem_insert, v]⟩
 
-/-- For [a staggered-adoption DID system](hyp:S) and [a binary treatment path over all
-periods](hyp:b), the [full-horizon treatment regime](goal) fixes every period's treatment
-to the corresponding value on that path. -/
+/-- The [full-horizon treatment regime](goal) for [a staggered-adoption DID
+system](hyp:S) [fixes every period's treatment to the prescribed path](step:1), where
+[the path](hyp:b) may represent a cohort or perpetual non-treatment. -/
 noncomputable def regimeBy (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
     Regime P.V P.X :=
   (S.regUpToAux b S.T (le_refl _)).1
@@ -188,14 +202,14 @@ lemma regimeBy_target_eq (S : POCSDIDSystem P) (b : Fin S.T → Bool) :
     (S.regimeBy b).target = S.dTargetUpTo S.T :=
   (S.regUpToAux b S.T (le_refl _)).2
 
-/-- For [a staggered-adoption DID system](hyp:S) and [a cohort period](hyp:g), the
-[cohort treatment regime](goal) leaves all earlier periods untreated and fixes treatment
-to true in that cohort period and every later period. -/
+/-- The [cohort treatment regime](goal) in [a staggered-adoption DID system](hyp:S)
+[keeps units untreated before adoption and treated from adoption onward](step:1), with
+[the cohort period](hyp:g) marking the first treated date. -/
 noncomputable def regOf (g : Fin S.T) : Regime P.V P.X :=
   S.regimeBy (fun s => decide (g.val ≤ s.val))
 
-/-- For [a staggered-adoption DID system](hyp:S), the [never-treated regime](goal)
-fixes treatment to false in every period. -/
+/-- The [never-treated comparison regime](goal) in [a staggered-adoption DID
+system](hyp:S) [keeps treatment off throughout the observation horizon](step:1). -/
 noncomputable def regNT : Regime P.V P.X :=
   S.regimeBy (fun _ => false)
 
@@ -226,59 +240,65 @@ lemma yVar_v_notin_regNT_target (t : Fin S.T) :
 
 /-! ### Counterfactual outcomes and ATT -/
 
-/-- For [a staggered-adoption DID system](hyp:S), [an outcome period](hyp:t), and [a
-cohort period](hyp:g), the [cohort potential-outcome function](goal) assigns each unit
-its outcome at that period under the treatment path that begins in the cohort period. -/
+/-- The [cohort-path potential outcome](goal) in [a staggered-adoption DID
+system](hyp:S) [records the outcome under adoption at the cohort date](step:1), evaluated
+at [the outcome period](hyp:t) for [the selected cohort](hyp:g). -/
 noncomputable def YofCohort (t g : Fin S.T) : P.Ω → ℝ :=
   (S.yVar t).cf (S.regOf g)
 
-/-- For [a staggered-adoption DID system](hyp:S) and [an outcome period](hyp:t), the
-[never-treated potential-outcome function](goal) assigns each unit its outcome at that
-period under the regime that never treats. -/
+/-- The [never-treated potential outcome](goal) in [a staggered-adoption DID
+system](hyp:S) [records the outcome had treatment remained off throughout](step:1) at
+[the selected outcome period](hyp:t). -/
 noncomputable def YofNT (t : Fin S.T) : P.Ω → ℝ :=
   (S.yVar t).cf S.regNT
 
-/-- Cohort potential outcomes are measurable. -/
+/-- In [a staggered-adoption DID system](hyp:S), the potential outcome for [a cohort
+path](hyp:g) at [an outcome date](hyp:t) is [measurable, so cohort-time effects can be
+averaged](goal). -/
 @[fun_prop]
 lemma measurable_YofCohort (t g : Fin S.T) : Measurable (S.YofCohort t g) :=
   (S.yVar t).measurable_cf _
 
-/-- Never-treated potential outcomes are measurable. -/
+/-- In [a staggered-adoption DID system](hyp:S), [the never-treated potential outcome at
+a selected date](hyp:t) is [measurable, so it supplies a valid comparison mean](goal). -/
 @[fun_prop]
 lemma measurable_YofNT (t : Fin S.T) : Measurable (S.YofNT t) :=
   (S.yVar t).measurable_cf _
 
-/-- For [a staggered-adoption DID system](hyp:S), [a cohort period](hyp:g), and [proof
-that the cohort is not the first period](hyp:_hg), the [predecessor period](goal) is the
-period immediately before that cohort. -/
+/-- The [baseline period for a treatment cohort](goal) in [a staggered-adoption DID
+system](hyp:S) [is the date immediately before adoption](step:1); [the cohort date](hyp:g)
+and [its noninitial-period condition](hyp:_hg) ensure that date exists. -/
 def predFin (g : Fin S.T) (_hg : 1 ≤ g.val) : Fin S.T :=
   ⟨g.val - 1, lt_of_le_of_lt (Nat.sub_le _ _) g.isLt⟩
 
-/-- For [a staggered-adoption DID system](hyp:S), [a cohort period](hyp:g), and [proof
-that it is not the first period](hyp:hg), the [cohort event](goal) is the set of units
-untreated immediately before that period and treated in that period. -/
+/-- The [first-treated cohort](goal) in [a staggered-adoption DID system](hyp:S)
+[consists of units untreated immediately before the cohort date and treated at that
+date](step:1); [the date](hyp:g) and [its noninitial-period condition](hyp:hg) make this
+transition observable. -/
 def cohortEvent (g : Fin S.T) (hg : 1 ≤ g.val) : Set P.Ω :=
   S.dEvent (S.predFin g hg) false ∩ S.dEvent g true
 
-/-- Each cohort event is measurable. -/
+/-- In [a staggered-adoption DID system](hyp:S), [the first-treated cohort at a valid
+date](hyp:g,hg) forms [a measurable event suitable for cohort means](goal). -/
 lemma measurableSet_cohortEvent (g : Fin S.T) (hg : 1 ≤ g.val) :
     MeasurableSet (S.cohortEvent g hg) :=
   (S.measurableSet_dEvent _ _).inter (S.measurableSet_dEvent _ _)
 
-/-- For [a staggered-adoption DID system](hyp:S), the [never-treated event](goal) is
-the set of units whose observed treatment is false in every period. -/
+/-- The [never-treated comparison group](goal) in [a staggered-adoption DID
+system](hyp:S) [contains exactly the units untreated in every observed period](step:1). -/
 def neverTreatedEvent : Set P.Ω := ⋂ s : Fin S.T, S.dEvent s false
 
-/-- The never-treated event is measurable. -/
+/-- [The never-treated group in a staggered-adoption DID system](hyp:S) is [measurable,
+so it can supply the comparison-group conditional means](goal). -/
 lemma measurableSet_neverTreatedEvent : MeasurableSet S.neverTreatedEvent :=
   MeasurableSet.iInter (fun s => S.measurableSet_dEvent s _)
 
-/-- For [a staggered-adoption DID system](hyp:S), [a cohort period](hyp:g), [an outcome
-period](hyp:t), and [proof that the cohort is not the first period](hyp:hg), the
-[group-time average treatment effect on the treated](goal) is the cohort-event conditional
-mean of the period-$t$ difference between the cohort and never-treated potential outcomes. -/
+/-- The [group-time average treatment effect on the treated](goal) in [a
+staggered-adoption DID system](hyp:S) [compares cohort-path and never-treated potential
+outcomes within the first-treated cohort](step:1), for [the cohort date](hyp:g), [outcome
+date](hyp:t), and [valid baseline condition](hyp:hg). -/
 noncomputable def ATT (g t : Fin S.T) (hg : 1 ≤ g.val) : ℝ :=
-  eventCondExp P.μ (S.cohortEvent g hg)
+  normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
     (fun ω => S.YofCohort t g ω - S.YofNT t ω)
 
 /-! ### Assumptions -- def:po-cs-did-assumptions -/
@@ -309,9 +329,9 @@ structure Assumptions (S : POCSDIDSystem P) : Prop where
   /-- Never-treated parallel trends (long-difference form). -/
   parallelTrends :
     ∀ (g t : Fin S.T) (hg : 1 ≤ g.val) (_hgt : g.val ≤ t.val),
-      eventCondExp P.μ (S.cohortEvent g hg)
+      normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
           (fun ω => S.YofNT t ω - S.YofNT (S.predFin g hg) ω)
-        = eventCondExp P.μ S.neverTreatedEvent
+        = normalizedRestrictedIntegral P.μ S.neverTreatedEvent
             (fun ω => S.YofNT t ω - S.YofNT (S.predFin g hg) ω)
   /-- Positivity of cohorts. -/
   posCohort : ∀ (g : Fin S.T) (hg : 1 ≤ g.val),
@@ -460,14 +480,14 @@ private lemma factualY_eq_YofNT_on_NT
 
 /-! ### Main identification theorem -- prop:po-cs-did-att -/
 
-/-- Callaway--Sant'Anna group-time DID identification of `ATT(g, t)`. Under
-[the group-time assumptions — consistency, no-anticipation, and group-time
-parallel trends](hyp:hA), for [a treatment cohort `g` that starts treatment
-no earlier than period 1](hyp:hg) and [a calendar period `t` no earlier than
-`g`](hyp:hgt), [the group-time average treatment effect on the treated equals
-the difference between the cohort-`g` mean outcome change from the period
-before `g` to period `t` and the corresponding mean outcome change for the
-never-treated group](goal):
+/-- **Callaway--Sant'Anna group-time DID identification.** In [a staggered-adoption
+DID system](hyp:S), [the group-time average treatment effect on the treated equals the
+cohort's mean outcome change minus the corresponding never-treated mean change](goal)
+under [irreversible adoption, consistency, no anticipation, group-time parallel trends,
+positive cohort and comparison-group probabilities, and integrable potential
+outcomes](hyp:hA), for
+[the selected treatment cohort](hyp:g) [which is not the initial period](hyp:hg) and
+[the selected outcome period](hyp:t) [which is no earlier than treatment](hyp:hgt):
 
     ATT(g, t) = E[Y_t − Y_{g−1} | G_g] − E[Y_t − Y_{g−1} | C].
 
@@ -475,9 +495,9 @@ Mirrors `PODIDSystem.att_did` line by line. -/
 theorem att_csdid (hA : S.Assumptions) (g t : Fin S.T)
     (hg : 1 ≤ g.val) (hgt : g.val ≤ t.val) :
     S.ATT g t hg
-      = eventCondExp P.μ (S.cohortEvent g hg)
+      = normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
             (fun ω => S.factualY t ω - S.factualY (S.predFin g hg) ω)
-        - eventCondExp P.μ S.neverTreatedEvent
+        - normalizedRestrictedIntegral P.μ S.neverTreatedEvent
             (fun ω => S.factualY t ω - S.factualY (S.predFin g hg) ω) := by
   have hPredLtG : (S.predFin g hg).val < g.val := by
     have : g.val - 1 < g.val :=
@@ -495,9 +515,9 @@ theorem att_csdid (hA : S.Assumptions) (g t : Fin S.T)
     ring
   have hATT_split :
       S.ATT g t hg
-        = eventCondExp P.μ (S.cohortEvent g hg)
+        = normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
             (fun ω => S.YofCohort t g ω - S.YofCohort (S.predFin g hg) g ω)
-          - eventCondExp P.μ (S.cohortEvent g hg)
+          - normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
               (fun ω => S.YofNT t ω - S.YofNT (S.predFin g hg) ω) := by
     unfold ATT
     rw [eventCondExp_congr_ae P.μ (S.cohortEvent g hg) (ae_restrict_of_ae hAE)]
@@ -505,28 +525,26 @@ theorem att_csdid (hA : S.Assumptions) (g t : Fin S.T)
       ((hA.intYofCohort g t).sub (hA.intYofCohort g (S.predFin g hg))).integrableOn
       ((hA.intYofNT t).sub (hA.intYofNT (S.predFin g hg))).integrableOn
   have h_first :
-      eventCondExp P.μ (S.cohortEvent g hg)
+      normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
           (fun ω => S.YofCohort t g ω - S.YofCohort (S.predFin g hg) g ω)
-        = eventCondExp P.μ (S.cohortEvent g hg)
+        = normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
             (fun ω => S.factualY t ω - S.factualY (S.predFin g hg) ω) := by
-    unfold eventCondExp
-    rw [MeasureTheory.integral_congr_ae]
+    apply eventCondExp_congr_ae
     rw [Filter.EventuallyEq, MeasureTheory.ae_restrict_iff' (S.measurableSet_cohortEvent g hg)]
     filter_upwards [S.factualY_eq_YofCohort_on_cohortEvent hA g t hg,
       S.factualY_eq_YofCohort_on_cohortEvent hA g (S.predFin g hg) hg] with ω ht hpred hω
     rw [ht hω, hpred hω]
-  have h_pt : eventCondExp P.μ (S.cohortEvent g hg)
+  have h_pt : normalizedRestrictedIntegral P.μ (S.cohortEvent g hg)
         (fun ω => S.YofNT t ω - S.YofNT (S.predFin g hg) ω)
-      = eventCondExp P.μ S.neverTreatedEvent
+      = normalizedRestrictedIntegral P.μ S.neverTreatedEvent
           (fun ω => S.YofNT t ω - S.YofNT (S.predFin g hg) ω) :=
     hA.parallelTrends g t hg hgt
   have h_second :
-      eventCondExp P.μ S.neverTreatedEvent
+      normalizedRestrictedIntegral P.μ S.neverTreatedEvent
           (fun ω => S.YofNT t ω - S.YofNT (S.predFin g hg) ω)
-        = eventCondExp P.μ S.neverTreatedEvent
+        = normalizedRestrictedIntegral P.μ S.neverTreatedEvent
             (fun ω => S.factualY t ω - S.factualY (S.predFin g hg) ω) := by
-    unfold eventCondExp
-    rw [MeasureTheory.integral_congr_ae]
+    apply eventCondExp_congr_ae
     rw [Filter.EventuallyEq, MeasureTheory.ae_restrict_iff' S.measurableSet_neverTreatedEvent]
     filter_upwards [S.factualY_eq_YofNT_on_NT hA t,
       S.factualY_eq_YofNT_on_NT hA (S.predFin g hg)] with ω ht hpred hω

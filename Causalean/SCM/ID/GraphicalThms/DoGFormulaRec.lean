@@ -3,20 +3,22 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.SCM.ID.GraphicalThms.DoGFormula
 
-/-! # The recursive IDENTIFY certificate (full Tian–Shpitser ID success)
+module
+public import Causalean.SCM.ID.GraphicalThms.DoGFormula
+
+/-! # A recursive IDENTIFY soundness certificate
 
 The no-fixing certificate `cFactorReachable` (in `DoGFormula`) only handles the
 case where a required district is already a full c-component of the original
-graph.  The full ID algorithm recovers a target c-factor `Q[C]` from the c-factor
+graph.  The recursive IDENTIFY success branch recovers a target c-factor `Q[C]` from the c-factor
 `Q[T]` of its containing district `T` by Tian's IDENTIFY subroutine
-(Shpitser–Pearl, Fig. 3): repeatedly restrict to the ancestral set of `C` and
+(Shpitser–Pearl, Fig. 5; Tian–Pearl, Fig. 7): repeatedly restrict to the ancestral set of `C` and
 descend into the c-component of `C` in that restriction.
 
-This file encodes IDENTIFY as an **inductive reachability predicate**
-`CFactorReachableRec G T C` — a derivation exists iff `identify(C, T, ·)` returns
-successfully (no hedge).  Using an inductive predicate (rather than a
+This file encodes successful IDENTIFY derivations as an **inductive reachability predicate**
+`CFactorReachableRec G T C`.  It is used only in the soundness direction here;
+no converse or formal failure/hedge certificate is claimed.  Using an inductive predicate (rather than a
 `termination_by` recursion) makes the downstream soundness proof a clean
 induction on the derivation, and makes well-foundedness structural.
 
@@ -27,6 +29,11 @@ induction on the derivation, and makes well-foundedness structural.
   the base case, so `idSucceedsRec` generalizes `idSucceeds` (and the recursive
   soundness `id_sound_rec` will subsume the no-fixing `id_sound`).
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.SCM.ID
 
@@ -79,7 +86,7 @@ theorem inducedAncestral_parent_closed
 
 /-- For [a finite collection of distinguishable node labels](hyp:N) and [a SWIG graph](hyp:G), [the recursive c-factor reachability relation](goal) relates any source node set $T$ to any target node set $C$ when either [the target is nonempty, is contained in the source, and its observed ancestral set in the source-induced graph is exactly the target](hyp:base), or [the target is nonempty and contained in the source, that ancestral set is neither the target nor the source, and the target is recursively reachable from its containing c-component in the ancestral induced graph](hyp:step).
 
-**Recursive IDENTIFY reachability (full Tian–Shpitser success certificate).**
+**Recursive IDENTIFY reachability (soundness certificate).**
 `CFactorReachableRec G T C` holds when `identify(C, T, Q[T])` succeeds, i.e. the
 c-factor `Q[C]` is recoverable from `Q[T]`.
 
@@ -104,18 +111,18 @@ inductive CFactorReachableRec (G : SWIGGraph N) :
 
 /-- For [a finite collection of distinguishable node labels](hyp:N),
 [an intervention variable set](hyp:X), [an outcome-node set](hyp:Y), and
-[a SWIG graph](hyp:G), the [full recursive ID success certificate](goal) holds
+[a SWIG graph](hyp:G), the [recursive ID soundness certificate](goal) holds
 exactly when [the intervention set is valid for the graph](step:1), the outcome
 nodes are observed, no random counterpart of an intervention variable
 is an outcome node, and every district of the post-intervention
 ancestral graph is recursively reachable from its containing district in the
 original graph.
 
-**Full recursive success certificate for the ID algorithm.**  As `idSucceeds`,
+**Recursive success certificate for ID soundness.**  As `idSucceeds`,
 but each c-component `S` of the post-intervention ancestral graph need only be
 *recursively reachable* from its containing district (`CFactorReachableRec`), not
-already a full c-component.  This is the honest Tian–Shpitser ID success
-condition (for the soundness direction). -/
+already a full c-component.  This predicate supports the soundness direction;
+this file does not prove a completeness converse or return a hedge on failure. -/
 noncomputable def idSucceedsRec
     (X : Finset N) (Y : Finset (SWIGNode N)) (G : SWIGGraph N) : Prop :=
   ∃ hX : interventionValid X G,
@@ -169,7 +176,7 @@ theorem cFactorReachable_base_toRec
 
 /-- **`idSucceedsRec` generalizes `idSucceeds`.** [For an intervention target set `X`](hyp:X),
 [an outcome node set `Y`](hyp:Y), and [a SWIG graph `G`](hyp:G), [if the plain no-fixing ID
-certificate succeeds for `X`, `Y` on `G`](hyp:h), [then the full recursive ID certificate also
+certificate succeeds for `X`, `Y` on `G`](hyp:h), [then the recursive ID soundness certificate also
 succeeds for `X`, `Y` on `G`](goal), so soundness proved for `idSucceedsRec` subsumes the
 no-fixing headline. -/
 theorem idSucceeds_toRec

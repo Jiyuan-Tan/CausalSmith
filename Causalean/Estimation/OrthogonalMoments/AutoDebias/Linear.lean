@@ -11,26 +11,30 @@ This file develops the linear regression-functional core for
 * `LinRegFnSys` — linear regression-functional system (data, regression
   class `H_γ`, observation-level linear functional `m_lin`, truth `g₀`).
 * `L_of_m S` — the population linear functional `γ ↦ ∫ m_lin(z, γ) dP_Z`.
-* `linRieszScore` — alias of `rieszScore` from `Estimation.OrthogonalMoments.Riesz`.
+* `linRieszScore` — the observation-level automatic-debiasing score.
 * Three orthogonality lemmas: mean-zero plus two directional zeros.
 * `linRieszLoss` — Riesz loss.
 * `linRieszLoss_excess_eq_l2dist`, `linRieszLoss_FOC_iff_representer`
   — excess-risk and first-order-characterization facts.
 
-Re-uses (does NOT redefine) `RieszRepresentation`, `rieszScore`,
-`rieszScore_meanZero`, `rieszScore_bilinearRem` from
+Reuses `MeanPairingRepresentation`, `pairingScore`,
+`pairingScore_meanZero`, and `pairingScore_bilinearRem` from
 `Causalean.Estimation.OrthogonalMoments.Riesz`.
 -/
 
-import Causalean.Estimation.OrthogonalMoments.Riesz
-import Mathlib.MeasureTheory.Function.LpSpace.Basic
+module
+public import Causalean.Estimation.OrthogonalMoments.Riesz
+public import Causalean.Mathlib.MeasureTheory.MemLp
+public import Mathlib.MeasureTheory.Function.LpSpace.Basic
 
 /-! # Automatic Debiasing for Linear Regression Functionals
 
 This file develops the linear core of automatic debiasing for regression-based
 targets. It defines the regression-functional system, constructs the population
-linear functional and Riesz score, and proves the mean-zero, orthogonality, and
+linear functional and pairing score, and proves the mean-zero, orthogonality, and
 Riesz-loss identities that underlie the debiased estimator. -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.OrthogonalMoments.AutoDebias
 
@@ -125,41 +129,74 @@ theorem L_of_m_smul (S : LinRegFnSys) (c : ℝ) (γ : S.H_γ) :
   rw [hpoint]; exact integral_const_mul c (fun z => S.m_lin z γ)
 
 /-- For a [linear regression-functional system](hyp:S), a [regression function in its
-admissible class](hyp:γ), a [candidate Riesz representer on the covariate space](hyp:α), a
-[scalar target value](hyp:θ), and an [observation](hyp:z), the [linear Riesz score](goal) is
-the generic Riesz score specialized to that system's regression target, population functional,
-covariate projection, and observed outcome.
+admissible class](hyp:γ), a [candidate pairing function on the covariate space](hyp:α), a
+[scalar target value](hyp:θ), and an [observation](hyp:z), the [observation-level
+pairing score](goal) adds the observed linear functional to the pairing-weighted regression
+residual and subtracts the target.
 
-**Linear Riesz score**: alias of the generic `rieszScore`
-applied to the linear regression-functional system's data. -/
+Unlike the population functional `L_of_m`, the first summand is the observed
+quantity `m_lin z γ`.  Consequently empirical averages of this score are
+feasible and its truth value contains the full influence-function fluctuation
+`m_lin z g₀ - L_of_m S g₀`. -/
 noncomputable def linRieszScore (S : LinRegFnSys)
     (γ : S.H_γ) (α : S.X → ℝ) (θ : ℝ) (z : S.Z) : ℝ :=
-  Causalean.Estimation.OrthogonalMoments.rieszScore S.γ_target (L_of_m S) S.proj_X S.Y_obs γ α θ z
+  S.m_lin z γ + α (S.proj_X z) * (S.Y_obs z - S.γ_target γ (S.proj_X z)) - θ
 
-/-- **Mean-zero of the debiased linear score at the truth.** Given the linear
-regression-functional system with Riesz representer `rep`, assume [the α₀-weighted
-regression-residual product at the truth is integrable](hyp:h_α₀_resid_int). Then [the
-population mean of the linear Riesz score, evaluated at the true regression function and
-the representer's α₀, equals zero](goal). -/
+/-- For a [linear regression-functional system](hyp:S), its [mean-pairing
+representation](hyp:rep), and an [observation](hyp:z), the [full automatic-debiasing
+influence function](goal) is the observed target fluctuation `m(W;g₀)-θ₀` plus the
+representer-weighted regression residual `α₀(X)(Y-g₀(X))`. -/
+noncomputable def linAutoInfluence (S : LinRegFnSys)
+    (rep : Causalean.Estimation.OrthogonalMoments.MeanPairingRepresentation
+      S.H_γ S.γ_target (L_of_m S) S.P_X) (z : S.Z) : ℝ :=
+  S.m_lin z S.g₀ - L_of_m S S.g₀ +
+    rep.α₀ (S.proj_X z) * (S.Y_obs z - S.γ_target S.g₀ (S.proj_X z))
+
+/-- For a [linear regression-functional system](hyp:S), its [mean-pairing
+representation](hyp:rep), and an [observation](hyp:z), [the truth-evaluated
+pairing score equals the full automatic-debiasing influence function](goal). -/
+@[simp] theorem linRieszScore_truth_eq_influence (S : LinRegFnSys)
+    (rep : Causalean.Estimation.OrthogonalMoments.MeanPairingRepresentation
+      S.H_γ S.γ_target (L_of_m S) S.P_X) (z : S.Z) :
+    linRieszScore S S.g₀ rep.α₀ (L_of_m S S.g₀) z = linAutoInfluence S rep z := by
+  simp [linRieszScore, linAutoInfluence]
+  ring
+
+/-- For a [linear regression-functional system and its mean-pairing representation](hyp:S,rep),
+assume [the α₀-weighted regression residual is integrable](hyp:h_α₀_resid_int) and [the
+observed linear functional at the truth is integrable](hyp:h_m_lin_int). Then [the population
+mean of the observation-level pairing score at the truth is zero](goal). -/
 theorem linRieszScore_meanZero (S : LinRegFnSys)
-    (rep : Causalean.Estimation.OrthogonalMoments.RieszRepresentation
+    (rep : Causalean.Estimation.OrthogonalMoments.MeanPairingRepresentation
             S.H_γ S.γ_target (L_of_m S) S.P_X)
     (h_α₀_resid_int :
       Integrable
         (fun z => rep.α₀ (S.proj_X z) * (S.Y_obs z - S.γ_target S.g₀ (S.proj_X z)))
-        S.P_Z) :
+        S.P_Z)
+    (h_m_lin_int : Integrable (fun z => S.m_lin z S.g₀) S.P_Z) :
     ∫ z, linRieszScore S S.g₀ rep.α₀ (L_of_m S S.g₀) z ∂S.P_Z = 0 := by
-  unfold linRieszScore
-  exact Causalean.Estimation.OrthogonalMoments.rieszScore_meanZero rep S.g₀ S.proj_X S.Y_obs
-    (S.regression_resid_orthog rep.α₀ rep.α₀_meas h_α₀_resid_int)
+  let r : S.Z → ℝ := fun z =>
+    rep.α₀ (S.proj_X z) * (S.Y_obs z - S.γ_target S.g₀ (S.proj_X z))
+  have hr_int : Integrable r S.P_Z := h_α₀_resid_int
+  have hresid : ∫ z, r z ∂S.P_Z = 0 :=
+    S.regression_resid_orthog rep.α₀ rep.α₀_meas h_α₀_resid_int
+  change ∫ z, (S.m_lin z S.g₀ + r z) - L_of_m S S.g₀ ∂S.P_Z = 0
+  calc
+    _ = (∫ z, S.m_lin z S.g₀ + r z ∂S.P_Z) -
+          ∫ _ : S.Z, L_of_m S S.g₀ ∂S.P_Z := by
+      exact integral_sub (h_m_lin_int.add hr_int) (integrable_const _)
+    _ = ((∫ z, S.m_lin z S.g₀ ∂S.P_Z) + ∫ z, r z ∂S.P_Z) -
+          ∫ _ : S.Z, L_of_m S S.g₀ ∂S.P_Z := by
+      rw [integral_add h_m_lin_int hr_int]
+    _ = 0 := by simp [hresid, L_of_m]
 
 /-- **Directional zero in the regression direction.** For [a linear regression-functional
-system](hyp:S) with [Riesz representer](hyp:rep) and [any perturbation `ν_g` of the
+system](hyp:S) with [a mean-pairing witness](hyp:rep) and [any perturbation `ν_g` of the
 regression nuisance](hyp:ν_g), [the Gateaux derivative of the population debiased moment
 in the `g`-direction at the truth vanishes — equivalently, this is the representer identity
 for the perturbation `ν_g`](goal). -/
 theorem linRieszScore_directional_g_zero (S : LinRegFnSys)
-    (rep : Causalean.Estimation.OrthogonalMoments.RieszRepresentation
+    (rep : Causalean.Estimation.OrthogonalMoments.MeanPairingRepresentation
             S.H_γ S.γ_target (L_of_m S) S.P_X)
     (ν_g : S.H_γ) :
     (∫ z, S.m_lin z ν_g ∂S.P_Z)
@@ -193,8 +230,39 @@ matches the textbook form `E[α(X)² − 2 m(Z;α)]`. -/
 noncomputable def linRieszLoss (S : LinRegFnSys) (α : S.H_γ) : ℝ :=
   ∫ x, (S.γ_target α x) ^ 2 ∂S.P_X - 2 * L_of_m S α
 
+/-- For a [linear regression-functional system](hyp:S), [sample data](hyp:Z_data),
+a [candidate representer index](hyp:α), [training indices](hyp:C), a [sample-size
+index](hyp:n), and a [sample realization](hyp:ω), the [empirical linear Riesz loss](goal)
+averages the candidate's squared value minus twice its observed linear functional over the
+training indices.
+
+This is the feasible objective `E_C[α(X)² - 2 m(W;α)]` used by automatic
+Riesz regression. It is an optimization specification; no theorem in this
+module currently converts its empirical excess loss into an L² rate. -/
+noncomputable def linEmpiricalRieszLoss (S : LinRegFnSys)
+    {Ω : Type*} (Z_data : ℕ → Ω → S.Z) (α : S.H_γ)
+    (C : ℕ → Finset ℕ) (n : ℕ) (ω : Ω) : ℝ :=
+  ((C n).card : ℝ)⁻¹ *
+    ∑ i ∈ C n,
+      ((S.γ_target α (S.proj_X (Z_data i ω))) ^ 2 - 2 * S.m_lin (Z_data i ω) α)
+
+/-- Given a [linear regression-functional system](hyp:S), [sample data](hyp:Z_data),
+a [candidate class](hyp:A), [training indices](hyp:C), and a [sample-indexed fitted
+representer](hyp:α_hat), the [empirical-Riesz-minimizer property](goal) says that each fit
+belongs to the class and has no larger empirical Riesz loss than any other class member.
+
+The definition is only an optimization specification: no theorem in this
+module currently converts this property into an L² excess-risk rate. -/
+def IsLinRieszEmpiricalMinimizer (S : LinRegFnSys)
+    {Ω : Type*} (Z_data : ℕ → Ω → S.Z) (A : Set S.H_γ)
+    (C : ℕ → Finset ℕ) (α_hat : ℕ → Ω → S.H_γ) : Prop :=
+  ∀ n ω, α_hat n ω ∈ A ∧
+    ∀ α ∈ A,
+      linEmpiricalRieszLoss S Z_data (α_hat n ω) C n ω ≤
+        linEmpiricalRieszLoss S Z_data α C n ω
+
 /-- **Excess Riesz loss equals the squared L²(P_X) distance to the representer.** Let
-`α₀_idx` index the Riesz representer via [`rep.α₀ = γ_target α₀_idx`
+`α₀_idx` index the pairing function via [`rep.α₀ = γ_target α₀_idx`
 pointwise](hyp:hRep_eq_idx). Assume [`(γ_target α) ^ 2` is integrable](hyp:h_int_α2),
 [`(γ_target α₀_idx) ^ 2` is integrable](hyp:h_int_α₀2), [the product
 `γ_target α · γ_target α₀_idx` is integrable](hyp:h_int_αα₀), and [the squared difference
@@ -203,7 +271,7 @@ linear Riesz loss of α over α₀_idx equals the squared L²(P_X) distance betw
 `γ_target α` and `γ_target α₀_idx`](goal). -/
 theorem linRieszLoss_excess_eq_l2dist (S : LinRegFnSys)
     (α α₀_idx : S.H_γ)
-    (rep : Causalean.Estimation.OrthogonalMoments.RieszRepresentation
+    (rep : Causalean.Estimation.OrthogonalMoments.MeanPairingRepresentation
             S.H_γ S.γ_target (L_of_m S) S.P_X)
     (hRep_eq_idx : ∀ x, rep.α₀ x = S.γ_target α₀_idx x)
     (h_int_α2 : Integrable (fun x => (S.γ_target α x) ^ 2) S.P_X)
@@ -249,6 +317,42 @@ theorem linRieszLoss_excess_eq_l2dist (S : LinRegFnSys)
             rw [integral_const_mul]
   rw [hsplit]; ring
 
+/-- For a [linear regression-functional system](hyp:S), a [candidate index of the
+population pairing function](hyp:α₀_idx), and a [mean-pairing representation](hyp:rep), suppose
+[the representation is pointwise indexed by that candidate](hyp:hRep_eq_idx), [every
+candidate's evaluated target is strongly measurable](hyp:h_target_meas), and [every
+candidate has finite squared risk](hyp:h_int_sq). Then [the indexed representer globally
+minimizes the population linear Riesz loss](goal); product and squared-distance
+integrability follow by L² Cauchy–Schwarz and closure. -/
+theorem linRieszLoss_representer_is_globalMinimizer (S : LinRegFnSys)
+    (α₀_idx : S.H_γ)
+    (rep : Causalean.Estimation.OrthogonalMoments.MeanPairingRepresentation
+            S.H_γ S.γ_target (L_of_m S) S.P_X)
+    (hRep_eq_idx : ∀ x, rep.α₀ x = S.γ_target α₀_idx x)
+    (h_target_meas : ∀ α : S.H_γ,
+      AEStronglyMeasurable (S.γ_target α) S.P_X)
+    (h_int_sq : ∀ α : S.H_γ,
+      Integrable (fun x => (S.γ_target α x) ^ 2) S.P_X) :
+    ∀ α : S.H_γ, linRieszLoss S α₀_idx ≤ linRieszLoss S α := by
+  intro α
+  have hα : MemLp (S.γ_target α) 2 S.P_X :=
+    (memLp_two_iff_integrable_sq (h_target_meas α)).2 (h_int_sq α)
+  have hα₀ : MemLp (S.γ_target α₀_idx) 2 S.P_X :=
+    (memLp_two_iff_integrable_sq (h_target_meas α₀_idx)).2 (h_int_sq α₀_idx)
+  have h_int_prod :
+      Integrable (fun x => S.γ_target α x * S.γ_target α₀_idx x) S.P_X := by
+    change Integrable (S.γ_target α * S.γ_target α₀_idx) S.P_X
+    exact hα.integrable_mul hα₀
+  have h_int_diff_sq :
+      Integrable (fun x => (S.γ_target α x - S.γ_target α₀_idx x) ^ 2) S.P_X :=
+    (memLp_two_iff_integrable_sq (hα.sub hα₀).aestronglyMeasurable).1 (hα.sub hα₀)
+  have hexcess := linRieszLoss_excess_eq_l2dist S α α₀_idx rep hRep_eq_idx
+    (h_int_sq α) (h_int_sq α₀_idx) h_int_prod h_int_diff_sq
+  have hnonneg :
+      0 ≤ ∫ x, (S.γ_target α x - S.γ_target α₀_idx x) ^ 2 ∂S.P_X :=
+    integral_nonneg fun x => sq_nonneg _
+  linarith
+
 private lemma linear_coeff_eq_zero_of_quad_nonneg {a b : ℝ} (ha : 0 ≤ a)
     (h : ∀ t : ℝ, 0 ≤ 2 * t * b + t ^ 2 * a) : b = 0 := by
   by_cases hz : a = 0
@@ -262,7 +366,7 @@ integrable](hyp:h_int_quad), that [the linear moment integrand `m_lin(·, ν)` i
 integrable for every direction ν](hyp:h_int_L), and that [the product
 `γ_target α₀_idx · γ_target ν` is integrable for every direction ν](hyp:h_int_α₀ν_X).
 Then [α₀_idx is a directional minimizer of the Riesz loss along every line through it if
-and only if it indexes a Riesz representer, i.e. `L_of_m S ν = ∫ γ_target α₀_idx ·
+and only if it indexes a pairing function, i.e. `L_of_m S ν = ∫ γ_target α₀_idx ·
 γ_target ν dP_X` for every ν](goal). -/
 theorem linRieszLoss_FOC_iff_representer (S : LinRegFnSys)
     (α₀_idx : S.H_γ)

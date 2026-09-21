@@ -29,7 +29,6 @@ import {
   META_ID,
   bibNodeId,
   blobId,
-  contentKey,
   nodeTypeOf,
   symbolNodeId,
   type NodeBlob,
@@ -223,6 +222,20 @@ function statementBodyFromInput(input: CoreStatement): StatementBody {
 export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
   const d = new Draft(base);
   const rejected: RejectedItem[] = [];
+  const o = sub.output;
+  const statementChangeCounts = new Map<string, number>();
+  for (const change of o.proposed_statement_changes) {
+    statementChangeCounts.set(change.id, (statementChangeCounts.get(change.id) ?? 0) + 1);
+  }
+  const statementChanges = new Map(o.proposed_statement_changes.map((change) => [change.id, change]));
+  const statementMutations = new Map(
+    o.proposed_core_edits
+      .filter((edit) => edit.kind === "statement-replace" || edit.kind === "statement-delete")
+      .map((edit) => [edit.id, edit]),
+  );
+  const statementReplacements = new Map(
+    [...statementMutations].filter((entry): entry is [string, Extract<(typeof o.proposed_core_edits)[number], { kind: "statement-replace" }>] => entry[1].kind === "statement-replace"),
+  );
   const reasons: Record<NodeId, string[]> = {};
   const reject = (channel: string, id: string, reason: string): void => { rejected.push({ unit: sub.unit, channel, id, reason }); };
   const note = (id: NodeId, reason: string | undefined): void => {
@@ -232,11 +245,20 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
   const targets = new Set(sub.targets);
   const siblings = new Set((sub.siblingTargets ?? []).filter((id) => !targets.has(id)));
   const ownedStatement = (id: NodeId): boolean => !siblings.has(id);
-  const o = sub.output;
   const provedThisRound = new Set<NodeId>();
   const addedThisUnit = new Set<NodeId>();
-  const resolutionAnswers = new Map<NodeId, NodeBlob>();
+  const resolutionAnswers = new Map<NodeId, Extract<NodeBlob, { node_type: "statement" }>>();
   const resolutions: UnitResolution[] = [];
+  const proofMatchesFinalClaim = (id: NodeId): boolean => {
+    const change = statementChanges.get(id);
+    const replacement = statementReplacements.get(id);
+    if (change === undefined) {
+      return replacement === undefined || replacement.proposed.statement === statementBlob(base, id)?.body.statement;
+    }
+    const carriedProof = statementBlob(base, id)?.body.proof_tex;
+    return (carriedProof ?? "").trim().length === 0 && statementChangeCounts.get(id) === 1 && replacement !== undefined &&
+      replacement.proposed.statement === change.proposed;
+  };
 
   const setProof = (id: NodeId, proofTex: string, channel: string): void => {
     const blob = d.live(id);
@@ -245,7 +267,7 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
     if (proofTex.trim().length === 0) { reject(channel, id, "empty proof"); return; }
     const { obligation: _o, proof_basis: _b, ...body } = blob.body;
     d.set(id, { node_type: "statement", body: { ...body, proof_tex: proofTex } });
-    provedThisRound.add(id);
+    if (proofMatchesFinalClaim(id)) provedThisRound.add(id);
   };
 
   // 1. Answered questions: the answer is a new theorem; the question keeps a tombstone.
@@ -279,17 +301,21 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
       if (body.source !== undefined) delete body.proof_tex;
       d.set(s.id, { node_type: "statement", body });
       addedThisUnit.add(s.id);
-      if (body.proof_tex !== undefined) provedThisRound.add(s.id);
+      if (body.proof_tex !== undefined && !statementChanges.has(s.id)) provedThisRound.add(s.id);
       continue;
     }
     if (existing.node_type !== "statement") { reject("added_lemmas", s.id, "id belongs to a non-statement node"); continue; }
     if (existing.body.resolved_by !== undefined) { reject("added_lemmas", s.id, "id is a resolved question"); continue; }
     if (!ownedStatement(s.id)) { reject("added_lemmas", s.id, "a sibling unit's target: cite it, do not re-emit it"); continue; }
     if (!targets.has(s.id)) { reject("added_lemmas", s.id, "existing statement is not a target of this unit"); continue; }
-    if (!sameClaim(existing.body.statement, s.statement)) {
+    if (existing.body.statement !== s.statement) {
       reject("added_lemmas", s.id, "id exists with a different claim (claims change only through proposed_statement_changes)");
       continue;
     }
+    // A re-emission was authored against the pre-change claim. When this payload
+    // also changes the claim, only an explicit proof processed after that change
+    // may prove it; drop the stale re-emission deterministically and say so.
+    if (statementChanges.has(s.id)) { reject("added_lemmas", s.id, "re-emission authored against the pre-change claim; dropped (the claim channel lands)"); continue; }
     if (s.source !== undefined) {
       const { proof_basis: _b, obligation: _o, ...body } = existing.body;
       d.set(s.id, { node_type: "statement", body: { ...body, source: s.source } });
@@ -304,7 +330,7 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
     if (d.get(a.id) !== undefined) { reject("proposed_assumptions", a.id, "id already exists"); continue; }
     const tag = parseAssumptionTag(a.standard_or_novel, bibKeys());
     d.set(a.id, { node_type: "assumption", body: { id: a.id, condition: a.condition, free_symbols: a.free_symbols ?? [], ...tag } });
-    note(a.id, `${a.reason} (not crux: ${a.not_crux})`);
+    note(a.id, a.reason);
   }
 
   // 4. Typed core edits.
@@ -338,6 +364,7 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
         break;
       }
       case "statement-replace": {
+        if (statementMutations.get(e.id) !== e) { reject(e.kind, e.id, "superseded by a later typed mutation of the same node in this payload"); break; }
         const existing = d.live(e.id);
         if (existing === undefined) { reject(e.kind, e.id, "no live statement with this id"); break; }
         if (!ownedStatement(e.id)) { reject(e.kind, e.id, "a sibling unit's target"); break; }
@@ -345,14 +372,22 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
         const { partial_result: _pr, ...proposed } = e.proposed as CoreStatement & { partial_result?: string };
         const incoming = statementBodyFromInput(proposed);
         delete incoming.proof_tex;
-        const paired = o.proposed_statement_changes.find((c) => c.id === e.id);
-        const claimTarget = paired?.proposed ?? existing.body.statement;
-        if (!sameClaim(incoming.statement, claimTarget)) {
-          reject(e.kind, e.id, paired
-            ? "statement text differs from the paired proposed_statement_changes item"
-            : "claim text changes only through proposed_statement_changes");
+        const paired = statementChanges.get(e.id);
+        if (paired === undefined && incoming.statement !== existing.body.statement) {
+          reject(e.kind, e.id, "claim text changes only through proposed_statement_changes");
           break;
         }
+        // If the redundant typed echo disagrees with the authoritative claim,
+        // its claim-coupled metadata was authored for a different statement too.
+        // Ignore that typed edit; the claim channel still lands below.
+        if (paired !== undefined && incoming.statement !== paired.proposed) {
+          reject(e.kind, e.id, "typed statement text disagrees with the paired proposed_statement_changes item; typed edit dropped (the claim channel lands)");
+          break;
+        }
+        // The claim-change channel is the sole authority for claim text. A typed
+        // replacement carries a redundant model echo of that text; ignore it
+        // instead of trusting two independently generated copies to agree.
+        if (paired !== undefined) incoming.statement = paired.proposed;
         const body: StatementBody = { ...incoming, statement: existing.body.statement };
         if (existing.body.proof_tex !== undefined) body.proof_tex = existing.body.proof_tex;
         if (existing.body.proof_basis !== undefined) body.proof_basis = existing.body.proof_basis;
@@ -368,6 +403,7 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
         break;
       }
       case "statement-delete": {
+        if (statementMutations.get(e.id) !== e) { reject(e.kind, e.id, "superseded by a later typed mutation of the same node in this payload"); break; }
         if (d.live(e.id) === undefined) { reject(e.kind, e.id, "no live statement with this id"); break; }
         if (!ownedStatement(e.id)) { reject(e.kind, e.id, "a sibling unit's target"); break; }
         if (!targets.has(e.id)) { reject(e.kind, e.id, "not a target of this unit"); break; }
@@ -448,12 +484,21 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
   }
 
   // 6. Claim changes.
-  for (const c of o.proposed_statement_changes) {
+  for (const c of statementChanges.values()) {
     const existing = d.live(c.id);
     if (existing === undefined) { reject("proposed_statement_changes", c.id, "no live statement with this id"); continue; }
     if (!ownedStatement(c.id)) { reject("proposed_statement_changes", c.id, "a sibling unit's target"); continue; }
     if (!targets.has(c.id)) { reject("proposed_statement_changes", c.id, "not a target of this unit"); continue; }
-    d.set(c.id, { node_type: "statement", body: { ...existing.body, statement: c.proposed } });
+    const body: StatementBody = { ...existing.body, statement: c.proposed };
+    // Claim text is authoritative here, but no model-emitted symbol manifest is
+    // independently trustworthy for it. Missing free_symbols means "all symbols"
+    // to proof-basis computation. Drop the carried basis as well: a fresh proof in
+    // this payload is restamped below, while an old proof safely becomes stale even
+    // when the textual change is canonically equivalent.
+    delete body.free_symbols;
+    delete body.proof_basis;
+    delete body.source;
+    d.set(c.id, { node_type: "statement", body });
     note(c.id, `${c.direction}: ${c.reason}`);
   }
 
@@ -503,13 +548,22 @@ export function applyUnitOutput(base: Graph, sub: UnitSubmission): UnitHead {
     }
   }
 
-  // A resolution answer is one atomic payload. Other channels in the same worker
-  // output cannot silently overwrite its proof, dependencies, obligation or prose.
+  // A resolution answer is one atomic mathematical payload. The leased prose
+  // channel overlays only its three prose fields; every other cross-channel
+  // mutation is discarded deterministically.
   for (const [id, answer] of resolutionAnswers) {
     const current = d.get(id);
-    if (current !== undefined && blobId(current) === blobId(answer)) continue;
+    const note = o.prose_updates?.statement_notes.filter((item) => item.id === id).at(-1);
+    const expectedBody = { ...answer.body };
+    if (note !== undefined) {
+      for (const field of ["justification", "gap", "consumer"] as const) {
+        if (note[field] !== undefined) expectedBody[field] = note[field];
+      }
+    }
+    const expected: NodeBlob = { node_type: "statement", body: expectedBody };
+    if (current !== undefined && blobId(current) === blobId(expected)) continue;
     reject("resolved_oeqs", id, "resolution answer was also changed by another output channel; kept the embedded answer payload");
-    d.set(id, answer);
+    d.set(id, expected);
   }
 
   // 10. Normalize, then stamp a basis on every proof written this round.
@@ -549,6 +603,24 @@ export interface FoldResult {
   conflicts: Array<{ unit: string; id: NodeId; reason: string }>;
 }
 
+/** Invalidate, but never restamp, a proof whose recorded basis does not cover its
+ * current closure. Composition boundaries can reveal references absent when a
+ * unit-local proof was written. */
+function invalidateIncompleteProofBases(graph: Graph): Graph {
+  const nodes = new Map(graph.nodes);
+  const tree = { ...graph.tree };
+  let invalidated = false;
+  for (const { id, blob } of nodesOfType(graph, "statement")) {
+    if (blob.body.proof_basis === undefined || proofCoversCurrentClosure(graph, id)) continue;
+    const { proof_basis: _basis, ...body } = blob.body;
+    const stale: NodeBlob = { node_type: "statement", body };
+    nodes.set(id, stale);
+    tree[id] = { ...tree[id], blob: blobId(stale) };
+    invalidated = true;
+  }
+  return invalidated ? normalizeGraph({ tree, nodes }) : graph;
+}
+
 /** Node-level three-way merge of each unit head onto the running result, in order.
  *  A node two units changed differently is a conflict: the later unit's change is
  *  dropped (its dependents go stale through their bases). */
@@ -586,7 +658,7 @@ export function foldUnitHeads(base: Graph, heads: UnitHead[]): FoldResult {
     nextPos.set(type, pos);
     tree[a.id] = { ...tree[a.id], pos };
   }
-  return { graph: normalizeGraph({ tree, nodes }), conflicts };
+  return { graph: invalidateIncompleteProofBases(normalizeGraph({ tree, nodes })), conflicts };
 }
 
 /** Revert the changed nodes a check implicates until the graph passes.
@@ -1144,8 +1216,21 @@ export async function mergePr(args: { store: VcsStore; ctx?: PipelineContext; pr
     const h = head.nodes.get(id);
     if (b === undefined) { nodes.delete(id); delete tree[id]; continue; }
     if (b.node_type === "statement" && h?.node_type === "statement" && h.body.resolved_by === undefined) {
-      const kept: NodeBlob = { node_type: "statement", body: { ...h.body, statement: b.body.statement, kind: b.body.kind, source: b.body.source } };
-      if (b.body.source === undefined) delete kept.body.source;
+      const keptBody: StatementBody = {
+        ...h.body,
+        statement: b.body.statement,
+        kind: b.body.kind,
+        source: b.body.source,
+        depends_on: b.body.depends_on,
+        free_symbols: b.body.free_symbols,
+        route: b.body.route,
+        external_refs: b.body.external_refs,
+      };
+      delete keptBody.proof_basis;
+      for (const field of ["source", "depends_on", "free_symbols", "route", "external_refs"] as const) {
+        if (b.body[field] === undefined) delete keptBody[field];
+      }
+      const kept: NodeBlob = { node_type: "statement", body: keptBody };
       nodes.set(id, kept);
       tree[id] = { ...tree[id], blob: blobId(kept) };
       continue;
@@ -1218,8 +1303,9 @@ export async function mergePr(args: { store: VcsStore; ctx?: PipelineContext; pr
     meta: { pr: pr.id, accepted: [...acceptedIds], rejected: [...rejectedIds] },
   });
   if (!headPrimeCommit.ok) throw new Error("vcs: accepted head failed a check it just passed");
+  const finalGraph = invalidateIncompleteProofBases(reconciled.graph);
   const merge = await commitGraph({
-    store, graph: reconciled.graph, parents: [mainId, headPrimeCommit.id], author: verdict.by, kind: "merge",
+    store, graph: finalGraph, parents: [mainId, headPrimeCommit.id], author: verdict.by, kind: "merge",
     message: `merge round ${pr.round}: ${verdict.note}`, expectedHead: mainId,
     meta: { pr: pr.id, accepted: [...acceptedIds], rejected: [...rejectedIds], conflicts },
   });
@@ -1287,7 +1373,9 @@ function summarize(blob: NodeBlob | undefined): string {
   switch (blob.node_type) {
     case "statement": return `  ${cut(blob.body.statement)}`;
     case "definition": return `  ${blob.body.name}: ${cut(blob.body.construction)}`;
-    case "assumption": return `  ${cut(blob.body.condition)}`;
+    // Approval adjudicators must see the complete hypothesis: truncating a long
+    // condition can hide a suffix that assumes the theorem's crux.
+    case "assumption": return `  ${blob.body.condition}`;
     case "symbol": return `  ${blob.body.name} : ${cut(blob.body.type, 60)}`;
     case "bib": return `  ${cut(blob.body.citation, 80)}`;
     case "meta": return `  ${cut(JSON.stringify(blob.body), 200)}`;

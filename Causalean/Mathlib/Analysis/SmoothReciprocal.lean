@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Analysis.SpecialFunctions.SmoothTransition
+
+module
+public import Mathlib.Analysis.SpecialFunctions.SmoothTransition
 
 /-!
 # A globally `C¹` reciprocal with a floor near the singularity
@@ -14,6 +16,8 @@ globally `C¹` on all of `ℝ`. This is the reusable core of the "globally `C¹`
 objective that is singular on the boundary of its feasible box" pattern: multiply the singular part
 by a `Real.smoothTransition` cutoff that is `1` on the feasible region and `0` past the boundary.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib
 

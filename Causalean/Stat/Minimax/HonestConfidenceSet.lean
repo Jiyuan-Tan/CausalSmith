@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Minimax.TotalVariation
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.MeasureTheory.Integral.Prod
+module
+public import Causalean.Stat.Minimax.TotalVariation
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.MeasureTheory.Integral.Prod
 
 /-!
 # Honest confidence sets and frontier risk
@@ -18,6 +19,8 @@ uniform asymptotic coverage and frontier-risk bounds over arbitrary model
 classes. It also fixes the worst-case coverage convention for empty model
 classes.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

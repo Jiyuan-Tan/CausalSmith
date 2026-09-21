@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmApproximation
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FiniteGridBestApproximation
-import Causalean.Mathlib.Analysis.EhlichZellerMesh.Mesh
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmApproximation
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.FiniteGridBestApproximation
+public import Causalean.Mathlib.Analysis.Approximation.Chebyshev.Mesh
 
 /-!
 # Selected finite grid for the one-arm approximation obstruction
@@ -13,6 +14,8 @@ better than a fixed constant by the span of the reciprocal and the monomials up
 to degree `n`.  The resulting positive best-approximation error is converted into
 a pair of Jordan priors matching all of those test functions.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

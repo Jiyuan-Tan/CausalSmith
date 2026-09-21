@@ -1,9 +1,12 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TCr2PhaseFrontier
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.TCr2PhaseFrontier
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-!
 # Sparse consistency beyond the birthday scale
 -/
+
+@[expose] public section
 
 open scoped Topology
 open Filter

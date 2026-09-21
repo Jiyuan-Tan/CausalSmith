@@ -1,16 +1,19 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Sampling
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.SetGeometry
-import Causalean.Stat.Minimax.HonestConfidenceSet
-import Mathlib.Order.Filter.AtTopBot.Basic
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Sampling
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.SetGeometry
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+public import Mathlib.Order.Filter.AtTopBot.Basic
 
 set_option linter.style.longLine false
 set_option linter.unusedDecidableInType false
 
+open scoped BigOperators ENNReal
+open MeasureTheory ProbabilityTheory
+
 /-! Finite-row triangular two-sample arrays, their admissible class, and arbitrary nonempty
 confidence-set sequences on the row sample spaces. -/
 
-open scoped BigOperators ENNReal
-open MeasureTheory ProbabilityTheory
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

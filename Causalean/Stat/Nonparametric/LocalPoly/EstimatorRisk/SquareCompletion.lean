@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.LinearAlgebra.Matrix.PosDef
+
+module
+public import Mathlib.LinearAlgebra.Matrix.PosDef
 
 /-!
 # Square-completion bound on the `(0,0)` inverse entry under a Loewner sandwich
@@ -27,6 +29,8 @@ Loewner sandwich `c·B ⪯ A` (as quadratic forms) then transports the maximum:
 This file proves that bound (and the trivial companion `A₀₀ ≤ C·B₀₀` under `A ⪯ C·B`). It is the
 pure-linear-algebra heart of the density-constant discharge of the local-polynomial leverage rate.
 -/
+
+public section
 
 namespace Causalean.Stat.Nonparametric
 

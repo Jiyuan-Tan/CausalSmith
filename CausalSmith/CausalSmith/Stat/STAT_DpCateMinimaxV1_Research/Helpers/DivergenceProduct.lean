@@ -1,8 +1,11 @@
 /- Copyright (c) 2026 Jiyuan Tan. All rights reserved. -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TwoPointDivergence
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
-import Causalean.Stat.Minimax.Pinsker
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.TwoPointDivergence
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Causalean.Stat.Minimax.Pinsker
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

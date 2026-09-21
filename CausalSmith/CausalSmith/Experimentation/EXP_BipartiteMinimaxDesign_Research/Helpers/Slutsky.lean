@@ -10,4 +10,7 @@ The generic CDF-level converging-together step `finiteDesign_cdf_converging_toge
 sees it under the `Causalean.Experimentation.DesignBased` namespace it already opens.
 -/
 
-import Causalean.Experimentation.DesignBased.Slutsky
+module
+public import Causalean.Experimentation.DesignBased.Slutsky
+
+public section

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Sample.OccupancyWeightedMean.MomentBounds
+module
+public import Causalean.Stat.Sample.OccupancyWeightedMean.MomentBounds
 
 /-!
 # Weak-moment variance bound for occupancy-weighted residual means
@@ -14,6 +15,8 @@ supported residuals, proves its square integrability, and bounds its second
 moment by expected reciprocal usable occupancy. Outcomes need only supported
 arm/group second moments; all empirical zero-count cases are totalized.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

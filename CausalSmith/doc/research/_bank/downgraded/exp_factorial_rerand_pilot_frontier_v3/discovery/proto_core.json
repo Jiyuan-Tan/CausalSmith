@@ -1,0 +1,2267 @@
+{
+  "qid": "exp_factorial_rerand_pilot_frontier",
+  "specialization": "v3",
+  "cluster": "experimentation",
+  "symbols": [
+    {
+      "name": "n",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Total number of experimental units."
+    },
+    {
+      "name": "Kf",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Number \\(K_f\\) of binary treatment factors."
+    },
+    {
+      "name": "Q",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(Q=2^{K_f}\\), the number of treatment combinations.",
+      "refs": [
+        "Kf"
+      ]
+    },
+    {
+      "name": "F",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "\\(F=Q-1\\), the number of nonconstant factorial contrasts.",
+      "refs": [
+        "Q"
+      ]
+    },
+    {
+      "name": "p",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Dimension of the baseline vector."
+    },
+    {
+      "name": "W",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_{++}^{F}\\)",
+      "def": "Fixed loss-weight matrix for the factorial vector.",
+      "refs": [
+        "F"
+      ]
+    },
+    {
+      "name": "alpha",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "Exact target acceptance probability \\(\\alpha\\)."
+    },
+    {
+      "name": "eta",
+      "type": "scalar",
+      "space": "\\((0,1)\\)",
+      "def": "Positive-support mixture weight \\(\\eta\\)."
+    },
+    {
+      "name": "Qset",
+      "type": "finite set",
+      "space": "\\(\\{-1,+1\\}^{K_f}\\)",
+      "def": "Treatment-combination set \\(\\mathcal Q\\).",
+      "refs": [
+        "Kf"
+      ]
+    },
+    {
+      "name": "C",
+      "type": "matrix",
+      "space": "\\(\\{-1,+1\\}^{Q\\times F}\\)",
+      "def": "Factorial contrast matrix \\(\\mathbf C\\) with the nonconstant Walsh characters as columns and row vectors \\(c_q^{\\mathsf T}\\), \\(q\\in\\mathcal Q\\).",
+      "refs": [
+        "Q",
+        "F",
+        "Qset"
+      ]
+    },
+    {
+      "name": "Xn",
+      "type": "deterministic array",
+      "space": "\\((\\mathbb R^{p})^{n}\\)",
+      "def": "Complete baseline array \\(\\mathbf X_n=(x_{1n},\\ldots,x_{nn})\\), observed before assignment.",
+      "refs": [
+        "n",
+        "p"
+      ]
+    },
+    {
+      "name": "nu",
+      "type": "probability measure",
+      "space": "\\(\\mathcal P(\\mathbb R^{p})\\)",
+      "def": "Limit \\(\\nu\\) of the empirical baseline measures.",
+      "refs": [
+        "p",
+        "Xn"
+      ]
+    },
+    {
+      "name": "Yn",
+      "type": "potential-outcome table",
+      "space": "\\(\\mathbb R^{n\\times Q}\\)",
+      "def": "Fixed realized table \\(\\mathbf Y_n=\\{Y_{in}(q):i\\le n,q\\in\\mathcal Q\\}\\) for design-based analysis.",
+      "refs": [
+        "n",
+        "Q",
+        "Qset"
+      ]
+    },
+    {
+      "name": "taun",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{F}\\)",
+      "def": "\\(\\boldsymbol\\tau_n=2^{1-K_f}\\mathbf C^{\\mathsf T}(n^{-1}\\sum_{i=1}^{n}\\mathbf Y_{in})\\), the realized finite-population factorial vector.",
+      "refs": [
+        "n",
+        "Kf",
+        "F",
+        "C",
+        "Yn"
+      ]
+    },
+    {
+      "name": "r",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Dimension of the oracle quotient coordinate."
+    },
+    {
+      "name": "s",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Dimension of the nuisance coordinate."
+    },
+    {
+      "name": "rho",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{r}\\)",
+      "def": "Oracle-relevant quotient coordinate \\(\\rho\\).",
+      "refs": [
+        "r"
+      ]
+    },
+    {
+      "name": "lambda",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{s}\\)",
+      "def": "Outcome nuisance coordinate \\(\\lambda\\).",
+      "refs": [
+        "s"
+      ]
+    },
+    {
+      "name": "beta",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{r+s}\\)",
+      "def": "Full conditional-outcome parameter \\(\\beta=(\\rho,\\lambda)\\).",
+      "refs": [
+        "r",
+        "s",
+        "rho",
+        "lambda"
+      ]
+    },
+    {
+      "name": "Urho",
+      "type": "open set",
+      "space": "\\(\\mathbb R^{r}\\)",
+      "def": "Oracle-coordinate chart domain \\(\\mathcal U_{\\rho}\\).",
+      "refs": [
+        "r",
+        "rho"
+      ]
+    },
+    {
+      "name": "Ulambda",
+      "type": "open set",
+      "space": "\\(\\mathbb R^{s}\\)",
+      "def": "Nuisance-coordinate chart domain \\(\\mathcal U_{\\lambda}\\).",
+      "refs": [
+        "s",
+        "lambda"
+      ]
+    },
+    {
+      "name": "U",
+      "type": "open set",
+      "space": "\\(\\mathbb R^{r+s}\\)",
+      "def": "Regular identifiable chart \\(\\mathcal U=\\mathcal U_{\\rho}\\times\\mathcal U_{\\lambda}\\).",
+      "refs": [
+        "Urho",
+        "Ulambda"
+      ]
+    },
+    {
+      "name": "Kclass",
+      "type": "compact set",
+      "space": "\\(\\mathcal U\\)",
+      "def": "Global parameter set \\(\\mathcal K\\).",
+      "refs": [
+        "U"
+      ]
+    },
+    {
+      "name": "mu",
+      "type": "measure",
+      "def": "Common dominating measure \\(\\mu\\) for the conditional outcome family."
+    },
+    {
+      "name": "Pbeta",
+      "type": "conditional law",
+      "space": "\\(\\mathcal P(\\mathbb R^{Q}\\mid\\mathbb R^{p})\\)",
+      "sig": "\\(\\beta\\mapsto P_{\\beta,n}(d\\mathbf y\\mid\\mathbf X_n)=\\prod_{i=1}^{n}p_{\\beta}(d\\mathbf y_i\\mid x_{in})\\)",
+      "def": "Stable conditional potential-outcome family dominated by \\(\\mu\\); its draw is used only to average exact design risks.",
+      "refs": [
+        "n",
+        "p",
+        "Q",
+        "Xn",
+        "beta",
+        "Kclass",
+        "mu"
+      ]
+    },
+    {
+      "name": "score",
+      "type": "vector function",
+      "space": "\\(L_2(P_{\\beta})^{r+s}\\)",
+      "def": "Conditional score \\(s_{q,\\beta}(Y(q)\\mid X)\\) of the outcome family.",
+      "refs": [
+        "Qset",
+        "beta",
+        "Pbeta"
+      ]
+    },
+    {
+      "name": "Info",
+      "type": "matrix function",
+      "space": "\\(\\mathbb S_{++}^{r+s}\\)",
+      "def": "\\(I(\\beta)=Q^{-1}\\sum_{q\\in\\mathcal Q}\\int E_{\\beta}[s_{q,\\beta}s_{q,\\beta}^{\\mathsf T}\\mid x]\\,\\nu(dx)\\).",
+      "refs": [
+        "Q",
+        "Qset",
+        "nu",
+        "beta",
+        "score"
+      ]
+    },
+    {
+      "name": "Ieff",
+      "type": "matrix function",
+      "space": "\\(\\mathbb S_{++}^{r}\\)",
+      "def": "\\(I_{\\mathrm{eff}}(\\beta)=I_{\\rho\\rho}-I_{\\rho\\lambda}I_{\\lambda\\lambda}^{-1}I_{\\lambda\\rho}\\).",
+      "refs": [
+        "rho",
+        "lambda",
+        "beta",
+        "Info"
+      ]
+    },
+    {
+      "name": "T",
+      "type": "index set",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "A wave-specific subset \\(T\\) of units, with size \\(k=|T|\\).",
+      "refs": [
+        "n"
+      ]
+    },
+    {
+      "name": "Tfull",
+      "type": "deterministic index sequence",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "\\(T_n^{\\mathrm{full}}=\\{1,\\ldots,n\\}\\), the experiment-induced full-array sequence.",
+      "refs": [
+        "n",
+        "T"
+      ]
+    },
+    {
+      "name": "tauT",
+      "type": "vector",
+      "space": "\\(\\mathbb R^{F}\\)",
+      "def": "\\(\\boldsymbol\\tau_T=2^{1-K_f}\\mathbf C^{\\mathsf T}(|T|^{-1}\\sum_{i\\in T}\\mathbf Y_{in})\\), the realized factorial vector on \\(T\\).",
+      "refs": [
+        "Kf",
+        "F",
+        "C",
+        "Yn",
+        "T"
+      ]
+    },
+    {
+      "name": "OmegaT",
+      "type": "finite set",
+      "def": "Balanced assignment support \\(\\Omega_T=\\{z\\in\\mathcal Q^{T}:\\sum_{i\\in T}\\mathbf 1\\{z_i=q\\}=|T|/Q,\\ q\\in\\mathcal Q\\}\\).",
+      "refs": [
+        "Q",
+        "Qset",
+        "T"
+      ]
+    },
+    {
+      "name": "ZT",
+      "type": "random assignment",
+      "space": "\\(\\Omega_T\\)",
+      "def": "Wave assignment \\(Z_T\\).",
+      "refs": [
+        "T",
+        "OmegaT"
+      ]
+    },
+    {
+      "name": "DeltaT",
+      "type": "vector function",
+      "space": "\\(\\mathbb R^{Fp}\\)",
+      "def": "\\(\\Delta_T(z)=\\sum_{q\\in\\mathcal Q}(2^{1-K_f}c_q)\\otimes\\{|T|/Q\\}^{-1}\\sum_{i\\in T:z_i=q}(x_{in}-\\bar x_T)\\), the factorial covariate-imbalance vector.",
+      "refs": [
+        "Kf",
+        "F",
+        "p",
+        "Qset",
+        "C",
+        "Xn",
+        "T",
+        "OmegaT"
+      ]
+    },
+    {
+      "name": "Action",
+      "type": "matrix",
+      "space": "\\(\\mathbb S_{+}^{Fp}\\)",
+      "def": "Centered trace-normalized ellipsoidal score matrix \\(H\\).",
+      "refs": [
+        "F",
+        "p"
+      ]
+    },
+    {
+      "name": "aTG",
+      "type": "function",
+      "space": "\\([0,1]^{\\Omega_T}\\)",
+      "def": "Exact lower-tail acceptance function \\(a_{T,H}\\) of the scores \\(\\Delta_T(z)^{\\mathsf T}H\\Delta_T(z)\\), with a common randomized probability on the boundary score and \\(|\\Omega_T|^{-1}\\sum_z a_{T,H}(z)=\\alpha\\).",
+      "refs": [
+        "alpha",
+        "T",
+        "OmegaT",
+        "DeltaT",
+        "Action"
+      ]
+    },
+    {
+      "name": "pTG",
+      "type": "probability mass function",
+      "space": "\\(\\mathcal P(\\Omega_T)\\)",
+      "def": "\\(p_{T,H}(z)=|\\Omega_T|^{-1}[\\eta+(1-\\eta)a_{T,H}(z)/\\alpha]\\).",
+      "refs": [
+        "alpha",
+        "eta",
+        "T",
+        "OmegaT",
+        "Action",
+        "aTG"
+      ]
+    },
+    {
+      "name": "piTG",
+      "type": "inclusion map",
+      "space": "\\((0,1]^{T\\times\\mathcal Q}\\)",
+      "def": "\\(\\pi_{iq}(T,H)=\\sum_{z\\in\\Omega_T}p_{T,H}(z)\\mathbf 1\\{z_i=q\\}\\).",
+      "refs": [
+        "Qset",
+        "T",
+        "OmegaT",
+        "Action",
+        "pTG"
+      ]
+    },
+    {
+      "name": "HTTG",
+      "type": "estimator",
+      "space": "\\(\\mathbb R^{F}\\)",
+      "def": "\\(\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_T(H)=|T|^{-1}\\sum_{i\\in T}\\sum_{q\\in\\mathcal Q}2^{1-K_f}c_q\\mathbf 1\\{Z_i=q\\}Y_{in}(q)/\\pi_{iq}(T,H)\\).",
+      "refs": [
+        "Kf",
+        "F",
+        "Qset",
+        "C",
+        "Yn",
+        "T",
+        "ZT",
+        "Action",
+        "piTG"
+      ]
+    },
+    {
+      "name": "VTG",
+      "type": "risk function",
+      "space": "\\(\\mathbb R_{+}\\)",
+      "def": "\\(V_T(H,\\beta)=E_{\\beta}E_{p_{T,H}}[(\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_T(H)-\\boldsymbol\\tau_T)^{\\mathsf T}W(\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_T(H)-\\boldsymbol\\tau_T)\\mid\\mathbf X_n]\\).",
+      "refs": [
+        "W",
+        "Xn",
+        "beta",
+        "Pbeta",
+        "T",
+        "tauT",
+        "Action",
+        "pTG",
+        "HTTG"
+      ]
+    },
+    {
+      "name": "BmapT",
+      "type": "matrix function",
+      "space": "\\(\\mathbb R^{F\\times Fp}\\)",
+      "def": "\\(\\mathcal B_T(\\beta)=\\operatorname{Cov}_{\\beta}\\{\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_T(0),\\Delta_T\\}\\operatorname{Var}(\\Delta_T)^{+}\\), the empirical Gaussian projection of the factorial estimator on imbalance.",
+      "refs": [
+        "F",
+        "p",
+        "beta",
+        "T",
+        "DeltaT",
+        "HTTG"
+      ]
+    },
+    {
+      "name": "Norm",
+      "type": "matrix map",
+      "sig": "\\(\\mathcal N(M)=M/\\operatorname{tr}(M)\\) for \\(M\\in\\mathbb S_{+}^{Fp}\\setminus\\{0\\}\\), and \\(\\mathcal N(0)=0\\).",
+      "def": "Trace normalization with a zero convention.",
+      "refs": [
+        "F",
+        "p"
+      ]
+    },
+    {
+      "name": "GT",
+      "type": "matrix function",
+      "space": "\\(\\mathbb S_{+}^{Fp}\\)",
+      "def": "\\(G_T(\\beta)=\\mathcal N\\{\\mathcal B_T(\\beta)^{\\mathsf T}W\\mathcal B_T(\\beta)\\}\\), the empirical Gaussian raw-MSE oracle score.",
+      "refs": [
+        "F",
+        "p",
+        "W",
+        "beta",
+        "T",
+        "BmapT",
+        "Norm"
+      ]
+    },
+    {
+      "name": "Ginf",
+      "type": "matrix function",
+      "space": "\\(C^3(\\mathcal K;\\mathbb S_{+}^{Fp})\\)",
+      "def": "\\(G_{\\infty}(\\beta)\\), the common oracle-map limit along the full-array and random-complement sequences, derived by \\(\\mathrm{lem{:}experiment\\text{-}indexed\\text{-}oracle\\text{-}convergence}\\).",
+      "refs": [
+        "F",
+        "p",
+        "beta",
+        "Kclass",
+        "GT"
+      ]
+    },
+    {
+      "name": "Zgauss",
+      "type": "random vector",
+      "space": "\\(\\mathbb R^{Fp}\\)",
+      "def": "\\(Z\\sim N(0,I_{Fp})\\), the standardized Gaussian imbalance.",
+      "refs": [
+        "F",
+        "p"
+      ]
+    },
+    {
+      "name": "phiGauss",
+      "type": "density function",
+      "space": "\\(C^{\\infty}(\\mathbb R^{Fp};(0,\\infty))\\)",
+      "def": "\\(\\varphi_{Fp}(z)=(2\\pi)^{-Fp/2}\\exp(-z^{\\mathsf T}z/2)\\), the standard Gaussian density.",
+      "refs": [
+        "F",
+        "p",
+        "Zgauss"
+      ]
+    },
+    {
+      "name": "qGauss",
+      "type": "scalar function",
+      "space": "\\(\\mathbb R^{\\mathcal K}\\)",
+      "def": "\\(q_{\\alpha,\\beta}=\\inf\\{u>0:\\Pr(Z^{\\mathsf T}G_{\\infty}(\\beta)Z\\le u)\\ge\\alpha\\}\\), the Gaussian quantile induced by the common experiment-indexed oracle limit.",
+      "refs": [
+        "alpha",
+        "beta",
+        "Kclass",
+        "Ginf",
+        "Zgauss"
+      ]
+    },
+    {
+      "name": "fGauss",
+      "type": "density function",
+      "space": "\\((0,\\infty)^{\\mathcal K\\times(0,\\infty)}\\)",
+      "def": "\\(f_{\\beta}(u)=\\frac{d}{du}\\Pr\\{Z^{\\mathsf T}G_{\\infty}(\\beta)Z\\le u\\}\\) for \\(u>0\\).",
+      "refs": [
+        "beta",
+        "Kclass",
+        "Ginf",
+        "Zgauss"
+      ]
+    },
+    {
+      "name": "boundaryCov",
+      "type": "matrix function",
+      "space": "\\(C(\\mathcal K\\times(0,\\infty);\\mathbb S_{+}^{r})\\)",
+      "def": "For \\(g_{\\beta}(z)=z^{\\mathsf T}G_{\\infty}(\\beta)z\\) and \\(\\psi_{a,\\beta}(z)=z^{\\mathsf T}D_{\\rho_a}G_{\\infty}(\\beta)z\\), \\(\\mathcal C_{ab}(\\beta,u)\\) is the continuous coarea version of \\(\\operatorname{Cov}\\{\\psi_{a,\\beta}(Z),\\psi_{b,\\beta}(Z)\\mid g_{\\beta}(Z)=u\\}\\): each conditional raw moment is the ratio \\[\\frac{\\int_{g_{\\beta}^{-1}(u)}h(z)\\varphi_{Fp}(z)\\lVert\\nabla_z g_{\\beta}(z)\\rVert^{-1}d\\mathcal H^{Fp-1}(z)}{\\int_{g_{\\beta}^{-1}(u)}\\varphi_{Fp}(z)\\lVert\\nabla_z g_{\\beta}(z)\\rVert^{-1}d\\mathcal H^{Fp-1}(z)},\\] with \\(h=\\psi_{a,\\beta}\\psi_{b,\\beta},\\psi_{a,\\beta},\\psi_{b,\\beta}\\), and covariance is the first ratio minus the product of the latter two ratios; values at removable chart points use the unique continuous extension.",
+      "refs": [
+        "F",
+        "p",
+        "r",
+        "rho",
+        "beta",
+        "Kclass",
+        "Ginf",
+        "Zgauss",
+        "phiGauss"
+      ]
+    },
+    {
+      "name": "rankG",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Common positive rank \\(r_G\\) of the oracle score on the regular chart.",
+      "refs": [
+        "GT"
+      ]
+    },
+    {
+      "name": "dT",
+      "type": "scalar function",
+      "space": "\\(\\mathbb R\\)",
+      "def": "\\(d_T(\\beta)=V_T(0,\\beta)-V_T(G_T(\\beta),\\beta)\\), the empirical-oracle gain over balanced complete randomization.",
+      "refs": [
+        "beta",
+        "T",
+        "Action",
+        "VTG",
+        "GT"
+      ]
+    },
+    {
+      "name": "Mbal",
+      "type": "finite set",
+      "space": "\\(2^{\\mathbb N}\\)",
+      "def": "\\(\\mathcal M_n=\\{m\\in\\{Q,2Q,\\ldots,n-Q\\}:Q\\mid(n-m)\\}\\), the admissible balanced pilot sizes for which both waves are balanced.",
+      "refs": [
+        "n",
+        "Q"
+      ]
+    },
+    {
+      "name": "m",
+      "type": "integer",
+      "space": "\\(\\mathcal M_n\\)",
+      "def": "Balanced pilot size \\(m\\).",
+      "refs": [
+        "n",
+        "Q",
+        "Mbal"
+      ]
+    },
+    {
+      "name": "N",
+      "type": "integer",
+      "space": "\\(\\mathbb N\\)",
+      "def": "Main-wave size \\(N=n-m\\).",
+      "refs": [
+        "n",
+        "m"
+      ]
+    },
+    {
+      "name": "Sm",
+      "type": "random subset",
+      "space": "\\(\\{S\\subset\\{1,\\ldots,n\\}:|S|=m\\}\\)",
+      "def": "Uniform random pilot subset \\(S_m\\), drawn before its balanced complete randomization.",
+      "refs": [
+        "n",
+        "m"
+      ]
+    },
+    {
+      "name": "Tmain",
+      "type": "random index sequence",
+      "space": "\\(2^{\\{1,\\ldots,n\\}}\\)",
+      "def": "\\(T_{n,m}^{\\mathrm{main}}=S_m^c\\), the experiment-induced random-complement sequence, with convergence in probability taken over the uniform pilot split.",
+      "refs": [
+        "n",
+        "m",
+        "N",
+        "T",
+        "Sm"
+      ]
+    },
+    {
+      "name": "Opilot",
+      "type": "sigma-field",
+      "def": "Pilot information \\(\\mathcal O_m=\\sigma(S_m,Z_{S_m},Y_{in}(Z_i):i\\in S_m)\\).",
+      "refs": [
+        "Yn",
+        "ZT",
+        "m",
+        "Sm"
+      ]
+    },
+    {
+      "name": "delta",
+      "type": "decision rule",
+      "sig": "\\(\\delta_m:\\mathcal O_m\\to\\mathbb S_{+}^{Fp}\\)",
+      "def": "Arbitrary pilot-measurable normalized centered score rule.",
+      "refs": [
+        "F",
+        "p",
+        "Action",
+        "m",
+        "Opilot"
+      ]
+    },
+    {
+      "name": "Ghat",
+      "type": "decision rule",
+      "sig": "\\(\\widehat G_m:\\mathcal O_m\\to\\mathbb S_{+}^{Fp}\\)",
+      "def": "Nuisance-efficient empirical plug-in score rule formed from an efficient estimator of \\(\\beta\\).",
+      "refs": [
+        "F",
+        "p",
+        "beta",
+        "Action",
+        "m",
+        "Opilot",
+        "Ieff"
+      ]
+    },
+    {
+      "name": "tauhat",
+      "type": "estimator",
+      "space": "\\(\\mathbb R^{F}\\)",
+      "def": "\\(\\widehat{\\boldsymbol\\tau}_{n,m}(\\delta_m)=(m/n)\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_{S_m}(0)+(N/n)\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_{T_{n,m}^{\\mathrm{main}}}(\\delta_m)\\).",
+      "refs": [
+        "n",
+        "F",
+        "HTTG",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "delta"
+      ]
+    },
+    {
+      "name": "Rn",
+      "type": "risk function",
+      "space": "\\(\\mathbb R_{+}\\)",
+      "def": "\\(R_{n,m}(\\delta_m,\\beta)=E_{\\beta}E[(\\widehat{\\boldsymbol\\tau}_{n,m}(\\delta_m)-\\boldsymbol\\tau_n)^{\\mathsf T}W(\\widehat{\\boldsymbol\\tau}_{n,m}(\\delta_m)-\\boldsymbol\\tau_n)\\mid\\mathbf X_n]\\).",
+      "refs": [
+        "n",
+        "W",
+        "Xn",
+        "taun",
+        "beta",
+        "Pbeta",
+        "m",
+        "delta",
+        "tauhat"
+      ]
+    },
+    {
+      "name": "Ror",
+      "type": "risk function",
+      "space": "\\(\\mathbb R_{+}\\)",
+      "def": "\\(R_n^{\\mathrm{or}}(\\beta)=V_{T_n^{\\mathrm{full}}}(G_{T_n^{\\mathrm{full}}}(\\beta),\\beta)\\), the matching experiment-indexed full-array empirical raw-MSE oracle risk.",
+      "refs": [
+        "n",
+        "beta",
+        "Tfull",
+        "VTG",
+        "GT"
+      ]
+    },
+    {
+      "name": "A",
+      "type": "scalar function",
+      "space": "\\((0,\\infty)^{\\mathcal K}\\)",
+      "def": "Oracle opportunity-cost coefficient \\(A(\\beta)\\), derived by \\(\\mathrm{thm{:}oracle\\text{-}deletion\\text{-}loss}\\).",
+      "refs": [
+        "beta",
+        "Kclass",
+        "Ror"
+      ]
+    },
+    {
+      "name": "Gamma",
+      "type": "matrix function",
+      "space": "\\(\\mathbb S_{+}^{r}\\)",
+      "def": "\\(\\Gamma_{ab}(\\beta)=\\frac{1-\\eta}{2\\alpha}f_{\\beta}(q_{\\alpha,\\beta})\\mathcal C_{ab}(\\beta,q_{\\alpha,\\beta})\\) for \\(a,b\\le r\\), the Gaussian acceptance-boundary Hessian induced by the common experiment-indexed oracle limit and the continuous coarea conditional-covariance version.",
+      "refs": [
+        "alpha",
+        "eta",
+        "r",
+        "beta",
+        "qGauss",
+        "fGauss",
+        "boundaryCov"
+      ]
+    },
+    {
+      "name": "B",
+      "type": "scalar function",
+      "space": "\\((0,\\infty)^{\\mathcal K}\\)",
+      "def": "\\(B(\\beta)=\\operatorname{tr}\\{\\Gamma(\\beta)I_{\\mathrm{eff}}(\\beta)^{-1}\\}\\), with \\(\\Gamma\\) defined from the continuous coarea boundary covariance of the common experiment-indexed limit \\(G_{\\infty}\\).",
+      "refs": [
+        "beta",
+        "Kclass",
+        "Ieff",
+        "Ginf",
+        "Gamma"
+      ]
+    },
+    {
+      "name": "En",
+      "type": "minimax excess risk",
+      "space": "\\(\\mathbb R_{+}\\)",
+      "def": "For \\(m\\in\\mathcal M_n\\), \\(\\mathcal E_n(m)=\\inf_{\\delta_m}\\sup_{\\beta\\in\\mathcal K}[R_{n,m}(\\delta_m,\\beta)-R_n^{\\mathrm{or}}(\\beta)]_{+}\\).",
+      "refs": [
+        "n",
+        "beta",
+        "Kclass",
+        "Mbal",
+        "m",
+        "delta",
+        "Rn",
+        "Ror"
+      ]
+    },
+    {
+      "name": "Phi",
+      "type": "envelope function",
+      "sig": "\\(\\Phi:(0,\\infty)\\to(0,\\infty)\\)",
+      "def": "\\(\\Phi(t)=\\max_{\\beta\\in\\mathcal K}\\{A(\\beta)t+B(\\beta)/t\\}\\).",
+      "refs": [
+        "beta",
+        "Kclass",
+        "A",
+        "B"
+      ]
+    },
+    {
+      "name": "tstar",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(t^{\\star}=\\operatorname*{argmin}_{t>0}\\Phi(t)\\).",
+      "refs": [
+        "Phi"
+      ]
+    },
+    {
+      "name": "Cstar",
+      "type": "scalar",
+      "space": "\\((0,\\infty)\\)",
+      "def": "\\(C^{\\star}=\\Phi(t^{\\star})\\).",
+      "refs": [
+        "Phi",
+        "tstar"
+      ]
+    },
+    {
+      "name": "Model",
+      "type": "model class",
+      "def": "Class \\(\\mathfrak M\\) of deterministic-baseline triangular arrays and conditional outcome families used below.",
+      "refs": [
+        "n",
+        "Xn",
+        "Kclass",
+        "Pbeta"
+      ]
+    },
+    {
+      "name": "HDModel",
+      "type": "published population class",
+      "def": "\\(\\mathfrak M_{\\mathrm{HD}}\\), the deterministic finite-population array class in Han and Deng's Assumptions 3 and 4, excluding their allocation-share restriction.",
+      "refs": [
+        "n",
+        "Xn",
+        "Yn"
+      ]
+    },
+    {
+      "name": "RealizedModel",
+      "type": "population class",
+      "def": "\\(\\mathfrak R_{\\beta}(\\mathfrak M)\\), the probability-one realization class of deterministic baseline and potential-outcome arrays generated by \\(P_{\\beta}\\).",
+      "refs": [
+        "Xn",
+        "Yn",
+        "beta",
+        "Pbeta",
+        "Model"
+      ]
+    }
+  ],
+  "assumptions": [
+    {
+      "id": "ass:factor-count",
+      "kind": "design",
+      "condition": "\\(K_f\\ge 2\\).",
+      "free_symbols": [
+        "Kf"
+      ],
+      "standard": {
+        "name": "Nondegenerate factorial design",
+        "cite": "BransonDasguptaRubin2016FactorialRerandomization"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:balanced-total",
+      "kind": "design",
+      "condition": "\\(Q\\mid n\\).",
+      "free_symbols": [
+        "Q",
+        "n"
+      ],
+      "standard": {
+        "name": "Balanced completely randomized factorial allocation",
+        "cite": "LiDingRubin2020FactorialRerandomization"
+      },
+      "used_by": [
+        "def:model-class"
+      ]
+    },
+    {
+      "id": "ass:baseline-bound",
+      "kind": "finite-population regularity",
+      "condition": "\\(\\sup_n\\max_{i\\le n}\\lVert x_{in}\\rVert<\\infty\\).",
+      "free_symbols": [
+        "n",
+        "Xn"
+      ],
+      "standard": {
+        "name": "Uniform finite-population moment bound",
+        "cite": "LiDing2017FinitePopulationCLT"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:experiment-indexed-oracle-convergence"
+      ]
+    },
+    {
+      "id": "ass:baseline-limit",
+      "kind": "finite-population regularity",
+      "condition": "\\(n^{-1}\\sum_{i=1}^{n}\\delta_{x_{in}}\\Rightarrow\\nu\\).",
+      "free_symbols": [
+        "n",
+        "Xn",
+        "nu"
+      ],
+      "standard": {
+        "name": "Finite-population empirical-moment convergence",
+        "cite": "LiDing2017FinitePopulationCLT"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:experiment-indexed-oracle-convergence"
+      ]
+    },
+    {
+      "id": "ass:baseline-gram",
+      "kind": "finite-population regularity",
+      "condition": "\\(0<\\inf_n\\lambda_{\\min}\\{n^{-1}\\sum_{i=1}^{n}(x_{in}-\\bar x_n)(x_{in}-\\bar x_n)^{\\mathsf T}\\}\\le\\sup_n\\lambda_{\\max}\\{n^{-1}\\sum_{i=1}^{n}(x_{in}-\\bar x_n)(x_{in}-\\bar x_n)^{\\mathsf T}\\}<\\infty\\).",
+      "free_symbols": [
+        "n",
+        "Xn"
+      ],
+      "standard": {
+        "name": "Nonsingular limiting covariate covariance",
+        "cite": "HanDeng2026DataAdaptiveFactorial"
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:experiment-indexed-oracle-convergence"
+      ]
+    },
+    {
+      "id": "ass:fixed-baseline",
+      "kind": "information",
+      "condition": "\\(P_{\\beta,n}(d\\mathbf X_n)=\\delta_{\\mathbf X_n}(d\\mathbf X_n)\\).",
+      "free_symbols": [
+        "Xn",
+        "beta",
+        "Pbeta"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Manufacturing and laboratory replications can preregister the complete future batch covariates before treatment, so all parameter information arrives through randomized outcomes."
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:bounded-outcomes",
+      "kind": "outcome",
+      "condition": "\\(P_{\\beta,n}(\\sup_n\\max_{i\\le n,q\\in\\mathcal Q}|Y_{in}(q)|<\\infty\\mid\\mathbf X_n)=1\\).",
+      "free_symbols": [
+        "n",
+        "Qset",
+        "Xn",
+        "Yn",
+        "beta",
+        "Pbeta"
+      ],
+      "standard": {
+        "name": "Bounded sufficient form of the finite-population Lindeberg condition",
+        "cite": "LiDing2017FinitePopulationCLT"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:exact-ht-accounting"
+      ]
+    },
+    {
+      "id": "ass:stable-product-law",
+      "kind": "outcome",
+      "condition": "\\(P_{\\beta,n}(d\\mathbf Y_n\\mid\\mathbf X_n)=\\prod_{i=1}^{n}P_{\\beta}(d\\mathbf Y_{in}\\mid x_{in})\\).",
+      "free_symbols": [
+        "n",
+        "Xn",
+        "Yn",
+        "beta",
+        "Pbeta"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Independent bounded conditional responses with common coefficients across consecutive production batches form a concrete stable family for replicated factorial process experiments."
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:exact-ht-accounting"
+      ]
+    },
+    {
+      "id": "ass:conditional-moment-smoothness",
+      "kind": "outcome regularity",
+      "condition": "\\((x,\\beta)\\mapsto\\int y^a p_{q,\\beta}(dy\\mid x)\\in C^3(\\operatorname{supp}\\nu\\times\\mathcal U)\\quad(a=1,2,\\ q\\in\\mathcal Q)\\).",
+      "free_symbols": [
+        "Qset",
+        "nu",
+        "beta",
+        "U",
+        "Pbeta"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Bounded logistic, beta-regression, and smooth location families on compact preregistered baseline domains have continuously varying first two outcome moments."
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:experiment-indexed-oracle-convergence",
+        "prop:published-class-relation"
+      ]
+    },
+    {
+      "id": "ass:product-ball-domain",
+      "kind": "parameter space",
+      "condition": "\\(\\mathcal K=\\overline{\\mathcal K^{\\circ}}=\\overline B_r(\\rho_c,R_{\\rho})\\times\\overline B_s(\\lambda_c,R_{\\lambda})\\subset\\mathcal U\\).",
+      "free_symbols": [
+        "r",
+        "s",
+        "rho",
+        "lambda",
+        "Urho",
+        "Ulambda",
+        "U",
+        "Kclass"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Bounded generalized-linear conditional outcome families with freely varying regression coefficients and dispersion coordinates contain such connected product neighborhoods inside a regular chart."
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret",
+        "thm:global-sharp-pilot"
+      ]
+    },
+    {
+      "id": "ass:qmd",
+      "kind": "likelihood regularity",
+      "condition": "\\(\\sup_{q\\in\\mathcal Q,\\beta\\in\\mathcal U}\\int\\left(\\sqrt{p_{q,\\beta+h}}-\\sqrt{p_{q,\\beta}}-\\tfrac12h^{\\mathsf T}s_{q,\\beta}\\sqrt{p_{q,\\beta}}\\right)^2d\\mu=o(\\lVert h\\rVert^2)\\).",
+      "free_symbols": [
+        "Qset",
+        "beta",
+        "U",
+        "mu",
+        "Pbeta",
+        "score"
+      ],
+      "standard": {
+        "name": "Uniform quadratic-mean differentiability",
+        "cite": "VanDerVaart1998AsymptoticStatistics"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:score-third-moment",
+      "kind": "likelihood regularity",
+      "condition": "\\(\\sup_{\\beta\\in\\mathcal U,q\\in\\mathcal Q}E_{\\beta}\\lVert s_{q,\\beta}\\rVert^{3}<\\infty\\).",
+      "free_symbols": [
+        "Qset",
+        "beta",
+        "U",
+        "Pbeta",
+        "score"
+      ],
+      "standard": {
+        "name": "Uniform local asymptotic normality moment condition",
+        "cite": "VanDerVaart1998AsymptoticStatistics"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:information-regular",
+      "kind": "identification",
+      "condition": "\\(0<\\inf_{\\beta\\in\\mathcal K}\\lambda_{\\min}\\{I(\\beta)\\}\\le\\sup_{\\beta\\in\\mathcal K}\\lambda_{\\max}\\{I(\\beta)\\}<\\infty\\).",
+      "free_symbols": [
+        "beta",
+        "Kclass",
+        "Info"
+      ],
+      "standard": {
+        "name": "Regular identifiable parametric chart",
+        "cite": "VanDerVaart1998AsymptoticStatistics"
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:nuisance-orthogonality",
+      "kind": "oracle map",
+      "condition": "\\(D_{\\lambda}G_T(\\beta)=0\\) for every \\(n\\), every balanced \\(T\\subseteq\\{1,\\ldots,n\\}\\), and every \\(\\beta\\in\\mathcal K\\).",
+      "free_symbols": [
+        "n",
+        "Q",
+        "lambda",
+        "beta",
+        "Kclass",
+        "T",
+        "GT"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Conditional outcome models can separate covariate-slope directions determining balance geometry from intercept and dispersion directions that affect likelihood but not the oracle score."
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:oracle-smoothness",
+      "kind": "oracle map",
+      "condition": "\\(\\sup_{n}\\sup_{\\substack{T\\subseteq\\{1,\\ldots,n\\}:\\ Q\\mid|T|,\\ |T|\\ge Q}}\\sup_{\\beta\\in\\mathcal K}\\lVert D^{j}_{\\rho}G_T(\\beta)\\rVert<\\infty\\quad(j=1,2,3)\\).",
+      "free_symbols": [
+        "n",
+        "Q",
+        "rho",
+        "beta",
+        "Kclass",
+        "T",
+        "GT"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Smooth bounded regression families away from score-rank changes induce three-times differentiable effect-specific covariance and oracle-score maps."
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:experiment-indexed-oracle-convergence",
+        "lem:gaussian-boundary-regularity",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:oracle-rank",
+      "kind": "oracle map",
+      "condition": "\\(\\operatorname{rank}\\{G_T(\\beta)\\}=\\operatorname{rank}\\{G_{\\infty}(\\beta)\\}=r_G\\) for every \\(n\\), every balanced \\(T\\subseteq\\{1,\\ldots,n\\}\\), and every \\(\\beta\\in\\mathcal K\\).",
+      "free_symbols": [
+        "n",
+        "Q",
+        "beta",
+        "Kclass",
+        "T",
+        "GT",
+        "Ginf",
+        "rankG"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Experiments with stable nonzero outcome--covariate associations and no eigenvalue crossings lie in a constant-rank stratum of quadratic balance geometries."
+      },
+      "used_by": [
+        "def:model-class",
+        "lem:gaussian-boundary-regularity",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:admissible-action",
+      "kind": "design action",
+      "condition": "\\(H\\in\\{0\\}\\cup\\{M\\in\\mathbb S_{+}^{Fp}:\\operatorname{tr}(M)=1\\}\\).",
+      "free_symbols": [
+        "F",
+        "p",
+        "Action"
+      ],
+      "standard": {
+        "name": "Scale-normalized positive-semidefinite quadratic-form rerandomization",
+        "cite": "SchindlBranson2024QuadraticForms"
+      },
+      "used_by": [
+        "def:action-space",
+        "thm:local-action-regret"
+      ]
+    },
+    {
+      "id": "ass:curvature-positive",
+      "kind": "design loss",
+      "condition": "\\(0<\\inf_{\\beta\\in\\mathcal K}\\lambda_{\\min}\\{\\Gamma(\\beta)\\}\\le\\sup_{\\beta\\in\\mathcal K}\\lambda_{\\max}\\{\\Gamma(\\beta)\\}<\\infty\\).",
+      "free_symbols": [
+        "beta",
+        "Kclass",
+        "Gamma"
+      ],
+      "novel": {
+        "flag": true,
+        "justification": "Distinct, nondegenerate effect-specific balance priorities give positive curvature after quotienting scale and score stabilizers; smooth disk regression families provide an explicit example."
+      },
+      "used_by": [
+        "def:model-class",
+        "thm:local-action-regret",
+        "thm:global-sharp-pilot"
+      ]
+    }
+  ],
+  "definitions": [
+    {
+      "id": "def:model-class",
+      "name": "Locally rich fixed-baseline factorial class",
+      "construction": "\\(\\mathfrak M=\\{(\\mathbf X_n,P_{\\beta,n})_{n\\ge1}:\\text{each member satisfies }\\mathrm{ass{:}factor\\text{-}count},\\mathrm{ass{:}balanced\\text{-}total},\\mathrm{ass{:}baseline\\text{-}bound},\\mathrm{ass{:}baseline\\text{-}limit},\\mathrm{ass{:}baseline\\text{-}gram},\\mathrm{ass{:}fixed\\text{-}baseline},\\mathrm{ass{:}bounded\\text{-}outcomes},\\mathrm{ass{:}stable\\text{-}product\\text{-}law},\\mathrm{ass{:}conditional\\text{-}moment\\text{-}smoothness},\\mathrm{ass{:}product\\text{-}ball\\text{-}domain},\\mathrm{ass{:}qmd},\\mathrm{ass{:}score\\text{-}third\\text{-}moment},\\mathrm{ass{:}information\\text{-}regular},\\mathrm{ass{:}nuisance\\text{-}orthogonality},\\mathrm{ass{:}oracle\\text{-}smoothness},\\mathrm{ass{:}oracle\\text{-}rank},\\mathrm{ass{:}curvature\\text{-}positive}\\}\\).",
+      "free_symbols": [
+        "n",
+        "Kf",
+        "Q",
+        "F",
+        "W",
+        "Xn",
+        "nu",
+        "Yn",
+        "r",
+        "s",
+        "rho",
+        "lambda",
+        "beta",
+        "U",
+        "Kclass",
+        "mu",
+        "Pbeta",
+        "score",
+        "Info",
+        "T",
+        "GT",
+        "Ginf",
+        "qGauss",
+        "fGauss",
+        "boundaryCov",
+        "rankG",
+        "Gamma",
+        "Model"
+      ],
+      "by_member_properties": [
+        "ass:factor-count",
+        "ass:balanced-total",
+        "ass:baseline-bound",
+        "ass:baseline-limit",
+        "ass:baseline-gram",
+        "ass:fixed-baseline",
+        "ass:bounded-outcomes",
+        "ass:stable-product-law",
+        "ass:conditional-moment-smoothness",
+        "ass:product-ball-domain",
+        "ass:qmd",
+        "ass:score-third-moment",
+        "ass:information-regular",
+        "ass:nuisance-orthogonality",
+        "ass:oracle-smoothness",
+        "ass:oracle-rank",
+        "ass:curvature-positive"
+      ]
+    },
+    {
+      "id": "def:action-space",
+      "name": "Normalized centered ellipsoidal actions",
+      "construction": "\\(\\mathcal H_T=\\{H:\\ H=0\\ \\text{or}\\ H\\in\\mathbb S_{+}^{Fp},\\ \\operatorname{tr}(H)=1;\\ a_{T,H}\\text{ is the centered lower-tail rule on }\\Omega_T\\}\\).",
+      "free_symbols": [
+        "F",
+        "p",
+        "T",
+        "OmegaT",
+        "Action",
+        "aTG"
+      ],
+      "by_member_properties": [
+        "ass:admissible-action"
+      ]
+    },
+    {
+      "id": "def:exact-mixture",
+      "name": "Positive-support exact-alpha mixture",
+      "construction": "\\(p_{T,H}(z)=|\\Omega_T|^{-1}\\{\\eta+(1-\\eta)a_{T,H}(z)/\\alpha\\},\\quad |\\Omega_T|^{-1}\\sum_{z\\in\\Omega_T}a_{T,H}(z)=\\alpha\\).",
+      "free_symbols": [
+        "alpha",
+        "eta",
+        "T",
+        "OmegaT",
+        "Action",
+        "aTG",
+        "pTG"
+      ],
+      "inputs": [
+        "T",
+        "Action",
+        "aTG"
+      ]
+    },
+    {
+      "id": "def:pooled-ht",
+      "name": "Exact-inclusion pooled Horvitz--Thompson estimator",
+      "construction": "\\(\\widehat{\\boldsymbol\\tau}_{n,m}(\\delta_m)=(m/n)\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_{S_m}(0)+(N/n)\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_{T_{n,m}^{\\mathrm{main}}}(\\delta_m)\\), where every summand uses \\(\\pi_{iq}(T,H)=P_{p_{T,H}}(Z_i=q)\\).",
+      "free_symbols": [
+        "n",
+        "Qset",
+        "HTTG",
+        "piTG",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "delta",
+        "tauhat"
+      ],
+      "inputs": [
+        "Sm",
+        "delta",
+        "piTG"
+      ]
+    },
+    {
+      "id": "def:empirical-oracle-comparator",
+      "name": "Matching full-sample empirical oracle",
+      "construction": "\\(R_n^{\\mathrm{or}}(\\beta)=V_{T_n^{\\mathrm{full}}}(G_{T_n^{\\mathrm{full}}}(\\beta),\\beta)\\).",
+      "free_symbols": [
+        "n",
+        "Xn",
+        "beta",
+        "Tfull",
+        "VTG",
+        "GT",
+        "Ror"
+      ],
+      "inputs": [
+        "Xn",
+        "beta"
+      ]
+    },
+    {
+      "id": "def:finite-comparison-handle",
+      "name": "Empirical-oracle boundary handle",
+      "construction": "\\(\\mathsf H_{\\mathrm{fin}}\\): couple the exact score ordering on \\(\\Omega_T\\) to the Gaussian quadratic ordering at the realized \\(G_T(\\beta)\\); control thin-boundary probabilities and score-weighted truncated moments jointly; then insert exact first- and second-order inclusion probabilities into the Horvitz--Thompson covariance identity.",
+      "free_symbols": [
+        "beta",
+        "T",
+        "OmegaT",
+        "aTG",
+        "pTG",
+        "piTG",
+        "HTTG",
+        "VTG",
+        "GT"
+      ],
+      "inputs": [
+        "GT",
+        "aTG",
+        "piTG"
+      ]
+    },
+    {
+      "id": "def:efficient-action-handle",
+      "name": "Nuisance-efficient local action handle",
+      "construction": "\\(\\mathsf H_{\\mathrm{eff}}\\): estimate \\(\\beta\\) in the pilot by an efficient score after projection on the nuisance tangent space, map the oracle coordinate into \\(G_{T_{n,m}^{\\mathrm{main}}}(\\beta)\\), and apply the exact mixture construction on the main wave.",
+      "free_symbols": [
+        "beta",
+        "Ieff",
+        "GT",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "Opilot",
+        "Ghat"
+      ],
+      "inputs": [
+        "Opilot",
+        "Ieff",
+        "GT"
+      ]
+    },
+    {
+      "id": "def:global-envelope",
+      "name": "Global pilot envelope",
+      "construction": "\\(\\Phi(t)=\\max_{\\beta\\in\\mathcal K}\\{A(\\beta)t+B(\\beta)/t\\},\\quad t^{\\star}=\\operatorname*{argmin}_{t>0}\\Phi(t),\\quad C^{\\star}=\\Phi(t^{\\star})\\).",
+      "free_symbols": [
+        "beta",
+        "Kclass",
+        "A",
+        "B",
+        "Phi",
+        "tstar",
+        "Cstar"
+      ],
+      "inputs": [
+        "A",
+        "B"
+      ]
+    }
+  ],
+  "statements": [
+    {
+      "id": "prop:published-class-relation",
+      "kind": "proposition",
+      "statement": "For every \\(\\beta\\in\\mathcal K\\), \\[\\mathfrak R_{\\beta}(\\mathfrak M)\\subsetneq\\mathfrak M_{\\mathrm{HD}}.\\]",
+      "free_symbols": [
+        "beta",
+        "Kclass",
+        "Model",
+        "HDModel",
+        "RealizedModel"
+      ],
+      "depends_on": [
+        "ass:baseline-bound",
+        "ass:baseline-limit",
+        "ass:baseline-gram",
+        "ass:bounded-outcomes",
+        "ass:stable-product-law",
+        "ass:conditional-moment-smoothness",
+        "def:model-class"
+      ],
+      "status": "to-prove",
+      "justification": "The inclusion records exactly how the new likelihood-rich planning domain relates to the closest published finite-population class.",
+      "gap": "Han and Deng's population framework supports first-order randomization limits but has no outcome-likelihood chart on which nuisance-efficient local pilot regret is defined.",
+      "consumer": "It prevents the square-root achievability result from being misreported as uniform over every array allowed by Han and Deng."
+    },
+    {
+      "id": "thm:exact-ht-accounting",
+      "kind": "theorem",
+      "statement": "For every \\((\\mathbf X_n,P_{\\beta,n})\\in\\mathfrak M\\), every realized bounded potential-outcome table and every pilot-measurable \\(\\delta_m\\), \\(E[\\widehat{\\boldsymbol\\tau}_{n,m}(\\delta_m)\\mid\\mathbf Y_n,\\mathbf X_n]=\\boldsymbol\\tau_n\\) and \\[R_{n,m}(\\delta_m,\\beta)-R_n^{\\mathrm{or}}(\\beta)=d_{T_n^{\\mathrm{full}}}(\\beta)-(N/n)^2E_{S_m}d_{T_{n,m}^{\\mathrm{main}}}(\\beta)+(N/n)^2E\\{V_{T_{n,m}^{\\mathrm{main}}}(\\delta_m,\\beta)-V_{T_{n,m}^{\\mathrm{main}}}(G_{T_{n,m}^{\\mathrm{main}}}(\\beta),\\beta)\\}.\\] This identity remains exact under randomized ties and unequal \\(\\pi_{iq}\\), a case not represented by the ordinary symmetric factorial estimator of Branson, Dasgupta, and Rubin.",
+      "free_symbols": [
+        "n",
+        "Xn",
+        "Yn",
+        "taun",
+        "beta",
+        "Pbeta",
+        "Model",
+        "Tfull",
+        "piTG",
+        "VTG",
+        "GT",
+        "dT",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "delta",
+        "tauhat",
+        "Rn",
+        "Ror"
+      ],
+      "depends_on": [
+        "ass:bounded-outcomes",
+        "ass:stable-product-law",
+        "def:model-class",
+        "def:exact-mixture",
+        "def:pooled-ht",
+        "def:empirical-oracle-comparator"
+      ],
+      "status": "to-prove",
+      "justification": "Exact centering isolates pilot opportunity cost from learned-action regret without symmetry assumptions.",
+      "gap": "Horvitz and Thompson give fixed-design unbiasedness, while Branson, Dasgupta, and Rubin use symmetric factorial rerandomization; neither supplies this pilot-conditional pooled identity under a learned unequal-inclusion law.",
+      "consumer": "It permits unbiased reuse of both waves in sequential factorial cycles whose learned acceptance rule is not label symmetric."
+    },
+    {
+      "id": "lem:oracle-action-admissible",
+      "kind": "lemma",
+      "statement": "For every \\(T\\) and \\(\\beta\\in\\mathcal K\\), the construction \\(G_T(\\beta)\\) belongs to \\(\\mathcal H_T\\), and \\(p_{T,G_T(\\beta)}\\) has exact acceptance mass \\(\\alpha\\) and support bounded below by \\(\\eta/|\\Omega_T|\\).",
+      "free_symbols": [
+        "alpha",
+        "eta",
+        "beta",
+        "Kclass",
+        "T",
+        "OmegaT",
+        "Action",
+        "aTG",
+        "pTG",
+        "GT"
+      ],
+      "depends_on": [
+        "ass:admissible-action",
+        "def:action-space",
+        "def:exact-mixture"
+      ],
+      "status": "to-prove",
+      "justification": "The oracle comparator must itself be a legal positive-support exact-alpha design on every finite assignment support.",
+      "gap": "The published raw oracle is an asymptotic quadratic criterion; legality under the present exact boundary randomization is an auxiliary finite-design obligation.",
+      "consumer": "It ensures that every reported oracle contrast compares two implementable assignment distributions."
+    },
+    {
+      "id": "lem:efficient-action-admissible",
+      "kind": "lemma",
+      "statement": "The score \\(\\widehat G_m\\) constructed by \\(\\mathsf H_{\\mathrm{eff}}\\) belongs to \\(\\mathcal H_{T_{n,m}^{\\mathrm{main}}}\\) almost surely, and its induced main-wave design has exact acceptance mass \\(\\alpha\\) and support bounded below by \\(\\eta/|\\Omega_{T_{n,m}^{\\mathrm{main}}}|\\).",
+      "free_symbols": [
+        "alpha",
+        "eta",
+        "OmegaT",
+        "Action",
+        "pTG",
+        "m",
+        "Sm",
+        "Tmain",
+        "Opilot",
+        "Ghat"
+      ],
+      "depends_on": [
+        "ass:admissible-action",
+        "def:action-space",
+        "def:exact-mixture",
+        "def:efficient-action-handle"
+      ],
+      "status": "to-prove",
+      "justification": "Efficient score estimation must not compromise finite randomization validity or positive inclusion probabilities.",
+      "gap": "Pilot plug-in rerandomization is first-order valid in Han and Deng, but the exact-alpha positive-support normalization here is a distinct finite construction.",
+      "consumer": "It makes the learned rule auditable before any asymptotic risk comparison is invoked."
+    },
+    {
+      "id": "lem:uniform-single-wave-risk",
+      "kind": "lemma",
+      "statement": "\\[\\sup_{(\\mathbf X_n,P_{\\beta,n})\\in\\mathfrak M}\\sup_{\\beta\\in\\mathcal K}\\sup_{\\substack{T\\subseteq\\{1,\\ldots,n\\}:\\ Q\\mid|T|,\\ |T|\\ge Q}}\\sup_{H\\in\\mathcal H_T}|T|V_T(H,\\beta)<\\infty.\\]",
+      "free_symbols": [
+        "n",
+        "Q",
+        "Xn",
+        "beta",
+        "Kclass",
+        "Pbeta",
+        "Model",
+        "T",
+        "Action",
+        "VTG"
+      ],
+      "depends_on": [
+        "ass:bounded-outcomes",
+        "ass:admissible-action",
+        "def:model-class",
+        "def:action-space",
+        "def:exact-mixture"
+      ],
+      "status": "to-prove",
+      "justification": "Positive assignment support makes every permitted one-wave Horvitz--Thompson risk uniformly first order even on irregular subsets.",
+      "gap": "General Horvitz--Thompson consistency does not provide a constant uniform over the present pilot-indexed rerandomization actions.",
+      "consumer": "It rules out apparent gains from assigning only a vanishing main wave and controls rare singular pilot complements."
+    },
+    {
+      "id": "lem:experiment-indexed-oracle-convergence",
+      "kind": "lemma",
+      "statement": "For every member of \\(\\mathfrak M\\) there is a common \\(G_{\\infty}\\in C^3(\\mathcal K;\\mathbb S_{+}^{Fp})\\) such that, for every balanced \\(m=m(n)\\) with \\(m\\to\\infty\\), \\(N\\to\\infty\\), and \\(m/n\\to0\\), \\[\\max_{0\\le j\\le3}\\sup_{\\beta\\in\\mathcal K}\\lVert D_{\\rho}^{j}G_{T_n^{\\mathrm{full}}}(\\beta)-D_{\\rho}^{j}G_{\\infty}(\\beta)\\rVert\\to0,\\] and \\[\\max_{0\\le j\\le3}\\sup_{\\beta\\in\\mathcal K}\\lVert D_{\\rho}^{j}G_{T_{n,m}^{\\mathrm{main}}}(\\beta)-D_{\\rho}^{j}G_{\\infty}(\\beta)\\rVert\\xrightarrow{P_{S_m}}0.\\] Here \\(D_{\\rho}^{0}G=G\\), the first display is deterministic conditional on the complete baseline array, and the second probability is over the uniform pilot split conditional on that array.",
+      "free_symbols": [
+        "n",
+        "F",
+        "p",
+        "Xn",
+        "rho",
+        "beta",
+        "Kclass",
+        "Tfull",
+        "GT",
+        "Ginf",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "Model"
+      ],
+      "depends_on": [
+        "ass:baseline-bound",
+        "ass:baseline-limit",
+        "ass:baseline-gram",
+        "ass:conditional-moment-smoothness",
+        "ass:oracle-smoothness",
+        "def:model-class"
+      ],
+      "status": "to-prove",
+      "justification": "The common experiment-indexed limit removes ambiguity about which empirical oracle and which convergence mode define the boundary constants.",
+      "gap": "First-order learned-rerandomization arguments require consistency of one selected score, whereas the second-order boundary expansion needs uniform convergence of the oracle map and its first three quotient derivatives along both realized experiment sequences.",
+      "consumer": "It gives replication planners one stable limiting geometry whether the oracle is evaluated on all registered units or on the random main-wave complement."
+    },
+    {
+      "id": "thm:oracle-deletion-loss",
+      "kind": "theorem",
+      "statement": "Uniformly over \\(\\beta\\in\\mathcal K\\) and balanced sequences with \\(m\\to\\infty\\), \\(N\\to\\infty\\), and \\(m/n\\to0\\), \\[d_{T_n^{\\mathrm{full}}}(\\beta)-(N/n)^2E_{S_m}d_{T_{n,m}^{\\mathrm{main}}}(\\beta)=A(\\beta)\\frac{m}{n^2}+o\\!\\left(\\frac{m}{n^2}+\\frac{1}{nm}\\right),\\] where \\(A\\) is continuous and \\(0<\\inf_{\\beta\\in\\mathcal K}A(\\beta)\\le\\sup_{\\beta\\in\\mathcal K}A(\\beta)<\\infty\\).",
+      "free_symbols": [
+        "n",
+        "beta",
+        "Kclass",
+        "Tfull",
+        "dT",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "A"
+      ],
+      "depends_on": [
+        "ass:baseline-bound",
+        "ass:baseline-limit",
+        "ass:baseline-gram",
+        "ass:bounded-outcomes",
+        "ass:oracle-smoothness",
+        "ass:oracle-rank",
+        "def:model-class",
+        "def:empirical-oracle-comparator",
+        "thm:exact-ht-accounting",
+        "lem:oracle-action-admissible",
+        "lem:experiment-indexed-oracle-convergence"
+      ],
+      "status": "to-prove",
+      "justification": "This term prices the irreversible loss from assigning pilot units before the oracle geometry is learned.",
+      "gap": "Han and Deng establish first-order equivalence after sample splitting but do not retain the deletion contrast at order \\(m/n^2\\).",
+      "consumer": "It lets a replication planner quantify the marginal precision price of adding pilot batches."
+    },
+    {
+      "id": "lem:gaussian-boundary-regularity",
+      "kind": "lemma",
+      "statement": "For the common limit \\(G_{\\infty}\\), the map \\(\\beta\\mapsto q_{\\alpha,\\beta}\\) is continuous, \\(0<q_{\\alpha,\\beta}<\\infty\\), and \\[0<\\inf_{\\beta\\in\\mathcal K}f_{\\beta}(q_{\\alpha,\\beta})\\le\\sup_{\\beta\\in\\mathcal K}f_{\\beta}(q_{\\alpha,\\beta})<\\infty.\\] The coarea version \\(\\mathcal C(\\beta,u)\\) is continuous on a neighborhood of \\(\\{(\\beta,q_{\\alpha,\\beta}):\\beta\\in\\mathcal K\\}\\); consequently \\(\\Gamma(\\beta)\\) and \\(B(\\beta)=\\operatorname{tr}\\{\\Gamma(\\beta)I_{\\mathrm{eff}}(\\beta)^{-1}\\}\\) are continuous on \\(\\mathcal K\\).",
+      "free_symbols": [
+        "alpha",
+        "beta",
+        "Kclass",
+        "Ieff",
+        "Ginf",
+        "qGauss",
+        "fGauss",
+        "boundaryCov",
+        "rankG",
+        "Gamma",
+        "B"
+      ],
+      "depends_on": [
+        "ass:product-ball-domain",
+        "ass:oracle-smoothness",
+        "ass:oracle-rank",
+        "ass:admissible-action",
+        "def:model-class",
+        "def:action-space",
+        "lem:experiment-indexed-oracle-convergence"
+      ],
+      "status": "to-prove",
+      "justification": "Uniform coarea control makes the moving Gaussian acceptance boundary differentiable without adding a separate density assumption.",
+      "gap": "Existing rerandomization limits use fixed quadratic forms; the uniform statement over an empirical-oracle chart is an auxiliary bridge to second order.",
+      "consumer": "It supplies the stable quantile derivative needed to translate efficient pilot uncertainty into action regret."
+    },
+    {
+      "id": "thm:local-action-regret",
+      "kind": "theorem",
+      "statement": "For every balanced sequence \\(m=m(n)\\) with \\(m\\to\\infty\\), \\(N\\to\\infty\\), and \\(m/n\\to0\\), and every interior \\(\\beta_0\\in\\mathcal K^{\\circ}\\), \\[\\lim_{c\\to\\infty}\\lim_{n\\to\\infty}\\inf_{\\delta_m}\\sup_{\\substack{\\beta=\\beta_0+(h,u)/\\sqrt m\\in\\mathcal K,\\ h\\in\\mathbb R^r,\\ u\\in\\mathbb R^s\\\\\\lVert(h,u)\\rVert\\le c}}nm\\,(N/n)^2E\\{V_{T_{n,m}^{\\mathrm{main}}}(\\delta_m,\\beta)-V_{T_{n,m}^{\\mathrm{main}}}(G_{T_{n,m}^{\\mathrm{main}}}(\\beta),\\beta)\\}=B(\\beta_0).\\] The infimum ranges over all pilot-measurable normalized centered score rules. The rule \\(\\widehat G_m\\) satisfies \\[\\sup_{\\beta\\in\\mathcal K}\\left|nm\\,(N/n)^2E\\{V_{T_{n,m}^{\\mathrm{main}}}(\\widehat G_m,\\beta)-V_{T_{n,m}^{\\mathrm{main}}}(G_{T_{n,m}^{\\mathrm{main}}}(\\beta),\\beta)\\}-B(\\beta)\\right|\\to0,\\] where expectations include the random complement and pilot outcomes, and \\(B(\\beta)=\\operatorname{tr}\\{\\Gamma(\\beta)I_{\\mathrm{eff}}(\\beta)^{-1}\\}\\) uses the continuous coarea boundary covariance of \\(G_{\\infty}\\).",
+      "free_symbols": [
+        "n",
+        "r",
+        "s",
+        "rho",
+        "lambda",
+        "beta",
+        "Kclass",
+        "Ieff",
+        "VTG",
+        "GT",
+        "Ginf",
+        "m",
+        "N",
+        "Sm",
+        "Tmain",
+        "delta",
+        "Ghat",
+        "Gamma",
+        "B"
+      ],
+      "depends_on": [
+        "ass:fixed-baseline",
+        "ass:product-ball-domain",
+        "ass:qmd",
+        "ass:score-third-moment",
+        "ass:information-regular",
+        "ass:nuisance-orthogonality",
+        "ass:oracle-smoothness",
+        "ass:oracle-rank",
+        "ass:admissible-action",
+        "ass:curvature-positive",
+        "def:action-space",
+        "def:exact-mixture",
+        "def:finite-comparison-handle",
+        "def:efficient-action-handle",
+        "thm:exact-ht-accounting",
+        "lem:oracle-action-admissible",
+        "lem:efficient-action-admissible",
+        "lem:experiment-indexed-oracle-convergence",
+        "lem:gaussian-boundary-regularity"
+      ],
+      "status": "to-prove",
+      "justification": "The trace constant converts nuisance-efficient pilot information into the unavoidable quadratic loss from selecting a rerandomization geometry.",
+      "gap": "Liu, Han, Rubin, and Deng integrate over prior uncertainty, and Armstrong gives first-order superpopulation efficiency bounds; neither derives this finite-population exact-alpha local design game.",
+      "consumer": "It identifies which pilot outcomes and nuisance directions determine the precision value of another learning batch."
+    },
+    {
+      "id": "oeq:finite-boundary-comparison",
+      "kind": "openendedquestion",
+      "statement": "Can the handle \\(\\mathsf H_{\\mathrm{fin}}\\) establish, uniformly over \\(\\mathfrak M\\), exact ties, arbitrary balanced deterministic baseline lattices, local action displacements of order \\(m^{-1/2}\\), and unequal inclusion probabilities, that the finite Horvitz--Thompson action regret on \\(T_{n,m}^{\\mathrm{main}}\\) differs from the continuous-coarea Gaussian boundary quadratic form of \\(G_{\\infty}\\) by \\(o(m^{-1})\\) in probability over the split, and that the contrast between \\(T_n^{\\mathrm{full}}\\) and \\(T_{n,m}^{\\mathrm{main}}\\) has no additional lattice or inclusion correction at order \\(m/n^2+1/(nm)\\)?",
+      "free_symbols": [
+        "n",
+        "Xn",
+        "beta",
+        "Model",
+        "Tfull",
+        "aTG",
+        "piTG",
+        "HTTG",
+        "VTG",
+        "GT",
+        "Ginf",
+        "m",
+        "Tmain"
+      ],
+      "depends_on": [
+        "ass:baseline-bound",
+        "ass:baseline-limit",
+        "ass:baseline-gram",
+        "ass:bounded-outcomes",
+        "def:model-class",
+        "def:finite-comparison-handle",
+        "thm:exact-ht-accounting",
+        "lem:experiment-indexed-oracle-convergence",
+        "lem:gaussian-boundary-regularity"
+      ],
+      "status": "to-prove",
+      "justification": "This is the proof boundary on which the advertised second-order constant is valid or must acquire a finite-randomization correction.",
+      "gap": "Li and Ding provide a first-order random-partition central limit theorem, and Wang and Li provide quantitative Gaussian control for best-choice rerandomization; neither controls score-weighted moving-boundary moments at this scale.",
+      "consumer": "A positive answer validates smooth pilot rules on integer-valued manufacturing baselines; a negative answer identifies the correction planners must include."
+    },
+    {
+      "id": "thm:uniform-second-order-risk",
+      "kind": "theorem",
+      "statement": "For the nuisance-efficient exact-alpha rule \\(\\widehat G_m\\) and every balanced sequence \\(m=m(n)\\) with \\(m\\to\\infty\\), \\(N\\to\\infty\\), and \\(m/n\\to0\\), \\[\\sup_{\\beta\\in\\mathcal K}\\frac{\\left|R_{n,m}(\\widehat G_m,\\beta)-R_n^{\\mathrm{or}}(\\beta)-A(\\beta)m/n^2-B(\\beta)/(nm)\\right|}{m/n^2+1/(nm)}\\to0.\\] Here \\(R_n^{\\mathrm{or}}\\) uses \\(T_n^{\\mathrm{full}}\\), the learned action is evaluated on \\(T_{n,m}^{\\mathrm{main}}\\), and \\(B\\) is induced by the common limit \\(G_{\\infty}\\) and its continuous coarea boundary covariance. Moreover, the first term and the local minimax second term are jointly sharp among all pilot-measurable actions. This gives a second-order oracle-precision comparison on the explicitly narrower likelihood-rich subclass of Han and Deng's finite-population setting.",
+      "free_symbols": [
+        "n",
+        "beta",
+        "Kclass",
+        "Tfull",
+        "m",
+        "N",
+        "Tmain",
+        "Ghat",
+        "Rn",
+        "Ror",
+        "A",
+        "B",
+        "Ginf"
+      ],
+      "depends_on": [
+        "def:model-class",
+        "def:efficient-action-handle",
+        "thm:exact-ht-accounting",
+        "thm:oracle-deletion-loss",
+        "thm:local-action-regret",
+        "lem:experiment-indexed-oracle-convergence",
+        "oeq:finite-boundary-comparison"
+      ],
+      "status": "to-prove",
+      "justification": "The expansion exposes the two forces that determine pilot size below first order and supplies their sharp coefficients.",
+      "gap": "Han and Deng prove consistency and first-order oracle precision but explicitly leave optimal learning-sample choice to refined asymptotics; no checked closer paper supplies these two coefficients.",
+      "consumer": "It converts an informal learning fraction into a sample-size-dependent rule for repeated factorial production experiments."
+    },
+    {
+      "id": "lem:pilot-endpoint-exclusion",
+      "kind": "lemma",
+      "statement": "For every admissible balanced pilot-size sequence \\(m=m(n)\\in\\mathcal M_n\\) with \\(m/\\sqrt n\\to0\\) or \\(m/\\sqrt n\\to\\infty\\), including bounded \\(m\\), positive pilot fractions, and \\(N=o(n)\\), \\[\\liminf_{n\\to\\infty}n^{3/2}\\mathcal E_n(m)=\\infty.\\]",
+      "free_symbols": [
+        "n",
+        "Mbal",
+        "m",
+        "N",
+        "En"
+      ],
+      "depends_on": [
+        "ass:product-ball-domain",
+        "ass:curvature-positive",
+        "lem:uniform-single-wave-risk",
+        "thm:oracle-deletion-loss",
+        "thm:local-action-regret"
+      ],
+      "status": "to-prove",
+      "justification": "Endpoint exclusion is needed to promote the interior expansion from a candidate scale to the unique global pilot scale.",
+      "gap": "First-order oracle equivalence does not compare bounded, vanishing, macroscopic, and nearly all-pilot sequences on one risk scale.",
+      "consumer": "It prevents a planner from exploiting a degenerate pilot or main wave that appears favorable only because the interior approximation was used outside its domain."
+    },
+    {
+      "id": "thm:global-sharp-pilot",
+      "kind": "theorem",
+      "statement": "The quantity \\(\\inf_{\\ell\\in\\mathcal M_n}\\mathcal E_n(\\ell)\\) is positive for all sufficiently large \\(n\\). Let \\(m=m(n)\\in\\mathcal M_n\\) satisfy the explicit asymptotic-minimax condition \\[\\frac{\\mathcal E_n(m)}{\\inf_{\\ell\\in\\mathcal M_n}\\mathcal E_n(\\ell)}\\to1.\\] Then \\[\\frac{m}{\\sqrt n}\\to t^{\\star},\\qquad n^{3/2}\\mathcal E_n(m)\\to C^{\\star}=\\min_{t>0}\\max_{\\beta\\in\\mathcal K}\\{A(\\beta)t+B(\\beta)/t\\}.\\] Here \\(A\\) is the full-array versus random-complement deletion coefficient and \\(B\\) is the continuous-coarea curvature coefficient induced by the common limit \\(G_{\\infty}\\). The minimizer \\(t^{\\star}\\) is unique, and \\[C^{\\star}=\\max_{(a,b)\\in\\operatorname{conv}\\{(A(\\beta),B(\\beta)):\\beta\\in\\mathcal K\\}}2\\sqrt{ab}.\\] An optimizer of the last display has a certificate supported on at most two parameter values active at \\(t^{\\star}\\).",
+      "free_symbols": [
+        "n",
+        "beta",
+        "Kclass",
+        "Tfull",
+        "Tmain",
+        "Ginf",
+        "Mbal",
+        "m",
+        "A",
+        "B",
+        "En",
+        "Phi",
+        "tstar",
+        "Cstar"
+      ],
+      "depends_on": [
+        "ass:product-ball-domain",
+        "ass:curvature-positive",
+        "def:global-envelope",
+        "thm:uniform-second-order-risk",
+        "lem:pilot-endpoint-exclusion"
+      ],
+      "status": "to-prove",
+      "justification": "The theorem turns the pointwise expansion into a unique globally defensible pilot rule with a finite certificate.",
+      "gap": "Yamin's binary-arm global boundary analysis gives an approximately optimal \\(n^{2/3}\\) plan, whereas this locally rich factorial geometry requires a sharp square-root constant and a different empirical oracle.",
+      "consumer": "Stable-batch replications of Menon, Chakrabarti, and Nerella's sequential factorial workflow can preregister the learning-wave size from a two-state worst-case certificate."
+    },
+    {
+      "id": "thm:symmetry-reduction",
+      "kind": "theorem",
+      "statement": "If \\(p_{T,H}\\) is invariant under the treatment-label flip group, then \\(\\pi_{iq}(T,H)=1/Q\\) for all \\(i\\in T\\) and \\(q\\in\\mathcal Q\\), so \\(\\widehat{\\boldsymbol\\tau}^{\\mathrm{HT}}_T(H)\\) equals the ordinary balanced factorial difference-in-means estimator. With fixed \\(H\\), its first-order limit reduces to the symmetric truncated-Gaussian factorial law of Li, Ding, and Rubin; with \\(H=0\\) in both waves, the pooled assignment has the full-sample balanced complete-randomization marginal.",
+      "free_symbols": [
+        "Q",
+        "Qset",
+        "T",
+        "Action",
+        "pTG",
+        "piTG",
+        "HTTG"
+      ],
+      "depends_on": [
+        "ass:balanced-total",
+        "def:exact-mixture",
+        "def:pooled-ht",
+        "thm:exact-ht-accounting"
+      ],
+      "status": "to-prove",
+      "justification": "The reduction checks that exact-inclusion analysis preserves the established symmetric factorial design as a special case.",
+      "gap": "The proposition is a required compatibility result rather than a novelty claim; the new content begins when pilot adaptation breaks label symmetry.",
+      "consumer": "Practitioners can use the standard estimator whenever their preregistered score retains the flip symmetry."
+    }
+  ],
+  "sampling_model": {
+    "design": "A uniform balanced pilot split, balanced complete randomization on \\(S_m\\), and a pilot-measurable positive-support exact-alpha ellipsoidal mixture on \\(T_{n,m}^{\\mathrm{main}}=S_m^c\\), compared with the full-array oracle on \\(T_n^{\\mathrm{full}}\\).",
+    "units": "A deterministic triangular array of \\(n\\) units with complete bounded baselines known before assignment and fixed realized potential outcomes for design-based inference.",
+    "treatment": "All \\(Q=2^{K_f}\\) combinations receive equal wave-specific counts.",
+    "overlap": "The fixed mixture weight \\(\\eta>0\\) gives every balanced assignment positive probability and every unit--combination inclusion positive probability.",
+    "nuisance_estimation": "Pilot outcomes identify \\(\\beta=(\\rho,\\lambda)\\); the oracle coordinate is estimated after efficient projection on the nuisance score, the baseline array contributes no likelihood information, and the random-complement oracle map converges with three quotient derivatives in probability over the pilot split to the same \\(G_{\\infty}\\) as the full-array map."
+  },
+  "estimand_functional": "\\(\\widehat{\\boldsymbol\\tau}_{n,m}^{\\mathrm{HT}},\\quad R_{n,m}-R_n^{\\mathrm{or}}=A(\\beta)m/n^2+B(\\beta)/(nm)+o\\{m/n^2+1/(nm)\\}\\)",
+  "target_estimand": "\\(\\boldsymbol\\tau_n=2^{1-K_f}\\mathbf C^{\\mathsf T}\\bar{\\mathbf Y}_n\\)",
+  "bibliography": [
+    {
+      "key": "HanDeng2026DataAdaptiveFactorial",
+      "citation": "Han, Tingxuan, and Ke Deng. 2026. ``Data-Adaptive Rerandomization for \\(2^{K}\\) Factorial Designs.'' arXiv:2609.02078v1."
+    },
+    {
+      "key": "Yamin2026WhenHowPilot",
+      "citation": "Yamin, Juan C. 2026. ``When and How to Pilot: Design Rules for Two-Wave Experiments.'' arXiv:2607.16982v2."
+    },
+    {
+      "key": "LiuHanRubinDeng2025BayesianRerandomization",
+      "citation": "Liu, Zhaoyang, Tingxuan Han, Donald B. Rubin, and Ke Deng. 2025. ``Bayesian Criterion for Re-randomization.'' Journal of the American Statistical Association. doi:10.1080/01621459.2025.2507432."
+    },
+    {
+      "key": "HorvitzThompson1952UnequalProbability",
+      "citation": "Horvitz, D. G., and D. J. Thompson. 1952. ``A Generalization of Sampling Without Replacement from a Finite Universe.'' Journal of the American Statistical Association 47:663--685."
+    },
+    {
+      "key": "DelevoyeSavje2020HTConsistency",
+      "citation": "Delevoye, Angèle, and Fredrik Sävje. 2020. ``Consistency of the Horvitz--Thompson Estimator under General Sampling and Experimental Designs.'' Journal of Statistical Planning and Inference 207:190--197."
+    },
+    {
+      "key": "LiDing2017FinitePopulationCLT",
+      "citation": "Li, Xinran, and Peng Ding. 2017. ``General Forms of Finite Population Central Limit Theorems with Applications to Causal Inference.'' Journal of the American Statistical Association 112:1759--1769."
+    },
+    {
+      "key": "LiDingRubin2020FactorialRerandomization",
+      "citation": "Li, Xinran, Peng Ding, and Donald B. Rubin. 2020. ``Rerandomization in \\(2^{K}\\) Factorial Experiments.'' The Annals of Statistics 48:43--63."
+    },
+    {
+      "key": "WangLi2025BestChoiceRerandomization",
+      "citation": "Wang, Yuhao, and Xinran Li. 2025. ``Asymptotic Theory of the Best-Choice Rerandomization Using the Mahalanobis Distance.'' Journal of Econometrics 250:106049."
+    },
+    {
+      "key": "BransonDasguptaRubin2016FactorialRerandomization",
+      "citation": "Branson, Zach, Tirthankar Dasgupta, and Donald B. Rubin. 2016. ``Improving Covariate Balance in \\(2^{K}\\) Factorial Designs via Rerandomization.'' The Annals of Applied Statistics 10:1958--1976."
+    },
+    {
+      "key": "SchindlBranson2024QuadraticForms",
+      "citation": "Schindl, Kyle, and Zach Branson. 2024. ``A Unified Framework for Rerandomization Using Quadratic Forms.'' arXiv:2403.12815."
+    },
+    {
+      "key": "Armstrong2022EfficiencyBoundsExperiments",
+      "citation": "Armstrong, Timothy B. 2022. ``Asymptotic Efficiency Bounds for a Class of Experimental Designs.'' arXiv:2205.02726."
+    },
+    {
+      "key": "JuniorBranson2025Review",
+      "citation": "Ribeiro Junior, Antônio Carlos Herling, and Zach Branson. 2025. ``Does Rerandomization Help Beyond Covariate Adjustment? A Review and Guide for Theory and Practice.'' arXiv:2512.05290."
+    },
+    {
+      "key": "MenonChakrabartiNerella2002Sequential",
+      "citation": "Menon, Anil, Sibu Chakrabarti, and Nadhamuni Nerella. 2002. ``Sequential Experimentation in Product Development. I.'' Pharmaceutical Development and Technology 7:33--41."
+    },
+    {
+      "key": "VanDerVaart1998AsymptoticStatistics",
+      "citation": "van der Vaart, A. W. 1998. Asymptotic Statistics. Cambridge University Press."
+    }
+  ],
+  "comparator_promise_table": [
+    {
+      "comparator_bibkey": "HanDeng2026DataAdaptiveFactorial",
+      "comparator_claim": "The learned factorial rerandomization procedure achieves the same first-order asymptotic precision as its oracle under suitable conditions.",
+      "matched_by": "Theorem 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "Yamin2026WhenHowPilot",
+      "comparator_claim": "The pooled binary-arm conditional-minimax-regret plan uses an \\(n^{2/3}\\) pilot and is approximately worst-case optimal.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiuHanRubinDeng2025BayesianRerandomization",
+      "comparator_claim": "The two-stage Bayesian rerandomization procedure learns covariate importance from a pilot and improves first-order precision.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "HorvitzThompson1952UnequalProbability",
+      "comparator_claim": "Inverse inclusion weighting gives unbiased estimation under unequal-probability sampling without replacement.",
+      "matched_by": "Theorem 1",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "DelevoyeSavje2020HTConsistency",
+      "comparator_claim": "The Horvitz--Thompson estimator is quadratically mean consistent under broad general designs.",
+      "matched_by": "Theorem 4",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiDing2017FinitePopulationCLT",
+      "comparator_claim": "Finite-population random partitions obey joint central limit theorems for multiple treatments and vector outcomes.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "LiDingRubin2020FactorialRerandomization",
+      "comparator_claim": "Fixed symmetric factorial rerandomization yields a truncated-Gaussian joint limit and conservative confidence regions.",
+      "matched_by": "Theorem 6",
+      "match_kind": "equivalence"
+    },
+    {
+      "comparator_bibkey": "WangLi2025BestChoiceRerandomization",
+      "comparator_claim": "Finite-population Gaussian approximation supports large-sample inference for best-choice Mahalanobis rerandomization.",
+      "matched_by": "Open-ended Question 1",
+      "match_kind": "downgraded_to_informed_by"
+    },
+    {
+      "comparator_bibkey": "BransonDasguptaRubin2016FactorialRerandomization",
+      "comparator_claim": "Symmetric rerandomization preserves unbiasedness of ordinary factorial-effect estimators.",
+      "matched_by": "Theorem 1",
+      "match_kind": "non_representability"
+    },
+    {
+      "comparator_bibkey": "SchindlBranson2024QuadraticForms",
+      "comparator_claim": "Quadratic-form rerandomization criteria admit fixed-geometry precision comparisons and a minimax Euclidean choice.",
+      "matched_by": "unmatched",
+      "match_kind": "dropped_from_abstract"
+    },
+    {
+      "comparator_bibkey": "Armstrong2022EfficiencyBoundsExperiments",
+      "comparator_claim": "Sequential superpopulation experiments have first-order semiparametric efficiency bounds under adaptive assignment.",
+      "matched_by": "Theorem 3",
+      "match_kind": "downgraded_to_informed_by"
+    }
+  ],
+  "tldr": "A balanced pilot learns which covariate imbalances matter for a vector of factorial effects, and an exact-alpha positive-support ellipsoidal mixture uses that information in the main wave. The full-array oracle map and the random-complement oracle map, the latter in probability over the pilot split, converge uniformly with three quotient derivatives to one \\(G_{\\infty}\\); its continuous coarea boundary covariance defines \\(B(\\beta)=\\operatorname{tr}\\{\\Gamma(\\beta)I_{\\mathrm{eff}}(\\beta)^{-1}\\}\\). Relative to the matching full-array empirical oracle, the exact-inclusion pooled Horvitz--Thompson estimator has the sharp uniform contrast \\(A(\\beta)m/n^2+B(\\beta)/(nm)\\). Any pilot sequence whose minimax excess-risk ratio to the best admissible balanced size tends to one has the unique scale \\(m/\\sqrt n\\to t^{\\star}\\), with a global constant certified by at most two active parameter values. The open mathematical core is a lattice- and tie-uniform finite-randomization comparison that validates these coefficients for unequal exact inclusions and arbitrary pilot-measurable actions.",
+  "project_justification": {
+    "gap": "The closest factorial procedure reaches its oracle only at first order and explicitly leaves the learning-sample proportion open. Binary-arm pilot theory gives a different global boundary rate, while general Horvitz--Thompson and rerandomization theory stop at exact unbiasedness, consistency, or first-order Gaussian limits.",
+    "niche": "A fixed complete baseline array and a connected full-dimensional conditional-outcome chart isolate a locally regular design problem in which pilot opportunity cost and oracle-action curvature coexist at the \\(n^{-3/2}\\) scale.",
+    "fill": "The project derives a common experiment-indexed oracle limit with uniform derivative convergence, defines its boundary curvature by continuous coarea disintegration, obtains both risk coefficients, proves the local arbitrary-action lower bound and efficient upper bound, controls exact ties and unequal inclusions, and converts the expansion into a unique global pilot constant through an explicit asymptotic-minimax risk ratio."
+  },
+  "related_work": "Han and Deng's Theorem 8 supplies the closest factorial-vector sample-splitting architecture and first-order oracle equivalence; the present theorem targets the smaller risk terms that their Section 6 leaves unresolved within the explicitly narrower likelihood-rich subclass recorded in Proposition 1. Yamin's Appendix E supplies the pooled opportunity-cost versus action-regret accounting, but its binary Neyman-allocation boundary class yields an \\(n^{2/3}\\) plan and informs rather than determines the local factorial result. Liu, Han, Rubin, and Deng optimize prior-integrated asymptotic variance and motivate covariance-aware rerandomization, but do not give a frequentist nuisance-efficient local minimax boundary. Horvitz and Thompson provide the exact inverse-inclusion identity, and Delevoye and Sävje provide broad consistency; neither gives a pilot-conditional second-order factorial risk expansion. Li and Ding's random-partition theorem and Li, Ding, and Rubin's truncated-Gaussian factorial law are the first-order finite-population foundations. Wang and Li quantify Gaussian approximation under selective rerandomization, but their result does not control a moving exact-alpha boundary at the proposed risk scale. Branson, Dasgupta, and Rubin establish the symmetric factorial benchmark to which the exact-inclusion estimator reduces. Menon, Chakrabarti, and Nerella document the practical sequence of factorial product-development cycles; the present consumer claim is prospective and additionally requires preregistered future baselines and a stable rich response family.",
+  "technical_internal_limitation": "An exact four-unit nonsymmetric score example has positive support, acceptance probability \\(137/1000\\), inclusion probabilities \\(1/16\\) and \\(7/16\\), and zero Horvitz--Thompson bias, yet its empirical-oracle exact risk is discontinuous as a score coordinate crosses zero. Thus smooth outcome likelihoods do not justify continuity of finite score orderings. The theorem must use worst-case suprema and prove that any lattice discontinuity is below \\(m/n^2+1/(nm)\\); it may not assume finite-risk continuity or finite maximum attainment.",
+  "honest_scope": "Exact Horvitz--Thompson centering, the \\(O(|T|^{-1})\\) one-wave risk bound under positive support, the continuous-coarea Gaussian boundary Hessian calculation, and the deterministic convex-envelope certificate have verified proof routes in the presolve evidence but remain marked to prove in this proposal core. Uniform convergence of \\(G_{T_n^{\\mathrm{full}}}\\) and its first three quotient derivatives is deterministic conditional on the complete baseline array; the corresponding convergence for \\(G_{T_{n,m}^{\\mathrm{main}}}\\) is in probability over the uniform pilot split. The central uniform finite-randomization expansion, exact-inclusion perturbation bound, arbitrary-action localization, and nuisance-efficient local minimax transfer are open. The probability-one realized population class is a strict subclass of Han and Deng's published finite-population class because efficient pilot information is not defined on their unparameterized arrays; the achievability claim is not asserted beyond this subclass. Rank crossings, weak oracle signals, informative random baselines, finite parameter catalogues, and shifted noncentered actions are excluded. Under treatment-label symmetry, the estimator and first-order law reduce to the established ordinary factorial rerandomization result.",
+  "seeds": [
+    "S1: sharp square-root pilot frontier",
+    "S2: covariance-aware exact-alpha local minimax mixture",
+    "S3: unequal-inclusion pooled Horvitz--Thompson expansion",
+    "S4: lattice-uniform ellipsoidal boundary expansion",
+    "S5: curvature-driven transition between square-root and two-thirds pilot scales",
+    "S6: Bayesian-mixture versus plug-in-oracle divergence frontier",
+    "S7: pilot-adaptive factorial Wald inference with vanishing pilot share",
+    "S8: rank-crossing robust pilot design"
+  ],
+  "seed_details": [
+    {
+      "seed_id": "S1",
+      "rank": 1,
+      "anchor_bibkey": "HanDeng2026DataAdaptiveFactorial",
+      "anchor_location_read": "Introduction, Sections 3.3 and 4.1--4.5, Theorem 8 and Section 6 of arXiv:2609.02078v1.",
+      "kernel": "Derive the uniform empirical-oracle risk expansion \\(A(\\beta)m/n^{2}+B(\\beta)/(nm)+o(m/n^{2}+1/(nm))\\), then characterize the globally minimax pilot constant and its two-active-state certificate.",
+      "proof_boundary": "Han and Deng prove consistency of the learned importance matrix and first-order oracle precision, but their discussion explicitly leaves the optimal learning-sample proportion open.",
+      "first_changed_proof_step": "Retain the deletion loss from withholding \\(m\\) units and the local decision loss from estimating the oracle score, instead of applying Slutsky after consistency of the score estimate.",
+      "destination_search": "Searches for factorial rerandomization combined with pilot size, empirical oracle, second-order risk, exact inclusion, and curvature found no theorem with this expansion.",
+      "motif": "M13+M7",
+      "target_tier": "field",
+      "red_team": "Immediate from Han and Deng because their learned score already has oracle asymptotic precision.",
+      "rebuttal": "Their result discards both terms at the \\(n^{-3/2}\\) scale and does not optimize a vanishing pilot against the matching full-sample empirical oracle.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 3,
+        "consumer_value": 5,
+        "total": 23
+      },
+      "disposition": "selected"
+    },
+    {
+      "seed_id": "S2",
+      "rank": 3,
+      "anchor_bibkey": "LiuHanRubinDeng2025BayesianRerandomization",
+      "anchor_location_read": "Introduction, Sections 3.2--4, Theorem 6, Section 7 and Supplement B.4 of arXiv:2303.07904.",
+      "kernel": "Characterize a nuisance-efficient locally minimax randomized ellipsoidal action with exact acceptance probability and positive assignment support near competing oracle geometries.",
+      "proof_boundary": "The Bayesian criterion integrates variance under a prior and its two-stage implementation uses fixed pilot fractions; it does not identify the frequentist Gaussian boundary experiment or the efficient regret trace.",
+      "first_changed_proof_step": "Replace the fixed prior second moment by the pilot's efficient local Gaussian experiment and solve the constrained randomized-action problem at oracle boundaries.",
+      "destination_search": "Searches pairing local asymptotic minimaxity, exact-alpha rerandomization, positive support, factorial effects, and efficient information found no direct result.",
+      "motif": "M13",
+      "target_tier": "field",
+      "red_team": "Immediate from Bayesian rerandomization by taking its prior to be the pilot posterior.",
+      "rebuttal": "A posterior plug-in does not yield the frequentist local minimax lower bound, the nuisance-efficient covariance, or exact finite assignment support.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 4,
+        "feasibility": 3,
+        "consumer_value": 4,
+        "total": 20
+      },
+      "disposition": "shortlisted"
+    },
+    {
+      "seed_id": "S3",
+      "rank": 2,
+      "anchor_bibkey": "HorvitzThompson1952UnequalProbability",
+      "anchor_location_read": "Publisher abstract and the defining unbiased total and joint-inclusion variance construction in the original unequal-probability framework.",
+      "kernel": "Obtain exact conditional unbiasedness and a uniform second-order raw-MSE expansion for a pooled factorial Horvitz--Thompson vector under a pilot-generated unequal-probability assignment law.",
+      "proof_boundary": "Classical identities give exact first moments and variances for a fixed design, not a random pilot-indexed design whose inclusion probabilities change through exact ties.",
+      "first_changed_proof_step": "Condition on the pilot, calculate first- and second-order treatment-combination inclusions, and retain their deviations in the factorial covariance identity before averaging over the random split.",
+      "destination_search": "The closest general result is Delevoye and Sävje's quadratic-mean consistency; no pilot-conditional factorial expansion at order \\(1/(nm)\\) was located.",
+      "motif": "M12",
+      "target_tier": "field",
+      "red_team": "Immediate from the Horvitz--Thompson variance identity by conditioning on the pilot.",
+      "rebuttal": "The identity is algebraic; the uniform expansion requires new control of random exact inclusions and boundary mass at a smaller order than ordinary consistency.",
+      "scores": {
+        "direct_evidence": 5,
+        "mathematical_depth": 4,
+        "novelty": 4,
+        "feasibility": 4,
+        "consumer_value": 4,
+        "total": 21
+      },
+      "disposition": "shortlisted"
+    },
+    {
+      "seed_id": "S4",
+      "rank": 4,
+      "anchor_bibkey": "WangLi2025BestChoiceRerandomization",
+      "anchor_location_read": "Introduction, main Gaussian-approximation results and discussion of arXiv:2312.02513; the paper studies quantitative first-order approximation under selective rerandomization.",
+      "kernel": "Prove a conditional local-limit expansion for quadratic risk through an exact-alpha ellipsoidal boundary, uniformly over deterministic lattice baseline arrays and randomized ties.",
+      "proof_boundary": "Berry--Esseen control for an unconditional imbalance vector does not automatically control a risk expectation after conditioning on a moving, pilot-estimated boundary.",
+      "first_changed_proof_step": "Replace the global convex-set probability bound by a thin-boundary probability-and-truncated-moment comparison centered at the realized empirical oracle.",
+      "destination_search": "Searches for Edgeworth or local-limit expansions combined with exact rerandomization ties and factorial Horvitz--Thompson risk found no occupied target.",
+      "motif": "M12+M7",
+      "target_tier": "field",
+      "red_team": "A standard Berry--Esseen theorem makes lattice and tie errors negligible.",
+      "rebuttal": "The available error is too large at the \\(n^{-3/2}\\) risk scale unless boundary displacement and loss are coupled; exact ties can change inclusions discontinuously.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 2,
+        "consumer_value": 3,
+        "total": 19
+      },
+      "disposition": "dropped as a standalone seed after deepening because its entire value is the finite-comparison lemma inside S1"
+    },
+    {
+      "seed_id": "S5",
+      "rank": 5,
+      "anchor_bibkey": "Yamin2026WhenHowPilot",
+      "anchor_location_read": "Introduction, Sections 2.3--2.4 and Appendices E.2--E.5 of arXiv:2607.16982v2.",
+      "kernel": "Derive a critical curvature sequence separating the locally regular \\(m\\asymp n^{1/2}\\) regime from the global boundary \\(m\\asymp n^{2/3}\\) regime.",
+      "proof_boundary": "Yamin's worst-case variance-allocation game yields the two-thirds scale, while locally quadratic ellipsoidal action regret suggests a square-root scale; no common curvature frontier is supplied.",
+      "first_changed_proof_step": "Localize the oracle action loss with a possibly vanishing Hessian and balance its induced pilot regret against empirical-oracle opportunity cost.",
+      "destination_search": "Joint searches for pilot-size phase transition, action curvature, rerandomization, and two-wave regret did not reveal a derived critical sequence.",
+      "motif": "M2+M13",
+      "target_tier": "flagship",
+      "red_team": "This is only a relabeling of regular versus nonregular decision theory.",
+      "rebuttal": "A defensible version requires a design-computable curvature frontier and matching upper and lower pilot scales, which neither anchor derives.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 4,
+        "total": 19
+      },
+      "disposition": "dropped after deepening because the required common class and observable frontier were not supported by the available exact factorial analysis"
+    },
+    {
+      "seed_id": "S6",
+      "rank": 7,
+      "anchor_bibkey": "LiuHanRubinDeng2025BayesianRerandomization",
+      "anchor_location_read": "Sections 3.2--3.3 and 7 of arXiv:2303.07904, including the prior-integrated variance criterion and its scale invariance.",
+      "kernel": "Establish equivalence of Bayesian-mixture and plug-in-oracle ellipsoids away from score boundaries and derive the local sequence on which their risks diverge.",
+      "proof_boundary": "The Bayesian criterion and plug-in criterion are compared numerically and by first-order efficiency, not through a local divergence threshold for factorial-vector loss.",
+      "first_changed_proof_step": "Expand both acceptance measures around a common oracle boundary and identify the covariance-to-curvature ratio controlling their risk difference.",
+      "destination_search": "Searches pairing Bayesian rerandomization, plug-in oracle, equivalence frontier, and factorial effects found only first-order or simulation comparisons.",
+      "motif": "M2",
+      "target_tier": "field",
+      "red_team": "The two designs differ only by replacing a point estimate with its posterior second moment.",
+      "rebuttal": "That algebra does not characterize when induced assignment laws or risks are asymptotically equivalent, especially at tied oracle geometries.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 4,
+        "novelty": 3,
+        "feasibility": 3,
+        "consumer_value": 3,
+        "total": 17
+      },
+      "disposition": "dropped because it is dominated by S2's minimax characterization"
+    },
+    {
+      "seed_id": "S7",
+      "rank": 6,
+      "anchor_bibkey": "HanDeng2026DataAdaptiveFactorial",
+      "anchor_location_read": "Section 4.5, Theorem 8, Section 4.6 and the proof architecture in Appendix A.12--A.16 of arXiv:2609.02078v1.",
+      "kernel": "Derive a studentized factorial-vector limit and Wald coverage when the pilot fraction vanishes at the pilot-optimal rate and the final estimator uses exact inclusion weights.",
+      "proof_boundary": "Han and Deng's joint limit is stated under learning-sample conditions used for first-order consistency and an ordinary weighted estimator, not exact unequal inclusions at a vanishing share.",
+      "first_changed_proof_step": "Rewrite the pooled estimator as pilot-measurable martingale strata with exact inclusions and prove stable studentization under \\(m/\\sqrt n\\to t\\).",
+      "destination_search": "Searches for vanishing-pilot factorial rerandomization inference and exact-inclusion Wald coverage found no direct theorem.",
+      "motif": "M14",
+      "target_tier": "subfield",
+      "red_team": "Coverage follows immediately from the existing joint central limit theorem.",
+      "rebuttal": "The existing limit does not cover the exact unequal-inclusion estimator or the second-order pilot-optimal triangular array, but the contribution is secondary to the risk frontier.",
+      "scores": {
+        "direct_evidence": 4,
+        "mathematical_depth": 3,
+        "novelty": 3,
+        "feasibility": 4,
+        "consumer_value": 4,
+        "total": 18
+      },
+      "disposition": "dropped as a follow-on inference result rather than the design kernel"
+    },
+    {
+      "seed_id": "S8",
+      "rank": 8,
+      "anchor_bibkey": "SchindlBranson2024QuadraticForms",
+      "anchor_location_read": "Abstract, introduction and the quadratic-form optimality comparisons in arXiv:2403.12815.",
+      "kernel": "Choose a positive-support pilot-adaptive mixture that is minimax over local rank crossings of the oracle quadratic form and certify its regret.",
+      "proof_boundary": "Quadratic-form comparisons treat a fixed geometry; score eigenvalue collisions make the oracle quotient chart and its curvature singular.",
+      "first_changed_proof_step": "Replace smooth fixed-rank score coordinates by a stratified tangent cone and solve the resulting nonsmooth Gaussian design game.",
+      "destination_search": "Searches for rank-crossing adaptive rerandomization and tangent-cone minimax design found no direct treatment.",
+      "motif": "M13+M7",
+      "target_tier": "field",
+      "red_team": "Scale normalization and eigenvalue ordering remove the singularity.",
+      "rebuttal": "They remove representational duplication but not a genuine change in rank or stabilizer dimension; nevertheless this lies outside the regular chart required for a feasible first paper.",
+      "scores": {
+        "direct_evidence": 3,
+        "mathematical_depth": 5,
+        "novelty": 5,
+        "feasibility": 1,
+        "consumer_value": 3,
+        "total": 17
+      },
+      "disposition": "dropped because rank crossings violate the chosen regular identifiable chart"
+    }
+  ],
+  "literature_map": [
+    {
+      "seed_id": "S1",
+      "anchor": "HanDeng2026DataAdaptiveFactorial",
+      "adjacent_threads": [
+        "Yamin2026WhenHowPilot",
+        "LiuHanRubinDeng2025BayesianRerandomization",
+        "LiDingRubin2020FactorialRerandomization",
+        "WangLi2025BestChoiceRerandomization"
+      ],
+      "settled": "Oracle factorial geometry, consistency of a pilot-learned importance matrix, first-order design-based limits, and pooled pilot-cost accounting in the binary allocation problem are available.",
+      "unoccupied_target": "No checked source derives the uniform \\(n^{-3/2}\\) empirical-oracle contrast, the coefficient \\(B(\\beta)=\\operatorname{tr}\\{\\Gamma(\\beta)I_{\\mathrm{eff}}(\\beta)^{-1}\\}\\), or the global two-active-state pilot certificate.",
+      "exemplars_used": "Han and Deng supply the setup and motivation arc; Han and Deng's sample-splitting representation and Yamin's oracle-relative pooled-loss decomposition supply the methods adapted."
+    },
+    {
+      "seed_id": "S3",
+      "anchor": "HorvitzThompson1952UnequalProbability",
+      "adjacent_threads": [
+        "DelevoyeSavje2020HTConsistency",
+        "BransonDasguptaRubin2016FactorialRerandomization",
+        "LiDing2017FinitePopulationCLT",
+        "HanDeng2026DataAdaptiveFactorial"
+      ],
+      "settled": "Exact inverse-inclusion unbiasedness, joint-inclusion variance identities, broad quadratic-mean consistency, and first-order multiple-treatment finite-population limits are available.",
+      "unoccupied_target": "The checked literature does not propagate a random pilot-generated unequal-inclusion law through pooled factorial raw MSE at order \\(1/(nm)\\).",
+      "exemplars_used": "The Horvitz--Thompson inclusion identity is the algebraic starting point; Li and Ding's random-partition representation is the Gaussian approximation ancestor."
+    },
+    {
+      "seed_id": "S2",
+      "anchor": "LiuHanRubinDeng2025BayesianRerandomization",
+      "adjacent_threads": [
+        "HanDeng2026DataAdaptiveFactorial",
+        "Armstrong2022EfficiencyBoundsExperiments",
+        "SchindlBranson2024QuadraticForms",
+        "JuniorBranson2025Review"
+      ],
+      "settled": "Prior-integrated quadratic-form choice, first-order pilot implementation, fixed-geometry minimax comparisons, and first-order superpopulation efficiency bounds are available.",
+      "unoccupied_target": "No checked source characterizes the nuisance-efficient frequentist local minimax exact-alpha mixture for a factorial-vector loss.",
+      "exemplars_used": "Liu, Han, Rubin, and Deng's uncertainty-integrated variance criterion supplies the design optimization move; Armstrong's tangent-space comparison supplies the efficient-information move."
+    }
+  ],
+  "literature_checklist": [
+    {
+      "author": "Han and Deng",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "HanDeng2026DataAdaptiveFactorial",
+      "one_line": "Theorem 8 gives the joint first-order law for learned factorial rerandomization, and Section 6 leaves optimal learning-sample choice open.",
+      "relevant_to": "thm:uniform-second-order-risk"
+    },
+    {
+      "author": "Yamin",
+      "year": 2026,
+      "venue": "arXiv",
+      "bibkey": "Yamin2026WhenHowPilot",
+      "one_line": "Appendix E decomposes pooled pilot opportunity cost and action regret and obtains a worst-case \\(n^{2/3}\\) plan in a binary allocation game.",
+      "relevant_to": "thm:global-sharp-pilot"
+    },
+    {
+      "author": "Liu, Han, Rubin, and Deng",
+      "year": 2025,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "LiuHanRubinDeng2025BayesianRerandomization",
+      "one_line": "The paper chooses an uncertainty-integrated rerandomization criterion and implements it with a fixed-fraction pilot.",
+      "relevant_to": "thm:local-action-regret"
+    },
+    {
+      "author": "Horvitz and Thompson",
+      "year": 1952,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "HorvitzThompson1952UnequalProbability",
+      "one_line": "Inverse first-order inclusion weights give an unbiased total under unequal-probability sampling.",
+      "relevant_to": "thm:exact-ht-accounting"
+    },
+    {
+      "author": "Delevoye and Sävje",
+      "year": 2020,
+      "venue": "Journal of Statistical Planning and Inference",
+      "bibkey": "DelevoyeSavje2020HTConsistency",
+      "one_line": "General Horvitz--Thompson designs admit quadratic-mean consistency under weak concentration conditions.",
+      "relevant_to": "thm:uniform-second-order-risk"
+    },
+    {
+      "author": "Li and Ding",
+      "year": 2017,
+      "venue": "Journal of the American Statistical Association",
+      "bibkey": "LiDing2017FinitePopulationCLT",
+      "one_line": "Random partitions yield joint finite-population central limit theorems for multiple treatments and vector outcomes.",
+      "relevant_to": "oeq:finite-boundary-comparison"
+    },
+    {
+      "author": "Li, Ding, and Rubin",
+      "year": 2020,
+      "venue": "The Annals of Statistics",
+      "bibkey": "LiDingRubin2020FactorialRerandomization",
+      "one_line": "Fixed symmetric factorial rerandomization yields truncated-Gaussian joint limits and conservative confidence regions.",
+      "relevant_to": "thm:symmetry-reduction"
+    },
+    {
+      "author": "Wang and Li",
+      "year": 2025,
+      "venue": "Journal of Econometrics",
+      "bibkey": "WangLi2025BestChoiceRerandomization",
+      "one_line": "Quantitative finite-population Gaussian approximation supports first-order inference for highly selective best-choice rerandomization.",
+      "relevant_to": "oeq:finite-boundary-comparison"
+    },
+    {
+      "author": "Branson, Dasgupta, and Rubin",
+      "year": 2016,
+      "venue": "The Annals of Applied Statistics",
+      "bibkey": "BransonDasguptaRubin2016FactorialRerandomization",
+      "one_line": "Symmetric factorial rerandomization preserves unbiasedness of the ordinary factorial-effect estimator.",
+      "relevant_to": "thm:symmetry-reduction"
+    },
+    {
+      "author": "Menon, Chakrabarti, and Nerella",
+      "year": 2002,
+      "venue": "Pharmaceutical Development and Technology",
+      "bibkey": "MenonChakrabartiNerella2002Sequential",
+      "one_line": "A sequence of factorial cycles uses earlier results to design and predict later product-development experiments.",
+      "relevant_to": "thm:global-sharp-pilot"
+    }
+  ],
+  "novelty_justification": "The selected kernel moves beyond Han and Deng's first-order oracle equivalence in the direction their Section 6 leaves open: it identifies the vanishing learning-sample order and its constant on an explicitly narrower full-dimensional fixed-baseline outcome chart where efficient pilot information is defined. It differs from Yamin's global binary-arm variance-allocation problem because the locally quadratic factorial ellipsoid loss yields \\(1/m\\) action regret and a square-root pilot, while exact-inclusion Horvitz--Thompson risk and empirical-oracle deletion loss are retained. The closest unequal-probability and rerandomization papers supply first-moment identities or first-order limits, not a uniform conditional expansion through random exact-alpha boundaries. The load-bearing novelty is therefore the finite-randomization comparison, not Gaussian oracle geometry, ordinary local asymptotic normality, or the deterministic envelope alone."
+}

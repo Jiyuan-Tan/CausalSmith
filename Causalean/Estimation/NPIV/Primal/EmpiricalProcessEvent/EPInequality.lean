@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.EPPerN
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.EPPerN
 
 /-!
 Re-exports the explicit empirical-process inequality for the primal NPIV rate
@@ -14,3 +15,5 @@ argument. The imported `EPPerN` module provides
 `ep_inequality_from_localized`, which convert the localized master event into
 the weak-norm excess inequality used before the centered-regularizer discharge.
 -/
+
+public section

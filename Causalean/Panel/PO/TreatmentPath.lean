@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Logic.Basic
+module
+public import Mathlib.Data.Fintype.Basic
+public import Mathlib.Logic.Basic
 
 /-! # Treatment Paths and Finite-Memory Histories
 
@@ -15,6 +16,8 @@ potential-outcomes layer. `History` uses an explicit boundary treatment for
 lags before the observed panel starts, `HistoryDefault` uses the typeclass
 default boundary value, and `BinaryHistory` specializes to binary treatment
 with zero as the boundary value. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel

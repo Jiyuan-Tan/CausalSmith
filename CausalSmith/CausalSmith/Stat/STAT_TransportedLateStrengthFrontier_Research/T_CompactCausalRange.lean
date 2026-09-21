@@ -2,9 +2,12 @@
 # Transported LATE identification and compact causal range
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Basic
-import Causalean.PO.ID.Exact.LATE
-import Causalean.Mathlib.MeasureTheory.SetIntegralRecovery
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Basic
+public import Causalean.PO.ID.Exact.LATE
+public import Causalean.Mathlib.MeasureTheory.SetIntegralRecovery
+
+public section
 
 namespace CausalSmith.Stat.TransportedLateStrengthFrontier
 

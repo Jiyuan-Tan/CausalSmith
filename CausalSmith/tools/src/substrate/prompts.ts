@@ -25,6 +25,10 @@ function fillTemplate(tpl: string, vars: Record<string, string>): string {
   return out;
 }
 
+function headerContract(): string {
+  return "HEADER CONTRACT — Start each new Lean module with `module`, contiguous `public import` lines, a `/-! ... -/` module docstring, then exactly one blanket `@[expose] public section` when it contains a def-like declaration or `public section` when it is theorem-only; keep declarations bare. Wire a new module into its directory barrel, never the root.";
+}
+
 export function buildScaffolderPrompt(args: {
   slug: string; requirement: string; leanDir: string; modulePrefix: string;
   planMarkdown: string | null; lastReport: RoundReport | null;
@@ -49,6 +53,7 @@ export function buildScaffolderPrompt(args: {
     PLAN_BLOCK: planBlock,
     REPORT_BLOCK: reportBlock,
     REVIEW_BLOCK: reviewBlock,
+    HEADER_CONTRACT: headerContract(),
   });
 }
 
@@ -58,6 +63,7 @@ export function buildFillerPrompt(args: { leanDir: string; modulePrefix: string;
     MODULE_PREFIX: args.modulePrefix,
     TARGET_DECLS: args.prompt.target_decls.join(", ") || "(see instructions)",
     INSTRUCTIONS: args.prompt.prompt,
+    HEADER_CONTRACT: headerContract(),
   });
 }
 
@@ -87,5 +93,6 @@ export function buildCoordinatorPrompt(args: {
     LEAN_FILES: args.leanFiles.map((f) => `- ${f}`).join("\n") || "(none)",
     STAGING_DIR: args.stagingDir,
     FAILURE_BLOCK: failureBlock,
+    HEADER_CONTRACT: headerContract(),
   });
 }

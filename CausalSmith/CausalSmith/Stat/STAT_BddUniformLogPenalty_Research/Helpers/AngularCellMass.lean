@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
 
 /-!
 # Common cell masses for the angular packing
@@ -7,6 +8,8 @@ This module proves that angular tilting does not change the mass of any
 grid-centered half-disc.  It isolates the cell-mass part of the finite hard
 family certificate from the later joint-law and KL arguments.
 -/
+
+public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped ENNReal

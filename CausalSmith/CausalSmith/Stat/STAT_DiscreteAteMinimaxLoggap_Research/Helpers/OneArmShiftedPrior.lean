@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPriorLift
+module
+public import CausalSmith.Stat.STAT_DiscreteAteMinimaxLoggap_Research.Helpers.OneArmPriorLift
 
 /-!
 # Decoupled-shift signed priors for the one-arm converse
@@ -8,6 +9,8 @@ tilt shift.  The extra degree of freedom keeps the propensity inside
 `[epsilon, 1-epsilon]` for every `epsilon < 1/2`, while retaining the same
 order of rational-functional separation.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DiscreteAteMinimaxLoggap
 

@@ -1,0 +1,1068 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{exp\_\allowbreak{}n1\_\allowbreak{}chaos\_\allowbreak{}optimal\_\allowbreak{}design}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For a single fixed impulse-response path, all balanced pairwise-orthogonal binary designs have identical first and second moments but can have different fourth-order risk for the displayed unbiased moment estimator. Global sign symmetry is not imposed: averaging any legal law with its reflection preserves the diagonal risk blocks, removes the signal--disturbance cross block, and weakly improves risk. For \(K=2\), the exact finite-horizon minimax MSE and full optimizer face exhibit the even--odd parity gap and are attained by mirrored edge signs. For every fixed \(K,q,R_g,R_e\), a balanced finite-state randomized Golay-block law attains the stationary spectral disturbance floor, and the finite-horizon minimax value differs from that floor by at most \(c(K,q,R_g,R_e)/T\). The only remaining open problem is a lag-sized necessary-and-sufficient characterization of the general finite fourth-moment realizability body with sign-orbit recovery; an exact exponential orbit semidefinite program is available.
+
+\section{Project justification}
+
+\paragraph{Gap.} Existing N-of-1 inference fixes independent toggling, temporal optimal-design theory restricts assignment to structured Markov families and an ordinary-least-squares criterion, and recent network-design work relaxes a fourth-order Rademacher objective to Gaussian covariance optimization. None optimizes genuine realizable fourth moments over all balanced pairwise-orthogonal one-path laws under the joint coefficient--disturbance ellipsoid or proves a quantitative finite-to-stationary spectral minimax comparison for the zero-prehistory moment estimator.
+
+\paragraph{Niche.} The niche is global optimal randomization for an already-identified causal moment under fixed potential outcomes, with the balanced pairwise-orthogonal assignment law as the design variable. Global sign symmetry is only a provably without-loss representative. The deliverables are exact or quantitatively certified minimax risks for the displayed estimator, not all-estimator optimality or a sampling-law central limit theorem.
+
+\paragraph{Fill.} The block-risk lemma proves the symmetrization reduction, the parity theorem solves the first nontrivial finite problem and its full optimizer face, and the class-separation result isolates iid as the sole legal stationary homogeneous random-switch law. The quantitative Golay theorem supplies a finite-state balanced stationary optimizer, an exact fourth-moment tensor, a phase-uniform bounded endpoint covariance remainder, the matching spectral lower bound, and \(|V_{T,K}-R_e^2N_q^2|\le c/T\). The orbit proposition supplies an exact exponential semidefinite program for the remaining finite realizability problem.
+
+\section{Related work}
+
+Liang and Recht (2025), Section 2.2, equation (6), the immediately following quadratic-chaos display, Appendix A.1, and Section 6 define the same linear causal estimands and moment estimator and analyze it under independent Rademacher toggling. Their iid law is a strict subclass of the balanced pairwise-orthogonal laws optimized here; the joint coefficient--disturbance ellipsoid and the quantitative finite-to-stationary minimax comparison extend that fixed-path analysis. Global sign symmetry is not substantive because the block-matrix argument proves reflection averaging weakly improves risk. Guo and Liang (2026), Definition 3.6, use an asymptotic ordinary-least-squares objective, while Definition 4.1 defines stationary homogeneous random-switch designs and Theorem 4.6 sends robust-design minimizers to \((1/2,1/2)\). Their full random-switch class is generally outside the legal pairwise-orthogonal class; only the iid intersection comparison transfers, and their criterion is not identified with the present MSE. Thiyageswaran et al. (2026), arXiv:2601.17145v1, Appendix F.3, pp. 31--32, derive a fourth-order Rademacher objective and then use a Gaussian covariance relaxation. That motivates fourth moments but does not characterize realizable binary temporal laws or prove the zero-prehistory endpoint rate. Bojinov, Simchi-Levi, and Zhao (2023) study regular-switchback minimax design under a different bounded-carryover adversary. Golay (1961), Davis and Jedwab (1999), Tellambura, Guo, and Barton (1998), and Mazáč (2024) supply complementary-sequence and Rudin--Shapiro ingredients; the independent-block random-phase tensor, bounded finite-window covariance remainder, and one-path causal minimax theorem are derived here. Bandeira and Kunisky (2018) and Manchester (2010) concern pseudomoment or covariance relaxations rather than exact genuine-binary sign-orbit realizability.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\tau=q^{\top}g\).
+Primary functional / estimator / diagnostic: \(\widehat\tau=q^{\top}\Gamma_T^{-1}A(X)^{\top}Y(X),\qquad V_{T,2}((1,0)^{\top};R_g,R_e)=\max\{R_e^2,a_TR_g^2/T\};\quad\text{for fixed }K,q,R_g,R_e,\ \exists c<\infty:\ |V_{T,K}(q;R_g,R_e)-R_e^2N_q^2|\le c/T,\quad V_{\infty,K}(q;R_g,R_e)=R_e^2N_q^2.\).
+\begin{itemize}
+  \item \texttt{T} --- \texttt{integer}; \(\{4,5,\ldots\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The observed horizon.}
+  \item \texttt{K} --- \texttt{integer}; \(\{2,\ldots,\lfloor T/2\rfloor\}\); \texttt{index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed impulse-\allowbreak{}response order.}
+  \item \texttt{Rg} --- \texttt{scalar}; \((0,\infty)\); \texttt{primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The coefficient-\allowbreak{}energy radius.}
+  \item \texttt{Re} --- \texttt{scalar}; \((0,\infty)\); \texttt{primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The disturbance-\allowbreak{}energy radius.}
+  \item \texttt{q} --- \texttt{vector}; \(\mathbb R^K\); \texttt{primitive}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed target-\allowbreak{}loading vector.}
+  \item \texttt{X} --- \texttt{random path}; \(\{-1,+1\}^T\); \texttt{randomization}
+  \par\smallskip\noindent\emph{Definition.} The binary treatment-assignment path; set \(X_s=0\) for \(s\le 0\) when it enters the response equation.
+  \item \texttt{g} --- \texttt{vector}; \(\mathbb R^K\); \texttt{fixed potential-\allowbreak{}outcome parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed impulse-\allowbreak{}response coefficients.}
+  \item \texttt{e} --- \texttt{vector}; \(\mathbb R^T\); \texttt{fixed nuisance}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The fixed disturbance path.}
+  \item \texttt{Y} --- \texttt{potential-\allowbreak{}outcome path}; \(\mathbb R^T\); \texttt{observed response}
+  \item \texttt{D} --- \texttt{probability law}; \(\Delta(\{-1,+1\}^T)\); \texttt{design decision}
+  \par\smallskip\noindent\emph{Definition.} A candidate finite-horizon assignment law for \(X\).
+  \item \texttt{A} --- \texttt{matrix}; \(\mathbb R^{T\times K}\); \texttt{lagged treatment matrix}
+  \item \texttt{Gamma} --- \texttt{matrix}; \(\mathbb R^{K\times K}\); \texttt{zero-\allowbreak{}prehistory normalization}
+  \item \texttt{tau} --- \texttt{scalar}; \(\mathbb R\); \texttt{causal estimand}
+  \item \texttt{tauhat} --- \texttt{random scalar}; \(\mathbb R\); \texttt{unbiased moment estimator}
+  \item \texttt{H} --- \texttt{set}; \(\mathcal P(\mathbb R^K\times\mathbb R^T)\); \texttt{joint nuisance class}
+  \item \texttt{DesignT} --- \texttt{set}; \(\mathcal P(\Delta(\{-1,+1\}^T))\); \texttt{finite feasible design class}
+  \item \texttt{u} --- \texttt{random vector}; \(\mathbb R^K\); \texttt{quadratic assignment-\allowbreak{}chaos coefficient}
+  \item \texttt{v} --- \texttt{random vector}; \(\mathbb R^T\); \texttt{linear disturbance coefficient}
+  \item \texttt{F} --- \texttt{matrix}; \(\mathbb R^{T\times T}\); \texttt{banded convolution operator}
+  \item \texttt{RT} --- \texttt{functional}; \(\mathfrak D_T\to\mathbb R_+\); \texttt{normalized worst-\allowbreak{}case MSE}
+  \item \texttt{VT} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{finite-\allowbreak{}horizon minimax value}
+  \item \texttt{S} --- \texttt{random integer}; \(\{-(T-1),-(T-3),\ldots,T-1\}\); \texttt{lag-\allowbreak{}one edge sum}
+  \item \texttt{aT} --- \texttt{scalar}; \(\{1,2\}\); \texttt{parity constant}
+  \item \texttt{rT} --- \texttt{scalar}; \((0,\infty)\); \texttt{noise-\allowbreak{}to-\allowbreak{}signal threshold}
+  \item \texttt{m} --- \texttt{integer}; \(\mathbb N_0\); \texttt{half-\allowbreak{}edge count in the mirrored construction}
+  \item \texttt{Z} --- \texttt{random path}; \(\{-1,+1\}^{T-1}\); \texttt{construction coordinate}
+  \par\smallskip\noindent\emph{Definition.} The edge-sign path \(Z_t=X_tX_{t+1}\).
+  \item \texttt{Dmir} --- \texttt{probability law}; \(\Delta(\{-1,+1\}^T)\); \texttt{mirrored-\allowbreak{}edge-\allowbreak{}sign design}
+  \item \texttt{Diid} --- \texttt{probability law}; \(\Delta(\{-1,+1\}^T)\); \texttt{benchmark design}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The independent Rademacher assignment law.}
+  \item \texttt{d} --- \texttt{integer}; \(\mathbb N\); \texttt{derived index}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The maximal relevant lag.}
+  \item \texttt{BK} --- \texttt{scalar}; \((0,\infty)\); \texttt{Golay complexity constant}
+  \item \texttt{Qq} --- \texttt{polynomial}; \(\mathbb R[z]\); \texttt{target filter}
+  \item \texttt{Nq} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{spectral target norm}
+  \item \texttt{Xinf} --- \texttt{random path}; \(\{-1,+1\}^{\mathbb Z}\); \texttt{stationary randomization}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The bi-\allowbreak{}infinite treatment path used for stationary designs.}
+  \item \texttt{Pinf} --- \texttt{probability law}; \(\Delta(\{-1,+1\}^{\mathbb Z})\); \texttt{stationary design decision}
+  \par\smallskip\noindent\emph{Definition.} \texttt{A candidate law for the bi-\allowbreak{}infinite assignment path.}
+  \item \texttt{DesignInf} --- \texttt{set}; \(\mathcal P(\Delta(\{-1,+1\}^{\mathbb Z}))\); \texttt{stationary feasible design class}
+  \item \texttt{L} --- \texttt{integer}; \(\{2^j:j\in\mathbb N\}\); \texttt{Golay block length}
+  \item \texttt{phi} --- \texttt{map}; \(\{0,\ldots,L-1\}\to\mathbb F_2\); \texttt{quadratic Boolean path phase}
+  \item \texttt{W} --- \texttt{random path}; \(\{-1,+1\}^L\); \texttt{construction coordinate}
+  \par\smallskip\noindent\emph{Definition.} \texttt{One random affine Boolean block in the Golay construction.}
+  \item \texttt{kappa} --- \texttt{set functional}; \(\kappa_L(J)\); \texttt{within-\allowbreak{}block even-\allowbreak{}moment coefficient}
+  \item \texttt{Theta} --- \texttt{tensor}; \(\Theta_L(t_1,t_2,t_3,t_4)\); \texttt{stationary fourth-\allowbreak{}moment certificate}
+  \item \texttt{C} --- \texttt{path functional}; \(\mathbb R^d\); \texttt{aperiodic lag-\allowbreak{}sum vector}
+  \item \texttt{ML} --- \texttt{matrix}; \(\mathbb S_+^d\); \texttt{within-\allowbreak{}block lag-\allowbreak{}sum covariance}
+  \item \texttt{Hd} --- \texttt{matrix}; \(\mathbb S_+^d\); \texttt{block-\allowbreak{}boundary covariance}
+  \item \texttt{Dq} --- \texttt{matrix}; \(\mathbb R^{K\times d}\); \texttt{lag-\allowbreak{}sum to coefficient-\allowbreak{}error map}
+  \item \texttt{Dgolay} --- \texttt{probability law}; \(\Delta(\{-1,+1\}^{\mathbb Z})\); \texttt{stationary randomized Golay-\allowbreak{}block law}
+  \item \texttt{Rinf} --- \texttt{functional}; \(\mathfrak D_{\infty}\to\mathbb R_+\); \texttt{stationary-\allowbreak{}window limiting risk}
+  \item \texttt{Vinf} --- \texttt{scalar}; \(\mathbb R_+\); \texttt{stationary minimax value}
+  \item \texttt{Phi} --- \texttt{random vector}; \(\mathbb R^{T(T-1)/2}\); \texttt{degree-\allowbreak{}two monomial lift whose covariance is fourth order}
+  \item \texttt{rhoRS} --- \texttt{scalar}; \([0,1]\); \texttt{comparator parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The control-\allowbreak{}to-\allowbreak{}treatment transition probability in a stationary random-\allowbreak{}switch law.}
+  \item \texttt{gammaRS} --- \texttt{scalar}; \([0,1]\); \texttt{comparator parameter}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The treatment-\allowbreak{}to-\allowbreak{}control transition probability in a stationary random-\allowbreak{}switch law.}
+  \item \texttt{DesignRS} --- \texttt{set}; \(\mathcal P(\Delta(\{-1,+1\}^T))\); \texttt{published comparator design class}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The stationary homogeneous two-\allowbreak{}state random-\allowbreak{}switch law class of Guo and Liang,\allowbreak{} recoded to signs.}
+  \item \texttt{Dpm} --- \texttt{probability law}; \(\Delta(\{-1,+1\}^T)\); \texttt{without-\allowbreak{}loss symmetrized design}
+  \par\smallskip\noindent\emph{Definition.} \texttt{The equal mixture of a finite assignment law and its global-\allowbreak{}sign reflection.}
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:fixed-lti-response]\label{ass:fixed-lti-response}
+For every \(t\in\{1,\ldots,T\}\), \(Y_t(X)=\sum_{\ell=0}^{K-1}g_{\ell}X_{t-\ell}+e_t\).
+\par\smallskip\noindent\emph{Standard} (Finite-order linear time-invariant impulse response, \cite{LiangRecht2025}).
+\end{assumption}
+
+\begin{assumption}[ass:fixed-potential-path]\label{ass:fixed-potential-path}
+The pair \((g,e)\) is fixed before \(X\) is randomized.
+\par\smallskip\noindent\emph{Standard} (Design-based fixed potential outcomes with an oblivious disturbance, \cite{LiangRecht2025}).
+\end{assumption}
+
+\begin{assumption}[ass:zero-prehistory]\label{ass:zero-prehistory}
+\(X_s=0\) for every integer \(s\le 0\) in the response equation.
+\par\smallskip\noindent\emph{Standard} (Zero-input prehistory for linear convolution, \cite{LiangRecht2025}).
+\end{assumption}
+
+\begin{assumption}[ass:joint-energy]\label{ass:joint-energy}
+\(\|g\|_2^2/R_g^2+\|e\|_2^2/(T R_e^2)\le 1\).
+\par\smallskip\noindent\emph{Novel.} A single energy budget is realistic when coefficient magnitude and deterministic drift are alternative sources of misspecification calibrated on one physical response scale; it also permits either source to dominate without imposing a stochastic disturbance law.
+\end{assumption}
+
+\begin{assumption}[ass:pairwise-orthogonality]\label{ass:pairwise-orthogonality}
+\(\mathbb E_D[X_sX_t]=0\) for every \(1\le s<t\le T\).
+\par\smallskip\noindent\emph{Standard} (Pairwise moment balance, weaker than independent Rademacher toggling, \cite{LiangRecht2025}).
+\end{assumption}
+
+\begin{assumption}[ass:stationary-random-switch-law]\label{ass:stationary-random-switch-law}
+The law \(D\) of \(X\) is the stationary homogeneous two-state Markov law with transition matrix \(\begin{psmallmatrix}1-\rho_{\mathrm{RS}}&\rho_{\mathrm{RS}}\\\gamma_{\mathrm{RS}}&1-\gamma_{\mathrm{RS}}\end{psmallmatrix}\) on the ordered states \((-1,1)\) and \(\Pr_D(X_1=1)=\rho_{\mathrm{RS}}/(\rho_{\mathrm{RS}}+\gamma_{\mathrm{RS}})\), with this probability defined as \(1/2\) when \(\rho_{\mathrm{RS}}=\gamma_{\mathrm{RS}}=0\).
+\par\smallskip\noindent\emph{Standard} (Stationary homogeneous random-switch assignment, recoded from \(\{0,1\}\) to \(\{-1,1\}\), \cite{GuoLiang2026}).
+\end{assumption}
+
+\begin{assumption}[ass:stationarity]\label{ass:stationarity}
+The law \(P_{\infty}\) is invariant under every integer shift.
+\par\smallskip\noindent\emph{Standard} (Shift-stationary binary process, \cite{Mazac2024}).
+\end{assumption}
+
+\begin{assumption}[ass:stationary-pairwise-orthogonality]\label{ass:stationary-pairwise-orthogonality}
+\(\mathbb E_{P_{\infty}}[X_0^{\infty}X_h^{\infty}]=0\) for every nonzero integer \(h\).
+\par\smallskip\noindent\emph{Standard} (Balanced Rudin--Shapiro zero off-origin autocorrelation, \cite{Mazac2024}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:response-matrix]\label{def:response-matrix}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lagged treatment matrix and normalization}
+\par\smallskip\noindent\emph{Construction.} \(A(X)_{t,\ell}=X_{t-\ell}\) and \(\Gamma_T=\operatorname{Diag}(T,T-1,\ldots,T-K+1)\) for \(1\le t\le T\) and \(0\le\ell<K\).
+\end{definition}
+
+\begin{definition}[def:causal-moment-estimator]\label{def:causal-moment-estimator}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Target and unbiased moment estimator}
+\par\smallskip\noindent\emph{Construction.} \(\tau=q^{\top}g\) and \(\widehat\tau=q^{\top}\Gamma_T^{-1}A(X)^{\top}Y(X)\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{q}; \texttt{g}; \texttt{Gamma}; \texttt{A}; \texttt{Y}.
+\end{definition}
+
+\begin{definition}[def:nuisance-class]\label{def:nuisance-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Joint coefficient-\allowbreak{}-\allowbreak{}disturbance ellipsoid}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal H_T=\{(g,e)\in\mathbb R^K\times\mathbb R^T:\|g\|_2^2/R_g^2+\|e\|_2^2/(T R_e^2)\le 1\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}joint-\allowbreak{}energy}.
+\end{definition}
+
+\begin{definition}[def:finite-design-class]\label{def:finite-design-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Legal balanced finite assignment laws}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak D_T=\{D\in\Delta(\{-1,+1\}^T):\mathbb E_D[X_t]=0\ \text{for every }1\le t\le T,\ \mathbb E_D[X_sX_t]=0\ \text{for every }1\le s<t\le T\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}pairwise-\allowbreak{}orthogonality}.
+\end{definition}
+
+\begin{definition}[def:iid-law]\label{def:iid-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Independent Rademacher benchmark}
+\par\smallskip\noindent\emph{Construction.} \(D_T^{\mathrm{iid}}\) is the law under which \(X_1,\ldots,X_T\) are mutually independent and each is uniform on \(\{-1,+1\}\).
+\end{definition}
+
+\begin{definition}[def:random-switch-class]\label{def:random-switch-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Guo-\allowbreak{}-\allowbreak{}Liang stationary random-\allowbreak{}switch class}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak D_T^{\mathrm{RS}}=\{D\in\Delta(\{-1,+1\}^T):\text{there exist }\rho_{\mathrm{RS}},\gamma_{\mathrm{RS}}\in[0,1]\text{ for which }D\text{ is the stationary homogeneous two-state Markov law specified by the random-switch condition}\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}stationary-\allowbreak{}random-\allowbreak{}switch-\allowbreak{}law}.
+\end{definition}
+
+\begin{definition}[def:error-components]\label{def:error-components}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Quadratic and linear error coefficients}
+\par\smallskip\noindent\emph{Construction.} \(u_T(X)=A(X)^{\top}A(X)\Gamma_T^{-1}q-q\), \(v_T(X)=A(X)\Gamma_T^{-1}q\), and \((F_{T,q})_{t,s}=q_{t-s}/(T-(t-s))\) when \(0\le t-s<K\), with zero otherwise; hence \(v_T(X)=F_{T,q}X\).
+\end{definition}
+
+\begin{definition}[def:minimax-risk]\label{def:minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Normalized worst-\allowbreak{}case MSE and minimax value}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_T(D)=T\sup_{(g,e)\in\mathcal H_T}\mathbb E_D[(\widehat\tau-\tau)^2]\) and \(V_{T,K}(q;R_g,R_e)=\inf_{D\in\mathfrak D_T}\mathcal R_T(D)\).
+\end{definition}
+
+\begin{definition}[def:lag-one-objects]\label{def:lag-one-objects}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lag-\allowbreak{}one parity and threshold objects}
+\par\smallskip\noindent\emph{Construction.} \(S_T(X)=\sum_{t=1}^{T-1}X_tX_{t+1}\), \(a_T=1\) when \(T\) is even and \(a_T=2\) when \(T\) is odd, and \(r_T=T R_e^2/R_g^2\).
+\end{definition}
+
+\begin{definition}[def:mirrored-edge-law]\label{def:mirrored-edge-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Mirrored-\allowbreak{}edge-\allowbreak{}sign assignment law}
+\par\smallskip\noindent\emph{Construction.} Draw all displayed signs independently and uniformly from \(\{-1,+1\}\). If \(T\) is even, let \(m_T=(T-2)/2\) and \(Z=(A_1,\ldots,A_{m_T},B,-A_{m_T},\ldots,-A_1)\). If \(T\) is odd, let \(m_T=(T-3)/2\) and \(Z=(A_1,\ldots,A_{m_T},B,C,-A_{m_T},\ldots,-A_1)\). Draw \(X_1\) independently and set \(X_{t+1}=X_tZ_t\); \(D_T^{\mathrm{mir}}\) is the resulting law of \(X\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}.
+\end{definition}
+
+\begin{definition}[def:t4-mirrored-audit]\label{def:t4-mirrored-audit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Fully displayed four-\allowbreak{}period mirrored law}
+\par\smallskip\noindent\emph{Construction.} At \(T=4\), write \(a=A_1\), \(b=B\), and \(s=X_1\). The eight equiprobable rows of \(D_4^{\mathrm{mir}}\) are \[\begin{array}{c c c|c|c}a&b&s&(X_1,X_2,X_3,X_4)&S_4\\\hline 1&1&1&(1,1,1,-1)&1\\1&1&-1&(-1,-1,-1,1)&1\\1&-1&1&(1,1,-1,1)&-1\\1&-1&-1&(-1,-1,1,-1)&-1\\-1&1&1&(1,-1,-1,-1)&1\\-1&1&-1&(-1,1,1,1)&1\\-1&-1&1&(1,-1,1,1)&-1\\-1&-1&-1&(-1,1,-1,-1)&-1\end{array}\] with probability \(1/8\) on each row.
+\end{definition}
+
+\begin{definition}[def:spectral-target]\label{def:spectral-target}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Target polynomial and spectral norm}
+\par\smallskip\noindent\emph{Construction.} \(d=K-1\), \(B_K=2d\sum_{h=1}^{d}(h^2+h)\), \(Q_q(z)=\sum_{\ell=0}^{d}q_{\ell}z^{\ell}\), and \(N_q^2=\max_{|z|=1}|Q_q(z)|^2\).
+\end{definition}
+
+\begin{definition}[def:stationary-design-class]\label{def:stationary-design-class}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Legal balanced stationary assignment laws}
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak D_{\infty}=\{P_{\infty}\in\Delta(\{-1,+1\}^{\mathbb Z}):P_{\infty}\ \text{is shift invariant},\ \mathbb E_{P_{\infty}}[X_0^{\infty}]=0,\ \mathbb E_{P_{\infty}}[X_0^{\infty}X_h^{\infty}]=0\ \text{for every }h\ne0\}\).
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}stationarity}; \texttt{ass:\allowbreak{}stationary-\allowbreak{}pairwise-\allowbreak{}orthogonality}.
+\end{definition}
+
+\begin{definition}[def:golay-block-law]\label{def:golay-block-law}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Random-\allowbreak{}phase affine Boolean Golay-\allowbreak{}block law}
+\par\smallskip\noindent\emph{Construction.} Let \(L=2^p\). In each block draw \(\alpha\in\mathbb F_2^p\) and \(\sigma\in\{-1,+1\}\) uniformly and independently, set \(\phi_L(j)=\sum_{r=0}^{p-2}j_rj_{r+1}\pmod 2\) for the binary digits \((j_0,\ldots,j_{p-1})\) of \(j\), and set \(W_j=\sigma(-1)^{\phi_L(j)+\sum_{r=0}^{p-1}\alpha_rj_r}\). Concatenate independent blocks in both directions and shift the origin by an independent uniform phase in \(\{0,\ldots,L-1\}\); the resulting law is \(D_L^{\mathrm G}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{L}.
+\end{definition}
+
+\begin{definition}[def:fourth-tensor-certificate]\label{def:fourth-tensor-certificate}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Coefficient-\allowbreak{}level fourth-\allowbreak{}moment tensor}
+\par\smallskip\noindent\emph{Construction.} For a finite multiset \(J\subseteq\{0,\ldots,L-1\}\), let \(\kappa_L(J)=0\) if \(|J|\) is odd and \(\kappa_L(J)=\mathbf 1\{\bigoplus_{j\in J}j=0\}(-1)^{\sum_{j\in J}\phi_L(j)}\) if \(|J|\) is even. For integers \(t_1,\ldots,t_4\), put \(b_p(t)=\lfloor(t+p)/L\rfloor\), \(j_p(t)=(t+p)\bmod L\), and \(\Theta_L(t_1,t_2,t_3,t_4)=L^{-1}\sum_{p=0}^{L-1}\prod_b\kappa_L(\{j_p(t_r):b_p(t_r)=b\})\).
+\end{definition}
+
+\begin{definition}[def:l8-golay-audit]\label{def:l8-golay-audit}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Primitive eight-\allowbreak{}period Golay tensor audit}
+\par\smallskip\noindent\emph{Construction.} For \(L=8\), \(\phi_8(j)=j_0j_1+j_1j_2\pmod 2\). Averaging the identity \[\prod_{r=1}^{m}W_{j_r}=\sigma^m(-1)^{\sum_r\phi_8(j_r)+\sum_{k=0}^{2}\alpha_k(\bigoplus_r j_r)_k}\] over uniform \(\sigma\) and \(\alpha\) gives zero for odd \(m\), and for even \(m\) gives \(\mathbf 1\{\bigoplus_rj_r=0\}(-1)^{\sum_r\phi_8(j_r)}\). For \(\sigma=1\), the complete affine-mask audit is \[\begin{array}{c|c|c c c}\alpha_0\alpha_1\alpha_2&(W_0,\ldots,W_7)&C_{8,1}&C_{8,2}&C_{8,3}\\\hline000&(+,+,+,-,+,+,-,+)&-1&0&3\\001&(+,+,+,-,-,-,+,-)&1&0&-3\\010&(+,+,-,+,+,+,+,-)&1&0&1\\011&(+,+,-,+,-,-,-,+)&-1&0&-1\\100&(+,-,+,+,+,-,-,-)&1&0&-3\\101&(+,-,+,+,-,+,+,+)&-1&0&3\\110&(+,-,-,-,+,-,+,+)&-1&0&-1\\111&(+,-,-,-,-,+,-,-)&1&0&1\end{array}\] and the rows for \(\sigma=-1\) are their global negatives.
+\end{definition}
+
+\begin{definition}[def:block-covariance-objects]\label{def:block-covariance-objects}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lag-\allowbreak{}sum and boundary covariance objects}
+\par\smallskip\noindent\emph{Construction.} \(C_{T,h}(x)=\sum_{t=1}^{T-h}x_tx_{t+h}\) for \(1\le h\le d\), \(M_L=\mathbb E[C_L(W)C_L(W)^{\top}]\) under one random affine Boolean block \(W\), \(H_d=\operatorname{Diag}(1,\ldots,d)\), and \((D_q)_{\ell,h}=q_{\ell-h}\mathbf 1\{\ell\ge h\}+q_{\ell+h}\mathbf 1\{\ell+h<K\}\).
+\end{definition}
+
+\begin{definition}[def:stationary-minimax-risk]\label{def:stationary-minimax-risk}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Stationary-\allowbreak{}window risk and value}
+\par\smallskip\noindent\emph{Construction.} \(\mathcal R_{\infty,K}(P_{\infty})=\limsup_{T\to\infty}\mathcal R_T(P_{\infty}|_{1:T})\) and \(V_{\infty,K}(q;R_g,R_e)=\inf_{P_{\infty}\in\mathfrak D_{\infty}}\mathcal R_{\infty,K}(P_{\infty})\).
+\end{definition}
+
+\begin{definition}[def:lag-four-characterization-handle]\label{def:lag-four-characterization-handle}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Lag-\allowbreak{}four realizability handle}
+\par\smallskip\noindent\emph{Construction.} Project the genuine binary moment polytope generated by \(\Phi_T(X)\Phi_T(X)^{\top}\) onto the Toeplitz lag coordinates used by \(u_T\), retain every zero-prehistory boundary coordinate, and seek necessity by parity-polynomial separation together with sufficiency by sign-orbit mixture recovery.
+\par\smallskip\noindent\emph{Inputs.} \texttt{T}; \texttt{K}; \texttt{q}.
+\end{definition}
+
+\begin{definition}[def:global-sign-symmetrization]\label{def:global-sign-symmetrization}
+\par\smallskip\noindent\emph{Defined object.} \texttt{Global-\allowbreak{}sign symmetrization of a finite law}
+\par\smallskip\noindent\emph{Construction.} For \(D\in\Delta(\{-1,+1\}^T)\), its global-sign symmetrization is the law \(D^{\pm}\) defined by \(D^{\pm}(B)=\{D(B)+D(-B)\}/2\) for every \(B\subseteq\{-1,+1\}^T\), where \(-B=\{-x:x\in B\}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{D}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:mirrored-law-membership]\label{lem:mirrored-law-membership}
+For every \(T\ge4\), \(D_T^{\mathrm{mir}}\in\mathfrak D_T\), \(\mathbb E_{D_T^{\mathrm{mir}}}[S_T^2]=a_T\), and every nonempty consecutive product of the edge signs \(Z\) has mean zero. Moreover, the pointwise lower certificates are \(S_T^2\ge1\) when \(T\) is even and \(S_T^2\ge2-2(-1)^{(T-1)/2}X_1X_T\) when \(T\) is odd.
+\end{lemma}
+\begin{proof}
+Put \(n=T-1\).  We first verify the defining moment conditions of \(\mathfrak D_T\).  Under \(\texttt{def:mirrored-edge-law}\), \(X_1\) is a fair sign independent of the entire edge vector \(Z\), and iteration of \(X_{j+1}=X_jZ_j\) gives
+\[
+ X_t=X_1\prod_{j=1}^{t-1}Z_j,
+ \qquad 1\le t\le T,
+\]
+where an empty product is one.  Consequently, independence and \(\mathbb E[X_1]=0\) imply
+\[
+ \mathbb E_{D_T^{\mathrm{mir}}}[X_t]
+ =\mathbb E[X_1]\,\mathbb E\!\left[\prod_{j=1}^{t-1}Z_j\right]=0
+ \qquad(1\le t\le T).
+\]
+
+We next prove that every nonempty consecutive edge product is centered.  Fix \(1\le s<t\le T\) and write
+\[
+ P_{s,t}:=\prod_{j=s}^{t-1}Z_j.
+\]
+Suppose first that \(T\) is even, so \(n=2m_T+1\) and
+\[
+ Z=(A_1,\ldots,A_{m_T},B,-A_{m_T},\ldots,-A_1).
+\]
+If the index interval \(\{s,\ldots,t-1\}\) contains the central coordinate, then \(B\) occurs in \(P_{s,t}\) exactly once.  Since \(B\) is fair and independent of all the \(A_i\)'s, conditioning on the \(A_i\)'s yields \(\mathbb E[P_{s,t}]=0\).  If the interval does not contain the central coordinate, contiguity puts it wholly in one outer half.  It is then, up to a deterministic sign, a nonempty product of distinct independent fair variables among the \(A_i\)'s, and again has expectation zero.
+
+Suppose instead that \(T\) is odd, so \(n=2m_T+2\) and
+\[
+ Z=(A_1,\ldots,A_{m_T},B,C,-A_{m_T},\ldots,-A_1).
+\]
+If the interval avoids both central coordinates, it lies wholly in one outer half and the preceding distinct-factor argument applies.  If it contains exactly one central coordinate, the corresponding one of \(B,C\) occurs exactly once and is an independent centered factor.  If it contains both central coordinates, then it contains the factor \(BC\); independence gives \(\mathbb E[BC]=\mathbb E[B]\mathbb E[C]=0\), irrespective of any outer factors.  Thus in both parity cases
+\[
+ \mathbb E_{D_T^{\mathrm{mir}}}[P_{s,t}]=0
+ \qquad(1\le s<t\le T).
+\]
+The recursion and the identity \(X_s^2=1\) now give
+\[
+ X_sX_t
+ =X_s^2\prod_{j=s}^{t-1}Z_j
+ =P_{s,t},
+\]
+so \(\mathbb E_{D_T^{\mathrm{mir}}}[X_sX_t]=0\) for every \(s<t\).  Together with the displayed marginal balance, these are exactly the membership conditions in \(\texttt{def:finite-design-class}\).  Hence
+\[
+ D_T^{\mathrm{mir}}\in\mathfrak D_T.
+\]
+This argument also proves the asserted centering of every nonempty consecutive product of edge signs.
+
+By \(\texttt{def:lag-one-objects}\), \(S_T=\sum_{j=1}^{T-1}Z_j\).  For even \(T\), the paired outer terms cancel pointwise, and therefore
+\[
+ S_T=\sum_{i=1}^{m_T}(A_i-A_i)+B=B,
+ \qquad
+ \mathbb E_{D_T^{\mathrm{mir}}}[S_T^2]=1=a_T.
+\]
+For odd \(T\), the same cancellation leaves
+\[
+ S_T=\sum_{i=1}^{m_T}(A_i-A_i)+B+C=B+C.
+\]
+Since \(B\) and \(C\) are independent fair signs,
+\[
+ \mathbb E_{D_T^{\mathrm{mir}}}[S_T^2]
+ =\mathbb E[B^2]+2\mathbb E[B]\mathbb E[C]+\mathbb E[C^2]
+ =2=a_T.
+\]
+
+It remains to establish the pointwise certificates; these hold for every binary path, not merely under the constructed law.  If \(T\) is even, then \(n=T-1\) is odd.  The sum \(S_T\) of \(n\) signs is therefore an odd integer, so \(|S_T|\ge1\) and
+\[
+ S_T^2\ge1.
+\]
+If \(T\) is odd, then \(n=T-1\) is even.  Let \(k\) be the number of negative coordinates among \(Z_1,\ldots,Z_n\).  The edge definition and telescoping imply
+\[
+ S_T=n-2k,
+ \qquad
+ X_1X_T=\prod_{j=1}^{n}Z_j=(-1)^k.
+\]
+With \(c=(-1)^{n/2}=(-1)^{(T-1)/2}\), we consequently have
+\[
+ cX_1X_T=(-1)^{n/2+k}=(-1)^{n/2-k}=(-1)^{S_T/2}.
+\]
+If \(cX_1X_T=1\), then \(S_T/2\) is even, and the desired inequality has right-hand side zero.  If \(cX_1X_T=-1\), then \(S_T/2\) is odd; hence \(|S_T|\ge2\), while the right-hand side equals four.  In either case,
+\[
+ S_T^2\ge 2-2(-1)^{(T-1)/2}X_1X_T.
+\]
+
+As the requested smallest odd-horizon audit, when \(T=5\) the edge vector is \((A_1,B,C,-A_1)\), so \(S_5=B+C\).  It takes values \(-2,0,2\) with probabilities \(1/4,1/2,1/4\), respectively, and hence \(\mathbb E[S_5^2]=2\); the general certificate specializes to \(S_5^2\ge2-2X_1X_5\).  Thus the construction and both parity certificates also pass the exact \(T=5\) boundary check.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma is the matching primal construction and parity dual certificate, including the class-membership proof that cannot be assumed. \textit{Gap.} Prior parity geometry concerns second-moment slices; no checked paper gives this edge-product law satisfying all path pair moments. \textit{Consumer.} It certifies an implementable minimax N-of-1 assignment for every horizon without fixed treatment counts.
+
+\begin{openendedquestion}[oeq:realisable-lag-four-body]\label{oeq:realisable-lag-four-body}
+For arbitrary finite \(T,K,q\), can the projection of \(\{\mathbb E_D[\Phi_T\Phi_T^{\top}]:D\in\mathfrak D_T\}\) relevant to \(\mathbb E_D[u_Tu_T^{\top}]\) be characterized by a lag-sized necessary-and-sufficient family of parity and positivity inequalities with explicit sign-orbit recovery?
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} This now isolates only the genuinely unresolved lag-sized finite realizability problem. \textit{Gap.} Pseudomoment positivity and lag-one parity do not characterize genuine binary-law fourth moments at arbitrary lag order. \textit{Consumer.} A lag-sized certificate would avoid enumerating \(2^{T-1}\) sign orbits in exact multi-lag design optimization.
+
+\begin{lemma}[lem:balanced-exact-risk-reduction]\label{lem:balanced-exact-risk-reduction}
+For every \(D\in\mathfrak D_T\), the estimator is design-unbiased and
+\[
+\widehat\tau-\tau=u_T(X)^{\top}g+v_T(X)^{\top}e,
+\qquad
+\mathbb E_D[u_T]=0,
+\qquad
+\mathbb E_D[v_T]=0,
+\qquad
+\mathbb E_D[v_Tv_T^{\top}]=F_{T,q}F_{T,q}^{\top}.
+\]
+Writing \(C_D=\mathbb E_D[u_Tv_T^{\top}]\), the unsymmetrized normalized risk is
+\[
+\mathcal R_T(D)
+=T\lambda_{\max}\!\begin{pmatrix}
+R_g^2\mathbb E_D[u_Tu_T^{\top}]&R_g\sqrt T R_e C_D\\
+R_g\sqrt T R_e C_D^{\top}&T R_e^2F_{T,q}F_{T,q}^{\top}
+\end{pmatrix}.
+\]
+Moreover, \(D^{\pm}\in\mathfrak D_T\); symmetrization preserves \(\mathbb E[u_Tu_T^{\top}]\) and \(\mathbb E[v_Tv_T^{\top}]\), makes \(\mathbb E[u_Tv_T^{\top}]=0\), and satisfies
+\[
+\mathcal R_T(D^{\pm})
+=\max\!\left\{T R_g^2\lambda_{\max}(\mathbb E_D[u_Tu_T^{\top}]),\ T^2R_e^2\lVert F_{T,q}\rVert_{\mathrm{op}}^2\right\}
+\le \mathcal R_T(D).
+\]
+Thus global sign symmetry is without loss for this minimax problem, although it is not imposed on \(\mathfrak D_T\).
+\end{lemma}
+\begin{proof}
+By the fixed linear response condition, zero prehistory, and the definition of the lagged matrix,
+\[
+Y(X)=A(X)g+e.
+\]
+For \(0\le \ell<K\), the diagonal entry \(T-\ell\) of \(\Gamma_T\) is positive because \(K\le\lfloor T/2\rfloor\).  Hence every division below is valid.  The estimator and error-component definitions give
+\[
+\begin{aligned}
+\widehat\tau-\tau
+&=q^{\top}\Gamma_T^{-1}A(X)^{\top}\{A(X)g+e\}-q^{\top}g\\
+&=\{A(X)^{\top}A(X)\Gamma_T^{-1}q-q\}^{\top}g
+  +\{A(X)\Gamma_T^{-1}q\}^{\top}e\\
+&=u_T(X)^{\top}g+v_T(X)^{\top}e.
+\end{aligned}
+\tag{1}
+\]
+For \(0\le \ell,j<K\), zero prehistory and binary assignment imply
+\[
+(A^{\top}A)_{\ell j}
+=\sum_{t=\max\{\ell,j\}+1}^{T}X_{t-\ell}X_{t-j}.
+\]
+If \(\ell=j\), this equals \(T-\ell\).  If \(\ell\ne j\), every displayed product has two distinct positive-time indices and therefore has expectation zero by the pairwise condition in the definition of \(\mathfrak D_T\).  Consequently
+\[
+\mathbb E_D[A^{\top}A]=\Gamma_T,
+\qquad
+\mathbb E_D[u_T]=0.
+\tag{2}
+\]
+The same design definition gives \(\mathbb E_D[X]=0\).  Since \(v_T=F_{T,q}X\),
+\[
+\mathbb E_D[v_T]=0.
+\tag{3}
+\]
+It also gives \(\mathbb E_D[XX^{\top}]=I_T\), because the off-diagonal entries vanish and \(X_t^2=1\).  Thus
+\[
+\mathbb E_D[v_Tv_T^{\top}]
+=F_{T,q}\mathbb E_D[XX^{\top}]F_{T,q}^{\top}
+=F_{T,q}F_{T,q}^{\top}.
+\tag{4}
+\]
+Equations (1)--(3), together with the fixed-potential-path condition, show that the expectation is solely over assignment and that \(\mathbb E_D[\widehat\tau]=\tau\).
+
+Put
+\[
+U_D=\mathbb E_D[u_Tu_T^{\top}],
+\qquad
+C_D=\mathbb E_D[u_Tv_T^{\top}],
+\qquad
+V=F_{T,q}F_{T,q}^{\top}.
+\]
+Expanding the square in (1) yields
+\[
+\mathbb E_D[(\widehat\tau-\tau)^2]
+=g^{\top}U_Dg+2g^{\top}C_De+e^{\top}Ve.
+\tag{5}
+\]
+Under the joint ellipsoid, write \(g=R_ga\) and \(e=\sqrt T R_eb\).  Positivity of \(R_g\) and \(R_e\) makes this change of variables invertible, and the constraint becomes \(\lVert a\rVert_2^2+\lVert b\rVert_2^2\le1\).  Therefore (5) and the variational definition of the largest eigenvalue of a real symmetric matrix give
+\[
+\sup_{(g,e)\in\mathcal H_T}\mathbb E_D[(\widehat\tau-\tau)^2]
+=\lambda_{\max}(\mathsf B_D),
+\]
+where
+\[
+\mathsf B_D=
+\begin{pmatrix}
+R_g^2U_D&R_g\sqrt T R_e C_D\\
+R_g\sqrt T R_e C_D^{\top}&T R_e^2V
+\end{pmatrix}.
+\tag{6}
+\]
+Multiplication by \(T\), as required by the definition of \(\mathcal R_T\), proves the unsymmetrized risk formula.
+
+It remains to justify the without-loss reduction.  If \(X\sim D\), then \(-X\) has the reflected law, and the symmetrized law is their equal mixture.  The identities
+\[
+u_T(-X)=u_T(X),
+\qquad
+v_T(-X)=-v_T(X)
+\tag{7}
+\]
+follow directly from the error-component definition.  The balanced first moments and pairwise second moments defining \(\mathfrak D_T\) are preserved by reflection and mixing, so \(D^{\pm}\in\mathfrak D_T\).  Equations (7) give
+\[
+\mathbb E_{D^{\pm}}[u_Tu_T^{\top}]=U_D,
+\quad
+\mathbb E_{D^{\pm}}[v_Tv_T^{\top}]=V,
+\quad
+\mathbb E_{D^{\pm}}[u_Tv_T^{\top}]=0.
+\tag{8}
+\]
+Thus \(\mathsf B_{D^{\pm}}\) is the block-diagonal part of \(\mathsf B_D\).  For any unit vector \(a\), the Rayleigh quotient of \(\mathsf B_D\) at \((a,0)\) is that of its signal principal block; similarly, vectors \((0,b)\) recover its noise principal block.  Hence
+\[
+\lambda_{\max}(\mathsf B_D)
+\ge
+\max\{R_g^2\lambda_{\max}(U_D),\ T R_e^2\lambda_{\max}(V)\}
+=\lambda_{\max}(\mathsf B_{D^{\pm}}).
+\tag{9}
+\]
+Because \(\lambda_{\max}(V)=\lVert F_{T,q}\rVert_{\mathrm{op}}^2\), multiplying (9) by \(T\) proves every remaining assertion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The full block formula exposes the fourth-order signal block and the unsymmetrized signal--disturbance cross block, while proving that sign averaging removes only the latter and weakly lowers risk. \textit{Gap.} Liang and Recht calculate the corresponding quantities under iid Rademacher assignment; they do not optimize over correlated balanced pairwise-orthogonal laws or prove the global-sign symmetrization comparison under the joint ellipsoid. \textit{Consumer.} It converts the causal design problem into a block spectral optimization, supplies the disturbance-floor certificate, and makes global sign symmetry without loss in both main theorems.
+
+\begin{theorem}[thm:balanced-lag-one-minimax]\label{thm:balanced-lag-one-minimax}
+If \(K=2\), \(q=(1,0)^{\top}\), and \(T\ge4\), then over the balanced pairwise-orthogonal class
+\[
+V_{T,2}(q;R_g,R_e)=\max\{R_e^2,a_TR_g^2/T\}.
+\]
+A law \(D\in\mathfrak D_T\) is minimax if and only if
+\[
+\mathbb E_D[S_T(X)X]=0
+\qquad\text{and}\qquad
+\mathbb E_D[S_T^2]\le\max\{a_T,r_T\}.
+\]
+When \(r_T\le a_T\), minimaxity is equivalently \(\mathbb E_D[S_TX]=0\) and \(\mathbb E_D[S_T^2]=a_T\).  Among legal laws, the signal carryover term \(\mathbb E_D[S_T^2]\) is minimized exactly by laws supported on \(S_T\in\{-1,1\}\) when \(T\) is even and on \(S_T\in\{-2,0,2\}\) when \(T\) is odd.  The mirrored-edge law is minimax for all positive \(R_g,R_e\).
+\end{theorem}
+\begin{proof}
+Assume \(K=2\) and \(q=(1,0)^{\top}\).  The first column of \(A(X)\) is \(X\), the off-diagonal entry of \(A(X)^{\top}A(X)\) is \(S_T(X)\), and \(\Gamma_T^{-1}q=(1/T,0)^{\top}\).  Therefore
+\[
+u_T(X)=\begin{pmatrix}0\\S_T(X)/T\end{pmatrix},
+\qquad
+v_T(X)=X/T,
+\qquad
+F_{T,q}=I_T/T.
+\tag{10}
+\]
+Define the well-typed vector \(c_D=\mathbb E_D[S_T(X)X]\in\mathbb R^T\), and set
+\[
+b_D=\frac{R_g^2}{T}\mathbb E_D[S_T^2],
+\qquad
+h_D=\frac{R_gR_e}{\sqrt T}c_D.
+\tag{11}
+\]
+Substitution of (10) into the unsymmetrized block formula of the exact-risk lemma shows that the only nonzero signal coordinate and the disturbance coordinates form the matrix
+\[
+\mathsf M_D=
+\begin{pmatrix}
+b_D&h_D^{\top}\\
+h_D&R_e^2I_T
+\end{pmatrix};
+\qquad
+\mathcal R_T(D)=\lambda_{\max}(\mathsf M_D).
+\tag{12}
+\]
+The unused first signal coordinate contributes only an additional zero eigenvalue.
+
+If \(h_D=0\), (12) gives
+\[
+\mathcal R_T(D)=\max\{b_D,R_e^2\}.
+\tag{13}
+\]
+If \(h_D\ne0\), the subspace spanned by the signal coordinate and \(h_D/\lVert h_D\rVert_2\) is invariant.  On it the matrix is
+\(
+\begin{psmallmatrix}b_D&\lVert h_D\rVert_2\\\lVert h_D\rVert_2&R_e^2\end{psmallmatrix}
+\), whose larger eigenvalue is
+\[
+\lambda_+(D)=
+\frac{b_D+R_e^2+\sqrt{(b_D-R_e^2)^2+4\lVert h_D\rVert_2^2}}{2}
+>\max\{b_D,R_e^2\}.
+\tag{14}
+\]
+Thus a nonzero signal--noise cross vector strictly increases risk above both diagonal maxima.
+
+We next establish the sharp parity lower bound.  When \(T\) is even, \(S_T\) is a sum of the odd number \(T-1\) of signs, so it is an odd integer and \(S_T^2\ge1=a_T\) pointwise.  When \(T\) is odd, the pointwise certificate in the mirrored-law lemma gives
+\[
+S_T^2\ge2-2(-1)^{(T-1)/2}X_1X_T.
+\]
+Pairwise orthogonality applies to the distinct endpoints because \(T\ge4\), and hence \(\mathbb E_D[X_1X_T]=0\).  Taking expectations gives \(\mathbb E_D[S_T^2]\ge2=a_T\).  In both cases,
+\[
+b_D\ge b_\star:=a_TR_g^2/T.
+\tag{15}
+\]
+
+The mirrored-edge construction belongs to \(\mathfrak D_T\) and has \(\mathbb E[S_T^2]=a_T\) by the mirrored-law lemma.  It also has \(c_D=0\): conditional on its edge signs, \(S_T\) is fixed while every coordinate of \(X\) is the independent fair initial sign \(X_1\) times a fixed consecutive edge product.  Conditional expectation over \(X_1\) therefore gives \(\mathbb E[S_TX\mid Z]=0\).  Equations (13) and (15) now supply matching bounds,
+\[
+V_{T,2}(q;R_g,R_e)=\max\{R_e^2,b_\star\}.
+\tag{16}
+\]
+
+For necessity of the optimizer characterization, suppose first that \(c_D\ne0\).  Positivity of \(R_g,R_e\) makes \(h_D\ne0\), so (14) and (15) imply
+\[
+\mathcal R_T(D)>\max\{R_e^2,b_D\}
+\ge\max\{R_e^2,b_\star\}=V_{T,2}.
+\]
+Thus every minimax law has \(c_D=0\).  For such a law, (13), (15), (16), and \(r_T=TR_e^2/R_g^2\) show that minimaxity is equivalent to
+\[
+b_D\le\max\{R_e^2,b_\star\}
+\quad\Longleftrightarrow\quad
+\mathbb E_D[S_T^2]\le\max\{r_T,a_T\}.
+\tag{17}
+\]
+This also proves sufficiency.  If \(r_T\le a_T\), the lower bound forces equality in (17).
+
+Finally, in the even case, the nonnegative integer \(S_T^2-1\) has expectation zero exactly when \(S_T\in\{-1,1\}\) almost surely.  In the odd case write \(n=T-1\), let \(j\) be the number of negative edge signs, and put \(k=n/2-j\).  Then
+\[
+S_T=2k,
+\qquad
+(-1)^{n/2}X_1X_T=(-1)^k.
+\]
+The pointwise slack in the odd certificate is therefore
+\[
+4k^2-\{2-2(-1)^k\},
+\]
+which vanishes exactly when \(k\in\{-1,0,1\}\), equivalently \(S_T\in\{-2,0,2\}\).  Since the expected right side of the certificate is \(2\) for every legal law, \(\mathbb E_D[S_T^2]=2\) holds exactly when that slack vanishes almost surely.  This proves both support characterizations.  The mirrored law has the cross condition already verified and the minimum second moment, so (17) makes it minimax for every positive pair of radii.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the exact finite-horizon design value and complete optimizer face over the maximal balanced pairwise-orthogonal class; the zero-cross-vector condition is necessary because any nonzero cross vector strictly raises the top eigenvalue. \textit{Gap.} Independent assignment and Gaussian fourth-moment relaxations do not characterize the realizable temporal fourth moments, the parity discontinuity, or the cross-block condition governing the full optimizer face. \textit{Consumer.} A binary N-of-1 trial with one carryover lag can select a certified law and check both the parity moment and the signal--disturbance orthogonality condition.
+
+\begin{proposition}[prop:balanced-iid-optimality-threshold]\label{prop:balanced-iid-optimality-threshold}
+If \(K=2\), \(q=(1,0)^{\top}\), and \(T\ge4\), then \(D_T^{\mathrm{iid}}\in\mathfrak D_T\), \(\mathbb E_{D_T^{\mathrm{iid}}}[S_TX]=0\), \(\mathbb E_{D_T^{\mathrm{iid}}}[S_T^2]=T-1\), and
+\[
+\mathcal R_T(D_T^{\mathrm{iid}})=\max\{R_e^2,(T-1)R_g^2/T\}.
+\]
+Thus independent Rademacher assignment is minimax over the enlarged balanced pairwise-orthogonal class if and only if \(R_e^2/R_g^2\ge(T-1)/T\).  Below this threshold its excess normalized mean squared error is
+\[
+\frac{(T-1)R_g^2}{T}-\max\{R_e^2,a_TR_g^2/T\}>0.
+\]
+\end{proposition}
+\begin{proof}
+Under the independent Rademacher law, every coordinate has mean zero and every product of two distinct coordinates has mean zero.  Hence \(D_T^{\mathrm{iid}}\in\mathfrak D_T\) by the enlarged class definition.  The map
+\[
+(X_1,\ldots,X_T)\longmapsto(X_1,Z_1,\ldots,Z_{T-1}),
+\qquad Z_t=X_tX_{t+1},
+\]
+is a bijection of the binary cube, with inverse \(X_{t+1}=X_1\prod_{s=1}^{t}Z_s\).  Uniformity on the cube therefore makes \(Z_1,\ldots,Z_{T-1}\) independent fair signs.  Consequently
+\[
+\mathbb E[S_T^2]
+=\sum_{t=1}^{T-1}\mathbb E[Z_t^2]
++2\sum_{1\le s<t\le T-1}\mathbb E[Z_sZ_t]
+=T-1.
+\tag{18}
+\]
+Global sign reversal preserves this iid law, leaves \(S_T\) unchanged, and changes \(X\) to \(-X\); hence
+\[
+\mathbb E[S_TX]=0.
+\tag{19}
+\]
+The optimizer formula in the balanced lag-one theorem, or directly its equation (13), now gives
+\[
+\mathcal R_T(D_T^{\mathrm{iid}})
+=\max\{R_e^2,(T-1)R_g^2/T\}.
+\tag{20}
+\]
+Because \(T\ge4\) entails \(T-1>a_T\), comparison of (20) with the minimax value proves equality exactly when
+\[
+R_e^2\ge (T-1)R_g^2/T.
+\]
+Below this threshold the signal term is the iid risk, and subtracting the minimax value gives the stated strictly positive excess.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The corollary gives the exact signal-to-disturbance frontier at which searching beyond iid ceases to improve this estimator's fixed-path minimax MSE over the enlarged class. \textit{Gap.} Asymptotic iid conclusions for structured switching families and ordinary-least-squares information do not imply this finite threshold for the displayed moment estimator. \textit{Consumer.} A designer can decide from \(R_e^2/R_g^2\) whether iid is certified or the mirrored law yields a strict finite-horizon gain.
+
+\begin{theorem}[thm:balanced-random-switch-class-separation]\label{thm:balanced-random-switch-class-separation}
+For every \(T\ge4\), the stationary homogeneous random-switch class and the balanced pairwise-orthogonal class satisfy
+\[
+\mathfrak D_T^{\mathrm{RS}}\cap\mathfrak D_T=\{D_T^{\mathrm{iid}}\}\subsetneq\mathfrak D_T,
+\qquad
+D_T^{\mathrm{mir}}\in\mathfrak D_T\setminus\mathfrak D_T^{\mathrm{RS}}.
+\]
+In particular, balance forces \(\rho_{\mathrm{RS}}=\gamma_{\mathrm{RS}}\), and lag-one orthogonality then forces \(\rho_{\mathrm{RS}}=\gamma_{\mathrm{RS}}=1/2\).  If \(K=2\), \(q=(1,0)^{\top}\), and \(R_e^2/R_g^2<(T-1)/T\), no random-switch law that is also legal attains the parity optimum, whereas \(D_T^{\mathrm{mir}}\) does.  The full random-switch class is generally outside \(\mathfrak D_T\); this intersection result compares only the fixed-path worst-case mean squared error of the displayed moment estimator and does not compare numerical values with the Guo--Liang asymptotic E-optimal ordinary-least-squares criterion.
+\end{theorem}
+\begin{proof}
+Let \(D\in\mathfrak D_T^{\mathrm{RS}}\cap\mathfrak D_T\).  Suppose first that \(\rho_{\mathrm{RS}}+\gamma_{\mathrm{RS}}>0\).  Stationarity of the random-switch law gives, for every \(t\),
+\[
+\Pr_D(X_t=1)=\frac{\rho_{\mathrm{RS}}}{\rho_{\mathrm{RS}}+\gamma_{\mathrm{RS}}}.
+\]
+Balance in the enlarged legal class says \(\mathbb E_D[X_t]=0\), equivalently \(\Pr_D(X_t=1)=1/2\).  Since the denominator is positive, cross multiplication is valid and yields
+\[
+\rho_{\mathrm{RS}}=\gamma_{\mathrm{RS}}=:p.
+\tag{21}
+\]
+Conditional on either current state, the chain switches with probability \(p\).  Thus
+\[
+\mathbb E_D[X_tX_{t+1}]
+=\Pr_D(X_{t+1}=X_t)-\Pr_D(X_{t+1}\ne X_t)
+=1-2p.
+\tag{22}
+\]
+Lag-one orthogonality in \(\mathfrak D_T\) makes (22) zero, so \(p=1/2\).  Both transition-matrix rows are then uniform, and the stationary path law is \(D_T^{\mathrm{iid}}\).
+
+If \(\rho_{\mathrm{RS}}=\gamma_{\mathrm{RS}}=0\), the specified initial distribution is balanced, but the chain is constant, so \(\mathbb E_D[X_tX_{t+1}]=1\), contradicting pairwise orthogonality.  Conversely, the independent Rademacher law is the stationary random-switch law with both transition probabilities \(1/2\), and it is balanced and pairwise orthogonal.  This proves
+\[
+\mathfrak D_T^{\mathrm{RS}}\cap\mathfrak D_T=\{D_T^{\mathrm{iid}}\}.
+\tag{23}
+\]
+
+The mirrored-law lemma gives \(D_T^{\mathrm{mir}}\in\mathfrak D_T\) and \(\mathbb E_{D_T^{\mathrm{mir}}}[S_T^2]=a_T\), whereas the iid proposition gives \(\mathbb E_{D_T^{\mathrm{iid}}}[S_T^2]=T-1\).  Since \(a_T<T-1\) for \(T\ge4\), these laws differ.  Equation (23) therefore makes the inclusion strict and proves that the mirrored law is outside the random-switch class.
+
+Finally, if \(R_e^2/R_g^2<(T-1)/T\), the iid-threshold proposition says that the sole law in the intersection (23) is not minimax.  The balanced lag-one theorem says that the mirrored law is minimax.  All risk comparisons used here are for \(\mathcal R_T\), so none identifies that criterion with the distinct asymptotic ordinary-least-squares information criterion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies the exact legal intersection of the published stationary homogeneous random-switch class and the maximal balanced pairwise-orthogonal class. \textit{Gap.} The full random-switch class generally violates balance or zero lag correlation; only iid survives both conditions, while the parity optimizer uses dependence outside that family. \textit{Consumer.} It tells a designer precisely which random-switch comparisons transfer and when leaving that family is necessary to realize the parity gain.
+
+\begin{lemma}[lem:golay-tensor-certificate-quantitative]\label{lem:golay-tensor-certificate-quantitative}
+Under \(D_L^{\mathrm G}\), for all integer indices,
+\[
+\mathbb E[X_s^{\infty}]=0,\qquad
+\mathbb E[X_s^{\infty}X_t^{\infty}]=\mathbf 1\{s=t\},\qquad
+\mathbb E\!\left[\prod_{r=1}^4X_{t_r}^{\infty}\right]
+=\Theta_L(t_1,t_2,t_3,t_4).
+\]
+If \(1\le d\le L/2\), every affine Boolean block \(W\) satisfies \(|C_{L,h}(W)|\le h\) for \(1\le h\le d\), and therefore
+\[
+\operatorname{tr}(M_L+H_d)\le \sum_{h=1}^d(h^2+h).
+\]
+For an aligned window consisting of \(B\) complete blocks, its internal lag sums have covariance \(BM_L\), its \(B-1\) complete boundary lag sums have covariance \((B-1)H_d\), and every internal--boundary and distinct-boundary cross-covariance is zero.  Moreover, there is a finite constant \(c_{L,d}\), depending only on \(L\) and \(d\), such that for every \(T\ge 2d+2\),
+\[
+\left\|\mathbb E_{D_L^{\mathrm G}}\!\left[C_T(X^{\infty})C_T(X^{\infty})^{\top}\right]
+-\frac{T}{L}(M_L+H_d)\right\|_{\mathrm{op}}\le c_{L,d}.
+\]
+\end{lemma}
+\begin{proof}
+First consider one block.  For a finite multiset \(J=(j_1,\ldots,j_m)\), multiplication of the coordinates in \(\textnormal{def:golay-block-law}\) gives
+\[
+\prod_{r=1}^mW_{j_r}
+=\sigma^m(-1)^{\sum_{r=1}^m\phi_L(j_r)}
+ (-1)^{\alpha\cdot(\bigoplus_{r=1}^m j_r)}. \tag{1}
+\]
+The fair sign \(\sigma\) makes (1) have expectation zero when \(m\) is odd.  When \(m\) is even, the elementary character identity
+\[
+2^{-p}\sum_{\alpha\in\mathbb F_2^p}(-1)^{\alpha\cdot h}=\mathbf 1\{h=0\} \tag{2}
+\]
+follows by pairing \(\alpha\) with \(\alpha+e_r\) whenever the \(r\)-th coordinate of \(h\) is one.  Equations (1)--(2) give exactly \(\kappa_L(J)\) from \(\textnormal{def:fourth-tensor-certificate}\).
+
+Condition on the uniform block phase.  The block parameters are independent, so a product of path coordinates factors over the blocks containing its indices; the factor belonging to each block is the just-computed \(\kappa_L\).  Averaging over the \(L\) phases proves
+\[
+\mathbb E\!\left[\prod_{r=1}^4X_{t_r}^{\infty}\right]
+=\frac1L\sum_{a=0}^{L-1}\prod_b
+ \kappa_L\!\left(\{j_a(t_r):b_a(t_r)=b\}\right)
+=\Theta_L(t_1,t_2,t_3,t_4). \tag{3}
+\]
+The same calculation with one coordinate gives mean zero.  With two distinct coordinates, either they lie in different blocks and independence plus centering applies, or they lie in the same block and their distinct binary labels have nonzero xor in (2).  Since every coordinate squares to one, this proves the asserted one- and two-point identities.
+
+We next derive the aperiodic autocorrelation bound.  Suppress the irrelevant global sign.  For a length \(2^r\) affine word \(P_r\), put \(Q_r(j)=(-1)^{j_{r-1}}P_r(j)\).  Splitting on the highest binary digit and using the particular quadratic phase in \(\textnormal{def:golay-block-law}\) gives, for a sign \(\varepsilon\) determined by the highest affine coefficient,
+\[
+P_r=(P_{r-1},\varepsilon Q_{r-1}),\qquad
+Q_r=(P_{r-1},-\varepsilon Q_{r-1}). \tag{4}
+\]
+At length two the positive-lag autocorrelations of the two words cancel.  Suppose inductively that \(C_{P_{r-1},h}+C_{Q_{r-1},h}=0\) at every positive lag.  For \(h<2^{r-1}\), the sum of the autocorrelations of the two words in (4) is twice the sum of the two within-half autocorrelations, because their crossing contributions cancel.  For \(h\ge 2^{r-1}\), only crossing contributions remain and they cancel.  Hence
+\[
+C_{P_r,h}+C_{Q_r,h}=0\qquad(1\le h<2^r) \tag{5}
+\]
+by induction.  In the single word \(P_p=(P_{p-1},\varepsilon Q_{p-1})\), a shift \(h<L/2\) has within-half contribution zero by (5) and exactly \(h\) crossing products.  Thus \(|C_{L,h}(W)|\le h\).  At \(h=L/2\) the autocorrelation consists of exactly \(h\) crossing signs, so the same bound holds.  Since \(M_L=\mathbb E[C_L(W)C_L(W)^{\top}]\) and \(H_d=\operatorname{Diag}(1,\ldots,d)\),
+\[
+\operatorname{tr}(M_L+H_d)
+=\sum_{h=1}^d\{\mathbb E[C_{L,h}(W)^2]+h\}
+\le \sum_{h=1}^d(h^2+h). \tag{6}
+\]
+
+It remains to prove the uniform finite-window covariance bound.  First align a window with \(B\) complete blocks.  Let
+\[
+I_b=C_L(W^{(b)}),\qquad
+J_{b,h}=\sum_{i=0}^{h-1}W^{(b)}_{L-h+i}W^{(b+1)}_i
+\quad(1\le h\le d). \tag{7}
+\]
+The two-point identity gives \(\mathbb E[I_b]=\mathbb E[J_b]=0\).  Independence of adjacent blocks and the same identity give, for \(1\le h,k\le d\),
+\[
+\begin{aligned}
+\mathbb E[J_{b,h}J_{b,k}]
+&=\sum_{i=0}^{h-1}\sum_{j=0}^{k-1}
+ \mathbb E[W^{(b)}_{L-h+i}W^{(b)}_{L-k+j}]
+ \mathbb E[W^{(b+1)}_iW^{(b+1)}_j]\\
+&=h\mathbf 1\{h=k\}. \tag{8}
+\end{aligned}
+\]
+Thus \(\mathbb E[J_bJ_b^{\top}]=H_d\).  Distinct internal vectors are independent and centered.  An internal--boundary product has a single centered coordinate from the other block, and a product of two distinct boundary vectors has a single centered coordinate in an outer block when the boundaries are adjacent and is independent when they are not.  All these cross-covariances are therefore zero.  Consequently the aligned identity is exact:
+\[
+\mathbb E[C_{BL}(X^{\infty})C_{BL}(X^{\infty})^{\top}]
+=BM_L+(B-1)H_d. \tag{9}
+\]
+
+For a general window, condition on its phase relative to the block partition.  The window contains \(B_T\) complete blocks, with \(|B_T-T/L|\le2\).  Separate the full internal vectors and the full boundaries between consecutive complete blocks from a remainder \(R_T\).  Because \(h\le d<L\), every summand in \(R_T\) uses one of the at most two partial endpoint blocks or one of their adjacent blocks.  The number of such products, and hence \(\|R_T\|_2\), is bounded by a deterministic constant depending only on \(L,d\).  A full internal or boundary vector whose block support is disjoint from those endpoint blocks is independent of \(R_T\) and centered.  Therefore only a bounded number of adjacent bulk vectors can have nonzero covariance with \(R_T\); each such covariance is bounded because both vectors are finite sums of signs.  It follows, uniformly in \(T\) and in the conditioned phase, that
+\[
+\mathbb E[C_TC_T^{\top}]
+=B_TM_L+(B_T-1)H_d+E_T,
+\qquad \|E_T\|_{\mathrm{op}}\le c'_{L,d}. \tag{10}
+\]
+Since \(|B_T-T/L|\le2\) and \(M_L,H_d\) are fixed finite matrices, subtracting \((T/L)(M_L+H_d)\) in (10), enlarging the constant, and averaging over the phase proves the required bound.  Notice that block locality, rather than a Cauchy--Schwarz bound against the entire bulk sum, is what keeps the error bounded.
+
+For the requested finite audit, direct substitution of all affine masks at \(L=8\) and \(L=16\) gives
+\[
+(C_{L,1},C_{L,2},C_{L,3},C_{L,4})
+\in\{(-1,0,-1,0),(-1,0,3,0),(1,0,-3,0),(1,0,1,0)\}, \tag{11}
+\]
+each with multiplicity two for \(L=8\) and four for \(L=16\).  Hence at both lengths
+\[
+M_L\big|_{d=3}=\begin{pmatrix}1&0&-1\\0&0&0\\-1&0&5\end{pmatrix},
+\qquad
+(M_L+H_3)=\begin{pmatrix}2&0&-1\\0&2&0\\-1&0&8\end{pmatrix}, \tag{12}
+\]
+and for \(d=2\), \(M_L=\operatorname{Diag}(1,0)\) and \(M_L+H_2=2I_2\).  This verifies the advertised \(K=3,4\) boundary normalization independently of the general proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the coefficient-level fourth-moment, endpoint, and uniform covariance certificate needed to transfer a classical code into a one-path causal randomization law. \textit{Gap.} Classical complementary autocorrelation identities do not supply this independent-block random-phase tensor or its bounded finite-window covariance remainder. \textit{Consumer.} The certificate yields the \(T^{-1}\) signal-matrix approximation for the actual zero-prehistory estimator.
+
+\begin{lemma}[lem:zero-prehistory-quantitative]\label{lem:zero-prehistory-quantitative}
+Fix \(K\), \(q\), and a power of two \(L\ge2d\).  Under zero prehistory,
+\[
+u_T(X)=T^{-1}D_qC_T(X)+\rho_T(X),
+\qquad \sup_X\|\rho_T(X)\|_2=O_{K,q}(T^{-1}).
+\]
+Under \(D_L^{\mathrm G}\), the sharper second-moment bounds are
+\[
+\left\|T\mathbb E[u_Tu_T^{\top}]
+-\frac1L D_q(M_L+H_d)D_q^{\top}\right\|_{\mathrm{op}}
+=O_{K,q,L}(T^{-1})
+\]
+and
+\[
+\left|T^2\|F_{T,q}\|_{\mathrm{op}}^2-N_q^2\right|
+=O_{K,q}(T^{-1}).
+\]
+\end{lemma}
+\begin{proof}
+For \(0\le\ell,j<K\), the zero-prehistory convention gives
+\[
+(A^{\top}A)_{\ell j}
+=\begin{cases}
+T-\ell,&j=\ell,\\
+C_{T,|\ell-j|}(X)-E_{\ell j,T}(X),&j\ne\ell,
+\end{cases} \tag{13}
+\]
+where \(E_{\ell j,T}\) is the terminal sum omitted by the shorter lagged column and consists of exactly \(\min(\ell,j)\) products of signs.  In particular, \(|E_{\ell j,T}|\le\min(\ell,j)\).  The diagonal term in \(A^{\top}A\Gamma_T^{-1}q-q\) cancels exactly.  For each \(\ell\), adding and subtracting the denominator \(T\) in every off-diagonal term of (13) yields
+\[
+u_{T,\ell}=\frac1T\sum_{h=1}^d
+\left(q_{\ell-h}\mathbf 1\{\ell\ge h\}
++q_{\ell+h}\mathbf 1\{\ell+h<K\}\right)C_{T,h}+\rho_{T,\ell}, \tag{14}
+\]
+where
+\[
+\rho_{T,\ell}
+=\sum_{\substack{0\le j<K\\j\ne\ell}}q_j
+\left\{\frac{j}{T(T-j)}C_{T,|\ell-j|}
+-\frac{E_{\ell j,T}}{T-j}\right\}. \tag{15}
+\]
+Because \(|C_{T,h}|\le T-h\), \(K\le T/2\), and the number of terms in (15) is fixed, \(\sup_X\|\rho_T(X)\|_2=O_{K,q}(T^{-1})\).  The coefficient in parentheses in (14) is precisely the corresponding entry of \(D_q\), proving the asserted decomposition.
+
+We now retain covariance information that the deterministic envelope alone would lose.  Put \(G_T=\mathbb E[C_T(X^{\infty})C_T(X^{\infty})^{\top}]\).  The quantitative tensor lemma gives
+\[
+G_T=\frac TL(M_L+H_d)+O_{L,d}^{\mathrm{op}}(1). \tag{16}
+\]
+For any fixed terminal product \(E_{\ell j,T}\), block independence and centering imply
+\[
+\max_{1\le h\le d}\left|\mathbb E[C_{T,h}E_{\ell j,T}]\right|=O_{K,L}(1). \tag{17}
+\]
+Indeed, after conditioning on phase, the terminal product uses at most two endpoint blocks.  A lag product from \(C_{T,h}\) whose block support is disjoint from those blocks is independent of it and has mean zero; only \(O_{K,L}(1)\) lag products have overlapping block support, and every product is bounded by one.  This proves (17) without summing a square-root covariance bound over the whole window.
+
+The denominator-correction coefficient in (15) is \(O_K(T^{-2})\).  Equations (16)--(17) therefore imply, entrywise and hence in operator norm because \(K\) is fixed,
+\[
+\mathbb E[C_T\rho_T^{\top}]=O_{K,q,L}^{\mathrm{op}}(T^{-1}),
+\qquad
+\mathbb E[\rho_T\rho_T^{\top}]=O_{K,q,L}^{\mathrm{op}}(T^{-2}). \tag{18}
+\]
+To see the orders explicitly, the correction--correction term is \(O(T^{-4})G_T=O(T^{-3})\), the endpoint--endpoint term is \(O(T^{-2})\), and the mixed term uses (17) and is smaller.  Expanding the second moment of (14), then applying (16) and (18), gives
+\[
+\begin{aligned}
+T\mathbb E[u_Tu_T^{\top}]
+&=\frac1T D_qG_TD_q^{\top}
++D_q\mathbb E[C_T\rho_T^{\top}]
++\mathbb E[\rho_TC_T^{\top}]D_q^{\top}
++T\mathbb E[\rho_T\rho_T^{\top}]\\
+&=\frac1L D_q(M_L+H_d)D_q^{\top}
++O_{K,q,L}^{\mathrm{op}}(T^{-1}), \tag{19}
+\end{aligned}
+\]
+which is the first quantitative assertion.
+
+For the noise operator, let \(S_\ell\) be the lower shift by \(\ell\) coordinates on \(\mathbb R^T\).  Then
+\[
+TF_{T,q}=\sum_{\ell=0}^d\frac{Tq_\ell}{T-\ell}S_\ell. \tag{20}
+\]
+Define \(Q_T(z)=\sum_{\ell=0}^dTq_\ell z^\ell/(T-\ell)\).  Extend an input \(y\in\mathbb C^T\) by zero to \(\mathbb Z\).  Expanding the finite sums and using the directly integrated identity \((2\pi)^{-1}\int_0^{2\pi}e^{i(s-r)\omega}\,d\omega=\mathbf1\{s=r\}\) gives
+\[
+\sum_{t\in\mathbb Z}\left|\sum_{\ell=0}^d\frac{Tq_\ell}{T-\ell}y_{t-\ell}\right|^2
+=\frac1{2\pi}\int_0^{2\pi}|Q_T(e^{i\omega})|^2
+ \left|\sum_{s\in\mathbb Z}y_se^{is\omega}\right|^2d\omega
+\le \max_{|z|=1}|Q_T(z)|^2\sum_{s\in\mathbb Z}|y_s|^2.
+\]
+Restricting the output back to \(1,\ldots,T\) therefore gives
+\[
+\|TF_{T,q}\|_{\mathrm{op}}\le\max_{|z|=1}|Q_T(z)|. \tag{21}
+\]
+Since \(d\) is fixed,
+\[
+\max_{|z|=1}|Q_T(z)-Q_q(z)|
+\le\sum_{\ell=0}^d|q_\ell|\frac{\ell}{T-\ell}=O_{K,q}(T^{-1}). \tag{22}
+\]
+For the reverse bound, choose \(z_0\) with \(|z_0|=1\) and \(|Q_q(z_0)|=N_q\), and use the complex unit vector \(x_s=T^{-1/2}z_0^{-s}\).  On outputs \(t>d\), (20) acts on \(x\) by multiplication by \(Q_T(z_0)\).  Hence
+\[
+\|TF_{T,q}\|_{\mathrm{op}}^2
+\ge\frac{T-d}{T}|Q_T(z_0)|^2. \tag{23}
+\]
+The real and complex operator norms of a real matrix agree because, for real vectors \(a,b\), \(\|F(a+ib)\|_2^2=\|Fa\|_2^2+\|Fb\|_2^2\), while real vectors are a subclass of complex vectors.  Combining (21)--(23), and observing that \(q=0\) is trivial, proves
+\[
+N_q^2-O_{K,q}(T^{-1})
+\le T^2\|F_{T,q}\|_{\mathrm{op}}^2
+\le N_q^2+O_{K,q}(T^{-1}), \tag{24}
+\]
+as required.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The lemma closes quantitatively the difference between circular code identities and the exact finite linear-convolution denominators. \textit{Gap.} Existing linear-versus-circular comparisons do not provide endpoint-local covariance control and a two-sided operator-norm rate for the randomized block law. \textit{Consumer.} It proves both the \(O(T^{-1})\) signal error and the \(O(T^{-1})\) spectral noise-floor error.
+
+\begin{theorem}[thm:balanced-stationary-golay-optimum-quantitative]\label{thm:balanced-stationary-golay-optimum-quantitative}
+For every fixed \(K\ge2\), \(q\in\mathbb R^K\), and positive \(R_g,R_e\), there is a finite constant \(c=c(K,q,R_g,R_e)\) such that, for every \(T\ge2K\),
+\[
+\left|V_{T,K}(q;R_g,R_e)-R_e^2N_q^2\right|\le\frac{c}{T}.
+\]
+Consequently,
+\[
+\lim_{T\to\infty}V_{T,K}(q;R_g,R_e)
+=V_{\infty,K}(q;R_g,R_e)=R_e^2N_q^2.
+\]
+The finite and stationary infima are unchanged if one restricts to globally sign-symmetric laws.  For every power of two \(L\ge2d\), \(D_L^{\mathrm G}\in\mathfrak D_{\infty}\), it is globally sign symmetric, it has a hidden-state implementation with at most \(2L^2\) states, and
+\[
+\mathcal R_{\infty,K}(D_L^{\mathrm G})
+=\max\!\left\{R_e^2N_q^2,
+\frac{R_g^2}{L}\lambda_{\max}\!\bigl(D_q(M_L+H_d)D_q^{\top}\bigr)\right\}.
+\]
+If \(L\ge\max\{2d,B_KR_g^2/R_e^2\}\), then \(\mathcal R_{\infty,K}(D_L^{\mathrm G})=R_e^2N_q^2\).
+\end{theorem}
+\begin{proof}
+We first verify feasibility and implementation.  The independent uniform phase in \(\textnormal{def:golay-block-law}\) makes \(D_L^{\mathrm G}\) invariant under every integer shift.  The one- and two-point identities in \(\textnormal{lem:golay-tensor-certificate-quantitative}\) give
+\[
+\mathbb E[X_t^{\infty}]=0,
+\qquad \mathbb E[X_s^{\infty}X_t^{\infty}]=0\quad(s\ne t), \tag{25}
+\]
+so \(D_L^{\mathrm G}\in\mathfrak D_\infty\).  Simultaneously flipping every independent fair block sign globally negates the path and preserves the joint distribution, proving global sign symmetry.
+
+Write \(L=2^p\).  A hidden state is
+\[
+(r,\alpha,\sigma)\in\{0,\ldots,L-1\}\times\mathbb F_2^p\times\{-1,+1\}. \tag{26}
+\]
+There are \(2L^2\) states.  If \(r<L-1\), increment \(r\) and retain \((\alpha,\sigma)\); if \(r=L-1\), reset \(r\) to zero and draw a fresh uniform independent pair \((\alpha,\sigma)\).  The uniform distribution on (26) is invariant, and the emitted coordinate is the random-phase independent-block law.  This proves the finite-state bound.
+
+Fix \(L\ge2d\).  Every finite restriction is in \(\mathfrak D_T\) by (25).  It is globally sign symmetric; moreover, \(u_T(-X)=u_T(X)\) and \(v_T(-X)=-v_T(X)\), so \(\mathbb E[u_Tv_T^{\top}]=0\).  The exact risk reduction \(\textnormal{lem:balanced-exact-risk-reduction}\) and the two quantitative bounds in \(\textnormal{lem:zero-prehistory-quantitative}\) give
+\[
+\begin{aligned}
+\mathcal R_T(D_L^{\mathrm G}|_{1:T})
+&=\max\!\left\{T R_g^2\lambda_{\max}(\mathbb E[u_Tu_T^{\top}]),
+T^2R_e^2\|F_{T,q}\|_{\mathrm{op}}^2\right\}\\
+&=\max\!\left\{
+\frac{R_g^2}{L}\lambda_{\max}\!\bigl(D_q(M_L+H_d)D_q^{\top}\bigr),
+R_e^2N_q^2\right\}+O_{K,q,L,R_g,R_e}(T^{-1}), \tag{27}
+\end{aligned}
+\]
+where the second line uses \(|\lambda_{\max}(A)-\lambda_{\max}(B)|\le\|A-B\|_{\mathrm{op}}\), which follows directly by comparing Rayleigh quotients.  Taking the upper limit in (27) proves the displayed exact formula for \(\mathcal R_{\infty,K}(D_L^{\mathrm G})\).
+
+We next certify the sufficient block length.  The quantitative tensor lemma gives
+\[
+\operatorname{tr}(M_L+H_d)\le\sum_{h=1}^d(h^2+h). \tag{28}
+\]
+Each entry of \(D_q\) is a sum of at most two shifted coefficients.  Applying \((a+b)^2\le2a^2+2b^2\) entrywise and counting the \(d-j\) lower and \(j\) upper occurrences of each \(q_j\) gives
+\[
+\|D_q\|_{\mathrm{op}}^2\le\|D_q\|_{\mathrm F}^2
+\le2d\|q\|_2^2. \tag{29}
+\]
+Orthogonality of the exponentials, proved by integrating their finite geometric sums, gives
+\[
+\|q\|_2^2=\frac1{2\pi}\int_0^{2\pi}|Q_q(e^{i\omega})|^2\,d\omega\le N_q^2. \tag{30}
+\]
+Since \(M_L+H_d\) is positive semidefinite, (28)--(30) yield
+\[
+\lambda_{\max}\!\bigl(D_q(M_L+H_d)D_q^{\top}\bigr)
+\le2dN_q^2\sum_{h=1}^d(h^2+h)=B_KN_q^2. \tag{31}
+\]
+If \(L\ge B_KR_g^2/R_e^2\), division is valid because \(R_e>0\), and (31) makes the signal term in (27) no larger than \(R_e^2N_q^2\).  Thus this fixed Golay law attains the stationary disturbance floor.  When \(q=0\), both terms vanish and the same conclusion is immediate.
+
+For the matching lower bound, the noise block in the unsymmetrized matrix of \(\textnormal{lem:balanced-exact-risk-reduction}\) is a principal block.  A Rayleigh quotient supported on that block gives, for every \(D\in\mathfrak D_T\),
+\[
+\mathcal R_T(D)\ge T^2R_e^2\|F_{T,q}\|_{\mathrm{op}}^2
+\ge R_e^2N_q^2-\frac{c_0(K,q,R_e)}{T}, \tag{32}
+\]
+where the second inequality is (24).  Taking the infimum proves the same lower bound for \(V_{T,K}\).
+
+Choose once and for all a power of two
+\[
+L\ge\max\{2d,B_KR_g^2/R_e^2\}. \tag{33}
+\]
+This \(L\) depends only on the fixed parameters, not on \(T\).  By (27), (31), and (33), its finite restriction satisfies
+\[
+\mathcal R_T(D_L^{\mathrm G}|_{1:T})
+\le R_e^2N_q^2+\frac{c_1(K,q,L,R_g,R_e)}{T}. \tag{34}
+\]
+Since the restriction is feasible, \(V_{T,K}\) is no larger than the left side of (34).  Combining (32)--(34) and absorbing the fixed \(L\) from (33) into the constant proves
+\[
+\left|V_{T,K}(q;R_g,R_e)-R_e^2N_q^2\right|
+\le \frac{c(K,q,R_g,R_e)}{T}. \tag{35}
+\]
+This also proves the finite-horizon limit.
+
+For any \(P_\infty\in\mathfrak D_\infty\), every finite restriction lies in \(\mathfrak D_T\).  Equation (32) and convergence of its right side imply
+\[
+\mathcal R_{\infty,K}(P_\infty)\ge R_e^2N_q^2. \tag{36}
+\]
+The fixed law chosen in (33) attains equality by (27) and (31).  Taking the stationary infimum proves \(V_{\infty,K}=R_e^2N_q^2\), and (35) gives equality with the finite-horizon limit.
+
+Finally, for a finite law \(D\), \(\textnormal{lem:balanced-exact-risk-reduction}\) proves that \(D^{\pm}\) is feasible and has no larger risk.  Conversely, sign-symmetric laws are a subclass, so the finite infimum is unchanged.  For \(P_\infty\in\mathfrak D_\infty\), mix it equally with its global reflection.  Reflection and mixing preserve stationarity, balance, and all zero autocorrelations, while each finite restriction is the corresponding \(D^{\pm}\).  The finite risk inequality holds for every \(T\), and taking upper limits proves the same statement for stationary risk.  Thus the stationary infimum is also unchanged.
+
+As the requested parity stress test, at \(T=5\) put \(z_i=X_iX_{i+1}\), \(S_5=\sum_{i=1}^4z_i\), and \(P=\prod_{i=1}^4z_i=X_1X_5\).  Checking the five possible numbers of negative edge signs gives the pointwise certificate
+\[
+S_5^2-2+2P\ge0, \tag{37}
+\]
+with equality exactly when \(S_5\in\{-2,0,2\}\).  Pairwise orthogonality gives \(\mathbb E[P]=\mathbb E[X_1X_5]=0\), so \(\mathbb E[S_5^2]\ge2\).  The law in \(\textnormal{lem:mirrored-law-membership}\) has edge vector \((A_1,B,C,-A_1)\), is feasible, and has \(S_5=B+C\), hence \(\mathbb E[S_5^2]=2\).  This reproduces the odd-horizon certificate; it is an independent audit of the asymptotic proof.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies the stationary efficiency frontier and quantitatively matches every finite-horizon minimax value to it. \textit{Gap.} Complementary deterministic inputs and iid analyses do not prove one-path design-based minimax MSE, the finite-state randomized law, or the \(T^{-1}\) finite-to-stationary guarantee over all balanced pairwise-orthogonal designs. \textit{Consumer.} It gives an implementable binary randomization with a finite-horizon accuracy certificate while allowing treatment counts to remain random.
+
+\begin{proposition}[prop:finite-orbit-sdp-characterization]\label{prop:finite-orbit-sdp-characterization}
+Let \(\mathcal O_T\) be the set of global-sign orbits in \(\{-1,+1\}^T\), and choose one representative \(x_o\) from each orbit.  The image, under the quadratic error map, of the genuine body \(\{\mathbb E_D[\Phi_T\Phi_T^{\top}]:D\in\mathfrak D_T\}\) relevant to \(\mathbb E_D[u_Tu_T^{\top}]\) is exactly
+\[
+\left\{\sum_{o\in\mathcal O_T}p_o u_T(x_o)u_T(x_o)^{\top}:
+p_o\ge0,\ \sum_op_o=1,\
+\sum_op_o x_{o,s}x_{o,t}=0\ \text{for every }s<t\right\}. \tag{38}
+\]
+Consequently \(V_{T,K}(q;R_g,R_e)\) is the value of the finite semidefinite program
+\[
+\begin{aligned}
+\operatorname{minimize}_{r,(p_o)}\quad&r\\
+\text{subject to}\quad
+&p_o\ge0,\qquad \sum_op_o=1,\\
+&\sum_op_o x_{o,s}x_{o,t}=0\quad(1\le s<t\le T),\\
+&TR_g^2\sum_op_o u_T(x_o)u_T(x_o)^{\top}\preceq rI_K,\\
+&T^2R_e^2\|F_{T,q}\|_{\mathrm{op}}^2\le r.
+\end{aligned} \tag{39}
+\]
+This is an exact computable characterization with \(2^{T-1}\) orbit weights; it does not provide a description whose size depends only on the lag order.
+\end{proposition}
+\begin{proof}
+By \(\textnormal{lem:balanced-exact-risk-reduction}\), global-sign symmetrization preserves feasibility, preserves \(\mathbb E[u_Tu_T^{\top}]\), removes the signal--disturbance cross block, and weakly decreases risk.  Hence the minimax infimum may be taken over sign-symmetric laws.  Every such law has a unique orbit-mass vector \((p_o)\) and can be written
+\[
+D=\sum_{o\in\mathcal O_T}\frac{p_o}{2}(\delta_{x_o}+\delta_{-x_o}). \tag{40}
+\]
+Conversely, (40) defines a sign-symmetric probability law for every simplex vector \((p_o)\).  Its coordinate means vanish automatically.  Since \((-x_{o,s})(-x_{o,t})=x_{o,s}x_{o,t}\), its pairwise moments vanish exactly when the linear equalities in (38) hold.  Finally, \(A(-x)=-A(x)\), so \(u_T(-x)=u_T(x)\).  Taking expectations in (40) proves (38).
+
+For a feasible orbit vector the exact-risk formula reduces to
+\[
+\max\!\left\{TR_g^2\lambda_{\max}\!\left(\sum_op_ou_T(x_o)u_T(x_o)^{\top}\right),
+T^2R_e^2\|F_{T,q}\|_{\mathrm{op}}^2\right\}. \tag{41}
+\]
+For a symmetric matrix \(G\), the inequality \(TR_g^2\lambda_{\max}(G)\le r\) is equivalent, by the Rayleigh quotient, to \(TR_g^2G\preceq rI_K\).  Epigraphing the two terms in (41) therefore gives exactly (39), proving both claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This gives an exact computable side for the unresolved finite realizability problem. \textit{Gap.} The program uses \(2^{T-1}\) orbit weights and therefore does not supply the desired lag-sized description. \textit{Consumer.} It enables exact finite-sample optimization for moderate horizons and defines the projection that a smaller certificate must recover.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+The early audits pass exactly. At \(T=5\), the pointwise certificate \(S_5^2-2+2X_1X_5\ge0\) and pairwise orthogonality give the lower bound two, while the mirrored edge vector \((A_1,B,C,-A_1)\) attains it. Exhausting the affine masks at \(L=8\) and \(L=16\) gives the same four lag profiles through lag four and the stated \(M_L+H_d\) matrices for \(K=3,4\). These are audits, not proof premises. The proof conditions on block phase and uses centered independent blocks to show that only a bounded number of bulk terms covary with the two endpoint remainders; this yields the uniform operator remainder rather than an avoidable square-root loss. The constant in the \(T^{-1}\) risk bound is explicit in principle but is not optimized. The joint ellipsoid still permits a disturbance spike for which \(\sqrt T(\widehat\tau-\tau)\) is two-point, so no uniform Wald conclusion is claimed.
+
+\section{Honest scope}
+
+The theorems optimize the fixed-path worst-case mean squared error of the displayed unbiased moment estimator, not risk over all estimators. The legal class consists of balanced pairwise-orthogonal binary laws; global sign symmetry is only a without-loss representative. Treatment counts remain random: exact fixed balance is incompatible with pairwise orthogonality because it would force both \(\mathbb E(\sum_tX_t)^2=0\) and \(\mathbb E(\sum_tX_t)^2=T\). The result is binary and does not cover a third arm or general multi-arm designs. The full Guo--Liang random-switch class is generally outside the legal class, so only its iid intersection is compared, and no numerical equality with its asymptotic ordinary-least-squares criterion is asserted. Gaussian or covariance relaxations do not certify binary temporal moment-body membership. The finite-horizon spectral approximation is now proved at order \(T^{-1}\) for fixed \(K,q,R_g,R_e\); what remains open is only a lag-sized exact characterization of the general finite realizability body with constructive sign-orbit recovery.
+
+\begin{thebibliography}{99}
+
+  \bibitem{LiangRecht2025} Tengyuan Liang and Benjamin Recht. Randomization inference when \(N\) equals one. Biometrika, 112(2), 2025. doi:10.1093/biomet/asaf013.
+
+  \bibitem{GuoLiang2026} Wenxuan Guo and Tengyuan Liang. Experimental design when \(N\) equals one. arXiv:2606.28200v2, 2026.
+
+  \bibitem{BojinovSimchiLeviZhao2023} Iavor Bojinov, David Simchi-Levi, and Jinglong Zhao. Design and analysis of switchback experiments. Management Science, 69(7):3759--3777, 2023.
+
+  \bibitem{BojinovShephard2019} Iavor Bojinov and Neil Shephard. Time series experiments and causal estimands: exact randomization tests and trading. Journal of the American Statistical Association, 114(528):1665--1682, 2019.
+
+  \bibitem{Golay1961} Marcel J. E. Golay. Complementary series. IRE Transactions on Information Theory, 7(2):82--87, 1961.
+
+  \bibitem{DavisJedwab1999} James A. Davis and Jonathan Jedwab. Peak-to-mean power control in OFDM, Golay complementary sequences, and Reed--Muller codes. IEEE Transactions on Information Theory, 45(7):2397--2417, 1999.
+
+  \bibitem{TellamburaGuoBarton1998} Chintha Tellambura, Y. Jay Guo, and S. K. Barton. Channel estimation using aperiodic binary sequences. IEEE Communications Letters, 2(5):140--142, 1998.
+
+  \bibitem{Mazac2024} Jan Mazáč. Correlation functions of the Rudin--Shapiro sequence. Indagationes Mathematicae, 35:83--103, 2024.
+
+  \bibitem{BandeiraKunisky2018} Afonso S. Bandeira and Dmitriy Kunisky. A Gramian description of the degree \(4\) generalized elliptope. arXiv:1812.11583, 2018.
+
+  \bibitem{Manchester2010} Ian R. Manchester. Input design for system identification via convex relaxation. IEEE Conference on Decision and Control, 2010.
+
+  \bibitem{ThiyageswaranEtAl2026} Vydhourie Thiyageswaran, Alex Kokot, Jennifer Brennan, Marina Meilă, Christina Lee Yu, and Maryam Fazel. Optimal design under interference, homophily, and robustness trade-offs. arXiv:2601.17145v1, 2026.
+
+\end{thebibliography}
+
+\end{document}

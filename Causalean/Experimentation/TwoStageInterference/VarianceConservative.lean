@@ -12,8 +12,10 @@ combines them as `Ŝ₁/K + Ŝ₀/(n−K)` — the empirical analogue of the fir
 variance `S₁/K + S₀/(n−K) − Sτ/n`.  Because it excludes the unestimable unit-effect term `Sτ/n`
 (nonnegative), the estimator is conservative in expectation.  This file defines the estimator,
 proves that it is pointwise nonnegative, and proves the conservativeness statement
-`Var(τ̂) ≤ E[v̂ar]` (Hudgens–Halloran Eq. 9): in expectation `E[v̂ar] = S₁/K + S₀/(n−K)`, which
-overstates the Neyman variance by exactly the nonnegative unit-effect term `Sτ/n`.
+`Var(τ̂) ≤ E[v̂ar]`: in expectation `E[v̂ar] = S₁/K + S₀/(n−K)`, which overstates the
+Neyman variance by exactly the nonnegative unit-effect term `Sτ/n`. The estimator is Equation (8)
+of Hudgens–Halloran, and the inequality is a consequence of Theorem 5; Equation (9) instead states
+an additive/constant individual-effect equality condition.
 
 The conservativeness theorem instantiates the generic expected-sample-variance moment lemma
 `E_Shat` (in `VarianceMoments`) for the treated indicators (count `K`) and the control indicators
@@ -24,7 +26,8 @@ sample variance without third moments), and the non-degeneracy bounds `2 ≤ K` 
 (needed so both sample variances exist, i.e. `K−1`, `n−K−1`, `n−1` are all nonzero).
 -/
 
-import Causalean.Experimentation.TwoStageInterference.VarianceMoments
+module
+public import Causalean.Experimentation.TwoStageInterference.VarianceMoments
 
 /-! # Conservative two-stage variance estimators
 
@@ -40,6 +43,8 @@ completely randomized within-group design, where the moment and support hypothes
 `crd_mean`, `crd_pair`, and `crd_supp`.
 -/
 
+@[expose] public section
+
 open scoped BigOperators
 open Finset
 
@@ -53,34 +58,12 @@ section Group
 
 variable {n : ℕ} (K : ℕ) (a b : Fin n → ℝ)
 
-/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their treated potential outcomes](hyp:a), and [a realized assignment](hyp:w), the [observed mean among treated units](goal) is $K^{-1}\sum_j T_j a_j$. -/
-noncomputable def obsMeanTreated (w : Fin n → Bool) : ℝ :=
-  (∑ j, T j w * a j) / K
-
-/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their control potential outcomes](hyp:b), and [a realized assignment](hyp:w), the [observed mean among control units](goal) is $(n-K)^{-1}\sum_j(1-T_j)b_j$. -/
-noncomputable def obsMeanControl (w : Fin n → Bool) : ℝ :=
-  (∑ j, (1 - T j w) * b j) / (n - K : ℝ)
-
-/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their treated potential outcomes](hyp:a), and [a realized assignment](hyp:w), the [observed sample variance among treated units](goal) is $(K-1)^{-1}\sum_jT_j(a_j-\bar a_{\mathrm{obs}})^2$. -/
-noncomputable def ShatTreated (w : Fin n → Bool) : ℝ :=
-  (∑ j, T j w * (a j - obsMeanTreated K a w) ^ 2) / (K - 1 : ℝ)
-
-/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their control potential outcomes](hyp:b), and [a realized assignment](hyp:w), the [observed sample variance among control units](goal) is $(n-K-1)^{-1}\sum_j(1-T_j)(b_j-\bar b_{\mathrm{obs}})^2$. -/
-noncomputable def ShatControl (w : Fin n → Bool) : ℝ :=
-  (∑ j, (1 - T j w) * (b j - obsMeanControl K b w) ^ 2) / (n - K - 1 : ℝ)
-
-/-- For [a population of $n$ units](hyp:n), [a treated-unit count $K$](hyp:K), [their treated potential outcomes](hyp:a), [their control potential outcomes](hyp:b), and [a realized assignment](hyp:w), the [conservative variance estimator](goal) is the treated observed sample variance divided by $K$ plus the control observed sample variance divided by $n-K$.
-
-It is the empirical analogue of the first two terms of the Neyman variance and is computable from a single realized assignment. -/
-noncomputable def varHat (w : Fin n → Bool) : ℝ :=
-  ShatTreated K a w / K + ShatControl K b w / (n - K : ℝ)
-
 /-- The treatment indicator is nonnegative. -/
-lemma T_nonneg (j : Fin n) (w : Fin n → Bool) : 0 ≤ T j w :=
+lemma T_nonneg (j : Fin n) (w : Fin n → Bool) : 0 ≤ DesignBased.T j w :=
   FiniteDesign.ind_nonneg _ w
 
 /-- `1 − Tⱼ` (the control indicator) is nonnegative. -/
-lemma one_sub_T_nonneg (j : Fin n) (w : Fin n → Bool) : 0 ≤ 1 - T j w :=
+lemma one_sub_T_nonneg (j : Fin n) (w : Fin n → Bool) : 0 ≤ 1 - DesignBased.T j w :=
   sub_nonneg.mpr (FiniteDesign.ind_le_one _ w)
 
 /-- The observed treated sample variance is nonnegative, provided `1 ≤ K` (so the denominator
@@ -124,10 +107,11 @@ section Conservative
 
 variable (ρ : FiniteDesign (Fin n → Bool))
 variable (hK2 : 2 ≤ K) (hKn2 : K + 2 ≤ n)
-variable (hmean : ∀ j, ρ.E (T j) = (K : ℝ) / n)
+variable (hmean : ∀ j, ρ.E (DesignBased.T j) = (K : ℝ) / n)
 variable (hpair : ∀ j k, j ≠ k →
-  ρ.E (fun w => T j w * T k w) = (K * (K - 1) : ℝ) / (n * (n - 1)))
-variable (hsupp : ∀ w, ρ.p w ≠ 0 → (∑ j, T j w) = (K : ℝ))
+  ρ.E (fun w => DesignBased.T j w * DesignBased.T k w) =
+    (K * (K - 1) : ℝ) / (n * (n - 1)))
+variable (hsupp : ∀ w, ρ.p w ≠ 0 → (∑ j, DesignBased.T j w) = (K : ℝ))
 
 include hK2 hKn2 in
 /-- The real denominators arising in the conservative-variance moment calculation are nonzero:
@@ -140,54 +124,62 @@ private lemma denom_facts :
   refine ⟨?_, ?_, ?_, ?_, ?_, ?_⟩ <;> intro h <;> nlinarith
 
 include hK2 hKn2 hmean hpair hsupp in
-/-- **Expected observed treated sample variance.**  For any within-group design whose treatment
-indicators satisfy the completely-randomized moment hypotheses — first moment `K/n` (`hmean`),
-pairwise second moment `K(K−1)/(n(n−1))` (`hpair`), and a deterministic treated count `K` on the
-support (`hsupp`) — [the expectation of the realized treated-state sample variance equals the
-population treated-state sample variance `S₁`](goal): `E[Ŝ₁] = S₁`.
+/-- Given [a population size, treatment count, treated-state outcomes, and assignment design](hyp:n,K,a,ρ),
+if [at least two units are treated](hyp:hK2), [at least two are controls](hyp:hKn2), [each treatment
+indicator has mean equal to the treated fraction](hyp:hmean), [distinct indicators have the
+complete-randomization second moment](hyp:hpair), and [the treated count is fixed on the design's
+support](hyp:hsupp), then [the expected realized treated-state sample variance equals the population
+treated-state sample variance](goal).
 
 These moments hold for the completely randomized design of Assumption 1
 (`crd_mean`/`crd_pair`/`crd_supp`).  Instantiates the generic `E_Shat` moment lemma with the
 treatment-indicator family `T` and count `K`. -/
 lemma E_ShatTreated : ρ.E (ShatTreated K a) = S1 a := by
   obtain ⟨hnr, hn1r, hKr, hK1r, _, _⟩ := denom_facts K hK2 hKn2
-  have hidem : ∀ (j : Fin n) (w : Fin n → Bool), T j w * T j w = T j w := by
+  have hidem : ∀ (j : Fin n) (w : Fin n → Bool),
+      DesignBased.T j w * DesignBased.T j w = DesignBased.T j w := by
     intro j w
     have := congrFun (FiniteDesign.ind_sq (fun w => w j = true)) w
-    simpa [sq, T] using this
+    simpa [sq, DesignBased.T] using this
   -- ShatTreated K a unfolds to the `E_Shat` integrand with U = T, M = K.
-  have hval := E_Shat ρ (K : ℝ) a T hnr hn1r hKr hK1r hidem hmean hpair hsupp
+  have hval := E_Shat ρ (K : ℝ) a DesignBased.T hnr hn1r hKr hK1r
+    hidem hmean hpair hsupp
   unfold ShatTreated obsMeanTreated
   unfold S1 popMeanV
   exact hval
 
 include hK2 hKn2 hmean hpair hsupp in
-/-- **Expected observed control sample variance.**  The control analogue: for any design
-satisfying the same completely-randomized moment hypotheses, [the expectation of the realized
-untreated-state sample variance among the `n−K` control units equals the population
-untreated-state sample variance `S₀`](goal): `E[Ŝ₀] = S₀`.
+/-- Given [a population size, treatment count, control-state outcomes, and assignment design](hyp:n,K,b,ρ),
+if [at least two units are treated](hyp:hK2), [at least two are controls](hyp:hKn2), [each treatment
+indicator has mean equal to the treated fraction](hyp:hmean), [distinct indicators have the
+complete-randomization second moment](hyp:hpair), and [the treated count is fixed on the design's
+support](hyp:hsupp), then [the expected realized control-state sample variance equals the population
+control-state sample variance](goal).
 
 Instantiates `E_Shat` with the control-indicator family `1 − T` and count `n − K`, deriving the
 control moments (`E[1−Tⱼ] = (n−K)/n`, `E[(1−Tⱼ)(1−Tₖ)] = (n−K)(n−K−1)/(n(n−1))`, idempotence, and
 the support total `n−K`) from `hmean`/`hpair`/`hsupp`. -/
 lemma E_ShatControl : ρ.E (ShatControl K b) = S0 b := by
   obtain ⟨hnr, hn1r, _, _, hnKr, hnK1r⟩ := denom_facts K hK2 hKn2
-  set U : Fin n → (Fin n → Bool) → ℝ := fun j w => 1 - T j w with hU
+  set U : Fin n → (Fin n → Bool) → ℝ := fun j w => 1 - DesignBased.T j w with hU
   -- idempotence of the control indicator
-  have hidemT : ∀ (j : Fin n) (w : Fin n → Bool), T j w * T j w = T j w := by
+  have hidemT : ∀ (j : Fin n) (w : Fin n → Bool),
+      DesignBased.T j w * DesignBased.T j w = DesignBased.T j w := by
     intro j w
     have := congrFun (FiniteDesign.ind_sq (fun w => w j = true)) w
-    simpa [sq, T] using this
+    simpa [sq, DesignBased.T] using this
   have hidem : ∀ (j : Fin n) (w : Fin n → Bool), U j w * U j w = U j w := by
     intro j w; simp only [hU]
-    rw [show (1 - T j w) * (1 - T j w) = 1 - 2 * T j w + T j w * T j w from by ring,
+    rw [show (1 - DesignBased.T j w) * (1 - DesignBased.T j w) =
+        1 - 2 * DesignBased.T j w + DesignBased.T j w * DesignBased.T j w from by ring,
       hidemT j w]; ring
   -- first moment: E[1 − Tⱼ] = (n−K)/n
   have hmeanU : ∀ j, ρ.E (U j) = ((n - K : ℝ)) / n := by
     intro j
-    have : U j = (fun w => 1 - T j w) := rfl
+    have : U j = (fun w => 1 - DesignBased.T j w) := rfl
     rw [this]
-    rw [show (fun w => (1 : ℝ) - T j w) = (fun w => (1 : ℝ) - T j w) from rfl]
+    rw [show (fun w => (1 : ℝ) - DesignBased.T j w) =
+        (fun w => (1 : ℝ) - DesignBased.T j w) from rfl]
     rw [FiniteDesign.E_sub, FiniteDesign.E_const, hmean j]
     field_simp
   -- pairwise second moment: E[(1−Tⱼ)(1−Tₖ)] = (n−K)(n−K−1)/(n(n−1))
@@ -196,15 +188,20 @@ lemma E_ShatControl : ρ.E (ShatControl K b) = S0 b := by
         = ((n - K : ℝ) * ((n - K : ℝ) - 1)) / (n * (n - 1)) := by
     intro j k hjk
     have hexp : (fun w => U j w * U k w)
-        = (fun w => 1 - T j w - T k w + T j w * T k w) := by
+        = (fun w => 1 - DesignBased.T j w - DesignBased.T k w +
+          DesignBased.T j w * DesignBased.T k w) := by
       funext w; simp only [hU]; ring
     rw [hexp]
-    rw [show (fun w => 1 - T j w - T k w + T j w * T k w)
-          = (fun w => (1 - T j w - T k w) + (T j w * T k w)) from by funext w; ring]
+    rw [show (fun w => 1 - DesignBased.T j w - DesignBased.T k w +
+          DesignBased.T j w * DesignBased.T k w) =
+        (fun w => (1 - DesignBased.T j w - DesignBased.T k w) +
+          (DesignBased.T j w * DesignBased.T k w)) from by funext w; ring]
     rw [FiniteDesign.E_add]
-    rw [show (fun w => 1 - T j w - T k w) = (fun w => (1 - T j w) - T k w) from by funext w; ring]
+    rw [show (fun w => 1 - DesignBased.T j w - DesignBased.T k w) =
+        (fun w => (1 - DesignBased.T j w) - DesignBased.T k w) from by funext w; ring]
     rw [FiniteDesign.E_sub,
-      show (fun w => (1 : ℝ) - T j w) = (fun w => (1 : ℝ) - T j w) from rfl,
+      show (fun w => (1 : ℝ) - DesignBased.T j w) =
+        (fun w => (1 : ℝ) - DesignBased.T j w) from rfl,
       FiniteDesign.E_sub, FiniteDesign.E_const, hmean j, hmean k, hpair j k hjk]
     field_simp
     ring
@@ -222,7 +219,7 @@ lemma E_ShatControl : ρ.E (ShatControl K b) = S0 b := by
   simpa only [hU, sub_sub] using hval
 
 include hK2 hKn2 hmean hpair hsupp in
-/-- **Conservativeness of the within-group variance estimator (Hudgens–Halloran 2008, Eq. 9).**
+/-- **Conservativeness of the Hudgens–Halloran (2008) Equation (8) variance estimator.**
 For any design satisfying the completely-randomized moment hypotheses (`hmean`/`hpair`/`hsupp`) and
 treating exactly `K` of `n` units (with `2 ≤ K` and `K + 2 ≤ n`, so both sample variances are well
 defined), [the conservative estimator overstates the randomization variance,
@@ -265,8 +262,8 @@ theorem E_varHat_conservative : ρ.Var (tauHat K a b) ≤ ρ.E (varHat K a b) :=
 
 end Conservative
 
-/-- **Conservativeness of the within-group variance estimator, for the completely randomized
-design (Hudgens–Halloran 2008, Eq. 9).** For a group of `n` units with potential outcomes `a`
+/-- **Conservativeness of the Hudgens–Halloran (2008) Equation (8) variance estimator under
+complete randomization.** For a group of `n` units with potential outcomes `a`
 (treated state) and `b` (untreated state), consider the completely randomized within-group design
 that treats exactly `K` units uniformly at random, where [at least two units are
 treated](hyp:hK2) and [at least two units remain in control (`K + 2 ≤ n`)](hyp:hKn2) — so both
@@ -276,8 +273,8 @@ expectation, under the same design, of the conservative variance estimator `v̂a
 
 Its first- and second-order treatment moments and deterministic treated count are the derived
 facts `crd_mean`/`crd_pair`/`crd_supp`, so — unlike `E_varHat_conservative` — no moment hypotheses
-are assumed; this is Eq. 9 as Hudgens & Halloran state it under their mixed-strategy Assumption
-1. -/
+are assumed. The displayed inequality is a consequence of the paper's Theorem 5; its Equation (9)
+is instead an equality condition. -/
 theorem E_varHat_conservative_CRD (hK2 : 2 ≤ K) (hKn2 : K + 2 ≤ n) :
     (crd K (le_trans (Nat.le_add_right K 2) hKn2)).Var (tauHat K a b)
       ≤ (crd K (le_trans (Nat.le_add_right K 2) hKn2)).E (varHat K a b) :=

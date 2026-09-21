@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Constructions.UnitInterval
-import Mathlib.MeasureTheory.Measure.OpenPos
+module
+public import Mathlib.MeasureTheory.Constructions.UnitInterval
+public import Mathlib.MeasureTheory.Measure.OpenPos
 
 /-!
 # Open positivity of unit-interval volume
@@ -13,6 +14,8 @@ import Mathlib.MeasureTheory.Measure.OpenPos
 This file shows that Lebesgue volume on the closed unit-interval subtype is positive on every
 nonempty relatively open set.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 

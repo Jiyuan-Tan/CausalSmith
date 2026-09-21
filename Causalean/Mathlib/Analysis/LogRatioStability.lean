@@ -1,7 +1,8 @@
-import Mathlib.Analysis.Calculus.ContDiff.Deriv
-import Mathlib.Analysis.Calculus.Deriv.Basic
-import Mathlib.Analysis.SpecialFunctions.Log.Deriv
-import Mathlib.Topology.Order.Compact
+module
+public import Mathlib.Analysis.Calculus.ContDiff.Deriv
+public import Mathlib.Analysis.Calculus.Deriv.Basic
+public import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+public import Mathlib.Topology.Order.Compact
 
 /-!
 # Uniform C1 stability of positive log-ratio derivatives
@@ -12,16 +13,38 @@ reciprocal, quotient, logarithm, and the within-derivative of a positive log rat
 real interval.
 -/
 
+@[expose] public section
+
 open Set Filter
 
 noncomputable section
 
 namespace Causalean.Mathlib.Analysis
 
-/-- A sequence of real-valued functions converges uniformly on `K` when every positive error
-tolerance eventually controls all points of `K`. -/
+/-- [Uniform convergence on a set](goal) requires every positive error tolerance eventually to
+control [the whole function sequence](hyp:f) relative to [its limiting function](hyp:g) at every
+point of [that set](hyp:K).
+
+This sequence-specific predicate is retained for compatibility; new developments should use
+Mathlib's filter-general `TendstoUniformlyOn`. -/
+@[deprecated TendstoUniformlyOn (since := "2026-09-19")]
 def UniformlyOn {α : Type*} (K : Set α) (f : ℕ → α → ℝ) (g : α → ℝ) : Prop :=
   ∀ ε > 0, ∃ N, ∀ n ≥ N, ∀ x ∈ K, |f n x - g x| < ε
+
+/-- [The compatibility predicate `UniformlyOn`](hyp:K,f,g) is equivalent to [Mathlib's
+filter-general uniform convergence on the same set, specialized to sequences](goal). -/
+theorem uniformlyOn_iff_tendstoUniformlyOn {α : Type*} (K : Set α)
+    (f : ℕ → α → ℝ) (g : α → ℝ) :
+    UniformlyOn K f g ↔ TendstoUniformlyOn f g atTop K := by
+  rw [Metric.tendstoUniformlyOn_iff]
+  simp only [Real.dist_eq, eventually_atTop]
+  constructor
+  · intro h ε hε
+    obtain ⟨N, hN⟩ := h ε hε
+    exact ⟨N, fun n hn x hx ↦ by simpa [abs_sub_comm] using hN n hn x hx⟩
+  · intro h ε hε
+    obtain ⟨N, hN⟩ := h ε hε
+    exact ⟨N, fun n hn x hx ↦ by simpa [abs_sub_comm] using hN n hn x hx⟩
 
 /-- Uniform `C¹` convergence on a real set means uniform convergence of both function values and
 their first within-derivatives. -/
@@ -171,8 +194,14 @@ theorem derivWithin_logRatio {a b : ℝ} (hab : a < b)
   rw [hdiv_deriv]
   field_simp
 
-/-- Positive pairs converging uniformly in `C¹` to `C¹` limits on a compact interval have log
-ratios converging uniformly in `C¹`, provided the whole family shares one positive lower bound. -/
+/-- On [a nondegenerate compact interval](hyp:hab) with [a positive common lower
+bound](hyp:hm), suppose [every approximating numerator](hyp:hqdiff) and
+[denominator](hyp:hpdiff) is differentiable, [both limiting functions are
+continuously differentiable](hyp:hq₀diff,hp₀diff), [the numerators and
+denominators converge uniformly in C¹](hyp:hqconv,hpconv), and [the whole
+families and their limits obey the common lower
+bound](hyp:hqlower,hplower,hq₀lower,hp₀lower).  Then [the corresponding log ratios
+converge uniformly in C¹](goal). -/
 theorem uniformC1On_logRatio {a b m : ℝ} (hab : a < b) (hm : 0 < m)
     {q p : ℕ → ℝ → ℝ} {q₀ p₀ : ℝ → ℝ}
     (hqdiff : ∀ n, DifferentiableOn ℝ (q n) (Icc a b))

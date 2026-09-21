@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Basic
+
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Basic
 
 /-! # Cited conditional upper-risk comparator (Bonvini–Kennedy 2022)
 
@@ -11,6 +13,8 @@ This supportive cited leaf records the conditional risk implication in
 arXiv:2207.11825v1, Section 3.4, Theorem 1 and Remarks 7–8/Figure 1
 (Theorem 3.1 in v2). It deliberately does not state a class-level minimax bound.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

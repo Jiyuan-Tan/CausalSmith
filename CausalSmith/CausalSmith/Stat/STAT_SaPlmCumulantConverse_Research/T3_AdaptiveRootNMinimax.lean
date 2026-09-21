@@ -1,14 +1,15 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ClassRelations
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AdaptiveSelectorPacket
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.FixedCodeConverse
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.PopulationNumeratorBound
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SelectorSoundness
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T2_ExactContourIdentification
-import Causalean.Stat.Concentration.Chebyshev
-import Causalean.Stat.Minimax.LeCam
-import Causalean.Stat.Minimax.Pinsker
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.ClassRelations
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.AdaptiveSelectorPacket
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.FixedCodeConverse
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.EmpiricalTransformSeries
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.HardSubmodel
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.PopulationNumeratorBound
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.SelectorSoundness
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.T2_ExactContourIdentification
+public import Causalean.Stat.Concentration.Chebyshev
+public import Causalean.Stat.Minimax.LeCam
+public import Causalean.Stat.Minimax.Pinsker
 
 /-!
 # Certified adaptive contour estimator and matched fixed-separation rate
@@ -18,11 +19,13 @@ Only the final represented-data execution clause is parameterized by a
 compiled implementation of the bounded certified complex arithmetic record.
 -/
 
+@[expose] public section
+
 noncomputable section
 
 open MeasureTheory Metric Set
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
+open Causalean.Mathlib.Analysis.IntervalArithmetic.Contour
 namespace CausalSmith.Stat.SaPlmCumulantConverse
 
 private def uniformBankCeil (x : ℝ) : ℕ :=

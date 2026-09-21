@@ -5,8 +5,9 @@ Authors: Jiyuan Tan
 
 # Hahn (1998) variance decomposition for the AIPW influence function
 
-This file proves the Hahn semiparametric efficiency-bound formula for the
-back-door ATE.  The AIPW influence function variance decomposes as
+This file proves the variance decomposition usually appearing in Hahn's
+semiparametric efficiency formula for the back-door ATE. The AIPW influence
+function variance decomposes as
 
     ∫ ψ_AIPW² dP_Z
       = ∫ (μ₁(x) − μ₀(x) − θ₀)² dP_X
@@ -15,7 +16,8 @@ back-door ATE.  The AIPW influence function variance decomposes as
 
 the three terms being, respectively, the variance of the conditional ATE
 function, and the two inverse-propensity-weighted conditional outcome
-variances.  This is the Hahn efficiency bound `V_H`.
+variances. Identifying this variance with an efficiency bound requires a separate
+pathwise-gradient and regularity argument.
 
 Proof.  Writing `ψ = A + B − C` with
 * `A = μ₁ − μ₀ − θ₀`,
@@ -30,23 +32,27 @@ two IPW terms (with `a² = a`), and `A²` gives the first term after the
 `P_Z.map projX = P_X` pushforward.
 -/
 
-import Causalean.Estimation.ATE.InfluenceFunction
-import Causalean.Estimation.ATE.DML
+module
+public import Causalean.Estimation.ATE.InfluenceFunction
+public import Causalean.Estimation.ATE.DML
 
 /-!
 # Hahn variance decomposition for the AIPW influence function
 
 This module develops the L² and variance algebra behind the Hahn (1998)
-semiparametric efficiency bound for the backdoor ATE. The main theorem
+variance formula for the backdoor ATE. The main theorem
 `BackdoorEstimationSystem.aipw_variance_hahn_decomposition` proves that
 `∫ ψ_AIPW² dP_Z` splits into the conditional-ATE variance term plus the two
 inverse-propensity-weighted conditional outcome-variance terms.
 
 The helper lemmas establish bounded inverse-propensity weights and L²
 membership for the regression representatives under overlap and square-integrable
-outcomes. The final theorem `dml_ATE_attains_hahn_bound` rewrites the limiting
-variance in the one-shot DML central-limit theorem by this Hahn decomposition.
+outcomes. The final theorem `dml_ATE_tendstoNormal_hahnVariance` rewrites the limiting
+variance in the pointwise one-shot DML central-limit theorem by this decomposition;
+it does not prove regularity under local alternatives or a convolution lower bound.
 -/
+
+public section
 
 namespace Causalean
 namespace Estimation
@@ -157,8 +163,8 @@ outcome is square-integrable](hyp:h_y2) and [every potential outcome `Y(d)` is
 square-integrable](hyp:h_yd2). Then [the variance of the augmented
 inverse-propensity-weighted (AIPW) influence function decomposes as the
 variance of the conditional treatment-effect function `μ₁ − μ₀ − θ₀` plus two
-inverse-propensity-weighted conditional-outcome-variance terms — the Hahn
-semiparametric efficiency bound `V_H`](goal).
+inverse-propensity-weighted conditional-outcome-variance terms](goal), the
+three-term variance expression used in Hahn's efficiency calculation.
 
 Under the back-door assumptions, strict overlap, and square-integrability of
 the factual and counterfactual outcomes, the variance of the AIPW influence
@@ -170,7 +176,7 @@ inverse-propensity-weighted conditional outcome variances:
         + ∫ (a / e²)   (y − μ₁)² dP_Z
         + ∫ ((1−a) / (1−e)²) (y − μ₀)² dP_Z.
 
-The right-hand side is the Hahn semiparametric efficiency bound `V_H`.
+The right-hand side is the Hahn-form AIPW variance expression.
 
 The proof assembles many `MemLp`/integrability facts, a pointwise `ψ²`
 expansion, two σ(X)-pull-out cross-term vanishings, and three pushforward
@@ -423,7 +429,7 @@ open BackdoorEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **The one-shot DML ATE attains the Hahn efficiency bound.** Assume [the
+/-- **The one-shot DML ATE has a Gaussian limit with Hahn-form variance.** Assume [the
 back-door identifying assumptions](hyp:hA) and [strict overlap of the true
 propensity score with margin `ε`](hyp:h_overlap), with [the factual
 outcome](hyp:h_y2) and [every potential outcome `Y(d)`](hyp:h_yd2)
@@ -441,12 +447,11 @@ the Neyman-orthogonality rate condition](hyp:h_product_rate). Assume finally
 [the AIPW influence function, the rescaled estimator, and the normalized
 influence-function sum are all measurable](hyp:hψ_meas,hθn_meas,hSum_meas).
 Then [the rescaled one-shot DML ATE estimator converges in distribution to
-the mean-zero Gaussian law whose variance is the Hahn semiparametric
-efficiency bound](goal).
+the mean-zero Gaussian law whose variance has Hahn's three-term AIPW form](goal).
 
 Composing `dml_ATE_tendstoNormal` with `aipw_variance_hahn_decomposition`,
 the rescaled estimator `√|B(n)| (θ̂ⁿ − θ₀)` converges in distribution to the
-mean-zero Gaussian whose variance is the Hahn semiparametric efficiency bound
+mean-zero Gaussian whose variance is the Hahn-form AIPW variance
 
     V_H = ∫ (μ₁ − μ₀ − θ₀)² dP_X
           + ∫ (a / e²)   (y − μ₁)² dP_Z
@@ -454,7 +459,7 @@ mean-zero Gaussian whose variance is the Hahn semiparametric efficiency bound
 
 The hypotheses are exactly those of `dml_ATE_tendstoNormal`; the conclusion
 only rewrites the limiting variance via the variance decomposition. -/
-theorem dml_ATE_attains_hahn_bound
+theorem dml_ATE_tendstoNormal_hahnVariance
     (S : BackdoorEstimationSystem P γ)
     {ε : ℝ}
     (hA : S.toPOBackdoorSystem.Assumptions)

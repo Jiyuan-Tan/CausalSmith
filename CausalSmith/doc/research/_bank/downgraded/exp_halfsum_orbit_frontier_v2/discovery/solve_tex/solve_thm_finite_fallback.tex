@@ -1,0 +1,75 @@
+%%% FIELD proof-finite-fallback
+Fix \(n_B,n_S,R\in\mathbb Z_{>0}\).  We first prove that the search space named in \(\mathsf{Enum}\) is finite.  If \((L,a,b)\) satisfies the two positivity conditions and the two covering conditions in \(\mathcal A_{n_B,n_S}(R)\), then
+\[
+  2n_B=\sum_{\ell=1}^{L}a_\ell\ge L,
+  \qquad
+  2n_S=\sum_{\ell=1}^{L}b_\ell\ge L.
+\]
+Consequently \(1\le L\le L_{\max}:=\min\{2n_B,2n_S\}\).  For a fixed such \(L\), a positive composition \(a\) of \(2n_B\) is in bijection with the set of its \(L-1\) strictly increasing partial sums in \(\{1,\ldots,2n_B-1\}\): the inverse map takes successive differences, including the differences from \(0\) and to \(2n_B\).  Thus there are exactly \(\binom{2n_B-1}{L-1}\) possible ordered vectors \(a\), and, by the same argument, exactly \(\binom{2n_S-1}{L-1}\) possible ordered vectors \(b\).  Hence the number of ordered paired compositions considered before quotienting by common coordinate permutations is
+\[
+  N=\sum_{L=1}^{L_{\max}}
+       \binom{2n_B-1}{L-1}\binom{2n_S-1}{L-1}<\infty.
+\]
+Passing to common-permutation classes cannot increase this number.  Therefore the composition loop in Definition \(\mathrm{def{:}finite\text{-}enumerator}\) terminates.
+
+We next verify the coefficient recursion used for each candidate.  For a fixed paired composition, put
+\[
+  P_r(x,y):=\prod_{\ell=1}^{r}(1+x^{a_\ell}y^{b_\ell}),
+  \qquad 0\le r\le L,
+\]
+and initialize \(d_0(i,j)=\mathbf 1\{(i,j)=(0,0)\}\), with \(d_r(i,j)=0\) whenever \(i<0\) or \(j<0\).  We claim that, for \(0\le i\le n_B\) and \(0\le j\le n_S\),
+\[
+  d_r(i,j)=[x^iy^j]P_r(x,y).                                      \tag{1}
+\]
+For \(r=0\), this is the initialization.  If it holds at \(r\), multiplication by the next factor gives
+\[
+\begin{aligned}
+ [x^iy^j]P_{r+1}(x,y)
+ &= [x^iy^j]P_r(x,y)
+    +[x^{i-a_{r+1}}y^{j-b_{r+1}}]P_r(x,y)\\
+ &=d_r(i,j)+d_r(i-a_{r+1},j-b_{r+1})
+  =d_{r+1}(i,j),
+\end{aligned}
+\]
+where a coefficient having a negative exponent is zero.  This proves (1) by finite induction.  In particular, Definition \(\mathrm{def{:}support\text{-}size}\) and (1) yield
+\[
+ d_L(n_B,n_S)
+ =[x^{n_B}y^{n_S}]\prod_{\ell=1}^{L}(1+x^{a_\ell}y^{b_\ell})
+ =h(a,b).                                                        \tag{2}
+\]
+Equivalently, expanding the product chooses a vector \(z\in\{0,1\}^L\), and the monomial selected by \(z\) has exponents \(\sum_\ell a_\ell z_\ell\) and \(\sum_\ell b_\ell z_\ell\); Definition \(\mathrm{def{:}common\text{-}support}\) therefore shows directly that the last quantity in (2) is \(|H(a,b)|\).  Thus the recursion computes the support size exactly, rather than approximately.
+
+It remains to prove that quotienting by common permutations loses neither feasibility nor an optimizer.  Let \(\sigma\) be a permutation of \([L]\), and set \(a'_\ell=a_{\sigma(\ell)}\) and \(b'_\ell=b_{\sigma(\ell)}\).  The bijection \(z'_{\ell}=z_{\sigma(\ell)}\) preserves both half-sum equations, so Definition \(\mathrm{def{:}common\text{-}support}\) gives
+\[
+  h(a',b')=h(a,b).
+\]
+Likewise Definition \(\mathrm{def{:}retention}\) gives
+\[
+  F(a',b')=\sum_{\ell=1}^{L}a_{\sigma(\ell)}b_{\sigma(\ell)}
+           =\sum_{k=1}^{L}a_kb_k=F(a,b).                         \tag{3}
+\]
+Hence feasibility and the objective are well defined on every paired multiset enumerated by \(\mathsf{Enum}\).
+
+Every enumerated candidate has positive coordinates and the prescribed two totals by construction.  By (2), it is retained by the support-floor check exactly when \(h(a,b)\ge R\); by Definition \(\mathrm{def{:}profile\text{-}class}\), this is exactly membership in \(\mathcal A_{n_B,n_S}(R)\).  Conversely, every member of that class has \(L\le L_{\max}\) by the first display and is a pair of positive compositions of the prescribed totals.  Its common-permutation class therefore occurs in the finite enumeration, and (2)--(3) preserve its feasibility and objective.  We have consequently proved the exact equivalence
+\[
+ \mathcal A_{n_B,n_S}(R)=\varnothing
+ \quad\Longleftrightarrow\quad
+ \text{the enumerator's feasible terminal list is empty}.       \tag{4}
+\]
+This proves the asserted correctness of the \(\mathrm{INFEASIBLE}\) output.
+
+If the class is nonempty, let \(\mathscr E_R\) be the nonempty finite set of feasible paired-multiset representatives produced by the enumeration.  Exhaustiveness and (3) imply
+\[
+ \max_{(L,a,b)\in\mathscr E_R}F(a,b)
+ =\max_{(L,a,b)\in\mathcal A_{n_B,n_S}(R)}F(a,b)
+ =\Phi_{n_B,n_S}(R),                                             \tag{5}
+\]
+where the last equality is Definition \(\mathrm{def{:}frontier}\).  The terminal comparison made by \(\mathsf{Enum}\) returns the left side of (5) and retains precisely every representative whose listed objective equals it.  The preceding correspondence then proves that the output consists of every maximizing paired multiset and no nonmaximizer.
+
+Finally, the computation is a finite certificate.  A checker regenerates the finitely many paired compositions using the partial-sum description above; for each one it verifies positivity and the two totals, checks the displayed initialization and every integer addition in the recurrence, reads \(d_L(n_B,n_S)\) as the exact support size by the proved invariant (1), and independently checks \(F(a,b)=\sum_\ell a_\ell b_\ell\).  Comparing the resulting finite terminal list verifies (4), (5), and the complete list of equality cases.  All checks are finite integer equalities and inequalities, and no complexity bound is required.
+
+As the smallest boundary audit, take \(n_B=n_S=1\).  For \(L=1\), the sole candidate is \((a,b)=((2),(2))\), for which \(H(a,b)=\varnothing\).  For \(L=2\), the sole paired multiset is \((a,b)=((1,1),(1,1))\), for which
+\[
+ H(a,b)=\{(1,0),(0,1)\},\qquad h(a,b)=2,\qquad F(a,b)=2.
+\]
+Thus the algorithm returns frontier \(2\) for \(R\in\{1,2\}\) and returns \(\mathrm{INFEASIBLE}\) for \(R\ge3\), exactly as Definitions \(\mathrm{def{:}profile\text{-}class}\) and \(\mathrm{def{:}frontier}\) require.  In particular, the infeasible \(L=1\) candidate, despite its larger raw objective \(F=4\), is correctly excluded by the exact support computation.

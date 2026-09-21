@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperNoise
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperNoise
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
-open MeasureTheory Set
+open MeasureTheory Set Causalean.Stat.Concentration.RandomDesignWeightedHoeffding
 open scoped BigOperators
 
 noncomputable section
@@ -49,7 +52,7 @@ lemma blockAverage_l1_le {J n : ℕ} (P : ClampLaw J)
     intro i
     by_cases hi : i ∈ I <;> simp [w, hi]
   have henergy (z : Fin n → ClampObs J) :
-      (∑ i, w (Causalean.Mathlib.Probability.designVector design z) i ^ 2) =
+      (∑ i, w (designVector design z) i ^ 2) =
         (I.card : ℝ)⁻¹ := by
     classical
     simp only [w]
@@ -57,7 +60,7 @@ lemma blockAverage_l1_le {J n : ℕ} (P : ClampLaw J)
     simp [hcard]
     field_simp
   have henergyInt : Integrable (fun z : Fin n → ClampObs J =>
-      ∑ i, w (Causalean.Mathlib.Probability.designVector design z) i ^ 2)
+      ∑ i, w (designVector design z) i ^ 2)
       (iidProduct P n) := by
     convert integrable_const (μ := iidProduct P n) (I.card : ℝ)⁻¹ using 1
     funext z
@@ -76,20 +79,20 @@ lemma blockAverage_l1_le {J n : ℕ} (P : ClampLaw J)
         _ = 1 := by simp
     rw [abs_le]
     constructor <;> linarith [hf0 o, hf1 o]
-  let S := Causalean.Mathlib.Probability.weightedCenteredSum design f mD w
+  let S := weightedCenteredSum design f mD w
   have hSmeas : Measurable S := by
     dsimp [S]
-    unfold Causalean.Mathlib.Probability.weightedCenteredSum
+    unfold weightedCenteredSum
     exact Finset.measurable_fun_sum _ fun i _ =>
       ((measurable_pi_apply i).comp
-        (hw.comp (Causalean.Mathlib.Probability.measurable_designVector design hd))).mul
+        (hw.comp (measurable_designVector design hd))).mul
       ((hf.comp (measurable_pi_apply i)).sub
         (hmD.comp (hd.comp (measurable_pi_apply i))))
   have hSbound (z : Fin n → ClampObs J) : |S z| ≤ 1 := by
     dsimp [S]
-    unfold Causalean.Mathlib.Probability.weightedCenteredSum
+    unfold weightedCenteredSum
     calc
-      _ ≤ ∑ i, |w (Causalean.Mathlib.Probability.designVector design z) i *
+      _ ≤ ∑ i, |w (designVector design z) i *
           (f (z i) - mD (design (z i)))| := Finset.abs_sum_le_sum_abs _ _
       _ ≤ ∑ i, if i ∈ I then (I.card : ℝ)⁻¹ else 0 := by
         apply Finset.sum_le_sum
@@ -111,10 +114,10 @@ lemma blockAverage_l1_le {J n : ℕ} (P : ClampLaw J)
     rw [Real.norm_eq_abs, abs_of_nonneg (sq_nonneg _)]
     rw [← sq_abs]
     nlinarith [hSbound z, abs_nonneg (S z)]
-  have hbase := Causalean.Mathlib.Probability.product_weighted_centered_l1_le
+  have hbase := product_weighted_centered_l1_le
     P.dataMeasure design hd f hf hf0 hf1 mD hmD hcond w hw henergyInt hSsq
   have hSid (z : Fin n → ClampObs J) : S z = blockAverage I z f - m := by
-    unfold S Causalean.Mathlib.Probability.weightedCenteredSum blockAverage
+    unfold S weightedCenteredSum blockAverage
     simp only [w, mD]
     rw [show (∑ x, (if x ∈ I then (I.card : ℝ)⁻¹ else 0) * (f (z x) - m)) =
         ∑ i ∈ I, (I.card : ℝ)⁻¹ * (f (z i) - m) by simp]
@@ -132,7 +135,7 @@ lemma blockAverage_l1_le {J n : ℕ} (P : ClampLaw J)
         filter_upwards with z
         rw [hSid]]
   have henergyIntegral : (∫ z : Fin n → ClampObs J,
-      ∑ i, w (Causalean.Mathlib.Probability.designVector design z) i ^ 2
+      ∑ i, w (designVector design z) i ^ 2
       ∂iidProduct P n) = (I.card : ℝ)⁻¹ := by
     calc
       _ = ∫ _z : Fin n → ClampObs J, (I.card : ℝ)⁻¹ ∂iidProduct P n :=

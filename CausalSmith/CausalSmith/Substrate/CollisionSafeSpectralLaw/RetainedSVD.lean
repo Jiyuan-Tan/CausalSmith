@@ -1,6 +1,9 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
 
 /-! # Retained finite singular-value decompositions -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

@@ -10,9 +10,10 @@ the measures of `S ∩ π_{Z.rand∪W}⁻¹{fillZrW w}` under M2.obsKernel and
 M1.obsKernel agree.  Core of the hC1 step in the main theorem.
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.LevelsetCompat
-import Causalean.SCM.Do.ObsMarkov
-import Causalean.SCM.ID.Overlap
+module
+public import Causalean.SCM.Do.Rule2Kernel.LevelsetCompat
+public import Causalean.SCM.Do.ObsMarkov
+public import Causalean.SCM.Do.Overlap
 
 /-! # Level-Set Agreement for Rule 2
 
@@ -22,6 +23,13 @@ post-intervention observational kernel and the original observational kernel
 assign the same mass to every additional measurable observed event.  This
 level-set identity is the cross-model cylinder equality used in the
 disintegration argument for Rule 2. -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
@@ -36,12 +44,13 @@ open scoped MeasureTheory ProbabilityTheory
 -- § Rule 2 — Z-level-set joint kernel agreement (core of hC1)
 -- ============================================================
 
-/-- **Joint kernel agreement on the Z.random-level-set event.**
-
-    For any measurable `S ⊆ ObservedValues` and for the specific point
-    `c := fillZrW s' w` in `ValuesOn (Z.random ∪ W)`, the measures of
-    `S ∩ π_{Z.random ∪ W}⁻¹ {c}` under `M2.obsKernel s'` and
-    `M1.obsKernel (fixSetProj s')` agree.
+/-- **Joint kernel agreement on the Z.random-level-set event.** For [an intervention whose
+    target random copies are observed and fixed copies are not already fixed](hyp:hZ_obs,hZ_fixed),
+    [an observed union of the target random copies and conditioning block](hyp:hZrW), [a
+    post-intervention fixed assignment](hyp:s'), [a conditioning-block value](hyp:w), and [a
+    measurable observed event](hyp:hS), [the post-intervention and base observational kernels
+    assign equal mass to the intersection of that event with the corresponding filled
+    target-and-conditioning level set](goal).
 
     Mechanism (no d-sep needed): restricting to the event
     `π_{Z.random ∪ W} = c` forces the underlying latent `ℓ` onto the
@@ -52,10 +61,8 @@ open scoped MeasureTheory ProbabilityTheory
     observed coordinates; `fixSet_latentProduct_compat` then equates the
     two latent-product measures through the `valuesProjection` cast.
 
-    Consumed by the Rule 2 kernel bridge as the cross-SCM cylinder identity
-    that, together with `Rule2JointOverlap`, drives the disintegration-uniqueness
-    argument for the discrete-treatment route and the product-a.e. witness
-    theorem. -/
+    This is the cross-SCM cylinder identity used by the discrete-treatment
+    conditional-kernel bridge. It does not assume `Rule2JointOverlap`. -/
 theorem obsKernel_inter_singleton_Zrand_eq
     (M' : Causalean.SCM N Ω) (Z : Finset N)
     (hZ_obs : ∀ D ∈ Z, SWIGNode.random D ∈ M'.observed)

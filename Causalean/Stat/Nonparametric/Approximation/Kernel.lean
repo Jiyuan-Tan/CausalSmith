@@ -3,29 +3,36 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.Approximation.HolderTaylor
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Group.Integral
-import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+
+module
+public import Causalean.Mathlib.Analysis.Calculus.HolderTaylor
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Group.Integral
+public import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
-# Kernel smoothing bias for Hölder regression
+# Kernel convolution approximation for Hölder functions
 
-Kernel smoothing bias bounds for Hölder regression functions using finite-order kernels with
-vanishing moments.
+Convolution approximation bounds for Hölder functions using finite-order kernels with vanishing
+moments.
 
-This file defines a finite-order kernel (`KernelOrder`) and the population
-kernel-smoothing bias `kernelSmoothingBias`, and proves the classical interior
-bias estimate (Fan–Gijbels 1996 §3; Tsybakov 2009 Ch. 1): a kernel of order
-`p = holderDerivOrder β` applied to a `β`-Hölder regression function has smoothing bias `O(h^β)`.
+The definition `kernelSmoothingBias` records an unnormalised Lebesgue convolution difference. The
+main theorem bounds this difference by `O(h^β)` when a kernel of order
+`p = holderDerivOrder β` is applied to a `β`-Hölder function. No design density or normalising
+denominator is present, so the object is not by itself the population bias of a general
+random-design regression smoother.
 
 The mechanism: substitute `u = t + h v`; the kernel's vanishing moments
-`∫ vʲ K = 0` (`1 ≤ j ≤ p`) annihilate the degree-`p` Taylor polynomial of `f`
-at `t`, leaving only the Hölder–Taylor remainder `|f(t+hv) − T_p(t+hv)| ≤
-(M/p!)·(h|v|)^β` (`holder_taylor_remainder`), which integrates against `|K|`
-(supported in `[-1,1]`) to `O(h^β)`.
+`∫ vʲ K = 0` (`1 ≤ j ≤ p`) annihilate the degree-`p` Taylor polynomial of `f` at `t`,
+leaving only the Hölder–Taylor remainder
+`|f(t+hv) − T_p(t+hv)| ≤ (M/p!)·(h|v|)^β` (`holder_taylor_remainder`), which
+integrates against `|K|` (supported in `[-1,1]`) to `O(h^β)`.
 -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Analysis.HolderTaylor
 
 namespace Causalean.Stat.Nonparametric
 
@@ -34,8 +41,8 @@ open scoped BigOperators
 
 /-- A kernel of order at least `p`: [supported in `[-1,1]`](hyp:supp),
 [integrable](hyp:integrable), with [unit mass `∫ K = 1`](hyp:mass) and [vanishing moments
-`∫ uʲ K(u) du = 0` for `1 ≤ j ≤ p`](hyp:moments). These are the inputs of the classical interior
-local-polynomial / kernel bias theorem. -/
+`∫ uʲ K(u) du = 0` for `1 ≤ j ≤ p`](hyp:moments). These are the kernel assumptions used by the
+convolution approximation bound below. -/
 structure KernelOrder (K : ℝ → ℝ) (p : ℕ) : Prop where
   /-- `K` is supported in `[-1,1]`. -/
   supp : ∀ u : ℝ, 1 < |u| → K u = 0
@@ -46,7 +53,10 @@ structure KernelOrder (K : ℝ → ℝ) (p : ℕ) : Prop where
   /-- The moments `1,…,p` of `K` vanish. -/
   moments : ∀ j : ℕ, 1 ≤ j → j ≤ p → ∫ u, u ^ j * K u = 0
 
-/-- Given a [real-valued regression function](hyp:f), a [real-valued kernel function](hyp:K), a [real target point](hyp:t), and a [real bandwidth](hyp:h), the [population kernel-smoothing bias](goal) is $\int h^{-1}K((u-t)/h)\{f(u)-f(t)\}\,du$. It is the bias of estimating the regression function's value at the target point by kernel smoothing with that bandwidth. -/
+/-- Given a [real-valued function](hyp:f), a [kernel function](hyp:K), a
+[target point](hyp:t), and a [bandwidth](hyp:h), the [unnormalised Lebesgue convolution
+difference](goal) averages `f(u) - f(t)` using the rescaled kernel
+`h⁻¹ K((u-t)/h)`. It contains neither a design density nor a normalising denominator. -/
 noncomputable def kernelSmoothingBias (f K : ℝ → ℝ) (t h : ℝ) : ℝ :=
   ∫ u, h⁻¹ * K ((u - t) / h) * (f u - f t)
 
@@ -86,15 +96,14 @@ theorem kernelSmoothingBias_changeOfVar (f K : ℝ → ℝ) (t h : ℝ) (hh : 0 
     _ = |h⁻¹| • ∫ u, ψ u := by rw [integral_add_left_eq_self ψ t]
     _ = h⁻¹ * ∫ u, ψ u := by rw [smul_eq_mul, abs_of_pos (inv_pos.mpr hh)]
 
-/-- **Interior kernel smoothing bias is `O(h^β)`.** Let `p` denote the largest natural
+/-- **The kernel convolution approximation error is `O(h^β)`.** Let `p` be the largest natural
 number strictly below the smoothness index `β`. If [`β` is positive](hyp:hβ), [the Hölder
 constant `M` is nonnegative](hyp:hM), [the bandwidth `h` is positive](hyp:hh), [the kernel
-`K` has order `p`](hyp:hK), [the regression function `f` is `p` times continuously
+`K` has order `p`](hyp:hK), [the function `f` is `p` times continuously
 differentiable](hyp:hf), and [its `p`-th derivative is `(β−p)`-Hölder with constant `M` on
-the window `[t−h, t+h]`](hyp:hb), then [the kernel smoothing bias of `f` at `t` with
-bandwidth `h` is bounded by `(M/p! · ∫|K|)·h^β`](goal). For positive integer `β = m`,
-`p = m - 1` and the Hölder exponent is `1`. (Fan–Gijbels 1996 §3.1–3.3; Tsybakov 2009 Ch.
-1.) -/
+the window `[t−h, t+h]`](hyp:hb), then [the absolute unnormalised convolution difference
+at `t` is bounded by `(M/p! · ∫|K|)·h^β`](goal). For positive integer `β = m`,
+`p = m - 1` and the Hölder exponent is `1`. -/
 theorem kernelSmoothingBias_bound {f K : ℝ → ℝ} {β M t h : ℝ}
     (hβ : 0 < β) (hM : 0 ≤ M) (hh : 0 < h)
     (hK : KernelOrder K (holderDerivOrder β))

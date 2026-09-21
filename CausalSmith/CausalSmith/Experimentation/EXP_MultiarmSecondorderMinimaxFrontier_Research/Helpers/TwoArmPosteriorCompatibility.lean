@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesAssembly
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothKernel
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmFinitePosterior
-import Causalean.Stat.Minimax.FinitePosteriorBayesRisk
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmScheduleKernel
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmVanTreesAssembly
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothKernel
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmFinitePosterior
+public import Causalean.Stat.Minimax.FinitePosteriorBayesRisk
 
 /-! Finite effect-count and posterior compatibility algebra for the smooth two-arm prior. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset MeasureTheory ProbabilityTheory
@@ -602,10 +605,10 @@ lemma twoArmPosteriorCompat_error_le_effectRisk {n : ℕ} (hn : 0 < n) (a θ : �
 -- @node: twoArmPosteriorCompat_smoothPriorMeasure
 /-- The smooth two-arm prior measure has the stated density on the parameter interval and is pushed forward to effect-count triples. -/
 noncomputable def twoArmPosteriorCompat_smoothPriorMeasure (a : ℝ) : Measure ℝ :=
-  (Causalean.Stat.Limit.ObservationDependentVanTrees.parameterMeasure
+  (Causalean.Stat.Minimax.ObservationDependentVanTrees.parameterMeasure
     (-1 / 2) (1 / 2)).withDensity
       (fun θ => ENNReal.ofReal
-        (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior 0 (a / 2) θ))
+        (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior 0 (a / 2) θ))
 
 -- @node: twoArmPosteriorCompat_smoothPriorMeasure_isProbability
 /-- [the parameter lies in the stated interval](hyp:ha), [the second arm count satisfies its stated condition](hyp:ha1), [the two arm posterior compat smooth prior measure is probability property holds](goal). -/
@@ -616,12 +619,12 @@ lemma twoArmPosteriorCompat_smoothPriorMeasure_isProbability (a : ℝ) (ha : 0 <
   rw [withDensity_apply _ MeasurableSet.univ]
   simp only [Measure.restrict_univ]
   rw [← ofReal_integral_eq_lintegral_ofReal
-    (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_integrable_parameterMeasure
+    (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_integrable_parameterMeasure
       (by positivity : 0 < a / 2))
     (Filter.Eventually.of_forall
-      (Causalean.Stat.Limit.ObservationDependentVanTrees.smoothPrior_nonneg
+      (Causalean.Stat.Minimax.ObservationDependentVanTrees.smoothPrior_nonneg
         (by positivity : 0 < a / 2)))]
-  rw [Causalean.Stat.Limit.ObservationDependentVanTrees.integral_smoothPrior_parameterMeasure
+  rw [Causalean.Stat.Minimax.ObservationDependentVanTrees.integral_smoothPrior_parameterMeasure
     (by positivity : 0 < a / 2) (by linarith) (by linarith)]
   simp
 

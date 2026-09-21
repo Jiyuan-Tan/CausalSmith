@@ -4,14 +4,15 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Bandwidth
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Design
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ShiftedPowerCoercivity
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.LocalWindowGram
-import Causalean.Stat.Nonparametric.LocalPolynomial.GramCoercivity
-import Causalean.Stat.Concentration.TailBounds.BinomialCount
-import Causalean.Stat.Concentration.Matrix.LocalizedGram
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Bandwidth
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Design
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.SampleBlocks
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ShiftedPowerCoercivity
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.LocalWindowGram
+public import Causalean.Stat.Nonparametric.LocalPoly.GramCoercivity
+public import Causalean.Stat.Concentration.TailBounds.BinomialCount
+public import Causalean.Stat.Concentration.Matrix.LocalizedGram
 
 /-!
 # Uniform total-Gram stabilization
@@ -19,6 +20,8 @@ import Causalean.Stat.Concentration.Matrix.LocalizedGram
 This file isolates the note's main realized-design bottleneck. Constants are
 quantified before laws, sample sizes, thresholds, blocks, and strata.
 -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

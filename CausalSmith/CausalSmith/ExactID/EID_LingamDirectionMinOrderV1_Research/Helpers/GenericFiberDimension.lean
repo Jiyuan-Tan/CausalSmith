@@ -11,7 +11,10 @@ weight-kernel components.  The order-`r` synthesis kernel has dimension
 `m(m-1)/2`.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiberSlopeComponents
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiberSlopeComponents
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

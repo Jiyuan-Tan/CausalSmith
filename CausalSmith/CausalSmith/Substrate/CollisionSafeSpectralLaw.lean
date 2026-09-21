@@ -1,5 +1,6 @@
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
-import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
+module
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.MoorePenrose
+public import CausalSmith.Substrate.CollisionSafeSpectralLaw.Composition
 
 /-!
 # Collision-safe spectral-law substrate

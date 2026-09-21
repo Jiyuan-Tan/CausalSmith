@@ -10,8 +10,11 @@ Hájek linearization scores, and the resulting graph-only conservative envelope
 bound `σ²_{G_n,p}(Y) ≤ V_env(G_n,p)` under bounded potential outcomes.
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Linearization
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Envelope
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.Linearization
+
+public section
 
 set_option linter.style.longLine false
 set_option linter.style.whitespace false

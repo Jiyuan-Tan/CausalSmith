@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.PermutationFibers
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.PermutationFibers
 
 /-!
 Exact finite-sum regrouping from the labeled experiment to the response-type
 orbit experiment.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset

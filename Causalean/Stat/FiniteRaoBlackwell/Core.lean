@@ -1,4 +1,5 @@
-import Causalean.Experimentation.DesignBased.DesignCore
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
 
 /-!
 # Finite uniform experiments and guarded conditional designs
@@ -10,6 +11,8 @@ design on every statistic fiber.  Positive fibers use Bayes' formula; zero-mass 
 fixed point mass, so the result is a genuine probability design everywhere without changing
 any disintegration identity.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

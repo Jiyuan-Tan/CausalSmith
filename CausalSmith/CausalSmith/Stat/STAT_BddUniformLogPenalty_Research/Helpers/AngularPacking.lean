@@ -1,20 +1,21 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularCoordinates
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.SquareBoundary
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolder
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularMeasure
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
-import Causalean.Stat.Minimax.Assouad
-import Causalean.Stat.Minimax.ChiSquared
-import Causalean.Stat.Minimax.Pinsker
-import Causalean.Mathlib.Probability.BernoulliMeasure
-import Causalean.Mathlib.InformationTheory.KLBind
-import Causalean.Mathlib.InformationTheory.ProductKLLeCam
-import Causalean.Mathlib.Probability.Kernel.GraphMapProd
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Basic
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularGrid
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularCoordinates
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.SquareBoundary
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.BumpHolder
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.Polar
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularMeasure
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularDesign
+public import Causalean.Stat.Minimax.Assouad
+public import Causalean.Stat.Minimax.ChiSquared
+public import Causalean.Stat.Minimax.Pinsker
+public import Causalean.Mathlib.Probability.BernoulliMeasure
+public import Causalean.Mathlib.InformationTheory.KLBind
+public import Causalean.Mathlib.InformationTheory.ProductKLLeCam
+public import Causalean.Mathlib.Probability.Kernel.GraphMapProd
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.Analysis.Calculus.BumpFunction.FiniteDimension
 
 /-!
 # Angular hard-family packing
@@ -24,6 +25,8 @@ square-support hypercube construction.  The complete certificate is stated
 downstream in `AngularPackingTheorem`, after the faithful law constructor is
 available without an import cycle.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Set
 open scoped BigOperators ENNReal Topology

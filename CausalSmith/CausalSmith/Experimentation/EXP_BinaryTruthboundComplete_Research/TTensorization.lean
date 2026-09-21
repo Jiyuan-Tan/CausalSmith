@@ -1,9 +1,12 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BlockArray
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TQuarticSeparation
-import Causalean.Experimentation.DesignBased.ProductBlock
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.BlockArray
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TQuarticSeparation
+public import Causalean.Experimentation.DesignBased.ProductBlock
 
 /-! Tensorization of full and degree-restricted observable-margin programs. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

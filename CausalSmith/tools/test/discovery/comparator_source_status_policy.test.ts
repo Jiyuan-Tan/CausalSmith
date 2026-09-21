@@ -9,7 +9,7 @@ async function prompt(relative: string): Promise<string> {
 describe("comparator source-status policy", () => {
   it("prevents an unavailable unpublished abstract from vetoing D0.5 novelty", async () => {
     const [decision, general] = await Promise.all([
-      prompt("D0.5/stage0_5_review.txt"),
+      prompt("D0.5/stage0_5_rubric_review.txt"),
       prompt("D0.5/stage0_5_general_review.txt"),
     ]);
 
@@ -19,7 +19,7 @@ describe("comparator source-status policy", () => {
   });
 
   it("keeps published-but-unavailable results on an external-verification path", async () => {
-    const decision = await prompt("D0.5/stage0_5_review.txt");
+    const decision = await prompt("D0.5/stage0_5_rubric_review.txt");
 
     expect(decision).toContain("published-but-inaccessible load-bearing claims");
     expect(decision).toContain("source verification");

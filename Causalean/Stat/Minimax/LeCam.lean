@@ -21,13 +21,16 @@ The companion file `Causalean/Stat/Minimax/Pinsker.lean` supplies the bound on
 concrete two-point families.
 -/
 
-import Causalean.Stat.Minimax.TotalVariation
+module
+public import Causalean.Stat.Minimax.TotalVariation
 
 /-! # Le Cam Two-Point Method
 
 This file proves the two-point minimax lower bound that reduces estimation risk to
 binary testing. It supplies the real-error and worst-case probability inequalities
 used by later minimax-risk modules. -/
+
+public section
 
 namespace Causalean.Stat
 

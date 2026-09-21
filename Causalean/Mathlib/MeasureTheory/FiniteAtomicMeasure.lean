@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.MeasureTheory.Integral.Bochner.Set
+module
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
 
 /-!
 # Measures carried by finitely many atoms
@@ -12,6 +13,8 @@ import Mathlib.MeasureTheory.Integral.Bochner.Set
 This file provides decomposition, pointwise recovery, and integrability facts for
 finite measures concentrated on a finite family of measurable atoms.
 -/
+
+public section
 
 open MeasureTheory
 open scoped BigOperators ENNReal

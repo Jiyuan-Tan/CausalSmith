@@ -4,11 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityWitnessFunctional
-import Causalean.Stat.Minimax.HonestConfidenceSet
-import Causalean.Stat.Concentration.TailBounds.Bernstein
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.ContinuityWitnessFunctional
+public import Causalean.Stat.Minimax.HonestConfidenceSet
+public import Causalean.Stat.Concentration.TailBounds.Bernstein
 
 /-! # Two-point lower bounds for continuity-only honest confidence length -/
+
+public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
@@ -244,7 +247,7 @@ lemma contMinimaxLength_eventually_ge_root
       (fun _ : Fin J × ℝ => 0)) :=
     minimaxDataMeasure_isProbabilityMeasure J kappa hreg.1.1 hreg.1.2.1 _
       measurable_const (fun _ => by norm_num)
-  have hac := Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n
+  have hac := Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n
   have hint := Causalean.Stat.pi_iid_integrable_sq_dev _ _ hac1 hint1 n
   have hlower := contMinimaxLength_lower_of_two_point_chi P0 P1 n kappa cminus
     cplus pmin deltaBar (deltaSeq n) alpha eps chi hP0 hP1 heps.le
@@ -370,7 +373,7 @@ lemma contMinimaxLength_eventually_ge_atom
       (fun _ : Fin J × ℝ => 0)) :=
     minimaxDataMeasure_isProbabilityMeasure J kappa hreg.1.1 hreg.1.2.1 _
       measurable_const (fun _ => by norm_num)
-  have hac := Causalean.Stat.pi_iid_absolutelyContinuous _ _ hac1 n
+  have hac := Causalean.Mathlib.Probability.ProductAbsolutelyContinuous.pi_iid_absolutelyContinuous _ _ hac1 n
   have hint := Causalean.Stat.pi_iid_integrable_sq_dev _ _ hac1 hint1 n
   have hlower := contMinimaxLength_lower_of_two_point_chi P0 P1 n kappa cminus
     cplus pmin deltaBar (deltaSeq n) alpha

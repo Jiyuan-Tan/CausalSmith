@@ -19,8 +19,9 @@ Hence
 The regime trichotomy then follows by evaluating `PowInt` (file `PowerIntegral`).
 -/
 
-import Causalean.Stat.PolynomialTail.LayerCakeReduction
-import Causalean.Stat.PolynomialTail.PowerIntegral
+module
+public import Causalean.Stat.PolynomialTail.LayerCakeReduction
+public import Causalean.Mathlib.Analysis.SpecialFunctions.PowerIntegral
 
 /-!
 # Bounds on the polynomial-tail integral
@@ -37,6 +38,10 @@ the power comparison function.  The main results `tailIntegral_ge` and `tailInte
 bounded pre-window contribution `(t0^(-1) - 1)` plus `cp` times the same power integral.  These
 are the inputs for the three-regime `J` and `I` moment bounds.
 -/
+
+public section
+
+open Causalean.Mathlib.Analysis.PowerIntegral
 
 namespace Causalean.Stat.PolynomialTail
 

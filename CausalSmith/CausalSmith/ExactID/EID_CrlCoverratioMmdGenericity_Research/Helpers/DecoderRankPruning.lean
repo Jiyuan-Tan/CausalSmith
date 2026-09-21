@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankCondIndep
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderOrderedLocalMarkov
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRankCondIndep
 
 /-!
 # Rank-coordinate parent-pruning assembly
@@ -8,6 +9,11 @@ This module transports conditional independence between law-selected signed-CDF 
 measurable support-restricted latent coordinates, then combines ordered local Markov and
 positive-density intersection to characterize the admissible parent sets exactly.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set ProbabilityTheory
 
@@ -18,7 +24,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 -- @node: observedLatentUnitCoordinate
 /-- The support-restricted observed latent coordinate, bundled with its unit-interval range. -/
 def observedLatentUnitCoordinate
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hmix : SharedDiffeomorphicMixing G θ W) (e : Fin n) :
     LatentState n → Set.Icc (0 : ℝ) 1 := fun x =>
   ⟨observedLatentCoordinate W e x, by
@@ -32,7 +38,7 @@ def observedLatentUnitCoordinate
 -- @node: measurable_observedLatentUnitCoordinate
 /-- The unit-interval-valued observed latent coordinate is measurable.  Given [the stated inputs and conditions](hyp:hmix), [the stated conclusion](goal) follows. -/
 lemma measurable_observedLatentUnitCoordinate
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hmix : SharedDiffeomorphicMixing G θ W) (e : Fin n) :
     Measurable (observedLatentUnitCoordinate W hmix e) :=
   (measurable_observedLatentCoordinate W hmix e).subtype_mk
@@ -40,7 +46,7 @@ lemma measurable_observedLatentUnitCoordinate
 -- @node: signedInterventionCDFFamilyChart
 /-- Coordinatewise signed-CDF chart on a finite family of environment labels. -/
 def signedInterventionCDFFamilyChart
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (W : ObservedWorld G θ) (A : Finset (Fin n)) :
     ((e : {e // e ∈ A}) → Set.Icc (0 : ℝ) 1) →
@@ -51,7 +57,7 @@ def signedInterventionCDFFamilyChart
 /-- Applying the signed intervention CDF separately in finitely many coordinates is a
 measurable embedding.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma signedInterventionCDFFamilyChart_measurableEmbedding
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (W : ObservedWorld G θ) (A : Finset (Fin n)) :
     MeasurableEmbedding (signedInterventionCDFFamilyChart s θ hpos W A) := by
@@ -85,7 +91,7 @@ lemma unitFamilyVal_measurableEmbedding (A : Finset (Fin n)) :
 /-- Pointwise identification of every selected rank with its signed intervention CDF transports
 the decoder's conditional-independence test exactly to the support-restricted latent coordinates.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hrank), [the stated conclusion](goal) follows. -/
 lemma rankCoordinate_condIndep_iff_observedLatent
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -183,7 +189,7 @@ lemma rankCoordinate_condIndep_iff_observedLatent
 -- @node: measurableMixVersion
 /-- A globally measurable version of the mixing map, equal to it on the latent cube. -/
 def measurableMixVersion
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) : LatentState n → LatentState n := by
   classical
   exact (latentCube n).piecewise W.mix (fun _ => 0)
@@ -191,7 +197,7 @@ def measurableMixVersion
 -- @node: measurable_measurableMixVersion
 /-- The support-restricted mixing-map version is measurable.  Given [the stated inputs and conditions](hyp:hmix), [the stated conclusion](goal) follows. -/
 lemma measurable_measurableMixVersion
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hmix : SharedDiffeomorphicMixing G θ W) :
     Measurable (measurableMixVersion W) := by
   classical
@@ -205,7 +211,7 @@ lemma measurable_measurableMixVersion
 /-- Conditional independence of support-restricted observed latent coordinates is equivalent
 to conditional independence of the target-permuted coordinates under the latent observational law.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone), [the stated conclusion](goal) follows. -/
 lemma observedLatent_condIndep_iff_latent
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -269,7 +275,7 @@ lemma observedLatent_condIndep_iff_latent
 -- @node: permutedValuesEquiv
 /-- Reindexing a finite coordinate family along the world's target permutation. -/
 def permutedValuesEquiv
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (A : Finset (Fin n)) :
     ((k : {k // k ∈ A.map W.targetPerm.toEmbedding}) → ℝ) ≃ᵐ
       ((e : {e // e ∈ A}) → ℝ) where
@@ -313,7 +319,7 @@ def singletonFamilyEquiv (b : Fin n) :
 /-- Ordered local Markov in environment-label coordinates, reindexing the latent projection
 along the intervention-target permutation.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder,hA,hpa), [the stated conclusion](goal) follows. -/
 lemma mechanism_condIndepGiven_permutedOrderedLocalMarkov_env
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ)
@@ -356,7 +362,7 @@ lemma mechanism_condIndepGiven_permutedOrderedLocalMarkov_env
 /-- For every valid ratio-graph ordering, rank-coordinate conditional independence holds
 exactly when the conditioning set contains all environment-label parents.  Given [the stated inputs and conditions](hyp:hpos,hminimal,hmix,hone,horder,hgraphOrder,hrank), [the stated conclusion](goal) follows. -/
 lemma exactRankCondIndepCharacterization_of_order
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hminimal : CausalMinimality G θ)
@@ -426,7 +432,7 @@ lemma exactRankCondIndepCharacterization_of_order
       simpa [singletonFamilyEquiv, familyProjection, Function.comp_def] using h
     have hmapP : P.map W.targetPerm.toEmbedding = G.parents (W.targetPerm i) := by
       ext k
-      simp [P, environmentParentSet, Causalean.DAG.parents]
+      simp [P, environmentParentSet, DAG.parents]
     have hmapErase : (P.erase b).map W.targetPerm.toEmbedding =
         (G.parents (W.targetPerm i)).erase (W.targetPerm b) := by
       rw [Finset.map_erase, hmapP]
@@ -445,7 +451,7 @@ lemma exactRankCondIndepCharacterization_of_order
       rw [← hmapErase]
       exact h
     have hedge : G.edge (W.targetPerm b) (W.targetPerm i) := by
-      simpa [P, environmentParentSet, Causalean.DAG.parents] using hbP
+      simpa [P, environmentParentSet, DAG.parents] using hbP
     exact hminimal hedge
       ((condIndepCoordinates_singletons_iff_condIndepGiven
         (W.targetPerm i) (W.targetPerm b)
@@ -460,7 +466,7 @@ lemma exactRankCondIndepCharacterization_of_order
 -- @node: exactRankCondIndepCharacterization
 /-- Transitive-closure recovery specializes the ordered characterization to every ratio order.  Given [the stated inputs and conditions](hyp:hpos,hminimal,hmix,hone,htc,horder,hrank), [the stated conclusion](goal) follows. -/
 lemma exactRankCondIndepCharacterization
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hminimal : CausalMinimality G θ)

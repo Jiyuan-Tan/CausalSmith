@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperNoise
-import Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.Tail
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.UpperNoise
+public import Causalean.Stat.Concentration.Hoeffding.RandomDesign.Tail
 
 /-!
 # Random-design weighted concentration on the good-Gram event
@@ -16,14 +17,16 @@ realized energy is everywhere positive; the resulting tail is then restricted
 back to the good event used by the atom-fallback interval.
 -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 
-open MeasureTheory Set
+open MeasureTheory Set Causalean.Stat.Concentration.RandomDesignWeightedHoeffding
 open scoped BigOperators
 
 noncomputable section
 
-private abbrev ClampDesign (J : ℕ) := Fin J × ℝ
+abbrev ClampDesign (J : ℕ) := Fin J × ℝ
 
 /-- On the good-Gram event the exact equivalent-kernel weights have strictly
 positive realized squared energy. The result uses [the `hlambda` condition](hyp:hlambda), [the `hgood` condition](hyp:hgood). [This is the stated conclusion](goal).
@@ -35,7 +38,7 @@ lemma good_gram_positive_energy {J n ell : ℕ}
     (hgood : GoodGramEvent B z x ell kappa cminus cplus delta h) :
     0 < ∑ i, (localRegressionDesignWeight (ell := ell) B x
       kappa cminus cplus delta h
-      (Causalean.Mathlib.Probability.designVector
+      (designVector
         (fun o : ClampObs J => (o.X, o.A)) z) i) ^ 2 := by
   classical
   have hrep := goodGram_reproduction B z x kappa cminus cplus delta h
@@ -97,16 +100,16 @@ lemma stabilizedWeight_eq_on_good {J n ell : ℕ} (B : SplitBlocks n)
     (kappa cminus cplus delta h : ℝ) (i₀ : Fin n)
     (hgood : GoodGramEvent B z x ell kappa cminus cplus delta h) :
     stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z) =
     localRegressionDesignWeight (ell := ell) B x
         kappa cminus cplus delta h
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z) := by
   funext i
   have hgood' : GoodGramEvent B
       (fun j => clampDesignLift
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z j)) x ell
         kappa cminus cplus delta h := by
     change GoodGramEvent B z x ell kappa cminus cplus delta h
@@ -118,21 +121,21 @@ lemma stabilizedWeight_positive_energy {J n ell : ℕ} (B : SplitBlocks n)
     (z : Fin n → ClampObs J) (x : Fin J)
     (kappa cminus cplus delta h : ℝ) (i₀ : Fin n)
     (hlambda : 0 < lambdaStar ell kappa cminus cplus) :
-    0 < Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.realizedWeightEnergy
+    0 < realizedWeightEnergy
       (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀)
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z) := by
   classical
-  unfold Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.realizedWeightEnergy
+  unfold realizedWeightEnergy
   by_cases hgood : GoodGramEvent B z x ell kappa cminus cplus delta h
   · rw [stabilizedWeight_eq_on_good B z x kappa cminus cplus delta h i₀ hgood]
     exact good_gram_positive_energy B z x kappa cminus cplus delta h hlambda hgood
   · have hone : stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z) i₀ = 1 := by
       have hgood' : ¬ GoodGramEvent B
           (fun j => clampDesignLift
-            (Causalean.Mathlib.Probability.designVector
+            (designVector
               (fun o : ClampObs J => (o.X, o.A)) z j)) x ell
             kappa cminus cplus delta h := by
         change ¬ GoodGramEvent B z x ell kappa cminus cplus delta h
@@ -140,14 +143,14 @@ lemma stabilizedWeight_positive_energy {J n ell : ℕ} (B : SplitBlocks n)
       simp [stabilizedWeight, hgood']
     have hsingle : (0 : ℝ) <
         (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀
-          (Causalean.Mathlib.Probability.designVector
+          (designVector
             (fun o : ClampObs J => (o.X, o.A)) z) i₀) ^ 2 := by
       rw [hone]
       norm_num
     exact lt_of_lt_of_le hsingle
       (Finset.single_le_sum (fun i _ => sq_nonneg
         (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀
-          (Causalean.Mathlib.Probability.designVector
+          (designVector
             (fun o : ClampObs J => (o.X, o.A)) z) i)) (Finset.mem_univ i₀))
 
 /-- The finite-product random-design Hoeffding tail for the stabilized weights.
@@ -160,17 +163,17 @@ lemma stabilized_weighted_tail {J n ell : ℕ} (P : ClampLaw J)
     (hlambda : 0 < lambdaStar ell kappa cminus cplus) (ht : 0 ≤ t) :
     (iidProduct P n).real {z |
       t * Real.sqrt
-          (Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.realizedWeightEnergy
+          (realizedWeightEnergy
             (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀)
-            (Causalean.Mathlib.Probability.designVector
+            (designVector
               (fun o : ClampObs J => (o.X, o.A)) z)) ≤
-        |Causalean.Mathlib.Probability.weightedCenteredSum
+        |weightedCenteredSum
           (fun o : ClampObs J => (o.X, o.A)) (fun o => o.Y)
           (clampRegressionExtension P)
           (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀) z|} ≤
       2 * Real.exp (-2 * t ^ 2) := by
   letI : IsProbabilityMeasure P.dataMeasure := hmodel.probability
-  apply Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.product_weighted_centered_tail_le
+  apply product_weighted_centered_tail_le
     P.dataMeasure (fun o : ClampObs J => (o.X, o.A)) clampDesign_measurable
     (fun o : ClampObs J => o.Y) clampOutcome_measurable
     (hmodel.outcomeSupport.mono fun _ ho => ho.1)
@@ -209,29 +212,29 @@ lemma block_weighted_tail_on_good_gram {J n ell : ℕ} (P : ClampLaw J)
   intro z hz
   rcases hz with ⟨hgood, hbound⟩
   change t * Real.sqrt
-      (Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.realizedWeightEnergy
+      (realizedWeightEnergy
         (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀)
-        (Causalean.Mathlib.Probability.designVector
+        (designVector
           (fun o : ClampObs J => (o.X, o.A)) z)) ≤
-    |Causalean.Mathlib.Probability.weightedCenteredSum
+    |weightedCenteredSum
       (fun o : ClampObs J => (o.X, o.A)) (fun o => o.Y)
       (clampRegressionExtension P)
       (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀) z|
   have hw := stabilizedWeight_eq_on_good B z x kappa cminus cplus delta h i₀ hgood
   have hcentered :
-      Causalean.Mathlib.Probability.weightedCenteredSum
+      weightedCenteredSum
           (fun o : ClampObs J => (o.X, o.A)) (fun o => o.Y)
           (clampRegressionExtension P)
           (stabilizedWeight (ell := ell) B x kappa cminus cplus delta h i₀) z =
-        Causalean.Mathlib.Probability.weightedCenteredSum
+        weightedCenteredSum
           (fun o : ClampObs J => (o.X, o.A)) (fun o => o.Y)
           (clampRegressionExtension P)
           (localRegressionDesignWeight (ell := ell) B x
             kappa cminus cplus delta h) z := by
-    unfold Causalean.Mathlib.Probability.weightedCenteredSum
+    unfold weightedCenteredSum
     rw [hw]
   rw [hcentered, weightedCenteredSum_localRegression]
-  unfold Causalean.Stat.Concentration.RandomDesignWeightedHoeffding.realizedWeightEnergy
+  unfold realizedWeightEnergy
   rw [hw]
   simp_rw [localRegressionDesignWeight_apply (ell := ell), ite_pow, zero_pow
     (by norm_num : 2 ≠ 0)]

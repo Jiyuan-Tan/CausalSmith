@@ -22,7 +22,8 @@ and the three-regime bounds live in `Stat/PolynomialTail/TailIntegralBounds.lean
 `Stat/PolynomialTail/MomentJBounds.lean`, and `Stat/PolynomialTail/MomentIBounds.lean`.
 -/
 
-import Causalean.Stat.PolynomialTail.Basic
+module
+public import Causalean.Stat.PolynomialTail.Basic
 
 /-!
 # Layer-cake reduction to the tail integral
@@ -39,6 +40,8 @@ integrability of the tail integrand, and nonnegativity of `tailIntegral`.  The p
 assumption is not used here; it enters later through the sandwich bounds in
 `TailIntegralBounds`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.PolynomialTail
 

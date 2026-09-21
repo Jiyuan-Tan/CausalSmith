@@ -32,4 +32,23 @@ describe("parseLeanDecls declaration inventory", () => {
       await rm(dir, { recursive: true, force: true });
     }
   });
+
+  it("parses every declaration under a module public section", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "crosswalk-module-decls-"));
+    try {
+      await writeFile(join(dir, "Basic.lean"), [
+        "module",
+        "/-! Module-style fixture. -/",
+        "@[expose] public section",
+        "def p1_model : Nat := 1",
+        "theorem t1_main : True := by trivial",
+        "lemma l1_step : True := by trivial",
+      ].join("\n"));
+      const decls = await parseLeanDecls(dir, { includeLemmas: true });
+      expect(decls).toHaveLength(3);
+      expect(decls.map((decl) => decl.name)).toEqual(["p1_model", "t1_main", "l1_step"]);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
 });

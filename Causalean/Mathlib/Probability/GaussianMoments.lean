@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.Probability.StdNormalMoments
+module
+public import Causalean.Mathlib.Probability.StdNormalMoments
 
 /-!
 # General Gaussian survival and truncated first moment
@@ -22,6 +23,8 @@ The public results are:
   `m * (1 - stdNormalCDF ((c - m) / sqrt v))
     + sqrt v * stdNormalPDF ((c - m) / sqrt v)`.
 -/
+
+public section
 
 namespace Causalean.Mathlib
 

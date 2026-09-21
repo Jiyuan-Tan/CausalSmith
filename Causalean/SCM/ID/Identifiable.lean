@@ -38,8 +38,9 @@ Lean will not always see this definitionally.
 * Basic Concepts.tex, Definitions 9-10 (Causal Effect, Identifiability)
 -/
 
-import Causalean.SCM.Model.SCM
-import Causalean.SCM.Model.Kernel
+module
+public import Causalean.SCM.Model.SCM
+public import Causalean.SCM.Model.Kernel
 
 /-! # Identifiability
 
@@ -50,6 +51,11 @@ whether a query is a functional of the observational law on a fixed SWIG graph,
 and `IdentifiableUnder` adds functional and structural assumption predicates.
 The helper theorems expose witness-based non-identifiability and monotonicity
 under stronger assumptions. -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 namespace Causalean.SCM.ID
 

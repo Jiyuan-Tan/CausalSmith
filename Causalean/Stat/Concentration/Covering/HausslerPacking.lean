@@ -1,16 +1,19 @@
-import Causalean.Stat.Concentration.Covering.VCCovering
+module
+public import Causalean.Stat.Concentration.Covering.VCCovering
 
 /-!
-Haussler-style VC packing bounds for finite Boolean classes.
+Elementary VC packing estimates for finite Boolean classes.
 
 This file isolates the probabilistic random-subsample extraction used in the
-standard Haussler packing argument, then derives the cardinality and logarithmic
-packing bounds from Sauer-Shelah.  The public API includes
+classical packing argument, then derives a self-logarithmic estimate from
+Sauer-Shelah. The public API includes
 `weightedHammingSq`, the separating-subsample extraction
 `exists_separating_subsample`, the self-referential logarithmic solver
-`self_log_solve`, and the final `vc_weightedHamming_packing_card_le` /
-`vc_weightedHamming_packing_card_le` bounds.
+`self_log_solve`, and the final logarithmic estimate
+`vc_weightedHamming_packing_log_card_le`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Concentration
 
@@ -617,14 +620,18 @@ private lemma haussler_log_rhs_nonneg
     mul_nonneg hcoef_nonneg hlog_nonneg
   linarith
 
-/-- **Haussler ε-packing bound, logarithmic form.** Let [w be a nonnegative weight on the n sample
+/-- **Elementary VC ε-packing estimate, logarithmic form.** Let
+[w be a nonnegative weight on the n sample
 coordinates](hyp:hw) with [total weight at most r²](hyp:hwsum), where [ε is positive](hyp:hε) and
 [at most r](hyp:hεr). If [the Boolean family P, viewed as the sets of coordinates where each member
 is true, has VC dimension at most d](hyp:hvc) and [every two distinct members of P are separated by
 weighted Hamming distance at least ε² in that weighting](hyp:hsep), then [the logarithm of the
 cardinality of P is at most `1 + 2d·log(4d·r²/ε²)`](goal) — a bound depending only on d and the
-ratio r²/ε², with no dependence on the ambient coordinate count n. -/
-theorem vc_weightedHamming_packing_card_le
+ratio r²/ε², with no dependence on the ambient coordinate count n.
+
+This is the elementary subsampling and Sauer-Shelah estimate proved here, not
+the sharper classical Haussler packing theorem. -/
+theorem vc_weightedHamming_packing_log_card_le
     {n : ℕ} (d : ℕ) (w : Fin n → ℝ) (hw : ∀ j, 0 ≤ w j)
     (r ε : ℝ) (hε : 0 < ε) (hεr : ε ≤ r)
     (hwsum : ∑ j, w j ≤ r ^ 2)

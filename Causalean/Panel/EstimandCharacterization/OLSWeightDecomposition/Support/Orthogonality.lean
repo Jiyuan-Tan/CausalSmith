@@ -3,21 +3,25 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Słoczyński (2022): orthogonality helpers
+# Saturated finite-cell orthogonality helpers
 
 Per-cell orthogonality facts and the observed-outcome L² bridge.
 -/
 
-import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Integrals
-/-! # Słoczyński orthogonality helpers
+module
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Integrals
+
+/-! # Saturated Finite-Cell Orthogonality Helpers
 
 This file proves the cell-level orthogonality statements needed for the
-Słoczyński finite-cell bridge. It shows that treatment and outcome residuals
+saturated finite-cell bridge. It shows that treatment and outcome residuals
 are orthogonal to saturated cell indicators through
 `residD_cell_orthogonal` and `residY_cell_orthogonal`. It also proves
 `Y_memLp_of_consistency`, deriving observed-outcome square-integrability from
 binary treatment, consistency, and square-integrability of the two potential
 outcomes. -/
+
+public section
 
 namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 
@@ -49,7 +53,7 @@ theorem residD_cell_orthogonal {Ω 𝒢 : Type*} [MeasurableSpace Ω]
     exact memLp_of_bounded (f := D) hD_bounded
       (D_meas.aestronglyMeasurable) (2 : ENNReal)
   have hI_mem : MemLp I 2 μ := by
-    simpa [I, s] using indicator_cell_memLp μ G G_meas g
+    simpa [I, s] using CellBridge.indicator_cell_memLp μ G G_meas g
   have hDInt : Integrable (fun ω => D ω * I ω) μ :=
     hD_mem.integrable_mul hI_mem
   have hpIInt : Integrable (fun ω => p * I ω) μ :=
@@ -71,14 +75,14 @@ theorem residD_cell_orthogonal {Ω 𝒢 : Type*} [MeasurableSpace Ω]
           ∫ ω, D ω * I ω - p * I ω ∂μ := integral_congr_ae h_ae
       _ = ∫ ω, D ω * I ω ∂μ - ∫ ω, p * I ω ∂μ :=
           integral_sub hDInt hpIInt
-  have hIint : ∫ ω, I ω ∂μ = cellMass μ G g := by
-    simpa [I, s] using integral_cell_indicator_one_eq_cellMass μ G G_meas g
-  have hpInt : ∫ ω, p * I ω ∂μ = p * cellMass μ G g := by
+  have hIint : ∫ ω, I ω ∂μ = CellBridge.cellMass μ G g := by
+    simpa [I, s] using CellBridge.integral_cell_indicator_one_eq_cellMass μ G G_meas g
+  have hpInt : ∫ ω, p * I ω ∂μ = p * CellBridge.cellMass μ G g := by
     calc
       ∫ ω, p * I ω ∂μ = p * ∫ ω, I ω ∂μ := integral_const_mul p I
-      _ = p * cellMass μ G g := by rw [hIint]
-  have hshare : p * cellMass μ G g = ∫ ω, D ω * I ω ∂μ := by
-    simpa [p, I, s, cellShare, cellMass] using
+      _ = p * CellBridge.cellMass μ G g := by rw [hIint]
+  have hshare : p * CellBridge.cellMass μ G g = ∫ ω, D ω * I ω ∂μ := by
+    simpa [p, I, s, cellShare, CellBridge.cellMass] using
       (CellBridge.cellMean_mul_cellMass μ D G g)
   change ∫ ω, (D ω - propensity μ D G ω) * I ω ∂μ = 0
   rw [hInt, hpInt, hshare]
@@ -99,9 +103,9 @@ theorem residY_cell_orthogonal {Ω 𝒢 : Type*} [MeasurableSpace Ω]
   classical
   let s : Set Ω := {ω | G ω = g}
   let I : Ω → ℝ := fun ω => Set.indicator s (fun _ => (1 : ℝ)) ω
-  let m : ℝ := (∫ ω, Y ω * I ω ∂μ) / cellMass μ G g
+  let m : ℝ := (∫ ω, Y ω * I ω ∂μ) / CellBridge.cellMass μ G g
   have hI_mem : MemLp I 2 μ := by
-    simpa [I, s] using indicator_cell_memLp μ G G_meas g
+    simpa [I, s] using CellBridge.indicator_cell_memLp μ G G_meas g
   have hYInt : Integrable (fun ω => Y ω * I ω) μ :=
     Y_memLp.integrable_mul hI_mem
   have hmIInt : Integrable (fun ω => m * I ω) μ :=
@@ -123,14 +127,14 @@ theorem residY_cell_orthogonal {Ω 𝒢 : Type*} [MeasurableSpace Ω]
           ∫ ω, Y ω * I ω - m * I ω ∂μ := integral_congr_ae h_ae
       _ = ∫ ω, Y ω * I ω ∂μ - ∫ ω, m * I ω ∂μ :=
           integral_sub hYInt hmIInt
-  have hIint : ∫ ω, I ω ∂μ = cellMass μ G g := by
-    simpa [I, s] using integral_cell_indicator_one_eq_cellMass μ G G_meas g
-  have hmInt : ∫ ω, m * I ω ∂μ = m * cellMass μ G g := by
+  have hIint : ∫ ω, I ω ∂μ = CellBridge.cellMass μ G g := by
+    simpa [I, s] using CellBridge.integral_cell_indicator_one_eq_cellMass μ G G_meas g
+  have hmInt : ∫ ω, m * I ω ∂μ = m * CellBridge.cellMass μ G g := by
     calc
       ∫ ω, m * I ω ∂μ = m * ∫ ω, I ω ∂μ := integral_const_mul m I
-      _ = m * cellMass μ G g := by rw [hIint]
-  have hmean : m * cellMass μ G g = ∫ ω, Y ω * I ω ∂μ := by
-    simpa [m, I, s, cellMass, CellBridge.cellMean] using
+      _ = m * CellBridge.cellMass μ G g := by rw [hIint]
+  have hmean : m * CellBridge.cellMass μ G g = ∫ ω, Y ω * I ω ∂μ := by
+    simpa [m, I, s, CellBridge.cellMass, CellBridge.cellMean] using
       (CellBridge.cellMean_mul_cellMass μ Y G g)
   change ∫ ω, (Y ω - meanReg μ Y G ω) * I ω ∂μ = 0
   rw [hInt, hmInt, hmean]

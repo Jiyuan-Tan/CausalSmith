@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Designs used by the unbounded dispersion certificate
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionOptimization
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TSurrogateCertificate
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionOptimization
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.TSurrogateCertificate
+
+@[expose] public section
 
 set_option linter.style.longLine false
 

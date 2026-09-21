@@ -3,19 +3,20 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Dynamic Treatment Regime: helper lemmas for the general finite horizon
+# Fixed Longitudinal Treatment Path: helper lemmas for the general finite horizon
 
 Auxiliary measurability, integrability, consistency, and
-σ-algebra-comparison lemmas for the general finite-horizon DTR backdoor proof.
+σ-algebra-comparison lemmas for the general finite-horizon treatment-path backdoor proof.
 These results are used by `DTR/Induction.lean` and `DTR/Main.lean`.
 -/
 
-import Causalean.PO.ID.Exact.DTR.Setup
+module
+public import Causalean.PO.ID.Exact.DTR.Setup
 
-/-! # Dynamic Treatment Regime Helpers
+/-! # Fixed Longitudinal Treatment Path Helpers
 
 This file provides auxiliary measurability, integrability, and sigma-algebra
-comparison lemmas for the general finite-horizon dynamic treatment regime
+comparison lemmas for the general finite-horizon fixed longitudinal treatment path
 proofs. These helpers support the backward-induction and final identification
 arguments but are split out because they are shared across DTR files.
 
@@ -24,12 +25,14 @@ Important public lemmas include `historyBundle_sigma_mono`,
 `factualAgrees_regime`, `indD_mul_Y_integrable`, `measurable_innerReg`, and
 `yVar_notMem_regime`. -/
 
+@[expose] public section
+
 namespace Causalean
 namespace PO
 
 open MeasureTheory ProbabilityTheory
 
-namespace PODTRSystem
+namespace POLongitudinalPathSystem
 
 variable {P : POSystem} {n : ℕ} {δ : Type} {γ : Fin n → Type}
 variable [MeasurableSpace δ] [MeasurableSingletonClass δ]
@@ -41,17 +44,18 @@ variable [∀ k, MeasurableSpace (γ k)]
 The joint value at stage `k+1` therefore contains the joint value at stage
 `k` starting from coordinate `2`.  `hb_step_proj` extracts that suffix. -/
 
-/-- For [a dynamic treatment-regime system](hyp:S), [a stage index](hyp:k), and [proof that
-the next stage exists](hyp:h), the [projection from the next-stage history vector to the current-
-stage history vector](goal) drops the newly added next state and current treatment coordinates. -/
-noncomputable def hb_step_proj (S : PODTRSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
+/-- [The one-step history projection](goal) for [a longitudinal-path system](hyp:S) at
+[a selected stage](hyp:k), when [the next stage exists](hyp:h), [recovers the earlier
+information set by dropping the new state and current-treatment coordinates](step:1). -/
+noncomputable def hb_step_proj (S : POLongitudinalPathSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
     (∀ i, (S.historyBundle (k+1) h).type i) →
       (∀ j, (S.historyBundle k (Nat.lt_of_succ_lt h)).type j) :=
   fun f j => f j.succ.succ
 
-/-- The projection from a stage's extended history to the previous history is measurable. -/
+/-- [The one-step history projection](hyp:S,k,h) [is measurable](goal), which makes every
+earlier-history event observable from the next-stage history. -/
 @[fun_prop]
-lemma measurable_hb_step_proj (S : PODTRSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
+lemma measurable_hb_step_proj (S : POLongitudinalPathSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
     Measurable (S.hb_step_proj k h) := by
   apply measurable_pi_lambda
   intro j
@@ -65,14 +69,14 @@ lemma measurable_hb_step_proj (S : PODTRSystem P n δ γ) (k : ℕ) (h : k + 1 <
 
 /-- Key algebraic identity: the stage-`k` joint value factors through the
 stage-`(k+1)` joint value via `hb_step_proj`. -/
-lemma hb_jointValue_step_eq (S : PODTRSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
+lemma hb_jointValue_step_eq (S : POLongitudinalPathSystem P n δ γ) (k : ℕ) (h : k + 1 < n) :
     (S.historyBundle k (Nat.lt_of_succ_lt h)).jointValue
       = S.hb_step_proj k h ∘ (S.historyBundle (k+1) h).jointValue := by
   funext ω j
   rfl
 
 /-- One-step σ-algebra inclusion: `σ(history k) ≤ σ(history (k+1))`. -/
-lemma historyBundle_sigma_mono_step (S : PODTRSystem P n δ γ)
+lemma historyBundle_sigma_mono_step (S : POLongitudinalPathSystem P n δ γ)
     (k : ℕ) (h : k + 1 < n) :
     (S.historyBundle k (Nat.lt_of_succ_lt h)).sigma
       ≤ (S.historyBundle (k+1) h).sigma := by
@@ -83,7 +87,7 @@ lemma historyBundle_sigma_mono_step (S : PODTRSystem P n δ γ)
   exact MeasurableSpace.comap_mono (S.measurable_hb_step_proj k h).comap_le
 
 /-- Iterated σ-algebra monotonicity: `σ(history j) ≤ σ(history k)` for `j ≤ k`. -/
-lemma historyBundle_sigma_mono (S : PODTRSystem P n δ γ)
+lemma historyBundle_sigma_mono (S : POLongitudinalPathSystem P n δ γ)
     (j k : ℕ) (hjk : j ≤ k) (hk : k < n) :
     (S.historyBundle j (lt_of_le_of_lt hjk hk)).sigma
       ≤ (S.historyBundle k hk).sigma := by
@@ -103,7 +107,7 @@ lemma historyBundle_sigma_mono (S : PODTRSystem P n δ γ)
 /-! ### `indD` integrability and pointwise identities -/
 
 /-- `indD dbar k ω ∈ {0, 1}` for every `ω` and every `k`. -/
-lemma indD_eq_zero_or_one (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
+lemma indD_eq_zero_or_one (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) :
     ∀ (k : ℕ) (ω : P.Ω), S.indD dbar k ω = 0 ∨ S.indD dbar k ω = 1
   | 0, _ => Or.inr rfl
   | k + 1, ω => by
@@ -120,7 +124,7 @@ lemma indD_eq_zero_or_one (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
 
 /-- `indD dbar k` is bounded by 1, hence integrable for finite `μ`. -/
 @[fun_prop]
-lemma indD_integrable (S : PODTRSystem P n δ γ)
+lemma indD_integrable (S : POLongitudinalPathSystem P n δ γ)
     (dbar : Fin n → δ) (k : ℕ) [IsFiniteMeasure P.μ] :
     Integrable (S.indD dbar k) P.μ := by
   refine Integrable.of_bound (S.measurable_indD dbar k).aestronglyMeasurable 1
@@ -129,7 +133,7 @@ lemma indD_integrable (S : PODTRSystem P n δ γ)
   rcases S.indD_eq_zero_or_one dbar k ω with h | h <;> simp [h]
 
 /-- Event expression for `indD`: as a set-indicator of the agreement event. -/
-lemma indD_eq_indicator_event (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
+lemma indD_eq_indicator_event (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) :
     ∀ (k : ℕ) (_ : k ≤ n),
       S.indD dbar k =
         ({ω | ∀ i : Fin n, i.val < k → S.factualD i ω = dbar i}).indicator
@@ -185,12 +189,13 @@ lemma indD_eq_indicator_event (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) 
           rw [Set.indicator_of_notMem hnmem]
           ring
 
-/-- For [any stage `k` within the horizon `n`](hyp:hk), [the indicator that a
-unit's observed treatment path matches the regime `dbar` through stage `k+1`
+/-- [Path agreement in a longitudinal-path system](hyp:S,dbar), at
+[a selected stage](hyp:k) [within the horizon](hyp:hk), means [the indicator that a
+unit's observed treatment path matches the regime through stage `k+1`
 factors as the indicator through stage `k` times the indicator that the
-observed treatment at stage `k` equals `dbar`'s value at stage `k`](goal):
+observed treatment at stage `k` equals the path's value there](goal):
 `indD dbar (k+1) = indD dbar k · 1_{D k = dbar k}`. -/
-lemma indD_factor_split (S : PODTRSystem P n δ γ)
+lemma indD_factor_split (S : POLongitudinalPathSystem P n δ γ)
     (dbar : Fin n → δ) (k : ℕ) (hk : k < n) :
     S.indD dbar (k+1) =
       fun ω => S.indD dbar k ω * (S.dVar ⟨k, hk⟩).indicator (dbar ⟨k, hk⟩) ω := by
@@ -213,7 +218,7 @@ is measurable in `historyBundle m` for `k'.val ≤ m`, and `factualD k'`
 is measurable in `historyBundle m` for `k'.val < m`. -/
 
 /-- `factualS k'` is `(historyBundle m).sigma`-measurable for `k'.val ≤ m`. -/
-lemma measurable_factualS_sigma_history (S : PODTRSystem P n δ γ)
+lemma measurable_factualS_sigma_history (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m < n) (k' : Fin n) (hk' : k'.val ≤ m) :
     Measurable[(S.historyBundle m hm).sigma] (S.factualS k') := by
   induction m with
@@ -244,7 +249,7 @@ lemma measurable_factualS_sigma_history (S : PODTRSystem P n δ γ)
         · rfl
 
 /-- `factualD k'` is `(historyBundle m).sigma`-measurable for `k'.val < m`. -/
-lemma measurable_factualD_sigma_history (S : PODTRSystem P n δ γ)
+lemma measurable_factualD_sigma_history (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m < n) (k' : Fin n) (hk' : k'.val < m) :
     Measurable[(S.historyBundle m hm).sigma] (S.factualD k') := by
   induction m with
@@ -268,9 +273,10 @@ lemma measurable_factualD_sigma_history (S : PODTRSystem P n δ γ)
         · exact measurable_pi_apply _ hs
         · rw [hkfin]; rfl
 
-/-- The real-valued indicator `dVar ⟨k', hk⟩.indicator (dbar ⟨k', hk⟩)` is
-`(historyBundle m).sigma`-strongly-measurable for `k' < m`. -/
-lemma stronglyMeasurable_indicator_dVar_sigma_history (S : PODTRSystem P n δ γ)
+/-- [In a longitudinal-path system](hyp:S), [a valid history cutoff](hyp:m,hm) makes
+[the indicator that an earlier treatment equals a selected value](hyp:k',hk',x)
+[strongly measurable with respect to the history σ-algebra](goal). -/
+lemma stronglyMeasurable_indicator_dVar_sigma_history (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m < n) (k' : Fin n) (hk' : k'.val < m) (x : δ) :
     StronglyMeasurable[(S.historyBundle m hm).sigma]
       ((S.dVar k').indicator x) := by
@@ -296,7 +302,7 @@ the goal is closed by a bare tactic call. -/
 /-- The state observed at the stage a history bundle ends on is measurable with
 respect to that history bundle's σ-algebra. -/
 @[fun_prop]
-lemma measurable_factualS_sigma_history_last (S : PODTRSystem P n δ γ)
+lemma measurable_factualS_sigma_history_last (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m < n) :
     Measurable[(S.historyBundle m hm).sigma] (S.factualS ⟨m, hm⟩) :=
   S.measurable_factualS_sigma_history m hm ⟨m, hm⟩ (le_refl m)
@@ -304,7 +310,7 @@ lemma measurable_factualS_sigma_history_last (S : PODTRSystem P n δ γ)
 /-- The state observed one stage before the stage a history bundle ends on is
 measurable with respect to that history bundle's σ-algebra. -/
 @[fun_prop]
-lemma measurable_factualS_sigma_history_pred (S : PODTRSystem P n δ γ)
+lemma measurable_factualS_sigma_history_pred (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m + 1 < n) :
     Measurable[(S.historyBundle (m + 1) hm).sigma]
       (S.factualS ⟨m, Nat.lt_of_succ_lt hm⟩) :=
@@ -314,7 +320,7 @@ lemma measurable_factualS_sigma_history_pred (S : PODTRSystem P n δ γ)
 /-- The last treatment recorded in a history bundle is measurable with respect to
 that history bundle's σ-algebra. -/
 @[fun_prop]
-lemma measurable_factualD_sigma_history_last (S : PODTRSystem P n δ γ)
+lemma measurable_factualD_sigma_history_last (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m + 1 < n) :
     Measurable[(S.historyBundle (m + 1) hm).sigma]
       (S.factualD ⟨m, Nat.lt_of_succ_lt hm⟩) :=
@@ -326,7 +332,7 @@ given value is strongly measurable with respect to that history bundle's
 σ-algebra. -/
 @[fun_prop]
 lemma stronglyMeasurable_indicator_dVar_sigma_history_last
-    (S : PODTRSystem P n δ γ) (m : ℕ) (hm : m + 1 < n) (x : δ) :
+    (S : POLongitudinalPathSystem P n δ γ) (m : ℕ) (hm : m + 1 < n) (x : δ) :
     StronglyMeasurable[(S.historyBundle (m + 1) hm).sigma]
       ((S.dVar ⟨m, Nat.lt_of_succ_lt hm⟩).indicator x) :=
   S.stronglyMeasurable_indicator_dVar_sigma_history (m + 1) hm
@@ -334,7 +340,7 @@ lemma stronglyMeasurable_indicator_dVar_sigma_history_last
 
 /-- The joint-agreement indicator `indD dbar m'` is
 `(historyBundle m).sigma`-strongly-measurable for `m' ≤ m`. -/
-lemma stronglyMeasurable_indD_sigma_history (S : PODTRSystem P n δ γ)
+lemma stronglyMeasurable_indD_sigma_history (S : POLongitudinalPathSystem P n δ γ)
     (m : ℕ) (hm : m < n) (dbar : Fin n → δ) :
     ∀ (m' : ℕ) (_ : m' ≤ m),
       StronglyMeasurable[(S.historyBundle m hm).sigma] (S.indD dbar m')
@@ -356,11 +362,11 @@ lemma stronglyMeasurable_indD_sigma_history (S : PODTRSystem P n δ γ)
       -- `StronglyMeasurable` closed under mul.
       exact hrec.mul hind
 
-/-! ### Multi-target consistency for the DTR regime -/
+/-! ### Multi-target consistency for the treatment-path regime -/
 
 /-- Helper: for each `k ≤ n`, `FactualAgrees` for `regimeUpTo dbar k` holds on
 the event "`factualD i = dbar i` for all `i.val < k`". -/
-lemma factualAgrees_regimeUpTo (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
+lemma factualAgrees_regimeUpTo (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) :
     ∀ (k : ℕ) (h : k ≤ n) (ω : P.Ω),
       (∀ i : Fin n, i.val < k → S.factualD i ω = dbar i) →
         P.FactualAgrees (S.regimeUpTo dbar k h) ω
@@ -386,7 +392,7 @@ lemma factualAgrees_regimeUpTo (S : PODTRSystem P n δ γ) (dbar : Fin n → δ)
 
 /-- General multi-target consistency: every `ω` in the full agreement event
 factually agrees with `S.regime dbar`. -/
-lemma factualAgrees_regime (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
+lemma factualAgrees_regime (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) :
     ∀ ω ∈ {ω | ∀ i : Fin n, S.factualD i ω = dbar i},
       P.FactualAgrees (S.regime dbar) ω := by
   intro ω hω
@@ -394,8 +400,10 @@ lemma factualAgrees_regime (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
 
 /-! ### Integrability of products `indD · Y` -/
 
-/-- `indD dbar k · Y(dbar)` is integrable, bounded by `|Y(dbar)|`. -/
-lemma indD_mul_Y_integrable (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) (k : ℕ)
+/-- For [a longitudinal-path system](hyp:S), [a prescribed treatment path](hyp:dbar),
+[a cutoff](hyp:k), and [an integrable path-specific outcome](hyp:hY),
+[the partial-regime indicator times that outcome is integrable](goal). -/
+lemma indD_mul_Y_integrable (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) (k : ℕ)
     (hY : Integrable (S.Y_of dbar) P.μ) :
     Integrable (fun ω => S.indD dbar k ω * S.Y_of dbar ω) P.μ := by
   refine hY.mono
@@ -405,9 +413,11 @@ lemma indD_mul_Y_integrable (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) (k
 
 /-! ### Measurability of `innerReg` -/
 
-/-- `innerReg dbar j` is measurable for every `j`. -/
+/-- [The backward adjusted-regression process for a dynamic system and treatment
+path](hyp:S,dbar) [is measurable at every recursion depth](goal), so each stage can serve
+as the response in the next conditional-expectation step. -/
 @[fun_prop]
-lemma measurable_innerReg (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
+lemma measurable_innerReg (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) :
     ∀ j : ℕ, Measurable (S.innerReg dbar j)
   | 0 => by
       unfold innerReg
@@ -449,7 +459,7 @@ relaxed *pointwise* overlap hypothesis. -/
 /-! ### Outcome variable is outside every regime target -/
 
 /-- The outcome node `Y` is not a target of `S.regime dbar`. -/
-lemma yVar_notMem_regime (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
+lemma yVar_notMem_regime (S : POLongitudinalPathSystem P n δ γ) (dbar : Fin n → δ) :
     S.yVar.v ∉ (S.regime dbar).target := by
   intro hmem
   have hmem' : S.yVar.v ∈ S.regimeTarget n := by
@@ -458,7 +468,7 @@ lemma yVar_notMem_regime (S : PODTRSystem P n δ γ) (dbar : Fin n → δ) :
   rcases (S.regimeTarget_mem_iff n (le_refl n) S.yVar.v).mp hmem' with ⟨i, _, heq⟩
   exact (S.distinctDY i) heq.symm
 
-end PODTRSystem
+end POLongitudinalPathSystem
 
 end PO
 end Causalean

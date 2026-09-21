@@ -1,5 +1,6 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TFullLawEndpointAttainment
-import Mathlib.Probability.Distributions.Bernoulli
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TFullLawEndpointAttainment
+public import Mathlib.Probability.Distributions.Bernoulli
 
 /-!
 # Explicit three-level witness
@@ -7,6 +8,8 @@ import Mathlib.Probability.Distributions.Bernoulli
 An exact rational one-cell observed table and latent allocation demonstrate a
 nontrivial interval with upper endpoint seven tenths.
 -/
+
+@[expose] public section
 
 open scoped BigOperators ENNReal
 open MeasureTheory Causalean PO

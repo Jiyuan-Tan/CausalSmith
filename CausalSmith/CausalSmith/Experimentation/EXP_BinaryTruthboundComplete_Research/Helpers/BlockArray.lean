@@ -1,13 +1,16 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
-import Causalean.Experimentation.DesignBased.Product
-import Causalean.Experimentation.DesignBased.Chebyshev
-import Causalean.Experimentation.DesignBased.InProb
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Causalean.Experimentation.DesignBased.WaldCoverage
-import Causalean.Experimentation.DesignBased.FiniteDesignMeasure
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
+module
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Basic
+public import Causalean.Stat.FiniteDesign.Product
+public import Causalean.Stat.FiniteDesign.Chebyshev
+public import Causalean.Experimentation.DesignBased.InProb
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Causalean.Experimentation.DesignBased.WaldCoverage
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
 
 /-! Arbitrary row-law triangular arrays and the separate independent product experiment. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set Filter Topology

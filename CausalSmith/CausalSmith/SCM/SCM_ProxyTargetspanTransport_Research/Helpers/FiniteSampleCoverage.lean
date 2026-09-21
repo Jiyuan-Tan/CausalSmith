@@ -1,12 +1,15 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Basic
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Sampling
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Basic
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Helpers.Sampling
 
 set_option linter.style.longLine false
 
-/-! Coordinate concentration and deterministic projection helpers for finite-sample coverage. -/
-
 open scoped BigOperators
 open Finset Matrix MeasureTheory
+
+/-! Coordinate concentration and deterministic projection helpers for finite-sample coverage. -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

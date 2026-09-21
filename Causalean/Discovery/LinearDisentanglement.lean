@@ -4,16 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Discovery.LinearDisentanglement.Model
-import Causalean.Discovery.LinearDisentanglement.KeyIdentity
-import Causalean.Discovery.LinearDisentanglement.SigmaSolutions
-import Causalean.Discovery.LinearDisentanglement.PartialOrderRQ
-import Causalean.Discovery.LinearDisentanglement.Rowspan
-import Causalean.Discovery.LinearDisentanglement.Uniqueness
-import Causalean.Discovery.LinearDisentanglement.Identifiability
-import Causalean.Discovery.LinearDisentanglement.Quantitative.Definitions
-import Causalean.Discovery.LinearDisentanglement.Quantitative.Quantitative
-import Causalean.Discovery.LinearDisentanglement.Quantitative.CompactExclusion
+module
+public import Causalean.Discovery.LinearDisentanglement.Identifiability
+public import Causalean.Discovery.LinearDisentanglement.Quantitative
+public import Causalean.Discovery.LinearDisentanglement.SimultaneousCongruence
 
 
 /-!
@@ -30,13 +24,15 @@ buried among the supporting linear-algebra files.
   observed only through a full-rank mixing `X = G Z`, with one perfect single-node
   intervention per context; the observable content is the precision matrices
   `Θ_k = Hᵀ Bₖᵀ Bₖ H`.
-* `disentanglement_identifiability` (`Identifiability.lean`) — **the flagship (Theorem 2).**
-  With one intervention per latent node and non-degenerate interventions, two solutions
+* `disentanglement_identifiability_up_to_signed_scaling_of_nondegenerate`
+  (`Identifiability.lean`) — an unnormalized matrix-level uniqueness result. With one
+  intervention per latent node and an explicit nondegeneracy hypothesis, two solutions
   with the same `{Θ_k}` are related by a single order-preserving relabeling `σ ∈ S(𝒢)` and
-  a nonzero signed diagonal scaling of the latent directions (the `(⊆)` direction).
+  nonzero signed diagonal scalings. Unlike the paper's Theorem 2, this model does not impose
+  its row normalization and therefore does not reduce the ambiguity to permutations alone.
 * `sigma_solutions` (`SigmaSolutions.lean`) — the `(⊇)` direction: every `σ ∈ S(𝒢)` yields a
-  solution with the same precision matrices. Together with the flagship this characterizes
-  the solution set as the `S(𝒢)`-orbit (up to signed scaling).
+  solution with the same precision matrices. This constructs the pure-permutation subclass;
+  it is not a converse for every signed-scaling ambiguity allowed by the uniqueness theorem.
 
 ## Supporting machinery
 
@@ -44,7 +40,7 @@ buried among the supporting linear-algebra files.
 linking precision differences to the latent graph), `PartialOrderRQ.lean` (the partial-order
 RQ decomposition), `Uniqueness.lean` (the orthogonal-correctness assembly), and
 `Causalean/Mathlib/LinearAlgebra/Cholesky.lean` (real Cholesky existence/uniqueness).
-The non-Gaussianity engine is **not** used here — disentanglement identifies via
-interventions + second moments, reusing only LiNGAM's structural pinning
-(`Causalean.Discovery.LiNGAM`).
+The non-Gaussianity engine and LiNGAM development are **not** used here;
+disentanglement proceeds through interventions, second moments, and the stated
+linear-algebra machinery.
 -/

@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Mathlib.AlgebraicGeometry.PolynomialImageDimension.AffineSpaceDimension
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AlgebraicSetChains
+module
+public import Causalean.Mathlib.AlgebraicGeometry.Dimension.PolynomialMap.AffineSpaceDimension
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AlgebraicSetChains
 
 /-!
 # Compatibility reexports for affine-space dimension
@@ -13,6 +14,8 @@ import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.Algebr
 The chain-dimension implementation is neutral substrate; this file preserves
 the original paper-facing declaration names.
 -/
+
+public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

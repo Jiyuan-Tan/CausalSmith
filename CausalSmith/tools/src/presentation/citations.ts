@@ -386,7 +386,7 @@ async function politeFetch(url: string): Promise<Fetched> {
         headers: {
           "User-Agent":
             process.env.CAUSALSMITH_CONTACT ??
-            "causalean/0.1 (+https://github.com/Jiyuan-Tan/AutoID)",
+            "causalean/0.1 (+https://github.com/Jiyuan-Tan/CausalSmith)",
         },
       });
       if (r.ok) return { ok: true, response: r };

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.DesignBased.HT.Variance
+module
+public import Causalean.Experimentation.DesignBased.HT.Variance
 
 /-!
 # Conservative variance estimators (Aronow–Samii 2017, §5)
@@ -13,24 +14,26 @@ Design-based variance estimators for `Var[ŷᵀ(d)]` and `Var[τ̂(dk,dl)]`.  In
 positive-joint regime (`π_{ij}(d) > 0`, `π_{ij}(d,d') > 0` for `i ≠ j`) the variance
 estimator `htVarEst` is exactly unbiased (Lemma 5.1, `varun`).  The covariance
 `Cov[ŷᵀ(dk),ŷᵀ(dl)]` is unidentified, so its estimator `htCovEst` is only nonpositively
-biased (Prop 5.4, `ncov`, via Young's inequality `2ab ≤ a²+b²` for the diagonal term).
+biased (Prop 5.3, `ncov`, via Young's inequality `2ab ≤ a²+b²` for the diagonal term).
 Assembling these gives the conservative effect-variance estimator `htEffectVarEst` with
-nonnegative bias (Prop 5.7, `consvar`) — the input the interval result consumes.
+nonnegative bias (a positive-joint specialization of Prop 5.6, `consvar`) — the input the
+interval result consumes.
 
-The zero-pairwise refinements handle the `π_{ij} = 0` corner cases.  Prop 5.2
+The zero-pairwise refinements handle the `π_{ij} = 0` corner cases.  Prop 5.1
 (`E_htVarEst_eq_addBias`, `varbias`) characterizes the bias of `htVarEst` as the explicit
 correction `A = ∑_{π_{ij}=0} y_i y_j`; the Young correction `htA2` (`Â₂`) restores
-conservativeness (Prop 5.3, `E_htVarEst_add_htA2_ge`, `a2`).  Prop 5.5
+conservativeness (Prop 5.2, `E_htVarEst_add_htA2_ge`, `a2`).  Prop 5.4
 (`E_htCovEst_eq_of_noEffect`, `no_bias_cov`) shows `htCovEst` is exactly unbiased under no
 effect.  The general covariance estimator `htCovEstA` (`Ĉov_A`, `eq:ht_cov_general_estimator`)
-is nonpositively biased with no positive-cross-joint assumption (Prop 5.6,
+is nonpositively biased with no positive-cross-joint assumption (Prop 5.5,
 `E_htCovEstA_le`, `cova`); its Young correction ranges over *all* `j ∈ U` with
 `π_{ij}(d_k,d_l)=0` (faithful to the paper — the diagonal `j=i`, always zero since
 `d_k ≠ d_l`, subsumes the unidentified `−∑ᵢ y_i(d_k)y_i(d_l)` term).  Assembling these gives
 the general conservative effect-variance estimator `htEffectVarEstA` with nonnegative bias
-(general `consvar`, `E_htEffectVarEstA_ge`).
+(Prop 5.6, `consvar`, `E_htEffectVarEstA_ge`).
 -/
 
+@[expose] public section
 
 open scoped BigOperators
 open Finset
@@ -163,12 +166,12 @@ theorem E_htVarEst (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ 
       mul_div_assoc, mul_div_assoc, div_self hjoint_ij]
     ring
 
-/-- **Proposition 5.4 (`ncov`).** Suppose [the two treatment arms `dk`, `dl` are
-distinct](hyp:hne), [every unit has nonzero exposure propensity under `dk`](hyp:hk) and [under
-`dl`](hyp:hl), and [every off-diagonal pair has nonzero cross-arm joint exposure
-propensity](hyp:hjoint) — the positive marginal and positive cross-joint regime. Then [the
-Horvitz–Thompson covariance estimator is nonpositively biased for the true design covariance of
-the two HT totals](goal). -/
+/-- **Proposition 5.3 (`ncov`).** For [a design and exposure model](hyp:D,y,f,θ), suppose
+[the two treatment arms are distinct](hyp:dk,dl,hne),
+[every unit has nonzero `dk` propensity](hyp:hk),
+[every unit has nonzero `dl` propensity](hyp:hl), and
+[every off-diagonal pair has nonzero cross-arm joint propensity](hyp:hjoint). Then
+[the covariance estimator is nonpositively biased for the true covariance](goal). -/
 theorem E_htCovEst_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (hne : dk ≠ dl) (hk : ∀ i, prop D f θ i dk ≠ 0) (hl : ∀ i, prop D f θ i dl ≠ 0)
     (hjoint : ∀ i j, i ≠ j → propPairCross D f θ i j dk dl ≠ 0) :
@@ -266,13 +269,15 @@ theorem E_htCovEst_le (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → 
   rw [show y i dk ^ 2 / 2 + y i dl ^ 2 / 2 - y i dk * y i dl = (y i dk - y i dl) ^ 2 / 2 by ring]
   exact div_nonneg (sq_nonneg _) (by norm_num)
 
-/-- **Proposition 5.7 (`consvar`).** Suppose [the two treatment arms `dk`, `dl` are
-distinct](hyp:hne), [every unit has nonzero exposure propensity under `dk`](hyp:hk) and [under
-`dl`](hyp:hl), and every off-diagonal pair has [nonzero same-arm joint exposure propensity under
-`dk`](hyp:hjk) and [under `dl`](hyp:hjl), as well as [nonzero cross-arm joint exposure
-propensity](hyp:hjc) — the positive-joint regime. Then [the assembled Horvitz–Thompson
-effect-variance estimator has nonnegative bias: its expectation is at least the true design
-variance of the effect estimator `τ̂`](goal). -/
+/-- **Positive-joint specialization of Proposition 5.6 (`consvar`).** For
+[a design and exposure model](hyp:D,y,f,θ), suppose
+[the two treatment arms are distinct](hyp:dk,dl,hne),
+[every unit has nonzero `dk` propensity](hyp:hk),
+[every unit has nonzero `dl` propensity](hyp:hl), and every off-diagonal pair has
+[nonzero `dk` same-arm joint propensity](hyp:hjk),
+[nonzero `dl` same-arm joint propensity](hyp:hjl), and
+[nonzero cross-arm joint propensity](hyp:hjc). Then
+[the effect-variance estimator has nonnegative bias](goal). -/
 theorem E_htEffectVarEst_ge (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (hne : dk ≠ dl)
     (hk : ∀ i, prop D f θ i dk ≠ 0) (hl : ∀ i, prop D f θ i dl ≠ 0)
@@ -311,10 +316,9 @@ theorem E_htEffectVarEst_ge (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : �
     norm_num
   exact sub_le_sub_left h2 (D.Var (htTotal D y f θ dk) + D.Var (htTotal D y f θ dl))
 
-/-- **Proposition 5.2 (`varbias`).** Assuming only [every unit has nonzero exposure propensity
-under `d`](hyp:hpos) — without the positive-joint assumption — [the expectation of the
-Horvitz–Thompson variance estimator equals the true design variance of the HT total plus the
-signed zero-joint correction `A = ∑_{π_{ij}(d)=0} y_i(d)·y_j(d)`](goal).
+/-- **Proposition 5.1 (`varbias`).** For [a design and exposure model](hyp:D,y,f,θ),
+[an exposure level](hyp:d), and [nonzero marginal exposure propensities](hyp:hpos),
+[the expected estimator equals the true variance plus its zero-joint correction](goal).
 
 For a pair with `π_{ij}(d)=0` the off-diagonal factor `(π_{ij}−π_iπ_j)/π_{ij}` in `htVarEst` is
 `0` in Lean (division by zero), so the pair is dropped, whereas the true variance carries
@@ -415,10 +419,9 @@ noncomputable def htA2 (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω →
       * (expoInd f θ i d z * (Yobs y f θ i z) ^ 2 / (2 * prop D f θ i d)
           + expoInd f θ j d z * (Yobs y f θ j z) ^ 2 / (2 * prop D f θ j d))
 
-/-- **Proposition 5.3 (`a2`).** Assuming only [every unit has nonzero exposure propensity under
-`d`](hyp:hpos), [adding the Young correction `Â₂` to the Horvitz–Thompson variance estimator
-makes it conservative for the true design variance of the HT total: `Var[ŷᵀ(d)] ≤
-E[V̂ + Â₂]`](goal).
+/-- **Proposition 5.2 (`a2`).** For [a design and exposure model](hyp:D,y,f,θ),
+[an exposure level](hyp:d), and [nonzero marginal exposure propensities](hyp:hpos),
+[adding the Young correction to the variance estimator gives nonnegative bias](goal).
 
 Indeed `E[V̂+Â₂] = Var + A + E[Â₂] = Var + ∑_{π_{ij}=0} (y_i+y_j)²/2 ≥ Var`. -/
 theorem E_htVarEst_add_htA2_ge (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
@@ -475,14 +478,15 @@ theorem E_htVarEst_add_htA2_ge (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f 
     exact div_nonneg (sq_nonneg _) (by norm_num)
   · rw [if_neg hz, zero_mul, zero_mul, add_zero]
 
-/-- **Proposition 5.5 (`no_bias_cov`).** Suppose [the two treatment arms `dk`, `dl` are
-distinct](hyp:hne), [every unit has nonzero exposure propensity under `dk`](hyp:hk) and [under
-`dl`](hyp:hl), [every off-diagonal pair has nonzero cross-arm joint exposure
-propensity](hyp:hjc) — the positive marginal and positive cross-joint regime — and [the two
-exposures share the same potential outcomes: `y_i(dk) = y_i(dl)` for every unit `i`](hyp:heq).
-Then [the Horvitz–Thompson covariance estimator is exactly unbiased for the true design
-covariance of the two HT totals](goal): the Young diagonal correction `(y_i²/2 + y_i²/2) = y_i²
-= y_i(dk)y_i(dl)` is exact, so the nonpositive bias of Proposition 5.4 vanishes. -/
+/-- **Proposition 5.4 (`no_bias_cov`).** For [a design and exposure model](hyp:D,y,f,θ), suppose
+[the two treatment arms are distinct](hyp:dk,dl,hne),
+[every unit has nonzero `dk` propensity](hyp:hk),
+[every unit has nonzero `dl` propensity](hyp:hl),
+[every off-diagonal pair has nonzero cross-arm joint propensity](hyp:hjc), and
+[the two exposures share the same potential outcomes](hyp:heq). Then
+[the covariance estimator is exactly unbiased for the true covariance](goal): the Young diagonal
+correction `(y_i²/2 + y_i²/2) = y_i²
+= y_i(dk)y_i(dl)` is exact, so the nonpositive bias of Proposition 5.3 vanishes. -/
 theorem E_htCovEst_eq_of_noEffect (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ)
     (θ : ι → Θ) (dk dl : Δ) (hne : dk ≠ dl)
     (hk : ∀ i, prop D f θ i dk ≠ 0) (hl : ∀ i, prop D f θ i dl ≠ 0)
@@ -598,11 +602,12 @@ noncomputable def htCovEstA (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : �
       * (expoInd f θ i dk z * (Yobs y f θ i z) ^ 2 / (2 * prop D f θ i dk)
           + expoInd f θ j dl z * (Yobs y f θ j z) ^ 2 / (2 * prop D f θ j dl))
 
-/-- **Proposition 5.6 (`cova`).** Suppose only [the two treatment arms `dk`, `dl` are
-distinct](hyp:hne) and [every unit has nonzero exposure propensity under `dk`](hyp:hk) and [under
-`dl`](hyp:hl) — with NO positive-cross-joint assumption. Then [the general Horvitz–Thompson
-covariance estimator `Ĉov_A` is nonpositively biased for the true design covariance of the two HT
-totals](goal): zero-cross-joint off-diagonal pairs drop from the first sum, while the Young
+/-- **Proposition 5.5 (`cova`).** For [a design and exposure model](hyp:D,y,f,θ), suppose
+[the two treatment arms are distinct](hyp:dk,dl,hne),
+[every unit has nonzero `dk` propensity](hyp:hk), and
+[every unit has nonzero `dl` propensity](hyp:hl), without a positive-cross-joint assumption. Then
+[the general covariance estimator is nonpositively biased for the true covariance](goal):
+zero-cross-joint off-diagonal pairs drop from the first sum, while the Young
 correction (summing over every `j` with `π_{ij}(dk,dl)=0`, including the diagonal) dominates the
 corresponding `−y_i(dk)y_j(dl)` covariance contributions termwise via
 `y_i(dk)y_j(dl) ≤ y_i(dk)²/2 + y_j(dl)²/2`. -/
@@ -792,13 +797,13 @@ noncomputable def htEffectVarEstA (D : FiniteDesign Ω) (y : ι → Δ → ℝ) 
       - 2 * htCovEstA D y f θ dk dl z)
     / (Fintype.card ι : ℝ) ^ 2
 
-/-- **Proposition 5.7, general form (`consvar`).** Suppose only [the two treatment arms `dk`,
-`dl` are distinct](hyp:hne) and [every unit has nonzero exposure propensity under
-`dk`](hyp:hk) and [under `dl`](hyp:hl) — without any positive-joint assumption. Then [the
-assembled general Horvitz–Thompson effect-variance estimator has nonnegative bias: its
-expectation is at least the true design variance of the effect estimator `τ̂`](goal).
+/-- **Proposition 5.6 (`consvar`).** For [a design and exposure model](hyp:D,y,f,θ), suppose
+[the two treatment arms are distinct](hyp:dk,dl,hne),
+[every unit has nonzero `dk` propensity](hyp:hk), and
+[every unit has nonzero `dl` propensity](hyp:hl), without any positive-joint assumption. Then
+[the general effect-variance estimator has nonnegative bias](goal).
 
-Follows from Proposition 5.3 (twice) and Proposition 5.6 by linearity of expectation. -/
+Follows from Proposition 5.2 (twice) and Proposition 5.5 by linearity of expectation. -/
 theorem E_htEffectVarEstA_ge (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : Ω → Θ → Δ) (θ : ι → Θ)
     (dk dl : Δ) (hne : dk ≠ dl)
     (hk : ∀ i, prop D f θ i dk ≠ 0) (hl : ∀ i, prop D f θ i dl ≠ 0) :
@@ -824,7 +829,7 @@ theorem E_htEffectVarEstA_ge (D : FiniteDesign Ω) (y : ι → Δ → ℝ) (f : 
     congr 1
     rw [D.E_sub, D.E_add, D.E_const_mul]
   rw [hVar, hE]
-  -- N⁻² ≥ 0; Prop 5.3 twice and Prop 5.6 bound the bracket.
+  -- N⁻² ≥ 0; Prop 5.2 twice and Prop 5.5 bound the bracket.
   have hsq : (0 : ℝ) ≤ N⁻¹ ^ 2 := sq_nonneg _
   apply mul_le_mul_of_nonneg_left _ hsq
   have hAk := E_htVarEst_add_htA2_ge D y f θ dk hk

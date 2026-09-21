@@ -20,8 +20,9 @@ untreated-outcome model `E[Y_{it}(0)] = α_i + λ_t` holds by construction and t
 BJS identification hypotheses discharge down to a concrete staggered panel.
 -/
 
-import Causalean.Panel.AdoptionPath
-import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
+module
+public import Causalean.Panel.AdoptionPath
+public import Causalean.Panel.EstimandCharacterization.ImputationEventStudy.Imputation
 
 /-! # BJS staggered-adoption grounding
 
@@ -33,6 +34,8 @@ fixed-effect design discharges the BJS hypotheses in a concrete panel.  The main
 definitions are `TreatedCell`, `UntreatedCell`, `feRow`, and
 `ofStaggeredTWFE`; the main theorem bridges are
 `ofStaggeredTWFE_untreatedModel` and `ofStaggeredTWFE_treatmentFixed`. -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Panel.EstimandCharacterization
@@ -55,11 +58,15 @@ def UntreatedCell : Type _ :=
 
 /-- For [an adoption-time path for the units over a finite number of periods](hyp:g), [a decision procedure for the treated-cell condition](goal) determines, for every unit-period cell, whether the unit's adoption time is no later than that period. -/
 instance : DecidablePred (fun c : I × Fin T => AdoptionPath.le (g c.1) c.2) := by
-  intro c; unfold AdoptionPath.le; infer_instance
+  intro c
+  unfold AdoptionPath.le
+  infer_instance
 
 /-- For [an adoption-time path for the units over a finite number of periods](hyp:g), [a decision procedure for the untreated-cell condition](goal) determines, for every unit-period cell, whether the period is strictly before the unit's adoption time. -/
 instance : DecidablePred (fun c : I × Fin T => AdoptionPath.lt (g c.1) c.2) := by
-  intro c; unfold AdoptionPath.lt; infer_instance
+  intro c
+  unfold AdoptionPath.lt
+  infer_instance
 
 /-- For [an adoption-time path for a finite population over a finite number of periods](hyp:g), [a finite enumeration of the treated cells](goal) is available. -/
 instance : Fintype (TreatedCell g) := by unfold TreatedCell; infer_instance

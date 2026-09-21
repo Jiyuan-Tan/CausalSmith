@@ -16,7 +16,8 @@ for any measurable `g` obeying that envelope.  It is a product of "tail mass ×
 envelope", proved elementarily (no layer cake).
 -/
 
-import Causalean.Stat.PolynomialTail.Basic
+module
+public import Causalean.Stat.PolynomialTail.Basic
 
 /-!
 # Bias from trimming the lower tail
@@ -31,6 +32,8 @@ The main theorem `trimWeight_bias_bound` proves
 and `0 < lam <= t0`.  It is the elementary "tail mass times local envelope" companion to the
 layer-cake inverse-moment bounds.
 -/
+
+public section
 
 namespace Causalean.Stat.PolynomialTail
 

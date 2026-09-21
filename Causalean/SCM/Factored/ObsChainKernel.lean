@@ -4,8 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.Do.Rule2Kernel.Helpers
-import Mathlib.Probability.Kernel.Disintegration.StandardBorel
+module
+
+public import Causalean.Mathlib.MeasureTheory.FinsetValues
+public import Causalean.SCM.Model.Kernel
+public import Causalean.SCM.Model.Values
+public import Mathlib.Probability.Kernel.Disintegration.StandardBorel
 
 /-! # Observational Chain-Rule Kernel
 
@@ -16,15 +20,24 @@ Mathlib's continuous-safe `condKernel`.
 
 This file builds the prefix node sets, the one-step observational conditional
 kernel, the recursive chain kernel, and the full-length product kernel
-`qFactorProduct`. The final equality with `obsKernel` is stated as the real
-kernel equality and proved by the standard disintegration induction.
+`qFactorProduct`. Despite its historical name, `qFactorProduct` is the
+ordinary per-node observational chain-rule product, not a c-component factor
+product. The final equality with `obsKernel` is proved by standard
+disintegration induction.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 
-namespace SWIGGraph
+namespace Graph.SWIGGraph
 
 variable (G : SWIGGraph N)
 
@@ -40,7 +53,7 @@ lemma observedPredecessors_subset_observed (v : SWIGNode N) :
   intro w hw
   exact (Finset.mem_filter.mp hw).1
 
-end SWIGGraph
+end Graph.SWIGGraph
 
 namespace SCM
 
@@ -198,57 +211,6 @@ lemma observedPredecessors_observedAt (M : Causalean.SCM N Ω) {n : ℕ}
 -- § 2. Single-node conditional step kernels
 -- ============================================================
 
-/-- For [an index population](hyp:ι), [a singleton index](hyp:v) in [a family of value spaces](hyp:α), and [an assignment on that singleton](hyp:x), the [singleton-coordinate value](goal) is the assignment's value at that index. -/
-noncomputable def singletonValue {ι : Type*} {α : ι → Type*}
-    {v : ι} (x : ValuesOn ({v} : Finset ι) α) :
-    α v :=
-  x ⟨v, by simp⟩
-
-/-- For [an index population](hyp:ι), [a singleton index](hyp:v) in [a family of value spaces](hyp:α), and [a value at that index](hyp:x), the [singleton assignment](goal) is the assignment on the singleton set whose sole coordinate equals that value. -/
-noncomputable def singletonValues {ι : Type*} {α : ι → Type*}
-    {v : ι} (x : α v) :
-    ValuesOn ({v} : Finset ι) α :=
-  fun ⟨w, hw⟩ => by
-    have h : w = v := by simpa using hw
-    exact h ▸ x
-
-/-- Reading a singleton value is measurable. -/
-@[fun_prop]
-lemma measurable_singletonValue {ι : Type*} {α : ι → Type*}
-    [∀ i, MeasurableSpace (α i)] {v : ι} :
-    Measurable (singletonValue (α := α) (v := v)) := by
-  unfold singletonValue
-  exact measurable_pi_apply (⟨v, by simp⟩ :
-    {w // w ∈ ({v} : Finset ι)})
-
-/-- Building a singleton tuple is measurable. -/
-@[fun_prop]
-lemma measurable_singletonValues {ι : Type*} {α : ι → Type*}
-    [∀ i, MeasurableSpace (α i)] {v : ι} :
-    Measurable (singletonValues (α := α) (v := v)) := by
-  refine measurable_pi_iff.mpr ?_
-  rintro ⟨w, hw⟩
-  have h : w = v := by simpa using hw
-  subst w
-  change Measurable (id : α v → α v)
-  exact measurable_id
-
-/-- Reading the tuple built from a singleton value returns that value. -/
-@[simp] lemma singletonValue_singletonValues {ι : Type*} {α : ι → Type*}
-    {v : ι} (x : α v) :
-    singletonValue (α := α) (v := v)
-      (singletonValues (α := α) (v := v) x) = x := by
-  rfl
-
-/-- Building a singleton tuple from its only coordinate returns the tuple. -/
-@[simp] lemma singletonValues_singletonValue {ι : Type*} {α : ι → Type*}
-    {v : ι} (x : ValuesOn ({v} : Finset ι) α) :
-    singletonValues (α := α) (v := v)
-      (singletonValue (α := α) (v := v) x) = x := by
-  ext ⟨w, hw⟩
-  have hwv : w = v := by simpa using hw
-  subst w
-  rfl
 
 /-- For [a structural causal model](hyp:M), [an index strictly below its number of observed nodes](hyp:hn), a standard Borel and nonempty value space for the observed node at that index, and a countably generated conditioning σ-algebra for the fixed values and preceding observed values, the [one-step observational conditional kernel](goal) gives the conditional distribution of that node's value given the fixed values and all earlier observed values. -/
 noncomputable def obsStepCondKernel
@@ -604,7 +566,7 @@ instance isMarkov_obsChainKernel (M : Causalean.SCM N Ω)
 -- § 4. Full-length product and chain-rule theorem
 -- ============================================================
 
-/-- For [a structural causal model](hyp:M), standard Borel and nonempty value spaces for every observed node, and countably generated conditioning σ-algebras for every observed prefix, the [full observational chain-rule product](goal) is the full-length observational chain kernel transported from the complete prefix to the observed-value space. -/
+/-- For [a structural causal model](hyp:M), standard Borel and nonempty value spaces for every observed node, and countably generated conditioning σ-algebras for every observed prefix, the [full observational chain-rule product](goal) is the full-length observational chain kernel transported from the complete prefix to the observed-value space. Despite its historical name, it is not a c-component factor product. -/
 noncomputable def qFactorProduct (M : Causalean.SCM N Ω)
     [∀ (k : ℕ) (hk : k < M.observed.card),
       StandardBorelSpace

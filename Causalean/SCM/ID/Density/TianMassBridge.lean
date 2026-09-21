@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Density.MassBridge
-import Causalean.SCM.ID.GraphicalThms.DoGFormulaTian
+module
+public import Causalean.SCM.ID.Density.MassBridge
+public import Causalean.SCM.ID.GraphicalThms.DoGFormulaTian
 
 /-!
 # Tian density point-mass bridges
@@ -21,6 +22,13 @@ The result is used by the discrete ID soundness lane to translate the
 measure-theoretic density factorization into the point-mass formulas consumed by
 finite conditional-mass proofs.
 -/
+
+public section
+
+open Causalean.Graph
+
+
+open Causalean.Mathlib.MeasureTheory
 
 namespace Causalean.SCM
 

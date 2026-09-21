@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessCancellation
-import Mathlib.MeasureTheory.Integral.Pi
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessCancellation
+public import Mathlib.MeasureTheory.Integral.Pi
 
 /-!
 # Explicit-witness density algebra
@@ -8,6 +9,8 @@ This file isolates the pointwise cancellations that turn the sparse and
 cancellation witness expectations into the low-dimensional integrals used by
 the certificate proof.
 -/
+
+public section
 
 open MeasureTheory Set
 

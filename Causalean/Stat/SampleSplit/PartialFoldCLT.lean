@@ -5,7 +5,7 @@ Authors: Jiyuan Tan
 
 # Fold-restricted CLT for one-shot sample splits
 
-`Causalean/Stat/AsymptoticLinearity.lean` packages the i.i.d. CLT as
+`Causalean/Stat/CLT/AsymptoticLinearity.lean` packages the i.i.d. CLT as
 `IIDSample.clt_normalized_sum`: along an i.i.d. sample with mean-zero,
 square-integrable transform `ψ`, the normalized partial sum
 `(1/√n) Σ_{i<n} ψ(Z_i)` converges in distribution to `N(0, ∫ψ²dP)`.
@@ -36,11 +36,19 @@ that exploits `iIndepFun` + `IdentDistrib` to package fold-B as a fresh
 i.i.d. sample.
 -/
 
-import Mathlib.Probability.CentralLimitTheorem
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.CLT.AsymptoticLinearity
+module
+public import Mathlib.Probability.CentralLimitTheorem
+public import Mathlib.Probability.Independence.CharacteristicFunction
+public import Mathlib.MeasureTheory.Measure.LevyConvergence
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit.FiniteCategoryPilot
+public import Causalean.Stat.SampleSplit.FiniteSelector
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+public import Causalean.Stat.SampleSplit.FoldBWLLN
+public import Causalean.Stat.SampleSplit.KFold
+public import Causalean.Stat.SampleSplit.OneShot
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.CLT.AsymptoticLinearity
 
 /-! # Fold-Restricted Central Limit Theorems
 
@@ -48,6 +56,8 @@ This file provides the central-limit-theorem contact point for one-shot sample
 splits. It proves the fold-B normalized-sum CLT, converts fold-B asymptotic
 linearity into asymptotic normality at rate `√|B(n)|`, and gives the √n-rate
 conversion under a fixed split ratio with variance inflation. -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -70,11 +80,12 @@ lemma foldB_eq_Ico (split : OneShotSplit S) (n : ℕ) :
   simp [OneShotSplit.foldB, Finset.mem_Ico, and_comm]
 
 omit [IsProbabilityMeasure μ] in
-/-- The size of the estimation fold is the sample size minus the split point. -/
-lemma card_foldB (split : OneShotSplit S) (n : ℕ) :
-    (split.foldB n).card = n - split.n₁ n := by
-  rw [split.foldB_eq_Ico n]
-  exact Nat.card_Ico (split.n₁ n) n
+/-- For [a one-shot sample split](hyp:split) and [a sample size](hyp:n), [the
+size of its estimation fold is the sample size minus the split point](goal).
+
+Deprecated compatibility name for `OneShotSplit.foldB_card`. -/
+@[deprecated foldB_card (since := "2026-09-15")]
+alias card_foldB := foldB_card
 
 end OneShotSplit
 
@@ -177,8 +188,8 @@ theorem clt_normalizedFoldB
   have hcard_tendsto : Tendsto (fun n => (split.foldB n).card) atTop atTop := by
     convert split.cogrow using 1
     funext n
-    exact split.card_foldB n
-  unfold Tendsto_dist at hFull ⊢
+    exact split.foldB_card n
+  rw [Tendsto_dist_iff] at hFull ⊢
   refine ProbabilityMeasure.tendsto_iff_tendsto_charFun.mpr fun t => ?_
   have hFull_char :=
     (ProbabilityMeasure.tendsto_iff_tendsto_charFun.mp hFull t).comp hcard_tendsto
@@ -264,7 +275,7 @@ theorem IsAsymLinear.tendsto_normal_foldB_sqrt_n
     by_cases hn : n = 0
     · subst n
       unfold IsAsymLinear.rescaledEstimator
-      have hcard : (split.foldB 0).card = 0 := by simp [split.card_foldB]
+      have hcard : (split.foldB 0).card = 0 := by simp [split.foldB_card]
       simp [hcard]
     · have hn_pos_nat : 0 < n := Nat.pos_of_ne_zero hn
       have hsqrtn_ne : Real.sqrt (n : ℝ) ≠ 0 := by
@@ -297,7 +308,7 @@ theorem IsAsymLinear.tendsto_normal_foldB_sqrt_n
   have hcard_tendsto : Tendsto (fun n => (split.foldB n).card) atTop atTop := by
     convert split.cogrow using 1
     funext n
-    exact split.card_foldB n
+    exact split.foldB_card n
   have hscale_tendsto : Tendsto a atTop (𝓝 ((Real.sqrt c)⁻¹)) := by
     have h_inv : Tendsto (fun n => (((split.foldB n).card : ℝ) / n)⁻¹)
         atTop (𝓝 c⁻¹) := by

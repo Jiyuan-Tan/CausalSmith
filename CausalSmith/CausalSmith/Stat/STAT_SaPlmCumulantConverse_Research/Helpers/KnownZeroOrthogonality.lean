@@ -1,8 +1,11 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroConditional
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.KnownZeroConditional
 
 /-!
 # Moment and outcome assembly for known-zero instruments
 -/
+
+public section
 
 noncomputable section
 

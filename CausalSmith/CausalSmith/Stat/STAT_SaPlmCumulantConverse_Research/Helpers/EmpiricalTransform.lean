@@ -1,10 +1,13 @@
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
-import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.UniformDiskSeries
-import Causalean.Mathlib.IIDCenteredSum
+module
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.Transforms
+public import CausalSmith.Stat.STAT_SaPlmCumulantConverse_Research.Helpers.UniformDiskSeries
+public import Causalean.Mathlib.Probability.IdentDistrib.CenteredSum
 
 /-!
 # Uniform L2 control of empirical transforms
 -/
+
+@[expose] public section
 
 noncomputable section
 

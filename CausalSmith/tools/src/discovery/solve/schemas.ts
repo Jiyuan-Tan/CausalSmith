@@ -76,7 +76,9 @@ export interface ProposedAssumption {
   condition: string; // the single new condition
   reason: string; // why the proof genuinely needs it
   standard_or_novel: string; // "standard: <name/cite>" or "novel: <justification>"
-  not_crux: string; // why this is NOT the node's own hard claim restated as a hypothesis
+  /** Legacy solver self-assessment. Ignored: whether an assumption encodes the crux
+   *  is decided by the independent adjudication gate, not trusted from this field. */
+  not_crux?: unknown;
   /** Symbol-table names the `condition` uses. Optional so an older payload still parses,
    *  but it is what carries a symbol into the invalidation scope of every statement that
    *  reaches that symbol only through this assumption — `d0_apply` used to stub `[]`. */
@@ -145,7 +147,9 @@ const ProposedAssumptionSchema = z.object({
   condition: z.string(),
   reason: z.string(),
   standard_or_novel: z.string(),
-  not_crux: z.string(),
+  // Legacy payloads emitted both prose and booleans here. Preserve parse
+  // compatibility but never use a solver's self-assessment for adjudication.
+  not_crux: z.unknown().optional(),
   free_symbols: z.array(z.string()).optional(),
 });
 

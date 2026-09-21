@@ -4,26 +4,29 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.Induce
-import Causalean.Graph.DSep.Ancestral
+module
+public import Causalean.Graph.Induce
+public import Causalean.Graph.DSep.Ancestral
 
 /-! # d-Separation Transport for Induced SWIGs
 
 This file collects graph-only bridges that compare d-separation in an induced
 SWIG with d-separation in the ambient SWIG. The main bridge is tailored to
-ancestral induced graphs: active paths between observed vertices cannot use
+ancestral induced graphs: active walks between observed vertices cannot use
 vertices outside the ancestral support, except for fixed nodes, which are
 handled by placing all fixed nodes in the conditioning set.
 
 The support lemmas prove idempotence of ancestral closure, preservation of
 ancestor paths and collider activations inside an ancestral induced SWIG, and
-non-membership of fixed nodes on relevant observed-endpoint active paths. The
+non-membership of fixed nodes on relevant observed-endpoint active walks. The
 main theorem `SWIGGraph.dSep_union_fixed_of_induce_dSep` lifts d-separation from
 `(G.induce R).dag` to the ambient `G.dag` after adjoining all fixed nodes to the
 conditioning set.
 -/
 
-namespace Causalean
+public section
+
+namespace Causalean.Graph
 
 variable {N : Type*} [DecidableEq N] [Fintype N]
 
@@ -31,7 +34,8 @@ namespace DAG
 
 variable (G : DAG (SWIGNode N))
 
-/-- Taking the ancestors of an ancestral set gives back the same set. -/
+/-- In [a finite directed acyclic graph](hyp:V,G), [taking the ancestral closure of a
+vertex set](hyp:S) and then closing it again [leaves that closure unchanged](goal). -/
 theorem ancestralSet_idem {V : Type*} [DecidableEq V] [Fintype V]
     (G : DAG V) (S : Finset V) :
     G.ancestralSet (G.ancestralSet S) = G.ancestralSet S := by
@@ -56,7 +60,8 @@ namespace SWIGGraph
 
 variable (G : SWIGGraph N)
 
-/-- Observed SWIG vertices are not members of the fixed intervention set. -/
+/-- In [a finite single-world intervention graph](hyp:N,G), [an observed
+vertex](hyp:v,hv) [does not belong to the fixed intervention set](goal). -/
 lemma not_mem_fixed_of_mem_observed {v : SWIGNode N}
     (hv : v ∈ G.observed) : v ∉ G.fixed := by
   intro hfix
@@ -243,13 +248,18 @@ private lemma induced_bbZAncestors_of_ambient_union_fixed
           (Finset.mem_inter.mp (hZ hwZ)).1 hmpar⟩
     · exact ((G.not_isAncestor_to_fixed_mem hwF m) hmw).elim
 
-/-- Every node on an active path conditioned on the union of a conditioning set
-and the fixed intervention nodes, with observed endpoints, is not fixed. -/
-lemma activePath_node_not_fixed
+/-- In [a finite single-world intervention graph](hyp:N,G), consider [support, endpoint,
+and conditioning sets, observed endpoints, a walk, and a selected walk vertex]
+(hyp:R,X,Y,Z,x,y,p,v). If [the endpoint sets lie in the observed support](hyp:hX,hY),
+[the endpoints belong to their sets](hyp:hxX,hyY), [the walk is active after conditioning
+on both the given and fixed vertices](hyp:hact),
+[it has the stated endpoints](hyp:hhead,hlast), and [the selected vertex lies on it](hyp:hv),
+then [that vertex is not fixed](goal). -/
+lemma activeWalk_node_not_fixed
     {R X Y Z : Finset (SWIGNode N)} {x y v : SWIGNode N} {p : List (SWIGNode N)}
     (hX : X ⊆ R ∩ G.observed) (hY : Y ⊆ R ∩ G.observed)
     (hxX : x ∈ X) (hyY : y ∈ Y)
-    (hact : G.dag.IsActivePath (Z ∪ G.fixed) p)
+    (hact : G.dag.IsActiveWalk (Z ∪ G.fixed) p)
     (hhead : p.head? = some x) (hlast : p.getLast? = some y)
     (hv : v ∈ p) : v ∉ G.fixed := by
   rw [List.mem_iff_get] at hv
@@ -304,10 +314,10 @@ fixed intervention nodes are included in the conditioning set. Fix a SWIG `G` an
 are d-separated by `Z` in the graph induced on `R`](hyp:h), then [`X` and `Y` are d-separated by
 `Z` together with `G`'s fixed intervention nodes, in the ambient graph](goal).
 
-The classical contrapositive proof takes an ambient active path between observed
+The classical contrapositive proof takes an ambient active walk between observed
 endpoints, uses ancestral closure to keep its non-fixed vertices inside the
 induced support, and uses the extra fixed-node conditioning to rule out active
-paths that pass through fixed roots. The remaining bookkeeping is to translate
+walks that pass through fixed roots. The remaining bookkeeping is to translate
 each surviving ambient edge into the induced edge relation, including collider
 activation witnesses whose directed descendant paths remain inside the
 ancestral support. -/
@@ -332,15 +342,15 @@ theorem dSep_union_fixed_of_induce_dSep
     · exact G.not_mem_fixed_of_mem_observed ((Finset.mem_inter.mp (hY hyY)).2) hyF
   rw [Finset.disjoint_left]
   intro y hyReach hyY
-  rw [G.dag.bbReachableVertices_iff_activePath] at hyReach
+  rw [G.dag.bbReachableVertices_iff_activeWalk] at hyReach
   obtain ⟨x, hxX, p, hlen, hact, hhead, hlast⟩ := hyReach
   have hnotFixed : ∀ v ∈ p, v ∉ G.fixed := by
     intro v hv
-    exact G.activePath_node_not_fixed hX hY hxX hyY hact hhead hlast hv
+    exact G.activeWalk_node_not_fixed hX hY hxX hyY hact hhead hlast hv
   have hnodeR : ∀ v ∈ p, v ∈ R := by
     intro v hv
     have hvAnc : v ∈ G.dag.ancestralSet (X ∪ Y ∪ (Z ∪ G.fixed)) :=
-      G.dag.activePath_nodes_are_ancestors hxX hyY hact hhead hlast v hv
+      G.dag.activeWalk_nodes_are_ancestors hxX hyY hact hhead hlast v hv
     exact G.mem_R_of_ancestor_union_not_fixed hX hY hZ hR hvAnc (hnotFixed v hv)
   let active : Finset (SWIGNode N) :=
     (G.fixed.filter (fun s => iotaMap s ∈ R ∩ G.observed)) ∪
@@ -357,7 +367,7 @@ theorem dSep_union_fixed_of_induce_dSep
         (G.induce R).dag.edge u v := by
     intro u v huv hu hv
     exact G.induced_edge_of_edge_of_active huv hu hv
-  have hactInd : (G.induce R).dag.IsActivePath Z p := by
+  have hactInd : (G.induce R).dag.IsActiveWalk Z p := by
     refine ⟨?_, ?_⟩
     · intro i hi
       let u := p.get ⟨i, by omega⟩
@@ -416,10 +426,10 @@ theorem dSep_union_fixed_of_induce_dSep
         · rw [if_neg hcollAmb] at hambClause
           exact hambClause (Finset.mem_union_left _ hmZ)
   have hyReachInd : y ∈ (G.induce R).dag.bbReachableVertices Z X := by
-    rw [(G.induce R).dag.bbReachableVertices_iff_activePath]
+    rw [(G.induce R).dag.bbReachableVertices_iff_activeWalk]
     exact ⟨x, hxX, p, hlen, hactInd, hhead, hlast⟩
   exact Finset.disjoint_left.mp hReach hyReachInd hyY
 
 end SWIGGraph
 
-end Causalean
+end Causalean.Graph

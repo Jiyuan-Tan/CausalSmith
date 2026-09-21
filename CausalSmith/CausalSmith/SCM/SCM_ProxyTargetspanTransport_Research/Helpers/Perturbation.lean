@@ -1,13 +1,16 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Basic
-import Mathlib.Data.Real.Basic
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.Basic
+public import Mathlib.Data.Real.Basic
 
 set_option linter.unusedDecidableInType false
 set_option linter.style.longLine false
 
-/-! The outcome-null perturbation used by the positive full-law converse. -/
-
 open scoped BigOperators
 open Finset Matrix
+
+/-! The outcome-null perturbation used by the positive full-law converse. -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 

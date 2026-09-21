@@ -11,10 +11,13 @@ consistency, ignorability, boundedness, the Hölder atoms, positivity, interior,
 from the leaf lemmas + the strict-slack baseline + the bump-Hölder gate.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Regression
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.PiCond
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Theta
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.HolderAux
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Regression
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.PiCond
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.Theta
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Witness.HolderAux
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

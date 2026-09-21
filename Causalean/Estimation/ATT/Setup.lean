@@ -22,10 +22,10 @@ This file collects:
 * the value-space estimand `θ₀` and its agreement with the PO-level `ATT`.
 -/
 
-import Causalean.PO.ID.Exact.ATT
-import Causalean.Stat.Orthogonality.Orthogonality
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Causalean.Tactic.Attr
+module
+public import Causalean.PO.ID.Exact.ATT
+public import Causalean.Tactic.Attr
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-!
 Defines the treated-estimation system for ATT estimation under back-door
@@ -41,6 +41,8 @@ value-space target `θ₀`, and proves `θ₀_eq_ATT`. It also constructs a
 integrable observed outcome via `POBackdoorSystem.toTreatedEstimationSystem`.
 -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Estimation
 namespace ATT
@@ -54,24 +56,23 @@ factorization of the σ(X)-measurable representatives needed for ATT.  The
 compatibility fields encode the Doob–Dynkin lift; existence of such fields is
 the estimation-layer assumption added on top of identification. -/
 
-/-- **A treated estimation system** extends a potential-outcome back-door system with the
-value-space nuisance representatives needed for ATT AIPW estimation: [the control-arm
-outcome regression `μ₀(x)`](hyp:μ₀_val,μ₀_meas) and [a propensity score
-`e(x)`](hyp:e_val,e_meas) that is [bounded away from `1`](hyp:e_lt_one), together with [the
-control regression's agreement, almost everywhere, with the σ(X)-measurable observable
-control regression `adjustedCE false`, composed with the factual
-covariate](hyp:μ₀_reg_compat) and [the analogous agreement of the propensity score with the
-observable propensity `propScore`](hyp:e_compat).
+/-- **A treated estimation system** extends a potential-outcome back-door system with
+[a measurable control-arm outcome regression](hyp:μ₀_val,μ₀_meas),
+[a measurable propensity score](hyp:e_val,e_meas),
+[a pointwise upper propensity bound](hyp:e_lt_one),
+[almost-everywhere agreement with the observable control regression](hyp:μ₀_reg_compat), and
+[almost-everywhere agreement with the observable propensity](hyp:e_compat).
 
 Field summary:
 * `μ₀_val x`     — value-space control-arm outcome regression `μ₀(x)`.
-* `e_val x`      — value-space propensity `e(x) ∈ (0, 1)`.
+* `e_val x`      — value-space propensity satisfying `e(x) < 1`.
 * `μ₀_reg_compat` — `μ₀_val ∘ factualX =ᵐ adjustedCE false` (observable; ML target).
 * `e_compat`     — `propScore true =ᵐ e_val ∘ factualX`.
 
-Only `μ₀` is needed (the AIPW form for ATT does not involve `μ₁`).  Likewise
-only the `< 1` half of overlap is enforced via `e_lt_one`; positivity of the
-treated arm is handled at the PO level via `propTreated_pos` in
+Only `μ₀` is needed (the AIPW form for ATT does not involve `μ₁`). Likewise, the
+structure enforces only the pointwise upper bound `e < 1`. Theorems request
+nonnegativity of `e` and a quantitative `OneSidedOverlap ε` separately when needed;
+positivity of the marginal treated share comes from `propTreated_pos` in
 `ATTAssumptions`. -/
 structure TreatedEstimationSystem (P : POSystem) (γ : Type*)
     [MeasurableSpace γ] [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
@@ -82,7 +83,7 @@ structure TreatedEstimationSystem (P : POSystem) (γ : Type*)
   /-- Value-space propensity `e(x)`. -/
   e_val : γ → ℝ
   e_meas : Measurable e_val
-  /-- One-sided overlap on the value-space propensity. -/
+  /-- Pointwise upper bound on the value-space propensity. -/
   e_lt_one : ∀ x, e_val x < 1
   /-- The control-arm regression `μ₀_val` represents the **observable** adjustment
   functional `adjustedCE false = E[Y·1_{D=0}|σX] / P[D=0|σX]`, with NO identification
@@ -107,16 +108,15 @@ namespace TreatedEstimationSystem
 variable {P : POSystem} {γ : Type*} [MeasurableSpace γ]
   [StandardBorelSpace P.Ω] [IsFiniteMeasure P.μ]
 
-/-- **Control-arm backdoor CATE under ATT assumptions.** The conditional mean of
-the untreated potential outcome given the covariates equals the observable
-control regression when consistency, conditional ignorability, integrability,
-and one-sided control overlap hold. No treated-arm overlap is used. -/
-lemma control_cate_backdoor (S : TreatedEstimationSystem P γ)
+/-- For [a treated-outcome estimation system](hyp:S) under [the one-sided ATT
+assumptions](hyp:hA), [the control-arm conditional mean equals its adjusted control
+outcome](goal). No treated-arm overlap is used. -/
+lemma conditionalMeanOutcome_backdoor_control (S : TreatedEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.ATTAssumptions) :
-    S.toPOBackdoorSystem.CATE false
+    S.toPOBackdoorSystem.conditionalMeanOutcome false
       =ᵐ[P.μ] S.toPOBackdoorSystem.adjustedCE false :=
-  S.toPOBackdoorSystem.cate_backdoor_of_propScore_ne hA.consistency
-    hA.unconfoundedness hA.integrable_Y1 hA.integrable_Y0 false
+  S.toPOBackdoorSystem.conditionalMeanOutcome_backdoor_of_propScore_ne hA.consistency false
+    hA.unconfoundedness hA.integrable_Y1 hA.integrable_Y0
     hA.propScore_false_ne
 
 /-- **Treated propensity nonnegativity.** The conditional treatment probability
@@ -141,7 +141,7 @@ lemma μ₀_compat (S : TreatedEstimationSystem P γ)
     (hA : S.toPOBackdoorSystem.ATTAssumptions) :
     P.μ[S.toPOBackdoorSystem.YofD false | S.toPOBackdoorSystem.sigmaX]
       =ᵐ[P.μ] (fun ω => S.μ₀_val (S.toPOBackdoorSystem.factualX ω)) :=
-  (S.control_cate_backdoor hA).trans S.μ₀_reg_compat.symm
+  (S.conditionalMeanOutcome_backdoor_control hA).trans S.μ₀_reg_compat.symm
 
 /-- For [a potential-outcome system with a measurable covariate space](hyp:P), [a treated
 estimation system](hyp:S), and [a real margin](hyp:ε), the [one-sided overlap condition](goal)

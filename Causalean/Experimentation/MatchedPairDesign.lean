@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Experimentation.MatchedPairDesign.MatchedPair
-import Causalean.Experimentation.MatchedPairDesign.Estimator
-import Causalean.Experimentation.MatchedPairDesign.Variance
+module
+public import Causalean.Experimentation.MatchedPairDesign.Estimator
+public import Causalean.Experimentation.MatchedPairDesign.MatchedPair
+public import Causalean.Experimentation.MatchedPairDesign.Variance
 
 /-!
 # Bai (2022): fixed-pair matched-pair randomization

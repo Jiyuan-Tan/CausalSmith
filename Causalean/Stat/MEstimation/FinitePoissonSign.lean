@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.MEstimation.FinitePoisson
+module
+public import Causalean.Stat.MEstimation.FinitePoisson
 
 /-!
 # Conditional sign characterization for finite Poisson projections
@@ -12,6 +13,8 @@ import Causalean.Stat.MEstimation.FinitePoisson
 This module characterizes the sign of one selected coefficient from the score
 at a conditional nuisance fit with that coefficient fixed at zero.
 -/
+
+public section
 
 open scoped BigOperators
 

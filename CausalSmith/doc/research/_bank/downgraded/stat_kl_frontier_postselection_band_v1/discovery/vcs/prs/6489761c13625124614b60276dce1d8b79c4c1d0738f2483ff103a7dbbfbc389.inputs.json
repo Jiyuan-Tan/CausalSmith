@@ -1,0 +1,358 @@
+{
+  "units": [
+    {
+      "unit": "thm:conditional-multiplier",
+      "targets": [
+        "lem:softmax-path-entropy",
+        "oeq:foldwise-replacement",
+        "lem:penalized-cancellation",
+        "thm:uniform-linearization",
+        "lem:ridge-fallback-inactive",
+        "thm:conditional-multiplier",
+        "thm:postselection-tube",
+        "prop:set-inversion",
+        "thm:uniform-regret",
+        "prop:fixed-preference-reduction"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "lem:softmax-path-entropy",
+            "proof_tex": "Put \\(Q_0=\\sup_{a,x}\\|q_a(x)\\|<\\infty\\), which is finite by Assumption \\(\\mathrm{ass{:}bounded\\mbox{-}features}\\).  Benchmark normalization and positivity imply that the denominator in the softmax rule is positive.  If\n\\[\n \\bar q_\\theta(x)=\\sum_a\\pi_\\theta(a\\mid x)q_a(x),\n\\]\nthen direct differentiation of Definition \\(\\mathrm{def{:}softmax\\mbox{-}rule}\\) gives\n\\[\n \\nabla_\\theta\\pi_\\theta(a\\mid x)\n =\\pi_\\theta(a\\mid x)\\{q_a(x)-\\bar q_\\theta(x)\\}.\n\\]\nRepeated differentiation shows, for every fixed \\(r\\leq 4\\),\n\\[\n \\sup_{\\theta\\in\\Theta,a,x}\\|\\partial_\\theta^r\\pi_\\theta(a\\mid x)\\|\n \\leq C_r(Q_0,J)<\\infty.                                      \\tag{1}\n\\]\nIndeed, after each differentiation the new factor is a centered product of at most \\(r\\) feature coordinates, each bounded by \\(2Q_0\\); induction and the finite sum over \\(J\\) actions prove (1).  Also\n\\[\n \\log\\frac{\\pi_\\theta(a\\mid x)}{b_a(x)}\n =\\theta^\\top q_a(x)-\\log\\!\\sum_r b_r(x)e^{\\theta^\\top q_r(x)},\n\\]\nso compactness of \\(\\Theta\\), (1), and benchmark normalization bound this log ratio and its first four parameter derivatives.  These conclusions use no lower bound on a random estimated benchmark; \\(b_a\\) is known and Assumptions \\(\\mathrm{ass{:}benchmark\\mbox{-}positive}\\) and \\(\\mathrm{ass{:}benchmark\\mbox{-}normalized}\\) apply directly.\n\nFix a fold \\(\\ell\\), condition on its training complement, and abbreviate\n\\(\\Delta m_a=\\widehat m_a^{(-\\ell)}-m_a\\) and\n\\(\\Delta e_a=\\widehat e_a^{(-\\ell)}-e_a\\).  The clipping in Definition \\(\\mathrm{def{:}crossfit\\mbox{-}estimator}\\), the outcome bound, and overlap give\n\\(|\\Delta m_a|\\leq2B\\), \\(|\\Delta e_a|\\leq1\\),\n\\(e_a\\geq\\epsilon\\), and \\(\\widehat e_a^{(-\\ell)}\\geq\\epsilon/2\\).  Algebra, with no approximation, yields\n\\[\n \\widehat v_\\theta^{(-\\ell)}-v_\\theta\n =\\sum_a\\pi_\\theta(a\\mid X)\\Delta m_a(X)\n -\\frac{\\pi_\\theta(A\\mid X)}{\\widehat e_A^{(-\\ell)}(X)}\\Delta m_A(X)\n -\\frac{\\pi_\\theta(A\\mid X)\\{Y-m_A(X)\\}}\n        {\\widehat e_A^{(-\\ell)}(X)e_A(X)}\\Delta e_A(X).        \\tag{2}\n\\]\nFor \\(u=0,1,2\\), differentiating (2) only replaces each occurrence of\n\\(\\pi_\\theta\\) by \\(\\partial_\\theta^u\\pi_\\theta\\).  Minkowski's inequality, (1), the clipping bounds, and the fixed number of actions therefore imply\n\\[\n \\|F_{\\ell,u}\\|_{P,2}\n \\leq C_{\\mathrm{sm}}\\max_a\\{\\|\\Delta m_a\\|_{P_X,2}\n                         +\\|\\Delta e_a\\|_{P_X,2}\\}\n \\leq C_{\\mathrm{sm}}(r_{m,n}+r_{e,n})                       \\tag{3}\n\\]\non the nuisance-rate events supplied by Assumptions\n\\(\\mathrm{ass{:}outcome\\mbox{-}estimability}\\) and\n\\(\\mathrm{ass{:}propensity\\mbox{-}estimability}\\).  Since those events have probability tending to one uniformly over the fixed set of folds, (3) has the asserted stochastic meaning.\n\nFor completeness, we verify the entropy assertion rather than treating finite dimension as a slogan.  Conditional on training, the coefficients multiplying the softmax derivatives in (2) are fixed measurable functions of \\(O\\).  Repeated use of (1) and the mean-value identity shows that the restriction of each scalar coordinate of \\(\\mathcal F_{\\ell,u}\\) to any Euclidean cube in \\(\\Theta\\) has oscillation at most its coefficient envelope times \\(C_{\\mathrm{sm}}\\) times the cube diameter.  Quotienting coefficient directions that vanish identically on \\(\\Theta\\), compactness and the finite action count give the norm comparison between this coefficient envelope and the pointwise supremum \\(F_{\\ell,u}\\).  A Euclidean grid with mesh \\(\\varepsilon/C_{\\mathrm{sm}}\\) consequently covers every scalar coordinate in \\(L^2(\\nu)\\) at radius \\(\\varepsilon\\|F_{\\ell,u}\\|_{\\nu,2}\\) with at most \\((C_{\\mathrm{sm}}/\\varepsilon)^d\\) points.  Taking the fixed product over tensor coordinates and enlarging \\(C_{\\mathrm{sm}}\\) gives\n\\[\n \\sup_\\nu\\log N\\!\\left(\\varepsilon\\|F_{\\ell,u}\\|_{\\nu,2},\n       \\mathcal F_{\\ell,u},L^2(\\nu)\\right)\n \\leq C_{\\mathrm{sm}}d\\log(C_{\\mathrm{sm}}/\\varepsilon),\n \\qquad 0<\\varepsilon\\leq1.                                 \\tag{4}\n\\]\nIf \\(\\|F_{\\ell,u}\\|_{\\nu,2}=0\\), the class is a singleton in\n\\(L^2(\\nu)\\), so (4) remains true.  This grid proof is uniform over every declared finitely supported \\(\\nu\\).\n\nWe next control the one-dimensional replacement path.  Uniform criterion, gradient, and Hessian laws follow by applying (3)--(4) fold by fold, conditioning before taking each held-out empirical average, and then taking a union over the fixed \\(L\\).  Compactness and unique population maximization give uniform localization; uniform curvature and interiority then give, with probability tending to one, a unique empirical maximizer in the \\(\\rho/2\\) neighborhood and\n\\[\n \\sup_c\\|\\widehat\\theta_c-\\theta_c\\|=o_{\\mathbb P}(1),\\qquad\n \\sup_c\\|\\widehat H_c-H_c\\|_{\\mathrm{op}}=o_{\\mathbb P}(1). \\tag{5}\n\\]\nImplicit differentiation of the population and empirical first-order conditions on this event gives\n\\[\n \\theta_c'=-H_c^{-1}g_c,qquad\n \\widehat\\theta_c'=-(\\widehat H_c)^{-1}\n                    \\nabla_\\theta\\widehat K(\\widehat\\theta_c). \\tag{6}\n\\]\nThe sign follows because \\(\\nabla^2M_c(\\theta_c)=-H_c\\).  Equations (1), (5), (6), and the curvature floor imply that the oracle path, the empirical path, every empirical gradient, and every inverse Hessian entering the two influence stacks have Lipschitz moduli bounded in probability.  The inverse identity\n\\[\n A^{-1}-B^{-1}=A^{-1}(B-A)B^{-1}                              \\tag{7}\n\\]\nand the third-derivative bound control the Hessian-inverse coordinates.  Thus the empirical \\(L^2\\) semimetric of their difference obeys\n\\(\\widehat d_n(c,t)\\leq\\Lambda_n|c-t|\\) with\n\\(\\Lambda_n=O_{\\mathbb P}(1)\\).  An interval of length\n\\(\\operatorname{diam}(\\mathcal C)\\) can then be covered by\n\\[\n \\mathsf N_n(\\varepsilon)\n \\leq1+\\Lambda_n\\operatorname{diam}(\\mathcal C)/\\varepsilon. \\tag{8}\n\\]\n\nFinally condition on all observations.  For each coordinate,\n\\(Z(c)=n^{-1/2}\\sum_i\\xi_i\\Delta_i(c)\\) is a centered Gaussian process whose increment standard deviation is bounded by \\(\\widehat d_n(c,t)\\), and whose pointwise standard deviation is at most \\(\\delta_n\\).  Choose nested minimal nets at radii \\(2^{-r}\\delta_n\\), telescope from one fixed net point, and use\n\\(E\\max_{1\\leq j\\leq N}|Z_j|\\leq\\sigma\\sqrt{2\\log(2N)}\\) for centered Gaussian variables of variances at most \\(\\sigma^2\\).  Summing the resulting geometric series and using (8) gives, after summing the fixed \\(d+4\\) coordinates,\n\\[\n E_\\xi\\!\\left[\\sup_{c\\in\\mathcal C}\\|Z(c)\\|\\mid O_1,\\ldots,O_n\\right]\n \\leq C_{\\mathrm{sm}}\\delta_n\n \\sqrt{1+\\log\\!\\left\\{1+\\frac{\\Lambda_n\\operatorname{diam}(\\mathcal C)}{\\delta_n}\\right\\}}. \\tag{9}\n\\]\nWhen \\(\\delta_n=0\\), every \\(\\Delta_i(c)\\) is zero and both sides of (9) are zero.  Since \\(x\\sqrt{1+\\log(1+C/x)}\\to0\\) as \\(x\\downarrow0\\), (9), \\(\\delta_n=o_{\\mathbb P}(1)\\), and \\(\\Lambda_n=O_{\\mathbb P}(1)\\) prove conditional multiplier replacement."
+          },
+          {
+            "id": "lem:penalized-cancellation",
+            "proof_tex": "Fix \\(c\\in\\mathcal C\\).  Assumption \\(\\mathrm{ass{:}uniform\\mbox{-}interior}\\) places \\(\\theta_c\\) in the interior of \\(\\Theta\\), and Assumption \\(\\mathrm{ass{:}smooth\\mbox{-}criterion}\\) makes \\(M_c\\) differentiable there.  Fermat's first-order condition, applied to the unique optimizer in Assumption \\(\\mathrm{ass{:}unique\\mbox{-}optimizer}\\), is therefore\n\\[\n 0=\\nabla_\\theta M_c(\\theta_c)\n   =\\nabla_\\theta W(\\theta_c)-c\\nabla_\\theta K(\\theta_c)\n   =a_c-cg_c.\n\\]\nThus \\(a_c=cg_c\\).  Substitution into Definition\n\\(\\mathrm{def{:}joint\\mbox{-}influence}\\) gives, pointwise in \\(O\\),\n\\[\n \\psi_c^W-c\\psi_c^K\n =\\phi_c^W-c\\phi_c^K+(a_c-cg_c)^\\top\\psi_c^\\theta\n =\\phi_c^W-c\\phi_c^K.\n\\]\nThe correspondence \\(\\lambda_{\\mathrm{FRX}}=c\\) in Definition\n\\(\\mathrm{def{:}frx\\mbox{-}penalty\\mbox{-}map}\\) confirms that the same coefficient multiplies the divergence term; no rescaling enters this cancellation."
+          },
+          {
+            "id": "thm:uniform-linearization",
+            "proof_tex": "We first connect the causal and observed-law objects.  Consistency and conditional exchangeability imply\n\\(m_a(X)=E[Y(a)\\mid X]\\).  Therefore, for every fixed \\(\\theta\\),\n\\[\n E_P[v_\\theta(O)\\mid X]\n =\\sum_a\\pi_\\theta(a\\mid X)m_a(X)\n   +\\sum_a e_a(X)\\frac{\\pi_\\theta(a\\mid X)}{e_a(X)}\n      E[Y-m_a(X)\\mid A=a,X]\n =\\sum_a\\pi_\\theta(a\\mid X)m_a(X),                            \\tag{20}\n\\]\nwhere division is justified by overlap.  Hence \\(Pv_\\theta=W(\\theta)\\).  The divergence summand has expectation \\(K(\\theta)\\) by definition.  Differentiation is dominated by the bounded softmax derivatives, bounded outcomes, overlap, and compactness.  The population first-order condition therefore gives\n\\[\n PD_c=\\nabla W(\\theta_c)-c\\nabla K(\\theta_c)=0,                \\tag{21}\n\\]\nand the five blocks of \\(\\Psi_c\\) are centered.\n\nThe resolved foldwise replacement theorem and the product-rate condition imply, uniformly in \\(c\\),\n\\[\n \\sqrt n\\,\\nabla\\widehat M_c(\\theta_c)\n =n^{-1/2}\\sum_{i=1}^nD_c(O_i)+o_{\\mathbb P}(1),               \\tag{22}\n\\]\nand the derivative laws in (14)--(16) hold.  Uniform localization and the boundary distance \\(\\rho\\) put every empirical maximizer in the interior with probability tending to one.  Thus its empirical gradient is zero.  With \\(u_c=\\widehat\\theta_c-\\theta_c\\), the vector line-integral identity is\n\\[\n 0=\\nabla\\widehat M_c(\\theta_c)\n   +\\left\\{\\int_0^1\\nabla^2\\widehat M_c(\\theta_c+tu_c)\\,dt\\right\\}u_c. \\tag{23}\n\\]\nUniform Hessian consistency, localization, smoothness, and the curvature floor give\n\\[\n \\sup_c\\left\\|\\int_0^1\\nabla^2\\widehat M_c(\\theta_c+tu_c)dt+H_c\\right\\|\n =o_{\\mathbb P}(1),\\qquad \\sup_c\\|H_c^{-1}\\|\\leq h^{-1}.     \\tag{24}\n\\]\nEquations (22)--(24) first give \\(\\sup_c\\sqrt n\\|u_c\\|=O_{\\mathbb P}(1)\\), and then\n\\[\n \\sup_c\\left\\|\\sqrt n(\\widehat\\theta_c-\\theta_c)\n -n^{-1/2}\\sum_iH_c^{-1}D_c(O_i)\\right\\|=o_{\\mathbb P}(1).    \\tag{25}\n\\]\nThe sign is positive because the matrix in (23) converges to \\(-H_c\\).\n\nFor the value paths, the same replacement calculation at \\(\\theta_c\\) gives\n\\[\n \\sqrt n\\{\\widehat W(\\theta_c)-W(\\theta_c)\\}\n =n^{-1/2}\\sum_i\\phi_c^W(O_i)+o_{\\mathbb P}(1),\\quad\n \\sqrt n\\{\\widehat K(\\theta_c)-K(\\theta_c)\\}\n =n^{-1/2}\\sum_i\\phi_c^K(O_i)+o_{\\mathbb P}(1),               \\tag{26}\n\\]\nuniformly in \\(c\\).  Taylor's identity, (16), and (25) give\n\\[\n \\widehat W(\\widehat\\theta_c)-W(\\theta_c)\n =\\widehat W(\\theta_c)-W(\\theta_c)+a_c^\\top u_c+o_{\\mathbb P}(n^{-1/2}), \\tag{27}\n\\]\nuniformly; the analogous formula holds with \\(K,g_c\\).  Combining (25)--(27) yields exactly the three-coordinate expansion with influences\n\\((\\psi_c^\\theta,\\psi_c^W,\\psi_c^K)\\).\n\nTo distinguish implemented-rule evaluation from oracle-path estimation, subtract the population Taylor formula\n\\(W(\\widehat\\theta_c)-W(\\theta_c)=a_c^\\top u_c+o_{\\mathbb P}(n^{-1/2})\\)\nfrom (27).  This cancels the optimizer term and proves\n\\[\n \\sqrt n\\{\\widehat W(\\widehat\\theta_c)-W(\\widehat\\theta_c)\\}\n =n^{-1/2}\\sum_i\\phi_c^W(O_i)+o_{\\mathbb P}(1).                \\tag{28}\n\\]\nThe same subtraction proves the asserted divergence expansion.  This verifies that the causal oracle target, its observed-law estimator, and evaluation of the random implemented rule are distinct objects.\n\nIt remains to establish the process limit.  Differentiating the population first-order condition and using (24) gives\n\\(\\theta_c'=-H_c^{-1}g_c\\); bounded derivatives and compact \\(\\mathcal C\\) therefore imply a deterministic envelope \\(C\\) such that\n\\[\n \\sup_c\\|\\Psi_c(O)\\|\\leq C,qquad\n \\|\\Psi_c(O)-\\Psi_t(O)\\|\\leq C|c-t|                           \\tag{29}\n\\]\nalmost surely.  For any finite collection of coordinates, the characteristic function expansion\n\\(E\\exp\\{iu^\\top Z/\\sqrt n\\}=1-(2n)^{-1}u^\\top E[ZZ^\\top]u+O(n^{-3/2})\\), valid because \\(Z\\) is bounded and centered, proves convergence to the centered Gaussian vector with covariance inherited from \\(\\Gamma\\).  Tightness follows by covering \\(\\mathcal C\\) by dyadic grids and applying the same symmetrized maximal inequality as in (9) to the increments in (29); the tail of the grid telescoping series is uniformly negligible.  Hence\n\\[\n n^{-1/2}\\sum_i\\Psi_\\cdot(O_i)\\Rightarrow G\n \\quad\\text{in }C(\\mathcal C)^{d+4}.                           \\tag{30}\n\\]\nEquations (25)--(28) and (30) prove the full stacked conclusion and the covariance formula.\n\nAt any fixed finite set of penalties, \\(\\psi_c^\\theta=H_c^{-1}D_c\\) is the fixed-penalty efficient influence stated in\n\\(\\mathrm{lem{:}frx\\mbox{-}fixed\\mbox{-}efficiency}\\) after restricting to the common finite-action softmax submodel and setting\n\\(\\lambda_{\\mathrm{FRX}}=c\\).  Stacking pathwise derivatives shows that every linear combination over finitely many coordinates has influence equal to the same linear combination of these blocks; hence its variance is the joint semiparametric covariance bound.  Expansion (25) attains it.  Finally Definition\n\\(\\mathrm{def{:}frx\\mbox{-}penalty\\mbox{-}map}\\) gives\n\\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\).  The fixed-penalty doubly robust attainment used in the comparison is the cited conclusion\n\\(\\mathrm{lem{:}frx\\mbox{-}fixed\\mbox{-}dr\\mbox{-}attainment}\\), establishing precisely the stated fixed-to-uniform comparison."
+          },
+          {
+            "id": "lem:ridge-fallback-inactive",
+            "proof_tex": "The resolved foldwise replacement theorem proves \\(\\upsilon_n=o_{\\mathbb P}(1)\\).  Since the term\n\\(\\sup_c\\|\\widehat H_c-H_c\\|\\) is one of the nonnegative summands defining \\(\\upsilon_n\\),\n\\[\n \\sup_{c\\in\\mathcal C}\\|\\widehat H_c-H_c\\|_{\\mathrm{op}}=o_{\\mathbb P}(1). \\tag{31}\n\\]\nThus \\(P(\\mathcal E_n)\\to1\\).  On \\(\\mathcal E_n\\), Weyl's elementary variational inequality gives, for every \\(c\\),\n\\[\n \\lambda_{\\min}(\\widehat H_c)\n \\geq\\lambda_{\\min}(H_c)-\\|\\widehat H_c-H_c\\|_{\\mathrm{op}}\n >h-h/2=h/2,                                                    \\tag{32}\n\\]\nwhere the population bound is Assumption \\(\\mathrm{ass{:}uniform\\mbox{-}curvature}\\).  Hence the positive-part ridge in Definition\n\\(\\mathrm{def{:}totalized\\mbox{-}hessian}\\) is zero simultaneously for all \\(c\\), so\n\\(\\widehat H_c^{\\mathrm{tot}}=\\widehat H_c\\) and their inverses agree.  Off this event, totalization still guarantees smallest eigenvalue at least \\(h/2\\), so all plug-in objects are defined.  Since the exceptional event has probability tending to zero, changing any statistic there cannot change its weak or conditional weak limit."
+          },
+          {
+            "id": "thm:conditional-multiplier",
+            "proof_tex": "Write\n\\[\n \\Psi_i^0(c)=\\Psi_c(O_i)-\\overline\\Psi_n(c),\\qquad\n \\widetilde\\Psi_i(c)=\\Psi_i^0(c)+\\Delta_i(c).\n\\]\nThe true class is uniformly bounded and Lipschitz by (29).  Applying the ordinary scalar law of large numbers on a finite grid and using the Lipschitz bound between grid points gives\n\\[\n \\sup_{c,t}\\left\\|n^{-1}\\sum_i\\Psi_i^0(c)\\Psi_i^0(t)^\\top-\\Gamma(c,t)\\right\\|\n \\longrightarrow_{\\mathbb P}0.                                \\tag{33}\n\\]\nCentering causes no extra term because\n\\(\\sup_c\\|\\overline\\Psi_n(c)\\|=O_{\\mathbb P}(n^{-1/2})\\), by the same grid argument.  Cauchy--Schwarz and the definition of \\(\\delta_n\\) give\n\\[\n \\begin{split}\n \\sup_{c,t}\\left\\|n^{-1}\\sum_i\\widetilde\\Psi_i(c)\n       \\widetilde\\Psi_i(t)^\\top\n       -n^{-1}\\sum_i\\Psi_i^0(c)\\Psi_i^0(t)^\\top\\right\\|\n &\\leq 2\\delta_n\\sup_t\\{n^{-1}\\sum_i\\|\\Psi_i^0(t)\\|^2\\}^{1/2}+\\delta_n^2\\\\\n &=o_{\\mathbb P}(1),                                           \\tag{34}\n \\end{split}\n\\]\nbecause the middle supremum is bounded in probability and the resolved replacement theorem gives \\(\\delta_n=o_{\\mathbb P}(1)\\).  Equations (33)--(34) prove uniform covariance consistency.\n\nConsider the oracle centered multiplier process\n\\[\n G_n^0(c)=n^{-1/2}\\sum_i\\xi_i\\Psi_i^0(c).\n\\]\nConditionally on the observations, every finite vector of evaluations of \\(G_n^0\\) is exactly Gaussian.  Its conditional covariance converges to the corresponding block of \\(\\Gamma\\) by (33), hence its finite-dimensional conditional laws converge to those of \\(G\\).  Moreover (29) implies, with probability tending to one,\n\\[\n \\{n^{-1}\\sum_i\\|\\Psi_i^0(c)-\\Psi_i^0(t)\\|^2\\}^{1/2}\n \\leq C|c-t|.                                                   \\tag{35}\n\\]\nA dyadic-grid Gaussian chaining calculation identical to the derivation of (9), now using (35), makes the conditional oscillation over \\(|c-t|\\leq r\\) tend to zero uniformly as \\(r\\downarrow0\\).  This is conditional tightness in the separable space\n\\(C(\\mathcal C)^{d+4}\\).  Finite-dimensional convergence plus this tightness proves\n\\[\n d_{\\mathrm{BL}}\\{\\mathcal L_\\xi(G_n^0\\mid O_1^n),\\mathcal L(G)\\}\n \\longrightarrow_{\\mathbb P}0.                                \\tag{36}\n\\]\nOn the localization and curvature event used to obtain (35), the empirical optimizer is unique and its implicit path is continuous, so both \\(G_n^0\\) and \\(G_n^*\\) are genuine random elements of this continuous-path space.  The complement has probability tending to zero; assigning distance one there, or equivalently using any continuous zero extension there, leaves convergence in probability in (36) unchanged.\n\nThe actual process differs by\n\\[\n G_n^*(c)-G_n^0(c)=n^{-1/2}\\sum_i\\xi_i\\Delta_i(c).\n\\]\nThe final bound of \\(\\mathrm{lem{:}softmax\\mbox{-}path\\mbox{-}entropy}\\), together with the quantitative radius in the resolved replacement theorem, shows that the conditional expected sup norm of this difference is \\(o_{\\mathbb P}(1)\\).  Conditional Markov's inequality and the defining Lipschitz property of bounded-Lipschitz test functions transfer (36) from \\(G_n^0\\) to \\(G_n^*\\).  This proves the asserted conditional law.\n\nLastly, (31)--(32) prove \\(P(\\mathcal E_n)\\to1\\), and on that event the totalized inverse and ordinary empirical inverse coincide for all \\(c\\).  Thus the covariance calculation and multiplier calculation use one common, everywhere-defined influence stack and have the claimed limiting law."
+          },
+          {
+            "id": "thm:postselection-tube",
+            "proof_tex": "Let \\(Z_n(c)\\) denote the \\((W,K)\\) coordinates of\n\\(\\sqrt n\\{\\widehat\\tau(c)-\\tau(c)\\}\\), and define\n\\[\n T_n=\\sup_{c\\in\\mathcal C}\\max_{j\\in\\{W,K\\}}\n          |Z_{n,j}(c)|/s_j(c),\\qquad\n T=\\sup_{c\\in\\mathcal C}\\max_{j\\in\\{W,K\\}}|G_j(c)|/s_j(c).\n\\]\nScale regularity makes division continuous on \\(C(\\mathcal C)^2\\).  The uniform linearization theorem and its process limit give \\(T_n\\Rightarrow T\\).  The conditional multiplier theorem gives conditional weak convergence of the bootstrap analogue; using all \\(d+4\\) coordinates in the declared critical value can only enlarge the critical value needed for these two coordinates.\n\nWe include the conservative quantile argument because no anti-concentration premise was declared.  Let \\(q=\\inf\\{x:P(T\\leq x)\\geq1-\\alpha\\}\\).  For every \\(r<q\\), \\(P(T\\leq r)<1-\\alpha\\).  Conditional weak convergence at continuity points below \\(q\\) therefore implies\n\\[\n P\\{\\widehat q_{1-\\alpha}\\geq q-\\eta/2\\}\\longrightarrow1.    \\tag{37}\n\\]\nAlso \\(P(T\\leq q+\\eta/4)\\geq1-\\alpha\\), and one may approach\n\\(q+\\eta/4\\) from continuity points of the distribution function.  Combining (37), weak convergence of \\(T_n\\), and the portmanteau inequalities yields\n\\[\n \\liminf_nP\\{T_n\\leq\\widehat q_{1-\\alpha}+\\eta\\}\\geq1-\\alpha. \\tag{38}\n\\]\nBy Definition \\(\\mathrm{def{:}frontier\\mbox{-}tube}\\), the event in (38) contains\n\\[\n E_n=\\{(c,W(\\theta_c),K(\\theta_c))\\in\\widehat{\\mathcal T}_n\n             \\text{ for every }c\\in\\mathcal C\\}.\n\\]\nIndeed, the two defining inequalities of the tube are precisely the two coordinate inequalities in \\(T_n\\leq\\widehat q_{1-\\alpha}+\\eta\\).  This proves the simultaneous lower coverage bound.  On \\(E_n\\), the inclusion also holds at \\(c=\\widehat c\\) for every measurable selector taking values in \\(\\mathcal C\\), without requiring a limit for \\(\\widehat c\\).  Since \\(E_n\\) is a subset of the selected-coordinate coverage event, the second lower bound follows from the first.  This is unconditional coverage of the random selected target, not conditional coverage given the selection."
+          },
+          {
+            "id": "prop:set-inversion",
+            "proof_tex": "Work on the simultaneous tube event proved in\n\\(\\mathrm{thm{:}postselection\\mbox{-}tube}\\).  Fix any real \\(k\\) and any\n\\(c\\in\\mathcal C(k)\\).  By definition, \\(K(\\theta_c)=k\\).  The divergence coordinate of the tube event gives\n\\[\n |\\widehat K(\\widehat\\theta_c)-k|\n =|\\widehat K(\\widehat\\theta_c)-K(\\theta_c)|\n \\leq s_K(c)(\\widehat q_{1-\\alpha}+\\eta)/\\sqrt n.\n\\]\nThus \\(c\\in\\widehat{\\mathcal C}_n(k)\\), proving\n\\(\\mathcal C(k)\\subseteq\\widehat{\\mathcal C}_n(k)\\).  The welfare coordinate of the same tube event gives\n\\[\n W(\\theta_c)\\in\n [\\widehat W(\\widehat\\theta_c)-s_W(c)(\\widehat q_{1-\\alpha}+\\eta)/\\sqrt n,\n  \\widehat W(\\widehat\\theta_c)+s_W(c)(\\widehat q_{1-\\alpha}+\\eta)/\\sqrt n].\n\\]\nBecause the just-proved inclusion makes this interval one of those in the union defining \\(\\widehat{\\mathcal V}_n(k)\\), it follows that\n\\(W(\\theta_c)\\in\\widehat{\\mathcal V}_n(k)\\).  The argument is pointwise algebra on a single event that already holds for all \\(c\\), so it holds for every \\(k\\in\\mathbb R\\) simultaneously.  No derivative of the path, division by such a derivative, injectivity, or branch selection was used; empty true sections are harmless."
+          },
+          {
+            "id": "thm:uniform-regret",
+            "proof_tex": "Let \\(u_c=\\widehat\\theta_c-\\theta_c\\).  The first-order condition is\n\\(\\nabla M_c(\\theta_c)=0\\).  Taylor's formula with integral remainder, Assumption \\(\\mathrm{ass{:}smooth\\mbox{-}criterion}\\), and\n\\(-\\nabla^2M_c(\\theta_c)=H_c\\) give uniformly in \\(c\\),\n\\[\n R_n(c)=\\tfrac12u_c^\\top H_cu_c+r_n(c),\\qquad\n |r_n(c)|\\leq\\tfrac12\\omega(\\|u_c\\|)\\|u_c\\|^2,                \\tag{39}\n\\]\nwhere \\(\\omega(r)\\downarrow0\\) is a common modulus of continuity for the Hessians on the fixed optimizer neighborhood.  The uniform linearization theorem gives\n\\[\n \\sqrt n\\,u_c=Z_{n,\\theta}(c)+o_{\\mathbb P}(1),\\qquad\n Z_{n,\\theta}(c)=n^{-1/2}\\sum_i\\psi_c^\\theta(O_i),             \\tag{40}\n\\]\nuniformly, and \\(\\sup_c\\|Z_{n,\\theta}(c)\\|=O_{\\mathbb P}(1)\\).  Hence\n\\(\\sup_c n|r_n(c)|=o_{\\mathbb P}(1)\\).  Substituting (40) into (39), using bounded \\(\\sup_c\\|H_c\\|\\), proves\n\\[\n \\sup_c\\left|nR_n(c)-\\tfrac12Z_{n,\\theta}(c)^\\top H_cZ_{n,\\theta}(c)\\right|\n =o_{\\mathbb P}(1).                                            \\tag{41}\n\\]\nThe map \\(z\\mapsto\\{c\\mapsto\\tfrac12z(c)^\\top H_cz(c)\\}\\) is continuous from \\(C(\\mathcal C)^d\\) to \\(C(\\mathcal C)\\), because \\(H_c\\) is continuous and bounded.  The process limit in the uniform linearization theorem and (41) therefore give \\(nR_n\\Rightarrow Q\\).\n\nBy the conditional multiplier theorem,\n\\(G_{n,\\theta}^*\\) converges conditionally to \\(G_\\theta\\).  Equations (31)--(32) also give\n\\(\\sup_c\\|\\widehat H_c^{\\mathrm{tot}}-H_c\\|=o_{\\mathbb P}(1)\\).  The same continuous quadratic map, now conditionally, yields\n\\[\n Q_n^*\\Rightarrow Q\\quad\\text{conditionally in probability in }C(\\mathcal C). \\tag{42}\n\\]\nFor an explicit simultaneous upper band, let \\(u:\\mathcal C\\to(0,\\infty)\\) be any prespecified continuous weight bounded above and away from zero, and use the conditional quantile \\(\\widehat q_R\\) of\n\\(\\sup_cQ_n^*(c)/u(c)\\).  The fixed-slack quantile argument in (37)--(38), applied to (41)--(42), gives\n\\[\n \\liminf_nP\\{R_n(c)\\leq u(c)(\\widehat q_R+\\eta)/n\n                    \\text{ for every }c\\}\\geq1-\\alpha.        \\tag{43}\n\\]\nThe same reasoning applies to any prespecified continuous supremum functional with the corresponding inverse acceptance set.  On the event in (43), the inequality holds at every measurable \\(\\widehat c\\in\\mathcal C\\).  Joint rather than separate calibration is obtained by taking one continuous maximum functional of the frontier coordinates and the quadratic process and one shared multiplier quantile.\n\nAt a fixed \\(c\\), \\(\\mathrm{lem{:}frx\\mbox{-}fixed\\mbox{-}regret}\\) gives the same quadratic form after the correspondence \\(\\lambda_{\\mathrm{FRX}}=c\\), and \\(\\mathrm{lem{:}frx\\mbox{-}fixed\\mbox{-}dr\\mbox{-}attainment}\\) gives its efficient doubly robust specialization.  Definition \\(\\mathrm{def{:}frx\\mbox{-}penalty\\mbox{-}map}\\) then gives\n\\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\).  Equations (41)--(43) are the claimed uniform and shared-multiplier extension, not a redefinition of the causal regret target."
+          },
+          {
+            "id": "prop:fixed-preference-reduction",
+            "proof_tex": "Fix a deterministic \\(c\\in\\mathcal C\\).  Evaluation at \\(c\\) is a continuous linear map on \\(C(\\mathcal C)^{d+4}\\).  Applying it to\n\\(\\mathrm{thm{:}uniform\\mbox{-}linearization}\\) gives\n\\[\n \\sqrt n(\\widehat\\theta_c-\\theta_c)\\Rightarrow G_\\theta(c).\n\\]\nEvaluation at \\(c\\) applied to \\(\\mathrm{thm{:}uniform\\mbox{-}regret}\\) gives\n\\[\n nR_n(c)\\Rightarrow\\tfrac12G_\\theta(c)^\\top H_cG_\\theta(c).\n\\]\nUnder Definition \\(\\mathrm{def{:}frx\\mbox{-}penalty\\mbox{-}map}\\), restriction to the common softmax class identifies the comparator penalty as\n\\(\\lambda_{\\mathrm{FRX}}=c\\) and its reported coordinate as\n\\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\).  The fixed-penalty efficient optimizer and quadratic-regret conclusions are exactly those recorded in\n\\(\\mathrm{lem{:}frx\\mbox{-}fixed\\mbox{-}dr\\mbox{-}attainment}\\) and\n\\(\\mathrm{lem{:}frx\\mbox{-}fixed\\mbox{-}regret}\\).  Thus this proposition is a specialization and sign-normalization check, not an additional asymptotic claim."
+          }
+        ],
+        "resolved_oeqs": [
+          {
+            "source_id": "oeq:foldwise-replacement",
+            "theorem": {
+              "id": "thm:foldwise-replacement",
+              "kind": "theorem",
+              "statement": "Under the declared clipping, overlap, bounded-feature, fixed-fold, nuisance-rate, compactness, interiority, smoothness, and curvature conditions, for every \\(u\\in\\{0,1,2\\}\\), uniformly over folds and parameters, the foldwise conditional nuisance bias is \\(O_{\\mathbb P}(r_{m,n}r_{e,n})\\) and the conditional \\(L^2(P)\\) nuisance-replacement envelope is \\(O_{\\mathbb P}(r_{m,n}+r_{e,n})\\); on the corresponding nuisance-rate events the constants may be taken to be \\(C_{\\mathrm{sm}}\\).  Uniform foldwise laws and compact argmax localization imply \\(\\upsilon_n=o_{\\mathbb P}(1)\\), and\n\\[\n \\delta_n\\leq C_{\\mathrm{sm}}\\{r_{m,n}+r_{e,n}+r_{m,n}r_{e,n}+\\upsilon_n\\}+o_{\\mathbb P}(1)=o_{\\mathbb P}(1).\n\\]\nConsequently,\n\\[\n E_\\xi\\!\\left[\\sup_{c\\in\\mathcal C}\\left\\|n^{-1/2}\\sum_{i=1}^n\\xi_i\n \\left[\\widetilde\\Psi_i(c)-\\{\\Psi_c(O_i)-\\overline\\Psi_n(c)\\}\\right]\\right\\|\n \\mathrel{\\big|}O_1,\\ldots,O_n\\right]=o_{\\mathbb P}(1).\n\\]\nThis conclusion is obtained by conditioning on each training complement separately and summing over the fixed number of folds; it does not require independence of the overlapping training complements.",
+              "free_symbols": [
+                "L",
+                "\\(\\theta\\)",
+                "\\(\\Theta\\)",
+                "\\(P\\)",
+                "\\(O\\)",
+                "\\(\\widehat v_\\theta^{(-\\ell)}\\)",
+                "\\(v_\\theta\\)",
+                "\\(C_{\\mathrm{sm}}\\)",
+                "\\(r_{m,n}\\)",
+                "\\(r_{e,n}\\)",
+                "\\(\\upsilon_n\\)",
+                "\\(\\delta_n\\)",
+                "\\(\\mathcal C\\)",
+                "n",
+                "\\(\\widetilde\\Psi_i\\)",
+                "\\(\\Psi_c\\)",
+                "\\(O_i\\)",
+                "\\(\\overline\\Psi_n\\)",
+                "\\(\\widehat\\theta_c\\)",
+                "\\(\\xi_i\\)"
+              ],
+              "depends_on": [
+                "ass:iid",
+                "ass:bounded-outcome",
+                "ass:overlap",
+                "ass:benchmark-positive",
+                "ass:benchmark-normalized",
+                "ass:bounded-features",
+                "ass:compact-parameter",
+                "ass:uniform-interior",
+                "ass:smooth-criterion",
+                "ass:uniform-curvature",
+                "ass:outcome-estimability",
+                "ass:propensity-estimability",
+                "ass:product-rate",
+                "ass:fold-balance",
+                "def:crossfit-estimator",
+                "def:joint-influence",
+                "def:replacement-handle",
+                "lem:softmax-path-entropy"
+              ],
+              "proof_tex": "Fix \\(\\ell\\) and condition on the training complement.  Use the notation of (2) in the proof of \\(\\mathrm{lem{:}softmax\\mbox{-}path\\mbox{-}entropy}\\).  Conditional exchangeability of the held-out observations and\n\\(E[Y-m_A(X)\\mid A,X]=0\\) give, for \\(u=0,1,2\\), the exact identity\n\\[\n E_P[\\partial_\\theta^u\\{\\widehat v_\\theta^{(-\\ell)}-v_\\theta\\}\\mid\n       \\text{training}]\n =E_{P_X}\\sum_a\\partial_\\theta^u\\pi_\\theta(a\\mid X)\n       \\Delta m_a(X)\\frac{\\Delta e_a(X)}{\\widehat e_a^{(-\\ell)}(X)}. \\tag{10}\n\\]\nThe denominator is at least \\(\\epsilon/2\\).  The softmax derivative bound (1) and Cauchy--Schwarz therefore yield\n\\[\n \\sup_{\\theta\\in\\Theta}\\left\\|E_P[\\partial_\\theta^u\n       \\{\\widehat v_\\theta^{(-\\ell)}-v_\\theta\\}\\mid\\text{training}]\\right\\|\n \\leq C_{\\mathrm{sm}}r_{m,n}r_{e,n}.                          \\tag{11}\n\\]\nEquation (2), Minkowski's inequality, clipping, and overlap similarly give\n\\[\n \\sup_{\\theta\\in\\Theta}\\|\\partial_\\theta^u\n       \\{\\widehat v_\\theta^{(-\\ell)}-v_\\theta\\}\\|_{P,2}\n \\leq C_{\\mathrm{sm}}(r_{m,n}+r_{e,n}).                      \\tag{12}\n\\]\nThe displayed bounds hold on the nuisance-rate events; their maximum over \\(\\ell\\) has probability tending to one because \\(L\\) is fixed and the folds are balanced.\n\nLet \\(P_{n,\\ell}\\) denote the empirical law on fold \\(\\ell\\).  Conditional on training, the observations in that fold are independent with law \\(P\\).  The entropy bound of \\(\\mathrm{lem{:}softmax\\mbox{-}path\\mbox{-}entropy}\\), symmetrization by independent signs, and the same dyadic-net argument used in (9) imply\n\\[\n \\max_{\\ell,u}\\sup_{\\theta\\in\\Theta}\n \\left|(P_{n,\\ell}-P)\\partial_\\theta^u\n       \\{\\widehat v_\\theta^{(-\\ell)}-v_\\theta\\}\\right|\n =O_{\\mathbb P}\\!\\left(\\frac{r_{m,n}+r_{e,n}}{\\sqrt n}\\right). \\tag{13}\n\\]\nNo relation between two training complements is used in (13): after proving the conditional assertion fold by fold, a union bound over the fixed \\(L\\) proves the maximum.  Equations (11)--(13), the product-rate assumption, and the analogous bounded finite-dimensional laws for \\(v_\\theta\\) and the known divergence score give\n\\[\n \\sup_{c,\\theta}\\|\\partial_\\theta^u\\widehat M_c(\\theta)\n                    -\\partial_\\theta^u M_c(\\theta)\\|=o_{\\mathbb P}(1),\n \\quad u=0,1,2,                                                  \\tag{14}\n\\]\nand, for \\(u=0,1\\), the nuisance replacement in the root-\\(n\\) empirical process is \\(o_{\\mathbb P}(1)\\).\n\nWe spell out localization.  Continuity and uniqueness on compact\n\\(\\mathcal C\\times\\Theta\\) imply that \\(c\\mapsto\\theta_c\\) is continuous.  Hence for each \\(\\varepsilon>0\\), compactness and uniqueness give\n\\[\n \\kappa_\\varepsilon\n =\\inf_{c\\in\\mathcal C}\\inf_{\\theta\\in\\Theta:\\|\\theta-\\theta_c\\|\\geq\\varepsilon}\n       \\{M_c(\\theta_c)-M_c(\\theta)\\}>0.                        \\tag{15}\n\\]\nOtherwise a convergent subsequence would contradict uniqueness at its limit.  The \\(u=0\\) case of (14), global empirical maximization, and (15) prove\n\\(\\sup_c\\|\\widehat\\theta_c-\\theta_c\\|=o_{\\mathbb P}(1)\\).  The \\(u=1,2\\) cases of (14), uniform continuity of the population derivatives, and this localization give\n\\[\n \\sup_c\\|\\widehat H_c-H_c\\|=o_{\\mathbb P}(1),\\quad\n \\sup_c\\|\\nabla\\widehat W(\\widehat\\theta_c)-a_c\\|=o_{\\mathbb P}(1),\\quad\n \\sup_c\\|\\nabla\\widehat K(\\widehat\\theta_c)-g_c\\|=o_{\\mathbb P}(1). \\tag{16}\n\\]\nThus \\(\\upsilon_n=o_{\\mathbb P}(1)\\).\n\nLet \\(\\widehat\\Psi_i^{\\rm raw}(c)\\) be the uncentered plug-in stack whose empirical centering defines \\(\\widetilde\\Psi_i(c)\\).  On the event in (16), the curvature floor and the totalization rule imply\n\\(\\| (\\widehat H_c^{\\mathrm{tot}})^{-1}\\|\\leq2/h\\) and\n\\[\n \\sup_c\\|(\\widehat H_c^{\\mathrm{tot}})^{-1}-H_c^{-1}\\|\n \\leq 2h^{-2}\\sup_c\\|\\widehat H_c-H_c\\|=o_{\\mathbb P}(1).    \\tag{17}\n\\]\nApply (2), its first two derivatives, (17), and the bounded gradients to each algebraic coordinate of the influence stack.  The resulting pointwise inequality has the form\n\\[\n \\sup_c\\|\\widehat\\Psi_i^{\\rm raw}(c)-\\Psi_c(O_i)\\|\n \\leq C_{\\mathrm{sm}}\\sum_{u=0}^2F_{\\ell(i),u}(O_i)\n      +C_{\\mathrm{sm}}\\upsilon_n E_i+C_{\\mathrm{sm}}r_{m,n}r_{e,n}, \\tag{18}\n\\]\nwhere \\(E_i\\) is a uniformly bounded envelope depending only on the declared structural bounds.  Conditional Markov inequalities applied within each held-out fold, (12), fold balance, and fixed \\(L\\) show that the empirical \\(L^2\\) norm of the right side of (18) is at most\n\\[\n C_{\\mathrm{sm}}\\{r_{m,n}+r_{e,n}+r_{m,n}r_{e,n}+\\upsilon_n\\}\n +o_{\\mathbb P}(1).                                            \\tag{19}\n\\]\nIf \\(z_i(c)=\\widehat\\Psi_i^{\\rm raw}(c)-\\Psi_c(O_i)\\), empirical centering gives\n\\(\\Delta_i(c)=z_i(c)-n^{-1}\\sum_jz_j(c)\\), whence\n\\(n^{-1}\\sum_i\\|\\Delta_i(c)\\|^2\\leq n^{-1}\\sum_i\\|z_i(c)\\|^2\\).\nTaking the supremum in (19) proves the asserted bound for \\(\\delta_n\\), and the rate assumptions plus (16) make it \\(o_{\\mathbb P}(1)\\).  The last conclusion now follows from (9).  Because all cross-fold aggregation used only sums or a finite union bound, overlap among training complements creates no missing independence premise.",
+              "status": "proved"
+            }
+          }
+        ],
+        "added_lemmas": [
+          {
+            "id": "lem:frx-fixed-efficiency",
+            "kind": "lemma",
+            "statement": "For a fixed positive optimization penalty \\(\\lambda_{\\mathrm{FRX}}\\) in the regular interior assignment problem of Fang, Ridder, and Xie, their Theorem 1 identifies the efficient influence function of the best-in-class assignment parameter as the inverse negative criterion Hessian times the derivative of the efficient penalized-welfare score and identifies its covariance as the semiparametric efficiency bound.",
+            "free_symbols": [
+              "\\(\\lambda_{\\mathrm{FRX}}\\)"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "FangRidderXie2026",
+              "locator": "Theorem 1 in arXiv:2512.19230v3, displayed equations (5)--(6)",
+              "carrier": "logical-claim",
+              "url": "https://arxiv.org/html/2512.19230v3",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Verified against Theorem 1 in the version-3 arXiv HTML on 2026-09-14; the stable source handle is supplied in lieu of a long verbatim transcription."
+              }
+            }
+          },
+          {
+            "id": "lem:frx-fixed-regret",
+            "kind": "lemma",
+            "statement": "For a fixed positive optimization penalty \\(\\lambda_{\\mathrm{FRX}}\\) in the regular interior assignment problem of Fang, Ridder, and Xie, their Theorem 2 gives the \\(n\\)-scaled penalized-regret limit as one half of the limiting optimizer error transposed against the negative criterion Hessian and itself.",
+            "free_symbols": [
+              "n",
+              "\\(\\lambda_{\\mathrm{FRX}}\\)"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "FangRidderXie2026",
+              "locator": "Theorem 2 in arXiv:2512.19230v3, displayed equation (7)",
+              "carrier": "logical-claim",
+              "url": "https://arxiv.org/html/2512.19230v3",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Verified against Theorem 2 in the version-3 arXiv HTML on 2026-09-14; the stable source handle is supplied in lieu of a long verbatim transcription."
+              }
+            }
+          },
+          {
+            "id": "lem:frx-fixed-dr-attainment",
+            "kind": "lemma",
+            "statement": "For a fixed positive optimization penalty \\(\\lambda_{\\mathrm{FRX}}\\) in the regular interior assignment problem of Fang, Ridder, and Xie, their Theorem 5 shows that the cross-fitted doubly robust optimizer has the efficient Gaussian limit and that its \\(n\\)-scaled penalized regret converges to the corresponding efficient Hessian quadratic form.",
+            "free_symbols": [
+              "n",
+              "\\(\\lambda_{\\mathrm{FRX}}\\)"
+            ],
+            "depends_on": [],
+            "status": "cited",
+            "source": {
+              "cite": "FangRidderXie2026",
+              "locator": "Theorem 5 in arXiv:2512.19230v3, displayed equation (17)",
+              "carrier": "logical-claim",
+              "url": "https://arxiv.org/html/2512.19230v3",
+              "attestation": {
+                "by": "d0-agent",
+                "note": "Verified against Theorem 5 in the version-3 arXiv HTML on 2026-09-14; the stable source handle is supplied in lieu of a long verbatim transcription."
+              }
+            }
+          }
+        ],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [
+          {
+            "kind": "statement-replace",
+            "id": "thm:uniform-linearization",
+            "proposed": {
+              "id": "thm:uniform-linearization",
+              "kind": "theorem",
+              "statement": "Uniformly over \\(c\\in\\mathcal C\\), \\(\\sup_{c\\in\\mathcal C}\\|\\sqrt n\\{\\widehat\\tau(c)-\\tau(c)\\}-n^{-1/2}\\sum_{i=1}^n(\\psi^\\theta_c(O_i),\\psi^W_c(O_i),\\psi^K_c(O_i))\\|=o_{\\mathbb P}(1)\\). Jointly, the two implemented-rule evaluation errors satisfy \\(\\sup_{c\\in\\mathcal C}|\\sqrt n\\{\\widehat W(\\widehat\\theta_c)-W(\\widehat\\theta_c)\\}-n^{-1/2}\\sum_{i=1}^n\\phi^W_c(O_i)|=o_{\\mathbb P}(1)\\) and the analogous statement with \\(K\\) and \\(\\phi^K_c\\). Therefore the full stack converges in \\(C(\\mathcal C)^{d+4}\\) to \\(G\\) with kernel \\(\\Gamma\\), and at every finite deterministic collection of penalty coordinates the optimizer coordinates jointly attain the semiparametric covariance bound generated by \\(\\psi_c^\\theta\\). On the common regular finite-action benchmark-centered softmax submodel, set FangRidderXie2026's optimization penalty to \\(\\lambda_{\\mathrm{FRX}}=c\\), so its reported preference is \\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\). This is the uniform-in-penalty extension of the fixed-penalty efficient influence bound in its Theorem 1 and the efficient doubly robust optimizer limit in its Theorem 5.",
+              "free_symbols": [
+                "\\(c\\)",
+                "\\(\\mathcal C\\)",
+                "n",
+                "\\(\\widehat\\tau\\)",
+                "\\(\\tau\\)",
+                "\\(\\psi^\\theta_c\\)",
+                "\\(\\psi^W_c\\)",
+                "\\(\\psi^K_c\\)",
+                "\\(O_i\\)",
+                "\\(\\widehat W\\)",
+                "\\(\\widehat\\theta_c\\)",
+                "\\(W\\)",
+                "\\(\\phi^W_c\\)",
+                "\\(\\widehat K\\)",
+                "\\(K\\)",
+                "\\(\\phi^K_c\\)",
+                "d",
+                "\\(G\\)",
+                "\\(\\Gamma\\)",
+                "\\(\\lambda_{\\mathrm{FRX}}\\)",
+                "\\(c_{\\mathrm{FRX}}\\)",
+                "\\(s_W^{\\mathrm{FRX}}\\)",
+                "\\(\\pi_\\theta\\)",
+                "\\(\\theta\\)",
+                "\\(\\Theta\\)"
+              ],
+              "depends_on": [
+                "ass:iid",
+                "ass:consistency",
+                "ass:exchangeability",
+                "ass:bounded-outcome",
+                "ass:overlap",
+                "ass:benchmark-positive",
+                "ass:benchmark-normalized",
+                "ass:bounded-features",
+                "ass:compact-parameter",
+                "ass:unique-optimizer",
+                "ass:uniform-interior",
+                "ass:smooth-criterion",
+                "ass:uniform-curvature",
+                "ass:outcome-estimability",
+                "ass:propensity-estimability",
+                "ass:product-rate",
+                "ass:fold-balance",
+                "def:softmax-rule",
+                "def:oracle-path",
+                "def:frx-penalty-map",
+                "def:crossfit-estimator",
+                "def:joint-influence",
+                "oeq:foldwise-replacement",
+                "lem:penalized-cancellation",
+                "lem:frx-fixed-efficiency",
+                "lem:frx-fixed-dr-attainment"
+              ],
+              "status": "to-prove",
+              "justification": "On the common softmax submodel, a decision maker sees and selects from the whole preference curve; the contribution is the joint uniform process under explicitly maintained path-uniform interiority, three-derivative smoothness, and curvature, built on quantitative foldwise same-sample-path replacement.",
+              "gap": "FangRidderXie2026 Theorem 1 gives the efficient influence function and bound, while Theorem 5 gives the efficient doubly robust optimizer and its limit at fixed optimization penalty \\(\\lambda_{\\mathrm{FRX}}>0\\). Restricting its admissible-rule framework to \\(\\{\\pi_\\theta:\\theta\\in\\Theta\\}\\) and mapping \\(\\lambda_{\\mathrm{FRX}}=c\\), equivalently \\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\), the gap is a joint uniform oracle-and-implemented frontier process under separately stated stronger path-uniform regularity; generic indexed Z-estimation supplies tools but not this verified composition.",
+              "consumer": "The commitment-savings frontier in FangRidderXie2026 can be reported on the common regular softmax submodel with correlated uncertainty for every displayed preference rather than unrelated pointwise standard errors."
+            },
+            "reason": "Adds the theorem-granular published fixed-penalty efficiency result used by the comparison and efficiency-attainment sentence.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "thm:uniform-regret",
+            "proposed": {
+              "id": "thm:uniform-regret",
+              "kind": "theorem",
+              "statement": "The entire penalized-regret path has the uniform second-order reduction \\(\\sup_{c\\in\\mathcal C}|nR_n(c)-\\tfrac12\\{n^{-1/2}\\sum_{i=1}^n\\psi^\\theta_c(O_i)\\}^\\top H_c\\{n^{-1/2}\\sum_{i=1}^n\\psi^\\theta_c(O_i)\\}|=o_{\\mathbb P}(1)\\), so \\(nR_n\\Rightarrow Q\\) in \\(C(\\mathcal C)\\). Conditionally on the data, the totalized process \\(Q_n^*\\Rightarrow Q\\), and conditional quantiles of continuous supremum functionals of \\(Q_n^*\\), enlarged by the fixed slack \\(\\eta\\), yield simultaneous upper bands for \\(R_n(c)\\) that remain valid at \\(\\widehat c\\). On the common regular finite-action benchmark-centered softmax submodel, set FangRidderXie2026's optimization penalty to \\(\\lambda_{\\mathrm{FRX}}=c\\), so its reported preference is \\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\). This process is the uniform-in-penalty extension of its Theorem 2 fixed-penalty quadratic-regret law and its Theorem 5 efficient doubly robust quadratic-regret limit.",
+              "free_symbols": [
+                "\\(c\\)",
+                "\\(\\mathcal C\\)",
+                "n",
+                "\\(R_n\\)",
+                "\\(\\psi^\\theta_c\\)",
+                "\\(O_i\\)",
+                "\\(H_c\\)",
+                "\\(Q\\)",
+                "\\(Q_n^*\\)",
+                "\\(\\eta\\)",
+                "\\(\\widehat c\\)",
+                "\\(\\lambda_{\\mathrm{FRX}}\\)",
+                "\\(c_{\\mathrm{FRX}}\\)",
+                "\\(s_W^{\\mathrm{FRX}}\\)"
+              ],
+              "depends_on": [
+                "ass:iid",
+                "ass:bounded-features",
+                "ass:smooth-criterion",
+                "ass:uniform-curvature",
+                "def:frx-penalty-map",
+                "def:regret-bootstrap",
+                "oeq:foldwise-replacement",
+                "thm:uniform-linearization",
+                "thm:conditional-multiplier",
+                "lem:frx-fixed-regret",
+                "lem:frx-fixed-dr-attainment"
+              ],
+              "status": "to-prove",
+              "justification": "Under the note's explicitly stronger path-uniform smoothness and curvature conditions, the same first-order policy noise determines second-order loss across preferences, so separate fixed-positive-penalty regret approximations cannot support curve selection.",
+              "gap": "FangRidderXie2026 Theorem 2 gives the quadratic-regret law at one fixed optimization penalty \\(\\lambda_{\\mathrm{FRX}}>0\\), and Theorem 5 gives the efficient doubly robust optimizer and quadratic-regret limit. On the common finite-action benchmark-centered softmax subclass, with \\(\\lambda_{\\mathrm{FRX}}=c\\) and \\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\), this theorem extends those fixed-penalty conclusions uniformly over the direct penalty path and adds conditionally valid shared-multiplier calibration; ChenFang2019 explains why a naive standard bootstrap is not enough.",
+              "consumer": "A planner choosing a displayed commitment-savings tradeoff receives a simultaneous upper bound on the statistical penalized-welfare loss of the fitted rule."
+            },
+            "reason": "Adds the theorem-granular published fixed-penalty regret result used by the comparator sentence.",
+            "direction": "correct"
+          },
+          {
+            "kind": "statement-replace",
+            "id": "prop:fixed-preference-reduction",
+            "proposed": {
+              "id": "prop:fixed-preference-reduction",
+              "kind": "proposition",
+              "statement": "Non-novel sanity reduction: for every deterministic \\(c\\in\\mathcal C\\), evaluation of the uniform limits at \\(c\\) gives \\(\\sqrt n(\\widehat\\theta_c-\\theta_c)\\Rightarrow G_\\theta(c)\\) and \\(nR_n(c)\\Rightarrow\\tfrac12G_\\theta(c)^\\top H_cG_\\theta(c)\\). Restrict FangRidderXie2026's admissible-rule framework to \\(\\{\\pi_\\theta:\\theta\\in\\Theta\\}\\), set its optimization penalty to \\(\\lambda_{\\mathrm{FRX}}=c\\), and hence report \\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\). The optimizer conclusion reduces to its Theorem 5 and the quadratic-regret conclusion reduces to its Theorems 2 and 5.",
+              "free_symbols": [
+                "\\(c\\)",
+                "\\(\\mathcal C\\)",
+                "n",
+                "\\(\\widehat\\theta_c\\)",
+                "\\(\\theta_c\\)",
+                "\\(G\\)",
+                "\\(R_n\\)",
+                "\\(H_c\\)",
+                "\\(\\lambda_{\\mathrm{FRX}}\\)",
+                "\\(c_{\\mathrm{FRX}}\\)",
+                "\\(s_W^{\\mathrm{FRX}}\\)",
+                "\\(\\pi_\\theta\\)",
+                "\\(\\theta\\)",
+                "\\(\\Theta\\)"
+              ],
+              "depends_on": [
+                "def:frx-penalty-map",
+                "thm:uniform-linearization",
+                "thm:uniform-regret",
+                "lem:frx-fixed-regret",
+                "lem:frx-fixed-dr-attainment"
+              ],
+              "status": "to-prove",
+              "justification": "This is only a non-novel sanity reduction for auditing signs, Hessian normalization, and regret scaling against the published fixed-preference result.",
+              "gap": "No independent gap is claimed: the statement is the deterministic-penalty specialization to FangRidderXie2026 Theorems 2 and 5 on the common regular softmax submodel under \\(\\lambda_{\\mathrm{FRX}}=c\\) and \\(c_{\\mathrm{FRX}}=c/s_W^{\\mathrm{FRX}}\\).",
+              "consumer": "Readers can audit signs, Hessian normalization, and regret scaling against the published theorem before using the new simultaneous procedure."
+            },
+            "reason": "Adds the cited published theorem node that the non-novel fixed-preference reduction explicitly invokes.",
+            "direction": "correct"
+          }
+        ],
+        "open_obligations": []
+      }
+    },
+    {
+      "unit": "prop:softmax-geometry",
+      "targets": [
+        "prop:softmax-geometry"
+      ],
+      "proseRole": "omit",
+      "output": {
+        "proofs": [
+          {
+            "id": "prop:softmax-geometry",
+            "proof_tex": "Write\n\\[\n Z_x(\\theta)=\\sum_{r\\in\\mathcal A}b_r(x)e^{\\theta^\\top q_r(x)}.\n\\]\nBy \\(\\textnormal{ass:benchmark-normalized}\\), \\(Z_x(0)=1\\).  Hence the formula in\n\\(\\textnormal{def:softmax-rule}\\) gives, for every \\(a\\in\\mathcal A\\),\n\\[\n \\pi_0(a\\mid x)=\\frac{b_a(x)}{\\sum_{r\\in\\mathcal A}b_r(x)}=b_a(x)\n\\]\nfor almost every \\(x\\).  For a fixed \\(x\\) and \\(\\theta\\), put\n\\(p_a=\\pi_\\theta(a\\mid x)\\).  Both \\(p_a\\) and \\(b_a(x)\\) are strictly\npositive by \\(\\textnormal{ass:benchmark-positive}\\) and the softmax formula,\nand both sum to one.  The elementary inequality \\(\\log u\\leq u-1\\), applied\nwith \\(u=b_a(x)/p_a\\), therefore gives\n\\[\n \\sum_{a\\in\\mathcal A}p_a\\log\\frac{p_a}{b_a(x)}\n \\geq \\sum_{a\\in\\mathcal A}p_a\\left(1-\\frac{b_a(x)}{p_a}\\right)\n =1-1=0.\n\\]\nTaking \\(P_X\\)-expectations and using the definition of \\(K\\) proves\n\\(K(\\theta)\\geq0\\).  In particular, \\(K(0)=0\\).\n\nWe next establish the regularity of the optimizer path rather than assuming\nit.  The integrand defining \\(W\\) is continuous in \\(\\theta\\) pointwise and\nhas absolute value at most \\(B\\), because the declared outcome support\n\\(Y\\in[-B,B]\\) implies \\(|m_a(X)|\\leq B\\).  The integrand defining \\(K\\) is\nalso pointwise continuous.  Moreover, the preceding nonnegativity argument\nand \\(b_a(X)\\geq\\epsilon_b\\) yield the uniform bound\n\\[\n 0\\leq \\sum_a\\pi_\\theta(a\\mid X)\n       \\log\\frac{\\pi_\\theta(a\\mid X)}{b_a(X)}\n \\leq \\sum_a\\pi_\\theta(a\\mid X)\\log\\frac1{b_a(X)}\n \\leq \\log\\frac1{\\epsilon_b}.\n\\]\nFor completeness, pointwise convergence of any one of these bounded\nintegrands implies convergence of its expectations as follows.  If\n\\(f_j\\to f\\) pointwise and \\(|f_j|,|f|\\leq C\\), then for \\(\\delta>0\\) the\nsets\n\\[\n A_N(\\delta)=\\bigcup_{j\\geq N}\\{|f_j-f|>\\delta\\}\n\\]\ndecrease to the empty set.  Countable additivity gives\n\\(P_X(A_N(\\delta))\\downarrow0\\), while for \\(j\\geq N\\),\n\\[\n E_P|f_j-f|\\leq\\delta+2C P_X(A_N(\\delta)).\n\\]\nFirst letting \\(N\\to\\infty\\) and then \\(\\delta\\downarrow0\\) proves the\nclaim.  Thus \\((c,\\theta)\\mapsto M_c(\\theta)=W(\\theta)-cK(\\theta)\\) is\ncontinuous on \\(\\mathcal C\\times\\Theta\\).\n\nWe now prove continuity of \\(c\\mapsto\\theta_c\\).  Let \\(c_j\\to c\\).  By\ncompactness of \\(\\Theta\\), every subsequence of \\(\\theta_{c_j}\\) has a\nfurther subsequence converging to some \\(\\theta_*\\in\\Theta\\).  For every\n\\(\\vartheta\\in\\Theta\\), optimality in \\(\\textnormal{def:oracle-path}\\)\ngives\n\\[\n M_{c_j}(\\theta_{c_j})\\geq M_{c_j}(\\vartheta).\n\\]\nPassing to the convergent subsequence and using the continuity just proved\ngives \\(M_c(\\theta_*)\\geq M_c(\\vartheta)\\).  Assumption\n\\(\\textnormal{ass:unique-optimizer}\\) forces \\(\\theta_*=\\theta_c\\).  Since\nevery convergent subsequence has this same limit, \\(\\theta_{c_j}\\to\\theta_c\\).\n\nFix \\(c_0\\in\\mathcal C\\), write \\(\\theta_0=\\theta_{c_0}\\), and define\n\\[\n F(c,\\theta)=\\nabla_\\theta M_c(\\theta).\n\\]\nAssumption \\(\\textnormal{ass:uniform-interior}\\) makes \\(\\theta_0\\) an\ninterior maximizer, so \\(F(c_0,\\theta_0)=0\\).  We record why the derivatives\nof \\(W\\) and \\(K\\) used below follow from the stated smoothness condition.\nChoose \\(c_1\\in\\mathcal C\\), \\(c_1\\neq c_0\\), sufficiently close to\n\\(c_0\\).  On a common neighborhood of \\(\\theta_0\\),\n\\[\n K(\\theta)=\\frac{M_{c_0}(\\theta)-M_{c_1}(\\theta)}{c_1-c_0},\n \\qquad\n W(\\theta)=M_{c_0}(\\theta)+c_0K(\\theta).\n\\]\nThus \\(\\textnormal{ass:smooth-criterion}\\) makes \\(W\\) and \\(K\\) three\ntimes continuously differentiable there.  Consequently \\(F\\) is\ncontinuously differentiable in \\((c,\\theta)\\), and\n\\[\n \\partial_\\theta F(c_0,\\theta_0)\n =\\nabla_\\theta^2M_{c_0}(\\theta_0)=-H_{c_0}.\n\\]\nThis matrix is invertible by \\(\\textnormal{ass:uniform-curvature}\\).\n\nHere is a direct local continuation argument.  Set\n\\(A_0=\\partial_\\theta F(c_0,\\theta_0)\\) and\n\\(T_c(\\theta)=\\theta-A_0^{-1}F(c,\\theta)\\).  Continuity of\n\\(\\partial_\\theta F\\) permits a closed ball \\(D\\) about \\(\\theta_0\\) and\nan interval \\(I\\) about \\(c_0\\), relative to \\(\\mathcal C\\), such that\n\\[\n \\sup_{(c,\\theta)\\in I\\times D}\n \\left\\|I_d-A_0^{-1}\\partial_\\theta F(c,\\theta)\\right\\|\\leq\\frac12\n\\]\nand \\(\\|T_c(\\theta_0)-\\theta_0\\|\\) is at most half the radius of \\(D\\).\nThe mean-value integral then shows that \\(T_c\\) maps \\(D\\) into itself and\ncontracts distances by at most \\(1/2\\).  Starting from \\(\\theta_0\\), its\niterates have successive distances bounded by a geometric series, hence\nconverge in the closed Euclidean ball \\(D\\) to a fixed point; the same\ncontraction inequality makes that fixed point unique.  Denote it by\n\\(\\eta(c)\\).  The contraction inequality also gives continuity of\n\\(\\eta\\) in \\(c\\).  The already proved continuity of \\(\\theta_c\\) places\n\\(\\theta_c\\) in \\(D\\) for all \\(c\\) close enough to \\(c_0\\); interiority\ngives \\(F(c,\\theta_c)=0\\), and uniqueness of the fixed point therefore gives\n\\(\\eta(c)=\\theta_c\\).\n\nFor a small increment \\(t\\), the identity\n\\(F(c+t,\\theta_{c+t})=F(c,\\theta_c)=0\\), the exact linearity of \\(F\\) in\n\\(c\\), and the mean-value integral in \\(\\theta\\) give\n\\[\n 0=A_t(\\theta_{c+t}-\\theta_c)-t\\nabla K(\\theta_c),\n \\qquad\n A_t=\\int_0^1\\partial_\\theta F\\bigl(c+t,\n       \\theta_c+s(\\theta_{c+t}-\\theta_c)\\bigr)\\,ds.\n\\]\nAs \\(t\\to0\\), \\(A_t\\to-H_c\\); these matrices are invertible for all small\n\\(t\\).  Hence\n\\[\n \\theta_c'=(-H_c)^{-1}g_c=-H_c^{-1}g_c,\n \\qquad\\text{or equivalently}\\qquad H_c\\theta_c'=-g_c.\n\\]\nThe displayed derivative is continuous in \\(c\\).  Since \\(c_0\\) was\narbitrary, the local paths glue to a continuously differentiable path on\n\\(\\mathcal C\\), with the usual one-sided interpretation at its endpoints.\n\nThe interior first-order condition also states\n\\[\n 0=\\nabla M_c(\\theta_c)=a_c-cg_c,\n \\qquad\\text{so}\\qquad a_c=cg_c.\n\\]\nThe chain rule and the preceding path equation now yield, equation by\nequation,\n\\[\n \\frac{d}{dc}K(\\theta_c)\n =g_c^\\top\\theta_c'\n =-g_c^\\top H_c^{-1}g_c\\leq0\n\\]\nand\n\\[\n \\frac{d}{dc}W(\\theta_c)\n =a_c^\\top\\theta_c'\n =c g_c^\\top\\theta_c'\n =c\\frac{d}{dc}K(\\theta_c).\n\\]\nThe inequality follows because \\(H_c\\) is positive definite under\n\\(\\textnormal{ass:uniform-curvature}\\).\n\nIt remains to prove the claimed strict dichotomy.  We first show that\n\\(g_c\\neq0\\) whenever \\(\\theta_c\\neq0\\).  Fix such a \\(c\\) and abbreviate\n\\(\\theta=\\theta_c\\).  For each \\(x\\), let\n\\[\n \\ell_x(t)=\\log\\sum_{a\\in\\mathcal A}b_a(x)e^{t\\theta^\\top q_a(x)},\n \\qquad\n k_x(t)=\\sum_a\\pi_{t\\theta}(a\\mid x)\n            \\log\\frac{\\pi_{t\\theta}(a\\mid x)}{b_a(x)}.\n\\]\nFinite summation and direct differentiation give\n\\[\n k_x(t)=t\\ell_x'(t)-\\ell_x(t),\n \\qquad\n k_x'(t)=t\\ell_x''(t)\n =t\\operatorname{Var}_{\\pi_{t\\theta}}\n       (\\theta^\\top q_A(x)\\mid X=x).\n\\]\nUniform interiority ensures that \\((1+s)\\theta\\in\\Theta\\) for all\nsufficiently small \\(s>0\\).  Hence\n\\[\n r_s(x)=\\frac{k_x(1+s)-k_x(1)}s\\geq0,\n \\qquad\n r_s(x)\\longrightarrow\n V(x):=\\operatorname{Var}_{\\pi_\\theta}\n       (\\theta^\\top q_A(x)\\mid X=x).\n\\]\nBy \\(\\textnormal{ass:feature-identification}\\), \\(P_X\\{V>0\\}>0\\).\nThus there are \\(\\delta>0\\) and a measurable set \\(E\\) with\n\\(P_X(E)>0\\) such that \\(V\\geq2\\delta\\) on \\(E\\).  To avoid hiding any\nlimit interchange, take an arbitrary sequence \\(s_j\\downarrow0\\) and set\n\\[\n E_N=E\\cap\\bigcap_{j\\geq N}\\{r_{s_j}\\geq\\delta\\}.\n\\]\nPointwise convergence gives \\(E_N\\uparrow E\\), so\n\\(P_X(E_N)\\uparrow P_X(E)\\).  For every \\(j\\geq N\\),\n\\[\n E_P r_{s_j}\\geq\\delta P_X(E_N).\n\\]\nOn the other hand, differentiability of \\(K\\), established above, implies\n\\[\n \\theta^\\top g_c\n =\\lim_{s\\downarrow0}\\frac{K((1+s)\\theta)-K(\\theta)}s\n =\\lim_{s\\downarrow0}E_P r_s\n \\geq\\delta P_X(E)>0.\n\\]\nBecause the sequence was arbitrary, the last inequality holds for the full\nright-hand limit.  Therefore \\(g_c\\neq0\\) whenever \\(\\theta_c\\neq0\\).\n\nFinally, suppose \\(\\theta_{c_0}=0\\) for some \\(c_0\\).  Since \\(K\\geq0\\),\n\\(K(0)=0\\), and zero is interior by\n\\(\\textnormal{ass:uniform-interior}\\), differentiability gives\n\\(\\nabla K(0)=0\\).  Local continuous differentiability of \\(K\\) makes its\ngradient locally Lipschitz: \\(\\|\\nabla K(u)-\\nabla K(0)\\|\\leq L\\|u\\|\\).\nThe path equation and \\(\\|H_c^{-1}\\|\\leq h^{-1}\\) consequently imply, on\na sufficiently small interval about \\(c_0\\),\n\\[\n \\|\\theta_c\\|\n \\leq \\frac{L}{h}\\left|\\int_{c_0}^{c}\\|\\theta_s\\|\\,ds\\right|.\n\\]\nFor \\(c\\geq c_0\\), if\n\\(U(c)=\\int_{c_0}^c\\|\\theta_s\\|\\,ds\\), then\n\\(U'(c)\\leq(L/h)U(c)\\) and \\(U(c_0)=0\\); differentiating\n\\(e^{-Lc/h}U(c)\\) shows \\(U=0\\).  The same argument with reversed limits\nhandles \\(c\\leq c_0\\).  Thus the zero set\n\\(\\{c\\in\\mathcal C:\\theta_c=0\\}\\) is open; it is closed by continuity of\nthe path.  Since \\(\\mathcal C\\) is an interval, this set is either empty or\nall of \\(\\mathcal C\\).\n\nIf it is all of \\(\\mathcal C\\), then\n\\((W(\\theta_c),K(\\theta_c))=(W(0),0)\\) for every \\(c\\), so the frontier is\nconstant.  Otherwise \\(\\theta_c\\neq0\\) for every \\(c\\), whence\n\\(g_c\\neq0\\) and\n\\[\n \\frac{d}{dc}K(\\theta_c)=-g_c^\\top H_c^{-1}g_c<0.\n\\]\nThe mean-value theorem makes \\(K(\\theta_c)\\) strictly decreasing on\n\\(\\mathcal C\\).  Its value is therefore an injective coordinate of the\nfrontier, so two distinct penalty values cannot produce the same\n\\((W,K)\\) pair.  This proves the no-self-intersection conclusion for every\nnonconstant maintained frontier."
+          }
+        ],
+        "resolved_oeqs": [],
+        "added_lemmas": [],
+        "proposed_statement_changes": [],
+        "proposed_definition_changes": [],
+        "proposed_assumptions": [],
+        "proposed_core_edits": [],
+        "open_obligations": []
+      }
+    }
+  ]
+}

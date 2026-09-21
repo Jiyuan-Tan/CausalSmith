@@ -12,14 +12,29 @@ corresponding coordinate projection.  Its declarations are independent of every 
 specialization.
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CAD.CADInterface
-import Mathlib.Algebra.QuadraticAlgebra.Basic
-import Mathlib.Computability.PartrecCode
-import Mathlib.Data.Finsupp.Encodable
-import Mathlib.Data.Rat.Encodable
-import Mathlib.RingTheory.Ideal.Operations
-import Mathlib.RingTheory.MvPolynomial.MonomialOrder
-import Mathlib.Tactic.DeriveEncodable
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.CAD.CADInterface
+public import Mathlib.Algebra.QuadraticAlgebra.Basic
+public import Mathlib.Computability.PartrecCode
+public import Mathlib.Data.Finsupp.Encodable
+public import Mathlib.Data.Rat.Encodable
+public import Mathlib.RingTheory.Ideal.Operations
+public import Mathlib.RingTheory.MvPolynomial.MonomialOrder
+public meta import Mathlib.Tactic.DeriveEncodable
+
+-- private import
+import all Mathlib.Tactic.DeriveEncodable
+
+open Lean Elab Command
+
+elab "derive_private_encodable " typeName:ident : command => do
+  let declName ← liftCoreM <| realizeGlobalConstNoOverloadWithInfo typeName
+  let currentNamespace ← getCurrNamespace
+  let implementationNamespace := Name.str currentNamespace "EncodableImplementation"
+  withScope (fun sc => { sc with isPublic := false, currNamespace := implementationNamespace }) do
+    discard <| Mathlib.Deriving.Encodable.mkEncodableInstance #[declName]
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 
@@ -38,7 +53,12 @@ local instance realPolynomialDecidableEq (r : ℕ) :
 /-- Finite rational syntax for a multivariate polynomial. -/
 structure EffectivePolynomialCode (r : ℕ) where
   terms : List (ℚ × List (Fin r × ℕ))
-  deriving Encodable
+
+derive_private_encodable EffectivePolynomialCode
+
+opaque instEncodableEffectivePolynomialCode {r : ℕ} :
+    Encodable (EffectivePolynomialCode r) := inferInstance
+attribute [instance] instEncodableEffectivePolynomialCode
 
 /-- Interpretation of rational polynomial syntax. -/
 def EffectivePolynomialCode.toPolynomial {r : ℕ} (code : EffectivePolynomialCode r) :
@@ -113,7 +133,12 @@ only by the paper-independent Gröbner interface; the real CAD specialization be
 `ℚ`, as required by the cited algorithms. -/
 structure EffectivePolynomialCodeOver (K : Type) (r : ℕ) where
   terms : List (K × List (Fin r × ℕ))
-  deriving Encodable
+
+derive_private_encodable EffectivePolynomialCodeOver
+
+opaque instEncodableEffectivePolynomialCodeOver {K : Type} {r : ℕ} [Encodable K] :
+    Encodable (EffectivePolynomialCodeOver K r) := inferInstance
+attribute [instance] instEncodableEffectivePolynomialCodeOver
 
 /-- Interpretation of finite polynomial syntax over its coefficient field. -/
 def EffectivePolynomialCodeOver.toPolynomial {K : Type} [Field K] {r : ℕ}
@@ -135,7 +160,12 @@ program is part of the input to the uniform Buchberger machine; `Realizes` below
 arbitrary code from being passed off as the requested order. -/
 structure EffectiveMonomialOrderCode (r : ℕ) where
   comparison : Nat.Partrec.Code
-  deriving Encodable
+
+derive_private_encodable EffectiveMonomialOrderCode
+
+opaque instEncodableEffectiveMonomialOrderCode {r : ℕ} :
+    Encodable (EffectiveMonomialOrderCode r) := inferInstance
+attribute [instance] instEncodableEffectiveMonomialOrderCode
 
 /-- Exact total comparison semantics for a finite presentation of a monomial order. Terminating
 comparison is required on every pair of exponents, and the Boolean answer is exactly strict
@@ -224,14 +254,26 @@ inductive EffectiveGroebnerTraceOperation
   | elimination
   | idealIntersection
   | saturation
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable EffectiveGroebnerTraceOperation
+
+opaque instEncodableEffectiveGroebnerTraceOperation :
+    Encodable EffectiveGroebnerTraceOperation := inferInstance
+attribute [instance] instEncodableEffectiveGroebnerTraceOperation
 
 /-- Primitive charged field operations used by the exact algebra trace. -/
 inductive EffectiveGroebnerPrimitiveOperation
   | coefficientAddition
   | coefficientMultiplication
   | coefficientInversion
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable EffectiveGroebnerPrimitiveOperation
+
+opaque instEncodableEffectiveGroebnerPrimitiveOperation :
+    Encodable EffectiveGroebnerPrimitiveOperation := inferInstance
+attribute [instance] instEncodableEffectiveGroebnerPrimitiveOperation
 
 /-- One state of a continuous coefficient-polymorphic symbolic execution. -/
 structure EffectiveGroebnerMachineState (K : Type) (r : ℕ) where
@@ -280,7 +322,12 @@ structure EffectiveGroebnerTraceStep (K : Type) (r : ℕ) where
   inputFamilies : List (List (EffectivePolynomialCodeOver K r))
   outputFamilies : List (List (EffectivePolynomialCodeOver K r))
   primitiveOperations : List EffectiveGroebnerPrimitiveOperation
-  deriving Encodable
+
+derive_private_encodable EffectiveGroebnerTraceStep
+
+opaque instEncodableEffectiveGroebnerTraceStep {K : Type} {r : ℕ} [Encodable K] :
+    Encodable (EffectiveGroebnerTraceStep K r) := inferInstance
+attribute [instance] instEncodableEffectiveGroebnerTraceStep
 
 /-- Exact operation count of a coefficient-polymorphic trace step. -/
 def EffectiveGroebnerTraceStep.operationCount {K : Type} {r : ℕ}
@@ -342,7 +389,12 @@ structure EffectiveGroebnerPayloadOver (K : Type) (r : ℕ) where
   saturatedGroebnerBasis : List (EffectivePolynomialCodeOver K r)
   saturatedEliminationBasis : List (EffectivePolynomialCodeOver K r)
   trace : List (EffectiveGroebnerTraceStep K r)
-  deriving Encodable
+
+derive_private_encodable EffectiveGroebnerPayloadOver
+
+opaque instEncodableEffectiveGroebnerPayloadOver {K : Type} {r : ℕ} [Encodable K] :
+    Encodable (EffectiveGroebnerPayloadOver K r) := inferInstance
+attribute [instance] instEncodableEffectiveGroebnerPayloadOver
 
 /-- The exact charged operation count is definitionally the length sum of the
 continuous coefficient-polymorphic execution. -/
@@ -777,7 +829,12 @@ inductive EffectivePolynomialSign
   | negative
   | zero
   | positive
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable EffectivePolynomialSign
+
+opaque instEncodableEffectivePolynomialSign : Encodable EffectivePolynomialSign := inferInstance
+attribute [instance] instEncodableEffectivePolynomialSign
 
 /-- Exact interpretation of an encoded sign. -/
 def EffectivePolynomialSign.Realizes : EffectivePolynomialSign → ℝ → Prop
@@ -797,7 +854,12 @@ structure EffectiveAlgebraicRootCertificate (r : ℕ) where
   definingPolynomial : EffectivePolynomialCode r
   rootIndex : ℕ
   thomSigns : List EffectivePolynomialSign
-  deriving Encodable
+
+derive_private_encodable EffectiveAlgebraicRootCertificate
+
+opaque instEncodableEffectiveAlgebraicRootCertificate {r : ℕ} :
+    Encodable (EffectiveAlgebraicRootCertificate r) := inferInstance
+attribute [instance] instEncodableEffectiveAlgebraicRootCertificate
 
 /-- A root certificate denotes the indexed CAD root and gives the exact signs of every iterated
 derivative of its displayed defining polynomial along the section. -/
@@ -827,7 +889,12 @@ inductive EffectiveCADCellCertificate (r : ℕ)
       (base : EffectiveCADCellCertificate r)
   | upperSector (lower : EffectiveAlgebraicRootCertificate r)
       (base : EffectiveCADCellCertificate r)
-  deriving Encodable
+
+derive_private_encodable EffectiveCADCellCertificate
+
+opaque instEncodableEffectiveCADCellCertificate {r : ℕ} :
+    Encodable (EffectiveCADCellCertificate r) := inferInstance
+attribute [instance] instEncodableEffectiveCADCellCertificate
 
 /-- Exact interpretation of an algebraic-root-certified CAD cell. -/
 def EffectiveCADCellCertificate.Realizes {r : ℕ} :
@@ -883,7 +950,12 @@ generated projection polynomials. -/
 structure EffectiveCertifiedCADCell (r : ℕ) where
   geometry : EffectiveCADCellCertificate r
   signs : List (EffectivePolynomialCode r × EffectivePolynomialSign)
-  deriving Encodable
+
+derive_private_encodable EffectiveCertifiedCADCell
+
+opaque instEncodableEffectiveCertifiedCADCell {r : ℕ} :
+    Encodable (EffectiveCertifiedCADCell r) := inferInstance
+attribute [instance] instEncodableEffectiveCertifiedCADCell
 
 /-- The encoded cell certificate realizes both its recursive algebraic-root geometry and its
 complete constant-sign table. -/
@@ -952,7 +1024,12 @@ structure EffectiveCADSignQuery (r : ℕ) where
   equations : List (EffectivePolynomialCode r)
   nonnegative : List (EffectivePolynomialCode r)
   positive : List (EffectivePolynomialCode r)
-  deriving Encodable
+
+derive_private_encodable EffectiveCADSignQuery
+
+opaque instEncodableEffectiveCADSignQuery {r : ℕ} :
+    Encodable (EffectiveCADSignQuery r) := inferInstance
+attribute [instance] instEncodableEffectiveCADSignQuery
 
 /-- Every polynomial presentation read by a sign-condition query. -/
 def EffectiveCADSignQuery.polynomialCodes {r : ℕ}
@@ -971,7 +1048,12 @@ structure EffectiveCADTruthRow (r : ℕ) where
   query : EffectiveCADSignQuery r
   cellIndex : ℕ
   truth : Bool
-  deriving Encodable
+
+derive_private_encodable EffectiveCADTruthRow
+
+opaque instEncodableEffectiveCADTruthRow {r : ℕ} :
+    Encodable (EffectiveCADTruthRow r) := inferInstance
+attribute [instance] instEncodableEffectiveCADTruthRow
 
 /-- Every polynomial presentation read to produce a truth row. -/
 def EffectiveCADTruthRow.polynomialCodes {r : ℕ}
@@ -982,7 +1064,12 @@ def EffectiveCADTruthRow.polynomialCodes {r : ℕ}
 structure EffectiveCADRetentionRow (r : ℕ) where
   query : EffectiveCADSignQuery r
   retainedCellIndices : List ℕ
-  deriving Encodable
+
+derive_private_encodable EffectiveCADRetentionRow
+
+opaque instEncodableEffectiveCADRetentionRow {r : ℕ} :
+    Encodable (EffectiveCADRetentionRow r) := inferInstance
+attribute [instance] instEncodableEffectiveCADRetentionRow
 
 /-- Every polynomial presentation read to produce a witness-retention row. -/
 def EffectiveCADRetentionRow.polynomialCodes {r : ℕ}
@@ -1008,7 +1095,12 @@ explicitly, rather than encoding them by silently adjoining negated polynomials 
 family. -/
 structure EffectiveCADBasicSignCondition (r : ℕ) where
   conditions : List (EffectivePolynomialCode r × EffectivePolynomialSign)
-  deriving Encodable
+
+derive_private_encodable EffectiveCADBasicSignCondition
+
+opaque instEncodableEffectiveCADBasicSignCondition {r : ℕ} :
+    Encodable (EffectiveCADBasicSignCondition r) := inferInstance
+attribute [instance] instEncodableEffectiveCADBasicSignCondition
 
 /-- The subset of the erased-prefix affine slice cut out by an encoded exact sign vector.  The
 explicit zero-coordinate guard is part of the ambient representation: projected cells still use
@@ -1054,7 +1146,12 @@ structure EffectiveCADPrefixProjectionCertificate (r : ℕ) where
   basicSignCondition : EffectiveCADBasicSignCondition r
   truthRowCodes : List ℕ
   retentionRowCodes : List ℕ
-  deriving Encodable
+
+derive_private_encodable EffectiveCADPrefixProjectionCertificate
+
+opaque instEncodableEffectiveCADPrefixProjectionCertificate {r : ℕ} :
+    Encodable (EffectiveCADPrefixProjectionCertificate r) := inferInstance
+attribute [instance] instEncodableEffectiveCADPrefixProjectionCertificate
 
 /-- Every polynomial presentation required by a prefix-projected cell artifact. -/
 def EffectiveCADPrefixProjectionCertificate.polynomialCodes {r : ℕ}
@@ -1077,7 +1174,12 @@ structure EffectiveReductumCertificate (r : ℕ) where
   reductumVariable : Fin r
   reductumIteration : ℕ
   outputPolynomial : EffectivePolynomialCode r
-  deriving Encodable
+
+derive_private_encodable EffectiveReductumCertificate
+
+opaque instEncodableEffectiveReductumCertificate {r : ℕ} :
+    Encodable (EffectiveReductumCertificate r) := inferInstance
+attribute [instance] instEncodableEffectiveReductumCertificate
 
 /-- A reductum certificate denotes exactly the displayed nonzero iterate, within the finite
 degree range used by `cadReducta`.  Coefficient extension to `ℝ` is injective, so this equality
@@ -1111,7 +1213,13 @@ inductive EffectiveAlgebraTraceOperation
   | prefixCellProjection
   | signConditionTruth
   | witnessCellRetention
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable EffectiveAlgebraTraceOperation
+
+opaque instEncodableEffectiveAlgebraTraceOperation :
+    Encodable EffectiveAlgebraTraceOperation := inferInstance
+attribute [instance] instEncodableEffectiveAlgebraTraceOperation
 
 /-- Primitive operations in the real-algebraic cost model. Exact algebraic-sign queries are
 primitive here; this does not claim Turing-computable comparison of arbitrary real numbers. -/
@@ -1125,7 +1233,13 @@ inductive EffectiveRealAlgebraicPrimitiveOperation
   | emitPrefixProjectionCertificate (code : ℕ)
   | emitTruthRow (code : ℕ)
   | emitRetentionRow (code : ℕ)
-  deriving DecidableEq, Encodable
+  deriving DecidableEq
+
+derive_private_encodable EffectiveRealAlgebraicPrimitiveOperation
+
+opaque instEncodableEffectiveRealAlgebraicPrimitiveOperation :
+    Encodable EffectiveRealAlgebraicPrimitiveOperation := inferInstance
+attribute [instance] instEncodableEffectiveRealAlgebraicPrimitiveOperation
 
 /-- One certified high-level trace step, including the polynomial families it reads and emits,
 the injective encodings of any CAD certificates/truth rows/retention rows it produces, and the
@@ -1145,7 +1259,12 @@ structure EffectiveAlgebraTraceStep (r : ℕ) where
   activeVariable : Option (Fin r)
   retainedVariables : List (Fin r)
   primitiveOperations : List EffectiveRealAlgebraicPrimitiveOperation
-  deriving Encodable
+
+derive_private_encodable EffectiveAlgebraTraceStep
+
+opaque instEncodableEffectiveAlgebraTraceStep {r : ℕ} :
+    Encodable (EffectiveAlgebraTraceStep r) := inferInstance
+attribute [instance] instEncodableEffectiveAlgebraTraceStep
 
 /-- Exact real-algebraic cost of one trace step. -/
 def EffectiveAlgebraTraceStep.operationCount {r : ℕ}
@@ -1477,7 +1596,12 @@ structure EffectiveRationalGroebnerCADPayload (r : ℕ) where
   signRows : List (EffectiveCADTruthRow r)
   retainedCellRows : List (EffectiveCADRetentionRow r)
   trace : List (EffectiveAlgebraTraceStep r)
-  deriving Encodable
+
+derive_private_encodable EffectiveRationalGroebnerCADPayload
+
+opaque instEncodableEffectiveRationalGroebnerCADPayload {r : ℕ} :
+    Encodable (EffectiveRationalGroebnerCADPayload r) := inferInstance
+attribute [instance] instEncodableEffectiveRationalGroebnerCADPayload
 
 /-- The symbolic operation count is definitionally the sum of the primitive arithmetic/sign
 events recorded by the certified trace; it is not an independently chosen payload field. -/

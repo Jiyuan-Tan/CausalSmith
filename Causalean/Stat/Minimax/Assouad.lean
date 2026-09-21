@@ -2,48 +2,11 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Assouad's lemma — the hypercube minimax lower bound
-
-Where Le Cam (`LeCam.lean`) packs *two* hypotheses and Fano (`Fano.lean`) packs
-*many pairwise-separated* ones, **Assouad's lemma** packs a hypercube
-`{P τ : τ ∈ (Fin d → Bool)}` indexed by the `d`-dimensional Boolean cube, in which
-*each coordinate* is an independent two-point test.  This converts a `d`-fold product
-structure into a `d`-fold sum of testing lower bounds, yielding rates that grow with
-the dimension `d`.
-
-A "cube estimator" `est : Ω → (Fin d → Bool)` decodes each coordinate.  Its expected
-**Hamming risk** at vertex `τ` is
-
-  `hammingRisk P est τ = ∑ⱼ (P τ).real {ω | est ω j ≠ τ j}`,
-
-the expected number of mis-decoded coordinates.  Assouad's lemma states that, *on
-average over the cube*,
-
-  `(d / 2) · (1 − β) ≤ (1 / |cube|) ∑_τ hammingRisk P est τ`,
-
-where `β` bounds the total variation `tvDist (P τ) (P (flip j τ))` between any vertex
-and its `j`-th neighbour.  Equivalently, **some** vertex forces Hamming risk
-`≥ (d/2)(1 − β)`.
-
-The proof is the coordinate-flip averaging argument: pairing each vertex `τ` with its
-`j`-flip `flip j τ` via an involution, the two coordinate-`j` error masses are
-`(P τ).real S + (P (flip j τ)).real Sᶜ` for `S = {ω | est ω j ≠ τ j}`, which the
-elementary testing bound `one_sub_tvDist_le_test` lower-bounds by
-`1 − tvDist (P τ) (P (flip j τ))`.  Summing over the cube and over coordinates and
-dividing by `|cube|` gives the result.  Like Fano, this is proven **unconditionally**
-— no entropy or product-measure machinery — with the divergence entering only through
-`tvDist`.
-
-## Main results
-
-* `flipBit`, `flipPerm` — flip the `j`-th coordinate of a cube vertex (an involution).
-* `hammingRisk` — expected number of mis-decoded coordinates.
-* `assouad_average` — `(d/2)(1 − β) ≤` average Hamming risk over the cube.
-* `assouad_exists` — some vertex forces Hamming risk `≥ (d/2)(1 − β)`.
 -/
 
-import Causalean.Stat.Minimax.LeCam
+module
+public import Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch
+public import Causalean.Stat.Minimax.LeCam
 
 /-! # Assouad hypercube minimax bound
 
@@ -52,6 +15,8 @@ a Boolean hypercube. It introduces coordinate flips and Hamming risk, then
 uses coordinatewise total-variation bounds between neighboring experiments to
 derive average and worst-case minimax lower bounds.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 
@@ -205,5 +170,180 @@ theorem assouad_exists (hmeas : ∀ j (b : Bool), MeasurableSet {ω | est ω j =
           rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, hC]
   rw [le_div_iff₀ hCpos] at havg
   nlinarith [havg, hstrict]
+
+/-! ## Parameter-space risk form -/
+
+open Causalean.Mathlib.Analysis.IntervalArithmetic.FiniteSearch
+
+/-- Given [a finite family of parameter vertices](hyp:θ), [a measurable parameter-valued
+estimator](hyp:θhat,hθhat), [there exists a measurable, deterministically tie-broken nearest-vertex
+decoder](goal): at every observation its chosen vertex is no farther from the estimator than any
+competing vertex. -/
+theorem exists_measurable_nearestVertex
+    {Θ : Type*} [PseudoMetricSpace Θ] [MeasurableSpace Θ] [BorelSpace Θ]
+    (θ : (Fin d → Bool) → Θ) (θhat : Ω → Θ) (hθhat : Measurable θhat) :
+    ∃ decode : Ω → Fin d → Bool, Measurable decode ∧
+      ∀ ω τ, dist (θhat ω) (θ (decode ω)) ≤ dist (θhat ω) (θ τ) := by
+  classical
+  let Cube := Fin d → Bool
+  have hcard : 1 ≤ Fintype.card Cube := Fintype.card_pos_iff.mpr ⟨fun _ => false⟩
+  let n : ℕ := Fintype.card Cube - 1
+  have hcard_eq : Fintype.card Cube = n + 1 := by
+    dsimp [n]
+    omega
+  let e : Cube ≃ Fin (n + 1) :=
+    (Fintype.equivFin Cube).trans (finCongr hcard_eq)
+  let scores : Ω → Fin (n + 1) → ℝ := fun ω i => dist (θhat ω) (θ (e.symm i))
+  let selected : Ω → Fin (n + 1) := fun ω => leastScoreIndex (scores ω)
+  let decode : Ω → Cube := fun ω => e.symm (selected ω)
+  have hscores : Measurable scores := by
+    apply measurable_pi_lambda
+    intro i
+    exact (continuous_id.dist continuous_const).measurable.comp hθhat
+  have hselected : Measurable selected :=
+    measurable_leastScoreIndex.comp hscores
+  have heinv : Measurable e.symm := measurable_of_finite _
+  refine ⟨decode, heinv.comp hselected, ?_⟩
+  intro ω τ
+  simpa [decode, selected, scores] using
+    leastScoreIndex_minimal (scores ω) (e τ)
+
+/-- Given [a family of experiment laws](hyp:P), [parameter vertices](hyp:θ), [a
+parameter-valued estimator](hyp:θhat), and [a true cube vertex](hyp:τ), the [extended
+expected metric risk](goal) is the lintegral of the estimator's distance from the true
+parameter. -/
+noncomputable def parameterRiskLIntegral {Θ : Type*} [PseudoMetricSpace Θ]
+    (P : (Fin d → Bool) → Measure Ω) (θ : (Fin d → Bool) → Θ)
+    (θhat : Ω → Θ) (τ : Fin d → Bool) : ENNReal :=
+  ∫⁻ ω, ENNReal.ofReal (dist (θhat ω) (θ τ)) ∂(P τ)
+
+/-- **Assouad's lemma in parameter-risk form.** For [hypercube laws](hyp:P),
+[parameter vertices](hyp:θ), [a nonnegative separation scale](hyp:hs), [an estimator](hyp:θhat),
+and [a measurable nearest-vertex decoder](hyp:decode,hdecode,hnearest), if [vertices are
+separated by twice the scale times Hamming distance](hyp:hsep) and [neighboring laws have
+total variation at most `β`](hyp:hβ), then [some vertex has expected metric loss at least
+`(d*s/2)(1-β)`](goal).
+
+This is Tsybakov (2009), Theorem 2.12.  The factor-two separation is the theorem's
+standard convention; it is what converts a decoding error into loss at least `s`.
+The extended-valued risk requires no integrability assumption. -/
+theorem assouad_parameter_risk
+    {Θ : Type*} [PseudoMetricSpace Θ] [MeasurableSpace Θ] [BorelSpace Θ]
+    (P : (Fin d → Bool) → Measure Ω) [∀ τ, IsProbabilityMeasure (P τ)]
+    (θ : (Fin d → Bool) → Θ) {s β : ℝ} (hs : 0 ≤ s)
+    (θhat : Ω → Θ) (decode : Ω → Fin d → Bool)
+    (hdecode : ∀ j (b : Bool), MeasurableSet {ω | decode ω j = b})
+    (hnearest : ∀ ω τ, dist (θhat ω) (θ (decode ω)) ≤ dist (θhat ω) (θ τ))
+    (hsep : ∀ τ σ,
+      2 * s * (∑ j, if τ j ≠ σ j then (1 : ℝ) else 0) ≤ dist (θ τ) (θ σ))
+    (hβ : ∀ j τ, tvDist (P τ) (P (flipBit j τ)) ≤ β) :
+    ∃ τ, ENNReal.ofReal ((d * s / 2 : ℝ) * (1 - β)) ≤
+      parameterRiskLIntegral P θ θhat τ := by
+  classical
+  obtain ⟨τ, hτ⟩ := assouad_exists P decode hdecode hβ
+  refine ⟨τ, ?_⟩
+  let count : Ω → ℝ := fun ω => ∑ j, if decode ω j ≠ τ j then 1 else 0
+  have hcount_nonneg : ∀ ω, 0 ≤ count ω := by
+    intro ω
+    apply Finset.sum_nonneg
+    intro j hj
+    split_ifs <;> norm_num
+  have hgeom : ∀ ω, s * count ω ≤ dist (θhat ω) (θ τ) := by
+    intro ω
+    have htriangle : dist (θ (decode ω)) (θ τ) ≤
+        dist (θhat ω) (θ (decode ω)) + dist (θhat ω) (θ τ) := by
+      calc
+        dist (θ (decode ω)) (θ τ) ≤
+            dist (θ (decode ω)) (θhat ω) + dist (θhat ω) (θ τ) :=
+          dist_triangle _ _ _
+        _ = dist (θhat ω) (θ (decode ω)) + dist (θhat ω) (θ τ) := by
+          rw [dist_comm (θ (decode ω)) (θhat ω)]
+    have htwo : 2 * s * count ω ≤ 2 * dist (θhat ω) (θ τ) := by
+      calc
+        2 * s * count ω ≤ dist (θ (decode ω)) (θ τ) := by
+          simpa [count] using hsep (decode ω) τ
+        _ ≤ 2 * dist (θhat ω) (θ τ) := by
+          linarith [htriangle, hnearest ω τ]
+    linarith
+  have hRiskCount : ENNReal.ofReal (hammingRisk P decode τ) =
+      ∫⁻ ω, ENNReal.ofReal (count ω) ∂(P τ) := by
+    rw [hammingRisk, ENNReal.ofReal_sum_of_nonneg]
+    · calc
+        ∑ j, ENNReal.ofReal ((P τ).real { ω | decode ω j ≠ τ j }) =
+            ∑ j, ∫⁻ ω, if decode ω j ≠ τ j then (1 : ENNReal) else 0 ∂(P τ) := by
+          apply Finset.sum_congr rfl
+          intro j hj
+          rw [MeasureTheory.Measure.real_def,
+            ENNReal.ofReal_toReal (measure_ne_top (P τ) _)]
+          have hset := measurableSet_decode_ne decode hdecode j (τ j)
+          rw [← lintegral_indicator_one hset]
+          apply lintegral_congr
+          intro ω
+          simp [Set.indicator, apply_ite]
+        _ = ∫⁻ ω, ∑ j, if decode ω j ≠ τ j then (1 : ENNReal) else 0 ∂(P τ) := by
+          rw [lintegral_finset_sum]
+          intro j hj
+          exact Measurable.ite (measurableSet_decode_ne decode hdecode j (τ j))
+            measurable_const measurable_const
+        _ = ∫⁻ ω, ENNReal.ofReal (count ω) ∂(P τ) := by
+          apply lintegral_congr
+          intro ω
+          change (∑ j, if decode ω j ≠ τ j then (1 : ENNReal) else 0) =
+            ENNReal.ofReal (∑ j, if decode ω j ≠ τ j then (1 : ℝ) else 0)
+          rw [ENNReal.ofReal_sum_of_nonneg]
+          · apply Finset.sum_congr rfl
+            intro j hj
+            split_ifs <;> simp
+          · intro j hj
+            split_ifs <;> norm_num
+    · intro j hj
+      exact measureReal_nonneg
+  calc
+    ENNReal.ofReal ((d * s / 2 : ℝ) * (1 - β)) =
+        ENNReal.ofReal (s * ((d / 2 : ℝ) * (1 - β))) := by ring_nf
+    _ ≤ ENNReal.ofReal (s * hammingRisk P decode τ) :=
+      ENNReal.ofReal_le_ofReal (mul_le_mul_of_nonneg_left hτ hs)
+    _ = ENNReal.ofReal s * ∫⁻ ω, ENNReal.ofReal (count ω) ∂(P τ) := by
+      rw [ENNReal.ofReal_mul hs, hRiskCount]
+    _ = ∫⁻ ω, ENNReal.ofReal (s * count ω) ∂(P τ) := by
+      have hcount_meas : Measurable (fun ω => ENNReal.ofReal (count ω)) := by
+        apply Measurable.ennreal_ofReal
+        change Measurable (fun ω => ∑ j, if decode ω j ≠ τ j then 1 else 0)
+        exact Finset.measurable_sum Finset.univ fun j hj => Measurable.ite
+          (measurableSet_decode_ne decode hdecode j (τ j)) measurable_const measurable_const
+      rw [← lintegral_const_mul _ hcount_meas]
+      apply lintegral_congr
+      intro ω
+      rw [ENNReal.ofReal_mul hs]
+    _ ≤ parameterRiskLIntegral P θ θhat τ := by
+      unfold parameterRiskLIntegral
+      apply lintegral_mono
+      intro ω
+      exact ENNReal.ofReal_le_ofReal (hgeom ω)
+
+/-- **Assouad parameter-risk bound with the decoder constructed automatically.** For
+[hypercube laws](hyp:P), [parameter vertices](hyp:θ), [a nonnegative separation
+scale](hyp:hs), and [a measurable parameter estimator](hyp:θhat,hθhat), if [vertices are
+separated by twice the scale times Hamming distance](hyp:hsep) and [neighboring laws have total
+variation at most `β`](hyp:hβ), then [some vertex has expected metric loss at least
+`(d*s/2)(1-β)`](goal). -/
+theorem assouad_parameter_risk_of_measurable
+    {Θ : Type*} [PseudoMetricSpace Θ] [MeasurableSpace Θ] [BorelSpace Θ]
+    (P : (Fin d → Bool) → Measure Ω) [∀ τ, IsProbabilityMeasure (P τ)]
+    (θ : (Fin d → Bool) → Θ) {s β : ℝ} (hs : 0 ≤ s)
+    (θhat : Ω → Θ) (hθhat : Measurable θhat)
+    (hsep : ∀ τ σ,
+      2 * s * (∑ j, if τ j ≠ σ j then (1 : ℝ) else 0) ≤ dist (θ τ) (θ σ))
+    (hβ : ∀ j τ, tvDist (P τ) (P (flipBit j τ)) ≤ β) :
+    ∃ τ, ENNReal.ofReal ((d * s / 2 : ℝ) * (1 - β)) ≤
+      parameterRiskLIntegral P θ θhat τ := by
+  obtain ⟨decode, hdecode, hnearest⟩ :=
+    exists_measurable_nearestVertex θ θhat hθhat
+  apply assouad_parameter_risk P θ hs θhat decode
+  · intro j b
+    exact measurableSet_eq_fun ((measurable_pi_apply j).comp hdecode) measurable_const
+  · exact hnearest
+  · exact hsep
+  · exact hβ
 
 end Causalean.Stat

@@ -4,7 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
 
 /-!
 # Information-balance bandwidth regimes
@@ -12,6 +13,8 @@ import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Basic
 `AsympSeq` records the explicit eventual two-sided constant sandwich used by
 the paper. The theorem keeps the threshold sequence arbitrary.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

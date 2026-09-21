@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Concentration.Matrix.IidSums
+
+module
+public import Causalean.Stat.Concentration.Matrix.IidSums
 
 /-!
 # Union bound for entrywise design-matrix concentration
@@ -19,6 +21,8 @@ This is the probabilistic half of the matrix-inverse concentration: combined wit
 deterministic entrywise perturbation bound (`designInv00_perturb`), it shows that on an event of
 probability `≥ 1 − ∑ Var/η²` the empirical moment matrix is invertible with controlled leverage.
 -/
+
+public section
 
 namespace Causalean.Stat.Concentration
 

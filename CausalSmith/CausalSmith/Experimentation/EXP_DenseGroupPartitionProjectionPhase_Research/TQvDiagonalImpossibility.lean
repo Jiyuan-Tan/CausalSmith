@@ -1,6 +1,7 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.QVDiagonalAssembly
-import Causalean.Stat.Minimax.TotalVariation
-import Causalean.Stat.Minimax.MinimaxRisk
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.QVDiagonalAssembly
+public import Causalean.Stat.Minimax.TotalVariation
+public import Causalean.Stat.Minimax.MinimaxRisk
 
 /-!
 # One-realization diagonal impossibility
@@ -9,6 +10,8 @@ The lower bound is encoded in witness form: explicit high-prior-probability
 finite supports, conditioned-mixture separation, uniform support-wise variance
 limits, and a worst-case risk bound for every one-realization statistic.
 -/
+
+@[expose] public section
 
 open scoped Topology
 open Filter

@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Basic
 
 /-!
 Exact finite-dimensional encoding of the rational grid program.  The bridge
 uses rational LP attainment to show that the real infimum is attained at a
 rational feasible objective value.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

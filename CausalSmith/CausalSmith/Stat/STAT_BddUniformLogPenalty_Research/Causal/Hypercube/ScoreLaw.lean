@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGeometry
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularFullDisc
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.Hypercube.HardSquareGeometry
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.AngularFullDisc
 
 /-!
 # Angular score law on the causal hard square
@@ -8,6 +9,8 @@ This module puts the existing smooth angular tilt over the fixed square
 `[-3,3]²` with baseline density `1/36`.  Complete-disk cancellation gives
 normalization and exact bit-independent cell mass.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

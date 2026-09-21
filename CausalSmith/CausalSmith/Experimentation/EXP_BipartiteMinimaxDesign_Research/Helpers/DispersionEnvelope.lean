@@ -6,7 +6,10 @@ Authors: Jiyuan Tan
 # Envelope evaluation for the unbounded dispersion certificate
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionDesign
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DispersionDesign
+
+public section
 
 set_option linter.style.longLine false
 

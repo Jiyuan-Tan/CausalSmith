@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Tactic.Attr
-import Mathlib.Algebra.Group.Indicator
-import Mathlib.Algebra.GroupWithZero.Indicator
+
+module
+public import Causalean.Tactic.Attr
+public import Mathlib.Algebra.Group.Indicator
+public import Mathlib.Algebra.GroupWithZero.Indicator
 
 /-!
 # The `indicator_simps` normal form
@@ -62,9 +64,12 @@ mode everywhere; a `Set.indicator` normal form carries no instance at all.
   `indicator_const_mul` / `inter_indicator_mul`: Mathlib states these in the *distributing*
   direction (indicator of a product becomes a product), which is the opposite of the
   single-head normal form. They stay name-called, or are used with `rw [← …]`.
-- `Causalean.Panel.PO.Mobius.indicator_empty`: a different notion — that `indicator` builds a
+- `Causalean.Mathlib.Combinatorics.BooleanCubeMobius.indicator_empty`: a different notion — that `indicator` builds a
   `Fin 2`-valued treatment history, not a `0/1` weight.
 -/
+
+public section
+
 
 namespace Set
 

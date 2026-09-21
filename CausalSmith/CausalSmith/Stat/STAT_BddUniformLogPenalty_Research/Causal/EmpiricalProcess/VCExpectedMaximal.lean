@@ -1,6 +1,7 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.EntropyChaining
-import Causalean.Stat.Concentration.Rademacher.Symmetrization
-import Causalean.Stat.Concentration.UniformDeviation.LocalizedEnvelopeExpectation
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.EntropyChaining
+public import Causalean.Stat.Concentration.Rademacher.Symmetrization
+public import Causalean.Stat.Concentration.Localization.LocalizedEnvelopeExpectation
 
 /-!
 # Variance-adaptive expected maximal inequality
@@ -10,6 +11,8 @@ Dudley/VC entropy, and localized critical-radius layers.  It replaces the
 retired external assumption: consumers call this theorem and carry no
 additional empirical-process binder.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped ENNReal

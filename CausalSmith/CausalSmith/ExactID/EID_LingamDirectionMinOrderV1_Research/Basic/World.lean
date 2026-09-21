@@ -25,14 +25,20 @@ lemma live in the focused modules imported by the `Basic` compatibility barrel.
 No new typeclasses are introduced.
 -/
 
-import Causalean.Stat.Nonparametric.MomentProblems.Cumulant
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Probability.Distributions.Gaussian.Real
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
-import Mathlib.Order.Partition.Finpartition
-import Mathlib.Data.Complex.Basic
-import Mathlib.GroupTheory.Perm.Basic
+module
+public import Causalean.Stat.MomentProblems.Cumulant
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Probability.Distributions.Gaussian.Real
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.MeasureTheory.Function.LpSeminorm.Basic
+public import Mathlib.Order.Partition.Finpartition
+public import Mathlib.Data.Complex.Basic
+public import Mathlib.GroupTheory.Perm.Basic
+
+/-! Public modeling world and parameter constructions for this module. -/
+
+@[expose] public section
+
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

@@ -1,7 +1,8 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.FiniteDensityBridge
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderTriangularInverse
-import Causalean.Graph.FiniteDensity.Elimination
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderGraph
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.FiniteDensityBridge
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderTriangularInverse
+public import Causalean.Graph.Density.FiniteDAG.Elimination
 
 /-!
 # Intervention marginal density for the decoder
@@ -12,6 +13,11 @@ replacement density times the product of the remaining retained observational fa
 It also constructs the equation-(11) Markov kernel on the compact predecessor cube and
 transports it through the triangular predecessor-score homeomorphism.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open scoped ENNReal
 open MeasureTheory ProbabilityTheory Set
@@ -29,7 +35,7 @@ lemma interventionMarginalDensity_eq_replacement_mul_partialDensity
     {V : Type*} [DecidableEq V] [Fintype V]
     {X : V → Type*} [∀ i, MeasurableSpace (X i)]
     {μ : ∀ i, Measure (X i)} [∀ i, SigmaFinite (μ i)]
-    {G : Causalean.DAG V} (B : Factorization G X μ)
+    {G : DAG V} (B : Factorization G X μ)
     {A : Finset V} (hA : ParentClosed G A) {j : V} (hj : j ∈ A)
     (q : InterventionDensity j X μ) :
     (∫⋯∫⁻_(Finset.univ \ A), B.interventionDensity j q ∂μ) =
@@ -55,7 +61,7 @@ lemma interventionMarginalDensity_eq_replacement_mul_partialDensity
 /-- The latent-coordinate image of a decoder predecessor set, together with the current
 intervention target. -/
 def decoderRetainedLatentSet
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n) : Finset (Fin n) :=
   insert (W.targetPerm i) ((predecessorSet order i).map W.targetPerm.toEmbedding)
 
@@ -63,7 +69,7 @@ def decoderRetainedLatentSet
 /-- If the selected order respects the recovered ancestral order, the target and its decoder
 predecessors form a parent-closed latent set.  Given [the stated inputs and conditions](hyp:horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma decoderRetainedLatentSet_parentClosed
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
     (hgraphOrder : PermutedGraphOrdered W order) (i : Fin n) :
@@ -94,7 +100,7 @@ lemma decoderRetainedLatentSet_parentClosed
 /-- The predecessor-factor part of equation (10) is constant along the current target's
 own-coordinate fiber.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationTen_predecessorDensity_update_target
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -130,7 +136,7 @@ lemma equationTen_predecessorDensity_update_target
 the target and all predecessor coordinates leaves the replacement density times the remaining
 retained observational factors.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationTen_interventionMarginalDensity
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -158,7 +164,7 @@ lemma equationTen_interventionMarginalDensity
 the retained intervention density is the own-coordinate replacement density times a factor
 that is constant along that coordinate's fiber.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationTen_interventionMarginalDensity_fiber_product
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -183,7 +189,7 @@ lemma equationTen_interventionMarginalDensity_fiber_product
 /-- The normalized replacement density, viewed as a probability measure on the target's
 scalar coordinate. -/
 def decoderInterventionCoordinateMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (i : Fin n) : Measure ℝ :=
   Causalean.Graph.FiniteDensity.unitIntervalReference.withDensity
@@ -193,7 +199,7 @@ def decoderInterventionCoordinateMeasure
 /-- Normalization of the replacement density makes its coordinate measure a probability
 measure. -/
 instance decoderInterventionCoordinateMeasure_isProbability
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (i : Fin n) : IsProbabilityMeasure (decoderInterventionCoordinateMeasure W hpos i) := by
   constructor
@@ -205,7 +211,7 @@ instance decoderInterventionCoordinateMeasure_isProbability
 /-- A globally measurable clamped extension of the target log-ratio score along a predecessor
 fiber.  On the unit interval it is the score appearing in equation (11). -/
 def equationElevenClampedScore
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (zw : PredecessorLatentCube order i × ℝ) : ℝ :=
   let w := max 0 (min 1 zw.2)
@@ -218,7 +224,7 @@ def equationElevenClampedScore
 in predecessor coordinates and the target coordinate.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 @[fun_prop]
 lemma measurable_equationElevenClampedScore
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) : Measurable (equationElevenClampedScore W order i) := by
   have hw : Continuous (fun zw : PredecessorLatentCube order i × ℝ =>
@@ -272,7 +278,7 @@ lemma measurable_equationElevenClampedScore
 /-- The equation-(11) Markov kernel on predecessor latent coordinates: draw the target from
 its replacement density and push it through the target log-ratio score. -/
 def equationElevenPredecessorKernel
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) : Kernel (PredecessorLatentCube order i) ℝ :=
   (((Kernel.id : Kernel (PredecessorLatentCube order i) _) ∥ₖ
@@ -282,7 +288,7 @@ def equationElevenPredecessorKernel
 -- @node: equationElevenPredecessorKernel_isMarkov
 /-- The equation-(11) predecessor kernel has unit mass on every predecessor fiber. -/
 instance equationElevenPredecessorKernel_isMarkov
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) :
     IsMarkovKernel (equationElevenPredecessorKernel W hpos order i) := by
@@ -299,7 +305,7 @@ instance equationElevenPredecessorKernel_isMarkov
 /-- Every lower-interval probability of the predecessor kernel is exactly the explicit
 equation-(11) conditional-CDF integral.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma equationElevenPredecessorKernel_apply_Iic
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) (z : PredecessorLatentCube order i) (t : ℝ) :
     ((equationElevenPredecessorKernel W hpos order i) z (Set.Iic t)).toReal =
@@ -394,7 +400,7 @@ lemma equationElevenPredecessorKernel_apply_Iic
 /-- Transporting the predecessor kernel through the compact triangular inverse gives the
 equation-(11) kernel on the realized predecessor-score image. -/
 def equationElevenScoreImageKernel
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -411,7 +417,7 @@ def equationElevenScoreImageKernel
 -- @node: equationElevenScoreImageKernel_isMarkov
 /-- The score-image transport of the equation-(11) kernel remains Markov. -/
 instance equationElevenScoreImageKernel_isMarkov
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -429,7 +435,7 @@ instance equationElevenScoreImageKernel_isMarkov
 /-- On every realized predecessor score, the transported kernel's lower-interval probability
 is the explicit equation-(11) integral at the reconstructed predecessor coordinates.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationElevenScoreImageKernel_apply_Iic
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -451,7 +457,7 @@ lemma equationElevenScoreImageKernel_apply_Iic
 /-- At every predecessor score realized by a latent cube point, the transported Markov
 kernel has exactly the equation-(11) lower-interval probability at that latent state.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder,hv), [the stated conclusion](goal) follows. -/
 lemma equationElevenScoreImageKernel_apply_Iic_of_latentState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -483,7 +489,7 @@ lemma equationElevenScoreImageKernel_apply_Iic_of_latentState
   intro a ha
   let k := W.targetPerm.symm a
   have hkParent : k ∈ environmentParentSet W i := by
-    simpa [k, environmentParentSet, Causalean.DAG.parents] using ha
+    simpa [k, environmentParentSet, DAG.parents] using ha
   have hkPred := environmentParentSet_subset_predecessorSet_of_transitiveClosure
     W horder hgraphOrder i hkParent
   rw [hinv]
@@ -493,7 +499,7 @@ lemma equationElevenScoreImageKernel_apply_Iic_of_latentState
 /-- A measurable retraction of the ambient predecessor-score space onto the compact realized
 score image.  Off the image it uses the score of the zero predecessor vector. -/
 noncomputable def predecessorScoreRangeRetraction
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (order : Fin n → ℕ) (i : Fin n)
     (ell : PredecessorLogRatios order i) :
     Set.range (predecessorScoreMap W order i) := by
@@ -506,7 +512,7 @@ noncomputable def predecessorScoreRangeRetraction
 /-- The compact-score retraction is measurable.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 @[fun_prop]
 lemma measurable_predecessorScoreRangeRetraction
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (order : Fin n → ℕ) (i : Fin n) :
     Measurable (predecessorScoreRangeRetraction W order i) := by
@@ -521,7 +527,7 @@ lemma measurable_predecessorScoreRangeRetraction
 /-- The equation-(11) kernel on the full predecessor-score space, obtained by a measurable
 retraction to the compact realized score image.  Its off-support values are immaterial. -/
 def equationElevenAmbientKernel
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -538,7 +544,7 @@ def equationElevenAmbientKernel
 -- @node: equationElevenAmbientKernel_isMarkov
 /-- The ambient extension of the equation-(11) kernel remains Markov. -/
 instance equationElevenAmbientKernel_isMarkov
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -556,7 +562,7 @@ instance equationElevenAmbientKernel_isMarkov
 /-- On every predecessor score realized by a latent cube point, the ambient kernel evaluates
 to the explicit equation-(11) conditional CDF.  Given [the stated inputs and conditions](hyp:hpos,hmix,hone,hsign,horder,hgraphOrder,hv), [the stated conclusion](goal) follows. -/
 lemma equationElevenAmbientKernel_apply_Iic_of_latentState
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     {θ : Mechanism n G} (W : ObservedWorld G θ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hmix : SharedDiffeomorphicMixing G θ W)
@@ -605,7 +611,7 @@ lemma lmarginal_eq_self_of_update_eq
 /-- The factorized retained density from equation (10) is invariant under every coordinate
 outside the target-plus-predecessor set.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder,hk), [the stated conclusion](goal) follows. -/
 lemma equationTen_retainedDensity_update_outside
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)
@@ -643,7 +649,7 @@ lemma equationTen_retainedDensity_update_outside
 /-- Equation (10) as an equality of retained-coordinate measures: the actual intervention
 law has the same target-plus-predecessor marginal as the explicit replacement-density product.  Given [the stated inputs and conditions](hyp:hpos,horder,hgraphOrder), [the stated conclusion](goal) follows. -/
 lemma equationTen_retainedMarginalMeasure
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (W : ObservedWorld G θ) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     {order : Fin n → ℕ}
     (horder : IsTopologicalOrdering (observedLawRatioGraph gaussianFeatureMap W.law) order)

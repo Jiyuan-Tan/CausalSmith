@@ -3,14 +3,18 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Basic
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers
 
 /-! # Odd-`m` positive-gap window (`thm:gap-window`)
 
 For `0 ≤ κ < κ_gap` and `r ∈ (r_gap^-, r_gap^+)` the spread vertex is the unique
 relaxed minimizer but violates `y+z ≥ 2/m`, so `Δ_m^± > 0`. Even `m` makes the whole
 slice implementable, so the positive gap fails (parity necessity). -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

@@ -48,6 +48,28 @@ const root =
 // --strict retained as a no-op: the coverage gate is always on since wave 2.
 args.includes("--strict");
 const verbose = args.includes("--verbose");
+// `--blocking-paths <file>`: a newline-separated list of repo-relative Lean paths. Findings outside
+// that set are printed as advisory and do NOT fail. Used by the study promotion gate, which must
+// judge only the files its own manifest touched: this lint scans the whole library, so another
+// session's in-flight docstring would otherwise fail an unrelated promotion. Omitted (CI, the export
+// gate, manual runs) means every finding blocks, as before.
+const blockingIdx = args.indexOf("--blocking-paths");
+const blockingPaths: Set<string> | null = blockingIdx >= 0
+  ? new Set(
+      readFileSync(resolve(args[blockingIdx + 1]), "utf8")
+        .split(/\r?\n/).map((line) => line.trim().replaceAll("\\", "/")).filter(Boolean),
+    )
+  : null;
+/** A finding string starts with "<decl> (<file>:<line>)"; extract the file it belongs to. */
+const findingFile = (finding: string): string | null => {
+  const match = finding.match(/\(([^()]+\.lean):\d+\)/);
+  return match ? match[1].replaceAll("\\", "/") : null;
+};
+const isBlocking = (finding: string): boolean => {
+  if (!blockingPaths) return true;
+  const file = findingFile(finding);
+  return file != null && blockingPaths.has(file);
+};
 
 interface Entry {
   name: string;
@@ -118,6 +140,12 @@ try {
 }
 
 const errors: string[] = [];
+const advisory: string[] = [];
+/** Record a finding: blocking when it lies in the scoped paths (or when no scope was given),
+ *  advisory otherwise. Keeps one policy for every error class in this lint. */
+const record = (finding: string): void => {
+  (isBlocking(finding) ? errors : advisory).push(finding);
+};
 const incomplete: string[] = [];
 const unannotatedHeadline: string[] = [];
 let annotated = 0;
@@ -162,7 +190,7 @@ for (const e of decls) {
   const rest = paras.slice(1).join("\n\n");
   const restLinks = parseNlCrosslinks(rest).filter((s) => s.links);
   if (restLinks.length > 0) {
-    errors.push(`${e.name} (${e.file}:${e.line}): crosslink markup outside the first paragraph`);
+    record(`${e.name} (${e.file}:${e.line}): crosslink markup outside the first paragraph`);
   }
   const names = crosslinkNames(firstPara);
   const hasGoal = linksGoal(firstPara);
@@ -180,13 +208,13 @@ for (const e of decls) {
   annotated++;
   const clauseBearing = e.kind === "theorem" || e.kind === "def" || e.kind === "instance" || e.kind === "inductive";
   if ((hasGoal || steps.length > 0) && !clauseBearing) {
-    errors.push(`${e.name} (${e.file}:${e.line}): (goal)/(step:N) crosslink on a ${e.kind} — no conclusion to link`);
+    record(`${e.name} (${e.file}:${e.line}): (goal)/(step:N) crosslink on a ${e.kind} — no conclusion to link`);
   }
   if (steps.length > 0) {
     const n = clauseCount(e);
     const bad = n === null ? [] : steps.filter((k) => k < 1 || k > n);
     if (bad.length > 0) {
-      errors.push(`${e.name} (${e.file}:${e.line}): (step:${bad.join("/")}) but the statement has ${n} clause(s)`);
+      record(`${e.name} (${e.file}:${e.line}): (step:${bad.join("/")}) but the statement has ${n} clause(s)`);
     }
   }
   const binders = e.source ? sourceBinders(e.source) : null;
@@ -210,7 +238,7 @@ for (const e of decls) {
   // names past the cut cannot be validated (they render as inert spans on the
   // site, which is harmless), so skip the unknown-name check there.
   if (unknown.length > 0 && !(e.source ?? "").includes("… truncated")) {
-    errors.push(
+    record(
       `${e.name} (${e.file}:${e.line}): crosslink names not in signature: ${unknown.join(", ")}`,
     );
   }
@@ -253,11 +281,10 @@ if (verbose && incomplete.length > 0) {
 // --strict: an annotated theorem (or definition) must be FULLY covered, and
 // every headline theorem must be annotated (at minimum a `(goal)` link on the
 // conclusion).
-if (incomplete.length > 0) {
-  errors.push(...incomplete.map((s) => `incomplete coverage: ${s}`));
-}
-if (unannotatedHeadline.length > 0) {
-  errors.push(...unannotatedHeadline.map((s) => `headline theorem unannotated: ${s}`));
+for (const s of incomplete) record(`incomplete coverage: ${s}`);
+for (const s of unannotatedHeadline) record(`headline theorem unannotated: ${s}`);
+if (advisory.length > 0) {
+  console.log(`\nADVISORY (${advisory.length}, outside the scoped paths — not blocking):\n  ${advisory.join("\n  ")}`);
 }
 if (errors.length > 0) {
   console.error(`\nERRORS (${errors.length}):\n  ${errors.join("\n  ")}`);

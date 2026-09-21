@@ -12,8 +12,11 @@ the `√(card O)`-scaled numerators are bounded in probability — the tight fac
 delta-method ratio-remainder argument (`RatioRemainder.lean`).
 -/
 
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
-import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorControl
+module
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorMoment
+public import CausalSmith.Experimentation.EXP_BipartiteMinimaxDesign_Research.Helpers.DenominatorControl
+
+@[expose] public section
 
 set_option linter.style.longLine false
 set_option linter.unusedSimpArgs false
@@ -40,10 +43,11 @@ noncomputable def ctrlNumerator (E : BipartiteExperiment I O) (p : I → ℝ) (z
 /-- The treated-arm numerator has design mean zero under the Bernoulli design. -/
 lemma treatNumerator_mean_zero (E : BipartiteExperiment I O) (q : I → ℝ)
     (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1) (hpos : ∀ k, 0 < q k) :
-    (bernoulliDesign q hq0 hq1).E (fun z => treatNumerator E q z) = 0 := by
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E
+      (fun z => treatNumerator E q z) = 0 := by
   classical
   simp only [treatNumerator]
-  rw [(bernoulliDesign q hq0 hq1).E_sum Finset.univ
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_sum Finset.univ
     (fun i z => E.expT z i / E.piT q i * (E.Y1 i - E.mu1))]
   trans ∑ i : O, (E.Y1 i - E.mu1) * 1
   · apply Finset.sum_congr rfl
@@ -51,13 +55,14 @@ lemma treatNumerator_mean_zero (E : BipartiteExperiment I O) (q : I → ℝ)
     have hpi_pos : 0 < E.piT q i := by
       unfold BipartiteExperiment.piT
       exact Finset.prod_pos (fun k _ => hpos k)
-    have hE : (bernoulliDesign q hq0 hq1).E (fun z => E.expT z i) = E.piT q i := by
+    have hE : (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E
+        (fun z => E.expT z i) = E.piT q i := by
       unfold BipartiteExperiment.expT BipartiteExperiment.piT
       exact bernoulli_E_treat_prod q hq0 hq1 (E.N i)
     rw [show (fun z => E.expT z i / E.piT q i * (E.Y1 i - E.mu1)) =
         fun z => ((E.Y1 i - E.mu1) * (E.piT q i)⁻¹) * E.expT z i by
           funext z; ring]
-    rw [(bernoulliDesign q hq0 hq1).E_const_mul, hE]
+    rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_const_mul, hE]
     field_simp [(ne_of_gt hpi_pos)]
   · simp only [mul_one]
     rw [Finset.sum_sub_distrib, Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
@@ -72,10 +77,11 @@ lemma treatNumerator_mean_zero (E : BipartiteExperiment I O) (q : I → ℝ)
 /-- The control-arm numerator has design mean zero under the Bernoulli design. -/
 lemma ctrlNumerator_mean_zero (E : BipartiteExperiment I O) (q : I → ℝ)
     (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1) (hlt : ∀ k, q k < 1) :
-    (bernoulliDesign q hq0 hq1).E (fun z => ctrlNumerator E q z) = 0 := by
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E
+      (fun z => ctrlNumerator E q z) = 0 := by
   classical
   simp only [ctrlNumerator]
-  rw [(bernoulliDesign q hq0 hq1).E_sum Finset.univ
+  rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_sum Finset.univ
     (fun i z => E.expC z i / E.piC q i * (E.Y0 i - E.mu0))]
   trans ∑ i : O, (E.Y0 i - E.mu0) * 1
   · apply Finset.sum_congr rfl
@@ -83,13 +89,14 @@ lemma ctrlNumerator_mean_zero (E : BipartiteExperiment I O) (q : I → ℝ)
     have hpi_pos : 0 < E.piC q i := by
       unfold BipartiteExperiment.piC
       exact Finset.prod_pos (fun k _ => sub_pos.mpr (hlt k))
-    have hE : (bernoulliDesign q hq0 hq1).E (fun z => E.expC z i) = E.piC q i := by
+    have hE : (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E
+        (fun z => E.expC z i) = E.piC q i := by
       unfold BipartiteExperiment.expC BipartiteExperiment.piC
       exact bernoulli_E_ctrl_prod q hq0 hq1 (E.N i)
     rw [show (fun z => E.expC z i / E.piC q i * (E.Y0 i - E.mu0)) =
         fun z => ((E.Y0 i - E.mu0) * (E.piC q i)⁻¹) * E.expC z i by
           funext z; ring]
-    rw [(bernoulliDesign q hq0 hq1).E_const_mul, hE]
+    rw [(Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).E_const_mul, hE]
     field_simp [(ne_of_gt hpi_pos)]
   · simp only [mul_one]
     rw [Finset.sum_sub_distrib, Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
@@ -109,10 +116,11 @@ lemma treatNumerator_var_le (E : BipartiteExperiment I O)
     (hdeg : BoundedOutcomeDegree E dbar) (hdep : BoundedOverlapDependency E Dbar)
     (q : I → ℝ) (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1)
     (hq : FeasibleDesign ε B q) :
-    (bernoulliDesign q hq0 hq1).Var (fun z => treatNumerator E q z)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var
+      (fun z => treatNumerator E q z)
       ≤ (Fintype.card O : ℝ) * (4 * (Dbar * denominatorKernelBound ε dbar)) := by
   classical
-  let D := bernoulliDesign q hq0 hq1
+  let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
   let c : O → ℝ := fun i => E.Y1 i - E.mu1
   let X : O → (I → Bool) → ℝ := fun i z => E.expT z i / E.piT q i
   have hpos : ∀ k, 0 < q k := fun k => lt_of_lt_of_le hε0 (hq.floor k).1
@@ -227,7 +235,8 @@ lemma treatNumerator_var_le (E : BipartiteExperiment I O)
           (mul_le_mul (hc i) (hc j) (abs_nonneg _) (by norm_num)) (hr i j)
       _ = 4 * E.r1 q i j := by ring
   calc
-    (bernoulliDesign q hq0 hq1).Var (fun z => treatNumerator E q z)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var
+      (fun z => treatNumerator E q z)
         = D.Var (fun z => treatNumerator E q z) := rfl
     _ = ∑ i : O, ∑ j : O, c i * c j * E.r1 q i j := hvar_eq
     _ ≤ ∑ i : O, ∑ j : O, 4 * E.r1 q i j :=
@@ -248,10 +257,11 @@ lemma ctrlNumerator_var_le (E : BipartiteExperiment I O)
     (hdeg : BoundedOutcomeDegree E dbar) (hdep : BoundedOverlapDependency E Dbar)
     (q : I → ℝ) (hq0 : ∀ k, 0 ≤ q k) (hq1 : ∀ k, q k ≤ 1)
     (hq : FeasibleDesign ε B q) :
-    (bernoulliDesign q hq0 hq1).Var (fun z => ctrlNumerator E q z)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var
+      (fun z => ctrlNumerator E q z)
       ≤ (Fintype.card O : ℝ) * (4 * (Dbar * denominatorKernelBound ε dbar)) := by
   classical
-  let D := bernoulliDesign q hq0 hq1
+  let D := Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1
   let c : O → ℝ := fun i => E.Y0 i - E.mu0
   let X : O → (I → Bool) → ℝ := fun i z => E.expC z i / E.piC q i
   have hlt : ∀ k, q k < 1 := fun k => by linarith [(hq.floor k).2, hε0]
@@ -369,7 +379,8 @@ lemma ctrlNumerator_var_le (E : BipartiteExperiment I O)
           (mul_le_mul (hc i) (hc j) (abs_nonneg _) (by norm_num)) (hr i j)
       _ = 4 * E.r0 q i j := by ring
   calc
-    (bernoulliDesign q hq0 hq1).Var (fun z => ctrlNumerator E q z)
+    (Causalean.Experimentation.DesignBased.bernoulliDesign q hq0 hq1).Var
+      (fun z => ctrlNumerator E q z)
         = D.Var (fun z => ctrlNumerator E q z) := rfl
     _ = ∑ i : O, ∑ j : O, c i * c j * E.r0 q i j := hvar_eq
     _ ≤ ∑ i : O, ∑ j : O, 4 * E.r0 q i j :=
@@ -420,10 +431,12 @@ lemma treatNumerator_scaled_boundedInProb
       rw [hBern n, FiniteDesign.Var_const_mul]
       calc
         (Real.sqrt (Fintype.card (Ox n)))⁻¹ ^ 2 *
-            (bernoulliDesign (p n) (hp0 n) (hp1 n)).Var
+            (Causalean.Experimentation.DesignBased.bernoulliDesign
+              (p n) (hp0 n) (hp1 n)).Var
               (fun z => treatNumerator (E n) (p n) z) =
             (Fintype.card (Ox n) : ℝ)⁻¹ *
-              (bernoulliDesign (p n) (hp0 n) (hp1 n)).Var
+              (Causalean.Experimentation.DesignBased.bernoulliDesign
+                (p n) (hp0 n) (hp1 n)).Var
                 (fun z => treatNumerator (E n) (p n) z) := by
               congr 1
               rw [inv_pow, Real.sq_sqrt (by positivity)]
@@ -482,10 +495,12 @@ lemma ctrlNumerator_scaled_boundedInProb
       rw [hBern n, FiniteDesign.Var_const_mul]
       calc
         (Real.sqrt (Fintype.card (Ox n)))⁻¹ ^ 2 *
-            (bernoulliDesign (p n) (hp0 n) (hp1 n)).Var
+            (Causalean.Experimentation.DesignBased.bernoulliDesign
+              (p n) (hp0 n) (hp1 n)).Var
               (fun z => ctrlNumerator (E n) (p n) z) =
             (Fintype.card (Ox n) : ℝ)⁻¹ *
-              (bernoulliDesign (p n) (hp0 n) (hp1 n)).Var
+              (Causalean.Experimentation.DesignBased.bernoulliDesign
+                (p n) (hp0 n) (hp1 n)).Var
                 (fun z => ctrlNumerator (E n) (p n) z) := by
               congr 1
               rw [inv_pow, Real.sq_sqrt (by positivity)]

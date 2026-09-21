@@ -1,29 +1,21 @@
-import Causalean.Stat.Concentration.Covering.CoveringNumber
-import Causalean.Stat.Concentration.Covering.DudleyEntropy
-import Causalean.Stat.Concentration.Covering.HausslerPacking
-import Causalean.Stat.Concentration.Covering.VCCovering
-import Causalean.Stat.Concentration.Covering.VCLocalizedCovering
-import Causalean.Stat.Concentration.Covering.VCLocalizedRegime
-import Causalean.Stat.Concentration.Covering.VCUniformDeviation
-import Causalean.Stat.Concentration.Covering.EmpiricalPseudoMetric
-import Causalean.Stat.Concentration.Covering.Separable
-import Causalean.Stat.Concentration.Covering.SqrtLogIntegral
-import Causalean.Stat.Concentration.Covering.RealValuedVCSubgraph.Basic
-import Causalean.Stat.Concentration.Covering.RealValuedVCSubgraph.Algebra
-import Causalean.Stat.Concentration.Covering.RealValuedVCSubgraph.Parametric
-import Causalean.Stat.Concentration.Covering.RealValuedVCSubgraph.Empirical
-import Causalean.Stat.Concentration.Covering.EuclideanRadialPolynomial
+module
+public import Causalean.Stat.Concentration.Covering.CoveringNumber
+public import Causalean.Stat.Concentration.Covering.DudleyEntropy
+public import Causalean.Stat.Concentration.Covering.EmpiricalPseudoMetric
+public import Causalean.Stat.Concentration.Covering.HausslerPacking
+public import Causalean.Stat.Concentration.Covering.Separable
+public import Causalean.Stat.Concentration.Covering.SqrtLogIntegral
+public import Causalean.Stat.Concentration.Covering.VCCovering
+public import Causalean.Stat.Concentration.Covering.VCLocalizedCovering
+public import Causalean.Stat.Concentration.Covering.VCLocalizedRegime
+public import Causalean.Stat.Concentration.Covering.VCUniformDeviation
 
 
 
 
 
 /-!
-# Concentration · Covering / entropy (barrel)
-
-Covering and packing numbers, the empirical pseudo-metric, Dudley's entropy
-integral, Haussler's packing bound, VC-class covering and its localized regime,
-Euclidean radial-polynomial VC-subgraph certificates, the resulting uniform
-deviation, separability, and the √log entropy integral.
-Re-exports `Causalean.Stat.Concentration.Covering.*`.
+Covering-number, packing, and entropy-integral tools for function classes,
+including empirical pseudometrics and the finite-VC localized covering and
+uniform-deviation specializations housed under `Covering/`.
 -/

@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessCertificates
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.THMSClassInclusion
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TWitnessSDPOptimum
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TComplementDegreeCollapse
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
+module
+public meta import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessCertificates
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.THMSClassInclusion
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TWitnessSDPOptimum
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TComplementDegreeCollapse
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TDualCompleteClass
 
 /-! Exact quartic-versus-quadratic separation in the finite witness. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

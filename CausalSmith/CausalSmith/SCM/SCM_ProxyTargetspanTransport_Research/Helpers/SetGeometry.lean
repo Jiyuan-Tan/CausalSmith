@@ -1,9 +1,12 @@
-import Mathlib.Topology.MetricSpace.Bounded
-import Mathlib.Order.LiminfLimsup
-import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
-import Causalean.PO.ID.Partial.RandomSet.Hausdorff
+module
+public import Mathlib.Topology.MetricSpace.Bounded
+public import Mathlib.Order.LiminfLimsup
+public import Mathlib.MeasureTheory.Measure.Typeclasses.Probability
+public import Causalean.PO.ID.Partial.RandomSet.Hausdorff
 
 /-! Real set geometry and varying-measure probability-rate predicates. -/
+
+@[expose] public section
 
 open MeasureTheory
 

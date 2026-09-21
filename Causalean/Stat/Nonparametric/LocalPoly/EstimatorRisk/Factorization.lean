@@ -3,10 +3,12 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Nonparametric.LocalPoly.EstimatorRisk.DensityConstants
-import Mathlib.MeasureTheory.Group.Integral
-import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
-import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
+
+module
+public import Causalean.Stat.Nonparametric.LocalPoly.EstimatorRisk.DensityConstants
+public import Mathlib.MeasureTheory.Group.Integral
+public import Mathlib.MeasureTheory.Measure.Haar.NormedSpace
+public import Mathlib.MeasureTheory.Measure.Lebesgue.Basic
 
 /-!
 # Change-of-variables factorization of the population design moment matrix
@@ -21,11 +23,13 @@ of the bandwidth-free shape matrix `T_{jk} = ∫ K(u) u^{j+k} p(t+h·u) du`:
 
 `S_{jk} = N · h^{j+k+1} · T_{jk} = (N·h) · (D · T · D)_{jk}`,  `D = diagonal (fun j => h^j)`.
 
-This is the literal factorization consumed by `population_scaling_of_conj`: it exposes the `Θ(Nh)`
-scale and the bandwidth-free shape matrix `T` (whose density-constant leverage bounds come from
+This is the literal factorization consumed by `population_scaling_of_conj`: it exposes the `Nh`
+scalar factor and the bandwidth-free shape matrix `T` (whose density-constant leverage bounds come from
 `DensityConstants`). The change of variables reuses the affine-rescaling pattern of
 `Approximation/Kernel.lean`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat.Nonparametric
 

@@ -16,9 +16,10 @@ fold-A and fold-B tuple-valued statistics — a direct corollary of
 `iIndepFun.indepFun_finset` applied to the disjoint index sets.
 -/
 
-import Causalean.Stat.Sample
-import Mathlib.Probability.Independence.Basic
-import Mathlib.Order.Filter.AtTopBot.Basic
+module
+public import Causalean.Stat.Sample
+public import Mathlib.Probability.Independence.Basic
+public import Mathlib.Order.Filter.AtTopBot.Basic
 
 /-! # One-Shot Sample Splits
 
@@ -26,6 +27,8 @@ This file defines a two-fold split of an i.i.d. sample into a nuisance-estimatio
 fold and a target-estimation fold, with both folds growing without bound. It
 proves the finite-sample independence of the two fold-indexed sample tuples,
 which is the basic splitting fact used in debiased estimation. -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

@@ -4,7 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Stat.Sample.OccupancyWeightedMean.Variance
+module
+public import Causalean.Stat.Sample.OccupancyWeightedMean.Basic
+public import Causalean.Stat.Sample.OccupancyWeightedMean.BinomialDesign
+public import Causalean.Stat.Sample.OccupancyWeightedMean.FiniteDesign
+public import Causalean.Stat.Sample.OccupancyWeightedMean.MomentBounds
+public import Causalean.Stat.Sample.OccupancyWeightedMean.Variance
 
 /-!
 # Occupancy-weighted within-group means

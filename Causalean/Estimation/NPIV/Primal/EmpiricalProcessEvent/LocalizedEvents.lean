@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventH
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventHF
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventMF
-import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventF
+module
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventH
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventHF
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventMF
+public import Causalean.Estimation.NPIV.Primal.EmpiricalProcessEvent.LocalizedEventF
 
 /-!
 # Concrete Localized Deviation Events for Primal NPIV
@@ -20,3 +21,5 @@ pair-gap, and peeled pair-gap event lemmas needed by the regularizer and rate
 proofs without requiring callers to import each class-specific event file
 separately.
 -/
+
+public section

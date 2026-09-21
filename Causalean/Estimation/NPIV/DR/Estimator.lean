@@ -3,32 +3,36 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# TRAE-DR estimator (one-shot split)
+# TRAE-DR evaluation-fold estimator formula
 
-The one-shot TRAE doubly robust estimator from `def:est-trae-dr-estimator`
-in `doc/basic_concepts/po/estimation/trae_inverse_problems.tex`:
+This file defines the evaluation-fold average
 
     θ̂ⁿ_TRAE-DR := (1/|B(n)|) Σ_{i ∈ B(n)} φ_{ĥ_n, q̂_n}(W_i),
 
-where `(ĥ_n, q̂_n)` are nuisances trained only on the fold-A subsample
-`A(n)`, and `φ_{h, q}(w) := m_e(w; h) + m(w; q) - q(z) h(x)` is the
+for arbitrary random nuisance functions `(ĥ_n, q̂_n)`. The definition does
+not impose fold-A training or independence conditions. Here
+`φ_{h, q}(w) := m_e(w; h) + m(w; q) - q(z) h(x)` is the
 pointwise pseudo-outcome from `InverseProblemSystem.phiVal`
 (`Causalean/Estimation/NPIV/Setup.lean`).
 
 This file defines only the estimator.  Asymptotic linearity is in
-`AsymptoticLinear.lean`; asymptotic normality + Wald coverage are in
+`AsymptoticLinear.lean`; abstract limit results and a conditional Wald
+coverage transfer are in
 `AsymptoticNormal.lean`.
 -/
 
-import Causalean.Estimation.NPIV.Setup
-import Causalean.Stat.Sample
-import Causalean.Stat.SampleSplit
+module
+public import Causalean.Estimation.NPIV.Setup
+public import Causalean.Stat.Sample
+public import Causalean.Stat.SampleSplit
 
 /-!
 Defines estimator-level helpers and local instances for the doubly robust NPIV
 development. The module exposes sample, measure, and inverse-problem-system
 fields in the form used by the DR rate and limit theorems.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -59,16 +63,20 @@ scoped instance instMeasurableSpace_𝒵
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) : MeasurableSpace S.𝒵 := S.inst𝒵
 
-/-- For [a measurable sample space](hyp:Ω) with [a measure](hyp:μ), [an inverse-problem system](hyp:S), [a probability law on its observation space](hyp:P_W), [an independent and identically distributed sample under the two measures](hyp:sample), [a one-shot split of that sample](hyp:split), [a sequence of data-dependent primal nuisance estimators](hyp:h_hat), [a sequence of data-dependent dual nuisance estimators](hyp:q_hat), [a sample size](hyp:n), and [a realization of the underlying sample space](hyp:ω), [the one-shot TRAE doubly robust estimator](goal) is the average over the split's evaluation fold of the system's doubly robust pseudo-outcome evaluated using the two nuisance estimators at that sample size and realization.
+/-- [The one-shot TRAE doubly robust estimator](goal) averages the plug-in pseudo-outcome
+over the evaluation fold of [a split sample](hyp:sample,split), using [an inverse-problem
+system on a measured sample space](hyp:Ω,μ,S), [its observation law](hyp:P_W), [the primal
+and dual nuisance sequences](hyp:h_hat,q_hat), and [the selected sample size and
+realization](hyp:n,ω).
 
-One-shot **TRAE doubly robust estimator** (`def:est-trae-dr-estimator`):
+One-shot **TRAE doubly robust estimator**:
 
     θ̂ⁿ_TRAE-DR := (1/|B(n)|) Σ_{i ∈ B(n)} φ_{ĥ_n, q̂_n}(W_i),
 
 where `W_i = sample.Z i ω` and `φ_{h, q}` is `InverseProblemSystem.phiVal`.
-The nuisances `ĥ_n n ω : 𝒳 → ℝ` and `q̂_n n ω : 𝒵 → ℝ` are random
-functions (depending on `(n, ω)`) that, in applications, are trained only
-on `A(n)`. -/
+The nuisances `ĥ_n n ω : 𝒳 → ℝ` and `q̂_n n ω : 𝒵 → ℝ` are arbitrary random
+functions of `(n, ω)`. Fold-A-only training, when required by an application,
+must be supplied separately. -/
 noncomputable def trae_dr_estimator
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ)

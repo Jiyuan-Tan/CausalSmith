@@ -20,8 +20,9 @@ gap any estimator must straddle is the **nonnegative** quantity
 which reduces to `ConstCenterGeneral.ate_gapG` when `g₁, g₀` are constant.
 -/
 
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Construction
-import Mathlib.Tactic.LinearCombination
+module
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Construction
+public import Mathlib.Tactic.LinearCombination
 
 /-! # Cell-Varying ATE Gap
 
@@ -34,6 +35,8 @@ The main public lemmas are `gPertV_true_eq`, which rewrites the treated perturbe
 cleared denominator; `ate_ghatV`, the ATE of the cell-varying center; `ate_gPertV`, the exact ATE
 of each perturbed sign vector; `ate_gapV`, the closed form for `ate (gPertV lam) - ate ghatV`; and
 `ate_gap_nonneg`, the nonnegativity of that common gap. -/
+
+public section
 
 namespace Causalean.Estimation.MinimaxATE
 

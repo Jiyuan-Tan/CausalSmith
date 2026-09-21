@@ -4,12 +4,13 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.DAG
-import Causalean.Graph.SWIG
-import Causalean.Graph.SWIGSplitMono
-import Causalean.Graph.CComponents
-import Causalean.SCM.ID.GraphicalThms.DoGFormulaRec
-import Causalean.SCM.ID.DiscreteID.Checker
+module
+public import Causalean.Graph.DAG
+public import Causalean.Graph.SWIG
+public import Causalean.Graph.SWIGSplitMono
+public import Causalean.Graph.CComponents
+public import Causalean.SCM.ID.GraphicalThms.DoGFormulaRec
+public import Causalean.SCM.ID.DiscreteID.Checker
 
 /-! # Frontdoor Example
 
@@ -23,6 +24,11 @@ does not apply to the same outcome district, and check that the executable
 `idAlgorithm` returns `true` on the concrete graph.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 set_option linter.style.nativeDecide false
 
 namespace Causalean.SCM.Examples.Frontdoor
@@ -31,17 +37,21 @@ namespace Causalean.SCM.Examples.Frontdoor
 -- Vertex type
 -- ============================================================
 
-/-- [The frontdoor-example node type](goal) consists of [the latent-confounder vertex](hyp:fdU), [the treatment vertex](hyp:fdX), [the mediator vertex](hyp:fdM), and [the outcome vertex](hyp:fdY). -/
+/-- [The frontdoor-example node type](goal) consists of
+[the latent-confounder vertex](hyp:fdU), [the treatment vertex](hyp:fdX),
+[the mediator vertex](hyp:fdM), and [the outcome vertex](hyp:fdY). -/
 inductive FDNode
   | fdU  -- latent confounder of X and Y
   | fdX  -- treatment
   | fdM  -- mediator
   | fdY  -- outcome
-  deriving DecidableEq, Repr
+  deriving DecidableEq
 
 open FDNode
 
-/-- [A finite enumeration of the frontdoor-example node type](goal) is provided by [the collection of its four named vertices](step:1) together with [the assertion that every frontdoor-example vertex belongs to that collection](step:2). -/
+/-- [A finite enumeration of the frontdoor-example node type](goal) is provided by
+[the collection of its four named vertices](step:1) together with
+[the assertion that every frontdoor-example vertex belongs to that collection](step:2). -/
 instance : Fintype FDNode where
   elems := {fdU, fdX, fdM, fdY}
   complete := by intro x; cases x <;> simp
@@ -50,7 +60,12 @@ instance : Fintype FDNode where
 -- Edge relation
 -- ============================================================
 
-/-- [The frontdoor-edge relation](goal) contains exactly [the arrow from the latent confounder to treatment](step:1), [the arrow from the latent confounder to outcome](step:2), [the arrow from treatment to the mediator](step:3), and [the arrow from the mediator to outcome](step:4); [all other ordered pairs have no edge](step:5). -/
+/-- [The frontdoor-edge relation](goal) contains exactly
+[the arrow from the latent confounder to treatment](step:1),
+[the arrow from the latent confounder to outcome](step:2),
+[the arrow from treatment to the mediator](step:3),
+[the arrow from the mediator to outcome](step:4), and
+[all other ordered pairs have no edge](step:5). -/
 def fdEdge : FDNode → FDNode → Prop
   | fdU, fdX => True
   | fdU, fdY => True
@@ -58,7 +73,8 @@ def fdEdge : FDNode → FDNode → Prop
   | fdM, fdY => True
   | _,   _   => False
 
-/-- For every ordered pair of frontdoor-example vertices, [a decision procedure for whether the pair is a directed edge](goal) is provided. -/
+/-- For every ordered pair of frontdoor-example vertices,
+[a decision procedure for whether the pair is a directed edge](goal) is provided. -/
 instance : DecidableRel fdEdge := by
   intro a b; cases a <;> cases b <;> simp [fdEdge] <;> infer_instance
 
@@ -66,7 +82,9 @@ instance : DecidableRel fdEdge := by
 -- Topological order
 -- ============================================================
 
-/-- [The topological-order label for the frontdoor graph](goal) [assigns label 0 to the latent confounder](step:1), [label 1 to treatment](step:2), [label 2 to the mediator](step:3), and [label 3 to outcome](step:4). -/
+/-- [The topological-order label for the frontdoor graph](goal)
+[assigns label 0 to the latent confounder](step:1), [label 1 to treatment](step:2),
+[label 2 to the mediator](step:3), and [label 3 to outcome](step:4). -/
 def fdTopo : FDNode → ℕ
   | fdU => 0
   | fdX => 1
@@ -82,7 +100,8 @@ theorem fdTopo_lt : ∀ u v, fdEdge u v → fdTopo u < fdTopo v := by
 -- The DAG
 -- ============================================================
 
-/-- [The frontdoor directed acyclic graph](goal) has the specified frontdoor edge relation and topological ordering, and is acyclic. -/
+/-- [The frontdoor directed acyclic graph](goal) has the specified frontdoor edge relation and
+topological ordering, and is acyclic. -/
 def fdDAG : DAG FDNode where
   edge := fdEdge
   decEdge := inferInstance
@@ -92,7 +111,9 @@ def fdDAG : DAG FDNode where
 -- SWIG graph (standard model, no intervention)
 -- ============================================================
 
-/-- [The pre-intervention SWIG graph for the frontdoor example](goal) has the frontdoor directed acyclic graph, no fixed nodes, treatment, mediator, and outcome as observed random nodes, and the latent confounder as an unobserved random node. -/
+/-- [The pre-intervention SWIG graph for the frontdoor example](goal) has the frontdoor directed
+acyclic graph, no fixed nodes, treatment, mediator, and outcome as observed random nodes, and the
+latent confounder as an unobserved random node. -/
 def fdSWIG : SWIGGraph FDNode where
   dag := initialSWIG fdDAG
   fixed := ∅
@@ -229,8 +250,9 @@ example : ¬ Causalean.SCM.ID.cFactorReachable fdSWIG
 /-! ### Running the executable checker
 
 The `idAlgorithm` decision procedure *computes* on the concrete frontdoor graph and
-returns `true` — a verified "P(Y ∣ do(X)) is identifiable", with the fixing step the
-no-fixing fragment cannot handle. -/
+returns `true`. Via the checker's soundness theorem, this verifies identification of
+`P(Y ∣ do(X))` for standard finite-discrete positive models, with the fixing step the no-fixing
+fragment cannot handle. -/
 
 set_option maxRecDepth 4096 in
 /-- `#eval` runs the checker; it prints `true`. -/

@@ -3,23 +3,27 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Słoczyński (2022): per-cell bridge identities
+# Per-cell saturated-control bridge identities
 
-Per-cell denominator and numerator identities used by the headline
-Słoczyński finite-cell bridge theorem.
+Per-cell denominator and numerator identities used by the finite-cell
+saturated-control bridge theorem.
 -/
 
-import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Partition
-/-! # Słoczyński per-cell bridge identities
+module
+public import Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition.Support.Partition
+
+/-! # Per-Cell Saturated-Control Bridge Identities
 
 This file proves the per-cell denominator and numerator identities used in
-the Słoczyński finite-cell bridge. These identities reduce the
+the finite-cell saturated-control bridge. These identities reduce the
 Frisch-Waugh-Lovell denominator and numerator to cell masses, treated shares,
 and cell-specific treatment effects before summing over the finite partition.
 The theorem `denom_per_cell` identifies the residualized-treatment second
 moment on one cell, and `num_per_cell` identifies the residualized
 treatment-outcome covariance on one cell under consistency and the finite-cell
 conditional-mean-independence bridge condition. -/
+
+public section
 
 namespace Causalean.Panel.EstimandCharacterization.OLSWeightDecomposition
 
@@ -46,12 +50,13 @@ theorem denom_per_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
     (D_binary : ∀ᵐ ω ∂μ, D ω = 0 ∨ D ω = 1) (g : 𝒢) :
       ∫ ω, (D ω - propensity μ D G ω) * (D ω - propensity μ D G ω)
               * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ
-        = cellMass μ G g * (cellShare μ D G g * (1 - cellShare μ D G g)) := by
+        = CellBridge.cellMass μ G g
+            * (cellShare μ D G g * (1 - cellShare μ D G g)) := by
     let s : Set Ω := {ω | G ω = g}
     let I : Ω → ℝ := fun ω => Set.indicator s (fun _ => (1 : ℝ)) ω
     let p : ℝ := cellShare μ D G g
     let A : ℝ := ∫ ω, D ω * I ω ∂μ
-    let M : ℝ := cellMass μ G g
+    let M : ℝ := CellBridge.cellMass μ G g
     have hD_mem : MemLp D 2 μ := by
       have hD_bounded : ∀ᵐ ω ∂μ, D ω ∈ Set.Icc (-1 : ℝ) 1 := by
         filter_upwards [D_binary] with ω hD
@@ -61,7 +66,7 @@ theorem denom_per_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
       exact memLp_of_bounded (f := D) hD_bounded
         (D_meas.aestronglyMeasurable) (2 : ENNReal)
     have hI_mem : MemLp I 2 μ := by
-      simpa [I, s] using indicator_cell_memLp μ G G_meas g
+      simpa [I, s] using CellBridge.indicator_cell_memLp μ G G_meas g
     have hDInt : Integrable (fun ω => D ω * I ω) μ :=
       hD_mem.integrable_mul hI_mem
     have hconstIInt : Integrable (fun ω => (p * p) * I ω) μ :=
@@ -96,10 +101,11 @@ theorem denom_per_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
         _ = (1 - 2 * p) * A + (p * p) * M := by
           rw [integral_const_mul, integral_const_mul]
           have hIint : ∫ ω, I ω ∂μ = M := by
-            simpa [I, s, M] using integral_cell_indicator_one_eq_cellMass μ G G_meas g
+            simpa [I, s, M] using
+              CellBridge.integral_cell_indicator_one_eq_cellMass μ G G_meas g
           simp [A, M, hIint]
     have hshare : p * M = A := by
-      simpa [p, M, A, I, s, cellShare, cellMass] using
+      simpa [p, M, A, I, s, cellShare, CellBridge.cellMass] using
         (CellBridge.cellMean_mul_cellMass μ D G g)
     change ∫ ω, (D ω - propensity μ D G ω)
         * (D ω - propensity μ D G ω) * I ω ∂μ = M * (p * (1 - p))
@@ -138,7 +144,8 @@ theorem num_per_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
     (g : 𝒢) :
     ∫ ω, (D ω - propensity μ D G ω) * Y ω
             * Set.indicator {ω' | G ω' = g} (fun _ => (1 : ℝ)) ω ∂μ
-      = cellMass μ G g * (cellShare μ D G g * (1 - cellShare μ D G g))
+      = CellBridge.cellMass μ G g
+          * (cellShare μ D G g * (1 - cellShare μ D G g))
           * cellTau μ Y0 Y1 G g := by
   let s : Set Ω := {ω | G ω = g}
   let I : Ω → ℝ := fun ω => Set.indicator s (fun _ => (1 : ℝ)) ω
@@ -147,12 +154,12 @@ theorem num_per_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
   let J0 : Ω → ℝ := fun ω => Set.indicator {ω' | D ω' = (0 : ℝ)}
     (fun _ => (1 : ℝ)) ω
   let p : ℝ := cellShare μ D G g
-  let M : ℝ := cellMass μ G g
+  let M : ℝ := CellBridge.cellMass μ G g
   let τ : ℝ := cellTau μ Y0 Y1 G g
   let B1 : ℝ := ∫ ω, Y1 ω * I ω ∂μ
   let B0 : ℝ := ∫ ω, Y0 ω * I ω ∂μ
   have hI_mem : MemLp I 2 μ := by
-    simpa [I, s] using indicator_cell_memLp μ G G_meas g
+    simpa [I, s] using CellBridge.indicator_cell_memLp μ G G_meas g
   have hY1IInt : Integrable (fun ω => Y1 ω * I ω) μ :=
     Y1_memLp.integrable_mul hI_mem
   have hY0IInt : Integrable (fun ω => Y0 ω * I ω) μ :=
@@ -224,7 +231,7 @@ theorem num_per_cell {Ω 𝒢 : Type*} [MeasurableSpace Ω] [Fintype 𝒢]
   have hTauM : τ * M = B1 - B0 := by
     calc
       τ * M = ∫ ω, (Y1 ω - Y0 ω) * I ω ∂μ := by
-        simpa [τ, M, I, s, cellTau, cellMass] using
+        simpa [τ, M, I, s, cellTau, CellBridge.cellMass] using
           (CellBridge.cellMean_mul_cellMass μ (fun ω => Y1 ω - Y0 ω) G g)
       _ = B1 - B0 := hdiff
   change ∫ ω, (D ω - propensity μ D G ω) * Y ω * I ω ∂μ =

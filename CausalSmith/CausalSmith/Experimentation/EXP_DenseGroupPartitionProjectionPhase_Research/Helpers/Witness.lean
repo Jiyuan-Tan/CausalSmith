@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Estimator
-import Mathlib.Tactic.NormNum
+module
+public import CausalSmith.Experimentation.EXP_DenseGroupPartitionProjectionPhase_Research.Helpers.Estimator
+public import Mathlib.Tactic.NormNum
 
 /-!
 # Balanced eight-unit witness
@@ -7,6 +8,8 @@ import Mathlib.Tactic.NormNum
 This file defines the balanced four-plus/four-minus vector and its composition
 schedule for the paper's finite exact-moment witness.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 

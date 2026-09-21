@@ -9,9 +9,11 @@ Implements def:po-did-system, def:po-did-assumptions, and prop:po-did-att from
 Basic Concepts.tex.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Conditioning.EventCondExp
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Two-Period Difference-in-Differences
 
@@ -25,6 +27,10 @@ anticipation, parallel trends, positivity of treated and control groups, and
 integrability of the counterfactual outcomes that enter the DID contrast. The
 main theorem `att_did` identifies the treated-group mean counterfactual contrast
 with the observed treated-minus-control difference in outcome changes. -/
+
+@[expose] public section
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -51,75 +57,82 @@ namespace PODIDSystem
 
 variable {P : POSystem} (S : PODIDSystem P)
 
-/-- For [a two-period DID system](hyp:S), the [binary treatment potential-outcome
-variable](goal) is its treatment node with values represented as false or true. -/
+/-- The [treatment variable used in two-period DID](goal) represents [the system's
+treatment](hyp:S) [as the treated and control arms](step:1). -/
 def dVar : POVar P Bool := ⟨S.D, S.hDbool⟩
 
-/-- For [a two-period DID system](hyp:S), the [real-valued pre-period outcome
-potential-outcome variable](goal) is its pre-period outcome node. -/
+/-- The [baseline outcome variable](goal) in [a two-period DID system](hyp:S) [records
+the real-valued outcome before treatment](step:1). -/
 def y0Var : POVar P ℝ := ⟨S.Y₀, S.hY0real⟩
 
-/-- For [a two-period DID system](hyp:S), the [real-valued post-period outcome
-potential-outcome variable](goal) is its post-period outcome node. -/
+/-- The [follow-up outcome variable](goal) in [a two-period DID system](hyp:S) [records
+the real-valued outcome after treatment](step:1). -/
 def y1Var : POVar P ℝ := ⟨S.Y₁, S.hY1real⟩
 
-/-- For [a two-period DID system](hyp:S) and [a binary treatment arm](hyp:d), the
-[pre-period potential-outcome function](goal) gives each unit's pre-period outcome
-when treatment is fixed to that arm. -/
+/-- The [baseline potential outcome](goal) in [a two-period DID system](hyp:S)
+[records what each unit's pre-period outcome would be under the selected arm](step:1);
+[the arm](hyp:d) is useful for stating and testing no anticipation. -/
 noncomputable def Y0ofD (d : Bool) : P.Ω → ℝ := S.y0Var.cfUnder S.dVar d
 
-/-- For [a two-period DID system](hyp:S) and [a binary treatment arm](hyp:d), the
-[post-period potential-outcome function](goal) gives each unit's post-period outcome
-when treatment is fixed to that arm. -/
+/-- The [follow-up potential outcome](goal) in [a two-period DID system](hyp:S)
+[records what each unit's post-period outcome would be under the selected arm](step:1),
+with [that arm](hyp:d) defining the causal contrast of interest. -/
 noncomputable def Y1ofD (d : Bool) : P.Ω → ℝ := S.y1Var.cfUnder S.dVar d
 
-/-- For [a two-period DID system](hyp:S), the [factual treatment function](goal)
-assigns each unit its observed binary treatment. -/
+/-- The [observed treatment assignment](goal) in [a two-period DID system](hyp:S)
+[records whether each unit belongs to the treated or control group](step:1). -/
 noncomputable def factualD : P.Ω → Bool := S.dVar.factual
 
-/-- For [a two-period DID system](hyp:S), the [factual pre-period outcome function](goal)
-assigns each unit its observed pre-period outcome. -/
+/-- The [observed baseline outcome](goal) in [a two-period DID system](hyp:S) [records
+each unit's pre-treatment response](step:1). -/
 noncomputable def factualY₀ : P.Ω → ℝ := S.y0Var.factual
 
-/-- For [a two-period DID system](hyp:S), the [factual post-period outcome function](goal)
-assigns each unit its observed post-period outcome. -/
+/-- The [observed follow-up outcome](goal) in [a two-period DID system](hyp:S) [records
+each unit's post-treatment response](step:1). -/
 noncomputable def factualY₁ : P.Ω → ℝ := S.y1Var.factual
 
-/-- For [a two-period DID system](hyp:S) and [a binary treatment arm](hyp:d), the
-[treatment event](goal) is the set of units whose observed treatment equals that arm. -/
+/-- The [observed treatment group](goal) in [a two-period DID system](hyp:S) [collects
+the units assigned to the selected arm](step:1), with [the arm](hyp:d) distinguishing
+treated from control units. -/
 def dEvent (d : Bool) : Set P.Ω := S.dVar.event d
 
-/-- The pre-period potential outcome under a fixed treatment arm is measurable. -/
+/-- In [a two-period DID system](hyp:S), [the baseline potential outcome under a fixed
+arm](hyp:d) is [measurable, so group-conditional baseline means are well-defined](goal). -/
 @[fun_prop]
 lemma measurable_Y0ofD (d : Bool) : Measurable (S.Y0ofD d) :=
   S.y0Var.measurable_cfUnder S.dVar d
 
-/-- The post-period potential outcome under a fixed treatment arm is measurable. -/
+/-- In [a two-period DID system](hyp:S), [the follow-up potential outcome under a fixed
+arm](hyp:d) is [measurable, so group-conditional follow-up means are well-defined](goal). -/
 @[fun_prop]
 lemma measurable_Y1ofD (d : Bool) : Measurable (S.Y1ofD d) :=
   S.y1Var.measurable_cfUnder S.dVar d
 
-/-- The observed treatment is measurable. -/
+/-- [Treatment assignment in a two-period DID system](hyp:S) is [measurable, so treated
+and control groups form valid conditioning events](goal). -/
 @[fun_prop]
 lemma measurable_factualD : Measurable S.factualD := S.dVar.measurable_factual
 
-/-- The observed pre-period outcome is measurable. -/
+/-- [The observed baseline outcome in a two-period DID system](hyp:S) is [measurable,
+so its treated and control means can enter the DID contrast](goal). -/
 @[fun_prop]
 lemma measurable_factualY₀ : Measurable S.factualY₀ := S.y0Var.measurable_factual
 
-/-- The observed post-period outcome is measurable. -/
+/-- [The observed follow-up outcome in a two-period DID system](hyp:S) is [measurable,
+so its treated and control means can enter the DID contrast](goal). -/
 @[fun_prop]
 lemma measurable_factualY₁ : Measurable S.factualY₁ := S.y1Var.measurable_factual
 
-/-- Each observed treatment-arm event is measurable. -/
+/-- In [a two-period DID system](hyp:S), [membership in either observed treatment
+arm](hyp:d) defines [a measurable event suitable for group means](goal). -/
 lemma measurableSet_dEvent (d : Bool) : MeasurableSet (S.dEvent d) :=
   S.dVar.measurableSet_event _ (measurableSet_singleton _)
 
-/-- For [a two-period DID system](hyp:S), the [average treatment effect on the
-treated](goal) is the mean, conditional on observed treatment, of the difference
-between each treated unit's post-period potential outcomes under treatment and no treatment. -/
+/-- The [average treatment effect on the treated](goal) in [a two-period DID
+system](hyp:S) [is the treated-group mean difference between treated and untreated
+follow-up potential outcomes](step:1). -/
 noncomputable def ATT : ℝ :=
-  eventCondExp P.μ (S.dEvent true) (fun ω => S.Y1ofD true ω - S.Y1ofD false ω)
+  normalizedRestrictedIntegral P.μ (S.dEvent true) (fun ω => S.Y1ofD true ω - S.Y1ofD false ω)
 
 /-- Assumptions for two-period difference-in-differences identification of the
 ATT (`def:po-did-assumptions`). In words: [the observed outcomes coincide with the
@@ -142,9 +155,9 @@ structure Assumptions (S : PODIDSystem P) : Prop where
   /-- Parallel trends: the average untreated change from the pre- to the
   post-period is the same in the treated group as in the control group. -/
   parallelTrends :
-    eventCondExp P.μ (S.dEvent true)
+    normalizedRestrictedIntegral P.μ (S.dEvent true)
         (fun ω => S.Y1ofD false ω - S.Y0ofD false ω)
-      = eventCondExp P.μ (S.dEvent false)
+      = normalizedRestrictedIntegral P.μ (S.dEvent false)
           (fun ω => S.Y1ofD false ω - S.Y0ofD false ω)
   /-- The treated group has positive probability, so its group-mean is defined.
   (Finiteness `μ ≠ ⊤` is automatic: `P.μ` is a probability measure.) -/
@@ -170,16 +183,17 @@ private lemma factualDiff_eq_cfDiff_on_dEvent (hC : P.Consistency) (d : Bool) :
     POVar.cf_eq_factual_on_event hC S.y0Var S.dVar d S.hDY0.symm hω
   rw [h1, h0]
 
-/-- Under [the two-period DID assumptions — consistency, no-anticipation,
+/-- In [a two-period DID system](hyp:S), under [the identifying assumptions —
+consistency, no-anticipation,
 parallel trends, and positive-probability, integrable treatment and control
 groups](hyp:hA), [the average treatment effect on the treated equals the
 difference between the treated group's mean pre-to-post outcome change and
 the control group's mean pre-to-post outcome change](goal). -/
 theorem att_did (hA : S.Assumptions) :
     S.ATT
-      = eventCondExp P.μ (S.dEvent true)
+      = normalizedRestrictedIntegral P.μ (S.dEvent true)
           (fun ω => S.factualY₁ ω - S.factualY₀ ω)
-        - eventCondExp P.μ (S.dEvent false)
+        - normalizedRestrictedIntegral P.μ (S.dEvent false)
             (fun ω => S.factualY₁ ω - S.factualY₀ ω) := by
   -- Step 1: by no anticipation, `Y₁(1) - Y₁(0)` rewrites a.e. as
   -- `(Y₁(1) - Y₀(1)) - (Y₁(0) - Y₀(0))`.
@@ -191,13 +205,13 @@ theorem att_did (hA : S.Assumptions) :
     change S.Y1ofD true ω - S.Y1ofD false ω
       = (S.Y1ofD true ω - S.Y0ofD true ω) - (S.Y1ofD false ω - S.Y0ofD false ω)
     rw [hω]; ring
-  -- Step 2: split via additivity.  Use the `eventCondExp` definition and
+  -- Step 2: split via additivity.  Use the `normalizedRestrictedIntegral` definition and
   -- `integral_congr_ae` + `integral_sub`.
   have hATT_split :
       S.ATT
-        = eventCondExp P.μ (S.dEvent true)
+        = normalizedRestrictedIntegral P.μ (S.dEvent true)
             (fun ω => S.Y1ofD true ω - S.Y0ofD true ω)
-          - eventCondExp P.μ (S.dEvent true)
+          - normalizedRestrictedIntegral P.μ (S.dEvent true)
               (fun ω => S.Y1ofD false ω - S.Y0ofD false ω) := by
     unfold ATT
     rw [eventCondExp_congr_ae P.μ (S.dEvent true) (ae_restrict_of_ae hAE)]
@@ -210,23 +224,23 @@ theorem att_did (hA : S.Assumptions) :
   -- Step 3: on `dEvent true`, consistency gives
   -- `Y₁(1) - Y₀(1) = factualY₁ - factualY₀`.
   have h_first :
-      eventCondExp P.μ (S.dEvent true)
+      normalizedRestrictedIntegral P.μ (S.dEvent true)
           (fun ω => S.Y1ofD true ω - S.Y0ofD true ω)
-        = eventCondExp P.μ (S.dEvent true)
+        = normalizedRestrictedIntegral P.μ (S.dEvent true)
             (fun ω => S.factualY₁ ω - S.factualY₀ ω) :=
     (eventCondExp_congr_on P.μ (S.measurableSet_dEvent true)
       (fun ω hω => (S.factualDiff_eq_cfDiff_on_dEvent hA.consistency true ω hω).symm))
   -- Step 4: parallel trends rewrites the second term to condition on `D=0`.
-  have h_pt : eventCondExp P.μ (S.dEvent true)
+  have h_pt : normalizedRestrictedIntegral P.μ (S.dEvent true)
         (fun ω => S.Y1ofD false ω - S.Y0ofD false ω)
-      = eventCondExp P.μ (S.dEvent false)
+      = normalizedRestrictedIntegral P.μ (S.dEvent false)
           (fun ω => S.Y1ofD false ω - S.Y0ofD false ω) := hA.parallelTrends
   -- Step 5: on `dEvent false`, consistency gives
   -- `Y₁(0) - Y₀(0) = factualY₁ - factualY₀`.
   have h_second :
-      eventCondExp P.μ (S.dEvent false)
+      normalizedRestrictedIntegral P.μ (S.dEvent false)
           (fun ω => S.Y1ofD false ω - S.Y0ofD false ω)
-        = eventCondExp P.μ (S.dEvent false)
+        = normalizedRestrictedIntegral P.μ (S.dEvent false)
             (fun ω => S.factualY₁ ω - S.factualY₀ ω) :=
     eventCondExp_congr_on P.μ (S.measurableSet_dEvent false)
       (fun ω hω => (S.factualDiff_eq_cfDiff_on_dEvent hA.consistency false ω hω).symm)

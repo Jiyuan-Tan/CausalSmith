@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TPhaseDiagram
-import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Divergence
+module
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.TPhaseDiagram
+public import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Divergence
 
 /-!
 # One-cell early-kill calibration
@@ -13,6 +14,8 @@ import CausalSmith.Stat.STAT_LmtpThresholdAtomFrontier_Research.Helpers.Divergen
 The concrete one-stratum design has density `2a`, a triangular width-`h`
 Bernoulli regression perturbation, its exact integrated KL, and target separation.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.LmtpThresholdAtomFrontier
 

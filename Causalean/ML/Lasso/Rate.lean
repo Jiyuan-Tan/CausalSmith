@@ -3,20 +3,25 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Stat.Concentration.UniformDeviation.ERMOracle
+
+module
+public import Causalean.Stat.Concentration.Localization.ERMOracle
 
 /-! # Lasso / L¹-ball linear predictors — Rademacher rate
 
-The statistical rate for empirical risk minimization over an `L¹`-norm-bounded class of
+The slow uniform-deviation rate over an `L¹`-norm-bounded class of
 linear predictors `a ↦ ∑ⱼ wⱼ aⱼ` (the lasso constraint set).  Over `L∞`-bounded features,
 the Rademacher complexity of the `L¹`-ball class carries the characteristic `√(log d)`
 dimension factor: `≤ (X∞·W/√n)·√(2 log 2d)`.  Combined with the generic ERM oracle
-inequality this gives the `O(√(log d / n))` excess-risk rate that distinguishes lasso in
-high dimensions.
+inequality this gives an `O(√(log d / n))` rate for the displayed linear functional. It
+uses neither sparsity nor a restricted-eigenvalue condition and claims no fast rate.
+The squared-loss excess-risk specialization is in `Lasso/SquaredLoss.lean`.
 
 Built on FoML's `linear_predictor_l1_bound'` (Massart finite-class bound for the L¹-ball,
 lifted here to the expected `rademacherComplexity`).
 -/
+
+public section
 
 namespace Causalean.ML
 
@@ -70,14 +75,15 @@ theorem rademacherComplexity_l1_ball_le {d n : ℕ} (hd : 0 < d) (hn : 0 < n) {�
     _ = (Xinf * W / Real.sqrt (n : ℝ)) * Real.sqrt (2 * Real.log (2 * d)) := by
       simp [C]
 
-/-- **Lasso ERM excess-risk rate over the L¹ ball.** For linear predictors indexed by
-the `L¹` ball, if [the dimension `d` is positive](hyp:hd), [the sample size `n` is
+/-- **L¹-ball constrained ERM linear-functional deviation rate.** For linear predictors indexed
+by the `L¹` ball, if [the dimension `d` is positive](hyp:hd), [the sample size `n` is
 positive](hyp:hn), [the coordinatewise feature bound `Xinf` is
 nonnegative](hyp:hXinf), [the weight bound `W` is nonnegative](hyp:hW), [the feature map
 `X` is measurable](hyp:hX), [the constant `t` satisfies the calibration
 `t·(Xinf·W)² ≤ 1/2`](hyp:ht'), [the tolerance `ε` is nonnegative](hyp:hε), and [the
-estimator `ŵ` attains empirical risk no larger than that of the comparator
-`wstar`](hyp:hERM), then [the probability that the excess population risk of `ŵ` over
+estimator `ŵ` attains an empirical linear functional no larger than that of the comparator
+`wstar`](hyp:hERM), then [the probability that the corresponding excess population linear
+functional of `ŵ` over
 `wstar` exceeds `4·(Xinf·W/√n)·√(2 log 2d) + 2ε` is at most `exp(-ε²tn)`](goal). -/
 theorem lasso_erm_excess_rate {d n : ℕ} (hd : 0 < d) (hn : 0 < n) {Ω : Type*}
     [MeasurableSpace Ω] {μ : Measure Ω} [IsProbabilityMeasure μ] {Xinf W : ℝ}

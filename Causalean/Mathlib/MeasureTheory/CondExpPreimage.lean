@@ -3,29 +3,31 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
+
+module
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Basic
 
 /-!
-# Conditional expectation identified on design preimages
+# Conditional expectation identified on measurable preimages
 
 This module packages the uniqueness characterization of conditional expectation in the
-form used by random-design models: it is enough to match restricted integrals on every
-measurable preimage of the design map.
+form where restricted integrals agree on every measurable preimage of a generating map.
 -/
+
+public section
 
 namespace Causalean.Mathlib.MeasureTheory
 
 open _root_.MeasureTheory
 
-/-- For [a finite sampling measure](hyp:mu), [a measurable design map](hyp:design,hdesign),
-[an integrable outcome and candidate regression](hyp:Y,m,hY,hm), [a candidate regression
-that is almost-everywhere strongly measurable with respect to the design σ-algebra](hyp:hm_design), and [matching outcome and
-candidate-regression integrals on every measurable design event](hyp:hintegral), [the
-candidate regression is a version of the outcome's conditional expectation given the
-design](goal).
+/-- [The conditional expectation of one integrable real function equals another almost
+everywhere](goal) for [a finite measure](hyp:mu) and [a measurable generating
+map](hyp:design,hdesign), provided [both functions are integrable](hyp:Y,m,hY,hm), [the second
+is strongly measurable for the pullback σ-algebra](hyp:hm_design), and [their restricted
+integrals agree on every measurable preimage](hyp:hintegral).
 
-Global integrability of the candidate regression supplies integrability on the finite
-conditioning events, while finiteness of the sampling measure supplies the sigma-finiteness
+Global integrability of the second function supplies integrability on the finite
+conditioning events, while finiteness of the measure supplies the sigma-finiteness
 required by Mathlib's conditional-expectation uniqueness theorem. -/
 theorem condExp_eq_of_integral_preimage_eq
     {Omega D : Type*} [MeasurableSpace Omega] [MeasurableSpace D]

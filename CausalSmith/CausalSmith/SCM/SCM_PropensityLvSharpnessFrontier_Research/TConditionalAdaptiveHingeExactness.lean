@@ -1,7 +1,10 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.AdaptiveHinge
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TConditionalBowMixtureCompleteness
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.AdaptiveHinge
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.TConditionalBowMixtureCompleteness
 
 /-! # Conditional propensity-adaptive hinge exactness -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

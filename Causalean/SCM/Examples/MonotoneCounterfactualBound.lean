@@ -4,9 +4,10 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.SCM.ID.Assumptions.Monotonicity
-import Causalean.SCM.PartialID.CanonicalModel
-import Mathlib.Data.Real.Basic
+module
+public import Causalean.SCM.ID.Assumptions.Monotonicity
+public import Causalean.SCM.PartialID.CanonicalModel
+public import Mathlib.Data.Real.Basic
 
 /-! # Monotone Counterfactual Bound Example
 
@@ -21,6 +22,11 @@ show that graph and observational compatibility alone do not generally imply a
 `[0, 1]` response-contrast bound.
 -/
 
+@[expose] public section
+
+open Causalean.Graph
+
+
 namespace Causalean.SCM.Examples.MonotoneCounterfactualBound
 
 open Causalean
@@ -28,14 +34,18 @@ open Causalean.SCM.Assumptions
 open Causalean.SCM.Assumptions.BoolChainNode
 open Causalean.SCM.PartialID
 
-/-- For [a Boolean value](hyp:b), [its real-valued score](goal) is one when it is true and zero when it is false.
+/-- For [a Boolean value](hyp:b), [its real-valued score](goal) is one when it is true and zero
+when it is false.
 
 This turns the Boolean structural response into the usual real-valued response
 indicator used in a binary-outcome causal contrast. -/
 def boolScore (b : Bool) : ℝ :=
   if b then 1 else 0
 
-/-- For [a Boolean-chain structural causal model](hyp:M) and [a Boolean treatment value](hyp:b), [the outcome-parent assignment](goal) gives [each coordinate corresponding to a parent of the outcome](hyp:w) that treatment value when it is the designated treatment parent and false otherwise.
+/-- For [a Boolean-chain structural causal model](hyp:M) and
+[a Boolean treatment value](hyp:b), [the outcome-parent assignment](goal) gives
+[each coordinate corresponding to a parent of the outcome](hyp:w) that treatment value when it is
+the designated treatment parent and false otherwise.
 
 The designated treatment parent is set to `b`; every other parent coordinate is
 held at `false`. In compatible models with the Boolean-chain graph, the only
@@ -52,7 +62,10 @@ def boolParentAssignmentIn (M : Causalean.SCM BoolChainNode boolChainΩ) (b : Bo
   | fixed n =>
       cases n <;> exact false
 
-/-- The designated parent coordinate receives the assigned Boolean value. -/
+/-- For [a Boolean-chain structural causal model](hyp:M) in which
+[the designated treatment node is a parent of the outcome](hyp:hparent), assigning
+[a Boolean treatment value](hyp:b) to the outcome's parent coordinates
+[puts that value at the designated parent coordinate](goal). -/
 @[simp] theorem boolParentAssignmentIn_parent
     (M : Causalean.SCM BoolChainNode boolChainΩ)
     (hparent : SWIGNode.random d ∈ M.dag.parents (SWIGNode.random y)) (b : Bool) :
@@ -67,7 +80,10 @@ def boolParentAssignmentIn (M : Causalean.SCM BoolChainNode boolChainΩ) (b : Bo
     boolParentAssignmentIn antitoneBoolSCM b boolChainDParent = b := by
   cases b <;> rfl
 
-/-- For each Boolean-chain structural causal model, [the monotone response contrast](goal) is the real-valued difference between the scored outcome response when the designated treatment parent is true and when it is false, and it is zero whenever the outcome is not observed or the designated treatment parent is absent.
+/-- For each Boolean-chain structural causal model,
+[the monotone response contrast](goal) is the real-valued difference between the scored outcome
+response when the designated treatment parent is true and when it is false, and it is zero whenever
+the outcome is not observed or the designated treatment parent is absent.
 
 This is the difference between the outcome structural response at parent value
 `true` and the response at parent value `false`, scored as a binary outcome. If
@@ -117,7 +133,7 @@ exceed one. The companion theorem
 unconstrained Boolean-chain compatible class, using the reversing SCM as the
 reference model, where a `[0, 1]` response-contrast bound is false. -/
 theorem monotoneCounterfactualBound :
-    compatibleInterval boolChainSWIG
+    compatibleIdentifiedSet boolChainSWIG
         (MonotoneMechanism (Ω := boolChainΩ) (SWIGNode.random y) (SWIGNode.random d))
         monotoneBoolSCM monotoneResponseContrast ⊆ Set.Icc (0 : ℝ) 1 := by
   intro z hz
@@ -162,7 +178,7 @@ theorem monotoneCounterfactualBound_assumption_satisfiable :
         monotoneBoolSCM monotoneBoolSCM := by
   exact compatibleSCM_self _ _ _ rfl monotoneBoolSCM_satisfies
 
-/-- The copying Boolean SCM has response contrast one. -/
+/-- [The copying Boolean SCM has response contrast one](goal). -/
 theorem monotoneResponseContrast_monotoneBoolSCM :
     monotoneResponseContrast monotoneBoolSCM = 1 := by
   have hchild : SWIGNode.random y ∈ monotoneBoolSCM.observed := by
@@ -174,7 +190,7 @@ theorem monotoneResponseContrast_monotoneBoolSCM :
       boolScore (boolParentAssignmentIn monotoneBoolSCM false boolChainDParent) = 1
   simp [boolScore]
 
-/-- The reversing Boolean SCM has response contrast minus one. -/
+/-- [The reversing Boolean SCM has response contrast minus one](goal). -/
 theorem monotoneResponseContrast_antitoneBoolSCM :
     monotoneResponseContrast antitoneBoolSCM = -1 := by
   have hchild : SWIGNode.random y ∈ antitoneBoolSCM.observed := by
@@ -194,11 +210,12 @@ compatible class contains that same model and its response contrast is `-1`,
 outside `[0, 1]`. Thus the monotone-bound example is not a consequence of graph or
 observational compatibility alone. -/
 theorem monotoneCounterfactualBound_fails_without_monotonicity :
-    ¬ compatibleInterval boolChainSWIG (fun _ : Causalean.SCM BoolChainNode boolChainΩ => True)
-        antitoneBoolSCM monotoneResponseContrast ⊆ Set.Icc (0 : ℝ) 1 := by
+    ¬ compatibleIdentifiedSet boolChainSWIG
+        (fun _ : Causalean.SCM BoolChainNode boolChainΩ => True) antitoneBoolSCM
+        monotoneResponseContrast ⊆ Set.Icc (0 : ℝ) 1 := by
   intro hsub
   have hmem : (-1 : ℝ) ∈
-      compatibleInterval boolChainSWIG
+      compatibleIdentifiedSet boolChainSWIG
         (fun _ : Causalean.SCM BoolChainNode boolChainΩ => True)
         antitoneBoolSCM monotoneResponseContrast := by
     refine ⟨⟨antitoneBoolSCM, ?_⟩, ?_⟩

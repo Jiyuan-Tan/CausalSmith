@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
+import { join, dirname } from "node:path";
 
 /**
  * Library-index schema + loader shared by check_library_index and the NL sweep.
@@ -178,8 +178,20 @@ export function reviewStatus(
   return r.statement_hash === statementHash(d.statement) ? "reviewed" : "stale";
 }
 
+/** The directory holding `doc/library_index.json`. Callers pass either the Causalean root or
+ * the CausalSmith package directory nested one level below it (`findCausalSmithRoot`); the
+ * pipeline stages pass the latter. Resolve up one level when the index lives there, so a
+ * caller can never silently read "no index" for a tree that has one. */
+export function resolveLibraryRoot(root: string): string {
+  if (existsSync(join(root, "doc", "library_index.json"))) return root;
+  const parent = dirname(root);
+  if (parent !== root && existsSync(join(parent, "doc", "library_index.json"))) return parent;
+  return root;
+}
+
 /** Loads index + sidecars from the Causalean package root; throws on integrity problems. */
-export function loadLibrary(root: string): Library {
+export function loadLibrary(rootIn: string): Library {
+  const root = resolveLibraryRoot(rootIn);
   const raw = JSON.parse(
     readFileSync(join(root, "doc", "library_index.json"), "utf8"),
   ) as {

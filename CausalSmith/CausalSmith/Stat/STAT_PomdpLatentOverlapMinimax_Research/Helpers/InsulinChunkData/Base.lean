@@ -1,11 +1,13 @@
-import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData
+module
+public import CausalSmith.Stat.STAT_PomdpLatentOverlapMinimax_Research.Helpers.InsulinTraceData
 
 /-! Data containers for bounded insulin-grid recurrence chunks. -/
 
+@[expose] public section
+
 namespace CausalSmith.Stat.PomdpLatentOverlapMinimax
 
-open Causalean.Mathlib.Analysis.CertifiedContourIntervalArithmetic
-
+open Causalean.Mathlib.Analysis.IntervalArithmetic
 /-- The record collecting the data for Insulin Chunk Coordinate Data. -/
 structure InsulinChunkCoordinateData where
   data : Array RatInterval

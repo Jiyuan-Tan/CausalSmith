@@ -10,8 +10,11 @@ Stage-2 scaffold. The certified regime theorem `thm:sharp-minimax-smooth-covaria
 benchmark `ρ_n`, with NO matching same-class upper claim.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.T_SharpPointwiseLowerBound
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.RateAlgebra
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.T_SharpPointwiseLowerBound
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.RateAlgebra
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

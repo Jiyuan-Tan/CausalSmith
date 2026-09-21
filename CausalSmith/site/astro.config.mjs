@@ -3,8 +3,13 @@ import sitemap from "@astrojs/sitemap";
 import { readdir, access, cp } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadRedirectArtifact } from "./scripts/gen_redirects.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
+// This committed asset is generated explicitly from moves.json plus the library
+// index. Keeping it inside the site package means public exports do not need the
+// internal planning directory at build time.
+const redirects = loadRedirectArtifact(join(here, "src", "generated", "library_redirects.json"));
 
 function bundleRoots() {
   const roots = [join(here, "..", "doc", "presentation")];
@@ -46,6 +51,7 @@ export default defineConfig({
   site: process.env.SITE_URL ?? "https://example.github.io",
   base: process.env.SITE_BASE ?? "/",
   output: "static",
+  redirects,
   // Hover-prefetch every internal link: the paper page is ~1.5MB of build-time
   // KaTeX markup, so starting the fetch on hover makes paper↔slides jumps feel
   // instant instead of click-then-wait.

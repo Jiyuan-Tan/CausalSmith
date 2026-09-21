@@ -1,8 +1,9 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.UniformGuardBounds
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TSharpExactMassThresholdInterval
-import Causalean.PO.ID.Partial.Inference.Basic
-import Causalean.Stat.EmpiricalProcess.CrossFitRate
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.Estimator
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.UniformGuardBounds
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.TSharpExactMassThresholdInterval
+public import Causalean.PO.ID.Partial.Inference.Basic
+public import Causalean.Stat.EmpiricalProcess.CrossFitRate
 
 /-!
 # Uniform deterministic guard
@@ -11,6 +12,8 @@ Finite-support concentration and deterministic Lipschitz bounds yield uniform
 endpoint consistency and conservative containment of the entire identified
 interval, without a direction-separation condition or any cited gate.
 -/
+
+@[expose] public section
 
 open MeasureTheory Filter Topology
 open Causalean PO Causalean.Stat
@@ -33,7 +36,7 @@ def UniformSlateFamily (Psys : Λ → POSystem)
       (O law)
   -- @realizes \mathcal P_n(fixed-constant margin-free triangular-array law class)
 
-private noncomputable def endpointError (target : ℝ × ℝ)
+noncomputable def endpointError (target : ℝ × ℝ)
     (O : ℕ → Ω → ObservedDatum 𝒳 K) (η : ℕ → ℝ) (n : ℕ) (ω : Ω) : ℝ :=
   max |(plugInEndpoints O η n ω).1 - target.1|
     |(plugInEndpoints O η n ω).2 - target.2|

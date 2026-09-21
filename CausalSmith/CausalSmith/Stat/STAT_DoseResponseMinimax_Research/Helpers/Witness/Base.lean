@@ -9,8 +9,11 @@ Measure-theoretic and two-point-channel primitives for the genuine dose-response
 two-point witnesses.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Divergence
-import Causalean.Mathlib.MeasureTheory.IntegralBind
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.Divergence
+public import Causalean.Mathlib.MeasureTheory.IntegralBind
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

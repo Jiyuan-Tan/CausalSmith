@@ -3,37 +3,40 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Structure-agnostic ATE lower bound: assembly (second / propensity-dominant construction)
+# Structure-agnostic ATE lower bound: assembly for the second construction
 
-The Case-2 analogue of `VaryingCenterCase1/LowerBound.lean`.  It assembles the propensity-dominant
+The Case-2-shaped analogue of `VaryingCenterCase1/LowerBound.lean`. It assembles the second
 construction (`VaryingCenterCase2/Construction`/`Gap`/`Membership`/`ChiSqOverlap`) into a
 `TwoPointWitness` and discharges the χ² indistinguishability via the **non-uniform**
 `ingster_bound_general` (per-pair coefficient `d j = Γⱼ/K`), yielding a minimax
-lower bound around the same cell-varying nuisance center, but valid in the regime
-`εm > εg` (where `VaryingCenterCase1/LowerBound.lean`'s construction degrades).
+lower bound around the same cell-varying nuisance center with the perturbation roles
+swapped relative to `VaryingCenterCase1/LowerBound.lean`.
 
 The capstone `minimax_lower_bound_var2` shows that, with the
-propensity-dominant per-pair budgets met and the regularity conditions
+per-pair budgets met and the regularity conditions
 `Σⱼ Γⱼ/K ≤ 1` and `(n²/2) Σⱼ (Γⱼ/K)² ≤ log 2`, every measurable estimator misses the
 true ATE by `s = ½(ate gλ − ate ĝ)` with probability `≥ 1/4` somewhere in the class.
-Together with `minimax_lower_bound_var` (Case 1), this establishes the
-full product rate `√(εg·εm)` in **both** regimes.
+The theorem records no lower comparison between this induced separation and the
+two nuisance budgets.
 -/
 
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Membership
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.ChiSqOverlap
-import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Ingster
-import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
-import Causalean.Estimation.MinimaxATE.Reduction.Witness
-import Causalean.Stat.Minimax.Mixture
+module
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.Membership
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase2.ChiSqOverlap
+public import Causalean.Estimation.MinimaxATE.VaryingCenterCase1.Ingster
+public import Causalean.Estimation.MinimaxATE.ConstCenterHalf.ChiSquaredCore
+public import Causalean.Estimation.MinimaxATE.Reduction.Witness
+public import Causalean.Stat.Minimax.Mixture
 
-/-! # Propensity-Dominant Lower Bound
+/-! # Second Cell-Varying Lower Bound
 
 This file assembles the second cell-varying perturbation family into a two-point
 testing witness for the structure-agnostic average treatment effect minimax lower
 bound.  Under the stated per-cell budgets and chi-squared regularity conditions, it
 shows that every estimator has nontrivial miss probability at the induced separation.
 -/
+
+@[expose] public section
 
 namespace Causalean.Estimation.MinimaxATE
 
@@ -42,12 +45,6 @@ open Causalean.Stat
 open scoped ENNReal BigOperators
 
 namespace VarConstr2
-
-/-- For every [positive number $K$ of paired cells](hyp:K), [the paired-cell covariate space](goal) contains [the first cell paired with the true binary position](step:1).
-
-The paired-cell covariate is nonempty whenever $K \ne 0$. -/
-instance instNonemptyFinBoolProd {K : ℕ} [NeZero K] : Nonempty (Fin K × Bool) :=
-  ⟨(⟨0, Nat.pos_of_ne_zero (NeZero.ne K)⟩, true)⟩
 
 variable {K : ℕ}
 
@@ -58,7 +55,7 @@ theorem inClass_null2 (P : VarConstr2 K) {εg εm : ℝ} (hεg : 0 ≤ εg) (hε
   err_g d := by rw [l2sq_self]; exact hεg
   err_m := by rw [l2sq_self]; exact hεm
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [a sample size](hyp:n), provided that there is at least one pair, [the
 null sample law](goal) is the joint distribution of that many independent observed records
 generated from the construction's unperturbed propensity and outcome regressions. -/
@@ -66,7 +63,7 @@ noncomputable def Qfalse2 (P : VarConstr2 K) (n : ℕ) [NeZero K] :
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_hat2 (K := K)) n
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P), [a sample size](hyp:n), and [a binary sign vector indexing a
 perturbation](hyp:lam), provided that there is at least one pair, [the perturbed sample
 law](goal) is the joint distribution of that many independent observed records generated
@@ -75,7 +72,7 @@ noncomputable def Qpert2 (P : VarConstr2 K) (n : ℕ) [NeZero K] (lam : Fin K �
     Measure (Fin n → Obs (Fin K × Bool)) :=
   productLaw (P.validDGP_pert2 lam) n
 
-/-- For [a propensity-dominant construction with a specified number of paired covariate
+/-- For [a second cell-varying construction with a specified number of paired covariate
 cells](hyp:K,P) and [a sample size](hyp:n), provided that there is at least one pair, [the
 alternative sample law](goal) is the uniform mixture, over all binary sign vectors, of the
 corresponding perturbed independent-sample laws. -/
@@ -225,9 +222,10 @@ theorem tvDist_Qfalse2_Qtrue2_le_half (P : VarConstr2 K) {n : ℕ} [NeZero K]
         apply mul_le_mul_of_nonneg_left _ (by norm_num); exact Real.sqrt_le_sqrt hchi
     _ = 1 / 2 := by rw [Real.sqrt_one]; ring
 
-/-- **Structure-agnostic minimax lower bound (second / propensity-dominant construction).**
-Fix a cell-varying nuisance center `P`, sample size `n`, and nuisance-error budgets `εg`,
-`εm`, and suppose [the treated-arm outcome bump magnitude is strictly positive](hyp:hβpos).
+/-- **Structure-agnostic minimax lower bound for the second construction.** For
+[a second cell-varying construction with `K` paired cells](hyp:K,P),
+[a sample size `n`](hyp:n), and [nuisance-error budgets `εg` and `εm`](hyp:εg,εm),
+suppose [the treated-arm outcome bump magnitude is strictly positive](hyp:hβpos).
 If [the perturbed propensity's squared deviation from its center is at most `εm` in every
 cell](hyp:hm), [the perturbed treated-arm outcome regression's squared deviation from its
 center is at most `εg` in every cell](hyp:hg), [`εm` is nonnegative](hyp:hεm), [`εg` is
@@ -237,9 +235,8 @@ measurable estimator](hyp:hest), [the worst-case-over-class probability that the
 error exceeds half of the displayed strictly positive separation gap is at least
 `1/4`](goal).
 
-This is the `εm > εg` construction: the propensity error carries the larger budget,
-and the strict positivity guard rules out the degenerate zero-separation
-instantiation. -/
+The hypotheses impose no ordering between `εg` and `εm`. The strict positivity
+guard rules out the degenerate zero-separation instantiation. -/
 theorem minimax_lower_bound_var2 (P : VarConstr2 K) {n : ℕ} [NeZero K] {εg εm : ℝ}
     (hβpos : 0 < P.β)
     (hm : ∀ j, (P.m₀ j * P.κ j) ^ 2 ≤ εm)

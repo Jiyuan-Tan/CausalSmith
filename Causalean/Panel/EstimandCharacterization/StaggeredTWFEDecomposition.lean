@@ -6,8 +6,18 @@ Authors: Jiyuan Tan
 # Goodman-Bacon (2021): staggered-timing TWFE decomposition — facade
 -/
 
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.CausalDecomposition
-import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.PopulationBridge
+module
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.AlgebraicDecomposition
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Causal
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.CausalDecomposition
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.FinitePanel
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Pairwise
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.PopulationBridge
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Basic
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Integrals
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Orthogonality
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.Partition
+public import Causalean.Panel.EstimandCharacterization.StaggeredTWFEDecomposition.Support.PerCell
 
 /-!
 # Goodman-Bacon (2021): staggered-timing TWFE decomposition — folder entry point

@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Kernel
 
 /-!
 # Canonical second-moment contrast integral
@@ -7,6 +8,11 @@ This file isolates the density cancellation that rewrites a canonical
 second-moment contrast as the rational mechanism integral used by both the
 explicit sparse witness and the analytic perturbation argument.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set Filter
 open scoped BigOperators
@@ -20,7 +26,7 @@ canonical second-moment contrast equals the rational mechanism integral obtained
 the observational child-density factor.  Given [the stated inputs and conditions](hyp:hpos,hji), [the stated conclusion](goal) follows. -/
 -- @node: canonical_secondMomentContrast_eq_integral_for_witness
 lemma canonical_secondMomentContrast_eq_integral_for_witness
-    {n : ℕ} {G : Causalean.DAG (Fin n)} {θ : Mechanism n G}
+    {n : ℕ} {G : DAG (Fin n)} {θ : Mechanism n G}
     (hpos : PositiveNormalizedSmoothMechanisms G θ) {j i : Fin n}
     (hji : j ≠ i) :
     secondMomentContrast (canonicalObservedWorld G θ (Equiv.refl (Fin n))) j i =

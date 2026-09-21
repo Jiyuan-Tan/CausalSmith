@@ -1,10 +1,13 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.PermutationFibers
-import Mathlib.Data.Nat.Choose.Multinomial
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.PermutationFibers
+public import Mathlib.Data.Nat.Choose.Multinomial
 
 /-!
 The exact rational likelihood of an observed arm-success orbit, obtained by
 summing multinomial contingency-table counts over the prescribed fiber.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset

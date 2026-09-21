@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
-import Mathlib.Analysis.Calculus.Deriv.MeanValue
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Decoder
+public import Mathlib.Analysis.Calculus.Deriv.MeanValue
 
 /-!
 # Scalar conditional-rank identities
@@ -8,6 +9,11 @@ This file proves the one-dimensional integration step in equation (12): evaluati
 conditional CDF at a strictly monotone score returns the intervention CDF, reflected when
 the score is decreasing.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set
 
@@ -18,7 +24,7 @@ namespace CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity
 /-- Equation (11): conditional on predecessor ranks (hence on the parents), the target log-ratio
 CDF integrates the intervention density over own-coordinate values below the log-ratio threshold. -/
 def equationElevenConditionalRatioCDF
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (i : Fin n) (t : ℝ) (v : LatentState n) : ℝ :=
   ∫ w in Set.Icc (0 : ℝ) 1,
     if Real.log (θ.q i w / θ.p i (Function.update v i w)) ≤ t then θ.q i w else 0
@@ -27,7 +33,7 @@ def equationElevenConditionalRatioCDF
 /-- The normalized positive intervention density has a distribution function valued in the
 unit interval at every point of the unit interval.  Given [the stated inputs and conditions](hyp:hpos,hz), [the stated conclusion](goal) follows. -/
 lemma interventionCDF_mem_Icc
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (i : Fin n) (z : ℝ) (hz : z ∈ Set.Icc (0 : ℝ) 1) :
     interventionCDF θ i z ∈ Set.Icc (0 : ℝ) 1 := by
@@ -53,7 +59,7 @@ lemma interventionCDF_mem_Icc
 /-- The equation-(11) conditional kernel is a genuine unit-interval-valued CDF at every
 threshold and every latent state in the cube.  Given [the stated inputs and conditions](hyp:hpos,hv), [the stated conclusion](goal) follows. -/
 lemma equationElevenConditionalRatioCDF_mem_Icc
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (i : Fin n) (t : ℝ) (v : LatentState n) (hv : v ∈ latentCube n) :
     equationElevenConditionalRatioCDF θ i t v ∈ Set.Icc (0 : ℝ) 1 := by
@@ -135,7 +141,7 @@ lemma equationElevenConditionalRatioCDF_mem_Icc
 /-- The equation-(11) kernel depends on the conditioning state only through the target's
 parent coordinates.  Given [the stated inputs and conditions](hyp:hparents), [the stated conclusion](goal) follows. -/
 lemma equationElevenConditionalRatioCDF_eq_of_parents_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (i : Fin n) (t : ℝ) {v v' : LatentState n}
     (hparents : ∀ j ∈ G.parents i, v j = v' j) :
     equationElevenConditionalRatioCDF θ i t v =
@@ -256,7 +262,7 @@ lemma conditionalCDF_at_strictAntiOn_score
 /-- Equation (11), evaluated at the realized own-coordinate score, is the intervention CDF
 when that score is strictly increasing on the unit interval.  Given [the stated inputs and conditions](hyp:hv,hmono), [the stated conclusion](goal) follows. -/
 lemma equationEleven_at_strictMonoOwnScore
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n)
     (hmono : StrictMonoOn
       (fun w => Real.log (θ.q i w / θ.p i (Function.update v i w)))
@@ -274,7 +280,7 @@ lemma equationEleven_at_strictMonoOwnScore
 /-- Equation (11), evaluated at the realized own-coordinate score, is the reflected
 intervention CDF when that score is strictly decreasing on the unit interval.  Given [the stated inputs and conditions](hyp:hpos,hv,hanti), [the stated conclusion](goal) follows. -/
 lemma equationEleven_at_strictAntiOwnScore
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (θ : Mechanism n G)
+    {n : ℕ} {G : DAG (Fin n)} (θ : Mechanism n G)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n)
     (hanti : StrictAntiOn
@@ -299,7 +305,7 @@ lemma equationEleven_at_strictAntiOwnScore
 /-- A positive prescribed own-score derivative makes the own-coordinate score strictly
 increasing on the closed unit interval.  Given [the stated inputs and conditions](hyp:hpos,hsign,hv,hsi), [the stated conclusion](goal) follows. -/
 lemma fixedOwnDerivativeSign_strictMonoOn
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hsign : FixedOwnDerivativeSign G s θ)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n)
@@ -358,7 +364,7 @@ lemma fixedOwnDerivativeSign_strictMonoOn
 /-- A negative prescribed own-score derivative makes the own-coordinate score strictly
 decreasing on the closed unit interval.  Given [the stated inputs and conditions](hyp:hpos,hsign,hv,hsi), [the stated conclusion](goal) follows. -/
 lemma fixedOwnDerivativeSign_strictAntiOn
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hsign : FixedOwnDerivativeSign G s θ)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n)
@@ -416,7 +422,7 @@ lemma fixedOwnDerivativeSign_strictAntiOn
 /-- With parent coordinates fixed, equality of a node's log-ratio score is equivalent to equality
 of its own coordinate.  Given [the stated inputs and conditions](hyp:hpos,hsign,hv,hw,hparents), [the stated conclusion](goal) follows. -/
 lemma mechanismLogRatio_eq_iff_own_eq_of_parents_eq
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hsign : FixedOwnDerivativeSign G s θ) (i : Fin n)
     {v w : LatentState n} (hv : v ∈ latentCube n) (hw : w ∈ latentCube n)
@@ -458,7 +464,7 @@ lemma mechanismLogRatio_eq_iff_own_eq_of_parents_eq
 /-- Equation (12) follows from equation (11) and the prescribed own-coordinate derivative
 sign: the recovered rank is the intervention CDF, reflected exactly for negative sign.  Given [the stated inputs and conditions](hyp:hpos,hsign,hv), [the stated conclusion](goal) follows. -/
 lemma equationEleven_at_fixedOwnDerivativeSign
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hsign : FixedOwnDerivativeSign G s θ)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n) :
@@ -478,7 +484,7 @@ lemma equationEleven_at_fixedOwnDerivativeSign
 /-- At the realized score, the signed equation-(11) formula has the unit-interval range
 required by the decoder's conditional-CDF codomain.  Given [the stated inputs and conditions](hyp:hpos,hsign,hv), [the stated conclusion](goal) follows. -/
 lemma equationEleven_at_fixedOwnDerivativeSign_mem_Icc
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ)
     (hsign : FixedOwnDerivativeSign G s θ)
     (i : Fin n) (v : LatentState n) (hv : v ∈ latentCube n) :
@@ -495,7 +501,7 @@ lemma equationEleven_at_fixedOwnDerivativeSign_mem_Icc
 /-- Once the law-selected conditional CDF is identified with equation (11), evaluating it at
 the pointwise identified log ratio gives the signed intervention-CDF rank of equation (12).  Given [the stated inputs and conditions](hyp:hpos,hsign,hEleven,hRatio), [the stated conclusion](goal) follows. -/
 lemma observedLawRankCoordinate_eq_of_equationEleven
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (W : ObservedWorld G θ)
     (laws : ObservedProbabilityLawFamily n) (order : Fin n → ℕ)
     (hpos : PositiveNormalizedSmoothMechanisms G θ)

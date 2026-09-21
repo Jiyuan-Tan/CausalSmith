@@ -2,6 +2,13 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { isPaperTmpPath } from "../paths.js";
 import { maskLeanCommentsAndStrings } from "../graph/extractor.js";
+import {
+  isLeanModuleFile,
+  isPublicDecl,
+  LEAN_ATTRS_PREFIX_SRC,
+  LEAN_DECL_MODIFIERS,
+  publicSectionAt,
+} from "../shared/lean_syntax.js";
 
 /**
  * F4 dead-helper sweep — agent-authored declarations nothing in the run consumes.
@@ -59,12 +66,13 @@ function keepMarkerIndexes(raw: string): number[] {
 // are then SKIPPED as candidates (call sites may use any qualified form, so a textual usage count
 // is unreliable — under-reporting is the safe direction).
 const DECL_RE =
-  /^([ \t]*)((?:@\[[^\]]*\][ \t\r\n]*)*)((?:(?:noncomputable|private|protected|scoped|local|partial|unsafe|nonrec)\s+)*)(theorem|lemma|def|instance|abbrev)\s+([\p{L}_][\p{L}\p{N}_?!']*(?:\.[\p{L}_][\p{L}\p{N}_?!']*)*)/gmu;
+  new RegExp(String.raw`^([ \t]*)(${LEAN_ATTRS_PREFIX_SRC})((?:(?:${LEAN_DECL_MODIFIERS})\s+)*)(theorem|lemma|def|instance|abbrev)\s+([\p{L}_][\p{L}\p{N}_?!']*(?:\.[\p{L}_][\p{L}\p{N}_?!']*)*)`, "gmu");
 
 /** Public candidate + exempt declaration sites in one source. `masked` and `raw` are the same
  *  text with comments/strings blanked in `masked` (the mask is offset-preserving). */
 export function scanDeclSites(masked: string, raw: string, file: string): DeclSite[] {
   const keeps = keepMarkerIndexes(raw);
+  const moduleFile = isLeanModuleFile(raw);
   const out: DeclSite[] = [];
   let m: RegExpExecArray | null;
   let prevEnd = -1;
@@ -74,7 +82,7 @@ export function scanDeclSites(masked: string, raw: string, file: string): DeclSi
     // A marker between the previous declaration and this one binds to this one.
     const kept = keeps.some((k) => k > prevEnd && k < declIndex);
     prevEnd = declIndex;
-    if (/\bprivate\b/.test(mods)) continue;
+    if (!isPublicDecl(mods, { moduleFile, inPublicSection: publicSectionAt(masked, declIndex) })) continue;
     if (kind === "instance" || kind === "abbrev") continue; // consumed implicitly / inlined
     if (name.includes(".")) continue; // dotted decl: usage-count unreliable, skip (see DECL_RE note)
     const line = masked.slice(0, m.index).split("\n").length;

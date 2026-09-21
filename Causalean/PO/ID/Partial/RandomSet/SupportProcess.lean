@@ -2,51 +2,23 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Finite-direction support-process CLT (Beresteanu–Molinari 2008, Theorem A.2)
-
-The Tier-2 capstone of the random-set program, the general-`d` analogue of the
-scalar interval CLT (`IntervalCLT.lean`).  Beresteanu–Molinari Theorem A.2 states
-the support-function-process CLT
-
-    √n · H((1/n)⊕Fᵢ, E[F])  ⇒  ‖z‖_{C(Sᵈ⁻¹)}
-
-for a Gaussian process `z` on the unit sphere with covariance
-`Cov(z(p),z(q)) = E[s(p,F)s(q,F)] − E[s(p,F)]E[s(q,F)]`.  The genuine continuum
-`C(Sᵈ⁻¹)` Banach CLT is a deferred Mathlib gap.
-
-This file proves the **honest finite-dimensional projection**: fix a finite set of
-`k` directions `p₀,…,p_{k-1}` and consider the centered support process
-`ψ(z)_j = s(pⱼ, F(z)) − E s(pⱼ, F)`, valued in `EuclideanSpace ℝ (Fin k)`.  The
-Hausdorff-over-grid statistic is the `ℓ^∞` functional `maxAbsK`, and the
-support-process vector CLT plus continuous mapping give
-
-    √n · maxⱼ |s(pⱼ,·)-process|  ⇒  ‖z‖_∞ over the grid,
-
-the law of `maxAbsK` of the `k`-variate Gaussian limit.  This is the exact
-generalization of `normalizedSum_maxAbs_clt` (the `Fin 2` `maxAbs` CLT).
-
-## Main results
-
-* `maxAbsK` / `continuous_maxAbsK` / `measurable_maxAbsK` — the `ℓ^∞`/Hausdorff-
-  over-grid functional `w ↦ supⱼ |wⱼ|` on `EuclideanSpace ℝ (Fin k)`.
-* `supportProcess_sup_clt` — the abstract continuous-mapping CLT: `maxAbsK` of the
-  vector normalised sum of the centered support process converges in distribution
-  to `(gaussianLimit ψ).map maxAbsK`.
 -/
 
-import Causalean.PO.ID.Partial.SupportFunction.Calculus
-import Causalean.PO.ID.Partial.RandomSet.SetValued
-import Causalean.Stat.CLT.GaussianLimit
+module
+public import Causalean.PO.ID.Partial.SupportFunction.Calculus
+public import Causalean.PO.ID.Partial.RandomSet.SetValued
+public import Causalean.Stat.CLT.GaussianLimit
 
 /-! # Finite-Direction Support-Process Central Limit Theorem
 
-This file proves the finite-dimensional support-process central limit theorem
-for random compact convex sets evaluated on a fixed grid of directions. It
-turns support-function deviations into a vector-valued empirical process and
-applies a continuous mapping theorem to the gridwise sup-norm statistic. This is
-the honest finite-dimensional projection of Beresteanu--Molinari Theorem A.2;
-the full continuum Banach-space central limit theorem is deferred. -/
+This file proves a finite-dimensional central limit theorem for support-function
+deviations evaluated on a fixed grid. Its main limit theorem assumes
+measurability, a finite second moment, and mean zero for the resulting vector. A
+separate coordinate lemma connects normalized sums to empirical Minkowski
+averages for nonempty compact convex values. No theorem here identifies the
+grid statistic with a Hausdorff distance or requires unit directions. -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
 open scoped RealInnerProductSpace
@@ -61,10 +33,9 @@ variable {Ω X : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 deviations over that grid](hyp:w), the [grid supremum statistic](goal) is the largest absolute
 coordinate of the vector.
 
-The **`ℓ^∞` / Hausdorff-over-grid functional** `w ↦ supⱼ |wⱼ|` on
+The **finite-coordinate `ℓ^∞` functional** `w ↦ supⱼ |wⱼ|` on
 `EuclideanSpace ℝ (Fin k)`.  This is the sup of the `|coordinate|` over the `k`
-directions of the support-process grid — the finite-grid analogue of the
-Hausdorff distance, and the direct generalization of `maxAbs` (the `Fin 2` case).
+coordinates and the direct generalization of `maxAbs` (the `Fin 2` case).
 The `[NeZero k]` instance makes `Finset.univ` nonempty. -/
 noncomputable def maxAbsK (w : EuclideanSpace ℝ (Fin k)) : ℝ :=
   Finset.univ.sup' Finset.univ_nonempty (fun j => |w j|)
@@ -85,7 +56,12 @@ section CLT
 variable {ψ : X → EuclideanSpace ℝ (Fin k)} (hψ : Measurable ψ)
   (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- For [a measurable sample space equipped with a measure](hyp:X,P), [a positive number of grid directions](hyp:k), and [a vector-valued process on that space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm under the measure](hyp:hvar), the [law obtained by applying the grid supremum statistic to its Gaussian limit is a probability measure](goal). [This follows from taking the measurable pushforward of that Gaussian limit](step:1).
+/-- For [a measurable sample space equipped with a measure](hyp:X,P), [a
+positive number of grid directions](hyp:k), and [a vector-valued process on that
+space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm
+under the measure](hyp:hvar), the [law obtained by applying the grid supremum
+statistic to its Gaussian limit is a probability measure](goal). [This follows
+from taking the measurable pushforward of that Gaussian limit](step:1).
 
 The limit law of the finite-grid support statistic is a probability measure
 (pushforward of the Gaussian limit by the continuous `maxAbsK`). -/
@@ -99,14 +75,11 @@ almost-everywhere measurable at every sample size](hyp:hSum_meas), then [the gri
 statistic `maxAbsK` applied to those normalized sums converges in distribution to `maxAbsK`
 applied to the Gaussian limit of `ψ`](goal).
 
-**Abstract continuous-mapping support-process CLT (Beresteanu–Molinari Thm A.2,
-finite-grid form).**  For a centered support process
-`ψ(z)_j = s(pⱼ, F(z)) − E s(pⱼ, F)` on `k` fixed directions, `maxAbsK` of the
-vector normalised sum converges in distribution to the pushforward
-`(gaussianLimit ψ).map maxAbsK` — the law of `supⱼ |z(pⱼ)|` for the `k`-variate
-Gaussian limit `z`.  Immediate from the multivariate CLT (`clt_normalizedSum_vec`)
-and the continuous-mapping theorem (`Tendsto_dist_vec.map_continuous`).  This is
-the direct general-`d` analogue of the `Fin 2` `normalizedSum_maxAbs_clt`. -/
+**Abstract finite-vector continuous-mapping CLT.** For any centered
+`k`-coordinate process, `maxAbsK` of the vector normalized sum converges in
+distribution to the pushforward `(gaussianLimit ψ).map maxAbsK`. This follows
+from the multivariate CLT and the continuous-mapping theorem; it does not assume
+that the coordinates arise from sets or directions. -/
 theorem supportProcess_sup_clt
     (S : IIDSample Ω X μ P)
     (hmean : ∫ x, ψ x ∂P = 0)
@@ -115,8 +88,9 @@ theorem supportProcess_sup_clt
     Tendsto_dist_vec
       (fun n ω => maxAbsK (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω))
       ((gaussianLimit hψ hvar).map maxAbsK) μ
-      (fun n => measurable_maxAbsK.comp_aemeasurable (hSum_meas n)) :=
-  Tendsto_dist_vec.map_continuous continuous_maxAbsK hSum_meas
+      (fun n => measurable_maxAbsK.comp_aemeasurable (hSum_meas n)) := by
+  apply (Tendsto_dist_vec_iff _ _ _ _).2
+  exact Tendsto_dist_vec.map_continuous continuous_maxAbsK hSum_meas
     (S.clt_normalizedSum_vec hψ hvar hmean)
 
 end CLT
@@ -140,12 +114,11 @@ set](hyp:EF), and [a grid of directions](hyp:p), the [centered support process](
 observation to the vector whose coordinate in each direction is the support value of its realized
 set minus the support value of the proposed center set.
 
-The **centered support process** of a set-valued random variable `F` on a
-finite grid of directions `p : Fin k → V`:
-`ψ(x)_j = s(pⱼ, F x) − s(pⱼ, E[F])`, valued in `EuclideanSpace ℝ (Fin k)`.  The
-center `EF` plays the role of the Aumann expectation `E[F]`; the mean-zero
-condition `∫ ψ = 0` is exactly the (general-`d`, carried-as-hypothesis) Artstein
-identity `s(pⱼ, E[F]) = E[s(pⱼ, F)]`. -/
+The centered support process records the support value of each realized set
+minus that of the proposed center. The set `EF` is only a proposed center. A
+later mean-zero assumption says that these support values agree in expectation
+at the listed directions; it does not identify `EF` as an Aumann expectation or
+characterize equality of sets. -/
 noncomputable def supportProcess (F : X → Set V) (EF : Set V) (p : Fin k → V) :
     X → EuclideanSpace ℝ (Fin k) :=
   fun x => (WithLp.equiv 2 (Fin k → ℝ)).symm
@@ -162,12 +135,12 @@ omit [IsProbabilityMeasure μ] [IsProbabilityMeasure P] [NeZero k] in
 /-- Each coordinate of the normalized support-process sum is the rescaled support
 deviation of the empirical Minkowski average.
 
-**The Minkowski-mean bridge in coordinates.**  The `j`-th coordinate of the
+**The Minkowski-mean bridge in coordinates.** The `j`-th coordinate of the
 normalised sum of the support process is exactly the rescaled support deviation
 of the empirical Minkowski average,
-`√n · (s(pⱼ, F̄ₙ) − s(pⱼ, E[F]))`.  This is what makes the abstract shell a
-statement about random sets — it is `supportFn_minkowskiMean` (the keystone of
-`SetValued.lean`) pushed through the `EuclideanSpace` coordinate algebra. -/
+`√n · (s(pⱼ, F̄ₙ) − s(pⱼ, EF))`. This is `supportFn_minkowskiMean` pushed
+through the Euclidean coordinate algebra. It does not turn the finite grid into
+a Hausdorff distance. -/
 lemma supportProcess_normalizedSum_apply
     (S : IIDSample Ω X μ P) (F : X → Set V) (EF : Set V) (p : Fin k → V)
     (hbody : ∀ x, IsBody (F x)) (n : ℕ) (ω : Ω) (j : Fin k) :

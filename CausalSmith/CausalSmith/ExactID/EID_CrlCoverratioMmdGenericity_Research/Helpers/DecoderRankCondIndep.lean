@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRepresentation
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CondIndepIntersection
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.DecoderRepresentation
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CondIndepIntersection
 
 /-!
 # Rank-coordinate conditional-independence transport
@@ -7,6 +8,11 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.CondI
 This module records the measurable-embedding invariance used to pass between
 the decoder's signed CDF ranks and the corresponding latent coordinates.
 -/
+
+@[expose] public section
+
+open Causalean.Graph
+
 
 open MeasureTheory Set ProbabilityTheory
 
@@ -62,7 +68,7 @@ lemma condIndepGiven_measurableEmbedding_comp
 -- @node: signedInterventionCDFChart
 /-- The signed intervention CDF restricted to the unit interval, with its range proof. -/
 def signedInterventionCDFChart
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ) (i : Fin n) :
     Set.Icc (0 : ℝ) 1 → Set.Icc (0 : ℝ) 1 := fun z =>
   ⟨signedInterventionCDF s θ i z,
@@ -76,7 +82,7 @@ def signedInterventionCDFChart
 -- @node: continuous_signedInterventionCDFChart
 /-- The signed intervention CDF chart is continuous on the closed unit interval.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma continuous_signedInterventionCDFChart
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ) (i : Fin n) :
     Continuous (signedInterventionCDFChart s θ hpos i) := by
   have hqint : IntegrableOn (θ.q i) (Set.Icc (0 : ℝ) 1) :=
@@ -100,7 +106,7 @@ lemma continuous_signedInterventionCDFChart
 -- @node: signedInterventionCDFChart_measurableEmbedding
 /-- The positive-density signed CDF chart is a measurable embedding of the unit interval.  Given [the stated inputs and conditions](hyp:hpos), [the stated conclusion](goal) follows. -/
 lemma signedInterventionCDFChart_measurableEmbedding
-    {n : ℕ} {G : Causalean.DAG (Fin n)} (s : SignVector n)
+    {n : ℕ} {G : DAG (Fin n)} (s : SignVector n)
     (θ : Mechanism n G) (hpos : PositiveNormalizedSmoothMechanisms G θ) (i : Fin n) :
     MeasurableEmbedding (signedInterventionCDFChart s θ hpos i) := by
   apply (continuous_signedInterventionCDFChart s θ hpos i).measurableEmbedding

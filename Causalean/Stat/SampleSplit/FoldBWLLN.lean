@@ -21,10 +21,11 @@ average; Chebyshev's inequality then bounds the deviation probability by
 `Var[g] / (ε² |B(n)|)`, which vanishes because `|B(n)| → ∞`.
 -/
 
-import Causalean.Stat.SampleSplit.OneShot
-import Causalean.Stat.Limit.Convergence
-import Mathlib.Probability.Moments.Variance
-import Mathlib.Probability.IdentDistrib
+module
+public import Causalean.Stat.SampleSplit.OneShot
+public import Causalean.Stat.Limit.Convergence
+public import Mathlib.Probability.Moments.Variance
+public import Mathlib.Probability.IdentDistrib
 
 /-! # Fold-B Weak Law of Large Numbers
 
@@ -33,6 +34,8 @@ one-shot sample split: the fold-B average of a fixed square-integrable statistic
 converges in probability to its population mean. It is the substrate that lets a
 fold-B average of a fixed function converge to its mean, as opposed to the
 existing fold-B lemmas which only treat the nuisance-vanishing regime. -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -53,7 +56,7 @@ private lemma tendsto_inProb_of_chebyshev
     (hcheb : ∀ ε : ℝ, 0 < ε → ∀ᶠ n in atTop,
         μ {ω | ε ≤ |Yn n ω - c|} ≤ ENNReal.ofReal (V / (ε ^ 2 * b n))) :
     Tendsto_inProb Yn (fun _ => c) μ := by
-  unfold Tendsto_inProb
+  rw [Tendsto_inProb_iff]
   rw [tendstoInMeasure_iff_dist]
   intro ε hε
   -- The Chebyshev bound, written with the real distance `|· - ·|`.

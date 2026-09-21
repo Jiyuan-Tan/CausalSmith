@@ -3,44 +3,44 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.ML.Kernel.RKHS
-import Mathlib.Analysis.InnerProductSpace.Projection.Basic
-import Mathlib.Analysis.InnerProductSpace.Projection.FiniteDimensional
 
-/-! # Kernel ridge regression — the representer theorem
+module
+public import Causalean.Mathlib.Analysis.InnerProductSpace.RKHS
+public import Mathlib.Analysis.InnerProductSpace.Projection.Basic
+public import Mathlib.Analysis.InnerProductSpace.Projection.FiniteDimensional
 
-Kernel ridge regression minimizes the regularized empirical risk over an RKHS.
-This file defines `krrRisk` and proves `representer_theorem`: under `λ > 0`, any
-global minimizer is a finite linear combination of the sample representers
-`k(·, xᵢ)`. The theorem is the dimension-reduction step from an RKHS-valued
-optimization problem to a finite coefficient problem.
+/-! # Regularized least squares — the representer theorem
+
+The file defines `krrRisk` on a real inner-product space with a supplied
+evaluation map and proves `representer_theorem`: under `λ > 0`, any global
+minimizer is a finite linear combination of the sample representers `k(·, xᵢ)`
+when evaluation satisfies the reproducing identity.
 -/
+
+@[expose] public section
 
 namespace Causalean.ML
 
 open BigOperators
 
-/-- Given [an arbitrary covariate space](hyp:X), [a real inner-product space](hyp:H), [a rule
-for evaluating a candidate function at a covariate value](hyp:feval), [a nonnegative sample
-size](hyp:n), [a finite sample of covariates](hyp:x), [the corresponding real-valued
-responses](hyp:y), [a real regularization level](hyp:lam), and [a candidate function in that
-inner-product space](hyp:f), the
-[kernel-ridge regularized empirical risk](goal) is the average squared prediction error plus
-$\lambda$ times the squared norm of the candidate function. -/
+/-- [Kernel-ridge empirical risk](goal) trades
+[average squared error against a weighted squared function norm](step:1). It scores
+[a candidate in a real inner-product space](hyp:H,f) through [its evaluation rule](hyp:feval) on
+[covariates and responses](hyp:x,y) from [a sample of the specified size](hyp:n), with
+[covariate space and regularization level](hyp:X,lam). -/
 noncomputable def krrRisk {X H : Type*} [NormedAddCommGroup H] [InnerProductSpace ℝ H]
     (feval : H → X → ℝ) {n : ℕ} (x : Fin n → X) (y : Fin n → ℝ) (lam : ℝ) (f : H) : ℝ :=
   (n : ℝ)⁻¹ * ∑ i, (feval f (x i) - y i) ^ 2 + lam * ‖f‖ ^ 2
 
-/-- For a complete reproducing-kernel Hilbert space `H`, if [`(feval, representer)`
-realizes `H` as an RKHS on `X`, i.e. evaluation at each point equals the inner product
-with its representer](hyp:hrkhs), [the regularization level `lam` is strictly
-positive](hyp:hlam), and [`fhat` minimizes the regularized empirical risk `krrRisk` over
-all of `H` for the sample `(x, y)`](hyp:hmin), then [`fhat` lies in the span of the
-sample representers `representer x₁, …, representer xₙ`, i.e. it is a finite linear
-combination of them](goal). -/
+/-- [A kernel-ridge minimizer lies in the sampled representer span](goal), reducing an
+infinite-dimensional optimization problem to sample
+coefficients. The reduction applies to [the sampled covariates and responses](hyp:x,y) when
+[evaluation has supplied Hilbert-space representers](hyp:hrkhs),
+[the penalty is strictly positive](hyp:hlam), and [the candidate globally minimizes](hyp:hmin). -/
 theorem representer_theorem {X H : Type*}
     [NormedAddCommGroup H] [InnerProductSpace ℝ H] [CompleteSpace H]
-    {feval : H → X → ℝ} {representer : X → H} (hrkhs : IsRKHS X H feval representer)
+    {feval : H → X → ℝ} {representer : X → H}
+    (hrkhs : HasReproducingRepresenters X H feval representer)
     {n : ℕ} (x : Fin n → X) (y : Fin n → ℝ) {lam : ℝ} (hlam : 0 < lam) {fhat : H}
     (hmin : ∀ g : H, krrRisk feval x y lam fhat ≤ krrRisk feval x y lam g) :
     ∃ α : Fin n → ℝ, fhat = ∑ i, α i • representer (x i) := by

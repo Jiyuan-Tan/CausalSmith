@@ -1,5 +1,6 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxLowerBound
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.ClassInclusion
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.FiniteMaxLowerBound
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Helpers.ClassInclusion
 
 /-!
 # Point-indexed logarithmic converse
@@ -9,6 +10,8 @@ class while permitting arbitrary law-independent point-indexed families whose
 fixed-point sections are Borel measurable. No joint regularity in the point is
 assumed.
 -/
+
+public section
 
 open Filter
 open scoped ENNReal Topology

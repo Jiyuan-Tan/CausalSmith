@@ -1,12 +1,15 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourableProperties
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
-import Causalean.Experimentation.DesignBased.ProductMeasure
-import Mathlib.Probability.ProductMeasure
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.HellingerAffinity
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.LeastFavourableProperties
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.SnipeVariance
+public import Causalean.Stat.FiniteDesign.ProductMeasure
+public import Mathlib.Probability.ProductMeasure
 
 /-!
 # Hellinger control for the continuous block prior
 -/
+
+public section
 
 open scoped BigOperators ENNReal
 open Finset MeasureTheory

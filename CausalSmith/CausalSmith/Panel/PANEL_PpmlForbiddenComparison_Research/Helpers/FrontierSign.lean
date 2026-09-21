@@ -1,8 +1,11 @@
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
-import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
-import Causalean.Stat.MEstimation.FinitePoissonSign
+module
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.Frontier
+public import CausalSmith.Panel.PANEL_PpmlForbiddenComparison_Research.Helpers.FiniteCollapse
+public import Causalean.Stat.MEstimation.FinitePoissonSign
 
 /-! Algebra connecting the primitive margin frontier to the conditional Poisson score. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Causalean.Stat

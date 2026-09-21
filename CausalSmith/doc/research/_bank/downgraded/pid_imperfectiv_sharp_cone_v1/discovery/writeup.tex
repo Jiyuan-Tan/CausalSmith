@@ -1,0 +1,1222 @@
+\documentclass{article}
+\usepackage[margin=0.8in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{mathrsfs,bm,bbm}
+\usepackage{graphicx,booktabs,array,multirow,tabularx,longtable}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm,algpseudocode}
+\usepackage{subcaption,tikz}
+\usepackage{siunitx,cancel,accents}
+\usepackage{microtype}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+\setlength{\emergencystretch}{2em}
+\newtheorem{assumption}{Assumption}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{openendedquestion}{Open-ended Question}
+\newtheorem{conjecture}{Conjecture}
+\newcommand{\coreref}[1]{\ref{#1}}
+
+\begin{document}
+
+\sloppy
+
+\section*{pid\_\allowbreak{}imperfectiv\_\allowbreak{}sharp\_\allowbreak{}cone}
+
+\noindent\textit{Specialization:} v1\par
+
+\paragraph{TL;DR.} For finite imperfect-instrument cells, SDC and SDC-plus-LEI reduce target-arm identification to bounded completion polytopes, and exact aggregate support retains exactly the positive-slack branches. Unrestricted cone duals give sharp arm closures and conditional product coupling gives the sharp ATE closure; if the all-arm Ban--Kédagni class is nonempty, its exact target-arm and ATE identified sets coincide with those of the target-arm class. The rational center yields \([711/1100,911/1100]\), strictly inside the normalized outer union, and positive LP margins make this strict inclusion persist on an open two-parameter beta neighborhood of \((79/100,17/20)\). A legal three-cell SDC family has minimum positive slack \(3\varepsilon/2\), a fixed Hausdorff jump, and exact known-pair minimax risk \(3/20\) for every \(\varepsilon_n=o(n^{-1/2})\). Binary-treatment Hoeffding projection covers the whole exact set in finite samples.
+
+\section{Project justification}
+
+\paragraph{Gap.} Ban and Kédagni impose aggregate support equality for every treatment arm but report normalized valid outer bounds and leave sharpness unresolved. Their formulas neither filter algebraically feasible branches by exact support nor establish that target-arm calculations extend to the published all-arm class; an isolated numerical strictness witness would also leave robustness unclear.
+
+\paragraph{Niche.} Finite-cell correlation-cone geometry separates branch feasibility, positive-slack support eligibility, endpoint optimization, and cross-arm coupling. This separation yields an all-arm extension theorem under a nonempty published-class premise, an open neighborhood of strict improvement around an exact rational center, and an explicit SDC branch boundary whose statistical indistinguishability is governed by \(n\varepsilon^2\).
+
+\paragraph{Fill.} The paper supplies the positive-slack eligibility equivalence, unrestricted-cone sharp endpoints, exact target-arm and all-arm coupling logic, rational and locally robust strictness certificates, exact SDC discontinuity formulas, an exact \(3/20\) root-\(n\) two-point minimax frontier, and a conservative finite-sample whole-set confidence region.
+
+\section{Related work}
+
+Ban and Kédagni (2022) supply the all-arm aggregate-support and SDC or SDC-plus-LEI restrictions and valid normalized outer formulas. This paper's target-arm class equals their class on binary treatment; with multiple treatment levels, the exact target-arm and ATE identified sets agree under the explicit premise that the all-arm class is nonempty. The unrestricted cone result strictly tightens their normalized SDC union at the rational center \(P^\star\). With the four cell masses and uniform control cells fixed, the treated laws \(\operatorname{Beta}(100\varrho,100(1-\varrho))\) and \(\operatorname{Beta}(20s,20(1-s))\), centered at \((\varrho,s)=(79/100,17/20)\), retain strict inclusion on an open neighborhood by positive slack, score-feasibility, endpoint-gap, and multiplier margins. Kédagni, Li, and Mourifié (2018) study sharp finite zero-covariance restrictions, a different moment class. Nevo and Rosen (2012) motivate same-direction and less-endogenous correlations. Park (2025) proves joint attainment for a different MIV-plus-MTR problem and is not a tightening target. Kaido, Molinari, and Stoye (2019), Cho and Russell (2024), Fang and Santos (2019), Bai et al. (2026), Goff and Mbakop (2026), Levis et al. (2025), and Chernozhukov, Lee, and Rosen (2013) inform generic projection, mathematical-program, nonsmooth, and intersection-bound inference; none supplies the exact support-filtered root-\(n\) frontier proved here. Ban--Kédagni's NLSYM application and Zhanhan Yu's PM2.5 application are same-population-restriction consumers: under the maintained restrictions, the reported population object changes from a valid normalized outer region to the exact support-filtered set with a branch-slack boundary diagnostic.
+
+\section{Setup}
+
+Target (estimand / structural parameter): \(\Delta_{d,e}=\mathbb E_Q[Y_d-Y_e]\).
+Primary functional / estimator / diagnostic: \(\mathcal I_{\Delta}^r(P)=\bigcup_{b\in\mathcal B_d^r(P),\,h\in\mathcal B_e^r(P)}[L_{d,b}^r(P)-U_{e,h}^r(P),U_{d,b}^r(P)-L_{e,h}^r(P)]\).
+\begin{itemize}
+  \item \texttt{n} --- \texttt{sample size}; \(\mathbb N\)
+  \item \texttt{alpha} --- \texttt{miscoverage level}; \((0,1)\)
+  \item \texttt{A} --- \texttt{finite treatment-\allowbreak{}level set}; a finite subset of \(\mathbb R\)
+  \item \texttt{a} --- \texttt{generic treatment level}; \(\mathcal A\)
+  \item \texttt{d} --- \texttt{first target treatment level}; \(\mathcal A\)
+  \item \texttt{e} --- \texttt{second target treatment level}; \(\mathcal A\setminus\{d\}\)
+  \item \texttt{D} --- \texttt{observed treatment}; \(\mathcal A\)
+  \item \texttt{Z} --- \texttt{observed imperfect instrument}; a finite subset of \(\mathbb R\)
+  \item \texttt{Y} --- \texttt{observed outcome}; \(\mathbb R\)
+  \item \texttt{l\_\allowbreak{}a} --- \texttt{known lower support endpoint}; \(\mathbb R\); \texttt{primitive bound}
+  \item \texttt{u\_\allowbreak{}a} --- \texttt{known upper support endpoint}; \(\mathbb R\); \texttt{primitive bound}
+  \item \texttt{Y\_\allowbreak{}a} --- \texttt{potential outcome indexed by treatment}; \([\ell_a,u_a]\)
+  \item \texttt{O} --- \texttt{observed data vector}; \(\mathbb R\times\mathcal A\times\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(O=(Y,D,Z)\)
+  \item \texttt{P} --- \texttt{observed-\allowbreak{}data law}; probability laws for \(O\)
+  \item \texttt{O\_\allowbreak{}i} --- \texttt{sample observation}; the space of \(O\)
+  \item \texttt{K} --- \texttt{number of positive-\allowbreak{}mass cells}; \(\mathbb N\)
+  \item \texttt{J} --- \texttt{known positive-\allowbreak{}mass cell index set}; \(\{1,\ldots,K\}\)
+  \item \texttt{d\_\allowbreak{}j} --- treatment value in cell \(j\); \(\mathcal A\)
+  \item \texttt{z\_\allowbreak{}j} --- instrument value in cell \(j\); \(\mathbb R\)
+  \item \texttt{c\_\allowbreak{}j} --- \texttt{cell value}; \(\mathcal A\times\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(c_j=(d_j,z_j)\)
+  \item \texttt{p\_\allowbreak{}j} --- \texttt{cell probability}; \((0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(p_j=P\{(D,Z)=c_j\}\)
+  \item \texttt{O\_\allowbreak{}a} --- factual cell set for arm \(a\); subsets of \(\mathcal J\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal O_a=\{j\in\mathcal J:d_j=a\}\)
+  \item \texttt{M\_\allowbreak{}a} --- missing cell set for arm \(a\); subsets of \(\mathcal J\)
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal M_a=\mathcal J\setminus\mathcal O_a\)
+  \item \texttt{m\_\allowbreak{}j} --- \texttt{observed cell outcome mean}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(m_j=\mathbb E_P[Y\mid(D,Z)=c_j]\)
+  \item \texttt{mu\_\allowbreak{}D} --- \texttt{treatment mean}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_D=\mathbb E_P[D]\)
+  \item \texttt{mu\_\allowbreak{}Z} --- \texttt{instrument mean}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\mu_Z=\mathbb E_P[Z]\)
+  \item \texttt{sigma\_\allowbreak{}D} --- \texttt{treatment standard deviation}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_D=\operatorname{Var}_P(D)^{1/2}\)
+  \item \texttt{sigma\_\allowbreak{}Z} --- \texttt{instrument standard deviation}; \([0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\sigma_Z=\operatorname{Var}_P(Z)^{1/2}\)
+  \item \texttt{R} --- \texttt{correlation-\allowbreak{}restriction mode set}; \(\{\mathrm{SDC},\mathrm{LEI}\}\)
+  \item \texttt{r} --- \texttt{selected correlation-\allowbreak{}restriction mode}; \(\mathcal R\)
+  \item \texttt{s\_\allowbreak{}j\_\allowbreak{}r} --- \texttt{two-\allowbreak{}dimensional cell score}; \(\mathbb R^2\)
+  \par\smallskip\noindent\emph{Definition.} \(s_j^r=(d_j-\mu_D,z_j-\mu_Z)'\) when \(r=\mathrm{SDC}\), and \(s_j^r=((z_j-\mu_Z)/\sigma_Z,(d_j-\mu_D)/\sigma_D-(z_j-\mu_Z)/\sigma_Z)'\) when \(r=\mathrm{LEI}\)
+  \item \texttt{Q} --- \texttt{generic full-\allowbreak{}data law}; probability laws for \((Y,D,Z,(Y_a)_{a\in\mathcal A})\)
+  \item \texttt{Astd\_\allowbreak{}a} --- \texttt{standardized treatment covariance for LEI}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(A_a^{\mathrm{std}}=\operatorname{Cov}_Q(Y_a,D)/\sigma_D\) when \(r=\mathrm{LEI}\), and \(A_a^{\mathrm{std}}=0\) when \(r=\mathrm{SDC}\)
+  \item \texttt{Bstd\_\allowbreak{}a} --- \texttt{standardized instrument covariance for LEI}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(B_a^{\mathrm{std}}=\operatorname{Cov}_Q(Y_a,Z)/\sigma_Z\) when \(r=\mathrm{LEI}\), and \(B_a^{\mathrm{std}}=0\) when \(r=\mathrm{SDC}\)
+  \item \texttt{Psi\_\allowbreak{}r} --- \texttt{armwise correlation predicate}; \(\{0,1\}\)
+  \par\smallskip\noindent\emph{Definition.} \(\Psi_{\mathrm{SDC}}(Q,a)=\mathbf 1\{\operatorname{Cov}_Q(Y_a,D)\operatorname{Cov}_Q(Y_a,Z)\ge0\}\) and \(\Psi_{\mathrm{LEI}}(Q,a)=\mathbf 1\{A_a^{\mathrm{std}}B_a^{\mathrm{std}}\ge0,\ |A_a^{\mathrm{std}}|\ge|B_a^{\mathrm{std}}|\}\)
+  \item \texttt{theta\_\allowbreak{}a} --- \texttt{arm mean under a full-\allowbreak{}data law}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\theta_a(Q)=\mathbb E_Q[Y_a]\)
+  \item \texttt{Delta\_\allowbreak{}de} --- \texttt{average treatment effect}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(\Delta_{d,e}(Q)=\theta_d(Q)-\theta_e(Q)\)
+  \item \texttt{c\_\allowbreak{}a} --- \texttt{observed contribution to arm mean}; \(\mathbb R\)
+  \par\smallskip\noindent\emph{Definition.} \(c_a=\sum_{j\in\mathcal O_a}p_jm_j\)
+  \item \texttt{h\_\allowbreak{}a\_\allowbreak{}r} --- \texttt{observed contribution to the score moment}; \(\mathbb R^2\)
+  \par\smallskip\noindent\emph{Definition.} \(h_a^r=\sum_{j\in\mathcal O_a}p_js_j^rm_j\)
+  \item \texttt{x\_\allowbreak{}a} --- \texttt{missing-\allowbreak{}cell arm-\allowbreak{}mean vector}; \(\prod_{j\in\mathcal M_a}[\ell_a,u_a]\)
+  \item \texttt{t\_\allowbreak{}a} --- \texttt{nonnegative interior-\allowbreak{}slack vector}; \(\mathbb R_+^{|\mathcal M_a|}\)
+  \item \texttt{b} --- \texttt{correlation-\allowbreak{}sign branch}; \(\{-1,+1\}\)
+  \item \texttt{Qclass} --- \texttt{target-\allowbreak{}arm compatible full-\allowbreak{}data model class}; \texttt{sets of full-\allowbreak{}data laws}
+  \item \texttt{Pmodel} --- \texttt{observed-\allowbreak{}law projection of the target-\allowbreak{}arm compatible model}; \texttt{sets of observed-\allowbreak{}data laws}
+  \par\smallskip\noindent\emph{Definition.} \(\mathcal P^r=\{P:\mathcal Q^r(P)\ne\varnothing\}\)
+  \item \texttt{F\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r} --- \texttt{branch completion polytope}; compact convex subsets of \(\mathbb R^{|\mathcal M_a|}\)
+  \item \texttt{tau\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r} --- \texttt{maximum total interior slack}; \([0,\infty)\cup\{-\infty\}\)
+  \item \texttt{B\_\allowbreak{}a\_\allowbreak{}r} --- \texttt{eligible branch set}; subsets of \(\{-1,+1\}\)
+  \item \texttt{L\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r} --- \texttt{lower branch arm-\allowbreak{}mean endpoint}; \(\mathbb R\)
+  \item \texttt{U\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r} --- \texttt{upper branch arm-\allowbreak{}mean endpoint}; \(\mathbb R\)
+  \item \texttt{lambda} --- \texttt{nonnegative cone multiplier}; \(\mathbb R_+^2\)
+  \item \texttt{V\_\allowbreak{}L} --- \texttt{lower unrestricted-\allowbreak{}cone dual value}; \(\mathbb R\cup\{+\infty\}\)
+  \item \texttt{V\_\allowbreak{}U} --- \texttt{upper unrestricted-\allowbreak{}cone dual value}; \(\mathbb R\cup\{-\infty\}\)
+  \item \texttt{I\_\allowbreak{}a\_\allowbreak{}r} --- \texttt{sharp exact-\allowbreak{}support arm-\allowbreak{}mean closure}; compact subsets of \(\mathbb R\)
+  \item \texttt{I\_\allowbreak{}Delta\_\allowbreak{}r} --- \texttt{sharp exact-\allowbreak{}support ATE closure}; compact subsets of \(\mathbb R\)
+  \item \texttt{P\_\allowbreak{}star} --- \texttt{rational four-\allowbreak{}cell observed law}; \texttt{observed-\allowbreak{}data laws}
+  \item \texttt{I\_\allowbreak{}BK\_\allowbreak{}star} --- published normalized SDC outer union at \(P^\star\); closed subsets of \(\mathbb R\)
+  \item \texttt{epsilon} --- \texttt{boundary-\allowbreak{}family perturbation}; \((-3/110,3/110)\)
+  \item \texttt{P\_\allowbreak{}epsilon} --- \texttt{three-\allowbreak{}cell observed-\allowbreak{}law family}; \texttt{observed-\allowbreak{}data laws}
+  \item \texttt{q\_\allowbreak{}boundary} --- \texttt{boundary target selector}; \(\{\mathrm{arm},\mathrm{ATE}\}\)
+  \item \texttt{I\_\allowbreak{}boundary} --- \texttt{selected sharp closure along the boundary family}; nonempty compact subsets of \([-1,1]\)
+  \item \texttt{d\_\allowbreak{}H} --- \texttt{Hausdorff distance}; metrics on nonempty compact subsets of \(\mathbb R\)
+  \item \texttt{rho\_\allowbreak{}H} --- \texttt{truncated Hausdorff loss}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\rho_H(A,B)=\min\{1,d_H(A,B)\}\)
+  \item \texttt{P\_\allowbreak{}prime} --- \texttt{generic candidate observed-\allowbreak{}data law in the binary-\allowbreak{}treatment inference submodel}; probability laws \(P'\) for \(O\) satisfying \(P'\{D\in\{d,e\}\}=1\) and \(Y\in[\ell_D,u_D]\) almost surely
+  \item \texttt{pi\_\allowbreak{}j} --- generic candidate mass of cell \(j\); \([0,1]\)
+  \item \texttt{omega\_\allowbreak{}j} --- generic candidate bounded outcome mass in cell \(j\); \([0,1]\)
+  \item \texttt{p\_\allowbreak{}vec} --- \texttt{generic primitive cell-\allowbreak{}mass vector}; \([0,1]^K\)
+  \par\smallskip\noindent\emph{Definition.} \(p=(\pi_j)_{j\in\mathcal J}\)
+  \item \texttt{omega\_\allowbreak{}vec} --- \texttt{generic primitive bounded outcome-\allowbreak{}mass vector}; \([0,1]^K\)
+  \par\smallskip\noindent\emph{Definition.} \(\omega=(\omega_j)_{j\in\mathcal J}\)
+  \item \texttt{p\_\allowbreak{}of\_\allowbreak{}Pprime} --- \texttt{primitive cell-\allowbreak{}mass functional}; maps candidate observed laws to \([0,1]^K\)
+  \item \texttt{omega\_\allowbreak{}of\_\allowbreak{}Pprime} --- \texttt{primitive bounded outcome-\allowbreak{}mass functional}; maps candidate observed laws to \([0,1]^K\)
+  \item \texttt{D\_\allowbreak{}primitive\_\allowbreak{}r} --- \texttt{positive-\allowbreak{}mass primitive parameter domain}; subsets of \([0,1]^{2K}\)
+  \item \texttt{I\_\allowbreak{}primitive\_\allowbreak{}r} --- \texttt{candidate sharp ATE-\allowbreak{}set map of primitive moments}; maps \(\mathfrak D_+^r\) to closed subsets of \(\mathbb R\)
+  \item \texttt{I\_\allowbreak{}arm\_\allowbreak{}primitive\_\allowbreak{}r} --- \texttt{candidate sharp arm-\allowbreak{}mean set map of primitive moments}; maps \(\mathfrak D_+^r\) and an arm \(a\) to closed subsets of \(\mathbb R\)
+  \item \texttt{W\_\allowbreak{}i} --- \texttt{normalized observed outcome in the binary-\allowbreak{}treatment inference submodel}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} On the inference submodel \(\mathcal A=\{d,e\}\), \(W_i=(Y_i-\ell_{D_i})/(u_{D_i}-\ell_{D_i})\)
+  \item \texttt{p\_\allowbreak{}hat\_\allowbreak{}j} --- \texttt{empirical cell mass}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat p_j=n^{-1}\sum_{i=1}^n\mathbf 1\{(D_i,Z_i)=c_j\}\)
+  \item \texttt{w\_\allowbreak{}hat\_\allowbreak{}j} --- \texttt{empirical bounded outcome mass}; \([0,1]\)
+  \par\smallskip\noindent\emph{Definition.} \(\widehat\omega_j=n^{-1}\sum_{i=1}^n\mathbf 1\{(D_i,Z_i)=c_j\}W_i\)
+  \item \texttt{eta\_\allowbreak{}n} --- \texttt{simultaneous Hoeffding radius}; \((0,\infty)\)
+  \par\smallskip\noindent\emph{Definition.} \(\eta_n=\sqrt{\log(4K/\alpha)/(2n)}\)
+  \item \texttt{H\_\allowbreak{}n} --- \texttt{primitive-\allowbreak{}moment confidence region}; subsets of \([0,1]^{2K}\)
+  \item \texttt{C\_\allowbreak{}n} --- \texttt{whole-\allowbreak{}set projection confidence region}; closed subsets of \(\mathbb R\)
+  \item \texttt{A\_\allowbreak{}arr} --- \texttt{two-\allowbreak{}score cone-\allowbreak{}arrangement algorithm}; \texttt{finite algorithms}
+  \item \texttt{H\_\allowbreak{}adapt} --- \texttt{boundary-\allowbreak{}adaptive inference handle}; \texttt{methodological starting moves}
+  \item \texttt{kappa\_\allowbreak{}n} --- \texttt{positive completion-\allowbreak{}slack margin sequence}; \((0,\infty)\)
+  \item \texttt{C\_\allowbreak{}tilde\_\allowbreak{}n} --- \texttt{boundary-\allowbreak{}adaptive whole-\allowbreak{}set region sought in the open question}; closed subsets of \(\mathbb R\); derived by \(\texttt{oeq:boundary-adaptive-inference}\)
+  \item \texttt{Qclass\_\allowbreak{}all} --- \texttt{all-\allowbreak{}arm Ban-\allowbreak{}-\allowbreak{}Kédagni-\allowbreak{}compatible full-\allowbreak{}data model class}; \texttt{sets of full-\allowbreak{}data laws}
+  \item \texttt{rho} --- \texttt{first treated-\allowbreak{}cell Beta mean parameter}; \((0,1)\)
+  \item \texttt{s} --- \texttt{second treated-\allowbreak{}cell Beta mean parameter}; \((0,1)\)
+  \item \texttt{P\_\allowbreak{}rho\_\allowbreak{}s} --- \texttt{two-\allowbreak{}parameter observed-\allowbreak{}law family through the rational witness}; observed-data laws for \(O\)
+  \item \texttt{Lambda\_\allowbreak{}1} --- \texttt{published normalized nonnegative multiplier simplex}; compact subsets of \(\mathbb R_+^2\)
+  \item \texttt{I\_\allowbreak{}BK\_\allowbreak{}rho\_\allowbreak{}s} --- \texttt{parametric published normalized SDC outer union}; closed subsets of \(\mathbb R\)
+\end{itemize}
+
+\section{Assumptions}
+
+\begin{assumption}[ass:iid]\label{ass:iid}
+\((O_i)_{i=1}^n\stackrel{\mathrm{i.i.d.}}{\sim}P\)
+\par\smallskip\noindent\emph{Standard} (Independent and identically distributed sampling, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:finite-grid]\label{ass:finite-grid}
+\(\operatorname{Supp}_P(D,Z)=\{c_j:j\in\mathcal J\}\) with \(|\mathcal J|=K<\infty\)
+\par\smallskip\noindent\emph{Standard} (Finite positive-mass cell support, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:target-overlap]\label{ass:target-overlap}
+\(0<P(D=a)<1\) for \(a\in\{d,e\}\)
+\par\smallskip\noindent\emph{Standard} (Positive treatment-arm probabilities, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:compatibility]\label{ass:compatibility}
+\(Q_{Y,D,Z}=P\)
+\par\smallskip\noindent\emph{Standard} (Observed-law compatibility, \cite{Manski1990}).
+\end{assumption}
+
+\begin{assumption}[ass:consistency]\label{ass:consistency}
+\(Q(Y=Y_D)=1\)
+\par\smallskip\noindent\emph{Standard} (Potential-outcome consistency, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:factual-support]\label{ass:factual-support}
+\(\operatorname{Supp}_P(Y\mid D=a)=[\ell_a,u_a]\) for every \(a\in\{d,e\}\), with \(\ell_a<u_a\)
+\par\smallskip\noindent\emph{Standard} (Target-arm factual half of Ban--Kédagni aggregate bounded-support equality, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:counterfactual-support]\label{ass:counterfactual-support}
+\(\operatorname{Supp}_Q(Y_a\mid D\ne a)=[\ell_a,u_a]\) for every \(a\in\{d,e\}\)
+\par\smallskip\noindent\emph{Standard} (Target-arm counterfactual half of Ban--Kédagni aggregate bounded-support equality, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:correlation-restriction]\label{ass:correlation-restriction}
+\(\Psi_r(Q,a)=1\) for every \(a\in\{d,e\}\)
+\par\smallskip\noindent\emph{Standard} (Target-arm same-direction correlation, optionally strengthened by less endogeneity, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:lei-scale]\label{ass:lei-scale}
+\(r=\mathrm{LEI}\Longrightarrow\sigma_Z>0\)
+\par\smallskip\noindent\emph{Standard} (Nondegenerate standardized-instrument scale, \cite{NevoRosen2012}).
+\end{assumption}
+
+\begin{assumption}[ass:known-grid]\label{ass:known-grid}
+\(\mathcal J\) is fixed and known
+\par\smallskip\noindent\emph{Standard} (Known finite cell grid, \cite{BanKedagni2022}).
+\end{assumption}
+
+\begin{assumption}[ass:known-ranges]\label{ass:known-ranges}
+\((\ell_a,u_a)_{a\in\{d,e\}}\) is fixed and known
+\par\smallskip\noindent\emph{Standard} (Known bounded outcome ranges, \cite{BanKedagni2022}).
+\end{assumption}
+
+\section{Definitions}
+
+\begin{definition}[def:compatible-class]\label{def:compatible-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal Q_{\mathrm{tar}}^r(P)\equiv\mathcal Q^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal Q_{\mathrm{tar}}^r(P)\equiv\mathcal Q^r(P)=\{Q:Q_{Y,D,Z}=P,\ Q(Y=Y_D)=1,\ \operatorname{Supp}_P(Y\mid D=a)=\operatorname{Supp}_Q(Y_a\mid D\ne a)=[\ell_a,u_a],\ \Psi_r(Q,a)=1\text{ for every }a\in\{d,e\},\text{ and }r=\mathrm{LEI}\Rightarrow\sigma_Z>0\}\)
+\par\smallskip\noindent\emph{Member properties.} \texttt{ass:\allowbreak{}compatibility}; \texttt{ass:\allowbreak{}consistency}; \texttt{ass:\allowbreak{}factual-\allowbreak{}support}; \texttt{ass:\allowbreak{}counterfactual-\allowbreak{}support}; \texttt{ass:\allowbreak{}correlation-\allowbreak{}restriction}; \texttt{ass:\allowbreak{}lei-\allowbreak{}scale}.
+\end{definition}
+
+\begin{definition}[def:branch-polytope]\label{def:branch-polytope}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal F_{a,b}^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal F_{a,b}^r(P)=\{x_a\in\prod_{j\in\mathcal M_a}[\ell_a,u_a]:b(h_a^r+\sum_{j\in\mathcal M_a}p_js_j^rx_{a,j})\ge0\text{ coordinatewise}\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{a}; \texttt{b}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:interior-slack]\label{def:interior-slack}
+\par\smallskip\noindent\emph{Defined object.} \(\tau_{a,b}^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\tau_{a,b}^r(P)=\max_{x_a,t_a}\sum_{j\in\mathcal M_a}t_{a,j}\) subject to \(x_a\in\mathcal F_{a,b}^r(P)\) and \(0\le t_{a,j}\le x_{a,j}-\ell_a\), \(t_{a,j}\le u_a-x_{a,j}\) for every \(j\in\mathcal M_a\), with value \(-\infty\) when \(\mathcal F_{a,b}^r(P)=\varnothing\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{F\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:eligible-branches]\label{def:eligible-branches}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal B_a^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal B_a^r(P)=\{b\in\{-1,+1\}:\tau_{a,b}^r(P)>0\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{tau\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:arm-endpoints]\label{def:arm-endpoints}
+\par\smallskip\noindent\emph{Defined object.} \(L_{a,b}^r(P)\) and \(U_{a,b}^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(L_{a,b}^r(P)=\min_{x_a\in\mathcal F_{a,b}^r(P)}(c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j})\) and \(U_{a,b}^r(P)=\max_{x_a\in\mathcal F_{a,b}^r(P)}(c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j})\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{F\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:cone-duals]\label{def:cone-duals}
+\par\smallskip\noindent\emph{Defined object.} \(V_{L,a,b}^r(P)\) and \(V_{U,a,b}^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(V_{L,a,b}^r(P)=\sup_{\lambda\in\mathbb R_+^2}\{c_a-b\lambda'h_a^r+\sum_{j\in\mathcal M_a}p_j\min_{y\in[\ell_a,u_a]}(1-b\lambda's_j^r)y\}\) and \(V_{U,a,b}^r(P)=\inf_{\lambda\in\mathbb R_+^2}\{c_a+b\lambda'h_a^r+\sum_{j\in\mathcal M_a}p_j\max_{y\in[\ell_a,u_a]}(1+b\lambda's_j^r)y\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{P}; \texttt{a}; \texttt{b}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:arm-closure]\label{def:arm-closure}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I_a^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_a^r(P)=\bigcup_{b\in\mathcal B_a^r(P)}[L_{a,b}^r(P),U_{a,b}^r(P)]\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{B\_\allowbreak{}a\_\allowbreak{}r}; \texttt{L\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r}; \texttt{U\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:ate-closure]\label{def:ate-closure}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I_{\Delta}^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_{\Delta}^r(P)=\bigcup_{b\in\mathcal B_d^r(P),\,h\in\mathcal B_e^r(P)}[L_{d,b}^r(P)-U_{e,h}^r(P),U_{d,b}^r(P)-L_{e,h}^r(P)]\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{I\_\allowbreak{}a\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:strict-example]\label{def:strict-example}
+\par\smallskip\noindent\emph{Defined object.} \(P^\star\)
+\par\smallskip\noindent\emph{Construction.} Under \(P^\star\), \((D,Z)\) takes \((0,0),(0,1),(1,0),(1,1)\) with probabilities \((2/25,9/20,9/25,11/100)\); \(Y\mid(D,Z)=(0,z)\) is uniform on \([0,1]\), \(Y\mid(D,Z)=(1,0)\) is \(\operatorname{Beta}(79,21)\), and \(Y\mid(D,Z)=(1,1)\) is \(\operatorname{Beta}(17,3)\)
+\end{definition}
+
+\begin{definition}[def:published-outer]\label{def:published-outer}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I_{BK}^\star\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_{BK}^\star=[0.496024,0.872824]\), the union obtained by evaluating the normalized multiplier formulas of BanKedagni2022 at \(P^\star\) for arm \(a=1\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}star}.
+\end{definition}
+
+\begin{definition}[def:boundary-family]\label{def:boundary-family}
+\par\smallskip\noindent\emph{Defined object.} \((P_\varepsilon)_{|\varepsilon|<3/110}\)
+\par\smallskip\noindent\emph{Construction.} Under \(P_\varepsilon\), \((D,Z)\) has masses \((1/2,1/4,1/4)\) at \((0,0),(1,0),(1,2)\); the first cell outcome is uniform on \([0,1]\), the second is \(\operatorname{Beta}(9,1)\), and the third has density \(f_\varepsilon(y)=f_0(y)[1+\varepsilon(y-3/10)/(21/1100)]\) on \([0,1]\), where \(f_0\) is the \(\operatorname{Beta}(3,7)\) density
+\par\smallskip\noindent\emph{Inputs.} \texttt{epsilon}.
+\end{definition}
+
+\begin{definition}[def:boundary-set-map]\label{def:boundary-set-map}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I_{\partial,q}(P_\varepsilon)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal I_{\partial,q}(P_\varepsilon)=\mathcal I_1^{\mathrm{SDC}}(P_\varepsilon)\) when \(q=\mathrm{arm}\), and \(\mathcal I_{\partial,q}(P_\varepsilon)=\mathcal I_{\Delta}^{\mathrm{SDC}}(P_\varepsilon)\) with \((d,e)=(1,0)\) when \(q=\mathrm{ATE}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}epsilon}; \texttt{q\_\allowbreak{}boundary}; \texttt{I\_\allowbreak{}a\_\allowbreak{}r}; \texttt{I\_\allowbreak{}Delta\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:hoeffding-region]\label{def:hoeffding-region}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal H_n\)
+\par\smallskip\noindent\emph{Construction.} On the binary-treatment inference submodel \(\mathcal A=\{d,e\}\), whose fixed grid therefore satisfies \(d_j\in\{d,e\}\) for every \(j\in\mathcal J\), define \(\mathcal H_n=\{(p,\omega):p=(\pi_j)_{j\in\mathcal J},\ \omega=(\omega_j)_{j\in\mathcal J},\ \pi_j\ge0,\ \sum_{j\in\mathcal J}\pi_j=1,\ 0\le\omega_j\le\pi_j,\ |\pi_j-\widehat p_j|\le\eta_n,\ |\omega_j-\widehat\omega_j|\le\eta_n\text{ for every }j\in\mathcal J\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}hat\_\allowbreak{}j}; \texttt{w\_\allowbreak{}hat\_\allowbreak{}j}; \texttt{eta\_\allowbreak{}n}.
+\end{definition}
+
+\begin{definition}[def:primitive-moment-map]\label{def:primitive-moment-map}
+\par\smallskip\noindent\emph{Defined object.} \(p(P')\) and \(\omega(P')\)
+\par\smallskip\noindent\emph{Construction.} On the binary-treatment inference submodel \(\mathcal A=\{d,e\}\), every candidate law \(P'\) has \(P'\{D\in\{d,e\}\}=1\). Define \(p(P')=(p_j(P'))_{j\in\mathcal J}\) and \(\omega(P')=(\omega_j(P'))_{j\in\mathcal J}\) by \(p_j(P')=P'\{(D,Z)=c_j\}\) and \(\omega_j(P')=\mathbb E_{P'}[\mathbf 1\{(D,Z)=c_j\}(Y-\ell_{d_j})/(u_{d_j}-\ell_{d_j})]\). Because \(d_j\in\{d,e\}\) and \(Y\in[\ell_{D},u_D]\) almost surely, these are unconditional bounded moments satisfying \(0\le\omega_j(P')\le p_j(P')\); they require no conditional-mean division.
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}prime}.
+\end{definition}
+
+\begin{definition}[def:positive-primitive-domain]\label{def:positive-primitive-domain}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak D_+^r\)
+\par\smallskip\noindent\emph{Construction.} \(\mathfrak D_+^r=\{(p,\omega):p=(\pi_j)_{j\in\mathcal J},\ \omega=(\omega_j)_{j\in\mathcal J},\ \pi_j>0,\ 0\le\omega_j\le\pi_j\text{ for every }j,\ \sum_{j\in\mathcal J}\pi_j=1,\text{ and }r=\mathrm{LEI}\Rightarrow\sum_j\pi_j(d_j-\sum_k\pi_kd_k)^2>0\text{ and }\sum_j\pi_j(z_j-\sum_k\pi_kz_k)^2>0\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}vec}; \texttt{omega\_\allowbreak{}vec}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:primitive-sharp-map]\label{def:primitive-sharp-map}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak I_a^r(p,\omega)\) and \(\mathfrak I_{\Delta}^r(p,\omega)\)
+\par\smallskip\noindent\emph{Construction.} For \((p,\omega)\in\mathfrak D_+^r\), set \(m_j(p,\omega)=\ell_{d_j}+(u_{d_j}-\ell_{d_j})\omega_j/\pi_j\), \(\mu_D(p)=\sum_j\pi_jd_j\), \(\mu_Z(p)=\sum_j\pi_jz_j\), \(\sigma_D(p)^2=\sum_j\pi_j(d_j-\mu_D(p))^2\), and \(\sigma_Z(p)^2=\sum_j\pi_j(z_j-\mu_Z(p))^2\). Define \(s_j^{\mathrm{SDC}}(p)=(d_j-\mu_D(p),z_j-\mu_Z(p))'\) and \(s_j^{\mathrm{LEI}}(p)=((z_j-\mu_Z(p))/\sigma_Z(p),(d_j-\mu_D(p))/\sigma_D(p)-(z_j-\mu_Z(p))/\sigma_Z(p))'\). For each arm and branch, set \(c_a(p,\omega)=\sum_{j\in\mathcal O_a}\pi_jm_j(p,\omega)\), \(h_a^r(p,\omega)=\sum_{j\in\mathcal O_a}\pi_js_j^r(p)m_j(p,\omega)\), and \(\mathcal F_{a,b}^r(p,\omega)=\{x_a\in\prod_{j\in\mathcal M_a}[\ell_a,u_a]:b(h_a^r(p,\omega)+\sum_{j\in\mathcal M_a}\pi_js_j^r(p)x_{a,j})\ge0\text{ coordinatewise}\}\). Let \(\tau_{a,b}^r(p,\omega)\) be the maximum of \(\sum_{j\in\mathcal M_a}t_{a,j}\) over this polytope subject to \(0\le t_{a,j}\le x_{a,j}-\ell_a\) and \(t_{a,j}\le u_a-x_{a,j}\), with value \(-\infty\) for an empty polytope, and set \(\mathcal B_a^r(p,\omega)=\{b:\tau_{a,b}^r(p,\omega)>0\}\). Define \(L_{a,b}^r(p,\omega)\) and \(U_{a,b}^r(p,\omega)\) as the minimum and maximum of \(c_a(p,\omega)+\sum_{j\in\mathcal M_a}\pi_jx_{a,j}\) over \(\mathcal F_{a,b}^r(p,\omega)\). Finally, \(\mathfrak I_a^r(p,\omega)=\bigcup_{b\in\mathcal B_a^r(p,\omega)}[L_{a,b}^r(p,\omega),U_{a,b}^r(p,\omega)]\) and \(\mathfrak I_{\Delta}^r(p,\omega)=\bigcup_{b\in\mathcal B_d^r(p,\omega),\,h\in\mathcal B_e^r(p,\omega)}[L_{d,b}^r(p,\omega)-U_{e,h}^r(p,\omega),U_{d,b}^r(p,\omega)-L_{e,h}^r(p,\omega)]\). Both maps depend only on the primitive pair and fixed grid, and no ratio is formed outside the domain \(\pi_j>0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{p\_\allowbreak{}vec}; \texttt{omega\_\allowbreak{}vec}; \texttt{r}.
+\end{definition}
+
+\begin{definition}[def:projection-region]\label{def:projection-region}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal C_n\)
+\par\smallskip\noindent\emph{Construction.} On the binary-treatment inference submodel \(\mathcal A=\{d,e\}\), \(\mathcal C_n=\operatorname{cl}\bigcup\{\mathfrak I_{\Delta}^r(p,\omega):(p,\omega)\in\mathcal H_n\cap\mathfrak D_+^r\}\), with the analogous primitive-map construction for either reported arm mean. Candidate pairs with a zero cell mass are outside \(\mathfrak D_+^r\), so this image never evaluates \(m_j(p,\omega)\) at \(\pi_j=0\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{H\_\allowbreak{}n}; \texttt{D\_\allowbreak{}primitive\_\allowbreak{}r}; \texttt{I\_\allowbreak{}primitive\_\allowbreak{}r}; \texttt{I\_\allowbreak{}arm\_\allowbreak{}primitive\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:arrangement-algorithm]\label{def:arrangement-algorithm}
+\par\smallskip\noindent\emph{Defined object.} \(\mathsf A_{\mathrm{arr}}\)
+\par\smallskip\noindent\emph{Construction.} Enumerate the origin and every nonnegative intersection of two linearly independent members of \(\{\lambda_1=0,\lambda_2=0,1-b\lambda's_j^r=0:j\in\mathcal M_a\}\), evaluate the relevant piecewise-affine cone dual at those points, and attach a separate primal feasibility or recession certificate
+\par\smallskip\noindent\emph{Inputs.} \texttt{s\_\allowbreak{}j\_\allowbreak{}r}; \texttt{b}; \texttt{M\_\allowbreak{}a}.
+\end{definition}
+
+\begin{definition}[def:adaptive-handle]\label{def:adaptive-handle}
+\par\smallskip\noindent\emph{Defined object.} \(\mathfrak H_{\mathrm{adapt}}\)
+\par\smallskip\noindent\emph{Construction.} On the binary-treatment inference submodel \(\mathcal A=\{d,e\}\), begin with \(\mathcal H_n\), stratify candidate laws by the LP-computed slack \(\tau_{a,b}^r\), and invert a studentized test of the primitive mass vector on each slack stratum; the data-dependent critical value and final region are to be derived
+\par\smallskip\noindent\emph{Inputs.} \texttt{H\_\allowbreak{}n}; \texttt{tau\_\allowbreak{}a\_\allowbreak{}b\_\allowbreak{}r}.
+\end{definition}
+
+\begin{definition}[def:all-arm-compatible-class]\label{def:all-arm-compatible-class}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal Q_{\mathrm{BK}}^r(P)\)
+\par\smallskip\noindent\emph{Construction.} \(\mathcal Q_{\mathrm{BK}}^r(P)=\{Q\in\mathcal Q^r(P):\operatorname{Supp}_P(Y\mid D=a)=\operatorname{Supp}_Q(Y_a\mid D\ne a)=[\ell_a,u_a],\ \ell_a<u_a,\text{ and }\Psi_r(Q,a)=1\text{ for every }a\in\mathcal A\}\)
+\par\smallskip\noindent\emph{Inputs.} \texttt{Qclass}.
+\end{definition}
+
+\begin{definition}[def:parametric-strict-family]\label{def:parametric-strict-family}
+\par\smallskip\noindent\emph{Defined object.} \(P^{\rho,s}\)
+\par\smallskip\noindent\emph{Construction.} For \((\rho,s)\in(0,1)^2\), \(P^{\rho,s}\) keeps the four \((D,Z)\)-cell probabilities \((2/25,9/20,9/25,11/100)\) and the uniform outcome laws in the two cells with \(D=0\) from \(P^\star\), while
+\[
+ Y\mid(D,Z)=(1,0)\sim\operatorname{Beta}(100\rho,100(1-\rho)),
+ \qquad
+ Y\mid(D,Z)=(1,1)\sim\operatorname{Beta}(20s,20(1-s)).
+\]
+\par\smallskip\noindent\emph{Inputs.} \texttt{rho}; \texttt{s}.
+\end{definition}
+
+\begin{definition}[def:normalized-multiplier-simplex]\label{def:normalized-multiplier-simplex}
+\par\smallskip\noindent\emph{Defined object.} \(\Lambda_1\)
+\par\smallskip\noindent\emph{Construction.} \[
+ \Lambda_1=\{\lambda\in\mathbb R_+^2:\lambda_1+\lambda_2\leq1\}.
+\]
+\end{definition}
+
+\begin{definition}[def:parametric-normalized-outer]\label{def:parametric-normalized-outer}
+\par\smallskip\noindent\emph{Defined object.} \(\mathcal I_{BK}^{\rho,s}\)
+\par\smallskip\noindent\emph{Construction.} For the target arm \(a=1\) in SDC mode, let \(\mathcal I_{BK}^{\rho,s}\) be the union over \(b\in\{-1,+1\}\) of the intervals whose lower and upper endpoints are obtained from \(\text{def:cone-duals}\) after evaluating all cell quantities under \(P^{\rho,s}\) and replacing the unrestricted domain \(\mathbb R_+^2\) by \(\Lambda_1\); explicitly,
+\[
+\mathcal I_{BK}^{\rho,s}
+=\bigcup_{b\in\{-1,+1\}}
+\left[
+\sup_{\lambda\in\Lambda_1}\left\{c_1-b\lambda'h_1^{\mathrm{SDC}}
++\sum_{j\in\mathcal M_1}p_j\min_{v\in[0,1]}(1-b\lambda's_j^{\mathrm{SDC}})v\right\},
+\inf_{\lambda\in\Lambda_1}\left\{c_1+b\lambda'h_1^{\mathrm{SDC}}
++\sum_{j\in\mathcal M_1}p_j\max_{v\in[0,1]}(1+b\lambda's_j^{\mathrm{SDC}})v\right\}
+\right].
+\]
+All quantities inside the braces are evaluated under \(P^{\rho,s}\).
+\par\smallskip\noindent\emph{Inputs.} \texttt{P\_\allowbreak{}rho\_\allowbreak{}s}; \texttt{Lambda\_\allowbreak{}1}.
+\end{definition}
+
+\section{Main results}
+
+\begin{lemma}[lem:branch-reduction]\label{lem:branch-reduction}
+For either \(r=\mathrm{SDC}\) or \(r=\mathrm{LEI}\), every \(Q\in\mathcal Q^r(P)\) induces, for each arm \(a\), a sign \(b\in\{-1,+1\}\) and missing-cell means \(x_a\in\mathcal F_{a,b}^r(P)\) such that \(\theta_a(Q)=c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}\). Conversely, every vector in \(\mathcal F_{a,b}^r(P)\) is realized by a bounded missing-cell completion satisfying the branch score inequalities; exact aggregate support is addressed by Theorem 1.
+\end{lemma}
+\begin{proof}
+Write \(C=(D,Z)\).  By \(\texttt{ass:finite-grid}\), the events \(C=c_j\), \(j\in\mathcal J\), exhaust the support of \(C\) and have probabilities \(p_j>0\).  Fix \(a\in\{d,e\}\) and \(Q\in\mathcal Q^r(P)\), and define the proof-intermediate cell means
+\[
+ \bar y_{a,j}=\mathbb E_Q[Y_a\mid C=c_j].
+\]
+The support requirements in \(\texttt{def:compatible-class}\) make these expectations finite.  On \(j\in\mathcal O_a\), compatibility and \(\texttt{ass:consistency}\) imply \(\bar y_{a,j}=m_j\).  On \(j\in\mathcal M_a\), put \(x_{a,j}=\bar y_{a,j}\).  Bounded support gives \(x_{a,j}\in[\ell_a,u_a]\), and finite-cell iterated expectation gives
+\[
+ \theta_a(Q)
+ =\sum_{j\in\mathcal J}p_j\bar y_{a,j}
+ =c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}.                                      \tag{1}
+\]
+Every score is constant on its cell and centered under \(P\).  Compatibility therefore yields
+\[
+ \mathbb E_Q[s_C^rY_a]
+ =h_a^r+\sum_{j\in\mathcal M_a}p_js_j^rx_{a,j}.                               \tag{2}
+\]
+For \(r=\mathrm{SDC}\), the two coordinates of (2) are \(\operatorname{Cov}_Q(Y_a,D)\) and \(\operatorname{Cov}_Q(Y_a,Z)\).  Two real numbers \(v_1,v_2\) obey \(v_1v_2\ge0\) if and only if
+\[
+ \exists b\in\{-1,+1\}:\quad bv_1\ge0,\qquad bv_2\ge0.                       \tag{3}
+\]
+Indeed, choose their common weak sign when both are nonzero, the sign of the nonzero coordinate when exactly one vanishes, and either sign when both vanish.
+
+For \(r=\mathrm{LEI}\), \(\texttt{ass:target-overlap}\), together with \(d\ne e\), gives \(\sigma_D>0\), and \(\texttt{ass:lei-scale}\) gives \(\sigma_Z>0\).  Thus the divisions in
+\[
+ A=\frac{\operatorname{Cov}_Q(Y_a,D)}{\sigma_D},
+ \qquad
+ B=\frac{\operatorname{Cov}_Q(Y_a,Z)}{\sigma_Z}
+\]
+are valid.  The coordinates of (2) are now \(B\) and \(A-B\).  The elementary sign-cone identity
+\[
+ AB\ge0\ \text{ and }\ |A|\ge|B|
+ \quad\Longleftrightarrow\quad
+ \exists b\in\{-1,+1\}:\ bB\ge0\ \text{ and }\ b(A-B)\ge0                 \tag{4}
+\]
+holds also on the boundary.  For the forward implication, if \(B\ne0\), choose its sign, and if \(B=0\), choose the weak sign of \(A\); for the reverse implication, \(bA=bB+b(A-B)\ge bB\ge0\), so \(A,B\) have a common weak sign and \(|A|\ge|B|\).  Hence \(\texttt{ass:correlation-restriction}\), equations (2)--(4), and \(\texttt{def:branch-polytope}\) produce \(b\in\{-1,+1\}\) with \(x_a\in\mathcal F_{a,b}^r(P)\).  Together with (1), this proves the forward reduction.
+
+Conversely, fix \(x_a\in\mathcal F_{a,b}^r(P)\).  Draw \((Y,D,Z)\) from \(P\).  Set \(Y_a=Y\) when \(D=a\); on a missing cell \(j\in\mathcal M_a\), set \(Y_a=x_{a,j}\) deterministically.  This construction stays in \([\ell_a,u_a]\), leaves the observed law unchanged, and enforces consistency for arm \(a\).  Conditioning cell by cell reproduces (1) and (2), while membership in \(\mathcal F_{a,b}^r(P)\) is exactly the coordinatewise branch inequality.  Potential outcomes for the remaining arms can be adjoined using auxiliary uniforms, setting \(Y_D=Y\) on their factual cells.  Thus every feasible vector has a bounded armwise completion with the required branch score inequalities.  The deterministic missing laws need not have interval support; that separate issue is exactly the content of \(\texttt{thm:support-eligibility}\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} This is the finite-dimensional reduction that separates moment feasibility from full-support completion. \textit{Gap.} BanKedagni2022 derives valid inequalities but does not identify the missing-cell completion polytope or prove a converse. \textit{Consumer.} Every later endpoint, support, and computation result reduces to this finite object.
+
+\begin{theorem}[thm:support-eligibility]\label{thm:support-eligibility}
+Fix \(a\in\{d,e\}\), \(b\in\{-1,+1\}\), and \(r\in\mathcal R\). The branch admits a completion satisfying the exact aggregate support equality if and only if \(\tau_{a,b}^r(P)>0\). Equivalently, \(\mathcal F_{a,b}^r(P)\) contains a vector with at least one coordinate strictly between \(\ell_a\) and \(u_a\); conditional on \(\mathcal F_{a,b}^r(P)\ne\varnothing\), these conditions are also equivalent to \(\mathcal F_{a,b}^r(P)\) not being a singleton box vertex. For every eligible branch, the closure of exact-support arm means is \([L_{a,b}^r(P),U_{a,b}^r(P)]\), and hence the full closure equals \(\mathcal I_a^r(P)\).
+\end{theorem}
+\begin{proof}
+Fix \(a\in\{d,e\}\), \(b\in\{-1,+1\}\), and \(r\in\mathcal R\).  Assumption \(\texttt{ass:target-overlap}\) gives \(P(D\ne a)>0\).  Since \(\mathcal J\) is the positive-mass cell support, \(\mathcal M_a\) is finite, nonempty, and every \(j\in\mathcal M_a\) has positive conditional probability given \(D\ne a\).  By \(\texttt{def:branch-polytope}\), \(\mathcal F_{a,b}^r(P)\) is the intersection of a finite box with two closed half-spaces; it is convex and, when nonempty, compact.
+
+For fixed \(x_a\in\mathcal F_{a,b}^r(P)\), the slack coordinates in \(\texttt{def:interior-slack}\) separate, so
+\[
+ \max_{t_a}\sum_{j\in\mathcal M_a}t_{a,j}
+ =\sum_{j\in\mathcal M_a}
+   \min\{x_{a,j}-\ell_a,u_a-x_{a,j}\}.                                      \tag{5}
+\]
+Every summand in (5) is nonnegative, and it is positive exactly when \(x_{a,j}\in(\ell_a,u_a)\).  Compactness makes the maximum over \(x_a\) attainable for a nonempty branch, while the definition assigns \(-\infty\) to an empty branch.  Therefore
+\[
+ \tau_{a,b}^r(P)>0
+ \quad\Longleftrightarrow\quad
+ \exists x_a\in\mathcal F_{a,b}^r(P),\ \exists j_0\in\mathcal M_a:
+ x_{a,j_0}\in(\ell_a,u_a).                                                    \tag{6}
+\]
+
+We next identify (6) with exact aggregate-support eligibility.  Suppose first that a completion in branch \(b\) satisfies
+\(\operatorname{Supp}_Q(Y_a\mid D\ne a)=[\ell_a,u_a]\), and set \(x_{a,j}=\mathbb E_Q[Y_a\mid C=c_j]\).  The reduction in \(\texttt{lem:branch-reduction}\) puts this vector in \(\mathcal F_{a,b}^r(P)\).  If every coordinate were a box endpoint, boundedness would imply
+\[
+ \begin{aligned}
+ x_{a,j}=\ell_a
+ &\Longrightarrow
+ \mathbb E_Q[Y_a-\ell_a\mid C=c_j]=0
+ \Longrightarrow Q(Y_a=\ell_a\mid C=c_j)=1,\\
+ x_{a,j}=u_a
+ &\Longrightarrow
+ \mathbb E_Q[u_a-Y_a\mid C=c_j]=0
+ \Longrightarrow Q(Y_a=u_a\mid C=c_j)=1.
+ \end{aligned}                                                               \tag{7}
+\]
+The last implication uses only that a nonnegative random variable with mean zero vanishes almost surely.  The conditional law given \(D\ne a\) would then be a finite mixture supported on \(\{\ell_a,u_a\}\), contradicting its support being the nondegenerate interval \([\ell_a,u_a]\); nondegeneracy \(\ell_a<u_a\) is supplied by \(\texttt{ass:factual-support}\).  Thus (6) is necessary.
+
+Conversely, let \(x_a\) and \(j_0\) satisfy (6), and define
+\[
+ q=\frac{x_{a,j_0}-\ell_a}{u_a-\ell_a}\in(0,1),                              \tag{8}
+\]
+where the denominator is positive by \(\ell_a<u_a\).  Construct \(V_q\in[0,1]\) by
+\[
+ \mathcal L(V_q)=
+ \begin{cases}
+ 2q\,\operatorname{Unif}[0,1]+(1-2q)\delta_0,&q\le1/2,\\
+ 2(1-q)\,\operatorname{Unif}[0,1]+(2q-1)\delta_1,&q\ge1/2.
+ \end{cases}                                                                  \tag{9}
+\]
+The coefficients are nonnegative and sum to one, and direct calculation gives \(\mathbb E[V_q]=q\).  Because the uniform weight is positive for \(q\in(0,1)\), \(\operatorname{Supp}(V_q)=[0,1]\).  On cell \(j_0\), assign
+\(Y_a=\ell_a+(u_a-\ell_a)V_q\).  This law has mean \(x_{a,j_0}\) and support \([\ell_a,u_a]\).  On every other missing cell \(j\), assign the two-point law
+\[
+ Q(Y_a=u_a\mid C=c_j)=\frac{x_{a,j}-\ell_a}{u_a-\ell_a},
+ \qquad
+ Q(Y_a=\ell_a\mid C=c_j)=\frac{u_a-x_{a,j}}{u_a-\ell_a}.                    \tag{10}
+\]
+The probabilities in (10) lie in \([0,1]\), sum to one, and have mean \(x_{a,j}\).  Because cell \(j_0\) has positive conditional weight given \(D\ne a\), the finite mixture over the missing cells contains the support \([\ell_a,u_a]\), while boundedness gives the reverse inclusion.  Thus its support is exactly that interval.  The factual conditional law is unchanged, so \(\texttt{ass:factual-support}\) supplies the factual half of the aggregate equality.  Only conditional distributions, not their means, were changed; consequently the branch score inequalities remain valid.  This proves sufficiency.
+
+For the geometric equivalence, condition on \(\mathcal F_{a,b}^r(P)\ne\varnothing\).  If no point has an interior coordinate, every point is a box vertex.  If two distinct vertices \(v,w\) belonged to the convex polytope, then \((v+w)/2\) would belong to it and would have an interior coordinate wherever \(v\) and \(w\) differ.  Hence the polytope must be one singleton box vertex.  The converse is immediate.  The nonemptiness qualification is essential because an empty branch has slack \(-\infty\).
+
+It remains to prove the closure statement.  In an eligible branch choose \(x_a^\circ\in\mathcal F_{a,b}^r(P)\) with an interior coordinate.  For any \(x_a\in\mathcal F_{a,b}^r(P)\) and \(0<\delta<1\), convexity gives
+\[
+ x_a(\delta)=(1-\delta)x_a+\delta x_a^\circ\in\mathcal F_{a,b}^r(P).          \tag{11}
+\]
+The coordinate interior for \(x_a^\circ\) remains interior for \(x_a(\delta)\), so the construction (8)--(10) realizes \(x_a(\delta)\) with exact aggregate support.  Moreover,
+\[
+ c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}(\delta)
+ \longrightarrow
+ c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}
+ \quad(\delta\downarrow0).                                                    \tag{12}
+\]
+The continuous linear image of the nonempty compact convex branch polytope is the interval
+\[
+ \left\{c_a+\sum_{j\in\mathcal M_a}p_jx_{a,j}:x_a\in\mathcal F_{a,b}^r(P)\right\}
+ =[L_{a,b}^r(P),U_{a,b}^r(P)]                                                  \tag{13}
+\]
+by \(\texttt{def:arm-endpoints}\).  Every exact-support branch mean lies in (13), and (11)--(12) show density in (13).  Closure commutes with the finite union over the two signs.  By \(\texttt{def:eligible-branches}\), ineligible branches contribute nothing, and \(\texttt{def:arm-closure}\) therefore gives
+\[
+ \overline{\{\text{exact-support armwise completion means}\}}
+ =\bigcup_{b\in\mathcal B_a^r(P)}[L_{a,b}^r(P),U_{a,b}^r(P)]
+ =\mathcal I_a^r(P).                                                          \tag{14}
+\]
+Thus \(\mathcal I_a^r(P)\) is sharp as a closure: it is an outer set for every compatible armwise completion, and every one of its points is approximable by such completions.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The strict slack is the exact branch filter created by aggregate support equality. \textit{Gap.} The published bounded-support formulas do not distinguish an algebraically feasible box-vertex branch from a branch admitting full interval support. KédagniLiMourifie2018 Theorem 1 proves sharpness under rectangular support and finite zero-covariance equalities, but it does not characterize which SDC inequality branch admits exact aggregate-support completion; in the shared binary specialization \(g(y)=y\) and \(h(Z)=Z\), its zero-covariance class is contained in the SDC class considered here. \textit{Consumer.} The filter changes the reported imperfect-IV region in the Ban--Kédagni NLSYM and Yu air-pollution workflows whenever a fitted branch has zero slack.
+
+\begin{theorem}[thm:cone-endpoint-sharpness]\label{thm:cone-endpoint-sharpness}
+For every nonempty branch \(\mathcal F_{a,b}^r(P)\), finite linear-program duality gives \(L_{a,b}^r(P)=V_{L,a,b}^r(P)\) and \(U_{a,b}^r(P)=V_{U,a,b}^r(P)\), with attaining unrestricted multipliers in \(\mathbb R_+^2\). Combined with Theorem 1, these values give the sharp exact-support arm-mean closure. At \(P^\star\) for \(a=1\) and \(r=\mathrm{SDC}\), \(\mathcal I_1^{\mathrm{SDC}}(P^\star)=[711/1100,911/1100]\subsetneq\mathcal I_{BK}^\star=[0.496024,0.872824]\), so the theorem strictly tightens the published normalized outer union at a legal full-support law.
+\end{theorem}
+\begin{proof}
+Fix a nonempty branch and abbreviate
+\[
+ B=\prod_{j\in\mathcal M_a}[\ell_a,u_a],\qquad
+ \phi(x)=c_a+\sum_{j\in\mathcal M_a}p_jx_j,\qquad
+ g(x)=b\left(h_a^r+\sum_{j\in\mathcal M_a}p_js_j^rx_j\right).
+\]
+Then \(\mathcal F_{a,b}^r(P)=\{x\in B:g(x)\ge0\}\), coordinatewise.  Compactness gives a lower optimizer \(x^*\).  We derive the finite-polyhedral dual directly and therefore require neither strict feasibility nor a constraint qualification.
+
+Let \(q=(p_j)_{j\in\mathcal M_a}\), and form a matrix \(A\) whose rows are the gradients of the active coordinates of \(g\) at \(x^*\), together with \(e_j'\) when \(x_j^*=\ell_a\) and \(-e_j'\) when \(x_j^*=u_a\).  Because all constraints are affine, every \(v\) satisfying \(Av\ge0\) gives a feasible point \(x^*+tv\) for all sufficiently small \(t>0\).  Optimality consequently implies
+\[
+ q'v\ge0\qquad\text{whenever }Av\ge0.                                        \tag{15}
+\]
+We claim that (15) implies \(q=A'\gamma\) for some \(\gamma\ge0\).  The cone \(K=\{A'\gamma:\gamma\ge0\}\) is closed: from any conic representation one may eliminate dependent generators while preserving nonnegative coefficients until at most \(\dim(x)\) linearly independent generators remain, and there are only finitely many such subsets.  If \(q\notin K\), let \(k_0\) be its Euclidean projection on \(K\) and put \(v=q-k_0\).  The projection inequality and the conic property give \(v'k_0=0\) and \(v'a_i\le0\) for every row generator \(a_i\).  Thus \(w=-v\) obeys \(Aw\ge0\), whereas \(q'w=-\|v\|^2<0\), contradicting (15).  This proves the claim.
+
+Partition \(\gamma\) into score multipliers \(\lambda\ge0\) and active lower- and upper-box multipliers.  After inserting zero multipliers for inactive score constraints,
+\[
+ q-G'\lambda
+ =\sum_{j:x_j^*=\ell_a}\alpha_je_j
+  -\sum_{j:x_j^*=u_a}\beta_je_j,
+ \qquad \alpha_j,\beta_j\ge0,                                                 \tag{16}
+\]
+where \(g(x)=g(0)+Gx\).  Equation (16) says exactly that \(x^*\) minimizes \(\phi(x)-\lambda'g(x)\) over the whole box \(B\).  Since score multipliers were attached only to active inequalities, \(\lambda'g(x^*)=0\).  Hence
+\[
+ \min_{x:g(x)\ge0}\phi(x)
+ =\inf_{x\in B}\{\phi(x)-\lambda'g(x)\}
+ =\sup_{\widetilde\lambda\in\mathbb R_+^2}
+   \inf_{x\in B}\{\phi(x)-\widetilde\lambda'g(x)\}.                       \tag{17}
+\]
+Weak duality gives the last right-hand side at most the primal value, while the constructed \(\lambda\) gives equality and attains the supremum.  Separating the box coordinates in (17) yields
+\[
+ L_{a,b}^r(P)
+ =\sup_{\lambda\in\mathbb R_+^2}
+ \left\{c_a-b\lambda'h_a^r+
+ \sum_{j\in\mathcal M_a}p_j
+ \min_{y\in[\ell_a,u_a]}(1-b\lambda's_j^r)y\right\}
+ =V_{L,a,b}^r(P).                                                             \tag{18}
+\]
+Applying (17) to \(-\phi\) and multiplying by \(-1\) gives, with an attaining multiplier,
+\[
+ U_{a,b}^r(P)
+ =\inf_{\lambda\in\mathbb R_+^2}
+ \left\{c_a+b\lambda'h_a^r+
+ \sum_{j\in\mathcal M_a}p_j
+ \max_{y\in[\ell_a,u_a]}(1+b\lambda's_j^r)y\right\}
+ =V_{U,a,b}^r(P).                                                             \tag{19}
+\]
+Equations (18)--(19), combined with the positive-slack filter and closure argument in \(\texttt{thm:support-eligibility}\), prove the general sharp endpoint assertion.
+
+We now compute the example.  Integrating the beta densities gives \(\mathbb E[\operatorname{Beta}(\alpha,\beta)]=\alpha/(\alpha+\beta)\), since \(B(\alpha+1,\beta)=\alpha B(\alpha,\beta)/(\alpha+\beta)\).  Thus the treated factual means under \(P^\star\) are \(79/100\) and \(17/20\).  Direct summation from \(\texttt{def:strict-example}\) gives
+\[
+ \mu_D=\frac{47}{100},\qquad
+ \mu_Z=\frac{14}{25},\qquad
+ c_1=\frac{3779}{10000}.
+\]
+Write \(x,y\) for the missing means in cells \((0,0)\) and \((0,1)\).  Then
+\[
+ \begin{aligned}
+ \theta_1&=\frac{3779}{10000}+\frac{2}{25}x+\frac{9}{20}y,\\
+ C_D:=\operatorname{Cov}(Y_1,D)
+ &=\frac{200287}{1000000}-\frac{47}{1250}x-\frac{423}{2000}y
+   =\frac{3779}{10000}-\frac{47}{100}\theta_1,\\
+ C_Z:=\operatorname{Cov}(Y_1,Z)
+ &=-\frac{29531}{250000}-\frac{28}{625}x+\frac{99}{500}y.
+ \end{aligned}                                                               \tag{20}
+\]
+On the positive branch, \(C_Z\ge0\) implies
+\[
+ y\ge\frac{29531}{49500}+\frac{112}{495}x,
+ \qquad
+ \theta_1\ge\frac{711}{1100}+\frac{2}{11}x\ge\frac{711}{1100},             \tag{21}
+\]
+with equality at \((x,y)=(0,29531/49500)\).  The other inequality \(C_D\ge0\) is equivalent to \(\theta_1\le3779/4700\), with equality at \((0,200287/211500)\).  On the negative branch, \(C_D\le0\) gives the lower endpoint \(3779/4700\), attained at \((1,54229/70500)\), while \(C_Z\le0\) and (21) with reversed inequalities give
+\[
+ \theta_1\le\frac{711}{1100}+\frac{2}{11}x\le\frac{911}{1100},              \tag{22}
+\]
+attained at \((1,40731/49500)\).  Direct substitution in (20) verifies the unused score inequality in every case.  Every displayed \(y\) lies in \((0,1)\), so both branches have positive slack by \(\texttt{thm:support-eligibility}\).  Their intervals meet at \(3779/4700\); hence
+\[
+ \mathcal I_1^{\mathrm{SDC}}(P^\star)
+ =\left[\frac{711}{1100},\frac{911}{1100}\right].                            \tag{23}
+\]
+The factual conditional laws all have support \([0,1]\).  At each displayed completion, assign in the missing cell having interior mean a beta law with positive shape parameters and that mean; this cell has full support \([0,1]\).  Assign any bounded law with the prescribed mean in the other missing cell.  For arm zero, use uniform missing kernels.  Conditional product coupling, with each factual potential outcome set equal to \(Y\), produces a common legal full-data law; the arm-zero conditional mean is \(1/2\) in every cell, so both of its SDC covariances vanish.  Thus the support and correlation requirements are genuinely satisfiable rather than merely algebraically feasible.
+
+Finally, \(\texttt{def:published-outer}\) gives \(\mathcal I_{BK}^\star=[0.496024,0.872824]\).  Exact cross-multiplication gives
+\[
+ 0.496024<\frac{711}{1100}<\frac{911}{1100}<0.872824.                          \tag{24}
+\]
+Combining (23)--(24) proves the strict inclusion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The unrestricted cone is the intrinsic LP dual, and the rational example makes the correction empirically nonvacuous. \textit{Gap.} BanKedagni2022 normalizes the multiplier magnitude and states validity without sharpness; earlier cone discussion does not supply endpoint duality or the support filter. KédagniLiMourifie2018 Theorem 2 gives an equivalent unit-sphere characterization for its finite zero-covariance model, whereas this theorem dualizes the two-inequality SDC sign cone and combines it with the positive-slack support filter; for arbitrary finite \(h\), the two moment classes overlap but are not generally nested. \textit{Consumer.} Applied users obtain exact population endpoints and a certificate showing when the published outer region is unnecessarily wide.
+
+\begin{proposition}[prop:ate-product-coupling]\label{prop:ate-product-coupling}
+Let \(\mathcal Q^r(P)\), equivalently \(\mathcal Q_{\mathrm{tar}}^r(P)\), denote the class imposing aggregate support and the correlation restriction only on \(\{d,e\}\), and let \(\mathcal Q_{\mathrm{BK}}^r(P)\) impose those armwise restrictions for every \(a\in\mathcal A\).  The class definitions contain no restriction coupling distinct potential-outcome arms.  If \(\mathcal Q_{\mathrm{BK}}^r(P)\ne\varnothing\), then, for \(a\in\{d,e\}\),
+\[
+ \{\theta_a(Q):Q\in\mathcal Q_{\mathrm{BK}}^r(P)\}
+ =\{\theta_a(Q):Q\in\mathcal Q^r(P)\},
+\]
+and
+\[
+ \{\Delta_{d,e}(Q):Q\in\mathcal Q_{\mathrm{BK}}^r(P)\}
+ =\{\Delta_{d,e}(Q):Q\in\mathcal Q^r(P)\}.
+\]
+Their arm-mean closures are \(\mathcal I_a^r(P)\), and their ATE closure is \(\mathcal I_\Delta^r(P)\).  In particular, conditional product coupling establishes joint endpoint approximation rather than merely subtracting marginal outer bounds.  When \(\mathcal A=\{d,e\}\), the two classes are identical.
+\end{proposition}
+\begin{proof}
+Define the causal identified sets
+\[
+ \Theta_{a,\mathrm{tar}}^r(P)=\{\theta_a(Q):Q\in\mathcal Q^r(P)\},\qquad
+ \Theta_{\Delta,\mathrm{tar}}^r(P)=\{\Delta_{d,e}(Q):Q\in\mathcal Q^r(P)\}, \tag{25}
+\]
+and define \(\Theta_{a,\mathrm{BK}}^r(P)\) and \(\Theta_{\Delta,\mathrm{BK}}^r(P)\) by replacing \(\mathcal Q^r(P)\) with \(\mathcal Q_{\mathrm{BK}}^r(P)\).  These are sets of causal parameters.  The observed-law functionals \(\mathcal I_a^r(P)\) and \(\mathcal I_\Delta^r(P)\) will be related to their closures rather than identified with them by definition.
+
+First consider the target-arm class.  Fix eligible signs \(b\in\mathcal B_d^r(P)\) and \(h\in\mathcal B_e^r(P)\), and select exact-support marginal completions for the two arms.  Let \(K_{a,j}\) be the selected conditional law of \(Y_a\) in cell \(j\).  On \(j\in\mathcal O_a\), consistency fixes \(Y_a=Y\); on \(j\in\mathcal M_a\), the kernel has support \([\ell_a,u_a]\) and the selected feasible mean.
+
+Draw \((Y,D,Z)\sim P\).  Conditional on the observed data, set \(Y_a=Y\) whenever \(D=a\), and draw every missing target potential outcome from its selected kernel, independently across arms given the observed data.  Each target potential outcome has exactly its selected cellwise marginal distribution.  Therefore the construction preserves observed-law compatibility, consistency, aggregate support, and every armwise score moment.  Conditional independence is only a coupling device; it is not imposed as a model restriction.
+
+Thus every pair of exactly attainable target-arm means is jointly attainable.  By \(\texttt{thm:support-eligibility}\), the attainable means in branches \(b,h\) are dense in their endpoint intervals.  Their differences are consequently dense in
+\[
+ [L_{d,b}^r(P)-U_{e,h}^r(P),\ U_{d,b}^r(P)-L_{e,h}^r(P)].                     \tag{26}
+\]
+Conversely, \(\texttt{lem:branch-reduction}\) places each mean induced by any \(Q\in\mathcal Q^r(P)\) in an eligible branch image.  Taking the finite union over sign pairs and using \(\texttt{def:arm-closure}\) and \(\texttt{def:ate-closure}\) gives
+\[
+ \operatorname{cl}\Theta_{a,\mathrm{tar}}^r(P)=\mathcal I_a^r(P),
+ \qquad
+ \operatorname{cl}\Theta_{\Delta,\mathrm{tar}}^r(P)=\mathcal I_\Delta^r(P). \tag{27}
+\]
+
+We now compare classes.  By \(\texttt{def:all-arm-compatible-class}\),
+\(\mathcal Q_{\mathrm{BK}}^r(P)\subseteq\mathcal Q^r(P)\), so the all-arm identified sets are contained in the corresponding target-arm sets.  Assume \(\mathcal Q_{\mathrm{BK}}^r(P)\ne\varnothing\), fix \(Q^0\) in that class, and take arbitrary \(Q^1\in\mathcal Q^r(P)\).  In every observed cell, retain from \(Q^1\) the conditional marginal kernels of \(Y_d,Y_e\), and retain from \(Q^0\) those of every \(Y_a\) with \(a\notin\{d,e\}\).  Draw the observed data from \(P\), set \(Y_D=Y\), and conditionally product-couple all remaining potential outcomes from the retained kernels.
+
+For each target arm, the resulting law has the same cellwise marginal kernels as \(Q^1\), and hence the same target mean, support, and score moments.  For each untargeted arm, it has the same cellwise marginal kernels as \(Q^0\), and hence preserves all all-arm restrictions.  Compatibility and consistency hold by construction.  Neither \(\texttt{def:compatible-class}\) nor \(\texttt{def:all-arm-compatible-class}\) contains a restriction on the joint law of two distinct potential-outcome arms, so replacing cross-arm dependence by conditional product coupling violates no maintained condition.  The coupled law \(\widetilde Q\) therefore lies in \(\mathcal Q_{\mathrm{BK}}^r(P)\) and satisfies
+\[
+ \theta_d(\widetilde Q)=\theta_d(Q^1),\qquad
+ \theta_e(\widetilde Q)=\theta_e(Q^1),\qquad
+ \Delta_{d,e}(\widetilde Q)=\Delta_{d,e}(Q^1).                               \tag{28}
+\]
+Since \(Q^1\) was arbitrary, (28) proves the reverse inclusions and hence equality of both exact identified sets.  Combining with (27) gives the asserted arm and ATE closures.  If \(\mathcal A=\{d,e\}\), no untargeted arms exist and the two class definitions coincide.  The nonemptiness premise is used precisely to obtain the admissible untargeted-arm kernels from \(Q^0\).
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The coupling establishes joint target-arm attainment and also shows when the target-arm calculation is faithful to Ban--Kédagni's all-arm published class. \textit{Gap.} Park2025 treats joint attainment under MIV plus MTR; it does not supply this conditional-product witness for armwise SDC, exact aggregate support, or extension from target-arm to all-arm restrictions. \textit{Consumer.} Finite-valued-treatment users may report the exact ATE closure for the published all-arm class when that class is nonempty, while binary-treatment applications obtain the result without a class distinction.
+
+\begin{proposition}[prop:rational-certificates]\label{prop:rational-certificates}
+For \(P^\star\), the four SDC branch endpoint certificates are \((x,y)=(0,29531/49500)\), \((0,200287/211500)\), \((1,54229/70500)\), and \((1,40731/49500)\). Each vector has an interior coordinate, and cone multipliers \((0,25/11)\) certify the outer sharp endpoints; these multipliers lie outside the published normalized simplex.
+\end{proposition}
+\begin{proof}
+Put
+\[
+ x=\mathbb E_Q[Y_1\mid(D,Z)=(0,0)],\qquad
+ y=\mathbb E_Q[Y_1\mid(D,Z)=(0,1)].
+\]
+The cell probabilities in \(\texttt{def:strict-example}\) give \(\mu_D=47/100\) and \(\mu_Z=14/25\).  Direct integration of the beta densities gives factual treated means \(79/100\) and \(17/20\), whence
+\[
+ c_1=\frac{9}{25}\frac{79}{100}+\frac{11}{100}\frac{17}{20}
+ =\frac{3779}{10000},
+ \qquad
+ \theta_1=\frac{3779}{10000}+\frac{2}{25}x+\frac{9}{20}y.                    \tag{29}
+\]
+Finite-cell covariance expansion gives
+\[
+ \begin{aligned}
+ C_D&:=\operatorname{Cov}_Q(Y_1,D)
+ =\frac{200287}{1000000}-\frac{47}{1250}x-\frac{423}{2000}y,\\
+ C_Z&:=\operatorname{Cov}_Q(Y_1,Z)
+ =-\frac{29531}{250000}-\frac{28}{625}x+\frac{99}{500}y.
+ \end{aligned}                                                               \tag{30}
+\]
+Thus the positive branch is \(C_D,C_Z\ge0\), and the negative branch is \(C_D,C_Z\le0\), as prescribed by \(\texttt{def:branch-polytope}\).  Exact substitution in (29)--(30) gives
+\[
+\begin{array}{c|c|c|c}
+(x,y)&\theta_1&C_D&C_Z\\ \hline
+\left(0,\frac{29531}{49500}\right)&\frac{711}{1100}&\frac{1019}{13750}&0\\[2pt]
+\left(0,\frac{200287}{211500}\right)&\frac{3779}{4700}&0&\frac{2038}{29375}\\[2pt]
+\left(1,\frac{54229}{70500}\right)&\frac{3779}{4700}&0&-\frac{312}{29375}\\[2pt]
+\left(1,\frac{40731}{49500}\right)&\frac{911}{1100}&-\frac{78}{6875}&0
+\end{array}.                                                                  \tag{31}
+\]
+The first two vectors are positive-branch feasible and the last two are negative-branch feasible.
+
+The two missing-cell SDC scores have common treatment coordinate \(-47/100\) and instrument coordinates \(-14/25\) and \(11/25\).  For
+\[
+ \lambda_Z=\left(0,\frac{25}{11}\right)',
+\]
+the lower-dual box coefficients on the positive branch are
+\[
+ 1-\lambda_Z's_{(0,0)}^{\mathrm{SDC}}=\frac{25}{11}>0,
+ \qquad
+ 1-\lambda_Z's_{(0,1)}^{\mathrm{SDC}}=0.                                     \tag{32}
+\]
+Thus box minimization sets \(x=0\) and is indifferent to \(y\).  The first row of (31) has \(C_Z=0\), so its primal value equals the lower-dual value at \(\lambda_Z\).  Weak duality, or equivalently the equality proved in \(\texttt{thm:cone-endpoint-sharpness}\), certifies
+\(L_{1,+}^{\mathrm{SDC}}(P^\star)=711/1100\).  For the negative branch upper dual, the same coefficients occur; box maximization sets \(x=1\), and the fourth row has \(C_Z=0\).  Hence \(U_{1,-}^{\mathrm{SDC}}(P^\star)=911/1100\).
+
+For the remaining endpoints take
+\[
+ \lambda_D=\left(\frac{100}{47},0\right)'.
+\]
+Because both missing scores have treatment coordinate \(-47/100\), the upper-dual coefficients for the positive branch and lower-dual coefficients for the negative branch equal zero.  The second and third rows of (31) have \(C_D=0\), so primal and dual values agree and certify
+\[
+ U_{1,+}^{\mathrm{SDC}}(P^\star)
+ =L_{1,-}^{\mathrm{SDC}}(P^\star)
+ =\frac{3779}{4700}.                                                          \tag{33}
+\]
+
+Every displayed \(y\)-coordinate is strictly between zero and one.  Its distance to the nearer endpoint is, row by row,
+\[
+ \frac{19969}{49500},\qquad
+ \frac{11213}{211500},\qquad
+ \frac{16271}{70500},\qquad
+ \frac{2923}{16500},                                                         \tag{34}
+\]
+all positive.  Taking \(t_y\) equal to the corresponding distance and \(t_x=0\) supplies a positive feasible objective in \(\texttt{def:interior-slack}\).  Finally,
+\[
+ \|\lambda_Z\|_1=\frac{25}{11}>1,
+\]
+so the unrestricted-cone certificates for the two outer sharp endpoints lie outside the normalized multiplier simplex.  This proves every stated rational certificate without numerical approximation.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact rational certificates prevent the strict comparison from resting on floating-point optimization. \textit{Gap.} No published example isolates a legal aggregate-support SDC law at which normalization loses both sharp outer endpoints. \textit{Consumer.} The certificates form a reproducible regression test for any implementation of the sharp-set algorithm.
+
+\begin{theorem}[thm:hoeffding-whole-set-coverage]\label{thm:hoeffding-whole-set-coverage}
+Restrict the inference result to the binary-treatment submodel \(\mathcal A=\{d,e\}\). For every \(P\in\mathcal P^r\) satisfying \(P\{D\in\{d,e\}\}=1\), the primitive moment map satisfies \((p(P),\omega(P))\in\mathfrak D_+^r\), \(\mathfrak I_a^r(p(P),\omega(P))=\mathcal I_a^r(P)\) for \(a\in\{d,e\}\), and \(\mathfrak I_{\Delta}^r(p(P),\omega(P))=\mathcal I_{\Delta}^r(P)\). Under the fixed known binary-treatment grid and ranges, \(\Pr_P\{(p(P),\omega(P))\in\mathcal H_n\}\ge1-\alpha\), and therefore \(\inf_{P\in\mathcal P^r:\,P\{D\in\{d,e\}\}=1}\Pr_P\{\mathcal I_{\Delta}^r(P)\subseteq\mathcal C_n\}\ge1-\alpha\) for every \(n\). Replacing the ATE image by either \(\mathfrak I_a^r\) image gives simultaneous coverage of both target-arm closures on the same event. Coverage holds at \(\tau_{a,b}^r(P)=0\) because projection precedes application of the exact-set map; zero-mass candidate cells are excluded without excluding the strictly positive population pair fixed by \(\mathcal J=\operatorname{Supp}_P(D,Z)\).
+\end{theorem}
+\begin{proof}
+Fix a law \(P\in\mathcal P^r\) in the stated binary-treatment submodel.  For each positive-mass cell define, as in \(\texttt{def:primitive-moment-map}\),
+\[
+ p_j(P)=P(C=c_j),\qquad
+ \omega_j(P)=\mathbb E_P\!\left[
+ \mathbf 1\{C=c_j\}\frac{Y-\ell_{d_j}}{u_{d_j}-\ell_{d_j}}
+ \right].                                                                     \tag{35}
+\]
+The fixed support and known-range assumptions give \(p_j(P)>0\), \(\sum_jp_j(P)=1\), and \(0\le\omega_j(P)\le p_j(P)\).  In LEI mode, \(\texttt{ass:target-overlap}\) and \(d\ne e\) give \(\sigma_D(P)>0\), while \(\texttt{ass:lei-scale}\) gives \(\sigma_Z(P)>0\).  These are exactly the divisions and variance conditions in \(\texttt{def:positive-primitive-domain}\), so
+\[
+ (p(P),\omega(P))\in\mathfrak D_+^r.                                         \tag{36}
+\]
+Only after establishing \(p_j(P)>0\) do we divide.  Conditional expectation in (35) yields
+\[
+ \ell_{d_j}+(u_{d_j}-\ell_{d_j})\frac{\omega_j(P)}{p_j(P)}
+ =\mathbb E_P[Y\mid C=c_j]=m_j.                                               \tag{37}
+\]
+Substituting (37) into \(\texttt{def:primitive-sharp-map}\) reproduces term by term the observed cell means, centered scores, branch polytopes, slack programs, eligible signs, and endpoints defined from \(P\).  Therefore
+\[
+ \mathfrak I_a^r(p(P),\omega(P))=\mathcal I_a^r(P),\qquad
+ \mathfrak I_\Delta^r(p(P),\omega(P))=\mathcal I_\Delta^r(P).               \tag{38}
+\]
+These are equalities between observed-law functionals.  Their relation to the closures of the causal identified sets is proved by \(\texttt{thm:support-eligibility}\) and \(\texttt{prop:ate-product-coupling}\).
+
+We next derive the simultaneous concentration inequality.  If \(X\in[0,1]\) has mean \(\mu\), convexity gives \(e^{tX}\le1-X+Xe^t\).  Hence
+\[
+ \mathbb E e^{t(X-\mu)}
+ \le e^{-t\mu}(1-\mu+\mu e^t)
+ \le e^{t^2/8}.                                                               \tag{39}
+\]
+For the second inequality, the logarithm of the middle expression has value and first derivative zero at \(t=0\), while its second derivative is the variance of a Bernoulli variable under exponential tilting and is at most \(1/4\); integrating twice proves (39) for every real \(t\).  Exponential Markov inequality, independence from \(\texttt{ass:iid}\), and minimization of \(-tn\eta+nt^2/8\) at \(t=4\eta\) give
+\[
+ P\!\left(\left|\frac1n\sum_{i=1}^nX_i-\mathbb EX_i\right|>\eta\right)
+ \le2e^{-2n\eta^2}.                                                          \tag{40}
+\]
+Each of the \(2K\) variables defining \(\widehat p_j\) and \(\widehat\omega_j\) lies in \([0,1]\).  Applying (40), the union bound, and the definition of \(\eta_n\) gives
+\[
+ \begin{aligned}
+ P\{(p(P),\omega(P))\notin\mathcal H_n\}
+ &\le4K\exp(-2n\eta_n^2)\\
+ &=4K\exp\{-\log(4K/\alpha)\}=\alpha.                                      \tag{41}
+ \end{aligned}
+\]
+On the complementary event, (36) shows that the true primitive pair belongs to \(\mathcal H_n\cap\mathfrak D_+^r\).  Equations (38) and \(\texttt{def:projection-region}\) then imply pathwise
+\[
+ \mathcal I_\Delta^r(P)\subseteq\mathcal C_n.                                \tag{42}
+\]
+The same event yields the analogous inclusion for each of the two arm-image projection regions, so the two arm closures are covered simultaneously.  Since (41) holds for every displayed \(P\) and every \(n\), taking the infimum over the binary-treatment model proves the uniform \(1-\alpha\) claim.
+
+No continuity or branch-selection step enters (41)--(42).  If \(\tau_{a,b}^r(P)=0\), the true primitive pair is still included before the discontinuous exact-set map is applied.  Candidate pairs with zero cell masses are excluded by \(\mathfrak D_+^r\), but the population pair is not excluded because every cell in the fixed support \(\mathcal J\) has strictly positive mass.  This proves boundary-safe finite-sample coverage.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Projection of the explicit primitive-moment image preserves finite-sample honesty despite branch discontinuity. \textit{Gap.} BanKedagni2022 treats intersection-bound outer formulas, while calibrated projection and perturbed-LP methods do not directly cover a support-filtered union whose components disappear. \textit{Consumer.} NLSYM-style and air-pollution analyses can report a conservative confidence region for the entire exact population set, including a zero-slack diagnostic.
+
+\begin{proposition}[prop:certified-computation]\label{prop:certified-computation}
+For either two-score mode and every feasible branch, \(\mathsf A_{\mathrm{arr}}\) returns the same endpoint as the primal LP and the unrestricted cone dual after \(O(|\mathcal M_a|^2)\) candidate intersections and \(O(|\mathcal M_a|^3)\) naive arithmetic per endpoint. A separate LP computes \(\tau_{a,b}^r(P)\); primal infeasibility or a dual recession ray certifies an empty branch. The statement includes parallel kink lines, zero scores, tied optima, and structural-zero cells removed before forming \(\mathcal J\).
+\end{proposition}
+\begin{proof}
+Fix an arm and sign.  By \(\texttt{def:branch-polytope}\), branch feasibility is a finite linear feasibility problem over \(|\mathcal M_a|\) box variables and two score inequalities.  By \(\texttt{def:interior-slack}\), \(\tau_{a,b}^r(P)\) is a finite linear program over \((x_a,t_a)\).  Thus both feasibility and positive-slack eligibility admit ordinary primal certificates and, for rational inputs, exact rational certificates.
+
+For a feasible branch, \(\texttt{thm:cone-endpoint-sharpness}\) shows that each relevant cone dual is finite and attained.  A lower-dual summand changes affine formula only on
+\[
+ 1-b\lambda's_j^r=0,                                                          \tag{43}
+\]
+and an upper-dual summand changes formula only on \(1+b\lambda's_j^r=0\).  The latter is (43) with the algorithmic sign parameter replaced by \(-b\).  Together with the axes \(\lambda_1=0\) and \(\lambda_2=0\), these lines partition \(\mathbb R_+^2\) into finitely many polyhedral cells.  On the closure of each cell, the dual objective is affine.
+
+Every cell is pointed because it is contained in the nonnegative quadrant.  If a finite affine optimum lies in the relative interior of a positive-dimensional cell, either some direction improves the objective until a boundary is reached or the objective is constant along that direction; iterating in dimension two reaches a vertex without worsening the value.  If an optimal face contains an unbounded ray, finiteness rules out strict improvement along the ray, and moving to its finite endpoint again reaches a vertex.  Every vertex is the nonnegative intersection of two linearly independent boundary lines, with the origin included as the intersection of the axes.  Hence \(\mathsf A_{\mathrm{arr}}\), called with sign \(b\) for the lower endpoint and sign \(-b\) for the upper endpoint, returns the dual optimum and therefore the primal LP endpoint.
+
+With \(m=|\mathcal M_a|\), there are at most \(m+2\) relevant lines per endpoint and hence \(O(m^2)\) pairs.  Evaluating one dual objective requires \(O(m)\) arithmetic operations, so naive enumeration costs \(O(m^3)\) arithmetic operations per endpoint.  Parallel lines yield no independent intersection, a zero score yields no genuine kink, and tied optima are harmless because one optimal vertex suffices.
+
+It remains to distinguish infeasibility from nonattainment.  Define the compact convex score image
+\[
+ G=\left\{b\left(h_a^r+\sum_jp_js_j^rx_j\right):
+ x\in\prod_j[\ell_a,u_a]\right\}.
+\]
+The branch is empty exactly when \(G\cap\mathbb R_+^2=\varnothing\).  In that case choose closest points \(g_0\in G\) and \(z_0\in\mathbb R_+^2\), and put \(\lambda=z_0-g_0\).  Coordinatewise projection on the orthant and the projection inequality for \(g_0\) give
+\[
+ \lambda\ge0,\qquad \lambda'z_0=0,\qquad
+ \sup_{g\in G}\lambda'g
+ \le\lambda'g_0=-\|z_0-g_0\|^2<0.                                           \tag{44}
+\]
+Scaling \(\lambda\) in the lower dual sends its value to \(+\infty\), while scaling it in the upper dual sends its value to \(-\infty\).  Thus (44) is a dual recession certificate of branch emptiness, distinct from failure to locate a finite optimizer.  Finally, structural-zero cells do not enter \(\mathcal J\) by \(\texttt{ass:finite-grid}\).  None of the arguments assumes general position, nonzero scores, or unique optima, proving all stated degeneracy and complexity claims.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} Exact branch and endpoint certificates are essential near the zero-slack boundary. \textit{Gap.} Generic LP solvers compute values but do not expose this two-score finite certificate or prevent finite-multiplier confusion with infeasibility. \textit{Consumer.} A production implementation can certify the early-kill cases \(\varepsilon=-0.001,0,0.001\) without ad hoc tolerances changing the population target.
+
+\begin{proposition}[prop:bounded-range-reduction]\label{prop:bounded-range-reduction}
+If exact aggregate support equality is replaced by the standard bounded-range condition \(Y_a\in[\ell_a,u_a]\), every nonempty branch contributes its full attained interval regardless of \(\tau_{a,b}^r(P)\). If the score restrictions are also removed, the branch polytope is the full box and the resulting arm endpoints are the classical Manski worst-case bounds.
+\end{proposition}
+\begin{proof}
+Replace exact aggregate support equality by the single boundedness condition \(Y_a\in[\ell_a,u_a]\).  The converse construction in \(\texttt{lem:branch-reduction}\) then realizes every \(x_a\in\mathcal F_{a,b}^r(P)\), including a singleton box vertex.  A nonempty branch polytope is compact and convex, so its continuous linear arm-mean image is the entire attained interval
+\[
+ [L_{a,b}^r(P),U_{a,b}^r(P)],                                                  \tag{45}
+\]
+with no condition on \(\tau_{a,b}^r(P)\).  This proves that positive-slack pruning is caused by exact interval support, not by boundedness alone.
+
+If the score restrictions are also removed, the half-space inequalities disappear and
+\[
+ \mathcal F_{a,b}^r(P)=\prod_{j\in\mathcal M_a}[\ell_a,u_a].                  \tag{46}
+\]
+Because every \(p_j>0\), coordinatewise minimization and maximization of the arm-mean functional over (46) give
+\[
+ L_a=c_a+\ell_a\sum_{j\in\mathcal M_a}p_j,
+ \qquad
+ U_a=c_a+u_a\sum_{j\in\mathcal M_a}p_j.                                     \tag{47}
+\]
+Consistency fixes \(c_a\), and independent missing-cell completion attains every point between the two values in (47).  Hence (47) is both an outer bound and sharp; it is the classical bounded-outcome worst-case completion.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The reduction verifies that the support filter, rather than bounded outcomes alone, causes branch pruning. \textit{Gap.} This is a required sanity reduction, not a novelty claim. \textit{Consumer.} Readers can distinguish the exact-support contribution from standard worst-case bounded-outcome identification.
+
+\begin{openendedquestion}[oeq:boundary-adaptive-inference]\label{oeq:boundary-adaptive-inference}
+Theorem 3 certifies the following nonshrinking frontier for the binary-treatment fixed-grid SDC model: if \(\varepsilon_n>0\), \(\varepsilon_n=o(n^{-1/2})\), and \(\kappa_n=3\varepsilon_n/2\), then the smallest positive branch slack at \(P_{\varepsilon_n}\) is \(\kappa_n\), while the known-pair minimax Hausdorff risk over \(\{P_0,P_{\varepsilon_n}\}\) converges to \(3/20\) for both the arm and ATE closures.  Beyond this proved frontier, can \(\mathfrak H_{\mathrm{adapt}}\) be completed into a computable region \(\widetilde{\mathcal C}_n\) that is uniformly honest for \(\mathcal I_\Delta^r(P)\) over the binary-treatment fixed-grid model, contracts at a specified regular LP-value rate on classes separated from every branch-eligibility boundary by explicit slack, cell-mass, and, in LEI mode, variance margins, and attains a matching lower frontier?  The requested construction must state its loss or size criterion, critical value, and conditioning margins; no contraction exponent is asserted from slack alone.
+\end{openendedquestion}
+\par\smallskip\noindent \textit{Justification.} The remaining open content is an honest adaptation theorem beyond the now-certified \(o(n^{-1/2})\) nonshrinking slack frontier. \textit{Gap.} Existing projection, perturbed-LP, and generic linear-system results do not derive a completion-slack-indexed optimal rate after simultaneously controlling loss, cell masses, and LEI variances. \textit{Consumer.} A solution would replace conservative whole-set projection away from branch boundaries without contradicting the exact two-point impossibility theorem.
+
+\begin{theorem}[thm:boundary-root-n-minimax]\label{thm:boundary-root-n-minimax}
+Along \((P_\varepsilon)\) under SDC, for \(0<\varepsilon<3/110\),
+\[
+ \tau_{1,+}^{\mathrm{SDC}}(P_\varepsilon)=\frac{3\varepsilon}{2},\qquad
+ \tau_{1,-}^{\mathrm{SDC}}(P_\varepsilon)=\frac25-\frac{\varepsilon}{2},
+\]
+and both arm-zero branches have total slack one, attained at the missing-mean vector \((1/2,1/2)\).  Thus the minimum positive branch slack is \(3\varepsilon/2\).  The arm-one closure is \([3/5,4/5]\) at \(\varepsilon=0\) and
+\[
+ [3/10+\varepsilon/4,3/10+\varepsilon]
+ \mathbin{\cup}[3/5+\varepsilon/2,4/5+\varepsilon/4]
+\]
+for positive \(\varepsilon\), whereas the arm-zero closure is always \([1/4,3/4]\).  Consequently, the ATE closures are \([-3/20,11/20]\) at zero and \([-9/20+\varepsilon/4,11/20+\varepsilon/4]\) for positive \(\varepsilon\), and both set maps are Hausdorff-discontinuous at zero.  Moreover,
+\[
+ \chi^2(P_\varepsilon\Vert P_0)=\frac{\varepsilon^2}{4v_0}
+ =\frac{275}{21}\varepsilon^2,
+ \qquad v_0=\frac{21}{1100},
+\]
+and
+\[
+ \chi^2(P_\varepsilon^n\Vert P_0^n)
+ =\left(1+\frac{\varepsilon^2}{4v_0}\right)^n-1.
+\]
+For every \(q\in\{\mathrm{arm},\mathrm{ATE}\}\) and every deterministic positive sequence \(\varepsilon_n=o(n^{-1/2})\), the known-pair two-point decision problem satisfies
+\[
+ \lim_{n\to\infty}\inf_{\widehat I_n}
+ \max_{P\in\{P_0,P_{\varepsilon_n}\}}
+ \mathbb E_{P^n}\!\left[
+ \rho_H\!\left(\widehat I_n,\mathcal I_{\partial,q}(P)\right)\right]
+ =\frac{3}{20},
+\]
+where the infimum is over measurable estimators taking values in the nonempty compact subsets of \(\mathbb R\) and allowed to depend on the displayed two-point experiment.  The result is SDC-only and makes no LEI boundary assertion.
+\end{theorem}
+\begin{proof}
+Let \(f_0\) be the \(\operatorname{Beta}(3,7)\) density and write expectation under it as \(\mathbb E_0\).  Direct beta-integral calculation gives
+\[
+ \mu_0=\mathbb E_0Y=\frac3{10},\qquad
+ v_0=\mathbb E_0[(Y-\mu_0)^2]
+ =\frac{3\cdot7}{(3+7)^2(3+7+1)}=\frac{21}{1100}.                            \tag{48}
+\]
+The tilted density in \(\texttt{def:boundary-family}\) is
+\[
+ f_\varepsilon(y)=f_0(y)\left\{1+\varepsilon\frac{y-\mu_0}{v_0}\right\}.
+\]
+Its bracket integrates to one because \(\mathbb E_0(Y-\mu_0)=0\).  For \(0\le\varepsilon<3/110\), its minimum is at \(y=0\) and is positive; for \(-3/110<\varepsilon<0\), its minimum is at \(y=1\) and is positive.  Thus every tilted factual law has support \([0,1]\).  Moreover,
+\[
+ \mathbb E_\varepsilon Y
+ =\mu_0+\frac{\varepsilon}{v_0}\mathbb E_0[Y(Y-\mu_0)]
+ =\mu_0+\varepsilon,                                                         \tag{49}
+\]
+because \(\mathbb E_0[Y(Y-\mu_0)]=v_0\).  The other treated-cell factual mean is \(9/10\).
+
+The three cell masses give \(\mu_D=\mu_Z=1/2\).  Let \(x\in[0,1]\) be the missing mean of \(Y_1\) in cell \((D,Z)=(0,0)\).  Consistency and finite summation yield
+\[
+ \begin{aligned}
+ \theta_1&=\frac3{10}+\frac{\varepsilon}{4}+\frac{x}{2},\\
+ \operatorname{Cov}(Y_1,D)&=\frac3{20}+\frac{\varepsilon}{8}-\frac{x}{4},\\
+ \operatorname{Cov}(Y_1,Z)&=\frac{3\varepsilon}{8}-\frac{x}{4}.
+ \end{aligned}                                                               \tag{50}
+\]
+For \(0<\varepsilon<3/110\), both covariances in (50) are nonnegative exactly when \(0\le x\le3\varepsilon/2\).  This is the positive SDC branch, and \(3\varepsilon/2<1/2\), so
+\[
+ \tau_{1,+}^{\mathrm{SDC}}(P_\varepsilon)
+ =\max_{0\le x\le3\varepsilon/2}\min\{x,1-x\}
+ =\frac{3\varepsilon}{2}.                                                     \tag{51}
+\]
+Its mean image is \([3/10+\varepsilon/4,3/10+\varepsilon]\).  Both covariances are nonpositive exactly when
+\(3/5+\varepsilon/2\le x\le1\).  Since the lower endpoint exceeds \(1/2\),
+\[
+ \tau_{1,-}^{\mathrm{SDC}}(P_\varepsilon)
+ =\max_{3/5+\varepsilon/2\le x\le1}\min\{x,1-x\}
+ =\frac25-\frac{\varepsilon}{2},                                             \tag{52}
+\]
+and its mean image is \([3/5+\varepsilon/2,4/5+\varepsilon/4]\).  At \(\varepsilon=0\), the positive branch is the singleton box vertex \(x=0\) and is removed by \(\texttt{thm:support-eligibility}\); the negative branch gives \([3/5,4/5]\).
+
+For arm zero, let \(u,v\in[0,1]\) be the missing means in cells \((1,0)\) and \((1,2)\).  The observed uniform cell has mean \(1/2\), and direct summation gives
+\[
+ \begin{aligned}
+ \theta_0&=\frac14+\frac{u}{4}+\frac{v}{4},\\
+ \operatorname{Cov}(Y_0,D)&=-\frac18+\frac{u}{8}+\frac{v}{8},\\
+ \operatorname{Cov}(Y_0,Z)&=-\frac18-\frac{u}{8}+\frac{3v}{8}.
+ \end{aligned}                                                               \tag{53}
+\]
+The positive branch is the unit-square intersection with \(u+v\ge1\) and \(3v-u\ge1\), and its mean image is \([1/2,3/4]\).  The negative branch reverses both inequalities and has mean image \([1/4,1/2]\).  The point \((u,v)=(1/2,1/2)\) lies in both branches.  For every point in the unit square,
+\[
+ \min\{u,1-u\}+\min\{v,1-v\}\le1,
+\]
+with equality at \((1/2,1/2)\).  Therefore
+\[
+ \tau_{0,+}^{\mathrm{SDC}}(P_\varepsilon)
+ =\tau_{0,-}^{\mathrm{SDC}}(P_\varepsilon)=1,
+ \qquad
+ \mathcal I_0^{\mathrm{SDC}}(P_\varepsilon)=[1/4,3/4].                       \tag{54}
+\]
+Equations (51)--(54) show that the minimum positive slack over the four branches is \(3\varepsilon/2\).
+
+All factual conditional laws have support \([0,1]\).  For every eligible missing-cell mean, the construction in \(\texttt{thm:support-eligibility}\) supplies a full-support bounded kernel with that mean.  Setting factual potential outcomes equal to \(Y\) and applying the conditional product coupling of \(\texttt{prop:ate-product-coupling}\) yields simultaneous arm completions.  Consequently,
+\[
+ \mathcal I_1^{\mathrm{SDC}}(P_0)=[3/5,4/5],
+\]
+and, for positive \(\varepsilon\),
+\[
+ \mathcal I_1^{\mathrm{SDC}}(P_\varepsilon)
+ =[3/10+\varepsilon/4,3/10+\varepsilon]
+ \mathbin{\cup}[3/5+\varepsilon/2,4/5+\varepsilon/4].                       \tag{55}
+\]
+Subtracting (54) gives
+\[
+ \mathcal I_\Delta^{\mathrm{SDC}}(P_0)=[-3/20,11/20].                        \tag{56}
+\]
+For positive \(\varepsilon\), the two difference intervals are
+\[
+ [-9/20+\varepsilon/4,1/20+\varepsilon]
+ \quad\text{and}\quad
+ [-3/20+\varepsilon/2,11/20+\varepsilon/4].                                  \tag{57}
+\]
+They overlap, so their union is \([-9/20+\varepsilon/4,11/20+\varepsilon/4]\).
+
+Let \(I_{q,0}=\mathcal I_{\partial,q}(P_0)\) and \(I_{q,\varepsilon}=\mathcal I_{\partial,q}(P_\varepsilon)\).  For the arm map, the left endpoint of the new low component is at distance \(3/10-\varepsilon/4\) from the old interval, while all other directed distances are at most \(\varepsilon/2\).  For the ATE map, (56)--(57) are intervals whose lower endpoints differ by \(3/10-\varepsilon/4\) and whose upper endpoints differ by \(\varepsilon/4\).  Since \(\varepsilon<3/110\), in both cases
+\[
+ d_H(I_{q,0},I_{q,\varepsilon})
+ =\frac3{10}-\frac{\varepsilon}{4}.                                           \tag{58}
+\]
+The limit is \(3/10\), proving Hausdorff discontinuity.
+
+For the statistical calculation, let \(L_\varepsilon=dP_\varepsilon/dP_0\).  Only cell \((D,Z)=(1,2)\), of \(P_0\)-probability \(1/4\), changes; on it
+\(L_\varepsilon=1+\varepsilon(Y-\mu_0)/v_0\), and elsewhere \(L_\varepsilon=1\).  Hence
+\[
+ \begin{aligned}
+ \chi^2(P_\varepsilon\Vert P_0)
+ &=\mathbb E_{P_0}(L_\varepsilon-1)^2\\
+ &=\frac14\frac{\varepsilon^2}{v_0^2}\mathbb E_0[(Y-\mu_0)^2]
+ =\frac{\varepsilon^2}{4v_0}
+ =\frac{275}{21}\varepsilon^2.                                               \tag{59}
+ \end{aligned}
+\]
+Independence from \(\texttt{ass:iid}\) gives the exact product identity
+\[
+ \begin{aligned}
+ 1+\chi^2(P_\varepsilon^n\Vert P_0^n)
+ &=\mathbb E_{P_0^n}\prod_{i=1}^nL_\varepsilon(O_i)^2\\
+ &=\{\mathbb E_{P_0}L_\varepsilon(O)^2\}^n
+ =\left(1+\frac{\varepsilon^2}{4v_0}\right)^n.                              \tag{60}
+ \end{aligned}
+\]
+For \(Q\ll P\), Cauchy--Schwarz gives
+\[
+ \operatorname{TV}(Q,P)
+ =\frac12\mathbb E_P\left|\frac{dQ}{dP}-1\right|
+ \le\frac12\sqrt{\chi^2(Q\Vert P)}.                                        \tag{61}
+\]
+If \(\varepsilon_n>0\) and \(\varepsilon_n=o(n^{-1/2})\), then \(n\varepsilon_n^2\to0\); equations (60)--(61) and \((1+t)^n\le e^{nt}\) imply
+\[
+ \operatorname{TV}(P_{\varepsilon_n}^n,P_0^n)\longrightarrow0.               \tag{62}
+\]
+
+It remains to prove the exact minimax limit.  Fix \(q\), put \(A_n=I_{q,0}\), \(B_n=I_{q,\varepsilon_n}\), and \(\delta_n=d_H(A_n,B_n)\).  Eventually \(\delta_n<1\), so \(\rho_H(A_n,B_n)=\delta_n\).  For two dominated laws \(Q_0,Q_1\), their common submeasure with density \(\min\{dQ_0,dQ_1\}\) has mass \(1-\operatorname{TV}(Q_0,Q_1)\).  Integrating the triangle inequality for the metric \(\rho_H\) against this submeasure gives every estimator \(\widehat I_n\) the bound
+\[
+ \max_{i=0,1}\mathbb E_{Q_i}\rho_H(\widehat I_n,I_i)
+ \ge\frac{\rho_H(I_0,I_1)}2
+       \{1-\operatorname{TV}(Q_0,Q_1)\}.                                    \tag{63}
+\]
+With \((Q_0,Q_1)=(P_0^n,P_{\varepsilon_n}^n)\), equations (58), (62), and (63) give a limiting lower bound \(3/20\).
+
+For the matching upper bound, for nonempty compact \(A,B\subset\mathbb R\), let \(\delta=d_H(A,B)\) and define
+\[
+ M(A,B)=\left\{\frac{a+b}{2}:a\in A,\ b\in B,\ |a-b|\le\delta\right\}.     \tag{64}
+\]
+Compactness makes this set nonempty and compact.  Every point of (64) is within \(\delta/2\) of both \(A\) and \(B\).  Conversely, each point of either original set has a nearest point in the other set at distance at most \(\delta\), and the corresponding midpoint lies in (64).  Hence both Hausdorff distances are at most \(\delta/2\); the triangle inequality forces equality:
+\[
+ d_H(A,M(A,B))=d_H(B,M(A,B))=\frac\delta2.                                   \tag{65}
+\]
+In the known-pair decision problem, the constant estimator \(M(A_n,B_n)\) is measurable and has maximal risk \(\delta_n/2\).  By (58), its risk tends to \(3/20\).  Combined with (63), this proves the asserted exact asymptotic minimax value.  Finally, (51) gives the nonshrinking frontier \(\min\tau=3\varepsilon_n/2=o(n^{-1/2})\).  Every branch and covariance calculation above is SDC-specific; no LEI boundary conclusion is asserted.
+\end{proof}
+\par\smallskip\noindent \textit{Justification.} The theorem identifies the exact statistical cost of a disappearing support-eligible branch through a root-\(n\) indistinguishable SDC experiment. \textit{Gap.} Generic LP nonregularity does not provide this legal SDC family, its exact branch slacks and set jump, or the exact \(3/20\) known-pair minimax limit. \textit{Consumer.} Inference procedures can be screened against a certified nonshrinking frontier even when the smallest positive branch slack is \(o(n^{-1/2})\).
+
+\begin{proposition}[prop:parametric-rational-robustness]\label{prop:parametric-rational-robustness}
+In the family \(P^{\rho,s}\), the strictness witness is locally open rather than isolated.  At \((\rho,s)=(79/100,17/20)\), the positive and negative branch slacks satisfy
+\[
+ \tau_{1,+}^{\mathrm{SDC}}\geq\frac{19969}{49500},
+ \qquad
+ \tau_{1,-}^{\mathrm{SDC}}\geq\frac{2923}{16500}.
+\]
+The points \((x,y)=(1/2,3/4)\) and \((19/20,4/5)\) satisfy both score inequalities strictly in the positive and negative directions, respectively.  The endpoint multipliers \((0,25/11)'\) and \((100/47,0)'\) violate the normalized-simplex constraint by the positive \(\ell_1\)-margins \(14/11\) and \(53/47\).  The lower and upper gaps relative to the normalized outer union are, respectively,
+\[
+ \frac{711}{1100}-0.496024=\frac{206717}{1375000}>0,
+ \qquad
+ 0.872824-\frac{911}{1100}=\frac{61383}{1375000}>0.
+\]
+Moreover, one may take \(\delta=1/100\): whenever \((\rho,s)\in(0,1)^2\) and
+\(\max\{|\rho-79/100|,|s-17/20|\}<1/100\), both SDC branches are aggregate-support eligible and
+\[
+ \mathcal I_1^{\mathrm{SDC}}(P^{\rho,s})
+ =\left[\frac{9\rho}{11},\frac{9\rho}{11}+\frac{2}{11}\right]
+ \subsetneq \mathcal I_{BK}^{\rho,s}.
+\]
+At the center this recovers the exact rational closure \([711/1100,911/1100]\).
+\end{proposition}
+\begin{proof}
+Set
+\[
+ q(\rho,s)=\frac9{25}\rho+\frac{11}{100}s.
+\]
+At \((\rho,s)=(79/100,17/20)\), \(\texttt{def:parametric-strict-family}\) gives the treated laws \(\operatorname{Beta}(79,21)\) and \(\operatorname{Beta}(17,3)\), so \(P^{79/100,17/20}=P^\star\).  The cell masses, \(\mu_D=47/100\), \(\mu_Z=14/25\), and missing-cell scores are constant throughout the family.  For missing means \((x,y)\in[0,1]^2\), direct finite-cell expansion gives
+\[
+ \begin{aligned}
+ \theta_1(\rho,s;x,y)
+ &=q(\rho,s)+\frac2{25}x+\frac9{20}y,\\
+ C_D(\rho,s;x,y)
+ &=\frac{53}{100}q(\rho,s)
+   -\frac{47}{100}\left(\frac2{25}x+\frac9{20}y\right),\\
+ C_Z(\rho,s;x,y)
+ &=\frac{11}{100}s-\frac{14}{25}q(\rho,s)
+   -\frac{28}{625}x+\frac{99}{500}y.
+ \end{aligned}                                                               \tag{66}
+\]
+
+At the center, the first and fourth endpoint vectors from \(\texttt{prop:rational-certificates}\) permit slack choices
+\[
+ (t_x,t_y)=\left(0,\frac{19969}{49500}\right),
+ \qquad
+ (t_x,t_y)=\left(0,\frac{2923}{16500}\right),                                \tag{67}
+\]
+so \(\tau_{1,+}^{\mathrm{SDC}}\ge19969/49500\) and \(\tau_{1,-}^{\mathrm{SDC}}\ge2923/16500\).  Substitution into (66) also gives the strict feasibility margins
+\[
+\begin{array}{c|cc}
+(x,y)&C_D&C_Z\\ \hline
+(1/2,3/4)&11431/500000&997/125000\\
+(19/20,4/5)&-4633/1000000&-571/250000
+\end{array}.                                                                  \tag{68}
+\]
+The unrestricted multiplier margins are
+\[
+ \left\|\left(0,\frac{25}{11}\right)\right\|_1-1=\frac{14}{11},
+ \qquad
+ \left\|\left(\frac{100}{47},0\right)\right\|_1-1=\frac{53}{47}.          \tag{69}
+\]
+Finally, the exact endpoints and \(\texttt{def:published-outer}\) give
+\[
+ \frac{711}{1100}-0.496024=\frac{206717}{1375000}>0,
+ \qquad
+ 0.872824-\frac{911}{1100}=\frac{61383}{1375000}>0.                           \tag{70}
+\]
+
+We now prove persistence on the claimed neighborhood.  Define
+\[
+ z(\rho,s)=\frac{56}{55}\rho-\frac{11}{45}s,
+ \qquad
+ d(\rho,s)=\frac{53}{2115}(36\rho+11s),                                      \tag{71}
+\]
+and consider
+\[
+\begin{array}{c|cc}
+&x&y\\ \hline
+L_+&0&z(\rho,s)\\
+U_+&0&d(\rho,s)\\
+L_-&1&d(\rho,s)-8/45\\
+U_-&1&z(\rho,s)+112/495.
+\end{array}                                                                   \tag{72}
+\]
+At the center, (72) is the rational certificate list.  Substitution into (66) gives, row by row,
+\[
+ \begin{array}{c|cc}
+ L_+&(121s-27\rho)/1100&0\\
+ U_+&0&(121s-27\rho)/1175\\
+ L_-&0&(121s-27\rho-94)/1175\\
+ U_-&(121s-27\rho-94)/1100&0.
+ \end{array}                                                                  \tag{73}
+\]
+At the center, the nonzero entries in (73) are
+\[
+ \frac{1019}{13750},\quad
+ \frac{2038}{29375},\quad
+ -\frac{312}{29375},\quad
+ -\frac{78}{6875}.                                                           \tag{74}
+\]
+Let \(\xi=\max\{|\rho-79/100|,|s-17/20|\}\).  The numerator \(121s-27\rho\) changes by at most \(148\xi\); its center value is \(2038/25\), while its distance below \(94\) is \(312/25\).  Thus all signs in (73) persist for \(\xi<1/100\).  The perturbations of \(z\) and \(d\) are bounded by
+\[
+ |z-z_0|\le\frac{125}{99}\xi,
+ \qquad
+ |d-d_0|\le\frac{53}{45}\xi.                                                \tag{75}
+\]
+At the center, the smallest distance of any \(y\)-coordinate in (72) from its nearest box endpoint is
+\[
+ \min\left\{\frac{19969}{49500},\frac{11213}{211500},
+              \frac{16271}{70500},\frac{2923}{16500}\right\}
+ =\frac{11213}{211500}.                                                       \tag{76}
+\]
+For \(\xi<1/100\), both bounds in (75) are smaller than (76).  Hence every row of (72) remains in the unit box with the required branch signs, and each branch has an interior \(y\)-coordinate.  By \(\texttt{thm:support-eligibility}\), both branches remain aggregate-support eligible.
+
+The fixed multipliers \(\lambda_Z=(0,25/11)'\) and \(\lambda_D=(100/47,0)'\) have box coefficients depending only on the fixed missing-cell scores.  The rows \(L_+,U_-\) in (72) make the instrument moment zero, and the rows \(U_+,L_-\) make the treatment moment zero.  Thus the same primal--dual equalities as in \(\texttt{prop:rational-certificates}\), together with \(\texttt{thm:cone-endpoint-sharpness}\), prove that (72) contains the four branch optimizers.  Substitution into the first line of (66) gives
+\[
+ \begin{aligned}
+ L_{1,+}^{\mathrm{SDC}}(P^{\rho,s})&=\frac{9\rho}{11},\\
+ U_{1,+}^{\mathrm{SDC}}(P^{\rho,s})&=\frac{36\rho+11s}{47},\\
+ L_{1,-}^{\mathrm{SDC}}(P^{\rho,s})&=\frac{36\rho+11s}{47},\\
+ U_{1,-}^{\mathrm{SDC}}(P^{\rho,s})&=\frac{9\rho}{11}+\frac2{11}.
+ \end{aligned}                                                               \tag{77}
+\]
+The two intervals meet, and \(\texttt{def:arm-closure}\) therefore yields
+\[
+ \mathcal I_1^{\mathrm{SDC}}(P^{\rho,s})
+ =\left[\frac{9\rho}{11},\frac{9\rho}{11}+\frac2{11}\right].              \tag{78}
+\]
+The stated neighborhood lies in \((0,1)^2\); all beta shape parameters are positive there, so the factual conditional laws have support \([0,1]\), as required by \(\texttt{ass:factual-support}\).
+
+It remains to prove stable strict containment.  Let \(G_{L,b}(\lambda;\rho,s)\) and \(G_{U,b}(\lambda;\rho,s)\) denote the normalized lower and upper objectives in \(\texttt{def:parametric-normalized-outer}\).  Their box terms and scores are fixed, while \(c_1\) and \(h_1^{\mathrm{SDC}}\) are affine in \((\rho,s)\).  Since \(\|\lambda\|_1\le1\) on the compact set \(\Lambda_1\),
+\[
+ \sup_{\lambda\in\Lambda_1}
+ |G_{\cdot,b}(\lambda;\rho,s)-G_{\cdot,b}(\lambda;\rho_0,s_0)|
+ \le |c_1-c_{1,0}|+\|h_1^{\mathrm{SDC}}-h_{1,0}^{\mathrm{SDC}}\|_\infty.    \tag{79}
+\]
+The inequalities \(|\sup f-\sup g|\le\sup|f-g|\) and \(|\inf f-\inf g|\le\sup|f-g|\) show directly that every normalized branch endpoint is continuous.  More precisely, (66) gives
+\[
+ |c_1-c_{1,0}|\le\frac{47}{100}\xi,
+ \qquad
+ \|h_1^{\mathrm{SDC}}-h_{1,0}^{\mathrm{SDC}}\|_\infty\le\frac14\xi,         \tag{80}
+\]
+so every normalized branch endpoint, and hence the minimum lower and maximum upper normalized endpoints, moves by at most \(18\xi/25\).  Either outer exact endpoint in (78) moves by at most \(9\xi/11\).  Restricting the dual multiplier domain from \(\mathbb R_+^2\) to \(\Lambda_1\) decreases each lower supremum and increases each upper infimum, so every exact branch interval is contained in its normalized counterpart.  By (70), either strict global gap can decrease by at most
+\[
+ \left(\frac{18}{25}+\frac9{11}\right)\xi=\frac{423}{275}\xi.               \tag{81}
+\]
+For \(\xi<1/100\), even the smaller center gap remains at least
+\[
+ \frac{61383}{1375000}-\frac{423}{27500}
+ =\frac{40233}{1375000}>0.                                                    \tag{82}
+\]
+Thus the normalized union contains the exact interval and still has points strictly below and above it, proving
+\(\mathcal I_1^{\mathrm{SDC}}(P^{\rho,s})\subsetneq\mathcal I_{BK}^{\rho,s}\) throughout the claimed neighborhood.  Substituting \(\rho=79/100\) in (78) recovers \([711/1100,911/1100]\).
+\end{proof}
+
+\section{Interpretation}
+
+The causal objects are the identified sets of \(\theta_a(Q)\) and \(\Delta_{d,e}(Q)\) over compatible full-data laws. The LP unions are observed-law functionals proved to equal the closures of those sets. Positive slack is an exact aggregate-support eligibility condition, not a numerical tolerance. Conditional product coupling proves that armwise endpoint approximations coexist on one full-data law and, when the published all-arm class is nonempty, that untargeted-arm restrictions do not change the target identified sets.
+
+\section*{Technical internal limitation (diagnostic only)}
+
+Exact decisions at \(\tau_{a,b}^r(P)=0\) require rational arithmetic, interval certificates, or explicit primal--dual tolerances. The local strictness neighborhood relies on finite-LP positive margins and does not assert global robustness. The exact \(3/20\) frontier concerns the known two-point SDC experiment and rules out shrinking along \(\kappa_n=o(n^{-1/2})\); it does not determine an adaptive rate from slack alone. The coverage construction is conservative and binary-treatment, and may require global optimization over positive-mass primitive pairs. Fixed grids, known support endpoints, and independent sampling are maintained; LEI boundary behavior, covariate adjustment, clustered sampling, estimated supports, empirical sign reversal, and unrestricted contraction remain outside scope.
+
+\section{Honest scope}
+
+The identification kernel is the exact support filter, sharp unrestricted-cone endpoints, and joint target-arm completion. For multivalued treatment, equivalence with Ban--Kédagni's all-arm class is claimed only when that class is nonempty; it is automatic on the binary submodel. The rational four-cell center and its open beta neighborhood, and the three-cell boundary family, are population results rather than empirical findings. The discontinuity and minimax theorem is SDC-only. Finite-sample projection covers the binary-treatment exact set, while a fully adaptive procedure and rate beyond the certified \(o(n^{-1/2})\) nonshrinking frontier remain open.
+
+\begin{thebibliography}{99}
+
+  \bibitem{BanKedagni2022} Ban, K. and D. Kédagni (2022). Nonparametric bounds on treatment effects with imperfect instruments. \emph{The Econometrics Journal} 25, 477--493.
+
+  \bibitem{KedagniLiMourifie2018} Kédagni, D., L. Li, and I. Mourifié (2018). Bounding average returns to schooling using unconditional moment restrictions. Iowa State University Department of Economics General Staff Paper 201812290800001086, public non-archival working paper.
+
+  \bibitem{NevoRosen2012} Nevo, A. and A. M. Rosen (2012). Identification with imperfect instruments. \emph{Review of Economics and Statistics} 94, 659--671.
+
+  \bibitem{Park2025} Park, K. (2025). Sharp bounds on average treatment effects under monotone instrumental variables and monotone treatment response. SSRN working paper 5131175.
+
+  \bibitem{KaidoMolinariStoye2019} Kaido, H., F. Molinari, and J. Stoye (2019). Confidence intervals for projections of partially identified parameters. \emph{Econometrica} 87, 1397--1432.
+
+  \bibitem{ChoRussell2024} Cho, J. and T. M. Russell (2024). Simple inference on functionals of set-identified parameters defined by linear moments. \emph{Journal of Business and Economic Statistics}.
+
+  \bibitem{FangSantos2019} Fang, Z. and A. Santos (2019). Inference on directionally differentiable functions. \emph{Review of Economic Studies} 86, 377--412.
+
+  \bibitem{BaiEtAl2026} Bai, Y., K. Ponomarev, M. Tabord-Meehan, A. Santos, A. M. Shaikh, and A. Torgovitsky (2026). Inference for linear systems with unknown coefficients. arXiv:2604.24904.
+
+  \bibitem{GoffMbakop2026} Goff, L. and E. Mbakop (2026). Testing the solvability of systems of linear inequalities. arXiv:2506.06776.
+
+  \bibitem{LevisEtAl2025} Levis, A. W., M. Bonvini, Z. Zeng, L. Keele, and E. H. Kennedy (2025). Covariate-assisted bounds on causal effects with instrumental variables. \emph{Journal of the Royal Statistical Society Series B}.
+
+  \bibitem{Lee2024} Lee, S. (2024). Partial identification and inference for conditional distributions of treatment effects. \emph{Journal of Applied Econometrics}.
+
+  \bibitem{Yu2025} Yu, Z. (2025). Air pollution, workplace safety, and productivity: evidence beyond LATE. Public working paper.
+
+  \bibitem{Manski1990} Manski, C. F. (1990). Nonparametric bounds on treatment effects. \emph{American Economic Review Papers and Proceedings} 80, 319--323.
+
+  \bibitem{Hoeffding1963} Hoeffding, W. (1963). Probability inequalities for sums of bounded random variables. \emph{Journal of the American Statistical Association} 58, 13--30.
+
+  \bibitem{ChernozhukovLeeRosen2013} Chernozhukov, V., S. Lee, and A. M. Rosen (2013). Intersection bounds: estimation and inference. \emph{Econometrica} 81, 667--737.
+
+\end{thebibliography}
+
+\end{document}

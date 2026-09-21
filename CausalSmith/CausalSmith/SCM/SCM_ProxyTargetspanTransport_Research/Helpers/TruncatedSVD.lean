@@ -1,17 +1,20 @@
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.InnerProductSpace.SingularValues
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.Data.Matrix.Mul
-import Causalean.Mathlib.Analysis.RankOneWaldSmoothness
+module
+public import Mathlib.Analysis.Matrix.Spectrum
+public import Mathlib.Analysis.InnerProductSpace.SingularValues
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.Data.Matrix.Mul
+public import Causalean.Mathlib.Analysis.RankOneWaldSmoothness
 
 set_option linter.unusedDecidableInType false
 set_option linter.unusedFintypeInType false
 
-/-! A finite Gram-spectral construction of the rank-truncated matrix and pseudoinverse. -/
-
 open scoped BigOperators
 open Matrix
 open scoped Matrix.Norms.Elementwise
+
+/-! A finite Gram-spectral construction of the rank-truncated matrix and pseudoinverse. -/
+
+@[expose] public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
@@ -26,16 +29,16 @@ def RankIndex (E W : Type*) [Fintype E] [Fintype W] :=
 noncomputable def gramMatrix (H : Matrix W E ℝ) : Matrix W W ℝ := H * H.transpose
 
 omit [Fintype W] [DecidableEq E] [DecidableEq W] in
-private lemma gramMatrix_isHermitian (H : Matrix W E ℝ) : (gramMatrix H).IsHermitian := by
+lemma gramMatrix_isHermitian (H : Matrix W E ℝ) : (gramMatrix H).IsHermitian := by
   unfold Matrix.IsHermitian gramMatrix
   ext i j
   simp [Matrix.mul_apply, mul_comm]
 
-private noncomputable def spectralEquiv (W : Type*) [Fintype W] :
+noncomputable def spectralEquiv (W : Type*) [Fintype W] :
     Fin (Fintype.card W) ≃ W :=
   Fintype.equivOfCardEq (Fintype.card_fin _)
 
-private noncomputable def spectralIndex (w : W) : Fin (Fintype.card W) :=
+noncomputable def spectralIndex (w : W) : Fin (Fintype.card W) :=
   (spectralEquiv W).symm w
 
 /-- [The rank index and matrix](hyp:r0,H) determine [the leading-eigenspace selector](goal) by

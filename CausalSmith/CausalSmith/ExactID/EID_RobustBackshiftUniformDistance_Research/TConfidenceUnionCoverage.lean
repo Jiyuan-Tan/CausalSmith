@@ -1,5 +1,6 @@
-import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ConfidenceUnion
-import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
+module
+public import CausalSmith.ExactID.EID_RobustBackshiftUniformDistance_Research.Helpers.ConfidenceUnion
+public import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 
 /-!
 # Set-theoretic confidence-union coverage
@@ -7,6 +8,8 @@ import Mathlib.MeasureTheory.Measure.MeasureSpaceDef
 Honest-slot simultaneous covariance coverage implies inclusion of the true structural matrix in
 the compatibility union, with a measurability-conditional probability corollary.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.RobustBackshiftUniformDistance
 

@@ -1,10 +1,15 @@
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessData
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.FiniteConeDuality
-import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
-import Mathlib.Tactic.FinCases
-import Mathlib.Tactic.NormNum.Basic
+module
+public meta import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.WitnessData
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.Helpers.FiniteConeDuality
+public import CausalSmith.Experimentation.EXP_BinaryTruthboundComplete_Research.TObservableMobius
+public meta import Mathlib.Data.Fintype.Pi
+public meta import Mathlib.Data.Fintype.Powerset
+public import Mathlib.Tactic.FinCases
+public import Mathlib.Tactic.NormNum.Basic
 
 /-! Finite certificate interfaces for the 64 witness schedules. -/
+
+@[expose] public section
 
 open scoped BigOperators
 open Finset Set

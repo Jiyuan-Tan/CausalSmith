@@ -3,10 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# TRAE-DR asymptotic-linearity criterion
+# Abstract TRAE-DR asymptotic-linearity criterion
 
-This file states `thm:est-trae-dr-al-criterion` from
-`doc/basic_concepts/po/estimation/trae_inverse_problems.tex`.
+This file proves an abstract, unconditional remainder-transfer criterion. It
+does not encode fold-A training, primal or dual L² consistency, or the
+conditional and operator-side sufficient conditions in the source note.
 
 The headline statement: under an abstract sufficient bundle of range,
 mixed-bias, empirical-process, and finite-variance conditions, the TRAE-DR
@@ -14,12 +15,11 @@ estimator is asymptotically linear at `θ₀` with influence function
 `ρ₀(w) := φ_{h₀, q₀}(w) − θ₀`, indexed over the estimation fold
 `split.foldB`.
 
-The bundled hypothesis structure `TRAEDRRemainderHyps` factors:
+The bundled hypothesis structure `TRAEDRRemainderHyps` records exactly the
+conditions consumed by this expansion:
 
-* `primal_l2_consistency` — `ĥ_n(X)` converges to `h₀(X)` in L² in probability;
-* `dual_l2_consistency`   — `q̂_n(Z)` converges to `q₀(Z)` in L² in probability;
 * `candidate_mem` — `(ĥ_n, q̂_n)` lie in the candidate sets `(Hbar, Qbar)`;
-* `mixed_bias`   — the conditional mixed-bias integral, scaled by
+* `mixed_bias`   — the mixed-bias integral, scaled by
                    `√|B(n)|`, is `o_p(1)`;
 * `ep_remainder` — empirical-process / mean-squared-continuity remainder
                    from replacing `(h₀, q₀)` by `(ĥ_n, q̂_n)` in the
@@ -31,27 +31,33 @@ The mean-zero condition `E[ρ₀] = 0` is derived below from the primal and
 dual moment identities by `mean_zero_of_DualSolution`; it is not an
 independent hypothesis.
 
-A Cauchy–Schwarz sufficient condition `mixed_bias_sufficient` is also
-stated (the displayed `min{·,·}` form in the note), abstracting over a
-deterministic upper-bound function.  The concrete conditional-expectation
-operator `T`, its adjoint `T*`, and spectral calculus support live in the
-`NPIV/Operator` modules; this DR criterion deliberately depends only on the
-resulting scalar mixed-bias bound.
+A generic order-transfer lemma
+`mixed_bias_isLittleOp_of_pointwise_bound` is also stated: it turns any
+pointwise upper bound whose scaled version is `o_p(1)` into the required
+mixed-bias rate. It does not prove the note's two operator-side
+Cauchy–Schwarz bounds. The concrete conditional-expectation operator `T`, its
+adjoint `T*`, and spectral calculus support live in the `NPIV/Operator`
+modules; this DR criterion deliberately depends only on a supplied scalar
+mixed-bias bound.
 -/
 
-import Causalean.Estimation.NPIV.MixedBias
-import Causalean.Estimation.NPIV.DR.Estimator
-import Causalean.Stat.CLT.AsymptoticLinearity
-import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
-import Causalean.Stat.SampleSplit
-import Causalean.Stat.Limit.Convergence
-import Causalean.Stat.SampleSplit.PartialFoldCLT
+module
+public import Causalean.Estimation.NPIV.MixedBias
+public import Causalean.Estimation.NPIV.DR.Estimator
+public import Causalean.Stat.CLT.AsymptoticLinearity
+public import Causalean.Stat.SampleSplit.FoldBEmpiricalProcess
+public import Causalean.Stat.SampleSplit
+public import Causalean.Stat.Limit.Convergence
+public import Causalean.Stat.SampleSplit.PartialFoldCLT
 
 /-!
-States and proves asymptotic linearity for the doubly robust NPIV estimator
-under bundled oracle-score and remainder conditions. The module identifies the
-leading score term and controls the nuisance remainder.
+States and proves an asymptotic-linearity criterion for the doubly robust NPIV
+estimator.  Its hypothesis bundle contains exactly the candidate-membership,
+mixed-bias, empirical-process, and finite-variance conditions used to isolate
+the leading oracle-score term.
 -/
+
+@[expose] public section
 
 namespace Causalean
 namespace Estimation
@@ -62,11 +68,13 @@ open MeasureTheory ProbabilityTheory Filter Topology Causalean.Stat
 
 /-! ## Oracle score -/
 
-/-- For [a measurable sample space](hyp:Ω) with [a measure](hyp:μ), [an inverse-problem system](hyp:S), [a dual nuisance function on the instrument space](hyp:q₀), and [an observation](hyp:w), [the oracle score](goal) is the doubly robust pseudo-outcome formed from the system's primal nuisance function and the supplied dual nuisance function at that observation, minus the system's scalar target.
+/-- [The oracle score](goal) for [an inverse-problem system on a measured sample
+space](hyp:Ω,μ,S), [a dual nuisance](hyp:q₀), and [an observation](hyp:w) is the true-primal
+pseudo-outcome minus the scalar target.
 
 Oracle score `ρ₀(w) := φ_{h₀, q₀}(w) − θ₀`.
 
-This is the influence function in `thm:est-trae-dr-al-criterion`. -/
+This is the oracle score used by the abstract asymptotic-linearity criterion. -/
 noncomputable def ρ₀
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     (S : InverseProblemSystem Ω μ) (q₀ : S.𝒵 → ℝ) (w : S.𝒲) : ℝ :=
@@ -116,16 +124,11 @@ theorem mean_zero_of_DualSolution
 
 /-! ## Bundled sufficient remainder hypotheses -/
 
-/-- The **TRAE-DR remainder hypotheses** bundle the sufficient conditions under which the
-doubly-robust TRAE estimator, built from primal nuisance estimators `ĥ_n` and dual nuisance
-estimators `q̂_n` over a cross-fitting split, is asymptotically linear: [the fitted primal
-nuisance is L²-consistent for the truth in probability](hyp:primal_l2_consistency), [likewise
-for the fitted dual nuisance](hyp:dual_l2_consistency), [both fitted nuisances stay in their
-respective candidate classes at every sample size and outcome](hyp:candidate_mem), [the
-√-scaled mixed-bias integral between the two nuisance errors is asymptotically
-negligible](hyp:mixed_bias), [the centered empirical-process remainder from plugging the
-fitted nuisances into the oracle score vanishes at the √-rate](hyp:ep_remainder), and [the
-oracle score has finite variance under the observation law](hyp:finite_var). -/
+/-- The **TRAE-DR remainder hypotheses** state that [both fitted nuisances stay in their
+candidate classes](hyp:candidate_mem), [their √-scaled mixed-bias integral is
+negligible](hyp:mixed_bias), [the centered plug-in empirical-process remainder vanishes at
+the √-rate](hyp:ep_remainder), and [the oracle score has finite variance](hyp:finite_var).
+These are precisely the inputs consumed by the asymptotic-linearity criterion. -/
 structure TRAEDRRemainderHyps
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     [IsProbabilityMeasure μ]
@@ -137,22 +140,6 @@ structure TRAEDRRemainderHyps
     (split : OneShotSplit sample)
     (h_hat : ℕ → Ω → (S.𝒳 → ℝ))
     (q_hat : ℕ → Ω → (S.𝒵 → ℝ)) : Prop where
-  /-- (i) Primal L² consistency in probability:
-      `‖ĥ_n(X) − h₀(X)‖_{L²(μ)} →ₚ 0`. -/
-  primal_l2_consistency :
-    Tendsto_inProb
-      (fun n ω =>
-        (eLpNorm
-          (fun ω' => h_hat n ω (S.xOf (S.W ω')) - S.h₀ (S.xOf (S.W ω'))) 2 μ).toReal)
-      (fun _ => 0) μ
-  /-- (i) Dual L² consistency in probability:
-      `‖q̂_n(Z) − q₀(Z)‖_{L²(μ)} →ₚ 0`. -/
-  dual_l2_consistency :
-    Tendsto_inProb
-      (fun n ω =>
-        (eLpNorm
-          (fun ω' => q_hat n ω (S.zOf (S.W ω')) - q₀ (S.zOf (S.W ω'))) 2 μ).toReal)
-      (fun _ => 0) μ
   /-- Support condition for the formal mixed-bias identity: the fitted primal
       and dual nuisance functions lie in the candidate classes for every
       sample size and outcome. -/
@@ -189,22 +176,21 @@ structure TRAEDRRemainderHyps
 
 /-! ## Headline asymptotic-linearity theorem -/
 
-/-- **TRAE-DR asymptotic-linearity criterion** — `thm:est-trae-dr-al-criterion`. Fix a linear
-inverse-problem functional system `S`, an i.i.d. sample, and a one-shot cross-fitting split,
-and suppose [`q₀` solves the associated dual moment equation](hyp:hq₀). Given [primal nuisance
-estimators `ĥ_n`, indexed by sample size and outcome](hyp:h_hat), paired with dual nuisance
-estimators satisfying the bundled L²-consistency, candidate-membership, mixed-bias, and
-empirical-process remainder conditions, together with [the law bridge identifying the
-pushforward of `μ` along the observation map `W` with the observation law `P_W`](hyp:h_law_W)
-and [measurability of the oracle score `ρ₀`](hyp:hρ₀_meas), [the TRAE-DR estimator is
-asymptotically linear at the structural target `θ₀`, with mean-zero, finite-variance
-influence function `ρ₀ := φ_{h₀,q₀} − θ₀` and vanishing √n-rescaled remainder, indexed along
-the estimation folds](goal).
+/-- **Abstract TRAE-DR asymptotic-linearity criterion.** For [an inverse-problem
+system](hyp:S), [a dual solution](hyp:hq₀), [an i.i.d. sample](hyp:sample), [a one-shot
+split](hyp:split), [primal nuisance functions](hyp:h_hat), and [dual nuisance
+functions](hyp:q_hat), suppose [the candidate-membership, unconditional mixed-bias,
+empirical-process, and finite-variance conditions hold](hyp:_hyps). Given [the observation-law
+bridge](hyp:h_law_W) and [measurability of the oracle score](hyp:hρ₀_meas), [the TRAE-DR
+estimator is asymptotically linear at the structural target, with the oracle score as its
+mean-zero, finite-variance influence function](goal).
 
 Conclusion: the TRAE-DR estimator is asymptotically linear at `θ₀` with
 influence function `ρ₀`, indexed over the estimation fold `split.foldB`.
 
 The sufficient remainder hypotheses are supplied by `TRAEDRRemainderHyps`.
+They directly assume unconditional mixed-bias and empirical-process remainder bounds; they do
+not impose fold-A training, nuisance consistency, or conditional operator-side bounds.
 The law bridge `μ.map S.W = P_W` and oracle-score measurability are the
 standard observation-law assumptions needed to derive the mean-zero
 influence-function condition under `P_W`. -/
@@ -244,9 +230,9 @@ theorem trae_dr_isAsymLinear
     have hαpos : 0 < α := by
       dsimp [α]
       linarith
-    let A : ℕ → Set Ω := fun n => {ω | (ε / 2) * (1 : ℝ) < |Xn n ω|}
-    let B : ℕ → Set Ω := fun n => {ω | (ε / 2) * (1 : ℝ) < |Yn n ω|}
-    let C : ℕ → Set Ω := fun n => {ω | ε * (1 : ℝ) < |Xn n ω + Yn n ω|}
+    let A : ℕ → Set Ω := fun n => {ω | (ε / 2) * (1 : ℝ) ≤ |Xn n ω|}
+    let B : ℕ → Set Ω := fun n => {ω | (ε / 2) * (1 : ℝ) ≤ |Yn n ω|}
+    let C : ℕ → Set Ω := fun n => {ω | ε * (1 : ℝ) ≤ |Xn n ω + Yn n ω|}
     have hXevent_le := (ENNReal.tendsto_nhds_zero.mp (hX (ε / 2) (by linarith)))
       (ENNReal.ofReal α) (ENNReal.ofReal_pos.mpr hαpos)
     have hYevent_le := (ENNReal.tendsto_nhds_zero.mp (hY (ε / 2) (by linarith)))
@@ -262,22 +248,22 @@ theorem trae_dr_isAsymLinear
     have hsubset : C n ⊆ A n ∪ B n := by
       intro ω hω
       by_contra hnot
-      have hnotA : ¬ ε / 2 < |Xn n ω| := by
+      have hnotA : ¬ ε / 2 ≤ |Xn n ω| := by
         intro hx
         exact hnot (Or.inl (by simpa [A] using hx))
-      have hnotB : ¬ ε / 2 < |Yn n ω| := by
+      have hnotB : ¬ ε / 2 ≤ |Yn n ω| := by
         intro hy
         exact hnot (Or.inr (by simpa [B] using hy))
-      have hXle : |Xn n ω| ≤ ε / 2 := le_of_not_gt hnotA
-      have hYle : |Yn n ω| ≤ ε / 2 := le_of_not_gt hnotB
-      have hsum : |Xn n ω + Yn n ω| ≤ ε := by
+      have hXlt : |Xn n ω| < ε / 2 := lt_of_not_ge hnotA
+      have hYlt : |Yn n ω| < ε / 2 := lt_of_not_ge hnotB
+      have hsum : |Xn n ω + Yn n ω| < ε := by
         calc
           |Xn n ω + Yn n ω| ≤ |Xn n ω| + |Yn n ω| := abs_add_le _ _
-          _ ≤ ε / 2 + ε / 2 := add_le_add hXle hYle
+          _ < ε / 2 + ε / 2 := add_lt_add hXlt hYlt
           _ = ε := by ring
-      exact not_lt_of_ge hsum (by simpa [C] using hω)
+      exact (not_le_of_gt hsum) (by simpa [C] using hω)
     exact le_of_lt <| calc
-      μ {ω | ε * (fun _ => (1 : ℝ)) n < |Xn n ω + Yn n ω|}
+      μ {ω | ε * (fun _ => (1 : ℝ)) n ≤ |Xn n ω + Yn n ω|}
           = μ (C n) := by simp [C]
       _ ≤ μ (A n ∪ B n) := measure_mono hsubset
       _ ≤ μ (A n) + μ (B n) := MeasureTheory.measure_union_le (A n) (B n)
@@ -392,23 +378,20 @@ theorem trae_dr_isAsymLinear
   ext n ω
   exact h_eq n ω
 
-/-! ## Cauchy–Schwarz sufficient condition for the mixed-bias rate -/
+/-! ## Pointwise-bound transfer for the mixed-bias rate -/
 
-/-- Sufficient condition for the mixed-bias hypothesis using either
-operator side (the displayed `min{·,·}` form in
-`thm:est-trae-dr-al-criterion`):
+/-- For [an inverse-problem system](hyp:S), [an i.i.d. sample](hyp:sample),
+[a one-shot sample split](hyp:split), [primal nuisance estimators](hyp:h_hat),
+[dual nuisance estimators](hyp:q_hat), and [a real upper-bound
+sequence](hyp:bnd), if [the absolute mixed-bias integral is bounded pointwise
+by that sequence](hyp:_h_dom) and [the fold-scaled bound is
+`o_p(1)`](hyp:_h_rate), then [the fold-scaled mixed-bias integral is
+`o_p(1)`](goal).
 
-if either
-    √|B(n)| · ‖q̂_n − q₀‖_{L²(P_Z)} · ‖T(ĥ_n − h₀)‖_{L²(P_Z)} = o_p(1)
-or
-    √|B(n)| · ‖T*(q̂_n − q₀)‖_{L²(P_X)} · ‖ĥ_n − h₀‖_{L²(P_X)} = o_p(1),
-then the unconditional `mixed_bias` field of `TRAEDRRemainderHyps` holds.
-
-The concrete operators `T` and `T*` are formalized in the `NPIV/Operator`
-modules.  This theorem remains operator-agnostic: it is a forward implication
-from any deterministic upper-bound function `bnd : ℕ → Ω → ℝ` that controls
-the conditional mixed-bias integral pointwise. -/
-theorem mixed_bias_sufficient
+This order-transfer lemma is operator-agnostic. In particular, it does not
+establish either operator-side Cauchy–Schwarz inequality from the source note;
+a caller must supply such an inequality through `_h_dom`. -/
+theorem mixed_bias_isLittleOp_of_pointwise_bound
     {Ω : Type*} [MeasurableSpace Ω] {μ : Measure Ω}
     [IsProbabilityMeasure μ]
     (S : InverseProblemSystem Ω μ) {q₀ : S.𝒵 → ℝ}
@@ -442,7 +425,7 @@ theorem mixed_bias_sufficient
   filter_upwards [hrate] with n hn
   refine (measure_mono ?_).trans hn
   intro ω hω
-  simp only [Set.mem_setOf_eq, mul_one] at hω ⊢
+  simp only [Set.mem_setOf_eq, mul_one, Real.norm_eq_abs] at hω ⊢
   let bias : ℝ :=
     ∫ ω', (q₀ (S.zOf (S.W ω')) - q_hat n ω (S.zOf (S.W ω'))) *
             (h_hat n ω (S.xOf (S.W ω')) - S.h₀ (S.xOf (S.W ω'))) ∂μ
@@ -461,7 +444,7 @@ theorem mixed_bias_sufficient
               (h_hat n ω (S.xOf (S.W ω')) - S.h₀ (S.xOf (S.W ω'))) ∂μ)
         = bias from rfl, h_abs_bias] at hω
   rw [h_abs_bnd]
-  exact lt_of_lt_of_le hω (mul_le_mul_of_nonneg_left (_h_dom n ω) h_sqrt_nonneg)
+  exact hω.trans (mul_le_mul_of_nonneg_left (_h_dom n ω) h_sqrt_nonneg)
 
 end DR
 end NPIV

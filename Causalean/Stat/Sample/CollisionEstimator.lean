@@ -3,9 +3,11 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Mathlib.Algebra.BigOperators.GroupWithZero.Finset
-import Mathlib.Data.Fintype.Basic
-import Mathlib.Data.Real.Basic
+
+module
+public import Mathlib.Algebra.BigOperators.GroupWithZero.Finset
+public import Mathlib.Data.Fintype.Basic
+public import Mathlib.Data.Real.Basic
 
 /-!
 # Collision and cross-sample estimators
@@ -14,6 +16,8 @@ This module defines an ordered-pair collision estimator for inverse-frequency
 functionals, together with cell-weighted moments and cross-sample averages for
 observations equipped with an explicit projection to their cell labels.
 -/
+
+@[expose] public section
 
 namespace Causalean.Stat
 

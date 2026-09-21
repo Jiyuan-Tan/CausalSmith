@@ -17,9 +17,10 @@ modules do not depend on the higher-level estimator machinery.
 Causal-agnostic; candidate for upstream contribution to Mathlib.
 -/
 
-import Causalean.Stat.Sample
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
-import Mathlib.Analysis.InnerProductSpace.Basic
+module
+public import Causalean.Stat.Sample
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
+public import Mathlib.Analysis.InnerProductSpace.Basic
 
 /-! # Stochastic equicontinuity at a point
 
@@ -27,22 +28,29 @@ Provides `Causalean.Stat.StochEquicontAt`, the estimator-indexed asymptotic
 equicontinuity property of a score family, used by the parametric `Z`-estimator
 expansion and supplied from class-level equicontinuity. -/
 
+@[expose] public section
+
 namespace Causalean.Stat
 
 open MeasureTheory ProbabilityTheory Filter Topology
 
-variable {X E : Type*} [MeasurableSpace X]
-  [NormedAddCommGroup E] [NormedSpace ℝ E]
+variable {X Θ V : Type*} [MeasurableSpace X]
+  [NormedAddCommGroup Θ] [NormedSpace ℝ Θ]
+  [NormedAddCommGroup V] [NormedSpace ℝ V]
 
-/-- On [a measurable observation space](hyp:X) and [a normed real vector space](hyp:E), for [a
-score function taking a parameter and an observation to a vector](hyp:ψ), [a distinguished
-parameter value](hyp:θ₀), [an observation-space measure](hyp:P), [a measurable sample space](hyp:Ω),
-[a measure on that sample space](hyp:μ), [an independent
-identically distributed sample with that observation law](hyp:S), and [a sequence of
-sample-dependent parameter estimates](hyp:θn), the [stochastic equicontinuity property at the
-distinguished parameter](goal) holds when, for every positive tolerance, there is [a positive
-radius](step:1) such that [the probability of the stated large empirical-process gap while the
-estimate lies within that radius converges to zero as the sample size tends to infinity](step:2).
+/-- [Stochastic equicontinuity at the distinguished parameter](goal) says that
+the centered empirical-process gap along [a sequence of sample-dependent
+estimates](hyp:θn) becomes negligible whenever the estimates remain near [the
+reference parameter](hyp:θ₀).  For [a vector-valued score family](hyp:ψ) on [a
+measurable observation space](hyp:X) with [normed output](hyp:V), [population
+law](hyp:P), [measurable sample space and law](hyp:Ω,μ), and [an i.i.d.
+sample](hyp:S), every positive tolerance admits [a positive radius](step:1) for
+which [the corresponding large-gap probability tends to zero](step:2).
+
+This is the estimator-indexed conclusion form of van der Vaart (1998), Lemma
+19.24: class-level asymptotic equicontinuity, evaluated along a consistent
+random index, makes the centered empirical-process increment negligible. It is
+not Newey--McFadden (1994), Theorem 7.2(v)'s normalized-supremum assumption.
 
 The empirical-process gap is
 
@@ -62,9 +70,9 @@ the concentration and empirical-process modules in this library.
 The conditioning on `{‖θn − θ₀‖ < δ}` is removed downstream by combining
 with the consistency hypothesis `hConsistent`. -/
 def StochEquicontAt
-    (ψ : E → X → E) (θ₀ : E) (P : Measure X)
+    (ψ : Θ → X → V) (θ₀ : Θ) (P : Measure X)
     {Ω : Type*} [MeasurableSpace Ω] (μ : Measure Ω)
-    (S : IIDSample Ω X μ P) (θn : ℕ → Ω → E) : Prop :=
+    (S : IIDSample Ω X μ P) (θn : ℕ → Ω → Θ) : Prop :=
   ∀ ε : ℝ, 0 < ε → ∃ δ : ℝ, 0 < δ ∧
     Tendsto (fun n =>
       μ {ω | ‖θn n ω - θ₀‖ < δ ∧

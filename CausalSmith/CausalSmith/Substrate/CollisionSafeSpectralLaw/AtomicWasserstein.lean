@@ -1,6 +1,7 @@
-import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
-import Mathlib.MeasureTheory.Measure.Dirac
-import Mathlib.Topology.Compactness.Compact
+module
+public import Mathlib.MeasureTheory.Integral.IntervalIntegral.Basic
+public import Mathlib.MeasureTheory.Measure.Dirac
+public import Mathlib.Topology.Compactness.Compact
 
 /-!
 # Finite atomic one-dimensional Wasserstein duality
@@ -11,6 +12,8 @@ exact Kantorovich--Rubinstein duality, and an explicit attaining Lipschitz poten
 extensional in the represented measure, so permutations, zero slots, and atom splitting or merging
 do not affect the distance.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Substrate.CollisionSafeSpectralLaw
 

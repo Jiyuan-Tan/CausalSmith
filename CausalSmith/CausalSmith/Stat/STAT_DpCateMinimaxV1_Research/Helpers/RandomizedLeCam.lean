@@ -1,7 +1,10 @@
 /- Copyright (c) 2026 Jiyuan Tan. All rights reserved. -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContraction
-import Causalean.Stat.Minimax.LeCam
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Helpers.DpContraction
+public import Causalean.Stat.Minimax.LeCam
+
+public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 

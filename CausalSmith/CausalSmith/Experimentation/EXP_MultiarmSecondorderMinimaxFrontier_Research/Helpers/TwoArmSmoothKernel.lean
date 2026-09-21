@@ -1,11 +1,14 @@
-import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothModel
-import Causalean.Experimentation.DesignBased.FiniteDesignMeasure
-import Causalean.Stat.Minimax.FiniteKernelBayes
+module
+public import CausalSmith.Experimentation.EXP_MultiarmSecondorderMinimaxFrontier_Research.Helpers.TwoArmSmoothModel
+public import Causalean.Stat.FiniteDesign.FiniteDesignMeasure
+public import Causalean.Stat.Minimax.FiniteKernelBayes
 
 /-!
 The measurable Markov-kernel form of the smooth scalar-to-effect-count design.
 This is the continuous-mixture input used by the finite posterior Bayes-risk bridge.
 -/
+
+@[expose] public section
 
 open MeasureTheory ProbabilityTheory
 open scoped BigOperators ENNReal

@@ -2,9 +2,12 @@
 # Uniform finite-cell unknown-weight attainment
 -/
 
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_RegularCellUnknownWeightAttainment
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_OracleConverse
-import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.FiniteCellBridge
+module
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_RegularCellUnknownWeightAttainment
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.T_OracleConverse
+public import CausalSmith.Stat.STAT_TransportedLateStrengthFrontier_Research.Helpers.FiniteCellBridge
+
+public section
 
 set_option linter.style.longLine false
 

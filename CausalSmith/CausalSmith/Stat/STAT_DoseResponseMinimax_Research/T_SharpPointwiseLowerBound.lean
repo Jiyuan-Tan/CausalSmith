@@ -11,7 +11,10 @@ a thin assembly of the crux two-point construction
 the slack baseline.
 -/
 
-import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.TwoPointConstruction
+module
+public import CausalSmith.Stat.STAT_DoseResponseMinimax_Research.Helpers.TwoPointConstruction
+
+public section
 
 namespace CausalSmith.Stat.DoseResponseMinimax
 

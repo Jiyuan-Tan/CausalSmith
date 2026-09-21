@@ -1,4 +1,5 @@
-import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
+module
+public import CausalSmith.Stat.STAT_ProxyEffectlawEigencollisionFrontier_Research.Basic
 
 /-!
 # Alignment of orthonormal signal frames
@@ -8,6 +9,8 @@ rectangular frames with the same column space differ by an explicitly constructe
 orthogonal matrix.  The result is stated in the matrix operator norm used by the surrounding
 proxy-effect-law development.
 -/
+
+public section
 
 namespace CausalSmith.Stat.ProxyEffectlawEigencollisionFrontier
 

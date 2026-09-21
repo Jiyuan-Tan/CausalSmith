@@ -4,21 +4,29 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Causalean.Graph.MarkovEquiv.CoveredReversal
+module
+public import Causalean.Graph.MarkovEquiv.CoveredReversal
 
-/-! # Covered-edge decomposition (AMP Lemma 3.2) + Verma–Pearl hard direction
+/-! # Covered-edge induction for the Verma–Pearl hard direction
 
 This file assembles the covered-edge route to the hard direction of Verma–Pearl:
-DAGs with the same skeleton and the same immoralities are Markov equivalent. Following
-Andersson–Madigan–Perlman (1997) Lemma 3.2, two such DAGs are connected by a finite chain of
-single covered-edge reversals; `markovEquiv_flipEdge` (`CoveredReversal.lean`) handles each
-step, and `MarkovEquiv.trans` chains them. The induction is on the number of oppositely
-oriented edges (`edgeDiffCount`).
+DAGs with the same skeleton and the same immoralities are Markov equivalent. The public helper
+`exists_covered_reversed_edge` gives the key one-step progress result underlying
+Andersson–Madigan–Perlman (1997), Lemma 3.2. A private strong induction on the number of
+oppositely oriented edges (`edgeDiffCount`) combines each step with `markovEquiv_flipEdge` and
+`MarkovEquiv.trans` to prove the semantic-equivalence theorem. This module does not expose a
+finite reversal sequence or a finite-chain certificate.
 -/
 
-namespace Causalean
+@[expose] public section
+
+namespace Causalean.Graph
+
+open Causalean.Graph.MarkovEquiv
 
 variable {V : Type*} [DecidableEq V] [Fintype V]
+
+namespace MarkovEquiv
 
 /-- `SameSkeleton` is symmetric. -/
 theorem SameSkeleton.symm {G₁ G₂ : DAG V} (h : SameSkeleton G₁ G₂) : SameSkeleton G₂ G₁ :=
@@ -45,22 +53,24 @@ theorem markovEquiv_of_same_edge {G₁ G₂ : DAG V}
   by_cases hXY : Disjoint X Y
   · by_cases hXZ : Disjoint X Z
     · by_cases hYZ : Disjoint Y Z
-      · have h := DAG.hasActivePath_edge_congr he X Y Z
-        rw [← DAG.not_dSep_iff_hasActivePath G₁ X Y Z hXY hXZ hYZ,
-          ← DAG.not_dSep_iff_hasActivePath G₂ X Y Z hXY hXZ hYZ] at h
+      · have h := DAG.hasActiveWalk_edge_congr he X Y Z
+        rw [← DAG.not_dSep_iff_hasActiveWalk G₁ X Y Z hXY hXZ hYZ,
+          ← DAG.not_dSep_iff_hasActiveWalk G₂ X Y Z hXY hXZ hYZ] at h
         exact not_iff_not.mp h
       · exact iff_of_false (fun h => hYZ h.2.2.1) (fun h => hYZ h.2.2.1)
     · exact iff_of_false (fun h => hXZ h.2.1) (fun h => hXZ h.2.1)
   · exact iff_of_false (fun h => hXY h.1) (fun h => hXY h.1)
 
-/-- For [a finite vertex set with decidable equality](hyp:V) and [two directed acyclic graphs on that vertex
-set](hyp:G₁,G₂), the [directed-edge difference](goal) is the finite set of all ordered pairs of
+/-- For [a finite vertex set with decidable equality](hyp:V) and
+[two directed acyclic graphs on that vertex set](hyp:G₁,G₂), the
+[directed-edge difference](goal) is the finite set of all ordered pairs of
 vertices that form a directed edge in the first graph but not in the second graph. -/
 def edgeDiff (G₁ G₂ : DAG V) : Finset (V × V) :=
   Finset.univ.filter (fun p => G₁.edge p.1 p.2 ∧ ¬ G₂.edge p.1 p.2)
 
-/-- For [a finite vertex set with decidable equality](hyp:V) and [two directed acyclic graphs on that vertex
-set](hyp:G₁,G₂), the [directed-edge difference count](goal) is the number of directed edges in the
+/-- For [a finite vertex set with decidable equality](hyp:V) and
+[two directed acyclic graphs on that vertex set](hyp:G₁,G₂), the
+[directed-edge difference count](goal) is the number of directed edges in the
 first graph that are absent from the second graph. -/
 def edgeDiffCount (G₁ G₂ : DAG V) : ℕ := (edgeDiff G₁ G₂).card
 
@@ -80,11 +90,11 @@ theorem same_edge_of_edgeDiff_empty {G₁ G₂ : DAG V}
   · exact h1
   · exact absurd (hsub w u h1) (G₂.asymm he2)
 
-/-- **AMP Lemma 3.2 (existence).** For DAGs `G₁` and `G₂` on the same vertex set, suppose
-[`G₁` and `G₂` have the same skeleton (the same underlying undirected adjacency)](hyp:hskel),
-[the same immoralities (unshielded colliders)](hyp:himm), and [there is a pair `a₀, b₀` with an
-edge `a₀ → b₀` in `G₁` that appears reversed as `b₀ → a₀` in `G₂`](hyp:h₀,h₀'). Then [there is
-a *covered* edge `a → b` in `G₁` that is likewise reversed to `b → a` in `G₂`](goal). The proof
+/-- **Key induction step underlying AMP Lemma 3.2.** For DAGs `G₁` and `G₂` on the same
+vertex set, suppose [`G₁` and `G₂` have the same skeleton](hyp:hskel),
+[have the same immoralities](hyp:himm), and
+[`G₁` contains `a₀ → b₀` while `G₂` contains `b₀ → a₀`](hyp:h₀,h₀'). Then
+[a covered `G₁` edge that is reversed in `G₂` exists](goal). The proof
 chooses a head of a reversed edge that is minimal in the first graph's topological order, then
 a tail into that head that is maximal among reversed tails; the skeleton and immorality
 hypotheses force this edge to have the same non-tail parents at both endpoints. -/
@@ -238,4 +248,6 @@ theorem markovEquiv_of_sameSkeleton_sameImmoralities {G₁ G₂ : DAG V}
     (hskel : SameSkeleton G₁ G₂) (himm : SameImmoralities G₁ G₂) : MarkovEquiv G₁ G₂ :=
   markovEquiv_covered_aux G₂ (edgeDiffCount G₁ G₂) G₁ hskel himm rfl
 
-end Causalean
+end MarkovEquiv
+
+end Causalean.Graph

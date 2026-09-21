@@ -26,10 +26,11 @@ This is the quantitative input to the deterministic-curve equicontinuity corolla
 `AsymptoticEquicont`.
 -/
 
-import Causalean.Stat.EmpiricalProcess.Equicontinuity.Process
-import Causalean.Mathlib.IIDCenteredSum
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+public import Causalean.Stat.EmpiricalProcess.Equicontinuity.Process
+public import Causalean.Mathlib.Probability.IdentDistrib.CenteredSum
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Empirical-Process Second Moments
 
@@ -39,6 +40,8 @@ process by the population second moment of the indexed function.  The lemma
 `empProcVec_sq_lintegral_le` proves the uniform-in-sample-size second-moment
 bound, and `empProcVec_chebyshev` converts it into the tail estimate used by
 stochastic-equicontinuity and empirical-process remainder bounds. -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -50,8 +53,8 @@ variable {Ω X E : Type*} [MeasurableSpace Ω] [MeasurableSpace X]
 
 namespace IIDSample
 
-/-- The i.i.d. product law of the first `n` coordinates: copied pattern from the
-sample-quantile oscillation file. -/
+/-- The joint law of the first `n` coordinates of an i.i.d. sample is the
+corresponding finite product measure. -/
 private lemma iid_pi_law (S : IIDSample Ω X μ P) (n : ℕ) :
     μ.map (fun ω (i : Finset.range n) => S.Z i ω)
       = Measure.pi (fun _ : Finset.range n => P) := by

@@ -386,7 +386,7 @@ export function sourceKind(d: LibDecl): string {
   // would otherwise mistake for the real declaration keyword.
   const stripped = d.source ? stripLeadingDoc(d.source) : undefined;
   const m = stripped?.match(
-    /(?:^|\n)\s*(?:@\[[^\]]*\]\s*)*(?:private\s+|protected\s+|noncomputable\s+|unsafe\s+|scoped\s+|local\s+)*(theorem|lemma|def|abbrev|structure|class|inductive|instance|axiom|opaque)\b/,
+    /(?:^|\n)\s*(?:@\[[^\]]*\]\s*)*(?:public\s+|private\s+|protected\s+|meta\s+|noncomputable\s+|unsafe\s+|scoped\s+|local\s+)*(theorem|lemma|def|abbrev|structure|class|inductive|instance|axiom|opaque)\b/,
   );
   return m ? m[1] : d.kind;
 }

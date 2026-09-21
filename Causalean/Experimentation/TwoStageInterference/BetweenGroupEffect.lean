@@ -3,36 +3,41 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 
-# Hudgens–Halloran (2008), Theorem 6: two-stage variance of the direct-effect contrast
+# Hudgens–Halloran (2008): two-stage variance of the direct-effect contrast
 
-Theorem 6: the two-stage randomization variance of the treatment-minus-control direct-effect
+The two-stage randomization variance of the control-minus-treatment direct-effect
 contrast estimator decomposes into a between-group simple-random-sampling term over the group-level
-treatment-minus-control contrasts plus a within-group term averaging the per-group contrast
-estimator variances.
+control-minus-treatment contrasts plus a within-group term averaging the per-group contrast
+estimator variances. This true-variance identity is an ingredient in the paper's variance-estimator
+analysis, not the statement of Theorem 6, which concerns a variance estimator.
 
-The key observation is that `Ŷ(1;ψ) − Ŷ(0;ψ) = (∑ᵢ 1(Sᵢ=ψ)·dᵢ(wᵢ))/C`, where
-`dᵢ(w) = Ŷ_i(1)(w) − Ŷ_i(0)(w)` is the per-group contrast estimator.  So the contrast
+The key observation is that `Ŷ(0;ψ) − Ŷ(1;ψ) = (∑ᵢ 1(Sᵢ=ψ)·dᵢ(wᵢ))/C`, where
+`dᵢ(w) = Ŷ_i(0)(w) − Ŷ_i(1)(w)` is the per-group contrast estimator.  So the contrast
 variance is the abstract two-stage decomposition `Var_groupAgg` instantiated with the per-group
 statistic `g i = dᵢ`.  The between-term conditional mean `(ψ i).E (dᵢ)` collapses to
-`ȳ_i(1;ψ) − ȳ_i(0;ψ)` by `E_groupEst` (twice, via linearity of expectation), giving the
-finite-population-corrected SRS variance `(1 − C/N)/C · Sμ²(ȳ_·(1;ψ) − ȳ_·(0;ψ))`; the within-term
+`ȳ_i(0;ψ) − ȳ_i(1;ψ)` by `E_groupEst` (twice, via linearity of expectation), giving the
+finite-population-corrected SRS variance `(1 − C/N)/C · Sμ²(ȳ_·(0;ψ) − ȳ_·(1;ψ))`; the within-term
 `(1/(C·N)) · ∑ᵢ (ψ i).Var (dᵢ)` is already in the target shape.
 -/
 
-import Causalean.Experimentation.TwoStageInterference.BetweenGroup
-import Causalean.Experimentation.TwoStageInterference.Effects
+module
+public import Causalean.Experimentation.TwoStageInterference.BetweenGroup
+public import Causalean.Experimentation.TwoStageInterference.Effects
 
 /-! # Direct-contrast variance under two-stage interference
 
-The treatment-minus-control direct-effect contrast estimator has a two-stage between/within
+The control-minus-treatment direct-effect contrast estimator has a two-stage between/within
 variance decomposition.
 
 The theorem `Var_estDirect` instantiates `Var_groupAgg` with the per-group
-treatment-minus-control statistic, yielding Hudgens-Halloran Theorem 6 under explicit stage-one
+control-minus-treatment statistic, yielding the corresponding true-variance decomposition under
+explicit stage-one
 and within-group moment hypotheses.  `Var_estDirect_CRD` specializes the same identity to the
 completely randomized mixed two-stage design, where `crdOn_mean`, `crdOn_pair`, and the
 within-group `crd_prop_*` facts discharge those hypotheses.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset
@@ -46,8 +51,8 @@ open DesignBased
 variable {ι : Type*} [Fintype ι] [DecidableEq ι] {n : ι → ℕ}
 
 set_option linter.unusedDecidableInType false in
-/-- **Hudgens–Halloran (2008), Theorem 6 (two-stage variance of the direct-effect contrast
-estimator).** Consider the two-stage design that first allocates each group to
+/-- **Two-stage variance decomposition of the Hudgens–Halloran direct-effect contrast estimator.**
+Consider the two-stage design that first allocates each group to
 [strategy ψ or strategy φ](hyp:ψ,φ) and then randomizes the group's units accordingly, with
 outcomes recorded by [the potential-outcome function Y](hyp:Y). Assume [the target sample size C
 of selected groups is nonzero](hyp:hC), [the number N of groups is nonzero](hyp:hN), [N minus one
@@ -57,9 +62,9 @@ nonzero](hyp:hn). Suppose the stage-1 design draws a simple random sample of C o
 that [each group is selected with probability C/N](hyp:hstage1) and [each pair of distinct groups
 is jointly selected with probability C(C−1)/(N(N−1))](hyp:hstage1pair), and that within a selected
 ψ-group [each unit's control propensity is m0/n](hyp:hprop0) and [each unit's treatment propensity
-is m1/n](hyp:hprop1). Then [the randomization variance of the treatment-minus-control estimator
+is m1/n](hyp:hprop1). Then [the randomization variance of the control-minus-treatment estimator
 decomposes into a between-group term — the finite-population-corrected sample variance of the
-group-level treatment-minus-control contrasts, scaled by (1 − C/N)/C — plus a within-group term
+group-level control-minus-treatment contrasts, scaled by (1 − C/N)/C — plus a within-group term
 averaging, over the N groups and scaled by 1/(C·N), the conditional variance of each group's
 within-group contrast estimator](goal).
 
@@ -77,13 +82,13 @@ theorem Var_estDirect (D₁ : FiniteDesign (StratAssign ι)) (ψ φ : ∀ i, Fin
         = (C * (C - 1)) / ((Fintype.card ι : ℝ) * ((Fintype.card ι : ℝ) - 1))) :
     (jointDesign D₁ ψ φ).Var (estDirect Y m0 m1 C)
       = (1 - C / (Fintype.card ι : ℝ)) / C
-          * SmuVar (fun i => groupMean ψ Y i true - groupMean ψ Y i false)
+          * SmuVar (fun i => groupMean ψ Y i false - groupMean ψ Y i true)
         + (1 / (C * (Fintype.card ι : ℝ)))
-          * ∑ i, (ψ i).Var (fun w => groupEst Y i true (m1 i) w - groupEst Y i false (m0 i) w) := by
+          * ∑ i, (ψ i).Var (fun w => groupEst Y i false (m0 i) w - groupEst Y i true (m1 i) w) := by
   -- (a) The contrast estimator is the aggregate of the per-group contrast statistic.
   have hagg : (estDirect Y m0 m1 C)
       = (fun sw => (∑ i, if sw.1 i = true then
-            (fun w => groupEst Y i true (m1 i) w - groupEst Y i false (m0 i) w) (sw.2 i)
+            (fun w => groupEst Y i false (m0 i) w - groupEst Y i true (m1 i) w) (sw.2 i)
           else 0) / C) := by
     funext sw
     unfold estDirect popEst
@@ -96,34 +101,34 @@ theorem Var_estDirect (D₁ : FiniteDesign (StratAssign ι)) (ψ φ : ∀ i, Fin
     · rw [if_neg h, if_neg h, if_neg h, sub_zero]
   -- (b) Apply the abstract two-stage decomposition with `g i = dᵢ`.
   rw [hagg, Var_groupAgg D₁ ψ φ
-      (fun i w => groupEst Y i true (m1 i) w - groupEst Y i false (m0 i) w) C
+      (fun i w => groupEst Y i false (m0 i) w - groupEst Y i true (m1 i) w) C
       hC hN hN1 hstage1 hstage1pair]
   -- (c) Collapse the between-term conditional means to the group-level contrasts.
   have hmean : (fun i => (ψ i).E
-        (fun w => groupEst Y i true (m1 i) w - groupEst Y i false (m0 i) w))
-      = (fun i => groupMean ψ Y i true - groupMean ψ Y i false) := by
+        (fun w => groupEst Y i false (m0 i) w - groupEst Y i true (m1 i) w))
+      = (fun i => groupMean ψ Y i false - groupMean ψ Y i true) := by
     funext i
-    rw [FiniteDesign.E_sub (ψ i) (groupEst Y i true (m1 i)) (groupEst Y i false (m0 i))]
-    rw [E_groupEst ψ Y i true (m1 i) (hm1 i) (hn i) (hprop1 i)]
+    rw [FiniteDesign.E_sub (ψ i) (groupEst Y i false (m0 i)) (groupEst Y i true (m1 i))]
     rw [E_groupEst ψ Y i false (m0 i) (hm0 i) (hn i) (hprop0 i)]
+    rw [E_groupEst ψ Y i true (m1 i) (hm1 i) (hn i) (hprop1 i)]
   rw [hmean]
 
 set_option linter.unusedDecidableInType false in
-/-- **Hudgens–Halloran (2008), Theorem 6, for the mixed two-stage design.** Consider the
+/-- **Direct-effect variance decomposition for the mixed two-stage design.** Consider the
 completely randomized two-stage design in which stage 1 draws a simple random sample of C groups
 out of the population of N groups, and each drawn group is completely randomized by treating K of
 its n units, with outcomes recorded by [the potential-outcome function Y](hyp:Y). Assume [the
 sample size C is strictly positive](hyp:hC0), [C is strictly less than the number N of
 groups](hyp:hCN), [every group's treated-unit count K is strictly positive](hyp:hK0), and [every
 group's treated count K is strictly less than its size n](hyp:hKn). Then [the randomization
-variance of the treatment-minus-control estimator on this design equals the same
+variance of the control-minus-treatment estimator on this design equals the same
 between-group/within-group decomposition as `Var_estDirect`, with control count n−K and treatment
 count K in each group](goal).
 
 This specializes `Var_estDirect`, discharging its stage-1 and within-group moment hypotheses via
 the derived facts `crdOn_mean`, `crdOn_pair`, and `crd_prop_true`/`crd_prop_false`, so only the
 mixed-strategy validity conditions above are assumed. The estimator uses the Hudgens-Halloran
-treatment-minus-control orientation. -/
+control-minus-treatment orientation. -/
 theorem Var_estDirect_CRD (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (K : ι → ℕ) (C : ℕ)
     (hC0 : 0 < C) (hCN : C < Fintype.card ι)
     (hK0 : ∀ i, 0 < K i) (hKn : ∀ i, K i < n i) :
@@ -131,12 +136,12 @@ theorem Var_estDirect_CRD (Y : ∀ i, Fin (n i) → WAssign n i → ℝ) (K : ι
         (fun i => crd (K i) (hKn i).le)).Var
         (estDirect Y (fun i => (n i : ℝ) - K i) (fun i => (K i : ℝ)) (C : ℝ))
       = (1 - (C : ℝ) / (Fintype.card ι : ℝ)) / C
-          * SmuVar (fun i => groupMean (fun i => crd (K i) (hKn i).le) Y i true
-              - groupMean (fun i => crd (K i) (hKn i).le) Y i false)
+          * SmuVar (fun i => groupMean (fun i => crd (K i) (hKn i).le) Y i false
+              - groupMean (fun i => crd (K i) (hKn i).le) Y i true)
         + (1 / ((C : ℝ) * (Fintype.card ι : ℝ)))
           * ∑ i, (crd (K i) (hKn i).le).Var
-              (fun w => groupEst Y i true (K i : ℝ) w
-                - groupEst Y i false ((n i : ℝ) - K i) w) := by
+              (fun w => groupEst Y i false ((n i : ℝ) - K i) w
+                - groupEst Y i true (K i : ℝ) w) := by
   have hCN' : (0 : ℝ) < Fintype.card ι := by exact_mod_cast lt_of_le_of_lt (Nat.zero_le C) hCN
   have hNr : (Fintype.card ι : ℝ) ≠ 0 := ne_of_gt hCN'
   have hN1r : (Fintype.card ι : ℝ) - 1 ≠ 0 := by

@@ -4,11 +4,12 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
-import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
-import Mathlib.MeasureTheory.Integral.Bochner.Set
-import Mathlib.MeasureTheory.Integral.Lebesgue.Map
+module
+public import CausalSmith.Stat.STAT_DpCateMinimaxV1_Research.Basic
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.Real
+public import Mathlib.MeasureTheory.Function.ConditionalExpectation.PullOut
+public import Mathlib.MeasureTheory.Integral.Bochner.Set
+public import Mathlib.MeasureTheory.Integral.Lebesgue.Map
 
 /-!
 # Population identities and local design comparisons
@@ -19,6 +20,8 @@ regressions on the covariate support, and compares the design distribution with
 Lebesgue measure under the local density bounds.  No measurability of the
 law-side density field is assumed.
 -/
+
+@[expose] public section
 
 namespace CausalSmith.Stat.DpCateMinimax
 
@@ -433,7 +436,7 @@ theorem design_mass_le {d : ℕ} (P : CateLaw d) (f0 f1 r0 : ℝ) (x0 : Fin d �
   have hball : supBall x0 h = Metric.closedBall x0 h := by
     ext x
     simp only [supBall, Causalean.Stat.Nonparametric.supBall, Set.mem_setOf_eq,
-      Metric.mem_closedBall]
+      Causalean.Mathlib.Analysis.supBall, Metric.mem_closedBall]
     rw [dist_pi_le_iff hh.le]
     simp only [Real.dist_eq]
   have hS : MeasurableSet (supBall x0 h) := hball ▸ Metric.isClosed_closedBall.measurableSet

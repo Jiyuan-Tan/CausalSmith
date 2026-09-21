@@ -1,4 +1,5 @@
-import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessFaithfulnessAssembly
+module
+public import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.WitnessFaithfulnessAssembly
 
 /-!
 # Cancellation-witness faithfulness
@@ -6,6 +7,11 @@ import CausalSmith.ExactID.EID_CrlCoverratioMmdGenericity_Research.Helpers.Witne
 This file proves dependence of the cancellation witness's unique edge from a
 strictly positive covariance, and then invokes the three-node graph reduction.
 -/
+
+public section
+
+open Causalean.Graph
+
 
 open MeasureTheory ProbabilityTheory Set
 
@@ -308,7 +314,7 @@ lemma cancellationWitness_causalMinimality (s : SignVector 3) :
   apply cancellationWitness_not_condIndep_edge s
   have hparents : (threeNodeDAG.parents 1).erase 0 = ∅ := by
     ext k
-    fin_cases k <;> simp [threeNodeDAG, threeNodeEdge, Causalean.DAG.parents]
+    fin_cases k <;> simp [threeNodeDAG, threeNodeEdge, DAG.parents]
   rw [hparents] at hCI
   exact condIndepCoordinates_symm hCI
 

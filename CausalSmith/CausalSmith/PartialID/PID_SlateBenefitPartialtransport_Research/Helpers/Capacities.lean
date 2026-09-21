@@ -1,5 +1,6 @@
-import Mathlib.Data.Fintype.Order
-import Mathlib.MeasureTheory.Measure.Real
+module
+public import Mathlib.Data.Fintype.Order
+public import Mathlib.MeasureTheory.Measure.Real
 
 /-!
 # Observable capacities and threshold cuts
@@ -7,6 +8,8 @@ import Mathlib.MeasureTheory.Measure.Real
 Finite-cell observed data, selected-complier capacity contrasts, their prefix and
 tail aggregates, and the branch-free threshold endpoint formulas.
 -/
+
+@[expose] public section
 
 open scoped BigOperators
 open MeasureTheory Set
@@ -93,10 +96,10 @@ def upperGt (c : Capacities 𝒳 K) (x : 𝒳) (t : Fin K) : ℝ :=
 
 end Capacities
 
-private def armEvent (x : 𝒳) (z : Bool) : Set (ObservedDatum 𝒳 K) :=
+def armEvent (x : 𝒳) (z : Bool) : Set (ObservedDatum 𝒳 K) :=
   {o | o.cell = x ∧ o.instrument = z}
 
-private def selectedOutcomeEvent (x : 𝒳) (d : Bool) (i : Fin K) :
+def selectedOutcomeEvent (x : 𝒳) (d : Bool) (i : Fin K) :
     Set (ObservedDatum 𝒳 K) :=
   {o | o.cell = x ∧ o.treatment = d ∧ o.selected = true ∧ o.outcome = some i}
 
@@ -142,11 +145,11 @@ noncomputable def paperObservableCapacities
 
 namespace Capacities
 
-private def lowerCandidate (c : Capacities 𝒳 K) (x : 𝒳) : Option (Fin K) → ℝ
+def lowerCandidate (c : Capacities 𝒳 K) (x : 𝒳) : Option (Fin K) → ℝ
   | none => 0
   | some t => c.lowerLe x t - c.upperLe x t + min (c.gap x) 0
 
-private def upperCandidate (c : Capacities 𝒳 K) (x : 𝒳) : Option (Fin K) → ℝ
+def upperCandidate (c : Capacities 𝒳 K) (x : 𝒳) : Option (Fin K) → ℝ
   | none => c.mass x
   | some t => c.lowerLt x t + c.upperGt x t
 

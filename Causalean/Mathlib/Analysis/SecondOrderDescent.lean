@@ -2,7 +2,9 @@
 Copyright (c) 2026 CausalSmith contributors. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 -/
-import Mathlib.Analysis.Calculus.Taylor
+
+module
+public import Mathlib.Analysis.Calculus.Taylor
 
 /-!
 # Second-order descent for one real variable
@@ -16,6 +18,8 @@ The statements are objective-agnostic. Callers supply the regularity on `Set.Icc
 and the interior pointwise second-derivative bound; this file only turns those hypotheses into
 the quadratic upper bound and the optimized descent gap.
 -/
+
+@[expose] public section
 
 open Set
 

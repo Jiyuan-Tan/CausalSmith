@@ -1,4 +1,5 @@
-import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CondIndepBridge
+module
+public import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.CondIndepBridge
 
 /-!
 # Identification of observable capacities
@@ -6,6 +7,8 @@ import CausalSmith.PartialID.PID_SlateBenefitPartialtransport_Research.Helpers.C
 The observable IV contrasts identify the two selected-complier marginal
 subdistributions and hence the survivor mass and observable selection gap.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open Causalean PO

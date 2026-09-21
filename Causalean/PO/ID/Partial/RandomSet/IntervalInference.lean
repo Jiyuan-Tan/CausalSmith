@@ -2,43 +2,11 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Confidence-region geometry for scalar interval data (Beresteanu–Molinari 2008, §2)
-
-Beresteanu & Molinari (2008) build confidence regions for a partially identified
-parameter whose identified set is the interval `E[Y] = [μL, μU]`.  Their estimator
-is the sample-mean interval `Ȳₙ = [yl, yu]`, and the confidence region is the
-**Minkowski dilation**
-
-    Uₙ = Ȳₙ ⊕ B(0, r),     r = ĉ / √n,
-
-a ball of radius `r` around every point of `Ȳₙ`.  Coverage of the population set is
-governed by the Hausdorff geometry of `Hausdorff.lean`: BM Proposition 2.7 says the
-population set sits inside the dilated estimate exactly when the (directed) Hausdorff
-distance is within the radius.  This file records that purely-geometric core for the
-scalar interval case, together with a CLT-based coverage corollary tying the event
-`{E[Y] ⊆ Uₙ}` to the statistic `√n · dᴴ(E[Y], Ȳₙ)` whose limit law is
-`interval_data_clt` (`IntervalCLT.lean`).
-
-## Main definitions
-
-* `dilate A r` — the Minkowski dilation `A ⊕ [−r, r]`.
-
-## Main results
-
-* `dilate_Icc` — `[a,b] ⊕ [−r,r] = [a−r, b+r]` for `r ≥ 0` (BM `Uₙ`).
-* `subset_dilate_iff_directedHausdorff_le` — **BM Prop 2.7 core**: the population
-  interval is covered by the dilated estimate iff `dᴴ(E[Y], Ȳₙ) ≤ r`.
-* `subset_dilate_iff_hausdorff_le` — symmetric (two-sided) version via `hausdorffDist`.
-* `coverage_event_eq` — **coverage corollary**: with `r = ĉ/√n` (`n ≥ 1`, `ĉ ≥ 0`)
-  the event `{E[Y] ⊆ Uₙ}` equals `{√n · dᴴ(E[Y], Ȳₙ) ≤ ĉ}`, so the coverage
-  probability is `μ {√n · d ≤ ĉ}`. This file proves the deterministic event
-  reduction; a separate probabilistic theorem would combine it with
-  `interval_data_clt` and a quantile-continuity argument.
 -/
 
-import Causalean.PO.ID.Partial.RandomSet.Hausdorff
-import Causalean.PO.ID.Partial.RandomSet.IntervalCLT
+module
+public import Causalean.PO.ID.Partial.RandomSet.Hausdorff
+public import Causalean.PO.ID.Partial.RandomSet.IntervalCLT
 
 /-! # Confidence Regions for Scalar Interval Data
 
@@ -57,20 +25,23 @@ Main declarations:
 * `coverage_event_eq` rewrites the random coverage event as an event on
   `sqrt n * directedHausdorff`.
 * `dirStat`, `normalizedSum_dirStat_clt`, `dirStat_normalizedSum_eq`, and
-  `directedRegion_coverage` provide the directed CLT and asymptotic coverage
-  theorem.
+  `directedRegion_coverage_at_fixed_cutoff` provide the directed CLT and the coverage
+  limit at a fixed population cutoff.
 -/
+
+@[expose] public section
 
 namespace Causalean.PartialID.RandomSet
 
 /-- For [a set of real numbers](hyp:A) and [a real radius](hyp:r), the [Minkowski dilation](goal)
 is the set of all sums $a+t$ such that $a$ belongs to the original set and $|t|\le r$.
 
-In Beresteanu–Molinari this is the confidence region `Uₙ = Ȳₙ ⊕ B(0, r)` built around the estimated interval. -/
+This is the deterministic dilation on the right-hand side of Beresteanu–Molinari Theorem 2.4,
+which identifies it with the union of their confidence collection when `A = Ȳₙ`. -/
 def dilate (A : Set ℝ) (r : ℝ) : Set ℝ :=
   {x : ℝ | ∃ a ∈ A, ∃ t : ℝ, |t| ≤ r ∧ x = a + t}
 
-/-- **Dilation of an interval** (Beresteanu–Molinari `Uₙ`).  For `r ≥ 0`,
+/-- **Dilation of an interval.** For `r ≥ 0`,
 `[a,b] ⊕ [−r,r] = [a−r, b+r]`: every endpoint is pushed out by the radius. -/
 theorem dilate_Icc {a b r : ℝ} (hab : a ≤ b) (hr : 0 ≤ r) :
     dilate (Set.Icc a b) r = Set.Icc (a - r) (b + r) := by
@@ -92,7 +63,7 @@ theorem dilate_Icc {a b r : ℝ} (hab : a ≤ b) (hr : 0 ≤ r) :
         refine ⟨b, ⟨hab, le_rfl⟩, x - b, ?_, by ring⟩
         rw [abs_le]; constructor <;> linarith
 
-/-- **Coverage characterization (Beresteanu–Molinari Proposition 2.7 core).** For real
+/-- **Deterministic directed-coverage characterization.** For real
 numbers with [μL ≤ μU](hyp:hμ) and [yl ≤ yu](hyp:hy) forming two closed intervals, and
 [a nonnegative dilation radius `r`](hyp:hr), [the population identified interval
 `[μL, μU]` lies inside the dilated estimate `[yl, yu] ⊕ [−r, r]` if and only if the
@@ -110,12 +81,14 @@ theorem subset_dilate_iff_directedHausdorff_le {μL μU yl yu r : ℝ}
   · rintro ⟨_, h1, h2⟩
     exact ⟨by linarith [h1], by linarith [h2]⟩
 
-/-- **Symmetric (two-sided) coverage characterization (Beresteanu–Molinari `Uₙ` /
-Theorem 2.4).** For real numbers with [μL ≤ μU](hyp:hμ) and [yl ≤ yu](hyp:hy) forming
-two closed intervals, and [a nonnegative dilation radius `r`](hyp:hr), [each interval
+/-- **Symmetric (two-sided) dilation geometry.** For real numbers with [μL ≤ μU](hyp:hμ)
+and [yl ≤ yu](hyp:hy) forming two closed intervals, and [a nonnegative dilation radius
+`r`](hyp:hr), [each interval
 lies inside the other's dilation by `r` if and only if the symmetric Hausdorff distance
 between `[μL,μU]` and `[yl,yu]` is at most `r`](goal). The mutual containment
-`[μL,μU] ⊆ Uᵧ ∧ [yl,yu] ⊆ Uᵤ` is exactly the two-sided event `H ≤ r`. -/
+`[μL,μU] ⊆ Uᵧ ∧ [yl,yu] ⊆ Uᵤ` is exactly the two-sided event `H ≤ r`.
+This elementary equivalence does not define Beresteanu–Molinari's confidence collection or prove
+Theorem 2.4's characterization of its union. -/
 theorem subset_dilate_iff_hausdorff_le {μL μU yl yu r : ℝ}
     (hμ : μL ≤ μU) (hy : yl ≤ yu) (hr : 0 ≤ r) :
     (Set.Icc μL μU ⊆ dilate (Set.Icc yl yu) r
@@ -180,7 +153,8 @@ open ProbabilityTheory Filter Topology Causalean.Stat
 
 /-- For [a two-dimensional endpoint-deviation vector](hyp:w), the [directed-Hausdorff
 functional](goal) is $\max\{0,w_0,-w_1\}$. On the centered and normalized endpoint sum, it equals
-$\sqrt n$ times the directed Hausdorff distance from the population interval to the sample-mean interval.
+$\sqrt n$ times the directed Hausdorff distance from the population interval to
+the sample-mean interval.
 
 On the centered endpoint normalised sum it is `√n · dᴴ(E[Y], Ȳₙ)`. -/
 noncomputable def dirStat (w : EuclideanSpace ℝ (Fin 2)) : ℝ := max 0 (max (w 0) (-(w 1)))
@@ -198,7 +172,12 @@ section DirectedCLT
 variable {ψ : X → EuclideanSpace ℝ (Fin 2)} (hψ : Measurable ψ)
   (hvar : Integrable (fun x => ‖ψ x‖ ^ 2) P)
 
-/-- For [a measurable sample space equipped with a measure](hyp:X,P) and [a two-dimensional vector-valued process on that space](hyp:ψ) that is [measurable](hyp:hψ) and has [an integrable squared norm under the measure](hyp:hvar), the [law obtained by applying the directed-Hausdorff functional to its Gaussian limit is a probability measure](goal). [This follows from taking the measurable pushforward of that Gaussian limit](step:1). -/
+/-- For [a measurable sample space equipped with a measure](hyp:X,P) and [a
+two-dimensional vector-valued process on that space](hyp:ψ) that is
+[measurable](hyp:hψ) and has [an integrable squared norm under the
+measure](hyp:hvar), the [law obtained by applying the directed-Hausdorff
+functional to its Gaussian limit is a probability measure](goal). [This follows
+from taking the measurable pushforward of that Gaussian limit](step:1). -/
 instance : IsProbabilityMeasure ((gaussianLimit hψ hvar).map dirStat) :=
   Measure.isProbabilityMeasure_map measurable_dirStat.aemeasurable
 
@@ -212,8 +191,9 @@ theorem normalizedSum_dirStat_clt (S : IIDSample Ω X μ P)
     Tendsto_dist_vec
       (fun n ω => dirStat (IsAsymLinearVec.normalizedSum S ψ (fun m => Finset.range m) n ω))
       ((gaussianLimit hψ hvar).map dirStat) μ
-      (fun n => measurable_dirStat.comp_aemeasurable (hSum_meas n)) :=
-  Tendsto_dist_vec.map_continuous continuous_dirStat hSum_meas
+      (fun n => measurable_dirStat.comp_aemeasurable (hSum_meas n)) := by
+  apply (Tendsto_dist_vec_iff _ _ _ _).2
+  exact Tendsto_dist_vec.map_continuous continuous_dirStat hSum_meas
     (S.clt_normalizedSum_vec hψ hvar hmean)
 
 end DirectedCLT
@@ -270,10 +250,10 @@ theorem dirStat_normalizedSum_eq (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     ← mul_max_of_nonneg _ _ (Real.sqrt_nonneg (n : ℝ)),
     directedHausdorff_Icc (integral_mono hLint hUint hLU) (sampleMean_le S yL yU hLU n ω)]
 
-/-! ## Asymptotic coverage of the directed confidence region (Beresteanu–Molinari Prop 2.7) -/
+/-! ## Coverage limit at a fixed population cutoff -/
 
 omit [IsProbabilityMeasure P] in
-/-- **Asymptotic coverage of the directed confidence region.** For an i.i.d. sample with
+/-- **Coverage limit at a fixed population cutoff.** For an i.i.d. sample with
 interval endpoints `yL`, `yU` satisfying [the lower endpoint pointwise at most the
 upper endpoint](hyp:hLU) and [both integrable](hyp:hLint,hUint), assume the centered
 endpoint influence function is [measurable](hyp:hψ) with [finite second
@@ -289,13 +269,15 @@ limit-law mass of `(-∞, c]`](goal):
 
 where `L = (gaussianLimit ψ).map dirStat` is the law of
 `max(0, max z_L (-z_U))`, so the upper endpoint enters with the opposite sign.
-Choosing `c` as the `(1−α)`-quantile of `L` (a continuity point, so `L{c} = 0`)
-gives the asymptotic `1 − α` coverage of Proposition 2.7.  Proof: the coverage
-event is `{√n · dᴴ(E[Y], Ȳₙ) ≤ c} = {dirStat(normalised sum) ≤ c}` (eventually, via
+If the fixed population cutoff `c` is separately known to be a `(1−α)`-quantile of `L`,
+the limit equals `1 − α`. This theorem does not estimate that critical value and therefore
+does not formalize the feasible confidence region of Beresteanu–Molinari Proposition 2.7.
+Proof: the coverage event is
+`{√n · dᴴ(E[Y], Ȳₙ) ≤ c} = {dirStat(normalised sum) ≤ c}` (eventually, via
 `coverage_event_eq` + the directed bridge), and the directed CLT
 (`normalizedSum_dirStat_clt`) feeds the portmanteau theorem on the closed half-line
 `Iic c` (frontier `{c}` null by `hfront`). -/
-theorem directedRegion_coverage (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
+theorem directedRegion_coverage_at_fixed_cutoff (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
     (hLU : ∀ z, yL z ≤ yU z) (hLint : Integrable yL P) (hUint : Integrable yU P)
     (hψ : Measurable (intervalIFVec yL yU P))
     (hvar : Integrable (fun x => ‖intervalIFVec yL yU P x‖ ^ 2) P)
@@ -308,7 +290,7 @@ theorem directedRegion_coverage (S : IIDSample Ω X μ P) (yL yU : X → ℝ)
         ⊆ dilate (Set.Icc (sampleMean S yL n ω) (sampleMean S yU n ω)) (c / Real.sqrt n)})
       atTop (𝓝 (((gaussianLimit hψ hvar).map dirStat) (Set.Iic c))) := by
   have hclt := normalizedSum_dirStat_clt hψ hvar S hmean hSum_meas
-  unfold Tendsto_dist_vec at hclt
+  rw [Tendsto_dist_vec_iff] at hclt
   have hport := MeasureTheory.ProbabilityMeasure.tendsto_measure_of_null_frontier_of_tendsto'
     hclt (E := Set.Iic c) (by rw [frontier_Iic]; exact hfront)
   refine hport.congr' ?_

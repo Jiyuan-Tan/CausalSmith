@@ -1,10 +1,13 @@
-import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TPositiveFullLawConverse
+module
+public import CausalSmith.SCM.SCM_ProxyTargetspanTransport_Research.TPositiveFullLawConverse
 
 set_option linter.unusedDecidableInType false
 
+open Matrix
+
 /-! Target-span characterization of point identification. -/
 
-open Matrix
+public section
 
 namespace CausalSmith.SCM.ProxyTargetspanTransport
 
@@ -68,7 +71,7 @@ theorem target_span_iff (PO : E → W → X → Y → ℝ) (bvec : W → ℝ)
     (M0 : LatentShiftSCM E U W X Y) (hM0 : M0 ∈ compatibleFiber PO bvec)
     (hinj : ProxyChannelInjectivity M0) (x : X) (y : Y) :
     ((Set.Subsingleton
-        (Causalean.PartialID.IdentifiedInterval
+        (Causalean.Stat.AttainableSet.IdentifiedInterval
           (fun M : LatentShiftSCM E U W X Y => interventionalProb M x y)
           (fun M => M ∈ compatibleFiber PO bvec))) ↔
       (balancingFiber (condProxyMatrix M0 x) bvec).Nonempty) ∧

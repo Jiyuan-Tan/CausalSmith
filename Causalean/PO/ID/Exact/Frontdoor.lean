@@ -19,15 +19,17 @@ The proof uses the **composition clause** of `POSystem.Consistency` to collapse
 the two-variable counterfactual `Y(a, M(a))` to `Y(a)` on the level set
 `{M(a) = m}`, full mediation to drop the treatment index from `Y(a,m)`, and the
 two PO exchangeability assumptions to identify the resulting conditional
-expectations.  Event-level style (`eventCondExp`), matching `Manski.lean` /
+expectations.  Event-level style (`normalizedRestrictedIntegral`), matching `Manski.lean` /
 `DID.lean` — no σ-algebra conditional expectations are used.
 -/
 
-import Causalean.PO.Assumptions.ConsistencyLemmas
-import Causalean.PO.Conditioning.CondExpTooling
-import Causalean.PO.Conditioning.EventCondExp
-import Causalean.PO.Assumptions.IndepCF
-import Mathlib.MeasureTheory.Integral.Bochner.Basic
+module
+
+public import Causalean.Mathlib.Probability.FiniteCellConditionalMomentBridge
+public import Causalean.PO.Assumptions.ConsistencyLemmas
+public import Causalean.PO.Assumptions.IndepCF
+public import Causalean.PO.Conditioning.CondExpTooling
+public import Mathlib.MeasureTheory.Integral.Bochner.Basic
 
 /-! # Frontdoor Average Treatment Effect
 
@@ -40,6 +42,11 @@ The proof uses event-conditional means, full mediation, two exchangeability
 assumptions, and composition consistency to relate the two-variable
 counterfactual outcome through the mediator to the single-treatment potential
 outcome. -/
+
+@[expose] public section
+
+
+open Causalean.Mathlib.Probability
 
 namespace Causalean
 namespace PO
@@ -71,22 +78,32 @@ variable {P : POSystem} {β : Type*}
 
 /-! ### `POVar` wrappers -/
 
-/-- For [a frontdoor system](hyp:S), the [binary treatment potential-outcome variable](goal) is its treatment node equipped with its binary value representation. -/
+/-- The [treatment variable used by frontdoor adjustment](goal) represents [the system's
+treatment](hyp:S) [as the treated and control arms](step:1). -/
 def aVar : POVar P Bool := ⟨S.A, S.hAbool⟩
-/-- For [a frontdoor system](hyp:S), the [mediator potential-outcome variable](goal) is its mediator node equipped with its finite mediator-value representation. -/
+/-- The [mediator variable used by frontdoor adjustment](goal) represents [the system's
+mediator](hyp:S) [on its finite support](step:1), enabling the adjustment sum over mediator
+levels. -/
 def mVar : POVar P β    := ⟨S.M, S.hMequiv⟩
-/-- For [a frontdoor system](hyp:S), the [real-valued outcome potential-outcome variable](goal) is its outcome node equipped with its real-valued representation. -/
+/-- The [outcome variable used by frontdoor adjustment](goal) represents [the system's
+outcome](hyp:S) [on the real line](step:1). -/
 def yVar : POVar P ℝ    := ⟨S.Y, S.hYreal⟩
 
 /-! ### Counterfactuals -/
 
-/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [potential outcome](goal) assigns to each unit the real outcome it would have under that arm. -/
+/-- The [treatment-specific potential outcome](goal) in [a frontdoor system](hyp:S)
+[records each unit's outcome if treatment were set to the selected arm](step:1), with
+[that arm](hyp:a) defining the total-effect contrast. -/
 noncomputable def YofA (a : Bool) : P.Ω → ℝ := S.yVar.cfUnder S.aVar a
 
-/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [potential mediator](goal) assigns to each unit the mediator value it would have under that arm. -/
+/-- The [treatment-specific potential mediator](goal) in [a frontdoor system](hyp:S)
+[records the mediator value induced by setting treatment to the selected arm](step:1),
+with [that arm](hyp:a) indexing the first frontdoor link. -/
 noncomputable def MofA (a : Bool) : P.Ω → β := S.mVar.cfUnder S.aVar a
 
-/-- For [a frontdoor system](hyp:S), [a treatment arm](hyp:a), and [a mediator value](hyp:m), the [joint treatment--mediator intervention regime](goal) fixes treatment and mediator simultaneously.
+/-- The [joint treatment–mediator intervention](goal) in [a frontdoor system](hyp:S)
+[sets treatment and mediator simultaneously](step:1), at [the selected arm](hyp:a) and
+[mediator level](hyp:m).
 
 Built as a disjoint union of the singleton regimes `{A ← a}` and `{M ← m}`; the
 disjointness hypothesis uses `S.hAM : A ≠ M`. -/
@@ -95,54 +112,73 @@ noncomputable def regimeAM (a : Bool) (m : β) : Regime P.V P.X :=
     (Regime.single S.M (S.hMequiv.symm m))
     (Regime.single_disjoint_single S.hAM _ _)
 
-/-- For [a frontdoor system](hyp:S), [a treatment arm](hyp:a), and [a mediator value](hyp:m), the [joint potential outcome](goal) assigns to each unit the outcome under simultaneously fixing treatment and mediator to those values. -/
+/-- The [joint treatment–mediator potential outcome](goal) in [a frontdoor
+system](hyp:S) [records the response under simultaneous intervention](step:1) at
+[the selected treatment arm](hyp:a) and [mediator level](hyp:m); full mediation compares
+these outcomes across arms. -/
 noncomputable def YofAM (a : Bool) (m : β) : P.Ω → ℝ :=
   S.yVar.cf (S.regimeAM a m)
 
 /-! ### Factuals -/
 
-/-- For [a frontdoor system](hyp:S), the [factual treatment](goal) assigns each unit its observed binary treatment. -/
+/-- The [factual treatment](goal) in [a frontdoor system](hyp:S) [records each unit's
+observed treatment arm](step:1). -/
 noncomputable def factualA : P.Ω → Bool := S.aVar.factual
-/-- For [a frontdoor system](hyp:S), the [factual mediator](goal) assigns each unit its observed mediator value. -/
+/-- The [factual mediator](goal) in [a frontdoor system](hyp:S) [records each unit's
+observed mediator level](step:1). -/
 noncomputable def factualM : P.Ω → β    := S.mVar.factual
-/-- For [a frontdoor system](hyp:S), the [factual outcome](goal) assigns each unit its observed real outcome. -/
+/-- The [factual outcome](goal) in [a frontdoor system](hyp:S) [records each unit's
+observed real-valued response](step:1). -/
 noncomputable def factualY : P.Ω → ℝ    := S.yVar.factual
 
 /-! ### Measurability -/
 
-/-- Treatment-arm potential outcomes are measurable. -/
+/-- In [a frontdoor system](hyp:S), [the potential outcome under a treatment
+arm](hyp:a) is [measurable, so its population mean can define the total effect](goal). -/
 @[fun_prop]
 lemma measurable_YofA (a : Bool) : Measurable (S.YofA a) :=
   S.yVar.measurable_cfUnder S.aVar a
-/-- Treatment-arm potential mediators are measurable. -/
+/-- In [a frontdoor system](hyp:S), [the potential mediator under a treatment
+arm](hyp:a) is [measurable, so its distribution can weight the adjustment formula](goal). -/
 @[fun_prop]
 lemma measurable_MofA (a : Bool) : Measurable (S.MofA a) :=
   S.mVar.measurable_cfUnder S.aVar a
-/-- Joint treatment-mediator potential outcomes are measurable. -/
+/-- In [a frontdoor system](hyp:S), the potential outcome under [a treatment
+arm](hyp:a) and [mediator level](hyp:m) is [measurable, so joint-intervention means are
+well-defined](goal). -/
 @[fun_prop]
 lemma measurable_YofAM (a : Bool) (m : β) : Measurable (S.YofAM a m) :=
   S.yVar.measurable_cf _
-/-- The observed treatment is measurable. -/
+/-- [Observed treatment in a frontdoor system](hyp:S) is [measurable, so treatment-arm
+events and probabilities are well-defined](goal). -/
 @[fun_prop]
 lemma measurable_factualA : Measurable S.factualA := S.aVar.measurable_factual
-/-- The observed mediator is measurable. -/
+/-- [The observed mediator in a frontdoor system](hyp:S) is [measurable, so mediator
+cells can be used in the adjustment formula](goal). -/
 @[fun_prop]
 lemma measurable_factualM : Measurable S.factualM := S.mVar.measurable_factual
-/-- The observed outcome is measurable. -/
+/-- [Observed outcome in a frontdoor system](hyp:S) is [measurable, so treatment–mediator
+cell means are valid](goal). -/
 @[fun_prop]
 lemma measurable_factualY : Measurable S.factualY := S.yVar.measurable_factual
 
 /-! ### Events and indicators -/
 
-/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [treatment event](goal) is the set of units whose observed treatment equals that arm. -/
+/-- The [observed treatment group](goal) in [a frontdoor system](hyp:S) [collects units
+whose realized treatment matches the selected arm](step:1), with [that arm](hyp:a)
+indexing probabilities and conditional means. -/
 def aEvent (a : Bool) : Set P.Ω := S.aVar.event a
-/-- For [a frontdoor system](hyp:S) and [a mediator value](hyp:m), the [mediator event](goal) is the set of units whose observed mediator equals that value. -/
+/-- The [observed mediator cell](goal) in [a frontdoor system](hyp:S) [collects units
+whose realized mediator matches the selected level](step:1), with [that level](hyp:m)
+indexing the finite frontdoor sum. -/
 def mEvent (m : β) : Set P.Ω := S.mVar.event m
 
-/-- The factual treatment event for a treatment arm is measurable. -/
+/-- In [a frontdoor system](hyp:S), [an observed treatment arm](hyp:a) defines [a
+measurable event suitable for probabilities and conditional means](goal). -/
 lemma measurableSet_aEvent (a : Bool) : MeasurableSet (S.aEvent a) :=
   S.aVar.measurableSet_event _ (measurableSet_singleton _)
-/-- The factual mediator event for a mediator value is measurable. -/
+/-- In [a frontdoor system](hyp:S), [an observed mediator level](hyp:m) defines [a
+measurable event suitable for cell probabilities and conditional means](goal). -/
 lemma measurableSet_mEvent (m : β) : MeasurableSet (S.mEvent m) :=
   S.mVar.measurableSet_event _ (measurableSet_singleton _)
 
@@ -151,11 +187,15 @@ lemma measurableSet_mEvent (m : β) : MeasurableSet (S.mEvent m) :=
 The bundle `[M(true), M(false)]` is independent of factual `A`.  Sufficient for
 the marginal exchangeability statement `M(a) ⊥ A` for each `a`. -/
 
-/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [mediator under that treatment regime](goal) is the mediator potential outcome represented together with the intervention that fixes treatment to that arm. -/
+/-- The [regimed mediator](goal) in [a frontdoor system](hyp:S) [pairs the mediator with
+an intervention fixing treatment](step:1) to [the selected arm](hyp:a), so mediator
+exchangeability can be stated across treatment worlds. -/
 def mUnderA (a : Bool) : RegimedVar P β :=
   ⟨S.mVar, Regime.single S.A (S.hAbool.symm a)⟩
 
-/-- For [a frontdoor system](hyp:S), the [counterfactual mediator bundle](goal) consists of the mediator potential outcomes under treatment and control. -/
+/-- The [counterfactual mediator bundle](goal) for [a frontdoor system](hyp:S)
+[collects mediator responses under both treatment arms](step:1), allowing one joint
+treatment–mediator exchangeability assumption. -/
 noncomputable def mBundle : POCFBundle P :=
   POCFBundle.cons (S.mUnderA true) <|
   POCFBundle.cons (S.mUnderA false) <|
@@ -163,18 +203,26 @@ noncomputable def mBundle : POCFBundle P :=
 
 /-! ### Observable functionals -/
 
-/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [treatment-arm probability](goal) is the probability that the observed treatment equals that arm. -/
+/-- The [observed treatment-arm probability](goal) in [a frontdoor system](hyp:S)
+[measures the population share receiving the selected arm](step:1), with [that
+arm](hyp:a) weighting mediator-specific outcome means. -/
 noncomputable def pA (a : Bool) : ℝ := (P.μ (S.aEvent a)).toReal
 
-/-- For [a frontdoor system](hyp:S), [a mediator value](hyp:m), and [a treatment arm](hyp:a), the [conditional mediator probability](goal) is the event-conditional probability that the observed mediator equals that value given that observed treatment equals that arm. -/
+/-- The [mediator distribution within a treatment arm](goal) in [a frontdoor
+system](hyp:S) [is the conditional probability of the selected mediator cell](step:1),
+for [the mediator level](hyp:m) and [observed treatment arm](hyp:a) used in adjustment. -/
 noncomputable def pMgivenA (m : β) (a : Bool) : ℝ :=
-  eventCondExp P.μ (S.aEvent a) (S.mVar.indicator m)
+  normalizedRestrictedIntegral P.μ (S.aEvent a) (S.mVar.indicator m)
 
-/-- For [a frontdoor system](hyp:S), [a treatment arm](hyp:a), and [a mediator value](hyp:m), the [conditional outcome mean](goal) is the event-conditional mean of the observed outcome among units with that observed treatment and mediator value. -/
+/-- The [observed treatment–mediator cell mean](goal) in [a frontdoor system](hyp:S)
+[averages outcomes among units in the selected joint cell](step:1), indexed by
+[treatment arm](hyp:a) and [mediator level](hyp:m). -/
 noncomputable def EYgivenAM (a : Bool) (m : β) : ℝ :=
-  eventCondExp P.μ (S.aEvent a ∩ S.mEvent m) S.factualY
+  normalizedRestrictedIntegral P.μ (S.aEvent a ∩ S.mEvent m) S.factualY
 
-/-- For [a frontdoor system](hyp:S) and [a treatment arm](hyp:a), the [frontdoor-adjusted functional](goal) is the finite sum over mediator values of the treatment-probability-weighted conditional outcome means, weighted by the mediator distribution conditional on that arm.
+/-- The [frontdoor-adjusted mean under a treatment arm](goal) in [a frontdoor
+system](hyp:S) [averages treatment-weighted outcome regressions over the arm-specific
+mediator distribution](step:1), with [the arm](hyp:a) entering through that distribution.
 
     ∑ₘ (E[Y|A=1,M=m]·P(A=1) + E[Y|A=0,M=m]·P(A=0)) · P(M=m|A=a). -/
 noncomputable def frontdoorTerm (a : Bool) : ℝ :=
@@ -182,17 +230,21 @@ noncomputable def frontdoorTerm (a : Bool) : ℝ :=
     (S.EYgivenAM true m * S.pA true + S.EYgivenAM false m * S.pA false)
       * S.pMgivenA m a
 
-/-- For [a frontdoor system](hyp:S), the [average treatment effect](goal) is the population mean of the difference between each unit's potential outcome under treatment and under control. -/
+/-- The [average treatment effect](goal) in [a frontdoor system](hyp:S) [averages each
+unit's treated-minus-control potential-outcome contrast](step:1). -/
 noncomputable def ATE : ℝ := ∫ ω, S.YofA true ω - S.YofA false ω ∂P.μ
 
-/-- For [a frontdoor system](hyp:S), the [observable frontdoor-adjusted average treatment effect](goal) is the frontdoor-adjusted functional under treatment minus that under control. -/
+/-- The [observable frontdoor-adjusted ATE](goal) in [a frontdoor system](hyp:S)
+[contrasts the adjusted mean under treatment with the adjusted mean under control](step:1). -/
 noncomputable def frontdoorATE : ℝ := S.frontdoorTerm true - S.frontdoorTerm false
 
 /-! ### Assumptions (def:po-frontdoor-ate-assumptions) -/
 
-/-- **Frontdoor identifying assumptions.** Bundles, for a frontdoor system, [consistency of the
-underlying potential-outcome system](hyp:consistency), [the full-mediation exclusion restriction
-that the two-treatment-and-mediator outcome does not depend on the treatment
+/-- **Frontdoor identifying assumptions.** Bundles, for a frontdoor system, [factual
+consistency of the underlying potential-outcome system](hyp:consistency),
+[composition consistency for the nested treatment–mediator
+regimes](hyp:compositionConsistency), [the full-mediation exclusion restriction that the
+two-treatment-and-mediator outcome does not depend on the treatment
 arm](hyp:fullMediation), [treatment–mediator exchangeability](hyp:exch_AM), [mediator–outcome
 exchangeability within treatment arms](hyp:exch_MY), [positivity of each treatment
 arm](hyp:posA), [positivity of the mediator within the support of its counterfactual under a
@@ -200,8 +252,10 @@ treatment arm](hyp:posAM), [cross-world independence of the counterfactual media
 full-mediation outcome](hyp:indep_Y_M), and [integrability of the treatment-arm and joint
 treatment–mediator potential outcomes](hyp:integrable_YofA,integrable_YofAM). -/
 structure Assumptions (S : POFrontdoorSystem P β) : Prop where
-  /-- Consistency axiom for the ambient PO system. -/
+  /-- Factual consistency assumption for the ambient PO system. -/
   consistency : P.Consistency
+  /-- Composition consistency assumption for nested treatment–mediator regimes. -/
+  compositionConsistency : P.CompositionConsistency
   /-- **Full mediation / exclusion restriction:** `Y(a,m) = Y(a',m)` a.s. for all
   `a, a' ∈ {0,1}` and `m ∈ β`. -/
   fullMediation :
@@ -212,15 +266,15 @@ structure Assumptions (S : POFrontdoorSystem P β) : Prop where
   /-- **Mediator–outcome exchangeability within treatment arms:** for mediator
   values in the support of `M(a)`, and each treatment arm `a'`, the conditional
   law of `Y(m)` (= any `Y(a,m)` by full mediation) on `{A = a'} ∩ {M = m}`
-  equals its conditional law on `{A = a'}`.  Stated at the `eventCondExp` level
+  equals its conditional law on `{A = a'}`.  Stated at the `normalizedRestrictedIntegral` level
   (discrete form, matching Manski/LATE style), and gated by positive `M(a)` mass
   so zero-probability mediator cells need no exchangeability assumption. -/
   exch_MY :
     ∀ (a : Bool) (m : β),
       0 < P.μ ({ω | S.MofA a ω = m}) →
       ∀ a' : Bool,
-      eventCondExp P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM true m)
-        = eventCondExp P.μ (S.aEvent a') (S.YofAM true m)
+      normalizedRestrictedIntegral P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM true m)
+        = normalizedRestrictedIntegral P.μ (S.aEvent a') (S.YofAM true m)
   /-- **Positivity (treatment):** `P(A = a) > 0`. -/
   posA : ∀ a : Bool, 0 < P.μ (S.aEvent a)
   /-- **Positivity (mediator within support of `M(a)`):** if `P(M(a) = m) > 0`,
@@ -283,8 +337,10 @@ lemma YofAM_eq_factualY_on_aMEvent (hC : P.Consistency) (a : Bool) (m : β)
   exact POVar.cf_eq_factual_of_factualAgrees hC S.yVar (S.regimeAM a m)
     h_notmem ω hAgrees
 
-/-- The observed outcome is integrable when all joint treatment-mediator
-potential outcomes are integrable and consistency holds. -/
+/-- In [a frontdoor system](hyp:S), [consistency](hyp:hC) and [integrability of every
+joint treatment–mediator potential outcome](hyp:hY) imply that [the observed outcome has
+a finite population mean](goal); the observed treatment–mediator cell selects one of the
+integrable counterfactuals. -/
 lemma integrable_factualY_of_consistency_integrable_YofAM
     (hC : P.Consistency)
     (hY : ∀ (a : Bool) (m : β), Integrable (S.YofAM a m) P.μ) :
@@ -357,9 +413,9 @@ end Assumptions
 event `{M(a) = m}`, `Y(a, m)(ω) = Y(a)(ω)`.
 
 This is the potential-outcome version of `Y(a) = Y(a, M(a))` a.s.  We apply
-`POSystem.Consistency.composition` with `r₁ = {A ← a}`, `r₂ = {M ← m}`, and the
+`POSystem.CompositionConsistency.composition` with `r₁ = {A ← a}`, `r₂ = {M ← m}`, and the
 hypothesis that `M` already takes value `m` under `r₁` (i.e. on `{M(a) = m}`). -/
-lemma YofAM_eq_YofA_on_MofA_event (hC : P.Consistency) (a : Bool) (m : β)
+lemma YofAM_eq_YofA_on_MofA_event (hC : P.CompositionConsistency) (a : Bool) (m : β)
     {ω : P.Ω} (hω : S.MofA a ω = m) :
     S.YofAM a m ω = S.YofA a ω := by
   -- Disjointness of the two single-target regimes.
@@ -431,30 +487,22 @@ lemma integral_eq_sum_integral_MofA (f : P.Ω → ℝ) (hf : Integrable f P.μ)
     MeasureTheory.integral_iUnion_fintype hmeas hdisj hintOn
   rw [← setIntegral_univ, ← hcov, hsplit]
 
-/-- **Bool-partition tower identity for `eventCondExp`.** -/
+/-- **Bool-partition tower identity for `normalizedRestrictedIntegral`.** -/
 lemma integral_eq_sum_eventCondExp_aEvent (g : P.Ω → ℝ) (hg : Integrable g P.μ) :
     ∫ ω, g ω ∂P.μ
       = ∑ a' : Bool,
-          eventCondExp P.μ (S.aEvent a') g * (P.μ (S.aEvent a')).toReal := by
+          normalizedRestrictedIntegral P.μ (S.aEvent a') g * (P.μ (S.aEvent a')).toReal := by
   -- Rewrite each RHS term as a set integral.
   have hterm : ∀ a' : Bool,
-      eventCondExp P.μ (S.aEvent a') g * (P.μ (S.aEvent a')).toReal
+      normalizedRestrictedIntegral P.μ (S.aEvent a') g * (P.μ (S.aEvent a')).toReal
         = ∫ ω in S.aEvent a', g ω ∂P.μ := by
     intro a'
-    unfold eventCondExp
-    by_cases h0 : (P.μ (S.aEvent a')).toReal = 0
-    · -- Both sides are 0.
-      rw [h0, mul_zero]
-      have hμ0 : P.μ (S.aEvent a') = 0 := by
-        rcases (ENNReal.toReal_eq_zero_iff _).mp h0 with h | h
-        · exact h
-        · exact absurd h (measure_ne_top _ _)
-      exact (MeasureTheory.setIntegral_measure_zero g hμ0).symm
-    · field_simp
+    exact eventCondExp_mul_measure_toReal P.μ (S.aEvent a')
+      (measure_ne_top _ _) g
   -- Swap the sum to set-integrals.
   have hsum :
       ∑ a' : Bool,
-          eventCondExp P.μ (S.aEvent a') g * (P.μ (S.aEvent a')).toReal
+          normalizedRestrictedIntegral P.μ (S.aEvent a') g * (P.μ (S.aEvent a')).toReal
         = ∑ a' : Bool, ∫ ω in S.aEvent a', g ω ∂P.μ := by
     exact Finset.sum_congr rfl (fun a' _ => hterm a')
   rw [hsum]
@@ -485,11 +533,11 @@ lemma integral_eq_sum_eventCondExp_aEvent (g : P.Ω → ℝ) (hg : Integrable g 
 
 variable (S)
 
-/-- **Frontdoor identification (individual regime).** Under [the frontdoor
-identifying assumption bundle](hyp:hA), for each treatment arm `a`, [the mean
-potential outcome under arm `a` equals the frontdoor functional
-`frontdoorTerm(a)`, built from the mediator distribution given `a` and the
-outcome regression on mediator and treatment](goal).
+/-- **Frontdoor identification (individual regime).** In [a frontdoor
+system](hyp:S), [the mean potential outcome under the selected arm equals its
+frontdoor functional](goal) for [the treatment arm](hyp:a), under [the frontdoor
+identifying assumption bundle](hyp:hA). The functional combines the arm-specific mediator
+distribution with the outcome regression on mediator and treatment.
 
 The proof follows the frontdoor identification sketch:
 
@@ -561,7 +609,8 @@ theorem EofY_eq_frontdoorTerm (hA : S.Assumptions) (a : Bool) :
       S.pMgivenA m a =
         (P.μ (S.aEvent a ∩ S.mEvent m)).toReal / (P.μ (S.aEvent a)).toReal := by
     intro m
-    unfold pMgivenA eventCondExp
+    unfold pMgivenA
+    rw [eventCondExp_eq]
     rw [hIndM]
     rw [MeasureTheory.setIntegral_indicator (S.measurableSet_mEvent m)]
     rw [MeasureTheory.setIntegral_one_eq_measureReal]
@@ -597,27 +646,23 @@ theorem EofY_eq_frontdoorTerm (hA : S.Assumptions) (a : Bool) :
     have hYeq : ∀ ω ∈ S.aEvent a' ∩ S.mEvent m,
         S.YofAM a' m ω = S.factualY ω :=
       fun ω hω => YofAM_eq_factualY_on_aMEvent hA.consistency a' m hω
-    -- eventCondExp (aEvent a' ∩ mEvent m) (YofAM true m)
-    --   = eventCondExp (aEvent a' ∩ mEvent m) (YofAM a' m)  [full mediation a.e.]
-    --   = eventCondExp (aEvent a' ∩ mEvent m) factualY      [consistency on event]
+    -- normalizedRestrictedIntegral (aEvent a' ∩ mEvent m) (YofAM true m)
+    --   = normalizedRestrictedIntegral (aEvent a' ∩ mEvent m) (YofAM a' m)  [full mediation a.e.]
+    --   = normalizedRestrictedIntegral (aEvent a' ∩ mEvent m) factualY      [consistency on event]
     have hcongr_ae :
-        eventCondExp P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM true m)
-          = eventCondExp P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM a' m) := by
-      unfold eventCondExp
-      congr 1
-      refine MeasureTheory.integral_congr_ae ?_
-      exact (Filter.EventuallyEq.filter_mono (hA.fullMediation true a' m)
-              MeasureTheory.ae_restrict_le)
+        normalizedRestrictedIntegral P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM true m)
+          = normalizedRestrictedIntegral P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM a' m) := by
+      exact eventCondExp_congr_ae P.μ _
+        (Filter.EventuallyEq.filter_mono (hA.fullMediation true a' m)
+          MeasureTheory.ae_restrict_le)
     have hcongr_event :
-        eventCondExp P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM a' m)
-          = eventCondExp P.μ (S.aEvent a' ∩ S.mEvent m) S.factualY := by
-      unfold eventCondExp
-      congr 1
-      refine MeasureTheory.setIntegral_congr_fun
-        ((S.measurableSet_aEvent a').inter (S.measurableSet_mEvent m)) ?_
-      exact hYeq
+        normalizedRestrictedIntegral P.μ (S.aEvent a' ∩ S.mEvent m) (S.YofAM a' m)
+          = normalizedRestrictedIntegral P.μ (S.aEvent a' ∩ S.mEvent m) S.factualY := by
+      exact eventCondExp_congr_on P.μ
+        ((S.measurableSet_aEvent a').inter (S.measurableSet_mEvent m)) hYeq
     rw [hcongr_ae, hcongr_event]
-    -- Now the goal is EYgivenAM a' m * pA a' = eventCondExp ... factualY * μ(aEvent a').toReal.
+    -- The goal now identifies the weighted cell mean with the normalized
+    -- restricted integral times the treatment-cell mass.
     unfold EYgivenAM pA
     ring
   -- ───────────────────────────────────────────────────────────────────────────
@@ -643,7 +688,7 @@ theorem EofY_eq_frontdoorTerm (hA : S.Assumptions) (a : Bool) :
       -- identity (on mSet m) with a.e. full mediation, restricted.
       have h_comp_on : ∀ ω ∈ mSet m, S.YofA a ω = S.YofAM a m ω := by
         intro ω hω
-        exact (YofAM_eq_YofA_on_MofA_event hA.consistency a m hω).symm
+        exact (YofAM_eq_YofA_on_MofA_event hA.compositionConsistency a m hω).symm
       -- YofAM a m =ᵐ[μ] YofAM true m.
       have h_fm := (hA.fullMediation a true m).symm  -- YofAM true m =ᵐ YofAM a m
       -- Combine: for almost every ω in mSet m, YofA a ω = YofAM true m ω.
@@ -697,7 +742,8 @@ theorem EofY_eq_frontdoorTerm (hA : S.Assumptions) (a : Bool) :
   rw [Fintype.sum_bool]
   ring
 
-/-- **Frontdoor identification of the ATE.** Under [the frontdoor identifying
+/-- **Frontdoor identification of the ATE.** In [a frontdoor system](hyp:S), under
+[the frontdoor identifying
 assumption bundle](hyp:hA), [the average treatment effect equals the frontdoor
 estimand `frontdoorATE`, the difference of the frontdoor functional evaluated
 at the two treatment arms](goal).

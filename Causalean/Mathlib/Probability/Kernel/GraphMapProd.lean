@@ -4,10 +4,11 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
 
-import Mathlib.Probability.Kernel.CompProdEqIff
-import Mathlib.Probability.Kernel.Composition.MeasureCompProd
-import Mathlib.Probability.Kernel.Composition.Prod
-import Mathlib.Probability.Kernel.Composition.Lemmas
+module
+public import Mathlib.Probability.Kernel.CompProdEqIff
+public import Mathlib.Probability.Kernel.Composition.MeasureCompProd
+public import Mathlib.Probability.Kernel.Composition.Prod
+public import Mathlib.Probability.Kernel.Composition.Lemmas
 
 /-!
 # The graph push-forward of a product measure is a composition product
@@ -23,6 +24,8 @@ mechanism gives an environment-invariant conditional law": the predictor margina
 is `α`, the exogenous-noise law is `νₗ`, the mechanism is `Φ`, and the resulting
 conditional law of the response given the predictor is the kernel `κ`.
 -/
+
+@[expose] public section
 
 namespace Causalean.Mathlib.GraphMapProd
 

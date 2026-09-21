@@ -3,21 +3,25 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import Causalean.Experimentation.DesignBased.DesignCore
-import Causalean.Experimentation.DesignBased.GaussianCDF
-import Mathlib.Order.LiminfLimsup
+
+module
+public import Causalean.Stat.FiniteDesign.DesignCore
+public import Causalean.Experimentation.DesignBased.GaussianCDF
+public import Mathlib.Order.LiminfLimsup
 
 /-!
 # Design-based conservative Wald-interval coverage
 
 A paper-agnostic asymptotic-coverage transfer for two-sided Wald intervals built from a
-*deterministic conservative* standard error. It is stated over abstract per-stage sequences — a
+*random feasible* standard error. It is stated over abstract per-stage sequences — a
 design `D n`, an estimator `est n`, a target `θ n`, the true variance scale `v n`, a conservative
 (dominating) variance `v̂ n`, and the normalization size `m n` — so every design-based paper with a
 studentized CLT and a conservative variance estimator can instantiate it in one line instead of
 re-cloning the liminf/`Pr_split`/coverage argument (as the exposure-mapping, two-stage, and
 bipartite-interference formalizations each previously did).
 -/
+
+public section
 
 open scoped BigOperators Topology
 open Filter
@@ -42,6 +46,7 @@ asymptotic (liminf) coverage at least `1 − α`](goal).
 The dominating conservative variance is what makes the interval *conservative*: replacing the true
 `v n` by the larger `v̂ n` only widens it, so the standard-normal coverage limit becomes a lower
 bound on the realized coverage. -/
+@[deprecated "Use the feasible random-variance coverage theorem." (since := "2026-09-17")]
 lemma conservative_wald_liminf_of_studentized_cdf
     (D : ∀ n, FiniteDesign (Ω n))
     (est : ∀ n, Ω n → ℝ) (θ v vhat m : ℕ → ℝ)
@@ -233,6 +238,141 @@ lemma finiteDesign_symmetricBand_tendsto (D : ∀ n, FiniteDesign (Ω n))
   rcases abs_lt.1 hnLd with ⟨hnLdlo, hnLdhi⟩
   rcases abs_lt.1 hFd with ⟨hFdlo, hFdhi⟩
   constructor <;> linarith
+
+/-- **Feasible conservative Wald-interval liminf coverage.** For [finite designs](hyp:D), [an
+estimator and target](hyp:est,θ), [positive normalization and oracle variance
+scales](hyp:m,v,hmpos,hvarpos),
+and [a random feasible variance estimator](hyp:vhat), suppose [its probability of undershooting
+`(1-η)v` tends to zero for every positive slack](hyp:hVhat). If [the oracle-studentized statistic
+has standard-normal CDF limits at every threshold](hyp:hclt), and [`z` is a nonnegative Gaussian
+quantile](hyp:hz0,hz), then [the random Wald interval based on `vhat` has coverage liminf at least
+`1-α`](goal). -/
+theorem conservative_wald_liminf_of_feasible_studentized_cdf
+    (D : ∀ n, FiniteDesign (Ω n))
+    (est : ∀ n, Ω n → ℝ) (θ v m : ℕ → ℝ)
+    (vhat : ∀ n, Ω n → ℝ)
+    (hmpos : ∀ n, 0 < m n) (hvarpos : ∀ n, 0 < v n)
+    (hVhat : ∀ η : ℝ, 0 < η → Tendsto (fun n =>
+      (D n).Pr (fun ω => vhat n ω < (1 - η) * v n)) atTop (𝓝 0))
+    (α z : ℝ)
+    (hclt : ∀ t : ℝ, Tendsto (fun n =>
+      (D n).Pr (fun ω =>
+        Real.sqrt (m n) * (est n ω - θ n) / Real.sqrt (v n) ≤ t))
+      atTop (𝓝 (stdNormalCdf t)))
+    (hz0 : 0 ≤ z) (hz : stdNormalCdf z = 1 - α / 2) :
+    1 - α ≤ liminf (fun n =>
+      (D n).Pr (fun ω =>
+        |θ n - est n ω| ≤ z * Real.sqrt (vhat n ω / m n))) atTop := by
+  classical
+  let T : ∀ n, Ω n → ℝ := fun n ω =>
+    Real.sqrt (m n) * (est n ω - θ n) / Real.sqrt (v n)
+  let I : ℕ → ℝ := fun n => (D n).Pr (fun ω =>
+    |θ n - est n ω| ≤ z * Real.sqrt (vhat n ω / m n))
+  have hIcobdd : IsCoboundedUnder (· ≥ ·) atTop I :=
+    isCoboundedUnder_ge_of_le atTop (x := (1 : ℝ)) (fun n => (D n).Pr_le_one _)
+  have key : ∀ η : ℝ, 0 < η → η < 1 →
+      2 * stdNormalCdf (z * Real.sqrt (1 - η)) - 1 ≤ liminf I atTop := by
+    intro η hη0 hη1
+    let c : ℝ := z * Real.sqrt (1 - η)
+    have h1m : 0 < 1 - η := by linarith
+    have hc : 0 ≤ c := mul_nonneg hz0 (Real.sqrt_nonneg _)
+    let B : ℕ → ℝ := fun n => (D n).Pr (fun ω => -c ≤ T n ω ∧ T n ω ≤ c)
+    let A : ℕ → ℝ := fun n => (D n).Pr (fun ω => vhat n ω < (1 - η) * v n)
+    have hB : Tendsto B atTop (𝓝 (stdNormalCdf c - stdNormalCdf (-c))) :=
+      finiteDesign_symmetricBand_tendsto D T stdNormalCdf
+        (fun x => by simpa [T] using hclt x) continuous_stdNormalCdf c hc
+    have hA : Tendsto A atTop (𝓝 0) := by simpa [A] using hVhat η hη0
+    have hstep : ∀ n, B n - A n ≤ I n := by
+      intro n
+      let Bad : Ω n → Prop := fun ω => vhat n ω < (1 - η) * v n
+      let Band : Ω n → Prop := fun ω => -c ≤ T n ω ∧ T n ω ≤ c
+      have hsplit := (D n).Pr_split Band Bad
+      have hbad : (D n).Pr (fun ω => Band ω ∧ Bad ω) ≤ A n := by
+        apply (D n).Pr_mono
+        exact fun _ h => h.2
+      have hremain : B n - A n ≤ (D n).Pr (fun ω => Band ω ∧ ¬ Bad ω) := by
+        have hBeq : B n = (D n).Pr (fun ω => Band ω ∧ Bad ω) +
+            (D n).Pr (fun ω => Band ω ∧ ¬ Bad ω) := by simpa [B] using hsplit
+        linarith
+      refine hremain.trans ?_
+      apply (D n).Pr_mono
+      intro ω hω
+      rcases hω with ⟨⟨hlo, hhi⟩, hgood⟩
+      change ¬ vhat n ω < (1 - η) * v n at hgood
+      rw [not_lt] at hgood
+      have habsT : |T n ω| ≤ c := abs_le.mpr ⟨hlo, hhi⟩
+      have hsqrtv : 0 < Real.sqrt (v n) := Real.sqrt_pos.mpr (hvarpos n)
+      have hsqrtm : 0 < Real.sqrt (m n) := Real.sqrt_pos.mpr (hmpos n)
+      have habsEst : |est n ω - θ n| ≤ c * Real.sqrt (v n) / Real.sqrt (m n) := by
+        change |Real.sqrt (m n) * (est n ω - θ n) / Real.sqrt (v n)| ≤ c at habsT
+        rw [abs_div, abs_mul, abs_of_pos hsqrtv,
+          abs_of_nonneg (Real.sqrt_nonneg _), div_le_iff₀ hsqrtv] at habsT
+        have hmul : Real.sqrt (m n) * |est n ω - θ n| ≤ c * Real.sqrt (v n) := by
+          simpa [mul_comm, mul_left_comm, mul_assoc] using habsT
+        exact (le_div_iff₀ hsqrtm).2 (by
+          simpa [mul_comm, mul_left_comm, mul_assoc] using hmul)
+      have hscaleEq : c * Real.sqrt (v n) / Real.sqrt (m n) =
+          z * Real.sqrt (((1 - η) * v n) / m n) := by
+        rw [show c = z * Real.sqrt (1 - η) by rfl, mul_assoc,
+          ← Real.sqrt_mul h1m.le]
+        calc
+          z * Real.sqrt ((1 - η) * v n) / Real.sqrt (m n) =
+              z * (Real.sqrt ((1 - η) * v n) / Real.sqrt (m n)) := by ring
+          _ = z * Real.sqrt (((1 - η) * v n) / m n) := by
+            rw [Real.sqrt_div (mul_nonneg h1m.le (hvarpos n).le)]
+      have hratio : ((1 - η) * v n) / m n ≤ vhat n ω / m n :=
+        div_le_div_of_nonneg_right hgood (hmpos n).le
+      have hscale : c * Real.sqrt (v n) / Real.sqrt (m n) ≤
+          z * Real.sqrt (vhat n ω / m n) := by
+        rw [hscaleEq]
+        exact mul_le_mul_of_nonneg_left (Real.sqrt_le_sqrt hratio) hz0
+      rw [abs_sub_comm]
+      exact habsEst.trans hscale
+    have hBA : Tendsto (fun n => B n - A n) atTop
+        (𝓝 (stdNormalCdf c - stdNormalCdf (-c))) := by simpa using hB.sub hA
+    have hbelow : IsBoundedUnder (· ≥ ·) atTop (fun n => B n - A n) :=
+      hBA.isBoundedUnder_ge
+    have hliminf : stdNormalCdf c - stdNormalCdf (-c) ≤ liminf I atTop := by
+      calc
+        stdNormalCdf c - stdNormalCdf (-c) = liminf (fun n => B n - A n) atTop :=
+          hBA.liminf_eq.symm
+        _ ≤ liminf I atTop :=
+          Filter.liminf_le_liminf (Filter.Eventually.of_forall hstep) hbelow hIcobdd
+    calc
+      2 * stdNormalCdf (z * Real.sqrt (1 - η)) - 1
+          = stdNormalCdf c - stdNormalCdf (-c) := by
+            rw [stdNormalCdf_neg c]
+            simp [c]
+            ring
+      _ ≤ liminf I atTop := hliminf
+  let g : ℝ → ℝ := fun η => 2 * stdNormalCdf (z * Real.sqrt (1 - η)) - 1
+  have hg : Tendsto g (𝓝 0) (𝓝 (1 - α)) := by
+    have hsqrt : Tendsto (fun η : ℝ => Real.sqrt (1 - η)) (𝓝 0) (𝓝 1) := by
+      have hsub : Tendsto (fun η : ℝ => (1 : ℝ) - η) (𝓝 0) (𝓝 ((1 : ℝ) - 0)) :=
+        tendsto_const_nhds.sub tendsto_id
+      rw [sub_zero] at hsub
+      have hs := (Real.continuous_sqrt.tendsto (1 : ℝ)).comp hsub
+      rw [Real.sqrt_one] at hs
+      exact hs
+    have harg : Tendsto (fun η : ℝ => z * Real.sqrt (1 - η)) (𝓝 0) (𝓝 z) := by
+      simpa using tendsto_const_nhds.mul hsqrt
+    have hPhi := (continuous_stdNormalCdf.tendsto z).comp harg
+    have hg' : Tendsto g (𝓝 0) (𝓝 (2 * stdNormalCdf z - 1)) := by
+      simpa [g] using (tendsto_const_nhds.mul hPhi).sub tendsto_const_nhds
+    have : 2 * stdNormalCdf z - 1 = 1 - α := by rw [hz]; ring
+    rwa [this] at hg'
+  have hseq : Tendsto (fun k : ℕ => (1 : ℝ) / (k + 1)) atTop (𝓝 0) :=
+    tendsto_one_div_add_atTop_nhds_zero_nat
+  have hgseq : Tendsto (fun k : ℕ => g (1 / (k + 1))) atTop (𝓝 (1 - α)) := hg.comp hseq
+  have hev : ∀ᶠ k : ℕ in atTop, g (1 / (k + 1)) ≤ liminf I atTop := by
+    rw [Filter.eventually_atTop]
+    refine ⟨1, fun k hk => ?_⟩
+    have hk1 : (1 : ℝ) ≤ k := by exact_mod_cast hk
+    have hden : (0 : ℝ) < k + 1 := by linarith
+    have hpos : (0 : ℝ) < 1 / (k + 1) := by positivity
+    have hlt : (1 : ℝ) / (k + 1) < 1 := by rw [div_lt_one hden]; linarith
+    simpa [g] using key (1 / (k + 1)) hpos hlt
+  exact le_of_tendsto hgseq hev
 
 end DesignBased
 end Experimentation

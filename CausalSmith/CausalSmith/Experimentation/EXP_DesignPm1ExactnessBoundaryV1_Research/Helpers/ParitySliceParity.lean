@@ -3,7 +3,9 @@ Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
 -/
-import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceVertices
+
+module
+public import CausalSmith.Experimentation.EXP_DesignPm1ExactnessBoundaryV1_Research.Helpers.ParitySliceVertices
 
 set_option linter.style.longLine false
 set_option linter.unusedSimpArgs false
@@ -20,6 +22,8 @@ the two extra parity vertices
 An arbitrary quadrilateral point is the convex combination of the four vertices
 `cut, all, pcut, pall` with the outer/inner-edge weights `λμ, λ(1−μ), (1−λ)μ,
 (1−λ)(1−μ)`, `μ = y/(y+z)`, `λ = ((y+z)−2/m)/(2m−2/m)`. -/
+
+@[expose] public section
 
 namespace CausalSmith.Experimentation.DesignPm1
 

@@ -6,8 +6,11 @@ Authors: Jiyuan Tan
 # Finite coordinates for the retained parameter band
 -/
 
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AffineSpaceDimension
-import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiberDimensionDefs
+module
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.AffineSpaceDimension
+public import CausalSmith.ExactID.EID_LingamDirectionMinOrderV1_Research.Helpers.FiberDimensionDefs
+
+@[expose] public section
 
 namespace CausalSmith.ExactID.EID_LingamDirectionMinOrderV1
 

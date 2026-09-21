@@ -2,63 +2,31 @@
 Copyright (c) 2026 Jiyuan Tan. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jiyuan Tan
-
-# Bretagnolle–Huber inequality: testing affinity floored by `exp(-KL)`
-
-The **Bretagnolle–Huber inequality** (Bretagnolle & Huber, 1979) bounds the
-two-point testing affinity `1 - tvDist μ ν` from below by `½·exp(-KL(μ,ν))`.  It
-is the arbitrary-budget strengthening of Pinsker's inequality
-(`Causalean/Stat/Minimax/Pinsker.lean`): Pinsker (`tvDist ≤ √(KL/2)`) yields a
-positive testing floor only when `KL < 2`, whereas Bretagnolle–Huber gives a
-positive floor for *every* finite KL budget.  It is the standard tool for Le Cam
-two-point minimax lower bounds whose construction operates at an `O(1)` (not
-vanishing) KL budget.
-
-Like Pinsker, the bare `∀` form is false (if `μ ⊥ ν` then `klDiv = ⊤`,
-`(⊤).toReal = 0`, so the left side is `½` while the affinity is `0`); the genuine
-hypotheses are `μ ≪ ν` and `klDiv μ ν ≠ ⊤`, exactly mirroring
-`pinskerBound_of_ac_of_ne_top`.
-
-## Proof route (the Bhattacharyya/Hellinger affinity layer, built here)
-
-Write `p = (dμ/dν).toReal` and `ρ = ∫ √p ∂ν` (the Bhattacharyya/Hellinger
-affinity).  Then:
-
-* **Affinity lower bound** (`integral_min_le_one_sub_tvDist`):
-  `∫ min(p,1) ∂ν ≤ 1 - tvDist μ ν`, from the Scheffé `≤` inequality
-  (`tvDist_le_half_integral_abs_rnDeriv`) and `∫ min(p,1) ∂ν = 1 - ½∫|p-1|∂ν`.
-* **Cauchy–Schwarz** (`sq_bhattacharyya_le_two_mul_integral_min`):
-  `ρ² ≤ 2·∫ min(p,1) ∂ν`, since `(∫√(min·max))² ≤ (∫min)(∫max)` and
-  `∫ max(p,1) ∂ν ≤ 2`.
-* **Jensen / Bhattacharyya** (`exp_neg_half_klDiv_le_bhattacharyya`):
-  `exp(-½·KL) ≤ ρ`, since `ρ = ∫ exp(-½·llr) ∂μ` (change of variables) and
-  `exp(∫ -½·llr ∂μ) ≤ ∫ exp(-½·llr) ∂μ` (Jensen, `convexOn_exp`).
-
-Chaining: `½·exp(-KL) ≤ ½·ρ² ≤ ∫ min(p,1) ∂ν ≤ 1 - tvDist μ ν`.
-
-## Main result
-
-* `bretagnolle_huber_affinity` — `½·exp(-(klDiv μ ν).toReal) ≤ 1 - tvDist μ ν`
-  for probability measures `μ ≪ ν` with `klDiv μ ν ≠ ⊤`.
 -/
 
-import Causalean.Stat.Minimax.Scheffe
-import Mathlib.InformationTheory.KullbackLeibler.Basic
-import Mathlib.MeasureTheory.Function.L2Space
-import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
-import Mathlib.Analysis.Convex.Integral
-import Mathlib.Analysis.Convex.SpecificFunctions.Basic
+module
+public import Causalean.Stat.Minimax.Scheffe
+public import Mathlib.InformationTheory.KullbackLeibler.Basic
+public import Mathlib.MeasureTheory.Function.L2Space
+public import Mathlib.MeasureTheory.Measure.Decomposition.RadonNikodym
+public import Mathlib.Analysis.Convex.Integral
+public import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 
-/-! # Bretagnolle-Huber inequality
+/-! # Exponential KL lower bound for testing affinity
 
 This module builds the Bhattacharyya/Hellinger affinity layer used to prove the
-Bretagnolle-Huber inequality.  The auxiliary results
+exponential testing-affinity bound often called Tsybakov's version of the
+Bretagnolle-Huber inequality. The auxiliary results
 `integral_min_le_one_sub_tvDist`, `sq_bhattacharyya_le_two_mul_integral_min`,
 and `exp_neg_half_klDiv_le_bhattacharyya` combine Scheffe, Cauchy-Schwarz, and
 Jensen steps; the headline theorem `bretagnolle_huber_affinity` gives the
 two-point testing floor `1 - tvDist μ ν >= (1/2) * exp(-KL(μ,ν))` for absolutely
-continuous probability measures with finite KL divergence.
+continuous probability measures with finite KL divergence. This is weaker than
+the square-root Bretagnolle-Huber bound, but it is the form used by the module's
+Le Cam lower bounds.
 -/
+
+public section
 
 namespace Causalean.Stat
 
@@ -360,14 +328,14 @@ theorem exp_neg_half_klDiv_le_bhattacharyya (hac : μ ≪ ν)
 
 end Affinity
 
-/-- **Bretagnolle–Huber inequality.**  For probability measures `μ`, `ν` such that
+/-- **Exponential Bretagnolle-Huber/Tsybakov testing bound.** For probability measures `μ`, `ν` such that
 [`μ` is absolutely continuous with respect to `ν`](hyp:hac) and [their Kullback–Leibler
 divergence is finite](hyp:hfin), [the two-point testing affinity `1 − tvDist μ ν` is at least
 `½·exp(-KL(μ‖ν))`](goal):
 
   `(1/2)·exp(-(klDiv μ ν).toReal) ≤ 1 - tvDist μ ν`.
 
-Unlike Pinsker's inequality (`pinskerBound_of_ac_of_ne_top`), the floor is
+This weaker corollary of the square-root Bretagnolle-Huber inequality has a floor that is
 positive for *every* finite KL budget, so it powers Le Cam two-point lower bounds
 at an `O(1)` KL budget. -/
 theorem bretagnolle_huber_affinity (μ ν : Measure Ω)

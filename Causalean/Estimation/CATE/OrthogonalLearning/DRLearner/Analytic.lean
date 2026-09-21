@@ -30,14 +30,15 @@ The construction follows the natural-language proof of
 `prop:est-osl-dr-loss-orthogonal`
 (`doc/basic_concepts/po/estimation/orthogonal_statistical_learning.tex`,
 lines 143–160) and uses the σ(X)-conditional bias identity
-`phi_eta_minus_phi₀_cond_exp` from `Estimation/CATE/ConditionalBias.lean`
+`phi_eta_minus_phi₀_cond_exp` from `Estimation/CATE/Core/ConditionalBias.lean`
 together with the DR-corollary lemmas `condBias_zero_of_outcome_match`
 and `condBias_zero_of_propensity_match`.
 -/
 
-import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
-import Causalean.Estimation.CATE.Core.ConditionalBias
-import Causalean.Estimation.ATE.Score.MeanZero
+module
+public import Causalean.Estimation.CATE.OrthogonalLearning.DRLearner
+public import Causalean.Estimation.CATE.Core.ConditionalBias
+public import Causalean.Estimation.ATE.Score.MeanZero
 
 /-!
 Packages analytic derivative data for the DR-Learner orthogonal-learning
@@ -47,12 +48,16 @@ score-zero lemma `dr_scoreZero_of_bounded`, derives score flatness in
 `dr_scoreFlat`, and combines these ingredients in `drNeymanOrthog`.
 -/
 
+@[expose] public section
+
 namespace Causalean
 namespace Estimation
+namespace CATE
 namespace OrthogonalLearning
 
 open MeasureTheory ProbabilityTheory Filter Topology
   Causalean.PO Causalean.Estimation.ATE Causalean.Estimation.CATE
+  Causalean.Estimation.OrthogonalLearning
 
 /-! ## Directional-derivative bundle for the candidate-evaluation map -/
 
@@ -97,7 +102,7 @@ the value-difference `phi_eta z η - phi_eta z η₀` is *not* the directional
 derivative.  We therefore carry a separate hypothesis bundle supplying the
 pointwise dir-derivative of `phi_eta` at `g₀` in the nuisance direction
 `ν_g = η - g₀`.  Under strict overlap (`H_ε`), this derivative exists and
-admits the closed form
+has the closed form
 
     D_g phi_eta(z, g₀)[ν_g]
       =  (ν_g.μ_fn true X − ν_g.μ_fn false X)
@@ -339,8 +344,8 @@ private lemma integrable_phi_eta_dir_deriv_factualZ
     ring
   have hμ_val_int : ∀ d : Bool, Integrable (fun ω => S.μ_val d (X ω)) P.μ := by
     intro d
-    have hcate_int : Integrable (S.toPOBackdoorSystem.CATE d) P.μ := by
-      unfold POBackdoorSystem.CATE
+    have hcate_int : Integrable (S.toPOBackdoorSystem.conditionalMeanOutcome d) P.μ := by
+      unfold POBackdoorSystem.conditionalMeanOutcome
       exact MeasureTheory.integrable_condExp
     exact hcate_int.congr (S.μ_compat hA d)
   rcases h_v_μ_bdd with ⟨Cμ, hCμ⟩
@@ -793,5 +798,6 @@ theorem drNeymanOrthog
       eval eval_meas eval_θ₀ θ₀_minimizes D ND hBridge)
 
 end OrthogonalLearning
+end CATE
 end Estimation
 end Causalean

@@ -1,7 +1,8 @@
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.CitedInterfaces
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.VCExpectedMaximal
-import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.PopulationCoefficient
-import Causalean.Stat.Concentration.Matrix.IidSums
+module
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.CitedInterfaces
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.VCExpectedMaximal
+public import CausalSmith.Stat.STAT_BddUniformLogPenalty_Research.Causal.EmpiricalProcess.PopulationCoefficient
+public import Causalean.Stat.Concentration.Matrix.IidSums
 
 /-!
 # Expected maximal bound for the bounded winsorized score
@@ -10,6 +11,8 @@ The score-specific VC closure, envelope, and variance calculation are local.
 The final step calls the in-run `vcExpectedMaximalInequality`; there is no
 external empirical-process assumption.
 -/
+
+@[expose] public section
 
 open MeasureTheory Set
 open scoped BigOperators ENNReal

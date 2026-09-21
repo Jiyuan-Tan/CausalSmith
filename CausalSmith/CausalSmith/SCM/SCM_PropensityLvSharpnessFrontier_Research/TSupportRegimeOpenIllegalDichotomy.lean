@@ -1,6 +1,9 @@
-import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.OpenIllegal
+module
+public import CausalSmith.SCM.SCM_PropensityLvSharpnessFrontier_Research.Helpers.OpenIllegal
 
 /-! # Support-regime illegal-region dichotomy -/
+
+public section
 
 namespace CausalSmith.SCM.PropensityLvSharpnessFrontier
 

@@ -1,5 +1,6 @@
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenterCore
-import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenterUniform
+module
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenterCore
+public import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.BlockRepresenterUniform
 
 /-!
 # Block representer optimization and uniform bounds
@@ -7,6 +8,8 @@ import CausalSmith.Experimentation.EXP_SnipeDegreeFrontier_Research.Helpers.Bloc
 This file builds the optimization and uniform coefficient bounds on top of
 the finite Bernoulli identities in `BlockRepresenterCore`.
 -/
+
+public section
 
 open scoped BigOperators
 open Finset
